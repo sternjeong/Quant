@@ -1,0 +1,305 @@
+"""core/strategy_engine.py, core/indicators.py 단위 테스트 (합성 데이터 사용, 네트워크 불필요)."""
+
+import numpy as np
+import pandas as pd
+
+import core.strategy_engine as strategy_engine
+from core.indicators import (
+    compute_bollinger,
+    compute_engulfing,
+    compute_ichimoku,
+    compute_ma_cross,
+    compute_macd,
+    compute_rsi,
+)
+from core.strategy_engine import (
+    combine_conditions,
+    extract_staged_trades,
+    extract_trades,
+    generate_positions,
+    is_expression_config,
+    is_staged_config,
+    simulate_staged_positions,
+)
+
+
+def _make_engulfing_df():
+    """상승 인걸(1번 인덱스)과 하락 인걸(2번 인덱스) 패턴이 확실히 나오는 합성 OHLC."""
+    idx = pd.bdate_range("2022-01-03", periods=5)
+    opens = [10, 7, 12, 6.5, 6.2]
+    closes = [8, 11, 6, 6.2, 6.5]
+    highs = [max(o, c) + 0.5 for o, c in zip(opens, closes)]
+    lows = [min(o, c) - 0.5 for o, c in zip(opens, closes)]
+    return pd.DataFrame(
+        {"Open": opens, "High": highs, "Low": lows, "Close": closes, "Adj Close": closes, "Volume": 1_000_000},
+        index=idx,
+    )
+
+
+def _make_trending_df(n=200, start_price=100.0, seed=0):
+    """상승 후 하락하는 합성 OHLCV DataFrame (지표 계산 검증용)."""
+    rng = np.random.default_rng(seed)
+    idx = pd.bdate_range("2022-01-03", periods=n)
+    # 앞부분은 상승 추세, 뒷부분은 하락 추세로 만들어 골든/데드 크로스가 확실히 발생하게 함
+    trend = np.concatenate([np.linspace(0, 40, n // 2), np.linspace(40, -20, n - n // 2)])
+    noise = rng.normal(0, 0.5, n)
+    close = start_price + trend + noise
+    df = pd.DataFrame(
+        {
+            "Open": close,
+            "High": close + 1,
+            "Low": close - 1,
+            "Close": close,
+            "Adj Close": close,
+            "Volume": 1_000_000,
+        },
+        index=idx,
+    )
+    return df
+
+
+def test_compute_ma_cross_produces_golden_and_dead_signals():
+    df = _make_trending_df()
+    cross = compute_ma_cross(df, short=10, long=30)
+    assert cross["cross_up"].sum() >= 1  # 상승 추세 구간에서 골든크로스가 최소 1번 발생
+    assert cross["cross_down"].sum() >= 1  # 하락 추세 구간에서 데드크로스가 최소 1번 발생
+
+
+def test_compute_rsi_range():
+    df = _make_trending_df()
+    rsi = compute_rsi(df, period=14)
+    valid = rsi.dropna()
+    assert (valid >= 0).all() and (valid <= 100).all()
+
+
+def test_compute_bollinger_bands_order():
+    df = _make_trending_df()
+    bb = compute_bollinger(df, period=20, std_dev=2.0)
+    valid = bb.dropna()
+    assert (valid["upper"] >= valid["mid"]).all()
+    assert (valid["mid"] >= valid["lower"]).all()
+
+
+def test_compute_engulfing_detects_bullish_and_bearish_patterns():
+    df = _make_engulfing_df()
+    eng = compute_engulfing(df)
+    assert bool(eng["bullish"].iloc[1]) is True
+    assert bool(eng["bearish"].iloc[2]) is True
+    # 패턴이 아닌 자리에서는 False여야 한다
+    assert bool(eng["bullish"].iloc[0]) is False
+    assert bool(eng["bearish"].iloc[1]) is False
+
+
+def test_engulfing_condition_via_combine_conditions():
+    df = _make_engulfing_df()
+    bullish_signal = combine_conditions(
+        df, {"logic": "AND", "conditions": [{"indicator": "engulfing", "direction": "bullish"}]}
+    )
+    bearish_signal = combine_conditions(
+        df, {"logic": "AND", "conditions": [{"indicator": "engulfing", "direction": "bearish"}]}
+    )
+    assert bool(bullish_signal.iloc[1]) is True
+    assert bool(bearish_signal.iloc[2]) is True
+
+
+def test_combine_conditions_and_logic():
+    df = _make_trending_df()
+    config = {
+        "logic": "AND",
+        "conditions": [
+            {"indicator": "ma_cross", "short": 10, "long": 30, "type": "golden"},
+            {"indicator": "rsi", "period": 14, "op": ">", "value": 40},
+        ],
+    }
+    combined = combine_conditions(df, config)
+    assert combined.dtype == bool
+    # AND 결합이므로 개별 조건보다 True 인 날의 수가 같거나 적어야 한다
+    golden_only = combine_conditions(df, {"logic": "AND", "conditions": [config["conditions"][0]]})
+    assert combined.sum() <= golden_only.sum()
+
+
+def test_combine_conditions_empty_returns_all_false():
+    df = _make_trending_df()
+    combined = combine_conditions(df, {"logic": "AND", "conditions": []})
+    assert not combined.any()
+
+
+def test_is_expression_config_detects_expression_key():
+    assert is_expression_config({"expression": "close > 0"}) is True
+    assert is_expression_config({"logic": "AND", "conditions": []}) is False
+    assert is_expression_config({"entry_stages": []}) is False
+
+
+def test_generate_positions_dispatches_to_expression_engine():
+    df = _make_trending_df()
+    config = {"expression": "close > sma(close, 20)"}
+    position = generate_positions(df, config)
+    from core.indicators import sma
+
+    expected = (df["Close"] > sma(df["Close"], 20)).fillna(False).astype(int)
+    assert (position == expected).all()
+
+
+def test_generate_positions_and_extract_trades_roundtrip():
+    df = _make_trending_df()
+    config = {"logic": "AND", "conditions": [{"indicator": "ma_cross", "short": 10, "long": 30, "type": "golden"}]}
+    position = generate_positions(df, config)
+    assert set(position.unique()).issubset({0, 1})
+
+    trades = extract_trades(df, position)
+    # 매매가 있었다면 각 트레이드의 청산일이 진입일보다 이후여야 한다
+    for t in trades:
+        if t.exit_date is not None:
+            assert t.exit_date >= t.entry_date
+        assert t.return_pct is not None
+
+
+def _make_flat_df(n=6):
+    """모든 조건 신호를 combine_conditions 몫으로 완전히 통제하기 위한, 값 자체는 의미 없는 합성 DF."""
+    idx = pd.bdate_range("2022-01-03", periods=n)
+    close = [100.0] * n
+    return pd.DataFrame(
+        {"Open": close, "High": close, "Low": close, "Close": close, "Adj Close": close, "Volume": 1},
+        index=idx,
+    )
+
+
+def _patch_combine_conditions_sequence(monkeypatch, series_list):
+    """simulate_staged_positions 내부의 combine_conditions 호출을 호출 순서대로 지정한 Series로 대체한다.
+
+    entry_stages 조건들이 먼저(순서대로), 그다음 exit_stages 조건들이(순서대로), emergency_exit이
+    있으면 마지막에 딱 한 번씩만 호출되는 구현 순서에 의존한다(함수 최상단에서 리스트 컴프리헨션으로
+    한 번씩만 호출됨).
+    """
+    call_order = iter(series_list)
+    monkeypatch.setattr(strategy_engine, "combine_conditions", lambda df_arg, cfg: next(call_order))
+
+
+def test_simulate_staged_positions_last_exit_stage_closes_tag_beyond_exit_stage_count(monkeypatch):
+    """entry_stages(3개) > exit_stages(2개)이고 마지막 진입 단계로 직행해 태그 인덱스(3)가 exit_stages
+    범위를 벗어나도, 마지막 청산 단계 신호가 뜨면 emergency_exit 없이도 잔량이 정리돼야 한다.
+
+    수정 전에는 exit 루프가 range(1, n_exit+1)=range(1,3)까지만 태그를 확인해 태그 3은 절대
+    매칭되지 않았고, "마지막 단계면 잔량 전부 정리" 로직도 그 태그 자신이 열려있을 때만 도달 가능해
+    이 케이스에서 포지션이 emergency_exit 없이는 백테스트 끝까지 안 닫히는 버그가 있었다.
+    """
+    df = _make_flat_df(6)
+    idx = df.index
+    all_false = pd.Series([False] * 6, index=idx)
+    entry3_direct = pd.Series([True, False, False, False, False, False], index=idx)  # day0에 3단계 직행
+    exit2_fires = pd.Series([False, False, False, True, False, False], index=idx)  # day3에 마지막 청산 신호
+
+    _patch_combine_conditions_sequence(
+        monkeypatch,
+        [all_false, all_false, entry3_direct, all_false, exit2_fires],  # entry1,entry2,entry3,exit1,exit2
+    )
+
+    config = {
+        "entry_stages": [
+            {"weight": 0.1, "logic": "AND", "conditions": [{"indicator": "x1"}]},
+            {"weight": 0.2, "logic": "AND", "conditions": [{"indicator": "x2"}]},
+            {"weight": 0.6, "logic": "AND", "conditions": [{"indicator": "x3"}]},
+        ],
+        "exit_stages": [
+            {"weight": 0.1, "logic": "AND", "conditions": [{"indicator": "y1"}]},
+            {"weight": 0.2, "logic": "AND", "conditions": [{"indicator": "y2"}]},
+        ],
+    }
+
+    weight_signal, events = simulate_staged_positions(df, config)
+
+    assert weight_signal.iloc[0] == 0.6  # 3단계 직행 진입 직후 비중
+    assert weight_signal.iloc[3] == 0.0  # 마지막 청산 단계 신호로 잔량(태그3)까지 정리됨
+    exit_events = [e for e in events if e.kind == "exit"]
+    assert len(exit_events) == 1
+    assert exit_events[0].stage == 3
+    assert exit_events[0].weight == 0.6
+
+
+def test_simulate_staged_positions_partial_exit_only_closes_matching_tag(monkeypatch):
+    """마지막이 아닌 청산 단계는 자신과 인덱스가 같은 진입 태그만 개별적으로 정리해야 한다."""
+    df = _make_flat_df(6)
+    idx = df.index
+    all_false = pd.Series([False] * 6, index=idx)
+    entry1_day0 = pd.Series([True, False, False, False, False, False], index=idx)
+    entry2_day1 = pd.Series([False, True, False, False, False, False], index=idx)
+    exit1_day3 = pd.Series([False, False, False, True, False, False], index=idx)
+
+    _patch_combine_conditions_sequence(
+        monkeypatch,
+        [entry1_day0, entry2_day1, all_false, exit1_day3, all_false],  # entry1,entry2,entry3,exit1,exit2
+    )
+
+    config = {
+        "entry_stages": [
+            {"weight": 0.1, "logic": "AND", "conditions": [{"indicator": "x1"}]},
+            {"weight": 0.2, "logic": "AND", "conditions": [{"indicator": "x2"}]},
+            {"weight": 0.6, "logic": "AND", "conditions": [{"indicator": "x3"}]},
+        ],
+        "exit_stages": [
+            {"weight": 0.1, "logic": "AND", "conditions": [{"indicator": "y1"}]},
+            {"weight": 0.2, "logic": "AND", "conditions": [{"indicator": "y2"}]},
+        ],
+    }
+
+    weight_signal, events = simulate_staged_positions(df, config)
+
+    assert round(weight_signal.iloc[2], 9) == 0.3  # 1+2단계 진입 완료 후(청산 전) 비중
+    assert round(weight_signal.iloc[3], 9) == 0.2  # 1단계 태그만 청산되고 2단계는 유지
+    exit_events = [e for e in events if e.kind == "exit"]
+    assert len(exit_events) == 1
+    assert exit_events[0].stage == 1
+    assert exit_events[0].weight == 0.1
+
+
+def test_simulate_staged_positions_emergency_exit_clears_all_tags_regardless_of_stage(monkeypatch):
+    df = _make_flat_df(6)
+    idx = df.index
+    all_false = pd.Series([False] * 6, index=idx)
+    entry1_day0 = pd.Series([True, False, False, False, False, False], index=idx)
+    entry2_day1 = pd.Series([False, True, False, False, False, False], index=idx)
+    emergency_day2 = pd.Series([False, False, True, False, False, False], index=idx)
+
+    _patch_combine_conditions_sequence(
+        monkeypatch,
+        # entry1,entry2,entry3,exit1,exit2,emergency
+        [entry1_day0, entry2_day1, all_false, all_false, all_false, emergency_day2],
+    )
+
+    config = {
+        "entry_stages": [
+            {"weight": 0.1, "logic": "AND", "conditions": [{"indicator": "x1"}]},
+            {"weight": 0.2, "logic": "AND", "conditions": [{"indicator": "x2"}]},
+            {"weight": 0.6, "logic": "AND", "conditions": [{"indicator": "x3"}]},
+        ],
+        "exit_stages": [
+            {"weight": 0.1, "logic": "AND", "conditions": [{"indicator": "y1"}]},
+            {"weight": 0.2, "logic": "AND", "conditions": [{"indicator": "y2"}]},
+        ],
+        "emergency_exit": {"logic": "AND", "conditions": [{"indicator": "z"}]},
+    }
+
+    weight_signal, events = simulate_staged_positions(df, config)
+
+    assert round(weight_signal.iloc[2], 9) == 0.0
+    emergency_events = [e for e in events if e.kind == "emergency_exit"]
+    assert {e.stage for e in emergency_events} == {1, 2}
+    assert round(sum(e.weight for e in emergency_events), 9) == 0.3
+
+
+def test_extract_staged_trades_matches_average_weighted_prices():
+    df = _make_flat_df(6)
+    df = df.copy()
+    df["Close"] = [100.0, 101.0, 102.0, 103.0, 104.0, 105.0]
+    events = [
+        strategy_engine.StageEvent(df.index[0], "entry", 1, 0.4, 100.0),
+        strategy_engine.StageEvent(df.index[1], "entry", 2, 0.6, 101.0),
+        strategy_engine.StageEvent(df.index[4], "exit", 2, 1.0, 104.0),
+    ]
+    trades = extract_staged_trades(df, events)
+    assert len(trades) == 1
+    trade = trades[0]
+    # 체결가는 이벤트 다음 거래일 종가(lookahead 방지) — day0 다음날(101)/day1 다음날(102) 가중평균
+    expected_entry = (0.4 * 101.0 + 0.6 * 102.0) / 1.0
+    assert round(trade.entry_price, 6) == round(expected_entry, 6)
+    assert trade.exit_price == 105.0  # day4 다음날(=마지막 인덱스) 종가

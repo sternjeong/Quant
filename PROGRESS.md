@@ -1,0 +1,633 @@
+# 작업 진행 상황
+
+> 세션이 자주 끊기는 작업 환경이라, 새 Claude 세션을 시작하면 **이 파일을 가장 먼저 읽고**
+> "진행 중" 항목부터 이어서 작업할 것. 완료된 모듈은 `pytest` 로 회귀만 확인하고 건드리지 않는다.
+
+## 모듈 체크리스트 (SPEC.md 순서 A~H)
+
+| 모듈 | 상태 | core/ | app/pages/ | tests/ |
+|---|---|---|---|---|
+| A. 백테스팅 엔진 | ✅ 완료 | backtest_engine.py, strategy_engine.py, indicators.py, nl_strategy.py, expression_engine.py | 1_백테스팅.py | test_backtest_engine.py, test_strategy_engine.py, test_expression_engine.py |
+| B. Threads 요약(+주간 인사이트 리포트) | ✅ 완료 | threads_summary.py, models.py(ThreadsWeeklyReport 추가) | 2_Threads_요약.py | test_threads_summary.py |
+| C. 관심 티커 + 타점 모니터링 | ✅ 완료 | watchlist.py, notify.py | 3_관심종목_모니터링.py | test_watchlist.py |
+| D. 거장 포트폴리오 추종 | ✅ 완료 | guru_tracker.py, etf_holdings.py | 4_거장_포트폴리오.py | test_guru_tracker.py, test_etf_holdings.py |
+| E. 퀀트 스크리너 | ✅ 완료 | screener.py | 5_퀀트_스크리너.py | test_screener.py |
+| F. 밸류에이션 도구 | ✅ 완료 | valuation.py | 6_밸류에이션.py | test_valuation.py |
+| G. 매크로 대시보드 | ✅ 완료 | fred_data.py, macro_cycle.py | 7_매크로_대시보드.py | test_fred_data.py, test_macro_cycle.py |
+| H. 포트폴리오 관리 | ✅ 완료 | portfolio.py | 8_포트폴리오_관리.py | test_portfolio.py |
+| I. 차트 조회 (신규) | ✅ 완료 | market_data.py(clamp_start_for_interval 추가), indicators.py 재사용, watchlist.py 재사용 | 10_차트_조회.py | test_market_data.py |
+| (부가) 환경설정(페이지 순서 편집) | ✅ 완료 | page_order.py(신규) | 11_환경설정.py | test_page_order.py |
+
+**SPEC.md 모듈 A~H 전부 구현 완료** (2026-07-11). 전체 테스트 123개 통과, 신규 모듈(B/E/F/G/H) 페이지는
+Streamlit `AppTest`로 헤드리스 스모크 테스트 완료 (밸류에이션/스크리너/포트폴리오는 실제 AAPL 등
+라이브 데이터로 end-to-end 확인, Threads 요약/매크로 대시보드는 기본 로드만 확인).
+
+**모듈 I. 차트 조회 추가 완료** (2026-07-12). 사용자가 "트레이딩뷰처럼 일봉/주봉 등으로 나눌 수 있고
+티커 입력하면 차트가 나오게 해달라"고 요청 → 새 독립 페이지로 구현 (백테스트/전략 설정 없이 바로
+조회). 확인 질문 3개(배치 위치/봉 주기 범위/지표 오버레이 필요 여부)로 답을 받아 진행:
+- 새 독립 페이지 `app/pages/10_차트_조회.py` (기존 `1_백테스팅.py`의 캔들차트 렌더링 패턴 재사용)
+- 봉 주기: yfinance 지원 전체(1m/2m/5m/15m/30m/60m/90m/1d/5d/1wk/1mo/3mo). `core/market_data.py`에
+  `INTERVAL_MAX_LOOKBACK_DAYS` + `clamp_start_for_interval()` 추가 — 분봉/시간봉은 yfinance가
+  과거 조회를 짧게 제한하므로(1분봉 6일/5~30분·90분봉 60일/60분봉 730일), 사용자가 더 오래된
+  시작일을 고르면 자동 보정하고 화면에 경고 캡션 표시
+- 지표 오버레이: 이동평균/볼린저밴드/일목균형표(캔들 위 오버레이) + RSI/MACD(하단 별도 패널) 전부
+  토글 on/off 가능, `core/indicators.py` 계산 함수 그대로 재사용 (신규 계산 로직 없음)
+- 거래량 바 차트는 항상 표시(양봉/음봉 색상 구분)
+- 검증: Streamlit `AppTest`로 기본 로드/전체 지표 토글 조합/분봉 전환(자동 clamp 경고 확인)/
+  잘못된 티커 에러 처리까지 실제 라이브 yfinance 데이터로 확인. `clamp_start_for_interval()`은
+  `tests/test_market_data.py`에 단위 테스트 3개 추가. 전체 테스트 130개 통과.
+- SPEC.md에 "모듈 I. 차트 조회" 항목 추가, `app/Home.py` 모듈 표에도 한 줄 추가.
+
+**차트 UX 개선 3종 추가 완료** (2026-07-12, 같은 날 후속 요청). 사용자가 "차트 휠 확대/축소, 관심종목
+빠른 찾기, 페이지 순서를 직접 편집할 수 있는 환경설정"을 요청 → 확인 질문 없이 바로 진행(직전 대화의
+연장선이라 맥락이 명확했음):
+- **휠 확대/축소**: `app/pages/10_차트_조회.py`와 `1_백테스팅.py`의 캔들차트(`render_price_chart`/
+  `render_staged_price_chart`) 전부 `st.plotly_chart(..., config={"scrollZoom": True})`로 변경.
+  Plotly 기본 동작이 이미 "휠 위로=확대/아래로=축소"라 별도 방향 반전 로직 불필요. 차트가 아닌 다른
+  영역(등락 비교 라인차트 등)은 건드리지 않음(스코프를 캔들/가격 차트로 한정).
+- **관심종목 빠른 찾기**: `10_차트_조회.py` 상단에 `core/watchlist.py`(모듈 C, 신규 로직 없이 재사용)
+  기반 "⭐ 관심종목" 버튼 그리드 추가 — 클릭하면 즉시 그 티커로 조회. 티커 입력창 옆에 "☆ 관심종목
+  추가"/"★ 관심종목 해제" 토글 버튼도 추가해 조회하던 티커를 바로 등록/해제 가능(50개 제한 초과 시
+  `add_to_watchlist`가 던지는 `ValueError` 메시지를 그대로 경고로 표시). 티커 입력 위젯에 `key`가
+  없어 세션 상태와 연결되지 않던 기존 버그도 함께 고침(watchlist 클릭이 입력값을 갱신하려면 `key`가
+  필수였음) — `value=`+`key=` 동시 사용 시 발생하는 Streamlit 세션 상태 경고를 피하려고 date_input도
+  전부 `st.session_state.setdefault(...)` 선반영 + `key`만 넘기는 방식으로 같이 정리함.
+- **페이지 순서 환경설정**: Streamlit 멀티페이지 앱이 `app/pages/*.py` 파일명 맨 앞 숫자로 사이드바
+  순서를 정하는 점에 착안, `core/page_order.py`(신규)에 `list_pages`/`reorder_pages`/`move_page`
+  (top/up/down/bottom) 구현 — 여러 파일명이 한 번에 바뀔 때 충돌 없이 2단계(임시 이름 경유) rename.
+  `app/pages/11_환경설정.py`에서 페이지 목록 + ⏫▲▼⏬ 버튼으로 노출. 코드로 미리 순서를 정하는 대신
+  사용자가 웹사이트에서 직접 버튼으로 재배치하는 것이 요청의 핵심이라, `st.navigation`/`st.Page`
+  기반 재설계 대신 기존 폴더 자동탐색 방식을 유지한 채 파일명만 실제로 바꾸는 가벼운 방식을 선택함
+  (기존 10개 페이지의 `st.set_page_config()` 호출 구조를 건드릴 필요가 없어 회귀 위험이 낮음). 파일
+  rename은 Streamlit 개발 서버의 일반적인 파일 변경 감지로 다음 새로고침 때 사이드바에 반영됨(같은
+  세션 내 즉시 100% 보장은 아니라 페이지에 안내 문구 표시).
+- 검증: `core/page_order.py`는 `tests/test_page_order.py`(8개, tmp_path에 더미 파일 생성 후 rename
+  검증 — 실제 `app/pages/` 파일은 절대 건드리지 않음)로 커버. `10_차트_조회.py`의 관심종목 추가/해제/
+  빠른선택 흐름은 `DATABASE_URL`을 임시 SQLite로 바꿔치기한 뒤 Streamlit `AppTest`로 라이브 검증(실제
+  운영 DB `data/quant.db`는 건드리지 않음). `11_환경설정.py`는 로드만 스모크 테스트(버튼 클릭 시 실제
+  페이지 파일이 rename되므로 자동화 테스트에서는 클릭하지 않음 — 수동으로 브라우저에서 확인 필요).
+  전체 pytest 스위트 통과(동시에 다른 세션이 작업 중인 엔걸핑/다크모드 관련 테스트 포함 144개).
+
+**차트 드래그 동작을 확대(zoom)에서 이동(pan)으로 변경** (2026-07-12, 같은 날 후속 요청). 사용자가
+"마우스를 누르면 확대/축소되는 것 같은데 '움직임'으로 바꿔달라, 누른 채 위로 올리면 위쪽을 볼 수
+있게"라고 요청 → Plotly 캔들차트 3곳(`10_차트_조회.py`의 `render_chart`, `1_백테스팅.py`의
+`render_price_chart`/`render_staged_price_chart`) `fig.update_layout()`에 `dragmode="pan"` 추가.
+`scrollZoom=True`(휠 확대/축소)는 그대로 유지 — 휠은 확대/축소, 드래그는 화면 이동으로 역할 분리.
+y축이 autorange라 세로 드래그도 기본 지원(위로 드래그하면 차트 위쪽이 보임). 페이지 캡션 문구도
+"드래그로 화면 이동이 가능합니다"로 갱신. 렌더링 로직만 바뀌어 별도 유닛테스트 없이 기존 스모크
+테스트(AppTest 로드)로 회귀만 확인, 전체 144개 통과 유지.
+
+**커서 위치의 시가/고가/저가/종가를 보여주는 호버 툴팁 추가** (2026-07-12, 같은 날 후속 요청). 사용자가
+"커서를 올렸을 때 그 날의 시가/종가를 커서 옆에 작게 띄워달라"고 요청 → 캔들차트 3곳 모두에:
+- `go.Candlestick`에 한글 라벨 `hovertemplate`(날짜/시가/고가/저가/종가, `<extra></extra>`로 트레이스명
+  박스 제거) 추가. `10_차트_조회.py`는 분봉/시간봉일 때 날짜에 시:분까지 표시(`is_intraday` 분기).
+- `hovermode="x"` + `fig.update_xaxes(showspikes=True, spikemode="across", spikesnap="cursor", ...)`로
+  세로 크로스헤어 점선을 추가해 커서가 있는 지점에 값이 붙어 보이도록 함(트레이딩뷰 크로스헤어와 유사).
+- 검증: Streamlit `AppTest`로 렌더된 `plotly_chart`의 실제 spec(JSON)을 파싱해
+  `dragmode="pan"`/`hovermode="x"`/`xaxis.showspikes=True`/`config.scrollZoom=True`/candlestick
+  `hovertemplate` 문자열까지 전부 실제 값으로 확인(스냅샷성 유닛테스트는 추가하지 않음, 렌더링 설정
+  변경이라 회귀는 기존 AppTest 로드로 충분). 전체 144개 통과 유지.
+
+**Threads 요약에 "주간 AI 인사이트 리포트" 추가** (2026-07-12, 같은 날 후속 요청). 사용자가
+"티커별로 글을 모아서 일주일에 한번씩(또는 버튼으로) AI가 리포트를 만들되, 단순 요약이 아니라
+인사이트를 달라. 마땅한 프롬프트가 없으면 구글링해서 찾아 채택하라"고 요청 → 프롬프트 설계 전에
+실제로 웹 검색을 먼저 수행함(사용자가 명시적으로 지시한 절차):
+- 검색 결과 두 가지 근거를 확보: (1) 학술 자료가 제시하는 2단계 LLM 프레임워크 — "시장 테마/
+  리스크 요인/종목별 핵심 포인트"를 추출한 뒤 여러 개를 종합해 주간 리포트로 합성하는 구조,
+  (2) 실무 프롬프트 설계 원칙 — Role-Task-Context 프레이밍 + "단순 요약이 아닌 실행 가능한
+  인사이트" 강조. 바로 쓸 수 있는 완성형 템플릿은 못 찾았지만(검증된 소스들: [SurePrompts
+  Finance](https://sureprompts.com/blog/ai-prompts-finance), [CFI 19 AI Prompts for Stock
+  Analysis](https://corporatefinanceinstitute.com/resources/artificial-intelligence-ai/best-ai-prompts-for-stock-analysis/)
+  둘 다 직접 확인했으나 소셜미디어 종합 리포트용 템플릿은 없었음), 위 두 근거를 결합해 직접 설계.
+- `core/threads_summary.py`에 `WEEKLY_REPORT_SYSTEM_PROMPT` 신설 — 리포트를 5개 섹션(①이번 주
+  핵심 테마 ②정서 변화[초반vs후반 변곡점 추적] ③촉매 및 리스크 ④다수의견 vs 소수의견[에코챔버
+  방지] ⑤관찰 포인트)으로 강제하고, "개별 글의 재탕이 아니라 여러 글을 겹쳐봤을 때만 보이는 것에
+  집중하라"고 명시. `generate_weekly_report(ticker, days=7)`가 `list_summaries_between()`으로
+  기간 내 글을 시간순(오래된→최신, 정서 변화 추적 위해)으로 모아 `gemini_client.COMPLEX_TASK_MODELS`
+  (복잡한 종합추론이라 LIGHT가 아닌 상위 모델 사용)로 호출. 키 없음/실패/글 없음 전부 예외 없이
+  처리(기존 관례).
+- DB: `core/models.py`에 `ThreadsWeeklyReport`(ticker/period_start/period_end/post_count/
+  report_text) 신설. `save_weekly_report`/`list_weekly_reports`로 히스토리 누적(재생성해도 과거
+  리포트는 보존).
+- UI: `app/pages/2_Threads_요약.py`에 3번째 탭 "📅 주간 인사이트 리포트" 추가 — 티커 선택 + "최근
+  며칠"(기본 7) + "🧠 리포트 생성" 버튼(누르면 즉시 생성·자동 저장) + 리포트 히스토리 expander 목록.
+- 스케줄러: `scheduler/run_scheduler.py`에 `threads_weekly_report_job()` 추가, 매주 일요일 20:00
+  (America/New_York, 월요일 개장 전)에 추적 중인 모든 티커에 대해 자동 생성하도록
+  `BlockingScheduler`에 등록(기존 평일 16:30 watchlist 스캔 잡과 함께 상시 실행).
+- 검증: 실제 AAPL 3건짜리 글로 end-to-end 실행해 실제 결과물 품질 확인(테마/정서변화/촉매·리스크/
+  합의-소수의견 전부 잘 뽑힘, 데이터가 적을 때는 그 사실을 리포트 서두에 스스로 명시함도 확인) +
+  Streamlit 브라우저로 버튼 클릭→생성→저장 토스트→렌더링까지 라이브 확인. `tests/test_threads_summary.py`
+  에 단위테스트 6개 추가(기간 필터링, 글 없음/키 없음/API 실패 처리, 저장/조회) — 전체 149개 통과.
+
+**차트에 TradingView 스타일 추세선/도형 그리기 + 다크 차트 테마 + 인터벌 탭 UI 추가** (2026-07-12,
+같은 날 후속 요청). 사용자가 "추세선을 긋는 등 트레이딩뷰에서 하는 모든 걸 구현 가능한 범위에서
+넣어달라, UI도 트레이딩뷰를 따라해달라"고 요청 → 커스텀 JS 컴포넌트 없이 Plotly.js 내장 기능만으로
+구현 가능한 범위를 먼저 확인(Streamlit이 번들한 `PlotlyChart*.js`에 `drawline`/`drawopenpath`/
+`drawclosedpath`/`drawcircle`/`drawrect`/`eraseshape`/`newshape`/`modebar` 문자열이 실제로 존재하는지
+grep으로 먼저 검증한 뒤 진행):
+- `core/theme.py`에 `TRADINGVIEW_CHART_CONFIG`(도형 그리기 버튼 추가 + lasso/box select 제거,
+  scrollZoom 유지) + `style_chart_like_tradingview(fig)`(배경 `#131722`, 그리드 `#2a2e39`, 글자
+  `#d1d4dc`, 모드바를 세로 배치 + 액센트 `#2962ff`, 새로 그리는 도형 기본색도 액센트) 신규 추가 —
+  캔들 초록/빨강(#26a69a/#ef5350)은 원래부터 TradingView 색이라 그대로 둠.
+  `10_차트_조회.py`/`1_백테스팅.py`의 캔들차트 3곳 전부 기존 `template="plotly_white"` +
+  `config={"scrollZoom": True}`를 이 공용 헬퍼/설정으로 교체.
+- `10_차트_조회.py`의 봉 주기 선택을 드롭다운(`st.selectbox`)에서 TradingView 타임프레임 탭처럼
+  가로 버튼 행(선택된 인터벌은 `type="primary"`로 강조)으로 교체.
+- **한계(사용자에게 페이지 캡션으로 안내)**: Plotly 도형 그리기는 클라이언트 상태라 지표 토글/티커/
+  인터벌 변경 등 Streamlit 스크립트 재실행이 일어나면 그린 도형이 초기화된다 — Streamlit
+  `st.plotly_chart`에는 relayout(도형 편집) 이벤트를 세션 상태로 되돌려주는 훅이 없어(선택 이벤트용
+  `on_select`는 점 선택에만 해당) 재실행 간 영속화하려면 별도 커스텀 양방향 컴포넌트가 필요함 — 이번
+  범위에서는 만들지 않고 한계로 명시. 순수 확대/축소/이동/호버는 재실행을 일으키지 않아 그 사이엔
+  도형이 유지된다.
+- 검증: Streamlit `AppTest`로 렌더된 `plotly_chart`의 실제 spec/config JSON을 파싱해
+  `paper_bgcolor="#131722"`, `config.modeBarButtonsToAdd`에 6개 도형 도구 전부 포함,
+  `1_백테스팅.py`는 백테스트 실행 버튼을 눌러 실제 생성된 차트까지 확인. 인터벌 탭 버튼 클릭 →
+  세션 상태 갱신 → 주봉(1wk)으로 정상 전환되는 것도 실제 라이브 데이터로 확인. 렌더링/설정 변경이라
+  별도 유닛테스트는 추가하지 않음, 전체 pytest 149개 통과 유지.
+
+**주간 인사이트 리포트에 삭제 + 사후 검증(회고) 피드백 기능 추가** (2026-07-12, 같은 날 후속 요청).
+사용자가 "생성한 리포트도 삭제할 수 있게 해달라. 그리고 그 리포트로 예측했던 것과 한 달쯤 지난 뒤
+(또는 리포트가 다룬 기간만큼 지난 뒤) 실제 주가를 비교해서 피드백이 이뤄지는 기능도 만들어달라"고
+요청:
+- **삭제**: `core/threads_summary.py::delete_weekly_report(report_id)` 추가.
+  `2_Threads_요약.py` 리포트 히스토리 각 항목에 "🗑️ 리포트 삭제" 버튼 추가.
+- **사후 검증(회고) 피드백**: `core/models.py::ThreadsWeeklyReport`에 컬럼 4개 추가
+  (`price_at_generation`: 리포트 생성 시점 종가, `feedback_text`/`feedback_price`/
+  `feedback_generated_at`: 회고 결과 — 다시 생성하면 최신값으로 덮어씀, 리포트 자체처럼 버전을
+  누적하지는 않음). `save_weekly_report()`가 저장 시점에 `core.market_data.get_latest_price()`로
+  기준가를 자동 기록(조회 실패해도 저장은 계속 진행). `generate_report_feedback(report_id)`가
+  경과일 계산 + 현재가 재조회 + 변화율 계산 후, `FEEDBACK_SYSTEM_PROMPT`(새로 작성 — "리포트의
+  방향성이 맞았는지 / 어떤 부분이 적중했는지 / 어떤 부분이 빗나갔는지 / 다음에 참고할 점"을
+  냉정하게 평가하도록 지시, 자화자찬 방지 문구 포함)로 `gemini_client.COMPLEX_TASK_MODELS` 호출.
+  가격 데이터가 없거나(과거에 저장된 리포트 등) API 실패 시에도 예외 없이 대체 텍스트로 폴백.
+  `save_report_feedback(report_id, feedback_text, feedback_price)`로 저장.
+- UI: 리포트 히스토리 각 expander에 기준가/경과일 표시, 이미 회고가 있으면 회고 시점 가격·변화율과
+  함께 표시, "🔍 피드백 확인"(또는 이미 있으면 "다시 확인") 버튼.
+- **기존 DB 마이그레이션 필요**: `init_db()`의 `create_all()`은 이미 존재하는 테이블에 새 컬럼을
+  자동으로 추가해주지 않는다 (SQLite 한계 아님 — SQLAlchemy의 기본 동작). 이번 세션에서 이미
+  `data/quant.db`에 구 스키마로 `threads_weekly_reports` 테이블이 만들어져 있어서, 수동으로
+  `ALTER TABLE threads_weekly_reports ADD COLUMN ...` 4개를 실행해 기존 데이터를 보존하며
+  마이그레이션함. **앞으로 models.py에 컬럼을 추가할 때마다 이 문제가 재발하니, 운영 DB
+  (`data/quant.db`)에 이미 해당 테이블이 있다면 `init_db()`만으로는 부족하고 수동 ALTER TABLE이
+  필요하다는 점을 기억할 것** (테스트는 매번 새 임시 SQLite를 쓰므로 이 문제가 안 보임 — 실제 앱
+  구동 시에만 드러남).
+- 검증: 실제 저장된 리포트(가격 정보 없는 과거 리포트 포함)로 `generate_report_feedback` 실행해
+  가격 데이터 없이도 리포트의 논리적 타당성 위주로 품질 높은 회고를 생성함을 확인. 브라우저로
+  피드백 생성 → 저장 → 렌더링, 그리고 삭제 버튼 클릭 → 히스토리에서 실제로 사라짐까지 라이브 확인.
+  `tests/test_threads_summary.py`에 단위테스트 6개 추가(삭제, id 조회, 피드백 없음 에러, 키
+  없음/API 실패 폴백, 저장) — 전체 155개 통과.
+
+**ImportError 핫픽스 + 차트 조회 페이지를 실제 TradingView 캡처 기준으로 레이아웃 재설계**
+(2026-07-12, 같은 날 후속 요청).
+- **ImportError 핫픽스**: 사용자가 `core.theme`에서 `TRADINGVIEW_CHART_CONFIG` import 실패를
+  보고. 원인 파악: 디스크의 `core/theme.py`에는 이미 정상적으로 정의돼 있었고(컴파일/재 import로
+  확인), 실제 원인은 **오래전에 띄워둔 Streamlit 프로세스가 그 파일이 추가되기 전 상태를
+  `sys.modules`에 캐싱**하고 있었던 것 — Streamlit의 로컬 파일 워처가 이 케이스를 못 잡아낸 것으로
+  추정. 기존 프로세스를 종료하고 새 프로세스로 재기동해 해결. **교훈**: `core/*.py`에 새 공개
+  이름(상수/함수)을 추가한 직후 `ImportError`가 나면, 코드가 아니라 오래된 서버 프로세스를 먼저
+  의심할 것 (재기동으로 먼저 확인 후 코드를 파고들 것).
+- **브라우저 실행 확인**: `chromium-cli`가 없어 Python `playwright` 패키지(이미 설치돼 있음, 브라우저
+  바이너리도 캐시에 있음)로 직접 헤드리스 브라우저를 띄워 실제 앱을 조작 — 차트 페이지 로드, 호버
+  툴팁, 추세선 그리기(모드바의 "Draw line" 버튼 클릭 후 드래그), 인터벌 탭 전환, 백테스팅 페이지까지
+  전부 실제 클릭/스크린샷으로 확인. 이 컨테이너에는 `chromium-cli` skill이 없다는 점, 대신
+  `playwright` 파이썬 패키지 + 캐시된 크로미움 바이너리(`~/.cache/ms-playwright/`)로 동일한 역할을
+  대체할 수 있다는 점을 기록해둔다.
+- **레이아웃 재설계**: 사용자가 실제 TradingView 차트 캡처(NASDAQ:IREN, 30분봉)를 제공하며 "UI/UX를
+  그대로 따라해달라"고 요청. 캡처를 분석해 Plotly/Streamlit으로 **실제로 재현 가능한 요소**만
+  선별해 반영(불가능한 요소는 아래에 명시하고 만들지 않음):
+  - 캔들 위 좌상단에 심볼/봉주기/OHLC 오버레이 텍스트를 겹쳐서 표시(등락에 따라 종가 색상,
+    `fig.add_annotation(xref="x domain", yref="y domain", ...)`로 서브플롯 안쪽에 배치해 범례와
+    안 겹치게 함).
+  - 우측 가격축에 마지막 종가를 등락색 배지로 표시(`xref="x domain", x=1.0` + `yref="y"`).
+  - 빠른 기간 버튼을 차트 "위"가 아니라 차트 **바로 아래**로 이동하고, 라벨을 TradingView 그대로
+    (1일/5일/1개월/3개월/6개월/YTD/1년/전체)로 통일 — 기존에 인터벌별로 나뉘어 있던
+    `DAILY_PRESETS`/`INTRADAY_PRESETS`도 단일 `RANGE_PRESETS`로 합침(분봉에서 너무 긴 기간을 누르면
+    기존 `clamp_start_for_interval()`이 알아서 당겨주므로 굳이 나눌 필요 없었음). 버튼 클릭 값은
+    session_state를 거쳐 차트보다 먼저 실행되는 fetch 코드에 반영되므로, 위젯의 "화면상 위치"와
+    "로직상 실행 순서"가 달라도 정상 동작함(Streamlit 스크립트는 매 상호작용마다 위에서부터 다시
+    실행되기 때문) — 다만 조회 실패/미입력 상태에서도 항상 노출되도록 if/elif/else 블록 바깥으로
+    빼서, 잘못된 기간을 골랐어도 그 자리에서 바로 고칠 수 있게 함.
+  - 지표 설정 패널을 `st.expander`로 접어서 기본 로드 시 차트가 먼저 눈에 들어오게 함(TradingView는
+    지표를 팝업으로 설정하고 캔버스는 항상 깨끗하게 유지하는 것에 착안).
+  - 날짜 직접 입력(시작일/종료일)도 `st.expander("📅 직접 기간 지정")`로 접어 기본 노출 최소화.
+  - 다크 배경(#131722)·그리드(#2a2e39)·초록/빨강 캔들은 이전 세션에서 이미 캡처와 거의 동일하게
+    맞춰져 있어 그대로 유지.
+  - **의도적으로 만들지 않은 것(사용자에게 이유 설명함)**: TradingView 좌측의 15개 이상 그리기
+    도구(피보나치/간/평행채널/자석모드/눈금자 등 — Plotly 모드바는 6개 도형 도구만 지원), 상단
+    툴바의 거래/퍼블리시/리플레이/알림/비교 버튼(우리 앱에 해당 기능이 없어 눌러도 아무 동작 안 하는
+    "죽은 버튼"이 되므로 안 만듦), 실시간 매수/매도 호가 박스(yfinance로는 실제 Bid/Ask 스프레드를
+    못 받아와 가짜 데이터가 됨), TradingView 워터마크/브랜드 로고(상표 도용 우려로 넣지 않음), 좌측
+    도킹형 세로 툴바(Plotly 모드바는 우측에만 도킹 가능, 왼쪽 배치는 Plotly API가 지원하지 않음).
+- 검증: `AppTest`로 재구조화 후 회귀 확인(전체 155개 통과, 유닛테스트는 추가하지 않음 — 순수
+  레이아웃/시각 변경) + 실제 브라우저(playwright)로 최종 스크린샷까지 확인해 심볼/OHLC 오버레이,
+  우측 가격 배지, 하단 빠른기간 버튼, 접힌 지표 설정 패널 전부 의도대로 렌더링됨을 눈으로 확인.
+
+**도형 편집(꼭짓점 이동/삭제) + 주말 캔들 공백 제거 + 도형 영속화 한계 확인** (2026-07-12, 같은 날
+후속 요청). 사용자가 "추세선을 그은 뒤 클릭하면 꼭짓점을 옮길 수 있게, 선을 클릭하고 Delete를 누르면
+삭제되게 해달라 / 날짜에 주말은 표시하지 말아달라 / 봉 주기를 바꿔도 그린 추세선이 유지(스케일링)되게
+해달라"고 3가지를 요청. Plotly.js 번들 코드를 grep해서 실제 지원 여부를 먼저 확인한 뒤 진행(추측으로
+구현하지 않음):
+- **꼭짓점 드래그로 이동/리사이즈**: `TRADINGVIEW_CHART_CONFIG`에 `edits: {shapePosition: true}` 추가.
+  기본 dragmode가 "pan"이어도(그리기 도구를 다시 켜지 않아도) 이미 그린 도형을 클릭해 꼭짓점을 드래그로
+  옮길 수 있음을 playwright로 실제 확인(라인의 기울기가 드래그한 대로 바뀌는 것을 스크린샷으로 검증).
+- **주말 공백 제거**: `core/theme.py::style_chart_like_tradingview()`에
+  `fig.update_xaxes(rangebreaks=[dict(bounds=["sat","mon"])])` 추가 — 3개 차트(백테스팅 2종 + 차트
+  조회) 전부에 공용으로 적용됨. 캔들이 주말 없이 연속으로 붙어 나오는 것을 스크린샷으로 확인.
+- **"선 클릭 후 Delete 키로 삭제"는 실증적으로 불가능함을 확인**: `Delete`/`Backspace` 문자열이
+  번들에 있길래(grep) 지원되는 줄 알았으나, 실제로는 `delete obj.prop` 같은 JS 키워드/내부 undo-redo
+  이벤트명(`_onDelete` 등)일 뿐 키보드 삭제 기능이 아니었음 — playwright로 도형을 정확히 선택
+  (`_fullLayout._activeShapeIndex`가 0이 되는 것까지 확인)한 이후에도 Delete/Backspace를 눌러보니
+  도형이 안 지워짐을 직접 확인해 결론 내림(추측이 아니라 브라우저에서 직접 검증). **대신 이미 있는
+  "지우개(eraseshape)" 도구가 실제로 동작함을 확인**: 도형을 한 번 클릭해 활성화한 뒤 모드바의
+  지우개 아이콘을 누르고 그 도형을 다시 클릭하면 삭제됨(`layout.shapes.length`가 1→0으로 줄어드는
+  것을 evaluate로 확인). 페이지 캡션을 "도형을 클릭한 뒤 지우개 도구로 삭제할 수 있습니다"로 갱신해
+  실제 동작하는 방법을 안내하도록 수정.
+- **"봉 주기를 바꿔도 그린 추세선이 유지"는 현재 구조로는 불가능 — 근본 원인 확인**: 그린 도형은
+  브라우저의 Plotly.js 인스턴스 안에만 존재하는 클라이언트 상태이고, 인터벌 탭을 누르면
+  `st.rerun()`이 스크립트를 처음부터 다시 실행해 매번 새 `go.Figure` 객체를 서버에서 만들어 보내므로
+  도형이 사라진다. `st.plotly_chart()`의 시그니처를 직접 확인(`inspect.signature`)한 결과
+  `on_select`는 포인트/박스/라쏘 선택 이벤트만 세션 상태로 돌려주고, 도형 편집(`plotly_relayout`)
+  이벤트를 Python으로 되돌려주는 훅은 없음 — 이 한계는 이전 세션에서 이미 예상했던 것과 동일한
+  근본 원인(도형 그리기 기능 추가 시 기록한 한계)이며, 해결하려면 `plotly_relayout` 이벤트를 듣고
+  `Streamlit.setComponentValue()`로 shapes 배열을 돌려주는 **커스텀 Streamlit 컴포넌트**(작은
+  JS 프론트엔드 번들 필요)를 새로 만들어야 한다 — 순수 파이썬 범위를 벗어나는 별도 엔지니어링
+  작업이라 이번 세션에서는 만들지 않고, 사용자에게 트레이드오프를 설명하고 진행 여부를 확인 중.
+- 검증: `core/theme.py`/`10_차트_조회.py` 컴파일 + 전체 pytest 155개 통과(로직 없는 시각/설정
+  변경이라 신규 유닛테스트는 추가하지 않음). 위 3가지 전부 playwright로 실제 클릭/드래그/평가식
+  실행까지 거쳐 사실관계를 확인함(문서만 보고 판단하지 않음).
+
+**추세선 그리기 후 자동으로 화면 이동(pan) 모드 복귀** (2026-07-12, 같은 날 후속 요청). 사용자가
+"선 긋는 도구를 누르면 선을 그린 후 다시 차트를 움직이는 모드로 자동 전환해달라"고 요청 (TradingView는
+도형 하나 그리면 자동으로 커서/이동 모드로 돌아옴, 지금까지는 사용자가 매번 Pan 아이콘을 다시 눌러야
+했음). Plotly config(`modeBarButtonsToAdd`/`newshape`/`edits`)만으로는 "그리기 완료 후 dragmode를
+되돌리기"를 표현할 방법이 없어(그런 옵션이 존재하지 않음, grep으로 먼저 확인), 커스텀 Streamlit
+컴포넌트 없이 갈 수 있는 유일한 경로로 `st.components.v1.html`의 srcdoc iframe을 통한 JS 주입을 사용:
+- `core/theme.py`에 `inject_auto_pan_after_draw()` 신규 추가. iframe의 sandbox 속성에
+  `allow-same-origin`이 포함돼 있음을 Streamlit 프론트엔드 번들(`IFrameUtil.*.js`)에서 먼저 확인한 뒤
+  진행 — `window.parent.document`로 메인 앱의 `.js-plotly-plot` div를 찾고(`window.Plotly`가
+  `window.Plotly=e` 형태로 전역 노출됨을 `PlotlyChart.*.js`에서 확인), `gd.on("plotly_relayout", ...)`
+  로 이벤트를 감시하다가 **dragmode가 "draw"로 시작하면서 실제로 도형이 생겨난 경우**(eventData 키가
+  `"shapes"`로 시작)에만 `Plotly.relayout(gd, {dragmode: "pan"})`을 호출해 되돌린다. 기존 도형의
+  꼭짓점을 드래그로 옮기는 동작(`edits.shapePosition`)은 dragmode가 이미 "pan"인 채로 일어나므로 이
+  조건에 걸리지 않아 서로 간섭하지 않음.
+- `10_차트_조회.py`에서 `st.plotly_chart(...)` 직후에 `inject_auto_pan_after_draw()` 호출. 페이지
+  캡션도 "그리고 나면 자동으로 화면 이동 모드로 돌아옵니다"로 갱신.
+- **범위**: 사용자가 "차트 조회"만 언급해 이 페이지에만 적용, 백테스팅 페이지 2개 차트는 건드리지 않음.
+- 꼭짓점 드래그로 다른 캔들 위에 옮기는 기능은 이전 세션에서 이미 `edits.shapePosition: true`로
+  구현·검증되어 있었음(재작업 불필요) — 이번 세션에서 playwright로 재확인만 함(아래 검증 항목).
+- 검증: playwright 헤드리스 브라우저로 실제 클릭/드래그하며 4가지를 순서대로 확인 — ① 초기
+  dragmode가 "pan"인지, ② "Draw line" 모드바 버튼 클릭 시 dragmode가 "drawline"으로 바뀌는지, ③ 실제
+  드래그로 선을 그은 직후 `_fullLayout.dragmode`가 다시 "pan"으로 자동 복귀하는지(성공 확인), ④ 그
+  상태에서 차트를 드래그하면 새 도형이 생기지 않고(shapes 개수 유지) 실제로 x축 range가 이동하는지
+  (성공 확인, `xaxis.range`가 5개월가량 이동함을 수치로 확인). 별도로 ⑤ 그린 선을 클릭 후 끝점을
+  다른 위치로 드래그하면 그 끝점의 좌표(x1/y1)만 바뀌고 반대쪽 끝점(x0/y0)은 그대로 유지되는지도
+  좌표값으로 직접 확인(스크린샷도 확보). 8501 포트에 떠 있던 기존(사용자) 세션은 건드리지 않고
+  8502 포트에 별도 테스트 인스턴스를 띄워 검증 후 종료함. `python -m pytest tests/ -q` 전체 161개
+  통과 유지(로직 없는 프론트엔드 JS 주입이라 신규 유닛테스트는 추가하지 않음).
+
+**차트 조회: 거래 없는 구간 제거 + 도형 봉주기 간 유지 + 도형 색상 변경 + 주봉/월봉/분기봉 일봉 동기화**
+(2026-07-12, 같은 날 후속 요청). 사용자가 "①워킹데이만 나오게, ②선을 그린 뒤 봉 주기를 바꿔도
+스케일에 맞춰 유지되게, ③선 색을 임의로 바꿀 수 있게" 요청한 뒤, 작업 중간에 "④주봉/월봉/분기봉이
+일봉과 동기화가 안 된다(일봉엔 있는 최신 날짜가 나머지엔 없다) — 일봉을 바탕으로 리샘플링해달라"를
+추가 요청. `10_차트_조회.py`에만 적용(백테스팅 페이지 차트는 요청 범위 밖이라 손대지 않음):
+
+- **①거래 없는 구간 제거**: 기존 `rangebreaks=[dict(bounds=["sat","mon"])]`는 주말만 가리고 공휴일·
+  (분봉/시간봉의) 장외시간은 못 가렸다. `render_chart()`에서 x축을 `type="category"`로 바꿔 실제
+  데이터가 있는 봉만 순서대로 나열하는 방식으로 교체(모든 트레이스의 `x=df.index` → 미리 포맷한
+  `x_labels = df.index.strftime(date_fmt)` 문자열 배열, 총 14곳). 이러면 캔들차트뿐 아니라 분봉의
+  장마감~다음 개장 사이 공백도 자동으로 사라진다(날짜별 대신 "실제로 존재하는 봉"만 그려지므로).
+- **②도형 봉주기 간 유지 (스케일 문제)**: category 축으로 바꾸면서 Plotly가 도형의 x0/x1을 실제
+  날짜가 아니라 "몇 번째 카테고리인지" 정수 인덱스로 관리한다는 걸 처음에 놓쳐서, 저장해뒀다가 복원한
+  선이 주봉에서 완전히 엉뚱한 위치(빈 공간)에 나타나는 버그가 났음(스크린샷으로 실측 확인 후 원인
+  파악). `core/theme.py::inject_chart_interactions()`에 `indexToLabel`/`labelToIndex` 변환 함수를
+  추가해, localStorage에 저장할 때는 인덱스를 그 시점의 실제 카테고리 라벨(날짜 문자열)로 바꿔
+  저장하고, 복원할 때는 그 날짜와 가장 가까운 카테고리를 현재 축에서 다시 찾아 인덱스로 되돌린다 —
+  이렇게 해야 일봉에서 그은 선이 주봉으로 바꿔도 비슷한 실제 날짜/가격 위치에 재배치된다(정확히 같은
+  날짜가 없으면 가장 가까운 봉에 스냅 — 해상도가 바뀌었으니 당연한 동작). path 타입(자유 곡선
+  도형)은 x0/x1이 아니라 SVG path 문자열이라 이 변환 대상이 아님(추세선/사각형/원만 정확히 재배치).
+- **③도형 색상 변경**: 처음엔 Plotly의 `_fullLayout._activeShapeIndex`로 "클릭된 도형"을 알아낼
+  생각이었으나(직전 세션 기록에 그렇게 확인했다고 적혀 있었음), 실제로 붙어있는 Plotly 버전
+  (3.7.0 — pip plotly 6.9.0의 `get_plotlyjs()`로 확인)으로 순수 Plotly HTML만 떼어내 독립 재현해보니
+  클릭해도 그 값이 전혀 갱신되지 않음을 확인(꼭짓점 드래그 자체는 내부 상태 없이도 잘 동작). Plotly
+  버전이 올라가며 도형 편집 내부 구현이 바뀐 것으로 추정 — 옛 기록을 그대로 믿지 않고 재검증해서
+  다행히 이번에 잡음. 대신 Plotly가 모든 편집 가능한 도형마다 항상 그려두는 클릭 판정용 투명 오버레이
+  `<g drag-helper="true" data-index="N">`를 document 클릭 이벤트에서 직접 찾아 인덱스를 읽는 방식으로
+  교체 — 내부 상태가 아니라 항상 렌더링되는 DOM 구조라 더 안정적. 클릭한 도형 좌하단에 원형
+  `<input type="color">`를 띄워 즉시 색 변경 가능(`Plotly.relayout(gd, {"shapes[N].line.color": ...})`).
+  **버그 하나 더 발견/수정**: 클릭 리스너를 "이미 설치했으면 건너뛰기" 플래그(`doc.__qtvClickBound`)로
+  중복 설치를 막았는데, 이 플래그는 부모 document에 남아있지만 실제 리스너는 봉주기/티커가 바뀌어
+  `components.html` iframe이 통째로 새로 만들어질 때마다 브라우저가 자동으로 떼어내 버려서(iframe
+  컨텍스트가 파괴되면 그 iframe 코드가 등록한 네이티브 DOM 리스너는 브라우저가 정리함 — Plotly의
+  커스텀 `gd.on()` 이벤트는 이 정리 대상이 아니라 계속 살아있어서 나머지 기능은 멀쩡했음), 두 번째
+  리런부터는 클릭이 조용히 아무 반응이 없었다. 콘솔 로그를 임시로 심어 "설치는 됐다는데 클릭 이벤트
+  자체가 안 잡힌다"는 걸 직접 확인한 뒤, 매번 이전 리스너를 명시적으로 `removeEventListener`로 뗀
+  다음 새로 붙이는 방식으로 고침(핸들러 함수 자체를 `doc.__qtvClickHandler`에 저장해 다음 리런에서
+  정확히 그 레퍼런스로 제거).
+- **④주봉/월봉/분기봉을 일봉에서 리샘플링**: yfinance가 "1wk"/"1mo"/"3mo"로 직접 주는 데이터는
+  일봉과 별도 피드라 최신 반영이 늦어 동기화가 어긋난다. `core/market_data.py::resample_ohlcv(df, rule)`
+  신규 추가 — Open=구간 첫 값/High·Low=구간 최고·최저/Close=구간 마지막 값/Volume=합계로 집계하고,
+  인덱스는 달력상 주/월/분기 마지막 날이 아니라 그 구간의 **실제 마지막 거래일**로 맞춤(월말이
+  주말이면 실제 거래일로 당김). `10_차트_조회.py`의 `_cached_price_history()`가 이 세 interval일 때
+  yfinance에 직접 요청하지 않고 항상 "1d"를 받아와 여기서 리샘플링하도록 교체
+  (`RESAMPLE_RULE_FOR_INTERVAL = {"1wk": "W-FRI", "1mo": "ME", "3mo": "QE"}` — pandas 2.3에서 "M"/"Q"는
+  deprecated라 "ME"/"QE" 사용). MA/RSI/MACD 등 지표는 `render_chart()`가 어떤 `df`를 받든 그대로
+  계산하므로 별도 대응 불필요. `tests/test_market_data.py`에 단위테스트 4개 추가(주간 집계 정확성,
+  달력상 월말이 아닌 실제 마지막 거래일로 라벨링되는지, 빈 입력 처리).
+- **동시 작업 주의사항**: 이 세션 도중 다른 Claude 세션이 같은 `core/theme.py`/`10_차트_조회.py`에
+  동시에 Gemini 사용량 배지·백그라운드 job_manager 기능을 추가하고 있어 파일이 실시간으로 바뀌는
+  채로 작업함 — 매 편집 전 파일을 다시 읽어 충돌 없이 이어붙임, 두 작업 모두 서로 다른 영역이라 실제
+  충돌은 없었음.
+- 검증: `python -m pytest tests/ -q` 전체 215개 통과. Playwright로 실제 브라우저 다수 라운드 검증
+  (커스텀 minimal Plotly HTML 재현까지 포함해 색상피커 버그 두 개를 실제로 잡아냄) — 일봉/주봉/월봉/
+  분기봉 전부 마지막 날짜가 동일(2026-07-10)함을 확인, 일봉에서 그은 선이 주봉 전환 후에도 캔들 위
+  근접한 위치로 재배치됨을 좌표+스크린샷으로 확인, 도형 클릭 시 색상피커가 뜨고 변경한 색이
+  `layout.shapes[].line.color`와 localStorage에 즉시 반영됨을 확인, 꼭짓점 드래그(다른 캔들 위로
+  옮기기)가 이 변경들 이후에도 여전히 동작함을 재확인. 이 세션에서 띄운 임시 테스트 서버들은 모두
+  종료하고, `app/Home.py`를 8501 포트(정식 포트)로 재기동해둠(핵심 파일이 여러 번 바뀌어 오래된 모듈을
+  캐싱한 프로세스가 남아있으면 이전에 겪었던 것과 같은 ImportError가 재발할 수 있어 재기동으로 예방).
+
+## 다음 세션에서 할 일
+
+모든 모듈이 완료된 상태. 새 세션에서 이어갈 작업이 없다면:
+1. `python -m pytest tests/ -q` 로 회귀만 확인.
+2. 사용자가 신규 기능/버그 수정을 요청하면 이 표에 새 행을 추가해 추적.
+3. `git status` 로 미커밋 변경사항이 많으니(전체가 아직 커밋 전) 사용자가 커밋을 요청하면 진행.
+4. 각 모듈 규칙은 `README.md`의 "개발 컨벤션" 절, 스펙은 `SPEC.md` 참고.
+
+## 알려진 제약 / 결정 사항
+
+- **AI 제공자는 Anthropic → Gemini로 전환 완료** (2026-07-12). `core/nl_strategy.py`,
+  `core/threads_summary.py`, `core/portfolio.py` 세 곳 모두 `core/gemini_client.py`(공통 헬퍼)를
+  통해 `google-genai` SDK를 사용. `.env`에 실제 키 설정됨 (커밋 안 됨, gitignore 처리).
+  - **다중 키 + 모델 자동 전환 (2026-07-12 추가)**: 사용자가 API 키 3개를 추가로 제공하며 "하나
+    다 쓰면 가변적으로 바꿔달라"고 요청 → `core/gemini_client.py` 신설. `.env`의
+    `GEMINI_API_KEYS`(쉼표구분 다중키, 신규 표준)를 우선 사용하고 없으면 기존 `GEMINI_API_KEY`
+    (단일)로 폴백. `generate_content(models, ...)`가 **모델별로** 등록된 키를 순서대로 시도하다가
+    429(RESOURCE_EXHAUSTED)만 다음 키/모델로 자동 전환하고, 그 외 오류(400 등)는 재시도 없이 즉시
+    올려서 호출부의 기존 키워드 폴백이 그대로 동작하게 한다(`google.genai.errors.APIError.code`로
+    판별, 문자열 매칭 아님). 세 모듈 모두 옛 `_MODEL` 단일 상수 대신
+    `gemini_client.COMPLEX_TASK_MODELS`(nl_strategy, 복잡한 구조화 출력용)/
+    `gemini_client.LIGHT_TASK_MODELS`(threads_summary·portfolio, 가벼운 작업용) 우선순위 리스트를
+    사용. 이 계정에서 실제로 되는/안 되는 모델을 3개 키 전부에 대해 직접 호출해 확인함(2026-07-12):
+    `gemini-3-flash-preview`/`gemini-3.5-flash`/`gemini-2.5-flash`/`gemini-flash-latest`/
+    `gemini-flash-lite-latest`/`gemini-3.1-flash-lite` 정상, `gemini-*-pro-*` 계열
+    전부(3-pro-preview/3.1-pro-preview/2.5-pro/pro-latest)와 `gemini-2.0-flash(-lite)`는 무료
+    티어에서 429, `gemini-2.5-flash-lite`는 "신규 프로젝트에 더 이상 제공 안 함"으로 404 — 근거와
+    함께 `core/gemini_client.py` 상단 주석에 기록해둠(결제 연결 시 pro 계열 재시도 가능).
+    테스트는 `tests/test_gemini_client.py`(키 우선순위, 429 자동 전환, 400은 즉시 전파, 전부
+    소진 시 마지막 에러 전파) 4개 추가.
+  - 구조화 출력은 Gemini의 `response_json_schema` (표준 JSON Schema 그대로 사용 가능, Anthropic의
+    `output_config.format.json_schema`와 거의 1:1 대응)로 구현. `response.text`로 결과 파싱.
+  - 키 없거나 호출 실패 시 fallback 로직 사용은 기존과 동일 (예외 던지지 않음). 안내 문구/주석의
+    `ANTHROPIC_API_KEY` 문자열은 전부 `GEMINI_API_KEY`로 치환했고, 테스트(`test_portfolio.py`,
+    `test_threads_summary.py`)의 페이크 모듈도 `google.genai`로 갱신함.
+  - **주의: `response_json_schema`에 `maxItems`를 쓰면 안 됨.** 문서에는 지원 키워드로 나와 있지만
+    `gemini-3-flash-preview`에서 실제로는 400 INVALID_ARGUMENT로 요청 자체가 거부됨을 실증 확인함
+    (`minItems`는 정상 동작). 배열 길이를 제한하고 싶으면 스키마가 아니라 파싱 후 Python 코드에서
+    검증해야 한다 (`core/nl_strategy.py`의 `_staged_config_is_sane`/`_MAX_SANE_CONDITIONS` 패턴 참고).
+  - `core/nl_strategy.py`의 1:2:6 staged 전략 해석기는 실제 후지모토 시게루 유튜브 영상(자동 자막,
+    타임스탬프 포함 그대로)으로 end-to-end 검증함: 파싱 → `core.backtest_engine.run_backtest` →
+    AAPL 2018~2026 백테스트까지 정상 동작(트레이드/지표 생성 확인). 검증 중 AI가 간헐적으로
+    (a) JSON이 파싱 안 되는 폭주 응답, (b) 조건이 100개 넘게 중복되는 유효하지만 엉터리인 응답을
+    내는 것을 발견 — `_staged_config_is_sane()`으로 조건/단계 개수 상한을 검증해 이상하면 자동으로
+    `_fujimoto_staged_template()`(Pine Script와 정확히 일치하는 손검증 템플릿)로 폴백하도록 방어
+    코드 추가. `STAGED_SYSTEM_PROMPT`도 보강해(동시조건 누락 금지, emergency_exit 필수화) 재검증
+    결과 4/4 정상적인 staged_config 생성(entry_stages 0.1/0.2/0.6, exit_stages 대칭, emergency_exit
+    항상 포함) 확인함.
+- **다크모드 토글 완전 제거** (2026-07-12): 사용자가 "라이트모드 없이 다크모드만 존재하게 해달라"고
+  요청 → `core/theme.py`에서 `_LIGHT` 팔레트/`st.toggle`을 삭제하고 `_DARK`만 항상 적용하도록 단순화.
+  다른 어떤 파일도 `dark_mode` session_state를 참조하지 않아 부작용 없음.
+- **자연어 전략 등록의 "수익률 0%" 원인 진단 + 재발 방지 장치 추가** (2026-07-12): 사용자가 다른
+  유튜브 영상(볼린저밴드+인걸 캔들+RSI 전략)을 자연어로 등록했더니 실제 매수 신호는 발생하는데
+  누적수익률이 정확히 0%가 나온다고 보고. 원인: AI가 만든 staged_config에서 진입 조건("종가가
+  볼린저 밴드 하단보다 낮다")과 청산/emergency_exit 조건("종가가 20일 이평보다 낮다", `ma_cross
+  short=1/long=20/type=dead`로 표현됨)이 수학적으로 항상 동시에 참이 됨(밴드 하단은 정의상 항상
+  중심선보다 낮으므로) — 그래서 진입하자마자 같은 날 바로 청산되어 포지션을 하루도 못 버티고
+  수익률이 항상 0%가 나옴. `core/backtest_engine.py`로 직접 재현 확인(AAPL 실데이터로 매매 99건 중
+  99건 전부 당일 청산).
+  - 근본 원인 중 하나: 이 영상의 실제 매수 신호인 "인걸(장악형) 캔들 패턴"을 표현할 지표가 아예
+    없어서 AI가 볼린저+RSI만으로 억지로 근사했음. → `core/indicators.py`에 `compute_engulfing()`,
+    `core/strategy_engine.py`에 `engulfing` 지표(`direction="bullish"|"bearish"`) 추가하고
+    `core/nl_strategy.py`의 스키마/프롬프트(SYSTEM_PROMPT, STAGED_SYSTEM_PROMPT,
+    STAGE_CONDITION_PROPERTIES)에도 반영.
+  - **재발 방지 장치**: `core/backtest_engine.py::diagnose_strategy_health(indicator_config)` 추가 —
+    AI가 만든 전략을 대표 종목(AAPL)·최근 5년 구간에 실제로 돌려보고, 발생한 매매가 전부(또는
+    50% 이상) "진입 당일 바로 청산"되는 패턴인지 경험적으로 검사한다(조건을 정적으로 분석하는 대신
+    실제 실행 결과의 매매 보유기간을 관찰하는 방식이라 어떤 지표 조합에서 발생하든 일반적으로
+    잡아낸다). `app/pages/1_백테스팅.py`의 "🤖 자연어 전략 등록" 탭에서 AI 해석 직후 자동 호출되어
+    `st.warning()`으로 즉시 표시됨 — 사용자가 프리뷰 백테스트를 직접 돌려보기 전에 미리 경고.
+    `STAGED_SYSTEM_PROMPT`에도 "청산 조건이 진입 조건보다 항상 더 쉽게 만족되면 안 된다"는 경고
+    문구를 추가함(프롬프트 레벨 방어는 보조 수단, `diagnose_strategy_health`가 최종 안전망).
+  - 테스트: `tests/test_strategy_engine.py`(compute_engulfing/engulfing 조건 2개),
+    `tests/test_backtest_engine.py`(diagnose_strategy_health 정상/이상 케이스 2개) 추가, 전체 130개
+    통과.
+  - 참고: 이 세션에서 Gemini `gemini-3-flash-preview`의 무료 티어 일일 요청 한도(20회/일)를 검증
+    과정에서 다 써서 이후 호출은 429(RESOURCE_EXHAUSTED)로 폴백 로직만 동작함 — 앱은 정상 동작하지만
+    (예외 없이 키워드 기반 대체), 내일 한도 리셋 전까지는 실제 AI 해석 결과를 보려면 결제 연결이
+    필요할 수 있음.
+- FRED_API_KEY는 아직 미설정 상태. 매크로 대시보드가 최소한 에러 없이 안내 문구를 보여줘야 함.
+- **다크모드 기본값 이슈 수정** (2026-07-12): 사용자가 "페이지마다 다크모드 여부가 다른 것 같다"고
+  보고. 원인은 `core/theme.py`의 커스텀 CSS가 `.stApp`/사이드바만 스타일링하고 Streamlit 자체
+  최상단 헤더/툴바(`stHeader`/`stToolbar` 등)는 건드리지 않아, 첫 페인트 시 라이트 테마로 보였던 것.
+  `.streamlit/config.toml`에 `[theme] base="dark"` + 팔레트 고정을 추가해 최초 로딩부터 다크로
+  고정하고, `theme.py`에도 헤더/툴바용 CSS 규칙을 추가해 토글 상태를 따라가도록 보강함.
+- 네트워크가 필요한 외부 API(yfinance, SEC EDGAR, FRED) 테스트는 `monkeypatch`로 목(mock) 처리하고,
+  DB 관련 테스트는 `tests/conftest.py`의 `db_session` fixture(임시 SQLite)를 사용한다
+  (`test_guru_tracker.py` 패턴 참고).
+- 각 신규 페이지 파일은 `app/pages/{순번}_{한글이름}.py` 형식, 상단에 sys.path 부트스트랩 코드 필수.
+
+**자연어 staged 전략의 "진입=청산 자기모순" 버그를 프롬프트 경고에서 자동 검증+자기교정 루프로 강화**
+(2026-07-12, 같은 날 후속 요청). 사용자가 유튜브 볼린저밴드+인걸캔들+RSI 전략을 자연어로 등록해
+staged(1:2:6) JSON을 얻었는데, 백테스트 매매횟수는 40건인데 누적수익률/CAGR/MDD/샤프/승률이 전부
+정확히 0으로 나왔다고 보고. 원인 분석: AI가 만든 `emergency_exit`(및 `exit_stages[0]`)가
+`ma_cross short=1 long=20 type="dead"` — short=1짜리 이평은 사실상 종가 그 자체라 "종가가 20일
+이평 아래"라는 **상태(state)** 조건이 됐는데, 진입 조건(볼린저 하단 이탈)이 참인 날은 정의상 항상
+이 상태도 참이었음. `simulate_staged_positions`는 같은 반복문 안에서 진입 처리 직후 곧바로
+긴급청산을 체크하므로, 포지션이 `weight_signal`(자산가치 곡선에 반영되는 값)에 한 번도 반영되지
+못한 채 매일 진입~당일청산을 반복 — 그래서 매매 40건은 로그로 잡히지만(진입일=청산일, 진입가=
+청산가로 수익률 정확히 0.0%) 실제 보유 기간이 0이라 다른 지표는 전부 0. AAPL로 재현해 68건 전부
+동일일 매매/수익률 0.0임을 실제 백테스트로 확인함.
+- 이 정확한 패턴(진입≈청산 자기모순)을 잡는 `diagnose_strategy_health`와 `STAGED_SYSTEM_PROMPT`의
+  경고 문구는 이미 이전 세션에서 만들어져 있었는데도 재발함 — **프롬프트 지시만으로는 AI가 항상
+  지키지 않는다**는 것이 이번에 실증됨(같은 세션에서 라이브 재현 시에는 문제없이 통과하기도 했음,
+  즉 AI 출력이 매번 다름). 그래서 방어를 "프롬프트 문구"에서 "생성 파이프라인 내부의 실제 검증
+  +자동 재시도"로 한 단계 강화함.
+- `core/nl_strategy.py`의 `_interpret_staged_strategy_text`를 재작성: AI가 staged config를 생성하면
+  즉시 `_check_entry_exit_overlap()`(내부적으로 `diagnose_strategy_health` 재사용, AAPL 5년 실제
+  백테스트로 진입일=청산일 비율 경험적 검증)을 호출. 문제가 발견되면 그 진단 메시지를 그대로 AI에게
+  피드백으로 돌려주며 **한 번 더 생성을 재시도**(자기교정, 최대 2회 시도). 재시도까지 실패하면
+  결과는 반환하되 `health_warnings`에 경고를 담고 `description`에 "⚠️ 자동 정합성 검증에
+  실패했습니다"를 강제로 붙여 호출부가 조용히 넘어갈 수 없게 함. 반환 dict에 `health_warnings`
+  키를 항상 포함시켜 UI가 아니라 함수 계약 자체에서 검증 결과가 보장되도록 함(이전에는
+  `app/pages/1_백테스팅.py`가 별도로 `diagnose_strategy_health`를 다시 호출해야 경고가 보였는데,
+  그 호출 자체를 잊거나 건너뛸 수 있는 구조였음).
+- `app/pages/1_백테스팅.py`: 중복 `diagnose_strategy_health` 호출 제거하고 `nl_result["health_warnings"]`
+  를 그대로 사용. 경고를 `st.warning`(넘어갈 수 있음)에서 `st.error`로 격상하고, 경고가 남아있으면
+  "위 경고를 확인했습니다" 체크박스를 체크해야만 "📚 전략 라이브러리에 저장" 버튼이 활성화되도록
+  `disabled=` 가드 추가 — 이전에는 경고가 떠도 저장 버튼을 누르는 데 아무 제약이 없었음.
+- 검증: `tests/test_nl_strategy.py`(신규) 6개로 자기교정 재시도 성공/재시도 소진/API키 없음/AI
+  실패/1회만에 통과(재시도 안 함)/진단 함수 예외 흡수 케이스를 전부 mock으로 커버. 그리고 실제
+  Gemini API + yfinance로 라이브 검증: 사용자가 겪은 것과 동일한 패턴(진입=볼린저 하단, 청산=20일
+  이평선 아래)을 자연어로 다시 넣어 `1_백테스팅.py`를 Streamlit `AppTest`로 직접 구동 — 이번에는
+  AI가 청산을 `rsi_cross`(과매수 이벤트)+`ma_cross`(더 긴 20/60 데드크로스)로 만들었고
+  `health_warnings`가 빈 배열로 통과함을 실제로 확인. 사용자가 원래 얻었던 깨진 JSON도 직접 고쳐
+  (`exit_stages`를 상태 조건 대신 RSI≥70 이벤트로 통일) AAPL(승률 60%, 10건)/TSLA(승률 82%, 11건)로
+  정상적인 0이 아닌 결과가 나옴을 확인. 전체 pytest 161개 통과.
+**staged 전략의 entry/exit 단계 수 불일치(인덱스 미스매치) 버그 수정** (2026-07-12, 같은 날 후속
+요청). 직전 항목에서 "알려진 잔여 한계"로 남겨뒀던 문제를 사용자가 바로 고쳐달라고 요청.
+- 원인: `core/strategy_engine.py`의 `simulate_staged_positions`가 청산을
+  `for k in range(1, n_exit+1): if k in open_tags and exit_signals[k-1]... ` 식으로, 청산 단계 k를
+  "인덱스가 같은 진입 태그 k"에만 매칭시켰다. "마지막 청산 단계가 뜨면 잔량 전부 정리"라는 문서화된
+  동작도 `if k == n_exit and open_tags` 블록이 `k in open_tags`(즉 태그 n_exit 자신이 열려있을 때)
+  안에 중첩돼 있어, entry_stages가 exit_stages보다 많고(예: 3개 vs 2개) 마지막 entry 단계로 직행
+  진입(중간 단계를 건너뜀)해 태그 인덱스가 `exit_stages` 범위를 벗어나면, 그 태그는 일반 청산으로
+  절대 안 닫히고 `emergency_exit`에만 의존하게 되는 구조적 허점이 있었음.
+- 수정: 마지막 청산 단계(exit_stages의 마지막 원소)를 "태그 인덱스와 무관하게 열려있는 물량을 전부
+  정리하는 신호"로 재정의 — `elif n_exit > 0 and exit_signals[n_exit-1].iloc[i]:` 분기를 추가해 그
+  조건이 참이면 `open_tags`에 뭐가 들어있든 전부 청산 이벤트로 기록하고 비운다. 나머지(마지막이 아닌)
+  청산 단계는 기존과 동일하게 자기 인덱스와 일치하는 태그만 개별 정리(`range(1, n_exit)`로 축소,
+  마지막 인덱스는 위에서 이미 처리하므로 제외). 문서화된 "마지막 단계=잔량 전부 정리" 동작을 코드가
+  실제로 항상 보장하도록 만든 버그 수정이며 새 기능 추가는 아님.
+- 검증: `tests/test_strategy_engine.py`에 `combine_conditions`를 모킹해 진입/청산 신호 타이밍을
+  완전히 통제하는 방식으로 4개 테스트 추가 — ①entry 3단계/exit 2단계로 마지막 단계 직행 진입한
+  태그가 마지막 청산 신호로 정상 정리되는지(수정 전 코드로 되돌려서 실행해보니 실제로 실패함을
+  먼저 확인 → 수정 후 통과로 재확인), ②마지막이 아닌 청산 단계는 매칭되는 태그만 개별 정리하는지
+  회귀 확인, ③emergency_exit은 여전히 단계 무관 전량 청산인지, ④`extract_staged_trades`의 가중평균
+  체결가 계산. 기존 레퍼런스 전략(`_fujimoto_staged_template`, entry/exit 3단계씩 매칭)도 AAPL
+  실백테스트로 재확인해 회귀 없음 확인(누적수익률 80%/CAGR 8.16%/27건, 자가진단 통과). 참고로 이
+  수정 덕분에 이전엔 감지되지 못했던 "느슨한 마지막 청산 조건" 문제(태그가 아예 안 닫혀서
+  `diagnose_strategy_health`가 same-day 비율을 계산할 기회조차 없었던 경우)도 이제 정상적으로
+  잡히게 됨 — 즉 이 수정이 앞선 자기교정 파이프라인의 탐지력도 함께 강화함. 전체 pytest 165개 통과.
+
+**우측 상단에 Gemini API 사용량 배지 추가** (2026-07-12, 같은 날 후속 요청). 사용자가 "자연어 전략
+해석이 왜 이렇게 오래 걸리냐"고 물어봐 실측(Gemini 1회 호출 15~25초가 병목, 자가진단 자체는
+0.1~0.5초로 무시할 수준, staged 전략의 자기교정 재시도가 걸리면 최대 2배)한 뒤, 사용자가 "Gemini
+키 한도/용량을 화면에서 바로 확인할 수 있게 우측 상단에 작게 표시해달라"고 요청.
+- Google 무료 티어는 잔여 할당량을 조회하는 API가 없어 "정확한 남은 횟수"는 알 수 없다 — 대신
+  `core/models.py`에 `GeminiCallLog`(model/key_label/status["ok"|"quota_exceeded"|"error"]/
+  error_message) 신설, `core/gemini_client.py`의 `generate_content()`가 (모델,키) 조합을 시도할
+  때마다 결과를 기록하도록 `_log_call()` 추가(예외를 전부 삼켜 로깅 실패가 실제 AI 호출을 절대
+  막지 않게 함) + `get_usage_today()`로 오늘 시도/성공/한도초과(429)/기타오류 횟수를 집계.
+  이 로거가 `generate_content()`의 유일한 진입점에 있어 nl_strategy/threads_summary/portfolio
+  전부가 자동으로 커버됨(별도 계측 불필요).
+- `core/theme.py`에 `render_gemini_usage_badge()` 추가, 모든 페이지가 이미 호출하는
+  `apply_theme()` 끝에서 자동 실행되도록 배선(페이지별로 따로 호출할 필요 없음). 키 없음(회색)/
+  정상(초록, "🔑 Gemini 오늘 N회")/한도초과 이력 있음(주황)/방금 막 한도초과(빨강, "⚠️ 한도 근접")
+  4단계로 색을 구분하고, hover 시 키 개수/성공/한도초과/오류 세부 내역을 title 툴팁으로 보여준다.
+- **버그 발견 및 수정**: 처음 구현한 버전은 Streamlit `AppTest`(Python 레벨)에서는 정상 렌더링됐지만
+  실제 브라우저(Playwright로 라이브 스크린샷 확인)에서는 DOM에 아예 나타나지 않았다 — 원인은
+  `st.markdown(unsafe_allow_html=True)`에 넘긴 HTML `<div>`의 여는 태그 자체가 (들여쓰기된
+  `style="..."` 속성 때문에) 여러 줄에 걸쳐 있어, 마크다운의 HTML 블록 인식이 실패했기 때문
+  (`apply_theme()`의 `<style>` 블록은 같은 패턴이어도 문제없이 동작해 처음엔 안 의심했음 — `<style>`
+  태그는 브라우저가 별도로 raw-text 취급해 마크다운 블록 인식 실패와 무관하게 항상 파싱되는 반면,
+  `<div>`는 그렇지 않음). 태그 전체를 한 줄로 압축하고 tooltip의 개행은 `&#10;` HTML 엔티티로
+  치환해서 고침. 이 라운드트립 검증 과정에서 실제로 진행 중이던 별도 세션의 동시 작업(표현식
+  전략 엔진 추가 등, `core/strategy_engine.py`/`app/pages/1_백테스팅.py` 등)과 겹쳐 공용 포트
+  8501 서버가 일시적으로 무관한 원인(다른 세션이 아직 완성하지 않은 `inject_auto_pan_after_draw`
+  import)으로 에러를 낸 것을 발견 — 혼선을 피하려고 검증은 임시로 별도 포트(8502)에 격리된
+  인스턴스를 띄워 진행하고 끝나고 정리함(공용 8501 서버는 건드리지 않음).
+- 배치 위치: Streamlit 기본 헤더의 "Deploy" 버튼/"⋮" 메뉴와 겹치지 않도록 `right: 7.5rem`으로
+  띄움(처음엔 4.5rem으로 겹쳤던 것을 Playwright로 두 요소의 실제 bounding box를 재서 확인 후 조정).
+- 검증: `tests/test_gemini_client.py`에 6개 추가(성공/429후성공/기타오류 로깅, 키 없을 때 집계,
+  DB 오류 시 조용히 무시) — 이 파일의 모든 테스트가 실제 운영 DB(`data/quant.db`)를 건드리지
+  않도록 `core.db.get_session`을 임시 SQLite로 바꿔치기하는 autouse fixture를 추가함(기존엔
+  이 파일에 그런 격리가 없어 이번에 처음 필요해짐). 최종적으로 Playwright로 실제 브라우저에서
+  배지가 "Deploy" 버튼과 겹치지 않는 위치에 정확히 렌더링되는 것까지 스크린샷으로 확인. 전체
+  pytest 통과(동시 작업 세션이 추가한 표현식 엔진 테스트 포함 215개).
+
+**백테스팅 화면에 "직접 수식 입력" 전략 슬롯 추가** (2026-07-12, 같은 날 후속 요청). 사용자가
+"백테스팅 하는 곳에 전략을 넣을 때 내가 직접 수식을 넣을 수 있도록 하는 슬롯도 만들어달라"고 요청
+→ 지표 토글/AI 자연어 해석으로 표현하기 어려운 조건을 사용자가 파이썬과 비슷한 문법의 불리언 수식
+으로 직접 입력할 수 있는 세 번째 전략 스키마를 추가.
+- `core/expression_engine.py`(신규): `{"expression": "close > sma(close, 20) and rsi(close, 14) < 30"}`
+  형태의 수식을 평가하는 안전한 인터프리터. `eval()`을 쓰면 임의 코드 실행(OWASP A03: Injection)
+  위험이 있으므로, `ast.parse()`로 수식을 파싱한 뒤 허용된 노드 종류(BoolOp/UnaryOp/BinOp/Compare/
+  Call/Name/Constant)만 재귀적으로 직접 평가하는 화이트리스트 인터프리터로 구현 — import/속성
+  접근(attribute)/subscript/lambda/컴프리헨션 등은 파싱은 되어도 전부 미지원 노드로 거부됨.
+  변수는 `open/high/low/close/volume`, 함수는 `sma/ema/rsi/macd_line/macd_signal/macd_hist/
+  bb_upper/bb_mid/bb_lower/stdev/highest/lowest/crossover/crossunder/abs/min/max`만 허용(기존
+  `ta` 패키지 계산 로직을 그대로 재사용해 지표 토글과 값이 일치하도록 함). `validate_syntax()`는
+  합성 OHLCV 데이터로 즉시 실행해보는 방식으로 네트워크 없이 빠른 문법 사전 검증을 제공.
+- `core/strategy_engine.py`: `is_expression_config()` 추가, `generate_positions()`/`evaluate()`
+  (스케줄러·관심종목 모니터링이 매일 호출하는 진입점)가 `generate_regime_signal()`을 통해 레짐형/
+  직접 수식 두 스키마를 모두 투명하게 처리하도록 디스패치 로직을 얹음 — `backtest_engine.run_backtest`
+  는 이미 `generate_positions()`를 호출하고 있어 별도 수정 없이 자동으로 직접 수식 전략을 지원하게 됨.
+- `core/strategy_library.py`: `detect_strategy_type()`에 `"expression"` 유형 추가,
+  `validate_indicator_config()`(전략 관리 화면에서 JSON을 직접 수정할 때 저장 전 검증)에도
+  expression 스키마 분기 추가(빈 문자열/문법 오류를 `validate_syntax()`로 저장 전에 걸러냄).
+- `app/pages/1_백테스팅.py`: "📊 지표 조합 백테스트" 탭에 "전략 입력 방식" 라디오(🎛️ 지표 토글 /
+  ✍️ 직접 수식 입력)를 추가해 같은 실행/결과/저장 흐름을 공유하는 세 번째 입력 슬롯으로 통합
+  (1:2:6 단계별 전략이 `loaded_staged_config`로 토글 UI를 대체하던 기존 패턴과 동일하게, 직접 수식도
+  `strategy_input_mode`+`expression_text` 세션 상태로 토글 UI를 대체). 사용 가능한 변수/함수
+  치트시트를 expander로 제공하고, 실제 백테스트 실행 전에 합성 데이터로 미리 검증하는 "🔍 문법 검증"
+  버튼도 추가. 전략 라이브러리 불러오기/저장/전략 관리 페이지의 "유형" 표시도 전부 "✍️ 직접 수식"
+  라벨을 인식하도록 확장(`STRATEGY_TYPE_LABELS` 딕셔너리로 통일).
+  - **부수 버그 발견 및 수정**: 검증 중 동시에 진행 중이던 다른 세션의 `core/job_manager.py`
+    백그라운드 작업 전환 작업과 겹쳐, 백테스트 실행 버튼을 누르면(지표 토글/1:2:6/직접 수식 전부
+    무관하게) 작업이 끝나는 다음 rerun에서 `NameError: name 'indicator_config' is not defined`가
+    나는 것을 실제 Streamlit `AppTest` 라이브 구동으로 발견함 — `job_manager.start()`로 시작한
+    작업은 버튼을 누른 그 rerun이 아니라 이후의 별도 rerun에서 완료되는데, 그 시점엔 `indicator_config`/
+    `ticker`/`start_date`/`end_date` 같은 지역변수가 이미 사라져 있었음(페이지 전체가 깨지는 회귀라
+    직접 수식 기능 검증을 위해 함께 고침). `job_manager.start()` 호출 직전에 이 값들을
+    `st.session_state["pending_config"]` 등으로 저장해두고, 작업 완료 블록에서는 지역변수 대신 그
+    값을 읽도록 수정.
+- 검증: `tests/test_expression_engine.py`(신규 22개 — sma/rsi/crossover/crossunder가
+  `core.indicators`의 기존 계산과 일치하는지, and/or/not 결합, `__import__`/속성 접근/리스트
+  컴프리헨션/lambda/subscript/exec 등 위험한 구문이 전부 거부되는지, 문자열 리터럴 거부, 미지원
+  변수/함수 거부, 비교 연산자 없는 수식 거부, `validate_syntax()` 정상/오류 케이스),
+  `tests/test_strategy_engine.py`(`is_expression_config`/`generate_positions` 디스패치 2개),
+  `tests/test_backtest_engine.py`(`run_backtest`가 expression config로 정상 동작 + 잘못된 수식이면
+  `ExpressionError`를 전파하는지 2개), `tests/test_strategy_library.py`(신규 — `detect_strategy_type`/
+  `validate_indicator_config`가 세 스키마를 전부 올바르게 판별/검증하는지 9개) 추가. 그리고 임시
+  SQLite(`DATABASE_URL` 환경변수로 실제 `data/quant.db`와 분리)로 Streamlit `AppTest`를 라이브
+  구동해 end-to-end 확인: 직접 수식 모드 전환 → AAPL 실데이터로 백테스트 실행(백그라운드 job 완료까지
+  폴링) → 캔들차트/성과지표 렌더링 → 전략 라이브러리 저장 → 새 세션에서 "불러오기"로 저장된 수식이
+  `strategy_input_mode`/`expression_text`에 정확히 복원되는지, "전략 관리" 페이지 목록에 "✍️ 직접
+  수식"으로 표시되는지까지 전부 실제 데이터로 확인. 전체 pytest 215개 통과.
+
+**모든 페이지의 무거운 작업을 백그라운드 실행으로 전환** (2026-07-12, 같은 날 후속 요청). 사용자가
+"백테스팅 중 다른 페이지(예: 밸류에이션)로 이동해도 백테스팅 작업이 이어서 진행되게 해달라, 이건
+모든 페이지에 대해서도 마찬가지"라고 요청. Streamlit은 사용자가 다른 페이지로 이동(또는 아무 위젯이나
+조작)하면 현재 스크립트 실행을 그 자리에서 중단하고 새로 rerun하므로, `with st.spinner(...): 결과 =
+무거운_함수()`처럼 페이지 스크립트 안에서 동기 실행하던 작업은 페이지를 벗어나는 순간 같이 취소된다 —
+그래서 실제 작업은 스크립트 실행 스레드가 아닌 별도 스레드에서 돌리고, 페이지는 세션에 저장한 job id로
+진행 상태만 폴링하는 구조로 바꿔야 한다.
+
+- `core/job_manager.py`(신규) — 1인 로컬 앱 전제(SPEC.md 0장)라 작업 레지스트리를 프로세스 전역
+  (모듈 레벨 dict + `ThreadPoolExecutor`)에 둔다. 세 가지 API:
+  - `start(slot, func, *args, label=..., **kwargs)`: 버튼 클릭 등 명시적 트리거에서 새 작업을 시작.
+  - `ensure(slot, params_key, func, ...)`: 페이지 로드 시 자동 실행되는 조회용 — `params_key`(예:
+    티커)가 이전과 같으면 추적 중인 작업을 재사용하고 다르면 새로 시작(같은 작업이 폴링 rerun마다
+    중복으로 다시 시작되는 것을 방지).
+  - `render(slot, running_label=...)`: 매 rerun마다 호출 — 진행 중이면 경과 시간과 함께 `st.info` +
+    `time.sleep` + `st.rerun()`으로 자동 새로고침하고, 끝났으면 `Job`(결과/에러)을 반환하며 추적을
+    정리한다.
+  - `render_active_jobs_sidebar()`: 모든 페이지 사이드바에 현재 백그라운드에서 실행 중인 작업 목록을
+    보여준다(다른 페이지로 이동해도 이전 작업이 계속되고 있음을 확인할 수 있게). 이 함수 자체는
+    rerun을 강제하지 않는다 — 무관한 페이지까지 몇 초마다 강제로 재실행하면 사용자가 입력 중인 다른
+    위젯 포커스가 끊기는 부작용이 있어, 작업을 소유한 페이지의 `render()`만 실시간 폴링을 하고 다른
+    페이지는 자연스러운 rerun 때마다 최신 상태를 보여주는 정도로 범위를 한정함.
+- 적용 대상(모든 페이지의 `st.spinner` 블로킹 호출 전부 전환): `1_백테스팅.py`(백테스트 실행/AI 자연어
+  해석/자연어 미리보기 백테스트), `2_Threads_요약.py`(글 분석/주간 리포트 생성/리포트 회고),
+  `3_관심종목_모니터링.py`(관심종목 스캔), `4_거장_포트폴리오.py`(거장별 동기화/ETF 구성종목 조회),
+  `5_퀀트_스크리너.py`(S&P500 스크리닝), `6_밸류에이션.py`(데이터 조회/피어 비교, `ensure()` 사용),
+  `7_매크로_대시보드.py`(FRED 스냅샷, `ensure()` 사용), `8_포트폴리오_관리.py`(실시간 가격/리스크
+  계산/AI 코멘트), `10_차트_조회.py`(가격 히스토리 조회, `ensure()` 사용). 모든 페이지 상단에
+  `job_manager.render_active_jobs_sidebar()` 호출도 추가.
+- **주의해서 피한 버그 패턴**: `job_manager.start()`로 시작한 작업은 버튼을 누른 그 rerun이 아니라
+  나중의 별도 rerun(폴링 rerun)에서 완료되는데, 그 rerun에서는 `if <버튼 클릭>:` 블록 안에서만
+  대입되던 지역변수가 이미 사라져 있다(버튼 클릭 이벤트는 그 rerun에서만 True). `1_백테스팅.py`의
+  기존 백테스트 실행부에서 `indicator_config` 등을 그렇게 참조하다 `NameError`가 나는 것을 다른
+  세션이 동시 검증 중 발견해 `st.session_state["pending_config"]` 등으로 미리 저장해두는 방식으로
+  고쳤음(작업 시작 시점에 필요한 값을 세션에 저장 → 완료 블록에서는 지역변수 대신 세션값을 읽음). 이후
+  나머지 페이지를 전환할 때는 완료 블록이 지역변수를 참조하지 않는지(위젯 값이면 `key=` 바인딩 또는
+  무조건 매 rerun마다 재계산되는 값인지, 아니면 `job.result`/루프 변수인지) 전부 확인하며 진행함.
+- 검증: `tests/test_job_manager.py`(신규 7개) — Streamlit `AppTest.from_function`으로 실제 스크립트를
+  구동해 정상 완료/예외 발생 시 에러 상태 전달/추적 없음/`ensure()`의 중복 시작 방지/`params_key`
+  변경 시 새 작업 시작/사이드바 렌더링까지 확인. 그리고 실제 앱을 기동해 Playwright로 라이브 검증:
+  (1) 퀀트 스크리너에서 S&P500 전체 스크리닝을 실행한 직후 곧바로 매크로 대시보드로 이동 →
+  이동한 페이지의 사이드바에 "🔄 백그라운드 작업 실행 중 — ⏳ 퀀트 스크리닝 — N초 경과"가 실시간으로
+  표시됨을 확인, (2) 다시 스크리너 페이지로 돌아가면 스캔이 이미 완료되어 결과 테이블이 바로 보임을
+  확인, (3) 백테스팅 페이지에서 백테스트 실행 → 곧바로 밸류에이션 페이지로 이동 → 다시 백테스팅
+  페이지로 돌아가면 에러 없이 성과 지표/캔들차트가 정상 렌더링됨을 확인(위 NameError 버그가 실제로
+  고쳐졌는지 재확인 포함). 전체 pytest 215개 통과.

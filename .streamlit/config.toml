@@ -1,0 +1,14 @@
+# 앱의 기본(첫 로딩) 테마를 다크모드로 고정.
+# core/theme.py의 apply_theme()가 주입하는 커스텀 CSS는 JS 렌더링 이후에 적용되기 때문에,
+# 이 설정이 없으면 최상단 헤더/툴바(streamlit 기본 크롬)가 라이트 테마로 잠깐 보이거나
+# 고정되어 페이지마다 다크모드 여부가 다른 것처럼 보인다.
+[theme]
+base = "dark"
+primaryColor = "#529cca"
+backgroundColor = "#191919"
+secondaryBackgroundColor = "#202020"
+textColor = "#e9e9e7"
+font = "sans serif"
+
+[server]
+headless = true

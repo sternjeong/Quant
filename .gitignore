@@ -1,0 +1,28 @@
+# --- Python ---
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# --- 환경변수 ---
+.env
+
+# --- DB / 캐시 데이터 (로컬 산출물, 커밋하지 않음) ---
+data/*.db
+data/*.db-journal
+data/cache/*
+!data/cache/.gitkeep
+!data/.gitkeep
+
+# --- Streamlit ---
+.streamlit/secrets.toml
+
+# --- OS / 에디터 ---
+.DS_Store
+.idea/
+.vscode/
+
+# --- 테스트 ---
+.pytest_cache/
+.coverage

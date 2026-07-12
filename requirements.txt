@@ -1,0 +1,31 @@
+
+# --- Web / UI ---
+streamlit>=1.35
+plotly>=5.20         # 백테스팅 캔들차트/지표 오버레이 (모듈 A)
+
+# --- 데이터 처리 ---
+pandas>=2.0,<3       # pandas 3.x + pyarrow 25 조합에서 st.dataframe() 재실행 시 세그폴트 재현됨 (버전 고정)
+numpy>=1.24
+pyarrow<20           # 위와 동일한 이유로 pyarrow 상한 고정 (streamlit 내부에서 pandas<->arrow 변환에 사용)
+
+# --- 시장 데이터 ---
+yfinance>=0.2.40
+ta>=0.11.0          # 기술적 지표 (RSI, 볼린저밴드 등)
+fredapi>=0.5.1       # FRED 거시경제 데이터
+
+# --- DB ---
+SQLAlchemy>=2.0
+
+# --- 스케줄러 / 알림 ---
+APScheduler>=3.10
+plyer>=2.1           # 크로스플랫폼 데스크톱 알림
+
+# --- AI 연동 ---
+google-genai>=1.0    # Gemini API. 자연어 전략 해석(모듈 A) / Threads 요약(모듈 B) / 포트폴리오 AI 코멘트(모듈 H)에 사용, 선택 사항(키 없으면 대체 로직 사용)
+
+# --- 기타 유틸 ---
+requests>=2.31
+python-dotenv>=1.0
+
+# --- 테스트 ---
+pytest>=7.4
