@@ -204,6 +204,66 @@ class AlertLog(Base):
         return f"<AlertLog id={self.id} ticker={self.ticker!r} detected_at={self.detected_at}>"
 
 
+class StrategyTuningRun(Base):
+    """다종목 미세튜닝 실행 배치 1건 (모듈 A 확장 — 유튜브 전략을 100종목에 적용 + 파라미터 튜닝).
+
+    base_strategy_id가 있으면 전략 라이브러리에 이미 저장된 전략을 백본으로 재튜닝한 것이고(계보
+    추적용), 없으면 자연어 해석 직후(저장 전) 임시 결과로 바로 실행한 것이다. 사용자가 반년 주기로
+    같은 base_strategy_id에 대해 이 배치를 반복 실행할 것을 전제로 하므로(장기 이력 누적), 실행마다
+    새 행을 남기고 절대 덮어쓰지 않는다.
+    """
+
+    __tablename__ = "strategy_tuning_runs"
+
+    id = Column(Integer, primary_key=True)
+    base_strategy_id = Column(Integer, ForeignKey("strategies.id"), nullable=True)
+    base_config = Column(Text, nullable=False)  # 튜닝 전 원본 indicator_config (JSON 문자열)
+    universe = Column(Text, nullable=False)  # 이번 실행에 사용한 종목 티커 리스트 (JSON 배열 문자열)
+    train_ratio = Column(Float, nullable=False, default=0.75)
+    intensity = Column(String(20), nullable=False, default="보통")  # "빠름" | "보통" | "정밀"
+    start_date = Column(Date, nullable=False)
+    end_date = Column(Date, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    completed_at = Column(DateTime, nullable=True)
+
+    base_strategy = relationship("Strategy")
+    results = relationship(
+        "StrategyTuningResult", back_populates="run", cascade="all, delete-orphan"
+    )
+
+    def __repr__(self) -> str:
+        return f"<StrategyTuningRun id={self.id} base_strategy_id={self.base_strategy_id}>"
+
+
+class StrategyTuningResult(Base):
+    """StrategyTuningRun 배치 내 종목 1건의 튜닝 결과 (모듈 A 확장).
+
+    test_comparison에는 core.backtest_engine.compare_with_benchmarks() 와 동일한 3-way 비교
+    (튜닝된 전략 적용 vs 해당 종목 매수보유 vs S&P500 매수보유)의 test 구간 지표를 JSON으로 담는다.
+    """
+
+    __tablename__ = "strategy_tuning_results"
+
+    id = Column(Integer, primary_key=True)
+    run_id = Column(Integer, ForeignKey("strategy_tuning_runs.id"), nullable=False, index=True)
+    ticker = Column(String(20), nullable=False, index=True)
+    sector = Column(String(100), nullable=True)
+    style_type = Column(String(30), nullable=True)  # 주도주|성장주|가치주|경기민감주|경기방어주|퀄리티 컴파운더
+    style_scores = Column(Text, nullable=True)  # 6개 스타일 점수 (JSON 객체 문자열)
+    tuned_config = Column(Text, nullable=True)  # 튜닝된 indicator_config (JSON 문자열)
+    train_metrics = Column(Text, nullable=True)  # train 구간 성과 지표 (JSON 객체 문자열)
+    test_comparison = Column(Text, nullable=True)  # test 구간 3-way 비교 지표 (JSON 객체 문자열)
+    excess_return = Column(Float, nullable=True)  # test 구간 전략 CAGR - S&P500 매수보유 CAGR
+    health_warnings = Column(Text, nullable=True)  # JSON 배열 문자열
+    error = Column(Text, nullable=True)  # 이 종목만 실행 실패했을 때의 메시지 (배치 전체는 계속 진행)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    run = relationship("StrategyTuningRun", back_populates="results")
+
+    def __repr__(self) -> str:
+        return f"<StrategyTuningResult id={self.id} run_id={self.run_id} ticker={self.ticker!r}>"
+
+
 class GeminiCallLog(Base):
     """core.gemini_client.generate_content() 호출 시도 이력 (우측 상단 사용량 배지 표시용, core.theme).
 

@@ -6,6 +6,8 @@
 - 특정 전략 적용 vs 종목 매수 후 보유 vs S&P500 매수 후 보유를 비교
 - 누적수익률/CAGR/MDD/샤프지수/승률/매매횟수 계산, 표시할 지표는 사용자가 선택
 - 자연어로 붙여넣은 전략 설명을 AI가 해석해 지표 조합으로 변환 후 전략 라이브러리에 저장
+- 다종목 미세튜닝: 백본 전략을 S&P500 섹터 균등 표본(기본 100종목)에 적용해 종목 스타일별로
+  파라미터를 자동 탐색하고(train/test 분리 검증), 종목별 3-way 비교로 결과를 확인 (core/strategy_tuning.py)
 """
 
 import json
@@ -36,6 +38,7 @@ from core.indicators import compute_bollinger, compute_ichimoku, compute_ma_cros
 from core import job_manager
 from core.models import Strategy
 from core.nl_strategy import interpret_strategy_text
+from core import strategy_tuning
 from core.strategy_engine import is_expression_config, is_staged_config
 from core.strategy_library import detect_strategy_type
 from core.theme import TRADINGVIEW_CHART_CONFIG, apply_theme, style_chart_like_tradingview
@@ -459,7 +462,9 @@ def metrics_dataframe(results: dict[str, BacktestRun], selected: list[str]) -> p
     return pd.DataFrame(data, index=index).T
 
 
-tab_backtest, tab_nl = st.tabs(["📊 지표 조합 백테스트", "🤖 자연어 전략 등록"])
+tab_backtest, tab_nl, tab_tuning = st.tabs(
+    ["📊 지표 조합 백테스트", "🤖 자연어 전략 등록", "🧬 다종목 미세튜닝"]
+)
 
 with tab_backtest:
     _init_ui_state()
@@ -851,3 +856,248 @@ with tab_nl:
                 saved_id = strategy.id
             st.success(f"전략 '{candidate_name}' 저장 완료 (id={saved_id}). '지표 조합 백테스트' 탭에서 불러와 실행하세요.")
             del st.session_state["nl_result"]
+
+with tab_tuning:
+    st.markdown(
+        "유튜브 등에서 소개된 전략(백본)을 S&P500 섹터 균등 표본(기본 100종목)에 적용해, 종목이 "
+        "**주도주/성장주/가치주/경기민감주/경기방어주/퀄리티 컴파운더** 중 어떤 스타일인지 스스로 "
+        "판별하고 그 방향에 맞게 파라미터를 자동 미세튜닝합니다. 전략의 지표 구성/조건 로직(백본)은 "
+        "그대로 두고 수치 파라미터만 탐색하며, 과최적화를 피하기 위해 train(과거) 구간에서 탐색한 "
+        "파라미터를 test(최근, out-of-sample) 구간으로 따로 검증합니다."
+    )
+
+    tuning_source = st.radio(
+        "백본 전략 선택 방식", ["📚 전략 라이브러리에서 선택", "✍️ 새 텍스트 붙여넣기"],
+        key="tuning_source", horizontal=True,
+    )
+
+    tuning_base_config: Optional[dict] = None
+    tuning_base_strategy_id: Optional[int] = None
+
+    if tuning_source == "📚 전략 라이브러리에서 선택":
+        with get_session() as session:
+            tuning_strategies = session.query(Strategy).order_by(Strategy.created_at.desc()).all()
+            tuning_options = {f"{s.name} (#{s.id})": s.id for s in tuning_strategies}
+        if not tuning_options:
+            st.info("저장된 전략이 없습니다. 다른 탭에서 전략을 먼저 저장하거나 '새 텍스트 붙여넣기'를 사용하세요.")
+        else:
+            tuning_picked_label = st.selectbox("백본 전략", list(tuning_options.keys()), key="tuning_backbone_pick")
+            tuning_base_strategy_id = tuning_options[tuning_picked_label]
+            with get_session() as session:
+                picked_strategy = session.get(Strategy, tuning_base_strategy_id)
+                if picked_strategy is not None:
+                    tuning_base_config = json.loads(picked_strategy.indicator_config)
+    else:
+        tuning_raw_text = st.text_area(
+            "전략 설명 붙여넣기", height=160, key="tuning_raw_text",
+            placeholder="예: 볼린저 밴드 하단을 이탈한 뒤 상승 인걸(장악형) 캔들이 나오면 10% 진입, "
+                        "RSI가 30을 상향 돌파하면 나머지 비중을 크게 추가 진입합니다...",
+        )
+        if st.button("🤖 AI로 해석하기", key="tuning_interpret_btn"):
+            if not tuning_raw_text.strip():
+                st.warning("전략 설명을 입력해주세요.")
+            else:
+                job_manager.start("tuning_interpret", interpret_strategy_text, tuning_raw_text, label="튜닝용 전략 해석")
+
+        tuning_interpret_job = job_manager.render("tuning_interpret", running_label="전략을 해석하는 중")
+        if tuning_interpret_job is not None:
+            if tuning_interpret_job.status == "error":
+                st.error(f"전략 해석 중 오류가 발생했습니다: {tuning_interpret_job.error}")
+            else:
+                st.session_state["tuning_nl_result"] = tuning_interpret_job.result
+
+        tuning_nl_result = st.session_state.get("tuning_nl_result")
+        if tuning_nl_result is not None:
+            st.info(tuning_nl_result["description"])
+            st.json(tuning_nl_result["indicator_config"])
+            tuning_base_config = tuning_nl_result["indicator_config"]
+
+    if tuning_base_config is not None:
+        st.divider()
+        col_n, col_intensity, col_ratio = st.columns(3)
+        with col_n:
+            tuning_universe_n = st.number_input(
+                "표본 종목 수", min_value=10, max_value=200, value=100, step=10, key="tuning_universe_n"
+            )
+        with col_intensity:
+            tuning_intensity = st.select_slider(
+                "탐색 강도 (파라미터 후보 개수: 빠름 20 / 보통 60 / 정밀 150)",
+                options=["빠름", "보통", "정밀"], value="보통", key="tuning_intensity",
+            )
+        with col_ratio:
+            tuning_train_ratio = st.slider(
+                "Train 비율 (나머지는 test/out-of-sample 검증용)",
+                min_value=0.5, max_value=0.9, value=0.75, step=0.05, key="tuning_train_ratio",
+            )
+
+        col_tstart, col_tend = st.columns(2)
+        with col_tstart:
+            tuning_start_date = st.date_input(
+                "시작일", value=date.today() - timedelta(days=365 * 5), key="tuning_start_date"
+            )
+        with col_tend:
+            tuning_end_date = st.date_input("종료일", value=date.today(), key="tuning_end_date")
+
+        if st.button("🚀 다종목 미세튜닝 실행", type="primary", key="tuning_run_btn"):
+            if tuning_start_date >= tuning_end_date:
+                st.warning("시작일은 종료일보다 빨라야 합니다.")
+            else:
+                job_manager.start(
+                    "tuning_batch", strategy_tuning.run_and_save_tuning,
+                    tuning_base_config, int(tuning_universe_n),
+                    tuning_start_date.isoformat(), tuning_end_date.isoformat(),
+                    train_ratio=tuning_train_ratio, intensity=tuning_intensity,
+                    base_strategy_id=tuning_base_strategy_id,
+                    label=f"{tuning_universe_n}종목 미세튜닝",
+                )
+
+    tuning_job = job_manager.render(
+        "tuning_batch", running_label="다종목 미세튜닝 실행 중 (종목 수/탐색 강도에 따라 수 분 소요될 수 있습니다)"
+    )
+    if tuning_job is not None:
+        if tuning_job.status == "error":
+            st.error(f"튜닝 실행 중 오류가 발생했습니다: {tuning_job.error}")
+        else:
+            st.session_state["tuning_last_run_id"] = tuning_job.result
+            st.success(f"튜닝 완료 (실행 id={tuning_job.result}). 아래에서 결과를 확인하세요.")
+
+    st.divider()
+    with st.expander("📜 과거 튜닝 실행 이력"):
+        tuning_history = strategy_tuning.list_tuning_runs()
+        if tuning_history:
+            st.dataframe(
+                pd.DataFrame(
+                    [
+                        {
+                            "id": h["id"], "종목수": h["universe_size"], "시작일": h["start_date"],
+                            "종료일": h["end_date"], "탐색강도": h["intensity"], "생성일": h["created_at"],
+                        }
+                        for h in tuning_history
+                    ]
+                ),
+                use_container_width=True, hide_index=True,
+            )
+            pick_run_id = st.number_input(
+                "결과를 볼 실행 id", min_value=0, value=tuning_history[0]["id"], step=1, key="tuning_pick_run_id"
+            )
+            if st.button("이 실행 결과 보기", key="tuning_load_history_btn"):
+                st.session_state["tuning_last_run_id"] = int(pick_run_id)
+                st.rerun()
+        else:
+            st.caption("아직 실행 이력이 없습니다.")
+
+    tuning_run_id = st.session_state.get("tuning_last_run_id")
+    if tuning_run_id:
+        run_data = strategy_tuning.get_tuning_run(int(tuning_run_id))
+        if run_data is None:
+            st.warning("해당 실행 결과를 찾을 수 없습니다.")
+        else:
+            ok_rows = [r for r in run_data["results"] if not r.get("error") and r.get("tuned_config")]
+            error_rows = [r for r in run_data["results"] if r.get("error")]
+            if error_rows:
+                st.caption(f"⚠️ {len(error_rows)}개 종목은 데이터 조회/실행 실패로 결과에서 제외되었습니다.")
+
+            if not ok_rows:
+                st.warning("표시할 결과가 없습니다.")
+            else:
+                table_df = pd.DataFrame(
+                    [
+                        {
+                            "티커": r["ticker"],
+                            "섹터": r.get("sector") or "-",
+                            "유형": r.get("style_type") or "-",
+                            "초과수익(%)": r.get("excess_return"),
+                            "전략 CAGR(%)": (r.get("test_comparison") or {}).get("strategy", {}).get("cagr"),
+                            "종목홀딩 CAGR(%)": (r.get("test_comparison") or {}).get("buy_and_hold_ticker", {}).get("cagr"),
+                            "S&P500 CAGR(%)": (r.get("test_comparison") or {}).get("buy_and_hold_benchmark", {}).get("cagr"),
+                            "샤프": (r.get("test_comparison") or {}).get("strategy", {}).get("sharpe"),
+                            "MDD(%)": (r.get("test_comparison") or {}).get("strategy", {}).get("mdd"),
+                            "경고": len(r.get("health_warnings") or []),
+                        }
+                        for r in ok_rows
+                    ]
+                )
+
+                col_sort, col_topn = st.columns(2)
+                with col_sort:
+                    tuning_sort_option = st.selectbox(
+                        "정렬 기준 (기본: 초과수익 = 전략 CAGR - S&P500 매수보유 CAGR)",
+                        ["초과수익(%)", "전략 CAGR(%)", "샤프", "MDD(%)"], key="tuning_sort_option",
+                    )
+                with col_topn:
+                    tuning_top_n = st.number_input(
+                        "표시할 상위 개수", min_value=1, max_value=len(table_df),
+                        value=min(20, len(table_df)), key="tuning_top_n",
+                    )
+
+                sorted_df = table_df.sort_values(
+                    tuning_sort_option, ascending=False, na_position="last"
+                ).reset_index(drop=True)
+                display_df = sorted_df.head(int(tuning_top_n))
+
+                st.markdown(f"#### 결과 ({len(display_df)}/{len(sorted_df)}종목 표시, {tuning_sort_option} 기준 정렬)")
+                st.caption("표에서 행을 클릭해 직접 종목을 선택하면 아래에 3-way 비교 차트가 표시됩니다 (선택 없으면 상위 3종목).")
+                selection_event = st.dataframe(
+                    display_df, use_container_width=True, hide_index=True,
+                    on_select="rerun", selection_mode="multi-row", key="tuning_result_table",
+                )
+
+                selected_rows = (
+                    selection_event.selection.rows
+                    if selection_event and getattr(selection_event, "selection", None)
+                    else []
+                )
+                selected_tickers = (
+                    display_df.iloc[selected_rows]["티커"].tolist() if selected_rows else display_df.head(3)["티커"].tolist()
+                )
+
+                results_by_ticker = {r["ticker"]: r for r in ok_rows}
+                tuning_period_choice = st.radio(
+                    "비교 기간", ["test 구간(out-of-sample)", "전체 기간"], key="tuning_period_choice", horizontal=True
+                )
+
+                for sel_ticker in selected_tickers:
+                    r = results_by_ticker.get(sel_ticker)
+                    if r is None:
+                        continue
+                    st.markdown(f"##### {sel_ticker} ({r.get('style_type')}, {r.get('sector') or '-'})")
+
+                    if tuning_period_choice == "test 구간(out-of-sample)":
+                        _, _, chart_start, chart_end = strategy_tuning.train_test_split_dates(
+                            run_data["start_date"].isoformat(), run_data["end_date"].isoformat(), run_data["train_ratio"]
+                        )
+                    else:
+                        chart_start = run_data["start_date"].isoformat()
+                        chart_end = run_data["end_date"].isoformat()
+
+                    try:
+                        chart_results = compare_with_benchmarks(sel_ticker, r["tuned_config"], chart_start, chart_end)
+                        st.plotly_chart(render_equity_comparison(chart_results), use_container_width=True)
+                        st.dataframe(
+                            metrics_dataframe(chart_results, list(METRIC_LABELS.keys())), use_container_width=True
+                        )
+                    except Exception as e:
+                        st.warning(f"{sel_ticker} 차트 생성 실패: {e}")
+
+                    for w in r.get("health_warnings") or []:
+                        st.warning(f"{sel_ticker}: {w}")
+
+                    with st.expander(f"{sel_ticker} 튜닝된 전략 JSON"):
+                        st.json(r["tuned_config"])
+
+                    if st.button(f"📚 {sel_ticker} 튜닝 전략을 라이브러리에 저장", key=f"tuning_save_{sel_ticker}"):
+                        with get_session() as session:
+                            saved_strategy = Strategy(
+                                name=f"{sel_ticker} 미세튜닝 ({r.get('style_type')}, run#{run_data['id']})",
+                                indicator_config=json.dumps(r["tuned_config"], ensure_ascii=False),
+                                source="tuning_engine",
+                                description=(
+                                    f"다종목 미세튜닝 결과 (실행 id={run_data['id']}, 종목 유형={r.get('style_type')}, "
+                                    f"test 구간 초과수익={r.get('excess_return')}%). "
+                                    f"백본 전략 id={run_data.get('base_strategy_id')}."
+                                ),
+                            )
+                            session.add(saved_strategy)
+                            session.flush()
+                            saved_id = saved_strategy.id
+                        st.success(f"'{sel_ticker}' 튜닝 전략 저장 완료 (id={saved_id}).")
