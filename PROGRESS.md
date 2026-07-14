@@ -766,3 +766,51 @@ staged(1:2:6) JSON을 얻었는데, 백테스트 매매횟수는 40건인데 누
   (무한루프 작업으로 실행 중 취소까지 재현). Streamlit `AppTest`가 "새 run에서 그려지지 않은 요소"의
   화면 잔류를 실제 브라우저처럼 재현하지 않는다는 한계를 확인해(간단한 재현으로 검증) 그 부분은
   단언하지 않고 레지스트리 상태만으로 검증. 전체 pytest 241개 통과.
+
+**다종목 미세튜닝: 종목을 직접 스크롤하며 골라 담는 수동 선택 모드 추가** (2026-07-14, 같은 날
+후속 요청). 사용자가 "휠을 넘기면 티커들이 계속 나오고 내가 담는 구조"를 요청 → 어디에 넣을지/
+자동 표본과 어떻게 공존할지 확인 질문 2개 후 진행(다종목 미세튜닝 탭에 "모드 전환" 방식으로 추가).
+- `app/pages/1_백테스팅.py`의 "🧬 다종목 미세튜닝" 탭에 "종목 표본 방식" 라디오(🎲 자동 섹터 균등
+  표본 / 🧺 직접 선택) 추가. 직접 선택 모드에서는 `core.screener.get_universe()` 전체 목록(섹터→
+  티커 정렬)을 `st.dataframe(..., on_select="rerun", selection_mode="multi-row", height=420)`로
+  렌더링 — 고정 높이 컨테이너라 별도 무한스크롤 구현 없이 Streamlit 데이터그리드 자체의 내장
+  스크롤(마우스 휠)로 "스크롤하면 더 많은 티커가 보인다"를 그대로 충족. 체크박스로 선택한 행이
+  담은 티커 목록이 되며(선택 상태는 위젯 `key`로 자동 영속 — 별도 session_state 누적 로직 불필요,
+  스크롤은 리런을 유발하지 않아 선택 중간에 화면이 끊기지 않음), 캡션에 "🧺 담은 종목 N개: ..."로
+  실시간 표시.
+- `core/strategy_tuning.py::run_and_save_tuning()`에 `tickers_df` 선택적 인자 추가 — 주어지면
+  `sample_universe()` 자동 표본추출을 완전히 건너뛰고 그대로 사용(직접 선택 모드), 없으면 기존처럼
+  자동 표본(자동 모드). 실행 버튼은 직접 선택 모드에서 담은 종목이 0개면 경고 후 막는다.
+- 검증: `tests/test_strategy_tuning.py`에 2개 추가(`tickers_df` 제공 시 `sample_universe()`가 호출
+  자체를 안 하는지 — 호출되면 즉시 실패하도록 만든 가짜 함수로 확인, 미제공 시 기존처럼 자동
+  표본추출로 폴백하는지). Playwright로 실제 브라우저 검증: `st.dataframe`의 행 선택 체크박스가
+  Streamlit `data-testid="stDataFrame"`이 아니라 캔버스 기반 `data-testid="data-grid-canvas"`로
+  렌더링됨을 먼저 확인한 뒤(추측 대신 DOM 조사) 그 좌표로 실제 체크박스 클릭 → 2종목(GOOGL/AMZN)
+  선택 → 캔버스 내부 마우스 휠로 스크롤하니 다음 섹터 종목(BRK.B/JPM/V/JNJ/UNH/AAPL/MSFT/NVDA)이
+  나타나는 것을 확인 → `body` 텍스트에서 "🧺 담은 종목 2개: GOOGL, AMZN" 캡션이 스크롤 후에도 그대로
+  유지됨을 직접 확인(선택 상태가 스크롤과 무관하게 보존됨을 실증). 이 샌드박스 환경은 Wikipedia
+  접근이 막혀 있어 `get_universe()`가 20종목짜리 `_FALLBACK_UNIVERSE`로 대체되는 상태로 검증했음
+  (실제 사용자 환경은 인터넷이 되므로 전체 S&P500 약 500종목이 뜬다) — 목록 크기와 무관하게 동작하는
+  로직이라 결과에 영향 없음. 전체 pytest 243개 통과.
+
+**(동시 세션 작업) expression(직접 수식) 전략 미세튜닝 지원 + 정의 순서 버그 수정** (2026-07-14,
+같은 날). 이 세션이 티커 담기 기능을 검증하는 동안, `core/strategy_tuning.py`/`core/models.py`를
+다른 동시 세션이 실시간으로 확장하는 것을 발견함(파일 크기가 체크할 때마다 늘어남, 커밋 전 상태를
+공유하는 이 프로젝트의 기존 관례 — PROGRESS.md 여러 항목에 이미 기록된 패턴). 내용은 이전까지 "한계"로
+남겨뒀던 expression 전략 튜닝 미지원을 해소하는 것: `identify_tunable_numbers()`가 Gemini로 수식 안의
+숫자 리터럴이 튜닝 가능한 파라미터인지 판별(숫자 값 자체는 `ast`로 결정론적으로 추출해 Gemini가 값을
+잘못 베낄 위험 원천 차단) → `_build_expression_param_grid()`로 기존 grid search와 동일한 예산/재현
+가능한 랜덤 샘플링을 적용 → 그래도 test 구간에서 종목 매수보유+S&P500을 둘 다 못 이기면 그때만
+`generate_structural_variants()`로 Gemini에게 구조가 다른 대안 수식을 1회성으로 최대 3개 제안받아
+채택(반복 진화 없음, "백본 유지" 원칙은 이 escape hatch에서만 예외로 허용 — 사용자 확정). `StrategyTuningResult`에
+`backbone_changed`(bool) 컬럼 추가.
+- **이 세션에서 발견/수정한 버그 2건** (기능 자체는 건드리지 않고 버그만 수정, "반영은 하되 되돌리지
+  않는다" 원칙): ① `tune_expression_strategy_for_ticker()`가 함수 기본 인자값으로
+  `_DEFAULT_TRAIN_RATIO`를 참조하는데, 그 상수 정의가 원래 위치(파일 뒷부분 "4. train/test 분리"
+  절)에 그대로 있어 새로 삽입된 함수보다 늦게 정의됨 → 모듈 임포트 자체가 `NameError`로 실패하는
+  상태였음. 상수 정의를 새 함수들보다 앞으로 옮겨 해결(값 자체는 그대로, 정의 위치만 이동). ②
+  `identify_tunable_numbers()`/`generate_structural_variants()` 관련 테스트 3개가 실패하고 있었는데,
+  동시 세션이 디버그 print를 넣어 자체적으로 원인을 찾아 고치는 것을 재확인(이 세션은 원인 규명에는
+  관여하지 않고 진행 상황만 모니터링) — 최종적으로 디버그 print까지 정리된 상태로 마무리됨.
+- 검증: 두 세션의 변경사항을 합쳐 `python -m pytest tests/ -q` 전체 258개 통과, `core.strategy_tuning`
+  모듈 임포트/`app/pages/1_백테스팅.py` 컴파일·`AppTest` 무예외 로드까지 재확인.

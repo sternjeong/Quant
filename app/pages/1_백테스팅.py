@@ -38,7 +38,7 @@ from core.indicators import compute_bollinger, compute_ichimoku, compute_ma_cros
 from core import job_manager
 from core.models import Strategy
 from core.nl_strategy import interpret_strategy_text
-from core import strategy_tuning
+from core import screener, strategy_tuning
 from core.strategy_engine import is_expression_config, is_staged_config
 from core.strategy_library import detect_strategy_type
 from core.theme import TRADINGVIEW_CHART_CONFIG, apply_theme, style_chart_like_tradingview
@@ -863,7 +863,11 @@ with tab_tuning:
         "**주도주/성장주/가치주/경기민감주/경기방어주/퀄리티 컴파운더** 중 어떤 스타일인지 스스로 "
         "판별하고 그 방향에 맞게 파라미터를 자동 미세튜닝합니다. 전략의 지표 구성/조건 로직(백본)은 "
         "그대로 두고 수치 파라미터만 탐색하며, 과최적화를 피하기 위해 train(과거) 구간에서 탐색한 "
-        "파라미터를 test(최근, out-of-sample) 구간으로 따로 검증합니다."
+        "파라미터를 test(최근, out-of-sample) 구간으로 따로 검증합니다.\n\n"
+        "**✍️ 직접 수식 전략만 예외**: 숫자 파라미터를 Gemini가 식별해 튜닝하고, 그래도 test 구간에서 "
+        "종목/S&P500 매수보유를 둘 다 못 이기면 Gemini가 제안한 구조가 다른 대안으로 한 번 더 시도합니다"
+        "(결과 표의 '백본변경' 컬럼으로 확인 가능). 지표 토글/1:2:6 전략은 이 예외 없이 항상 구조를 "
+        "그대로 유지합니다."
     )
 
     tuning_source = st.radio(
@@ -914,11 +918,44 @@ with tab_tuning:
 
     if tuning_base_config is not None:
         st.divider()
-        col_n, col_intensity, col_ratio = st.columns(3)
-        with col_n:
+        tuning_universe_mode = st.radio(
+            "종목 표본 방식", ["🎲 자동 섹터 균등 표본", "🧺 직접 선택"], key="tuning_universe_mode", horizontal=True
+        )
+
+        manual_tickers_df: Optional[pd.DataFrame] = None
+        tuning_universe_n = 100
+
+        if tuning_universe_mode == "🎲 자동 섹터 균등 표본":
             tuning_universe_n = st.number_input(
                 "표본 종목 수", min_value=10, max_value=200, value=100, step=10, key="tuning_universe_n"
             )
+        else:
+            st.caption(
+                "아래 목록을 마우스 휠로 스크롤하면서 원하는 종목의 체크박스를 클릭해 담으세요 "
+                "(담은 종목만 미세튜닝 대상이 됩니다)."
+            )
+            picker_universe = screener.get_universe().sort_values(["Sector", "Symbol"]).reset_index(drop=True)
+            picker_display = picker_universe.rename(columns={"Symbol": "티커", "Security": "종목명", "Sector": "섹터"})
+            picker_event = st.dataframe(
+                picker_display, use_container_width=True, hide_index=True, height=420,
+                on_select="rerun", selection_mode="multi-row", key="tuning_ticker_picker",
+            )
+            picked_rows = (
+                picker_event.selection.rows if picker_event and getattr(picker_event, "selection", None) else []
+            )
+            manual_tickers_df = (
+                picker_universe.iloc[picked_rows][["Symbol", "Sector"]]
+                .rename(columns={"Symbol": "ticker", "Sector": "sector"})
+                .reset_index(drop=True)
+                if picked_rows
+                else pd.DataFrame(columns=["ticker", "sector"])
+            )
+            if not manual_tickers_df.empty:
+                st.caption(f"🧺 담은 종목 {len(manual_tickers_df)}개: {', '.join(manual_tickers_df['ticker'])}")
+            else:
+                st.caption("🧺 담은 종목 없음 — 표에서 체크박스를 선택해주세요.")
+
+        col_intensity, col_ratio = st.columns(2)
         with col_intensity:
             tuning_intensity = st.select_slider(
                 "탐색 강도 (파라미터 후보 개수: 빠름 20 / 보통 60 / 정밀 150)",
@@ -938,17 +975,23 @@ with tab_tuning:
         with col_tend:
             tuning_end_date = st.date_input("종료일", value=date.today(), key="tuning_end_date")
 
+        is_manual_mode = tuning_universe_mode == "🧺 직접 선택"
+
         if st.button("🚀 다종목 미세튜닝 실행", type="primary", key="tuning_run_btn"):
             if tuning_start_date >= tuning_end_date:
                 st.warning("시작일은 종료일보다 빨라야 합니다.")
+            elif is_manual_mode and (manual_tickers_df is None or manual_tickers_df.empty):
+                st.warning("직접 선택 모드에서는 종목을 1개 이상 담아야 합니다.")
             else:
+                run_label = f"{len(manual_tickers_df)}종목 미세튜닝" if is_manual_mode else f"{tuning_universe_n}종목 미세튜닝"
                 job_manager.start(
                     "tuning_batch", strategy_tuning.run_and_save_tuning,
                     tuning_base_config, int(tuning_universe_n),
                     tuning_start_date.isoformat(), tuning_end_date.isoformat(),
                     train_ratio=tuning_train_ratio, intensity=tuning_intensity,
                     base_strategy_id=tuning_base_strategy_id,
-                    label=f"{tuning_universe_n}종목 미세튜닝",
+                    tickers_df=manual_tickers_df if is_manual_mode else None,
+                    label=run_label,
                 )
 
     tuning_job = job_manager.render(
@@ -1013,6 +1056,7 @@ with tab_tuning:
                             "샤프": (r.get("test_comparison") or {}).get("strategy", {}).get("sharpe"),
                             "MDD(%)": (r.get("test_comparison") or {}).get("strategy", {}).get("mdd"),
                             "경고": len(r.get("health_warnings") or []),
+                            "백본변경": "🧬 예" if r.get("backbone_changed") else "-",
                         }
                         for r in ok_rows
                     ]

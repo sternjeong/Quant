@@ -255,6 +255,10 @@ class StrategyTuningResult(Base):
     test_comparison = Column(Text, nullable=True)  # test 구간 3-way 비교 지표 (JSON 객체 문자열)
     excess_return = Column(Float, nullable=True)  # test 구간 전략 CAGR - S&P500 매수보유 CAGR
     health_warnings = Column(Text, nullable=True)  # JSON 배열 문자열
+    # expression(직접 수식) 전략에서 숫자만 튜닝해도 매수보유를 못 이겨 Gemini가 구조 자체를 바꾼
+    # 대안으로 교체됐는지 (2026-07-14, core.strategy_tuning.tune_expression_strategy_for_ticker).
+    # JSON(레짐/1:2:6) 전략은 백본을 절대 안 바꾸므로 항상 False.
+    backbone_changed = Column(Boolean, nullable=False, default=False)
     error = Column(Text, nullable=True)  # 이 종목만 실행 실패했을 때의 메시지 (배치 전체는 계속 진행)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 

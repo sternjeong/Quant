@@ -9,6 +9,7 @@
 네트워크(yfinance)를 타지 않도록 관련 함수를 모두 monkeypatch 로 대체한다.
 """
 
+import json
 from types import SimpleNamespace
 
 import numpy as np
@@ -171,9 +172,263 @@ def test_compute_style_scores_empty_input_returns_empty_df():
 # ----------------------------------------------------------------------------
 
 
-def test_build_param_grid_expression_returns_original_only():
+def test_build_param_grid_expression_without_gemini_key_returns_original_only(monkeypatch):
+    monkeypatch.setattr(st_mod.gemini_client, "has_api_key", lambda: False)
     candidates = st_mod.build_param_grid(EXPRESSION_BASE_CONFIG, "주도주", "보통")
     assert candidates == [EXPRESSION_BASE_CONFIG]
+
+
+# ----------------------------------------------------------------------------
+# expression 전략 전용 Gemini 튜닝 (identify_tunable_numbers / build_param_grid 확장 /
+# generate_structural_variants / tune_expression_strategy_for_ticker)
+# ----------------------------------------------------------------------------
+
+
+class _FakeGeminiResponse:
+    def __init__(self, payload: dict):
+        self.text = json.dumps(payload, ensure_ascii=False)
+
+
+def test_extract_numeric_literals_finds_values_in_order():
+    literals = st_mod._extract_numeric_literals("close > sma(close, 20) and rsi(close, 14) < 30")
+    assert [lit["value"] for lit in literals] == [20, 14, 30]
+    assert [lit["text"] for lit in literals] == ["20", "14", "30"]
+
+
+def test_identify_tunable_numbers_returns_empty_without_api_key(monkeypatch):
+    monkeypatch.setattr(st_mod.gemini_client, "has_api_key", lambda: False)
+    assert st_mod.identify_tunable_numbers(EXPRESSION_BASE_CONFIG["expression"]) == []
+
+
+def test_identify_tunable_numbers_filters_non_tunable_and_uses_suggested_range(monkeypatch):
+    monkeypatch.setattr(st_mod.gemini_client, "has_api_key", lambda: True)
+
+    def _fake_generate(**kwargs):
+        return _FakeGeminiResponse(
+            {
+                "numbers": [
+                    {"index": 0, "tunable": True, "role": "이평 기간", "suggested_min": 10, "suggested_max": 40},
+                    {"index": 1, "tunable": True, "role": "RSI 기간", "suggested_min": 7, "suggested_max": 21},
+                    {"index": 2, "tunable": False, "role": "과매도 임계값(고정)", "suggested_min": 30, "suggested_max": 30},
+                ]
+            }
+        )
+
+    monkeypatch.setattr(st_mod.gemini_client, "generate_content", _fake_generate)
+
+    result = st_mod.identify_tunable_numbers(EXPRESSION_BASE_CONFIG["expression"])
+    assert {r["value"] for r in result} == {20, 14}  # 30(tunable=False)은 제외됨
+    sma_period = next(r for r in result if r["value"] == 20)
+    assert sma_period["suggested_min"] == 10.0
+    assert sma_period["suggested_max"] == 40.0
+
+
+def test_identify_tunable_numbers_returns_empty_on_count_mismatch(monkeypatch):
+    """Gemini가 반환한 개수가 실제 숫자 개수와 다르면 신뢰할 수 없으니 원본 그대로 폴백해야 한다."""
+    monkeypatch.setattr(st_mod.gemini_client, "has_api_key", lambda: True)
+    monkeypatch.setattr(
+        st_mod.gemini_client, "generate_content",
+        lambda **kwargs: _FakeGeminiResponse({"numbers": [{"index": 0, "tunable": True, "role": "x", "suggested_min": 1, "suggested_max": 2}]}),
+    )
+    result = st_mod.identify_tunable_numbers(EXPRESSION_BASE_CONFIG["expression"])  # 숫자 3개인데 응답은 1개
+    assert result == []
+
+
+def test_identify_tunable_numbers_returns_empty_on_api_failure(monkeypatch):
+    monkeypatch.setattr(st_mod.gemini_client, "has_api_key", lambda: True)
+
+    def _raise(**kwargs):
+        raise RuntimeError("429")
+
+    monkeypatch.setattr(st_mod.gemini_client, "generate_content", _raise)
+    assert st_mod.identify_tunable_numbers(EXPRESSION_BASE_CONFIG["expression"]) == []
+
+
+def test_substitute_numbers_preserves_int_vs_float_style():
+    expr = "close > sma(close, 20) and stdev(close, 5) < 2.5"
+    literals = st_mod._extract_numeric_literals(expr)
+    new_expr = st_mod._substitute_numbers(expr, literals, (30, 8, 3.25))
+    assert new_expr == "close > sma(close, 30) and stdev(close, 8) < 3.25"
+
+
+def test_build_expression_param_grid_uses_identified_numbers(monkeypatch):
+    sma_period_literal = st_mod._extract_numeric_literals(EXPRESSION_BASE_CONFIG["expression"])[0]
+    monkeypatch.setattr(
+        st_mod, "identify_tunable_numbers",
+        lambda expr: [{**sma_period_literal, "role": "기간", "suggested_min": 10.0, "suggested_max": 30.0}],
+    )
+    candidates = st_mod.build_param_grid(EXPRESSION_BASE_CONFIG, "성장주", "빠름")
+    periods = sorted({st_mod._extract_numeric_literals(c["expression"])[0]["value"] for c in candidates})
+    assert len(periods) >= 2  # 원본(20)과 최소 1개 이상의 변형이 함께 있어야 함
+    assert 20 in periods
+    for c in candidates:
+        st_mod.validate_syntax(c["expression"])  # 전부 실제로 실행 가능해야 함
+
+
+def test_build_expression_param_grid_no_tunable_numbers_returns_original(monkeypatch):
+    monkeypatch.setattr(st_mod, "identify_tunable_numbers", lambda expr: [])
+    candidates = st_mod.build_param_grid(EXPRESSION_BASE_CONFIG, "성장주", "빠름")
+    assert candidates == [EXPRESSION_BASE_CONFIG]
+
+
+def test_generate_structural_variants_returns_empty_without_api_key(monkeypatch):
+    monkeypatch.setattr(st_mod.gemini_client, "has_api_key", lambda: False)
+    assert st_mod.generate_structural_variants("close > sma(close, 20)", "주도주") == []
+
+
+def test_generate_structural_variants_filters_invalid_and_caps_at_n(monkeypatch):
+    monkeypatch.setattr(st_mod.gemini_client, "has_api_key", lambda: True)
+    monkeypatch.setattr(
+        st_mod.gemini_client, "generate_content",
+        lambda **kwargs: _FakeGeminiResponse(
+            {
+                "variants": [
+                    "close > ema(close, 10) and rsi(close, 14) < 25",  # 유효
+                    "close > nonexistent_function(close, 5)",  # 미지원 함수 -> 거부
+                    "close < bb_lower(close, 20)",  # 유효
+                    "import os",  # 문법 자체가 실행 거부 대상 -> 거부
+                    "close > ema(close, 50)",  # 유효(하지만 budget n=2라 안 담길 수도 있음)
+                ]
+            }
+        ),
+    )
+    variants = st_mod.generate_structural_variants("close > sma(close, 20)", "주도주", n=2)
+    assert len(variants) == 2
+    for v in variants:
+        st_mod.validate_syntax(v)  # 반환된 것은 전부 실행 가능해야 함
+
+
+def test_generate_structural_variants_returns_empty_on_api_failure(monkeypatch):
+    monkeypatch.setattr(st_mod.gemini_client, "has_api_key", lambda: True)
+    monkeypatch.setattr(st_mod.gemini_client, "generate_content", lambda **kwargs: (_ for _ in ()).throw(RuntimeError("fail")))
+    assert st_mod.generate_structural_variants("close > sma(close, 20)", "주도주") == []
+
+
+def test_tune_expression_strategy_skips_structural_search_when_already_outperforming(monkeypatch):
+    """1단계(숫자 튜닝)만으로 test에서 둘 다 이기면 generate_structural_variants를 아예 호출하지
+    않아야 한다 (구조 변경은 escape hatch로만 쓰여야 함)."""
+    calls = {"structural": 0}
+
+    def _fake_tune(ticker, cfg, style_type, start, end, train_ratio=0.75, intensity="보통"):
+        result = dict(
+            ticker=ticker, style_type=style_type, tuned_config=cfg,
+            train_metrics=_metrics(sharpe=1.0),
+            test_comparison={
+                "strategy": {"cagr": 20.0}, "buy_and_hold_ticker": {"cagr": 10.0}, "buy_and_hold_benchmark": {"cagr": 8.0},
+            },
+            excess_return=12.0, health_warnings=[],
+        )
+        return result
+
+    def _fake_variants(expr, style_type, n=3):
+        calls["structural"] += 1
+        return ["close > ema(close, 10)"]
+
+    monkeypatch.setattr(st_mod, "tune_strategy_for_ticker", _fake_tune)
+    monkeypatch.setattr(st_mod, "generate_structural_variants", _fake_variants)
+
+    result = st_mod.tune_expression_strategy_for_ticker(
+        "TEST", EXPRESSION_BASE_CONFIG, "성장주", "2020-01-01", "2021-12-31"
+    )
+    assert calls["structural"] == 0
+    assert result["backbone_changed"] is False
+    assert result["outperformed_ticker_bh"] is True
+    assert result["outperformed_benchmark_bh"] is True
+
+
+def test_tune_expression_strategy_tries_structural_variants_when_underperforming(monkeypatch):
+    """1단계가 둘 다 못 이기면 구조 변형 후보들을 시도하고, test 성과가 가장 좋은 것을 채택해야 한다."""
+
+    def _fake_tune(ticker, cfg, style_type, start, end, train_ratio=0.75, intensity="보통"):
+        expr = cfg["expression"]
+        # 원본은 못 이기고, "better" 변형은 확실히 이기고, "worse" 변형은 더 나쁘게 설계
+        if "better" in expr:
+            strat_cagr = 25.0
+        elif "worse" in expr:
+            strat_cagr = -5.0
+        else:
+            strat_cagr = 3.0
+        return dict(
+            ticker=ticker, style_type=style_type, tuned_config=cfg,
+            train_metrics=_metrics(sharpe=1.0),
+            test_comparison={
+                "strategy": {"cagr": strat_cagr}, "buy_and_hold_ticker": {"cagr": 10.0}, "buy_and_hold_benchmark": {"cagr": 8.0},
+            },
+            excess_return=strat_cagr - 8.0, health_warnings=[],
+        )
+
+    monkeypatch.setattr(st_mod, "tune_strategy_for_ticker", _fake_tune)
+    monkeypatch.setattr(
+        st_mod, "generate_structural_variants",
+        lambda expr, style_type, n=3: ["worse(close)", "better(close)"],
+    )
+
+    result = st_mod.tune_expression_strategy_for_ticker(
+        "TEST", EXPRESSION_BASE_CONFIG, "성장주", "2020-01-01", "2021-12-31"
+    )
+    assert result["backbone_changed"] is True
+    assert "better" in result["tuned_config"]["expression"]
+    assert result["test_comparison"]["strategy"]["cagr"] == 25.0
+    assert result["outperformed_ticker_bh"] is True
+    assert result["outperformed_benchmark_bh"] is True
+
+
+def test_tune_expression_strategy_never_regresses_below_first_pass(monkeypatch):
+    """구조 변형 후보가 전부 1단계 결과보다 나쁘면, 절대 그쪽으로 안 바뀌고 1단계 결과를 유지해야
+    한다(backbone_changed=False로 유지 — 손해 보는 방향으로 절대 안 감)."""
+
+    def _fake_tune(ticker, cfg, style_type, start, end, train_ratio=0.75, intensity="보통"):
+        strat_cagr = 5.0 if "expression" in cfg and "worse" not in cfg["expression"] else -20.0
+        return dict(
+            ticker=ticker, style_type=style_type, tuned_config=cfg,
+            train_metrics=_metrics(sharpe=1.0),
+            test_comparison={
+                "strategy": {"cagr": strat_cagr}, "buy_and_hold_ticker": {"cagr": 10.0}, "buy_and_hold_benchmark": {"cagr": 8.0},
+            },
+            excess_return=strat_cagr - 8.0, health_warnings=[],
+        )
+
+    monkeypatch.setattr(st_mod, "tune_strategy_for_ticker", _fake_tune)
+    monkeypatch.setattr(
+        st_mod, "generate_structural_variants",
+        lambda expr, style_type, n=3: ["worse(close)", "also_worse(close)"],
+    )
+
+    result = st_mod.tune_expression_strategy_for_ticker(
+        "TEST", EXPRESSION_BASE_CONFIG, "성장주", "2020-01-01", "2021-12-31"
+    )
+    assert result["backbone_changed"] is False
+    assert result["tuned_config"]["expression"] == EXPRESSION_BASE_CONFIG["expression"]
+    assert result["test_comparison"]["strategy"]["cagr"] == 5.0
+
+
+def test_run_batch_tuning_dispatches_expression_configs_to_expression_tuner(monkeypatch):
+    tickers_df = pd.DataFrame({"ticker": ["AAA"], "sector": ["Utilities"]})
+    fake_styles = pd.DataFrame(
+        {"ticker": ["AAA"], "sector": ["Utilities"], "style_type": ["경기방어주"], "style_scores": [{"경기방어주": 90}]}
+    )
+    monkeypatch.setattr(st_mod, "compute_style_scores", lambda df, start, end: fake_styles)
+
+    calls = {"expression_tuner": 0, "regular_tuner": 0}
+
+    def _fake_expr_tune(ticker, cfg, style_type, start, end, train_ratio=0.75, intensity="보통"):
+        calls["expression_tuner"] += 1
+        return {"ticker": ticker, "style_type": style_type, "tuned_config": cfg, "train_metrics": {}, "test_comparison": {}, "excess_return": 0.0, "health_warnings": []}
+
+    def _fake_regular_tune(ticker, cfg, style_type, start, end, train_ratio=0.75, intensity="보통"):
+        calls["regular_tuner"] += 1
+        return {"ticker": ticker, "style_type": style_type, "tuned_config": cfg, "train_metrics": {}, "test_comparison": {}, "excess_return": 0.0, "health_warnings": []}
+
+    monkeypatch.setattr(st_mod, "tune_expression_strategy_for_ticker", _fake_expr_tune)
+    monkeypatch.setattr(st_mod, "tune_strategy_for_ticker", _fake_regular_tune)
+
+    st_mod.run_batch_tuning(EXPRESSION_BASE_CONFIG, tickers_df, "2020-01-01", "2021-01-01")
+    assert calls["expression_tuner"] == 1
+    assert calls["regular_tuner"] == 0
+
+    st_mod.run_batch_tuning(REGIME_BASE_CONFIG, tickers_df, "2020-01-01", "2021-01-01")
+    assert calls["expression_tuner"] == 1
+    assert calls["regular_tuner"] == 1
 
 
 def test_build_param_grid_preserves_bollinger_1_2_6_structure():
@@ -398,7 +653,7 @@ def test_save_and_get_tuning_run_roundtrip(db_session, monkeypatch):
             "ticker": "AAA", "sector": "Utilities", "style_type": "경기방어주",
             "style_scores": {"경기방어주": 90.0}, "tuned_config": BOLLINGER_1_2_6,
             "train_metrics": {"sharpe": 1.0}, "test_comparison": {"strategy": {"cagr": 5.0}},
-            "excess_return": 2.0, "health_warnings": [],
+            "excess_return": 2.0, "health_warnings": [], "backbone_changed": True,
         },
         {"ticker": "BBB", "sector": "Energy", "error": "실패"},
     ]
@@ -417,14 +672,80 @@ def test_save_and_get_tuning_run_roundtrip(db_session, monkeypatch):
     assert aaa["excess_return"] == 2.0
     assert aaa["style_scores"] == {"경기방어주": 90.0}
     assert aaa["tuned_config"]["entry_stages"][0]["conditions"][0]["indicator"] == "bollinger"
+    assert aaa["backbone_changed"] is True
 
     bbb = next(r for r in fetched["results"] if r["ticker"] == "BBB")
     assert bbb["error"] == "실패"
     assert bbb["tuned_config"] is None
     assert bbb["health_warnings"] == []
+    assert bbb["backbone_changed"] is False  # 명시 안 하면 기본값 False
 
     listed = st_mod.list_tuning_runs()
     assert any(r["id"] == run_id and r["universe_size"] == 2 for r in listed)
+
+
+def test_run_and_save_tuning_uses_provided_tickers_df_over_sample_universe(db_session, monkeypatch):
+    """UI '직접 선택' 모드: tickers_df가 주어지면 sample_universe()를 절대 호출하지 않아야 한다."""
+    from contextlib import contextmanager
+
+    @contextmanager
+    def _fake_get_session():
+        yield db_session
+        db_session.commit()
+
+    monkeypatch.setattr(st_mod, "get_session", _fake_get_session)
+
+    def _boom(n, use_cache=True):
+        raise AssertionError("tickers_df가 주어졌는데도 sample_universe()가 호출됨")
+
+    monkeypatch.setattr(st_mod, "sample_universe", _boom)
+    monkeypatch.setattr(
+        st_mod, "run_batch_tuning",
+        lambda base_config, tickers_df, start, end, train_ratio, intensity: [
+            {
+                "ticker": t, "style_type": "주도주", "sector": "Utilities", "style_scores": {},
+                "tuned_config": base_config, "train_metrics": {}, "test_comparison": {},
+                "excess_return": 0.0, "health_warnings": [],
+            }
+            for t in tickers_df["ticker"]
+        ],
+    )
+
+    manual_df = pd.DataFrame({"ticker": ["NVDA", "AMD"], "sector": ["Information Technology"] * 2})
+    run_id = st_mod.run_and_save_tuning(
+        BOLLINGER_1_2_6, 100, "2020-01-01", "2021-01-01", tickers_df=manual_df
+    )
+    fetched = st_mod.get_tuning_run(run_id)
+    assert {r["ticker"] for r in fetched["results"]} == {"NVDA", "AMD"}
+
+
+def test_run_and_save_tuning_falls_back_to_sample_universe_when_no_tickers_df(db_session, monkeypatch):
+    from contextlib import contextmanager
+
+    @contextmanager
+    def _fake_get_session():
+        yield db_session
+        db_session.commit()
+
+    monkeypatch.setattr(st_mod, "get_session", _fake_get_session)
+    monkeypatch.setattr(
+        st_mod, "sample_universe", lambda n, use_cache=True: pd.DataFrame({"ticker": ["AAPL"], "sector": ["Information Technology"]})
+    )
+    monkeypatch.setattr(
+        st_mod, "run_batch_tuning",
+        lambda base_config, tickers_df, start, end, train_ratio, intensity: [
+            {
+                "ticker": t, "style_type": "성장주", "sector": "Information Technology", "style_scores": {},
+                "tuned_config": base_config, "train_metrics": {}, "test_comparison": {},
+                "excess_return": 0.0, "health_warnings": [],
+            }
+            for t in tickers_df["ticker"]
+        ],
+    )
+
+    run_id = st_mod.run_and_save_tuning(BOLLINGER_1_2_6, 100, "2020-01-01", "2021-01-01")
+    fetched = st_mod.get_tuning_run(run_id)
+    assert {r["ticker"] for r in fetched["results"]} == {"AAPL"}
 
 
 def test_get_tuning_run_returns_none_for_missing_id(db_session, monkeypatch):
