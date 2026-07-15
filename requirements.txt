@@ -6,7 +6,13 @@ plotly>=5.20         # 백테스팅 캔들차트/지표 오버레이 (모듈 A)
 # --- 데이터 처리 ---
 pandas>=2.0,<3       # pandas 3.x + pyarrow 25 조합에서 st.dataframe() 재실행 시 세그폴트 재현됨 (버전 고정)
 numpy>=1.24
-pyarrow<20           # 위와 동일한 이유로 pyarrow 상한 고정 (streamlit 내부에서 pandas<->arrow 변환에 사용)
+# pyarrow 25.0.0은 pandas 2.x와 조합해도 st.dataframe() 재실행 시 세그폴트가 실제로 재현됨(2026-07-15,
+# Streamlit Community Cloud 배포 중 Python 3.14 환경에서 재확인) — 원래 있던 "pandas 3.x + pyarrow 25"
+# 조합뿐 아니라 pandas 2.x + pyarrow 25도 위험한 것으로 범위를 넓혀 기록. pyarrow<20을 그대로 쓰면
+# Python 3.14(cp314)용 사전빌드 wheel이 없는 pyarrow 19.x를 억지로 소스 빌드하다 cmake 부재로 배포가
+# 아예 실패한다(cp314 wheel은 pyarrow 22.0.0부터 제공) — 22~24 구간에서 재현 테스트로 세그폴트 없음을
+# 확인해 하한/상한을 이 범위로 고정.
+pyarrow>=22,<25
 
 # --- 시장 데이터 ---
 yfinance>=0.2.40
