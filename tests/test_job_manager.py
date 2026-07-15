@@ -180,3 +180,65 @@ def test_render_active_jobs_sidebar_empty_when_no_jobs():
     at = AppTest.from_function(_script)
     at.run()
     assert at.sidebar.caption.len == 0
+
+
+def test_cancel_removes_queued_job_before_it_starts():
+    import threading
+
+    blocker = threading.Event()
+
+    def _blocked():
+        blocker.wait(timeout=2)
+        return "done"
+
+    # 워커 풀(8개)을 다른 job으로 모두 채워 새 job이 큐에서 대기하도록 만든 뒤 취소한다.
+    filler_ids = [job_manager.start(f"filler_{i}", _blocked, label="filler") for i in range(8)]
+    job_id = job_manager.start("queued", _blocked, label="대기 중인 작업")
+
+    assert job_manager.cancel(job_id) is True
+    assert job_id not in job_manager._jobs
+
+    blocker.set()
+    for fid in filler_ids:
+        job_manager.cancel(fid)
+
+
+def test_cancel_unknown_job_id_returns_false():
+    assert job_manager.cancel("no-such-job") is False
+
+
+def test_cancel_button_in_sidebar_removes_job_from_registry():
+    # AppTest는 실제 브라우저와 달리 컨테이너에 새로 그려지는 요소가 없는 run의 잔여 렌더링을
+    # 재현하지 않으므로(무관한 AppTest 한계), 여기서는 클릭이 실제로 cancel()을 호출해 레지스트리를
+    # 비우는지(= 다음 rerun부터 사이드바/render()가 "작업 없음"으로 보게 되는 근거)만 검증한다.
+    def _script():
+        import threading
+        import time
+
+        import streamlit as st
+
+        from core import job_manager
+
+        started = threading.Event()
+
+        def _spin():
+            started.set()
+            while True:
+                time.sleep(0.01)
+
+        if "started" not in st.session_state:
+            job_manager.start("spinning", _spin, label="무한 루프 작업")
+            st.session_state["started"] = True
+            started.wait(timeout=2)
+
+        job_manager.render_active_jobs_sidebar()
+
+    at = AppTest.from_function(_script)
+    at.run()
+    assert at.sidebar.caption.len == 2  # 안내 문구 + 작업 항목
+    assert at.sidebar.button.len == 1
+    assert len(job_manager._jobs) == 1
+
+    at.sidebar.button[0].click().run()
+
+    assert job_manager._jobs == {}

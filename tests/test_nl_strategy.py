@@ -122,3 +122,36 @@ def test_check_entry_exit_overlap_swallows_exceptions(monkeypatch):
     monkeypatch.setattr(backtest_engine, "diagnose_strategy_health", _raise)
 
     assert nl_strategy._check_entry_exit_overlap({"entry_stages": [], "exit_stages": []}) == []
+
+
+def test_looks_like_staged_strategy_recognizes_new_bollinger_strategy_keywords():
+    """진입≠청산 조건이라 레짐(logic/conditions) 스키마로 표현 불가능한 볼린저 응용 전략들은
+    반드시 staged 파서로 라우팅돼야 한다 (없으면 AI가 표현 불가능한 스키마를 억지로 채우게 됨)."""
+    assert nl_strategy._looks_like_staged_strategy("볼린저 밴드 스퀴즈 매매 전략입니다") is True
+    assert nl_strategy._looks_like_staged_strategy("밴드폭 지표가 하단 기준선 아래로 하락") is True
+    assert nl_strategy._looks_like_staged_strategy("상승 다이버전스가 발생했습니다") is True
+    assert nl_strategy._looks_like_staged_strategy("쌍바닥형 패턴을 확인합니다") is True
+    assert nl_strategy._looks_like_staged_strategy("쌍봉형 패턴이 나오면") is True
+    # 단순 골든크로스 설명은 여전히 레짐형으로 남아야 한다(오탐지 방지)
+    assert nl_strategy._looks_like_staged_strategy("이동평균 골든크로스가 뜨면 매수합니다") is False
+
+
+def test_staged_schema_includes_new_bollinger_indicators_and_stop_loss():
+    indicator_enum = nl_strategy.STAGE_CONDITION_PROPERTIES["indicator"]["enum"]
+    for name in ("bbw_squeeze_release", "percent_b", "mfi", "double_pattern", "rsi_divergence"):
+        assert name in indicator_enum
+
+    band_enum = nl_strategy.STAGE_CONDITION_PROPERTIES["band"]["enum"]
+    assert "mid" in band_enum
+
+    stop_loss_schema = nl_strategy.STAGED_INDICATOR_CONFIG_SCHEMA["properties"]["indicator_config"]["properties"][
+        "stop_loss"
+    ]
+    assert set(stop_loss_schema["properties"]["source"]["enum"]) == {
+        "bollinger_mid",
+        "lowest_low",
+        "highest_high",
+    }
+    # stop_loss는 emergency_exit과 마찬가지로 선택 항목이어야 한다(모든 전략에 필요한 게 아니므로)
+    required = nl_strategy.STAGED_INDICATOR_CONFIG_SCHEMA["properties"]["indicator_config"]["required"]
+    assert "stop_loss" not in required

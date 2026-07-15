@@ -26,6 +26,7 @@ import pandas as pd
 from ta.momentum import RSIIndicator
 from ta.trend import MACD
 from ta.volatility import BollingerBands
+from ta.volume import MFIIndicator
 
 
 class ExpressionError(ValueError):
@@ -72,6 +73,23 @@ def _bb_mid(series: pd.Series, period: int = 20, std: float = 2.0) -> pd.Series:
 
 def _bb_lower(series: pd.Series, period: int = 20, std: float = 2.0) -> pd.Series:
     return BollingerBands(close=series, window=int(period), window_dev=float(std)).bollinger_lband()
+
+
+def _bbw(series: pd.Series, period: int = 20, std: float = 2.0) -> pd.Series:
+    """볼린저 밴드폭 = (상단-하단)/중심선. 변동성이 줄면(스퀴즈) 값도 작아진다."""
+    bb = BollingerBands(close=series, window=int(period), window_dev=float(std))
+    return (bb.bollinger_hband() - bb.bollinger_lband()) / bb.bollinger_mavg()
+
+
+def _percent_b(series: pd.Series, period: int = 20, std: float = 2.0) -> pd.Series:
+    """볼린저 밴드 %B = (종가-하단)/(상단-하단). 1 이상=상단 밖, 0 이하=하단 밖."""
+    bb = BollingerBands(close=series, window=int(period), window_dev=float(std))
+    return (series - bb.bollinger_lband()) / (bb.bollinger_hband() - bb.bollinger_lband())
+
+
+def _mfi(high: pd.Series, low: pd.Series, close: pd.Series, volume: pd.Series, period: int = 14) -> pd.Series:
+    """MFI(자금흐름지수) — 거래량을 반영한 RSI 격 모멘텀 지표."""
+    return MFIIndicator(high=high, low=low, close=close, volume=volume, window=int(period)).money_flow_index()
 
 
 def _stdev(series: pd.Series, period: int) -> pd.Series:
@@ -137,6 +155,9 @@ FUNCTIONS: dict[str, Callable[..., Any]] = {
     "bb_upper": _bb_upper,
     "bb_mid": _bb_mid,
     "bb_lower": _bb_lower,
+    "bbw": _bbw,
+    "percent_b": _percent_b,
+    "mfi": _mfi,
     "stdev": _stdev,
     "highest": _highest,
     "lowest": _lowest,

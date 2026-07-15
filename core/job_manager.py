@@ -15,16 +15,25 @@ Streamlit은 사용자가 다른 페이지로 이동(또는 어떤 위젯이든 
 
 from __future__ import annotations
 
+import ctypes
 import threading
 import time
 import uuid
 from dataclasses import dataclass, field
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import Future, ThreadPoolExecutor
 from typing import Any, Callable, Optional
 
 import streamlit as st
 
 _PRUNE_AFTER_SECONDS = 300.0  # 완료된 지 5분 지난 작업은 다음 start() 때 레지스트리에서 정리
+
+
+class _JobCancelledError(BaseException):
+    """강제 종료된 작업의 스레드에 비동기로 주입하는 예외.
+
+    작업 함수가 `except Exception`으로 감싸여 있어도 그대로 통과해 스레드를 빠져나가도록
+    Exception이 아닌 BaseException을 상속한다.
+    """
 
 
 @dataclass
@@ -36,6 +45,8 @@ class Job:
     error: Optional[str] = None
     created_at: float = field(default_factory=time.time)
     finished_at: Optional[float] = None
+    future: Optional[Future] = None
+    thread_ident: Optional[int] = None
 
     @property
     def elapsed_seconds(self) -> float:
@@ -49,8 +60,14 @@ _jobs: dict[str, Job] = {}
 
 
 def _run(job_id: str, func: Callable, args: tuple, kwargs: dict) -> None:
+    with _lock:
+        job = _jobs.get(job_id)
+        if job is not None:
+            job.thread_ident = threading.get_ident()
     try:
         result = func(*args, **kwargs)
+    except _JobCancelledError:
+        return  # cancel()이 이미 레지스트리에서 제거했으니 상태 갱신 없이 조용히 종료
     except Exception as e:  # noqa: BLE001 - 백그라운드 스레드 예외를 Job.error로 전달
         with _lock:
             job = _jobs.get(job_id)
@@ -65,6 +82,38 @@ def _run(job_id: str, func: Callable, args: tuple, kwargs: dict) -> None:
             job.status = "done"
             job.result = result
             job.finished_at = time.time()
+
+
+def _force_stop_thread(ident: int) -> None:
+    """CPython 비공식 API로 대상 스레드에 비동기 예외를 주입해 강제 종료를 시도한다.
+
+    스레드가 소켓 등 블로킹 C 콜(네트워크 조회 등) 안에 있으면 그 콜이 파이썬 바이트코드로
+    돌아올 때까지는 실제로 멈추지 않는다 — 100% 즉시 종료를 보장하지 않는 베스트 에포트다.
+    그래도 cancel()이 레지스트리에서 즉시 제거하므로 UI(사이드바 목록)에서는 바로 사라진다.
+    """
+    res = ctypes.pythonapi.PyThreadState_SetAsyncExc(
+        ctypes.c_long(ident), ctypes.py_object(_JobCancelledError)
+    )
+    if res > 1:  # 예외가 둘 이상의 스레드에 걸렸다면(비정상) 롤백
+        ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(ident), None)
+
+
+def cancel(job_id: str) -> bool:
+    """작업을 강제 종료한다. 아직 시작 전이었다면 실행 자체를 취소하고, 이미 실행 중이었다면
+    스레드에 종료 예외 주입을 시도한다. 어느 쪽이든 레지스트리에서 즉시 제거되어 사이드바 목록과
+    각 페이지의 render()에서는 곧바로 "작업 없음" 상태로 보인다.
+
+    존재하지 않거나 이미 끝난 job_id면 False를 반환한다.
+    """
+    with _lock:
+        job = _jobs.pop(job_id, None)
+    if job is None:
+        return False
+    if job.future is not None:
+        job.future.cancel()  # 아직 스레드 풀 큐에서 시작 전이었다면 이것만으로 충분
+    if job.thread_ident is not None:
+        _force_stop_thread(job.thread_ident)
+    return True
 
 
 def _prune_finished() -> None:
@@ -88,7 +137,11 @@ def start(slot: str, func: Callable, *args, label: str = "", **kwargs) -> str:
     with _lock:
         _prune_finished()
         _jobs[job_id] = Job(id=job_id, label=label or slot)
-    _executor.submit(_run, job_id, func, args, kwargs)
+    future = _executor.submit(_run, job_id, func, args, kwargs)
+    with _lock:
+        job = _jobs.get(job_id)
+        if job is not None:
+            job.future = future
     st.session_state[f"_job_slot::{slot}"] = {"job_id": job_id, "params_key": None}
     return job_id
 
@@ -159,10 +212,13 @@ def render_active_jobs_sidebar() -> None:
     실시간으로 진행률을 갱신해준다.
     """
     jobs = list_running_jobs()
-    if not jobs:
-        return
     with st.sidebar:
+        if not jobs:
+            return
         st.markdown("---")
         st.caption("🔄 백그라운드 작업 실행 중 (다른 페이지로 이동해도 계속 진행됩니다)")
         for j in jobs:
             st.caption(f"⏳ {j.label} — {j.elapsed_seconds:.0f}초 경과")
+            if st.button("🛑 강제 종료", key=f"_job_kill::{j.id}"):
+                cancel(j.id)
+                st.rerun()

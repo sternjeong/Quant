@@ -24,13 +24,14 @@ import ast
 import copy
 import itertools
 import json
+import math
 import random
 from datetime import date, datetime, timedelta
 from typing import Any, Optional
 
 import pandas as pd
 
-from core import gemini_client, screener, valuation
+from core import gemini_client, nl_strategy, screener, valuation
 from core.backtest_engine import compare_with_benchmarks, diagnose_strategy_health, run_backtest
 from core.db import get_session
 from core.expression_engine import ExpressionError, validate_syntax
@@ -38,7 +39,7 @@ from core.indicators import sma
 from core.macro_cycle import SECTOR_ROTATION
 from core.market_data import get_price_history
 from core.models import StrategyTuningResult, StrategyTuningRun
-from core.strategy_engine import is_expression_config
+from core.strategy_engine import is_expression_config, is_staged_config
 
 # ----------------------------------------------------------------------------
 # 1. 100종목 섹터 균등 표본
@@ -259,8 +260,20 @@ _PERIOD_LIKE_KEYS = {
     "kijun_len",
     "span_b_len",
     "displacement",
+    # 볼린저 응용 매매법 4종(2026-07-15 신규 지표: bbw_squeeze_release/double_pattern/
+    # rsi_divergence)이 쓰는 롤링 윈도우 봉 수. 기존 이평 기간류와 같은 스타일 배수로 스케일한다.
+    "lookback",
+    "hold_bars",
+    "band_period",
+    "pivot_lookback",
+    "pattern_window",
+    "rsi_period",
 }
 _THRESHOLD_LIKE_KEYS = {"value", "level"}
+# 항상 양수인 작은 스케일 비율/승수류. RSI 0~100 스케일용 _THRESHOLD_LIKE_KEYS의 delta 로직(10.0 또는
+# 0.1 고정폭)을 그대로 쓰면 volume_mult(기본 1.5)가 delta=10.0을 맞아 [0, 11.5]처럼 말이 안 되는
+# 범위가 나오므로, 원래 값에 비례하는 폭으로 흔든다(항상 양수 유지).
+_RATIO_LIKE_KEYS = {"threshold", "volume_mult"}
 
 
 def _iter_condition_paths(config: dict, path: tuple = ()):
@@ -320,11 +333,14 @@ def build_param_grid(base_config: dict, style_type: str, intensity: str = _DEFAU
                 lo = max(2, round(val * lo_mult))
                 hi = max(lo + 1, round(val * hi_mult))
                 values = sorted({lo, int(round(val)), hi})
-            elif key == "std_dev":
+            elif key in {"std_dev", "band_std"}:
                 values = sorted({max(0.5, round(val - 0.5, 1)), round(val, 1), min(4.0, round(val + 0.5, 1))})
             elif key in _THRESHOLD_LIKE_KEYS:
                 delta = 10.0 if val > 1 else 0.1
                 values = sorted({max(0.0, round(val - delta, 2)), round(val, 2), round(val + delta, 2)})
+            elif key in _RATIO_LIKE_KEYS:
+                delta = max(round(val * 0.3, 3), 0.02)
+                values = sorted({max(0.01, round(val - delta, 3)), round(val, 3), round(val + delta, 3)})
             else:
                 continue
             axis_values.append((path, key, values))
@@ -395,6 +411,13 @@ _MIN_TRADE_COUNT = 5
 #     폴백한다(tune_strategy_for_ticker의 기존 "유효 후보 없으면 원본 폴백" 관례와 일관).
 #     outperformed_ticker_bh/outperformed_benchmark_bh 플래그로 실제로 이겼는지를 결과에 항상
 #     명시해, 이기지 못한 결과가 조용히 성공으로 보이지 않게 한다.
+#
+# (2026-07-15 갱신) 이 절의 숫자 식별/치환 로직(identify_tunable_numbers, _build_expression_param_
+# grid)은 그대로 유효하지만, "종목 하나에 대해 1단계->2단계를 진행하는" 진입점이었던
+# tune_expression_strategy_for_ticker()는 제거되었다. 튜닝 방식이 종목별 개별 탐색에서 스타일
+# 그룹 단위 풀링 탐색으로 바뀌면서(4b절 tune_strategy_for_group 참고), 그 진입점 역할은
+# tune_strategy_for_group()이 대신하고, 구조 변경 escape hatch는 레짐/1:2:6까지 포함하도록
+# 일반화된 generate_structural_variants_for_config()(3c절)로 옮겨졌다.
 # ----------------------------------------------------------------------------
 
 _EXPRESSION_TUNABLE_SYSTEM_PROMPT = """\
@@ -670,75 +693,98 @@ def generate_structural_variants(expression: str, style_type: str, n: int = _MAX
     return valid
 
 
+# ----------------------------------------------------------------------------
+# 3c. "구조 자체를 바꾸는" escape hatch를 레짐(AND/OR)·1:2:6 단계별 전략까지 확장
+# (2026-07-15 사용자 확정) — 위 3b절에서는 직접 수식 전략에만 있던 마지막 수단을, 그룹 단위
+# 풀링 트레이닝(아래 4b절)으로도 test 구간에서 벤치마크를 못 이길 때 모든 전략 유형에 쓸 수 있게
+# 한다. "백본 유지" 원칙 자체가 이 escape hatch에서는 예외라는 점, 1회성(반복 진화 없음)이라는
+# 원칙은 3b절과 동일하게 유지한다. nl_strategy.py가 이미 검증해둔 INDICATOR_CONFIG_SCHEMA /
+# STAGED_INDICATOR_CONFIG_SCHEMA를 그대로 재사용해 Gemini가 항상 실행 가능한 구조로만 응답하게
+# 강제한다(새 스키마를 중복 정의하지 않음).
+# ----------------------------------------------------------------------------
+
+_STRUCTURAL_VARIANT_JSON_SYSTEM_PROMPT = """\
+너는 퀀트 트레이딩 전략을 개선하는 어시스턴트다.
+
+사용자가 원본 전략의 조건(JSON)과 종목 스타일을 준다. 이 전략과 같은 매매 아이디어를 유지하되,
+지표 구성이나 조건 로직이 다른 대안을 제안해라 — 숫자 파라미터만 바꾸는 게 아니라 지표를
+교체하거나, 조건을 추가/삭제하거나, and/or 결합을 바꾸는 식으로 구조 자체가 달라야 한다.
+종목 스타일에 맞는 방향으로 제안한다(예: 주도주는 짧은 홀딩·모멘텀 추종, 방어주는 낮은 매매빈도).
+1:2:6 단계별 전략이면 단계 수와 weight(비중 배분) 구조는 그대로 두고 각 단계의 조건(지표 구성)만
+바꿔라 — weight 배분 자체를 바꾸는 것은 이 요청의 범위가 아니다.
+"""
+
+
+def _variants_wrapper_schema(item_schema: dict) -> dict:
+    """단일 전략 스키마를 "여러 개를 배열로 반환"하는 스키마로 감싼다 (1회 호출로 n개를 받기 위함)."""
+    return {"type": "object", "properties": {"variants": {"type": "array", "items": item_schema}}, "required": ["variants"]}
+
+
+def _generate_structural_variants_json(
+    base_config: dict, style_type: str, schema_note: str, item_schema: dict, required_keys: tuple[str, ...], n: int
+) -> list[dict]:
+    if not gemini_client.has_api_key():
+        return []
+    contents = (
+        f"원본 전략 조건({schema_note}, JSON): {json.dumps(base_config, ensure_ascii=False)}\n"
+        f"종목 스타일: {style_type}\n\n이 전략과 같은 매매 아이디어를 유지하되 지표 구성/조건 로직이 "
+        f"다른 대안을 최대 {n}개 제안해줘."
+    )
+    try:
+        response = gemini_client.generate_content(
+            models=gemini_client.COMPLEX_TASK_MODELS,
+            contents=contents,
+            system_instruction=_STRUCTURAL_VARIANT_JSON_SYSTEM_PROMPT,
+            response_mime_type="application/json",
+            response_json_schema=_variants_wrapper_schema(item_schema),
+        )
+        text = response.text
+        if not text:
+            return []
+        raw_variants = json.loads(text).get("variants", [])
+    except Exception:
+        return []
+
+    valid: list[dict] = []
+    for v in raw_variants:
+        if not isinstance(v, dict) or not all(k in v for k in required_keys):
+            continue
+        valid.append(v)
+        if len(valid) >= n:
+            break
+    return valid
+
+
+def generate_structural_variants_for_config(
+    base_config: dict, style_type: str, n: int = _MAX_STRUCTURAL_VARIANTS
+) -> list[dict]:
+    """base_config와 같은 스키마 유형(expression/레짐/1:2:6)의 구조가 다른 대안을 최대 n개 제안받는다.
+
+    tune_strategy_for_group()이 그룹 단위 튜닝으로도 test 구간을 못 이길 때만 호출하는 escape
+    hatch다. 직접 수식은 기존 generate_structural_variants()(문자열 기반)를 그대로 재사용하고,
+    레짐/1:2:6은 nl_strategy.py의 기존 스키마를 재사용한 JSON 기반 생성으로 대응한다.
+    """
+    if is_expression_config(base_config):
+        return [{"expression": v} for v in generate_structural_variants(base_config.get("expression", ""), style_type, n)]
+    if is_staged_config(base_config):
+        return _generate_structural_variants_json(
+            base_config, style_type, "1:2:6 단계별",
+            nl_strategy.STAGED_INDICATOR_CONFIG_SCHEMA["properties"]["indicator_config"],
+            ("entry_stages", "exit_stages"), n,
+        )
+    return _generate_structural_variants_json(
+        base_config, style_type, "레짐(AND/OR)",
+        nl_strategy.INDICATOR_CONFIG_SCHEMA["properties"]["indicator_config"],
+        ("logic", "conditions"), n,
+    )
+
+
 def _outperforms_both_benchmarks(test_comparison: dict) -> bool:
     """test 구간에서 전략이 종목 매수보유 + S&P500 매수보유를 CAGR 기준으로 둘 다 이겼는지."""
     strat = test_comparison.get("strategy", {}).get("cagr", 0.0)
     ticker_bh = test_comparison.get("buy_and_hold_ticker", {}).get("cagr", 0.0)
     bench_bh = test_comparison.get("buy_and_hold_benchmark", {}).get("cagr", 0.0)
     return strat > ticker_bh and strat > bench_bh
-
-
-def tune_expression_strategy_for_ticker(
-    ticker: str,
-    base_config: dict,
-    style_type: str,
-    start: str,
-    end: str,
-    train_ratio: float = _DEFAULT_TRAIN_RATIO,
-    intensity: str = _DEFAULT_INTENSITY,
-) -> dict:
-    """직접 수식(expression) 전략 전용 튜닝 진입점 (2026-07-14 사용자 확정).
-
-    1단계: tune_strategy_for_ticker()를 그대로 호출 — build_param_grid가 expression이면
-    identify_tunable_numbers()로 Gemini가 식별한 숫자만 변형해 기존과 동일한 train/test 절차를
-    거친다(구조는 그대로, 숫자만 바뀜 — 여전히 통제된 위험).
-
-    2단계: 그래도 test 구간에서 종목 매수보유 + S&P500 매수보유를 둘 다 못 이기면, 그때만
-    generate_structural_variants()로 구조가 다른 대안 수식을 최대 3개 받아 각각 1단계와 동일한
-    절차(자체 숫자 튜닝 포함)로 검증하고, test 전략 CAGR이 가장 높은 것을 채택한다. 원본/1단계
-    결과보다 나빠지는 후보는 절대 채택하지 않는다(항상 지금까지 찾은 최선으로 폴백). 반복 진화는
-    하지 않는다(1회성).
-
-    Returns:
-        tune_strategy_for_ticker()와 동일한 dict + "backbone_changed"(bool)/
-        "outperformed_ticker_bh"/"outperformed_benchmark_bh"(bool) 키가 추가됨.
-    """
-
-    def _annotate(result: dict) -> dict:
-        tc = result["test_comparison"]
-        result["outperformed_ticker_bh"] = tc["strategy"].get("cagr", 0.0) > tc["buy_and_hold_ticker"].get("cagr", 0.0)
-        result["outperformed_benchmark_bh"] = tc["strategy"].get("cagr", 0.0) > tc["buy_and_hold_benchmark"].get(
-            "cagr", 0.0
-        )
-        return result
-
-    best = tune_strategy_for_ticker(ticker, base_config, style_type, start, end, train_ratio, intensity)
-    best["backbone_changed"] = False
-    best = _annotate(best)
-
-    if best["outperformed_ticker_bh"] and best["outperformed_benchmark_bh"]:
-        return best
-
-    try:
-        variants = generate_structural_variants(base_config["expression"], style_type)
-    except Exception:
-        variants = []
-
-    for variant_expr in variants:
-        try:
-            candidate = tune_strategy_for_ticker(
-                ticker, {"expression": variant_expr}, style_type, start, end, train_ratio, intensity
-            )
-        except Exception:
-            continue
-        candidate["backbone_changed"] = True
-        candidate = _annotate(candidate)
-        best_cagr = best["test_comparison"]["strategy"].get("cagr", float("-inf"))
-        cand_cagr = candidate["test_comparison"]["strategy"].get("cagr", float("-inf"))
-        if cand_cagr > best_cagr:
-            best = candidate
-
-    return best
 
 
 # ----------------------------------------------------------------------------
@@ -830,6 +876,250 @@ def tune_strategy_for_ticker(
     }
 
 
+# ----------------------------------------------------------------------------
+# 4b. 스타일 그룹 단위 풀링 트레이닝 (2026-07-15 사용자 확정 — 튜닝 방식 변경)
+#
+# 기존에는 종목마다 따로 파라미터를 탐색했다(위 tune_strategy_for_ticker를 종목 수만큼 독립 호출).
+# 이제는 먼저 종목을 스타일(주도주/성장주/가치주/경기민감주/경기방어주/퀄리티 컴파운더)로 나누고,
+# "이 스타일 그룹에 공통으로 잘 맞는 설정 하나"를 그 그룹에 속한 종목 전체의 train 데이터를 함께
+# 써서 찾는다. 같은 그룹의 종목들은 결과적으로 tuned_config가 서로 동일해진다 — 종목 하나에만
+# 우연히 잘 맞는(과최적화된) 설정이 아니라 그 스타일 전반에 통하는 설정을 찾는 것이 목적이기 때문.
+#
+# "어떻게 해서든 이기게" 요청에 대해서는 사용자에게 직접 확인해 아래 방향으로 확정했다:
+#   - train/test 분리는 절대 어기지 않는다. test(out-of-sample) 구간 성과는 최종 검증에만 쓰고,
+#     후보 선택(어떤 파라미터가 "그룹에 좋은가")에는 test 구간 데이터를 전혀 참조하지 않는다.
+#     그래야 여기서 나온 "이겼다"는 결과가 실전(라이브)에서도 재현될 가능성이 있다. test 구간
+#     성과를 선택 기준에 섞으면 답을 보고 답을 고르는 것(데이터 스누핑)이 되어, 이 백테스트에서는
+#     항상 이긴 것처럼 보이지만 실제 미래 성과와는 무관해진다 — 그래서 이 방식은 채택하지 않았다.
+#   - 대신 "탐색을 최대한 넓혀서" 이길 확률을 높인다: ①그룹 전체에서 평균 샤프지수를 최대화하는
+#     숫자 파라미터를 찾고(아래 _select_best_group_config), ②그래도 그룹 평균이 test 구간에서
+#     S&P500을 못 이기면, 3c절로 확장된 generate_structural_variants_for_config()로 레짐/1:2:6/
+#     직접수식 관계없이 구조가 다른 대안을 1회성으로 시도한다(반복 진화는 안 함 — 3b/3c절과 동일한
+#     과최적화 통제 원칙).
+#   - 그래도 못 이기는 그룹/종목이 있으면 숨기지 않고 정직하게 보고한다(health_warnings와 별개로
+#     UI가 종목별 CAGR을 그대로 보여주므로 자동으로 드러남).
+# ----------------------------------------------------------------------------
+
+_MIN_GROUP_COVERAGE_RATIO = 0.5  # 후보가 그룹을 대표한다고 인정하려면 최소 이 비율 이상 종목에서 유효해야 함
+_WALK_FORWARD_FOLDS = 3  # train 구간을 몇 개의 하위 구간(폴드)으로 나눠 독립 평가할지 (SPEC 11.2절)
+_ROBUSTNESS_PENALTY_WEIGHT = 0.5  # 폴드 간 표준편차에 곱하는 패널티 가중치 (뾰족한 피크 후보 배제)
+
+
+def _group_min_required(group_size: int) -> int:
+    """최소 커버리지 개수 (올림 — 예: 3개의 50%는 최소 2개 필요). 그룹 종목 수/폴드 개수 양쪽에 공용."""
+    return max(1, math.ceil(group_size * _MIN_GROUP_COVERAGE_RATIO))
+
+
+def _split_into_folds(start: str, end: str, n_folds: int) -> list[tuple[str, str]]:
+    """구간을 n_folds개의 연속된 균등 하위 구간(폴드)으로 나눈다 (겹침 없이 앞에서부터 순서대로).
+
+    마지막 폴드는 나눗셈 나머지를 흡수해 정확히 end까지 이어지게 한다.
+    """
+    start_ts, end_ts = pd.Timestamp(start), pd.Timestamp(end)
+    total_days = max(1, (end_ts - start_ts).days)
+    fold_days = max(1, total_days // n_folds)
+    folds = []
+    for i in range(n_folds):
+        fold_start = start_ts + timedelta(days=i * fold_days)
+        fold_end = end_ts if i == n_folds - 1 else fold_start + timedelta(days=fold_days - 1)
+        folds.append((fold_start.date().isoformat(), fold_end.date().isoformat()))
+    return folds
+
+
+def _candidate_group_train_sharpe(
+    tickers: list[str], candidate: dict, train_start: str, train_end: str
+) -> Optional[float]:
+    """후보 config를 그룹 전체 종목의 train 구간에 적용해 평균 샤프지수를 계산한다.
+
+    한 종목에만 잘 맞고 나머지에는 안 맞는(과최적화된) 후보를 그룹 대표로 뽑지 않기 위해, 그룹의
+    최소 절반 이상 종목에서 매매 횟수 조건을 만족하는 유효한 결과가 나와야만 점수를 매긴다
+    (부족하면 None을 반환해 이 후보를 탈락시킨다).
+    """
+    sharpes = []
+    for ticker in tickers:
+        try:
+            run = run_backtest(ticker, candidate, train_start, train_end, label="train")
+        except Exception:
+            continue
+        if run.metrics.get("trade_count", 0) < _MIN_TRADE_COUNT:
+            continue
+        sharpes.append(run.metrics.get("sharpe", 0.0))
+    if len(sharpes) < _group_min_required(len(tickers)):
+        return None
+    return sum(sharpes) / len(sharpes)
+
+
+def _candidate_group_walkforward_score(
+    tickers: list[str], candidate: dict, folds: list[tuple[str, str]]
+) -> Optional[dict]:
+    """후보를 폴드마다 독립적으로 평가해(각 폴드의 그룹 평균 샤프지수) "평균 − 표준편차×가중치"로
+    점수를 매긴다(SPEC 11.2절 — 다중 구간 워크포워드 + 안정성 점수). 특정 폴드(특정 시기)에만
+    우연히 맞는 후보(폴드 간 표준편차가 큰, 뾰족한 피크 = 전형적 overfitting 신호)에 패널티를 줘서
+    여러 시기에 걸쳐 일관되게 괜찮은("평평한 고원") 후보를 우선한다. 유효 폴드 수가 최소 커버리지
+    미달이면 None(그룹 커버리지와 동일한 `_group_min_required` 기준 재사용).
+    """
+    fold_sharpes = [
+        s for s in (_candidate_group_train_sharpe(tickers, candidate, fs, fe) for fs, fe in folds) if s is not None
+    ]
+    if len(fold_sharpes) < _group_min_required(len(folds)):
+        return None
+    mean_sharpe = sum(fold_sharpes) / len(fold_sharpes)
+    variance = sum((s - mean_sharpe) ** 2 for s in fold_sharpes) / len(fold_sharpes)
+    std_sharpe = math.sqrt(variance)
+    score = mean_sharpe - _ROBUSTNESS_PENALTY_WEIGHT * std_sharpe
+    return {
+        "fold_sharpes": [round(s, 3) for s in fold_sharpes],
+        "mean_sharpe": round(mean_sharpe, 3),
+        "std_sharpe": round(std_sharpe, 3),
+        "score": round(score, 3),
+    }
+
+
+def _select_best_group_config_walkforward(
+    tickers: list[str], candidates: list[dict], train_start: str, train_end: str
+) -> tuple[Optional[dict], list[dict]]:
+    """train 구간을 `_WALK_FORWARD_FOLDS`개 폴드로 나눠, 폴드 간 점수(위 함수)가 가장 높은 후보를
+    고른다. 단일 구간 평가보다 특정 시기에만 맞는 과최적화 후보를 더 잘 걸러낸다 — 단, 이게 "미래
+    시장을 이긴다"는 보장은 아니다(SPEC 11.3절 실증 데모: 더 안정적인 후보를 골랐음에도 최종
+    홀드아웃에서는 원본보다 나빴던 사례 참고).
+
+    Returns:
+        (best_config 또는 유효 후보가 없으면 None, 점수 내림차순 트레일 리스트). 트레일의 각 항목은
+        {"config", "fold_sharpes", "mean_sharpe", "std_sharpe", "score"} — 튜닝 리포트(UI)가 그대로
+        표로 보여줘 "어떤 파라미터를 왜 채택했는지" 근거를 남긴다.
+    """
+    folds = _split_into_folds(train_start, train_end, _WALK_FORWARD_FOLDS)
+    trail: list[dict] = []
+    for candidate in candidates:
+        try:
+            if diagnose_strategy_health(candidate):
+                continue  # 진입=청산 자기모순 등 구조적 결함은 그룹 대표 후보에서 배제 (종목과 무관한 정적 특성)
+        except Exception:
+            continue
+        scored = _candidate_group_walkforward_score(tickers, candidate, folds)
+        if scored is None:
+            continue
+        trail.append({"config": candidate, **scored})
+
+    trail.sort(key=lambda t: t["score"], reverse=True)
+    best_config = trail[0]["config"] if trail else None
+    return best_config, trail
+
+
+def _evaluate_group_config_on_test(tickers: list[str], config: dict, test_start: str, test_end: str) -> dict[str, dict]:
+    """확정된 그룹 config를 종목별로 test(out-of-sample) 구간에서 개별 평가한다 (선택에는 관여하지
+    않고 최종 검증/보고 전용 — train/test 분리 원칙)."""
+    per_ticker = {}
+    for ticker in tickers:
+        try:
+            comparison = compare_with_benchmarks(ticker, config, test_start, test_end)
+            per_ticker[ticker] = {
+                "strategy": comparison["strategy"].metrics,
+                "buy_and_hold_ticker": comparison["buy_and_hold_ticker"].metrics,
+                "buy_and_hold_benchmark": comparison["buy_and_hold_benchmark"].metrics,
+            }
+        except Exception as e:  # noqa: BLE001 - 종목 하나의 조회 실패가 그룹 전체를 막지 않게 함
+            per_ticker[ticker] = {"error": str(e)}
+    return per_ticker
+
+
+def _group_mean_excess_return(per_ticker_test: dict[str, dict]) -> float:
+    """그룹의 test 구간 평균 초과수익(전략 CAGR - S&P500 매수보유 CAGR). 유효한 종목이 하나도
+    없으면 -inf (구조 변경 escape hatch가 항상 트리거되게 해, 실패를 조용히 넘기지 않는다)."""
+    values = [
+        tc["strategy"].get("cagr", 0.0) - tc["buy_and_hold_benchmark"].get("cagr", 0.0)
+        for tc in per_ticker_test.values()
+        if "error" not in tc
+    ]
+    return sum(values) / len(values) if values else float("-inf")
+
+
+def tune_strategy_for_group(
+    tickers: list[str],
+    base_config: dict,
+    style_type: str,
+    start: str,
+    end: str,
+    train_ratio: float = _DEFAULT_TRAIN_RATIO,
+    intensity: str = _DEFAULT_INTENSITY,
+) -> dict:
+    """스타일 그룹(예: 경기방어주 17종목) 전체를 하나의 데이터셋으로 묶어 공통 설정 하나를 찾는다.
+
+    train 구간을 `_WALK_FORWARD_FOLDS`개 폴드로 나눠 폴드별 그룹 평균 샤프지수의 평균-표준편차
+    점수를 목적함수로 숫자 파라미터를 탐색하고(_select_best_group_config_walkforward, SPEC 11.2절),
+    test 구간에서는 확정된 공통 config를 종목별로 개별 평가해 보고한다. 그룹 평균이 test 구간에서
+    S&P500을 못 이기면 generate_structural_variants_for_config()로 구조가 다른 대안을 1회성으로
+    시도한다(레짐/1:2:6/직접수식 공통 — 3c절). test 구간 데이터는 최종 검증에만 쓰고 선택 기준에는
+    쓰지 않는다(4b절 상단 설계 노트 참고, 11.2절에서도 원칙 유지 확인).
+
+    Returns:
+        {"style_type", "tickers", "group_config", "backbone_changed", "group_mean_excess_return",
+         "group_win_ratio", "health_warnings", "per_ticker_train_metrics", "per_ticker_test_comparison",
+         "tuning_trail"} — tuning_trail은 채택된 config를 낳은 탐색의 후보별 폴드 점수 리포트
+        (점수 내림차순, "어떤 파라미터를 왜 채택했는지"의 근거).
+    """
+    train_start, train_end, test_start, test_end = train_test_split_dates(start, end, train_ratio)
+
+    def _search_and_evaluate(config: dict) -> tuple[dict, dict[str, dict], float, list[dict]]:
+        candidates = build_param_grid(config, style_type, intensity)
+        chosen, trail = _select_best_group_config_walkforward(tickers, candidates, train_start, train_end)
+        if chosen is None:
+            chosen = copy.deepcopy(config)
+        test_result = _evaluate_group_config_on_test(tickers, chosen, test_start, test_end)
+        return chosen, test_result, _group_mean_excess_return(test_result), trail
+
+    best_config, per_ticker_test, mean_excess, tuning_trail = _search_and_evaluate(base_config)
+    backbone_changed = False
+
+    if mean_excess <= 0:
+        try:
+            variants = generate_structural_variants_for_config(base_config, style_type)
+        except Exception:
+            variants = []
+        for variant_config in variants:
+            try:
+                cand_config, cand_test, cand_excess, cand_trail = _search_and_evaluate(variant_config)
+            except Exception:
+                continue
+            if cand_excess > mean_excess:
+                best_config, per_ticker_test, mean_excess, tuning_trail = cand_config, cand_test, cand_excess, cand_trail
+                backbone_changed = True
+
+    per_ticker_train_metrics: dict[str, Optional[dict]] = {}
+    for ticker in tickers:
+        try:
+            run = run_backtest(ticker, best_config, train_start, train_end, label="train")
+            per_ticker_train_metrics[ticker] = run.metrics
+        except Exception:
+            per_ticker_train_metrics[ticker] = None
+
+    valid_test = {t: tc for t, tc in per_ticker_test.items() if "error" not in tc}
+    win_count = sum(
+        1
+        for tc in valid_test.values()
+        if tc["strategy"].get("cagr", 0.0) > tc["buy_and_hold_ticker"].get("cagr", 0.0)
+        and tc["strategy"].get("cagr", 0.0) > tc["buy_and_hold_benchmark"].get("cagr", 0.0)
+    )
+
+    try:
+        health_warnings = diagnose_strategy_health(best_config)
+    except Exception:
+        health_warnings = []
+
+    return {
+        "style_type": style_type,
+        "tickers": tickers,
+        "group_config": best_config,
+        "backbone_changed": backbone_changed,
+        "group_mean_excess_return": round(mean_excess, 2) if mean_excess != float("-inf") else None,
+        "group_win_ratio": round(win_count / len(valid_test), 2) if valid_test else None,
+        "health_warnings": health_warnings,
+        "per_ticker_train_metrics": per_ticker_train_metrics,
+        "per_ticker_test_comparison": per_ticker_test,
+        "tuning_trail": tuning_trail,
+    }
+
+
 def run_batch_tuning(
     base_config: dict,
     tickers_df: pd.DataFrame,
@@ -838,35 +1128,74 @@ def run_batch_tuning(
     train_ratio: float = _DEFAULT_TRAIN_RATIO,
     intensity: str = _DEFAULT_INTENSITY,
 ) -> list[dict]:
-    """전체 파이프라인: 스타일 분류 -> 종목별 튜닝. 종목 하나가 실패해도 배치 전체는 계속 진행한다.
+    """전체 파이프라인: 스타일 분류 -> 스타일 그룹 단위 풀링 트레이닝 -> 종목별 결과로 펼쳐서 반환.
+
+    2026-07-15부터 종목마다 따로 탐색하지 않고(위 4b절 tune_strategy_for_group 참고), 같은
+    스타일의 종목을 하나의 그룹으로 묶어 공통 설정을 찾는다 — 같은 그룹에 속한 종목들은
+    tuned_config가 서로 동일하다(그룹 단위로 학습했다는 표시이기도 하다). 같은 그룹 종목들은
+    tuning_trail(SPEC 11절 — 다중 구간 워크포워드 리포트)도 서로 동일하다.
 
     Returns:
-        tune_strategy_for_ticker() 결과에 sector/style_scores가 덧붙은 dict 리스트. 실패한 종목은
-        {"ticker", "style_type", "sector", "error"} 형태로 포함된다(호출부가 항상 종목 수만큼의
-        결과를 받도록 보장).
+        종목별 dict 리스트(ticker/style_type/sector/style_scores/tuned_config/train_metrics/
+        test_comparison/excess_return/health_warnings/backbone_changed/tuning_trail). 그룹 자체가
+        실패해도(예: 데이터 조회 전면 실패) 그 그룹 종목들만 {"ticker", "style_type", "sector",
+        "error"}로 기록되고 다른 그룹은 계속 진행된다.
     """
     styles_df = compute_style_scores(tickers_df, start, end)
     styles_by_ticker = styles_df.set_index("ticker").to_dict("index") if not styles_df.empty else {}
-    tuner = tune_expression_strategy_for_ticker if is_expression_config(base_config) else tune_strategy_for_ticker
 
-    results = []
+    tickers_by_style: dict[str, list[str]] = {}
     for ticker in tickers_df["ticker"]:
-        style_row = styles_by_ticker.get(ticker, {})
-        style_type = style_row.get("style_type") or "성장주"
+        style_type = styles_by_ticker.get(ticker, {}).get("style_type") or "성장주"
+        tickers_by_style.setdefault(style_type, []).append(ticker)
+
+    results: list[dict] = []
+    for style_type, group_tickers in tickers_by_style.items():
         try:
-            result = tuner(
-                ticker, base_config, style_type, start, end, train_ratio=train_ratio, intensity=intensity
+            group_result = tune_strategy_for_group(
+                group_tickers, base_config, style_type, start, end, train_ratio=train_ratio, intensity=intensity
             )
-            result["sector"] = style_row.get("sector")
-            result["style_scores"] = style_row.get("style_scores")
-        except Exception as e:  # noqa: BLE001 - 종목 하나의 실패가 배치 전체를 막지 않게 함
-            result = {
-                "ticker": ticker,
-                "style_type": style_type,
-                "sector": style_row.get("sector"),
-                "error": str(e),
-            }
-        results.append(result)
+        except Exception as e:  # noqa: BLE001 - 그룹 하나의 실패가 다른 그룹을 막지 않게 함
+            for ticker in group_tickers:
+                results.append(
+                    {
+                        "ticker": ticker,
+                        "style_type": style_type,
+                        "sector": styles_by_ticker.get(ticker, {}).get("sector"),
+                        "error": str(e),
+                    }
+                )
+            continue
+
+        for ticker in group_tickers:
+            test_comparison = group_result["per_ticker_test_comparison"].get(ticker, {})
+            if "error" in test_comparison:
+                results.append(
+                    {
+                        "ticker": ticker,
+                        "style_type": style_type,
+                        "sector": styles_by_ticker.get(ticker, {}).get("sector"),
+                        "error": test_comparison["error"],
+                    }
+                )
+                continue
+            strategy_cagr = test_comparison["strategy"].get("cagr", 0.0)
+            benchmark_cagr = test_comparison["buy_and_hold_benchmark"].get("cagr", 0.0)
+            results.append(
+                {
+                    "ticker": ticker,
+                    "style_type": style_type,
+                    "sector": styles_by_ticker.get(ticker, {}).get("sector"),
+                    "style_scores": styles_by_ticker.get(ticker, {}).get("style_scores"),
+                    "tuned_config": group_result["group_config"],
+                    "train_metrics": group_result["per_ticker_train_metrics"].get(ticker),
+                    "test_comparison": test_comparison,
+                    "excess_return": round(strategy_cagr - benchmark_cagr, 2),
+                    "health_warnings": group_result["health_warnings"],
+                    "backbone_changed": group_result["backbone_changed"],
+                    "tuning_trail": group_result.get("tuning_trail", []),
+                }
+            )
     return results
 
 
@@ -918,6 +1247,9 @@ def save_tuning_run(
                         json.dumps(r["health_warnings"], ensure_ascii=False) if r.get("health_warnings") else None
                     ),
                     backbone_changed=bool(r.get("backbone_changed", False)),
+                    tuning_trail=(
+                        json.dumps(r["tuning_trail"], ensure_ascii=False) if r.get("tuning_trail") else None
+                    ),
                     error=r.get("error"),
                 )
             )
@@ -990,6 +1322,7 @@ def get_tuning_run(run_id: int) -> Optional[dict]:
                 "excess_return": res.excess_return,
                 "health_warnings": json.loads(res.health_warnings) if res.health_warnings else [],
                 "backbone_changed": bool(res.backbone_changed),
+                "tuning_trail": json.loads(res.tuning_trail) if res.tuning_trail else [],
                 "error": res.error,
             }
             for res in run.results
@@ -1005,3 +1338,265 @@ def get_tuning_run(run_id: int) -> Optional[dict]:
             "created_at": run.created_at,
             "results": results,
         }
+
+
+# ----------------------------------------------------------------------------
+# 6. 백지 상태 전략 자동 생성 + 교차 검증 (2026-07-14 사용자 확정)
+#
+# 지금까지의 튜닝(1~5절)은 항상 "백본 전략"(유튜브 해석/라이브러리 저장)이 있다는 전제였다. 이 절은
+# 그 전제 없이 종목/기간만 주어지면 거래량+가격지표를 조합한 전략을 처음부터 생성해 S&P500/매수보유를
+# 아웃퍼폼하는 것을 목표로 탐색하고, 찾은 전략을 다른 종목에 그대로(재튜닝 없이) 적용해 일반화
+# 여부를 보여준다. Gemini로 서로 다른 아이디어의 후보를 1회성으로 여러 개 제안받은 뒤(생성), 각
+# 후보를 기존 tune_strategy_for_ticker()로 평가해(검증 — 3b절의 expression 숫자 미세튜닝 경로를
+# 그대로 통과하므로 새 검증 파이프라인을 만들지 않는다) 가장 좋은 것을 채택한다 — "제안은 Gemini,
+# 채택은 실측 백테스트"라는 3b절의 기존 설계 원칙을 그대로 따른다.
+# ----------------------------------------------------------------------------
+
+_STRATEGY_GENERATION_SYSTEM_PROMPT = """\
+너는 퀀트 트레이딩 전략을 백지 상태에서 설계하는 어시스턴트다.
+
+사용자가 알려준 문법(변수/함수/연산자)만 사용해서, 서로 다른 매매 아이디어(추세추종, 평균회귀,
+거래량 돌파, 모멘텀, 변동성 축소 후 확장 등)를 가진 완전히 독립적인 후보 전략을 n개 제안해라.
+각 후보는 파이썬과 비슷한 문법의 완전한 불리언 수식 하나여야 한다(and/or/not, 비교 연산자 필수).
+
+**최소 2개 이상은 거래량(volume)을 반드시 포함해야 한다** — 예: 거래량이 20일 평균 대비 급증,
+가격 상승과 거래량 증가가 동시에 발생, 저거래량 횡보 후 거래량 동반 돌파 등.
+
+설명이나 마크다운 없이 완전한 수식 문자열만 배열에 담아 반환한다.
+"""
+
+_STRATEGY_GENERATION_SCHEMA = {
+    "type": "object",
+    "properties": {"strategies": {"type": "array", "items": {"type": "string"}}},
+    "required": ["strategies"],
+}
+
+# Gemini 키가 없거나 생성이 실패했을 때 쓰는 기본 후보 세트. 거래량을 포함한 후보를 절반 포함해
+# "거래량 및 여러 수치들을 조합"하라는 요청을 키 없이도 최소한으로 충족한다.
+_FALLBACK_CANDIDATE_EXPRESSIONS = [
+    "close > sma(close, 20) and volume > sma(volume, 20)",
+    "crossover(sma(close, 20), sma(close, 60)) and volume > sma(volume, 20) * 1.2",
+    "close < bb_lower(close, 20, 2) and rsi(close, 14) < 35",
+    "rsi(close, 14) < 30 and close > sma(close, 200)",
+    "crossover(macd_line(close), macd_signal(close)) and volume > sma(volume, 20)",
+    "close > highest(high, 20) and volume > sma(volume, 20) * 1.5",
+]
+
+_DEFAULT_N_CANDIDATES = 6
+
+
+def generate_candidate_strategies(n: int = _DEFAULT_N_CANDIDATES) -> list[str]:
+    """Gemini로 백지 상태에서 서로 다른 아이디어의 후보 전략(expression) 문자열 n개를 생성한다.
+
+    키 없음/호출 실패/응답 전부 문법 오류면 빈 리스트를 반환한다(예외를 던지지 않음) — 호출부가
+    _FALLBACK_CANDIDATE_EXPRESSIONS로 대체한다.
+    """
+    if not gemini_client.has_api_key():
+        return []
+
+    from core.expression_engine import FUNCTIONS, VARIABLE_COLUMNS
+
+    grammar_note = (
+        f"변수: {', '.join(sorted(VARIABLE_COLUMNS))} / 함수: {', '.join(sorted(FUNCTIONS))} "
+        "/ 비교연산자: < <= > >= == != / 논리연산자: and or not"
+    )
+    contents = f"서로 다른 아이디어의 매매 전략 후보를 {n}개 제안해줘.\n사용 가능한 문법: {grammar_note}"
+
+    try:
+        response = gemini_client.generate_content(
+            models=gemini_client.COMPLEX_TASK_MODELS,
+            contents=contents,
+            system_instruction=_STRATEGY_GENERATION_SYSTEM_PROMPT,
+            response_mime_type="application/json",
+            response_json_schema=_STRATEGY_GENERATION_SCHEMA,
+        )
+        text = response.text
+        if not text:
+            return []
+        raw = json.loads(text).get("strategies", [])
+    except Exception:
+        return []
+
+    valid: list[str] = []
+    for expr in raw:
+        if not isinstance(expr, str):
+            continue
+        try:
+            validate_syntax(expr)
+        except ExpressionError:
+            continue
+        valid.append(expr)
+        if len(valid) >= n:
+            break
+    return valid
+
+
+def generate_and_backtest_strategy(
+    ticker: str,
+    start: str,
+    end: str,
+    train_ratio: float = _DEFAULT_TRAIN_RATIO,
+    intensity: str = _DEFAULT_INTENSITY,
+    n_candidates: int = _DEFAULT_N_CANDIDATES,
+) -> dict:
+    """종목/기간만으로 백지 상태에서 전략을 생성하고 train/test로 검증해 최선의 결과를 반환한다.
+
+    1) 이 종목의 스타일(주도주/성장주/...)을 먼저 판별한다(2절 compute_style_scores 재사용) —
+       이후 숫자 파라미터 미세튜닝 방향을 그 스타일에 맞춘다.
+    2) generate_candidate_strategies()로 서로 다른 아이디어의 후보를 얻는다(실패 시 폴백 세트).
+    3) 각 후보를 tune_strategy_for_ticker()로 그대로 평가한다 — expression 스키마이므로 내부에서
+       build_param_grid가 자동으로 _build_expression_param_grid 경로(Gemini 숫자 미세튜닝)를 타
+       숫자까지 다듬어진 상태로 train/test 검증까지 끝난 결과를 돌려준다(새 검증 로직 없음).
+    4) test 구간 초과수익이 가장 높은 후보를 채택한다.
+
+    Returns:
+        tune_strategy_for_ticker()와 동일한 dict + "style_type"/"style_scores"/
+        "candidates_tried"(시도한 후보 요약 리스트)/"outperforms_both"(test 구간에서 종목
+        매수보유+S&P500을 둘 다 이겼는지) 키가 추가됨.
+    """
+    single_df = pd.DataFrame({"ticker": [ticker], "sector": [None]})
+    styles_df = compute_style_scores(single_df, start, end)
+    style_row = styles_df.iloc[0] if not styles_df.empty else None
+    style_type = style_row["style_type"] if style_row is not None else "성장주"
+    style_scores = style_row["style_scores"] if style_row is not None else None
+
+    try:
+        raw_candidates = generate_candidate_strategies(n_candidates)
+    except Exception:
+        raw_candidates = []
+    if not raw_candidates:
+        raw_candidates = list(_FALLBACK_CANDIDATE_EXPRESSIONS)
+
+    best: Optional[dict] = None
+    tried: list[dict] = []
+    for expr in raw_candidates:
+        try:
+            validate_syntax(expr)
+        except ExpressionError:
+            continue
+        try:
+            result = tune_strategy_for_ticker(
+                ticker, {"expression": expr}, style_type, start, end, train_ratio, intensity
+            )
+        except Exception:
+            continue
+        tried.append(
+            {
+                "expression": expr,
+                "train_sharpe": (result.get("train_metrics") or {}).get("sharpe", 0.0),
+                "test_excess_return": result.get("excess_return", 0.0),
+            }
+        )
+        if best is None or result.get("excess_return", float("-inf")) > best.get("excess_return", float("-inf")):
+            best = result
+
+    if best is None:
+        # 전부 실패한 극단적 경우(문법 오류/데이터 조회 실패 등)에도 항상 결과를 낸다.
+        fallback_expr = _FALLBACK_CANDIDATE_EXPRESSIONS[0]
+        best = tune_strategy_for_ticker(
+            ticker, {"expression": fallback_expr}, style_type, start, end, train_ratio, intensity
+        )
+        tried.append(
+            {"expression": fallback_expr, "train_sharpe": None, "test_excess_return": best.get("excess_return", 0.0)}
+        )
+
+    best["style_type"] = style_type
+    best["style_scores"] = style_scores
+    best["candidates_tried"] = tried
+    best["outperforms_both"] = _outperforms_both_benchmarks(best["test_comparison"])
+    return best
+
+
+def cross_validate_on_tickers(config: dict, tickers: list[str], start: str, end: str) -> list[dict]:
+    """생성된 전략을 다른 종목들에 재튜닝 없이 그대로 적용해 일반화 여부를 확인한다.
+
+    각 종목의 스타일도 함께 태깅해(2절 재사용) save_tuning_run()이 그대로 받을 수 있는
+    StrategyTuningResult 형태로 반환한다. train_metrics는 재튜닝을 하지 않았으므로 None이고,
+    비교는 전체 [start, end] 기간을 그대로 사용한다(이미 확정된 전략을 다른 종목에서 그대로
+    관찰하는 것이라 별도로 train/test를 나눌 이유가 없음).
+    """
+    if not tickers:
+        return []
+
+    styles_df = compute_style_scores(
+        pd.DataFrame({"ticker": tickers, "sector": [None] * len(tickers)}), start, end
+    )
+    styles_by_ticker = styles_df.set_index("ticker").to_dict("index") if not styles_df.empty else {}
+
+    results = []
+    for t in tickers:
+        style_row = styles_by_ticker.get(t, {})
+        try:
+            comparison = compare_with_benchmarks(t, config, start, end)
+            strategy_metrics = comparison["strategy"].metrics
+            benchmark_metrics = comparison["buy_and_hold_benchmark"].metrics
+            results.append(
+                {
+                    "ticker": t,
+                    "sector": style_row.get("sector"),
+                    "style_type": style_row.get("style_type"),
+                    "style_scores": style_row.get("style_scores"),
+                    "tuned_config": config,
+                    "train_metrics": None,
+                    "test_comparison": {
+                        "strategy": strategy_metrics,
+                        "buy_and_hold_ticker": comparison["buy_and_hold_ticker"].metrics,
+                        "buy_and_hold_benchmark": benchmark_metrics,
+                    },
+                    "excess_return": round(strategy_metrics.get("cagr", 0.0) - benchmark_metrics.get("cagr", 0.0), 2),
+                    "health_warnings": [],
+                }
+            )
+        except Exception as e:  # noqa: BLE001 - 종목 하나의 실패가 나머지를 막지 않게 함
+            results.append(
+                {
+                    "ticker": t,
+                    "sector": style_row.get("sector"),
+                    "style_type": style_row.get("style_type"),
+                    "error": str(e),
+                }
+            )
+    return results
+
+
+def run_and_save_generation(
+    ticker: str,
+    cross_validate_tickers: list[str],
+    start: str,
+    end: str,
+    train_ratio: float = _DEFAULT_TRAIN_RATIO,
+    intensity: str = _DEFAULT_INTENSITY,
+    n_candidates: int = _DEFAULT_N_CANDIDATES,
+) -> int:
+    """백지 상태 전략 생성 + 교차 검증 + 저장까지 한 번에 수행한다 (job_manager 백그라운드 진입점).
+
+    생성 대상(primary) 종목 결과를 StrategyTuningResult 1행으로, cross_validate_tickers 결과를
+    나머지 행으로 담아 기존 save_tuning_run()/get_tuning_run()을 그대로 재사용한다 — "다종목
+    미세튜닝" 탭의 결과 렌더링을 이 기능에도 그대로 쓸 수 있게 하기 위함(base_strategy_id는 항상
+    None — 라이브러리 백본이 아니라 이 실행에서 새로 생성된 전략이므로).
+    """
+    primary_result = generate_and_backtest_strategy(ticker, start, end, train_ratio, intensity, n_candidates)
+    generated_config = primary_result["tuned_config"]
+
+    primary_sector = screener.get_fundamentals(ticker).get("sector")
+    primary_row = {
+        "ticker": ticker,
+        "sector": primary_sector,
+        "style_type": primary_result.get("style_type"),
+        "style_scores": primary_result.get("style_scores"),
+        "tuned_config": primary_result.get("tuned_config"),
+        "train_metrics": primary_result.get("train_metrics"),
+        "test_comparison": primary_result.get("test_comparison"),
+        "excess_return": primary_result.get("excess_return"),
+        "health_warnings": primary_result.get("health_warnings"),
+    }
+
+    cross_rows = cross_validate_on_tickers(generated_config, cross_validate_tickers, start, end)
+    results = [primary_row, *cross_rows]
+
+    tickers_df = pd.DataFrame(
+        {"ticker": [ticker, *cross_validate_tickers], "sector": [None] * (1 + len(cross_validate_tickers))}
+    )
+    return save_tuning_run(
+        generated_config, tickers_df, start, end, train_ratio, intensity, results, base_strategy_id=None
+    )

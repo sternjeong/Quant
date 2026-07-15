@@ -168,7 +168,7 @@ def run_backtest(
         position_full = generate_positions(raw, indicator_config)
         position = position_full.loc[df.index]
         stage_events = []
-        trades = extract_trades(df, position)
+        trades = extract_trades(df, position, indicator_config)
 
     equity_curve = compute_equity_curve(df, position)
     metrics = calculate_metrics(equity_curve, trades, df.index[0], df.index[-1])

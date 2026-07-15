@@ -259,6 +259,9 @@ class StrategyTuningResult(Base):
     # 대안으로 교체됐는지 (2026-07-14, core.strategy_tuning.tune_expression_strategy_for_ticker).
     # JSON(레짐/1:2:6) 전략은 백본을 절대 안 바꾸므로 항상 False.
     backbone_changed = Column(Boolean, nullable=False, default=False)
+    # 다중 구간 워크포워드 튜닝 리포트 (STRATEGY_TUNING_ENGINE_SPEC.md 11절) — 채택된 group_config를
+    # 낳은 탐색의 후보별 폴드 점수 트레일(JSON 배열 문자열). 같은 그룹 종목들은 값이 서로 동일하다.
+    tuning_trail = Column(Text, nullable=True)
     error = Column(Text, nullable=True)  # 이 종목만 실행 실패했을 때의 메시지 (배치 전체는 계속 진행)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 

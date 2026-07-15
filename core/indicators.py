@@ -10,10 +10,13 @@
 
 from __future__ import annotations
 
+from typing import Optional
+
 import pandas as pd
 from ta.momentum import RSIIndicator
 from ta.trend import MACD
 from ta.volatility import BollingerBands
+from ta.volume import MFIIndicator
 
 
 def sma(close: pd.Series, window: int) -> pd.Series:
@@ -24,6 +27,11 @@ def sma(close: pd.Series, window: int) -> pd.Series:
 def ema(close: pd.Series, window: int) -> pd.Series:
     """지수이동평균."""
     return close.ewm(span=window, adjust=False, min_periods=window).mean()
+
+
+def roc(close: pd.Series, window: int) -> pd.Series:
+    """변화율(Rate of Change, %). window 거래일 전 대비 현재 종가의 변화율."""
+    return (close / close.shift(window) - 1) * 100
 
 
 def compute_ma_cross(df: pd.DataFrame, short: int, long: int, ma_type: str = "sma") -> pd.DataFrame:
@@ -83,6 +91,225 @@ def compute_bollinger(df: pd.DataFrame, period: int = 20, std_dev: float = 2.0) 
         },
         index=df.index,
     )
+
+
+def compute_bbw(df: pd.DataFrame, period: int = 20, std_dev: float = 2.0) -> pd.Series:
+    """볼린저 밴드폭(Band Width) = (상단-하단)/중심선.
+
+    변동성이 줄어들수록(스퀴즈 구간) 값이 작아지고, 변동성이 커지면(추세 시작) 값이 커진다.
+    """
+    bb = compute_bollinger(df, period=period, std_dev=std_dev)
+    return (bb["upper"] - bb["lower"]) / bb["mid"]
+
+
+def compute_percent_b(df: pd.DataFrame, period: int = 20, std_dev: float = 2.0) -> pd.Series:
+    """볼린저 밴드 %B = (종가-하단)/(상단-하단). 1 이상이면 상단 밖, 0 이하면 하단 밖에 위치."""
+    bb = compute_bollinger(df, period=period, std_dev=std_dev)
+    return (df["Close"] - bb["lower"]) / (bb["upper"] - bb["lower"])
+
+
+def compute_mfi(df: pd.DataFrame, period: int = 14) -> pd.Series:
+    """MFI(자금흐름지수) — 거래량을 반영한 RSI 격 모멘텀 지표. 80 이상 과매수/20 이하 과매도로 본다."""
+    return MFIIndicator(
+        high=df["High"], low=df["Low"], close=df["Close"], volume=df["Volume"], window=period
+    ).money_flow_index()
+
+
+def compute_bbw_squeeze_release(
+    df: pd.DataFrame,
+    period: int = 20,
+    std_dev: float = 2.0,
+    threshold: float = 0.1,
+    lookback: int = 20,
+    hold_bars: int = 3,
+) -> pd.Series:
+    """볼린저 밴드폭 스퀴즈 해제 이벤트.
+
+    최근 lookback봉(오늘 이전) 안에 밴드폭이 threshold 아래로 내려간 적이 있고, 오늘 밴드폭이
+    threshold를 상향 돌파하면 이벤트가 뜬다. threshold는 종목/시간대마다 다르다고 알려져 있어(원본
+    설명 기준 경험적으로 정해야 함) 튜닝 가능한 파라미터로 노출한다(core.strategy_tuning의 숫자
+    파라미터 자동 탐색 대상). 돌파(밴드 이탈) 확인까지 며칠 걸릴 수 있어 hold_bars만큼 이벤트를
+    유지한다(그 사이 다른 조건과 같은 바 AND 결합이 가능하도록).
+    """
+    bbw = compute_bbw(df, period=period, std_dev=std_dev)
+    was_squeezed = (bbw < threshold).shift(1).rolling(lookback, min_periods=1).max().astype(bool)
+    crossed_up = (bbw >= threshold) & (bbw.shift(1) < threshold)
+    release_event = (crossed_up & was_squeezed).fillna(False)
+    return release_event.rolling(hold_bars, min_periods=1).max().astype(bool).fillna(False)
+
+
+def compute_lowest_low(df: pd.DataFrame, period: int = 20) -> pd.Series:
+    """최근 period봉 중 최저 저가 (직전 저점 근사 — 손절 레벨 산출용)."""
+    return df["Low"].rolling(window=period, min_periods=period).min()
+
+
+def compute_highest_high(df: pd.DataFrame, period: int = 20) -> pd.Series:
+    """최근 period봉 중 최고 고가 (직전 고점 근사 — 손절 레벨 산출용)."""
+    return df["High"].rolling(window=period, min_periods=period).max()
+
+
+def _is_pivot_low(series: pd.Series, lookback: int) -> pd.Series:
+    """좌우 lookback봉보다 낮은 저점(스윙 로우) 여부. 중심 윈도우라 lookback봉 뒤에야 '확정'된다."""
+    win = 2 * lookback + 1
+    return (series == series.rolling(win, center=True, min_periods=win).min()).fillna(False)
+
+
+def _is_pivot_high(series: pd.Series, lookback: int) -> pd.Series:
+    """좌우 lookback봉보다 높은 고점(스윙 하이) 여부. 중심 윈도우라 lookback봉 뒤에야 '확정'된다."""
+    win = 2 * lookback + 1
+    return (series == series.rolling(win, center=True, min_periods=win).max()).fillna(False)
+
+
+def compute_double_pattern(
+    df: pd.DataFrame,
+    band_period: int = 20,
+    band_std: float = 2.0,
+    pivot_lookback: int = 5,
+    pattern_window: int = 40,
+    volume_mult: float = 1.5,
+) -> pd.DataFrame:
+    """쌍바닥(bullish)/쌍봉(bearish) 추세 반전 패턴 이벤트.
+
+    쌍바닥: 첫 번째 저점이 볼린저 하단 밴드 밖에서 형성되고, 그 뒤 pattern_window봉 이내에 두 번째
+    저점이 하단 밴드 안에서 형성되면 패턴이 "준비"된 상태가 된다. 그 이후 종가가 중심선을 상향
+    돌파하면서(진입 확인) 거래량이 최근 평균 대비 volume_mult배 이상 급증한 바에서 이벤트가 뜬다.
+    쌍봉은 방향만 반대인 대칭 로직. 스윙 저점/고점은 좌우 pivot_lookback봉보다 낮/높아야 확정되므로,
+    확정 시점은 실제 저점/고점보다 pivot_lookback봉 뒤다(미래 데이터를 앞당겨 쓰지 않기 위함).
+
+    Returns:
+        원본 인덱스를 유지한 DataFrame with columns: bullish(bool), bearish(bool)
+    """
+    high, low, close, volume = df["High"], df["Low"], df["Close"], df["Volume"]
+    bb = compute_bollinger(df, period=band_period, std_dev=band_std)
+    lower, upper, mid = bb["lower"], bb["upper"], bb["mid"]
+    avg_volume = volume.rolling(band_period).mean()
+
+    is_low_pivot = _is_pivot_low(low, pivot_lookback)
+    is_high_pivot = _is_pivot_high(high, pivot_lookback)
+
+    n = len(df)
+    idx = df.index
+    bullish = pd.Series(False, index=idx)
+    bearish = pd.Series(False, index=idx)
+
+    last_low_pivot: Optional[int] = None
+    last_high_pivot: Optional[int] = None
+    bullish_ready_until = -1
+    bearish_ready_until = -1
+
+    low_v, lower_v, mid_v, close_v = low.to_numpy(), lower.to_numpy(), mid.to_numpy(), close.to_numpy()
+    high_v, upper_v, vol_v, avgvol_v = high.to_numpy(), upper.to_numpy(), volume.to_numpy(), avg_volume.to_numpy()
+    is_low_v, is_high_v = is_low_pivot.to_numpy(), is_high_pivot.to_numpy()
+    bullish_v, bearish_v = bullish.to_numpy(), bearish.to_numpy()
+
+    for i in range(n):
+        confirm_idx = i - pivot_lookback
+        if confirm_idx < 0:
+            continue
+        if is_low_v[confirm_idx]:
+            if (
+                last_low_pivot is not None
+                and 0 < confirm_idx - last_low_pivot <= pattern_window
+                and low_v[last_low_pivot] < lower_v[last_low_pivot]
+                and low_v[confirm_idx] >= lower_v[confirm_idx]
+            ):
+                bullish_ready_until = i + pattern_window
+            last_low_pivot = confirm_idx
+        if is_high_v[confirm_idx]:
+            if (
+                last_high_pivot is not None
+                and 0 < confirm_idx - last_high_pivot <= pattern_window
+                and high_v[last_high_pivot] > upper_v[last_high_pivot]
+                and high_v[confirm_idx] <= upper_v[confirm_idx]
+            ):
+                bearish_ready_until = i + pattern_window
+            last_high_pivot = confirm_idx
+
+        if i > 0 and i <= bullish_ready_until:
+            if close_v[i] > mid_v[i] and close_v[i - 1] <= mid_v[i - 1] and vol_v[i] >= volume_mult * avgvol_v[i]:
+                bullish_v[i] = True
+                bullish_ready_until = -1
+        if i > 0 and i <= bearish_ready_until:
+            if close_v[i] < mid_v[i] and close_v[i - 1] >= mid_v[i - 1] and vol_v[i] >= volume_mult * avgvol_v[i]:
+                bearish_v[i] = True
+                bearish_ready_until = -1
+
+    return pd.DataFrame({"bullish": bullish_v, "bearish": bearish_v}, index=idx)
+
+
+def compute_rsi_divergence(
+    df: pd.DataFrame,
+    rsi_period: int = 14,
+    band_period: int = 20,
+    pivot_lookback: int = 5,
+    pattern_window: int = 40,
+) -> pd.DataFrame:
+    """가격-RSI 다이버전스 추세 반전 패턴 이벤트.
+
+    상승 다이버전스(bullish): 가격 저점은 낮아지는데(전 저점보다 낮음) RSI 저점은 높아짐(전 저점보다
+    높음) — 하락 추세의 힘이 빠지고 있다는 신호. 그 뒤 pattern_window봉 이내에 종가가 중심선(SMA)을
+    상향 돌파하는 바에서 이벤트가 뜬다. 하락 다이버전스(bearish)는 고점 기준 대칭 로직.
+    """
+    close, low, high = df["Close"], df["Low"], df["High"]
+    rsi = compute_rsi(df, period=rsi_period)
+    mid = sma(close, band_period)
+
+    is_low_pivot = _is_pivot_low(low, pivot_lookback)
+    is_high_pivot = _is_pivot_high(high, pivot_lookback)
+
+    n = len(df)
+    idx = df.index
+    bullish = pd.Series(False, index=idx)
+    bearish = pd.Series(False, index=idx)
+
+    last_low_pivot: Optional[int] = None
+    last_high_pivot: Optional[int] = None
+    bullish_ready_until = -1
+    bearish_ready_until = -1
+
+    low_v, high_v, rsi_v, close_v, mid_v = (
+        low.to_numpy(),
+        high.to_numpy(),
+        rsi.to_numpy(),
+        close.to_numpy(),
+        mid.to_numpy(),
+    )
+    is_low_v, is_high_v = is_low_pivot.to_numpy(), is_high_pivot.to_numpy()
+    bullish_v, bearish_v = bullish.to_numpy(), bearish.to_numpy()
+
+    for i in range(n):
+        confirm_idx = i - pivot_lookback
+        if confirm_idx < 0:
+            continue
+        if is_low_v[confirm_idx]:
+            if (
+                last_low_pivot is not None
+                and 0 < confirm_idx - last_low_pivot <= pattern_window
+                and low_v[confirm_idx] < low_v[last_low_pivot]
+                and rsi_v[confirm_idx] > rsi_v[last_low_pivot]
+            ):
+                bullish_ready_until = i + pattern_window
+            last_low_pivot = confirm_idx
+        if is_high_v[confirm_idx]:
+            if (
+                last_high_pivot is not None
+                and 0 < confirm_idx - last_high_pivot <= pattern_window
+                and high_v[confirm_idx] > high_v[last_high_pivot]
+                and rsi_v[confirm_idx] < rsi_v[last_high_pivot]
+            ):
+                bearish_ready_until = i + pattern_window
+            last_high_pivot = confirm_idx
+
+        if i > 0 and i <= bullish_ready_until:
+            if close_v[i] > mid_v[i] and close_v[i - 1] <= mid_v[i - 1]:
+                bullish_v[i] = True
+                bullish_ready_until = -1
+        if i > 0 and i <= bearish_ready_until:
+            if close_v[i] < mid_v[i] and close_v[i - 1] >= mid_v[i - 1]:
+                bearish_v[i] = True
+                bearish_ready_until = -1
+
+    return pd.DataFrame({"bullish": bullish_v, "bearish": bearish_v}, index=idx)
 
 
 def compute_macd(

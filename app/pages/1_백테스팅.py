@@ -40,6 +40,7 @@ from core.models import Strategy
 from core.nl_strategy import interpret_strategy_text
 from core import screener, strategy_tuning
 from core.strategy_engine import is_expression_config, is_staged_config
+from core.strategy_explainer import explain_strategy
 from core.strategy_library import detect_strategy_type
 from core.theme import TRADINGVIEW_CHART_CONFIG, apply_theme, style_chart_like_tradingview
 
@@ -199,8 +200,12 @@ def _build_indicator_config_from_ui() -> dict:
     return {"logic": st.session_state["logic"], "conditions": conditions}
 
 
-def render_price_chart(df: pd.DataFrame, conditions: list[dict]) -> go.Figure:
-    """캔들차트 위에 지표를 오버레이한 TradingView 스타일 차트."""
+def render_price_chart(df: pd.DataFrame, conditions: list[dict], trades: Optional[list] = None) -> go.Figure:
+    """캔들차트 위에 지표를 오버레이한 TradingView 스타일 차트.
+
+    trades를 넘기면(core.strategy_engine.extract_trades가 만든 Trade 목록, entry_reason/exit_reason
+    포함) 진입/청산 지점에 삼각형 마커를 찍고 호버 시 어떤 조건이 만족되어 진입/청산했는지 보여준다.
+    """
     show_rsi = any(c["indicator"] == "rsi" for c in conditions)
     rows = 2 if show_rsi else 1
     row_heights = [0.7, 0.3] if show_rsi else [1.0]
@@ -266,6 +271,33 @@ def render_price_chart(df: pd.DataFrame, conditions: list[dict]) -> go.Figure:
             )
             fig.add_hline(y=70, line=dict(color="#ef5350", dash="dash", width=1), row=2, col=1)
             fig.add_hline(y=30, line=dict(color="#26a69a", dash="dash", width=1), row=2, col=1)
+
+    if trades:
+        entry_x = [t.entry_date for t in trades]
+        entry_y = [t.entry_price for t in trades]
+        entry_text = [f"진입<br>근거: {t.entry_reason or '조건 충족'}" for t in trades]
+        closed_trades = [t for t in trades if t.exit_date is not None]
+        exit_x = [t.exit_date for t in closed_trades]
+        exit_y = [t.exit_price for t in closed_trades]
+        exit_text = [f"청산<br>근거: {t.exit_reason or '조건 이탈'}" for t in closed_trades]
+        if entry_x:
+            fig.add_trace(
+                go.Scatter(
+                    x=entry_x, y=entry_y, mode="markers", name="진입",
+                    marker=dict(symbol="triangle-up", size=11, color="#26a69a"),
+                    text=entry_text, hoverinfo="text+x",
+                ),
+                row=1, col=1,
+            )
+        if exit_x:
+            fig.add_trace(
+                go.Scatter(
+                    x=exit_x, y=exit_y, mode="markers", name="청산",
+                    marker=dict(symbol="triangle-down", size=11, color="#ef5350"),
+                    text=exit_text, hoverinfo="text+x",
+                ),
+                row=1, col=1,
+            )
 
     fig.update_layout(
         height=620 if show_rsi else 480,
@@ -360,11 +392,15 @@ def render_staged_price_chart(df: pd.DataFrame, staged_config: dict, stage_event
     if stage_events:
         entry_x = [e.date for e in stage_events if e.kind == "entry"]
         entry_y = [e.price for e in stage_events if e.kind == "entry"]
-        entry_text = [f"{e.stage}단계 진입 (+{e.weight:.0%})" for e in stage_events if e.kind == "entry"]
+        entry_text = [
+            f"{e.stage}단계 진입 (+{e.weight:.0%})<br>근거: {e.reason}"
+            for e in stage_events if e.kind == "entry"
+        ]
         exit_x = [e.date for e in stage_events if e.kind != "entry"]
         exit_y = [e.price for e in stage_events if e.kind != "entry"]
         exit_text = [
             f"{e.stage}단계 청산 (-{e.weight:.0%})" + (" [긴급청산]" if e.kind == "emergency_exit" else "")
+            + f"<br>근거: {e.reason}"
             for e in stage_events if e.kind != "entry"
         ]
         if entry_x:
@@ -462,8 +498,162 @@ def metrics_dataframe(results: dict[str, BacktestRun], selected: list[str]) -> p
     return pd.DataFrame(data, index=index).T
 
 
-tab_backtest, tab_nl, tab_tuning = st.tabs(
-    ["📊 지표 조합 백테스트", "🤖 자연어 전략 등록", "🧬 다종목 미세튜닝"]
+def render_ticker_picker(key_suffix: str, caption: str) -> pd.DataFrame:
+    """S&P500 전체 목록을 스크롤 가능한 표로 보여주고, 체크박스로 담은 종목을 반환한다.
+
+    "다종목 미세튜닝"(직접 선택 모드)과 "알고리즘 자동 생성"(교차검증 대상 선택) 양쪽에서
+    재사용한다. key_suffix가 다르면 같은 스크립트 실행 안에서 여러 번 호출해도 위젯 key가
+    충돌하지 않는다(Streamlit 탭은 화면에 보이지 않아도 매 rerun마다 전부 실행되므로 필요).
+
+    Returns:
+        columns: ticker, sector. 아무것도 담지 않았으면 빈 DataFrame(같은 컬럼 유지).
+    """
+    st.caption(caption)
+    picker_universe = screener.get_universe().sort_values(["Sector", "Symbol"]).reset_index(drop=True)
+    picker_display = picker_universe.rename(columns={"Symbol": "티커", "Security": "종목명", "Sector": "섹터"})
+    picker_event = st.dataframe(
+        picker_display, use_container_width=True, hide_index=True, height=420,
+        on_select="rerun", selection_mode="multi-row", key=f"ticker_picker_{key_suffix}",
+    )
+    picked_rows = picker_event.selection.rows if picker_event and getattr(picker_event, "selection", None) else []
+    picked_df = (
+        picker_universe.iloc[picked_rows][["Symbol", "Sector"]]
+        .rename(columns={"Symbol": "ticker", "Sector": "sector"})
+        .reset_index(drop=True)
+        if picked_rows
+        else pd.DataFrame(columns=["ticker", "sector"])
+    )
+    if not picked_df.empty:
+        st.caption(f"🧺 담은 종목 {len(picked_df)}개: {', '.join(picked_df['ticker'])}")
+    else:
+        st.caption("🧺 담은 종목 없음 — 표에서 체크박스를 선택해주세요.")
+    return picked_df
+
+
+def render_tuning_run_results(run_id: int, key_prefix: str) -> None:
+    """저장된 StrategyTuningRun 1건의 결과 표 + 3-way 비교 차트 + 라이브러리 저장 버튼을 렌더링한다.
+
+    "다종목 미세튜닝"(백본을 여러 종목에 적용)과 "알고리즘 자동 생성"(백지에서 만든 전략 + 교차검증)
+    양쪽 다 결과를 StrategyTuningRun/StrategyTuningResult에 같은 형태로 저장하므로(core.strategy_tuning
+    참고) 이 렌더링 로직을 그대로 공유한다. key_prefix는 두 탭이 같은 rerun에서 동시에 이 함수를
+    호출해도 위젯 key가 충돌하지 않게 한다.
+    """
+    run_data = strategy_tuning.get_tuning_run(run_id)
+    if run_data is None:
+        st.warning("해당 실행 결과를 찾을 수 없습니다.")
+        return
+
+    ok_rows = [r for r in run_data["results"] if not r.get("error") and r.get("tuned_config")]
+    error_rows = [r for r in run_data["results"] if r.get("error")]
+    if error_rows:
+        st.caption(f"⚠️ {len(error_rows)}개 종목은 데이터 조회/실행 실패로 결과에서 제외되었습니다.")
+
+    if not ok_rows:
+        st.warning("표시할 결과가 없습니다.")
+        return
+
+    table_df = pd.DataFrame(
+        [
+            {
+                "티커": r["ticker"],
+                "섹터": r.get("sector") or "-",
+                "유형": r.get("style_type") or "-",
+                "초과수익(%)": r.get("excess_return"),
+                "전략 CAGR(%)": (r.get("test_comparison") or {}).get("strategy", {}).get("cagr"),
+                "종목홀딩 CAGR(%)": (r.get("test_comparison") or {}).get("buy_and_hold_ticker", {}).get("cagr"),
+                "S&P500 CAGR(%)": (r.get("test_comparison") or {}).get("buy_and_hold_benchmark", {}).get("cagr"),
+                "샤프": (r.get("test_comparison") or {}).get("strategy", {}).get("sharpe"),
+                "MDD(%)": (r.get("test_comparison") or {}).get("strategy", {}).get("mdd"),
+                "경고": len(r.get("health_warnings") or []),
+                "백본변경": "🧬 예" if r.get("backbone_changed") else "-",
+            }
+            for r in ok_rows
+        ]
+    )
+
+    col_sort, col_topn = st.columns(2)
+    with col_sort:
+        sort_option = st.selectbox(
+            "정렬 기준 (기본: 초과수익 = 전략 CAGR - S&P500 매수보유 CAGR)",
+            ["초과수익(%)", "전략 CAGR(%)", "샤프", "MDD(%)"], key=f"{key_prefix}_sort_option",
+        )
+    with col_topn:
+        top_n = st.number_input(
+            "표시할 상위 개수", min_value=1, max_value=len(table_df),
+            value=min(20, len(table_df)), key=f"{key_prefix}_top_n",
+        )
+
+    sorted_df = table_df.sort_values(sort_option, ascending=False, na_position="last").reset_index(drop=True)
+    display_df = sorted_df.head(int(top_n))
+
+    st.markdown(f"#### 결과 ({len(display_df)}/{len(sorted_df)}종목 표시, {sort_option} 기준 정렬)")
+    st.caption("표에서 행을 클릭해 직접 종목을 선택하면 아래에 3-way 비교 차트가 표시됩니다 (선택 없으면 상위 3종목).")
+    selection_event = st.dataframe(
+        display_df, use_container_width=True, hide_index=True,
+        on_select="rerun", selection_mode="multi-row", key=f"{key_prefix}_result_table",
+    )
+
+    selected_rows = (
+        selection_event.selection.rows if selection_event and getattr(selection_event, "selection", None) else []
+    )
+    selected_tickers = (
+        display_df.iloc[selected_rows]["티커"].tolist() if selected_rows else display_df.head(3)["티커"].tolist()
+    )
+
+    results_by_ticker = {r["ticker"]: r for r in ok_rows}
+    period_choice = st.radio(
+        "비교 기간", ["test 구간(out-of-sample)", "전체 기간"], key=f"{key_prefix}_period_choice", horizontal=True
+    )
+
+    for sel_ticker in selected_tickers:
+        r = results_by_ticker.get(sel_ticker)
+        if r is None:
+            continue
+        st.markdown(f"##### {sel_ticker} ({r.get('style_type')}, {r.get('sector') or '-'})")
+
+        if period_choice == "test 구간(out-of-sample)" and r.get("train_metrics") is not None:
+            _, _, chart_start, chart_end = strategy_tuning.train_test_split_dates(
+                run_data["start_date"].isoformat(), run_data["end_date"].isoformat(), run_data["train_ratio"]
+            )
+        else:
+            chart_start = run_data["start_date"].isoformat()
+            chart_end = run_data["end_date"].isoformat()
+
+        try:
+            chart_results = compare_with_benchmarks(sel_ticker, r["tuned_config"], chart_start, chart_end)
+            st.plotly_chart(render_equity_comparison(chart_results), use_container_width=True)
+            st.dataframe(metrics_dataframe(chart_results, list(METRIC_LABELS.keys())), use_container_width=True)
+        except Exception as e:
+            st.warning(f"{sel_ticker} 차트 생성 실패: {e}")
+
+        for w in r.get("health_warnings") or []:
+            st.warning(f"{sel_ticker}: {w}")
+
+        with st.expander(f"{sel_ticker} 튜닝된 전략 JSON"):
+            st.json(r["tuned_config"])
+
+        if st.button(f"📚 {sel_ticker} 전략을 라이브러리에 저장", key=f"{key_prefix}_save_{sel_ticker}"):
+            with st.spinner("전략 설명 생성 중..."):
+                explanation = explain_strategy(r["tuned_config"])
+            with get_session() as session:
+                saved_strategy = Strategy(
+                    name=f"{sel_ticker} 미세튜닝 ({r.get('style_type')}, run#{run_data['id']})",
+                    indicator_config=json.dumps(r["tuned_config"], ensure_ascii=False),
+                    source="tuning_engine",
+                    description=(
+                        f"{explanation}\n\n[튜닝 메타데이터] 실행 id={run_data['id']}, 종목 유형={r.get('style_type')}, "
+                        f"초과수익={r.get('excess_return')}%, 백본 전략 id={run_data.get('base_strategy_id')}."
+                    ),
+                )
+                session.add(saved_strategy)
+                session.flush()
+                saved_id = saved_strategy.id
+            st.success(f"'{sel_ticker}' 전략 저장 완료 (id={saved_id}).")
+            st.info(f"📖 전략 설명: {explanation}")
+
+
+tab_backtest, tab_nl, tab_tuning, tab_generate = st.tabs(
+    ["📊 지표 조합 백테스트", "🤖 자연어 전략 등록", "🧬 다종목 미세튜닝", "🔬 알고리즘 자동 생성"]
 )
 
 with tab_backtest:
@@ -491,7 +681,13 @@ with tab_backtest:
                         _load_config_into_state(json.loads(strategy.indicator_config))
                         st.session_state["loaded_strategy_id"] = picked_id
                         st.session_state["loaded_strategy_name"] = strategy.name
+                        st.session_state["loaded_strategy_description"] = strategy.description
                         st.rerun()
+
+    if st.session_state.get("loaded_strategy_id") is not None and st.session_state.get(
+        "loaded_strategy_description"
+    ):
+        st.info(f"📖 전략 설명: {st.session_state['loaded_strategy_description']}")
 
     st.divider()
 
@@ -647,12 +843,18 @@ with tab_backtest:
                     config=TRADINGVIEW_CHART_CONFIG,
                 )
                 if strategy_run.stage_events:
-                    st.caption(f"진입/청산 이벤트 {len(strategy_run.stage_events)}건 발생 (차트 위 삼각형 마커 참고)")
+                    st.caption(
+                        f"진입/청산 이벤트 {len(strategy_run.stage_events)}건 발생 "
+                        "(차트 위 삼각형 마커에 마우스를 올리면 진입/청산 근거를 확인할 수 있습니다)"
+                    )
             else:
                 if is_expression_config(indicator_config):
                     st.caption("직접 수식 전략은 지표 오버레이 없이 캔들차트만 표시합니다.")
+                st.caption("차트 위 삼각형 마커에 마우스를 올리면 진입/청산 근거를 확인할 수 있습니다.")
                 st.plotly_chart(
-                    render_price_chart(strategy_run.df, indicator_config.get("conditions", [])),
+                    render_price_chart(
+                        strategy_run.df, indicator_config.get("conditions", []), strategy_run.trades
+                    ),
                     use_container_width=True,
                     config=TRADINGVIEW_CHART_CONFIG,
                 )
@@ -682,16 +884,14 @@ with tab_backtest:
                 st.write("")
                 st.write("")
                 if st.button("💾 저장", use_container_width=True):
+                    with st.spinner("전략 설명 생성 중..."):
+                        explanation = explain_strategy(indicator_config)
                     with get_session() as session:
                         strategy = Strategy(
                             name=strategy_name,
                             indicator_config=json.dumps(indicator_config, ensure_ascii=False),
                             source="manual",
-                            description=(
-                                "백테스팅 화면에서 직접 입력한 수식으로 구성한 전략"
-                                if is_expression_config(indicator_config)
-                                else "백테스팅 화면에서 지표 토글로 직접 구성한 전략"
-                            ),
+                            description=explanation,
                         )
                         session.add(strategy)
                         session.flush()
@@ -709,6 +909,7 @@ with tab_backtest:
                         },
                     )
                     st.success(f"전략 '{strategy_name}' 저장 완료 (id={strategy_id}). 관심 종목에 연결해 매일 모니터링할 수 있습니다.")
+                    st.info(f"📖 전략 설명: {explanation}")
 
     with st.expander("저장된 전략 목록"):
         st.caption("전략 이름 수정/삭제는 좌측 메뉴의 '전략 관리' 페이지에서 할 수 있습니다.")
@@ -825,7 +1026,11 @@ with tab_nl:
                     )
                 else:
                     st.plotly_chart(
-                        render_price_chart(preview_run.df, nl_result["indicator_config"]["conditions"]),
+                        render_price_chart(
+                            preview_run.df,
+                            nl_result["indicator_config"]["conditions"],
+                            preview_run.trades,
+                        ),
                         use_container_width=True,
                         config=TRADINGVIEW_CHART_CONFIG,
                     )
@@ -844,30 +1049,35 @@ with tab_nl:
             )
 
         if st.button("📚 전략 라이브러리에 저장", type="primary", disabled=save_disabled):
+            with st.spinner("전략 설명 생성 중..."):
+                explanation = explain_strategy(nl_result["indicator_config"])
             with get_session() as session:
                 strategy = Strategy(
                     name=candidate_name,
                     indicator_config=json.dumps(nl_result["indicator_config"], ensure_ascii=False),
                     source="youtube_script",
-                    description=nl_result["description"] + "\n\n[원문]\n" + st.session_state.get("nl_raw_text", ""),
+                    description=f"{explanation}\n\n[원문 스크립트]\n{st.session_state.get('nl_raw_text', '')}",
                 )
                 session.add(strategy)
                 session.flush()
                 saved_id = strategy.id
             st.success(f"전략 '{candidate_name}' 저장 완료 (id={saved_id}). '지표 조합 백테스트' 탭에서 불러와 실행하세요.")
+            st.info(f"📖 전략 설명: {explanation}")
             del st.session_state["nl_result"]
 
 with tab_tuning:
     st.markdown(
-        "유튜브 등에서 소개된 전략(백본)을 S&P500 섹터 균등 표본(기본 100종목)에 적용해, 종목이 "
-        "**주도주/성장주/가치주/경기민감주/경기방어주/퀄리티 컴파운더** 중 어떤 스타일인지 스스로 "
-        "판별하고 그 방향에 맞게 파라미터를 자동 미세튜닝합니다. 전략의 지표 구성/조건 로직(백본)은 "
-        "그대로 두고 수치 파라미터만 탐색하며, 과최적화를 피하기 위해 train(과거) 구간에서 탐색한 "
-        "파라미터를 test(최근, out-of-sample) 구간으로 따로 검증합니다.\n\n"
-        "**✍️ 직접 수식 전략만 예외**: 숫자 파라미터를 Gemini가 식별해 튜닝하고, 그래도 test 구간에서 "
-        "종목/S&P500 매수보유를 둘 다 못 이기면 Gemini가 제안한 구조가 다른 대안으로 한 번 더 시도합니다"
-        "(결과 표의 '백본변경' 컬럼으로 확인 가능). 지표 토글/1:2:6 전략은 이 예외 없이 항상 구조를 "
-        "그대로 유지합니다."
+        "유튜브 등에서 소개된 전략(백본)을 S&P500 섹터 균등 표본(기본 100종목)에 적용합니다. 종목을 "
+        "먼저 **주도주/성장주/가치주/경기민감주/경기방어주/퀄리티 컴파운더** 6개 스타일로 나누고, "
+        "**같은 스타일 종목들을 하나의 데이터셋으로 묶어** 그 그룹 전체에 공통으로 잘 맞는 파라미터 "
+        "하나를 찾습니다(종목마다 따로 최적화하지 않음 — 한 종목에만 우연히 맞는 과최적화를 피하기 "
+        "위함). 그렇게 찾은 그룹 공통 설정은 test(최근, out-of-sample) 구간에서 종목별로 개별 검증만 "
+        "받고, 그 test 결과는 파라미터 선택에는 전혀 반영하지 않습니다 — 그래야 여기서 이겼다는 결과가 "
+        "실제 미래 성과와도 관련이 있습니다.\n\n"
+        "**그래도 그룹 평균이 test 구간에서 S&P500을 못 이기면** Gemini가 제안한 구조가 다른 대안을 "
+        "1회성으로 시도합니다(레짐/1:2:6/직접수식 전략 모두 해당 — 결과 표의 '백본변경' 컬럼으로 확인 "
+        "가능). 그래도 못 이기는 그룹/종목은 감추지 않고 그대로 보여줍니다 — 승률을 인위적으로 "
+        "끌어올리기 위해 test 구간을 선택 기준에 섞지는 않습니다."
     )
 
     tuning_source = st.radio(
@@ -930,30 +1140,11 @@ with tab_tuning:
                 "표본 종목 수", min_value=10, max_value=200, value=100, step=10, key="tuning_universe_n"
             )
         else:
-            st.caption(
+            manual_tickers_df = render_ticker_picker(
+                "tuning",
                 "아래 목록을 마우스 휠로 스크롤하면서 원하는 종목의 체크박스를 클릭해 담으세요 "
-                "(담은 종목만 미세튜닝 대상이 됩니다)."
+                "(담은 종목만 미세튜닝 대상이 됩니다).",
             )
-            picker_universe = screener.get_universe().sort_values(["Sector", "Symbol"]).reset_index(drop=True)
-            picker_display = picker_universe.rename(columns={"Symbol": "티커", "Security": "종목명", "Sector": "섹터"})
-            picker_event = st.dataframe(
-                picker_display, use_container_width=True, hide_index=True, height=420,
-                on_select="rerun", selection_mode="multi-row", key="tuning_ticker_picker",
-            )
-            picked_rows = (
-                picker_event.selection.rows if picker_event and getattr(picker_event, "selection", None) else []
-            )
-            manual_tickers_df = (
-                picker_universe.iloc[picked_rows][["Symbol", "Sector"]]
-                .rename(columns={"Symbol": "ticker", "Sector": "sector"})
-                .reset_index(drop=True)
-                if picked_rows
-                else pd.DataFrame(columns=["ticker", "sector"])
-            )
-            if not manual_tickers_df.empty:
-                st.caption(f"🧺 담은 종목 {len(manual_tickers_df)}개: {', '.join(manual_tickers_df['ticker'])}")
-            else:
-                st.caption("🧺 담은 종목 없음 — 표에서 체크박스를 선택해주세요.")
 
         col_intensity, col_ratio = st.columns(2)
         with col_intensity:
@@ -1062,6 +1253,34 @@ with tab_tuning:
                     ]
                 )
 
+                st.markdown("#### 스타일 그룹별 요약")
+                st.caption(
+                    "같은 스타일 그룹의 종목들은 동일한 tuned_config를 공유합니다(그룹 단위로 학습했다는 "
+                    "뜻). 승률은 test 구간에서 종목홀딩·S&P500을 둘 다 이긴 종목의 비율입니다."
+                )
+                group_summary_df = (
+                    table_df.assign(
+                        이김=lambda d: (d["전략 CAGR(%)"] > d["종목홀딩 CAGR(%)"])
+                        & (d["전략 CAGR(%)"] > d["S&P500 CAGR(%)"])
+                    )
+                    .groupby("유형")
+                    .agg(
+                        종목수=("티커", "count"),
+                        **{"평균초과수익(%)": ("초과수익(%)", "mean")},
+                        승률=("이김", "mean"),
+                        백본변경=("백본변경", lambda s: (s == "🧬 예").any()),
+                    )
+                    .reset_index()
+                )
+                group_summary_df["평균초과수익(%)"] = group_summary_df["평균초과수익(%)"].round(2)
+                group_summary_df["승률(%)"] = (group_summary_df.pop("승률") * 100).round(0)
+                group_summary_df["백본변경"] = group_summary_df["백본변경"].map({True: "🧬 예", False: "-"})
+                st.dataframe(
+                    group_summary_df.sort_values("평균초과수익(%)", ascending=False),
+                    use_container_width=True, hide_index=True,
+                )
+
+                st.divider()
                 col_sort, col_topn = st.columns(2)
                 with col_sort:
                     tuning_sort_option = st.selectbox(
@@ -1130,14 +1349,16 @@ with tab_tuning:
                         st.json(r["tuned_config"])
 
                     if st.button(f"📚 {sel_ticker} 튜닝 전략을 라이브러리에 저장", key=f"tuning_save_{sel_ticker}"):
+                        with st.spinner("전략 설명 생성 중..."):
+                            explanation = explain_strategy(r["tuned_config"])
                         with get_session() as session:
                             saved_strategy = Strategy(
                                 name=f"{sel_ticker} 미세튜닝 ({r.get('style_type')}, run#{run_data['id']})",
                                 indicator_config=json.dumps(r["tuned_config"], ensure_ascii=False),
                                 source="tuning_engine",
                                 description=(
-                                    f"다종목 미세튜닝 결과 (실행 id={run_data['id']}, 종목 유형={r.get('style_type')}, "
-                                    f"test 구간 초과수익={r.get('excess_return')}%). "
+                                    f"{explanation}\n\n[튜닝 메타데이터] 실행 id={run_data['id']}, "
+                                    f"종목 유형={r.get('style_type')}, test 구간 초과수익={r.get('excess_return')}%, "
                                     f"백본 전략 id={run_data.get('base_strategy_id')}."
                                 ),
                             )
@@ -1145,3 +1366,4 @@ with tab_tuning:
                             session.flush()
                             saved_id = saved_strategy.id
                         st.success(f"'{sel_ticker}' 튜닝 전략 저장 완료 (id={saved_id}).")
+                        st.info(f"📖 전략 설명: {explanation}")

@@ -13,10 +13,11 @@
 | D. 거장 포트폴리오 추종 | ✅ 완료 | guru_tracker.py, etf_holdings.py | 4_거장_포트폴리오.py | test_guru_tracker.py, test_etf_holdings.py |
 | E. 퀀트 스크리너 | ✅ 완료 | screener.py | 5_퀀트_스크리너.py | test_screener.py |
 | F. 밸류에이션 도구 | ✅ 완료 | valuation.py | 6_밸류에이션.py | test_valuation.py |
-| G. 매크로 대시보드 | ✅ 완료 | fred_data.py, macro_cycle.py | 7_매크로_대시보드.py | test_fred_data.py, test_macro_cycle.py |
+| G. 매크로 대시보드 | ✅ 완료 (+시장국면/섹터강도 확장) | fred_data.py, macro_cycle.py, market_regime.py, sector_strength.py | 7_매크로_대시보드.py | test_fred_data.py, test_macro_cycle.py, test_market_regime.py, test_sector_strength.py |
 | H. 포트폴리오 관리 | ✅ 완료 | portfolio.py | 8_포트폴리오_관리.py | test_portfolio.py |
 | I. 차트 조회 (신규) | ✅ 완료 | market_data.py(clamp_start_for_interval 추가), indicators.py 재사용, watchlist.py 재사용 | 10_차트_조회.py | test_market_data.py |
 | (부가) 환경설정(페이지 순서 편집) | ✅ 완료 | page_order.py(신규) | 11_환경설정.py | test_page_order.py |
+| (부가) 섹터 리더/성장주 관계 분석 | ✅ 완료 | sector_leaders.py(신규), sector_strength.py(theme_price_history 공개화) | 12_섹터_리더_성장주.py | test_sector_leaders.py |
 
 **SPEC.md 모듈 A~H 전부 구현 완료** (2026-07-11). 전체 테스트 123개 통과, 신규 모듈(B/E/F/G/H) 페이지는
 Streamlit `AppTest`로 헤드리스 스모크 테스트 완료 (밸류에이션/스크리너/포트폴리오는 실제 AAPL 등
@@ -814,3 +815,340 @@ staged(1:2:6) JSON을 얻었는데, 백테스트 매매횟수는 40건인데 누
   관여하지 않고 진행 상황만 모니터링) — 최종적으로 디버그 print까지 정리된 상태로 마무리됨.
 - 검증: 두 세션의 변경사항을 합쳐 `python -m pytest tests/ -q` 전체 258개 통과, `core.strategy_tuning`
   모듈 임포트/`app/pages/1_백테스팅.py` 컴파일·`AppTest` 무예외 로드까지 재확인.
+
+**(위 작업의 원 세션) 문서화 + UI 반영 + 실제 Gemini 라이브 검증 마무리** (2026-07-14, 같은 날). 위
+expression 튜닝 기능을 실제로 설계·구현한 세션 본인 기준 마무리 기록 — 요청 배경: 사용자가 3/5절에서
+이미 확정한 "백본 유지·RL 없음" 원칙과 충돌하는 요청("직접 수식 전략도 Gemini로 튜닝하고, training
+시 매수보유를 아웃퍼폼하도록 백본을 바꿔달라")을 해서, 코드 전에 AskUserQuestion으로 적용 범위부터
+확인(직접 수식 전략에만 적용 vs 전체 엔진 — "직접 수식에만"으로 확정, JSON 전략의 백본 유지 원칙은
+안 건드림). 나머지(반복진화 vs 1회성, 실패 시 폴백 방식)는 위임받아 결정하고 근거를 남김
+(`STRATEGY_TUNING_ENGINE_SPEC.md` 9절에 상세 기록).
+- **문서화**: `STRATEGY_TUNING_ENGINE_SPEC.md`에 9절 신설 — 이 예외가 JSON 전략에는 전혀 영향 없음을
+  명시하고, 2단계 구조(숫자 식별→튜닝, 그래도 못 이기면 구조 변경)와 설계 판단 근거(1회성 vs 반복진화,
+  폴백 방식)를 기록.
+- **UI** (`app/pages/1_백테스팅.py`): 다종목 미세튜닝 결과 표에 "백본변경"(🧬 예/-) 컬럼 추가, 탭
+  상단 설명에 "직접 수식 전략만 예외로 구조 변경이 가능하다"는 문구 추가. `AppTest`로 기존 저장된
+  실행 이력(run id=1, JSON 전략)을 로드해 새 컬럼이 전부 "-"로 정상 렌더링됨을 실제 DB 데이터로 확인.
+- **실제 Gemini API 라이브 검증** (mock 유닛테스트와 별개로, 이 프로젝트 관례대로 실제 호출까지 확인):
+  - `identify_tunable_numbers("close > sma(close, 20) and rsi(close, 14) < 30")` → 20을 "이동평균
+    기간"(범위 5~200), 14를 "RSI 계산 기간"(7~28), 30을 "RSI 과매도 임계값"(10~50)으로 정확히 역할
+    판별.
+  - `generate_structural_variants(..., "가치주")` → 실행 가능한 대안 2개 생성(`sma+bollinger` 조합,
+    `macd_hist+rsi` 조합) — 둘 다 원본과 다른 지표 구성이면서 `validate_syntax()` 통과.
+  - `tune_expression_strategy_for_ticker`를 AAPL(2021~2026, 강세장이라 매수보유 CAGR 13~16%로 높음)에
+    실제 실행(23초 소요) → 숫자 튜닝만으로는 못 이겨 구조 변경까지 갔고(`backbone_changed=True`,
+    MACD 크로스 조합으로 교체), 그럼에도 여전히 종목/S&P500 매수보유를 못 이겼음
+    (`outperformed_ticker_bh=False`, `outperformed_benchmark_bh=False`) — 이걸 숨기지 않고 정직하게
+    반환하는 것까지 실제로 확인(설계 의도대로 "과최적화로 억지로 이긴 것처럼 안 보이게 하기" 안전장치가
+    실전에서 작동함을 검증).
+- `data/quant.db`의 `strategy_tuning_results` 테이블에 이미 10행이 있어(직전 세션 실행분) `core/models.py`에
+  `backbone_changed` 컬럼 추가 후 수동 `ALTER TABLE ... ADD COLUMN backbone_changed BOOLEAN NOT NULL
+  DEFAULT 0` 마이그레이션 실행(기존 데이터 보존, PROGRESS.md에 반복 기록된 기존 컨벤션과 동일).
+
+**전략 저장 시 상세 자연어 설명을 수식과 함께 페어로 저장 (2026-07-15)**. 사용자가 "백테스팅할 때
+수식뿐 아니라 자연어로 전략을 상세히 설명해달라, 매번 생성하지 말고 전략 생성 시 페어로 생성/저장해서
+설명 페어가 없을 때만 생성해달라"고 요청. 확인해보니 전략 저장 지점 4곳(①지표 토글/직접 수식 저장,
+②자연어 전략 등록 저장, ③다종목 미세튜닝 결과 저장 2곳) 중 ②만 저장 시점에 진짜 설명을 만들고
+있었고(`core/nl_strategy.py`가 해석과 동시에 생성), 나머지는 보일러플레이트 문구나 튜닝 메타데이터만
+`description`에 넣고 있었음 — 이를 4곳 모두 일관되게 고쳤다.
+- `core/strategy_explainer.py` 신규: `explain_strategy(indicator_config)` — 레짐(AND/OR)/1:2:6
+  단계별 전략은 `core.strategy_engine.describe_condition()`을 재사용해 결정론적으로 정확한 조건
+  요약을 먼저 만들고(환각 방지용 근거), 이를 Gemini에게 주고 자연스러운 한국어 설명 문단으로 다듬게
+  한다(`gemini_client.LIGHT_TASK_MODELS`). 직접 수식(expression) 전략은 결정론적 요약이 불가능해
+  수식 자체를 Gemini에게 설명시킨다. GEMINI_API_KEY 미설정/API 실패 시 레짐·단계별은 결정론적 요약
+  그대로, 수식은 원본 수식을 담은 안내 문구로 폴백(오프라인에서도 항상 동작).
+- **"매번 생성 안 함"의 구현 방식**: 페이지 스크립트 자체가 아니라 각 "💾 저장" 버튼의 `if
+  st.button(...)` 블록 안에서만 `explain_strategy()`를 호출하도록 배치 — Streamlit은 위젯 조작마다
+  전체 스크립트를 다시 실행하지만 버튼 클릭 직후 1회 실행에서만 그 블록의 본문이 돌기 때문에, 자연히
+  "전략을 실제로 저장할 때 1번만" 호출된다(🚀 백테스트 실행을 여러 번 눌러 반복 미리보기를 해도 호출
+  안 됨). 생성된 설명은 `Strategy.description` 컬럼에 함께 저장되고, 이후 그 전략을 불러오거나
+  반복 백테스트해도 DB에 저장된 값을 그대로 재사용할 뿐 다시 생성하지 않는다(그래서 "설명 페어가
+  없을 때만 생성"이 자동으로 성립).
+- `app/pages/1_백테스팅.py`: 지표토글/직접수식 저장·자연어 전략 저장·미세튜닝 단일종목 저장·미세튜닝
+  다종목표 저장 4곳 모두 `explain_strategy()` 사용(미세튜닝 2곳은 튜닝 메타데이터를 뒤에 덧붙임). "불러오기"로
+  기존 전략을 로드하면 저장된 설명을 상단에 표시. 저장 직후에도 `st.info`로 바로 보여줌.
+- **(같은 날 사용자 추가 피드백)** "자연어로 생성할 때 gemini api 를 써서 해. 그저 유튜브 스크립트를
+  뱉지 말고" — 자연어 전략 등록 탭이 `nl_result["description"]` + 원문 스크립트를 그대로 이어붙이던
+  것을 `explain_strategy(nl_result["indicator_config"])`로 교체(다른 3곳과 동일한 방식으로 통일).
+  원문 스크립트는 설명 뒤에 "[원문 스크립트]" 절로 참고용으로만 남긴다.
+- `app/pages/9_전략_관리.py`: 기존에 저장된(이 기능 이전) 전략은 보일러플레이트 설명이 그대로 남아있어,
+  "🤖 AI로 설명 재생성" 버튼을 추가해 사용자가 명시적으로 원할 때만 수동으로 다시 생성할 수 있게 함
+  (자동 백필은 하지 않음 — 자동 재생성은 요청받지 않았고 조용히 API를 반복 호출하게 될 위험이 있어
+  과설계로 판단해 배제).
+- 검증: `tests/test_strategy_explainer.py` 신규 10개(결정론적 요약 정확성, API 키 없음/호출 실패 시
+  폴백, Gemini 응답 사용, 빈 응답 처리, JSON 문자열 입력). 전체 `pytest` 268개 통과. `AppTest`로
+  두 페이지 모두 무예외 로드 확인. 실제 GEMINI_API_KEY가 설정되어 있어(`.env`) 라이브 검증도 진행:
+  자연어 탭에서 "골든크로스+RSI" 스크립트를 실제 해석→저장까지 실행해 저장된 `description`이 원문
+  덤프가 아닌 눌림목 전략 설명 문단인 것을 DB에서 직접 확인(테스트용 행은 이후 삭제), 전략 관리
+  페이지의 "재생성" 버튼도 기존 저장 전략(#3, 볼린저+장악형+RSI 1:2:6 전략)에 실제로 클릭해 정확하고
+  상세한 설명이 생성되는 것을 확인.
+
+**다종목 미세튜닝 방식 변경: 종목별 독립 탐색 → 스타일 그룹 풀링 트레이닝 (2026-07-15)**. 사용자가
+"경기방어주, 주도주 등으로 데이터셋을 나눠서 그룹 안에서만 트레이닝하고, 어떻게 해서든 S&P500/개별
+종목 매수보유를 이기게 개선해달라"고 요청 → 후자("어떻게 해서든")가 기존 확정 원칙(train/test 분리로
+과최적화 방지)과 충돌할 소지가 있어 코드 전에 `AskUserQuestion` 2개로 확인:
+- "test 구간에서도 못 이기면?" → **"탐색은 최대한 넓히되 정직하게"**(권장) 채택. test 성과를 선택
+  기준에 반영해 강제로 이기게 만드는 방식(데이터 스누핑, 백테스트 상 승률은 오르지만 실제 미래 성과와
+  무관해짐)은 채택 안 함.
+- "구조 변경 escape hatch(기존엔 직접 수식 전략에만 있었음)를 레짐/1:2:6까지 확장할지" → **"전체
+  전략 유형으로 확장"**(권장) 채택.
+
+`core/strategy_tuning.py`:
+- `run_batch_tuning()`이 종목을 style_type(6개 카테고리)으로 먼저 그룹핑하고, 그룹당
+  `tune_strategy_for_group()`을 1번만 호출(기존엔 종목마다 `tune_strategy_for_ticker()` 반복 호출).
+  같은 그룹 종목들은 결과적으로 `tuned_config`가 동일해짐.
+- `tune_strategy_for_group()` 신규: train 구간에서는 그룹 전체 종목의 평균 샤프지수를 목적함수로
+  숫자 파라미터를 탐색하고(그룹의 최소 50% 이상 종목에서 유효해야 후보로 인정 — 한 종목에만 맞는
+  과최적화 방지), test 구간은 종목별로 개별 평가만 하고 선택에는 절대 반영하지 않는다(정직성 유지).
+  그룹 평균이 test에서 S&P500을 못 이기면 그때만 구조 변경 escape hatch를 1회성으로 시도.
+- `generate_structural_variants_for_config()` 신규: 직접 수식은 기존 `generate_structural_variants()`
+  재사용, 레짐/1:2:6은 `core/nl_strategy.py`의 기존 스키마(`INDICATOR_CONFIG_SCHEMA`/
+  `STAGED_INDICATOR_CONFIG_SCHEMA`)를 재사용한 JSON 생성으로 확장(새 스키마 중복 정의 없음).
+- 종목 단위 escape hatch 진입점이었던 `tune_expression_strategy_for_ticker()`는 그룹 함수에 역할이
+  흡수되어 제거. `tune_strategy_for_ticker()` 등 기존 빌딩 블록은 "🔬 알고리즘 자동 생성" 탭이 여전히
+  그대로 사용하므로 유지.
+- `app/pages/1_백테스팅.py`: "다종목 미세튜닝" 탭 설명을 그룹 풀링 방식으로 갱신, 결과 표 위에
+  "스타일 그룹별 요약"(종목수/평균초과수익/승률/백본변경) 추가 — 기존 종목별 결과에서 즉석 집계라
+  DB 스키마 변경 없이 과거 실행 이력에도 그대로 적용됨.
+- 설계 배경 상세는 `STRATEGY_TUNING_ENGINE_SPEC.md` 10절 참고.
+- 검증: `tests/test_strategy_tuning.py`에 그룹 풀링 신규 테스트 다수 추가(그룹 커버리지/평균 계산,
+  그룹 전체 config 공유, test 구간이 선택에 영향 안 주는지, escape hatch 트리거/미채택 조건, 그룹
+  하나 실패해도 나머지 진행 등). 기존 `tune_expression_strategy_for_ticker`/구 `run_batch_tuning`
+  디스패치 테스트 5개는 제거된 함수/바뀐 동작에 맞춰 재작성. 전체 `pytest` 310개 통과. 실제 Gemini
+  API + 실제 가격 데이터(AAPL/MSFT/JNJ)로 전체 파이프라인 라이브 실행해 스타일 분류→그룹 풀링
+  튜닝→저장까지 정상 동작 확인(검증용 실행 결과는 이후 삭제). `AppTest`로 이 변경 이전에 저장된
+  실행 이력을 불러와도 그룹 요약 표가 예외 없이 렌더링됨을 확인(과거 데이터 호환).
+
+**볼린저 밴드 응용 매매법 4종(스퀴즈/추세추종/추세반전/다이버전스) + 진입가 기준 손절 신규 구축
+(2026-07-15)**. 사용자가 유튜브 "볼린저 밴드 최고의 매매전략 4가지" 대본을 그대로 붙여넣으며 전부
+구현 요청 → 대화로 확인 질문 2개("어느 전략부터/전부?" → 전부, "진입가 기준 손절을 이번에 엔진에
+추가할지" → 추가) 후 `BOLLINGER_STRATEGIES_SPEC.md`로 설계를 먼저 정리하고 진행:
+- **핵심 발견**: 엔진이 완전 무상태(그날 지표값만 보고 매일 판정)라 "진입 시점 가격 기준" 손절
+  개념이 아예 없었음(`entry_price` 등 grep으로 확인). 4개 전략 전부 이 형태의 손절을 정의해 이번에
+  일반 메커니즘으로 구축(스퀴즈 1개에만 쓰이는 게 아니라 향후 다른 전략에도 재사용 가능하게 설계).
+  또한 4개 전략 모두 진입≠청산 조건이라 레짐(`logic`/`conditions`) 스키마로 표현이 안 돼(그 스키마는
+  하나의 불리언이 켜졌다/꺼졌다만 판정), 기존 1:2:6 staged 스키마(`entry_stages`/`exit_stages`)를
+  1단계짜리(weight=1.0)로 활용 — 새 top-level 스키마는 만들지 않음.
+- `core/indicators.py` 신규 함수 8개: `compute_bbw`(밴드폭)/`compute_percent_b`(%B)/`compute_mfi`
+  (자금흐름지수, `ta.volume.MFIIndicator`)/`compute_bbw_squeeze_release`(스퀴즈 해제 이벤트 —
+  threshold 상향돌파 + 최근 lookback봉 내 스퀴즈였는지 확인 + hold_bars만큼 유지)/`compute_lowest_low`
+  `compute_highest_high`(손절 레벨 소스)/`compute_double_pattern`(쌍바닥·쌍봉, 스윙 저점·고점을
+  좌우 pivot_lookback봉 중심윈도우로 확정한 뒤 밴드 위치 제약+거래량 급증 확인 돌파까지 판정)/
+  `compute_rsi_divergence`(가격-RSI 다이버전스, 스윙 저점·고점에서 가격vsRSI 방향 반대 확인 후
+  중심선 돌파 확인). 후자 둘은 순수 벡터화가 어려워(직전 스윙과 비교하는 순차 상태) 판다스 계산 후
+  파이썬 루프로 스캔(`simulate_staged_positions`와 동일한 기존 스타일).
+- `core/strategy_engine.py`: `INDICATOR_EVALUATORS`에 `bbw_squeeze_release`/`percent_b`/`mfi`/
+  `double_pattern`/`rsi_divergence` 5개 등록 + `describe_condition` 문구 추가. `bollinger`에
+  `band="mid"`(중심선 돌파) 지원 추가(기존 upper/lower와 동일한 방식). **`stop_loss` 신규 메커니즘**:
+  `simulate_staged_positions()`가 최상위 선택적 `"stop_loss": {"source": "bollinger_mid"|"lowest_low"|
+  "highest_high", "period": ...}` 키를 받으면, 포지션이 없다가 새로 진입하는 바("사이클 시작")에서
+  그 source의 그 순간 가격 레벨을 스냅샷해 고정하고, 사이클이 끝날 때까지 종가가 그 아래로 내려오면
+  emergency_exit과 같은 우선순위로 즉시 전량 청산(`StageEvent(kind="stop_loss")`로 로그). 레벨-소스는
+  불리언을 반환하는 기존 `INDICATOR_EVALUATORS`와 반환 타입이 달라 별도 `STOP_LOSS_SOURCES` 레지스트리로
+  분리.
+- `core/expression_engine.py`: "수식" 전략용으로 `bbw`/`percent_b`/`mfi` 3개 함수 추가(쌍바닥/다이버전스는
+  `engulfing`과 같은 이유로 수식 함수로 노출하지 않음 — 여러 봉에 걸친 상태형 패턴이라 한 줄 수식의
+  성격과 안 맞음).
+- `core/nl_strategy.py`: `STAGE_CONDITION_PROPERTIES`에 새 지표 5개 + 관련 파라미터(threshold/lookback/
+  hold_bars/band_period/band_std/pivot_lookback/pattern_window/volume_mult/rsi_period) 추가, `band` enum에
+  "mid" 추가, `STAGED_INDICATOR_CONFIG_SCHEMA`에 `stop_loss`(emergency_exit과 마찬가지로 선택 항목)
+  추가. `STAGED_SYSTEM_PROMPT`에 5개 지표 설명 + stop_loss 작성 기준 문단 추가. **겸사겸사 버그 수정**:
+  이전 세션에 사용자가 붙여넣은 실제 staged_config에서 bollinger/ma_cross 조건에 일목균형표 전용
+  필드(kijun_len 등)가 무관하게 섞여 들어간 것을 발견했었는데(엔진은 무시하지만 `strategy_tuning.py`의
+  `_PERIOD_LIKE_KEYS`가 키 이름만 보고 이걸 숫자 파라미터로 오인해 튜닝 예산을 낭비함) — 프롬프트에
+  "그 지표에 정의되지 않은 필드는 채우지 말 것" 문구를 추가해 재발 방지(스키마 자체는 Gemini
+  구조화출력 제약상 그대로 둠). `_STAGED_HINT_KEYWORDS`에도 "스퀴즈"/"밴드폭"/"밴드 너비"/"퍼센트비"/
+  "%b"/"다이버전스"/"쌍바닥"/"쌍봉"을 추가 — 안 하면 이 4개 전략 텍스트가 (진입=청산 조건인 줄 알고)
+  레짐 스키마로 잘못 라우팅되어 애초에 표현이 불가능해짐.
+- **스코프에서 의도적으로 제외한 것**(추측으로 만들지 않음, `BOLLINGER_STRATEGIES_SPEC.md` 5절에
+  명시): 매도(숏) 포지션(엔진 전체가 롱온리), 다이버전스의 "손익비 2:1 도달 시 분할매도"(staged
+  엔진은 청산 단계별로 전체 물량만 정리하는 이분법 구조), 추세추종의 "예비신호→확정신호 2회 확인"
+  (선택 강화 옵션으로 문서화만), 쌍바닥/쌍봉 전략의 손절/익절(원문에 언급 없어 추측 추가 안 함).
+- **알려진 제약**: `core/strategy_tuning.py`의 `_PERIOD_LIKE_KEYS`/`_THRESHOLD_LIKE_KEYS`가 아직
+  `threshold`/`band_period`/`band_std`/`pivot_lookback`/`pattern_window`/`volume_mult`/`rsi_period`를
+  인식하지 못해, 다종목 미세튜닝 엔진이 이 4개 전략의 새 파라미터를 자동으로는 못 쓸어본다(백테스트
+  자체는 정상 동작, "튜닝 자동화"만 아직 안 걸림). 이 세션 중 다른 세션이 `core/strategy_tuning.py`를
+  동시에(그룹 풀링 방식으로) 크게 고치고 있어 충돌을 피하려 이 파일은 건드리지 않음 — 다음 세션에서
+  안전할 때 반영할 것.
+- 검증: `core/market_data.py::get_price_history`로 받은 실제 AAPL 데이터로 8개 신규 지표 전부 계산 후
+  값 범위/이벤트 발생 여부 확인, 4개 전략 전부 `simulate_staged_positions`로 실제 진입/청산/stop_loss
+  이벤트가 나오는 것과 `extract_staged_trades`로 트레이드까지 정상 추출되는 것 확인. `tests/
+  test_strategy_engine.py`(신규 16개: 지표 계산 8개 + 조건평가기 5개 + stop_loss 2개 + 대조군 1개),
+  `tests/test_expression_engine.py`(신규 1개), `tests/test_nl_strategy.py`(신규 2개, 키워드 라우팅
+  + 스키마 반영 확인) 추가 — 전부 합성 OHLCV(네트워크 불필요), 쌍바닥/쌍봉/다이버전스는 실제 함수를
+  먼저 실행해보며 정확히 이벤트가 뜨는 합성 시나리오를 확인한 뒤 테스트에 고정. 관련 파일(`test_strategy_
+  engine.py`/`test_expression_engine.py`/`test_backtest_engine.py`/`test_nl_strategy.py`) 65개 전체
+  통과. 전체 `pytest tests/` 실행 시 `test_strategy_tuning.py` 일부가 실패하는데, 이는 위에서 언급한
+  다른 세션의 동시 편집(그룹 풀링 리팩터링 진행 중) 때문이며 이 세션이 만든 변경과는 무관함을
+  `git stash`로 격리 확인.
+
+**섹터별 대표 ETF·대장주·성장주 관계 분석 페이지 추가** (2026-07-15). 사용자가 "각 섹터마다 대표하는
+ETF, 대장주, 성장주들의 관계를 정량적으로 분석할 수 있는 페이지를 따로 만들어줘"라고 요청 →
+`SECTOR_LEADER_GROWTH_RELATIONSHIP_SPEC.md`에 리서치 근거(상대강도/베타/상관계수는 업계 표준 조합)를
+먼저 정리하고, AskUserQuestion 3개(대장주/성장주 정의 방식, 성장주 개수, 포함 지표)로 확인받은 뒤
+구현(전부 "권장" 옵션 선택 — 완전 자동 산출/3개/베타+상관계수+RS추세).
+- `core/sector_leaders.py`(신규): 대표 ETF는 기존 `core.sector_strength.THEME_UNIVERSE`를 그대로
+  재사용. GICS 11개 섹터는 `screener.get_universe()`에서 섹터별 종목 중 시가총액 1위=대장주,
+  이익성장률(없으면 PER) 배치 내 백분위 상위 3개=성장주로 완전 자동 산출. 반도체/메모리·DRAM/우주
+  등 GICS에 없는 니치 테마는 `NICHE_THEME_CANDIDATES` 프리셋 후보 목록(THEME_UNIVERSE의 ETF 프록시
+  프리셋과 같은 성격) 안에서 동일한 방식으로 선정. `compute_relationship_metrics()`가 종목별로
+  베타(ETF 수익률에 대한 회�귀 민감도)/상관계수/상대강도(RS, 종목가÷ETF가) 비율 추세(최근 20거래일
+  ±1% 이상 변화만 상승/하락으로 판정, 그 이하는 횡보)를 계산.
+- `core/sector_strength.py`: `_theme_price_history` → `theme_price_history`로 공개 API 승격(동작
+  변경 없음, 새 모듈이 대표 ETF 시계열 재사용을 위해 필요) — 유일한 호출부도 함께 갱신.
+- `app/pages/12_섹터_리더_성장주.py`(신규): 테마 선택 셀렉트박스 + `job_manager` 백그라운드 패턴
+  (섹터당 최대 수십 종목 펀더멘털 조회라 무거운 작업) + 대장주 카드(`st.metric` 4개) + 성장주 3개
+  비교 표 + 정규화(시작일=100) 성과 비교 라인차트(ETF 점선 + 대장주 굵은선 + 성장주 3개, dataviz
+  스킬의 다크모드 검증 카테고리 팔레트에서 5색 사용, 기존 캔들 상승/하락색과 안 겹치게 선택).
+- **버그 발견 및 수정 (교훈)**: 라이브 검증 중 베타/상관계수가 비현실적으로 낮게(예: MSFT vs XLK
+  베타 0.02) 나오는 것을 발견 → 원인은 이 세션 도중 다른 세션이 `core/market_data.py`/
+  `core/sector_strength.py`에 동시에 추가한 "`get_price_history(start=None)`이 캐시 없는 티커에
+  yfinance 기본 기간(짧음)만 받아오는" 버그의 여파 — ETF 프록시 캐시가 `.full` 마커와 함께 41일치로
+  고정 캐싱된 뒤라, `sector_leaders.py`가 명시적 `start`를 넘겨도 `.full` 마커가 있으면
+  `market_data.py`의 `need_older` 로직이 과거 데이터 재조회를 영구히 건너뛰는 것까지 확인함(같은
+  시각을 공유하는 캐시 계층 버그). `core/sector_leaders.py`도 동일한 함정에 걸리므로
+  `core.sector_strength.DEFAULT_LOOKBACK_DAYS` 상수를 재사용해 `get_price_history(ticker,
+  start=...)`를 항상 명시적으로 호출하도록 방어 코드 추가(그 세션이 만든 `.full` 캐시 자체는
+  `core/market_data.py`가 계속 활발히 편집되던 파일이라 직접 고치지 않고, 손상된 캐시 파일 삭제는
+  자동 모드 안전장치에 의해 차단되어 사용자 확인 필요 — 다행히 검증 도중 다른 세션이 같은 캐시를
+  스스로 정리해 최종적으로는 정상(약 2년치) 데이터로 확인 완료).
+- **환경 제약(내 코드 결함 아님)**: 이 샌드박스에서 `en.wikipedia.org` 접근이 막혀 있어
+  `core.screener.get_universe()`가 매번 19종목짜리 최소 대체 목록(`_FALLBACK_UNIVERSE`)으로 폴백함
+  — GICS 섹터당 후보가 2~3개로 보임(예: "기술" → AAPL/MSFT/NVDA뿐). 사용자의 실제 실행 환경에서는
+  위키피디아 접근이 가능해 S&P500 전체(~500종목)가 정상적으로 잡힐 것으로 예상.
+- **알려진 러프엣지**: 우주 테마 검증 중 ASTS(AST SpaceMobile)처럼 극단적으로 급등한 소형 성장주가
+  포함되면 정규화 차트의 y축이 그 종목 하나에 맞춰 늘어나(0~5000대) 나머지 선이 바닥에 눌려 보이는
+  현상을 실측으로 확인. 베타/상관계수/RS 표의 숫자는 영향받지 않으나(계산은 개별 종목-ETF 페어로
+  이뤄짐), 차트만 놓고 보면 가독성이 떨어질 수 있음 — 이번 스코프에서는 손대지 않고 다음에 필요하면
+  로그축/이상치 클리핑 등을 사용자와 논의 후 반영.
+- 검증: `tests/test_sector_leaders.py`(신규 12개 — 후보 종목 선정, 대장주/성장주 자동 산출(시총 1위
+  제외 후 성장점수 랭킹, earnings_growth 결측 시 PER 대체), 베타/상관계수(결정론적 선형관계로
+  구성한 합성 수익률로 정확히 1.0/2.0이 나오는지), 데이터 부족/겹침 없음 처리, 오케스트레이션까지)
+  전부 통과. Playwright로 임시 포트(8502)에 별도 인스턴스를 띄워 실제 브라우저로 라이브 검증 —
+  "기술"(GICS, 실제 NVDA 대장주 + MSFT/AAPL 성장주, 베타 1.07/상관계수 0.73)과 "우주"(니치 프리셋,
+  실제 RTX 대장주 + ASTS/RKLB/BA 성장주)로 후보 선정/카드/표/차트가 실데이터로 전부 정상 렌더링됨을
+  확인, 테마 전환(셀렉트박스)도 실제 클릭으로 확인. 기존 8501(사용자 세션)은 건드리지 않음. 전체
+  `python -m pytest tests/ -q` 실행 결과는 다른 세션들의 동시 작업(전략 튜닝 그룹 풀링, 시장국면/
+  섹터강도, 볼린저 4대 매매법)과 겹쳐 일부 무관한 실패가 섞여 있으나, `test_sector_leaders.py`/
+  `test_sector_strength.py`(신규 로직 관련 전체)는 격리 확인 시 전부 통과.
+
+**모듈 G 확장: 시장 국면(강세/약세) + 섹터/테마 강도 지표 추가 (2026-07-15)**. 사용자가 "S&P500 등으로
+전체 시장이 강세장/약세장인지, DRAM/반도체/우주섹터 등 섹터별 힘을 정량적으로 보여달라"고 요청하며
+구현 전 인터넷 리서치(최소 5분)를 먼저 하라고 명시 → 새 모듈이 아니라 **기존 매크로 대시보드(모듈 G)
+안의 새 탭**으로 판단해 진행(신규 대형 기능이라 코드 전에 리서치 근거 + 설계 결정을
+`MARKET_REGIME_SECTOR_STRENGTH_SPEC.md`에 먼저 정리하고, AskUserQuestion으로 UI 위치/판단 방식/섹터
+정의 방식/테마 확장 방식 4가지 개념적 결정을 확인한 뒤 착수 — 전부 추천안으로 확정됨).
+- **리서치 요약**: 시장 국면은 200일선 대비 위치·50/200일 골든·데드크로스·시장폭(%)·52주 고점대비
+  낙폭을 조합한 룰 기반 복합지표(HMM 등 ML은 배제, 기존 `macro_cycle.py`와 같은 투명한 경험칙 스타일
+  유지)가 업계에서 가장 널리 쓰임. 섹터 강도는 IBD RS Rating 공식(`0.4·ROC63+0.2·ROC126+0.2·ROC189
+  +0.2·ROC252`)과 Julius de Kempenaer의 RRG(추세+모멘텀 2축) 개념을 참고. DRAM/반도체/우주처럼 GICS
+  11개 표준 섹터에 없는 세부 테마는 실제 대응 ETF(반도체=SOXX/SMH, 메모리=Roundhill Memory ETF
+  `DRAM`, 우주=UFO/ARKX/ROKT)를 프록시로 사용. 상세 출처는 스펙 문서 2절 참고.
+- `core/market_regime.py`(신규): `score_trend_position`/`score_ma_cross`/`score_drawdown`/
+  `score_breadth` 4개 신호를 각각 ±25점(낙폭은 -25~0)으로 점수화해 합산(-100~+75) →
+  `classify_regime()`이 ≥35 강세장/≤-35 약세장/그 사이 중립·혼조로 분류. `compute_market_breadth()`는
+  `core.screener.get_universe()`의 S&P500 전종목이 200일선 위인지 비율로 계산(다수 티커 조회라
+  `job_manager` 백그라운드 실행).
+- `core/sector_strength.py`(신규): `THEME_UNIVERSE` 딕셔너리(11개 GICS 섹터 SPDR ETF + 반도체/
+  메모리·DRAM/우주 14개 테마, 코드 프리셋 — 확장 시 항목만 추가). `compute_theme_strength()`가 IBD
+  방식 가중 ROC로 테마별 강도를 계산해 테마 집합 내 percentile(0~100 RS 점수)로 반환, 최근 20거래일
+  전후 비교로 상승/하락/횡보 추세도 함께 표시. `core/indicators.py`에 `roc()` 헬퍼 신규 추가.
+- `app/pages/7_매크로_대시보드.py`에 3번째 탭 "📈 시장 국면 / 섹터 강도" 추가 — 상단은 국면 배지
+  (🐂/🐻/😐) + 4개 하위 신호 `st.metric`, 하단은 RS 점수 내림차순 수평 막대차트(50점 기준 그린/레드
+  다이버징, dataviz 스킬 가이드로 색상 검증) + 수익률/추세 표.
+- **실제 운영 중 발견해 함께 고친 버그 3건** (내가 만든 신규 코드의 버그, 라이브 브라우저 검증 중
+  yfinance 실제 호출로 드러남 — 유닛테스트는 전부 monkeypatch라 못 잡았음):
+  1. `core.market_data.get_price_history(start=None)`가 문서와 달리, 로컬 캐시가 전혀 없는 티커는
+     yfinance 기본기간("1mo")만 받아와 200/252일 계산에 필요한 이력이 부족해짐(S&P500 개별종목/
+     `^GSPC`는 과거 세션들이 이미 몇 년치 캐싱해둬서 우연히 안 걸림, 반도체/DRAM/우주 등 이 앱에서
+     처음 조회하는 테마 ETF만 걸림). 공용 `market_data.py`는 건드리지 않고, 내 두 모듈에서
+     `start`를 명시적으로(오늘로부터 800일 전) 넘기도록 우회. 이미 잘못 캐싱된(`.full` 마커가 찍힌
+     불완전 캐시) 17개 테마 ETF는 `clear_cache()`로 삭제 후 재조회.
+  2. Roundhill Memory ETF(`DRAM`)는 2025년 상장이라 252거래일치 이력이 아직 없어 전량 계산 불가 →
+     `_strength_factor()`가 4개 ROC 구간 중 확보된 이력만 골라 가중치를 재정규화하도록 수정(사용자가
+     명시적으로 요청한 "dram 주"라 조용히 빠뜨리지 않고 짧은 이력으로라도 점수를 매기도록 함).
+  3. `compute_theme_strength(theme_universe={})`가 `or` 연산자 탓에 빈 딕셔너리(falsy)를 "안 넘김"
+     으로 오인해 전체 프리셋으로 폴백하는 버그 발견(`is None` 체크로 수정) — 이 버그 때문에 관련
+     유닛테스트가 몰래 실제 네트워크를 타고 있었다는 것도 함께 발견해 monkeypatch로 격리.
+- 검증: `tests/test_market_regime.py`(신규 15개) + `tests/test_sector_strength.py`(신규 9개, 위 버그
+  2/3 회귀 테스트 포함) 전부 통과, 전체 `pytest tests/` 327개 통과. Playwright로 실제 브라우저 실행 —
+  탭 클릭 → 백그라운드 계산 진행 표시 → 완료 후 강세장 배지(종합 +74점, 200일선 위 +8.2%/골든크로스/
+  시장폭 74%) + 14개 테마 RS 점수 차트(메모리/DRAM 1위 100점, 반도체 2위 93점)와 표까지 실제 yfinance
+  데이터로 렌더링 확인.
+- 새 문서: `MARKET_REGIME_SECTOR_STRENGTH_SPEC.md`(리서치 근거 + 설계 결정 기록).
+
+**볼린저 응용 매매법 4종 신규 파라미터를 다종목 미세튜닝 엔진이 인식하도록 반영 (2026-07-15, 이어서)**.
+위 "볼린저 밴드 응용 매매법 4종" 항목에서 `core/strategy_tuning.py`가 다른 세션의 그룹 풀링 리팩터링과
+동시 편집 충돌을 피하려 의도적으로 건드리지 않은 채 남겨둔 부분(`_PERIOD_LIKE_KEYS`/`_THRESHOLD_LIKE_
+KEYS`가 신규 지표 파라미터 9개를 인식 못 함) — 그룹 풀링 작업이 병합되고 전체 테스트가 깨끗이 통과하는
+것을 확인한 뒤 이어서 반영.
+- `_PERIOD_LIKE_KEYS`에 롤링 윈도우 봉 수 6개 추가: `lookback`/`hold_bars`/`band_period`/
+  `pivot_lookback`/`pattern_window`/`rsi_period` (기존 `short`/`long`/`period`와 동일하게 스타일
+  배수로 스케일 — 주도주는 짧게, 방어주는 길게).
+- `std_dev` 분기를 `band_std`도 함께 매칭하도록 확장(`elif key in {"std_dev", "band_std"}:`) — 둘 다
+  볼린저 밴드 폭의 표준편차 배수로 의미가 동일해 기존 ±0.5 바운디드 지터 로직을 그대로 재사용.
+  `period`는 이미 기존 `_PERIOD_LIKE_KEYS`에 있어 손대지 않음(`percent_b`/`mfi`/`compute_lowest_low`/
+  `compute_highest_high`가 공유).
+- `threshold`(bbw_squeeze_release의 밴드폭 스퀴즈 기준, 기본 0.1)와 `volume_mult`(double_pattern의
+  거래량 배수, 기본 1.5)는 기존 `_THRESHOLD_LIKE_KEYS`(RSI 0~100 스케일 전용, delta=10.0/0.1 고정폭)에
+  넣으면 volume_mult=1.5가 delta=10.0을 맞아 [0, 11.5] 같은 무의미한 범위가 나와 새 `_RATIO_LIKE_KEYS`
+  집합으로 분리하고, 원래 값에 비례하는 지터(`delta = max(round(val*0.3, 3), 0.02)`, 하한 0.01로 항상
+  양수 유지)를 쓰는 별도 분기를 추가.
+- `stop_loss`는 `entry_stages`/`exit_stages`와 같은 층위의 최상위 딕셔너리라 `_iter_condition_paths()`가
+  애초에 순회하지 않으므로(조건 리스트 내부가 아님) 이번 스코프에서 손대지 않음(의도적 제외, 추측 아님).
+  기존 인식 키(`short`/`long`/`period`/`fast`/`slow`/`signal`/`tenkan_len`/`kijun_len`/`span_b_len`/
+  `displacement`/`std_dev`/`value`/`level`) 동작은 순수 추가만 했으므로 전혀 변경 없음.
+- 검증: `tests/test_strategy_tuning.py`에 신규 2개 추가 — bbw_squeeze_release/rsi_divergence/
+  double_pattern 3개 지표를 섞은 staged config로 신규 파라미터 9개가 전부 여러 값으로 흔들리면서도
+  지표 종류/방향 등 백본은 그대로 유지되는지, threshold/volume_mult/band_std가 항상 양수인지 확인하는
+  테스트 1개, 신규 `_PERIOD_LIKE_KEYS` 키(`rsi_period`)도 기존 `short`/`long`과 동일한 스타일
+  방향성(주도주=짧게, 경기방어주=길게)을 따르는지 확인하는 테스트 1개. 전체 `python -m pytest tests/ -q`
+  실행 결과 329개 전부 통과(기존 327개 + 신규 2개, 회귀 없음).
+
+**섹터 리더/성장주 페이지 후속 확장: 성장주 재정의(초대형주 제외) + 테마 세분화 + 대형주→소형주
+레깅 후보 플래그 (2026-07-15, 같은 날 후속 요청)**. 사용자가 "기술주를 DRAM/방산/냉각 등으로 더
+세분화, 애플·MS 같은 초대형주가 성장주로 잡히는 문제 지적, 대형주 추세추종→소형주 상관관계를
+인터넷 리서치 후 페이지에 반영"을 요청. AskUserQuestion으로 3가지 방향(성장주 재정의 방식/테마 분리
+방식/대형주→소형주 신호 형태) 확인 후 진행 — 설계 근거·결정은 `SECTOR_LEADER_GROWTH_RELATIONSHIP_
+SPEC.md` 6절 참고.
+
+- **성장주 재정의**: `core/sector_leaders.py::compute_leader_and_growth`에 `MEGA_CAP_EXCLUDE_
+  QUANTILE = 0.75` 추가 — 대장주 한 종목만 빼던 것을, 후보군 내 시가총액 상위 25% 전체를 성장주
+  후보에서 제외하도록 변경(러셀 지수 재조정에서도 초대형주는 성장/가치 경계가 흐려진다는 리서치
+  근거). 실제 확인: "기술" 테마가 예전엔 성장주로 애플($4.6T)/마이크로소프트($2.9T)를 그대로
+  뽑았는데, 수정 후엔 진짜 중형 반도체주(MCHP/COHR/LITE, 시총 $47~63B)로 바뀜.
+- **테마 세분화**: `core/sector_strength.THEME_UNIVERSE` + `core/sector_leaders.NICHE_THEME_
+  CANDIDATES`에 5개 신규 테마 추가(14→19개) — 방산(ETF `ITA`, 대형 프라임+중소형 방산기술주),
+  냉각(ETF `DTCR`, VRT/MOD/AAON/NVT), 사이버보안(ETF `CIBR`), 클라우드(ETF `SKYY`+`WCLD`),
+  로보틱스(ETF `BOTZ`). 기존 "우주" 테마에 섞여 있던 대형 방산 프라임(LMT/RTX/NOC/GD/LHX)을
+  방산으로 옮기고, 우주는 순수 우주기업(ASTS/RKLB)+소형주(LUNR/RDW)만 남김.
+  - **실증 검증 중 상장폐지 종목 2개 발견해 교체**: CyberArk(CYBR, 2026-02-11 Palo Alto Networks에
+    피인수돼 나스닥 상장폐지 → QLYS로 교체), iRobot(IRBT, 2025-12 챕터11 파산 후 Picea에 피인수돼
+    상장폐지 → SYM으로 교체). 둘 다 yfinance가 404를 던지는 걸 먼저 보고 뉴스 검색으로 원인 확인.
+- **대형주 추세추종 → 소형주 레깅 후보 플래그**: Lo-MacKinlay(1990)/Hou(2007) 리드-래그 연구(같은
+  산업 내 대형주 수익률이 정보확산 지연으로 소형주 수익률을 선행) 근거로 신규 2개 함수 추가.
+  `_abs_trend_label()`은 기존 `core.market_regime.score_trend_position`/`score_ma_cross`를 그대로
+  재사용해 대장주 자체의 절대 가격 추세(200일선 위/아래 + 50/200일 골든·데드크로스)를 "상승"/
+  "하락"/"혼조"로 라벨링(기존 `trend` 필드는 ETF 대비 RS비율 추세라 별개 개념). `_is_lag_candidate()`
+  는 대장주가 "상승"추세이고 성장주의 베타/상관계수가 각각 0.5 이상인데 RS추세가 아직 "상승"이
+  아니면 True — `analyze_theme_relationships()`가 각 성장주에 `lag_candidate` 필드로 추가.
+  실제 데이터로 "우주"(RKLB 상승 + ASTS/LUNR/RDW 3개 전부 레깅 후보), "반도체"(NVDA 상승 + 성장주
+  3개 전부 레깅 후보) 등 의도대로 발동함을 확인.
+- **UI**(`app/pages/12_섹터_리더_성장주.py`): 대장주 카드에 "추세추종 신호" 메트릭 추가, 성장주
+  표에 시가총액 컬럼 + "🐢 추격 후보" 컬럼 추가. 하나라도 있으면 리드-래그 연구 근거 + "거래비용
+  반영 시 초과수익은 빠르게 사라진다"는 한계 + "투자 조언이 아닌 관찰 지표" 안내 문구를 `st.info`로
+  표시(과신 방지, 기존 골든/데드크로스 캡션과 같은 패턴).
+- **검증 중 발견해 함께 고친 무관한 환경 버그**: `core/screener.py`의 위키피디아 S&P500 스크레이핑이
+  `pd.read_html()`에 필요한 `lxml` 패키지가 `requirements.txt`에 없어 조용히 실패하고(예외가
+  `except Exception`에 삼켜짐) 10여 종목짜리 소규모 폴백 유니버스로 계속 대체되고 있었다 — 이번
+  세션 이전부터 있던 문제로("산업재" 테마가 항상 후보 0개였던 원인도 동일), 스크리너/밸류에이션/
+  시장국면 등 GICS 유니버스를 쓰는 다른 기능에도 영향을 미치는 범위가 넓은 버그다. `requirements.txt`
+  에 `lxml>=5.0` 추가로 해결, 이후 로컬 캐시를 지우고 재조회해 503종목 전체가 정상 로드됨을 확인(11개
+  GICS 섹터 전부 정상 종목 수 반환, "산업재" 81개 포함).
+- 검증: `tests/test_sector_leaders.py`(신규 6개: 신규 테마 후보 존재, 초대형주 다중 제외, abs_trend
+  상승/N-A, 레깅 후보 True/False 분기) + `tests/test_sector_strength.py`(THEME_UNIVERSE 19개 항목
+  검증 갱신). 실제 yfinance 데이터로 19개 테마 전부 `analyze_theme_relationships()` 실행해 확인,
+  Streamlit `AppTest`로 "기술" 테마 페이지 렌더링(메트릭/표/안내문구 실제 값) 확인, 매크로 대시보드의
+  `compute_theme_strength()`도 19개 테마 전부 정상 RS 점수 반환 확인(시장국면 탭 자체는 이제
+  503종목 전체를 도는 시장폭 계산이라 콜드 캐시에서 느린 것이 정상 — job_manager 백그라운드 패턴으로
+  이미 설계된 부분). `python -m pytest tests/ -q` 전체 336개 통과.

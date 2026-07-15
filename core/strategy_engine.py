@@ -44,12 +44,19 @@ from typing import Any, Callable, Optional
 import pandas as pd
 
 from core.indicators import (
+    compute_bbw_squeeze_release,
     compute_bollinger,
+    compute_double_pattern,
     compute_engulfing,
+    compute_highest_high,
     compute_ichimoku,
+    compute_lowest_low,
     compute_ma_cross,
     compute_macd,
+    compute_mfi,
+    compute_percent_b,
     compute_rsi,
+    compute_rsi_divergence,
 )
 
 Condition = dict[str, Any]
@@ -106,9 +113,73 @@ def _eval_bollinger(df: pd.DataFrame, cond: Condition) -> pd.Series:
     op = cond.get("op", "break_below")
     bb = compute_bollinger(df, period=period, std_dev=std_dev)
     close = df["Close"]
+    if band == "mid":
+        return ((close > bb["mid"]) if op == "break_above" else (close < bb["mid"])).fillna(False)
     if band == "upper" or op == "break_above":
         return (close > bb["upper"]).fillna(False)
     return (close < bb["lower"]).fillna(False)
+
+
+def _eval_bbw_squeeze_release(df: pd.DataFrame, cond: Condition) -> pd.Series:
+    """볼린저 밴드폭 스퀴즈 해제 이벤트 (스퀴즈 매매 전략의 진입 신호)."""
+    return compute_bbw_squeeze_release(
+        df,
+        period=int(cond.get("period", 20)),
+        std_dev=float(cond.get("std_dev", 2.0)),
+        threshold=float(cond.get("threshold", 0.1)),
+        lookback=int(cond.get("lookback", 20)),
+        hold_bars=int(cond.get("hold_bars", 3)),
+    )
+
+
+def _eval_percent_b(df: pd.DataFrame, cond: Condition) -> pd.Series:
+    """볼린저 밴드 %B 레벨 조건 (추세추종 전략)."""
+    period = int(cond.get("period", 20))
+    std_dev = float(cond.get("std_dev", 2.0))
+    op = cond.get("op", ">=")
+    value = float(cond.get("value", 0.8))
+    pb = compute_percent_b(df, period=period, std_dev=std_dev)
+    op_fn = _OPS.get(op)
+    if op_fn is None:
+        raise ValueError(f"지원하지 않는 연산자: {op}")
+    return op_fn(pb, value).fillna(False)
+
+
+def _eval_mfi(df: pd.DataFrame, cond: Condition) -> pd.Series:
+    """MFI 레벨 조건 (추세추종 전략)."""
+    period = int(cond.get("period", 14))
+    op = cond.get("op", ">=")
+    value = float(cond.get("value", 80))
+    mfi = compute_mfi(df, period=period)
+    op_fn = _OPS.get(op)
+    if op_fn is None:
+        raise ValueError(f"지원하지 않는 연산자: {op}")
+    return op_fn(mfi, value).fillna(False)
+
+
+def _eval_double_pattern(df: pd.DataFrame, cond: Condition) -> pd.Series:
+    """쌍바닥/쌍봉 추세 반전 패턴 이벤트."""
+    pat = compute_double_pattern(
+        df,
+        band_period=int(cond.get("band_period", 20)),
+        band_std=float(cond.get("band_std", 2.0)),
+        pivot_lookback=int(cond.get("pivot_lookback", 5)),
+        pattern_window=int(cond.get("pattern_window", 40)),
+        volume_mult=float(cond.get("volume_mult", 1.5)),
+    )
+    return pat["bullish"] if cond.get("direction", "bullish") == "bullish" else pat["bearish"]
+
+
+def _eval_rsi_divergence(df: pd.DataFrame, cond: Condition) -> pd.Series:
+    """가격-RSI 다이버전스 추세 반전 패턴 이벤트."""
+    div = compute_rsi_divergence(
+        df,
+        rsi_period=int(cond.get("rsi_period", 14)),
+        band_period=int(cond.get("band_period", 20)),
+        pivot_lookback=int(cond.get("pivot_lookback", 5)),
+        pattern_window=int(cond.get("pattern_window", 40)),
+    )
+    return div["bullish"] if cond.get("direction", "bullish") == "bullish" else div["bearish"]
 
 
 def _eval_rsi_cross(df: pd.DataFrame, cond: Condition) -> pd.Series:
@@ -228,6 +299,11 @@ INDICATOR_EVALUATORS: dict[str, Callable[[pd.DataFrame, Condition], pd.Series]] 
     "ichimoku_cloud_state": _eval_ichimoku_cloud_state,
     "ichimoku_chikou_state": _eval_ichimoku_chikou_state,
     "engulfing": _eval_engulfing,
+    "bbw_squeeze_release": _eval_bbw_squeeze_release,
+    "percent_b": _eval_percent_b,
+    "mfi": _eval_mfi,
+    "double_pattern": _eval_double_pattern,
+    "rsi_divergence": _eval_rsi_divergence,
 }
 
 
@@ -238,6 +314,131 @@ def evaluate_condition(df: pd.DataFrame, condition: Condition) -> pd.Series:
     if evaluator is None:
         raise ValueError(f"지원하지 않는 지표: {indicator!r}")
     return evaluator(df, condition)
+
+
+def describe_condition(cond: Condition) -> str:
+    """조건 하나를 사람이 읽을 수 있는 한국어 문구로 바꾼다 (차트 호버 툴팁의 진입/청산 근거 표시용)."""
+
+    def _fmt(v: float) -> str:
+        return f"{v:g}"
+
+    indicator = cond.get("indicator")
+    if indicator == "ma_cross":
+        short, long = cond.get("short", 20), cond.get("long", 60)
+        kind = "골든크로스" if cond.get("type", "golden") == "golden" else "데드크로스"
+        return f"MA{short}/MA{long} {kind} 국면"
+    if indicator == "rsi":
+        period = cond.get("period", 14)
+        op = cond.get("op", "<")
+        value = _fmt(float(cond.get("value", 30)))
+        return f"RSI({period}) {op} {value}"
+    if indicator == "bollinger":
+        period = cond.get("period", 20)
+        band = cond.get("band", "lower")
+        op = cond.get("op")
+        if band == "mid":
+            return f"볼린저밴드({period}) 중심선 {'상향 돌파' if op == 'break_above' else '하향 이탈'}"
+        if band == "upper" or op == "break_above":
+            return f"볼린저밴드({period}) 상단 상향 돌파"
+        return f"볼린저밴드({period}) 하단 하향 이탈"
+    if indicator == "bbw_squeeze_release":
+        threshold = _fmt(float(cond.get("threshold", 0.1)))
+        return f"볼린저 밴드폭 스퀴즈({threshold}) 해제"
+    if indicator == "percent_b":
+        op = cond.get("op", ">=")
+        value = _fmt(float(cond.get("value", 0.8)))
+        return f"%B {op} {value}"
+    if indicator == "mfi":
+        period = cond.get("period", 14)
+        op = cond.get("op", ">=")
+        value = _fmt(float(cond.get("value", 80)))
+        return f"MFI({period}) {op} {value}"
+    if indicator == "double_pattern":
+        direction = "쌍바닥" if cond.get("direction", "bullish") == "bullish" else "쌍봉"
+        return f"{direction} 반전 패턴 확인"
+    if indicator == "rsi_divergence":
+        direction = "상승" if cond.get("direction", "bullish") == "bullish" else "하락"
+        return f"가격-RSI {direction} 다이버전스"
+    if indicator == "rsi_cross":
+        period = cond.get("period", 14)
+        level = _fmt(float(cond.get("level", 30)))
+        direction = "상향" if cond.get("direction", "up") == "up" else "하향"
+        return f"RSI({period}) {level} {direction} 돌파"
+    if indicator == "macd_cross":
+        direction = "골든크로스" if cond.get("direction", "golden") == "golden" else "데드크로스"
+        zone_txt = {"below_zero": " (0선 아래)", "above_zero": " (0선 위)"}.get(cond.get("zone", "any"), "")
+        return f"MACD {direction}{zone_txt}"
+    if indicator == "macd_level":
+        source = "MACD 히스토그램" if cond.get("source") == "hist" else "MACD"
+        op = cond.get("op", "<")
+        value = _fmt(float(cond.get("value", 0)))
+        return f"{source} {op} {value}"
+    if indicator == "ichimoku_tk_state":
+        direction = "상회(골든)" if cond.get("direction", "golden") == "golden" else "하회(데드)"
+        return f"일목 전환선이 기준선 {direction} 국면"
+    if indicator == "ichimoku_tk_cross":
+        direction = "골든크로스" if cond.get("direction", "golden") == "golden" else "데드크로스"
+        return f"일목 전환선-기준선 {direction}"
+    if indicator == "ichimoku_cloud_break":
+        direction = "상단 상향 돌파" if cond.get("direction", "up") == "up" else "하단 하향 이탈"
+        return f"종가가 구름대 {direction}"
+    if indicator == "ichimoku_cloud_state":
+        direction = "위" if cond.get("direction", "above") == "above" else "아래"
+        return f"종가가 구름대 {direction}에 위치"
+    if indicator == "ichimoku_chikou_state":
+        displacement = cond.get("displacement", 26)
+        direction = "위" if cond.get("direction", "up") == "up" else "아래"
+        return f"후행스팬이 {displacement}봉 전 종가보다 {direction}"
+    if indicator == "engulfing":
+        direction = "상승" if cond.get("direction", "bullish") == "bullish" else "하락"
+        return f"{direction} 인걸(장악형) 캔들 출현"
+    return indicator or "조건"
+
+
+def _condition_pairs(df: pd.DataFrame, conditions: list[Condition]) -> list[tuple[str, pd.Series]]:
+    """조건 목록을 (설명 문구, 불리언 Series) 쌍의 목록으로 미리 계산해둔다.
+
+    근거 문구는 어디까지나 부가 정보이므로, 개별 조건 평가에 실패해도(예: 알 수 없는 지표)
+    그 조건만 조용히 건너뛴다 — combine_conditions()가 같은 조건으로 이미 성공했다면
+    (실제 백테스트 실행 경로) 여기서도 항상 성공하므로 실질적으로는 발생하지 않는다.
+    """
+    pairs = []
+    for c in conditions:
+        try:
+            pairs.append((describe_condition(c), evaluate_condition(df, c)))
+        except Exception:
+            continue
+    return pairs
+
+
+def _active_reason(pairs: list[tuple[str, pd.Series]], logic: str, i: int) -> str:
+    """i번째 바에서 신호가 True가 된(진입/단계진입 등) 이유를, 실제로 만족된 조건들을 나열해 만든다.
+
+    AND 결합은 정의상 모든 조건이 동시에 참이어야 신호가 뜨므로 전부 나열하고,
+    OR 결합은 실제로 참인 조건만 골라 나열한다(그래야 "왜 하필 지금 떴는지"가 드러난다).
+    """
+    if not pairs:
+        return "조건 충족"
+    if str(logic).upper() == "AND":
+        active = [desc for desc, _ in pairs]
+    else:
+        active = [desc for desc, s in pairs if bool(s.iloc[i])]
+    return " & ".join(active) if active else "조건 충족"
+
+
+def _inactive_reason(pairs: list[tuple[str, pd.Series]], logic: str, i: int) -> str:
+    """i번째 바에서 신호가 False로 바뀐(레짐 청산) 이유를, 더 이상 만족하지 않는 조건들을 나열해 만든다.
+
+    AND 결합은 조건 중 하나라도 깨지면 전체가 꺼지므로 깨진 조건만 골라 나열하고,
+    OR 결합은 전부 꺼져야 신호가 꺼지므로 전부 나열한다.
+    """
+    if not pairs:
+        return "조건 해제"
+    if str(logic).upper() == "AND":
+        inactive = [desc for desc, s in pairs if not bool(s.iloc[i])]
+    else:
+        inactive = [desc for desc, _ in pairs]
+    return (" & ".join(inactive) + " 조건 이탈") if inactive else "조건 해제"
 
 
 def parse_indicator_config(indicator_config: str | IndicatorConfig) -> IndicatorConfig:
@@ -311,17 +512,50 @@ class Trade:
     entry_price: float
     exit_price: Optional[float]
     return_pct: Optional[float]
+    entry_reason: Optional[str] = None  # 진입 근거 문구 (차트 호버 툴팁용, indicator_config 없으면 None)
+    exit_reason: Optional[str] = None  # 청산 근거 문구 (마지막 강제 청산은 그 사실을 그대로 명시)
 
 
-def extract_trades(df: pd.DataFrame, position: pd.Series) -> list[Trade]:
+def extract_trades(
+    df: pd.DataFrame, position: pd.Series, indicator_config: str | IndicatorConfig | None = None
+) -> list[Trade]:
     """포지션 시리즈(0/1)에서 개별 매매(진입~청산) 목록을 추출한다.
 
     실제 체결은 신호가 발생한 다음 거래일 종가에 이루어진다고 가정한다
     (신호 당일 종가는 알 수 없다고 보고 lookahead bias를 피하기 위함).
     마지막까지 포지션이 열려있으면 마지막 거래일 종가로 강제 청산해 미실현 손익을 집계한다.
+
+    indicator_config를 넘기면(레짐형/직접 수식 전략만 해당, 1:2:6 단계별은 simulate_staged_positions
+    별도 경로 사용) 각 Trade에 진입/청산 근거 문구를 채워 넣는다 — 실제 신호가 뜬 날은 체결일(다음
+    거래일)보다 하루 전이므로, 그 날짜 기준으로 어떤 조건이 참/거짓이었는지를 읽어 문구를 만든다.
     """
     close = df["Close"]
     executed_position = position.shift(1).fillna(0).astype(int)
+
+    reason_pairs: list[tuple[str, pd.Series]] = []
+    reason_logic = "AND"
+    expression_text: Optional[str] = None
+    if indicator_config is not None:
+        config = parse_indicator_config(indicator_config)
+        if is_expression_config(config):
+            expression_text = config.get("expression", "")
+        else:
+            reason_logic = str(config.get("logic", "AND")).upper()
+            reason_pairs = _condition_pairs(df, config.get("conditions", []))
+
+    def _entry_reason(signal_idx: int) -> Optional[str]:
+        if indicator_config is None:
+            return None
+        if expression_text is not None:
+            return f"수식 조건 충족: {expression_text}"
+        return _active_reason(reason_pairs, reason_logic, signal_idx)
+
+    def _exit_reason(signal_idx: int) -> Optional[str]:
+        if indicator_config is None:
+            return None
+        if expression_text is not None:
+            return f"수식 조건 이탈: {expression_text}"
+        return _inactive_reason(reason_pairs, reason_logic, signal_idx)
 
     trades: list[Trade] = []
     entry_idx: Optional[int] = None
@@ -342,6 +576,8 @@ def extract_trades(df: pd.DataFrame, position: pd.Series) -> list[Trade]:
                     entry_price=entry_price,
                     exit_price=exit_price,
                     return_pct=(exit_price / entry_price - 1) * 100,
+                    entry_reason=_entry_reason(entry_idx - 1),
+                    exit_reason=_exit_reason(i - 1),
                 )
             )
             entry_idx = None
@@ -356,6 +592,10 @@ def extract_trades(df: pd.DataFrame, position: pd.Series) -> list[Trade]:
                 entry_price=entry_price,
                 exit_price=exit_price,
                 return_pct=(exit_price / entry_price - 1) * 100,
+                entry_reason=_entry_reason(entry_idx - 1),
+                exit_reason=(
+                    "백테스트 종료 시점 강제 청산 (조건 이탈 아님)" if indicator_config is not None else None
+                ),
             )
         )
 
@@ -367,10 +607,34 @@ class StageEvent:
     """1:2:6 식 단계별 전략의 진입/청산 이벤트 로그 (UI 표시/디버깅용)."""
 
     date: pd.Timestamp
-    kind: str  # "entry" | "exit" | "emergency_exit"
+    kind: str  # "entry" | "exit" | "emergency_exit" | "stop_loss"
     stage: int  # 1-based 단계 번호 (entry_stages/exit_stages 의 인덱스+1)
     weight: float  # 이 이벤트로 늘거나 준 비중 (0~1)
     price: float  # 신호 발생일 종가 (참고용. 실제 체결가는 extract_staged_trades 에서 다음 거래일 종가 사용)
+    reason: str = ""  # 이 단계의 조건 중 실제로 만족된 조건들을 나열한 근거 문구 (차트 호버 툴팁용)
+
+
+# 진입가 기준 손절(stop_loss)의 "레벨 소스" 레지스트리. INDICATOR_EVALUATORS(불리언 반환)와 달리
+# 원본 가격 레벨(숫자) 시리즈를 반환한다 — 진입 사이클이 시작되는 바에서 이 값을 스냅샷해 고정하고,
+# 그 사이클이 끝날 때까지 종가가 그 레벨 아래로 내려오면 즉시 전량 청산한다.
+STOP_LOSS_SOURCES: dict[str, Callable[[pd.DataFrame, dict], pd.Series]] = {
+    "bollinger_mid": lambda df, p: compute_bollinger(
+        df, period=int(p.get("period", 20)), std_dev=float(p.get("std_dev", 2.0))
+    )["mid"],
+    "lowest_low": lambda df, p: compute_lowest_low(df, period=int(p.get("period", 20))),
+    "highest_high": lambda df, p: compute_highest_high(df, period=int(p.get("period", 20))),
+}
+
+
+def _stop_loss_level_series(df: pd.DataFrame, stop_loss_def: Optional[dict]) -> Optional[pd.Series]:
+    """stop_loss 설정을 레벨(가격) 시리즈로 변환한다. 설정이 없으면 None."""
+    if not stop_loss_def:
+        return None
+    source = stop_loss_def.get("source")
+    fn = STOP_LOSS_SOURCES.get(source)
+    if fn is None:
+        raise ValueError(f"지원하지 않는 stop_loss source: {source!r}")
+    return fn(df, stop_loss_def)
 
 
 def simulate_staged_positions(
@@ -386,8 +650,15 @@ def simulate_staged_positions(
                 {"weight": 0.6, "logic": "AND", "conditions": [...]}
             ],
             "exit_stages": [ (entry_stages와 동일한 형식) ... ],
-            "emergency_exit": {"logic": "AND", "conditions": [...]}   # 선택. 뜨면 단계 무관 즉시 전량 청산
+            "emergency_exit": {"logic": "AND", "conditions": [...]},  # 선택. 뜨면 단계 무관 즉시 전량 청산
+            "stop_loss": {"source": "bollinger_mid", "period": 20}    # 선택. 진입가 기준 손절(아래 설명)
         }
+
+    stop_loss(선택): 포지션이 없다가 새로 진입하는 바("사이클 시작")에서 source가 가리키는 가격
+    레벨(불리언이 아니라 숫자값 — 볼린저 중심선/최근 N봉 최저·최고가 등)을 그 순간 값으로 스냅샷해
+    고정한다. 그 사이클이 끝날 때까지, 이후 지표가 어떻게 움직이든 이 고정된 레벨을 기준으로 종가가
+    그 아래로 내려오면(롱 전용이므로 항상 "하향 이탈" 판정) emergency_exit과 동일한 우선순위로 즉시
+    전량 청산한다. source 종류는 STOP_LOSS_SOURCES 참고("bollinger_mid"|"lowest_low"|"highest_high").
 
     각 stage의 conditions는 combine_conditions()가 이해하는 문법을 그대로 쓴다
     (rsi_cross/macd_cross/ichimoku_* 등 "이벤트"성 지표를 포함해 AND/OR 조합 가능).
@@ -411,6 +682,7 @@ def simulate_staged_positions(
     entry_defs = config.get("entry_stages", [])
     exit_defs = config.get("exit_stages", [])
     emergency_def = config.get("emergency_exit")
+    stop_loss_def = config.get("stop_loss")
 
     if not entry_defs:
         return pd.Series(0.0, index=df.index), []
@@ -423,14 +695,25 @@ def simulate_staged_positions(
     )
     entry_weights = [float(d.get("weight", 0)) for d in entry_defs]
 
+    # 이벤트 발생 시 "왜 떴는지" 문구를 즉시 만들 수 있도록, 단계별 조건-설명 쌍을 미리 계산해둔다.
+    entry_pairs = [_condition_pairs(df, d.get("conditions", [])) for d in entry_defs]
+    entry_logics = [str(d.get("logic", "AND")).upper() for d in entry_defs]
+    exit_pairs = [_condition_pairs(df, d.get("conditions", [])) for d in exit_defs]
+    exit_logics = [str(d.get("logic", "AND")).upper() for d in exit_defs]
+    emergency_pairs = _condition_pairs(df, emergency_def.get("conditions", [])) if emergency_def else []
+    emergency_logic = str(emergency_def.get("logic", "AND")).upper() if emergency_def else "AND"
+    stop_loss_levels = _stop_loss_level_series(df, stop_loss_def)
+
     close = df["Close"]
     weight_signal = pd.Series(0.0, index=df.index)
     events: list[StageEvent] = []
 
     stage_level = 0
     open_tags: dict[int, float] = {}
+    cycle_stop_level: Optional[float] = None
 
     for i, day in enumerate(df.index):
+        was_flat = not open_tags
         for k in range(1, n_entry + 1):
             if not bool(entry_signals[k - 1].iloc[i]):
                 continue
@@ -439,26 +722,40 @@ def simulate_staged_positions(
             if allowed and k not in open_tags:
                 open_tags[k] = entry_weights[k - 1]
                 stage_level = max(stage_level, k)
-                events.append(StageEvent(day, "entry", k, entry_weights[k - 1], float(close.iloc[i])))
+                reason = _active_reason(entry_pairs[k - 1], entry_logics[k - 1], i)
+                events.append(StageEvent(day, "entry", k, entry_weights[k - 1], float(close.iloc[i]), reason))
+
+        if was_flat and open_tags and stop_loss_levels is not None:
+            level = float(stop_loss_levels.iloc[i])
+            cycle_stop_level = level if pd.notna(level) else None
 
         if open_tags:
             if emergency_def and bool(emergency_signal.iloc[i]):
+                reason = _active_reason(emergency_pairs, emergency_logic, i)
                 for k, w in sorted(open_tags.items()):
-                    events.append(StageEvent(day, "emergency_exit", k, w, float(close.iloc[i])))
+                    events.append(StageEvent(day, "emergency_exit", k, w, float(close.iloc[i]), reason))
+                open_tags = {}
+            elif cycle_stop_level is not None and float(close.iloc[i]) < cycle_stop_level:
+                reason = f"진입 시점 손절 레벨({cycle_stop_level:.2f}) 하향 이탈"
+                for k, w in sorted(open_tags.items()):
+                    events.append(StageEvent(day, "stop_loss", k, w, float(close.iloc[i]), reason))
                 open_tags = {}
             elif n_exit > 0 and bool(exit_signals[n_exit - 1].iloc[i]):
                 # 마지막 청산 단계는 태그 인덱스와 무관하게 열려있는 물량을 전부 정리한다.
+                reason = _active_reason(exit_pairs[n_exit - 1], exit_logics[n_exit - 1], i)
                 for k, w in sorted(open_tags.items()):
-                    events.append(StageEvent(day, "exit", k, w, float(close.iloc[i])))
+                    events.append(StageEvent(day, "exit", k, w, float(close.iloc[i]), reason))
                 open_tags = {}
             else:
                 for k in range(1, n_exit):
                     if k in open_tags and bool(exit_signals[k - 1].iloc[i]):
                         w = open_tags.pop(k)
-                        events.append(StageEvent(day, "exit", k, w, float(close.iloc[i])))
+                        reason = _active_reason(exit_pairs[k - 1], exit_logics[k - 1], i)
+                        events.append(StageEvent(day, "exit", k, w, float(close.iloc[i]), reason))
 
         if not open_tags:
             stage_level = 0
+            cycle_stop_level = None
 
         weight_signal.iloc[i] = sum(open_tags.values())
 

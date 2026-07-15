@@ -17,6 +17,7 @@ import pandas as pd
 import streamlit as st
 
 from core.db import init_db
+from core.strategy_explainer import explain_strategy
 from core.strategy_library import delete_strategy, get_strategy, list_strategies, update_strategy
 from core.theme import apply_theme
 
@@ -72,9 +73,18 @@ st.caption(
     f"관련 관심종목 {strategy['watchlist_count']}개, 저장된 백테스트 결과 {strategy['backtest_result_count']}건이 이 전략에 연결되어 있습니다."
 )
 
+regen_key = f"regen_description_{strategy['id']}"
+if st.button("🤖 AI로 설명 재생성", key=f"regen_btn_{strategy['id']}"):
+    with st.spinner("전략 설명 생성 중..."):
+        st.session_state[regen_key] = explain_strategy(json.loads(strategy["indicator_config"]))
+    st.rerun()
+st.caption("전략을 처음 저장할 때 자동으로 만들어진 설명입니다. 예전에 저장한 전략이라 설명이 부실하면 위 버튼으로 다시 생성할 수 있습니다.")
+
 with st.form(f"edit_strategy_{strategy['id']}"):
     name_val = st.text_input("이름", value=strategy["name"])
-    description_val = st.text_area("설명", value=strategy["description"], height=120)
+    description_val = st.text_area(
+        "설명", value=st.session_state.pop(regen_key, None) or strategy["description"], height=120
+    )
     config_val = st.text_area(
         "조건 (indicator_config, JSON) — 직접 수정 가능",
         value=_pretty_json(strategy["indicator_config"]),

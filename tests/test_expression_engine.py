@@ -96,6 +96,23 @@ def test_bollinger_and_min_max_functions_run_without_error():
     assert signal.dtype == bool
 
 
+def test_bbw_percent_b_mfi_functions_match_core_indicators():
+    df = _make_df()
+    from core.indicators import compute_bbw, compute_mfi, compute_percent_b
+
+    bbw_signal = evaluate_expression(df, "bbw(close, 20, 2) < 0.1")
+    expected_bbw = (compute_bbw(df, period=20, std_dev=2.0) < 0.1).fillna(False)
+    assert (bbw_signal == expected_bbw).all()
+
+    pb_signal = evaluate_expression(df, "percent_b(close, 20, 2) >= 0.8")
+    expected_pb = (compute_percent_b(df, period=20, std_dev=2.0) >= 0.8).fillna(False)
+    assert (pb_signal == expected_pb).all()
+
+    mfi_signal = evaluate_expression(df, "mfi(high, low, close, volume, 14) >= 80")
+    expected_mfi = (compute_mfi(df, period=14) >= 80).fillna(False)
+    assert (mfi_signal == expected_mfi).all()
+
+
 def test_result_dtype_is_bool():
     df = _make_df()
     signal = evaluate_expression(df, "close > sma(close, 20)")

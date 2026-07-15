@@ -5,12 +5,20 @@ import pandas as pd
 
 import core.strategy_engine as strategy_engine
 from core.indicators import (
+    compute_bbw,
+    compute_bbw_squeeze_release,
     compute_bollinger,
+    compute_double_pattern,
     compute_engulfing,
+    compute_highest_high,
     compute_ichimoku,
+    compute_lowest_low,
     compute_ma_cross,
     compute_macd,
+    compute_mfi,
+    compute_percent_b,
     compute_rsi,
+    compute_rsi_divergence,
 )
 from core.strategy_engine import (
     combine_conditions,
@@ -80,6 +88,159 @@ def test_compute_bollinger_bands_order():
     assert (valid["mid"] >= valid["lower"]).all()
 
 
+def test_compute_bbw_and_percent_b_consistent_with_bands():
+    df = _make_trending_df()
+    bb = compute_bollinger(df, period=20, std_dev=2.0)
+    bbw = compute_bbw(df, period=20, std_dev=2.0)
+    pb = compute_percent_b(df, period=20, std_dev=2.0)
+    valid_idx = bb.dropna().index
+    expected_bbw = (bb.loc[valid_idx, "upper"] - bb.loc[valid_idx, "lower"]) / bb.loc[valid_idx, "mid"]
+    expected_pb = (df.loc[valid_idx, "Close"] - bb.loc[valid_idx, "lower"]) / (
+        bb.loc[valid_idx, "upper"] - bb.loc[valid_idx, "lower"]
+    )
+    assert np.allclose(bbw.loc[valid_idx], expected_bbw)
+    assert np.allclose(pb.loc[valid_idx], expected_pb)
+
+
+def test_compute_mfi_range():
+    df = _make_trending_df()
+    mfi = compute_mfi(df, period=14)
+    valid = mfi.dropna()
+    assert (valid >= 0).all() and (valid <= 100).all()
+
+
+def test_compute_lowest_low_and_highest_high():
+    df = _make_trending_df(n=40)
+    lowest = compute_lowest_low(df, period=5)
+    highest = compute_highest_high(df, period=5)
+    valid_idx = lowest.dropna().index
+    for i in range(5, len(df)):
+        day = df.index[i]
+        if day not in valid_idx:
+            continue
+        window = df["Low"].iloc[i - 4 : i + 1]
+        assert lowest.loc[day] == window.min()
+        window_h = df["High"].iloc[i - 4 : i + 1]
+        assert highest.loc[day] == window_h.max()
+
+
+def _make_squeeze_release_df():
+    """변동성이 좁아졌다가(스퀴즈) 급격히 확대되는 합성 OHLCV (밴드폭 스퀴즈 해제 검증용)."""
+    n = 80
+    idx = pd.bdate_range("2022-01-03", periods=n)
+    rng = np.random.default_rng(7)
+    close = np.concatenate(
+        [
+            100 + rng.normal(0, 2.0, 30),  # 변동성 높은 구간
+            100 + rng.normal(0, 0.05, 30),  # 스퀴즈 구간(변동성 극도로 축소)
+            np.linspace(100, 130, 20),  # 스퀴즈 해제 후 강한 추세 시작(밴드폭 급확대)
+        ]
+    )
+    return pd.DataFrame(
+        {"Open": close, "High": close + 0.5, "Low": close - 0.5, "Close": close, "Adj Close": close, "Volume": 1_000_000},
+        index=idx,
+    )
+
+
+def test_compute_bbw_squeeze_release_fires_after_squeeze():
+    df = _make_squeeze_release_df()
+    release = compute_bbw_squeeze_release(df, period=10, std_dev=2.0, threshold=0.05, lookback=15, hold_bars=3)
+    assert release.sum() >= 1
+    # 스퀴즈 구간(변동성 극도로 낮은 초반 구간) 자체에서는 아직 "해제"가 아니므로 뜨지 않아야 한다
+    assert not release.iloc[35:50].any()
+
+
+def _make_double_bottom_df():
+    """쌍바닥(bullish) 반전 패턴이 나오도록 설계한 합성 OHLCV."""
+    n = 95
+    idx = pd.bdate_range("2022-01-03", periods=n)
+    rng = np.random.default_rng(1)
+    close = np.concatenate(
+        [
+            np.linspace(100, 100, 20),
+            np.linspace(100, 70, 15),  # 첫 저점(밴드 밖으로 크게 이탈)
+            np.linspace(70, 90, 10),  # 반등
+            np.linspace(90, 80, 10),  # 두 번째 저점(밴드 안쪽, 더 얕음)
+            np.linspace(80, 80, 5),
+            np.linspace(80, 110, 15),  # 강한 반등(중심선 상향 돌파)
+            np.linspace(110, 110, 20),
+        ]
+    )
+    close = close[:n] + rng.normal(0, 0.3, n)
+    volume = np.full(n, 1_000_000.0)
+    volume[60:65] = 5_000_000.0  # 확인 돌파 시 거래량 급증
+    return pd.DataFrame(
+        {"Open": close, "High": close + 1, "Low": close - 1, "Close": close, "Adj Close": close, "Volume": volume},
+        index=idx,
+    )
+
+
+def _make_double_top_df():
+    """쌍봉(bearish) 반전 패턴이 나오도록 설계한 합성 OHLCV (쌍바닥과 대칭)."""
+    n = 95
+    idx = pd.bdate_range("2022-01-03", periods=n)
+    rng = np.random.default_rng(3)
+    close = np.concatenate(
+        [
+            np.linspace(100, 100, 20),
+            np.linspace(100, 130, 15),  # 첫 고점(밴드 밖)
+            np.linspace(130, 110, 10),  # 되돌림
+            np.linspace(110, 122, 10),  # 두 번째 고점(밴드 안, 더 낮음)
+            np.linspace(122, 122, 5),
+            np.linspace(122, 90, 15),  # 강한 하락(중심선 하향 돌파)
+            np.linspace(90, 90, 20),
+        ]
+    )
+    close = close[:n] + rng.normal(0, 0.3, n)
+    volume = np.full(n, 1_000_000.0)
+    volume[60:65] = 5_000_000.0
+    return pd.DataFrame(
+        {"Open": close, "High": close + 1, "Low": close - 1, "Close": close, "Adj Close": close, "Volume": volume},
+        index=idx,
+    )
+
+
+def test_compute_double_pattern_detects_bullish_and_bearish():
+    bullish_df = _make_double_bottom_df()
+    pat = compute_double_pattern(bullish_df, band_period=10, band_std=2.0, pivot_lookback=3, pattern_window=40, volume_mult=1.5)
+    assert pat["bullish"].sum() >= 1
+    assert pat["bearish"].sum() == 0
+
+    bearish_df = _make_double_top_df()
+    pat2 = compute_double_pattern(bearish_df, band_period=10, band_std=2.0, pivot_lookback=3, pattern_window=40, volume_mult=1.5)
+    assert pat2["bearish"].sum() >= 1
+    assert pat2["bullish"].sum() == 0
+
+
+def _make_divergence_df():
+    """가격은 저점을 낮추지만 RSI는 저점을 높이는(상승 다이버전스) 합성 OHLCV."""
+    n = 95
+    idx = pd.bdate_range("2022-01-03", periods=n)
+    rng = np.random.default_rng(2)
+    close = np.concatenate(
+        [
+            np.linspace(100, 100, 15),
+            np.linspace(100, 60, 20),  # 첫 급락(가파름 -> RSI 크게 하락)
+            np.linspace(60, 75, 10),  # 반등
+            np.linspace(75, 55, 20),  # 두 번째 하락(가격은 더 낮지만 완만함 -> RSI는 덜 하락)
+            np.linspace(55, 55, 5),  # 저점 확정 시간을 벌어주는 바닥 다지기
+            np.linspace(55, 90, 15),  # 강한 반등(중심선 상향 돌파)
+            np.linspace(90, 90, 10),
+        ]
+    )
+    close = close[:n] + rng.normal(0, 0.2, n)
+    return pd.DataFrame(
+        {"Open": close, "High": close + 1, "Low": close - 1, "Close": close, "Adj Close": close, "Volume": 1_000_000},
+        index=idx,
+    )
+
+
+def test_compute_rsi_divergence_detects_bullish_divergence():
+    df = _make_divergence_df()
+    div = compute_rsi_divergence(df, rsi_period=7, band_period=10, pivot_lookback=3, pattern_window=50)
+    assert div["bullish"].sum() >= 1
+
+
 def test_compute_engulfing_detects_bullish_and_bearish_patterns():
     df = _make_engulfing_df()
     eng = compute_engulfing(df)
@@ -100,6 +261,74 @@ def test_engulfing_condition_via_combine_conditions():
     )
     assert bool(bullish_signal.iloc[1]) is True
     assert bool(bearish_signal.iloc[2]) is True
+
+
+def test_bollinger_mid_band_condition_via_combine_conditions():
+    df = _make_trending_df()
+    up = combine_conditions(
+        df, {"logic": "AND", "conditions": [{"indicator": "bollinger", "band": "mid", "op": "break_above"}]}
+    )
+    down = combine_conditions(
+        df, {"logic": "AND", "conditions": [{"indicator": "bollinger", "band": "mid", "op": "break_below"}]}
+    )
+    bb = compute_bollinger(df, period=20, std_dev=2.0)
+    assert (up == (df["Close"] > bb["mid"]).fillna(False)).all()
+    assert (down == (df["Close"] < bb["mid"]).fillna(False)).all()
+
+
+def test_percent_b_and_mfi_conditions_via_combine_conditions():
+    df = _make_trending_df()
+    pb_signal = combine_conditions(
+        df, {"logic": "AND", "conditions": [{"indicator": "percent_b", "op": ">=", "value": 0.8}]}
+    )
+    mfi_signal = combine_conditions(
+        df, {"logic": "AND", "conditions": [{"indicator": "mfi", "op": ">=", "value": 80}]}
+    )
+    pb = compute_percent_b(df, period=20, std_dev=2.0)
+    mfi = compute_mfi(df, period=14)
+    assert (pb_signal == (pb >= 0.8).fillna(False)).all()
+    assert (mfi_signal == (mfi >= 80).fillna(False)).all()
+
+
+def test_bbw_squeeze_release_condition_via_combine_conditions():
+    df = _make_squeeze_release_df()
+    signal = combine_conditions(
+        df,
+        {
+            "logic": "AND",
+            "conditions": [
+                {"indicator": "bbw_squeeze_release", "period": 10, "std_dev": 2.0, "threshold": 0.05, "lookback": 15, "hold_bars": 3}
+            ],
+        },
+    )
+    expected = compute_bbw_squeeze_release(df, period=10, std_dev=2.0, threshold=0.05, lookback=15, hold_bars=3)
+    assert (signal == expected).all()
+
+
+def test_double_pattern_and_rsi_divergence_conditions_via_combine_conditions():
+    bullish_df = _make_double_bottom_df()
+    signal = combine_conditions(
+        df=bullish_df,
+        indicator_config={
+            "logic": "AND",
+            "conditions": [
+                {"indicator": "double_pattern", "direction": "bullish", "band_period": 10, "pivot_lookback": 3, "pattern_window": 40}
+            ],
+        },
+    )
+    assert signal.sum() >= 1
+
+    div_df = _make_divergence_df()
+    div_signal = combine_conditions(
+        df=div_df,
+        indicator_config={
+            "logic": "AND",
+            "conditions": [
+                {"indicator": "rsi_divergence", "direction": "bullish", "rsi_period": 7, "band_period": 10, "pivot_lookback": 3, "pattern_window": 50}
+            ],
+        },
+    )
+    assert div_signal.sum() >= 1
 
 
 def test_combine_conditions_and_logic():
@@ -285,6 +514,67 @@ def test_simulate_staged_positions_emergency_exit_clears_all_tags_regardless_of_
     emergency_events = [e for e in events if e.kind == "emergency_exit"]
     assert {e.stage for e in emergency_events} == {1, 2}
     assert round(sum(e.weight for e in emergency_events), 9) == 0.3
+
+
+def test_simulate_staged_positions_stop_loss_snapshots_level_at_entry_and_liquidates(monkeypatch):
+    """stop_loss는 진입 사이클 시작 바에서 레벨을 스냅샷하고, 이후 종가가 그 아래로 내려오면
+    (exit_stages 신호와 무관하게) 즉시 전량 청산해야 한다."""
+    idx = pd.bdate_range("2022-01-03", periods=6)
+    df = pd.DataFrame(
+        {
+            "Open": [100.0, 100.0, 100.0, 95.0, 96.0, 97.0],
+            "High": [100.0, 100.0, 100.0, 95.0, 96.0, 97.0],
+            "Low": [100.0, 100.0, 90.0, 90.0, 90.0, 90.0],
+            "Close": [100.0, 100.0, 100.0, 95.0, 96.0, 97.0],
+            "Adj Close": [100.0, 100.0, 100.0, 95.0, 96.0, 97.0],
+            "Volume": 1,
+        },
+        index=idx,
+    )
+    entry1_day1 = pd.Series([False, True, False, False, False, False], index=idx)
+    _patch_combine_conditions_sequence(monkeypatch, [entry1_day1])  # entry_stages 1개, exit_stages 없음
+
+    config = {
+        "entry_stages": [{"weight": 1.0, "logic": "AND", "conditions": [{"indicator": "x1"}]}],
+        "stop_loss": {"source": "lowest_low", "period": 2},
+    }
+
+    weight_signal, events = simulate_staged_positions(df, config)
+
+    # day1 진입 시점의 lowest_low(period=2, [Low0,Low1]=[100,100]의 최소) = 100.0 이 손절 레벨로 고정됨
+    assert weight_signal.iloc[1] == 1.0
+    assert weight_signal.iloc[2] == 1.0  # day2 종가(100)는 손절 레벨(100) 아래가 아니므로 유지
+    assert weight_signal.iloc[3] == 0.0  # day3 종가(95) < 손절 레벨(100) -> 즉시 전량 청산
+
+    stop_events = [e for e in events if e.kind == "stop_loss"]
+    assert len(stop_events) == 1
+    assert stop_events[0].stage == 1
+    assert stop_events[0].weight == 1.0
+    assert stop_events[0].date == idx[3]
+
+
+def test_simulate_staged_positions_without_stop_loss_key_is_unaffected(monkeypatch):
+    """stop_loss 키가 없으면 기존 동작 그대로(무기한 보유, exit_stages/emergency_exit만으로 청산)여야 한다."""
+    idx = pd.bdate_range("2022-01-03", periods=6)
+    df = pd.DataFrame(
+        {
+            "Open": [100.0] * 6,
+            "High": [100.0] * 6,
+            "Low": [100.0, 100.0, 90.0, 90.0, 90.0, 90.0],
+            "Close": [100.0, 100.0, 100.0, 95.0, 96.0, 97.0],
+            "Adj Close": [100.0, 100.0, 100.0, 95.0, 96.0, 97.0],
+            "Volume": 1,
+        },
+        index=idx,
+    )
+    entry1_day1 = pd.Series([False, True, False, False, False, False], index=idx)
+    _patch_combine_conditions_sequence(monkeypatch, [entry1_day1])
+
+    config = {"entry_stages": [{"weight": 1.0, "logic": "AND", "conditions": [{"indicator": "x1"}]}]}
+    weight_signal, events = simulate_staged_positions(df, config)
+
+    assert weight_signal.iloc[3] == 1.0  # stop_loss가 없으니 종가가 내려가도 계속 보유
+    assert not any(e.kind == "stop_loss" for e in events)
 
 
 def test_extract_staged_trades_matches_average_weighted_prices():
