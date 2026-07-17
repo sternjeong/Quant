@@ -39,14 +39,15 @@ jobs:
       - name: Run nightly tuning
         env:
           GEMINI_API_KEYS: ${{ secrets.GEMINI_API_KEYS }}
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
           NIGHTLY_TUNING_BUDGET_MINUTES: ${{ github.event.inputs.budget_minutes || '300' }}
         run: python scripts/nightly_tuning_ci.py
 
-      - name: Commit updated leaderboard
+      - name: Commit updated leaderboard + macro cache
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/nightly_tuning_leaderboard.json
-          git diff --cached --quiet || git commit -m "chore: nightly tuning leaderboard update"
+          git add data/nightly_tuning_leaderboard.json data/cache/fred_*.csv
+          git diff --cached --quiet || git commit -m "chore: nightly tuning leaderboard + macro cache update"
           git pull --rebase origin "${GITHUB_REF_NAME}"
           git push origin "HEAD:${GITHUB_REF_NAME}"

@@ -14,6 +14,10 @@ data/*.db-journal
 data/cache/*
 !data/cache/.gitkeep
 !data/.gitkeep
+# 거시지표(FRED) 캐시는 예외적으로 커밋한다 - 야간 GitHub Actions가 갱신해두면
+# Streamlit Cloud 배포본이 매 방문마다 FRED API를 안 때리고 이 캐시를 바로 읽을 수 있다.
+# 개별 종목 가격 parquet 캐시(1000개+, 수십MB)는 계속 불어나므로 커밋 대상에서 제외.
+!data/cache/fred_*.csv
 
 # --- Streamlit ---
 .streamlit/secrets.toml

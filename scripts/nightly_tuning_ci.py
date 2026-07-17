@@ -31,6 +31,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from core.db import get_session, init_db  # noqa: E402
+from core.fred_data import CACHE_DIR as FRED_CACHE_DIR, DEFAULT_INDICATORS, _cache_file, get_series  # noqa: E402
 from core.models import Strategy  # noqa: E402
 from core.strategy_tuning import get_top_tuning_results, run_and_save_tuning, sample_universe  # noqa: E402
 
@@ -69,8 +70,27 @@ def _merge_and_truncate(existing: list[dict], new: list[dict]) -> list[dict]:
     return deduped
 
 
+def _refresh_macro_cache() -> None:
+    """FRED_API_KEY가 있으면 기본 거시지표 캐시를 강제로 최신화한다.
+
+    get_series()의 24시간 TTL 캐시는 "오래되면 다음 호출 때 갱신"이라 그 자체로는 순서를
+    보장 못 한다 - 여기서는 캐시 파일을 먼저 지우고 다시 불러와 이번 실행에서 반드시
+    최신값으로 덮어쓰게 한다. 사용자가 사이트 방문 시 FRED를 직접 안 때리고 이 커밋된
+    캐시를 바로 읽도록 하는 게 목적(로딩 시간 단축).
+    """
+    if not os.getenv("FRED_API_KEY"):
+        print("FRED_API_KEY 미설정 - 거시지표 캐시 갱신 스킵", flush=True)
+        return
+    FRED_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    for series_id in DEFAULT_INDICATORS:
+        _cache_file(series_id).unlink(missing_ok=True)
+        series = get_series(series_id)
+        print(f"  거시지표 갱신: {series_id} ({'OK' if not series.empty else '실패'})", flush=True)
+
+
 def main() -> None:
     init_db()
+    _refresh_macro_cache()
 
     with get_session() as session:
         strategy = session.get(Strategy, _STRATEGY_ID)
