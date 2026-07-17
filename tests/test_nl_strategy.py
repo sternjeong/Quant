@@ -155,3 +155,58 @@ def test_staged_schema_includes_new_bollinger_indicators_and_stop_loss():
     # stop_loss는 emergency_exit과 마찬가지로 선택 항목이어야 한다(모든 전략에 필요한 게 아니므로)
     required = nl_strategy.STAGED_INDICATOR_CONFIG_SCHEMA["properties"]["indicator_config"]["required"]
     assert "stop_loss" not in required
+
+
+def test_staged_schema_includes_volume_indicators():
+    """core.strategy_engine에는 이미 구현돼 있던 volume_spike/volume_dryup가 해석기 스키마에
+    빠져 있던 갭(2026-07-17 발견) — 스크립트에 "거래량 급증/고갈"이 나와도 매핑할 방법이 없었다."""
+    indicator_enum = nl_strategy.STAGE_CONDITION_PROPERTIES["indicator"]["enum"]
+    assert "volume_spike" in indicator_enum
+    assert "volume_dryup" in indicator_enum
+    assert "mult" in nl_strategy.STAGE_CONDITION_PROPERTIES
+    assert "ratio" in nl_strategy.STAGE_CONDITION_PROPERTIES
+
+
+def test_split_batch_scripts_separates_on_dash_delimiter():
+    text = "스크립트 하나\n---\n스크립트 둘\n----\n스크립트 셋\n"
+    assert nl_strategy.split_batch_scripts(text) == ["스크립트 하나", "스크립트 둘", "스크립트 셋"]
+
+
+def test_split_batch_scripts_single_script_without_delimiter():
+    assert nl_strategy.split_batch_scripts("구분선 없는 스크립트 하나") == ["구분선 없는 스크립트 하나"]
+
+
+def test_split_batch_scripts_drops_empty_segments():
+    text = "스크립트 하나\n---\n\n---\n스크립트 둘"
+    assert nl_strategy.split_batch_scripts(text) == ["스크립트 하나", "스크립트 둘"]
+
+
+def test_generate_strategies_from_scripts_continues_after_one_failure(monkeypatch):
+    """스크립트 하나의 해석이 실패해도 나머지 스크립트 처리가 이어져야 한다."""
+
+    def fake_interpret(raw_text: str) -> dict:
+        if "실패" in raw_text:
+            raise RuntimeError("의도된 실패")
+        return {
+            "name": "정상 전략",
+            "description": "설명",
+            "indicator_config": {"logic": "AND", "conditions": [{"indicator": "rsi", "period": 14, "op": "<", "value": 30}]},
+        }
+
+    def fake_sanity(indicator_config, sample_tickers, start, end):
+        return {"passed": True, "total_trades": 10, "avg_excess_return": 1.5}
+
+    monkeypatch.setattr(nl_strategy, "interpret_strategy_text", fake_interpret)
+    monkeypatch.setattr(nl_strategy, "_sanity_backtest_config", fake_sanity)
+    monkeypatch.setattr(
+        "core.strategy_tuning.sample_universe",
+        lambda n: __import__("pandas").DataFrame({"ticker": ["AAPL"]}),
+    )
+
+    results = nl_strategy.generate_strategies_from_scripts(["실패할 스크립트", "정상 스크립트"])
+
+    assert len(results) == 2
+    assert results[0]["ok"] is False
+    assert "실패" in results[0]["error"]
+    assert results[1]["ok"] is True
+    assert results[1]["sanity"]["passed"] is True

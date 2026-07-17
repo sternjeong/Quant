@@ -129,6 +129,8 @@ STAGE_CONDITION_PROPERTIES: dict[str, Any] = {
             "three_methods",
             "level_break",
             "ma_touch",
+            "volume_spike",
+            "volume_dryup",
         ],
     },
     "short": {"type": "integer"},
@@ -184,8 +186,9 @@ STAGE_CONDITION_PROPERTIES: dict[str, Any] = {
     "threshold": {"type": "number", "description": "bbw_squeeze_release의 스퀴즈 판정 기준 밴드폭 (기본 0.1, 종목마다 다름)"},
     "lookback": {
         "type": "integer",
-        "description": "bbw_squeeze_release가 최근 스퀴즈 여부를 확인하는 봉 수(기본 20) 또는 "
-        "inside_bar_breakout이 돌파를 기다리는 최대 봉 수(기본 5) — indicator에 따라 의미가 다름",
+        "description": "bbw_squeeze_release가 최근 스퀴즈 여부를 확인하는 봉 수(기본 20), "
+        "inside_bar_breakout이 돌파를 기다리는 최대 봉 수(기본 5), 또는 volume_dryup이 최고 거래량을 "
+        "찾는 조회 기간(기본 10) — indicator에 따라 의미가 다름",
     },
     "hold_bars": {"type": "integer", "description": "bbw_squeeze_release 이벤트가 유지되는 봉 수 (기본 3)"},
     "band_period": {"type": "integer", "description": "double_pattern/rsi_divergence의 볼린저/중심선 기간 (기본 20)"},
@@ -194,6 +197,8 @@ STAGE_CONDITION_PROPERTIES: dict[str, Any] = {
     "pattern_window": {"type": "integer", "description": "double_pattern/rsi_divergence에서 패턴 성립~확인 돌파까지 허용 봉 수 (기본 40)"},
     "volume_mult": {"type": "number", "description": "double_pattern 확인 돌파 시 요구되는 평균 거래량 대비 배수 (기본 1.5)"},
     "rsi_period": {"type": "integer", "description": "rsi_divergence가 사용하는 RSI 기간 (기본 14)"},
+    "mult": {"type": "number", "description": "volume_spike가 요구하는 직전 평균 거래량 대비 최소 배수 (기본 2.0)"},
+    "ratio": {"type": "number", "description": "volume_dryup이 요구하는 직전 lookback일 최고 거래량 대비 최대 비율 (기본 0.4, 낮을수록 더 강하게 마름)"},
 }
 
 STAGE_SCHEMA: dict[str, Any] = {
@@ -390,6 +395,13 @@ RSI 신호 하나로는 10%만 정찰병 진입, MACD까지 겹치면 20% 추가
 - ma_touch: 단일 이동평균선을 상향/하향 돌파(터치)하는 이벤트("20 이평선에 닿으면", "이동평균선
   돌파"). ma_cross(두 선 교차)와 달리 선 하나만 쓸 때 사용. period, ma_type="sma"|"ema"(기본 ema),
   op="break_above"|"break_below".
+- volume_spike: 거래량이 직전 평균 대비 급증하는 국면("거래량이 터진다/급증한다/실린다", "대량
+  거래량", "거래대금이 몰린다"). period(직전 평균 계산 기간, 기본 20), mult(요구하는 최소 배수,
+  기본 2.0 — "거래량이 평소의 3배"처럼 명시되면 그 값을 쓴다).
+- volume_dryup: 거래량이 최근 고점 대비 크게 줄어드는 국면("거래량이 마른다/줄어든다/실종된다",
+  "매물이 소화됐다", "거래가 뜸해졌다" — 눌림목/조정 구간에서 매도세 소진을 확인할 때 흔히 쓰임).
+  lookback(최근 최고 거래량을 찾는 조회 기간, 기본 10), ratio(그 최고치 대비 허용 최대 비율, 기본
+  0.4 — 값이 작을수록 "더 확실히 말랐을 때"만 인정).
 
 ichimoku_cloud_break vs ichimoku_cloud_state 선택 기준: 설명에 "뚫다/돌파하다/이탈하다"처럼 특정
 시점의 사건을 가리키면 반드시 ichimoku_cloud_break(이벤트)를 쓴다. "위에 있다/유지한다"처럼 지속되는
@@ -726,3 +738,110 @@ def suggest_candidate_name(existing_names: list[str]) -> str:
     while f"후보{n}" in existing:
         n += 1
     return f"후보{n}"
+
+
+# ----------------------------------------------------------------------------
+# 배치 생성 (여러 유튜브 스크립트 -> 여러 백본 전략): STRATEGY_BATCH_GENERATION_SPEC.md 참고.
+# ----------------------------------------------------------------------------
+
+SCRIPT_DELIMITER = "\n---\n"
+
+_SANITY_SAMPLE_N = 5
+_SANITY_LOOKBACK_YEARS = 3
+_SANITY_MIN_TRADE_COUNT = 3
+
+
+def split_batch_scripts(raw_text: str) -> list[str]:
+    """`SCRIPT_DELIMITER`(줄 단독 `---`)로 여러 스크립트를 나눈다. 빈 조각은 버린다."""
+    parts = re.split(r"(?m)^[ \t]*-{3,}[ \t]*$", raw_text.strip())
+    return [p.strip() for p in parts if p.strip()]
+
+
+def _sanity_backtest_config(indicator_config: dict, sample_tickers: list[str], start: str, end: str) -> dict:
+    """생성된 config를 표본 종목 몇 개에 실제로 돌려 "죽은 전략"인지 최소한으로 확인한다.
+
+    거래가 사실상 안 나오거나(진입 조건이 너무 빡빡) 샤프가 계산조차 안 되는(가격 조회 실패 등)
+    경우를 걸러내되, 통과 실패를 저장 차단으로 쓰지는 않는다(STRATEGY_BATCH_GENERATION_SPEC.md 3절
+    — 참고용 신호일 뿐, 최종 판단은 사용자가 한다).
+    """
+    from core.backtest_engine import compare_with_benchmarks
+
+    total_trades = 0
+    excess_returns: list[float] = []
+    for ticker in sample_tickers:
+        try:
+            comparison = compare_with_benchmarks(ticker, indicator_config, start, end)
+            strategy_metrics = comparison["strategy"].metrics
+            benchmark_metrics = comparison["buy_and_hold_benchmark"].metrics
+        except Exception:
+            continue
+        total_trades += int(strategy_metrics.get("trade_count") or 0)
+        cagr = strategy_metrics.get("cagr")
+        bench_cagr = benchmark_metrics.get("cagr")
+        if cagr is not None and bench_cagr is not None:
+            excess_returns.append(cagr - bench_cagr)
+
+    avg_excess_return = sum(excess_returns) / len(excess_returns) if excess_returns else None
+    passed = total_trades >= _SANITY_MIN_TRADE_COUNT and avg_excess_return is not None
+    return {"passed": passed, "total_trades": total_trades, "avg_excess_return": avg_excess_return}
+
+
+def generate_strategies_from_scripts(scripts: list[str]) -> list[dict]:
+    """여러 유튜브 스크립트를 각각 독립적으로 해석하고, 표본 종목으로 sanity 백테스트까지 마쳐 반환.
+
+    스크립트 하나의 해석/백테스트 실패가 나머지를 막지 않는다(각 항목을 try/except로 감쌈) — 배치
+    중 일부가 이상해도 전체 결과를 잃지 않기 위함. job_manager로 백그라운드 실행되는 것을 전제로
+    스크립트당 수 초(Gemini 호출)~수십 초(sanity 백테스트 5종목)가 걸릴 수 있다.
+
+    Returns:
+        각 스크립트마다 하나씩: {"script": str, "ok": bool, "error": str|None,
+        "name": str|None, "description": str|None, "indicator_config": dict|None,
+        "health_warnings": list[str], "sanity": dict|None}
+    """
+    from datetime import date, timedelta
+
+    from core.strategy_tuning import sample_universe
+
+    end_date = date.today()
+    start_date = end_date - timedelta(days=365 * _SANITY_LOOKBACK_YEARS)
+    tickers_df = sample_universe(_SANITY_SAMPLE_N)
+    sample_tickers = tickers_df["ticker"].tolist() if not tickers_df.empty else []
+
+    results: list[dict] = []
+    for script in scripts:
+        entry: dict = {
+            "script": script,
+            "ok": False,
+            "error": None,
+            "name": None,
+            "description": None,
+            "indicator_config": None,
+            "health_warnings": [],
+            "sanity": None,
+        }
+        try:
+            parsed = interpret_strategy_text(script)
+            entry["name"] = parsed.get("name") or suggest_candidate_name([])
+            entry["description"] = parsed.get("description")
+            entry["indicator_config"] = parsed.get("indicator_config")
+            entry["health_warnings"] = parsed.get("health_warnings") or []
+            if not entry["indicator_config"]:
+                entry["error"] = "해석 결과에 indicator_config가 없습니다."
+                results.append(entry)
+                continue
+            entry["ok"] = True
+        except Exception as e:
+            entry["error"] = f"해석 실패: {e}"
+            results.append(entry)
+            continue
+
+        try:
+            entry["sanity"] = _sanity_backtest_config(
+                entry["indicator_config"], sample_tickers, start_date.isoformat(), end_date.isoformat()
+            )
+        except Exception as e:
+            entry["sanity"] = {"passed": False, "total_trades": 0, "avg_excess_return": None, "error": str(e)}
+
+        results.append(entry)
+
+    return results
