@@ -35,7 +35,7 @@ from core.fred_data import CACHE_DIR as FRED_CACHE_DIR, DEFAULT_INDICATORS, _cac
 from core.models import Strategy  # noqa: E402
 from core.strategy_tuning import get_top_tuning_results, run_and_save_tuning, sample_universe  # noqa: E402
 
-_STRATEGY_ID = 3
+_SEED_STRATEGY_PATH = PROJECT_ROOT / "scripts" / "seed_strategy_3.json"
 _UNIVERSE_N = 100
 _LOOKBACK_YEARS = 5
 _INTENSITIES = ["빠름", "보통", "정밀"]
@@ -88,21 +88,39 @@ def _refresh_macro_cache() -> None:
         print(f"  거시지표 갱신: {series_id} ({'OK' if not series.empty else '실패'})", flush=True)
 
 
+def _get_or_seed_strategy() -> tuple[int, dict]:
+    """대상 전략을 이름으로 찾고, 없으면(=CI의 빈 DB) 저장소에 커밋된 시드 JSON으로 생성한다.
+
+    GitHub Actions는 매 실행마다 빈 DB로 시작한다(data/*.db는 gitignore 대상) - 로컬에서
+    UI로 만든 전략(id=3)은 그 로컬 DB에만 있어 CI에는 없다. id를 하드코딩하는 대신 이름으로
+    찾고, 없으면 seed_strategy_3.json(로컬 전략을 그대로 export해 커밋해둔 것)으로 만든다.
+    """
+    seed = json.loads(_SEED_STRATEGY_PATH.read_text(encoding="utf-8"))
+    with get_session() as session:
+        strategy = session.query(Strategy).filter(Strategy.name == seed["name"]).first()
+        if strategy is None:
+            strategy = Strategy(
+                name=seed["name"],
+                indicator_config=json.dumps(seed["indicator_config"], ensure_ascii=False),
+                source=seed.get("source"),
+                description=seed.get("description"),
+            )
+            session.add(strategy)
+            session.commit()
+            session.refresh(strategy)
+            print(f"전략 '{strategy.name}' 시드에서 신규 생성 (id={strategy.id})", flush=True)
+        return strategy.id, json.loads(strategy.indicator_config)
+
+
 def main() -> None:
     init_db()
     _refresh_macro_cache()
 
-    with get_session() as session:
-        strategy = session.get(Strategy, _STRATEGY_ID)
-        if strategy is None:
-            print(f"전략 id={_STRATEGY_ID}를 찾을 수 없어 종료합니다.")
-            return
-        base_config = json.loads(strategy.indicator_config)
-        strategy_name = strategy.name
+    strategy_id, base_config = _get_or_seed_strategy()
 
     budget_minutes = int(os.environ.get("NIGHTLY_TUNING_BUDGET_MINUTES", str(_DEFAULT_BUDGET_MINUTES)))
     budget_seconds = budget_minutes * 60
-    print(f"'{strategy_name}'(#{_STRATEGY_ID}) 야간 미세튜닝 시작 (예산 {budget_minutes}분)", flush=True)
+    print(f"전략(#{strategy_id}) 야간 미세튜닝 시작 (예산 {budget_minutes}분)", flush=True)
 
     end_date = date.today()
     start_date = end_date - timedelta(days=365 * _LOOKBACK_YEARS)
@@ -118,7 +136,7 @@ def main() -> None:
             tickers_df = sample_universe(_UNIVERSE_N, random_seed=seed)
             run_id = run_and_save_tuning(
                 base_config, _UNIVERSE_N, start_date.isoformat(), end_date.isoformat(),
-                intensity=intensity, base_strategy_id=_STRATEGY_ID, tickers_df=tickers_df,
+                intensity=intensity, base_strategy_id=strategy_id, tickers_df=tickers_df,
             )
             print(f"  -> run_id={run_id} 저장 완료 ({time.time() - t0:.0f}s 경과)", flush=True)
         except Exception as e:  # noqa: BLE001 - 반복 하나의 실패가 나머지를 막지 않게 함
@@ -127,7 +145,7 @@ def main() -> None:
 
     print(f"총 {iteration}회 반복, {time.time() - t0:.0f}초 소요", flush=True)
 
-    new_results = get_top_tuning_results(_STRATEGY_ID, limit=_KEEP_TOP_K)
+    new_results = get_top_tuning_results(strategy_id, limit=_KEEP_TOP_K)
     existing = _load_existing_leaderboard()
     merged = _merge_and_truncate(existing, new_results)
 
