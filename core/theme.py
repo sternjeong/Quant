@@ -76,6 +76,7 @@ def apply_theme() -> None:
     )
 
     render_gemini_usage_badge()
+    render_nightly_leaderboard_badge()
 
 
 def render_gemini_usage_badge() -> None:
@@ -116,6 +117,69 @@ def render_gemini_usage_badge() -> None:
     # 태그 전체를 한 줄로 압축하고 tooltip의 개행도 HTML 개행 엔티티로 치환한다.
     badge_style = (
         f"position:fixed;top:0.6rem;right:7.5rem;z-index:999999;"
+        f"background:rgba(32,32,32,0.9);border:1px solid {color};color:{color};"
+        f"font-size:0.72rem;padding:2px 9px;border-radius:10px;"
+        f"font-family:{_FONT};white-space:nowrap;cursor:default;"
+    )
+    safe_tooltip = html.escape(tooltip).replace("\n", "&#10;")
+    st.markdown(
+        f'<div title="{safe_tooltip}" style="{badge_style}">{html.escape(label)}</div>',
+        unsafe_allow_html=True,
+    )
+
+
+@st.cache_data(ttl=300, show_spinner=False)
+def _cached_ci_leaderboard_freshness() -> dict:
+    """5분 TTL 캐시 — 파일 파싱 자체는 실측 <5ms라 캐시가 없어도 체감 지연은 없지만, 모든 페이지
+    렌더마다(사이드바 이동 포함) 매번 디스크 I/O를 반복하지 않도록 짧게 묶어둔다. 야간 튜닝은
+    하루 1회뿐이라 5분 지연은 신선도 표시 목적상 무의미하다."""
+    from core.strategy_tuning import get_ci_leaderboard_freshness
+
+    return get_ci_leaderboard_freshness()
+
+
+def render_nightly_leaderboard_badge() -> None:
+    """우측 상단(Gemini 배지 바로 아래)에 야간 미세튜닝 리더보드(GitHub Actions가 매일 커밋하는
+    data/nightly_tuning_leaderboard.json)의 최신 실행 시각을 배지로 표시한다.
+
+    목적: nightly Actions 잡과 Streamlit 배포본이 파일 하나로만 느슨하게 연결돼 있어(작업 로그
+    참고), 사용자가 페이지를 따로 열어보지 않으면 최신 결과가 반영됐는지 알 방법이 없었다 — 이미
+    로드된(또는 5분 캐시된) 데이터만 재사용하므로 추가 네트워크 호출 없이 어디서든 한눈에 확인
+    가능하게 한다. 정상 스케줄이면 매일 15:05 UTC경 갱신되므로, 36시간 이상 안 갱신되면 실행
+    실패/워크플로 중단 가능성을 의심할 수 있게 색으로 구분한다.
+    """
+    try:
+        status = _cached_ci_leaderboard_freshness()
+    except Exception:
+        return
+
+    if not status.get("exists") or status.get("hours_since") is None:
+        label = "🌙 리더보드 없음"
+        color = "#8a8a8a"
+        tooltip = "data/nightly_tuning_leaderboard.json이 아직 없습니다 — GitHub Actions 워크플로가 한 번도 성공 실행되지 않았을 수 있습니다."
+    else:
+        hours = status["hours_since"]
+        if hours <= 30:
+            color = "#4caf82"
+        elif hours <= 48:
+            color = "#d9a441"
+        else:
+            color = "#e5533d"
+        if hours < 1:
+            age_str = f"{int(hours * 60)}분 전"
+        elif hours < 24:
+            age_str = f"{hours:.1f}시간 전"
+        else:
+            age_str = f"{hours / 24:.1f}일 전"
+        label = f"🌙 리더보드 {age_str}"
+        tooltip = (
+            f"최근 실행: {status['latest_run_at'].strftime('%Y-%m-%d %H:%M UTC')} · 누적 {status['count']}건\n"
+            "매일 15:05 UTC(≈00:05 KST) GitHub Actions가 갱신 — 36시간 이상 안 바뀌면 워크플로 실패를 의심하세요.\n"
+            "자세히 보기: '야간 미세튜닝 리더보드' 페이지"
+        )
+
+    badge_style = (
+        f"position:fixed;top:2.3rem;right:7.5rem;z-index:999999;"
         f"background:rgba(32,32,32,0.9);border:1px solid {color};color:{color};"
         f"font-size:0.72rem;padding:2px 9px;border-radius:10px;"
         f"font-family:{_FONT};white-space:nowrap;cursor:default;"

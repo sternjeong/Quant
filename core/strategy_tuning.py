@@ -27,6 +27,7 @@ import json
 import math
 import random
 from datetime import date, datetime, timedelta
+from pathlib import Path
 from typing import Any, Optional
 
 import pandas as pd
@@ -2116,3 +2117,48 @@ def run_and_save_generation(
     return save_tuning_run(
         generated_config, tickers_df, start, end, train_ratio, intensity, results, base_strategy_id=None
     )
+
+
+# ----------------------------------------------------------------------------
+# 6. 야간 CI 튜닝 결과(리더보드 JSON) 신선도 조회 — 전 페이지 공통 상단 배지용
+# ----------------------------------------------------------------------------
+
+_CI_LEADERBOARD_PATH = Path(__file__).resolve().parent.parent / "data" / "nightly_tuning_leaderboard.json"
+
+
+def get_ci_leaderboard_freshness() -> dict[str, Any]:
+    """`data/nightly_tuning_leaderboard.json`(GitHub Actions가 커밋)의 최신 실행 시각을 반환.
+
+    파일 전체를 파싱해야 하지만 상위 K(50)개로 캡핑돼 있어 수백 KB 수준(실측 파싱 <5ms)이라
+    앱 전역 배지(core.theme.apply_theme, 모든 페이지에서 매 렌더마다 호출)에서 불러도 체감
+    로딩 지연이 없다. 그래도 페이지 전환마다 매번 다시 읽지 않도록 호출부(theme.py)에서
+    st.cache_data로 짧게(수 분) 캐싱해 쓴다.
+    """
+    if not _CI_LEADERBOARD_PATH.exists():
+        return {"exists": False, "latest_run_at": None, "count": 0, "hours_since": None}
+    try:
+        records = json.loads(_CI_LEADERBOARD_PATH.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return {"exists": False, "latest_run_at": None, "count": 0, "hours_since": None}
+
+    latest: Optional[datetime] = None
+    for r in records:
+        raw = r.get("run_created_at")
+        if not raw:
+            continue
+        try:
+            ts = datetime.fromisoformat(str(raw))
+        except ValueError:
+            continue
+        if latest is None or ts > latest:
+            latest = ts
+
+    # run_created_at은 StrategyTuningRun.created_at(기본값 datetime.utcnow, tz 정보 없음)이 그대로
+    # JSON에 직렬화된 것이라 UTC 기준으로 비교해야 한다(로컬 시간대와 섞으면 KST 기준 +9시간 오차).
+    hours_since = (datetime.utcnow() - latest).total_seconds() / 3600 if latest else None
+    return {
+        "exists": True,
+        "latest_run_at": latest,
+        "count": len(records),
+        "hours_since": hours_since,
+    }
