@@ -1,0 +1,52 @@
+name: Nightly Strategy Tuning
+
+# 매일 15:05 UTC(=00:05 KST, 다음날) 자동 실행 + 수동 실행(workflow_dispatch) 지원.
+# scripts/nightly_tuning_ci.py 가 core.strategy_tuning.run_and_save_tuning()을 예산(분) 동안
+# 반복하고, 결과를 data/nightly_tuning_leaderboard.json으로 내보낸다 — 이 잡이 그 파일을
+# 저장소에 커밋/푸시해 다음 실행과 Streamlit Community Cloud 배포본이 이어서 읽을 수 있게 한다.
+
+on:
+  schedule:
+    - cron: "5 15 * * *"
+  workflow_dispatch:
+    inputs:
+      budget_minutes:
+        description: "이번 실행에서 튜닝에 쓸 최대 시간(분)"
+        required: false
+        default: "300"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nightly-tuning
+  cancel-in-progress: false
+
+jobs:
+  nightly-tuning:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run nightly tuning
+        env:
+          GEMINI_API_KEYS: ${{ secrets.GEMINI_API_KEYS }}
+          NIGHTLY_TUNING_BUDGET_MINUTES: ${{ github.event.inputs.budget_minutes || '300' }}
+        run: python scripts/nightly_tuning_ci.py
+
+      - name: Commit updated leaderboard
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/nightly_tuning_leaderboard.json
+          git diff --cached --quiet || git commit -m "chore: nightly tuning leaderboard update"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"

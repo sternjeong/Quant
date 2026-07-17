@@ -26,3 +26,6 @@ data/cache/*
 # --- 테스트 ---
 .pytest_cache/
 .coverage
+
+# --- 임시 분석/튜닝 스크립트 산출물 (재현 가능, 커밋하지 않음) ---
+.tuning_runs/
