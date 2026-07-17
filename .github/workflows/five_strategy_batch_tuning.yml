@@ -1,0 +1,40 @@
+name: Five Strategy Batch Tuning (one-off, 6h)
+
+# 2026-07-17 사용자 긴급 요청: 코드스페이스를 꺼야 해서 로컬 9시간 배치 튜닝을
+# GitHub Actions 6시간(호스티드 러너 잡 하드 리밋) 버전으로 전환. 수동 실행 전용
+# (workflow_dispatch) - 매일 밤 도는 nightly_tuning.yml과는 별개의 1회성 실험.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  five-strategy-batch-tuning:
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run five-strategy batch tuning
+        env:
+          GEMINI_API_KEYS: ${{ secrets.GEMINI_API_KEYS }}
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        run: python scripts/five_strategy_batch_ci.py
+
+      - name: Commit results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/five_strategy_batch_top10.json TUNING_BATCH_REPORT_2026-07-17.md
+          git diff --cached --quiet || git commit -m "chore: five-strategy batch tuning results (6h GitHub Actions run)"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
