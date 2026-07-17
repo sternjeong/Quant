@@ -13,6 +13,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
@@ -21,10 +22,14 @@ from core import job_manager
 from core.portfolio import (
     add_holding,
     generate_portfolio_comment,
+    generate_thesis_review,
     get_portfolio_pnl,
     get_portfolio_risk,
     list_holdings,
+    list_thesis_reviews,
     remove_holding,
+    save_thesis_review,
+    update_holding,
 )
 from core.theme import apply_theme
 
@@ -43,11 +48,16 @@ with st.expander("➕ 보유 종목 추가"):
         new_qty = c2.number_input("수량", min_value=0.0, step=1.0)
         new_price = c3.number_input("매입 단가($)", min_value=0.0, step=1.0)
         new_date = c4.date_input("매입일", value=date.today(), max_value=date.today())
+        new_thesis = st.text_area(
+            "매매근거 (선택)",
+            placeholder="왜 이 매매를 선택했는지 적어두면, 나중에 '매매근거 검증'에서 논리가 실제로 맞았는지 되짚어볼 수 있습니다.",
+            height=80,
+        )
         add_submitted = st.form_submit_button("추가")
 
     if add_submitted:
         try:
-            add_holding(new_ticker, new_qty, new_price, new_date)
+            add_holding(new_ticker, new_qty, new_price, new_date, thesis=new_thesis)
             st.toast(f"{new_ticker.strip().upper()} 추가 완료.", icon="✅")
             st.rerun()
         except ValueError as e:
@@ -103,6 +113,76 @@ if st.button("🗑️ 선택한 종목 삭제"):
     remove_holding(id_by_ticker[delete_target])
     st.toast(f"{delete_target} 삭제 완료.", icon="🗑️")
     st.rerun()
+
+# ============================================================================
+# 매매근거 & 사후 검증
+# ============================================================================
+st.divider()
+st.markdown("### 📝 매매근거 & 검증")
+st.caption(
+    "매매 시점에 '왜 이 매매를 선택했는지'를 적어두고, 시간이 지난 뒤(예: 한 달 뒤, 분기 뒤 등) "
+    "'매매근거 검증'을 누르면 매입가 대비 현재가 변화와 함께 그 논리가 실제로 맞았는지 AI가 "
+    "회고해줍니다. 여러 번 검증해도 이전 회고 기록은 그대로 남습니다."
+)
+
+for i, h in enumerate(holdings):
+    thesis_state_key = f"thesis_edit_{h['id']}"
+    st.session_state.setdefault(thesis_state_key, h["thesis"] or "")
+
+    # pnl_df는 get_portfolio_pnl()이 내부에서 다시 list_holdings()를 호출해 만든 것이라 순서가
+    # 같아(둘 다 purchase_date desc 정렬), 같은 인덱스로 안전하게 대응시킬 수 있다 — 단, pnl_df 자체에
+    # holding id가 없어(compute_pnl이 티커 단위로만 계산) id로 직접 매칭할 수는 없다.
+    pnl_row = pnl_df.iloc[i] if i < len(pnl_df) else None
+    pnl_suffix = ""
+    if pnl_row is not None and pd.notna(pnl_row.get("pnl_pct")):
+        pnl_suffix = f" · 손익 {pnl_row['pnl_pct']:+.1f}%"
+    thesis_badge = "📝" if h["thesis"] else "◻️"
+    expander_label = f"{thesis_badge} {h['ticker']} · 매입 {h['purchase_date']:%Y-%m-%d}{pnl_suffix}"
+
+    with st.expander(expander_label):
+        st.text_area(
+            "매매근거",
+            key=thesis_state_key,
+            height=80,
+            placeholder="왜 이 매매를 선택했는지 적어주세요 (나중에 검증할 때 이 원문을 근거로 삼습니다).",
+        )
+        if st.button("💾 매매근거 저장", key=f"save_thesis_{h['id']}"):
+            update_holding(h["id"], thesis=st.session_state[thesis_state_key])
+            st.toast("매매근거를 저장했습니다.", icon="✅")
+            st.rerun()
+
+        st.divider()
+        st.markdown("#### 🔍 사후 검증 이력")
+        if not h["thesis"]:
+            st.info("매매근거를 먼저 저장해야 검증할 수 있습니다.")
+        else:
+            review_slot = f"thesis_review_{h['id']}"
+            if st.button("🔍 매매근거 검증", key=f"verify_{h['id']}"):
+                job_manager.start(review_slot, generate_thesis_review, h["id"], label=f"{h['ticker']} 매매근거 검증")
+
+            review_job = job_manager.render(review_slot, running_label="현재가를 조회하고 매매근거를 검증하는 중")
+            if review_job is not None:
+                if review_job.status == "error":
+                    st.error(f"검증 중 오류가 발생했습니다: {review_job.error}")
+                else:
+                    save_thesis_review(h["id"], h["ticker"], review_job.result)
+                    st.toast("매매근거 검증을 저장했습니다.", icon="✅")
+                    st.rerun()
+
+            past_reviews = list_thesis_reviews(h["id"])
+            if not past_reviews:
+                st.caption("아직 검증 이력이 없습니다. 위 버튼을 눌러 첫 검증을 만들어보세요.")
+            for rv in past_reviews:
+                price_line = (
+                    f"매입가 {rv['purchase_price']:,.2f} → 검증 시점 {rv['price_at_review']:,.2f} "
+                    f"({rv['price_change_pct']:+.1f}%, {rv['elapsed_days']}일 경과)"
+                    if rv["price_at_review"] is not None
+                    else f"현재가 조회 실패 ({rv['elapsed_days']}일 경과)"
+                )
+                st.markdown(f"**{rv['created_at']:%Y-%m-%d %H:%M} 검증** · {price_line}")
+                st.caption(f"당시 매매근거: {rv['thesis_snapshot']}")
+                st.markdown(rv["review_text"])
+                st.divider()
 
 # ============================================================================
 # 리스크 분석

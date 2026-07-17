@@ -19,11 +19,24 @@
     - bollinger: 볼린저밴드 이탈. band="upper"+op="break_above" 이면 종가가 상단 이탈,
       band="lower"+op="break_below" 이면 종가가 하단 이탈인 구간에서 True.
     - engulfing: 상승/하락 인걸(장악형) 캔들 패턴 이벤트. direction="bullish"|"bearish".
+    - marubozu/pin_bar/doji/inside_bar/inside_bar_breakout/piercing_dark_cloud/star_pattern/
+      three_soldiers_crows/three_methods: 캔들스틱 패턴 이벤트(마루보즈/핀바/도지/인사이드바(돌파)/
+      관통형/모닝·이브닝스타/적삼병·흑삼병/삼법형). direction="bullish"|"bearish"
+      (도지는 doji_type으로 4종 세분화).
+    - level_break: 직전 N봉 지지선/저항선 돌파 이벤트. source="highest_high"|"lowest_low".
+    - ma_touch: 단일 이동평균선 상향/하향 돌파(터치) 이벤트. ma_cross의 단일선 버전.
 
 세 번째 스키마로 "직접 수식(expression)" 전략도 지원한다 (core/expression_engine.py):
     {"expression": "close > sma(close, 20) and rsi(close, 14) < 30"}
 지표 토글로 표현하기 어려운 조건을 사용자가 파이썬과 비슷한 문법으로 직접 입력할 수 있다.
 자세한 문법/함수 목록은 core/expression_engine.py 를 참고.
+
+네 번째 스키마로 기존에 저장된 전략 두 개(이상)를 합쳐 만드는 "복합(전략 합성)" 전략도 지원한다:
+    {"combine": "AND", "strategies": [<하위 전략 A의 indicator_config>, <하위 전략 B의 indicator_config>]}
+하위 전략은 레짐/직접 수식/1:2:6 단계별/복합 중 어떤 스키마든 재귀적으로 담을 수 있다 — 각 하위 전략을
+"포지션 보유 중" 불리언 시그널로 변환한 뒤(1:2:6 단계별은 비중>0을 보유로 간주) "combine"에 따라
+AND(둘 다 보유 신호일 때만 보유)/OR(하나라도 보유 신호면 보유)로 결합한다. evaluate_boolean_signal()이
+이 스키마를 포함해 4종 전부를 평가하는 공용 진입점이다.
 
 여러 조건은 "logic" 에 따라 AND(전부 True)/OR(하나라도 True)로 결합되어 하루 단위의
 불리언 "포지션 보유 조건" 시리즈가 된다. 이 시리즈가 True인 구간을 매수 보유,
@@ -46,17 +59,30 @@ import pandas as pd
 from core.indicators import (
     compute_bbw_squeeze_release,
     compute_bollinger,
+    compute_doji,
     compute_double_pattern,
     compute_engulfing,
     compute_highest_high,
     compute_ichimoku,
+    compute_inside_bar,
+    compute_inside_bar_breakout,
     compute_lowest_low,
     compute_ma_cross,
     compute_macd,
+    compute_marubozu,
     compute_mfi,
     compute_percent_b,
+    compute_piercing_dark_cloud,
+    compute_pin_bar,
+    compute_rising_falling_three_methods,
     compute_rsi,
     compute_rsi_divergence,
+    compute_star_pattern,
+    compute_three_soldiers_crows,
+    compute_volume_dryup_ratio,
+    compute_volume_ratio,
+    ema,
+    sma,
 )
 
 Condition = dict[str, Any]
@@ -275,6 +301,119 @@ def _eval_engulfing(df: pd.DataFrame, cond: Condition) -> pd.Series:
     return eng["bullish"] if cond.get("direction", "bullish") == "bullish" else eng["bearish"]
 
 
+def _eval_marubozu(df: pd.DataFrame, cond: Condition) -> pd.Series:
+    """마루보즈(장대양봉/장대음봉) 캔들 이벤트."""
+    m = compute_marubozu(df, body_ratio_threshold=float(cond.get("body_ratio_threshold", 0.9)))
+    return m["bullish"] if cond.get("direction", "bullish") == "bullish" else m["bearish"]
+
+
+def _eval_pin_bar(df: pd.DataFrame, cond: Condition) -> pd.Series:
+    """핀바 캔들(강세/약세 반전) 이벤트."""
+    p = compute_pin_bar(
+        df,
+        body_ratio_max=float(cond.get("body_ratio_max", 0.3)),
+        wick_body_mult=float(cond.get("wick_body_mult", 2.0)),
+    )
+    return p["bullish"] if cond.get("direction", "bullish") == "bullish" else p["bearish"]
+
+
+_DOJI_TYPES = ("standard", "long_legged", "dragonfly", "gravestone")
+
+
+def _eval_doji(df: pd.DataFrame, cond: Condition) -> pd.Series:
+    """도지 캔들(일반/키다리형/잠자리형/비석형) 이벤트."""
+    doji_type = cond.get("doji_type", "standard")
+    if doji_type not in _DOJI_TYPES:
+        raise ValueError(f"지원하지 않는 doji_type: {doji_type!r}")
+    d = compute_doji(df, body_ratio_max=float(cond.get("body_ratio_max", 0.1)))
+    return d[doji_type]
+
+
+def _eval_inside_bar(df: pd.DataFrame, cond: Condition) -> pd.Series:
+    """인사이드바(마더 바 범위 안에 완전히 포함되는 캔들) 이벤트."""
+    return compute_inside_bar(df)
+
+
+def _eval_inside_bar_breakout(df: pd.DataFrame, cond: Condition) -> pd.Series:
+    """인사이드바 출현 후 마더 바 고점/저점을 종가가 돌파하는 이벤트(방향까지 판정된 상태)."""
+    b = compute_inside_bar_breakout(df, lookback=int(cond.get("lookback", 5)))
+    return b["bullish"] if cond.get("direction", "bullish") == "bullish" else b["bearish"]
+
+
+def _eval_piercing_dark_cloud(df: pd.DataFrame, cond: Condition) -> pd.Series:
+    """관통형 캔들 패턴(상승 관통형/하락 관통형·흑운형, 볼린저 밴드 확인 포함) 이벤트."""
+    p = compute_piercing_dark_cloud(
+        df,
+        band_period=int(cond.get("band_period", 20)),
+        band_std=float(cond.get("band_std", 2.0)),
+    )
+    return p["bullish"] if cond.get("direction", "bullish") == "bullish" else p["bearish"]
+
+
+def _eval_star_pattern(df: pd.DataFrame, cond: Condition) -> pd.Series:
+    """모닝스타(bullish)/이브닝스타(bearish) 3봉 반전 패턴 이벤트."""
+    s = compute_star_pattern(
+        df,
+        star_body_ratio_max=float(cond.get("star_body_ratio_max", 0.3)),
+        big_body_ratio_min=float(cond.get("big_body_ratio_min", 0.5)),
+    )
+    return s["bullish"] if cond.get("direction", "bullish") == "bullish" else s["bearish"]
+
+
+def _eval_three_soldiers_crows(df: pd.DataFrame, cond: Condition) -> pd.Series:
+    """적삼병(bullish)/흑삼병(bearish) 3봉 추세 패턴 이벤트."""
+    t = compute_three_soldiers_crows(df, body_ratio_min=float(cond.get("body_ratio_min", 0.6)))
+    return t["bullish"] if cond.get("direction", "bullish") == "bullish" else t["bearish"]
+
+
+def _eval_three_methods(df: pd.DataFrame, cond: Condition) -> pd.Series:
+    """상승/하락 삼법형(추세 지속) 패턴 이벤트."""
+    t = compute_rising_falling_three_methods(
+        df,
+        n_pause=int(cond.get("n_pause", 3)),
+        big_body_ratio_min=float(cond.get("big_body_ratio_min", 0.5)),
+    )
+    return t["bullish"] if cond.get("direction", "bullish") == "bullish" else t["bearish"]
+
+
+def _eval_level_break(df: pd.DataFrame, cond: Condition) -> pd.Series:
+    """직전 N봉(당일 제외) 지지선/저항선 돌파 이벤트."""
+    period = int(cond.get("period", 20))
+    source = cond.get("source", "highest_high")
+    level_fn = compute_highest_high if source == "highest_high" else compute_lowest_low
+    level = level_fn(df, period=period).shift(1)
+    close = df["Close"]
+    if cond.get("op", "break_above") == "break_above":
+        return (close > level).fillna(False)
+    return (close < level).fillna(False)
+
+
+def _eval_ma_touch(df: pd.DataFrame, cond: Condition) -> pd.Series:
+    """단일 이동평균선을 상향/하향 돌파(터치)하는 이벤트 (ma_cross의 단일선 버전)."""
+    period = int(cond.get("period", 20))
+    ma_series = ema(df["Close"], period) if cond.get("ma_type", "ema") == "ema" else sma(df["Close"], period)
+    close = df["Close"]
+    if cond.get("op", "break_below") == "break_above":
+        return _crossover(close, ma_series)
+    return _crossunder(close, ma_series)
+
+
+def _eval_volume_spike(df: pd.DataFrame, cond: Condition) -> pd.Series:
+    """거래량이 직전 period일 평균 대비 mult배 이상 급증한 구간(매집/주도세력 진입 국면 포착)."""
+    period = int(cond.get("period", 20))
+    mult = float(cond.get("mult", 2.0))
+    ratio = compute_volume_ratio(df, period=period)
+    return (ratio >= mult).fillna(False)
+
+
+def _eval_volume_dryup(df: pd.DataFrame, cond: Condition) -> pd.Series:
+    """거래량이 직전 lookback일 내 최고 거래량 대비 ratio 이하로 감소한 구간(눌림목 매물소화 국면 포착)."""
+    lookback = int(cond.get("lookback", 10))
+    ratio_threshold = float(cond.get("ratio", 0.4))
+    ratio = compute_volume_dryup_ratio(df, lookback=lookback)
+    return (ratio <= ratio_threshold).fillna(False)
+
+
 def _eval_ichimoku_chikou_state(df: pd.DataFrame, cond: Condition) -> pd.Series:
     """후행스팬 판정: 현재 종가가 displacement 이전 종가보다 위(up)/아래(down)에 있는 국면."""
     displacement = int(cond.get("displacement", 26))
@@ -304,6 +443,19 @@ INDICATOR_EVALUATORS: dict[str, Callable[[pd.DataFrame, Condition], pd.Series]] 
     "mfi": _eval_mfi,
     "double_pattern": _eval_double_pattern,
     "rsi_divergence": _eval_rsi_divergence,
+    "marubozu": _eval_marubozu,
+    "pin_bar": _eval_pin_bar,
+    "doji": _eval_doji,
+    "inside_bar": _eval_inside_bar,
+    "inside_bar_breakout": _eval_inside_bar_breakout,
+    "piercing_dark_cloud": _eval_piercing_dark_cloud,
+    "star_pattern": _eval_star_pattern,
+    "three_soldiers_crows": _eval_three_soldiers_crows,
+    "three_methods": _eval_three_methods,
+    "level_break": _eval_level_break,
+    "ma_touch": _eval_ma_touch,
+    "volume_spike": _eval_volume_spike,
+    "volume_dryup": _eval_volume_dryup,
 }
 
 
@@ -392,6 +544,49 @@ def describe_condition(cond: Condition) -> str:
     if indicator == "engulfing":
         direction = "상승" if cond.get("direction", "bullish") == "bullish" else "하락"
         return f"{direction} 인걸(장악형) 캔들 출현"
+    if indicator == "marubozu":
+        direction = "상승(장대양봉)" if cond.get("direction", "bullish") == "bullish" else "하락(장대음봉)"
+        return f"{direction} 마루보즈 캔들 출현"
+    if indicator == "pin_bar":
+        direction = "강세" if cond.get("direction", "bullish") == "bullish" else "약세"
+        return f"{direction} 핀바 캔들 출현"
+    if indicator == "doji":
+        names = {"standard": "일반", "long_legged": "키다리형", "dragonfly": "잠자리형", "gravestone": "비석형"}
+        return f"{names.get(cond.get('doji_type', 'standard'), '일반')} 도지 캔들 출현"
+    if indicator == "inside_bar":
+        return "인사이드바(마더 바 범위 내 캔들) 출현"
+    if indicator == "inside_bar_breakout":
+        direction = "상향" if cond.get("direction", "bullish") == "bullish" else "하향"
+        return f"인사이드바 이후 마더 바 {direction} 돌파"
+    if indicator == "piercing_dark_cloud":
+        direction = "상승 관통형" if cond.get("direction", "bullish") == "bullish" else "하락 관통형(흑운형)"
+        return f"{direction} 캔들 패턴 확인"
+    if indicator == "star_pattern":
+        direction = "모닝스타" if cond.get("direction", "bullish") == "bullish" else "이브닝스타"
+        return f"{direction} 3봉 반전 패턴 확인"
+    if indicator == "three_soldiers_crows":
+        direction = "적삼병" if cond.get("direction", "bullish") == "bullish" else "흑삼병"
+        return f"{direction} 3봉 추세 패턴 확인"
+    if indicator == "three_methods":
+        direction = "상승 삼법형" if cond.get("direction", "bullish") == "bullish" else "하락 삼법형"
+        return f"{direction} 추세 지속 패턴 확인"
+    if indicator == "level_break":
+        period = cond.get("period", 20)
+        direction = "저항선(고점)" if cond.get("source", "highest_high") == "highest_high" else "지지선(저점)"
+        op_txt = "상향 돌파" if cond.get("op", "break_above") == "break_above" else "하향 이탈"
+        return f"최근 {period}봉 {direction} {op_txt}"
+    if indicator == "ma_touch":
+        period, ma_type = cond.get("period", 20), cond.get("ma_type", "ema")
+        op_txt = "상향 돌파" if cond.get("op", "break_below") == "break_above" else "하향 이탈(터치)"
+        return f"{str(ma_type).upper()}{period} {op_txt}"
+    if indicator == "volume_spike":
+        period = cond.get("period", 20)
+        mult = _fmt(float(cond.get("mult", 2.0)))
+        return f"거래량이 {period}일 평균 대비 {mult}배 이상 급증"
+    if indicator == "volume_dryup":
+        lookback = cond.get("lookback", 10)
+        ratio = _fmt(float(cond.get("ratio", 0.4)))
+        return f"거래량이 최근 {lookback}일 고점 대비 {ratio}배 이하로 감소"
     return indicator or "조건"
 
 
@@ -480,7 +675,7 @@ def is_expression_config(indicator_config: str | IndicatorConfig) -> bool:
 def generate_regime_signal(df: pd.DataFrame, indicator_config: str | IndicatorConfig) -> pd.Series:
     """레짐형(AND/OR) 또는 직접 수식(expression) 전략을 평가해 불리언 Series를 반환한다.
 
-    1:2:6 단계별(staged) 전략은 별도 simulate_staged_positions()를 쓰므로 여기서 다루지 않는다.
+    1:2:6 단계별(staged)/복합(combined) 전략은 evaluate_boolean_signal()을 쓰므로 여기서 다루지 않는다.
     """
     config = parse_indicator_config(indicator_config)
     if is_expression_config(config):
@@ -492,7 +687,7 @@ def generate_regime_signal(df: pd.DataFrame, indicator_config: str | IndicatorCo
 
 def generate_positions(df: pd.DataFrame, indicator_config: str | IndicatorConfig) -> pd.Series:
     """조건이 True인 구간을 1(보유), False인 구간을 0(미보유)으로 하는 포지션 Series를 만든다."""
-    signal = generate_regime_signal(df, indicator_config)
+    signal = evaluate_boolean_signal(df, indicator_config)
     return signal.astype(int)
 
 
@@ -503,6 +698,41 @@ def is_staged_config(indicator_config: str | IndicatorConfig) -> bool:
     """
     config = parse_indicator_config(indicator_config)
     return isinstance(config, dict) and "entry_stages" in config
+
+
+def is_combined_config(indicator_config: str | IndicatorConfig) -> bool:
+    """indicator_config가 복합(전략 합성) 전략 스키마인지 판별한다.
+
+    "combine"(AND/OR)과 "strategies"(하위 전략 설정 목록) 키가 모두 있으면 복합 전략으로 본다.
+    하위 전략은 레짐/직접 수식/1:2:6 단계별/복합 어떤 스키마든 재귀적으로 담을 수 있다.
+    """
+    config = parse_indicator_config(indicator_config)
+    return isinstance(config, dict) and "combine" in config and "strategies" in config
+
+
+def evaluate_boolean_signal(df: pd.DataFrame, indicator_config: str | IndicatorConfig) -> pd.Series:
+    """전략 스키마 4종(레짐/직접 수식/1:2:6 단계별/복합) 전부를 판별해 '포지션 보유 중' 불리언
+    시그널 하나로 통일해서 반환한다.
+
+    복합 전략의 하위 전략을 재귀 평가할 때 쓰는 공용 진입점이다 — 하위 전략이 1:2:6 단계별이면
+    비중(weight)>0인 구간을 보유로 간주해 불리언으로 단순화하고, 하위 전략이 다시 복합 전략이면
+    재귀적으로 내려간다. generate_positions()와 evaluate()가 이 함수를 공통으로 사용한다.
+    """
+    config = parse_indicator_config(indicator_config)
+    if is_combined_config(config):
+        sub_configs = config.get("strategies", [])
+        if not sub_configs:
+            return pd.Series(False, index=df.index)
+        combine_logic = str(config.get("combine", "AND")).upper()
+        sub_signals = [evaluate_boolean_signal(df, sub) for sub in sub_configs]
+        combined = sub_signals[0]
+        for s in sub_signals[1:]:
+            combined = (combined & s) if combine_logic == "AND" else (combined | s)
+        return combined.fillna(False)
+    if is_staged_config(config):
+        weight_signal, _events = simulate_staged_positions(df, config)
+        return (weight_signal > 0).fillna(False)
+    return generate_regime_signal(df, config)
 
 
 @dataclass
@@ -535,9 +765,14 @@ def extract_trades(
     reason_pairs: list[tuple[str, pd.Series]] = []
     reason_logic = "AND"
     expression_text: Optional[str] = None
+    combined_summary: Optional[str] = None
     if indicator_config is not None:
         config = parse_indicator_config(indicator_config)
-        if is_expression_config(config):
+        if is_combined_config(config):
+            combine_logic = str(config.get("combine", "AND")).upper()
+            n_sub = len(config.get("strategies", []))
+            combined_summary = f"복합 전략({combine_logic} 결합, 하위 전략 {n_sub}개)"
+        elif is_expression_config(config):
             expression_text = config.get("expression", "")
         else:
             reason_logic = str(config.get("logic", "AND")).upper()
@@ -546,6 +781,8 @@ def extract_trades(
     def _entry_reason(signal_idx: int) -> Optional[str]:
         if indicator_config is None:
             return None
+        if combined_summary is not None:
+            return f"{combined_summary} 조건 충족"
         if expression_text is not None:
             return f"수식 조건 충족: {expression_text}"
         return _active_reason(reason_pairs, reason_logic, signal_idx)
@@ -553,6 +790,8 @@ def extract_trades(
     def _exit_reason(signal_idx: int) -> Optional[str]:
         if indicator_config is None:
             return None
+        if combined_summary is not None:
+            return f"{combined_summary} 조건 이탈"
         if expression_text is not None:
             return f"수식 조건 이탈: {expression_text}"
         return _inactive_reason(reason_pairs, reason_logic, signal_idx)
@@ -607,7 +846,7 @@ class StageEvent:
     """1:2:6 식 단계별 전략의 진입/청산 이벤트 로그 (UI 표시/디버깅용)."""
 
     date: pd.Timestamp
-    kind: str  # "entry" | "exit" | "emergency_exit" | "stop_loss"
+    kind: str  # "entry" | "exit" | "emergency_exit" | "stop_loss" | "take_profit"
     stage: int  # 1-based 단계 번호 (entry_stages/exit_stages 의 인덱스+1)
     weight: float  # 이 이벤트로 늘거나 준 비중 (0~1)
     price: float  # 신호 발생일 종가 (참고용. 실제 체결가는 extract_staged_trades 에서 다음 거래일 종가 사용)
@@ -651,7 +890,8 @@ def simulate_staged_positions(
             ],
             "exit_stages": [ (entry_stages와 동일한 형식) ... ],
             "emergency_exit": {"logic": "AND", "conditions": [...]},  # 선택. 뜨면 단계 무관 즉시 전량 청산
-            "stop_loss": {"source": "bollinger_mid", "period": 20}    # 선택. 진입가 기준 손절(아래 설명)
+            "stop_loss": {"source": "bollinger_mid", "period": 20},   # 선택. 진입가 기준 손절(아래 설명)
+            "take_profit": {"multiple": 2.0}                         # 선택. 손절 대비 배수 익절(아래 설명)
         }
 
     stop_loss(선택): 포지션이 없다가 새로 진입하는 바("사이클 시작")에서 source가 가리키는 가격
@@ -659,6 +899,11 @@ def simulate_staged_positions(
     고정한다. 그 사이클이 끝날 때까지, 이후 지표가 어떻게 움직이든 이 고정된 레벨을 기준으로 종가가
     그 아래로 내려오면(롱 전용이므로 항상 "하향 이탈" 판정) emergency_exit과 동일한 우선순위로 즉시
     전량 청산한다. source 종류는 STOP_LOSS_SOURCES 참고("bollinger_mid"|"lowest_low"|"highest_high").
+
+    take_profit(선택, stop_loss 필수 동반): "손절선 대비 N배" 식으로 정의되는 목표 익절가. stop_loss와
+    같은 사이클 시작 바에서 `목표가 = 진입참조가 + multiple * (진입참조가 - 손절레벨)`을 스냅샷해
+    고정한다. 종가가 이 목표가 이상이 되면 stop_loss와 동일한 우선순위로 즉시 전량 청산한다.
+    stop_loss 없이 take_profit만 정의하면 ValueError (배수 계산의 기준이 되는 손절 거리가 없으므로).
 
     각 stage의 conditions는 combine_conditions()가 이해하는 문법을 그대로 쓴다
     (rsi_cross/macd_cross/ichimoku_* 등 "이벤트"성 지표를 포함해 AND/OR 조합 가능).
@@ -683,6 +928,9 @@ def simulate_staged_positions(
     exit_defs = config.get("exit_stages", [])
     emergency_def = config.get("emergency_exit")
     stop_loss_def = config.get("stop_loss")
+    take_profit_def = config.get("take_profit")
+    if take_profit_def and not stop_loss_def:
+        raise ValueError("take_profit은 stop_loss와 함께 정의해야 합니다 (손절 대비 배수로 목표가를 계산).")
 
     if not entry_defs:
         return pd.Series(0.0, index=df.index), []
@@ -711,6 +959,7 @@ def simulate_staged_positions(
     stage_level = 0
     open_tags: dict[int, float] = {}
     cycle_stop_level: Optional[float] = None
+    cycle_tp_level: Optional[float] = None
 
     for i, day in enumerate(df.index):
         was_flat = not open_tags
@@ -725,15 +974,25 @@ def simulate_staged_positions(
                 reason = _active_reason(entry_pairs[k - 1], entry_logics[k - 1], i)
                 events.append(StageEvent(day, "entry", k, entry_weights[k - 1], float(close.iloc[i]), reason))
 
-        if was_flat and open_tags and stop_loss_levels is not None:
-            level = float(stop_loss_levels.iloc[i])
-            cycle_stop_level = level if pd.notna(level) else None
+        if was_flat and open_tags:
+            if stop_loss_levels is not None:
+                level = float(stop_loss_levels.iloc[i])
+                cycle_stop_level = level if pd.notna(level) else None
+            if take_profit_def and cycle_stop_level is not None:
+                multiple = float(take_profit_def.get("multiple", 2.0))
+                entry_ref_price = float(close.iloc[i])
+                cycle_tp_level = entry_ref_price + multiple * (entry_ref_price - cycle_stop_level)
 
         if open_tags:
             if emergency_def and bool(emergency_signal.iloc[i]):
                 reason = _active_reason(emergency_pairs, emergency_logic, i)
                 for k, w in sorted(open_tags.items()):
                     events.append(StageEvent(day, "emergency_exit", k, w, float(close.iloc[i]), reason))
+                open_tags = {}
+            elif cycle_tp_level is not None and float(close.iloc[i]) >= cycle_tp_level:
+                reason = f"진입 시점 기준 목표 익절가({cycle_tp_level:.2f}) 도달"
+                for k, w in sorted(open_tags.items()):
+                    events.append(StageEvent(day, "take_profit", k, w, float(close.iloc[i]), reason))
                 open_tags = {}
             elif cycle_stop_level is not None and float(close.iloc[i]) < cycle_stop_level:
                 reason = f"진입 시점 손절 레벨({cycle_stop_level:.2f}) 하향 이탈"
@@ -756,6 +1015,7 @@ def simulate_staged_positions(
         if not open_tags:
             stage_level = 0
             cycle_stop_level = None
+            cycle_tp_level = None
 
         weight_signal.iloc[i] = sum(open_tags.values())
 
@@ -864,7 +1124,7 @@ def evaluate(ticker: str, indicator_config: str | IndicatorConfig, lookback_days
         today = today_w > 0
         triggered = today_w > yesterday_w + 1e-9  # 비중이 늘었으면(신규 단계 진입) 신호로 간주
     else:
-        signal = generate_regime_signal(df, indicator_config)
+        signal = evaluate_boolean_signal(df, indicator_config)
         today = bool(signal.iloc[-1])
         yesterday = bool(signal.iloc[-2])
         triggered = today and not yesterday

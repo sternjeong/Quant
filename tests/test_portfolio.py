@@ -64,6 +64,31 @@ def test_remove_holding(patched_session):
     assert portfolio.list_holdings() == []
 
 
+def test_add_holding_with_thesis(patched_session):
+    holding_id = portfolio.add_holding("AAPL", 10, 150.0, date(2024, 1, 1), thesis="신제품 사이클 기대")
+    holdings = portfolio.list_holdings()
+    assert holdings[0]["thesis"] == "신제품 사이클 기대"
+    assert portfolio.get_holding(holding_id)["thesis"] == "신제품 사이클 기대"
+
+
+def test_add_holding_without_thesis_is_none(patched_session):
+    portfolio.add_holding("AAPL", 10, 150.0, date(2024, 1, 1))
+    assert portfolio.list_holdings()[0]["thesis"] is None
+
+
+def test_update_holding_sets_and_clears_thesis(patched_session):
+    holding_id = portfolio.add_holding("AAPL", 10, 150.0, date(2024, 1, 1))
+    portfolio.update_holding(holding_id, thesis="나중에 추가한 근거")
+    assert portfolio.get_holding(holding_id)["thesis"] == "나중에 추가한 근거"
+
+    portfolio.update_holding(holding_id, thesis="")
+    assert portfolio.get_holding(holding_id)["thesis"] is None
+
+
+def test_get_holding_returns_none_for_missing_id(patched_session):
+    assert portfolio.get_holding(999) is None
+
+
 # ----------------------------------------------------------------------------
 # compute_pnl
 # ----------------------------------------------------------------------------
@@ -236,3 +261,98 @@ def test_generate_portfolio_comment_handles_api_failure_gracefully(monkeypatch):
     pnl_df = portfolio.compute_pnl([{"ticker": "AAPL", "quantity": 1, "purchase_price": 100.0}], {"AAPL": 110.0})
     comment = portfolio.generate_portfolio_comment(pnl_df, {"volatility": None, "sector_concentration": {}})
     assert "AI 호출 실패" in comment
+
+
+# ----------------------------------------------------------------------------
+# 매매근거 사후 검증 (generate_thesis_review / save_thesis_review / list_thesis_reviews)
+# ----------------------------------------------------------------------------
+
+
+def test_generate_thesis_review_raises_without_thesis(patched_session):
+    holding_id = portfolio.add_holding("AAPL", 10, 150.0, date(2024, 1, 1))
+    with pytest.raises(ValueError, match="매매근거"):
+        portfolio.generate_thesis_review(holding_id)
+
+
+def test_generate_thesis_review_raises_for_missing_holding(patched_session):
+    with pytest.raises(ValueError, match="찾을 수 없습니다"):
+        portfolio.generate_thesis_review(999)
+
+
+def test_generate_thesis_review_without_api_key_uses_fallback(patched_session, monkeypatch):
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    monkeypatch.delenv("GEMINI_API_KEYS", raising=False)
+    monkeypatch.setattr(portfolio, "get_latest_price", lambda ticker: 180.0)
+
+    holding_id = portfolio.add_holding("AAPL", 10, 150.0, date(2024, 1, 1), thesis="신제품 사이클 기대")
+    review = portfolio.generate_thesis_review(holding_id)
+
+    assert "자동 회고 실패" in review["review_text"]
+    assert review["price_at_review"] == 180.0
+    assert review["price_change_pct"] == pytest.approx(20.0)
+    assert review["thesis_snapshot"] == "신제품 사이클 기대"
+
+
+def test_generate_thesis_review_handles_price_lookup_failure(patched_session, monkeypatch):
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    monkeypatch.delenv("GEMINI_API_KEYS", raising=False)
+
+    def _raise(ticker):
+        raise RuntimeError("network down")
+
+    monkeypatch.setattr(portfolio, "get_latest_price", _raise)
+
+    holding_id = portfolio.add_holding("AAPL", 10, 150.0, date(2024, 1, 1), thesis="근거")
+    review = portfolio.generate_thesis_review(holding_id)
+    assert review["price_at_review"] is None
+    assert review["price_change_pct"] is None
+    assert "가격 데이터 부족" in review["review_text"]
+
+
+def test_generate_thesis_review_handles_api_failure_gracefully(patched_session, monkeypatch):
+    monkeypatch.delenv("GEMINI_API_KEYS", raising=False)
+    monkeypatch.setenv("GEMINI_API_KEY", "fake-key")
+    monkeypatch.setattr(portfolio, "get_latest_price", lambda ticker: 180.0)
+
+    class _FakeModels:
+        @staticmethod
+        def generate_content(**kwargs):
+            raise RuntimeError("network down")
+
+    class _FakeClient:
+        def __init__(self, api_key):
+            self.models = _FakeModels()
+
+    import google.genai as genai
+
+    monkeypatch.setattr(genai, "Client", _FakeClient)
+
+    holding_id = portfolio.add_holding("AAPL", 10, 150.0, date(2024, 1, 1), thesis="근거")
+    review = portfolio.generate_thesis_review(holding_id)
+    assert "AI 호출 실패" in review["review_text"]
+
+
+def test_save_and_list_thesis_reviews(patched_session, monkeypatch):
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    monkeypatch.delenv("GEMINI_API_KEYS", raising=False)
+    monkeypatch.setattr(portfolio, "get_latest_price", lambda ticker: 180.0)
+
+    holding_id = portfolio.add_holding("AAPL", 10, 150.0, date(2024, 1, 1), thesis="근거")
+    review = portfolio.generate_thesis_review(holding_id)
+    review_id = portfolio.save_thesis_review(holding_id, "AAPL", review)
+    assert isinstance(review_id, int)
+
+    reviews = portfolio.list_thesis_reviews(holding_id)
+    assert len(reviews) == 1
+    assert reviews[0]["ticker"] == "AAPL"
+    assert reviews[0]["thesis_snapshot"] == "근거"
+
+    # thesis를 나중에 수정해도 이미 저장된 검증 이력의 스냅샷은 안 바뀐다
+    portfolio.update_holding(holding_id, thesis="수정된 근거")
+    reviews_after_edit = portfolio.list_thesis_reviews(holding_id)
+    assert reviews_after_edit[0]["thesis_snapshot"] == "근거"
+
+
+def test_list_thesis_reviews_empty_for_no_history(patched_session):
+    holding_id = portfolio.add_holding("AAPL", 10, 150.0, date(2024, 1, 1), thesis="근거")
+    assert portfolio.list_thesis_reviews(holding_id) == []

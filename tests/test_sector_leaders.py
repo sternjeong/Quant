@@ -176,7 +176,7 @@ def test_compute_relationship_metrics_perfect_tracker_has_beta_and_corr_near_one
     # 종목이 ETF와 정확히 동일한 수익률로 움직이면(시작가만 다름) beta=1, correlation=1,
     # RS비율(stock/etf)은 시작가 비율로 항상 일정 -> 추세 없음("횡보")
     stock_df = _close_df(_price_path_from_returns(50.0, etf_returns))
-    monkeypatch.setattr(sector_leaders, "get_price_history", lambda t, start=None: stock_df)
+    monkeypatch.setattr(sector_leaders, "get_price_history", lambda t, start=None, end=None: stock_df)
 
     metrics = sector_leaders.compute_relationship_metrics("STOCK", etf_series)
     assert metrics is not None
@@ -193,7 +193,7 @@ def test_compute_relationship_metrics_amplified_mover_has_beta_above_one(monkeyp
     etf_returns = rng.normal(loc=0.003, scale=0.003, size=280)
     etf_series = _series(_price_path_from_returns(100.0, etf_returns))
     stock_df = _close_df(_price_path_from_returns(50.0, etf_returns * 2))
-    monkeypatch.setattr(sector_leaders, "get_price_history", lambda t, start=None: stock_df)
+    monkeypatch.setattr(sector_leaders, "get_price_history", lambda t, start=None, end=None: stock_df)
 
     metrics = sector_leaders.compute_relationship_metrics("STOCK", etf_series)
     assert metrics is not None
@@ -210,7 +210,7 @@ def test_compute_relationship_metrics_abs_trend_up_when_price_above_200sma_and_g
     etf_returns = rng.normal(loc=0.003, scale=0.003, size=280)
     etf_series = _series(_price_path_from_returns(100.0, etf_returns))
     stock_df = _close_df(_price_path_from_returns(50.0, etf_returns))
-    monkeypatch.setattr(sector_leaders, "get_price_history", lambda t, start=None: stock_df)
+    monkeypatch.setattr(sector_leaders, "get_price_history", lambda t, start=None, end=None: stock_df)
 
     metrics = sector_leaders.compute_relationship_metrics("STOCK", etf_series)
     assert metrics is not None
@@ -221,7 +221,7 @@ def test_compute_relationship_metrics_abs_trend_na_when_insufficient_history(mon
     # 200일선 계산에 필요한 데이터(200거래일)보다 짧으면 abs_trend는 "N/A"여야 한다.
     etf_series = _series([100.0 * (1.002**i) for i in range(100)])
     stock_df = _close_df([50.0 * (1.002**i) for i in range(100)])
-    monkeypatch.setattr(sector_leaders, "get_price_history", lambda t, start=None: stock_df)
+    monkeypatch.setattr(sector_leaders, "get_price_history", lambda t, start=None, end=None: stock_df)
 
     metrics = sector_leaders.compute_relationship_metrics("STOCK", etf_series)
     assert metrics is not None
@@ -230,7 +230,7 @@ def test_compute_relationship_metrics_abs_trend_na_when_insufficient_history(mon
 
 def test_compute_relationship_metrics_returns_none_when_no_price_data(monkeypatch):
     etf_series = _series([100.0] * 50)
-    monkeypatch.setattr(sector_leaders, "get_price_history", lambda t, start=None: pd.DataFrame())
+    monkeypatch.setattr(sector_leaders, "get_price_history", lambda t, start=None, end=None: pd.DataFrame())
     assert sector_leaders.compute_relationship_metrics("STOCK", etf_series) is None
 
 
@@ -240,8 +240,104 @@ def test_compute_relationship_metrics_returns_none_when_overlap_too_short(monkey
     short_df = pd.DataFrame(
         {"Close": [10.0, 11.0]}, index=pd.date_range("2030-01-01", periods=2, freq="B")
     )
-    monkeypatch.setattr(sector_leaders, "get_price_history", lambda t, start=None: short_df)
+    monkeypatch.setattr(sector_leaders, "get_price_history", lambda t, start=None, end=None: short_df)
     assert sector_leaders.compute_relationship_metrics("STOCK", etf_series) is None
+
+
+# ----------------------------------------------------------------------------
+# compute_relationship_metrics — 사용자가 고르는 분석 기간(start/end, 2026-07-15 추가)
+# ----------------------------------------------------------------------------
+
+
+def test_compute_relationship_metrics_start_clips_beta_window_but_not_abs_trend(monkeypatch):
+    """start를 주면 베타/상관계수는 그 이후 구간만 반영해야 하고(클리핑이 실제로 적용됨을 증명),
+    abs_trend(200일선 기준)는 여전히 전체 히스토리로 계산돼야 한다(200sma용 fetch는 안 잘림)."""
+    rng = np.random.default_rng(3)
+    etf_returns = rng.normal(loc=0.001, scale=0.005, size=279)
+    etf_series = _series(_price_path_from_returns(100.0, etf_returns))  # 280 거래일
+
+    # 처음 249거래일은 베타=1(수익률 동일), 마지막 30거래일만 베타=3 정권으로 바뀐다.
+    stock_returns = etf_returns.copy()
+    stock_returns[-30:] = etf_returns[-30:] * 3.0
+    stock_df = _close_df(_price_path_from_returns(50.0, stock_returns))
+    monkeypatch.setattr(sector_leaders, "get_price_history", lambda t, start=None, end=None: stock_df)
+
+    clipped_start = stock_df.index[-30].date().isoformat()
+    metrics = sector_leaders.compute_relationship_metrics("STOCK", etf_series, start=clipped_start)
+    assert metrics is not None
+    assert metrics["beta"] == pytest.approx(3.0, abs=0.01)  # 마지막 30일 정권만 반영
+    assert metrics["abs_trend"] != "N/A"  # 200sma는 전체 280일 데이터로 여전히 계산 가능
+
+
+def test_compute_relationship_metrics_supports_one_month_window(monkeypatch):
+    """1개월 프리셋(~21거래일)처럼 짧은 기간을 골라도 None으로 죽지 않고 계산이 나와야 한다
+    (예전 임계값 30/20이면 이 정도 길이는 전부 None으로 막혔음)."""
+    etf_series = _series([100.0 * (1.001**i) for i in range(21)])
+    stock_df = _close_df([50.0 * (1.001**i) for i in range(21)])
+    monkeypatch.setattr(sector_leaders, "get_price_history", lambda t, start=None, end=None: stock_df)
+
+    metrics = sector_leaders.compute_relationship_metrics(
+        "STOCK", etf_series, start=stock_df.index[0].date().isoformat()
+    )
+    assert metrics is not None
+    assert metrics["beta"] == pytest.approx(1.0, abs=1e-9)
+
+
+# ----------------------------------------------------------------------------
+# build_price_chart_series
+# ----------------------------------------------------------------------------
+
+
+def test_build_price_chart_series_trims_to_common_start(monkeypatch):
+    etf_df = pd.DataFrame({"Close": [100.0, 101.0, 102.0]}, index=pd.date_range("2024-01-01", periods=3, freq="D"))
+    monkeypatch.setattr(sector_leaders, "get_price_history", lambda t, start=None, end=None, interval="1d", use_cache=True, cache_ttl=None: etf_df)
+
+    leader_series = pd.Series([200.0, 201.0, 202.0], index=pd.date_range("2024-01-02", periods=3, freq="D"))
+    growth_series = pd.Series([10.0, 11.0, 12.0], index=pd.date_range("2024-01-03", periods=3, freq="D"))
+
+    result = sector_leaders.build_price_chart_series(["XLK"], {"ticker": "LEAD", "aligned_close": leader_series}, [{"ticker": "GROW", "aligned_close": growth_series}])
+
+    assert set(result.keys()) == {"ETF", "LEAD", "GROW"}
+    assert result["ETF"].index[0] == pd.Timestamp("2024-01-03")
+    assert result["LEAD"].index[0] == pd.Timestamp("2024-01-03")
+    assert result["GROW"].index[0] == pd.Timestamp("2024-01-03")
+    assert result["ETF"].iloc[0] == pytest.approx(102.0)
+
+
+def test_build_price_chart_candidates_creates_clickable_entries(monkeypatch):
+    etf_df = pd.DataFrame({"Close": [100.0, 101.0, 102.0]}, index=pd.date_range("2024-01-01", periods=3, freq="D"))
+    monkeypatch.setattr(sector_leaders, "get_price_history", lambda t, start=None, end=None, interval="1d", use_cache=True, cache_ttl=None: etf_df)
+
+    leader_series = pd.Series([200.0, 201.0, 202.0], index=pd.date_range("2024-01-02", periods=3, freq="D"))
+    growth_series = pd.Series([10.0, 11.0, 12.0], index=pd.date_range("2024-01-03", periods=3, freq="D"))
+
+    candidates = sector_leaders.build_price_chart_candidates(
+        ["XLK"],
+        {"ticker": "LEAD", "aligned_close": leader_series},
+        [{"ticker": "GROW", "aligned_close": growth_series}],
+    )
+
+    assert [c["key"] for c in candidates] == ["ETF", "LEAD", "GROW"]
+    assert candidates[1]["label"] == "대장주 LEAD"
+    assert candidates[2]["series"].iloc[0] == pytest.approx(10.0)
+
+
+def test_build_price_chart_series_passes_start_end_to_etf_fetch(monkeypatch):
+    """실제 가격 차트의 ETF 라인도 사용자가 고른 분석 기간(start/end)으로 조회해야 한다."""
+    captured = []
+
+    def fake_get_price_history(t, start=None, end=None, interval="1d"):
+        captured.append((start, end))
+        return pd.DataFrame({"Close": [100.0, 101.0, 102.0]}, index=pd.date_range("2024-01-01", periods=3, freq="D"))
+
+    monkeypatch.setattr(sector_leaders, "get_price_history", fake_get_price_history)
+    leader_series = pd.Series([200.0, 201.0, 202.0], index=pd.date_range("2024-01-01", periods=3, freq="D"))
+
+    sector_leaders.build_price_chart_series(
+        ["XLK"], {"ticker": "LEAD", "aligned_close": leader_series}, [], start="2025-01-01", end="2025-06-30"
+    )
+
+    assert captured == [("2025-01-01", "2025-06-30")]
 
 
 # ----------------------------------------------------------------------------
@@ -252,7 +348,7 @@ def test_compute_relationship_metrics_returns_none_when_overlap_too_short(monkey
 def test_analyze_theme_relationships_attaches_metrics_to_leader_and_growth(monkeypatch):
     etf_series = _series([100.0 * (1.002**i) for i in range(280)])
     monkeypatch.setattr(sector_leaders, "THEME_UNIVERSE", {"기술": ["XLK"]})
-    monkeypatch.setattr(sector_leaders, "theme_price_history", lambda proxies: etf_series)
+    monkeypatch.setattr(sector_leaders, "theme_price_history", lambda proxies, start=None, end=None: etf_series)
     monkeypatch.setattr(
         sector_leaders,
         "compute_leader_and_growth",
@@ -266,7 +362,7 @@ def test_analyze_theme_relationships_attaches_metrics_to_leader_and_growth(monke
         },
     )
     stock_df = _close_df([50.0 * (1.002**i) for i in range(280)])
-    monkeypatch.setattr(sector_leaders, "get_price_history", lambda t, start=None: stock_df)
+    monkeypatch.setattr(sector_leaders, "get_price_history", lambda t, start=None, end=None: stock_df)
 
     result = sector_leaders.analyze_theme_relationships("기술")
     assert result["leader"]["ticker"] == "LEAD"
@@ -293,9 +389,9 @@ def test_analyze_theme_relationships_flags_lag_candidates(monkeypatch):
     unrelated_df = _close_df(_price_path_from_returns(10.0, unrelated_returns))
 
     price_by_ticker = {"LEAD": leader_df, "LAGGER": lagger_df, "UNRELATED": unrelated_df}
-    monkeypatch.setattr(sector_leaders, "get_price_history", lambda t, start=None: price_by_ticker[t])
+    monkeypatch.setattr(sector_leaders, "get_price_history", lambda t, start=None, end=None: price_by_ticker[t])
     monkeypatch.setattr(sector_leaders, "THEME_UNIVERSE", {"기술": ["XLK"]})
-    monkeypatch.setattr(sector_leaders, "theme_price_history", lambda proxies: etf_series)
+    monkeypatch.setattr(sector_leaders, "theme_price_history", lambda proxies, start=None, end=None: etf_series)
     monkeypatch.setattr(
         sector_leaders,
         "compute_leader_and_growth",
@@ -319,9 +415,48 @@ def test_analyze_theme_relationships_flags_lag_candidates(monkeypatch):
     assert by_ticker["UNRELATED"]["lag_candidate"] is False
 
 
+def test_analyze_theme_relationships_threads_start_end_through(monkeypatch):
+    """analyze_theme_relationships(start=..., end=...)가 theme_price_history/
+    compute_relationship_metrics 양쪽 모두에 그대로 전달돼야 사용자가 고른 분석 기간이 실제로
+    반영된다."""
+    etf_series = _series([100.0 * (1.002**i) for i in range(280)])
+    stock_df = _close_df([50.0 * (1.002**i) for i in range(280)])
+    captured_theme_price_history_args = []
+    captured_metrics_args = []
+
+    def fake_theme_price_history(proxies, start=None, end=None):
+        captured_theme_price_history_args.append((start, end))
+        return etf_series
+
+    monkeypatch.setattr(sector_leaders, "THEME_UNIVERSE", {"기술": ["XLK"]})
+    monkeypatch.setattr(sector_leaders, "theme_price_history", fake_theme_price_history)
+    monkeypatch.setattr(
+        sector_leaders,
+        "compute_leader_and_growth",
+        lambda theme, top_n_growth=3: {
+            "theme": theme,
+            "candidates_count": 1,
+            "leader": {"ticker": "LEAD", "name": "Leader Co", "market_cap": 1_000_000_000_000},
+            "growth_stocks": [],
+        },
+    )
+
+    def fake_compute_relationship_metrics(ticker, etf_series, start=None, end=None):
+        captured_metrics_args.append((ticker, start, end))
+        return None
+
+    monkeypatch.setattr(sector_leaders, "get_price_history", lambda t, start=None, end=None: stock_df)
+    monkeypatch.setattr(sector_leaders, "compute_relationship_metrics", fake_compute_relationship_metrics)
+
+    sector_leaders.analyze_theme_relationships("기술", start="2025-01-01", end="2025-06-30")
+
+    assert captured_theme_price_history_args == [("2025-01-01", "2025-06-30")]
+    assert captured_metrics_args == [("LEAD", "2025-01-01", "2025-06-30")]
+
+
 def test_analyze_theme_relationships_handles_missing_etf_data(monkeypatch):
     monkeypatch.setattr(sector_leaders, "THEME_UNIVERSE", {"기술": ["XLK"]})
-    monkeypatch.setattr(sector_leaders, "theme_price_history", lambda proxies: None)
+    monkeypatch.setattr(sector_leaders, "theme_price_history", lambda proxies, start=None, end=None: None)
     monkeypatch.setattr(
         sector_leaders,
         "compute_leader_and_growth",

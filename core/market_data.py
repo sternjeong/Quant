@@ -22,6 +22,7 @@ Streamlit 페이지에서 반복 호출로 인한 재계산이 신경 쓰이면,
 """
 
 import time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date, timedelta
 from pathlib import Path
 from typing import Optional
@@ -37,6 +38,12 @@ CACHE_DIR.mkdir(parents=True, exist_ok=True)
 # 기다리는 시간(초). 명시적 end가 있는(=완전히 과거로 국한된) 요청은 이 값과 무관하게 저장된
 # 데이터만으로 즉시 응답한다 — 확정된 과거 봉은 바뀌지 않기 때문.
 DEFAULT_CACHE_TTL_SECONDS = 6 * 60 * 60  # 6시간
+
+# get_multiple_price_history()가 여러 티커를 동시에 조회할 때 쓰는 스레드풀 크기. 네트워크 I/O
+# 위주라 병렬화 효과가 크지만(시장 국면/섹터 강도처럼 S&P500 전종목을 순회하는 기능에서 실측:
+# 순차 조회 시 수 분 소요), 너무 크면 Yahoo Finance 쪽에서 속도 제한(레이트리밋)에 걸릴 수 있어
+# core.job_manager의 스레드풀 크기(8)와 비슷한 수준으로 제한한다.
+_MULTI_FETCH_MAX_WORKERS = 10
 
 # yfinance가 interval별로 과거 조회를 허용하는 최대 기간(일). None이면 제한 없음(일봉 이상).
 # (Yahoo Finance 쪽 제약이며 yfinance 공식 문서 기준. 실제 경계에서 종종 며칠 짧게 잘리는 경우가
@@ -276,18 +283,29 @@ def get_multiple_price_history(
     interval: str = "1d",
     use_cache: bool = True,
 ) -> dict[str, pd.DataFrame]:
-    """여러 티커의 가격 데이터를 한 번에 가져온다 (관심 티커 스캔, 다종목 백테스트 등에서 사용).
+    """여러 티커의 가격 데이터를 한 번에 가져온다 (관심 티커 스캔, 다종목 백테스트, 시장국면/섹터강도
+    처럼 S&P500 전종목·테마 프록시 ETF 다수를 훑는 기능 등에서 사용).
+
+    개별 티커 조회(네트워크 I/O 위주)를 스레드풀로 병렬 실행한다(2026-07-15) — 순차 for문이면
+    500종목 조회에 수 분이 걸리던 것(시장 국면 탭 최초 로딩 실측)을 동시에 처리해 단축한다. 각
+    티커는 (ticker, interval)별로 독립된 캐시 파일에 쓰기 때문에 스레드 간 쓰기 경합이 없다
+    (core.job_manager가 백그라운드 작업을 스레드풀로 돌리는 것과 같은 이유로 안전).
 
     Returns:
         {ticker: DataFrame} 딕셔너리. 개별 티커 조회 실패 시 해당 티커는 빈 DataFrame.
     """
-    result: dict[str, pd.DataFrame] = {}
-    for t in tickers:
+    def _fetch(t: str) -> pd.DataFrame:
         try:
-            result[t] = get_price_history(t, start=start, end=end, interval=interval, use_cache=use_cache)
+            return get_price_history(t, start=start, end=end, interval=interval, use_cache=use_cache)
         except Exception:
-            result[t] = pd.DataFrame()
-    return result
+            return pd.DataFrame()
+
+    if not tickers:
+        return {}
+
+    with ThreadPoolExecutor(max_workers=_MULTI_FETCH_MAX_WORKERS) as executor:
+        futures = {t: executor.submit(_fetch, t) for t in tickers}
+        return {t: future.result() for t, future in futures.items()}
 
 
 def clear_cache(ticker: Optional[str] = None) -> int:

@@ -12,9 +12,11 @@ from typing import Optional
 
 import pandas as pd
 
-from core import screener, valuation
+from core import macro_cycle, screener, valuation
+from core.fred_data import get_series as fred_get_series
+from core.fred_data import is_configured as fred_is_configured
 from core.market_data import get_price_history
-from core.market_regime import score_ma_cross, score_trend_position
+from core.market_regime import get_latest_market_regime_snapshot, score_ma_cross, score_trend_position
 from core.sector_strength import DEFAULT_LOOKBACK_DAYS, THEME_UNIVERSE, theme_price_history
 
 # core.market_data.get_price_history(start=None)는 로컬 캐시가 없는 티커에 대해 yfinance 기본
@@ -73,9 +75,67 @@ NICHE_THEME_CANDIDATES: dict[str, list[str]] = {
     "로보틱스": ["ISRG", "ROK", "TER", "PATH", "SYM"],
 }
 
-RELATIONSHIP_WINDOW_DAYS = 252  # 베타/상관계수 계산에 쓰는 최근 거래일 수(약 1년)
+# 테마(THEME_UNIVERSE 키) -> core.macro_cycle.SECTOR_ROTATION의 국면별 아웃퍼폼 섹터명 매핑.
+# GICS 10개는 그대로 자기 자신(SECTOR_ROTATION 키와 동일한 한국어 표기), 니치 테마는 성격이 가장
+# 가까운 GICS 섹터로 근사한다(공식 GICS 분류가 아니라 매크로 리포트용 참고 매핑). "커뮤니케이션"은
+# SECTOR_ROTATION에 해당 섹터가 없어 매핑하지 않는다(경기 사이클 로테이션 이론에 별도 항목이 없음).
+THEME_TO_CYCLE_SECTOR: dict[str, str] = {
+    "기술": "기술", "금융": "금융", "헬스케어": "헬스케어", "임의소비재": "임의소비재",
+    "필수소비재": "필수소비재", "에너지": "에너지", "산업재": "산업재", "소재": "소재",
+    "유틸리티": "유틸리티", "부동산": "부동산",
+    "반도체": "기술", "메모리/DRAM": "기술", "냉각": "기술", "사이버보안": "기술", "클라우드": "기술",
+    "우주": "산업재", "방산": "산업재", "로보틱스": "산업재",
+}
+
+
+def get_theme_macro_context(theme: str) -> dict:
+    """테마 하나를 고르면 함께 보여줄 매크로 경제 맥락(시장 국면 + 경기 사이클 국면)을 모은다.
+
+    core.market_regime의 최근 저장 스냅샷(스케줄러가 매일 미리 계산해둔 것 재사용, 추가 조회 없음)과,
+    FRED_API_KEY가 설정돼 있으면 core.macro_cycle의 경기 사이클 국면을 함께 조회해, 이 테마에 매핑된
+    섹터(THEME_TO_CYCLE_SECTOR)가 현재 국면에서 역사적으로 아웃퍼폼하는 섹터 목록에 포함되는지
+    판정한다.
+
+    Returns:
+        {
+            "market_regime": dict|None,  # get_latest_market_regime_snapshot() 결과
+            "cycle_phase": dict|None,    # macro_cycle.determine_cycle_phase() 결과 (FRED 미설정 시 None)
+            "mapped_sector": str|None,   # THEME_TO_CYCLE_SECTOR 매핑 (없으면 None)
+            "is_favored_sector": bool|None,  # 매핑된 섹터가 현재 국면의 아웃퍼폼 목록에 있는지
+        }
+    """
+    market_regime = get_latest_market_regime_snapshot()
+    mapped_sector = THEME_TO_CYCLE_SECTOR.get(theme)
+
+    cycle_phase = None
+    is_favored = None
+    if fred_is_configured():
+        gdp_series = fred_get_series("GDPC1")
+        unemployment_series = fred_get_series("UNRATE")
+        if not gdp_series.empty and not unemployment_series.empty:
+            gdp_growth = macro_cycle.yoy_growth(gdp_series, periods=4)
+            cycle_phase = macro_cycle.determine_cycle_phase(gdp_growth, unemployment_series)
+            if cycle_phase.get("phase") and mapped_sector:
+                is_favored = mapped_sector in cycle_phase["sectors"]
+
+    return {
+        "market_regime": market_regime,
+        "cycle_phase": cycle_phase,
+        "mapped_sector": mapped_sector,
+        "is_favored_sector": is_favored,
+    }
+
+
 TREND_LOOKBACK_DAYS = 20
 TREND_THRESHOLD_PCT = 1.0  # RS 비율이 이 폭(%) 이상 움직여야 상승/하락으로 판정(잡음 방지)
+
+# 사용자가 분석 기간(1개월/6개월/1년/3년/직접 선택)을 고를 수 있게 된 후(2026-07-15) 베타/상관계수는
+# 더 이상 고정된 "최근 252거래일"이 아니라 선택된 기간 전체를 창(window)으로 쓴다. 그래서 최소
+# 데이터 길이 기준도 "1년 데이터가 있어야 함" 전제였던 기존 30/20에서, "1개월(~21거래일)도 계산
+# 가능해야 함" 전제로 낮췄다 — 짧은 기간을 고르면 통계가 더 노이즈에 민감해지는 건 사용자가 감수하는
+# trade-off로 보고, 계산 자체를 막지는 않는다.
+_MIN_ALIGNED_DAYS = 15
+_MIN_RETURN_DAYS = 10
 
 # 성장주 후보군에서 초대형주를 제외하기 위한 시가총액 분위수 (2026-07-15 추가).
 # 대장주(시총 1위) 한 종목만 빼는 기존 방식은 애플이 대장주가 되면 마이크로소프트처럼 여전히
@@ -204,31 +264,39 @@ def _abs_trend_label(close: pd.Series) -> str:
 def compute_relationship_metrics(
     ticker: str,
     etf_series: pd.Series,
-    window_days: int = RELATIONSHIP_WINDOW_DAYS,
+    start: Optional[str] = None,
+    end: Optional[str] = None,
 ) -> Optional[dict]:
     """종목과 대표 ETF 시계열 간 베타/상관계수/상대강도(RS) 비율 추세를 계산한다.
 
     데이터가 부족하면(신규 상장 등) None을 반환한다.
+
+    start/end(2026-07-15 추가, 사용자가 페이지에서 분석 기간을 직접 고를 수 있게 됨)를 주면 베타/
+    상관계수/RS 비율은 그 기간 전체를 창(window)으로 써서 계산한다(예전처럼 고정된 "최근 252거래일"이
+    아님). 단, abs_trend(200일선 기준 절대 추세)는 짧은 기간을 골라도 계산 가능해야 하므로, 가격
+    조회 자체는 `min(start, _default_start())`로 항상 200일선을 채울 만큼 충분히 과거까지 받아오고
+    (200sma 계산용 여유분), 그중 start 이후 구간만 잘라 나머지 지표(beta/correlation/RS)에 쓴다.
 
     Returns:
         {"beta", "correlation", "rs_ratio_now", "rs_change_3m", "trend", "abs_trend", "aligned_close"}
         (trend: ETF 대비 상대강도 추세, abs_trend: 종목 자체의 절대 가격 추세[200일 미만 데이터면
         "N/A"], aligned_close: ETF와 겹치는 구간의 종가 원본 시계열 — 비교 차트 렌더링용)
     """
-    price_df = get_price_history(ticker, start=_default_start())
+    fetch_start = min(start, _default_start()) if start else _default_start()
+    price_df = get_price_history(ticker, start=fetch_start, end=end)
     if price_df is None or price_df.empty or "Close" not in price_df.columns:
         return None
     close = price_df["Close"].dropna()
     if close.empty:
         return None
 
-    aligned = pd.concat([close.rename("stock"), etf_series.rename("etf")], axis=1).dropna()
-    if len(aligned) < 30:
+    display_close = close.loc[close.index >= start] if start else close
+    aligned = pd.concat([display_close.rename("stock"), etf_series.rename("etf")], axis=1).dropna()
+    if len(aligned) < _MIN_ALIGNED_DAYS:
         return None
 
-    window = aligned.iloc[-window_days:] if len(aligned) > window_days else aligned
-    returns = window.pct_change().dropna()
-    if len(returns) < 20:
+    returns = aligned.pct_change().dropna()
+    if len(returns) < _MIN_RETURN_DAYS:
         return None
 
     etf_variance = returns["etf"].var()
@@ -297,6 +365,81 @@ def build_comparison_chart_series(etf_series: pd.Series, leader: Optional[dict],
     return chart_series
 
 
+def build_price_chart_series(
+    etf_tickers: list[str],
+    leader: Optional[dict],
+    growth_stocks: list[dict],
+    start: Optional[str] = None,
+    end: Optional[str] = None,
+) -> dict[str, pd.Series]:
+    """실제 가격 차트에 쓸 수 있도록 ETF/대장주/성장주의 종가 시계열을 같은 시작일 기준으로 잘라낸다.
+
+    페이지에서 정규화 차트 아래에 실제 주가를 보여주기 위해 사용한다. 각 종목은 기존 price history
+    캐시를 읽고, ETF는 프록시 티커 목록의 가격을 평균해 같은 기간에 맞춘다. start/end를 주면 그
+    구간만 조회한다(사용자가 고른 분석 기간과 일치시키기 위함) — 안 주면 기존처럼 기본 lookback을 쓴다.
+    """
+    entities = []
+    if leader is not None and leader.get("aligned_close") is not None:
+        entities.append((leader["ticker"], leader["aligned_close"]))
+    for g in growth_stocks:
+        if g.get("aligned_close") is not None:
+            entities.append((g["ticker"], g["aligned_close"]))
+
+    if not entities:
+        return {}
+
+    etf_histories = []
+    for ticker in etf_tickers:
+        df = get_price_history(ticker, start=start or _default_start(), end=end, interval="1d")
+        if df is None or df.empty or "Close" not in df.columns:
+            continue
+        close = df["Close"].dropna()
+        if not close.empty:
+            etf_histories.append(close)
+
+    if etf_histories:
+        etf_series = pd.concat(etf_histories, axis=1).mean(axis=1).dropna()
+    else:
+        etf_series = pd.Series(dtype=float)
+
+    if etf_series.empty:
+        return {}
+
+    common_start = max([s.index[0] for _, s in entities] + [etf_series.index[0]])
+    price_series = {"ETF": etf_series.loc[etf_series.index >= common_start]}
+    for label, series in entities:
+        trimmed = series.loc[series.index >= common_start]
+        if not trimmed.empty:
+            price_series[label] = trimmed
+    return price_series
+
+
+def build_price_chart_candidates(
+    etf_tickers: list[str],
+    leader: Optional[dict],
+    growth_stocks: list[dict],
+    start: Optional[str] = None,
+    end: Optional[str] = None,
+) -> list[dict]:
+    """실제 가격 차트에서 클릭으로 선택할 수 있는 후보 목록을 만든다."""
+    price_series = build_price_chart_series(etf_tickers, leader, growth_stocks, start=start, end=end)
+    candidates = []
+    if price_series.get("ETF") is not None:
+        candidates.append({"key": "ETF", "label": "대표 ETF", "ticker": "ETF", "series": price_series["ETF"]})
+    if leader is not None and leader.get("ticker") and price_series.get(leader["ticker"]) is not None:
+        candidates.append({
+            "key": leader["ticker"],
+            "label": f"대장주 {leader['ticker']}",
+            "ticker": leader["ticker"],
+            "series": price_series[leader["ticker"]],
+        })
+    for growth in growth_stocks:
+        ticker = growth.get("ticker")
+        if ticker and price_series.get(ticker) is not None:
+            candidates.append({"key": ticker, "label": f"성장주 {ticker}", "ticker": ticker, "series": price_series[ticker]})
+    return candidates
+
+
 def _is_lag_candidate(leader: dict, growth_stock: dict) -> bool:
     """"대형주 추세추종 → 소형주 기회" 레깅(lagging) 후보 여부를 판정한다.
 
@@ -316,8 +459,13 @@ def _is_lag_candidate(leader: dict, growth_stock: dict) -> bool:
     return beta >= LAG_BETA_THRESHOLD and correlation >= LAG_CORRELATION_THRESHOLD and trend != "상승"
 
 
-def analyze_theme_relationships(theme: str, top_n_growth: int = 3) -> dict:
+def analyze_theme_relationships(
+    theme: str, top_n_growth: int = 3, start: Optional[str] = None, end: Optional[str] = None
+) -> dict:
     """테마의 대표 ETF/대장주/성장주를 선정하고 셋의 정량적 관계를 계산한다 (페이지 진입점).
+
+    start/end(2026-07-15 추가): 페이지에서 사용자가 고른 분석 기간(1개월/6개월/1년/3년/직접 선택).
+    안 주면 기존처럼 기본 lookback(약 2.2년)을 그대로 쓴다.
 
     Returns:
         {
@@ -329,11 +477,13 @@ def analyze_theme_relationships(theme: str, top_n_growth: int = 3) -> dict:
         }
     """
     proxies = THEME_UNIVERSE.get(theme, [])
-    etf_series = theme_price_history(proxies) if proxies else None
+    etf_series = theme_price_history(proxies, start=start, end=end) if proxies else None
 
     selection = compute_leader_and_growth(theme, top_n_growth=top_n_growth)
     result: dict = {
         "theme": theme,
+        "start": start,
+        "end": end,
         "proxies": proxies,
         "etf_series": etf_series,
         "candidates_count": selection["candidates_count"],
@@ -344,7 +494,7 @@ def analyze_theme_relationships(theme: str, top_n_growth: int = 3) -> dict:
         return result
 
     leader = dict(selection["leader"])
-    metrics = compute_relationship_metrics(leader["ticker"], etf_series)
+    metrics = compute_relationship_metrics(leader["ticker"], etf_series, start=start, end=end)
     if metrics:
         leader.update(metrics)
     result["leader"] = leader
@@ -352,7 +502,7 @@ def analyze_theme_relationships(theme: str, top_n_growth: int = 3) -> dict:
     growth_stocks = []
     for g in selection["growth_stocks"]:
         g = dict(g)
-        metrics = compute_relationship_metrics(g["ticker"], etf_series)
+        metrics = compute_relationship_metrics(g["ticker"], etf_series, start=start, end=end)
         if metrics:
             g.update(metrics)
         g["lag_candidate"] = _is_lag_candidate(leader, g)

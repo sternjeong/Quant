@@ -13,17 +13,20 @@ from typing import Any, Optional
 
 from core.db import get_session
 from core.models import AlertLog, BacktestResult, Strategy, WatchlistItem
-from core.strategy_engine import is_expression_config, is_staged_config
+from core.strategy_engine import is_combined_config, is_expression_config, is_staged_config
 
 
 def detect_strategy_type(indicator_config: str | dict) -> str:
     """indicator_config 의 JSON 형태만으로 전략 유형을 판별한다.
 
     Returns:
+        "combined" (두 개 이상의 전략을 합성한 전략, combine+strategies 키 존재),
         "staged" (1:2:6 단계별 전략, entry_stages 키 존재), "expression" (직접 수식 전략,
         expression 키 존재) 또는 "regime" (일반 AND/OR 레짐 전략)
     """
     try:
+        if is_combined_config(indicator_config):
+            return "combined"
         if is_staged_config(indicator_config):
             return "staged"
         return "expression" if is_expression_config(indicator_config) else "regime"
@@ -91,7 +94,27 @@ def validate_indicator_config(indicator_config: str) -> dict[str, Any]:
     if not isinstance(config, dict):
         raise ValueError("indicator_config는 JSON 객체(dict)여야 합니다.")
 
-    if "entry_stages" in config:
+    _validate_config_schema(config)
+    return config
+
+
+def _validate_config_schema(config: dict) -> None:
+    """indicator_config dict 하나의 스키마를 검증한다.
+
+    복합(combine+strategies) 전략은 하위 전략마다 이 함수를 재귀적으로 다시 호출해 검증한다
+    (하위 전략도 레짐/직접 수식/1:2:6 단계별/복합 어떤 스키마든 될 수 있으므로).
+    """
+    if "combine" in config or "strategies" in config:
+        strategies = config.get("strategies")
+        if not isinstance(strategies, list) or len(strategies) < 2:
+            raise ValueError("strategies는 2개 이상의 하위 전략 설정을 담은 배열이어야 합니다.")
+        if config.get("combine") not in ("AND", "OR"):
+            raise ValueError("combine은 'AND' 또는 'OR'이어야 합니다.")
+        for sub in strategies:
+            if not isinstance(sub, dict):
+                raise ValueError("strategies의 각 항목은 JSON 객체(dict)여야 합니다.")
+            _validate_config_schema(sub)
+    elif "entry_stages" in config:
         entry_stages = config.get("entry_stages")
         exit_stages = config.get("exit_stages")
         if not isinstance(entry_stages, list) or not entry_stages:
@@ -116,10 +139,8 @@ def validate_indicator_config(indicator_config: str) -> dict[str, Any]:
         if not isinstance(conditions, list) or not conditions:
             raise ValueError(
                 "conditions는 1개 이상의 항목을 가진 배열이어야 합니다 "
-                "(또는 entry_stages/expression 스키마 사용)."
+                "(또는 entry_stages/expression/combine 스키마 사용)."
             )
-
-    return config
 
 
 def update_strategy(

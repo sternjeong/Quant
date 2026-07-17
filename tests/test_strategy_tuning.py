@@ -9,6 +9,7 @@
 네트워크(yfinance)를 타지 않도록 관련 함수를 모두 monkeypatch 로 대체한다.
 """
 
+import copy
 import json
 from types import SimpleNamespace
 
@@ -163,12 +164,248 @@ def test_sample_universe_balances_across_sectors(monkeypatch):
     assert set(result[result["sector"] == "SectorB"]["ticker"]) == {"B0", "B1"}
 
 
+def test_sample_universe_as_of_date_restricts_to_point_in_time_constituents(monkeypatch):
+    """as_of_date를 주면 현재 유니버스 전체가 아니라 그 시점 point-in-time 종목만 후보가 되어야
+    한다(survivorship bias 완화, PROGRESS.md 백로그 1번). 현재 유니버스에 없는(=지수에서 편출된)
+    종목도 섹터 "Unknown"으로 후보에 남아야 한다."""
+    tickers_a = [f"A{i}" for i in range(4)]
+    universe = pd.DataFrame({"Symbol": tickers_a, "Sector": ["SectorA"] * 4})
+    monkeypatch.setattr(st_mod.screener, "get_universe", lambda use_cache=True: universe)
+    market_caps = {t: 100 - i for i, t in enumerate(tickers_a)}
+    market_caps["DELISTED_FROM_INDEX"] = 50
+    monkeypatch.setattr(
+        st_mod.screener, "get_fundamentals", lambda ticker, use_cache=True: {"market_cap": market_caps.get(ticker, 0)}
+    )
+    monkeypatch.setattr(
+        st_mod.point_in_time_universe,
+        "get_constituents_as_of",
+        lambda as_of_date, csv_path=None: ["A0", "A1", "DELISTED_FROM_INDEX"],
+    )
+
+    result = st_mod.sample_universe(n=3, as_of_date="2020-01-01")
+    assert set(result["ticker"]) == {"A0", "A1", "DELISTED_FROM_INDEX"}
+    assert "A2" not in set(result["ticker"])  # 현재 유니버스엔 있지만 그 시점엔 없었던 종목
+    delisted_row = result[result["ticker"] == "DELISTED_FROM_INDEX"].iloc[0]
+    assert delisted_row["sector"] == "Unknown"  # 현재 유니버스 섹터 매핑에 없는 종목
+
+
 def test_sample_universe_empty_when_no_sectors(monkeypatch):
     monkeypatch.setattr(
         st_mod.screener, "get_universe", lambda use_cache=True: pd.DataFrame(columns=["Symbol", "Sector"])
     )
     result = st_mod.sample_universe(n=10)
     assert result.empty
+
+
+def test_sample_universe_random_seed_still_respects_sector_quota(monkeypatch):
+    """random_seed를 줘도 섹터별 할당량(균등 배분 원칙)은 그대로 지켜야 한다 — 대상만 무작위."""
+    tickers_a = [f"A{i}" for i in range(10)]
+    tickers_b = [f"B{i}" for i in range(10)]
+    universe = pd.DataFrame({"Symbol": tickers_a + tickers_b, "Sector": ["SectorA"] * 10 + ["SectorB"] * 10})
+    monkeypatch.setattr(st_mod.screener, "get_universe", lambda use_cache=True: universe)
+    market_caps = {t: 100 - i for i, t in enumerate(tickers_a + tickers_b)}
+    monkeypatch.setattr(
+        st_mod.screener, "get_fundamentals", lambda ticker, use_cache=True: {"market_cap": market_caps.get(ticker, 0)}
+    )
+
+    result = st_mod.sample_universe(n=6, random_seed=42)
+    assert len(result) == 6
+    assert (result["sector"] == "SectorA").sum() == 3
+    assert (result["sector"] == "SectorB").sum() == 3
+
+
+def test_sample_universe_random_seed_is_reproducible_but_differs_from_deterministic(monkeypatch):
+    """같은 시드로 두 번 뽑으면 완전히 같은 표본이 나와야 하고(재현 가능), 시드가 없을 때(결정론적
+    시총 상위)와는 다른 표본이 나올 수 있어야 한다(야간 반복 튜닝에서 실제로 다른 종목을 탐색하는
+    핵심 근거)."""
+    tickers = [f"T{i}" for i in range(10)]
+    universe = pd.DataFrame({"Symbol": tickers, "Sector": ["SectorA"] * 10})
+    monkeypatch.setattr(st_mod.screener, "get_universe", lambda use_cache=True: universe)
+    market_caps = {t: 100 - i for i, t in enumerate(tickers)}  # T0가 시총 1위
+    monkeypatch.setattr(
+        st_mod.screener, "get_fundamentals", lambda ticker, use_cache=True: {"market_cap": market_caps.get(ticker, 0)}
+    )
+
+    deterministic = set(st_mod.sample_universe(n=3)["ticker"])
+    assert deterministic == {"T0", "T1", "T2"}  # 시총 상위 3개
+
+    seeded_once = set(st_mod.sample_universe(n=3, random_seed=7)["ticker"])
+    seeded_twice = set(st_mod.sample_universe(n=3, random_seed=7)["ticker"])
+    assert seeded_once == seeded_twice  # 재현 가능
+
+    seeded_other = set(st_mod.sample_universe(n=3, random_seed=999)["ticker"])
+    # 시드가 다르면 표본도 달라질 수 있어야 한다(10개 중 3개 조합이 다양하므로 충돌 확률이 낮음).
+    assert seeded_once != seeded_other or seeded_once != deterministic
+
+
+# ----------------------------------------------------------------------------
+# get_top_tuning_results — 야간 반복 미세튜닝 리더보드 (2026-07-15)
+# ----------------------------------------------------------------------------
+
+
+def test_get_top_tuning_results_orders_by_excess_return_and_filters_errors(db_session, monkeypatch):
+    from contextlib import contextmanager
+
+    @contextmanager
+    def _fake_get_session():
+        yield db_session
+        db_session.commit()
+
+    monkeypatch.setattr(st_mod, "get_session", _fake_get_session)
+
+    tickers_df = pd.DataFrame({"ticker": ["A", "B", "C"], "sector": ["Tech", "Tech", "Tech"]})
+    results_run1 = [
+        {"ticker": "A", "sector": "Tech", "trained_regime": "약세장", "excess_return": 5.0, "test_comparison": {"strategy": {"cagr": 10.0}}},
+        {"ticker": "B", "sector": "Tech", "trained_regime": "강세장", "excess_return": 1.0, "test_comparison": {"strategy": {"cagr": 3.0}}},
+        {"ticker": "C", "sector": "Tech", "error": "실패"},  # excess_return 없음 -> 제외돼야 함
+    ]
+    run1_id = st_mod.save_tuning_run(
+        BOLLINGER_1_2_6, tickers_df, "2020-01-01", "2021-01-01", 0.75, "빠름", results_run1, base_strategy_id=3
+    )
+
+    results_run2 = [
+        {"ticker": "D", "sector": "Tech", "excess_return": 8.0, "test_comparison": {"strategy": {"cagr": 12.0}}},
+    ]
+    st_mod.save_tuning_run(
+        BOLLINGER_1_2_6, tickers_df, "2020-01-01", "2021-01-01", 0.75, "정밀", results_run2, base_strategy_id=3
+    )
+
+    # 다른 백본 전략(base_strategy_id=99)의 결과는 섞이면 안 된다.
+    results_other_strategy = [
+        {"ticker": "Z", "sector": "Tech", "excess_return": 99.0, "test_comparison": {}},
+    ]
+    st_mod.save_tuning_run(
+        BOLLINGER_1_2_6, tickers_df, "2020-01-01", "2021-01-01", 0.75, "빠름", results_other_strategy,
+        base_strategy_id=99,
+    )
+
+    top = st_mod.get_top_tuning_results(base_strategy_id=3, limit=10)
+    tickers_in_order = [r["ticker"] for r in top]
+    assert tickers_in_order == ["D", "A", "B"]  # excess_return 내림차순, C(에러)/Z(다른 전략) 제외
+    assert top[0]["excess_return"] == 8.0
+    assert top[0]["run_intensity"] == "정밀"
+    a_result = next(r for r in top if r["ticker"] == "A")
+    assert a_result["trained_regime"] == "약세장"
+
+
+def test_get_top_tuning_results_respects_limit(db_session, monkeypatch):
+    from contextlib import contextmanager
+
+    @contextmanager
+    def _fake_get_session():
+        yield db_session
+        db_session.commit()
+
+    monkeypatch.setattr(st_mod, "get_session", _fake_get_session)
+
+    tickers_df = pd.DataFrame({"ticker": [f"T{i}" for i in range(5)], "sector": ["Tech"] * 5})
+    results = [{"ticker": f"T{i}", "sector": "Tech", "excess_return": float(i)} for i in range(5)]
+    st_mod.save_tuning_run(
+        BOLLINGER_1_2_6, tickers_df, "2020-01-01", "2021-01-01", 0.75, "보통", results, base_strategy_id=3
+    )
+
+    top = st_mod.get_top_tuning_results(base_strategy_id=3, limit=2)
+    assert len(top) == 2
+    assert [r["ticker"] for r in top] == ["T4", "T3"]
+
+
+def test_get_top_tuning_results_includes_base_config(db_session, monkeypatch):
+    from contextlib import contextmanager
+
+    @contextmanager
+    def _fake_get_session():
+        yield db_session
+        db_session.commit()
+
+    monkeypatch.setattr(st_mod, "get_session", _fake_get_session)
+
+    tickers_df = pd.DataFrame({"ticker": ["A"], "sector": ["Tech"]})
+    results = [{"ticker": "A", "sector": "Tech", "excess_return": 5.0, "tuned_config": BOLLINGER_1_2_6}]
+    st_mod.save_tuning_run(
+        BOLLINGER_1_2_6, tickers_df, "2020-01-01", "2021-01-01", 0.75, "빠름", results, base_strategy_id=3
+    )
+
+    top = st_mod.get_top_tuning_results(base_strategy_id=3, limit=10)
+    assert top[0]["base_config"] == BOLLINGER_1_2_6
+
+
+# ----------------------------------------------------------------------------
+# describe_tuning_diff / summarize_tuning_diff — 야간 리더보드 상세보기 (2026-07-16)
+# ----------------------------------------------------------------------------
+
+
+def test_describe_tuning_diff_detects_changed_condition_and_weight():
+    tuned = copy.deepcopy(BOLLINGER_1_2_6)
+    tuned["entry_stages"][2]["conditions"][0]["level"] = 35  # RSI 상향 돌파 레벨 30 -> 35
+    tuned["entry_stages"][0]["weight"] = 0.15  # 진입 1단계 비중 0.1 -> 0.15
+    tuned["entry_stages"][1]["weight"] = 0.15  # 합계 유지를 위해 2단계도 같이 조정(정규화된 것처럼)
+
+    diff = st_mod.describe_tuning_diff(BOLLINGER_1_2_6, tuned)
+    assert diff["schema"] == "json"
+    assert diff["unchanged"] is False
+
+    condition_changes = [c for c in diff["changes"] if c["kind"] == "condition"]
+    assert len(condition_changes) == 1
+    assert condition_changes[0]["indicator"] == "rsi_cross"
+    assert "30" in condition_changes[0]["before"]
+    assert "35" in condition_changes[0]["after"]
+
+    weight_changes = {c["path"]: c for c in diff["changes"] if c["kind"] == "weight"}
+    assert "entry_stages[0]" in weight_changes
+    assert "entry_stages[1]" in weight_changes
+    assert "10%" in weight_changes["entry_stages[0]"]["before"]
+    assert "15%" in weight_changes["entry_stages[0]"]["after"]
+
+
+def test_describe_tuning_diff_reports_unchanged_when_original_kept():
+    tuned = copy.deepcopy(BOLLINGER_1_2_6)  # 완전히 동일 -> 원본 그대로 채택된 경우
+    diff = st_mod.describe_tuning_diff(BOLLINGER_1_2_6, tuned)
+    assert diff["unchanged"] is True
+    assert diff["changes"] == []
+
+
+def test_describe_tuning_diff_expression_schema_compares_whole_string():
+    base = {"expression": "close > sma(close, 20) and rsi(close, 14) < 30"}
+    tuned = {"expression": "close > sma(close, 40) and rsi(close, 14) < 30"}
+    diff = st_mod.describe_tuning_diff(base, tuned)
+    assert diff["schema"] == "expression"
+    assert diff["unchanged"] is False
+    assert diff["changes"][0]["before"] == base["expression"]
+    assert diff["changes"][0]["after"] == tuned["expression"]
+
+
+def test_describe_tuning_diff_skips_paths_missing_after_structural_change():
+    # backbone_changed로 조건 개수 자체가 줄어든 경우 -> 사라진 경로는 조용히 건너뛰어야 함(크래시 없음)
+    tuned = copy.deepcopy(BOLLINGER_1_2_6)
+    tuned["entry_stages"] = tuned["entry_stages"][:1]
+    diff = st_mod.describe_tuning_diff(BOLLINGER_1_2_6, tuned)
+    assert diff["schema"] == "json"  # 예외 없이 처리됨
+
+
+def test_summarize_tuning_diff_unchanged_message():
+    diff = {"schema": "json", "unchanged": True, "changes": []}
+    text = st_mod.summarize_tuning_diff(diff)
+    assert "그대로" in text
+
+
+def test_summarize_tuning_diff_lists_each_change_in_korean():
+    diff = {
+        "schema": "json",
+        "unchanged": False,
+        "changes": [
+            {"path": "entry_stages[2].conditions[0]", "kind": "condition", "indicator": "rsi_cross",
+             "before": "RSI(14) 30 상향 돌파", "after": "RSI(14) 35 상향 돌파"},
+        ],
+    }
+    text = st_mod.summarize_tuning_diff(diff)
+    assert "rsi_cross" in text
+    assert "RSI(14) 30 상향 돌파 → RSI(14) 35 상향 돌파" in text
+
+
+def test_summarize_tuning_diff_prefixes_warning_when_backbone_changed():
+    diff = {"schema": "expression", "unchanged": False, "changes": [{"before": "a", "after": "b"}]}
+    text = st_mod.summarize_tuning_diff(diff, backbone_changed=True)
+    assert text.startswith("⚠️")
 
 
 # ----------------------------------------------------------------------------
@@ -358,6 +595,29 @@ def test_generate_structural_variants_returns_empty_on_api_failure(monkeypatch):
     assert st_mod.generate_structural_variants("close > sma(close, 20)", "주도주") == []
 
 
+def test_build_regime_switch_variant_combines_trend_filter_and_original(monkeypatch):
+    """종목 자체 상승추세(종가>이평)면 신고가 돌파로, 그 외엔 원본 진입 조건 그대로 쓰는 결정론적
+    국면 스위치 수식을 만들어야 한다(SPEC 12절, Gemini 없이 고정 템플릿)."""
+    result = st_mod._build_regime_switch_variant("rsi(close, 14) < 30")
+    assert result is not None
+    assert "sma(close, 200)" in result
+    assert "highest(close, 60)" in result
+    assert "rsi(close, 14) < 30" in result  # 원본 진입 조건은 그대로 보존
+
+
+def test_build_regime_switch_variant_uses_custom_periods():
+    result = st_mod._build_regime_switch_variant("rsi(close, 14) < 30", trend_ma_period=100, breakout_lookback=20)
+    assert "sma(close, 100)" in result
+    assert "highest(close, 20)" in result
+
+
+def test_build_regime_switch_variant_returns_none_when_combination_invalid(monkeypatch):
+    monkeypatch.setattr(
+        st_mod, "validate_syntax", lambda expr: (_ for _ in ()).throw(st_mod.ExpressionError("invalid"))
+    )
+    assert st_mod._build_regime_switch_variant("rsi(close, 14) < 30") is None
+
+
 def test_generate_structural_variants_for_config_dispatches_by_schema(monkeypatch):
     """expression/레짐/1:2:6 세 스키마 모두 각자 맞는 생성 경로로 위임되어야 한다."""
     calls = []
@@ -375,7 +635,9 @@ def test_generate_structural_variants_for_config_dispatches_by_schema(monkeypatc
 
     expr_variants = st_mod.generate_structural_variants_for_config(EXPRESSION_BASE_CONFIG, "성장주")
     assert calls == ["expression"]
-    assert expr_variants == [{"expression": "close > sma(close, 20) and rsi(close, 14) < 30 > 0"}]
+    # Gemini 제안(모킹됨) + 결정론적 국면 스위치 변형(3d절)이 하나 더 추가되어야 한다.
+    assert expr_variants[0] == {"expression": "close > sma(close, 20) and rsi(close, 14) < 30 > 0"}
+    assert "highest(close, 60)" in expr_variants[1]["expression"]
 
     regime_variants = st_mod.generate_structural_variants_for_config(REGIME_BASE_CONFIG, "성장주")
     assert calls[-1] == "레짐(AND/OR)"
@@ -503,7 +765,7 @@ def test_select_best_group_config_walkforward_picks_highest_scoring_candidate(mo
     monkeypatch.setattr(st_mod, "run_backtest", _fake_run)
 
     best_config, trail = st_mod._select_best_group_config_walkforward(
-        ["AAA", "BBB"], candidates, "2020-01-01", "2021-06-30"
+        ["AAA", "BBB"], candidates, _THREE_FOLDS
     )
 
     assert best_config["conditions"][0]["short"] == best_short
@@ -523,6 +785,131 @@ def test_group_mean_excess_return_averages_and_skips_errors():
 
 def test_group_mean_excess_return_all_failed_returns_negative_infinity():
     assert st_mod._group_mean_excess_return({"A": {"error": "실패"}}) == float("-inf")
+
+
+# ----------------------------------------------------------------------------
+# 국면별(약세장/강세장) 분리 트레이닝 (SPEC 13절, 2026-07-16)
+# ----------------------------------------------------------------------------
+
+
+def test_train_folds_for_regime_delegates_to_market_regime(monkeypatch):
+    captured = {}
+
+    def _fake_segments(start, end):
+        captured["args"] = (start, end)
+        return {"약세장": [("2020-01-01", "2020-03-01")], "강세장": [("2020-04-01", "2020-09-01")]}
+
+    monkeypatch.setattr(st_mod.market_regime, "historical_regime_segments", _fake_segments)
+
+    assert st_mod._train_folds_for_regime("2020-01-01", "2020-12-31", "약세장") == [("2020-01-01", "2020-03-01")]
+    assert captured["args"] == ("2020-01-01", "2020-12-31")
+    assert st_mod._train_folds_for_regime("2020-01-01", "2020-12-31", "강세장") == [("2020-04-01", "2020-09-01")]
+
+
+def test_evaluate_group_config_on_regime_matched_test_picks_longest_segment(monkeypatch):
+    monkeypatch.setattr(
+        st_mod.market_regime, "historical_regime_segments",
+        lambda start, end: {"약세장": [("2020-01-01", "2020-02-01"), ("2020-06-01", "2020-09-01")]},
+    )
+    captured = {}
+
+    def _fake_eval(tickers, config, seg_start, seg_end):
+        captured["segment"] = (seg_start, seg_end)
+        return {"A": {"strategy": {"cagr": 20.0}, "buy_and_hold_benchmark": {"cagr": 5.0}}}
+
+    monkeypatch.setattr(st_mod, "_evaluate_group_config_on_test", _fake_eval)
+
+    result = st_mod._evaluate_group_config_on_regime_matched_test(["A"], {}, "2020-01-01", "2020-12-31", "약세장")
+
+    assert captured["segment"] == ("2020-06-01", "2020-09-01")  # 더 긴 구간(3개월 > 1개월)이 선택돼야 함
+    assert result["segment_start"] == "2020-06-01"
+    assert result["mean_excess_return"] == pytest.approx(15.0)
+
+
+def test_evaluate_group_config_on_regime_matched_test_none_when_no_matching_segment(monkeypatch):
+    monkeypatch.setattr(st_mod.market_regime, "historical_regime_segments", lambda start, end: {"약세장": []})
+    result = st_mod._evaluate_group_config_on_regime_matched_test(["A"], {}, "2020-01-01", "2020-12-31", "약세장")
+    assert result is None
+
+
+def test_tune_strategy_for_group_uses_regime_folds_when_regime_given(monkeypatch):
+    """regime을 넘기면 달력 등분 폴드(_split_into_folds) 대신 실제 국면 구간(SPEC 13.4절)이
+    _select_best_group_config_walkforward의 폴드로 그대로 전달돼야 한다."""
+    regime_folds = [("2020-02-01", "2020-04-01"), ("2020-08-01", "2020-10-01")]
+    monkeypatch.setattr(st_mod, "_train_folds_for_regime", lambda ts, te, regime: regime_folds)
+    monkeypatch.setattr(
+        st_mod, "_split_into_folds",
+        lambda *a, **k: (_ for _ in ()).throw(AssertionError("regime이 지정됐는데 달력 폴드를 씀")),
+    )
+
+    captured = {}
+
+    def _fake_select(tickers, candidates, folds):
+        captured["folds"] = folds
+        return copy.deepcopy(REGIME_BASE_CONFIG), []
+
+    monkeypatch.setattr(st_mod, "_select_best_group_config_walkforward", _fake_select)
+    monkeypatch.setattr(
+        st_mod, "compare_with_benchmarks",
+        lambda ticker, cfg, start, end: _fake_test_comparison(strategy_cagr=15.0, benchmark_cagr=10.0),
+    )
+    monkeypatch.setattr(st_mod, "run_backtest", lambda ticker, cfg, start, end, label="train": SimpleNamespace(metrics=_metrics()))
+    monkeypatch.setattr(st_mod, "diagnose_strategy_health", lambda cfg: [])
+    monkeypatch.setattr(st_mod.market_regime, "historical_regime_segments", lambda start, end: {"약세장": []})
+
+    result = st_mod.tune_strategy_for_group(
+        ["AAA"], REGIME_BASE_CONFIG, "성장주", "2020-01-01", "2021-12-31", regime="약세장"
+    )
+
+    assert captured["folds"] == regime_folds
+    assert result["trained_regime"] == "약세장"
+    assert result["insufficient_regime_data"] is False
+
+
+def test_tune_strategy_for_group_falls_back_when_no_regime_segments_in_train(monkeypatch):
+    """train 구간 안에 해당 국면 구간이 하나도 없으면(예: 5년 이력에 뚜렷한 약세장이 없음) 원본
+    config를 그대로 쓰고 insufficient_regime_data=True로 표시해야 한다(SPEC 13.5절)."""
+    monkeypatch.setattr(st_mod, "_train_folds_for_regime", lambda ts, te, regime: [])
+    monkeypatch.setattr(
+        st_mod, "_select_best_group_config_walkforward",
+        lambda *a, **k: (_ for _ in ()).throw(AssertionError("폴드가 없는데 워크포워드 탐색을 시도함")),
+    )
+    monkeypatch.setattr(
+        st_mod, "compare_with_benchmarks",
+        lambda ticker, cfg, start, end: _fake_test_comparison(strategy_cagr=15.0, benchmark_cagr=10.0),
+    )
+    monkeypatch.setattr(st_mod, "run_backtest", lambda ticker, cfg, start, end, label="train": SimpleNamespace(metrics=_metrics()))
+    monkeypatch.setattr(st_mod, "diagnose_strategy_health", lambda cfg: [])
+    monkeypatch.setattr(st_mod.market_regime, "historical_regime_segments", lambda start, end: {"약세장": []})
+
+    result = st_mod.tune_strategy_for_group(
+        ["AAA"], REGIME_BASE_CONFIG, "성장주", "2020-01-01", "2021-12-31", regime="약세장"
+    )
+
+    assert result["insufficient_regime_data"] is True
+    assert result["group_config"] == REGIME_BASE_CONFIG
+    assert result["regime_matched_test"] is None
+
+
+def test_tune_strategy_for_group_regime_none_is_unaffected(monkeypatch):
+    """regime을 안 넘기면(기본값) 기존 달력 등분 워크포워드 그대로 동작하고 국면 관련 필드는
+    비활성 상태여야 한다(레거시 호환)."""
+    monkeypatch.setattr(
+        st_mod, "_train_folds_for_regime",
+        lambda *a, **k: (_ for _ in ()).throw(AssertionError("regime=None인데 국면 폴드를 조회함")),
+    )
+    monkeypatch.setattr(st_mod, "diagnose_strategy_health", lambda cfg: [])
+    monkeypatch.setattr(st_mod, "run_backtest", lambda ticker, cfg, start, end, label="전략": SimpleNamespace(metrics=_metrics(sharpe=1.0)))
+    monkeypatch.setattr(
+        st_mod, "compare_with_benchmarks",
+        lambda ticker, cfg, start, end: _fake_test_comparison(strategy_cagr=15.0, benchmark_cagr=10.0),
+    )
+
+    result = st_mod.tune_strategy_for_group(["AAA"], REGIME_BASE_CONFIG, "성장주", "2020-01-01", "2021-12-31")
+
+    assert result["trained_regime"] is None
+    assert result["insufficient_regime_data"] is False
+    assert result["regime_matched_test"] is None
 
 
 def test_tune_strategy_for_group_shares_one_config_across_tickers_and_stays_honest_on_test(monkeypatch):
@@ -617,8 +1004,9 @@ def test_tune_strategy_for_group_never_regresses_below_first_pass(monkeypatch):
     assert result["group_config"]["conditions"][1]["indicator"] == "rsi"
 
 
-def test_run_batch_tuning_groups_tickers_by_style_and_shares_config(monkeypatch):
-    """같은 스타일 종목은 한 그룹으로 묶여 tune_strategy_for_group이 그룹당 1번만 호출되어야 한다."""
+def test_run_batch_tuning_groups_tickers_by_style_and_trains_each_regime_separately(monkeypatch):
+    """같은 스타일 종목은 한 그룹으로 묶이고(SPEC 13절), 그 그룹은 국면(약세장/강세장)마다 각각 한 번씩
+    -- 총 2번 -- tune_strategy_for_group이 호출되어 종목당 결과가 국면별로 2행씩 나와야 한다."""
     tickers_df = pd.DataFrame({"ticker": ["A", "B", "C"], "sector": ["Utilities", "Utilities", "Energy"]})
     fake_styles = pd.DataFrame(
         {
@@ -632,12 +1020,13 @@ def test_run_batch_tuning_groups_tickers_by_style_and_shares_config(monkeypatch)
 
     calls = []
 
-    def _fake_group_tune(tickers, base_config, style_type, start, end, train_ratio=0.75, intensity="보통"):
-        calls.append((tuple(sorted(tickers)), style_type))
-        shared_config = {**base_config, "_style": style_type}
+    def _fake_group_tune(tickers, base_config, style_type, start, end, train_ratio=0.75, intensity="보통", regime=None):
+        calls.append((tuple(sorted(tickers)), style_type, regime))
+        shared_config = {**base_config, "_style": style_type, "_regime": regime}
         return {
             "style_type": style_type,
             "tickers": tickers,
+            "trained_regime": regime,
             "group_config": shared_config,
             "backbone_changed": False,
             "group_mean_excess_return": 1.0,
@@ -648,24 +1037,34 @@ def test_run_batch_tuning_groups_tickers_by_style_and_shares_config(monkeypatch)
                 t: {"strategy": {"cagr": 15.0}, "buy_and_hold_ticker": {"cagr": 10.0}, "buy_and_hold_benchmark": {"cagr": 10.0}}
                 for t in tickers
             },
+            "insufficient_regime_data": False,
+            "regime_matched_test": None,
         }
 
     monkeypatch.setattr(st_mod, "tune_strategy_for_group", _fake_group_tune)
 
     results = st_mod.run_batch_tuning(REGIME_BASE_CONFIG, tickers_df, "2020-01-01", "2021-01-01")
 
-    assert set(calls) == {(("A", "B"), "경기방어주"), (("C",), "경기민감주")}
-    assert len(results) == 3
-    a_row = next(r for r in results if r["ticker"] == "A")
-    b_row = next(r for r in results if r["ticker"] == "B")
-    c_row = next(r for r in results if r["ticker"] == "C")
-    assert a_row["tuned_config"] == b_row["tuned_config"]  # 같은 그룹 -> 동일 config
-    assert a_row["tuned_config"] != c_row["tuned_config"]  # 다른 그룹 -> 다른 config
-    assert a_row["excess_return"] == pytest.approx(5.0)
+    assert set(calls) == {
+        (("A", "B"), "경기방어주", "약세장"), (("A", "B"), "경기방어주", "강세장"),
+        (("C",), "경기민감주", "약세장"), (("C",), "경기민감주", "강세장"),
+    }
+    assert len(results) == 6  # 3종목 x 2국면
+    a_rows = [r for r in results if r["ticker"] == "A"]
+    b_rows = [r for r in results if r["ticker"] == "B"]
+    c_rows = [r for r in results if r["ticker"] == "C"]
+    assert {r["trained_regime"] for r in a_rows} == {"약세장", "강세장"}
+    for regime in ("약세장", "강세장"):
+        a_row = next(r for r in a_rows if r["trained_regime"] == regime)
+        b_row = next(r for r in b_rows if r["trained_regime"] == regime)
+        c_row = next(r for r in c_rows if r["trained_regime"] == regime)
+        assert a_row["tuned_config"] == b_row["tuned_config"]  # 같은 그룹·국면 -> 동일 config
+        assert a_row["tuned_config"] != c_row["tuned_config"]  # 다른 그룹 -> 다른 config
+        assert a_row["excess_return"] == pytest.approx(5.0)
 
 
 def test_run_batch_tuning_continues_after_single_group_failure(monkeypatch):
-    """한 스타일 그룹의 튜닝이 통째로 실패해도 다른 그룹은 계속 진행되어야 한다."""
+    """한 스타일×국면 조합의 튜닝이 통째로 실패해도 나머지 조합은 계속 진행되어야 한다."""
     tickers_df = pd.DataFrame({"ticker": ["OK", "BAD"], "sector": ["Utilities", "Energy"]})
     fake_styles = pd.DataFrame(
         {
@@ -677,29 +1076,37 @@ def test_run_batch_tuning_continues_after_single_group_failure(monkeypatch):
     )
     monkeypatch.setattr(st_mod, "compute_style_scores", lambda df, start, end: fake_styles)
 
-    def _fake_group_tune(tickers, base_config, style_type, start, end, train_ratio=0.75, intensity="보통"):
+    def _fake_group_tune(tickers, base_config, style_type, start, end, train_ratio=0.75, intensity="보통", regime=None):
         if style_type == "경기민감주":
             raise RuntimeError("데이터 조회 실패")
         return {
-            "style_type": style_type, "tickers": tickers, "group_config": base_config, "backbone_changed": False,
+            "style_type": style_type, "tickers": tickers, "trained_regime": regime,
+            "group_config": base_config, "backbone_changed": False,
             "group_mean_excess_return": 1.0, "group_win_ratio": 1.0, "health_warnings": [],
             "per_ticker_train_metrics": {t: _metrics() for t in tickers},
             "per_ticker_test_comparison": {
                 t: {"strategy": {"cagr": 1.0}, "buy_and_hold_ticker": {"cagr": 0.0}, "buy_and_hold_benchmark": {"cagr": 0.0}}
                 for t in tickers
             },
+            "insufficient_regime_data": False,
+            "regime_matched_test": None,
         }
 
     monkeypatch.setattr(st_mod, "tune_strategy_for_group", _fake_group_tune)
 
     results = st_mod.run_batch_tuning({"logic": "AND", "conditions": []}, tickers_df, "2020-01-01", "2021-01-01")
-    assert len(results) == 2
-    ok = next(r for r in results if r["ticker"] == "OK")
-    bad = next(r for r in results if r["ticker"] == "BAD")
-    assert ok["excess_return"] == 1.0
-    assert ok["style_type"] == "경기방어주"
-    assert "error" in bad
-    assert bad["style_type"] == "경기민감주"
+    assert len(results) == 4  # OK: 2국면 성공, BAD: 2국면 실패
+    ok_rows = [r for r in results if r["ticker"] == "OK"]
+    bad_rows = [r for r in results if r["ticker"] == "BAD"]
+    assert len(ok_rows) == 2 and len(bad_rows) == 2
+    assert {r["trained_regime"] for r in ok_rows} == {"약세장", "강세장"}
+    assert {r["trained_regime"] for r in bad_rows} == {"약세장", "강세장"}
+    for r in ok_rows:
+        assert r["excess_return"] == 1.0
+        assert r["style_type"] == "경기방어주"
+    for r in bad_rows:
+        assert "error" in r
+        assert r["style_type"] == "경기민감주"
 
 
 def test_build_param_grid_preserves_bollinger_1_2_6_structure():
@@ -725,6 +1132,77 @@ def test_build_param_grid_bollinger_1_2_6_varies_numeric_params():
     std_devs = {c["entry_stages"][0]["conditions"][0]["std_dev"] for c in candidates}
     assert len(entry_stage3_levels) > 1
     assert len(std_devs) > 1
+
+
+# weight(stage 진입/청산 비중) 튜닝 — 2026-07-15 사용자 확정: 각 stage weight를 독립적으로 흔들되
+# entry_stages/exit_stages 각각 합계는 항상 1.0으로 재정규화(총 진입/청산 비중이 100%를 벗어나
+# 레버리지/미투자가 생기지 않게 함).
+
+
+def test_build_param_grid_varies_stage_weights():
+    candidates = st_mod.build_param_grid(BOLLINGER_1_2_6, "성장주", "정밀")
+    entry_stage1_weights = {c["entry_stages"][0]["weight"] for c in candidates}
+    assert len(entry_stage1_weights) > 1  # weight도 이제 흔들려야 한다
+
+
+def test_build_param_grid_normalizes_stage_weight_sums_to_one():
+    """BOLLINGER_1_2_6의 원본 weight 합은 0.1+0.2+0.6=0.9(1.0이 아님)지만, 튜닝된 후보는 항상 합이
+    1.0(100%)이 되도록 재정규화되어야 한다(2026-07-15 사용자 확정). 예외는 목록에 그대로 덧붙는
+    "원본 폴백" 후보 하나뿐 — 그건 원본 그대로 남아야 다른 후보와 정직하게 비교할 수 있다."""
+    candidates = st_mod.build_param_grid(BOLLINGER_1_2_6, "주도주", "정밀")
+    assert len(candidates) > 1
+    assert BOLLINGER_1_2_6 in candidates  # 원본 폴백은 재정규화되지 않고 그대로 포함되어야 한다
+
+    tuned_candidates = [c for c in candidates if c != BOLLINGER_1_2_6]
+    assert tuned_candidates  # 폴백 말고도 실제 튜닝된 후보가 있어야 함
+    for c in tuned_candidates:
+        entry_sum = sum(s["weight"] for s in c["entry_stages"])
+        exit_sum = sum(s["weight"] for s in c["exit_stages"])
+        assert entry_sum == pytest.approx(1.0, abs=1e-3)
+        assert exit_sum == pytest.approx(1.0, abs=1e-3)
+
+
+def test_build_param_grid_single_stage_weight_untouched():
+    """stage가 1개뿐이면(합계를 흔들 대상이 없음) weight는 원본 그대로 유지되어야 한다."""
+    config = {
+        "entry_stages": [
+            {"weight": 1.0, "logic": "AND", "conditions": [{"indicator": "rsi_cross", "period": 14, "level": 30, "direction": "up"}]}
+        ],
+        "exit_stages": [
+            {"weight": 1.0, "logic": "AND", "conditions": [{"indicator": "rsi_cross", "period": 14, "level": 70, "direction": "down"}]}
+        ],
+    }
+    candidates = st_mod.build_param_grid(config, "성장주", "정밀")
+    for c in candidates:
+        assert c["entry_stages"][0]["weight"] == 1.0
+        assert c["exit_stages"][0]["weight"] == 1.0
+
+
+def test_normalize_stage_weights_rescales_to_one():
+    """원본 합계(0.9)와 무관하게 항상 1.0으로 맞춰야 한다(2026-07-15 사용자 확정)."""
+    candidate = copy.deepcopy(BOLLINGER_1_2_6)
+    candidate["entry_stages"][0]["weight"] = 0.13
+    st_mod._normalize_stage_weights(candidate)
+    assert sum(s["weight"] for s in candidate["entry_stages"]) == pytest.approx(1.0, abs=1e-4)
+    # 비율은 유지되어야 한다: 0.13 : 0.2 : 0.6 정규화 결과가 원래 비율과 같은 방향
+    assert candidate["entry_stages"][0]["weight"] < candidate["entry_stages"][2]["weight"]
+
+
+def test_describe_tunable_params_includes_stage_weights():
+    rows = st_mod.describe_tunable_params(BOLLINGER_1_2_6)
+    weight_rows = [r for r in rows if r["key"] == "weight"]
+    assert len(weight_rows) == 6  # entry_stages 3개 + exit_stages 3개
+    assert {r["category"] for r in weight_rows} == {"비중배분"}
+    assert {r["path"] for r in weight_rows} == {
+        "entry_stages[0]", "entry_stages[1]", "entry_stages[2]",
+        "exit_stages[0]", "exit_stages[1]", "exit_stages[2]",
+    }
+
+
+def test_describe_tunable_params_no_weight_rows_for_regime_config():
+    """entry_stages/exit_stages가 아예 없는 레짐(AND/OR flat) 전략은 weight 미리보기 대상이 없다."""
+    rows = st_mod.describe_tunable_params(REGIME_BASE_CONFIG)
+    assert not any(r["key"] == "weight" for r in rows)
 
 
 def test_build_param_grid_regime_produces_multiple_period_values():
@@ -763,6 +1241,70 @@ def test_build_param_grid_no_tunable_params_returns_original():
     config = {"logic": "AND", "conditions": [{"indicator": "engulfing", "direction": "bullish"}]}
     candidates = st_mod.build_param_grid(config, "주도주", "보통")
     assert candidates == [config]
+
+
+# describe_tunable_params — 실행 전 미리보기 (build_param_grid와 같은 분류/범위 공식을 공유해야 함)
+
+
+def test_describe_tunable_params_lists_all_six_styles_per_param():
+    rows = st_mod.describe_tunable_params(BOLLINGER_1_2_6)
+    assert rows  # 볼린저/RSI 파라미터가 여럿 있으므로 비어있으면 안 됨
+    for row in rows:
+        assert set(row["style_ranges"].keys()) == set(st_mod.STYLE_TYPES)
+        lo, hi = row["style_ranges"]["성장주"]
+        assert lo <= hi
+
+
+def test_describe_tunable_params_matches_build_param_grid_bounds():
+    """미리보기가 보여주는 스타일별 범위가 build_param_grid가 실제로 탐색하는 3값 집합{하한,원본,상한}과
+    정확히 일치해야 한다 — 미리보기가 실제 탐색과 다른 숫자를 보여주면 사용자를 오도하게 되므로 이
+    일치가 핵심. (배수가 1.0 미만인 스타일은 상한이 원본보다 작을 수 있어 min/max가 아니라 집합으로
+    비교한다.)"""
+    rows = st_mod.describe_tunable_params(REGIME_BASE_CONFIG)
+    short_row = next(r for r in rows if r["key"] == "short")
+    original = REGIME_BASE_CONFIG["conditions"][0]["short"]
+
+    for style in st_mod.STYLE_TYPES:
+        candidates = st_mod.build_param_grid(REGIME_BASE_CONFIG, style, "정밀")
+        actual_values = {c["conditions"][0]["short"] for c in candidates}
+        lo, hi = short_row["style_ranges"][style]
+        assert actual_values == {lo, int(round(original)), hi}
+
+
+def test_describe_tunable_params_preserves_backbone_fields_excluded():
+    """indicator/direction/band 같은 구조 필드는 미리보기 대상에 나오면 안 된다(숫자만 튜닝 대상)."""
+    rows = st_mod.describe_tunable_params(BOLLINGER_1_2_6)
+    keys_seen = {r["key"] for r in rows}
+    assert "indicator" not in keys_seen
+    assert "direction" not in keys_seen
+    assert "band" not in keys_seen
+
+
+def test_describe_tunable_params_no_tunable_params_returns_empty():
+    config = {"logic": "AND", "conditions": [{"indicator": "engulfing", "direction": "bullish"}]}
+    assert st_mod.describe_tunable_params(config) == []
+
+
+def test_describe_tunable_params_expression_schema_returns_empty():
+    assert st_mod.describe_tunable_params(EXPRESSION_BASE_CONFIG) == []
+
+
+def test_describe_tunable_params_expression_matches_build_expression_param_grid_bounds(monkeypatch):
+    """미리보기 범위가 build_param_grid(expression 스키마)가 실제로 탐색하는 범위와 일치해야 한다."""
+    sma_period_literal = st_mod._extract_numeric_literals(EXPRESSION_BASE_CONFIG["expression"])[0]
+    fake_tunables = [{**sma_period_literal, "role": "기간", "suggested_min": 10.0, "suggested_max": 30.0}]
+    monkeypatch.setattr(st_mod, "identify_tunable_numbers", lambda expr: fake_tunables)
+
+    rows = st_mod.describe_tunable_params_expression(fake_tunables)
+    assert len(rows) == 1
+    assert set(rows[0]["style_ranges"].keys()) == set(st_mod.STYLE_TYPES)
+
+    for style in st_mod.STYLE_TYPES:
+        candidates = st_mod.build_param_grid(EXPRESSION_BASE_CONFIG, style, "정밀")
+        actual_periods = {st_mod._extract_numeric_literals(c["expression"])[0]["value"] for c in candidates}
+        lo, hi = rows[0]["style_ranges"][style]
+        assert min(actual_periods) == lo
+        assert max(actual_periods) == hi
 
 
 def test_build_param_grid_new_bollinger_indicators_preserves_structure_and_varies_numeric_params():
@@ -940,8 +1482,10 @@ def test_save_and_get_tuning_run_roundtrip(db_session, monkeypatch):
             "train_metrics": {"sharpe": 1.0}, "test_comparison": {"strategy": {"cagr": 5.0}},
             "excess_return": 2.0, "health_warnings": [], "backbone_changed": True,
             "tuning_trail": [{"mean_sharpe": 1.5, "std_sharpe": 0.1, "score": 1.45}],
+            "trained_regime": "약세장", "insufficient_regime_data": False,
+            "regime_matched_test": {"segment_start": "2020-06-01", "segment_end": "2020-09-01", "mean_excess_return": 3.0},
         },
-        {"ticker": "BBB", "sector": "Energy", "error": "실패"},
+        {"ticker": "BBB", "sector": "Energy", "trained_regime": "강세장", "error": "실패"},
     ]
 
     run_id = st_mod.save_tuning_run(
@@ -960,6 +1504,11 @@ def test_save_and_get_tuning_run_roundtrip(db_session, monkeypatch):
     assert aaa["tuned_config"]["entry_stages"][0]["conditions"][0]["indicator"] == "bollinger"
     assert aaa["backbone_changed"] is True
     assert aaa["tuning_trail"] == [{"mean_sharpe": 1.5, "std_sharpe": 0.1, "score": 1.45}]
+    assert aaa["trained_regime"] == "약세장"
+    assert aaa["insufficient_regime_data"] is False
+    assert aaa["regime_matched_test"] == {
+        "segment_start": "2020-06-01", "segment_end": "2020-09-01", "mean_excess_return": 3.0
+    }
 
     bbb = next(r for r in fetched["results"] if r["ticker"] == "BBB")
     assert bbb["error"] == "실패"
@@ -967,6 +1516,9 @@ def test_save_and_get_tuning_run_roundtrip(db_session, monkeypatch):
     assert bbb["health_warnings"] == []
     assert bbb["tuning_trail"] == []
     assert bbb["backbone_changed"] is False  # 명시 안 하면 기본값 False
+    assert bbb["trained_regime"] == "강세장"
+    assert bbb["insufficient_regime_data"] is False  # 명시 안 하면 기본값 False
+    assert bbb["regime_matched_test"] is None
 
     listed = st_mod.list_tuning_runs()
     assert any(r["id"] == run_id and r["universe_size"] == 2 for r in listed)
@@ -1017,7 +1569,10 @@ def test_run_and_save_tuning_falls_back_to_sample_universe_when_no_tickers_df(db
 
     monkeypatch.setattr(st_mod, "get_session", _fake_get_session)
     monkeypatch.setattr(
-        st_mod, "sample_universe", lambda n, use_cache=True: pd.DataFrame({"ticker": ["AAPL"], "sector": ["Information Technology"]})
+        st_mod, "sample_universe",
+        lambda n, use_cache=True, random_seed=None, as_of_date=None: pd.DataFrame(
+            {"ticker": ["AAPL"], "sector": ["Information Technology"]}
+        ),
     )
     monkeypatch.setattr(
         st_mod, "run_batch_tuning",

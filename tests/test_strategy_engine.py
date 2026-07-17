@@ -2,29 +2,45 @@
 
 import numpy as np
 import pandas as pd
+import pytest
 
 import core.strategy_engine as strategy_engine
 from core.indicators import (
     compute_bbw,
     compute_bbw_squeeze_release,
     compute_bollinger,
+    compute_doji,
     compute_double_pattern,
     compute_engulfing,
     compute_highest_high,
     compute_ichimoku,
+    compute_inside_bar,
+    compute_inside_bar_breakout,
     compute_lowest_low,
     compute_ma_cross,
     compute_macd,
+    compute_marubozu,
     compute_mfi,
     compute_percent_b,
+    compute_piercing_dark_cloud,
+    compute_pin_bar,
+    compute_rising_falling_three_methods,
     compute_rsi,
     compute_rsi_divergence,
+    compute_star_pattern,
+    compute_three_soldiers_crows,
+    compute_volume_dryup_ratio,
+    compute_volume_ratio,
 )
 from core.strategy_engine import (
     combine_conditions,
+    describe_condition,
+    evaluate_boolean_signal,
+    evaluate_condition,
     extract_staged_trades,
     extract_trades,
     generate_positions,
+    is_combined_config,
     is_expression_config,
     is_staged_config,
     simulate_staged_positions,
@@ -331,6 +347,224 @@ def test_double_pattern_and_rsi_divergence_conditions_via_combine_conditions():
     assert div_signal.sum() >= 1
 
 
+def _one_bar_df(open_, high, low, close):
+    idx = pd.bdate_range("2022-01-03", periods=1)
+    return pd.DataFrame({"Open": [open_], "High": [high], "Low": [low], "Close": [close]}, index=idx)
+
+
+def test_compute_marubozu_detects_bullish_and_bearish():
+    bullish = compute_marubozu(_one_bar_df(10.0, 15.0, 10.0, 15.0))
+    assert bool(bullish["bullish"].iloc[0]) and not bool(bullish["bearish"].iloc[0])
+    bearish = compute_marubozu(_one_bar_df(15.0, 15.0, 10.0, 10.0))
+    assert bool(bearish["bearish"].iloc[0]) and not bool(bearish["bullish"].iloc[0])
+    # 몸통이 범위 대부분을 차지하지 않으면(꼬리가 김) 마루보즈가 아니다
+    not_marubozu = compute_marubozu(_one_bar_df(10.0, 20.0, 5.0, 11.0))
+    assert not bool(not_marubozu["bullish"].iloc[0]) and not bool(not_marubozu["bearish"].iloc[0])
+
+
+def test_compute_pin_bar_detects_bullish_and_bearish():
+    bullish = compute_pin_bar(_one_bar_df(9.0, 9.3, 5.0, 9.2))
+    assert bool(bullish["bullish"].iloc[0]) and not bool(bullish["bearish"].iloc[0])
+    bearish = compute_pin_bar(_one_bar_df(9.2, 13.0, 8.9, 9.0))
+    assert bool(bearish["bearish"].iloc[0]) and not bool(bearish["bullish"].iloc[0])
+
+
+def test_compute_doji_classifies_four_types():
+    dragonfly = compute_doji(_one_bar_df(10.0, 10.05, 5.0, 10.0))
+    assert dragonfly[["dragonfly"]].iloc[0].item()
+    assert not dragonfly[["standard", "long_legged", "gravestone"]].iloc[0].any()
+
+    gravestone = compute_doji(_one_bar_df(10.0, 15.0, 9.95, 10.0))
+    assert gravestone[["gravestone"]].iloc[0].item()
+    assert not gravestone[["standard", "long_legged", "dragonfly"]].iloc[0].any()
+
+    long_legged = compute_doji(_one_bar_df(10.0, 13.0, 7.0, 10.0))
+    assert long_legged[["long_legged"]].iloc[0].item()
+    assert not long_legged[["standard", "dragonfly", "gravestone"]].iloc[0].any()
+
+    standard = compute_doji(_one_bar_df(6.7, 10.0, 0.0, 7.5))
+    assert standard[["standard"]].iloc[0].item()
+    assert not standard[["long_legged", "dragonfly", "gravestone"]].iloc[0].any()
+
+
+def test_compute_inside_bar_requires_full_containment_in_prior_range():
+    idx = pd.bdate_range("2022-01-03", periods=2)
+    df = pd.DataFrame(
+        {"Open": [10.0, 10.5], "High": [12.0, 11.5], "Low": [8.0, 8.5], "Close": [9.0, 11.0]}, index=idx
+    )
+    result = compute_inside_bar(df)
+    assert not bool(result.iloc[0])  # 첫 바는 비교 대상(전일)이 없어 항상 False
+    assert bool(result.iloc[1])  # 둘째 바의 고저가 첫째 바 범위 안에 완전히 포함됨
+
+
+def test_compute_inside_bar_breakout_waits_for_delayed_breakout():
+    idx = pd.bdate_range("2022-01-03", periods=4)
+    df = pd.DataFrame(
+        {
+            "Open": [10.0, 10.5, 10.4, 10.6],
+            "High": [12.0, 11.5, 11.4, 13.0],
+            "Low": [8.0, 8.5, 8.6, 10.5],
+            "Close": [9.0, 11.0, 10.5, 12.5],
+        },
+        index=idx,
+    )
+    result = compute_inside_bar_breakout(df, lookback=5)
+    assert not result["bullish"].iloc[1]  # 인사이드바가 형성된 그날 자체는 돌파일 수 없음
+    assert not result["bullish"].iloc[2]  # 아직 마더 바 범위 안
+    assert bool(result["bullish"].iloc[3])  # 마더 바 고점(12.0) 상향 돌파
+    assert not result["bearish"].any()
+
+
+def _make_piercing_df():
+    """20봉 평평한 구간 뒤에 하락 관통형(bearish) 조건이 성립하는 21번째 바를 붙인 합성 OHLC."""
+    idx = pd.bdate_range("2022-01-03", periods=22)
+    opens = [100.0] * 20
+    highs = [100.5] * 20
+    lows = [99.5] * 20
+    closes = [100.0] * 20
+    # 21번째 바: 몸통 큰 음봉(전일 대비 하락) — 관통형의 "전일" 역할
+    opens += [100.0]
+    highs += [100.2]
+    lows += [89.5]
+    closes += [90.0]
+    # 22번째 바: 상승 관통형(피어싱) 성립 — 시가가 전일 종가 아래로 갭, 종가는 전일 몸통 중간값 위로
+    # 회복하되 전일 시가는 못 넘김, 저가는 하단 밴드 밖으로 뚫었다가 종가는 밴드 위로 복귀
+    opens += [88.0]
+    highs += [97.5]
+    lows += [80.0]
+    closes += [97.0]
+    return pd.DataFrame({"Open": opens, "High": highs, "Low": lows, "Close": closes}, index=idx)
+
+
+def test_compute_piercing_dark_cloud_detects_bullish_piercing_pattern():
+    df = _make_piercing_df()
+    result = compute_piercing_dark_cloud(df, band_period=20, band_std=2.0)
+    assert bool(result["bullish"].iloc[-1])
+    assert not bool(result["bearish"].iloc[-1])
+
+
+def test_compute_star_pattern_detects_morning_star():
+    idx = pd.bdate_range("2022-01-03", periods=3)
+    df = pd.DataFrame(
+        {
+            "Open": [100.0, 87.0, 88.0],
+            "High": [100.5, 87.5, 99.0],
+            "Low": [89.0, 86.5, 87.5],
+            "Close": [89.0, 87.2, 98.0],
+        },
+        index=idx,
+    )
+    result = compute_star_pattern(df)
+    assert bool(result["bullish"].iloc[2])
+    assert not bool(result["bearish"].iloc[2])
+
+
+def test_compute_three_soldiers_crows_detects_three_white_soldiers():
+    idx = pd.bdate_range("2022-01-03", periods=3)
+    df = pd.DataFrame(
+        {
+            "Open": [10.0, 10.5, 11.5],
+            "High": [11.05, 12.05, 13.05],
+            "Low": [9.95, 10.45, 11.45],
+            "Close": [11.0, 12.0, 13.0],
+        },
+        index=idx,
+    )
+    result = compute_three_soldiers_crows(df)
+    assert bool(result["bullish"].iloc[2])
+    assert not bool(result["bearish"].iloc[2])
+
+
+def test_compute_rising_three_methods_detects_pause_and_breakout():
+    idx = pd.bdate_range("2022-01-03", periods=5)
+    df = pd.DataFrame(
+        {
+            "Open": [100.0, 108.0, 106.0, 104.0, 103.0],
+            "High": [110.0, 109.0, 107.0, 105.0, 112.0],
+            "Low": [100.0, 105.0, 103.0, 102.0, 103.0],
+            "Close": [109.0, 106.0, 104.0, 103.0, 111.0],
+        },
+        index=idx,
+    )
+    result = compute_rising_falling_three_methods(df, n_pause=3)
+    assert bool(result["bullish"].iloc[4])
+    assert not bool(result["bearish"].iloc[4])
+
+
+def test_candlestick_pattern_conditions_via_combine_conditions():
+    marubozu_df = _one_bar_df(10.0, 15.0, 10.0, 15.0)
+    signal = combine_conditions(
+        df=marubozu_df,
+        indicator_config={"logic": "AND", "conditions": [{"indicator": "marubozu", "direction": "bullish"}]},
+    )
+    assert bool(signal.iloc[0])
+
+    doji_df = _one_bar_df(10.0, 10.05, 5.0, 10.0)
+    doji_signal = combine_conditions(
+        df=doji_df,
+        indicator_config={
+            "logic": "AND",
+            "conditions": [{"indicator": "doji", "doji_type": "dragonfly"}],
+        },
+    )
+    assert bool(doji_signal.iloc[0])
+
+
+def test_inside_bar_breakout_condition_via_combine_conditions():
+    idx = pd.bdate_range("2022-01-03", periods=4)
+    df = pd.DataFrame(
+        {
+            "Open": [10.0, 10.5, 10.4, 10.6],
+            "High": [12.0, 11.5, 11.4, 13.0],
+            "Low": [8.0, 8.5, 8.6, 10.5],
+            "Close": [9.0, 11.0, 10.5, 12.5],
+        },
+        index=idx,
+    )
+    signal = combine_conditions(
+        df=df,
+        indicator_config={
+            "logic": "AND",
+            "conditions": [{"indicator": "inside_bar_breakout", "direction": "bullish", "lookback": 5}],
+        },
+    )
+    assert not bool(signal.iloc[2])
+    assert bool(signal.iloc[3])
+
+
+def test_level_break_condition_detects_resistance_breakout():
+    idx = pd.bdate_range("2022-01-03", periods=6)
+    close = [100.0, 100.0, 100.0, 100.0, 100.0, 105.0]
+    df = pd.DataFrame(
+        {"Open": close, "High": close, "Low": close, "Close": close}, index=idx
+    )
+    signal = combine_conditions(
+        df=df,
+        indicator_config={
+            "logic": "AND",
+            "conditions": [{"indicator": "level_break", "source": "highest_high", "period": 5, "op": "break_above"}],
+        },
+    )
+    assert not bool(signal.iloc[4])
+    assert bool(signal.iloc[5])  # 직전 5봉 고점(100)을 종가 105가 상향 돌파
+
+
+def test_ma_touch_condition_detects_single_ma_cross():
+    df = _make_trending_df()
+    signal = combine_conditions(
+        df=df,
+        indicator_config={
+            "logic": "AND",
+            "conditions": [{"indicator": "ma_touch", "period": 20, "ma_type": "ema", "op": "break_above"}],
+        },
+    )
+    from core.strategy_engine import _crossover
+    from core.indicators import ema
+
+    expected = _crossover(df["Close"], ema(df["Close"], 20))
+    assert (signal == expected).all()
+
+
 def test_combine_conditions_and_logic():
     df = _make_trending_df()
     config = {
@@ -577,6 +811,54 @@ def test_simulate_staged_positions_without_stop_loss_key_is_unaffected(monkeypat
     assert not any(e.kind == "stop_loss" for e in events)
 
 
+def test_take_profit_requires_stop_loss():
+    config = {
+        "entry_stages": [{"weight": 1.0, "logic": "AND", "conditions": [{"indicator": "x1"}]}],
+        "exit_stages": [{"weight": 1.0, "logic": "AND", "conditions": [{"indicator": "x2"}]}],
+        "take_profit": {"multiple": 2.0},
+    }
+    with pytest.raises(ValueError, match="stop_loss"):
+        simulate_staged_positions(_make_flat_df(3), config)
+
+
+def test_simulate_staged_positions_take_profit_liquidates_at_stop_multiple(monkeypatch):
+    """take_profit은 진입 사이클 시작 바에서 '진입참조가 + multiple*(진입참조가-손절레벨)'을 스냅샷하고,
+    이후 종가가 그 목표가 이상이 되면 exit_stages와 무관하게 즉시 전량 청산해야 한다."""
+    idx = pd.bdate_range("2022-01-03", periods=6)
+    df = pd.DataFrame(
+        {
+            "Open": [100.0, 110.0, 115.0, 125.0, 131.0, 140.0],
+            "High": [100.0, 110.0, 115.0, 125.0, 131.0, 140.0],
+            "Low": [100.0] * 6,
+            "Close": [100.0, 110.0, 115.0, 125.0, 131.0, 140.0],
+            "Volume": 1,
+        },
+        index=idx,
+    )
+    entry_day1 = pd.Series([False, True, False, False, False, False], index=idx)
+    exit_never = pd.Series([False] * 6, index=idx)
+    _patch_combine_conditions_sequence(monkeypatch, [entry_day1, exit_never])
+
+    config = {
+        "entry_stages": [{"weight": 1.0, "logic": "AND", "conditions": [{"indicator": "x1"}]}],
+        "exit_stages": [{"weight": 1.0, "logic": "AND", "conditions": [{"indicator": "x2"}]}],
+        "stop_loss": {"source": "lowest_low", "period": 2},
+        "take_profit": {"multiple": 2.0},
+    }
+
+    weight_signal, events = simulate_staged_positions(df, config)
+
+    # day1 진입참조가=110, 손절레벨=lowest_low(period=2)=min(100,100)=100, 목표가=110+2*(110-100)=130
+    assert weight_signal.iloc[1] == 1.0
+    assert weight_signal.iloc[3] == 1.0  # day3 종가(125) < 목표가(130)
+    assert weight_signal.iloc[4] == 0.0  # day4 종가(131) >= 목표가(130) -> 즉시 전량 청산
+
+    tp_events = [e for e in events if e.kind == "take_profit"]
+    assert len(tp_events) == 1
+    assert tp_events[0].date == idx[4]
+    assert tp_events[0].weight == 1.0
+
+
 def test_extract_staged_trades_matches_average_weighted_prices():
     df = _make_flat_df(6)
     df = df.copy()
@@ -593,3 +875,163 @@ def test_extract_staged_trades_matches_average_weighted_prices():
     expected_entry = (0.4 * 101.0 + 0.6 * 102.0) / 1.0
     assert round(trade.entry_price, 6) == round(expected_entry, 6)
     assert trade.exit_price == 105.0  # day4 다음날(=마지막 인덱스) 종가
+
+
+def test_is_combined_config_detects_combine_and_strategies_keys():
+    assert is_combined_config({"combine": "AND", "strategies": [{}, {}]}) is True
+    assert is_combined_config({"logic": "AND", "conditions": []}) is False
+    assert is_combined_config({"entry_stages": []}) is False
+    assert is_combined_config({"expression": "close > 0"}) is False
+
+
+def test_evaluate_boolean_signal_and_or_combine_two_regime_signals():
+    df = _make_trending_df()
+    config_a = {"logic": "AND", "conditions": [{"indicator": "ma_cross", "short": 10, "long": 30, "type": "golden"}]}
+    config_b = {"logic": "AND", "conditions": [{"indicator": "rsi", "period": 14, "op": "<", "value": 70}]}
+    signal_a = evaluate_boolean_signal(df, config_a)
+    signal_b = evaluate_boolean_signal(df, config_b)
+
+    and_combined = evaluate_boolean_signal(df, {"combine": "AND", "strategies": [config_a, config_b]})
+    or_combined = evaluate_boolean_signal(df, {"combine": "OR", "strategies": [config_a, config_b]})
+
+    assert (and_combined == (signal_a & signal_b)).all()
+    assert (or_combined == (signal_a | signal_b)).all()
+
+
+def test_evaluate_boolean_signal_treats_staged_substrategy_weight_as_boolean(monkeypatch):
+    df = _make_flat_df(4)
+    weight_series = pd.Series([0.0, 0.3, 0.0, 0.6], index=df.index)
+    monkeypatch.setattr(strategy_engine, "simulate_staged_positions", lambda df_arg, cfg: (weight_series, []))
+
+    staged_sub = {
+        "entry_stages": [{"weight": 1.0, "logic": "AND", "conditions": [{"indicator": "rsi"}]}],
+        "exit_stages": [],
+    }
+    signal = evaluate_boolean_signal(df, staged_sub)
+    assert list(signal) == [False, True, False, True]
+
+
+def test_evaluate_boolean_signal_combines_staged_and_regime_recursively(monkeypatch):
+    df = _make_trending_df()
+    weight_series = pd.Series(1.0, index=df.index)  # 항상 보유 중이므로 AND 결합 시 regime 쪽이 그대로 남아야 함
+    monkeypatch.setattr(strategy_engine, "simulate_staged_positions", lambda df_arg, cfg: (weight_series, []))
+
+    staged_sub = {
+        "entry_stages": [{"weight": 1.0, "logic": "AND", "conditions": [{"indicator": "rsi"}]}],
+        "exit_stages": [],
+    }
+    regime_sub = {"logic": "AND", "conditions": [{"indicator": "ma_cross", "short": 10, "long": 30, "type": "golden"}]}
+    combined_config = {"combine": "AND", "strategies": [staged_sub, regime_sub]}
+
+    signal = evaluate_boolean_signal(df, combined_config)
+    expected = evaluate_boolean_signal(df, regime_sub)
+    assert (signal == expected).all()
+
+
+def test_evaluate_boolean_signal_supports_nested_combined_strategies():
+    df = _make_trending_df()
+    config_a = {"logic": "AND", "conditions": [{"indicator": "ma_cross", "short": 10, "long": 30, "type": "golden"}]}
+    config_b = {"logic": "AND", "conditions": [{"indicator": "rsi", "period": 14, "op": "<", "value": 70}]}
+    always_true_sub = {"expression": "close > 0"}
+    inner = {"combine": "AND", "strategies": [config_a, config_b]}
+    outer = {"combine": "OR", "strategies": [inner, always_true_sub]}
+
+    assert is_combined_config(outer) is True
+    signal = evaluate_boolean_signal(df, outer)
+    # always_true_sub가 항상 True이므로 OR 결합 결과도 전체 구간에서 항상 True여야 한다
+    assert signal.all()
+
+
+def test_generate_positions_dispatches_combined_config():
+    df = _make_trending_df()
+    config_a = {"logic": "AND", "conditions": [{"indicator": "ma_cross", "short": 10, "long": 30, "type": "golden"}]}
+    config_b = {"logic": "AND", "conditions": [{"indicator": "rsi", "period": 14, "op": "<", "value": 70}]}
+    combined_config = {"combine": "AND", "strategies": [config_a, config_b]}
+
+    position = generate_positions(df, combined_config)
+    expected = evaluate_boolean_signal(df, combined_config).astype(int)
+    assert (position == expected).all()
+
+
+def test_extract_trades_reason_text_for_combined_config():
+    df = _make_trending_df()
+    config_a = {"logic": "AND", "conditions": [{"indicator": "ma_cross", "short": 10, "long": 30, "type": "golden"}]}
+    config_b = {"logic": "AND", "conditions": [{"indicator": "rsi", "period": 14, "op": "<", "value": 70}]}
+    combined_config = {"combine": "AND", "strategies": [config_a, config_b]}
+
+    position = generate_positions(df, combined_config)
+    trades = extract_trades(df, position, combined_config)
+    assert trades  # 최소 1건 이상 매매가 있어야 검증 가능
+
+    for t in trades:
+        assert t.entry_reason is not None and "복합 전략" in t.entry_reason
+        if t.exit_reason is not None:
+            assert "복합 전략" in t.exit_reason or "강제 청산" in t.exit_reason
+
+
+# ----------------------------------------------------------------------------
+# 거래량 급증/감소 지표 (volume_spike/volume_dryup) — 2026-07-16 거래량 매매법 신규 추가
+# ----------------------------------------------------------------------------
+
+
+def _make_volume_df(n=40):
+    """가격은 고정하고 거래량만 통제하는 합성 OHLCV (거래량 지표 계산 검증용)."""
+    idx = pd.bdate_range("2022-01-03", periods=n)
+    close = [100.0] * n
+    volume = [1000.0] * n
+    return pd.DataFrame(
+        {"Open": close, "High": close, "Low": close, "Close": close, "Adj Close": close, "Volume": volume},
+        index=idx,
+    )
+
+
+def test_compute_volume_ratio_flags_spike_relative_to_prior_average():
+    df = _make_volume_df()
+    df.loc[df.index[25], "Volume"] = 5000.0  # 직전 20일 평균(1000) 대비 5배
+    ratio = compute_volume_ratio(df, period=20)
+    assert round(ratio.iloc[25], 2) == 5.0
+    assert pd.isna(ratio.iloc[10])  # warmup(20일 미만) 구간은 NaN
+
+
+def test_compute_volume_ratio_excludes_current_day_from_average():
+    """당일 거래량 자체가 평균 계산에 섞이면 배수가 과소평가되므로, shift(1) 후 평균을 내야 한다."""
+    df = _make_volume_df()
+    df.loc[df.index[25], "Volume"] = 5000.0
+    ratio_at_spike = compute_volume_ratio(df, period=20).iloc[25]
+    # 당일 값이 평균에 섞였다면 분모가 커져 5.0보다 작게 나왔을 것
+    assert ratio_at_spike == pytest.approx(5.0)
+
+
+def test_compute_volume_dryup_ratio_flags_decline_after_recent_peak():
+    df = _make_volume_df()
+    df.loc[df.index[10], "Volume"] = 5000.0  # 최근 거래량 고점
+    df.loc[df.index[15], "Volume"] = 500.0  # 그 고점 대비 크게 감소
+    ratio = compute_volume_dryup_ratio(df, lookback=10)
+    assert round(ratio.iloc[15], 3) == round(500.0 / 5000.0, 3)
+
+
+def test_eval_volume_spike_condition_true_only_on_spike_day():
+    df = _make_volume_df()
+    df.loc[df.index[25], "Volume"] = 5000.0
+    signal = evaluate_condition(df, {"indicator": "volume_spike", "period": 20, "mult": 2.0})
+    assert bool(signal.iloc[25]) is True
+    assert bool(signal.iloc[24]) is False
+    assert not signal.iloc[:20].any()  # warmup NaN 구간은 fillna(False)로 전부 False
+
+
+def test_eval_volume_dryup_condition_true_only_after_dryup():
+    df = _make_volume_df()
+    df.loc[df.index[10], "Volume"] = 5000.0
+    df.loc[df.index[15], "Volume"] = 500.0
+    signal = evaluate_condition(df, {"indicator": "volume_dryup", "lookback": 10, "ratio": 0.4})
+    assert bool(signal.iloc[15]) is True
+    assert bool(signal.iloc[5]) is False  # 고점이 생기기 전(거래량이 평소와 동일)에는 False
+
+
+def test_describe_condition_volume_indicators_in_korean():
+    assert describe_condition({"indicator": "volume_spike", "period": 20, "mult": 2.0}) == (
+        "거래량이 20일 평균 대비 2배 이상 급증"
+    )
+    assert describe_condition({"indicator": "volume_dryup", "lookback": 10, "ratio": 0.4}) == (
+        "거래량이 최근 10일 고점 대비 0.4배 이하로 감소"
+    )

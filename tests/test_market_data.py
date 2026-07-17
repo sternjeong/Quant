@@ -172,3 +172,53 @@ def test_get_price_history_backfills_only_missing_older_range(monkeypatch, tmp_p
     assert len(calls) == 2
     assert calls[1] == "2024-01-01"  # 앞쪽 부족분만 요청 (뒤쪽은 이미 있어서 재요청 안 함)
     assert result.index.min() == pd.Timestamp("2024-01-01")
+
+
+# ----------------------------------------------------------------------------
+# get_multiple_price_history (2026-07-15: 순차 for문 -> 스레드풀 병렬화)
+# ----------------------------------------------------------------------------
+
+
+def test_get_multiple_price_history_fetches_all_tickers(monkeypatch, tmp_path):
+    monkeypatch.setattr(market_data, "CACHE_DIR", tmp_path)
+    calls: list = []
+    monkeypatch.setattr(market_data.yf, "download", _fake_download_factory(calls))
+
+    result = market_data.get_multiple_price_history(
+        ["AAA", "BBB", "CCC"], start="2024-01-01", end="2024-01-10"
+    )
+
+    assert set(result.keys()) == {"AAA", "BBB", "CCC"}
+    for df in result.values():
+        assert not df.empty
+    assert len(calls) == 3  # 티커당 정확히 한 번씩만 다운로드(중복/누락 없음)
+
+
+def test_get_multiple_price_history_isolates_per_ticker_failure(monkeypatch, tmp_path):
+    """한 티커 조회가 실패해도(네트워크 오류 등) 나머지 티커 결과에는 영향이 없어야 한다
+    (병렬화 이전부터 있던 계약 — 스레드풀로 바뀌어도 동일하게 유지되는지 확인)."""
+    monkeypatch.setattr(market_data, "CACHE_DIR", tmp_path)
+
+    def _flaky_download(ticker, start=None, end=None, interval="1d", **kwargs):
+        if ticker == "BAD":
+            raise RuntimeError("네트워크 실패")
+        idx = pd.date_range(start, end, freq="B", inclusive="left")
+        n = len(idx)
+        return pd.DataFrame(
+            {"Open": range(n), "High": range(n), "Low": range(n), "Close": range(n),
+             "Adj Close": range(n), "Volume": [100] * n},
+            index=idx,
+        )
+
+    monkeypatch.setattr(market_data.yf, "download", _flaky_download)
+
+    result = market_data.get_multiple_price_history(
+        ["GOOD", "BAD"], start="2024-01-01", end="2024-01-10"
+    )
+
+    assert result["BAD"].empty
+    assert not result["GOOD"].empty
+
+
+def test_get_multiple_price_history_empty_ticker_list_returns_empty_dict():
+    assert market_data.get_multiple_price_history([]) == {}

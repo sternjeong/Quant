@@ -118,11 +118,22 @@ STAGE_CONDITION_PROPERTIES: dict[str, Any] = {
             "mfi",
             "double_pattern",
             "rsi_divergence",
+            "marubozu",
+            "pin_bar",
+            "doji",
+            "inside_bar",
+            "inside_bar_breakout",
+            "piercing_dark_cloud",
+            "star_pattern",
+            "three_soldiers_crows",
+            "three_methods",
+            "level_break",
+            "ma_touch",
         ],
     },
     "short": {"type": "integer"},
     "long": {"type": "integer"},
-    "ma_type": {"type": "string", "enum": ["sma", "ema"]},
+    "ma_type": {"type": "string", "enum": ["sma", "ema"], "description": "ma_cross/ma_touch가 쓰는 이동평균 종류"},
     "type": {"type": "string", "enum": ["golden", "dead"]},
     "period": {"type": "integer"},
     "op": {"type": "string", "enum": ["<", "<=", ">", ">=", "break_above", "break_below"]},
@@ -135,8 +146,23 @@ STAGE_CONDITION_PROPERTIES: dict[str, Any] = {
         "enum": ["up", "down", "golden", "dead", "above", "below", "bullish", "bearish"],
         "description": "이벤트/국면의 방향. rsi_cross·ichimoku_cloud_break/chikou_state는 up|down, "
         "macd_cross·ichimoku_tk_state/tk_cross는 golden|dead, ichimoku_cloud_state는 above|below, "
-        "engulfing·double_pattern·rsi_divergence는 bullish|bearish",
+        "engulfing·double_pattern·rsi_divergence·marubozu·pin_bar·inside_bar_breakout·"
+        "piercing_dark_cloud·star_pattern·three_soldiers_crows·three_methods는 bullish|bearish",
     },
+    "body_ratio_threshold": {"type": "number", "description": "marubozu의 몸통/전체범위 최소 비율 (기본 0.9)"},
+    "body_ratio_max": {"type": "number", "description": "pin_bar/doji의 몸통/전체범위 최대 비율 (pin_bar 기본 0.3, doji 기본 0.1)"},
+    "wick_body_mult": {"type": "number", "description": "pin_bar의 긴 꼬리가 몸통 대비 최소 몇 배 이상이어야 하는지 (기본 2.0)"},
+    "doji_type": {
+        "type": "string",
+        "enum": ["standard", "long_legged", "dragonfly", "gravestone"],
+        "description": "doji 지표 전용. standard=일반, long_legged=키다리형(양쪽 꼬리 다 김), "
+        "dragonfly=잠자리형(아래꼬리만 김, 하락 저점 반전 신뢰도 최고), "
+        "gravestone=비석형(위꼬리만 김, 상승 고점 반전 신뢰도 최고)",
+    },
+    "star_body_ratio_max": {"type": "number", "description": "star_pattern의 가운데 별 캔들 몸통/범위 최대 비율 (기본 0.3)"},
+    "big_body_ratio_min": {"type": "number", "description": "star_pattern/three_methods의 큰 캔들(1·3번 또는 시작/마무리) 몸통/범위 최소 비율 (기본 0.5)"},
+    "body_ratio_min": {"type": "number", "description": "three_soldiers_crows의 각 캔들 몸통/범위 최소 비율 (기본 0.6)"},
+    "n_pause": {"type": "integer", "description": "three_methods에서 큰 캔들 사이 조정 캔들 개수 (기본 3)"},
     "fast": {"type": "integer", "description": "MACD 단기 EMA 기간 (기본 12)"},
     "slow": {"type": "integer", "description": "MACD 장기 EMA 기간 (기본 26)"},
     "signal": {"type": "integer", "description": "MACD 시그널선 기간 (기본 9)"},
@@ -145,13 +171,22 @@ STAGE_CONDITION_PROPERTIES: dict[str, Any] = {
         "enum": ["any", "below_zero", "above_zero"],
         "description": "macd_cross 가 발생한 위치를 0선 기준으로 추가 제한 (기본 any)",
     },
-    "source": {"type": "string", "enum": ["macd", "hist"], "description": "macd_level 이 비교할 값"},
+    "source": {
+        "type": "string",
+        "enum": ["macd", "hist", "highest_high", "lowest_low"],
+        "description": "macd_level 은 macd|hist(비교할 값), level_break 은 highest_high|lowest_low"
+        "(저항선/지지선 기준, 기본 highest_high)",
+    },
     "tenkan_len": {"type": "integer", "description": "일목균형표 전환선 기간 (기본 9)"},
     "kijun_len": {"type": "integer", "description": "일목균형표 기준선 기간 (기본 26)"},
     "span_b_len": {"type": "integer", "description": "일목균형표 선행스팬B 기간 (기본 52)"},
     "displacement": {"type": "integer", "description": "일목균형표 구름대/후행스팬 이동 기간 (기본 26)"},
     "threshold": {"type": "number", "description": "bbw_squeeze_release의 스퀴즈 판정 기준 밴드폭 (기본 0.1, 종목마다 다름)"},
-    "lookback": {"type": "integer", "description": "bbw_squeeze_release가 최근 스퀴즈 여부를 확인하는 봉 수 (기본 20)"},
+    "lookback": {
+        "type": "integer",
+        "description": "bbw_squeeze_release가 최근 스퀴즈 여부를 확인하는 봉 수(기본 20) 또는 "
+        "inside_bar_breakout이 돌파를 기다리는 최대 봉 수(기본 5) — indicator에 따라 의미가 다름",
+    },
     "hold_bars": {"type": "integer", "description": "bbw_squeeze_release 이벤트가 유지되는 봉 수 (기본 3)"},
     "band_period": {"type": "integer", "description": "double_pattern/rsi_divergence의 볼린저/중심선 기간 (기본 20)"},
     "band_std": {"type": "number", "description": "double_pattern의 볼린저 표준편차 배수 (기본 2.0)"},
@@ -229,6 +264,19 @@ STAGED_INDICATOR_CONFIG_SCHEMA: dict[str, Any] = {
                     "required": ["source"],
                     "additionalProperties": False,
                 },
+                "take_profit": {
+                    "type": "object",
+                    "properties": {
+                        "multiple": {
+                            "type": "number",
+                            "description": "손절 거리 대비 익절 목표 배수 (예: 2.0 = 손절선까지 거리의 2배 "
+                            "수익이 나면 익절). '손절선 대비 N배' 익절이 설명에 있을 때만 채운다 — "
+                            "반드시 stop_loss와 함께 정의해야 한다.",
+                        },
+                    },
+                    "required": ["multiple"],
+                    "additionalProperties": False,
+                },
             },
             "required": ["entry_stages", "exit_stages"],
             "additionalProperties": False,
@@ -262,6 +310,10 @@ RSI 신호 하나로는 10%만 정찰병 진입, MACD까지 겹치면 20% 추가
   고점, 숏 방향 참고용)를 상황에 맞게 고르고 period를 지정한다. 이 손절은 진입 그 순간의 값을
   스냅샷해 고정하는 것이지, 매일 다시 계산되는 이동 지표가 아니다 — 그런 "고정 레벨" 손절이 설명에
   없으면 stop_loss를 채우지 말고 생략한다(추측으로 넣지 말 것).
+- indicator_config.take_profit: 설명에 "손절선 대비 N배 비율로 익절"처럼 **손절 거리의 배수**로
+  정의되는 익절 목표가 있으면 채운다(multiple). 반드시 stop_loss가 함께 정의되어 있어야 한다(손절
+  거리가 배수 계산의 기준이므로). "밴드 상단을 터치하면 익절", "20 이평선에 닿으면 익절"처럼 배수가
+  아니라 별도 지표 조건으로 설명된 익절은 take_profit이 아니라 exit_stages 조건으로 표현한다.
 
 한 단계(entry_stages/exit_stages/emergency_exit 각 원소)의 조건 여러 개가 "동시에"/"함께"/"~이면서"
 확인되어야 한다고 설명돼 있으면(예: "MACD 골든크로스가 뜨고 동시에 RSI가 30 위"), 그 조건들을 절대
@@ -307,6 +359,37 @@ RSI 신호 하나로는 10%만 정찰병 진입, MACD까지 겹치면 20% 추가
   표현한다.
 - rsi_divergence: 가격과 RSI의 고점/저점 방향이 반대인 다이버전스 추세 반전 이벤트. direction="bullish"
   (상승 다이버전스)|"bearish"(하락 다이버전스). "다이버전스"가 언급되면 사용.
+- marubozu: 몸통이 전체 범위 대부분을 차지하고 꼬리가 거의 없는 캔들(장대양봉/장대음봉). "마루보즈",
+  "장대양봉", "장대음봉"이 언급되면 사용. body_ratio_threshold(기본 0.9).
+- pin_bar: 몸통이 짧고 한쪽 꼬리만 긴 반전 캔들. "핀바"가 언급되면 사용. direction="bullish"(강세
+  핀바, 아래꼬리 김)|"bearish"(약세 핀바, 위꼬리 김). body_ratio_max(기본 0.3), wick_body_mult(기본 2.0).
+- doji: 시가-종가가 거의 같은 캔들. "도지"가 언급되면 사용. doji_type으로 세분화(standard/long_legged/
+  dragonfly/gravestone) — "잠자리형"은 dragonfly, "비석형"은 gravestone, "키다리형"은 long_legged,
+  그냥 "도지"는 standard. body_ratio_max(기본 0.1).
+- inside_bar: 당일 고가/저가가 전일 범위 안에 완전히 포함되는 캔들("인사이드바", "마더 바") 그 자체의
+  성립 이벤트. 방향이 없다(direction 필드 없음).
+- inside_bar_breakout: 인사이드바 출현 후 며칠 이내에 마더 바 고점/저점을 종가가 돌파하는 완성된
+  매매 이벤트("인사이드바 돌파", "마더 바 고점/저점 돌파"). direction="bullish"(고점 상향 돌파)|
+  "bearish"(저점 하향 이탈), lookback(돌파를 기다리는 최대 봉 수, 기본 5). "인사이드바가 나온 뒤 나중에
+  돌파하면 진입"처럼 시차가 있는 설명은 inside_bar+level_break를 억지로 AND 조합하지 말고(같은 날
+  성립이 불가능해 항상 False가 됨) 이 지표 하나로 표현한다.
+- piercing_dark_cloud: 전일 몸통 중간값을 넘어 마감하지만 완전히 감싸지는 않는 2봉 반전 패턴("관통형",
+  "흑운형", "피어싱", "다크클라우드"). direction="bullish"(상승 관통형)|"bearish"(하락 관통형).
+  볼린저 밴드 이탈-복귀 확인까지 지표 내부에서 판정하므로 band_period(기본 20)/band_std(기본 2.0)만
+  넘기면 된다(별도 bollinger 조건과 AND로 쪼개지 말 것).
+- star_pattern: 큰 캔들 -> 작은 별 캔들 -> 반대 방향 큰 캔들의 3봉 반전 패턴("모닝스타", "이브닝스타").
+  direction="bullish"(모닝스타)|"bearish"(이브닝스타). star_body_ratio_max(기본 0.3),
+  big_body_ratio_min(기본 0.5).
+- three_soldiers_crows: 몸통 큰 같은 방향 캔들 3개가 연속되는 추세 패턴("적삼병", "흑삼병").
+  direction="bullish"(적삼병)|"bearish"(흑삼병). body_ratio_min(기본 0.6).
+- three_methods: 큰 캔들 -> 그 범위 안에 갇힌 조정 캔들 여러 개 -> 원래 방향 큰 캔들의 추세 지속
+  패턴("삼법형", "상승 3법형", "하락 3법형"). direction="bullish"(상승 삼법형)|"bearish"(하락 삼법형).
+  n_pause(조정 캔들 개수, 기본 3), big_body_ratio_min(기본 0.5).
+- level_break: 직전 N봉(당일 제외) 고점/저점 돌파 이벤트("저항선 돌파", "지지선 이탈"). source=
+  "highest_high"(저항선)|"lowest_low"(지지선), period(기본 20), op="break_above"|"break_below".
+- ma_touch: 단일 이동평균선을 상향/하향 돌파(터치)하는 이벤트("20 이평선에 닿으면", "이동평균선
+  돌파"). ma_cross(두 선 교차)와 달리 선 하나만 쓸 때 사용. period, ma_type="sma"|"ema"(기본 ema),
+  op="break_above"|"break_below".
 
 ichimoku_cloud_break vs ichimoku_cloud_state 선택 기준: 설명에 "뚫다/돌파하다/이탈하다"처럼 특정
 시점의 사건을 가리키면 반드시 ichimoku_cloud_break(이벤트)를 쓴다. "위에 있다/유지한다"처럼 지속되는
@@ -329,6 +412,9 @@ _STAGED_HINT_KEYWORDS = (
     "1:2:6", "1대2대6", "1대 2대 6", "일목균형표", "이치모쿠", "단계별", "분할매매", "분할 매매",
     # 진입≠청산 조건이라 레짐(logic/conditions) 스키마로 표현 불가능한 볼린저 응용 전략들
     "스퀴즈", "밴드폭", "밴드 너비", "퍼센트비", "%b", "다이버전스", "쌍바닥", "쌍봉",
+    # 캔들스틱 패턴 매매법 — 진입가 기준 손절/배수 익절을 동반하는 경우가 많아 staged 스키마가 필요
+    "마루보즈", "핀바", "도지", "인사이드바", "관통형", "흑운형", "모닝스타", "이브닝스타",
+    "적삼병", "흑삼병", "삼법형",
 )
 
 

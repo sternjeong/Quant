@@ -28,7 +28,12 @@ apply_theme()
 st.title("🗂️ 전략 관리")
 st.caption("저장된 전략의 이름/설명/조건(JSON)을 수정하거나 삭제합니다. 백테스트 실행/신규 등록은 '백테스팅 엔진' 페이지에서 합니다.")
 
-TYPE_LABELS = {"staged": "🧬 1:2:6 단계별", "regime": "📐 레짐(AND/OR)", "expression": "✍️ 직접 수식"}
+TYPE_LABELS = {
+    "staged": "🧬 1:2:6 단계별",
+    "regime": "📐 레짐(AND/OR)",
+    "expression": "✍️ 직접 수식",
+    "combined": "🧩 전략 합성",
+}
 
 
 def _pretty_json(raw: str) -> str:

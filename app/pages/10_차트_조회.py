@@ -51,6 +51,19 @@ INTERVAL_LABELS = {
 }
 DAILY_PLUS_INTERVALS = {"1d", "5d", "1wk", "1mo", "3mo"}
 
+# TradingView 툴바처럼 짧은 코드로 표기(1m/1H/D/W ...)하고, 전체 이름은 버튼 hover 툴팁(help)으로만
+# 보여준다. 분/시간/일 이상을 그룹으로 나눠 사이에 구분선을 넣어 한눈에 위계가 보이게 한다.
+INTERVAL_SHORT_LABELS = {
+    "1m": "1m", "2m": "2m", "5m": "5m", "15m": "15m", "30m": "30m",
+    "60m": "1H", "90m": "90m",
+    "1d": "D", "5d": "5D", "1wk": "W", "1mo": "M", "3mo": "3M",
+}
+INTERVAL_GROUPS = [
+    ["1m", "2m", "5m", "15m", "30m"],
+    ["60m", "90m"],
+    ["1d", "5d", "1wk", "1mo", "3mo"],
+]
+
 # 주봉/월봉/분기봉은 yfinance가 별도 피드로 제공하는데, 그 피드가 일봉보다 최신 데이터 반영이 늦어
 # "일봉엔 있는 오늘 데이터가 주봉/월봉엔 없는" 동기화 문제가 생긴다. 그래서 이 셋은 yfinance에 직접
 # 요청하지 않고, 항상 받아오는 일봉을 여기서 리샘플링해서 만든다(같은 일봉이 원천이라 항상 동기화됨).
@@ -120,15 +133,77 @@ with col_wl_toggle:
                 st.warning(str(e))
 
 st.session_state.setdefault("chart_interval", "1d")
-interval_cols = st.columns(len(INTERVAL_LABELS))
-for (code, label), col in zip(INTERVAL_LABELS.items(), interval_cols):
-    is_active = st.session_state["chart_interval"] == code
-    if col.button(
-        label, key=f"interval_btn_{code}", use_container_width=True,
-        type="primary" if is_active else "secondary",
-    ):
-        st.session_state["chart_interval"] = code
-        st.rerun()
+
+st.markdown(
+    """
+    <style>
+    /* TradingView 툴바 스타일 봉 주기 세그먼트 버튼: 촘촘하고 작은 pill 형태 */
+    div[class*="st-key-interval_toolbar"] div[data-testid="stHorizontalBlock"] {
+        gap: 0.15rem;
+    }
+    div[class*="st-key-interval_toolbar"] button {
+        min-height: 1.9rem;
+        height: 1.9rem;
+        padding: 0 0.1rem;
+        font-size: 0.8rem;
+        border-radius: 6px;
+    }
+    div[class*="st-key-interval_toolbar"] button[kind="secondary"] {
+        background-color: transparent;
+        border-color: transparent;
+        color: #b2b5be;
+    }
+    div[class*="st-key-interval_toolbar"] button[kind="secondary"]:hover {
+        background-color: rgba(255,255,255,0.06);
+        color: #d1d4dc;
+    }
+    div[class*="st-key-interval_toolbar"] button[kind="primary"] {
+        background-color: #2962ff;
+        border-color: #2962ff;
+        color: #ffffff;
+        font-weight: 600;
+    }
+    div[class*="st-key-interval_group_sep"] {
+        border-left: 1px solid #363a45;
+        height: 1.9rem;
+        margin-top: 0.15rem;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+with st.container(key="interval_toolbar"):
+    # 그룹(분/시간/일 이상) 사이에 얇은 구분선 컬럼을 끼워 넣어 세그먼트 위계를 시각적으로 표현.
+    n_seps = len(INTERVAL_GROUPS) - 1
+    widths = []
+    for gi, group in enumerate(INTERVAL_GROUPS):
+        widths.extend([3] * len(group))
+        if gi < n_seps:
+            widths.append(1)
+    toolbar_cols = st.columns(widths)
+
+    col_idx = 0
+    for gi, group in enumerate(INTERVAL_GROUPS):
+        for code in group:
+            col = toolbar_cols[col_idx]
+            col_idx += 1
+            is_active = st.session_state["chart_interval"] == code
+            if col.button(
+                INTERVAL_SHORT_LABELS[code], key=f"interval_btn_{code}",
+                use_container_width=True, help=INTERVAL_LABELS[code],
+                type="primary" if is_active else "secondary",
+            ):
+                st.session_state["chart_interval"] = code
+                st.rerun()
+        if gi < n_seps:
+            with toolbar_cols[col_idx]:
+                st.markdown(
+                    '<div class="st-key-interval_group_sep-marker"></div>',
+                    unsafe_allow_html=True,
+                )
+            col_idx += 1
+
 interval = st.session_state["chart_interval"]
 
 is_intraday = interval not in DAILY_PLUS_INTERVALS

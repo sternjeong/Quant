@@ -179,11 +179,39 @@ class PortfolioHolding(Base):
     quantity = Column(Float, nullable=False)  # 보유 수량
     purchase_price = Column(Float, nullable=False)  # 매입 단가
     purchase_date = Column(Date, nullable=False)  # 매입일
+    thesis = Column(Text, nullable=True)  # 매매근거: 왜 이 매매를 선택했는지 (나중에 검증용)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     def __repr__(self) -> str:
         return f"<PortfolioHolding id={self.id} ticker={self.ticker!r} qty={self.quantity}>"
+
+
+class PortfolioThesisReview(Base):
+    """매매근거(PortfolioHolding.thesis) 사후 검증 이력 (모듈 H 확장).
+
+    매매근거는 매입 시점에 한 번 쓰는 서술이지만, 그 논리가 맞았는지는 시간이 지나며 여러 번(한 달
+    뒤, 분기 뒤 등) 다시 확인하고 싶을 수 있어 ThreadsWeeklyReport의 피드백 패턴과 달리 단일 컬럼
+    덮어쓰기가 아니라 이력을 계속 쌓는 별도 테이블로 둔다. holding이 나중에 삭제(매도 후 정리)돼도
+    과거 검증 기록 자체는 read-only 회고 자료로 의미가 있으므로 ticker/thesis_snapshot을 함께
+    저장해 원본 holding 행이 없어져도 무엇을 검증한 기록인지 알 수 있게 한다.
+    """
+
+    __tablename__ = "portfolio_thesis_reviews"
+
+    id = Column(Integer, primary_key=True)
+    holding_id = Column(Integer, nullable=False, index=True)
+    ticker = Column(String(20), nullable=False)
+    thesis_snapshot = Column(Text, nullable=False)  # 검증 시점의 매매근거 원문(그 뒤 thesis가 수정돼도 이 기록은 안 바뀜)
+    review_text = Column(Text, nullable=False)
+    purchase_price = Column(Float, nullable=False)
+    price_at_review = Column(Float, nullable=True)  # 조회 실패 시 None
+    price_change_pct = Column(Float, nullable=True)
+    elapsed_days = Column(Integer, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    def __repr__(self) -> str:
+        return f"<PortfolioThesisReview id={self.id} holding_id={self.holding_id} ticker={self.ticker!r}>"
 
 
 class AlertLog(Base):
@@ -262,6 +290,14 @@ class StrategyTuningResult(Base):
     # 다중 구간 워크포워드 튜닝 리포트 (STRATEGY_TUNING_ENGINE_SPEC.md 11절) — 채택된 group_config를
     # 낳은 탐색의 후보별 폴드 점수 트레일(JSON 배열 문자열). 같은 그룹 종목들은 값이 서로 동일하다.
     tuning_trail = Column(Text, nullable=True)
+    # 국면별(약세장/강세장) 분리 트레이닝 (STRATEGY_TUNING_ENGINE_SPEC.md 13절, 2026-07-16) — 이
+    # tuned_config가 S&P500 기준 어느 국면의 데이터로 학습됐는지. 종목 하나당 배치 1회 실행에
+    # 이제 국면별로 2행이 생긴다(기존엔 1행).
+    trained_regime = Column(String(10), nullable=True)  # "약세장" | "강세장"
+    # train 구간 안에 해당 국면 구간이 부족/전무해 원본 config를 그대로 폴백으로 썼는지 (13.5절).
+    insufficient_regime_data = Column(Boolean, nullable=False, default=False)
+    # test 구간 중 같은 국면의 가장 긴 연속 구간에서만 평가한 보조 지표 (13.6절, JSON 객체 문자열).
+    regime_matched_test = Column(Text, nullable=True)
     error = Column(Text, nullable=True)  # 이 종목만 실행 실패했을 때의 메시지 (배치 전체는 계속 진행)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
@@ -289,3 +325,43 @@ class GeminiCallLog(Base):
 
     def __repr__(self) -> str:
         return f"<GeminiCallLog id={self.id} model={self.model!r} status={self.status!r}>"
+
+
+class MarketRegimeSnapshot(Base):
+    """시장 국면(강세/약세) 계산 결과 스냅샷 (모듈 G 확장, 2026-07-15).
+
+    core.market_regime.get_market_regime_snapshot()가 S&P500 전종목을 훑는 무거운 계산이라,
+    Streamlit 페이지 로드마다 실시간으로 돌리는 대신 scheduler/run_scheduler.py가 매일 한국시간
+    00:00에 한 번만 계산해 여기 저장하고, 페이지는 가장 최근 행을 읽기만 한다(사용자가 "지금 다시
+    계산" 버튼을 누르면 그 결과도 새 행으로 저장된다). 덮어쓰지 않고 매번 새 행을 쌓아 나중에 국면
+    변화 추이도 볼 수 있게 한다.
+    """
+
+    __tablename__ = "market_regime_snapshots"
+
+    id = Column(Integer, primary_key=True)
+    regime = Column(String(20), nullable=False)  # "강세장"|"중립/혼조"|"약세장"
+    total_score = Column(Float, nullable=False)
+    detail = Column(Text, nullable=False)  # get_market_regime_snapshot() 반환값 전체 (JSON 객체 문자열)
+    computed_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+
+    def __repr__(self) -> str:
+        return f"<MarketRegimeSnapshot id={self.id} regime={self.regime!r} computed_at={self.computed_at}>"
+
+
+class SectorStrengthSnapshot(Base):
+    """섹터/테마 강도(RS 점수) 계산 결과 스냅샷 (모듈 G 확장, 2026-07-15).
+
+    core.sector_strength.compute_theme_strength()도 시장 국면과 같은 이유(테마 프록시 ETF 다수
+    조회)로 스케줄러가 매일 한국시간 00:00에 한 번만 계산해 저장한다. MarketRegimeSnapshot과 동일한
+    이력 누적 원칙을 따른다.
+    """
+
+    __tablename__ = "sector_strength_snapshots"
+
+    id = Column(Integer, primary_key=True)
+    theme_scores = Column(Text, nullable=False)  # compute_theme_strength() DataFrame (JSON records 문자열)
+    computed_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+
+    def __repr__(self) -> str:
+        return f"<SectorStrengthSnapshot id={self.id} computed_at={self.computed_at}>"

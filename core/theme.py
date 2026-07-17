@@ -182,6 +182,26 @@ def style_chart_like_tradingview(fig):
     return fig
 
 
+# core.market_regime.historical_regime_segments()의 결과를 아무 Plotly Figure에나 겹쳐 그리기 위한
+# 배경색(반투명) — 국면 판단 자체과 무관한 순수 표시용 색이라 캔들 상승/하락색(#26a69a/#ef5350)과
+# 톤은 맞추되 투명도를 낮게(0.10~0.14) 줘서 위에 그려지는 선/캔들을 가리지 않게 함.
+REGIME_SHADE_COLORS = {"강세장": "rgba(38,166,154,0.10)", "약세장": "rgba(239,83,80,0.14)"}
+
+
+def add_regime_shading(fig, segments_by_regime: dict) -> None:
+    """국면별(강세장/약세장) 연속 구간을 배경 음영(add_vrect)으로 겹쳐 그린다.
+
+    x축이 일반 날짜 타입(date/datetime)인 차트에만 쓸 수 있다 — 10_차트_조회.py처럼 x축을
+    category(문자열 라벨)로 바꾼 차트는 vrect 좌표계가 달라 그대로 못 쓴다(이번 범위 밖).
+    segments_by_regime은 core.market_regime.historical_regime_segments()의 반환값 형태
+    ({"강세장": [(시작일, 종료일), ...], "약세장": [...]})를 그대로 받는다. "중립" 구간은 표시하지
+    않는다(항상 존재해 화면이 지저분해지는 것을 피하기 위함).
+    """
+    for label, color in REGIME_SHADE_COLORS.items():
+        for seg_start, seg_end in segments_by_regime.get(label, []):
+            fig.add_vrect(x0=seg_start, x1=seg_end, fillcolor=color, line_width=0, layer="below")
+
+
 # 커스텀 Streamlit 컴포넌트 없이 st.components.v1.html의 srcdoc iframe으로 우회해 그리기 도구를
 # TradingView처럼 보강한다. 이 iframe의 sandbox 속성에 allow-same-origin이 포함돼 있어(streamlit
 # 프론트엔드 번들 IFrameUtil에서 직접 확인) `window.parent.document`/`window.parent.Plotly` 접근이

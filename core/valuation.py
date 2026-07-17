@@ -14,6 +14,9 @@
 
 from __future__ import annotations
 
+import json
+import time
+from pathlib import Path
 from typing import Optional
 
 import pandas as pd
@@ -21,12 +24,46 @@ import yfinance as yf
 
 from core.market_data import get_price_history
 
+# fetch_valuation_inputs()는 yfinance .info(느린 통신 왕복) 하나로 여러 지표를 한 번에 받아오는데,
+# 방법론별 비교/PER·PBR 밴드/피어 비교 세 탭이 같은 종목에 대해 각각 다시 호출하면 매번 네트워크를
+# 탄다 — core.screener.get_fundamentals()와 동일한 파일 캐시 패턴(파일 mtime 기반 TTL)을 적용해
+# 같은 세션/재방문에서 재조회를 없앤다. TTL은 6시간(screener의 FUNDAMENTALS_CACHE_TTL_SECONDS와 동일
+# 정책 — 하루 안에서도 여러 번 값이 크게 바뀌진 않음).
+_CACHE_DIR = Path(__file__).resolve().parent.parent / "data" / "cache"
+_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+VALUATION_INPUTS_CACHE_TTL_SECONDS = 6 * 60 * 60
 
-def fetch_valuation_inputs(ticker: str) -> dict:
-    """yfinance .info 에서 밸류에이션 계산에 필요한 입력값을 모은다.
+
+def _valuation_inputs_cache_file(ticker: str) -> Path:
+    safe = ticker.replace("/", "-")
+    return _CACHE_DIR / f"valuation_inputs_{safe}.json"
+
+
+def fetch_valuation_inputs(ticker: str, use_cache: bool = True, cache_ttl: int = VALUATION_INPUTS_CACHE_TTL_SECONDS) -> dict:
+    """yfinance .info 에서 밸류에이션 계산에 필요한 입력값을 모은다 (파일 캐시 적용, TTL 6시간).
 
     조회 실패/누락된 값은 None (예외를 던지지 않음).
     """
+    cache_file = _valuation_inputs_cache_file(ticker)
+    if use_cache and cache_file.exists():
+        age = time.time() - cache_file.stat().st_mtime
+        if age < cache_ttl:
+            try:
+                return json.loads(cache_file.read_text())
+            except Exception:
+                pass
+
+    result = _fetch_valuation_inputs_uncached(ticker)
+
+    if use_cache:
+        try:
+            cache_file.write_text(json.dumps(result))
+        except Exception:
+            pass
+    return result
+
+
+def _fetch_valuation_inputs_uncached(ticker: str) -> dict:
     keys = [
         "currentPrice",
         "regularMarketPrice",
@@ -44,6 +81,7 @@ def fetch_valuation_inputs(ticker: str) -> dict:
         "earningsGrowth",
         "sector",
         "longName",
+        "marketCap",
     ]
     result: dict = {k: None for k in keys}
     result["ticker"] = ticker
@@ -284,3 +322,62 @@ def get_peer_comparison(tickers: list[str]) -> pd.DataFrame:
             }
         )
     return pd.DataFrame(rows)
+
+
+# 후보 풀을 무제한으로 훑으면(S&P500 한 섹터가 많으면 60종목 이상) 캐시가 없는 티커마다 매번
+# yfinance 왕복이 생겨 느려진다. 시가총액 기준 상위 N개만 살펴봐도 "규모가 비슷한 동종업계 피어"라는
+# 목적엔 충분하다는 판단으로 상한을 둔다(과설계 방지 — 더 정교한 랭킹이 필요해지면 그때 확장).
+_AUTO_PEER_CANDIDATE_POOL_SIZE = 20
+
+
+def select_auto_peers(ticker: str, n: int = 2) -> list[str]:
+    """같은 GICS 섹터 내에서 시가총액이 가장 비슷한 종목 n개를 규칙 기반으로 자동 선정한다 (AI 미사용).
+
+    core.screener.get_universe()(24시간 캐시, 위키피디아 GICS 섹터 표기)로 섹터를 가져오고, 후보군
+    상위 `_AUTO_PEER_CANDIDATE_POOL_SIZE`개에 대해 core.screener.get_fundamentals()(종목당 6시간 파일
+    캐시)로 시가총액을 조회해 |후보 시총 - 대상 시총|이 가장 작은 순으로 정렬한다. 섹터/시가총액
+    정보를 못 구하면 빈 리스트(피어 비교 탭이 수동 입력으로 폴백할 수 있게).
+
+    대상 종목의 섹터는 유니버스에 있으면 그 GICS 표기를 그대로 쓴다(정확한 매칭 보장). 유니버스에
+    없는 티커(S&P500 밖)만 yfinance .info의 sector(GICS와 다른 자체 taxonomy — 예: "Technology" vs
+    "Information Technology")로 폴백하는데, 이 경우 유니버스 섹터 표기와 안 맞아 후보가 안 잡힐 수
+    있다(알려진 한계, 이번 범위에서는 S&P500 내 종목 위주로 충분).
+    """
+    from core.screener import get_fundamentals, get_universe  # 지연 import: valuation<->screener 순환 없음, 관례상 통일
+
+    universe = get_universe()
+    if universe.empty:
+        return []
+
+    universe_row = universe.loc[universe["Symbol"] == ticker]
+    if not universe_row.empty:
+        sector = universe_row.iloc[0]["Sector"]
+    else:
+        sector = fetch_valuation_inputs(ticker).get("sector")
+    if not sector:
+        return []
+
+    target_fundamentals = get_fundamentals(ticker)
+    target_cap = target_fundamentals.get("market_cap")
+    if target_cap is None:
+        target_cap = fetch_valuation_inputs(ticker).get("marketCap")
+
+    candidates = [t for t in universe.loc[universe["Sector"] == sector, "Symbol"].tolist() if t != ticker]
+    if not candidates:
+        return []
+    candidates = candidates[:_AUTO_PEER_CANDIDATE_POOL_SIZE]
+
+    scored = []
+    for candidate in candidates:
+        fundamentals = get_fundamentals(candidate)
+        cap = fundamentals.get("market_cap")
+        if cap is None:
+            continue
+        distance = abs(cap - target_cap) if target_cap else float("inf")
+        scored.append((distance, candidate))
+
+    if not scored:
+        return candidates[:n]  # 시총 정보가 전혀 없으면 그냥 섹터 내 처음 n개로 폴백
+
+    scored.sort(key=lambda item: item[0])
+    return [candidate for _, candidate in scored[:n]]

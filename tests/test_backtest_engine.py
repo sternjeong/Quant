@@ -79,6 +79,48 @@ def test_run_backtest_with_invalid_expression_raises():
         backtest_engine.run_backtest("TEST", config, "2021-06-01", "2022-06-01")
 
 
+def test_compute_regime_breakdown_covers_all_labels_and_sums_to_total_days():
+    config = {"logic": "AND", "conditions": [{"indicator": "ma_cross", "short": 10, "long": 30, "type": "golden"}]}
+    run = backtest_engine.run_backtest("TEST", config, "2021-06-01", "2022-06-01")
+    breakdown = backtest_engine.compute_regime_breakdown(run)
+    assert set(breakdown.keys()) == {"강세장", "약세장", "중립"}
+    total_days = sum(v["trading_days"] for v in breakdown.values())
+    assert total_days == len(run.equity_curve)
+    for v in breakdown.values():
+        if v["trading_days"] == 0:
+            assert v["cumulative_return"] is None
+        else:
+            assert isinstance(v["cumulative_return"], float)
+
+
+def test_compute_regime_breakdown_empty_equity_curve_returns_empty_dict():
+    empty_run = backtest_engine.BacktestRun(
+        label="empty",
+        ticker="TEST",
+        df=pd.DataFrame(),
+        position=pd.Series(dtype=float),
+        equity_curve=pd.Series(dtype=float),
+    )
+    assert backtest_engine.compute_regime_breakdown(empty_run) == {}
+
+
+def test_run_backtest_with_combined_config_and_logic():
+    config_a = {"logic": "AND", "conditions": [{"indicator": "ma_cross", "short": 10, "long": 30, "type": "golden"}]}
+    config_b = {"logic": "AND", "conditions": [{"indicator": "rsi", "period": 14, "op": "<", "value": 70}]}
+    combined_config = {"combine": "AND", "strategies": [config_a, config_b]}
+
+    run = backtest_engine.run_backtest("TEST", combined_config, "2021-06-01", "2022-06-01")
+    for key in ("cumulative_return", "cagr", "mdd", "sharpe", "win_rate", "trade_count"):
+        assert key in run.metrics
+    assert not run.df.empty
+    assert not run.equity_curve.empty
+    assert run.equity_curve.iloc[0] == pytest.approx(100.0)
+
+    # AND 결합이므로 결합 전략의 포지션 보유일 수는 하위 전략 중 어느 쪽보다도 많을 수 없다.
+    run_a = backtest_engine.run_backtest("TEST", config_a, "2021-06-01", "2022-06-01")
+    assert run.position.sum() <= run_a.position.sum()
+
+
 def test_compare_with_benchmarks_has_three_runs():
     config = {"logic": "AND", "conditions": [{"indicator": "rsi", "period": 14, "op": "<", "value": 40}]}
     results = backtest_engine.compare_with_benchmarks("TEST", config, "2021-06-01", "2022-06-01")

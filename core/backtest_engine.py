@@ -185,6 +185,46 @@ def run_backtest(
     )
 
 
+def compute_regime_breakdown(run: BacktestRun, benchmark_ticker: str = DEFAULT_BENCHMARK_TICKER) -> dict:
+    """백테스트 결과를 국면별(강세장/약세장/중립)로 나눠 각 국면에 해당하는 날들만 모아
+    누적수익률/거래일수를 계산한다 (core.market_regime.classify_daily_regime 재사용).
+
+    국면이 바뀌는 날짜를 기준으로 구간을 자르는 게 아니라, 그 국면에 속한 날들의 일간수익률을
+    전부 모아 복리로 계산한다(연속 구간일 필요 없음) — "이 전략이 약세장인 날들에는 대체로 어떻게
+    움직였는지"를 보여주는 참고 지표다. market_regime을 여기서 모듈 최상단에 import하면
+    market_regime.py가 이미 core.backtest_engine을 import하고 있어 순환참조가 나므로 함수 안에서
+    지연 import한다.
+
+    Returns:
+        {"강세장": {"trading_days": int, "cumulative_return": float|None}, "약세장": {...}, "중립": {...}}
+        equity_curve가 비어 있거나 벤치마크 데이터를 못 가져오면 빈 dict.
+    """
+    from core import market_regime
+
+    if run.equity_curve.empty:
+        return {}
+    fetch_start = (run.equity_curve.index[0] - pd.DateOffset(days=400)).date().isoformat()
+    bench = get_price_history(
+        benchmark_ticker, start=fetch_start, end=run.equity_curve.index[-1].date().isoformat(), use_cache=True
+    )
+    if bench.empty:
+        return {}
+
+    regime = market_regime.classify_daily_regime(bench["Close"]).reindex(run.equity_curve.index).ffill()
+    daily_return = run.equity_curve.pct_change().fillna(0.0)
+
+    breakdown: dict = {}
+    for label in ("강세장", "약세장", "중립"):
+        mask = regime == label
+        n_days = int(mask.sum())
+        if n_days == 0:
+            breakdown[label] = {"trading_days": 0, "cumulative_return": None}
+            continue
+        cum = float((1.0 + daily_return[mask]).prod() - 1) * 100
+        breakdown[label] = {"trading_days": n_days, "cumulative_return": round(cum, 2)}
+    return breakdown
+
+
 _DIAGNOSTIC_TICKER = "AAPL"
 _DIAGNOSTIC_LOOKBACK_YEARS = 5
 

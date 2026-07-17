@@ -10,6 +10,12 @@ import pytest
 import core.valuation as valuation
 
 
+@pytest.fixture(autouse=True)
+def _isolated_valuation_cache_dir(tmp_path, monkeypatch):
+    monkeypatch.setattr(valuation, "_CACHE_DIR", tmp_path)
+    return tmp_path
+
+
 # ----------------------------------------------------------------------------
 # 개별 방법론
 # ----------------------------------------------------------------------------
@@ -239,3 +245,119 @@ def test_get_peer_comparison(monkeypatch):
     df = valuation.get_peer_comparison(["AAPL", "MSFT"])
     assert list(df["ticker"]) == ["AAPL", "MSFT"]
     assert df.iloc[0]["ev_ebitda"] == pytest.approx(2_500_000_000_000.0 / 130_000_000_000.0)
+
+
+# ----------------------------------------------------------------------------
+# fetch_valuation_inputs 캐싱
+# ----------------------------------------------------------------------------
+
+
+def test_fetch_valuation_inputs_caches_to_disk(monkeypatch, tmp_path):
+    call_count = {"n": 0}
+
+    class _FakeTicker:
+        def __init__(self, ticker):
+            pass
+
+        @property
+        def info(self):
+            call_count["n"] += 1
+            return {"currentPrice": 100.0, "sector": "Technology", "longName": "Test Co."}
+
+    monkeypatch.setattr(valuation.yf, "Ticker", _FakeTicker)
+
+    first = valuation.fetch_valuation_inputs("AAPL")
+    second = valuation.fetch_valuation_inputs("AAPL")
+    assert call_count["n"] == 1  # 두 번째 호출은 캐시 파일을 읽어 네트워크를 안 탐
+    assert first == second
+    assert (tmp_path / "valuation_inputs_AAPL.json").exists()
+
+
+def test_fetch_valuation_inputs_bypasses_cache_when_use_cache_false(monkeypatch):
+    call_count = {"n": 0}
+
+    class _FakeTicker:
+        def __init__(self, ticker):
+            pass
+
+        @property
+        def info(self):
+            call_count["n"] += 1
+            return {"currentPrice": 100.0}
+
+    monkeypatch.setattr(valuation.yf, "Ticker", _FakeTicker)
+
+    valuation.fetch_valuation_inputs("AAPL", use_cache=False)
+    valuation.fetch_valuation_inputs("AAPL", use_cache=False)
+    assert call_count["n"] == 2
+
+
+def test_fetch_valuation_inputs_expired_cache_refetches(monkeypatch, tmp_path):
+    call_count = {"n": 0}
+
+    class _FakeTicker:
+        def __init__(self, ticker):
+            pass
+
+        @property
+        def info(self):
+            call_count["n"] += 1
+            return {"currentPrice": 100.0}
+
+    monkeypatch.setattr(valuation.yf, "Ticker", _FakeTicker)
+
+    valuation.fetch_valuation_inputs("AAPL")
+    valuation.fetch_valuation_inputs("AAPL", cache_ttl=0)  # TTL 0 → 항상 만료 취급
+    assert call_count["n"] == 2
+
+
+# ----------------------------------------------------------------------------
+# select_auto_peers (규칙 기반 자동 피어 선정)
+# ----------------------------------------------------------------------------
+
+
+def test_select_auto_peers_picks_closest_market_cap_in_same_sector(monkeypatch):
+    monkeypatch.setattr(
+        valuation, "fetch_valuation_inputs",
+        lambda ticker, **kw: {"sector": "Technology", "marketCap": 1_000_000_000_000},
+    )
+
+    import core.screener as screener
+
+    universe = pd.DataFrame(
+        {"Symbol": ["AAPL", "MSFT", "TINY", "OTHER_SECTOR"], "Sector": ["Technology", "Technology", "Technology", "Energy"]}
+    )
+    monkeypatch.setattr(screener, "get_universe", lambda: universe)
+
+    fundamentals_by_ticker = {
+        "MSFT": {"market_cap": 1_100_000_000_000},  # 대상과 가장 가까움
+        "TINY": {"market_cap": 10_000_000_000},  # 훨씬 멂
+    }
+    monkeypatch.setattr(screener, "get_fundamentals", lambda t, **kw: fundamentals_by_ticker.get(t, {"market_cap": None}))
+
+    peers = valuation.select_auto_peers("AAPL", n=2)
+    assert peers == ["MSFT", "TINY"]
+
+
+def test_select_auto_peers_returns_empty_without_sector(monkeypatch):
+    import core.screener as screener
+
+    monkeypatch.setattr(valuation, "fetch_valuation_inputs", lambda ticker, **kw: {"sector": None, "marketCap": None})
+    monkeypatch.setattr(screener, "get_universe", lambda: pd.DataFrame({"Symbol": ["AAPL"], "Sector": ["Technology"]}))
+    assert valuation.select_auto_peers("UNKNOWN") == []
+
+
+def test_select_auto_peers_falls_back_to_first_n_without_market_cap_data(monkeypatch):
+    monkeypatch.setattr(
+        valuation, "fetch_valuation_inputs",
+        lambda ticker, **kw: {"sector": "Technology", "marketCap": None},
+    )
+
+    import core.screener as screener
+
+    universe = pd.DataFrame({"Symbol": ["AAPL", "MSFT", "GOOGL"], "Sector": ["Technology", "Technology", "Technology"]})
+    monkeypatch.setattr(screener, "get_universe", lambda: universe)
+    monkeypatch.setattr(screener, "get_fundamentals", lambda t, **kw: {"market_cap": None})
+
+    peers = valuation.select_auto_peers("AAPL", n=2)
+    assert peers == ["MSFT", "GOOGL"]

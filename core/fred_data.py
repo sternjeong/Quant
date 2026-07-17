@@ -31,7 +31,20 @@ DEFAULT_INDICATORS: dict[str, dict[str, str]] = {
     "GDPC1": {"label": "실질 GDP", "unit": "십억달러"},
     "INDPRO": {"label": "산업생산지수", "unit": "지수"},
     "T10Y2Y": {"label": "10년-2년 국채금리차", "unit": "%p"},
+    "CFNAI": {"label": "시카고 연은 전국활동지수 (CFNAI)", "unit": "표준화 지수"},
+    "DEXKOUS": {"label": "원/달러 환율", "unit": "원"},
 }
+
+
+def compute_fx_volatility(series: pd.Series, window: int = 20) -> pd.Series:
+    """일별 변동률의 rolling 표준편차를 연율화(%)해 환율 변동성 시계열로 반환한다.
+
+    window=20 (약 1개월 거래일수) 기준 rolling std를 연율화(√252)한다.
+    """
+    if series.empty:
+        return pd.Series(dtype=float)
+    daily_returns = series.dropna().pct_change()
+    return daily_returns.rolling(window).std() * (252 ** 0.5) * 100
 
 
 def is_configured() -> bool:

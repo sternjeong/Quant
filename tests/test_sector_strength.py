@@ -84,6 +84,7 @@ def test_compute_theme_strength_trend_direction(monkeypatch):
 
     df = sector_strength.compute_theme_strength(theme_universe)
     assert df.iloc[0]["trend"] == "상승"
+    assert df.iloc[0]["trend_change"] > 0
 
 
 def test_compute_theme_strength_empty_universe_returns_empty_df(monkeypatch):
@@ -97,7 +98,8 @@ def test_compute_theme_strength_empty_universe_returns_empty_df(monkeypatch):
     df = sector_strength.compute_theme_strength({})
     assert df.empty
     assert list(df.columns) == [
-        "theme", "proxies", "strength_factor", "rs_score", "return_3m", "return_6m", "return_12m", "trend",
+        "theme", "proxies", "strength_factor", "rs_score", "return_3m", "return_6m", "return_12m",
+        "trend", "trend_change",
     ]
 
 
@@ -124,6 +126,70 @@ def test_compute_theme_strength_handles_recently_listed_etf_with_short_history(m
 def test_strength_factor_returns_none_when_even_shortest_window_unavailable():
     too_short = pd.Series([100.0, 101.0, 102.0])
     assert sector_strength._strength_factor(too_short) is None
+
+
+def _patch_session(monkeypatch, db_session):
+    from contextlib import contextmanager
+
+    @contextmanager
+    def _fake_get_session():
+        yield db_session
+        db_session.commit()
+
+    monkeypatch.setattr(sector_strength, "get_session", _fake_get_session)
+
+
+def test_get_latest_theme_strength_snapshot_returns_none_when_empty(db_session, monkeypatch):
+    _patch_session(monkeypatch, db_session)
+    assert sector_strength.get_latest_theme_strength_snapshot() is None
+
+
+def test_save_and_get_latest_theme_strength_snapshot_roundtrip(db_session, monkeypatch):
+    _patch_session(monkeypatch, db_session)
+    df = pd.DataFrame(
+        [
+            {"theme": "반도체", "proxies": "SOXX, SMH", "strength_factor": 12.3, "rs_score": 90.0,
+             "return_3m": 10.0, "return_6m": 20.0, "return_12m": 30.0, "trend": "상승"},
+            {"theme": "유틸리티", "proxies": "XLU", "strength_factor": -1.0, "rs_score": 10.0,
+             "return_3m": -2.0, "return_6m": None, "return_12m": None, "trend": "하락"},
+        ]
+    )
+
+    row_id = sector_strength.save_theme_strength_snapshot(df)
+    assert row_id is not None
+
+    latest = sector_strength.get_latest_theme_strength_snapshot()
+    assert "computed_at" in latest
+    loaded = latest["theme_scores"]
+    assert list(loaded["theme"]) == ["반도체", "유틸리티"]
+    assert loaded.iloc[0]["rs_score"] == pytest.approx(90.0)
+    assert pd.isna(loaded.iloc[1]["return_6m"])
+
+
+def test_save_and_get_latest_theme_strength_snapshot_handles_empty_df(db_session, monkeypatch):
+    _patch_session(monkeypatch, db_session)
+    empty_df = pd.DataFrame(columns=sector_strength._THEME_STRENGTH_COLUMNS)
+
+    sector_strength.save_theme_strength_snapshot(empty_df)
+
+    latest = sector_strength.get_latest_theme_strength_snapshot()
+    assert latest["theme_scores"].empty
+    assert list(latest["theme_scores"].columns) == sector_strength._THEME_STRENGTH_COLUMNS
+
+
+def test_get_latest_theme_strength_snapshot_returns_most_recent(db_session, monkeypatch):
+    _patch_session(monkeypatch, db_session)
+    sector_strength.save_theme_strength_snapshot(
+        pd.DataFrame([{"theme": "OLD", "proxies": "X", "strength_factor": 1.0, "rs_score": 50.0,
+                        "return_3m": 1.0, "return_6m": 1.0, "return_12m": 1.0, "trend": "횡보"}])
+    )
+    sector_strength.save_theme_strength_snapshot(
+        pd.DataFrame([{"theme": "NEW", "proxies": "Y", "strength_factor": 2.0, "rs_score": 60.0,
+                        "return_3m": 2.0, "return_6m": 2.0, "return_12m": 2.0, "trend": "상승"}])
+    )
+
+    latest = sector_strength.get_latest_theme_strength_snapshot()
+    assert list(latest["theme_scores"]["theme"]) == ["NEW"]
 
 
 def test_theme_universe_preset_has_expected_themes():

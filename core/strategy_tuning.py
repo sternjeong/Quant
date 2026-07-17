@@ -31,7 +31,7 @@ from typing import Any, Optional
 
 import pandas as pd
 
-from core import gemini_client, nl_strategy, screener, valuation
+from core import gemini_client, market_regime, nl_strategy, point_in_time_universe, screener, valuation
 from core.backtest_engine import compare_with_benchmarks, diagnose_strategy_health, run_backtest
 from core.db import get_session
 from core.expression_engine import ExpressionError, validate_syntax
@@ -39,24 +39,52 @@ from core.indicators import sma
 from core.macro_cycle import SECTOR_ROTATION
 from core.market_data import get_price_history
 from core.models import StrategyTuningResult, StrategyTuningRun
-from core.strategy_engine import is_expression_config, is_staged_config
+from core.strategy_engine import describe_condition, is_expression_config, is_staged_config
 
 # ----------------------------------------------------------------------------
 # 1. 100종목 섹터 균등 표본
 # ----------------------------------------------------------------------------
 
 
-def sample_universe(n: int = 100, use_cache: bool = True) -> pd.DataFrame:
-    """S&P500 유니버스에서 섹터별로 균등 배분된 n종목 표본을 시가총액 상위 순으로 추출한다.
+def sample_universe(
+    n: int = 100,
+    use_cache: bool = True,
+    random_seed: Optional[int] = None,
+    as_of_date: Optional[str | date | datetime] = None,
+) -> pd.DataFrame:
+    """S&P500 유니버스에서 섹터별로 균등 배분된 n종목 표본을 추출한다.
 
     시총 상위 n개를 그냥 뽑으면 빅테크 섹터로 편중되어(STRATEGY_TUNING_ENGINE_SPEC.md 5절 결정)
     섹터별 스타일 비교가 무의미해지므로, 섹터마다 기본 할당량(n // 섹터수)을 배분하고 나머지는
     섹터 전체 시가총액 합이 큰 섹터부터 1개씩 더 배분한다.
 
+    random_seed가 None이면(기본값) 섹터별 할당량을 시가총액 상위 순으로 결정론적으로 채운다(기존
+    동작 그대로 — 대화형 UI에서 같은 n을 여러 번 눌러도 항상 같은 표본이 나와야 함). random_seed를
+    주면(2026-07-15 추가, 야간 반복 미세튜닝에서 매번 다른 표본을 탐색하기 위함) 섹터별 할당량 안에서
+    시드 기반 무작위 추출로 바꾼다 — 그래도 재현 가능하도록 같은 시드면 항상 같은 표본이 나온다.
+
+    as_of_date를 주면(2026-07-17 추가, survivorship bias 완화 — PROGRESS.md 백로그 1번)
+    "지금 시점 S&P500"이 아니라 `core.point_in_time_universe`가 제공하는 그 시점 실제 편입종목
+    목록으로 후보를 제한한다(`core/point_in_time_universe.py` 참고, fja05680/sp500 CSV 기반).
+    이렇게 하면 학습 시작 시점 이후 지수에서 편출된 종목(예: GE, 인텔)도 표본에 남을 수 있다.
+    단, 상장폐지까지 간 종목은 yfinance 자체에 가격 데이터가 없어 여전히 빠질 수 있다(알려진 한계,
+    PROGRESS.md 백로그 1번 참고). None이면(기본값) 기존과 동일하게 현재 S&P500 전체가 후보다.
+
     Returns:
         columns: ticker, sector(GICS 영문), market_cap. 시가총액 내림차순 정렬.
     """
     universe = screener.get_universe(use_cache=use_cache)
+
+    if as_of_date is not None:
+        pit_tickers = set(point_in_time_universe.get_constituents_as_of(as_of_date))
+        current_sector_map = dict(zip(universe["Symbol"], universe["Sector"]))
+        universe = pd.DataFrame(
+            {
+                "Symbol": sorted(pit_tickers),
+                "Sector": [current_sector_map.get(t, "Unknown") for t in sorted(pit_tickers)],
+            }
+        )
+
     sectors = sorted(universe["Sector"].dropna().unique().tolist())
     if not sectors:
         return pd.DataFrame(columns=["ticker", "sector", "market_cap"])
@@ -76,10 +104,14 @@ def sample_universe(n: int = 100, use_cache: bool = True) -> pd.DataFrame:
     for s in sector_total_cap.index[:remainder]:
         quotas[s] += 1
 
-    picked = [
-        df[df["sector"] == s].sort_values("market_cap", ascending=False).head(quotas.get(s, base_quota))
-        for s in sectors
-    ]
+    picked = []
+    for s in sectors:
+        sector_df = df[df["sector"] == s]
+        quota = min(quotas.get(s, base_quota), len(sector_df))
+        if random_seed is None:
+            picked.append(sector_df.sort_values("market_cap", ascending=False).head(quota))
+        else:
+            picked.append(sector_df.sample(n=quota, random_state=random_seed))
     result = pd.concat(picked, ignore_index=True) if picked else pd.DataFrame(columns=df.columns)
     return result.sort_values("market_cap", ascending=False).reset_index(drop=True)
 
@@ -275,6 +307,115 @@ _THRESHOLD_LIKE_KEYS = {"value", "level"}
 # 범위가 나오므로, 원래 값에 비례하는 폭으로 흔든다(항상 양수 유지).
 _RATIO_LIKE_KEYS = {"threshold", "volume_mult"}
 
+_CATEGORY_LABELS = {"period": "기간", "band": "볼린저폭", "threshold": "임계값", "ratio": "비율", "weight": "비중배분"}
+STYLE_TYPES: list[str] = list(_STYLE_PERIOD_MULTIPLIERS.keys())
+
+_MIN_WEIGHTED_STAGES = 2  # stage가 1개뿐이면 정규화 시 항상 1.0으로 고정돼 탐색할 의미가 없음
+
+
+def _key_category(key: str) -> Optional[str]:
+    """숫자 파라미터 키를 4개 분류(기간/볼린저폭/임계값/비율) 중 하나로 판별한다. 튜닝 대상이
+    아니면 None (build_param_grid와 describe_tunable_params가 같은 분류 기준을 공유)."""
+    if key in _PERIOD_LIKE_KEYS:
+        return "period"
+    if key in {"std_dev", "band_std"}:
+        return "band"
+    if key in _THRESHOLD_LIKE_KEYS:
+        return "threshold"
+    if key in _RATIO_LIKE_KEYS:
+        return "ratio"
+    return None
+
+
+def _value_range_for_style(category: str, val: float, lo_mult: float, hi_mult: float) -> tuple[float, float]:
+    """분류별 (하한, 상한) 탐색 범위. period만 스타일 배수(lo_mult/hi_mult)를 실제로 사용하고,
+    나머지 분류는 스타일과 무관하게 원본값 기준 고정 폭으로 흔든다(build_param_grid와 동일 공식)."""
+    if category == "period":
+        lo = max(2, round(val * lo_mult))
+        hi = max(lo + 1, round(val * hi_mult))
+        return lo, hi
+    if category == "band":
+        return max(0.5, round(val - 0.5, 1)), min(4.0, round(val + 0.5, 1))
+    if category == "threshold":
+        delta = 10.0 if val > 1 else 0.1
+        return max(0.0, round(val - delta, 2)), round(val + delta, 2)
+    if category in ("ratio", "weight"):
+        # weight(stage 진입/청산 비중)도 같은 폭으로 독립적으로 흔든다 — 실제 채택 시 stage 목록
+        # 단위 합계가 1.0이 되도록 되돌리는 재정규화는 build_param_grid의 _normalize_stage_weights가
+        # 후보 생성 후 별도로 처리한다(사용자 확정 — 배분 비율만 탐색하고 총 진입/청산 비중은 항상
+        # 100%로 고정해 레버리지/미투자 왜곡을 막음).
+        delta = max(round(val * 0.3, 3), 0.02)
+        return max(0.01, round(val - delta, 3)), round(val + delta, 3)
+    raise ValueError(f"알 수 없는 분류: {category}")
+
+
+def _round_original(category: str, val: float) -> float:
+    if category == "period":
+        return int(round(val))
+    if category == "band":
+        return round(val, 1)
+    if category == "threshold":
+        return round(val, 2)
+    if category in ("ratio", "weight"):
+        return round(val, 3)
+    raise ValueError(f"알 수 없는 분류: {category}")
+
+
+def _weight_stage_lists(base_config: dict) -> dict[str, list[tuple[int, float]]]:
+    """entry_stages/exit_stages 중 weight가 숫자인 stage가 2개 이상인 목록만 골라
+    {stage_key: [(stage_index, weight), ...]}로 반환한다 (탐색 축 생성과 재정규화가 공유하는 대상
+    판별 로직 — 두 곳이 서로 다른 stage 집합을 고르면 재정규화가 탐색하지 않은 stage까지 건드리게 됨)."""
+    result: dict[str, list[tuple[int, float]]] = {}
+    for stage_key in ("entry_stages", "exit_stages"):
+        stages = base_config.get(stage_key) or []
+        numeric = [
+            (si, stage["weight"])
+            for si, stage in enumerate(stages)
+            if isinstance(stage.get("weight"), (int, float)) and not isinstance(stage.get("weight"), bool)
+        ]
+        if len(numeric) >= _MIN_WEIGHTED_STAGES:
+            result[stage_key] = numeric
+    return result
+
+
+def _weight_axis_values(base_config: dict) -> list[tuple[tuple, str, list]]:
+    """build_param_grid가 쓰는 (path, key, values) 축 형식으로 각 stage의 weight 탐색 후보를 만든다.
+    실제 채택 시 합계를 1.0으로 되돌리는 정규화는 여기서 하지 않는다(_normalize_stage_weights가
+    후보 생성 후 담당) — 여기서는 다른 비율류 파라미터와 동일하게 원본 ±30% 축만 만든다."""
+    axes: list[tuple[tuple, str, list]] = []
+    for stage_key, numeric_stages in _weight_stage_lists(base_config).items():
+        for si, val in numeric_stages:
+            lo, hi = _value_range_for_style("weight", val, 0.0, 0.0)  # weight는 스타일 배수 무관
+            values = sorted({lo, _round_original("weight", val), hi})
+            axes.append(((stage_key, si), "weight", values))
+    return axes
+
+
+def _normalize_stage_weights(candidate: dict) -> None:
+    """entry_stages/exit_stages 각각 안의 weight 합이 1.0(=100% 진입/청산)이 되도록 제자리에서
+    재조정한다. weight를 서로 독립적으로 흔들면 합이 깨져(예: 총 93%만 투자되거나 108% 레버리지)
+    "몇 단계에 걸쳐 전량 진입/청산"이라는 전략 의미가 왜곡되므로, 배분 비율만 탐색하고 총량은 항상
+    100%로 고정한다(2026-07-15 사용자 확정 — 원본 합계가 1.0이 아닌 경우에도 튜닝 후에는 항상
+    1.0으로 맞춘다)."""
+    for stage_key, numeric_stages in _weight_stage_lists(candidate).items():
+        total = sum(w for _, w in numeric_stages)
+        if total <= 0:
+            continue
+        stages = candidate[stage_key]
+        for si, w in numeric_stages:
+            stages[si]["weight"] = round(w / total, 4)
+
+
+def _format_path(path: tuple) -> str:
+    """(path 튜플)을 "entry_stages[0].conditions[1]" 형태의 읽기 쉬운 문자열로 변환 (미리보기 UI용)."""
+    parts: list[str] = []
+    for key in path:
+        if isinstance(key, int):
+            parts[-1] = f"{parts[-1]}[{key}]"
+        else:
+            parts.append(str(key))
+    return ".".join(parts)
+
 
 def _iter_condition_paths(config: dict, path: tuple = ()):
     """config 트리(레짐/staged 스키마 공용)를 순회하며 (path, condition_dict) 쌍을 만든다.
@@ -329,21 +470,14 @@ def build_param_grid(base_config: dict, style_type: str, intensity: str = _DEFAU
         for key, val in cond.items():
             if isinstance(val, bool) or not isinstance(val, (int, float)):
                 continue
-            if key in _PERIOD_LIKE_KEYS:
-                lo = max(2, round(val * lo_mult))
-                hi = max(lo + 1, round(val * hi_mult))
-                values = sorted({lo, int(round(val)), hi})
-            elif key in {"std_dev", "band_std"}:
-                values = sorted({max(0.5, round(val - 0.5, 1)), round(val, 1), min(4.0, round(val + 0.5, 1))})
-            elif key in _THRESHOLD_LIKE_KEYS:
-                delta = 10.0 if val > 1 else 0.1
-                values = sorted({max(0.0, round(val - delta, 2)), round(val, 2), round(val + delta, 2)})
-            elif key in _RATIO_LIKE_KEYS:
-                delta = max(round(val * 0.3, 3), 0.02)
-                values = sorted({max(0.01, round(val - delta, 3)), round(val, 3), round(val + delta, 3)})
-            else:
+            category = _key_category(key)
+            if category is None:
                 continue
+            lo, hi = _value_range_for_style(category, val, lo_mult, hi_mult)
+            values = sorted({lo, _round_original(category, val), hi})
             axis_values.append((path, key, values))
+
+    axis_values.extend(_weight_axis_values(base_config))
 
     if not axis_values:
         return [copy.deepcopy(base_config)]
@@ -371,6 +505,7 @@ def build_param_grid(base_config: dict, style_type: str, intensity: str = _DEFAU
         candidate = copy.deepcopy(base_config)
         for (path, key, _), value in zip(axis_values, combo):
             _get_by_path(candidate, path)[key] = value
+        _normalize_stage_weights(candidate)
         candidates.append(candidate)
 
     original = copy.deepcopy(base_config)
@@ -378,6 +513,61 @@ def build_param_grid(base_config: dict, style_type: str, intensity: str = _DEFAU
         candidates.append(original)  # 튜닝이 원본보다 나빠지지 않게 항상 비교 기준으로 포함
 
     return candidates
+
+
+def describe_tunable_params(base_config: dict) -> list[dict]:
+    """실행 전 미리보기용 — build_param_grid가 실제로 건드릴 숫자 파라미터와, 6개 스타일별 예상
+    탐색 범위를 후보를 만들지 않고 계산만 한다(같은 분류/범위 공식을 재사용하므로 build_param_grid
+    결과와 항상 일치). JSON 스키마(레짐/1:2:6) 전용 — expression은 Gemini 판별이 필요해
+    describe_tunable_params_expression()으로 분리.
+
+    weight 항목은 표시된 범위 그대로 채택되지 않는다 — build_param_grid가 후보 생성 후 같은
+    entry_stages/exit_stages 안 weight 합계를 항상 1.0(=100%)으로 재정규화하므로, 실제 채택되는
+    값은 여기 표시된 (하한, 상한) 부근에서 다른 stage의 채택값에 따라 소폭 밀릴 수 있다.
+
+    Returns:
+        [{"path", "indicator", "key", "original", "category", "style_ranges": {스타일: (하한, 상한)}}, ...]
+    """
+    if "expression" in base_config:
+        return []
+    rows = []
+    for path, cond in _iter_condition_paths(base_config):
+        indicator = cond.get("indicator", "")
+        for key, val in cond.items():
+            if isinstance(val, bool) or not isinstance(val, (int, float)):
+                continue
+            category = _key_category(key)
+            if category is None:
+                continue
+            style_ranges = {
+                style: _value_range_for_style(category, val, lo_mult, hi_mult)
+                for style, (lo_mult, hi_mult) in _STYLE_PERIOD_MULTIPLIERS.items()
+            }
+            rows.append(
+                {
+                    "path": _format_path(path),
+                    "indicator": indicator,
+                    "key": key,
+                    "original": _round_original(category, val),
+                    "category": _CATEGORY_LABELS[category],
+                    "style_ranges": style_ranges,
+                }
+            )
+
+    for stage_key, numeric_stages in _weight_stage_lists(base_config).items():
+        for si, val in numeric_stages:
+            style_ranges = {style: _value_range_for_style("weight", val, 0.0, 0.0) for style in STYLE_TYPES}
+            rows.append(
+                {
+                    "path": _format_path((stage_key, si)),
+                    "indicator": "",
+                    "key": "weight",
+                    "original": _round_original("weight", val),
+                    "category": _CATEGORY_LABELS["weight"],
+                    "style_ranges": style_ranges,
+                }
+            )
+    return rows
 
 
 # train/test 분리에 쓰는 공용 상수. 아래 3b절의 tune_expression_strategy_for_ticker()가 기본 인자
@@ -555,6 +745,36 @@ def _substitute_numbers(expression: str, literals: list[dict], values: tuple) ->
     return "".join(pieces)
 
 
+def _expression_style_range(
+    original: float, suggested_min: float, suggested_max: float, lo_mult: float, hi_mult: float
+) -> tuple[float, float]:
+    """Gemini가 제안한 의미론적 범위와 기존 스타일 배수 범위를 함께 반영(둘 다 벗어나지 않게 더
+    넓은 쪽을 취함 — 스타일 방향성은 유지하면서 Gemini의 의미 판단도 존중). _build_expression_
+    param_grid와 describe_tunable_params_expression이 동일한 공식을 공유한다."""
+    lo = min(suggested_min, original * lo_mult) if original else suggested_min
+    hi = max(suggested_max, original * hi_mult) if original else suggested_max
+    return round(lo, 2), round(hi, 2)
+
+
+def describe_tunable_params_expression(tunables: list[dict]) -> list[dict]:
+    """실행 전 미리보기용 — identify_tunable_numbers()가 이미 식별한 숫자들에 대해, 6개 스타일별
+    예상 탐색 범위를 계산한다(_build_expression_param_grid와 동일 공식). Gemini 호출(비용 발생)은
+    이 함수가 아니라 identify_tunable_numbers()가 하므로, 호출부가 결과를 캐시해 재사용해야 한다.
+
+    Returns:
+        [{"text", "role", "original", "style_ranges": {스타일: (하한, 상한)}}, ...]
+    """
+    rows = []
+    for t in tunables:
+        original = t["value"]
+        style_ranges = {
+            style: _expression_style_range(original, t["suggested_min"], t["suggested_max"], lo_mult, hi_mult)
+            for style, (lo_mult, hi_mult) in _STYLE_PERIOD_MULTIPLIERS.items()
+        }
+        rows.append({"text": t["text"], "role": t.get("role", ""), "original": original, "style_ranges": style_ranges})
+    return rows
+
+
 def _build_expression_param_grid(base_config: dict, style_type: str, intensity: str) -> list[dict]:
     """expression 전략의 숫자 파라미터 후보를 생성한다 (JSON 스키마의 build_param_grid와 동일한
     조합 폭발 처리/예산/재현 가능한 랜덤 샘플링을 그대로 재사용).
@@ -577,11 +797,8 @@ def _build_expression_param_grid(base_config: dict, style_type: str, intensity: 
     axis_values: list[tuple[dict, list]] = []
     for t in tunables:
         original = t["value"]
-        # Gemini가 제안한 의미론적 범위와, 기존 스타일 배수 범위를 함께 반영(둘 다 벗어나지 않게
-        # 더 넓은 쪽을 취함 — 스타일 방향성은 유지하면서 Gemini의 의미 판단도 존중).
-        lo = min(t["suggested_min"], original * lo_mult) if original else t["suggested_min"]
-        hi = max(t["suggested_max"], original * hi_mult) if original else t["suggested_max"]
-        values = sorted({round(lo, 2), round(float(original), 2), round(hi, 2)})
+        lo, hi = _expression_style_range(original, t["suggested_min"], t["suggested_max"], lo_mult, hi_mult)
+        values = sorted({lo, round(float(original), 2), hi})
         axis_values.append((t, values))
 
     total_combos = 1
@@ -755,17 +972,65 @@ def _generate_structural_variants_json(
     return valid
 
 
+# ----------------------------------------------------------------------------
+# 3d. 결정론적 국면 스위치 변형 (직접 수식 전용, SPEC 12절 — 2026-07-15)
+#
+# 11.3/9절 데모에서 공통으로 드러난 문제: 원본 백본(주로 평균회귀형 진입)은 조정 없이 밀어 올리는
+# 강세장에서 신호가 거의 안 뜨거나(AND 결합) 반등 초반만 먹고 나온다(대칭적으로 이른 청산). 근본
+# 원인은 "국면 무감각" — 전체 기간에 같은 조건 하나를 그대로 적용하기 때문이다.
+#
+# core.expression_engine에 이미 sma/highest가 있어 새 지표 없이 "(A and B) or (C and D)" 형태의
+# 국면 스위치를 한 줄 수식으로 표현할 수 있다. 단 이 중첩 논리는 직접 수식 스키마에서만 가능하고
+# (레짐/1:2:6은 flat AND/OR라 표현 불가) — 9절과 같은 이유로 이번에도 직접 수식 전략에만 적용한다.
+#
+# Gemini의 창의적 제안(위 3c절)과 달리 이 변형은 고정 템플릿으로 결정론적으로 생성한다(재현 가능,
+# 매번 다른 제안이 나오지 않음). 생성된 수식의 숫자(200/60 포함)는 기존 _build_expression_param_
+# grid()가 원본 진입 조건의 숫자들과 함께 그대로 스타일별로 튜닝하므로 별도 튜닝 경로가 필요 없다.
+# ----------------------------------------------------------------------------
+
+_REGIME_TREND_MA_PERIOD = 200  # 종목 자체 상승추세 판정 기준 이동평균 기간
+_REGIME_BREAKOUT_LOOKBACK = 60  # 추세추종 진입에 쓰는 신고가 롤링 구간(일)
+
+
+def _build_regime_switch_variant(
+    expression: str,
+    trend_ma_period: int = _REGIME_TREND_MA_PERIOD,
+    breakout_lookback: int = _REGIME_BREAKOUT_LOOKBACK,
+) -> Optional[str]:
+    """원본 진입 조건에 결정론적 국면 스위치를 씌운다: 종목이 자체 상승추세(종가가 이동평균 위)면
+    신고가 돌파(추세추종)로 진입하고, 그 외에는 원본 진입 조건을 그대로 쓴다.
+
+    결합 결과가 실행 불가능하면(원본 조건 자체가 이미 유효했다면 사실상 발생하지 않지만 방어적으로)
+    None을 반환해 호출부가 이 후보를 조용히 건너뛰게 한다.
+    """
+    candidate = (
+        f"(close > sma(close, {trend_ma_period}) and close >= highest(close, {breakout_lookback})) "
+        f"or (close <= sma(close, {trend_ma_period}) and ({expression}))"
+    )
+    try:
+        validate_syntax(candidate)
+    except ExpressionError:
+        return None
+    return candidate
+
+
 def generate_structural_variants_for_config(
     base_config: dict, style_type: str, n: int = _MAX_STRUCTURAL_VARIANTS
 ) -> list[dict]:
     """base_config와 같은 스키마 유형(expression/레짐/1:2:6)의 구조가 다른 대안을 최대 n개 제안받는다.
 
     tune_strategy_for_group()이 그룹 단위 튜닝으로도 test 구간을 못 이길 때만 호출하는 escape
-    hatch다. 직접 수식은 기존 generate_structural_variants()(문자열 기반)를 그대로 재사용하고,
-    레짐/1:2:6은 nl_strategy.py의 기존 스키마를 재사용한 JSON 기반 생성으로 대응한다.
+    hatch다. 직접 수식은 기존 generate_structural_variants()(Gemini 제안)에 결정론적 국면 스위치
+    변형(위 3d절)을 하나 더 추가하고, 레짐/1:2:6은 nl_strategy.py의 기존 스키마를 재사용한 JSON
+    기반 생성으로 대응한다.
     """
     if is_expression_config(base_config):
-        return [{"expression": v} for v in generate_structural_variants(base_config.get("expression", ""), style_type, n)]
+        expression = base_config.get("expression", "")
+        variants = [{"expression": v} for v in generate_structural_variants(expression, style_type, n)]
+        regime_variant = _build_regime_switch_variant(expression)
+        if regime_variant is not None:
+            variants.append({"expression": regime_variant})
+        return variants
     if is_staged_config(base_config):
         return _generate_structural_variants_json(
             base_config, style_type, "1:2:6 단계별",
@@ -903,6 +1168,7 @@ def tune_strategy_for_ticker(
 _MIN_GROUP_COVERAGE_RATIO = 0.5  # 후보가 그룹을 대표한다고 인정하려면 최소 이 비율 이상 종목에서 유효해야 함
 _WALK_FORWARD_FOLDS = 3  # train 구간을 몇 개의 하위 구간(폴드)으로 나눠 독립 평가할지 (SPEC 11.2절)
 _ROBUSTNESS_PENALTY_WEIGHT = 0.5  # 폴드 간 표준편차에 곱하는 패널티 가중치 (뾰족한 피크 후보 배제)
+_TRAINING_REGIMES = ["약세장", "강세장"]  # SPEC 13절 — 스타일 그룹마다 국면별로 따로 트레이닝
 
 
 def _group_min_required(group_size: int) -> int:
@@ -976,19 +1242,22 @@ def _candidate_group_walkforward_score(
 
 
 def _select_best_group_config_walkforward(
-    tickers: list[str], candidates: list[dict], train_start: str, train_end: str
+    tickers: list[str], candidates: list[dict], folds: list[tuple[str, str]]
 ) -> tuple[Optional[dict], list[dict]]:
-    """train 구간을 `_WALK_FORWARD_FOLDS`개 폴드로 나눠, 폴드 간 점수(위 함수)가 가장 높은 후보를
+    """폴드 목록(연속된 날짜 구간들)을 독립적으로 평가해, 폴드 간 점수(위 함수)가 가장 높은 후보를
     고른다. 단일 구간 평가보다 특정 시기에만 맞는 과최적화 후보를 더 잘 걸러낸다 — 단, 이게 "미래
     시장을 이긴다"는 보장은 아니다(SPEC 11.3절 실증 데모: 더 안정적인 후보를 골랐음에도 최종
     홀드아웃에서는 원본보다 나빴던 사례 참고).
+
+    folds는 달력을 등분한 구간(`_split_into_folds`, 국면 구분 없는 기존 방식)일 수도, 실제 국면
+    구간(`_train_folds_for_regime`, SPEC 13.4절)일 수도 있다 — 이 함수는 폴드가 어떻게 만들어졌는지
+    모른 채 순서대로 독립 평가만 한다.
 
     Returns:
         (best_config 또는 유효 후보가 없으면 None, 점수 내림차순 트레일 리스트). 트레일의 각 항목은
         {"config", "fold_sharpes", "mean_sharpe", "std_sharpe", "score"} — 튜닝 리포트(UI)가 그대로
         표로 보여줘 "어떤 파라미터를 왜 채택했는지" 근거를 남긴다.
     """
-    folds = _split_into_folds(train_start, train_end, _WALK_FORWARD_FOLDS)
     trail: list[dict] = []
     for candidate in candidates:
         try:
@@ -1023,6 +1292,38 @@ def _evaluate_group_config_on_test(tickers: list[str], config: dict, test_start:
     return per_ticker
 
 
+def _train_folds_for_regime(train_start: str, train_end: str, regime: str) -> list[tuple[str, str]]:
+    """train 구간 안에서 실제로 해당 국면(약세장/강세장)이었던 연속 구간들을 워크포워드 폴드로
+    변환한다 (SPEC 13.4절 — core.market_regime.historical_regime_segments 재사용, 새 선택 로직
+    불필요). 20 거래일 미만인 짧은 구간은 이미 그 함수에서 걸러진다."""
+    segments = market_regime.historical_regime_segments(train_start, train_end)
+    return segments.get(regime, [])
+
+
+def _evaluate_group_config_on_regime_matched_test(
+    tickers: list[str], config: dict, test_start: str, test_end: str, regime: str
+) -> Optional[dict]:
+    """test 구간 안에서 config가 학습된 국면과 같은 국면의 가장 긴 연속 구간 하나만 별도로 평가한다
+    (SPEC 13.6절 보조 지표 — "약세장에서 학습한 설정이 실제 약세장에서는 어떻게 하는지").
+
+    여러 조각을 이어붙이지(stitch) 않고 가장 긴 단일 구간만 쓴다 — 불연속 구간을 이으면 그 사이
+    갭에서 포지션이 어떻게 되는지 정의가 모호해져 4b/11절의 정직성 원칙을 해칠 위험이 있다. 이
+    지표는 어떤 선택에도 관여하지 않는 순수 보고용이다. 해당 국면 구간이 test 안에 없으면 None.
+    """
+    segments = market_regime.historical_regime_segments(test_start, test_end).get(regime, [])
+    if not segments:
+        return None
+    seg_start, seg_end = max(segments, key=lambda s: (pd.Timestamp(s[1]) - pd.Timestamp(s[0])).days)
+    per_ticker = _evaluate_group_config_on_test(tickers, config, seg_start, seg_end)
+    mean_excess = _group_mean_excess_return(per_ticker)
+    return {
+        "segment_start": seg_start,
+        "segment_end": seg_end,
+        "mean_excess_return": round(mean_excess, 2) if mean_excess != float("-inf") else None,
+        "per_ticker": per_ticker,
+    }
+
+
 def _group_mean_excess_return(per_ticker_test: dict[str, dict]) -> float:
     """그룹의 test 구간 평균 초과수익(전략 CAGR - S&P500 매수보유 CAGR). 유효한 종목이 하나도
     없으면 -inf (구조 변경 escape hatch가 항상 트리거되게 해, 실패를 조용히 넘기지 않는다)."""
@@ -1042,27 +1343,44 @@ def tune_strategy_for_group(
     end: str,
     train_ratio: float = _DEFAULT_TRAIN_RATIO,
     intensity: str = _DEFAULT_INTENSITY,
+    regime: Optional[str] = None,
 ) -> dict:
     """스타일 그룹(예: 경기방어주 17종목) 전체를 하나의 데이터셋으로 묶어 공통 설정 하나를 찾는다.
 
-    train 구간을 `_WALK_FORWARD_FOLDS`개 폴드로 나눠 폴드별 그룹 평균 샤프지수의 평균-표준편차
-    점수를 목적함수로 숫자 파라미터를 탐색하고(_select_best_group_config_walkforward, SPEC 11.2절),
-    test 구간에서는 확정된 공통 config를 종목별로 개별 평가해 보고한다. 그룹 평균이 test 구간에서
-    S&P500을 못 이기면 generate_structural_variants_for_config()로 구조가 다른 대안을 1회성으로
-    시도한다(레짐/1:2:6/직접수식 공통 — 3c절). test 구간 데이터는 최종 검증에만 쓰고 선택 기준에는
-    쓰지 않는다(4b절 상단 설계 노트 참고, 11.2절에서도 원칙 유지 확인).
+    regime이 None이면(레거시/기본 경로) train 구간을 `_WALK_FORWARD_FOLDS`개의 달력 등분 폴드로
+    나눠 평가한다(10/11절 기존 방식). regime이 "약세장"/"강세장"이면 대신 train 구간 안에서 실제로
+    그 국면이었던 연속 구간들만 폴드로 써서 독립 탐색한다(SPEC 13절 — S&P500 기준 국면별 분리
+    트레이닝). 두 경로 모두 폴드별 그룹 평균 샤프지수의 평균-표준편차 점수를 목적함수로 삼는다
+    (_select_best_group_config_walkforward, SPEC 11.2절). test 구간에서는 확정된 공통 config를
+    종목별로 개별 평가해 보고한다. 그룹 평균이 test 구간에서 S&P500을 못 이기면
+    generate_structural_variants_for_config()로 구조가 다른 대안을 1회성으로 시도한다(레짐/1:2:6/
+    직접수식 공통 — 3c절). test 구간 데이터는 최종 검증에만 쓰고 선택 기준에는 쓰지 않는다(4b절
+    상단 설계 노트 참고, 11.2절/13.6절에서도 원칙 유지 확인).
 
     Returns:
-        {"style_type", "tickers", "group_config", "backbone_changed", "group_mean_excess_return",
-         "group_win_ratio", "health_warnings", "per_ticker_train_metrics", "per_ticker_test_comparison",
-         "tuning_trail"} — tuning_trail은 채택된 config를 낳은 탐색의 후보별 폴드 점수 리포트
-        (점수 내림차순, "어떤 파라미터를 왜 채택했는지"의 근거).
+        {"style_type", "tickers", "trained_regime", "group_config", "backbone_changed",
+         "group_mean_excess_return", "group_win_ratio", "health_warnings", "per_ticker_train_metrics",
+         "per_ticker_test_comparison", "tuning_trail", "insufficient_regime_data",
+         "regime_matched_test"} — tuning_trail은 채택된 config를 낳은 탐색의 후보별 폴드 점수
+        리포트(점수 내림차순). insufficient_regime_data는 regime이 지정됐는데 train 구간 안에 해당
+        국면 구간이 하나도 없어(예: 5년 이력에 뚜렷한 약세장이 없음) 폴백으로 원본 config를 그대로
+        썼다는 표시(SPEC 13.5절). regime_matched_test는 test 구간 중 같은 국면의 가장 긴 구간에서만
+        평가한 보조 지표(SPEC 13.6절, regime=None이면 항상 None).
     """
     train_start, train_end, test_start, test_end = train_test_split_dates(start, end, train_ratio)
 
+    if regime is None:
+        train_folds = _split_into_folds(train_start, train_end, _WALK_FORWARD_FOLDS)
+    else:
+        train_folds = _train_folds_for_regime(train_start, train_end, regime)
+    insufficient_regime_data = regime is not None and not train_folds
+
     def _search_and_evaluate(config: dict) -> tuple[dict, dict[str, dict], float, list[dict]]:
         candidates = build_param_grid(config, style_type, intensity)
-        chosen, trail = _select_best_group_config_walkforward(tickers, candidates, train_start, train_end)
+        if train_folds:
+            chosen, trail = _select_best_group_config_walkforward(tickers, candidates, train_folds)
+        else:
+            chosen, trail = None, []
         if chosen is None:
             chosen = copy.deepcopy(config)
         test_result = _evaluate_group_config_on_test(tickers, chosen, test_start, test_end)
@@ -1106,9 +1424,19 @@ def tune_strategy_for_group(
     except Exception:
         health_warnings = []
 
+    regime_matched_test = None
+    if regime is not None:
+        try:
+            regime_matched_test = _evaluate_group_config_on_regime_matched_test(
+                tickers, best_config, test_start, test_end, regime
+            )
+        except Exception:
+            regime_matched_test = None
+
     return {
         "style_type": style_type,
         "tickers": tickers,
+        "trained_regime": regime,
         "group_config": best_config,
         "backbone_changed": backbone_changed,
         "group_mean_excess_return": round(mean_excess, 2) if mean_excess != float("-inf") else None,
@@ -1117,6 +1445,8 @@ def tune_strategy_for_group(
         "per_ticker_train_metrics": per_ticker_train_metrics,
         "per_ticker_test_comparison": per_ticker_test,
         "tuning_trail": tuning_trail,
+        "insufficient_regime_data": insufficient_regime_data,
+        "regime_matched_test": regime_matched_test,
     }
 
 
@@ -1128,18 +1458,20 @@ def run_batch_tuning(
     train_ratio: float = _DEFAULT_TRAIN_RATIO,
     intensity: str = _DEFAULT_INTENSITY,
 ) -> list[dict]:
-    """전체 파이프라인: 스타일 분류 -> 스타일 그룹 단위 풀링 트레이닝 -> 종목별 결과로 펼쳐서 반환.
+    """전체 파이프라인: 스타일 분류 -> 스타일×국면 그룹 단위 풀링 트레이닝 -> 종목별 결과로 펼쳐서 반환.
 
     2026-07-15부터 종목마다 따로 탐색하지 않고(위 4b절 tune_strategy_for_group 참고), 같은
-    스타일의 종목을 하나의 그룹으로 묶어 공통 설정을 찾는다 — 같은 그룹에 속한 종목들은
-    tuned_config가 서로 동일하다(그룹 단위로 학습했다는 표시이기도 하다). 같은 그룹 종목들은
-    tuning_trail(SPEC 11절 — 다중 구간 워크포워드 리포트)도 서로 동일하다.
+    스타일의 종목을 하나의 그룹으로 묶어 공통 설정을 찾는다. 2026-07-16부터(SPEC 13절)는 그 스타일
+    그룹마다 S&P500 기준 실제 약세장/강세장 구간의 데이터로 **따로** 트레이닝해 국면별 config를
+    각각 만든다 — 같은 스타일·같은 국면끼리는 tuned_config가 서로 동일하지만, 같은 스타일이어도
+    학습국면이 다르면 tuned_config가 달라진다(종목마다 이제 결과가 2행 나온다).
 
     Returns:
         종목별 dict 리스트(ticker/style_type/sector/style_scores/tuned_config/train_metrics/
-        test_comparison/excess_return/health_warnings/backbone_changed/tuning_trail). 그룹 자체가
-        실패해도(예: 데이터 조회 전면 실패) 그 그룹 종목들만 {"ticker", "style_type", "sector",
-        "error"}로 기록되고 다른 그룹은 계속 진행된다.
+        test_comparison/excess_return/health_warnings/backbone_changed/tuning_trail/trained_regime/
+        insufficient_regime_data/regime_matched_test). 그룹 자체가 실패해도(예: 데이터 조회 전면
+        실패) 그 그룹 종목들만 {"ticker", "style_type", "sector", "trained_regime", "error"}로
+        기록되고 다른 그룹/국면은 계속 진행된다.
     """
     styles_df = compute_style_scores(tickers_df, start, end)
     styles_by_ticker = styles_df.set_index("ticker").to_dict("index") if not styles_df.empty else {}
@@ -1151,51 +1483,58 @@ def run_batch_tuning(
 
     results: list[dict] = []
     for style_type, group_tickers in tickers_by_style.items():
-        try:
-            group_result = tune_strategy_for_group(
-                group_tickers, base_config, style_type, start, end, train_ratio=train_ratio, intensity=intensity
-            )
-        except Exception as e:  # noqa: BLE001 - 그룹 하나의 실패가 다른 그룹을 막지 않게 함
-            for ticker in group_tickers:
-                results.append(
-                    {
-                        "ticker": ticker,
-                        "style_type": style_type,
-                        "sector": styles_by_ticker.get(ticker, {}).get("sector"),
-                        "error": str(e),
-                    }
+        for regime in _TRAINING_REGIMES:
+            try:
+                group_result = tune_strategy_for_group(
+                    group_tickers, base_config, style_type, start, end,
+                    train_ratio=train_ratio, intensity=intensity, regime=regime,
                 )
-            continue
-
-        for ticker in group_tickers:
-            test_comparison = group_result["per_ticker_test_comparison"].get(ticker, {})
-            if "error" in test_comparison:
-                results.append(
-                    {
-                        "ticker": ticker,
-                        "style_type": style_type,
-                        "sector": styles_by_ticker.get(ticker, {}).get("sector"),
-                        "error": test_comparison["error"],
-                    }
-                )
+            except Exception as e:  # noqa: BLE001 - 그룹/국면 하나의 실패가 나머지를 막지 않게 함
+                for ticker in group_tickers:
+                    results.append(
+                        {
+                            "ticker": ticker,
+                            "style_type": style_type,
+                            "sector": styles_by_ticker.get(ticker, {}).get("sector"),
+                            "trained_regime": regime,
+                            "error": str(e),
+                        }
+                    )
                 continue
-            strategy_cagr = test_comparison["strategy"].get("cagr", 0.0)
-            benchmark_cagr = test_comparison["buy_and_hold_benchmark"].get("cagr", 0.0)
-            results.append(
-                {
-                    "ticker": ticker,
-                    "style_type": style_type,
-                    "sector": styles_by_ticker.get(ticker, {}).get("sector"),
-                    "style_scores": styles_by_ticker.get(ticker, {}).get("style_scores"),
-                    "tuned_config": group_result["group_config"],
-                    "train_metrics": group_result["per_ticker_train_metrics"].get(ticker),
-                    "test_comparison": test_comparison,
-                    "excess_return": round(strategy_cagr - benchmark_cagr, 2),
-                    "health_warnings": group_result["health_warnings"],
-                    "backbone_changed": group_result["backbone_changed"],
-                    "tuning_trail": group_result.get("tuning_trail", []),
-                }
-            )
+
+            for ticker in group_tickers:
+                test_comparison = group_result["per_ticker_test_comparison"].get(ticker, {})
+                if "error" in test_comparison:
+                    results.append(
+                        {
+                            "ticker": ticker,
+                            "style_type": style_type,
+                            "sector": styles_by_ticker.get(ticker, {}).get("sector"),
+                            "trained_regime": regime,
+                            "error": test_comparison["error"],
+                        }
+                    )
+                    continue
+                strategy_cagr = test_comparison["strategy"].get("cagr", 0.0)
+                benchmark_cagr = test_comparison["buy_and_hold_benchmark"].get("cagr", 0.0)
+                results.append(
+                    {
+                        "ticker": ticker,
+                        "style_type": style_type,
+                        "sector": styles_by_ticker.get(ticker, {}).get("sector"),
+                        "style_scores": styles_by_ticker.get(ticker, {}).get("style_scores"),
+                        "tuned_config": group_result["group_config"],
+                        "train_metrics": group_result["per_ticker_train_metrics"].get(ticker),
+                        "test_comparison": test_comparison,
+                        "excess_return": round(strategy_cagr - benchmark_cagr, 2),
+                        "health_warnings": group_result["health_warnings"],
+                        "backbone_changed": group_result["backbone_changed"],
+                        "tuning_trail": group_result.get("tuning_trail", []),
+                        "trained_regime": regime,
+                        "insufficient_regime_data": group_result.get("insufficient_regime_data", False),
+                        "regime_matched_test": group_result.get("regime_matched_test"),
+                    }
+                )
     return results
 
 
@@ -1250,6 +1589,13 @@ def save_tuning_run(
                     tuning_trail=(
                         json.dumps(r["tuning_trail"], ensure_ascii=False) if r.get("tuning_trail") else None
                     ),
+                    trained_regime=r.get("trained_regime"),
+                    insufficient_regime_data=bool(r.get("insufficient_regime_data", False)),
+                    regime_matched_test=(
+                        json.dumps(r["regime_matched_test"], ensure_ascii=False)
+                        if r.get("regime_matched_test")
+                        else None
+                    ),
                     error=r.get("error"),
                 )
             )
@@ -1266,6 +1612,7 @@ def run_and_save_tuning(
     intensity: str = _DEFAULT_INTENSITY,
     base_strategy_id: Optional[int] = None,
     tickers_df: Optional[pd.DataFrame] = None,
+    universe_as_of_date: Optional[str | date | datetime] = None,
 ) -> int:
     """표본 추출(또는 직접 지정한 종목) -> 배치 튜닝 -> 저장까지 한 번에 수행한다 (job_manager
     백그라운드 실행 진입점).
@@ -1273,12 +1620,17 @@ def run_and_save_tuning(
     tickers_df가 주어지면(사용자가 UI에서 직접 담은 종목) sample_universe()에 의한 자동 섹터 균등
     표본 추출을 건너뛰고 그대로 사용한다(universe_n은 이 경우 무시됨).
 
+    universe_as_of_date를 주면(2026-07-17 추가, survivorship bias 완화 — PROGRESS.md 백로그
+    1번) sample_universe()에 그대로 전달해 "지금 시점 S&P500"이 아니라 그 시점 point-in-time
+    편입종목만 후보로 삼는다. tickers_df가 주어지면(수동 선택) 이 값은 무시된다. 기본값 None이면
+    기존과 동일하게 현재 S&P500 전체가 후보다(하위호환).
+
     UI에서 인라인 클로저 대신 이 함수 하나를 job_manager.start()에 넘기면, 완료 후에는 반환된
     run_id로 core.db에서 결과를 다시 조회하기만 하면 되므로 지역변수 소실 문제(PROGRESS.md에 기록된
     기존 버그 패턴)를 원천적으로 피할 수 있다.
     """
     if tickers_df is None:
-        tickers_df = sample_universe(universe_n)
+        tickers_df = sample_universe(universe_n, as_of_date=universe_as_of_date)
     results = run_batch_tuning(base_config, tickers_df, start, end, train_ratio=train_ratio, intensity=intensity)
     return save_tuning_run(
         base_config, tickers_df, start, end, train_ratio, intensity, results, base_strategy_id=base_strategy_id
@@ -1323,6 +1675,9 @@ def get_tuning_run(run_id: int) -> Optional[dict]:
                 "health_warnings": json.loads(res.health_warnings) if res.health_warnings else [],
                 "backbone_changed": bool(res.backbone_changed),
                 "tuning_trail": json.loads(res.tuning_trail) if res.tuning_trail else [],
+                "trained_regime": res.trained_regime,
+                "insufficient_regime_data": bool(res.insufficient_regime_data),
+                "regime_matched_test": json.loads(res.regime_matched_test) if res.regime_matched_test else None,
                 "error": res.error,
             }
             for res in run.results
@@ -1338,6 +1693,167 @@ def get_tuning_run(run_id: int) -> Optional[dict]:
             "created_at": run.created_at,
             "results": results,
         }
+
+
+def get_top_tuning_results(base_strategy_id: int, limit: int = 10) -> list[dict]:
+    """base_strategy_id로 지금까지 쌓인 모든 StrategyTuningRun을 통틀어, test 구간 초과수익
+    (excess_return)이 가장 높은 종목별 결과 상위 limit개를 반환한다 (2026-07-15, 야간 반복
+    미세튜닝 리더보드용 — 매일 밤 여러 번 실행되며 계속 누적되는 실행 이력 전체에서 지금까지 발견된
+    최선의 결과를 보여준다).
+
+    error가 있거나 excess_return이 없는(계산 실패) 결과는 제외한다.
+
+    Returns:
+        [{"ticker", "sector", "style_type", "trained_regime", "excess_return", "tuned_config",
+          "test_comparison", "backbone_changed", "run_id", "run_intensity", "run_created_at",
+          "run_start_date", "run_end_date", "train_ratio"}, ...]
+        (excess_return 내림차순). run_start_date/run_end_date/train_ratio는 상세보기에서
+        train_test_split_dates()로 test 구간을 다시 계산해 차트를 그릴 때 쓴다.
+    """
+    with get_session() as session:
+        rows = (
+            session.query(StrategyTuningResult, StrategyTuningRun)
+            .join(StrategyTuningRun, StrategyTuningResult.run_id == StrategyTuningRun.id)
+            .filter(StrategyTuningRun.base_strategy_id == base_strategy_id)
+            .filter(StrategyTuningResult.excess_return.isnot(None))
+            .filter(StrategyTuningResult.error.is_(None))
+            .order_by(StrategyTuningResult.excess_return.desc())
+            .limit(limit)
+            .all()
+        )
+        return [
+            {
+                "ticker": res.ticker,
+                "sector": res.sector,
+                "style_type": res.style_type,
+                "trained_regime": res.trained_regime,
+                "excess_return": res.excess_return,
+                "base_config": json.loads(run.base_config) if run.base_config else {},
+                "tuned_config": json.loads(res.tuned_config) if res.tuned_config else None,
+                "test_comparison": json.loads(res.test_comparison) if res.test_comparison else None,
+                "backbone_changed": bool(res.backbone_changed),
+                "run_id": run.id,
+                "run_intensity": run.intensity,
+                "run_created_at": run.created_at,
+                "run_start_date": run.start_date.isoformat(),
+                "run_end_date": run.end_date.isoformat(),
+                "train_ratio": run.train_ratio,
+            }
+            for res, run in rows
+        ]
+
+
+# ----------------------------------------------------------------------------
+# 8. 튜닝 전/후 파라미터 diff — 야간 반복 미세튜닝 리더보드 상세보기용 (2026-07-16)
+# ----------------------------------------------------------------------------
+
+
+def describe_tuning_diff(base_config: dict, tuned_config: dict) -> dict:
+    """base_config(백본 원본) 대비 tuned_config(채택된 튜닝 결과)에서 실제로 값이 바뀐 조건/비중만
+    골라낸다. describe_tunable_params()와 같은 위치 판별 로직(_iter_condition_paths/
+    _weight_stage_lists)을 재사용해 build_param_grid가 실제로 건드리는 자리만 비교한다.
+
+    구조 변경(generate_structural_variants_for_config 채택, backbone_changed=True)으로 조건 개수/
+    종류 자체가 달라져 같은 경로를 tuned_config에서 찾을 수 없는 경우는 조용히 건너뛴다(added/
+    removed 조건까지 비교하는 것은 이번 범위 밖 — 호출부가 backbone_changed 플래그로 이 사실을
+    별도로 안내해야 한다).
+
+    Returns:
+        JSON 스키마(레짐/1:2:6): {"schema": "json", "unchanged": bool,
+            "changes": [{"path", "kind": "condition"|"weight", "indicator", "before", "after"}, ...]}
+            (kind="condition"이면 before/after가 core.strategy_engine.describe_condition()이 만든
+            한국어 문구, kind="weight"면 "진입 2단계 비중 20%"처럼 비율 문구)
+        직접 수식(expression): {"schema": "expression", "unchanged": bool,
+            "changes": [{"before": str, "after": str}]} (수식 전체 전/후만 비교 — 숫자 단위 위치
+            정보는 튜닝 시점 이후 저장되지 않아 부분 diff가 불가능함)
+    """
+    if "expression" in base_config:
+        before_expr = base_config.get("expression", "")
+        after_expr = (tuned_config or {}).get("expression", before_expr)
+        if before_expr == after_expr:
+            return {"schema": "expression", "unchanged": True, "changes": []}
+        return {
+            "schema": "expression",
+            "unchanged": False,
+            "changes": [{"before": before_expr, "after": after_expr}],
+        }
+
+    changes: list[dict] = []
+    for path, base_cond in _iter_condition_paths(base_config):
+        try:
+            tuned_cond = _get_by_path(tuned_config, path)
+        except (KeyError, IndexError, TypeError):
+            continue
+        if not isinstance(tuned_cond, dict):
+            continue
+        before_desc = describe_condition(base_cond)
+        after_desc = describe_condition(tuned_cond)
+        if before_desc != after_desc:
+            changes.append(
+                {
+                    "path": _format_path(path),
+                    "kind": "condition",
+                    "indicator": base_cond.get("indicator", ""),
+                    "before": before_desc,
+                    "after": after_desc,
+                }
+            )
+
+    stage_labels = {"entry_stages": "진입", "exit_stages": "청산"}
+    for stage_key, numeric_stages in _weight_stage_lists(base_config).items():
+        for si, before_w in numeric_stages:
+            try:
+                after_w = tuned_config[stage_key][si]["weight"]
+            except (KeyError, IndexError, TypeError):
+                continue
+            if round(float(before_w), 4) != round(float(after_w), 4):
+                label = stage_labels[stage_key]
+                changes.append(
+                    {
+                        "path": _format_path((stage_key, si)),
+                        "kind": "weight",
+                        "indicator": "",
+                        "before": f"{label} {si + 1}단계 비중 {before_w * 100:.0f}%",
+                        "after": f"{label} {si + 1}단계 비중 {after_w * 100:.0f}%",
+                    }
+                )
+
+    return {"schema": "json", "unchanged": not changes, "changes": changes}
+
+
+def summarize_tuning_diff(diff: dict, backbone_changed: bool = False) -> str:
+    """describe_tuning_diff() 결과를 사람이 읽는 한국어 자연어 설명으로 요약한다.
+
+    결정론적으로만 만든다(Gemini 호출 없음) — 리더보드에서 결과를 열 때마다 비용/지연 없이 바로
+    보여줄 수 있어야 하므로, describe_condition() 등 기존 결정론적 문구 생성기만 조합해서 쓴다.
+    """
+    prefix = (
+        "⚠️ 파라미터 조정만으로는 test 구간을 이기지 못해 구조 자체가 다른 전략(조건/지표 변경)으로 "
+        "교체됐습니다. 아래 비교는 같은 위치의 조건만 대응시킨 것이라 일부만 반영됐을 수 있습니다.\n\n"
+        if backbone_changed
+        else ""
+    )
+
+    if diff["unchanged"]:
+        return prefix + (
+            "이 종목/스타일에서는 원본 전략 그대로가 test 구간에서 가장 나아, 파라미터를 바꾸지 않고 "
+            "원본을 그대로 채택했습니다."
+        )
+
+    if diff["schema"] == "expression":
+        c = diff["changes"][0]
+        return prefix + (
+            "수식 안의 숫자(기간/임계값 등)가 이 종목/스타일에 맞게 조정됐습니다.\n"
+            f"- 이전: {c['before']}\n- 이후: {c['after']}"
+        )
+
+    lines = []
+    for c in diff["changes"]:
+        if c["kind"] == "weight":
+            lines.append(f"- {c['before']} → {c['after']}")
+        else:
+            lines.append(f"- {c['indicator']}: {c['before']} → {c['after']}")
+    return prefix + "이 종목/스타일에 맞춰 다음 조건/비중이 조정됐습니다:\n" + "\n".join(lines)
 
 
 # ----------------------------------------------------------------------------
