@@ -17,8 +17,10 @@ UI에 그 사실을 명시한다.
 
 from __future__ import annotations
 
+import io
 import json
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
+from pathlib import Path
 from typing import Optional
 
 import pandas as pd
@@ -29,6 +31,10 @@ from core.indicators import roc
 from core.market_data import get_multiple_price_history, get_price_history
 from core.models import KostolanyCycleSnapshot
 from core.sector_strength import THEME_UNIVERSE
+
+# scripts/nightly_market_snapshot_ci.py가 매일 밤 커밋해두는 폴백 스냅샷 (core.market_regime의
+# 동일 패턴, 2026-07-21 — Oracle VM 확보 전 임시 조치).
+_CI_SNAPSHOT_PATH = Path(__file__).resolve().parent.parent / "data" / "kostolany_cycle_snapshot_ci.json"
 
 DEFAULT_LOOKBACK_DAYS = 800  # 52주(252거래일) 위치 계산 + 거래량 60일 평균 대비 넉넉한 여유
 
@@ -220,6 +226,82 @@ def classify_cycle_phase(close: pd.Series, volume: pd.Series) -> Optional[dict]:
     return result
 
 
+def explain_phase_reasoning(row: dict, style: str = "장기") -> str:
+    """classify_cycle_phase()(또는 compute_theme_cycle_phases()의 한 행)가 왜 그 국면(A1~B3)을
+    골랐는지 3축(위치/추세/거래량) 판정 근거와 최종 분기 로직을 사람이 읽을 수 있는 리포트로 풀어쓴다
+    (2026-07-21, 사용자가 "섹터를 클릭하면 왜 그렇게 판단했는지 리포트를 보고 싶다"고 요청).
+
+    row는 최소한 phase/zone/position_pct/roc_pct/volume_ratio/trend_up/is_steep/volume_high 키를
+    가진 dict(또는 pandas.Series로 그 키들에 접근 가능한 값) — classify_cycle_phase()의 반환값이나
+    compute_theme_cycle_phases()가 만드는 DataFrame의 각 행이 그대로 맞는다.
+    """
+    phase = row["phase"]
+    zone = row["zone"]
+    position_pct = row["position_pct"]
+    roc_pct = row["roc_pct"]
+    volume_ratio = row.get("volume_ratio")
+    trend_up = row["trend_up"]
+    is_steep = row.get("is_steep", False)
+    volume_high = row.get("volume_high", False)
+
+    zone_line = (
+        f"**① 위치(52주 고점·저점 대비)**: 현재가가 52주 구간의 {position_pct:.0f}% 지점입니다 "
+        f"(0%=52주 최저가, 100%=52주 최고가). {ZONE_LOW_PCT:.0f}% 이하는 저점권, {ZONE_HIGH_PCT:.0f}% "
+        f"이상은 고점권으로 판정하는 기준이라 → **{zone}**."
+    )
+
+    steep_note = (
+        f" 이 중 절댓값이 {STEEP_ROC_PCT:.0f}% 이상이라 '급등/급락'으로도 함께 판정됩니다(패닉 국면 B3 "
+        "판정에 쓰이는 조건)."
+        if is_steep
+        else f" 급락/급등 기준(±{STEEP_ROC_PCT:.0f}%)에는 못 미치는 완만한 변화입니다."
+    )
+    trend_line = (
+        f"**② 추세(최근 {TREND_ROC_WINDOW}거래일 등락률)**: {roc_pct:+.1f}%로 "
+        f"{'상승' if trend_up else '하락'} 추세입니다.{steep_note}"
+    )
+
+    if volume_ratio is None:
+        volume_line = "**③ 거래량**: 60일 평균 거래량을 계산할 이력이 부족해 판정에서 제외됐습니다(거래량 증가 아님으로 처리)."
+    else:
+        volume_line = (
+            f"**③ 거래량(최근 {VOLUME_SHORT_WINDOW}일 평균 ÷ {VOLUME_LONG_WINDOW}일 평균)**: {volume_ratio:.2f}배로, "
+            f"{VOLUME_HIGH_RATIO:.1f}배 이상이면 '거래량 증가'로 봅니다 → "
+            f"{'거래량 증가' if volume_high else '평범한 수준(증가 아님)'}."
+        )
+
+    if zone == "저점권":
+        if trend_up:
+            branch = (
+                "저점권 + 상승 추세이므로, 거래량이 증가했으면 A2(초기 상승 전환), 아니면 A1(저점 조정, "
+                "아직 저거래량 반등 초입)로 판정합니다."
+            )
+        else:
+            branch = (
+                "저점권 + 하락 추세이므로, '급락 + 거래량 증가'가 동시에 맞으면 B3(패닉/급락 투매)로, "
+                "아니면 A1(저점 조정)로 판정합니다."
+            )
+    elif zone == "고점권":
+        if trend_up:
+            branch = (
+                "고점권 + 상승 추세이므로, 거래량이 증가했으면 A3(버블/과열), 아니면 A2(상승 연장)로 "
+                "판정합니다."
+            )
+        else:
+            branch = (
+                "고점권 + 하락 추세이므로, 거래량이 증가했으면 B2(본격 하락), 아니면 B1(고점 조정 시작)로 "
+                "판정합니다."
+            )
+    else:
+        branch = "중간 구간이라 위치만으로는 애매해, 추세 방향만으로 상승이면 A2, 하락이면 B2로 판정합니다."
+    branch_line = f"**④ 종합 판정**: {branch} → 결과 **{PHASE_INFO[phase]['label']}**."
+
+    guidance = STYLE_PHASE_GUIDANCE.get(style, STYLE_PHASE_GUIDANCE["장기"])[phase]
+    guidance_line = f"**⑤ {STYLE_LABELS.get(style, style)} 관점 실행 가이드**: {guidance}"
+
+    return "\n\n".join([zone_line, trend_line, volume_line, branch_line, guidance_line])
+
+
 def get_market_cycle_phase(benchmark_ticker: str = DEFAULT_BENCHMARK_TICKER) -> Optional[dict]:
     """전체 시장(기본 S&P500 지수)의 코스톨라니 달걀 국면을 계산한다."""
     df = get_price_history(benchmark_ticker, start=_default_start(), end=None, interval="1d")
@@ -302,8 +384,27 @@ def save_kostolany_cycle_snapshot(market_phase: Optional[dict], theme_phases: pd
         return row.id
 
 
+def _load_ci_snapshot() -> Optional[dict]:
+    """scripts/nightly_market_snapshot_ci.py가 커밋해둔 폴백 스냅샷을 읽는다. 없거나 깨졌으면 None."""
+    if not _CI_SNAPSHOT_PATH.exists():
+        return None
+    try:
+        raw = json.loads(_CI_SNAPSHOT_PATH.read_text(encoding="utf-8"))
+        df = pd.DataFrame(raw["theme_phases"])
+        return {
+            "market_phase": raw.get("market_phase"),
+            "theme_phases": df,
+            "computed_at": datetime.fromisoformat(raw["computed_at"]),
+        }
+    except (json.JSONDecodeError, OSError, KeyError, ValueError):
+        return None
+
+
 def get_latest_kostolany_cycle_snapshot() -> Optional[dict]:
     """가장 최근에 저장된 코스톨라니 달걀 국면 스냅샷을 반환한다. 아직 하나도 없으면 None.
+
+    로컬 DB와 GitHub Actions 폴백 JSON 중 더 최신인 쪽을 반환한다(core.market_regime.
+    get_latest_market_regime_snapshot과 동일한 이유/패턴, 2026-07-21).
 
     Returns: {"market_phase": dict|None, "theme_phases": DataFrame, "computed_at": datetime} 또는 None.
     """
@@ -313,13 +414,16 @@ def get_latest_kostolany_cycle_snapshot() -> Optional[dict]:
             .order_by(KostolanyCycleSnapshot.id.desc())
             .first()
         )
-        if row is None:
-            return None
-        computed_at = row.computed_at
-        market_detail = json.loads(row.market_detail) if row.market_detail else None
-        theme_phases_json = row.theme_phases
+        db_result = None
+        if row is not None:
+            market_detail = json.loads(row.market_detail) if row.market_detail else None
+            df = pd.read_json(io.StringIO(row.theme_phases), orient="records")
+            db_result = {"market_phase": market_detail, "theme_phases": df, "computed_at": row.computed_at}
 
-    import io
+    ci_result = _load_ci_snapshot()
 
-    df = pd.read_json(io.StringIO(theme_phases_json), orient="records")
-    return {"market_phase": market_detail, "theme_phases": df, "computed_at": computed_at}
+    if db_result is None:
+        return ci_result
+    if ci_result is None:
+        return db_result
+    return ci_result if ci_result["computed_at"] > db_result["computed_at"] else db_result

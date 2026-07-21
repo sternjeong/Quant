@@ -1,0 +1,50 @@
+name: Nightly Market Snapshot
+
+# 매일 15:00 UTC(=00:00 KST) 자동 실행 + 수동 실행(workflow_dispatch) 지원.
+# scripts/nightly_market_snapshot_ci.py 가 시장 국면/섹터·테마 강도/코스톨라니 달걀 국면을 미리
+# 계산해 data/*_snapshot_ci.json으로 커밋한다 — Oracle VM(scheduler/run_scheduler.py 상시 프로세스)이
+# 없어도 Streamlit Community Cloud 배포본이 매일 갱신된 값을 즉시 보여줄 수 있게 하기 위함
+# (2026-07-21, Oracle Always Free VM을 capacity 부족으로 아직 확보하지 못한 동안의 임시 조치).
+
+on:
+  schedule:
+    - cron: "0 15 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nightly-market-snapshot
+  cancel-in-progress: false
+
+jobs:
+  nightly-market-snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run nightly market snapshot precompute
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        run: python scripts/nightly_market_snapshot_ci.py
+
+      # 스크립트가 이미 커밋+푸시를 시도한다. 이 스텝은 스크립트 실행 중 예외로 커밋이 안 된 채
+      # 남은 변경분을 잡아내는 폴백이라, 정상 실행에서는 커밋할 게 없어 조용히 스킵된다.
+      - name: Commit any remaining snapshot changes (fallback)
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/market_regime_snapshot_ci.json data/theme_strength_snapshot_ci.json data/kostolany_cycle_snapshot_ci.json
+          git diff --cached --quiet || git commit -m "chore: nightly market snapshot update (fallback)"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"

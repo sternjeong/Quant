@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 from datetime import date, datetime, timedelta, timezone
+from pathlib import Path
 from typing import Optional
 from zoneinfo import ZoneInfo
 
@@ -23,6 +24,13 @@ from core.market_data import get_multiple_price_history, get_price_history
 from core.models import MarketRegimeSnapshot
 
 KST = ZoneInfo("Asia/Seoul")
+
+# GitHub Actions(scripts/nightly_market_snapshot_ci.py)가 매일 밤 커밋해두는 폴백 스냅샷 경로.
+# scheduler/run_scheduler.py 상시 프로세스(Oracle VM 등)가 아직 없는 배포본(Streamlit Community
+# Cloud)에서는 로컬 DB가 계속 비어있어, 페이지 방문마다 무거운 실시간 계산이 도는 문제가 있었다
+# (2026-07-21, 오라클 무료 VM을 아직 확보 못한 상태 — capacity 부족으로 대기 중). 야간 튜닝
+# 리더보드(scripts/nightly_tuning_ci.py)와 동일한 패턴으로 해결한다.
+_CI_SNAPSHOT_PATH = Path(__file__).resolve().parent.parent / "data" / "market_regime_snapshot_ci.json"
 
 BULLISH_THRESHOLD = 35
 BEARISH_THRESHOLD = -35
@@ -491,8 +499,24 @@ def save_market_regime_snapshot(snapshot: dict) -> int:
         return row.id
 
 
+def _load_ci_snapshot() -> Optional[dict]:
+    """scripts/nightly_market_snapshot_ci.py가 커밋해둔 폴백 스냅샷을 읽는다. 없거나 깨졌으면 None."""
+    if not _CI_SNAPSHOT_PATH.exists():
+        return None
+    try:
+        detail = json.loads(_CI_SNAPSHOT_PATH.read_text(encoding="utf-8"))
+        detail["computed_at"] = datetime.fromisoformat(detail["computed_at"])
+        return detail
+    except (json.JSONDecodeError, OSError, KeyError, ValueError):
+        return None
+
+
 def get_latest_market_regime_snapshot() -> Optional[dict]:
     """가장 최근에 저장된 시장 국면 스냅샷을 반환한다. 아직 하나도 없으면 None.
+
+    로컬 DB(scheduler/run_scheduler.py 상시 프로세스 또는 "지금 다시 계산" 버튼)와 GitHub Actions
+    폴백 JSON(_load_ci_snapshot) 둘 다 확인해, computed_at이 더 최신인 쪽을 반환한다 — Oracle VM
+    등 상시 서버가 없는 배포본에서도 매일 밤 갱신된 값을 즉시 보여주기 위함(2026-07-21).
 
     Returns: get_market_regime_snapshot()과 동일한 키에 "computed_at"(datetime)이 더해진 dict.
     """
@@ -502,11 +526,18 @@ def get_latest_market_regime_snapshot() -> Optional[dict]:
             .order_by(MarketRegimeSnapshot.id.desc())
             .first()
         )
-        if row is None:
-            return None
-        detail = json.loads(row.detail)
-        detail["computed_at"] = row.computed_at
-        return detail
+        db_detail = None
+        if row is not None:
+            db_detail = json.loads(row.detail)
+            db_detail["computed_at"] = row.computed_at
+
+    ci_detail = _load_ci_snapshot()
+
+    if db_detail is None:
+        return ci_detail
+    if ci_detail is None:
+        return db_detail
+    return ci_detail if ci_detail["computed_at"] > db_detail["computed_at"] else db_detail
 
 
 def select_regime_for_trading(snapshot: Optional[dict] = None) -> dict:
