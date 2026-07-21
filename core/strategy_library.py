@@ -1,6 +1,6 @@
 """전략 라이브러리 관리 (모듈 A 확장): 저장된 전략 조회/수정/삭제 공용 로직.
 
-app/pages/1_백테스팅.py (조회/저장), app/pages/9_전략_관리.py (목록/수정/삭제) 양쪽에서
+app/pages/1_전략_스튜디오.py의 "📊 지표 조합 백테스트"(조회/저장)와 "🗂️ 전략 관리"(목록/수정/삭제) 탭 양쪽에서
 동일한 함수를 재사용한다. 전략 삭제 시 다른 테이블(backtest_results/watchlist/alerts_log)이
 참조하는 데이터를 정리해 고아 레코드가 남지 않도록 한다 (SQLite는 기본적으로 FK를 강제하지
 않으므로, 정합성은 애플리케이션 레벨에서 직접 챙긴다).
@@ -34,14 +34,21 @@ def detect_strategy_type(indicator_config: str | dict) -> str:
         return "regime"
 
 
-def list_strategies() -> list[dict]:
+def list_strategies(include_archived: bool = False) -> list[dict]:
     """전략 라이브러리 전체를 UI에 표시하기 좋은 dict 리스트로 반환한다 (최신 생성순).
 
     각 항목에는 연결된 관심종목 수 / 저장된 백테스트 결과 수도 함께 담아, 관리 화면에서
     삭제 전에 영향 범위를 미리 보여줄 수 있게 한다.
+
+    include_archived=False(기본)면 보관(archive) 처리된 구버전 전략은 제외한다 - 백테스트/미세튜닝/
+    전략 합성/관심종목 연결처럼 "지금 쓸 전략을 고르는" 화면에서 쓴다. 전략 관리 화면처럼 보관된
+    것까지 다 보여줘야 하는 곳만 True로 호출한다.
     """
     with get_session() as session:
-        rows = session.query(Strategy).order_by(Strategy.created_at.desc()).all()
+        query = session.query(Strategy)
+        if not include_archived:
+            query = query.filter(Strategy.is_archived.is_(False))
+        rows = query.order_by(Strategy.created_at.desc()).all()
         result = []
         for s in rows:
             result.append(
@@ -52,6 +59,7 @@ def list_strategies() -> list[dict]:
                     "description": s.description or "",
                     "indicator_config": s.indicator_config,
                     "strategy_type": detect_strategy_type(s.indicator_config),
+                    "is_archived": s.is_archived,
                     "created_at": s.created_at,
                     "updated_at": s.updated_at,
                     "watchlist_count": len(s.watchlist_items),
@@ -74,11 +82,35 @@ def get_strategy(strategy_id: int) -> Optional[dict]:
             "description": s.description or "",
             "indicator_config": s.indicator_config,
             "strategy_type": detect_strategy_type(s.indicator_config),
+            "is_archived": s.is_archived,
             "created_at": s.created_at,
             "updated_at": s.updated_at,
             "watchlist_count": len(s.watchlist_items),
             "backtest_result_count": len(s.backtest_results),
         }
+
+
+def archive_strategy(strategy_id: int) -> None:
+    """전략을 삭제하지 않고 보관(archive) 처리한다 - '활성 선택' 목록에서만 숨긴다.
+
+    언제든 unarchive_strategy로 되돌릴 수 있다. 기존에 이 전략을 참조하는 관심종목/백테스트
+    결과는 그대로 남아 계속 동작한다(archive는 신규 선택 목록에서만 제외하는 것이지 참조 무효화가
+    아니다).
+    """
+    with get_session() as session:
+        strategy = session.get(Strategy, strategy_id)
+        if strategy is None:
+            raise ValueError(f"전략(id={strategy_id})을 찾을 수 없습니다.")
+        strategy.is_archived = True
+
+
+def unarchive_strategy(strategy_id: int) -> None:
+    """보관 처리된 전략을 다시 활성 선택 목록으로 복원한다."""
+    with get_session() as session:
+        strategy = session.get(Strategy, strategy_id)
+        if strategy is None:
+            raise ValueError(f"전략(id={strategy_id})을 찾을 수 없습니다.")
+        strategy.is_archived = False
 
 
 def validate_indicator_config(indicator_config: str) -> dict[str, Any]:

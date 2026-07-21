@@ -1,10 +1,18 @@
-"""모듈 G: 매크로 대시보드 페이지.
+"""모듈 G 통합: 시장 진단 페이지 (2026-07-21 통합 — 이전 7_매크로_대시보드.py + 16_코스톨라니_달걀_
+이론.py + 12_섹터_리더_성장주.py).
 
-FRED API 기반 경제지표 히스토리를 보여주고, 실질 GDP 증가율/실업률 추세로 경기 사이클 국면을
-간이 추정해 국면별 아웃퍼폼 섹터(로테이션 참고표)를 함께 보여준다.
+"지금 시장이 어떤 상태인가"를 서로 다른 방법론(FRED 거시지표/경기사이클, 가격·거래량 기반 기술적
+국면, 코스톨라니 심리 근사, 섹터/종목 관계 분석)으로 보여주는 페이지들을 하나로 묶었다. 위쪽
+선택 버튼(세그먼트)으로 섹션을 고른다 — 매 rerun마다 선택된 섹션의 코드만 실행되므로(다른 섹션의
+무거운 FRED/전종목 스캔 호출이 불필요하게 함께 실행되지 않는다), st.tabs 대신 세그먼트 컨트롤 +
+session_state 분기 패턴을 쓴다. 이 패턴 덕분에 "섹터/테마 강도" 표에서 특정 테마를 클릭하면
+(이전에는 st.switch_page로 별도 페이지 12로 이동) 같은 페이지 안에서 "섹터 리더·성장주" 섹션으로
+session_state만 바꾸고 rerun하는 것으로 자연스럽게 대체된다.
 """
 
+import html
 import sys
+from datetime import date, timedelta
 from pathlib import Path
 
 # --- sys.path 부트스트랩: 프로젝트 루트를 추가해 core.* 임포트 가능하게 함 (app/pages/*.py 공통 규칙) ---
@@ -16,10 +24,24 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
+from core import job_manager
 from core.backtest_engine import DEFAULT_BENCHMARK_TICKER
 from core.db import init_db
 from core.fred_data import DEFAULT_INDICATORS, compute_fx_volatility, get_indicator_snapshot, get_series, is_configured
-from core import job_manager
+from core.kostolany_cycle import (
+    PHASE_INFO,
+    PHASE_ORDER,
+    STATUS_LABELS,
+    STATUS_ORDER,
+    STYLE_LABELS,
+    STYLE_ORDER,
+    STYLE_PHASE_GUIDANCE,
+    STYLE_PHASE_STATUS,
+    compute_theme_cycle_phases,
+    get_latest_kostolany_cycle_snapshot,
+    get_market_cycle_phase,
+    save_kostolany_cycle_snapshot,
+)
 from core.macro_cycle import (
     ASSET_CLASS_NOTES,
     classify_cfnai,
@@ -39,8 +61,9 @@ from core.market_regime import (
     save_market_regime_snapshot,
     to_kst,
 )
+from core.sector_leaders import analyze_theme_relationships, build_price_chart_candidates, get_theme_macro_context
+from core.sector_strength import THEME_UNIVERSE, compute_theme_strength, get_latest_theme_strength_snapshot, save_theme_strength_snapshot
 from core.screener import get_universe
-from core.sector_strength import compute_theme_strength, get_latest_theme_strength_snapshot, save_theme_strength_snapshot
 from core.theme import (
     TRADINGVIEW_CHART_BG,
     TRADINGVIEW_CHART_GRID,
@@ -49,30 +72,54 @@ from core.theme import (
     apply_theme,
 )
 
+# 앱 전역에서 이미 쓰는 상태색 3톤(core/theme.py의 Gemini/리더보드 배지와 동일) — 코스톨라니 섹션
+# 카드 배지에 재사용.
+_STATUS_COLORS = {"buy": "#4caf82", "hold": "#8a8a8a", "sell": "#e5533d"}
+
+# 카테고리 팔레트(dataviz 스킬, 다크모드 검증본) — 섹터 리더·성장주 섹션 차트에서 재사용.
+_CHART_COLORS = {
+    "ETF": "#3987e5",
+    "leader": "#d95926",
+    "growth": ["#008300", "#c98500", "#9085e9"],
+}
+
 init_db()
 
-st.set_page_config(page_title="매크로 대시보드", page_icon="🌐", layout="wide")
+st.set_page_config(page_title="시장 진단", page_icon="🌐", layout="wide")
 apply_theme()
 job_manager.render_active_jobs_sidebar()
-st.title("🌐 매크로 대시보드")
-st.caption("FRED(연준) 경제지표 히스토리와 경기 사이클 국면 추정 + 섹터 로테이션 참고표를 보여줍니다.")
-
+st.title("🌐 시장 진단")
+st.caption("거시지표/경기사이클, 기술적 시장국면·섹터강도, 코스톨라니 심리국면, 섹터 리더·성장주 관계까지 — 여러 방법론으로 지금 시장을 진단합니다.")
 
 if not is_configured():
     st.warning(
         "FRED_API_KEY가 설정되지 않았습니다. `.env` 파일에 키를 채워넣으면 실제 지표를 볼 수 있습니다 "
         "([fred.stlouisfed.org/docs/api/api_key.html](https://fred.stlouisfed.org/docs/api/api_key.html)에서 무료 발급). "
-        "지금은 섹터 로테이션 참고표만 표시합니다."
+        "이 키가 필요 없는 섹션(시장 국면/섹터 강도, 코스톨라니, 섹터 리더·성장주)은 그대로 사용할 수 있습니다."
     )
 
-tab_indicators, tab_cycle, tab_strength = st.tabs(
-    ["📊 경제지표", "🔄 경기 사이클 / 섹터 로테이션", "📈 시장 국면 / 섹터 강도"]
+_LABEL_INDICATORS = "📊 경제지표"
+_LABEL_CYCLE = "🔄 경기 사이클 / 섹터 로테이션"
+_LABEL_REGIME_STRENGTH = "📈 시장 국면 / 섹터 강도"
+_LABEL_KOSTOLANY = "🥚 코스톨라니 달걀 이론"
+_LABEL_SECTOR_LEADER = "🧭 섹터 리더·성장주"
+_SECTIONS = [_LABEL_INDICATORS, _LABEL_CYCLE, _LABEL_REGIME_STRENGTH, _LABEL_KOSTOLANY, _LABEL_SECTOR_LEADER]
+
+st.session_state.setdefault("market_diag_section", _LABEL_INDICATORS)
+active_section = st.segmented_control(
+    "진단 섹션", _SECTIONS, key="market_diag_section", label_visibility="collapsed"
 )
+if active_section is None:  # segmented_control은 재선택 시 해제(None)도 허용 — 이전 선택 유지
+    active_section = st.session_state.get("market_diag_section") or _LABEL_INDICATORS
+    st.session_state["market_diag_section"] = active_section
+
+st.divider()
+
 
 # ============================================================================
-# 탭 1: 경제지표 카드 + 히스토리 차트
+# 섹션 1: 경제지표 카드 + 히스토리 차트 (구 7_매크로_대시보드.py 탭1)
 # ============================================================================
-with tab_indicators:
+def _render_indicators() -> None:
     if is_configured():
         job_manager.ensure("fred_snapshot", "snapshot", get_indicator_snapshot, label="FRED 지표 조회")
         fred_job = job_manager.render("fred_snapshot", running_label="FRED 데이터를 가져오는 중")
@@ -136,12 +183,13 @@ with tab_indicators:
         else:
             st.info("원/달러 환율 데이터를 가져오지 못했습니다.")
     else:
-        st.info("FRED_API_KEY 설정 후 이 탭에서 기준금리/CPI/실업률/GDP 등 히스토리를 확인할 수 있습니다.")
+        st.info("FRED_API_KEY 설정 후 이 섹션에서 기준금리/CPI/실업률/GDP 등 히스토리를 확인할 수 있습니다.")
+
 
 # ============================================================================
-# 탭 2: 경기 사이클 국면 + 섹터 로테이션
+# 섹션 2: 경기 사이클 국면 + 섹터 로테이션 (구 7_매크로_대시보드.py 탭2)
 # ============================================================================
-with tab_cycle:
+def _render_cycle() -> None:
     st.subheader(
         "경기 사이클 국면 추정",
         help=(
@@ -333,10 +381,11 @@ with tab_cycle:
     ]
     st.dataframe(rows, use_container_width=True, hide_index=True)
 
+
 # ============================================================================
-# 탭 3: 시장 국면(강세/약세) + 섹터/테마 강도 (기술적, 룰 기반 — MARKET_REGIME_SECTOR_STRENGTH_SPEC.md)
+# 섹션 3: 시장 국면(강세/약세) + 섹터/테마 강도 (구 7_매크로_대시보드.py 탭3, 기술적·룰 기반)
 # ============================================================================
-with tab_strength:
+def _render_regime_strength() -> None:
     st.subheader(
         "시장 국면 (S&P500 기준)",
         help=(
@@ -527,13 +576,6 @@ with tab_strength:
                 "사용하는 스프레드 — 10Y-2Y보다 신뢰도 높은 선행지표로 보는 연구가 많음, 역전 시 "
                 "통상 6~18개월 뒤 침체로 이어진 전례가 많으나 단기 매매 신호는 아님)."
             )
-            # VIX/FRED 조회는 이미 로컬 디스크 캐시(TTL)가 있어 job_manager 백그라운드 잡 없이
-            # 매 rerun마다 직접 호출해도 빠르다 — job_manager.ensure()는 render()가 완료된 job의
-            # 추적을 곧바로 지워버려서(job_manager.py의 render() 참고) 이 자리처럼 "매 rerun마다
-            # 무조건 ensure() 호출"하는 패턴과 조합하면 매번 새 잡이 재시작되며 폴링용 st.rerun()이
-            # 반복 발생해, 같은 rerun 안에서 사용자가 막 클릭한 다른 위젯(조회 기간 라디오 등)의
-            # 값이 반영되기 전에 스크립트가 계속 중단·재시작되는 문제가 실측으로 확인됐다
-            # (2026-07-17). 무거운 계산이 아니므로 동기 호출로 되돌려 이 문제를 피한다.
             try:
                 advisory = get_advisory_risk_signals()
             except Exception:  # noqa: BLE001 - 심층 리스크 신호는 부가 기능, 실패해도 위 국면 판정은 유지
@@ -586,7 +628,6 @@ with tab_strength:
             else:
                 st.info("심층 리스크 신호를 아직 계산하지 못했습니다.")
 
-with tab_strength:
     st.divider()
     st.subheader(
         "섹터/테마 강도 (RS 점수)",
@@ -622,8 +663,6 @@ with tab_strength:
     if force_recompute_strength:
         job_manager.start("theme_strength", compute_theme_strength, label="섹터/테마 강도 계산")
     elif strength_is_stale:
-        # 스케줄러가 못 돌았거나(클라우드 등 상시 프로세스를 못 띄우는 환경) 아직 오늘 것이 없을 때 —
-        # 한국시간 자정이 지난 뒤 첫 방문이 자동으로 재계산을 트리거한다.
         job_manager.ensure("theme_strength", "default", compute_theme_strength, label="섹터/테마 강도 계산")
 
     strength_job = job_manager.render("theme_strength", running_label="섹터/테마 강도를 계산하는 중")
@@ -638,18 +677,14 @@ with tab_strength:
     if strength_df is not None and not strength_df.empty:
         fmt_df = strength_df.copy()
         for col in ("return_3m", "return_6m", "return_12m"):
-            # DRAM처럼 최근 상장돼 6/12개월치 데이터가 아직 없는 테마는 "-"로 표시(결측 NaN이
-            # 차트/표에 "None"·"nan%"으로 그대로 노출되는 것을 방지).
             fmt_df[col] = fmt_df[col].map(lambda v: f"{v:+.1f}%" if pd.notna(v) else "-")
         if "trend_change" in fmt_df.columns:
-            # 상승/하락/횡보 라벨만으로는 얼마나 강하게 움직였는지 안 보여서, 모멘텀 팩터 변화량
-            # (%p)을 라벨 옆에 괄호로 덧붙인다. trend_change가 없으면(데이터 부족) 라벨만 표시.
             fmt_df["trend"] = fmt_df.apply(
                 lambda row: f"{row['trend']} ({row['trend_change']:+.1f}%p)" if pd.notna(row["trend_change"]) else row["trend"],
                 axis=1,
             )
 
-        chart_df = fmt_df.sort_values("rs_score", ascending=True)  # 수평 바는 아래→위로 그려지므로 1등이 맨 위에 오도록 오름차순
+        chart_df = fmt_df.sort_values("rs_score", ascending=True)
         bar_colors = ["#26a69a" if v >= 50 else "#ef5350" for v in chart_df["rs_score"]]
 
         fig = go.Figure()
@@ -691,7 +726,7 @@ with tab_strength:
                 "return_3m": "3개월", "return_6m": "6개월", "return_12m": "12개월", "trend": "추세",
             }
         )[["테마", "프록시 ETF", "RS 점수", "3개월", "6개월", "12개월", "추세"]].reset_index(drop=True)
-        st.caption("💡 행을 클릭하면 그 테마의 대장주·성장주·매크로 리포트 페이지로 이동합니다.")
+        st.caption("💡 행을 클릭하면 그 테마의 대장주·성장주 관계 섹션으로 바로 이동합니다.")
         table_event = st.dataframe(
             display_df,
             use_container_width=True, hide_index=True,
@@ -717,6 +752,484 @@ with tab_strength:
         if selected_rows:
             clicked_theme = display_df.iloc[selected_rows[0]]["테마"]
             st.session_state["macro_dashboard_selected_theme"] = clicked_theme
-            st.switch_page("pages/12_섹터_리더_성장주.py")
+            st.session_state["market_diag_section"] = _LABEL_SECTOR_LEADER
+            st.rerun()
     elif strength_df is not None:
         st.warning("섹터/테마 강도를 계산하지 못했습니다(데이터 없음).")
+
+
+# ============================================================================
+# 섹션 4: 코스톨라니 달걀 이론 (구 16_코스톨라니_달걀_이론.py)
+# ============================================================================
+def _render_kostolany() -> None:
+    st.caption(
+        "앙드레 코스톨라니의 달걀 이론(A1 저점조정 → A2 상승 → A3 버블/과열 → B1 고점조정시작 → B2 하락 → "
+        "B3 패닉/급락)을 참고해, 전체 시장과 섹터/테마별로 지금 어느 국면인지 근사합니다. 이 이론의 핵심 "
+        "축인 '투자자 수/심리'는 이 앱에서 구할 수 없어, **52주 고점·저점 대비 가격 위치 + 추세(ROC) + "
+        "거래량 증감(20일/60일 평균 비율)** 3가지 조합으로 대신합니다. 공식 이론적 판정이 아닌 참고용 "
+        "경험칙임을 감안해 주세요."
+    )
+
+    st.session_state.setdefault("kostolany_style", "장기")
+    selected_style = st.segmented_control(
+        "투자 스타일", STYLE_ORDER, format_func=lambda s: STYLE_LABELS[s], key="kostolany_style",
+    )
+    if selected_style is None:  # segmented_control은 재선택 시 해제(None) 허용 — 이전 선택 유지
+        selected_style = st.session_state.get("kostolany_style") or "장기"
+        st.session_state["kostolany_style"] = selected_style
+    st.caption(
+        "🐢 장기 투자는 코스톨라니 원전의 조언(저거래량 조정·패닉에서 매집, 고거래량 과열·고점이탈에서 "
+        "비중축소)을 그대로 따릅니다. ⚡ 스윙 트레이딩은 '확인된 모멘텀을 단기로 타는' 관점이라 "
+        "A1(아직 반등 미확인)은 관망으로, A2(거래량 동반 상승 확인)는 매수로 재분류됩니다 — 과열/고점"
+        "이탈(A3/B1)은 두 스타일 모두 매도로 일치합니다."
+    )
+    style_status = STYLE_PHASE_STATUS[selected_style]
+    style_guidance = STYLE_PHASE_GUIDANCE[selected_style]
+
+    with st.expander("6국면 요약표", expanded=False):
+        for status in STATUS_ORDER:
+            st.markdown(f"**{STATUS_LABELS[status]}**")
+            for phase in PHASE_ORDER:
+                if style_status[phase] != status:
+                    continue
+                info = PHASE_INFO[phase]
+                st.caption(f"**{info['label']}** — {info['description']} _(→ {style_guidance[phase]})_")
+
+    saved = get_latest_kostolany_cycle_snapshot()
+    is_stale = saved is None or is_snapshot_stale_for_today_kst(saved["computed_at"])
+    if saved is not None:
+        st.session_state["kostolany_cycle_result"] = (saved["market_phase"], saved["theme_phases"])
+
+    header_cols = st.columns([5, 1])
+    with header_cols[0]:
+        if saved is not None:
+            staleness_note = " · 자정이 지나 갱신 대기 중" if is_stale else ""
+            st.caption(
+                f"🕛 마지막 갱신: {to_kst(saved['computed_at']):%Y-%m-%d %H:%M} (한국시간){staleness_note} "
+                "— 매일 자정 이후 첫 방문 시 자동 갱신(별도 스케줄러 프로세스가 없어도 동작)"
+            )
+    with header_cols[1]:
+        force_recompute = st.button("🔄 지금 다시 계산", key="force_recompute_kostolany")
+
+    def _compute_both():
+        return get_market_cycle_phase(), compute_theme_cycle_phases()
+
+    if force_recompute:
+        job_manager.start("kostolany_cycle", _compute_both, label="코스톨라니 달걀 국면 계산")
+    elif is_stale:
+        job_manager.ensure("kostolany_cycle", "default", _compute_both, label="코스톨라니 달걀 국면 계산")
+
+    cycle_job = job_manager.render("kostolany_cycle", running_label="코스톨라니 달걀 국면을 계산하는 중")
+    if cycle_job is not None:
+        if cycle_job.status == "error":
+            st.error(f"코스톨라니 달걀 국면 계산 중 오류가 발생했습니다: {cycle_job.error}")
+        else:
+            market_phase, theme_phases = cycle_job.result
+            st.session_state["kostolany_cycle_result"] = (market_phase, theme_phases)
+            save_kostolany_cycle_snapshot(market_phase, theme_phases)
+
+    result = st.session_state.get("kostolany_cycle_result")
+    if result is None:
+        st.info("아직 계산된 국면이 없습니다. 위 '지금 다시 계산' 버튼을 눌러주세요.")
+    else:
+        market_phase, theme_phases = result
+
+        st.subheader("🌍 전체 시장 (S&P500)")
+        if market_phase is None:
+            st.warning("시장 국면을 계산할 데이터가 부족합니다.")
+        else:
+            market_status = style_status[market_phase["phase"]]
+            st.markdown(
+                f'<span style="display:inline-block;padding:2px 10px;border-radius:10px;'
+                f'background:{_STATUS_COLORS[market_status]}22;color:{_STATUS_COLORS[market_status]};'
+                f'font-size:0.85em;font-weight:600;">{html.escape(STATUS_LABELS[market_status])}</span>',
+                unsafe_allow_html=True,
+            )
+            info_cols = st.columns([2, 1, 1, 1])
+            with info_cols[0]:
+                st.metric(market_phase["label"], f"{market_phase['zone']}")
+                st.caption(f"{market_phase['description']} _(→ {style_guidance[market_phase['phase']]})_")
+            with info_cols[1]:
+                st.metric(
+                    "52주 위치", f"{market_phase['position_pct']:.0f}%",
+                    help="0=52주 최저가, 100=52주 최고가.",
+                )
+            with info_cols[2]:
+                st.metric("20일 추세(ROC)", f"{market_phase['roc_pct']:+.1f}%")
+            with info_cols[3]:
+                vr = market_phase["volume_ratio"]
+                st.metric(
+                    "거래량 추세", "증가" if market_phase["volume_high"] else "보통/감소",
+                    f"{vr:.2f}x" if vr is not None else "N/A",
+                    help="20일 평균 거래량 / 60일 평균 거래량 (1.2배 이상이면 '증가'로 판정).",
+                )
+
+        st.divider()
+        st.subheader(f"🏭 섹터/테마별 국면 ({STYLE_LABELS[selected_style]} 기준)")
+        st.caption(
+            "core.sector_strength.THEME_UNIVERSE의 GICS 11개 표준 섹터 + 반도체/우주/방산 등 세부 테마 "
+            "전체를 같은 방식으로 판정한 뒤, 위에서 고른 투자 스타일 기준으로 **매수 관심 / 보유·관망 / "
+            "매도 검토** 3그룹으로 묶어 보여줍니다. 각 카드를 펼치면 정확히 어느 국면(A1~B3)인지와 근거 "
+            "수치를 볼 수 있습니다."
+        )
+
+        if theme_phases is None or theme_phases.empty:
+            st.info("섹터/테마 국면 데이터가 없습니다.")
+        else:
+            board_cols = st.columns(3)
+            for status, col in zip(STATUS_ORDER, board_cols):
+                with col:
+                    phases_in_status = [p for p in PHASE_ORDER if style_status[p] == status]
+                    group_df = theme_phases[theme_phases["phase"].isin(phases_in_status)].copy()
+
+                    st.markdown(f"##### {STATUS_LABELS[status]}")
+                    phase_labels = " / ".join(PHASE_INFO[p]["label"] for p in phases_in_status)
+                    st.caption(f"{phase_labels} · {len(group_df)}개 테마")
+
+                    if group_df.empty:
+                        st.caption("해당 테마가 없습니다.")
+                        continue
+
+                    if status == "sell":
+                        group_df = group_df.sort_values("position_pct", ascending=False)
+                    elif status == "buy":
+                        group_df = group_df.sort_values("position_pct", ascending=True)
+                    else:
+                        group_df = group_df.sort_values("theme")
+
+                    color = _STATUS_COLORS[status]
+                    cards_html = []
+                    for _, row in group_df.iterrows():
+                        vol_ratio = row["volume_ratio"]
+                        vol_text = f"{vol_ratio:.2f}x" if pd.notna(vol_ratio) else "N/A"
+                        theme_name = html.escape(str(row["theme"]))
+                        phase_label = html.escape(str(row["label"]))
+                        cards_html.append(
+                            f'<div style="border-left:3px solid {color};padding:6px 10px;margin-bottom:6px;'
+                            f'border-radius:4px;background:rgba(255,255,255,0.04);">'
+                            f'<div style="display:flex;justify-content:space-between;align-items:baseline;">'
+                            f'<b style="font-size:0.92em;">{theme_name}</b>'
+                            f'<span style="font-size:0.72em;opacity:0.65;white-space:nowrap;">{phase_label}</span>'
+                            f"</div>"
+                            f'<div style="font-size:0.76em;opacity:0.75;margin-top:2px;">'
+                            f"52주 위치 {row['position_pct']:.0f}% · 추세 {row['roc_pct']:+.1f}% · 거래량 {vol_text}"
+                            f"</div></div>"
+                        )
+                    st.markdown("".join(cards_html), unsafe_allow_html=True)
+
+            with st.expander("📋 표로 전체 보기 (정렬/검색용)", expanded=False):
+                display_df = theme_phases[
+                    ["theme", "label", "position_pct", "roc_pct", "volume_ratio", "phase"]
+                ].copy()
+                display_df["guidance"] = display_df["phase"].map(style_guidance)
+                display_df = display_df.drop(columns="phase")
+                display_df["position_pct"] = display_df["position_pct"].map(lambda v: f"{v:.0f}%")
+                display_df["roc_pct"] = display_df["roc_pct"].map(lambda v: f"{v:+.1f}%")
+                display_df["volume_ratio"] = display_df["volume_ratio"].map(lambda v: f"{v:.2f}x" if pd.notna(v) else "N/A")
+                display_df.columns = ["테마", "국면", "52주 위치", "20일 추세", "거래량비", "가이드"]
+                st.dataframe(display_df, use_container_width=True, hide_index=True)
+
+
+# ============================================================================
+# 섹션 5: 섹터 리더·성장주 관계 분석 (구 12_섹터_리더_성장주.py)
+# ============================================================================
+def _render_sector_leader() -> None:
+    st.caption(
+        "테마별 대표 ETF 대비 대장주(시가총액 1위)와 성장주(이익성장률 상위 3개, 시가총액 상위 25% "
+        "초대형주는 후보에서 제외)의 베타(민감도)/상관계수(동조화)/상대강도(RS) 비율 추세를 계산합니다. "
+        "애플/마이크로소프트 같은 초대형주가 '성장주'로 잡히지 않도록, 대장주 한 종목만 빼는 대신 "
+        "시가총액 상위 25% 전체를 성장주 후보에서 제외합니다(최근 러셀 지수 재조정에서도 초대형주는 "
+        "성장/가치 경계가 흐려진다는 리서치 근거). 대장주/성장주는 매번 자동으로 다시 산출되며(수동 "
+        "큐레이션 없음), 반도체/메모리·DRAM/방산/우주/냉각/사이버보안/클라우드/로보틱스/광통신/원자력처럼 "
+        "GICS 표준 섹터에 없는 세부 테마는 코드에 미리 정의된 후보 종목군 안에서 동일한 방식으로 선정합니다."
+    )
+
+    theme_options = list(THEME_UNIVERSE.keys())
+    # "시장 국면/섹터 강도" 섹션의 강도 표에서 특정 행(테마)을 눌러 넘어온 경우, 그 테마를 기본
+    # 선택값으로 사용한다(딱 한 번만 소비 — pop). 없으면 기존처럼 "기술"을 기본값으로 둔다.
+    _incoming_theme = st.session_state.pop("macro_dashboard_selected_theme", None)
+    _default_theme = _incoming_theme if _incoming_theme in theme_options else "기술"
+    selected_theme = st.selectbox(
+        "테마 선택", theme_options, index=theme_options.index(_default_theme) if _default_theme in theme_options else 0
+    )
+
+    with st.container(border=True):
+        st.markdown("##### 🌍 매크로 경제 리포트")
+        macro_context = get_theme_macro_context(selected_theme)
+        market_regime = macro_context["market_regime"]
+        cycle_phase = macro_context["cycle_phase"]
+        mapped_sector = macro_context["mapped_sector"]
+
+        mrow1, mrow2 = st.columns(2)
+        with mrow1:
+            if market_regime is not None:
+                st.metric(
+                    "시장 국면 (S&P500 기준)",
+                    market_regime["regime"],
+                    help="200일선 위치·골든/데드크로스·시장폭·52주 고점 대비 낙폭 4개 신호 합산 (core.market_regime, 매일 자정 자동 갱신).",
+                )
+            else:
+                st.caption("시장 국면 스냅샷이 아직 없습니다('시장 국면/섹터 강도' 섹션에서 한 번 계산하면 여기서도 보입니다).")
+        with mrow2:
+            if cycle_phase is not None and cycle_phase.get("phase"):
+                st.metric(
+                    "경기 사이클 국면",
+                    cycle_phase["phase"],
+                    help="GDP 증가율의 추세 대비 레벨×모멘텀 + Sahm Rule 오버레이 (core.macro_cycle).",
+                )
+            else:
+                st.caption("FRED_API_KEY 미설정 또는 데이터 부족으로 경기 사이클 국면을 계산할 수 없습니다.")
+
+        if cycle_phase is not None and cycle_phase.get("phase"):
+            st.write(cycle_phase["description"])
+            if mapped_sector is not None:
+                if macro_context["is_favored_sector"]:
+                    st.success(
+                        f"✅ **{selected_theme}**(≈ {mapped_sector} 섹터)는 현재 '{cycle_phase['phase']}' 국면에서 "
+                        "역사적으로 아웃퍼폼하는 섹터 로테이션 목록에 포함됩니다."
+                    )
+                else:
+                    st.info(
+                        f"ℹ️ **{selected_theme}**(≈ {mapped_sector} 섹터)는 현재 '{cycle_phase['phase']}' 국면의 "
+                        f"아웃퍼폼 섹터 목록(참고: {', '.join(cycle_phase['sectors'])})에는 포함되지 않습니다."
+                    )
+            else:
+                st.caption(f"'{selected_theme}'는 경기 사이클 섹터 로테이션 참고표와 매핑되지 않은 니치 테마입니다.")
+        st.caption(
+            "공식 경기판단이 아닌 참고용 경험칙입니다 — 자세한 방법론은 '경기 사이클/섹터 로테이션' 섹션 참고."
+        )
+
+    PERIOD_PRESETS = {"1개월": 30, "6개월": 182, "1년": 365, "3년": 365 * 3}
+    period_mode = st.radio(
+        "분석 기간", list(PERIOD_PRESETS.keys()) + ["직접 선택"],
+        index=2, horizontal=True, key="sector_leader_period_mode",
+    )
+    if period_mode == "직접 선택":
+        col_start, col_end = st.columns(2)
+        with col_start:
+            period_start = st.date_input("시작일", value=date.today() - timedelta(days=365), key="sector_leader_start_date")
+        with col_end:
+            period_end = st.date_input("종료일", value=date.today(), key="sector_leader_end_date")
+        if period_start >= period_end:
+            st.warning("시작일은 종료일보다 빨라야 합니다.")
+            st.stop()
+    else:
+        period_end = date.today()
+        period_start = period_end - timedelta(days=PERIOD_PRESETS[period_mode])
+    st.caption("베타/상관계수/RS 비율·성과 비교 차트는 선택한 기간 전체를 기준으로 계산됩니다(대장주/성장주 자체 선정 기준은 기간과 무관).")
+
+    period_start_iso = period_start.isoformat()
+    period_end_iso = period_end.isoformat()
+
+    job_manager.ensure(
+        "sector_leader_growth", (selected_theme, period_start_iso, period_end_iso), analyze_theme_relationships,
+        selected_theme, start=period_start_iso, end=period_end_iso,
+        label=f"{selected_theme} 섹터 리더/성장주 분석 ({period_mode})",
+    )
+    job = job_manager.render("sector_leader_growth", running_label=f"{selected_theme} 대장주/성장주를 분석하는 중")
+    if job is not None:
+        if job.status == "error":
+            st.error(f"분석 중 오류가 발생했습니다: {job.error}")
+            st.session_state.pop("sector_leader_growth_result", None)
+        else:
+            st.session_state["sector_leader_growth_result"] = job.result
+
+    result = st.session_state.get("sector_leader_growth_result")
+
+    if (
+        result is None
+        or result.get("theme") != selected_theme
+        or result.get("start") != period_start_iso
+        or result.get("end") != period_end_iso
+    ):
+        st.info("테마/기간을 선택하면 분석이 시작됩니다. 잠시만 기다려 주세요.")
+        st.stop()
+
+    st.caption(f"대표 ETF: {', '.join(result['proxies'])} · 후보 종목 {result['candidates_count']}개 중 자동 선정")
+
+    leader = result.get("leader")
+    growth_stocks = result.get("growth_stocks", [])
+
+    if leader is None:
+        st.warning("이 테마의 후보 종목 데이터를 가져오지 못했습니다 (네트워크 오류 또는 데이터 없음).")
+        st.stop()
+
+    def _fmt_pct(v):
+        return "N/A" if v is None else f"{v:+.1f}%"
+
+    def _fmt_num(v, digits=2):
+        return "N/A" if v is None else f"{v:.{digits}f}"
+
+    st.subheader(
+        f"👑 대장주: {leader['ticker']} ({leader['name']})",
+        help="**선정 방법론**: 테마 후보 종목 중 시가총액 1위를 '대장주'로 자동 선정합니다.",
+    )
+    cols = st.columns(5)
+    cols[0].metric("시가총액", f"${leader['market_cap'] / 1e9:,.1f}B" if leader.get("market_cap") else "N/A")
+    cols[1].metric(
+        "베타 (ETF 대비 민감도)",
+        _fmt_num(leader.get("beta")),
+        help="ETF보다 얼마나 크게 흔들리는지 보는 지표입니다. 1보다 크면 ETF보다 더 민감하게 움직입니다.",
+    )
+    cols[2].metric(
+        "상관계수 (동조화)",
+        _fmt_num(leader.get("correlation")),
+        help="ETF와 같은 방향으로 움직이는 정도입니다. 1에 가까울수록 거의 같이 움직입니다.",
+    )
+    cols[3].metric(f"RS 추세 ({leader.get('trend', 'N/A')})", _fmt_pct(leader.get("rs_change_3m")), help="최근 3개월 상대강도(종목가/ETF가) 비율 변화율")
+    cols[4].metric("추세추종 신호", leader.get("abs_trend", "N/A"), help="종목 자체의 절대 가격 추세(200일선 위/아래 + 50/200일 골든·데드크로스). ETF 대비 상대강도(RS)와는 다른 지표입니다.")
+
+    st.subheader(
+        "🌱 성장주 (이익성장률 상위 3개, 초대형주 제외)",
+        help=(
+            "**선정 방법론**: 시가총액 상위 25%(대장주 포함)를 초대형주로 보고 후보에서 제외한 뒤, "
+            "남은 종목 중 이익성장률 백분위가 높은 상위 3개를 뽑습니다(후보군이 작아 상위 25%를 "
+            "제외하면 아무도 안 남으면 대장주 한 종목만 제외). 🐢 추격 후보는 대장주와의 베타·상관계수가 "
+            "모두 임계값 이상인데(연동은 확인됨) 아직 RS가 대장주를 못 따라온 종목을 표시합니다."
+        ),
+    )
+    if growth_stocks:
+        growth_df = pd.DataFrame(
+            [
+                {
+                    "티커": g["ticker"],
+                    "종목명": g["name"],
+                    "시가총액": f"${g['market_cap'] / 1e9:,.1f}B" if g.get("market_cap") else "N/A",
+                    "이익성장률": _fmt_pct(g.get("earnings_growth") * 100 if g.get("earnings_growth") is not None else None),
+                    "PER": _fmt_num(g.get("per")),
+                    "베타": _fmt_num(g.get("beta")),
+                    "상관계수": _fmt_num(g.get("correlation")),
+                    "RS 추세": g.get("trend", "N/A"),
+                    "RS 3개월 변화": _fmt_pct(g.get("rs_change_3m")),
+                    "🐢 추격 후보": "예" if g.get("lag_candidate") else "-",
+                }
+                for g in growth_stocks
+            ]
+        )
+        st.dataframe(growth_df, use_container_width=True, hide_index=True)
+
+        if any(g.get("lag_candidate") for g in growth_stocks):
+            st.info(
+                "🐢 **추격 후보**: 대장주가 상승추세이고 이 종목의 베타/상관계수도 충분히 높아(대장주와 "
+                "연동돼 있어) 함께 움직일 여지가 있는데, 아직 ETF 대비 상대강도(RS)가 상승으로 확인되지는 "
+                "않은 종목입니다. Lo-MacKinlay(1990)/Hou(2007)의 리드-래그(lead-lag) 연구에 따르면 같은 "
+                "산업 내에서 대형주 수익률이 정보확산 지연으로 소형주 수익률을 선행하는 경향이 있습니다 — "
+                "다만 이 예측력에 기반한 초과수익은 거래비용을 반영하면 빠르게 사라진다는 한계도 같은 "
+                "연구에서 확인됐습니다. **투자 조언이 아니라 관찰 지표이며, 실제로 따라잡는다는 보장은 "
+                "없습니다.**"
+            )
+    else:
+        st.info("이 테마에서 성장주 후보를 찾지 못했습니다.")
+
+    try:
+        _regime_segments = historical_regime_segments(period_start_iso, period_end_iso)
+    except Exception:  # noqa: BLE001 - 배경 음영은 부가 기능이라 실패해도 차트 자체는 그대로 보여줌
+        _regime_segments = {"강세장": [], "약세장": []}
+
+    chart_series = result.get("chart_series", {})
+    if chart_series:
+        st.subheader("📈 정규화 성과 비교 (시작일 = 100)")
+        st.caption(
+            "배경의 옅은 초록/빨강은 S&P500 기준 역사적 강세장/약세장 구간입니다 "
+            "(core.market_regime — 200일선 대비 위치 + 52주 고점 대비 낙폭으로 라벨링)."
+        )
+        fig = go.Figure()
+        for label, series in chart_series.items():
+            if label == "ETF":
+                fig.add_trace(
+                    go.Scatter(
+                        x=series.index, y=series.values, name="대표 ETF", mode="lines",
+                        line=dict(color=_CHART_COLORS["ETF"], width=2, dash="dash"),
+                    )
+                )
+            elif label == leader["ticker"]:
+                fig.add_trace(
+                    go.Scatter(
+                        x=series.index, y=series.values, name=f"대장주 {label}", mode="lines",
+                        line=dict(color=_CHART_COLORS["leader"], width=3),
+                    )
+                )
+            else:
+                idx = [g["ticker"] for g in growth_stocks].index(label) if label in [g["ticker"] for g in growth_stocks] else 0
+                color = _CHART_COLORS["growth"][idx % len(_CHART_COLORS["growth"])]
+                fig.add_trace(
+                    go.Scatter(x=series.index, y=series.values, name=f"성장주 {label}", mode="lines", line=dict(color=color, width=2))
+                )
+        fig.update_layout(
+            paper_bgcolor=TRADINGVIEW_CHART_BG, plot_bgcolor=TRADINGVIEW_CHART_BG,
+            font=dict(color=TRADINGVIEW_CHART_TEXT),
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
+            margin=dict(l=10, r=10, t=10, b=10),
+            hovermode="x unified",
+        )
+        fig.update_xaxes(gridcolor=TRADINGVIEW_CHART_GRID, zerolinecolor=TRADINGVIEW_CHART_GRID)
+        fig.update_yaxes(gridcolor=TRADINGVIEW_CHART_GRID, zerolinecolor=TRADINGVIEW_CHART_GRID, title="정규화 지수 (시작일=100)")
+        add_regime_shading(fig, _regime_segments)
+        st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+
+        price_candidates = build_price_chart_candidates(
+            result.get("proxies", []), leader, growth_stocks, start=period_start_iso, end=period_end_iso
+        )
+        if price_candidates:
+            st.subheader("📉 실제 주가 조회")
+            st.caption("티커를 고르면 해당 종목의 실제 가격 차트를 볼 수 있습니다.")
+
+            candidate_by_key = {c["key"]: c for c in price_candidates}
+            prev_key = st.session_state.get("selected_price_ticker", price_candidates[0]["key"])
+            selected_key = st.segmented_control(
+                "티커 선택",
+                options=list(candidate_by_key.keys()),
+                format_func=lambda k: candidate_by_key[k]["label"],
+                default=prev_key if prev_key in candidate_by_key else price_candidates[0]["key"],
+                label_visibility="collapsed",
+                key="selected_price_ticker",
+            )
+            if selected_key is None:
+                selected_key = prev_key if prev_key in candidate_by_key else price_candidates[0]["key"]
+
+            selected_candidate = candidate_by_key.get(selected_key, price_candidates[0])
+            selected_series = selected_candidate["series"]
+            if selected_series is not None and not selected_series.empty:
+                price_fig = go.Figure()
+                price_fig.add_trace(
+                    go.Scatter(
+                        x=selected_series.index,
+                        y=selected_series.values,
+                        mode="lines",
+                        name=selected_candidate["label"],
+                        line=dict(width=2.5, color=_CHART_COLORS["leader"] if selected_candidate["key"] == leader["ticker"] else _CHART_COLORS["ETF"] if selected_candidate["key"] == "ETF" else _CHART_COLORS["growth"][0]),
+                    )
+                )
+                price_fig.update_layout(
+                    paper_bgcolor=TRADINGVIEW_CHART_BG,
+                    plot_bgcolor=TRADINGVIEW_CHART_BG,
+                    font=dict(color=TRADINGVIEW_CHART_TEXT),
+                    margin=dict(l=10, r=10, t=10, b=10),
+                    hovermode="x unified",
+                )
+                price_fig.update_xaxes(gridcolor=TRADINGVIEW_CHART_GRID, zerolinecolor=TRADINGVIEW_CHART_GRID)
+                price_fig.update_yaxes(gridcolor=TRADINGVIEW_CHART_GRID, zerolinecolor=TRADINGVIEW_CHART_GRID, title="실제 가격")
+                add_regime_shading(price_fig, _regime_segments)
+                st.plotly_chart(price_fig, use_container_width=True, config={"displayModeBar": False})
+            else:
+                st.info("선택한 티커의 실제 가격 데이터를 찾지 못했습니다.")
+    else:
+        st.info("비교 차트를 그리기에 데이터가 부족합니다.")
+
+    st.caption(
+        "베타 1보다 크면 ETF보다 변동성이 크게 움직인다는 뜻이고, 상관계수가 낮으면 ETF와 별개로 "
+        "움직이는 종목이라는 뜻입니다. RS 추세는 최근 20거래일 기준 상대강도(종목가/ETF가) 비율이 "
+        "±1% 이상 움직였을 때만 상승/하락으로 표시하고, 그 이하는 횡보로 표시합니다."
+    )
+
+
+if active_section == _LABEL_INDICATORS:
+    _render_indicators()
+elif active_section == _LABEL_CYCLE:
+    _render_cycle()
+elif active_section == _LABEL_REGIME_STRENGTH:
+    _render_regime_strength()
+elif active_section == _LABEL_KOSTOLANY:
+    _render_kostolany()
+elif active_section == _LABEL_SECTOR_LEADER:
+    _render_sector_leader()

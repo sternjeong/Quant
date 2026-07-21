@@ -201,5 +201,8 @@ def test_theme_universe_preset_has_expected_themes():
     assert sector_strength.THEME_UNIVERSE["사이버보안"] == ["CIBR"]
     assert set(sector_strength.THEME_UNIVERSE["클라우드"]) == {"SKYY", "WCLD"}
     assert sector_strength.THEME_UNIVERSE["로보틱스"] == ["BOTZ"]
+    assert sector_strength.THEME_UNIVERSE["광통신"] == ["LUMA"]
+    assert sector_strength.THEME_UNIVERSE["원자력"] == ["NLR"]
     # GICS 11개 + 반도체/DRAM/우주 + 방산/냉각/사이버보안/클라우드/로보틱스(2026-07-15 추가)
-    assert len(sector_strength.THEME_UNIVERSE) == 19
+    # + 광통신/원자력(2026-07-17 추가)
+    assert len(sector_strength.THEME_UNIVERSE) == 21

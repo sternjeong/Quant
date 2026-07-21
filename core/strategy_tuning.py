@@ -39,7 +39,7 @@ from core.expression_engine import ExpressionError, validate_syntax
 from core.indicators import sma
 from core.macro_cycle import SECTOR_ROTATION
 from core.market_data import get_price_history
-from core.models import StrategyTuningResult, StrategyTuningRun
+from core.models import Strategy, StrategyTuningResult, StrategyTuningRun
 from core.strategy_engine import describe_condition, is_expression_config, is_staged_config
 
 # ----------------------------------------------------------------------------
@@ -362,11 +362,16 @@ def _round_original(category: str, val: float) -> float:
     raise ValueError(f"알 수 없는 분류: {category}")
 
 
-def _weight_stage_lists(base_config: dict) -> dict[str, list[tuple[int, float]]]:
+def _weight_stage_lists(base_config: dict, path: tuple = ()) -> dict[tuple, list[tuple[int, float]]]:
     """entry_stages/exit_stages 중 weight가 숫자인 stage가 2개 이상인 목록만 골라
-    {stage_key: [(stage_index, weight), ...]}로 반환한다 (탐색 축 생성과 재정규화가 공유하는 대상
-    판별 로직 — 두 곳이 서로 다른 stage 집합을 고르면 재정규화가 탐색하지 않은 stage까지 건드리게 됨)."""
-    result: dict[str, list[tuple[int, float]]] = {}
+    {stage_path: [(stage_index, weight), ...]}로 반환한다 (탐색 축 생성과 재정규화가 공유하는 대상
+    판별 로직 — 두 곳이 서로 다른 stage 집합을 고르면 재정규화가 탐색하지 않은 stage까지 건드리게 됨).
+
+    복합(combine+strategies) 전략은 하위 전략마다 독립된 entry_stages/exit_stages를 가질 수 있어
+    "strategies" 리스트를 재귀적으로 내려가며 각 하위 전략의 stage_key 앞에 위치 경로(예:
+    ("strategies", 0, "entry_stages"))를 붙여 키로 쓴다 — 상위 트리에서 다시 같은 자리를 찾을 수
+    있어야 _weight_axis_values/_normalize_stage_weights가 정확한 stage를 건드릴 수 있다."""
+    result: dict[tuple, list[tuple[int, float]]] = {}
     for stage_key in ("entry_stages", "exit_stages"):
         stages = base_config.get(stage_key) or []
         numeric = [
@@ -375,7 +380,12 @@ def _weight_stage_lists(base_config: dict) -> dict[str, list[tuple[int, float]]]
             if isinstance(stage.get("weight"), (int, float)) and not isinstance(stage.get("weight"), bool)
         ]
         if len(numeric) >= _MIN_WEIGHTED_STAGES:
-            result[stage_key] = numeric
+            result[(*path, stage_key)] = numeric
+    strategies = base_config.get("strategies")
+    if isinstance(strategies, list):
+        for si, sub in enumerate(strategies):
+            if isinstance(sub, dict):
+                result.update(_weight_stage_lists(sub, (*path, "strategies", si)))
     return result
 
 
@@ -384,11 +394,11 @@ def _weight_axis_values(base_config: dict) -> list[tuple[tuple, str, list]]:
     실제 채택 시 합계를 1.0으로 되돌리는 정규화는 여기서 하지 않는다(_normalize_stage_weights가
     후보 생성 후 담당) — 여기서는 다른 비율류 파라미터와 동일하게 원본 ±30% 축만 만든다."""
     axes: list[tuple[tuple, str, list]] = []
-    for stage_key, numeric_stages in _weight_stage_lists(base_config).items():
+    for stage_path, numeric_stages in _weight_stage_lists(base_config).items():
         for si, val in numeric_stages:
             lo, hi = _value_range_for_style("weight", val, 0.0, 0.0)  # weight는 스타일 배수 무관
             values = sorted({lo, _round_original("weight", val), hi})
-            axes.append(((stage_key, si), "weight", values))
+            axes.append(((*stage_path, si), "weight", values))
     return axes
 
 
@@ -397,12 +407,12 @@ def _normalize_stage_weights(candidate: dict) -> None:
     재조정한다. weight를 서로 독립적으로 흔들면 합이 깨져(예: 총 93%만 투자되거나 108% 레버리지)
     "몇 단계에 걸쳐 전량 진입/청산"이라는 전략 의미가 왜곡되므로, 배분 비율만 탐색하고 총량은 항상
     100%로 고정한다(2026-07-15 사용자 확정 — 원본 합계가 1.0이 아닌 경우에도 튜닝 후에는 항상
-    1.0으로 맞춘다)."""
-    for stage_key, numeric_stages in _weight_stage_lists(candidate).items():
+    1.0으로 맞춘다). 복합 전략은 하위 전략별로 독립적으로 정규화한다."""
+    for stage_path, numeric_stages in _weight_stage_lists(candidate).items():
         total = sum(w for _, w in numeric_stages)
         if total <= 0:
             continue
-        stages = candidate[stage_key]
+        stages = _get_by_path(candidate, stage_path)
         for si, w in numeric_stages:
             stages[si]["weight"] = round(w / total, 4)
 
@@ -439,6 +449,11 @@ def _iter_condition_paths(config: dict, path: tuple = ()):
         for i, c in enumerate(emergency.get("conditions", []) or []):
             if isinstance(c, dict) and "indicator" in c:
                 yield (*path, "emergency_exit", "conditions", i), c
+    strategies = config.get("strategies")
+    if isinstance(strategies, list):
+        for si, sub in enumerate(strategies):
+            if isinstance(sub, dict):
+                yield from _iter_condition_paths(sub, (*path, "strategies", si))
 
 
 def _get_by_path(config: dict, path: tuple) -> Any:
@@ -555,12 +570,12 @@ def describe_tunable_params(base_config: dict) -> list[dict]:
                 }
             )
 
-    for stage_key, numeric_stages in _weight_stage_lists(base_config).items():
+    for stage_path, numeric_stages in _weight_stage_lists(base_config).items():
         for si, val in numeric_stages:
             style_ranges = {style: _value_range_for_style("weight", val, 0.0, 0.0) for style in STYLE_TYPES}
             rows.append(
                 {
-                    "path": _format_path((stage_key, si)),
+                    "path": _format_path((*stage_path, si)),
                     "indicator": "",
                     "key": "weight",
                     "original": _round_original("weight", val),
@@ -576,6 +591,7 @@ def describe_tunable_params(base_config: dict) -> list[dict]:
 # 분리 튜닝" 절에 있었으나 3b절 추가로 앞당김(NameError 방지, 값 자체는 그대로).
 _DEFAULT_TRAIN_RATIO = 0.75
 _MIN_TRADE_COUNT = 5
+_SWING_MAX_HOLDING_DAYS = 126  # 스윙 트레이딩 보유기간 상한(약 6개월 거래일, SPEC 15절) — tune_strategy_for_group(max_holding_days=...)에 넘기는 권장 기본값
 
 
 # ----------------------------------------------------------------------------
@@ -1169,7 +1185,7 @@ def tune_strategy_for_ticker(
 _MIN_GROUP_COVERAGE_RATIO = 0.5  # 후보가 그룹을 대표한다고 인정하려면 최소 이 비율 이상 종목에서 유효해야 함
 _WALK_FORWARD_FOLDS = 3  # train 구간을 몇 개의 하위 구간(폴드)으로 나눠 독립 평가할지 (SPEC 11.2절)
 _ROBUSTNESS_PENALTY_WEIGHT = 0.5  # 폴드 간 표준편차에 곱하는 패널티 가중치 (뾰족한 피크 후보 배제)
-_TRAINING_REGIMES = ["약세장", "강세장"]  # SPEC 13절 — 스타일 그룹마다 국면별로 따로 트레이닝
+_TRAINING_REGIMES = ["약세장", "강세장", "횡보장"]  # SPEC 13절 — 스타일 그룹마다 국면별로 따로 트레이닝(2026-07-17부터 3분류)
 
 
 def _group_min_required(group_size: int) -> int:
@@ -1194,18 +1210,23 @@ def _split_into_folds(start: str, end: str, n_folds: int) -> list[tuple[str, str
 
 
 def _candidate_group_train_sharpe(
-    tickers: list[str], candidate: dict, train_start: str, train_end: str
+    tickers: list[str], candidate: dict, train_start: str, train_end: str, max_holding_days: Optional[int] = None
 ) -> Optional[float]:
     """후보 config를 그룹 전체 종목의 train 구간에 적용해 평균 샤프지수를 계산한다.
 
     한 종목에만 잘 맞고 나머지에는 안 맞는(과최적화된) 후보를 그룹 대표로 뽑지 않기 위해, 그룹의
     최소 절반 이상 종목에서 매매 횟수 조건을 만족하는 유효한 결과가 나와야만 점수를 매긴다
     (부족하면 None을 반환해 이 후보를 탈락시킨다).
+
+    max_holding_days가 주어지면(스윙 트레이딩 모드, SPEC 15절) 그 상한을 넘겨 강제 청산한 결과로
+    샤프지수를 계산한다 — 탐색 단계부터 "6개월 안에 강제로 잘렸을 때" 성과로 후보를 고르게 된다.
     """
     sharpes = []
     for ticker in tickers:
         try:
-            run = run_backtest(ticker, candidate, train_start, train_end, label="train")
+            run = run_backtest(
+                ticker, candidate, train_start, train_end, label="train", max_holding_days=max_holding_days
+            )
         except Exception:
             continue
         if run.metrics.get("trade_count", 0) < _MIN_TRADE_COUNT:
@@ -1217,7 +1238,7 @@ def _candidate_group_train_sharpe(
 
 
 def _candidate_group_walkforward_score(
-    tickers: list[str], candidate: dict, folds: list[tuple[str, str]]
+    tickers: list[str], candidate: dict, folds: list[tuple[str, str]], max_holding_days: Optional[int] = None
 ) -> Optional[dict]:
     """후보를 폴드마다 독립적으로 평가해(각 폴드의 그룹 평균 샤프지수) "평균 − 표준편차×가중치"로
     점수를 매긴다(SPEC 11.2절 — 다중 구간 워크포워드 + 안정성 점수). 특정 폴드(특정 시기)에만
@@ -1226,7 +1247,11 @@ def _candidate_group_walkforward_score(
     미달이면 None(그룹 커버리지와 동일한 `_group_min_required` 기준 재사용).
     """
     fold_sharpes = [
-        s for s in (_candidate_group_train_sharpe(tickers, candidate, fs, fe) for fs, fe in folds) if s is not None
+        s
+        for s in (
+            _candidate_group_train_sharpe(tickers, candidate, fs, fe, max_holding_days) for fs, fe in folds
+        )
+        if s is not None
     ]
     if len(fold_sharpes) < _group_min_required(len(folds)):
         return None
@@ -1243,7 +1268,7 @@ def _candidate_group_walkforward_score(
 
 
 def _select_best_group_config_walkforward(
-    tickers: list[str], candidates: list[dict], folds: list[tuple[str, str]]
+    tickers: list[str], candidates: list[dict], folds: list[tuple[str, str]], max_holding_days: Optional[int] = None
 ) -> tuple[Optional[dict], list[dict]]:
     """폴드 목록(연속된 날짜 구간들)을 독립적으로 평가해, 폴드 간 점수(위 함수)가 가장 높은 후보를
     고른다. 단일 구간 평가보다 특정 시기에만 맞는 과최적화 후보를 더 잘 걸러낸다 — 단, 이게 "미래
@@ -1266,7 +1291,7 @@ def _select_best_group_config_walkforward(
                 continue  # 진입=청산 자기모순 등 구조적 결함은 그룹 대표 후보에서 배제 (종목과 무관한 정적 특성)
         except Exception:
             continue
-        scored = _candidate_group_walkforward_score(tickers, candidate, folds)
+        scored = _candidate_group_walkforward_score(tickers, candidate, folds, max_holding_days)
         if scored is None:
             continue
         trail.append({"config": candidate, **scored})
@@ -1276,13 +1301,15 @@ def _select_best_group_config_walkforward(
     return best_config, trail
 
 
-def _evaluate_group_config_on_test(tickers: list[str], config: dict, test_start: str, test_end: str) -> dict[str, dict]:
+def _evaluate_group_config_on_test(
+    tickers: list[str], config: dict, test_start: str, test_end: str, max_holding_days: Optional[int] = None
+) -> dict[str, dict]:
     """확정된 그룹 config를 종목별로 test(out-of-sample) 구간에서 개별 평가한다 (선택에는 관여하지
     않고 최종 검증/보고 전용 — train/test 분리 원칙)."""
     per_ticker = {}
     for ticker in tickers:
         try:
-            comparison = compare_with_benchmarks(ticker, config, test_start, test_end)
+            comparison = compare_with_benchmarks(ticker, config, test_start, test_end, max_holding_days=max_holding_days)
             per_ticker[ticker] = {
                 "strategy": comparison["strategy"].metrics,
                 "buy_and_hold_ticker": comparison["buy_and_hold_ticker"].metrics,
@@ -1302,20 +1329,22 @@ def _train_folds_for_regime(train_start: str, train_end: str, regime: str) -> li
 
 
 def _evaluate_group_config_on_regime_matched_test(
-    tickers: list[str], config: dict, test_start: str, test_end: str, regime: str
+    tickers: list[str], config: dict, test_start: str, test_end: str, regime: str, max_holding_days: Optional[int] = None
 ) -> Optional[dict]:
-    """test 구간 안에서 config가 학습된 국면과 같은 국면의 가장 긴 연속 구간 하나만 별도로 평가한다
-    (SPEC 13.6절 보조 지표 — "약세장에서 학습한 설정이 실제 약세장에서는 어떻게 하는지").
+    """test 구간 안에서 config가 학습된 국면과 같은 국면의 가장 긴 연속 구간 하나만 골라 평가한다
+    (SPEC 13.6절, 2026-07-17 정정 — 이제 tune_strategy_for_group의 주 test 평가 그 자체다.
+    "약세장에서 학습한 설정을 강세장 데이터로 검증할 이유가 없다"는 사용자 확정 원칙).
 
     여러 조각을 이어붙이지(stitch) 않고 가장 긴 단일 구간만 쓴다 — 불연속 구간을 이으면 그 사이
     갭에서 포지션이 어떻게 되는지 정의가 모호해져 4b/11절의 정직성 원칙을 해칠 위험이 있다. 이
-    지표는 어떤 선택에도 관여하지 않는 순수 보고용이다. 해당 국면 구간이 test 안에 없으면 None.
+    함수 자체는 선택(어떤 파라미터를 채택할지)에 관여하지 않는 순수 평가용이다(선택은 train 구간
+    워크포워드 점수로만 한다, 4b/11절 원칙 유지). 해당 국면 구간이 test 안에 없으면 None.
     """
     segments = market_regime.historical_regime_segments(test_start, test_end).get(regime, [])
     if not segments:
         return None
     seg_start, seg_end = max(segments, key=lambda s: (pd.Timestamp(s[1]) - pd.Timestamp(s[0])).days)
-    per_ticker = _evaluate_group_config_on_test(tickers, config, seg_start, seg_end)
+    per_ticker = _evaluate_group_config_on_test(tickers, config, seg_start, seg_end, max_holding_days)
     mean_excess = _group_mean_excess_return(per_ticker)
     return {
         "segment_start": seg_start,
@@ -1345,8 +1374,13 @@ def tune_strategy_for_group(
     train_ratio: float = _DEFAULT_TRAIN_RATIO,
     intensity: str = _DEFAULT_INTENSITY,
     regime: Optional[str] = None,
+    max_holding_days: Optional[int] = None,
 ) -> dict:
     """스타일 그룹(예: 경기방어주 17종목) 전체를 하나의 데이터셋으로 묶어 공통 설정 하나를 찾는다.
+
+    max_holding_days(SPEC 15절, 스윙 트레이딩 모드)를 주면 train 탐색·test 검증 모두 그 보유기간
+    상한을 강제한 결과로 이뤄진다(`_SWING_MAX_HOLDING_DAYS`=126거래일이 기본 권장값). None이면
+    기존과 동일하게 보유기간 제약 없이 탐색한다(하위호환).
 
     regime이 None이면(레거시/기본 경로) train 구간을 `_WALK_FORWARD_FOLDS`개의 달력 등분 폴드로
     나눠 평가한다(10/11절 기존 방식). regime이 "약세장"/"강세장"이면 대신 train 구간 안에서 실제로
@@ -1365,8 +1399,15 @@ def tune_strategy_for_group(
          "regime_matched_test"} — tuning_trail은 채택된 config를 낳은 탐색의 후보별 폴드 점수
         리포트(점수 내림차순). insufficient_regime_data는 regime이 지정됐는데 train 구간 안에 해당
         국면 구간이 하나도 없어(예: 5년 이력에 뚜렷한 약세장이 없음) 폴백으로 원본 config를 그대로
-        썼다는 표시(SPEC 13.5절). regime_matched_test는 test 구간 중 같은 국면의 가장 긴 구간에서만
-        평가한 보조 지표(SPEC 13.6절, regime=None이면 항상 None).
+        썼다는 표시(SPEC 13.5절).
+
+        regime이 지정되면(SPEC 13.6절, 2026-07-17 정정) group_mean_excess_return/group_win_ratio/
+        per_ticker_test_comparison은 test 구간 전체가 아니라 **그 국면과 같은 test 구간 내 가장 긴
+        연속 구간에서만** 평가한 값이다 — "약세장에서 학습한 설정을 강세장 데이터로 검증할 이유가
+        없다"는 사용자 확정 원칙. 그런 구간이 test 안에 아예 없으면 group_mean_excess_return=None
+        ("검증 불가", 조용히 다른 데이터로 대체하지 않음). regime_matched_test는 그 구간의 시작/
+        종료일(segment_start/segment_end)을 보여주는 참고용 필드로, 내용은 per_ticker_test_
+        comparison과 사실상 같다(regime=None이면 항상 None).
     """
     train_start, train_end, test_start, test_end = train_test_split_dates(start, end, train_ratio)
 
@@ -1376,18 +1417,31 @@ def tune_strategy_for_group(
         train_folds = _train_folds_for_regime(train_start, train_end, regime)
     insufficient_regime_data = regime is not None and not train_folds
 
-    def _search_and_evaluate(config: dict) -> tuple[dict, dict[str, dict], float, list[dict]]:
+    def _evaluate_on_test(config: dict) -> tuple[dict[str, dict], float, Optional[dict]]:
+        """regime이 없으면(레거시) test 구간 전체로, 있으면 test 구간 중 같은 국면의 가장 긴 연속
+        구간 하나로만 평가한다(SPEC 13.6절 2026-07-17 정정 — 국면 불일치 데이터로 검증 안 함)."""
+        if regime is None:
+            per_ticker = _evaluate_group_config_on_test(tickers, config, test_start, test_end, max_holding_days)
+            return per_ticker, _group_mean_excess_return(per_ticker), None
+        matched = _evaluate_group_config_on_regime_matched_test(
+            tickers, config, test_start, test_end, regime, max_holding_days
+        )
+        if matched is None or matched.get("mean_excess_return") is None:
+            return (matched or {}).get("per_ticker", {}), float("-inf"), matched
+        return matched["per_ticker"], matched["mean_excess_return"], matched
+
+    def _search_and_evaluate(config: dict) -> tuple[dict, dict[str, dict], float, list[dict], Optional[dict]]:
         candidates = build_param_grid(config, style_type, intensity)
         if train_folds:
-            chosen, trail = _select_best_group_config_walkforward(tickers, candidates, train_folds)
+            chosen, trail = _select_best_group_config_walkforward(tickers, candidates, train_folds, max_holding_days)
         else:
             chosen, trail = None, []
         if chosen is None:
             chosen = copy.deepcopy(config)
-        test_result = _evaluate_group_config_on_test(tickers, chosen, test_start, test_end)
-        return chosen, test_result, _group_mean_excess_return(test_result), trail
+        per_ticker, mean_excess, matched = _evaluate_on_test(chosen)
+        return chosen, per_ticker, mean_excess, trail, matched
 
-    best_config, per_ticker_test, mean_excess, tuning_trail = _search_and_evaluate(base_config)
+    best_config, per_ticker_test, mean_excess, tuning_trail, regime_matched_test = _search_and_evaluate(base_config)
     backbone_changed = False
 
     if mean_excess <= 0:
@@ -1397,17 +1451,21 @@ def tune_strategy_for_group(
             variants = []
         for variant_config in variants:
             try:
-                cand_config, cand_test, cand_excess, cand_trail = _search_and_evaluate(variant_config)
+                cand_config, cand_test, cand_excess, cand_trail, cand_matched = _search_and_evaluate(variant_config)
             except Exception:
                 continue
             if cand_excess > mean_excess:
-                best_config, per_ticker_test, mean_excess, tuning_trail = cand_config, cand_test, cand_excess, cand_trail
+                best_config, per_ticker_test, mean_excess, tuning_trail, regime_matched_test = (
+                    cand_config, cand_test, cand_excess, cand_trail, cand_matched
+                )
                 backbone_changed = True
 
     per_ticker_train_metrics: dict[str, Optional[dict]] = {}
     for ticker in tickers:
         try:
-            run = run_backtest(ticker, best_config, train_start, train_end, label="train")
+            run = run_backtest(
+                ticker, best_config, train_start, train_end, label="train", max_holding_days=max_holding_days
+            )
             per_ticker_train_metrics[ticker] = run.metrics
         except Exception:
             per_ticker_train_metrics[ticker] = None
@@ -1424,15 +1482,6 @@ def tune_strategy_for_group(
         health_warnings = diagnose_strategy_health(best_config)
     except Exception:
         health_warnings = []
-
-    regime_matched_test = None
-    if regime is not None:
-        try:
-            regime_matched_test = _evaluate_group_config_on_regime_matched_test(
-                tickers, best_config, test_start, test_end, regime
-            )
-        except Exception:
-            regime_matched_test = None
 
     return {
         "style_type": style_type,
@@ -1458,8 +1507,13 @@ def run_batch_tuning(
     end: str,
     train_ratio: float = _DEFAULT_TRAIN_RATIO,
     intensity: str = _DEFAULT_INTENSITY,
+    max_holding_days: Optional[int] = None,
 ) -> list[dict]:
     """전체 파이프라인: 스타일 분류 -> 스타일×국면 그룹 단위 풀링 트레이닝 -> 종목별 결과로 펼쳐서 반환.
+
+    max_holding_days(SPEC 15절, 스윙 트레이딩 모드)를 주면 모든 스타일×국면 그룹의 탐색·검증에
+    그 보유기간 상한이 강제된다(`_SWING_MAX_HOLDING_DAYS`=126거래일이 권장값). None이면 기존과
+    동일하게 보유기간 제약 없이 탐색한다(하위호환).
 
     2026-07-15부터 종목마다 따로 탐색하지 않고(위 4b절 tune_strategy_for_group 참고), 같은
     스타일의 종목을 하나의 그룹으로 묶어 공통 설정을 찾는다. 2026-07-16부터(SPEC 13절)는 그 스타일
@@ -1489,6 +1543,7 @@ def run_batch_tuning(
                 group_result = tune_strategy_for_group(
                     group_tickers, base_config, style_type, start, end,
                     train_ratio=train_ratio, intensity=intensity, regime=regime,
+                    max_holding_days=max_holding_days,
                 )
             except Exception as e:  # noqa: BLE001 - 그룹/국면 하나의 실패가 나머지를 막지 않게 함
                 for ticker in group_tickers:
@@ -1553,6 +1608,7 @@ def save_tuning_run(
     intensity: str,
     results: list[dict],
     base_strategy_id: Optional[int] = None,
+    max_holding_days: Optional[int] = None,
 ) -> int:
     """튜닝 배치 실행 결과를 새 StrategyTuningRun(+종목별 StrategyTuningResult)으로 영구 저장한다."""
     with get_session() as session:
@@ -1564,6 +1620,7 @@ def save_tuning_run(
             intensity=intensity,
             start_date=date.fromisoformat(start),
             end_date=date.fromisoformat(end),
+            max_holding_days=max_holding_days,
             completed_at=datetime.utcnow(),
         )
         session.add(run)
@@ -1614,9 +1671,13 @@ def run_and_save_tuning(
     base_strategy_id: Optional[int] = None,
     tickers_df: Optional[pd.DataFrame] = None,
     universe_as_of_date: Optional[str | date | datetime] = None,
+    max_holding_days: Optional[int] = None,
 ) -> int:
     """표본 추출(또는 직접 지정한 종목) -> 배치 튜닝 -> 저장까지 한 번에 수행한다 (job_manager
     백그라운드 실행 진입점).
+
+    max_holding_days(SPEC 15절)를 주면 배치 전체가 스윙 트레이딩 보유기간 상한 하에서 탐색/검증되고,
+    그 값이 StrategyTuningRun에 함께 저장돼 나중에 "이 배치는 스윙 모드였는지"를 알 수 있다.
 
     tickers_df가 주어지면(사용자가 UI에서 직접 담은 종목) sample_universe()에 의한 자동 섹터 균등
     표본 추출을 건너뛰고 그대로 사용한다(universe_n은 이 경우 무시됨).
@@ -1632,9 +1693,13 @@ def run_and_save_tuning(
     """
     if tickers_df is None:
         tickers_df = sample_universe(universe_n, as_of_date=universe_as_of_date)
-    results = run_batch_tuning(base_config, tickers_df, start, end, train_ratio=train_ratio, intensity=intensity)
+    results = run_batch_tuning(
+        base_config, tickers_df, start, end, train_ratio=train_ratio, intensity=intensity,
+        max_holding_days=max_holding_days,
+    )
     return save_tuning_run(
-        base_config, tickers_df, start, end, train_ratio, intensity, results, base_strategy_id=base_strategy_id
+        base_config, tickers_df, start, end, train_ratio, intensity, results,
+        base_strategy_id=base_strategy_id, max_holding_days=max_holding_days,
     )
 
 
@@ -1650,6 +1715,7 @@ def list_tuning_runs() -> list[dict]:
                 "start_date": r.start_date,
                 "end_date": r.end_date,
                 "intensity": r.intensity,
+                "max_holding_days": r.max_holding_days,
                 "created_at": r.created_at,
                 "result_count": len(r.results),
             }
@@ -1691,6 +1757,7 @@ def get_tuning_run(run_id: int) -> Optional[dict]:
             "end_date": run.end_date,
             "train_ratio": run.train_ratio,
             "intensity": run.intensity,
+            "max_holding_days": run.max_holding_days,
             "created_at": run.created_at,
             "results": results,
         }
@@ -1742,6 +1809,202 @@ def get_top_tuning_results(base_strategy_id: int, limit: int = 10) -> list[dict]
             }
             for res, run in rows
         ]
+
+
+# ----------------------------------------------------------------------------
+# 7b. 라이브 국면 판단 -> 세 전략(약세장용/강세장용/횡보장용) 중 하나 선택 (SPEC 13.9절,
+# 2026-07-17 도입, 2026-07-17 3분류로 확장)
+# ----------------------------------------------------------------------------
+
+_LIVE_REGIME_LOOKBACK_DAYS = market_regime.DEFAULT_LOOKBACK_DAYS
+
+
+def select_live_strategy(bear_strategy_id: int, bull_strategy_id: int, sideways_strategy_id: int) -> dict:
+    """지금 국면(S&P500 기준)에 맞는 전략을 전략 라이브러리에서 하나 골라 반환한다.
+
+    국면별로 분리 트레이닝한 세 전략(run_batch_tuning의 결과를 저장한 것)을 실제로 어느 시점에
+    어느 걸 쓸지 정하는 용도다. 학습 때 폴드를 나눈 것과 똑같은 규칙
+    (core.market_regime.classify_daily_regime — 낙폭 -20% 이하는 약세장, ADX<20은 횡보장, 나머지는
+    200일선 기준 강세장/약세장)을 벤치마크의 가장 최근 날짜에 그대로 적용해 "지금" 국면을 정한다.
+    학습과 실전 판단이 서로 다른 기준을 쓰면 학습된 전략이 실제로는 안 맞는 국면에 배정될 수 있어,
+    두 곳 모두 같은 classify_daily_regime을 재사용한다(get_market_regime_snapshot의 4신호 종합
+    점수 체계와는 별개 — 그쪽은 매크로 대시보드의 "오늘 국면" 표시용이고 이 함수와는 무관).
+
+    Returns:
+        {"trading_regime", "selected_strategy_id", "selected_strategy_name", "selected_config"} —
+        벤치마크 가격 데이터를 가져오지 못하면(trading_regime 포함) 전부 None, 대신 "reason"에
+        이유를 담는다.
+    """
+    end = date.today().isoformat()
+    start = (date.today() - timedelta(days=_LIVE_REGIME_LOOKBACK_DAYS)).isoformat()
+    df = get_price_history(market_regime.DEFAULT_BENCHMARK_TICKER, start=start, end=end, use_cache=True)
+    if df is None or df.empty:
+        return {
+            "trading_regime": None,
+            "selected_strategy_id": None,
+            "selected_strategy_name": None,
+            "selected_config": None,
+            "reason": "벤치마크 가격 데이터를 가져올 수 없습니다.",
+        }
+
+    regime_series = market_regime.classify_daily_regime(df["Close"], df["High"], df["Low"])
+    if regime_series.empty:
+        return {
+            "trading_regime": None,
+            "selected_strategy_id": None,
+            "selected_strategy_name": None,
+            "selected_config": None,
+            "reason": "국면을 판단할 가격 데이터가 부족합니다.",
+        }
+
+    trading_regime = regime_series.iloc[-1]
+    strategy_id = {"약세장": bear_strategy_id, "강세장": bull_strategy_id, "횡보장": sideways_strategy_id}[trading_regime]
+    with get_session() as session:
+        strategy = session.get(Strategy, strategy_id)
+        if strategy is None:
+            return {
+                "trading_regime": trading_regime,
+                "selected_strategy_id": None,
+                "selected_strategy_name": None,
+                "selected_config": None,
+            }
+        return {
+            "trading_regime": trading_regime,
+            "selected_strategy_id": strategy.id,
+            "selected_strategy_name": strategy.name,
+            "selected_config": json.loads(strategy.indicator_config),
+        }
+
+
+# ----------------------------------------------------------------------------
+# 7c. 종목 자체 추세 기준 분류(상승/하락/횡보) + 라이브 선택 (SPEC 14절, 2026-07-17)
+#
+# 13절의 국면(약세장/강세장)은 S&P500 "지수"의 날짜별 흐름을 기준으로 학습 데이터를 나눴다 — 그런데
+# 조회 구간에 따라 test 구간(마지막 25%)에 지수 차원의 약세장이 아예 없을 수 있어(실측으로 확인,
+# STRATEGY_TUNING_ENGINE_SPEC.md 13.6절 정정 사례 참고) 그 경우 약세장 config를 out-of-sample로
+# 검증할 방법이 없었다. 사용자가 대안으로, 지수가 아니라 "종목 자체"가 그 표본기간 동안 상승/하락/
+# 횡보 중 어느 흐름이었는지로 종목을 3개 데이터셋으로 나눠 각각 따로 연구하자고 요청 — 어떤 기간을
+# 잡아도 그 안에서 오른 종목/내린 종목/횡보한 종목은 항상 섞여 있으므로(지수 자체의 방향과 무관하게)
+# 13절이 겪은 "그 국면 데이터가 아예 없다" 문제를 원천적으로 피할 수 있다.
+# ----------------------------------------------------------------------------
+
+_TREND_BULLISH_CAGR_PCT = 10.0
+_TREND_BEARISH_CAGR_PCT = -10.0
+_LIVE_TREND_LOOKBACK_CALENDAR_DAYS = 182  # 약 6개월 - _MOMENTUM_LOOKBACK_DAYS(126거래일)와 같은 취지
+
+
+def classify_ticker_trend(df: pd.DataFrame) -> Optional[str]:
+    """가격 이력 하나의 구간 전체 CAGR로, 그 구간 동안 종목이 상승/하락/횡보 중 어느 흐름이었는지
+    분류한다 (SPEC 14절, 라이브 판단용 — select_strategy_for_ticker_trend 참고). CAGR >= 10%면
+    "상승", <= -10%면 "하락", 그 사이는 "횡보"(위임받은 기술 판단 — 개별 종목은 지수보다 변동성이
+    커서 13절의 지수용 임계값보다 넉넉히 잡음). 데이터가 없거나 구간이 하루 이하면 None.
+
+    학습 데이터셋 구성(classify_tickers_by_trend)에는 이 절대 임계값 방식을 쓰지 않는다 — 아래 참고.
+    """
+    cagr = _ticker_cagr(df)
+    if cagr is None:
+        return None
+    if cagr >= _TREND_BULLISH_CAGR_PCT:
+        return "상승"
+    if cagr <= _TREND_BEARISH_CAGR_PCT:
+        return "하락"
+    return "횡보"
+
+
+def _ticker_cagr(df: pd.DataFrame) -> Optional[float]:
+    """가격 이력 구간 전체의 CAGR(%)을 계산한다. 데이터가 없거나 구간이 하루 이하면 None."""
+    if df is None or df.empty or "Close" not in df.columns:
+        return None
+    close = df["Close"].dropna()
+    if len(close) < 2:
+        return None
+    start_price, end_price = float(close.iloc[0]), float(close.iloc[-1])
+    if start_price <= 0:
+        return None
+    years = (close.index[-1] - close.index[0]).days / 365.25
+    if years <= 0:
+        return None
+    return ((end_price / start_price) ** (1 / years) - 1) * 100
+
+
+def classify_tickers_by_trend(tickers: list[str], start: str, end: str) -> dict[str, str]:
+    """종목 목록을 그 구간 CAGR의 **상대적 순위(3분위)**로 상승/횡보/하락 3그룹으로 나눈다
+    (학습 데이터셋 구성용 — SPEC 14절).
+
+    classify_ticker_trend()의 절대 임계값(±10%) 대신 상대 순위를 쓰는 이유: S&P500 현재
+    구성종목만 표본으로 삼으면 생존편향 때문에(성과가 나빠 지수에서 빠진 종목은 애초에 표본에
+    없음) 수년 단위 CAGR이 절대적으로 마이너스인 종목이 실제로 거의 없다(실측 확인 — 10년 표본
+    40종목 중 CAGR<=-10%가 0개였음). 상대 순위를 쓰면 시장이 전반적으로 강세였든 아니었든 세
+    그룹이 항상 채워진다("상대적으로 부진했던 종목"이라는 의미로 재정의).
+
+    하위 1/3 = "하락", 상위 1/3 = "상승", 중간 = "횡보". 조회 실패/데이터 부족 종목은 결과에서
+    제외한다. 유효 종목이 3개 미만이면 3분위를 나눌 수 없어 전부 "횡보"로 처리한다.
+    """
+    cagrs: dict[str, float] = {}
+    for ticker in tickers:
+        try:
+            df = get_price_history(ticker, start=start, end=end, use_cache=True)
+        except Exception:
+            continue
+        cagr = _ticker_cagr(df)
+        if cagr is not None:
+            cagrs[ticker] = cagr
+
+    if len(cagrs) < 3:
+        return {t: "횡보" for t in cagrs}
+
+    ranks = pd.Series(cagrs).rank(pct=True)
+    result: dict[str, str] = {}
+    for ticker, pct_rank in ranks.items():
+        if pct_rank <= 1 / 3:
+            result[ticker] = "하락"
+        elif pct_rank > 2 / 3:
+            result[ticker] = "상승"
+        else:
+            result[ticker] = "횡보"
+    return result
+
+
+def select_strategy_for_ticker_trend(
+    ticker: str,
+    bear_strategy_id: int,
+    bull_strategy_id: int,
+    sideways_strategy_id: int,
+    lookback_days: int = _LIVE_TREND_LOOKBACK_CALENDAR_DAYS,
+) -> dict:
+    """지금 이 종목이 최근 lookback_days(기본 약 6개월)일 동안 상승/하락/횡보 중 어느 흐름인지 보고,
+    그에 맞는 전략(하락장용/상승장용/횡보장용)을 전략 라이브러리에서 골라 반환한다 (SPEC 14절).
+
+    select_live_strategy()(13.9절, S&P500 지수 기준)와 다르게 "지금 시장 전체가 어떤가"가 아니라
+    "지금 이 종목이 어떤 흐름인가"를 본다. 학습(classify_ticker_trend)은 표본기간 전체(수년)로
+    분류하지만, 실전 판단은 최근 구간만 봐야 "지금" 상태를 반영하므로 lookback을 짧게 잡는다 —
+    학습과 판단의 기간이 다른 것은 의도된 설계다.
+
+    Returns:
+        {"trend", "selected_strategy_id", "selected_strategy_name", "selected_config"} — 최근
+        가격 데이터를 가져오지 못하면 전부 None.
+    """
+    end = date.today().isoformat()
+    start = (date.today() - timedelta(days=lookback_days)).isoformat()
+    try:
+        df = get_price_history(ticker, start=start, end=end, use_cache=True)
+    except Exception:
+        df = None
+    trend = classify_ticker_trend(df) if df is not None else None
+    if trend is None:
+        return {"trend": None, "selected_strategy_id": None, "selected_strategy_name": None, "selected_config": None}
+
+    strategy_id = {"하락": bear_strategy_id, "상승": bull_strategy_id, "횡보": sideways_strategy_id}[trend]
+    with get_session() as session:
+        strategy = session.get(Strategy, strategy_id)
+        if strategy is None:
+            return {"trend": trend, "selected_strategy_id": None, "selected_strategy_name": None, "selected_config": None}
+        return {
+            "trend": trend,
+            "selected_strategy_id": strategy.id,
+            "selected_strategy_name": strategy.name,
+            "selected_config": json.loads(strategy.indicator_config),
+        }
 
 
 # ----------------------------------------------------------------------------
@@ -1801,17 +2064,17 @@ def describe_tuning_diff(base_config: dict, tuned_config: dict) -> dict:
             )
 
     stage_labels = {"entry_stages": "진입", "exit_stages": "청산"}
-    for stage_key, numeric_stages in _weight_stage_lists(base_config).items():
+    for stage_path, numeric_stages in _weight_stage_lists(base_config).items():
         for si, before_w in numeric_stages:
             try:
-                after_w = tuned_config[stage_key][si]["weight"]
+                after_w = _get_by_path(tuned_config, stage_path)[si]["weight"]
             except (KeyError, IndexError, TypeError):
                 continue
             if round(float(before_w), 4) != round(float(after_w), 4):
-                label = stage_labels[stage_key]
+                label = stage_labels[stage_path[-1]]
                 changes.append(
                     {
-                        "path": _format_path((stage_key, si)),
+                        "path": _format_path((*stage_path, si)),
                         "kind": "weight",
                         "indicator": "",
                         "before": f"{label} {si + 1}단계 비중 {before_w * 100:.0f}%",

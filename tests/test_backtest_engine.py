@@ -55,6 +55,45 @@ def test_run_backtest_returns_metrics_for_all_keys():
     assert run.equity_curve.iloc[0] == pytest.approx(100.0)
 
 
+def test_cap_holding_period_forces_exit_after_max_days():
+    idx = pd.bdate_range("2021-01-04", periods=10)
+    position = pd.Series([1.0] * 10, index=idx)  # 계속 보유 신호(예: 롱텀 컴파운더식 전략)
+    capped = backtest_engine._cap_holding_period(position, max_holding_days=3)
+    # 3일마다 강제 청산되고, 신호가 여전히 보유를 가리키므로 바로 다음 날 재진입한다.
+    assert list(capped) == [1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0]
+
+
+def test_cap_holding_period_allows_reentry_after_forced_exit():
+    idx = pd.bdate_range("2021-01-04", periods=10)
+    # 6일 연속 보유 신호를 3일 상한으로 캡핑하면: 3일 보유 -> 강제청산 -> 신호가 여전히 보유를
+    # 가리키므로 바로 재진입 -> 다시 3일 뒤 강제청산.
+    position = pd.Series([1.0] * 6 + [0.0] * 4, index=idx)
+    capped = backtest_engine._cap_holding_period(position, max_holding_days=3)
+    assert list(capped) == [1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0]
+
+
+def test_cap_holding_period_none_is_noop():
+    idx = pd.bdate_range("2021-01-04", periods=5)
+    position = pd.Series([1.0] * 5, index=idx)
+    assert list(backtest_engine._cap_holding_period(position, None)) == [1.0] * 5
+
+
+def test_run_backtest_with_max_holding_days_forces_swing_exit():
+    """스윙 트레이딩 상한(SPEC 15절) — 원래 오래 들고 가는(200일선 위 유지) 전략도 max_holding_days를
+    넘기면 평균 보유일수가 그 상한을 넘지 않아야 한다."""
+    config = {"logic": "AND", "conditions": [{"indicator": "ma_cross", "short": 10, "long": 30, "type": "golden"}]}
+    run_uncapped = backtest_engine.run_backtest("TEST", config, "2021-06-01", "2022-06-01")
+    run_capped = backtest_engine.run_backtest(
+        "TEST", config, "2021-06-01", "2022-06-01", max_holding_days=30
+    )
+    assert run_capped.metrics["trade_count"] >= run_uncapped.metrics["trade_count"]
+    # 보유일수 상한이 실제로 포지션에 반영됐는지는 연속 보유 구간 길이로 직접 확인한다.
+    held = run_capped.position > 0
+    streak_id = (~held).cumsum()
+    max_streak = held.groupby(streak_id).cumcount().add(1).where(held, 0).max()
+    assert max_streak <= 30
+
+
 def test_run_buy_and_hold_single_trade():
     run = backtest_engine.run_buy_and_hold("TEST", "2021-06-01", "2022-06-01")
     assert run.metrics["trade_count"] == 1
@@ -83,7 +122,7 @@ def test_compute_regime_breakdown_covers_all_labels_and_sums_to_total_days():
     config = {"logic": "AND", "conditions": [{"indicator": "ma_cross", "short": 10, "long": 30, "type": "golden"}]}
     run = backtest_engine.run_backtest("TEST", config, "2021-06-01", "2022-06-01")
     breakdown = backtest_engine.compute_regime_breakdown(run)
-    assert set(breakdown.keys()) == {"강세장", "약세장", "중립"}
+    assert set(breakdown.keys()) == {"강세장", "약세장", "횡보장"}
     total_days = sum(v["trading_days"] for v in breakdown.values())
     assert total_days == len(run.equity_curve)
     for v in breakdown.values():

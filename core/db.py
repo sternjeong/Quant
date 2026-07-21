@@ -52,6 +52,30 @@ def init_db() -> None:
     from core import models  # 지연 임포트로 순환참조 방지
 
     models.Base.metadata.create_all(bind=engine)
+    _add_missing_columns()
+
+
+def _add_missing_columns() -> None:
+    """create_all()은 없는 테이블만 만들 뿐 기존 테이블에 나중에 추가된 컬럼은 채워주지 않는다
+    (SQLAlchemy 한계, 이 프로젝트엔 별도 마이그레이션 도구가 없음). 이미 배포된 SQLite 파일에도
+    새 컬럼(예: SPEC 15절 max_holding_days)이 적용되도록 최소한의 ALTER TABLE ADD COLUMN을
+    직접 실행한다 — 컬럼이 이미 있으면(OperationalError "duplicate column") 조용히 무시한다.
+    """
+    from sqlalchemy import inspect, text
+
+    additions = {
+        "strategy_tuning_runs": [("max_holding_days", "INTEGER")],
+    }
+    inspector = inspect(engine)
+    with engine.begin() as conn:
+        for table, columns in additions.items():
+            if table not in inspector.get_table_names():
+                continue
+            existing = {c["name"] for c in inspector.get_columns(table)}
+            for col_name, col_type in columns:
+                if col_name in existing:
+                    continue
+                conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {col_name} {col_type}"))
 
 
 def get_engine():

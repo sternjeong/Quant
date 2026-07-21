@@ -18,6 +18,7 @@
 | I. 차트 조회 (신규) | ✅ 완료 | market_data.py(clamp_start_for_interval 추가), indicators.py 재사용, watchlist.py 재사용 | 10_차트_조회.py | test_market_data.py |
 | (부가) 환경설정(페이지 순서 편집) | ✅ 완료 | page_order.py(신규) | 11_환경설정.py | test_page_order.py |
 | (부가) 섹터 리더/성장주 관계 분석 | ✅ 완료 | sector_leaders.py(신규), sector_strength.py(theme_price_history 공개화) | 12_섹터_리더_성장주.py | test_sector_leaders.py |
+| (부가) 코스톨라니 달걀 이론 국면 | ✅ 완료 | kostolany_cycle.py(신규), models.py(KostolanyCycleSnapshot 추가), scheduler/run_scheduler.py(market_snapshot_job에 통합) | 16_코스톨라니_달걀_이론.py | test_kostolany_cycle.py |
 
 **SPEC.md 모듈 A~H 전부 구현 완료** (2026-07-11). 전체 테스트 123개 통과, 신규 모듈(B/E/F/G/H) 페이지는
 Streamlit `AppTest`로 헤드리스 스모크 테스트 완료 (밸류에이션/스크리너/포트폴리오는 실제 AAPL 등
@@ -2163,3 +2164,201 @@ Thrust, 뉴욕 연은 공식 10Y-3M 침체확률 모형 논문, 하이일드 스
 까지 이미 적용함). 설계 근거는 `STRATEGY_TUNING_ENGINE_SPEC.md` 13절. `pytest tests/ -q` 434개
 통과 확인함(이후 다른 세션들이 병행 작업하며 파일들을 더 건드려 지금은 480개). **이것도 아직
 미커밋** — 작업 1/2와 함께 나중에 한 번에 커밋할지, 따로 커밋할지 사용자에게 확인 필요.
+
+### 작업 4 (2026-07-17, 사용자 정정 반영 — 완료): test 평가를 국면 일치 구간만으로 + 라이브 선택기 신설
+
+사용자가 작업 0의 설계를 정정: "약세장의 전략을 강세장에서 테스트할 필요는 없다 — 결국 두 개의
+전략을 만들어야 하고, 그 후엔 지금이 어느 국면인지 판단해서 둘 중 하나를 골라 알고리즘 매매를
+하려는 것"이라고 명확히 함. 반영 완료 사항(`STRATEGY_TUNING_ENGINE_SPEC.md` 13.6/13.9절, 자세한
+배경은 memory `feedback_regime_tuning_methodology`):
+
+1. **`core/strategy_tuning.py::tune_strategy_for_group`**: regime이 지정되면 `group_mean_excess_
+   return`/`group_win_ratio`/`per_ticker_test_comparison`이 이제 test 구간 전체가 아니라 **국면
+   일치 구간에서만** 평가한 값이다(예전엔 이게 보조 지표 `regime_matched_test`로만 있었음 — 이제
+   주 지표 자리를 차지). escape hatch 트리거 판단도 이 기준으로 바뀜. 국면 일치 구간이 test 안에
+   없으면 `group_mean_excess_return=None`("검증 불가", 조용히 다른 데이터로 대체 안 함).
+2. **`core/market_regime.py::select_regime_for_trading(snapshot=None)` 신설** — 지금이 약세장/
+   강세장 중 어느 쪽인지 확정(중립/혼조는 total_score 부호로 소프트 판단 + `is_ambiguous=True`).
+3. **`core/strategy_tuning.py::select_live_strategy(bear_strategy_id, bull_strategy_id)` 신설** —
+   위 판단에 따라 전략 라이브러리에서 해당 전략을 골라 config와 함께 반환. 종목 배정/실제 매매
+   실행(관심종목 모니터링 연동)은 다음 단계 — 아직 안 함.
+4. **테스트**: `tests/test_strategy_tuning.py`/`tests/test_market_regime.py`에 신규 테스트 다수
+   (국면 일치 구간만 평가되는지 실제로 다른 값을 주는 mock으로 구분해서 검증, 매칭 구간 없으면
+   None, select_regime_for_trading의 중립 소프트판단/스냅샷 없음 처리, select_live_strategy의
+   약세장/강세장 선택·전략 없음 처리). `pytest tests/ -q` 519개 전체 통과.
+5. **재튜닝 불필요, 재선택만**: 이미 실행 중이던 `combine_price_volume` 백그라운드 잡(작업 1)은
+   국면별 train 폴드 분리는 원래부터 맞게 하고 있었고, 보조 지표로 계산해두던 `regime_matched_test`
+   가 바로 이번에 주 지표가 된 값이라 이미 저장돼 있었음 — 그래서 `.tuning_runs/combine_price_
+   volume/finalize_corrected.py`(신규)로 기존 체크포인트(units/*.json)만 다시 읽어 "국면 일치
+   구간 초과수익" 기준으로 스타일을 재선정하도록 함(재튜닝 없음).
+6. **중요 발견(정직하게 기록)**: 현재 튜닝 구간(10년, 75/25 분리 → test=최근 2.5년, 대략
+   2024-01~2026-07)에는 **약세장 구간이 test 안에 하나도 없음**
+   (`historical_regime_segments('2024-01-16','2026-07-16')`로 실측 확인, 강세장 구간만 3개).
+   즉 지금 설정으로는 약세장용 결합 전략을 out-of-sample로 검증할 방법이 없다(강세장 쪽은
+   검증 가능 — 성장주 스타일이 #3 초과수익 17.41%p, #14 초과수익 5.99%p, 2024-01-16~2025-03-07
+   구간). **다음 세션에서 결정 필요**: (a) 전체 lookback을 더 늘려 test 구간에 약세장이 포함되게
+   split 자체를 조정할지, (b) train/test 비율을 낮춰(예: 60/40) test 구간을 넓힐지, (c) 검증은
+   못 하더라도 학습된 약세장 config 자체는 (train 구간엔 2022년 약세장이 포함돼 있어 학습은
+   정상적으로 됨) 참고용으로 라이브러리에 저장해둘지 — 사용자에게 확인 후 진행할 것.
+7. **백그라운드 잡 상태**: `.tuning_runs/combine_price_volume/`의 24개 단위(2개 전략 × 6스타일 ×
+   2국면) 중 진행 중(세션 중단 시점마다 재개해가며 진행) — `run.log`로 진행률 확인,
+   `finalize_corrected.py`는 몇 개가 끝났든 그 시점까지 유효한 것만으로 미리 계산 가능(전부
+   끝나야만 의미 있는 건 아님, 다만 #14 그룹이 다 끝나야 완전한 비교가 됨).
+
+### 작업 5 (2026-07-17, 사용자 재정정 — 진행 중): S&P500 지수 국면 대신 종목 자체 추세로 데이터셋 분리
+
+작업 4에서 보고한 "test 구간에 지수 차원 약세장이 없어 검증 불가" 문제에 대해, 사용자가 결정 옵션
+(a/b/c)을 고르는 대신 **더 근본적인 대안**을 제시: S&P500 지수의 날짜별 국면이 아니라 **종목
+자체가 표본기간 동안 상승/하락/횡보 중 어느 흐름이었는지**로 데이터셋을 나누고, 실전에서는 임의의
+티커가 세 케이스 중 어디인지 판단해 전략을 고르게 해달라는 요청. 반영 완료(`STRATEGY_TUNING_
+ENGINE_SPEC.md` 14절, memory `feedback_regime_tuning_methodology`에 배경 추가):
+
+1. **`core/strategy_tuning.py` 신규 함수 4개**:
+   - `classify_ticker_trend(df)` — 절대 CAGR 임계값(±10%)으로 종목 1개를 상승/하락/횡보 분류
+     (라이브 판단용).
+   - `_ticker_cagr(df)` — 순수 CAGR 계산(위 함수에서 분리).
+   - `classify_tickers_by_trend(tickers, start, end)` — **학습 데이터셋 구성용**. 처음엔 위
+     절대 임계값을 그대로 배치 적용할 계획이었으나, 실제 10년치 40종목 표본으로 돌려보니
+     CAGR<=-10%(하락) 종목이 **0개**였다(S&P500 현재 구성종목만 쓰면 생존편향 때문에 다년
+     마이너스 CAGR 종목이 실질적으로 없음 — 성과 나쁜 종목은 지수에서 이미 빠져있으므로). 그래서
+     절대 임계값 대신 **표본 내 CAGR 상대 순위(3분위)**로 재설계 — 하위 1/3="하락", 상위
+     1/3="상승", 중간="횡보". 실측 재검증: 40종목 표본에서 13/14/13으로 세 그룹이 고르게 채워짐
+     (수정 전이었다면 "하락" 그룹이 0개로 비어서 애초에 불가능했을 것).
+   - `select_strategy_for_ticker_trend(ticker, bear_id, bull_id, sideways_id, lookback_days=182)`
+     — 라이브 선택기. 종목 자체의 최근 ~6개월 가격 흐름(짧은 구간이라 생존편향 문제 없어 절대
+     임계값 그대로 사용)을 보고 세 전략 중 하나를 골라준다. 학습(수년, 상대순위)과 라이브 판단
+     (단기, 절대임계값)이 서로 다른 분류 방식을 쓰는 것은 의도된 설계(SPEC 14.2절에 근거 기록).
+2. **튜닝 방식**: 13절 인프라(`tune_strategy_for_group`)를 전혀 안 건드리고 `regime=None`(기존
+   레거시 경로 — 달력 등분 워크포워드 + test 구간 전체 평가)에 종목 목록만 다르게 넘겨 재사용.
+   날짜가 아니라 종목을 필터링하므로 "그 국면 데이터가 test에 없음" 문제가 구조적으로 발생 안 함.
+3. **테스트**: 신규 유닛테스트 9개 (CAGR 절대분류 라이브용/상대순위 학습용 둘 다, 생존편향
+   시뮬레이션 데이터로 절대 CAGR이 전부 플러스여도 상대적으로 세 그룹이 갈라지는지 검증, 유효
+   종목 3개 미만이면 전부 횡보 처리, 라이브 선택기 정상/실패 케이스). `pytest tests/ -q` 527개
+   통과.
+4. **백그라운드 잡**: `.tuning_runs/combine_price_volume_trend/`(신규, 구 버전
+   `combine_price_volume/`은 그대로 두되 더 이상 이번 목적에는 안 씀) — 40종목 표본, 10년,
+   intensity=정밀, 국면 2×스타일 6=24단위였던 구 버전과 달리 이번엔 **추세 3종 × 전략
+   2개 = 6단위뿐**이라 훨씬 빠르게 끝날 것으로 예상. 재개 가능한 체크포인트 설계는 동일
+   (`units/*.json`, `watch.sh` 자동 재시도). 진행 상황은 `run.log`, 다 끝나면 `final.json` +
+   전략 라이브러리에 "가격+거래량 결합 전략 (하락/상승/횡보장 학습, 종목추세기준)" 3개 자동 저장.
+5. **다음 세션에서 할 일**: `.tuning_runs/combine_price_volume_trend/run.log`에서 "=== 전체
+   완료 ===" 확인 → 안 됐으면 `cd .tuning_runs/combine_price_volume_trend && nohup ./watch.sh
+   > watch.stdout.log 2>&1 & disown`로 재개 → 다 끝나면 `final.json`과 전략 라이브러리 저장
+   결과를 사용자에게 보고(초과수익/승률/실제 채택된 파라미터 요약, 저장만 하고 끝내지 말 것).
+
+### 작업 6 (2026-07-17): Oracle Cloud 무료 VM 상시 배포 가이드 + systemd 서비스 준비
+
+사용자가 "Codespace 꺼져도 엔진이 돌아가게" 하고 싶다고 해서 딥서치로 무료 상시 호스팅/DB 옵션을
+비교(Railway/Render/Fly.io는 2026년 기준 사실상 유료화, Vercel은 서버리스라 상시 프로세스 자체가
+불가능 — Oracle Cloud "Always Free" ARM VM만 진짜 영구 무료). 사용자가 "Oracle 무료 VM + 로컬
+SQLite" 조합으로 진행 결정(관리형 DB로 옮길 만큼 데이터 규모가 크지 않음 — 500종목×10년 일봉 ≈
+100~200MB).
+
+계정 가입·VM 발급·SSH 접속은 에이전트가 대신 할 수 없는 단계라, 리포에 실행 가능한 산출물만 준비:
+- `deploy/DEPLOYMENT_ORACLE.md` — VM 발급(Ampere A1.Flex, 2026-06-15부로 Always Free 한도가
+  4 OCPU/24GB→2 OCPU/12GB로 축소된 점 주의) → VCN Security List에 8501 포트 인그레스 규칙 추가
+  (OS 방화벽만 열어선 안 됨) → SSH 접속 → `.env` 준비 → `setup_vm.sh` 실행 → 확인 → 코드 업데이트
+  배포 절차 → GitHub Actions 야간튜닝과의 관계(VM 로컬 DB와 리포 커밋 JSON을 리더보드 페이지가
+  이미 합쳐서 보여줌, 코드 확인해서 정확히 기술) → 백업 순서로 단계별 정리.
+- `deploy/quant-streamlit.service`, `deploy/quant-scheduler.service` — systemd 유닛(전용
+  `quant` 시스템 계정으로 실행, 죽으면 자동 재시작, 부팅 시 자동 시작).
+- `deploy/setup_vm.sh` — 패키지 설치/venv/의존성/systemd 등록/ufw 방화벽까지 한 번에 처리하는
+  멱등 부트스트랩 스크립트(재실행해도 안전하게 설계).
+
+**다음 세션에서 할 일**: 사용자가 실제로 VM을 발급하고 이 가이드를 따라가며 막히는 지점이 있으면
+디버깅 지원. `core/notify.py`의 데스크톱 알림은 headless 환경에서 이미 콘솔 출력으로 안전하게
+폴백하도록 돼 있어 별도 수정 불필요함을 확인함(관심종목 스캔 알림이 VM에선 콘솔/로그로만 남는다는
+점을 사용자에게 안내할 것).
+
+### 작업 7 (2026-07-21): 코스톨라니 달걀 이론 국면 (신규, 부가 기능)
+
+사용자가 "코스톨라니 달걀 이론을 검색해서, 전체 시장과 각 섹터(ETF 참고)가 어느 국면인지 알려주는
+서비스를 추가해달라"고 요청 → 웹 검색으로 이론의 6국면(A1 저점조정→A2 상승→A3 버블/과열→B1
+고점조정시작→B2 하락→B3 패닉/급락, 거래량·투자자 수 증감이 핵심 축)을 먼저 확인한 뒤, 이 앱은
+"투자자 수" 심리 데이터가 없다는 제약을 사용자에게 알리고 AskUserQuestion으로 3가지(판정 로직/UI
+배치/섹터 범위) 확인 후 진행:
+
+- **판정 로직**: `core/kostolany_cycle.py`(신규) — 52주 고점/저점 대비 가격 위치(zone: 저점권≤30%/
+  중간/고점권≥70%) × ROC(20거래일) 추세 방향 × 거래량(20일/60일 평균 비율≥1.2배="증가") 3축
+  조합의 결정론적 룰로 6국면을 근사. 예: 저점권+급락(|ROC|≥15%)+거래량급증=B3(패닉),
+  저점권+완만한하락+저거래량=A1(저점조정), 고점권+상승+거래량급증=A3(버블) 등.
+- **범위**: 전체 시장(S&P500, `core.market_regime`과 동일 벤치마크)과 `core.sector_strength.
+  THEME_UNIVERSE`(GICS 11개 표준 섹터 + 반도체/우주/방산 등 세부 테마 19개 전체, 신규 ETF 목록
+  관리 불필요하게 기존 재사용).
+- **UI**: 새 독립 페이지 `app/pages/16_코스톨라니_달걀_이론.py` — 시장 국면 카드 + 섹터별 국면을
+  가로 바 차트(52주 위치 x축, 국면별 색상)와 표로 표시. `core.market_regime`/`core.sector_strength`와
+  동일한 스냅샷 패턴(job_manager 백그라운드 계산 + DB 저장 + 자정 이후 첫 방문 자동 갱신 + "지금
+  다시 계산" 버튼) 재사용.
+- **DB**: `models.py`에 `KostolanyCycleSnapshot` 추가, `scheduler/run_scheduler.py`의
+  `market_snapshot_job()`에 계산 호출 통합(기존 시장국면/섹터강도와 같은 배치에서 함께 갱신).
+- **검증**: 유닛테스트 17개(`tests/test_kostolany_cycle.py`, 위치/거래량비/6국면 분기 전부 커버,
+  DB 라운드트립은 `tests/conftest.py`의 `db_session` fixture 패턴 재사용) + Streamlit `AppTest`로
+  실제 라이브 yfinance 데이터 end-to-end 확인(당시 S&P500=B1·52주위치88%, 로보틱스/원자력=A1,
+  금융/헬스케어/부동산=A2로 계산됨 — 실행 시점에 따라 값은 달라짐). 전체 pytest 스위트 557개 통과.
+- 공식 경기판단이 아닌 참고용 경험칙임을 페이지 상단 캡션에 명시(기존 시장국면/섹터강도 페이지와
+  같은 원칙).
+
+### 작업 8 (2026-07-21, 같은 날 후속 요청): 코스톨라니 페이지 UI를 바 차트 → 상태별 칸반 보드로 교체
+
+사용자가 "바 차트 말고 더 UX 친화적으로 구성해봐, 깊게 생각해"라고 요청 → `dataviz` 스킬 로드 후
+재검토: 국면(A1~B3)은 크기 비교가 필요한 magnitude가 아니라 "지금 뭘 해야 하는가"를 뜻하는
+상태(status)에 가깝다고 판단해 폼을 바꿈(스킬의 "status는 카테고리 색이 아니라 상태 팔레트로,
+good/neutral/critical 3톤" 원칙 적용).
+- `core/kostolany_cycle.py`에 `PHASE_STATUS`(6국면 → buy/hold/sell 3그룹)와 `STATUS_LABELS`/
+  `STATUS_ORDER` 추가 — 코스톨라니의 핵심 조언(저거래량 조정·패닉=A1/B3에서 사고, 고거래량
+  과열·고점조정=A3/B1에서 팔라)을 그대로 그룹 기준으로 사용.
+- `app/pages/16_코스톨라니_달걀_이론.py`: 막대그래프를 없애고 **🟢매수 관심 / ⚪보유·관망 /
+  🔴매도 검토** 3열 칸반 보드로 교체. 각 열 안에서 테마를 카드로 나열(색은 상태를 뜻하는 좌측
+  보더에만 사용, 텍스트는 항상 잉크색 유지 — 스킬의 "텍스트는 계열색을 입지 않는다" 원칙), 매수
+  열은 52주 위치가 낮을수록/매도 열은 높을수록 상단에 오도록 정렬해 "확신이 강한 신호"부터 보이게
+  함. 시장 국면 카드에도 같은 3색 상태 배지를 추가해 위(시장)/아래(섹터) 시각 언어를 통일. 새 색은
+  만들지 않고 `core/theme.py`가 이미 쓰는 상태색 3톤(#4caf82/#8a8a8a/#e5533d)을 재사용해 다른
+  페이지와 일관성 유지. 정렬/검색이 필요한 사용자를 위해 기존 표는 접이식 expander로 보존(스킬의
+  "테이블 뷰는 항상 존재해야 한다" 원칙).
+- 검증: 기존 유닛테스트 17개 전부 통과(로직 무변경), Streamlit `AppTest`로 실제 라이브 데이터
+  렌더링 확인(카드 HTML 구조/상태 배지 정상 출력). 전체 pytest 562개 통과.
+
+### 작업 9 (2026-07-21, 같은 날 후속 요청): 코스톨라니 페이지에 스윙/장기 스타일 슬롯 추가
+
+사용자가 "내 니드에 맞게 스윙/장기 전략에 맞게 띄워주는 슬롯도 만들어달라"고 요청. (참고: 이 사이의
+어느 시점에 다른 세션/사용자가 `7_매크로_대시보드.py`+`16_코스톨라니_달걀_이론.py`+
+`12_섹터_리더_성장주.py`를 `7_시장_진단.py` 하나로 통합했음 — 코스톨라니 섹션은 `_render_kostolany()`
+함수로 그대로 보존되어 있어 그 위에서 작업.)
+
+- `core/kostolany_cycle.py`: 기존 `PHASE_STATUS`(장기 투자 기준, 코스톨라니 원전 조언 그대로)는
+  유지하고 `SWING_PHASE_STATUS`(스윙 기준 — "확인된 모멘텀을 단기로 타는" 관점) 신설. 둘의 차이는
+  A1/A2에서만 발생: 장기는 A1(저점권, 아직 하락 진정 단계)을 매수로 보지만 스윙은 반등이 확인되지
+  않았다고 보고 관망으로, 반대로 A2(거래량 동반 확인된 상승)는 장기엔 그냥 보유지만 스윙엔 지금 타야
+  할 매수 신호. A3/B1(과열·고점이탈)은 두 스타일 모두 매도로 일치. `STYLE_PHASE_STATUS`/
+  `STYLE_PHASE_GUIDANCE`/`STYLE_LABELS`/`STYLE_ORDER` 딕셔너리로 스타일별 분기를 한 곳에 모음.
+- `app/pages/7_시장_진단.py`의 `_render_kostolany()`: 6국면 요약표 위에 "🐢 장기 투자 / ⚡ 스윙
+  트레이딩" `st.segmented_control` 슬롯 추가(`kostolany_style` 세션 상태로 유지). 선택에 따라
+  시장 국면 배지, 섹터 칸반 보드 3그룹(매수/보유/매도) 재분류, 표 보기의 가이드 문구가 전부
+  실시간으로 바뀐다.
+- 검증: 신규 유닛테스트 4개(스타일별 전체 국면 커버, A3/B1 두 스타일 일치, A1/A2 스타일 간 반대
+  분류 확인, 가이드 문구 존재) + `pytest tests/test_kostolany_cycle.py` 21개 통과. Streamlit
+  `AppTest`로 실제 라이브 데이터에서 세그먼트 전환 시 그룹 개수가 이론대로 바뀌는지 직접 확인
+  (당시 데이터 기준 장기=[매수2,보유17,매도1] → 스윙=[매수9,보유10,매도1], A2 9개 테마가 보유에서
+  매수로 이동). 전체 pytest 스위트 566개 통과.
+
+### 작업 10 (2026-07-21, 같은 날 후속 요청): 야간 자동 미세튜닝에도 스윙 보유기간 제약 적용
+
+사용자가 "이건(스윙/장기 구분) 백테스팅/미세튜닝/야간 자동 미세튜닝에도 적용되는거지? 안되면
+적용시켜줘"라고 질문. 조사 결과:
+- **이미 돼 있던 것**: `core/backtest_engine.py`/`core/strategy_tuning.py`의 `max_holding_days`
+  (스윙 보유기간 상한, SPEC 15절) — 수동 튜닝(`app/pages/1_전략_스튜디오.py`)의 "🏄 스윙 트레이딩
+  모드" 체크박스로 이미 연결되어 있었음(15.6절, 이전 세션에서 완료).
+- **안 돼 있던 것**: 자동으로 매일 밤 도는 두 야간 배치(`scheduler/run_scheduler.py::
+  strategy_nightly_tuning_job()`, `scripts/nightly_tuning_ci.py`)는 `max_holding_days`를 아예
+  넘기지 않아 여태 보유기간 제약 없이 튜닝되고 있었음(SPEC 15.7절에 "사용자 확인 필요"로 남아있던
+  항목).
+- 참고로 방금 전에 추가한 코스톨라니 페이지의 "🐢 장기/⚡ 스윙" 슬롯은 완전히 별개 기능(시장 국면을
+  스타일별로 다르게 해석하는 표시 전용) — 백테스팅/튜닝 파라미터와는 무관함을 확인.
+
+사용자가 스스로를 스윙 트레이더로 확정(SPEC 15.1절)한 전제 + "적용시켜달라"는 명시적 요청에 따라
+두 야간 배치 모두 매 반복 `max_holding_days=strategy_tuning._SWING_MAX_HOLDING_DAYS`(126거래일)를
+항상 넘기도록 수정. 기존에 제약 없이 쌓인 이력은 그대로 두고 `max_holding_days`/"스윙모드" 컬럼으로
+신구 구분 가능. 수동 UI 체크박스 기본값(미체크)은 그대로 둬 필요시 장기 제약 없는 탐색도 가능하게
+유지. `STRATEGY_TUNING_ENGINE_SPEC.md`에 15.8절로 기록. 전체 pytest 566개 통과(로직 변경 없이
+호출부 인자만 추가라 신규 유닛테스트는 기존 `test_run_and_save_tuning_threads_and_persists_max_
+holding_days`가 이미 커버).

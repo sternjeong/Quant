@@ -260,17 +260,26 @@ def _steady_climb_then_crash(
     return pd.Series(values, index=idx, name="Close")
 
 
+def _synthetic_high_low(close: pd.Series, spread_pct: float = 1.0) -> tuple[pd.Series, pd.Series]:
+    """종가 시계열로부터 합성 고가/저가를 만든다 (ADX 계산에 필요 — 실제 변동폭처럼 종가 주변에 ±spread_pct%)."""
+    high = close * (1 + spread_pct / 100)
+    low = close * (1 - spread_pct / 100)
+    return high, low
+
+
 def test_classify_daily_regime_labels_late_uptrend_day_as_bull():
     close = _steady_climb_then_crash()
-    regime = market_regime.classify_daily_regime(close)
-    # 급락 직전(= 상승 구간 막바지, 신고가 근처 + 200일선 위)은 강세장이어야 한다.
+    high, low = _synthetic_high_low(close)
+    regime = market_regime.classify_daily_regime(close, high, low)
+    # 급락 직전(= 상승 구간 막바지, 신고가 근처 + 200일선 위 + 뚜렷한 추세)은 강세장이어야 한다.
     pre_crash_day = close.index[259]
     assert regime.loc[pre_crash_day] == "강세장"
 
 
 def test_classify_daily_regime_labels_crash_day_as_bear():
     close = _steady_climb_then_crash()
-    regime = market_regime.classify_daily_regime(close)
+    high, low = _synthetic_high_low(close)
+    regime = market_regime.classify_daily_regime(close, high, low)
     # 52주 고점 대비 -20% 이상 급락한 마지막 날은 다른 신호와 무관하게 약세장이어야 한다.
     assert regime.iloc[-1] == "약세장"
     last_close = close.iloc[-1]
@@ -278,14 +287,26 @@ def test_classify_daily_regime_labels_crash_day_as_bear():
     assert (last_close / rolling_high - 1) * 100 <= market_regime.BEAR_MARKET_DRAWDOWN_PCT
 
 
-def test_classify_daily_regime_short_history_is_all_neutral():
-    close = _close_series([100.0 + i for i in range(50)])  # 200일 미만 -> SMA200 계산 불가
-    regime = market_regime.classify_daily_regime(close)
-    assert (regime == "중립").all()
+def test_classify_daily_regime_flat_price_is_sideways():
+    # 거의 안 움직이는(횡보) 시계열 -> ADX가 낮아 "횡보장"으로 분류돼야 한다.
+    idx = pd.date_range("2024-01-01", periods=300, freq="B")
+    rng = np.random.default_rng(0)
+    close = pd.Series(100.0 + rng.normal(0, 0.05, len(idx)), index=idx, name="Close")
+    high, low = _synthetic_high_low(close, spread_pct=0.1)
+    regime = market_regime.classify_daily_regime(close, high, low)
+    assert regime.iloc[-1] == "횡보장"
+
+
+def test_classify_daily_regime_short_history_is_all_sideways():
+    close = _close_series([100.0 + i for i in range(50)])  # 200일 미만 -> SMA200/ADX 계산 불가
+    high, low = _synthetic_high_low(close)
+    regime = market_regime.classify_daily_regime(close, high, low)
+    assert (regime == "횡보장").all()
 
 
 def test_classify_daily_regime_empty_input_returns_empty_series():
-    assert market_regime.classify_daily_regime(pd.Series(dtype=float)).empty
+    empty = pd.Series(dtype=float)
+    assert market_regime.classify_daily_regime(empty, empty, empty).empty
 
 
 def test_find_regime_segments_extracts_contiguous_ranges_and_drops_short_ones():
@@ -323,13 +344,15 @@ def test_find_regime_segments_respects_custom_min_trading_days():
 
 def test_historical_regime_segments_clips_to_requested_range(monkeypatch):
     close = _steady_climb_then_crash()
-    monkeypatch.setattr(market_regime, "get_price_history", lambda *a, **k: close.to_frame(name="Close"))
+    high, low = _synthetic_high_low(close)
+    df = pd.DataFrame({"Close": close, "High": high, "Low": low})
+    monkeypatch.setattr(market_regime, "get_price_history", lambda *a, **k: df)
 
     start = close.index[100].date().isoformat()
     end = close.index[-1].date().isoformat()
     segments = market_regime.historical_regime_segments(start, end)
 
-    assert set(segments.keys()) == {"강세장", "약세장"}
+    assert set(segments.keys()) == {"강세장", "약세장", "횡보장"}
     for seg_list in segments.values():
         for seg_start, seg_end in seg_list:
             assert pd.Timestamp(seg_start) >= pd.Timestamp(start)
@@ -340,7 +363,7 @@ def test_historical_regime_segments_clips_to_requested_range(monkeypatch):
 def test_historical_regime_segments_empty_price_data_returns_empty_lists(monkeypatch):
     monkeypatch.setattr(market_regime, "get_price_history", lambda *a, **k: pd.DataFrame())
     segments = market_regime.historical_regime_segments("2024-01-01", "2024-06-01")
-    assert segments == {"강세장": [], "약세장": []}
+    assert segments == {"강세장": [], "약세장": [], "횡보장": []}
 
 
 # ----------------------------------------------------------------------------
@@ -532,3 +555,51 @@ def test_get_advisory_risk_signals_with_fred_key_computes_all_three(monkeypatch)
     assert result["vix"]["level"] == 18.0
     assert result["credit_spread"]["level_bp"] == pytest.approx(450.0)
     assert result["yield_curve_3m"]["spread_pct"] == pytest.approx(0.8)
+
+
+# ----------------------------------------------------------------------------
+# select_regime_for_trading (SPEC 13.9절 — 라이브 국면 판단 확정, 2026-07-17)
+# ----------------------------------------------------------------------------
+
+
+def _snapshot(regime: str, total_score: float) -> dict:
+    return {"regime": regime, "total_score": total_score}
+
+
+def test_select_regime_for_trading_unambiguous_bull():
+    result = market_regime.select_regime_for_trading(_snapshot("강세장", 60.0))
+    assert result == {"trading_regime": "강세장", "is_ambiguous": False, "total_score": 60.0, "snapshot": _snapshot("강세장", 60.0)}
+
+
+def test_select_regime_for_trading_unambiguous_bear():
+    result = market_regime.select_regime_for_trading(_snapshot("약세장", -60.0))
+    assert result["trading_regime"] == "약세장"
+    assert result["is_ambiguous"] is False
+
+
+def test_select_regime_for_trading_neutral_leans_bull_on_nonnegative_score():
+    result = market_regime.select_regime_for_trading(_snapshot("중립/혼조", 5.0))
+    assert result["trading_regime"] == "강세장"
+    assert result["is_ambiguous"] is True
+
+
+def test_select_regime_for_trading_neutral_leans_bear_on_negative_score():
+    result = market_regime.select_regime_for_trading(_snapshot("중립/혼조", -5.0))
+    assert result["trading_regime"] == "약세장"
+    assert result["is_ambiguous"] is True
+
+
+def test_select_regime_for_trading_no_snapshot_available(monkeypatch):
+    monkeypatch.setattr(market_regime, "get_latest_market_regime_snapshot", lambda: None)
+    result = market_regime.select_regime_for_trading()
+    assert result["trading_regime"] is None
+    assert result["is_ambiguous"] is True
+    assert "reason" in result
+
+
+def test_select_regime_for_trading_uses_latest_snapshot_when_not_given(monkeypatch):
+    monkeypatch.setattr(
+        market_regime, "get_latest_market_regime_snapshot", lambda: _snapshot("강세장", 50.0)
+    )
+    result = market_regime.select_regime_for_trading()
+    assert result["trading_regime"] == "강세장"

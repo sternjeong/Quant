@@ -688,7 +688,7 @@ def test_group_min_required_rounds_up():
 def test_candidate_group_train_sharpe_requires_minimum_coverage(monkeypatch):
     """3종목 중 1종목만 유효하면(최소 2종목 필요) 이 후보는 탈락(None)해야 한다."""
 
-    def _fake_run(ticker, cfg, start, end, label="전략"):
+    def _fake_run(ticker, cfg, start, end, label="전략", max_holding_days=None):
         trade_count = 10 if ticker == "A" else 1  # A만 유효, B/C는 매매 부족
         return SimpleNamespace(metrics=_metrics(sharpe=2.0, trade_count=trade_count))
 
@@ -700,7 +700,7 @@ def test_candidate_group_train_sharpe_requires_minimum_coverage(monkeypatch):
 def test_candidate_group_train_sharpe_averages_valid_tickers(monkeypatch):
     sharpes = {"A": 1.0, "B": 3.0}
 
-    def _fake_run(ticker, cfg, start, end, label="전략"):
+    def _fake_run(ticker, cfg, start, end, label="전략", max_holding_days=None):
         return SimpleNamespace(metrics=_metrics(sharpe=sharpes[ticker], trade_count=10))
 
     monkeypatch.setattr(st_mod, "run_backtest", _fake_run)
@@ -722,7 +722,7 @@ _THREE_FOLDS = [("2020-01-01", "2020-04-01"), ("2020-04-02", "2020-07-01"), ("20
 
 def test_candidate_group_walkforward_score_no_variance_keeps_full_mean(monkeypatch):
     values = iter([2.0, 2.0, 2.0])
-    monkeypatch.setattr(st_mod, "_candidate_group_train_sharpe", lambda tickers, cfg, s, e: next(values))
+    monkeypatch.setattr(st_mod, "_candidate_group_train_sharpe", lambda tickers, cfg, s, e, max_holding_days=None: next(values))
     result = st_mod._candidate_group_walkforward_score(["A"], REGIME_BASE_CONFIG, _THREE_FOLDS)
     assert result["mean_sharpe"] == pytest.approx(2.0)
     assert result["std_sharpe"] == pytest.approx(0.0)
@@ -734,9 +734,9 @@ def test_candidate_group_walkforward_score_penalizes_inconsistent_folds(monkeypa
     (뾰족한 피크=과최적화 신호에 패널티를 주는 게 SPEC 11.2절의 핵심)."""
     stable = iter([2.0, 2.0, 2.0])
     volatile = iter([5.0, -1.0, 2.0])
-    monkeypatch.setattr(st_mod, "_candidate_group_train_sharpe", lambda tickers, cfg, s, e: next(stable))
+    monkeypatch.setattr(st_mod, "_candidate_group_train_sharpe", lambda tickers, cfg, s, e, max_holding_days=None: next(stable))
     stable_result = st_mod._candidate_group_walkforward_score(["A"], REGIME_BASE_CONFIG, _THREE_FOLDS)
-    monkeypatch.setattr(st_mod, "_candidate_group_train_sharpe", lambda tickers, cfg, s, e: next(volatile))
+    monkeypatch.setattr(st_mod, "_candidate_group_train_sharpe", lambda tickers, cfg, s, e, max_holding_days=None: next(volatile))
     volatile_result = st_mod._candidate_group_walkforward_score(["A"], REGIME_BASE_CONFIG, _THREE_FOLDS)
 
     assert stable_result["mean_sharpe"] == pytest.approx(volatile_result["mean_sharpe"], abs=1e-6)
@@ -746,7 +746,7 @@ def test_candidate_group_walkforward_score_penalizes_inconsistent_folds(monkeypa
 def test_candidate_group_walkforward_score_requires_minimum_fold_coverage(monkeypatch):
     """3개 폴드 중 1개만 유효하면(최소 2개 필요) None을 반환해 후보에서 탈락시켜야 한다."""
     values = iter([2.0, None, None])
-    monkeypatch.setattr(st_mod, "_candidate_group_train_sharpe", lambda tickers, cfg, s, e: next(values))
+    monkeypatch.setattr(st_mod, "_candidate_group_train_sharpe", lambda tickers, cfg, s, e, max_holding_days=None: next(values))
     assert st_mod._candidate_group_walkforward_score(["A"], REGIME_BASE_CONFIG, _THREE_FOLDS) is None
 
 
@@ -756,7 +756,7 @@ def test_select_best_group_config_walkforward_picks_highest_scoring_candidate(mo
     short_values = sorted({c["conditions"][0]["short"] for c in candidates})
     best_short = short_values[-1]
 
-    def _fake_run(ticker, cfg, start, end, label="train"):
+    def _fake_run(ticker, cfg, start, end, label="train", max_holding_days=None):
         short = cfg["conditions"][0].get("short", 0)
         sharpe = 5.0 if short == best_short else 0.1  # 폴드/종목과 무관하게 후보별로 고정된 샤프
         return SimpleNamespace(metrics=_metrics(sharpe=sharpe, trade_count=10))
@@ -813,7 +813,7 @@ def test_evaluate_group_config_on_regime_matched_test_picks_longest_segment(monk
     )
     captured = {}
 
-    def _fake_eval(tickers, config, seg_start, seg_end):
+    def _fake_eval(tickers, config, seg_start, seg_end, max_holding_days=None):
         captured["segment"] = (seg_start, seg_end)
         return {"A": {"strategy": {"cagr": 20.0}, "buy_and_hold_benchmark": {"cagr": 5.0}}}
 
@@ -844,18 +844,21 @@ def test_tune_strategy_for_group_uses_regime_folds_when_regime_given(monkeypatch
 
     captured = {}
 
-    def _fake_select(tickers, candidates, folds):
+    def _fake_select(tickers, candidates, folds, max_holding_days=None):
         captured["folds"] = folds
         return copy.deepcopy(REGIME_BASE_CONFIG), []
 
     monkeypatch.setattr(st_mod, "_select_best_group_config_walkforward", _fake_select)
     monkeypatch.setattr(
         st_mod, "compare_with_benchmarks",
-        lambda ticker, cfg, start, end: _fake_test_comparison(strategy_cagr=15.0, benchmark_cagr=10.0),
+        lambda ticker, cfg, start, end, max_holding_days=None: _fake_test_comparison(strategy_cagr=15.0, benchmark_cagr=10.0),
     )
-    monkeypatch.setattr(st_mod, "run_backtest", lambda ticker, cfg, start, end, label="train": SimpleNamespace(metrics=_metrics()))
+    monkeypatch.setattr(st_mod, "run_backtest", lambda ticker, cfg, start, end, label="train", max_holding_days=None: SimpleNamespace(metrics=_metrics()))
     monkeypatch.setattr(st_mod, "diagnose_strategy_health", lambda cfg: [])
+    # test 구간엔 국면 일치 구간이 없다고 가정(폴드 위임 여부만 검증하는 게 이 테스트의 목적이라
+    # test 평가 자체는 단순화) -> 2026-07-17 정정 이후 검증 불가(None)로 나오는 게 정상.
     monkeypatch.setattr(st_mod.market_regime, "historical_regime_segments", lambda start, end: {"약세장": []})
+    monkeypatch.setattr(st_mod, "generate_structural_variants_for_config", lambda *a, **k: [])
 
     result = st_mod.tune_strategy_for_group(
         ["AAA"], REGIME_BASE_CONFIG, "성장주", "2020-01-01", "2021-12-31", regime="약세장"
@@ -863,6 +866,7 @@ def test_tune_strategy_for_group_uses_regime_folds_when_regime_given(monkeypatch
 
     assert captured["folds"] == regime_folds
     assert result["trained_regime"] == "약세장"
+    assert result["group_mean_excess_return"] is None  # test 구간에 약세장 구간이 없어 검증 불가
     assert result["insufficient_regime_data"] is False
 
 
@@ -876,11 +880,12 @@ def test_tune_strategy_for_group_falls_back_when_no_regime_segments_in_train(mon
     )
     monkeypatch.setattr(
         st_mod, "compare_with_benchmarks",
-        lambda ticker, cfg, start, end: _fake_test_comparison(strategy_cagr=15.0, benchmark_cagr=10.0),
+        lambda ticker, cfg, start, end, max_holding_days=None: _fake_test_comparison(strategy_cagr=15.0, benchmark_cagr=10.0),
     )
-    monkeypatch.setattr(st_mod, "run_backtest", lambda ticker, cfg, start, end, label="train": SimpleNamespace(metrics=_metrics()))
+    monkeypatch.setattr(st_mod, "run_backtest", lambda ticker, cfg, start, end, label="train", max_holding_days=None: SimpleNamespace(metrics=_metrics()))
     monkeypatch.setattr(st_mod, "diagnose_strategy_health", lambda cfg: [])
     monkeypatch.setattr(st_mod.market_regime, "historical_regime_segments", lambda start, end: {"약세장": []})
+    monkeypatch.setattr(st_mod, "generate_structural_variants_for_config", lambda *a, **k: [])
 
     result = st_mod.tune_strategy_for_group(
         ["AAA"], REGIME_BASE_CONFIG, "성장주", "2020-01-01", "2021-12-31", regime="약세장"
@@ -889,6 +894,37 @@ def test_tune_strategy_for_group_falls_back_when_no_regime_segments_in_train(mon
     assert result["insufficient_regime_data"] is True
     assert result["group_config"] == REGIME_BASE_CONFIG
     assert result["regime_matched_test"] is None
+    assert result["group_mean_excess_return"] is None
+
+
+def test_tune_strategy_for_group_with_regime_reports_matched_segment_as_primary_metric(monkeypatch):
+    """2026-07-17 정정: regime이 지정되면 group_mean_excess_return/per_ticker_test_comparison은
+    test 구간 전체가 아니라 국면 일치 구간에서만 평가한 값이어야 한다 — "약세장 config를 강세장
+    데이터로 검증하지 않는다"는 사용자 확정 원칙."""
+    monkeypatch.setattr(st_mod, "_train_folds_for_regime", lambda ts, te, regime: [("2020-01-01", "2020-06-01")])
+    monkeypatch.setattr(st_mod, "_select_best_group_config_walkforward", lambda *a, **k: (copy.deepcopy(REGIME_BASE_CONFIG), []))
+    monkeypatch.setattr(st_mod, "run_backtest", lambda ticker, cfg, start, end, label="train", max_holding_days=None: SimpleNamespace(metrics=_metrics()))
+    monkeypatch.setattr(st_mod, "diagnose_strategy_health", lambda cfg: [])
+    # test 구간 안에 약세장 구간이 하나 있고(2021-01-01~2021-06-01), 그 바깥(강세장 등)에서 호출되면
+    # 완전히 다른(훨씬 나쁜) 수치를 주도록 만들어 "정말로 국면 구간만 썼는지"를 구분해낼 수 있게 한다.
+    matched_segment = ("2021-01-01", "2021-06-01")
+    monkeypatch.setattr(st_mod.market_regime, "historical_regime_segments", lambda start, end: {"약세장": [matched_segment]})
+
+    def _fake_compare(ticker, cfg, start, end, max_holding_days=None):
+        if (start, end) == matched_segment:
+            return _fake_test_comparison(strategy_cagr=20.0, benchmark_cagr=5.0)  # 초과수익 15
+        return _fake_test_comparison(strategy_cagr=-50.0, benchmark_cagr=50.0)  # 전체 기간이면 완전히 다른 값
+
+    monkeypatch.setattr(st_mod, "compare_with_benchmarks", _fake_compare)
+
+    result = st_mod.tune_strategy_for_group(
+        ["AAA"], REGIME_BASE_CONFIG, "성장주", "2020-01-01", "2021-12-31", regime="약세장"
+    )
+
+    assert result["group_mean_excess_return"] == pytest.approx(15.0)
+    assert result["per_ticker_test_comparison"]["AAA"]["strategy"]["cagr"] == 20.0
+    assert result["regime_matched_test"]["segment_start"] == matched_segment[0]
+    assert result["regime_matched_test"]["segment_end"] == matched_segment[1]
 
 
 def test_tune_strategy_for_group_regime_none_is_unaffected(monkeypatch):
@@ -899,10 +935,10 @@ def test_tune_strategy_for_group_regime_none_is_unaffected(monkeypatch):
         lambda *a, **k: (_ for _ in ()).throw(AssertionError("regime=None인데 국면 폴드를 조회함")),
     )
     monkeypatch.setattr(st_mod, "diagnose_strategy_health", lambda cfg: [])
-    monkeypatch.setattr(st_mod, "run_backtest", lambda ticker, cfg, start, end, label="전략": SimpleNamespace(metrics=_metrics(sharpe=1.0)))
+    monkeypatch.setattr(st_mod, "run_backtest", lambda ticker, cfg, start, end, label="전략", max_holding_days=None: SimpleNamespace(metrics=_metrics(sharpe=1.0)))
     monkeypatch.setattr(
         st_mod, "compare_with_benchmarks",
-        lambda ticker, cfg, start, end: _fake_test_comparison(strategy_cagr=15.0, benchmark_cagr=10.0),
+        lambda ticker, cfg, start, end, max_holding_days=None: _fake_test_comparison(strategy_cagr=15.0, benchmark_cagr=10.0),
     )
 
     result = st_mod.tune_strategy_for_group(["AAA"], REGIME_BASE_CONFIG, "성장주", "2020-01-01", "2021-12-31")
@@ -920,7 +956,7 @@ def test_tune_strategy_for_group_shares_one_config_across_tickers_and_stays_hone
     short_values = sorted({c["conditions"][0]["short"] for c in candidates})
     best_short = short_values[-1]
 
-    def _fake_run(ticker, cfg, start, end, label="전략"):
+    def _fake_run(ticker, cfg, start, end, label="전략", max_holding_days=None):
         short = cfg["conditions"][0].get("short", 0)
         sharpe = 5.0 if short == best_short else 0.1  # 모든 종목에 동일하게 적용 -> 그룹 평균도 동일 순위
         return SimpleNamespace(metrics=_metrics(sharpe=sharpe))
@@ -929,7 +965,7 @@ def test_tune_strategy_for_group_shares_one_config_across_tickers_and_stays_hone
     monkeypatch.setattr(st_mod, "run_backtest", _fake_run)
     monkeypatch.setattr(
         st_mod, "compare_with_benchmarks",
-        lambda ticker, cfg, start, end: _fake_test_comparison(strategy_cagr=15.0, benchmark_cagr=10.0),
+        lambda ticker, cfg, start, end, max_holding_days=None: _fake_test_comparison(strategy_cagr=15.0, benchmark_cagr=10.0),
     )
     # test 구간을 참조했다면 이 gemini 호출이 발생했을 것 (mean_excess=5.0 > 0 이라 escape hatch 자체가 불필요)
     monkeypatch.setattr(
@@ -954,10 +990,10 @@ def test_tune_strategy_for_group_tries_structural_variant_when_group_underperfor
     평균이 실제로 개선되는 변형만 채택해야 한다."""
     monkeypatch.setattr(st_mod, "diagnose_strategy_health", lambda cfg: [])
     monkeypatch.setattr(
-        st_mod, "run_backtest", lambda ticker, cfg, start, end, label="전략": SimpleNamespace(metrics=_metrics(sharpe=1.0))
+        st_mod, "run_backtest", lambda ticker, cfg, start, end, label="전략", max_holding_days=None: SimpleNamespace(metrics=_metrics(sharpe=1.0))
     )
 
-    def _fake_compare(ticker, cfg, start, end):
+    def _fake_compare(ticker, cfg, start, end, max_holding_days=None):
         # 원본(REGIME_BASE_CONFIG) 및 그 숫자 변형은 못 이기고, "better" 태그가 붙은 구조 변형만 이긴다.
         strat_cagr = 25.0 if cfg.get("_tag") == "better" else 3.0
         return _fake_test_comparison(strategy_cagr=strat_cagr, benchmark_cagr=8.0)
@@ -982,7 +1018,7 @@ def test_tune_strategy_for_group_never_regresses_below_first_pass(monkeypatch):
     """구조 변형이 전부 원본 그룹 결과보다 나쁘면 원본을 그대로 유지해야 한다."""
     monkeypatch.setattr(st_mod, "diagnose_strategy_health", lambda cfg: [])
     monkeypatch.setattr(
-        st_mod, "run_backtest", lambda ticker, cfg, start, end, label="전략": SimpleNamespace(metrics=_metrics(sharpe=1.0))
+        st_mod, "run_backtest", lambda ticker, cfg, start, end, label="전략", max_holding_days=None: SimpleNamespace(metrics=_metrics(sharpe=1.0))
     )
     monkeypatch.setattr(
         st_mod, "compare_with_benchmarks",
@@ -1005,8 +1041,8 @@ def test_tune_strategy_for_group_never_regresses_below_first_pass(monkeypatch):
 
 
 def test_run_batch_tuning_groups_tickers_by_style_and_trains_each_regime_separately(monkeypatch):
-    """같은 스타일 종목은 한 그룹으로 묶이고(SPEC 13절), 그 그룹은 국면(약세장/강세장)마다 각각 한 번씩
-    -- 총 2번 -- tune_strategy_for_group이 호출되어 종목당 결과가 국면별로 2행씩 나와야 한다."""
+    """같은 스타일 종목은 한 그룹으로 묶이고(SPEC 13절), 그 그룹은 국면(약세장/강세장/횡보장)마다 각각
+    한 번씩 -- 총 3번 -- tune_strategy_for_group이 호출되어 종목당 결과가 국면별로 3행씩 나와야 한다."""
     tickers_df = pd.DataFrame({"ticker": ["A", "B", "C"], "sector": ["Utilities", "Utilities", "Energy"]})
     fake_styles = pd.DataFrame(
         {
@@ -1020,7 +1056,7 @@ def test_run_batch_tuning_groups_tickers_by_style_and_trains_each_regime_separat
 
     calls = []
 
-    def _fake_group_tune(tickers, base_config, style_type, start, end, train_ratio=0.75, intensity="보통", regime=None):
+    def _fake_group_tune(tickers, base_config, style_type, start, end, train_ratio=0.75, intensity="보통", regime=None, max_holding_days=None):
         calls.append((tuple(sorted(tickers)), style_type, regime))
         shared_config = {**base_config, "_style": style_type, "_regime": regime}
         return {
@@ -1046,15 +1082,15 @@ def test_run_batch_tuning_groups_tickers_by_style_and_trains_each_regime_separat
     results = st_mod.run_batch_tuning(REGIME_BASE_CONFIG, tickers_df, "2020-01-01", "2021-01-01")
 
     assert set(calls) == {
-        (("A", "B"), "경기방어주", "약세장"), (("A", "B"), "경기방어주", "강세장"),
-        (("C",), "경기민감주", "약세장"), (("C",), "경기민감주", "강세장"),
+        (("A", "B"), "경기방어주", "약세장"), (("A", "B"), "경기방어주", "강세장"), (("A", "B"), "경기방어주", "횡보장"),
+        (("C",), "경기민감주", "약세장"), (("C",), "경기민감주", "강세장"), (("C",), "경기민감주", "횡보장"),
     }
-    assert len(results) == 6  # 3종목 x 2국면
+    assert len(results) == 9  # 3종목 x 3국면
     a_rows = [r for r in results if r["ticker"] == "A"]
     b_rows = [r for r in results if r["ticker"] == "B"]
     c_rows = [r for r in results if r["ticker"] == "C"]
-    assert {r["trained_regime"] for r in a_rows} == {"약세장", "강세장"}
-    for regime in ("약세장", "강세장"):
+    assert {r["trained_regime"] for r in a_rows} == {"약세장", "강세장", "횡보장"}
+    for regime in ("약세장", "강세장", "횡보장"):
         a_row = next(r for r in a_rows if r["trained_regime"] == regime)
         b_row = next(r for r in b_rows if r["trained_regime"] == regime)
         c_row = next(r for r in c_rows if r["trained_regime"] == regime)
@@ -1076,7 +1112,7 @@ def test_run_batch_tuning_continues_after_single_group_failure(monkeypatch):
     )
     monkeypatch.setattr(st_mod, "compute_style_scores", lambda df, start, end: fake_styles)
 
-    def _fake_group_tune(tickers, base_config, style_type, start, end, train_ratio=0.75, intensity="보통", regime=None):
+    def _fake_group_tune(tickers, base_config, style_type, start, end, train_ratio=0.75, intensity="보통", regime=None, max_holding_days=None):
         if style_type == "경기민감주":
             raise RuntimeError("데이터 조회 실패")
         return {
@@ -1095,12 +1131,12 @@ def test_run_batch_tuning_continues_after_single_group_failure(monkeypatch):
     monkeypatch.setattr(st_mod, "tune_strategy_for_group", _fake_group_tune)
 
     results = st_mod.run_batch_tuning({"logic": "AND", "conditions": []}, tickers_df, "2020-01-01", "2021-01-01")
-    assert len(results) == 4  # OK: 2국면 성공, BAD: 2국면 실패
+    assert len(results) == 6  # OK: 3국면 성공, BAD: 3국면 실패
     ok_rows = [r for r in results if r["ticker"] == "OK"]
     bad_rows = [r for r in results if r["ticker"] == "BAD"]
-    assert len(ok_rows) == 2 and len(bad_rows) == 2
-    assert {r["trained_regime"] for r in ok_rows} == {"약세장", "강세장"}
-    assert {r["trained_regime"] for r in bad_rows} == {"약세장", "강세장"}
+    assert len(ok_rows) == 3 and len(bad_rows) == 3
+    assert {r["trained_regime"] for r in ok_rows} == {"약세장", "강세장", "횡보장"}
+    assert {r["trained_regime"] for r in bad_rows} == {"약세장", "강세장", "횡보장"}
     for r in ok_rows:
         assert r["excess_return"] == 1.0
         assert r["style_type"] == "경기방어주"
@@ -1406,7 +1442,7 @@ def test_tune_strategy_for_ticker_picks_best_sharpe_candidate(monkeypatch):
     short_values = sorted({c["conditions"][0]["short"] for c in candidates})
     best_short = short_values[-1]
 
-    def _fake_run(ticker, cfg, start, end, label="전략"):
+    def _fake_run(ticker, cfg, start, end, label="전략", max_holding_days=None):
         short = cfg["conditions"][0].get("short", 0)
         sharpe = 5.0 if short == best_short else 0.1
         return SimpleNamespace(metrics=_metrics(sharpe=sharpe))
@@ -1415,7 +1451,7 @@ def test_tune_strategy_for_ticker_picks_best_sharpe_candidate(monkeypatch):
     monkeypatch.setattr(st_mod, "run_backtest", _fake_run)
     monkeypatch.setattr(
         st_mod, "compare_with_benchmarks",
-        lambda ticker, cfg, start, end: _fake_test_comparison(strategy_cagr=15.0, benchmark_cagr=10.0),
+        lambda ticker, cfg, start, end, max_holding_days=None: _fake_test_comparison(strategy_cagr=15.0, benchmark_cagr=10.0),
     )
 
     result = st_mod.tune_strategy_for_ticker("TEST", config, "성장주", "2020-01-01", "2021-12-31")
@@ -1447,7 +1483,7 @@ def test_tune_strategy_for_ticker_excludes_candidates_with_health_warnings(monke
 
     monkeypatch.setattr(st_mod, "diagnose_strategy_health", _fake_health)
     monkeypatch.setattr(
-        st_mod, "run_backtest", lambda ticker, cfg, start, end, label="전략": SimpleNamespace(metrics=_metrics(sharpe=1.0))
+        st_mod, "run_backtest", lambda ticker, cfg, start, end, label="전략", max_holding_days=None: SimpleNamespace(metrics=_metrics(sharpe=1.0))
     )
     monkeypatch.setattr(
         st_mod, "compare_with_benchmarks",
@@ -1541,7 +1577,7 @@ def test_run_and_save_tuning_uses_provided_tickers_df_over_sample_universe(db_se
     monkeypatch.setattr(st_mod, "sample_universe", _boom)
     monkeypatch.setattr(
         st_mod, "run_batch_tuning",
-        lambda base_config, tickers_df, start, end, train_ratio, intensity: [
+        lambda base_config, tickers_df, start, end, train_ratio, intensity, max_holding_days=None: [
             {
                 "ticker": t, "style_type": "주도주", "sector": "Utilities", "style_scores": {},
                 "tuned_config": base_config, "train_metrics": {}, "test_comparison": {},
@@ -1557,6 +1593,47 @@ def test_run_and_save_tuning_uses_provided_tickers_df_over_sample_universe(db_se
     )
     fetched = st_mod.get_tuning_run(run_id)
     assert {r["ticker"] for r in fetched["results"]} == {"NVDA", "AMD"}
+
+
+def test_run_and_save_tuning_threads_and_persists_max_holding_days(db_session, monkeypatch):
+    """SPEC 15절 스윙 트레이딩 모드 — max_holding_days가 run_batch_tuning에 그대로 전달되고,
+    저장된 StrategyTuningRun에서 list_tuning_runs()/get_tuning_run() 양쪽으로 다시 읽힐 수 있어야
+    한다(UI 이력 표/재현성을 위해)."""
+    from contextlib import contextmanager
+
+    @contextmanager
+    def _fake_get_session():
+        yield db_session
+        db_session.commit()
+
+    monkeypatch.setattr(st_mod, "get_session", _fake_get_session)
+
+    captured = {}
+
+    def _fake_run_batch_tuning(base_config, tickers_df, start, end, train_ratio, intensity, max_holding_days=None):
+        captured["max_holding_days"] = max_holding_days
+        return [
+            {
+                "ticker": t, "style_type": "주도주", "sector": "Utilities", "style_scores": {},
+                "tuned_config": base_config, "train_metrics": {}, "test_comparison": {},
+                "excess_return": 0.0, "health_warnings": [],
+            }
+            for t in tickers_df["ticker"]
+        ]
+
+    monkeypatch.setattr(st_mod, "run_batch_tuning", _fake_run_batch_tuning)
+
+    manual_df = pd.DataFrame({"ticker": ["NVDA"], "sector": ["Information Technology"]})
+    run_id = st_mod.run_and_save_tuning(
+        BOLLINGER_1_2_6, 100, "2020-01-01", "2021-01-01", tickers_df=manual_df,
+        max_holding_days=st_mod._SWING_MAX_HOLDING_DAYS,
+    )
+
+    assert captured["max_holding_days"] == 126
+    fetched = st_mod.get_tuning_run(run_id)
+    assert fetched["max_holding_days"] == 126
+    history_row = next(h for h in st_mod.list_tuning_runs() if h["id"] == run_id)
+    assert history_row["max_holding_days"] == 126
 
 
 def test_run_and_save_tuning_falls_back_to_sample_universe_when_no_tickers_df(db_session, monkeypatch):
@@ -1576,7 +1653,7 @@ def test_run_and_save_tuning_falls_back_to_sample_universe_when_no_tickers_df(db
     )
     monkeypatch.setattr(
         st_mod, "run_batch_tuning",
-        lambda base_config, tickers_df, start, end, train_ratio, intensity: [
+        lambda base_config, tickers_df, start, end, train_ratio, intensity, max_holding_days=None: [
             {
                 "ticker": t, "style_type": "성장주", "sector": "Information Technology", "style_scores": {},
                 "tuned_config": base_config, "train_metrics": {}, "test_comparison": {},
@@ -1601,3 +1678,260 @@ def test_get_tuning_run_returns_none_for_missing_id(db_session, monkeypatch):
 
     monkeypatch.setattr(st_mod, "get_session", _fake_get_session)
     assert st_mod.get_tuning_run(999) is None
+
+
+# ----------------------------------------------------------------------------
+# select_live_strategy (SPEC 13.9절 — 라이브 국면 판단 확정, 2026-07-17)
+# ----------------------------------------------------------------------------
+
+
+def _bear_regime_df():
+    """classify_daily_regime이 마지막 날을 "약세장"으로 판정하도록 -20%+ 급락하는 합성 OHLC."""
+    idx = pd.date_range("2024-01-01", periods=260, freq="B")
+    climb = np.linspace(100.0, 200.0, 230)
+    crash = np.linspace(200.0, 100.0, 31)[1:]
+    close = pd.Series(list(climb) + list(crash), index=idx, name="Close")
+    return pd.DataFrame({"Close": close, "High": close * 1.01, "Low": close * 0.99}, index=idx)
+
+
+def _bull_regime_df():
+    """classify_daily_regime이 마지막 날을 "강세장"으로 판정하도록 꾸준히 오르는 합성 OHLC."""
+    idx = pd.date_range("2024-01-01", periods=260, freq="B")
+    close = pd.Series(np.linspace(100.0, 200.0, 260), index=idx, name="Close")
+    return pd.DataFrame({"Close": close, "High": close * 1.01, "Low": close * 0.99}, index=idx)
+
+
+def _sideways_regime_df():
+    """classify_daily_regime이 마지막 날을 "횡보장"으로 판정하도록 거의 안 움직이는 합성 OHLC."""
+    idx = pd.date_range("2024-01-01", periods=260, freq="B")
+    rng = np.random.default_rng(0)
+    close = pd.Series(100.0 + rng.normal(0, 0.05, len(idx)), index=idx, name="Close")
+    return pd.DataFrame({"Close": close, "High": close * 1.001, "Low": close * 0.999}, index=idx)
+
+
+def test_select_live_strategy_picks_bear_strategy_when_regime_is_bear(db_session, monkeypatch):
+    from contextlib import contextmanager
+
+    @contextmanager
+    def _fake_get_session():
+        yield db_session
+        db_session.commit()
+
+    monkeypatch.setattr(st_mod, "get_session", _fake_get_session)
+    from core.models import Strategy as StrategyModel
+
+    bear = StrategyModel(name="약세장용", indicator_config=json.dumps({"a": 1}), source="test")
+    bull = StrategyModel(name="강세장용", indicator_config=json.dumps({"b": 2}), source="test")
+    sideways = StrategyModel(name="횡보장용", indicator_config=json.dumps({"c": 3}), source="test")
+    db_session.add_all([bear, bull, sideways])
+    db_session.commit()
+
+    monkeypatch.setattr(st_mod, "get_price_history", lambda *a, **k: _bear_regime_df())
+
+    result = st_mod.select_live_strategy(bear.id, bull.id, sideways.id)
+
+    assert result["trading_regime"] == "약세장"
+    assert result["selected_strategy_id"] == bear.id
+    assert result["selected_strategy_name"] == "약세장용"
+    assert result["selected_config"] == {"a": 1}
+
+
+def test_select_live_strategy_picks_bull_strategy_when_regime_is_bull(db_session, monkeypatch):
+    from contextlib import contextmanager
+
+    @contextmanager
+    def _fake_get_session():
+        yield db_session
+        db_session.commit()
+
+    monkeypatch.setattr(st_mod, "get_session", _fake_get_session)
+    from core.models import Strategy as StrategyModel
+
+    bear = StrategyModel(name="약세장용", indicator_config=json.dumps({"a": 1}), source="test")
+    bull = StrategyModel(name="강세장용", indicator_config=json.dumps({"b": 2}), source="test")
+    sideways = StrategyModel(name="횡보장용", indicator_config=json.dumps({"c": 3}), source="test")
+    db_session.add_all([bear, bull, sideways])
+    db_session.commit()
+
+    monkeypatch.setattr(st_mod, "get_price_history", lambda *a, **k: _bull_regime_df())
+
+    result = st_mod.select_live_strategy(bear.id, bull.id, sideways.id)
+
+    assert result["trading_regime"] == "강세장"
+    assert result["selected_strategy_id"] == bull.id
+    assert result["selected_config"] == {"b": 2}
+
+
+def test_select_live_strategy_picks_sideways_strategy_when_regime_is_sideways(db_session, monkeypatch):
+    from contextlib import contextmanager
+
+    @contextmanager
+    def _fake_get_session():
+        yield db_session
+        db_session.commit()
+
+    monkeypatch.setattr(st_mod, "get_session", _fake_get_session)
+    from core.models import Strategy as StrategyModel
+
+    bear = StrategyModel(name="약세장용", indicator_config=json.dumps({"a": 1}), source="test")
+    bull = StrategyModel(name="강세장용", indicator_config=json.dumps({"b": 2}), source="test")
+    sideways = StrategyModel(name="횡보장용", indicator_config=json.dumps({"c": 3}), source="test")
+    db_session.add_all([bear, bull, sideways])
+    db_session.commit()
+
+    monkeypatch.setattr(st_mod, "get_price_history", lambda *a, **k: _sideways_regime_df())
+
+    result = st_mod.select_live_strategy(bear.id, bull.id, sideways.id)
+
+    assert result["trading_regime"] == "횡보장"
+    assert result["selected_strategy_id"] == sideways.id
+    assert result["selected_config"] == {"c": 3}
+
+
+def test_select_live_strategy_no_price_data_returns_none_selection(monkeypatch):
+    monkeypatch.setattr(st_mod, "get_price_history", lambda *a, **k: pd.DataFrame())
+    result = st_mod.select_live_strategy(1, 2, 3)
+    assert result["trading_regime"] is None
+    assert result["selected_strategy_id"] is None
+    assert result["selected_config"] is None
+    assert "reason" in result
+
+
+def test_select_live_strategy_missing_strategy_row_returns_none_selection(db_session, monkeypatch):
+    from contextlib import contextmanager
+
+    @contextmanager
+    def _fake_get_session():
+        yield db_session
+        db_session.commit()
+
+    monkeypatch.setattr(st_mod, "get_session", _fake_get_session)
+    monkeypatch.setattr(st_mod, "get_price_history", lambda *a, **k: _bear_regime_df())
+
+    result = st_mod.select_live_strategy(9999, 9998, 9997)
+
+    assert result["trading_regime"] == "약세장"
+    assert result["selected_strategy_id"] is None
+    assert result["selected_config"] is None
+
+
+# ----------------------------------------------------------------------------
+# classify_ticker_trend / classify_tickers_by_trend / select_strategy_for_ticker_trend
+# (SPEC 14절 — 종목 자체 추세 기준 데이터셋 분리, 2026-07-17)
+# ----------------------------------------------------------------------------
+
+
+def _price_df(prices: list[float], start="2020-01-01") -> pd.DataFrame:
+    idx = pd.date_range(start, periods=len(prices), freq="B")
+    return pd.DataFrame({"Close": prices}, index=idx)
+
+
+def test_classify_ticker_trend_detects_bullish():
+    # 100 -> 300 over ~2 years: CAGR 훨씬 큰 상승
+    df = _price_df([100.0, 300.0])
+    df.index = pd.to_datetime(["2020-01-01", "2022-01-01"])
+    assert st_mod.classify_ticker_trend(df) == "상승"
+
+
+def test_classify_ticker_trend_detects_bearish():
+    df = _price_df([100.0, 40.0])
+    df.index = pd.to_datetime(["2020-01-01", "2022-01-01"])
+    assert st_mod.classify_ticker_trend(df) == "하락"
+
+
+def test_classify_ticker_trend_detects_sideways():
+    df = _price_df([100.0, 105.0])
+    df.index = pd.to_datetime(["2020-01-01", "2022-01-01"])
+    assert st_mod.classify_ticker_trend(df) == "횡보"
+
+
+def test_classify_ticker_trend_none_for_empty_or_insufficient_data():
+    assert st_mod.classify_ticker_trend(pd.DataFrame()) is None
+    assert st_mod.classify_ticker_trend(None) is None
+    assert st_mod.classify_ticker_trend(_price_df([100.0])) is None
+
+
+def test_classify_tickers_by_trend_skips_failed_lookups_and_falls_back_to_sideways_when_too_few(monkeypatch):
+    """유효 종목이 3개 미만이면 3분위(상대순위)를 나눌 수 없어 전부 '횡보'로 처리해야 한다."""
+    def _fake_get_price_history(ticker, start=None, end=None, use_cache=True):
+        if ticker == "BAD":
+            raise RuntimeError("조회 실패")
+        if ticker == "UP":
+            df = _price_df([100.0, 300.0])
+            df.index = pd.to_datetime(["2020-01-01", "2022-01-01"])
+            return df
+        df = _price_df([100.0, 40.0])
+        df.index = pd.to_datetime(["2020-01-01", "2022-01-01"])
+        return df
+
+    monkeypatch.setattr(st_mod, "get_price_history", _fake_get_price_history)
+
+    result = st_mod.classify_tickers_by_trend(["UP", "DOWN", "BAD"], "2020-01-01", "2022-01-01")
+
+    assert result == {"UP": "횡보", "DOWN": "횡보"}
+    assert "BAD" not in result
+
+
+def test_classify_tickers_by_trend_uses_relative_tertiles_even_without_absolute_decliners(monkeypatch):
+    """생존편향으로 절대 CAGR이 전부 플러스여도(하락 종목이 하나도 없어도), 상대적으로 가장
+    부진한 1/3은 '하락'으로, 가장 좋은 1/3은 '상승'으로 분류돼야 한다(SPEC 14절 핵심 근거)."""
+    # 6종목의 CAGR을 전부 양수로 구성(생존편향 시뮬레이션)하되 순위는 뚜렷하게 벌려둔다.
+    cagr_by_ticker = {"A": 1.0, "B": 3.0, "C": 5.0, "D": 40.0, "E": 45.0, "F": 50.0}
+
+    def _fake_get_price_history(ticker, start=None, end=None, use_cache=True):
+        target_cagr = cagr_by_ticker[ticker] / 100.0
+        end_price = 100.0 * (1 + target_cagr) ** 2  # 2년 구간
+        df = _price_df([100.0, end_price])
+        df.index = pd.to_datetime(["2020-01-01", "2022-01-01"])
+        return df
+
+    monkeypatch.setattr(st_mod, "get_price_history", _fake_get_price_history)
+
+    result = st_mod.classify_tickers_by_trend(list(cagr_by_ticker), "2020-01-01", "2022-01-01")
+
+    assert result["A"] == "하락" and result["B"] == "하락"  # 하위 1/3 (모두 절대적으로는 플러스)
+    assert result["E"] == "상승" and result["F"] == "상승"  # 상위 1/3
+    assert result["C"] == "횡보" and result["D"] == "횡보"  # 중간
+
+
+def test_select_strategy_for_ticker_trend_picks_matching_strategy(db_session, monkeypatch):
+    from contextlib import contextmanager
+
+    @contextmanager
+    def _fake_get_session():
+        yield db_session
+        db_session.commit()
+
+    monkeypatch.setattr(st_mod, "get_session", _fake_get_session)
+    from core.models import Strategy as StrategyModel
+
+    bear = StrategyModel(name="하락장용", indicator_config=json.dumps({"a": 1}), source="test")
+    bull = StrategyModel(name="상승장용", indicator_config=json.dumps({"b": 2}), source="test")
+    sideways = StrategyModel(name="횡보장용", indicator_config=json.dumps({"c": 3}), source="test")
+    db_session.add_all([bear, bull, sideways])
+    db_session.commit()
+
+    def _fake_get_price_history(ticker, start=None, end=None, use_cache=True):
+        df = _price_df([100.0, 300.0])
+        df.index = pd.to_datetime(["2025-01-01", "2026-07-01"])
+        return df
+
+    monkeypatch.setattr(st_mod, "get_price_history", _fake_get_price_history)
+
+    result = st_mod.select_strategy_for_ticker_trend("NVDA", bear.id, bull.id, sideways.id)
+
+    assert result["trend"] == "상승"
+    assert result["selected_strategy_id"] == bull.id
+    assert result["selected_config"] == {"b": 2}
+
+
+def test_select_strategy_for_ticker_trend_none_when_price_lookup_fails(monkeypatch):
+    def _fake_get_price_history(ticker, start=None, end=None, use_cache=True):
+        raise RuntimeError("조회 실패")
+
+    monkeypatch.setattr(st_mod, "get_price_history", _fake_get_price_history)
+
+    result = st_mod.select_strategy_for_ticker_trend("XYZ", 1, 2, 3)
+
+    assert result["trend"] is None
+    assert result["selected_strategy_id"] is None

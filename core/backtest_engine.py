@@ -85,6 +85,7 @@ def calculate_metrics(equity_curve: pd.Series, trades: list[Trade], start_date, 
             "sharpe": 0.0,
             "win_rate": 0.0,
             "trade_count": 0,
+            "avg_holding_days": 0.0,
         }
 
     start_value = float(equity_curve.iloc[0])
@@ -116,14 +117,43 @@ def calculate_metrics(equity_curve: pd.Series, trades: list[Trade], start_date, 
     else:
         win_rate = 0.0
 
+    holding_days = [
+        (t.exit_date - t.entry_date).days for t in completed if t.exit_date is not None and t.entry_date is not None
+    ]
+    avg_holding_days = sum(holding_days) / len(holding_days) if holding_days else 0.0
+
     return {
         "cumulative_return": round(cumulative_return, 2),
         "cagr": round(cagr, 2),
         "mdd": round(mdd, 2),
         "sharpe": round(sharpe, 2),
         "win_rate": round(win_rate, 2),
+        "avg_holding_days": round(avg_holding_days, 1),
         "trade_count": trade_count,
     }
+
+
+def _cap_holding_period(position: pd.Series, max_holding_days: int) -> pd.Series:
+    """진입 후 max_holding_days 거래일이 지나면 강제로 청산(0)시킨다 (스윙 트레이딩 보유기간 상한).
+
+    연속으로 포지션(>0)이 유지된 구간을 하나의 보유로 보고, 그 구간의 (max_holding_days+1)번째
+    날부터는 원래 신호가 계속 보유를 가리키더라도 0으로 덮어쓴다. 신호가 그 뒤에도 여전히 진입
+    조건을 만족하면 다음 날 재진입할 수 있다 — "6개월 넘으면 무조건 판다"는 스윙 트레이더의 실제
+    행동을 모사하는 것이지, 그 종목을 영구히 배제하는 것이 아니다.
+    """
+    if max_holding_days is None or position.empty:
+        return position
+    values = position.to_numpy(copy=True)
+    streak = 0
+    for i, v in enumerate(values):
+        if v > 0:
+            streak += 1
+            if streak > max_holding_days:
+                values[i] = 0.0
+                streak = 0  # 강제 청산 — 다음 날부터 새 보유로 다시 센다(재진입 허용)
+        else:
+            streak = 0
+    return pd.Series(values, index=position.index, name=position.name)
 
 
 def run_backtest(
@@ -132,12 +162,16 @@ def run_backtest(
     start: str,
     end: str,
     label: str = "전략",
+    max_holding_days: Optional[int] = None,
 ) -> BacktestRun:
     """지표 조합 전략을 특정 종목/기간에 대해 백테스팅한다.
 
     indicator_config가 1:2:6 식 단계별(staged) 전략 스키마("entry_stages" 포함)이면
     자동으로 core.strategy_engine.simulate_staged_positions 를 사용해 가중치 기반 포지션으로
     백테스팅한다 (별도 함수를 호출할 필요 없이 이 함수 하나로 두 전략 유형을 모두 처리한다).
+
+    max_holding_days를 넘기면 스윙 트레이딩 보유기간 상한(예: 126거래일≈6개월)을 강제한다 —
+    진입 후 그 날짜가 지나면 원래 신호와 무관하게 강제 청산한다.
     """
     staged = is_staged_config(indicator_config)
     # 지표 warmup 기간(이동평균/일목균형표 등)을 위해 실제 조회는 시작일보다 앞서서 가져온 뒤 잘라낸다.
@@ -161,12 +195,16 @@ def run_backtest(
     if staged:
         position_full, events_full = simulate_staged_positions(raw, indicator_config)
         position = position_full.loc[df.index]
+        if max_holding_days is not None:
+            position = _cap_holding_period(position, max_holding_days)
         df_index_set = set(df.index)
         stage_events = [e for e in events_full if e.date in df_index_set]
         trades = extract_staged_trades(df, stage_events)
     else:
         position_full = generate_positions(raw, indicator_config)
         position = position_full.loc[df.index]
+        if max_holding_days is not None:
+            position = _cap_holding_period(position, max_holding_days)
         stage_events = []
         trades = extract_trades(df, position, indicator_config)
 
@@ -186,7 +224,7 @@ def run_backtest(
 
 
 def compute_regime_breakdown(run: BacktestRun, benchmark_ticker: str = DEFAULT_BENCHMARK_TICKER) -> dict:
-    """백테스트 결과를 국면별(강세장/약세장/중립)로 나눠 각 국면에 해당하는 날들만 모아
+    """백테스트 결과를 국면별(강세장/약세장/횡보장)로 나눠 각 국면에 해당하는 날들만 모아
     누적수익률/거래일수를 계산한다 (core.market_regime.classify_daily_regime 재사용).
 
     국면이 바뀌는 날짜를 기준으로 구간을 자르는 게 아니라, 그 국면에 속한 날들의 일간수익률을
@@ -196,7 +234,7 @@ def compute_regime_breakdown(run: BacktestRun, benchmark_ticker: str = DEFAULT_B
     지연 import한다.
 
     Returns:
-        {"강세장": {"trading_days": int, "cumulative_return": float|None}, "약세장": {...}, "중립": {...}}
+        {"강세장": {"trading_days": int, "cumulative_return": float|None}, "약세장": {...}, "횡보장": {...}}
         equity_curve가 비어 있거나 벤치마크 데이터를 못 가져오면 빈 dict.
     """
     from core import market_regime
@@ -210,11 +248,15 @@ def compute_regime_breakdown(run: BacktestRun, benchmark_ticker: str = DEFAULT_B
     if bench.empty:
         return {}
 
-    regime = market_regime.classify_daily_regime(bench["Close"]).reindex(run.equity_curve.index).ffill()
+    regime = (
+        market_regime.classify_daily_regime(bench["Close"], bench["High"], bench["Low"])
+        .reindex(run.equity_curve.index)
+        .ffill()
+    )
     daily_return = run.equity_curve.pct_change().fillna(0.0)
 
     breakdown: dict = {}
-    for label in ("강세장", "약세장", "중립"):
+    for label in ("강세장", "약세장", "횡보장"):
         mask = regime == label
         n_days = int(mask.sum())
         if n_days == 0:
@@ -238,7 +280,7 @@ def diagnose_strategy_health(indicator_config: str | dict) -> list[str]:
     특정 지표 조합에 국한되지 않으므로, 조건 자체를 정적으로 분석하는 대신 실제로 대표 종목
     한 종목·최근 몇 년 구간에 대해 돌려보고 "진입한 모든 매매가 진입 당일 바로 청산됐는지"를
     관찰하는 방식(경험적 검증)으로 판별한다. 사용자가 직접 프리뷰 백테스트를 돌려보기 전에
-    자연어 전략 등록 UI에서 자동으로 호출된다 (app/pages/1_백테스팅.py 참고).
+    자연어 전략 등록 UI에서 자동으로 호출된다 (app/pages/1_전략_스튜디오.py 참고).
 
     Returns:
         한국어 경고 메시지 리스트. 이상이 없거나 진단 자체가 불가능하면(가격 데이터 조회 실패 등)
@@ -326,14 +368,20 @@ def compare_with_benchmarks(
     start: str,
     end: str,
     benchmark_ticker: str = DEFAULT_BENCHMARK_TICKER,
+    max_holding_days: Optional[int] = None,
 ) -> dict[str, BacktestRun]:
     """SPEC 모듈 A의 3-way 비교: 전략 적용 vs S&P500 매수보유 vs 개별종목 매수보유.
+
+    max_holding_days는 "전략 적용" 쪽에만 적용된다 — 매수보유 벤치마크는 애초에 보유기간
+    상한이라는 개념이 없는 순수 참고 지표라 그대로 둔다.
 
     Returns:
         {"strategy": BacktestRun, "buy_and_hold_ticker": BacktestRun, "buy_and_hold_benchmark": BacktestRun}
     """
     return {
-        "strategy": run_backtest(ticker, indicator_config, start, end, label=f"{ticker} 전략 적용"),
+        "strategy": run_backtest(
+            ticker, indicator_config, start, end, label=f"{ticker} 전략 적용", max_holding_days=max_holding_days
+        ),
         "buy_and_hold_ticker": run_buy_and_hold(ticker, start, end, label=f"{ticker} 매수 후 보유"),
         "buy_and_hold_benchmark": run_buy_and_hold(
             benchmark_ticker, start, end, label="S&P500 매수 후 보유"

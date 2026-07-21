@@ -1,18 +1,23 @@
-"""모듈 A: 백테스팅 엔진 페이지.
+"""모듈 A 통합: 전략 스튜디오 페이지 (2026-07-21 통합 — 이전 1_백테스팅.py + 9_전략_관리.py +
+13_야간_미세튜닝_리더보드.py + 15_전략_배치_생성.py).
 
-- 이동평균 교차 / RSI / 볼린저밴드 지표를 토글로 켜고 끄면서 조합(AND/OR)한 전략을 구성
-- 지표 토글로 표현하기 어려운 조건은 "✍️ 직접 수식 입력" 슬롯에 파이썬과 비슷한 문법의 수식을
-  직접 입력해 구성 가능 (core/expression_engine.py, 예: "close > sma(close, 20) and rsi(close, 14) < 30")
-- 특정 전략 적용 vs 종목 매수 후 보유 vs S&P500 매수 후 보유를 비교
-- 누적수익률/CAGR/MDD/샤프지수/승률/매매횟수 계산, 표시할 지표는 사용자가 선택
-- 자연어로 붙여넣은 전략 설명을 AI가 해석해 지표 조합으로 변환 후 전략 라이브러리에 저장
-- 다종목 미세튜닝: 백본 전략을 S&P500 섹터 균등 표본(기본 100종목)에 적용해 종목 스타일별로
-  파라미터를 자동 탐색하고(train/test 분리 검증), 종목별 3-way 비교로 결과를 확인 (core/strategy_tuning.py)
+전략의 일생(생성 → 튜닝 → 저장/이력 확인 → 관리)이 서로 다른 4개 페이지에 흩어져 있던 것을
+"전략"이라는 하나의 대상을 중심으로 탭으로 묶었다.
+
+- 🛠 생성/백테스트: 이동평균 교차/RSI/볼린저밴드 토글 조합, "✍️ 직접 수식 입력"(core/expression_engine.py),
+  자연어 전략 등록(AI 해석), 전략 합성(AND/OR) — 전략 적용 vs 종목 매수보유 vs S&P500 매수보유 비교
+- 🧬 다종목 미세튜닝: 백본 전략을 S&P500 섹터 균등 표본에 적용해 종목 스타일별 파라미터를 자동
+  탐색(train/test 분리 검증)하고 종목별 3-way 비교로 결과 확인 (core/strategy_tuning.py)
+- 🏭 배치 생성: 유튜브 스크립트 여러 개 → 백본 전략 다량 생성 (구 15_전략_배치_생성.py)
+- 🌙 야간 미세튜닝 리더보드: 로컬 스케줄러/GitHub Actions가 반복 튜닝한 결과를 국면×섹터로 필터링해
+  검토하고 라이브러리에 저장 (구 13_야간_미세튜닝_리더보드.py)
+- 🗂️ 전략 관리: 저장된 전략의 이름/설명/조건 수정, 보관/삭제 (구 9_전략_관리.py)
 """
 
 import json
+import re
 import sys
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Optional
 
@@ -30,6 +35,7 @@ from core.backtest_engine import (
     BacktestRun,
     compare_with_benchmarks,
     compute_regime_breakdown,
+    run_backtest,
     save_backtest_result,
 )
 from core.chart_rendering import render_price_chart, render_staged_price_chart
@@ -37,20 +43,29 @@ from core.db import get_session, init_db
 from core.expression_engine import ExpressionError, validate_syntax
 from core import job_manager
 from core.models import Strategy
-from core.nl_strategy import interpret_strategy_text
+from core.nl_strategy import generate_strategies_from_scripts, interpret_strategy_text, split_batch_scripts
 from core import era_validation, screener, strategy_tuning
 from core.strategy_engine import is_expression_config, is_staged_config
 from core.strategy_explainer import describe_regime_config, describe_staged_config, explain_strategy
-from core.strategy_library import detect_strategy_type
+from core.strategy_library import (
+    archive_strategy,
+    delete_strategy,
+    detect_strategy_type,
+    get_strategy,
+    list_strategies,
+    unarchive_strategy,
+    update_strategy,
+)
+from core.strategy_tuning import get_top_tuning_results, list_tuning_runs
 from core.theme import TRADINGVIEW_CHART_CONFIG, apply_theme
 
 init_db()
 
-st.set_page_config(page_title="백테스팅 엔진", page_icon="📈", layout="wide")
+st.set_page_config(page_title="전략 스튜디오", page_icon="📈", layout="wide")
 apply_theme()
 job_manager.render_active_jobs_sidebar()
-st.title("📈 백테스팅 엔진")
-st.caption("전략 적용 vs 종목 매수 후 보유 vs S&P500 매수 후 보유를 비교하고, 전략을 라이브러리에 저장합니다.")
+st.title("📈 전략 스튜디오")
+st.caption("전략 생성/백테스트부터 다종목 미세튜닝·배치 생성·야간 튜닝 리더보드·관리까지, 전략의 일생을 한 페이지에서 다룹니다.")
 
 METRIC_LABELS = {
     "cumulative_return": "누적수익률(%)",
@@ -321,6 +336,7 @@ def render_tuning_run_results(run_id: int, key_prefix: str) -> None:
                 "S&P500 CAGR(%)": (r.get("test_comparison") or {}).get("buy_and_hold_benchmark", {}).get("cagr"),
                 "샤프": (r.get("test_comparison") or {}).get("strategy", {}).get("sharpe"),
                 "MDD(%)": (r.get("test_comparison") or {}).get("strategy", {}).get("mdd"),
+                "평균 보유일수": (r.get("test_comparison") or {}).get("strategy", {}).get("avg_holding_days"),
                 "경고": len(r.get("health_warnings") or []),
                 "백본변경": "🧬 예" if r.get("backbone_changed") else "-",
             }
@@ -409,15 +425,18 @@ def render_tuning_run_results(run_id: int, key_prefix: str) -> None:
             st.info(f"📖 전략 설명: {explanation}")
 
 
-tab_backtest, tab_nl, tab_tuning, tab_combine = st.tabs(
-    ["📊 지표 조합 백테스트", "🤖 자연어 전략 등록", "🧬 다종목 미세튜닝", "🧩 전략 합성"]
+tab_backtest, tab_nl, tab_tuning, tab_combine, tab_batch, tab_nightly, tab_manage = st.tabs(
+    [
+        "📊 지표 조합 백테스트", "🤖 자연어 전략 등록", "🧬 다종목 미세튜닝", "🧩 전략 합성",
+        "🏭 배치 생성", "🌙 야간 미세튜닝 리더보드", "🗂️ 전략 관리",
+    ]
 )
 
 with tab_backtest:
     _init_ui_state()
 
     with get_session() as session:
-        strategies = session.query(Strategy).order_by(Strategy.created_at.desc()).all()
+        strategies = session.query(Strategy).filter(Strategy.is_archived.is_(False)).order_by(Strategy.created_at.desc()).all()
         strategy_options = {"직접 설정": None}
         for s in strategies:
             type_label = STRATEGY_TYPE_LABELS[detect_strategy_type(s.indicator_config)]
@@ -631,9 +650,9 @@ with tab_backtest:
             else:
                 st.info("표시할 지표를 1개 이상 선택하세요.")
 
-            with st.expander("📊 국면별(강세장/약세장/중립) 수익률 분해"):
+            with st.expander("📊 국면별(강세장/약세장/횡보장) 수익률 분해"):
                 st.caption(
-                    "S&P500 기준으로 하루하루를 강세장/약세장/중립으로 라벨링한 뒤, 이 전략이 "
+                    "S&P500 기준으로 하루하루를 강세장/약세장/횡보장으로 라벨링한 뒤, 이 전략이 "
                     "각 국면에 속한 날들에는 대체로 어떻게 움직였는지 모아서 계산한 참고 지표입니다 "
                     "(연속 구간이 아니어도 됨 — 국면별 스코어링은 core.market_regime 재사용)."
                 )
@@ -693,7 +712,7 @@ with tab_backtest:
     with st.expander("저장된 전략 목록"):
         st.caption("전략 이름 수정/삭제는 좌측 메뉴의 '전략 관리' 페이지에서 할 수 있습니다.")
         with get_session() as session:
-            rows = session.query(Strategy).order_by(Strategy.created_at.desc()).all()
+            rows = session.query(Strategy).filter(Strategy.is_archived.is_(False)).order_by(Strategy.created_at.desc()).all()
             if rows:
                 df_strategies = pd.DataFrame(
                     {
@@ -720,7 +739,7 @@ with tab_combine:
     )
 
     with get_session() as session:
-        combine_strategies = session.query(Strategy).order_by(Strategy.created_at.desc()).all()
+        combine_strategies = session.query(Strategy).filter(Strategy.is_archived.is_(False)).order_by(Strategy.created_at.desc()).all()
         combine_options = {
             f"{s.name} (#{s.id}, {STRATEGY_TYPE_LABELS[detect_strategy_type(s.indicator_config)]})": s.id
             for s in combine_strategies
@@ -1052,7 +1071,7 @@ with tab_tuning:
 
     if tuning_source == "📚 전략 라이브러리에서 선택":
         with get_session() as session:
-            tuning_strategies = session.query(Strategy).order_by(Strategy.created_at.desc()).all()
+            tuning_strategies = session.query(Strategy).filter(Strategy.is_archived.is_(False)).order_by(Strategy.created_at.desc()).all()
             tuning_options = {f"{s.name} (#{s.id})": s.id for s in tuning_strategies}
         if not tuning_options:
             st.info("저장된 전략이 없습니다. 다른 탭에서 전략을 먼저 저장하거나 '새 텍스트 붙여넣기'를 사용하세요.")
@@ -1195,6 +1214,18 @@ with tab_tuning:
 
         is_manual_mode = tuning_universe_mode == "🧺 직접 선택"
 
+        swing_mode = st.checkbox(
+            "🏄 스윙 트레이딩 모드: 보유기간 최대 6개월(126거래일) 강제",
+            value=False, key="tuning_swing_mode",
+            help=(
+                "체크하면 탐색 단계부터 진입 후 126거래일(약 6개월)이 지나면 원래 신호와 무관하게 "
+                "강제 청산한 성과로 파라미터를 고릅니다 — 장기 보유(예: 추세 끝까지 들고 가는 퀄리티 "
+                "컴파운더식 파라미터)가 최적으로 뽑히는 것을 막고, 스윙 트레이더가 실제로 감당할 수 있는 "
+                "결과로 튜닝합니다(SPEC 15절). 체크 안 하면(기본값) 기존과 동일하게 보유기간 제약 없이 "
+                "탐색합니다."
+            ),
+        )
+
         use_point_in_time = False
         if not is_manual_mode:
             use_point_in_time = st.checkbox(
@@ -1226,6 +1257,7 @@ with tab_tuning:
                     base_strategy_id=tuning_base_strategy_id,
                     tickers_df=manual_tickers_df if is_manual_mode else None,
                     universe_as_of_date=tuning_start_date.isoformat() if use_point_in_time else None,
+                    max_holding_days=strategy_tuning._SWING_MAX_HOLDING_DAYS if swing_mode else None,
                     label=run_label,
                 )
 
@@ -1248,7 +1280,9 @@ with tab_tuning:
                     [
                         {
                             "id": h["id"], "종목수": h["universe_size"], "시작일": h["start_date"],
-                            "종료일": h["end_date"], "탐색강도": h["intensity"], "생성일": h["created_at"],
+                            "종료일": h["end_date"], "탐색강도": h["intensity"],
+                            "스윙모드": "🏄 예" if h.get("max_holding_days") else "-",
+                            "생성일": h["created_at"],
                         }
                         for h in tuning_history
                     ]
@@ -1302,7 +1336,7 @@ with tab_tuning:
                 st.markdown("#### 스타일×국면 그룹별 요약")
                 st.caption(
                     "같은 스타일·같은 학습국면의 종목들은 동일한 tuned_config를 공유합니다(그룹 단위로 "
-                    "학습했다는 뜻) — 같은 스타일이어도 학습국면(약세장/강세장)이 다르면 서로 다른 "
+                    "학습했다는 뜻) — 같은 스타일이어도 학습국면(약세장/강세장/횡보장)이 다르면 서로 다른 "
                     "설정입니다(S&P500 기준 실제 국면 구간 데이터로 각각 따로 학습). 승률은 test 구간에서 "
                     "종목홀딩·S&P500을 둘 다 이긴 종목의 비율입니다. '데이터부족'은 조회 구간 안에 해당"
                     "국면 구간이 부족해 원본 전략을 그대로 사용했다는 뜻입니다."
@@ -1395,7 +1429,7 @@ with tab_tuning:
                     if selection_event and getattr(selection_event, "selection", None)
                     else []
                 )
-                # 종목당 국면(약세장/강세장)별로 2행이 나올 수 있어 티커만으로는 결과를 특정할 수 없다 —
+                # 종목당 국면(약세장/강세장/횡보장)별로 최대 3행이 나올 수 있어 티커만으로는 결과를 특정할 수 없다 —
                 # (티커, 학습국면) 조합을 키로 써서 선택/조회한다.
                 selected_keys = (
                     list(display_df.iloc[selected_rows][["티커", "학습국면"]].itertuples(index=False, name=None))
@@ -1497,3 +1531,661 @@ with tab_tuning:
                             saved_id = saved_strategy.id
                         st.success(f"'{sel_ticker}' 튜닝 전략 저장 완료 (id={saved_id}).")
                         st.info(f"📖 전략 설명: {explanation}")
+
+
+# ============================================================================
+# 탭: 배치 생성 (구 15_전략_배치_생성.py)
+# ============================================================================
+def _render_batch_generation_tab() -> None:
+    st.markdown(
+        "유튜브 등에서 본 매매 전략 스크립트를 **여러 개** 한 번에 붙여넣으면, 각각을 독립적으로 AI가 "
+        "해석해서 백본 전략 후보를 만듭니다. 야간 미세튜닝은 '이미 있는 백본 하나'의 숫자만 다듬는 "
+        "것이고, 이 탭은 그 미세튜닝의 **재료가 될 백본 자체를 다량으로 늘리는** 용도입니다.\n\n"
+        "각 스크립트는 줄 하나에 `---`만 있는 구분선으로 나눠서 붙여넣으세요(5-15개 기준 설계, 그 이상도 "
+        "가능하지만 스크립트당 AI 호출 1-2회 + 표본 종목 5개 백테스트가 들어가 시간이 비례해서 늘어납니다)."
+    )
+
+    with st.expander("📖 이 탭이 인식하는 지표(주요 예시) — RSI/거래량/볼린저 등"):
+        st.markdown(
+            "- **추세**: 이동평균 교차(`ma_cross`), 단일 이평선 터치(`ma_touch`), MACD 교차/레벨, "
+            "일목균형표(전환-기준선, 구름대, 후행스팬)\n"
+            "- **과매수/과매도**: RSI 레벨/교차, 볼린저 밴드(상단/하단/중심선), %B, 밴드폭 스퀴즈-해제\n"
+            "- **거래량**: `volume_spike`(직전 평균 대비 급증 — \"거래량이 터진다/실린다\"), "
+            "`volume_dryup`(최근 고점 대비 급감 — \"거래량이 마른다/매물 소화\"), MFI(거래량 반영 RSI)\n"
+            "- **캔들패턴**: 장악형, 마루보즈, 핀바, 도지, 인사이드바(돌파), 쌍바닥/쌍봉, 다이버전스, "
+            "관통형/흑운형, 모닝/이브닝스타, 적삼병/흑삼병, 삼법형\n\n"
+            "스크립트에 이런 표현이 나오면 자동으로 해당 지표로 매핑을 시도합니다 — 해석 결과의 "
+            "'해석 근거' expander에서 실제로 어떤 지표가 왜 선택됐는지 확인할 수 있습니다."
+        )
+
+    scripts_text = st.text_area(
+        "전략 설명 스크립트 여러 개 붙여넣기",
+        height=280,
+        placeholder=(
+            "20일 이동평균선이 60일 이동평균선을 상향 돌파하는 골든크로스가 뜨고, "
+            "동시에 거래량이 평소 대비 2배 이상 터지면 매수합니다.\n"
+            "---\n"
+            "RSI가 30 이하로 떨어졌다가 다시 30을 상향 돌파하면 매수하고, "
+            "볼린저 밴드 상단을 터치하면 매도합니다.\n"
+            "---\n"
+            "거래량이 최근 고점 대비 크게 줄어드는 눌림목 구간에서 상승 인걸형 캔들이 나오면 매수합니다."
+        ),
+    )
+
+    if st.button("🤖 배치 해석 + sanity 백테스트 시작", type="primary"):
+        scripts = split_batch_scripts(scripts_text)
+        if not scripts:
+            st.warning("스크립트를 최소 1개 이상 입력해주세요 (구분선 `---` 없이 1개만 넣어도 됩니다).")
+        else:
+            job_manager.start(
+                "batch_generate", generate_strategies_from_scripts, scripts,
+                label=f"전략 배치 생성 ({len(scripts)}개 스크립트)",
+            )
+
+    batch_job = job_manager.render(
+        "batch_generate", running_label="스크립트를 하나씩 해석하고 표본 종목 5개로 sanity 백테스트하는 중"
+    )
+    if batch_job is not None:
+        if batch_job.status == "error":
+            st.error(f"배치 생성 중 오류가 발생했습니다: {batch_job.error}")
+        else:
+            st.session_state["batch_results"] = batch_job.result
+
+    batch_results = st.session_state.get("batch_results")
+
+    if not batch_results:
+        st.info("아직 생성된 배치 결과가 없습니다. 위에 스크립트를 붙여넣고 실행해보세요.")
+        return
+
+    n_ok = sum(1 for r in batch_results if r["ok"])
+    n_passed = sum(1 for r in batch_results if r["ok"] and (r.get("sanity") or {}).get("passed"))
+    col1, col2, col3 = st.columns(3)
+    col1.metric("스크립트 수", f"{len(batch_results)}개")
+    col2.metric("해석 성공", f"{n_ok}개")
+    col3.metric("sanity 통과", f"{n_passed}개")
+
+    st.divider()
+    st.subheader("결과")
+
+    for i, r in enumerate(batch_results):
+        if not r["ok"]:
+            st.error(f"**스크립트 {i + 1}**: 해석 실패 — {r.get('error')}")
+            with st.expander("원문 스크립트 보기"):
+                st.text(r["script"])
+            continue
+
+        sanity = r.get("sanity") or {}
+        passed = sanity.get("passed")
+        badge = "✅ PASS" if passed else "⚠️ sanity 미통과"
+        staged = is_staged_config(r["indicator_config"])
+        type_label = "🧬 1:2:6 단계별" if staged else "레짐(AND/OR)"
+
+        header = (
+            f"{badge} · **스크립트 {i + 1}: {r['name']}** ({type_label}) — "
+            f"표본 5종목 평균 초과수익 "
+            f"{sanity.get('avg_excess_return'):+.2f}%p" if sanity.get("avg_excess_return") is not None
+            else f"{badge} · **스크립트 {i + 1}: {r['name']}** ({type_label}) — 초과수익 계산 불가"
+        )
+        with st.expander(header, expanded=not passed and n_passed == 0):
+            st.caption(f"표본 5종목 합산 거래횟수: {sanity.get('total_trades', 0)}회")
+            for w in r.get("health_warnings") or []:
+                st.warning(w)
+            st.info(r["description"])
+            with st.popover("🔍 해석 근거(원문 스크립트) 보기"):
+                st.text(r["script"])
+            st.json(r["indicator_config"])
+
+            save_key = f"batch_save_name_{i}"
+            save_name = st.text_input("전략명 (수정 가능)", value=r["name"], key=save_key)
+            if st.button("📚 전략 라이브러리에 저장", key=f"batch_save_btn_{i}"):
+                with st.spinner("전략 설명 생성 중..."):
+                    explanation = explain_strategy(r["indicator_config"])
+                sanity_summary = (
+                    f"[배치 생성 sanity] 표본 5종목 합산 거래횟수 {sanity.get('total_trades', 0)}회, "
+                    f"평균 초과수익 {sanity.get('avg_excess_return'):+.2f}%p ({'통과' if passed else '미통과'})"
+                    if sanity.get("avg_excess_return") is not None
+                    else "[배치 생성 sanity] 계산 불가"
+                )
+                with get_session() as session:
+                    batch_strategy = Strategy(
+                        name=save_name,
+                        indicator_config=json.dumps(r["indicator_config"], ensure_ascii=False),
+                        source="배치생성",
+                        description=f"{explanation}\n\n{sanity_summary}\n\n[원문 스크립트]\n{r['script']}",
+                    )
+                    session.add(batch_strategy)
+                    session.flush()
+                    saved_id = batch_strategy.id
+                st.success(f"전략 '{save_name}' 저장 완료 (id={saved_id}). '전략 관리'/'다종목 미세튜닝' 탭에서 이어서 쓰세요.")
+
+
+with tab_batch:
+    _render_batch_generation_tab()
+
+
+# ============================================================================
+# 탭: 야간 미세튜닝 리더보드 (구 13_야간_미세튜닝_리더보드.py)
+#
+# 두 경로로 결과가 쌓인다:
+# 1. **로컬 스케줄러**: scheduler/run_scheduler.py의 strategy_nightly_tuning_job()이 로컬에서
+#    상시 실행 중이면 매일 한국시간 00:05~04:00에 로컬 DB(StrategyTuningRun/Result)에 쌓인다.
+# 2. **GitHub Actions**: `.github/workflows/nightly_tuning.yml`이 매일 15:05 UTC(≈00:05 KST)에
+#    `scripts/nightly_tuning_ci.py`를 실행해 결과를 저장소에 커밋된
+#    `data/nightly_tuning_leaderboard.json`으로 남긴다.
+# ============================================================================
+def _render_nightly_leaderboard_tab() -> None:
+    _tuning_strategy_id = 3
+    _ci_leaderboard_path = PROJECT_ROOT / "data" / "nightly_tuning_leaderboard.json"
+
+    def _load_ci_leaderboard_json() -> list[dict]:
+        """GitHub Actions(scripts/nightly_tuning_ci.py)가 커밋해둔 결과 파일을 읽는다.
+
+        core.strategy_tuning.get_top_tuning_results()와 정확히 같은 dict 형태로 저장돼 있어(그
+        함수의 반환값을 그대로 json.dumps한 것) 로컬 DB 결과와 같은 코드 경로로 렌더링할 수 있다.
+        다만 JSON 직렬화 과정에서 datetime이 문자열로 바뀌므로, 이후 .strftime()을 쓰는 기존 코드가
+        그대로 동작하도록 다시 datetime으로 파싱해 되돌린다.
+        """
+        if not _ci_leaderboard_path.exists():
+            return []
+        try:
+            records = json.loads(_ci_leaderboard_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            return []
+        for r in records:
+            if r.get("run_created_at"):
+                try:
+                    r["run_created_at"] = datetime.fromisoformat(str(r["run_created_at"]))
+                except ValueError:
+                    r["run_created_at"] = None
+            r["_source"] = "github_actions"
+        return records
+
+    with get_session() as session:
+        nightly_strategy = session.get(Strategy, _tuning_strategy_id)
+        strategy_name = nightly_strategy.name if nightly_strategy else f"#{_tuning_strategy_id}"
+
+    ci_results = _load_ci_leaderboard_json()
+
+    st.caption(
+        f"'{strategy_name}'(#{_tuning_strategy_id}) 전략을 종목 표본(매 반복 다른 시드로 재추출)과 "
+        "탐색 강도(빠름/보통/정밀 순환)를 바꿔가며 반복 미세튜닝합니다. S&P500 기준 실제 약세장/강세장/ "
+        "횡보장 구간의 데이터로 각각 따로 학습한 세 설정을 매번 만들어(학습국면 컬럼 참고), 두 경로(①로컬 "
+        "`scheduler/run_scheduler.py` 상시 실행, ②GitHub Actions가 매일 커밋하는 "
+        "`data/nightly_tuning_leaderboard.json`)로 쌓인 모든 실행 결과를 합쳐 test 구간(out-of-sample) "
+        "초과수익이 가장 높은 상위 10개를 보여줍니다.\n\n"
+        "①은 로컬에서 스케줄러 프로세스를 상시로 띄워둬야 결과가 쌓이고, ②는 이 저장소에 GitHub Actions "
+        "워크플로가 활성화돼 있어야 결과가 쌓입니다(Streamlit Community Cloud 배포본은 ①은 못 쓰지만 "
+        "②로 커밋된 파일은 저장소에 딸려오므로 그대로 볼 수 있습니다)."
+    )
+
+    all_runs = [r for r in list_tuning_runs() if r["base_strategy_id"] == _tuning_strategy_id]
+    if not all_runs and not ci_results:
+        st.info(
+            "아직 쌓인 야간 미세튜닝 결과가 없습니다. `python scheduler/run_scheduler.py`를 로컬에서 "
+            "상시 실행해두거나, GitHub Actions 워크플로(`.github/workflows/nightly_tuning.yml`)가 "
+            "한 번 이상 실행되면 결과가 쌓이기 시작합니다."
+        )
+        return
+
+    ncol1, ncol2, ncol3 = st.columns(3)
+    ncol1.metric("로컬 스케줄러 누적 실행 횟수", f"{len(all_runs)}회")
+    if all_runs:
+        latest_run = max(all_runs, key=lambda r: r["created_at"])
+        ncol2.metric("로컬 최근 실행 시각", latest_run["created_at"].strftime("%Y-%m-%d %H:%M"))
+    else:
+        ncol2.metric("로컬 최근 실행 시각", "기록 없음")
+    ncol3.metric("GitHub Actions 결과 파일 건수", f"{len(ci_results)}건" if ci_results else "없음")
+
+    db_results = get_top_tuning_results(_tuning_strategy_id, limit=50)
+    for r in db_results:
+        r["_source"] = "local_scheduler"
+
+    combined = [r for r in (db_results + ci_results) if r.get("excess_return") is not None]
+    combined.sort(key=lambda r: r["excess_return"], reverse=True)
+    seen: set[tuple] = set()
+    deduped: list[dict] = []
+    for r in combined:
+        key = (r.get("ticker"), str(r.get("run_created_at")), r.get("run_id"), r.get("_source"))
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(r)
+
+    if not deduped:
+        st.info("실행은 쌓였지만 유효한(성공한) 결과가 아직 없습니다.")
+        return
+
+    _swing_holding_days_threshold = strategy_tuning._SWING_MAX_HOLDING_DAYS  # 126거래일 ≈ 6개월 (SPEC 15절)
+
+    def _duration_type(r: dict) -> str:
+        """test_comparison의 실측 avg_holding_days(SPEC 15절, 완료된 매매의 평균 진입~청산 일수)를
+        기준으로 스윙형/장기형을 판정한다. style_type(경기민감주 등 SPEC 4절의 6종 분류)은 원래
+        "탐색 방향"을 다르게 주기 위한 축이라 보유기간과 느슨하게만 상관될 뿐 그 자체가 스윙/장기
+        구분이 아니다 — 실제 보유일수가 있으면 그걸로, 없으면(구버전 결과, avg_holding_days 지표
+        추가 이전에 저장됨) 판정 불가로 표시한다."""
+        avg_days = ((r.get("test_comparison") or {}).get("strategy") or {}).get("avg_holding_days")
+        if avg_days is None:
+            return "N/A (구버전 결과)"
+        return "🏄 스윙형" if avg_days <= _swing_holding_days_threshold else "🐢 장기형"
+
+    for r in deduped:
+        r["_duration_type"] = _duration_type(r)
+
+    def _load_saved_nightly_strategies() -> list[dict]:
+        """전략 라이브러리에 저장해둔 야간튜닝 결과를 국면/섹터/스타일로 파싱해 돌려준다.
+
+        저장 시 description에 "[야간 미세튜닝 메타데이터] 학습국면=..., 섹터=..., 스타일=..."
+        형태로 남겨두므로(위 저장 버튼 로직), 별도 테이블 없이 정규식으로 역파싱해 현황판을 만든다.
+        """
+        pattern = re.compile(r"학습국면=([^,]+), 섹터=([^,]+), 스타일=([^,]+)")
+        with get_session() as session:
+            rows = session.query(Strategy).filter(Strategy.source == "nightly_tuning_leaderboard").all()
+            saved = []
+            for s in rows:
+                m = pattern.search(s.description or "")
+                if not m:
+                    continue
+                saved.append(
+                    {
+                        "id": s.id,
+                        "name": s.name,
+                        "regime": m.group(1).strip(),
+                        "sector": m.group(2).strip(),
+                        "style": m.group(3).strip(),
+                    }
+                )
+            return saved
+
+    st.divider()
+    st.subheader("📋 저장 현황판 (국면 x 섹터)")
+    st.caption(
+        "지금까지 전략 라이브러리에 저장한 야간튜닝 전략을 학습국면 x 섹터 매트릭스로 보여줍니다. "
+        "'—'는 아직 저장하지 않은 조합, ✅ 옆은 그 조합에서 저장한 스타일(경기민감주 등 6종 분류 — "
+        "보유기간 구분이 아니라 파라미터 탐색 방향을 다르게 준 축입니다, SPEC 4절)입니다."
+    )
+    saved_nightly_strategies = _load_saved_nightly_strategies()
+    matrix_regimes = sorted({r.get("trained_regime") for r in deduped if r.get("trained_regime")})
+    matrix_sectors = sorted({r.get("sector") for r in deduped if r.get("sector")})
+    if not matrix_regimes or not matrix_sectors:
+        st.info("현황판을 그릴 만큼 국면/섹터 정보가 담긴 결과가 아직 없습니다.")
+    else:
+        matrix_rows = []
+        for regime in matrix_regimes:
+            row = {"국면": regime}
+            for sector in matrix_sectors:
+                cell_saved = [s for s in saved_nightly_strategies if s["regime"] == regime and s["sector"] == sector]
+                if cell_saved:
+                    styles = sorted({s["style"] for s in cell_saved})
+                    row[sector] = f"✅ {'/'.join(styles)}"
+                else:
+                    row[sector] = "—"
+            matrix_rows.append(row)
+        st.dataframe(pd.DataFrame(matrix_rows).set_index("국면"), use_container_width=True)
+        st.caption(
+            f"저장된 야간튜닝 전략 총 {len(saved_nightly_strategies)}건 "
+            f"(전체 {len(matrix_regimes) * len(matrix_sectors)}개 조합 중 "
+            f"{len({(s['regime'], s['sector']) for s in saved_nightly_strategies})}개 조합에서 저장됨). "
+            "'전략 관리' 탭에서도 확인할 수 있습니다."
+        )
+
+    st.divider()
+    st.subheader("🔎 국면 x 섹터로 좁혀보기")
+    st.caption(
+        "약세장/강세장/횡보장(학습국면)과 섹터를 조합해 필터링한 뒤, 그 조합에서 가장 좋은 결과를 골라 "
+        "아래 '상세 보기'에서 전략 라이브러리에 저장할 수 있습니다. **'스타일'**은 종목 특성에 따라 "
+        "파라미터 탐색 방향을 다르게 준 6종 분류(경기민감주/성장주/가치주/주도주/경기방어주/퀄리티 "
+        "컴파운더 — SPEC 4절)로, 스윙/장기와 느슨하게만 상관될 뿐 그 자체가 보유기간 구분은 아닙니다. "
+        "실제로 몇 거래일 들고 갔는지로 스윙/장기를 나누려면 **'보유기간 유형'** 필터를 쓰세요(완료된 "
+        "매매의 실측 평균 보유일수 기준, SPEC 15절)."
+    )
+    regime_options = ["전체"] + sorted({r.get("trained_regime") for r in deduped if r.get("trained_regime")})
+    sector_options = ["전체"] + sorted({r.get("sector") for r in deduped if r.get("sector")})
+    style_options = ["전체"] + sorted({r.get("style_type") for r in deduped if r.get("style_type")})
+    duration_options = ["전체"] + sorted({r["_duration_type"] for r in deduped})
+    fcol1, fcol2, fcol3, fcol4 = st.columns(4)
+    sel_regime = fcol1.selectbox("학습국면(약세장/강세장/횡보장)", regime_options)
+    sel_sector = fcol2.selectbox("섹터", sector_options)
+    sel_style = fcol3.selectbox(
+        "스타일(6종 분류 — SPEC 4절, 보유기간과 별개)", style_options,
+        help=(
+            "**이건 스윙/장기 구분이 아닙니다.** 종목이 어떤 성격인지(모멘텀 강한 주도주인지, "
+            "안정적인 방어주인지 등)를 6가지로 판별한 태그일 뿐입니다 — 이익성장률/PER/PBR/섹터/"
+            "가격추세 같은 종목 데이터로 계산됩니다(core.strategy_tuning.compute_style_scores).\n\n"
+            "다만 튜닝 엔진이 이 태그에 따라 '이평 기간 등을 원본의 몇 배 범위에서 탐색할지'를 다르게 "
+            "주기는 합니다 — 예: 주도주는 원본의 0.3~0.8배(짧게), 퀄리티 컴파운더는 1.0~2.5배(길게). "
+            "이 배수가 회전율에 간접적으로 영향을 주기 때문에 '느슨하게만' 스윙/장기와 관련이 있는 "
+            "겁니다. 하지만 실제로 몇 거래일 들고 갔는지는 탐색 결과에 따라 달라질 수 있어(예: '주도주'로 "
+            "태깅돼도 우연히 긴 이평 조합이 채택되면 오래 보유), 이 태그만으로 보유기간을 확정할 수 "
+            "없습니다. → 정확한 보유기간 구분은 오른쪽 '보유기간 유형' 필터를 쓰세요."
+        ),
+    )
+    sel_duration = fcol4.selectbox(
+        "보유기간 유형(실측 평균보유일수 기준)", duration_options,
+        help=(
+            "**이게 진짜 스윙/장기 구분입니다.** 왼쪽 '스타일'과 달리 탐색 편향이 아니라, 실제로 "
+            "백테스트에서 체결된 매매들의 진입~청산 평균 보유일수(avg_holding_days)를 직접 잰 값입니다"
+            "(SPEC 15절). 126거래일(≈6개월) 이하면 🏄 스윙형, 초과면 🐢 장기형으로 분류합니다. "
+            "avg_holding_days 지표 추가 이전에 저장된 구버전 결과는 이 값이 없어 'N/A'로 표시됩니다."
+        ),
+    )
+
+    filtered = [
+        r
+        for r in deduped
+        if (sel_regime == "전체" or r.get("trained_regime") == sel_regime)
+        and (sel_sector == "전체" or r.get("sector") == sel_sector)
+        and (sel_style == "전체" or r.get("style_type") == sel_style)
+        and (sel_duration == "전체" or r["_duration_type"] == sel_duration)
+    ]
+    if not filtered:
+        st.warning("이 조합에 해당하는 결과가 아직 없습니다. 필터를 넓혀보세요.")
+        return
+
+    top_results = filtered[:10]
+
+    st.subheader(
+        "🏆 상위 10개 (test 구간 초과수익 기준)",
+        help=(
+            "**방법론**: 각 종목마다 가격 이력을 시계열 순서 그대로 75% train / 25% test로 나눠, "
+            "train 구간에서만 파라미터를 그리드서치(샤프 비율 최대화 + 자기모순/거래횟수 필터)로 "
+            "탐색합니다. 채택된 파라미터의 성과는 결과에 전혀 관여하지 않은 test(out-of-sample) 구간으로 "
+            "정직하게 재검증하고, '초과수익'(전략 CAGR − S&P500 매수보유 CAGR, test 구간 기준)이 높은 "
+            "순으로 순위를 매깁니다."
+        ),
+    )
+    leaderboard_df = pd.DataFrame(
+        [
+            {
+                "순위": i + 1,
+                "티커": r["ticker"],
+                "섹터": r.get("sector") or "N/A",
+                "스타일": r.get("style_type") or "N/A",
+                "보유기간 유형": r["_duration_type"],
+                "학습국면": r.get("trained_regime") or "N/A",
+                "초과수익(%p)": r["excess_return"],
+                "탐색 강도": r["run_intensity"],
+                "백본변경": "🧬 예" if r.get("backbone_changed") else "-",
+                "실행일시": r["run_created_at"].strftime("%Y-%m-%d %H:%M") if r.get("run_created_at") else "N/A",
+                "출처": "🖥️ 로컬" if r.get("_source") == "local_scheduler" else "☁️ GitHub Actions",
+            }
+            for i, r in enumerate(top_results)
+        ]
+    )
+    st.dataframe(leaderboard_df, use_container_width=True, hide_index=True)
+
+    st.divider()
+    st.subheader("🔍 상세 보기")
+    ticker_options = [
+        f"{i + 1}위 {r['ticker']} ({r.get('trained_regime') or 'N/A'} 학습, 초과수익 {r['excess_return']:+.2f}%p)"
+        for i, r in enumerate(top_results)
+    ]
+    selected_idx = st.selectbox("종목 선택", range(len(top_results)), format_func=lambda i: ticker_options[i])
+    selected = top_results[selected_idx]
+
+    save_key = f"nightly_saved_{selected.get('_source')}_{selected.get('run_id')}_{selected['ticker']}"
+    if st.button("📚 이 결과를 전략 라이브러리에 저장", key=f"nightly_save_btn_{selected_idx}"):
+        tuned_config_to_save = selected.get("tuned_config")
+        if not tuned_config_to_save:
+            st.error("이 결과에는 저장할 튜닝 전략 설정이 없습니다.")
+        else:
+            with st.spinner("전략 설명 생성 중..."):
+                explanation = explain_strategy(tuned_config_to_save)
+            with get_session() as session:
+                nightly_saved_strategy = Strategy(
+                    name=(
+                        f"{selected['ticker']} 야간튜닝 ({selected.get('trained_regime') or 'N/A'}·"
+                        f"{selected.get('sector') or 'N/A'}·{selected.get('style_type') or 'N/A'})"
+                    ),
+                    indicator_config=json.dumps(tuned_config_to_save, ensure_ascii=False),
+                    source="nightly_tuning_leaderboard",
+                    description=(
+                        f"{explanation}\n\n[야간 미세튜닝 메타데이터] 학습국면={selected.get('trained_regime')}, "
+                        f"섹터={selected.get('sector')}, 스타일={selected.get('style_type')}, "
+                        f"초과수익={selected.get('excess_return')}%p, 탐색강도={selected.get('run_intensity')}, "
+                        f"출처={'로컬' if selected.get('_source') == 'local_scheduler' else 'GitHub Actions'}."
+                    ),
+                )
+                session.add(nightly_saved_strategy)
+                session.flush()
+                saved_id = nightly_saved_strategy.id
+            st.session_state[save_key] = saved_id
+            st.success(f"'{selected['ticker']}' ({selected.get('trained_regime')}·{selected.get('sector')}) 전략을 라이브러리에 저장했습니다 (id={saved_id}).")
+
+    if st.session_state.get(save_key):
+        st.caption(f"✅ 이미 저장됨 (전략 id={st.session_state[save_key]}). 다시 눌러도 새 항목으로 추가 저장됩니다.")
+
+    test_comparison = selected.get("test_comparison") or {}
+    if test_comparison:
+        metrics_rows = []
+        for label, key in [
+            ("튜닝 전략", "strategy"),
+            (f"{selected['ticker']} 매수보유", "buy_and_hold_ticker"),
+            ("S&P500 매수보유", "buy_and_hold_benchmark"),
+        ]:
+            m = test_comparison.get(key) or {}
+            metrics_rows.append(
+                {
+                    "구분": label,
+                    "누적수익률(%)": m.get("cumulative_return"),
+                    "CAGR(%)": m.get("cagr"),
+                    "MDD(%)": m.get("mdd"),
+                    "샤프지수": m.get("sharpe"),
+                    "승률(%)": m.get("win_rate"),
+                    "매매횟수": m.get("trade_count"),
+                }
+            )
+        st.dataframe(pd.DataFrame(metrics_rows), use_container_width=True, hide_index=True)
+    else:
+        st.info("이 결과에는 test 구간 비교 지표가 저장되어 있지 않습니다.")
+
+    st.subheader("📉 진입/청산 시점 차트")
+    st.caption(
+        "위 표의 test 구간(out-of-sample)과 같은 기간에 채택된 튜닝 전략을 다시 적용해, 캔들차트 위에 "
+        "실제 진입/청산 지점을 삼각형 마커로 표시합니다 (전략 스튜디오의 차트 렌더링을 그대로 재사용)."
+    )
+    chart_state_key = f"nightly_chart_visible_{selected_idx}"
+    if st.button("📈 이 종목 차트 보기", key=f"nightly_chart_btn_{selected_idx}"):
+        st.session_state[chart_state_key] = True
+
+    if st.session_state.get(chart_state_key):
+        tuned_config_for_chart = selected.get("tuned_config")
+        run_start, run_end, train_ratio = (
+            selected.get("run_start_date"),
+            selected.get("run_end_date"),
+            selected.get("train_ratio"),
+        )
+        if not tuned_config_for_chart:
+            st.info("이 결과에는 튜닝된 전략 설정이 저장되어 있지 않아 차트를 그릴 수 없습니다.")
+        elif not (run_start and run_end and train_ratio):
+            st.info("이 결과에는 실행 시점의 기간 정보가 저장되어 있지 않아 차트를 그릴 수 없습니다.")
+        else:
+            _, _, test_start, test_end = strategy_tuning.train_test_split_dates(run_start, run_end, train_ratio)
+            with st.spinner(f"{selected['ticker']} test 구간({test_start} ~ {test_end}) 데이터 조회 중..."):
+                chart_run = run_backtest(
+                    selected["ticker"], tuned_config_for_chart, test_start, test_end, label="튜닝 전략"
+                )
+            if chart_run.df.empty:
+                st.warning(f"{selected['ticker']} 가격 데이터를 가져오지 못했습니다.")
+            else:
+                if is_staged_config(tuned_config_for_chart):
+                    fig = render_staged_price_chart(chart_run.df, tuned_config_for_chart, chart_run.stage_events)
+                    event_count = len(chart_run.stage_events)
+                else:
+                    fig = render_price_chart(
+                        chart_run.df, tuned_config_for_chart.get("conditions", []), chart_run.trades
+                    )
+                    event_count = len(chart_run.trades)
+                st.plotly_chart(fig, use_container_width=True, config=TRADINGVIEW_CHART_CONFIG)
+                st.caption(
+                    f"test 구간 {test_start} ~ {test_end} 동안 진입/청산 이벤트 {event_count}건 "
+                    "(마커에 마우스를 올리면 근거를 확인할 수 있습니다)."
+                )
+
+    st.subheader("🔧 실제로 바뀐 파라미터")
+    nightly_base_config = selected.get("base_config") or {}
+    nightly_tuned_config = selected.get("tuned_config") or {}
+    if not nightly_base_config or not nightly_tuned_config:
+        st.info("이 결과에는 원본/튜닝 전략 설정이 저장되어 있지 않아 비교할 수 없습니다.")
+    else:
+        diff = strategy_tuning.describe_tuning_diff(nightly_base_config, nightly_tuned_config)
+        st.markdown(strategy_tuning.summarize_tuning_diff(diff, backbone_changed=selected.get("backbone_changed", False)))
+
+        if diff["changes"] and diff["schema"] == "json":
+            diff_df = pd.DataFrame(
+                [
+                    {
+                        "위치": c["path"],
+                        "지표": c["indicator"] or "-",
+                        "이전": c["before"],
+                        "이후": c["after"],
+                    }
+                    for c in diff["changes"]
+                ]
+            )
+            st.dataframe(diff_df, use_container_width=True, hide_index=True)
+
+    with st.expander("⚙️ 원본/튜닝 전략 JSON 직접 보기"):
+        col_base, col_tuned = st.columns(2)
+        with col_base:
+            st.caption("원본(백본)")
+            st.json(nightly_base_config)
+        with col_tuned:
+            st.caption("채택된 튜닝 결과")
+            st.json(nightly_tuned_config)
+
+
+with tab_nightly:
+    _render_nightly_leaderboard_tab()
+
+
+# ============================================================================
+# 탭: 전략 관리 (구 9_전략_관리.py)
+# ============================================================================
+def _render_strategy_management_tab() -> None:
+    type_labels = {
+        "staged": "🧬 1:2:6 단계별",
+        "regime": "📐 레짐(AND/OR)",
+        "expression": "✍️ 직접 수식",
+        "combined": "🧩 전략 합성",
+    }
+
+    def _pretty_json(raw: str) -> str:
+        try:
+            return json.dumps(json.loads(raw), indent=2, ensure_ascii=False)
+        except json.JSONDecodeError:
+            return raw
+
+    strategies = list_strategies(include_archived=True)
+
+    if not strategies:
+        st.info("아직 저장된 전략이 없습니다. '📊 지표 조합 백테스트' 탭에서 전략을 만들고 저장해보세요.")
+        return
+
+    st.markdown("### 전략 목록")
+    st.caption(
+        "🗄️ 보관됨 표시가 붙은 전략은 백테스트/미세튜닝/전략 합성/관심종목 연결 등 '활성 선택' 목록에는 "
+        "더 이상 나타나지 않지만, 삭제된 건 아니라 여기서 언제든 다시 복원할 수 있습니다."
+    )
+    overview_df = pd.DataFrame(
+        {
+            "id": pd.array([s["id"] for s in strategies], dtype="int64"),
+            "이름": pd.array([s["name"] for s in strategies], dtype="string"),
+            "유형": pd.array([type_labels[s["strategy_type"]] for s in strategies], dtype="string"),
+            "상태": pd.array(["🗄️ 보관됨" if s["is_archived"] else "✅ 활성" for s in strategies], dtype="string"),
+            "출처": pd.array([s["source"] or "-" for s in strategies], dtype="string"),
+            "관심종목 연결": pd.array([s["watchlist_count"] for s in strategies], dtype="int64"),
+            "백테스트 결과": pd.array([s["backtest_result_count"] for s in strategies], dtype="int64"),
+            "생성일": pd.to_datetime([s["created_at"] for s in strategies]),
+        }
+    )
+    st.dataframe(overview_df, use_container_width=True, hide_index=True)
+
+    st.divider()
+    st.markdown("### 전략 수정 / 삭제")
+
+    label_by_id = {
+        s["id"]: f"{'🗄️ ' if s['is_archived'] else ''}{s['name']} (#{s['id']}, {type_labels[s['strategy_type']]})"
+        for s in strategies
+    }
+    picked_id = st.selectbox("전략 선택", options=[s["id"] for s in strategies], format_func=lambda i: label_by_id[i])
+
+    manage_strategy = get_strategy(picked_id)
+    if manage_strategy is None:
+        st.warning("선택한 전략을 찾을 수 없습니다 (이미 삭제되었을 수 있음).")
+        return
+
+    st.caption(
+        f"관련 관심종목 {manage_strategy['watchlist_count']}개, 저장된 백테스트 결과 "
+        f"{manage_strategy['backtest_result_count']}건이 이 전략에 연결되어 있습니다."
+    )
+
+    regen_key = f"regen_description_{manage_strategy['id']}"
+    if st.button("🤖 AI로 설명 재생성", key=f"regen_btn_{manage_strategy['id']}"):
+        with st.spinner("전략 설명 생성 중..."):
+            st.session_state[regen_key] = explain_strategy(json.loads(manage_strategy["indicator_config"]))
+        st.rerun()
+    st.caption("전략을 처음 저장할 때 자동으로 만들어진 설명입니다. 예전에 저장한 전략이라 설명이 부실하면 위 버튼으로 다시 생성할 수 있습니다.")
+
+    with st.form(f"edit_strategy_{manage_strategy['id']}"):
+        name_val = st.text_input("이름", value=manage_strategy["name"])
+        description_val = st.text_area(
+            "설명", value=st.session_state.pop(regen_key, None) or manage_strategy["description"], height=120
+        )
+        config_val = st.text_area(
+            "조건 (indicator_config, JSON) — 직접 수정 가능",
+            value=_pretty_json(manage_strategy["indicator_config"]),
+            height=340,
+        )
+        save_clicked = st.form_submit_button("💾 저장", type="primary")
+
+    if save_clicked:
+        try:
+            update_strategy(manage_strategy["id"], name=name_val, description=description_val, indicator_config=config_val)
+            st.toast(f"'{name_val}' 저장 완료.", icon="✅")
+            st.rerun()
+        except ValueError as e:
+            st.error(f"저장 실패: {e}")
+
+    st.divider()
+    st.markdown("#### 🗄️ 보관 (삭제 아님, 활성 선택 목록에서만 제외)")
+    if manage_strategy["is_archived"]:
+        st.caption("이 전략은 현재 보관됨 상태입니다. 복원하면 다시 백테스트/미세튜닝/전략 합성/관심종목 연결 목록에 나타납니다.")
+        if st.button("♻️ 이 전략 복원", key=f"unarchive_{manage_strategy['id']}"):
+            unarchive_strategy(manage_strategy["id"])
+            st.toast(f"'{manage_strategy['name']}' 복원 완료.", icon="♻️")
+            st.rerun()
+    else:
+        st.caption("보관하면 삭제되지 않고 그대로 남지만, 백테스트/미세튜닝/전략 합성/관심종목 연결 같은 '활성 선택' 목록에서만 숨겨집니다. 언제든 복원할 수 있습니다.")
+        if st.button("🗄️ 이 전략 보관", key=f"archive_{manage_strategy['id']}"):
+            archive_strategy(manage_strategy["id"])
+            st.toast(f"'{manage_strategy['name']}' 보관 완료.", icon="🗄️")
+            st.rerun()
+
+    st.divider()
+    st.markdown("#### ⚠️ 위험 구역")
+
+    pending_key = "confirm_delete_strategy_id"
+    if st.session_state.get(pending_key) == manage_strategy["id"]:
+        st.warning(
+            f"'{manage_strategy['name']}' 전략을 정말 삭제할까요? 저장된 백테스트 결과 "
+            f"{manage_strategy['backtest_result_count']}건은 함께 삭제되고, 연결된 관심종목 "
+            f"{manage_strategy['watchlist_count']}개는 전략 연결만 해제됩니다(관심종목 자체는 남음). "
+            "되돌릴 수 없습니다."
+        )
+        dc1, dc2 = st.columns(2)
+        if dc1.button("🗑️ 삭제 확정", type="primary", use_container_width=True):
+            delete_strategy(manage_strategy["id"])
+            st.session_state[pending_key] = None
+            st.toast(f"'{manage_strategy['name']}' 삭제 완료.", icon="🗑️")
+            st.rerun()
+        if dc2.button("취소", use_container_width=True):
+            st.session_state[pending_key] = None
+            st.rerun()
+    else:
+        if st.button("🗑️ 이 전략 삭제"):
+            st.session_state[pending_key] = manage_strategy["id"]
+            st.rerun()
+
+
+with tab_manage:
+    _render_strategy_management_tab()

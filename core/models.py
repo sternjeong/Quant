@@ -50,6 +50,7 @@ class Strategy(Base):
     indicator_config = Column(Text, nullable=False)  # 지표 조합 조건 (JSON 문자열)
     source = Column(String(100), nullable=True)  # 예: "youtube_script", "manual", "candidate"
     description = Column(Text, nullable=True)  # 원문 스크립트 / AI 해석 결과 설명
+    is_archived = Column(Boolean, default=False, nullable=False)  # 구버전 보관(삭제 아님) - 활성 선택 목록에서만 숨김
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
@@ -251,6 +252,7 @@ class StrategyTuningRun(Base):
     intensity = Column(String(20), nullable=False, default="보통")  # "빠름" | "보통" | "정밀"
     start_date = Column(Date, nullable=False)
     end_date = Column(Date, nullable=False)
+    max_holding_days = Column(Integer, nullable=True)  # SPEC 15절 스윙 트레이딩 보유기간 상한(거래일). None=제약 없음
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     completed_at = Column(DateTime, nullable=True)
 
@@ -365,3 +367,23 @@ class SectorStrengthSnapshot(Base):
 
     def __repr__(self) -> str:
         return f"<SectorStrengthSnapshot id={self.id} computed_at={self.computed_at}>"
+
+
+class KostolanyCycleSnapshot(Base):
+    """코스톨라니 달걀 이론 6국면(A1~B3) 판정 결과 스냅샷 (부가 기능, 2026-07-21).
+
+    core.kostolany_cycle.get_market_cycle_phase()/compute_theme_cycle_phases()도 MarketRegimeSnapshot/
+    SectorStrengthSnapshot과 같은 이유(테마 프록시 ETF 다수 조회)로 매일 자정 스케줄러가 미리 계산해
+    저장하고, 페이지는 최신 스냅샷을 읽기만 한다. 동일한 이력 누적 원칙(덮어쓰지 않고 매번 새 행).
+    """
+
+    __tablename__ = "kostolany_cycle_snapshots"
+
+    id = Column(Integer, primary_key=True)
+    market_phase = Column(String(10), nullable=True)  # "A1"~"B3", 데이터 부족 시 None
+    market_detail = Column(Text, nullable=True)  # get_market_cycle_phase() 반환값 전체 (JSON)
+    theme_phases = Column(Text, nullable=False)  # compute_theme_cycle_phases() DataFrame (JSON records)
+    computed_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+
+    def __repr__(self) -> str:
+        return f"<KostolanyCycleSnapshot id={self.id} market_phase={self.market_phase!r} computed_at={self.computed_at}>"

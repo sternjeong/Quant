@@ -54,7 +54,7 @@ NO_STRATEGY_LABEL = "(전략 미지정)"
 
 def _load_strategy_options() -> tuple[dict[int, str], list[str], dict[str, int | None]]:
     with get_session() as session:
-        strategies = session.query(Strategy).order_by(Strategy.name).all()
+        strategies = session.query(Strategy).filter(Strategy.is_archived.is_(False)).order_by(Strategy.name).all()
         strategy_label_by_id = {s.id: f"{s.name} (#{s.id})" for s in strategies}
     options = [NO_STRATEGY_LABEL] + list(strategy_label_by_id.values())
     label_to_id: dict[str, int | None] = {NO_STRATEGY_LABEL: None}

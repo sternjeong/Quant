@@ -59,6 +59,10 @@ python scheduler/run_scheduler.py
 macOS/Linux에서 재부팅 후에도 계속 실행되게 하려면 `launchd`/`systemd`/`cron` 등 OS 스케줄러나
 `tmux`/`screen`/`nohup` 으로 상시 구동 프로세스로 등록해두는 것을 권장한다.
 
+Codespace/로컬 PC를 꺼도 앱과 스케줄러가 상시로 돌아가야 한다면(예: Oracle Cloud 무료 VM에
+배포) [`deploy/DEPLOYMENT_ORACLE.md`](./deploy/DEPLOYMENT_ORACLE.md) 참고 — systemd 서비스 +
+자동 부트스트랩 스크립트 제공.
+
 ### 3. 테스트
 
 ```bash

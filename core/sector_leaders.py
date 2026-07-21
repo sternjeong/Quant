@@ -73,6 +73,13 @@ NICHE_THEME_CANDIDATES: dict[str, list[str]] = {
     "사이버보안": ["CRWD", "PANW", "FTNT", "ZS", "S", "OKTA", "QLYS"],
     "클라우드": ["CRM", "NOW", "SNOW", "DDOG", "NET", "MDB"],
     "로보틱스": ["ISRG", "ROK", "TER", "PATH", "SYM"],
+    # 2026-07-17 딥서치: NVIDIA가 2026년 실리콘 포토닉스 전략 투자($2B씩)를 단행한 Lumentum/Coherent,
+    # 수주잔고 $7B인 Ciena, 2026년 상반기 주가 상승률 상위(S&P500 top 10 gainer)에 오른 Applied
+    # Optoelectronics/Viavi/Corning을 후보로 구성.
+    "광통신": ["LITE", "COHR", "CIEN", "AAOI", "VIAV", "GLW", "FN"],
+    # AI 데이터센터 전력 수요 급증으로 하이퍼스케일러들이 직접 전력구매계약(PPA)을 맺는 원전/SMR
+    # 사업자(Oklo-Meta 1.2GW 계약, Vistra-Meta 2,600MW PPA 등)와 데이터센터向 전력 공급 유틸리티.
+    "원자력": ["OKLO", "SMR", "CEG", "VST", "TLN", "CCJ"],
 }
 
 # 테마(THEME_UNIVERSE 키) -> core.macro_cycle.SECTOR_ROTATION의 국면별 아웃퍼폼 섹터명 매핑.
@@ -85,6 +92,7 @@ THEME_TO_CYCLE_SECTOR: dict[str, str] = {
     "유틸리티": "유틸리티", "부동산": "부동산",
     "반도체": "기술", "메모리/DRAM": "기술", "냉각": "기술", "사이버보안": "기술", "클라우드": "기술",
     "우주": "산업재", "방산": "산업재", "로보틱스": "산업재",
+    "광통신": "기술", "원자력": "유틸리티",
 }
 
 

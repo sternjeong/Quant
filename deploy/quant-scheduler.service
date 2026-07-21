@@ -1,0 +1,16 @@
+[Unit]
+Description=Quant background scheduler (watchlist scan / weekly report / market snapshot / nightly tuning)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=quant
+WorkingDirectory=/opt/quant
+EnvironmentFile=/opt/quant/.env
+ExecStart=/opt/quant/.venv/bin/python scheduler/run_scheduler.py
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

@@ -8,7 +8,7 @@ core.strategy_tuning 의 튜닝 파이프라인과는 얽히지 않는다 (impor
 현재 시점 유니버스에서 모멘텀/성장/가치/퀄리티 4개 팩터의 percentile 점수를 합성해 상위 종목을
 뽑아내는 독립적인 스크리닝 도구다.
 
-core/ 관례: streamlit 을 import 하지 않는다 (UI는 app/pages/14_종목_발굴.py 에서 담당).
+core/ 관례: streamlit 을 import 하지 않는다 (UI는 app/pages/5_종목_스크리닝.py 에서 담당).
 """
 
 from __future__ import annotations

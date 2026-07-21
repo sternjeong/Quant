@@ -1,0 +1,16 @@
+[Unit]
+Description=Quant Streamlit dashboard
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=quant
+WorkingDirectory=/opt/quant
+EnvironmentFile=/opt/quant/.env
+ExecStart=/opt/quant/.venv/bin/streamlit run app/Home.py --server.port=8501 --server.address=0.0.0.0 --server.headless=true
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

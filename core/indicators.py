@@ -14,7 +14,7 @@ from typing import Optional
 
 import pandas as pd
 from ta.momentum import RSIIndicator
-from ta.trend import MACD
+from ta.trend import ADXIndicator, MACD
 from ta.volatility import BollingerBands
 from ta.volume import MFIIndicator
 
@@ -113,6 +113,18 @@ def compute_mfi(df: pd.DataFrame, period: int = 14) -> pd.Series:
     return MFIIndicator(
         high=df["High"], low=df["Low"], close=df["Close"], volume=df["Volume"], window=period
     ).money_flow_index()
+
+
+def compute_adx(df: pd.DataFrame, period: int = 14) -> pd.Series:
+    """ADX(Average Directional Index) — 추세의 "방향"이 아니라 "세기"만 측정하는 지표.
+
+    업계에서 널리 쓰이는 경험칙(예: TradingView/CrossTrade 등 다수 해설 공통 견해)으로
+    ADX<20은 추세가 약하거나 없는 횡보(range-bound) 국면, 20~25는 추세 형성 여부가 애매한
+    구간, 25 이상은 뚜렷한 추세로 본다. core.market_regime.classify_daily_regime이 이 값을
+    "강세장도 약세장도 아닌 진짜 횡보장"을 가리는 기준으로 쓴다(단순히 조정폭이 애매한 날을
+    다 묶는 게 아니라, 실제로 방향성 자체가 없는 날만 횡보로 분류하기 위함).
+    """
+    return ADXIndicator(high=df["High"], low=df["Low"], close=df["Close"], window=period).adx()
 
 
 def compute_bbw_squeeze_release(
