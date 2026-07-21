@@ -13,7 +13,7 @@ on:
       budget_minutes:
         description: "이번 실행에서 튜닝에 쓸 최대 시간(분)"
         required: false
-        default: "300"
+        default: "270"
 
 permissions:
   contents: write
@@ -40,14 +40,19 @@ jobs:
         env:
           GEMINI_API_KEYS: ${{ secrets.GEMINI_API_KEYS }}
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
-          NIGHTLY_TUNING_BUDGET_MINUTES: ${{ github.event.inputs.budget_minutes || '300' }}
+          NIGHTLY_TUNING_BUDGET_MINUTES: ${{ github.event.inputs.budget_minutes || '270' }}
         run: python scripts/nightly_tuning_ci.py
 
-      - name: Commit updated leaderboard + macro cache
+      # scripts/nightly_tuning_ci.py가 이제 반복마다 직접 커밋+푸시한다(2026-07-21, SPEC 16절 —
+      # 잡이 하드 타임아웃으로 중간에 죽어도 그 직전 반복까지는 이미 원격에 안전하게 남도록). 이
+      # 스텝은 혹시 스크립트 실행 중 커밋되지 못하고 남은 변경분이 있을 때만 잡아내는 폴백이라
+      # 대부분의 실행에서는 커밋할 게 없어 조용히 스킵된다.
+      - name: Commit any remaining leaderboard + macro cache changes (fallback)
+        if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/nightly_tuning_leaderboard.json data/cache/fred_*.csv
-          git diff --cached --quiet || git commit -m "chore: nightly tuning leaderboard + macro cache update"
+          git diff --cached --quiet || git commit -m "chore: nightly tuning leaderboard + macro cache update (fallback)"
           git pull --rebase origin "${GITHUB_REF_NAME}"
           git push origin "HEAD:${GITHUB_REF_NAME}"

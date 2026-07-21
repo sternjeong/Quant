@@ -2362,3 +2362,22 @@ good/neutral/critical 3톤" 원칙 적용).
 유지. `STRATEGY_TUNING_ENGINE_SPEC.md`에 15.8절로 기록. 전체 pytest 566개 통과(로직 변경 없이
 호출부 인자만 추가라 신규 유닛테스트는 기존 `test_run_and_save_tuning_threads_and_persists_max_
 holding_days`가 이미 커버).
+
+### 작업 11 (2026-07-21, 같은 날 후속 요청): 야간 CI 배치가 사흘 연속 결과를 통째로 날린 버그 수정
+
+사용자가 "🌙 리더보드 4.2일 전" 배지를 보고 이유를 물어 조사 → `nightly_tuning.yml`이
+2026-07-17~19 사흘 연속 GitHub Actions 하드 타임아웃(350분)으로 `cancelled` 종료된 것을 확인.
+`scripts/nightly_tuning_ci.py`가 모든 반복이 끝난 뒤 딱 한 번만 리더보드를 커밋하는 구조라, 강제
+종료 시점엔 커밋을 한 번도 못 해 그날 밤 계산 전체가 유실됐던 게 원인(리더보드가 07-17 이후
+3.65일간 정체). 사용자가 "오라클 VM 없이 GitHub Actions만으로 해결해달라"고 명시 요청.
+
+- `scripts/nightly_tuning_ci.py`를 반복마다 즉시 `git commit`+`git push`하도록 재작성(`_run_git`/
+  `_commit_and_push`/`_save_and_push_leaderboard` 신규). 푸시 거절 시 fetch+rebase 1회 재시도,
+  실패해도 다음 반복에서 계속 시도. 이제 잡이 언제 죽든 유실 구간이 "하룻밤 전체"에서 "죽는 순간
+  진행 중이던 반복 1개"로 축소됨.
+- `.github/workflows/nightly_tuning.yml`: 예산 300분→270분(타임리밋 350분 대비 여유 80분으로
+  확대), 기존 "마지막 커밋" 스텝은 폴백으로 유지하되 `if: always()` 추가.
+- 검증: `tests/test_nightly_tuning_ci.py` 신규 9개(merge/커밋/재시도/실패 케이스 전부 subprocess
+  monkeypatch로 커버) + 전체 pytest 575개 통과. STRATEGY_TUNING_ENGINE_SPEC.md 16절에 기록.
+- 실제 야간 실행에서 문제없이 도는지는 다음 스케줄(오늘 밤 00:05 KST)에서 확인 필요 — 다음 세션
+  시작 시 `gh run list --workflow=nightly_tuning.yml --limit 3`으로 결과 확인할 것.
