@@ -26,6 +26,28 @@ DB로 옮길 필요가 없다.
 6. SSH 키: 로컬 공개키(`~/.ssh/id_ed25519.pub`) 업로드.
 7. **Create** → 프로비저닝 완료 후 Public IP 확인.
 
+### 1-1. (자주 발생) "Out of host capacity" 에러 시 자동 재시도
+
+A1.Flex는 인기 리전에서 수요가 많아 콘솔에서 바로 생성하면 `Out of host capacity` 에러가 흔하다.
+`deploy/oracle_capacity_retry.sh`가 OCI CLI로 인스턴스 생성을 반복 시도한다(기본 60초 간격, capacity
+에러가 아닌 다른 결과가 나오면 멈춤).
+
+```bash
+# 로컬 머신(또는 어디서든 계속 켜둘 수 있는 환경)에서
+brew install oci-cli   # 또는 pip install oci-cli
+oci setup config       # 콘솔 Profile > API Keys 에서 발급한 키로 인증 설정
+
+export COMPARTMENT_ID=ocid1.compartment...        # Identity > Compartments
+export IMAGE_ID=ocid1.image...                     # Compute > Images (Ubuntu 24.04 aarch64)
+export SUBNET_ID=ocid1.subnet...                    # Networking > VCN > Subnets
+export AVAILABILITY_DOMAINS="AD-1,AD-2,AD-3"        # 콤마로 여러 AD 순회 (Create Instance 화면에 표시됨)
+# SSH_PUBLIC_KEY_FILE 기본값은 ~/.ssh/id_ed25519.pub, 필요시 덮어쓰기
+
+bash deploy/oracle_capacity_retry.sh
+```
+
+성공하면 인스턴스 OCID/Public IP가 출력된다. 이후 단계는 아래 2번부터 그대로 진행.
+
 ## 2. 네트워크(방화벽) 설정 — 콘솔 쪽
 
 OS 방화벽(`setup_vm.sh`가 ufw로 처리)과는 별개로, Oracle 콘솔의 **VCN Security List**(또는 VM에

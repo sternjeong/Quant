@@ -1,0 +1,85 @@
+name: Oracle capacity retry
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch: {}
+
+concurrency:
+  group: oracle-capacity-retry
+  cancel-in-progress: false
+
+jobs:
+  try-launch:
+    runs-on: ubuntu-latest
+    if: ${{ vars.ORACLE_VM_READY != 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install OCI CLI
+        run: pip install oci-cli
+
+      - name: Configure OCI credentials
+        run: |
+          mkdir -p ~/.oci
+          printf '%s' "${{ secrets.OCI_API_KEY_PEM }}" > ~/.oci/oci_api_key.pem
+          chmod 600 ~/.oci/oci_api_key.pem
+          cat > ~/.oci/config <<EOF
+          [DEFAULT]
+          user=${{ secrets.OCI_USER_OCID }}
+          fingerprint=${{ secrets.OCI_FINGERPRINT }}
+          tenancy=${{ secrets.OCI_TENANCY_OCID }}
+          region=${{ secrets.OCI_REGION }}
+          key_file=~/.oci/oci_api_key.pem
+          EOF
+
+      - name: Single launch attempt
+        id: attempt
+        env:
+          SUPPRESS_LABEL_WARNING: "True"
+          COMPARTMENT_ID: ${{ secrets.OCI_TENANCY_OCID }}
+          IMAGE_ID: ${{ secrets.OCI_IMAGE_ID }}
+          SUBNET_ID: ${{ secrets.OCI_SUBNET_ID }}
+          AVAILABILITY_DOMAINS: ${{ secrets.OCI_AVAILABILITY_DOMAINS }}
+          SSH_PUBLIC_KEY_FILE: ${{ github.workspace }}/deploy/ci_ssh_key.pub
+        run: |
+          printf '%s' "${{ secrets.ORACLE_SSH_PUBLIC_KEY }}" > "$SSH_PUBLIC_KEY_FILE"
+          set +e
+          IFS=',' read -ra AD_LIST <<< "$AVAILABILITY_DOMAINS"
+          for ad in "${AD_LIST[@]}"; do
+            ad_trimmed="$(echo "$ad" | xargs)"
+            echo "시도 — AD=$ad_trimmed"
+            output=$(oci compute instance launch \
+              --compartment-id "$COMPARTMENT_ID" \
+              --availability-domain "$ad_trimmed" \
+              --shape VM.Standard.A1.Flex \
+              --shape-config '{"ocpus": 2, "memoryInGBs": 12}' \
+              --display-name quant-vm \
+              --image-id "$IMAGE_ID" \
+              --subnet-id "$SUBNET_ID" \
+              --ssh-authorized-keys-file "$SSH_PUBLIC_KEY_FILE" \
+              --assign-public-ip true \
+              2>&1)
+            status=$?
+            echo "$output"
+            if [ $status -eq 0 ]; then
+              echo "success=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            if echo "$output" | grep -qi "Out of host capacity"; then
+              continue
+            fi
+            if echo "$output" | grep -qi "TooManyRequests\|status.*429"; then
+              continue
+            fi
+            echo "예상치 못한 에러"
+            exit 1
+          done
+          echo "모든 AD capacity 없음 — 다음 스케줄에 재시도"
+          exit 0
+
+      - name: Mark VM ready
+        if: steps.attempt.outputs.success == 'true'
+        run: gh variable set ORACLE_VM_READY --body true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
