@@ -1,0 +1,225 @@
+{
+  "theme_scores": [
+    {
+      "theme": "메모리/DRAM",
+      "proxies": "DRAM",
+      "strength_factor": 67.1628940152,
+      "return_3m": 67.1628940152,
+      "return_6m": null,
+      "return_12m": null,
+      "trend": "횡보",
+      "trend_change": null,
+      "rs_score": 100.0
+    },
+    {
+      "theme": "반도체",
+      "proxies": "SOXX, SMH",
+      "strength_factor": 62.7896053802,
+      "return_3m": 29.8626828855,
+      "return_6m": 58.0105970522,
+      "return_12m": 113.9620623804,
+      "trend": "하락",
+      "trend_change": -35.5937917649,
+      "rs_score": 95.0
+    },
+    {
+      "theme": "사이버보안",
+      "proxies": "CIBR",
+      "strength_factor": 25.8905688247,
+      "return_3m": 31.4373884507,
+      "return_6m": 27.7936496359,
+      "return_12m": 19.7349007658,
+      "trend": "상승",
+      "trend_change": 5.5588529475,
+      "rs_score": 90.0
+    },
+    {
+      "theme": "기술",
+      "proxies": "XLK",
+      "strength_factor": 25.5188906078,
+      "return_3m": 17.0793184769,
+      "return_6m": 27.6861289385,
+      "return_12m": 38.6594135387,
+      "trend": "하락",
+      "trend_change": -11.3495742751,
+      "rs_score": 85.0
+    },
+    {
+      "theme": "에너지",
+      "proxies": "XLE",
+      "strength_factor": 22.417735384,
+      "return_3m": 5.7723328271,
+      "return_6m": 24.1491662081,
+      "return_12m": 38.9326470735,
+      "trend": "상승",
+      "trend_change": 12.1131350679,
+      "rs_score": 80.0
+    },
+    {
+      "theme": "냉각",
+      "proxies": "DTCR",
+      "strength_factor": 22.0553307321,
+      "return_3m": 3.4945793429,
+      "return_6m": 22.9858426615,
+      "return_12m": 48.6158522911,
+      "trend": "하락",
+      "trend_change": -26.6580633176,
+      "rs_score": 75.0
+    },
+    {
+      "theme": "헬스케어",
+      "proxies": "XLV",
+      "strength_factor": 11.2499536996,
+      "return_3m": 9.7005201185,
+      "return_6m": 3.0083675903,
+      "return_12m": 22.1107646808,
+      "trend": "상승",
+      "trend_change": 4.3050078556,
+      "rs_score": 70.0
+    },
+    {
+      "theme": "산업재",
+      "proxies": "XLI",
+      "strength_factor": 11.2482180722,
+      "return_3m": 4.6313592676,
+      "return_6m": 9.6924149831,
+      "return_12m": 19.0627907358,
+      "trend": "하락",
+      "trend_change": -3.8088467541,
+      "rs_score": 65.0
+    },
+    {
+      "theme": "우주",
+      "proxies": "UFO, ARKX, ROKT",
+      "strength_factor": 7.8928313481,
+      "return_3m": -9.8644089741,
+      "return_6m": -0.8053022915,
+      "return_12m": 40.1430234615,
+      "trend": "하락",
+      "trend_change": -22.5063749139,
+      "rs_score": 60.0
+    },
+    {
+      "theme": "방산",
+      "proxies": "ITA",
+      "strength_factor": 7.5776434656,
+      "return_3m": 4.0969599655,
+      "return_6m": -2.3833921257,
+      "return_12m": 19.3064019813,
+      "trend": "하락",
+      "trend_change": -6.6828060598,
+      "rs_score": 55.0
+    },
+    {
+      "theme": "금융",
+      "proxies": "XLF",
+      "strength_factor": 6.9343871132,
+      "return_3m": 7.2848975695,
+      "return_6m": 5.4699244468,
+      "return_12m": 7.1005941287,
+      "trend": "상승",
+      "trend_change": 2.1722383156,
+      "rs_score": 50.0
+    },
+    {
+      "theme": "클라우드",
+      "proxies": "SKYY, WCLD",
+      "strength_factor": 6.1390474085,
+      "return_3m": 12.8850659179,
+      "return_6m": 7.5177308421,
+      "return_12m": -0.3944656042,
+      "trend": "상승",
+      "trend_change": 6.5456456463,
+      "rs_score": 45.0
+    },
+    {
+      "theme": "소재",
+      "proxies": "XLB",
+      "strength_factor": 5.8646518247,
+      "return_3m": -1.8736743522,
+      "return_6m": 5.4160628444,
+      "return_12m": 12.0423446539,
+      "trend": "하락",
+      "trend_change": -5.3997616763,
+      "rs_score": 40.0
+    },
+    {
+      "theme": "부동산",
+      "proxies": "XLRE",
+      "strength_factor": 5.7844979603,
+      "return_3m": 2.8780314558,
+      "return_6m": 8.7922687331,
+      "return_12m": 7.2380974179,
+      "trend": "하락",
+      "trend_change": -2.9063455169,
+      "rs_score": 35.0
+    },
+    {
+      "theme": "필수소비재",
+      "proxies": "XLP",
+      "strength_factor": 3.8315257427,
+      "return_3m": 3.1708227478,
+      "return_6m": 2.5194231822,
+      "return_12m": 4.3954011201,
+      "trend": "하락",
+      "trend_change": -0.3240767173,
+      "rs_score": 30.0
+    },
+    {
+      "theme": "유틸리티",
+      "proxies": "XLU",
+      "strength_factor": 3.6360716913,
+      "return_3m": 1.6424923492,
+      "return_6m": 6.3507962293,
+      "return_12m": 8.7557793665,
+      "trend": "하락",
+      "trend_change": -1.0376796767,
+      "rs_score": 25.0
+    },
+    {
+      "theme": "로보틱스",
+      "proxies": "BOTZ",
+      "strength_factor": -2.1461474353,
+      "return_3m": -4.4501961392,
+      "return_6m": -5.5555521346,
+      "return_12m": 6.3465656687,
+      "trend": "하락",
+      "trend_change": -10.6766870888,
+      "rs_score": 20.0
+    },
+    {
+      "theme": "임의소비재",
+      "proxies": "XLY",
+      "strength_factor": -2.3298755155,
+      "return_3m": -3.8623192179,
+      "return_6m": -3.98338032,
+      "return_12m": 2.4773760188,
+      "trend": "하락",
+      "trend_change": -2.6988786567,
+      "rs_score": 15.0
+    },
+    {
+      "theme": "커뮤니케이션",
+      "proxies": "XLC",
+      "strength_factor": -3.541811072,
+      "return_3m": -6.1796726263,
+      "return_6m": -3.1286703055,
+      "return_12m": 2.1465461977,
+      "trend": "상승",
+      "trend_change": 1.1404140269,
+      "rs_score": 10.0
+    },
+    {
+      "theme": "원자력",
+      "proxies": "NLR",
+      "strength_factor": -18.5436337096,
+      "return_3m": -20.0243378135,
+      "return_6m": -23.7890587468,
+      "return_12m": -2.6407519921,
+      "trend": "하락",
+      "trend_change": -15.9299934596,
+      "rs_score": 5.0
+    }
+  ],
+  "computed_at": "2026-07-22T16:21:53.272752"
+}
