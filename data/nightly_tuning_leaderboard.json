@@ -261,6 +261,267 @@
     "train_ratio": 0.75
   },
   {
+    "ticker": "MU",
+    "sector": "Information Technology",
+    "style_type": "주도주",
+    "trained_regime": "약세장",
+    "excess_return": 1785.19,
+    "base_config": {
+      "entry_stages": [
+        {
+          "weight": 0.9,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            },
+            {
+              "indicator": "rsi",
+              "period": 14,
+              "op": "<=",
+              "value": 30
+            }
+          ]
+        }
+      ],
+      "exit_stages": [
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "engulfing",
+              "direction": "bearish"
+            }
+          ]
+        },
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "ma_cross",
+              "short": 1,
+              "long": 20,
+              "type": "golden",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        }
+      ],
+      "emergency_exit": {
+        "logic": "AND",
+        "conditions": [
+          {
+            "indicator": "rsi",
+            "period": 14,
+            "op": ">=",
+            "value": 70
+          },
+          {
+            "indicator": "engulfing",
+            "direction": "bearish"
+          },
+          {
+            "indicator": "bollinger",
+            "period": 20,
+            "std_dev": 2,
+            "band": "upper"
+          }
+        ]
+      }
+    },
+    "tuned_config": {
+      "entry_stages": [
+        {
+          "weight": 0.9,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            },
+            {
+              "indicator": "rsi",
+              "period": 14,
+              "op": "<=",
+              "value": 30
+            }
+          ]
+        }
+      ],
+      "exit_stages": [
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "engulfing",
+              "direction": "bearish"
+            }
+          ]
+        },
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "ma_cross",
+              "short": 1,
+              "long": 20,
+              "type": "golden",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        }
+      ],
+      "emergency_exit": {
+        "logic": "AND",
+        "conditions": [
+          {
+            "indicator": "rsi",
+            "period": 14,
+            "op": ">=",
+            "value": 70
+          },
+          {
+            "indicator": "engulfing",
+            "direction": "bearish"
+          },
+          {
+            "indicator": "bollinger",
+            "period": 20,
+            "std_dev": 2,
+            "band": "upper"
+          }
+        ]
+      }
+    },
+    "test_comparison": {
+      "strategy": {
+        "cumulative_return": 15.58,
+        "cagr": 1786.84,
+        "mdd": -0.39,
+        "sharpe": 8.42,
+        "win_rate": 100.0,
+        "avg_holding_days": 7.0,
+        "trade_count": 1
+      },
+      "buy_and_hold_ticker": {
+        "cumulative_return": -14.97,
+        "cagr": -96.28,
+        "mdd": -27.57,
+        "sharpe": -4.03,
+        "win_rate": 0.0,
+        "avg_holding_days": 18.0,
+        "trade_count": 1
+      },
+      "buy_and_hold_benchmark": {
+        "cumulative_return": 0.08,
+        "cagr": 1.65,
+        "mdd": -3.98,
+        "sharpe": 0.19,
+        "win_rate": 100.0,
+        "avg_holding_days": 18.0,
+        "trade_count": 1
+      }
+    },
+    "backbone_changed": false,
+    "run_id": 2,
+    "run_intensity": "보통",
+    "run_created_at": "2026-07-24 19:37:08.328182",
+    "run_start_date": "2021-07-25",
+    "run_end_date": "2026-07-24",
+    "train_ratio": 0.75
+  },
+  {
     "ticker": "INTC",
     "sector": "Information Technology",
     "style_type": "경기민감주",
@@ -778,6 +1039,267 @@
     "run_id": 1,
     "run_intensity": "빠름",
     "run_created_at": "2026-07-24 17:42:42.107978",
+    "run_start_date": "2021-07-25",
+    "run_end_date": "2026-07-24",
+    "train_ratio": 0.75
+  },
+  {
+    "ticker": "INTC",
+    "sector": "Information Technology",
+    "style_type": "경기민감주",
+    "trained_regime": "약세장",
+    "excess_return": 1569.9,
+    "base_config": {
+      "entry_stages": [
+        {
+          "weight": 0.9,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            },
+            {
+              "indicator": "rsi",
+              "period": 14,
+              "op": "<=",
+              "value": 30
+            }
+          ]
+        }
+      ],
+      "exit_stages": [
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "engulfing",
+              "direction": "bearish"
+            }
+          ]
+        },
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "ma_cross",
+              "short": 1,
+              "long": 20,
+              "type": "golden",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        }
+      ],
+      "emergency_exit": {
+        "logic": "AND",
+        "conditions": [
+          {
+            "indicator": "rsi",
+            "period": 14,
+            "op": ">=",
+            "value": 70
+          },
+          {
+            "indicator": "engulfing",
+            "direction": "bearish"
+          },
+          {
+            "indicator": "bollinger",
+            "period": 20,
+            "std_dev": 2,
+            "band": "upper"
+          }
+        ]
+      }
+    },
+    "tuned_config": {
+      "entry_stages": [
+        {
+          "weight": 0.9,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            },
+            {
+              "indicator": "rsi",
+              "period": 14,
+              "op": "<=",
+              "value": 30
+            }
+          ]
+        }
+      ],
+      "exit_stages": [
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "engulfing",
+              "direction": "bearish"
+            }
+          ]
+        },
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "ma_cross",
+              "short": 1,
+              "long": 20,
+              "type": "golden",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        }
+      ],
+      "emergency_exit": {
+        "logic": "AND",
+        "conditions": [
+          {
+            "indicator": "rsi",
+            "period": 14,
+            "op": ">=",
+            "value": 70
+          },
+          {
+            "indicator": "engulfing",
+            "direction": "bearish"
+          },
+          {
+            "indicator": "bollinger",
+            "period": 20,
+            "std_dev": 2,
+            "band": "upper"
+          }
+        ]
+      }
+    },
+    "test_comparison": {
+      "strategy": {
+        "cumulative_return": 14.89,
+        "cagr": 1571.55,
+        "mdd": 0.0,
+        "sharpe": 7.43,
+        "win_rate": 100.0,
+        "avg_holding_days": 2.0,
+        "trade_count": 1
+      },
+      "buy_and_hold_ticker": {
+        "cumulative_return": 9.96,
+        "cagr": 586.76,
+        "mdd": -12.7,
+        "sharpe": 3.1,
+        "win_rate": 100.0,
+        "avg_holding_days": 18.0,
+        "trade_count": 1
+      },
+      "buy_and_hold_benchmark": {
+        "cumulative_return": 0.08,
+        "cagr": 1.65,
+        "mdd": -3.98,
+        "sharpe": 0.19,
+        "win_rate": 100.0,
+        "avg_holding_days": 18.0,
+        "trade_count": 1
+      }
+    },
+    "backbone_changed": false,
+    "run_id": 2,
+    "run_intensity": "보통",
+    "run_created_at": "2026-07-24 19:37:08.328182",
     "run_start_date": "2021-07-25",
     "run_end_date": "2026-07-24",
     "train_ratio": 0.75
@@ -2082,6 +2604,528 @@
     "run_created_at": "2026-07-22 17:44:28.879689",
     "run_start_date": "2021-07-23",
     "run_end_date": "2026-07-22",
+    "train_ratio": 0.75
+  },
+  {
+    "ticker": "SBAC",
+    "sector": "Real Estate",
+    "style_type": "경기민감주",
+    "trained_regime": "약세장",
+    "excess_return": 706.21,
+    "base_config": {
+      "entry_stages": [
+        {
+          "weight": 0.9,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            },
+            {
+              "indicator": "rsi",
+              "period": 14,
+              "op": "<=",
+              "value": 30
+            }
+          ]
+        }
+      ],
+      "exit_stages": [
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "engulfing",
+              "direction": "bearish"
+            }
+          ]
+        },
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "ma_cross",
+              "short": 1,
+              "long": 20,
+              "type": "golden",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        }
+      ],
+      "emergency_exit": {
+        "logic": "AND",
+        "conditions": [
+          {
+            "indicator": "rsi",
+            "period": 14,
+            "op": ">=",
+            "value": 70
+          },
+          {
+            "indicator": "engulfing",
+            "direction": "bearish"
+          },
+          {
+            "indicator": "bollinger",
+            "period": 20,
+            "std_dev": 2,
+            "band": "upper"
+          }
+        ]
+      }
+    },
+    "tuned_config": {
+      "entry_stages": [
+        {
+          "weight": 0.9,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            },
+            {
+              "indicator": "rsi",
+              "period": 14,
+              "op": "<=",
+              "value": 30
+            }
+          ]
+        }
+      ],
+      "exit_stages": [
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "engulfing",
+              "direction": "bearish"
+            }
+          ]
+        },
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "ma_cross",
+              "short": 1,
+              "long": 20,
+              "type": "golden",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        }
+      ],
+      "emergency_exit": {
+        "logic": "AND",
+        "conditions": [
+          {
+            "indicator": "rsi",
+            "period": 14,
+            "op": ">=",
+            "value": 70
+          },
+          {
+            "indicator": "engulfing",
+            "direction": "bearish"
+          },
+          {
+            "indicator": "bollinger",
+            "period": 20,
+            "std_dev": 2,
+            "band": "upper"
+          }
+        ]
+      }
+    },
+    "test_comparison": {
+      "strategy": {
+        "cumulative_return": 10.84,
+        "cagr": 707.86,
+        "mdd": -8.49,
+        "sharpe": 3.21,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0
+      },
+      "buy_and_hold_ticker": {
+        "cumulative_return": 16.54,
+        "cagr": 2131.06,
+        "mdd": -9.4,
+        "sharpe": 4.19,
+        "win_rate": 100.0,
+        "avg_holding_days": 18.0,
+        "trade_count": 1
+      },
+      "buy_and_hold_benchmark": {
+        "cumulative_return": 0.08,
+        "cagr": 1.65,
+        "mdd": -3.98,
+        "sharpe": 0.19,
+        "win_rate": 100.0,
+        "avg_holding_days": 18.0,
+        "trade_count": 1
+      }
+    },
+    "backbone_changed": false,
+    "run_id": 2,
+    "run_intensity": "보통",
+    "run_created_at": "2026-07-24 19:37:08.328182",
+    "run_start_date": "2021-07-25",
+    "run_end_date": "2026-07-24",
+    "train_ratio": 0.75
+  },
+  {
+    "ticker": "PANW",
+    "sector": "Information Technology",
+    "style_type": "경기민감주",
+    "trained_regime": "약세장",
+    "excess_return": 574.69,
+    "base_config": {
+      "entry_stages": [
+        {
+          "weight": 0.9,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            },
+            {
+              "indicator": "rsi",
+              "period": 14,
+              "op": "<=",
+              "value": 30
+            }
+          ]
+        }
+      ],
+      "exit_stages": [
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "engulfing",
+              "direction": "bearish"
+            }
+          ]
+        },
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "ma_cross",
+              "short": 1,
+              "long": 20,
+              "type": "golden",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        }
+      ],
+      "emergency_exit": {
+        "logic": "AND",
+        "conditions": [
+          {
+            "indicator": "rsi",
+            "period": 14,
+            "op": ">=",
+            "value": 70
+          },
+          {
+            "indicator": "engulfing",
+            "direction": "bearish"
+          },
+          {
+            "indicator": "bollinger",
+            "period": 20,
+            "std_dev": 2,
+            "band": "upper"
+          }
+        ]
+      }
+    },
+    "tuned_config": {
+      "entry_stages": [
+        {
+          "weight": 0.9,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            },
+            {
+              "indicator": "rsi",
+              "period": 14,
+              "op": "<=",
+              "value": 30
+            }
+          ]
+        }
+      ],
+      "exit_stages": [
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "engulfing",
+              "direction": "bearish"
+            }
+          ]
+        },
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "ma_cross",
+              "short": 1,
+              "long": 20,
+              "type": "golden",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        }
+      ],
+      "emergency_exit": {
+        "logic": "AND",
+        "conditions": [
+          {
+            "indicator": "rsi",
+            "period": 14,
+            "op": ">=",
+            "value": 70
+          },
+          {
+            "indicator": "engulfing",
+            "direction": "bearish"
+          },
+          {
+            "indicator": "bollinger",
+            "period": 20,
+            "std_dev": 2,
+            "band": "upper"
+          }
+        ]
+      }
+    },
+    "test_comparison": {
+      "strategy": {
+        "cumulative_return": 9.88,
+        "cagr": 576.34,
+        "mdd": 0.0,
+        "sharpe": 9.01,
+        "win_rate": 100.0,
+        "avg_holding_days": 6.0,
+        "trade_count": 1
+      },
+      "buy_and_hold_ticker": {
+        "cumulative_return": -4.59,
+        "cagr": -61.45,
+        "mdd": -13.39,
+        "sharpe": -1.77,
+        "win_rate": 0.0,
+        "avg_holding_days": 18.0,
+        "trade_count": 1
+      },
+      "buy_and_hold_benchmark": {
+        "cumulative_return": 0.08,
+        "cagr": 1.65,
+        "mdd": -3.98,
+        "sharpe": 0.19,
+        "win_rate": 100.0,
+        "avg_holding_days": 18.0,
+        "trade_count": 1
+      }
+    },
+    "backbone_changed": false,
+    "run_id": 2,
+    "run_intensity": "보통",
+    "run_created_at": "2026-07-24 19:37:08.328182",
+    "run_start_date": "2021-07-25",
+    "run_end_date": "2026-07-24",
     "train_ratio": 0.75
   },
   {
@@ -3390,6 +4434,267 @@
     "train_ratio": 0.75
   },
   {
+    "ticker": "DECK",
+    "sector": "Consumer Discretionary",
+    "style_type": "경기민감주",
+    "trained_regime": "약세장",
+    "excess_return": 342.8,
+    "base_config": {
+      "entry_stages": [
+        {
+          "weight": 0.9,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            },
+            {
+              "indicator": "rsi",
+              "period": 14,
+              "op": "<=",
+              "value": 30
+            }
+          ]
+        }
+      ],
+      "exit_stages": [
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "engulfing",
+              "direction": "bearish"
+            }
+          ]
+        },
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "ma_cross",
+              "short": 1,
+              "long": 20,
+              "type": "golden",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        }
+      ],
+      "emergency_exit": {
+        "logic": "AND",
+        "conditions": [
+          {
+            "indicator": "rsi",
+            "period": 14,
+            "op": ">=",
+            "value": 70
+          },
+          {
+            "indicator": "engulfing",
+            "direction": "bearish"
+          },
+          {
+            "indicator": "bollinger",
+            "period": 20,
+            "std_dev": 2,
+            "band": "upper"
+          }
+        ]
+      }
+    },
+    "tuned_config": {
+      "entry_stages": [
+        {
+          "weight": 0.9,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            },
+            {
+              "indicator": "rsi",
+              "period": 14,
+              "op": "<=",
+              "value": 30
+            }
+          ]
+        }
+      ],
+      "exit_stages": [
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "engulfing",
+              "direction": "bearish"
+            }
+          ]
+        },
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "ma_cross",
+              "short": 1,
+              "long": 20,
+              "type": "golden",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        }
+      ],
+      "emergency_exit": {
+        "logic": "AND",
+        "conditions": [
+          {
+            "indicator": "rsi",
+            "period": 14,
+            "op": ">=",
+            "value": 70
+          },
+          {
+            "indicator": "engulfing",
+            "direction": "bearish"
+          },
+          {
+            "indicator": "bollinger",
+            "period": 20,
+            "std_dev": 2,
+            "band": "upper"
+          }
+        ]
+      }
+    },
+    "test_comparison": {
+      "strategy": {
+        "cumulative_return": 7.63,
+        "cagr": 344.45,
+        "mdd": -2.32,
+        "sharpe": 6.15,
+        "win_rate": 100.0,
+        "avg_holding_days": 11.0,
+        "trade_count": 1
+      },
+      "buy_and_hold_ticker": {
+        "cumulative_return": -3.12,
+        "cagr": -47.41,
+        "mdd": -10.69,
+        "sharpe": -1.16,
+        "win_rate": 0.0,
+        "avg_holding_days": 18.0,
+        "trade_count": 1
+      },
+      "buy_and_hold_benchmark": {
+        "cumulative_return": 0.08,
+        "cagr": 1.65,
+        "mdd": -3.98,
+        "sharpe": 0.19,
+        "win_rate": 100.0,
+        "avg_holding_days": 18.0,
+        "trade_count": 1
+      }
+    },
+    "backbone_changed": false,
+    "run_id": 2,
+    "run_intensity": "보통",
+    "run_created_at": "2026-07-24 19:37:08.328182",
+    "run_start_date": "2021-07-25",
+    "run_end_date": "2026-07-24",
+    "train_ratio": 0.75
+  },
+  {
     "ticker": "COIN",
     "sector": "Financials",
     "style_type": "경기민감주",
@@ -3648,6 +4953,267 @@
     "run_created_at": "2026-07-23 20:24:36.869068",
     "run_start_date": "2021-07-24",
     "run_end_date": "2026-07-23",
+    "train_ratio": 0.75
+  },
+  {
+    "ticker": "COIN",
+    "sector": "Financials",
+    "style_type": "경기민감주",
+    "trained_regime": "약세장",
+    "excess_return": 342.73,
+    "base_config": {
+      "entry_stages": [
+        {
+          "weight": 0.9,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            },
+            {
+              "indicator": "rsi",
+              "period": 14,
+              "op": "<=",
+              "value": 30
+            }
+          ]
+        }
+      ],
+      "exit_stages": [
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "engulfing",
+              "direction": "bearish"
+            }
+          ]
+        },
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "ma_cross",
+              "short": 1,
+              "long": 20,
+              "type": "golden",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        }
+      ],
+      "emergency_exit": {
+        "logic": "AND",
+        "conditions": [
+          {
+            "indicator": "rsi",
+            "period": 14,
+            "op": ">=",
+            "value": 70
+          },
+          {
+            "indicator": "engulfing",
+            "direction": "bearish"
+          },
+          {
+            "indicator": "bollinger",
+            "period": 20,
+            "std_dev": 2,
+            "band": "upper"
+          }
+        ]
+      }
+    },
+    "tuned_config": {
+      "entry_stages": [
+        {
+          "weight": 0.9,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            },
+            {
+              "indicator": "rsi",
+              "period": 14,
+              "op": "<=",
+              "value": 30
+            }
+          ]
+        }
+      ],
+      "exit_stages": [
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "engulfing",
+              "direction": "bearish"
+            }
+          ]
+        },
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "ma_cross",
+              "short": 1,
+              "long": 20,
+              "type": "golden",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        }
+      ],
+      "emergency_exit": {
+        "logic": "AND",
+        "conditions": [
+          {
+            "indicator": "rsi",
+            "period": 14,
+            "op": ">=",
+            "value": 70
+          },
+          {
+            "indicator": "engulfing",
+            "direction": "bearish"
+          },
+          {
+            "indicator": "bollinger",
+            "period": 20,
+            "std_dev": 2,
+            "band": "upper"
+          }
+        ]
+      }
+    },
+    "test_comparison": {
+      "strategy": {
+        "cumulative_return": 7.63,
+        "cagr": 344.38,
+        "mdd": -1.62,
+        "sharpe": 4.77,
+        "win_rate": 100.0,
+        "avg_holding_days": 10.0,
+        "trade_count": 1
+      },
+      "buy_and_hold_ticker": {
+        "cumulative_return": -13.86,
+        "cagr": -95.15,
+        "mdd": -20.76,
+        "sharpe": -4.25,
+        "win_rate": 0.0,
+        "avg_holding_days": 18.0,
+        "trade_count": 1
+      },
+      "buy_and_hold_benchmark": {
+        "cumulative_return": 0.08,
+        "cagr": 1.65,
+        "mdd": -3.98,
+        "sharpe": 0.19,
+        "win_rate": 100.0,
+        "avg_holding_days": 18.0,
+        "trade_count": 1
+      }
+    },
+    "backbone_changed": false,
+    "run_id": 2,
+    "run_intensity": "보통",
+    "run_created_at": "2026-07-24 19:37:08.328182",
+    "run_start_date": "2021-07-25",
+    "run_end_date": "2026-07-24",
     "train_ratio": 0.75
   },
   {
@@ -5494,6 +7060,249 @@
     "train_ratio": 0.75
   },
   {
+    "ticker": "ECHO",
+    "sector": "Communication Services",
+    "style_type": "성장주",
+    "trained_regime": "약세장",
+    "excess_return": 244.5,
+    "base_config": {
+      "entry_stages": [
+        {
+          "weight": 0.9,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            },
+            {
+              "indicator": "rsi",
+              "period": 14,
+              "op": "<=",
+              "value": 30
+            }
+          ]
+        }
+      ],
+      "exit_stages": [
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "engulfing",
+              "direction": "bearish"
+            }
+          ]
+        },
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "ma_cross",
+              "short": 1,
+              "long": 20,
+              "type": "golden",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        }
+      ],
+      "emergency_exit": {
+        "logic": "AND",
+        "conditions": [
+          {
+            "indicator": "rsi",
+            "period": 14,
+            "op": ">=",
+            "value": 70
+          },
+          {
+            "indicator": "engulfing",
+            "direction": "bearish"
+          },
+          {
+            "indicator": "bollinger",
+            "period": 20,
+            "std_dev": 2,
+            "band": "upper"
+          }
+        ]
+      }
+    },
+    "tuned_config": {
+      "entry_stages": [
+        {
+          "weight": 0.9,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "ichimoku_cloud_break",
+              "direction": "up",
+              "tenkan_len": 9,
+              "kijun_len": 26,
+              "span_b_len": 52
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            },
+            {
+              "indicator": "volume_spike",
+              "mult": 1.5
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "rsi",
+              "period": 14,
+              "op": ">=",
+              "value": 55
+            }
+          ]
+        }
+      ],
+      "exit_stages": [
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "ichimoku_tk_cross",
+              "direction": "dead"
+            }
+          ]
+        },
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "macd_cross",
+              "type": "dead",
+              "fast": 12,
+              "slow": 26,
+              "signal": 9
+            }
+          ]
+        }
+      ],
+      "emergency_exit": {
+        "logic": "OR",
+        "conditions": [
+          {
+            "indicator": "marubozu",
+            "direction": "bearish",
+            "body_ratio_threshold": 0.9
+          },
+          {
+            "indicator": "rsi",
+            "period": 14,
+            "op": ">=",
+            "value": 85
+          }
+        ]
+      },
+      "stop_loss": {
+        "source": "lowest_low",
+        "period": 10
+      },
+      "take_profit": {
+        "multiple": 3.0
+      }
+    },
+    "test_comparison": {
+      "strategy": {
+        "cumulative_return": 6.31,
+        "cagr": 246.15,
+        "mdd": -6.12,
+        "sharpe": 2.97,
+        "win_rate": 100.0,
+        "avg_holding_days": 12.0,
+        "trade_count": 1
+      },
+      "buy_and_hold_ticker": {
+        "cumulative_return": 16.35,
+        "cagr": 2060.45,
+        "mdd": -6.44,
+        "sharpe": 5.94,
+        "win_rate": 100.0,
+        "avg_holding_days": 18.0,
+        "trade_count": 1
+      },
+      "buy_and_hold_benchmark": {
+        "cumulative_return": 0.08,
+        "cagr": 1.65,
+        "mdd": -3.98,
+        "sharpe": 0.19,
+        "win_rate": 100.0,
+        "avg_holding_days": 18.0,
+        "trade_count": 1
+      }
+    },
+    "backbone_changed": true,
+    "run_id": 2,
+    "run_intensity": "보통",
+    "run_created_at": "2026-07-24 19:37:08.328182",
+    "run_start_date": "2021-07-25",
+    "run_end_date": "2026-07-24",
+    "train_ratio": 0.75
+  },
+  {
     "ticker": "CSX",
     "sector": "Industrials",
     "style_type": "경기민감주",
@@ -7057,6 +8866,789 @@
     "run_created_at": "2026-07-23 20:24:36.869068",
     "run_start_date": "2021-07-24",
     "run_end_date": "2026-07-23",
+    "train_ratio": 0.75
+  },
+  {
+    "ticker": "TSN",
+    "sector": "Consumer Staples",
+    "style_type": "경기민감주",
+    "trained_regime": "약세장",
+    "excess_return": 214.51,
+    "base_config": {
+      "entry_stages": [
+        {
+          "weight": 0.9,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            },
+            {
+              "indicator": "rsi",
+              "period": 14,
+              "op": "<=",
+              "value": 30
+            }
+          ]
+        }
+      ],
+      "exit_stages": [
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "engulfing",
+              "direction": "bearish"
+            }
+          ]
+        },
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "ma_cross",
+              "short": 1,
+              "long": 20,
+              "type": "golden",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        }
+      ],
+      "emergency_exit": {
+        "logic": "AND",
+        "conditions": [
+          {
+            "indicator": "rsi",
+            "period": 14,
+            "op": ">=",
+            "value": 70
+          },
+          {
+            "indicator": "engulfing",
+            "direction": "bearish"
+          },
+          {
+            "indicator": "bollinger",
+            "period": 20,
+            "std_dev": 2,
+            "band": "upper"
+          }
+        ]
+      }
+    },
+    "tuned_config": {
+      "entry_stages": [
+        {
+          "weight": 0.9,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            },
+            {
+              "indicator": "rsi",
+              "period": 14,
+              "op": "<=",
+              "value": 30
+            }
+          ]
+        }
+      ],
+      "exit_stages": [
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "engulfing",
+              "direction": "bearish"
+            }
+          ]
+        },
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "ma_cross",
+              "short": 1,
+              "long": 20,
+              "type": "golden",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        }
+      ],
+      "emergency_exit": {
+        "logic": "AND",
+        "conditions": [
+          {
+            "indicator": "rsi",
+            "period": 14,
+            "op": ">=",
+            "value": 70
+          },
+          {
+            "indicator": "engulfing",
+            "direction": "bearish"
+          },
+          {
+            "indicator": "bollinger",
+            "period": 20,
+            "std_dev": 2,
+            "band": "upper"
+          }
+        ]
+      }
+    },
+    "test_comparison": {
+      "strategy": {
+        "cumulative_return": 5.84,
+        "cagr": 216.16,
+        "mdd": -1.43,
+        "sharpe": 7.53,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0
+      },
+      "buy_and_hold_ticker": {
+        "cumulative_return": 9.1,
+        "cagr": 485.52,
+        "mdd": -1.59,
+        "sharpe": 10.5,
+        "win_rate": 100.0,
+        "avg_holding_days": 18.0,
+        "trade_count": 1
+      },
+      "buy_and_hold_benchmark": {
+        "cumulative_return": 0.08,
+        "cagr": 1.65,
+        "mdd": -3.98,
+        "sharpe": 0.19,
+        "win_rate": 100.0,
+        "avg_holding_days": 18.0,
+        "trade_count": 1
+      }
+    },
+    "backbone_changed": false,
+    "run_id": 2,
+    "run_intensity": "보통",
+    "run_created_at": "2026-07-24 19:37:08.328182",
+    "run_start_date": "2021-07-25",
+    "run_end_date": "2026-07-24",
+    "train_ratio": 0.75
+  },
+  {
+    "ticker": "FITB",
+    "sector": "Financials",
+    "style_type": "경기민감주",
+    "trained_regime": "약세장",
+    "excess_return": 210.38,
+    "base_config": {
+      "entry_stages": [
+        {
+          "weight": 0.9,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            },
+            {
+              "indicator": "rsi",
+              "period": 14,
+              "op": "<=",
+              "value": 30
+            }
+          ]
+        }
+      ],
+      "exit_stages": [
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "engulfing",
+              "direction": "bearish"
+            }
+          ]
+        },
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "ma_cross",
+              "short": 1,
+              "long": 20,
+              "type": "golden",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        }
+      ],
+      "emergency_exit": {
+        "logic": "AND",
+        "conditions": [
+          {
+            "indicator": "rsi",
+            "period": 14,
+            "op": ">=",
+            "value": 70
+          },
+          {
+            "indicator": "engulfing",
+            "direction": "bearish"
+          },
+          {
+            "indicator": "bollinger",
+            "period": 20,
+            "std_dev": 2,
+            "band": "upper"
+          }
+        ]
+      }
+    },
+    "tuned_config": {
+      "entry_stages": [
+        {
+          "weight": 0.9,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            },
+            {
+              "indicator": "rsi",
+              "period": 14,
+              "op": "<=",
+              "value": 30
+            }
+          ]
+        }
+      ],
+      "exit_stages": [
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "engulfing",
+              "direction": "bearish"
+            }
+          ]
+        },
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "ma_cross",
+              "short": 1,
+              "long": 20,
+              "type": "golden",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        }
+      ],
+      "emergency_exit": {
+        "logic": "AND",
+        "conditions": [
+          {
+            "indicator": "rsi",
+            "period": 14,
+            "op": ">=",
+            "value": 70
+          },
+          {
+            "indicator": "engulfing",
+            "direction": "bearish"
+          },
+          {
+            "indicator": "bollinger",
+            "period": 20,
+            "std_dev": 2,
+            "band": "upper"
+          }
+        ]
+      }
+    },
+    "test_comparison": {
+      "strategy": {
+        "cumulative_return": 5.77,
+        "cagr": 212.03,
+        "mdd": -2.84,
+        "sharpe": 5.83,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0
+      },
+      "buy_and_hold_ticker": {
+        "cumulative_return": 8.93,
+        "cagr": 467.55,
+        "mdd": -3.15,
+        "sharpe": 8.18,
+        "win_rate": 100.0,
+        "avg_holding_days": 18.0,
+        "trade_count": 1
+      },
+      "buy_and_hold_benchmark": {
+        "cumulative_return": 0.08,
+        "cagr": 1.65,
+        "mdd": -3.98,
+        "sharpe": 0.19,
+        "win_rate": 100.0,
+        "avg_holding_days": 18.0,
+        "trade_count": 1
+      }
+    },
+    "backbone_changed": false,
+    "run_id": 2,
+    "run_intensity": "보통",
+    "run_created_at": "2026-07-24 19:37:08.328182",
+    "run_start_date": "2021-07-25",
+    "run_end_date": "2026-07-24",
+    "train_ratio": 0.75
+  },
+  {
+    "ticker": "NDAQ",
+    "sector": "Financials",
+    "style_type": "경기민감주",
+    "trained_regime": "약세장",
+    "excess_return": 206.24,
+    "base_config": {
+      "entry_stages": [
+        {
+          "weight": 0.9,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            },
+            {
+              "indicator": "rsi",
+              "period": 14,
+              "op": "<=",
+              "value": 30
+            }
+          ]
+        }
+      ],
+      "exit_stages": [
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "engulfing",
+              "direction": "bearish"
+            }
+          ]
+        },
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "ma_cross",
+              "short": 1,
+              "long": 20,
+              "type": "golden",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        }
+      ],
+      "emergency_exit": {
+        "logic": "AND",
+        "conditions": [
+          {
+            "indicator": "rsi",
+            "period": 14,
+            "op": ">=",
+            "value": 70
+          },
+          {
+            "indicator": "engulfing",
+            "direction": "bearish"
+          },
+          {
+            "indicator": "bollinger",
+            "period": 20,
+            "std_dev": 2,
+            "band": "upper"
+          }
+        ]
+      }
+    },
+    "tuned_config": {
+      "entry_stages": [
+        {
+          "weight": 0.9,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            }
+          ]
+        },
+        {
+          "weight": 0.05,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "bollinger",
+              "period": 20,
+              "std_dev": 2,
+              "band": "lower"
+            },
+            {
+              "indicator": "engulfing",
+              "direction": "bullish"
+            },
+            {
+              "indicator": "rsi",
+              "period": 14,
+              "op": "<=",
+              "value": 30
+            }
+          ]
+        }
+      ],
+      "exit_stages": [
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "engulfing",
+              "direction": "bearish"
+            }
+          ]
+        },
+        {
+          "weight": 0.5,
+          "logic": "AND",
+          "conditions": [
+            {
+              "indicator": "ma_cross",
+              "short": 1,
+              "long": 20,
+              "type": "golden",
+              "direction": "down",
+              "source": "macd",
+              "kijun_len": 26,
+              "span_b_len": 52,
+              "displacement": 26
+            }
+          ]
+        }
+      ],
+      "emergency_exit": {
+        "logic": "AND",
+        "conditions": [
+          {
+            "indicator": "rsi",
+            "period": 14,
+            "op": ">=",
+            "value": 70
+          },
+          {
+            "indicator": "engulfing",
+            "direction": "bearish"
+          },
+          {
+            "indicator": "bollinger",
+            "period": 20,
+            "std_dev": 2,
+            "band": "upper"
+          }
+        ]
+      }
+    },
+    "test_comparison": {
+      "strategy": {
+        "cumulative_return": 5.7,
+        "cagr": 207.89,
+        "mdd": 0.0,
+        "sharpe": 10.11,
+        "win_rate": 100.0,
+        "avg_holding_days": 6.0,
+        "trade_count": 1
+      },
+      "buy_and_hold_ticker": {
+        "cumulative_return": 1.89,
+        "cagr": 46.2,
+        "mdd": -5.69,
+        "sharpe": 1.83,
+        "win_rate": 100.0,
+        "avg_holding_days": 18.0,
+        "trade_count": 1
+      },
+      "buy_and_hold_benchmark": {
+        "cumulative_return": 0.08,
+        "cagr": 1.65,
+        "mdd": -3.98,
+        "sharpe": 0.19,
+        "win_rate": 100.0,
+        "avg_holding_days": 18.0,
+        "trade_count": 1
+      }
+    },
+    "backbone_changed": false,
+    "run_id": 2,
+    "run_intensity": "보통",
+    "run_created_at": "2026-07-24 19:37:08.328182",
+    "run_start_date": "2021-07-25",
+    "run_end_date": "2026-07-24",
     "train_ratio": 0.75
   },
   {
@@ -10427,2616 +13019,6 @@
         "cagr": 194.36,
         "mdd": -3.14,
         "sharpe": 4.91,
-        "win_rate": 100.0,
-        "avg_holding_days": 18.0,
-        "trade_count": 1
-      },
-      "buy_and_hold_benchmark": {
-        "cumulative_return": 0.08,
-        "cagr": 1.65,
-        "mdd": -3.98,
-        "sharpe": 0.19,
-        "win_rate": 100.0,
-        "avg_holding_days": 18.0,
-        "trade_count": 1
-      }
-    },
-    "backbone_changed": false,
-    "run_id": 2,
-    "run_intensity": "보통",
-    "run_created_at": "2026-07-23 20:24:36.869068",
-    "run_start_date": "2021-07-24",
-    "run_end_date": "2026-07-23",
-    "train_ratio": 0.75
-  },
-  {
-    "ticker": "FTNT",
-    "sector": "Information Technology",
-    "style_type": "경기민감주",
-    "trained_regime": "약세장",
-    "excess_return": 166.3,
-    "base_config": {
-      "entry_stages": [
-        {
-          "weight": 0.9,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            },
-            {
-              "indicator": "rsi",
-              "period": 14,
-              "op": "<=",
-              "value": 30
-            }
-          ]
-        }
-      ],
-      "exit_stages": [
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "engulfing",
-              "direction": "bearish"
-            }
-          ]
-        },
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "ma_cross",
-              "short": 1,
-              "long": 20,
-              "type": "golden",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        }
-      ],
-      "emergency_exit": {
-        "logic": "AND",
-        "conditions": [
-          {
-            "indicator": "rsi",
-            "period": 14,
-            "op": ">=",
-            "value": 70
-          },
-          {
-            "indicator": "engulfing",
-            "direction": "bearish"
-          },
-          {
-            "indicator": "bollinger",
-            "period": 20,
-            "std_dev": 2,
-            "band": "upper"
-          }
-        ]
-      }
-    },
-    "tuned_config": {
-      "entry_stages": [
-        {
-          "weight": 0.9,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            },
-            {
-              "indicator": "rsi",
-              "period": 14,
-              "op": "<=",
-              "value": 30
-            }
-          ]
-        }
-      ],
-      "exit_stages": [
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "engulfing",
-              "direction": "bearish"
-            }
-          ]
-        },
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "ma_cross",
-              "short": 1,
-              "long": 20,
-              "type": "golden",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        }
-      ],
-      "emergency_exit": {
-        "logic": "AND",
-        "conditions": [
-          {
-            "indicator": "rsi",
-            "period": 14,
-            "op": ">=",
-            "value": 70
-          },
-          {
-            "indicator": "engulfing",
-            "direction": "bearish"
-          },
-          {
-            "indicator": "bollinger",
-            "period": 20,
-            "std_dev": 2,
-            "band": "upper"
-          }
-        ]
-      }
-    },
-    "test_comparison": {
-      "strategy": {
-        "cumulative_return": 4.98,
-        "cagr": 167.95,
-        "mdd": -0.63,
-        "sharpe": 7.19,
-        "win_rate": 100.0,
-        "avg_holding_days": 6.0,
-        "trade_count": 1
-      },
-      "buy_and_hold_ticker": {
-        "cumulative_return": -1.0,
-        "cagr": -18.42,
-        "mdd": -5.92,
-        "sharpe": -0.43,
-        "win_rate": 0.0,
-        "avg_holding_days": 18.0,
-        "trade_count": 1
-      },
-      "buy_and_hold_benchmark": {
-        "cumulative_return": 0.08,
-        "cagr": 1.65,
-        "mdd": -3.98,
-        "sharpe": 0.19,
-        "win_rate": 100.0,
-        "avg_holding_days": 18.0,
-        "trade_count": 1
-      }
-    },
-    "backbone_changed": false,
-    "run_id": 2,
-    "run_intensity": "보통",
-    "run_created_at": "2026-07-23 20:24:36.869068",
-    "run_start_date": "2021-07-24",
-    "run_end_date": "2026-07-23",
-    "train_ratio": 0.75
-  },
-  {
-    "ticker": "APP",
-    "sector": "Information Technology",
-    "style_type": "경기민감주",
-    "trained_regime": "약세장",
-    "excess_return": 166.26,
-    "base_config": {
-      "entry_stages": [
-        {
-          "weight": 0.9,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            },
-            {
-              "indicator": "rsi",
-              "period": 14,
-              "op": "<=",
-              "value": 30
-            }
-          ]
-        }
-      ],
-      "exit_stages": [
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "engulfing",
-              "direction": "bearish"
-            }
-          ]
-        },
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "ma_cross",
-              "short": 1,
-              "long": 20,
-              "type": "golden",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        }
-      ],
-      "emergency_exit": {
-        "logic": "AND",
-        "conditions": [
-          {
-            "indicator": "rsi",
-            "period": 14,
-            "op": ">=",
-            "value": 70
-          },
-          {
-            "indicator": "engulfing",
-            "direction": "bearish"
-          },
-          {
-            "indicator": "bollinger",
-            "period": 20,
-            "std_dev": 2,
-            "band": "upper"
-          }
-        ]
-      }
-    },
-    "tuned_config": {
-      "entry_stages": [
-        {
-          "weight": 0.9,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            },
-            {
-              "indicator": "rsi",
-              "period": 14,
-              "op": "<=",
-              "value": 30
-            }
-          ]
-        }
-      ],
-      "exit_stages": [
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "engulfing",
-              "direction": "bearish"
-            }
-          ]
-        },
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "ma_cross",
-              "short": 1,
-              "long": 20,
-              "type": "golden",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        }
-      ],
-      "emergency_exit": {
-        "logic": "AND",
-        "conditions": [
-          {
-            "indicator": "rsi",
-            "period": 14,
-            "op": ">=",
-            "value": 70
-          },
-          {
-            "indicator": "engulfing",
-            "direction": "bearish"
-          },
-          {
-            "indicator": "bollinger",
-            "period": 20,
-            "std_dev": 2,
-            "band": "upper"
-          }
-        ]
-      }
-    },
-    "test_comparison": {
-      "strategy": {
-        "cumulative_return": 4.98,
-        "cagr": 167.91,
-        "mdd": -4.41,
-        "sharpe": 2.68,
-        "win_rate": 100.0,
-        "avg_holding_days": 11.0,
-        "trade_count": 1
-      },
-      "buy_and_hold_ticker": {
-        "cumulative_return": -6.19,
-        "cagr": -72.67,
-        "mdd": -18.93,
-        "sharpe": -1.5,
-        "win_rate": 0.0,
-        "avg_holding_days": 18.0,
-        "trade_count": 1
-      },
-      "buy_and_hold_benchmark": {
-        "cumulative_return": 0.08,
-        "cagr": 1.65,
-        "mdd": -3.98,
-        "sharpe": 0.19,
-        "win_rate": 100.0,
-        "avg_holding_days": 18.0,
-        "trade_count": 1
-      }
-    },
-    "backbone_changed": false,
-    "run_id": 2,
-    "run_intensity": "보통",
-    "run_created_at": "2026-07-22 19:47:48.548216",
-    "run_start_date": "2021-07-23",
-    "run_end_date": "2026-07-22",
-    "train_ratio": 0.75
-  },
-  {
-    "ticker": "LHX",
-    "sector": "Industrials",
-    "style_type": "경기민감주",
-    "trained_regime": "약세장",
-    "excess_return": 165.85,
-    "base_config": {
-      "entry_stages": [
-        {
-          "weight": 0.9,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            },
-            {
-              "indicator": "rsi",
-              "period": 14,
-              "op": "<=",
-              "value": 30
-            }
-          ]
-        }
-      ],
-      "exit_stages": [
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "engulfing",
-              "direction": "bearish"
-            }
-          ]
-        },
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "ma_cross",
-              "short": 1,
-              "long": 20,
-              "type": "golden",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        }
-      ],
-      "emergency_exit": {
-        "logic": "AND",
-        "conditions": [
-          {
-            "indicator": "rsi",
-            "period": 14,
-            "op": ">=",
-            "value": 70
-          },
-          {
-            "indicator": "engulfing",
-            "direction": "bearish"
-          },
-          {
-            "indicator": "bollinger",
-            "period": 20,
-            "std_dev": 2,
-            "band": "upper"
-          }
-        ]
-      }
-    },
-    "tuned_config": {
-      "entry_stages": [
-        {
-          "weight": 0.9,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            },
-            {
-              "indicator": "rsi",
-              "period": 14,
-              "op": "<=",
-              "value": 30
-            }
-          ]
-        }
-      ],
-      "exit_stages": [
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "engulfing",
-              "direction": "bearish"
-            }
-          ]
-        },
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "ma_cross",
-              "short": 1,
-              "long": 20,
-              "type": "golden",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        }
-      ],
-      "emergency_exit": {
-        "logic": "AND",
-        "conditions": [
-          {
-            "indicator": "rsi",
-            "period": 14,
-            "op": ">=",
-            "value": 70
-          },
-          {
-            "indicator": "engulfing",
-            "direction": "bearish"
-          },
-          {
-            "indicator": "bollinger",
-            "period": 20,
-            "std_dev": 2,
-            "band": "upper"
-          }
-        ]
-      }
-    },
-    "test_comparison": {
-      "strategy": {
-        "cumulative_return": 4.97,
-        "cagr": 167.5,
-        "mdd": 0.0,
-        "sharpe": 9.79,
-        "win_rate": 100.0,
-        "avg_holding_days": 7.0,
-        "trade_count": 1
-      },
-      "buy_and_hold_ticker": {
-        "cumulative_return": -1.37,
-        "cagr": -24.36,
-        "mdd": -6.54,
-        "sharpe": -1.06,
-        "win_rate": 0.0,
-        "avg_holding_days": 18.0,
-        "trade_count": 1
-      },
-      "buy_and_hold_benchmark": {
-        "cumulative_return": 0.08,
-        "cagr": 1.65,
-        "mdd": -3.98,
-        "sharpe": 0.19,
-        "win_rate": 100.0,
-        "avg_holding_days": 18.0,
-        "trade_count": 1
-      }
-    },
-    "backbone_changed": false,
-    "run_id": 2,
-    "run_intensity": "보통",
-    "run_created_at": "2026-07-22 19:47:48.548216",
-    "run_start_date": "2021-07-23",
-    "run_end_date": "2026-07-22",
-    "train_ratio": 0.75
-  },
-  {
-    "ticker": "LHX",
-    "sector": "Industrials",
-    "style_type": "경기민감주",
-    "trained_regime": "약세장",
-    "excess_return": 165.85,
-    "base_config": {
-      "entry_stages": [
-        {
-          "weight": 0.9,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            },
-            {
-              "indicator": "rsi",
-              "period": 14,
-              "op": "<=",
-              "value": 30
-            }
-          ]
-        }
-      ],
-      "exit_stages": [
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "engulfing",
-              "direction": "bearish"
-            }
-          ]
-        },
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "ma_cross",
-              "short": 1,
-              "long": 20,
-              "type": "golden",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        }
-      ],
-      "emergency_exit": {
-        "logic": "AND",
-        "conditions": [
-          {
-            "indicator": "rsi",
-            "period": 14,
-            "op": ">=",
-            "value": 70
-          },
-          {
-            "indicator": "engulfing",
-            "direction": "bearish"
-          },
-          {
-            "indicator": "bollinger",
-            "period": 20,
-            "std_dev": 2,
-            "band": "upper"
-          }
-        ]
-      }
-    },
-    "tuned_config": {
-      "entry_stages": [
-        {
-          "weight": 0.9,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            },
-            {
-              "indicator": "rsi",
-              "period": 14,
-              "op": "<=",
-              "value": 30
-            }
-          ]
-        }
-      ],
-      "exit_stages": [
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "engulfing",
-              "direction": "bearish"
-            }
-          ]
-        },
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "ma_cross",
-              "short": 1,
-              "long": 20,
-              "type": "golden",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        }
-      ],
-      "emergency_exit": {
-        "logic": "AND",
-        "conditions": [
-          {
-            "indicator": "rsi",
-            "period": 14,
-            "op": ">=",
-            "value": 70
-          },
-          {
-            "indicator": "engulfing",
-            "direction": "bearish"
-          },
-          {
-            "indicator": "bollinger",
-            "period": 20,
-            "std_dev": 2,
-            "band": "upper"
-          }
-        ]
-      }
-    },
-    "test_comparison": {
-      "strategy": {
-        "cumulative_return": 4.97,
-        "cagr": 167.5,
-        "mdd": 0.0,
-        "sharpe": 9.79,
-        "win_rate": 100.0,
-        "avg_holding_days": 7.0,
-        "trade_count": 1
-      },
-      "buy_and_hold_ticker": {
-        "cumulative_return": -1.37,
-        "cagr": -24.36,
-        "mdd": -6.54,
-        "sharpe": -1.06,
-        "win_rate": 0.0,
-        "avg_holding_days": 18.0,
-        "trade_count": 1
-      },
-      "buy_and_hold_benchmark": {
-        "cumulative_return": 0.08,
-        "cagr": 1.65,
-        "mdd": -3.98,
-        "sharpe": 0.19,
-        "win_rate": 100.0,
-        "avg_holding_days": 18.0,
-        "trade_count": 1
-      }
-    },
-    "backbone_changed": false,
-    "run_id": 2,
-    "run_intensity": "보통",
-    "run_created_at": "2026-07-23 20:24:36.869068",
-    "run_start_date": "2021-07-24",
-    "run_end_date": "2026-07-23",
-    "train_ratio": 0.75
-  },
-  {
-    "ticker": "GNRC",
-    "sector": "Industrials",
-    "style_type": "경기민감주",
-    "trained_regime": "약세장",
-    "excess_return": 160.6,
-    "base_config": {
-      "entry_stages": [
-        {
-          "weight": 0.9,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            },
-            {
-              "indicator": "rsi",
-              "period": 14,
-              "op": "<=",
-              "value": 30
-            }
-          ]
-        }
-      ],
-      "exit_stages": [
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "engulfing",
-              "direction": "bearish"
-            }
-          ]
-        },
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "ma_cross",
-              "short": 1,
-              "long": 20,
-              "type": "golden",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        }
-      ],
-      "emergency_exit": {
-        "logic": "AND",
-        "conditions": [
-          {
-            "indicator": "rsi",
-            "period": 14,
-            "op": ">=",
-            "value": 70
-          },
-          {
-            "indicator": "engulfing",
-            "direction": "bearish"
-          },
-          {
-            "indicator": "bollinger",
-            "period": 20,
-            "std_dev": 2,
-            "band": "upper"
-          }
-        ]
-      }
-    },
-    "tuned_config": {
-      "entry_stages": [
-        {
-          "weight": 0.9,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            },
-            {
-              "indicator": "rsi",
-              "period": 14,
-              "op": "<=",
-              "value": 30
-            }
-          ]
-        }
-      ],
-      "exit_stages": [
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "engulfing",
-              "direction": "bearish"
-            }
-          ]
-        },
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "ma_cross",
-              "short": 1,
-              "long": 20,
-              "type": "golden",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        }
-      ],
-      "emergency_exit": {
-        "logic": "AND",
-        "conditions": [
-          {
-            "indicator": "rsi",
-            "period": 14,
-            "op": ">=",
-            "value": 70
-          },
-          {
-            "indicator": "engulfing",
-            "direction": "bearish"
-          },
-          {
-            "indicator": "bollinger",
-            "period": 20,
-            "std_dev": 2,
-            "band": "upper"
-          }
-        ]
-      }
-    },
-    "test_comparison": {
-      "strategy": {
-        "cumulative_return": 4.87,
-        "cagr": 162.25,
-        "mdd": -2.24,
-        "sharpe": 4.36,
-        "win_rate": 100.0,
-        "avg_holding_days": 7.0,
-        "trade_count": 1
-      },
-      "buy_and_hold_ticker": {
-        "cumulative_return": -2.65,
-        "cagr": -42.06,
-        "mdd": -11.33,
-        "sharpe": -1.1,
-        "win_rate": 0.0,
-        "avg_holding_days": 18.0,
-        "trade_count": 1
-      },
-      "buy_and_hold_benchmark": {
-        "cumulative_return": 0.08,
-        "cagr": 1.65,
-        "mdd": -3.98,
-        "sharpe": 0.19,
-        "win_rate": 100.0,
-        "avg_holding_days": 18.0,
-        "trade_count": 1
-      }
-    },
-    "backbone_changed": false,
-    "run_id": 2,
-    "run_intensity": "보통",
-    "run_created_at": "2026-07-22 19:47:48.548216",
-    "run_start_date": "2021-07-23",
-    "run_end_date": "2026-07-22",
-    "train_ratio": 0.75
-  },
-  {
-    "ticker": "MTB",
-    "sector": "Financials",
-    "style_type": "경기민감주",
-    "trained_regime": "약세장",
-    "excess_return": 157.39,
-    "base_config": {
-      "entry_stages": [
-        {
-          "weight": 0.9,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            },
-            {
-              "indicator": "rsi",
-              "period": 14,
-              "op": "<=",
-              "value": 30
-            }
-          ]
-        }
-      ],
-      "exit_stages": [
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "engulfing",
-              "direction": "bearish"
-            }
-          ]
-        },
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "ma_cross",
-              "short": 1,
-              "long": 20,
-              "type": "golden",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        }
-      ],
-      "emergency_exit": {
-        "logic": "AND",
-        "conditions": [
-          {
-            "indicator": "rsi",
-            "period": 14,
-            "op": ">=",
-            "value": 70
-          },
-          {
-            "indicator": "engulfing",
-            "direction": "bearish"
-          },
-          {
-            "indicator": "bollinger",
-            "period": 20,
-            "std_dev": 2,
-            "band": "upper"
-          }
-        ]
-      }
-    },
-    "tuned_config": {
-      "entry_stages": [
-        {
-          "weight": 0.9,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            },
-            {
-              "indicator": "rsi",
-              "period": 14,
-              "op": "<=",
-              "value": 30
-            }
-          ]
-        }
-      ],
-      "exit_stages": [
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "engulfing",
-              "direction": "bearish"
-            }
-          ]
-        },
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "ma_cross",
-              "short": 1,
-              "long": 20,
-              "type": "golden",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        }
-      ],
-      "emergency_exit": {
-        "logic": "AND",
-        "conditions": [
-          {
-            "indicator": "rsi",
-            "period": 14,
-            "op": ">=",
-            "value": 70
-          },
-          {
-            "indicator": "engulfing",
-            "direction": "bearish"
-          },
-          {
-            "indicator": "bollinger",
-            "period": 20,
-            "std_dev": 2,
-            "band": "upper"
-          }
-        ]
-      }
-    },
-    "test_comparison": {
-      "strategy": {
-        "cumulative_return": 4.8,
-        "cagr": 159.04,
-        "mdd": -2.1,
-        "sharpe": 6.33,
-        "win_rate": 0.0,
-        "avg_holding_days": 0.0,
-        "trade_count": 0
-      },
-      "buy_and_hold_ticker": {
-        "cumulative_return": 8.04,
-        "cagr": 380.38,
-        "mdd": -2.33,
-        "sharpe": 9.59,
-        "win_rate": 100.0,
-        "avg_holding_days": 18.0,
-        "trade_count": 1
-      },
-      "buy_and_hold_benchmark": {
-        "cumulative_return": 0.08,
-        "cagr": 1.65,
-        "mdd": -3.98,
-        "sharpe": 0.19,
-        "win_rate": 100.0,
-        "avg_holding_days": 18.0,
-        "trade_count": 1
-      }
-    },
-    "backbone_changed": false,
-    "run_id": 2,
-    "run_intensity": "보통",
-    "run_created_at": "2026-07-21 19:10:03.762991",
-    "run_start_date": "2021-07-22",
-    "run_end_date": "2026-07-21",
-    "train_ratio": 0.75
-  },
-  {
-    "ticker": "AMCR",
-    "sector": "Materials",
-    "style_type": "경기민감주",
-    "trained_regime": "약세장",
-    "excess_return": 151.9,
-    "base_config": {
-      "entry_stages": [
-        {
-          "weight": 0.9,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            },
-            {
-              "indicator": "rsi",
-              "period": 14,
-              "op": "<=",
-              "value": 30
-            }
-          ]
-        }
-      ],
-      "exit_stages": [
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "engulfing",
-              "direction": "bearish"
-            }
-          ]
-        },
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "ma_cross",
-              "short": 1,
-              "long": 20,
-              "type": "golden",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        }
-      ],
-      "emergency_exit": {
-        "logic": "AND",
-        "conditions": [
-          {
-            "indicator": "rsi",
-            "period": 14,
-            "op": ">=",
-            "value": 70
-          },
-          {
-            "indicator": "engulfing",
-            "direction": "bearish"
-          },
-          {
-            "indicator": "bollinger",
-            "period": 20,
-            "std_dev": 2,
-            "band": "upper"
-          }
-        ]
-      }
-    },
-    "tuned_config": {
-      "entry_stages": [
-        {
-          "weight": 0.9,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            },
-            {
-              "indicator": "rsi",
-              "period": 14,
-              "op": "<=",
-              "value": 30
-            }
-          ]
-        }
-      ],
-      "exit_stages": [
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "engulfing",
-              "direction": "bearish"
-            }
-          ]
-        },
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "ma_cross",
-              "short": 1,
-              "long": 20,
-              "type": "golden",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        }
-      ],
-      "emergency_exit": {
-        "logic": "AND",
-        "conditions": [
-          {
-            "indicator": "rsi",
-            "period": 14,
-            "op": ">=",
-            "value": 70
-          },
-          {
-            "indicator": "engulfing",
-            "direction": "bearish"
-          },
-          {
-            "indicator": "bollinger",
-            "period": 20,
-            "std_dev": 2,
-            "band": "upper"
-          }
-        ]
-      }
-    },
-    "test_comparison": {
-      "strategy": {
-        "cumulative_return": 4.69,
-        "cagr": 153.55,
-        "mdd": -5.43,
-        "sharpe": 3.36,
-        "win_rate": 0.0,
-        "avg_holding_days": 0.0,
-        "trade_count": 0
-      },
-      "buy_and_hold_ticker": {
-        "cumulative_return": 2.89,
-        "cagr": 78.44,
-        "mdd": -6.02,
-        "sharpe": 1.9,
-        "win_rate": 100.0,
-        "avg_holding_days": 18.0,
-        "trade_count": 1
-      },
-      "buy_and_hold_benchmark": {
-        "cumulative_return": 0.08,
-        "cagr": 1.65,
-        "mdd": -3.98,
-        "sharpe": 0.19,
-        "win_rate": 100.0,
-        "avg_holding_days": 18.0,
-        "trade_count": 1
-      }
-    },
-    "backbone_changed": false,
-    "run_id": 1,
-    "run_intensity": "빠름",
-    "run_created_at": "2026-07-21 17:35:27.602136",
-    "run_start_date": "2021-07-22",
-    "run_end_date": "2026-07-21",
-    "train_ratio": 0.75
-  },
-  {
-    "ticker": "AMCR",
-    "sector": "Materials",
-    "style_type": "경기민감주",
-    "trained_regime": "약세장",
-    "excess_return": 151.9,
-    "base_config": {
-      "entry_stages": [
-        {
-          "weight": 0.9,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            },
-            {
-              "indicator": "rsi",
-              "period": 14,
-              "op": "<=",
-              "value": 30
-            }
-          ]
-        }
-      ],
-      "exit_stages": [
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "engulfing",
-              "direction": "bearish"
-            }
-          ]
-        },
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "ma_cross",
-              "short": 1,
-              "long": 20,
-              "type": "golden",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        }
-      ],
-      "emergency_exit": {
-        "logic": "AND",
-        "conditions": [
-          {
-            "indicator": "rsi",
-            "period": 14,
-            "op": ">=",
-            "value": 70
-          },
-          {
-            "indicator": "engulfing",
-            "direction": "bearish"
-          },
-          {
-            "indicator": "bollinger",
-            "period": 20,
-            "std_dev": 2,
-            "band": "upper"
-          }
-        ]
-      }
-    },
-    "tuned_config": {
-      "entry_stages": [
-        {
-          "weight": 0.9,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            },
-            {
-              "indicator": "rsi",
-              "period": 14,
-              "op": "<=",
-              "value": 30
-            }
-          ]
-        }
-      ],
-      "exit_stages": [
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "engulfing",
-              "direction": "bearish"
-            }
-          ]
-        },
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "ma_cross",
-              "short": 1,
-              "long": 20,
-              "type": "golden",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        }
-      ],
-      "emergency_exit": {
-        "logic": "AND",
-        "conditions": [
-          {
-            "indicator": "rsi",
-            "period": 14,
-            "op": ">=",
-            "value": 70
-          },
-          {
-            "indicator": "engulfing",
-            "direction": "bearish"
-          },
-          {
-            "indicator": "bollinger",
-            "period": 20,
-            "std_dev": 2,
-            "band": "upper"
-          }
-        ]
-      }
-    },
-    "test_comparison": {
-      "strategy": {
-        "cumulative_return": 4.69,
-        "cagr": 153.55,
-        "mdd": -5.43,
-        "sharpe": 3.36,
-        "win_rate": 0.0,
-        "avg_holding_days": 0.0,
-        "trade_count": 0
-      },
-      "buy_and_hold_ticker": {
-        "cumulative_return": 2.89,
-        "cagr": 78.44,
-        "mdd": -6.02,
-        "sharpe": 1.9,
-        "win_rate": 100.0,
-        "avg_holding_days": 18.0,
-        "trade_count": 1
-      },
-      "buy_and_hold_benchmark": {
-        "cumulative_return": 0.08,
-        "cagr": 1.65,
-        "mdd": -3.98,
-        "sharpe": 0.19,
-        "win_rate": 100.0,
-        "avg_holding_days": 18.0,
-        "trade_count": 1
-      }
-    },
-    "backbone_changed": false,
-    "run_id": 2,
-    "run_intensity": "보통",
-    "run_created_at": "2026-07-21 19:10:03.762991",
-    "run_start_date": "2021-07-22",
-    "run_end_date": "2026-07-21",
-    "train_ratio": 0.75
-  },
-  {
-    "ticker": "SHW",
-    "sector": "Materials",
-    "style_type": "경기민감주",
-    "trained_regime": "약세장",
-    "excess_return": 151.85,
-    "base_config": {
-      "entry_stages": [
-        {
-          "weight": 0.9,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            },
-            {
-              "indicator": "rsi",
-              "period": 14,
-              "op": "<=",
-              "value": 30
-            }
-          ]
-        }
-      ],
-      "exit_stages": [
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "engulfing",
-              "direction": "bearish"
-            }
-          ]
-        },
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "ma_cross",
-              "short": 1,
-              "long": 20,
-              "type": "golden",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        }
-      ],
-      "emergency_exit": {
-        "logic": "AND",
-        "conditions": [
-          {
-            "indicator": "rsi",
-            "period": 14,
-            "op": ">=",
-            "value": 70
-          },
-          {
-            "indicator": "engulfing",
-            "direction": "bearish"
-          },
-          {
-            "indicator": "bollinger",
-            "period": 20,
-            "std_dev": 2,
-            "band": "upper"
-          }
-        ]
-      }
-    },
-    "tuned_config": {
-      "entry_stages": [
-        {
-          "weight": 0.9,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            },
-            {
-              "indicator": "rsi",
-              "period": 14,
-              "op": "<=",
-              "value": 30
-            }
-          ]
-        }
-      ],
-      "exit_stages": [
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "engulfing",
-              "direction": "bearish"
-            }
-          ]
-        },
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "ma_cross",
-              "short": 1,
-              "long": 20,
-              "type": "golden",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        }
-      ],
-      "emergency_exit": {
-        "logic": "AND",
-        "conditions": [
-          {
-            "indicator": "rsi",
-            "period": 14,
-            "op": ">=",
-            "value": 70
-          },
-          {
-            "indicator": "engulfing",
-            "direction": "bearish"
-          },
-          {
-            "indicator": "bollinger",
-            "period": 20,
-            "std_dev": 2,
-            "band": "upper"
-          }
-        ]
-      }
-    },
-    "test_comparison": {
-      "strategy": {
-        "cumulative_return": 4.69,
-        "cagr": 153.5,
-        "mdd": -2.1,
-        "sharpe": 4.47,
-        "win_rate": 0.0,
-        "avg_holding_days": 0.0,
-        "trade_count": 0
-      },
-      "buy_and_hold_ticker": {
-        "cumulative_return": 1.94,
-        "cagr": 47.57,
-        "mdd": -2.86,
-        "sharpe": 1.67,
-        "win_rate": 100.0,
-        "avg_holding_days": 18.0,
-        "trade_count": 1
-      },
-      "buy_and_hold_benchmark": {
-        "cumulative_return": 0.08,
-        "cagr": 1.65,
-        "mdd": -3.98,
-        "sharpe": 0.19,
-        "win_rate": 100.0,
-        "avg_holding_days": 18.0,
-        "trade_count": 1
-      }
-    },
-    "backbone_changed": false,
-    "run_id": 2,
-    "run_intensity": "보통",
-    "run_created_at": "2026-07-22 19:47:48.548216",
-    "run_start_date": "2021-07-23",
-    "run_end_date": "2026-07-22",
-    "train_ratio": 0.75
-  },
-  {
-    "ticker": "SHW",
-    "sector": "Materials",
-    "style_type": "경기민감주",
-    "trained_regime": "약세장",
-    "excess_return": 151.85,
-    "base_config": {
-      "entry_stages": [
-        {
-          "weight": 0.9,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            },
-            {
-              "indicator": "rsi",
-              "period": 14,
-              "op": "<=",
-              "value": 30
-            }
-          ]
-        }
-      ],
-      "exit_stages": [
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "engulfing",
-              "direction": "bearish"
-            }
-          ]
-        },
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "ma_cross",
-              "short": 1,
-              "long": 20,
-              "type": "golden",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        }
-      ],
-      "emergency_exit": {
-        "logic": "AND",
-        "conditions": [
-          {
-            "indicator": "rsi",
-            "period": 14,
-            "op": ">=",
-            "value": 70
-          },
-          {
-            "indicator": "engulfing",
-            "direction": "bearish"
-          },
-          {
-            "indicator": "bollinger",
-            "period": 20,
-            "std_dev": 2,
-            "band": "upper"
-          }
-        ]
-      }
-    },
-    "tuned_config": {
-      "entry_stages": [
-        {
-          "weight": 0.9,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            }
-          ]
-        },
-        {
-          "weight": 0.05,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "bollinger",
-              "period": 20,
-              "std_dev": 2,
-              "band": "lower"
-            },
-            {
-              "indicator": "engulfing",
-              "direction": "bullish"
-            },
-            {
-              "indicator": "rsi",
-              "period": 14,
-              "op": "<=",
-              "value": 30
-            }
-          ]
-        }
-      ],
-      "exit_stages": [
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "engulfing",
-              "direction": "bearish"
-            }
-          ]
-        },
-        {
-          "weight": 0.5,
-          "logic": "AND",
-          "conditions": [
-            {
-              "indicator": "ma_cross",
-              "short": 1,
-              "long": 20,
-              "type": "golden",
-              "direction": "down",
-              "source": "macd",
-              "kijun_len": 26,
-              "span_b_len": 52,
-              "displacement": 26
-            }
-          ]
-        }
-      ],
-      "emergency_exit": {
-        "logic": "AND",
-        "conditions": [
-          {
-            "indicator": "rsi",
-            "period": 14,
-            "op": ">=",
-            "value": 70
-          },
-          {
-            "indicator": "engulfing",
-            "direction": "bearish"
-          },
-          {
-            "indicator": "bollinger",
-            "period": 20,
-            "std_dev": 2,
-            "band": "upper"
-          }
-        ]
-      }
-    },
-    "test_comparison": {
-      "strategy": {
-        "cumulative_return": 4.69,
-        "cagr": 153.5,
-        "mdd": -2.1,
-        "sharpe": 4.47,
-        "win_rate": 0.0,
-        "avg_holding_days": 0.0,
-        "trade_count": 0
-      },
-      "buy_and_hold_ticker": {
-        "cumulative_return": 1.94,
-        "cagr": 47.57,
-        "mdd": -2.86,
-        "sharpe": 1.67,
         "win_rate": 100.0,
         "avg_holding_days": 18.0,
         "trade_count": 1
