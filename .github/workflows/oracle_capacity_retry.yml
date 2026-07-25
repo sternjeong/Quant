@@ -44,6 +44,10 @@ jobs:
           SSH_PUBLIC_KEY_FILE: ${{ github.workspace }}/deploy/ci_ssh_key.pub
         run: |
           printf '%s' "${{ secrets.ORACLE_SSH_PUBLIC_KEY }}" > "$SSH_PUBLIC_KEY_FILE"
+          if [ -z "$COMPARTMENT_ID" ] || [ -z "$IMAGE_ID" ] || [ -z "$SUBNET_ID" ] || [ -z "$AVAILABILITY_DOMAINS" ]; then
+            echo "::error::필수 secrets가 비어있음 (OCI_TENANCY_OCID/OCI_IMAGE_ID/OCI_SUBNET_ID/OCI_AVAILABILITY_DOMAINS 중 하나 이상 미등록) — repo secrets 등록 필요"
+            exit 1
+          fi
           set +e
           IFS=',' read -ra AD_LIST <<< "$AVAILABILITY_DOMAINS"
           for ad in "${AD_LIST[@]}"; do
