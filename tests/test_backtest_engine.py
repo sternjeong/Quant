@@ -240,3 +240,160 @@ def test_save_backtest_result_persists_row(db_session, monkeypatch):
     assert fetched is not None
     assert fetched.ticker == "TEST"
     assert fetched.cagr == 5.6
+
+
+# =============================================================================
+# 검증 테스트 4종 (Masters) 단위 테스트
+# =============================================================================
+
+
+def _rsi_config(threshold):
+    return {"logic": "AND", "conditions": [{"indicator": "rsi", "period": 14, "op": "<", "value": threshold}]}
+
+
+def test_run_sensitivity_sweep_returns_one_point_per_variant():
+    variants = [(v, _rsi_config(v)) for v in (30, 40, 50, 60, 70)]
+    result = backtest_engine.run_sensitivity_sweep("TEST", variants, "2021-06-01", "2022-06-01", metric="sharpe")
+    assert len(result["points"]) == 5
+    assert [p["param_value"] for p in result["points"]] == [30, 40, 50, 60, 70]
+    assert isinstance(result["is_robust"], bool)
+    assert result["max_jump"] >= 0
+    assert result["metric_range"] >= 0
+
+
+def test_run_sensitivity_sweep_single_variant_has_no_robustness_verdict():
+    variants = [(50, _rsi_config(50))]
+    result = backtest_engine.run_sensitivity_sweep("TEST", variants, "2021-06-01", "2022-06-01")
+    assert len(result["points"]) == 1
+    assert result["is_robust"] is None
+    assert result["max_jump"] is None
+
+
+def test_shuffle_daily_bars_keeps_dates_and_permutes_close_ratios():
+    raw = _make_df()
+    window_start, window_end = raw.index[300], raw.index[-1]
+    rng = np.random.default_rng(42)
+    synthetic = backtest_engine._shuffle_daily_bars(raw, window_start, window_end, rng)
+
+    # 인덱스(날짜)는 그대로, 값만 바뀐다.
+    assert list(synthetic.index) == list(raw.index)
+    before = raw[(raw.index < window_start)]
+    pd.testing.assert_frame_equal(synthetic.loc[before.index], before)
+
+    window_mask = (raw.index >= window_start) & (raw.index <= window_end)
+    original_close = raw.loc[window_mask, "Close"].to_numpy()
+    synthetic_close = synthetic.loc[window_mask, "Close"].to_numpy()
+    assert not np.allclose(original_close, synthetic_close)  # 순서가 섞였으니 값도 달라져야 함
+
+    # 일별 종가 변화율(비율) 집합 자체는 원본과 동일해야 한다 (순서만 바뀌었을 뿐 개별 값은 보존).
+    prev_close = raw["Close"].shift(1)
+    original_ratios = (raw.loc[window_mask, "Close"] / prev_close.loc[window_mask]).sort_values().to_numpy()
+    synthetic_prev_close = synthetic["Close"].shift(1)
+    synthetic_ratios = (
+        (synthetic.loc[window_mask, "Close"] / synthetic_prev_close.loc[window_mask]).sort_values().to_numpy()
+    )
+    np.testing.assert_allclose(original_ratios, synthetic_ratios, rtol=1e-9)
+
+
+def test_run_permutation_test_returns_distribution_and_pvalue():
+    config = _rsi_config(40)
+    result = backtest_engine.run_permutation_test(
+        "TEST", config, "2021-06-01", "2022-06-01", n_permutations=10, metric="cumulative_return", seed=7
+    )
+    assert result["n_permutations"] == 10
+    assert len(result["permuted_metrics"]) == 10
+    assert result["actual_metric"] is not None
+    assert 0.0 <= result["p_value"] <= 1.0
+    assert 0.0 <= result["percentile"] <= 100.0
+
+
+def test_run_permutation_test_deterministic_with_seed():
+    config = _rsi_config(40)
+    result_a = backtest_engine.run_permutation_test(
+        "TEST", config, "2021-06-01", "2022-06-01", n_permutations=5, seed=123
+    )
+    result_b = backtest_engine.run_permutation_test(
+        "TEST", config, "2021-06-01", "2022-06-01", n_permutations=5, seed=123
+    )
+    assert result_a["permuted_metrics"] == result_b["permuted_metrics"]
+
+
+def test_run_partition_test_components_sum_to_total():
+    idx = pd.bdate_range("2021-01-04", periods=10)
+    strategy_run = backtest_engine.BacktestRun(
+        label="전략",
+        ticker="TEST",
+        df=pd.DataFrame(index=idx),
+        position=pd.Series([0, 1, 1, 1, 0, 0, 1, 1, 0, 0], index=idx, dtype=float),
+        equity_curve=pd.Series(100 * np.linspace(1.0, 1.3, 10), index=idx),
+    )
+    benchmark_run = backtest_engine.BacktestRun(
+        label="매수후보유",
+        ticker="TEST",
+        df=pd.DataFrame(index=idx),
+        position=pd.Series([1] * 10, index=idx, dtype=float),
+        equity_curve=pd.Series(100 * np.linspace(1.0, 1.5, 10), index=idx),
+    )
+    result = backtest_engine.run_partition_test(strategy_run, benchmark_run)
+    # 정의상 total = trend + skill + bias 가 항상 성립해야 한다 (반올림 오차 허용).
+    reconstructed = result["trend_log_return"] + result["skill_log_return"] + result["bias_log_return"]
+    assert reconstructed == pytest.approx(result["total_log_return"], abs=1e-3)
+    assert 0.0 <= result["exposure_pct"] <= 100.0
+
+
+def test_run_partition_test_zero_exposure_has_no_trend_or_skill():
+    idx = pd.bdate_range("2021-01-04", periods=5)
+    flat_run = backtest_engine.BacktestRun(
+        label="전략",
+        ticker="TEST",
+        df=pd.DataFrame(index=idx),
+        position=pd.Series([0.0] * 5, index=idx),
+        equity_curve=pd.Series([100.0] * 5, index=idx),  # 계속 관망이라 자산가치 변화 없음
+    )
+    benchmark_run = backtest_engine.BacktestRun(
+        label="매수후보유",
+        ticker="TEST",
+        df=pd.DataFrame(index=idx),
+        position=pd.Series([1.0] * 5, index=idx),
+        equity_curve=pd.Series(100 * np.linspace(1.0, 1.2, 5), index=idx),
+    )
+    result = backtest_engine.run_partition_test(flat_run, benchmark_run)
+    assert result["total_log_return"] == pytest.approx(0.0, abs=1e-9)
+    assert result["trend_log_return"] == pytest.approx(0.0, abs=1e-9)
+    assert result["skill_log_return"] == pytest.approx(0.0, abs=1e-9)
+
+
+def test_run_partition_test_empty_equity_curve_returns_zeros():
+    empty_run = backtest_engine.BacktestRun(
+        label="empty", ticker="TEST", df=pd.DataFrame(), position=pd.Series(dtype=float), equity_curve=pd.Series(dtype=float)
+    )
+    result = backtest_engine.run_partition_test(empty_run, empty_run)
+    assert result["total_log_return"] == 0.0
+    assert result["skill_pct_of_total"] is None
+
+
+def test_summarize_strategy_vs_benchmarks_flags_wins_and_losses():
+    strategy_run = backtest_engine.BacktestRun(
+        label="전략",
+        ticker="TEST",
+        df=pd.DataFrame(),
+        position=pd.Series(dtype=float),
+        equity_curve=pd.Series(dtype=float),
+        metrics={"cumulative_return": 57.0, "cagr": 9.5, "mdd": -8.0, "sharpe": 1.24, "win_rate": 86.0, "trade_count": 44},
+    )
+    benchmark_run = backtest_engine.BacktestRun(
+        label="매수후보유",
+        ticker="TEST",
+        df=pd.DataFrame(),
+        position=pd.Series(dtype=float),
+        equity_curve=pd.Series(dtype=float),
+        metrics={"cumulative_return": 73.0, "cagr": 11.6, "mdd": -25.0, "sharpe": 0.7, "win_rate": 100.0, "trade_count": 1},
+    )
+    comparison = {"strategy": strategy_run, "buy_and_hold_ticker": benchmark_run}
+    summary = backtest_engine.summarize_strategy_vs_benchmarks(comparison)
+    # 영상 사례와 동일한 패턴: 원수익률/CAGR은 졌지만 낙폭 방어력과 위험조정수익률(샤프)은 이겼다.
+    assert summary["beats_on_return"] is False
+    assert summary["beats_on_cagr"] is False
+    assert summary["beats_on_mdd"] is True
+    assert summary["beats_on_sharpe"] is True
+    assert summary["regime_breakdown"] is None

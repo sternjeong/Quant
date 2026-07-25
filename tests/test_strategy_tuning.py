@@ -279,7 +279,7 @@ def test_get_top_tuning_results_orders_by_excess_return_and_filters_errors(db_se
         base_strategy_id=99,
     )
 
-    top = st_mod.get_top_tuning_results(base_strategy_id=3, limit=10)
+    top = st_mod.get_top_tuning_results(base_strategy_id=3, limit=10, require_significant=False)
     tickers_in_order = [r["ticker"] for r in top]
     assert tickers_in_order == ["D", "A", "B"]  # excess_return 내림차순, C(에러)/Z(다른 전략) 제외
     assert top[0]["excess_return"] == 8.0
@@ -304,7 +304,7 @@ def test_get_top_tuning_results_respects_limit(db_session, monkeypatch):
         BOLLINGER_1_2_6, tickers_df, "2020-01-01", "2021-01-01", 0.75, "보통", results, base_strategy_id=3
     )
 
-    top = st_mod.get_top_tuning_results(base_strategy_id=3, limit=2)
+    top = st_mod.get_top_tuning_results(base_strategy_id=3, limit=2, require_significant=False)
     assert len(top) == 2
     assert [r["ticker"] for r in top] == ["T4", "T3"]
 
@@ -325,7 +325,7 @@ def test_get_top_tuning_results_includes_base_config(db_session, monkeypatch):
         BOLLINGER_1_2_6, tickers_df, "2020-01-01", "2021-01-01", 0.75, "빠름", results, base_strategy_id=3
     )
 
-    top = st_mod.get_top_tuning_results(base_strategy_id=3, limit=10)
+    top = st_mod.get_top_tuning_results(base_strategy_id=3, limit=10, require_significant=False)
     assert top[0]["base_config"] == BOLLINGER_1_2_6
 
 
@@ -776,11 +776,21 @@ def test_select_best_group_config_walkforward_picks_highest_scoring_candidate(mo
 
 def test_group_mean_excess_return_averages_and_skips_errors():
     per_ticker = {
-        "A": {"strategy": {"cagr": 20.0}, "buy_and_hold_benchmark": {"cagr": 10.0}},
-        "B": {"strategy": {"cagr": 5.0}, "buy_and_hold_benchmark": {"cagr": 10.0}},
+        "A": {"strategy": {"cumulative_return": 20.0, "trade_count": 10}, "buy_and_hold_benchmark": {"cumulative_return": 10.0}},
+        "B": {"strategy": {"cumulative_return": 5.0, "trade_count": 10}, "buy_and_hold_benchmark": {"cumulative_return": 10.0}},
         "C": {"error": "실패"},
     }
     assert st_mod._group_mean_excess_return(per_ticker) == pytest.approx(2.5)  # (10 + (-5)) / 2
+
+
+def test_group_mean_excess_return_excludes_tickers_below_min_trade_count():
+    """매매횟수가 _MIN_TRADE_COUNT 미만인 종목은 표본이 얇아 평균에서 제외돼야 한다(2026-07-25 —
+    2주짜리 국면 일치 세그먼트에서 매매 1회로 CAGR이 폭발하는 문제 발견 후 추가)."""
+    per_ticker = {
+        "A": {"strategy": {"cumulative_return": 20.0, "trade_count": 10}, "buy_and_hold_benchmark": {"cumulative_return": 10.0}},
+        "B": {"strategy": {"cumulative_return": 1000.0, "trade_count": 1}, "buy_and_hold_benchmark": {"cumulative_return": 5.0}},
+    }
+    assert st_mod._group_mean_excess_return(per_ticker) == pytest.approx(10.0)  # B(매매 1회)는 제외, A만 반영
 
 
 def test_group_mean_excess_return_all_failed_returns_negative_infinity():
@@ -809,13 +819,13 @@ def test_train_folds_for_regime_delegates_to_market_regime(monkeypatch):
 def test_evaluate_group_config_on_regime_matched_test_picks_longest_segment(monkeypatch):
     monkeypatch.setattr(
         st_mod.market_regime, "historical_regime_segments",
-        lambda start, end: {"약세장": [("2020-01-01", "2020-02-01"), ("2020-06-01", "2020-09-01")]},
+        lambda start, end, min_trading_days=None: {"약세장": [("2020-01-01", "2020-02-01"), ("2020-06-01", "2020-09-01")]},
     )
     captured = {}
 
     def _fake_eval(tickers, config, seg_start, seg_end, max_holding_days=None):
         captured["segment"] = (seg_start, seg_end)
-        return {"A": {"strategy": {"cagr": 20.0}, "buy_and_hold_benchmark": {"cagr": 5.0}}}
+        return {"A": {"strategy": {"cumulative_return": 20.0, "trade_count": 10}, "buy_and_hold_benchmark": {"cumulative_return": 5.0}}}
 
     monkeypatch.setattr(st_mod, "_evaluate_group_config_on_test", _fake_eval)
 
@@ -827,7 +837,7 @@ def test_evaluate_group_config_on_regime_matched_test_picks_longest_segment(monk
 
 
 def test_evaluate_group_config_on_regime_matched_test_none_when_no_matching_segment(monkeypatch):
-    monkeypatch.setattr(st_mod.market_regime, "historical_regime_segments", lambda start, end: {"약세장": []})
+    monkeypatch.setattr(st_mod.market_regime, "historical_regime_segments", lambda start, end, min_trading_days=None: {"약세장": []})
     result = st_mod._evaluate_group_config_on_regime_matched_test(["A"], {}, "2020-01-01", "2020-12-31", "약세장")
     assert result is None
 
@@ -857,7 +867,7 @@ def test_tune_strategy_for_group_uses_regime_folds_when_regime_given(monkeypatch
     monkeypatch.setattr(st_mod, "diagnose_strategy_health", lambda cfg: [])
     # test 구간엔 국면 일치 구간이 없다고 가정(폴드 위임 여부만 검증하는 게 이 테스트의 목적이라
     # test 평가 자체는 단순화) -> 2026-07-17 정정 이후 검증 불가(None)로 나오는 게 정상.
-    monkeypatch.setattr(st_mod.market_regime, "historical_regime_segments", lambda start, end: {"약세장": []})
+    monkeypatch.setattr(st_mod.market_regime, "historical_regime_segments", lambda start, end, min_trading_days=None: {"약세장": []})
     monkeypatch.setattr(st_mod, "generate_structural_variants_for_config", lambda *a, **k: [])
 
     result = st_mod.tune_strategy_for_group(
@@ -884,7 +894,7 @@ def test_tune_strategy_for_group_falls_back_when_no_regime_segments_in_train(mon
     )
     monkeypatch.setattr(st_mod, "run_backtest", lambda ticker, cfg, start, end, label="train", max_holding_days=None: SimpleNamespace(metrics=_metrics()))
     monkeypatch.setattr(st_mod, "diagnose_strategy_health", lambda cfg: [])
-    monkeypatch.setattr(st_mod.market_regime, "historical_regime_segments", lambda start, end: {"약세장": []})
+    monkeypatch.setattr(st_mod.market_regime, "historical_regime_segments", lambda start, end, min_trading_days=None: {"약세장": []})
     monkeypatch.setattr(st_mod, "generate_structural_variants_for_config", lambda *a, **k: [])
 
     result = st_mod.tune_strategy_for_group(
@@ -908,7 +918,7 @@ def test_tune_strategy_for_group_with_regime_reports_matched_segment_as_primary_
     # test 구간 안에 약세장 구간이 하나 있고(2021-01-01~2021-06-01), 그 바깥(강세장 등)에서 호출되면
     # 완전히 다른(훨씬 나쁜) 수치를 주도록 만들어 "정말로 국면 구간만 썼는지"를 구분해낼 수 있게 한다.
     matched_segment = ("2021-01-01", "2021-06-01")
-    monkeypatch.setattr(st_mod.market_regime, "historical_regime_segments", lambda start, end: {"약세장": [matched_segment]})
+    monkeypatch.setattr(st_mod.market_regime, "historical_regime_segments", lambda start, end, min_trading_days=None: {"약세장": [matched_segment]})
 
     def _fake_compare(ticker, cfg, start, end, max_holding_days=None):
         if (start, end) == matched_segment:
@@ -986,16 +996,26 @@ def test_tune_strategy_for_group_shares_one_config_across_tickers_and_stays_hone
 
 
 def test_tune_strategy_for_group_tries_structural_variant_when_group_underperforms(monkeypatch):
-    """그룹 평균이 test 구간에서 S&P500을 못 이기면(mean_excess<=0) 구조 변경을 시도하고, 그룹
-    평균이 실제로 개선되는 변형만 채택해야 한다."""
+    """그룹 평균이 test 구간에서 S&P500을 못 이기면(mean_excess<=0) 구조 변경을 시도한다. 어떤
+    변형을 '채택'할지는 train 워크포워드 점수로만 정해야 한다 — test 성과로 고르면 정답지를 보고
+    답을 고르는 데이터 스누핑이 된다는 게 2026-07-25에 실제로 발견된 버그였다(WDC 사례).
+
+    이를 증명하기 위해 일부러 train과 test 성과를 반대로 뒤집어놓는다: "better" 태그는 train
+    점수는 높지만(sharpe 5.0) test는 지고(cagr 3.0 < 벤치마크 8.0), "worse" 태그는 train 점수는
+    낮지만(0.1) test는 화려하게 이긴다(cagr 25.0). 그래도 train 기준으로 "better"가 채택돼야
+    한다 — 그리고 채택된 뒤 보고되는 group_mean_excess_return은 그 "better"의 실제(안 좋은) test
+    결과를 정직하게 반영해야 한다(test는 선택이 아니라 보고에만 쓰이므로)."""
     monkeypatch.setattr(st_mod, "diagnose_strategy_health", lambda cfg: [])
-    monkeypatch.setattr(
-        st_mod, "run_backtest", lambda ticker, cfg, start, end, label="전략", max_holding_days=None: SimpleNamespace(metrics=_metrics(sharpe=1.0))
-    )
+
+    def _fake_run_backtest(ticker, cfg, start, end, label="전략", max_holding_days=None):
+        sharpe = 5.0 if cfg.get("_tag") == "better" else 0.1
+        return SimpleNamespace(metrics=_metrics(sharpe=sharpe, trade_count=10))
+
+    monkeypatch.setattr(st_mod, "run_backtest", _fake_run_backtest)
 
     def _fake_compare(ticker, cfg, start, end, max_holding_days=None):
-        # 원본(REGIME_BASE_CONFIG) 및 그 숫자 변형은 못 이기고, "better" 태그가 붙은 구조 변형만 이긴다.
-        strat_cagr = 25.0 if cfg.get("_tag") == "better" else 3.0
+        tag = cfg.get("_tag")
+        strat_cagr = 25.0 if tag == "worse" else 3.0  # 원본/"better" 둘 다 test에서는 진다.
         return _fake_test_comparison(strategy_cagr=strat_cagr, benchmark_cagr=8.0)
 
     monkeypatch.setattr(st_mod, "compare_with_benchmarks", _fake_compare)
@@ -1010,8 +1030,8 @@ def test_tune_strategy_for_group_tries_structural_variant_when_group_underperfor
     result = st_mod.tune_strategy_for_group(["AAA", "BBB"], REGIME_BASE_CONFIG, "성장주", "2020-01-01", "2021-12-31")
 
     assert result["backbone_changed"] is True
-    assert result["group_config"].get("_tag") == "better"
-    assert result["group_mean_excess_return"] == pytest.approx(17.0)  # 25 - 8
+    assert result["group_config"].get("_tag") == "better"  # train 점수가 높은 쪽이 채택됨(test 아님)
+    assert result["group_mean_excess_return"] == pytest.approx(-5.0)  # 채택된 "better"의 실제 test 성과(3-8)
 
 
 def test_tune_strategy_for_group_never_regresses_below_first_pass(monkeypatch):
@@ -1038,6 +1058,191 @@ def test_tune_strategy_for_group_never_regresses_below_first_pass(monkeypatch):
     assert len(result["group_config"]["conditions"]) == 2
     assert result["group_config"]["conditions"][0]["indicator"] == "ma_cross"
     assert result["group_config"]["conditions"][1]["indicator"] == "rsi"
+
+
+# ----------------------------------------------------------------------------
+# 짧은 구간 CAGR 연환산 아티팩트 + 순열검정/분해 테스트 유의성 통합 (2026-07-25)
+#
+# 사용자가 "야간 튜닝 결과가 그 종목에서는 이기는데 같은 섹터 다른 종목에 재학습 없이 적용하면
+# 계속 진다"고 보고해 조사한 결과: (1) 국면 일치 test 세그먼트가 며칠~몇 주로 짧을 때 CAGR이
+# 연환산 과정에서 폭발해(예: 2주 15% -> 연환산 1786%) 통계적으로 무의미한 값이 리더보드 1위를
+# 차지하고 있었고, (2) backbone_changed 경로가 실제로는 test 성과로 backbone을 골라 데이터
+# 스누핑이었으며, (3) "초과수익이 크다"와 "통계적으로 유의미한 엣지다"가 구분되지 않고 있었다.
+# ----------------------------------------------------------------------------
+
+
+def test_evaluate_group_config_on_regime_matched_test_uses_stricter_min_window(monkeypatch):
+    """test 세그먼트 매칭은 train 폴드(10거래일)보다 훨씬 엄격한 _MIN_TEST_WINDOW_TRADING_DAYS를
+    historical_regime_segments에 넘겨야 한다 — 안 그러면 며칠짜리 세그먼트의 CAGR이 연환산되며
+    폭발하는 문제가 재발한다."""
+    captured = {}
+
+    def _fake_segments(start, end, min_trading_days=None):
+        captured["min_trading_days"] = min_trading_days
+        return {"약세장": [("2020-06-01", "2020-09-01")]}
+
+    monkeypatch.setattr(st_mod.market_regime, "historical_regime_segments", _fake_segments)
+    monkeypatch.setattr(
+        st_mod, "_evaluate_group_config_on_test",
+        lambda tickers, config, seg_start, seg_end, max_holding_days=None: {
+            "A": {"strategy": {"cumulative_return": 10.0, "trade_count": 10}, "buy_and_hold_benchmark": {"cumulative_return": 5.0}}
+        },
+    )
+
+    st_mod._evaluate_group_config_on_regime_matched_test(["A"], {}, "2020-01-01", "2020-12-31", "약세장")
+
+    assert captured["min_trading_days"] == st_mod._MIN_TEST_WINDOW_TRADING_DAYS
+    assert st_mod._MIN_TEST_WINDOW_TRADING_DAYS > 10  # train 폴드 최소 길이보다 확실히 엄격해야 함
+
+
+def test_group_mean_excess_return_uses_cumulative_return_not_cagr():
+    """CAGR은 짧은 구간에서 연환산 폭발이 나므로, 초과수익은 반드시 cumulative_return 차이여야
+    한다 — cagr 필드에 일부러 터무니없는 값을 넣어도 결과에 영향이 없어야 함을 확인한다."""
+    per_ticker = {
+        "A": {
+            "strategy": {"cagr": 1786.0, "cumulative_return": 15.0, "trade_count": 1},  # cagr은 무시돼야 함
+        },
+    }
+    # trade_count=1이라 _MIN_TRADE_COUNT(5) 미달로 애초에 제외되어야 한다.
+    assert st_mod._group_mean_excess_return(
+        {**per_ticker, "B": {"strategy": {"cagr": 0.0, "cumulative_return": 12.0, "trade_count": 10}, "buy_and_hold_benchmark": {"cumulative_return": 2.0}}}
+    ) == pytest.approx(10.0)  # A(매매 1회)는 제외, B(12-2)만 반영 — cagr 필드는 아예 안 쓰임
+
+
+def test_compute_tuning_significance_only_computes_for_winning_sufficient_tickers(monkeypatch):
+    """이미 test에서 진(초과수익<=0) 종목이나 매매횟수가 부족한 종목은 순열검정/분해 테스트 계산
+    자체를 건너뛰어야 한다(비용 절감 + 애초에 '이겼다'고 보고하지 않을 값이라 검증할 이유가 없음)."""
+    per_ticker_test = {
+        "WIN": {"strategy": {"cumulative_return": 20.0, "trade_count": 10}, "buy_and_hold_benchmark": {"cumulative_return": 5.0}},
+        "LOSE": {"strategy": {"cumulative_return": 1.0, "trade_count": 10}, "buy_and_hold_benchmark": {"cumulative_return": 5.0}},
+        "THIN": {"strategy": {"cumulative_return": 50.0, "trade_count": 1}, "buy_and_hold_benchmark": {"cumulative_return": 5.0}},
+        "ERROR": {"error": "실패"},
+    }
+    computed_for = []
+
+    def _fake_permutation_test(ticker, config, seg_start, seg_end, n_permutations=40, metric="cumulative_return", max_holding_days=None):
+        computed_for.append(ticker)
+        return {"p_value": 0.01}
+
+    monkeypatch.setattr("core.backtest_engine.run_permutation_test", _fake_permutation_test)
+    monkeypatch.setattr("core.backtest_engine.run_buy_and_hold", lambda ticker, start, end: SimpleNamespace())
+    monkeypatch.setattr("core.backtest_engine.run_partition_test", lambda strat_run, bench_run: {"skill_pct_of_total": 80.0})
+    monkeypatch.setattr(st_mod, "run_backtest", lambda ticker, cfg, start, end, max_holding_days=None: SimpleNamespace())
+
+    result = st_mod._compute_tuning_significance(
+        ["WIN", "LOSE", "THIN", "ERROR"], {}, per_ticker_test, "2020-01-01", "2020-12-31", None
+    )
+
+    assert computed_for == ["WIN"]
+    assert result == {"WIN": {"p_value": 0.01, "skill_pct_of_total": 80.0}}
+
+
+def test_tune_strategy_for_group_attaches_per_ticker_significance(monkeypatch):
+    """tune_strategy_for_group의 반환값에 per_ticker_significance가 그대로 실려야 한다."""
+    monkeypatch.setattr(st_mod, "diagnose_strategy_health", lambda cfg: [])
+    monkeypatch.setattr(
+        st_mod, "run_backtest", lambda ticker, cfg, start, end, label="전략", max_holding_days=None: SimpleNamespace(metrics=_metrics(sharpe=1.0))
+    )
+    monkeypatch.setattr(
+        st_mod, "compare_with_benchmarks",
+        lambda ticker, cfg, start, end, max_holding_days=None: _fake_test_comparison(strategy_cagr=15.0, benchmark_cagr=10.0),
+    )
+    monkeypatch.setattr(
+        st_mod, "generate_structural_variants_for_config",
+        lambda *a, **k: (_ for _ in ()).throw(AssertionError("이겼는데도 구조 변경을 시도함")),
+    )
+    monkeypatch.setattr(
+        st_mod, "_compute_tuning_significance",
+        lambda tickers, config, per_ticker_test, test_start, test_end, regime_matched_test, max_holding_days=None: {
+            "AAA": {"p_value": 0.02, "skill_pct_of_total": 60.0}
+        },
+    )
+
+    result = st_mod.tune_strategy_for_group(["AAA"], REGIME_BASE_CONFIG, "성장주", "2020-01-01", "2021-12-31")
+
+    assert result["per_ticker_significance"] == {"AAA": {"p_value": 0.02, "skill_pct_of_total": 60.0}}
+
+
+def test_run_batch_tuning_marks_insufficient_sample_and_attaches_significance(monkeypatch):
+    """매매횟수가 _MIN_TRADE_COUNT 미만이면 excess_return은 None(리더보드에서 자동 제외)이 되고,
+    per_ticker_significance는 종목별 결과에 significance_p_value/skill_pct_of_total로 펼쳐져야
+    한다."""
+    tickers_df = pd.DataFrame({"ticker": ["THIN", "SIG"], "sector": ["Tech", "Tech"]})
+    fake_styles = pd.DataFrame(
+        {
+            "ticker": ["THIN", "SIG"], "sector": ["Tech", "Tech"],
+            "style_type": ["성장주", "성장주"], "style_scores": [{"성장주": 1}, {"성장주": 1}],
+        }
+    )
+    monkeypatch.setattr(st_mod, "compute_style_scores", lambda df, start, end: fake_styles)
+
+    def _fake_group_tune(tickers, base_config, style_type, start, end, train_ratio=0.75, intensity="보통", regime=None, max_holding_days=None):
+        return {
+            "style_type": style_type, "tickers": tickers, "trained_regime": regime,
+            "group_config": base_config, "backbone_changed": False,
+            "group_mean_excess_return": 1.0, "group_win_ratio": 1.0, "health_warnings": [],
+            "per_ticker_train_metrics": {t: _metrics() for t in tickers},
+            "per_ticker_test_comparison": {
+                "THIN": {
+                    "strategy": {"cagr": 500.0, "cumulative_return": 30.0, "trade_count": 1},
+                    "buy_and_hold_ticker": {"cagr": 5.0, "cumulative_return": 2.0},
+                    "buy_and_hold_benchmark": {"cagr": 5.0, "cumulative_return": 2.0},
+                },
+                "SIG": {
+                    "strategy": {"cagr": 20.0, "cumulative_return": 20.0, "trade_count": 15},
+                    "buy_and_hold_ticker": {"cagr": 5.0, "cumulative_return": 5.0},
+                    "buy_and_hold_benchmark": {"cagr": 5.0, "cumulative_return": 5.0},
+                },
+            },
+            "per_ticker_significance": {"SIG": {"p_value": 0.01, "skill_pct_of_total": 70.0}},
+            "insufficient_regime_data": False,
+            "regime_matched_test": None,
+        }
+
+    monkeypatch.setattr(st_mod, "tune_strategy_for_group", _fake_group_tune)
+
+    results = st_mod.run_batch_tuning(REGIME_BASE_CONFIG, tickers_df, "2020-01-01", "2021-01-01")
+
+    thin_row = next(r for r in results if r["ticker"] == "THIN" and r["trained_regime"] == "약세장")
+    sig_row = next(r for r in results if r["ticker"] == "SIG" and r["trained_regime"] == "약세장")
+
+    assert thin_row["excess_return"] is None  # 매매 1회 -> 표본 부족, CAGR 500%는 완전히 무시됨
+    assert thin_row["insufficient_sample"] is True
+    assert thin_row["significance_p_value"] is None
+
+    assert sig_row["excess_return"] == pytest.approx(15.0)  # 20 - 5 (cumulative_return 기준)
+    assert sig_row["insufficient_sample"] is False
+    assert sig_row["significance_p_value"] == pytest.approx(0.01)
+    assert sig_row["skill_pct_of_total"] == pytest.approx(70.0)
+
+
+def test_get_top_tuning_results_default_filters_by_significance(db_session, monkeypatch):
+    """require_significant 기본값(True)이면 p<0.05 & skill>0인 결과만 보여야 한다."""
+    from contextlib import contextmanager
+
+    @contextmanager
+    def _fake_get_session():
+        yield db_session
+        db_session.commit()
+
+    monkeypatch.setattr(st_mod, "get_session", _fake_get_session)
+
+    tickers_df = pd.DataFrame({"ticker": ["SIG", "NOTSIG", "NOSKILL", "OLD"], "sector": ["Tech"] * 4})
+    results = [
+        {"ticker": "SIG", "sector": "Tech", "excess_return": 5.0, "significance_p_value": 0.01, "skill_pct_of_total": 50.0},
+        {"ticker": "NOTSIG", "sector": "Tech", "excess_return": 20.0, "significance_p_value": 0.5, "skill_pct_of_total": 50.0},
+        {"ticker": "NOSKILL", "sector": "Tech", "excess_return": 15.0, "significance_p_value": 0.01, "skill_pct_of_total": -10.0},
+        {"ticker": "OLD", "sector": "Tech", "excess_return": 999.0},  # 유의성 필드 자체가 없는 구버전 결과
+    ]
+    st_mod.save_tuning_run(
+        BOLLINGER_1_2_6, tickers_df, "2020-01-01", "2021-01-01", 0.75, "빠름", results, base_strategy_id=3
+    )
+
+    filtered = st_mod.get_top_tuning_results(base_strategy_id=3, limit=10)
+    assert [r["ticker"] for r in filtered] == ["SIG"]
+
+    unfiltered = st_mod.get_top_tuning_results(base_strategy_id=3, limit=10, require_significant=False)
+    assert {r["ticker"] for r in unfiltered} == {"SIG", "NOTSIG", "NOSKILL", "OLD"}
 
 
 def test_run_batch_tuning_groups_tickers_by_style_and_trains_each_regime_separately(monkeypatch):
@@ -1070,9 +1275,14 @@ def test_run_batch_tuning_groups_tickers_by_style_and_trains_each_regime_separat
             "health_warnings": [],
             "per_ticker_train_metrics": {t: _metrics() for t in tickers},
             "per_ticker_test_comparison": {
-                t: {"strategy": {"cagr": 15.0}, "buy_and_hold_ticker": {"cagr": 10.0}, "buy_and_hold_benchmark": {"cagr": 10.0}}
+                t: {
+                    "strategy": {"cagr": 15.0, "cumulative_return": 15.0, "trade_count": 10},
+                    "buy_and_hold_ticker": {"cagr": 10.0, "cumulative_return": 10.0},
+                    "buy_and_hold_benchmark": {"cagr": 10.0, "cumulative_return": 10.0},
+                }
                 for t in tickers
             },
+            "per_ticker_significance": {},
             "insufficient_regime_data": False,
             "regime_matched_test": None,
         }
@@ -1121,9 +1331,14 @@ def test_run_batch_tuning_continues_after_single_group_failure(monkeypatch):
             "group_mean_excess_return": 1.0, "group_win_ratio": 1.0, "health_warnings": [],
             "per_ticker_train_metrics": {t: _metrics() for t in tickers},
             "per_ticker_test_comparison": {
-                t: {"strategy": {"cagr": 1.0}, "buy_and_hold_ticker": {"cagr": 0.0}, "buy_and_hold_benchmark": {"cagr": 0.0}}
+                t: {
+                    "strategy": {"cagr": 1.0, "cumulative_return": 1.0, "trade_count": 10},
+                    "buy_and_hold_ticker": {"cagr": 0.0, "cumulative_return": 0.0},
+                    "buy_and_hold_benchmark": {"cagr": 0.0, "cumulative_return": 0.0},
+                }
                 for t in tickers
             },
+            "per_ticker_significance": {},
             "insufficient_regime_data": False,
             "regime_matched_test": None,
         }
@@ -1425,11 +1640,34 @@ def _metrics(sharpe=0.0, trade_count=10, cagr=0.0, mdd=0.0, cumulative_return=0.
     }
 
 
-def _fake_test_comparison(strategy_cagr, benchmark_cagr, ticker_cagr=0.0):
+def _fake_test_comparison(
+    strategy_cagr,
+    benchmark_cagr,
+    ticker_cagr=0.0,
+    strategy_return=None,
+    benchmark_return=None,
+    ticker_return=None,
+    strategy_trade_count=10,
+):
+    """strategy_return/benchmark_return/ticker_return(cumulative_return)을 안 주면 대응하는
+    *_cagr 값을 그대로 쓴다 — core.strategy_tuning이 excess_return을 cagr 대신
+    cumulative_return으로 계산하도록 바뀐 뒤(2026-07-25)에도 숫자만 넘기는 기존 테스트가 값을
+    그대로 재사용할 수 있게 하기 위함. 짧은 구간 CAGR 폭발 문제를 직접 검증하는 테스트는
+    strategy_return 등을 cagr과 다르게 명시적으로 줘서 구분한다."""
     return {
-        "strategy": SimpleNamespace(metrics=_metrics(cagr=strategy_cagr, sharpe=1.0, mdd=-5.0)),
-        "buy_and_hold_ticker": SimpleNamespace(metrics=_metrics(cagr=ticker_cagr)),
-        "buy_and_hold_benchmark": SimpleNamespace(metrics=_metrics(cagr=benchmark_cagr)),
+        "strategy": SimpleNamespace(
+            metrics=_metrics(
+                cagr=strategy_cagr,
+                cumulative_return=strategy_return if strategy_return is not None else strategy_cagr,
+                sharpe=1.0, mdd=-5.0, trade_count=strategy_trade_count,
+            )
+        ),
+        "buy_and_hold_ticker": SimpleNamespace(
+            metrics=_metrics(cagr=ticker_cagr, cumulative_return=ticker_return if ticker_return is not None else ticker_cagr)
+        ),
+        "buy_and_hold_benchmark": SimpleNamespace(
+            metrics=_metrics(cagr=benchmark_cagr, cumulative_return=benchmark_return if benchmark_return is not None else benchmark_cagr)
+        ),
     }
 
 

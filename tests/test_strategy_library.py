@@ -30,6 +30,21 @@ def test_detect_strategy_type_invalid_json_falls_back_to_regime():
     assert detect_strategy_type("not json") == "regime"
 
 
+def test_detect_strategy_type_kostolany():
+    config = {"schema": "kostolany", "style": "장기"}
+    assert detect_strategy_type(json.dumps(config)) == "kostolany"
+
+
+def test_validate_indicator_config_accepts_valid_kostolany():
+    parsed = validate_indicator_config(json.dumps({"schema": "kostolany", "style": "스윙"}))
+    assert parsed["style"] == "스윙"
+
+
+def test_validate_indicator_config_rejects_kostolany_with_bad_style():
+    with pytest.raises(ValueError):
+        validate_indicator_config(json.dumps({"schema": "kostolany", "style": "단타"}))
+
+
 def test_validate_indicator_config_accepts_valid_expression():
     parsed = validate_indicator_config(json.dumps({"expression": "close > sma(close, 20)"}))
     assert parsed["expression"] == "close > sma(close, 20)"

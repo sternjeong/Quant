@@ -35,8 +35,16 @@
     {"combine": "AND", "strategies": [<하위 전략 A의 indicator_config>, <하위 전략 B의 indicator_config>]}
 하위 전략은 레짐/직접 수식/1:2:6 단계별/복합 중 어떤 스키마든 재귀적으로 담을 수 있다 — 각 하위 전략을
 "포지션 보유 중" 불리언 시그널로 변환한 뒤(1:2:6 단계별은 비중>0을 보유로 간주) "combine"에 따라
-AND(둘 다 보유 신호일 때만 보유)/OR(하나라도 보유 신호면 보유)로 결합한다. evaluate_boolean_signal()이
-이 스키마를 포함해 4종 전부를 평가하는 공용 진입점이다.
+AND(둘 다 보유 신호일 때만 보유)/OR(하나라도 보유 신호면 보유)로 결합한다.
+
+다섯 번째 스키마로 코스톨라니 달걀 이론 국면(A1~B3) 기반 매매 전략도 지원한다:
+    {"schema": "kostolany", "style": "장기"}   # 또는 "스윙"
+core.kostolany_cycle의 국면 판정을 룩어헤드 없이(각 시점까지의 데이터만 사용) rolling으로 재구현한
+core.kostolany_scenario_engine의 로직을 그대로 재사용해, 매수 관심/보유·관망 국면에서 포지션 1,
+매도 검토 국면에서 포지션 0으로 매핑한다(generate_kostolany_position 참고). AND/OR 조건 조합과 달리
+"hold"(현재 상태 유지) 개념이 있는 유일한 스키마라 다른 4종과 별도 함수로 처리한다.
+
+evaluate_boolean_signal()이 이 5개 스키마 전부를 평가하는 공용 진입점이다.
 
 여러 조건은 "logic" 에 따라 AND(전부 True)/OR(하나라도 True)로 결합되어 하루 단위의
 불리언 "포지션 보유 조건" 시리즈가 된다. 이 시리즈가 True인 구간을 매수 보유,
@@ -710,15 +718,52 @@ def is_combined_config(indicator_config: str | IndicatorConfig) -> bool:
     return isinstance(config, dict) and "combine" in config and "strategies" in config
 
 
+def is_kostolany_config(indicator_config: str | IndicatorConfig) -> bool:
+    """indicator_config가 코스톨라니 국면 매매 전략 스키마인지 판별한다.
+
+    "schema": "kostolany" 키로 판별한다(다른 스키마들처럼 특정 키의 유무가 아니라 명시적 마커를
+    쓰는 이유: 이 스키마는 "style" 하나만 필수라 다른 스키마와 우연히 키가 겹칠 위험을 피하려는
+    것). core.kostolany_cycle의 6국면(A1~B3) 판정을 core.kostolany_scenario_engine이 룩어헤드 없이
+    rolling 재구현한 것을 그대로 재사용한다(2026-07-25, "코스톨라니 전략도 전략으로 만들어줄 수
+    있어?" 요청 — 기존에는 core/kostolany_scenario_engine.py의 전용 함수로만 21개 섹터/테마 ETF에
+    대해서만 돌릴 수 있었으나, 이 스키마로 일반 Strategy와 동일하게 전략 스튜디오에서 아무 종목에나
+    적용/저장/차트 확인이 가능해진다).
+    """
+    config = parse_indicator_config(indicator_config)
+    return isinstance(config, dict) and config.get("schema") == "kostolany"
+
+
+def generate_kostolany_position(df: pd.DataFrame, indicator_config: str | IndicatorConfig) -> pd.Series:
+    """코스톨라니 국면(A1~B3) 판정을 매수 관심/보유·관망/매도 검토 3단계로 묶어 0/1 포지션으로
+    변환한다("style": "장기"|"스윙", 기본 "장기" — core.kostolany_cycle.STYLE_ORDER).
+
+    core.kostolany_scenario_engine의 classify_cycle_phase_series/build_position_from_phases를
+    그대로 재사용한다(지연 import — kostolany_scenario_engine이 core.backtest_engine을 가져오고
+    backtest_engine은 이 모듈을 가져오므로, 모듈 최상단에서 가져오면 순환 참조가 생긴다).
+    Close/Volume이 없으면 전부 미보유(0)로 취급한다.
+    """
+    if df is None or df.empty or "Close" not in df.columns or "Volume" not in df.columns:
+        return pd.Series(0.0, index=df.index if df is not None else pd.DatetimeIndex([]))
+
+    from core.kostolany_scenario_engine import build_position_from_phases, classify_cycle_phase_series
+
+    config = parse_indicator_config(indicator_config)
+    style = config.get("style", "장기")
+    phase = classify_cycle_phase_series(df["Close"], df["Volume"])
+    return build_position_from_phases(phase, style=style)
+
+
 def evaluate_boolean_signal(df: pd.DataFrame, indicator_config: str | IndicatorConfig) -> pd.Series:
-    """전략 스키마 4종(레짐/직접 수식/1:2:6 단계별/복합) 전부를 판별해 '포지션 보유 중' 불리언
-    시그널 하나로 통일해서 반환한다.
+    """전략 스키마 5종(레짐/직접 수식/1:2:6 단계별/복합/코스톨라니) 전부를 판별해 '포지션 보유 중'
+    불리언 시그널 하나로 통일해서 반환한다.
 
     복합 전략의 하위 전략을 재귀 평가할 때 쓰는 공용 진입점이다 — 하위 전략이 1:2:6 단계별이면
     비중(weight)>0인 구간을 보유로 간주해 불리언으로 단순화하고, 하위 전략이 다시 복합 전략이면
     재귀적으로 내려간다. generate_positions()와 evaluate()가 이 함수를 공통으로 사용한다.
     """
     config = parse_indicator_config(indicator_config)
+    if is_kostolany_config(config):
+        return (generate_kostolany_position(df, config) > 0).fillna(False)
     if is_combined_config(config):
         sub_configs = config.get("strategies", [])
         if not sub_configs:

@@ -38,10 +38,12 @@ from core.kostolany_cycle import (
     STYLE_PHASE_GUIDANCE,
     STYLE_PHASE_STATUS,
     compute_theme_cycle_phases,
+    explain_phase_reasoning,
     get_latest_kostolany_cycle_snapshot,
     get_market_cycle_phase,
     save_kostolany_cycle_snapshot,
 )
+from core.kostolany_scenario_engine import compute_theme_scenario_runs, scenario_runs_to_summary_df
 from core.macro_cycle import (
     ASSET_CLASS_NOTES,
     classify_cfnai,
@@ -898,14 +900,13 @@ def _render_kostolany() -> None:
                         group_df = group_df.sort_values("theme")
 
                     color = _STATUS_COLORS[status]
-                    cards_html = []
                     for _, row in group_df.iterrows():
                         vol_ratio = row["volume_ratio"]
                         vol_text = f"{vol_ratio:.2f}x" if pd.notna(vol_ratio) else "N/A"
                         theme_name = html.escape(str(row["theme"]))
                         phase_label = html.escape(str(row["label"]))
-                        cards_html.append(
-                            f'<div style="border-left:3px solid {color};padding:6px 10px;margin-bottom:6px;'
+                        card_html = (
+                            f'<div style="border-left:3px solid {color};padding:6px 10px;margin-bottom:0;'
                             f'border-radius:4px;background:rgba(255,255,255,0.04);">'
                             f'<div style="display:flex;justify-content:space-between;align-items:baseline;">'
                             f'<b style="font-size:0.92em;">{theme_name}</b>'
@@ -915,7 +916,27 @@ def _render_kostolany() -> None:
                             f"52주 위치 {row['position_pct']:.0f}% · 추세 {row['roc_pct']:+.1f}% · 거래량 {vol_text}"
                             f"</div></div>"
                         )
-                    st.markdown("".join(cards_html), unsafe_allow_html=True)
+                        st.markdown(card_html, unsafe_allow_html=True)
+                        if st.button(
+                            "📄 왜 이 국면인가요?",
+                            key=f"kostolany_report_btn_{selected_style}_{row['theme']}",
+                            use_container_width=True,
+                        ):
+                            st.session_state["kostolany_report_theme"] = row["theme"]
+
+            report_theme = st.session_state.get("kostolany_report_theme")
+            if report_theme is not None:
+                report_rows = theme_phases[theme_phases["theme"] == report_theme]
+                if report_rows.empty:
+                    st.session_state.pop("kostolany_report_theme", None)
+                else:
+                    st.divider()
+                    st.markdown(f"##### 📄 {report_theme} — 왜 이 국면({report_rows.iloc[0]['label']})인가요?")
+                    report_text = explain_phase_reasoning(report_rows.iloc[0].to_dict(), style=selected_style)
+                    st.markdown(report_text)
+                    if st.button("닫기", key="kostolany_report_close"):
+                        st.session_state.pop("kostolany_report_theme", None)
+                        st.rerun()
 
             with st.expander("📋 표로 전체 보기 (정렬/검색용)", expanded=False):
                 display_df = theme_phases[
@@ -928,6 +949,198 @@ def _render_kostolany() -> None:
                 display_df["volume_ratio"] = display_df["volume_ratio"].map(lambda v: f"{v:.2f}x" if pd.notna(v) else "N/A")
                 display_df.columns = ["테마", "국면", "52주 위치", "20일 추세", "거래량비", "가이드"]
                 st.dataframe(display_df, use_container_width=True, hide_index=True)
+
+        st.divider()
+        st.subheader(f"📈 실제로 이 국면 신호대로 매매했다면? ({STYLE_LABELS[selected_style]} 기준)")
+        st.caption(
+            "위 국면 판정 로직을 과거 전체 이력에 그대로 적용해(룩어헤드 없이 매 시점까지의 데이터만 "
+            "사용) '매수 관심·보유 국면에서 시장에 있고, 매도 검토 국면에서 현금화'하는 규칙으로 "
+            "시뮬레이션한 결과입니다. 섹터/테마별로 매수 후 보유(buy & hold) 대비 초과수익률을 "
+            "비교할 수 있고, 표에서 행을 클릭하면 그 섹터에서 실제로 언제·얼마에 사고 팔았는지까지 "
+            "볼 수 있습니다 — 계산에 시간이 걸릴 수 있습니다."
+        )
+        with st.expander("💰 월 적립 옵션 (기본: 초기자본 100만 넣고 끝까지 보유)"):
+            st.caption(
+                "매달 얼마씩 투자에 넣을 수 있는지 입력하면, 매수보유 두 벤치마크(섹터/S&P500)는 매달 "
+                "그 금액을 즉시 시장가로 사는 정액적립식(DCA)으로, 코스톨라니 신호 전략은 매도 검토 "
+                "국면(현금 보유) 중에는 현금으로 누적만 하다가 매수 관심·보유 국면으로 바뀌는 순간 "
+                "쌓인 현금을 한꺼번에 투입하는 방식으로 자동 전환해서 비교합니다(전략 스튜디오와 동일한 "
+                "로직, core.backtest_engine.simulate_contribution_equity 재사용)."
+            )
+            kostolany_monthly_contribution = st.number_input(
+                "월 적립금 (0이면 적립 없이 초기자본 한 번만 투자)",
+                min_value=0.0, value=0.0, step=10.0, key="kostolany_monthly_contribution",
+            )
+
+        run_scenario = st.button("📊 섹터별 시나리오 계산하기", key="run_kostolany_scenario")
+
+        def _compute_scenario_runs():
+            return compute_theme_scenario_runs(
+                style=selected_style, monthly_contribution=kostolany_monthly_contribution
+            )
+
+        scenario_job_key = f"kostolany_scenario_{selected_style}_{kostolany_monthly_contribution:g}"
+        if run_scenario:
+            job_manager.start(scenario_job_key, _compute_scenario_runs, label="코스톨라니 매매 시나리오 계산")
+
+        scenario_job = job_manager.render(scenario_job_key, running_label="섹터별 매매 시나리오를 계산하는 중")
+        if scenario_job is not None:
+            if scenario_job.status == "error":
+                st.error(f"시나리오 계산 중 오류가 발생했습니다: {scenario_job.error}")
+            else:
+                scenario_runs = scenario_job.result
+                st.session_state["kostolany_scenario_runs"] = scenario_runs
+
+        scenario_runs = st.session_state.get("kostolany_scenario_runs")
+        if scenario_runs is not None:
+            scenario_df = scenario_runs_to_summary_df(scenario_runs, style=selected_style)
+            if scenario_df.empty:
+                st.info("계산된 시나리오가 없습니다.")
+            else:
+                win_count = int((scenario_df["excess_return"] > 0).sum())
+                st.caption(
+                    f"{len(scenario_df)}개 섹터/테마 중 {win_count}개에서 매수 후 보유보다 나은 결과 "
+                    "(excess_return > 0). 행을 클릭하면 아래에 매매 내역이 표시됩니다."
+                )
+                display_scenario = scenario_df.copy()
+                pct_cols = [
+                    "cumulative_return", "cagr", "mdd", "bh_cumulative_return", "bh_cagr", "bh_mdd",
+                    "excess_return", "bench_cumulative_return", "bench_cagr", "bench_mdd",
+                    "excess_return_vs_benchmark",
+                ]
+                for col in pct_cols:
+                    display_scenario[col] = display_scenario[col].map(lambda v: f"{v:+.2f}%")
+                display_scenario["win_rate"] = display_scenario["win_rate"].map(lambda v: f"{v:.1f}%")
+                display_scenario = display_scenario.drop(columns=["style"])
+                display_scenario.columns = [
+                    "테마", "누적수익률", "CAGR", "MDD", "샤프", "승률", "매매횟수",
+                    "매수보유 누적수익률", "매수보유 CAGR", "매수보유 MDD", "초과수익률(섹터 매수보유 대비)",
+                    "S&P500 매수보유 누적수익률", "S&P500 매수보유 CAGR", "S&P500 매수보유 MDD",
+                    "초과수익률(S&P500 대비)",
+                ]
+                selection = st.dataframe(
+                    display_scenario,
+                    use_container_width=True,
+                    hide_index=True,
+                    on_select="rerun",
+                    selection_mode="single-row",
+                    key="kostolany_scenario_table",
+                    column_config={
+                        "누적수익률": st.column_config.TextColumn(
+                            help="시뮬레이션 시작일부터 지금까지의 총 수익률(%). 이 전략으로 굴렸을 때 원금이 몇 % 불었는지."
+                        ),
+                        "CAGR": st.column_config.TextColumn(
+                            help="연평균 복리 성장률(Compound Annual Growth Rate). 기간이 서로 다른 전략끼리도 "
+                            "비교할 수 있도록 수익률을 '연 몇 %씩 복리로 불어난 셈인지'로 환산한 값."
+                        ),
+                        "MDD": st.column_config.TextColumn(
+                            help="최대 낙폭(Max Drawdown). 기간 중 자산가치가 고점 대비 최대 몇 %까지 떨어졌는지 — "
+                            "0에 가까울수록 손실 구간이 얕았다는 뜻(음수, 클수록/0에 가까울수록 안전)."
+                        ),
+                        "샤프": st.column_config.TextColumn(
+                            help="샤프 지수(Sharpe Ratio). 감수한 변동성(위험) 대비 수익이 얼마나 좋았는지 나타내는 "
+                            "지표 — 같은 수익률이라도 변동성이 작을수록 높게 나오며, 보통 1 이상이면 양호한 편으로 본다."
+                        ),
+                        "승률": st.column_config.TextColumn(
+                            help="완료된 매매(진입~청산) 중 수익으로 끝난 비율(%)."
+                        ),
+                        "매매횟수": st.column_config.NumberColumn(
+                            help="시뮬레이션 기간 동안 발생한 총 매매(진입~청산 1쌍) 횟수."
+                        ),
+                        "매수보유 누적수익률": st.column_config.TextColumn(
+                            help="같은 기간 동안 그냥 첫날 사서 계속 들고만 있었을 때(buy & hold)의 누적수익률 — 비교 기준선."
+                        ),
+                        "매수보유 CAGR": st.column_config.TextColumn(help="매수 후 보유(buy & hold) 기준의 CAGR."),
+                        "매수보유 MDD": st.column_config.TextColumn(help="매수 후 보유(buy & hold) 기준의 최대 낙폭(MDD)."),
+                        "초과수익률(섹터 매수보유 대비)": st.column_config.TextColumn(
+                            help="이 전략의 누적수익률 - 그 섹터 매수 후 보유 누적수익률(%p). 양수면 국면 신호대로 "
+                            "매매한 것이 그 섹터를 그냥 들고만 있는 것보다 나았다는 뜻."
+                        ),
+                        "S&P500 매수보유 누적수익률": st.column_config.TextColumn(
+                            help="같은 기간 동안 S&P500 지수를 그냥 첫날 사서 계속 들고만 있었을 때의 누적수익률 — "
+                            "'그냥 전체 시장에 투자했다면'과 비교하는 기준선."
+                        ),
+                        "S&P500 매수보유 CAGR": st.column_config.TextColumn(help="S&P500 매수 후 보유 기준의 CAGR."),
+                        "S&P500 매수보유 MDD": st.column_config.TextColumn(help="S&P500 매수 후 보유 기준의 최대 낙폭(MDD)."),
+                        "초과수익률(S&P500 대비)": st.column_config.TextColumn(
+                            help="이 전략의 누적수익률 - S&P500 매수 후 보유 누적수익률(%p). 양수면 이 섹터에서 국면 "
+                            "신호대로 매매한 것이 그냥 S&P500 지수를 사서 들고 있는 것보다 나았다는 뜻."
+                        ),
+                    },
+                )
+                selected_rows = selection["selection"]["rows"] if selection else []
+                if selected_rows:
+                    selected_theme = scenario_df.iloc[selected_rows[0]]["theme"]
+                    selected_run = scenario_runs.get(selected_theme)
+                    st.markdown(f"##### 🔍 {selected_theme} — 매매 내역")
+                    if selected_run is None or not selected_run.trades:
+                        st.caption("이 기간 동안 발생한 매매가 없습니다(신호가 계속 같은 상태를 유지).")
+                    else:
+                        trade_rows = []
+                        for t in selected_run.trades:
+                            trade_rows.append(
+                                {
+                                    "매수일": t.entry_date.date().isoformat() if t.entry_date is not None else "-",
+                                    "매수가": f"{t.entry_price:,.2f}",
+                                    "매도일": t.exit_date.date().isoformat() if t.exit_date is not None else "보유 중",
+                                    "매도가": f"{t.exit_price:,.2f}" if t.exit_price is not None else "-",
+                                    "수익률": f"{t.return_pct:+.2f}%" if t.return_pct is not None else "-",
+                                }
+                            )
+                        st.dataframe(pd.DataFrame(trade_rows), use_container_width=True, hide_index=True)
+
+                        st.caption(
+                            "아래 그래프는 원가가 아니라 '기준 100에서 시작했을 때 자산가치가 어떻게 변했는지'로 "
+                            "정규화했습니다 — 섹터 가격과 S&P500 지수는 절대 수준이 전혀 달라 그냥 겹쳐 그리면 "
+                            "비교가 안 되기 때문입니다. ▲/▼ 표시는 코스톨라니 전략 곡선 위 실제 매수/매도 시점입니다."
+                        )
+                        fig = go.Figure()
+                        fig.add_trace(
+                            go.Scatter(
+                                x=selected_run.equity_curve.index, y=selected_run.equity_curve,
+                                mode="lines", name="코스톨라니 신호 전략",
+                                line=dict(color="#4c8bf5", width=2),
+                            )
+                        )
+                        fig.add_trace(
+                            go.Scatter(
+                                x=selected_run.buy_and_hold_equity_curve.index,
+                                y=selected_run.buy_and_hold_equity_curve,
+                                mode="lines", name=f"{selected_theme} 매수 후 보유",
+                                line=dict(color="#8a8a8a", width=1.5, dash="dot"),
+                            )
+                        )
+                        fig.add_trace(
+                            go.Scatter(
+                                x=selected_run.benchmark_equity_curve.index,
+                                y=selected_run.benchmark_equity_curve,
+                                mode="lines", name="S&P500 매수 후 보유",
+                                line=dict(color="#e5533d", width=1.5, dash="dash"),
+                            )
+                        )
+                        eq = selected_run.equity_curve
+                        buy_x = [t.entry_date for t in selected_run.trades if t.entry_date is not None]
+                        buy_y = [eq.loc[d] for d in buy_x]
+                        sell_x = [t.exit_date for t in selected_run.trades if t.exit_date is not None]
+                        sell_y = [eq.loc[d] for d in sell_x]
+                        fig.add_trace(
+                            go.Scatter(
+                                x=buy_x, y=buy_y, mode="markers", name="매수",
+                                marker=dict(color="#4caf82", size=11, symbol="triangle-up"),
+                            )
+                        )
+                        fig.add_trace(
+                            go.Scatter(
+                                x=sell_x, y=sell_y, mode="markers", name="매도",
+                                marker=dict(color="#e5533d", size=11, symbol="triangle-down"),
+                            )
+                        )
+                        fig.update_layout(
+                            height=360, margin=dict(l=10, r=10, t=20, b=10),
+                            legend=dict(orientation="h", yanchor="bottom", y=1.02),
+                            yaxis_title="자산가치 (시작=100)",
+                        )
+                        st.plotly_chart(fig, use_container_width=True)
 
 
 # ============================================================================

@@ -65,6 +65,10 @@ def _add_missing_columns() -> None:
 
     additions = {
         "strategy_tuning_runs": [("max_holding_days", "INTEGER")],
+        "strategy_tuning_results": [
+            ("significance_p_value", "FLOAT"),
+            ("skill_pct_of_total", "FLOAT"),
+        ],
     }
     inspector = inspect(engine)
     with engine.begin() as conn:

@@ -13,7 +13,7 @@ from typing import Any, Optional
 
 from core.db import get_session
 from core.models import AlertLog, BacktestResult, Strategy, WatchlistItem
-from core.strategy_engine import is_combined_config, is_expression_config, is_staged_config
+from core.strategy_engine import is_combined_config, is_expression_config, is_kostolany_config, is_staged_config
 
 
 def detect_strategy_type(indicator_config: str | dict) -> str:
@@ -21,14 +21,17 @@ def detect_strategy_type(indicator_config: str | dict) -> str:
 
     Returns:
         "combined" (두 개 이상의 전략을 합성한 전략, combine+strategies 키 존재),
-        "staged" (1:2:6 단계별 전략, entry_stages 키 존재), "expression" (직접 수식 전략,
-        expression 키 존재) 또는 "regime" (일반 AND/OR 레짐 전략)
+        "staged" (1:2:6 단계별 전략, entry_stages 키 존재), "kostolany" (코스톨라니 국면 매매,
+        schema="kostolany"), "expression" (직접 수식 전략, expression 키 존재) 또는 "regime"
+        (일반 AND/OR 레짐 전략)
     """
     try:
         if is_combined_config(indicator_config):
             return "combined"
         if is_staged_config(indicator_config):
             return "staged"
+        if is_kostolany_config(indicator_config):
+            return "kostolany"
         return "expression" if is_expression_config(indicator_config) else "regime"
     except (TypeError, ValueError, json.JSONDecodeError):
         return "regime"
@@ -146,6 +149,11 @@ def _validate_config_schema(config: dict) -> None:
             if not isinstance(sub, dict):
                 raise ValueError("strategies의 각 항목은 JSON 객체(dict)여야 합니다.")
             _validate_config_schema(sub)
+    elif config.get("schema") == "kostolany":
+        from core.kostolany_cycle import STYLE_ORDER
+
+        if config.get("style") not in STYLE_ORDER:
+            raise ValueError(f"style은 {STYLE_ORDER} 중 하나여야 합니다.")
     elif "entry_stages" in config:
         entry_stages = config.get("entry_stages")
         exit_stages = config.get("exit_stages")

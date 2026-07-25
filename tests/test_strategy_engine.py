@@ -39,9 +39,11 @@ from core.strategy_engine import (
     evaluate_condition,
     extract_staged_trades,
     extract_trades,
+    generate_kostolany_position,
     generate_positions,
     is_combined_config,
     is_expression_config,
+    is_kostolany_config,
     is_staged_config,
     simulate_staged_positions,
 )
@@ -875,6 +877,47 @@ def test_extract_staged_trades_matches_average_weighted_prices():
     expected_entry = (0.4 * 101.0 + 0.6 * 102.0) / 1.0
     assert round(trade.entry_price, 6) == round(expected_entry, 6)
     assert trade.exit_price == 105.0  # day4 다음날(=마지막 인덱스) 종가
+
+
+def test_is_kostolany_config_detects_schema_marker():
+    assert is_kostolany_config({"schema": "kostolany", "style": "장기"}) is True
+    assert is_kostolany_config({"schema": "kostolany", "style": "스윙"}) is True
+    assert is_kostolany_config({"logic": "AND", "conditions": []}) is False
+    assert is_kostolany_config({"entry_stages": []}) is False
+    assert is_kostolany_config({"combine": "AND", "strategies": [{}, {}]}) is False
+
+
+def test_generate_kostolany_position_missing_columns_returns_all_zero():
+    idx = pd.bdate_range("2022-01-03", periods=5)
+    df = pd.DataFrame({"Close": [1, 2, 3, 4, 5]}, index=idx)  # Volume 없음
+    position = generate_kostolany_position(df, {"schema": "kostolany", "style": "장기"})
+    assert (position == 0.0).all()
+    assert list(position.index) == list(idx)
+
+
+def test_generate_kostolany_position_maps_phase_to_style_status(monkeypatch):
+    import core.kostolany_scenario_engine as kostolany_scenario_engine
+
+    idx = pd.bdate_range("2022-01-03", periods=6)
+    df = pd.DataFrame(
+        {"Close": [1.0] * 6, "Volume": [1] * 6, "Open": [1.0] * 6, "High": [1.0] * 6, "Low": [1.0] * 6},
+        index=idx,
+    )
+    # A1(장기=buy)->A2(장기=hold)->A3(장기=sell)->A1(buy)->A2(hold)->A2(hold)
+    fake_phase = pd.Series(["A1", "A2", "A3", "A1", "A2", "A2"], index=idx)
+    monkeypatch.setattr(
+        kostolany_scenario_engine, "classify_cycle_phase_series", lambda close, volume: fake_phase
+    )
+
+    position = generate_kostolany_position(df, {"schema": "kostolany", "style": "장기"})
+    # buy=1, sell=0, hold=직전 상태 유지
+    assert list(position) == [1.0, 1.0, 0.0, 1.0, 1.0, 1.0]
+
+    signal = evaluate_boolean_signal(df, {"schema": "kostolany", "style": "장기"})
+    assert list(signal) == [True, True, False, True, True, True]
+
+    int_position = generate_positions(df, {"schema": "kostolany", "style": "장기"})
+    assert list(int_position) == [1, 1, 0, 1, 1, 1]
 
 
 def test_is_combined_config_detects_combine_and_strategies_keys():

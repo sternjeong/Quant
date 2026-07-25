@@ -1136,7 +1136,11 @@ def tune_strategy_for_ticker(
     test_results = compare_with_benchmarks(ticker, best_config, test_start, test_end)
     strategy_metrics = test_results["strategy"].metrics
     benchmark_metrics = test_results["buy_and_hold_benchmark"].metrics
-    excess_return = round(strategy_metrics.get("cagr", 0.0) - benchmark_metrics.get("cagr", 0.0), 2)
+    # CAGR이 아니라 cumulative_return(실현 누적수익률) 차이 — 이유는 core.strategy_tuning의
+    # _group_mean_excess_return 문서 참고(구간이 짧을 때 CAGR 연환산이 값을 폭발시키는 문제).
+    excess_return = round(
+        strategy_metrics.get("cumulative_return", 0.0) - benchmark_metrics.get("cumulative_return", 0.0), 2
+    )
 
     try:
         health_warnings = diagnose_strategy_health(best_config)
@@ -1177,15 +1181,38 @@ def tune_strategy_for_ticker(
 #     숫자 파라미터를 찾고(아래 _select_best_group_config), ②그래도 그룹 평균이 test 구간에서
 #     S&P500을 못 이기면, 3c절로 확장된 generate_structural_variants_for_config()로 레짐/1:2:6/
 #     직접수식 관계없이 구조가 다른 대안을 1회성으로 시도한다(반복 진화는 안 함 — 3b/3c절과 동일한
-#     과최적화 통제 원칙).
+#     과최적화 통제 원칙). 대안들 중 "어느 backbone을 채택할지"도 ①과 동일하게 train 워크포워드
+#     점수로만 정한다(2026-07-25 수정 — 예전엔 이 단계에서 test 성과가 제일 좋은 backbone을
+#     그대로 채택했는데, 이게 바로 위에서 "절대 어기지 않는다"고 적어놓은 원칙을 실제로는 어기고
+#     있던 버그였다. WDC 사례에서 이 경로로 채택된 결과가 순열검정 p=0.25로 통계적 유의성이 전혀
+#     없었던 것을 사용자가 "다른 종목에 적용하면 계속 진다"고 보고하면서 발견함).
 #   - 그래도 못 이기는 그룹/종목이 있으면 숨기지 않고 정직하게 보고한다(health_warnings와 별개로
 #     UI가 종목별 CAGR을 그대로 보여주므로 자동으로 드러남).
+#   - 2026-07-25 추가: test에서 이겼다는 것만으로 "진짜 엣지"라고 믿지 않는다. 채택된 config가
+#     실제로 노이즈보다 나은지(순열검정)와 그 초과수익이 종목 자체의 추세가 아니라 타이밍에서
+#     나온 것인지(분해 테스트, core.backtest_engine의 Masters 4대 테스트 재사용)를 종목별로 계산해
+#     같이 저장한다 — 아래 _compute_tuning_significance 참고.
 # ----------------------------------------------------------------------------
 
 _MIN_GROUP_COVERAGE_RATIO = 0.5  # 후보가 그룹을 대표한다고 인정하려면 최소 이 비율 이상 종목에서 유효해야 함
 _WALK_FORWARD_FOLDS = 3  # train 구간을 몇 개의 하위 구간(폴드)으로 나눠 독립 평가할지 (SPEC 11.2절)
 _ROBUSTNESS_PENALTY_WEIGHT = 0.5  # 폴드 간 표준편차에 곱하는 패널티 가중치 (뾰족한 피크 후보 배제)
 _TRAINING_REGIMES = ["약세장", "강세장", "횡보장"]  # SPEC 13절 — 스타일 그룹마다 국면별로 따로 트레이닝(2026-07-17부터 3분류)
+
+# 국면 일치(regime-matched) test 세그먼트 최소 길이 (SPEC 13.6절이 원래 쓰던
+# market_regime._MIN_REGIME_SEGMENT_TRADING_DAYS=10은 train 폴드용으로는 적당하지만, 이 상수는
+# "선택된 config를 최종 검증/보고하는" test 세그먼트 전용 — 10거래일(2주)짜리 구간으로 CAGR을
+# 계산하면 며칠짜리 실현수익률이 연 환산되며 수백~수천%로 폭발해(예: 2주 15% -> 연화산 1786%)
+# 완전히 무의미한 숫자가 리더보드 1위를 차지하는 문제가 실제로 발견됐다(2026-07-25, 사용자 보고
+# "다른 종목에 적용하면 계속 진다" 조사 중 확인). 60거래일(~3개월) 미만 세그먼트는 애초에
+# "국면 일치 구간 없음"과 동일하게 취급해 검증 자체를 포기한다(조용히 왜곡된 숫자를 보고하지 않음).
+_MIN_TEST_WINDOW_TRADING_DAYS = 60
+
+# 순열검정/분해 테스트(core.backtest_engine)를 튜닝 파이프라인에 통합할 때 쓰는 순열 횟수 —
+# 종목 하나당(그것도 이미 초과수익이 양수로 나온 것만) 실행되므로 200 같은 기본값을 그대로 쓰면
+# 야간 배치 전체가 감당 못 할 만큼 느려진다. 정밀도보다 "그럴듯한 우연인지" 1차 스크리닝이 목적.
+_TUNING_SIGNIFICANCE_N_PERMUTATIONS = 40
+_SIGNIFICANCE_P_VALUE_THRESHOLD = 0.05
 
 
 def _group_min_required(group_size: int) -> int:
@@ -1338,9 +1365,14 @@ def _evaluate_group_config_on_regime_matched_test(
     여러 조각을 이어붙이지(stitch) 않고 가장 긴 단일 구간만 쓴다 — 불연속 구간을 이으면 그 사이
     갭에서 포지션이 어떻게 되는지 정의가 모호해져 4b/11절의 정직성 원칙을 해칠 위험이 있다. 이
     함수 자체는 선택(어떤 파라미터를 채택할지)에 관여하지 않는 순수 평가용이다(선택은 train 구간
-    워크포워드 점수로만 한다, 4b/11절 원칙 유지). 해당 국면 구간이 test 안에 없으면 None.
+    워크포워드 점수로만 한다, 4b/11절 원칙 유지). 해당 국면 구간이 test 안에 없거나
+    `_MIN_TEST_WINDOW_TRADING_DAYS` 미만으로 짧으면 None — 짧은 구간을 CAGR로 보고하면 연환산
+    과정에서 숫자가 폭발해(예: 2주 15% 실현수익률 -> 연환산 1786%) 통계적으로 무의미한 값이
+    "검증됨"으로 둔갑하므로, train 폴드용 최소 길이(10거래일)보다 훨씬 엄격한 기준을 쓴다.
     """
-    segments = market_regime.historical_regime_segments(test_start, test_end).get(regime, [])
+    segments = market_regime.historical_regime_segments(
+        test_start, test_end, min_trading_days=_MIN_TEST_WINDOW_TRADING_DAYS
+    ).get(regime, [])
     if not segments:
         return None
     seg_start, seg_end = max(segments, key=lambda s: (pd.Timestamp(s[1]) - pd.Timestamp(s[0])).days)
@@ -1355,14 +1387,78 @@ def _evaluate_group_config_on_regime_matched_test(
 
 
 def _group_mean_excess_return(per_ticker_test: dict[str, dict]) -> float:
-    """그룹의 test 구간 평균 초과수익(전략 CAGR - S&P500 매수보유 CAGR). 유효한 종목이 하나도
-    없으면 -inf (구조 변경 escape hatch가 항상 트리거되게 해, 실패를 조용히 넘기지 않는다)."""
+    """그룹의 test 구간 평균 초과수익(전략 누적수익률 - S&P500 매수보유 누적수익률). 유효한 종목이
+    하나도 없으면 -inf (구조 변경 escape hatch가 항상 트리거되게 해, 실패를 조용히 넘기지 않는다).
+
+    CAGR이 아니라 cumulative_return(실현 누적수익률) 차이를 쓴다 — 전략/벤치마크 둘 다 정확히
+    같은 [test_start, test_end] 구간에서 계산되므로 굳이 연환산할 필요가 없고, CAGR은 구간이
+    짧을 때(특히 국면 일치 test 세그먼트) 연환산 과정에서 값이 폭발해 통계적으로 무의미해진다
+    (2026-07-25, 실제 리더보드에서 매매 1회·2주짜리 세그먼트가 CAGR 1786%로 1위를 차지한 사례
+    발견). 매매횟수가 `_MIN_TRADE_COUNT` 미만인 종목은 표본이 너무 얇아 신뢰할 수 없으므로
+    평균에서 제외한다(train 후보 선택 때 이미 적용하던 기준을 test 보고에도 동일하게 적용)."""
     values = [
-        tc["strategy"].get("cagr", 0.0) - tc["buy_and_hold_benchmark"].get("cagr", 0.0)
+        tc["strategy"].get("cumulative_return", 0.0) - tc["buy_and_hold_benchmark"].get("cumulative_return", 0.0)
         for tc in per_ticker_test.values()
-        if "error" not in tc
+        if "error" not in tc and tc["strategy"].get("trade_count", 0) >= _MIN_TRADE_COUNT
     ]
     return sum(values) / len(values) if values else float("-inf")
+
+
+def _compute_tuning_significance(
+    tickers: list[str],
+    config: dict,
+    per_ticker_test: dict[str, dict],
+    test_start: str,
+    test_end: str,
+    regime_matched_test: Optional[dict],
+    max_holding_days: Optional[int] = None,
+) -> dict[str, dict]:
+    """채택된 group_config가 종목별로 통계적 엣지인지, 아니면 그 종목의 추세를 얻어 탄 것뿐인지
+    core.backtest_engine의 Masters 4대 테스트 중 순열검정+분해 테스트로 검증한다(2026-07-25 추가
+    — 사용자가 "다른 종목에 적용하면 계속 진다"고 보고해 조사한 결과, 리더보드 상위 결과 다수가
+    순열검정으로는 노이즈와 구분 안 되고 초과수익이 실력이 아니라 종목 자체 추세에서 나온 것으로
+    확인됨).
+
+    이미 test 구간에서 초과수익이 0 이하이거나 매매횟수가 `_MIN_TRADE_COUNT` 미만인 종목은 애초에
+    "이겼다"고 보고하지 않을 값이라 계산을 건너뛴다 — 종목 하나당 순열 수십 회(추가 백테스트 수십
+    회)가 드는 비용을 "이미 진 종목"에 낭비하지 않기 위함. regime_matched_test가 있으면(국면별
+    트레이닝) 그 국면 일치 세그먼트로, 없으면 전체 test 구간으로 검증한다 — per_ticker_test를
+    만들 때 쓴 것과 동일한 구간이어야 앞뒤가 맞는다.
+
+    Returns:
+        {ticker: {"p_value": float|None, "skill_pct_of_total": float|None}} — 계산을 건너뛰었거나
+        실패한 종목은 키 자체가 없다(호출부가 .get(ticker)로 조회, 없으면 "미검증"으로 취급).
+    """
+    from core.backtest_engine import run_buy_and_hold, run_partition_test, run_permutation_test
+
+    seg_start, seg_end = test_start, test_end
+    if regime_matched_test is not None:
+        seg_start = regime_matched_test.get("segment_start", test_start)
+        seg_end = regime_matched_test.get("segment_end", test_end)
+
+    significance: dict[str, dict] = {}
+    for ticker in tickers:
+        tc = per_ticker_test.get(ticker, {})
+        if "error" in tc:
+            continue
+        strat = tc.get("strategy", {})
+        bench = tc.get("buy_and_hold_benchmark", {})
+        excess = strat.get("cumulative_return", 0.0) - bench.get("cumulative_return", 0.0)
+        if excess <= 0 or strat.get("trade_count", 0) < _MIN_TRADE_COUNT:
+            continue
+        try:
+            perm = run_permutation_test(
+                ticker, config, seg_start, seg_end,
+                n_permutations=_TUNING_SIGNIFICANCE_N_PERMUTATIONS, metric="cumulative_return",
+                max_holding_days=max_holding_days,
+            )
+            strat_run = run_backtest(ticker, config, seg_start, seg_end, max_holding_days=max_holding_days)
+            hold_run = run_buy_and_hold(ticker, seg_start, seg_end)
+            part = run_partition_test(strat_run, hold_run)
+            significance[ticker] = {"p_value": perm.get("p_value"), "skill_pct_of_total": part.get("skill_pct_of_total")}
+        except Exception:
+            continue
+    return significance
 
 
 def tune_strategy_for_group(
@@ -1395,11 +1491,13 @@ def tune_strategy_for_group(
     Returns:
         {"style_type", "tickers", "trained_regime", "group_config", "backbone_changed",
          "group_mean_excess_return", "group_win_ratio", "health_warnings", "per_ticker_train_metrics",
-         "per_ticker_test_comparison", "tuning_trail", "insufficient_regime_data",
+         "per_ticker_test_comparison", "per_ticker_significance", "tuning_trail", "insufficient_regime_data",
          "regime_matched_test"} — tuning_trail은 채택된 config를 낳은 탐색의 후보별 폴드 점수
         리포트(점수 내림차순). insufficient_regime_data는 regime이 지정됐는데 train 구간 안에 해당
         국면 구간이 하나도 없어(예: 5년 이력에 뚜렷한 약세장이 없음) 폴백으로 원본 config를 그대로
-        썼다는 표시(SPEC 13.5절).
+        썼다는 표시(SPEC 13.5절). per_ticker_significance는 종목별 {"p_value", "skill_pct_of_total"}
+        (2026-07-25 추가, _compute_tuning_significance 참고) — test 구간에서 이미 진(초과수익≤0)
+        종목은 계산 자체를 건너뛰어 그 종목은 키가 없다.
 
         regime이 지정되면(SPEC 13.6절, 2026-07-17 정정) group_mean_excess_return/group_win_ratio/
         per_ticker_test_comparison은 test 구간 전체가 아니라 **그 국면과 같은 test 구간 내 가장 긴
@@ -1430,18 +1528,24 @@ def tune_strategy_for_group(
             return (matched or {}).get("per_ticker", {}), float("-inf"), matched
         return matched["per_ticker"], matched["mean_excess_return"], matched
 
-    def _search_and_evaluate(config: dict) -> tuple[dict, dict[str, dict], float, list[dict], Optional[dict]]:
+    def _search_and_evaluate(config: dict) -> tuple[dict, dict[str, dict], float, list[dict], Optional[dict], float]:
         candidates = build_param_grid(config, style_type, intensity)
         if train_folds:
             chosen, trail = _select_best_group_config_walkforward(tickers, candidates, train_folds, max_holding_days)
         else:
             chosen, trail = None, []
+        # trail은 점수 내림차순이라 trail[0]이 이 backbone(config)이 train 워크포워드에서 낼 수
+        # 있었던 최선의 점수 — 아래에서 backbone끼리(원본 vs 구조 변형) 비교할 때 test 성과가
+        # 아니라 이 train 점수로만 비교하기 위해 반환한다.
+        train_score = trail[0]["score"] if trail else float("-inf")
         if chosen is None:
             chosen = copy.deepcopy(config)
         per_ticker, mean_excess, matched = _evaluate_on_test(chosen)
-        return chosen, per_ticker, mean_excess, trail, matched
+        return chosen, per_ticker, mean_excess, trail, matched, train_score
 
-    best_config, per_ticker_test, mean_excess, tuning_trail, regime_matched_test = _search_and_evaluate(base_config)
+    best_config, per_ticker_test, mean_excess, tuning_trail, regime_matched_test, best_train_score = (
+        _search_and_evaluate(base_config)
+    )
     backbone_changed = False
 
     if mean_excess <= 0:
@@ -1451,12 +1555,20 @@ def tune_strategy_for_group(
             variants = []
         for variant_config in variants:
             try:
-                cand_config, cand_test, cand_excess, cand_trail, cand_matched = _search_and_evaluate(variant_config)
+                cand_config, cand_test, cand_excess, cand_trail, cand_matched, cand_train_score = (
+                    _search_and_evaluate(variant_config)
+                )
             except Exception:
                 continue
-            if cand_excess > mean_excess:
-                best_config, per_ticker_test, mean_excess, tuning_trail, regime_matched_test = (
-                    cand_config, cand_test, cand_excess, cand_trail, cand_matched
+            # 채택 여부는 train 워크포워드 점수로만 결정한다 — test 성과(cand_excess)로 어떤
+            # backbone을 채택할지 고르면 "test 구간은 선택 기준에 안 쓴다"는 4b절 원칙을 어기는
+            # 것이자, 정답지(test)를 보고 답(backbone)을 고르는 데이터 스누핑이 된다(2026-07-25,
+            # WDC 사례에서 실제로 이 경로로 채택된 backbone_changed=True 결과가 순열검정 p=0.25로
+            # 통계적 유의성이 전혀 없었던 것을 확인 — 원인이 이 부분이었다). test는 아래에서
+            # "이 backbone을 채택했을 때 실제로 얼마나 잘하는지" 보고에만 쓴다.
+            if cand_train_score > best_train_score:
+                best_config, per_ticker_test, mean_excess, tuning_trail, regime_matched_test, best_train_score = (
+                    cand_config, cand_test, cand_excess, cand_trail, cand_matched, cand_train_score
                 )
                 backbone_changed = True
 
@@ -1483,6 +1595,10 @@ def tune_strategy_for_group(
     except Exception:
         health_warnings = []
 
+    per_ticker_significance = _compute_tuning_significance(
+        tickers, best_config, per_ticker_test, test_start, test_end, regime_matched_test, max_holding_days
+    )
+
     return {
         "style_type": style_type,
         "tickers": tickers,
@@ -1494,6 +1610,7 @@ def tune_strategy_for_group(
         "health_warnings": health_warnings,
         "per_ticker_train_metrics": per_ticker_train_metrics,
         "per_ticker_test_comparison": per_ticker_test,
+        "per_ticker_significance": per_ticker_significance,
         "tuning_trail": tuning_trail,
         "insufficient_regime_data": insufficient_regime_data,
         "regime_matched_test": regime_matched_test,
@@ -1523,10 +1640,16 @@ def run_batch_tuning(
 
     Returns:
         종목별 dict 리스트(ticker/style_type/sector/style_scores/tuned_config/train_metrics/
-        test_comparison/excess_return/health_warnings/backbone_changed/tuning_trail/trained_regime/
-        insufficient_regime_data/regime_matched_test). 그룹 자체가 실패해도(예: 데이터 조회 전면
-        실패) 그 그룹 종목들만 {"ticker", "style_type", "sector", "trained_regime", "error"}로
-        기록되고 다른 그룹/국면은 계속 진행된다.
+        test_comparison/excess_return/insufficient_sample/significance_p_value/skill_pct_of_total/
+        health_warnings/backbone_changed/tuning_trail/trained_regime/insufficient_regime_data/
+        regime_matched_test). excess_return은 CAGR이 아니라 cumulative_return(실현 누적수익률)
+        차이이며, 매매횟수가 `_MIN_TRADE_COUNT` 미만이면(insufficient_sample=True) None으로
+        비워둔다(2026-07-25 — 짧은 표본의 CAGR 연환산 폭발 문제, get_top_tuning_results()가
+        excess_return IS NOT NULL로 걸러서 리더보드에서 자동으로 빠진다). significance_p_value/
+        skill_pct_of_total은 순열검정/분해 테스트 결과(둘 다 excess_return>0인 종목만 계산,
+        core.strategy_tuning._compute_tuning_significance 참고) — 계산을 안 했거나 실패하면 None.
+        그룹 자체가 실패해도(예: 데이터 조회 전면 실패) 그 그룹 종목들만 {"ticker", "style_type",
+        "sector", "trained_regime", "error"}로 기록되고 다른 그룹/국면은 계속 진행된다.
     """
     styles_df = compute_style_scores(tickers_df, start, end)
     styles_by_ticker = styles_df.set_index("ticker").to_dict("index") if not styles_df.empty else {}
@@ -1571,8 +1694,20 @@ def run_batch_tuning(
                         }
                     )
                     continue
-                strategy_cagr = test_comparison["strategy"].get("cagr", 0.0)
-                benchmark_cagr = test_comparison["buy_and_hold_benchmark"].get("cagr", 0.0)
+                # 매매횟수가 너무 적으면(표본 부족) excess_return을 계산하지 않고 None으로 남긴다 —
+                # get_top_tuning_results()가 excess_return IS NOT NULL로 필터링하므로 이렇게 하면
+                # 짧은/얇은 표본 결과가 리더보드에 아예 노출되지 않는다(2026-07-25, CAGR 연환산
+                # 아티팩트 조사 후 추가). CAGR 대신 cumulative_return 차이를 쓰는 이유는
+                # _group_mean_excess_return 문서 참고.
+                strategy_trade_count = test_comparison["strategy"].get("trade_count", 0)
+                insufficient_sample = strategy_trade_count < _MIN_TRADE_COUNT
+                if insufficient_sample:
+                    excess_return = None
+                else:
+                    strategy_return = test_comparison["strategy"].get("cumulative_return", 0.0)
+                    benchmark_return = test_comparison["buy_and_hold_benchmark"].get("cumulative_return", 0.0)
+                    excess_return = round(strategy_return - benchmark_return, 2)
+                significance = group_result.get("per_ticker_significance", {}).get(ticker) or {}
                 results.append(
                     {
                         "ticker": ticker,
@@ -1582,7 +1717,10 @@ def run_batch_tuning(
                         "tuned_config": group_result["group_config"],
                         "train_metrics": group_result["per_ticker_train_metrics"].get(ticker),
                         "test_comparison": test_comparison,
-                        "excess_return": round(strategy_cagr - benchmark_cagr, 2),
+                        "excess_return": excess_return,
+                        "insufficient_sample": insufficient_sample,
+                        "significance_p_value": significance.get("p_value"),
+                        "skill_pct_of_total": significance.get("skill_pct_of_total"),
                         "health_warnings": group_result["health_warnings"],
                         "backbone_changed": group_result["backbone_changed"],
                         "tuning_trail": group_result.get("tuning_trail", []),
@@ -1654,6 +1792,8 @@ def save_tuning_run(
                         if r.get("regime_matched_test")
                         else None
                     ),
+                    significance_p_value=r.get("significance_p_value"),
+                    skill_pct_of_total=r.get("skill_pct_of_total"),
                     error=r.get("error"),
                 )
             )
@@ -1763,32 +1903,45 @@ def get_tuning_run(run_id: int) -> Optional[dict]:
         }
 
 
-def get_top_tuning_results(base_strategy_id: int, limit: int = 10) -> list[dict]:
+def get_top_tuning_results(base_strategy_id: int, limit: int = 10, require_significant: bool = True) -> list[dict]:
     """base_strategy_id로 지금까지 쌓인 모든 StrategyTuningRun을 통틀어, test 구간 초과수익
     (excess_return)이 가장 높은 종목별 결과 상위 limit개를 반환한다 (2026-07-15, 야간 반복
     미세튜닝 리더보드용 — 매일 밤 여러 번 실행되며 계속 누적되는 실행 이력 전체에서 지금까지 발견된
     최선의 결과를 보여준다).
 
-    error가 있거나 excess_return이 없는(계산 실패) 결과는 제외한다.
+    error가 있거나 excess_return이 없는(계산 실패/표본 부족) 결과는 항상 제외한다.
+
+    require_significant=True(기본값)이면 순열검정 p-value < `_SIGNIFICANCE_P_VALUE_THRESHOLD`(0.05)
+    이고 skill_pct_of_total > 0인(=초과수익이 종목 추세가 아니라 실력에서 왔다고 확인된) 결과만
+    남긴다 (2026-07-25 추가 — "초과수익이 크다"는 것만으로는 우연/추세와 구분이 안 돼, 같은 파라미터를
+    재학습 없이 다른 종목에 적용하면 대부분 지는 문제가 실제로 발견됨). significance_p_value/
+    skill_pct_of_total이 아직 계산되지 않은(구버전 데이터, None) 결과는 이 필터에서 자동으로
+    걸러진다 — False로 주면 검증 여부와 무관하게 예전처럼 excess_return 순으로만 보여준다(진단/
+    비교 목적).
 
     Returns:
-        [{"ticker", "sector", "style_type", "trained_regime", "excess_return", "tuned_config",
-          "test_comparison", "backbone_changed", "run_id", "run_intensity", "run_created_at",
-          "run_start_date", "run_end_date", "train_ratio"}, ...]
+        [{"ticker", "sector", "style_type", "trained_regime", "excess_return", "significance_p_value",
+          "skill_pct_of_total", "tuned_config", "test_comparison", "backbone_changed", "run_id",
+          "run_intensity", "run_created_at", "run_start_date", "run_end_date", "train_ratio"}, ...]
         (excess_return 내림차순). run_start_date/run_end_date/train_ratio는 상세보기에서
         train_test_split_dates()로 test 구간을 다시 계산해 차트를 그릴 때 쓴다.
     """
     with get_session() as session:
-        rows = (
+        query = (
             session.query(StrategyTuningResult, StrategyTuningRun)
             .join(StrategyTuningRun, StrategyTuningResult.run_id == StrategyTuningRun.id)
             .filter(StrategyTuningRun.base_strategy_id == base_strategy_id)
             .filter(StrategyTuningResult.excess_return.isnot(None))
             .filter(StrategyTuningResult.error.is_(None))
-            .order_by(StrategyTuningResult.excess_return.desc())
-            .limit(limit)
-            .all()
         )
+        if require_significant:
+            query = query.filter(
+                StrategyTuningResult.significance_p_value.isnot(None),
+                StrategyTuningResult.significance_p_value < _SIGNIFICANCE_P_VALUE_THRESHOLD,
+                StrategyTuningResult.skill_pct_of_total.isnot(None),
+                StrategyTuningResult.skill_pct_of_total > 0,
+            )
+        rows = query.order_by(StrategyTuningResult.excess_return.desc()).limit(limit).all()
         return [
             {
                 "ticker": res.ticker,
@@ -1796,6 +1949,8 @@ def get_top_tuning_results(base_strategy_id: int, limit: int = 10) -> list[dict]
                 "style_type": res.style_type,
                 "trained_regime": res.trained_regime,
                 "excess_return": res.excess_return,
+                "significance_p_value": res.significance_p_value,
+                "skill_pct_of_total": res.skill_pct_of_total,
                 "base_config": json.loads(run.base_config) if run.base_config else {},
                 "tuned_config": json.loads(res.tuned_config) if res.tuned_config else None,
                 "test_comparison": json.loads(res.test_comparison) if res.test_comparison else None,

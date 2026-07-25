@@ -2381,3 +2381,274 @@ holding_days`가 이미 커버).
   monkeypatch로 커버) + 전체 pytest 575개 통과. STRATEGY_TUNING_ENGINE_SPEC.md 16절에 기록.
 - 실제 야간 실행에서 문제없이 도는지는 다음 스케줄(오늘 밤 00:05 KST)에서 확인 필요 — 다음 세션
   시작 시 `gh run list --workflow=nightly_tuning.yml --limit 3`으로 결과 확인할 것.
+
+### 작업 12 (2026-07-21, 같은 날 후속): 오라클 VM capacity 확보 자동 재시도 — GitHub Actions 전환 대기 중
+
+도쿄 리전(ap-tokyo-1) A1.Flex가 계속 "Out of host capacity"로 즉시 생성 실패. `deploy/
+oracle_capacity_retry.sh`(로컬 반복 시도, capacity 에러/429 rate-limit은 건너뛰고 계속 재시도)를
+만들어 컨테이너 안에서 백그라운드로 돌리는 중이었으나, 사용자가 "컴퓨터를 꺼도 계속 시도되게"
+요청 → 로컬/Codespace 백그라운드 프로세스는 Codespace가 idle timeout으로 꺼지면 같이 죽으므로
+불충분. **GitHub Actions cron 워크플로**(`.github/workflows/oracle_capacity_retry.yml`, 10분마다
+1회 시도, repo variable `ORACLE_VM_READY=true` 되면 자동 중단)로 전환하기로 결정.
+
+**막힌 지점 (다음 세션에서 바로 이어서 할 일):** 워크플로가 필요한 7개 GitHub repo secrets를
+이 세션의 GITHUB_TOKEN 권한 부족(403)으로 내가 직접 등록 못 함 → 사용자가 GitHub 웹 UI
+(https://github.com/sternjeong/Quant/settings/secrets/actions)에서 수동 등록해야 함:
+비민감 6개(`OCI_USER_OCID`, `OCI_FINGERPRINT`, `OCI_TENANCY_OCID`, `OCI_REGION`, `OCI_IMAGE_ID`,
+`OCI_SUBNET_ID`, `OCI_AVAILABILITY_DOMAINS` — 도쿄 리전 값들, 세부 값은 대화 이력 또는 `oci` CLI로
+재조회 가능) + 민감 2개(`OCI_API_KEY_PEM` ← `~/.oci/oci_api_key.pem` 전체 내용, `ORACLE_SSH_
+PUBLIC_KEY` ← `~/.ssh/id_ed25519.pub` 내용). 사용자가 "내일 하겠다"며 보류.
+
+**다음 세션에서 사용자가 "이어서 하자"고 하면:** 1) secrets 7개 등록 완료했는지 먼저 확인 2) 등록
+안 됐으면 위 등록 절차(웹 UI 경로 + 값 목록)를 다시 안내 3) 등록 완료했으면 워크플로 커밋/푸시 →
+`gh workflow run oracle_capacity_retry.yml`로 수동 트리거해서 정상 동작 확인 → 이후 10분 간격
+자동 재시도로 방치. `deploy/oracle_capacity_retry.sh` 로컬 버전은 참고용으로 남겨두되 GH Actions가
+주력.
+
+### 작업 13 (2026-07-25): 백테스팅 엔진에 Masters의 4대 전략 검증 테스트 추가
+
+사용자가 유튜브 영상(Timothy Masters의 《Testing and Tuning Market Trading Systems》 소개 + 실전
+적용 사례)을 공유하며 그 안의 4가지 검증 기법(민감도/순열/분해/벤치마크 비교)을 백테스팅 엔진에
+추가해달라고 요청. "새 기능 도입 전 논의" 원칙은 2026-07-17에 "묻지 말고 판단해서 구현하라"로
+상위 대체된 상태([[feedback-quant-workflow]])라, AskUserQuestion으로 방향(구현 vs 논의만 vs 보류)만
+한 번 확인한 뒤 바로 설계·구현.
+
+- `core/backtest_engine.py`에 기존 `run_backtest`의 포지션 계산 로직을 `_simulate_on_raw(raw, df,
+  indicator_config, max_holding_days)`로 추출(순수 리팩터링, 동작 변화 없음 — 기존 15개 테스트로
+  회귀 확인 후 진행). 순열검정이 실제 데이터 대신 가짜(raw)를 넣어 같은 파이프라인을 재사용하도록
+  하기 위함.
+- **테스트 1 (민감도)** `run_sensitivity_sweep(ticker, variants, start, end, metric="sharpe")`:
+  파라미터 값별로 미리 만든 전략 설정 목록(variants)을 순서대로 백테스팅해 이웃 값 간 결과 변화폭을
+  측정. 특정 변수 값 하나에서만 결과가 튀면(전체 값 범위의 50% 넘는 단일 점프) `is_robust=False`로
+  과최적화 의심 신호. 파라미터 값→설정 변환 방법은 스키마마다 달라(단순 조건/1:2:6 staged/자연어
+  표현식) 호출부가 만들어 넘기게 설계(엔진은 실행/평가만 담당, `core/strategy_tuning.py`의 기존
+  그리드 생성 함수들과 조합 가능).
+- **테스트 2 (순열)** `run_permutation_test(ticker, indicator_config, start, end,
+  n_permutations=200)`: 신규 `_shuffle_daily_bars()`가 일봉의 '전일 종가 대비 시가/고가/저가/종가/
+  거래량 비율(그 날의 캔들 모양)'은 보존한 채 날짜 등장 순서만 무작위로 섞어 가짜 시계열을 생성
+  (변동성/드리프트는 실제와 동일, 추세·자기상관만 제거). 지표 warmup 구간은 실제 데이터 그대로 두고
+  백테스트 구간만 섞은 뒤 `_simulate_on_raw`로 동일 파이프라인 재실행 — 실제 결과가 순열 분포 대비
+  p-value/백분위로 어디에 위치하는지 반환. numpy cumprod로 완전히 벡터화해 순열 1회당 비용을
+  최소화했다(파이썬 루프 없음).
+- **테스트 3 (분해)** `run_partition_test(strategy_run, benchmark_run, bias_log_return=0.0)`: 총
+  로그수익률 = 추세(노출 비율 × 벤치마크 총수익률) + 실력(나머지) + 편향으로 분해. 편향(과최적화로
+  인한 인플레이션)은 단일 백테스트로 추정 불가능해 이 함수는 계산하지 않고 호출부가 표본외 검증 등
+  으로 구한 값을 넘기면 반영하는 구조(기본 0 = 영상처럼 "최적화 안 했으니 bias 없음" 전제).
+- **테스트 4 (벤치마크 비교)** `summarize_strategy_vs_benchmarks(comparison, regime_breakdown=None)`:
+  기존 `compare_with_benchmarks`/`compute_regime_breakdown` 결과를 원수익률 하나가 아니라 CAGR/MDD/
+  샤프 4축 전부에서 승패로 구조화 — "원수익률은 졌지만 방어력·위험조정수익률은 이겼다" 같은 판단을
+  호출부(향후 UI)가 그대로 문구로 보여줄 수 있게 함.
+- 검증: `tests/test_backtest_engine.py`에 신규 유닛테스트 9개 추가(민감도 포인트/견고성 판정,
+  순열 셔플이 날짜는 보존하고 값만 바꾸는지 + 종가 비율 집합이 순서만 바뀐 채 보존되는지, 순열검정
+  시드 고정 시 재현성, 분해 테스트의 total=trend+skill+bias 항등식과 무노출 시 0이 되는 경계 케이스,
+  벤치마크 비교 승패 플래그) — 전체 599개 pytest 통과(리팩터링 포함 회귀 없음). 추가로 실제 AAPL
+  2022~2024 데이터로 4개 함수 전부 라이브 스모크 테스트(민감도 스윕이 RSI<25처럼 거래가 거의 없는
+  극단값에서 과최적화로 정상 표시, 순열검정 p-value 0.03대, 분해 테스트가 노출 7.8%·실력 98%로
+  영상의 Turnaround Tuesday 사례와 같은 패턴, 벤치마크 비교 4축 플래그 정상 출력).
+- UI 페이지 연결(예: 전략 스튜디오에 민감도/순열 결과 시각화 추가)은 아직 하지 않음 — 이번 범위는
+  엔진 함수 자체까지. 다음 세션에서 사용자가 "화면에도 보여줘"라고 하면 `app/pages/1_전략_
+  스튜디오.py`에 탭/expander로 추가하는 방향이 기존 페이지 패턴과 일관적일 것.
+
+### 작업 14 (2026-07-25, 같은 날 후속): 4대 검증 테스트를 전략 스튜디오 UI에 연결
+
+사용자가 "추천을 다 수용할게, 마음껏 펼쳐봐"라며 작업 13 말미에 남긴 다음 단계 제안(UI 연결)을
+전적으로 위임 → 확인 질문 없이 바로 설계·구현([[feedback-quant-workflow]]의 "묻지 말고 판단해서
+구현하라" 원칙 적용).
+
+- `app/pages/1_전략_스튜디오.py`의 "🛠 생성/백테스트" 탭, 기존 "📊 국면별 수익률 분해" expander와
+  "이 전략을 라이브러리에 저장" 사이에 "🔬 전략 검증 테스트 (Masters의 4대 검증)" 섹션을 4개
+  하위 탭(①민감도 ②순열검정 ③수익분해 ④벤치마크 종합비교)으로 추가.
+- **① 민감도**: 전략 설정(dict 또는 수식 문자열)에서 스윕 가능한 숫자 파라미터를 자동으로 찾아
+  선택하게 하는 헬퍼 3종 신규 — `_find_numeric_leaves`(dict/list 재귀 순회로 모든 숫자 leaf의
+  경로를 찾음, 단순조건/1:2:6 staged 스키마 둘 다 결국 dict/list라 스키마 무관하게 동작),
+  `_find_expression_numbers`/`_substitute_expression_number`(수식 문자열은 정규식으로 숫자
+  리터럴 위치를 찾아 치환). 사용자가 파라미터+범위+포인트 수를 고르면 변형 목록을 만들어
+  `run_sensitivity_sweep`에 넘기고, 결과를 라인차트 + 견고성 판정 배지로 표시.
+- **② 순열검정**: 지표(누적수익률/샤프/CAGR)와 순열 횟수(기본 100, 20~500)를 고르면
+  `run_permutation_test`를 `job_manager`(백그라운드 스레드 + 폴링)로 실행 — 순열 1회가
+  백테스트 1회와 같은 비용이라 오래 걸릴 수 있어 기존 "🚀 백테스트 실행" 버튼과 동일한 비동기
+  패턴 재사용. 결과는 히스토그램(순열 분포) + 실제 결과 위치를 점선으로 표시, p-value 0.05
+  기준 유의성 배지.
+- **③ 수익 분해**: `run_partition_test`로 추세/실력/편향을 가로 막대차트로 표시(색은 앱 기존
+  상태색 관례 재사용 — 실력=`#4caf82`, 추세=`#8a8a8a`, 편향=`#e5533d`). 월 적립 옵션이 켜져
+  있으면 로그수익률 분해 전제가 깨지므로(적립식 현금흐름 포함) 적립 없는 순수 버전으로 별도
+  재계산해서 보여주고 그 사실을 캡션으로 안내.
+  편향은 사용자가 직접 입력(표본외 검증으로 별도 추정한 값이 있을 때만, 기본 0).
+- **④ 벤치마크 종합비교**: `summarize_strategy_vs_benchmarks`로 누적수익률/CAGR/MDD/샤프 4축
+  전부를 `st.metric`+delta로 표시(delta 부호가 이겼는지와 항상 일치하도록 설계해 Streamlit
+  기본 초록/빨강 색상이 자동으로 승패를 나타냄), 4축 중 몇 개를 이겼는지로 종합 코멘트.
+- 데이터 시각화는 `dataviz` 스킬을 먼저 참고 — 기존 페이지가 이미 쓰고 있는 팔레트(전략=`#5B8DEF`,
+  상태색 3톤)를 그대로 재사용해 새 팔레트를 만들지 않았고, 축 1개 원칙/범례/호버(Plotly 기본 제공)
+  등 스킬 원칙에 맞춤.
+- 새 백테스트를 실행하면 이전 종목/전략 기준으로 계산됐던 민감도/순열검정 결과가 화면에 남아있지
+  않도록 `st.session_state`에서 즉시 제거하는 처리 추가(안 하면 다른 종목 결과가 섞여 보일 위험).
+- 검증: 임시 스크립트로 Streamlit `AppTest`를 통해 실제 페이지를 구동 — 티커 AAPL 기본값으로
+  백테스트 실행 → 신규 섹션 헤더/4개 탭 렌더링 확인 → 민감도 스윕 버튼 클릭(포인트 5개, 견고성
+  판정 정상 출력) → 순열검정 버튼 클릭(n=20, p-value 0.0952) → 전 구간에서 `at.exception` 없음
+  확인 → 8개 `st.metric` 위젯(분해 3개 + 벤치마크 비교 4개 + 기존 리더보드 배지)이 전부 실제 값
+  (총 로그수익률 0.5177, 노출 57.6%, 실력비중 40.2%, 누적수익률 델타 -3.40%p, MDD 델타 +18.26%p
+  등)으로 렌더링됨을 확인 — 영상 사례처럼 "원수익률/CAGR은 졌지만 MDD/샤프는 이겼다" 패턴이 실제
+  데이터로도 재현됨. `python -m py_compile`로 문법 검증 + 전체 pytest 597개 통과(신규 회귀 없음).
+- **참고(내가 만든 문제 아님)**: 전체 스위트 실행 중 `test_market_regime.py::
+  test_get_latest_market_regime_snapshot_returns_none_when_empty`와 `test_sector_strength.py::
+  test_get_latest_theme_strength_snapshot_returns_none_when_empty` 2개가 실패 — 원인은 작업 12
+  이전 커밋(`2abf79c`, 이 세션 시작 전 이미 main에 존재)이 추가한 CI 스냅샷 JSON 파일 폴백
+  (`data/market_regime_snapshot_ci.json` 등, 실제로 git에 커밋돼 있고 디스크에도 존재) 때문에
+  "DB가 비어있으면 None" 전제였던 두 테스트가 더 이상 성립하지 않는 것 — `core/market_regime.py`/
+  `core/sector_strength.py`나 그 테스트를 이번 세션에서 건드리지 않았고 격리 실행해도 동일하게
+  실패해 이번 작업과 무관함을 확인. 사용자에게 보고 후 "고쳐줘" 요청받아 바로 수정: 두 테스트에
+  `tmp_path`로 `_CI_SNAPSHOT_PATH`를 존재하지 않는 경로로 monkeypatch해 "DB도 비어있고 CI 폴백도
+  없을 때"만 None을 검증하도록 전제를 갱신(운영 코드는 건드리지 않음 — CI 폴백 자체는 의도된
+  설계). 전체 pytest 599개 전부 통과로 복구.
+
+### 작업 15 (2026-07-25, 같은 날 후속): 🌙 야간 리더보드 "같은 섹터 다른 종목 적용" 기능 버그 수정
+
+사용자가 야간 미세튜닝 리더보드 탭의 "🧪 같은 섹터 다른 종목에도 적용해보기"(WDC 등에서 채택된
+파라미터를 재학습 없이 같은 섹터 다른 종목에 그대로 적용해보는 기존 기능, 이번 세션 이전부터 있던
+코드)를 눌렀더니 결과가 전부 None이고 `'BacktestRun' object has no attribute 'get'` 오류가 뜬다고
+보고. `app/pages/1_전략_스튜디오.py:2460-2463`(`_render_nightly_leaderboard_tab()` 내부)을 확인해
+원인 특정: `compare_with_benchmarks()`는 `dict[str, BacktestRun]`을 반환하는데, `peer_results.get
+("strategy", {})`까지는 맞게 `BacktestRun` 객체를 꺼내놓고 그 뒤 `peer_strategy.get("cagr")`처럼
+`BacktestRun` 객체에 바로 `.get()`을 호출해(그 객체엔 그런 메서드가 없음) 매번 예외 → try/except가
+잡아서 전부 None 행으로 채워지고 있었다(이번 세션이 만든 버그 아님, 원래부터 있던 결함).
+`.metrics.get(...)`으로 고쳐서(3곳: peer_strategy/peer_benchmark/peer_hold) 실제 지표 dict을
+꺼내도록 수정. 검증: 실제 리더보드 데이터(MU, Information Technology)로 동일 로직을 직접 재현해
+AAPL/ACN/ADBE 등 동일 섹터 종목에 대해 전략CAGR/종목홀딩CAGR/SPX CAGR/초과수익이 전부 실제 숫자로
+나오는 것 확인. 전체 pytest 599개 통과(회귀 없음, 이 기능 자체는 UI 상호작용이라 별도 자동 테스트는
+추가하지 않음 — 기존 이 탭도 커버하는 자동 테스트가 없었음).
+
+### 작업 12 후속 (2026-07-25): secrets 등록 완료, GH Actions 파이프라인 정상화 확인
+
+사용자가 GitHub repo secrets 9개(OCI_USER_OCID/FINGERPRINT/TENANCY_OCID/REGION/IMAGE_ID/SUBNET_ID/
+AVAILABILITY_DOMAINS/API_KEY_PEM/ORACLE_SSH_PUBLIC_KEY) 웹 UI로 수동 등록 완료. 등록 전 실행들은
+전부 값이 빈 문자열이라 for-loop가 아예 안 돌고 조용히 "성공"으로 위장됐던 버그(작업 12에서 발견)를
+`.github/workflows/oracle_capacity_retry.yml`에 secrets 누락 시 `::error::`로 즉시 실패하는 가드
+추가(커밋 `bb4eb3d`)로 수정. 이후 실제 실행에서 도쿄(ap-tokyo-1) OCI API 연결 타임아웃
+(`RequestException: connection to endpoint timed out`)으로 실패하는 새 케이스 발견 →
+`TooManyRequests`/`Out of host capacity`와 동일하게 재시도 대상으로 처리하도록 수정(커밋
+`3fb91fa`). 두 수정 모두 push 완료(main). 사용자가 Actions 웹 UI에서 두 번 수동 트리거해서
+검증: 1차는 타임아웃으로 실패 확인 → 수정 → 2차는 429(로컬 스크립트와 동시 요청 경합)를 정상적으로
+넘기고 success로 종료 확인. **파이프라인 정상 작동 확인됨.** 로컬 백그라운드 재시도 스크립트는
+GH Actions와의 API 경합을 줄이기 위해 종료(더 이상 필요 없음 — GH Actions가 컴퓨터/Codespace 상태와
+무관하게 계속 재시도함).
+
+**남은 것**: 도쿄 리전 A1.Flex capacity 자체가 언제 풀릴지는 알 수 없음(Oracle 쪽 문제) — GH Actions
+cron이 알아서 계속 시도하다 성공하면 `ORACLE_VM_READY` repo variable이 `true`로 자동 세팅됨. 다음
+세션에서 확인할 것: `gh variable list --repo sternjeong/Quant`로 `ORACLE_VM_READY` 값 확인, 또는
+Oracle 콘솔에서 인스턴스 생성 여부 확인. 생성됐다면 `deploy/DEPLOYMENT_ORACLE.md` 2번 단계(네트워크
+설정)부터 이어서 진행.
+
+### 작업 16 (2026-07-25, 같은 날 후속): 야간 미세튜닝 엔진이 "재학습 없이 다른 종목에 적용하면 계속
+지는" 근본 원인 조사 + 4가지 구조적 수정
+
+사용자가 "과거 데이터로 전략을 수정했으면 적어도 그 과거 데이터에 대해서는 오버퍼폼해야 할 것 같은데,
+개별 종목은 이겨도 재학습 없이 같은 섹터 다른 종목에 적용하면 계속 진다"며 "너가 직접 이 엔진에 다
+접근해서 분석하고 조언하라"고 요청. 코드를 직접 읽고 실제 리더보드 데이터(`data/nightly_tuning_
+leaderboard.json` 50건)로 계산까지 돌려 원인 3가지를 특정했고, 사용자가 "모두 구현해줘"라고 승인해
+바로 수정까지 완료([[feedback-quant-workflow]]의 "묻지 말고 판단해서 구현하라" 원칙 적용, 다만
+튜닝 엔진처럼 실거래 판단에 쓰이는 핵심 시스템이라 분석 결과는 먼저 보고한 뒤 승인을 받고 진행함).
+
+**발견한 원인 3가지 (실데이터로 검증)**:
+1. **CAGR 연환산 폭발**: `trained_regime`(국면별 트레이닝) 지정 시 test 검증을 "S&P500 기준 그
+   국면이었던 가장 긴 연속 구간 하나"로 좁히는데(`_evaluate_group_config_on_regime_matched_test`),
+   그 구간이 실제로는 10거래일(`market_regime._MIN_REGIME_SEGMENT_TRADING_DAYS`)까지 짧을 수 있어
+   며칠짜리 실현수익률이 연환산되며 폭발(MU: 매매 1회·2주짜리 구간이 CAGR 1786%로 리더보드 1위).
+   리더보드 상위 50개 중 최소 15개 이상이 매매 0~3회짜리 이런 아티팩트였음.
+2. **리더보드 생존편향**: 매일 밤 종목 100개 × 스타일 6종 × 국면 3종 × 후보 20~60개(수천 건)를
+   반복 실행해 역대 최고 50개만 남기는 구조라, 순전히 우연으로 튄 값이 상위를 독차지.
+3. **backbone_changed 데이터 스누핑**: `tune_strategy_for_group()`의 escape hatch(그룹이 test에서
+   지면 구조가 다른 backbone 대안을 시도)가 "test 구간은 선택 기준에 안 쓴다"는 4b절 원칙과 달리
+   실제로는 test 성과가 제일 좋은 backbone을 그대로 채택하고 있었음. 사용자 예시 WDC로 직접 검증:
+   `run_permutation_test` p=0.25(노이즈와 구분 안 됨), `run_partition_test` 실력기여 -5.55%(마이너스
+   — 초과수익은 전부 WDC 자체의 폭등 추세였고 전략 타이밍은 오히려 손해). WDC는 실제로
+   `backbone_changed=True` 케이스였음 — 원인이 이 경로였다는 결정적 증거.
+
+**구현한 수정 4가지 (전부 `core/strategy_tuning.py`)**:
+1. `_MIN_TEST_WINDOW_TRADING_DAYS=60` 신설 — 국면 일치 test 세그먼트를 `historical_regime_segments
+   (..., min_trading_days=_MIN_TEST_WINDOW_TRADING_DAYS)`로 엄격하게 걸러(train 폴드용 10거래일보다
+   훨씬 김), 짧으면 "국면 일치 구간 없음"과 동일하게 검증 자체를 포기(기존 None 관례 재사용).
+   `_group_mean_excess_return`/`tune_strategy_for_ticker`/`run_batch_tuning`의 초과수익 계산도
+   CAGR 대신 cumulative_return(실현 누적수익률) 차이로 전환(같은 구간이라 연환산이 필요 없고
+   폭발도 안 함) + 매매횟수 `_MIN_TRADE_COUNT`(5) 미만 종목은 아예 제외(excess_return=None,
+   `insufficient_sample` 플래그) — `get_top_tuning_results`가 excess_return IS NOT NULL로 필터링
+   하므로 리더보드에서 자동으로 빠짐.
+2. `tune_strategy_for_group`의 `_search_and_evaluate`가 각 backbone의 train 워크포워드 점수
+   (`trail[0]["score"]`)도 반환하도록 확장하고, 구조 변형 채택 여부를 test 성과(`cand_excess`)가
+   아니라 이 train 점수로만 비교하도록 변경 — test는 "채택된 backbone이 실제로 얼마나 잘하는지"
+   정직하게 보고하는 데만 쓰인다.
+3. `_compute_tuning_significance()` 신설 — 채택된 group_config가 통계적 엣지인지(순열검정 p-value)
+   종목 추세가 아니라 실력에서 온 것인지(분해 테스트 skill_pct_of_total) 종목별로 검증(작업 13에서
+   만든 `core.backtest_engine.run_permutation_test`/`run_partition_test` 재사용). 비용 절감을 위해
+   test에서 이미 진(excess≤0) 종목이나 매매 5회 미만인 종목은 계산을 건너뛴다. `tune_strategy_for_
+   group`/`run_batch_tuning`/`save_tuning_run`을 통해 종목별로 저장되고, `StrategyTuningResult`에
+   `significance_p_value`/`skill_pct_of_total` 컬럼 신설(`core/models.py` + `core/db.py`
+   `_add_missing_columns`에 ALTER TABLE 추가, 실제 `data/quant.db`에도 적용 확인).
+   `get_top_tuning_results(require_significant=True)`(기본값)가 p<0.05 & skill>0인 결과만
+   보여주도록 필터 추가.
+4. `app/pages/1_전략_스튜디오.py`(야간 리더보드 탭): "✅ 통계적으로 유의미한 결과만 보기" 체크박스
+   (기본 켜짐, DB 결과와 GitHub Actions JSON 결과 양쪽에 동일하게 적용) + p-value/실력비중 컬럼을
+   리더보드 표에 추가. **저장 게이트**: "📚 라이브러리에 저장" 기본 버튼은 (a) 통계적 유의성 통과
+   AND (b) "🧪 같은 섹터 다른 종목에도 적용해보기"를 이미 실행해서 과반 종목이 초과수익 양수일 때만
+   활성화되고, 둘 중 하나라도 안 되면 "⚠️ 검증 없이 저장하기(권장하지 않음)" 보조 버튼으로만 저장
+   가능(완전히 막지는 않되 명확히 비권장 경로로 분리).
+- 검증: `tests/test_strategy_tuning.py`에 신규/수정 테스트 다수(민감도 계산이 이긴/충분한 종목만
+  계산하는지, backbone 선택이 train↔test를 일부러 뒤집어놔도 train 기준으로 채택되는지, 짧은 세그먼트
+  가 엄격한 min_trading_days로 걸러지는지, run_batch_tuning의 표본부족 종목이 excess_return=None이
+  되는지, get_top_tuning_results 기본 유의성 필터) — 전체 pytest 606개 통과. 추가로 실제 데이터로
+  라이브 검증: (1) AAPL/MSFT/ORCL 3종목 그룹 튜닝을 국면="약세장"/regime=None 양쪽으로 실행해 min-
+  window 게이트가 실제로 얇은 결과를 "검증 불가"로 정직하게 걸러내는 것 확인, (2) 실제로 이기는
+  AAPL RSI<35(2022~2024) 케이스로 `_compute_tuning_significance`를 직접 호출해 p=0.0488(유의),
+  skill=98.47%(실력)가 정상 계산됨을 확인 — 작업 13에서 만든 Masters 4대 테스트 엔진이 실제로
+  튜닝 파이프라인에 살아있는 기능으로 연결됐음을 실증.
+- **후속 참고**: 기존에 커밋된 `data/nightly_tuning_leaderboard.json`(50건)은 이번 수정 이전에
+  생성된 데이터라 significance_p_value/skill_pct_of_total이 전부 없음(None) → 기본 필터(유의성만
+  보기)를 켜두면 리더보드가 당장은 비어 보일 수 있음(UI에 이유를 안내하는 문구 추가해둠). 다음 야간
+  튜닝(로컬 스케줄러 또는 GitHub Actions)이 새로 돌면 검증된 결과가 다시 쌓이기 시작한다 — 기존
+  파일을 수동으로 지우거나 덮어쓰지는 않았음(오래된 값이라도 참고용으로 "전체 보기" 토글로는 계속
+  조회 가능하게 남겨둠).
+
+### 작업 16 (2026-07-25, 같은 날 후속): 코스톨라니 국면 매매를 일반 Strategy로 승격 + 국면 판정 warmup 버그 수정
+
+사용자가 시장 진단 페이지의 "실제로 이 국면 신호대로 매매했다면?" 결과를 보고 "이것도 전략으로
+만들어줄 수 있어?"라고 요청 — 지금까지는 `core/kostolany_scenario_engine.py`의 전용 함수로만
+21개 섹터/테마 ETF에 대해서만 돌릴 수 있었는데, 이걸 다른 전략들처럼 전략 라이브러리에 저장하고
+아무 종목에나 적용할 수 있게 해달라는 것. 확인 질문 없이 바로 설계·구현([[feedback-quant-workflow]]).
+
+- **다섯 번째 indicator_config 스키마 신설** (`core/strategy_engine.py`): `{"schema": "kostolany",
+  "style": "장기"|"스윙"}`. 기존 4개 스키마(레짐/직접수식/1:2:6단계별/복합)는 전부 "AND/OR 조건이
+  참인 구간만 보유"하는 레짐 추종형이라 3단계(매수/보유·관망/매도) + hold=직전상태유지(hysteresis)
+  개념을 표현할 수 없어 별도 스키마로 분리. `is_kostolany_config`/`generate_kostolany_position`
+  신설, `evaluate_boolean_signal()`(→ `generate_positions()` → `run_backtest`)의 공용 진입점에
+  연결 — 이 한 곳만 고치면 백테스트 엔진/차트 렌더링(빈 `conditions` 리스트로 자연히 통과)이 전부
+  별도 수정 없이 동작함을 확인. `core.kostolany_scenario_engine.classify_cycle_phase_series`/
+  `build_position_from_phases`를 지연 import로 재사용(모듈 최상단에서 가져오면
+  strategy_engine↔kostolany_scenario_engine↔backtest_engine 순환참조 발생).
+- **전략 라이브러리/UI 통합**: `core/strategy_library.py`(`detect_strategy_type`/
+  `_validate_config_schema`에 kostolany 분기 추가), `core/strategy_explainer.py`
+  (`describe_kostolany_config` 신설, Gemini 키 없어도 결정론적 설명 생성), `app/pages/1_전략_
+  스튜디오.py`(`STRATEGY_TYPE_LABELS` 2곳에 "kostolany" 라벨 추가 안 하면 라이브러리 목록 렌더링이
+  `KeyError`로 죽는 것을 AppTest로 실제 발견해 수정 — `_load_config_into_state`에 `loaded_
+  kostolany_config` 세션상태 분기 신설(안 하면 '불러오기' 후 '백테스트 실행'을 눌러도 지표 토글 UI가
+  빈 조건으로 조용히 되돌아가 아무 신호 없이 실행되는 조용한 버그였음, staged 전략과 동일한 패턴으로
+  해결), "🧬 다종목 미세튜닝" 백본 선택 목록에서는 제외(숫자 파라미터가 없어 그리드서치 대상이
+  아님 —애초에 재학습 없이 아무 종목에나 그대로 적용되도록 설계됨). "🧩 전략 합성" 탭은 별도 수정 없이
+  그대로 됨(combine 스키마가 재귀적으로 evaluate_boolean_signal을 호출하므로).
+- **라이브러리에 기본 전략 2개 저장**: "🐢 코스톨라니 국면 매매 (장기)"(id=21), "⚡ 코스톨라니 국면
+  매매 (스윙)"(id=22), source="kostolany_cycle".
+- **부수 발견 및 수정한 버그**: `run_backtest`(신규 경로, warmup 400일 사전 확보)와 `run_ticker_
+  scenario`(기존 시장 진단 페이지가 쓰는 경로)를 같은 AAPL/기간으로 교차검증하던 중 두 결과가 크게
+  달랐던 것(포지션 불일치 146일, 거래 3건 vs 2건)을 발견 → 원인은 `run_ticker_scenario`/`run_theme_
+  scenario`가 `run_kostolany_scenario` 자신의 docstring이 요구하는 "252거래일 이상 warmup"을
+  실제로는 전혀 안 붙이고 분석 시작일부터 바로 데이터를 받아왔던 기존 버그(이번 세션이 만든 코드가
+  아니라 시장 진단 페이지가 이미 쓰고 있던 코드) — 분석 구간 맨 앞 최대 1년 가까이가 아직 덜 채워진
+  rolling 윈도로 국면이 왜곡되고 있었다. `WARMUP_DAYS=400` 도입해 `run_backtest`와 동일한 관례로
+  수정 → 두 경로 결과가 완전히 일치(포지션 불일치 0일)하는 것으로 재검증. **이 버그는 시장 진단
+  페이지의 기존 코스톨라니 시나리오 결과(사용자가 "꽤 괜찮은거 같다"고 평가했던 바로 그 결과)에도
+  이미 영향을 주고 있었음** — 수정 후 첫 ~1년 구간의 매매가 더 정확하게(또는 새로) 잡힐 수 있어
+  숫자가 달라질 수 있다.
+- 검증: `tests/test_strategy_engine.py`(kostolany 스키마 판별/포지션 매핑 3개),
+  `tests/test_strategy_library.py`(판별·검증 3개), `tests/test_kostolany_scenario_engine.py`
+  (warmup fetch 3개) 신규 유닛테스트 추가 + Streamlit `AppTest`로 실제 AAPL 데이터 라이브
+  end-to-end(라이브러리에서 불러오기 → 백테스트 실행 → 차트 렌더링까지) 확인. `run_backtest`
+  경로와 `run_ticker_scenario` 경로가 동일 티커/기간에서 완전히 같은 거래/포지션을 내는 것도
+  직접 대조 확인. 전체 pytest 615개 통과(신규 12개 포함, 회귀 없음).

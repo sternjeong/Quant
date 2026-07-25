@@ -300,6 +300,11 @@ class StrategyTuningResult(Base):
     insufficient_regime_data = Column(Boolean, nullable=False, default=False)
     # test 구간 중 같은 국면의 가장 긴 연속 구간에서만 평가한 보조 지표 (13.6절, JSON 객체 문자열).
     regime_matched_test = Column(Text, nullable=True)
+    # 2026-07-25 추가 — Masters 4대 테스트(core.backtest_engine) 중 순열검정/분해 테스트를 튜닝
+    # 파이프라인에 통합(core.strategy_tuning._compute_tuning_significance). excess_return>0인
+    # 종목만 계산하므로(이미 진 종목은 검증할 이유가 없음) 대부분 None일 수 있다.
+    significance_p_value = Column(Float, nullable=True)  # 순열검정 p-value (작을수록 노이즈 아님)
+    skill_pct_of_total = Column(Float, nullable=True)  # 총수익률 중 실력(타이밍) 기여 비중(%) — 음수면 추세만 탄 것
     error = Column(Text, nullable=True)  # 이 종목만 실행 실패했을 때의 메시지 (배치 전체는 계속 진행)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 

@@ -382,8 +382,13 @@ def _patch_session(monkeypatch, db_session):
     monkeypatch.setattr(market_regime, "get_session", _fake_get_session)
 
 
-def test_get_latest_market_regime_snapshot_returns_none_when_empty(db_session, monkeypatch):
+def test_get_latest_market_regime_snapshot_returns_none_when_empty(db_session, monkeypatch, tmp_path):
     _patch_session(monkeypatch, db_session)
+    # get_latest_market_regime_snapshot()은 DB가 비어도 GitHub Actions가 커밋해둔 CI 스냅샷
+    # JSON(data/market_regime_snapshot_ci.json, 2026-07-21 도입)으로 폴백한다 — 그 파일이 실제로
+    # 저장소에 존재하므로, "정말 아무 데이터도 없을 때" None인지를 보려면 폴백 경로도 함께
+    # 존재하지 않는 경로로 바꿔야 한다.
+    monkeypatch.setattr(market_regime, "_CI_SNAPSHOT_PATH", tmp_path / "no_such_snapshot.json")
     assert market_regime.get_latest_market_regime_snapshot() is None
 
 

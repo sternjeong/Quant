@@ -28,6 +28,7 @@ from core.strategy_engine import (
     describe_condition,
     is_combined_config,
     is_expression_config,
+    is_kostolany_config,
     is_staged_config,
     parse_indicator_config,
 )
@@ -155,6 +156,23 @@ def _fallback_expression_description(expression: str) -> str:
     )
 
 
+def describe_kostolany_config(config: IndicatorConfig) -> str:
+    """코스톨라니 국면 매매 전략(schema="kostolany")을 결정론적인 한국어 요약으로 만든다."""
+    from core.kostolany_cycle import PHASE_INFO, STYLE_LABELS, STYLE_PHASE_STATUS
+
+    style = config.get("style", "장기")
+    status_map = STYLE_PHASE_STATUS.get(style, STYLE_PHASE_STATUS["장기"])
+    buy_phases = " · ".join(PHASE_INFO[p]["label"] for p, s in status_map.items() if s == "buy")
+    sell_phases = " · ".join(PHASE_INFO[p]["label"] for p, s in status_map.items() if s == "sell")
+    return (
+        "코스톨라니 달걀 이론의 6국면(A1~B3)을 가격 위치(52주 고점·저점 대비 %)/추세(20거래일 등락률)/"
+        "거래량(20일 평균 ÷ 60일 평균 비율) 3축으로 매일 판정해(룩어헤드 없이 그날까지의 데이터만 사용), "
+        f"{STYLE_LABELS.get(style, style)} 기준으로 {buy_phases} 국면이면 매수해 보유하고 {sell_phases} "
+        "국면이면 전량 매도해 현금으로 전환하는 전략입니다. 그 사이 국면에서는 직전 상태(보유 또는 현금)를 "
+        "그대로 유지합니다."
+    )
+
+
 def explain_strategy(indicator_config: str | IndicatorConfig) -> str:
     """indicator_config를 보고 상세한 한국어 설명을 생성한다.
 
@@ -175,6 +193,11 @@ def explain_strategy(indicator_config: str | IndicatorConfig) -> str:
         gemini_prompt = expression
         system_prompt = _EXPRESSION_SYSTEM_PROMPT
         fallback = _fallback_expression_description(expression)
+    elif is_kostolany_config(config):
+        base_summary = describe_kostolany_config(config)
+        gemini_prompt = f"[조건 요약]\n{base_summary}\n\n[원본 조건 JSON]\n{json.dumps(config, ensure_ascii=False)}"
+        system_prompt = _POLISH_SYSTEM_PROMPT
+        fallback = base_summary
     else:
         base_summary = (
             describe_staged_config(config) if is_staged_config(config) else describe_regime_config(config)

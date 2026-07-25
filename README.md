@@ -44,6 +44,9 @@ streamlit run app/Home.py
 
 브라우저에서 `http://localhost:8501` 로 접속. 최초 실행 시 `data/quant.db` 가 자동 생성된다.
 
+로컬/Codespace 실행 없이 바로 접속하려면 배포된 라이브 앱으로 이동:
+https://jehhzwta7swj6jwp2mxgus.streamlit.app
+
 ### 2. 백그라운드 스케줄러 (타점 알림)
 
 Streamlit 앱과는 완전히 별도의 프로세스로, 항상 켜두어야 브라우저를 열지 않아도

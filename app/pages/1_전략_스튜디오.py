@@ -14,6 +14,7 @@
 - 🗂️ 전략 관리: 저장된 전략의 이름/설명/조건 수정, 보관/삭제 (구 9_전략_관리.py)
 """
 
+import copy
 import json
 import re
 import sys
@@ -36,7 +37,12 @@ from core.backtest_engine import (
     compare_with_benchmarks,
     compute_regime_breakdown,
     run_backtest,
+    run_buy_and_hold,
+    run_partition_test,
+    run_permutation_test,
+    run_sensitivity_sweep,
     save_backtest_result,
+    summarize_strategy_vs_benchmarks,
 )
 from core.chart_rendering import render_price_chart, render_staged_price_chart
 from core.db import get_session, init_db
@@ -45,7 +51,7 @@ from core import job_manager
 from core.models import Strategy
 from core.nl_strategy import generate_strategies_from_scripts, interpret_strategy_text, split_batch_scripts
 from core import era_validation, screener, strategy_tuning
-from core.strategy_engine import is_expression_config, is_staged_config
+from core.strategy_engine import is_expression_config, is_kostolany_config, is_staged_config
 from core.strategy_explainer import describe_regime_config, describe_staged_config, explain_strategy
 from core.strategy_library import (
     archive_strategy,
@@ -81,6 +87,7 @@ STRATEGY_TYPE_LABELS = {
     "expression": "직접 수식",
     "regime": "레짐(AND/OR)",
     "combined": "전략 합성",
+    "kostolany": "🥚 코스톨라니 국면",
 }
 
 MODE_TOGGLE = "🎛️ 지표 토글"
@@ -125,6 +132,7 @@ DEFAULT_UI_STATE = {
     "bb_op": "break_below",
     "logic": "AND",
     "loaded_staged_config": None,
+    "loaded_kostolany_config": None,
     "strategy_input_mode": MODE_TOGGLE,
     "expression_text": "",
 }
@@ -145,12 +153,22 @@ def _load_config_into_state(indicator_config: dict) -> None:
     """
     if is_staged_config(indicator_config):
         st.session_state["loaded_staged_config"] = indicator_config
+        st.session_state["loaded_kostolany_config"] = None
         st.session_state["ma_enabled"] = False
         st.session_state["rsi_enabled"] = False
         st.session_state["bb_enabled"] = False
         return
 
     st.session_state["loaded_staged_config"] = None
+
+    if is_kostolany_config(indicator_config):
+        st.session_state["loaded_kostolany_config"] = indicator_config
+        st.session_state["ma_enabled"] = False
+        st.session_state["rsi_enabled"] = False
+        st.session_state["bb_enabled"] = False
+        return
+
+    st.session_state["loaded_kostolany_config"] = None
 
     if is_expression_config(indicator_config):
         st.session_state["expression_text"] = indicator_config.get("expression", "")
@@ -258,6 +276,63 @@ def metrics_dataframe(results: dict[str, BacktestRun], selected: list[str]) -> p
     }
     index = [METRIC_LABELS[m] for m in selected]
     return pd.DataFrame(data, index=index).T
+
+
+_EXPRESSION_NUMBER_RE = re.compile(r"(?<![\w.])\d+\.?\d*(?![\w.])")
+
+
+def _find_numeric_leaves(obj, path: tuple = ()) -> list[tuple[tuple, float]]:
+    """dict/list 구조를 재귀 순회해 (경로, 현재 숫자값) 쌍을 전부 찾는다 — 민감도 테스트에서
+    스윕할 파라미터 후보 목록을 만들 때 쓴다. 전략 설정 스키마(단순 조건/1:2:6 staged)와 무관하게
+    동작한다(둘 다 결국 dict/list 구조라서)."""
+    found: list[tuple[tuple, float]] = []
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            found.extend(_find_numeric_leaves(v, path + (k,)))
+    elif isinstance(obj, list):
+        for i, v in enumerate(obj):
+            found.extend(_find_numeric_leaves(v, path + (i,)))
+    elif isinstance(obj, (int, float)) and not isinstance(obj, bool):
+        found.append((path, obj))
+    return found
+
+
+def _set_by_path(config: dict, path: tuple, value) -> dict:
+    """config를 깊은 복사한 뒤 path(딕셔너리/리스트 경로)가 가리키는 값만 바꿔서 반환한다."""
+    updated = copy.deepcopy(config)
+    cursor = updated
+    for key in path[:-1]:
+        cursor = cursor[key]
+    cursor[path[-1]] = value
+    return updated
+
+
+def _path_label(path: tuple) -> str:
+    return " → ".join(str(p) for p in path)
+
+
+def _find_expression_numbers(expression: str) -> list[tuple[int, str]]:
+    """수식 문자열에서 숫자 리터럴의 (시작 위치, 원문 텍스트)를 전부 찾는다 (민감도 스윕 대상 후보)."""
+    return [(m.start(), m.group()) for m in _EXPRESSION_NUMBER_RE.finditer(expression)]
+
+
+def _substitute_expression_number(expression: str, start: int, original_text: str, new_value: float) -> str:
+    new_text = str(int(round(new_value))) if float(new_value).is_integer() else str(round(new_value, 4))
+    return expression[:start] + new_text + expression[start + len(original_text) :]
+
+
+def _linspace(lo: float, hi: float, steps: int) -> list[float]:
+    if steps <= 1:
+        return [lo]
+    return [lo + (hi - lo) * i / (steps - 1) for i in range(steps)]
+
+
+def _sweep_values(base_value: float, lo: float, hi: float, steps: int) -> list[float]:
+    """base_value가 정수였으면 스윕 값도 정수로(중복 제거 후 오름차순), 아니면 소수 4자리로 반올림."""
+    raw = _linspace(lo, hi, steps)
+    if isinstance(base_value, int):
+        return sorted(set(int(round(v)) for v in raw))
+    return sorted(round(v, 4) for v in raw)
 
 
 def _describe_candidate_compact(config: dict) -> str:
@@ -477,7 +552,20 @@ with tab_backtest:
     with col_logic:
         st.selectbox("조건 결합", ["AND", "OR"], key="logic")
 
+    with st.expander("💰 월 적립 옵션 (기본: 초기자본 100만 넣고 끝까지 보유)"):
+        st.caption(
+            "매달 얼마씩 투자에 넣을 수 있는지 입력하면, 매수보유 두 벤치마크는 매달 그 금액을 "
+            "즉시 시장가로 사는 정액적립식(DCA)으로, 전략 적용 쪽은 관망(포지션 0) 중에는 현금으로 "
+            "누적만 하다가 매수 시그널이 뜨는 순간 쌓인 현금을 한꺼번에 투입하는 방식(코스톨로니 "
+            "법칙: 현금을 모아뒀다가 신호가 오면 몰빵)으로 자동 전환해서 비교합니다."
+        )
+        monthly_contribution = st.number_input(
+            "월 적립금 (0이면 적립 없이 초기자본 한 번만 투자)",
+            min_value=0.0, value=0.0, step=10.0, key="monthly_contribution",
+        )
+
     loaded_staged_config = st.session_state.get("loaded_staged_config")
+    loaded_kostolany_config = st.session_state.get("loaded_kostolany_config")
 
     if loaded_staged_config:
         st.info(
@@ -488,6 +576,17 @@ with tab_backtest:
             st.json(loaded_staged_config)
         if st.button("↩️ 커스텀 지표 조합으로 전환 (단계별 전략 로드 해제)"):
             st.session_state["loaded_staged_config"] = None
+            st.rerun()
+    elif loaded_kostolany_config:
+        st.info(
+            "🥚 코스톨라니 국면 매매 전략이 로드되어 있습니다. 아래 지표 토글 대신 이 전략 그대로 백테스트를 "
+            "실행합니다(입력한 티커/기간에 국면 판정 로직을 그대로 적용). 세부 조건 수정은 '전략 관리' "
+            "페이지에서 할 수 있습니다."
+        )
+        with st.expander("로드된 전략 JSON 보기"):
+            st.json(loaded_kostolany_config)
+        if st.button("↩️ 커스텀 지표 조합으로 전환 (코스톨라니 전략 로드 해제)"):
+            st.session_state["loaded_kostolany_config"] = None
             st.rerun()
     else:
         st.radio(
@@ -558,11 +657,16 @@ with tab_backtest:
 
     if run_clicked:
         expression_mode = (
-            not loaded_staged_config and st.session_state["strategy_input_mode"] == MODE_EXPRESSION
+            not loaded_staged_config
+            and not loaded_kostolany_config
+            and st.session_state["strategy_input_mode"] == MODE_EXPRESSION
         )
         if loaded_staged_config:
             indicator_config = loaded_staged_config
             has_conditions = bool(indicator_config.get("entry_stages"))
+        elif loaded_kostolany_config:
+            indicator_config = loaded_kostolany_config
+            has_conditions = True
         elif expression_mode:
             expr = st.session_state["expression_text"].strip()
             indicator_config = {"expression": expr}
@@ -584,10 +688,12 @@ with tab_backtest:
             st.session_state["pending_ticker"] = ticker
             st.session_state["pending_start"] = start_date.isoformat()
             st.session_state["pending_end"] = end_date.isoformat()
+            st.session_state["pending_monthly_contribution"] = monthly_contribution
             job_manager.start(
                 "backtest_run", compare_with_benchmarks,
                 ticker, indicator_config, start_date.isoformat(), end_date.isoformat(),
                 benchmark_ticker=DEFAULT_BENCHMARK_TICKER,
+                monthly_contribution=monthly_contribution,
                 label=f"{ticker} 백테스트",
             )
 
@@ -601,6 +707,11 @@ with tab_backtest:
             st.session_state["last_ticker"] = st.session_state["pending_ticker"]
             st.session_state["last_start"] = st.session_state["pending_start"]
             st.session_state["last_end"] = st.session_state["pending_end"]
+            st.session_state["last_monthly_contribution"] = st.session_state["pending_monthly_contribution"]
+            # 새 백테스트가 돌면 이전 전략/종목 기준으로 계산됐던 검증 테스트 결과는 더 이상 유효하지
+            # 않으므로 지운다 (안 지우면 다른 종목의 순열검정 결과가 화면에 남아있는 채로 보일 수 있음).
+            st.session_state.pop("sensitivity_result", None)
+            st.session_state.pop("permutation_result", None)
 
     results = st.session_state.get("last_results")
     if results is not None:
@@ -626,6 +737,8 @@ with tab_backtest:
             else:
                 if is_expression_config(indicator_config):
                     st.caption("직접 수식 전략은 지표 오버레이 없이 캔들차트만 표시합니다.")
+                elif is_kostolany_config(indicator_config):
+                    st.caption("코스톨라니 국면 매매 전략은 지표 오버레이 없이 캔들차트만 표시합니다.")
                 st.caption("차트 위 삼각형 마커에 마우스를 올리면 진입/청산 근거를 확인할 수 있습니다.")
                 st.plotly_chart(
                     render_price_chart(
@@ -635,8 +748,32 @@ with tab_backtest:
                     config=TRADINGVIEW_CHART_CONFIG,
                 )
 
+            last_monthly_contribution = st.session_state.get("last_monthly_contribution", 0.0)
+
             st.markdown("#### 전략 vs 매수보유 비교 (자산가치, 시작=100)")
             st.plotly_chart(render_equity_comparison(results), use_container_width=True)
+
+            if last_monthly_contribution:
+                st.caption(
+                    f"💰 월 {last_monthly_contribution:,.0f} 적립 적용 중 — 매수보유 두 곡선은 정액적립식(DCA), "
+                    "전략 적용 곡선은 관망 중 현금 누적 후 매수 시그널에 몰빵하는 방식(코스톨로니 법칙)입니다. "
+                    "이 경우 아래 누적수익률/CAGR은 원금(총 납입액) 대비 손익률 / 자금가중 연환산수익률(XIRR)로 "
+                    "재정의되어, 서로 다른 시점에 다른 금액이 투입된 세 전략을 공정하게 비교할 수 있습니다."
+                )
+                contrib_rows = []
+                for run in results.values():
+                    m = run.metrics
+                    contrib_rows.append(
+                        {
+                            "구분": run.label,
+                            "총 납입액": m.get("total_contributed"),
+                            "최종 평가액": round(float(run.equity_curve.iloc[-1]), 2) if not run.equity_curve.empty else None,
+                            "손익": m.get("total_profit"),
+                            "원금대비 손익률(%)": m.get("cumulative_return"),
+                            "XIRR(%)": m.get("cagr"),
+                        }
+                    )
+                st.dataframe(pd.DataFrame(contrib_rows), use_container_width=True, hide_index=True)
 
             st.markdown("#### 성과 지표")
             selected_metrics = st.multiselect(
@@ -671,6 +808,286 @@ with tab_backtest:
                     st.dataframe(breakdown_df, use_container_width=True, hide_index=True)
                 else:
                     st.info("벤치마크 데이터를 가져올 수 없어 국면별 분해를 계산하지 못했습니다.")
+
+            st.markdown("#### 🔬 전략 검증 테스트 (Masters의 4대 검증)")
+            st.caption(
+                "백테스트 수익률이 진짜 통계적 엣지인지, 아니면 우연이나 과최적화(curve-fitting)는 "
+                "아닌지 확인합니다 — Timothy Masters, 《Testing and Tuning Market Trading Systems》 기준."
+            )
+            tab_sens, tab_perm, tab_part, tab_bench = st.tabs(
+                ["① 민감도(안정성)", "② 순열검정(우연 아님?)", "③ 수익 분해(추세 vs 실력)", "④ 벤치마크 종합비교"]
+            )
+
+            with tab_sens:
+                st.caption(
+                    "전략의 숫자 파라미터 하나를 값을 바꿔가며 반복 백테스트합니다. 결과가 완만하게 "
+                    "변하면 견고한(robust) 전략, 특정 값 하나에서만 결과가 튀면 과최적화를 의심해야 합니다."
+                )
+                sens_variants: Optional[list[tuple]] = None
+                if is_expression_config(indicator_config):
+                    expr = indicator_config.get("expression", "")
+                    numbers = _find_expression_numbers(expr)
+                    if not numbers:
+                        st.info("수식에서 스윕할 숫자 파라미터를 찾지 못했습니다.")
+                    else:
+                        num_idx = st.selectbox(
+                            "스윕할 파라미터 (수식 내 숫자)",
+                            options=list(range(len(numbers))),
+                            format_func=lambda i: f"'{numbers[i][1]}' (수식 내 {i + 1}번째 숫자)",
+                            key="sens_expr_param_idx",
+                        )
+                        start_pos, original_text = numbers[num_idx]
+                        base_value = float(original_text)
+                        col_lo, col_hi, col_steps = st.columns(3)
+                        default_lo = base_value * 0.5 if base_value != 0 else base_value - 5
+                        default_hi = base_value * 1.5 if base_value != 0 else base_value + 5
+                        with col_lo:
+                            lo = st.number_input("최소값", value=float(default_lo), key="sens_expr_lo")
+                        with col_hi:
+                            hi = st.number_input("최대값", value=float(default_hi), key="sens_expr_hi")
+                        with col_steps:
+                            steps = st.slider("포인트 수", min_value=3, max_value=9, value=5, key="sens_expr_steps")
+                        sens_metric = st.selectbox(
+                            "평가 지표",
+                            options=["sharpe", "cumulative_return", "cagr", "mdd", "win_rate"],
+                            format_func=lambda m: METRIC_LABELS[m],
+                            key="sens_expr_metric",
+                        )
+                        if lo < hi and st.button("🔬 민감도 스윕 실행", key="run_sensitivity_expr"):
+                            values = sorted(set(_sweep_values(base_value, lo, hi, steps)))
+                            sens_variants = [
+                                (v, {**indicator_config, "expression": _substitute_expression_number(expr, start_pos, original_text, v)})
+                                for v in values
+                            ]
+                elif isinstance(indicator_config, dict):
+                    leaves = _find_numeric_leaves(indicator_config)
+                    if not leaves:
+                        st.info("스윕할 숫자 파라미터를 찾지 못했습니다.")
+                    else:
+                        leaf_idx = st.selectbox(
+                            "스윕할 파라미터",
+                            options=list(range(len(leaves))),
+                            format_func=lambda i: f"{_path_label(leaves[i][0])} (현재값: {leaves[i][1]})",
+                            key="sens_dict_param_idx",
+                        )
+                        path, base_value = leaves[leaf_idx]
+                        col_lo, col_hi, col_steps = st.columns(3)
+                        default_lo = base_value * 0.5 if base_value != 0 else base_value - 5
+                        default_hi = base_value * 1.5 if base_value != 0 else base_value + 5
+                        with col_lo:
+                            lo = st.number_input("최소값", value=float(default_lo), key="sens_dict_lo")
+                        with col_hi:
+                            hi = st.number_input("최대값", value=float(default_hi), key="sens_dict_hi")
+                        with col_steps:
+                            steps = st.slider("포인트 수", min_value=3, max_value=9, value=5, key="sens_dict_steps")
+                        sens_metric = st.selectbox(
+                            "평가 지표",
+                            options=["sharpe", "cumulative_return", "cagr", "mdd", "win_rate"],
+                            format_func=lambda m: METRIC_LABELS[m],
+                            key="sens_dict_metric",
+                        )
+                        if lo < hi and st.button("🔬 민감도 스윕 실행", key="run_sensitivity_dict"):
+                            values = _sweep_values(base_value, lo, hi, steps)
+                            sens_variants = [(v, _set_by_path(indicator_config, path, v)) for v in values]
+
+                if sens_variants:
+                    job_manager.start(
+                        "sensitivity_test", run_sensitivity_sweep,
+                        st.session_state["last_ticker"], sens_variants,
+                        st.session_state["last_start"], st.session_state["last_end"],
+                        metric=sens_metric, label="민감도 스윕 실행",
+                    )
+
+                sens_job = job_manager.render("sensitivity_test", running_label="민감도 스윕 실행 중")
+                if sens_job is not None:
+                    if sens_job.status == "error":
+                        st.error(f"민감도 스윕 중 오류가 발생했습니다: {sens_job.error}")
+                    else:
+                        st.session_state["sensitivity_result"] = sens_job.result
+
+                sens_result = st.session_state.get("sensitivity_result")
+                if sens_result:
+                    points = sens_result["points"]
+                    # sens_metric selectbox의 session_state 값을 그대로 축 라벨에 재사용 (위젯 key로 조회하면
+                    # 이 스윕이 만들어졌을 당시 선택했던 지표 이름을 다음 rerun에서도 그대로 복원할 수 있음).
+                    y_metric_key = st.session_state.get("sens_expr_metric") or st.session_state.get("sens_dict_metric") or "sharpe"
+                    fig = go.Figure()
+                    fig.add_trace(
+                        go.Scatter(
+                            x=[p["param_value"] for p in points], y=[p["metric"] for p in points],
+                            mode="lines+markers", line=dict(width=2, color="#5B8DEF"), marker=dict(size=8),
+                        )
+                    )
+                    fig.update_layout(
+                        height=320, xaxis_title="파라미터 값", yaxis_title=METRIC_LABELS.get(y_metric_key, "평가 지표"),
+                        template="plotly_white", margin=dict(l=10, r=10, t=30, b=10),
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
+
+                    if sens_result["is_robust"] is None:
+                        st.info("포인트가 2개 미만이라 견고성을 판정할 수 없습니다.")
+                    elif sens_result["is_robust"]:
+                        st.success(
+                            f"✅ 견고함(robust) — 이웃 값 간 최대 변화폭({sens_result['max_jump']})이 "
+                            f"전체 값 범위({sens_result['metric_range']})의 절반 이하입니다."
+                        )
+                    else:
+                        st.warning(
+                            f"⚠️ 특정 값 하나에서만 결과가 튑니다 (최대 변화폭 {sens_result['max_jump']} / "
+                            f"전체 범위 {sens_result['metric_range']}) — 과최적화(curve-fitting) 의심."
+                        )
+
+            with tab_perm:
+                st.caption(
+                    "일봉 데이터를 무작위로 섞은 가짜 시계열 여러 개에 동일한 전략을 돌려, 순수 노이즈만"
+                    "으로도 이런 결과가 나올 확률(p-value)을 추정합니다. Masters가 '가장 강력한 과최적화 "
+                    "탐지기'라 부른 기법입니다."
+                )
+                col_metric, col_n = st.columns(2)
+                with col_metric:
+                    perm_metric = st.selectbox(
+                        "평가 지표", options=["cumulative_return", "sharpe", "cagr"],
+                        format_func=lambda m: METRIC_LABELS[m], key="perm_metric",
+                    )
+                with col_n:
+                    n_perm = st.number_input("순열 횟수", min_value=20, max_value=500, value=100, step=20, key="perm_n")
+                st.caption("횟수가 많을수록 p-value가 정밀해지지만 그만큼 오래 걸립니다 (순열 1회 ≈ 백테스트 1회 비용).")
+
+                if st.button("🎲 순열검정 실행", key="run_permutation"):
+                    job_manager.start(
+                        "permutation_test", run_permutation_test,
+                        st.session_state["last_ticker"], indicator_config,
+                        st.session_state["last_start"], st.session_state["last_end"],
+                        n_permutations=int(n_perm), metric=perm_metric, label="순열검정 실행",
+                    )
+
+                perm_job = job_manager.render("permutation_test", running_label="순열검정 실행 중 (시간이 걸릴 수 있습니다)")
+                if perm_job is not None:
+                    if perm_job.status == "error":
+                        st.error(f"순열검정 중 오류가 발생했습니다: {perm_job.error}")
+                    else:
+                        st.session_state["permutation_result"] = perm_job.result
+                        st.session_state["permutation_metric"] = perm_metric
+
+                perm_result = st.session_state.get("permutation_result")
+                if perm_result and perm_result["permuted_metrics"]:
+                    result_metric_label = METRIC_LABELS[st.session_state.get("permutation_metric", "cumulative_return")]
+                    fig = go.Figure()
+                    fig.add_trace(
+                        go.Histogram(
+                            x=perm_result["permuted_metrics"], nbinsx=30, marker_color="#8a8a8a",
+                            name="순열(가짜 데이터) 결과 분포",
+                        )
+                    )
+                    fig.add_vline(x=perm_result["actual_metric"], line=dict(color="#5B8DEF", width=2, dash="dash"))
+                    fig.update_layout(
+                        height=320, xaxis_title=result_metric_label, yaxis_title="빈도",
+                        template="plotly_white", margin=dict(l=10, r=10, t=30, b=10), showlegend=False,
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
+                    st.caption(f"파란 점선 = 실제 백테스트 결과 ({perm_result['actual_metric']:.2f})")
+
+                    p_value = perm_result["p_value"]
+                    percentile = perm_result["percentile"]
+                    if p_value is not None and p_value < 0.05:
+                        st.success(
+                            f"✅ p-value {p_value:.4f} — 순열 {perm_result['n_permutations']}개 중 상위 "
+                            f"{100 - percentile:.1f}% 수준으로, 우연이라 보기 어렵습니다."
+                        )
+                    elif p_value is not None:
+                        st.warning(
+                            f"⚠️ p-value {p_value:.4f} — 통계적으로 유의미하다고 보기엔 부족합니다(관례상 "
+                            f"0.05 미만 기준). 순열 분포 상위 {100 - percentile:.1f}% 수준."
+                        )
+
+            with tab_part:
+                st.caption(
+                    "총 로그수익률을 추세(그냥 시장에 노출돼 있었던 몫)와 실력(타이밍이 만든 몫)으로 "
+                    "분해합니다. 이 전략 파라미터를 이 종목/기간에 맞춰 별도로 최적화한 적이 있다면 그 "
+                    "인플레이션(편향)도 입력해 반영할 수 있습니다(직접 최적화하지 않았다면 0으로 둡니다)."
+                )
+                bias_input = st.number_input(
+                    "편향(bias) 로그수익률 — 표본외 검증으로 별도 추정한 값이 있으면 입력",
+                    value=0.0, step=0.01, format="%.4f", key="partition_bias",
+                )
+                if last_monthly_contribution:
+                    st.caption(
+                        "💡 월 적립 옵션이 켜져 있어, 이 분해 테스트는 적립 없이(목돈 한 번 투입) 다시 "
+                        "계산한 결과입니다 — 로그수익률 분해는 적립식 현금흐름과 전제가 맞지 않습니다."
+                    )
+                    partition_strategy_run = run_backtest(
+                        st.session_state["last_ticker"], indicator_config,
+                        st.session_state["last_start"], st.session_state["last_end"],
+                    )
+                    partition_benchmark_run = run_buy_and_hold(
+                        st.session_state["last_ticker"], st.session_state["last_start"], st.session_state["last_end"]
+                    )
+                else:
+                    partition_strategy_run = strategy_run
+                    partition_benchmark_run = results["buy_and_hold_ticker"]
+
+                partition = run_partition_test(partition_strategy_run, partition_benchmark_run, bias_log_return=bias_input)
+
+                comp_labels = ["추세(trend)", "실력(skill)", "편향(bias)"]
+                comp_values = [partition["trend_log_return"], partition["skill_log_return"], partition["bias_log_return"]]
+                comp_colors = ["#8a8a8a", "#4caf82", "#e5533d"]
+                fig = go.Figure(
+                    go.Bar(
+                        x=comp_values, y=comp_labels, orientation="h", marker_color=comp_colors,
+                        text=[f"{v:.4f}" for v in comp_values], textposition="outside",
+                    )
+                )
+                fig.update_layout(
+                    height=260, xaxis_title="로그수익률", template="plotly_white",
+                    margin=dict(l=10, r=10, t=30, b=10),
+                )
+                st.plotly_chart(fig, use_container_width=True)
+
+                col_total, col_exposure, col_skill_pct = st.columns(3)
+                with col_total:
+                    st.metric("총 로그수익률", f"{partition['total_log_return']:.4f}")
+                with col_exposure:
+                    st.metric("시장 노출 비율", f"{partition['exposure_pct']:.1f}%")
+                with col_skill_pct:
+                    skill_pct = partition["skill_pct_of_total"]
+                    st.metric("실력이 차지하는 비중", f"{skill_pct:.1f}%" if skill_pct is not None else "N/A")
+
+            with tab_bench:
+                st.caption(
+                    "원수익률 하나만 보고 판단하지 않습니다 — CAGR/MDD(낙폭 방어력)/샤프(위험조정수익률) "
+                    "네 축 전부에서 종목 매수보유 대비 승패를 확인합니다."
+                )
+                bench_regime = compute_regime_breakdown(strategy_run)
+                bench_summary = summarize_strategy_vs_benchmarks(results, regime_breakdown=bench_regime)
+                axis_rows = [
+                    ("누적수익률", "beats_on_return", "cumulative_return", "%"),
+                    ("CAGR", "beats_on_cagr", "cagr", "%"),
+                    ("MDD(0에 가까울수록 방어적)", "beats_on_mdd", "mdd", "%"),
+                    ("샤프지수", "beats_on_sharpe", "sharpe", ""),
+                ]
+                bench_cols = st.columns(4)
+                for col, (label, flag_key, metric_key, unit) in zip(bench_cols, axis_rows):
+                    with col:
+                        strat_val = bench_summary["strategy_metrics"][metric_key]
+                        bench_val = bench_summary["benchmark_metrics"][metric_key]
+                        st.metric(
+                            label, f"{strat_val:.2f}{unit}",
+                            delta=f"{strat_val - bench_val:+.2f}{unit} vs 매수보유",
+                        )
+
+                n_wins = sum(
+                    bench_summary[k] for k in ("beats_on_return", "beats_on_cagr", "beats_on_mdd", "beats_on_sharpe")
+                )
+                if n_wins == 4:
+                    st.success("✅ 4개 축 전부에서 종목 매수보유를 이겼습니다.")
+                elif n_wins == 0:
+                    st.warning("⚠️ 4개 축 전부에서 매수보유에 졌습니다 — 포트폴리오에 추가할 이유를 다시 검토해보세요.")
+                else:
+                    st.info(
+                        f"ℹ️ 4개 축 중 {n_wins}개에서 매수보유를 이겼습니다 — 원수익률이 낮아도 방어력/"
+                        "위험조정수익률이 낫다면 포트폴리오 분산 관점에서 가치가 있을 수 있습니다."
+                    )
+                st.caption("국면별(강세장/약세장/횡보장) 상세 수치는 위 '📊 국면별 수익률 분해'를 참고하세요.")
 
             st.markdown("#### 이 전략을 라이브러리에 저장")
             col_name, col_save = st.columns([3, 1])
@@ -1072,6 +1489,9 @@ with tab_tuning:
     if tuning_source == "📚 전략 라이브러리에서 선택":
         with get_session() as session:
             tuning_strategies = session.query(Strategy).filter(Strategy.is_archived.is_(False)).order_by(Strategy.created_at.desc()).all()
+            # 코스톨라니 국면 매매 전략은 종목별 숫자 파라미터가 없어(스타일 하나만 있음) 그리드서치
+            # 미세튜닝 대상이 아니다 — 애초에 어떤 종목에도 재학습 없이 그대로 적용되도록 설계됐다.
+            tuning_strategies = [s for s in tuning_strategies if not is_kostolany_config(s.indicator_config)]
             tuning_options = {f"{s.name} (#{s.id})": s.id for s in tuning_strategies}
         if not tuning_options:
             st.info("저장된 전략이 없습니다. 다른 탭에서 전략을 먼저 저장하거나 '새 텍스트 붙여넣기'를 사용하세요.")
@@ -1364,6 +1784,60 @@ with tab_tuning:
                     group_summary_df.sort_values("평균초과수익(%)", ascending=False),
                     use_container_width=True, hide_index=True,
                 )
+
+                st.markdown("#### 국면×스타일 조합별 상위 N개 일괄 저장")
+                st.caption(
+                    "약세장/강세장(데이터가 있는 국면만 자동 감지) × 스윙/장기 등, 실제로 존재하는 "
+                    "유형×학습국면 조합마다 test 구간 초과수익 기준 상위 N개씩을 한 번에 전략 "
+                    "라이브러리에 저장합니다(조합이 4개면 최대 4×N개). 개별 저장 버튼과 달리 AI 설명 "
+                    "생성은 건너뛰고 메타데이터만으로 저장해 다수를 빠르게 저장합니다."
+                )
+                bulk_top_n = st.number_input(
+                    "조합별 저장 개수", min_value=1, max_value=50, value=10, key="tuning_bulk_top_n",
+                )
+                if st.button("📦 조합별 상위 N개 일괄 저장", key="tuning_bulk_save_btn"):
+                    groups = sorted(
+                        {(r.get("style_type") or "-", r.get("trained_regime") or "-") for r in ok_rows}
+                    )
+                    total_saved = 0
+                    with get_session() as session:
+                        for style, regime in groups:
+                            group_rows = [
+                                r for r in ok_rows
+                                if (r.get("style_type") or "-") == style
+                                and (r.get("trained_regime") or "-") == regime
+                            ]
+                            group_rows.sort(
+                                key=lambda r: (
+                                    r.get("excess_return")
+                                    if r.get("excess_return") is not None
+                                    else float("-inf")
+                                ),
+                                reverse=True,
+                            )
+                            for rank, r in enumerate(group_rows[: int(bulk_top_n)], start=1):
+                                session.add(
+                                    Strategy(
+                                        name=(
+                                            f"{r['ticker']} 미세튜닝 ({style}, {regime} 학습, "
+                                            f"run#{run_data['id']}, #{rank})"
+                                        ),
+                                        indicator_config=json.dumps(r["tuned_config"], ensure_ascii=False),
+                                        source="tuning_engine",
+                                        description=(
+                                            f"[일괄저장] 실행 id={run_data['id']}, 종목 유형={style}, "
+                                            f"학습국면={regime}, 그룹 내 순위={rank}, "
+                                            f"test 구간 초과수익={r.get('excess_return')}%, "
+                                            f"백본 전략 id={run_data.get('base_strategy_id')}."
+                                        ),
+                                    )
+                                )
+                                total_saved += 1
+                        session.flush()
+                    st.success(
+                        f"{len(groups)}개 조합 × 최대 {int(bulk_top_n)}개, 총 {total_saved}개 전략을 "
+                        "라이브러리에 저장했습니다."
+                    )
 
                 with st.expander("🧪 튜닝 리포트 (파라미터를 왜 이렇게 바꿨는지 — 다중 구간 워크포워드)"):
                     st.caption(
@@ -1736,9 +2210,30 @@ def _render_nightly_leaderboard_tab() -> None:
         ncol2.metric("로컬 최근 실행 시각", "기록 없음")
     ncol3.metric("GitHub Actions 결과 파일 건수", f"{len(ci_results)}건" if ci_results else "없음")
 
-    db_results = get_top_tuning_results(_tuning_strategy_id, limit=50)
+    require_significant = st.checkbox(
+        "✅ 통계적으로 유의미한 결과만 보기 (순열검정 p<0.05 & 실력(타이밍) 기여 양수)",
+        value=True, key="nightly_require_significant",
+        help=(
+            "초과수익이 크다고 진짜 통계적 엣지라는 뜻은 아닙니다 — 노이즈로도 우연히 그만큼 나올 수 "
+            "있거나(순열검정), 전략 타이밍이 아니라 그 종목 자체의 추세를 얻어 탄 것뿐일 수 있습니다"
+            "(분해 테스트). 둘 다 통과한 결과만 보려면 켜두세요(2026-07-25 추가 — 재학습 없이 같은 "
+            "섹터 다른 종목에 적용하면 대부분 지는 문제를 조사하다 발견). 체크를 해제하면 검증 여부와 "
+            "무관하게 예전처럼 초과수익 순으로 전부 보여줍니다(진단용). significance_p_value/"
+            "skill_pct_of_total이 없는(구버전) 결과는 켜두면 자동으로 걸러집니다."
+        ),
+    )
+
+    def _passes_significance(r: dict) -> bool:
+        p = r.get("significance_p_value")
+        skill = r.get("skill_pct_of_total")
+        return p is not None and p < strategy_tuning._SIGNIFICANCE_P_VALUE_THRESHOLD and skill is not None and skill > 0
+
+    db_results = get_top_tuning_results(_tuning_strategy_id, limit=50, require_significant=require_significant)
     for r in db_results:
         r["_source"] = "local_scheduler"
+
+    if require_significant:
+        ci_results = [r for r in ci_results if _passes_significance(r)]
 
     combined = [r for r in (db_results + ci_results) if r.get("excess_return") is not None]
     combined.sort(key=lambda r: r["excess_return"], reverse=True)
@@ -1752,7 +2247,15 @@ def _render_nightly_leaderboard_tab() -> None:
         deduped.append(r)
 
     if not deduped:
-        st.info("실행은 쌓였지만 유효한(성공한) 결과가 아직 없습니다.")
+        if require_significant:
+            st.info(
+                "통계적으로 유의미한(순열검정 p<0.05 & 실력 기여 양수) 결과가 아직 없습니다 — 위 "
+                "체크박스를 해제하면 검증 여부와 무관하게 전체 결과를 볼 수 있습니다. 이 필터는 "
+                "2026-07-25에 추가돼 그 이전에 쌓인 결과에는 유의성 검증 값이 없어 전부 걸러집니다 — "
+                "다음 야간 튜닝이 새로 돌면 검증된 결과가 쌓이기 시작합니다."
+            )
+        else:
+            st.info("실행은 쌓였지만 유효한(성공한) 결과가 아직 없습니다.")
         return
 
     _swing_holding_days_threshold = strategy_tuning._SWING_MAX_HOLDING_DAYS  # 126거래일 ≈ 6개월 (SPEC 15절)
@@ -1889,8 +2392,10 @@ def _render_nightly_leaderboard_tab() -> None:
             "**방법론**: 각 종목마다 가격 이력을 시계열 순서 그대로 75% train / 25% test로 나눠, "
             "train 구간에서만 파라미터를 그리드서치(샤프 비율 최대화 + 자기모순/거래횟수 필터)로 "
             "탐색합니다. 채택된 파라미터의 성과는 결과에 전혀 관여하지 않은 test(out-of-sample) 구간으로 "
-            "정직하게 재검증하고, '초과수익'(전략 CAGR − S&P500 매수보유 CAGR, test 구간 기준)이 높은 "
-            "순으로 순위를 매깁니다."
+            "정직하게 재검증하고, '초과수익'(전략 누적수익률 − S&P500 매수보유 누적수익률, test 구간 "
+            "기준)이 높은 순으로 순위를 매깁니다. **p-value/실력비중**: 그 초과수익이 노이즈로도 우연히 "
+            "나올 수 있는 수준인지(순열검정, 작을수록 유의미) / 종목 추세가 아니라 진짜 타이밍에서 "
+            "나온 몫인지(분해 테스트, 클수록 좋음)를 나타냅니다 — 둘 다 위 체크박스 필터의 기준입니다."
         ),
     )
     leaderboard_df = pd.DataFrame(
@@ -1903,6 +2408,8 @@ def _render_nightly_leaderboard_tab() -> None:
                 "보유기간 유형": r["_duration_type"],
                 "학습국면": r.get("trained_regime") or "N/A",
                 "초과수익(%p)": r["excess_return"],
+                "p-value": r.get("significance_p_value"),
+                "실력비중(%)": r.get("skill_pct_of_total"),
                 "탐색 강도": r["run_intensity"],
                 "백본변경": "🧬 예" if r.get("backbone_changed") else "-",
                 "실행일시": r["run_created_at"].strftime("%Y-%m-%d %H:%M") if r.get("run_created_at") else "N/A",
@@ -1923,33 +2430,83 @@ def _render_nightly_leaderboard_tab() -> None:
     selected = top_results[selected_idx]
 
     save_key = f"nightly_saved_{selected.get('_source')}_{selected.get('run_id')}_{selected['ticker']}"
-    if st.button("📚 이 결과를 전략 라이브러리에 저장", key=f"nightly_save_btn_{selected_idx}"):
+    def _save_nightly_result() -> None:
         tuned_config_to_save = selected.get("tuned_config")
         if not tuned_config_to_save:
             st.error("이 결과에는 저장할 튜닝 전략 설정이 없습니다.")
+            return
+        with st.spinner("전략 설명 생성 중..."):
+            explanation = explain_strategy(tuned_config_to_save)
+        with get_session() as session:
+            nightly_saved_strategy = Strategy(
+                name=(
+                    f"{selected['ticker']} 야간튜닝 ({selected.get('trained_regime') or 'N/A'}·"
+                    f"{selected.get('sector') or 'N/A'}·{selected.get('style_type') or 'N/A'})"
+                ),
+                indicator_config=json.dumps(tuned_config_to_save, ensure_ascii=False),
+                source="nightly_tuning_leaderboard",
+                description=(
+                    f"{explanation}\n\n[야간 미세튜닝 메타데이터] 학습국면={selected.get('trained_regime')}, "
+                    f"섹터={selected.get('sector')}, 스타일={selected.get('style_type')}, "
+                    f"초과수익={selected.get('excess_return')}%p, 탐색강도={selected.get('run_intensity')}, "
+                    f"출처={'로컬' if selected.get('_source') == 'local_scheduler' else 'GitHub Actions'}."
+                ),
+            )
+            session.add(nightly_saved_strategy)
+            session.flush()
+            saved_id = nightly_saved_strategy.id
+        st.session_state[save_key] = saved_id
+        st.success(f"'{selected['ticker']}' ({selected.get('trained_regime')}·{selected.get('sector')}) 전략을 라이브러리에 저장했습니다 (id={saved_id}).")
+
+    # 저장 전 검증 게이트 (2026-07-25 추가) — "초과수익이 크다"만으로 저장하면 노이즈/종목 추세를
+    # 실력으로 착각한 결과가 그대로 라이브러리에 들어갈 수 있다는 게 실제로 확인돼(WDC 사례: 순열검정
+    # p=0.25로 유의미하지 않았고 분해 테스트로도 실력 기여가 음수, 재학습 없이 다른 섹터 종목에
+    # 적용하면 대부분 패배) 두 검증을 통과해야 기본 저장 버튼이 활성화되도록 승격했다.
+    sim_key = f"nightly_sector_sim_{selected.get('_source')}_{selected.get('run_id')}_{selected['ticker']}"
+    sig_p = selected.get("significance_p_value")
+    sig_skill = selected.get("skill_pct_of_total")
+    significance_ok = (
+        sig_p is not None and sig_p < strategy_tuning._SIGNIFICANCE_P_VALUE_THRESHOLD
+        and sig_skill is not None and sig_skill > 0
+    )
+
+    sim_rows_for_gate = st.session_state.get(sim_key)
+    peer_ok = False
+    if sim_rows_for_gate:
+        valid_peer = [r["초과수익(%p)"] for r in sim_rows_for_gate if r.get("초과수익(%p)") is not None]
+        if valid_peer:
+            n_positive_peer = sum(1 for v in valid_peer if v > 0)
+            peer_ok = (n_positive_peer / len(valid_peer)) >= 0.5
+            peer_reason = f"{n_positive_peer}/{len(valid_peer)}개 종목에서 초과수익 양수" + ("" if peer_ok else " (과반 미달)")
         else:
-            with st.spinner("전략 설명 생성 중..."):
-                explanation = explain_strategy(tuned_config_to_save)
-            with get_session() as session:
-                nightly_saved_strategy = Strategy(
-                    name=(
-                        f"{selected['ticker']} 야간튜닝 ({selected.get('trained_regime') or 'N/A'}·"
-                        f"{selected.get('sector') or 'N/A'}·{selected.get('style_type') or 'N/A'})"
-                    ),
-                    indicator_config=json.dumps(tuned_config_to_save, ensure_ascii=False),
-                    source="nightly_tuning_leaderboard",
-                    description=(
-                        f"{explanation}\n\n[야간 미세튜닝 메타데이터] 학습국면={selected.get('trained_regime')}, "
-                        f"섹터={selected.get('sector')}, 스타일={selected.get('style_type')}, "
-                        f"초과수익={selected.get('excess_return')}%p, 탐색강도={selected.get('run_intensity')}, "
-                        f"출처={'로컬' if selected.get('_source') == 'local_scheduler' else 'GitHub Actions'}."
-                    ),
-                )
-                session.add(nightly_saved_strategy)
-                session.flush()
-                saved_id = nightly_saved_strategy.id
-            st.session_state[save_key] = saved_id
-            st.success(f"'{selected['ticker']}' ({selected.get('trained_regime')}·{selected.get('sector')}) 전략을 라이브러리에 저장했습니다 (id={saved_id}).")
+            peer_reason = "유효한 결과 없음"
+    else:
+        peer_reason = "아직 실행하지 않음 — 아래 '🧪 같은 섹터 다른 종목에도 적용해보기'를 먼저 실행하세요"
+
+    gate_passed = significance_ok and peer_ok
+
+    st.markdown("##### 💾 라이브러리 저장 전 검증 게이트")
+    gate_col1, gate_col2 = st.columns(2)
+    with gate_col1:
+        if significance_ok:
+            st.success(f"✅ 통계적 유의성 통과 (p={sig_p:.4f}, 실력비중={sig_skill:.1f}%)")
+        else:
+            p_display = f"{sig_p:.4f}" if sig_p is not None else "미검증"
+            skill_display = f"{sig_skill:.1f}%" if sig_skill is not None else "미검증"
+            st.warning(f"⚠️ 통계적 유의성 미통과 (p={p_display}, 실력비중={skill_display})")
+    with gate_col2:
+        if peer_ok:
+            st.success(f"✅ 섹터 피어 검증 통과 ({peer_reason})")
+        else:
+            st.warning(f"⚠️ 섹터 피어 검증 미통과 — {peer_reason}")
+
+    if gate_passed:
+        if st.button("📚 이 결과를 전략 라이브러리에 저장", key=f"nightly_save_btn_{selected_idx}"):
+            _save_nightly_result()
+    else:
+        st.caption("두 검증을 모두 통과해야 기본 저장 버튼이 활성화됩니다. 그래도 지금 저장하려면:")
+        if st.button("⚠️ 검증 없이 저장하기 (권장하지 않음)", key=f"nightly_save_override_btn_{selected_idx}"):
+            _save_nightly_result()
 
     if st.session_state.get(save_key):
         st.caption(f"✅ 이미 저장됨 (전략 id={st.session_state[save_key]}). 다시 눌러도 새 항목으로 추가 저장됩니다.")
@@ -1977,6 +2534,133 @@ def _render_nightly_leaderboard_tab() -> None:
         st.dataframe(pd.DataFrame(metrics_rows), use_container_width=True, hide_index=True)
     else:
         st.info("이 결과에는 test 구간 비교 지표가 저장되어 있지 않습니다.")
+
+    st.subheader("🧪 같은 섹터 다른 종목에도 적용해보기")
+    st.caption(
+        f"{selected['ticker']}({selected.get('sector') or 'N/A'})에서 채택된 이 파라미터를 그대로(재학습 없이) "
+        "같은 섹터의 다른 종목에 적용하면 성과가 어떻게 달라지는지 보여줍니다 — 이 결과가 그 종목에만 "
+        "우연히 맞는 것인지, 섹터 전반에 통하는 것인지 변별하는 용도입니다."
+    )
+    sector_config_for_sim = selected.get("tuned_config")
+    sector_for_sim = selected.get("sector")
+    sim_run_start, sim_run_end, sim_train_ratio = (
+        selected.get("run_start_date"), selected.get("run_end_date"), selected.get("train_ratio"),
+    )
+    if not sector_config_for_sim:
+        st.info("이 결과에는 튜닝된 전략 설정이 저장되어 있지 않아 시뮬레이션할 수 없습니다.")
+    elif not sector_for_sim:
+        st.info("이 결과에는 섹터 정보가 없어 같은 섹터 종목을 찾을 수 없습니다.")
+    elif not (sim_run_start and sim_run_end and sim_train_ratio):
+        st.info("이 결과에는 실행 시점의 기간 정보가 없어 test 구간을 재현할 수 없습니다.")
+    else:
+        universe_for_sim = screener.get_universe()
+        sector_peers = sorted(
+            t for t in universe_for_sim.loc[universe_for_sim["Sector"] == sector_for_sim, "Symbol"].tolist()
+            if t != selected["ticker"]
+        )
+        if not sector_peers:
+            st.info(f"'{sector_for_sim}' 섹터의 다른 종목을 찾지 못했습니다.")
+        else:
+            n_peers = st.slider(
+                "테스트할 같은 섹터 종목 수", min_value=1, max_value=min(15, len(sector_peers)),
+                value=min(5, len(sector_peers)), key=f"nightly_sector_sim_n_{selected_idx}",
+            )
+            sim_key = f"nightly_sector_sim_{selected.get('_source')}_{selected.get('run_id')}_{selected['ticker']}"
+            if st.button("🧪 같은 섹터 종목에 적용해서 시뮬레이션", key=f"nightly_sector_sim_btn_{selected_idx}"):
+                _, _, sim_test_start, sim_test_end = strategy_tuning.train_test_split_dates(
+                    sim_run_start, sim_run_end, sim_train_ratio
+                )
+                sim_rows = []
+                with st.spinner(f"{sector_for_sim} 섹터 {n_peers}개 종목에 동일 전략 적용 중..."):
+                    for peer in sector_peers[:n_peers]:
+                        try:
+                            peer_results = compare_with_benchmarks(peer, sector_config_for_sim, sim_test_start, sim_test_end)
+                            # compare_with_benchmarks()는 dict[str, BacktestRun]을 반환한다 — 실제
+                            # 지표는 각 BacktestRun의 .metrics에 들어있으므로 그걸 꺼내야 한다
+                            # (BacktestRun 객체 자체에는 .get()이 없어 예전엔 전부 예외로 빠졌었음).
+                            peer_strategy = peer_results["strategy"].metrics
+                            peer_benchmark = peer_results["buy_and_hold_benchmark"].metrics
+                            peer_hold = peer_results["buy_and_hold_ticker"].metrics
+                            sim_rows.append(
+                                {
+                                    "티커": peer,
+                                    "전략 CAGR(%)": peer_strategy.get("cagr"),
+                                    "종목홀딩 CAGR(%)": peer_hold.get("cagr"),
+                                    "S&P500 CAGR(%)": peer_benchmark.get("cagr"),
+                                    "초과수익(%p)": (
+                                        peer_strategy.get("cagr") - peer_benchmark.get("cagr")
+                                        if peer_strategy.get("cagr") is not None and peer_benchmark.get("cagr") is not None
+                                        else None
+                                    ),
+                                    "샤프": peer_strategy.get("sharpe"),
+                                    "MDD(%)": peer_strategy.get("mdd"),
+                                    "매매횟수": peer_strategy.get("trade_count"),
+                                }
+                            )
+                        except Exception as e:
+                            sim_rows.append({"티커": peer, "전략 CAGR(%)": None, "종목홀딩 CAGR(%)": None,
+                                              "S&P500 CAGR(%)": None, "초과수익(%p)": None, "샤프": None,
+                                              "MDD(%)": None, "매매횟수": None, "오류": str(e)})
+                st.session_state[sim_key] = sim_rows
+
+            sim_rows = st.session_state.get(sim_key)
+            if sim_rows:
+                sim_df = pd.DataFrame(sim_rows).sort_values("초과수익(%p)", ascending=False, na_position="last")
+                st.dataframe(sim_df, use_container_width=True, hide_index=True)
+                valid = [r["초과수익(%p)"] for r in sim_rows if r.get("초과수익(%p)") is not None]
+                if valid:
+                    n_positive = sum(1 for v in valid if v > 0)
+                    st.caption(
+                        f"{selected['ticker']} 기준 초과수익 {selected['excess_return']:+.2f}%p 대비, "
+                        f"같은 섹터 {len(valid)}개 종목 중 {n_positive}개({n_positive / len(valid):.0%})가 "
+                        "test 구간에서도 초과수익 양수 — 낮을수록 이 결과가 종목 고유(overfit) 성격이 강하다는 뜻입니다."
+                    )
+
+                st.markdown("###### 📉 이 섹터 종목별 진입/청산 시점 차트")
+                st.caption(
+                    "위 표의 종목 중 하나를 골라 test 구간 동안 이 파라미터(재학습 없이 그대로 적용)로 "
+                    "실제 어디서 사고 팔았는지 캔들차트로 봅니다."
+                )
+                sim_chart_tickers = [r["티커"] for r in sim_rows if r.get("전략 CAGR(%)") is not None]
+                if not sim_chart_tickers:
+                    st.info("차트로 볼 수 있는 유효한 결과가 없습니다(전부 오류로 실패).")
+                else:
+                    sim_chart_ticker = st.selectbox(
+                        "종목 선택", sim_chart_tickers, key=f"nightly_sector_sim_chart_ticker_{selected_idx}"
+                    )
+                    sim_chart_target_key = f"nightly_sector_sim_chart_target_{selected_idx}"
+                    if st.button("📈 이 종목 차트 보기", key=f"nightly_sector_sim_chart_btn_{selected_idx}"):
+                        st.session_state[sim_chart_target_key] = sim_chart_ticker
+
+                    if st.session_state.get(sim_chart_target_key) == sim_chart_ticker:
+                        _, _, sim_chart_test_start, sim_chart_test_end = strategy_tuning.train_test_split_dates(
+                            sim_run_start, sim_run_end, sim_train_ratio
+                        )
+                        with st.spinner(
+                            f"{sim_chart_ticker} test 구간({sim_chart_test_start} ~ {sim_chart_test_end}) 데이터 조회 중..."
+                        ):
+                            sim_chart_run = run_backtest(
+                                sim_chart_ticker, sector_config_for_sim, sim_chart_test_start, sim_chart_test_end,
+                                label="튜닝 전략",
+                            )
+                        if sim_chart_run.df.empty:
+                            st.warning(f"{sim_chart_ticker} 가격 데이터를 가져오지 못했습니다.")
+                        else:
+                            if is_staged_config(sector_config_for_sim):
+                                sim_chart_fig = render_staged_price_chart(
+                                    sim_chart_run.df, sector_config_for_sim, sim_chart_run.stage_events
+                                )
+                                sim_chart_event_count = len(sim_chart_run.stage_events)
+                            else:
+                                sim_chart_fig = render_price_chart(
+                                    sim_chart_run.df, sector_config_for_sim.get("conditions", []), sim_chart_run.trades
+                                )
+                                sim_chart_event_count = len(sim_chart_run.trades)
+                            st.plotly_chart(sim_chart_fig, use_container_width=True, config=TRADINGVIEW_CHART_CONFIG)
+                            st.caption(
+                                f"test 구간 {sim_chart_test_start} ~ {sim_chart_test_end} 동안 진입/청산 이벤트 "
+                                f"{sim_chart_event_count}건 (마커에 마우스를 올리면 근거를 확인할 수 있습니다)."
+                            )
 
     st.subheader("📉 진입/청산 시점 차트")
     st.caption(
@@ -2067,6 +2751,7 @@ def _render_strategy_management_tab() -> None:
         "regime": "📐 레짐(AND/OR)",
         "expression": "✍️ 직접 수식",
         "combined": "🧩 전략 합성",
+        "kostolany": "🥚 코스톨라니 국면",
     }
 
     def _pretty_json(raw: str) -> str:

@@ -114,6 +114,45 @@ class TestClassifyCyclePhase:
             assert "label" in info and "description" in info and "guidance" in info
 
 
+class TestExplainPhaseReasoning:
+    def test_b3_report_mentions_all_three_axes_and_panic_branch(self):
+        n = 260
+        close = _series([200.0] * (n - 20) + [200.0 * (0.99 ** i) for i in range(20)])
+        volume = _ramp_volume(n, recent_multiplier=3.0)
+        result = kostolany_cycle.classify_cycle_phase(close, volume)
+        report = kostolany_cycle.explain_phase_reasoning(result, style="장기")
+        assert "저점권" in report
+        assert "하락" in report
+        assert "거래량 증가" in report
+        assert "B3" in report or "패닉" in report
+
+    def test_a1_report_notes_volume_not_increased(self):
+        n = 260
+        close = _series([200.0] * (n - 20) + [200.0 * (0.999 ** i) for i in range(20)])
+        volume = _flat_volume(n)
+        result = kostolany_cycle.classify_cycle_phase(close, volume)
+        report = kostolany_cycle.explain_phase_reasoning(result, style="장기")
+        assert "증가 아님" in report or "평범" in report
+
+    def test_report_reflects_selected_style_guidance(self):
+        n = 260
+        close = _series([200.0] * (n - 20) + [200.0 * (0.99 ** i) for i in range(20)])
+        volume = _ramp_volume(n, recent_multiplier=3.0)
+        result = kostolany_cycle.classify_cycle_phase(close, volume)
+        long_term_report = kostolany_cycle.explain_phase_reasoning(result, style="장기")
+        swing_report = kostolany_cycle.explain_phase_reasoning(result, style="스윙")
+        assert kostolany_cycle.STYLE_PHASE_GUIDANCE["장기"]["B3"] in long_term_report
+        assert kostolany_cycle.STYLE_PHASE_GUIDANCE["스윙"]["B3"] in swing_report
+
+    def test_handles_none_volume_ratio_gracefully(self):
+        row = {
+            "phase": "A2", "zone": "중간", "position_pct": 50.0, "roc_pct": 3.0,
+            "volume_ratio": None, "trend_up": True, "is_steep": False, "volume_high": False,
+        }
+        report = kostolany_cycle.explain_phase_reasoning(row, style="장기")
+        assert "이력이 부족" in report
+
+
 class TestStylePhaseStatus:
     def test_both_styles_cover_all_phases(self):
         for style in kostolany_cycle.STYLE_ORDER:
