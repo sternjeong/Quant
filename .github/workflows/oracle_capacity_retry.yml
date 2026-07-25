@@ -76,6 +76,10 @@ jobs:
             if echo "$output" | grep -qi "TooManyRequests\|status.*429"; then
               continue
             fi
+            if echo "$output" | grep -qi "RequestException\|timed out\|Connection.*refused\|EndpointConnectionError"; then
+              echo "네트워크 연결 에러 — 다음 재시도로 넘어감"
+              continue
+            fi
             echo "예상치 못한 에러"
             exit 1
           done
