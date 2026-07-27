@@ -75,6 +75,21 @@ def test_explain_strategy_no_api_key_returns_deterministic_summary_for_regime(mo
     assert result == strategy_explainer.describe_regime_config(config)
 
 
+def test_explain_strategy_no_api_key_returns_deterministic_summary_for_ensemble(monkeypatch):
+    monkeypatch.setattr(strategy_explainer.gemini_client, "has_api_key", lambda: False)
+    config = {
+        "schema": "ensemble",
+        "indicators": [{"indicator": "rsi", "weight": 1.0}, {"indicator": "ma_spread", "weight": 2.0, "mode": "mean_revert"}],
+        "entry_threshold": 0.4,
+        "exit_threshold": 0.1,
+    }
+
+    result = strategy_explainer.explain_strategy(config)
+
+    assert result == strategy_explainer.describe_ensemble_config(config)
+    assert "rsi" in result and "ma_spread" in result
+
+
 def test_explain_strategy_no_api_key_returns_placeholder_for_expression(monkeypatch):
     monkeypatch.setattr(strategy_explainer.gemini_client, "has_api_key", lambda: False)
     config = {"expression": "close > sma(close, 20)"}

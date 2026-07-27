@@ -309,6 +309,39 @@ def test_classify_daily_regime_empty_input_returns_empty_series():
     assert market_regime.classify_daily_regime(empty, empty, empty).empty
 
 
+# ----------------------------------------------------------------------------
+# compute_regime_conditional_correlation
+# ----------------------------------------------------------------------------
+
+
+def test_compute_regime_conditional_correlation_returns_three_regimes(monkeypatch):
+    close = _steady_climb_then_crash()
+    high, low = _synthetic_high_low(close)
+    bench_df = pd.DataFrame({"Close": close, "High": high, "Low": low})
+    monkeypatch.setattr(market_regime, "get_price_history", lambda *a, **k: bench_df)
+
+    rng = np.random.default_rng(0)
+    daily_returns = pd.DataFrame(
+        {"A": rng.normal(0, 0.01, len(close)), "B": rng.normal(0, 0.01, len(close))}, index=close.index
+    )
+    result = market_regime.compute_regime_conditional_correlation(daily_returns)
+    assert set(result.keys()) == {"강세장", "약세장", "횡보장"}
+    # 260일 꾸준한 상승 구간이 있으니 강세장 상관관계는 데이터가 충분해야 한다.
+    assert not result["강세장"].empty
+    assert list(result["강세장"].columns) == ["A", "B"]
+
+
+def test_compute_regime_conditional_correlation_empty_daily_returns_returns_empty_dict():
+    assert market_regime.compute_regime_conditional_correlation(pd.DataFrame()) == {}
+
+
+def test_compute_regime_conditional_correlation_no_benchmark_data_returns_empty_dict(monkeypatch):
+    monkeypatch.setattr(market_regime, "get_price_history", lambda *a, **k: pd.DataFrame())
+    idx = pd.bdate_range("2024-01-01", periods=10)
+    daily_returns = pd.DataFrame({"A": [0.01] * 10, "B": [0.02] * 10}, index=idx)
+    assert market_regime.compute_regime_conditional_correlation(daily_returns) == {}
+
+
 def test_find_regime_segments_extracts_contiguous_ranges_and_drops_short_ones():
     idx = pd.date_range("2024-01-01", periods=70, freq="B")
     labels = (

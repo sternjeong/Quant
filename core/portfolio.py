@@ -15,12 +15,13 @@ from collections import defaultdict
 from datetime import date, datetime
 from typing import Any, Optional
 
+import numpy as np
 import pandas as pd
 
-from core import gemini_client
+from core import gemini_client, market_regime, position_sizing
 from core.db import get_session
 from core.market_data import get_latest_price, get_multiple_price_history
-from core.models import PortfolioHolding, PortfolioThesisReview
+from core.models import CorrelationSnapshot, PortfolioHolding, PortfolioThesisReview
 from core.screener import get_fundamentals
 
 TRADING_DAYS_PER_YEAR = 252
@@ -224,12 +225,21 @@ def compute_sector_concentration(holdings_with_value: list[dict], sectors: dict[
 
 
 def get_portfolio_risk(pnl_df: Optional[pd.DataFrame] = None, lookback_days: int = 365) -> dict[str, Any]:
-    """실시간 데이터를 조회해 변동성/상관관계/섹터 집중도를 한번에 계산한다."""
+    """실시간 데이터를 조회해 변동성/상관관계/섹터 집중도를 한번에 계산한다.
+
+    daily_returns도 함께 반환한다 — get_recommended_weights()가 시세를 다시 조회하지 않고
+    이 결과를 그대로 재사용해 변동성타겟팅 추천 비중을 계산할 수 있게 하기 위함이다.
+    """
     if pnl_df is None:
         pnl_df = get_portfolio_pnl()
 
     if pnl_df.empty:
-        return {"volatility": None, "correlation": pd.DataFrame(), "sector_concentration": {}}
+        return {
+            "volatility": None,
+            "correlation": pd.DataFrame(),
+            "sector_concentration": {},
+            "daily_returns": pd.DataFrame(),
+        }
 
     tickers = pnl_df["ticker"].tolist()
     start = (pd.Timestamp.today() - pd.Timedelta(days=lookback_days)).strftime("%Y-%m-%d")
@@ -246,7 +256,90 @@ def get_portfolio_risk(pnl_df: Optional[pd.DataFrame] = None, lookback_days: int
     sectors = {t: get_fundamentals(t).get("sector") for t in tickers}
     sector_concentration = compute_sector_concentration(pnl_df.to_dict("records"), sectors)
 
-    return {"volatility": volatility, "correlation": correlation, "sector_concentration": sector_concentration}
+    return {
+        "volatility": volatility,
+        "correlation": correlation,
+        "sector_concentration": sector_concentration,
+        "daily_returns": daily_returns,
+    }
+
+
+def get_recommended_weights(risk: dict[str, Any], max_weight: float = 1.0) -> dict[str, float]:
+    """get_portfolio_risk() 결과의 daily_returns로 변동성타겟팅(inverse-volatility) 추천 비중을
+    계산한다 (core.position_sizing.portfolio_volatility_target_weights 재사용, 시세 재조회 없음).
+
+    max_weight: 종목 하나가 가질 수 있는 최대 비중(0~1) — 과도한 쏠림을 막고 싶을 때 낮춘다.
+
+    Returns: {ticker: 추천 비중(0~1)}. daily_returns가 비어있으면(종목 1개 이하 등) 빈 dict.
+    """
+    daily_returns = risk.get("daily_returns")
+    if daily_returns is None or daily_returns.empty:
+        return {}
+    return position_sizing.portfolio_volatility_target_weights(daily_returns, max_weight=max_weight)
+
+
+def get_regime_conditional_correlation(risk: dict[str, Any]) -> dict[str, pd.DataFrame]:
+    """get_portfolio_risk() 결과의 daily_returns로 국면별(강세장/약세장/횡보장) 상관관계를 계산한다
+    (core.market_regime.compute_regime_conditional_correlation 재사용, 시세 재조회 없음).
+
+    평상시엔 낮아 보이는 상관관계가 약세장(스트레스 이벤트)에는 급등하는 "상관관계 붕괴"를
+    포착하기 위함 — get_portfolio_risk의 단일 전체기간 상관관계만으로는 이걸 볼 수 없다.
+
+    Returns: {"강세장": DataFrame, "약세장": DataFrame, "횡보장": DataFrame}. daily_returns가
+        비어있으면 빈 dict.
+    """
+    daily_returns = risk.get("daily_returns")
+    if daily_returns is None or daily_returns.empty:
+        return {}
+    return market_regime.compute_regime_conditional_correlation(daily_returns)
+
+
+def save_portfolio_correlation_snapshot(correlation: pd.DataFrame) -> int:
+    """compute_correlation_matrix() 결과를 이력으로 저장한다 (core.backtest_engine의
+    save_strategy_correlation_snapshot과 동일한 CorrelationSnapshot 테이블을 kind="portfolio"로 공유).
+
+    "이번 달만 보고 판단하지 말고 2~3개월치 이력을 보라"는 원칙을 보유 종목 간 상관관계에도
+    똑같이 적용하기 위함 — 매번 저장해두면 나중에 상관관계가 시간에 따라 어떻게 변했는지 볼 수 있다.
+    """
+    labels = list(correlation.columns)
+    n = len(labels)
+    if n < 2:
+        raise ValueError("상관관계 스냅샷을 저장하려면 2종목 이상이 필요합니다.")
+    off_diag = correlation.to_numpy()[~np.eye(n, dtype=bool)]
+
+    with get_session() as session:
+        row = CorrelationSnapshot(
+            kind="portfolio",
+            labels=json.dumps(labels, ensure_ascii=False),
+            avg_correlation=float(off_diag.mean()),
+            max_correlation=float(off_diag.max()),
+            matrix=correlation.to_json(),
+        )
+        session.add(row)
+        session.flush()
+        return row.id
+
+
+def list_portfolio_correlation_snapshots(limit: int = 12) -> list[dict]:
+    """보유 종목 간 상관관계 체크 이력을 최신순으로 반환한다."""
+    with get_session() as session:
+        rows = (
+            session.query(CorrelationSnapshot)
+            .filter(CorrelationSnapshot.kind == "portfolio")
+            .order_by(CorrelationSnapshot.computed_at.desc())
+            .limit(limit)
+            .all()
+        )
+        return [
+            {
+                "id": r.id,
+                "labels": json.loads(r.labels),
+                "avg_correlation": r.avg_correlation,
+                "max_correlation": r.max_correlation,
+                "computed_at": r.computed_at,
+            }
+            for r in rows
+        ]
 
 
 # ----------------------------------------------------------------------------

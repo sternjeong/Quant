@@ -35,6 +35,11 @@ def test_detect_strategy_type_kostolany():
     assert detect_strategy_type(json.dumps(config)) == "kostolany"
 
 
+def test_detect_strategy_type_ensemble():
+    config = {"schema": "ensemble", "indicators": [{"indicator": "rsi", "weight": 1.0}]}
+    assert detect_strategy_type(json.dumps(config)) == "ensemble"
+
+
 def test_validate_indicator_config_accepts_valid_kostolany():
     parsed = validate_indicator_config(json.dumps({"schema": "kostolany", "style": "스윙"}))
     assert parsed["style"] == "스윙"

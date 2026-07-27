@@ -1,0 +1,909 @@
+<title>스터디 노트 — 금융공학·수학·로직</title>
+<style>
+  :root {
+    --paper: #f2f4f0;
+    --panel: #ffffff;
+    --ink: #131a1e;
+    --ink-soft: #4b565c;
+    --teal: #0e6b5c;
+    --teal-soft: #0e6b5c1a;
+    --amber: #9c6f24;
+    --amber-soft: #9c6f2417;
+    --line: rgba(19, 26, 30, 0.13);
+    --line-strong: rgba(19, 26, 30, 0.28);
+    --up: #1f7a4d;
+    --down: #ad4326;
+    --shadow: 0 1px 2px rgba(19, 26, 30, 0.04), 0 8px 24px rgba(19, 26, 30, 0.05);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #10151a;
+      --panel: #161e23;
+      --ink: #e7ecec;
+      --ink-soft: #a7b3b6;
+      --teal: #3ab6a0;
+      --teal-soft: #3ab6a022;
+      --amber: #e0b15e;
+      --amber-soft: #e0b15e1c;
+      --line: rgba(231, 236, 236, 0.14);
+      --line-strong: rgba(231, 236, 236, 0.3);
+      --up: #48b479;
+      --down: #e0785a;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 12px 28px rgba(0, 0, 0, 0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #10151a; --panel: #161e23; --ink: #e7ecec; --ink-soft: #a7b3b6;
+    --teal: #3ab6a0; --teal-soft: #3ab6a022; --amber: #e0b15e; --amber-soft: #e0b15e1c;
+    --line: rgba(231, 236, 236, 0.14); --line-strong: rgba(231, 236, 236, 0.3);
+    --up: #48b479; --down: #e0785a;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 12px 28px rgba(0, 0, 0, 0.35);
+  }
+  :root[data-theme="light"] {
+    --paper: #f2f4f0; --panel: #ffffff; --ink: #131a1e; --ink-soft: #4b565c;
+    --teal: #0e6b5c; --teal-soft: #0e6b5c1a; --amber: #9c6f24; --amber-soft: #9c6f2417;
+    --line: rgba(19, 26, 30, 0.13); --line-strong: rgba(19, 26, 30, 0.28);
+    --up: #1f7a4d; --down: #ad4326;
+    --shadow: 0 1px 2px rgba(19, 26, 30, 0.04), 0 8px 24px rgba(19, 26, 30, 0.05);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI", -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.7;
+  }
+  ::selection { background: var(--teal-soft); }
+
+  .mono {
+    font-family: "Cascadia Code", "SFMono-Regular", Consolas, "D2Coding", ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  a { color: var(--teal); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  a:focus-visible, button:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--teal); outline-offset: 2px; border-radius: 2px;
+  }
+
+  /* ---------- hero ---------- */
+  .hero {
+    position: relative;
+    padding: 4.2rem 1.5rem 3rem;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 28px 28px;
+    border-bottom: 1px solid var(--line-strong);
+    overflow: hidden;
+  }
+  .hero::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 70% 60% at 20% 0%, var(--paper) 10%, transparent 72%),
+                radial-gradient(ellipse 60% 50% at 100% 100%, var(--paper) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .hero-inner { position: relative; max-width: 880px; margin: 0 auto; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: .5em;
+    font-family: inherit; font-size: .78rem; font-weight: 700;
+    letter-spacing: .16em; text-transform: uppercase;
+    color: var(--teal); margin: 0 0 1.1rem;
+  }
+  .eyebrow::before { content: ""; width: 22px; height: 1px; background: var(--teal); display: inline-block; }
+  h1.title {
+    font-size: clamp(2rem, 5vw, 2.9rem);
+    line-height: 1.18; font-weight: 800; letter-spacing: -.01em;
+    margin: 0 0 1rem; text-wrap: balance;
+  }
+  .hero p.lede {
+    max-width: 62ch; color: var(--ink-soft); font-size: 1.05rem; margin: 0 0 1.6rem;
+  }
+  .hero-meta {
+    display: flex; flex-wrap: wrap; gap: .5rem 1.4rem;
+    font-size: .82rem; color: var(--ink-soft);
+  }
+  .hero-meta b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- layout ---------- */
+  .layout {
+    max-width: 1180px; margin: 0 auto;
+    display: grid; grid-template-columns: 232px minmax(0, 1fr);
+    gap: 3rem; padding: 2.6rem 1.5rem 6rem;
+  }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; gap: 1.6rem; }
+    nav.toc { position: static !important; }
+  }
+
+  nav.toc { position: sticky; top: 1.6rem; align-self: start; }
+  nav.toc .toc-label {
+    font-size: .72rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--ink-soft); margin: 0 0 .8rem;
+  }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; border-left: 1px solid var(--line); }
+  nav.toc li { margin: 0; }
+  nav.toc a {
+    display: block; padding: .38rem .9rem; margin-left: -1px;
+    border-left: 1px solid transparent;
+    color: var(--ink-soft); text-decoration: none; font-size: .87rem;
+  }
+  nav.toc a:hover { color: var(--ink); border-left-color: var(--line-strong); }
+  nav.toc .toc-sub { padding-left: 1.7rem; font-size: .8rem; }
+
+  main { min-width: 0; }
+
+  section.block { margin: 0 0 3.6rem; scroll-margin-top: 1.5rem; }
+  section.block > .block-head { margin-bottom: 1.5rem; }
+  .block-tag {
+    font-size: .74rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--amber); margin: 0 0 .5rem;
+  }
+  h2.block-title {
+    font-size: 1.6rem; font-weight: 800; letter-spacing: -.01em; margin: 0 0 .5rem;
+    display: flex; align-items: baseline; gap: .6rem;
+  }
+  h2.block-title .idx { color: var(--ink-soft); font-weight: 600; font-size: 1rem; }
+  .block-intro { color: var(--ink-soft); max-width: 68ch; margin: 0; }
+
+  /* ---------- concept cards ---------- */
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 1.5rem 1.6rem 1.4rem;
+    margin: 0 0 1.15rem;
+    box-shadow: var(--shadow);
+    scroll-margin-top: 1.5rem;
+  }
+  .card-eyebrow {
+    display: inline-block; font-size: .7rem; font-weight: 700; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--teal); background: var(--teal-soft);
+    padding: .22rem .55rem; border-radius: 4px; margin-bottom: .7rem;
+  }
+  h3.card-title { font-size: 1.14rem; font-weight: 700; margin: 0 0 .15rem; letter-spacing: -.005em; }
+  .card-title .en { color: var(--ink-soft); font-weight: 500; font-size: .92rem; }
+  .formula {
+    margin: .9rem 0; padding: .85rem 1rem;
+    background: color-mix(in srgb, var(--ink) 4%, transparent);
+    border-left: 3px solid var(--teal);
+    border-radius: 0 6px 6px 0;
+    overflow-x: auto;
+    font-size: .95rem;
+  }
+  .card p { margin: .55rem 0; }
+  .card .why {
+    margin-top: .9rem; padding: .7rem .9rem;
+    border-left: 3px solid var(--amber);
+    background: var(--amber-soft);
+    border-radius: 0 6px 6px 0;
+    font-size: .93rem;
+  }
+  .why b { color: var(--amber); }
+  .card .refs {
+    margin-top: .9rem; padding-top: .7rem; border-top: 1px dashed var(--line);
+    font-size: .8rem; color: var(--ink-soft);
+    display: flex; flex-wrap: wrap; gap: .4rem .6rem; align-items: center;
+  }
+  .refs .ref-label { text-transform: uppercase; letter-spacing: .08em; font-weight: 700; font-size: .68rem; }
+  code.path {
+    font-family: inherit; background: color-mix(in srgb, var(--ink) 6%, transparent);
+    padding: .1rem .4rem; border-radius: 4px; font-size: .82rem;
+  }
+
+  .tag-row { display: flex; flex-wrap: wrap; gap: .4rem; margin: .8rem 0 0; }
+  .pill {
+    font-size: .72rem; padding: .18rem .55rem; border-radius: 99px;
+    border: 1px solid var(--line-strong); color: var(--ink-soft);
+  }
+
+  table.mini { width: 100%; border-collapse: collapse; margin: .9rem 0; font-size: .88rem; }
+  table.mini th, table.mini td { text-align: right; padding: .38rem .6rem; border-bottom: 1px solid var(--line); }
+  table.mini th:first-child, table.mini td:first-child { text-align: left; }
+  table.mini thead th { color: var(--ink-soft); font-weight: 600; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; }
+  .table-wrap { overflow-x: auto; }
+
+  .up { color: var(--up); font-weight: 700; }
+  .down { color: var(--down); font-weight: 700; }
+
+  .divider { border: none; border-top: 1px solid var(--line); margin: 2.6rem 0; }
+
+  .callout-big {
+    border: 1px solid var(--line-strong); border-radius: 12px;
+    padding: 1.6rem 1.8rem; margin: 1.6rem 0 2.2rem;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--teal) 6%, transparent), transparent);
+  }
+  .callout-big h4 { margin: 0 0 .5rem; font-size: 1rem; letter-spacing: -.005em; }
+
+  footer.page-footer {
+    max-width: 1180px; margin: 0 auto; padding: 2rem 1.5rem 3.5rem;
+    color: var(--ink-soft); font-size: .82rem; border-top: 1px solid var(--line);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .card { transition: transform .15s ease, box-shadow .15s ease; }
+  }
+</style>
+
+<header class="hero">
+  <div class="hero-inner">
+    <p class="eyebrow">Quant Research Note · 01 / 개념편</p>
+    <h1 class="title">이번 세션에서 다룬<br />금융공학·수학·로직 25가지</h1>
+    <p class="lede">
+      Quant 저장소에 거래비용 모델링, 손익비/칼마지수, 포지션 사이징, 전략 간 상관관계, 알파 감쇠 체크,
+      앙상블 스코어링을 구현하며 실제로 사용한 개념들을 정리했습니다. 각 항목은 공식·의미·이 저장소의
+      어느 함수에 구현돼 있는지까지 연결해뒀습니다 — 이론과 코드를 같이 보면서 공부할 수 있도록 구성했습니다.
+    </p>
+    <div class="hero-meta">
+      <span><b>25개</b> 개념</span>
+      <span><b>6개</b> 섹션</span>
+      <span>대상 저장소 <span class="mono">core/*.py</span></span>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="toc" aria-label="목차">
+    <p class="toc-label">목차</p>
+    <ol>
+      <li><a href="#sec-a">A. 성과 지표</a></li>
+      <li class="toc-sub"><a href="#c-sharpe">샤프지수</a></li>
+      <li class="toc-sub"><a href="#c-cagr">CAGR</a></li>
+      <li class="toc-sub"><a href="#c-mdd">MDD</a></li>
+      <li class="toc-sub"><a href="#c-pf">손익비</a></li>
+      <li class="toc-sub"><a href="#c-calmar">칼마지수</a></li>
+      <li class="toc-sub"><a href="#c-ddd">낙폭 지속기간</a></li>
+      <li><a href="#sec-b">B. 포지션 사이징</a></li>
+      <li class="toc-sub"><a href="#c-fixed">고정% 리스크</a></li>
+      <li class="toc-sub"><a href="#c-equal">동일가중</a></li>
+      <li class="toc-sub"><a href="#c-kelly">켈리 공식</a></li>
+      <li class="toc-sub"><a href="#c-voltarget">변동성 타겟팅</a></li>
+      <li><a href="#sec-c">C. 다각화의 수학</a></li>
+      <li class="toc-sub"><a href="#c-holygrail">홀리그레일 공식</a></li>
+      <li class="toc-sub"><a href="#c-breakdown">상관관계 붕괴</a></li>
+      <li><a href="#sec-d">D. 백테스트 검증</a></li>
+      <li class="toc-sub"><a href="#c-lookahead">룩어헤드 편향</a></li>
+      <li class="toc-sub"><a href="#c-lln">대수의 법칙</a></li>
+      <li class="toc-sub"><a href="#c-perm">순열검정</a></li>
+      <li class="toc-sub"><a href="#c-sens">민감도 분석</a></li>
+      <li class="toc-sub"><a href="#c-partition">수익 분해</a></li>
+      <li class="toc-sub"><a href="#c-walkforward">워크포워드</a></li>
+      <li><a href="#sec-e">E. 비용과 시간</a></li>
+      <li class="toc-sub"><a href="#c-cost">거래비용 모델</a></li>
+      <li class="toc-sub"><a href="#c-decay">알파 감쇠</a></li>
+      <li class="toc-sub"><a href="#c-xirr">XIRR</a></li>
+      <li><a href="#sec-f">F. 앙상블과 신호결합</a></li>
+      <li class="toc-sub"><a href="#c-ensemble">앙상블 스코어링</a></li>
+      <li class="toc-sub"><a href="#c-zscore">Z-점수 표준화</a></li>
+      <li class="toc-sub"><a href="#c-hysteresis">히스테리시스</a></li>
+      <li class="toc-sub"><a href="#c-corrhistory">상관관계 이력 추적</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <!-- ============ SECTION A ============ -->
+    <section class="block" id="sec-a">
+      <div class="block-head">
+        <p class="block-tag">Section A</p>
+        <h2 class="block-title"><span class="idx">01–06</span> 성과 지표가 말해주는 것</h2>
+        <p class="block-intro">
+          수익률 하나만으로 전략을 판단하면 안 됩니다. "얼마나 벌었나"와 "그 과정이 얼마나 힘들었나"는
+          다른 질문이고, 좋은 전략은 둘 다에 답할 수 있어야 합니다.
+        </p>
+      </div>
+
+      <article class="card" id="c-sharpe">
+        <span class="card-eyebrow">RATIO · 위험조정수익률</span>
+        <h3 class="card-title">샤프지수 <span class="en">Sharpe Ratio</span></h3>
+        <div class="formula mono">Sharpe = (일간수익률 평균 / 일간수익률 표준편차) × √252</div>
+        <p>
+          "위험 한 단위당 얼마를 버는가"를 재는 지표입니다. 분자는 초과수익(여기선 무위험수익률을 0으로
+          단순화), 분모는 그 수익의 변동성 — 같은 수익률이라도 더 들쭉날쭉하게 벌면 샤프지수는 낮아집니다.
+          √252는 일간 수치를 연 단위로 환산하는 계수(1년 거래일수의 제곱근)입니다.
+        </p>
+        <div class="table-wrap">
+          <table class="mini">
+            <thead><tr><th>샤프지수</th><th>해석</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">&lt; 0</td><td>실전 투입 불가</td></tr>
+              <tr><td class="mono">0.5 ~ 0.75</td><td>애매함, 다른 지표로 보완 필요</td></tr>
+              <tr><td class="mono">0.75 ~ 1.5</td><td>실전에서 흔히 보는 "괜찮은" 구간</td></tr>
+              <tr><td class="mono">1.5 ~ 2</td><td>상당히 좋은 전략</td></tr>
+              <tr><td class="mono">&gt; 2</td><td>드문 비효율 — 혹은 과최적화 의심</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="why"><b>왜 중요한가.</b> "월 50% 벌었다"는 숫자만으론 판단할 수 없습니다. 그 50%가
+          매일 완만하게 쌓인 것인지, 하루 변동폭이 커서 우연히 그렇게 된 것인지는 샤프지수가 갈라줍니다.</p>
+        <div class="refs">
+          <span class="ref-label">구현</span>
+          <code class="path">core/backtest_engine.py</code> · <code class="path">calculate_metrics()</code>
+        </div>
+      </article>
+
+      <article class="card" id="c-cagr">
+        <span class="card-eyebrow">RATIO · 연환산 수익률</span>
+        <h3 class="card-title">CAGR <span class="en">연평균 복리 성장률</span></h3>
+        <div class="formula mono">CAGR = (최종자산 / 초기자산)^(1/투자연수) − 1</div>
+        <p>
+          "한 달에 50% 벌었다"보다 "연평균 44% 복리로 불었다"가 훨씬 비교하기 쉬운 표현입니다. 기간이
+          다른 두 전략(3개월짜리와 3년짜리)을 같은 기준으로 비교하려면 반드시 연환산해야 합니다.
+        </p>
+        <p class="why"><b>왜 중요한가.</b> 벤치마크(S&amp;P500 매수보유, 연 7~9%대)와 싸우려면 최소
+          이 숫자를 이겨야 합니다. 다만 낙폭 방어력·샤프지수가 더 낫다면 원수익률에서 져도 포트폴리오
+          분산 관점에서 가치가 있을 수 있습니다.</p>
+        <div class="refs">
+          <span class="ref-label">구현</span>
+          <code class="path">core/backtest_engine.py</code> · <code class="path">calculate_metrics()</code>
+          <span class="ref-label" style="margin-left:.6rem">적립식 버전</span>
+          <code class="path">calculate_contribution_metrics()</code> (XIRR로 대체)
+        </div>
+      </article>
+
+      <article class="card" id="c-mdd">
+        <span class="card-eyebrow">RISK · 최대낙폭</span>
+        <h3 class="card-title">MDD <span class="en">Maximum Drawdown</span></h3>
+        <div class="formula mono">drawdown(t) = 자산(t) / 그때까지의최고자산 − 1
+MDD = min(drawdown)</div>
+        <p>
+          자산가치 곡선의 신고점 대비 얼마나 깊게 빠졌는지, 그 최악의 순간을 잡아냅니다. 크립토처럼
+          변동성이 큰 시장에서는 원래 낙폭이 크므로(비트코인 자체가 80~90% 낙폭이 흔함), 절대값보다
+          "이 시장에서 이 정도면 방어적인가"로 상대평가하는 게 맞습니다.
+        </p>
+        <p class="why"><b>왜 중요한가.</b> 26.8% 낙폭이 80% 연수익과 짝지어지면 훌륭한 전략이지만,
+          같은 26.8% 낙폭이 15% 연수익과 짝지어지면 굳이 감수할 이유가 없는 리스크입니다. 그래서 MDD는
+          항상 수익률과 같이 봐야 하고, 이를 하나의 비율로 합친 게 아래 칼마지수입니다.</p>
+        <div class="refs">
+          <span class="ref-label">구현</span>
+          <code class="path">core/backtest_engine.py</code> · <code class="path">calculate_metrics()</code> 내
+          <code class="path">running_max / drawdown</code>
+        </div>
+      </article>
+
+      <article class="card" id="c-pf">
+        <span class="card-eyebrow">RATIO · 손익비</span>
+        <h3 class="card-title">손익비 <span class="en">Profit Factor</span></h3>
+        <div class="formula mono">Profit Factor = Σ(이긴 거래 수익률) / |Σ(진 거래 손실률)|</div>
+        <p>
+          승률이 낮아도(추세추종 전략은 보통 30~40%대) 이길 때 크게 벌고 질 때 작게 잃으면 손익비는
+          1보다 훨씬 큽니다. 승률 하나만 보면 놓치는 "손익의 비대칭성"을 잡아내는 지표입니다.
+        </p>
+        <p>
+          진 거래가 하나도 없는 극단적인 경우(분모가 0)는 수학적으로 정의되지 않으므로, 이 저장소는
+          <code class="path mono">999.0</code>(사실상 무한대를 뜻하는 상한값)으로 캡을 씌워 <span class="mono">inf</span>가
+          DB·차트에서 오류를 일으키지 않게 합니다.
+        </p>
+        <div class="why"><b>왜 중요한가.</b> 영상 속 볼린저 밴드 브레이크아웃 전략은 승률 36.5%였지만
+          손익비가 좋아 8년간 2,000% 수익을 냈습니다 — <b>"이길 확률"과 "벌 때 얼마나 버는가"</b>는
+          서로 다른 축입니다.</div>
+        <div class="refs">
+          <span class="ref-label">구현</span>
+          <code class="path">core/backtest_engine.py</code> · <code class="path">calculate_metrics()</code>,
+          상한값 <code class="path">_RATIO_METRIC_CAP = 999.0</code>
+        </div>
+      </article>
+
+      <article class="card" id="c-calmar">
+        <span class="card-eyebrow">RATIO · 수익 대비 낙폭</span>
+        <h3 class="card-title">칼마지수 <span class="en">Calmar Ratio</span></h3>
+        <div class="formula mono">Calmar = CAGR / |MDD|</div>
+        <p>
+          CAGR과 MDD를 하나의 숫자로 합칩니다. "연 44% 벌면서 26.8% 빠졌다"를 굳이 두 숫자로 따로
+          기억할 필요 없이 <span class="mono">1.64</span> 하나로 요약합니다. 값이 클수록 "번 만큼 덜
+          아팠다"는 뜻입니다.
+        </p>
+        <p class="why"><b>왜 중요한가.</b> 두 전략의 CAGR이 같아도 MDD가 다르면 실제 견디는 난이도가
+          완전히 다릅니다. 칼마지수는 그 차이를 즉시 드러냅니다.</p>
+        <div class="refs">
+          <span class="ref-label">구현</span>
+          <code class="path">core/backtest_engine.py</code> · <code class="path">_compute_calmar()</code>
+        </div>
+      </article>
+
+      <article class="card" id="c-ddd">
+        <span class="card-eyebrow">RISK · 회복 소요기간</span>
+        <h3 class="card-title">평균 낙폭 지속기간 <span class="en">Avg. Drawdown Duration</span></h3>
+        <p>
+          MDD는 "얼마나 깊이 빠졌는지"만 알려주고 "며칠이나 그 상태였는지"는 말해주지 않습니다. 신고점을
+          갱신하지 못한 채(<span class="mono">자산 &lt; 그때까지의 최고자산</span>) 있다가 다시 신고점을
+          회복하기까지 걸린 일수들을, 완결된 낙폭 구간에 한해 평균 낸 지표입니다.
+        </p>
+        <div class="formula mono">낙폭 시작: 자산이 처음 최고점 아래로 내려간 날
+낙폭 종료: 다시 최고점을 회복한 날
+지속일수 = 종료일 − 시작일 (아직 회복 못한 마지막 구간은 평균에서 제외)</div>
+        <p class="why"><b>왜 중요한가.</b> 회복까지 평균 60일 걸리는 전략을 30일치 인내심으로 지켜보면
+          항상 최악의 타이밍에 손절하게 됩니다. 이 숫자를 미리 알면 "이 정도 버티는 게 정상"이라는
+          기준이 생겨, 드로다운 중에 전략을 잘못 포기하는 실수를 줄일 수 있습니다.</p>
+        <div class="refs">
+          <span class="ref-label">구현</span>
+          <code class="path">core/backtest_engine.py</code> · <code class="path">_compute_avg_drawdown_duration_days()</code>
+        </div>
+      </article>
+    </section>
+
+    <hr class="divider" />
+
+    <!-- ============ SECTION B ============ -->
+    <section class="block" id="sec-b">
+      <div class="block-head">
+        <p class="block-tag">Section B</p>
+        <h2 class="block-title"><span class="idx">07–10</span> 얼마나 태울 것인가 — 포지션 사이징</h2>
+        <p class="block-intro">
+          진입/청산 타이밍보다 "이번에 얼마를 걸 것인가"가 계좌 생존에 더 큰 영향을 줍니다. 단순한
+          것부터 정교한 것까지 4단계로 정리합니다.
+        </p>
+      </div>
+
+      <article class="card" id="c-fixed">
+        <span class="card-eyebrow">SIZING · 1단계</span>
+        <h3 class="card-title">고정 % 리스크 <span class="en">Fixed Fractional</span></h3>
+        <div class="formula mono">리스크금액 = 계좌총액 × 리스크%
+매수수량 = 리스크금액 / |진입가 − 손절가|</div>
+        <p>
+          "이번 거래에서 계좌의 2%까지만 잃겠다"를 정하고, 손절가까지의 거리로 살 수량을 역산합니다.
+          손절이 가까우면 많이 사고, 손절이 멀면 적게 사서 — 어떤 거래든 최악의 경우 손실은 항상
+          계좌의 같은 비율입니다.
+        </p>
+        <div class="refs">
+          <span class="ref-label">구현</span>
+          <code class="path">core/position_sizing.py</code> · <code class="path">fixed_fractional_size()</code>
+        </div>
+      </article>
+
+      <article class="card" id="c-equal">
+        <span class="card-eyebrow">SIZING · 2단계</span>
+        <h3 class="card-title">동일가중 <span class="en">Equal Weight</span></h3>
+        <div class="formula mono">포지션당 금액 = 계좌총액 / 포지션 개수</div>
+        <p>
+          가장 단순한 포트폴리오 레벨 사이징입니다. 10종목이면 각 10%씩. 자산의 변동성 차이를 전혀
+          반영하지 않는다는 단점이 있지만(비트코인과 국채 ETF가 같은 비중을 받음), 강제로
+          분산투자를 하게 만든다는 확실한 장점이 있습니다.
+        </p>
+        <div class="refs">
+          <span class="ref-label">구현</span>
+          <code class="path">core/position_sizing.py</code> · <code class="path">equal_weight_size()</code>
+        </div>
+      </article>
+
+      <article class="card" id="c-kelly">
+        <span class="card-eyebrow">SIZING · 3단계</span>
+        <h3 class="card-title">켈리 공식 <span class="en">Kelly Criterion</span></h3>
+        <div class="formula mono">R = 평균승리 / 평균손실  (페이오프 비율)
+f* = W − (1 − W) / R   (W = 승률)</div>
+        <p>
+          1950년대 벨 연구소에서 통신 신호 대 잡음비를 최적화하려고 만든 공식이, 도박·트레이딩에서
+          "장기 복리 성장을 최대화하는 베팅 비율"로 재발견됐습니다. 승률과 페이오프 비율만 있으면
+          이론상 최적의 베팅 크기를 계산할 수 있습니다.
+        </p>
+        <div class="why"><b>왜 조심해야 하는가.</b> 풀 켈리(f* 그대로)는 이론상 최적이어도 계좌
+          변동성이 극심해서 실전에서는 위험하다고 널리 알려져 있습니다. 그래서 이 저장소는 하프켈리
+          (<span class="mono">f* × 0.5</span>)를 기본 권장값으로 함께 계산합니다.</div>
+        <div class="refs">
+          <span class="ref-label">구현</span>
+          <code class="path">core/position_sizing.py</code> · <code class="path">kelly_fraction()</code>,
+          기본 안전계수 <code class="path">DEFAULT_KELLY_SAFETY_FRACTION = 0.5</code>
+        </div>
+      </article>
+
+      <article class="card" id="c-voltarget">
+        <span class="card-eyebrow">SIZING · 4단계</span>
+        <h3 class="card-title">변동성 타겟팅 <span class="en">Volatility Targeting</span></h3>
+        <div class="formula mono">개별: 비중 = 목표변동성 / 자산변동성
+포트폴리오: 비중(i) ∝ 1 / 변동성(i)   (inverse-volatility)</div>
+        <p>
+          변동성이 큰 자산은 비중을 줄이고, 낮은 자산은 비중을 늘려서 — 모든 포지션이 포트폴리오
+          전체 리스크에 비슷하게 기여하도록 맞춥니다. 코드는 종목별 연환산 변동성의 역수로 비중을
+          정한 뒤 합이 1이 되도록 정규화합니다.
+        </p>
+        <div class="refs">
+          <span class="ref-label">구현</span>
+          <code class="path">core/position_sizing.py</code> ·
+          <code class="path">volatility_target_weight()</code> /
+          <code class="path">portfolio_volatility_target_weights()</code>
+        </div>
+      </article>
+    </section>
+
+    <hr class="divider" />
+
+    <!-- ============ SECTION C ============ -->
+    <section class="block" id="sec-c">
+      <div class="block-head">
+        <p class="block-tag">Section C</p>
+        <h2 class="block-title"><span class="idx">11–12</span> 다각화의 수학 — 상관관계와 포트폴리오</h2>
+        <p class="block-intro">
+          "비상관 전략을 여러 개 조합하면 위험조정수익률이 오른다"는 말은 감이 아니라 공식으로
+          증명됩니다. 레이 달리오가 "홀리그레일"이라 부른 그 공식입니다.
+        </p>
+      </div>
+
+      <article class="card" id="c-holygrail">
+        <span class="card-eyebrow">PORTFOLIO · 분산의 수학</span>
+        <h3 class="card-title">홀리그레일 공식 <span class="en">Portfolio Variance Reduction</span></h3>
+        <div class="formula mono">σ_포트폴리오 = σ_개별 × √( (1 + (N−1)ρ) / N )
+
+N = 동일 비중으로 조합한 비상관 전략(또는 자산) 개수
+ρ = 전략 간 평균 상관계수</div>
+        <p>
+          같은 기대수익·같은 개별 변동성을 가진 전략 N개를 동일 비중으로 섞으면, 포트폴리오 전체
+          변동성은 이 공식을 따라 줄어듭니다. ρ가 낮을수록(비상관에 가까울수록) 감소폭이 커집니다.
+        </p>
+        <div class="table-wrap">
+          <table class="mini">
+            <thead><tr><th>전략 개수 N</th><th>ρ = 0.6</th><th>ρ = 0.3</th><th>ρ = 0.1</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">1</td><td class="mono">100%</td><td class="mono">100%</td><td class="mono">100%</td></tr>
+              <tr><td class="mono">3</td><td class="mono">86%</td><td class="mono">73%</td><td class="mono">63%</td></tr>
+              <tr><td class="mono">5</td><td class="mono">83%</td><td class="mono">66%</td><td class="mono">53%</td></tr>
+              <tr><td class="mono">10</td><td class="mono">80%</td><td class="mono">61%</td><td class="mono">44%</td></tr>
+              <tr><td class="mono">∞</td><td class="mono">77%</td><td class="mono">55%</td><td class="mono">32%</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="font-size:.85rem;color:var(--ink-soft)">
+          표는 개별 변동성 대비 포트폴리오 변동성 비율(σ_p / σ_개별). N이 커져도 ρ가 0이 아닌 한
+          이 비율은 √ρ 근처에서 수렴합니다 — "전략을 무한히 늘려도 상관관계가 있는 한 리스크가
+          0으로 가지 않는다"는 게 이 공식의 핵심 함의(체감 효과가 5~10개 전후에서 크게 둔화되는 이유).
+        </p>
+        <p class="why"><b>왜 중요한가.</b> 파라미터만 살짝 바꾼 전략 3개를 돌리는 건 다각화가
+          아닙니다(사실상 ρ≈1인 하나의 베팅을 3배 키운 것). 진짜 다각화는 트렌드추종·평균회귀·차익거래처럼
+          <b>서로 다른 시장 가정</b>을 가진 전략을 섞는 것 — 그래야 표의 ρ=0.1~0.3 줄에 가까워집니다.</p>
+        <div class="refs">
+          <span class="ref-label">구현</span>
+          <code class="path">core/backtest_engine.py</code> ·
+          <code class="path">compute_strategy_correlation()</code>,
+          <code class="path">core/portfolio.py</code> · <code class="path">compute_correlation_matrix()</code>
+        </div>
+      </article>
+
+      <article class="card" id="c-breakdown">
+        <span class="card-eyebrow">RISK · 위기 시 동반 하락</span>
+        <h3 class="card-title">상관관계 붕괴 <span class="en">Correlation Breakdown</span></h3>
+        <p>
+          평상시 상관계수가 0.2로 낮아 보이던 자산·전략들이, 시장 전체가 패닉에 빠지는 스트레스
+          이벤트(2020년 코로나 급락, 관세 충격 등)에는 0.8~0.9까지 급등하는 현상입니다. 전체 기간
+          평균 상관관계 하나만 보면 이 위험을 완전히 놓칩니다.
+        </p>
+        <p>
+          이 저장소는 시장을 강세장·약세장·횡보장 세 국면으로 나눈 뒤(<code class="path">core/market_regime.py</code>의
+          규칙: ① 52주 고점 대비 −20% 이하면 무조건 약세장 ② ADX&lt;20이면 횡보장 ③ 나머지는 200일선
+          기준), 국면별로 상관관계 행렬을 따로 계산합니다.
+        </p>
+        <p class="why"><b>왜 중요한가.</b> 다각화가 진짜 필요한 순간은 하필 그것이 가장 안 통하는
+          순간(약세장)입니다. 약세장 상관관계가 전체 평균보다 뚜렷이 높다면, 지금의 "분산된" 포트폴리오는
+          위기 때만 실체를 드러내는 착시일 수 있습니다.</p>
+        <div class="refs">
+          <span class="ref-label">구현</span>
+          <code class="path">core/market_regime.py</code> ·
+          <code class="path">compute_regime_conditional_correlation()</code>
+        </div>
+      </article>
+    </section>
+
+    <hr class="divider" />
+
+    <!-- ============ SECTION D ============ -->
+    <section class="block" id="sec-d">
+      <div class="block-head">
+        <p class="block-tag">Section D</p>
+        <h2 class="block-title"><span class="idx">13–18</span> 백테스트가 진짜인지 검증하기</h2>
+        <p class="block-intro">
+          좋아 보이는 백테스트 곡선은 진짜 엣지일 수도, 우연이나 과최적화의 결과일 수도 있습니다.
+          Timothy Masters의 《Testing and Tuning Market Trading Systems》 방법론을 중심으로, 이
+          저장소가 실제로 어떤 통계적 방어선을 두고 있는지 정리합니다.
+        </p>
+      </div>
+
+      <article class="card" id="c-lookahead">
+        <span class="card-eyebrow">BIAS · 미래참조 방지</span>
+        <h3 class="card-title">룩어헤드 편향 <span class="en">Look-ahead Bias</span></h3>
+        <p>
+          신호가 뜬 바로 그날 종가로 체결됐다고 가정하면, 사실 아직 알 수 없는 그날의 종가를 미리
+          안 것처럼 계산하는 셈입니다. 이 저장소는 모든 포지션을 하루 지연(<span class="mono">position.shift(1)</span>)시켜
+          "신호가 뜬 다음 거래일부터 체결"로 통일합니다.
+        </p>
+        <p class="why"><b>왜 중요한가.</b> 룩어헤드 편향은 백테스트 결과를 조용히, 그리고 항상
+          실제보다 좋게 부풀립니다 — 가장 흔하면서도 가장 알아채기 어려운 백테스트 오류입니다.</p>
+        <div class="refs">
+          <span class="ref-label">구현</span>
+          <code class="path">core/backtest_engine.py</code> · <code class="path">compute_equity_curve()</code>
+        </div>
+      </article>
+
+      <article class="card" id="c-lln">
+        <span class="card-eyebrow">STATS · 표본 크기</span>
+        <h3 class="card-title">대수의 법칙 <span class="en">Law of Large Numbers</span></h3>
+        <p>
+          표본(매매 건수)이 많을수록 관측된 승률·평균수익이 "진짜" 확률에 가까워집니다. 반대로 매매가
+          30건도 안 되는 상태에서 계산한 샤프지수·승률은 우연에 크게 좌우될 수 있습니다.
+        </p>
+        <div class="table-wrap">
+          <table class="mini">
+            <thead><tr><th>매매 횟수</th><th>신뢰도</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">&lt; 30</td><td><span class="down">위험 — 우연일 가능성 높음</span></td></tr>
+              <tr><td class="mono">30 ~ 300</td><td>참고 가능, 순열검정 병행 권장</td></tr>
+              <tr><td class="mono">≥ 300</td><td><span class="up">통계적으로 신뢰 가능</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="refs">
+          <span class="ref-label">구현</span>
+          <code class="path">core/backtest_engine.py</code> · <code class="path">trade_count_reliability_warning()</code>,
+          <code class="path">MIN_TRADE_COUNT_CAUTION = 30</code>, <code class="path">MIN_TRADE_COUNT_RELIABLE = 300</code>
+        </div>
+      </article>
+
+      <article class="card" id="c-perm">
+        <span class="card-eyebrow">TEST · Masters ②</span>
+        <h3 class="card-title">순열검정 <span class="en">Permutation Test</span></h3>
+        <p>
+          하루하루의 캔들 모양(전일 대비 시가/고가/저가/종가 비율)은 그대로 두고 등장 순서만 무작위로
+          섞은 가짜 시계열을 수백 개 만들어, 그 위에 똑같은 전략을 돌립니다. 실제 결과가 이 가짜
+          결과들의 분포에서 얼마나 특이한지(p-value)를 계산합니다.
+        </p>
+        <div class="formula mono">p-value = (실제보다 같거나 좋은 순열 결과 수 + 1) / (순열 횟수 + 1)</div>
+        <p>변동성·평균수익률(드리프트)은 실제 데이터와 동일하게 유지하면서, 날짜 순서에 담긴
+          추세·자기상관만 지워버리는 방식 — Masters가 "가장 강력한 과최적화 탐지기"라 부른 기법입니다.</p>
+        <div class="refs">
+          <span class="ref-label">구현</span>
+          <code class="path">core/backtest_engine.py</code> · <code class="path">run_permutation_test()</code>,
+          <code class="path">_shuffle_daily_bars()</code>
+        </div>
+      </article>
+
+      <article class="card" id="c-sens">
+        <span class="card-eyebrow">TEST · Masters ①</span>
+        <h3 class="card-title">파라미터 민감도 분석 <span class="en">Sensitivity Sweep</span></h3>
+        <p>
+          RSI 기간을 14 대신 10, 12, 16, 18로 살짝 바꿔가며 반복 실행합니다. 결과가 완만하게
+          변하면 견고한(robust) 전략, 특정 값 하나에서만 성과가 튀면 그 값에 우연히 맞춰진
+          과최적화(curve-fitting)를 의심합니다.
+        </p>
+        <p class="why"><b>왜 중요한가.</b> "RSI 14가 최적"이라는 결과가 "RSI 13이나 15에서는
+          완전히 안 통한다"는 뜻이라면, 그건 엣지가 아니라 그 숫자 하나에 대한 우연한 적합입니다.</p>
+        <div class="refs">
+          <span class="ref-label">구현</span>
+          <code class="path">core/backtest_engine.py</code> · <code class="path">run_sensitivity_sweep()</code>
+        </div>
+      </article>
+
+      <article class="card" id="c-partition">
+        <span class="card-eyebrow">TEST · Masters ③</span>
+        <h3 class="card-title">수익 분해 <span class="en">Partition Test</span></h3>
+        <div class="formula mono">총 로그수익률 = 추세(trend) + 실력(skill) + 편향(bias)
+
+trend = 노출비율 × 벤치마크 로그수익률
+skill = 총수익 − trend − bias</div>
+        <p>
+          전략의 총수익 중 "그냥 시장에 노출돼 있었기 때문에 번 몫"과 "언제 들어가고 나왔는지의
+          타이밍이 만든 몫"을 분리합니다. 노출비율이 80%인데 수익 대부분이 trend라면, 사실상
+          매수보유와 크게 다르지 않은 전략일 수 있습니다.
+        </p>
+        <div class="refs">
+          <span class="ref-label">구현</span>
+          <code class="path">core/backtest_engine.py</code> · <code class="path">run_partition_test()</code>
+        </div>
+      </article>
+
+      <article class="card" id="c-walkforward">
+        <span class="card-eyebrow">TEST · Masters ④ 확장</span>
+        <h3 class="card-title">워크포워드 검증 <span class="en">Walk-forward Validation</span></h3>
+        <p>
+          데이터를 train(파라미터를 찾는 구간)과 test(그 파라미터를 처음 보는 구간에 적용)로 나눠,
+          train에서만 좋고 test에서는 무너지는 과최적화를 걸러냅니다. 국면(강세장/약세장)이 바뀌는
+          경계를 폴드 삼아 여러 구간에서 반복 검증합니다.
+        </p>
+        <p class="why"><b>왜 중요한가.</b> AQR의 클리프 애스니스는 "백테스트 대비 실전 성과를
+          절반 정도로 기대하는 게 25년간 합리적인 경험칙이었다"고 말합니다 — 워크포워드는 그 괴리를
+          미리 가늠하게 해줍니다.</p>
+        <div class="refs">
+          <span class="ref-label">구현</span>
+          <code class="path">core/strategy_tuning.py</code> · <code class="path">_split_into_folds()</code>,
+          <code class="path">_candidate_group_walkforward_score()</code>
+        </div>
+      </article>
+    </section>
+
+    <hr class="divider" />
+
+    <!-- ============ SECTION E ============ -->
+    <section class="block" id="sec-e">
+      <div class="block-head">
+        <p class="block-tag">Section E</p>
+        <h2 class="block-title"><span class="idx">19–21</span> 비용과 시간이라는 두 가지 갭</h2>
+        <p class="block-intro">
+          완벽하게 검증된 전략도 두 가지는 여전히 갉아먹습니다 — 매매할 때마다 드는 비용, 그리고
+          시간이 지나며 엣지가 사라지는 것.
+        </p>
+      </div>
+
+      <article class="card" id="c-cost">
+        <span class="card-eyebrow">COST · 회전율 기반 모델</span>
+        <h3 class="card-title">거래비용 모델링 <span class="en">Fees &amp; Slippage</span></h3>
+        <div class="formula mono">비용률 = (수수료bps + 슬리피지bps) / 10000
+회전율(t) = |포지션(t) − 포지션(t−1)|
+일간수익률(t) -= 회전율(t) × 비용률</div>
+        <p>
+          포지션 비중이 바뀐 날에만, 바뀐 만큼만 비용이 발생합니다(0/1 전략은 진입·청산일에, 1:2:6
+          단계별 전략은 단계가 바뀔 때만). bps(basis point)는 1만분의 1 — 5bps는 0.05%입니다.
+        </p>
+        <p class="why"><b>왜 중요한가.</b> 영상 속 사례는 8년 백테스트에서 수수료 3.5만 달러,
+          슬리피지 7.1만 달러가 빠져나갔습니다. 비용을 안 넣으면 백테스트가 아니라 판타지라는 게
+          정확한 표현입니다.</p>
+        <div class="refs">
+          <span class="ref-label">구현</span>
+          <code class="path">core/backtest_engine.py</code> · <code class="path">compute_equity_curve()</code>,
+          <code class="path">fee_bps</code> / <code class="path">slippage_bps</code>
+        </div>
+      </article>
+
+      <article class="card" id="c-decay">
+        <span class="card-eyebrow">RISK · 엣지의 유효기간</span>
+        <h3 class="card-title">알파 감쇠 <span class="en">Alpha Decay</span></h3>
+        <p>
+          같은 전략 설정을 <b>재튜닝 없이</b> 최근 구간에 그대로 재적용해, 전체 기간 대비 최근 성과가
+          얼마나 이탈했는지 봅니다. 재튜닝을 섞으면 "최근에 좋아 보이는 이유"가 원래 전략의 지속성
+          때문인지, 파라미터를 최근 데이터에 새로 맞춰서(과최적화)인지 구분할 수 없기 때문에 원본
+          설정을 고정합니다.
+        </p>
+        <div class="formula mono">decay_ratio = 최근구간 지표 / 전체기간 지표
+decay_ratio &lt; 0.3 이거나 최근 지표가 음수 → 감쇠 의심</div>
+        <p class="why"><b>왜 중요한가.</b> 시장 참여자들이 같은 패턴을 발견할수록 그 패턴의 초과수익은
+          줄어듭니다. "한 번 검증됐으니 영원히 유효하다"는 믿음이 알고리즘 트레이딩에서 가장 위험한
+          가정 중 하나입니다.</p>
+        <div class="refs">
+          <span class="ref-label">구현</span>
+          <code class="path">core/backtest_engine.py</code> · <code class="path">compute_alpha_decay()</code>
+        </div>
+      </article>
+
+      <article class="card" id="c-xirr">
+        <span class="card-eyebrow">RATIO · 자금가중수익률</span>
+        <h3 class="card-title">XIRR <span class="en">자금가중 연환산수익률</span></h3>
+        <p>
+          여러 시점에 서로 다른 금액이 들어온 현금흐름(월 적립식 등)의 진짜 연환산 수익률입니다.
+          "언제 얼마를 넣었는지"까지 반영하기 때문에, 정액적립식(매달 즉시 매수)과 신호기반 몰빵
+          전략(관망 중 현금을 모았다가 신호에 한번에 투입)을 공정하게 비교할 수 있는 유일한 기준입니다.
+        </p>
+        <div class="formula mono">NPV(rate) = Σ 현금흐름 / (1 + rate)^(경과일/365.25) = 0 을 만족하는 rate</div>
+        <p>이 저장소는 외부 라이브러리 없이, NPV가 rate에 대해 단조감소한다는 성질을 이용해
+          이분법(bisection)으로 직접 rate를 찾습니다.</p>
+        <div class="refs">
+          <span class="ref-label">구현</span>
+          <code class="path">core/backtest_engine.py</code> · <code class="path">_xirr()</code>
+        </div>
+      </article>
+    </section>
+
+    <hr class="divider" />
+
+    <!-- ============ SECTION F ============ -->
+    <section class="block" id="sec-f">
+      <div class="block-head">
+        <p class="block-tag">Section F</p>
+        <h2 class="block-title"><span class="idx">22–25</span> 앙상블과 신호결합</h2>
+        <p class="block-intro">
+          "지표 100개를 테스트해보니, 결국 완벽한 지표 하나를 찾는 것보다 여러 지표를 연속 점수로
+          합친 앙상블이 더 견고했다"는 인사이트를 실제로 구현하며 정리한 개념들입니다.
+        </p>
+      </div>
+
+      <article class="card" id="c-ensemble">
+        <span class="card-eyebrow">SIGNAL · 신호 결합</span>
+        <h3 class="card-title">앙상블 스코어링 <span class="en">Ensemble Scoring</span></h3>
+        <div class="formula mono">앙상블 점수 = clip( Σ(가중치ᵢ × 점수ᵢ) / Σ가중치ᵢ , -1, 1 )</div>
+        <p>
+          AND/OR 조합은 조건을 전부 만족하거나(AND) 하나라도 만족하면(OR) 진입하는 <b>이진 판정</b>이라,
+          지표 하나가 잘못 신호를 줘도 그대로 전체 판정에 영향을 줍니다. 앙상블은 지표마다 -1~+1의
+          연속 "확신도" 점수를 매기고 가중평균해, 지표들이 서로 다른 방향을 가리키면 점수가 상쇄되도록
+          만듭니다 — 지표 하나의 편향에 덜 휘둘리는 <b>견고한(robust)</b> 신호를 만드는 방법입니다.
+        </p>
+        <p>
+          이 점수는 진입/청산 판정뿐 아니라 <b>포지션 비중으로도 그대로 쓸 수 있습니다</b>(연속
+          사이징) — 확신이 강할수록(점수가 클수록) 크게 베팅하고, 약할수록 작게 베팅합니다.
+        </p>
+        <p class="why"><b>왜 중요한가.</b> 마르코스 로페즈 데 프라도는 《Advances in Financial Machine
+          Learning》에서 "앙상블은 약한 학습기(weak learner) 여러 개를 모아 강한 학습기를 만든다 —
+          편향과 분산을 동시에 줄이고, 더 부드러운 자산가치 곡선과 낮은 낙폭, 더 나은 위험조정수익률로
+          이어진다"고 말합니다.</p>
+        <div class="refs">
+          <span class="ref-label">구현</span>
+          <code class="path">core/strategy_engine.py</code> · <code class="path">compute_ensemble_score()</code>,
+          <code class="path">generate_ensemble_position()</code>
+        </div>
+      </article>
+
+      <article class="card" id="c-zscore">
+        <span class="card-eyebrow">STATS · 표준화</span>
+        <h3 class="card-title">Z-점수 표준화 + tanh 압착 <span class="en">Z-score + tanh Squashing</span></h3>
+        <div class="formula mono">z = (원값 − 최근 N일 평균) / 최근 N일 표준편차
+점수 = tanh(z)   (대략 -1~1 범위로 압착)</div>
+        <p>
+          RSI(0~100), MACD 히스토그램(가격 단위), MFI(0~100)처럼 지표마다 원래 스케일이 완전히
+          다릅니다. 그대로 더하면 스케일이 큰 지표가 앙상블을 지배해버립니다. "최근 N일 대비 지금이
+          몇 표준편차 떨어져 있는지"로 통일하면(z-점수), 모든 지표가 같은 잣대로 비교 가능한 점수가
+          됩니다. tanh는 극단값을 ±1 근처로 부드럽게 눌러(선형 클리핑과 달리 미분 가능하고 완만하게
+          포화) 이상치 하나가 앙상블 전체를 독점하는 것을 막습니다.
+        </p>
+        <p class="why"><b>왜 중요한가.</b> z-점수는 "값이 큰가"가 아니라 "<b>최근 흐름에 비해</b> 값이
+          튀었는가"를 잰다는 점이 핵심입니다 — 예를 들어 완만한 선형 추세에서는 지표의 원값이 계속
+          커도 최근 평균 대비로는 별로 안 튀기 때문에 z-점수는 0 근처를 유지합니다. 반대로 추세가
+          꺾이는 전환점에서는 z-점수가 크게 튑니다 — 이 성질 때문에 앙상블 점수는 "레벨 감지기"가
+          아니라 "변화/이탈 감지기"에 가깝습니다.</p>
+        <div class="refs">
+          <span class="ref-label">구현</span>
+          <code class="path">core/strategy_engine.py</code> · <code class="path">_zscore_tanh()</code>
+        </div>
+      </article>
+
+      <article class="card" id="c-hysteresis">
+        <span class="card-eyebrow">CONTROL · 채터링 방지</span>
+        <h3 class="card-title">히스테리시스 <span class="en">Hysteresis</span></h3>
+        <div class="formula mono">진입: 점수 ≥ entry_threshold (예: 0.5)
+청산: 점수 &lt; exit_threshold (예: 0.2, entry보다 낮게)</div>
+        <p>
+          임계값이 하나뿐이면(예: "0.5 넘으면 진입, 0.5 밑돌면 청산") 점수가 그 경계값 근처에서
+          오르내릴 때 하루걸러 진입/청산을 반복하는 "채터링(chattering)"이 생기기 쉽습니다 — 매번
+          비용(거래비용)만 내고 실제로는 제자리인 상황입니다. 청산 임계값을 진입보다 낮게 둬서
+          "일단 들어가면 좀 더 여유 있게 버티는" 구간(불감대, dead band)을 만들면 이 문제를 줄일 수
+          있습니다.
+        </p>
+        <p class="why"><b>왜 중요한가.</b> 원래 온도조절기·전자회로 제어에서 온 개념(온도가 목표보다
+          살짝 넘으면 끄고, 살짝 밑돌 때까지는 안 켜는 방식)인데, 트레이딩 신호에도 그대로 적용됩니다
+          — 신호가 경계값 근처에서 미세하게 흔들릴 때 과도하게 반응하지 않도록 하는 "관성"을 주는
+          것입니다.</p>
+        <div class="refs">
+          <span class="ref-label">구현</span>
+          <code class="path">core/strategy_engine.py</code> · <code class="path">generate_ensemble_position()</code>
+          (<code class="path">entry_threshold</code> / <code class="path">exit_threshold</code>)
+        </div>
+      </article>
+
+      <article class="card" id="c-corrhistory">
+        <span class="card-eyebrow">PORTFOLIO · 이력 관리</span>
+        <h3 class="card-title">상관관계 이력 추적 <span class="en">Correlation History Tracking</span></h3>
+        <p>
+          "이번 달 상관관계가 높다고 바로 전략을 빼거나 사이즈를 줄이지 마라 — 최소 2~3개월치 이력을
+          보고 판단하라"는 실전 원칙입니다. 상관관계는 국면에 따라(7장 참고) 크게 출렁이므로, 단
+          한 번의 관측만으로 "이 조합은 더 이상 분산되지 않는다"고 결론짓는 건 성급합니다.
+        </p>
+        <p>
+          이 저장소는 3장(알파 감쇠)과 동일한 "스냅샷 누적" 패턴으로, 상관관계를 체크할 때마다
+          새 행을 저장합니다(덮어쓰지 않음) — 시간이 지나며 평균 상관관계가 실제로 추세적으로
+          올라가는지, 아니면 그 달만 일시적으로 튄 것인지 그래프로 확인할 수 있습니다.
+        </p>
+        <p class="why"><b>왜 중요한가.</b> 표본 하나(이번 달)로 판단을 내리는 건 4장(대수의 법칙)에서
+          다룬 것과 똑같은 함정입니다 — 상관관계 추정치에도 표본 변동이 있고, 여러 시점을 모아봐야
+          진짜 추세와 일시적 노이즈를 구분할 수 있습니다.</p>
+        <div class="refs">
+          <span class="ref-label">구현</span>
+          <code class="path">core/backtest_engine.py</code> · <code class="path">save_strategy_correlation_snapshot()</code>,
+          <code class="path">core/portfolio.py</code> · <code class="path">save_portfolio_correlation_snapshot()</code>
+        </div>
+      </article>
+    </section>
+
+    <div class="callout-big">
+      <h4>이 노트를 코드와 함께 보는 법</h4>
+      <p style="margin:0;color:var(--ink-soft)">
+        각 카드 하단의 <span class="mono">core/*.py</span> 경로를 에디터에서 열어 실제 구현을 나란히
+        보면 가장 빠르게 이해됩니다. 이 문서와 짝을 이루는
+        <b style="color:var(--ink)">"엔진 아키텍처 노트"</b>에서는 이 개념들이 모듈 사이에서 실제로
+        어떻게 데이터가 흐르며 동작하는지를 다룹니다.
+      </p>
+    </div>
+
+  </main>
+</div>
+
+<footer class="page-footer">
+  Quant 저장소 학습 노트 · 2026-07-27 세션에서 구현한 기능(비용 모델링, Profit Factor/Calmar,
+  포지션 사이징, 전략 상관관계, 국면별 상관관계, 알파 감쇠, 평균 낙폭 지속기간, 매매횟수 신뢰도 경고,
+  앙상블 스코어링, 상관관계 이력 추적, 지표 카테고리 태그)을 기준으로 작성.
+</footer>

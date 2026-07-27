@@ -25,9 +25,13 @@ from core.portfolio import (
     generate_thesis_review,
     get_portfolio_pnl,
     get_portfolio_risk,
+    get_recommended_weights,
+    get_regime_conditional_correlation,
     list_holdings,
+    list_portfolio_correlation_snapshots,
     list_thesis_reviews,
     remove_holding,
+    save_portfolio_correlation_snapshot,
     save_thesis_review,
     update_holding,
 )
@@ -228,6 +232,99 @@ with r2:
         st.plotly_chart(fig_corr, use_container_width=True)
     else:
         st.caption("상관관계를 계산할 만큼 종목이 충분하지 않습니다 (2종목 이상 필요).")
+
+# ============================================================================
+# 국면별(강세장/약세장/횡보장) 상관관계 — "상관관계 붕괴" 점검
+# ============================================================================
+st.divider()
+st.markdown("### 🌪️ 국면별 상관관계 (상관관계 붕괴 점검)")
+st.caption(
+    "평상시엔 낮아 보이는 종목 간 상관관계도 약세장(스트레스 이벤트) 때는 다 같이 무너지며 급등할 "
+    "수 있습니다 — 위 '종목 간 상관관계'는 전체 기간 평균일 뿐이라 이 현상을 못 잡아냅니다. "
+    "약세장 상관관계가 다른 국면보다 뚜렷하게 높다면, 지금 포트폴리오의 다각화가 정작 필요한 "
+    "순간(하락장)에는 제대로 작동하지 않을 수 있다는 뜻입니다."
+)
+regime_correlation = get_regime_conditional_correlation(risk)
+if not regime_correlation:
+    st.caption("국면별 상관관계를 계산하려면 2종목 이상의 가격 데이터가 필요합니다.")
+else:
+    regime_cols = st.columns(3)
+    for regime_col, regime_label in zip(regime_cols, ("강세장", "약세장", "횡보장")):
+        with regime_col:
+            st.markdown(f"**{regime_label}**")
+            regime_df = regime_correlation.get(regime_label)
+            if regime_df is None or regime_df.empty:
+                st.caption("데이터 부족")
+            else:
+                fig_regime_corr = go.Figure(
+                    data=go.Heatmap(
+                        z=regime_df.values, x=regime_df.columns.tolist(), y=regime_df.index.tolist(),
+                        zmin=-1, zmax=1, colorscale="RdBu_r",
+                    )
+                )
+                fig_regime_corr.update_layout(height=300, margin=dict(l=10, r=10, t=10, b=10))
+                st.plotly_chart(fig_regime_corr, use_container_width=True)
+
+# ============================================================================
+# 상관관계 이력
+# ============================================================================
+st.markdown("#### 📈 상관관계 이력")
+st.caption(
+    "이번 달만 보고 종목을 정리하지 마세요 — 최소 2~3개월치 이력을 보고 판단하는 걸 권합니다. "
+    "확인할 때마다 아래 버튼으로 저장해 추이를 쌓아보세요."
+)
+if not risk["correlation"].empty:
+    if st.button("💾 이 상관관계를 이력에 저장", key="save_portfolio_corr"):
+        save_portfolio_correlation_snapshot(risk["correlation"])
+        st.toast("상관관계 스냅샷을 저장했습니다.", icon="✅")
+        st.rerun()
+
+portfolio_corr_history = list_portfolio_correlation_snapshots()
+if portfolio_corr_history:
+    portfolio_history_df = pd.DataFrame(
+        [
+            {
+                "체크 시각": h["computed_at"],
+                "종목 수": len(h["labels"]),
+                "평균 상관관계": h["avg_correlation"],
+                "최대 상관관계": h["max_correlation"],
+            }
+            for h in portfolio_corr_history
+        ]
+    )
+    st.dataframe(portfolio_history_df, use_container_width=True, hide_index=True)
+else:
+    st.caption("아직 저장된 이력이 없습니다.")
+
+# ============================================================================
+# 포지션 사이징 (변동성 타겟팅 추천 비중)
+# ============================================================================
+st.divider()
+st.markdown("### 💰 추천 비중 (변동성 타겟팅)")
+st.caption(
+    "종목별 최근 1년 변동성의 역수(inverse-volatility)로 비중을 산정합니다 — 변동성이 큰 종목의 "
+    "비중을 낮추고 낮은 종목의 비중을 높여 종목 간 리스크 기여도를 비슷하게 맞추는 방식입니다. "
+    "현재 실제 비중과 비교해 참고만 하시고, 투자 조언이 아닙니다."
+)
+max_weight_pct = st.slider("종목당 최대 비중(%)", min_value=10, max_value=100, value=100, step=5, key="max_weight_pct")
+recommended_weights = get_recommended_weights(risk, max_weight=max_weight_pct / 100.0)
+if not recommended_weights:
+    st.caption("추천 비중을 계산하려면 2종목 이상의 가격 데이터가 필요합니다.")
+else:
+    current_weights = {
+        row["ticker"]: row["weight_pct"] for _, row in pnl_df.iterrows() if pd.notna(row["weight_pct"])
+    }
+    compare_df = pd.DataFrame(
+        [
+            {
+                "티커": ticker,
+                "현재 비중(%)": round(current_weights.get(ticker, 0.0), 1),
+                "추천 비중(%)": round(weight * 100, 1),
+            }
+            for ticker, weight in recommended_weights.items()
+        ]
+    )
+    st.dataframe(compare_df, use_container_width=True, hide_index=True)
 
 # ============================================================================
 # AI 코멘트

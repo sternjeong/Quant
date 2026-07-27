@@ -333,6 +333,42 @@ def classify_daily_regime(close: pd.Series, high: pd.Series, low: pd.Series) -> 
     return regime
 
 
+_REGIME_LABELS = ("강세장", "약세장", "횡보장")
+
+
+def compute_regime_conditional_correlation(
+    daily_returns: pd.DataFrame, benchmark_ticker: str = DEFAULT_BENCHMARK_TICKER
+) -> dict[str, pd.DataFrame]:
+    """일간수익률(컬럼=종목/전략, 값=수익률)을 국면별(강세장/약세장/횡보장)로 나눠 각각 상관계수
+    행렬을 계산한다.
+
+    평상시 상관관계가 낮아 보이는 자산/전략도 스트레스 이벤트(약세장) 때는 다 같이 무너지며
+    상관관계가 급등하는 "상관관계 붕괴(correlation breakdown)"가 흔하다 — 다각화가 정말 효과가
+    있는지는 전체 기간 평균 상관관계 하나만으로는 알 수 없고, 국면별로 나눠봐야 드러난다.
+    core.portfolio(종목 간)와 core.backtest_engine(전략 간) 양쪽에서 재사용한다.
+
+    Returns:
+        {"강세장": DataFrame, "약세장": DataFrame, "횡보장": DataFrame} — 해당 국면에 속한 날이
+        2일 미만이면 그 국면은 빈 DataFrame.
+    """
+    if daily_returns.empty:
+        return {}
+
+    fetch_start = (daily_returns.index[0] - pd.DateOffset(days=400)).date().isoformat()
+    fetch_end = daily_returns.index[-1].date().isoformat()
+    bench = get_price_history(benchmark_ticker, start=fetch_start, end=fetch_end, use_cache=True)
+    if bench.empty:
+        return {}
+
+    regime = classify_daily_regime(bench["Close"], bench["High"], bench["Low"]).reindex(daily_returns.index).ffill()
+
+    result: dict[str, pd.DataFrame] = {}
+    for label in _REGIME_LABELS:
+        subset = daily_returns[regime == label]
+        result[label] = subset.corr() if len(subset) >= 2 else pd.DataFrame()
+    return result
+
+
 def find_regime_segments(
     regime: pd.Series, target_regime: str, min_trading_days: int = _MIN_REGIME_SEGMENT_TRADING_DAYS
 ) -> list[tuple[str, str]]:

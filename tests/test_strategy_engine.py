@@ -33,20 +33,27 @@ from core.indicators import (
     compute_volume_ratio,
 )
 from core.strategy_engine import (
+    Trade,
+    categorize_indicators,
     combine_conditions,
+    compute_ensemble_score,
     describe_condition,
     evaluate_boolean_signal,
     evaluate_condition,
     extract_staged_trades,
     extract_trades,
+    extract_weighted_trades,
+    generate_ensemble_position,
     generate_kostolany_position,
     generate_positions,
     is_combined_config,
+    is_ensemble_config,
     is_expression_config,
     is_kostolany_config,
     is_staged_config,
     simulate_staged_positions,
 )
+from core.strategy_engine import _zscore_tanh
 
 
 def _make_engulfing_df():
@@ -1078,3 +1085,203 @@ def test_describe_condition_volume_indicators_in_korean():
     assert describe_condition({"indicator": "volume_dryup", "lookback": 10, "ratio": 0.4}) == (
         "거래량이 최근 10일 고점 대비 0.4배 이하로 감소"
     )
+
+
+# =============================================================================
+# 지표 카테고리 태그
+# =============================================================================
+
+
+def test_categorize_indicators_counts_by_category():
+    conditions = [
+        {"indicator": "ma_cross"},
+        {"indicator": "rsi"},
+        {"indicator": "bollinger"},
+        {"indicator": "mfi"},
+    ]
+    counts = categorize_indicators(conditions)
+    assert counts == {"추세": 1, "모멘텀": 2, "변동성": 1}
+
+
+def test_categorize_indicators_unknown_indicator_is_기타():
+    counts = categorize_indicators([{"indicator": "not_a_real_indicator"}])
+    assert counts == {"기타": 1}
+
+
+def test_categorize_indicators_empty_list_returns_empty_dict():
+    assert categorize_indicators([]) == {}
+
+
+# =============================================================================
+# 앙상블 스코어링 (여섯 번째 스키마) 단위 테스트
+# =============================================================================
+
+
+def test_zscore_tanh_output_is_bounded_and_centered():
+    rng = np.random.default_rng(0)
+    idx = pd.bdate_range("2022-01-03", periods=150)
+    raw = pd.Series(rng.normal(50, 10, 150), index=idx)
+    score = _zscore_tanh(raw, window=60)
+    assert (score >= -1.0).all() and (score <= 1.0).all()
+    # 워밍업 구간(표준편차 계산 불가)은 0으로 채워진다.
+    assert score.iloc[0] == 0.0
+
+
+def test_zscore_tanh_empty_series_returns_empty():
+    assert _zscore_tanh(pd.Series(dtype=float)).empty
+
+
+def test_is_ensemble_config_detects_schema_key():
+    assert is_ensemble_config({"schema": "ensemble", "indicators": []}) is True
+    assert is_ensemble_config({"logic": "AND", "conditions": []}) is False
+
+
+def test_compute_ensemble_score_single_indicator_matches_manual_zscore():
+    from core.strategy_engine import _ma_spread
+
+    df = _make_trending_df(n=150)
+    cond = {"indicator": "ma_spread", "short": 10, "long": 30, "weight": 1.0}
+    config = {"schema": "ensemble", "indicators": [cond]}
+    score = compute_ensemble_score(df, config)
+    expected = _zscore_tanh(_ma_spread(df, cond), window=60).clip(-1.0, 1.0)
+    assert (score >= -1.0).all() and (score <= 1.0).all()
+    pd.testing.assert_series_equal(score, expected, check_names=False)
+
+
+def test_compute_ensemble_score_mean_revert_flips_sign():
+    df = _make_trending_df(n=150)
+    momentum_config = {"schema": "ensemble", "indicators": [{"indicator": "rsi", "weight": 1.0, "mode": "momentum"}]}
+    mean_revert_config = {
+        "schema": "ensemble", "indicators": [{"indicator": "rsi", "weight": 1.0, "mode": "mean_revert"}]
+    }
+    momentum_score = compute_ensemble_score(df, momentum_config)
+    mean_revert_score = compute_ensemble_score(df, mean_revert_config)
+    pd.testing.assert_series_equal(mean_revert_score, -momentum_score)
+
+
+def test_compute_ensemble_score_weighted_average_of_two_indicators():
+    df = _make_trending_df(n=150)
+    config = {
+        "schema": "ensemble",
+        "indicators": [
+            {"indicator": "rsi", "weight": 2.0},
+            {"indicator": "mfi", "weight": 1.0},
+        ],
+    }
+    ensemble = compute_ensemble_score(df, config)
+    rsi_score = _zscore_tanh(compute_rsi(df, period=14))
+    mfi_score = _zscore_tanh(compute_mfi(df, period=14))
+    expected = ((rsi_score * 2.0 + mfi_score * 1.0) / 3.0).clip(-1.0, 1.0)
+    pd.testing.assert_series_equal(ensemble, expected, check_names=False)
+
+
+def test_compute_ensemble_score_no_indicators_is_all_zero():
+    df = _make_trending_df(n=50)
+    score = compute_ensemble_score(df, {"schema": "ensemble", "indicators": []})
+    assert len(score) == len(df)
+    assert (score == 0.0).all()
+
+
+def test_compute_ensemble_score_unknown_indicator_raises():
+    df = _make_trending_df(n=50)
+    with pytest.raises(ValueError):
+        compute_ensemble_score(df, {"schema": "ensemble", "indicators": [{"indicator": "not_registered"}]})
+
+
+def test_generate_ensemble_position_thresholds_and_hysteresis():
+    idx = pd.bdate_range("2022-01-03", periods=6)
+    close = pd.Series([100.0] * 6, index=idx)
+    df = pd.DataFrame({"Open": close, "High": close, "Low": close, "Close": close, "Volume": 1000}, index=idx)
+
+    import core.strategy_engine as se
+
+    fake_score = pd.Series([0.0, 0.6, 0.7, 0.3, 0.1, 0.6], index=idx)
+    original = se.compute_ensemble_score
+    se.compute_ensemble_score = lambda d, c: fake_score
+    try:
+        config = {"schema": "ensemble", "indicators": [{"indicator": "rsi"}], "entry_threshold": 0.5, "exit_threshold": 0.2}
+        position = se.generate_ensemble_position(df, config)
+    finally:
+        se.compute_ensemble_score = original
+
+    # entry=0.5, exit=0.2: day1(0.6)에 진입 -> day3(0.3)은 exit(0.2) 위라 유지 -> day4(0.1)에 청산 -> day5(0.6) 재진입
+    assert list(position > 0) == [False, True, True, True, False, True]
+    # size_by_score 기본값(True)이라 비중은 점수 그대로(클립 0~1)
+    assert position.iloc[1] == pytest.approx(0.6)
+    assert position.iloc[5] == pytest.approx(0.6)
+
+
+def test_generate_ensemble_position_size_by_score_false_is_binary():
+    idx = pd.bdate_range("2022-01-03", periods=3)
+    close = pd.Series([100.0] * 3, index=idx)
+    df = pd.DataFrame({"Open": close, "High": close, "Low": close, "Close": close, "Volume": 1000}, index=idx)
+
+    import core.strategy_engine as se
+
+    fake_score = pd.Series([0.8, 0.9, 0.7], index=idx)
+    original = se.compute_ensemble_score
+    se.compute_ensemble_score = lambda d, c: fake_score
+    try:
+        config = {
+            "schema": "ensemble", "indicators": [{"indicator": "rsi"}],
+            "entry_threshold": 0.5, "exit_threshold": 0.2, "size_by_score": False,
+        }
+        position = se.generate_ensemble_position(df, config)
+    finally:
+        se.compute_ensemble_score = original
+
+    assert list(position) == [1.0, 1.0, 1.0]
+
+
+def test_generate_ensemble_position_no_indicators_is_always_flat():
+    df = _make_trending_df(n=30)
+    position = generate_ensemble_position(df, {"schema": "ensemble", "indicators": []})
+    assert (position == 0).all()
+
+
+def test_evaluate_boolean_signal_ensemble_matches_position_gt_zero():
+    df = _make_trending_df(n=150)
+    config = {
+        "schema": "ensemble",
+        "indicators": [{"indicator": "ma_spread", "short": 10, "long": 30}],
+        "entry_threshold": 0.3,
+        "exit_threshold": 0.1,
+    }
+    signal = evaluate_boolean_signal(df, config)
+    position = generate_ensemble_position(df, config)
+    pd.testing.assert_series_equal(signal, position > 0, check_names=False)
+
+
+def test_extract_weighted_trades_builds_entry_exit_cycle():
+    idx = pd.bdate_range("2022-01-03", periods=6)
+    close = pd.Series([100.0, 101.0, 102.0, 103.0, 104.0, 105.0], index=idx)
+    df = pd.DataFrame({"Open": close, "High": close, "Low": close, "Close": close, "Volume": 1000}, index=idx)
+    weight = pd.Series([0.0, 0.6, 0.8, 0.5, 0.0, 0.0], index=idx)
+
+    trades = extract_weighted_trades(df, weight)
+    assert len(trades) == 1
+    trade = trades[0]
+    # executed = weight.shift(1) = [0, 0, 0.6, 0.8, 0.5, 0.0] -> 0->양수 전환은 i=2(진입 체결),
+    # 양수->0 전환은 i=5(청산 체결)
+    assert trade.entry_date == idx[2]
+    assert trade.exit_date == idx[5]
+    assert trade.entry_price == pytest.approx(102.0)
+    assert trade.exit_price == pytest.approx(105.0)
+
+
+def test_extract_weighted_trades_open_position_at_end_force_closes():
+    idx = pd.bdate_range("2022-01-03", periods=4)
+    close = pd.Series([100.0, 101.0, 102.0, 103.0], index=idx)
+    df = pd.DataFrame({"Open": close, "High": close, "Low": close, "Close": close, "Volume": 1000}, index=idx)
+    weight = pd.Series([0.0, 0.5, 0.5, 0.5], index=idx)
+
+    trades = extract_weighted_trades(df, weight)
+    assert len(trades) == 1
+    assert trades[0].exit_date == idx[-1]
+
+
+def test_extract_weighted_trades_flat_weight_produces_no_trades():
+    idx = pd.bdate_range("2022-01-03", periods=4)
+    close = pd.Series([100.0] * 4, index=idx)
+    df = pd.DataFrame({"Open": close, "High": close, "Low": close, "Close": close, "Volume": 1000}, index=idx)
+    assert extract_weighted_trades(df, pd.Series([0.0] * 4, index=idx)) == []

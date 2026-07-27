@@ -1,0 +1,1132 @@
+<title>퀀트 강의노트 — 성과지표·사이징·다각화·검증의 수학적 기초</title>
+<style>
+  :root {
+    --paper: #f2f4f0; --panel: #ffffff; --ink: #131a1e; --ink-soft: #4b565c;
+    --teal: #0e6b5c; --teal-soft: #0e6b5c1a; --amber: #9c6f24; --amber-soft: #9c6f2417;
+    --line: rgba(19, 26, 30, 0.13); --line-strong: rgba(19, 26, 30, 0.28);
+    --up: #1f7a4d; --down: #ad4326;
+    --shadow: 0 1px 2px rgba(19, 26, 30, 0.04), 0 8px 24px rgba(19, 26, 30, 0.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #10151a; --panel: #161e23; --ink: #e7ecec; --ink-soft: #a7b3b6;
+      --teal: #3ab6a0; --teal-soft: #3ab6a022; --amber: #e0b15e; --amber-soft: #e0b15e1c;
+      --line: rgba(231, 236, 236, 0.14); --line-strong: rgba(231, 236, 236, 0.3);
+      --up: #48b479; --down: #e0785a;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 12px 28px rgba(0, 0, 0, 0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #10151a; --panel: #161e23; --ink: #e7ecec; --ink-soft: #a7b3b6;
+    --teal: #3ab6a0; --teal-soft: #3ab6a022; --amber: #e0b15e; --amber-soft: #e0b15e1c;
+    --line: rgba(231, 236, 236, 0.14); --line-strong: rgba(231, 236, 236, 0.3);
+    --up: #48b479; --down: #e0785a;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 12px 28px rgba(0, 0, 0, 0.35);
+  }
+  :root[data-theme="light"] {
+    --paper: #f2f4f0; --panel: #ffffff; --ink: #131a1e; --ink-soft: #4b565c;
+    --teal: #0e6b5c; --teal-soft: #0e6b5c1a; --amber: #9c6f24; --amber-soft: #9c6f2417;
+    --line: rgba(19, 26, 30, 0.13); --line-strong: rgba(19, 26, 30, 0.28);
+    --up: #1f7a4d; --down: #ad4326;
+    --shadow: 0 1px 2px rgba(19, 26, 30, 0.04), 0 8px 24px rgba(19, 26, 30, 0.05);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI", -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased; line-height: 1.75;
+  }
+  ::selection { background: var(--teal-soft); }
+  .mono { font-family: "Cascadia Code", "SFMono-Regular", Consolas, "D2Coding", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  var { font-style: italic; font-family: Georgia, "Times New Roman", serif; }
+  a { color: var(--teal); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  a:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; border-radius: 2px; }
+
+  /* ---------- hero ---------- */
+  .hero {
+    position: relative; padding: 4.4rem 1.5rem 3.2rem;
+    background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 28px 28px; border-bottom: 1px solid var(--line-strong); overflow: hidden;
+  }
+  .hero::after {
+    content: ""; position: absolute; inset: 0;
+    background: radial-gradient(ellipse 70% 60% at 20% 0%, var(--paper) 10%, transparent 72%),
+                radial-gradient(ellipse 60% 50% at 100% 100%, var(--paper) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .hero-inner { position: relative; max-width: 900px; margin: 0 auto; }
+  .eyebrow { display: inline-flex; align-items: center; gap: .5em; font-size: .78rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--teal); margin: 0 0 1.1rem; }
+  .eyebrow::before { content: ""; width: 22px; height: 1px; background: var(--teal); display: inline-block; }
+  h1.title { font-size: clamp(1.9rem, 4.6vw, 2.7rem); line-height: 1.22; font-weight: 800; letter-spacing: -.01em; margin: 0 0 1rem; text-wrap: balance; }
+  .hero p.lede { max-width: 66ch; color: var(--ink-soft); font-size: 1.03rem; margin: 0 0 1.5rem; }
+  .hero-meta { display: flex; flex-wrap: wrap; gap: .5rem 1.4rem; font-size: .82rem; color: var(--ink-soft); margin-bottom: 1.6rem; }
+  .hero-meta b { color: var(--ink); font-weight: 600; }
+  .part-nav { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .part-chip { border: 1px solid var(--line-strong); border-radius: 7px; padding: .45rem .75rem; font-size: .8rem; text-decoration: none; color: var(--ink); background: var(--panel); }
+  .part-chip b { color: var(--teal); margin-right: .35em; }
+  .part-chip:hover { border-color: var(--teal); }
+
+  /* ---------- layout ---------- */
+  .layout { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 3rem; padding: 2.6rem 1.5rem 6rem; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; gap: 1.6rem; } nav.toc { position: static !important; } }
+  nav.toc { position: sticky; top: 1.6rem; align-self: start; max-height: calc(100vh - 3.2rem); overflow-y: auto; }
+  nav.toc .toc-label { font-size: .72rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 .8rem; }
+  nav.toc .toc-part { font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--amber); margin: 1rem 0 .3rem; }
+  nav.toc .toc-part:first-of-type { margin-top: 0; }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; border-left: 1px solid var(--line); }
+  nav.toc li { margin: 0; }
+  nav.toc a { display: block; padding: .32rem .9rem; margin-left: -1px; border-left: 1px solid transparent; color: var(--ink-soft); text-decoration: none; font-size: .85rem; }
+  nav.toc a:hover { color: var(--ink); border-left-color: var(--line-strong); }
+
+  main { min-width: 0; }
+
+  .part-head { margin: 0 0 2.2rem; padding-bottom: 1.2rem; border-bottom: 2px solid var(--ink); }
+  .part-head:not(:first-child) { margin-top: 4.6rem; }
+  .part-eyebrow { font-size: .76rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--amber); margin: 0 0 .5rem; }
+  h2.part-title { font-size: 1.9rem; font-weight: 800; letter-spacing: -.01em; margin: 0 0 .6rem; text-wrap: balance; }
+  .part-intro { color: var(--ink-soft); max-width: 70ch; margin: 0; }
+
+  section.chapter { margin: 0 0 3.4rem; scroll-margin-top: 1.5rem; }
+  .chapter-head { margin-bottom: 1.3rem; }
+  h3.chapter-title { font-size: 1.32rem; font-weight: 800; letter-spacing: -.005em; margin: 0 0 .6rem; display: flex; align-items: baseline; gap: .6rem; }
+  .chapter-num { color: var(--teal); font-weight: 800; }
+  .objectives { display: flex; flex-wrap: wrap; gap: .4rem; margin: 0 0 1rem; }
+  .obj-pill { font-size: .74rem; padding: .22rem .6rem; border-radius: 99px; border: 1px solid var(--line-strong); color: var(--ink-soft); }
+
+  p { margin: .7rem 0; }
+  .chapter p.body { max-width: 74ch; }
+
+  /* ---------- boxes ---------- */
+  .box { border-radius: 10px; padding: 1.2rem 1.4rem 1.1rem; margin: 1.15rem 0; box-shadow: var(--shadow); background: var(--panel); border: 1px solid var(--line); }
+  .box-label { display: flex; align-items: center; gap: .5rem; font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; margin-bottom: .55rem; }
+  .box.defn { border-left: 3px solid var(--teal); }
+  .box.defn .box-label { color: var(--teal); }
+  .box.prop { border-left: 3px solid var(--teal); background: linear-gradient(180deg, var(--teal-soft), transparent 70%); }
+  .box.prop .box-label { color: var(--teal); }
+  .box.deriv { border-left: 3px solid var(--line-strong); }
+  .box.deriv .box-label { color: var(--ink-soft); }
+  .box.example { border-left: 3px solid var(--amber); background: linear-gradient(180deg, var(--amber-soft), transparent 70%); }
+  .box.example .box-label { color: var(--amber); }
+  .box.pitfall { border-left: 3px solid var(--down); }
+  .box.pitfall .box-label { color: var(--down); }
+  .box.takeaway { border: 1px dashed var(--line-strong); box-shadow: none; }
+  .box.takeaway .box-label { color: var(--ink-soft); }
+  .box p:first-child { margin-top: 0; }
+  .box p:last-child { margin-bottom: 0; }
+
+  ol.steps { margin: .4rem 0; padding-left: 1.4rem; }
+  ol.steps li { margin: .55rem 0; }
+  ol.steps .step-eq { display: block; margin-top: .3rem; }
+
+  /* ---------- equations ---------- */
+  .eqn-wrap { overflow-x: auto; margin: .7rem 0; }
+  .eqn { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .7rem 0; }
+  .eqn-body { font-family: Georgia, "Times New Roman", serif; font-size: 1.08rem; white-space: nowrap; }
+  .eqn-num { font-size: .82rem; color: var(--ink-soft); font-family: inherit; flex-shrink: 0; }
+  .frac { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; margin: 0 .25em; line-height: 1.1; }
+  .frac .num { border-bottom: 1px solid currentColor; padding: 0 .2em .1em; }
+  .frac .den { padding: .1em .2em 0; }
+
+  code.path { font-family: inherit; background: color-mix(in srgb, var(--ink) 6%, transparent); padding: .1rem .4rem; border-radius: 4px; font-size: .82rem; }
+  .code-block { margin: .9rem 0; padding: .85rem 1rem; background: color-mix(in srgb, var(--ink) 4%, transparent); border-left: 3px solid var(--teal); border-radius: 0 6px 6px 0; overflow-x: auto; font-size: .87rem; white-space: pre; }
+  .code-block .cmt { color: var(--ink-soft); }
+  .code-block .kw { color: var(--teal); font-weight: 700; }
+
+  .table-wrap { overflow-x: auto; }
+  table.mini { width: 100%; border-collapse: collapse; margin: .9rem 0; font-size: .88rem; }
+  table.mini th, table.mini td { text-align: right; padding: .4rem .6rem; border-bottom: 1px solid var(--line); }
+  table.mini th:first-child, table.mini td:first-child { text-align: left; }
+  table.mini thead th { color: var(--ink-soft); font-weight: 600; font-size: .76rem; text-transform: uppercase; letter-spacing: .04em; }
+  table.mini tbody tr:last-child td { font-weight: 700; }
+
+  .divider { border: none; border-top: 1px solid var(--line); margin: 2.4rem 0; }
+  .refs { margin-top: 1rem; padding-top: .7rem; border-top: 1px dashed var(--line); font-size: .8rem; color: var(--ink-soft); display: flex; flex-wrap: wrap; gap: .4rem .6rem; align-items: center; }
+  .refs .ref-label { text-transform: uppercase; letter-spacing: .08em; font-weight: 700; font-size: .68rem; }
+
+  .appendix-table th, .appendix-table td { text-align: left; }
+  footer.page-footer { max-width: 1180px; margin: 0 auto; padding: 2rem 1.5rem 3.5rem; color: var(--ink-soft); font-size: .82rem; border-top: 1px solid var(--line); }
+</style>
+
+<header class="hero">
+  <div class="hero-inner">
+    <p class="eyebrow">Quant Research Note · 03 / 강의노트편</p>
+    <h1 class="title">퀀트 강의노트<br />성과지표·사이징·다각화·검증의 수학적 기초</h1>
+    <p class="lede">
+      "스터디 노트(01)"가 개념을 한 장씩 요약했다면, 이 문서는 그중 핵심 결과들을 처음부터 끝까지
+      <b>유도</b>합니다 — 정의에서 출발해, 계산으로 결과에 도달하고, 실제 숫자로 검산합니다. 대학
+      계량금융 강의노트를 읽는 방식으로 구성했습니다: 예비지식 → 정의 → 유도 → 예제 → 함정 → 핵심정리.
+    </p>
+    <div class="hero-meta">
+      <span><b>7부</b> 구성</span>
+      <span><b>16개</b> 장</span>
+      <span>선행 지식 <b>고등학교 통계 + 미분 기초</b>면 충분</span>
+    </div>
+    <nav class="part-nav" aria-label="파트 바로가기">
+      <a class="part-chip" href="#part0"><b>0부</b>예비지식</a>
+      <a class="part-chip" href="#part1"><b>1부</b>성과지표</a>
+      <a class="part-chip" href="#part2"><b>2부</b>사이징</a>
+      <a class="part-chip" href="#part3"><b>3부</b>다각화</a>
+      <a class="part-chip" href="#part4"><b>4부</b>통계검증</a>
+      <a class="part-chip" href="#part5"><b>5부</b>비용·시간</a>
+      <a class="part-chip" href="#part6"><b>6부</b>신호결합</a>
+    </nav>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="toc" aria-label="목차">
+    <p class="toc-label">목차</p>
+    <p class="toc-part">0부 · 예비지식</p>
+    <ol>
+      <li><a href="#s0-1">0.1 수익률의 두 얼굴</a></li>
+      <li><a href="#s0-2">0.2 평균·분산·변동성</a></li>
+      <li><a href="#s0-3">0.3 공분산과 상관계수</a></li>
+    </ol>
+    <p class="toc-part">1부 · 성과지표론</p>
+    <ol>
+      <li><a href="#s1">1장 샤프지수의 유도</a></li>
+      <li><a href="#s2">2장 CAGR과 변동성 손실</a></li>
+      <li><a href="#s3">3장 MDD·손익비·칼마·지속기간</a></li>
+    </ol>
+    <p class="toc-part">2부 · 포지션 사이징</p>
+    <ol>
+      <li><a href="#s4">4장 켈리 기준의 유도</a></li>
+      <li><a href="#s5">5장 변동성 타겟팅</a></li>
+    </ol>
+    <p class="toc-part">3부 · 다각화의 수학</p>
+    <ol>
+      <li><a href="#s6">6장 홀리그레일 공식 유도</a></li>
+      <li><a href="#s7">7장 상관관계 붕괴</a></li>
+    </ol>
+    <p class="toc-part">4부 · 통계적 검증</p>
+    <ol>
+      <li><a href="#s8">8장 표본크기와 표준오차</a></li>
+      <li><a href="#s9">9장 순열검정의 논리</a></li>
+      <li><a href="#s10">10장 민감도·수익분해</a></li>
+      <li><a href="#s11">11장 워크포워드·룩어헤드</a></li>
+    </ol>
+    <p class="toc-part">5부 · 시간가치와 비용</p>
+    <ol>
+      <li><a href="#s12">12장 XIRR — 이분법</a></li>
+      <li><a href="#s13">13장 비용과 알파감쇠</a></li>
+    </ol>
+    <p class="toc-part">6부 · 신호 결합</p>
+    <ol>
+      <li><a href="#s14">14장 Z-점수와 tanh 압착</a></li>
+      <li><a href="#s15">15장 앙상블 분산 감소</a></li>
+      <li><a href="#s16">16장 히스테리시스</a></li>
+    </ol>
+    <p class="toc-part">부록</p>
+    <ol>
+      <li><a href="#appendix">기호표 · 함수 매핑</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <!-- ================= PART 0 ================= -->
+    <div class="part-head" id="part0">
+      <p class="part-eyebrow">Part 0</p>
+      <h2 class="part-title">예비지식</h2>
+      <p class="part-intro">뒤에 나오는 모든 유도가 딛고 서는 세 가지 재료 — 수익률, 변동성, 상관계수.
+        이미 익숙하다면 건너뛰어도 되지만, 표기법만은 한번 훑어두는 걸 권합니다.</p>
+    </div>
+
+    <section class="chapter" id="s0-1">
+      <div class="chapter-head">
+        <h3 class="chapter-title"><span class="chapter-num">0.1</span> 수익률의 두 얼굴</h3>
+      </div>
+      <div class="box defn">
+        <p class="box-label">정의 0.1 — 산술수익률과 로그수익률</p>
+        <div class="eqn-wrap"><div class="eqn"><div class="eqn-body">
+          산술수익률&nbsp; <var>R</var><sub>t</sub> = (<var>P</var><sub>t</sub> − <var>P</var><sub>t−1</sub>) / <var>P</var><sub>t−1</sub>
+        </div><span class="eqn-num">(0.1)</span></div></div>
+        <div class="eqn-wrap"><div class="eqn"><div class="eqn-body">
+          로그수익률&nbsp; <var>ℓ</var><sub>t</sub> = ln(<var>P</var><sub>t</sub> / <var>P</var><sub>t−1</sub>) = ln(1 + <var>R</var><sub>t</sub>)
+        </div><span class="eqn-num">(0.2)</span></div></div>
+      </div>
+      <p class="body">
+        이 저장소의 <code class="path">core.backtest_engine</code>은 대부분 산술수익률(<code class="path">pct_change()</code>)을
+        쓰지만, 로그수익률은 두 가지 이유로 여전히 중요합니다. 첫째, 로그수익률은 <b>시간에 대해
+        더해진다</b> — <var>T</var>일간 총 로그수익률은 개별 일별 로그수익률의 단순 합입니다
+        (<code class="path">run_partition_test()</code>가 "추세+실력+편향"을 <b>더하기</b>로 분해할
+        수 있는 이유가 바로 이 성질입니다). 둘째, |<var>R</var><sub>t</sub>|가 작을 때
+        <var>ℓ</var><sub>t</sub> ≈ <var>R</var><sub>t</sub> − <var>R</var><sub>t</sub>²/2 라는 테일러
+        근사가 성립합니다 — 2장에서 CAGR을 유도할 때 이 근사를 그대로 씁니다.
+      </p>
+    </section>
+
+    <section class="chapter" id="s0-2">
+      <div class="chapter-head">
+        <h3 class="chapter-title"><span class="chapter-num">0.2</span> 평균·분산, 그리고 "변동성"</h3>
+      </div>
+      <div class="box defn">
+        <p class="box-label">정의 0.2 — 표본평균과 표본표준편차</p>
+        <div class="eqn-wrap"><div class="eqn"><div class="eqn-body">
+          <var>μ</var> = <span class="frac"><span class="num">1</span><span class="den"><var>T</var></span></span>
+          Σ<sub>t=1</sub><sup><var>T</var></sup> <var>R</var><sub>t</sub>
+          &nbsp;&nbsp;,&nbsp;&nbsp;
+          <var>σ</var> = √(
+          <span class="frac"><span class="num">1</span><span class="den"><var>T</var></span></span>
+          Σ<sub>t=1</sub><sup><var>T</var></sup> (<var>R</var><sub>t</sub> − <var>μ</var>)²
+          )
+        </div><span class="eqn-num">(0.3)</span></div></div>
+      </div>
+      <p class="body">
+        "변동성"이라는 말은 트레이딩에서 거의 항상 이 <var>σ</var>(수익률의 표준편차)를 가리킵니다.
+        중요한 성질 하나: 서로 독립인 두 확률변수의 합의 분산은 각 분산의 <b>합</b>입니다
+        (Var(<var>X</var>+<var>Y</var>) = Var(<var>X</var>) + Var(<var>Y</var>), <var>X</var>⊥<var>Y</var>일
+        때). 표준편차는 이렇게 바로 더해지지 않고, 분산을 거쳐야 더해집니다 — 1장의 √252 연환산이
+        여기서 나옵니다.
+      </p>
+    </section>
+
+    <section class="chapter" id="s0-3">
+      <div class="chapter-head">
+        <h3 class="chapter-title"><span class="chapter-num">0.3</span> 공분산과 상관계수</h3>
+      </div>
+      <div class="box defn">
+        <p class="box-label">정의 0.3</p>
+        <div class="eqn-wrap"><div class="eqn"><div class="eqn-body">
+          Cov(<var>X</var>,<var>Y</var>) = E[(<var>X</var>−<var>μ<sub>X</sub></var>)(<var>Y</var>−<var>μ<sub>Y</sub></var>)]
+          &nbsp;&nbsp;,&nbsp;&nbsp;
+          <var>ρ</var><sub><var>X,Y</var></sub> = <span class="frac"><span class="num">Cov(<var>X</var>,<var>Y</var>)</span><span class="den"><var>σ<sub>X</sub></var> <var>σ<sub>Y</sub></var></span></span>
+        </div><span class="eqn-num">(0.4)</span></div></div>
+      </div>
+      <p class="body">
+        상관계수 <var>ρ</var>는 항상 [−1, 1] 구간에 있는, 공분산을 "단위 없는" 숫자로 표준화한
+        버전입니다. 6장에서 유도할 포트폴리오 분산 공식은 사실상 이 정의 하나로부터 대수적으로
+        전개되는 결과입니다 — 별도의 새 가정이 필요하지 않습니다.
+      </p>
+      <div class="box takeaway">
+        <p class="box-label">0부 핵심정리</p>
+        <p>① 로그수익률은 시간에 대해 더해진다 ② 독립 변수의 분산은 더해지지만 표준편차는 안 더해진다
+          (√를 거쳐야 함) ③ 상관계수는 공분산을 표준화한 것 — 이 세 가지면 이후 모든 유도를 따라갈 수
+          있습니다.</p>
+      </div>
+    </section>
+
+    <!-- ================= PART 1 ================= -->
+    <div class="part-head" id="part1">
+      <p class="part-eyebrow">Part I</p>
+      <h2 class="part-title">성과지표론</h2>
+      <p class="part-intro">수익률 하나만으로 전략을 판단할 수 없는 이유를, 이번엔 "감"이 아니라
+        수식으로 확인합니다.</p>
+    </div>
+
+    <section class="chapter" id="s1">
+      <div class="chapter-head">
+        <h3 class="chapter-title"><span class="chapter-num">1장</span> 샤프지수의 완전한 유도</h3>
+        <div class="objectives">
+          <span class="obj-pill">목표: √252가 어디서 나오는지 직접 유도한다</span>
+          <span class="obj-pill">전제: 일별 수익률이 IID(독립동일분포)</span>
+        </div>
+      </div>
+
+      <p class="body">
+        <code class="path">core/backtest_engine.py</code>의 <code class="path">calculate_metrics()</code>는
+        아래 한 줄로 샤프지수를 계산합니다.
+      </p>
+      <div class="code-block mono">sharpe = (일간수익률.mean() / 일간수익률.std()) * sqrt(252)</div>
+      <p class="body">이 √252가 어디서 나오는지 처음부터 유도해봅니다.</p>
+
+      <div class="box deriv">
+        <p class="box-label">유도 1.1 — 일간 지표를 연간으로 환산하기</p>
+        <ol class="steps">
+          <li>일별 수익률 <var>R</var><sub>1</sub>, …, <var>R</var><sub>252</sub>가 서로 독립이고 평균
+            <var>μ<sub>d</sub></var>, 표준편차 <var>σ<sub>d</sub></var>를 갖는다고 가정한다 (거래일
+            252일/년).</li>
+          <li>연간 총수익(단순 합으로 근사) = <var>R</var><sub>1</sub>+⋯+<var>R</var><sub>252</sub> 이므로,
+            <span class="step-eq eqn-body">기대값 = 252 <var>μ<sub>d</sub></var></span></li>
+          <li>독립 확률변수 합의 분산은 분산의 합이므로,
+            <span class="step-eq eqn-body">Var(합) = 252 <var>σ<sub>d</sub></var>²  ⟹  표준편차 = √252 · <var>σ<sub>d</sub></var></span>
+            (분산은 더해지지만 표준편차는 그 제곱근이라 √252가 붙는다 — 0.2절 성질 그대로.)</li>
+          <li>연간 샤프 = <span class="step-eq eqn-body">
+            <span class="frac"><span class="num">연간 평균</span><span class="den">연간 표준편차</span></span>
+            = <span class="frac"><span class="num">252 <var>μ<sub>d</sub></var></span><span class="den">√252 · <var>σ<sub>d</sub></var></span></span>
+            = √252 · <span class="frac"><span class="num"><var>μ<sub>d</sub></var></span><span class="den"><var>σ<sub>d</sub></var></span></span></span></li>
+        </ol>
+      </div>
+
+      <div class="box prop">
+        <p class="box-label">명제 1.1</p>
+        <div class="eqn-wrap"><div class="eqn"><div class="eqn-body">
+          Sharpe<sub>연</sub> = <span class="frac"><span class="num"><var>μ<sub>d</sub></var></span><span class="den"><var>σ<sub>d</sub></var></span></span> · √252
+        </div><span class="eqn-num">(1.1)</span></div></div>
+        <p>코드의 한 줄과 정확히 일치합니다 — √252는 임의의 관례가 아니라 "일별 지표를 연간 지표로
+          바꾸는 유일하게 일관된 방법"에서 나온 숫자입니다.</p>
+      </div>
+
+      <div class="box example">
+        <p class="box-label">예제 1.1</p>
+        <p>어떤 전략의 일간수익률 평균이 <var>μ<sub>d</sub></var>=0.08%, 표준편차가
+          <var>σ<sub>d</sub></var>=1.1%라고 하자.</p>
+        <div class="eqn-wrap"><div class="eqn"><div class="eqn-body">
+          Sharpe = (0.0008 / 0.011) × √252 = 0.0727 × 15.87 ≈ 1.15
+        </div></div></div>
+        <p>영상에서 "1~2면 상당히 좋은 전략"이라 부른 구간에 들어갑니다.</p>
+      </div>
+
+      <div class="box pitfall">
+        <p class="box-label">함정 1.1 — IID 가정은 대개 틀린다</p>
+        <p>추세추종 전략은 수익률에 <b>자기상관</b>(어제 오른 날 다음엔 오늘도 오를 확률이 평소와
+          다름)이 있는 경우가 흔합니다. 이때 실제 연간 분산은 252<var>σ<sub>d</sub></var>²가 아니라
+          자기상관 항이 추가로 붙습니다 — 양의 자기상관이면 √252 공식이 진짜 리스크를
+          <b>과소평가</b>합니다. 그래서 이 저장소는 샤프지수 하나만 보지 않고, 순열검정(9장)으로
+          "그 수익률 패턴이 순수 노이즈로도 나올 수 있는지"를 별도로 확인합니다.</p>
+      </div>
+
+      <div class="refs"><span class="ref-label">구현</span><code class="path">core/backtest_engine.py</code> · <code class="path">calculate_metrics()</code></div>
+    </section>
+
+    <section class="chapter" id="s2">
+      <div class="chapter-head">
+        <h3 class="chapter-title"><span class="chapter-num">2장</span> CAGR과 변동성 손실</h3>
+        <div class="objectives">
+          <span class="obj-pill">목표: "산술평균 10%인데 왜 실제로는 덜 벌었지?"에 답한다</span>
+        </div>
+      </div>
+
+      <p class="body">
+        +50%가 난 다음 −50%가 나면 산술평균은 0%지만, 실제 자산은 100 → 150 → 75로
+        <b>25% 손실</b>입니다. 이 괴리를 정확히 재는 것이 이번 장의 목표입니다.
+      </p>
+
+      <div class="box deriv">
+        <p class="box-label">유도 2.1 — 기하평균은 항상 산술평균 이하다 (AM-GM 부등식)</p>
+        <ol class="steps">
+          <li><var>T</var>기간 후 자산 = <var>P</var><sub>0</sub> · (1+<var>R</var><sub>1</sub>)⋯(1+<var>R</var><sub>T</sub>) 이므로,
+            연환산 성장률 <var>g</var>는 <span class="step-eq eqn-body">(1+<var>g</var>)<sup><var>T</var></sup> = ∏(1+<var>R</var><sub>t</sub>)</span>를
+            만족한다. 즉 1+<var>g</var>는 (1+<var>R</var><sub>t</sub>)들의 <b>기하평균</b>이다.</li>
+          <li>산술-기하평균 부등식(AM-GM)에 따르면, 음이 아닌 <var>n</var>개 수의 기하평균은 항상 그
+            산술평균 이하다: <span class="step-eq eqn-body">ⁿ√(<var>x</var><sub>1</sub>⋯<var>x<sub>n</sub></var>) ≤ (<var>x</var><sub>1</sub>+⋯+<var>x<sub>n</sub></var>)/<var>n</var></span>,
+            등호는 모든 <var>x<sub>i</sub></var>가 같을 때만 성립.</li>
+          <li><var>x</var><sub>t</sub> = 1+<var>R</var><sub>t</sub>에 대입하면
+            <span class="step-eq eqn-body">1+<var>g</var> ≤ 1 + <var>μ</var></span>, 즉 <span class="step-eq eqn-body"><var>g</var> ≤ <var>μ</var></span> —
+            변동성이 조금이라도 있으면(수익률이 매기 다르면) CAGR은 반드시 산술평균보다 작다.</li>
+        </ol>
+      </div>
+
+      <div class="box prop">
+        <p class="box-label">명제 2.1 — 변동성 손실(volatility drag)의 근사식</p>
+        <p>로그수익률의 테일러 근사 <var>ℓ</var><sub>t</sub> ≈ <var>R</var><sub>t</sub> − <var>R</var><sub>t</sub>²/2를
+          평균 내면 (0부 참고, E[<var>R</var>²]=<var>σ</var>²+<var>μ</var>²이고 <var>μ</var>²는 2차로 작아 무시):</p>
+        <div class="eqn-wrap"><div class="eqn"><div class="eqn-body">
+          <var>g</var> &nbsp;≈&nbsp; <var>μ</var> − <span class="frac"><span class="num"><var>σ</var>²</span><span class="den">2</span></span>
+        </div><span class="eqn-num">(2.1)</span></div></div>
+        <p>"변동성의 제곱의 절반"만큼 산술평균에서 깎인다는, 실무에서 널리 쓰이는 근사식입니다.</p>
+      </div>
+
+      <div class="box example">
+        <p class="box-label">예제 2.1 — 앞의 +50%/−50% 사례를 공식으로 검산</p>
+        <p><var>μ</var> = (0.5 + (−0.5))/2 = 0, <var>σ</var>² = ((0.5−0)² + (−0.5−0)²)/2 = 0.25</p>
+        <div class="eqn-wrap"><div class="eqn"><div class="eqn-body">근사: <var>g</var> ≈ 0 − 0.25/2 = −0.125 (−12.5%)</div></div></div>
+        <p>실제 정확한 값(기하평균)은 √(1.5×0.5) − 1 = √0.75 − 1 ≈ <b>−13.4%</b>. 근사식이 정확한
+          값과 큰 틀에서 맞아떨어집니다(변동성이 매우 클 때는 2차 근사라 오차가 커짐 — 여기서는
+          변동성 자체가 극단적으로 커서 약 1%p 차이가 남).</p>
+      </div>
+
+      <div class="refs"><span class="ref-label">구현</span><code class="path">core/backtest_engine.py</code> · <code class="path">calculate_metrics()</code> 내 <code class="path">cagr</code> 계산</div>
+    </section>
+
+    <section class="chapter" id="s3">
+      <div class="chapter-head">
+        <h3 class="chapter-title"><span class="chapter-num">3장</span> MDD·손익비·칼마지수·낙폭지속기간</h3>
+        <div class="objectives"><span class="obj-pill">목표: 정의를 정밀하게, 그리고 극단값 처리를 정확하게</span></div>
+      </div>
+
+      <div class="box defn">
+        <p class="box-label">정의 3.1 — 최대낙폭</p>
+        <div class="eqn-wrap"><div class="eqn"><div class="eqn-body">
+          <var>M</var><sub>t</sub> = max<sub>0≤s≤t</sub> <var>E</var><sub>s</sub>  (그때까지의 최고 자산)
+          &nbsp;&nbsp;,&nbsp;&nbsp;
+          MDD = min<sub>t</sub> ( <var>E</var><sub>t</sub> / <var>M</var><sub>t</sub> − 1 )
+        </div><span class="eqn-num">(3.1)</span></div></div>
+        <p><var>E</var><sub>t</sub>는 <var>t</var>시점 자산가치. MDD는 항상 0 이하의 값이며, 0에 가까울수록
+          방어적입니다.</p>
+      </div>
+
+      <div class="box defn">
+        <p class="box-label">정의 3.2 — 손익비(Profit Factor)</p>
+        <div class="eqn-wrap"><div class="eqn"><div class="eqn-body">
+          PF = <span class="frac"><span class="num">Σ<sub>승리거래</sub> <var>r</var><sub>i</sub></span><span class="den">|Σ<sub>손실거래</sub> <var>r</var><sub>i</sub>|</span></span>
+        </div><span class="eqn-num">(3.2)</span></div></div>
+        <p>PF &gt; 1이면 손실보다 이익이 더 큰 시스템. 분모가 0이면(손실 거래가 하나도 없으면)
+          수학적으로 정의되지 않으므로, 코드는 <span class="mono">999.0</span>이라는 유한한 상한값으로
+          캡핑합니다 — 무한대(<span class="mono">inf</span>)를 그대로 두면 DB·JSON 직렬화 경로에서
+          다루기 번거롭기 때문입니다(공학적 타협, 수학적 정의는 아님).</p>
+      </div>
+
+      <div class="box defn">
+        <p class="box-label">정의 3.3 — 칼마지수</p>
+        <div class="eqn-wrap"><div class="eqn"><div class="eqn-body">
+          Calmar = <span class="frac"><span class="num">CAGR</span><span class="den">|MDD|</span></span>
+        </div><span class="eqn-num">(3.3)</span></div></div>
+        <p>MDD=0이면 마찬가지로 정의되지 않는데, 이 경우는 "낙폭 없이 계속 올랐다"는 뜻이므로 CAGR&gt;0이면
+          역시 999.0으로, CAGR≤0이면 0.0으로 처리합니다.</p>
+      </div>
+
+      <div class="box defn">
+        <p class="box-label">정의 3.4 — 평균 낙폭 지속기간</p>
+        <p>낙폭 구간을 <span class="mono">{ t : <var>E</var><sub>t</sub> &lt; <var>M</var><sub>t</sub> }</span>의
+          극대 연속구간들로 정의하고, 각 구간의 길이(시작일부터 다시 신고점을 회복한 날까지의
+          일수)를 평균 냅니다. 백테스트 종료 시점까지 회복하지 못한 마지막 구간은 <b>끝을 모르므로
+          평균에서 제외</b>합니다 — 이건 관측 데이터의 한계이지 낙폭이 실제로 짧다는 뜻이 아닙니다.</p>
+      </div>
+
+      <div class="box takeaway">
+        <p class="box-label">3장 핵심정리</p>
+        <p>네 지표 모두 "분모가 0이 되는 경계 조건"을 어떻게 처리하는지가 구현의 핵심입니다. 수학적
+          정의(무한대/미정의)와 공학적 타협(유한한 상한값, 관측 가능한 구간만 평균)을 구분해서
+          이해해두면, 나중에 극단적인 백테스트 결과(예: 진 거래가 하나도 없는 완벽한 승률)를 만나도
+          당황하지 않습니다.</p>
+      </div>
+      <div class="refs"><span class="ref-label">구현</span><code class="path">core/backtest_engine.py</code> · <code class="path">calculate_metrics()</code>, <code class="path">_compute_calmar()</code>, <code class="path">_compute_avg_drawdown_duration_days()</code></div>
+    </section>
+
+    <!-- ================= PART 2 ================= -->
+    <div class="part-head" id="part2">
+      <p class="part-eyebrow">Part II</p>
+      <h2 class="part-title">포지션 사이징 이론</h2>
+      <p class="part-intro">"얼마나 벌 수 있는가"가 아니라 "얼마나 걸어야 하는가"를 수학적으로 풀면
+        어떤 답이 나오는지, 그리고 왜 그 답을 그대로 쓰면 안 되는지.</p>
+    </div>
+
+    <section class="chapter" id="s4">
+      <div class="chapter-head">
+        <h3 class="chapter-title"><span class="chapter-num">4장</span> 켈리 기준의 완전한 유도</h3>
+        <div class="objectives">
+          <span class="obj-pill">목표: f* = W − (1−W)/R을 직접 미분해서 얻는다</span>
+          <span class="obj-pill">도구: 로그효용 극대화, 1계 조건</span>
+        </div>
+      </div>
+
+      <p class="body">
+        이항 베팅(이기거나 지거나)을 반복할 때, 매번 자산의 몇 %를 걸어야 <b>장기적으로 자산이 가장
+        빠르게 불어나는지</b>를 묻는 문제입니다. "장기적으로 가장 빠르게"를 수학적으로 어떻게
+        정의하는지가 이 유도의 출발점입니다.
+      </p>
+
+      <div class="box deriv">
+        <p class="box-label">유도 4.1</p>
+        <ol class="steps">
+          <li><b>셋업.</b> 매 베팅마다 자산의 비율 <var>f</var>를 건다. 승률 <var>p</var>로 이기면
+            건 돈의 <var>b</var>배를 따고(순이익 <var>fb</var>), 확률 <var>q</var>=1−<var>p</var>로
+            지면 건 돈을 전부 잃는다(순손실 <var>f</var>). <var>n</var>번 베팅 후 자산:
+            <span class="step-eq eqn-body"><var>W<sub>n</sub></var> = <var>W</var><sub>0</sub> (1+<var>f b</var>)<sup>승리횟수</sup> (1−<var>f</var>)<sup>패배횟수</sup></span></li>
+          <li><b>목적함수.</b> "장기 성장률을 최대화"는 정확히는
+            <span class="step-eq eqn-body"><var>g</var>(<var>f</var>) = E[ln(<var>W<sub>n</sub></var>/<var>W</var><sub>0</sub>)] / <var>n</var> = <var>p</var>·ln(1+<var>fb</var>) + <var>q</var>·ln(1−<var>f</var>)</span>를
+            최대화하는 것이다(대수의 법칙에 의해 <var>n</var>→∞일 때 실제 성장률이 이 기댓값에
+            거의 확실히 수렴하기 때문 — 8장에서 다시 다룬다).</li>
+          <li><b>1계 조건.</b> <var>g</var>를 <var>f</var>로 미분해 0으로 놓는다:
+            <span class="step-eq eqn-body"><var>g</var>′(<var>f</var>) = <span class="frac"><span class="num"><var>pb</var></span><span class="den">1+<var>fb</var></span></span> − <span class="frac"><span class="num"><var>q</var></span><span class="den">1−<var>f</var></span></span> = 0</span></li>
+          <li>양변을 정리: <span class="step-eq eqn-body"><var>pb</var>(1−<var>f</var>) = <var>q</var>(1+<var>fb</var>)</span>
+            ⟹ <span class="step-eq eqn-body"><var>pb</var> − <var>q</var> = <var>fb</var>(<var>p</var>+<var>q</var>) = <var>fb</var></span>
+            (∵ <var>p</var>+<var>q</var>=1)</li>
+          <li>정리하면 <span class="step-eq eqn-body"><var>f</var>* = <var>p</var> − <var>q</var>/<var>b</var> = <var>p</var> − (1−<var>p</var>)/<var>b</var></span>.
+            2계 도함수 <var>g</var>″(<var>f</var>) = −<var>pb</var>²/(1+<var>fb</var>)² − <var>q</var>/(1−<var>f</var>)² 는
+            항상 음수이므로 이 <var>f</var>*는 극댓값(최댓값)이 맞다.</li>
+        </ol>
+      </div>
+
+      <div class="box prop">
+        <p class="box-label">명제 4.1 — 켈리 공식</p>
+        <div class="eqn-wrap"><div class="eqn"><div class="eqn-body">
+          <var>f</var>* = <var>W</var> − <span class="frac"><span class="num">1−<var>W</var></span><span class="den"><var>R</var></span></span>
+          &nbsp;&nbsp;&nbsp; (<var>W</var>=승률, <var>R</var>=평균승리/평균손실)
+        </div><span class="eqn-num">(4.1)</span></div></div>
+        <p>기호만 <var>p</var>→<var>W</var>, <var>b</var>→<var>R</var>로 바꾸면 저장소의
+          <code class="path">kelly_fraction()</code>과 정확히 같은 식입니다.</p>
+      </div>
+
+      <div class="box example">
+        <p class="box-label">예제 4.1</p>
+        <p>승률 60%, 평균승리 10%, 평균손실 5% → <var>R</var>=10/5=2</p>
+        <div class="eqn-wrap"><div class="eqn"><div class="eqn-body">
+          <var>f</var>* = 0.6 − 0.4/2 = 0.6 − 0.2 = <b>0.4</b> (계좌의 40%)
+        </div></div></div>
+        <p>하프켈리 권장값은 이 절반인 20%.</p>
+      </div>
+
+      <div class="box pitfall">
+        <p class="box-label">함정 4.1 — 풀켈리는 왜 위험한가 (곡률의 문제)</p>
+        <p><var>g</var>(<var>f</var>)는 <var>f</var>=<var>f</var>*에서 <b>완만한 봉우리</b>를 이룹니다
+          (2계 도함수가 <var>f</var>* 근처에서 이미 상당히 음수 — 봉우리가 뾰족하다는 뜻). 그 결과
+          <var>f</var>*보다 살짝만 많이 걸어도 성장률은 빠르게 나빠지고, <var>f</var>*의 <b>두 배</b>를
+          걸면(<var>f</var>=2<var>f</var>*) 이론상 성장률이 <b>0으로 떨어집니다</b>(장기적으로 원금
+          보전도 안 됨). 승률·페이오프 추정치는 표본오차를 안고 있으므로(8장), 추정이 조금만
+          낙관적이어도 실제로는 이 "성장률 0" 근처에서 베팅하고 있을 위험이 있습니다 — 그래서
+          하프켈리(또는 그 이하)가 실무 표준입니다.</p>
+      </div>
+
+      <div class="refs"><span class="ref-label">구현</span><code class="path">core/position_sizing.py</code> · <code class="path">kelly_fraction()</code>, 기본 안전계수 <code class="path">DEFAULT_KELLY_SAFETY_FRACTION = 0.5</code></div>
+    </section>
+
+    <section class="chapter" id="s5">
+      <div class="chapter-head">
+        <h3 class="chapter-title"><span class="chapter-num">5장</span> 변동성 타겟팅</h3>
+        <div class="objectives"><span class="obj-pill">목표: "왜 역수(1/σ)로 가중하는가"에 답한다</span></div>
+      </div>
+
+      <div class="box deriv">
+        <p class="box-label">유도 5.1</p>
+        <p>자산 <var>i</var>에 비중 <var>w<sub>i</sub></var>를 배분해 그 자산이 포트폴리오
+          리스크에 기여하는 변동성을 <var>w<sub>i</sub> σ<sub>i</sub></var>로 근사(자산 간 상관관계를
+          무시한 1차 근사)하면, "모든 자산의 리스크 기여도를 똑같이 맞춘다"는 목표는
+          <span class="eqn-body"><var>w<sub>i</sub> σ<sub>i</sub></var> = <var>w<sub>j</sub> σ<sub>j</sub></var> (모든 <var>i, j</var>)</span>로
+          쓸 수 있다. 이를 만족하는 비율은 <var>w<sub>i</sub></var> ∝ 1/<var>σ<sub>i</sub></var>
+          (역변동성)이고, Σ<var>w<sub>i</sub></var>=1로 정규화하면 저장소의
+          <code class="path">portfolio_volatility_target_weights()</code>가 계산하는 식이 된다.</p>
+      </div>
+
+      <div class="box prop">
+        <p class="box-label">명제 5.1</p>
+        <div class="eqn-wrap"><div class="eqn"><div class="eqn-body">
+          <var>w<sub>i</sub></var> = <span class="frac"><span class="num">1/<var>σ<sub>i</sub></var></span><span class="den">Σ<sub>j</sub> 1/<var>σ<sub>j</sub></var></span></span>
+          &nbsp;&nbsp;(개별 자산: <var>w</var> = 목표변동성 / 자산변동성, 상한 1.0)
+        </div><span class="eqn-num">(5.1)</span></div></div>
+      </div>
+
+      <div class="box pitfall">
+        <p class="box-label">함정 5.1</p>
+        <p>이 근사는 자산 간 상관관계를 무시합니다. 진짜 리스크 패리티(완전한 공분산 역행렬 기반)는
+          더 정교하지만 계산이 복잡하고 직관이 떨어집니다 — 3부에서 다룰 상관관계가 여전히
+          정말 중요한 이유가 바로 이 근사가 놓치는 부분이기 때문입니다.</p>
+      </div>
+      <div class="refs"><span class="ref-label">구현</span><code class="path">core/position_sizing.py</code> · <code class="path">volatility_target_weight()</code>, <code class="path">portfolio_volatility_target_weights()</code></div>
+    </section>
+
+    <!-- ================= PART 3 ================= -->
+    <div class="part-head" id="part3">
+      <p class="part-eyebrow">Part III</p>
+      <h2 class="part-title">다각화의 수학</h2>
+      <p class="part-intro">레이 달리오가 "홀리그레일"이라 부른 공식을 처음부터 끝까지 유도합니다 —
+        이 강의노트 전체에서 가장 중요한 결과일 수 있습니다.</p>
+    </div>
+
+    <section class="chapter" id="s6">
+      <div class="chapter-head">
+        <h3 class="chapter-title"><span class="chapter-num">6장</span> 홀리그레일 공식의 완전한 유도</h3>
+        <div class="objectives">
+          <span class="obj-pill">목표: σ_p = σ√((1+(N−1)ρ)/N)을 처음부터 유도한다</span>
+          <span class="obj-pill">전제: N개 자산, 동일 변동성 σ, 모든 쌍의 상관계수가 동일하게 ρ, 동일 비중 1/N</span>
+        </div>
+      </div>
+
+      <div class="box deriv">
+        <p class="box-label">유도 6.1</p>
+        <ol class="steps">
+          <li>포트폴리오 수익률 <span class="step-eq eqn-body"><var>X<sub>p</sub></var> = <span class="frac"><span class="num">1</span><span class="den"><var>N</var></span></span> Σ<sub>i=1</sub><sup><var>N</var></sup> <var>X<sub>i</sub></var></span></li>
+          <li>분산의 정의를 그대로 전개(공분산의 이중합):
+            <span class="step-eq eqn-body">Var(<var>X<sub>p</sub></var>) = <span class="frac"><span class="num">1</span><span class="den"><var>N</var>²</span></span> [ Σ<sub>i</sub> Var(<var>X<sub>i</sub></var>) + Σ<sub>i≠j</sub> Cov(<var>X<sub>i</sub></var>,<var>X<sub>j</sub></var>) ]</span></li>
+          <li>대각항(자기 자신과의 공분산=분산) <var>N</var>개: <span class="step-eq eqn-body">Σ<sub>i</sub> Var(<var>X<sub>i</sub></var>) = <var>Nσ</var>²</span></li>
+          <li>비대각항(서로 다른 쌍) <var>N</var>(<var>N</var>−1)개, 각각 <var>ρσ</var>²:
+            <span class="step-eq eqn-body">Σ<sub>i≠j</sub> Cov = <var>N</var>(<var>N</var>−1) <var>ρσ</var>²</span></li>
+          <li>대입 후 정리:
+            <span class="step-eq eqn-body">Var(<var>X<sub>p</sub></var>) = <span class="frac"><span class="num"><var>Nσ</var>² + <var>N</var>(<var>N</var>−1)<var>ρσ</var>²</span><span class="den"><var>N</var>²</span></span> = <var>σ</var>² [ <span class="frac"><span class="num">1</span><span class="den"><var>N</var></span></span> + <var>ρ</var> ( 1 − <span class="frac"><span class="num">1</span><span class="den"><var>N</var></span></span> ) ]</span></li>
+        </ol>
+      </div>
+
+      <div class="box prop">
+        <p class="box-label">명제 6.1 — 홀리그레일 공식</p>
+        <div class="eqn-wrap"><div class="eqn"><div class="eqn-body">
+          <span class="frac"><span class="num"><var>σ<sub>p</sub></var></span><span class="den"><var>σ</var></span></span>
+          = √( <span class="frac"><span class="num">1</span><span class="den"><var>N</var></span></span> + <var>ρ</var> ( 1 − <span class="frac"><span class="num">1</span><span class="den"><var>N</var></span></span> ) )
+        </div><span class="eqn-num">(6.1)</span></div></div>
+        <p><var>N</var>→∞ 극한을 취하면 1/<var>N</var>→0이라 <span class="mono">σ_p/σ → √ρ</span> —
+          전략을 아무리 많이 추가해도, ρ&gt;0인 한 리스크는 √ρ · σ 아래로는 절대 못 내려갑니다.
+          이것이 "체계적(분산 불가능한) 리스크"의 정확한 정의입니다.</p>
+      </div>
+
+      <div class="box example">
+        <p class="box-label">예제 6.1 — 정확한 수치표 (직접 검산 가능)</p>
+        <div class="table-wrap">
+          <table class="mini">
+            <thead><tr><th><var>N</var></th><th><var>ρ</var>=0.6</th><th><var>ρ</var>=0.3</th><th><var>ρ</var>=0.1</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
+              <tr><td>3</td><td>85.6%</td><td>73.0%</td><td>63.2%</td></tr>
+              <tr><td>5</td><td>82.5%</td><td>66.3%</td><td>52.9%</td></tr>
+              <tr><td>10</td><td>80.0%</td><td>60.8%</td><td>43.6%</td></tr>
+              <tr><td>N→∞</td><td>77.5%</td><td>54.8%</td><td>31.6%</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p><var>N</var>=10, <var>ρ</var>=0.3의 경우: 1/10 + 0.3×0.9 = 0.1+0.27 = 0.37, √0.37 ≈ <b>60.8%</b>
+          — 직접 계산기로 검산해보세요. <var>N</var>=1→5 구간에서 이미 전체 감소분의 상당 부분을
+          얻고(예: ρ=0.3에서 100%→66.3%, 총 가능한 감소분 100%→54.8%의 74%를 처음 5개에서 확보),
+          그 뒤로는 완만해집니다 — "체감 효과가 5~10개 전후에서 크게 둔화된다"는 진술이 근사가
+          아니라 이 극한 계산에서 직접 나오는 결론입니다.</p>
+      </div>
+
+      <div class="box pitfall">
+        <p class="box-label">함정 6.1 — 이 공식의 가정이 깨지면?</p>
+        <p>모든 자산이 <b>같은 변동성</b>, <b>같은 상관계수</b>라는 가정은 현실에서 정확히 맞지 않습니다.
+          실제로는 공분산 행렬 Σ 전체를 써서 <var>w</var><sup>T</sup>Σ<var>w</var>로 정확히 계산해야
+          합니다. 하지만 이 단순화된 공식은 "직관을 얻는 데" 여전히 강력합니다 — 정확한 숫자가
+          아니라 <b>구조</b>(1/N 항과 ρ 항의 트레이드오프)를 이해하는 게 목적입니다.</p>
+      </div>
+
+      <div class="refs"><span class="ref-label">구현</span><code class="path">core/backtest_engine.py</code> · <code class="path">compute_strategy_correlation()</code> (실제 ρ를 데이터에서 추정), <code class="path">core/portfolio.py</code> · <code class="path">compute_correlation_matrix()</code></div>
+    </section>
+
+    <section class="chapter" id="s7">
+      <div class="chapter-head">
+        <h3 class="chapter-title"><span class="chapter-num">7장</span> 상관관계 붕괴와 국면 조건부 통계</h3>
+        <div class="objectives"><span class="obj-pill">목표: "평균 상관계수"가 왜 위험을 과소평가하는지</span></div>
+      </div>
+      <p class="body">
+        6장의 <var>ρ</var>는 전체 기간 평균입니다. 하지만 상관계수 자체가 <b>시간에 따라 변하는
+        확률변수</b>라면 — 평상시 <var>ρ</var>≈0.2, 위기 시 <var>ρ</var>≈0.85 — 평균만 보고 계산한
+        6.1식의 리스크 감소 효과는 정작 위기 때는 훨씬 덜 작동합니다.
+      </p>
+      <div class="box deriv">
+        <p class="box-label">조건부 계산의 논리</p>
+        <p>전체 기간의 일간수익률을 국면 라벨(강세장/약세장/횡보장)로 나눈 뒤, <b>각 부분집합 안에서만</b>
+          6.1식과 같은 상관계수 계산을 다시 합니다. 국면 라벨은 <code class="path">core/market_regime.py</code>의
+          규칙(① 52주 고점 대비 −20% 이하면 약세장 ② ADX&lt;20이면 횡보장 ③ 나머지는 200일선 기준)이
+          매긴 결정론적 라벨입니다.</p>
+      </div>
+      <div class="box takeaway">
+        <p class="box-label">핵심정리</p>
+        <p>다각화 포트폴리오를 설계할 때 확인해야 할 숫자는 하나가 아니라 <b>최소 셋</b>입니다 —
+          전체 평균 상관관계, 그리고 각 국면(특히 약세장)의 조건부 상관관계. 약세장 상관관계가
+          유독 높다면, 6.1식이 약속하는 리스크 감소는 정작 그 효과가 가장 필요한 순간에 사라집니다.</p>
+      </div>
+      <div class="refs"><span class="ref-label">구현</span><code class="path">core/market_regime.py</code> · <code class="path">compute_regime_conditional_correlation()</code></div>
+    </section>
+
+    <!-- ================= PART 4 ================= -->
+    <div class="part-head" id="part4">
+      <p class="part-eyebrow">Part IV</p>
+      <h2 class="part-title">통계적 검증</h2>
+      <p class="part-intro">좋아 보이는 백테스트가 진짜 엣지인지, 우연인지, 과최적화인지 — "그럴듯함"을
+        벗어나 실제로 계산 가능한 기준으로 판정합니다.</p>
+    </div>
+
+    <section class="chapter" id="s8">
+      <div class="chapter-head">
+        <h3 class="chapter-title"><span class="chapter-num">8장</span> 표본크기와 표준오차</h3>
+        <div class="objectives"><span class="obj-pill">목표: "매매 30건 미만은 위험"을 신뢰구간으로 증명한다</span></div>
+      </div>
+
+      <div class="box deriv">
+        <p class="box-label">유도 8.1 — 승률 추정치의 표준오차</p>
+        <ol class="steps">
+          <li><var>n</var>건의 매매 중 이긴 매매 수를 이항분포 <var>X</var>~Binomial(<var>n</var>, <var>p</var>)로
+            모형화한다(<var>p</var>=진짜 승률). 관측 승률 <span class="step-eq eqn-body"><var>p̂</var> = <var>X</var>/<var>n</var></span>은
+            <var>p</var>의 불편추정량이다.</li>
+          <li>이항분포 성질에서 <span class="step-eq eqn-body">Var(<var>p̂</var>) = <var>p</var>(1−<var>p</var>)/<var>n</var></span>이므로
+            표준오차는 <span class="step-eq eqn-body">SE = √(<var>p</var>(1−<var>p</var>)/<var>n</var>)</span>.</li>
+          <li><var>n</var>이 충분히 크면 중심극한정리에 의해 <var>p̂</var>는 근사적으로 정규분포를
+            따르므로, 95% 신뢰구간은 <span class="step-eq eqn-body"><var>p̂</var> ± 1.96 · SE</span>.</li>
+        </ol>
+      </div>
+
+      <div class="box example">
+        <p class="box-label">예제 8.1 — 왜 30과 300인가</p>
+        <p>관측 승률 <var>p̂</var>=50%를 얻었다고 하자.</p>
+        <div class="table-wrap">
+          <table class="mini">
+            <thead><tr><th>매매 횟수 n</th><th>표준오차</th><th>95% 신뢰구간</th></tr></thead>
+            <tbody>
+              <tr><td>30</td><td>±9.1%p</td><td>[32%, 68%]</td></tr>
+              <tr><td>100</td><td>±5.0%p</td><td>[40%, 60%]</td></tr>
+              <tr><td>300</td><td>±2.9%p</td><td>[44%, 56%]</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p><var>n</var>=30에서는 "진짜 승률"이 32%일 수도 68%일 수도 있다는 뜻입니다 — 완전히 다른
+          두 전략을 구분 못 할 만큼 넓은 구간입니다. <var>n</var>=300에서야 비로소 ±3%p대로
+          좁혀집니다. <code class="path">MIN_TRADE_COUNT_CAUTION=30</code>과
+          <code class="path">MIN_TRADE_COUNT_RELIABLE=300</code>은 임의의 숫자가 아니라 이 신뢰구간
+          폭이 "쓸만해지는" 지점을 대략적으로 짚은 값입니다.</p>
+      </div>
+
+      <div class="box pitfall">
+        <p class="box-label">함정 8.1</p>
+        <p>표준오차 공식은 각 매매의 승/패가 <b>독립</b>이라고 가정합니다. 연속된 손절이 서로
+          영향을 주는 전략(예: 마틴게일류)에서는 이 가정이 깨져 실제 불확실성이 이 표보다 더
+          큽니다.</p>
+      </div>
+      <div class="refs"><span class="ref-label">구현</span><code class="path">core/backtest_engine.py</code> · <code class="path">trade_count_reliability_warning()</code></div>
+    </section>
+
+    <section class="chapter" id="s9">
+      <div class="chapter-head">
+        <h3 class="chapter-title"><span class="chapter-num">9장</span> 순열검정의 논리</h3>
+        <div class="objectives"><span class="obj-pill">목표: 귀무가설이 정확히 무엇인지 짚는다</span></div>
+      </div>
+
+      <div class="box defn">
+        <p class="box-label">정의 9.1 — 귀무가설 H₀</p>
+        <p>"이 전략의 신호(진입/청산 규칙)가 이용하는 건 가격의 <b>시간적 순서/패턴</b>이 아니라,
+          단지 그날그날의 등락 크기 분포 자체다." 다시 말해, 캔들이 어떤 순서로 나타나든 전략의
+          성과가 똑같다면 H₀를 기각할 수 없습니다.</p>
+      </div>
+
+      <div class="box deriv">
+        <p class="box-label">검정 절차</p>
+        <ol class="steps">
+          <li>각 날의 "그날의 모양"(전일 종가 대비 시가/고가/저가/종가/거래량 비율)은 보존한 채, 날짜
+            등장 <b>순서만</b> 무작위로 섞어 가짜 시계열을 만든다. → 변동성·평균수익률(드리프트)
+            분포는 원본과 동일, 시간적 자기상관·추세만 파괴됨.</li>
+          <li>같은 전략 규칙을 이 가짜 시계열에 그대로 적용해 성과지표(예: 누적수익률)를 계산한다.</li>
+          <li>1~2를 <var>K</var>번(예: 200회) 반복해 지표의 순열 분포를 만든다.</li>
+          <li><span class="step-eq eqn-body">p-value = (실제 결과보다 같거나 좋은 순열 결과 수 + 1) / (<var>K</var> + 1)</span></li>
+        </ol>
+      </div>
+
+      <div class="box prop">
+        <p class="box-label">해석</p>
+        <p>p-value가 작다(관례상 &lt;0.05)는 것은, "시간 순서가 무의미한 가짜 세계에서 이 정도로
+          좋은 결과가 나올 확률이 5% 미만"이라는 뜻 — 즉 이 전략의 성과가 우연한 등락 분포만으로는
+          잘 설명되지 않고, 진짜 시간적 구조(추세·패턴)를 이용하고 있다는 증거입니다.</p>
+      </div>
+
+      <div class="box pitfall">
+        <p class="box-label">함정 9.1</p>
+        <p>p-value가 작다고 해서 "미래에도 통한다"는 보장은 아닙니다 — 순열검정은 <b>과거 데이터
+          안에서</b> 이 성과가 우연이 아니었는지를 판정할 뿐, 그 패턴이 미래에도 지속될지는 별개의
+          질문입니다(13장의 알파감쇠가 다루는 영역).</p>
+      </div>
+      <div class="refs"><span class="ref-label">구현</span><code class="path">core/backtest_engine.py</code> · <code class="path">run_permutation_test()</code>, <code class="path">_shuffle_daily_bars()</code></div>
+    </section>
+
+    <section class="chapter" id="s10">
+      <div class="chapter-head">
+        <h3 class="chapter-title"><span class="chapter-num">10장</span> 민감도 분석과 수익 분해</h3>
+      </div>
+
+      <div class="box defn">
+        <p class="box-label">10.1 민감도 분석 — 견고성 판정 휴리스틱</p>
+        <p>파라미터 값 <var>x</var>를 이웃 값들로 바꿔가며 얻은 성과지표 열 <var>y</var>(<var>x</var>)에서,
+          이웃 간 최대 변화폭을 전체 값 범위로 나눈 비율이 0.5 이하면 "견고함"으로 판정합니다:</p>
+        <div class="eqn-wrap"><div class="eqn"><div class="eqn-body">
+          견고함 ⟺ <span class="frac"><span class="num">max<sub>i</sub> |<var>y</var>(<var>x</var><sub>i+1</sub>) − <var>y</var>(<var>x<sub>i</sub></var>)|</span><span class="den">max(<var>y</var>) − min(<var>y</var>)</span></span> ≤ 0.5
+        </div></div></div>
+        <p>이건 통계적 검정이 아니라 <b>휴리스틱</b>입니다 — "특정 값 하나에서만 결과가 스파이크치는지"를
+          빠르게 스크리닝하는 용도입니다.</p>
+      </div>
+
+      <div class="box defn">
+        <p class="box-label">10.2 수익 분해 — 추세/실력/편향</p>
+        <p>0.1절에서 로그수익률이 시간에 대해 더해진다고 했습니다. 이 성질 덕분에 총 로그수익률을
+          세 항의 합으로 정확히 분해할 수 있습니다:</p>
+        <div class="eqn-wrap"><div class="eqn"><div class="eqn-body">
+          <var>ℓ</var><sub>총</sub> = <var>ℓ</var><sub>추세</sub> + <var>ℓ</var><sub>실력</sub> + <var>ℓ</var><sub>편향</sub>
+          &nbsp;,&nbsp; <var>ℓ</var><sub>추세</sub> = 노출비율 × <var>ℓ</var><sub>벤치마크</sub>
+        </div><span class="eqn-num">(10.1)</span></div></div>
+        <p><var>ℓ</var><sub>실력</sub>은 나머지(정의상) — "언제 들어가고 나왔는지"의 타이밍이 만든
+          몫만 남습니다. <var>ℓ</var><sub>편향</sub>은 파라미터를 이 데이터에 맞춰 최적화한 데서 오는
+          인플레이션 추정치로, 단일 백테스트만으로는 못 구해서(표본외 검증이 별도로 필요) 기본값
+          0으로 둡니다.</p>
+      </div>
+      <div class="refs"><span class="ref-label">구현</span><code class="path">core/backtest_engine.py</code> · <code class="path">run_sensitivity_sweep()</code>, <code class="path">run_partition_test()</code></div>
+    </section>
+
+    <section class="chapter" id="s11">
+      <div class="chapter-head">
+        <h3 class="chapter-title"><span class="chapter-num">11장</span> 워크포워드와 룩어헤드 편향</h3>
+      </div>
+
+      <div class="box defn">
+        <p class="box-label">11.1 룩어헤드 편향</p>
+        <p>시점 <var>t</var>에 발생한 신호로 시점 <var>t</var>의 가격에 체결됐다고 계산하면, 사실
+          시점 <var>t</var>의 종가는 <b>장이 끝나야</b> 확정되므로 미래 정보를 쓴 셈입니다. 저장소는
+          체결 포지션을 <span class="mono">position.shift(1)</span>로 하루 지연시켜, 신호일의 다음
+          거래일부터 체결되도록 강제합니다 — 이 한 줄이 전체 엔진의 룩어헤드 방지 규약입니다.</p>
+      </div>
+
+      <div class="box defn">
+        <p class="box-label">11.2 워크포워드 검증</p>
+        <p>전체 기간을 train(파라미터 탐색)과 test(그 파라미터를 처음 보는 구간에 고정 적용)로 나눕니다.
+          10.2절의 <var>ℓ</var><sub>편향</sub>을 실제로 추정하려면, train에서 찾은 최적 파라미터를
+          test에 적용했을 때의 성과 저하를 측정하면 됩니다 — 이게 바로 "표본외 검증"의 실전 절차입니다.</p>
+      </div>
+
+      <div class="box takeaway">
+        <p class="box-label">핵심정리</p>
+        <p>AQR의 클리프 애스니스가 인용한 경험칙 — "실전 성과는 백테스트의 절반 정도로 기대하라" —
+          는 정확히 이 <var>ℓ</var><sub>편향</sub>(과최적화로 인한 인플레이션)의 크기에 대한 실무적
+          추정치입니다.</p>
+      </div>
+      <div class="refs"><span class="ref-label">구현</span><code class="path">core/backtest_engine.py</code> · <code class="path">compute_equity_curve()</code>, <code class="path">core/strategy_tuning.py</code> · <code class="path">_split_into_folds()</code></div>
+    </section>
+
+    <!-- ================= PART 5 ================= -->
+    <div class="part-head" id="part5">
+      <p class="part-eyebrow">Part V</p>
+      <h2 class="part-title">시간가치와 비용</h2>
+      <p class="part-intro">완벽하게 검증된 전략도 남는 두 가지 숙제 — 서로 다른 시점의 현금흐름을
+        어떻게 비교할지, 그리고 매매 자체가 얼마나 갉아먹는지.</p>
+    </div>
+
+    <section class="chapter" id="s12">
+      <div class="chapter-head">
+        <h3 class="chapter-title"><span class="chapter-num">12장</span> XIRR — 방정식을 이분법으로 풀기</h3>
+      </div>
+
+      <div class="box defn">
+        <p class="box-label">정의 12.1</p>
+        <p>서로 다른 날짜 <var>t<sub>k</sub></var>에 발생한 현금흐름 <var>c<sub>k</sub></var>(납입은 음수,
+          최종 회수는 양수)에 대해, XIRR은 순현재가치(NPV)를 0으로 만드는 연이율 <var>r</var>입니다.</p>
+        <div class="eqn-wrap"><div class="eqn"><div class="eqn-body">
+          NPV(<var>r</var>) = Σ<sub>k</sub> <span class="frac"><span class="num"><var>c<sub>k</sub></var></span><span class="den">(1+<var>r</var>)<sup>(<var>t<sub>k</sub></var>−<var>t</var><sub>0</sub>)/365.25</sup></span></span> = 0
+        </div><span class="eqn-num">(12.1)</span></div></div>
+      </div>
+
+      <div class="box deriv">
+        <p class="box-label">왜 이분법(bisection)으로 풀 수 있는가</p>
+        <ol class="steps">
+          <li>NPV(<var>r</var>)은 <var>r</var>에 대해 <b>단조감소</b>한다 — <var>r</var>이 커질수록 모든
+            항의 분모가 커져 음의 현금흐름(초기 납입)의 절대영향은 줄고 양의 최종 회수 항의 상대적
+            할인폭이 더 커지기 때문에, 결국 전체 합은 감소한다(현금흐름이 "납입 여러 번 + 최종
+            회수 1번" 구조일 때 항상 성립).</li>
+          <li>단조함수는 구간 [<var>lo</var>, <var>hi</var>]의 양 끝에서 부호가 다르면 그 사이에
+            <b>정확히 하나의 근</b>을 가진다(중간값 정리).</li>
+          <li>구간을 절반씩 좁혀가며(중점의 부호를 보고 어느 쪽 절반에 근이 있는지 판정) 100번
+            반복하면 오차가 2⁻¹⁰⁰ 수준으로 줄어든다 — 외부 라이브러리(scipy 등) 없이 순수 이분법만으로
+            충분히 정밀한 해를 얻는 이유입니다.</li>
+        </ol>
+      </div>
+      <div class="refs"><span class="ref-label">구현</span><code class="path">core/backtest_engine.py</code> · <code class="path">_xirr()</code></div>
+    </section>
+
+    <section class="chapter" id="s13">
+      <div class="chapter-head">
+        <h3 class="chapter-title"><span class="chapter-num">13장</span> 거래비용과 알파감쇠</h3>
+      </div>
+
+      <div class="box defn">
+        <p class="box-label">13.1 거래비용 — 회전율 기반 모델</p>
+        <div class="eqn-wrap"><div class="eqn"><div class="eqn-body">
+          비용<sub>t</sub> = |포지션<sub>t</sub> − 포지션<sub>t−1</sub>| × <span class="frac"><span class="num">수수료bps + 슬리피지bps</span><span class="den">10000</span></span>
+        </div><span class="eqn-num">(13.1)</span></div></div>
+        <p>포지션 비중이 전혀 바뀌지 않으면(계속 보유 또는 계속 관망) 비용도 0입니다. 이 비용은
+          매일의 수익률에서 <b>직접 차감</b>되므로, 자산가치 곡선을 통해 CAGR·MDD·샤프 등 모든
+          지표에 자동으로 반영됩니다 — 별도로 "비용 보정"을 할 필요가 없는 설계입니다.</p>
+      </div>
+
+      <div class="box defn">
+        <p class="box-label">13.2 알파감쇠 — 재튜닝 없는 재적용</p>
+        <div class="eqn-wrap"><div class="eqn"><div class="eqn-body">
+          decay_ratio = <span class="frac"><span class="num">최근구간 지표</span><span class="den">전체기간 지표</span></span>
+          &nbsp;,&nbsp; 감쇠 의심 ⟺ decay_ratio &lt; 0.3 <var>or</var> 최근지표 &lt; 0
+        </div></div></div>
+        <p>동일한 <span class="mono">indicator_config</span>를 최근 구간에 그대로 재적용하는 게
+          핵심입니다 — 재튜닝을 허용하면 "최근에도 좋다"는 결과가 진짜 지속성 때문인지, 최근 데이터에
+          파라미터를 새로 맞춰서(10장의 <var>ℓ</var><sub>편향</sub>이 다시 끼어든 것)인지 구분할 수
+          없어집니다.</p>
+      </div>
+      <div class="refs"><span class="ref-label">구현</span><code class="path">core/backtest_engine.py</code> · <code class="path">compute_equity_curve()</code>, <code class="path">compute_alpha_decay()</code></div>
+    </section>
+
+    <!-- ================= PART 6 ================= -->
+    <div class="part-head" id="part6">
+      <p class="part-eyebrow">Part VI</p>
+      <h2 class="part-title">신호 결합과 표준화</h2>
+      <p class="part-intro">"지표 100개를 테스트해보니 결국 하나의 완벽한 지표보다 여러 지표를 연속
+        점수로 합친 앙상블이 더 견고했다"는 인사이트를 수학적으로 뜯어봅니다 — 놀랍게도 3부에서
+        유도한 홀리그레일 공식이 여기서 다시 등장합니다.</p>
+    </div>
+
+    <section class="chapter" id="s14">
+      <div class="chapter-head">
+        <h3 class="chapter-title"><span class="chapter-num">14장</span> Z-점수와 tanh 압착</h3>
+        <div class="objectives">
+          <span class="obj-pill">목표: 서로 다른 스케일의 지표를 하나의 잣대로 통일한다</span>
+        </div>
+      </div>
+
+      <div class="box defn">
+        <p class="box-label">정의 14.1 — 롤링 Z-점수</p>
+        <div class="eqn-wrap"><div class="eqn"><div class="eqn-body">
+          <var>z<sub>t</sub></var> = <span class="frac"><span class="num"><var>x<sub>t</sub></var> − <var>μ</var><sub>[t−N, t]</sub></span><span class="den"><var>σ</var><sub>[t−N, t]</sub></span></span>
+        </div><span class="eqn-num">(14.1)</span></div></div>
+        <p><var>x<sub>t</sub></var>는 지표 원값(RSI, MACD 히스토그램 등), <var>μ</var>/<var>σ</var>는
+          최근 <var>N</var>일 롤링 평균/표준편차입니다. 정의상 <var>z<sub>t</sub></var>는 "지금 값이
+          최근 분포에서 몇 표준편차만큼 떨어져 있는가"를 재며, 스케일과 단위가 다른 지표들도 전부
+          "표준편차 단위"라는 공통 잣대로 변환됩니다.</p>
+      </div>
+
+      <div class="box deriv">
+        <p class="box-label">유도 14.1 — 왜 tanh인가</p>
+        <ol class="steps">
+          <li>z-점수는 이론상 (−∞, ∞) 전 구간의 값을 가질 수 있다(극단적 이상치에서 |z|가 매우
+            커질 수 있음). 가중평균에 그대로 넣으면 이상치 하나가 앙상블 전체를 지배해버린다.</li>
+          <li>단순 클리핑(<span class="mono">max(min(z,1),-1)</span>)은 −1/1 경계에서 미분 불가능한
+            꺾임이 생겨, z가 1.5든 15든 똑같이 1로 잘려 "얼마나 극단적인지"의 정보가 사라진다.</li>
+          <li>tanh(<var>z</var>) = (<var>e<sup>z</sup></var>−<var>e<sup>−z</sup></var>)/(<var>e<sup>z</sup></var>+<var>e<sup>−z</sup></var>)는
+            전 구간에서 매끄럽게(미분 가능하게) −1~1로 수렴한다. <var>z</var>=0 근처에서는
+            tanh(<var>z</var>)≈<var>z</var>(선형에 가까움 — 작은 이탈은 그대로 반영), |<var>z</var>|가
+            커질수록 기울기 tanh′(<var>z</var>) = 1−tanh²(<var>z</var>)가 0으로 줄어들며 완만하게
+            포화(saturate)한다.</li>
+        </ol>
+      </div>
+
+      <div class="box example">
+        <p class="box-label">예제 14.1</p>
+        <p>평온하던 지표가 100일 동안 값 10 근처에 머물다가, 어느 날 갑자기 50으로 급등했다고 하자.
+          최근 60일 창(대부분 10, 최근 며칠만 50)의 평균은 대략 14, 표준편차는 대략 12로 계산된다
+          (혼합분포이므로 표준편차가 커짐).</p>
+        <div class="eqn-wrap"><div class="eqn"><div class="eqn-body">
+          z = (50 − 14) / 12 = 3.0  →  tanh(3.0) ≈ 0.995
+        </div></div></div>
+        <p>급등 직후 점수가 거의 +1에 가깝게 튀어 오릅니다 — "레벨이 높다"가 아니라 "최근 흐름 대비
+          이례적으로 튀었다"에 반응한다는 게 이 지표의 성격입니다.</p>
+      </div>
+
+      <div class="box pitfall">
+        <p class="box-label">함정 14.1</p>
+        <p>완만하고 <b>일정한</b> 추세(예: 선형으로 꾸준히 상승)에서는 원값 자체는 계속 커져도 "최근
+          평균 대비 이탈"은 거의 없어 z-점수가 0 근처에 머무릅니다 — z-점수는 레벨 감지기가 아니라
+          <b>변화/가속 감지기</b>에 가깝다는 걸 기억해야 합니다. "왜 확실한 상승 추세인데 앙상블
+          점수가 낮지?"라는 의문이 든다면 이 성질 때문입니다.</p>
+      </div>
+      <div class="refs"><span class="ref-label">구현</span><code class="path">core/strategy_engine.py</code> · <code class="path">_zscore_tanh()</code></div>
+    </section>
+
+    <section class="chapter" id="s15">
+      <div class="chapter-head">
+        <h3 class="chapter-title"><span class="chapter-num">15장</span> 앙상블은 왜 더 견고한가 — 6장의 재등장</h3>
+        <div class="objectives"><span class="obj-pill">목표: 홀리그레일 공식을 지표 앙상블에 그대로 적용한다</span></div>
+      </div>
+
+      <p class="body">
+        앙상블 점수는 <var>N</var>개 지표 점수의 가중평균입니다. 6장에서 유도한 "N자산 포트폴리오
+        분산 공식"은 <b>"동일 비중으로 여러 확률변수를 평균 낸다"</b>는 구조에서 나온 결과였지,
+        수익률이라는 소재에 국한된 결과가 아니었습니다 — 그래서 지표 점수를 평균 내는 여기에도
+        형태 그대로 적용됩니다.
+      </p>
+
+      <div class="box deriv">
+        <p class="box-label">유도 15.1</p>
+        <ol class="steps">
+          <li>각 지표의 정규화 점수 <var>s<sub>i</sub></var>가 평균 0, 분산 <var>σ</var>²(z-점수의
+            설계상 대략 단위 분산)를 갖고, 지표 쌍 간 평균 상관계수가 <var>ρ</var>라 하자.</li>
+          <li>동일 가중 앙상블 <span class="step-eq eqn-body">S = (1/<var>N</var>) Σ <var>s<sub>i</sub></var></span>의
+            분산은 6.1식 유도를 <b>글자 하나 안 바꾸고</b> 그대로 적용할 수 있다:
+            <span class="step-eq eqn-body">Var(S) = <var>σ</var>² [ 1/<var>N</var> + <var>ρ</var>(1 − 1/<var>N</var>) ]</span></li>
+          <li>지표 하나만 쓸 때(<var>N</var>=1) 대비 앙상블의 표준편차(=노이즈 크기) 비율은 6장의
+            표(예제 6.1)를 그대로 재사용할 수 있다 — 예를 들어 지표 간 평균 상관계수가 0.3이면
+            5개를 섞을 때 노이즈가 약 66%로, 10개면 약 61%로 줄어든다.</li>
+        </ol>
+      </div>
+
+      <div class="box prop">
+        <p class="box-label">명제 15.1</p>
+        <p>지표 간 상관관계가 낮을수록(서로 다른 카테고리 — 추세/모멘텀/변동성을 섞을수록) 앙상블
+          점수의 노이즈가 줄어듭니다 — "지표 하나가 잘못 신호를 줘도 나머지가 상쇄해준다"는 직관을
+          6장의 공식이 정량적으로 뒷받침합니다. 반대로 RSI와 MFI처럼 서로 비슷한 것을 측정하는
+          지표(둘 다 모멘텀, <var>ρ</var>가 높음)만 잔뜩 섞으면 사실상 지표 1개를 쓰는 것과 큰 차이가
+          없습니다(6장의 "3개 다 상관계수 1이면 노출을 3배로 키운 것뿐" 논리와 동일).</p>
+      </div>
+
+      <div class="box takeaway">
+        <p class="box-label">왜 이 연결이 중요한가</p>
+        <p>포트폴리오 다각화(3부)와 지표 앙상블(6부)은 겉보기엔 완전히 다른 주제처럼 보이지만, 수학적
+          으로는 <b>"상관관계가 낮은 것들을 평균 내면 분산이 준다"</b>는 같은 원리의 두 가지 응용일
+          뿐입니다. 전략을 여러 개 섞을지, 지표를 여러 개 섞을지는 스케일의 차이일 뿐 구조는 동일합니다.</p>
+      </div>
+      <div class="refs"><span class="ref-label">구현</span><code class="path">core/strategy_engine.py</code> · <code class="path">compute_ensemble_score()</code></div>
+    </section>
+
+    <section class="chapter" id="s16">
+      <div class="chapter-head">
+        <h3 class="chapter-title"><span class="chapter-num">16장</span> 히스테리시스 — 제어이론의 데드밴드</h3>
+        <div class="objectives"><span class="obj-pill">목표: 임계값 하나가 왜 위험한지 확인한다</span></div>
+      </div>
+
+      <div class="box defn">
+        <p class="box-label">정의 16.1</p>
+        <p>단일 임계값 <var>θ</var>로 "<var>S<sub>t</sub></var> ≥ <var>θ</var>면 보유, 아니면 미보유"를
+          정하면, <var>S<sub>t</sub></var>가 <var>θ</var> 근처에서 노이즈로 오르내릴 때마다 상태가
+          계속 바뀝니다. 대신 진입 임계값 <var>θ<sub>in</sub></var>과 청산 임계값
+          <var>θ<sub>out</sub></var> &lt; <var>θ<sub>in</sub></var> 두 개를 두는 상태 머신을 씁니다:</p>
+        <div class="eqn-wrap"><div class="eqn"><div class="eqn-body">
+          상태(t) = <var>1</var> if (상태(t−1)=0 and <var>S<sub>t</sub></var>≥<var>θ<sub>in</sub></var>) or (상태(t−1)=1 and <var>S<sub>t</sub></var>≥<var>θ<sub>out</sub></var>), <var>0</var> otherwise
+        </div><span class="eqn-num">(16.1)</span></div></div>
+      </div>
+
+      <div class="box example">
+        <p class="box-label">예제 16.1</p>
+        <p>θ<sub>in</sub>=0.5, θ<sub>out</sub>=0.2. 점수가 0.6→0.7→0.3→0.1→0.6 순서로 움직이면:
+          0.6에서 진입(상태 1) → 0.7 유지 → 0.3은 아직 0.2 위라 유지 → 0.1에서 청산(상태 0) →
+          0.6에서 재진입. 임계값이 0.5 하나뿐이었다면 0.3에서 이미 청산됐다가 다음날 다시 애매하게
+          오르내리는 구간에서 계속 진입/청산을 반복했을 수 있습니다.</p>
+      </div>
+
+      <div class="box takeaway">
+        <p class="box-label">6부, 그리고 이 강의노트를 마치며</p>
+        <p>1~5부가 "이 숫자를 믿어도 되는가"에 답했다면, 6부는 "여러 숫자를 어떻게 하나의 판단으로
+          안정적으로 합칠 것인가"에 답합니다. 표준화(14장)로 서로 다른 지표를 같은 잣대에 올리고,
+          3부의 분산 감소 원리(15장)로 그 조합이 왜 개별보다 견고한지 확인하고, 히스테리시스(16장)로
+          그 판단을 실제 매매 규칙으로 옮길 때 생기는 노이즈를 걸러냅니다. 성과지표·사이징·다각화·
+          통계검증·비용/시간·신호결합 — 이 여섯 부는 결국 "좋은 신호를 어떻게 찾고, 얼마나 걸고,
+          정말 좋은지 어떻게 확인하고, 여러 개를 어떻게 안정적으로 합칠 것인가"라는 하나의 여정입니다.</p>
+      </div>
+      <div class="refs"><span class="ref-label">구현</span><code class="path">core/strategy_engine.py</code> · <code class="path">generate_ensemble_position()</code></div>
+    </section>
+
+    <hr class="divider" />
+
+    <!-- ================= APPENDIX ================= -->
+    <div class="part-head" id="appendix">
+      <p class="part-eyebrow">Appendix</p>
+      <h2 class="part-title">기호표 · 함수 매핑</h2>
+    </div>
+
+    <div class="table-wrap">
+      <table class="mini appendix-table">
+        <thead><tr><th>기호</th><th>의미</th><th>등장 장</th></tr></thead>
+        <tbody>
+          <tr><td><var>R</var><sub>t</sub></td><td>t시점 산술수익률</td><td>0.1</td></tr>
+          <tr><td><var>ℓ</var><sub>t</sub></td><td>t시점 로그수익률</td><td>0.1, 2, 10</td></tr>
+          <tr><td><var>μ</var>, <var>σ</var></td><td>평균, 표준편차("변동성")</td><td>0.2</td></tr>
+          <tr><td><var>ρ</var></td><td>상관계수</td><td>0.3, 6, 7</td></tr>
+          <tr><td><var>E</var><sub>t</sub>, <var>M</var><sub>t</sub></td><td>t시점 자산가치, 그때까지의 최고자산</td><td>3</td></tr>
+          <tr><td><var>W</var>, <var>R</var>(4장)</td><td>승률, 페이오프비율(평균승리/평균손실)</td><td>4</td></tr>
+          <tr><td><var>f</var>*</td><td>켈리 최적 베팅비율</td><td>4</td></tr>
+          <tr><td><var>N</var></td><td>포트폴리오 내 자산/전략 개수</td><td>6</td></tr>
+          <tr><td><var>p̂</var>, SE</td><td>표본승률, 표준오차</td><td>8</td></tr>
+          <tr><td><var>r</var>(12장)</td><td>XIRR (자금가중 연환산수익률)</td><td>12</td></tr>
+          <tr><td><var>z<sub>t</sub></var></td><td>롤링 Z-점수</td><td>14</td></tr>
+          <tr><td><var>s<sub>i</sub></var>, <var>S</var></td><td>지표 i의 정규화 점수, 앙상블 합성 점수</td><td>15</td></tr>
+          <tr><td><var>θ<sub>in</sub></var>, <var>θ<sub>out</sub></var></td><td>진입/청산 임계값(히스테리시스)</td><td>16</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-wrap">
+      <table class="mini appendix-table">
+        <thead><tr><th>장</th><th>구현 함수</th><th>파일</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td class="mono">calculate_metrics()</td><td class="mono">core/backtest_engine.py</td></tr>
+          <tr><td>2, 3</td><td class="mono">calculate_metrics(), _compute_calmar()</td><td class="mono">core/backtest_engine.py</td></tr>
+          <tr><td>4, 5</td><td class="mono">kelly_fraction(), volatility_target_weight()</td><td class="mono">core/position_sizing.py</td></tr>
+          <tr><td>6</td><td class="mono">compute_strategy_correlation()</td><td class="mono">core/backtest_engine.py</td></tr>
+          <tr><td>7</td><td class="mono">compute_regime_conditional_correlation()</td><td class="mono">core/market_regime.py</td></tr>
+          <tr><td>8</td><td class="mono">trade_count_reliability_warning()</td><td class="mono">core/backtest_engine.py</td></tr>
+          <tr><td>9, 10</td><td class="mono">run_permutation_test(), run_sensitivity_sweep(), run_partition_test()</td><td class="mono">core/backtest_engine.py</td></tr>
+          <tr><td>11</td><td class="mono">compute_equity_curve(), _split_into_folds()</td><td class="mono">core/backtest_engine.py, core/strategy_tuning.py</td></tr>
+          <tr><td>12</td><td class="mono">_xirr()</td><td class="mono">core/backtest_engine.py</td></tr>
+          <tr><td>13</td><td class="mono">compute_equity_curve(), compute_alpha_decay()</td><td class="mono">core/backtest_engine.py</td></tr>
+          <tr><td>14</td><td class="mono">_zscore_tanh()</td><td class="mono">core/strategy_engine.py</td></tr>
+          <tr><td>15</td><td class="mono">compute_ensemble_score()</td><td class="mono">core/strategy_engine.py</td></tr>
+          <tr><td>16</td><td class="mono">generate_ensemble_position()</td><td class="mono">core/strategy_engine.py</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+</div>
+
+<footer class="page-footer">
+  Quant 강의노트 · 2026-07-27 세션 기준. "스터디 노트(01/개념편)"의 요약을 처음부터 유도한
+  심화 버전이며, "엔진 아키텍처 노트(02)"와 함께 보면 이론(이 문서)과 실제 코드 흐름(02)이 어떻게
+  맞물리는지 확인할 수 있습니다. 모든 유도는 직접 재현 가능하도록 단계를 생략하지 않았습니다 —
+  계산이 안 맞는 부분을 발견하면 그게 진짜 공부입니다.
+</footer>

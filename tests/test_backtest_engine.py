@@ -397,3 +397,369 @@ def test_summarize_strategy_vs_benchmarks_flags_wins_and_losses():
     assert summary["beats_on_mdd"] is True
     assert summary["beats_on_sharpe"] is True
     assert summary["regime_breakdown"] is None
+
+
+# =============================================================================
+# 거래비용(수수료/슬리피지) 단위 테스트
+# =============================================================================
+
+
+def test_compute_equity_curve_no_cost_by_default():
+    idx = pd.bdate_range("2021-01-04", periods=5)
+    df = pd.DataFrame({"Close": [100.0, 101.0, 102.0, 103.0, 104.0]}, index=idx)
+    position = pd.Series([0, 1, 1, 0, 0], index=idx, dtype=float)
+    baseline = backtest_engine.compute_equity_curve(df, position)
+    zero_cost = backtest_engine.compute_equity_curve(df, position, fee_bps=0.0, slippage_bps=0.0)
+    pd.testing.assert_series_equal(baseline, zero_cost)
+
+
+def test_compute_equity_curve_cost_reduces_return_on_position_change():
+    idx = pd.bdate_range("2021-01-04", periods=5)
+    df = pd.DataFrame({"Close": [100.0, 101.0, 102.0, 103.0, 104.0]}, index=idx)
+    position = pd.Series([0, 1, 1, 0, 0], index=idx, dtype=float)  # 진입 1회 + 청산 1회 = 회전율 2회
+    no_cost = backtest_engine.compute_equity_curve(df, position)
+    with_cost = backtest_engine.compute_equity_curve(df, position, fee_bps=50.0, slippage_bps=50.0)
+    assert with_cost.iloc[-1] < no_cost.iloc[-1]
+
+
+def test_compute_equity_curve_cost_is_zero_when_position_never_changes():
+    idx = pd.bdate_range("2021-01-04", periods=5)
+    df = pd.DataFrame({"Close": [100.0, 101.0, 102.0, 103.0, 104.0]}, index=idx)
+    flat_position = pd.Series([0.0] * 5, index=idx)
+    curve = backtest_engine.compute_equity_curve(df, flat_position, fee_bps=100.0, slippage_bps=100.0)
+    assert curve.iloc[-1] == pytest.approx(100.0)
+
+
+def test_simulate_contribution_equity_cost_reduces_total_vs_no_cost():
+    idx = pd.bdate_range("2021-01-04", periods=6)
+    df = pd.DataFrame({"Close": [100.0, 101.0, 100.0, 105.0, 100.0, 110.0]}, index=idx)
+    position = pd.Series([0, 1, 0, 1, 0, 1], index=idx, dtype=float)  # 자주 바뀌는 시그널 -> 회전율 큼
+    no_cost, _ = backtest_engine.simulate_contribution_equity(df, position, monthly_contribution=0.0)
+    with_cost, _ = backtest_engine.simulate_contribution_equity(
+        df, position, monthly_contribution=0.0, fee_bps=100.0, slippage_bps=100.0
+    )
+    assert with_cost.iloc[-1] < no_cost.iloc[-1]
+
+
+def test_run_backtest_with_fees_matches_manual_compute_equity_curve():
+    config = {"logic": "AND", "conditions": [{"indicator": "ma_cross", "short": 10, "long": 30, "type": "golden"}]}
+    no_cost_run = backtest_engine.run_backtest("TEST", config, "2021-06-01", "2022-06-01")
+    with_cost_run = backtest_engine.run_backtest(
+        "TEST", config, "2021-06-01", "2022-06-01", fee_bps=5.0, slippage_bps=10.0
+    )
+    if with_cost_run.trades:  # 매매가 하나라도 있으면 비용이 있는 쪽이 더 낮아야 한다
+        assert with_cost_run.equity_curve.iloc[-1] <= no_cost_run.equity_curve.iloc[-1]
+
+
+# =============================================================================
+# 손익비(Profit Factor) / 칼마지수(Calmar) 단위 테스트
+# =============================================================================
+
+
+def test_calculate_metrics_includes_profit_factor_and_calmar():
+    config = {"logic": "AND", "conditions": [{"indicator": "rsi", "period": 14, "op": "<", "value": 40}]}
+    run = backtest_engine.run_backtest("TEST", config, "2021-06-01", "2022-06-01")
+    assert "profit_factor" in run.metrics
+    assert "calmar" in run.metrics
+    assert run.metrics["profit_factor"] >= 0.0
+
+
+def test_calculate_metrics_profit_factor_from_trade_returns():
+    from core.strategy_engine import Trade
+
+    idx = pd.bdate_range("2021-01-04", periods=3)
+    equity_curve = pd.Series([100.0, 110.0, 95.0], index=idx)
+    trades = [
+        Trade(entry_date=idx[0], exit_date=idx[1], entry_price=100.0, exit_price=110.0, return_pct=10.0),
+        Trade(entry_date=idx[1], exit_date=idx[2], entry_price=110.0, exit_price=95.0, return_pct=-5.0),
+    ]
+    metrics = backtest_engine.calculate_metrics(equity_curve, trades, idx[0], idx[-1])
+    assert metrics["profit_factor"] == pytest.approx(2.0)  # 10 / 5
+
+
+def test_calculate_metrics_profit_factor_capped_when_no_losing_trades():
+    from core.strategy_engine import Trade
+
+    idx = pd.bdate_range("2021-01-04", periods=3)
+    equity_curve = pd.Series([100.0, 110.0, 121.0], index=idx)
+    trades = [
+        Trade(entry_date=idx[0], exit_date=idx[1], entry_price=100.0, exit_price=110.0, return_pct=10.0),
+        Trade(entry_date=idx[1], exit_date=idx[2], entry_price=110.0, exit_price=121.0, return_pct=10.0),
+    ]
+    metrics = backtest_engine.calculate_metrics(equity_curve, trades, idx[0], idx[-1])
+    assert metrics["profit_factor"] == backtest_engine._RATIO_METRIC_CAP
+
+
+def test_calculate_metrics_empty_curve_defaults_include_new_keys():
+    metrics = backtest_engine.calculate_metrics(pd.Series(dtype=float), [], "2021-01-01", "2021-06-01")
+    assert metrics["profit_factor"] == 0.0
+    assert metrics["calmar"] == 0.0
+
+
+def test_compute_calmar_no_drawdown_cases():
+    assert backtest_engine._compute_calmar(20.0, 0.0) == backtest_engine._RATIO_METRIC_CAP
+    assert backtest_engine._compute_calmar(-5.0, 0.0) == 0.0
+    assert backtest_engine._compute_calmar(20.0, -10.0) == pytest.approx(2.0)
+
+
+# =============================================================================
+# 전략 수명 / 알파 감쇠 모니터링 단위 테스트
+# =============================================================================
+
+
+def test_compute_alpha_decay_returns_expected_shape():
+    config = {"logic": "AND", "conditions": [{"indicator": "ma_cross", "short": 10, "long": 30, "type": "golden"}]}
+    result = backtest_engine.compute_alpha_decay(
+        "TEST", config, "2021-06-01", "2022-06-01", recent_months=6, metric="sharpe"
+    )
+    assert set(result.keys()) == {
+        "full_metrics", "recent_metrics", "metric", "decay_ratio", "is_decayed", "recent_start", "recent_end",
+    }
+    assert result["metric"] == "sharpe"
+    assert isinstance(result["is_decayed"], bool)
+    assert pd.Timestamp(result["recent_start"]) < pd.Timestamp(result["recent_end"])
+
+
+def test_compute_alpha_decay_flags_decay_when_recent_metric_turns_negative(monkeypatch):
+    def fake_run_backtest(ticker, config, start, end, label="전략", **kwargs):
+        metrics = {"sharpe": 2.0} if start == "2021-06-01" else {"sharpe": -1.0}
+        idx = pd.bdate_range("2021-01-04", periods=2)
+        return backtest_engine.BacktestRun(
+            label=label, ticker=ticker, df=pd.DataFrame({"Close": [1.0, 2.0]}, index=idx),
+            position=pd.Series([1.0, 1.0], index=idx), equity_curve=pd.Series([100.0, 101.0], index=idx),
+            trades=[], metrics=metrics,
+        )
+
+    monkeypatch.setattr(backtest_engine, "run_backtest", fake_run_backtest)
+    result = backtest_engine.compute_alpha_decay("TEST", {}, "2021-06-01", "2022-06-01", recent_months=6, metric="sharpe")
+    assert result["is_decayed"] is True
+    assert result["decay_ratio"] == pytest.approx(-0.5)
+
+
+def test_compute_alpha_decay_empty_data_returns_safe_defaults(monkeypatch):
+    def fake_get_price_history(ticker, start=None, end=None, interval="1d", use_cache=True, **kwargs):
+        return pd.DataFrame()
+
+    monkeypatch.setattr(backtest_engine, "get_price_history", fake_get_price_history)
+    result = backtest_engine.compute_alpha_decay("NODATA", {}, "2021-06-01", "2022-06-01")
+    assert result["is_decayed"] is False
+    assert result["decay_ratio"] is None
+
+
+def test_save_and_list_decay_checks(db_session, monkeypatch):
+    from contextlib import contextmanager
+
+    from core.models import Strategy
+
+    strategy = Strategy(name="테스트 전략", indicator_config="{}", source="manual")
+    db_session.add(strategy)
+    db_session.commit()
+
+    import core.db as db_module
+
+    @contextmanager
+    def _fake_get_session():
+        yield db_session
+        db_session.commit()
+
+    monkeypatch.setattr(db_module, "get_session", _fake_get_session)
+
+    result = {
+        "full_metrics": {"sharpe": 1.5},
+        "recent_metrics": {"sharpe": 0.2},
+        "metric": "sharpe",
+        "decay_ratio": 0.13,
+        "is_decayed": True,
+        "recent_start": "2022-01-01",
+        "recent_end": "2022-06-01",
+    }
+    check_id = backtest_engine.save_decay_check("TEST", result, strategy_id=strategy.id)
+    assert check_id is not None
+
+    history = backtest_engine.list_decay_checks(strategy.id)
+    assert len(history) == 1
+    assert history[0]["ticker"] == "TEST"
+    assert history[0]["is_decayed"] is True
+    assert history[0]["decay_ratio"] == pytest.approx(0.13)
+
+
+# =============================================================================
+# 평균 낙폭 지속기간(avg_drawdown_days) 단위 테스트
+# =============================================================================
+
+
+def test_calculate_metrics_avg_drawdown_days_with_one_closed_drawdown():
+    idx = pd.date_range("2021-01-01", periods=4, freq="D")
+    equity = pd.Series([100.0, 90.0, 95.0, 100.0], index=idx)  # day1 낙폭 시작, day3 신고점 복귀
+    metrics = backtest_engine.calculate_metrics(equity, [], idx[0], idx[-1])
+    assert metrics["avg_drawdown_days"] == pytest.approx(2.0)
+
+
+def test_calculate_metrics_avg_drawdown_days_excludes_unclosed_drawdown():
+    idx = pd.date_range("2021-01-01", periods=4, freq="D")
+    equity = pd.Series([100.0, 90.0, 85.0, 80.0], index=idx)  # 끝까지 회복 못 함
+    metrics = backtest_engine.calculate_metrics(equity, [], idx[0], idx[-1])
+    assert metrics["avg_drawdown_days"] == 0.0
+
+
+def test_calculate_metrics_avg_drawdown_days_no_drawdown_is_zero():
+    idx = pd.date_range("2021-01-01", periods=4, freq="D")
+    equity = pd.Series([100.0, 101.0, 102.0, 103.0], index=idx)
+    metrics = backtest_engine.calculate_metrics(equity, [], idx[0], idx[-1])
+    assert metrics["avg_drawdown_days"] == 0.0
+
+
+def test_calculate_metrics_avg_drawdown_days_averages_multiple_closed_drawdowns():
+    idx = pd.date_range("2021-01-01", periods=8, freq="D")
+    # 낙폭1: day1~day2(2일), 신고점 복귀 day3. 낙폭2: day5~day6(2일), 신고점 복귀 day7.
+    equity = pd.Series([100.0, 90.0, 95.0, 101.0, 101.0, 95.0, 98.0, 102.0], index=idx)
+    metrics = backtest_engine.calculate_metrics(equity, [], idx[0], idx[-1])
+    assert metrics["avg_drawdown_days"] == pytest.approx(2.0)
+
+
+# =============================================================================
+# 매매 횟수 통계적 신뢰도 경고 단위 테스트
+# =============================================================================
+
+
+def test_trade_count_reliability_warning_low_count_is_strong_warning():
+    msg = backtest_engine.trade_count_reliability_warning(10)
+    assert msg is not None and "⚠️" in msg
+
+
+def test_trade_count_reliability_warning_medium_count_is_info():
+    msg = backtest_engine.trade_count_reliability_warning(100)
+    assert msg is not None and "ℹ️" in msg
+
+
+def test_trade_count_reliability_warning_high_count_returns_none():
+    assert backtest_engine.trade_count_reliability_warning(500) is None
+
+
+# =============================================================================
+# 전략 포트폴리오 상관관계("홀리그레일") 단위 테스트
+# =============================================================================
+
+_MA_CROSS_CONFIG = {"logic": "AND", "conditions": [{"indicator": "ma_cross", "short": 10, "long": 30, "type": "golden"}]}
+_RSI40_CONFIG = {"logic": "AND", "conditions": [{"indicator": "rsi", "period": 14, "op": "<", "value": 40}]}
+
+
+def test_run_strategy_portfolio_returns_one_run_per_strategy():
+    strategies = [("A", "TEST", _MA_CROSS_CONFIG), ("B", "TEST", _RSI40_CONFIG)]
+    runs = backtest_engine.run_strategy_portfolio(strategies, "2021-06-01", "2022-06-01")
+    assert set(runs.keys()) == {"A", "B"}
+    for run in runs.values():
+        assert not run.df.empty
+
+
+def test_compute_strategy_correlation_returns_symmetric_matrix():
+    strategies = [("A", "TEST", _MA_CROSS_CONFIG), ("B", "TEST", _RSI40_CONFIG)]
+    runs = backtest_engine.run_strategy_portfolio(strategies, "2021-06-01", "2022-06-01")
+    corr = backtest_engine.compute_strategy_correlation(runs)
+    assert list(corr.columns) == ["A", "B"]
+    assert corr.loc["A", "A"] == pytest.approx(1.0)
+    assert corr.loc["A", "B"] == pytest.approx(corr.loc["B", "A"])
+
+
+def test_compute_strategy_correlation_identical_strategies_have_correlation_one():
+    strategies = [("A", "TEST", _MA_CROSS_CONFIG), ("B", "TEST", _MA_CROSS_CONFIG)]
+    runs = backtest_engine.run_strategy_portfolio(strategies, "2021-06-01", "2022-06-01")
+    corr = backtest_engine.compute_strategy_correlation(runs)
+    assert corr.loc["A", "B"] == pytest.approx(1.0, abs=1e-6)
+
+
+def test_compute_strategy_correlation_single_strategy_returns_empty():
+    strategies = [("A", "TEST", _RSI40_CONFIG)]
+    runs = backtest_engine.run_strategy_portfolio(strategies, "2021-06-01", "2022-06-01")
+    assert backtest_engine.compute_strategy_correlation(runs).empty
+
+
+def test_compute_strategy_regime_correlation_delegates_to_market_regime(monkeypatch):
+    import core.market_regime as market_regime
+
+    def fake_regime_corr(daily_returns, benchmark_ticker="^GSPC"):
+        return {"강세장": daily_returns.corr(), "약세장": pd.DataFrame(), "횡보장": pd.DataFrame()}
+
+    monkeypatch.setattr(market_regime, "compute_regime_conditional_correlation", fake_regime_corr)
+
+    strategies = [("A", "TEST", _MA_CROSS_CONFIG), ("B", "TEST", _RSI40_CONFIG)]
+    runs = backtest_engine.run_strategy_portfolio(strategies, "2021-06-01", "2022-06-01")
+    result = backtest_engine.compute_strategy_regime_correlation(runs)
+    assert set(result.keys()) == {"강세장", "약세장", "횡보장"}
+    assert list(result["강세장"].columns) == ["A", "B"]
+
+
+def test_compute_strategy_regime_correlation_insufficient_runs_returns_empty_dict():
+    strategies = [("A", "TEST", _RSI40_CONFIG)]
+    runs = backtest_engine.run_strategy_portfolio(strategies, "2021-06-01", "2022-06-01")
+    assert backtest_engine.compute_strategy_regime_correlation(runs) == {}
+
+
+def test_save_and_list_strategy_correlation_snapshots(db_session, monkeypatch):
+    from contextlib import contextmanager
+
+    import core.db as db_module
+
+    @contextmanager
+    def _fake_get_session():
+        yield db_session
+        db_session.commit()
+
+    monkeypatch.setattr(db_module, "get_session", _fake_get_session)
+
+    corr = pd.DataFrame({"A": [1.0, 0.4], "B": [0.4, 1.0]}, index=["A", "B"])
+    snap_id = backtest_engine.save_strategy_correlation_snapshot(corr)
+    assert snap_id is not None
+
+    history = backtest_engine.list_strategy_correlation_snapshots()
+    assert len(history) == 1
+    assert history[0]["labels"] == ["A", "B"]
+    assert history[0]["avg_correlation"] == pytest.approx(0.4)
+    assert history[0]["max_correlation"] == pytest.approx(0.4)
+
+
+def test_save_strategy_correlation_snapshot_requires_at_least_two_labels():
+    corr = pd.DataFrame({"A": [1.0]}, index=["A"])
+    with pytest.raises(ValueError):
+        backtest_engine.save_strategy_correlation_snapshot(corr)
+
+
+# =============================================================================
+# 앙상블 스코어링 전략의 백테스트 엔진 연동 단위 테스트
+# =============================================================================
+
+
+def test_run_backtest_with_ensemble_config_computes_all_metrics():
+    config = {
+        "schema": "ensemble",
+        "indicators": [
+            {"indicator": "rsi", "weight": 1.0},
+            {"indicator": "ma_spread", "short": 20, "long": 60, "weight": 1.0},
+        ],
+        "entry_threshold": 0.3,
+        "exit_threshold": 0.1,
+    }
+    run = backtest_engine.run_backtest("TEST", config, "2021-06-01", "2022-06-01")
+    for key in (
+        "cumulative_return", "cagr", "mdd", "sharpe", "win_rate", "trade_count",
+        "profit_factor", "calmar", "avg_drawdown_days",
+    ):
+        assert key in run.metrics
+    assert not run.df.empty
+    assert not run.equity_curve.empty
+    assert (run.position >= 0).all() and (run.position <= 1).all()
+
+
+def test_run_backtest_ensemble_size_by_score_false_is_binary_position():
+    config = {
+        "schema": "ensemble", "indicators": [{"indicator": "rsi"}],
+        "entry_threshold": 0.3, "exit_threshold": 0.1, "size_by_score": False,
+    }
+    run = backtest_engine.run_backtest("TEST", config, "2021-06-01", "2022-06-01")
+    assert set(run.position.unique().tolist()) <= {0.0, 1.0}
+
+
+def test_run_backtest_ensemble_with_fees_does_not_crash():
+    config = {"schema": "ensemble", "indicators": [{"indicator": "rsi"}], "entry_threshold": 0.3, "exit_threshold": 0.1}
+    run = backtest_engine.run_backtest("TEST", config, "2021-06-01", "2022-06-01", fee_bps=5.0, slippage_bps=10.0)
+    assert not run.equity_curve.empty

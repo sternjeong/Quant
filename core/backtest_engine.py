@@ -1,14 +1,18 @@
 """백테스팅 엔진 (모듈 A): 전략 vs S&P500 매수보유 vs 개별종목 매수보유 비교.
 
 core.strategy_engine 이 만든 포지션(0/1) 시리즈를 받아 자산가치 곡선(equity curve)과
-누적수익률/CAGR/MDD/샤프지수/승률/매매횟수를 계산한다.
+누적수익률/CAGR/MDD/샤프지수/승률/매매횟수/손익비(Profit Factor)/칼마지수/평균낙폭지속기간을 계산한다.
 
 핵심 함수:
-    run_backtest(ticker, indicator_config, start, end) -> BacktestRun
-    run_buy_and_hold(ticker, start, end) -> BacktestRun
+    run_backtest(ticker, indicator_config, start, end, fee_bps=0, slippage_bps=0) -> BacktestRun
+    run_buy_and_hold(ticker, start, end, fee_bps=0, slippage_bps=0) -> BacktestRun
     compare_with_benchmarks(ticker, indicator_config, start, end, benchmark_ticker="^GSPC") -> dict
     save_backtest_result(strategy_id, ticker, start, end, metrics, extra_metrics=None) -> int (BacktestResult.id)
     diagnose_strategy_health(indicator_config) -> list[str] (진입/청산 조건 자기모순 등 흔한 결함 경고)
+    trade_count_reliability_warning(trade_count) -> str|None (매매 횟수가 통계적으로 신뢰하기에
+        충분한지 대수의 법칙 기준으로 경고)
+    compute_alpha_decay(ticker, indicator_config, full_start, full_end, recent_months=6) -> dict (같은 설정을
+        재튜닝 없이 최근 구간에 그대로 재적용해 성과가 전체 기간 대비 얼마나 이탈했는지 확인 — 전략 수명 체크)
 
 검증(Masters, 《Testing and Tuning Market Trading Systems》) 함수 4종 — 백테스트 결과가 진짜 통계적
 엣지인지 아니면 우연/과최적화인지 판별하는 도구:
@@ -21,7 +25,22 @@ core.strategy_engine 이 만든 포지션(0/1) 시리즈를 받아 자산가치 
     summarize_strategy_vs_benchmarks(comparison, regime_breakdown=None) -> dict (원수익률뿐 아니라
         CAGR/MDD/샤프 전 축에서 벤치마크 대비 승패를 구조화)
 
-거래비용/슬리피지는 고려하지 않는 단순 모델이다 (추후 확장 가능).
+전략 포트폴리오 상관관계("홀리그레일") — 종목이 아니라 전략 간 상관관계를 다룬다:
+    run_strategy_portfolio(strategies, start, end) -> dict[label, BacktestRun]
+    compute_strategy_correlation(runs) -> pd.DataFrame
+    compute_strategy_regime_correlation(runs) -> dict[국면, pd.DataFrame] (강세장/약세장/횡보장별)
+    save_strategy_correlation_snapshot(corr_matrix) / list_strategy_correlation_snapshots() — "이번 달만
+        보고 판단하지 말라"는 원칙대로 상관관계도 이력을 쌓아 추이를 볼 수 있게 저장(CorrelationSnapshot)
+
+전략 스키마는 core.strategy_engine이 6종(레짐/직접수식/1:2:6 단계별/복합/코스톨라니/앙상블 스코어링)을
+지원하며, 이 엔진은 스키마를 몰라도 되도록 run_backtest()가 내부적으로 적절한 포지션 생성 함수로
+분기한다(_simulate_on_raw 참고) — 앙상블 스코어링은 여러 지표를 -1~1 연속 점수로 정규화해 가중평균한
+뒤 포지션 비중(0~1)으로 쓰는 6번째 스키마다.
+
+거래비용은 fee_bps(수수료)+slippage_bps(슬리피지)를 매매 회전율에 곱해 차감하는 단순 모델이다
+(기본값 0=비용 없음, compute_equity_curve/simulate_contribution_equity 참고). 포지션 사이징(얼마나
+살지)은 이 모듈이 아니라 core.position_sizing 이 담당한다 — 이 엔진 자체는 항상 그 시점 자산
+전액을 싣는 0/1(또는 1:2:6 비중) 모델이다.
 """
 
 from __future__ import annotations
@@ -39,13 +58,22 @@ from core.strategy_engine import (
     Trade,
     extract_staged_trades,
     extract_trades,
+    extract_weighted_trades,
+    generate_ensemble_position,
     generate_positions,
+    is_ensemble_config,
     is_staged_config,
     simulate_staged_positions,
 )
 
 TRADING_DAYS_PER_YEAR = 252
 DEFAULT_BENCHMARK_TICKER = "^GSPC"  # S&P500 지수
+
+# 대수의 법칙(law of large numbers) — 표본(매매 건수)이 적을수록 승률/샤프 등의 지표가 실제 엣지가
+# 아니라 우연에 의해 크게 흔들릴 수 있다. 절대 기준(30건 미만=위험, 300건 이상=신뢰 가능)은 통계적
+# 증명이 아니라 실전에서 널리 쓰이는 경험칙이다 — 정밀한 검증은 run_permutation_test(p-value)를 쓴다.
+MIN_TRADE_COUNT_CAUTION = 30
+MIN_TRADE_COUNT_RELIABLE = 300
 
 
 @dataclass
@@ -74,15 +102,32 @@ def _slice_by_date(df: pd.DataFrame, start: Optional[str], end: Optional[str]) -
     return out
 
 
-def compute_equity_curve(df: pd.DataFrame, position: pd.Series, initial_value: float = 100.0) -> pd.Series:
+def compute_equity_curve(
+    df: pd.DataFrame,
+    position: pd.Series,
+    initial_value: float = 100.0,
+    fee_bps: float = 0.0,
+    slippage_bps: float = 0.0,
+) -> pd.Series:
     """포지션 시리즈로부터 자산가치 곡선을 계산한다.
 
     position은 0/1(일반 전략) 또는 0~1 사이의 비중(1:2:6 단계별 전략)을 모두 지원한다.
     신호가 발생한 다음 거래일부터 실제 체결된다고 가정한다 (lookahead bias 방지).
+
+    fee_bps/slippage_bps(선택, 기본 0=비용 없음)를 주면 매매 회전율(포지션 비중이 바뀐 만큼)에
+    비례해 비용을 차감한다 — bps 단위(1bps=0.01%)이며 두 값은 더해서 하루치 비용률로 쓴다
+    (예: fee_bps=5, slippage_bps=10 → 왕복이 아닌 편도 비중변화당 0.15%). 0/1 전략은 진입/청산
+    시점에, 1:2:6 단계별 전략은 단계가 바뀔 때마다 그 변화분만큼만 비용이 발생한다.
     """
     daily_return = df["Close"].pct_change().fillna(0.0)
     executed_position = position.shift(1).fillna(0).astype(float)
-    strategy_return = daily_return * executed_position
+    cost_rate = (fee_bps + slippage_bps) / 10000.0
+    if cost_rate > 0:
+        prev_executed = executed_position.shift(1).fillna(0.0)
+        turnover = (executed_position - prev_executed).abs()
+        strategy_return = daily_return * executed_position - turnover * cost_rate
+    else:
+        strategy_return = daily_return * executed_position
     equity = (1.0 + strategy_return).cumprod() * initial_value
     equity.iloc[0] = initial_value
     return equity
@@ -101,6 +146,8 @@ def simulate_contribution_equity(
     position: pd.Series,
     initial_value: float = 100.0,
     monthly_contribution: float = 0.0,
+    fee_bps: float = 0.0,
+    slippage_bps: float = 0.0,
 ) -> tuple[pd.Series, pd.Series]:
     """월 적립금이 있을 때의 총자산가치 곡선을 시뮬레이션한다 (매달 첫 거래일에 납입).
 
@@ -117,6 +164,9 @@ def simulate_contribution_equity(
 
     lookahead 방지를 위해 position은 compute_equity_curve와 동일하게 하루 shift해서 사용한다.
 
+    fee_bps/slippage_bps(선택, 기본 0)는 compute_equity_curve와 동일한 의미로, 목표 비중(weight)이
+    전날 대비 바뀐 만큼(리밸런싱 회전율) 그날의 총자산(total)에서 비용을 차감한다.
+
     Returns:
         (equity_curve, contributed_capital) — 둘 다 df.index와 같은 인덱스의 Series.
         contributed_capital은 그 시점까지 실제로 납입된 누적 원금(초기자본 포함)이다.
@@ -128,10 +178,12 @@ def simulate_contribution_equity(
     daily_return = df["Close"].pct_change().fillna(0.0)
     executed_position = position.shift(1).fillna(0).astype(float).clip(lower=0.0, upper=1.0)
     is_contribution_day = _first_trading_day_of_month_mask(df.index)
+    cost_rate = (fee_bps + slippage_bps) / 10000.0
 
     invested = 0.0
     cash = initial_value
     total_contributed = initial_value
+    prev_weight = 0.0
     equity_vals = []
     contributed_vals = []
 
@@ -145,8 +197,11 @@ def simulate_contribution_equity(
                 total_contributed += monthly_contribution
 
         total = invested + cash
+        if cost_rate > 0:
+            total -= abs(weight - prev_weight) * total * cost_rate
         target_invested = weight * total
         invested, cash = target_invested, total - target_invested
+        prev_weight = weight
 
         equity_vals.append(total)
         contributed_vals.append(total_contributed)
@@ -196,11 +251,12 @@ def calculate_contribution_metrics(
 
     일반 calculate_metrics의 누적수익률/CAGR은 "처음에 목돈을 한 번 넣고 끝까지 둔다"는
     전제라 중간에 계속 돈을 넣는 적립식에는 그대로 쓸 수 없다(같은 이름이라도 의미가 달라짐).
-    그래서 이 함수는 두 지표만 다시 정의하고, MDD/샤프/승률/매매횟수는 원래 계산을 그대로
-    재사용한다:
+    그래서 이 함수는 두 지표만 다시 정의하고, MDD/샤프/승률/매매횟수/손익비/평균낙폭지속기간은
+    원래 계산을 그대로 재사용한다(둘 다 자산가치 곡선/거래 기준이라 적립 여부와 무관하게 유효):
       - cumulative_return → 원금(총 납입액) 대비 손익률로 재정의
       - cagr → XIRR(자금가중 연환산수익률)로 재정의 — "언제 얼마를 넣었는지"까지 반영한
         진짜 연환산 수익률이라 정액적립식 vs 신호기반 몰빵 전략의 비교 기준으로 적합하다
+      - calmar → cagr이 XIRR로 바뀌므로, mdd는 그대로 두고 이 새 cagr 기준으로 다시 계산한다
     """
     base = calculate_metrics(equity_curve, trades, start_date, end_date)
     if equity_curve.empty or len(equity_curve) < 2:
@@ -221,6 +277,7 @@ def calculate_contribution_metrics(
         {
             "cumulative_return": round(profit_pct, 2),
             "cagr": round(xirr, 2),
+            "calmar": round(_compute_calmar(xirr, base["mdd"]), 2),
             "total_contributed": round(total_contributed, 2),
             "total_profit": round(total_profit, 2),
         }
@@ -228,8 +285,49 @@ def calculate_contribution_metrics(
     return base
 
 
+# 분모가 0이 되는 경우(진 거래가 하나도 없거나 낙폭이 전혀 없는 경우)에 수학적으로는 +무한대가
+# 맞지만, DB(Float 컬럼)/JSON 직렬화/Streamlit 데이터프레임 전 구간에서 inf를 안전하게 다루기
+# 번거로워 대신 "사실상 무한대"를 뜻하는 유한한 상한값으로 캡을 씌운다.
+_RATIO_METRIC_CAP = 999.0
+
+
+def _compute_calmar(cagr: float, mdd: float) -> float:
+    """칼마지수 = CAGR / |MDD|. 낙폭이 아예 없으면(mdd=0) 나눗셈이 정의되지 않으므로,
+    CAGR이 양수면 상한값(_RATIO_METRIC_CAP, 낙폭 없이 계속 오른 극단적으로 좋은 경우),
+    0 이하면 0.0으로 처리한다."""
+    if mdd != 0:
+        return cagr / abs(mdd)
+    return _RATIO_METRIC_CAP if cagr > 0 else 0.0
+
+
+def _compute_avg_drawdown_duration_days(equity_curve: pd.Series) -> float:
+    """평균 낙폭 지속기간(일) — 신고점을 갱신하지 못한 채(running_max 미만) 있다가 다시 신고점을
+    회복하기까지 걸린 일수들의 평균이다. MDD는 "얼마나 깊게 빠졌는지"만 알려주지만, 이 지표는
+    "그 낙폭 속에서 며칠을 버텨야 했는지"를 알려준다 — 회복까지 평균 60일 걸리는 전략을 30일
+    인내심으로 포기하면 항상 최악의 타이밍에 손절하게 된다.
+
+    아직 회복하지 못한(현재진행형) 마지막 낙폭은 끝나는 시점을 알 수 없어 평균 계산에서 제외한다
+    (완결된 낙폭 구간이 하나도 없으면 0.0).
+    """
+    if equity_curve.empty or len(equity_curve) < 2:
+        return 0.0
+    running_max = equity_curve.cummax()
+    in_drawdown = equity_curve < running_max
+
+    durations: list[int] = []
+    start = None
+    for dt, flag in in_drawdown.items():
+        if flag and start is None:
+            start = dt
+        elif not flag and start is not None:
+            durations.append((dt - start).days)
+            start = None
+    return float(np.mean(durations)) if durations else 0.0
+
+
 def calculate_metrics(equity_curve: pd.Series, trades: list[Trade], start_date, end_date) -> dict:
-    """누적수익률/CAGR/MDD/샤프지수/승률/매매횟수를 계산한다."""
+    """누적수익률/CAGR/MDD/샤프지수/승률/매매횟수/손익비(Profit Factor)/칼마지수/평균낙폭지속기간을
+    계산한다."""
     if equity_curve.empty or len(equity_curve) < 2:
         return {
             "cumulative_return": 0.0,
@@ -239,6 +337,9 @@ def calculate_metrics(equity_curve: pd.Series, trades: list[Trade], start_date, 
             "win_rate": 0.0,
             "trade_count": 0,
             "avg_holding_days": 0.0,
+            "profit_factor": 0.0,
+            "calmar": 0.0,
+            "avg_drawdown_days": 0.0,
         }
 
     start_value = float(equity_curve.iloc[0])
@@ -275,6 +376,16 @@ def calculate_metrics(equity_curve: pd.Series, trades: list[Trade], start_date, 
     ]
     avg_holding_days = sum(holding_days) / len(holding_days) if holding_days else 0.0
 
+    # 손익비(Profit Factor) = 이긴 거래 수익률 합 / 진 거래 손실률 합(절대값). 이 엔진은 매매마다
+    # 항상 그 시점 자산 전액을 싣는 모델(포지션 사이징 없음)이라, 거래별 수익률(%) 합으로 계산해도
+    # 달러 손익 기준과 동일한 비율이 나온다. 진 거래가 하나도 없으면(분모 0) _RATIO_METRIC_CAP으로 캡핑한다.
+    gross_profit = sum(t.return_pct for t in completed if t.return_pct > 0)
+    gross_loss = abs(sum(t.return_pct for t in completed if t.return_pct < 0))
+    if gross_loss > 0:
+        profit_factor = gross_profit / gross_loss
+    else:
+        profit_factor = _RATIO_METRIC_CAP if gross_profit > 0 else 0.0
+
     return {
         "cumulative_return": round(cumulative_return, 2),
         "cagr": round(cagr, 2),
@@ -283,6 +394,9 @@ def calculate_metrics(equity_curve: pd.Series, trades: list[Trade], start_date, 
         "win_rate": round(win_rate, 2),
         "avg_holding_days": round(avg_holding_days, 1),
         "trade_count": trade_count,
+        "profit_factor": round(profit_factor, 2),
+        "calmar": round(_compute_calmar(cagr, mdd), 2),
+        "avg_drawdown_days": round(_compute_avg_drawdown_duration_days(equity_curve), 1),
     }
 
 
@@ -321,6 +435,7 @@ def _simulate_on_raw(
     분리했다 — 순열검정은 raw 자체를 가짜 데이터로 바꿔치기만 하면 이 함수는 그대로 재사용된다.
     """
     staged = is_staged_config(indicator_config)
+    ensemble = is_ensemble_config(indicator_config)
     if staged:
         position_full, events_full = simulate_staged_positions(raw, indicator_config)
         position = position_full.loc[df.index]
@@ -329,6 +444,13 @@ def _simulate_on_raw(
         df_index_set = set(df.index)
         stage_events = [e for e in events_full if e.date in df_index_set]
         trades = extract_staged_trades(df, stage_events)
+    elif ensemble:
+        position_full = generate_ensemble_position(raw, indicator_config)
+        position = position_full.loc[df.index]
+        if max_holding_days is not None:
+            position = _cap_holding_period(position, max_holding_days)
+        stage_events = []
+        trades = extract_weighted_trades(df, position)
     else:
         position_full = generate_positions(raw, indicator_config)
         position = position_full.loc[df.index]
@@ -347,6 +469,8 @@ def run_backtest(
     label: str = "전략",
     max_holding_days: Optional[int] = None,
     monthly_contribution: float = 0.0,
+    fee_bps: float = 0.0,
+    slippage_bps: float = 0.0,
 ) -> BacktestRun:
     """지표 조합 전략을 특정 종목/기간에 대해 백테스팅한다.
 
@@ -362,6 +486,9 @@ def run_backtest(
     시그널이 뜨는 순간 그동안 쌓인 현금이 한꺼번에 투입된다(코스톨로니 법칙: 현금 누적 후 몰빵).
     이 경우 metrics의 cumulative_return/cagr은 원금대비 손익률/XIRR로 재정의된다
     (calculate_contribution_metrics 참고).
+
+    fee_bps/slippage_bps(선택, 기본 0=비용 없음)는 compute_equity_curve/simulate_contribution_equity에
+    그대로 전달되어 매매 회전율만큼 비용을 차감한다.
     """
     # 지표 warmup 기간(이동평균/일목균형표 등)을 위해 실제 조회는 시작일보다 앞서서 가져온 뒤 잘라낸다.
     fetch_start = (pd.Timestamp(start) - pd.DateOffset(days=400)).date().isoformat()
@@ -385,11 +512,11 @@ def run_backtest(
     contributed_capital = None
     if monthly_contribution > 0:
         equity_curve, contributed_capital = simulate_contribution_equity(
-            df, position, monthly_contribution=monthly_contribution
+            df, position, monthly_contribution=monthly_contribution, fee_bps=fee_bps, slippage_bps=slippage_bps
         )
         metrics = calculate_contribution_metrics(equity_curve, contributed_capital, trades, df.index[0], df.index[-1])
     else:
-        equity_curve = compute_equity_curve(df, position)
+        equity_curve = compute_equity_curve(df, position, fee_bps=fee_bps, slippage_bps=slippage_bps)
         metrics = calculate_metrics(equity_curve, trades, df.index[0], df.index[-1])
 
     return BacktestRun(
@@ -501,17 +628,44 @@ def diagnose_strategy_health(indicator_config: str | dict) -> list[str]:
     return []
 
 
+def trade_count_reliability_warning(trade_count: int) -> Optional[str]:
+    """매매 횟수가 성과 지표(승률/샤프 등)를 신뢰하기에 통계적으로 충분한지 간단히 판정한다.
+
+    대수의 법칙 — 표본이 적을수록 그 결과가 진짜 엣지인지 우연인지 구분하기 어렵다.
+    MIN_TRADE_COUNT_CAUTION(30) 미만이면 강한 경고, MIN_TRADE_COUNT_RELIABLE(300) 미만이면
+    약한 안내, 그 이상이면 None(경고 없음). run_permutation_test의 p-value처럼 정밀한 통계
+    검증을 대체하지 않는, 화면에 바로 띄우기 위한 저비용 휴리스틱이다.
+    """
+    if trade_count < MIN_TRADE_COUNT_CAUTION:
+        return (
+            f"⚠️ 매매 횟수가 {trade_count}건으로 너무 적어 위 지표들(승률/샤프 등)을 신뢰하기 어렵습니다 "
+            f"(최소 {MIN_TRADE_COUNT_CAUTION}건, 이상적으로는 {MIN_TRADE_COUNT_RELIABLE}건 이상 권장). "
+            "표본이 적을수록 우연히 잘 나온 결과일 가능성이 큽니다 — 순열검정(p-value)으로 추가 검증을 권장합니다."
+        )
+    if trade_count < MIN_TRADE_COUNT_RELIABLE:
+        return (
+            f"ℹ️ 매매 횟수 {trade_count}건 — 통계적 신뢰도를 더 높이려면 {MIN_TRADE_COUNT_RELIABLE}건 "
+            "이상을 권장합니다. 지금도 참고할 순 있지만 순열검정으로 함께 확인하는 걸 권장합니다."
+        )
+    return None
+
+
 def run_buy_and_hold(
     ticker: str,
     start: str,
     end: str,
     label: Optional[str] = None,
     monthly_contribution: float = 0.0,
+    fee_bps: float = 0.0,
+    slippage_bps: float = 0.0,
 ) -> BacktestRun:
     """매수 후 보유(첫날 매수, 끝까지 보유) 벤치마크를 계산한다.
 
     monthly_contribution > 0이면 매달 첫 거래일마다 그 금액을 추가로 시장가 매수하는
     정액적립식(DCA)으로 시뮬레이션한다 — 포지션이 항상 1이라 들어온 돈이 즉시 전부 투입된다.
+
+    fee_bps/slippage_bps는 run_backtest와 동일한 의미 — 매수보유는 최초 진입 1회만 회전율이
+    발생하므로(월 적립 시에는 매달 추가 매수마다) 그 시점에만 비용이 반영된다.
     """
     df = get_price_history(ticker, start=start, end=end, use_cache=True)
     label = label or f"{ticker} 매수 후 보유"
@@ -542,11 +696,11 @@ def run_buy_and_hold(
     contributed_capital = None
     if monthly_contribution > 0:
         equity_curve, contributed_capital = simulate_contribution_equity(
-            df, position, monthly_contribution=monthly_contribution
+            df, position, monthly_contribution=monthly_contribution, fee_bps=fee_bps, slippage_bps=slippage_bps
         )
         metrics = calculate_contribution_metrics(equity_curve, contributed_capital, trades, df.index[0], df.index[-1])
     else:
-        equity_curve = compute_equity_curve(df, position)
+        equity_curve = compute_equity_curve(df, position, fee_bps=fee_bps, slippage_bps=slippage_bps)
         # 매수 후 보유는 첫날부터 보유하는 것이므로 shift로 인해 비는 첫날 수익을 보정한다.
         equity_curve.iloc[0] = 100.0
         metrics = calculate_metrics(equity_curve, trades, df.index[0], df.index[-1])
@@ -571,6 +725,8 @@ def compare_with_benchmarks(
     benchmark_ticker: str = DEFAULT_BENCHMARK_TICKER,
     max_holding_days: Optional[int] = None,
     monthly_contribution: float = 0.0,
+    fee_bps: float = 0.0,
+    slippage_bps: float = 0.0,
 ) -> dict[str, BacktestRun]:
     """SPEC 모듈 A의 3-way 비교: 전략 적용 vs S&P500 매수보유 vs 개별종목 매수보유.
 
@@ -582,6 +738,10 @@ def compare_with_benchmarks(
     전략 적용 쪽은 관망 중 현금을 모았다가 매수 시그널이 뜰 때 몰빵하는 방식(코스톨로니 법칙)이
     된다 — run_backtest/run_buy_and_hold가 각자 이 차이를 알아서 반영하므로 여기서는 같은
     monthly_contribution 값만 그대로 넘기면 된다.
+
+    fee_bps/slippage_bps(선택, 기본 0)도 세 곡선 모두에 동일하게 적용된다 — 전략 적용 쪽이
+    매수보유보다 매매 회전율이 높은 게 보통이라, 비용을 반영하면 세 곡선의 격차가 실제보다
+    부풀려져 있었는지(비용을 무시한 단순 비교의 함정) 확인할 수 있다.
 
     Returns:
         {"strategy": BacktestRun, "buy_and_hold_ticker": BacktestRun, "buy_and_hold_benchmark": BacktestRun}
@@ -595,12 +755,16 @@ def compare_with_benchmarks(
             label=f"{ticker} 전략 적용",
             max_holding_days=max_holding_days,
             monthly_contribution=monthly_contribution,
+            fee_bps=fee_bps,
+            slippage_bps=slippage_bps,
         ),
         "buy_and_hold_ticker": run_buy_and_hold(
-            ticker, start, end, label=f"{ticker} 매수 후 보유", monthly_contribution=monthly_contribution
+            ticker, start, end, label=f"{ticker} 매수 후 보유", monthly_contribution=monthly_contribution,
+            fee_bps=fee_bps, slippage_bps=slippage_bps,
         ),
         "buy_and_hold_benchmark": run_buy_and_hold(
-            benchmark_ticker, start, end, label="S&P500 매수 후 보유", monthly_contribution=monthly_contribution
+            benchmark_ticker, start, end, label="S&P500 매수 후 보유", monthly_contribution=monthly_contribution,
+            fee_bps=fee_bps, slippage_bps=slippage_bps,
         ),
     }
 
@@ -633,6 +797,9 @@ def save_backtest_result(
             sharpe=metrics.get("sharpe"),
             win_rate=metrics.get("win_rate"),
             trade_count=metrics.get("trade_count"),
+            profit_factor=metrics.get("profit_factor"),
+            calmar=metrics.get("calmar"),
+            avg_drawdown_days=metrics.get("avg_drawdown_days"),
             extra_metrics=json.dumps(extra_metrics) if extra_metrics else None,
         )
         session.add(row)
@@ -898,3 +1065,253 @@ def summarize_strategy_vs_benchmarks(comparison: dict[str, BacktestRun], regime_
         "benchmark_metrics": benchmark,
         "regime_breakdown": regime_breakdown,
     }
+
+
+# =============================================================================
+# 전략 포트폴리오 상관관계 ("홀리그레일": 비상관 전략의 조합이 단일 전략보다 위험조정수익률이
+# 낫다는 개념을 실제로 확인하는 도구). core.portfolio가 "종목" 간 상관관계를 다루는 것과 대칭으로,
+# 여기서는 "전략" 간 상관관계를 다룬다 — 서로 다른 전략의 자산가치 곡선(equity curve)에서 일간
+# 수익률을 뽑아 상관계수 행렬을 만든다.
+# =============================================================================
+
+
+def run_strategy_portfolio(
+    strategies: list[tuple[str, str, str | dict]], start: str, end: str
+) -> dict[str, BacktestRun]:
+    """여러 (라벨, 종목, indicator_config) 조합을 각각 백테스트해 {라벨: BacktestRun}으로 반환한다.
+
+    compute_strategy_correlation/compute_strategy_regime_correlation의 입력을 만드는 편의 함수 —
+    호출부(UI)가 전략 라이브러리에서 여러 전략을 골라 이 형태로 넘기면 된다.
+    """
+    return {label: run_backtest(ticker, config, start, end, label=label) for label, ticker, config in strategies}
+
+
+def _strategy_daily_returns(runs: dict[str, BacktestRun]) -> pd.DataFrame:
+    """{라벨: BacktestRun}에서 자산가치 곡선의 일간수익률만 뽑아 하나의 DataFrame으로 정렬한다
+    (컬럼=전략 라벨). equity_curve가 비어있는 항목은 건너뛴다."""
+    returns = {}
+    for label, run in runs.items():
+        if run.equity_curve is not None and not run.equity_curve.empty:
+            returns[label] = run.equity_curve.pct_change().dropna()
+    if len(returns) < 2:
+        return pd.DataFrame()
+    return pd.DataFrame(returns).dropna(how="any")
+
+
+def compute_strategy_correlation(runs: dict[str, BacktestRun]) -> pd.DataFrame:
+    """여러 BacktestRun(전략별 실행 결과)의 일간수익률로 상관계수 행렬을 만든다.
+
+    core.portfolio.compute_correlation_matrix와 동일한 계산이지만 대상이 종목이 아니라 전략이다 —
+    "비상관 전략을 몇 개나 더할 수 있는가"라는 홀리그레일 개념을 실제 수치로 확인하기 위함.
+    유효한 전략이 2개 미만이면 빈 DataFrame.
+    """
+    combined = _strategy_daily_returns(runs)
+    if combined.empty:
+        return pd.DataFrame()
+    return combined.corr()
+
+
+def compute_strategy_regime_correlation(
+    runs: dict[str, BacktestRun], benchmark_ticker: str = DEFAULT_BENCHMARK_TICKER
+) -> dict[str, pd.DataFrame]:
+    """compute_strategy_correlation을 국면별(강세장/약세장/횡보장)로 나눠 계산한다.
+
+    평상시엔 낮아 보이는 전략 간 상관관계도 약세장(스트레스 이벤트)에는 다 같이 무너지며 급등할 수
+    있다 — core.market_regime.compute_regime_conditional_correlation을 재사용한다. market_regime이
+    이미 core.backtest_engine을 모듈 최상단에서 import하고 있어(순환참조 방지) 여기서는 지연 import한다.
+    """
+    from core import market_regime
+
+    combined = _strategy_daily_returns(runs)
+    if combined.empty:
+        return {}
+    return market_regime.compute_regime_conditional_correlation(combined, benchmark_ticker=benchmark_ticker)
+
+
+def save_strategy_correlation_snapshot(corr_matrix: pd.DataFrame) -> int:
+    """compute_strategy_correlation() 결과를 strategy_decay_checks와 같은 원칙(덮어쓰지 않고 계속
+    쌓는 이력)으로 correlation_snapshots 테이블에 저장한다.
+
+    "이번 달 상관관계가 높다고 바로 전략을 빼지 말고, 2~3개월치 이력을 보고 판단하라"는 원칙
+    (2026-07-27 인사이트)을 UI가 실제로 실천할 수 있게 하는 저장소 — 대각선(자기 자신과의
+    상관계수=1)을 제외한 비대각 원소의 평균/최댓값을 요약치로 함께 저장한다.
+    """
+    from core.db import get_session
+    from core.models import CorrelationSnapshot
+
+    labels = list(corr_matrix.columns)
+    n = len(labels)
+    if n < 2:
+        raise ValueError("상관관계 스냅샷을 저장하려면 2개 이상의 전략이 필요합니다.")
+    off_diag_mask = ~np.eye(n, dtype=bool)
+    off_diag = corr_matrix.to_numpy()[off_diag_mask]
+
+    with get_session() as session:
+        row = CorrelationSnapshot(
+            kind="strategy",
+            labels=json.dumps(labels, ensure_ascii=False),
+            avg_correlation=float(off_diag.mean()),
+            max_correlation=float(off_diag.max()),
+            matrix=corr_matrix.to_json(),
+        )
+        session.add(row)
+        session.flush()
+        return row.id
+
+
+def list_strategy_correlation_snapshots(limit: int = 12) -> list[dict]:
+    """전략 간 상관관계 체크 이력을 최신순으로 반환한다."""
+    from core.db import get_session
+    from core.models import CorrelationSnapshot
+
+    with get_session() as session:
+        rows = (
+            session.query(CorrelationSnapshot)
+            .filter(CorrelationSnapshot.kind == "strategy")
+            .order_by(CorrelationSnapshot.computed_at.desc())
+            .limit(limit)
+            .all()
+        )
+        return [
+            {
+                "id": r.id,
+                "labels": json.loads(r.labels),
+                "avg_correlation": r.avg_correlation,
+                "max_correlation": r.max_correlation,
+                "computed_at": r.computed_at,
+            }
+            for r in rows
+        ]
+
+
+# =============================================================================
+# 전략 수명 / 알파 감쇠 모니터링
+#
+# 백테스트로 검증된 전략도 시간이 지나며 엣지가 사라질 수 있다("알파 감쇠"). 여기서는 같은
+# indicator_config를 재튜닝(파라미터 재조정) 없이 최근 구간에 그대로 재적용해, "예전에 검증된
+# 조건이 최근에도 여전히 통하는지"를 전체 기간 성과와 비교한다. 일부러 재튜닝을 하지 않는 이유는,
+# 재튜닝을 섞으면 최근 성과가 좋아 보이는 게 원래 전략의 지속성 때문인지 파라미터를 최근 데이터에
+# 새로 맞춰서(과최적화)인지 구분할 수 없기 때문이다.
+# =============================================================================
+
+DEFAULT_DECAY_RECENT_MONTHS = 6
+DEFAULT_DECAY_METRIC = "sharpe"
+_DECAY_RATIO_THRESHOLD = 0.3  # 최근/전체 비율이 이 아래로 떨어지면 감쇠 의심
+
+
+def compute_alpha_decay(
+    ticker: str,
+    indicator_config: str | dict,
+    full_start: str,
+    full_end: str,
+    recent_months: int = DEFAULT_DECAY_RECENT_MONTHS,
+    metric: str = DEFAULT_DECAY_METRIC,
+) -> dict:
+    """전체 기간 백테스트 대비 최근 recent_months개월 성과가 얼마나 이탈했는지 비교한다.
+
+    Returns:
+        {
+            "full_metrics": dict, "recent_metrics": dict, "metric": str,
+            "decay_ratio": float|None,   # recent_metric / full_metric (full_metric<=0이면 비율 자체가
+                무의미해 None) — 1.0에 가까울수록 성과가 그대로 유지, 0에 가까울거나 음수면 감쇠.
+            "is_decayed": bool,          # decay_ratio < _DECAY_RATIO_THRESHOLD 이거나 최근 metric이
+                음수로 돌아섰으면 True. full_metric<=0(원래도 엣지가 약했던 전략)이면 최근이 더
+                나빠졌는지만 절대값으로 비교해 판정한다.
+            "recent_start": str, "recent_end": str,
+        }
+        ticker 데이터를 가져오지 못하면 모든 metrics가 빈 값인 상태로 반환한다.
+    """
+    full_run = run_backtest(ticker, indicator_config, full_start, full_end, label="전체기간")
+    empty_metrics = calculate_metrics(pd.Series(dtype=float), [], full_start, full_end)
+    if full_run.df.empty:
+        return {
+            "full_metrics": empty_metrics,
+            "recent_metrics": empty_metrics,
+            "metric": metric,
+            "decay_ratio": None,
+            "is_decayed": False,
+            "recent_start": full_end,
+            "recent_end": full_end,
+        }
+
+    recent_start = (pd.Timestamp(full_end) - pd.DateOffset(months=recent_months)).date().isoformat()
+    recent_run = run_backtest(ticker, indicator_config, recent_start, full_end, label="최근기간")
+
+    full_metric = full_run.metrics.get(metric)
+    recent_metric = recent_run.metrics.get(metric)
+
+    decay_ratio: Optional[float] = None
+    is_decayed = False
+    if full_metric is not None and recent_metric is not None:
+        if full_metric > 0:
+            decay_ratio = recent_metric / full_metric
+            is_decayed = decay_ratio < _DECAY_RATIO_THRESHOLD or recent_metric < 0
+        else:
+            # 전체 기간부터 이미 엣지가 약했던(0 이하) 전략 — 비율은 무의미하므로 절대값 악화 여부만 본다.
+            is_decayed = recent_metric < full_metric
+
+    return {
+        "full_metrics": full_run.metrics,
+        "recent_metrics": recent_run.metrics,
+        "metric": metric,
+        "decay_ratio": round(decay_ratio, 3) if decay_ratio is not None else None,
+        "is_decayed": is_decayed,
+        "recent_start": recent_start,
+        "recent_end": full_end,
+    }
+
+
+def save_decay_check(ticker: str, result: dict, strategy_id: Optional[int] = None) -> int:
+    """compute_alpha_decay() 결과를 strategy_decay_checks 테이블에 이력으로 저장한다 (덮어쓰지 않고
+    계속 쌓음 — market_regime.save_market_regime_snapshot 등과 동일한 스냅샷 누적 원칙).
+
+    strategy_id는 전략 라이브러리에 저장된 전략일 때만 채운다("직접 설정" 임시 백테스트는 None).
+    """
+    from core.db import get_session
+    from core.models import StrategyDecayCheck
+
+    with get_session() as session:
+        row = StrategyDecayCheck(
+            strategy_id=strategy_id,
+            ticker=ticker,
+            metric=result["metric"],
+            full_metrics=json.dumps(result["full_metrics"], ensure_ascii=False),
+            recent_metrics=json.dumps(result["recent_metrics"], ensure_ascii=False),
+            decay_ratio=result["decay_ratio"],
+            is_decayed=result["is_decayed"],
+            recent_start=pd.Timestamp(result["recent_start"]).date(),
+            recent_end=pd.Timestamp(result["recent_end"]).date(),
+        )
+        session.add(row)
+        session.flush()
+        return row.id
+
+
+def list_decay_checks(strategy_id: int, limit: int = 20) -> list[dict]:
+    """특정 전략의 알파 감쇠 체크 이력을 최신순으로 반환한다."""
+    from core.db import get_session
+    from core.models import StrategyDecayCheck
+
+    with get_session() as session:
+        rows = (
+            session.query(StrategyDecayCheck)
+            .filter(StrategyDecayCheck.strategy_id == strategy_id)
+            .order_by(StrategyDecayCheck.computed_at.desc())
+            .limit(limit)
+            .all()
+        )
+        return [
+            {
+                "id": r.id,
+                "ticker": r.ticker,
+                "metric": r.metric,
+                "full_metrics": json.loads(r.full_metrics),
+                "recent_metrics": json.loads(r.recent_metrics),
+                "decay_ratio": r.decay_ratio,
+                "is_decayed": r.is_decayed,
+                "recent_start": r.recent_start,
+                "recent_end": r.recent_end,
+                "computed_at": r.computed_at,
+            }
+            for r in rows
+        ]

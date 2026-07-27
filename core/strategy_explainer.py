@@ -27,6 +27,7 @@ from core.strategy_engine import (
     IndicatorConfig,
     describe_condition,
     is_combined_config,
+    is_ensemble_config,
     is_expression_config,
     is_kostolany_config,
     is_staged_config,
@@ -173,6 +174,29 @@ def describe_kostolany_config(config: IndicatorConfig) -> str:
     )
 
 
+def describe_ensemble_config(config: IndicatorConfig) -> str:
+    """앙상블 스코어링 전략(schema="ensemble")을 결정론적인 한국어 요약으로 만든다."""
+    indicators = config.get("indicators", [])
+    entry = float(config.get("entry_threshold", 0.5))
+    exit_ = float(config.get("exit_threshold", entry * 0.5))
+    size_by_score = config.get("size_by_score", True)
+
+    parts = []
+    for ind in indicators:
+        name = ind.get("indicator", "?")
+        weight = float(ind.get("weight", 1.0))
+        mode = "역추세(과매도를 호재로 해석)" if ind.get("mode") == "mean_revert" else "추세추종"
+        parts.append(f"{name}(가중치 {weight:g}, {mode})")
+    indicators_text = ", ".join(parts) if parts else "지표 없음"
+    sizing_text = "점수 크기만큼 비중을 조절하는 연속 사이징" if size_by_score else "임계값 돌파 여부만 보는 이진 진입"
+
+    return (
+        f"{len(indicators)}개 지표({indicators_text})를 각각 -1~1 점수로 표준화해 가중평균합니다. "
+        f"이 앙상블 점수가 {entry:g} 이상이면 진입하고 {exit_:g} 밑으로 떨어지면 청산하며, {sizing_text}을 "
+        "사용합니다."
+    )
+
+
 def explain_strategy(indicator_config: str | IndicatorConfig) -> str:
     """indicator_config를 보고 상세한 한국어 설명을 생성한다.
 
@@ -195,6 +219,11 @@ def explain_strategy(indicator_config: str | IndicatorConfig) -> str:
         fallback = _fallback_expression_description(expression)
     elif is_kostolany_config(config):
         base_summary = describe_kostolany_config(config)
+        gemini_prompt = f"[조건 요약]\n{base_summary}\n\n[원본 조건 JSON]\n{json.dumps(config, ensure_ascii=False)}"
+        system_prompt = _POLISH_SYSTEM_PROMPT
+        fallback = base_summary
+    elif is_ensemble_config(config):
+        base_summary = describe_ensemble_config(config)
         gemini_prompt = f"[조건 요약]\n{base_summary}\n\n[원본 조건 JSON]\n{json.dumps(config, ensure_ascii=False)}"
         system_prompt = _POLISH_SYSTEM_PROMPT
         fallback = base_summary

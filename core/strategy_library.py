@@ -13,7 +13,13 @@ from typing import Any, Optional
 
 from core.db import get_session
 from core.models import AlertLog, BacktestResult, Strategy, WatchlistItem
-from core.strategy_engine import is_combined_config, is_expression_config, is_kostolany_config, is_staged_config
+from core.strategy_engine import (
+    is_combined_config,
+    is_ensemble_config,
+    is_expression_config,
+    is_kostolany_config,
+    is_staged_config,
+)
 
 
 def detect_strategy_type(indicator_config: str | dict) -> str:
@@ -22,8 +28,8 @@ def detect_strategy_type(indicator_config: str | dict) -> str:
     Returns:
         "combined" (두 개 이상의 전략을 합성한 전략, combine+strategies 키 존재),
         "staged" (1:2:6 단계별 전략, entry_stages 키 존재), "kostolany" (코스톨라니 국면 매매,
-        schema="kostolany"), "expression" (직접 수식 전략, expression 키 존재) 또는 "regime"
-        (일반 AND/OR 레짐 전략)
+        schema="kostolany"), "ensemble" (앙상블 스코어링, schema="ensemble"), "expression"
+        (직접 수식 전략, expression 키 존재) 또는 "regime" (일반 AND/OR 레짐 전략)
     """
     try:
         if is_combined_config(indicator_config):
@@ -32,6 +38,8 @@ def detect_strategy_type(indicator_config: str | dict) -> str:
             return "staged"
         if is_kostolany_config(indicator_config):
             return "kostolany"
+        if is_ensemble_config(indicator_config):
+            return "ensemble"
         return "expression" if is_expression_config(indicator_config) else "regime"
     except (TypeError, ValueError, json.JSONDecodeError):
         return "regime"

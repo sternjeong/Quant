@@ -35,14 +35,23 @@ from core.backtest_engine import (
     DEFAULT_BENCHMARK_TICKER,
     BacktestRun,
     compare_with_benchmarks,
+    compute_alpha_decay,
     compute_regime_breakdown,
+    compute_strategy_correlation,
+    compute_strategy_regime_correlation,
+    list_decay_checks,
+    list_strategy_correlation_snapshots,
     run_backtest,
     run_buy_and_hold,
     run_partition_test,
     run_permutation_test,
     run_sensitivity_sweep,
+    run_strategy_portfolio,
     save_backtest_result,
+    save_decay_check,
+    save_strategy_correlation_snapshot,
     summarize_strategy_vs_benchmarks,
+    trade_count_reliability_warning,
 )
 from core.chart_rendering import render_price_chart, render_staged_price_chart
 from core.db import get_session, init_db
@@ -50,8 +59,15 @@ from core.expression_engine import ExpressionError, validate_syntax
 from core import job_manager
 from core.models import Strategy
 from core.nl_strategy import generate_strategies_from_scripts, interpret_strategy_text, split_batch_scripts
-from core import era_validation, screener, strategy_tuning
-from core.strategy_engine import is_expression_config, is_kostolany_config, is_staged_config
+from core import era_validation, position_sizing, screener, strategy_tuning
+from core.strategy_engine import (
+    SCORE_INDICATOR_CATEGORIES,
+    categorize_indicators,
+    is_ensemble_config,
+    is_expression_config,
+    is_kostolany_config,
+    is_staged_config,
+)
 from core.strategy_explainer import describe_regime_config, describe_staged_config, explain_strategy
 from core.strategy_library import (
     archive_strategy,
@@ -80,6 +96,9 @@ METRIC_LABELS = {
     "sharpe": "샤프지수",
     "win_rate": "승률(%)",
     "trade_count": "매매횟수",
+    "profit_factor": "손익비(Profit Factor)",
+    "calmar": "칼마지수(Calmar)",
+    "avg_drawdown_days": "평균 낙폭 지속기간(일)",
 }
 
 STRATEGY_TYPE_LABELS = {
@@ -88,10 +107,25 @@ STRATEGY_TYPE_LABELS = {
     "regime": "레짐(AND/OR)",
     "combined": "전략 합성",
     "kostolany": "🥚 코스톨라니 국면",
+    "ensemble": "🧬 앙상블 스코어링",
 }
 
 MODE_TOGGLE = "🎛️ 지표 토글"
 MODE_EXPRESSION = "✍️ 직접 수식 입력"
+MODE_ENSEMBLE = "🧬 앙상블 스코어링"
+
+# 앙상블 지표 선택기 옵션 — core.strategy_engine.SCORE_EVALUATORS/SCORE_INDICATOR_CATEGORIES와
+# 반드시 이름을 맞춘다. 카테고리별로 그룹핑해 보여줘서 "전략 유형에 맞는 지표를 섞어 쓰라"는
+# 원칙(2026-07-27 인사이트)을 선택 단계에서부터 자연스럽게 안내한다.
+ENSEMBLE_INDICATOR_LABELS = {
+    "rsi": "RSI (모멘텀)",
+    "macd_hist": "MACD 히스토그램 (모멘텀)",
+    "roc": "ROC 변화율 (모멘텀)",
+    "mfi": "MFI 자금흐름 (모멘텀)",
+    "percent_b": "볼린저 %B (변동성)",
+    "ma_spread": "이동평균 스프레드 (추세)",
+}
+DEFAULT_ENSEMBLE_ROW = {"indicator": "rsi", "weight": 1.0, "mode": "momentum"}
 
 EXPRESSION_CHEAT_SHEET = """\
 **사용 가능한 변수**: `open`, `high`, `low`, `close`, `volume`
@@ -133,6 +167,7 @@ DEFAULT_UI_STATE = {
     "logic": "AND",
     "loaded_staged_config": None,
     "loaded_kostolany_config": None,
+    "loaded_ensemble_config": None,
     "strategy_input_mode": MODE_TOGGLE,
     "expression_text": "",
 }
@@ -151,15 +186,16 @@ def _load_config_into_state(indicator_config: dict) -> None:
     (백테스트 실행 시 이 값이 있으면 토글 UI 대신 그대로 사용한다). 직접 수식 전략도 마찬가지로
     토글 UI 대신 "expression_text" 로 복원하고 입력 방식을 자동으로 "직접 수식 입력"으로 전환한다.
     """
+    st.session_state["loaded_staged_config"] = None
+    st.session_state["loaded_kostolany_config"] = None
+    st.session_state["loaded_ensemble_config"] = None
+
     if is_staged_config(indicator_config):
         st.session_state["loaded_staged_config"] = indicator_config
-        st.session_state["loaded_kostolany_config"] = None
         st.session_state["ma_enabled"] = False
         st.session_state["rsi_enabled"] = False
         st.session_state["bb_enabled"] = False
         return
-
-    st.session_state["loaded_staged_config"] = None
 
     if is_kostolany_config(indicator_config):
         st.session_state["loaded_kostolany_config"] = indicator_config
@@ -168,7 +204,15 @@ def _load_config_into_state(indicator_config: dict) -> None:
         st.session_state["bb_enabled"] = False
         return
 
-    st.session_state["loaded_kostolany_config"] = None
+    if is_ensemble_config(indicator_config):
+        st.session_state["loaded_ensemble_config"] = indicator_config
+        st.session_state["ensemble_rows"] = [dict(row) for row in indicator_config.get("indicators", [])] or [
+            dict(DEFAULT_ENSEMBLE_ROW)
+        ]
+        st.session_state["ma_enabled"] = False
+        st.session_state["rsi_enabled"] = False
+        st.session_state["bb_enabled"] = False
+        return
 
     if is_expression_config(indicator_config):
         st.session_state["expression_text"] = indicator_config.get("expression", "")
@@ -236,6 +280,17 @@ def _build_indicator_config_from_ui() -> dict:
             }
         )
     return {"logic": st.session_state["logic"], "conditions": conditions}
+
+
+def _build_ensemble_config_from_ui() -> dict:
+    return {
+        "schema": "ensemble",
+        "indicators": [dict(row) for row in st.session_state.get("ensemble_rows", [])],
+        "zscore_window": int(st.session_state.get("ens_zscore_window", 60)),
+        "entry_threshold": float(st.session_state.get("ens_entry_threshold", 0.5)),
+        "exit_threshold": float(st.session_state.get("ens_exit_threshold", 0.25)),
+        "size_by_score": bool(st.session_state.get("ens_size_by_score", True)),
+    }
 
 
 def render_equity_comparison(results: dict[str, BacktestRun]) -> go.Figure:
@@ -500,10 +555,10 @@ def render_tuning_run_results(run_id: int, key_prefix: str) -> None:
             st.info(f"📖 전략 설명: {explanation}")
 
 
-tab_backtest, tab_nl, tab_tuning, tab_combine, tab_batch, tab_nightly, tab_manage = st.tabs(
+tab_backtest, tab_nl, tab_tuning, tab_combine, tab_correlation, tab_batch, tab_nightly, tab_manage = st.tabs(
     [
         "📊 지표 조합 백테스트", "🤖 자연어 전략 등록", "🧬 다종목 미세튜닝", "🧩 전략 합성",
-        "🏭 배치 생성", "🌙 야간 미세튜닝 리더보드", "🗂️ 전략 관리",
+        "🔗 전략 상관관계", "🏭 배치 생성", "🌙 야간 미세튜닝 리더보드", "🗂️ 전략 관리",
     ]
 )
 
@@ -564,8 +619,26 @@ with tab_backtest:
             min_value=0.0, value=0.0, step=10.0, key="monthly_contribution",
         )
 
+    with st.expander("💸 거래비용 (수수료+슬리피지, 기본: 비용 없음)"):
+        st.caption(
+            "기본값 0으로 두면 기존과 동일하게 비용 없는 단순 모델입니다. 매매가 바뀐 만큼(회전율)"
+            "만 비용이 차감되며, 세 곡선(전략/종목매수보유/S&P500매수보유) 모두에 동일하게 적용됩니다 — "
+            "매매가 잦은 전략일수록 비용의 영향이 커서, 비용을 켜면 매수보유 대비 우위가 얼마나 "
+            "비용에 의존하고 있었는지 확인할 수 있습니다."
+        )
+        col_fee, col_slip = st.columns(2)
+        with col_fee:
+            fee_bps = st.number_input(
+                "수수료 (bps, 1bps=0.01%)", min_value=0.0, value=0.0, step=1.0, key="fee_bps",
+            )
+        with col_slip:
+            slippage_bps = st.number_input(
+                "슬리피지 (bps)", min_value=0.0, value=0.0, step=1.0, key="slippage_bps",
+            )
+
     loaded_staged_config = st.session_state.get("loaded_staged_config")
     loaded_kostolany_config = st.session_state.get("loaded_kostolany_config")
+    loaded_ensemble_config = st.session_state.get("loaded_ensemble_config")
 
     if loaded_staged_config:
         st.info(
@@ -588,12 +661,112 @@ with tab_backtest:
         if st.button("↩️ 커스텀 지표 조합으로 전환 (코스톨라니 전략 로드 해제)"):
             st.session_state["loaded_kostolany_config"] = None
             st.rerun()
+    elif loaded_ensemble_config:
+        st.info(
+            "🧬 앙상블 스코어링 전략이 로드되어 있습니다. 아래 지표 토글 대신 이 전략 그대로 백테스트를 "
+            "실행합니다. 세부 조건 수정은 '전략 관리' 페이지에서 할 수 있습니다."
+        )
+        with st.expander("로드된 전략 JSON 보기"):
+            st.json(loaded_ensemble_config)
+        if st.button("↩️ 커스텀 지표 조합으로 전환 (앙상블 전략 로드 해제)"):
+            st.session_state["loaded_ensemble_config"] = None
+            st.rerun()
     else:
         st.radio(
-            "전략 입력 방식", [MODE_TOGGLE, MODE_EXPRESSION], key="strategy_input_mode", horizontal=True
+            "전략 입력 방식", [MODE_TOGGLE, MODE_EXPRESSION, MODE_ENSEMBLE],
+            key="strategy_input_mode", horizontal=True,
         )
 
-        if st.session_state["strategy_input_mode"] == MODE_EXPRESSION:
+        if st.session_state["strategy_input_mode"] == MODE_ENSEMBLE:
+            st.markdown("#### 🧬 앙상블 스코어링")
+            st.caption(
+                "여러 지표를 각각 -1~1 점수로 표준화해 가중평균합니다. 지표 하나가 잘못 신호를 줘도 "
+                "나머지가 상쇄해줘 더 견고하고, 점수 크기를 그대로 포지션 비중으로 쓸 수 있어(연속 "
+                "사이징) 확신이 강할 때 크게, 약할 때 작게 베팅합니다. 서로 다른 카테고리(추세/모멘텀/"
+                "변동성) 지표를 섞는 걸 권장합니다."
+            )
+            st.session_state.setdefault("ensemble_rows", [dict(DEFAULT_ENSEMBLE_ROW)])
+
+            row_to_remove: Optional[int] = None
+            for i, row in enumerate(st.session_state["ensemble_rows"]):
+                col_ind, col_w, col_mode, col_del = st.columns([3, 1.5, 2, 1])
+                indicator_options = list(ENSEMBLE_INDICATOR_LABELS.keys())
+                with col_ind:
+                    current_ind = row.get("indicator", "rsi")
+                    ind_idx = indicator_options.index(current_ind) if current_ind in indicator_options else 0
+                    row["indicator"] = st.selectbox(
+                        "지표", indicator_options, index=ind_idx, key=f"ens_ind_{i}",
+                        format_func=lambda k: f"[{SCORE_INDICATOR_CATEGORIES.get(k, '기타')}] {ENSEMBLE_INDICATOR_LABELS[k]}",
+                    )
+                with col_w:
+                    row["weight"] = st.number_input(
+                        "가중치", min_value=0.1, max_value=5.0, value=float(row.get("weight", 1.0)),
+                        step=0.1, key=f"ens_w_{i}",
+                    )
+                with col_mode:
+                    mode_options = ["momentum", "mean_revert"]
+                    current_mode = row.get("mode", "momentum")
+                    mode_idx = mode_options.index(current_mode) if current_mode in mode_options else 0
+                    row["mode"] = st.selectbox(
+                        "해석", mode_options, index=mode_idx, key=f"ens_mode_{i}",
+                        format_func=lambda m: "추세추종(값↑=호재)" if m == "momentum" else "역추세(과매도=호재)",
+                    )
+                with col_del:
+                    st.write("")
+                    st.write("")
+                    if st.button("🗑️", key=f"ens_del_{i}") and len(st.session_state["ensemble_rows"]) > 1:
+                        row_to_remove = i
+
+            if row_to_remove is not None:
+                st.session_state["ensemble_rows"].pop(row_to_remove)
+                st.rerun()
+
+            if st.button("➕ 지표 추가"):
+                st.session_state["ensemble_rows"].append(dict(DEFAULT_ENSEMBLE_ROW))
+                st.rerun()
+
+            ens_category_counts: dict[str, int] = {}
+            for row in st.session_state["ensemble_rows"]:
+                cat = SCORE_INDICATOR_CATEGORIES.get(row["indicator"], "기타")
+                ens_category_counts[cat] = ens_category_counts.get(cat, 0) + 1
+            if len(ens_category_counts) == 1:
+                st.warning(
+                    f"⚠️ 전부 {next(iter(ens_category_counts))} 카테고리 지표입니다 — 서로 다른 카테고리를 "
+                    "섞으면 지표 하나의 편향에 덜 휘둘리는 더 견고한 앙상블이 됩니다."
+                )
+            else:
+                st.caption("구성: " + ", ".join(f"{k} {v}개" for k, v in ens_category_counts.items()))
+
+            st.markdown("**진입/청산 임계값 (히스테리시스)**")
+            st.caption(
+                "청산 임계값을 진입보다 낮게 둬서, 점수가 경계값 근처에서 오르내릴 때 하루걸러 "
+                "진입/청산을 반복하는 채터링을 막습니다."
+            )
+            col_entry, col_exit, col_window = st.columns(3)
+            with col_entry:
+                st.slider(
+                    "진입 임계값", min_value=0.1, max_value=0.9, step=0.05, key="ens_entry_threshold",
+                    value=float(st.session_state.get("ens_entry_threshold", 0.5)),
+                )
+            with col_exit:
+                st.slider(
+                    "청산 임계값", min_value=0.0, max_value=float(st.session_state.get("ens_entry_threshold", 0.5)),
+                    step=0.05, key="ens_exit_threshold",
+                    value=min(
+                        float(st.session_state.get("ens_exit_threshold", 0.25)),
+                        float(st.session_state.get("ens_entry_threshold", 0.5)),
+                    ),
+                )
+            with col_window:
+                st.number_input(
+                    "표준화 윈도우(거래일)", min_value=20, max_value=250, step=10, key="ens_zscore_window",
+                    value=int(st.session_state.get("ens_zscore_window", 60)),
+                )
+            st.checkbox(
+                "점수 크기로 연속 사이징 (끄면 임계값 돌파 여부만으로 0/1 진입)",
+                value=bool(st.session_state.get("ens_size_by_score", True)), key="ens_size_by_score",
+            )
+        elif st.session_state["strategy_input_mode"] == MODE_EXPRESSION:
             st.markdown("#### 직접 수식 입력")
             st.caption("지표 토글로 표현하기 어려운 조건을 파이썬과 비슷한 문법의 수식으로 직접 입력합니다.")
             with st.expander("사용 가능한 변수/함수 보기", expanded=False):
@@ -653,13 +826,25 @@ with tab_backtest:
                         "break_below" if st.session_state["bb_band"] == "lower" else "break_above"
                     )
 
+            active_conditions = _build_indicator_config_from_ui()["conditions"]
+            if active_conditions:
+                toggle_categories = categorize_indicators(active_conditions)
+                st.caption("구성: " + ", ".join(f"{k} {v}개" for k, v in toggle_categories.items()))
+
     run_clicked = st.button("🚀 백테스트 실행", type="primary")
 
     if run_clicked:
         expression_mode = (
             not loaded_staged_config
             and not loaded_kostolany_config
+            and not loaded_ensemble_config
             and st.session_state["strategy_input_mode"] == MODE_EXPRESSION
+        )
+        ensemble_mode = (
+            not loaded_staged_config
+            and not loaded_kostolany_config
+            and not loaded_ensemble_config
+            and st.session_state["strategy_input_mode"] == MODE_ENSEMBLE
         )
         if loaded_staged_config:
             indicator_config = loaded_staged_config
@@ -667,10 +852,16 @@ with tab_backtest:
         elif loaded_kostolany_config:
             indicator_config = loaded_kostolany_config
             has_conditions = True
+        elif loaded_ensemble_config:
+            indicator_config = loaded_ensemble_config
+            has_conditions = bool(indicator_config.get("indicators"))
         elif expression_mode:
             expr = st.session_state["expression_text"].strip()
             indicator_config = {"expression": expr}
             has_conditions = bool(expr)
+        elif ensemble_mode:
+            indicator_config = _build_ensemble_config_from_ui()
+            has_conditions = bool(indicator_config["indicators"])
         else:
             indicator_config = _build_indicator_config_from_ui()
             has_conditions = bool(indicator_config["conditions"])
@@ -689,11 +880,15 @@ with tab_backtest:
             st.session_state["pending_start"] = start_date.isoformat()
             st.session_state["pending_end"] = end_date.isoformat()
             st.session_state["pending_monthly_contribution"] = monthly_contribution
+            st.session_state["pending_fee_bps"] = fee_bps
+            st.session_state["pending_slippage_bps"] = slippage_bps
             job_manager.start(
                 "backtest_run", compare_with_benchmarks,
                 ticker, indicator_config, start_date.isoformat(), end_date.isoformat(),
                 benchmark_ticker=DEFAULT_BENCHMARK_TICKER,
                 monthly_contribution=monthly_contribution,
+                fee_bps=fee_bps,
+                slippage_bps=slippage_bps,
                 label=f"{ticker} 백테스트",
             )
 
@@ -708,6 +903,8 @@ with tab_backtest:
             st.session_state["last_start"] = st.session_state["pending_start"]
             st.session_state["last_end"] = st.session_state["pending_end"]
             st.session_state["last_monthly_contribution"] = st.session_state["pending_monthly_contribution"]
+            st.session_state["last_fee_bps"] = st.session_state["pending_fee_bps"]
+            st.session_state["last_slippage_bps"] = st.session_state["pending_slippage_bps"]
             # 새 백테스트가 돌면 이전 전략/종목 기준으로 계산됐던 검증 테스트 결과는 더 이상 유효하지
             # 않으므로 지운다 (안 지우면 다른 종목의 순열검정 결과가 화면에 남아있는 채로 보일 수 있음).
             st.session_state.pop("sensitivity_result", None)
@@ -739,6 +936,8 @@ with tab_backtest:
                     st.caption("직접 수식 전략은 지표 오버레이 없이 캔들차트만 표시합니다.")
                 elif is_kostolany_config(indicator_config):
                     st.caption("코스톨라니 국면 매매 전략은 지표 오버레이 없이 캔들차트만 표시합니다.")
+                elif is_ensemble_config(indicator_config):
+                    st.caption("앙상블 스코어링 전략은 지표 오버레이 없이 캔들차트만 표시합니다 (지표별 점수는 연속값이라 On/Off 오버레이로 표현하기 어렵습니다).")
                 st.caption("차트 위 삼각형 마커에 마우스를 올리면 진입/청산 근거를 확인할 수 있습니다.")
                 st.plotly_chart(
                     render_price_chart(
@@ -786,6 +985,88 @@ with tab_backtest:
                 st.dataframe(metrics_dataframe(results, selected_metrics), use_container_width=True)
             else:
                 st.info("표시할 지표를 1개 이상 선택하세요.")
+
+            reliability_warning = trade_count_reliability_warning(int(strategy_run.metrics.get("trade_count", 0)))
+            if reliability_warning:
+                st.warning(reliability_warning)
+
+            with st.expander("💰 포지션 사이징 제안"):
+                st.caption(
+                    "이 백테스트의 매매 이력(승률/평균손익)을 바탕으로 실제 매매 시 얼마나 태울지 "
+                    "계산합니다 — 이 엔진 자체는 항상 자산 전액을 싣는 모델이라(포지션 사이징 없음), "
+                    "실전 적용 시에는 아래 제안값을 참고해 별도로 정해야 합니다."
+                )
+                if is_ensemble_config(indicator_config) and indicator_config.get("size_by_score", True):
+                    st.info(
+                        "🧬 이 전략은 앙상블 스코어링이라 이미 신호 강도(점수 크기) 기반 연속 사이징을 "
+                        "적용하고 있습니다 — 아래 제안값은 그 위에 계좌 전체 리스크를 얼마나 더 태울지 "
+                        "참고하는 용도로 보시면 됩니다."
+                    )
+                trade_stats = position_sizing.compute_trade_stats(strategy_run.trades)
+                if trade_stats is None:
+                    st.info("완료된 매매가 없어 포지션 사이징을 계산할 수 없습니다.")
+                else:
+                    st.caption(
+                        f"매매 {trade_stats.trade_count}건 기준 — 승률 {trade_stats.win_rate * 100:.1f}%, "
+                        f"평균 승리 {trade_stats.avg_win_pct:.2f}%, 평균 손실 {trade_stats.avg_loss_pct:.2f}%"
+                    )
+                    kelly = position_sizing.kelly_fraction(
+                        trade_stats.win_rate, trade_stats.avg_win_pct, trade_stats.avg_loss_pct
+                    )
+                    col_kelly1, col_kelly2 = st.columns(2)
+                    with col_kelly1:
+                        st.metric("풀 켈리(Full Kelly)", f"{kelly['full_kelly'] * 100:.1f}%")
+                    with col_kelly2:
+                        st.metric("하프 켈리 권장(Recommended)", f"{kelly['recommended_fraction'] * 100:.1f}%")
+                    if kelly["full_kelly"] > 0:
+                        st.warning(
+                            "⚠️ 풀 켈리는 이론상 최적이어도 계좌 변동성이 매우 커서 실전에서는 위험한 것으로 "
+                            "널리 알려져 있습니다 — 하프 켈리(50%) 이하로 쓰는 것을 권장합니다."
+                        )
+
+                    st.divider()
+                    st.markdown("**고정 % 리스크 사이징**")
+                    col_acc, col_risk, col_stop = st.columns(3)
+                    with col_acc:
+                        account_value = st.number_input(
+                            "계좌 총액($)", min_value=0.0, value=10000.0, step=1000.0, key="ps_account_value"
+                        )
+                    with col_risk:
+                        risk_pct = st.number_input(
+                            "거래당 리스크(%)", min_value=0.1, max_value=100.0, value=2.0, step=0.5, key="ps_risk_pct"
+                        )
+                    with col_stop:
+                        stop_pct = st.number_input(
+                            "손절 거리(현재가 대비 %)", min_value=0.1, max_value=100.0, value=5.0, step=0.5, key="ps_stop_pct"
+                        )
+                    if not strategy_run.df.empty:
+                        last_price = float(strategy_run.df["Close"].iloc[-1])
+                        stop_price = last_price * (1 - stop_pct / 100.0)
+                        fixed_sizing = position_sizing.fixed_fractional_size(account_value, risk_pct, last_price, stop_price)
+                        st.caption(
+                            f"현재가 {last_price:,.2f} 기준 손절가 {stop_price:,.2f}로 계산 — "
+                            f"매수 {fixed_sizing['shares']:,.2f}주 (${fixed_sizing['position_value']:,.2f}, "
+                            f"계좌 대비 {fixed_sizing['position_pct_of_account']:.1f}%)"
+                        )
+
+                    st.divider()
+                    st.markdown("**변동성 타겟팅**")
+                    realized_vol = (
+                        position_sizing.realized_annual_volatility_pct(strategy_run.df["Close"])
+                        if not strategy_run.df.empty
+                        else None
+                    )
+                    if realized_vol is None:
+                        st.caption("변동성을 계산할 데이터가 부족합니다.")
+                    else:
+                        target_vol = st.number_input(
+                            "목표 연환산 변동성(%)", min_value=1.0, value=15.0, step=1.0, key="ps_target_vol"
+                        )
+                        vol_weight = position_sizing.volatility_target_weight(target_vol, realized_vol)
+                        st.caption(
+                            f"{st.session_state['last_ticker']} 최근 실현 변동성(연환산) {realized_vol:.1f}% 대비 "
+                            f"목표 {target_vol:.1f}% → 추천 비중 {vol_weight * 100:.1f}%"
+                        )
 
             with st.expander("📊 국면별(강세장/약세장/횡보장) 수익률 분해"):
                 st.caption(
@@ -1089,6 +1370,84 @@ with tab_backtest:
                     )
                 st.caption("국면별(강세장/약세장/횡보장) 상세 수치는 위 '📊 국면별 수익률 분해'를 참고하세요.")
 
+            st.markdown("#### 📉 전략 수명 체크 (알파 감쇠 모니터링)")
+            st.caption(
+                "같은 조건을 재튜닝 없이 최근 구간에 그대로 재적용해, 예전에 검증된 엣지가 최근에도 "
+                "여전히 통하는지 확인합니다 — 재튜닝을 섞으면 최근 성과가 좋아 보이는 게 진짜 지속성 "
+                "때문인지 파라미터를 최근 데이터에 새로 맞춰서인지 구분할 수 없어, 원본 설정을 그대로 씁니다."
+            )
+            col_decay_months, col_decay_metric = st.columns(2)
+            with col_decay_months:
+                decay_months = st.number_input(
+                    "최근 몇 개월 성과를 비교할지", min_value=1, max_value=60, value=6, key="decay_months"
+                )
+            with col_decay_metric:
+                decay_metric = st.selectbox(
+                    "비교 지표", options=["sharpe", "cumulative_return", "cagr"],
+                    format_func=lambda m: METRIC_LABELS[m], key="decay_metric",
+                )
+            if st.button("📉 지금 체크", key="run_decay_check"):
+                job_manager.start(
+                    "decay_check", compute_alpha_decay,
+                    st.session_state["last_ticker"], indicator_config,
+                    st.session_state["last_start"], st.session_state["last_end"],
+                    recent_months=int(decay_months), metric=decay_metric, label="전략 수명 체크",
+                )
+
+            decay_job = job_manager.render("decay_check", running_label="전략 수명 체크 중")
+            if decay_job is not None:
+                if decay_job.status == "error":
+                    st.error(f"전략 수명 체크 중 오류가 발생했습니다: {decay_job.error}")
+                else:
+                    st.session_state["decay_result"] = decay_job.result
+
+            decay_result = st.session_state.get("decay_result")
+            if decay_result:
+                decay_metric_key = decay_result["metric"]
+                metric_label = METRIC_LABELS.get(decay_metric_key, decay_metric_key)
+                col_full, col_recent = st.columns(2)
+                with col_full:
+                    st.metric(f"전체 기간 {metric_label}", f"{decay_result['full_metrics'].get(decay_metric_key):.2f}")
+                with col_recent:
+                    st.metric(
+                        f"최근({decay_result['recent_start']}~{decay_result['recent_end']}) {metric_label}",
+                        f"{decay_result['recent_metrics'].get(decay_metric_key):.2f}",
+                    )
+                if decay_result["decay_ratio"] is not None:
+                    st.caption(f"최근/전체 비율: {decay_result['decay_ratio']:.2f} (1.0에 가까울수록 성과 유지)")
+
+                if decay_result["is_decayed"]:
+                    st.warning("⚠️ 최근 성과가 전체 기간 대비 뚜렷하게 나빠졌습니다 — 알파 감쇠(엣지 소멸)를 의심해볼 만합니다.")
+                else:
+                    st.success("✅ 최근 성과가 전체 기간과 비교해 크게 나빠지지 않았습니다.")
+
+                loaded_strategy_id_for_decay = st.session_state.get("loaded_strategy_id")
+                if loaded_strategy_id_for_decay is not None:
+                    if st.button("💾 체크 결과 이력에 저장", key="save_decay_check"):
+                        save_decay_check(
+                            st.session_state["last_ticker"], decay_result, strategy_id=loaded_strategy_id_for_decay
+                        )
+                        st.toast("전략 수명 체크 결과를 저장했습니다.", icon="✅")
+
+                    past_checks = list_decay_checks(loaded_strategy_id_for_decay)
+                    if past_checks:
+                        st.markdown("**과거 체크 이력**")
+                        history_df = pd.DataFrame(
+                            [
+                                {
+                                    "체크 시각": c["computed_at"],
+                                    "티커": c["ticker"],
+                                    "지표": c["metric"],
+                                    "최근/전체 비율": c["decay_ratio"],
+                                    "감쇠 의심": "⚠️" if c["is_decayed"] else "-",
+                                }
+                                for c in past_checks
+                            ]
+                        )
+                        st.dataframe(history_df, use_container_width=True, hide_index=True)
+                else:
+                    st.caption("💡 이 체크 결과를 이력으로 저장하려면 먼저 전략을 라이브러리에 저장하거나 불러온 상태여야 합니다.")
+
             st.markdown("#### 이 전략을 라이브러리에 저장")
             col_name, col_save = st.columns([3, 1])
             with col_name:
@@ -1329,6 +1688,161 @@ with tab_combine:
                             )
                             st.success(f"합성 전략 '{combine_name}' 저장 완료 (id={combine_saved_id}).")
                             st.info(f"📖 전략 설명: {combine_explanation}")
+
+with tab_correlation:
+    st.markdown(
+        "저장된 전략 여러 개를 골라 각각 백테스트한 뒤, 그 전략들의 자산가치 곡선끼리 상관관계가 "
+        "얼마나 낮은지 확인합니다 — **'홀리그레일'**(비상관 전략의 조합이 단일 전략보다 위험조정수익률이 "
+        "낫다는 개념, 레이 달리오·짐 사이먼스가 강조) 을 실제 숫자로 검증하는 도구입니다. 국면별(강세장/"
+        "약세장/횡보장) 상관관계도 함께 보여줍니다 — 평상시엔 낮아 보이는 상관관계가 약세장(스트레스 "
+        "이벤트)엔 급등하는 '상관관계 붕괴'가 흔하기 때문입니다."
+    )
+
+    with get_session() as session:
+        corr_strategies = (
+            session.query(Strategy).filter(Strategy.is_archived.is_(False)).order_by(Strategy.created_at.desc()).all()
+        )
+        corr_options = {
+            f"{s.name} (#{s.id}, {STRATEGY_TYPE_LABELS[detect_strategy_type(s.indicator_config)]})": s.id
+            for s in corr_strategies
+        }
+
+    if len(corr_options) < 2:
+        st.info("상관관계를 비교하려면 전략 라이브러리에 최소 2개의 전략이 저장되어 있어야 합니다.")
+    else:
+        picked_labels = st.multiselect(
+            "비교할 전략 선택 (2개 이상)", list(corr_options.keys()), key="corr_picked_strategies"
+        )
+        col_corr_ticker, col_corr_start, col_corr_end = st.columns(3)
+        with col_corr_ticker:
+            corr_ticker = st.text_input(
+                "적용할 종목 티커 (선택한 전략 전부에 동일 적용)", value="AAPL", key="corr_ticker"
+            ).strip().upper()
+        with col_corr_start:
+            corr_start_date = st.date_input(
+                "시작일", value=date.today() - timedelta(days=365 * 3), key="corr_start_date"
+            )
+        with col_corr_end:
+            corr_end_date = st.date_input("종료일", value=date.today(), key="corr_end_date")
+
+        if st.button("🔗 상관관계 계산", type="primary", key="run_corr"):
+            if len(picked_labels) < 2:
+                st.warning("전략을 2개 이상 선택해주세요.")
+            elif not corr_ticker:
+                st.warning("종목 티커를 입력해주세요.")
+            else:
+                with get_session() as session:
+                    strategies_payload = []
+                    for picked_label in picked_labels:
+                        s = session.get(Strategy, corr_options[picked_label])
+                        if s is not None:
+                            strategies_payload.append((s.name, corr_ticker, json.loads(s.indicator_config)))
+                job_manager.start(
+                    "strategy_correlation", run_strategy_portfolio,
+                    strategies_payload, corr_start_date.isoformat(), corr_end_date.isoformat(),
+                    label="전략 상관관계 계산",
+                )
+
+        corr_job = job_manager.render("strategy_correlation", running_label="선택한 전략들을 각각 백테스트하는 중")
+        if corr_job is not None:
+            if corr_job.status == "error":
+                st.error(f"상관관계 계산 중 오류가 발생했습니다: {corr_job.error}")
+            else:
+                st.session_state["strategy_corr_runs"] = corr_job.result
+
+        corr_runs = st.session_state.get("strategy_corr_runs")
+        if corr_runs:
+            valid_runs = {label: run for label, run in corr_runs.items() if not run.df.empty}
+            if len(valid_runs) < 2:
+                st.warning("유효한 백테스트 결과가 2개 미만이라 상관관계를 계산할 수 없습니다.")
+            else:
+                corr_matrix = compute_strategy_correlation(valid_runs)
+                if corr_matrix.empty:
+                    st.warning("공통 거래일이 부족해 상관관계를 계산할 수 없습니다.")
+                else:
+                    st.markdown("#### 전체 기간 상관관계")
+                    fig_corr = go.Figure(
+                        data=go.Heatmap(
+                            z=corr_matrix.values, x=corr_matrix.columns.tolist(), y=corr_matrix.index.tolist(),
+                            zmin=-1, zmax=1, colorscale="RdBu_r",
+                        )
+                    )
+                    fig_corr.update_layout(height=400, margin=dict(l=10, r=10, t=30, b=10))
+                    st.plotly_chart(fig_corr, use_container_width=True)
+
+                    n = len(corr_matrix)
+                    avg_offdiag = (corr_matrix.values.sum() - n) / (n * n - n) if n > 1 else 0.0
+                    if avg_offdiag < 0.3:
+                        st.success(f"✅ 평균 상관관계 {avg_offdiag:.2f} — 비교적 잘 분산된 조합입니다.")
+                    elif avg_offdiag < 0.6:
+                        st.info(f"ℹ️ 평균 상관관계 {avg_offdiag:.2f} — 어느 정도 분산 효과는 있지만 완전히 독립적이진 않습니다.")
+                    else:
+                        st.warning(
+                            f"⚠️ 평균 상관관계 {avg_offdiag:.2f} — 상관관계가 높아 사실상 비슷한 베팅을 "
+                            "중복으로 하고 있을 수 있습니다."
+                        )
+
+                    st.markdown("#### 국면별(강세장/약세장/횡보장) 상관관계")
+                    st.caption("약세장 상관관계가 전체 기간보다 뚜렷하게 높다면 '상관관계 붕괴' 위험 신호입니다.")
+                    regime_corr = compute_strategy_regime_correlation(valid_runs)
+                    regime_cols = st.columns(3)
+                    for regime_col, regime_label in zip(regime_cols, ("강세장", "약세장", "횡보장")):
+                        with regime_col:
+                            st.markdown(f"**{regime_label}**")
+                            regime_df = regime_corr.get(regime_label)
+                            if regime_df is None or regime_df.empty:
+                                st.caption("데이터 부족")
+                            else:
+                                fig_regime = go.Figure(
+                                    data=go.Heatmap(
+                                        z=regime_df.values, x=regime_df.columns.tolist(), y=regime_df.index.tolist(),
+                                        zmin=-1, zmax=1, colorscale="RdBu_r",
+                                    )
+                                )
+                                fig_regime.update_layout(height=300, margin=dict(l=10, r=10, t=10, b=10))
+                                st.plotly_chart(fig_regime, use_container_width=True)
+
+                    st.divider()
+                    st.markdown("#### 📈 상관관계 이력")
+                    st.caption(
+                        "이번 달만 보고 전략을 빼거나 사이즈를 줄이지 마세요 — 최소 2~3개월치 이력을 "
+                        "보고 판단하는 걸 권합니다. 체크할 때마다 아래 버튼으로 저장해 추이를 쌓아보세요."
+                    )
+                    if st.button("💾 이 상관관계를 이력에 저장", key="save_strategy_corr"):
+                        save_strategy_correlation_snapshot(corr_matrix)
+                        st.toast("상관관계 스냅샷을 저장했습니다.", icon="✅")
+                        st.rerun()
+
+                    corr_history = list_strategy_correlation_snapshots()
+                    if corr_history:
+                        history_df = pd.DataFrame(
+                            [
+                                {
+                                    "체크 시각": h["computed_at"],
+                                    "전략 수": len(h["labels"]),
+                                    "평균 상관관계": h["avg_correlation"],
+                                    "최대 상관관계": h["max_correlation"],
+                                }
+                                for h in corr_history
+                            ]
+                        )
+                        st.dataframe(history_df, use_container_width=True, hide_index=True)
+                        if len(corr_history) >= 2:
+                            trend_fig = go.Figure()
+                            trend_fig.add_trace(
+                                go.Scatter(
+                                    x=[h["computed_at"] for h in reversed(corr_history)],
+                                    y=[h["avg_correlation"] for h in reversed(corr_history)],
+                                    mode="lines+markers", line=dict(width=2, color="#5B8DEF"),
+                                )
+                            )
+                            trend_fig.update_layout(
+                                height=260, yaxis_title="평균 상관관계", template="plotly_white",
+                                margin=dict(l=10, r=10, t=20, b=10),
+                            )
+                            st.plotly_chart(trend_fig, use_container_width=True)
+                    else:
+                        st.caption("아직 저장된 이력이 없습니다.")
 
 with tab_nl:
     st.markdown(

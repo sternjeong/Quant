@@ -69,6 +69,11 @@ def _add_missing_columns() -> None:
             ("significance_p_value", "FLOAT"),
             ("skill_pct_of_total", "FLOAT"),
         ],
+        "backtest_results": [
+            ("profit_factor", "FLOAT"),
+            ("calmar", "FLOAT"),
+            ("avg_drawdown_days", "FLOAT"),
+        ],
     }
     inspector = inspect(engine)
     with engine.begin() as conn:

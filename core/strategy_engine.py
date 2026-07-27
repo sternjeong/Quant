@@ -44,7 +44,16 @@ core.kostolany_scenario_engine의 로직을 그대로 재사용해, 매수 관�
 매도 검토 국면에서 포지션 0으로 매핑한다(generate_kostolany_position 참고). AND/OR 조건 조합과 달리
 "hold"(현재 상태 유지) 개념이 있는 유일한 스키마라 다른 4종과 별도 함수로 처리한다.
 
-evaluate_boolean_signal()이 이 5개 스키마 전부를 평가하는 공용 진입점이다.
+여섯 번째 스키마로 여러 지표를 -1~1 연속 점수로 정규화해 가중평균하는 "앙상블 스코어링" 전략도
+지원한다(2026-07-27 추가):
+    {"schema": "ensemble", "indicators": [{"indicator": "rsi", "weight": 1.0}, ...],
+     "entry_threshold": 0.5, "exit_threshold": 0.2, "size_by_score": true}
+AND/OR처럼 조건을 전부/하나라도 만족해야 하는 이진 판정이 아니라, 지표별 원값을 롤링 z-점수 +
+tanh로 표준화한 뒤 가중평균한다 — 지표 하나가 어긋나도 나머지가 상쇄해줘 더 견고하고, 점수 크기를
+그대로 포지션 비중으로 쓸 수 있어(size_by_score) 신호가 강할수록 크게 베팅하는 연속 사이징이
+가능하다. compute_ensemble_score()/generate_ensemble_position()/SCORE_EVALUATORS 참고.
+
+evaluate_boolean_signal()이 이 6개 스키마 전부를 평가하는 공용 진입점이다.
 
 여러 조건은 "logic" 에 따라 AND(전부 True)/OR(하나라도 True)로 결합되어 하루 단위의
 불리언 "포지션 보유 조건" 시리즈가 된다. 이 시리즈가 True인 구간을 매수 보유,
@@ -62,6 +71,7 @@ import json
 from dataclasses import dataclass
 from typing import Any, Callable, Optional
 
+import numpy as np
 import pandas as pd
 
 from core.indicators import (
@@ -90,6 +100,7 @@ from core.indicators import (
     compute_volume_dryup_ratio,
     compute_volume_ratio,
     ema,
+    roc,
     sma,
 )
 
@@ -467,6 +478,36 @@ INDICATOR_EVALUATORS: dict[str, Callable[[pd.DataFrame, Condition], pd.Series]] 
 }
 
 
+# 지표 이름 -> 유형(추세/모멘텀/변동성/거래량/캔들패턴/반전패턴) 분류표. "100개 지표를 테스트해보니
+# 전략 유형에 맞는 지표를 섞어 써야 한다"는 원칙(2026-07-27 영상 인사이트)을 UI에서 바로 확인할 수
+# 있게 하기 위함 — 앙상블 스코어링 지표 선택기에서 카테고리별로 묶어 보여주고, 지표 토글 화면에서는
+# 현재 조합의 카테고리 구성을 캡션으로 보여준다. 새 지표 추가 시 INDICATOR_EVALUATORS와 함께 등록.
+INDICATOR_CATEGORIES: dict[str, str] = {
+    "ma_cross": "추세", "ma_touch": "추세", "level_break": "추세",
+    "ichimoku_tk_state": "추세", "ichimoku_tk_cross": "추세",
+    "ichimoku_cloud_break": "추세", "ichimoku_cloud_state": "추세", "ichimoku_chikou_state": "추세",
+    "rsi": "모멘텀", "rsi_cross": "모멘텀", "macd_cross": "모멘텀", "macd_level": "모멘텀", "mfi": "모멘텀",
+    "bollinger": "변동성", "bbw_squeeze_release": "변동성", "percent_b": "변동성",
+    "volume_spike": "거래량", "volume_dryup": "거래량",
+    "engulfing": "캔들패턴", "marubozu": "캔들패턴", "pin_bar": "캔들패턴", "doji": "캔들패턴",
+    "inside_bar": "캔들패턴", "inside_bar_breakout": "캔들패턴", "piercing_dark_cloud": "캔들패턴",
+    "star_pattern": "캔들패턴", "three_soldiers_crows": "캔들패턴", "three_methods": "캔들패턴",
+    "double_pattern": "반전패턴", "rsi_divergence": "반전패턴",
+}
+
+
+def categorize_indicators(conditions: list[Condition]) -> dict[str, int]:
+    """조건 목록의 지표들을 카테고리별 개수로 집계한다 (UI 캡션/앙상블 지표 그룹핑에 사용).
+
+    등록되지 않은 지표(알 수 없는 이름)는 "기타"로 묶는다.
+    """
+    counts: dict[str, int] = {}
+    for cond in conditions:
+        category = INDICATOR_CATEGORIES.get(cond.get("indicator"), "기타")
+        counts[category] = counts.get(category, 0) + 1
+    return counts
+
+
 def evaluate_condition(df: pd.DataFrame, condition: Condition) -> pd.Series:
     """조건 하나를 df 전체 구간에 대해 평가해 불리언 Series를 반환한다."""
     indicator = condition.get("indicator")
@@ -753,17 +794,225 @@ def generate_kostolany_position(df: pd.DataFrame, indicator_config: str | Indica
     return build_position_from_phases(phase, style=style)
 
 
-def evaluate_boolean_signal(df: pd.DataFrame, indicator_config: str | IndicatorConfig) -> pd.Series:
-    """전략 스키마 5종(레짐/직접 수식/1:2:6 단계별/복합/코스톨라니) 전부를 판별해 '포지션 보유 중'
-    불리언 시그널 하나로 통일해서 반환한다.
+# =============================================================================
+# 여섯 번째 스키마: 앙상블 스코어링 (2026-07-27, "지표 100개를 테스트해보니 결국 하나의 지표가
+# 아니라 여러 지표를 연속 점수로 합치는 앙상블이 더 견고했다"는 인사이트를 그대로 구현).
+#
+# 기존 AND/OR 레짐은 조건을 전부 만족하거나(AND) 하나라도 만족하면(OR) 보유하는 "이진" 판정이라,
+# 지표 하나가 잘못 신호를 줘도 그대로 전체 판정에 영향을 준다. 앙상블은 지표마다 -1~+1의 연속
+# "확신도" 점수를 매기고 가중평균해, 지표들이 서로 다른 방향을 가리키면 점수가 상쇄되도록 만든다.
+# 이 점수는 진입/청산 판정뿐 아니라 포지션 비중(=신호가 강할수록 크게 베팅)으로도 그대로 쓸 수
+# 있다 — core.position_sizing이 "백테스트 이후" 사이징을 계산한다면, 이건 "신호 발생 시점"의
+# 연속 사이징이라는 차이가 있다.
+#
+# {
+#     "schema": "ensemble",
+#     "indicators": [
+#         {"indicator": "rsi", "period": 14, "mode": "momentum", "weight": 1.0},
+#         {"indicator": "macd_hist", "fast": 12, "slow": 26, "signal": 9, "weight": 1.0},
+#         {"indicator": "ma_spread", "short": 20, "long": 60, "weight": 1.0}
+#     ],
+#     "zscore_window": 60,        # 각 지표 원값을 표준화할 때 쓰는 롤링 윈도우(거래일)
+#     "entry_threshold": 0.5,     # 앙상블 점수가 이 이상이면 진입
+#     "exit_threshold": 0.2,      # 이 밑으로 떨어지면 청산 (entry보다 낮게 둬 잦은 재진입 방지)
+#     "size_by_score": true       # true=점수 크기 그대로 비중(연속 사이징), false=0/1 이진 포지션
+# }
+# =============================================================================
 
-    복합 전략의 하위 전략을 재귀 평가할 때 쓰는 공용 진입점이다 — 하위 전략이 1:2:6 단계별이면
-    비중(weight)>0인 구간을 보유로 간주해 불리언으로 단순화하고, 하위 전략이 다시 복합 전략이면
-    재귀적으로 내려간다. generate_positions()와 evaluate()가 이 함수를 공통으로 사용한다.
+
+def _ma_spread(df: pd.DataFrame, cond: Condition) -> pd.Series:
+    """단기/장기 이동평균 스프레드(%) — 추세의 방향과 강도를 나타내는 연속값(추세 카테고리).
+    양수면 단기가 장기 위(상승국면), 음수면 그 반대. ma_cross 조건의 "연속값 버전"이다."""
+    short = int(cond.get("short", 20))
+    long_ = int(cond.get("long", 60))
+    ma_fn = ema if cond.get("ma_type", "sma") == "ema" else sma
+    short_ma = ma_fn(df["Close"], short)
+    long_ma = ma_fn(df["Close"], long_)
+    return (short_ma - long_ma) / long_ma * 100
+
+
+def _score_roc(df: pd.DataFrame, cond: Condition) -> pd.Series:
+    return roc(df["Close"], window=int(cond.get("window", 20)))
+
+
+# 지표 이름 -> "원값(raw)"을 반환하는 함수 레지스트리. INDICATOR_EVALUATORS(불리언 반환)와 달리
+# 아직 정규화하지 않은 연속값을 반환하며, compute_ensemble_score()가 이 값들을 공통으로
+# _zscore_tanh()에 통과시켜 -1~1 범위로 맞춘다 — 지표마다 원래 스케일이 달라도(RSI는 0~100,
+# MACD 히스토그램은 가격 단위) 같은 정규화 절차 하나로 비교 가능한 점수가 된다.
+SCORE_EVALUATORS: dict[str, Callable[[pd.DataFrame, Condition], pd.Series]] = {
+    "rsi": lambda df, c: compute_rsi(df, period=int(c.get("period", 14))),
+    "macd_hist": lambda df, c: compute_macd(
+        df, fast=int(c.get("fast", 12)), slow=int(c.get("slow", 26)), signal=int(c.get("signal", 9))
+    )["hist"],
+    "percent_b": lambda df, c: compute_percent_b(df, period=int(c.get("period", 20)), std_dev=float(c.get("std_dev", 2.0))),
+    "mfi": lambda df, c: compute_mfi(df, period=int(c.get("period", 14))),
+    "ma_spread": _ma_spread,
+    "roc": _score_roc,
+}
+
+# 카테고리별로 사람이 읽기 좋은 이름과 함께 묶어, 앙상블 지표 선택 UI가 "추세/모멘텀/변동성" 순으로
+# 그룹핑해 보여줄 수 있게 한다 (core.strategy_engine.INDICATOR_CATEGORIES 재사용).
+SCORE_INDICATOR_CATEGORIES: dict[str, str] = {
+    "rsi": "모멘텀", "macd_hist": "모멘텀", "roc": "모멘텀", "mfi": "모멘텀",
+    "percent_b": "변동성",
+    "ma_spread": "추세",
+}
+
+# 기본적으로 "값이 클수록 상승 확신"인 모멘텀 해석(momentum)이지만, RSI/percent_b/MFI처럼 과매수·
+# 과매도 레벨을 갖는 지표는 "값이 낮을수록(과매도) 상승 확신"인 평균회귀 해석(mean_revert)도
+# 자연스럽다. cond["mode"]="mean_revert"를 주면 정규화된 점수의 부호를 뒤집는다.
+
+
+def _zscore_tanh(raw: pd.Series, window: int = 60) -> pd.Series:
+    """롤링 z-점수를 tanh로 눌러(squash) 대략 [-1, 1] 범위의 연속 점수로 표준화한다.
+
+    지표별로 원래 스케일이 제각각이라(RSI 0~100, MACD 히스토그램은 가격 단위 등) 그대로
+    더하면 스케일이 큰 지표가 앙상블을 지배해버린다. "최근 window일 대비 지금이 몇 표준편차
+    떨어져 있는지"로 통일하면 모든 지표가 같은 잣대로 비교 가능한 점수가 된다. tanh는 극단값을
+    ±1 근처로 부드럽게 눌러줘(선형 클리핑과 달리 미분 가능하고 완만하게 포화), 이상치 하나가
+    앙상블 전체를 독점하는 것을 막는다.
+    """
+    if raw.empty:
+        return raw
+    rolling_mean = raw.rolling(window, min_periods=max(window // 2, 2)).mean()
+    rolling_std = raw.rolling(window, min_periods=max(window // 2, 2)).std(ddof=0)
+    z = (raw - rolling_mean) / rolling_std.replace(0.0, np.nan)
+    return np.tanh(z).fillna(0.0)
+
+
+def is_ensemble_config(indicator_config: str | IndicatorConfig) -> bool:
+    """indicator_config가 앙상블 스코어링 전략 스키마인지 판별한다 ("schema": "ensemble")."""
+    config = parse_indicator_config(indicator_config)
+    return isinstance(config, dict) and config.get("schema") == "ensemble"
+
+
+def compute_ensemble_score(df: pd.DataFrame, indicator_config: str | IndicatorConfig) -> pd.Series:
+    """앙상블 설정의 지표별 원값을 정규화해 가중평균한 -1~1 사이 연속 점수를 계산한다.
+
+    각 지표의 가중치(weight, 기본 1.0)로 가중평균하며, mode="mean_revert"인 지표는 부호를
+    뒤집는다(과매수=악재, 과매도=호재로 해석). 지표가 하나도 없으면 빈 Series.
+    """
+    config = parse_indicator_config(indicator_config)
+    indicators = config.get("indicators", [])
+    if not indicators:
+        return pd.Series(0.0, index=df.index)
+
+    window = int(config.get("zscore_window", 60))
+    weighted_sum = pd.Series(0.0, index=df.index)
+    total_weight = 0.0
+    for cond in indicators:
+        name = cond.get("indicator")
+        evaluator = SCORE_EVALUATORS.get(name)
+        if evaluator is None:
+            raise ValueError(f"앙상블에서 지원하지 않는 지표: {name!r}")
+        raw = evaluator(df, cond)
+        score = _zscore_tanh(raw, window=window)
+        if cond.get("mode") == "mean_revert":
+            score = -score
+        weight = float(cond.get("weight", 1.0))
+        weighted_sum = weighted_sum + score.reindex(df.index).fillna(0.0) * weight
+        total_weight += weight
+
+    if total_weight == 0:
+        return pd.Series(0.0, index=df.index)
+    return (weighted_sum / total_weight).clip(-1.0, 1.0)
+
+
+def generate_ensemble_position(df: pd.DataFrame, indicator_config: str | IndicatorConfig) -> pd.Series:
+    """앙상블 점수를 포지션 비중(0~1)으로 변환한다.
+
+    진입 임계값(entry_threshold)을 넘으면 보유를 시작하고, 청산 임계값(exit_threshold, entry보다
+    낮은 게 보통) 아래로 떨어져야 청산한다 — 임계값이 하나뿐이면 경계값 근처에서 하루걸러
+    진입/청산을 반복하는 채터링이 생기기 쉬워, 두 임계값으로 히스테리시스(hysteresis)를 둔다.
+
+    size_by_score=True(기본)면 보유 중에는 점수 크기(0~1로 클립) 그대로를 비중으로 쓴다 — 확신이
+    강할수록 크게, 약할수록 작게 베팅하는 연속 사이징. False면 임계값을 넘었는지 여부만으로 0/1
+    이진 포지션을 만든다. 롱온리 엔진이므로 음수 점수 구간은 항상 비중 0(미보유)이다.
+    """
+    config = parse_indicator_config(indicator_config)
+    score = compute_ensemble_score(df, config)
+    entry_threshold = float(config.get("entry_threshold", 0.5))
+    exit_threshold = float(config.get("exit_threshold", entry_threshold * 0.5))
+    size_by_score = bool(config.get("size_by_score", True))
+
+    holding = np.zeros(len(score), dtype=bool)
+    state = False
+    score_values = score.to_numpy()
+    for i in range(len(score_values)):
+        s = score_values[i]
+        if not state and s >= entry_threshold:
+            state = True
+        elif state and s < exit_threshold:
+            state = False
+        holding[i] = state
+    holding_series = pd.Series(holding, index=df.index)
+
+    if size_by_score:
+        return (score.clip(lower=0.0, upper=1.0) * holding_series.astype(float)).astype(float)
+    return holding_series.astype(float)
+
+
+def extract_weighted_trades(df: pd.DataFrame, weight_signal: pd.Series) -> list[Trade]:
+    """연속 비중(0~1) 시그널에서 진입~청산 사이클 단위로 매매를 추출한다 (앙상블 전략용).
+
+    비중이 0에서 양수로 바뀌는 날을 진입, 다시 0으로 돌아오는 날을 청산으로 본다. 사이클
+    중간의 비중 변동(예: 0.6→0.8→0.5)은 무시하고 진입/청산 시점 체결가만으로 수익률을
+    계산한다 — 이 엔진이 항상 그 시점 자산 전액을 싣는 모델(0/1 전략과 동일한 단순화)이라
+    1:2:6 단계별 전략의 가중평균 체결가 계산과는 다르다.
+    """
+    close = df["Close"]
+    executed = weight_signal.shift(1).fillna(0.0)
+    index_list = df.index
+    trades: list[Trade] = []
+    entry_idx: Optional[int] = None
+
+    for i in range(len(index_list)):
+        w = float(executed.iloc[i])
+        prev_w = float(executed.iloc[i - 1]) if i > 0 else 0.0
+        if w > 0 and prev_w == 0:
+            entry_idx = i
+        elif w == 0 and prev_w > 0 and entry_idx is not None:
+            entry_price = float(close.iloc[entry_idx])
+            exit_price = float(close.iloc[i])
+            trades.append(
+                Trade(
+                    entry_date=index_list[entry_idx],
+                    exit_date=index_list[i],
+                    entry_price=entry_price,
+                    exit_price=exit_price,
+                    return_pct=(exit_price / entry_price - 1) * 100,
+                )
+            )
+            entry_idx = None
+
+    if entry_idx is not None:
+        entry_price = float(close.iloc[entry_idx])
+        exit_price = float(close.iloc[-1])
+        trades.append(
+            Trade(
+                entry_date=index_list[entry_idx],
+                exit_date=index_list[-1],
+                entry_price=entry_price,
+                exit_price=exit_price,
+                return_pct=(exit_price / entry_price - 1) * 100,
+            )
+        )
+    return trades
+
+
+def evaluate_boolean_signal(df: pd.DataFrame, indicator_config: str | IndicatorConfig) -> pd.Series:
+    """전략 스키마 6종(레짐/직접 수식/1:2:6 단계별/복합/코스톨라니/앙상블) 전부를 판별해 '포지션
+    보유 중' 불리언 시그널 하나로 통일해서 반환한다.
+
+    복합 전략의 하위 전략을 재귀 평가할 때 쓰는 공용 진입점이다 — 하위 전략이 1:2:6 단계별이거나
+    앙상블이면 비중(weight)>0인 구간을 보유로 간주해 불리언으로 단순화하고, 하위 전략이 다시
+    복합 전략이면 재귀적으로 내려간다. generate_positions()와 evaluate()가 이 함수를 공통으로 사용한다.
     """
     config = parse_indicator_config(indicator_config)
     if is_kostolany_config(config):
         return (generate_kostolany_position(df, config) > 0).fillna(False)
+    if is_ensemble_config(config):
+        return (generate_ensemble_position(df, config) > 0).fillna(False)
     if is_combined_config(config):
         sub_configs = config.get("strategies", [])
         if not sub_configs:

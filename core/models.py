@@ -96,6 +96,9 @@ class BacktestResult(Base):
     sharpe = Column(Float, nullable=True)  # 샤프지수
     win_rate = Column(Float, nullable=True)  # 승률 (%)
     trade_count = Column(Integer, nullable=True)  # 매매 횟수
+    profit_factor = Column(Float, nullable=True)  # 손익비 (이긴 거래 수익률합 / 진 거래 손실률합, 2026-07-27 추가)
+    calmar = Column(Float, nullable=True)  # 칼마지수 = CAGR / |MDD| (2026-07-27 추가)
+    avg_drawdown_days = Column(Float, nullable=True)  # 평균 낙폭 지속기간(일) (2026-07-27 추가)
 
     extra_metrics = Column(Text, nullable=True)  # 추후 지표 확장용 JSON 문자열
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -392,3 +395,57 @@ class KostolanyCycleSnapshot(Base):
 
     def __repr__(self) -> str:
         return f"<KostolanyCycleSnapshot id={self.id} market_phase={self.market_phase!r} computed_at={self.computed_at}>"
+
+
+class StrategyDecayCheck(Base):
+    """전략 수명 / 알파 감쇠 체크 이력 (모듈 A 확장, 2026-07-27).
+
+    core.backtest_engine.compute_alpha_decay()가 같은 indicator_config를 재튜닝 없이 전체 기간과
+    최근 구간에 각각 재적용해 성과가 얼마나 이탈했는지 계산한 결과를 저장한다. MarketRegimeSnapshot/
+    SectorStrengthSnapshot과 동일한 이력 누적 원칙(덮어쓰지 않고 매번 새 행)을 따른다 — 사용자가
+    전략 스튜디오에서 "지금 체크"를 누를 때마다 한 행씩 쌓여 시간에 따른 감쇠 추이를 볼 수 있다.
+    strategy_id는 전략 라이브러리에 저장된 전략일 때만 채운다("직접 설정" 임시 백테스트는 None).
+    """
+
+    __tablename__ = "strategy_decay_checks"
+
+    id = Column(Integer, primary_key=True)
+    strategy_id = Column(Integer, ForeignKey("strategies.id"), nullable=True, index=True)
+    ticker = Column(String(20), nullable=False, index=True)
+    metric = Column(String(30), nullable=False)  # 비교에 사용한 지표 (예: "sharpe")
+    full_metrics = Column(Text, nullable=False)  # 전체 기간 지표 (JSON 객체 문자열)
+    recent_metrics = Column(Text, nullable=False)  # 최근 구간 지표 (JSON 객체 문자열)
+    decay_ratio = Column(Float, nullable=True)  # 최근/전체 비율 (None이면 비교 불가)
+    is_decayed = Column(Boolean, nullable=False, default=False)
+    recent_start = Column(Date, nullable=False)
+    recent_end = Column(Date, nullable=False)
+    computed_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+
+    strategy = relationship("Strategy")
+
+    def __repr__(self) -> str:
+        return f"<StrategyDecayCheck id={self.id} strategy_id={self.strategy_id} ticker={self.ticker!r} is_decayed={self.is_decayed}>"
+
+
+class CorrelationSnapshot(Base):
+    """상관관계 체크 이력 (모듈 A/H 확장, 2026-07-27).
+
+    core.backtest_engine.save_strategy_correlation_snapshot()(kind="strategy", 전략 간 상관관계)와
+    core.portfolio.save_portfolio_correlation_snapshot()(kind="portfolio", 보유 종목 간 상관관계)
+    양쪽이 같은 테이블을 공유한다. "이번 달 상관관계가 높다고 바로 판단하지 말고 2~3개월치 이력을
+    보고 결정하라"는 원칙(2026-07-27 인사이트)을 실제로 실천하려면 매번 새 스냅샷을 남겨 추이를
+    봐야 하므로, StrategyDecayCheck와 동일한 이력 누적 원칙(덮어쓰지 않고 계속 쌓음)을 따른다.
+    """
+
+    __tablename__ = "correlation_snapshots"
+
+    id = Column(Integer, primary_key=True)
+    kind = Column(String(20), nullable=False, index=True)  # "strategy" | "portfolio"
+    labels = Column(Text, nullable=False)  # 대상(전략명 또는 티커) 목록, JSON 배열 문자열
+    avg_correlation = Column(Float, nullable=True)  # 비대각 원소 평균
+    max_correlation = Column(Float, nullable=True)  # 비대각 원소 최댓값
+    matrix = Column(Text, nullable=False)  # 상관계수 행렬 전체 (DataFrame.to_json())
+    computed_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+
+    def __repr__(self) -> str:
+        return f"<CorrelationSnapshot id={self.id} kind={self.kind!r} avg_correlation={self.avg_correlation}>"

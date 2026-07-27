@@ -214,6 +214,93 @@ def test_get_portfolio_risk_returns_empty_defaults_for_empty_portfolio():
     assert result["volatility"] is None
     assert result["correlation"].empty
     assert result["sector_concentration"] == {}
+    assert result["daily_returns"].empty
+
+
+# ----------------------------------------------------------------------------
+# 포지션 사이징: 변동성 타겟팅 추천 비중 (core.position_sizing 연동)
+# ----------------------------------------------------------------------------
+
+
+def test_get_recommended_weights_favors_low_volatility_ticker():
+    idx = pd.bdate_range("2021-01-04", periods=40)
+    low_vol = [0.001 if i % 2 == 0 else -0.001 for i in range(40)]
+    high_vol = [0.05 if i % 2 == 0 else -0.05 for i in range(40)]
+    risk = {"daily_returns": pd.DataFrame({"LOW": low_vol, "HIGH": high_vol}, index=idx)}
+
+    weights = portfolio.get_recommended_weights(risk)
+    assert weights["LOW"] > weights["HIGH"]
+    assert sum(weights.values()) == pytest.approx(1.0, abs=1e-6)
+
+
+def test_get_recommended_weights_empty_daily_returns_returns_empty_dict():
+    assert portfolio.get_recommended_weights({"daily_returns": pd.DataFrame()}) == {}
+    assert portfolio.get_recommended_weights({}) == {}
+
+
+# ----------------------------------------------------------------------------
+# 국면별 상관관계 (core.market_regime 연동)
+# ----------------------------------------------------------------------------
+
+
+def test_get_regime_conditional_correlation_delegates_to_market_regime(monkeypatch):
+    idx = pd.bdate_range("2021-01-04", periods=10)
+    daily_returns = pd.DataFrame({"A": [0.01] * 10, "B": [0.02] * 10}, index=idx)
+    fake_result = {"강세장": pd.DataFrame({"A": [1.0]}), "약세장": pd.DataFrame(), "횡보장": pd.DataFrame()}
+    monkeypatch.setattr(
+        portfolio.market_regime, "compute_regime_conditional_correlation", lambda dr, **k: fake_result
+    )
+    result = portfolio.get_regime_conditional_correlation({"daily_returns": daily_returns})
+    assert result == fake_result
+
+
+def test_get_regime_conditional_correlation_empty_daily_returns_returns_empty_dict():
+    assert portfolio.get_regime_conditional_correlation({"daily_returns": pd.DataFrame()}) == {}
+    assert portfolio.get_regime_conditional_correlation({}) == {}
+
+
+# ----------------------------------------------------------------------------
+# 상관관계 이력 저장/조회 (core.backtest_engine과 CorrelationSnapshot 테이블 공유)
+# ----------------------------------------------------------------------------
+
+
+def test_save_and_list_portfolio_correlation_snapshot(patched_session):
+    corr = pd.DataFrame({"AAPL": [1.0, 0.6], "MSFT": [0.6, 1.0]}, index=["AAPL", "MSFT"])
+    snap_id = portfolio.save_portfolio_correlation_snapshot(corr)
+    assert snap_id is not None
+
+    history = portfolio.list_portfolio_correlation_snapshots()
+    assert len(history) == 1
+    assert history[0]["labels"] == ["AAPL", "MSFT"]
+    assert history[0]["avg_correlation"] == pytest.approx(0.6)
+    assert history[0]["max_correlation"] == pytest.approx(0.6)
+
+
+def test_save_portfolio_correlation_snapshot_requires_at_least_two_tickers(patched_session):
+    corr = pd.DataFrame({"AAPL": [1.0]}, index=["AAPL"])
+    with pytest.raises(ValueError):
+        portfolio.save_portfolio_correlation_snapshot(corr)
+
+
+def test_portfolio_and_strategy_correlation_snapshots_are_isolated_by_kind(patched_session):
+    """kind="portfolio"로 저장한 스냅샷은 kind="strategy" 조회(core.backtest_engine)에 섞여 나오면 안 된다."""
+    corr = pd.DataFrame({"AAPL": [1.0, 0.2], "MSFT": [0.2, 1.0]}, index=["AAPL", "MSFT"])
+    portfolio.save_portfolio_correlation_snapshot(corr)
+
+    import core.backtest_engine as backtest_engine
+    import core.db as db_module
+
+    @contextmanager
+    def _fake_get_session():
+        yield patched_session
+        patched_session.commit()
+
+    import_target = db_module.get_session
+    try:
+        db_module.get_session = _fake_get_session
+        assert backtest_engine.list_strategy_correlation_snapshots() == []
+    finally:
+        db_module.get_session = import_target
 
 
 # ----------------------------------------------------------------------------
