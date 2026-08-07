@@ -4,42 +4,42 @@
   "trend_position": {
     "score": 25.0,
     "above_200sma": true,
-    "close": 7740.64990234375,
-    "sma200": 7039.772902832031,
-    "pct_vs_sma200": 9.955960358178073
+    "close": 7754.18017578125,
+    "sma200": 7050.012404785156,
+    "pct_vs_sma200": 9.988177758639738
   },
   "ma_cross": {
     "score": 25.0,
     "golden_cross": true,
-    "sma50": 7486.019814453125,
-    "sma200": 7039.772902832031
+    "sma50": 7494.171015625,
+    "sma200": 7050.012404785156
   },
   "drawdown": {
     "score": 0.0,
     "drawdown_pct": 0.0,
     "is_bear_market_drawdown": false,
-    "week52_high": 7740.64990234375
+    "week52_high": 7754.18017578125
   },
   "breadth": {
     "score": 25.0,
-    "pct_above_200sma": 70.19999999999999,
+    "pct_above_200sma": 71.6,
     "is_overheated": false,
     "n_total": 503,
-    "n_above": 351,
+    "n_above": 358,
     "n_data_ok": 500
   },
   "short_term": {
     "1개월": {
       "regime": "중립/혼조",
-      "period_return_pct": 3.155710756554986,
+      "period_return_pct": 2.7909607993850782,
       "window_days": 21
     },
     "3개월": {
       "regime": "강세장",
-      "period_return_pct": 6.631975243230204,
+      "period_return_pct": 5.68439508568952,
       "window_days": 63
     }
   },
   "benchmark_ticker": "^GSPC",
-  "computed_at": "2026-08-05T16:44:04.698655"
+  "computed_at": "2026-08-07T15:59:15.208652"
 }
