@@ -3,12 +3,12 @@
     {
       "theme": "반도체",
       "proxies": "SOXX, SMH",
-      "strength_factor": 53.0456404623,
-      "return_3m": 9.0732500225,
-      "return_6m": 58.2386966368,
-      "return_12m": 115.2354598522,
+      "strength_factor": 53.0479096877,
+      "return_3m": 9.0737126775,
+      "return_6m": 58.2408241144,
+      "return_12m": 115.2403362105,
       "trend": "하락",
-      "trend_change": -23.1902174925,
+      "trend_change": -23.1914189148,
       "rs_score": 100.0
     },
     {
@@ -36,23 +36,23 @@
     {
       "theme": "클라우드",
       "proxies": "SKYY, WCLD",
-      "strength_factor": 25.3285031466,
-      "return_3m": 24.9173947739,
-      "return_6m": 44.6251335521,
-      "return_12m": 19.0049663528,
+      "strength_factor": 25.3257828693,
+      "return_3m": 24.892721179,
+      "return_6m": 44.6249309256,
+      "return_12m": 19.0412925035,
       "trend": "상승",
-      "trend_change": 11.6989098367,
+      "trend_change": 11.680943144,
       "rs_score": 85.0
     },
     {
       "theme": "우주",
       "proxies": "UFO, ARKX, ROKT",
-      "strength_factor": 21.4668422575,
-      "return_3m": 1.9814572892,
-      "return_6m": 18.1317169628,
-      "return_12m": 51.9105773885,
+      "strength_factor": 21.4677218148,
+      "return_3m": 1.9875901395,
+      "return_6m": 18.1339270908,
+      "return_12m": 51.9048165575,
       "trend": "상승",
-      "trend_change": 4.9525940986,
+      "trend_change": 4.9537964352,
       "rs_score": 80.0
     },
     {
@@ -221,5 +221,5 @@
       "rs_score": 5.0
     }
   ],
-  "computed_at": "2026-08-08T15:33:19.897769"
+  "computed_at": "2026-08-09T15:34:51.745330"
 }
