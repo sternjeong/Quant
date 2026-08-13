@@ -1,7 +1,7 @@
 # Quant — 개인용 주식 도우미
 
 나 혼자 로컬(localhost)에서 실행하는 미국 주식 전략 검증 · 모니터링 · 리서치 대시보드.
-자세한 기획/스펙은 [`SPEC.md`](./SPEC.md) 참고.
+자세한 기획/스펙은 [`docs/SPEC.md`](./docs/SPEC.md) 참고 (모듈별 세부 스펙은 [`docs/`](./docs/) 참고).
 
 ## 디렉터리 구조
 
@@ -20,9 +20,9 @@ Quant/
 │   ├── quant.db (자동 생성) # SQLite DB 파일
 │   └── cache/               # 시장데이터 캐시 (git에는 커밋되지 않음)
 ├── tests/                 # pytest 테스트
+├── docs/                  # 기획/스펙 문서 모음 (SPEC.md 등, docs/README.md에 색인)
 ├── requirements.txt
-├── .env.example
-└── SPEC.md
+└── .env.example
 ```
 
 ## 설치
@@ -102,7 +102,7 @@ pytest
   ```
   (`app/pages/` 안의 파일은 `parent.parent.parent` 가 되어야 하므로, 실제 depth에 맞게 조정)
 - **Streamlit 페이지 파일명 규칙**: `app/pages/` 안에 `{순번}_{한글이름}.py` 형식으로 만든다.
-  순번은 SPEC.md의 모듈 순서(A~H)를 기준으로 매긴다. 예:
+  순번은 docs/SPEC.md의 모듈 순서(A~H)를 기준으로 매긴다. 예:
   - `1_백테스팅.py` (모듈 A)
   - `2_Threads_요약.py` (모듈 B)
   - `3_관심종목_모니터링.py` (모듈 C)
