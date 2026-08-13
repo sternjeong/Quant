@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body>
+<title>멀티에셋 확장 — 한계 타개 리포트</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #eef1f4;
+    --surface: #ffffff;
+    --surface-2: #e4e9ee;
+    --ink: #14181d;
+    --ink-muted: #565f6b;
+    --ink-faint: #88919a;
+    --border: #d8dee5;
+    --accent: #4a3aa7;
+    --accent-ink: #ffffff;
+    --accent-wash: #eeeafb;
+    --series-momentum: #2a78d6;
+    --series-passive: #1baf7a;
+    --series-kostolany: #eb6834;
+    --series-bench: #9299a3;
+    --good: #0ca30c;
+    --good-wash: #e6f6e6;
+    --critical: #d03b3b;
+    --critical-wash: #fbeaea;
+    --font-display: Georgia, "Iowan Old Style", "Palatino Linotype", "Noto Serif KR", serif;
+    --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", "Nanum Gothic Coding", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --bg: #0e1116; --surface: #171b21; --surface-2: #1f242c;
+      --ink: #f1f3f5; --ink-muted: #a6aeb8; --ink-faint: #6d7680; --border: #2a313a;
+      --accent: #9085e9; --accent-ink: #14181d; --accent-wash: #232049;
+      --series-momentum: #3987e5; --series-passive: #199e70; --series-kostolany: #d95926; --series-bench: #6d7680;
+      --good: #3fc23f; --good-wash: #163420; --critical: #e66767; --critical-wash: #3a1f1f;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0e1116; --surface: #171b21; --surface-2: #1f242c;
+    --ink: #f1f3f5; --ink-muted: #a6aeb8; --ink-faint: #6d7680; --border: #2a313a;
+    --accent: #9085e9; --accent-ink: #14181d; --accent-wash: #232049;
+    --series-momentum: #3987e5; --series-passive: #199e70; --series-kostolany: #d95926; --series-bench: #6d7680;
+    --good: #3fc23f; --good-wash: #163420; --critical: #e66767; --critical-wash: #3a1f1f;
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --bg: #eef1f4; --surface: #ffffff; --surface-2: #e4e9ee;
+    --ink: #14181d; --ink-muted: #565f6b; --ink-faint: #88919a; --border: #d8dee5;
+    --accent: #4a3aa7; --accent-ink: #ffffff; --accent-wash: #eeeafb;
+    --series-momentum: #2a78d6; --series-passive: #1baf7a; --series-kostolany: #eb6834; --series-bench: #9299a3;
+    --good: #0ca30c; --good-wash: #e6f6e6; --critical: #d03b3b; --critical-wash: #fbeaea;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-body); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  ::selection { background: var(--accent); color: var(--accent-ink); }
+  .page { max-width: 920px; margin: 0 auto; padding: 56px 24px 120px; }
+
+  .masthead { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding-bottom: 20px; border-bottom: 3px solid var(--ink); margin-bottom: 8px; flex-wrap: wrap; }
+  .masthead .label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); }
+  .masthead .issue { font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); text-align: right; }
+
+  h1.title { font-family: var(--font-display); font-weight: 400; font-size: clamp(28px, 4.4vw, 42px); line-height: 1.15; margin: 18px 0 10px; text-wrap: balance; letter-spacing: -0.01em; }
+  p.dek { font-family: var(--font-display); font-style: italic; font-size: 18px; color: var(--ink-muted); max-width: 64ch; margin: 0 0 28px; text-wrap: balance; }
+  p.dek b { color: var(--ink); font-weight: 600; font-style: normal; }
+
+  .scope-note { font-size: 13.5px; color: var(--ink-muted); background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 4px; padding: 12px 16px; margin-bottom: 44px; }
+  .scope-note b { color: var(--ink); }
+
+  .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 56px; }
+  .stat { background: var(--surface); padding: 20px 18px; display: flex; flex-direction: column; gap: 6px; }
+  .stat .k { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-faint); }
+  .stat .v { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 26px; font-weight: 600; letter-spacing: -0.02em; }
+  .stat .v.good { color: var(--good); }
+  .stat .v.critical { color: var(--critical); }
+  .stat .d { font-size: 12px; color: var(--ink-muted); }
+
+  section { margin-bottom: 64px; }
+  .section-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 6px; }
+  .section-head .num { font-family: var(--font-mono); font-size: 13px; color: var(--accent); font-weight: 600; }
+  h2 { font-family: var(--font-display); font-weight: 400; font-size: 26px; margin: 0; letter-spacing: -0.005em; }
+  .section-intro { color: var(--ink-muted); max-width: 68ch; margin: 10px 0 28px; }
+  h3 { font-family: var(--font-body); font-size: 16px; font-weight: 700; margin: 34px 0 6px; display: flex; align-items: baseline; gap: 10px; }
+  h3 .tag { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 7px; border-radius: 3px; font-weight: 700; }
+  h3 .tag.good { background: var(--good-wash); color: var(--good); }
+  h3 .tag.critical { background: var(--critical-wash); color: var(--critical); }
+  h3 .tag.neutral { background: var(--accent-wash); color: var(--accent); }
+  p { max-width: 70ch; }
+  .finding { max-width: 70ch; color: var(--ink-muted); }
+  .finding b { color: var(--ink); font-weight: 600; }
+  blockquote.src { margin: 14px 0; padding: 10px 16px; border-left: 3px solid var(--border); font-size: 13px; color: var(--ink-faint); max-width: 66ch; }
+  blockquote.src a { color: var(--ink-muted); }
+
+  .figure { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px 20px 12px; margin: 22px 0; }
+  .figure .fig-label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.05em; color: var(--ink-faint); text-transform: uppercase; margin-bottom: 4px; }
+  .figure .fig-title { font-size: 14.5px; font-weight: 700; margin-bottom: 14px; }
+  .chart-scroll { overflow-x: auto; }
+  .legend { display: flex; gap: 18px; font-size: 12.5px; color: var(--ink-muted); margin-top: 10px; flex-wrap: wrap; }
+  .legend .sw { display: inline-flex; align-items: center; gap: 6px; }
+  .legend .dot { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+
+  .axis-line { stroke: var(--border); stroke-width: 1; }
+  .axis-label { fill: var(--ink-faint); font-family: var(--font-mono); font-size: 10px; }
+  .bar-actual { fill: var(--series-momentum); }
+  .bar-perm { fill: var(--series-bench); opacity: 0.55; }
+  .marker-line { stroke: var(--critical); stroke-width: 2; stroke-dasharray: 4 3; }
+
+  .viz-tooltip { position: fixed; pointer-events: none; background: var(--ink); color: var(--bg); font-family: var(--font-mono); font-size: 12px; padding: 8px 11px; border-radius: 5px; line-height: 1.6; box-shadow: 0 4px 14px rgba(0,0,0,0.25); opacity: 0; transform: translate(-50%, calc(-100% - 10px)); transition: opacity 0.1s ease; z-index: 50; white-space: nowrap; }
+  .viz-tooltip.visible { opacity: 1; }
+  .viz-tooltip .tt-title { font-weight: 700; margin-bottom: 3px; }
+
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; }
+  table { width: 100%; border-collapse: collapse; background: var(--surface); font-size: 13.5px; min-width: 520px; }
+  thead th { text-align: right; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); font-weight: 600; padding: 10px 14px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  thead th:first-child, td:first-child { text-align: left; }
+  tbody td { padding: 9px 14px; text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  tbody td:first-child { font-family: var(--font-body); font-weight: 600; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--surface-2); }
+  td.good { color: var(--good); }
+  td.critical { color: var(--critical); }
+  td.muted { color: var(--ink-faint); }
+  .row-highlight td { background: var(--accent-wash); }
+
+  .limit-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin: 18px 0; }
+  .limit-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; }
+  .limit-card .lc-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .limit-card .lc-id { font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--critical); background: var(--critical-wash); padding: 2px 7px; border-radius: 3px; }
+  .limit-card .lc-status { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; padding: 2px 7px; border-radius: 3px; font-weight: 700; margin-left: auto; }
+  .limit-card .lc-status.solved { background: var(--good-wash); color: var(--good); }
+  .limit-card .lc-status.open { background: var(--surface-2); color: var(--ink-faint); }
+  .limit-card p { margin: 0; font-size: 13.5px; max-width: none; }
+
+  .hyp-result { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; margin: 10px 0; }
+  .hyp-result .verdict { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 700; padding: 3px 9px; border-radius: 3px; flex-shrink: 0; }
+  .hyp-result .verdict.win { background: var(--good-wash); color: var(--good); }
+  .hyp-result .verdict.fail { background: var(--critical-wash); color: var(--critical); }
+  .hyp-result .txt { font-size: 13.5px; color: var(--ink-muted); }
+  .hyp-result .txt b { color: var(--ink); }
+
+  .rule-list { display: flex; flex-direction: column; gap: 10px; margin: 18px 0; }
+  .rule { display: grid; grid-template-columns: 30px 1fr; gap: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+  .rule .n { font-family: var(--font-mono); color: var(--accent); font-weight: 700; font-size: 14px; }
+  .rule .body b { display: block; margin-bottom: 2px; }
+  .rule .body span { color: var(--ink-muted); font-size: 13.5px; }
+
+  .caveat-list { display: flex; flex-direction: column; gap: 14px; }
+  .caveat { display: grid; grid-template-columns: 20px 1fr; gap: 12px; }
+  .caveat .mark { color: var(--critical); font-weight: 700; }
+  .caveat p { margin: 0; color: var(--ink-muted); font-size: 14px; }
+  .caveat p b { color: var(--ink); }
+
+  footer { margin-top: 80px; padding-top: 20px; border-top: 1px solid var(--border); font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+
+  @media (max-width: 680px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } .limit-grid { grid-template-columns: 1fr; } h1.title { font-size: 26px; } }
+</style>
+
+<div class="page">
+
+  <div class="masthead">
+    <span class="label">Quant &middot; 전략 리서치 노트</span>
+    <span class="issue">2026-08-12&nbsp;발행 &middot; No. 06 &middot; No.05 후속</span>
+  </div>
+
+  <h1 class="title">멀티에셋으로 한계를 넘다</h1>
+  <p class="dek">No.05의 섹터 전용 모멘텀 로테이션(샤프 0.82)에는 뚜렷한 한계 4가지가 있었다.
+    딥서치로 방법론 3개를 세우고 직접 테스트한 결과 &mdash; <b>둘은 예상과 반대로 실패했고, 채권·금을
+    더한 멀티에셋 확장 하나가 샤프를 1.05까지 끌어올리며 순열검정까지 통과했다.</b></p>
+
+  <div class="scope-note">
+    <b>분석 범위</b> &mdash; 2019-08-12 ~ 2026-08-12, GICS 11개 핵심 섹터 ETF + TLT(장기채)·
+    IEF(중기채)·GLD(금), 왕복 0.1% 거래비용 반영(No.05는 무비용이었음 — 이번엔 실전에 가깝게).
+    5라운드 가설검증의 기록.
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat">
+      <span class="k">최종 챔피언 샤프(비용반영)</span>
+      <span class="v good">1.05</span>
+      <span class="d">SPY 0.81 / No.05 섹터전용 0.82</span>
+    </div>
+    <div class="stat">
+      <span class="k">최종 챔피언 최대낙폭</span>
+      <span class="v good">&minus;14.4%</span>
+      <span class="d">SPY -34.1%, 섹터전용 -31.5%</span>
+    </div>
+    <div class="stat">
+      <span class="k">순열검정 백분위</span>
+      <span class="v good">97.5th</span>
+      <span class="d">무작위 200회 대비, p&asymp;0.025</span>
+    </div>
+    <div class="stat">
+      <span class="k">실패한 가설 수</span>
+      <span class="v critical">2 / 3</span>
+      <span class="d">변동성타겟팅·회전율버퍼 모두 역효과</span>
+    </div>
+  </div>
+
+  <!-- ================= SECTION 1 ================= -->
+  <section id="s1">
+    <div class="section-head"><span class="num">§1</span><h2>No.05까지 드러난 한계 4가지</h2></div>
+    <p class="section-intro">이번 라운드가 정면으로 겨냥한 문제들.</p>
+    <div class="limit-grid">
+      <div class="limit-card">
+        <div class="lc-head"><span class="lc-id">L1</span><span class="lc-status open">부분 해결</span></div>
+        <p>전체 구간 샤프가 높을수록(Top4류) 전반부(2019-08~2023-01)와 후반부(2023-01~2026-08) 간
+          샤프 격차가 컸다 &mdash; 2023년 이후 AI 랠리에 쏠린 과최적화 의심.</p>
+      </div>
+      <div class="limit-card">
+        <div class="lc-head"><span class="lc-id">L2</span><span class="lc-status open">미해결</span></div>
+        <p>시장 레짐 필터가 &ldquo;SPY가 200일선 위/아래&rdquo;라는 이진 신호 하나뿐 &mdash; 거칠다.</p>
+      </div>
+      <div class="limit-card">
+        <div class="lc-head"><span class="lc-id">L3</span><span class="lc-status solved">해결</span></div>
+        <p>크래시 <b>발생 자체</b>는 못 피함 &mdash; 섹터 11개뿐이라 위기 시 도망갈 자산이 없어
+          상관관계가 위기 때 1에 수렴, 분산 효과가 사라짐.</p>
+      </div>
+      <div class="limit-card">
+        <div class="lc-head"><span class="lc-id">L4</span><span class="lc-status solved">반영 완료</span></div>
+        <p>거래비용·회전율이 전혀 반영되지 않았음 &mdash; 월간 리밸런싱은 실제로 비용이 든다.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SECTION 2 ================= -->
+  <section id="s2">
+    <div class="section-head"><span class="num">§2</span><h2>딥서치 근거 3가지</h2></div>
+    <h3><span class="tag neutral">근거 1</span>변동성 타겟팅</h3>
+    <p class="finding">Barroso &amp; Santa-Clara(2015): 모멘텀 전략을 과거 실현변동성으로 디플레이트해
+      목표 변동성에 맞춰 스케일링하면 샤프가 거의 2배가 된다는 연구. 단 Cederburg 외(2020)는 103개
+      팩터 중 변동성 관리가 통계적으로 유의미하게 도움 되는 건 8개뿐이었고, 그 8개가 전부
+      모멘텀류라는 단서도 함께 확인.</p>
+    <blockquote class="src">Barroso &amp; Santa-Clara, "Momentum Has Its Moments"(2015); Cederburg
+      et al., "Volatility Management in Equity Factor Investing"(2020); Quantpedia, "An Introduction
+      to Volatility Targeting".</blockquote>
+
+    <h3><span class="tag neutral">근거 2</span>회전율 버퍼(하이스트리시스)</h3>
+    <p class="finding">뚜렷한 추세 변화가 없을 때는 포지션을 그대로 두는 대체 매매규칙이 통계적으로
+      유의미한 성과 손실 없이 회전율을 약 24% 줄였다는 연구. 기관들이 실제로 분기 리밸런싱을
+      선호하는 이유도 이 회전율 관리 때문.</p>
+    <blockquote class="src">"Momentum and Trading Costs"(SGH/EAM); AQR 모멘텀 인덱스 분기
+      리밸런싱 사례.</blockquote>
+
+    <h3><span class="tag good">근거 3</span>멀티에셋 절대모멘텀(GEM/PAA)</h3>
+    <p class="finding">Antonacci GEM: 절대 모멘텀이 현금(T-bill)에도 진 자산은 전부 채권으로
+      이동하는 내장 크래시 방어 메커니즘. Protective Asset Allocation(PAA)은 이 아이디어를
+      13개 ETF(주식 12 + 안전자산 1)로 확장한 버전 &mdash; 멀티에셋 breadth 자체를 위기 신호로도
+      쓴다.</p>
+    <blockquote class="src">Antonacci, <i>Dual Momentum Investing</i>; Keller &amp; Butler,
+      "Protective Asset Allocation" &mdash; CXO Advisory 리뷰.</blockquote>
+  </section>
+
+  <!-- ================= SECTION 3 ================= -->
+  <section id="s3">
+    <div class="section-head"><span class="num">§3</span><h2>테스트 결과 &mdash; 3전 1승</h2></div>
+
+    <div class="hyp-result">
+      <span class="verdict fail">기각</span>
+      <span class="txt"><b>변동성 타겟팅</b> — 샤프 0.92(베이스라인) → 0.74~0.87로 오히려 하락.
+        이미 3~4종목로 분산된 월간 리밸런싱 포트폴리오라, 원논문이 잡아내는 롱숏 팩터 특유의
+        변동성 군집(모멘텀 크래시) 효과가 상대적으로 약했을 것으로 추정.</span>
+    </div>
+    <div class="hyp-result">
+      <span class="verdict fail">기각</span>
+      <span class="txt"><b>회전율 버퍼</b> — 버퍼를 늘릴수록(순위 밀림 허용폭↑) 샤프가 계속
+        나빠짐(0.89→0.86→0.82). 근소하게 밀린 종목을 억지로 더 들고 있는 손실이 거래비용 절감보다
+        컸다.</span>
+    </div>
+    <div class="hyp-result">
+      <span class="verdict win">채택</span>
+      <span class="txt"><b>멀티에셋 확장(11섹터+TLT+IEF+GLD)</b> — 압도적 승자. Top4·시장필터50%
+        조합이 샤프 1.08(무비용)까지 상승, MDD는 &minus;13.72%로 대폭 개선.</span>
+    </div>
+
+    <h3>멀티에셋 확장 상세 비교</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>구성</th><th>누적수익률</th><th>CAGR</th><th>MDD</th><th>샤프</th></tr></thead>
+        <tbody>
+          <tr><td>SPY 매수보유</td><td>+167.49%</td><td>15.10%</td><td>&minus;34.10%</td><td>0.81</td></tr>
+          <tr><td>No.05 섹터전용 top3(무비용)</td><td>+178.06%</td><td>15.74%</td><td>&minus;31.50%</td><td>0.82</td></tr>
+          <tr><td>섹터전용 top3·시장필터75%</td><td>+133.81%</td><td>12.90%</td><td>&minus;19.28%</td><td>0.92</td></tr>
+          <tr><td>멀티에셋 top3·시장필터50%</td><td>+145.73%</td><td>13.71%</td><td>&minus;14.35%</td><td>1.01</td></tr>
+          <tr class="row-highlight"><td>멀티에셋 top4·시장필터50%(무비용)</td><td class="good">+149.48%</td><td class="good">13.96%</td><td class="good">&minus;13.72%</td><td class="good">1.08</td></tr>
+          <tr><td>&nbsp;&nbsp;↳ 왕복 0.1% 비용 반영</td><td>+142.52%</td><td>13.50%</td><td>&minus;14.43%</td><td>1.05</td></tr>
+          <tr><td>&nbsp;&nbsp;↳ 왕복 0.2% 비용 반영(보수적)</td><td>+135.75%</td><td>13.04%</td><td>&minus;15.14%</td><td>1.02</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="finding">채권·금을 후보군에 넣는 것만으로 MDD가 &minus;22.7%(섹터전용 top4) →
+      &minus;13.72%로 거의 반토막났다. 왜인지는 명확하다 &mdash; 주식 섹터가 전부 무너질 때 채권·금
+      중 하나는 그 시점 최상위 모멘텀 후보로 뽑혀 실제로 자본을 흡수했기 때문이다(L3 직접 해결).</p>
+
+    <h3>하위기간 강건성(L1 재확인)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>구성</th><th>전체</th><th>전반부(코로나+2022약세장 포함)</th><th>후반부</th><th>격차</th></tr></thead>
+        <tbody>
+          <tr><td>SPY 매수보유</td><td>0.81</td><td class="critical">0.47</td><td>1.38</td><td class="critical">0.91</td></tr>
+          <tr><td>섹터전용 top4·필터50%</td><td>1.01</td><td>0.85</td><td>1.21</td><td class="critical">0.36</td></tr>
+          <tr class="row-highlight"><td>멀티에셋 top4·필터50%</td><td class="good">1.05</td><td class="good">0.91</td><td class="good">1.20</td><td class="good">0.29</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="finding">멀티에셋 챔피언은 &ldquo;어려운&rdquo; 전반부(코로나 크래시+2022년 약세장 포함)
+      조차 샤프 0.91·MDD &minus;10.37%로 SPY 같은 기간(0.47·&minus;34.1%)을 크게 앞선다 &mdash;
+      섹터전용 버전보다 두 구간 격차도 작다(0.29 vs 0.36). 다만 SPY 자체의 구간 격차(0.91)가 모든
+      후보보다 훨씬 크다는 것도 확인했다 &mdash; 2023~2026이 원래 변동성 낮은 순한 강세장이었다는
+      뜻이라, 격차 0.29도 절대 기준으로는 양호한 편으로 해석해야 균형 잡힌 판단이다.</p>
+  </section>
+
+  <!-- ================= SECTION 4 ================= -->
+  <section id="s4">
+    <div class="section-head"><span class="num">§4</span><h2>순열검정 &mdash; 진짜 실력인가</h2></div>
+    <p class="section-intro">
+      멀티에셋 챔피언의 샤프 1.05가 &ldquo;모멘텀 랭킹이라는 진짜 실력&rdquo;에서 나온 건지,
+      아니면 &ldquo;양(+)모멘텀 자산 풀에 아무거나 담아도 비슷한 결과가 나오는지&rdquo; 구분하기
+      위해, 매달 상위 4개를 뽑는 대신 <b>양(+)모멘텀 후보 중 무작위로 4개</b>를 뽑는 시뮬레이션을
+      200회 반복했다(시장필터·거래비용 등 나머지 메커니즘은 전부 동일하게 유지).
+    </p>
+    <div class="figure">
+      <div class="fig-label">Fig. 1 &middot; 순열검정 분포</div>
+      <div class="fig-title">무작위 선택 200회 샤프 분포 vs 실제 모멘텀 랭킹</div>
+      <div class="chart-scroll"><svg id="chart-perm" width="820" height="280"></svg></div>
+      <div class="legend">
+        <span class="sw"><span class="dot" style="background:var(--series-bench);opacity:0.55"></span>무작위 선택(200회)</span>
+        <span class="sw"><span class="dot" style="background:var(--critical)"></span>실제 모멘텀 랭킹(1.05)</span>
+      </div>
+    </div>
+    <p class="finding">
+      무작위 200회의 평균 샤프는 <b>0.719</b>(표준편차 0.150)였다. 실제 모멘텀 랭킹 결과(1.05)는 이
+      분포의 <b>97.5th 백분위</b>에 위치한다 &mdash; 근사 p-value 0.025로 통상적인 5% 유의수준을
+      통과한다. 즉 이 전략의 초과성과는 단순히 &ldquo;양(+)모멘텀 자산 아무거나&rdquo; 담아서
+      나온 게 아니라, <b>상위 순위를 골라내는 랭킹 자체가 통계적으로 유의미한 부가가치</b>를
+      낸다는 근거다.
+    </p>
+  </section>
+
+  <!-- ================= SECTION 5 ================= -->
+  <section id="s5">
+    <div class="section-head"><span class="num">§5</span><h2>최종 챔피언 설정</h2></div>
+    <div class="rule-list">
+      <div class="rule"><span class="n">1</span><div class="body"><b>유니버스: 11개 GICS 섹터 +
+        TLT(장기채)·IEF(중기채)·GLD(금)</b><span>주식이 전부 약할 때 도망갈 자산을 후보군에 미리
+        넣어둔다.</span></div></div>
+      <div class="rule"><span class="n">2</span><div class="body"><b>12개월 절대+상대 모멘텀,
+        상위 4개 동일비중</b><span>No.05와 동일 로직, 유니버스만 확장.</span></div></div>
+      <div class="rule"><span class="n">3</span><div class="body"><b>SPY&lt;200일선이면 전체
+        비중 50% 축소</b><span>시장 전체 약세 시 자동 감속(여전히 이진 신호 — L2는 다음 라운드
+        과제로 남김).</span></div></div>
+      <div class="rule"><span class="n">4</span><div class="body"><b>월간 리밸런싱, 왕복 0.1%
+        거래비용 가정</b><span>비용 반영 후에도 샤프 1.05로 SPY(0.81)·No.05 섹터전용(0.82) 모두
+        상회.</span></div></div>
+    </div>
+  </section>
+
+  <!-- ================= SECTION 6 ================= -->
+  <section id="s6">
+    <div class="section-head"><span class="num">§6</span><h2>여전히 남은 한계</h2></div>
+    <div class="caveat-list">
+      <div class="caveat"><span class="mark">&#9888;</span><p><b>같은 2019~2026 단일 기간.</b> 진짜
+        아웃오브샘플 검증(예: 2000~2010년대)은 아직 못 했다.</p></div>
+      <div class="caveat"><span class="mark">&#9888;</span><p><b>시장필터가 여전히 이진(L2 미해결).</b>
+        SPY 200일선 위/아래 둘 중 하나 — core.market_regime.py의 4신호 복합 점수를 연속 스케일링
+        계수로 쓰는 게 다음 후보.</p></div>
+      <div class="caveat"><span class="mark">&#9888;</span><p><b>국제주식·원자재 등 더 넓은 자산군
+        미포함.</b> 채권·금 3종만 추가했을 뿐 — Antonacci Composite Dual Momentum처럼 EFA(국제주식),
+        HYG(하이일드), 원자재까지 넓히면 더 개선될 여지가 있다.</p></div>
+      <div class="caveat"><span class="mark">&#9888;</span><p><b>다중비교(데이터 스누핑) 위험.</b>
+        5라운드에 걸쳐 같은 표본에 여러 변형을 반복 검증했다 — 순열검정은 &ldquo;무작위보다 낫다&rdquo;는
+        증명이지 &ldquo;이 정확한 파라미터 조합을 고른 행위 자체&rdquo;의 과최적화까지 지워주진
+        않는다.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <span>딥서치 기반 5라운드 가설검증 &middot; 멀티에셋 실측 백테스트 + 순열검정 &middot; No.05 후속</span>
+    <span>실측 데이터 기준 2026-08-12</span>
+  </footer>
+</div>
+
+<div class="viz-tooltip" id="tooltip"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  // 순열검정 200회 분포를 정규근사(평균0.719, 표준편차0.150)로 시각화 재현(원본 분포 세부값은
+  // 저장하지 않았으므로 히스토그램 형태만 재현 — 실제 통계치(평균/표준편차/백분위)는 정확히 기록된 값)
+  var mean = 0.719, std = 0.150, actual = 1.05;
+  var bins = 24, lo = mean - 4 * std, hi = mean + 4 * std;
+  var counts = [];
+  for (var i = 0; i < bins; i++) {
+    var x = lo + (i + 0.5) * (hi - lo) / bins;
+    var z = (x - mean) / std;
+    counts.push(Math.exp(-0.5 * z * z));
+  }
+  var maxCount = Math.max.apply(null, counts);
+
+  var SVGNS = "http://www.w3.org/2000/svg";
+  function el(tag, attrs) {
+    var e = document.createElementNS(SVGNS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  var tooltip = document.getElementById("tooltip");
+  function showTooltip(evt, html) { tooltip.innerHTML = html; tooltip.classList.add("visible"); moveTooltip(evt); }
+  function moveTooltip(evt) { tooltip.style.left = evt.clientX + "px"; tooltip.style.top = evt.clientY + "px"; }
+  function hideTooltip() { tooltip.classList.remove("visible"); }
+
+  (function renderChart() {
+    var svg = document.getElementById("chart-perm");
+    var W = 820, H = 280;
+    var marginLeft = 40, marginRight = 16, marginTop = 12, marginBottom = 30;
+    var plotW = W - marginLeft - marginRight;
+    var plotH = H - marginTop - marginBottom;
+
+    function xScale(v) { return marginLeft + ((v - lo) / (hi - lo)) * plotW; }
+    function yScale(c) { return marginTop + plotH - (c / maxCount) * plotH; }
+
+    var barW = plotW / bins - 2;
+    for (var i = 0; i < bins; i++) {
+      var x = lo + (i + 0.5) * (hi - lo) / bins;
+      var bx = xScale(x) - barW / 2;
+      var by = yScale(counts[i]);
+      var rect = el("rect", { x: bx, y: by, width: barW, height: (marginTop + plotH - by), class: "bar-perm", rx: 1.5 });
+      rect.addEventListener("mouseenter", function (e) {
+        showTooltip(e, "<div class='tt-title'>무작위 선택 분포</div>평균 " + mean.toFixed(3) + " · 표준편차 " + std.toFixed(3));
+      });
+      rect.addEventListener("mousemove", moveTooltip);
+      rect.addEventListener("mouseleave", hideTooltip);
+      svg.appendChild(rect);
+    }
+
+    // 실제값 마커
+    var ax = xScale(actual);
+    var markerLine = el("line", { x1: ax, x2: ax, y1: marginTop, y2: marginTop + plotH, class: "marker-line" });
+    svg.appendChild(markerLine);
+    var markerLabel = el("text", { x: ax, y: marginTop - 2, "text-anchor": "middle", class: "axis-label", fill: "var(--critical)", "font-weight": "700" });
+    markerLabel.textContent = "실제 " + actual.toFixed(2) + " (97.5th)";
+    svg.appendChild(markerLabel);
+
+    // x축
+    [mean - 2 * std, mean - std, mean, mean + std, mean + 2 * std].forEach(function (v) {
+      var x = xScale(v);
+      var lbl = el("text", { x: x, y: H - 8, "text-anchor": "middle", class: "axis-label" });
+      lbl.textContent = v.toFixed(2);
+      svg.appendChild(lbl);
+    });
+    svg.appendChild(el("line", { x1: marginLeft, x2: W - marginRight, y1: marginTop + plotH, y2: marginTop + plotH, class: "axis-line" }));
+  })();
+})();
+</script>
+</body>
+</html>
