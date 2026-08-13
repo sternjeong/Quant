@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body>
+<title>엔진 아키텍처 노트 — 모듈은 실제로 어떻게 동작하는가</title>
+<style>
+  :root {
+    --paper: #f2f4f0; --panel: #ffffff; --ink: #131a1e; --ink-soft: #4b565c;
+    --teal: #0e6b5c; --teal-soft: #0e6b5c1a; --amber: #9c6f24; --amber-soft: #9c6f2417;
+    --line: rgba(19, 26, 30, 0.13); --line-strong: rgba(19, 26, 30, 0.28);
+    --up: #1f7a4d; --down: #ad4326;
+    --shadow: 0 1px 2px rgba(19, 26, 30, 0.04), 0 8px 24px rgba(19, 26, 30, 0.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #10151a; --panel: #161e23; --ink: #e7ecec; --ink-soft: #a7b3b6;
+      --teal: #3ab6a0; --teal-soft: #3ab6a022; --amber: #e0b15e; --amber-soft: #e0b15e1c;
+      --line: rgba(231, 236, 236, 0.14); --line-strong: rgba(231, 236, 236, 0.3);
+      --up: #48b479; --down: #e0785a;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 12px 28px rgba(0, 0, 0, 0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #10151a; --panel: #161e23; --ink: #e7ecec; --ink-soft: #a7b3b6;
+    --teal: #3ab6a0; --teal-soft: #3ab6a022; --amber: #e0b15e; --amber-soft: #e0b15e1c;
+    --line: rgba(231, 236, 236, 0.14); --line-strong: rgba(231, 236, 236, 0.3);
+    --up: #48b479; --down: #e0785a;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 12px 28px rgba(0, 0, 0, 0.35);
+  }
+  :root[data-theme="light"] {
+    --paper: #f2f4f0; --panel: #ffffff; --ink: #131a1e; --ink-soft: #4b565c;
+    --teal: #0e6b5c; --teal-soft: #0e6b5c1a; --amber: #9c6f24; --amber-soft: #9c6f2417;
+    --line: rgba(19, 26, 30, 0.13); --line-strong: rgba(19, 26, 30, 0.28);
+    --up: #1f7a4d; --down: #ad4326;
+    --shadow: 0 1px 2px rgba(19, 26, 30, 0.04), 0 8px 24px rgba(19, 26, 30, 0.05);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI", -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased; line-height: 1.7;
+  }
+  ::selection { background: var(--teal-soft); }
+  .mono {
+    font-family: "Cascadia Code", "SFMono-Regular", Consolas, "D2Coding", ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  a { color: var(--teal); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  a:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; border-radius: 2px; }
+
+  .hero {
+    position: relative; padding: 4.2rem 1.5rem 3rem;
+    background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 28px 28px; border-bottom: 1px solid var(--line-strong); overflow: hidden;
+  }
+  .hero::after {
+    content: ""; position: absolute; inset: 0;
+    background: radial-gradient(ellipse 70% 60% at 20% 0%, var(--paper) 10%, transparent 72%),
+                radial-gradient(ellipse 60% 50% at 100% 100%, var(--paper) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .hero-inner { position: relative; max-width: 880px; margin: 0 auto; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: .5em; font-size: .78rem; font-weight: 700;
+    letter-spacing: .16em; text-transform: uppercase; color: var(--teal); margin: 0 0 1.1rem;
+  }
+  .eyebrow::before { content: ""; width: 22px; height: 1px; background: var(--teal); display: inline-block; }
+  h1.title { font-size: clamp(2rem, 5vw, 2.9rem); line-height: 1.18; font-weight: 800; letter-spacing: -.01em; margin: 0 0 1rem; text-wrap: balance; }
+  .hero p.lede { max-width: 64ch; color: var(--ink-soft); font-size: 1.05rem; margin: 0 0 1.6rem; }
+  .hero-meta { display: flex; flex-wrap: wrap; gap: .5rem 1.4rem; font-size: .82rem; color: var(--ink-soft); }
+  .hero-meta b { color: var(--ink); font-weight: 600; }
+
+  .layout { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: 232px minmax(0, 1fr); gap: 3rem; padding: 2.6rem 1.5rem 6rem; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; gap: 1.6rem; } nav.toc { position: static !important; } }
+  nav.toc { position: sticky; top: 1.6rem; align-self: start; }
+  nav.toc .toc-label { font-size: .72rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 .8rem; }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; border-left: 1px solid var(--line); }
+  nav.toc a { display: block; padding: .38rem .9rem; margin-left: -1px; border-left: 1px solid transparent; color: var(--ink-soft); text-decoration: none; font-size: .87rem; }
+  nav.toc a:hover { color: var(--ink); border-left-color: var(--line-strong); }
+
+  main { min-width: 0; }
+  section.block { margin: 0 0 3.6rem; scroll-margin-top: 1.5rem; }
+  section.block > .block-head { margin-bottom: 1.5rem; }
+  .block-tag { font-size: .74rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--amber); margin: 0 0 .5rem; }
+  h2.block-title { font-size: 1.55rem; font-weight: 800; letter-spacing: -.01em; margin: 0 0 .4rem; display: flex; align-items: baseline; gap: .7rem; flex-wrap: wrap; }
+  h2.block-title .file { color: var(--ink-soft); font-weight: 600; font-size: .95rem; }
+  .block-intro { color: var(--ink-soft); max-width: 70ch; margin: 0; }
+
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 1.5rem 1.6rem 1.4rem; margin: 0 0 1.15rem; box-shadow: var(--shadow); scroll-margin-top: 1.5rem; }
+  .card-eyebrow { display: inline-block; font-size: .7rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--teal); background: var(--teal-soft); padding: .22rem .55rem; border-radius: 4px; margin-bottom: .7rem; }
+  h3.card-title { font-size: 1.1rem; font-weight: 700; margin: 0 0 .5rem; letter-spacing: -.005em; }
+  .card p { margin: .55rem 0; }
+  .code-block {
+    margin: .9rem 0; padding: .9rem 1.05rem; background: color-mix(in srgb, var(--ink) 4%, transparent);
+    border-left: 3px solid var(--teal); border-radius: 0 6px 6px 0; overflow-x: auto; font-size: .87rem; white-space: pre;
+  }
+  .code-block .cmt { color: var(--ink-soft); }
+  .code-block .kw { color: var(--teal); font-weight: 700; }
+  .card .why { margin-top: .9rem; padding: .7rem .9rem; border-left: 3px solid var(--amber); background: var(--amber-soft); border-radius: 0 6px 6px 0; font-size: .93rem; }
+  .why b { color: var(--amber); }
+  .card .refs { margin-top: .9rem; padding-top: .7rem; border-top: 1px dashed var(--line); font-size: .8rem; color: var(--ink-soft); display: flex; flex-wrap: wrap; gap: .4rem .6rem; align-items: center; }
+  .refs .ref-label { text-transform: uppercase; letter-spacing: .08em; font-weight: 700; font-size: .68rem; }
+  code.path { font-family: inherit; background: color-mix(in srgb, var(--ink) 6%, transparent); padding: .1rem .4rem; border-radius: 4px; font-size: .82rem; }
+  .divider { border: none; border-top: 1px solid var(--line); margin: 2.6rem 0; }
+  .table-wrap { overflow-x: auto; }
+  table.mini { width: 100%; border-collapse: collapse; margin: .9rem 0; font-size: .88rem; }
+  table.mini th, table.mini td { text-align: left; padding: .4rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.mini thead th { color: var(--ink-soft); font-weight: 600; font-size: .76rem; text-transform: uppercase; letter-spacing: .04em; }
+
+  /* ---- flow diagram ---- */
+  .flow-wrap { overflow-x: auto; margin: 1.6rem 0 2.4rem; }
+  .flow {
+    display: flex; align-items: stretch; gap: 0; min-width: 620px; padding: .4rem 0;
+  }
+  .flow-step {
+    display: flex; flex-direction: column; justify-content: center; gap: .2rem;
+    background: var(--panel); border: 1px solid var(--line-strong); border-radius: 8px;
+    padding: .8rem 1rem; min-width: 148px; box-shadow: var(--shadow);
+  }
+  .flow-step .ft { font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--teal); }
+  .flow-step .fn { font-size: .86rem; font-weight: 700; }
+  .flow-step .ff { font-size: .72rem; color: var(--ink-soft); font-family: inherit; }
+  .flow-arrow { display: flex; align-items: center; justify-content: center; width: 36px; color: var(--ink-soft); font-size: 1.1rem; flex-shrink: 0; }
+  .flow-branch {
+    display: flex; align-items: center; gap: .6rem; min-width: 620px; margin-top: .5rem;
+    padding-left: 184px; font-size: .78rem; color: var(--ink-soft);
+  }
+  .flow-branch .chip { border: 1px dashed var(--line-strong); border-radius: 6px; padding: .3rem .6rem; }
+
+  .principle-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin: 1.6rem 0 2.4rem; }
+  .principle {
+    border: 1px solid var(--line); border-radius: 10px; padding: 1.1rem 1.2rem; background: var(--panel); box-shadow: var(--shadow);
+  }
+  .principle .pn { font-size: .68rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--amber); margin-bottom: .4rem; }
+  .principle h4 { margin: 0 0 .4rem; font-size: .98rem; }
+  .principle p { margin: 0; font-size: .87rem; color: var(--ink-soft); }
+
+  .callout-big { border: 1px solid var(--line-strong); border-radius: 12px; padding: 1.6rem 1.8rem; margin: 1.6rem 0 2.2rem; background: linear-gradient(180deg, color-mix(in srgb, var(--teal) 6%, transparent), transparent); }
+  .callout-big h4 { margin: 0 0 .5rem; font-size: 1rem; letter-spacing: -.005em; }
+
+  ol.steps { margin: 0; padding-left: 1.3rem; }
+  ol.steps li { margin: .4rem 0; }
+  ol.steps b { color: var(--ink); }
+
+  footer.page-footer { max-width: 1180px; margin: 0 auto; padding: 2rem 1.5rem 3.5rem; color: var(--ink-soft); font-size: .82rem; border-top: 1px solid var(--line); }
+</style>
+
+<header class="hero">
+  <div class="hero-inner">
+    <p class="eyebrow">Quant Research Note · 02 / 아키텍처편</p>
+    <h1 class="title">엔진 아키텍처 노트<br />각 모듈은 실제로 어떻게 동작하는가</h1>
+    <p class="lede">
+      "전략 저장 → 백테스트 → 지표 계산 → 검증 → 저장"이라는 한 줄 요약 뒤에 실제로 어떤 함수들이
+      어떤 순서로 데이터를 주고받는지 뜯어봅니다. 코드를 몰라도 흐름을 이해할 수 있게, 핵심 로직은
+      실제 구현을 단순화한 의사코드로 옮겨뒀습니다.
+    </p>
+    <div class="hero-meta">
+      <span><b>6개</b> 모듈</span>
+      <span>대상 <span class="mono">core/*.py</span></span>
+      <span>짝문서 <span class="mono">스터디 노트 (01/개념편)</span></span>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="toc" aria-label="목차">
+    <p class="toc-label">목차</p>
+    <ol>
+      <li><a href="#sec-flow">전체 데이터 흐름</a></li>
+      <li><a href="#sec-strategy">① strategy_engine</a></li>
+      <li><a href="#sec-backtest">② backtest_engine</a></li>
+      <li><a href="#sec-sizing">③ position_sizing</a></li>
+      <li><a href="#sec-portfolio">④ portfolio</a></li>
+      <li><a href="#sec-regime">⑤ market_regime</a></li>
+      <li><a href="#sec-patterns">⑥ 공통 설계 패턴</a></li>
+      <li><a href="#sec-order">읽는 순서 추천</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <!-- ============ FLOW ============ -->
+    <section class="block" id="sec-flow">
+      <div class="block-head">
+        <p class="block-tag">Overview</p>
+        <h2 class="block-title">전체 데이터 흐름</h2>
+        <p class="block-intro">
+          "지표 조합 백테스트 실행" 버튼을 눌렀을 때 실제로 일어나는 일을 함수 호출 순서로 나열하면
+          이렇습니다. 화살표 아래 점선 칩은 이 파이프라인에 재료를 공급하는 보조 모듈입니다.
+        </p>
+      </div>
+
+      <div class="flow-wrap">
+        <div class="flow">
+          <div class="flow-step"><span class="ft">1. 조건</span><span class="fn">indicator_config</span><span class="ff mono">JSON (DB)</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><span class="ft">2. 신호</span><span class="fn">generate_positions()</span><span class="ff mono">strategy_engine.py</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><span class="ft">3. 체결</span><span class="fn">compute_equity_curve()</span><span class="ff mono">backtest_engine.py</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><span class="ft">4. 지표</span><span class="fn">calculate_metrics()</span><span class="ff mono">backtest_engine.py</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><span class="ft">5. 저장</span><span class="fn">save_backtest_result()</span><span class="ff mono">DB → UI</span></div>
+        </div>
+        <div class="flow-branch">
+          <span class="chip mono">market_regime.classify_daily_regime()</span>
+          <span>→ 4번 단계에 국면별 분해 공급</span>
+          <span class="chip mono">position_sizing.*</span>
+          <span>→ 백테스트 결과(승률/손익)를 받아 사이징 제안 계산</span>
+        </div>
+      </div>
+
+      <p>
+        각 단계는 <b>순수 함수에 가깝게</b> 설계돼 있습니다 — 2·3·4번은 DB나 네트워크를 건드리지 않고
+        오직 <span class="mono">DataFrame</span>과 <span class="mono">dict</span>만 주고받기 때문에,
+        테스트에서는 실제 API 호출 없이 합성 가격 데이터만 넣어 검증합니다
+        (<code class="path">tests/test_backtest_engine.py</code>의 <code class="path">_mock_price_history</code>
+        참고).
+      </p>
+    </section>
+
+    <hr class="divider" />
+
+    <!-- ============ STRATEGY ENGINE ============ -->
+    <section class="block" id="sec-strategy">
+      <div class="block-head">
+        <p class="block-tag">Module ①</p>
+        <h2 class="block-title">신호 생성 엔진 <span class="file mono">core/strategy_engine.py</span></h2>
+        <p class="block-intro">
+          "RSI가 30 밑이면" 같은 조건을 실제 불리언 시계열로 바꾸는 곳입니다. 지표가 늘어나도 이
+          엔진의 나머지 로직은 손대지 않도록 레지스트리 패턴으로 짜여 있습니다.
+        </p>
+      </div>
+
+      <article class="card">
+        <span class="card-eyebrow">패턴 · 레지스트리</span>
+        <h3 class="card-title">지표 이름 → 평가 함수 딕셔너리</h3>
+        <div class="code-block mono"><span class="cmt"># INDICATOR_EVALUATORS: dict[str, Callable]</span>
+INDICATOR_EVALUATORS = {
+    "ma_cross": _eval_ma_cross,
+    "rsi": _eval_rsi,
+    "bollinger": _eval_bollinger,
+    <span class="cmt"># ... 28개 지표(캔들패턴 포함)가 같은 시그니처로 등록됨</span>
+}
+
+<span class="kw">def</span> evaluate_condition(df, condition):
+    evaluator = INDICATOR_EVALUATORS[condition["indicator"]]
+    <span class="kw">return</span> evaluator(df, condition)  <span class="cmt"># bool Series 반환</span></div>
+        <p>
+          새 지표를 추가할 때 <code class="path">combine_conditions()</code>나 <code class="path">extract_trades()</code>
+          같은 나머지 엔진 코드는 전혀 건드릴 필요가 없습니다 — <code class="path">core/indicators.py</code>에
+          계산 함수를 만들고 이 딕셔너리에 한 줄만 등록하면 AND/OR 조합, 차트 오버레이, 백테스트까지
+          자동으로 연결됩니다.
+        </p>
+        <p>
+          같은 파일에 <code class="path">INDICATOR_CATEGORIES</code>(지표 이름 → "추세"/"모멘텀"/
+          "변동성"/"거래량"/"캔들패턴"/"반전패턴")라는 자매 딕셔너리도 있습니다 — 계산 로직과는
+          무관하고 순전히 UI가 "이 전략은 어떤 유형의 지표로 구성됐는지"를 캡션으로 보여주거나
+          (<code class="path">categorize_indicators()</code>), 앙상블 지표 선택기에서 카테고리별로
+          묶어 보여주는 데만 쓰입니다.
+        </p>
+      </article>
+
+      <article class="card">
+        <span class="card-eyebrow">패턴 · 6개 스키마 통일</span>
+        <h3 class="card-title">evaluate_boolean_signal() — 공용 진입점</h3>
+        <p>
+          이 저장소는 전략을 여섯 가지 방식(레짐 AND/OR, 직접 수식, 1:2:6 단계별, 전략 합성, 코스톨라니
+          국면, 앙상블 스코어링)으로 저장할 수 있습니다. 서로 다른 JSON 구조를 판별해서 전부 "지금
+          포지션을 들고 있는가"라는 하나의 불리언 시계열로 통일하는 게 이 함수의 역할입니다.
+        </p>
+        <div class="code-block mono"><span class="kw">def</span> evaluate_boolean_signal(df, config):
+    <span class="kw">if</span> is_kostolany_config(config):    <span class="cmt"># {"schema": "kostolany", ...}</span>
+        <span class="kw">return</span> generate_kostolany_position(df, config) &gt; 0
+    <span class="kw">if</span> is_ensemble_config(config):     <span class="cmt"># {"schema": "ensemble", ...}</span>
+        <span class="kw">return</span> generate_ensemble_position(df, config) &gt; 0
+    <span class="kw">if</span> is_combined_config(config):     <span class="cmt"># {"combine": "AND", "strategies": [...]}</span>
+        <span class="kw">return</span> AND/OR 로 하위 전략들을 재귀 결합
+    <span class="kw">if</span> is_staged_config(config):       <span class="cmt"># {"entry_stages": [...]}</span>
+        <span class="kw">return</span> simulate_staged_positions(df, config)[0] &gt; 0
+    <span class="kw">return</span> generate_regime_signal(df, config)  <span class="cmt"># 레짐 AND/OR 또는 직접 수식</span></div>
+        <p>복합 전략(전략 합성)은 하위 전략이 다시 복합 전략일 수도 있어 재귀로 처리됩니다 —
+          "A AND (B OR C)" 같은 임의 깊이의 조합이 가능한 이유입니다.</p>
+      </article>
+
+      <article class="card">
+        <span class="card-eyebrow">신규 · 여섯 번째 스키마</span>
+        <h3 class="card-title">compute_ensemble_score() — 이진 판정 대신 연속 점수</h3>
+        <p>
+          나머지 다섯 스키마는 결국 불리언(참/거짓) 조건을 조합합니다. 앙상블은 다릅니다 — 지표별
+          "원값"(예: RSI 값, MACD 히스토그램)을 <b>롤링 z-점수 + tanh</b>로 -1~1 범위로 표준화한 뒤
+          가중평균합니다.
+        </p>
+        <div class="code-block mono"><span class="cmt"># SCORE_EVALUATORS: 원값(raw)을 반환하는 레지스트리 — INDICATOR_EVALUATORS(bool 반환)와 대칭</span>
+SCORE_EVALUATORS = {
+    "rsi": <span class="kw">lambda</span> df, c: compute_rsi(df, period=c["period"]),
+    "macd_hist": <span class="kw">lambda</span> df, c: compute_macd(df, ...)["hist"],
+    "ma_spread": _ma_spread,   <span class="cmt"># (단기이평-장기이평)/장기이평 — 추세 강도/방향의 연속값</span>
+    <span class="cmt"># ... percent_b, mfi, roc</span>
+}
+
+<span class="kw">def</span> compute_ensemble_score(df, config):
+    weighted_sum = 0
+    <span class="kw">for</span> cond <span class="kw">in</span> config["indicators"]:
+        raw = SCORE_EVALUATORS[cond["indicator"]](df, cond)
+        score = _zscore_tanh(raw, window=config.get("zscore_window", 60))
+        <span class="kw">if</span> cond.get("mode") == "mean_revert":
+            score = -score           <span class="cmt"># 과매수=악재, 과매도=호재로 해석 반전</span>
+        weighted_sum += score * cond.get("weight", 1.0)
+    <span class="kw">return</span> (weighted_sum / 총_가중치).clip(-1, 1)</div>
+        <p>
+          이후 <code class="path">generate_ensemble_position()</code>이 이 점수에 진입/청산
+          임계값(히스테리시스)을 적용해 0~1 비중으로 바꾸고, <code class="path">extract_weighted_trades()</code>가
+          그 연속 비중에서 매매(Trade) 목록을 추출합니다(0/1 이진 포지션의 <code class="path">extract_trades()</code>와
+          같은 "진입~청산 사이클" 로직을 연속값에 맞게 재구현한 버전).
+        </p>
+        <p class="why"><b>기존 엔진과 어떻게 맞물리는가.</b> <code class="path">core.backtest_engine._simulate_on_raw()</code>가
+          <code class="path">is_ensemble_config()</code>를 확인해 이 경로로 분기하는 것 말고는, 앙상블
+          전략도 <code class="path">compute_equity_curve()</code>·<code class="path">calculate_metrics()</code>·
+          Masters 4대 검증·전략 상관관계까지 나머지 파이프라인을 전부 그대로 통과합니다 — 6번째
+          스키마를 추가하면서 기존 백테스트 엔진 코드는 한 줄도 안 바뀌었습니다(스키마별 포지션 생성
+          로직만 갈아끼우는 설계 덕분).</p>
+        <div class="refs">
+          <span class="ref-label">구현</span>
+          <code class="path">core/strategy_engine.py</code> · <code class="path">SCORE_EVALUATORS</code>,
+          <code class="path">_zscore_tanh()</code>, <code class="path">compute_ensemble_score()</code>
+        </div>
+      </article>
+
+      <article class="card">
+        <span class="card-eyebrow">패턴 · 상태 머신</span>
+        <h3 class="card-title">1:2:6 단계별 진입 — simulate_staged_positions()</h3>
+        <p>
+          후지모토 시게루류 분할매매를 흉내 냅니다. 하루하루 반복문을 돌며 "지금 몇 단계까지
+          진입했는지"(<span class="mono">stage_level</span>)와 "각 단계별로 얼마나 물려있는지"
+          (<span class="mono">open_tags: dict[단계, 비중]</span>)를 갱신하는 상태 머신입니다.
+        </p>
+        <div class="code-block mono"><span class="cmt"># 매 거래일 i 마다:</span>
+<span class="kw">for</span> k <span class="kw">in</span> range(1, n_entry+1):
+    <span class="kw">if</span> entry_signals[k][i] <span class="kw">and</span> (이전 단계까지 진입된 상태 <span class="kw">or</span> 마지막 단계):
+        open_tags[k] = entry_weights[k]   <span class="cmt"># k단계 진입</span>
+
+<span class="kw">if</span> emergency_signal[i]:      open_tags = {}          <span class="cmt"># 긴급청산 최우선</span>
+<span class="kw">elif</span> 종가 &gt;= 목표익절가:    open_tags = {}          <span class="cmt"># 손절 대비 N배 익절</span>
+<span class="kw">elif</span> 종가 &lt; 손절레벨:      open_tags = {}          <span class="cmt"># 진입 시점에 고정된 레벨</span>
+<span class="kw">elif</span> 마지막 청산단계 신호:  open_tags = {}          <span class="cmt"># 잔량 전부 정리</span>
+<span class="kw">else</span>:                    개별 단계만 부분 청산
+
+weight_signal[i] = sum(open_tags.values())</div>
+        <p class="why"><b>왜 이렇게 짰는가.</b> 손절/익절 레벨은 <b>진입 사이클이 시작되는 그 순간</b>
+          한 번 스냅샷해서 고정합니다 — 이후 지표가 다시 움직여도 그 사이클이 끝날 때까지는 처음 정한
+          레벨을 그대로 씁니다. 그래야 "손절선이 매일 지표 따라 흔들리는" 비현실적인 시뮬레이션을
+          피할 수 있습니다.</p>
+      </article>
+
+      <article class="card">
+        <span class="card-eyebrow">패턴 · 룩어헤드 방지</span>
+        <h3 class="card-title">extract_trades() — 다음날 체결</h3>
+        <div class="code-block mono">executed_position = position.shift(1).fillna(0)  <span class="cmt"># 신호는 오늘, 체결은 내일</span>
+<span class="kw">for</span> i <span class="kw">in</span> range(len(df)):
+    <span class="kw">if</span> executed_position[i] == 1 <span class="kw">and</span> executed_position[i-1] == 0:
+        entry_idx = i                    <span class="cmt"># 진입 체결일</span>
+    <span class="kw">elif</span> executed_position[i] == 0 <span class="kw">and</span> executed_position[i-1] == 1:
+        Trade(entry_idx, i, ...)         <span class="cmt"># 청산 체결일 -> 매매 1건 완성</span></div>
+        <p>신호가 발생한 날의 종가는 "이미 그날 장이 끝난 뒤"에나 확정되므로, 그 신호로 실제 주문을
+          넣을 수 있는 가장 빠른 시점은 다음 거래일입니다. 이 한 줄(<span class="mono">shift(1)</span>)이
+          이 엔진 전체의 룩어헤드 편향 방지 원칙입니다.</p>
+      </article>
+    </section>
+
+    <hr class="divider" />
+
+    <!-- ============ BACKTEST ENGINE ============ -->
+    <section class="block" id="sec-backtest">
+      <div class="block-head">
+        <p class="block-tag">Module ②</p>
+        <h2 class="block-title">백테스팅 엔진 <span class="file mono">core/backtest_engine.py</span></h2>
+        <p class="block-intro">
+          포지션 시계열을 받아 자산가치 곡선을 만들고, 그 곡선이 통계적으로 신뢰할 만한지 네 가지
+          방법으로 검증합니다. 저장소에서 가장 크고 중심적인 모듈입니다.
+        </p>
+      </div>
+
+      <article class="card">
+        <span class="card-eyebrow">핵심 · 복리 계산</span>
+        <h3 class="card-title">compute_equity_curve() — 자산가치 곡선</h3>
+        <div class="code-block mono">daily_return = 종가.pct_change()
+executed_position = position.shift(1)              <span class="cmt"># 룩어헤드 방지</span>
+turnover = |executed_position[t] − executed_position[t-1]|
+cost = turnover × (fee_bps + slippage_bps) / 10000
+
+strategy_return[t] = daily_return[t] × executed_position[t] − cost[t]
+equity = (1 + strategy_return).cumprod() × 100      <span class="cmt"># 시작=100</span></div>
+        <p>
+          포지션이 0/1이든, 1:2:6 전략의 0~1 비중이든 같은 공식이 그대로 통합니다 — 비중이 부분적으로만
+          바뀌면(예: 0.1→0.3) 회전율도 그만큼만(0.2) 잡혀 비용도 비례해서만 발생합니다.
+        </p>
+        <div class="refs"><span class="ref-label">함수</span><code class="path">compute_equity_curve()</code>, <code class="path">simulate_contribution_equity()</code>(월 적립 버전)</div>
+      </article>
+
+      <article class="card">
+        <span class="card-eyebrow">핵심 · 지표 파이프라인</span>
+        <h3 class="card-title">calculate_metrics() — 9개 지표를 한 번에</h3>
+        <p>
+          자산가치 곡선과 매매 리스트(<span class="mono">list[Trade]</span>) 두 가지만 입력받아
+          누적수익률·CAGR·MDD·샤프·승률·매매횟수·손익비·칼마지수·평균낙폭지속기간을 전부 계산해
+          하나의 dict로 반환합니다. 아래는 그중 두 지표가 "정의되지 않는 경우"를 처리하는 방식입니다.
+        </p>
+        <table class="mini">
+          <thead><tr><th>상황</th><th>처리</th></tr></thead>
+          <tbody>
+            <tr><td>진 거래가 0건 (손익비 분모=0)</td><td><span class="mono">_RATIO_METRIC_CAP = 999.0</span>으로 캡핑</td></tr>
+            <tr><td>낙폭이 0 (칼마지수 분모=0)</td><td>CAGR&gt;0이면 999.0, 아니면 0.0</td></tr>
+            <tr><td>매매 0건 / 자산곡선 2일 미만</td><td>모든 지표 0으로 채운 dict를 조기 반환</td></tr>
+          </tbody>
+        </table>
+        <p class="why"><b>왜 <span class="mono">inf</span> 대신 999.0인가.</b> 수학적으로는 무한대가
+          맞지만, SQLite Float 컬럼·JSON 직렬화·Streamlit 데이터프레임 전 구간에서 <span class="mono">inf</span>를
+          안전하게 다루려면 번거로운 예외 처리가 곳곳에 필요합니다. "사실상 무한대"를 뜻하는 유한한
+          상한값 하나로 그 복잡도를 없앴습니다.</p>
+        <div class="refs"><span class="ref-label">함수</span><code class="path">calculate_metrics()</code>, <code class="path">_compute_calmar()</code>, <code class="path">_compute_avg_drawdown_duration_days()</code></div>
+      </article>
+
+      <article class="card">
+        <span class="card-eyebrow">검증 · Masters 4대 테스트</span>
+        <h3 class="card-title">과최적화 탐지 파이프라인</h3>
+        <div class="table-wrap">
+          <table class="mini">
+            <thead><tr><th>#</th><th>함수</th><th>핵심 아이디어</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">1</td><td class="mono">run_sensitivity_sweep()</td><td>파라미터를 이웃 값으로 바꿔가며 재실행 → 결과가 완만한지 확인</td></tr>
+              <tr><td class="mono">2</td><td class="mono">run_permutation_test()</td><td>캔들 순서만 섞은 가짜 데이터 N개 위에서 재실행 → p-value 산출</td></tr>
+              <tr><td class="mono">3</td><td class="mono">run_partition_test()</td><td>총 로그수익률 = 추세 + 실력 + 편향으로 분해</td></tr>
+              <tr><td class="mono">4</td><td class="mono">summarize_strategy_vs_benchmarks()</td><td>수익률/CAGR/MDD/샤프 4축 전부에서 매수보유와 승패 비교</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          1·2번은 같은 <code class="path">_simulate_on_raw()</code> 헬퍼를 공유합니다 — 순열검정은
+          가격 데이터를 <code class="path">_shuffle_daily_bars()</code>로 바꿔치기만 하면 나머지
+          시뮬레이션 로직이 그대로 재사용되도록 설계했기 때문입니다.
+        </p>
+      </article>
+
+      <article class="card">
+        <span class="card-eyebrow">신규 · 전략 수명</span>
+        <h3 class="card-title">compute_alpha_decay() — 재튜닝 없이 재적용</h3>
+        <div class="code-block mono">full_run   = run_backtest(ticker, config, full_start, full_end)
+recent_run = run_backtest(ticker, config, today−N개월, today)   <span class="cmt"># 같은 config!</span>
+
+decay_ratio = recent_run.sharpe / full_run.sharpe
+is_decayed  = decay_ratio &lt; 0.3 <span class="kw">or</span> recent_run.sharpe &lt; 0</div>
+        <p><b>의도적으로 재튜닝하지 않습니다.</b> 최근 구간에 파라미터를 다시 맞추면(재최적화) 결과가
+          좋아 보이는 이유가 "전략이 여전히 유효해서"인지 "최근 데이터에 새로 끼워 맞춰서"인지 구분할
+          수 없기 때문입니다.</p>
+        <div class="refs"><span class="ref-label">저장</span><code class="path">save_decay_check()</code> → <code class="path">StrategyDecayCheck</code> 테이블에 이력 누적</div>
+      </article>
+
+      <article class="card">
+        <span class="card-eyebrow">신규 · 홀리그레일</span>
+        <h3 class="card-title">compute_strategy_correlation() — 종목이 아닌 전략끼리</h3>
+        <p>
+          <code class="path">core.portfolio</code>의 상관관계는 "종목" 간 계산이지만, 이 함수는
+          동일한 계산을 "전략"의 자산가치 곡선에 적용합니다. 여러 전략을 <code class="path">run_strategy_portfolio()</code>로
+          한 번에 백테스트한 뒤, 각 곡선의 일간수익률을 뽑아 상관계수 행렬을 만듭니다.
+        </p>
+        <div class="code-block mono">returns = {label: run.equity_curve.pct_change() <span class="kw">for</span> label, run <span class="kw">in</span> runs.items()}
+corr_matrix = DataFrame(returns).corr()
+
+<span class="cmt"># 국면별 버전 — 순환참조 방지를 위해 함수 안에서 지연 import</span>
+<span class="kw">from</span> core <span class="kw">import</span> market_regime
+regime_corr = market_regime.compute_regime_conditional_correlation(returns_df)</div>
+        <p class="why"><b>순환참조를 피하는 법.</b> <code class="path">market_regime.py</code>는
+          <code class="path">DEFAULT_BENCHMARK_TICKER</code> 상수를 쓰려고 모듈 최상단에서
+          <code class="path">backtest_engine</code>을 import합니다. 그래서 반대 방향
+          (<code class="path">backtest_engine</code> → <code class="path">market_regime</code>)은
+          함수 <b>안에서</b> 지연 import해야 순환 임포트 에러가 나지 않습니다 — 이 저장소 전체에서
+          반복되는 규칙입니다.</p>
+      </article>
+
+      <article class="card">
+        <span class="card-eyebrow">신규 · 이력 누적</span>
+        <h3 class="card-title">save_strategy_correlation_snapshot() — 한 번이 아니라 계속 쌓기</h3>
+        <p>
+          "이번 달 상관관계가 높다고 바로 판단하지 말라"는 원칙을 지키려면 상관관계도 한 번 계산하고
+          끝내는 게 아니라 <b>이력을 쌓아야</b> 합니다. <code class="path">CorrelationSnapshot</code>
+          테이블 하나를 <code class="path">kind="strategy"</code>(<code class="path">core.backtest_engine</code>)와
+          <code class="path">kind="portfolio"</code>(<code class="path">core.portfolio</code>) 양쪽이
+          공유합니다 — 저장 시점의 평균/최댓값(비대각 원소 기준)을 함께 남겨, 매번 전체 행렬을
+          다시 열지 않고도 추이만 빠르게 훑어볼 수 있게 했습니다.
+        </p>
+        <div class="code-block mono">off_diag = corr_matrix.to_numpy()[~np.eye(n, dtype=bool)]  <span class="cmt"># 대각선(자기 자신=1) 제외</span>
+CorrelationSnapshot(kind="strategy", avg_correlation=off_diag.mean(), max_correlation=off_diag.max(), ...)</div>
+        <p class="why"><b>왜 새 테이블을 또 안 만들었는가.</b> <code class="path">StrategyDecayCheck</code>와
+          똑같은 "스냅샷 누적" 문제라 똑같은 해법을 재사용했습니다 — 다른 점은 "무엇을 kind로 구분해
+          한 테이블에 같이 담을지"뿐입니다. 모듈 ⑤의 스냅샷 캐싱 패턴과는 결이 달라 보이지만(그쪽은
+          "최신 1개만 빠르게 읽기", 이쪽은 "이력 전체를 훑어 추이 보기") 저장 방식 자체는 동일합니다.</p>
+      </article>
+    </section>
+
+    <hr class="divider" />
+
+    <!-- ============ POSITION SIZING ============ -->
+    <section class="block" id="sec-sizing">
+      <div class="block-head">
+        <p class="block-tag">Module ③</p>
+        <h2 class="block-title">포지션 사이징 계산기 <span class="file mono">core/position_sizing.py</span></h2>
+        <p class="block-intro">
+          이 모듈은 의도적으로 얇습니다 — DB도, 네트워크도, 백테스트 엔진도 몰라야 합니다.
+        </p>
+      </div>
+
+      <article class="card">
+        <span class="card-eyebrow">설계 원칙 · 순수 함수</span>
+        <h3 class="card-title">왜 이 모듈만 이렇게 얇은가</h3>
+        <p>
+          <code class="path">fixed_fractional_size()</code>, <code class="path">kelly_fraction()</code>,
+          <code class="path">volatility_target_weight()</code> 넷 다 숫자를 받아 숫자를 반환하는
+          순수 함수입니다. 백테스트 엔진의 <span class="mono">Trade</span> 리스트나 실시간 시세를
+          "어디서 가져올지"는 전혀 모르고, 호출부(Streamlit 페이지, <code class="path">core.portfolio</code>)가
+          그 값을 만들어 넘겨줍니다.
+        </p>
+        <div class="code-block mono"><span class="cmt"># 전략 스튜디오가 이 모듈을 쓰는 방식 (app/pages/1_전략_스튜디오.py)</span>
+trade_stats = position_sizing.compute_trade_stats(strategy_run.trades)   <span class="cmt"># 백테스트 결과에서</span>
+kelly = position_sizing.kelly_fraction(trade_stats.win_rate, ...)        <span class="cmt"># 계산만</span></div>
+        <p class="why"><b>이렇게 짜면 뭐가 좋은가.</b> 이 4개 함수는 계좌 크기가 얼마든, 크립토든
+          주식이든, 심지어 이 저장소 밖 다른 프로젝트에서도 그대로 재사용할 수 있습니다 — 순수
+          함수라 어떤 문맥에 갖다 놔도 항상 같은 입력에 같은 출력을 냅니다.</p>
+      </article>
+    </section>
+
+    <hr class="divider" />
+
+    <!-- ============ PORTFOLIO ============ -->
+    <section class="block" id="sec-portfolio">
+      <div class="block-head">
+        <p class="block-tag">Module ④</p>
+        <h2 class="block-title">포트폴리오 관리 <span class="file mono">core/portfolio.py</span></h2>
+        <p class="block-intro">
+          실제 보유 종목의 손익·리스크를 계산합니다. "계산 함수"와 "조회+계산을 합친 함수"를
+          의도적으로 분리한 게 이 모듈의 핵심 설계입니다.
+        </p>
+      </div>
+
+      <article class="card">
+        <span class="card-eyebrow">설계 원칙 · compute_* vs get_*</span>
+        <h3 class="card-title">두 계층으로 나뉜 함수 이름</h3>
+        <div class="table-wrap">
+          <table class="mini">
+            <thead><tr><th>계층</th><th>예시</th><th>특징</th></tr></thead>
+            <tbody>
+              <tr><td><span class="mono">compute_*</span></td><td class="mono">compute_correlation_matrix(), compute_portfolio_volatility()</td><td>순수 함수, 단위 테스트 쉬움</td></tr>
+              <tr><td><span class="mono">get_*</span></td><td class="mono">get_portfolio_risk(), get_recommended_weights()</td><td>DB/시세 조회 + compute_* 조합, 실사용 진입점</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          <code class="path">get_portfolio_risk()</code>가 한 번 조회한 <span class="mono">daily_returns</span>를
+          결과 dict에 그대로 담아 반환하기 때문에, <code class="path">get_recommended_weights()</code>와
+          <code class="path">get_regime_conditional_correlation()</code>은 시세를 <b>다시 조회하지
+          않고</b> 그 값을 재사용합니다.
+        </p>
+        <div class="code-block mono">risk = get_portfolio_risk(pnl_df)              <span class="cmt"># 시세 조회 1회</span>
+weights = get_recommended_weights(risk)         <span class="cmt"># risk["daily_returns"] 재사용, 조회 없음</span>
+regime_corr = get_regime_conditional_correlation(risk)  <span class="cmt"># 마찬가지</span></div>
+        <p class="why"><b>왜 이렇게 짰는가.</b> 종목 시세 조회는 이 앱에서 가장 느린 작업입니다.
+          같은 화면에 리스크·추천비중·국면별상관관계 세 섹션을 보여주면서 시세를 세 번 따로
+          조회하면 페이지가 세 배 느려집니다.</p>
+      </article>
+    </section>
+
+    <hr class="divider" />
+
+    <!-- ============ MARKET REGIME ============ -->
+    <section class="block" id="sec-regime">
+      <div class="block-head">
+        <p class="block-tag">Module ⑤</p>
+        <h2 class="block-title">시장 국면 분류기 <span class="file mono">core/market_regime.py</span></h2>
+        <p class="block-intro">
+          "지금 강세장인가 약세장인가"를 규칙 기반으로 판정합니다. 머신러닝이 아니라 우선순위가 명확한
+          규칙의 나열이라, 왜 그 날이 그 국면으로 라벨링됐는지 항상 설명할 수 있습니다.
+        </p>
+      </div>
+
+      <article class="card">
+        <span class="card-eyebrow">핵심 · 규칙 우선순위</span>
+        <h3 class="card-title">classify_daily_regime() — 3단 캐스케이드</h3>
+        <div class="code-block mono"><span class="kw">if</span> 52주_고점_대비_낙폭 &lt;= −20%:
+    국면 = "약세장"                       <span class="cmt"># ① 최우선 — 공식적인 약세장 정의</span>
+<span class="kw">elif</span> ADX(14) &lt; 20:
+    국면 = "횡보장"                       <span class="cmt"># ② 추세 자체가 약함</span>
+<span class="kw">else</span>:
+    국면 = "강세장" <span class="kw">if</span> 종가 &gt; SMA200 <span class="kw">else</span> "약세장"  <span class="cmt"># ③ 200일선 기준</span></div>
+        <p>모든 날이 반드시 셋 중 하나로 라벨링되고(판단 근거가 부족한 초반 구간은 "횡보장"으로
+          기본 처리), 벡터 연산만으로 계산되기 때문에 5년치 이력을 매일 밤 훑는 워크포워드 튜닝에서도
+          충분히 빠릅니다.</p>
+      </article>
+
+      <article class="card">
+        <span class="card-eyebrow">패턴 · 스냅샷 캐싱</span>
+        <h3 class="card-title">무거운 계산은 밤에 미리, 낮에는 읽기만</h3>
+        <p>
+          S&amp;P500 전 종목을 훑는 <code class="path">get_market_regime_snapshot()</code>은
+          페이지를 열 때마다 돌리기엔 무겁습니다. 그래서 스케줄러가 매일 한국시간 00:00에 한 번
+          계산해 <code class="path">MarketRegimeSnapshot</code> 테이블에 저장하고, 페이지는 가장
+          최근 행을 읽기만 합니다 — 덮어쓰지 않고 계속 쌓아서 국면 변화 추이도 나중에 볼 수 있습니다.
+        </p>
+        <p>
+          이 저장소 상시 서버가 없는 배포 환경(Streamlit Community Cloud)에서는 GitHub Actions가
+          같은 결과를 JSON으로 커밋해두는 폴백까지 있습니다 — <code class="path">get_latest_market_regime_snapshot()</code>이
+          DB와 그 JSON 중 더 최신인 쪽을 골라 반환합니다.
+        </p>
+        <p class="why"><b>같은 패턴이 재사용되는 곳.</b> <code class="path">SectorStrengthSnapshot</code>,
+          <code class="path">KostolanyCycleSnapshot</code>, 그리고 이번에 추가한
+          <code class="path">StrategyDecayCheck</code>까지 — "계산은 무겁고 자주 안 바뀌는데 자주
+          보여줘야 한다"는 문제를 이 저장소는 전부 같은 스냅샷-이력 패턴으로 푼다.</p>
+      </article>
+    </section>
+
+    <hr class="divider" />
+
+    <!-- ============ PATTERNS ============ -->
+    <section class="block" id="sec-patterns">
+      <div class="block-head">
+        <p class="block-tag">Cross-cutting</p>
+        <h2 class="block-title">모듈을 가로지르는 공통 설계 패턴</h2>
+        <p class="block-intro">
+          개별 모듈보다, 이 네 가지 패턴을 이해하면 저장소 전체를 훨씬 빨리 읽을 수 있습니다.
+        </p>
+      </div>
+
+      <div class="principle-grid">
+        <div class="principle">
+          <p class="pn">Pattern 01</p>
+          <h4>백그라운드 작업 실행기</h4>
+          <p><code class="path mono">core/job_manager.py</code> — Streamlit은 페이지를 이동하면 실행 중이던
+            스크립트를 끊어버립니다. 무거운 백테스트는 별도 스레드풀에서 돌리고 페이지는 폴링만
+            하도록 분리해, 사용자가 다른 페이지로 이동해도 계산이 계속됩니다.</p>
+        </div>
+        <div class="principle">
+          <p class="pn">Pattern 02</p>
+          <h4>스키마 마이그레이션</h4>
+          <p><code class="path mono">core/db.py</code>의 <code class="path mono">_add_missing_columns()</code> —
+            SQLAlchemy의 <code class="path mono">create_all()</code>은 없는 테이블만 만들 뿐 기존 테이블에
+            나중에 추가된 컬럼은 못 채웁니다. 그래서 <code class="path mono">ALTER TABLE ADD COLUMN</code>을
+            직접 실행하는 최소 마이그레이션 함수를 둡니다 (이번 세션의
+            <code class="path mono">profit_factor</code>, <code class="path mono">calmar</code>,
+            <code class="path mono">avg_drawdown_days</code> 컬럼도 이 방식으로 추가됨).</p>
+        </div>
+        <div class="principle">
+          <p class="pn">Pattern 03</p>
+          <h4>지연 import로 순환참조 차단</h4>
+          <p><code class="path mono">backtest_engine ↔ market_regime</code>처럼 서로를 참조해야 하는
+            모듈 쌍은, 한쪽은 모듈 최상단에서 import하고 반대쪽은 함수 안에서 그때그때 import합니다.
+            새 모듈을 추가할 때 이 방향을 지키지 않으면 앱 시작부터 <span class="mono">ImportError</span>가 납니다.</p>
+        </div>
+        <div class="principle">
+          <p class="pn">Pattern 04</p>
+          <h4>선택적 비용 파라미터</h4>
+          <p><code class="path mono">fee_bps=0.0, slippage_bps=0.0</code> 같은 새 파라미터는 항상 기본값을
+            "이전과 동일한 동작"으로 둡니다. 그래야 <code class="path mono">core/kostolany_scenario_engine.py</code>처럼
+            이미 있던 20곳 넘는 호출부를 하나도 안 고쳐도 됩니다 — 이번 세션에서 비용 모델링을 추가할 때
+            실제로 적용한 원칙입니다.</p>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider" />
+
+    <section class="block" id="sec-order">
+      <div class="block-head">
+        <p class="block-tag">Guide</p>
+        <h2 class="block-title">처음 읽는다면 이 순서로</h2>
+      </div>
+      <div class="callout-big">
+        <ol class="steps">
+          <li><b>core/strategy_engine.py</b>의 <span class="mono">evaluate_boolean_signal()</span>부터 —
+            전략이 결국 "0/1 시계열"로 귀결된다는 걸 이해하면 나머지가 다 쉬워집니다.</li>
+          <li><b>core/backtest_engine.py</b>의 <span class="mono">compute_equity_curve()</span>와
+            <span class="mono">calculate_metrics()</span> — 딱 이 두 함수가 저장소 전체의 심장입니다.</li>
+          <li><b>tests/test_backtest_engine.py</b>를 나란히 열어두고 — 각 함수가 어떤 입력·출력을
+            기대하는지 테스트 케이스만큼 빠르게 알려주는 문서는 없습니다.</li>
+          <li>그다음 <b>core/position_sizing.py → core/portfolio.py → core/market_regime.py</b> 순서로 —
+            전부 앞의 두 모듈이 만든 결과(Trade 리스트, 자산가치 곡선)를 "받아서" 쓰는 소비자입니다.</li>
+        </ol>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer class="page-footer">
+  Quant 저장소 아키텍처 노트 · 2026-07-27 세션 기준. 짝문서 "스터디 노트(01/개념편)"와 함께 보면
+  각 함수가 구현하는 금융공학 개념까지 연결해 이해할 수 있습니다.
+</footer>
+
+
+</body>
+</html>

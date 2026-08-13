@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body>
+<title>강세장 대응 전략 리포트 — 추세추종 로테이션</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #eef1f4;
+    --surface: #ffffff;
+    --surface-2: #e4e9ee;
+    --ink: #14181d;
+    --ink-muted: #565f6b;
+    --ink-faint: #88919a;
+    --border: #d8dee5;
+    --accent: #4a3aa7;
+    --accent-ink: #ffffff;
+    --accent-wash: #eeeafb;
+    --series-momentum: #2a78d6;
+    --series-passive: #1baf7a;
+    --series-kostolany: #eb6834;
+    --series-bench: #9299a3;
+    --good: #0ca30c;
+    --good-wash: #e6f6e6;
+    --critical: #d03b3b;
+    --critical-wash: #fbeaea;
+    --font-display: Georgia, "Iowan Old Style", "Palatino Linotype", "Noto Serif KR", serif;
+    --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", "Nanum Gothic Coding", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --bg: #0e1116; --surface: #171b21; --surface-2: #1f242c;
+      --ink: #f1f3f5; --ink-muted: #a6aeb8; --ink-faint: #6d7680; --border: #2a313a;
+      --accent: #9085e9; --accent-ink: #14181d; --accent-wash: #232049;
+      --series-momentum: #3987e5; --series-passive: #199e70; --series-kostolany: #d95926; --series-bench: #6d7680;
+      --good: #3fc23f; --good-wash: #163420; --critical: #e66767; --critical-wash: #3a1f1f;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0e1116; --surface: #171b21; --surface-2: #1f242c;
+    --ink: #f1f3f5; --ink-muted: #a6aeb8; --ink-faint: #6d7680; --border: #2a313a;
+    --accent: #9085e9; --accent-ink: #14181d; --accent-wash: #232049;
+    --series-momentum: #3987e5; --series-passive: #199e70; --series-kostolany: #d95926; --series-bench: #6d7680;
+    --good: #3fc23f; --good-wash: #163420; --critical: #e66767; --critical-wash: #3a1f1f;
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --bg: #eef1f4; --surface: #ffffff; --surface-2: #e4e9ee;
+    --ink: #14181d; --ink-muted: #565f6b; --ink-faint: #88919a; --border: #d8dee5;
+    --accent: #4a3aa7; --accent-ink: #ffffff; --accent-wash: #eeeafb;
+    --series-momentum: #2a78d6; --series-passive: #1baf7a; --series-kostolany: #eb6834; --series-bench: #9299a3;
+    --good: #0ca30c; --good-wash: #e6f6e6; --critical: #d03b3b; --critical-wash: #fbeaea;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-body); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  ::selection { background: var(--accent); color: var(--accent-ink); }
+  .page { max-width: 920px; margin: 0 auto; padding: 56px 24px 120px; }
+
+  .masthead { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding-bottom: 20px; border-bottom: 3px solid var(--ink); margin-bottom: 8px; flex-wrap: wrap; }
+  .masthead .label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); }
+  .masthead .issue { font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); text-align: right; }
+
+  h1.title { font-family: var(--font-display); font-weight: 400; font-size: clamp(28px, 4.4vw, 42px); line-height: 1.15; margin: 18px 0 10px; text-wrap: balance; letter-spacing: -0.01em; }
+  p.dek { font-family: var(--font-display); font-style: italic; font-size: 18px; color: var(--ink-muted); max-width: 64ch; margin: 0 0 28px; text-wrap: balance; }
+  p.dek b { color: var(--ink); font-weight: 600; font-style: normal; }
+
+  .scope-note { font-size: 13.5px; color: var(--ink-muted); background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 4px; padding: 12px 16px; margin-bottom: 44px; }
+  .scope-note b { color: var(--ink); }
+
+  .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 56px; }
+  .stat { background: var(--surface); padding: 20px 18px; display: flex; flex-direction: column; gap: 6px; }
+  .stat .k { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-faint); }
+  .stat .v { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 26px; font-weight: 600; letter-spacing: -0.02em; }
+  .stat .v.good { color: var(--good); }
+  .stat .v.critical { color: var(--critical); }
+  .stat .d { font-size: 12px; color: var(--ink-muted); }
+
+  section { margin-bottom: 64px; }
+  .section-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 6px; }
+  .section-head .num { font-family: var(--font-mono); font-size: 13px; color: var(--accent); font-weight: 600; }
+  h2 { font-family: var(--font-display); font-weight: 400; font-size: 26px; margin: 0; letter-spacing: -0.005em; }
+  .section-intro { color: var(--ink-muted); max-width: 68ch; margin: 10px 0 28px; }
+  h3 { font-family: var(--font-body); font-size: 16px; font-weight: 700; margin: 34px 0 6px; display: flex; align-items: baseline; gap: 10px; }
+  h3 .tag { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 7px; border-radius: 3px; font-weight: 700; }
+  h3 .tag.good { background: var(--good-wash); color: var(--good); }
+  h3 .tag.critical { background: var(--critical-wash); color: var(--critical); }
+  h3 .tag.neutral { background: var(--accent-wash); color: var(--accent); }
+  p { max-width: 70ch; }
+  .finding { max-width: 70ch; color: var(--ink-muted); }
+  .finding b { color: var(--ink); font-weight: 600; }
+  blockquote.src { margin: 14px 0; padding: 10px 16px; border-left: 3px solid var(--border); font-size: 13px; color: var(--ink-faint); max-width: 66ch; }
+  blockquote.src a { color: var(--ink-muted); }
+
+  .figure { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px 20px 12px; margin: 22px 0; }
+  .figure .fig-label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.05em; color: var(--ink-faint); text-transform: uppercase; margin-bottom: 4px; }
+  .figure .fig-title { font-size: 14.5px; font-weight: 700; margin-bottom: 14px; }
+  .chart-scroll { overflow-x: auto; }
+  .legend { display: flex; gap: 18px; font-size: 12.5px; color: var(--ink-muted); margin-top: 10px; flex-wrap: wrap; }
+  .legend .sw { display: inline-flex; align-items: center; gap: 6px; }
+  .legend .dot { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+  .legend .ln { width: 14px; height: 2px; display: inline-block; }
+
+  .ln-momentum { stroke: var(--series-momentum); }
+  .ln-passive { stroke: var(--series-passive); }
+  .ln-kostolany { stroke: var(--series-kostolany); }
+  .ln-bench { stroke: var(--series-bench); stroke-dasharray: 4 3; }
+  .axis-line { stroke: var(--border); stroke-width: 1; }
+  .axis-label { fill: var(--ink-faint); font-family: var(--font-mono); font-size: 10px; }
+  .hover-x { stroke: var(--ink-faint); stroke-width: 1; opacity: 0; pointer-events: none; }
+  .hover-dot { opacity: 0; pointer-events: none; }
+
+  .viz-tooltip { position: fixed; pointer-events: none; background: var(--ink); color: var(--bg); font-family: var(--font-mono); font-size: 12px; padding: 8px 11px; border-radius: 5px; line-height: 1.6; box-shadow: 0 4px 14px rgba(0,0,0,0.25); opacity: 0; transform: translate(-50%, calc(-100% - 10px)); transition: opacity 0.1s ease; z-index: 50; white-space: nowrap; }
+  .viz-tooltip.visible { opacity: 1; }
+  .viz-tooltip .tt-title { font-weight: 700; margin-bottom: 3px; }
+  .viz-tooltip .tt-row { display: flex; gap: 10px; justify-content: space-between; }
+
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; }
+  table { width: 100%; border-collapse: collapse; background: var(--surface); font-size: 13.5px; min-width: 520px; }
+  thead th { text-align: right; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); font-weight: 600; padding: 10px 14px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  thead th:first-child, td:first-child { text-align: left; }
+  tbody td { padding: 9px 14px; text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  tbody td:first-child { font-family: var(--font-body); font-weight: 600; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--surface-2); }
+  td.good { color: var(--good); }
+  td.critical { color: var(--critical); }
+  td.muted { color: var(--ink-faint); }
+  .row-highlight td { background: var(--accent-wash); }
+
+  .rule-list { display: flex; flex-direction: column; gap: 10px; margin: 18px 0; }
+  .rule { display: grid; grid-template-columns: 30px 1fr; gap: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+  .rule .n { font-family: var(--font-mono); color: var(--accent); font-weight: 700; font-size: 14px; }
+  .rule .body b { display: block; margin-bottom: 2px; }
+  .rule .body span { color: var(--ink-muted); font-size: 13.5px; }
+
+  .caveat-list { display: flex; flex-direction: column; gap: 14px; }
+  .caveat { display: grid; grid-template-columns: 20px 1fr; gap: 12px; }
+  .caveat .mark { color: var(--critical); font-weight: 700; }
+  .caveat p { margin: 0; color: var(--ink-muted); font-size: 14px; }
+  .caveat p b { color: var(--ink); }
+
+  footer { margin-top: 80px; padding-top: 20px; border-top: 1px solid var(--border); font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+
+  @media (max-width: 680px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } h1.title { font-size: 26px; } }
+</style>
+
+<div class="page">
+
+  <div class="masthead">
+    <span class="label">Quant &middot; 전략 리서치 노트</span>
+    <span class="issue">2026-08-12&nbsp;발행 &middot; No. 05 &middot; No.04 후속</span>
+  </div>
+
+  <h1 class="title">강세장엔 평균회귀가 아니라 추세추종</h1>
+  <p class="dek">지난 리포트(No. 04)는 코스톨라니 국면 매매가 7년 강세장에서 왜 졌는지 진단했다.
+    이번엔 딥서치로 근거를 찾은 <b>추세추종 + 상대강도 모멘텀 로테이션</b>을 같은 기간·같은
+    섹터로 실제 백테스트했다 &mdash; 결과: <b>수익률·낙폭·샤프 세 지표 전부 S&amp;P500을 이겼다.</b></p>
+
+  <div class="scope-note">
+    <b>분석 범위</b> &mdash; 2019-08-12 ~ 2026-08-12(SPY +167%인 강세장), GICS 11개 핵심 섹터 ETF만
+    사용(신생 테마 ETF는 12개월 모멘텀 계산에 필요한 이력이 부족해 제외), 무비용(수수료·세금
+    미반영). 강세장이라는 표본 편향은 이번에도 §6에서 다시 짚는다.
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat">
+      <span class="k">모멘텀 로테이션 누적수익률</span>
+      <span class="v good">+178.1%</span>
+      <span class="d">SPY 매수보유 +167.5% 대비 우위</span>
+    </div>
+    <div class="stat">
+      <span class="k">모멘텀 로테이션 최대낙폭</span>
+      <span class="v good">&minus;31.5%</span>
+      <span class="d">SPY &minus;34.1%보다 얕음</span>
+    </div>
+    <div class="stat">
+      <span class="k">모멘텀 로테이션 샤프</span>
+      <span class="v good">0.82</span>
+      <span class="d">SPY 0.81 / 코스톨라니 0.37</span>
+    </div>
+    <div class="stat">
+      <span class="k">코스톨라니 동적 로테이션 낙폭</span>
+      <span class="v critical">&minus;51.5%</span>
+      <span class="d">4종 중 최악, SPY보다도 나쁨</span>
+    </div>
+  </div>
+
+  <!-- ================= SECTION 1 ================= -->
+  <section id="s1">
+    <div class="section-head"><span class="num">§1</span><h2>왜 평균회귀는 강세장에서 지는가</h2></div>
+    <p class="section-intro">
+      No. 04에서 확인한 것: 코스톨라니 국면 매매는 &ldquo;52주 저점권에서 사고 고점권에서 판다&rdquo;는
+      평균회귀(mean reversion) 로직이다. 이번엔 21개 섹터를 따로따로가 아니라, 실제로 <b>그날그날
+      매수 국면인 섹터에만 자본을 배분하는 &ldquo;동적 로테이션&rdquo;</b>으로 GICS 11개 핵심 섹터에
+      직접 굴려봤다 &mdash; 결과는 더 나빴다.
+    </p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>전략</th><th>누적수익률</th><th>CAGR</th><th>MDD</th><th>샤프</th></tr></thead>
+        <tbody>
+          <tr><td>SPY 매수보유</td><td>+167.49%</td><td>15.10%</td><td>&minus;34.10%</td><td>0.81</td></tr>
+          <tr><td>11개 섹터 균등보유(패시브)</td><td>+112.74%</td><td>11.39%</td><td>&minus;36.83%</td><td>0.67</td></tr>
+          <tr class="row-highlight"><td>코스톨라니 장기 동적 로테이션</td><td class="critical">+49.13%</td><td class="critical">5.88%</td><td class="critical">&minus;51.46%</td><td class="critical">0.37</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="finding">
+      단순히 수익률만 낮은 게 아니다. <b>낙폭(MDD)이 &minus;51.46%로 SPY보다도 크다</b> &mdash; 평균회귀
+      신호가 섹터마다 따로 계산되다 보니, 코로나 크래시처럼 <b>모든 섹터가 한꺼번에 무너지는
+      상황에서는 &ldquo;그날 매수 국면인 섹터&rdquo;가 몇 개 안 남아 분산 효과 자체가 사라진다</b> &mdash;
+      집중과 하락이 동시에 온 셈이다. 방어를 위해 설계된 로직이 정작 진짜 위기에서 방어를 못 한
+      것이 이번 재구성으로 드러난 새로운 사실이다.
+    </p>
+  </section>
+
+  <!-- ================= SECTION 2 ================= -->
+  <section id="s2">
+    <div class="section-head"><span class="num">§2</span><h2>딥서치 &mdash; 강세장엔 뭐가 맞나</h2></div>
+    <p class="section-intro">최근 자료 검색으로 확인한 3가지 근거.</p>
+
+    <h3><span class="tag neutral">근거 1</span>200일 이동평균 추세추종</h3>
+    <p class="finding">
+      1928~2015년 89년치 S&amp;P500 연구: 200일선 추세추종은 원금수익률 자체는 buy&amp;hold에 못
+      미치지만(7.2% vs 11.5%, 늦게 들어가고 늦게 나오는 지연 때문) <b>위험조정 기준으로는 오히려
+      역전(11.7%)</b>한다. 이건 No.04에서 실측한 코스톨라니 장기 스타일의 트레이드오프와 정확히 같은
+      구조 &mdash; 다만 코스톨라니는 위험조정 기준에서도 못 이겼다는 게 다르다.
+    </p>
+    <blockquote class="src">Brock/Lakonishok/LeBaron(1992), Sullivan/Timmermann/White(2000) 등 —
+      "Position Trading with 200-Day Moving Average", quant-investing.com 리뷰 참고.</blockquote>
+
+    <h3><span class="tag good">근거 2</span>듀얼 모멘텀 (Gary Antonacci)</h3>
+    <p class="finding">
+      절대 모멘텀(자산 자체가 현금 대비 상승 중인가) + 상대 모멘텀(동료 자산 대비 더 강한가)을 결합.
+      Antonacci 본인이 즐겨 쓰는 버전이 정확히 <b>모닝스타 11개 GICS 섹터 로테이션</b>이다 &mdash;
+      실증 결과 buy&amp;hold보다 변동성·낙폭이 작으면서 수익도 나은 것으로 보고된다.
+    </p>
+    <blockquote class="src">Antonacci, <i>Dual Momentum Investing</i>(2012) &mdash; 2011·2012년
+      Founders Award 수상. "Simulation of Gary Antonacci's Dual Momentum Sector Rotation
+      Strategy", optimalmomentum.com.</blockquote>
+
+    <h3><span class="tag neutral">근거 3</span>12개월 모멘텀 팩터(12-1 규칙)</h3>
+    <p class="finding">
+      학계 표준 모멘텀 팩터: 최근 1개월을 제외한 12개월 수익률로 랭킹, 월간 리밸런싱. 1920년대부터
+      80년 넘는 섹터 데이터에서 모멘텀 상위 섹터 매수가 약 <b>70%의 구간에서 buy&amp;hold를
+      이겼다.</b> 월간 리밸런싱이 분기 대비 훨씬 낫다는 것도 반복 확인된다.
+    </p>
+    <blockquote class="src">Jegadeesh &amp; Titman 12-1 모멘텀; Faber, "Relative Strength
+      Strategies for Investing"(Cambria); Quantpedia, "Sector Momentum &mdash; Rotational
+      System".</blockquote>
+
+    <p class="finding">
+      세 근거를 합치면 그림이 분명하다 &mdash; <b>코스톨라니처럼 떨어진 걸 사는(mean reversion)
+      대신, 오르는 걸 사고 추세가 꺾이면 현금으로 빠지는(momentum) 방식</b>이 강세장뿐 아니라
+      낙폭 관리에서도 여러 독립 연구에서 반복 확인된다. 아래에서 이걸 그대로 구현해 실측했다.
+    </p>
+  </section>
+
+  <!-- ================= SECTION 3 ================= -->
+  <section id="s3">
+    <div class="section-head"><span class="num">§3</span><h2>설계한 전략 &mdash; 추세추종 + 상대강도 로테이션</h2></div>
+    <div class="rule-list">
+      <div class="rule"><span class="n">1</span><div class="body"><b>대상: GICS 11개 핵심 섹터
+        ETF</b><span>XLK·XLF·XLV·XLY·XLP·XLE·XLI·XLB·XLU·XLRE·XLC. 신생 테마 ETF는 제외(12개월
+        모멘텀 계산 불가).</span></div></div>
+      <div class="rule"><span class="n">2</span><div class="body"><b>매월 첫 거래일에 리밸런싱</b>
+        <span>근거2 학계 컨센서스 그대로.</span></div></div>
+      <div class="rule"><span class="n">3</span><div class="body"><b>절대 모멘텀 필터</b>
+        <span>직전 12개월(252거래일) 수익률이 양수인 섹터만 투자 후보로 남긴다 &mdash; 코스톨라니의
+        &ldquo;52주 위치&rdquo; 대신 &ldquo;12개월 추세 방향&rdquo;을 본다.</span></div></div>
+      <div class="rule"><span class="n">4</span><div class="body"><b>상대 모멘텀 랭킹</b>
+        <span>후보 중 12개월 수익률 상위 3개(Top 3)를 동일비중(각 33.3%) 보유.</span></div></div>
+      <div class="rule"><span class="n">5</span><div class="body"><b>후보 부족 시 현금 대기</b>
+        <span>절대 모멘텀 양수 섹터가 3개 미만이면 남는 비중은 현금(실전에서는 단기채 파킹
+        권장, No.04 §4 규칙4와 동일 논리) &mdash; 이게 하락장 자동 감속 장치다.</span></div></div>
+    </div>
+  </section>
+
+  <!-- ================= SECTION 4 ================= -->
+  <section id="s4">
+    <div class="section-head"><span class="num">§4</span><h2>실측 결과</h2></div>
+    <p class="section-intro">같은 2019-08-12~2026-08-12 구간, 4개 전략을 나란히 놓았다.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>전략</th><th>누적수익률</th><th>CAGR</th><th>MDD</th><th>샤프</th></tr></thead>
+        <tbody>
+          <tr><td>SPY 매수보유</td><td>+167.49%</td><td>15.10%</td><td>&minus;34.10%</td><td>0.81</td></tr>
+          <tr><td>11개 섹터 균등보유(패시브)</td><td>+112.74%</td><td>11.39%</td><td>&minus;36.83%</td><td>0.67</td></tr>
+          <tr><td>코스톨라니 장기 동적 로테이션</td><td class="critical">+49.13%</td><td class="critical">5.88%</td><td class="critical">&minus;51.46%</td><td class="critical">0.37</td></tr>
+          <tr class="row-highlight"><td>모멘텀 로테이션(신규)</td><td class="good">+178.06%</td><td class="good">15.74%</td><td class="good">&minus;31.50%</td><td class="good">0.82</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="figure">
+      <div class="fig-label">Fig. 1 &middot; 자산가치 곡선</div>
+      <div class="fig-title">4개 전략, 월별 스냅샷 (시작=100)</div>
+      <div class="chart-scroll"><svg id="chart-curves" width="880" height="360"></svg></div>
+      <div class="legend">
+        <span class="sw"><span class="ln" style="background:var(--series-momentum)"></span>모멘텀 로테이션</span>
+        <span class="sw"><span class="ln" style="background:var(--series-bench)"></span>SPY 매수보유(점선)</span>
+        <span class="sw"><span class="ln" style="background:var(--series-passive)"></span>11개 섹터 균등보유</span>
+        <span class="sw"><span class="ln" style="background:var(--series-kostolany)"></span>코스톨라니 동적 로테이션</span>
+      </div>
+    </div>
+
+    <p class="finding">
+      2020년 3월 코로나 크래시 저점(3/23)에서 모멘텀 로테이션은 75.99까지, SPY는 77.39까지
+      떨어졌다 &mdash; <b>크래시 자체를 피하진 못했다</b>(한 달 간격 리밸런싱이 급락을 따라잡기엔
+      느리다). 반면 <b>코스톨라니 동적 로테이션은 같은 시점 52.47까지 무너졌다</b> &mdash; 거의 절반이
+      날아간 것. 모멘텀의 진짜 강점은 위기를 피하는 게 아니라 <b>위기 진입 직전 자동으로 방어
+      섹터로 옮겨가고, 위기 이후 회복 국면을 놓치지 않는 것</b>이다.
+    </p>
+
+    <h3><span class="tag good">실제 로테이션 기록</span>월별 보유 섹터 예시</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>시점</th><th>보유 섹터</th><th>양(+)모멘텀 후보 수</th><th>맥락</th></tr></thead>
+        <tbody id="picks-table-body"></tbody>
+      </table>
+    </div>
+    <p class="finding">
+      2020-04-01(코로나 저점 직후)엔 양(+)모멘텀 섹터가 XLK 딱 1개뿐이라 <b>자동으로 자본의 3분의
+      2가 현금으로 대기</b>했다. 2022-10-03(2022년 약세장 바닥)에도 후보가 XLE·XLU 2개뿐이라 나머지는
+      현금이었다 &mdash; 이 자동 감속 장치가 MDD를 SPY보다도 낮춘 핵심 메커니즘이다. 반대로 지금
+      (2026-08)은 11개 전부 양(+)모멘텀이라 완전 리스크온 상태다.
+    </p>
+  </section>
+
+  <!-- ================= SECTION 5 ================= -->
+  <section id="s5">
+    <div class="section-head"><span class="num">§5</span><h2>월 적립금 · 리밸런싱 재정의</h2></div>
+    <p class="section-intro">No.04 §3~§4의 결론을 모멘텀 로테이션 기준으로 다시 쓰면 이렇게 된다.</p>
+    <div class="rule-list">
+      <div class="rule"><span class="n">1</span><div class="body"><b>월 적립금은 그달 리밸런싱
+        시점에 배분</b><span>이미 정기적으로(매달 1일) 전체 리밸런싱을 하므로, 적립금을 그 리밸런싱에
+        자연스럽게 얹으면 된다 &mdash; 코스톨라니처럼 &ldquo;신호 대기&rdquo;를 따로 설계할 필요가
+        없다(구조적으로 매달 재평가가 이미 내장돼 있음).</span></div></div>
+      <div class="rule"><span class="n">2</span><div class="body"><b>판 돈(후보 탈락 섹터)은 그달
+        상위 3개로 자동 재배분</b><span>&ldquo;같은 섹터가 다시 오를 때까지 대기&rdquo;가 아니라 매달
+        무조건 그 시점 최강 3개로 넘어간다 &mdash; No.04에서 제안만 했던 &ldquo;즉시 로테이션&rdquo;
+        규칙이 이 전략엔 이미 내장 규칙이다.</span></div></div>
+      <div class="rule"><span class="n">3</span><div class="body"><b>양(+)모멘텀 후보가 3개 미만이면
+        현금·단기채 비중이 저절로 커진다</b><span>별도 개입 불필요 &mdash; §4 실측대로 이게 하락장
+        방어 메커니즘 그 자체다.</span></div></div>
+      <div class="rule"><span class="n">4</span><div class="body"><b>비중 상한은 섹터당 33.3%로 이미
+        고정</b><span>Top 3 동일비중 구조라 No.04가 제안했던 &ldquo;25~30% 캡&rdquo;이 규칙에
+        내장돼 있다.</span></div></div>
+    </div>
+  </section>
+
+  <!-- ================= SECTION 6 ================= -->
+  <section id="s6">
+    <div class="section-head"><span class="num">§6</span><h2>한계와 주의사항</h2></div>
+    <div class="caveat-list">
+      <div class="caveat"><span class="mark">&#9888;</span><p><b>표본이 여전히 같은 강세장이다.</b>
+        모멘텀 로테이션이 SPY를 이긴 게 이 7년 한정 결과일 수 있다 &mdash; 뚜렷한 약세장이 낀 더 긴
+        기간(2000~2010)에서 재검증이 필요하다는 점은 No.04와 동일하게 남는다.</p></div>
+      <div class="caveat"><span class="mark">&#9888;</span><p><b>모멘텀도 급락 자체는 못 피한다.</b>
+        §4에서 확인했듯 코로나 크래시 당일 낙폭은 SPY와 거의 같았다(75.99 vs 77.39) &mdash; 월간
+        리밸런싱은 급변 장세엔 원천적으로 후행한다. &ldquo;위기를 피하는 도구&rdquo;가 아니라
+        &ldquo;위기 이후 계속 지지 않는 도구&rdquo;로 이해해야 한다.</p></div>
+      <div class="caveat"><span class="mark">&#9888;</span><p><b>추세 반전 초입에서 특히 약하다.</b>
+        상승에서 하락으로(또는 그 반대로) 막 바뀌는 구간은 12개월 모멘텀이 아직 이전 추세를 반영하고
+        있어 후행 신호를 낸다 &mdash; 이 전략의 구조적 약점이다.</p></div>
+      <div class="caveat"><span class="mark">&#9888;</span><p><b>거래비용 미반영.</b> 월간
+        리밸런싱(85회 리밸런싱, 매번 최대 3종목 교체)은 코스톨라니 장기 스타일보다 매매가 훨씬 잦다
+        &mdash; 실제 계좌에서는 수수료·세금을 감안해 갭 일부가 줄어들 수 있다.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <span>딥서치 기반 전략 설계 &middot; GICS 11개 섹터 ETF 실측 백테스트 &middot; No.04 후속</span>
+    <span>실측 데이터 기준 2026-08-12</span>
+  </footer>
+</div>
+
+<div class="viz-tooltip" id="tooltip"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var curveData = [["2019-08-12", 100.0, 100.0, 100.0, 100.0], ["2019-09-03", 100.93, 100.04, 97.95, 103.99], ["2019-10-01", 101.79, 100.74, 99.02, 103.92], ["2019-11-01", 106.27, 104.05, 101.51, 103.8], ["2019-12-02", 108.18, 104.88, 100.84, 102.78], ["2020-01-02", 112.77, 108.15, 103.73, 107.03], ["2020-02-03", 112.51, 107.3, 90.31, 107.38], ["2020-03-02", 107.3, 101.83, 80.18, 103.36], ["2020-04-01", 85.45, 78.9, 58.77, 83.6], ["2020-05-01", 98.17, 90.93, 67.73, 97.1], ["2020-06-01", 106.07, 98.6, 73.93, 102.9], ["2020-07-01", 107.79, 98.46, 73.51, 105.32], ["2020-08-03", 114.14, 103.01, 76.39, 112.01], ["2020-09-01", 122.4, 108.17, 79.08, 120.45], ["2020-10-01", 117.0, 103.82, 73.57, 114.97], ["2020-11-02", 114.62, 103.69, 74.88, 110.82], ["2020-12-01", 127.06, 114.79, 83.79, 123.81], ["2021-01-04", 128.02, 114.82, 84.9, 124.95], ["2021-02-01", 130.6, 117.07, 86.0, 129.19], ["2021-03-01", 135.24, 122.66, 107.28, 133.03], ["2021-04-01", 139.07, 127.75, 107.56, 135.21], ["2021-05-03", 145.17, 133.37, 107.56, 140.72], ["2021-06-01", 145.68, 135.41, 107.56, 146.52], ["2021-07-01", 149.42, 136.29, 107.56, 140.66], ["2021-08-02", 151.9, 137.18, 107.56, 140.27], ["2021-09-01", 156.84, 140.89, 107.56, 145.25], ["2021-10-01", 150.74, 136.22, 107.56, 148.25], ["2021-11-01", 159.7, 144.22, 107.56, 154.6], ["2021-12-01", 156.39, 139.24, 107.56, 148.73], ["2022-01-03", 165.83, 148.85, 107.56, 157.11], ["2022-02-01", 157.24, 144.51, 111.09, 157.96], ["2022-03-01", 149.26, 138.99, 100.87, 154.69], ["2022-04-01", 157.23, 147.9, 104.5, 165.55], ["2022-05-02", 143.88, 137.81, 94.93, 157.32], ["2022-06-01", 142.18, 138.1, 92.98, 161.32], ["2022-07-01", 132.34, 127.99, 87.36, 149.39], ["2022-08-01", 142.59, 136.12, 92.92, 155.48], ["2022-09-01", 137.61, 132.84, 90.12, 156.45], ["2022-10-03", 127.26, 122.64, 82.98, 145.44], ["2022-11-01", 133.48, 129.19, 86.29, 158.73], ["2022-12-01", 141.42, 137.21, 92.18, 163.52], ["2023-01-03", 132.2, 129.46, 87.17, 157.2], ["2023-02-01", 142.6, 138.49, 94.28, 164.21], ["2023-03-01", 137.03, 132.61, 89.93, 159.02], ["2023-04-03", 142.66, 135.69, 93.0, 160.24], ["2023-05-01", 144.24, 136.93, 94.66, 155.78], ["2023-06-01", 146.43, 134.37, 91.99, 155.29], ["2023-07-03", 154.06, 142.01, 97.06, 164.36], ["2023-08-01", 158.46, 145.69, 98.33, 167.74], ["2023-09-01", 156.63, 143.25, 95.85, 164.72], ["2023-10-02", 148.34, 134.9, 89.22, 156.33], ["2023-11-01", 146.72, 133.78, 89.68, 154.5], ["2023-12-01", 159.37, 144.59, 97.43, 169.22], ["2024-01-02", 164.07, 149.05, 101.07, 173.69], ["2024-02-01", 169.82, 150.41, 101.03, 180.11], ["2024-03-01", 178.03, 155.74, 102.61, 189.7], ["2024-04-01", 181.26, 159.63, 108.61, 190.07], ["2024-05-01", 173.69, 154.16, 110.21, 180.55], ["2024-06-03", 183.22, 159.3, 117.36, 191.0], ["2024-07-01", 189.31, 159.51, 114.17, 197.22], ["2024-08-01", 188.5, 164.46, 114.17, 195.88], ["2024-09-03", 191.65, 167.98, 114.17, 198.92], ["2024-10-01", 197.39, 173.21, 120.42, 205.31], ["2024-11-01", 198.23, 171.19, 118.05, 205.21], ["2024-12-02", 209.54, 180.64, 126.75, 221.04], ["2025-01-02", 202.95, 169.79, 114.27, 209.78], ["2025-02-03", 207.51, 176.04, 120.27, 220.49], ["2025-03-03", 202.65, 175.52, 119.89, 214.44], ["2025-04-01", 194.73, 171.56, 120.65, 208.38], ["2025-05-01", 193.87, 167.88, 116.11, 206.76], ["2025-06-02", 205.75, 174.95, 120.98, 216.92], ["2025-07-01", 214.41, 179.92, 124.67, 224.83], ["2025-08-01", 215.82, 178.74, 123.7, 222.78], ["2025-09-02", 222.26, 184.06, 128.89, 230.3], ["2025-10-01", 232.04, 188.06, 130.05, 237.53], ["2025-11-03", 237.21, 186.76, 127.65, 238.31], ["2025-12-01", 236.15, 189.08, 131.5, 233.27], ["2026-01-02", 237.15, 190.53, 128.61, 233.44], ["2026-02-02", 241.4, 196.92, 133.54, 240.57], ["2026-03-02", 238.27, 203.42, 139.77, 241.56], ["2026-04-01", 227.46, 193.93, 139.77, 233.56], ["2026-05-01", 250.16, 203.63, 139.77, 252.67], ["2026-06-01", 263.32, 204.23, 139.77, 267.03], ["2026-07-01", 258.88, 206.27, 143.54, 261.23], ["2026-08-03", 263.02, 209.91, 147.73, 267.41], ["2026-08-11", 267.49, 212.74, 149.13, 278.06]];
+
+  var picksExamples = [
+    {date:"2019-08-12", picks:"XLRE·XLU·XLP", n:7, ctx:"관찰 시작 — 방어 섹터 우세"},
+    {date:"2020-02-03", picks:"XLK·XLU·XLP", n:10, ctx:"코로나 crash 직전"},
+    {date:"2020-04-01", picks:"XLK 단독", n:1, ctx:"crash 직후 — 자본 67%가 자동 현금화"},
+    {date:"2020-06-01", picks:"XLK·XLV·XLC", n:7, ctx:"회복 국면 진입"},
+    {date:"2022-10-03", picks:"XLE·XLU", n:2, ctx:"2022년 약세장 바닥 — 자동 방어"},
+    {date:"2023-06-01", picks:"XLK·XLC·XLI", n:3, ctx:"AI 랠리 초입 포착"},
+    {date:"2026-08-03", picks:"XLE·XLK·XLV", n:11, ctx:"현재 — 완전 리스크온"}
+  ];
+
+  function fmtPct(v, digits) {
+    digits = digits === undefined ? 2 : digits;
+    return (v >= 0 ? "+" : "") + v.toFixed(digits) + "%";
+  }
+
+  var SVGNS = "http://www.w3.org/2000/svg";
+  function el(tag, attrs) {
+    var e = document.createElementNS(SVGNS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  var tooltip = document.getElementById("tooltip");
+  function showTooltip(evt, html) { tooltip.innerHTML = html; tooltip.classList.add("visible"); moveTooltip(evt); }
+  function moveTooltip(evt) { tooltip.style.left = evt.clientX + "px"; tooltip.style.top = evt.clientY + "px"; }
+  function hideTooltip() { tooltip.classList.remove("visible"); }
+
+  (function renderCurveChart() {
+    var svg = document.getElementById("chart-curves");
+    var W = 880, H = 360;
+    var marginLeft = 44, marginRight = 16, marginTop = 12, marginBottom = 28;
+    var plotW = W - marginLeft - marginRight;
+    var plotH = H - marginTop - marginBottom;
+
+    var n = curveData.length;
+    var allVals = [];
+    curveData.forEach(function (d) { allVals.push(d[1], d[2], d[3], d[4]); });
+    var minV = Math.min.apply(null, allVals);
+    var maxV = Math.max.apply(null, allVals);
+    var pad = (maxV - minV) * 0.06;
+    minV -= pad; maxV += pad;
+
+    function xScale(i) { return marginLeft + (i / (n - 1)) * plotW; }
+    function yScale(v) { return marginTop + plotH - ((v - minV) / (maxV - minV)) * plotH; }
+
+    // gridlines
+    var steps = 5;
+    for (var s = 0; s <= steps; s++) {
+      var val = minV + (maxV - minV) * (s / steps);
+      var y = yScale(val);
+      svg.appendChild(el("line", { x1: marginLeft, x2: W - marginRight, y1: y, y2: y, class: "axis-line" }));
+      var lbl = el("text", { x: marginLeft - 8, y: y + 3, class: "axis-label", "text-anchor": "end" });
+      lbl.textContent = Math.round(val);
+      svg.appendChild(lbl);
+    }
+    // x-axis year labels (roughly every ~12 points)
+    curveData.forEach(function (d, i) {
+      if (d[0].slice(5, 7) === "01" || i === 0) {
+        var x = xScale(i);
+        var lbl = el("text", { x: x, y: H - 8, class: "axis-label", "text-anchor": "middle" });
+        lbl.textContent = d[0].slice(0, 4);
+        svg.appendChild(lbl);
+      }
+    });
+
+    function pathFor(idx) {
+      var d = "";
+      curveData.forEach(function (row, i) {
+        var x = xScale(i), y = yScale(row[idx]);
+        d += (i === 0 ? "M" : "L") + x.toFixed(1) + "," + y.toFixed(1) + " ";
+      });
+      return d;
+    }
+
+    var series = [
+      { idx: 1, cls: "ln-bench", width: 1.5, label: "SPY 매수보유" },
+      { idx: 2, cls: "ln-passive", width: 2, label: "11개 섹터 균등보유" },
+      { idx: 3, cls: "ln-kostolany", width: 2, label: "코스톨라니 동적 로테이션" },
+      { idx: 4, cls: "ln-momentum", width: 3, label: "모멘텀 로테이션" }
+    ];
+    series.forEach(function (s) {
+      var path = el("path", { d: pathFor(s.idx), class: s.cls, fill: "none", "stroke-width": s.width, "stroke-linejoin": "round", "stroke-linecap": "round" });
+      svg.appendChild(path);
+    });
+
+    // hover crosshair + tooltip
+    var hoverLine = el("line", { x1: 0, x2: 0, y1: marginTop, y2: marginTop + plotH, class: "hover-x" });
+    svg.appendChild(hoverLine);
+    var overlay = el("rect", { x: marginLeft, y: marginTop, width: plotW, height: plotH, fill: "transparent" });
+    svg.appendChild(overlay);
+
+    overlay.addEventListener("mousemove", function (e) {
+      var rect = svg.getBoundingClientRect();
+      var mx = e.clientX - rect.left;
+      var scaleX = svg.viewBox.baseVal.width ? W / rect.width : 1;
+      var localX = (mx * (W / rect.width)) - marginLeft;
+      var i = Math.round((localX / plotW) * (n - 1));
+      i = Math.max(0, Math.min(n - 1, i));
+      var x = xScale(i);
+      hoverLine.setAttribute("x1", x); hoverLine.setAttribute("x2", x); hoverLine.style.opacity = 1;
+      var row = curveData[i];
+      showTooltip(e,
+        "<div class='tt-title'>" + row[0] + "</div>" +
+        "<div class='tt-row'><span>모멘텀</span><span>" + row[4].toFixed(1) + "</span></div>" +
+        "<div class='tt-row'><span>SPY</span><span>" + row[1].toFixed(1) + "</span></div>" +
+        "<div class='tt-row'><span>패시브11</span><span>" + row[2].toFixed(1) + "</span></div>" +
+        "<div class='tt-row'><span>코스톨라니</span><span>" + row[3].toFixed(1) + "</span></div>"
+      );
+    });
+    overlay.addEventListener("mouseleave", function () { hoverLine.style.opacity = 0; hideTooltip(); });
+  })();
+
+  function renderPicksTable() {
+    var tbody = document.getElementById("picks-table-body");
+    picksExamples.forEach(function (p) {
+      var tr = document.createElement("tr");
+      tr.innerHTML = "<td>" + p.date + "</td><td>" + p.picks + "</td><td>" + p.n + "/11</td><td class='muted' style='text-align:left;font-family:var(--font-body)'>" + p.ctx + "</td>";
+      tbody.appendChild(tr);
+    });
+  }
+  renderPicksTable();
+})();
+</script>
+
+
+</body>
+</html>
