@@ -51,11 +51,17 @@
 튜닝 엔진 코드(`core/strategy_tuning.py`)를 건드리기 전에는 반드시 참고. 장기적으로 계속
 갱신되는 "살아있는" 문서이므로 최신 절(가장 큰 번호)이 현재 동작을 반영한다.
 
+## [reports/](./reports/) — 완성된 HTML 리포트 사본
+
+`analysis/` 아래 각 분석 파이프라인이 만들어내는 최종 HTML 리포트를 읽기 편하게 한곳에 모아둔
+사본 폴더. 원본(빌드 스크립트가 실제로 참조/재생성하는 파일)은 각 `analysis/<날짜>_<주제>/`
+폴더에 그대로 있고, 여기 있는 건 훑어보기용 스냅샷이다. 목록/설명은 [reports/README.md](./reports/README.md) 참고.
+
 ## 여기 없는 문서
 
 - `PROGRESS.md` (저장소 루트) — 시간순 작업 로그, 항상 세션 시작 시 먼저 읽어야 하는 문서라 루트에 유지.
 - `README.md` (저장소 루트) — 프로젝트 설치/실행 가이드, GitHub 관례상 루트에 유지.
 - `deploy/DEPLOYMENT_ORACLE.md` — Oracle Cloud 배포 가이드. 같은 폴더의 `setup_vm.sh` 등 배포
   스크립트와 상대 경로로 묶여 있어 `deploy/`에 유지.
-- `analysis/*/*.html`, `analysis/*/*.md` — 특정 분석 실행 1회성 리포트 산출물. 같은 폴더의
-  csv/json/차트 자산과 상대 경로로 연결되어 있어 옮기면 깨진다.
+- `analysis/*/*.html` 원본, `analysis/*/*.md` — 파이프라인이 실제로 읽고 쓰는 산출물 원본. 사본은
+  위 `reports/`에 있지만, 재생성이 필요하면 원본 폴더의 빌드 스크립트를 다시 돌려야 한다.
