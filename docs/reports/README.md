@@ -5,6 +5,27 @@
 Artifact로만 존재하던 리포트/강의노트를 **로컬 저장소에 백업**한 것 — 이쪽은 애초에 이 저장소
 안에 원본이 없었으므로 이 사본이 유일한 로컬 사본이다. 각 항목에 어느 쪽인지 표시했다.
 
+## 읽는 순서
+
+번호(No.01~08)가 붙은 것들은 그 순서가 곧 읽는 순서다. 두 트랙이 섞여 있다.
+
+**트랙 A — 개념·아키텍처** (독립적, 순서 안 지켜도 무방)
+1. No.01 `study_notes_fin_engineering.html` — 금융공학 개념 25가지, 가장 쉬운 입문
+2. No.02 `engine_architecture_notes.html` — No.01의 짝문서, 코드가 실제로 어떻게 동작하는지
+3. No.03 `quant_lecture_notes.html` — No.01의 수학적 유도판, 가장 무거움
+
+**트랙 B — 전략 리서치** (반드시 순서대로 — 각 편이 앞 편의 한계를 이어받아 검증한다)
+4. No.04 `kostolany_market_report_2026-08-12.html` — 코스톨라니 국면매매 원조 검증, 강세장에서 왜 졌는지 진단
+5. No.05 `bull_market_momentum_rotation.html` — No.04의 대안으로 모멘텀 로테이션 제시
+6. No.06 `momentum_rotation_multiasset_extension.html` — No.05의 한계(과최적화·거래비용 등) 4개 타개
+7. No.07 `momentum_rotation_gfc_validation.html` — No.06 챔피언을 2008년 금융위기로 검증
+8. No.08 `momentum_rotation_2022_dotcom_stress.html` — No.07 챔피언을 닷컴버블·2022년 약세장으로 추가 검증
+
+**참고용** (번호 없음, 아무 때나) — `market_regime_sector_strength_note.html`
+
+결론만 빠르게 보고 싶으면 No.08부터 거꾸로(최종 챔피언 전략 + 강건성 검증), 왜 그 전략이 나왔는지
+이해하려면 No.04→08 순서를 권한다.
+
 ## 파일 목록
 
 ### [kostolany_market_report_2026-08-12.html](./kostolany_market_report_2026-08-12.html)
