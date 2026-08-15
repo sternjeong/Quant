@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body>
+<title>2008년 금융위기로 검증하다</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #eef1f4;
+    --surface: #ffffff;
+    --surface-2: #e4e9ee;
+    --ink: #14181d;
+    --ink-muted: #565f6b;
+    --ink-faint: #88919a;
+    --border: #d8dee5;
+    --accent: #4a3aa7;
+    --accent-ink: #ffffff;
+    --accent-wash: #eeeafb;
+    --series-momentum: #2a78d6;
+    --series-passive: #1baf7a;
+    --series-kostolany: #eb6834;
+    --series-bench: #9299a3;
+    --good: #0ca30c;
+    --good-wash: #e6f6e6;
+    --critical: #d03b3b;
+    --critical-wash: #fbeaea;
+    --font-display: Georgia, "Iowan Old Style", "Palatino Linotype", "Noto Serif KR", serif;
+    --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", "Nanum Gothic Coding", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --bg: #0e1116; --surface: #171b21; --surface-2: #1f242c;
+      --ink: #f1f3f5; --ink-muted: #a6aeb8; --ink-faint: #6d7680; --border: #2a313a;
+      --accent: #9085e9; --accent-ink: #14181d; --accent-wash: #232049;
+      --series-momentum: #3987e5; --series-passive: #199e70; --series-kostolany: #d95926; --series-bench: #6d7680;
+      --good: #3fc23f; --good-wash: #163420; --critical: #e66767; --critical-wash: #3a1f1f;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0e1116; --surface: #171b21; --surface-2: #1f242c;
+    --ink: #f1f3f5; --ink-muted: #a6aeb8; --ink-faint: #6d7680; --border: #2a313a;
+    --accent: #9085e9; --accent-ink: #14181d; --accent-wash: #232049;
+    --series-momentum: #3987e5; --series-passive: #199e70; --series-kostolany: #d95926; --series-bench: #6d7680;
+    --good: #3fc23f; --good-wash: #163420; --critical: #e66767; --critical-wash: #3a1f1f;
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --bg: #eef1f4; --surface: #ffffff; --surface-2: #e4e9ee;
+    --ink: #14181d; --ink-muted: #565f6b; --ink-faint: #88919a; --border: #d8dee5;
+    --accent: #4a3aa7; --accent-ink: #ffffff; --accent-wash: #eeeafb;
+    --series-momentum: #2a78d6; --series-passive: #1baf7a; --series-kostolany: #eb6834; --series-bench: #9299a3;
+    --good: #0ca30c; --good-wash: #e6f6e6; --critical: #d03b3b; --critical-wash: #fbeaea;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-body); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  ::selection { background: var(--accent); color: var(--accent-ink); }
+  .page { max-width: 920px; margin: 0 auto; padding: 56px 24px 120px; }
+
+  .masthead { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding-bottom: 20px; border-bottom: 3px solid var(--ink); margin-bottom: 8px; flex-wrap: wrap; }
+  .masthead .label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); }
+  .masthead .issue { font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); text-align: right; }
+
+  h1.title { font-family: var(--font-display); font-weight: 400; font-size: clamp(28px, 4.4vw, 42px); line-height: 1.15; margin: 18px 0 10px; text-wrap: balance; letter-spacing: -0.01em; }
+  p.dek { font-family: var(--font-display); font-style: italic; font-size: 18px; color: var(--ink-muted); max-width: 64ch; margin: 0 0 28px; text-wrap: balance; }
+  p.dek b { color: var(--ink); font-weight: 600; font-style: normal; }
+
+  .scope-note { font-size: 13.5px; color: var(--ink-muted); background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 4px; padding: 12px 16px; margin-bottom: 44px; }
+  .scope-note b { color: var(--ink); }
+
+  .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 56px; }
+  .stat { background: var(--surface); padding: 20px 18px; display: flex; flex-direction: column; gap: 6px; }
+  .stat .k { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-faint); }
+  .stat .v { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 26px; font-weight: 600; letter-spacing: -0.02em; }
+  .stat .v.good { color: var(--good); }
+  .stat .v.critical { color: var(--critical); }
+  .stat .d { font-size: 12px; color: var(--ink-muted); }
+
+  section { margin-bottom: 64px; }
+  .section-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 6px; }
+  .section-head .num { font-family: var(--font-mono); font-size: 13px; color: var(--accent); font-weight: 600; }
+  h2 { font-family: var(--font-display); font-weight: 400; font-size: 26px; margin: 0; letter-spacing: -0.005em; }
+  .section-intro { color: var(--ink-muted); max-width: 68ch; margin: 10px 0 28px; }
+  h3 { font-family: var(--font-body); font-size: 16px; font-weight: 700; margin: 34px 0 6px; display: flex; align-items: baseline; gap: 10px; }
+  h3 .tag { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 7px; border-radius: 3px; font-weight: 700; }
+  h3 .tag.good { background: var(--good-wash); color: var(--good); }
+  h3 .tag.critical { background: var(--critical-wash); color: var(--critical); }
+  h3 .tag.neutral { background: var(--accent-wash); color: var(--accent); }
+  p { max-width: 70ch; }
+  .finding { max-width: 70ch; color: var(--ink-muted); }
+  .finding b { color: var(--ink); font-weight: 600; }
+
+  .figure { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px 20px 12px; margin: 22px 0; }
+  .figure .fig-label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.05em; color: var(--ink-faint); text-transform: uppercase; margin-bottom: 4px; }
+  .figure .fig-title { font-size: 14.5px; font-weight: 700; margin-bottom: 14px; }
+  .chart-scroll { overflow-x: auto; }
+  .legend { display: flex; gap: 18px; font-size: 12.5px; color: var(--ink-muted); margin-top: 10px; flex-wrap: wrap; }
+  .legend .sw { display: inline-flex; align-items: center; gap: 6px; }
+  .legend .dot { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+  .legend .ln { width: 14px; height: 2px; display: inline-block; }
+
+  .ln-momentum { stroke: var(--series-momentum); }
+  .ln-bench { stroke: var(--series-kostolany); stroke-dasharray: 4 3; }
+  .axis-line { stroke: var(--border); stroke-width: 1; }
+  .axis-label { fill: var(--ink-faint); font-family: var(--font-mono); font-size: 10px; }
+
+  .viz-tooltip { position: fixed; pointer-events: none; background: var(--ink); color: var(--bg); font-family: var(--font-mono); font-size: 12px; padding: 8px 11px; border-radius: 5px; line-height: 1.6; box-shadow: 0 4px 14px rgba(0,0,0,0.25); opacity: 0; transform: translate(-50%, calc(-100% - 10px)); transition: opacity 0.1s ease; z-index: 50; white-space: nowrap; }
+  .viz-tooltip.visible { opacity: 1; }
+  .viz-tooltip .tt-title { font-weight: 700; margin-bottom: 3px; }
+  .viz-tooltip .tt-row { display: flex; gap: 10px; justify-content: space-between; }
+
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; }
+  table { width: 100%; border-collapse: collapse; background: var(--surface); font-size: 13.5px; min-width: 520px; }
+  thead th { text-align: right; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); font-weight: 600; padding: 10px 14px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  thead th:first-child, td:first-child { text-align: left; }
+  tbody td { padding: 9px 14px; text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  tbody td:first-child { font-family: var(--font-body); font-weight: 600; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--surface-2); }
+  td.good { color: var(--good); }
+  td.critical { color: var(--critical); }
+  td.muted { color: var(--ink-faint); }
+  .row-highlight td { background: var(--accent-wash); }
+
+  .hyp-result { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; margin: 10px 0; }
+  .hyp-result .verdict { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 700; padding: 3px 9px; border-radius: 3px; flex-shrink: 0; }
+  .hyp-result .verdict.win { background: var(--good-wash); color: var(--good); }
+  .hyp-result .verdict.fail { background: var(--critical-wash); color: var(--critical); }
+  .hyp-result .verdict.mixed { background: var(--accent-wash); color: var(--accent); }
+  .hyp-result .txt { font-size: 13.5px; color: var(--ink-muted); }
+  .hyp-result .txt b { color: var(--ink); }
+
+  .rule-list { display: flex; flex-direction: column; gap: 10px; margin: 18px 0; }
+  .rule { display: grid; grid-template-columns: 30px 1fr; gap: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+  .rule .n { font-family: var(--font-mono); color: var(--accent); font-weight: 700; font-size: 14px; }
+  .rule .body b { display: block; margin-bottom: 2px; }
+  .rule .body span { color: var(--ink-muted); font-size: 13.5px; }
+
+  .caveat-list { display: flex; flex-direction: column; gap: 14px; }
+  .caveat { display: grid; grid-template-columns: 20px 1fr; gap: 12px; }
+  .caveat .mark { color: var(--critical); font-weight: 700; }
+  .caveat p { margin: 0; color: var(--ink-muted); font-size: 14px; }
+  .caveat p b { color: var(--ink); }
+
+  footer { margin-top: 80px; padding-top: 20px; border-top: 1px solid var(--border); font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+
+  @media (max-width: 680px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } h1.title { font-size: 26px; } }
+</style>
+
+<div class="page">
+
+  <div class="masthead">
+    <span class="label">Quant &middot; 전략 리서치 노트</span>
+    <span class="issue">2026-08-13&nbsp;발행 &middot; No. 07 &middot; No.06 후속</span>
+  </div>
+
+  <h1 class="title">2008년 금융위기로 검증하다</h1>
+  <p class="dek">No.06 챔피언에 남았던 마지막 숙제 셋 &mdash; 이진 시장필터, 좁은 자산군, &ldquo;같은
+    강세장 안에서만 쪼갠 검증&rdquo;의 한계 &mdash; 를 마저 풀었다. 가장 중요한 결과: 섹터 ETF 이력이
+    닿지 않는 <b>2008년 진짜 금융위기 구간까지 데이터를 넓혀 시험했더니, S&amp;P500이 &minus;40%
+    무너질 때 멀티에셋 모멘텀은 오히려 +8.4%를 벌었다.</b></p>
+
+  <div class="scope-note">
+    <b>분석 범위</b> &mdash; §1~§2는 No.06과 동일(2019-08~2026-08, 왕복 0.1% 비용). §3(H20)만
+    SPY+TLT+GLD 3자산으로 좁혀 2007-01~2026-08(19년, 2008 금융위기 포함)까지 확장 &mdash; 섹터
+    ETF(XLC 등)는 2018년 상장이라 이 구간을 커버할 수 없어 3자산만 별도로 검증했다.
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat">
+      <span class="k">신규 챔피언 샤프(2019~2026)</span>
+      <span class="v good">1.10</span>
+      <span class="d">유니버스 확장(+EFA/HYG/DBC), 이전 1.05</span>
+    </div>
+    <div class="stat">
+      <span class="k">신규 챔피언 하위기간 격차</span>
+      <span class="v good">0.07</span>
+      <span class="d">지금까지 가장 안정적(1.08 vs 1.15)</span>
+    </div>
+    <div class="stat">
+      <span class="k">2008 금융위기 구간 수익률</span>
+      <span class="v good">+8.4%</span>
+      <span class="d">멀티에셋 모멘텀 (2007-10~2009-06)</span>
+    </div>
+    <div class="stat">
+      <span class="k">같은 구간 SPY 매수보유</span>
+      <span class="v critical">&minus;40.4%</span>
+      <span class="d">MDD &minus;56.5%</span>
+    </div>
+  </div>
+
+  <!-- ================= SECTION 1 ================= -->
+  <section id="s1">
+    <div class="section-head"><span class="num">§1</span><h2>H18 &mdash; 이진 vs 연속 시장필터</h2></div>
+    <p class="section-intro">
+      No.06이 남긴 L2: 시장필터가 &ldquo;SPY 200일선 위/아래&rdquo;라는 이진 신호 하나뿐이었다.
+      core.market_regime.py가 이미 쓰는 3개 룰(200일선 위치·골든/데드크로스·52주 낙폭, breadth는
+      일별 백테스트에 너무 비싸 제외)을 그대로 합성해 &minus;75~+75 연속 점수를 만들고, 이진 50%컷
+      대신 선형 노출배율로 스케일링해봤다.
+    </p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>시장필터 방식</th><th>누적수익률</th><th>CAGR</th><th>MDD</th><th>샤프</th></tr></thead>
+        <tbody>
+          <tr><td>필터 없음</td><td>+176.38%</td><td>15.64%</td><td>&minus;17.05%</td><td>1.04</td></tr>
+          <tr class="row-highlight"><td>이진(SPY&lt;200일선 → 50%축소, No.06)</td><td class="good">+142.52%</td><td>13.50%</td><td>&minus;14.43%</td><td class="good">1.05</td></tr>
+          <tr><td>연속(합성점수 선형 노출배율)</td><td class="critical">+87.41%</td><td>9.39%</td><td>&minus;12.52%</td><td class="critical">0.97</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="hyp-result">
+      <span class="verdict mixed">기각(부분)</span>
+      <span class="txt"><b>연속 필터가 이긴다는 예상은 틀렸다</b> — MDD는 더 얕아졌지만(&minus;12.52%)
+        노출을 너무 자주·너무 많이 깎아 수익을 함께 깎았다(누적 +87.41%로 급감). 이진 컷이 &ldquo;진짜
+        위험 신호일 때만 확실히 축소&rdquo;하는 반면 연속 스케일링은 애매한 국면에서도 계속
+        비중을 흔들어 기회비용이 컸다.</span>
+    </div>
+  </section>
+
+  <!-- ================= SECTION 2 ================= -->
+  <section id="s2">
+    <div class="section-head"><span class="num">§2</span><h2>H19 &mdash; 유니버스 확장이 새 챔피언</h2></div>
+    <p class="section-intro">
+      Antonacci Composite Dual Momentum 아이디어대로 국제주식(EFA)·하이일드(HYG)·원자재(DBC)를
+      후보군에 추가했다(11섹터+TLT+IEF+GLD+EFA+HYG+DBC, 총 17개 자산).
+    </p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>구성</th><th>누적수익률</th><th>CAGR</th><th>MDD</th><th>샤프</th></tr></thead>
+        <tbody>
+          <tr><td>No.06 챔피언(11섹터+3안전자산, top4)</td><td>+142.52%</td><td>13.50%</td><td>&minus;14.43%</td><td>1.05</td></tr>
+          <tr class="row-highlight"><td>확장 유니버스(+EFA/HYG/DBC), top4·이진필터</td><td class="good">+152.57%</td><td class="good">14.16%</td><td class="good">&minus;14.63%</td><td class="good">1.10</td></tr>
+          <tr><td>확장 유니버스, top5·이진필터</td><td>+128.64%</td><td>12.54%</td><td>&minus;13.66%</td><td>1.02</td></tr>
+          <tr><td>확장 유니버스, top4·연속필터</td><td>+96.32%</td><td>10.12%</td><td class="good">&minus;8.97%</td><td>1.04</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="hyp-result">
+      <span class="verdict win">채택</span>
+      <span class="txt"><b>유니버스 확장이 새 챔피언</b> — 샤프 1.10, 지금까지 최고 기록.</span>
+    </div>
+
+    <h3>하위기간 강건성 &mdash; 지금까지 가장 안정적</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>구성</th><th>전체</th><th>전반부</th><th>후반부</th><th>격차</th></tr></thead>
+        <tbody>
+          <tr><td>연속필터 챔피언</td><td>0.97</td><td>0.83</td><td>1.10</td><td>0.27</td></tr>
+          <tr><td>No.06 이진필터 챔피언</td><td>1.05</td><td>0.91</td><td>1.20</td><td>0.29</td></tr>
+          <tr class="row-highlight"><td>확장 유니버스 챔피언(신규)</td><td class="good">1.10</td><td class="good">1.08</td><td class="good">1.15</td><td class="good">0.07</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="finding">
+      확장 유니버스 챔피언은 전반부(1.08)와 후반부(1.15) 샤프가 거의 같다 &mdash; 지금까지 나온
+      모든 후보 중 격차가 가장 작다(0.07). 자산군을 넓힐수록 특정 구간(2023년 이후 AI 랠리)에 대한
+      의존도가 줄어든다는 뜻으로 읽힌다 &mdash; No.06 §6에서 지적했던 &ldquo;다중비교/과최적화&rdquo;
+      우려를 가장 잘 완화하는 결과다.
+    </p>
+  </section>
+
+  <!-- ================= SECTION 3 ================= -->
+  <section id="s3">
+    <div class="section-head"><span class="num">§3</span><h2>H20 &mdash; 진짜 아웃오브샘플: 2008년</h2></div>
+    <p class="section-intro">
+      지금까지의 &ldquo;하위기간 강건성&rdquo;은 전부 2019~2026이라는 <b>같은 강세장 안에서</b>
+      쪼갠 것이었다 &mdash; No.06 §6이 명시적으로 남긴 한계였다. 섹터 ETF는 2018년 이후 상장이 많아
+      더 과거로 갈 수 없지만, <b>SPY·TLT·GLD 세 자산만으로는 2007년까지 확장</b>할 수 있다. 진짜
+      다른 레짐(2008 금융위기)에서 같은 로직(절대+상대 모멘텀 top2, SPY&lt;200일선이면 50%축소,
+      월간 리밸런싱)이 버티는지 확인했다.
+    </p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>구간</th><th>전략</th><th>누적수익률</th><th>CAGR</th><th>MDD</th><th>샤프</th></tr></thead>
+        <tbody>
+          <tr><td rowspan="2">전체(2007~2026, 19년)</td><td>SPY+TLT+GLD 모멘텀</td><td>+349.02%</td><td>7.96%</td><td>&minus;23.51%</td><td>0.77</td></tr>
+          <tr><td>SPY 매수보유</td><td class="good">+445.07%</td><td class="good">9.04%</td><td class="critical">&minus;56.47%</td><td class="critical">0.54</td></tr>
+          <tr class="row-highlight"><td rowspan="2">2008 금융위기만<br><span style="font-weight:400;color:var(--ink-faint);font-size:11.5px">(2007-10~2009-06)</span></td><td>SPY+TLT+GLD 모멘텀</td><td class="good">+8.36%</td><td>4.71%</td><td class="good">&minus;7.56%</td><td class="good">0.50</td></tr>
+          <tr><td>SPY 매수보유</td><td class="critical">&minus;40.41%</td><td class="critical">&minus;25.65%</td><td class="critical">&minus;56.47%</td><td class="critical">&minus;0.62</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="finding">
+      19년 전체로 보면 익숙한 트레이드오프가 다시 나온다 &mdash; 모멘텀의 원금수익률(+349%)은
+      SPY 매수보유(+445%)보다 낮지만, MDD는 &minus;23.51%로 SPY의 &minus;56.47%보다 훨씬
+      얕고, 그 결과 샤프는 0.77 vs 0.54로 역전된다(No.02 §2에서 확인한 200일선 연구
+      &ldquo;장기 위험조정 기준 역전&rdquo;과 정확히 같은 패턴).
+    </p>
+    <p class="finding">
+      하지만 진짜 중요한 건 위기 구간만 떼어봤을 때다 &mdash; <b>리먼 브라더스가 무너지던 2007년
+      10월부터 2009년 6월까지, SPY를 그냥 들고 있었으면 &minus;40.41%(MDD &minus;56.47%)를
+      잃었을 시기에 모멘텀 로테이션은 오히려 +8.36%를 벌었다.</b> 채권(TLT)·금(GLD)이 그 시점
+      최상위 모멘텀 후보로 뽑혀 실제로 자본을 흡수했기 때문이다 &mdash; No.06에서 &ldquo;채권·금을
+      후보군에 넣었더니 MDD가 개선됐다&rdquo;고 했던 게 이번엔 2019~2026이 아니라 <b>진짜 위기
+      한복판에서</b> 확인된 셈이다. 지금까지의 연구 전체에서 가장 설득력 있는 단일 증거다.
+    </p>
+  </section>
+
+  <!-- ================= SECTION 4 ================= -->
+  <section id="s4">
+    <div class="section-head"><span class="num">§4</span><h2>업데이트된 최종 챔피언</h2></div>
+    <div class="rule-list">
+      <div class="rule"><span class="n">1</span><div class="body"><b>유니버스: 11개 GICS 섹터 +
+        TLT·IEF·GLD·EFA·HYG·DBC(총 17개)</b><span>No.06의 안전자산 3종에 국제주식·하이일드·원자재를
+        추가.</span></div></div>
+      <div class="rule"><span class="n">2</span><div class="body"><b>12개월 절대+상대 모멘텀,
+        상위 4개 동일비중</b><span>No.05~06과 동일 로직.</span></div></div>
+      <div class="rule"><span class="n">3</span><div class="body"><b>SPY&lt;200일선이면 전체
+        비중 50% 축소(이진 유지)</b><span>연속 스케일링으로 바꿔봤지만 오히려 나빠져 이진 방식을
+        그대로 유지.</span></div></div>
+      <div class="rule"><span class="n">4</span><div class="body"><b>월간 리밸런싱, 왕복 0.1%
+        거래비용 가정</b><span>비용 반영 후 샤프 1.10, 하위기간 격차 0.07로 지금까지 가장
+        강건.</span></div></div>
+    </div>
+  </section>
+
+  <!-- ================= SECTION 5 ================= -->
+  <section id="s5">
+    <div class="section-head"><span class="num">§5</span><h2>여전히 남은 한계</h2></div>
+    <div class="caveat-list">
+      <div class="caveat"><span class="mark">&#9888;</span><p><b>H20은 3자산(SPY/TLT/GLD)뿐이라
+        17자산 챔피언과 완전히 같은 전략이 아니다.</b> 섹터 ETF 이력 문제로 어쩔 수 없는 근사 —
+        &ldquo;멀티에셋 모멘텀 로직 자체가 위기에 강하다&rdquo;는 원리 검증이지, 지금 권장하는 정확한
+        17자산·top4 설정을 2008년에 그대로 돌린 결과는 아니다.</p></div>
+      <div class="caveat"><span class="mark">&#9888;</span><p><b>여전히 단일 위기 사례(2008)뿐이다.</b>
+        2000년 닷컴버블, 2022년 금리인상 약세장 등 다른 유형의 하락장에서도 같은 패턴이 나오는지는
+        추가 검증이 필요하다.</p></div>
+      <div class="caveat"><span class="mark">&#9888;</span><p><b>연속 시장필터 실패가 &ldquo;연속
+        신호는 항상 나쁘다&rdquo;를 의미하진 않는다.</b> 이번엔 선형 매핑 하나만 시도했다 —
+        임계값 근처에서만 완만하게 전환되는 비선형(S자형) 스케일링 등 다른 함수 형태는 아직
+        안 해봤다.</p></div>
+      <div class="caveat"><span class="mark">&#9888;</span><p><b>여전히 다중비교 위험.</b> 이제
+        7라운드째 같은 표본군(대부분 2019~2026)에 변형을 반복 검증하고 있다 — H20의 2008년 검증이
+        가장 강력한 완화책이지만, 3자산 근사라는 한계가 있어 완전한 해소는 아니다.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <span>딥서치 기반 8라운드 가설검증(No.06 이어서) &middot; 2008 금융위기 아웃오브샘플 검증 포함 &middot; No.06 후속</span>
+    <span>실측 데이터 기준 2026-08-13</span>
+  </footer>
+</div>
+</body>
+</html>

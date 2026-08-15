@@ -8,10 +8,12 @@ Artifact로만 존재하던 리포트/강의노트를 **로컬 저장소에 백�
 ## 파일 목록
 
 ### [kostolany_market_report_2026-08-12.html](./kostolany_market_report_2026-08-12.html)
-*(analysis 사본)* "코스톨라니 달걀 이론, S&P500 10대 섹터에서 통했는가" — 코스톨라니 달걀
+*(analysis 사본, No.04)* "코스톨라니 달걀 이론, S&P500 10대 섹터에서 통했는가" — 코스톨라니 달걀
 사이클 이론을 S&P500 + 미국 10개 업종 × 5종목 = 51개 자산에 2015-01-01~2026-08-12 기간으로
-실제 백테스트해서 검증한 리포트. 원본: `analysis/kostolany_market_report_2026-08-12/final_report.html`
-(빌드: 같은 폴더의 `build_report.py`).
+실제 백테스트해서 검증한 리포트. 08절 "크로스전략 검증"에서 아래 No.05~08 모멘텀 로테이션
+후속 시리즈로 연결된다. 원본: `analysis/kostolany_market_report_2026-08-12/final_report.html`
+(빌드: 같은 폴더의 `build_report.py`) — 그쪽 폴더에서 후속 실험이 계속 추가되는 중이라 이 사본은
+주기적으로 다시 복사해야 최신 상태를 유지한다.
 
 ### [bull_market_momentum_rotation.html](./bull_market_momentum_rotation.html)
 *(Artifact 백업, No.05)* "강세장엔 평균회귀가 아니라 추세추종" — 위 코스톨라니 리포트(No.04)가
@@ -29,6 +31,24 @@ SPY와 코스톨라니 로테이션을 이겼다는 결론과 그 근거(Antonac
 확장(11개 섹터+TLT+IEF+GLD)만 채택 — 왕복 0.1% 거래비용 반영 후에도 샤프 1.05(SPY 0.81),
 MDD -14.4%(SPY -34.1%)를 달성했고, 순열검정 200회에서 97.5th 백분위(p&asymp;0.025)로 통계적
 유의성까지 확인했다.
+
+### [momentum_rotation_gfc_validation.html](./momentum_rotation_gfc_validation.html)
+*(Artifact 백업, No.07)* "2008년 금융위기로 검증하다" — No.06 챔피언에 남았던 숙제 3개(이진
+시장필터, 좁은 자산군, 같은 강세장 안에서만 쪼갠 하위기간 검증)를 마저 타개. 연속 시장필터는
+예상과 반대로 이진보다 나빠 기각, 국제주식(EFA)·하이일드(HYG)·원자재(DBC)를 더한 유니버스 확장은
+채택(샤프 1.10, 하위기간 격차 0.07로 지금까지 최고 강건성). 가장 중요한 결과는 섹터 ETF 이력이
+안 닿는 2008년까지 SPY+TLT+GLD 3자산으로 데이터를 넓힌 진짜 아웃오브샘플 검증 — 2007-10~2009-06
+금융위기 구간에 SPY 매수보유가 -40.4%(MDD -56.5%) 무너질 때 멀티에셋 모멘텀은 +8.4%를 벌었다.
+
+### [momentum_rotation_2022_dotcom_stress.html](./momentum_rotation_2022_dotcom_stress.html)
+*(Artifact 백업, No.08)* "채권도 무너진 해, 전략은 어디로 도망갔나" — No.07 챔피언을 위기 사례
+2개로 추가 검증. 닷컴버블(2000~2003, TLT 상장 전이라 VUSTX 뮤추얼펀드로 근사)에서는 SPY보다는
+나았지만 손실을 피하진 못해(-10.47% vs SPY -36.06%) 2008년만큼 극적이진 않았다는 균형 잡힌
+결과. 반면 2022년 약세장(주식·채권 동시 하락으로 전통적 60/40 분산이 깨진 해)에서는 채권(TLT)
+자체가 -33.40%로 최악의 자산이었는데도 17자산 챔피언은 원자재(DBC)·에너지(XLE) 로테이션으로
++4.22%를 기록 — "위기엔 무조건 채권"이 아니라 "그 시점 실제로 강한 자산을 따라간다"는 전략의
+진짜 강점을 실제 월별 로테이션 기록으로 확인했다. 시그모이드(비선형) 연속 시장필터도 추가
+시도했으나 이진 필터(샤프 1.10)를 넘지 못해(최고 1.06) No.07의 이진 필터 선택을 재확인했다.
 
 ### [quant_lecture_notes.html](./quant_lecture_notes.html)
 *(Artifact 백업, No.03)* "퀀트 강의노트 — 성과지표·사이징·다각화·검증의 수학적 기초" — 스터디
@@ -53,6 +73,12 @@ MDD -14.4%(SPY -34.1%)를 달성했고, 순열검정 200회에서 97.5th 백분�
 `position_sizing`, `portfolio`, `market_regime`, 공통 설계 패턴)로 나눠 의사코드와 함께 설명한다.
 레지스트리 패턴, 6종 전략 스키마 통일(`evaluate_boolean_signal`), 앙상블 스코어링, 순환참조
 회피(지연 import), `compute_*`/`get_*` 계층 분리 등 이 저장소 전반의 설계 원칙이 정리돼 있다.
+
+### [market_regime_sector_strength_note.html](./market_regime_sector_strength_note.html)
+*(Artifact 백업)* "시장 국면 판단 + 섹터/테마 강도 지표 — 설계 노트" — [docs/MARKET_REGIME_SECTOR_STRENGTH_SPEC.md](../MARKET_REGIME_SECTOR_STRENGTH_SPEC.md)를
+그대로 HTML로 옮긴 것(내용은 동일, 새 리서치 아님). 리서치 근거(200일선/골든·데드크로스/시장폭/
+IBD RS Rating/RRG)와 시장 국면 점수 공식(4개 신호 가중합), 섹터/테마 강도 계산식을 마크다운보다
+읽기 편한 형태로 보고 싶을 때 이쪽을 보면 된다.
 
 ## 여기 없는 문서
 

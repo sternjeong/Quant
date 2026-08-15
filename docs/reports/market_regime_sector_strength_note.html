@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body>
+<title>시장 국면 판단 + 섹터 강도 지표 — 설계 노트</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #eef1f4;
+    --surface: #ffffff;
+    --surface-2: #e4e9ee;
+    --ink: #14181d;
+    --ink-muted: #565f6b;
+    --ink-faint: #88919a;
+    --border: #d8dee5;
+    --accent: #4a3aa7;
+    --accent-ink: #ffffff;
+    --accent-wash: #eeeafb;
+    --good: #0ca30c;
+    --good-wash: #e6f6e6;
+    --critical: #d03b3b;
+    --critical-wash: #fbeaea;
+    --warn: #b8842a;
+    --warn-wash: #faf1e2;
+    --font-display: Georgia, "Iowan Old Style", "Palatino Linotype", "Noto Serif KR", serif;
+    --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", "Nanum Gothic Coding", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --bg: #0e1116; --surface: #171b21; --surface-2: #1f242c;
+      --ink: #f1f3f5; --ink-muted: #a6aeb8; --ink-faint: #6d7680; --border: #2a313a;
+      --accent: #9085e9; --accent-ink: #14181d; --accent-wash: #232049;
+      --good: #3fc23f; --good-wash: #163420; --critical: #e66767; --critical-wash: #3a1f1f;
+      --warn: #d9a441; --warn-wash: #3a2f14;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0e1116; --surface: #171b21; --surface-2: #1f242c;
+    --ink: #f1f3f5; --ink-muted: #a6aeb8; --ink-faint: #6d7680; --border: #2a313a;
+    --accent: #9085e9; --accent-ink: #14181d; --accent-wash: #232049;
+    --good: #3fc23f; --good-wash: #163420; --critical: #e66767; --critical-wash: #3a1f1f;
+    --warn: #d9a441; --warn-wash: #3a2f14;
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --bg: #eef1f4; --surface: #ffffff; --surface-2: #e4e9ee;
+    --ink: #14181d; --ink-muted: #565f6b; --ink-faint: #88919a; --border: #d8dee5;
+    --accent: #4a3aa7; --accent-ink: #ffffff; --accent-wash: #eeeafb;
+    --good: #0ca30c; --good-wash: #e6f6e6; --critical: #d03b3b; --critical-wash: #fbeaea;
+    --warn: #b8842a; --warn-wash: #faf1e2;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-body); line-height: 1.65; -webkit-font-smoothing: antialiased; }
+  ::selection { background: var(--accent); color: var(--accent-ink); }
+  a { color: var(--accent); text-decoration-color: color-mix(in srgb, var(--accent) 40%, transparent); }
+  a:hover { text-decoration-thickness: 2px; }
+  .page { max-width: 860px; margin: 0 auto; padding: 56px 24px 120px; }
+
+  .masthead { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding-bottom: 20px; border-bottom: 3px solid var(--ink); margin-bottom: 8px; flex-wrap: wrap; }
+  .masthead .label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); }
+  .masthead .issue { font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); text-align: right; }
+
+  h1.title { font-family: var(--font-display); font-weight: 400; font-size: clamp(26px, 4vw, 38px); line-height: 1.2; margin: 18px 0 10px; text-wrap: balance; letter-spacing: -0.01em; }
+  p.dek { font-family: var(--font-display); font-style: italic; font-size: 17px; color: var(--ink-muted); max-width: 64ch; margin: 0 0 20px; text-wrap: balance; }
+
+  .status-banner { display: flex; align-items: center; gap: 10px; background: var(--good-wash); border: 1px solid color-mix(in srgb, var(--good) 30%, transparent); border-radius: 6px; padding: 10px 16px; margin-bottom: 44px; font-size: 13.5px; }
+  .status-banner .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--good); flex-shrink: 0; }
+  .status-banner b { color: var(--good); }
+  .status-banner span.sep { color: var(--ink-faint); }
+  .status-banner code { font-family: var(--font-mono); font-size: 12px; background: var(--surface); padding: 1px 6px; border-radius: 3px; border: 1px solid var(--border); }
+
+  nav.toc { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; margin-bottom: 52px; }
+  nav.toc .toc-label { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 8px; }
+  nav.toc ol { margin: 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 5px; }
+  nav.toc a { font-size: 14px; color: var(--ink); text-decoration: none; }
+  nav.toc a:hover { color: var(--accent); }
+  nav.toc .n { font-family: var(--font-mono); color: var(--accent); margin-right: 8px; }
+
+  section { margin-bottom: 60px; }
+  .section-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 6px; }
+  .section-head .num { font-family: var(--font-mono); font-size: 13px; color: var(--accent); font-weight: 600; }
+  h2 { font-family: var(--font-display); font-weight: 400; font-size: 25px; margin: 0; letter-spacing: -0.005em; scroll-margin-top: 24px; }
+  h3 { font-family: var(--font-body); font-size: 15.5px; font-weight: 700; margin: 30px 0 6px; }
+  h4 { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.03em; color: var(--ink-muted); font-weight: 600; margin: 22px 0 8px; text-transform: uppercase; }
+  p { max-width: 70ch; color: var(--ink-muted); }
+  p b, li b { color: var(--ink); font-weight: 600; }
+  ul, ol { max-width: 68ch; color: var(--ink-muted); padding-left: 22px; }
+  li { margin-bottom: 6px; }
+  li::marker { color: var(--ink-faint); }
+
+  .research-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; margin: 14px 0; }
+  .research-item .src-label { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+  .research-item p { margin: 0; font-size: 14px; max-width: none; }
+
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; margin: 16px 0; }
+  table { width: 100%; border-collapse: collapse; background: var(--surface); font-size: 13.5px; min-width: 480px; }
+  thead th { text-align: left; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); font-weight: 600; padding: 10px 14px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  tbody td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tbody td:first-child { font-weight: 600; white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--surface-2); }
+  td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  code, .formula { font-family: var(--font-mono); font-size: 0.92em; background: var(--surface-2); padding: 1px 6px; border-radius: 4px; }
+  .formula-block { font-family: var(--font-mono); font-size: 13.5px; background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 4px; padding: 14px 18px; margin: 14px 0; overflow-x: auto; white-space: pre; }
+
+  .decision-log { display: flex; flex-direction: column; gap: 10px; margin: 18px 0; }
+  .decision { display: grid; grid-template-columns: 180px 1fr; gap: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px; }
+  .decision .q { font-size: 13px; color: var(--ink-faint); font-weight: 600; }
+  .decision .a { font-size: 14px; color: var(--ink); }
+
+  .scope-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 18px 0; }
+  .scope-card { border-radius: 8px; padding: 16px 18px; border: 1px solid var(--border); }
+  .scope-card.out { background: var(--critical-wash); border-color: color-mix(in srgb, var(--critical) 25%, transparent); }
+  .scope-card .sc-label { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 8px; font-weight: 700; }
+  .scope-card.out .sc-label { color: var(--critical); }
+  .scope-card ul { margin: 0; padding-left: 18px; font-size: 13.5px; }
+  .scope-card p { font-size: 13.5px; margin: 0; }
+
+  .warn-note { display: flex; gap: 10px; background: var(--warn-wash); border: 1px solid color-mix(in srgb, var(--warn) 30%, transparent); border-radius: 6px; padding: 10px 14px; font-size: 13px; margin: 14px 0; }
+  .warn-note .mark { color: var(--warn); font-weight: 700; flex-shrink: 0; }
+  .warn-note p { margin: 0; color: var(--ink-muted); font-size: 13px; }
+  .warn-note p b { color: var(--ink); }
+
+  footer { margin-top: 72px; padding-top: 20px; border-top: 1px solid var(--border); font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+
+  @media (max-width: 640px) {
+    .scope-grid { grid-template-columns: 1fr; }
+    .decision { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="page">
+
+  <div class="masthead">
+    <span class="label">Quant &middot; 엔지니어링 설계 노트</span>
+    <span class="issue">작성 2026-07-15 &middot; HTML화 2026-08-12</span>
+  </div>
+
+  <h1 class="title">시장 국면 판단 + 섹터/테마 강도 지표</h1>
+  <p class="dek">S&amp;P500이 강세장인지 약세장인지, 반도체·DRAM·우주 같은 섹터가 얼마나 힘이
+    센지를 정량적으로 보여주는 기능을 만들기 전 5분 리서치로 업계 표준 방법론을 조사하고, 그 근거로
+    설계를 확정한 기록.</p>
+
+  <div class="status-banner">
+    <span class="dot"></span>
+    <span><b>구현 완료</b> (2026-07-15)<span class="sep"> &middot; </span>새 페이지가 아니라
+    <code>app/pages/7_매크로_대시보드.py</code>(모듈 G)의 새 탭<span class="sep"> &middot; </span>
+    핵심 로직 <code>core/market_regime.py</code> · <code>core/sector_strength.py</code></span>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-label">목차</div>
+    <ol>
+      <li><span class="n">§1</span><a href="#s1">요청 요약</a></li>
+      <li><span class="n">§2</span><a href="#s2">리서치 근거</a></li>
+      <li><span class="n">§3</span><a href="#s3">확정된 설계 결정</a></li>
+      <li><span class="n">§4</span><a href="#s4">기술 설계</a></li>
+      <li><span class="n">§5</span><a href="#s5">범위에서 제외한 것</a></li>
+    </ol>
+  </nav>
+
+  <section id="s1">
+    <div class="section-head"><span class="num">§1</span><h2>요청 요약</h2></div>
+    <p>2026-07-15 요청 — S&amp;P500 등을 통해 전체 시장이 강세장/약세장인지, 그리고 DRAM·반도체·
+      우주섹터 등 섹터별로 얼마나 힘(모멘텀)이 센지를 <b>정량적으로</b> 보여주는 기능. 구현 전
+      인터넷 리서치(최소 5분)로 업계 표준 방법론을 조사한 뒤 설계에 반영하도록 요청받았다.</p>
+  </section>
+
+  <section id="s2">
+    <div class="section-head"><span class="num">§2</span><h2>리서치 근거</h2></div>
+
+    <h3>시장 국면(강세/약세) 판단</h3>
+    <p>학계/업계 모두 HMM 등 통계·ML 기반 레짐 탐지도 쓰지만, 개인 대시보드 수준에서는 룰 기반
+      복합지표가 훨씬 널리 쓰이고 &ldquo;왜 그렇게 판단했는지&rdquo; 설명 가능하다는 게 확인됐다.</p>
+
+    <div class="research-item">
+      <div class="src-label">200일 이동평균 대비 위치</div>
+      <p>가장 기본적인 장기추세 필터.</p>
+    </div>
+    <div class="research-item">
+      <div class="src-label"><a href="https://www.forex.com/en-us/news-and-analysis/golden-cross-vs-death-cross-indicators/" target="_blank" rel="noopener">골든크로스 / 데드크로스 &mdash; MarketWatch 분석</a></div>
+      <p>50일선이 200일선을 상향 돌파(골든크로스)한 뒤 1년 평균 +9.9%. 단, 데드크로스는 이미 하락이
+        상당 부분 진행된 뒤에 나오는 후행 신호라 &ldquo;이후 매도&rdquo;의 근거로는 약하다 &mdash;
+        리서치에서 확인된 이 한계를 그대로 UI 캡션에 명시했다.</p>
+    </div>
+    <div class="research-item">
+      <div class="src-label"><a href="https://www.schwab.com/learn/story/breadth-check-strength-and-weakness-trend-tracker" target="_blank" rel="noopener">시장폭(breadth) &mdash; Schwab</a> /
+        <a href="https://protraderdashboard.com/blog/percent-stocks-above-ma/" target="_blank" rel="noopener">Pro Trader Dashboard</a></div>
+      <p>지수 구성종목 중 200일선 위 비율이 70%↑면 강세, 30%↓면 약세, 85~90%↑는 과열(조정 임박
+        가능성)로 해석.</p>
+    </div>
+    <div class="research-item">
+      <div class="src-label">고점 대비 낙폭 &minus;20%</div>
+      <p>통상적인 &ldquo;공식 약세장&rdquo; 정의 기준으로 널리 사용됨(&minus;10~&minus;20%는 조정).</p>
+    </div>
+
+    <h3>섹터/테마 강도</h3>
+    <div class="research-item">
+      <div class="src-label"><a href="https://www.ainvest.com/news/ibd-rs-rating-quick-gauge-stock-strength-2506/" target="_blank" rel="noopener">IBD RS Rating</a></div>
+      <p>최근 3개월에 가중치를 더 준 12개월 수익률을 0~100 percentile로 환산.</p>
+      <div class="formula-block">StrengthFactor = 0.4&middot;ROC(63) + 0.2&middot;ROC(126) + 0.2&middot;ROC(189) + 0.2&middot;ROC(252)   <span style="color:var(--ink-faint)">// 거래일 기준</span></div>
+    </div>
+    <div class="research-item">
+      <div class="src-label"><a href="https://chartschool.stockcharts.com/table-of-contents/chart-analysis/chart-types/relative-rotation-graphs-rrg-charts" target="_blank" rel="noopener">Relative Rotation Graphs (RRG)</a></div>
+      <p>추세(RS-Ratio) + 모멘텀(RS-Momentum) 2축으로 섹터를 Leading / Weakening / Lagging /
+        Improving 4분면에 배치하는 업계 표준 기법. 이번 구현에서는 산점도 4분면 차트까지는 만들지
+        않고(범위 확대 방지) &ldquo;레벨(RS 점수)&rdquo;과 &ldquo;추세 방향(최근 20거래일 RS 점수
+        변화)&rdquo; 두 축으로 핵심 아이디어만 단순화해 표/막대차트로 반영했다.</p>
+    </div>
+    <div class="research-item">
+      <div class="src-label"><a href="https://www.etf.com/sections/news/semiconductor-etfs-101-dram-euv-smh-soxx-soxl-complete-guide-2026" target="_blank" rel="noopener">반도체 ETF 가이드</a> /
+        <a href="https://trendspider.com/learning-center/ufo-vs-arkx-why-these-space-etfs-are-not-the-same-investment/" target="_blank" rel="noopener">UFO vs ARKX 비교</a></div>
+      <p>DRAM/반도체/우주섹터는 GICS 표준 11개 섹터에 없지만 실제 대응 ETF가 존재한다 &mdash;
+        SOXX(iShares, 30종목 균등가중 성격, 최근 미드캡 반도체 랠리를 더 잘 포착), SMH(VanEck,
+        유동성 최대, 엔비디아 등 대형주 비중 큼), DRAM(Roundhill, SK하이닉스·마이크론·삼성전자
+        비중 약 75%), UFO(ProCure, 순수 우주기업), ROKT(SPDR, 록히드마틴 등 방산 대형주 54%
+        포함), ARKX(ARK, 액티브 운용+인접 혁신테마). 세 우주 ETF가 구성이 상당히 달라 하나만 쓰면
+        편향될 수 있어, 테마당 <b>여러 프록시 ETF를 평균</b>하는 방식을 채택했다.</p>
+    </div>
+  </section>
+
+  <section id="s3">
+    <div class="section-head"><span class="num">§3</span><h2>확정된 설계 결정</h2></div>
+    <p>AskUserQuestion으로 사용자에게 직접 확인한 항목.</p>
+    <div class="decision-log">
+      <div class="decision"><span class="q">UI 위치</span><span class="a">새 페이지 아님 &mdash; 기존
+        <code>7_매크로_대시보드.py</code>(모듈 G)에 새 탭 추가</span></div>
+      <div class="decision"><span class="q">시장 국면 판단 방식</span><span class="a">룰 기반
+        복합지표(통계/ML 배제) &mdash; 기존 <code>core/macro_cycle.py</code>와 같은 &ldquo;투명한
+        간이 프레임워크&rdquo; 스타일 유지</span></div>
+      <div class="decision"><span class="q">섹터 강도 대상 정의</span><span class="a">대표 ETF
+        프록시(개별 종목 바스켓 직접 구성 X)</span></div>
+      <div class="decision"><span class="q">테마 확장 방식</span><span class="a">코드에 정의된 프리셋
+        딕셔너리로 시작(11개 GICS 섹터 SPDR ETF + 반도체/DRAM/우주). 나중에 테마가 더 필요하면
+        딕셔너리에 항목만 추가하면 됨. UI 편집 화면은 이번 범위에 넣지 않음(과설계 방지)</span></div>
+    </div>
+  </section>
+
+  <section id="s4">
+    <div class="section-head"><span class="num">§4</span><h2>기술 설계</h2></div>
+    <p class="section-intro">위임받은 세부사항 &mdash; 근거와 함께 직접 결정.</p>
+
+    <h3>4.1 시장 국면 점수</h3>
+    <p><code>core/market_regime.py</code>, 벤치마크 <code>^GSPC</code>(기존
+      <code>backtest_engine.DEFAULT_BENCHMARK_TICKER</code>와 동일 티커 재사용). 4개 신호를 각각
+      점수화해 합산(총점 &minus;100~+75, 대칭이 아닌 이유: 고점대비낙폭은 &ldquo;패널티 전용&rdquo;
+      신호라 플러스 기여가 없음):</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>신호</th><th>기여 범위</th><th>규칙</th></tr></thead>
+        <tbody>
+          <tr><td>200일선 대비 위치</td><td class="num">&plusmn;25</td><td>종가 &gt; SMA200 &rarr; +25, 아니면 &minus;25</td></tr>
+          <tr><td>50/200일 골든&middot;데드크로스</td><td class="num">&plusmn;25</td><td>SMA50 &gt; SMA200 &rarr; +25(골든), 아니면 &minus;25(데드)</td></tr>
+          <tr><td>시장폭(200일선 위 종목 비율)</td><td class="num">&plusmn;25</td><td><code>clip((breadth% &minus; 50) &times; 1.25, &minus;25, 25)</code> &mdash; 선형, 30%/70%에서 클립</td></tr>
+          <tr><td>52주 고점 대비 낙폭</td><td class="num">&minus;25~0</td><td><code>clip(drawdown% / 20 &times; 25, &minus;25, 0)</code> &mdash; 선형, &minus;20%에서 클립</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>레이블: 총점 &ge; 35 &rarr; <b>강세장</b>, &le; &minus;35 &rarr; <b>약세장</b>, 그 사이 &rarr;
+      중립/혼조.</p>
+    <div class="warn-note">
+      <span class="mark">&#9888;</span>
+      <p><b>데드크로스 신호는 후행성이 크다</b>는 리서치 근거를 UI 캡션에 그대로 명시해 과신을
+        방지했다.</p>
+    </div>
+    <p>시장폭 계산은 <code>core.screener.get_universe()</code>의 S&amp;P500 전체 목록(~500종목)에
+      대해 각 종목의 종가가 200일선 위인지 확인해야 해서 네트워크 호출이 많다 &rarr; 기존
+      스크리너/미세튜닝 페이지와 동일하게 <code>job_manager.start()</code>로 백그라운드 실행 +
+      <code>core.market_data.get_multiple_price_history()</code>의 기존 영구 로컬 캐시를 그대로
+      활용(최초 1회만 느리고 이후는 캐시 히트).</p>
+
+    <h3>4.2 섹터/테마 강도</h3>
+    <p><code>core/sector_strength.py</code>. 프리셋 딕셔너리
+      <code>THEME_UNIVERSE: dict[str, list[str]]</code>(테마명 &rarr; 프록시 ETF 티커 리스트):</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>구분</th><th>테마 &rarr; 프록시 ETF</th></tr></thead>
+        <tbody>
+          <tr><td>GICS 11개 섹터<br><span style="font-weight:400;color:var(--ink-faint);font-size:12px;">SPDR Select Sector ETF</span></td>
+            <td>기술=XLK, 금융=XLF, 헬스케어=XLV, 임의소비재=XLY, 필수소비재=XLP, 에너지=XLE,
+              산업재=XLI, 소재=XLB, 유틸리티=XLU, 부동산=XLRE, 커뮤니케이션=XLC</td></tr>
+          <tr><td>세부 테마</td><td>반도체=[SOXX, SMH], DRAM/메모리=[DRAM], 우주=[UFO, ARKX, ROKT]</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>테마별 강도 = IBD 방식 StrengthFactor(프록시가 여러 개면 평균) &rarr; 전체 테마 집합 내
+      percentile rank(0~100)로 변환해 &ldquo;RS 점수&rdquo;로 표시. 추가로 최근 20거래일 전후의
+      RS 점수 변화를 &ldquo;상승/하락/횡보&rdquo; 추세 화살표로 함께 표시(RRG의 모멘텀 축을 단순화
+      반영). <code>core/indicators.py</code>에 <code>roc(close, window)</code> 헬퍼를 신규
+      추가했다(sma/ema와 동일 패턴).</p>
+
+    <h3>4.3 UI</h3>
+    <p><code>app/pages/7_매크로_대시보드.py</code>에 3번째 탭 &ldquo;📈 시장 국면 / 섹터 강도&rdquo;
+      추가:</p>
+    <ul>
+      <li>상단: 강세장/중립/약세장 배지 + 종합점수 + 4개 하위 신호 각각을 <code>st.metric</code>으로
+        분해 표시</li>
+      <li>하단: 테마별 RS 점수 막대차트(내림차순 정렬, dataviz 스킬 가이드 적용) + 3/6/12개월
+        수익률과 추세 화살표를 곁들인 표</li>
+    </ul>
+  </section>
+
+  <section id="s5">
+    <div class="section-head"><span class="num">§5</span><h2>범위에서 제외한 것</h2></div>
+    <p class="section-intro">과설계 방지를 위해 의도적으로 빼놓은 항목.</p>
+    <div class="scope-grid">
+      <div class="scope-card out">
+        <div class="sc-label">이번엔 안 함</div>
+        <ul>
+          <li>RRG 산점도(4분면) 차트 &mdash; 아이디어(레벨+모멘텀)만 반영, 실제 산점도는 미구현</li>
+          <li>테마 목록 UI 편집 기능 &mdash; 코드 프리셋으로 시작</li>
+          <li>통계/ML 기반 레짐 전환 확률 모델(HMM 등) &mdash; 룰 기반으로 충분히 설명 가능한 범위로 한정</li>
+          <li>이 국면/강도 지표를 다종목 미세튜닝 엔진의 실시간 탐색 로직에 자동 결합 &mdash; 대시보드
+            표시까지만</li>
+        </ul>
+      </div>
+      <div class="scope-card">
+        <div class="sc-label" style="color:var(--accent)">향후 확장 여지</div>
+        <p><code>STRATEGY_TUNING_ENGINE_SPEC.md</code>에 이미 기록된 대로, 국면/강도 지표를 튜닝
+          엔진과 결합하는 것은 향후 확장 과제로 남겨뒀다. 테마 딕셔너리는 항목만 추가하면 확장되는
+          구조라 새 섹터/테마 편입 자체는 낮은 비용으로 가능하다.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>원본: docs/MARKET_REGIME_SECTOR_STRENGTH_SPEC.md &middot; 구현 상세는 PROGRESS.md(2026-07-15) 참고</span>
+    <span>HTML 변환 2026-08-12</span>
+  </footer>
+</div>
+
+
+</body>
+</html>
