@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body>
+<title>개별주 텐베거 발굴 방법론</title>
+<style>
+
+:root{
+  color-scheme: light;
+  --bg-page:#eef1ee; --surface:#ffffff; --surface-2:#f4f6f3;
+  --ink:#12181a; --ink-2:#495550; --ink-muted:#828d87;
+  --hairline:#d7ddd6; --border:rgba(11,11,11,0.10);
+  --accent:#1f4d3d; --accent-ink:#ffffff; --accent-2:#8a6a1f;
+  --accent-2-soft:#f2e6c8; --accent-soft:#e2ebe6; --chart-surface:#fcfcfb;
+  --blue:#2a78d6; --orange:#eb6834; --aqua:#1baf7a; --red:#e34948;
+  --gridline:#e1e0d9; --axis:#c3c2b7; --delta-pos:#184f95; --delta-neg:#b3261e;
+  --code-bg:#f4f6f3; --shadow: 0 1px 2px rgba(20,30,25,0.04), 0 8px 24px -16px rgba(20,30,25,0.18);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg-page:#0f1210; --surface:#171b16; --surface-2:#1c211b;
+    --ink:#f2f4f0; --ink-2:#c4cbc2; --ink-muted:#8b958a;
+    --hairline:#2c332a; --border:rgba(255,255,255,0.10);
+    --accent:#5aab89; --accent-ink:#0b1310; --accent-2:#d9b45c;
+    --accent-2-soft:#332a13; --accent-soft:#1b2921; --chart-surface:#1a1a19;
+    --blue:#3987e5; --orange:#d95926; --aqua:#199e70; --red:#e66767;
+    --gridline:#2c2c2a; --axis:#3a3f38; --delta-pos:#86b6ef; --delta-neg:#ff8a80;
+    --code-bg:#1c211b; --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -16px rgba(0,0,0,0.5);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg-page:#0f1210; --surface:#171b16; --surface-2:#1c211b;
+  --ink:#f2f4f0; --ink-2:#c4cbc2; --ink-muted:#8b958a;
+  --hairline:#2c332a; --border:rgba(255,255,255,0.10);
+  --accent:#5aab89; --accent-ink:#0b1310; --accent-2:#d9b45c;
+  --accent-2-soft:#332a13; --accent-soft:#1b2921; --chart-surface:#1a1a19;
+  --blue:#3987e5; --orange:#d95926; --aqua:#199e70; --red:#e66767;
+  --gridline:#2c2c2a; --axis:#3a3f38; --delta-pos:#86b6ef; --delta-neg:#ff8a80;
+  --code-bg:#1c211b; --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -16px rgba(0,0,0,0.5);
+}
+*{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{ margin:0; background:var(--bg-page); color:var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif; line-height:1.6; font-size:16px; }
+.serif{ font-family: "Iowan Old Style","Palatino Linotype", Georgia, serif; }
+.mono, .num, td.num, .tk-name, .kpi-value, code {
+  font-family: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+  font-variant-numeric: tabular-nums; }
+a{ color:var(--accent); }
+.wrap{ max-width: 920px; margin:0 auto; padding: 0 24px 96px; }
+.masthead{ background: var(--accent); color: var(--accent-ink); padding: 56px 24px 40px; }
+.masthead-inner{ max-width:920px; margin:0 auto; }
+.masthead-eyebrow{ font-size:12.5px; letter-spacing:0.12em; text-transform:uppercase; opacity:0.82;
+  font-family: ui-monospace, "SF Mono", Consolas, monospace; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.masthead-eyebrow .dot{ opacity:0.5; }
+h1.masthead-title{ font-family:"Iowan Old Style","Palatino Linotype", Georgia, serif; font-weight:600;
+  font-size: clamp(28px, 4.2vw, 44px); line-height:1.15; margin: 14px 0 10px; text-wrap: balance; max-width: 20ch; }
+.masthead-sub{ font-size:16.5px; max-width:66ch; opacity:0.92; margin:0 0 22px; }
+.masthead-meta{ display:flex; flex-wrap:wrap; gap: 10px 26px; font-size:13.5px; opacity:0.85;
+  border-top:1px solid rgba(255,255,255,0.22); padding-top:16px; }
+.masthead-meta b{ font-weight:600; }
+.section{ padding: 52px 0 8px; border-top:1px solid var(--hairline); }
+.section:first-of-type{ border-top:none; }
+.section h2{ font-family:"Iowan Old Style","Palatino Linotype", Georgia, serif; font-size: 25px;
+  font-weight:600; margin: 0 0 16px; display:flex; align-items:baseline; gap:12px; }
+.sec-no{ font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size:13px; color: var(--accent);
+  border:1px solid var(--accent); border-radius:3px; padding:2px 6px; font-weight:600; letter-spacing:0.02em; }
+.section h3{ font-size:17.5px; margin: 30px 0 10px; font-weight:650; }
+.section h4{ font-size:15px; margin: 20px 0 8px; font-weight:650; color:var(--ink-2); }
+.lede{ font-size:16.5px; color:var(--ink-2); max-width:72ch; }
+.section p{ max-width:74ch; }
+.section > p, .section > .lede { margin-top: 0; }
+.section li{ max-width:70ch; }
+.callout{ background: var(--surface-2); border:1px solid var(--hairline); border-left: 3px solid var(--accent);
+  border-radius: 6px; padding: 18px 22px; margin: 20px 0 26px; }
+.callout-title{ font-size:11.5px; text-transform:uppercase; letter-spacing:0.08em; color:var(--accent);
+  font-weight:700; margin-bottom:8px; }
+.callout p{ margin:0; max-width:none; }
+.callout p + p{ margin-top:10px; }
+.caveat{ font-size:14.5px; color:var(--ink-2); background:var(--surface-2); border-radius:6px;
+  padding:14px 18px; border:1px dashed var(--hairline); margin: 14px 0; }
+.formula-box{ background:var(--code-bg); border:1px solid var(--hairline); border-radius:8px;
+  padding:18px 22px; margin: 16px 0; overflow-x:auto; }
+.formula-box .f-line{ font-family: ui-monospace,"SF Mono",Consolas,monospace; font-size:15px;
+  color:var(--ink); white-space:nowrap; margin: 4px 0; }
+.formula-box .f-note{ font-size:12.5px; color:var(--ink-muted); margin-top:8px; font-family: system-ui,-apple-system,sans-serif; white-space:normal; }
+.kpi-row{ display:grid; grid-template-columns:repeat(auto-fit, minmax(190px,1fr)); gap:14px; margin: 20px 0 8px; }
+.kpi-tile{ background:var(--surface); border:1px solid var(--hairline); border-radius:8px; padding:16px 18px; box-shadow: var(--shadow); }
+.kpi-label{ font-size:12.5px; color:var(--ink-muted); margin-bottom:6px; }
+.kpi-value{ font-size:26px; font-weight:600; line-height:1.1; }
+.kpi-value.pos{ color:var(--delta-pos); }
+.kpi-value.neg{ color:var(--delta-neg); }
+.kpi-sub{ font-size:12.5px; color:var(--ink-muted); margin-top:4px; }
+.chart-card{ background:var(--chart-surface); border:1px solid var(--hairline); border-radius:10px;
+  padding:22px 22px 16px; margin: 22px 0; box-shadow: var(--shadow); }
+.chart-card h3{ margin: 0 0 4px; font-size:16px; }
+.chart-desc{ font-size:13.5px; color:var(--ink-muted); margin: 0 0 14px; max-width:none; }
+.legend{ display:flex; gap:18px; flex-wrap:wrap; margin: 2px 0 14px; font-size:12.5px; color:var(--ink-2); }
+.legend .lg-item{ display:flex; align-items:center; gap:6px; }
+.legend .lg-swatch{ width:14px; height:3px; border-radius:2px; display:inline-block; }
+.fig-caption{ font-size:12.5px; color:var(--ink-muted); margin: 10px 0 0; max-width:none; }
+svg.chart-svg{ width:100%; height:auto; display:block; overflow:visible; }
+svg.chart-svg text{ fill:var(--ink-2); font-family: system-ui,-apple-system,"Segoe UI",sans-serif; }
+svg.chart-svg .tick-label{ fill:var(--ink-muted); font-size:10.5px; }
+svg.chart-svg .axis-line{ stroke:var(--axis); stroke-width:1; }
+svg.chart-svg .grid-line{ stroke:var(--gridline); stroke-width:1; }
+svg.chart-svg .bar-label{ font-size:11px; fill:var(--ink-2); font-family: ui-monospace,"SF Mono",Consolas,monospace; }
+svg.chart-svg .cat-label{ font-size:12px; fill:var(--ink); }
+.table-wrap{ overflow-x:auto; border:1px solid var(--hairline); border-radius:8px; background:var(--surface); }
+table.data-table{ width:100%; border-collapse:collapse; font-size:13.5px; min-width:600px; }
+table.data-table th{ text-align:right; font-weight:600; font-size:11.5px; color:var(--ink-muted); text-transform:uppercase;
+  letter-spacing:0.03em; padding:10px 12px; border-bottom:1px solid var(--hairline); white-space:nowrap; }
+table.data-table .th-sub{ text-transform:none; font-weight:400; letter-spacing:0; font-size:10.5px; display:block; }
+table.data-table th:first-child, table.data-table td:first-child{ text-align:left; }
+table.data-table td{ padding:8px 12px; border-bottom:1px solid var(--hairline); text-align:right; white-space:nowrap; }
+table.data-table tbody tr:hover{ background:var(--surface-2); }
+table.data-table tbody tr:last-child td{ border-bottom:none; }
+td.tk-cell{ text-align:left !important; }
+td.tk-cell .tk-name{ font-weight:650; margin-right:8px; }
+td.tk-cell .tk-sector{ font-size:11.5px; color:var(--ink-muted); font-family: system-ui,-apple-system,sans-serif; }
+td.ctr{ text-align:center !important; }
+td.num.delta.pos, .delta.pos{ color:var(--delta-pos); font-weight:650; }
+td.num.delta.neg, .delta.neg{ color:var(--delta-neg); font-weight:650; }
+.strong{ font-weight:700; }
+tr.best-row{ background: var(--accent-soft); }
+tr.trend-down td.trend-cell{ color:var(--delta-neg); }
+tr.trend-up td.trend-cell{ color:var(--delta-pos); }
+footer{ max-width:920px; margin:40px auto 0; padding: 26px 24px 10px; border-top:1px solid var(--hairline);
+  font-size:12.5px; color:var(--ink-muted); }
+footer p{ max-width:none; }
+.toc{ display:flex; flex-wrap:wrap; gap:8px 18px; margin: 24px 0 4px; padding:16px 20px; background:var(--surface);
+  border:1px solid var(--hairline); border-radius:8px; }
+.toc a{ font-size:13.5px; color:var(--ink-2); text-decoration:none; }
+.toc a:hover{ color:var(--accent); text-decoration:underline; }
+.tier-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin:18px 0; }
+.tier-card{ background:var(--surface); border:1px solid var(--hairline); border-radius:8px; padding:16px 18px; }
+.tier-card h4{ margin:0 0 8px; font-size:14px; color:var(--ink); }
+.tier-card .tier-range{ font-family: ui-monospace,"SF Mono",Consolas,monospace; font-size:20px; font-weight:700; color:var(--accent); }
+.tier-card .tier-sub{ font-size:12px; color:var(--ink-muted); margin-top:4px; }
+.src-list{ font-size:13px; color:var(--ink-2); padding-left:18px; }
+.src-list li{ margin: 6px 0; }
+
+</style>
+
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="masthead-eyebrow">
+      <span>QUANT RESEARCH NOTE</span><span class="dot">·</span><span>Track C · No. 2026-08</span><span class="dot">·</span><span>Methodology Study</span>
+    </div>
+    <h1 class="masthead-title">개별주 텐베거 발굴 방법론 — 자본공학적 밸류에이션과 정량 섹터 분석</h1>
+    <p class="masthead-sub">PER·PBR·PEG이 "얼마여야 싼가"를 감이 아니라 배당할인모형·잔여이익모형의 대수(代數)로
+      직접 유도하고, 이 저장소의 기존 시장국면·섹터강도 엔진으로 지금 실제로 뜨거운 섹터를 실측한 뒤,
+      린치·오닐·품질팩터 연구를 종합해 S&amp;P500에 실제로 적용 가능한 스크리닝 규칙까지 만든다.</p>
+    <div class="masthead-meta">
+      <span><b>섹터강도 기준일</b> 2026-08-14</span>
+      <span><b>시장국면 기준일</b> 2026-08-14</span>
+      <span><b>스크리닝 유니버스</b> S&amp;P500 503종목</span>
+      <span><b>데이터</b> Yahoo Finance(yfinance) + 이 저장소 core.sector_strength/market_regime/screener/valuation</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <nav class="toc">
+    <a href="#scope">00 개요</a>
+    <a href="#per-derive">01 PER 유도</a>
+    <a href="#pbr-derive">02 PBR 유도</a>
+    <a href="#benchmarks">03 실전 벤치마크</a>
+    <a href="#intangibles">04 장부가치의 함정</a>
+    <a href="#tiers">05 티어별 적정 배수</a>
+    <a href="#sector-method">06 섹터강도 방법론</a>
+    <a href="#sector-snapshot">07 실측 스냅샷</a>
+    <a href="#regime">08 시장국면 진단</a>
+    <a href="#lynch">09 텐베거 프레임 — 린치</a>
+    <a href="#canslim-quality">10 CANSLIM · 품질팩터</a>
+    <a href="#smallcap">11 소형주 효과와 스코프</a>
+    <a href="#framework">12 종합 프레임워크</a>
+    <a href="#screen-run">13 실측 스크리닝</a>
+    <a href="#conclusion">14 한계와 결론</a>
+    <a href="#sources">부록: 출처</a>
+  </nav>
+
+  <section class="section" id="scope">
+    <h2><span class="sec-no">00</span> 개요 — 왜 이 리서치인가</h2>
+    <p class="lede">이 저장소의 기존 리서치(No.04~08)는 "시장 전체를 어떻게 사고파느냐"를 다루는
+      하향식(top-down) 국면·로테이션 연구였다. 이 리포트는 궤를 달리한다 — 개별 종목을 상향식
+      (bottom-up)으로 골라 텐베거(10배 종목)를 찾는 문제를 다룬다. 사용자의 요청 그대로,
+      정답이 없다는 것을 알면서도 명답에 최대한 가깝게 수렴시키는 것이 목표다. 세 축으로 접근한다:</p>
+    <ol>
+      <li><b>자본공학(capital engineering)</b> — PER/PBR/PEG이 "몇 배여야 싼가"는 관습이 아니라
+        배당할인모형·잔여이익모형의 대수에서 직접 유도되는 값이다. 이 대수를 먼저 세운다.</li>
+      <li><b>정량 시황 분석</b> — 지금 어느 섹터가 뜨거운지를 이 저장소에 이미 구현·검증된
+        <code>core.sector_strength</code>/<code>core.market_regime</code> 엔진으로 실측한다
+        (새 방법론을 만들지 않는다 — 이미 있는 것을 재사용한다).</li>
+      <li><b>기업 발굴</b> — 피터 린치의 텐베거 프레임, 윌리엄 오닐의 CANSLIM, 학계의 품질팩터
+        연구를 종합해 위 두 축과 결합한 구체적 스크리닝 규칙을 만들고, 실제로 S&amp;P500에
+        돌려본다.</li>
+    </ol>
+    <p class="caveat">⚠️ 이 리포트는 투자 조언이 아니다. 특정 종목을 추천하지 않으며, 13장의 스크리닝
+      결과는 "방법론이 실제로 작동한다"는 것을 보여주는 예시이지 매수 리스트가 아니다.</p>
+  </section>
+
+  <section class="section" id="per-derive">
+    <h2><span class="sec-no">01</span> PER의 자본공학적 적정 수준 — 고든성장모형에서 유도</h2>
+    <p class="lede">배당할인모형(DDM)의 가장 단순한 형태인 고든성장모형(Gordon Growth Model)에서
+      출발한다. 배당이 매년 일정한 성장률 g로 영구히 성장한다고 가정하면 주가는 다음 해 배당의
+      현재가치 합이다.</p>
+    <div class="formula-box">
+      <div class="f-line">P₀ = D₁ / (r − g) = D₀(1+g) / (r − g)</div>
+      <div class="f-note">P₀=현재주가, D₀=올해 배당, D₁=내년 예상배당, r=자기자본 요구수익률(할인율), g=배당(이익) 영구성장률. r &gt; g 가 성립해야 수렴한다.</div>
+    </div>
+    <p>양변을 주당순이익(EPS, E₀)으로 나누면 트레일링(후행) 정당 P/E가 나온다. D₀/E₀는 배당성향
+      (payout ratio, 기호 1−b, b는 이익유보율)이다.</p>
+    <div class="formula-box">
+      <div class="f-line">P₀/E₀ = (1−b)(1+g) / (r − g)</div>
+      <div class="f-note">"정당 트레일링 P/E" — 배당성향이 높을수록, 성장률이 높을수록(단 r&gt;g 범위 내), 요구수익률이 낮을수록 P/E가 커진다.</div>
+    </div>
+    <p>여기서 결정적인 연결고리는 <b>지속가능성장률(sustainable growth rate) 공식</b>이다 —
+      새로 유보한 이익이 기존과 같은 자기자본이익률(ROE)로 재투자된다고 가정하면:</p>
+    <div class="formula-box">
+      <div class="f-line">g = b × ROE</div>
+      <div class="f-note">b=이익유보율(1−배당성향), ROE=자기자본이익률. 성장은 "얼마를 재투자하느냐(b) × 그 재투자가 얼마나 효율적인가(ROE)"의 곱이다.</div>
+    </div>
+    <p>즉 P/E는 표면적으로는 "성장률이 높으면 비싸도 된다"는 값이지만, 대수적으로 뜯어보면
+      <b>배당성향·재투자 효율(ROE)·요구수익률 세 변수만의 함수</b>다 — "성장주라서 비싸다"는
+      말은 정확히는 "b와 ROE의 곱이 커서 g가 크고, 그 g가 r에 근접할수록 분모(r−g)가 작아져
+      P/E가 발산에 가깝게 커진다"는 뜻이다. 반대로 g가 r을 넘어서면 이 단일단계 모형 자체가
+      수학적으로 붕괴한다(분모가 음수) — 이것이 바로 40%씩 성장하는 기업을 이 단순 모형 하나로
+      "정당화"할 수 없는 이유다. 실무에서는 고성장이 유한 기간만 지속되고 이후 r보다 낮은 안정
+      성장률로 수렴한다고 보는 <b>다단계(2-stage/H-model) DDM</b>을 쓴다 — PEG 비율은 사실상 이
+      다단계 모형을 극단적으로 단순화한 어림값이다(03장에서 다룬다).</p>
+  </section>
+
+  <section class="section" id="pbr-derive">
+    <h2><span class="sec-no">02</span> PBR의 자본공학적 적정 수준 — 잔여이익모형에서 유도</h2>
+    <p class="lede">PBR의 "적정 수준"은 절대적인 배수(예: "1.5배 이하")가 아니라 <b>ROE와 요구수익률의
+      상대적 스프레드</b>에서 나온다. 잔여이익(residual income)모형이 이를 직접 보여준다 — 잔여이익은
+      "자기자본이 요구수익률만큼 벌어들이고 남는 초과이익"이다.</p>
+    <div class="formula-box">
+      <div class="f-line">RIₜ = Eₜ − r × Bₜ₋₁ = (ROE − r) × Bₜ₋₁</div>
+      <div class="f-note">RI=잔여이익, E=순이익, B=자기자본 장부가, r=요구수익률. ROE가 r보다 높을 때만 잔여이익이 플러스다.</div>
+    </div>
+    <p>기업가치는 현재 장부가에 미래 잔여이익의 현재가치를 더한 것이다. 잔여이익이 영구히 g로
+      성장한다고 단순화하면(위와 같은 고든성장 가정), 잔여이익모형은 다음과 같은 <b>정당 P/B</b>로
+      정리된다:</p>
+    <div class="formula-box">
+      <div class="f-line">P₀/B₀ = (ROE − g) / (r − g)</div>
+      <div class="f-note">정당 PBR. ROE=r이면 P/B=1(장부가=시장가), ROE&gt;r이면 P/B&gt;1, ROE&lt;r이면 P/B&lt;1이 수학적으로 도출된다.</div>
+    </div>
+    <p><b>이 한 줄이 "PBR이 낮으면 무조건 싸다"는 통념을 정면으로 반박한다.</b> PBR 0.7배인 기업이
+      "저평가"가 아니라 "ROE가 요구수익률보다 낮아서 자본을 파괴하고 있는 상태를 시장이 정확히
+      반영한 것"일 수 있다 — 오히려 PBR이 1을 밑도는 게 합리적인 가격일 수 있다는 뜻이다. 반대로
+      PBR 8배인 기업이 ROE가 압도적으로 높다면(예: 자산이 거의 없이 순이익률이 높은 소프트웨어
+      기업) 그 배수 자체가 정당할 수 있다. 즉 PBR은 <b>ROE 대비 상대평가로만 의미가 있는 지표</b>이지,
+      절대적인 저평가/고평가 기준선이 아니다.</p>
+  </section>
+
+  <section class="section" id="benchmarks">
+    <h2><span class="sec-no">03</span> 실전 벤치마크 — 그레이엄, 린치, 성장률 티어</h2>
+    <h3>벤저민 그레이엄 — P/E&lt;15, P/B&lt;1.5, 그레이엄 넘버</h3>
+    <p>그레이엄은 《현명한 투자자》에서 방어적 투자자를 위한 기준으로 P/E 15배 이하, P/B 1.5배
+      이하를 제시했고, 두 조건을 동시에 완화해 <b>P/E × P/B ≤ 22.5</b>(15×1.5)라는 결합 기준을
+      함께 제시했다 — 이 곱셈 규칙에서 √(22.5 × EPS × BVPS)라는 "그레이엄 넘버" 공식이 후대에
+      파생됐다(그레이엄 본인이 이 제곱근 공식을 직접 제시한 것은 아니고, 그의 결합 기준을 analyst들이
+      정리한 것이다). 이 저장소 <code>core.valuation.graham_number()</code>가 이미 이 공식을
+      구현하고 있다 — 02장의 유도로 보면, P/E·P/B가 동시에 낮다는 것은 결국 "낮은 g(성장 기대가
+      낮음)"와 "ROE가 r에 가깝거나 낮음"을 동시에 만족하는 상태를 가격에 반영한 것이라는 뜻이므로,
+      그레이엄 기준은 원래부터 <b>저성장·안정 기업(슬로우 그로워/스톨워트)</b>에 맞는 잣대다 —
+      고성장 기업에 그대로 들이대면 대부분 탈락한다.</p>
+    <h3>피터 린치 — PEG ≈ 1.0</h3>
+    <p>린치는 《월가의 영웅》(1989)에서 "제대로 가격이 매겨진 기업의 P/E는 그 기업의 성장률과
+      같아야 한다"고 썼다 — P/E 20에 성장률 20%면 PEG=1.0로 "적정가"라는 뜻이다. PEG가 1 미만이면
+      시장이 성장을 저평가하고 있다는 신호, 1.5를 넘으면 성장이 이미 상당히 가격에 반영된 상태,
+      2.0을 넘으면 린치도 스토리가 아무리 매력적이어도 대체로 피했다. 배당을 주는 기업에는 성장률에
+      배당수익률을 더한 PEGY(=P/E ÷ (성장률+배당수익률))로 보정했다. 01장의 유도로 보면 PEG=1
+      규칙은 "P/E ≈ g"라는 선형 근사인데, 실제 정당 P/E는 (1−b)(1+g)/(r−g)로 g에 대해 비선형(r에
+      근접할수록 발산)이라 PEG=1은 정확한 공식이 아니라 <b>중간 성장률 구간(대략 10~25%)에서만
+      맞아떨어지는 실용적 어림값</b>이라는 한계가 있다 — 저성장이나 초고성장 구간에서는 왜곡된다.</p>
+    <h3>성장률 구간에 따라 "정당 P/E"가 달라지는 이유</h3>
+    <p>01장 공식 (1−b)(1+g)/(r−g)에 r=9~10%(미국 대형주 평균 요구수익률 근사)를 넣고 g를 바꿔보면
+      왜 5% 성장 기업의 정당 P/E는 15배 안팎인데 40% 성장 기업(사실상 다단계 모형이 필요한 영역)의
+      시장 P/E가 40배를 넘어도 이상하지 않은지가 수치로 드러난다 — g가 r에 가까워질수록 분모
+      (r−g)가 0에 가까워지며 P/E가 기하급수적으로 커지기 때문이다. 다만 이 구간에서는 "현재 성장률이
+      영원히 지속된다"는 단일단계 가정 자체가 비현실적이므로, 실제로는 향후 5~10년 명시적 예측 +
+      이후 안정성장률로의 수렴(다단계 모형)을 써야 한다 — PEG나 단순 P/E 배수 비교만으로 고성장주를
+      평가하면 이 비선형성을 놓친다.</p>
+  </section>
+
+  <section class="section" id="intangibles">
+    <h2><span class="sec-no">04</span> 장부가치의 함정 — 무형자산과 팩터 연구</h2>
+    <p class="lede">02장의 유도가 성립하려면 장부가(B)가 기업의 실제 순자산을 제대로 반영해야
+      한다. 그런데 현행 회계기준(GAAP/IFRS 공통)은 R&amp;D·브랜드·소프트웨어 개발비 같은 무형자산
+      투자를 자산으로 자본화(capitalize)하지 않고 발생 시점에 즉시 비용 처리(expense)한다 — 이는
+      두 가지를 동시에 왜곡한다: 해당 연도 이익을 과소계상하고, 장부가(자기자본)도 과소계상한다.</p>
+    <p>Baruch Lev와 Feng Gu의 연구(《The End of Accounting》, 2016)는 이 왜곡의 크기를 실증했다 —
+      장부가·이익과 주가의 동시 상관관계가 1950~2013년 사이 약 80%에서 25%로 꾸준히 하락했다고
+      보고한다. S&amp;P500의 시가총액/장부가 비율도 1970년대 후반 약 1배(주가≈장부가)에서
+      1995년경 약 3배까지 구조적으로 상승했는데, 이는 시장이 비이성적으로 변한 것이 아니라
+      <b>회계상 장부가 자체가 무형자산 집약 기업의 실질 자산가치를 체계적으로 저평가하게 됐기
+      때문</b>이라는 해석이 유력하다.</p>
+    <p>Fama-French HML(가치 팩터, 저P/B가 고P/B를 이긴다는 가치 프리미엄)은 1990년대까지의 표본에서
+      연 3~5% 안팎의 초과수익을 보였고 13개 해외 시장 중 12곳에서도 재현됐다는 것이 정설이지만,
+      이 프리미엄은 꾸준한 연 단위가 아니라 특정 구간에 몰려 나타나는(lumpy) 경향이 있다. 최근
+      연구들은 정확히 위 이유(무형자산 확대)로 <b>"저PBR=저평가" 신호의 힘이 소프트웨어·플랫폼·
+      브랜드 중심 경제로 갈수록 약해지고 있다</b>고 지적한다 — 즉 PBR은 자산집약 산업(금융·에너지·
+      제조·리츠)에는 여전히 유효하지만, 자산경량(asset-light) 산업(SaaS·플랫폼·바이오 IP)에는
+      구조적으로 왜곡된 신호를 준다. 이 저장소의 <code>core.valuation.compute_all_valuations()</code>가
+      PBR 상대가치를 여러 방법론 중 "하나로만" 다루고 DCF/EV-EBITDA 등과 나란히 병기하는 설계도
+      같은 문제의식(특정 방법론을 정답으로 취급하지 않음)을 반영한다.</p>
+  </section>
+
+  <section class="section" id="tiers">
+    <h2><span class="sec-no">05</span> 티어별 적정 PER/PBR/PEG — 종합</h2>
+    <p class="lede">01~04장의 유도와 실전 벤치마크를 종합해, 성장률·업종 성격에 따른 참고 범위를
+      정리한다. <b>절대적인 정답이 아니라 "이 구간을 벗어나면 왜 벗어나는지 설명할 수 있어야 한다"는
+      기준선</b>으로 쓰는 것을 권한다.</p>
+    <div class="tier-grid">
+      <div class="tier-card">
+        <h4>슬로우 그로워 / 스톨워트 <span style="color:var(--ink-muted);font-weight:400;">(성장률 0~10%)</span></h4>
+        <div class="tier-range">P/E 10~16배</div>
+        <div class="tier-sub">P/B 1~3배(자산집약 업종은 &lt;1.5배 그레이엄 기준 유효) · PEG 관점 무의미(분모가 작아 왜곡)</div>
+      </div>
+      <div class="tier-card">
+        <h4>안정 성장주 <span style="color:var(--ink-muted);font-weight:400;">(성장률 10~20%)</span></h4>
+        <div class="tier-range">P/E 16~28배</div>
+        <div class="tier-sub">PEG 0.7~1.3 (린치 기준 구간) · P/B는 ROE 대비 상대평가로만 판단</div>
+      </div>
+      <div class="tier-card">
+        <h4>린치의 패스트 그로워 <span style="color:var(--ink-muted);font-weight:400;">(성장률 20~25%)</span></h4>
+        <div class="tier-range">P/E 25~40배</div>
+        <div class="tier-sub">PEG 1.0~1.5 · 텐베거가 나오는 구간(01장 비선형성 주의)</div>
+      </div>
+      <div class="tier-card">
+        <h4>초고성장 / 무형자산 집약 <span style="color:var(--ink-muted);font-weight:400;">(성장률 &gt;25%)</span></h4>
+        <div class="tier-range">단일 P/E 무의미</div>
+        <div class="tier-sub">다단계 DCF/매출배수로 대체 권장 · PBR은 04장 이유로 신뢰도 낮음</div>
+      </div>
+    </div>
+    <p class="caveat">⚠️ 이 범위는 미국 대형주 평균 요구수익률(r≈9~10%) 가정 하의 근사치이며, 금리·업종·
+      국가·개별기업 위험 프리미엄에 따라 상당히 이동한다. 특히 2022년 이후처럼 무위험금리(r의
+      하한)가 높아진 국면에서는 모든 티어의 "정당 P/E"가 구조적으로 낮아진다(01장 공식에서 r이
+      커지면 분모가 커지므로) — 고정된 숫자가 아니라 공식으로 기억해야 하는 이유다.</p>
+  </section>
+
+  <section class="section" id="sector-method">
+    <h2><span class="sec-no">06</span> 지금 어느 섹터가 뜨거운가 — 방법론 (기존 인프라 재사용)</h2>
+    <p class="lede">이 저장소는 이미 <code>docs/MARKET_REGIME_SECTOR_STRENGTH_SPEC.md</code>에서
+      리서치·검증된 정량 섹터강도 프레임워크를 갖고 있다 — 여기서는 새 방법론을 만들지 않고
+      그대로 재사용한다.</p>
+    <p><b>섹터/테마 강도</b>(<code>core.sector_strength.compute_theme_strength</code>) — IBD RS
+      Rating 방식을 그대로 따라, 최근 3개월에 더 큰 가중치를 준 12개월 모멘텀 팩터를 계산한다:</p>
+    <div class="formula-box">
+      <div class="f-line">StrengthFactor = 0.4·ROC(63) + 0.2·ROC(126) + 0.2·ROC(189) + 0.2·ROC(252)</div>
+      <div class="f-note">ROC(n)=n거래일 수익률. GICS 11섹터는 SPDR Select Sector ETF, 반도체/DRAM/우주 등 세부
+      테마는 대표 ETF(복수면 평균)를 프록시로 쓴다. 전체 테마 집합 내 percentile로 환산해 0~100 "RS 점수"로 표시.</div>
+    </div>
+    <p><b>시장 국면</b>(<code>core.market_regime.get_market_regime_snapshot</code>) — 200일선 대비
+      위치·50/200일 골든·데드크로스·시장폭(S&amp;P500 중 200일선 위 종목 비율)·52주 고점 대비
+      낙폭 4개 신호를 각각 ±25점(낙폭은 -25~0)으로 점수화해 합산, 총점 ≥35 강세장/≤-35 약세장으로
+      분류하는 룰 기반 복합지표다. IBD RS Rating, Schwab/ProTrader의 시장폭 70%/30% 기준,
+      "고점대비 -20%=공식 약세장" 등 업계 표준 임계값에 근거한다(상세 출처는
+      <code>docs/MARKET_REGIME_SECTOR_STRENGTH_SPEC.md</code> 참고). 아래 07~08장은 이 두 함수를
+      실제로 호출해 얻은 <b>실측 결과</b>다.</p>
+  </section>
+
+  <section class="section" id="sector-snapshot">
+    <h2><span class="sec-no">07</span> 실측 스냅샷 — 섹터/테마 RS 랭킹 (2026-08-14 기준)</h2>
+    <p class="lede">전체 20개 테마(GICS 11섹터 + 반도체/DRAM/우주/방산 등 세부테마)를
+      RS 점수순으로 정렬했다. 1위는 <b>반도체</b>(RS 100,
+      12개월 수익률 103.3%)다.</p>
+    <div class="chart-card">
+      <h3>섹터/테마 RS 점수 랭킹 (상위 14개)</h3>
+      <p class="chart-desc">막대 끝 화살표는 최근 20거래일 전후 모멘텀 방향(RRG 스타일 추세 축 단순화) — ▲상승 ▼하락 ▬횡보</p>
+      <svg class="chart-svg" viewBox="0 0 860 506" role="img" aria-label="섹터/테마 RS 점수 랭킹"><line class="grid-line" x1="190.0" y1="10" x2="190.0" y2="496"/><text class="tick-label" x="190.0" y="504" text-anchor="middle">0</text><line class="grid-line" x1="342.5" y1="10" x2="342.5" y2="496"/><text class="tick-label" x="342.5" y="504" text-anchor="middle">25</text><line class="grid-line" x1="495.0" y1="10" x2="495.0" y2="496"/><text class="tick-label" x="495.0" y="504" text-anchor="middle">50</text><line class="grid-line" x1="647.5" y1="10" x2="647.5" y2="496"/><text class="tick-label" x="647.5" y="504" text-anchor="middle">75</text><line class="grid-line" x1="800.0" y1="10" x2="800.0" y2="496"/><text class="tick-label" x="800.0" y="504" text-anchor="middle">100</text><text class="cat-label" x="180" y="31" text-anchor="end">반도체</text><rect x="190" y="18" width="610.0" height="18" rx="3" fill="var(--red)" opacity="0.88"/><text class="bar-label" x="808.0" y="31">100 ▼</text><text class="cat-label" x="180" y="65" text-anchor="end">사이버보안</text><rect x="190" y="52" width="579.5" height="18" rx="3" fill="var(--aqua)" opacity="0.88"/><text class="bar-label" x="777.5" y="65">95 ▲</text><text class="cat-label" x="180" y="99" text-anchor="end">클라우드</text><rect x="190" y="86" width="549.0" height="18" rx="3" fill="var(--aqua)" opacity="0.88"/><text class="bar-label" x="747.0" y="99">90 ▲</text><text class="cat-label" x="180" y="133" text-anchor="end">기술</text><rect x="190" y="120" width="518.5" height="18" rx="3" fill="var(--aqua)" opacity="0.88"/><text class="bar-label" x="716.5" y="133">85 ▲</text><text class="cat-label" x="180" y="167" text-anchor="end">에너지</text><rect x="190" y="154" width="488.0" height="18" rx="3" fill="var(--aqua)" opacity="0.88"/><text class="bar-label" x="686.0" y="167">80 ▲</text><text class="cat-label" x="180" y="201" text-anchor="end">우주</text><rect x="190" y="188" width="457.5" height="18" rx="3" fill="var(--aqua)" opacity="0.88"/><text class="bar-label" x="655.5" y="201">75 ▲</text><text class="cat-label" x="180" y="235" text-anchor="end">냉각</text><rect x="190" y="222" width="427.0" height="18" rx="3" fill="var(--aqua)" opacity="0.88"/><text class="bar-label" x="625.0" y="235">70 ▲</text><text class="cat-label" x="180" y="269" text-anchor="end">방산</text><rect x="190" y="256" width="396.5" height="18" rx="3" fill="var(--aqua)" opacity="0.88"/><text class="bar-label" x="594.5" y="269">65 ▲</text><text class="cat-label" x="180" y="303" text-anchor="end">헬스케어</text><rect x="190" y="290" width="366.0" height="18" rx="3" fill="var(--aqua)" opacity="0.88"/><text class="bar-label" x="564.0" y="303">60 ▲</text><text class="cat-label" x="180" y="337" text-anchor="end">산업재</text><rect x="190" y="324" width="335.5" height="18" rx="3" fill="var(--aqua)" opacity="0.88"/><text class="bar-label" x="533.5" y="337">55 ▲</text><text class="cat-label" x="180" y="371" text-anchor="end">금융</text><rect x="190" y="358" width="305.0" height="18" rx="3" fill="var(--aqua)" opacity="0.88"/><text class="bar-label" x="503.0" y="371">50 ▲</text><text class="cat-label" x="180" y="405" text-anchor="end">소재</text><rect x="190" y="392" width="274.5" height="18" rx="3" fill="var(--aqua)" opacity="0.88"/><text class="bar-label" x="472.5" y="405">45 ▲</text><text class="cat-label" x="180" y="439" text-anchor="end">부동산</text><rect x="190" y="426" width="244.0" height="18" rx="3" fill="var(--red)" opacity="0.88"/><text class="bar-label" x="442.0" y="439">40 ▼</text><text class="cat-label" x="180" y="473" text-anchor="end">메모리/DRAM</text><rect x="190" y="460" width="213.5" height="18" rx="3" fill="var(--red)" opacity="0.88"/><text class="bar-label" x="411.5" y="473">35 ▼</text></svg>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>테마</th><th>RS점수</th><th>3개월</th><th>6개월</th><th>12개월</th><th>추세</th><th>매핑 GICS섹터</th></tr></thead>
+        <tbody><tr class="trend-down"><td class="tk-cell"><span class="tk-name">1. 반도체</span><span class="tk-sector">SOXX, SMH</span></td><td class="num strong">100</td><td class="num">1.7%</td><td class="num">48.9%</td><td class="num">103.3%</td><td class="num trend-cell">하락 (-9.7p)</td><td class="num">Information Technology</td></tr>
+<tr class="trend-up"><td class="tk-cell"><span class="tk-name">2. 사이버보안</span><span class="tk-sector">CIBR</span></td><td class="num strong">95</td><td class="num">27.8%</td><td class="num">53.8%</td><td class="num">37.4%</td><td class="num trend-cell">상승 (+4.3p)</td><td class="num">Information Technology</td></tr>
+<tr class="trend-up"><td class="tk-cell"><span class="tk-name">3. 클라우드</span><span class="tk-sector">SKYY, WCLD</span></td><td class="num strong">90</td><td class="num">36.4%</td><td class="num">49.0%</td><td class="num">29.9%</td><td class="num trend-cell">상승 (+22.5p)</td><td class="num">Information Technology</td></tr>
+<tr class="trend-up"><td class="tk-cell"><span class="tk-name">4. 기술</span><span class="tk-sector">XLK</span></td><td class="num strong">85</td><td class="num">5.6%</td><td class="num">36.1%</td><td class="num">41.3%</td><td class="num trend-cell">상승 (+1.0p)</td><td class="num">Information Technology</td></tr>
+<tr class="trend-up"><td class="tk-cell"><span class="tk-name">5. 에너지</span><span class="tk-sector">XLE</span></td><td class="num strong">80</td><td class="num">6.6%</td><td class="num">14.7%</td><td class="num">44.6%</td><td class="num trend-cell">상승 (+3.3p)</td><td class="num">Energy</td></tr>
+<tr class="trend-up"><td class="tk-cell"><span class="tk-name">6. 우주</span><span class="tk-sector">UFO, ARKX, ROKT</span></td><td class="num strong">75</td><td class="num">-7.3%</td><td class="num">16.3%</td><td class="num">51.3%</td><td class="num trend-cell">상승 (+13.9p)</td><td class="num">Industrials</td></tr>
+<tr class="trend-up"><td class="tk-cell"><span class="tk-name">7. 냉각</span><span class="tk-sector">DTCR</span></td><td class="num strong">70</td><td class="num">-4.7%</td><td class="num">12.1%</td><td class="num">54.0%</td><td class="num trend-cell">상승 (+0.4p)</td><td class="num">—</td></tr>
+<tr class="trend-up"><td class="tk-cell"><span class="tk-name">8. 방산</span><span class="tk-sector">ITA</span></td><td class="num strong">65</td><td class="num">12.1%</td><td class="num">8.2%</td><td class="num">27.8%</td><td class="num trend-cell">상승 (+10.7p)</td><td class="num">—</td></tr>
+<tr class="trend-up"><td class="tk-cell"><span class="tk-name">9. 헬스케어</span><span class="tk-sector">XLV</span></td><td class="num strong">60</td><td class="num">14.3%</td><td class="num">7.4%</td><td class="num">25.7%</td><td class="num trend-cell">상승 (+3.6p)</td><td class="num">—</td></tr>
+<tr class="trend-up"><td class="tk-cell"><span class="tk-name">10. 산업재</span><span class="tk-sector">XLI</span></td><td class="num strong">55</td><td class="num">6.7%</td><td class="num">7.8%</td><td class="num">22.1%</td><td class="num trend-cell">상승 (+1.6p)</td><td class="num">—</td></tr>
+<tr class="trend-up"><td class="tk-cell"><span class="tk-name">11. 금융</span><span class="tk-sector">XLF</span></td><td class="num strong">50</td><td class="num">13.5%</td><td class="num">12.6%</td><td class="num">10.3%</td><td class="num trend-cell">상승 (+5.1p)</td><td class="num">—</td></tr>
+<tr class="trend-up"><td class="tk-cell"><span class="tk-name">12. 소재</span><span class="tk-sector">XLB</span></td><td class="num strong">45</td><td class="num">1.6%</td><td class="num">-0.7%</td><td class="num">15.4%</td><td class="num trend-cell">상승 (+2.5p)</td><td class="num">—</td></tr>
+<tr class="trend-down"><td class="tk-cell"><span class="tk-name">13. 부동산</span><span class="tk-sector">XLRE</span></td><td class="num strong">40</td><td class="num">2.3%</td><td class="num">5.7%</td><td class="num">10.1%</td><td class="num trend-cell">하락 (-2.3p)</td><td class="num">—</td></tr>
+<tr class="trend-down"><td class="tk-cell"><span class="tk-name">14. 메모리/DRAM</span><span class="tk-sector">DRAM</span></td><td class="num strong">35</td><td class="num">5.7%</td><td class="num">—%</td><td class="num">—%</td><td class="num trend-cell">하락 (-44.7p)</td><td class="num">—</td></tr>
+<tr class="trend-down"><td class="tk-cell"><span class="tk-name">15. 필수소비재</span><span class="tk-sector">XLP</span></td><td class="num strong">30</td><td class="num">1.5%</td><td class="num">-3.4%</td><td class="num">4.3%</td><td class="num trend-cell">하락 (-2.3p)</td><td class="num">—</td></tr>
+<tr class="trend-up"><td class="tk-cell"><span class="tk-name">16. 임의소비재</span><span class="tk-sector">XLY</span></td><td class="num strong">25</td><td class="num">-0.4%</td><td class="num">1.8%</td><td class="num">2.9%</td><td class="num trend-cell">상승 (+1.7p)</td><td class="num">—</td></tr>
+<tr class="trend-up"><td class="tk-cell"><span class="tk-name">17. 로보틱스</span><span class="tk-sector">BOTZ</span></td><td class="num strong">20</td><td class="num">-8.3%</td><td class="num">-0.7%</td><td class="num">10.0%</td><td class="num trend-cell">상승 (+3.7p)</td><td class="num">—</td></tr>
+<tr class="trend-down"><td class="tk-cell"><span class="tk-name">18. 유틸리티</span><span class="tk-sector">XLU</span></td><td class="num strong">15</td><td class="num">-1.4%</td><td class="num">-2.2%</td><td class="num">2.4%</td><td class="num trend-cell">하락 (-2.4p)</td><td class="num">—</td></tr>
+<tr class="trend-down"><td class="tk-cell"><span class="tk-name">19. 커뮤니케이션</span><span class="tk-sector">XLC</span></td><td class="num strong">10</td><td class="num">-3.1%</td><td class="num">-3.1%</td><td class="num">2.6%</td><td class="num trend-cell">하락 (-0.1p)</td><td class="num">—</td></tr>
+<tr class="trend-up"><td class="tk-cell"><span class="tk-name">20. 원자력</span><span class="tk-sector">NLR</span></td><td class="num strong">5</td><td class="num">-11.5%</td><td class="num">-16.0%</td><td class="num">2.4%</td><td class="num trend-cell">상승 (+15.9p)</td><td class="num">—</td></tr></tbody>
+      </table>
+    </div>
+    <p class="caveat">⚠️ <b>반도체은 RS 점수는 1위지만 추세는 "하락"</b>다
+      (-9.7p) — RRG(Relative Rotation Graph) 관점에서는
+      "레벨은 여전히 최강이지만 모멘텀이 꺾이고 있는 Weakening 국면"에 해당할 수 있다는 뜻이다.
+      12개월 수익률이 워낙 커서(+103.3%) 절대 레벨이 당분간 1위를 유지할
+      가능성이 높지만, 신규 진입 관점에서는 "이미 가장 뜨거웠던 것"과 "지금 가속하는 것"을
+      구분해야 한다 — 이 리포트 3위 사이버보안·클라우드는 레벨은 낮지만 추세가 "상승"으로,
+      RRG상 Improving에 가깝다.</p>
+  </section>
+
+  <section class="section" id="regime">
+    <h2><span class="sec-no">08</span> 시장 국면 종합 진단 (2026-08-14 기준)</h2>
+    <p class="lede">종합 국면은 <b>강세장</b>(총점 74.7/최대 75) —
+      4개 신호가 모두 강세 방향을 가리키고 있다.</p>
+    <div class="kpi-row">
+      <div class="kpi-tile"><div class="kpi-label">종합 국면</div><div class="kpi-value pos">강세장</div><div class="kpi-sub">총점 74.7 (기준: ≥35 강세 / ≤-35 약세)</div></div>
+<div class="kpi-tile"><div class="kpi-label">200일선 대비</div><div class="kpi-value pos">+10.0%</div><div class="kpi-sub">S&amp;P500 7,783 · 200일선 7,075</div></div>
+<div class="kpi-tile"><div class="kpi-label">50/200일 크로스</div><div class="kpi-value pos">골든크로스</div><div class="kpi-sub">50일 7,512 · 200일 7,075</div></div>
+<div class="kpi-tile"><div class="kpi-label">시장폭(200일선 위 비율)</div><div class="kpi-value pos">72.9%</div><div class="kpi-sub">365/501종목 · 과열기준 85%↑</div></div>
+<div class="kpi-tile"><div class="kpi-label">52주 고점 대비 낙폭</div><div class="kpi-value pos">-0.20%</div><div class="kpi-sub">52주 고점 7,799</div></div>
+    </div>
+    <p>단기(1개월·3개월) 참고지표는 각각 중립/혼조
+      (+3.31%), 중립/혼조
+      (+3.76%)로, 장기 4신호 종합판단(강세장)과
+      달리 최근 1~3개월 흐름 자체는 다소 숨 고르기 국면이라는 점을 함께 보여준다 — 이 지표는 종합
+      점수 계산에는 포함되지 않는 별도 참고치다.</p>
+  </section>
+
+  <section class="section" id="lynch">
+    <h2><span class="sec-no">09</span> 좋은 기업을 찾는 방법론 — 피터 린치의 텐베거 프레임</h2>
+    <h3>여섯 가지 기업 유형</h3>
+    <p>린치는 《월가의 영웅》에서 기업을 슬로우 그로워(저성장 대형주, 배당 목적), 스톨워트
+      (연 10~12% 안정성장 대형주, 텐베거는 드묾), <b>패스트 그로워</b>(연 20~25%대 소형·공격적
+      신흥기업 — 린치 본인이 "10~100배가 나오는 영역"이라 명시적으로 지목), 경기순환주(자동차·철강·
+      원자재 등 업황 사이클 연동), 회생주(턴어라운드 — 성공 시 10~20배도 가능하지만 실패 확률도
+      높음), 자산주(시장이 못 알아본 숨은 자산 보유)로 분류했다. 텐베거를 찾는다면 확률적으로
+      패스트 그로워 카테고리에 집중하는 것이 린치의 명시적 조언이다.</p>
+    <h3>텐베거 후보의 특징 (린치가 반복 강조한 정성적 신호)</h3>
+    <ul>
+      <li><b>스토리를 한두 문장으로 설명할 수 있어야 한다</b> — 복잡한 스토리는 아직 시장이
+        이해 못 했거나, 본인도 이해 못 하고 사는 것이다.</li>
+      <li><b>월가의 레이더 밖에 있는 작은 기업</b> — 애널리스트 커버리지·기관 보유비중이 낮을수록
+        아직 가격에 반영 안 된 정보 우위가 있을 가능성이 크다.</li>
+      <li><b>지루하거나 혐오스러운 이름/업종</b> — 화려한 이름·유행 업종은 이미 관심이 몰려
+        고평가돼 있을 확률이 높다는 역발상.</li>
+      <li><b>성장의 여지가 아직 많이 남은 틈새시장</b> — 이미 전국/전세계에 다 퍼진 기업보다
+        "이제 막 두 번째 도시로 확장 중"인 기업.</li>
+      <li><b>PEG&lt;1, 3년 EPS 성장률 &gt;25%, 관리 가능한 부채 수준</b> — 정성적 스토리를
+        정량적으로 걸러내는 최소 조건.</li>
+    </ul>
+  </section>
+
+  <section class="section" id="canslim-quality">
+    <h2><span class="sec-no">10</span> CANSLIM과 학계 품질팩터 — 정량적으로 좋은 기업</h2>
+    <h3>윌리엄 오닐의 CANSLIM</h3>
+    <p>오닐(Investor's Business Daily 창립자)의 CANSLIM은 7개 조건의 앞글자다: <b>C</b>urrent
+      Earnings(최근 분기 EPS 급성장, 대체로 25%↑ 요구), <b>A</b>nnual Earnings(연간 EPS 성장률
+      25%↑ 이력), <b>N</b>ew(신제품·신경영진·신고가 — 셋 중 하나라도 "새로움"이 주가 재평가의
+      방아쇠가 된다는 관찰), <b>S</b>upply&amp;Demand(거래량 동반 상승 등 수급), <b>L</b>eader or
+      Laggard(업종 내 주도주 여부), <b>I</b>nstitutional Sponsorship(기관 매수세 — 단 지나치게
+      높으면 이미 다 알려진 것), <b>M</b>arket Direction(전체 시장 방향 — 08장의 시장국면 진단이
+      바로 이 M에 해당). 린치가 "저평가된 작은 기업"에 방점을 찍는다면, 오닐은 "이미 실적·주가
+      모멘텀이 가속하고 있는 확인된 리더"에 방점을 찍는다 — 상호보완적이다.</p>
+    <h3>학계 품질팩터 — Quality Minus Junk</h3>
+    <p>Asness, Frazzini, Pedersen(AQR, 2013/2019)의 QMJ 팩터는 수익성·성장성·안전성(낮은 변동성)·
+      배당성향 네 축으로 "품질"을 정량화해, 고품질 기업 롱-저품질 숏 포트폴리오가 미국과 24개국
+      글로벌 표본 전반에서 유의미한 위험조정수익을 낸다는 것을 보였다(미국 월 0.66%, 글로벌 월
+      0.45%). 흥미로운 발견은 <b>고품질 기업의 가격 프리미엄이 실제 품질 격차에 비해 작다</b>는
+      점 — "품질에 대한 가격"이 저렴할 때(닷컴버블 시기가 역사적 최저치) QMJ의 향후 수익률이
+      특히 높았다. 이 저장소의 <code>core.valuation</code>이 이미 계산하는 ROE·PEG는 QMJ가 쓰는
+      수익성/성장성 축과 정확히 겹친다 — 별도 팩터 데이터 없이도 기존 밸류에이션 모듈로 품질팩터의
+      핵심 스피릿(ROE 대비 저평가된 성장)을 근사할 수 있다는 뜻이다.</p>
+  </section>
+
+  <section class="section" id="smallcap">
+    <h2><span class="sec-no">11</span> 소형주 효과와 이 리포트의 스코프 한계</h2>
+    <p class="lede"><b>대형주는 산수적으로 10배가 되기 어렵다.</b> 시가총액 3조 달러 기업이
+      30조 달러가 되려면 전 세계 GDP 규모의 자본을 흡수해야 한다 — 반면 시가총액 3억 달러
+      기업이 30억 달러가 되는 것은 "한 니치 시장에서 지배적 위치를 차지"하는 정도로 충분하다.
+      실증적으로도 소형주는 대형주보다 애널리스트 커버리지·기관 보유비중이 구조적으로 낮아
+      (Small Firm Effect) 정보가 가격에 늦게 반영되는 비효율이 남아 있다는 연구가 다수다.
+      2025년 발표된 실증연구("The Alchemy of Multibagger Stocks", Yartseva, 2009~2024년 464개
+      10배 이상 종목 분석)도 소형·고밸류에이션프리미엄·고수익성(small-cap high-value
+      high-profitability) 조합이 멀티배거를 가장 잘 설명하는 팩터 조합이라고 보고한다.</p>
+    <p class="caveat">⚠️ <b>이 리포트가 재사용하는 <code>core.screener.get_universe()</code>는
+      S&amp;P500 종목만을 유니버스로 삼는다.</b> S&amp;P500 편입 자체가 시가총액 하한(2026년
+      기준 통상 100억 달러 이상)을 요구하므로, 위 문단이 설명하는 "진짜 텐베거가 잘 나오는
+      소형주 영역"은 이 유니버스에 애초에 존재하지 않는다. 13장의 스크리닝 결과는 이 한계 안에서
+      "상대적으로 작은" S&amp;P500 편입종목을 찾는 것이지, 진짜 마이크로/스몰캡 유니버스를
+      대체하지 않는다 — 별도 리서치 과제로 남긴다(이번 리포트 범위에서는 다루지 않음).</p>
+  </section>
+
+  <section class="section" id="framework">
+    <h2><span class="sec-no">12</span> 종합 프레임워크 — A+B+C를 결합한 스크리닝 규칙</h2>
+    <p class="lede">01~11장을 하나의 실행 가능한 규칙으로 합친다. <code>core.screener.screen()</code>이
+      지원하는 필터(1단계)와 <code>core.valuation</code>이 계산하는 PEG/ROE(2단계)로 나눠 적용한다.</p>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>단계</th><th>조건</th><th>값</th><th>근거</th></tr></thead>
+        <tbody>
+          <tr><td class="tk-cell"><span class="tk-name">1단계 · 섹터</span></td><td class="num">core.sector_strength 상위 테마 → GICS 매핑</td>
+            <td class="num strong">RS 상위 3개 섹터</td><td class="num">06~07장 (지금 뜨거운 곳)</td></tr>
+          <tr><td class="tk-cell"><span class="tk-name">1단계 · 시가총액 상한</span></td><td class="num">market_cap_max</td>
+            <td class="num strong">$300억</td><td class="num">11장 (S&amp;P500 내 상대적 소형 근사)</td></tr>
+          <tr><td class="tk-cell"><span class="tk-name">1단계 · 기술적 확인</span></td><td class="num">above_sma200</td>
+            <td class="num strong">True</td><td class="num">CANSLIM "M"·추세 확인(신저점 종목 배제)</td></tr>
+          <tr><td class="tk-cell"><span class="tk-name">2단계 · 밸류에이션</span></td><td class="num">PEG</td>
+            <td class="num strong">≤ 1.5</td><td class="num">03장 린치 기준(1.0 근방 이상적, 1.5까지 허용)</td></tr>
+          <tr><td class="tk-cell"><span class="tk-name">2단계 · 성장</span></td><td class="num">최근 이익성장률</td>
+            <td class="num strong">≥ 15%</td><td class="num">09장 린치 기준(25%가 이상적이나 S&amp;P500 내 완화)</td></tr>
+          <tr><td class="tk-cell"><span class="tk-name">2단계 · 품질</span></td><td class="num">ROE 프록시(EPS/BVPS)</td>
+            <td class="num strong">≥ 15%</td><td class="num">02장(정당 P/B&gt;1 요건) · 10장 QMJ</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="caveat">⚠️ PBR에는 의도적으로 상한을 걸지 않았다 — 04장에서 다뤘듯 무형자산 집약
+      기업(특히 소프트웨어/기술 섹터가 상위 테마인 지금 시점)에 PBR 상한을 걸면 정확히 텐베거가
+      나올 법한 기업들을 구조적으로 걸러내게 된다. 대신 ROE 프록시로 "장부가 대비 실제로 돈을
+      잘 버는가"를 직접 확인한다.</p>
+  </section>
+
+  <section class="section" id="screen-run">
+    <h2><span class="sec-no">13</span> 실측 스크리닝 — S&amp;P500에 실제로 적용</h2>
+    <p class="lede">12장 규칙을 <code>analysis/2026-08-16_tenbagger_stock_picking/gather_data.py</code>로
+      실제 실행했다(기준일 2026-08-14, 유니버스 S&amp;P500 503종목,
+      핫섹터 Information Technology · Energy · Industrials).</p>
+
+    <h3>1단계 — 섹터·시총·추세 필터 (15종목 통과)</h3>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>종목</th><th>섹터</th><th>시가총액</th><th>PER</th><th>PBR</th><th>RSI(14)</th></tr></thead>
+        <tbody><tr><td class="tk-cell"><span class="tk-name">HAL</span><span class="tk-sector">Halliburton Company</span></td><td class="num">Energy</td><td class="num">$28.7B</td><td class="num">18.0</td><td class="num">2.6</td><td class="num">55.6</td></tr>
+<tr><td class="tk-cell"><span class="tk-name">HUBB</span><span class="tk-sector">Hubbell Incorporated</span></td><td class="num">Industrials</td><td class="num">$27.5B</td><td class="num">30.7</td><td class="num">7.0</td><td class="num">56.0</td></tr>
+<tr><td class="tk-cell"><span class="tk-name">JBHT</span><span class="tk-sector">J.B. Hunt Transport Services, Inc.</span></td><td class="num">Industrials</td><td class="num">$26.3B</td><td class="num">39.8</td><td class="num">7.2</td><td class="num">52.9</td></tr>
+<tr><td class="tk-cell"><span class="tk-name">EXPD</span><span class="tk-sector">Expeditors International of Washington, Inc.</span></td><td class="num">Industrials</td><td class="num">$24.2B</td><td class="num">27.1</td><td class="num">11.4</td><td class="num">66.2</td></tr>
+<tr><td class="tk-cell"><span class="tk-name">VLTO</span><span class="tk-sector">Veralto Corporation</span></td><td class="num">Industrials</td><td class="num">$23.9B</td><td class="num">24.7</td><td class="num">7.7</td><td class="num">59.8</td></tr>
+<tr><td class="tk-cell"><span class="tk-name">LUV</span><span class="tk-sector">Southwest Airlines Co.</span></td><td class="num">Industrials</td><td class="num">$21.7B</td><td class="num">27.7</td><td class="num">3.1</td><td class="num">41.0</td></tr>
+<tr><td class="tk-cell"><span class="tk-name">SNA</span><span class="tk-sector">Snap-on Incorporated</span></td><td class="num">Industrials</td><td class="num">$20.9B</td><td class="num">20.6</td><td class="num">3.5</td><td class="num">46.3</td></tr>
+<tr><td class="tk-cell"><span class="tk-name">IEX</span><span class="tk-sector">IDEX Corporation</span></td><td class="num">Industrials</td><td class="num">$17.6B</td><td class="num">34.4</td><td class="num">4.4</td><td class="num">64.3</td></tr>
+<tr><td class="tk-cell"><span class="tk-name">NDSN</span><span class="tk-sector">Nordson Corporation</span></td><td class="num">Industrials</td><td class="num">$17.3B</td><td class="num">33.3</td><td class="num">5.4</td><td class="num">61.0</td></tr>
+<tr><td class="tk-cell"><span class="tk-name">J</span><span class="tk-sector">Jacobs Solutions Inc.</span></td><td class="num">Industrials</td><td class="num">$17.3B</td><td class="num">49.0</td><td class="num">5.3</td><td class="num">63.8</td></tr>
+<tr><td class="tk-cell"><span class="tk-name">SWK</span><span class="tk-sector">Stanley Black &amp; Decker, Inc.</span></td><td class="num">Industrials</td><td class="num">$15.4B</td><td class="num">25.0</td><td class="num">1.8</td><td class="num">63.3</td></tr>
+<tr><td class="tk-cell"><span class="tk-name">MAS</span><span class="tk-sector">Masco Corporation</span></td><td class="num">Industrials</td><td class="num">$14.7B</td><td class="num">17.1</td><td class="num">-40.2</td><td class="num">45.8</td></tr>
+<tr><td class="tk-cell"><span class="tk-name">APA</span><span class="tk-sector">APA Corporation</span></td><td class="num">Energy</td><td class="num">$14.2B</td><td class="num">8.5</td><td class="num">2.0</td><td class="num">65.0</td></tr>
+<tr><td class="tk-cell"><span class="tk-name">ALLE</span><span class="tk-sector">Allegion plc</span></td><td class="num">Industrials</td><td class="num">$14.0B</td><td class="num">21.7</td><td class="num">6.6</td><td class="num">64.7</td></tr>
+<tr><td class="tk-cell"><span class="tk-name">GNRC</span><span class="tk-sector">Generac Holdings Inc.</span></td><td class="num">Industrials</td><td class="num">$12.7B</td><td class="num">49.6</td><td class="num">4.4</td><td class="num">50.1</td></tr></tbody>
+      </table>
+    </div>
+    <p class="caveat">⚠️ <b>1위 핫섹터인 정보기술(반도체·클라우드·사이버보안 포함)에서는 1단계를
+      통과한 종목이 단 하나도 없었다</b> — S&amp;P500에 속한 대형 기술주 대부분이 이미 시가총액
+      $300억을 훨씬 초과하는 초대형주이기 때문이다. 11장에서 미리 경고한 한계가 실제로 그대로
+      드러난 사례다: <b>정말 뜨거운 섹터일수록 그 섹터의 S&amp;P500 편입종목은 이미 다 커버리지가
+      끝난 대형주뿐이라, 이 유니버스로는 "가장 뜨거운 섹터의 진짜 텐베거 후보"를 찾을 수 없다.</b>
+      1단계 통과 종목은 대부분 2·3위 섹터(에너지·산업재)에서 나왔다.</p>
+
+    <h3>2단계 — PEG·성장·품질 필터 최종 통과 (2종목)</h3>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>종목</th><th>섹터</th><th>시가총액</th><th>PER</th><th>PBR</th><th>PEG</th><th>이익성장률</th><th>ROE프록시</th></tr></thead>
+        <tbody><tr class='best-row'><td class="tk-cell"><span class="tk-name">APA</span><span class="tk-sector">APA Corporation</span></td><td class="num">Energy</td><td class="num">$14.2B</td><td class="num">8.2</td><td class="num">2.0</td><td class="num strong">0.26</td><td class="num">32.2%</td><td class="num">23.2%</td></tr>
+<tr class='best-row'><td class="tk-cell"><span class="tk-name">JBHT</span><span class="tk-sector">J.B. Hunt Transport Services, Inc.</span></td><td class="num">Industrials</td><td class="num">$26.3B</td><td class="num">39.8</td><td class="num">7.2</td><td class="num strong">0.87</td><td class="num">45.8%</td><td class="num">18.0%</td></tr></tbody>
+      </table>
+    </div>
+    <p class="fig-caption">2단계 필터: PEG ≤ 1.5, 이익성장률 ≥ 15.0%,
+      ROE프록시(EPS/BVPS) ≥ 15.0%.</p>
+    <p class="caveat">⚠️ <b>이것은 매수 리스트가 아니라 방법론이 실제로 작동함을 보여주는 예시다.</b>
+      최종 후보가 2개뿐인 것 자체가 이 필터 조합이 상당히 까다롭다는 뜻이고, S&amp;P500
+      한정이라는 스코프상 진짜 텐베거 후보(11장)와는 거리가 있을 수 있다. 생존편향 배제도,
+      미래 성과 보장도 없다 — 이 저장소의 다른 모든 리포트와 마찬가지로 투자 조언이 아니다.</p>
+  </section>
+
+  <section class="section" id="conclusion">
+    <h2><span class="sec-no">14</span> 한계와 솔직한 결론</h2>
+    <p class="lede">사용자가 처음부터 인정했듯, 텐베거를 사전에 확정적으로 찾아내는 공식은
+      존재하지 않는다. 이 리포트가 한 일과 하지 않은 일을 명확히 구분한다.</p>
+    <h3>이 프레임워크가 할 수 있는 것</h3>
+    <ul>
+      <li>"싸다/비싸다"는 감을 배당할인모형·잔여이익모형의 대수로 대체해, <b>왜</b> 어떤 배수가
+        정당한지 설명 가능하게 만든다.</li>
+      <li>이미 검증된 이 저장소의 국면·섹터강도 엔진으로 "지금 어디가 뜨거운가"를 매일 갱신되는
+        실측치로 대체한다(추측이 아니라 데이터).</li>
+      <li>린치·오닐·품질팩터 연구가 공통으로 가리키는 특징(성장 대비 저평가, 재무 품질, 업종
+        모멘텀)을 하나의 실행 가능한 필터 조합으로 결합한다.</li>
+      <li>탐색 공간을 줄인다 — 500개 종목을 2개로 좁히는 것 자체가 무작위보다 나은
+        출발점을 준다(단, 그 이상을 주장하지 않는다).</li>
+    </ul>
+    <h3>이 프레임워크가 할 수 없는 것</h3>
+    <ul>
+      <li><b>미래 10배 수익을 예측하거나 보장하지 않는다.</b> 모든 필터는 과거·현재 재무/가격
+        데이터 기반이고, 텐베거는 정의상 아직 시장이 완전히 인식하지 못한 미래 실행력에 달려 있다.</li>
+      <li><b>S&amp;P500 스코프의 구조적 한계</b>(11장)를 해결하지 못한다 — 진짜 소형주 유니버스는
+        별도 과제다.</li>
+      <li><b>생존편향을 제거하지 않는다.</b> 13장 결과는 2026-08-16 시점의
+        S&amp;P500 편입종목 기준이며, 과거 이 조건을 만족했다가 상장폐지·편출된 종목은 표본에
+        없다.</li>
+      <li><b>거래비용·세금·타이밍 리스크를 반영하지 않는다.</b> 필터를 통과한 종목이라도 매수
+        시점·보유 기간에 따라 결과는 크게 갈린다.</li>
+      <li>PEG·ROE 프록시는 <b>단일 분기/트레일링 스냅샷</b>이다. 09장이 강조하는 "성장의 지속
+        가능성"(3년 추세, 재투자 활주로)은 이번 자동화 스크리닝에 담기지 않았다 — 최종 후보에
+        대한 정성적 실사(스토리를 2분 안에 설명할 수 있는가, 09장)는 여전히 사람이 해야 한다.</li>
+    </ul>
+    <div class="callout">
+      <div class="callout-title">결론</div>
+      <p>이 프레임워크는 "정답"이 아니라 <b>탐색 공간을 좁히고, 왜 좁혔는지 설명 가능하게 만드는
+        방법론</b>이다. 자본공학(01~05장)은 가격이 정당한지 판단하는 틀을, 정량 시황(06~08장)은
+        타이밍·섹터 선택의 근거를, 정성·정량 기업 발굴(09~11장)은 어떤 특징의 기업을 찾아야
+        하는지를 각각 제공한다. 셋을 결합한 12장의 필터가 13장에서 실제로 2개 후보로
+        수렴했다는 사실 자체가 "방법론이 작동한다"는 증거이지 "이 종목들이 텐베거가 된다"는
+        증거는 아니다 — 이 저장소의 다른 리포트들(No.04~08)이 지켜온 것과 같은 정직성의 기준을
+        여기서도 유지한다.</p>
+    </div>
+  </section>
+
+  <section class="section" id="sources">
+    <h2><span class="sec-no">부록</span> 참고 문헌 · 출처</h2>
+    <ul class="src-list">
+      <li>Benjamin Graham, <i>The Intelligent Investor</i> — 방어적 투자자 기준(P/E&lt;15, P/B&lt;1.5, P/E×P/B≤22.5) — <a href="https://www.grahamvalue.com/article/using-graham-number-correctly">GrahamValue: Using the Graham Number Correctly</a>, <a href="https://blog.portfolio123.com/a-stock-pickers-guide-to-benjamin-grahams-screening-rules/">Portfolio123: A Stock-Picker's Guide to Benjamin Graham's Screening Rules</a></li>
+      <li>Peter Lynch, <i>One Up on Wall Street</i> (1989) — PEG≈1 규칙, 6가지 기업 유형, 텐베거 정성 기준 — <a href="https://stablebread.com/peter-lynch-stock-valuation/">StableBread: How to Value a Stock Like Peter Lynch</a>, <a href="https://pictureperfectportfolios.com/peter-lynch-six-stock-categories/">Picture Perfect Portfolios: Peter Lynch's Six Stock Categories</a>, <a href="https://www.fool.com/investing/2026/08/01/peter-lynch-had-a-keen-eye-for-spotting-ten-bagger/">The Motley Fool: Peter Lynch Had a Keen Eye for Spotting Ten-Bagger Stocks</a></li>
+      <li>CFA Institute curriculum — 정당 P/E(고든성장모형)·정당 P/B(잔여이익모형) 유도 — <a href="https://www.wallstreetprep.com/knowledge/justified-pe-ratio/">Wall Street Prep: Justified P/E Ratio</a>, <a href="https://medium.com/@fabian.moa/cfa-level-ii-deriving-the-justified-price-to-book-p-b-ratio-2057d71b3beb">Fabian Moa: Deriving the Justified P/B Ratio</a>, <a href="https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/residual-income-valuation">CFA Institute: Residual Income Valuation</a></li>
+      <li>Eugene Fama &amp; Kenneth French — HML 가치 팩터 — <a href="https://summitward.com/learn/fama-french-hml">Summitward: Fama-French HML Explained</a>, <a href="https://longbridge.com/en/learn/high-minus-low--100089">Longbridge: High Minus Low (HML)</a></li>
+      <li>Baruch Lev &amp; Feng Gu, <i>The End of Accounting and the Path Forward for Investors and Managers</i> (2016) — 무형자산 비용처리와 장부가 신뢰도 하락 — <a href="https://www.footnotesanalyst.com/intangible-asset-accounting-and-the-value-false-negative/">The Footnotes Analyst: Intangible asset accounting and the 'value' false negative</a></li>
+      <li>William O'Neil — CANSLIM — <a href="https://traderlion.com/trading-strategies/canslim/">TraderLion: CANSLIM Method by William O'Neil</a>, <a href="https://deepvue.com/fundamentals/canslim-strategy/">Deepvue: Mastering The CANSLIM Strategy</a></li>
+      <li>Clifford Asness, Andrea Frazzini, Lasse Pedersen, <i>Quality Minus Junk</i> (2013/2019) — <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2312432">SSRN: Quality Minus Junk</a>, <a href="https://www.aqr.com/Insights/Datasets/Quality-Minus-Junk-Factors-Monthly">AQR: QMJ Factors Dataset</a></li>
+      <li>Anna Yartseva, <i>The Alchemy of Multibagger Stocks</i>, CAFÉ Working Paper No. 33 (2025) — 464개 10배 종목 실증분석 — <a href="https://www.open-access.bcu.ac.uk/16180/1/The%20Alchemy%20of%20Multibagger%20Stocks%20-%20Anna%20Yartseva%20-%20CAFE%20Working%20Paper%2033%20(2025).pdf">Birmingham City University: CAFE Working Paper No. 33</a></li>
+      <li>소형주 효과 / 애널리스트 커버리지 부족 — <a href="https://www.tikr.com/blog/why-small-caps-outperform-and-when-they-dont">TIKR: Why Small-Cap Stocks Can Outperform</a></li>
+      <li>이 저장소 내부 근거 — <code>docs/MARKET_REGIME_SECTOR_STRENGTH_SPEC.md</code>(시장국면·섹터강도 방법론
+        원 리서치, IBD RS Rating/RRG/골든·데드크로스/시장폭 출처 포함)</li>
+    </ul>
+  </section>
+
+</div>
+
+<footer>
+  <p>데이터 출처: Yahoo Finance(yfinance), 이 저장소의 <code>core.sector_strength</code>·
+    <code>core.market_regime</code>·<code>core.screener</code>·<code>core.valuation</code>(모두 기존
+    검증된 모듈, 이번 리포트를 위해 새로 구현하지 않음). 07~08장 스냅샷 기준일은 2026-08-14(섹터강도)·
+    2026-08-14(시장국면), 13장 스크리닝은 리포트 생성일(2026-08-16) 기준 실행 결과다.
+    이 리포트는 과거·현재 데이터 기반 분석이며 투자 조언이 아니다.</p>
+</footer>
+
+
+</body>
+</html>

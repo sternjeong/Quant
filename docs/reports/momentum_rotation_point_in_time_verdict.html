@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body>
+<title>사후편향을 걷어내니 샤프가 반토막났다</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #eef1f4;
+    --surface: #ffffff;
+    --surface-2: #e4e9ee;
+    --ink: #14181d;
+    --ink-muted: #565f6b;
+    --ink-faint: #88919a;
+    --border: #d8dee5;
+    --accent: #4a3aa7;
+    --accent-ink: #ffffff;
+    --accent-wash: #eeeafb;
+    --good: #0ca30c;
+    --good-wash: #e6f6e6;
+    --critical: #d03b3b;
+    --critical-wash: #fbeaea;
+    --font-display: Georgia, "Iowan Old Style", "Palatino Linotype", "Noto Serif KR", serif;
+    --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", "Nanum Gothic Coding", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --bg: #0e1116; --surface: #171b21; --surface-2: #1f242c;
+      --ink: #f1f3f5; --ink-muted: #a6aeb8; --ink-faint: #6d7680; --border: #2a313a;
+      --accent: #9085e9; --accent-ink: #14181d; --accent-wash: #232049;
+      --good: #3fc23f; --good-wash: #163420; --critical: #e66767; --critical-wash: #3a1f1f;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0e1116; --surface: #171b21; --surface-2: #1f242c;
+    --ink: #f1f3f5; --ink-muted: #a6aeb8; --ink-faint: #6d7680; --border: #2a313a;
+    --accent: #9085e9; --accent-ink: #14181d; --accent-wash: #232049;
+    --good: #3fc23f; --good-wash: #163420; --critical: #e66767; --critical-wash: #3a1f1f;
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --bg: #eef1f4; --surface: #ffffff; --surface-2: #e4e9ee;
+    --ink: #14181d; --ink-muted: #565f6b; --ink-faint: #88919a; --border: #d8dee5;
+    --accent: #4a3aa7; --accent-ink: #ffffff; --accent-wash: #eeeafb;
+    --good: #0ca30c; --good-wash: #e6f6e6; --critical: #d03b3b; --critical-wash: #fbeaea;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-body); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  ::selection { background: var(--accent); color: var(--accent-ink); }
+  .page { max-width: 920px; margin: 0 auto; padding: 56px 24px 120px; }
+
+  .masthead { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding-bottom: 20px; border-bottom: 3px solid var(--ink); margin-bottom: 8px; flex-wrap: wrap; }
+  .masthead .label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); }
+  .masthead .issue { font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); text-align: right; }
+
+  h1.title { font-family: var(--font-display); font-weight: 400; font-size: clamp(26px, 4.2vw, 40px); line-height: 1.18; margin: 18px 0 10px; text-wrap: balance; letter-spacing: -0.01em; }
+  p.dek { font-family: var(--font-display); font-style: italic; font-size: 18px; color: var(--ink-muted); max-width: 64ch; margin: 0 0 28px; text-wrap: balance; }
+  p.dek b { color: var(--ink); font-weight: 600; font-style: normal; }
+
+  .scope-note { font-size: 13.5px; color: var(--ink-muted); background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 4px; padding: 12px 16px; margin-bottom: 44px; }
+  .scope-note b { color: var(--ink); }
+
+  .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 56px; }
+  .stat { background: var(--surface); padding: 20px 18px; display: flex; flex-direction: column; gap: 6px; }
+  .stat .k { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-faint); }
+  .stat .v { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 24px; font-weight: 600; letter-spacing: -0.02em; }
+  .stat .v.good { color: var(--good); }
+  .stat .v.critical { color: var(--critical); }
+  .stat .d { font-size: 12px; color: var(--ink-muted); }
+
+  section { margin-bottom: 64px; }
+  .section-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 6px; }
+  .section-head .num { font-family: var(--font-mono); font-size: 13px; color: var(--accent); font-weight: 600; }
+  h2 { font-family: var(--font-display); font-weight: 400; font-size: 26px; margin: 0; letter-spacing: -0.005em; }
+  .section-intro { color: var(--ink-muted); max-width: 68ch; margin: 10px 0 28px; }
+  h3 { font-family: var(--font-body); font-size: 16px; font-weight: 700; margin: 34px 0 6px; display: flex; align-items: baseline; gap: 10px; }
+  h3 .tag { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 7px; border-radius: 3px; font-weight: 700; }
+  h3 .tag.good { background: var(--good-wash); color: var(--good); }
+  h3 .tag.critical { background: var(--critical-wash); color: var(--critical); }
+  h3 .tag.neutral { background: var(--accent-wash); color: var(--accent); }
+  p { max-width: 70ch; }
+  .finding { max-width: 70ch; color: var(--ink-muted); }
+  .finding b { color: var(--ink); font-weight: 600; }
+  code { font-family: var(--font-mono); font-size: 0.92em; background: var(--surface-2); padding: 1px 6px; border-radius: 4px; }
+
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; }
+  table { width: 100%; border-collapse: collapse; background: var(--surface); font-size: 13.5px; min-width: 520px; }
+  thead th { text-align: right; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); font-weight: 600; padding: 10px 14px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  thead th:first-child, td:first-child { text-align: left; }
+  tbody td { padding: 9px 14px; text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  tbody td:first-child { font-family: var(--font-body); font-weight: 600; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--surface-2); }
+  td.good { color: var(--good); }
+  td.critical { color: var(--critical); }
+  td.muted { color: var(--ink-faint); }
+  .row-highlight td { background: var(--accent-wash); }
+  .row-warn td { background: var(--critical-wash); }
+
+  .hyp-result { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; margin: 10px 0; }
+  .hyp-result .verdict { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 700; padding: 3px 9px; border-radius: 3px; flex-shrink: 0; }
+  .hyp-result .verdict.win { background: var(--good-wash); color: var(--good); }
+  .hyp-result .verdict.fail { background: var(--critical-wash); color: var(--critical); }
+  .hyp-result .txt { font-size: 13.5px; color: var(--ink-muted); }
+  .hyp-result .txt b { color: var(--ink); }
+
+  .chip-list { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0; }
+  .chip { font-family: var(--font-mono); font-size: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 4px 12px; }
+  .chip.new { border-color: var(--good); color: var(--good); }
+  .chip.gone { border-color: var(--critical); color: var(--critical); text-decoration: line-through; }
+
+  .rule-list { display: flex; flex-direction: column; gap: 10px; margin: 18px 0; }
+  .rule { display: grid; grid-template-columns: 30px 1fr; gap: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+  .rule .n { font-family: var(--font-mono); color: var(--accent); font-weight: 700; font-size: 14px; }
+  .rule .body b { display: block; margin-bottom: 2px; }
+  .rule .body span { color: var(--ink-muted); font-size: 13.5px; }
+
+  .caveat-list { display: flex; flex-direction: column; gap: 14px; }
+  .caveat { display: grid; grid-template-columns: 20px 1fr; gap: 12px; }
+  .caveat .mark { color: var(--critical); font-weight: 700; }
+  .caveat p { margin: 0; color: var(--ink-muted); font-size: 14px; }
+  .caveat p b { color: var(--ink); }
+
+  footer { margin-top: 80px; padding-top: 20px; border-top: 1px solid var(--border); font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+
+  @media (max-width: 680px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } h1.title { font-size: 24px; } }
+</style>
+
+<div class="page">
+
+  <div class="masthead">
+    <span class="label">Quant &middot; 전략 리서치 노트</span>
+    <span class="issue">2026-08-13&nbsp;발행 &middot; No. 10 &middot; No.09 후속(최종 판결)</span>
+  </div>
+
+  <h1 class="title">사후편향을 걷어내니 샤프가 반토막났다</h1>
+  <p class="dek">No.09는 개별주 혼합 로테이션의 화려한 샤프(1.23~1.39)를 의심하며
+    끝났다 &mdash; 인프라가 없어 완전히 검증하진 못한 채로. 이번엔 그 인프라를
+    직접 만들었다. <b>결과: 의심이 맞았다. 진짜 2019년 시가총액으로 종목을 뽑으니
+    NVDA는 표본에 있지도 않았고, 샤프는 0.68까지 떨어졌다 &mdash; 섹터 ETF만
+    쓸 때(0.98)보다도 나쁘다.</b> 이 갈래 연구는 여기서 닫는다.</p>
+
+  <div class="scope-note">
+    <b>분석 범위</b> &mdash; 2019-08-12~2026-08-12, 신규 구축한
+    <code>core/point_in_time_market_cap.py</code>로 그 시점 실제 시가총액을 계산해 섹터 균등
+    30종목 표본 추출 + GICS 11개 섹터 ETF, 왕복 0.1% 비용 반영. "시간이 오래 걸려도 된다"는
+    사용자 승인 하에 전체 S&amp;P500 point-in-time 유니버스(약 500종목)의 발행주식수·분할이력을
+    전부 새로 계산했다(표본 추출에만 82초).
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat">
+      <span class="k">진짜 PIT 표본 샤프(top4)</span>
+      <span class="v critical">0.68</span>
+      <span class="d">섹터ETF만 쓸 때 0.98보다 나쁨</span>
+    </div>
+    <div class="stat">
+      <span class="k">이전(편향) 결과 대비</span>
+      <span class="v critical">1.23 → 0.68</span>
+      <span class="d">샤프가 거의 반토막</span>
+    </div>
+    <div class="stat">
+      <span class="k">하위기간 샤프 격차</span>
+      <span class="v good">0.19</span>
+      <span class="d">No.09의 0.74보다 훨씬 안정적(진짜니까)</span>
+    </div>
+    <div class="stat">
+      <span class="k">발견한 인프라 버그</span>
+      <span class="v critical">최대 40배</span>
+      <span class="d">가격은 분할조정, 주식수는 미조정 — 별도 수정</span>
+    </div>
+  </div>
+
+  <!-- ================= SECTION 1 ================= -->
+  <section id="s1">
+    <div class="section-head"><span class="num">§1</span><h2>인프라부터 새로 만들었다</h2></div>
+    <p class="section-intro">
+      사용자가 "시간이 오래 걸려도 상관없다, 자원은 충분하다"며 진짜 point-in-time 검증을
+      요청 &mdash; No.09가 "인프라가 없어서 완전히 검증 못 했다"고 남긴 숙제를 직접 풀었다.
+      <code>core.screener.get_fundamentals()</code>는 항상 지금 시점 정보만 주므로,
+      <code>yfinance.Ticker.get_shares_full()</code>(분기별 발행주식수 이력)을 새로 활용하는
+      <code>core/point_in_time_market_cap.py</code>를 만들었다.
+    </p>
+    <div class="hyp-result">
+      <span class="verdict fail">버그 발견</span>
+      <span class="txt">구현 중 실제로 검증해보니(NVDA 2019-08-12 시가총액이 $2.3B로 나옴 —
+        실제는 ~$95B) <b>가격은 분할조정된 값인데 발행주식수는 미조정 값</b>이라 최대 40배까지
+        틀어지는 버그를 발견했다. NVDA(4:1+10:1=40배 분할)는 40배 과소평가, AAPL(4:1)은 4배
+        과소평가, GE(1:8 역병합)는 약 5배 과대평가됐다. <code>yf.Ticker.splits</code>로 이후
+        분할 이력을 찾아 발행주식수에 배율을 곱하는 보정을 추가했다 — 수정 후 NVDA $92.2B,
+        AAPL $906.0B, GE $79.0B로 실제 공개된 수치와 합리적으로 일치한다.</span>
+    </div>
+    <p class="finding">
+      pytest 11개(분할 보정 케이스 포함)로 검증했고, <code>core.strategy_tuning.sample_universe()</code>에
+      <code>use_point_in_time_market_cap</code> 옵션을 추가했다(기본값 False — 기존 야간 튜닝
+      파이프라인 동작은 그대로 유지, 원할 때만 opt-in).
+    </p>
+  </section>
+
+  <!-- ================= SECTION 2 ================= -->
+  <section id="s2">
+    <div class="section-head"><span class="num">§2</span><h2>표본이 완전히 달라졌다</h2></div>
+    <p class="section-intro">
+      2019-08-12 기준 "그때 실제로 컸던" 종목 30개를 새로 뽑았다 — No.09의 손으로 고른 리스트나
+      기존 <code>sample_universe</code>(현재 시가총액 기준)와 비교해보라.
+    </p>
+    <div class="chip-list">
+      <span class="chip new">MSFT $1.04T</span>
+      <span class="chip new">AAPL $906B</span>
+      <span class="chip new">AMZN $883B</span>
+      <span class="chip new">GOOG/GOOGL $815B</span>
+      <span class="chip new">BRK-B $485B</span>
+      <span class="chip new">V $395B</span>
+      <span class="chip new">JNJ $348B</span>
+      <span class="chip new">JPM $344B</span>
+      <span class="chip new">WMT $300B</span>
+      <span class="chip new">XOM $295B</span>
+      <span class="chip new">CSCO $221B</span>
+      <span class="chip new">BA $187B</span>
+      <span class="chip gone">NVDA (표본에 없음 — 2019년엔 $92B, 30위 밖)</span>
+      <span class="chip gone">AMD (표본에 없음)</span>
+      <span class="chip gone">AVGO (표본에 없음)</span>
+    </div>
+    <p class="finding">
+      No.09가 &ldquo;반도체주&rdquo;로 골랐던 NVDA·AMD·AVGO는 <b>2019년 당시엔 이 정도 규모의
+      시가총액 상위 종목이 아니었다</b> — 지금(2026년) 기준으로는 거대해서 골랐을 뿐이다. 대신
+      실제로 뽑힌 건 MSFT·AAPL·JPM·XOM·JNJ 같은, 당시 이미 컸던 평범한 블루칩들이다. 이게
+      &ldquo;진짜 2019년 시점에서 알 수 있었던&rdquo; 표본이다.
+    </p>
+  </section>
+
+  <!-- ================= SECTION 3 ================= -->
+  <section id="s3">
+    <div class="section-head"><span class="num">§3</span><h2>결과 — 의심이 맞았다</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>구성</th><th>누적수익률</th><th>MDD</th><th>샤프</th></tr></thead>
+        <tbody>
+          <tr class="row-warn"><td>No.09 손으로 고른 리스트(top4)</td><td>+775.95%</td><td>&minus;27.59%</td><td>1.23</td></tr>
+          <tr class="row-warn"><td>No.09 구식 sample_universe(top4~6)</td><td>+526~643%</td><td>&minus;21~25%</td><td>1.33~1.39</td></tr>
+          <tr class="row-highlight"><td>이번 진짜 PIT 표본(top4)</td><td class="critical">+123.96%</td><td>&minus;24.44%</td><td class="critical">0.68</td></tr>
+          <tr><td>이번 진짜 PIT 표본(top5)</td><td>+137.70%</td><td>&minus;24.13%</td><td>0.76</td></tr>
+          <tr><td>이번 진짜 PIT 표본(top6)</td><td>+129.82%</td><td>&minus;24.78%</td><td>0.76</td></tr>
+          <tr><td>대조군 — 섹터 ETF만(top4)</td><td>+156.80%</td><td class="good">&minus;22.80%</td><td>0.98</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="hyp-result">
+      <span class="verdict fail">최종 기각</span>
+      <span class="txt">진짜 PIT 표본을 쓰니 샤프가 <b>1.23 → 0.68로 거의 반토막</b>났고, 심지어
+        <b>섹터 ETF만 쓸 때(0.98)보다도 나빠졌다</b>. No.09 §5에서 "인프라가 갖춰지면 다시
+        검증"하겠다던 개별주 확장 아이디어는 이번 검증으로 <b>완전히 기각</b>한다.</span>
+    </div>
+    <p class="finding">
+      하위기간 격차도 0.19(전반부 0.78, 후반부 0.59)로 No.09의 0.74보다 훨씬 작다 — 역설적으로
+      이건 좋은 신호다: 격차가 작다는 건 결과가 특정 랠리 구간에 쏠려 나온 우연이 아니라 <b>진짜
+      일관되게 별로였다</b>는 뜻이다. 실제 로테이션 기록을 봐도 MSFT·AAPL·JPM·XOM·GOOG 같은
+      대형주가 꾸준히 뽑혔을 뿐, 극적인 승자 종목 하나에 기댄 결과가 아니다.
+    </p>
+  </section>
+
+  <!-- ================= SECTION 4 ================= -->
+  <section id="s4">
+    <div class="section-head"><span class="num">§4</span><h2>왜 개별주가 오히려 나빴을까</h2></div>
+    <p class="finding">
+      정확한 원인 분석은 이번 라운드 범위 밖이지만, 합리적인 가설은 있다 — <b>개별 종목은 회사
+      고유 리스크(실적 쇼크, 소송, 경영진 이슈 등)에 그대로 노출되는데, 12개월 모멘텀 랭킹은 이런
+      &ldquo;조용히 쌓이다 갑자기 터지는&rdquo; 리스크를 걸러내지 못한다.</b> 섹터 ETF는 수십
+      종목의 평균이라 개별 기업 리스크가 상쇄되는데, top4~6짜리 소수 개별주 포트폴리오는 그
+      완충장치가 없다. No.07/08에서 검증한 17자산 챔피언이 섹터 ETF 단위를 유지한 게 우연이
+      아니었던 셈이다.
+    </p>
+  </section>
+
+  <!-- ================= SECTION 5 ================= -->
+  <section id="s5">
+    <div class="section-head"><span class="num">§5</span><h2>최종 결론</h2></div>
+    <div class="rule-list">
+      <div class="rule"><span class="n">1</span><div class="body"><b>개별주 확장 갈래는 여기서
+        닫는다</b><span>No.09의 화려한 결과는 100% 사후편향이었음을 확정. 챔피언 전략은 여전히
+        No.07/08의 17자산(11섹터+채권+금+국제주식+원자재)이다.</span></div></div>
+      <div class="rule"><span class="n">2</span><div class="body"><b>부산물: point-in-time
+        시가총액 인프라는 남는다</b><span><code>core/point_in_time_market_cap.py</code>는
+        이번 한 번 쓰고 버리는 스크립트가 아니라 재사용 가능한 core 모듈로 만들었다 — 앞으로
+        어떤 리서치든 "과거 시점 기준 종목 선정"이 필요하면 바로 쓸 수 있다.</span></div></div>
+      <div class="rule"><span class="n">3</span><div class="body"><b>교훈: 화려한 백테스트 결과는
+        항상 "왜 이 종목이 후보에 있었는가"부터 의심한다</b><span>No.09에서 스스로 의심을
+        제기하고 No.10에서 진짜로 검증까지 한 이번 두 편이, 이 리서치 시리즈 전체에서 가장 중요한
+        방법론적 교훈일 수 있다.</span></div></div>
+    </div>
+  </section>
+
+  <footer>
+    <span>point-in-time 시가총액 인프라 신규 구축 + 재검증 &middot; core/point_in_time_market_cap.py &middot; No.09 후속(최종)</span>
+    <span>실측 데이터 기준 2026-08-13</span>
+  </footer>
+</div>
+</body>
+</html>

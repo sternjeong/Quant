@@ -7,7 +7,7 @@ Artifact로만 존재하던 리포트/강의노트를 **로컬 저장소에 백�
 
 ## 읽는 순서
 
-번호(No.01~08)가 붙은 것들은 그 순서가 곧 읽는 순서다. 두 트랙이 섞여 있다.
+번호(No.01~10)가 붙은 것들은 그 순서가 곧 읽는 순서다. 두 트랙이 섞여 있다.
 
 **트랙 A — 개념·아키텍처** (독립적, 순서 안 지켜도 무방)
 1. No.01 `study_notes_fin_engineering.html` — 금융공학 개념 25가지, 가장 쉬운 입문
@@ -20,11 +20,19 @@ Artifact로만 존재하던 리포트/강의노트를 **로컬 저장소에 백�
 6. No.06 `momentum_rotation_multiasset_extension.html` — No.05의 한계(과최적화·거래비용 등) 4개 타개
 7. No.07 `momentum_rotation_gfc_validation.html` — No.06 챔피언을 2008년 금융위기로 검증
 8. No.08 `momentum_rotation_2022_dotcom_stress.html` — No.07 챔피언을 닷컴버블·2022년 약세장으로 추가 검증
+9. No.09 `momentum_rotation_individual_stocks.html` — 섹터 ETF에 개별주를 섞어봤더니 샤프가 급등했지만, 사후편향 의심을 직접 재검증(결론: 아직 미채택)
+10. No.10 `momentum_rotation_point_in_time_verdict.html` — No.09의 의심을 point-in-time 시가총액 인프라를 새로 만들어 최종 검증 — 개별주 확장 기각, 챔피언은 No.07/08 유지로 확정
 
-**참고용** (번호 없음, 아무 때나) — `market_regime_sector_strength_note.html`
+**트랙 C — 개별주 발굴** (독립, 트랙 B와 이어지지 않음 — 하향식 섹터 로테이션이 아니라 상향식 개별종목 발굴)
+- `tenbagger_stock_picking_research.html` — PER/PBR/PEG의 자본공학적 유도 + 이 저장소의 기존
+  시장국면·섹터강도 엔진 실측 + 개별주 텐베거 발굴 방법론 종합
 
-결론만 빠르게 보고 싶으면 No.08부터 거꾸로(최종 챔피언 전략 + 강건성 검증), 왜 그 전략이 나왔는지
-이해하려면 No.04→08 순서를 권한다.
+**참고용** (독립 문서, 번호 없음, 아무 때나) — `market_regime_sector_strength_note.html`
+
+결론만 빠르게 보고 싶으면 No.10부터 거꾸로(개별주 확장이 왜 기각됐는지 + 최종 챔피언 전략 확정),
+왜 그 전략이 나왔는지 이해하려면 No.04→10 순서를 권한다. No.09~10은 "개별주로 확장해봤지만 결국
+기각한" 갈래고, 챔피언 전략 자체는 No.07/08 기준(11섹터+채권+금+국제주식+원자재) 그대로다. 트랙
+C는 트랙 A/B 어느 쪽과도 순서 의존성이 없어 아무 때나 단독으로 읽어도 된다.
 
 ## 파일 목록
 
@@ -70,6 +78,46 @@ MDD -14.4%(SPY -34.1%)를 달성했고, 순열검정 200회에서 97.5th 백분�
 +4.22%를 기록 — "위기엔 무조건 채권"이 아니라 "그 시점 실제로 강한 자산을 따라간다"는 전략의
 진짜 강점을 실제 월별 로테이션 기록으로 확인했다. 시그모이드(비선형) 연속 시장필터도 추가
 시도했으나 이진 필터(샤프 1.10)를 넘지 못해(최고 1.06) No.07의 이진 필터 선택을 재확인했다.
+
+### [momentum_rotation_individual_stocks.html](./momentum_rotation_individual_stocks.html)
+*(Artifact 백업, No.09)* "개별주를 섞었더니 샤프 1.23 — 근데 믿어도 될까" — 사용자가 "반도체주·
+통신주 같은 개별 종목도 로테이션 후보에 넣자"고 요청해 섹터 ETF 11개에 개별주 24종목(반도체·
+통신·메가캡테크·금융·헬스케어·소비재·에너지·산업재)을 더해 재검증. 샤프가 0.98(섹터ETF만)→1.23
+(혼합)으로 급등했지만, 로테이션 기록을 열어보니 전체 픽의 95.3%가 개별주였고 NVDA·AMD·AVGO
+3종목이 반복 편중, 하위기간 샤프 격차 0.74(9라운드 통틀어 최악)를 발견 — 손으로 고른 종목
+리스트 자체가 "2026년 시점에 이미 AI 랠리 승자였음을 알고 골랐다"는 사후편향 의심이 제기됐다.
+`sample_universe(as_of_date=...)`로 편향 없이 재검증했지만 샤프가 오히려 더 높게(1.33~1.39)
+나와, "특정 리스트를 잘못 골랐다"보다 더 구조적인 문제(펀더멘털 데이터가 항상 현재 시점 기준이라
+과거 시가총액 스냅샷을 못 씀)를 발견 — 이 결론은 아직 채택하지 않고 No.07/08 챔피언(17자산)을
+유지하기로 했다.
+
+### [momentum_rotation_point_in_time_verdict.html](./momentum_rotation_point_in_time_verdict.html)
+*(Artifact 백업, No.10)* "사후편향을 걷어내니 샤프가 반토막났다" — No.09가 인프라 부재로 완전히
+검증 못 하고 남긴 숙제를 풀었다. 사용자가 "시간이 오래 걸려도 되니 진짜 point-in-time 데이터로
+검증하라"고 요청 → 신규 core 모듈 `core/point_in_time_market_cap.py`(yfinance
+`get_shares_full()` 발행주식수 이력 x 그 시점 종가로 과거 시가총액 근사) 구축. 구현 중 실제
+버그도 발견·수정 — 가격은 분할조정된 값인데 발행주식수는 미조정이라 NVDA는 40배 과소평가,
+GE는 5배 과대평가되던 문제(pytest 11개로 검증, `sample_universe(use_point_in_time_market_cap=
+True)` 옵션 신설). 이 인프라로 2019-08-12 시점 "진짜로 컸던" 종목 30개를 다시 뽑으니(NVDA·AMD·
+AVGO는 표본에 아예 없고 MSFT·AAPL·JPM·XOM 같은 평범한 블루칩) 샤프가 1.23~1.39 → **0.68~0.76으로
+폭락, 섹터 ETF 전용(0.98)보다도 나쁨** — No.09의 사후편향 의심이 확정됨. 개별주 확장 갈래는
+공식 기각, 챔피언 전략은 No.07/08(17자산) 그대로 유지.
+
+### [tenbagger_stock_picking_research.html](./tenbagger_stock_picking_research.html)
+*(analysis 사본, 트랙 C, 독립)* "개별주 텐베거 발굴 방법론 — 자본공학적 밸류에이션과 정량 섹터
+분석" — 트랙 B(하향식 섹터/시장 로테이션)와 달리 상향식 개별종목 발굴을 다루는 새 트랙. PER은
+고든성장모형(배당할인모형)에서, PBR은 잔여이익모형에서 직접 대수적으로 유도해 "몇 배가 정당한가"를
+ROE·요구수익률·성장률의 함수로 재구성하고, 그레이엄 기준(P/E&lt;15·P/B&lt;1.5·그레이엄넘버)·린치의
+PEG≈1·무형자산이 PBR을 구조적으로 왜곡시킨다는 회계연구(Baruch Lev)까지 종합해 성장률 티어별
+적정 PER/PBR/PEG 표로 수렴시킨다. "지금 어느 섹터가 뜨거운가"는 새 방법론을 만들지 않고 이
+저장소의 기존 `core.sector_strength`/`core.market_regime`(IBD RS Rating·200일선·골든크로스 등
+이미 검증된 프레임워크)을 그대로 호출해 실측한 결과를 싣는다. 린치의 텐베거 정성 기준·오닐의
+CANSLIM·학계 품질팩터(QMJ)를 종합해 만든 스크리닝 규칙(핫섹터+시총상한+PEG+성장률+ROE)을
+`core.screener.screen()`으로 S&P500에 실제로 실행한 결과도 포함 — 단 S&P500 유니버스
+자체가 진짜 소형 텐베거 후보를 구조적으로 배제한다는 한계를 스스로 드러낸 사례(가장 뜨거운
+정보기술 섹터에서 시총상한을 통과한 종목이 하나도 없었음)까지 정직하게 기록했다. 원본:
+`analysis/2026-08-16_tenbagger_stock_picking/final_report.html`(빌드: 같은 폴더의
+`build_report.py`, 데이터 수집: `gather_data.py`).
 
 ### [quant_lecture_notes.html](./quant_lecture_notes.html)
 *(Artifact 백업, No.03)* "퀀트 강의노트 — 성과지표·사이징·다각화·검증의 수학적 기초" — 스터디
