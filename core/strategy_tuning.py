@@ -32,7 +32,7 @@ from typing import Any, Optional
 
 import pandas as pd
 
-from core import gemini_client, market_regime, nl_strategy, point_in_time_universe, screener, valuation
+from core import gemini_client, market_regime, nl_strategy, point_in_time_market_cap, point_in_time_universe, screener, valuation
 from core.backtest_engine import compare_with_benchmarks, diagnose_strategy_health, run_backtest
 from core.db import get_session
 from core.expression_engine import ExpressionError, validate_syntax
@@ -40,7 +40,7 @@ from core.indicators import sma
 from core.macro_cycle import SECTOR_ROTATION
 from core.market_data import get_price_history
 from core.models import Strategy, StrategyTuningResult, StrategyTuningRun
-from core.strategy_engine import describe_condition, is_expression_config, is_staged_config
+from core.strategy_engine import describe_condition, is_expression_config, is_kostolany_config, is_staged_config
 
 # ----------------------------------------------------------------------------
 # 1. 100종목 섹터 균등 표본
@@ -52,6 +52,7 @@ def sample_universe(
     use_cache: bool = True,
     random_seed: Optional[int] = None,
     as_of_date: Optional[str | date | datetime] = None,
+    use_point_in_time_market_cap: bool = False,
 ) -> pd.DataFrame:
     """S&P500 유니버스에서 섹터별로 균등 배분된 n종목 표본을 추출한다.
 
@@ -70,6 +71,13 @@ def sample_universe(
     이렇게 하면 학습 시작 시점 이후 지수에서 편출된 종목(예: GE, 인텔)도 표본에 남을 수 있다.
     단, 상장폐지까지 간 종목은 yfinance 자체에 가격 데이터가 없어 여전히 빠질 수 있다(알려진 한계,
     PROGRESS.md 백로그 1번 참고). None이면(기본값) 기존과 동일하게 현재 S&P500 전체가 후보다.
+
+    use_point_in_time_market_cap을 True로 주면(2026-08-13 추가, No.09 리서치가 드러낸 사후편향
+    타개 — PROGRESS.md 작업25 참고) 섹터별 할당량을 채울 때 쓰는 시가총액 랭킹 자체를
+    core.point_in_time_market_cap(발행주식수 이력 x 그 시점 종가 근사)으로 계산한다 — as_of_date가
+    편입 여부만 그 시점 기준으로 걸러주고 랭킹은 여전히 "지금" 시가총액을 쓰던 기존 동작의 한계를
+    해소한다. as_of_date 없이 이 옵션만 켜면 as_of_date=오늘로 취급해 사실상 기존과 동일하다(과거
+    시점을 지정해야 의미가 있음). 기본값 False — 기존 호출부(야간 튜닝 등)의 동작을 바꾸지 않는다.
 
     Returns:
         columns: ticker, sector(GICS 영문), market_cap. 시가총액 내림차순 정렬.
@@ -90,12 +98,22 @@ def sample_universe(
     if not sectors:
         return pd.DataFrame(columns=["ticker", "sector", "market_cap"])
 
-    rows = []
-    for _, r in universe.iterrows():
-        fundamentals = screener.get_fundamentals(r["Symbol"], use_cache=use_cache)
-        rows.append(
-            {"ticker": r["Symbol"], "sector": r["Sector"], "market_cap": fundamentals.get("market_cap") or 0}
+    if use_point_in_time_market_cap:
+        cap_asof = as_of_date if as_of_date is not None else date.today().isoformat()
+        cap_map = point_in_time_market_cap.get_market_caps_asof_batch(
+            universe["Symbol"].tolist(), str(cap_asof), use_cache=use_cache
         )
+        rows = [
+            {"ticker": sym, "sector": sector, "market_cap": cap_map.get(sym) or 0}
+            for sym, sector in zip(universe["Symbol"], universe["Sector"])
+        ]
+    else:
+        rows = []
+        for _, r in universe.iterrows():
+            fundamentals = screener.get_fundamentals(r["Symbol"], use_cache=use_cache)
+            rows.append(
+                {"ticker": r["Symbol"], "sector": r["Sector"], "market_cap": fundamentals.get("market_cap") or 0}
+            )
     df = pd.DataFrame(rows)
 
     base_quota = max(1, n // len(sectors))
@@ -1040,7 +1058,15 @@ def generate_structural_variants_for_config(
     hatch다. 직접 수식은 기존 generate_structural_variants()(Gemini 제안)에 결정론적 국면 스위치
     변형(위 3d절)을 하나 더 추가하고, 레짐/1:2:6은 nl_strategy.py의 기존 스키마를 재사용한 JSON
     기반 생성으로 대응한다.
+
+    코스톨라니 국면 매매(schema="kostolany")는 변형 대상에서 제외한다(2026-08-12) — AND/OR
+    조건 조합이 아니라 style(장기/스윙) 하나만 있는 고정된 신호 로직이라 "구조가 다른 대안"이라는
+    개념 자체가 성립하지 않는다. 아래 마지막 분기(레짐 JSON 생성)로 흘려보내면 "logic"/"conditions"
+    키가 없는 config를 그 스키마인 것처럼 Gemini에 보내 의미 없는 요청만 하게 된다 — 그룹 평균이
+    test에서 못 이겨도 그게 그대로 결과다(변형해볼 여지가 없다는 뜻).
     """
+    if is_kostolany_config(base_config):
+        return []
     if is_expression_config(base_config):
         expression = base_config.get("expression", "")
         variants = [{"expression": v} for v in generate_structural_variants(expression, style_type, n)]
@@ -1683,14 +1709,25 @@ def run_batch_tuning(
 
             for ticker in group_tickers:
                 test_comparison = group_result["per_ticker_test_comparison"].get(ticker, {})
-                if "error" in test_comparison:
+                # "error" 케이스뿐 아니라 "strategy" 키 자체가 없는 경우도 걸러야 한다(2026-08-12
+                # 버그 수정) — regime이 지정됐는데 test 구간 안에 그 국면과 일치하는 연속 구간이
+                # 아예 없으면 _evaluate_group_config_on_regime_matched_test가 None을 반환하고,
+                # tune_strategy_for_group은 그걸 per_ticker_test_comparison={}로 넘긴다(설계상
+                # 의도된 "검증 불가" 표시, docstring 참고). 이 그룹의 모든 종목이 여기 걸리므로
+                # .get(ticker, {})도 항상 빈 dict를 돌려주고, 그걸 그냥 지나치면 바로 아래
+                # test_comparison["strategy"]에서 KeyError로 죽는다 — 작은 종목 표본/짧은 기간이나
+                # 애초에 희소한 국면(예: 횡보장)에서 실제로 발생함(코스톨라니 전략에 국한된 문제가
+                # 아니라 일반 버그였음, 코스톨라니를 다종목 미세튜닝에 연결하며 재현·발견).
+                if "error" in test_comparison or "strategy" not in test_comparison:
                     results.append(
                         {
                             "ticker": ticker,
                             "style_type": style_type,
                             "sector": styles_by_ticker.get(ticker, {}).get("sector"),
                             "trained_regime": regime,
-                            "error": test_comparison["error"],
+                            "error": test_comparison.get(
+                                "error", "이 국면과 일치하는 test 구간 데이터가 없어 검증하지 못했습니다."
+                            ),
                         }
                     )
                     continue

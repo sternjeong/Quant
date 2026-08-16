@@ -39,6 +39,15 @@ CACHE_DIR.mkdir(parents=True, exist_ok=True)
 # 데이터만으로 즉시 응답한다 — 확정된 과거 봉은 바뀌지 않기 때문.
 DEFAULT_CACHE_TTL_SECONDS = 6 * 60 * 60  # 6시간
 
+# ".full" 마커(더 과거로 확장할 필요 없음 표시)를 다시 확인하기까지 기다리는 시간(초). 2026-08-12
+# 실사용 캐시 점검 중 발견한 버그: get_price_history가 start=None으로 한 번 받아본 뒤 그 결과가
+# 실제로 상장일까지 닿았는지 검증 없이 무조건 마커를 찍었다 — Yahoo Finance 쪽 일시적 레이트리밋/
+# 네트워크 문제로 그 한 번의 응답이 잘려서 왔으면(예: AAPL이 1980년대가 아니라 2017년부터로 캐시됨)
+# 그 잘린 상태가 영구적으로 고정되는 문제였다. 마커를 영구 신뢰하는 대신 이 기간이 지나면 한 번 더
+# 확장을 시도하게 해서(성공하면 마커 갱신, 이미 진짜 상장일이면 변화 없이 마커만 갱신) 이런 사고가
+# 스스로 복구되게 한다.
+FULL_HISTORY_RECHECK_SECONDS = 7 * 24 * 60 * 60  # 7일
+
 # get_multiple_price_history()가 여러 티커를 동시에 조회할 때 쓰는 스레드풀 크기. 네트워크 I/O
 # 위주라 병렬화 효과가 크지만(시장 국면/섹터 강도처럼 S&P500 전종목을 순회하는 기능에서 실측:
 # 순차 조회 시 수 분 소요), 너무 크면 Yahoo Finance 쪽에서 속도 제한(레이트리밋)에 걸릴 수 있어
@@ -193,9 +202,12 @@ def get_price_history(
     req_start = pd.Timestamp(start) if start else None
     updated = False
 
+    full_marker_fresh = full_marker.exists() and (
+        time.time() - full_marker.stat().st_mtime < FULL_HISTORY_RECHECK_SECONDS
+    )
     need_older = (
         not stored.empty
-        and not full_marker.exists()
+        and not full_marker_fresh
         and (req_start is None or req_start < stored.index.min())
     )
     if need_older:

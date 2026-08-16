@@ -2003,9 +2003,6 @@ with tab_tuning:
     if tuning_source == "📚 전략 라이브러리에서 선택":
         with get_session() as session:
             tuning_strategies = session.query(Strategy).filter(Strategy.is_archived.is_(False)).order_by(Strategy.created_at.desc()).all()
-            # 코스톨라니 국면 매매 전략은 종목별 숫자 파라미터가 없어(스타일 하나만 있음) 그리드서치
-            # 미세튜닝 대상이 아니다 — 애초에 어떤 종목에도 재학습 없이 그대로 적용되도록 설계됐다.
-            tuning_strategies = [s for s in tuning_strategies if not is_kostolany_config(s.indicator_config)]
             tuning_options = {f"{s.name} (#{s.id})": s.id for s in tuning_strategies}
         if not tuning_options:
             st.info("저장된 전략이 없습니다. 다른 탭에서 전략을 먼저 저장하거나 '새 텍스트 붙여넣기'를 사용하세요.")
