@@ -1,45 +1,45 @@
 {
   "regime": "강세장",
-  "total_score": 66.30135008455888,
+  "total_score": 62.875388033844345,
   "trend_position": {
     "score": 25.0,
     "above_200sma": true,
-    "close": 7718.60009765625,
-    "sma200": 7141.764907226562,
-    "pct_vs_sma200": 8.076927733171434
+    "close": 7691.64990234375,
+    "sma200": 7147.1365576171875,
+    "pct_vs_sma200": 7.618622371867767
   },
   "ma_cross": {
     "score": 25.0,
     "golden_cross": true,
-    "sma50": 7591.70880859375,
-    "sma200": 7141.764907226562
+    "sma50": 7598.46140625,
+    "sma200": 7147.1365576171875
   },
   "drawdown": {
-    "score": -1.288470274722564,
-    "drawdown_pct": -1.0307762197780512,
+    "score": -1.7204203493891845,
+    "drawdown_pct": -1.3763362795113476,
     "is_bear_market_drawdown": false,
     "week52_high": 7798.990234375
   },
   "breadth": {
-    "score": 17.589820359281436,
-    "pct_above_200sma": 64.07185628742515,
+    "score": 14.595808383233528,
+    "pct_above_200sma": 61.67664670658682,
     "is_overheated": false,
     "n_total": 503,
-    "n_above": 321,
+    "n_above": 309,
     "n_data_ok": 501
   },
   "short_term": {
     "1개월": {
       "regime": "중립/혼조",
-      "period_return_pct": 0.1120646120411184,
+      "period_return_pct": -0.8506483055672143,
       "window_days": 21
     },
     "3개월": {
       "regime": "중립/혼조",
-      "period_return_pct": 4.5350981027516335,
+      "period_return_pct": 3.8607932321197413,
       "window_days": 63
     }
   },
   "benchmark_ticker": "^GSPC",
-  "computed_at": "2026-09-07T19:02:43.573408"
+  "computed_at": "2026-09-08T18:24:00.162248"
 }
