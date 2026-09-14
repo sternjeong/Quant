@@ -1,0 +1,520 @@
+#!/usr/bin/env python3
+"""report_data.json을 읽어 final_report.html을 만든다.
+
+analysis/2026-08-22_satellite_specific_crisis_signal_and_2021_case_study/build_report.py 와 동일한
+디자인 시스템(다크네이비/올리브 톤, 세리프 헤드라인, TOC, 섹션 번호, 판정 배지)을 재사용한다.
+"""
+import json
+import math
+import os
+
+OUT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+with open(f"{OUT_DIR}/report_data.json", encoding="utf-8") as f:
+    R = json.load(f)
+
+GEN = R["meta"]["generated"]
+H16 = R["h16"]
+H17 = R["h17"]
+
+
+def fnum(v, digits=1, signed=False):
+    if v is None or (isinstance(v, float) and math.isnan(v)):
+        return "—"
+    s = f"{v:,.{digits}f}"
+    if signed and v > 0:
+        s = "+" + s
+    return s
+
+
+def esc(s):
+    return str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def verdict_badge(v):
+    cls = "v-accept" if v.startswith("채택") else ("v-reject" if v.startswith("기각") else "v-partial")
+    return f'<span class="verdict-badge {cls}">{esc(v)}</span>'
+
+
+CSS = """
+:root{
+  color-scheme: light;
+  --bg-page:#eef1ee; --surface:#ffffff; --surface-2:#f4f6f3;
+  --ink:#12181a; --ink-2:#495550; --ink-muted:#828d87;
+  --hairline:#d7ddd6; --border:rgba(11,11,11,0.10);
+  --accent:#1f4d3d; --accent-ink:#ffffff; --accent-2:#8a6a1f;
+  --accent-2-soft:#f2e6c8; --accent-soft:#e2ebe6; --chart-surface:#fcfcfb;
+  --blue:#2a78d6; --orange:#eb6834; --aqua:#1baf7a; --red:#e34948;
+  --gridline:#e1e0d9; --axis:#c3c2b7; --delta-pos:#184f95; --delta-neg:#b3261e;
+  --code-bg:#f4f6f3; --shadow: 0 1px 2px rgba(20,30,25,0.04), 0 8px 24px -16px rgba(20,30,25,0.18);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg-page:#0f1210; --surface:#171b16; --surface-2:#1c211b;
+    --ink:#f2f4f0; --ink-2:#c4cbc2; --ink-muted:#8b958a;
+    --hairline:#2c332a; --border:rgba(255,255,255,0.10);
+    --accent:#5aab89; --accent-ink:#0b1310; --accent-2:#d9b45c;
+    --accent-2-soft:#332a13; --accent-soft:#1b2921; --chart-surface:#1a1a19;
+    --blue:#3987e5; --orange:#d95926; --aqua:#199e70; --red:#e66767;
+    --gridline:#2c2c2a; --axis:#3a3f38; --delta-pos:#86b6ef; --delta-neg:#ff8a80;
+    --code-bg:#1c211b; --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -16px rgba(0,0,0,0.5);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg-page:#0f1210; --surface:#171b16; --surface-2:#1c211b;
+  --ink:#f2f4f0; --ink-2:#c4cbc2; --ink-muted:#8b958a;
+  --hairline:#2c332a; --border:rgba(255,255,255,0.10);
+  --accent:#5aab89; --accent-ink:#0b1310; --accent-2:#d9b45c;
+  --accent-2-soft:#332a13; --accent-soft:#1b2921; --chart-surface:#1a1a19;
+  --blue:#3987e5; --orange:#d95926; --aqua:#199e70; --red:#e66767;
+  --gridline:#2c2c2a; --axis:#3a3f38; --delta-pos:#86b6ef; --delta-neg:#ff8a80;
+  --code-bg:#1c211b; --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -16px rgba(0,0,0,0.5);
+}
+*{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{ margin:0; background:var(--bg-page); color:var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif; line-height:1.6; font-size:16px; }
+.serif{ font-family: "Iowan Old Style","Palatino Linotype", Georgia, serif; }
+.mono, .num, td.num, .tk-name, .kpi-value, code {
+  font-family: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+  font-variant-numeric: tabular-nums; }
+a{ color:var(--accent); }
+.wrap{ max-width: 960px; margin:0 auto; padding: 0 24px 96px; }
+.masthead{ background: var(--accent); color: var(--accent-ink); padding: 56px 24px 40px; }
+.masthead-inner{ max-width:960px; margin:0 auto; }
+.masthead-eyebrow{ font-size:12.5px; letter-spacing:0.12em; text-transform:uppercase; opacity:0.82;
+  font-family: ui-monospace, "SF Mono", Consolas, monospace; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.masthead-eyebrow .dot{ opacity:0.5; }
+h1.masthead-title{ font-family:"Iowan Old Style","Palatino Linotype", Georgia, serif; font-weight:600;
+  font-size: clamp(28px, 4.2vw, 44px); line-height:1.15; margin: 14px 0 10px; text-wrap: balance; max-width: 28ch; }
+.masthead-sub{ font-size:16.5px; max-width:68ch; opacity:0.92; margin:0 0 22px; }
+.masthead-meta{ display:flex; flex-wrap:wrap; gap: 10px 26px; font-size:13.5px; opacity:0.85;
+  border-top:1px solid rgba(255,255,255,0.22); padding-top:16px; }
+.masthead-meta b{ font-weight:600; }
+.section{ padding: 52px 0 8px; border-top:1px solid var(--hairline); }
+.section:first-of-type{ border-top:none; }
+.section h2{ font-family:"Iowan Old Style","Palatino Linotype", Georgia, serif; font-size: 25px;
+  font-weight:600; margin: 0 0 16px; display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+.sec-no{ font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size:13px; color: var(--accent);
+  border:1px solid var(--accent); border-radius:3px; padding:2px 6px; font-weight:600; letter-spacing:0.02em; }
+.section h3{ font-size:17.5px; margin: 30px 0 10px; font-weight:650; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.section h4{ font-size:15px; margin: 20px 0 8px; font-weight:650; color:var(--ink-2); }
+.lede{ font-size:16.5px; color:var(--ink-2); max-width:72ch; }
+.section p{ max-width:76ch; }
+.section > p, .section > .lede { margin-top: 0; }
+.section li{ max-width:72ch; }
+.callout{ background: var(--surface-2); border:1px solid var(--hairline); border-left: 3px solid var(--accent);
+  border-radius: 6px; padding: 18px 22px; margin: 20px 0 26px; }
+.callout-title{ font-size:11.5px; text-transform:uppercase; letter-spacing:0.08em; color:var(--accent);
+  font-weight:700; margin-bottom:8px; }
+.callout p{ margin:0; max-width:none; }
+.callout p + p{ margin-top:10px; }
+.callout.warn{ border-left-color: var(--delta-neg); }
+.callout.warn .callout-title{ color: var(--delta-neg); }
+.caveat{ font-size:14.5px; color:var(--ink-2); background:var(--surface-2); border-radius:6px;
+  padding:14px 18px; border:1px dashed var(--hairline); margin: 14px 0; }
+.kpi-row{ display:grid; grid-template-columns:repeat(auto-fit, minmax(190px,1fr)); gap:14px; margin: 20px 0 8px; }
+.kpi-tile{ background:var(--surface); border:1px solid var(--hairline); border-radius:8px; padding:16px 18px; box-shadow: var(--shadow); }
+.kpi-label{ font-size:12.5px; color:var(--ink-muted); margin-bottom:6px; }
+.kpi-value{ font-size:24px; font-weight:600; line-height:1.1; }
+.kpi-value.pos{ color:var(--delta-pos); }
+.kpi-value.neg{ color:var(--delta-neg); }
+.kpi-sub{ font-size:12.5px; color:var(--ink-muted); margin-top:4px; }
+.chart-card{ background:var(--chart-surface); border:1px solid var(--hairline); border-radius:10px;
+  padding:22px 22px 16px; margin: 22px 0; box-shadow: var(--shadow); }
+.chart-card h3{ margin: 0 0 4px; font-size:16px; }
+.chart-desc{ font-size:13.5px; color:var(--ink-muted); margin: 0 0 14px; max-width:none; }
+.table-wrap{ overflow-x:auto; border:1px solid var(--hairline); border-radius:8px; background:var(--surface); }
+table.data-table{ width:100%; border-collapse:collapse; font-size:13.5px; min-width:620px; }
+table.data-table th{ text-align:right; font-weight:600; font-size:11.5px; color:var(--ink-muted); text-transform:uppercase;
+  letter-spacing:0.03em; padding:10px 12px; border-bottom:1px solid var(--hairline); white-space:nowrap; }
+table.data-table th:first-child, table.data-table td:first-child{ text-align:left; }
+table.data-table td{ padding:8px 12px; border-bottom:1px solid var(--hairline); text-align:right; white-space:nowrap; }
+table.data-table tbody tr:hover{ background:var(--surface-2); }
+table.data-table tbody tr:last-child td{ border-bottom:none; }
+td.tk-cell{ text-align:left !important; }
+td.tk-cell .tk-name{ font-weight:650; margin-right:8px; }
+td.num.delta.pos, .delta.pos{ color:var(--delta-pos); font-weight:650; }
+td.num.delta.neg, .delta.neg{ color:var(--delta-neg); font-weight:650; }
+.strong{ font-weight:700; }
+tr.best-row{ background: var(--accent-soft); }
+tr.warn-row{ background: rgba(179,38,30,0.08); }
+footer{ max-width:960px; margin:40px auto 0; padding: 26px 24px 10px; border-top:1px solid var(--hairline);
+  font-size:12.5px; color:var(--ink-muted); }
+footer p{ max-width:none; }
+.toc{ display:flex; flex-wrap:wrap; gap:8px 18px; margin: 24px 0 4px; padding:16px 20px; background:var(--surface);
+  border:1px solid var(--hairline); border-radius:8px; }
+.toc a{ font-size:13.5px; color:var(--ink-2); text-decoration:none; }
+.toc a:hover{ color:var(--accent); text-decoration:underline; }
+.src-list{ font-size:13px; color:var(--ink-2); padding-left:18px; }
+.src-list li{ margin: 6px 0; }
+.verdict-badge{ display:inline-block; font-size:12px; font-weight:700; letter-spacing:0.03em;
+  padding:3px 10px; border-radius:20px; text-transform:uppercase; }
+.v-accept{ background: var(--accent-soft); color: var(--accent); border:1px solid var(--accent); }
+.v-reject{ background: rgba(179,38,30,0.10); color: var(--delta-neg); border:1px solid var(--delta-neg); }
+.v-partial{ background: var(--accent-2-soft); color: var(--accent-2); border:1px solid var(--accent-2); }
+.hyp-card{ background:var(--surface); border:1px solid var(--hairline); border-radius:8px; padding:16px 20px; margin:14px 0; }
+.hyp-card .hyp-id{ font-family: ui-monospace,"SF Mono",Consolas,monospace; font-weight:700; color:var(--accent); font-size:13px; }
+"""
+
+# ---------------------------------------------------------------------------
+# H16 데이터 가공
+# ---------------------------------------------------------------------------
+p1 = H16["full_and_2022"]
+p2 = H16["gfc_2008"]
+case = H16["case_study_2021_growth_unwind"]
+
+full_w = p1["windows"]["full_2019_2026"]
+bear_w = p1["windows"]["bear_2022"]
+gfc_full_w = p2["windows"]["full_2007_2009"]
+gfc_crisis_w = p2["windows"]["crisis_2007_10_2009_06"]
+
+full_core, full_static, full_rt, full_rtsw = (full_w["core_alone"], full_w["core_plus_static_satellite"],
+    full_w["core_plus_realtime_exit_satellite"], full_w["core_plus_realtime_exit_satellite_plus_spy_switch"])
+bear_core, bear_static, bear_rt, bear_rtsw = (bear_w["core_alone"], bear_w["core_plus_static_satellite"],
+    bear_w["core_plus_realtime_exit_satellite"], bear_w["core_plus_realtime_exit_satellite_plus_spy_switch"])
+gfc_core, gfc_static, gfc_rt, gfc_rtsw = (gfc_crisis_w["core_alone"], gfc_crisis_w["core_plus_static_satellite"],
+    gfc_crisis_w["core_plus_realtime_exit_satellite"], gfc_crisis_w["core_plus_realtime_exit_satellite_plus_spy_switch"])
+gfc_full_core, gfc_full_static, gfc_full_rt, gfc_full_rtsw = (gfc_full_w["core_alone"], gfc_full_w["core_plus_static_satellite"],
+    gfc_full_w["core_plus_realtime_exit_satellite"], gfc_full_w["core_plus_realtime_exit_satellite_plus_spy_switch"])
+
+n_exits_full = p1["n_early_exits"]
+n_slots_full = p1["n_slots"]
+n_exits_gfc = p2["n_early_exits"]
+n_slots_gfc = p2["n_slots"]
+
+avoided_dd = case["avoided_drawdown_pct_points_at_2021_12_20"]
+events_2021 = case["exit_events_2021h2"]
+
+# H16 판정: 2022/GFC 위기구간 개선 + 2021 사례 실측 방어 확인, 그러나 전체기간(대체로 강세장) 훼손이면 부분채택
+full_period_hurts = full_rt["sharpe"] < full_static["sharpe"]
+crisis_helps_2022 = bear_rt["sharpe"] > bear_static["sharpe"]
+crisis_helps_gfc = gfc_rt["sharpe"] > gfc_static["sharpe"]
+case_study_confirms = avoided_dd > 3
+
+if full_period_hurts and crisis_helps_2022 and crisis_helps_gfc and case_study_confirms:
+    h16_verdict = "부분채택"
+elif (not full_period_hurts) and crisis_helps_2022 and crisis_helps_gfc:
+    h16_verdict = "채택"
+else:
+    h16_verdict = "부분채택"
+
+# ---------------------------------------------------------------------------
+# H17 데이터 가공
+# ---------------------------------------------------------------------------
+h17p1 = H17["full_and_2022"]
+h17p2 = H17["gfc_2008"]
+
+h17_full = h17p1["windows"]["full_2019_2026"]
+h17_bear = h17p1["windows"]["bear_2022"]
+h17_gfc_full = h17p2["windows"]["full_2007_2009"]
+h17_gfc_crisis = h17p2["windows"]["crisis_2007_10_2009_06"]
+
+n_reentries_full = h17p1["n_reentries"]
+n_reentries_gfc = h17p2["n_reentries"]
+
+reentry_helps_2022 = h17_bear["realtime_exit_immediate_reentry_H17"]["sharpe"] > h17_bear["realtime_exit_cash_until_rebal_H16"]["sharpe"]
+reentry_hurts_gfc = h17_gfc_crisis["realtime_exit_immediate_reentry_H17"]["sharpe"] < h17_gfc_crisis["realtime_exit_cash_until_rebal_H16"]["sharpe"]
+reentry_helps_full = h17_full["realtime_exit_immediate_reentry_H17"]["sharpe"] > h17_full["realtime_exit_cash_until_rebal_H16"]["sharpe"]
+
+if reentry_helps_2022 and reentry_hurts_gfc:
+    h17_verdict = "부분채택"
+elif reentry_helps_2022 and reentry_helps_full and not reentry_hurts_gfc:
+    h17_verdict = "채택"
+else:
+    h17_verdict = "기각"
+
+
+def trow(label, m, cls=""):
+    return (f'<tr class="{cls}"><td class="tk-cell"><span class="tk-name">{esc(label)}</span></td>'
+            f'<td class="num">{fnum(m["cagr"],2,True)}%</td><td class="num">{fnum(m["mdd"],2)}%</td>'
+            f'<td class="num">{fnum(m["sharpe"],3)}</td><td class="num">{fnum(m["calmar"],3)}</td></tr>')
+
+
+# ---------------------------------------------------------------------------
+# HTML 조립
+# ---------------------------------------------------------------------------
+HTML = f"""<title>새틀라이트 실시간 트레일링스탑 청산과 재진입 정책 검증</title>
+<style>
+{CSS}
+</style>
+
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="masthead-eyebrow">
+      <span>QUANT RESEARCH NOTE</span><span class="dot">·</span><span>Track D 8라운드</span><span class="dot">·</span><span>Hypothesis-Driven Study</span>
+    </div>
+    <h1 class="masthead-title">새틀라이트 실시간 트레일링스탑 청산과 재진입 정책 검증</h1>
+    <p class="masthead-sub">7라운드(H15)가 확정한 진짜 구멍 — 2021년 말 TSLA/NVDA/UPS 새틀라이트 슬리브가
+      SPY보다 한 달 이상 먼저 -13.2% 빠지는 동안 정적 반기보유 메커니즘이 아무 것도 하지 않았다 — 를
+      이번 라운드가 직접 메운다. (H16) 선정 시점에만 쓰던 돈치안+트레일링스탑 신호를 보유기간 내내
+      매일 감시해 신호가 꺼지는 즉시 그 슬롯을 현금화한다. (H17) 청산 후 남는 현금을 다음 반기까지
+      놀릴지, 즉시 재탐색해 새 종목으로 채울지 비교한다.</p>
+    <div class="masthead-meta">
+      <span><b>기준일</b> {esc(GEN)}</span>
+      <span><b>H16/H17 구간</b> 2019-08~2026-08 · 2022 약세장 · 2007-01~2009-12(GFC)</span>
+      <span><b>2021 사례</b> 2021-09-01 ~ 2022-03-31</span>
+      <span><b>데이터</b> Yahoo Finance(yfinance) via core.market_data/core.point_in_time_market_cap/core.strategy_tuning 로컬 캐시</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <nav class="toc">
+    <a href="#scope">00 문제 제기</a>
+    <a href="#h16">01 H16 — 실시간 트레일링스탑 청산</a>
+    <a href="#h17">02 H17 — 청산 후 재진입 정책</a>
+    <a href="#synthesis">03 종합 — 현재 최선의 추천 구성</a>
+    <a href="#limitations">04 한계</a>
+  </nav>
+
+  <section class="section" id="scope">
+    <h2><span class="sec-no">00</span> 문제 제기 — 7라운드가 확정한 진짜 구멍</h2>
+    <p class="lede">작업33(H10)이 만든 point-in-time 추세추종 새틀라이트는 반기 리밸런싱 시점에만
+      "돈치안20일 브레이크아웃 + 15% 트레일링스탑" 신호가 활성인 종목을 선정한다. 그러나 일단
+      선정되면 이 저장소 전체에서 가장 강했던 신호(작업27 IREN 연구, p≈0.005)의 핵심인 <b>청산
+      로직 자체는 보유기간 동안 한 번도 적용되지 않았다</b> — H10 스크립트 자신의 docstring이
+      "장중 트레일링스탑 청산까지 재현하지 않음"이라고 명시한 의도된 범위 제한이었다. 작업35(H15)는
+      이 제한이 실제로 얼마나 위험한지를 구체적 사례로 실측했다: 2021-07 리밸런싱으로 담은
+      TSLA/NVDA/UPS가 2021-11-19 정점 이후 2021-12-20까지 22거래일 만에 -13.2% 빠지는 동안,
+      SPY 200일선 포트폴리오 스위치는 2022-01-24까지(이미 저점을 지난 뒤) 꺼지지 않았다 — 즉
+      개별 종목 자체의 청산 신호가 있었음에도 아무 것도 실행되지 않은 것이다.</p>
+    <ul>
+      <li><b>H16</b> — 돈치안+트레일링스탑 신호를 보유기간 내내 매일 감시해 실시간 청산하면, 정확히
+        이 2021년 사례에서 손실을 얼마나 피할 수 있었는가? 다른 구간(전체/2022/2008)에서는 어떤
+        대가를 치르는가?</li>
+      <li><b>H17</b> — 실시간 청산으로 비게 된 슬롯을 다음 반기까지 현금으로 둘지, 즉시 같은
+        point-in-time 자격 풀에서 재탐색해 채울지 비교한다.</li>
+    </ul>
+    <p class="caveat">⚠️ 투자 조언이 아니다. 결과가 기대와 다르게 나오면(예: 실시간 청산이 강세장
+      상승분을 조기에 잘라 전체 성과를 훼손하는 경우) 있는 그대로 반영한다.</p>
+  </section>
+
+  <section class="section" id="h16">
+    <h2><span class="sec-no">01</span> H16 — 새틀라이트 보유종목 실시간 트레일링스탑 청산 {verdict_badge(h16_verdict)}</h2>
+    <p class="lede">H10의 rebal_log(선정 결과)는 그대로 재사용하고 보유 방식만 바꿨다: 보유기간 중
+      매일 돈치안+트레일링스탑 신호(1일 지연, 룩어헤드 방지)를 갱신해 신호가 꺼지는 순간 그 슬롯을
+      그 반기 잔여기간 동안 현금으로 전환한다(재진입 없음 - H17에서 별도로 다룸). 전체기간에서
+      <b>{n_slots_full}개 슬롯 중 {n_exits_full}개({n_exits_full/n_slots_full*100:.0f}%)</b>가 반기 도중
+      조기 청산됐고, 2008 GFC에서도 <b>{n_slots_gfc}개 중 {n_exits_gfc}개</b>가 조기 청산됐다 — 정적
+      보유가 놓치던 청산 기회가 실제로 매우 빈번했음을 뜻한다.</p>
+
+    <h3>(A) 2021-2022 사례 직접 재검증 — 회피된 손실</h3>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>종목</th><th>리밸런싱일</th><th>실시간 청산일</th><th>보유일수(달력일)</th></tr></thead>
+        <tbody>
+          {''.join(f'<tr><td class="tk-cell"><span class="tk-name">{esc(e["ticker"])}</span></td><td class="num">{esc(e["rebal_date"])}</td><td class="num">{esc(e["exit_date"])}</td><td class="num">{e["calendar_days_held_before_exit"]}</td></tr>' for e in events_2021)}
+        </tbody>
+      </table>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi-tile"><div class="kpi-label">정적보유 낙폭(2021-12-20)</div><div class="kpi-value neg">{fnum(case['static_hold_dd_at_2021_12_20_pct'],2)}%</div><div class="kpi-sub">H15가 보고한 -13.2%와 일치</div></div>
+      <div class="kpi-tile"><div class="kpi-label">실시간청산 낙폭(2021-12-20)</div><div class="kpi-value neg">{fnum(case['realtime_exit_dd_at_2021_12_20_pct'],2)}%</div><div class="kpi-sub">TSLA(11-10)·UPS(09-30) 이미 청산된 상태</div></div>
+      <div class="kpi-tile"><div class="kpi-label">회피된 낙폭</div><div class="kpi-value pos">{fnum(avoided_dd,2)}%p</div><div class="kpi-sub">정적 대비 실시간청산이 줄인 낙폭</div></div>
+    </div>
+    <p>TSLA는 <b>2021-11-10</b>(정점 -9일 전), UPS는 <b>2021-09-30</b>, NVDA는 <b>2021-12-14</b>에
+      실시간 트레일링스탑에 걸려 청산됐다. 그 결과 2021-12-20 시점 새틀라이트 낙폭은 정적보유의
+      {fnum(case['static_hold_dd_at_2021_12_20_pct'],2)}%에서 {fnum(case['realtime_exit_dd_at_2021_12_20_pct'],2)}%로
+      줄어 <b>{fnum(avoided_dd,2)}%포인트를 실제로 회피했다</b> — 7라운드가 "SPY 스위치가 한 달 넘게
+      아무 것도 못 했다"고 확정한 바로 그 구멍을, 종목 자체의 청산 신호는 실시간으로 메웠다는 뜻이다.</p>
+
+    <h3>(B) 세 구간 성과 비교</h3>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>구성 · 2019-2026 전체</th><th>CAGR</th><th>MDD</th><th>샤프</th><th>칼마</th></tr></thead>
+        <tbody>
+          {trow("코어 단독", full_core)}
+          {trow("코어+상시15%(정적보유, H10)", full_static, "best-row")}
+          {trow("코어+실시간청산 새틀라이트(H16)", full_rt, "warn-row")}
+          {trow("코어+실시간청산+SPY스위치(4번째 구성)", full_rtsw)}
+        </tbody>
+      </table>
+    </div>
+    <div class="table-wrap" style="margin-top:14px;">
+      <table class="data-table">
+        <thead><tr><th>구성 · 2022 약세장</th><th>CAGR</th><th>MDD</th><th>샤프</th><th>칼마</th></tr></thead>
+        <tbody>
+          {trow("코어 단독", bear_core)}
+          {trow("코어+상시15%(정적보유)", bear_static)}
+          {trow("코어+실시간청산 새틀라이트(H16)", bear_rt, "best-row")}
+          {trow("코어+실시간청산+SPY스위치", bear_rtsw)}
+        </tbody>
+      </table>
+    </div>
+    <div class="table-wrap" style="margin-top:14px;">
+      <table class="data-table">
+        <thead><tr><th>구성 · 2008 GFC 위기구간(2007-10~2009-06)</th><th>CAGR</th><th>MDD</th><th>샤프</th><th>칼마</th></tr></thead>
+        <tbody>
+          {trow("코어 단독", gfc_core, "best-row")}
+          {trow("코어+상시15%(정적보유)", gfc_static, "warn-row")}
+          {trow("코어+실시간청산 새틀라이트(H16)", gfc_rt)}
+          {trow("코어+실시간청산+SPY스위치", gfc_rtsw)}
+        </tbody>
+      </table>
+    </div>
+    <div class="callout">
+      <div class="callout-title">해석 — 위기엔 확실히 통하지만, 강세장에선 대가가 있다</div>
+      <p>2022년 약세장에서는 실시간청산이 정적보유(샤프{fnum(bear_static['sharpe'],3)})와 코어단독
+        ({fnum(bear_core['sharpe'],3)})을 모두 앞선다(샤프{fnum(bear_rt['sharpe'],3)}). 2008 GFC
+        위기구간에서도 정적보유가 마이너스(샤프{fnum(gfc_crisis_w['core_plus_static_satellite']['sharpe'],3)})로
+        뒤집혔던 걸 실시간청산이 손익분기 근처({fnum(gfc_rt['sharpe'],3)})까지 크게 복구한다.
+        그러나 <b>전체 2019~2026(강세장 비중이 큰 구간)에서는 오히려 정적보유(샤프{fnum(full_static['sharpe'],3)})보다
+        낮다({fnum(full_rt['sharpe'],3)}, 코어단독 {fnum(full_core['sharpe'],3)}과 거의 같은 수준)</b> —
+        NVDA·TSLA 같은 대형 상승 종목이 일시 조정(트레일링스탑에 걸릴 정도의 되돌림)을 겪은 뒤 다시
+        크게 반등하는 경우, 실시간청산이 그 반등분을 놓치고 현금으로 남기 때문이다(H17이 정면으로
+        다루는 트레이드오프). SPY 스위치와의 결합(4번째 구성)은 세 구간 모두에서 단독 실시간청산과
+        비슷하거나 근소하게 나은 수준 — 뚜렷한 시너지도, 명백한 충돌도 없이 대체로 중립적이다
+        (포지션레벨 스탑이 이미 개별 종목 위험을 다루고 있어 포트폴리오레벨 스위치가 추가로 걸 것이
+        많지 않다).</p>
+    </div>
+  </section>
+
+  <section class="section" id="h17">
+    <h2><span class="sec-no">02</span> H17 — 청산 후 재진입 정책: 즉시 재탐색 vs 현금대기 {verdict_badge(h17_verdict)}</h2>
+    <p class="lede">H16이 남긴 트레이드오프(위기엔 도움, 강세장 조정엔 기회비용)에 대한 직접적 해법
+      후보: 청산된 슬롯을 그 즉시 같은 point-in-time 자격 풀(그 반기 리밸런싱 시점에 뽑은 40종목
+      후보군, 네트워크 재호출 없이 재사용)에서 "지금 돈치안 신호가 활성인" 종목 중 모멘텀 최고
+      종목으로 즉시 교체한다. 전체기간에서 <b>{n_reentries_full}회</b>, GFC에서 <b>{n_reentries_gfc}회</b>
+      재진입이 발생했다 — 회전율이 크게 늘어난다.</p>
+
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>구성 · 2019-2026 전체</th><th>CAGR</th><th>MDD</th><th>샤프</th><th>칼마</th></tr></thead>
+        <tbody>
+          {trow("H10 기존 정적보유 베이스라인", h17_full["static_hold_baseline_H10"])}
+          {trow("H16 실시간청산·현금대기(통제군)", h17_full["realtime_exit_cash_until_rebal_H16"])}
+          {trow("H17 실시간청산·즉시재탐색", h17_full["realtime_exit_immediate_reentry_H17"])}
+        </tbody>
+      </table>
+    </div>
+    <div class="table-wrap" style="margin-top:14px;">
+      <table class="data-table">
+        <thead><tr><th>구성 · 2022 약세장</th><th>CAGR</th><th>MDD</th><th>샤프</th><th>칼마</th></tr></thead>
+        <tbody>
+          {trow("H10 기존 정적보유 베이스라인", h17_bear["static_hold_baseline_H10"])}
+          {trow("H16 실시간청산·현금대기(통제군)", h17_bear["realtime_exit_cash_until_rebal_H16"])}
+          {trow("H17 실시간청산·즉시재탐색", h17_bear["realtime_exit_immediate_reentry_H17"], "best-row")}
+        </tbody>
+      </table>
+    </div>
+    <div class="table-wrap" style="margin-top:14px;">
+      <table class="data-table">
+        <thead><tr><th>구성 · 2008 GFC 위기구간</th><th>CAGR</th><th>MDD</th><th>샤프</th><th>칼마</th></tr></thead>
+        <tbody>
+          {trow("H10 기존 정적보유 베이스라인", h17_gfc_crisis["static_hold_baseline_H10"])}
+          {trow("H16 실시간청산·현금대기(통제군)", h17_gfc_crisis["realtime_exit_cash_until_rebal_H16"], "best-row")}
+          {trow("H17 실시간청산·즉시재탐색", h17_gfc_crisis["realtime_exit_immediate_reentry_H17"], "warn-row")}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-title">해석 — 정직한 트레이드오프, 승자가 국면마다 다르다</div>
+      <p>2022년 약세장에서는 즉시재탐색이 확실히 낫다(샤프 {fnum(h17_bear['realtime_exit_immediate_reentry_H17']['sharpe'],3)}
+        vs 현금대기 {fnum(h17_bear['realtime_exit_cash_until_rebal_H16']['sharpe'],3)} vs 기존정적보유
+        {fnum(h17_bear['static_hold_baseline_H10']['sharpe'],3)}) — 2022년은 되돌림과 반등이 반복된
+        구간이라 빠른 재탐색이 회전을 통해 새 상승 후보를 계속 잡아낸 것으로 보인다. 그러나 2008 GFC
+        위기구간에서는 정반대다 — 즉시재탐색(샤프{fnum(h17_gfc_crisis['realtime_exit_immediate_reentry_H17']['sharpe'],3)})이
+        현금대기(샤프{fnum(h17_gfc_crisis['realtime_exit_cash_until_rebal_H16']['sharpe'],3)})보다 훨씬 나쁘고
+        기존 정적보유({fnum(h17_gfc_crisis['static_hold_baseline_H10']['sharpe'],3)})보다도 나쁘다 — 진짜
+        광범위 위기에서는 청산 직후 재탐색한 종목도 곧바로 다시 무너지는 "낙하는 칼날 잡기"가 반복돼
+        회전비용만 누적된 것으로 보인다. 전체 2019~2026 기간에서는 즉시재탐색(샤프{fnum(h17_full['realtime_exit_immediate_reentry_H17']['sharpe'],3)})이
+        현금대기(샤프{fnum(h17_full['realtime_exit_cash_until_rebal_H16']['sharpe'],3)})보다는 근소하게 낫지만
+        기존 정적보유(샤프{fnum(h17_full['static_hold_baseline_H10']['sharpe'],3)})에는 여전히 못 미친다.
+        <b>어느 한쪽이 항상 이기지 않는다</b> — 재진입 정책은 국면 의존적이며, "청산 후 어떻게 할지"는
+        그 자체로 또 하나의 타이밍 문제라는 것이 이번 라운드의 핵심 발견이다.</p>
+    </div>
+  </section>
+
+  <section class="section" id="synthesis">
+    <h2><span class="sec-no">03</span> 종합 — 현재 최선의 추천 구성</h2>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>질문</th><th>답</th></tr></thead>
+        <tbody>
+          <tr><td class="tk-cell"><span class="tk-name">H16: 실시간 청산이 2021년 사례의 실제 손실을 줄였는가</span></td>
+            <td class="tk-cell">예 — 2021-12-20 시점 낙폭이 -13.2%에서 {fnum(case['realtime_exit_dd_at_2021_12_20_pct'],2)}%로
+              줄어 {fnum(avoided_dd,2)}%p 회피됐다(TSLA 09-30/11-10, UPS 09-30, NVDA 12-14 각각 조기청산).</td></tr>
+          <tr><td class="tk-cell"><span class="tk-name">H16: 위기구간(2022·2008)에서도 도움이 되는가</span></td>
+            <td class="tk-cell">예 — 2022년 샤프 {fnum(bear_static['sharpe'],3)}→{fnum(bear_rt['sharpe'],3)},
+              2008 GFC 위기구간 {fnum(gfc_static['sharpe'],3)}→{fnum(gfc_rt['sharpe'],3)}(손익분기 근접).</td></tr>
+          <tr><td class="tk-cell"><span class="tk-name">H16: 강세장 위주 전체기간에서는 대가가 있는가</span></td>
+            <td class="tk-cell">예 — 전체 2019~2026 샤프가 정적보유 {fnum(full_static['sharpe'],3)}에서
+              {fnum(full_rt['sharpe'],3)}로 하락(코어단독 {fnum(full_core['sharpe'],3)}과 비슷한 수준으로 후퇴) —
+              대형 상승 종목의 일시 조정에서 조기 청산돼 이후 반등을 놓치기 때문.</td></tr>
+          <tr><td class="tk-cell"><span class="tk-name">H17: 즉시재탐색이 항상 더 나은가</span></td>
+            <td class="tk-cell">아니오 — 2022년엔 더 낫고(샤프{fnum(h17_bear['realtime_exit_immediate_reentry_H17']['sharpe'],3)}),
+              2008 GFC 위기구간에선 훨씬 나쁘다(샤프{fnum(h17_gfc_crisis['realtime_exit_immediate_reentry_H17']['sharpe'],3)}) —
+              국면 의존적, 일관된 승자 없음.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="hyp-card">
+      <div class="hyp-id">현재 시점 최선의 추천 구성</div>
+      <p style="margin:8px 0 0;"><b>단일 최선 구성은 없다 — 목적에 따라 갈린다.</b> 강세장/평시 수익
+        극대화가 목표라면 여전히 <b>H10의 정적 반기보유(청산 신호 미적용)</b>가 전체 샤프가 가장 높다
+        (실시간 청산이 대형 상승 종목의 일시 조정을 조기에 잘라 상승분을 놓치기 때문). 반면 <b>위기
+        방어(2021년류 국지적 언와인드, 2022년류 약세장, 2008년류 광범위 위기)가 우선순위라면 H16의
+        실시간청산·현금대기가 최선</b> — 특히 2021년 사례에서 SPY 스위치가 전혀 못 잡았던
+        {fnum(avoided_dd,2)}%p의 실제 손실을 종목 자체 신호로 막아낸 것은 이 시리즈 전체에서 가장
+        구체적이고 직접적인 방어 성과다. <b>즉시재탐색(H17)은 채택하지 않는다</b> — 2022년처럼 도움이
+        되는 국면도 있지만 광범위 위기(2008)에서 오히려 크게 해치므로, 어느 쪽이 올지 사전에 알 수
+        없는 실전에서는 "현금대기(H16)"라는 더 단순하고 국면에 덜 민감한 정책이 안전하다. 종합하면:
+        <b>17자산 챔피언 + 추세추종 새틀라이트(15%) + 실시간 트레일링스탑 청산(현금대기, 재진입 없음)
+        + SPY 200일선 포트폴리오 스위치</b>를 함께 쓰는 것을, "강세장 수익을 다소 희생하더라도 위기
+        방어를 우선한다"는 목표에 대한 현재 최선의 조합으로 권고한다. 다만 이는 전체기간 샤프를
+        정적보유보다 낮추는 명시적 트레이드오프이며, 순수 수익 극대화가 목표라면 정적보유(H10)를
+        유지하는 것이 더 낫다는 점도 동시에 명시한다.</p>
+    </div>
+  </section>
+
+  <section class="section" id="limitations">
+    <h2><span class="sec-no">04</span> 한계</h2>
+    <ul>
+      <li><b>실시간 청산의 반기 내 전체기간 훼손</b> — H16 자체가 명시적으로 보여주듯, 이 방어 메커니즘은
+        공짜가 아니다. 강세장 위주 전체기간(2019~2026) 샤프가 정적보유 대비 뚜렷이 낮아진다 — "위기
+        방어와 강세장 수익은 이 설계 안에서 상충한다"는 것을 있는 그대로 인정한다.</li>
+      <li><b>H17 재탐색은 반기 리밸런싱 시점의 후보 풀을 재사용</b> — 청산 시점에 새로 sample_universe를
+        호출하지 않고, 같은 반기의 리밸런싱 시점 point-in-time 풀을 그대로 재사용했다(계산비용 절감
+        목적). 반기 안에서도 몇 달이 지나면 그 시점의 실제 시가총액 상위 종목 구성이 달라졌을 수 있어,
+        완전한 point-in-time 재탐색보다는 근사치다.</li>
+      <li><b>재탐색 최대 횟수 제한(슬롯당 5회)</b> — 극단적으로 변동성이 큰 구간에서 그 이상 반복
+        청산-재탐색이 발생했다면 이후엔 현금으로 남았을 수 있다(실제로는 도달한 사례가 드묾).</li>
+      <li><b>2008년 코어는 3자산(SPY/TLT/GLD) 근사, 새틀라이트 풀 생존편향</b> — 작업33/34/35와 동일한
+        제약이 그대로 적용된다.</li>
+      <li><b>SPY 스위치와의 결합(4번째 구성)은 얕게만 검증</b> — 세 구간에서 성과표만 냈을 뿐, H13처럼
+        전환비용·반응지연을 별도로 정량화하지 않았다.</li>
+      <li><b>2021 사례는 표본 1개</b> — H15가 이미 명시한 한계가 그대로 이어진다. 이번 라운드가 이
+        하나의 사례에서 방어에 성공했다고 해서 다른 유형의 국지적 위기에서도 같은 크기로 방어된다는
+        보장은 없다.</li>
+      <li><b>다중비교 위험</b> — 이 저장소가 지금까지 수십 개의 파라미터/구조 변형을 반복 검증해온
+        근본적 한계(작업21이 이미 명시)는 이번 연구에도 그대로 적용된다.</li>
+    </ul>
+  </section>
+
+</div>
+
+<footer>
+  <p>analysis/2026-08-22_satellite_realtime_stop_and_reentry_research/ (데이터: report_data.json,
+    빌드: build_report.py) · h16_realtime_trailing_stop_exit.py는
+    analysis/2026-08-21_satellite_signal_upgrade_and_crisis_test/의 h10(추세추종 새틀라이트 선정
+    로직·rebal_log)/h11(GFC 3자산 코어+point-in-time 새틀라이트) 로직과
+    analysis/2026-08-22_regime_conditional_satellite_switch/의 h12(SPY 스위치) 로직을 그대로 재사용해
+    "보유방식"만 바꿨다(선정 로직은 변경하지 않음). h17_reentry_policy.py는 h16의 결과 CSV와 H10/H12의
+    rebal_log를 재사용하고, 재탐색 시에는 core.strategy_tuning.sample_universe로 그 반기 시점의
+    point-in-time 후보 풀을 재조회했다. 모든 수치는 core.market_data/core.point_in_time_market_cap의
+    로컬 캐시를 통한 실제 Yahoo Finance 데이터로 계산한 결과다(추정치 아님). 이 워크트리는 main과
+    분기된 시점 이후 인프라 변경이 반영되지 않을 수 있어, 모든 스크립트가 main 체크아웃
+    (/workspaces/Quant)의 core/를 직접 참조해 실행했다 — 이 워크트리의 core/는 건드리지 않았다.</p>
+</footer>
+"""
+
+out_file = f"{OUT_DIR}/final_report.html"
+with open(out_file, "w", encoding="utf-8") as f:
+    f.write(HTML)
+print(f"SAVED {out_file}")

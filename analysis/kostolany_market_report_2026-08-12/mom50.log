@@ -1,0 +1,26 @@
+유니버스 50종목: ['NVDA', 'TSM', 'AVGO', 'AMD', 'QCOM', 'META', 'GOOGL', 'NFLX', 'T', 'VZ', 'MSFT', 'ORCL', 'CRM', 'ADBE', 'NOW', 'JPM', 'BAC', 'WFC', 'GS', 'MS', 'UNH', 'JNJ', 'LLY', 'PFE', 'ABBV', 'XOM', 'CVX', 'COP', 'SLB', 'EOG', 'AMZN', 'TSLA', 'HD', 'MCD', 'NKE', 'PG', 'KO', 'PEP', 'WMT', 'COST', 'BA', 'CAT', 'GE', 'HON', 'UPS', 'PLD', 'AMT', 'EQIX', 'SPG', 'O']
+S&P500 매수보유: {'cumulative_return': 275.48, 'cagr': 12.08, 'mdd': -33.92, 'sharpe': 0.73, 'win_rate': 100.0, 'avg_holding_days': 4239.0, 'trade_count': 1}
+
+Top10 동일비중 모멘텀 로테이션(50종목 유니버스): {'cumulative_return': 1839.94, 'cagr': 29.11, 'mdd': -29.88, 'sharpe': 1.15, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0}
+  + vol-target(target=10.0, cap=1.0): {'cumulative_return': 273.43, 'cagr': 12.02, 'mdd': -10.99, 'sharpe': 1.08, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0}
+  + vol-target(target=12.0, cap=1.0): {'cumulative_return': 380.7, 'cagr': 14.49, 'mdd': -13.13, 'sharpe': 1.1, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0}
+  + vol-target(target=15.0, cap=1.0): {'cumulative_return': 585.12, 'cagr': 18.04, 'mdd': -16.09, 'sharpe': 1.13, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0}
+
+Top15 동일비중 모멘텀 로테이션(50종목 유니버스): {'cumulative_return': 1083.33, 'cagr': 23.73, 'mdd': -29.49, 'sharpe': 1.08, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0}
+  + vol-target(target=10.0, cap=1.0): {'cumulative_return': 240.03, 'cagr': 11.12, 'mdd': -14.37, 'sharpe': 1.01, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0}
+  + vol-target(target=12.0, cap=1.0): {'cumulative_return': 330.34, 'cagr': 13.4, 'mdd': -17.13, 'sharpe': 1.04, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0}
+  + vol-target(target=15.0, cap=1.0): {'cumulative_return': 497.3, 'cagr': 16.65, 'mdd': -19.89, 'sharpe': 1.09, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0}
+
+=== 전체 요약 (샤프 내림차순) ===
+   top_n        overlay  cumulative_return   cagr    mdd  sharpe  win_rate  avg_holding_days  trade_count
+0     10           none            1839.94  29.11 -29.88    1.15       0.0               0.0            0
+3     10  vt15.0_cap1.0             585.12  18.04 -16.09    1.13       0.0               0.0            0
+2     10  vt12.0_cap1.0             380.70  14.49 -13.13    1.10       0.0               0.0            0
+7     15  vt15.0_cap1.0             497.30  16.65 -19.89    1.09       0.0               0.0            0
+1     10  vt10.0_cap1.0             273.43  12.02 -10.99    1.08       0.0               0.0            0
+4     15           none            1083.33  23.73 -29.49    1.08       0.0               0.0            0
+6     15  vt12.0_cap1.0             330.34  13.40 -17.13    1.04       0.0               0.0            0
+5     15  vt10.0_cap1.0             240.03  11.12 -14.37    1.01       0.0               0.0            0
+
+참고 S&P500: cagr=12.08, mdd=-33.92, sharpe=0.73
+DONE

@@ -1,0 +1,5 @@
+﻿sell_weight,mean_sharpe,mean_cagr,mean_excess_cagr_vs_bench,median_excess_cagr_vs_bench,win_rate_vs_bh_pct,win_rate_vs_bench_pct,index_cagr,index_sharpe,index_mdd,index_excess_vs_bench
+0.0,0.516,12.93,0.82,-2.24,28.0,40.0,10.6,0.71,-25.43,-1.51
+0.25,0.523,13.16,1.05,-2.27,28.0,40.0,11.03,0.73,-25.43,-1.08
+0.5,0.528,13.35,1.24,-1.86,30.0,40.0,11.42,0.74,-26.48,-0.69
+0.75,0.529,13.51,1.4,-1.55,36.0,40.0,11.77,0.74,-30.27,-0.34

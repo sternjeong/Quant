@@ -798,6 +798,168 @@ def test_group_mean_excess_return_all_failed_returns_negative_infinity():
 
 
 # ----------------------------------------------------------------------------
+# 과적합 진단: train 워크포워드 점수 vs test 성과 곡선 (2026-09-13)
+# ----------------------------------------------------------------------------
+
+
+def test_compute_overfitting_curve_empty_trail_returns_empty():
+    result = st_mod.compute_overfitting_curve(["AAA"], [], "2024-01-01", "2024-06-01")
+    assert result == {
+        "points": [], "best_train_rank": None, "best_test_rank": None,
+        "n_valid_test": 0, "is_overfit": False,
+    }
+
+
+def test_compute_overfitting_curve_single_valid_score_is_not_enough_to_claim_overfit(monkeypatch):
+    """유효한 test 비교 대상이 1개뿐이면(나머지는 매매횟수 부족 등으로 검증 불가), 그게 rank=1이
+    아니더라도 "과적합"이라고 단정하면 안 된다 — 비교할 상대가 없기 때문이다(실제 운영 데이터,
+    run_id=8의 "주도주·강세장" 그룹에서 재현된 패턴: rank1만 매매횟수 조건을 충족해 검증됨)."""
+    trail = [
+        {"config": {"id": "a"}, "score": 3.0},  # rank 1
+        {"config": {"id": "b"}, "score": 2.0},  # rank 2
+        {"config": {"id": "c"}, "score": 1.0},  # rank 3
+    ]
+
+    def _fake_compare(ticker, cfg, start, end, max_holding_days=None):
+        if cfg["id"] == "a":
+            return _fake_test_comparison(strategy_cagr=-24.0, benchmark_cagr=0.0)
+        # b/c는 매매횟수 미달로 검증 불가
+        return _fake_test_comparison(strategy_cagr=0.0, benchmark_cagr=0.0, strategy_trade_count=1)
+
+    monkeypatch.setattr(st_mod, "compare_with_benchmarks", _fake_compare)
+
+    result = st_mod.compute_overfitting_curve(["AAA"], trail, "2024-01-01", "2024-06-01", top_n=3)
+
+    assert result["n_valid_test"] == 1
+    assert result["best_test_rank"] == 1  # 유효했던 유일한 후보가 우연히 rank1
+    assert result["is_overfit"] is False  # 비교 상대가 없으므로 "최고"라고 확신할 근거 부족
+
+
+def test_compute_overfitting_curve_orders_points_by_rising_train_score(monkeypatch):
+    """반환된 points는 rank가 큰 것(train 점수 낮음)부터 rank=1(train 점수 최고)까지, train_score가
+    오르는 방향으로 정렬돼야 한다 — loss curve의 x축(학습 진행)과 같은 방향."""
+    trail = [
+        {"config": {"id": "r1"}, "score": 3.0},
+        {"config": {"id": "r2"}, "score": 2.0},
+        {"config": {"id": "r3"}, "score": 1.0},
+    ]
+    monkeypatch.setattr(
+        st_mod, "compare_with_benchmarks",
+        lambda ticker, cfg, start, end, max_holding_days=None: _fake_test_comparison(strategy_cagr=5.0, benchmark_cagr=0.0),
+    )
+
+    result = st_mod.compute_overfitting_curve(["AAA"], trail, "2024-01-01", "2024-06-01", top_n=3)
+
+    assert [p["rank"] for p in result["points"]] == [3, 2, 1]
+    assert [p["train_score"] for p in result["points"]] == [1.0, 2.0, 3.0]
+    assert result["best_train_rank"] == 1
+
+
+def test_compute_overfitting_curve_detects_overfitting_when_mid_rank_generalizes_best(monkeypatch):
+    """rank=1(가장 train에 맞춰진 후보)이 실제로는 test에서 최선이 아니고, 중간 순위 후보가 더 잘
+    일반화된다면 is_overfit=True와 함께 그 rank를 best_test_rank로 보고해야 한다."""
+    trail = [
+        {"config": {"id": "best_train"}, "score": 3.0},   # rank 1
+        {"config": {"id": "mid"}, "score": 2.0},           # rank 2
+        {"config": {"id": "worst_train"}, "score": 1.0},   # rank 3
+    ]
+    test_excess_by_id = {"best_train": 0.0, "mid": 20.0, "worst_train": 10.0}
+
+    def _fake_compare(ticker, cfg, start, end, max_holding_days=None):
+        return _fake_test_comparison(strategy_cagr=test_excess_by_id[cfg["id"]], benchmark_cagr=0.0)
+
+    monkeypatch.setattr(st_mod, "compare_with_benchmarks", _fake_compare)
+
+    result = st_mod.compute_overfitting_curve(["AAA"], trail, "2024-01-01", "2024-06-01", top_n=3)
+
+    points_by_rank = {p["rank"]: p for p in result["points"]}
+    assert points_by_rank[1]["test_score"] == pytest.approx(0.0)
+    assert points_by_rank[2]["test_score"] == pytest.approx(20.0)
+    assert points_by_rank[3]["test_score"] == pytest.approx(10.0)
+    assert result["best_test_rank"] == 2
+    assert result["is_overfit"] is True
+
+
+def test_compute_overfitting_curve_not_overfit_when_rank1_also_best_on_test(monkeypatch):
+    trail = [
+        {"config": {"id": "best"}, "score": 3.0},
+        {"config": {"id": "worse"}, "score": 1.0},
+    ]
+    test_excess_by_id = {"best": 20.0, "worse": 5.0}
+
+    monkeypatch.setattr(
+        st_mod, "compare_with_benchmarks",
+        lambda ticker, cfg, start, end, max_holding_days=None: _fake_test_comparison(
+            strategy_cagr=test_excess_by_id[cfg["id"]], benchmark_cagr=0.0
+        ),
+    )
+
+    result = st_mod.compute_overfitting_curve(["AAA"], trail, "2024-01-01", "2024-06-01", top_n=2)
+
+    assert result["best_test_rank"] == 1
+    assert result["is_overfit"] is False
+
+
+def test_compute_overfitting_curve_respects_top_n(monkeypatch):
+    """top_n보다 뒤쪽(낮은 train 점수) 후보는 test에서 평가하지 않아야 한다(비용 제한)."""
+    trail = [{"config": {"id": i}, "score": float(10 - i)} for i in range(5)]
+    evaluated_ids = []
+
+    def _fake_compare(ticker, cfg, start, end, max_holding_days=None):
+        evaluated_ids.append(cfg["id"])
+        return _fake_test_comparison(strategy_cagr=1.0, benchmark_cagr=0.0)
+
+    monkeypatch.setattr(st_mod, "compare_with_benchmarks", _fake_compare)
+
+    result = st_mod.compute_overfitting_curve(["AAA"], trail, "2024-01-01", "2024-06-01", top_n=2)
+
+    assert len(result["points"]) == 2
+    assert sorted(evaluated_ids) == [0, 1]  # trail[0], trail[1]만 (rank 1, 2)
+
+
+def test_compute_overfitting_curve_no_valid_test_scores_is_not_overfit(monkeypatch):
+    """모든 후보가 test에서 검증 불가(예: 매매횟수 미달로 excess_return 계산 불능)면 과최적화
+    여부를 판단할 근거가 없으므로 is_overfit=False, best_test_rank=None이어야 한다."""
+    trail = [{"config": {"id": "only"}, "score": 1.0}]
+    monkeypatch.setattr(
+        st_mod, "compare_with_benchmarks",
+        # 매매횟수(1)가 _MIN_TRADE_COUNT(5) 미만이라 _group_mean_excess_return이 이 종목을 평균에서
+        # 제외 -> 유효 종목 0개 -> -inf(=검증 불가)를 반환하는 경로를 그대로 재사용.
+        lambda ticker, cfg, start, end, max_holding_days=None: _fake_test_comparison(
+            strategy_cagr=0.0, benchmark_cagr=0.0, strategy_trade_count=1
+        ),
+    )
+
+    result = st_mod.compute_overfitting_curve(["AAA"], trail, "2024-01-01", "2024-06-01")
+
+    assert result["points"][0]["test_score"] is None
+    assert result["best_test_rank"] is None
+    assert result["is_overfit"] is False
+
+
+def test_compute_overfitting_curve_uses_regime_matched_test_when_regime_given(monkeypatch):
+    trail = [
+        {"config": {"id": "a"}, "score": 2.0},
+        {"config": {"id": "b"}, "score": 1.0},
+    ]
+    captured_regimes = []
+
+    def _fake_matched(tickers, config, test_start, test_end, regime, max_holding_days=None):
+        captured_regimes.append(regime)
+        return {"mean_excess_return": 30.0 if config["id"] == "a" else 5.0}
+
+    monkeypatch.setattr(st_mod, "_evaluate_group_config_on_regime_matched_test", _fake_matched)
+
+    result = st_mod.compute_overfitting_curve(
+        ["AAA"], trail, "2024-01-01", "2024-06-01", regime="약세장"
+    )
+
+    assert captured_regimes == ["약세장", "약세장"]
+    assert result["best_test_rank"] == 1  # rank1(=id "a", train 최고)이 test에서도 최고
+    assert result["is_overfit"] is False
+
+
+# ----------------------------------------------------------------------------
 # 국면별(약세장/강세장) 분리 트레이닝 (SPEC 13절, 2026-07-16)
 # ----------------------------------------------------------------------------
 

@@ -1,0 +1,96 @@
+{
+  "study_a_cpi_gdp": {
+    "pre2020": {
+      "decel": {
+        "n": 163,
+        "mean_pct": 3.105,
+        "win_rate_pct": 73.6
+      },
+      "accel": {
+        "n": 158,
+        "mean_pct": 0.988,
+        "win_rate_pct": 63.3
+      }
+    },
+    "post2020": {
+      "decel": {
+        "n": 36,
+        "mean_pct": 5.385,
+        "win_rate_pct": 83.3
+      },
+      "accel": {
+        "n": 44,
+        "mean_pct": 1.146,
+        "win_rate_pct": 63.6
+      }
+    }
+  },
+  "study_b_nfp_cpi": {
+    "pre2020": {
+      "decel": {
+        "n": 156,
+        "mean_pct": 3.083,
+        "win_rate_pct": 74.4
+      },
+      "accel": {
+        "n": 151,
+        "mean_pct": 0.79,
+        "win_rate_pct": 63.6
+      }
+    },
+    "post2020": {
+      "decel": {
+        "n": 37,
+        "mean_pct": 6.841,
+        "win_rate_pct": 83.8
+      },
+      "accel": {
+        "n": 38,
+        "mean_pct": 0.558,
+        "win_rate_pct": 60.5
+      }
+    }
+  },
+  "study_c_gold_fomc": {
+    "pre2020": {
+      "cut": {
+        "n": 13,
+        "mean_pct": 5.551,
+        "win_rate_pct": 69.2
+      },
+      "hike": {
+        "n": 21,
+        "mean_pct": 4.475,
+        "win_rate_pct": 81.0
+      }
+    },
+    "post2020": {
+      "cut": {
+        "n": 8,
+        "mean_pct": 14.931,
+        "win_rate_pct": 100.0
+      },
+      "hike": {
+        "n": 11,
+        "mean_pct": 0.445,
+        "win_rate_pct": 45.5
+      }
+    }
+  },
+  "study_d_xlf_cuts": {
+    "pre2020": {
+      "cut": {
+        "n": 13,
+        "mean_pct": -12.453,
+        "win_rate_pct": 23.1
+      }
+    },
+    "post2020": {
+      "cut": {
+        "n": 8,
+        "mean_pct": 2.743,
+        "win_rate_pct": 75.0
+      }
+    }
+  }
+}

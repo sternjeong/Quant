@@ -1,0 +1,78 @@
+{
+  "sectors": {
+    "반도체": [
+      "NVDA",
+      "TSM",
+      "AVGO",
+      "AMD",
+      "QCOM"
+    ],
+    "커뮤니케이션서비스": [
+      "META",
+      "GOOGL",
+      "NFLX",
+      "T",
+      "VZ"
+    ],
+    "소프트웨어/클라우드": [
+      "MSFT",
+      "ORCL",
+      "CRM",
+      "ADBE",
+      "NOW"
+    ],
+    "금융/은행": [
+      "JPM",
+      "BAC",
+      "WFC",
+      "GS",
+      "MS"
+    ],
+    "헬스케어": [
+      "UNH",
+      "JNJ",
+      "LLY",
+      "PFE",
+      "ABBV"
+    ],
+    "에너지": [
+      "XOM",
+      "CVX",
+      "COP",
+      "SLB",
+      "EOG"
+    ],
+    "임의소비재": [
+      "AMZN",
+      "TSLA",
+      "HD",
+      "MCD",
+      "NKE"
+    ],
+    "필수소비재": [
+      "PG",
+      "KO",
+      "PEP",
+      "WMT",
+      "COST"
+    ],
+    "산업재": [
+      "BA",
+      "CAT",
+      "GE",
+      "HON",
+      "UPS"
+    ],
+    "리츠/부동산": [
+      "PLD",
+      "AMT",
+      "EQIX",
+      "SPG",
+      "O"
+    ]
+  },
+  "index_ticker": "^GSPC",
+  "index_label": "S&P500",
+  "start": "2015-01-01",
+  "generated": "2026-08-12"
+}

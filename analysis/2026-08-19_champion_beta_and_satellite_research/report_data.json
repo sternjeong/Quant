@@ -1,0 +1,469 @@
+{
+  "meta": {
+    "generated": "2026-08-20",
+    "champion_universe": [
+      "XLK",
+      "XLF",
+      "XLV",
+      "XLY",
+      "XLP",
+      "XLE",
+      "XLI",
+      "XLB",
+      "XLU",
+      "XLRE",
+      "XLC",
+      "TLT",
+      "IEF",
+      "GLD",
+      "EFA",
+      "HYG",
+      "DBC"
+    ]
+  },
+  "h1": {
+    "period": {
+      "start": "2019-08-12",
+      "end": "2026-08-19"
+    },
+    "core_metrics": {
+      "cumulative_return": 139.19,
+      "cagr": 13.23,
+      "mdd": -17.74,
+      "sharpe": 1.03,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.75,
+      "avg_drawdown_days": 20.2
+    },
+    "satellite_metrics": {
+      "cumulative_return": 330.41,
+      "cagr": 23.12,
+      "mdd": -33.54,
+      "sharpe": 0.8,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.69,
+      "avg_drawdown_days": 29.7
+    },
+    "satellite_rebal_log": [
+      {
+        "date": "2020-01-02",
+        "pool_size": 40,
+        "n_positive_momentum": 39,
+        "picks": [
+          "AAPL",
+          "MSFT",
+          "PLD"
+        ],
+        "pick_momentum": {
+          "AAPL": 0.8616,
+          "MSFT": 0.5526,
+          "PLD": 0.5181
+        }
+      },
+      {
+        "date": "2020-07-01",
+        "pool_size": 40,
+        "n_positive_momentum": 26,
+        "picks": [
+          "NVDA",
+          "AAPL",
+          "MSFT"
+        ],
+        "pick_momentum": {
+          "NVDA": 1.3133,
+          "AAPL": 0.8432,
+          "MSFT": 0.4999
+        }
+      },
+      {
+        "date": "2021-01-04",
+        "pool_size": 40,
+        "n_positive_momentum": 30,
+        "picks": [
+          "TSLA",
+          "NVDA",
+          "AAPL"
+        ],
+        "pick_momentum": {
+          "TSLA": 7.4344,
+          "NVDA": 1.2193,
+          "AAPL": 0.8075
+        }
+      },
+      {
+        "date": "2021-07-01",
+        "pool_size": 40,
+        "n_positive_momentum": 40,
+        "picks": [
+          "TSLA",
+          "NVDA",
+          "UPS"
+        ],
+        "pick_momentum": {
+          "TSLA": 2.367,
+          "NVDA": 1.106,
+          "UPS": 0.8706
+        }
+      },
+      {
+        "date": "2022-01-03",
+        "pool_size": 40,
+        "n_positive_momentum": 35,
+        "picks": [
+          "NVDA",
+          "COP",
+          "PLD"
+        ],
+        "pick_momentum": {
+          "NVDA": 1.2373,
+          "COP": 0.805,
+          "PLD": 0.7037
+        }
+      },
+      {
+        "date": "2022-07-01",
+        "pool_size": 40,
+        "n_positive_momentum": 15,
+        "picks": [
+          "COP",
+          "LLY",
+          "CVX"
+        ],
+        "pick_momentum": {
+          "COP": 0.4747,
+          "LLY": 0.4136,
+          "CVX": 0.3823
+        }
+      },
+      {
+        "date": "2023-01-03",
+        "pool_size": 40,
+        "n_positive_momentum": 14,
+        "picks": [
+          "XOM",
+          "COP",
+          "CVX"
+        ],
+        "pick_momentum": {
+          "XOM": 0.8144,
+          "COP": 0.6325,
+          "CVX": 0.5285
+        }
+      },
+      {
+        "date": "2023-07-03",
+        "pool_size": 40,
+        "n_positive_momentum": 31,
+        "picks": [
+          "NVDA",
+          "NFLX",
+          "AVGO"
+        ],
+        "pick_momentum": {
+          "NVDA": 1.7218,
+          "NFLX": 1.4697,
+          "AVGO": 0.7688
+        }
+      },
+      {
+        "date": "2024-01-02",
+        "pool_size": 40,
+        "n_positive_momentum": 29,
+        "picks": [
+          "NVDA",
+          "META",
+          "TSLA"
+        ],
+        "pick_momentum": {
+          "NVDA": 2.5282,
+          "META": 2.0614,
+          "TSLA": 1.2775
+        }
+      },
+      {
+        "date": "2024-07-01",
+        "pool_size": 40,
+        "n_positive_momentum": 35,
+        "picks": [
+          "NVDA",
+          "LLY",
+          "GE"
+        ],
+        "pick_momentum": {
+          "NVDA": 2.0046,
+          "LLY": 0.9491,
+          "GE": 0.8985
+        }
+      },
+      {
+        "date": "2025-01-02",
+        "pool_size": 40,
+        "n_positive_momentum": 31,
+        "picks": [
+          "NVDA",
+          "AVGO",
+          "NFLX"
+        ],
+        "pick_momentum": {
+          "NVDA": 1.7117,
+          "AVGO": 1.077,
+          "NFLX": 0.8307
+        }
+      },
+      {
+        "date": "2025-07-01",
+        "pool_size": 40,
+        "n_positive_momentum": 29,
+        "picks": [
+          "NFLX",
+          "AVGO",
+          "PAYC"
+        ],
+        "pick_momentum": {
+          "NFLX": 0.976,
+          "AVGO": 0.7315,
+          "PAYC": 0.6411
+        }
+      },
+      {
+        "date": "2026-01-02",
+        "pool_size": 40,
+        "n_positive_momentum": 32,
+        "picks": [
+          "NEM",
+          "GE",
+          "GOOGL"
+        ],
+        "pick_momentum": {
+          "NEM": 1.6387,
+          "GE": 0.8111,
+          "GOOGL": 0.6238
+        }
+      },
+      {
+        "date": "2026-07-01",
+        "pool_size": 38,
+        "n_positive_momentum": 29,
+        "picks": [
+          "CAT",
+          "GEV",
+          "GOOGL"
+        ],
+        "pick_momentum": {
+          "CAT": 1.7681,
+          "GEV": 1.2608,
+          "GOOGL": 1.0017
+        }
+      }
+    ],
+    "satellite_tickers_ever_held": [
+      "AAPL",
+      "AVGO",
+      "CAT",
+      "COP",
+      "CVX",
+      "GE",
+      "GEV",
+      "GOOGL",
+      "LLY",
+      "META",
+      "MSFT",
+      "NEM",
+      "NFLX",
+      "NVDA",
+      "PAYC",
+      "PLD",
+      "TSLA",
+      "UPS",
+      "XOM"
+    ],
+    "blends": {
+      "0.1": {
+        "metrics": {
+          "cumulative_return": 159.6,
+          "cagr": 14.56,
+          "mdd": -17.8,
+          "sharpe": 1.06,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.82,
+          "avg_drawdown_days": 18.1
+        }
+      },
+      "0.2": {
+        "metrics": {
+          "cumulative_return": 180.31,
+          "cagr": 15.82,
+          "mdd": -17.9,
+          "sharpe": 1.05,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.88,
+          "avg_drawdown_days": 17.5
+        }
+      }
+    }
+  },
+  "h2": {
+    "hypothesis": "H2",
+    "primary_17asset_2019_2026": {
+      "period": {
+        "start": "2020-02-12",
+        "end": "2026-08-18"
+      },
+      "window_days": 126,
+      "avg_rolling_beta": 0.642,
+      "beta_std": 0.294,
+      "static_full_sample_beta": 0.404,
+      "static_beta_r2": 0.389,
+      "unhedged": {
+        "cagr_pct": 13.67,
+        "ann_vol_pct": 13.09,
+        "sharpe": 1.045,
+        "mdd_pct": -17.74,
+        "total_return_pct": 129.86,
+        "n_days": 1637
+      },
+      "rolling_hedged": {
+        "cagr_pct": 3.9,
+        "ann_vol_pct": 8.99,
+        "sharpe": 0.47,
+        "mdd_pct": -18.76,
+        "total_return_pct": 28.18,
+        "n_days": 1637
+      },
+      "static_hedged": {
+        "cagr_pct": 7.44,
+        "ann_vol_pct": 10.15,
+        "sharpe": 0.758,
+        "mdd_pct": -14.51,
+        "total_return_pct": 59.35,
+        "n_days": 1637
+      },
+      "spy_benchmark": {
+        "cagr_pct": 13.6,
+        "ann_vol_pct": 20.35,
+        "sharpe": 0.729,
+        "mdd_pct": -34.1,
+        "total_return_pct": 128.91,
+        "n_days": 1637
+      },
+      "sharpe_improved_rolling": false,
+      "sharpe_delta_rolling": -0.575,
+      "mdd_improved_rolling": false,
+      "excess_return_vs_spy_cagr_pct": 0.07,
+      "beta_explained_cagr_pct": 9.77,
+      "alpha_after_hedge_cagr_pct": 3.9,
+      "static_alpha_annualized_pct": 7.08,
+      "alpha_share_of_total_cagr_pct": 51.8,
+      "verdict_hint": "기각(베타 정체성)"
+    },
+    "robustness_17asset_2015_2026": {
+      "period": {
+        "start": "2015-07-07",
+        "end": "2026-08-18"
+      },
+      "window_days": 126,
+      "avg_rolling_beta": 0.681,
+      "beta_std": 0.292,
+      "static_full_sample_beta": 0.472,
+      "static_beta_r2": 0.454,
+      "unhedged": {
+        "cagr_pct": 7.28,
+        "ann_vol_pct": 12.46,
+        "sharpe": 0.627,
+        "mdd_pct": -21.68,
+        "total_return_pct": 118.13,
+        "n_days": 2796
+      },
+      "rolling_hedged": {
+        "cagr_pct": -0.76,
+        "ann_vol_pct": 8.1,
+        "sharpe": -0.053,
+        "mdd_pct": -31.38,
+        "total_return_pct": -8.08,
+        "n_days": 2796
+      },
+      "static_hedged": {
+        "cagr_pct": 1.05,
+        "ann_vol_pct": 9.24,
+        "sharpe": 0.159,
+        "mdd_pct": -27.39,
+        "total_return_pct": 12.26,
+        "n_days": 2796
+      },
+      "spy_benchmark": {
+        "cagr_pct": 12.55,
+        "ann_vol_pct": 17.87,
+        "sharpe": 0.751,
+        "mdd_pct": -34.1,
+        "total_return_pct": 271.25,
+        "n_days": 2796
+      },
+      "sharpe_improved_rolling": false,
+      "sharpe_delta_rolling": -0.68,
+      "mdd_improved_rolling": false,
+      "excess_return_vs_spy_cagr_pct": -5.27,
+      "beta_explained_cagr_pct": 8.04,
+      "alpha_after_hedge_cagr_pct": -0.76,
+      "static_alpha_annualized_pct": 1.27,
+      "alpha_share_of_total_cagr_pct": 17.4,
+      "verdict_hint": "기각(베타 정체성)"
+    },
+    "three_asset_proxy_2007_2026_incl_gfc": {
+      "period": {
+        "start": "2007-07-06",
+        "end": "2026-08-18"
+      },
+      "core_metrics_full_period": {
+        "cumulative_return": 346.58,
+        "cagr": 7.92,
+        "mdd": -18.68,
+        "sharpe": 0.72,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.42,
+        "avg_drawdown_days": 42.2
+      },
+      "avg_rolling_beta": 0.289,
+      "unhedged": {
+        "cagr_pct": 7.8,
+        "ann_vol_pct": 11.47,
+        "sharpe": 0.713,
+        "mdd_pct": -18.68,
+        "total_return_pct": 319.52,
+        "n_days": 4809
+      },
+      "rolling_hedged": {
+        "cagr_pct": 4.05,
+        "ann_vol_pct": 10.02,
+        "sharpe": 0.447,
+        "mdd_pct": -27.05,
+        "total_return_pct": 113.31,
+        "n_days": 4809
+      },
+      "spy_benchmark": {
+        "cagr_pct": 8.85,
+        "ann_vol_pct": 19.8,
+        "sharpe": 0.527,
+        "mdd_pct": -56.47,
+        "total_return_pct": 404.3,
+        "n_days": 4809
+      },
+      "sharpe_improved_rolling": false,
+      "sharpe_delta_rolling": -0.266
+    }
+  }
+}

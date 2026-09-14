@@ -1,0 +1,60 @@
+[h35] === 필터 ON/OFF 일별수익률 재구성 (h25와 동일 코드, 재검증용) ===
+[h35] full_2019_2026: 코어 실행 2019-08-12~2026-08-19 (17자산, 필터 ON/OFF)
+[h35]   full_2019_2026 eval=[2019-08-12,2026-08-19] sharpe with=1.03 without=1.07 t=3.3s
+[h35] gfc_2008: 코어 실행 2007-01-01~2009-12-31 (3자산, 필터 ON/OFF)
+[h35]   gfc_2008 eval=[2007-10-01,2009-06-30] sharpe with=0.46 without=0.3 t=3.5s
+[h35] covid_2020: 코어 실행 2019-01-01~2020-12-31 (17자산, 필터 ON/OFF)
+$XLC: possibly delisted; no price data found  (1d 2017-11-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1511758800, endDate = 1529294400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2017-11-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1511758800, endDate = 1529294400")
+$XLC: possibly delisted; no price data found  (1d 2017-11-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1511758800, endDate = 1529294400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2017-11-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1511758800, endDate = 1529294400")
+[h35]   covid_2020 eval=[2020-02-19,2020-04-30] sharpe with=0.13 without=0.77 t=4.6s
+[h35] bear_2022: 원시데이터 재사용 (2019-08-12~2026-08-19)
+[h35]   bear_2022 eval=[2022-01-01,2022-12-31] sharpe with=0.24 without=0.31 t=4.6s
+[h35] selloff_2018: 코어 실행 2017-06-01~2019-06-30 (17자산, 필터 ON/OFF)
+$XLC: possibly delisted; no price data found  (1d 2016-04-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1461729600, endDate = 1529294400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2016-04-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1461729600, endDate = 1529294400")
+$XLC: possibly delisted; no price data found  (1d 2016-04-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1461729600, endDate = 1529294400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2016-04-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1461729600, endDate = 1529294400")
+[h35]   selloff_2018 eval=[2018-09-01,2019-01-15] sharpe with=-1.9 without=-1.95 t=5.4s
+[h35] correction_2015_2016: 코어 실행 2014-06-01~2016-06-30 (17자산, 필터 ON/OFF)
+$XLC: possibly delisted; no price data found  (1d 2013-04-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1367035200, endDate = 1529294400")
+$XLRE: possibly delisted; no price data found  (1d 2013-04-27 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1367035200, endDate = 1444190400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2013-04-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1367035200, endDate = 1529294400")
+
+1 Failed download:
+['XLRE']: possibly delisted; no price data found  (1d 2013-04-27 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1367035200, endDate = 1444190400")
+$XLC: possibly delisted; no price data found  (1d 2013-04-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1367035200, endDate = 1529294400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2013-04-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1367035200, endDate = 1529294400")
+$XLRE: possibly delisted; no price data found  (1d 2013-04-27 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1367035200, endDate = 1444190400")
+
+1 Failed download:
+['XLRE']: possibly delisted; no price data found  (1d 2013-04-27 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1367035200, endDate = 1444190400")
+[h35]   correction_2015_2016 eval=[2015-08-01,2016-02-15] sharpe with=-1.9 without=-1.72 t=6.2s
+[h35]   bootstrap full_2019_2026/with_filter: point=1.033, n_obs=1764, L=20 CI90=[0.5176007344760687, 1.575381855080572]
+[h35]   bootstrap full_2019_2026/without_filter: point=1.072, n_obs=1764, L=20 CI90=[0.524320829251516, 1.623282646233283]
+[h35]   bootstrap gfc_2008/with_filter: point=0.459, n_obs=441, L=20 CI90=[-0.642591168840714, 1.5166783266594084]
+[h35]   bootstrap gfc_2008/without_filter: point=0.298, n_obs=441, L=20 CI90=[-0.8890976343148941, 1.4783413538718342]
+[h35]   bootstrap covid_2020/with_filter: point=0.127, n_obs=51, L=20 CI90=[-2.954255355979196, 4.612298588387474]
+[h35]   bootstrap covid_2020/without_filter: point=0.759, n_obs=51, L=20 CI90=[-2.592504520367826, 4.9773954083864425]
+[h35]   bootstrap bear_2022/with_filter: point=0.239, n_obs=251, L=20 CI90=[-1.1010138201617743, 1.6098718807008512]
+[h35]   bootstrap bear_2022/without_filter: point=0.311, n_obs=251, L=20 CI90=[-1.157583170046661, 1.8628170372976056]
+[h35]   bootstrap selloff_2018/with_filter: point=-1.882, n_obs=92, L=20 CI90=[-3.3650628896750523, -0.11282162155507494]
+[h35]   bootstrap selloff_2018/without_filter: point=-1.929, n_obs=92, L=20 CI90=[-3.4124010364785162, -0.1791157320094428]
+[h35]   bootstrap correction_2015_2016/with_filter: point=-1.890, n_obs=135, L=20 CI90=[-3.0962893557776847, -0.6289641578369234]
+[h35]   bootstrap correction_2015_2016/without_filter: point=-1.705, n_obs=135, L=20 CI90=[-2.979069778953823, -0.262307140758311]
+[h35] H35 without_filter vs with_filter combined win_rate(without_filter)=0.552
+[h35]   weighting_only=1.000 sampling_only=0.556
+[h35] 저장 완료: h35_results.json, 총 10.2s

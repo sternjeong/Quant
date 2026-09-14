@@ -1,0 +1,42 @@
+{
+  "developed_only": {
+    "cumulative_return": 171.0,
+    "cagr": 4.51,
+    "mdd": -27.88,
+    "sharpe": 0.39,
+    "win_rate": 0.0,
+    "avg_holding_days": 0.0,
+    "trade_count": 0,
+    "profit_factor": 0.0,
+    "calmar": 0.16,
+    "avg_drawdown_days": 72.7
+  },
+  "developed_plus_emerging": {
+    "cumulative_return": 266.89,
+    "cagr": 5.92,
+    "mdd": -35.86,
+    "sharpe": 0.45,
+    "win_rate": 0.0,
+    "avg_holding_days": 0.0,
+    "trade_count": 0,
+    "profit_factor": 0.0,
+    "calmar": 0.17,
+    "avg_drawdown_days": 75.5
+  },
+  "sp500_bh": {
+    "cumulative_return": 599.44,
+    "cagr": 8.99,
+    "mdd": -56.78,
+    "sharpe": 0.55,
+    "win_rate": 100.0,
+    "avg_holding_days": 8256.0,
+    "trade_count": 1,
+    "profit_factor": 999.0,
+    "calmar": 0.16,
+    "avg_drawdown_days": 26.0
+  },
+  "period": {
+    "start": "2004-01-02",
+    "end": "2026-08-11"
+  }
+}

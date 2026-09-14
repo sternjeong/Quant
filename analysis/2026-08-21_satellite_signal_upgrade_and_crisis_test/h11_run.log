@@ -1,0 +1,3412 @@
+[h11] H10 결과 로드: 모멘텀=86.0%ile, 추세추종=93.0%ile -> 채택: trend_following
+[h11] (A) 2022 약세장 - H10 저장 CSV 재사용 (chosen_method=trend_following)
+[h11] (B) 2008 금융위기 - SPY+TLT+GLD 3자산 근사 코어 + point-in-time 새틀라이트(trend_following)
+[h11]   3자산 코어 지표(전체 2007-01-01~2009-12-31): {'cumulative_return': 35.58, 'cagr': 10.72, 'mdd': -15.85, 'sharpe': 0.75, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.68, 'avg_drawdown_days': 25.8}
+[h11]   반기 리밸런싱 6회(trend_following): ['2007-01-03', '2007-07-02', '2008-01-02', '2008-07-01', '2009-01-02', '2009-07-01']
+HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"User is unable to access this feature - https://bit.ly/yahoo-finance-api-feedback"}}}
+HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"User is unable to access this feature - https://bit.ly/yahoo-finance-api-feedback"}}}
+$ADCT: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+
+1 Failed download:
+['ADCT']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+$ABC: possibly delisted; no timezone found
+$ABC: possibly delisted; no timezone found
+
+1 Failed download:
+['ABC']: possibly delisted; no timezone found
+$AABA: possibly delisted; no timezone found
+$AABA: possibly delisted; no timezone found
+
+1 Failed download:
+['AABA']: possibly delisted; no timezone found
+$AGN: possibly delisted; no timezone found
+$AGN: possibly delisted; no timezone found
+
+1 Failed download:
+['AGN']: possibly delisted; no timezone found
+$ALTR: possibly delisted; no timezone found
+$ALTR: possibly delisted; no timezone found
+
+1 Failed download:
+['ALTR']: possibly delisted; no timezone found
+$ANTM: possibly delisted; no timezone found
+$ANTM: possibly delisted; no timezone found
+
+1 Failed download:
+['ANTM']: possibly delisted; no timezone found
+$APC: possibly delisted; no price data found  (1d 2006-12-24 -> 2026-02-11) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1770786000")
+
+1 Failed download:
+['APC']: possibly delisted; no price data found  (1d 2006-12-24 -> 2026-02-11) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1770786000")
+$APOL: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$AT: possibly delisted; no timezone found
+$AVP: possibly delisted; no timezone found
+$ARNC: possibly delisted; no timezone found
+$APOL: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+
+1 Failed download:
+['APOL']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+$AVP: possibly delisted; no timezone found
+
+1 Failed download:
+['AVP']: possibly delisted; no timezone found
+$AT: possibly delisted; no timezone found
+$ARNC: possibly delisted; no timezone found
+
+1 Failed download:
+['AT']: possibly delisted; no timezone found
+
+1 Failed download:
+['ARNC']: possibly delisted; no timezone found
+$BCR: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$BCR: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+
+1 Failed download:
+['BCR']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+$BIG: possibly delisted; no timezone found
+$BHGE: possibly delisted; no timezone found
+$BLL: possibly delisted; no timezone found
+$BEAM: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+$BK: possibly delisted; no timezone found
+$BIG: possibly delisted; no timezone found
+$BHGE: possibly delisted; no timezone found
+
+1 Failed download:
+['BHGE']: possibly delisted; no timezone found
+
+1 Failed download:
+['BIG']: possibly delisted; no timezone found
+
+1 Failed download:
+['BEAM']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+$BK: possibly delisted; no timezone found
+
+1 Failed download:
+['BK']: possibly delisted; no timezone found
+$BRCM: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$BTUUQ: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$BLL: possibly delisted; no timezone found
+
+1 Failed download:
+['BLL']: possibly delisted; no timezone found
+$BRCM: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+
+1 Failed download:
+['BRCM']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+$BTUUQ: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+
+1 Failed download:
+['BTUUQ']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+$CA: possibly delisted; no timezone found
+$CA: possibly delisted; no timezone found
+
+1 Failed download:
+['CA']: possibly delisted; no timezone found
+$CBH: possibly delisted; no timezone found
+$CCE: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$CBH: possibly delisted; no timezone found
+
+1 Failed download:
+['CBH']: possibly delisted; no timezone found
+$BUD: possibly delisted; no price data found  (1d 2006-12-24 -> 2009-06-30) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1246334400")
+
+1 Failed download:
+['BUD']: possibly delisted; no price data found  (1d 2006-12-24 -> 2009-06-30) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1246334400")
+$CBS: possibly delisted; no timezone found
+$CCE: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+
+1 Failed download:
+['CCE']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+$CBS: possibly delisted; no timezone found
+
+1 Failed download:
+['CBS']: possibly delisted; no timezone found
+$CEG: possibly delisted; no price data found  (1d 2006-12-24 -> 2022-01-18) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1642482000")
+
+1 Failed download:
+['CEG']: possibly delisted; no price data found  (1d 2006-12-24 -> 2022-01-18) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1642482000")
+$CHK: possibly delisted; no timezone found
+$CELG: possibly delisted; no timezone found
+$CHK: possibly delisted; no timezone found
+
+1 Failed download:
+['CHK']: possibly delisted; no timezone found
+$CELG: possibly delisted; no timezone found
+
+1 Failed download:
+['CELG']: possibly delisted; no timezone found
+$CMA: possibly delisted; no timezone found
+$CMA: possibly delisted; no timezone found
+
+1 Failed download:
+['CMA']: possibly delisted; no timezone found
+$COL: possibly delisted; no price data found  (1d 2006-12-24 -> 2012-08-01)
+
+1 Failed download:
+['COL']: possibly delisted; no price data found  (1d 2006-12-24 -> 2012-08-01)
+$CTL: possibly delisted; no timezone found
+$CTXS: possibly delisted; no timezone found
+$CTL: possibly delisted; no timezone found
+
+1 Failed download:
+['CTL']: possibly delisted; no timezone found
+$CTXS: possibly delisted; no timezone found
+
+1 Failed download:
+['CTXS']: possibly delisted; no timezone found
+$DG: possibly delisted; no price data found  (1d 2006-12-24 -> 2009-11-12) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1258002000")
+
+1 Failed download:
+['DG']: possibly delisted; no price data found  (1d 2006-12-24 -> 2009-11-12) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1258002000")
+$DF: possibly delisted; no timezone found
+$DELL: possibly delisted; no price data found  (1d 2006-12-24 -> 2016-08-16) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1471320000")
+
+1 Failed download:
+['DELL']: possibly delisted; no price data found  (1d 2006-12-24 -> 2016-08-16) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1471320000")
+$DF: possibly delisted; no timezone found
+
+1 Failed download:
+['DF']: possibly delisted; no timezone found
+$DTV: possibly delisted; no timezone found
+$DTV: possibly delisted; no timezone found
+
+1 Failed download:
+['DTV']: possibly delisted; no timezone found
+$DOW: possibly delisted; no price data found  (1d 2006-12-24 -> 2019-03-19) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1552968000")
+
+1 Failed download:
+['DOW']: possibly delisted; no price data found  (1d 2006-12-24 -> 2019-03-19) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1552968000")
+$DYN: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+$EA: possibly delisted; no price data found  (1d 2006-12-24 -> 2016-07-18) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1468814400")
+
+1 Failed download:
+['EA']: possibly delisted; no price data found  (1d 2006-12-24 -> 2016-07-18) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1468814400")
+
+1 Failed download:
+['DYN']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+$EQ: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+$ETFC: possibly delisted; no timezone found
+
+1 Failed download:
+['EQ']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+$EMC: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+
+1 Failed download:
+['EMC']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+$ETFC: possibly delisted; no timezone found
+
+1 Failed download:
+['ETFC']: possibly delisted; no timezone found
+$FDC: possibly delisted; no timezone found
+$FDC: possibly delisted; no timezone found
+
+1 Failed download:
+['FDC']: possibly delisted; no timezone found
+$FII: possibly delisted; no timezone found
+$FII: possibly delisted; no timezone found
+
+1 Failed download:
+['FII']: possibly delisted; no timezone found
+$FRX: possibly delisted; no timezone found
+$GAS: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$FOXA: possibly delisted; no price data found  (1d 2006-12-24 -> 2019-03-11) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1552276800")
+
+1 Failed download:
+['FOXA']: possibly delisted; no price data found  (1d 2006-12-24 -> 2019-03-11) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1552276800")
+$FRX: possibly delisted; no timezone found
+
+1 Failed download:
+['FRX']: possibly delisted; no timezone found
+$GAS: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+
+1 Failed download:
+['GAS']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+$FTR: possibly delisted; no timezone found
+$FTR: possibly delisted; no timezone found
+
+1 Failed download:
+['FTR']: possibly delisted; no timezone found
+$GPS: possibly delisted; no timezone found
+$GPS: possibly delisted; no timezone found
+
+1 Failed download:
+['GPS']: possibly delisted; no timezone found
+$HAR: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$HCR: possibly delisted; no timezone found
+$HAR: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+
+1 Failed download:
+['HAR']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+$HES: possibly delisted; no timezone found
+$H: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+
+1 Failed download:
+['H']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+$HCR: possibly delisted; no timezone found
+
+1 Failed download:
+['HCR']: possibly delisted; no timezone found
+$HES: possibly delisted; no timezone found
+
+1 Failed download:
+['HES']: possibly delisted; no timezone found
+$HSP: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$HMA: possibly delisted; no timezone found
+$HLT: possibly delisted; no price data found  (1d 2006-12-24 -> 2013-12-11) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1386738000")
+
+1 Failed download:
+['HLT']: possibly delisted; no price data found  (1d 2006-12-24 -> 2013-12-11) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1386738000")
+$IAC: possibly delisted; no timezone found
+$HOT: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+
+1 Failed download:
+['HOT']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+$HSP: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+
+1 Failed download:
+['HSP']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+$IGT: possibly delisted; no timezone found
+$HMA: possibly delisted; no timezone found
+$IAC: possibly delisted; no timezone found
+$IGT: possibly delisted; no timezone found
+
+1 Failed download:
+['HMA']: possibly delisted; no timezone found
+
+1 Failed download:
+['IGT']: possibly delisted; no timezone found
+
+1 Failed download:
+['IAC']: possibly delisted; no timezone found
+$IPG: possibly delisted; no timezone found
+$JCP: possibly delisted; no timezone found
+$IR: possibly delisted; no price data found  (1d 2006-12-24 -> 2017-05-11) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1494475200")
+
+1 Failed download:
+['IR']: possibly delisted; no price data found  (1d 2006-12-24 -> 2017-05-11) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1494475200")
+$IPG: possibly delisted; no timezone found
+
+1 Failed download:
+['IPG']: possibly delisted; no timezone found
+$JNS: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$JNPR: possibly delisted; no timezone found
+$JCP: possibly delisted; no timezone found
+
+1 Failed download:
+['JCP']: possibly delisted; no timezone found
+$JNS: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+$JNPR: possibly delisted; no timezone found
+
+1 Failed download:
+['JNPR']: possibly delisted; no timezone found
+
+1 Failed download:
+['JNS']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+$KATE: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$KATE: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+$K: possibly delisted; no timezone found
+
+1 Failed download:
+['KATE']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+$K: possibly delisted; no timezone found
+
+1 Failed download:
+['K']: possibly delisted; no timezone found
+$KG: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+
+1 Failed download:
+['KG']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+$JWN: possibly delisted; no timezone found
+$JWN: possibly delisted; no timezone found
+
+1 Failed download:
+['JWN']: possibly delisted; no timezone found
+$LB: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+
+1 Failed download:
+['LB']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+$LLL: possibly delisted; no timezone found
+$LM: possibly delisted; no timezone found
+$LLL: possibly delisted; no timezone found
+
+1 Failed download:
+['LLL']: possibly delisted; no timezone found
+$LM: possibly delisted; no timezone found
+
+1 Failed download:
+['LM']: possibly delisted; no timezone found
+$LXK: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$LLTC: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$LSI: possibly delisted; no timezone found
+$LXK: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+
+1 Failed download:
+['LXK']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+$LLTC: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+
+1 Failed download:
+['LLTC']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+$LSI: possibly delisted; no timezone found
+
+1 Failed download:
+['LSI']: possibly delisted; no timezone found
+$MDP: possibly delisted; no timezone found
+$MDP: possibly delisted; no timezone found
+
+1 Failed download:
+['MDP']: possibly delisted; no timezone found
+$MIL: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$MMC: possibly delisted; no timezone found
+$MIL: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+
+1 Failed download:
+['MIL']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+$MON: possibly delisted; no timezone found
+$MI: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+
+1 Failed download:
+['MI']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+$MMC: possibly delisted; no timezone found
+
+1 Failed download:
+['MMC']: possibly delisted; no timezone found
+$MON: possibly delisted; no timezone found
+
+1 Failed download:
+['MON']: possibly delisted; no timezone found
+$MRO: possibly delisted; no timezone found
+$MRO: possibly delisted; no timezone found
+
+1 Failed download:
+['MRO']: possibly delisted; no timezone found
+$MWW: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$MWW: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+
+1 Failed download:
+['MWW']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+$MYL: possibly delisted; no timezone found
+$MYL: possibly delisted; no timezone found
+
+1 Failed download:
+['MYL']: possibly delisted; no timezone found
+$NCR: possibly delisted; no timezone found
+$NCR: possibly delisted; no timezone found
+
+1 Failed download:
+['NCR']: possibly delisted; no timezone found
+$NE: possibly delisted; no price data found  (1d 2006-12-24 -> 2021-06-08) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1623124800")
+
+1 Failed download:
+['NE']: possibly delisted; no price data found  (1d 2006-12-24 -> 2021-06-08) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1623124800")
+$MXIM: possibly delisted; no timezone found
+$MXIM: possibly delisted; no timezone found
+
+1 Failed download:
+['MXIM']: possibly delisted; no timezone found
+$NSM: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+
+1 Failed download:
+['NSM']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+$NVLS: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$NVLS: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+
+1 Failed download:
+['NVLS']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+$ODP: possibly delisted; no timezone found
+$ODP: possibly delisted; no timezone found
+
+1 Failed download:
+['ODP']: possibly delisted; no timezone found
+$PCL: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+
+1 Failed download:
+['PCL']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+$PDCO: possibly delisted; no timezone found
+$PD: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+
+1 Failed download:
+['PD']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+$PDCO: possibly delisted; no timezone found
+
+1 Failed download:
+['PDCO']: possibly delisted; no timezone found
+$PGN: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$PGN: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+
+1 Failed download:
+['PGN']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+$PKI: possibly delisted; no timezone found
+$PLL: possibly delisted; no timezone found
+$PKI: possibly delisted; no timezone found
+
+1 Failed download:
+['PKI']: possibly delisted; no timezone found
+$PLL: possibly delisted; no timezone found
+
+1 Failed download:
+['PLL']: possibly delisted; no timezone found
+$PMCS: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$PMCS: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+
+1 Failed download:
+['PMCS']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+$PX: possibly delisted; no timezone found
+$QLGC: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$RAI: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$Q: possibly delisted; no price data found  (1d 2006-12-24 -> 2025-10-26) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1761451200")
+
+1 Failed download:
+['Q']: possibly delisted; no price data found  (1d 2006-12-24 -> 2025-10-26) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1761451200")
+$PX: possibly delisted; no timezone found
+
+1 Failed download:
+['PX']: possibly delisted; no timezone found
+$RDC: possibly delisted; no timezone found
+$QLGC: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+
+1 Failed download:
+['QLGC']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+$RAI: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+
+1 Failed download:
+['RAI']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+$RDC: possibly delisted; no timezone found
+
+1 Failed download:
+['RDC']: possibly delisted; no timezone found
+$RTN: possibly delisted; no timezone found
+$RRD: possibly delisted; no timezone found
+$RRD: possibly delisted; no timezone found
+$RTN: possibly delisted; no timezone found
+
+1 Failed download:
+['RTN']: possibly delisted; no timezone found
+
+1 Failed download:
+['RRD']: possibly delisted; no timezone found
+$SEE: possibly delisted; no timezone found
+$S: possibly delisted; no price data found  (1d 2006-12-24 -> 2021-06-29) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1624939200")
+
+1 Failed download:
+['S']: possibly delisted; no price data found  (1d 2006-12-24 -> 2021-06-29) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1624939200")
+$SE: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+
+1 Failed download:
+['SE']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+$SEE: possibly delisted; no timezone found
+
+1 Failed download:
+['SEE']: possibly delisted; no timezone found
+$SIAL: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$SGP: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+
+1 Failed download:
+['SGP']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+$SHLD: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+
+1 Failed download:
+['SHLD']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+$SIAL: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+
+1 Failed download:
+['SIAL']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+$SNV: possibly delisted; no timezone found
+$SII: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+
+1 Failed download:
+['SII']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+$SNV: possibly delisted; no timezone found
+
+1 Failed download:
+['SNV']: possibly delisted; no timezone found
+$STJ: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$STR: possibly delisted; no timezone found
+$SNDK: possibly delisted; no price data found  (1d 2006-12-24 -> 2025-02-12) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1739336400")
+
+1 Failed download:
+['SNDK']: possibly delisted; no price data found  (1d 2006-12-24 -> 2025-02-12) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1739336400")
+$STJ: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+
+1 Failed download:
+['STJ']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+$STI: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+
+1 Failed download:
+['STI']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+$SPLS: possibly delisted; no price data found  (1d 2006-12-24 -> 2026-01-15) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1768453200")
+$STR: possibly delisted; no timezone found
+
+1 Failed download:
+['SPLS']: possibly delisted; no price data found  (1d 2006-12-24 -> 2026-01-15) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1768453200")
+
+1 Failed download:
+['STR']: possibly delisted; no timezone found
+$SYMC: possibly delisted; no timezone found
+$SUN: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+
+1 Failed download:
+['SUN']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+$SYMC: possibly delisted; no timezone found
+
+1 Failed download:
+['SYMC']: possibly delisted; no timezone found
+$TGNA: possibly delisted; no timezone found
+$TIF: possibly delisted; no timezone found
+$TGNA: possibly delisted; no timezone found
+
+1 Failed download:
+['TGNA']: possibly delisted; no timezone found
+$TMK: possibly delisted; no timezone found
+$TE: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+
+1 Failed download:
+['TE']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+$TIF: possibly delisted; no timezone found
+
+1 Failed download:
+['TIF']: possibly delisted; no timezone found
+$TMK: possibly delisted; no timezone found
+
+1 Failed download:
+['TMK']: possibly delisted; no timezone found
+$TSG: possibly delisted; no timezone found
+$TSG: possibly delisted; no timezone found
+
+1 Failed download:
+['TSG']: possibly delisted; no timezone found
+$UTX: possibly delisted; no timezone found
+$UTX: possibly delisted; no timezone found
+
+1 Failed download:
+['UTX']: possibly delisted; no timezone found
+$VIAB: possibly delisted; no timezone found
+$VIAB: possibly delisted; no timezone found
+
+1 Failed download:
+['VIAB']: possibly delisted; no timezone found
+$WFT: possibly delisted; no timezone found
+$WFT: possibly delisted; no timezone found
+
+1 Failed download:
+['WFT']: possibly delisted; no timezone found
+$WIN: possibly delisted; no timezone found
+$WFM: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$WBA: possibly delisted; no timezone found
+$WIN: possibly delisted; no timezone found
+
+1 Failed download:
+['WIN']: possibly delisted; no timezone found
+$WYND: possibly delisted; no timezone found
+$WFM: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+
+1 Failed download:
+['WFM']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04)
+$WBA: possibly delisted; no timezone found
+
+1 Failed download:
+['WBA']: possibly delisted; no timezone found
+$X: possibly delisted; no timezone found
+$WB: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+
+1 Failed download:
+['WB']: possibly delisted; no price data found  (1d 2006-12-24 -> 2007-01-04) (Yahoo error = "Data doesn't exist for startDate = 1166936400, endDate = 1167886800")
+$WYND: possibly delisted; no timezone found
+$X: possibly delisted; no timezone found
+
+1 Failed download:
+['X']: possibly delisted; no timezone found
+
+1 Failed download:
+['WYND']: possibly delisted; no timezone found
+$XL: possibly delisted; no timezone found
+$XLNX: possibly delisted; no timezone found
+$XL: possibly delisted; no timezone found
+$XLNX: possibly delisted; no timezone found
+
+1 Failed download:
+['XL']: possibly delisted; no timezone found
+
+1 Failed download:
+['XLNX']: possibly delisted; no timezone found
+[h11]     [1/6] 2007-01-03: picks=['CSCO', 'VFC', 'T'] (pool=40, 후보=40, 75.0s)
+$ABC: possibly delisted; no timezone found
+$AABA: possibly delisted; no timezone found
+$ABC: possibly delisted; no timezone found
+
+1 Failed download:
+['ABC']: possibly delisted; no timezone found
+$AABA: possibly delisted; no timezone found
+
+1 Failed download:
+['AABA']: possibly delisted; no timezone found
+$AGN: possibly delisted; no timezone found
+$AGN: possibly delisted; no timezone found
+
+1 Failed download:
+['AGN']: possibly delisted; no timezone found
+$ALTR: possibly delisted; no timezone found
+$ALTR: possibly delisted; no timezone found
+
+1 Failed download:
+['ALTR']: possibly delisted; no timezone found
+$ANTM: possibly delisted; no timezone found
+$APOL: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$ANTM: possibly delisted; no timezone found
+$ARNC: possibly delisted; no timezone found
+
+1 Failed download:
+['ANTM']: possibly delisted; no timezone found
+$APC: possibly delisted; no price data found  (1d 2007-06-22 -> 2026-02-11) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1770786000")
+$ARNC: possibly delisted; no timezone found
+
+1 Failed download:
+['ARNC']: possibly delisted; no timezone found
+
+1 Failed download:
+['APC']: possibly delisted; no price data found  (1d 2007-06-22 -> 2026-02-11) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1770786000")
+$APOL: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+
+1 Failed download:
+['APOL']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+$AVP: possibly delisted; no timezone found
+$AVP: possibly delisted; no timezone found
+
+1 Failed download:
+['AVP']: possibly delisted; no timezone found
+$AT: possibly delisted; no timezone found
+$AT: possibly delisted; no timezone found
+
+1 Failed download:
+['AT']: possibly delisted; no timezone found
+$BCR: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$BCR: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+
+1 Failed download:
+['BCR']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+$BHGE: possibly delisted; no timezone found
+$BHGE: possibly delisted; no timezone found
+
+1 Failed download:
+['BHGE']: possibly delisted; no timezone found
+$BEAM: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+
+1 Failed download:
+['BEAM']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+$BIG: possibly delisted; no timezone found
+$BIG: possibly delisted; no timezone found
+
+1 Failed download:
+['BIG']: possibly delisted; no timezone found
+$BK: possibly delisted; no timezone found
+$BLL: possibly delisted; no timezone found
+$BRCM: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$BK: possibly delisted; no timezone found
+$BLL: possibly delisted; no timezone found
+
+1 Failed download:
+['BK']: possibly delisted; no timezone found
+
+1 Failed download:
+['BLL']: possibly delisted; no timezone found
+$BTUUQ: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$BTUUQ: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+
+1 Failed download:
+['BTUUQ']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+$BRCM: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+
+1 Failed download:
+['BRCM']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+$CA: possibly delisted; no timezone found
+$CA: possibly delisted; no timezone found
+
+1 Failed download:
+['CA']: possibly delisted; no timezone found
+$BUD: possibly delisted; no price data found  (1d 2007-06-22 -> 2009-06-30) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1246334400")
+
+1 Failed download:
+['BUD']: possibly delisted; no price data found  (1d 2007-06-22 -> 2009-06-30) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1246334400")
+$CCE: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$CBS: possibly delisted; no timezone found
+$CBS: possibly delisted; no timezone found
+
+1 Failed download:
+['CBS']: possibly delisted; no timezone found
+$CCE: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+
+1 Failed download:
+['CCE']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+$CBH: possibly delisted; no timezone found
+$CBH: possibly delisted; no timezone found
+$CELG: possibly delisted; no timezone found
+
+1 Failed download:
+['CBH']: possibly delisted; no timezone found
+$CHK: possibly delisted; no timezone found
+$CELG: possibly delisted; no timezone found
+
+1 Failed download:
+['CELG']: possibly delisted; no timezone found
+$CHK: possibly delisted; no timezone found
+
+1 Failed download:
+['CHK']: possibly delisted; no timezone found
+$CEG: possibly delisted; no price data found  (1d 2007-06-22 -> 2022-01-18) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1642482000")
+
+1 Failed download:
+['CEG']: possibly delisted; no price data found  (1d 2007-06-22 -> 2022-01-18) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1642482000")
+$CMA: possibly delisted; no timezone found
+$CMA: possibly delisted; no timezone found
+
+1 Failed download:
+['CMA']: possibly delisted; no timezone found
+$COL: possibly delisted; no price data found  (1d 2007-06-22 -> 2012-08-01)
+
+1 Failed download:
+['COL']: possibly delisted; no price data found  (1d 2007-06-22 -> 2012-08-01)
+$DDR: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$CTL: possibly delisted; no timezone found
+$CTL: possibly delisted; no timezone found
+$CTXS: possibly delisted; no timezone found
+
+1 Failed download:
+['CTL']: possibly delisted; no timezone found
+$CTXS: possibly delisted; no timezone found
+
+1 Failed download:
+['CTXS']: possibly delisted; no timezone found
+$DDR: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+
+1 Failed download:
+['DDR']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+$DF: possibly delisted; no timezone found
+$DFS: possibly delisted; no timezone found
+$DFS: possibly delisted; no timezone found
+
+1 Failed download:
+['DFS']: possibly delisted; no timezone found
+$DF: possibly delisted; no timezone found
+
+1 Failed download:
+['DF']: possibly delisted; no timezone found
+$DELL: possibly delisted; no price data found  (1d 2007-06-22 -> 2016-08-16) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1471320000")
+
+1 Failed download:
+['DELL']: possibly delisted; no price data found  (1d 2007-06-22 -> 2016-08-16) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1471320000")
+$DG: possibly delisted; no price data found  (1d 2007-06-22 -> 2009-11-12) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1258002000")
+
+1 Failed download:
+['DG']: possibly delisted; no price data found  (1d 2007-06-22 -> 2009-11-12) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1258002000")
+$DTV: possibly delisted; no timezone found
+$DTV: possibly delisted; no timezone found
+
+1 Failed download:
+['DTV']: possibly delisted; no timezone found
+$DOW: possibly delisted; no price data found  (1d 2007-06-22 -> 2019-03-19) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1552968000")
+
+1 Failed download:
+['DOW']: possibly delisted; no price data found  (1d 2007-06-22 -> 2019-03-19) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1552968000")
+$EA: possibly delisted; no price data found  (1d 2007-06-22 -> 2016-07-18) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1468814400")
+
+1 Failed download:
+['EA']: possibly delisted; no price data found  (1d 2007-06-22 -> 2016-07-18) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1468814400")
+$DYN: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+
+1 Failed download:
+['DYN']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+$EMC: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+
+1 Failed download:
+['EMC']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+$ESV: possibly delisted; no timezone found
+$ESV: possibly delisted; no timezone found
+$ETFC: possibly delisted; no timezone found
+
+1 Failed download:
+['ESV']: possibly delisted; no timezone found
+$ETFC: possibly delisted; no timezone found
+
+1 Failed download:
+['ETFC']: possibly delisted; no timezone found
+$EQ: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+
+1 Failed download:
+['EQ']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+$FDC: possibly delisted; no timezone found
+$FDC: possibly delisted; no timezone found
+
+1 Failed download:
+['FDC']: possibly delisted; no timezone found
+$FII: possibly delisted; no timezone found
+$FII: possibly delisted; no timezone found
+
+1 Failed download:
+['FII']: possibly delisted; no timezone found
+$GAS: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$FTR: possibly delisted; no timezone found
+$FRX: possibly delisted; no timezone found
+$GAS: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+
+1 Failed download:
+['GAS']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+$FTR: possibly delisted; no timezone found
+
+1 Failed download:
+['FTR']: possibly delisted; no timezone found
+$FRX: possibly delisted; no timezone found
+$GGP: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+
+1 Failed download:
+['FRX']: possibly delisted; no timezone found
+$FOXA: possibly delisted; no price data found  (1d 2007-06-22 -> 2019-03-11) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1552276800")
+$GGP: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+
+1 Failed download:
+['GGP']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+
+1 Failed download:
+['FOXA']: possibly delisted; no price data found  (1d 2007-06-22 -> 2019-03-11) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1552276800")
+$GPS: possibly delisted; no timezone found
+$HCBK: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$GPS: possibly delisted; no timezone found
+
+1 Failed download:
+['GPS']: possibly delisted; no timezone found
+$HCR: possibly delisted; no timezone found
+$HCR: possibly delisted; no timezone found
+
+1 Failed download:
+['HCR']: possibly delisted; no timezone found
+$HES: possibly delisted; no timezone found
+$HES: possibly delisted; no timezone found
+
+1 Failed download:
+['HES']: possibly delisted; no timezone found
+$HAR: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$HCBK: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+
+1 Failed download:
+['HCBK']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+$HAR: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+
+1 Failed download:
+['HAR']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+$HOT: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+$HSP: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+
+1 Failed download:
+['HOT']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+$HLT: possibly delisted; no price data found  (1d 2007-06-22 -> 2013-12-11) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1386738000")
+
+1 Failed download:
+['HLT']: possibly delisted; no price data found  (1d 2007-06-22 -> 2013-12-11) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1386738000")
+$HSP: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+
+1 Failed download:
+['HSP']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+$IAC: possibly delisted; no timezone found
+$IAC: possibly delisted; no timezone found
+
+1 Failed download:
+['IAC']: possibly delisted; no timezone found
+$IGT: possibly delisted; no timezone found
+$IGT: possibly delisted; no timezone found
+
+1 Failed download:
+['IGT']: possibly delisted; no timezone found
+$IPG: possibly delisted; no timezone found
+$IPG: possibly delisted; no timezone found
+
+1 Failed download:
+['IPG']: possibly delisted; no timezone found
+$JCP: possibly delisted; no timezone found
+$JCP: possibly delisted; no timezone found
+
+1 Failed download:
+['JCP']: possibly delisted; no timezone found
+$JNS: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$IR: possibly delisted; no price data found  (1d 2007-06-22 -> 2017-05-11) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1494475200")
+
+1 Failed download:
+['IR']: possibly delisted; no price data found  (1d 2007-06-22 -> 2017-05-11) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1494475200")
+$JNPR: possibly delisted; no timezone found
+$JNPR: possibly delisted; no timezone found
+$JNS: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+
+1 Failed download:
+['JNPR']: possibly delisted; no timezone found
+$KATE: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+
+1 Failed download:
+['JNS']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+$K: possibly delisted; no timezone found
+$KATE: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+
+1 Failed download:
+['KATE']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+$K: possibly delisted; no timezone found
+
+1 Failed download:
+['K']: possibly delisted; no timezone found
+$KG: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+
+1 Failed download:
+['KG']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+$JWN: possibly delisted; no timezone found
+$JWN: possibly delisted; no timezone found
+
+1 Failed download:
+['JWN']: possibly delisted; no timezone found
+$LLL: possibly delisted; no timezone found
+$LB: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+
+1 Failed download:
+['LB']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+$LLTC: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$LLL: possibly delisted; no timezone found
+
+1 Failed download:
+['LLL']: possibly delisted; no timezone found
+$LLTC: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+
+1 Failed download:
+['LLTC']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+$LSI: possibly delisted; no timezone found
+$LM: possibly delisted; no timezone found
+$LSI: possibly delisted; no timezone found
+
+1 Failed download:
+['LSI']: possibly delisted; no timezone found
+$LM: possibly delisted; no timezone found
+
+1 Failed download:
+['LM']: possibly delisted; no timezone found
+$LXK: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$LXK: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+
+1 Failed download:
+['LXK']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+$MDP: possibly delisted; no timezone found
+$MDP: possibly delisted; no timezone found
+$MIL: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+
+1 Failed download:
+['MDP']: possibly delisted; no timezone found
+$MIL: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+
+1 Failed download:
+['MIL']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+$MI: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+$MMC: possibly delisted; no timezone found
+
+1 Failed download:
+['MI']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+$MMC: possibly delisted; no timezone found
+
+1 Failed download:
+['MMC']: possibly delisted; no timezone found
+$MON: possibly delisted; no timezone found
+$MRO: possibly delisted; no timezone found
+$MON: possibly delisted; no timezone found
+
+1 Failed download:
+['MON']: possibly delisted; no timezone found
+$MRO: possibly delisted; no timezone found
+
+1 Failed download:
+['MRO']: possibly delisted; no timezone found
+$MWW: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$MWW: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+
+1 Failed download:
+['MWW']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+$MXIM: possibly delisted; no timezone found
+$MXIM: possibly delisted; no timezone found
+$MYL: possibly delisted; no timezone found
+
+1 Failed download:
+['MXIM']: possibly delisted; no timezone found
+$NCR: possibly delisted; no timezone found
+$MYL: possibly delisted; no timezone found
+
+1 Failed download:
+['MYL']: possibly delisted; no timezone found
+$NCR: possibly delisted; no timezone found
+
+1 Failed download:
+['NCR']: possibly delisted; no timezone found
+$NE: possibly delisted; no price data found  (1d 2007-06-22 -> 2021-06-08) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1623124800")
+
+1 Failed download:
+['NE']: possibly delisted; no price data found  (1d 2007-06-22 -> 2021-06-08) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1623124800")
+$NSM: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+
+1 Failed download:
+['NSM']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+$NVLS: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$NVLS: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+
+1 Failed download:
+['NVLS']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+$ODP: possibly delisted; no timezone found
+$ODP: possibly delisted; no timezone found
+
+1 Failed download:
+['ODP']: possibly delisted; no timezone found
+$PCP: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$PCP: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+
+1 Failed download:
+['PCP']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+$PDCO: possibly delisted; no timezone found
+$PDCO: possibly delisted; no timezone found
+$PCL: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+
+1 Failed download:
+['PCL']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+
+1 Failed download:
+['PDCO']: possibly delisted; no timezone found
+$PGN: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$PGN: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+
+1 Failed download:
+['PGN']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+$PLL: possibly delisted; no timezone found
+$PLL: possibly delisted; no timezone found
+
+1 Failed download:
+['PLL']: possibly delisted; no timezone found
+$PKI: possibly delisted; no timezone found
+$PKI: possibly delisted; no timezone found
+
+1 Failed download:
+['PKI']: possibly delisted; no timezone found
+$PX: possibly delisted; no timezone found
+$PX: possibly delisted; no timezone found
+
+1 Failed download:
+['PX']: possibly delisted; no timezone found
+$QLGC: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$RAI: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$QLGC: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+
+1 Failed download:
+['QLGC']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+$RAI: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+
+1 Failed download:
+['RAI']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+$RDC: possibly delisted; no timezone found
+$RDC: possibly delisted; no timezone found
+
+1 Failed download:
+['RDC']: possibly delisted; no timezone found
+$RTN: possibly delisted; no timezone found
+$RTN: possibly delisted; no timezone found
+
+1 Failed download:
+['RTN']: possibly delisted; no timezone found
+$Q: possibly delisted; no price data found  (1d 2007-06-22 -> 2025-10-26) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1761451200")
+
+1 Failed download:
+['Q']: possibly delisted; no price data found  (1d 2007-06-22 -> 2025-10-26) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1761451200")
+$RRD: possibly delisted; no timezone found
+$RRD: possibly delisted; no timezone found
+
+1 Failed download:
+['RRD']: possibly delisted; no timezone found
+$SEE: possibly delisted; no timezone found
+$SGP: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+
+1 Failed download:
+['SGP']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+$S: possibly delisted; no price data found  (1d 2007-06-22 -> 2021-06-29) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1624939200")
+
+1 Failed download:
+['S']: possibly delisted; no price data found  (1d 2007-06-22 -> 2021-06-29) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1624939200")
+$SHLD: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+$SE: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+$SEE: possibly delisted; no timezone found
+$SNV: possibly delisted; no timezone found
+
+1 Failed download:
+['SHLD']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+
+1 Failed download:
+
+1 Failed download:
+['SEE']: possibly delisted; no timezone found
+['SE']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+$SNDK: possibly delisted; no price data found  (1d 2007-06-22 -> 2025-02-12) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1739336400")
+$SNV: possibly delisted; no timezone found
+$SII: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+
+1 Failed download:
+['SNV']: possibly delisted; no timezone found
+
+1 Failed download:
+['SNDK']: possibly delisted; no price data found  (1d 2007-06-22 -> 2025-02-12) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1739336400")
+
+1 Failed download:
+['SII']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+$SIAL: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$STJ: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$STR: possibly delisted; no timezone found
+$SPLS: possibly delisted; no price data found  (1d 2007-06-22 -> 2026-01-15) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1768453200")
+$SIAL: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+
+1 Failed download:
+['SIAL']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+
+1 Failed download:
+['SPLS']: possibly delisted; no price data found  (1d 2007-06-22 -> 2026-01-15) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1768453200")
+$STJ: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+
+1 Failed download:
+['STJ']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+$STR: possibly delisted; no timezone found
+
+1 Failed download:
+['STR']: possibly delisted; no timezone found
+$SUNEQ: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$STI: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+
+1 Failed download:
+['STI']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+$SYMC: possibly delisted; no timezone found
+$SUNEQ: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+$SYMC: possibly delisted; no timezone found
+
+1 Failed download:
+['SUNEQ']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+
+1 Failed download:
+['SYMC']: possibly delisted; no timezone found
+$SUN: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+
+1 Failed download:
+['SUN']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+$TGNA: possibly delisted; no timezone found
+$TE: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+$TGNA: possibly delisted; no timezone found
+
+1 Failed download:
+['TE']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+
+1 Failed download:
+['TGNA']: possibly delisted; no timezone found
+$TMK: possibly delisted; no timezone found
+$TMK: possibly delisted; no timezone found
+
+1 Failed download:
+['TMK']: possibly delisted; no timezone found
+$TIF: possibly delisted; no timezone found
+$TIF: possibly delisted; no timezone found
+
+1 Failed download:
+['TIF']: possibly delisted; no timezone found
+$UTX: possibly delisted; no timezone found
+$UTX: possibly delisted; no timezone found
+
+1 Failed download:
+['UTX']: possibly delisted; no timezone found
+$VIAB: possibly delisted; no timezone found
+$VIAB: possibly delisted; no timezone found
+$VAR: possibly delisted; no timezone found
+
+1 Failed download:
+['VIAB']: possibly delisted; no timezone found
+$VAR: possibly delisted; no timezone found
+
+1 Failed download:
+['VAR']: possibly delisted; no timezone found
+$WB: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+
+1 Failed download:
+['WB']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03) (Yahoo error = "Data doesn't exist for startDate = 1182484800, endDate = 1183435200")
+$WBA: possibly delisted; no timezone found
+$WFM: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$WBA: possibly delisted; no timezone found
+
+1 Failed download:
+['WBA']: possibly delisted; no timezone found
+$WFT: possibly delisted; no timezone found
+$WIN: possibly delisted; no timezone found
+$WFM: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+$WFT: possibly delisted; no timezone found
+$WIN: possibly delisted; no timezone found
+
+1 Failed download:
+
+1 Failed download:
+['WFT']: possibly delisted; no timezone found
+['WFM']: possibly delisted; no price data found  (1d 2007-06-22 -> 2007-07-03)
+
+1 Failed download:
+['WIN']: possibly delisted; no timezone found
+$WYND: possibly delisted; no timezone found
+$WYND: possibly delisted; no timezone found
+
+1 Failed download:
+['WYND']: possibly delisted; no timezone found
+$XL: possibly delisted; no timezone found
+$XLNX: possibly delisted; no timezone found
+$XL: possibly delisted; no timezone found
+$XLNX: possibly delisted; no timezone found
+
+1 Failed download:
+
+1 Failed download:
+['XLNX']: possibly delisted; no timezone found
+['XL']: possibly delisted; no timezone found
+$X: possibly delisted; no timezone found
+$X: possibly delisted; no timezone found
+
+1 Failed download:
+['X']: possibly delisted; no timezone found
+[h11]     [2/6] 2007-07-02: picks=['AAPL', 'NOV', 'FCX'] (pool=40, 후보=37, 56.3s)
+$ABC: possibly delisted; no timezone found
+$ABC: possibly delisted; no timezone found
+$AABA: possibly delisted; no timezone found
+$AABA: possibly delisted; no timezone found
+
+1 Failed download:
+['ABC']: possibly delisted; no timezone found
+
+1 Failed download:
+['AABA']: possibly delisted; no timezone found
+$ACAS: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$AGN: possibly delisted; no timezone found
+$ACAS: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+
+1 Failed download:
+['ACAS']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+$AGN: possibly delisted; no timezone found
+
+1 Failed download:
+['AGN']: possibly delisted; no timezone found
+$ALTR: possibly delisted; no timezone found
+$ALTR: possibly delisted; no timezone found
+
+1 Failed download:
+['ALTR']: possibly delisted; no timezone found
+$ANTM: possibly delisted; no timezone found
+$ANTM: possibly delisted; no timezone found
+
+1 Failed download:
+['ANTM']: possibly delisted; no timezone found
+$APOL: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$ARNC: possibly delisted; no timezone found
+$APOL: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+$APC: possibly delisted; no price data found  (1d 2007-12-23 -> 2026-02-11) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1770786000")
+
+1 Failed download:
+['APC']: possibly delisted; no price data found  (1d 2007-12-23 -> 2026-02-11) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1770786000")
+
+1 Failed download:
+['APOL']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+$ARNC: possibly delisted; no timezone found
+
+1 Failed download:
+['ARNC']: possibly delisted; no timezone found
+$AVP: possibly delisted; no timezone found
+$AVP: possibly delisted; no timezone found
+
+1 Failed download:
+['AVP']: possibly delisted; no timezone found
+$BCR: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$BCR: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+
+1 Failed download:
+['BCR']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+$BEAM: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1199336400")
+
+1 Failed download:
+['BEAM']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1199336400")
+$BK: possibly delisted; no timezone found
+$BIG: possibly delisted; no timezone found
+$BHGE: possibly delisted; no timezone found
+$BIG: possibly delisted; no timezone found
+$BK: possibly delisted; no timezone found
+
+1 Failed download:
+['BK']: possibly delisted; no timezone found
+
+1 Failed download:
+['BIG']: possibly delisted; no timezone found
+$BHGE: possibly delisted; no timezone found
+$BRCM: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$BLL: possibly delisted; no timezone found
+
+1 Failed download:
+$BTUUQ: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+['BHGE']: possibly delisted; no timezone found
+$BLL: possibly delisted; no timezone found
+
+1 Failed download:
+['BLL']: possibly delisted; no timezone found
+$BRCM: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+
+1 Failed download:
+['BRCM']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+$BTUUQ: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+
+1 Failed download:
+['BTUUQ']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+$CA: possibly delisted; no timezone found
+$CA: possibly delisted; no timezone found
+
+1 Failed download:
+['CA']: possibly delisted; no timezone found
+$CCE: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$CBH: possibly delisted; no timezone found
+$CBS: possibly delisted; no timezone found
+$CCE: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+
+1 Failed download:
+['CCE']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+$CBH: possibly delisted; no timezone found
+$CBS: possibly delisted; no timezone found
+
+1 Failed download:
+['CBH']: possibly delisted; no timezone found
+
+1 Failed download:
+['CBS']: possibly delisted; no timezone found
+$CELG: possibly delisted; no timezone found
+$CHK: possibly delisted; no timezone found
+$CEG: possibly delisted; no price data found  (1d 2007-12-23 -> 2022-01-18) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1642482000")
+
+1 Failed download:
+['CEG']: possibly delisted; no price data found  (1d 2007-12-23 -> 2022-01-18) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1642482000")
+$CELG: possibly delisted; no timezone found
+
+1 Failed download:
+$CHK: possibly delisted; no timezone found
+['CELG']: possibly delisted; no timezone found
+
+1 Failed download:
+['CHK']: possibly delisted; no timezone found
+$BUD: possibly delisted; no price data found  (1d 2007-12-23 -> 2009-06-30) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1246334400")
+$CMA: possibly delisted; no timezone found
+$CMA: possibly delisted; no timezone found
+
+1 Failed download:
+['BUD']: possibly delisted; no price data found  (1d 2007-12-23 -> 2009-06-30) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1246334400")
+
+1 Failed download:
+['CMA']: possibly delisted; no timezone found
+$COL: possibly delisted; no price data found  (1d 2007-12-23 -> 2012-08-01)
+
+1 Failed download:
+['COL']: possibly delisted; no price data found  (1d 2007-12-23 -> 2012-08-01)
+$CTL: possibly delisted; no timezone found
+$CTL: possibly delisted; no timezone found
+
+1 Failed download:
+['CTL']: possibly delisted; no timezone found
+$CTXS: possibly delisted; no timezone found
+$DDR: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$CTXS: possibly delisted; no timezone found
+
+1 Failed download:
+['CTXS']: possibly delisted; no timezone found
+$DDR: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+
+1 Failed download:
+['DDR']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+$DF: possibly delisted; no timezone found
+$DF: possibly delisted; no timezone found
+
+1 Failed download:
+['DF']: possibly delisted; no timezone found
+$DELL: possibly delisted; no price data found  (1d 2007-12-23 -> 2016-08-16) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1471320000")
+
+1 Failed download:
+['DELL']: possibly delisted; no price data found  (1d 2007-12-23 -> 2016-08-16) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1471320000")
+$DFS: possibly delisted; no timezone found
+$DFS: possibly delisted; no timezone found
+
+1 Failed download:
+['DFS']: possibly delisted; no timezone found
+$DTV: possibly delisted; no timezone found
+$DTV: possibly delisted; no timezone found
+
+1 Failed download:
+['DTV']: possibly delisted; no timezone found
+$DOW: possibly delisted; no price data found  (1d 2007-12-23 -> 2019-03-19) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1552968000")
+
+1 Failed download:
+['DOW']: possibly delisted; no price data found  (1d 2007-12-23 -> 2019-03-19) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1552968000")
+$EA: possibly delisted; no price data found  (1d 2007-12-23 -> 2016-07-18) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1468814400")
+
+1 Failed download:
+['EA']: possibly delisted; no price data found  (1d 2007-12-23 -> 2016-07-18) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1468814400")
+$DYN: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1199336400")
+
+1 Failed download:
+['DYN']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1199336400")
+$EQ: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1199336400")
+
+1 Failed download:
+['EQ']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1199336400")
+$EMC: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1199336400")
+
+1 Failed download:
+['EMC']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1199336400")
+$ESV: possibly delisted; no timezone found
+$ESV: possibly delisted; no timezone found
+
+1 Failed download:
+['ESV']: possibly delisted; no timezone found
+$ETFC: possibly delisted; no timezone found
+$ETFC: possibly delisted; no timezone found
+
+1 Failed download:
+['ETFC']: possibly delisted; no timezone found
+$FII: possibly delisted; no timezone found
+$FII: possibly delisted; no timezone found
+
+1 Failed download:
+['FII']: possibly delisted; no timezone found
+$GAS: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$FRX: possibly delisted; no timezone found
+$FRX: possibly delisted; no timezone found
+
+1 Failed download:
+['FRX']: possibly delisted; no timezone found
+$GGP: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$FTR: possibly delisted; no timezone found
+$GAS: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1199336400")
+
+1 Failed download:
+['GAS']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1199336400")
+$FOXA: possibly delisted; no price data found  (1d 2007-12-23 -> 2019-03-11) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1552276800")
+
+1 Failed download:
+['FOXA']: possibly delisted; no price data found  (1d 2007-12-23 -> 2019-03-11) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1552276800")
+$FTR: possibly delisted; no timezone found
+
+1 Failed download:
+['FTR']: possibly delisted; no timezone found
+$GPS: possibly delisted; no timezone found
+$GGP: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+
+1 Failed download:
+['GGP']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+$HAR: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$HCBK: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$GPS: possibly delisted; no timezone found
+
+1 Failed download:
+['GPS']: possibly delisted; no timezone found
+$HCBK: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+$HAR: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1199336400")
+
+1 Failed download:
+['HCBK']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+
+1 Failed download:
+['HAR']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1199336400")
+$HES: possibly delisted; no timezone found
+$HES: possibly delisted; no timezone found
+
+1 Failed download:
+['HES']: possibly delisted; no timezone found
+$HSP: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$HOT: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1199336400")
+
+1 Failed download:
+['HOT']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1199336400")
+$IAC: possibly delisted; no timezone found
+$IAC: possibly delisted; no timezone found
+
+1 Failed download:
+['IAC']: possibly delisted; no timezone found
+$HSP: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+
+1 Failed download:
+['HSP']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+$IPG: possibly delisted; no timezone found
+$IPG: possibly delisted; no timezone found
+
+1 Failed download:
+['IPG']: possibly delisted; no timezone found
+$IGT: possibly delisted; no timezone found
+$IGT: possibly delisted; no timezone found
+
+1 Failed download:
+['IGT']: possibly delisted; no timezone found
+$IR: possibly delisted; no price data found  (1d 2007-12-23 -> 2017-05-11) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1494475200")
+
+1 Failed download:
+['IR']: possibly delisted; no price data found  (1d 2007-12-23 -> 2017-05-11) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1494475200")
+$JEC: possibly delisted; no timezone found
+$JCP: possibly delisted; no timezone found
+$JEC: possibly delisted; no timezone found
+$JNS: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+
+1 Failed download:
+['JEC']: possibly delisted; no timezone found
+$JCP: possibly delisted; no timezone found
+
+1 Failed download:
+['JCP']: possibly delisted; no timezone found
+$JNPR: possibly delisted; no timezone found
+$KATE: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$JNS: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+
+1 Failed download:
+['JNS']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+$JNPR: possibly delisted; no timezone found
+$JWN: possibly delisted; no timezone found
+
+1 Failed download:
+['JNPR']: possibly delisted; no timezone found
+$K: possibly delisted; no timezone found
+$KATE: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+
+1 Failed download:
+['KATE']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+$JWN: possibly delisted; no timezone found
+
+1 Failed download:
+['JWN']: possibly delisted; no timezone found
+$K: possibly delisted; no timezone found
+
+1 Failed download:
+['K']: possibly delisted; no timezone found
+$LB: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1199336400")
+
+1 Failed download:
+['LB']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1199336400")
+$LLTC: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$LLL: possibly delisted; no timezone found
+$LSI: possibly delisted; no timezone found
+$LLTC: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+
+1 Failed download:
+['LLTC']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+$LLL: possibly delisted; no timezone found
+$LSI: possibly delisted; no timezone found
+
+1 Failed download:
+['LLL']: possibly delisted; no timezone found
+
+1 Failed download:
+['LSI']: possibly delisted; no timezone found
+$KG: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1199336400")
+
+1 Failed download:
+['KG']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1199336400")
+$LM: possibly delisted; no timezone found
+$LXK: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$LM: possibly delisted; no timezone found
+
+1 Failed download:
+['LM']: possibly delisted; no timezone found
+$LXK: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+
+1 Failed download:
+['LXK']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+$MDP: possibly delisted; no timezone found
+$MDP: possibly delisted; no timezone found
+
+1 Failed download:
+['MDP']: possibly delisted; no timezone found
+$MIL: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$MIL: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+
+1 Failed download:
+['MIL']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+$MMC: possibly delisted; no timezone found
+$MMC: possibly delisted; no timezone found
+
+1 Failed download:
+['MMC']: possibly delisted; no timezone found
+$MRO: possibly delisted; no timezone found
+$MI: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1199336400")
+$MON: possibly delisted; no timezone found
+$MRO: possibly delisted; no timezone found
+$MON: possibly delisted; no timezone found
+
+1 Failed download:
+['MI']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1199336400")
+
+1 Failed download:
+['MRO']: possibly delisted; no timezone found
+
+1 Failed download:
+['MON']: possibly delisted; no timezone found
+$MWW: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$MWW: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+
+1 Failed download:
+['MWW']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+$MYL: possibly delisted; no timezone found
+$NBL: possibly delisted; no timezone found
+$MYL: possibly delisted; no timezone found
+
+1 Failed download:
+['MYL']: possibly delisted; no timezone found
+$NBL: possibly delisted; no timezone found
+
+1 Failed download:
+['NBL']: possibly delisted; no timezone found
+$NE: possibly delisted; no price data found  (1d 2007-12-23 -> 2021-06-08) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1623124800")
+
+1 Failed download:
+['NE']: possibly delisted; no price data found  (1d 2007-12-23 -> 2021-06-08) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1623124800")
+$NVLS: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$NVLS: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+
+1 Failed download:
+['NVLS']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+$NSM: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1199336400")
+
+1 Failed download:
+['NSM']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1199336400")
+$ODP: possibly delisted; no timezone found
+$ODP: possibly delisted; no timezone found
+
+1 Failed download:
+['ODP']: possibly delisted; no timezone found
+$PCP: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$PCP: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1199336400")
+
+1 Failed download:
+['PCP']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1199336400")
+$PCL: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1199336400")
+$PGN: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+
+1 Failed download:
+['PCL']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1199336400")
+$PGN: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+
+1 Failed download:
+['PGN']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+
+1 Failed download:
+['PKI']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$PLL: possibly delisted; no timezone found
+
+1 Failed download:
+['PLL']: possibly delisted; no timezone found
+
+1 Failed download:
+['PDCO']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$POM: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1199336400")
+
+1 Failed download:
+['POM']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1199336400")
+
+1 Failed download:
+['PX']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$QLGC: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$QLGC: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+
+1 Failed download:
+['Q']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['QLGC']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+$RAI: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$RAI: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+
+1 Failed download:
+['RAI']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+$RDC: possibly delisted; no timezone found
+
+1 Failed download:
+['RDC']: possibly delisted; no timezone found
+
+1 Failed download:
+['RRD']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$RTN: possibly delisted; no timezone found
+$RTN: possibly delisted; no timezone found
+
+1 Failed download:
+['RTN']: possibly delisted; no timezone found
+
+1 Failed download:
+['S']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['SE']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$SIAL: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+
+1 Failed download:
+['SGP']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['SEE']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['SHLD']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$SIAL: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+
+1 Failed download:
+['SIAL']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+
+1 Failed download:
+['SII']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['SNDK']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$STJ: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$SPLS: possibly delisted; no price data found  (1d 2007-12-23 -> 2026-01-15) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1768453200")
+$STJ: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+
+1 Failed download:
+['STJ']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+
+1 Failed download:
+['SPLS']: possibly delisted; no price data found  (1d 2007-12-23 -> 2026-01-15) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1768453200")
+$SUNEQ: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+
+1 Failed download:
+['STR']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$STI: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1199336400")
+
+1 Failed download:
+['STI']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03) (Yahoo error = "Data doesn't exist for startDate = 1198386000, endDate = 1199336400")
+
+1 Failed download:
+['SUN']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['TE']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$SUNEQ: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+
+1 Failed download:
+['SUNEQ']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+$TMK: possibly delisted; no timezone found
+$TIF: possibly delisted; no timezone found
+$SYMC: possibly delisted; no timezone found
+$TIF: possibly delisted; no timezone found
+
+1 Failed download:
+['SYMC']: possibly delisted; no timezone found
+
+1 Failed download:
+['TIF']: possibly delisted; no timezone found
+$TMK: possibly delisted; no timezone found
+
+1 Failed download:
+['TMK']: possibly delisted; no timezone found
+
+1 Failed download:
+['TGNA']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['TSS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$VAR: possibly delisted; no timezone found
+$VAR: possibly delisted; no timezone found
+
+1 Failed download:
+['UTX']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['VAR']: possibly delisted; no timezone found
+
+1 Failed download:
+['VIAB']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['WB']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$WFM: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$WFM: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+
+1 Failed download:
+['WFM']: possibly delisted; no price data found  (1d 2007-12-23 -> 2008-01-03)
+$WIN: possibly delisted; no timezone found
+$WIN: possibly delisted; no timezone found
+
+1 Failed download:
+['WIN']: possibly delisted; no timezone found
+
+1 Failed download:
+['WFT']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$WBA: possibly delisted; no timezone found
+
+1 Failed download:
+['WBA']: possibly delisted; no timezone found
+$X: possibly delisted; no timezone found
+$X: possibly delisted; no timezone found
+
+1 Failed download:
+['X']: possibly delisted; no timezone found
+
+1 Failed download:
+['WYND']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$XL: possibly delisted; no timezone found
+$XL: possibly delisted; no timezone found
+$XLNX: possibly delisted; no timezone found
+
+1 Failed download:
+['XL']: possibly delisted; no timezone found
+$XLNX: possibly delisted; no timezone found
+
+1 Failed download:
+['XLNX']: possibly delisted; no timezone found
+[h11]     [3/6] 2008-01-02: picks=['AAPL', 'AMZN', 'SLB'] (pool=40, 후보=35, 62.2s)
+$ACAS: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$AABA: possibly delisted; no timezone found
+$ACAS: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+$AABA: possibly delisted; no timezone found
+
+1 Failed download:
+['ACAS']: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['AABA']: possibly delisted; no timezone found
+
+1 Failed download:
+['ABC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['AGN']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$AKS: possibly delisted; no timezone found
+
+1 Failed download:
+['ALTR']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$AKS: possibly delisted; no timezone found
+
+1 Failed download:
+['AKS']: possibly delisted; no timezone found
+$APOL: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$APOL: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['APOL']: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['APC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$ARNC: possibly delisted; no timezone found
+$ARNC: possibly delisted; no timezone found
+
+1 Failed download:
+['ARNC']: possibly delisted; no timezone found
+
+1 Failed download:
+['AVP']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['ANTM']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$BCR: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$BCR: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['BCR']: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['BEAM']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$BHGE: possibly delisted; no timezone found
+$BHGE: possibly delisted; no timezone found
+
+1 Failed download:
+['BHGE']: possibly delisted; no timezone found
+$BIG: possibly delisted; no timezone found
+
+1 Failed download:
+['BIG']: possibly delisted; no timezone found
+$BRCM: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$BK: possibly delisted; no timezone found
+
+1 Failed download:
+['BK']: possibly delisted; no timezone found
+$BTUUQ: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$BRCM: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['BRCM']: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['BLL']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$BTUUQ: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['BTUUQ']: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['CA']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['BUD']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$CCE: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+
+1 Failed download:
+['CBS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$CCE: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['CCE']: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['CAM']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$CELG: possibly delisted; no timezone found
+$CELG: possibly delisted; no timezone found
+
+1 Failed download:
+['CELG']: possibly delisted; no timezone found
+
+1 Failed download:
+['CEG']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['CMA']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['CHK']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['COG']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$COL: possibly delisted; no price data found  (1d 2008-06-21 -> 2012-08-01)
+
+1 Failed download:
+['COL']: possibly delisted; no price data found  (1d 2008-06-21 -> 2012-08-01)
+
+1 Failed download:
+['CTL']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$CTXS: possibly delisted; no timezone found
+$CTXS: possibly delisted; no timezone found
+
+1 Failed download:
+['CTXS']: possibly delisted; no timezone found
+$DDR: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$DDR: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['DDR']: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+$DFS: possibly delisted; no timezone found
+
+1 Failed download:
+['DF']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$DFS: possibly delisted; no timezone found
+
+1 Failed download:
+['DFS']: possibly delisted; no timezone found
+
+1 Failed download:
+['DELL']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['DTV']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['DOW']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['DYN']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['EA']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['EMC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['EQ']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$ESV: possibly delisted; no timezone found
+
+1 Failed download:
+['ESV']: possibly delisted; no timezone found
+
+1 Failed download:
+['ETFC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['FII']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$GAS: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$GGP: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+
+1 Failed download:
+['FOXA']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['GAS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$GGP: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['GGP']: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['FTR']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['FRX']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['GPS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$HAR: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+
+1 Failed download:
+['HAR']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$HCBK: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$HES: possibly delisted; no timezone found
+$HCBK: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['HCBK']: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+$HES: possibly delisted; no timezone found
+
+1 Failed download:
+['HES']: possibly delisted; no timezone found
+
+1 Failed download:
+['HCP']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$HSP: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$HSP: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['HSP']: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['HOT']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['IAC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['IPG']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['IR']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$JCP: possibly delisted; no timezone found
+$IGT: possibly delisted; no timezone found
+
+1 Failed download:
+['IGT']: possibly delisted; no timezone found
+$JCP: possibly delisted; no timezone found
+
+1 Failed download:
+['JCP']: possibly delisted; no timezone found
+
+1 Failed download:
+['JNPR']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$JNS: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$JNS: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['JNS']: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+$KATE: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$JWN: possibly delisted; no timezone found
+$KATE: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+$JEC: possibly delisted; no timezone found
+
+1 Failed download:
+['KATE']: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+$JWN: possibly delisted; no timezone found
+$JEC: possibly delisted; no timezone found
+
+1 Failed download:
+['JWN']: possibly delisted; no timezone found
+
+1 Failed download:
+['JEC']: possibly delisted; no timezone found
+
+1 Failed download:
+['K']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['LB']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$LLTC: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$LM: possibly delisted; no timezone found
+
+1 Failed download:
+['LLL']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$LM: possibly delisted; no timezone found
+
+1 Failed download:
+['LM']: possibly delisted; no timezone found
+$LLTC: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['LLTC']: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+$LXK: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$LXK: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['LXK']: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['LSI']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['MDP']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$MIL: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$MIL: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['MIL']: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+$MON: possibly delisted; no timezone found
+$MMC: possibly delisted; no timezone found
+
+1 Failed download:
+['MMC']: possibly delisted; no timezone found
+$MI: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02) (Yahoo error = "Data doesn't exist for startDate = 1214020800, endDate = 1214971200")
+
+1 Failed download:
+['MI']: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02) (Yahoo error = "Data doesn't exist for startDate = 1214020800, endDate = 1214971200")
+$MON: possibly delisted; no timezone found
+
+1 Failed download:
+['MON']: possibly delisted; no timezone found
+
+1 Failed download:
+['MRO']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$NBL: possibly delisted; no timezone found
+$NBL: possibly delisted; no timezone found
+
+1 Failed download:
+['NBL']: possibly delisted; no timezone found
+
+1 Failed download:
+['MYL']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['NE']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$MWW: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$MWW: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['MWW']: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['NSM']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$NVLS: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$NVLS: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['NVLS']: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['ODP']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$PCP: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+
+1 Failed download:
+['PCP']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['PCL']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$PGN: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$PGN: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['PGN']: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+$PDCO: possibly delisted; no timezone found
+$PDCO: possibly delisted; no timezone found
+
+1 Failed download:
+['PDCO']: possibly delisted; no timezone found
+$PKI: possibly delisted; no timezone found
+
+1 Failed download:
+['PKI']: possibly delisted; no timezone found
+
+1 Failed download:
+['PLL']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['POM']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$PX: possibly delisted; no timezone found
+$PX: possibly delisted; no timezone found
+
+1 Failed download:
+['PX']: possibly delisted; no timezone found
+$QLGC: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+
+1 Failed download:
+['Q']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$RAI: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$QLGC: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['QLGC']: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+$RAI: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['RAI']: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+$RDC: possibly delisted; no timezone found
+
+1 Failed download:
+['RDC']: possibly delisted; no timezone found
+
+1 Failed download:
+['RRD']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$RTN: possibly delisted; no timezone found
+$RTN: possibly delisted; no timezone found
+
+1 Failed download:
+['RTN']: possibly delisted; no timezone found
+
+1 Failed download:
+['SE']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$S: possibly delisted; no price data found  (1d 2008-06-21 -> 2021-06-29) (Yahoo error = "Data doesn't exist for startDate = 1214020800, endDate = 1624939200")
+
+1 Failed download:
+['S']: possibly delisted; no price data found  (1d 2008-06-21 -> 2021-06-29) (Yahoo error = "Data doesn't exist for startDate = 1214020800, endDate = 1624939200")
+$SIAL: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+
+1 Failed download:
+['SGP']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$SIAL: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['SIAL']: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['SHLD']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['SNDK']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$SII: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02) (Yahoo error = "Data doesn't exist for startDate = 1214020800, endDate = 1214971200")
+
+1 Failed download:
+['SII']: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02) (Yahoo error = "Data doesn't exist for startDate = 1214020800, endDate = 1214971200")
+$SNI: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$SNI: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['SNI']: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['SPLS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$STJ: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+
+1 Failed download:
+['SEE']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$STR: possibly delisted; no timezone found
+$STR: possibly delisted; no timezone found
+
+1 Failed download:
+['STR']: possibly delisted; no timezone found
+$STJ: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['STJ']: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+$SUNEQ: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$SUNEQ: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+$STI: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02) (Yahoo error = "Data doesn't exist for startDate = 1214020800, endDate = 1214971200")
+
+1 Failed download:
+
+1 Failed download:
+['SUNEQ']: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+['STI']: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02) (Yahoo error = "Data doesn't exist for startDate = 1214020800, endDate = 1214971200")
+
+1 Failed download:
+['SYMC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$SUN: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02) (Yahoo error = "Data doesn't exist for startDate = 1214020800, endDate = 1214971200")
+
+1 Failed download:
+['SUN']: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02) (Yahoo error = "Data doesn't exist for startDate = 1214020800, endDate = 1214971200")
+
+1 Failed download:
+['TGNA']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['TIF']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$TMK: possibly delisted; no timezone found
+
+1 Failed download:
+['TE']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$TMK: possibly delisted; no timezone found
+
+1 Failed download:
+['TMK']: possibly delisted; no timezone found
+
+1 Failed download:
+['TSS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$VAR: possibly delisted; no timezone found
+
+1 Failed download:
+['UTX']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$VAR: possibly delisted; no timezone found
+
+1 Failed download:
+['VAR']: possibly delisted; no timezone found
+
+1 Failed download:
+['VIAB']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['WB']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$WFM: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$WFM: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+
+1 Failed download:
+['WFM']: possibly delisted; no price data found  (1d 2008-06-21 -> 2008-07-02)
+$WBA: possibly delisted; no timezone found
+
+1 Failed download:
+['WBA']: possibly delisted; no timezone found
+
+1 Failed download:
+['WFT']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$WIN: possibly delisted; no timezone found
+
+1 Failed download:
+['WIN']: possibly delisted; no timezone found
+$X: possibly delisted; no timezone found
+$X: possibly delisted; no timezone found
+
+1 Failed download:
+['X']: possibly delisted; no timezone found
+
+1 Failed download:
+['WYND']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$XL: possibly delisted; no timezone found
+
+1 Failed download:
+['XLNX']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$XL: possibly delisted; no timezone found
+
+1 Failed download:
+['XL']: possibly delisted; no timezone found
+[h11]     [4/6] 2008-07-01: picks=['FCX', 'CSX', 'AAPL'] (pool=40, 후보=24, 54.7s)
+$ACAS: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$AABA: possibly delisted; no timezone found
+$ACAS: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+$AABA: possibly delisted; no timezone found
+
+1 Failed download:
+['AABA']: possibly delisted; no timezone found
+
+1 Failed download:
+['ACAS']: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+['ABC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['AGN']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$AKS: possibly delisted; no timezone found
+$AKS: possibly delisted; no timezone found
+
+1 Failed download:
+['AKS']: possibly delisted; no timezone found
+
+1 Failed download:
+['ALTR']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['ANTM']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$APOL: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+
+1 Failed download:
+['APC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$APOL: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+['APOL']: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+$ARNC: possibly delisted; no timezone found
+
+1 Failed download:
+['ARNC']: possibly delisted; no timezone found
+
+1 Failed download:
+['AVP']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$BCR: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$BCR: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+['BCR']: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+$BHGE: possibly delisted; no timezone found
+
+1 Failed download:
+['BHGE']: possibly delisted; no timezone found
+$BK: possibly delisted; no timezone found
+$BEAM: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03) (Yahoo error = "Data doesn't exist for startDate = 1230008400, endDate = 1230958800")
+$BLL: possibly delisted; no timezone found
+$BK: possibly delisted; no timezone found
+
+1 Failed download:
+['BEAM']: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03) (Yahoo error = "Data doesn't exist for startDate = 1230008400, endDate = 1230958800")
+
+1 Failed download:
+['BK']: possibly delisted; no timezone found
+
+1 Failed download:
+['BIG']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$BLL: possibly delisted; no timezone found
+
+1 Failed download:
+['BLL']: possibly delisted; no timezone found
+$BRCM: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$BTUUQ: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$BRCM: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+$BTUUQ: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+['BTUUQ']: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+['BRCM']: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+['CAM']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$CCE: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$CELG: possibly delisted; no timezone found
+$CCE: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+['CCE']: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+['CBS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$CELG: possibly delisted; no timezone found
+
+1 Failed download:
+['CELG']: possibly delisted; no timezone found
+
+1 Failed download:
+['CEG']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['CMA']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['CA']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$CHK: possibly delisted; no timezone found
+$CHK: possibly delisted; no timezone found
+
+1 Failed download:
+['CHK']: possibly delisted; no timezone found
+$COL: possibly delisted; no price data found  (1d 2008-12-23 -> 2012-08-01)
+
+1 Failed download:
+['COL']: possibly delisted; no price data found  (1d 2008-12-23 -> 2012-08-01)
+
+1 Failed download:
+['COG']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$CTL: possibly delisted; no timezone found
+$CTL: possibly delisted; no timezone found
+
+1 Failed download:
+['CTL']: possibly delisted; no timezone found
+
+1 Failed download:
+['CTXS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$DDR: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$DDR: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+['DDR']: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+$DF: possibly delisted; no timezone found
+
+1 Failed download:
+['DF']: possibly delisted; no timezone found
+
+1 Failed download:
+['DFS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['DELL']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['DTV']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['DOW']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['EA']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$DNB: possibly delisted; no timezone found
+$DNB: possibly delisted; no timezone found
+
+1 Failed download:
+['DNB']: possibly delisted; no timezone found
+$DYN: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03) (Yahoo error = "Data doesn't exist for startDate = 1230008400, endDate = 1230958800")
+
+1 Failed download:
+['DYN']: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03) (Yahoo error = "Data doesn't exist for startDate = 1230008400, endDate = 1230958800")
+
+1 Failed download:
+['EMC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['EQ']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$ETFC: possibly delisted; no timezone found
+$ESV: possibly delisted; no timezone found
+
+1 Failed download:
+['ESV']: possibly delisted; no timezone found
+$ETFC: possibly delisted; no timezone found
+
+1 Failed download:
+['ETFC']: possibly delisted; no timezone found
+
+1 Failed download:
+['FII']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['FLIR']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$FRX: possibly delisted; no timezone found
+$FRX: possibly delisted; no timezone found
+
+1 Failed download:
+['FRX']: possibly delisted; no timezone found
+
+1 Failed download:
+['FTR']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['FOXA']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$GAS: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+
+1 Failed download:
+['GAS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$HAR: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+
+1 Failed download:
+['GPS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['HAR']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$HCBK: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$HCBK: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+['HCBK']: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+$HCP: possibly delisted; no timezone found
+
+1 Failed download:
+['HCP']: possibly delisted; no timezone found
+
+1 Failed download:
+['HES']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$HSP: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$HSP: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+['HSP']: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+['HOT']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['IGT']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['IPG']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['IR']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$JEC: possibly delisted; no timezone found
+
+1 Failed download:
+['JCP']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$JEC: possibly delisted; no timezone found
+
+1 Failed download:
+['JEC']: possibly delisted; no timezone found
+$JNS: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$JNS: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+['JNS']: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+['JNPR']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$JWN: possibly delisted; no timezone found
+$JWN: possibly delisted; no timezone found
+
+1 Failed download:
+['JWN']: possibly delisted; no timezone found
+
+1 Failed download:
+['K']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['LB']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$LLTC: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$LLL: possibly delisted; no timezone found
+$LLL: possibly delisted; no timezone found
+
+1 Failed download:
+['LLL']: possibly delisted; no timezone found
+$LLTC: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+['LLTC']: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+['LM']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$LXK: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$LIFE: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03) (Yahoo error = "Data doesn't exist for startDate = 1230008400, endDate = 1230958800")
+
+1 Failed download:
+['LIFE']: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03) (Yahoo error = "Data doesn't exist for startDate = 1230008400, endDate = 1230958800")
+
+1 Failed download:
+['LSI']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$LXK: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+['LXK']: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+$MIL: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$MIL: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+['MIL']: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+$MI: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03) (Yahoo error = "Data doesn't exist for startDate = 1230008400, endDate = 1230958800")
+
+1 Failed download:
+['MI']: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03) (Yahoo error = "Data doesn't exist for startDate = 1230008400, endDate = 1230958800")
+$MRO: possibly delisted; no timezone found
+$MRO: possibly delisted; no timezone found
+
+1 Failed download:
+['MON']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['MRO']: possibly delisted; no timezone found
+
+1 Failed download:
+['MDP']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$MMC: possibly delisted; no timezone found
+$MWW: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$MMC: possibly delisted; no timezone found
+
+1 Failed download:
+['MMC']: possibly delisted; no timezone found
+$MWW: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+['MWW']: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+$MYL: possibly delisted; no timezone found
+
+1 Failed download:
+['MYL']: possibly delisted; no timezone found
+
+1 Failed download:
+['NBL']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['NE']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$NSM: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03) (Yahoo error = "Data doesn't exist for startDate = 1230008400, endDate = 1230958800")
+
+1 Failed download:
+['NSM']: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03) (Yahoo error = "Data doesn't exist for startDate = 1230008400, endDate = 1230958800")
+$NVLS: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$NVLS: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+['NVLS']: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+['ODP']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['PBCT']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$PCP: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+
+1 Failed download:
+['PCL']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$PCP: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03) (Yahoo error = "Data doesn't exist for startDate = 1230008400, endDate = 1230958800")
+
+1 Failed download:
+['PCP']: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03) (Yahoo error = "Data doesn't exist for startDate = 1230008400, endDate = 1230958800")
+
+1 Failed download:
+['PDCO']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$PGN: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$PGN: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+['PGN']: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+$PKI: possibly delisted; no timezone found
+
+1 Failed download:
+['PLL']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$PKI: possibly delisted; no timezone found
+
+1 Failed download:
+['PKI']: possibly delisted; no timezone found
+
+1 Failed download:
+['POM']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$PXD: possibly delisted; no timezone found
+$PX: possibly delisted; no timezone found
+$PXD: possibly delisted; no timezone found
+$PX: possibly delisted; no timezone found
+
+1 Failed download:
+
+1 Failed download:
+['PX']: possibly delisted; no timezone found
+['PXD']: possibly delisted; no timezone found
+$QLGC: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$RAI: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$QLGC: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+['QLGC']: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+['Q']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$RAI: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+['RAI']: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+['RDC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['RTN']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$RRD: possibly delisted; no timezone found
+
+1 Failed download:
+['S']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$SGP: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03) (Yahoo error = "Data doesn't exist for startDate = 1230008400, endDate = 1230958800")
+
+1 Failed download:
+['SGP']: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03) (Yahoo error = "Data doesn't exist for startDate = 1230008400, endDate = 1230958800")
+$SIAL: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+
+1 Failed download:
+['SEE']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$RRD: possibly delisted; no timezone found
+
+1 Failed download:
+['RRD']: possibly delisted; no timezone found
+
+1 Failed download:
+['SE']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$SHLD: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03) (Yahoo error = "Data doesn't exist for startDate = 1230008400, endDate = 1230958800")
+
+1 Failed download:
+['SHLD']: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03) (Yahoo error = "Data doesn't exist for startDate = 1230008400, endDate = 1230958800")
+$SIAL: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+
+1 Failed download:
+['SCG']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+['SIAL']: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+$SNI: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$SNI: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+['SNI']: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+['SNDK']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['SII']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$SRCL: possibly delisted; no timezone found
+$SRCL: possibly delisted; no timezone found
+$STJ: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+
+1 Failed download:
+['SRCL']: possibly delisted; no timezone found
+$STJ: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+['STJ']: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+$SUNEQ: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+
+1 Failed download:
+['STR']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['STI']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$SUNEQ: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+['SUNEQ']: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+['SPLS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['SYMC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$SUN: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03) (Yahoo error = "Data doesn't exist for startDate = 1230008400, endDate = 1230958800")
+
+1 Failed download:
+['SUN']: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03) (Yahoo error = "Data doesn't exist for startDate = 1230008400, endDate = 1230958800")
+$TE: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03) (Yahoo error = "Data doesn't exist for startDate = 1230008400, endDate = 1230958800")
+
+1 Failed download:
+['TE']: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03) (Yahoo error = "Data doesn't exist for startDate = 1230008400, endDate = 1230958800")
+$TGNA: possibly delisted; no timezone found
+
+1 Failed download:
+['TGNA']: possibly delisted; no timezone found
+$TIF: possibly delisted; no timezone found
+
+1 Failed download:
+['TIF']: possibly delisted; no timezone found
+
+1 Failed download:
+['TMK']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['TSS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$UTX: possibly delisted; no timezone found
+$UTX: possibly delisted; no timezone found
+
+1 Failed download:
+['UTX']: possibly delisted; no timezone found
+$VAR: possibly delisted; no timezone found
+$VAR: possibly delisted; no timezone found
+
+1 Failed download:
+['VAR']: possibly delisted; no timezone found
+
+1 Failed download:
+['VIAB']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$WFM: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$WFM: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+$WBA: possibly delisted; no timezone found
+['WFM']: possibly delisted; no price data found  (1d 2008-12-23 -> 2009-01-03)
+
+1 Failed download:
+['WBA']: possibly delisted; no timezone found
+$WFT: possibly delisted; no timezone found
+
+1 Failed download:
+['WFT']: possibly delisted; no timezone found
+
+1 Failed download:
+['WIN']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['WYND']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$X: possibly delisted; no timezone found
+$X: possibly delisted; no timezone found
+
+1 Failed download:
+['X']: possibly delisted; no timezone found
+$XLNX: possibly delisted; no timezone found
+$XLNX: possibly delisted; no timezone found
+
+1 Failed download:
+['XLNX']: possibly delisted; no timezone found
+
+1 Failed download:
+['XL']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+[h11]     [5/6] 2009-01-02: picks=['WMT', 'BBT', 'PSA'] (pool=40, 후보=28, 56.3s)
+$ABC: possibly delisted; no timezone found
+$ABC: possibly delisted; no timezone found
+
+1 Failed download:
+['ABC']: possibly delisted; no timezone found
+
+1 Failed download:
+['AABA']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['AGN']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['AKS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$ALTR: possibly delisted; no timezone found
+
+1 Failed download:
+['ALTR']: possibly delisted; no timezone found
+
+1 Failed download:
+['ANTM']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$APOL: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$APOL: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['APOL']: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['ARNC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$AVP: possibly delisted; no timezone found
+$ATGE: possibly delisted; no timezone found
+$AVP: possibly delisted; no timezone found
+$ATGE: possibly delisted; no timezone found
+
+1 Failed download:
+
+1 Failed download:
+['AVP']: possibly delisted; no timezone found
+['ATGE']: possibly delisted; no timezone found
+
+1 Failed download:
+['APC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$BCR: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$BCR: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['BCR']: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['BEAM']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$BHGE: possibly delisted; no timezone found
+
+1 Failed download:
+['BHGE']: possibly delisted; no timezone found
+$BK: possibly delisted; no timezone found
+$BIG: possibly delisted; no timezone found
+$BK: possibly delisted; no timezone found
+
+1 Failed download:
+['BIG']: possibly delisted; no timezone found
+
+1 Failed download:
+['BK']: possibly delisted; no timezone found
+$BRCM: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$BTUUQ: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$BRCM: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['BRCM']: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['BLL']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$CA: possibly delisted; no timezone found
+$BTUUQ: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+$CA: possibly delisted; no timezone found
+
+1 Failed download:
+['BTUUQ']: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['CA']: possibly delisted; no timezone found
+
+1 Failed download:
+['CAM']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$CCE: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$CCE: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['CCE']: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+$CHK: possibly delisted; no timezone found
+$CEG: possibly delisted; no price data found  (1d 2009-06-21 -> 2022-01-18) (Yahoo error = "Data doesn't exist for startDate = 1245556800, endDate = 1642482000")
+
+1 Failed download:
+['CEG']: possibly delisted; no price data found  (1d 2009-06-21 -> 2022-01-18) (Yahoo error = "Data doesn't exist for startDate = 1245556800, endDate = 1642482000")
+
+1 Failed download:
+['CBS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$CHK: possibly delisted; no timezone found
+
+1 Failed download:
+['CHK']: possibly delisted; no timezone found
+$CELG: possibly delisted; no timezone found
+
+1 Failed download:
+['CELG']: possibly delisted; no timezone found
+
+1 Failed download:
+['CMA']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['COG']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$COL: possibly delisted; no price data found  (1d 2009-06-21 -> 2012-08-01)
+
+1 Failed download:
+['COL']: possibly delisted; no price data found  (1d 2009-06-21 -> 2012-08-01)
+
+1 Failed download:
+['CTL']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$CTXS: possibly delisted; no timezone found
+$CTXS: possibly delisted; no timezone found
+
+1 Failed download:
+['CTXS']: possibly delisted; no timezone found
+
+1 Failed download:
+['DF']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$DELL: possibly delisted; no price data found  (1d 2009-06-21 -> 2016-08-16) (Yahoo error = "Data doesn't exist for startDate = 1245556800, endDate = 1471320000")
+
+1 Failed download:
+['DELL']: possibly delisted; no price data found  (1d 2009-06-21 -> 2016-08-16) (Yahoo error = "Data doesn't exist for startDate = 1245556800, endDate = 1471320000")
+
+1 Failed download:
+['DFS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$DNR: possibly delisted; no timezone found
+$DO: possibly delisted; no timezone found
+
+1 Failed download:
+['DNB']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$DO: possibly delisted; no timezone found
+
+1 Failed download:
+['DO']: possibly delisted; no timezone found
+$DNR: possibly delisted; no timezone found
+
+1 Failed download:
+['DNR']: possibly delisted; no timezone found
+
+1 Failed download:
+['DTV']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['DYN']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$EA: possibly delisted; no price data found  (1d 2009-06-21 -> 2016-07-18) (Yahoo error = "Data doesn't exist for startDate = 1245556800, endDate = 1468814400")
+
+1 Failed download:
+['EA']: possibly delisted; no price data found  (1d 2009-06-21 -> 2016-07-18) (Yahoo error = "Data doesn't exist for startDate = 1245556800, endDate = 1468814400")
+
+1 Failed download:
+['DOW']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['EMC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$ESV: possibly delisted; no timezone found
+
+1 Failed download:
+['ESV']: possibly delisted; no timezone found
+
+1 Failed download:
+['ETFC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['FLIR']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$GAS: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$FII: possibly delisted; no timezone found
+$FRX: possibly delisted; no timezone found
+$FII: possibly delisted; no timezone found
+
+1 Failed download:
+['FII']: possibly delisted; no timezone found
+
+1 Failed download:
+['FRX']: possibly delisted; no timezone found
+
+1 Failed download:
+['GAS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$FTR: possibly delisted; no timezone found
+
+1 Failed download:
+['FTR']: possibly delisted; no timezone found
+
+1 Failed download:
+['FOXA']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$HAR: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+
+1 Failed download:
+['GPS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['HAR']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$HES: possibly delisted; no timezone found
+$HES: possibly delisted; no timezone found
+
+1 Failed download:
+['HES']: possibly delisted; no timezone found
+
+1 Failed download:
+['HCP']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$HCBK: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$HCBK: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['HCBK']: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['HOT']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$HSP: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$HSP: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['HSP']: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+$IPG: possibly delisted; no timezone found
+$IGT: possibly delisted; no timezone found
+$IPG: possibly delisted; no timezone found
+
+1 Failed download:
+['IGT']: possibly delisted; no timezone found
+
+1 Failed download:
+['IPG']: possibly delisted; no timezone found
+
+1 Failed download:
+['JCP']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['JEC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$JNS: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+
+1 Failed download:
+['JNPR']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$JNS: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['JNS']: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['K']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$JWN: possibly delisted; no timezone found
+$JWN: possibly delisted; no timezone found
+
+1 Failed download:
+['JWN']: possibly delisted; no timezone found
+
+1 Failed download:
+['LB']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$LLTC: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+
+1 Failed download:
+['LIFE']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$LLL: possibly delisted; no timezone found
+
+1 Failed download:
+['LLL']: possibly delisted; no timezone found
+$LLTC: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['LLTC']: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['LM']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$LSI: possibly delisted; no timezone found
+$LSI: possibly delisted; no timezone found
+
+1 Failed download:
+['LSI']: possibly delisted; no timezone found
+$LXK: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$LXK: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['LXK']: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['MDP']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$MIL: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$MIL: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['MIL']: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['MMC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['MI']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$MRO: possibly delisted; no timezone found
+
+1 Failed download:
+['MON']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$MRO: possibly delisted; no timezone found
+
+1 Failed download:
+['MRO']: possibly delisted; no timezone found
+$MWW: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$MYL: possibly delisted; no timezone found
+
+1 Failed download:
+['NBL']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$MYL: possibly delisted; no timezone found
+
+1 Failed download:
+['MYL']: possibly delisted; no timezone found
+$MWW: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['MWW']: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+$NVLS: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$NVLS: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['NVLS']: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['NSM']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['ODP']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['PBCT']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$PCP: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+
+1 Failed download:
+['PCP']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$PCL: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02) (Yahoo error = "Data doesn't exist for startDate = 1245556800, endDate = 1246507200")
+
+1 Failed download:
+['PCL']: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02) (Yahoo error = "Data doesn't exist for startDate = 1245556800, endDate = 1246507200")
+
+1 Failed download:
+['PDCO']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$PGN: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$PGN: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['PGN']: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['PKI']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['POM']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$PLL: possibly delisted; no timezone found
+
+1 Failed download:
+['PLL']: possibly delisted; no timezone found
+$PX: possibly delisted; no timezone found
+$PX: possibly delisted; no timezone found
+
+1 Failed download:
+['PX']: possibly delisted; no timezone found
+
+1 Failed download:
+['PXD']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$QLGC: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+
+1 Failed download:
+['Q']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$RAI: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$QLGC: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['QLGC']: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+$RAI: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['RAI']: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['RDC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$RRD: possibly delisted; no timezone found
+
+1 Failed download:
+['RRD']: possibly delisted; no timezone found
+
+1 Failed download:
+['RTN']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$S: possibly delisted; no price data found  (1d 2009-06-21 -> 2021-06-29) (Yahoo error = "Data doesn't exist for startDate = 1245556800, endDate = 1624939200")
+
+1 Failed download:
+['S']: possibly delisted; no price data found  (1d 2009-06-21 -> 2021-06-29) (Yahoo error = "Data doesn't exist for startDate = 1245556800, endDate = 1624939200")
+
+1 Failed download:
+['SE']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$SIAL: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+
+1 Failed download:
+['SEE']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$SGP: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02) (Yahoo error = "Data doesn't exist for startDate = 1245556800, endDate = 1246507200")
+
+1 Failed download:
+['SGP']: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02) (Yahoo error = "Data doesn't exist for startDate = 1245556800, endDate = 1246507200")
+$SIAL: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['SCG']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['SIAL']: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+$SNI: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$SNI: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['SNI']: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['SNDK']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['SII']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['SHLD']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$STJ: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$STJ: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['STJ']: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+$SUNEQ: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+
+1 Failed download:
+['STR']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$SUNEQ: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['SUNEQ']: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['STI']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$SRCL: possibly delisted; no timezone found
+$SRCL: possibly delisted; no timezone found
+
+1 Failed download:
+['SRCL']: possibly delisted; no timezone found
+$SPLS: possibly delisted; no price data found  (1d 2009-06-21 -> 2026-01-15) (Yahoo error = "Data doesn't exist for startDate = 1245556800, endDate = 1768453200")
+$SUN: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02) (Yahoo error = "Data doesn't exist for startDate = 1245556800, endDate = 1246507200")
+
+1 Failed download:
+['SPLS']: possibly delisted; no price data found  (1d 2009-06-21 -> 2026-01-15) (Yahoo error = "Data doesn't exist for startDate = 1245556800, endDate = 1768453200")
+
+1 Failed download:
+['SUN']: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02) (Yahoo error = "Data doesn't exist for startDate = 1245556800, endDate = 1246507200")
+
+1 Failed download:
+['SYMC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['TE']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['TIF']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$TGNA: possibly delisted; no timezone found
+
+1 Failed download:
+['TMK']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$TGNA: possibly delisted; no timezone found
+
+1 Failed download:
+['TGNA']: possibly delisted; no timezone found
+$TWC: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+
+1 Failed download:
+['TSS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$TWC: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['TWC']: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['UTX']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['VIAB']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$VAR: possibly delisted; no timezone found
+$VAR: possibly delisted; no timezone found
+
+1 Failed download:
+['VAR']: possibly delisted; no timezone found
+
+1 Failed download:
+['WBA']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$WFM: possibly delisted; no price data found  (1d 1927-09-15 -> 2026-08-21)
+$WFM: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['WFM']: possibly delisted; no price data found  (1d 2009-06-21 -> 2009-07-02)
+
+1 Failed download:
+['WIN']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$XL: possibly delisted; no timezone found
+
+1 Failed download:
+['WYND']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$XL: possibly delisted; no timezone found
+
+1 Failed download:
+['XL']: possibly delisted; no timezone found
+$X: possibly delisted; no timezone found
+
+1 Failed download:
+['X']: possibly delisted; no timezone found
+$XLNX: possibly delisted; no timezone found
+$XLNX: possibly delisted; no timezone found
+
+1 Failed download:
+['XLNX']: possibly delisted; no timezone found
+[h11]     [6/6] 2009-07-01: picks=['AMZN', 'ESRX', 'MCD'] (pool=40, 후보=30, 63.7s)
+[h11]   새틀라이트 지표(전체구간): {'cumulative_return': -29.42, 'cagr': -11.0, 'mdd': -72.64, 'sharpe': -0.05, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': -0.15, 'avg_drawdown_days': 7.8}
+[h11] 저장 완료: /workspaces/Quant/.claude/worktrees/agent-a79fcc8aa7f0f058f/analysis/2026-08-21_satellite_signal_upgrade_and_crisis_test/h11_results.json (총 369s)

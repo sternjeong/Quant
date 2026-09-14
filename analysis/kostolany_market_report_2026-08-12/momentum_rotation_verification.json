@@ -1,0 +1,44 @@
+{
+  "period": {
+    "start": "2019-08-12",
+    "end": "2026-08-12"
+  },
+  "reproduced": {
+    "cumulative_return": 138.28,
+    "cagr": 13.21,
+    "mdd": -31.5,
+    "sharpe": 0.74,
+    "win_rate": 0.0,
+    "avg_holding_days": 0.0,
+    "trade_count": 0
+  },
+  "spy_bh": {
+    "cumulative_return": 167.49,
+    "cagr": 15.1,
+    "mdd": -34.1,
+    "sharpe": 0.81,
+    "win_rate": 100.0,
+    "avg_holding_days": 2556.0,
+    "trade_count": 1
+  },
+  "equal_weight_11": {
+    "cumulative_return": 115.04,
+    "cagr": 11.56,
+    "mdd": -36.83,
+    "sharpe": 0.68,
+    "win_rate": 0.0,
+    "avg_holding_days": 0.0,
+    "trade_count": 0
+  },
+  "original_reported": {
+    "cagr": 15.74,
+    "mdd": -31.5,
+    "sharpe": 0.82,
+    "spy_cagr": 15.1,
+    "spy_mdd": -34.1,
+    "spy_sharpe": 0.81,
+    "equal_cagr": 11.39,
+    "equal_mdd": -36.83,
+    "equal_sharpe": 0.67
+  }
+}

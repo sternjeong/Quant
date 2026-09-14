@@ -1,0 +1,539 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found]){display:none!important}</style></head><body>
+<title>위기 게이지 마스터</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #eef1ee; --surface: #ffffff; --surface-2: #e6eae5;
+    --ink: #17211d; --ink-muted: #57635c; --ink-faint: #8b968f; --line: #d9dfd8;
+    --hike: #a8461f; --hike-soft: #f4e3da; --cut: #1f6e79; --cut-soft: #dcedee; --gold: #8a6d1f; --gold-soft: #f1e6c8;
+    --shadow: 0 1px 2px rgba(23,33,29,.06), 0 8px 24px -12px rgba(23,33,29,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+      --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+      --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+      --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c; --gold-soft: #3a3016;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+    --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+    --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+    --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c; --gold-soft: #3a3016;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Public Sans", -apple-system, "Noto Sans KR", sans-serif;
+    font-size: 16px; line-height: 1.65;
+  }
+  ::selection { background: var(--gold); color: #1a1408; }
+  a { color: var(--cut); }
+  .page { max-width: 920px; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 1rem;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 500;
+    font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.08; letter-spacing: -.01em;
+    margin: 0 0 1rem; text-wrap: balance;
+  }
+  .dek { font-size: 1.15rem; color: var(--ink-muted); max-width: 66ch; margin: 0 0 1.75rem; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: .4rem 1.6rem;
+    font-family: "IBM Plex Mono", monospace; font-size: .82rem; color: var(--ink-muted);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: .85rem 0;
+  }
+  .meta-row b { color: var(--ink); font-weight: 600; }
+  section { margin: 3.4rem 0; }
+  section > h2 {
+    font-family: "Fraunces", serif; font-weight: 500; font-size: 1.6rem;
+    letter-spacing: -.005em; margin: 0 0 .3rem; text-wrap: balance;
+  }
+  section > .lede { color: var(--ink-muted); max-width: 68ch; margin: 0 0 1.4rem; }
+  p { max-width: 70ch; }
+  .note {
+    background: var(--surface-2); border-left: 3px solid var(--gold); border-radius: 4px;
+    padding: .9rem 1.1rem; font-size: .93rem; color: var(--ink-muted); max-width: 70ch; margin: 1.1rem 0;
+  }
+  .note b { color: var(--ink); }
+  .callout {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.2rem 1.4rem; box-shadow: var(--shadow); margin: 1.4rem 0;
+  }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .8rem; margin: 1.3rem 0 1.6rem; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: .9rem 1rem; }
+  .tile .label { font-size: .74rem; color: var(--ink-muted); margin-bottom: .3rem; }
+  .tile .value { font-family: "IBM Plex Mono", monospace; font-size: 1.3rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tile .value.hike { color: var(--hike); }
+  .tile .value.cut { color: var(--cut); }
+  .tile .sub { font-size: .72rem; color: var(--ink-faint); margin-top: .2rem; }
+  .table-wrap { overflow-x: auto; margin: 1.2rem 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: .92rem; }
+  caption { text-align: left; font-size: .82rem; color: var(--ink-faint); padding-bottom: .5rem; }
+  th, td { padding: .62rem .8rem; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; font-family: "IBM Plex Mono", monospace; }
+  th:first-child, td:first-child { text-align: left; font-family: "Public Sans", sans-serif; }
+  thead th { font-family: "Public Sans", sans-serif; font-weight: 600; font-size: .78rem; letter-spacing: .02em; color: var(--ink-muted); text-transform: uppercase; border-bottom: 1px solid var(--ink-faint); }
+  tr.row-inv td:first-child { border-left: 3px solid var(--hike); padding-left: .65rem; }
+  tr.row-norm td:first-child { border-left: 3px solid var(--cut); padding-left: .65rem; }
+  tr.row-mix td:first-child { border-left: 3px solid var(--gold); padding-left: .65rem; }
+  tbody tr:hover { background: var(--surface-2); }
+  ul.findings { padding-left: 1.2rem; max-width: 70ch; }
+  ul.findings li { margin-bottom: .9rem; }
+  ul.findings b { color: var(--ink); }
+  .footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--line); font-size: .82rem; color: var(--ink-faint); }
+  .footer a { color: var(--ink-muted); }
+
+  .verdict {
+    display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: .74rem;
+    letter-spacing: .05em; text-transform: uppercase; padding: .28rem .65rem; border-radius: 20px;
+    font-weight: 600;
+  }
+  .verdict.confirmed { background: var(--cut-soft); color: var(--cut); }
+  .verdict.disconfirmed { background: var(--hike-soft); color: var(--hike); }
+  .verdict.mixed { background: var(--gold-soft); color: var(--gold); }
+
+  .gauge-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin: 1.6rem 0; }
+  .gauge-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 1.2rem 1.3rem; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: .6rem;
+  }
+  .gauge-card h3 { font-family: "Fraunces", serif; font-weight: 500; font-size: 1.18rem; margin: 0; }
+  .g-type {
+    display: inline-block; align-self: flex-start; font-family: "IBM Plex Mono", monospace; font-size: .68rem;
+    letter-spacing: .05em; text-transform: uppercase; padding: .22rem .55rem; border-radius: 20px;
+    background: var(--surface-2); color: var(--ink-muted); border: 1px solid var(--line);
+  }
+  .g-question { font-size: .85rem; color: var(--ink-muted); margin: 0; }
+  .g-stat { font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; font-size: .85rem;
+    line-height: 1.55; color: var(--ink); background: var(--surface-2); border-radius: 8px; padding: .6rem .75rem; margin: 0; }
+  .gauge-card .g-links { font-size: .78rem; margin-top: auto; padding-top: .55rem; border-top: 1px dashed var(--line);
+    display: flex; flex-direction: column; gap: .15rem; }
+
+  figure.spectrum { margin: 1.8rem 0 .4rem; }
+  figure.spectrum .spectrum-scroll { overflow-x: auto; }
+  figure.spectrum svg { width: 100%; min-width: 700px; height: auto; display: block; }
+  figure.spectrum figcaption { font-size: .85rem; color: var(--ink-faint); margin-top: .8rem; max-width: 72ch; }
+
+  .two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin: 1.5rem 0; align-items: start; }
+  .two-col .table-wrap { margin: 0; }
+  .two-col table { min-width: 0; width: 100%; }
+  .col-label { font-family: "IBM Plex Mono", monospace; font-size: .74rem; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: .5rem; }
+
+  table.ledger td:nth-child(2), table.ledger th:nth-child(2) { text-align: left; }
+  table.ledger td:nth-child(3), table.ledger th:nth-child(3) { text-align: left; font-family: "Public Sans", sans-serif; font-size: .87rem; line-height: 1.5; }
+
+  .legend-row { display: flex; flex-wrap: wrap; gap: 1.1rem; font-size: .78rem; color: var(--ink-muted); margin: .3rem 0 1.2rem; font-family: "IBM Plex Mono", monospace; }
+  .legend-row .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: .4rem; vertical-align: -1px; }
+</style>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">MACRO EVENT STUDY &middot; 트랙 H 마스터 통합 &middot; 1976&ndash;2026</div>
+    <h1>다섯 개의 위기 게이지가 결국 말해준 건 하나였다</h1>
+    <p class="dek">VIX&middot;장단기 금리역전&middot;크레딧 스프레드(BAA10Y)&middot;TED 스프레드,
+    그리고 이 넷을 합친 통합대시보드까지 &mdash; 트랙 H가 따로따로 검증해온 위기 신호들을
+    한자리에 모은다. 신호마다 선행성도 반응 속도도 전혀 달랐지만, 정말로 무서웠던 순간과 결국
+    괜찮았던 순간을 갈랐던 기준은 매번 같았다. <b>새로 계산한 숫자는 하나도 없다</b> &mdash;
+    전부 이미 발행된 9개 리포트에서 그대로 인용했다.</p>
+    <div class="meta-row">
+      <span>게이지 <b>5개</b>(VIX&middot;금리역전&middot;크레딧스프레드&middot;TED&middot;통합대시보드)</span>
+      <span>인용 리포트 <b>10건</b></span>
+      <span>구간 <b>1976&ndash;2026</b>(게이지마다 다름, 최장은 금리역전 50년)</span>
+      <span>"시스템 붕괴" 패턴 재현 <b>최소 7회</b>(스터디 단위)</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>이 문서에 대하여</h2>
+    <p class="lede">새로운 분석이 아니라 정리다.</p>
+    <p>트랙 H(신용시장 위기 게이지)는 크레딧 스프레드 &rarr; 세 게이지 겹침 &rarr; TED
+    스프레드 &rarr; 네 게이지 대시보드 &rarr; 2023 지역은행 미니 스터디 &rarr; 호라이즌-반전
+    재검증(VIX&times;침체, 이어서 크레딧&times;침체)까지 이어지면서, 매번 리포트 끝의 "다음
+    후보"에 같은 항목을 적어뒀다 &mdash; <b>지금까지 쌓인 위기 신호들을 하나의 참조 문서로
+    통합할 시점</b>이라는 것이다. 이 문서가 그 항목을 실행한다. 아래 모든 숫자는 이미 발행된
+    10개 리포트에서 그대로 가져왔고, 새로 계산한 것은 하나도 없다 &mdash; 이 문서의 가치는
+    새 통계가 아니라 <b>서로 다른 시점에 나온 발견들을 나란히 놓고 교차 확인하는 것</b>에
+    있다.</p>
+    <div class="note"><b>범위를 미리 밝힌다</b>: 엄밀히 말하면 VIX(트랙 F)와 장단기 금리역전
+    (트랙 A 확장)은 트랙 H 밖에서 시작된 스터디다. 하지만 트랙 H의 크레딧스프레드&middot;TED&middot;
+    통합대시보드 스터디들이 이 둘을 검증 기준점으로 계속 인용해왔기 때문에, 이 문서에서는
+    다섯 게이지 전부를 하나의 "위기 게이지 계열"로 묶어 정리한다.</div>
+  </section>
+
+  <section>
+    <h2>다섯 게이지, 한눈에 비교</h2>
+    <p class="lede">게이지마다 "유형"(선행/동행)이 다르고, 급등 직후 바로 사면(매수) 혹은
+    바로 팔면(매도) 통했는지도 다르다. 핵심 숫자 하나씩만 뽑았다 &mdash; 전체 맥락은 카드
+    아래 링크한 원본 리포트에 있다.</p>
+    <div class="gauge-grid">
+
+      <div class="gauge-card">
+        <span class="g-type">동행 &middot; 즉각반응</span>
+        <h3>VIX (주식 변동성)</h3>
+        <p class="g-question">급등 직후 사면(매수) 통했나?</p>
+        <span class="verdict confirmed">CONFIRMED &middot; 임계값 높을수록 강화</span>
+        <p class="g-stat">VIX&ge;30(n=35) +120일 +4.89%(65%)<br>
+        VIX&ge;40(n=13) +120일 +13.31%(85%)<br>
+        VIX&ge;50(n=4) +120일 +17.96%(75%, 첫5일 승률 25%)</p>
+        <div class="g-links">
+          <a href="https://claude.ai/code/artifact/a0a91df1-c62d-4a7d-852d-b7f6049a8e72">공포에 사면 이겼을까</a>
+          <a href="https://claude.ai/code/artifact/766f0a8c-7565-4daf-a5bb-fff4bc10ab02">안일함의 대가(후속)</a>
+        </div>
+      </div>
+
+      <div class="gauge-card">
+        <span class="g-type">선행 &middot; 6개월&ndash;2년+</span>
+        <h3>장단기 금리역전(T10Y2Y)</h3>
+        <p class="g-question">역전 시작 즉시 팔면(매도) 통했나?</p>
+        <span class="verdict disconfirmed">DISCONFIRMED &middot; 그 후 1~2년 계속 상승</span>
+        <p class="g-stat">역전 시작(n=12)<br>
+        +250일(약1년) +9.65%(67%)<br>
+        +500일(약2년) +12.06%(75%)</p>
+        <div class="g-links">
+          <a href="https://claude.ai/code/artifact/14253d93-2e68-4e55-9d14-f1330f43db5a">유명한 침체 신호 두 개</a>
+        </div>
+      </div>
+
+      <div class="gauge-card">
+        <span class="g-type">동행에 가까움 &middot; ~3.7개월</span>
+        <h3>크레딧 스프레드(BAA10Y)</h3>
+        <p class="g-question">스트레스 직후 사면(매수) 통했나?</p>
+        <span class="verdict disconfirmed">DISCONFIRMED &middot; 전 호라이즌 기준선 밑</span>
+        <p class="g-stat">스트레스(n=13) +120일 &minus;2.34%(46.2%)<br>
+        기준선(평상시) +120일 +4.92%(74.6%)<br>
+        저점까지 중앙값 79거래일&middot;평균 104거래일</p>
+        <div class="g-links">
+          <a href="https://claude.ai/code/artifact/e26038d1-2d9c-494d-9d68-1c6f655ae97b">신용시장의 공포지수</a>
+        </div>
+      </div>
+
+      <div class="gauge-card">
+        <span class="g-type">크레딧&middot;VIX 사이 &middot; 혼합형</span>
+        <h3>TED 스프레드</h3>
+        <p class="g-question">급등 직후 사면(매수) 통했나?</p>
+        <span class="verdict mixed">MIXED &middot; 초반은 아니오, 후반은 평범</span>
+        <p class="g-stat">스트레스(n=23) +20일 &minus;0.49%(44%) / 기준선 +0.81%(64%)<br>
+        +120일 +4.61%(70%) &asymp; 기준선 +4.74%(74%)</p>
+        <div class="g-links">
+          <a href="https://claude.ai/code/artifact/4c5d3f93-57f4-4e60-9dbc-81a1b7797770">은행들이 서로를 못 믿을 때</a>
+        </div>
+      </div>
+
+      <div class="gauge-card">
+        <span class="g-type">종합 &middot; 게이지 개수 기반</span>
+        <h3>4게이지 통합대시보드</h3>
+        <p class="g-question">게이지가 많이 겹칠수록 나빴나?</p>
+        <span class="verdict mixed">MIXED &middot; 장기는 그렇다, 단기는 반대</span>
+        <p class="g-stat">+120일 0개 +9.27%(85%) &rarr; 3개 &minus;0.68%(30%)<br>
+        +20일 승률은 오히려 59%&rarr;80%로 반전<br>
+        4개 동시 점등 &mdash; 32년간 0건</p>
+        <div class="g-links">
+          <a href="https://claude.ai/code/artifact/86f2b6eb-2753-45d7-a219-4f503d848bf7">네 개의 경고등을 한 판에</a>
+          <a href="https://claude.ai/code/artifact/351403ee-6026-45ea-bd8c-082e4feace63">호라이즌 반전, 다시 나타날까</a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section>
+    <h2>선행이냐 동행이냐 &mdash; 이 다섯이 정렬되는 축</h2>
+    <p class="lede">이 프로젝트가 초반부터(장단기 금리역전과 샴의 법칙을 나란히 놓고 봤을 때)
+    세운 원칙이 있다. 위기 신호는 크게 두 성격으로 갈린다 &mdash; <b>선행지표는 실제 저점보다
+    한참 전에 울리지만 "정확히 언제"는 못 잡아주고, 동행지표는 저점과 거의 동시에 울리지만
+    그만큼 사전 경고 기능은 약하다.</b> 다섯 게이지를 이 축 위에 나란히 놓으면 이렇게
+    정렬된다.</p>
+
+    <figure class="spectrum">
+      <div class="spectrum-scroll">
+      <svg viewBox="0 0 760 300" role="img" aria-label="다섯 위기 게이지를 선행-동행 축 위에 배치한 그림. 왼쪽 끝은 장단기 금리역전으로, 6개월에서 2년 이상 먼저 움직이는 선행지표다. 가운데는 크레딧 스프레드와 TED 스프레드로, 저점까지 3.7개월에서 5개월 정도만 걸리는 동행에 가까운 신호다. 오른쪽 끝은 VIX로, 패닉의 정점과 거의 동시에 움직이며 선행지표라기보다 빠르게 되돌아가는 신호다. 4게이지 통합대시보드는 장기 호라이즌에서는 왼쪽(단조 악화) 성질을, 단기 호라이즌에서는 오른쪽(반전) 성질을 동시에 보였다.">
+        <defs>
+          <marker id="thmk-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 Z" fill="var(--ink-faint)"/>
+          </marker>
+        </defs>
+
+        <line x1="50" y1="150" x2="710" y2="150" stroke="var(--ink-faint)" stroke-width="1.5"
+              marker-start="url(#thmk-arrow)" marker-end="url(#thmk-arrow)"/>
+
+        <text x="50" y="284" font-size="12.5" fill="var(--ink-muted)">선행 &mdash; 몇 달~몇 년 먼저 움직인다</text>
+        <text x="710" y="284" font-size="12.5" fill="var(--ink-muted)" text-anchor="end">동행&middot;즉각반응 &mdash; 실제 저점과 거의 동시</text>
+
+        <line x1="130" y1="120" x2="130" y2="150" stroke="var(--ink-faint)" stroke-width="1"/>
+        <circle cx="130" cy="150" r="6" fill="var(--gold)"/>
+        <text x="130" y="98" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">장단기 금리역전</text>
+        <text x="130" y="115" text-anchor="middle" font-size="11" fill="var(--ink-muted)">6개월~2년+</text>
+
+        <line x1="335" y1="120" x2="335" y2="150" stroke="var(--ink-faint)" stroke-width="1"/>
+        <circle cx="335" cy="150" r="6" fill="var(--gold)"/>
+        <text x="335" y="98" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">크레딧 스프레드</text>
+        <text x="335" y="115" text-anchor="middle" font-size="11" fill="var(--ink-muted)">중앙값 3.7개월</text>
+
+        <line x1="430" y1="150" x2="430" y2="180" stroke="var(--ink-faint)" stroke-width="1"/>
+        <circle cx="430" cy="150" r="6" fill="var(--gold)"/>
+        <text x="430" y="198" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">TED 스프레드</text>
+        <text x="430" y="215" text-anchor="middle" font-size="11" fill="var(--ink-muted)">크레딧처럼 시작, 더 빨리 풀림</text>
+
+        <line x1="650" y1="120" x2="650" y2="150" stroke="var(--ink-faint)" stroke-width="1"/>
+        <circle cx="650" cy="150" r="6" fill="var(--gold)"/>
+        <text x="650" y="98" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">VIX</text>
+        <text x="650" y="115" text-anchor="middle" font-size="11" fill="var(--ink-muted)">패닉의 정점 그 자체</text>
+
+        <line x1="200" y1="248" x2="600" y2="248" stroke="var(--gold)" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <line x1="200" y1="242" x2="200" y2="254" stroke="var(--gold)" stroke-width="1.5"/>
+        <line x1="600" y1="242" x2="600" y2="254" stroke="var(--gold)" stroke-width="1.5"/>
+        <text x="400" y="270" text-anchor="middle" font-size="11.5" fill="var(--gold)">4게이지 대시보드 &mdash; 장기(+60&middot;120일)는 왼쪽 성질, 단기(+5&middot;20일)는 오른쪽 성질</text>
+      </svg>
+      </div>
+      <figcaption>다섯 게이지를 "얼마나 먼저 움직이는가" 축 위에 놓은 그림. 왼쪽일수록 저점보다
+      한참 전에 신호가 오지만 정확한 타이밍은 못 잡아주고, 오른쪽일수록 신호와 저점이 거의
+      동시에 오지만 사전 경고 기능은 약하다. 4게이지 대시보드는 호라이즌에 따라 축의 양쪽
+      성질을 동시에 갖는 유일한 항목이다.</figcaption>
+    </figure>
+
+    <p>장단기 금리역전은 역전 시작 후 실제 시장이 흔들리기까지 6개월~2년+가 걸린다(n=12) &mdash;
+    이 프로젝트가 확인한 시차 중 가장 길고 들쭉날쭉하다. 크레딧 스프레드는 중앙값 79거래일(약
+    3.7개월)&middot;평균 104거래일(약 5개월)로 훨씬 짧다(n=13, 다만 13건 중 4건은 250거래일
+    관측창 경계에 걸려 있어 실제 시차를 과소평가했을 가능성이 있다). TED 스프레드는 별도로
+    "저점까지 시차"를 재지는 않았지만, 스트레스 이후 첫 한 달(+20일)은 크레딧처럼 기준선보다
+    나쁘다가 +120일이면 거의 기준선 수준으로 돌아온다는 점에서(n=23) 크레딧보다 회복이 빠른
+    "중간" 성격으로 자리한다. VIX는 애초에 "저점까지의 시차"라는 질문 자체가 성립하지 않는다
+    &mdash; 급등 자체가 이미 패닉의 정점에 가깝고, 임계값이 높을수록 오히려 더 강하고 빠르게
+    반등했다(n=35/13/4).</p>
+  </section>
+
+  <section>
+    <h2>"사건의 무서움"보다 "실제 붕괴" &mdash; 전체 재현 이력</h2>
+    <p class="lede">이 다섯 게이지 스터디들을 관통하는 가장 반복적인 발견이다.</p>
+    <p>이 패턴 &mdash; "사건이 얼마나 무서워 보였는가보다 실제로 금융 시스템이 무너졌는가가
+    훨씬 중요하다" &mdash; 은 이 프로젝트에서 가장 많이 재현된 발견이다. 다만 정확히 몇 번
+    재현됐는지는 계산 방식(여러 위기를 한 번에 다룬 스터디를 1건으로 셀지 여러 건으로 셀지)에
+    따라 달라진다는 걸 프로젝트 자체 기록도 인정한다. 가장 신중한 스터디 단위 집계로는
+    <b>최소 7번</b>: 연준 인하의 침체&middot;물가 교차(트랙A) &middot; 큐레이션 충격 10건
+    (트랙B) &middot; VIX&ge;50 급등(트랙F) &middot; 크레딧스프레드(트랙H) &middot; TED스프레드
+    (트랙H) &middot; 4게이지 대시보드의 5대 위기 종합(트랙H) &middot; 2023 지역은행 위기
+    (트랙H) &mdash; 서로 다른 데이터&middot;다른 기간&middot;다른 방법론에서 독립적으로 나왔다는
+    점이 핵심이다. 아래는 그 스터디들이 실제로 다룬 9개의 역사적 위기를 시간순으로 모은
+    것이다 &mdash; 같은 위기라도 스터디마다 기준일이 달라 숫자가 조금씩 다를 수 있다는 점을
+    그대로 남겨뒀다.</p>
+
+    <div class="legend-row">
+      <span><span class="sw" style="background:var(--cut)"></span>시스템 보존(양호한 결과)</span>
+      <span><span class="sw" style="background:var(--gold)"></span>붕괴는 아니지만 다른 이유로 나쁨/혼조</span>
+      <span><span class="sw" style="background:var(--hike)"></span>실제 시스템 붕괴</span>
+    </div>
+
+    <div class="table-wrap">
+      <table class="ledger">
+        <caption>이 프로젝트가 다섯 게이지로 다룬 9개 역사적 위기 &middot; 시간순</caption>
+        <thead><tr><th>시기&middot;위기</th><th>판정</th><th>관측된 수치(스터디, 기준일)</th></tr></thead>
+        <tbody>
+          <tr class="row-norm">
+            <td>1990&ndash;11 저축대부조합(S&amp;L) 위기</td>
+            <td>보존</td>
+            <td>크레딧스프레드(1990-11-30): +60일 +14.13%, +120일 +16.37%</td>
+          </tr>
+          <tr class="row-norm">
+            <td>1998 LTCM 위기</td>
+            <td>보존(연준 주도 구제)</td>
+            <td>4게이지 대시보드(1998-09~12, 2개 에피소드): +60일 +13.4~+14.1%, +120일 +15.4~+23.3%</td>
+          </tr>
+          <tr class="row-mix">
+            <td>2000&ndash;01 닷컴버블 초기 하락</td>
+            <td>붕괴 아님(진행 중이던 약세장)</td>
+            <td>4게이지 대시보드(2000-10~12, 2개 에피소드): +60일 &minus;9.7~&minus;2.2%, +120일 &minus;13.4~&minus;3.5% &middot;
+            크레딧스프레드(2001-08-08): +60일 &minus;5.72%, +120일 &minus;7.90%</td>
+          </tr>
+          <tr class="row-mix">
+            <td>2007&ndash;08초 서브프라임 전조</td>
+            <td>아직 붕괴 전(전조 단계, 혼조)</td>
+            <td>4게이지 대시보드(2007-08~2008-03, 4개 에피소드): +60일 &minus;7.5%~+5.5%, +120일 &minus;6.3%~&minus;1.5%(전부 마이너스, 완만)</td>
+          </tr>
+          <tr class="row-inv">
+            <td>2008&ndash;09 리먼브라더스 파산</td>
+            <td>실제 붕괴</td>
+            <td>트랙B 충격사건(2008-09-15): +60일 &minus;25.49% &middot;
+            TED&middot;대시보드(같은 날 기준 에피소드): +60일 &minus;25.49%, +120일 &minus;43.28% &middot;
+            크레딧스프레드(2008-06-30, 위기 전개 초입): +60일 &minus;7.35%, +120일 &minus;30.84% &middot;
+            VIX&ge;50(2008-10-06, 파산 3주 뒤 VIX가 50을 처음 넘은 날): +120일 &minus;25.49%</td>
+          </tr>
+          <tr class="row-norm">
+            <td>2020&ndash;03 코로나 팬데믹 크래시</td>
+            <td>보존(초고속 정책개입)</td>
+            <td>트랙B 충격사건(2020-03-11, WHO 선언일): +60일 +16.51% &middot;
+            TED&middot;대시보드(2020-03-13 기준): +60일 +18.30%, +120일 +32.09% &middot;
+            VIX&ge;50(2020-03-09): +120일 +26.87%</td>
+          </tr>
+          <tr class="row-mix">
+            <td>2022&ndash;02 러시아의 우크라이나 침공</td>
+            <td>붕괴 아님(이미 진행 중이던 긴축 약세장)</td>
+            <td>트랙B 충격사건(2022-02-24): +60일 &minus;9.03% &mdash; 10건 중 회복하지 못한 단 2건 중 하나</td>
+          </tr>
+          <tr class="row-norm">
+            <td>2023&ndash;03 지역은행 위기(SVB&middot;시그니처&middot;CS)</td>
+            <td>보존(3중 개입, 신용데이터도 온건)</td>
+            <td>지역은행 위기 스터디(패닉저점 2023-03-13 기준): +60일 +10.68% &middot;
+            트랙B 충격사건(2023-03-10, SVB 파산일): +60일 +10.94% &mdash; 기준일이 다른데도 거의 일치</td>
+          </tr>
+          <tr class="row-norm">
+            <td>2025&ndash;04 &quot;해방일&quot; 관세 충격</td>
+            <td>붕괴 아님</td>
+            <td>트랙B 충격사건(2025-04-03): +60일 +14.85% &middot; VIX&ge;50(2025-04-08): +120일 +34.23%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>패턴은 굵게 갈린다 &mdash; <b>은행&middot;신용 시스템이 실제로 멈춘 유일한 사례(2008
+    리먼)만 압도적으로 나빴고</b>, 정책 개입이나 빠른 봉쇄로 시스템 자체는 지켜진 나머지
+    (LTCM&middot;코로나&middot;1990 S&amp;L&middot;2023 지역은행&middot;2025 관세)는 결국 강하게
+    반등했다. 닷컴버블과 서브프라임 전조, 우크라이나 침공은 세 번째 범주다 &mdash; 시스템이
+    무너진 것도 아니고 딱히 정책이 구제한 것도 아니지만, <b>이미 진행 중이던 다른 악재(약세장,
+    긴축)와 겹쳐 결과가 나쁘거나 애매했다</b>. 이 세 번째 범주는 "붕괴 여부"라는 한 축만으로는
+    설명이 안 되는 경우가 실제로 있다는 걸 정직하게 보여준다.</p>
+  </section>
+
+  <section>
+    <h2>호라이즌 반전 &mdash; 진짜지만 좁은 발견</h2>
+    <p class="lede">4게이지 대시보드가 찾아낸 특이한 모양이, 더 단순한 다른 조합에서도
+    재현되는지 직접 검증한 결과다.</p>
+    <p>4게이지 대시보드는 "게이지가 많이 겹칠수록 장기(+60&middot;120일)는 단조적으로
+    나빠지지만, 단기(+5&middot;20일)는 오히려 반전돼 더 좋아진다"는 특이한 모양을 발견했다.
+    이게 우연이 아니라 "빠르게 되돌아가는 신호(VIX)"와 "느리게 확인되는 신호(침체&middot;신용
+    스트레스)"를 겹칠 때 나타나는 일반적 특징인지 확인하려고, 완전히 다른 더 단순한 2-게이지
+    조합(VIX&ge;30 급등&times;NBER 공식 침체 판정)으로 다시 검증했다. <b>결과는 재현되지
+    않았다</b> &mdash; 장기에 나빠진다는 절반은 확인됐지만, 핵심이었던 단기 반전은 나타나지
+    않고 오히려 침체중 급등이 모든 호라이즌에서 고르게 약했다.</p>
+
+    <div class="two-col">
+      <div>
+        <div class="col-label">① 4게이지 대시보드(원 발견)</div>
+        <div class="table-wrap">
+          <table>
+            <caption>게이지 0개 vs 3개 &middot; +120일 전 승률 30%까지 계단식 하락</caption>
+            <thead><tr><th>호라이즌</th><th>0개(n=73)</th><th>3개(n=10)</th></tr></thead>
+            <tbody>
+              <tr><td>+5일</td><td>+0.49% (62%)</td><td>+1.32% (70%)</td></tr>
+              <tr><td>+20일</td><td>+0.61% (59%)</td><td>+1.66% (80%)</td></tr>
+              <tr><td>+60일</td><td>+4.42% (77%)</td><td>+1.55% (60%)</td></tr>
+              <tr class="row-inv"><td>+120일</td><td>+9.27% (85%)</td><td>&minus;0.68% (30%)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div class="col-label">② VIX&times;침체 재검증(더 단순한 조합)</div>
+        <div class="table-wrap">
+          <table>
+            <caption>비침체 vs 침체중 &middot; 단기 반전 없이 전 구간 고르게 약함</caption>
+            <thead><tr><th>호라이즌</th><th>비침체(n=29)</th><th>침체중(n=6)</th></tr></thead>
+            <tbody>
+              <tr><td>+5일</td><td>+1.79% (69%)</td><td>+0.26% (67%)</td></tr>
+              <tr><td>+20일</td><td>+1.90% (69%)</td><td>+0.04% (67%)</td></tr>
+              <tr><td>+60일</td><td>+4.92% (66%)</td><td>+0.39% (67%)</td></tr>
+              <tr class="row-inv"><td>+120일</td><td>+6.96% (68%)</td><td>&minus;4.76% (50%)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <p>더 스트레스 받은 쪽(①은 "3개", ②는 "침체중")의 <b>단기 승률이 반대쪽보다 높은가</b>가
+    반전 여부를 가른다 &mdash; ①은 +20일 80% vs 59%로 확실히 반전됐지만, ②는 67% vs 69%로
+    반전은커녕 오히려 살짝 낮았다. <b>이건 진짜 발견이지만 좁은 범위의 발견이다</b> &mdash;
+    4게이지 조합 그 자체(혹은 여러 신호가 동시에 확인해주는 상황 자체)에 특정된 현상일 수는
+    있어도, "빠른 신호+느린 신호를 겹치면 항상 호라이즌이 반전된다"는 일반 법칙으로 넓힐 근거는
+    아직 없다. 원래 발견의 핵심인 "3개 이상 동시 점등"은 이번 2-게이지 조합에서 아예 테스트되지
+    않았다는 점도 남겨둔다 &mdash; 이번 결과가 원 발견을 반증한 것은 아니고, 적용 범위를 좁혔을
+    뿐이다.</p>
+    <p>트랙 H는 같은 질문을 <a href="https://claude.ai/code/artifact/38f48fdf-7c37-47d2-a057-66a82e7593c7">세
+    번째로도</a> 시도했다 &mdash; 이번엔 VIX 대신 크레딧 스프레드(느린 신호)&times;침체
+    조합. 침체중 이벤트가 겨우 3건뿐이었고, 그마저 완전히 상반된 두 극단(1990년 완전
+    회복 vs 2001&middot;2008년 완전 하락)으로 갈려 있어 승률이 네 호라이즌 전부에서 우연히
+    똑같이 33%(3건 중 1건)로 나오는 착시만 만들었다 &mdash; 기계적 판정 규칙을 그대로
+    적용하면 "통과"처럼 보이지만, 그 통과가 사례 딱 1건(1990년)의 부호 하나에 전적으로
+    의존하는 취약한 결과라 <b>INCONCLUSIVE(판정 보류)</b>로 마무리됐다. 이 3건은 새로
+    찾은 표본도 아니다 &mdash; 크레딧스프레드 원 스터디의 H3가 이미 보고했던 바로 그 3건을
+    다른 호라이즌 세트로 다시 계산한 것뿐이다. 세 번째 시도까지 포함해도 "빠른 신호가 최소
+    하나 있어야 반전이 나온다"는 원래 결론은 뒤집히지 않았고, 오히려 반전이 나오려면 정말
+    좁은 조건이 필요하다는 인상만 강해졌다.</p>
+  </section>
+
+  <section>
+    <h2>실전에서 어떻게 쓸까</h2>
+    <p class="lede">이건 트레이딩 시스템이 아니라 과거 패턴 기록이다 &mdash; 그런 전제로
+    읽어달라는 뜻에서, 최대한 담백하게 정리한다.</p>
+    <ul class="findings">
+      <li><b>몇 달~몇 년 뒤의 큰 그림을 가늠하고 싶다면 &rarr; 장단기 금리역전을 본다.</b>
+      다만 정확한 매도 타이밍 도구로 쓰면 안 된다 &mdash; 역전 후에도 1~2년 계속 오를 수 있다.
+      "언제 조심해야 하는가"에는 답을 주지만 "언제 팔아야 하는가"에는 답을 주지 못한다.</li>
+      <li><b>지금 신용시장에 진짜 문제가 있는지 확인하고 싶다면 &rarr; 크레딧 스프레드나
+      TED 스프레드를 본다.</b> 이 둘은 VIX처럼 "급등하면 반등을 기대하고 사는" 신호가 아니다
+      &mdash; 오히려 그런 역발상 매수가 안 통하는 축이라는 걸 이 프로젝트가 반복 확인했다.</li>
+      <li><b>이미 패닉이 벌어진 뒤 반등 타이밍을 가늠하고 싶다면 &rarr; VIX를 본다.</b>
+      임계값이 높을수록 반등이 강했지만, 첫 며칠은 여전히 손실일 수 있고(VIX&ge;50 첫5일 승률
+      25%), 이 신호가 통했던 건 결국 "시스템이 안 무너진" 경우들이었다는 걸 함께 기억해야
+      한다.</li>
+      <li><b>"여러 신호가 동시에 켜지길" 기다리는 전략은 현실적이지 않다.</b> 4개 게이지가
+      한꺼번에 켜진 날은 32년간 단 한 번도 없었다. 몇 개가 켜졌는지보다 훨씬 중요한 질문이
+      따로 있다.</li>
+      <li><b>가장 중요한 실전 교훈은 특정 게이지 하나가 아니라 하나의 질문이다</b> &mdash;
+      "이 사건에서 은행&middot;신용 시스템이 실제로 멈췄는가, 아니면 정책 개입이나 애초에 진짜
+      위기가 아니어서 시스템은 멀쩡했는가." 이 프로젝트가 본 다섯 게이지 중 어떤 것도 이 질문
+      하나만큼 결과를 잘 갈라내지 못했다.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>한계</h2>
+    <div class="callout">
+      <ul class="findings" style="margin:0;">
+        <li><b>이 문서는 새 통계 검정을 하지 않았다.</b> 모든 숫자는 인용이고, 원본 스터디마다
+        표본 크기&middot;이벤트 탐지 규칙&middot;관측 기간이 제각각이라 게이지 간 숫자를 곧바로
+        1:1로 비교하면 안 된다(예: 금리역전은 +250&middot;500거래일을 쓰고 나머지는 +5&middot;20&middot;
+        60&middot;120거래일을 쓴다 &mdash; 애초에 다른 시간축을 재는 지표라는 뜻이다).</li>
+        <li><b>대부분의 소표본이다.</b> VIX&ge;50(n=4), 금리역전(n=12), 4게이지 3개 이상 겹침
+        (원 에피소드 n=10, 역사적 사건 n=5) 등 이 문서에 실린 핵심 숫자 다수가 한 자릿수~십여
+        건이다 &mdash; 통계적 확정이 아니라 역사적 사례로 읽어야 한다는 걸 원본 리포트들이
+        각각 명시하고 있고, 이 문서도 그 신중함을 그대로 이어받는다.</li>
+        <li><b>TED 스프레드는 2022-01-21 이후 데이터가 없다(LIBOR 폐지).</b> 2022년 긴축
+        사이클, 2023년 지역은행 위기, 2025년 관세 충격은 이 게이지로 직접 볼 수 없다 &mdash;
+        4게이지 대시보드도 같은 이유로 1990~2022년 구간에 한정된다.</li>
+        <li><b>크레딧 스프레드(BAA10Y)는 하이일드(투기등급)가 아니라 낮은 투자등급 스프레드다.</b>
+        원래 계획한 BAMLH0A0HYM2가 조회 시점마다 다르게 굴러가는 "최근 3년치만 제공" 제약에
+        걸려 대체한 지표라는 점이 여러 리포트에서 반복 disclosure됐다.</li>
+        <li><b>9개 역사적 위기 표의 숫자들은 스터디마다 기준일이 달라 서로 완전히 같은
+        측정이 아니다.</b> 예를 들어 2008년 리먼 사례는 스터디에 따라 9월 15일&middot;6월
+        30일&middot;10월 6일 등 서로 다른 날짜를 기준으로 삼아 숫자가 조금씩 다르다 &mdash;
+        방향(모두 매우 나쁨)은 일관되지만 정확한 퍼센트를 하나로 통일해 인용하면 안 된다.</li>
+        <li><b>거래비용&middot;세금은 반영하지 않았다.</b> 다른 모든 리포트와 동일하게 순수
+        가격 반응만 본다.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="footer">
+    이 문서가 인용한 9개 원본 리포트: <a href="https://claude.ai/code/artifact/a0a91df1-c62d-4a7d-852d-b7f6049a8e72">공포에 사면 이겼을까</a>(VIX) &middot;
+    <a href="https://claude.ai/code/artifact/766f0a8c-7565-4daf-a5bb-fff4bc10ab02">안일함의 대가</a>(VIX 후속) &middot;
+    <a href="https://claude.ai/code/artifact/14253d93-2e68-4e55-9d14-f1330f43db5a">유명한 침체 신호 두 개</a>(금리역전&middot;샴의 법칙) &middot;
+    <a href="https://claude.ai/code/artifact/e26038d1-2d9c-494d-9d68-1c6f655ae97b">신용시장의 공포지수</a>(크레딧스프레드) &middot;
+    <a href="https://claude.ai/code/artifact/4c5d3f93-57f4-4e60-9dbc-81a1b7797770">은행들이 서로를 못 믿을 때</a>(TED스프레드) &middot;
+    <a href="https://claude.ai/code/artifact/86f2b6eb-2753-45d7-a219-4f503d848bf7">네 개의 경고등을 한 판에</a>(4게이지 대시보드) &middot;
+    <a href="https://claude.ai/code/artifact/351403ee-6026-45ea-bd8c-082e4feace63">호라이즌 반전, 다시 나타날까</a>(VIX&times;침체) &middot;
+    <a href="https://claude.ai/code/artifact/38f48fdf-7c37-47d2-a057-66a82e7593c7">반전처럼 보였지만, 사실은 극단값 두 개였다</a>(크레딧&times;침체) &middot;
+    <a href="https://claude.ai/code/artifact/bd38d9f8-ff96-4aed-ae43-8a5436c1677f">지역은행 위기, 신용시장 렌즈</a> &middot;
+    <a href="https://claude.ai/code/artifact/fa632f59-17d0-447e-b387-881bc3cba1eb">충격 뉴스와 증시 반응</a>(트랙B, 9개 위기 표의 인용원)
+    <br><br>
+    전체 리포트 목록: <a href="https://claude.ai/code/artifact/1b3e8be7-17a7-4981-b4b9-0becaa37eaea">거시경제 이벤트 스터디 &mdash; 전체 리포트 허브</a> &middot;
+    데이터: FRED(VIXCLS, T10Y2Y, SAHMREALTIME, BAA10Y, BAMLH0A0HYM2, TEDRATE, USREC), Yahoo Finance(^GSPC) ·
+    방법론 원칙: 룩어헤드 없음 · 사후에 유리한 기준을 고르지 않음(임계값은 사전 확정 또는 공식
+    통계 사용) · 교란요인을 숨기지 않고 명시 · 경제학 배경지식 없이도 이해되게 설명
+  </div>
+</div>
+
+</body></html>

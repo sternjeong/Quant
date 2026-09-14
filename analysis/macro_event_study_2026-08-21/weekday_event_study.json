@@ -1,0 +1,60 @@
+{
+  "full_period": {
+    "start": "1950-01-04",
+    "end": "2026-08-19"
+  },
+  "by_weekday_full": {
+    "0": {
+      "n": 3689,
+      "mean_pct": -0.0448,
+      "win_rate_pct": 49.69
+    },
+    "1": {
+      "n": 3932,
+      "mean_pct": 0.0444,
+      "win_rate_pct": 50.97
+    },
+    "2": {
+      "n": 3931,
+      "mean_pct": 0.0783,
+      "win_rate_pct": 55.66
+    },
+    "3": {
+      "n": 3875,
+      "mean_pct": 0.0352,
+      "win_rate_pct": 53.26
+    },
+    "4": {
+      "n": 3851,
+      "mean_pct": 0.0664,
+      "win_rate_pct": 56.01
+    }
+  },
+  "by_weekday_recent": {
+    "0": {
+      "n": 1450,
+      "mean_pct": 0.0343,
+      "win_rate_pct": 54.34
+    },
+    "1": {
+      "n": 1584,
+      "mean_pct": 0.07,
+      "win_rate_pct": 52.08
+    },
+    "2": {
+      "n": 1582,
+      "mean_pct": 0.0463,
+      "win_rate_pct": 54.36
+    },
+    "3": {
+      "n": 1550,
+      "mean_pct": 0.0192,
+      "win_rate_pct": 53.48
+    },
+    "4": {
+      "n": 1542,
+      "mean_pct": 0.0288,
+      "win_rate_pct": 54.73
+    }
+  }
+}

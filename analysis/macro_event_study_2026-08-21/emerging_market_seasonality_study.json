@@ -1,0 +1,324 @@
+{
+  "results": {
+    "^BVSP": {
+      "name_kr": "브라질 보베스파",
+      "first_year": 1993,
+      "last_year": 2026,
+      "unfavorable": {
+        "n": 33,
+        "mean_pct": 28.232,
+        "win_rate_pct": 63.6
+      },
+      "favorable": {
+        "n": 32,
+        "mean_pct": 37.925,
+        "win_rate_pct": 81.2
+      },
+      "gap_pct": 9.693,
+      "h1_pass": true,
+      "monthly_breakdown": {
+        "1": {
+          "n": 33,
+          "mean_pct": 5.14,
+          "win_rate_pct": 48.5
+        },
+        "2": {
+          "n": 33,
+          "mean_pct": 2.217,
+          "win_rate_pct": 57.6
+        },
+        "3": {
+          "n": 33,
+          "mean_pct": 2.316,
+          "win_rate_pct": 48.5
+        },
+        "4": {
+          "n": 34,
+          "mean_pct": 2.843,
+          "win_rate_pct": 61.8
+        },
+        "5": {
+          "n": 34,
+          "mean_pct": 1.982,
+          "win_rate_pct": 44.1
+        },
+        "6": {
+          "n": 34,
+          "mean_pct": 3.228,
+          "win_rate_pct": 55.9
+        },
+        "7": {
+          "n": 34,
+          "mean_pct": 2.777,
+          "win_rate_pct": 70.6
+        },
+        "8": {
+          "n": 34,
+          "mean_pct": 1.749,
+          "win_rate_pct": 58.8
+        },
+        "9": {
+          "n": 33,
+          "mean_pct": 2.024,
+          "win_rate_pct": 69.7
+        },
+        "10": {
+          "n": 33,
+          "mean_pct": 1.312,
+          "win_rate_pct": 63.6
+        },
+        "11": {
+          "n": 33,
+          "mean_pct": 4.673,
+          "win_rate_pct": 60.6
+        },
+        "12": {
+          "n": 33,
+          "mean_pct": 3.621,
+          "win_rate_pct": 66.7
+        }
+      },
+      "september_mean_pct": 2.024,
+      "september_win_rate": 69.7,
+      "september_rank_lowest": 4,
+      "h3_pass": false,
+      "post1995_robustness": {
+        "unfavorable": {
+          "n": 31,
+          "mean_pct": 2.764,
+          "win_rate_pct": 61.3
+        },
+        "favorable": {
+          "n": 30,
+          "mean_pct": 13.589,
+          "win_rate_pct": 83.3
+        },
+        "gap_pct": 10.825,
+        "september_mean_pct": 0.381,
+        "september_rank_lowest": 4
+      }
+    },
+    "^BSESN": {
+      "name_kr": "인도 센섹스",
+      "first_year": 1997,
+      "last_year": 2026,
+      "unfavorable": {
+        "n": 28,
+        "mean_pct": 8.094,
+        "win_rate_pct": 71.4
+      },
+      "favorable": {
+        "n": 28,
+        "mean_pct": 6.281,
+        "win_rate_pct": 71.4
+      },
+      "gap_pct": -1.813,
+      "h1_pass": false,
+      "monthly_breakdown": {
+        "1": {
+          "n": 29,
+          "mean_pct": -0.357,
+          "win_rate_pct": 41.4
+        },
+        "2": {
+          "n": 29,
+          "mean_pct": -0.237,
+          "win_rate_pct": 44.8
+        },
+        "3": {
+          "n": 29,
+          "mean_pct": 0.127,
+          "win_rate_pct": 55.2
+        },
+        "4": {
+          "n": 29,
+          "mean_pct": 1.553,
+          "win_rate_pct": 62.1
+        },
+        "5": {
+          "n": 29,
+          "mean_pct": 1.035,
+          "win_rate_pct": 55.2
+        },
+        "6": {
+          "n": 29,
+          "mean_pct": 1.373,
+          "win_rate_pct": 69.0
+        },
+        "7": {
+          "n": 30,
+          "mean_pct": 1.997,
+          "win_rate_pct": 70.0
+        },
+        "8": {
+          "n": 30,
+          "mean_pct": 0.626,
+          "win_rate_pct": 56.7
+        },
+        "9": {
+          "n": 29,
+          "mean_pct": 1.16,
+          "win_rate_pct": 55.2
+        },
+        "10": {
+          "n": 29,
+          "mean_pct": 0.034,
+          "win_rate_pct": 55.2
+        },
+        "11": {
+          "n": 29,
+          "mean_pct": 2.233,
+          "win_rate_pct": 62.1
+        },
+        "12": {
+          "n": 29,
+          "mean_pct": 2.774,
+          "win_rate_pct": 65.5
+        }
+      },
+      "september_mean_pct": 1.16,
+      "september_win_rate": 55.2,
+      "september_rank_lowest": 7,
+      "h3_pass": false
+    },
+    "^KS11": {
+      "name_kr": "한국 코스피",
+      "first_year": 1996,
+      "last_year": 2026,
+      "unfavorable": {
+        "n": 29,
+        "mean_pct": -0.151,
+        "win_rate_pct": 41.4
+      },
+      "favorable": {
+        "n": 28,
+        "mean_pct": 10.825,
+        "win_rate_pct": 67.9
+      },
+      "gap_pct": 10.976,
+      "h1_pass": true,
+      "monthly_breakdown": {
+        "1": {
+          "n": 30,
+          "mean_pct": 3.278,
+          "win_rate_pct": 63.3
+        },
+        "2": {
+          "n": 30,
+          "mean_pct": 0.304,
+          "win_rate_pct": 53.3
+        },
+        "3": {
+          "n": 30,
+          "mean_pct": 0.421,
+          "win_rate_pct": 56.7
+        },
+        "4": {
+          "n": 30,
+          "mean_pct": 3.182,
+          "win_rate_pct": 63.3
+        },
+        "5": {
+          "n": 30,
+          "mean_pct": 0.685,
+          "win_rate_pct": 53.3
+        },
+        "6": {
+          "n": 30,
+          "mean_pct": 0.587,
+          "win_rate_pct": 50.0
+        },
+        "7": {
+          "n": 30,
+          "mean_pct": 0.875,
+          "win_rate_pct": 60.0
+        },
+        "8": {
+          "n": 30,
+          "mean_pct": -1.004,
+          "win_rate_pct": 40.0
+        },
+        "9": {
+          "n": 29,
+          "mean_pct": -1.263,
+          "win_rate_pct": 55.2
+        },
+        "10": {
+          "n": 29,
+          "mean_pct": -0.429,
+          "win_rate_pct": 44.8
+        },
+        "11": {
+          "n": 29,
+          "mean_pct": 2.908,
+          "win_rate_pct": 58.6
+        },
+        "12": {
+          "n": 30,
+          "mean_pct": 1.693,
+          "win_rate_pct": 56.7
+        }
+      },
+      "september_mean_pct": -1.263,
+      "september_win_rate": 55.2,
+      "september_rank_lowest": 1,
+      "h3_pass": true
+    }
+  },
+  "developed_baseline": {
+    "us": {
+      "favorable": {
+        "mean_pct": 6.95,
+        "win_rate_pct": 76.0
+      },
+      "unfavorable": {
+        "mean_pct": 2.09,
+        "win_rate_pct": 65.8
+      },
+      "september_mean_pct": -0.63
+    },
+    "dax": {
+      "favorable": {
+        "mean_pct": 10.264,
+        "win_rate_pct": 75.7
+      },
+      "unfavorable": {
+        "mean_pct": 0.526,
+        "win_rate_pct": 57.9
+      },
+      "september_mean_pct": -2.026,
+      "september_rank_lowest": 1
+    },
+    "nikkei": {
+      "favorable": {
+        "mean_pct": 7.733,
+        "win_rate_pct": 71.7
+      },
+      "unfavorable": {
+        "mean_pct": 0.846,
+        "win_rate_pct": 52.5
+      },
+      "september_mean_pct": -0.361,
+      "september_rank_lowest": 2
+    },
+    "ftse": {
+      "favorable": {
+        "mean_pct": 6.336,
+        "win_rate_pct": 80.5
+      },
+      "unfavorable": {
+        "mean_pct": -0.075,
+        "win_rate_pct": 57.1
+      },
+      "september_mean_pct": -0.806,
+      "september_rank_lowest": 1
+    }
+  },
+  "h1_overall_verdict": "MIXED(부분 재현)",
+  "h1_pass_count": 2,
+  "h2_em_avg_gap": 6.285,
+  "h2_dev_avg_gap": 7.679,
+  "h2_direction": "SMALLER",
+  "h3_overall_verdict": "MIXED",
+  "h3_pass_count": 1
+}

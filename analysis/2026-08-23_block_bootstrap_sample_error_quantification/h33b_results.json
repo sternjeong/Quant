@@ -1,0 +1,141 @@
+{
+  "meta": {
+    "n_draws": 10000,
+    "seed": 20260823,
+    "block_len_used": "20",
+    "episode_order": [
+      "full_2019_2026",
+      "gfc_2008",
+      "covid_2020",
+      "bear_2022",
+      "selloff_2018",
+      "correction_2015_2016"
+    ],
+    "configs": [
+      "core_alone",
+      "case_a_static_satellite"
+    ]
+  },
+  "weighting_only_H30_style": {
+    "win_rate": {
+      "core_alone": 0.0031,
+      "case_a_static_satellite": 0.9969
+    },
+    "mean_expected_sharpe": {
+      "core_alone": -0.06697533610623067,
+      "case_a_static_satellite": 0.02453832724082813
+    },
+    "std_expected_sharpe": {
+      "core_alone": 0.23496471648179967,
+      "case_a_static_satellite": 0.22404432315858577
+    },
+    "ci90_expected_sharpe": {
+      "core_alone": [
+        -0.4736598251115294,
+        0.30538083217473905
+      ],
+      "case_a_static_satellite": [
+        -0.3612732231325985,
+        0.38339152896343826
+      ]
+    },
+    "gap_static_minus_core": {
+      "mean": 0.09151366334705881,
+      "ci90": [
+        0.04774966154017775,
+        0.1258716013395645
+      ],
+      "pct_draws_static_ahead": 0.9969
+    }
+  },
+  "sampling_only_bootstrap": {
+    "win_rate": {
+      "core_alone": 0.4174,
+      "case_a_static_satellite": 0.5826
+    },
+    "mean_expected_sharpe": {
+      "core_alone": -0.034845442685817726,
+      "case_a_static_satellite": 0.053510901590366186
+    },
+    "std_expected_sharpe": {
+      "core_alone": 0.2921848513163562,
+      "case_a_static_satellite": 0.2955106596747331
+    },
+    "ci90_expected_sharpe": {
+      "core_alone": [
+        -0.5068569172457715,
+        0.4450979656536062
+      ],
+      "case_a_static_satellite": [
+        -0.42424235092594753,
+        0.5454055178302399
+      ]
+    },
+    "gap_static_minus_core": {
+      "mean": 0.08835634427618393,
+      "ci90": [
+        -0.5820477494747975,
+        0.7707240721549278
+      ],
+      "pct_draws_static_ahead": 0.5826
+    }
+  },
+  "combined_weighting_x_sampling": {
+    "win_rate": {
+      "core_alone": 0.4207,
+      "case_a_static_satellite": 0.5793
+    },
+    "mean_expected_sharpe": {
+      "core_alone": -0.03949330395761605,
+      "case_a_static_satellite": 0.05488018281871391
+    },
+    "std_expected_sharpe": {
+      "core_alone": 0.4001206114215098,
+      "case_a_static_satellite": 0.3898332994882833
+    },
+    "ci90_expected_sharpe": {
+      "core_alone": [
+        -0.7019059786156787,
+        0.5972415223421825
+      ],
+      "case_a_static_satellite": [
+        -0.5961754809668516,
+        0.6828749410128859
+      ]
+    },
+    "gap_static_minus_core": {
+      "mean": 0.09437348677632995,
+      "ci90": [
+        -0.6417656098092792,
+        0.8554244203250221
+      ],
+      "pct_draws_static_ahead": 0.5793
+    }
+  },
+  "per_window_point_sharpe": {
+    "full_2019_2026": {
+      "core_alone": 1.033481939889706,
+      "case_a_static_satellite": 1.121209537681595
+    },
+    "gfc_2008": {
+      "core_alone": 0.28555452404081394,
+      "case_a_static_satellite": -0.2101769400197624
+    },
+    "covid_2020": {
+      "core_alone": 0.12724878956487756,
+      "case_a_static_satellite": 0.04211483598161122
+    },
+    "bear_2022": {
+      "core_alone": 0.2389969251320699,
+      "case_a_static_satellite": 0.2006999351554244
+    },
+    "selloff_2018": {
+      "core_alone": -1.8822955674090847,
+      "case_a_static_satellite": -1.6573744264208987
+    },
+    "correction_2015_2016": {
+      "core_alone": -1.8900855676277994,
+      "case_a_static_satellite": -1.6908511188314763
+    }
+  }
+}

@@ -1,0 +1,438 @@
+{
+  "episode_windows": {
+    "full_2019_2026": [
+      "2019-08-12",
+      "2026-08-19"
+    ],
+    "gfc_2008": [
+      "2007-10-01",
+      "2009-06-30"
+    ],
+    "covid_2020": [
+      "2020-02-19",
+      "2020-04-30"
+    ],
+    "bear_2022": [
+      "2022-01-01",
+      "2022-12-31"
+    ],
+    "selloff_2018": [
+      "2018-09-01",
+      "2019-01-15"
+    ],
+    "correction_2015_2016": [
+      "2015-08-01",
+      "2016-02-15"
+    ]
+  },
+  "frequencies": {
+    "weekly_5d": 5,
+    "biweekly_10d": 10,
+    "monthly_21d": 21,
+    "sixweek_30d": 30,
+    "quarterly_63d": 63
+  },
+  "raw_lookup_table": {
+    "full_2019_2026": {
+      "weekly_5d": {
+        "sharpe": 1.0,
+        "cagr": 12.68,
+        "mdd": -17.02,
+        "avg_annual_turnover_pct": 1014.3
+      },
+      "biweekly_10d": {
+        "sharpe": 0.77,
+        "cagr": 9.9,
+        "mdd": -20.4,
+        "avg_annual_turnover_pct": 732.1
+      },
+      "monthly_21d": {
+        "sharpe": 1.17,
+        "cagr": 15.8,
+        "mdd": -13.97,
+        "avg_annual_turnover_pct": 471.4
+      },
+      "sixweek_30d": {
+        "sharpe": 0.91,
+        "cagr": 12.83,
+        "mdd": -22.55,
+        "avg_annual_turnover_pct": 450.0
+      },
+      "quarterly_63d": {
+        "sharpe": 1.12,
+        "cagr": 15.02,
+        "mdd": -13.04,
+        "avg_annual_turnover_pct": 300.0
+      }
+    },
+    "gfc_2008": {
+      "weekly_5d": {
+        "sharpe": -0.61,
+        "cagr": -6.42,
+        "mdd": -15.98,
+        "avg_annual_turnover_pct": 894.9
+      },
+      "biweekly_10d": {
+        "sharpe": -0.77,
+        "cagr": -8.27,
+        "mdd": -18.78,
+        "avg_annual_turnover_pct": 601.4
+      },
+      "monthly_21d": {
+        "sharpe": -0.3,
+        "cagr": -3.69,
+        "mdd": -12.2,
+        "avg_annual_turnover_pct": 343.6
+      },
+      "sixweek_30d": {
+        "sharpe": -0.43,
+        "cagr": -5.85,
+        "mdd": -17.19,
+        "avg_annual_turnover_pct": 264.9
+      },
+      "quarterly_63d": {
+        "sharpe": -0.39,
+        "cagr": -5.12,
+        "mdd": -12.93,
+        "avg_annual_turnover_pct": 207.6
+      }
+    },
+    "covid_2020": {
+      "weekly_5d": {
+        "sharpe": -2.85,
+        "cagr": -48.86,
+        "mdd": -16.8,
+        "avg_annual_turnover_pct": 1764.0
+      },
+      "biweekly_10d": {
+        "sharpe": -2.32,
+        "cagr": -52.93,
+        "mdd": -19.01,
+        "avg_annual_turnover_pct": 1890.0
+      },
+      "monthly_21d": {
+        "sharpe": -2.73,
+        "cagr": -78.46,
+        "mdd": -30.71,
+        "avg_annual_turnover_pct": 1134.0
+      },
+      "sixweek_30d": {
+        "sharpe": -2.23,
+        "cagr": -60.24,
+        "mdd": -20.82,
+        "avg_annual_turnover_pct": 1134.0
+      },
+      "quarterly_63d": {
+        "sharpe": -2.76,
+        "cagr": -82.29,
+        "mdd": -33.26,
+        "avg_annual_turnover_pct": 1134.0
+      }
+    },
+    "bear_2022": {
+      "weekly_5d": {
+        "sharpe": 0.06,
+        "cagr": 0.1,
+        "mdd": -8.87,
+        "avg_annual_turnover_pct": 891.0
+      },
+      "biweekly_10d": {
+        "sharpe": -0.1,
+        "cagr": -1.56,
+        "mdd": -9.23,
+        "avg_annual_turnover_pct": 715.3
+      },
+      "monthly_21d": {
+        "sharpe": 0.08,
+        "cagr": 0.26,
+        "mdd": -10.55,
+        "avg_annual_turnover_pct": 489.4
+      },
+      "sixweek_30d": {
+        "sharpe": 0.32,
+        "cagr": 2.74,
+        "mdd": -8.32,
+        "avg_annual_turnover_pct": 326.3
+      },
+      "quarterly_63d": {
+        "sharpe": 0.42,
+        "cagr": 3.66,
+        "mdd": -8.24,
+        "avg_annual_turnover_pct": 225.9
+      }
+    },
+    "selloff_2018": {
+      "weekly_5d": {
+        "sharpe": -3.22,
+        "cagr": -35.31,
+        "mdd": -15.91,
+        "avg_annual_turnover_pct": 1834.6
+      },
+      "biweekly_10d": {
+        "sharpe": -3.39,
+        "cagr": -37.67,
+        "mdd": -17.18,
+        "avg_annual_turnover_pct": 1488.5
+      },
+      "monthly_21d": {
+        "sharpe": -2.83,
+        "cagr": -29.36,
+        "mdd": -13.97,
+        "avg_annual_turnover_pct": 796.2
+      },
+      "sixweek_30d": {
+        "sharpe": -3.15,
+        "cagr": -43.75,
+        "mdd": -20.6,
+        "avg_annual_turnover_pct": 865.4
+      },
+      "quarterly_63d": {
+        "sharpe": -3.19,
+        "cagr": -43.08,
+        "mdd": -20.41,
+        "avg_annual_turnover_pct": 726.9
+      }
+    },
+    "correction_2015_2016": {
+      "weekly_5d": {
+        "sharpe": -1.64,
+        "cagr": -19.77,
+        "mdd": -11.22,
+        "avg_annual_turnover_pct": 1236.7
+      },
+      "biweekly_10d": {
+        "sharpe": -1.32,
+        "cagr": -17.5,
+        "mdd": -10.99,
+        "avg_annual_turnover_pct": 1050.0
+      },
+      "monthly_21d": {
+        "sharpe": -2.11,
+        "cagr": -23.6,
+        "mdd": -13.68,
+        "avg_annual_turnover_pct": 816.7
+      },
+      "sixweek_30d": {
+        "sharpe": -1.46,
+        "cagr": -19.92,
+        "mdd": -11.96,
+        "avg_annual_turnover_pct": 653.3
+      },
+      "quarterly_63d": {
+        "sharpe": -2.52,
+        "cagr": -34.7,
+        "mdd": -21.99,
+        "avg_annual_turnover_pct": 560.0
+      }
+    }
+  },
+  "scenarios": {
+    "base": {
+      "weights_normalized": {
+        "full_2019_2026": 0.5,
+        "gfc_2008": 0.03,
+        "covid_2020": 0.04,
+        "bear_2022": 0.1,
+        "selloff_2018": 0.16,
+        "correction_2015_2016": 0.17
+      },
+      "expected_value": {
+        "weekly_5d": {
+          "rebal_days": 5,
+          "expected_sharpe": -0.4203,
+          "expected_cagr_pct": -4.8075,
+          "mdd_worst_case": -16.8,
+          "avg_annual_turnover_pct_full_period": 1014.3
+        },
+        "biweekly_10d": {
+          "rebal_days": 10,
+          "expected_sharpe": -0.5077,
+          "expected_cagr_pct": -6.5735,
+          "mdd_worst_case": -19.01,
+          "avg_annual_turnover_pct_full_period": 732.1
+        },
+        "monthly_21d": {
+          "rebal_days": 21,
+          "expected_sharpe": -0.3367,
+          "expected_cagr_pct": -4.0327,
+          "mdd_worst_case": -30.71,
+          "avg_annual_turnover_pct_full_period": 471.4
+        },
+        "sixweek_30d": {
+          "rebal_days": 30,
+          "expected_sharpe": -0.3673,
+          "expected_cagr_pct": -6.2825,
+          "mdd_worst_case": -20.82,
+          "avg_annual_turnover_pct_full_period": 450.0
+        },
+        "quarterly_63d": {
+          "rebal_days": 63,
+          "expected_sharpe": -0.4589,
+          "expected_cagr_pct": -8.361,
+          "mdd_worst_case": -33.26,
+          "avg_annual_turnover_pct_full_period": 300.0
+        }
+      },
+      "ranking_by_expected_sharpe": [
+        [
+          "monthly_21d",
+          -0.3367
+        ],
+        [
+          "sixweek_30d",
+          -0.3673
+        ],
+        [
+          "weekly_5d",
+          -0.4203
+        ],
+        [
+          "quarterly_63d",
+          -0.4589
+        ],
+        [
+          "biweekly_10d",
+          -0.5077
+        ]
+      ]
+    },
+    "calm_heavy": {
+      "weights_normalized": {
+        "full_2019_2026": 0.65,
+        "gfc_2008": 0.015,
+        "covid_2020": 0.02,
+        "bear_2022": 0.065,
+        "selloff_2018": 0.12,
+        "correction_2015_2016": 0.13
+      },
+      "expected_value": {
+        "weekly_5d": {
+          "rebal_days": 5,
+          "expected_sharpe": -0.0119,
+          "expected_cagr_pct": 0.3677,
+          "mdd_worst_case": -16.8,
+          "avg_annual_turnover_pct_full_period": 1014.3
+        },
+        "biweekly_10d": {
+          "rebal_days": 10,
+          "expected_sharpe": -0.1423,
+          "expected_cagr_pct": -1.6445,
+          "mdd_worst_case": -19.01,
+          "avg_annual_turnover_pct_full_period": 732.1
+        },
+        "monthly_21d": {
+          "rebal_days": 21,
+          "expected_sharpe": 0.0927,
+          "expected_cagr_pct": 2.0712,
+          "mdd_worst_case": -30.71,
+          "avg_annual_turnover_pct_full_period": 471.4
+        },
+        "sixweek_30d": {
+          "rebal_days": 30,
+          "expected_sharpe": -0.0065,
+          "expected_cagr_pct": -0.6145,
+          "mdd_worst_case": -20.82,
+          "avg_annual_turnover_pct_full_period": 450.0
+        },
+        "quarterly_63d": {
+          "rebal_days": 63,
+          "expected_sharpe": -0.0161,
+          "expected_cagr_pct": -1.4023,
+          "mdd_worst_case": -33.26,
+          "avg_annual_turnover_pct_full_period": 300.0
+        }
+      },
+      "ranking_by_expected_sharpe": [
+        [
+          "monthly_21d",
+          0.0927
+        ],
+        [
+          "sixweek_30d",
+          -0.0065
+        ],
+        [
+          "weekly_5d",
+          -0.0119
+        ],
+        [
+          "quarterly_63d",
+          -0.0161
+        ],
+        [
+          "biweekly_10d",
+          -0.1423
+        ]
+      ]
+    },
+    "crisis_heavy": {
+      "weights_normalized": {
+        "full_2019_2026": 0.35,
+        "gfc_2008": 0.06,
+        "covid_2020": 0.07,
+        "bear_2022": 0.14,
+        "selloff_2018": 0.19,
+        "correction_2015_2016": 0.19
+      },
+      "expected_value": {
+        "weekly_5d": {
+          "rebal_days": 5,
+          "expected_sharpe": -0.8011,
+          "expected_cagr_pct": -9.8186,
+          "mdd_worst_case": -16.8,
+          "avg_annual_turnover_pct_full_period": 1014.3
+        },
+        "biweekly_10d": {
+          "rebal_days": 10,
+          "expected_sharpe": -0.848,
+          "expected_cagr_pct": -11.437,
+          "mdd_worst_case": -19.01,
+          "avg_annual_turnover_pct_full_period": 732.1
+        },
+        "monthly_21d": {
+          "rebal_days": 21,
+          "expected_sharpe": -0.727,
+          "expected_cagr_pct": -10.2096,
+          "mdd_worst_case": -30.71,
+          "avg_annual_turnover_pct_full_period": 471.4
+        },
+        "sixweek_30d": {
+          "rebal_days": 30,
+          "expected_sharpe": -0.6945,
+          "expected_cagr_pct": -11.791,
+          "mdd_worst_case": -20.82,
+          "avg_annual_turnover_pct_full_period": 450.0
+        },
+        "quarterly_63d": {
+          "rebal_days": 63,
+          "expected_sharpe": -0.8507,
+          "expected_cagr_pct": -15.0763,
+          "mdd_worst_case": -33.26,
+          "avg_annual_turnover_pct_full_period": 300.0
+        }
+      },
+      "ranking_by_expected_sharpe": [
+        [
+          "sixweek_30d",
+          -0.6945
+        ],
+        [
+          "monthly_21d",
+          -0.727
+        ],
+        [
+          "weekly_5d",
+          -0.8011
+        ],
+        [
+          "biweekly_10d",
+          -0.848
+        ],
+        [
+          "quarterly_63d",
+          -0.8507
+        ]
+      ]
+    }
+  }
+}

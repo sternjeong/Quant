@@ -1,0 +1,814 @@
+{
+  "meta": {
+    "satellite_weight": 0.15,
+    "episode_order": [
+      "gfc_2008",
+      "correction_2015_2016",
+      "selloff_2018",
+      "bear_2022",
+      "covid_2020"
+    ]
+  },
+  "episodes": {
+    "bear_2022": {
+      "label": "bear_2022",
+      "full_period": [
+        "2019-08-12",
+        "2026-08-19"
+      ],
+      "crisis_window": [
+        "2022-01-01",
+        "2022-12-31"
+      ],
+      "core_universe_used": null,
+      "n_early_exits": 36,
+      "n_slots": 42,
+      "windows": {
+        "full_period": {
+          "core_alone": {
+            "cumulative_return": 139.19,
+            "cagr": 13.23,
+            "mdd": -17.74,
+            "sharpe": 1.03,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.75,
+            "avg_drawdown_days": 20.2,
+            "n_days": 1764
+          },
+          "case_a_static_satellite": {
+            "cumulative_return": 184.37,
+            "cagr": 16.06,
+            "mdd": -18.45,
+            "sharpe": 1.12,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.87,
+            "avg_drawdown_days": 17.3,
+            "n_days": 1764
+          },
+          "case_b_realtime_exit_plus_switch": {
+            "cumulative_return": 130.35,
+            "cagr": 12.63,
+            "mdd": -17.9,
+            "sharpe": 1.01,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.71,
+            "avg_drawdown_days": 23.1,
+            "n_days": 1764
+          }
+        },
+        "crisis_window": {
+          "core_alone": {
+            "cumulative_return": 2.19,
+            "cagr": 2.21,
+            "mdd": -11.05,
+            "sharpe": 0.24,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.2,
+            "avg_drawdown_days": 6.8,
+            "n_days": 251
+          },
+          "case_a_static_satellite": {
+            "cumulative_return": 1.79,
+            "cagr": 1.81,
+            "mdd": -12.54,
+            "sharpe": 0.2,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.14,
+            "avg_drawdown_days": 8.9,
+            "n_days": 251
+          },
+          "case_b_realtime_exit_plus_switch": {
+            "cumulative_return": 1.51,
+            "cagr": 1.53,
+            "mdd": -11.05,
+            "sharpe": 0.18,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.14,
+            "avg_drawdown_days": 8.6,
+            "n_days": 251
+          }
+        }
+      },
+      "note": "작업36(H16) 결과 재사용, 재계산 없음"
+    },
+    "gfc_2008": {
+      "label": "gfc_2008",
+      "full_period": [
+        "2007-01-01",
+        "2009-12-31"
+      ],
+      "crisis_window": [
+        "2007-10-01",
+        "2009-06-30"
+      ],
+      "core_universe_used": [
+        "SPY",
+        "TLT",
+        "GLD"
+      ],
+      "n_early_exits": 13,
+      "n_slots": 18,
+      "windows": {
+        "full_period": {
+          "core_alone": {
+            "cumulative_return": 35.58,
+            "cagr": 10.72,
+            "mdd": -15.85,
+            "sharpe": 0.75,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.68,
+            "avg_drawdown_days": 25.8,
+            "n_days": 755
+          },
+          "case_a_static_satellite": {
+            "cumulative_return": 24.83,
+            "cagr": 7.7,
+            "mdd": -19.96,
+            "sharpe": 0.6,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.39,
+            "avg_drawdown_days": 33.7,
+            "n_days": 755
+          },
+          "case_b_realtime_exit_plus_switch": {
+            "cumulative_return": 35.02,
+            "cagr": 10.56,
+            "mdd": -15.99,
+            "sharpe": 0.76,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.66,
+            "avg_drawdown_days": 25.8,
+            "n_days": 755
+          }
+        },
+        "crisis_window": {
+          "core_alone": {
+            "cumulative_return": 6.1,
+            "cagr": 3.45,
+            "mdd": -15.85,
+            "sharpe": 0.29,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.22,
+            "avg_drawdown_days": 27.3,
+            "n_days": 441
+          },
+          "case_a_static_satellite": {
+            "cumulative_return": -7.5,
+            "cagr": -4.36,
+            "mdd": -19.96,
+            "sharpe": -0.21,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.22,
+            "avg_drawdown_days": 32.5,
+            "n_days": 441
+          },
+          "case_b_realtime_exit_plus_switch": {
+            "cumulative_return": 5.71,
+            "cagr": 3.23,
+            "mdd": -15.99,
+            "sharpe": 0.28,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.2,
+            "avg_drawdown_days": 27.3,
+            "n_days": 441
+          }
+        }
+      },
+      "note": "작업36(H16) 결과 재사용, 재계산 없음 (SPY/TLT/GLD 3자산 근사 코어, 작업22/23/H11 확립 관례)"
+    },
+    "covid_2020": {
+      "label": "covid_2020",
+      "full_period": [
+        "2019-01-01",
+        "2020-12-31"
+      ],
+      "crisis_window": [
+        "2020-02-19",
+        "2020-04-30"
+      ],
+      "core_universe_used": [
+        "DBC",
+        "EFA",
+        "GLD",
+        "HYG",
+        "IEF",
+        "TLT",
+        "XLB",
+        "XLC",
+        "XLE",
+        "XLF",
+        "XLI",
+        "XLK",
+        "XLP",
+        "XLRE",
+        "XLU",
+        "XLV",
+        "XLY"
+      ],
+      "n_early_exits": 6,
+      "n_slots": 12,
+      "satellite_rebal_log": [
+        {
+          "date": "2019-01-02",
+          "pool_size": 40,
+          "n_eligible": 19,
+          "picks": [
+            "MRK",
+            "PFE",
+            "NEE"
+          ]
+        },
+        {
+          "date": "2019-07-01",
+          "pool_size": 40,
+          "n_eligible": 38,
+          "picks": [
+            "APD",
+            "ECL",
+            "AMT"
+          ]
+        },
+        {
+          "date": "2020-01-02",
+          "pool_size": 40,
+          "n_eligible": 39,
+          "picks": [
+            "AAPL",
+            "MSFT",
+            "PLD"
+          ]
+        },
+        {
+          "date": "2020-07-01",
+          "pool_size": 40,
+          "n_eligible": 32,
+          "picks": [
+            "NVDA",
+            "AAPL",
+            "MSFT"
+          ]
+        }
+      ],
+      "windows": {
+        "full_period": {
+          "core_alone": {
+            "cumulative_return": 27.53,
+            "cagr": 12.98,
+            "mdd": -9.07,
+            "sharpe": 1.14,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 1.43,
+            "avg_drawdown_days": 15.3,
+            "n_days": 504
+          },
+          "case_a_static_satellite": {
+            "cumulative_return": 35.63,
+            "cagr": 16.52,
+            "mdd": -10.06,
+            "sharpe": 1.22,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 1.64,
+            "avg_drawdown_days": 13.6,
+            "n_days": 504
+          },
+          "case_b_realtime_exit_plus_switch": {
+            "cumulative_return": 29.16,
+            "cagr": 13.7,
+            "mdd": -9.45,
+            "sharpe": 1.18,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 1.45,
+            "avg_drawdown_days": 16.4,
+            "n_days": 504
+          }
+        },
+        "crisis_window": {
+          "core_alone": {
+            "cumulative_return": 0.17,
+            "cagr": 0.86,
+            "mdd": -6.71,
+            "sharpe": 0.13,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.13,
+            "avg_drawdown_days": 31.0,
+            "n_days": 51
+          },
+          "case_a_static_satellite": {
+            "cumulative_return": -0.25,
+            "cagr": -1.29,
+            "mdd": -9.58,
+            "sharpe": 0.04,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.13,
+            "avg_drawdown_days": 0.0,
+            "n_days": 51
+          },
+          "case_b_realtime_exit_plus_switch": {
+            "cumulative_return": -1.45,
+            "cagr": -7.22,
+            "mdd": -8.15,
+            "sharpe": -0.44,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.89,
+            "avg_drawdown_days": 0.0,
+            "n_days": 51
+          }
+        }
+      },
+      "elapsed_s": 231.1
+    },
+    "selloff_2018": {
+      "label": "selloff_2018",
+      "full_period": [
+        "2017-06-01",
+        "2019-06-30"
+      ],
+      "crisis_window": [
+        "2018-09-01",
+        "2019-01-15"
+      ],
+      "core_universe_used": [
+        "DBC",
+        "EFA",
+        "GLD",
+        "HYG",
+        "IEF",
+        "TLT",
+        "XLB",
+        "XLC",
+        "XLE",
+        "XLF",
+        "XLI",
+        "XLK",
+        "XLP",
+        "XLRE",
+        "XLU",
+        "XLV",
+        "XLY"
+      ],
+      "n_early_exits": 5,
+      "n_slots": 12,
+      "satellite_rebal_log": [
+        {
+          "date": "2017-07-03",
+          "pool_size": 40,
+          "n_eligible": 39,
+          "picks": [
+            "BAC",
+            "BA",
+            "AAPL"
+          ]
+        },
+        {
+          "date": "2018-01-02",
+          "pool_size": 40,
+          "n_eligible": 39,
+          "picks": [
+            "BA",
+            "AMZN",
+            "SHW"
+          ]
+        },
+        {
+          "date": "2018-07-02",
+          "pool_size": 40,
+          "n_eligible": 38,
+          "picks": [
+            "AMZN",
+            "BA",
+            "NKE"
+          ]
+        },
+        {
+          "date": "2019-01-02",
+          "pool_size": 40,
+          "n_eligible": 19,
+          "picks": [
+            "MRK",
+            "PFE",
+            "NEE"
+          ]
+        }
+      ],
+      "windows": {
+        "full_period": {
+          "core_alone": {
+            "cumulative_return": 5.6,
+            "cagr": 2.66,
+            "mdd": -15.5,
+            "sharpe": 0.28,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.17,
+            "avg_drawdown_days": 6.1,
+            "n_days": 523
+          },
+          "case_a_static_satellite": {
+            "cumulative_return": 12.64,
+            "cagr": 5.91,
+            "mdd": -16.15,
+            "sharpe": 0.52,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.37,
+            "avg_drawdown_days": 14.6,
+            "n_days": 523
+          },
+          "case_b_realtime_exit_plus_switch": {
+            "cumulative_return": 11.45,
+            "cagr": 5.37,
+            "mdd": -14.9,
+            "sharpe": 0.49,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.36,
+            "avg_drawdown_days": 14.6,
+            "n_days": 523
+          }
+        },
+        "crisis_window": {
+          "core_alone": {
+            "cumulative_return": -9.71,
+            "cagr": -24.45,
+            "mdd": -14.6,
+            "sharpe": -1.9,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.67,
+            "avg_drawdown_days": 6.7,
+            "n_days": 92
+          },
+          "case_a_static_satellite": {
+            "cumulative_return": -10.05,
+            "cagr": -25.25,
+            "mdd": -16.15,
+            "sharpe": -1.67,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.56,
+            "avg_drawdown_days": 5.7,
+            "n_days": 92
+          },
+          "case_b_realtime_exit_plus_switch": {
+            "cumulative_return": -9.69,
+            "cagr": -24.42,
+            "mdd": -14.9,
+            "sharpe": -1.86,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.64,
+            "avg_drawdown_days": 5.7,
+            "n_days": 92
+          }
+        }
+      },
+      "elapsed_s": 222.9
+    },
+    "correction_2015_2016": {
+      "label": "correction_2015_2016",
+      "full_period": [
+        "2014-06-01",
+        "2016-06-30"
+      ],
+      "crisis_window": [
+        "2015-08-01",
+        "2016-02-15"
+      ],
+      "core_universe_used": [
+        "DBC",
+        "EFA",
+        "GLD",
+        "HYG",
+        "IEF",
+        "TLT",
+        "XLB",
+        "XLE",
+        "XLF",
+        "XLI",
+        "XLK",
+        "XLP",
+        "XLRE",
+        "XLU",
+        "XLV",
+        "XLY"
+      ],
+      "n_early_exits": 7,
+      "n_slots": 12,
+      "satellite_rebal_log": [
+        {
+          "date": "2014-07-01",
+          "pool_size": 40,
+          "n_eligible": 40,
+          "picks": [
+            "NFLX",
+            "SLB",
+            "AAPL"
+          ]
+        },
+        {
+          "date": "2015-01-02",
+          "pool_size": 40,
+          "n_eligible": 33,
+          "picks": [
+            "UNP",
+            "INTC",
+            "AVB"
+          ]
+        },
+        {
+          "date": "2015-07-01",
+          "pool_size": 40,
+          "n_eligible": 37,
+          "picks": [
+            "NFLX",
+            "GILD",
+            "NKE"
+          ]
+        },
+        {
+          "date": "2016-01-04",
+          "pool_size": 40,
+          "n_eligible": 38,
+          "picks": [
+            "AMZN",
+            "GOOGL",
+            "GOOG"
+          ]
+        }
+      ],
+      "windows": {
+        "full_period": {
+          "core_alone": {
+            "cumulative_return": -5.79,
+            "cagr": -2.83,
+            "mdd": -16.82,
+            "sharpe": -0.19,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.17,
+            "avg_drawdown_days": 14.6,
+            "n_days": 525
+          },
+          "case_a_static_satellite": {
+            "cumulative_return": -7.91,
+            "cagr": -3.89,
+            "mdd": -17.39,
+            "sharpe": -0.26,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.22,
+            "avg_drawdown_days": 14.6,
+            "n_days": 525
+          },
+          "case_b_realtime_exit_plus_switch": {
+            "cumulative_return": -6.25,
+            "cagr": -3.06,
+            "mdd": -15.86,
+            "sharpe": -0.21,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.19,
+            "avg_drawdown_days": 12.6,
+            "n_days": 525
+          }
+        },
+        "crisis_window": {
+          "core_alone": {
+            "cumulative_return": -14.58,
+            "cagr": -25.79,
+            "mdd": -15.09,
+            "sharpe": -1.9,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.71,
+            "avg_drawdown_days": 1.0,
+            "n_days": 135
+          },
+          "case_a_static_satellite": {
+            "cumulative_return": -14.55,
+            "cagr": -25.73,
+            "mdd": -15.58,
+            "sharpe": -1.7,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.65,
+            "avg_drawdown_days": 0.0,
+            "n_days": 135
+          },
+          "case_b_realtime_exit_plus_switch": {
+            "cumulative_return": -13.57,
+            "cagr": -24.12,
+            "mdd": -14.52,
+            "sharpe": -1.76,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.66,
+            "avg_drawdown_days": 0.0,
+            "n_days": 135
+          }
+        }
+      },
+      "elapsed_s": 238.8
+    }
+  },
+  "summary_table_crisis_window": [
+    {
+      "episode": "gfc_2008",
+      "crisis_window": [
+        "2007-10-01",
+        "2009-06-30"
+      ],
+      "core_alone": {
+        "cagr": 3.45,
+        "mdd": -15.85,
+        "sharpe": 0.29
+      },
+      "case_a_static_satellite": {
+        "cagr": -4.36,
+        "mdd": -19.96,
+        "sharpe": -0.21
+      },
+      "case_b_realtime_exit_plus_switch": {
+        "cagr": 3.23,
+        "mdd": -15.99,
+        "sharpe": 0.28
+      },
+      "case_b_beats_case_a_sharpe": true,
+      "case_b_beats_case_a_mdd": true
+    },
+    {
+      "episode": "correction_2015_2016",
+      "crisis_window": [
+        "2015-08-01",
+        "2016-02-15"
+      ],
+      "core_alone": {
+        "cagr": -25.79,
+        "mdd": -15.09,
+        "sharpe": -1.9
+      },
+      "case_a_static_satellite": {
+        "cagr": -25.73,
+        "mdd": -15.58,
+        "sharpe": -1.7
+      },
+      "case_b_realtime_exit_plus_switch": {
+        "cagr": -24.12,
+        "mdd": -14.52,
+        "sharpe": -1.76
+      },
+      "case_b_beats_case_a_sharpe": false,
+      "case_b_beats_case_a_mdd": true
+    },
+    {
+      "episode": "selloff_2018",
+      "crisis_window": [
+        "2018-09-01",
+        "2019-01-15"
+      ],
+      "core_alone": {
+        "cagr": -24.45,
+        "mdd": -14.6,
+        "sharpe": -1.9
+      },
+      "case_a_static_satellite": {
+        "cagr": -25.25,
+        "mdd": -16.15,
+        "sharpe": -1.67
+      },
+      "case_b_realtime_exit_plus_switch": {
+        "cagr": -24.42,
+        "mdd": -14.9,
+        "sharpe": -1.86
+      },
+      "case_b_beats_case_a_sharpe": false,
+      "case_b_beats_case_a_mdd": true
+    },
+    {
+      "episode": "bear_2022",
+      "crisis_window": [
+        "2022-01-01",
+        "2022-12-31"
+      ],
+      "core_alone": {
+        "cagr": 2.21,
+        "mdd": -11.05,
+        "sharpe": 0.24
+      },
+      "case_a_static_satellite": {
+        "cagr": 1.81,
+        "mdd": -12.54,
+        "sharpe": 0.2
+      },
+      "case_b_realtime_exit_plus_switch": {
+        "cagr": 1.53,
+        "mdd": -11.05,
+        "sharpe": 0.18
+      },
+      "case_b_beats_case_a_sharpe": false,
+      "case_b_beats_case_a_mdd": true
+    },
+    {
+      "episode": "covid_2020",
+      "crisis_window": [
+        "2020-02-19",
+        "2020-04-30"
+      ],
+      "core_alone": {
+        "cagr": 0.86,
+        "mdd": -6.71,
+        "sharpe": 0.13
+      },
+      "case_a_static_satellite": {
+        "cagr": -1.29,
+        "mdd": -9.58,
+        "sharpe": 0.04
+      },
+      "case_b_realtime_exit_plus_switch": {
+        "cagr": -7.22,
+        "mdd": -8.15,
+        "sharpe": -0.44
+      },
+      "case_b_beats_case_a_sharpe": false,
+      "case_b_beats_case_a_mdd": true
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+CPI 발표일 조회 중...
+발표일 410건 (1994-01-13 ~ 2026-08-12)
+/workspaces/Quant/analysis/macro_event_study_2026-08-21/cpi_release_event_study.py:48: FutureWarning: The default fill_method='pad' in Series.pct_change is deprecated and will be removed in a future version. Either fill in any non-leading NA values prior to calling pct_change or specify 'fill_method=None' to not fill NA values.
+  cpi_yoy = cpi.pct_change(12) * 100  # 전년동월비(%)
+
+가격+CPI 매칭 성공: 405/410건
+
+=== 전체 ===
+[전체] n=405, 발표일평균=0.07%, +5일=0.087%(승률54.8%), +20일=0.628%(승률62.2%), +60일=2.209%(승률68.9%)
+
+=== 인플레이션 가속 vs 감속 국면 ===
+[가속(뜨거워지는 물가)] n=202, 발표일평균=0.049%, +5일=-0.07%(승률52.0%), +20일=0.165%(승률61.4%), +60일=1.02%(승률63.4%)
+[감속(식는 물가)] n=199, 발표일평균=0.096%, +5일=0.257%(승률58.3%), +20일=1.141%(승률63.8%), +60일=3.515%(승률75.4%)
+
+DONE

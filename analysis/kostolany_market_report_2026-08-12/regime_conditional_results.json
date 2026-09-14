@@ -1,0 +1,141 @@
+{
+  "2015_2026": {
+    "rp_no_overlay": {
+      "cumulative_return": 168.64,
+      "cagr": 8.89,
+      "mdd": -36.01,
+      "sharpe": 0.61,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.25,
+      "avg_drawdown_days": 24.7
+    },
+    "tilt_no_overlay": {
+      "cumulative_return": 244.51,
+      "cagr": 11.25,
+      "mdd": -36.51,
+      "sharpe": 0.73,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.31,
+      "avg_drawdown_days": 20.7
+    },
+    "vol_target": {
+      "rp_vt": {
+        "cumulative_return": 187.36,
+        "cagr": 9.52,
+        "mdd": -18.52,
+        "sharpe": 0.77,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.51,
+        "avg_drawdown_days": 23.3
+      },
+      "tilt_vt": {
+        "cumulative_return": 243.22,
+        "cagr": 11.21,
+        "mdd": -19.83,
+        "sharpe": 0.86,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.57,
+        "avg_drawdown_days": 21.6
+      }
+    },
+    "sp500_bh": {
+      "cumulative_return": 276.69,
+      "cagr": 12.11,
+      "mdd": -33.92,
+      "sharpe": 0.74,
+      "win_rate": 100.0,
+      "avg_holding_days": 4238.0,
+      "trade_count": 1,
+      "profit_factor": 999.0,
+      "calmar": 0.36,
+      "avg_drawdown_days": 19.5
+    },
+    "regime_distribution": {
+      "상승-쏠림": 1816,
+      "데이터부족": 756,
+      "하락": 319,
+      "상승-분산": 27
+    }
+  },
+  "2000_2012": {
+    "rp_no_overlay": {
+      "cumulative_return": 44.66,
+      "cagr": 2.88,
+      "mdd": -50.53,
+      "sharpe": 0.25,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.06,
+      "avg_drawdown_days": 65.9
+    },
+    "tilt_no_overlay": {
+      "cumulative_return": 47.41,
+      "cagr": 3.03,
+      "mdd": -50.56,
+      "sharpe": 0.25,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.06,
+      "avg_drawdown_days": 47.0
+    },
+    "vol_target": {
+      "rp_vt": {
+        "cumulative_return": 34.61,
+        "cagr": 2.32,
+        "mdd": -37.91,
+        "sharpe": 0.23,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.06,
+        "avg_drawdown_days": 79.1
+      },
+      "tilt_vt": {
+        "cumulative_return": 39.68,
+        "cagr": 2.61,
+        "mdd": -39.52,
+        "sharpe": 0.24,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.07,
+        "avg_drawdown_days": 61.9
+      }
+    },
+    "sp500_bh": {
+      "cumulative_return": -2.55,
+      "cagr": -0.2,
+      "mdd": -56.78,
+      "sharpe": 0.1,
+      "win_rate": 0.0,
+      "avg_holding_days": 4742.0,
+      "trade_count": 1,
+      "profit_factor": 0.0,
+      "calmar": -0.0,
+      "avg_drawdown_days": 351.2
+    },
+    "regime_distribution": {
+      "상승-쏠림": 2088,
+      "하락": 1042,
+      "상승-분산": 138
+    }
+  }
+}

@@ -1,0 +1,646 @@
+{
+  "meta": {
+    "n_boot": 2000,
+    "n_draws": 10000,
+    "block_lengths": [
+      10,
+      20,
+      40
+    ],
+    "k_values": [
+      15,
+      30,
+      60
+    ],
+    "k_central": 30,
+    "seed": 20260830,
+    "archetypes": {
+      "crypto_bull_2020_2021": [
+        "2020-01-01",
+        "2021-12-31"
+      ],
+      "crypto_winter_2022": [
+        "2022-01-01",
+        "2022-12-31"
+      ],
+      "ai_pivot_rerating_2023_2025": [
+        "2023-01-01",
+        "2025-12-31"
+      ],
+      "recent_2026": [
+        "2026-01-01",
+        "2026-08-19"
+      ]
+    },
+    "archetype_order": [
+      "crypto_bull_2020_2021",
+      "crypto_winter_2022",
+      "ai_pivot_rerating_2023_2025",
+      "recent_2026"
+    ],
+    "h1_universe": [
+      "IREN",
+      "CIFR",
+      "CLSK",
+      "WULF",
+      "HUT",
+      "CORZ",
+      "BTDR"
+    ],
+    "h3_universe": [
+      "IREN",
+      "CIFR",
+      "CLSK",
+      "WULF",
+      "HUT",
+      "BTDR"
+    ]
+  },
+  "h1": {
+    "label": "H1_market_beta_hedge_basket",
+    "valid_archetypes": [
+      "ai_pivot_rerating_2023_2025",
+      "recent_2026"
+    ],
+    "excluded_archetypes": [
+      {
+        "archetype": "crypto_bull_2020_2021",
+        "n_obs": 0,
+        "reason": "insufficient_common_data"
+      },
+      {
+        "archetype": "crypto_winter_2022",
+        "n_obs": 0,
+        "reason": "insufficient_common_data"
+      }
+    ],
+    "base_rates": {
+      "ai_pivot_rerating_2023_2025": 0.6963249516441006,
+      "recent_2026": 0.3036750483558994
+    },
+    "archetype_bootstrap": {
+      "crypto_bull_2020_2021": {
+        "n_obs": 0,
+        "window": [
+          "2020-01-01",
+          "2021-12-31"
+        ],
+        "by_config": {
+          "baseline": {
+            "point_estimate_sharpe": null,
+            "by_block_len": {
+              "10": null,
+              "20": null,
+              "40": null
+            }
+          },
+          "challenger": {
+            "point_estimate_sharpe": null,
+            "by_block_len": {
+              "10": null,
+              "20": null,
+              "40": null
+            }
+          }
+        }
+      },
+      "crypto_winter_2022": {
+        "n_obs": 0,
+        "window": [
+          "2022-01-01",
+          "2022-12-31"
+        ],
+        "by_config": {
+          "baseline": {
+            "point_estimate_sharpe": null,
+            "by_block_len": {
+              "10": null,
+              "20": null,
+              "40": null
+            }
+          },
+          "challenger": {
+            "point_estimate_sharpe": null,
+            "by_block_len": {
+              "10": null,
+              "20": null,
+              "40": null
+            }
+          }
+        }
+      },
+      "ai_pivot_rerating_2023_2025": {
+        "n_obs": 360,
+        "window": [
+          "2023-01-01",
+          "2025-12-31"
+        ],
+        "by_config": {
+          "baseline": {
+            "point_estimate_sharpe": 1.1446586479243417,
+            "by_block_len": {
+              "10": {
+                "point_estimate_sharpe": 1.1446586479243417,
+                "mean": 1.1621852579983643,
+                "std": 0.8399162447079153,
+                "ci90": [
+                  -0.2181570974454708,
+                  2.560056972841484
+                ]
+              },
+              "20": {
+                "point_estimate_sharpe": 1.1446586479243417,
+                "mean": 1.1378061115073155,
+                "std": 0.8344498739050399,
+                "ci90": [
+                  -0.1556966511495667,
+                  2.5226875555644477
+                ]
+              },
+              "40": {
+                "point_estimate_sharpe": 1.1446586479243417,
+                "mean": 1.147580106262291,
+                "std": 0.9768135606978654,
+                "ci90": [
+                  -0.4478773683976612,
+                  2.7625652417150937
+                ]
+              }
+            }
+          },
+          "challenger": {
+            "point_estimate_sharpe": 0.8057588137738758,
+            "by_block_len": {
+              "10": {
+                "point_estimate_sharpe": 0.8057588137738758,
+                "mean": 0.7896642327159467,
+                "std": 0.758753514950697,
+                "ci90": [
+                  -0.44879473152429394,
+                  2.010924587357186
+                ]
+              },
+              "20": {
+                "point_estimate_sharpe": 0.8057588137738758,
+                "mean": 0.8175245588726526,
+                "std": 0.7720402952867109,
+                "ci90": [
+                  -0.4351672964050467,
+                  2.099256686685095
+                ]
+              },
+              "40": {
+                "point_estimate_sharpe": 0.8057588137738758,
+                "mean": 0.7879955480776467,
+                "std": 0.8805954569921196,
+                "ci90": [
+                  -0.6762909156468988,
+                  2.2447761573123084
+                ]
+              }
+            }
+          }
+        }
+      },
+      "recent_2026": {
+        "n_obs": 157,
+        "window": [
+          "2026-01-01",
+          "2026-08-19"
+        ],
+        "by_config": {
+          "baseline": {
+            "point_estimate_sharpe": 0.8882424787677037,
+            "by_block_len": {
+              "10": {
+                "point_estimate_sharpe": 0.8882424787677037,
+                "mean": 0.8949730860772406,
+                "std": 1.0181704028610854,
+                "ci90": [
+                  -0.7236404578118946,
+                  2.588343701403173
+                ]
+              },
+              "20": {
+                "point_estimate_sharpe": 0.8882424787677037,
+                "mean": 0.907549407694289,
+                "std": 1.0222745052843754,
+                "ci90": [
+                  -0.7543845454677184,
+                  2.6868847206284605
+                ]
+              },
+              "40": {
+                "point_estimate_sharpe": 0.8882424787677037,
+                "mean": 0.941119986860126,
+                "std": 1.0590913906295525,
+                "ci90": [
+                  -0.6805011071478297,
+                  2.798930475032356
+                ]
+              }
+            }
+          },
+          "challenger": {
+            "point_estimate_sharpe": -0.030481800697087866,
+            "by_block_len": {
+              "10": {
+                "point_estimate_sharpe": -0.030481800697087866,
+                "mean": 0.02456126748738842,
+                "std": 1.0845292451063575,
+                "ci90": [
+                  -1.713983784281831,
+                  1.8538012061119764
+                ]
+              },
+              "20": {
+                "point_estimate_sharpe": -0.030481800697087866,
+                "mean": 0.04306658121995042,
+                "std": 0.974159116713653,
+                "ci90": [
+                  -1.4622382727243675,
+                  1.7064492985142832
+                ]
+              },
+              "40": {
+                "point_estimate_sharpe": -0.030481800697087866,
+                "mean": 0.07342927809099681,
+                "std": 0.8268029177246794,
+                "ci90": [
+                  -1.2992786540297179,
+                  1.4253063252651357
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "k_sensitivity_weighting_only_win_rate": {
+      "15": 0.0,
+      "30": 0.0,
+      "60": 0.0
+    },
+    "weighting_only_H30_style": {
+      "win_rate_challenger": 0.0,
+      "mean_ev": {
+        "baseline": 1.066895065618051,
+        "challenger": 0.5521513050697293
+      },
+      "gap_challenger_minus_baseline": {
+        "mean": -0.5147437605483216,
+        "ci90": [
+          -0.5984354883176758,
+          -0.44111726239671584
+        ],
+        "pct_draws_challenger_ahead": 0.0
+      }
+    },
+    "sampling_only_bootstrap": {
+      "win_rate_challenger": 0.2994,
+      "mean_ev": {
+        "baseline": 1.0649825243622668,
+        "challenger": 0.5767084883350564
+      },
+      "gap_challenger_minus_baseline": {
+        "mean": -0.48827403602721053,
+        "ci90": [
+          -1.9811630833994123,
+          0.9706655149990718
+        ],
+        "pct_draws_challenger_ahead": 0.2994
+      }
+    },
+    "combined_weighting_x_sampling": {
+      "win_rate_challenger": 0.3072,
+      "mean_ev": {
+        "baseline": 1.0674784647220796,
+        "challenger": 0.5881435217276331
+      },
+      "gap_challenger_minus_baseline": {
+        "mean": -0.4793349429944466,
+        "ci90": [
+          -2.019077101351771,
+          1.0034696480162817
+        ],
+        "pct_draws_challenger_ahead": 0.3072
+      }
+    }
+  },
+  "h3": {
+    "label": "H3_low_beta_tilt",
+    "valid_archetypes": [
+      "crypto_winter_2022",
+      "ai_pivot_rerating_2023_2025",
+      "recent_2026"
+    ],
+    "excluded_archetypes": [
+      {
+        "archetype": "crypto_bull_2020_2021",
+        "n_obs": 0,
+        "reason": "insufficient_common_data"
+      }
+    ],
+    "base_rates": {
+      "crypto_winter_2022": 0.17363636363636364,
+      "ai_pivot_rerating_2023_2025": 0.6836363636363636,
+      "recent_2026": 0.14272727272727273
+    },
+    "archetype_bootstrap": {
+      "crypto_bull_2020_2021": {
+        "n_obs": 0,
+        "window": [
+          "2020-01-01",
+          "2021-12-31"
+        ],
+        "by_config": {
+          "baseline": {
+            "point_estimate_sharpe": null,
+            "by_block_len": {
+              "10": null,
+              "20": null,
+              "40": null
+            }
+          },
+          "challenger": {
+            "point_estimate_sharpe": null,
+            "by_block_len": {
+              "10": null,
+              "20": null,
+              "40": null
+            }
+          }
+        }
+      },
+      "crypto_winter_2022": {
+        "n_obs": 191,
+        "window": [
+          "2022-01-01",
+          "2022-12-31"
+        ],
+        "by_config": {
+          "baseline": {
+            "point_estimate_sharpe": -2.2256720673152124,
+            "by_block_len": {
+              "10": {
+                "point_estimate_sharpe": -2.2256720673152124,
+                "mean": -2.237888722597102,
+                "std": 1.0943967833023331,
+                "ci90": [
+                  -4.042532585806309,
+                  -0.4376545528116006
+                ]
+              },
+              "20": {
+                "point_estimate_sharpe": -2.2256720673152124,
+                "mean": -2.2489319630591806,
+                "std": 1.0203192802464902,
+                "ci90": [
+                  -3.8866721991166484,
+                  -0.5213626711065507
+                ]
+              },
+              "40": {
+                "point_estimate_sharpe": -2.2256720673152124,
+                "mean": -2.215337237754702,
+                "std": 1.0049319607675855,
+                "ci90": [
+                  -3.779847236069189,
+                  -0.48326267676080564
+                ]
+              }
+            }
+          },
+          "challenger": {
+            "point_estimate_sharpe": -2.156067313645575,
+            "by_block_len": {
+              "10": {
+                "point_estimate_sharpe": -2.156067313645575,
+                "mean": -2.1625547678307693,
+                "std": 1.0742748619658873,
+                "ci90": [
+                  -3.977739473668803,
+                  -0.41038148846079964
+                ]
+              },
+              "20": {
+                "point_estimate_sharpe": -2.156067313645575,
+                "mean": -2.179072453185644,
+                "std": 1.0149763665892502,
+                "ci90": [
+                  -3.8010357130048527,
+                  -0.4798983026746641
+                ]
+              },
+              "40": {
+                "point_estimate_sharpe": -2.156067313645575,
+                "mean": -2.200807551011414,
+                "std": 0.9965431274609512,
+                "ci90": [
+                  -3.747344460115467,
+                  -0.518523503225021
+                ]
+              }
+            }
+          }
+        }
+      },
+      "ai_pivot_rerating_2023_2025": {
+        "n_obs": 752,
+        "window": [
+          "2023-01-01",
+          "2025-12-31"
+        ],
+        "by_config": {
+          "baseline": {
+            "point_estimate_sharpe": 1.517308744052855,
+            "by_block_len": {
+              "10": {
+                "point_estimate_sharpe": 1.517308744052855,
+                "mean": 1.5116049159556277,
+                "std": 0.5897179788985928,
+                "ci90": [
+                  0.5060502111559372,
+                  2.462524935959741
+                ]
+              },
+              "20": {
+                "point_estimate_sharpe": 1.517308744052855,
+                "mean": 1.4924614487906918,
+                "std": 0.604226392426257,
+                "ci90": [
+                  0.5064186783597296,
+                  2.431940020550171
+                ]
+              },
+              "40": {
+                "point_estimate_sharpe": 1.517308744052855,
+                "mean": 1.51891854476791,
+                "std": 0.5827633008453726,
+                "ci90": [
+                  0.5430631323908611,
+                  2.4283366730602065
+                ]
+              }
+            }
+          },
+          "challenger": {
+            "point_estimate_sharpe": 1.236119213321914,
+            "by_block_len": {
+              "10": {
+                "point_estimate_sharpe": 1.236119213321914,
+                "mean": 1.2202598290125415,
+                "std": 0.5916088875978778,
+                "ci90": [
+                  0.24894225928390254,
+                  2.1833762138516715
+                ]
+              },
+              "20": {
+                "point_estimate_sharpe": 1.236119213321914,
+                "mean": 1.2248418465764952,
+                "std": 0.6369738805773956,
+                "ci90": [
+                  0.18587823034785841,
+                  2.2737246523313446
+                ]
+              },
+              "40": {
+                "point_estimate_sharpe": 1.236119213321914,
+                "mean": 1.2473593711721334,
+                "std": 0.6159062886436271,
+                "ci90": [
+                  0.24205929073722304,
+                  2.2599645228808507
+                ]
+              }
+            }
+          }
+        }
+      },
+      "recent_2026": {
+        "n_obs": 157,
+        "window": [
+          "2026-01-01",
+          "2026-08-19"
+        ],
+        "by_config": {
+          "baseline": {
+            "point_estimate_sharpe": 0.8710080466580957,
+            "by_block_len": {
+              "10": {
+                "point_estimate_sharpe": 0.8710080466580957,
+                "mean": 0.9250230968261415,
+                "std": 1.006712218960672,
+                "ci90": [
+                  -0.6544729009892346,
+                  2.606351954763784
+                ]
+              },
+              "20": {
+                "point_estimate_sharpe": 0.8710080466580957,
+                "mean": 0.898377984687587,
+                "std": 1.0072386445994213,
+                "ci90": [
+                  -0.7427130453591105,
+                  2.5725128998899067
+                ]
+              },
+              "40": {
+                "point_estimate_sharpe": 0.8710080466580957,
+                "mean": 0.919849437059825,
+                "std": 1.0289941381026182,
+                "ci90": [
+                  -0.5848916789193983,
+                  2.7475619088227026
+                ]
+              }
+            }
+          },
+          "challenger": {
+            "point_estimate_sharpe": 0.8847642791587119,
+            "by_block_len": {
+              "10": {
+                "point_estimate_sharpe": 0.8847642791587119,
+                "mean": 0.902859706434387,
+                "std": 1.0043759830840724,
+                "ci90": [
+                  -0.666719845568717,
+                  2.5819095003338197
+                ]
+              },
+              "20": {
+                "point_estimate_sharpe": 0.8847642791587119,
+                "mean": 0.9417242352954852,
+                "std": 0.9938521884851237,
+                "ci90": [
+                  -0.6072154956596454,
+                  2.655102360464492
+                ]
+              },
+              "40": {
+                "point_estimate_sharpe": 0.8847642791587119,
+                "mean": 0.9408402713242748,
+                "std": 1.0523929813965502,
+                "ci90": [
+                  -0.6522598578349154,
+                  2.79105257656654
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "k_sensitivity_weighting_only_win_rate": {
+      "15": 0.0,
+      "30": 0.0,
+      "60": 0.0
+    },
+    "weighting_only_H30_style": {
+      "win_rate_challenger": 0.0,
+      "mean_ev": {
+        "baseline": 0.7744005813172337,
+        "challenger": 0.5960059775813086
+      },
+      "gap_challenger_minus_baseline": {
+        "mean": -0.178394603735925,
+        "ci90": [
+          -0.22109706673831675,
+          -0.13133840465359284
+        ],
+        "pct_draws_challenger_ahead": 0.0
+      }
+    },
+    "sampling_only_bootstrap": {
+      "win_rate_challenger": 0.409,
+      "mean_ev": {
+        "baseline": 0.7550057729128498,
+        "challenger": 0.5950675698703861
+      },
+      "gap_challenger_minus_baseline": {
+        "mean": -0.15993820304246356,
+        "ci90": [
+          -1.2684822301743166,
+          0.9740128355337616
+        ],
+        "pct_draws_challenger_ahead": 0.409
+      }
+    },
+    "combined_weighting_x_sampling": {
+      "win_rate_challenger": 0.405,
+      "mean_ev": {
+        "baseline": 0.7574481062969965,
+        "challenger": 0.591275414212506
+      },
+      "gap_challenger_minus_baseline": {
+        "mean": -0.16617269208449062,
+        "ci90": [
+          -1.317065780321521,
+          0.9665312278914946
+        ],
+        "pct_draws_challenger_ahead": 0.405
+      }
+    }
+  }
+}

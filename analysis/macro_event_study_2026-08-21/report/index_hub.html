@@ -1,0 +1,236 @@
+<title>거시경제 이벤트 스터디 — 전체 리포트</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #eef1ee; --surface: #ffffff; --surface-2: #e6eae5;
+    --ink: #17211d; --ink-muted: #57635c; --ink-faint: #8b968f; --line: #d9dfd8;
+    --hike: #a8461f; --hike-soft: #f4e3da; --cut: #1f6e79; --cut-soft: #dcedee; --gold: #8a6d1f; --gold-soft: #f1e6c8;
+    --shadow: 0 1px 2px rgba(23,33,29,.06), 0 8px 24px -12px rgba(23,33,29,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+      --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+      --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+      --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c; --gold-soft: #3a3016;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+    --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+    --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+    --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c; --gold-soft: #3a3016;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Public Sans", -apple-system, "Noto Sans KR", sans-serif;
+    font-size: 16px; line-height: 1.65;
+  }
+  ::selection { background: var(--gold); color: #1a1408; }
+  a { color: var(--cut); }
+  .page { max-width: 920px; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 1rem;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 500;
+    font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.08; letter-spacing: -.01em;
+    margin: 0 0 1rem; text-wrap: balance;
+  }
+  .dek { font-size: 1.15rem; color: var(--ink-muted); max-width: 66ch; margin: 0 0 1.75rem; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: .4rem 1.6rem;
+    font-family: "IBM Plex Mono", monospace; font-size: .82rem; color: var(--ink-muted);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: .85rem 0;
+  }
+  .meta-row b { color: var(--ink); font-weight: 600; }
+
+  .capstone {
+    display: block; margin: 2.6rem 0; padding: 1.5rem 1.7rem; background: var(--surface);
+    border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow);
+    text-decoration: none; color: var(--ink);
+  }
+  .capstone .k { font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--gold); margin-bottom: .5rem; }
+  .capstone h2 { font-family: "Fraunces", serif; font-weight: 500; font-size: 1.55rem; margin: 0 0 .5rem; }
+  .capstone p { margin: 0; color: var(--ink-muted); max-width: 68ch; }
+
+  .track { margin: 3.4rem 0; }
+  .track-head { display: flex; align-items: baseline; gap: .8rem; margin-bottom: .3rem; flex-wrap: wrap; }
+  .track-head h2 {
+    font-family: "Fraunces", serif; font-weight: 500; font-size: 1.5rem; margin: 0; text-wrap: balance;
+  }
+  .track-tag {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .06em;
+    color: var(--ink-faint); text-transform: uppercase;
+  }
+  .track-desc { color: var(--ink-muted); max-width: 68ch; margin: .3rem 0 1.3rem; font-size: .95rem; }
+
+  .report-list { display: flex; flex-direction: column; gap: .7rem; }
+  .report-item {
+    display: block; text-decoration: none; color: var(--ink);
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1rem 1.2rem; transition: border-color .15s;
+  }
+  .report-item:hover { border-color: var(--cut); }
+  .report-item .rtitle { font-weight: 600; font-size: 1rem; margin-bottom: .3rem; }
+  .report-item .rdesc { font-size: .88rem; color: var(--ink-muted); }
+  .report-item .rnum {
+    display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: .72rem;
+    color: var(--ink-faint); margin-right: .5rem;
+  }
+
+  .footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--line); font-size: .82rem; color: var(--ink-faint); }
+</style>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">MACRO EVENT STUDY · 전체 리포트 허브</div>
+    <h1>거시경제가 시장을 움직이는 방식, 트랙 8개로 정리했다</h1>
+    <p class="dek">"CPI가 발표되면", "연준이 금리를 내리면", "VIX가 급등하면" — 이런 개별
+    사건이 실제로 시장에 어떤 흔적을 남기는지, 룩어헤드 없이 과거 데이터로 하나씩 검증해온
+    기록이다. 개별 트레이딩 전략이 아니라 "패턴이 실제로 존재하는지, 얼마나 믿을 만한지"를
+    묻는 게 목적이다. 아래는 지금까지 발행한 15개 리포트를 트랙별로 정리한 목차다.</p>
+    <div class="meta-row">
+      <span>트랙 <b>8개(A&ndash;H)</b></span>
+      <span>리포트 <b>15건</b></span>
+      <span>구간 <b>1950 ~ 2026</b></span>
+    </div>
+  </header>
+
+  <a class="capstone" href="https://claude.ai/code/artifact/e3de03db-a475-41ed-9a3b-95137b0720ef">
+    <div class="k">먼저 읽을 것 — 메타 요약</div>
+    <h2>이 프로젝트에서 가장 믿을 만한 발견 다섯</h2>
+    <p>15개 리포트를 처음부터 다 읽을 필요는 없다. 표본 크기·재현 여부·선행/동행지표 구분을
+    기준으로 가장 신뢰도 높은 발견 다섯 개를 추려두었고, 여러 리포트에 걸쳐 반복 확인된
+    패턴(채권의 일관된 이상반응, "냉각"이 골디락스를 이기는 패턴 등) 섹션도 여기 있다.</p>
+  </a>
+
+  <div class="track">
+    <div class="track-head"><h2>트랙 A</h2><span class="track-tag">정기 거시지표 발표</span></div>
+    <p class="track-desc">FRED에서 발표일을 정확히 뽑아내는 정기 발표 이벤트 — 표본이 가장
+    크고 통계적으로 가장 믿을 만한 트랙.</p>
+    <div class="report-list">
+      <a class="report-item" href="https://claude.ai/code/artifact/0bd74ef1-562c-43ae-9b58-d3a34eb8458b">
+        <div class="rtitle"><span class="rnum">01</span>연준 금리 이벤트 스터디</div>
+        <div class="rdesc">1990~2026년 109건의 금리변경 — 인상/인하 자체보다 "왜 내렸는가"(침체 vs 보험성)가 이후 수익률을 더 크게 갈랐다.</div>
+      </a>
+      <a class="report-item" href="https://claude.ai/code/artifact/1ab33353-f0d3-46c3-bb07-7993fc09a1d5">
+        <div class="rtitle"><span class="rnum">02</span>물가·고용·성장 4개 지표 종합비교</div>
+        <div class="rdesc">CPI·PCE·NFP·GDP를 한 틀로 비교. 물가감속이 가장 선명하게 갈렸고(3배차), "골디락스" 직관은 실제 교차검증에서 틀렸다.</div>
+      </a>
+      <a class="report-item" href="https://claude.ai/code/artifact/5063fd3a-c2f3-417b-9076-b1206552de15">
+        <div class="rtitle"><span class="rnum">03</span>고용지표가 선명해지는 순간</div>
+        <div class="rdesc">NFP 단독으론 안 갈리던 결과가 CPI 국면과 교차하면 4배 이상 선명해진다 — 단 이번에도 CPI 축이 대부분을 설명.</div>
+      </a>
+      <a class="report-item" href="https://claude.ai/code/artifact/14253d93-2e68-4e55-9d14-f1330f43db5a">
+        <div class="rtitle"><span class="rnum">04</span>유명한 침체 신호 두 개</div>
+        <div class="rdesc">장단기 금리역전(선행지표, "즉시매도"는 틀림) vs 샴의 법칙(동행지표, 극단적으로 양극화) — 신호의 타당성과 매매 타이밍은 다른 질문.</div>
+      </a>
+    </div>
+  </div>
+
+  <div class="track">
+    <div class="track-head"><h2>트랙 B</h2><span class="track-tag">큐레이션 충격 사건</span></div>
+    <p class="track-desc">날짜가 뉴스에 이미 잘 기록된 유명한 정치·정책 사건들의 사례 연구.</p>
+    <div class="report-list">
+      <a class="report-item" href="https://claude.ai/code/artifact/fa632f59-17d0-447e-b387-881bc3cba1eb">
+        <div class="rtitle"><span class="rnum">05</span>유형 다각화 사례연구(10건)</div>
+        <div class="rdesc">신용등급 강등·대선·셧다운·팬데믹·전쟁·은행파산·관세, 리먼·9·11·브렉시트까지. 10건 중 8건이 60거래일 내 회복.</div>
+      </a>
+      <a class="report-item" href="https://claude.ai/code/artifact/d6abdecb-6b31-47cf-9c17-d2d4ea7273cc">
+        <div class="rtitle"><span class="rnum">06</span>충격 사건과 안전자산</div>
+        <div class="rdesc">같은 10건에 채권·금 반응을 검증. 채권은 안전자산 역할에 실패(승률44.4%), 금이 오히려 더 신뢰할 만했다(승률77.8%).</div>
+      </a>
+    </div>
+  </div>
+
+  <div class="track">
+    <div class="track-head"><h2>트랙 D</h2><span class="track-tag">순수 달력 효과</span></div>
+    <p class="track-desc">거시 발표나 신호 없이 가격 데이터와 날짜만으로 확인하는 계절성·주기 효과.</p>
+    <div class="report-list">
+      <a class="report-item" href="https://claude.ai/code/artifact/fe955a38-0bed-4df2-b323-5790af5469c3">
+        <div class="rtitle"><span class="rnum">07</span>증시의 달력 효과 세 가지</div>
+        <div class="rdesc">"5월에 팔고 떠나라"(지속) · 대선 3년차 효과(지속) · 월요일 효과(소멸) — 세 가지 대비되는 결론과 최근 30년 재검증.</div>
+      </a>
+      <a class="report-item" href="https://claude.ai/code/artifact/5e616a5d-37bc-4525-b32a-7b75e46b66c1">
+        <div class="rtitle"><span class="rnum">08</span>두 달력 효과를 겹치면 더 세질까</div>
+        <div class="rdesc">대선주기 × 계절성 8칸 교차표. 상방은 증폭 안 됐지만 하방(2년차×5~10월)은 유일하게 마이너스로 오히려 증폭됐다.</div>
+      </a>
+    </div>
+  </div>
+
+  <div class="track">
+    <div class="track-head"><h2>트랙 E</h2><span class="track-tag">자산군 교차분석</span></div>
+    <p class="track-desc">S&amp;P500 말고 채권·금·달러·섹터가 같은 사건에 어떻게 다르게 반응했는지.</p>
+    <div class="report-list">
+      <a class="report-item" href="https://claude.ai/code/artifact/b11f4b37-aa6e-48cc-8d8c-86f2adbd7391">
+        <div class="rtitle"><span class="rnum">09</span>자산군 교차분석</div>
+        <div class="rdesc">채권과 금은 CPI·FOMC·침체분리·대선주기 네 가지 기준 모두에서 교과서와 다르게 움직였다(채권은 4전 4패, 금은 오히려 강력히 확인).</div>
+      </a>
+      <a class="report-item" href="https://claude.ai/code/artifact/2eb3a246-db52-4db4-8315-3e840983f5ac">
+        <div class="rtitle"><span class="rnum">10</span>섹터 로테이션과 금리결정</div>
+        <div class="rdesc">9개 섹터ETF로 확장. 금융주가 인하 후 가장 아팠고(승률42.9%), 기술주는 인상 국면에도 오히려 강했다.</div>
+      </a>
+    </div>
+  </div>
+
+  <div class="track">
+    <div class="track-head"><h2>트랙 F</h2><span class="track-tag">VIX 공포지수</span></div>
+    <p class="track-desc">"공포에 사라"는 통설을 임계값·룩백윈도·거울상 가설까지 사전등록해 검증.</p>
+    <div class="report-list">
+      <a class="report-item" href="https://claude.ai/code/artifact/a0a91df1-c62d-4a7d-852d-b7f6049a8e72">
+        <div class="rtitle"><span class="rnum">11</span>공포에 사면 이겼을까</div>
+        <div class="rdesc">VIX 30/40/50 급등 검증 — 임계값이 높을수록(더 무서울수록) 그 뒤 반등도 더 강했다. 단 리먼 직후(2008-10)만 유일한 완전 실패.</div>
+      </a>
+      <a class="report-item" href="https://claude.ai/code/artifact/766f0a8c-7565-4daf-a5bb-fff4bc10ab02">
+        <div class="rtitle"><span class="rnum">12</span>안일함의 대가</div>
+        <div class="rdesc">거울상 가설(VIX 극저점=나쁜 신호)은 기각. 룩백윈도 10/20/30 민감도 검증은 통과 — 원래 결론이 우연이 아님을 확인.</div>
+      </a>
+    </div>
+  </div>
+
+  <div class="track">
+    <div class="track-head"><h2>트랙 G</h2><span class="track-tag">인상 사이클의 두 얼굴</span></div>
+    <p class="track-desc">"정상 긴축"과 "인플레이션 진압"으로 나눈 인상 51건을 사전등록 가설 3개로 검증.</p>
+    <div class="report-list">
+      <a class="report-item" href="https://claude.ai/code/artifact/fe91a898-d5c4-44a2-b238-3a8c76702a7c">
+        <div class="rtitle"><span class="rnum">13</span>인상 사이클의 두 얼굴</div>
+        <div class="rdesc">"진압형 인상이 더 나쁠 것"은 기각 — 오히려 평균수익률은 진압형이 더 높았다. 기술주 강세도 두 유형 모두에서 견조.</div>
+      </a>
+    </div>
+  </div>
+
+  <div class="track">
+    <div class="track-head"><h2>트랙 H</h2><span class="track-tag">신용시장의 공포지수</span></div>
+    <p class="track-desc">크레딧 스프레드(정크본드-국채 금리차)를 VIX·금리역전에 이은 세 번째 독립 신호로 검증.</p>
+    <div class="report-list">
+      <a class="report-item" href="https://claude.ai/code/artifact/e26038d1-2d9c-494d-9d68-1c6f655ae97b">
+        <div class="rtitle"><span class="rnum">14</span>신용시장의 공포지수</div>
+        <div class="rdesc">VIX와 달리 "공포에 사라" 패턴이 재현 안 됨(기각). 대신 금리역전보다 훨씬 빠른 동행지표라는 점은 확인.</div>
+      </a>
+    </div>
+  </div>
+
+  <div class="track">
+    <div class="track-head"><h2>메타 요약</h2><span class="track-tag">캡스톤</span></div>
+    <div class="report-list">
+      <a class="report-item" href="https://claude.ai/code/artifact/e3de03db-a475-41ed-9a3b-95137b0720ef">
+        <div class="rtitle"><span class="rnum">15</span>가장 믿을 만한 발견 다섯</div>
+        <div class="rdesc">15개 리포트를 표본크기·재현성·선행/동행지표 구분 기준으로 종합 순위화. 반복 확인된 4가지 패턴 섹션 포함.</div>
+      </a>
+    </div>
+  </div>
+
+  <div class="footer">
+    방법론 원칙: 룩어헤드 없음 · 사후에 유리한 기준을 고르지 않음(임계값은 사전 확정 또는 공식
+    통계 사용) · 교란요인을 숨기지 않고 명시 · 경제학 배경지식 없이도 이해되게 설명. 2026-08-23
+    라운드부터는 모든 세부 연구에 사전등록 가설 + CONFIRMED/DISCONFIRMED/MIXED 명시적 판정을
+    적용.
+  </div>
+</div>

@@ -1,0 +1,321 @@
+<title>동결도 사건이었다</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #eef1ee; --surface: #ffffff; --surface-2: #e6eae5;
+    --ink: #17211d; --ink-muted: #57635c; --ink-faint: #8b968f; --line: #d9dfd8;
+    --hike: #a8461f; --hike-soft: #f4e3da; --cut: #1f6e79; --cut-soft: #dcedee; --gold: #8a6d1f;
+    --gold-soft: #f1e9d2;
+    --shadow: 0 1px 2px rgba(23,33,29,.06), 0 8px 24px -12px rgba(23,33,29,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+      --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+      --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+      --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c; --gold-soft: #33291a;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+    --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+    --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+    --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c; --gold-soft: #33291a;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Public Sans", -apple-system, "Noto Sans KR", sans-serif;
+    font-size: 16px; line-height: 1.65;
+  }
+  ::selection { background: var(--gold); color: #1a1408; }
+  a { color: var(--cut); }
+  .page { max-width: 880px; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 1rem;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 500;
+    font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.08; letter-spacing: -.01em;
+    margin: 0 0 1rem; text-wrap: balance;
+  }
+  .dek { font-size: 1.15rem; color: var(--ink-muted); max-width: 62ch; margin: 0 0 1.75rem; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: .4rem 1.6rem;
+    font-family: "IBM Plex Mono", monospace; font-size: .82rem; color: var(--ink-muted);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: .85rem 0;
+  }
+  .meta-row b { color: var(--ink); font-weight: 600; }
+  section { margin: 3.2rem 0; }
+  section > h2 {
+    font-family: "Fraunces", serif; font-weight: 500; font-size: 1.6rem;
+    letter-spacing: -.005em; margin: 0 0 .3rem; text-wrap: balance;
+  }
+  section > h3 {
+    font-family: "Fraunces", serif; font-weight: 500; font-size: 1.18rem;
+    letter-spacing: -.005em; margin: 1.6rem 0 .5rem;
+  }
+  section > .lede { color: var(--ink-muted); max-width: 66ch; margin: 0 0 1.4rem; }
+  p { max-width: 68ch; }
+  .note {
+    background: var(--surface-2); border-left: 3px solid var(--gold); border-radius: 4px;
+    padding: .9rem 1.1rem; font-size: .93rem; color: var(--ink-muted); max-width: 68ch; margin: 1.1rem 0;
+  }
+  .note b { color: var(--ink); }
+  .callout {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.2rem 1.4rem; box-shadow: var(--shadow); margin: 1.4rem 0;
+  }
+  .hyp {
+    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--ink-faint);
+    border-radius: 8px; padding: 1rem 1.2rem; margin: 1rem 0; box-shadow: var(--shadow);
+  }
+  .hyp .tag {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: .4rem;
+  }
+  .verdict {
+    display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: .78rem;
+    letter-spacing: .06em; text-transform: uppercase; padding: .3rem .7rem; border-radius: 20px;
+    font-weight: 600; margin-left: .5rem;
+  }
+  .verdict.confirmed { background: var(--cut-soft); color: var(--cut); }
+  .verdict.disconfirmed { background: var(--hike-soft); color: var(--hike); }
+  .verdict.mixed { background: var(--gold-soft); color: var(--gold); border: 1px solid var(--gold); }
+
+  .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: .6rem; margin: 1rem 0 1.4rem; }
+  .stat-cell {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
+    text-align: center; padding: .7rem .3rem;
+  }
+  .stat-cell .k { font-size: .68rem; color: var(--ink-faint); margin-bottom: .25rem; font-family: "IBM Plex Mono", monospace;}
+  .stat-cell .v {
+    font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 1.05rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-cell .v.pos { color: var(--cut); }
+  .stat-cell .v.neg { color: var(--hike); }
+  @media (max-width: 560px) { .stat-row { grid-template-columns: repeat(2, 1fr); } }
+
+  .table-wrap { overflow-x: auto; margin: 1rem 0; border: 1px solid var(--line); border-radius: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: .86rem; background: var(--surface); }
+  th, td { padding: .5rem .7rem; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th { font-family: "IBM Plex Mono", monospace; font-size: .66rem; letter-spacing: .04em;
+    text-transform: uppercase; color: var(--ink-faint); text-align: right; background: var(--surface-2); }
+  td:first-child, th:first-child { text-align: left; }
+  tr:last-child td { border-bottom: none; }
+  td.pos { color: var(--cut); font-family: "IBM Plex Mono", monospace; }
+  td.neg { color: var(--hike); font-family: "IBM Plex Mono", monospace; }
+  .end-tag {
+    font-family: "IBM Plex Mono", monospace; font-size: .65rem; padding: .12rem .4rem;
+    border-radius: 4px;
+  }
+  .end-tag.cut { background: var(--cut-soft); color: var(--cut); }
+  .end-tag.hike { background: var(--hike-soft); color: var(--hike); }
+  .end-tag.censored { background: var(--surface-2); color: var(--ink-faint); }
+
+  ul.findings { padding-left: 1.2rem; max-width: 68ch; }
+  ul.findings li { margin-bottom: .9rem; }
+  ul.findings b { color: var(--ink); }
+
+  .footer {
+    margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--line);
+    font-size: .82rem; color: var(--ink-faint);
+  }
+  .footer a { color: var(--ink-faint); text-decoration: underline; }
+</style>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">MACRO EVENT STUDY · 트랙 A · 신규 이벤트 유형 · 1990&ndash;2026</div>
+    <h1>연준이 아무것도 안 한 기간도 사건이었다</h1>
+    <p class="dek">이 프로젝트의 모든 FOMC 스터디는 지금까지 "금리가 바뀐 순간"만 봤다.
+    아무도 연준이 오래도록 금리를 그대로 두는 "장기 동결 국면" 자체를 들여다본 적이 없다.
+    이 국면이 안정적인 호황의 신호인지, 아니면 그냥 조용한 무사건(non-event)인지 확인한다.</p>
+    <div class="meta-row">
+      <span>장기 동결 정의 <b>연속 변경일 사이 180일 이상</b></span>
+      <span>탐지된 장기 동결 <b>18건</b>(1990~2026)</span>
+      <span>기준선 <b>1990~2026 무조건부 연율화 +8.73%</b></span>
+    </div>
+  </header>
+
+  <section>
+    <h2>사전등록 가설 &mdash; 결과를 보기 전에 먼저 적어둔다</h2>
+    <p class="lede">180일이라는 임계값과 문구 모두 계산 전에 확정했고, 결과를 본 뒤 손대지
+    않았다.</p>
+
+    <div class="hyp">
+      <div class="tag">H1</div>
+      <p style="margin:0;color:var(--ink-muted);">장기 동결 국면 중 S&amp;P500 수익률(연율화)이
+      1990~2026 전체 기간의 무조건부 연율화 수익률보다 높다 &mdash; 동결은 연준이 경제를
+      "위기도 아니고 과열도 아닌 안정 상태"로 판단할 때 나오는 경우가 많아, 실제로 우호적인
+      배경일 수 있다는 직관을 검증한다.</p>
+    </div>
+    <div class="hyp">
+      <div class="tag">H2</div>
+      <p style="margin:0;color:var(--ink-muted);">동결이 오래 지속될수록(이미 진행된 기간이
+      길수록) 그 시점부터의 +60거래일 순방향 수익률이 더 약해진다 &mdash; "평온이 오래갈수록
+      다음 충격이 가까워진다"는 불안/안일함 누적 서사를, 각 동결 구간의 30일차 vs 200일차
+      시점의 +60거래일 수익률로 비교한다. 표본이 매우 적을 것으로 예상되므로(180일 기준
+      때문에), 이건 구간 간 비교가 아니라 구간 내부의 시계열 비교임을 명시하고 표본 수에
+      걸맞은 회의적 태도로 다룬다.</p>
+    </div>
+    <div class="hyp">
+      <div class="tag">H3 (탐색적)</div>
+      <p style="margin:0;color:var(--ink-muted);">각 동결 구간이 실제로 어떻게 끝나는지(인상,
+      인하, 혹은 데이터가 끝나 절단됨) 태깅하고, 인하로 끝난 동결의 마지막 20~60일 시장
+      움직임이 인상으로 끝난 동결보다 더 나빴는지 비공식적으로 확인한다 &mdash; 이미 검증된
+      장단기 금리역전·VIX·신용스프레드 선행지표와는 다른 새로운 각도다.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>탐지된 장기 동결 국면 18건</h2>
+    <p class="lede">연속된 두 금리변경 이벤트 사이(또는 시계열의 시작/끝)의 간격이 180일
+    이상인 구간. 마지막 한 건은 데이터가 끝나서 절단(censored)됐다 &mdash; 이 글을 쓰는
+    시점에도 진행 중일 수 있다는 뜻이다.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>시작</th><th>종료</th><th>기간(일)</th><th>종료 유형</th><th>구간 수익률</th><th>연율화</th></tr></thead>
+        <tbody>
+          <tr><td>1990-01-01</td><td>1990-07-13</td><td>193</td><td><span class="end-tag cut">인하로 종료</span></td><td class="pos">+2.12%</td><td class="pos">+4.07%</td></tr>
+          <tr><td>1992-09-04</td><td>1994-02-04</td><td>518</td><td><span class="end-tag hike">인상으로 종료</span></td><td class="pos">+12.64%</td><td class="pos">+8.76%</td></tr>
+          <tr><td>1996-01-31</td><td>1997-03-25</td><td>419</td><td><span class="end-tag hike">인상으로 종료</span></td><td class="pos">+24.06%</td><td class="pos">+20.68%</td></tr>
+          <tr><td>1997-03-25</td><td>1998-09-29</td><td>553</td><td><span class="end-tag cut">인하로 종료</span></td><td class="pos">+32.94%</td><td class="pos">+20.69%</td></tr>
+          <tr><td>1998-11-17</td><td>1999-06-30</td><td>225</td><td><span class="end-tag hike">인상으로 종료</span></td><td class="pos">+20.48%</td><td class="pos">+35.33%</td></tr>
+          <tr><td>2000-05-16</td><td>2001-01-03</td><td>232</td><td><span class="end-tag cut">인하로 종료</span></td><td class="neg">&minus;8.08%</td><td class="neg">&minus;12.43%</td></tr>
+          <tr><td>2001-12-11</td><td>2002-11-06</td><td>330</td><td><span class="end-tag cut">인하로 종료</span></td><td class="neg">&minus;18.74%</td><td class="neg">&minus;20.52%</td></tr>
+          <tr><td>2002-11-06</td><td>2003-06-25</td><td>231</td><td><span class="end-tag cut">인하로 종료</span></td><td class="pos">+5.58%</td><td class="pos">+8.97%</td></tr>
+          <tr><td>2003-06-25</td><td>2004-06-30</td><td>371</td><td><span class="end-tag hike">인상으로 종료</span></td><td class="pos">+16.97%</td><td class="pos">+16.69%</td></tr>
+          <tr><td>2006-06-29</td><td>2007-09-18</td><td>446</td><td><span class="end-tag cut">인하로 종료</span></td><td class="pos">+19.40%</td><td class="pos">+15.63%</td></tr>
+          <tr><td>2008-12-16</td><td>2015-12-16</td><td>2556</td><td><span class="end-tag hike">인상으로 종료</span></td><td class="pos">+127.02%</td><td class="pos">+12.43%</td></tr>
+          <tr><td>2015-12-16</td><td>2016-12-14</td><td>364</td><td><span class="end-tag hike">인상으로 종료</span></td><td class="pos">+8.69%</td><td class="pos">+8.72%</td></tr>
+          <tr><td>2017-06-15</td><td>2017-12-14</td><td>182</td><td><span class="end-tag hike">인상으로 종료</span></td><td class="pos">+9.03%</td><td class="pos">+18.94%</td></tr>
+          <tr><td>2018-12-20</td><td>2019-08-01</td><td>224</td><td><span class="end-tag cut">인하로 종료</span></td><td class="pos">+19.70%</td><td class="pos">+34.08%</td></tr>
+          <tr><td>2020-03-16</td><td>2022-03-17</td><td>731</td><td><span class="end-tag hike">인상으로 종료</span></td><td class="pos">+84.89%</td><td class="pos">+35.95%</td></tr>
+          <tr><td>2023-07-27</td><td>2024-09-19</td><td>420</td><td><span class="end-tag cut">인하로 종료</span></td><td class="pos">+25.92%</td><td class="pos">+22.20%</td></tr>
+          <tr><td>2024-12-19</td><td>2025-09-18</td><td>273</td><td><span class="end-tag cut">인하로 종료</span></td><td class="pos">+13.04%</td><td class="pos">+17.82%</td></tr>
+          <tr><td>2025-12-11</td><td>2026-08-20</td><td>252</td><td><span class="end-tag censored">절단(진행중)</span></td><td class="pos">+11.69%</td><td class="pos">+17.46%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">가장 긴 동결은 2008년 금융위기 직후 제로금리 시기(2008-12~2015-12,
+    2556일=약 7년)다. 가장 짧은 건 2017년 182일로 사전 기준(180일)을 겨우 넘겼다.</p>
+  </section>
+
+  <section>
+    <h2>H1 검증 &mdash; 동결 국면은 우호적인 배경이었는가</h2>
+    <div class="stat-row">
+      <div class="stat-cell"><div class="k">무조건부<br>연율화 기준선</div><div class="v pos">+8.73%</div></div>
+      <div class="stat-cell"><div class="k">동결 국면<br>평균 연율화</div><div class="v pos">+14.75%</div></div>
+      <div class="stat-cell"><div class="k">기준선 상회<br>구간 수</div><div class="v pos">14/18</div></div>
+      <div class="stat-cell"><div class="k">기준선 상회<br>비율</div><div class="v pos">77.8%</div></div>
+    </div>
+    <p>18건의 장기 동결 구간 평균 연율화 수익률(+14.75%)이 전체 기간 무조건부 연율화 수익률
+    (+8.73%)을 뚜렷하게 웃돌았다. 18건 중 14건(77.8%)이 개별적으로도 기준선을 상회했다.
+    기준선을 밑돈 4건 중 2건(2000-05~2001-01, 2001-12~2002-11)은 각각 닷컴버블 붕괴,
+    9·11 이후 회복 지연 국면과 겹친다 &mdash; 예외조차 이미 이 프로젝트가 확인한 "위기
+    국면에서는 다른 패턴이 나온다"는 결론과 일치한다.</p>
+  </section>
+
+  <section>
+    <h2>H2 검증 &mdash; 동결이 길어질수록 불안감이 쌓이는가</h2>
+    <div class="stat-row">
+      <div class="stat-cell"><div class="k">day30 시점<br>+60일 평균</div><div class="v pos">+4.51%</div></div>
+      <div class="stat-cell"><div class="k">day30 표본</div><div class="v">n=18</div></div>
+      <div class="stat-cell"><div class="k">day200 시점<br>+60일 평균</div><div class="v pos">+7.36%</div></div>
+      <div class="stat-cell"><div class="k">day200 표본</div><div class="v">n=7</div></div>
+    </div>
+    <p>가설과 정반대였다. 동결 30일차 시점에서 잰 +60거래일 평균(+4.51%)보다 200일차 시점
+    (+7.36%)이 오히려 더 높았다 &mdash; "오래갈수록 불안해진다"는 서사와 반대로, 동결이
+    오래 유지된 구간일수록(200일까지 버틸 만큼 안정적이었다는 뜻이기도 하다) 그 뒤로도
+    수익률이 견조했다. 다만 day200 표본은 n=7뿐이다(200일 이상 지속된 동결만 해당) &mdash;
+    이는 구간 간 비교가 아니라 소수 구간 내부의 시계열 비교라는 원래 명시한 한계 그대로다.</p>
+  </section>
+
+  <section>
+    <h2>H3 검증(탐색적) &mdash; 인하로 끝난 동결이 더 불안했는가</h2>
+    <div class="stat-row">
+      <div class="stat-cell"><div class="k">인하로 종료<br>(n=9) 종료전20일</div><div class="v pos">+4.76%</div></div>
+      <div class="stat-cell"><div class="k">인하로 종료<br>종료전60일</div><div class="v pos">+3.38%</div></div>
+      <div class="stat-cell"><div class="k">인상으로 종료<br>(n=8) 종료전20일</div><div class="v pos">+1.42%</div></div>
+      <div class="stat-cell"><div class="k">인상으로 종료<br>종료전60일</div><div class="v pos">+3.00%</div></div>
+    </div>
+    <p>비공식 기대와 반대로, 인하로 끝난 동결의 마지막 20일 평균(+4.76%)이 인상으로 끝난
+    동결(+1.42%)보다 오히려 더 높았다 &mdash; "인하 직전엔 시장이 미리 불안해할 것"이라는
+    직관이 이 데이터에서는 지지되지 않았다. 다만 개별 사례를 보면 1997-1998 동결(인하로
+    종료, 종료전20일 +9.58%지만 종료전60일 &minus;9.36%)처럼 방향이 구간 내에서도 뒤집히는
+    경우가 있어 평균만으로 정리하기 어렵다 &mdash; 절단된 1건을 뺀 17건 중 소수의 극단
+    사례가 평균에 큰 영향을 줄 수 있는 표본 크기다.</p>
+  </section>
+
+  <section>
+    <h2>가설별 최종 판정</h2>
+
+    <div class="hyp">
+      <div class="tag">H1<span class="verdict confirmed">확인</span></div>
+      <p style="margin:0;color:var(--ink-muted);">동결 국면 평균 연율화 수익률(+14.75%)이
+      무조건부 기준선(+8.73%)을 뚜렷하게 웃돌았고, 18건 중 14건(77.8%)이 개별적으로도
+      기준선을 상회했다. "연준이 오래 가만히 있다 = 안정적인 배경"이라는 직관이 지지된다.</p>
+    </div>
+    <div class="hyp">
+      <div class="tag">H2<span class="verdict disconfirmed">기각(정반대)</span></div>
+      <p style="margin:0;color:var(--ink-muted);">동결 200일차 시점의 +60일 순방향 수익률
+      (+7.36%)이 30일차 시점(+4.51%)보다 오히려 높았다 &mdash; "평온이 오래갈수록 불안해진다"는
+      서사와 정반대. 단 day200 표본은 n=7뿐이라 이건 다수 구간 간 비교가 아니라 소수 구간의
+      내부 시계열 비교라는 점을 다시 강조한다.</p>
+    </div>
+    <div class="hyp">
+      <div class="tag">H3<span class="verdict disconfirmed">기각(비공식 기대와 반대)</span></div>
+      <p style="margin:0;color:var(--ink-muted);">인하로 끝난 동결의 종료 직전 20~60일
+      수익률이 인상으로 끝난 동결보다 더 나쁘지 않았다 &mdash; 오히려 종료전20일 기준으론
+      더 좋았다. 인하 직전 시장이 미리 약해질 거라는 직관적 선행신호는 이 각도에서는
+      나타나지 않았다. n=17(절단 제외)로 표본이 작아 탐색적 결과로만 취급한다.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>경제학 지식 없이 읽는 법</h2>
+    <ul class="findings">
+      <li><b>"연준이 아무것도 안 한다"는 것도 정보다.</b> 연준이 오래 가만히 있는다는 건
+      대체로 "지금 당장 불을 끄거나 지필 필요가 없다"는 판단의 결과라서, 그 자체가 시장에
+      우호적인 신호로 작동할 수 있다 &mdash; 이번 검증에서 실제로 그렇게 나왔다.</li>
+      <li><b>"오래 조용했으니 곧 터진다"는 직감은 이번엔 틀렸다.</b> 동결이 이미 200일 넘게
+      지속된 시점에서도 시장은 계속 잘 갔다 &mdash; 다만 표본이 7개뿐이라 이 결론은 다른
+      시기에도 계속 맞을지 아직 확신하기 어렵다.</li>
+      <li><b>"인하 직전엔 시장이 먼저 불안해한다"는 것도 이번엔 확인되지 않았다.</b> 오히려
+      인하로 끝난 동결 구간은 종료 직전까지 상승세였던 경우가 많았다 &mdash; 연준의 인하가
+      "이미 나빠진 시장을 뒤늦게 따라간 것"이 아니라 "선제적으로 움직인 것"이었을 가능성을
+      시사한다(이 프로젝트가 이미 확인한 "보험성 인하" 개념과 연결된다).</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>한계</h2>
+    <div class="callout">
+      <ul class="findings" style="margin:0;">
+        <li><b>표본이 매우 작다(n=18, H2·H3은 그보다 더 작음).</b> 이건 통계적 증명이 아니라
+        "이 프로젝트가 처음 시도한 새 이벤트 유형에서 나타난 패턴" 수준이다.</li>
+        <li><b>동결 탐지가 "동결" 자체가 아니라 "인상/인하 사이의 간격"으로 이뤄졌다</b> —
+        FOMC가 회의마다 "동결을 결정"한 게 아니라, 단지 그 기간 동안 금리가 안 바뀐 것으로
+        역산했다. 실제 회의별 "동결 결정" 횟수와는 다른 개념이다.</li>
+        <li><b>마지막 동결(2025-12~현재)은 데이터가 끝나 절단됐다</b> — 이 구간이 앞으로
+        인상으로 끝날지 인하로 끝날지, 혹은 얼마나 더 길어질지 이 리포트 작성 시점에는
+        알 수 없다.</li>
+        <li><b>H1의 "우호적 배경" 결과는 인과관계가 아니라 상관관계다.</b> 동결 자체가
+        시장을 밀어올린 게 아니라, "이미 안정적인 시기였기 때문에 연준도 가만히 있을 수
+        있었다"는 반대 방향의 인과관계일 수 있다 &mdash; 이 스터디는 둘을 구분하지 않는다.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="footer">
+    데이터: FRED(DFEDTAR, DFEDTARU, DFEDTARL) · Yahoo Finance(^GSPC) · 관련 리포트:
+    <a href="https://claude.ai/code/artifact/0bd74ef1-562c-43ae-9b58-d3a34eb8458b">연준 발표일 이벤트 스터디</a>(금리변경 109건) ·
+    분석 스크립트: fomc_pause_regime_study.py
+  </div>
+</div>

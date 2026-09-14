@@ -143,6 +143,46 @@ def test_compute_regime_breakdown_empty_equity_curve_returns_empty_dict():
     assert backtest_engine.compute_regime_breakdown(empty_run) == {}
 
 
+def test_compute_drawdown_series_is_always_non_positive_and_zero_at_new_highs():
+    idx = pd.bdate_range("2022-01-03", periods=6)
+    equity = pd.Series([100, 110, 90, 95, 120, 100], index=idx, dtype=float)
+    drawdown = backtest_engine.compute_drawdown_series(equity)
+    assert (drawdown <= 0).all()
+    # 신고점을 갱신한 시점(100, 110, 120)은 낙폭이 0이어야 한다.
+    assert drawdown.iloc[0] == pytest.approx(0.0)
+    assert drawdown.iloc[1] == pytest.approx(0.0)
+    assert drawdown.iloc[4] == pytest.approx(0.0)
+    # 90은 직전 신고점 110 대비 -18.18%
+    assert drawdown.iloc[2] == pytest.approx((90 / 110 - 1) * 100)
+
+
+def test_compute_drawdown_series_empty_returns_empty():
+    result = backtest_engine.compute_drawdown_series(pd.Series(dtype=float))
+    assert result.empty
+
+
+def test_compute_monthly_returns_pivots_by_year_and_month():
+    idx = pd.bdate_range("2021-11-01", "2022-02-28")
+    rng = np.random.default_rng(3)
+    equity = pd.Series(100 * np.cumprod(1 + rng.normal(0.0005, 0.01, len(idx))), index=idx)
+    table = backtest_engine.compute_monthly_returns(equity)
+    assert set(table.columns) == set(range(1, 13))
+    assert set(table.index) == {2021, 2022}
+    # 첫 관측월(2021-11)은 비교할 직전 달이 없어 NaN이어야 한다.
+    assert pd.isna(table.loc[2021, 11])
+    # 그 외 관측된 달(2021-12, 2022-01, 2022-02)은 값이 있어야 한다.
+    assert not pd.isna(table.loc[2021, 12])
+    assert not pd.isna(table.loc[2022, 1])
+    assert not pd.isna(table.loc[2022, 2])
+
+
+def test_compute_monthly_returns_insufficient_data_returns_empty_df():
+    idx = pd.bdate_range("2022-01-03", periods=5)
+    equity = pd.Series([100, 101, 102, 101, 103], index=idx, dtype=float)
+    result = backtest_engine.compute_monthly_returns(equity)
+    assert result.empty
+
+
 def test_run_backtest_with_combined_config_and_logic():
     config_a = {"logic": "AND", "conditions": [{"indicator": "ma_cross", "short": 10, "long": 30, "type": "golden"}]}
     config_b = {"logic": "AND", "conditions": [{"indicator": "rsi", "period": 14, "op": "<", "value": 70}]}

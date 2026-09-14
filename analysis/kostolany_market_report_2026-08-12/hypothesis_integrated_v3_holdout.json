@@ -1,0 +1,43 @@
+{
+  "period": {
+    "start": "2013-01-02",
+    "end": "2014-12-30"
+  },
+  "bear_days": 0,
+  "baseline": {
+    "cumulative_return": 43.72,
+    "cagr": 19.99,
+    "mdd": -5.8,
+    "sharpe": 1.71,
+    "win_rate": 0.0,
+    "avg_holding_days": 0.0,
+    "trade_count": 0,
+    "profit_factor": 0.0,
+    "calmar": 3.44,
+    "avg_drawdown_days": 9.6
+  },
+  "v3_integrated": {
+    "cumulative_return": 43.73,
+    "cagr": 19.99,
+    "mdd": -5.8,
+    "sharpe": 1.71,
+    "win_rate": 0.0,
+    "avg_holding_days": 0.0,
+    "trade_count": 0,
+    "profit_factor": 0.0,
+    "calmar": 3.44,
+    "avg_drawdown_days": 9.6
+  },
+  "sp500_bh": {
+    "cumulative_return": 42.95,
+    "cagr": 19.7,
+    "mdd": -7.4,
+    "sharpe": 1.68,
+    "win_rate": 100.0,
+    "avg_holding_days": 726.0,
+    "trade_count": 1,
+    "profit_factor": 999.0,
+    "calmar": 2.66,
+    "avg_drawdown_days": 9.1
+  }
+}

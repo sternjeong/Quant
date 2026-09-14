@@ -43,7 +43,13 @@ from core.kostolany_cycle import (
     get_market_cycle_phase,
     save_kostolany_cycle_snapshot,
 )
-from core.kostolany_scenario_engine import compute_theme_scenario_runs, scenario_runs_to_summary_df
+from core.kostolany_scenario_engine import (
+    compute_broad_universe_scenario_runs,
+    compute_theme_scenario_runs,
+    run_ticker_contribution_policy_comparison,
+    run_ticker_scenario,
+    scenario_runs_to_summary_df,
+)
 from core.macro_cycle import (
     ASSET_CLASS_NOTES,
     classify_cfnai,
@@ -66,6 +72,7 @@ from core.market_regime import (
 from core.sector_leaders import analyze_theme_relationships, build_price_chart_candidates, get_theme_macro_context
 from core.sector_strength import THEME_UNIVERSE, compute_theme_strength, get_latest_theme_strength_snapshot, save_theme_strength_snapshot
 from core.screener import get_universe
+from core.strategy_tuning import sample_universe
 from core.theme import (
     TRADINGVIEW_CHART_BG,
     TRADINGVIEW_CHART_GRID,
@@ -953,12 +960,43 @@ def _render_kostolany() -> None:
         st.divider()
         st.subheader(f"📈 실제로 이 국면 신호대로 매매했다면? ({STYLE_LABELS[selected_style]} 기준)")
         st.caption(
-            "위 국면 판정 로직을 과거 전체 이력에 그대로 적용해(룩어헤드 없이 매 시점까지의 데이터만 "
+            "위 국면 판정 로직을 아래에서 고른 기간에 그대로 적용해(룩어헤드 없이 매 시점까지의 데이터만 "
             "사용) '매수 관심·보유 국면에서 시장에 있고, 매도 검토 국면에서 현금화'하는 규칙으로 "
             "시뮬레이션한 결과입니다. 섹터/테마별로 매수 후 보유(buy & hold) 대비 초과수익률을 "
             "비교할 수 있고, 표에서 행을 클릭하면 그 섹터에서 실제로 언제·얼마에 사고 팔았는지까지 "
-            "볼 수 있습니다 — 계산에 시간이 걸릴 수 있습니다."
+            "볼 수 있습니다 — 계산에 시간이 걸릴 수 있습니다. 아래 '양방향 트레이딩' 토글을 켜면 매도 "
+            "검토 국면에서 현금화 대신 인버스를 매수하는 것으로 바꿔, 하락장에서도 계속 수익을 노리는 "
+            "양방향 매매 결과를 같은 기준으로 비교할 수 있습니다."
         )
+        st.session_state.setdefault("kostolany_scenario_start_date", date.today() - timedelta(days=365 * 5))
+        st.session_state.setdefault("kostolany_scenario_end_date", date.today())
+        scenario_date_cols = st.columns(2)
+        with scenario_date_cols[0]:
+            st.date_input("시작일", key="kostolany_scenario_start_date")
+        with scenario_date_cols[1]:
+            st.date_input("종료일", key="kostolany_scenario_end_date")
+        kostolany_scenario_start = st.session_state["kostolany_scenario_start_date"]
+        kostolany_scenario_end = st.session_state["kostolany_scenario_end_date"]
+        if kostolany_scenario_start >= kostolany_scenario_end:
+            st.warning("시작일은 종료일보다 빨라야 합니다.")
+            st.stop()
+
+        st.session_state.setdefault("kostolany_bidirectional", False)
+        kostolany_bidirectional = st.toggle(
+            "🔁 양방향 트레이딩 (매도 검토 국면에서 인버스 매수)",
+            key="kostolany_bidirectional",
+            help="끄면 기존과 동일하게 매도 검토 국면에서 현금 보유. 켜면 매수 관심·보유 국면은 정방향 "
+            "매수, 매도 검토 국면은 현금 대신 인버스를 매수한 것으로 계산해 항상 시장에 몸을 담그는 "
+            "양방향 전략 결과를 보여줍니다.",
+        )
+        if kostolany_bidirectional:
+            st.caption(
+                "⚠️ 실제 인버스 ETF/ETN 가격이 아니라 기초자산의 일별 수익률에 -1을 곱해 매일 복리로 "
+                "재조정한 합성 수익률입니다(운용보수·괴리율은 반영 안 됨 — 방향성 참고용). 월 적립 "
+                "옵션은 이 모드와 결합할 수 없어(포지션 -1은 '현금 대비 비중' 개념이 성립하지 않음) "
+                "아래 옵션과 무관하게 항상 초기자본 일시투입으로 계산합니다."
+            )
+
         with st.expander("💰 월 적립 옵션 (기본: 초기자본 100만 넣고 끝까지 보유)"):
             st.caption(
                 "매달 얼마씩 투자에 넣을 수 있는지 입력하면, 매수보유 두 벤치마크(섹터/S&P500)는 매달 "
@@ -970,16 +1008,53 @@ def _render_kostolany() -> None:
             kostolany_monthly_contribution = st.number_input(
                 "월 적립금 (0이면 적립 없이 초기자본 한 번만 투자)",
                 min_value=0.0, value=0.0, step=10.0, key="kostolany_monthly_contribution",
+                disabled=kostolany_bidirectional,
             )
 
         run_scenario = st.button("📊 섹터별 시나리오 계산하기", key="run_kostolany_scenario")
 
         def _compute_scenario_runs():
-            return compute_theme_scenario_runs(
-                style=selected_style, monthly_contribution=kostolany_monthly_contribution
+            primary = compute_theme_scenario_runs(
+                style=selected_style,
+                start=kostolany_scenario_start.isoformat(),
+                end=kostolany_scenario_end.isoformat(),
+                monthly_contribution=kostolany_monthly_contribution,
+                bidirectional=kostolany_bidirectional,
             )
+            # 양방향 모드일 때는 "단방향(현금 보유)이었다면 어땠을지" 기준선도 같이 계산해둔다 —
+            # 아래 결과 표에서 양방향이 단방향을 이긴 섹터를 색으로 바로 구분해 보여주기 위해서다
+            # (2026-08-12 사용자 요청). 양방향은 항상 목돈 일시투입(monthly_contribution=0)으로 계산되므로
+            # (run_kostolany_scenario 참고) 기준선도 동일하게 0으로 맞춰야 공정하게 비교된다.
+            baseline = (
+                compute_theme_scenario_runs(
+                    style=selected_style,
+                    start=kostolany_scenario_start.isoformat(),
+                    end=kostolany_scenario_end.isoformat(),
+                    monthly_contribution=0.0,
+                    bidirectional=False,
+                )
+                if kostolany_bidirectional
+                else None
+            )
+            # S&P500 지수 자체에도 같은 신호(같은 스타일·양방향 여부)로 매매했다면 어땠을지 — 단순
+            # 매수보유가 아니라 "전략을 썼을 때" 기준으로도 섹터들을 비교할 수 있도록(2026-08-12 사용자
+            # 요청). ticker가 benchmark_ticker와 같아 buy_and_hold_metrics가 곧 S&P500 매수보유와
+            # 동일하다 — 별도로 벤치마크를 다시 계산할 필요가 없다.
+            benchmark_strategy_run = run_ticker_scenario(
+                DEFAULT_BENCHMARK_TICKER,
+                style=selected_style,
+                start=kostolany_scenario_start.isoformat(),
+                end=kostolany_scenario_end.isoformat(),
+                monthly_contribution=kostolany_monthly_contribution,
+                bidirectional=kostolany_bidirectional,
+            )
+            return primary, baseline, benchmark_strategy_run
 
-        scenario_job_key = f"kostolany_scenario_{selected_style}_{kostolany_monthly_contribution:g}"
+        scenario_job_key = (
+            f"kostolany_scenario_{selected_style}_{kostolany_scenario_start.isoformat()}_"
+            f"{kostolany_scenario_end.isoformat()}_{kostolany_monthly_contribution:g}_"
+            f"{'bidir' if kostolany_bidirectional else 'long'}"
+        )
         if run_scenario:
             job_manager.start(scenario_job_key, _compute_scenario_runs, label="코스톨라니 매매 시나리오 계산")
 
@@ -988,21 +1063,99 @@ def _render_kostolany() -> None:
             if scenario_job.status == "error":
                 st.error(f"시나리오 계산 중 오류가 발생했습니다: {scenario_job.error}")
             else:
-                scenario_runs = scenario_job.result
+                scenario_runs, baseline_runs, benchmark_strategy_run = scenario_job.result
                 st.session_state["kostolany_scenario_runs"] = scenario_runs
+                st.session_state["kostolany_scenario_baseline_runs"] = baseline_runs
+                st.session_state["kostolany_scenario_benchmark_strategy_run"] = benchmark_strategy_run
 
         scenario_runs = st.session_state.get("kostolany_scenario_runs")
+        baseline_runs = st.session_state.get("kostolany_scenario_baseline_runs")
+        benchmark_strategy_run = st.session_state.get("kostolany_scenario_benchmark_strategy_run")
         if scenario_runs is not None:
             scenario_df = scenario_runs_to_summary_df(scenario_runs, style=selected_style)
             if scenario_df.empty:
                 st.info("계산된 시나리오가 없습니다.")
             else:
-                win_count = int((scenario_df["excess_return"] > 0).sum())
+                # 선택한 시작일보다 프록시 ETF의 실제 상장(데이터 시작)일이 30일 넘게 늦으면 그 섹터는
+                # 요청한 기간 전체가 아니라 상장일 이후의 훨씬 짧은 구간만으로 계산된 것 — 표에 그냥
+                # 섞어 넣으면 "선택한 기간 전체 성과"로 오해하기 쉬워 별도로 표시한다(2026-08-12
+                # 사용자 요청: ETF가 그 기간에 없었던 섹터를 어떻게 처리할지).
+                requested_start_ts = pd.Timestamp(kostolany_scenario_start)
+                data_start_ts = pd.to_datetime(scenario_df["data_start"])
+                insufficient_mask = (data_start_ts - requested_start_ts).dt.days > 30
+
+                valid_df = scenario_df[~insufficient_mask]
+                win_count = int((valid_df["excess_return"] > 0).sum())
                 st.caption(
-                    f"{len(scenario_df)}개 섹터/테마 중 {win_count}개에서 매수 후 보유보다 나은 결과 "
-                    "(excess_return > 0). 행을 클릭하면 아래에 매매 내역이 표시됩니다."
+                    f"{len(valid_df)}개 섹터/테마(선택 기간 데이터 충분) 중 {win_count}개에서 매수 후 "
+                    "보유보다 나은 결과 (excess_return > 0). 행을 클릭하면 아래에 매매 내역이 표시됩니다."
                 )
+
+                # S&P500 지수 자체에도 같은 신호로 매매했다면 어땠을지 — 단순 매수보유가 아니라 "전략을
+                # 썼을 때" 기준으로도 비교할 수 있게(2026-08-12 사용자 요청).
+                sp500_strategy_edge = None
+                if benchmark_strategy_run is not None and not benchmark_strategy_run.df.empty:
+                    bs_metrics = benchmark_strategy_run.metrics
+                    bs_bh_metrics = benchmark_strategy_run.buy_and_hold_metrics
+                    with st.container(border=True):
+                        st.markdown(
+                            f"##### 📌 S&P500 지수에도 같은 신호로 매매했다면? ({STYLE_LABELS[selected_style]}"
+                            + (" · 양방향" if kostolany_bidirectional else "") + ")"
+                        )
+                        sp_cols = st.columns(4)
+                        with sp_cols[0]:
+                            st.metric(
+                                "누적수익률", f"{bs_metrics['cumulative_return']:+.2f}%",
+                                f"매수보유 대비 {bs_metrics['cumulative_return'] - bs_bh_metrics['cumulative_return']:+.2f}%p",
+                            )
+                        with sp_cols[1]:
+                            st.metric("CAGR", f"{bs_metrics['cagr']:+.2f}%")
+                        with sp_cols[2]:
+                            st.metric("MDD", f"{bs_metrics['mdd']:.2f}%")
+                        with sp_cols[3]:
+                            st.metric("샤프", f"{bs_metrics['sharpe']:.2f}")
+                        st.caption(
+                            f"참고로 같은 기간 S&P500 매수보유는 누적수익률 {bs_bh_metrics['cumulative_return']:+.2f}%, "
+                            f"CAGR {bs_bh_metrics['cagr']:+.2f}%, MDD {bs_bh_metrics['mdd']:.2f}%입니다. 아래 표의 "
+                            "'초과수익률(S&P500 전략 대비)' 열에서 각 섹터의 전략 성과가 이 숫자보다 나은지 비교하세요."
+                        )
+                    sp500_strategy_edge = scenario_df["cumulative_return"] - bs_metrics["cumulative_return"]
+
+                # 양방향 모드면 같은 기간·같은 섹터의 단방향(현금 보유) 기준선과 누적수익률을 비교해
+                # 어느 쪽이 더 나았는지 표에 색으로 바로 보이게 한다(2026-08-12 사용자 요청).
+                bidir_edge = None
+                if baseline_runs:
+                    baseline_df = scenario_runs_to_summary_df(baseline_runs, style=selected_style)
+                    baseline_lookup = dict(zip(baseline_df["theme"], baseline_df["cumulative_return"]))
+                    bidir_edge = scenario_df["cumulative_return"] - scenario_df["theme"].map(baseline_lookup)
+                    bidir_compared = bidir_edge.notna()
+                    bidir_win_count = int((bidir_edge[bidir_compared] > 0).sum())
+                    st.caption(
+                        f"🔁 양방향 vs 단방향: {int(bidir_compared.sum())}개 섹터 중 {bidir_win_count}개에서 "
+                        "양방향(인버스 활용)이 단방향(현금 보유)보다 누적수익률이 더 높았습니다."
+                    )
+                st.caption(
+                    "🟢초록 배경 = 해당 비교 기준(섹터 매수보유/S&P500 매수보유/S&P500 전략/단방향)을 이긴 셀, "
+                    "🔴빨강 배경 = 진 셀입니다."
+                )
+                if insufficient_mask.any():
+                    insufficient_df = scenario_df[insufficient_mask]
+                    with st.expander(
+                        f"⚠️ 데이터 부족으로 선택 기간 전체를 반영하지 못한 섹터 {len(insufficient_df)}개",
+                        expanded=False,
+                    ):
+                        st.caption(
+                            f"선택한 시작일({kostolany_scenario_start.isoformat()})보다 프록시 ETF 상장일이 "
+                            "늦어서, 아래 섹터들은 표시된 '데이터 시작일'부터 종료일까지의 (더 짧은) 기간만 "
+                            "반영된 결과입니다 — 위 승률 집계에서도 제외했습니다."
+                        )
+                        for _, r in insufficient_df.iterrows():
+                            proxies = ", ".join(THEME_UNIVERSE.get(r["theme"], []))
+                            st.markdown(f"- **{r['theme']}** ({proxies}) — {r['data_start']}부터 데이터 존재")
                 display_scenario = scenario_df.copy()
+                display_scenario["theme"] = display_scenario.apply(
+                    lambda r: f"⚠️ {r['theme']}" if insufficient_mask.loc[r.name] else r["theme"], axis=1
+                )
                 pct_cols = [
                     "cumulative_return", "cagr", "mdd", "bh_cumulative_return", "bh_cagr", "bh_mdd",
                     "excess_return", "bench_cumulative_return", "bench_cagr", "bench_mdd",
@@ -1013,19 +1166,60 @@ def _render_kostolany() -> None:
                 display_scenario["win_rate"] = display_scenario["win_rate"].map(lambda v: f"{v:.1f}%")
                 display_scenario = display_scenario.drop(columns=["style"])
                 display_scenario.columns = [
-                    "테마", "누적수익률", "CAGR", "MDD", "샤프", "승률", "매매횟수",
+                    "테마", "데이터 시작일", "누적수익률", "CAGR", "MDD", "샤프", "승률", "매매횟수",
                     "매수보유 누적수익률", "매수보유 CAGR", "매수보유 MDD", "초과수익률(섹터 매수보유 대비)",
                     "S&P500 매수보유 누적수익률", "S&P500 매수보유 CAGR", "S&P500 매수보유 MDD",
                     "초과수익률(S&P500 대비)",
                 ]
+                if sp500_strategy_edge is not None:
+                    display_scenario["초과수익률(S&P500 전략 대비)"] = sp500_strategy_edge.map(
+                        lambda v: f"{v:+.2f}%p" if pd.notna(v) else "-"
+                    )
+                if bidir_edge is not None:
+                    display_scenario["양방향 우위(단방향 대비)"] = bidir_edge.map(
+                        lambda v: f"{v:+.2f}%p" if pd.notna(v) else "-"
+                    )
+
+                # 승패가 갈리는 비교 열들을 전부 셀 단위로 색칠한다 — 섹터 매수보유/S&P500 매수보유는
+                # 항상 존재하고, S&P500 전략/양방향 우위는 각각 계산됐을 때만 추가된다(2026-08-12
+                # 사용자 요청: "이길 경우 위와 같이 표시").
+                edge_columns_by_display_name = {
+                    "초과수익률(섹터 매수보유 대비)": scenario_df["excess_return"],
+                    "초과수익률(S&P500 대비)": scenario_df["excess_return_vs_benchmark"],
+                }
+                if sp500_strategy_edge is not None:
+                    edge_columns_by_display_name["초과수익률(S&P500 전략 대비)"] = sp500_strategy_edge
+                if bidir_edge is not None:
+                    edge_columns_by_display_name["양방향 우위(단방향 대비)"] = bidir_edge
+
+                def _highlight_edge_cells(row: pd.Series) -> list[str]:
+                    styles = []
+                    for col_name in row.index:
+                        edge_series = edge_columns_by_display_name.get(col_name)
+                        if edge_series is None:
+                            styles.append("")
+                            continue
+                        val = edge_series.loc[row.name]
+                        if pd.isna(val) or val == 0:
+                            styles.append("")
+                        else:
+                            color = _STATUS_COLORS["buy"] if val > 0 else _STATUS_COLORS["sell"]
+                            styles.append(f"background-color: {color}22")
+                    return styles
+
+                table_data = display_scenario.style.apply(_highlight_edge_cells, axis=1)
                 selection = st.dataframe(
-                    display_scenario,
+                    table_data,
                     use_container_width=True,
                     hide_index=True,
                     on_select="rerun",
                     selection_mode="single-row",
                     key="kostolany_scenario_table",
                     column_config={
+                        "데이터 시작일": st.column_config.TextColumn(
+                            help="이 섹터의 계산이 실제로 시작된 날짜. 선택한 시작일보다 늦다면 프록시 ETF가 "
+                            "그때 아직 상장 전이었다는 뜻(테마 이름 앞 ⚠️ 표시)."
+                        ),
                         "누적수익률": st.column_config.TextColumn(
                             help="시뮬레이션 시작일부터 지금까지의 총 수익률(%). 이 전략으로 굴렸을 때 원금이 몇 % 불었는지."
                         ),
@@ -1066,6 +1260,16 @@ def _render_kostolany() -> None:
                             help="이 전략의 누적수익률 - S&P500 매수 후 보유 누적수익률(%p). 양수면 이 섹터에서 국면 "
                             "신호대로 매매한 것이 그냥 S&P500 지수를 사서 들고 있는 것보다 나았다는 뜻."
                         ),
+                        "초과수익률(S&P500 전략 대비)": st.column_config.TextColumn(
+                            help="이 섹터의 누적수익률 - S&P500 지수에 똑같은 신호(같은 스타일·양방향 여부)로 "
+                            "매매했을 때의 누적수익률(%p). 양수면 이 섹터가 'S&P500에 같은 전략을 썼을 때'보다도 "
+                            "나았다는 뜻 — 단순 매수보유가 아니라 전략 대 전략 비교."
+                        ),
+                        "양방향 우위(단방향 대비)": st.column_config.TextColumn(
+                            help="양방향(인버스 활용) 전략의 누적수익률 - 같은 기간 단방향(매도 검토 국면에서 "
+                            "현금 보유) 전략의 누적수익률(%p). 양수(초록 배경)면 인버스를 활용한 게 더 나았다는 "
+                            "뜻, 음수(빨강 배경)면 오히려 손해였다는 뜻."
+                        ),
                     },
                 )
                 selected_rows = selection["selection"]["rows"] if selection else []
@@ -1078,21 +1282,27 @@ def _render_kostolany() -> None:
                     else:
                         trade_rows = []
                         for t in selected_run.trades:
-                            trade_rows.append(
-                                {
-                                    "매수일": t.entry_date.date().isoformat() if t.entry_date is not None else "-",
-                                    "매수가": f"{t.entry_price:,.2f}",
-                                    "매도일": t.exit_date.date().isoformat() if t.exit_date is not None else "보유 중",
-                                    "매도가": f"{t.exit_price:,.2f}" if t.exit_price is not None else "-",
-                                    "수익률": f"{t.return_pct:+.2f}%" if t.return_pct is not None else "-",
-                                }
-                            )
+                            row = {
+                                "매수일": t.entry_date.date().isoformat() if t.entry_date is not None else "-",
+                                "매수가": f"{t.entry_price:,.2f}",
+                                "매도일": t.exit_date.date().isoformat() if t.exit_date is not None else "보유 중",
+                                "매도가": f"{t.exit_price:,.2f}" if t.exit_price is not None else "-",
+                                "수익률": f"{t.return_pct:+.2f}%" if t.return_pct is not None else "-",
+                            }
+                            if selected_run.bidirectional:
+                                row["방향"] = "인버스" if t.direction == "inverse" else "정방향"
+                            trade_rows.append(row)
                         st.dataframe(pd.DataFrame(trade_rows), use_container_width=True, hide_index=True)
 
                         st.caption(
                             "아래 그래프는 원가가 아니라 '기준 100에서 시작했을 때 자산가치가 어떻게 변했는지'로 "
                             "정규화했습니다 — 섹터 가격과 S&P500 지수는 절대 수준이 전혀 달라 그냥 겹쳐 그리면 "
-                            "비교가 안 되기 때문입니다. ▲/▼ 표시는 코스톨라니 전략 곡선 위 실제 매수/매도 시점입니다."
+                            "비교가 안 되기 때문입니다. "
+                            + (
+                                "▲/▼ 표시는 코스톨라니 전략 곡선 위에서 정방향↔인버스로 갈아탄 시점입니다."
+                                if selected_run.bidirectional
+                                else "▲/▼ 표시는 코스톨라니 전략 곡선 위 실제 매수/매도 시점입니다."
+                            )
                         )
                         fig = go.Figure()
                         fig.add_trace(
@@ -1119,28 +1329,268 @@ def _render_kostolany() -> None:
                             )
                         )
                         eq = selected_run.equity_curve
-                        buy_x = [t.entry_date for t in selected_run.trades if t.entry_date is not None]
-                        buy_y = [eq.loc[d] for d in buy_x]
-                        sell_x = [t.exit_date for t in selected_run.trades if t.exit_date is not None]
-                        sell_y = [eq.loc[d] for d in sell_x]
-                        fig.add_trace(
-                            go.Scatter(
-                                x=buy_x, y=buy_y, mode="markers", name="매수",
-                                marker=dict(color="#4caf82", size=11, symbol="triangle-up"),
+                        if selected_run.bidirectional:
+                            # 양방향 모드는 hold 없이 정방향<->인버스가 하루 만에 뒤집히는 경우가 흔해
+                            # (extract_bidirectional_trades 참고) 청산 시점이 대부분 바로 다음 진입
+                            # 시점과 겹친다 — 매수/매도 두 세트 대신 "어느 방향으로 진입했는지"만
+                            # 방향별 색으로 표시하는 편이 덜 헷갈린다.
+                            long_x = [t.entry_date for t in selected_run.trades if t.direction != "inverse"]
+                            long_y = [eq.loc[d] for d in long_x]
+                            inverse_x = [t.entry_date for t in selected_run.trades if t.direction == "inverse"]
+                            inverse_y = [eq.loc[d] for d in inverse_x]
+                            fig.add_trace(
+                                go.Scatter(
+                                    x=long_x, y=long_y, mode="markers", name="매수(정방향)",
+                                    marker=dict(color=_STATUS_COLORS["buy"], size=11, symbol="triangle-up"),
+                                )
                             )
-                        )
-                        fig.add_trace(
-                            go.Scatter(
-                                x=sell_x, y=sell_y, mode="markers", name="매도",
-                                marker=dict(color="#e5533d", size=11, symbol="triangle-down"),
+                            fig.add_trace(
+                                go.Scatter(
+                                    x=inverse_x, y=inverse_y, mode="markers", name="매수(인버스)",
+                                    marker=dict(color=_STATUS_COLORS["sell"], size=11, symbol="triangle-down"),
+                                )
                             )
-                        )
+                        else:
+                            buy_x = [t.entry_date for t in selected_run.trades if t.entry_date is not None]
+                            buy_y = [eq.loc[d] for d in buy_x]
+                            sell_x = [t.exit_date for t in selected_run.trades if t.exit_date is not None]
+                            sell_y = [eq.loc[d] for d in sell_x]
+                            fig.add_trace(
+                                go.Scatter(
+                                    x=buy_x, y=buy_y, mode="markers", name="매수",
+                                    marker=dict(color="#4caf82", size=11, symbol="triangle-up"),
+                                )
+                            )
+                            fig.add_trace(
+                                go.Scatter(
+                                    x=sell_x, y=sell_y, mode="markers", name="매도",
+                                    marker=dict(color="#e5533d", size=11, symbol="triangle-down"),
+                                )
+                            )
                         fig.update_layout(
                             height=360, margin=dict(l=10, r=10, t=20, b=10),
                             legend=dict(orientation="h", yanchor="bottom", y=1.02),
                             yaxis_title="자산가치 (시작=100)",
                         )
                         st.plotly_chart(fig, use_container_width=True)
+
+        st.divider()
+        st.subheader("🔬 개별 종목 광범위 검증 — 섹터 ETF 대신 S&P500 표본으로")
+        st.caption(
+            "위 섹터별 시나리오는 섹터 ETF 약 20개뿐이고, 그중 상당수가 2015년 이후 상장된 신생 테마라 "
+            "서로 상관관계도 높습니다(대부분 반도체/AI 계열) — '이 기법이 시장을 상대로 정말 유효한가'를 "
+            "넓게 보기엔 표본이 작고 편향돼 있습니다. 여기서는 같은 국면 신호를 S&P500 섹터 균등 표본 "
+            "(개별 종목, 대부분 수십 년치 이력 보유)에 그대로 적용해 승률·초과수익률을 더 큰 표본으로 "
+            "다시 확인합니다(같은 위의 시작일/종료일/투자 스타일을 그대로 씁니다)."
+        )
+        universe_cols = st.columns([1, 2])
+        with universe_cols[0]:
+            universe_n = st.selectbox(
+                "표본 크기", [20, 50, 100, 150], index=1, key="kostolany_universe_n",
+                help="S&P500 안에서 섹터별로 균등 배분한 표본 종목 수(시가총액 순 결정론적 선택 — 같은 "
+                "크기를 다시 눌러도 항상 같은 종목이 나옵니다).",
+            )
+        with universe_cols[1]:
+            universe_pit = st.checkbox(
+                "선택한 시작일 기준 실제 편입종목만 사용 (생존편향 방지)", value=True, key="kostolany_universe_pit",
+                help="끄면 '지금의' S&P500 종목으로 과거를 돌립니다 — 지금 지수에 남아있는(즉 잘 버틴) "
+                "종목만 보는 생존편향 위험이 있습니다. 켜면 선택한 시작일 당시 실제 편입종목 목록을 씁니다.",
+            )
+
+        run_universe = st.button("🔬 광범위 검증 실행", key="run_kostolany_universe_validation")
+
+        def _compute_universe_runs():
+            as_of = kostolany_scenario_start.isoformat() if universe_pit else None
+            sample_df = sample_universe(n=universe_n, as_of_date=as_of)
+            tickers = sample_df["ticker"].tolist()
+            return compute_broad_universe_scenario_runs(
+                tickers,
+                style=selected_style,
+                start=kostolany_scenario_start.isoformat(),
+                end=kostolany_scenario_end.isoformat(),
+            )
+
+        universe_job_key = (
+            f"kostolany_universe_{universe_n}_{universe_pit}_{selected_style}_"
+            f"{kostolany_scenario_start.isoformat()}_{kostolany_scenario_end.isoformat()}"
+        )
+        if run_universe:
+            job_manager.start(universe_job_key, _compute_universe_runs, label="개별 종목 광범위 검증 계산")
+
+        universe_job = job_manager.render(
+            universe_job_key, running_label=f"{universe_n}개 종목을 검증하는 중 (처음 조회하는 종목이 많으면 몇 분 걸릴 수 있습니다)"
+        )
+        if universe_job is not None:
+            if universe_job.status == "error":
+                st.error(f"광범위 검증 계산 중 오류가 발생했습니다: {universe_job.error}")
+            else:
+                st.session_state["kostolany_universe_runs"] = universe_job.result
+
+        universe_runs = st.session_state.get("kostolany_universe_runs")
+        if universe_runs is not None:
+            universe_df = scenario_runs_to_summary_df(universe_runs, style=selected_style)
+            if universe_df.empty:
+                st.info("계산된 결과가 없습니다.")
+            else:
+                # 국면 신호(상승/하락 사이클 판정)는 최소 한 사이클을 겪어야 의미가 있다 — 개별 종목
+                # 표본에도 최근 상장/스핀오프 종목이 섞일 수 있어 섹터별 시나리오와 동일한 기준(선택한
+                # 시작일보다 30일 넘게 늦게 데이터가 시작하면 제외)으로 걸러낸다.
+                u_requested_start_ts = pd.Timestamp(kostolany_scenario_start)
+                u_data_start_ts = pd.to_datetime(universe_df["data_start"])
+                u_insufficient_mask = (u_data_start_ts - u_requested_start_ts).dt.days > 30
+                u_valid_df = universe_df[~u_insufficient_mask]
+
+                if u_valid_df.empty:
+                    st.info("유효한 데이터 기간을 가진 종목이 없습니다.")
+                else:
+                    n_tested = len(u_valid_df)
+                    win_rate = float((u_valid_df["excess_return_vs_benchmark"] > 0).mean() * 100)
+                    mean_excess = float(u_valid_df["excess_return_vs_benchmark"].mean())
+                    median_excess = float(u_valid_df["excess_return_vs_benchmark"].median())
+
+                    stat_cols = st.columns(4)
+                    stat_cols[0].metric(
+                        "검증 종목 수", f"{n_tested}개",
+                        help=f"표본 {len(universe_df)}개 중 데이터 기간이 충분한 종목만 집계(제외 "
+                        f"{len(universe_df) - n_tested}개).",
+                    )
+                    stat_cols[1].metric("S&P500 매수보유 대비 승률", f"{win_rate:.1f}%")
+                    stat_cols[2].metric("평균 초과수익률", f"{mean_excess:+.2f}%p")
+                    stat_cols[3].metric("중앙값 초과수익률", f"{median_excess:+.2f}%p")
+                    st.caption(
+                        "초과수익률(%p) = 코스톨라니 신호 전략 누적수익률 - 같은 기간 S&P500 매수 후 "
+                        "보유 누적수익률. 평균이 중앙값보다 훨씬 크면 소수 종목의 극단치가 평균을 끌어올린 "
+                        "것일 수 있으니 함께 참고하세요."
+                    )
+                    if len(universe_df) > n_tested:
+                        st.caption(
+                            f"⚠️ {len(universe_df) - n_tested}개 종목은 선택한 기간만큼 데이터가 없어 "
+                            "위 집계에서 제외했습니다(아래 표에는 포함)."
+                        )
+
+                    with st.expander(f"📋 종목별 결과 전체 보기 ({len(universe_df)}개)", expanded=False):
+                        u_display = universe_df.copy()
+                        u_display["theme"] = u_display.apply(
+                            lambda r: f"⚠️ {r['theme']}" if u_insufficient_mask.loc[r.name] else r["theme"], axis=1
+                        )
+                        pct_cols = [
+                            "cumulative_return", "cagr", "mdd", "bh_cumulative_return", "bh_cagr", "bh_mdd",
+                            "excess_return", "bench_cumulative_return", "bench_cagr", "bench_mdd",
+                            "excess_return_vs_benchmark",
+                        ]
+                        for col in pct_cols:
+                            u_display[col] = u_display[col].map(lambda v: f"{v:+.2f}%")
+                        u_display["win_rate"] = u_display["win_rate"].map(lambda v: f"{v:.1f}%")
+                        u_display = u_display.drop(columns=["style"])
+                        u_display.columns = [
+                            "티커", "데이터 시작일", "누적수익률", "CAGR", "MDD", "샤프", "승률", "매매횟수",
+                            "매수보유 누적수익률", "매수보유 CAGR", "매수보유 MDD", "초과수익률(자체 매수보유 대비)",
+                            "S&P500 매수보유 누적수익률", "S&P500 매수보유 CAGR", "S&P500 매수보유 MDD",
+                            "초과수익률(S&P500 대비)",
+                        ]
+                        st.dataframe(u_display, use_container_width=True, hide_index=True)
+
+        st.divider()
+        st.subheader("💰 매달 버는 돈, 언제 넣을까? — DCA vs 신호 대기 vs 하이브리드")
+        st.caption(
+            "위 시나리오는 '이미 넣은 돈을 신호대로 사고팔았다면'을 다루고, 이 섹션은 '매달 새로 생기는 "
+            "적립금을 어디에 둘지'만 다룹니다 — 매수 타점이 뜰 때까지 현금으로 쌓아둘지, 신호와 무관하게 "
+            "바로 투자할지, 아니면 절반씩 섞을지 세 정책을 같은 종목/기간으로 비교합니다. 세 곡선 모두 "
+            "일단 투입된 돈은 나중에 매도 신호가 떠도 되팔지 않습니다(그건 위 시나리오의 몫)."
+        )
+        st.markdown(
+            "- 🔵 **순수 DCA**: 매달 신호와 무관하게 즉시 전액 투자\n"
+            "- 🟠 **신호 대기**: 매수 관심·보유 국면이 될 때까지 현금으로 쌓아뒀다가 신호가 뜨면 몰아서 투자\n"
+            "- 🟢 **하이브리드**: 매달 일부(비율 조절 가능)는 즉시 투자, 나머지는 신호를 기다렸다가 투자"
+        )
+
+        policy_cols = st.columns([2, 1, 1])
+        with policy_cols[0]:
+            policy_ticker = st.text_input(
+                "종목/ETF 티커", value="SPY", key="kostolany_policy_ticker",
+                help="섹터 전체가 아니라 실제로 매달 사려는 개별 티커를 넣어보세요(예: XLK, QQQ, AAPL).",
+            ).strip().upper()
+        with policy_cols[1]:
+            policy_monthly = st.number_input(
+                "월 적립금", min_value=1.0, value=100.0, step=10.0, key="kostolany_policy_monthly",
+            )
+        with policy_cols[2]:
+            policy_hybrid_pct = st.slider(
+                "하이브리드 즉시투자 비율", min_value=0, max_value=100, value=50, step=10,
+                key="kostolany_policy_hybrid_pct", format="%d%%",
+            )
+
+        run_policy = st.button("📈 정책 비교 계산하기", key="run_kostolany_policy_comparison")
+
+        def _compute_policy_comparison():
+            return run_ticker_contribution_policy_comparison(
+                policy_ticker,
+                style=selected_style,
+                start=kostolany_scenario_start.isoformat(),
+                end=kostolany_scenario_end.isoformat(),
+                monthly_contribution=policy_monthly,
+                hybrid_baseline_ratio=policy_hybrid_pct / 100.0,
+            )
+
+        policy_job_key = (
+            f"kostolany_policy_{policy_ticker}_{selected_style}_{kostolany_scenario_start.isoformat()}_"
+            f"{kostolany_scenario_end.isoformat()}_{policy_monthly:g}_{policy_hybrid_pct}"
+        )
+        if run_policy:
+            if not policy_ticker:
+                st.warning("티커를 입력해주세요.")
+            else:
+                job_manager.start(policy_job_key, _compute_policy_comparison, label="월 적립 정책 비교 계산")
+
+        policy_job = job_manager.render(policy_job_key, running_label="세 정책을 계산하는 중")
+        if policy_job is not None:
+            if policy_job.status == "error":
+                st.error(f"정책 비교 계산 중 오류가 발생했습니다: {policy_job.error}")
+            else:
+                st.session_state["kostolany_policy_run"] = policy_job.result
+
+        policy_run = st.session_state.get("kostolany_policy_run")
+        if policy_run is not None:
+            if policy_run.dca_equity_curve.empty:
+                st.info(f"{policy_ticker}의 가격 데이터를 찾지 못했습니다.")
+            else:
+                metric_cols = st.columns(3)
+                policy_defs = [
+                    ("🔵 순수 DCA", policy_run.dca_metrics, metric_cols[0]),
+                    ("🟠 신호 대기", policy_run.wait_metrics, metric_cols[1]),
+                    (f"🟢 하이브리드 ({policy_hybrid_pct}%)", policy_run.hybrid_metrics, metric_cols[2]),
+                ]
+                for name, m, col in policy_defs:
+                    with col:
+                        st.metric(
+                            name, f"{m['cumulative_return']:+.2f}%",
+                            help=f"원금(총 납입액) 대비 손익률. XIRR(자금가중 연환산수익률): {m['cagr']:+.2f}%",
+                        )
+                        st.caption(f"MDD {m['mdd']:.2f}% · 샤프 {m['sharpe']:.2f}")
+
+                policy_fig = go.Figure()
+                policy_fig.add_trace(go.Scatter(
+                    x=policy_run.dca_equity_curve.index, y=policy_run.dca_equity_curve,
+                    mode="lines", name="순수 DCA", line=dict(color="#4c8bf5", width=2),
+                ))
+                policy_fig.add_trace(go.Scatter(
+                    x=policy_run.wait_equity_curve.index, y=policy_run.wait_equity_curve,
+                    mode="lines", name="신호 대기", line=dict(color="#e5533d", width=2),
+                ))
+                policy_fig.add_trace(go.Scatter(
+                    x=policy_run.hybrid_equity_curve.index, y=policy_run.hybrid_equity_curve,
+                    mode="lines", name=f"하이브리드 ({policy_hybrid_pct}%)", line=dict(color="#4caf82", width=2),
+                ))
+                policy_fig.add_trace(go.Scatter(
+                    x=policy_run.contributed_capital.index, y=policy_run.contributed_capital,
+                    mode="lines", name="누적 납입 원금", line=dict(color="#8a8a8a", width=1.5, dash="dot"),
+                ))
+                policy_fig.update_layout(
+                    height=360, margin=dict(l=10, r=10, t=20, b=10),
+                    legend=dict(orientation="h", yanchor="bottom", y=1.02),
+                    yaxis_title="자산가치",
+                )
+                st.plotly_chart(policy_fig, use_container_width=True)
 
 
 # ============================================================================

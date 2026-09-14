@@ -1,0 +1,22 @@
+CPI 발표일 조회 중...
+2005-01-01 이후 발표일 277건
+/workspaces/Quant/analysis/macro_event_study_2026-08-21/cross_asset_cpi_study.py:47: FutureWarning: The default fill_method='pad' in Series.pct_change is deprecated and will be removed in a future version. Either fill in any non-leading NA values prior to calling pct_change or specify 'fill_method=None' to not fill NA values.
+  cpi_yoy = cpi.pct_change(12) * 100
+$GLD: possibly delisted; no price data found  (1d 2004-06-01 -> 2004-11-17) (Yahoo error = "Data doesn't exist for startDate = 1086062400, endDate = 1100667600")
+
+1 Failed download:
+['GLD']: possibly delisted; no price data found  (1d 2004-06-01 -> 2004-11-17) (Yahoo error = "Data doesn't exist for startDate = 1086062400, endDate = 1100667600")
+
+=== 채권(TLT) ===
+  [물가가속] n=136, +60일=0.849%(승률53.7%)
+  [물가감속] n=136, +60일=-0.673%(승률50.7%)
+
+=== 금(GLD) ===
+  [물가가속] n=136, +60일=2.729%(승률58.8%)
+  [물가감속] n=136, +60일=3.084%(승률65.4%)
+
+=== 달러지수 ===
+  [물가가속] n=136, +60일=0.597%(승률56.6%)
+  [물가감속] n=136, +60일=0.075%(승률52.9%)
+
+DONE

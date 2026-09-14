@@ -1,0 +1,256 @@
+{
+  "recovery_years": [
+    1950,
+    1955,
+    1959,
+    1962,
+    1971,
+    1976,
+    1981,
+    1983,
+    1992,
+    2002,
+    2010,
+    2021
+  ],
+  "index_study": {
+    "1": {
+      "label": "1년차(집권원년)",
+      "before": {
+        "n": 19,
+        "mean_pct": 8.35,
+        "win_rate_pct": 63.2
+      },
+      "after": {
+        "n": 17,
+        "mean_pct": 8.323,
+        "win_rate_pct": 64.7
+      },
+      "excluded_years": [
+        1981,
+        2021
+      ]
+    },
+    "2": {
+      "label": "2년차(중간선거)",
+      "before": {
+        "n": 18,
+        "mean_pct": 3.685,
+        "win_rate_pct": 55.6
+      },
+      "after": {
+        "n": 15,
+        "mean_pct": 5.914,
+        "win_rate_pct": 60.0
+      },
+      "excluded_years": [
+        1962,
+        2002,
+        2010
+      ]
+    },
+    "3": {
+      "label": "3년차(대선전해)",
+      "before": {
+        "n": 19,
+        "mean_pct": 17.178,
+        "win_rate_pct": 89.5
+      },
+      "after": {
+        "n": 15,
+        "mean_pct": 17.563,
+        "win_rate_pct": 86.7
+      },
+      "excluded_years": [
+        1955,
+        1959,
+        1971,
+        1983
+      ]
+    },
+    "0": {
+      "label": "4년차(대선해)",
+      "before": {
+        "n": 19,
+        "mean_pct": 8.106,
+        "win_rate_pct": 84.2
+      },
+      "after": {
+        "n": 17,
+        "mean_pct": 7.671,
+        "win_rate_pct": 82.4
+      },
+      "excluded_years": [
+        1976,
+        1992
+      ]
+    }
+  },
+  "sector_study": {
+    "XLK": {
+      "label": "기술",
+      "before": {
+        "n": 6,
+        "mean_pct": 26.914,
+        "win_rate_pct": 83.3
+      },
+      "after": {
+        "n": 5,
+        "mean_pct": 25.552,
+        "win_rate_pct": 80.0
+      },
+      "excluded_years": [
+        2021
+      ],
+      "year3_mean": 24.362
+    },
+    "XLF": {
+      "label": "금융",
+      "before": {
+        "n": 6,
+        "mean_pct": 19.659,
+        "win_rate_pct": 100.0
+      },
+      "after": {
+        "n": 5,
+        "mean_pct": 17.098,
+        "win_rate_pct": 100.0
+      },
+      "excluded_years": [
+        2021
+      ],
+      "year3_mean": -0.846
+    },
+    "XLE": {
+      "label": "에너지",
+      "before": {
+        "n": 6,
+        "mean_pct": 21.426,
+        "win_rate_pct": 83.3
+      },
+      "after": {
+        "n": 5,
+        "mean_pct": 16.423,
+        "win_rate_pct": 80.0
+      },
+      "excluded_years": [
+        2021
+      ],
+      "year3_mean": 2.674
+    },
+    "XLV": {
+      "label": "헬스케어",
+      "before": {
+        "n": 6,
+        "mean_pct": 19.627,
+        "win_rate_pct": 100.0
+      },
+      "after": {
+        "n": 5,
+        "mean_pct": 18.713,
+        "win_rate_pct": 100.0
+      },
+      "excluded_years": [
+        2021
+      ],
+      "year3_mean": 7.807
+    },
+    "XLI": {
+      "label": "산업재",
+      "before": {
+        "n": 6,
+        "mean_pct": 19.419,
+        "win_rate_pct": 100.0
+      },
+      "after": {
+        "n": 5,
+        "mean_pct": 19.404,
+        "win_rate_pct": 100.0
+      },
+      "excluded_years": [
+        2021
+      ],
+      "year3_mean": 8.977
+    },
+    "XLY": {
+      "label": "임의소비재",
+      "before": {
+        "n": 6,
+        "mean_pct": 21.042,
+        "win_rate_pct": 83.3
+      },
+      "after": {
+        "n": 5,
+        "mean_pct": 19.82,
+        "win_rate_pct": 80.0
+      },
+      "excluded_years": [
+        2021
+      ],
+      "year3_mean": 12.599
+    },
+    "XLP": {
+      "label": "필수소비재",
+      "before": {
+        "n": 6,
+        "mean_pct": 9.685,
+        "win_rate_pct": 83.3
+      },
+      "after": {
+        "n": 5,
+        "mean_pct": 8.758,
+        "win_rate_pct": 80.0
+      },
+      "excluded_years": [
+        2021
+      ],
+      "year3_mean": 9.176
+    },
+    "XLU": {
+      "label": "유틸리티",
+      "before": {
+        "n": 6,
+        "mean_pct": 10.621,
+        "win_rate_pct": 100.0
+      },
+      "after": {
+        "n": 5,
+        "mean_pct": 9.913,
+        "win_rate_pct": 100.0
+      },
+      "excluded_years": [
+        2021
+      ],
+      "year3_mean": 6.736
+    },
+    "XLB": {
+      "label": "소재",
+      "before": {
+        "n": 6,
+        "mean_pct": 20.801,
+        "win_rate_pct": 100.0
+      },
+      "after": {
+        "n": 5,
+        "mean_pct": 19.927,
+        "win_rate_pct": 100.0
+      },
+      "excluded_years": [
+        2021
+      ],
+      "year3_mean": 5.596
+    }
+  },
+  "h2_standalone_recovery_axis": {
+    "recovery": {
+      "n": 11,
+      "mean_pct": 7.393,
+      "win_rate_pct": 72.7
+    },
+    "non_recovery": {
+      "n": 64,
+      "mean_pct": 9.751,
+      "win_rate_pct": 73.4
+    }
+  }
+}

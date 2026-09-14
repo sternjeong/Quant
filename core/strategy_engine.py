@@ -1038,6 +1038,7 @@ class Trade:
     return_pct: Optional[float]
     entry_reason: Optional[str] = None  # 진입 근거 문구 (차트 호버 툴팁용, indicator_config 없으면 None)
     exit_reason: Optional[str] = None  # 청산 근거 문구 (마지막 강제 청산은 그 사실을 그대로 명시)
+    direction: str = "long"  # "long"(정방향 매수) | "inverse"(인버스 매수) — core.kostolany_scenario_engine의 양방향 모드에서만 "inverse" 사용
 
 
 def extract_trades(

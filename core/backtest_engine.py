@@ -300,6 +300,38 @@ def _compute_calmar(cagr: float, mdd: float) -> float:
     return _RATIO_METRIC_CAP if cagr > 0 else 0.0
 
 
+def compute_drawdown_series(equity_curve: pd.Series) -> pd.Series:
+    """자산가치 곡선에서 매 시점의 낙폭(%, 신고점 대비 하락률)을 계산한다. 항상 0 이하 값이며,
+    신고점 갱신 시점은 0. UI의 underwater(드로다운) 차트와 calculate_metrics()의 MDD 계산이 이 함수를
+    공유한다."""
+    if equity_curve.empty:
+        return equity_curve.copy()
+    running_max = equity_curve.cummax()
+    return (equity_curve / running_max - 1) * 100
+
+
+def compute_monthly_returns(equity_curve: pd.Series) -> pd.DataFrame:
+    """자산가치 곡선을 월별 수익률(%) 피벗 테이블(행=연도, 열=월 1~12)로 변환한다.
+
+    각 달의 수익률은 그 달 마지막 거래일 자산가치를 직전 달 마지막 거래일 자산가치와 비교해 구한다
+    (거래일 기준 리샘플이라 휴장일과 무관). 데이터가 2개월 미만이면(수익률을 하나도 못 구하면) 빈
+    DataFrame을 반환한다.
+    """
+    if equity_curve.empty or len(equity_curve) < 2:
+        return pd.DataFrame()
+
+    month_end = equity_curve.resample("ME").last()
+    monthly_return = month_end.pct_change().dropna() * 100
+    if monthly_return.empty:
+        return pd.DataFrame()
+
+    table = monthly_return.to_frame("return")
+    table["year"] = table.index.year
+    table["month"] = table.index.month
+    pivot = table.pivot(index="year", columns="month", values="return")
+    return pivot.reindex(columns=range(1, 13))
+
+
 def _compute_avg_drawdown_duration_days(equity_curve: pd.Series) -> float:
     """평균 낙폭 지속기간(일) — 신고점을 갱신하지 못한 채(running_max 미만) 있다가 다시 신고점을
     회복하기까지 걸린 일수들의 평균이다. MDD는 "얼마나 깊게 빠졌는지"만 알려주지만, 이 지표는
@@ -353,9 +385,7 @@ def calculate_metrics(equity_curve: pd.Series, trades: list[Trade], start_date, 
     else:
         cagr = 0.0
 
-    running_max = equity_curve.cummax()
-    drawdown = (equity_curve / running_max - 1) * 100
-    mdd = float(drawdown.min())
+    mdd = float(compute_drawdown_series(equity_curve).min())
 
     daily_returns = equity_curve.pct_change().dropna()
     if daily_returns.std(ddof=0) > 0:

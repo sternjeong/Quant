@@ -1,0 +1,62 @@
+
+==================== 강세장 (2015-01-01~2026-08-12) ====================
+$XLC: possibly delisted; no price data found  (1d 2013-11-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1385528400, endDate = 1529294400")
+$XLRE: possibly delisted; no price data found  (1d 2013-11-27 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1385528400, endDate = 1444190400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2013-11-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1385528400, endDate = 1529294400")
+
+1 Failed download:
+['XLRE']: possibly delisted; no price data found  (1d 2013-11-27 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1385528400, endDate = 1444190400")
+사용 가능한 섹터 ETF: ['XLK', 'XLF', 'XLV', 'XLY', 'XLP', 'XLE', 'XLI', 'XLB', 'XLU', 'XLRE', 'XLC']
+[롤링 리스크패리티, 오버레이 없음]: {'cumulative_return': 168.64, 'cagr': 8.89, 'mdd': -36.01, 'sharpe': 0.61, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.25, 'avg_drawdown_days': 24.7}
+[정적(룩어헤드 있음) 리스크패리티, 오버레이 없음]: {'cumulative_return': 168.84, 'cagr': 8.89, 'mdd': -35.77, 'sharpe': 0.62, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.25, 'avg_drawdown_days': 23.9}
+  [롤링+vol(window=5,target=15.0)]: {'cumulative_return': 173.36, 'cagr': 9.05, 'mdd': -18.18, 'sharpe': 0.79, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.5, 'avg_drawdown_days': 24.5}
+  [롤링+vol(window=5,target=20.0)]: {'cumulative_return': 187.36, 'cagr': 9.52, 'mdd': -18.52, 'sharpe': 0.77, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.51, 'avg_drawdown_days': 23.3}
+S&P500: {'cumulative_return': 275.48, 'cagr': 12.08, 'mdd': -33.92, 'sharpe': 0.73, 'win_rate': 100.0, 'avg_holding_days': 4239.0, 'trade_count': 1, 'profit_factor': 999.0, 'calmar': 0.36, 'avg_drawdown_days': 19.5}
+
+==================== 약세장포함 (2000-01-03~2012-12-31) ====================
+$XLK: possibly delisted; no price data found  (1d 1998-11-29 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 912315600, endDate = 914216400")
+$XLF: possibly delisted; no price data found  (1d 1998-11-29 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 912315600, endDate = 914216400")
+
+1 Failed download:
+['XLF']: possibly delisted; no price data found  (1d 1998-11-29 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 912315600, endDate = 914216400")
+
+1 Failed download:
+['XLK']: possibly delisted; no price data found  (1d 1998-11-29 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 912315600, endDate = 914216400")
+$XLB: possibly delisted; no price data found  (1d 1998-11-29 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 912315600, endDate = 914216400")
+
+1 Failed download:
+['XLB']: possibly delisted; no price data found  (1d 1998-11-29 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 912315600, endDate = 914216400")
+$XLU: possibly delisted; no price data found  (1d 1998-11-29 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 912315600, endDate = 914216400")
+
+1 Failed download:
+['XLU']: possibly delisted; no price data found  (1d 1998-11-29 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 912315600, endDate = 914216400")
+$XLI: possibly delisted; no price data found  (1d 1998-11-29 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 912315600, endDate = 914216400")
+$XLV: possibly delisted; no price data found  (1d 1998-11-29 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 912315600, endDate = 914216400")
+
+1 Failed download:
+['XLI']: possibly delisted; no price data found  (1d 1998-11-29 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 912315600, endDate = 914216400")
+
+1 Failed download:
+['XLV']: possibly delisted; no price data found  (1d 1998-11-29 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 912315600, endDate = 914216400")
+$XLE: possibly delisted; no price data found  (1d 1998-11-29 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 912315600, endDate = 914216400")
+$XLP: possibly delisted; no price data found  (1d 1998-11-29 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 912315600, endDate = 914216400")
+
+1 Failed download:
+['XLE']: possibly delisted; no price data found  (1d 1998-11-29 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 912315600, endDate = 914216400")
+
+1 Failed download:
+['XLP']: possibly delisted; no price data found  (1d 1998-11-29 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 912315600, endDate = 914216400")
+$XLY: possibly delisted; no price data found  (1d 1998-11-29 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 912315600, endDate = 914216400")
+
+1 Failed download:
+['XLY']: possibly delisted; no price data found  (1d 1998-11-29 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 912315600, endDate = 914216400")
+사용 가능한 섹터 ETF: ['XLK', 'XLF', 'XLV', 'XLY', 'XLP', 'XLE', 'XLI', 'XLB', 'XLU']
+[롤링 리스크패리티, 오버레이 없음]: {'cumulative_return': 44.66, 'cagr': 2.88, 'mdd': -50.53, 'sharpe': 0.25, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.06, 'avg_drawdown_days': 65.9}
+[정적(룩어헤드 있음) 리스크패리티, 오버레이 없음]: {'cumulative_return': 46.88, 'cagr': 3.0, 'mdd': -51.1, 'sharpe': 0.25, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.06, 'avg_drawdown_days': 62.9}
+  [롤링+vol(window=5,target=15.0)]: {'cumulative_return': 34.2, 'cagr': 2.29, 'mdd': -37.77, 'sharpe': 0.23, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.06, 'avg_drawdown_days': 76.4}
+  [롤링+vol(window=5,target=20.0)]: {'cumulative_return': 34.61, 'cagr': 2.32, 'mdd': -37.91, 'sharpe': 0.23, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.06, 'avg_drawdown_days': 79.1}
+S&P500: {'cumulative_return': -3.63, 'cagr': -0.28, 'mdd': -56.78, 'sharpe': 0.09, 'win_rate': 0.0, 'avg_holding_days': 4743.0, 'trade_count': 1, 'profit_factor': 0.0, 'calmar': -0.01, 'avg_drawdown_days': 351.2}
+
+DONE

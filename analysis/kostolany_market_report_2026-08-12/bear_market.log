@@ -1,0 +1,204 @@
+2000-01-01 시점 S&P500 구성종목 수: 492
+무작위 표본 100종목(seed=7)
+가격 데이터 수집 중...
+$ANDW: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+
+1 Failed download:
+['ANDW']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: AL"}}}
+$AL: possibly delisted; no timezone found
+
+1 Failed download:
+['AL']: possibly delisted; no timezone found
+$ARC: possibly delisted; no timezone found
+
+1 Failed download:
+['ARC']: possibly delisted; no timezone found
+$AVP: possibly delisted; no timezone found
+
+1 Failed download:
+['AVP']: possibly delisted; no timezone found
+$BFO: possibly delisted; no timezone found
+
+1 Failed download:
+['BFO']: possibly delisted; no timezone found
+$BHMSQ: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+$BMC: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+
+1 Failed download:
+['BHMSQ']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+
+1 Failed download:
+['BMC']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+$BOL: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+
+1 Failed download:
+['BOL']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+$CEG: possibly delisted; no price data found  (1d 1998-11-29 -> 2022-01-18) (Yahoo error = "Data doesn't exist for startDate = 912315600, endDate = 1642482000")
+
+1 Failed download:
+['CEG']: possibly delisted; no price data found  (1d 1998-11-29 -> 2022-01-18) (Yahoo error = "Data doesn't exist for startDate = 912315600, endDate = 1642482000")
+$CGP: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31) (Yahoo error = "Data doesn't exist for startDate = 912315600, endDate = 1356930000")
+
+1 Failed download:
+['CGP']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31) (Yahoo error = "Data doesn't exist for startDate = 912315600, endDate = 1356930000")
+$CNG: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+
+1 Failed download:
+['CNG']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+$CTB: possibly delisted; no timezone found
+
+1 Failed download:
+['CTB']: possibly delisted; no timezone found
+$CTL: possibly delisted; no timezone found
+
+1 Failed download:
+['CTL']: possibly delisted; no timezone found
+$EMC: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31) (Yahoo error = "Data doesn't exist for startDate = 912315600, endDate = 1356930000")
+
+1 Failed download:
+['EMC']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31) (Yahoo error = "Data doesn't exist for startDate = 912315600, endDate = 1356930000")
+$ENRNQ: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+
+1 Failed download:
+['ENRNQ']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+$GDW: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+
+1 Failed download:
+['GDW']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+$GP: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31) (Yahoo error = "Data doesn't exist for startDate = 912315600, endDate = 1356930000")
+
+1 Failed download:
+['GP']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31) (Yahoo error = "Data doesn't exist for startDate = 912315600, endDate = 1356930000")
+$HNZ: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+
+1 Failed download:
+['HNZ']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+$JAVA: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31) (Yahoo error = "Data doesn't exist for startDate = 912315600, endDate = 1356930000")
+
+1 Failed download:
+['JAVA']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31) (Yahoo error = "Data doesn't exist for startDate = 912315600, endDate = 1356930000")
+$KSU: possibly delisted; no timezone found
+
+1 Failed download:
+['KSU']: possibly delisted; no timezone found
+$MAY: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+
+1 Failed download:
+['MAY']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+$MEA: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+
+1 Failed download:
+['MEA']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+$MEL: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+
+1 Failed download:
+['MEL']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+$MKG: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+
+1 Failed download:
+['MKG']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+$MIR: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31) (Yahoo error = "Data doesn't exist for startDate = 912315600, endDate = 1356930000")
+
+1 Failed download:
+['MIR']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31) (Yahoo error = "Data doesn't exist for startDate = 912315600, endDate = 1356930000")
+$MRO: possibly delisted; no timezone found
+
+1 Failed download:
+['MRO']: possibly delisted; no timezone found
+$MTLQQ: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+
+1 Failed download:
+['MTLQQ']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+$MWV: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+
+1 Failed download:
+['MWV']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+$NMK: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+
+1 Failed download:
+['NMK']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+$NSI: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31) (Yahoo error = "Data doesn't exist for startDate = 912315600, endDate = 1356930000")
+
+1 Failed download:
+['NSI']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31) (Yahoo error = "Data doesn't exist for startDate = 912315600, endDate = 1356930000")
+$NXTL: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+
+1 Failed download:
+['NXTL']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+$OK: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+
+1 Failed download:
+['OK']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+$OWENQ: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+
+1 Failed download:
+['OWENQ']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+$PGL: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+$PGN: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+
+1 Failed download:
+['PGL']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+
+1 Failed download:
+['PGN']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+$PTV: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+
+1 Failed download:
+['PTV']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+$PNU: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+
+1 Failed download:
+['PNU']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+$SIAL: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+$RBK: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+
+1 Failed download:
+['SIAL']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+
+1 Failed download:
+['RBK']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+$SOTR: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+
+1 Failed download:
+['SOTR']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+$SWY: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+
+1 Failed download:
+['SWY']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+$TRB: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+
+1 Failed download:
+['TRB']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+$TXU: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+
+1 Failed download:
+['TXU']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+$WYE: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+
+1 Failed download:
+['WYE']: possibly delisted; no price data found  (1d 1998-11-29 -> 2012-12-31)
+데이터 확보된 종목 수: 55 / 100
+S&P500 매수보유(2000~2012): {'cumulative_return': -3.63, 'cagr': -0.28, 'mdd': -56.78, 'sharpe': 0.09, 'win_rate': 0.0, 'avg_holding_days': 4743.0, 'trade_count': 1, 'profit_factor': 0.0, 'calmar': -0.01, 'avg_drawdown_days': 351.2}
+수익률 계산 완료: 55종목 x 3268일
+
+[동일가중, 오버레이 없음]: {'cumulative_return': 245.17, 'cagr': 10.01, 'mdd': -58.8, 'sharpe': 0.53, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.17, 'avg_drawdown_days': 34.6}
+[리스크패리티, 오버레이 없음]: {'cumulative_return': 151.26, 'cagr': 7.35, 'mdd': -48.39, 'sharpe': 0.47, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.15, 'avg_drawdown_days': 34.3}
+  [리스크패리티+vol-target(window=5, target=12.0)]: {'cumulative_return': 99.64, 'cagr': 5.47, 'mdd': -25.14, 'sharpe': 0.51, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.22, 'avg_drawdown_days': 41.6}
+  [리스크패리티+vol-target(window=5, target=15.0)]: {'cumulative_return': 108.55, 'cagr': 5.82, 'mdd': -27.89, 'sharpe': 0.49, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.21, 'avg_drawdown_days': 39.2}
+  [리스크패리티+vol-target(window=5, target=20.0)]: {'cumulative_return': 131.73, 'cagr': 6.69, 'mdd': -32.78, 'sharpe': 0.51, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.2, 'avg_drawdown_days': 35.5}
+  [리스크패리티+vol-target(window=20, target=12.0)]: {'cumulative_return': 96.34, 'cagr': 5.33, 'mdd': -25.0, 'sharpe': 0.51, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.21, 'avg_drawdown_days': 41.7}
+  [리스크패리티+vol-target(window=20, target=15.0)]: {'cumulative_return': 118.35, 'cagr': 6.2, 'mdd': -28.93, 'sharpe': 0.53, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.21, 'avg_drawdown_days': 38.8}
+  [리스크패리티+vol-target(window=20, target=20.0)]: {'cumulative_return': 139.52, 'cagr': 6.96, 'mdd': -33.59, 'sharpe': 0.53, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.21, 'avg_drawdown_days': 36.9}
+
+=== 전체 요약 (샤프 내림차순) ===
+   window  target_vol  cumulative_return  cagr    mdd  sharpe  win_rate  avg_holding_days  trade_count  profit_factor  calmar  avg_drawdown_days
+4      20        15.0             118.35  6.20 -28.93    0.53       0.0               0.0            0            0.0    0.21               38.8
+5      20        20.0             139.52  6.96 -33.59    0.53       0.0               0.0            0            0.0    0.21               36.9
+3      20        12.0              96.34  5.33 -25.00    0.51       0.0               0.0            0            0.0    0.21               41.7
+0       5        12.0              99.64  5.47 -25.14    0.51       0.0               0.0            0            0.0    0.22               41.6
+2       5        20.0             131.73  6.69 -32.78    0.51       0.0               0.0            0            0.0    0.20               35.5
+1       5        15.0             108.55  5.82 -27.89    0.49       0.0               0.0            0            0.0    0.21               39.2
+
+참고 S&P500(2000~2012): cagr=-0.28, mdd=-56.78, sharpe=0.09
+DONE

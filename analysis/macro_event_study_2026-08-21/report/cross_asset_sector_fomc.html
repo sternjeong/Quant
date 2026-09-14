@@ -1,0 +1,197 @@
+<title>섹터 로테이션과 금리결정</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #eef1ee; --surface: #ffffff; --surface-2: #e6eae5;
+    --ink: #17211d; --ink-muted: #57635c; --ink-faint: #8b968f; --line: #d9dfd8;
+    --hike: #a8461f; --hike-soft: #f4e3da; --cut: #1f6e79; --cut-soft: #dcedee; --gold: #8a6d1f;
+    --shadow: 0 1px 2px rgba(23,33,29,.06), 0 8px 24px -12px rgba(23,33,29,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+      --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+      --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+      --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+    --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+    --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+    --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Public Sans", -apple-system, "Noto Sans KR", sans-serif;
+    font-size: 16px; line-height: 1.65;
+  }
+  ::selection { background: var(--gold); color: #1a1408; }
+  a { color: var(--cut); }
+  .page { max-width: 880px; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 1rem;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 500;
+    font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.08; letter-spacing: -.01em;
+    margin: 0 0 1rem; text-wrap: balance;
+  }
+  .dek { font-size: 1.15rem; color: var(--ink-muted); max-width: 62ch; margin: 0 0 1.75rem; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: .4rem 1.6rem;
+    font-family: "IBM Plex Mono", monospace; font-size: .82rem; color: var(--ink-muted);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: .85rem 0;
+  }
+  .meta-row b { color: var(--ink); font-weight: 600; }
+  section { margin: 3.2rem 0; }
+  section > h2 {
+    font-family: "Fraunces", serif; font-weight: 500; font-size: 1.6rem;
+    letter-spacing: -.005em; margin: 0 0 .3rem; text-wrap: balance;
+  }
+  section > .lede { color: var(--ink-muted); max-width: 66ch; margin: 0 0 1.4rem; }
+  p { max-width: 68ch; }
+  .note {
+    background: var(--surface-2); border-left: 3px solid var(--gold); border-radius: 4px;
+    padding: .9rem 1.1rem; font-size: .93rem; color: var(--ink-muted); max-width: 68ch; margin: 1.1rem 0;
+  }
+  .note b { color: var(--ink); }
+  .callout {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.2rem 1.4rem; box-shadow: var(--shadow); margin: 1.4rem 0;
+  }
+  .table-wrap { overflow-x: auto; margin: 1.2rem 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 480px; font-size: .92rem; }
+  caption { text-align: left; font-size: .82rem; color: var(--ink-faint); padding-bottom: .5rem; }
+  th, td { padding: .62rem .8rem; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; font-family: "IBM Plex Mono", monospace; }
+  th:first-child, td:first-child { text-align: left; font-family: "Public Sans", sans-serif; }
+  thead th { font-family: "Public Sans", sans-serif; font-weight: 600; font-size: .78rem; letter-spacing: .02em; color: var(--ink-muted); text-transform: uppercase; border-bottom: 1px solid var(--ink-faint); }
+  tr.row-hot td:first-child { border-left: 3px solid var(--hike); padding-left: .65rem; }
+  tr.row-cool td:first-child { border-left: 3px solid var(--cut); padding-left: .65rem; }
+  tbody tr:hover { background: var(--surface-2); }
+  ul.findings { padding-left: 1.2rem; max-width: 68ch; }
+  ul.findings li { margin-bottom: .9rem; }
+  ul.findings b { color: var(--ink); }
+  .footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--line); font-size: .82rem; color: var(--ink-faint); }
+</style>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">MACRO EVENT STUDY · 트랙 E · 섹터 로테이션 · 2005&ndash;2026</div>
+    <h1>금리를 내리면 금융주가 가장 아팠다</h1>
+    <p class="dek">이 프로젝트는 지금까지 채권·금·달러라는 3개 "다른 자산군"만 봤다. 이번엔
+    S&amp;P500 안에서 섹터를 쪼갰다 — 1998년에 상장해 2005년 이후 온전한 기록이 있는 오리지널
+    SPDR 섹터ETF 9개(기술·금융·에너지·헬스케어·산업재·임의소비재·필수소비재·유틸리티·소재)에
+    연준 금리결정이 어떻게 다르게 반응했는지 봤다.</p>
+    <div class="meta-row">
+      <span>금리변경 이벤트 <b>53건</b>(인상32·인하21, 2005년 이후)</span>
+      <span>섹터 <b>9개</b> · 구간 <b>2005 ~ 2026</b></span>
+      <span>데이터 <b>FRED(DFEDTAR 계열), Yahoo Finance(섹터 SPDR ETF)</b></span>
+    </div>
+  </header>
+
+  <section>
+    <h2>인하 후 +60거래일, 섹터별로 이렇게 갈렸다</h2>
+    <p class="lede">"금리를 내리면 주식시장 전체에 좋다"는 통설은 맞지만, 그 안에서 섹터간
+    격차가 이렇게 크다는 건 잘 알려지지 않았다 — 최고와 최악의 차이가 11%포인트가 넘는다.</p>
+    <div class="table-wrap">
+      <table>
+        <caption>금리인하 후 +60거래일 평균 수익률(%) · 괄호는 승률 · 2005년 이후 21건 기준, 수익률 순 정렬</caption>
+        <thead><tr><th>섹터</th><th>인하 후 +60일</th><th>인상 후 +60일(참고)</th></tr></thead>
+        <tbody>
+          <tr class="row-cool"><td>에너지(XLE)</td><td><b>+4.42%</b> (47.6%)</td><td>+2.12% (50.0%)</td></tr>
+          <tr><td>소재(XLB)</td><td>+1.43% (52.4%)</td><td>+0.36% (53.1%)</td></tr>
+          <tr><td>기술(XLK)</td><td>+1.31% (52.4%)</td><td>+2.91% (68.8%)</td></tr>
+          <tr><td>헬스케어(XLV)</td><td>+1.04% (52.4%)</td><td>+1.25% (71.9%)</td></tr>
+          <tr><td>필수소비재(XLP)</td><td>+0.77% (47.6%)</td><td>+0.47% (59.4%)</td></tr>
+          <tr><td>유틸리티(XLU)</td><td>+0.71% (57.1%)</td><td>+1.40% (56.2%)</td></tr>
+          <tr><td>임의소비재(XLY)</td><td>&minus;0.07% (57.1%)</td><td>+1.04% (56.2%)</td></tr>
+          <tr><td>산업재(XLI)</td><td>&minus;0.94% (52.4%)</td><td>+1.24% (59.4%)</td></tr>
+          <tr class="row-hot"><td>금융(XLF)</td><td><b>&minus;6.66%</b> (42.9%)</td><td>+0.41% (56.2%)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><b>금융주가 가장 반직관적이다.</b> "금리를 내리면 은행 대출이 늘어 금융주에 좋다"는
+    통념과 정반대로, 이 프로젝트의 인하 이벤트 21건 기준 금융(XLF)은 60거래일 평균
+    &minus;6.66%, 승률 42.9%로 9개 섹터 중 가장 나빴다 — 그것도 압도적인 차이로. 반면 인상
+    후에는 오히려 완만하게 플러스(+0.41%)였다. 흔히 "금리인하=은행에 호재"라고 생각하기
+    쉽지만 실제로는 그 반대였다.</p>
+    <p><b>가장 유력한 설명은 은행의 수익 구조 자체다.</b> 은행은 예금(단기금리)으로 조달해서
+    대출(장기금리)로 굴려 그 차이(순이자마진)로 돈을 번다 — 금리를 내리면 대출 자체는
+    늘어날 수 있어도 마진이 눌리기 쉽다. 게다가 트랙A·트랙E에서 이미 여러 번 확인했듯,
+    이 프로젝트의 "인하" 표본에는 2008년·2020년 같은 위기성 인하가 섞여 있다 — 금융위기
+    때 가장 먼저, 가장 크게 맞는 게 은행주라는 점도 이 결과를 설명하는 데 한몫한다.</p>
+    <div class="note">
+    <b>2026-08-24 정정 — 이 결과는 시기 의존적이다.</b> 21건을 2020년 기준으로 나눠 재검증한
+    결과, 2020년 이전(2008년 금융위기 수준의 인하가 대부분)은 &minus;12.45%(승률23.1%)로
+    지금 보고한 수치와 비슷했지만, <b>2020년 이후(코로나·2024~25년 인하)는 오히려 +2.74%
+    (승률75.0%)로 완전히 역전됐다</b>. 즉 "금융주가 인하의 최대 피해자"라는 결론은 인하
+    일반의 성질이 아니라 <b>2008년급 위기성 인하에 국한된 현상</b>이었을 가능성이 크다 —
+    아래 &minus;6.66%라는 숫자를 인용할 때는 이 시기 의존성을 함께 언급할 것.</div>
+    <p><b>에너지는 정반대로 인하 후에 가장 좋았다</b>(+4.42%) — 다만 승률은 47.6%로 절반이
+    안 돼, 소수의 큰 반등(원자재 슈퍼사이클 국면 등)이 평균을 끌어올렸을 가능성이 있다.
+    승률까지 같이 좋았던 유틸리티(+0.71%, 승률57.1%)·임의소비재(승률57.1%)가 오히려
+    표본 전반에 걸쳐 더 일관된 편이다.</p>
+  </section>
+
+  <section>
+    <h2>인상 국면엔 오히려 "성장주"가 잘 버텼다</h2>
+    <p class="lede">"금리를 올리면 미래 이익을 할인하는 성장주(기술)가 가장 아프다"는 것도
+    흔한 통설이다. 이 데이터에서는 그 반대였다.</p>
+    <p>인상 이벤트 32건 기준, 기술(XLK)은 +2.91%(승률68.8%)로 헬스케어(+1.25%, 승률71.9%)
+    다음으로 좋았다 — 오히려 유틸리티·필수소비재 같은 전통적 "방어주"보다도 나은 성적이다.
+    2005~2026년 인상 국면 대부분이 "경제가 튼튼해서 올리는" 정상적 긴축이었고, 튼튼한
+    경제는 결국 기술 기업의 실적에도 좋았다는 해석이 가능하다 — 다만 이 결론은 2022년의
+    급격한 인플레이션 대응 인상기(기술주가 크게 하락했던 시기)가 32건의 평균에 묻혀
+    희석됐을 가능성도 있어, 인상 사이클의 "성격"(정상 긴축 vs 인플레이션 진압)까지
+    나누면 결과가 달라질 수 있다는 점을 명시해둔다.</p>
+  </section>
+
+  <section>
+    <h2>경제학 지식 없이 읽는 법</h2>
+    <ul class="findings">
+      <li><b>"금리 내리면 주식 다 좋다"는 섹터 단위에선 틀렸다.</b> 같은 인하 이벤트에도
+      에너지는 +4.42%, 금융은 &minus;6.66% — 11%포인트가 넘는 격차가 났다. "시장 전체"가
+      아니라 "어느 섹터냐"가 훨씬 더 중요한 질문일 수 있다.</li>
+      <li><b>은행주는 금리인하의 수혜자가 아니라 피해자에 가까웠다.</b> 예대마진이 눌리는
+      구조적 이유에 더해, 위기성 인하(2008·2020)가 표본에 섞인 영향도 크다.</li>
+      <li><b>"성장주는 금리인상에 취약하다"도 이 데이터에선 안 맞았다.</b> 기술 섹터는
+      인상 국면에 오히려 상위권 성적을 냈다 — 다만 인상의 "이유"(경기가 튼튼해서 vs
+      인플레이션을 잡으려고)까지 구분하면 결론이 달라질 수 있다는 한계가 있다.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>한계</h2>
+    <div class="callout">
+      <ul class="findings" style="margin:0;">
+        <li><b>인상·인하 "국면의 성격"을 구분하지 않았다.</b> 트랙A·트랙E에서 이미 확인한
+        "침체중 인하 vs 보험성 인하"처럼, 인상에도 "정상 긴축 vs 인플레이션 진압"의 구분이
+        있을 수 있다 — 이번 리포트는 그 구분 없이 32건·21건을 통째로 평균 냈다.</li>
+        <li><b>섹터간 상관관계를 통제하지 않았다.</b> 특정 시기(예: 2008년 금융위기)가
+        여러 섹터에 동시에 영향을 줬을 수 있어, 9개 섹터의 결과가 서로 완전히 독립적인
+        증거는 아니다.</li>
+        <li><b>구간이 2005년 이후로 제한됐다.</b> XLRE(2015년 상장)·XLC(2018년 상장)는
+        기간이 너무 짧아 아예 제외했다 — 부동산·커뮤니케이션 섹터는 이번 분석에 없다.</li>
+        <li><b>"발표 당일"이 아니라 "+60거래일 누적" 기준이다.</b> 더 짧은 호라이즌(5일·
+        20일)은 JSON 원본 데이터엔 있지만 이 리포트 본문 표에는 60일 기준만 실었다.</li>
+        <li><b>(2026-08-24 추가) 금융주의 인하 후 약세는 시기 의존적이다.</b> 2020년 전후로
+        나눠보면 결과가 완전히 역전된다(위 본문에 상세). 21건이라는 표본이 사실상 "2008년급
+        위기" 소수 사례에 의해 지배됐을 수 있다는 뜻 — 이 리포트의 결론을 인용할 때는
+        "금융주는 인하에 취약하다"가 아니라 "금융주는 위기성 인하에 특히 취약했다"로
+        좁혀서 말할 것.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="footer">
+    데이터: FRED(DFEDTAR/DFEDTARU/DFEDTARL, release/dates API), Yahoo Finance(XLK, XLF, XLE,
+    XLV, XLI, XLY, XLP, XLU, XLB) · 분석 스크립트: cross_asset_sector_fomc.py · 같은 프로젝트:
+    연준 금리 이벤트 스터디, 자산군 교차분석(채권·금·달러)
+  </div>
+</div>
