@@ -4486,3 +4486,56 @@ tuning.py`(train/test 75/25 분리, `compute_overfitting_curve`의 "train은 계
   않음(다른 `*_job()` 함수들도 동일 관례). 전체 `pytest tests/` **824개 통과**(회귀 없음).
 - **아직 VM에 미배포** — 이 작업은 로컬에서만 완료됨. 커밋/푸시 후 오라클 VM에서
   `git pull` + `systemctl restart quant-scheduler`를 해야 실제로 매일 밤 돌기 시작한다.
+
+### 작업 65 (2026-09-14, 같은 대화 후속): 매일 밤 무인 리서치 에이전트 2개(B/C) 자동화 — Claude Pro 구독 기반
+
+사용자가 "서버에서 특정 시간에 클로드 코드를 켜서 특정 명령을 수행하게 할 수 있냐, 내가 늘
+쓰는 리서치 에이전트 둘(① 미국 10개 시장 & S&P500 포트폴리오 분석, ② 개별주와 텐베거 발굴
+방법)에게 늘 일을 시키고 싶다, 최대한 토큰을 소진해서 가치를 뽑고 싶다"고 요청. claude.ai
+웹 대화 세션 자체는 이 저장소에서 접근/재현할 수 없으므로, 그 두 세션이 실제로 만들어낸
+결과물(`analysis/`의 29개+ 리서치 폴더, `docs/reports/`)을 직접 읽고 각 라인의 방법론/규칙/
+아직 안 풀린 문제를 역으로 추출해서 두 에이전트의 페르소나 프롬프트를 새로 설계했다(사용자
+확인 후 진행 — API 과금이 아니라 Claude Pro/Max 구독 로그인 기반으로 하겠다는 제약도 이때
+확정, budget 폭주 위험 없음).
+
+- **`deploy/research_agents/` 신규 디렉터리**:
+  - `agent_b_market_portfolio.md` / `agent_c_tenbagger.md`: 각 라인의 확립된 규칙(순열검정+
+    블록부트스트랩 이중검증, point-in-time 유니버스, 6구간 기댓값 재구성, robust/moderate/weak/
+    reversed 등급, 정적 사전필터에 대한 기본 의심, "이건 가설 검증용이지 데이터마이닝이 아니다")
+    을 `analysis/` 전체를 읽어 추출한 그대로 명문화하고, 아직 안 풀린 문제 목록(B: 2021 성장주
+    언와인드 사각지대/14~16개월 룩백 후보 미감사/칼라헤지 파라미터 민감도, C: AI-비피벗 대조군
+    바스켓 없음/옵션헤지 미이식/표본기간 짧음/오늘자 신규 스캔)을 시드로 제공. **git commit/push는
+    절대 하지 않는다**는 제약을 프롬프트에 명시(사용자가 직접 검토 후 커밋하길 원함).
+  - `run_research_agent.sh`: `claude -p "<프롬프트>" --dangerously-skip-permissions` 헤드리스
+    실행(무인 서버라 매번 승인 못 받으므로) + 실행 후 `pytest tests/ -q` 회귀 확인 +
+    `notify_if_accumulated.py` 호출. "사용량 한도에 걸리면 초기화 후 이어서 계속"은 별도 재시도
+    로직을 만들지 않고 Claude Code 자체 설정(`autoContinueAtUsageLimit: true`, VM의
+    `/opt/quant/.claude/settings.json`에 설정)에 맡긴다 — 사용자가 원한 "최대한 소진, 끊기면
+    초기화 후 이어서"를 정확히 지원하는 기존 기능을 그대로 활용(새로 발명 안 함).
+  - `notify_if_accumulated.py`: git commit을 안 하므로 `analysis/` 밑에 커밋 안 된(untracked)
+    새 리포트 폴더가 계속 쌓인다 — 매번 알리면 스팸이라, 마지막 알림 이후 새로 쌓인 게 3개
+    이상일 때만 텔레그램으로 한 번에 알리고 기준선을 갱신(`data/cache/research_agent_notify_
+    state.json`). `core.telegram_notify.send_message()` 재사용.
+  - **버그 발견 및 수정**: `notify_if_accumulated.py`를 실제로 실행해보니 텔레그램 전송이
+    조용히 실패했다 — `core/telegram_notify.py`가 자체적으로 `.env`를 로드하지 않고
+    `core.champion_strategy`를 거쳐 간접적으로(그 모듈이 `core.fred_data`를 import하면서
+    `load_dotenv()`가 부수효과로 실행되는 것에) 의존하고 있었다. 스케줄러 잡들은 항상
+    champion_strategy를 먼저 import해서 우연히 동작했지만, 이 스크립트처럼 단독 실행되는
+    경우엔 깨졌다. `core/telegram_notify.py` 모듈 상단에 `load_dotenv()`를 직접 추가해
+    (`core/fred_data.py` 등 다른 core 모듈과 동일한 관례) 근본 수정.
+  - **`deploy/quant-research-agent-{b,c}.service`/`.timer`**: 매일 한국시간 00:20에 각각
+    실행하는 systemd 타이머 2개(오늘 새로 만든 `fred_indicator_prewarm_job`도 같은 00:20이지만
+    서로 완전히 다른 프로세스/메커니즘(파이썬 APScheduler vs 외부 claude CLI)이라 충돌 없음).
+    `TimeoutStartSec=82800`(23시간)으로 `autoContinueAtUsageLimit`가 한도 재설정을 기다리는
+    긴 대기도 감당하게 함.
+  - `deploy/setup_vm.sh`에 `nodejs npm` 패키지 설치 추가(Claude Code CLI가 npm 패키지로
+    배포되므로 향후 신규 VM 부트스트랩에도 반영), `deploy/DEPLOYMENT_ORACLE.md`에 "10. 리서치
+    에이전트 자동화" 섹션 신규 추가(CLI 설치 → `quant` 계정으로 `claude login`[대화형, 1회,
+    사람이 직접] → `autoContinueAtUsageLimit` 설정 → systemd 등록 → 확인, 5단계).
+- 검증: `notify_if_accumulated.py`를 실제로 더미 untracked 폴더 3개 만들어 실행 → 텔레그램
+  실제 전송 성공까지 end-to-end 확인(테스트 후 더미 폴더/상태파일 정리). bash/python 문법
+  검사(`bash -n`, `ast.parse`) 통과. 전체 `pytest tests/` **824개 통과**(회귀 없음 — 이번
+  작업은 core/telegram_notify.py의 dotenv 로딩 한 줄 외에는 core/*.py를 건드리지 않음).
+- **아직 VM에 미배포, 아직 `claude login`도 안 함** — 이건 사용자가 직접 해야 하는 절차(대화형
+  OAuth 로그인이라 원격으로 대신 할 수 없음). 프롬프트 파일도 아직 한 번도 실제로 무인 실행해본
+  적이 없으므로, 배포 후 처음 한동안은 로그/결과물을 직접 확인해보는 걸 권장.

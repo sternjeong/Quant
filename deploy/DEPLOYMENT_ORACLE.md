@@ -131,3 +131,69 @@ sudo systemctl restart quant-streamlit quant-scheduler
 `data/quant.db` 하나가 전략/알림 이력/야간튜닝 결과의 전부다. 유실 방지를 위해 가끔
 `scp ubuntu@<PUBLIC_IP>:/opt/quant/data/quant.db ./backup/quant-$(date +%F).db` 로 로컬에 받아
 두는 것을 권장한다(자동화는 필요해지면 cron으로 추가 가능).
+
+## 10. (신규, 2026-09-14) 리서치 에이전트 자동화 — 매일 밤 무인으로 Claude Code 실행
+
+`deploy/research_agents/`에 매일 한국시간 00:20에 Claude Code CLI를 무인으로 두 번(에이전트
+B/C 각각) 실행해 새 정량 리서치 리포트를 생성하는 systemd 타이머 두 개가 정의돼 있다. API 키
+과금이 아니라 **사용자의 Claude Pro/Max 구독 로그인**으로 동작한다(이 VM의 대화형 CLI 로그인은
+1회만 사람이 직접 해야 함 — 아래 참고).
+
+- `agent_b_market_portfolio.md` / `agent_c_tenbagger.md`: 각 에이전트의 페르소나·규칙·"아직
+  안 풀린 문제" 목록을 담은 프롬프트. 이 저장소의 `analysis/`에 쌓인 기존 리서치 방법론(순열검정+
+  블록부트스트랩 이중검증, point-in-time 유니버스, 확신도 등급, 자기회의적 태도)을 그대로
+  이어가도록 지시한다. 결과물은 **git commit/push를 하지 않고** 워킹트리에만 쌓인다.
+- `run_research_agent.sh`: `claude -p "<프롬프트>" --dangerously-skip-permissions`로 헤드리스
+  실행 후 `pytest tests/ -q` 회귀 확인 + `notify_if_accumulated.py` 호출.
+- `notify_if_accumulated.py`: `analysis/` 밑에 아직 커밋되지 않은(untracked) 새 리포트 폴더가
+  마지막 알림 이후 3개 이상 쌓이면 텔레그램으로 한 번에 알린다(매번 알리면 스팸이 되므로).
+- "사용량 한도에 걸리면 초기화 후 이어서 계속" 동작은 별도 재시도 로직 없이 **Claude Code 자체
+  설정**(`autoContinueAtUsageLimit: true`)에 맡긴다 — 아래 3단계에서 설정한다.
+
+**1단계 — Claude Code CLI 설치** (VM에 SSH 접속 후):
+```bash
+sudo apt-get install -y nodejs npm   # 이미 있으면 생략
+sudo npm install -g @anthropic-ai/claude-code
+```
+
+**2단계 — `quant` 서비스 계정으로 로그인** (대화형, 1회만 — 이건 사람이 직접 해야 함):
+```bash
+sudo -u quant claude login
+```
+브라우저가 없는 서버라 화면에 인증 URL과 코드가 뜬다 — 그 URL을 본인 휴대폰/PC 브라우저로 열어
+로그인하고 코드를 입력하면 된다. `quant` 계정의 `$HOME`이 `/opt/quant`로 설정돼 있어
+(`deploy/setup_vm.sh`가 만듦) 자격증명이 `/opt/quant/.claude/`에 저장되고, 이후 systemd 서비스
+(`User=quant`로 실행)도 같은 자격증명을 그대로 쓴다.
+
+**3단계 — 사용량 한도 자동 대기 설정**:
+```bash
+sudo -u quant mkdir -p /opt/quant/.claude
+# 기존 설정이 있으면 덮어쓰지 말고 "autoContinueAtUsageLimit": true 를 손으로 병합해 추가할 것
+sudo -u quant tee -a /opt/quant/.claude/settings.json <<'EOF'
+{"autoContinueAtUsageLimit": true}
+EOF
+```
+(`/opt/quant/.claude/settings.json`이 이미 존재하면 `cat`으로 먼저 내용을 확인하고 JSON을
+직접 병합하세요 — 위 명령은 파일이 없을 때만 안전합니다.)
+
+**4단계 — systemd 등록**:
+```bash
+sudo cp /opt/quant/deploy/research_agents/quant-research-agent-b.service /etc/systemd/system/
+sudo cp /opt/quant/deploy/research_agents/quant-research-agent-b.timer /etc/systemd/system/
+sudo cp /opt/quant/deploy/research_agents/quant-research-agent-c.service /etc/systemd/system/
+sudo cp /opt/quant/deploy/research_agents/quant-research-agent-c.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now quant-research-agent-b.timer quant-research-agent-c.timer
+```
+
+**5단계 — 확인**:
+```bash
+systemctl list-timers | grep quant-research   # 다음 실행 예정 시각 확인
+# 당장 한 번 수동으로 테스트해보려면(타이머 안 기다리고):
+sudo systemctl start quant-research-agent-b.service
+journalctl -u quant-research-agent-b -f   # 실시간 로그(claude 세션 출력 포함)
+```
+
+**결과물 검토**: 매일 밤 `analysis/YYYY-MM-DD_*/` 밑에 새 폴더가 쌓인다(자동 커밋 안 됨). 3개
+이상 쌓이면 텔레그램으로 알림이 온다 — `git status`로 확인하고, 검토 후 원하는 것만 직접
+`git add`/`commit`/`push`하면 된다.

@@ -14,6 +14,9 @@ import os
 from typing import Optional
 
 import requests
+from dotenv import load_dotenv
+
+load_dotenv()
 
 TELEGRAM_API_BASE = "https://api.telegram.org"
 _REQUEST_TIMEOUT_SECONDS = 10
