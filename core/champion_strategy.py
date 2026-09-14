@@ -544,6 +544,123 @@ def run_satellite_backtest(
     }
 
 
+def _next_semiannual_month_start(dt: pd.Timestamp) -> pd.Timestamp:
+    """dt 이후 가장 가까운 반기 리밸런싱 월의 1일(달력상 1일 — 실제 거래일이 아님, 근사치 계산용)."""
+    for target_month in SATELLITE_REBAL_MONTHS:
+        if target_month > dt.month:
+            return pd.Timestamp(year=dt.year, month=target_month, day=1)
+    return pd.Timestamp(year=dt.year + 1, month=SATELLITE_REBAL_MONTHS[0], day=1)
+
+
+def compute_satellite_recommendation_point_in_time(
+    as_of_date: Optional[str] = None,
+    pool_n: int = SATELLITE_BACKTEST_POOL_N,
+    top_k: int = SATELLITE_BACKTEST_TOP_K,
+    sizing_method: str = "equal",
+) -> dict:
+    """새틀라이트의 "라이브" 추천을, 백테스트(run_satellite_backtest/_pick_satellite_at_date)가 실제로
+    검증한 방법론 그대로 계산한다 — 반기(1월/7월 첫 거래일) point-in-time 유니버스 표본(기본
+    40종목)에서 돈치안 브레이크아웃+트레일링스탑이 활성인 종목 중 12개월 모멘텀 상위(기본 3개)를
+    고르는 로직을 새로 만들지 않고 `_pick_satellite_at_date`를 그대로 호출한다.
+
+    compute_satellite_recommendation()(매번 S&P500 전체를 스캔하는 단순화된 근사치 — 3개월 모멘텀
+    상위 5개)과 이 함수가 서로 다른 숫자를 보여주던 문제(라이브 추천과 백테스트 성과가 같은 전략을
+    측정하지 않는 문제)를 해결하기 위해 2026-09-14 추가.
+
+    as_of_date(기본값: 오늘)를 기준으로 "그 시점 이전 가장 최근 반기 리밸런싱일에 이 방법을
+    기계적으로 실행한 뒤 계속 보유했다면, 지금 들고 있을 종목"을 계산한다. as_of_date가 3월이면
+    직전 1월 리밸런싱 결과를, 8월이면 직전 7월 리밸런싱 결과를 쓴다.
+
+    pool_n/top_k(2026-09-13 파라미터 민감도 분석과 동일한 의미)와 sizing_method(2026-09-14 추가,
+    "equal"/"inverse_vol" — compute_satellite_recommendation과 동일한 opt-in 실험적 옵션)는 모두
+    run_satellite_backtest/_pick_satellite_at_date에 그대로 전달된다. 기본값은 곧 백테스트가 실제로
+    검증한 값이다.
+
+    point-in-time 유니버스 표본추출 + 가격 조회가 필요해 느리다(compute_satellite_recommendation과
+    같은 비용 등급) — 호출부가 job_manager로 감싸 백그라운드 실행해야 한다.
+
+    Returns:
+        as_of, rebal_date(사용된 직전 리밸런싱일), trading_days_to_next_rebal(다음 리밸런싱까지
+        대략적인 영업일수 — 미래 거래일력을 알 수 없어 주말만 제외한 근사치, 공휴일 미반영),
+        pool_size, n_active_trend, selected(list[str], 곧 picks), sizing_method,
+        per_ticker_weight(하위호환용 균등가중 값), per_ticker_weights(dict, 포트폴리오 전체 비중
+        기준 — compute_satellite_recommendation과 동일한 스케일), picks(DataFrame:
+        ticker/price_at_rebal/current_price/return_since_rebal_pct), unallocated_weight
+    """
+    if sizing_method not in SATELLITE_SIZING_METHODS:
+        raise ValueError(f"알 수 없는 sizing_method: {sizing_method}")
+
+    as_of = pd.Timestamp(as_of_date) if as_of_date else pd.Timestamp(date.today())
+
+    # 반기 리밸런싱일을 찾으려면 실제 거래일력이 필요하다(_pick_satellite_at_date는 진짜
+    # pd.Timestamp 거래일을 받아야 하므로) — 시장필터 티커(SPY) 가격 이력의 인덱스를 거래일력으로
+    # 재사용한다(run_champion_backtest가 core 백테스트 결과 인덱스를 trading_index로 쓰는 것과 같은
+    # 관례). BACKTEST_WARMUP_DAYS(약 400일)만큼 여유를 둬 직전 반기 리밸런싱일을 반드시 포함시킨다.
+    calendar_start = (as_of - pd.DateOffset(days=BACKTEST_WARMUP_DAYS)).date().isoformat()
+    calendar = get_price_history(MARKET_FILTER_TICKER, start=calendar_start, end=as_of.date().isoformat(), use_cache=True)
+    if calendar is None or calendar.empty:
+        raise ValueError("거래일력을 구성할 가격 데이터를 불러오지 못했습니다.")
+
+    rebal_dates = _semiannual_rebal_dates(calendar.index, calendar_start, as_of.date().isoformat())
+    if not rebal_dates:
+        raise ValueError(
+            "as_of_date 이전에 반기 리밸런싱일(1월/7월 첫 거래일)이 없습니다 — as_of_date를 늦추거나 "
+            "데이터 기간을 확인하세요."
+        )
+    rebal_date = rebal_dates[-1]
+
+    next_rebal_month_start = _next_semiannual_month_start(rebal_date)
+    next_rebal_approx = pd.bdate_range(next_rebal_month_start, periods=5)[0]
+    trading_days_to_next_rebal = (
+        int(len(pd.bdate_range(as_of + pd.Timedelta(1, unit="D"), next_rebal_approx)))
+        if next_rebal_approx > as_of else 0
+    )
+
+    info = _pick_satellite_at_date(rebal_date, top_k=top_k, pool_n=pool_n, sizing_method=sizing_method)
+    picks: list[str] = info["picks"]
+    sleeve_weights: dict[str, float] = info["weights"]
+
+    per_ticker_weights = {t: SATELLITE_WEIGHT * w for t, w in sleeve_weights.items()}
+    per_ticker_weight = SATELLITE_WEIGHT / len(picks) if picks else 0.0
+
+    picks_rows = []
+    if picks:
+        histories = get_multiple_price_history(
+            picks, start=rebal_date.date().isoformat(), end=as_of.date().isoformat(), interval="1d"
+        )
+        for t in picks:
+            df = histories.get(t)
+            if df is None or df.empty:
+                picks_rows.append(
+                    {"ticker": t, "price_at_rebal": None, "current_price": None, "return_since_rebal_pct": None}
+                )
+                continue
+            price_at_rebal = float(df["Close"].iloc[0])
+            current_price = float(df["Close"].iloc[-1])
+            ret_pct = (current_price / price_at_rebal - 1.0) * 100 if price_at_rebal else None
+            picks_rows.append({
+                "ticker": t,
+                "price_at_rebal": round(price_at_rebal, 2),
+                "current_price": round(current_price, 2),
+                "return_since_rebal_pct": round(ret_pct, 2) if ret_pct is not None else None,
+            })
+    picks_df = pd.DataFrame(picks_rows, columns=["ticker", "price_at_rebal", "current_price", "return_since_rebal_pct"])
+
+    return {
+        "as_of": as_of.date().isoformat(),
+        "rebal_date": rebal_date.date().isoformat(),
+        "trading_days_to_next_rebal": trading_days_to_next_rebal,
+        "pool_size": info["pool_size"],
+        "n_active_trend": info["n_active_trend"],
+        "selected": picks,
+        "sizing_method": sizing_method,
+        "per_ticker_weight": per_ticker_weight,
+        "per_ticker_weights": per_ticker_weights,
+        "picks": picks_df,
+        "unallocated_weight": SATELLITE_WEIGHT if not picks else 0.0,
+    }
+
+
 def run_champion_backtest(
     start: str, end: str, satellite_weight: float = SATELLITE_WEIGHT, satellite_sizing_method: str = "equal"
 ) -> dict:

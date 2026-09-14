@@ -4281,6 +4281,58 @@ tuning.py`(train/test 75/25 분리, `compute_overfitting_curve`의 "train은 계
   `pytest tests/` **794개 통과**. Streamlit `AppTest`로 "5. 내 포트폴리오와 비교" 섹션을 실제
   임시 DB에 TLT/NVDA 보유를 넣고 렌더링까지 확인(예외 없음, diff 테이블 정상 표시).
 
+### 작업 60 (2026-09-14, 별도 서브에이전트): 새틀라이트 "라이브 추천"과 "백테스트"가 서로 다른
+전략을 측정하던 문제 수정 — point-in-time 라이브 계산 추가
+
+작업57/59까지 `compute_satellite_recommendation()`("오늘의 라이브 추천")은 매번 현재 S&P500 전체를
+스캔해 돈치안 20일 브레이크아웃 중인 종목 중 **3개월** 모멘텀 상위 **5개**를 고르는 "단순화된
+근사치"였던 반면, `run_satellite_backtest`/`_pick_satellite_at_date`(실제로 검증된 방법론)는 반기
+(1월/7월 첫 거래일)에만 리밸런싱하고 그때마다 point-in-time 유니버스 표본(40종목, 시점 당시
+시가총액 기준)을 새로 뽑아 그중 돈치안 브레이크아웃+트레일링스탑이 **활성**인 종목의 **12개월**
+모멘텀 상위 **3개**를 고른다 — 페이지에 뜨는 "라이브 추천"과 "백테스트 성과"가 서로 다른 전략을
+가리키는 상태였다. 이번 작업은 새 전략을 만들지 않고, 백테스트가 이미 쓰는 로직을 라이브 신호에도
+그대로 재사용해 이 간극을 없앤다.
+
+- **`core/champion_strategy.py::compute_satellite_recommendation_point_in_time(as_of_date=None,
+  pool_n=SATELLITE_BACKTEST_POOL_N, top_k=SATELLITE_BACKTEST_TOP_K, sizing_method="equal")`
+  (신규)**: `_semiannual_rebal_dates`로 as_of_date(기본값 오늘) 이전 가장 최근 반기 리밸런싱일을
+  찾은 뒤(거래일력은 SPY 가격 이력의 인덱스를 재사용 — `run_champion_backtest`가 core 백테스트
+  결과 인덱스를 trading_index로 쓰는 것과 동일한 관례), `_pick_satellite_at_date(rebal_date, ...)`를
+  **그대로 호출**해 그 시점의 point-in-time 선정 종목/비중을 얻는다 — 랭킹 로직을 여기서 다시 만들지
+  않음. "직전 리밸런싱 이후 계속 보유했다면 지금 뭘 들고 있을지"를 보여주는 게 목적이라, 선정
+  종목별로 리밸런싱일→현재 가격/수익률(`price_at_rebal`/`current_price`/`return_since_rebal_pct`)도
+  같이 계산해서 반환한다. 다음 리밸런싱까지 남은 거래일수(`trading_days_to_next_rebal`)는 미래
+  거래일력을 알 수 없어 주말만 제외한 근사치(공휴일 미반영)로 계산 — 반환값에 그 사실을 문서화.
+  `sizing_method`("equal"/"inverse_vol")는 기존 `compute_satellite_recommendation`과 동일하게
+  `_inverse_vol_weights`를 그대로 재사용하는 opt-in 옵션.
+- **`app/pages/11_챔피언_전략.py` "2. 새틀라이트" 섹션 UI 재구성**: 탭 두 개로 분리 — "✅
+  백테스트와 동일한 방법 — 반기 point-in-time"(신규 함수, 1차 추천으로 배치)과 "🔍 빠른 근사 스캔
+  (참고용 — 백테스트와 다른 방법론)"(기존 `compute_satellite_recommendation`, 그대로 유지) — 삭제
+  대신 "둘 다 보여주되 어느 쪽이 검증된 방법인지 명확히 구분"하는 이 저장소 관례를 따름. 아래 "오늘의
+  종합 판단"/"5. 내 포트폴리오와 비교" 섹션이 쓰는 `satellite_result`는 point-in-time 결과가 있으면
+  그쪽을 우선하고, 없으면 기존 스캔 결과로 폴백(두 함수 반환 dict가 `selected`/`per_ticker_weights`
+  키를 공유해 `compute_rebalance_diff` 등 기존 코드 변경 없이 그대로 호환됨). "1. 코어"/"3.
+  백테스트"/"4. 옵션 칼라 헤지"/"5. 내 포트폴리오와 비교" 섹션은 병행 작업 중인 다른 브랜치와의
+  충돌을 피하기 위해 손대지 않음.
+- **검증**: `tests/test_champion_strategy.py`에 신규 단위테스트 9개 — point-in-time 결과가
+  `_pick_satellite_at_date`를 직접 호출한 것과 정확히 일치하는지, as_of_date가 3월/8월/1월 중순 등일
+  때 각각 올바른 직전 반기 리밸런싱일(1월/7월/그 해 1월)을 고르는지(파라미터화 3케이스),
+  픽별 price_at_rebal/current_price/return_since_rebal_pct가 정확히 계산되는지, 활성 브레이크아웃이
+  하나도 없을 때 빈 결과로 안전하게 대체되는지, inverse_vol 사이징이 실제로 갈라지고 합계가
+  SATELLITE_WEIGHT를 유지하는지, 알 수 없는 sizing_method/유효한 리밸런싱일이 전혀 없는 경우 각각
+  ValueError를 던지는지 확인. 전체 `pytest tests/` 801개 통과(기존 792통과+2건 무관한 기존 실패
+  `test_strategy_library_archive.py`는 이 작업 전에도 동일하게 실패하던 것으로 확인 — 별도
+  테스트간 DB 격리 이슈, 이번 변경과 무관, 손대지 않음), 신규 9개 모두 통과.
+- **부록(이 작업 중 발견)**: 이 서브에이전트가 배정된 워크트리(`worktree-agent-a7cddb24459a38680`)의
+  브랜치가, 다른 세션에서 실행된 "chore: nightly ..." 자동 커밋 체인이 오래된/스테일 체크아웃에서
+  커밋되는 바람에 `core/champion_strategy.py`/`core/point_in_time_market_cap.py`/`core/retry.py`/
+  `core/telegram_notify.py`/`PROGRESS.md`(1628줄)/새틀라이트 관련 테스트 등 작업57~59가 만든 내용
+  대부분을 조용히 삭제한 채로 base 커밋(21c9a78)보다 뒤처져 있었다 — 이번 작업을 시작하기 전에
+  해당 파일들을 21c9a78 시점 내용 그대로 복원하는 별도 커밋을 먼저 만들어 base 상태를 맞췄다. 다른
+  워크트리에서도 같은 야간 자동커밋 체인이 발견되면 같은 방식(21c9a78부터 필요한 파일만
+  `git checkout 21c9a78 -- <path>`로 복원 후 diff가 0인지 확인)으로 정리 권장 — 원인(어느 자동화가
+  스테일 체크아웃에서 커밋을 만드는지)은 이번 작업 범위 밖이라 별도 조사가 필요하다.
+
 ### 작업 61 (2026-09-14, 같은 대화 후속): 챔피언 전략 리밸런싱 예정일 사전(D-1) 텔레그램 알림
 
 작업59의 `check_and_notify_signal_changes()`(00:10)는 리밸런싱이 "이미 일어난 뒤" 어제 상태와

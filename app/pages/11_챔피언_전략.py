@@ -31,6 +31,7 @@ from core.champion_strategy import (
     compute_live_collar_state,
     compute_rebalance_diff,
     compute_satellite_recommendation,
+    compute_satellite_recommendation_point_in_time,
     load_confidence_table,
     load_final_config,
     load_market_regime_context,
@@ -74,13 +75,6 @@ render_status_bar(
         ("SATELLITE UNIVERSE", "S&P500"),
     ]
 )
-if _SYNCED_GURU_COUNT > 0:
-    st.caption(
-        "🏛️ 배지: [4_거장_포트폴리오]에서 추적 중인 투자자/펀드도 같은 종목을 보유 중이라는 "
-        "참고 정보입니다 — 이 종목이 좋다는 뜻이 아니며 배분에도 반영되지 않습니다."
-    )
-
-_GRADE_BADGE = {"robust": "🟢 robust", "moderate": "🔵 moderate", "weak": "🟡 weak", "reversed": "🔴 reversed"}
 
 # ----------------------------------------------------------------------------
 # 거장 포트폴리오 교차참조 배지 (2026-09-14 추가) — 순수 참고 정보, 새 신호가 아니다.
@@ -102,6 +96,15 @@ def _guru_cross_ref_caption(ticker: str) -> Optional[str]:
     if len(gurus) == 1:
         return f"🏛️ {gurus[0]}도 보유 중"
     return f"🏛️ {gurus[0]} 등 {len(gurus)}명의 추적 대상도 보유 중"
+
+
+if _SYNCED_GURU_COUNT > 0:
+    st.caption(
+        "🏛️ 배지: [4_거장_포트폴리오]에서 추적 중인 투자자/펀드도 같은 종목을 보유 중이라는 "
+        "참고 정보입니다 — 이 종목이 좋다는 뜻이 아니며 배분에도 반영되지 않습니다."
+    )
+
+_GRADE_BADGE = {"robust": "🟢 robust", "moderate": "🔵 moderate", "weak": "🟡 weak", "reversed": "🔴 reversed"}
 
 # ----------------------------------------------------------------------------
 # 코어: 17자산 모멘텀 랭킹 + 시장필터 (17종목만 조회하므로 빠름 — 페이지 진입 시 자동 계산)
@@ -181,12 +184,15 @@ else:
     st.caption(f"기준일: {core_result['as_of']}")
 
 # ----------------------------------------------------------------------------
-# 새틀라이트: S&P500 스캔 (500종목 순차 조회라 느림 — 명시적 버튼으로만 실행)
+# 새틀라이트: point-in-time(백테스트와 동일한 방법) + 참고용 전체 S&P500 스캔
+# (2026-09-14 작업 60: 라이브 추천이 백테스트와 다른 방법론을 쓰던 것을 정정 — 두 값을 함께
+#  보여주되 어느 쪽이 실제로 검증된 방법인지 명확히 구분한다.)
 # ----------------------------------------------------------------------------
 st.markdown("## 2. 새틀라이트 — 돈치안 20일 브레이크아웃 (15%)")
 st.caption(
-    "코어의 15%를 현재 S&P500 유니버스에서 돈치안 20일 브레이크아웃(직전 20일 고가를 종가가 돌파) "
-    "중인 종목으로 구성합니다. 전체 스캔은 종목 수만큼 순차 조회가 필요해 수 분 걸릴 수 있습니다."
+    "코어의 15%를 돈치안 20일 브레이크아웃(직전 20일 고가를 종가가 돌파) 추세추종 종목으로 구성합니다. "
+    "아래 두 탭은 서로 다른 방법론입니다 — 실제로 매매 판단을 내릴 때는 반드시 '① point-in-time' "
+    "탭을 기준으로 하세요(아래 '3. 백테스트'가 측정하는 것이 바로 이 방법입니다)."
 )
 
 satellite_sizing_method = st.radio(
@@ -201,47 +207,115 @@ if satellite_sizing_method == "inverse_vol":
         "아래 백테스트에서 균등가중과 비교해본 뒤 채택 여부를 직접 판단하세요."
     )
 
-if st.button("🔍 새틀라이트 후보 스캔 실행"):
-    job_manager.start(
-        "champion_satellite", compute_satellite_recommendation,
-        sizing_method=satellite_sizing_method, label="새틀라이트 후보 스캔",
-    )
+sat_tab_pit, sat_tab_scan = st.tabs([
+    "✅ 백테스트와 동일한 방법 — 반기 point-in-time",
+    "🔍 빠른 근사 스캔 (참고용 — 백테스트와 다른 방법론)",
+])
 
-satellite_job = job_manager.render(
-    "champion_satellite", running_label="S&P500 스캔 중 (수 분 걸릴 수 있습니다)"
-)
-if satellite_job is not None:
-    if satellite_job.status == "error":
-        st.error(f"새틀라이트 스캔 중 오류가 발생했습니다: {satellite_job.error}")
-    else:
-        st.session_state["champion_satellite_result"] = satellite_job.result
-
-satellite_result = st.session_state.get("champion_satellite_result")
-if satellite_result is None:
-    st.caption("아직 스캔하지 않았습니다.")
-else:
-    selected = satellite_result["selected"]
-    per_ticker_weights = satellite_result.get("per_ticker_weights", {})
+with sat_tab_pit:
     st.caption(
-        f"스캔 {satellite_result['scanned_count']}종목 중 브레이크아웃 후보 {len(satellite_result['candidates'])}개, "
-        f"기준일 {satellite_result['as_of']}, 사이징 방식: {satellite_result.get('sizing_method', 'equal')}"
+        "직전 반기 리밸런싱일(1월/7월 첫 거래일)에 point-in-time 유니버스 표본(40종목)을 뽑아 돈치안 "
+        "브레이크아웃+트레일링스탑이 활성인 종목 중 12개월 모멘텀 상위 3개를 골랐다면, 그 이후 계속 "
+        "보유했을 때 '지금' 들고 있을 종목입니다 — 새 랭킹 로직이 아니라 백테스트가 실제로 검증한 "
+        "로직(_pick_satellite_at_date)을 그대로 재사용합니다. point-in-time 유니버스 표본추출 + 가격 "
+        "조회가 필요해 아래 '빠른 근사 스캔'만큼 시간이 걸릴 수 있습니다."
     )
-    if not selected:
-        st.info("현재 브레이크아웃 중인 종목이 없습니다 — 새틀라이트 비중(15%)이 사실상 현금입니다.")
+    if st.button("📌 point-in-time 새틀라이트 계산"):
+        job_manager.start(
+            "champion_satellite_pit", compute_satellite_recommendation_point_in_time,
+            sizing_method=satellite_sizing_method, label="새틀라이트 point-in-time 계산",
+        )
+
+    satellite_pit_job = job_manager.render(
+        "champion_satellite_pit", running_label="point-in-time 유니버스 표본 + 브레이크아웃 스캔 중 (수 분 걸릴 수 있습니다)"
+    )
+    if satellite_pit_job is not None:
+        if satellite_pit_job.status == "error":
+            st.error(f"point-in-time 계산 중 오류가 발생했습니다: {satellite_pit_job.error}")
+        else:
+            st.session_state["champion_satellite_pit_result"] = satellite_pit_job.result
+
+    satellite_pit_result = st.session_state.get("champion_satellite_pit_result")
+    if satellite_pit_result is None:
+        st.caption("아직 계산하지 않았습니다.")
     else:
-        sat_cols = st.columns(len(selected))
-        for col, ticker in zip(sat_cols, selected):
-            row = satellite_result["candidates"][satellite_result["candidates"]["ticker"] == ticker].iloc[0]
-            with col:
-                render_metric_card(
-                    ticker, f"{row['momentum_3m_pct']:+.1f}%", tone="good",
-                    sublabel=f"비중 {per_ticker_weights.get(ticker, 0.0) * 100:.1f}%",
-                )
-                guru_caption = _guru_cross_ref_caption(ticker)
-                if guru_caption:
-                    st.caption(guru_caption)
-        with st.expander("브레이크아웃 후보 전체 보기"):
-            st.dataframe(satellite_result["candidates"], use_container_width=True, hide_index=True)
+        pit_selected = satellite_pit_result["selected"]
+        pit_weights = satellite_pit_result.get("per_ticker_weights", {})
+        st.caption(
+            f"직전 리밸런싱일: {satellite_pit_result['rebal_date']} · 다음 리밸런싱까지 약 "
+            f"{satellite_pit_result['trading_days_to_next_rebal']}거래일(공휴일 미반영 근사치) · "
+            f"후보 풀 {satellite_pit_result['pool_size']}종목 중 활성 추세 {satellite_pit_result['n_active_trend']}개 · "
+            f"사이징 방식: {satellite_pit_result.get('sizing_method', 'equal')}"
+        )
+        if not pit_selected:
+            st.info("직전 리밸런싱 시점에 활성 브레이크아웃 종목이 없었습니다 — 새틀라이트 비중(15%)이 사실상 현금입니다.")
+        else:
+            pit_cols = st.columns(len(pit_selected))
+            picks_df = satellite_pit_result["picks"]
+            for col, ticker in zip(pit_cols, pit_selected):
+                row = picks_df[picks_df["ticker"] == ticker].iloc[0]
+                with col:
+                    render_metric_card(
+                        ticker, f"{row['return_since_rebal_pct']:+.1f}%", tone="good",
+                        sublabel=f"비중 {pit_weights.get(ticker, 0.0) * 100:.1f}% · 리밸런싱 이후 수익률",
+                    )
+                    guru_caption = _guru_cross_ref_caption(ticker)
+                    if guru_caption:
+                        st.caption(guru_caption)
+            with st.expander("point-in-time 종목 상세 보기"):
+                st.dataframe(picks_df, use_container_width=True, hide_index=True)
+
+with sat_tab_scan:
+    st.caption(
+        "현재 S&P500 유니버스 전체를 매번 스캔해 돈치안 브레이크아웃 중인 종목을 3개월 모멘텀 상위 "
+        "5개로 고르는 단순화된 근사치입니다 — 반기 point-in-time 방법론과 다르므로 위 백테스트 성과와 "
+        "직접 비교하지 마세요. 전체 스캔은 종목 수만큼 순차 조회가 필요해 수 분 걸릴 수 있습니다."
+    )
+    if st.button("🔍 새틀라이트 후보 스캔 실행"):
+        job_manager.start(
+            "champion_satellite", compute_satellite_recommendation,
+            sizing_method=satellite_sizing_method, label="새틀라이트 후보 스캔",
+        )
+
+    satellite_job = job_manager.render(
+        "champion_satellite", running_label="S&P500 스캔 중 (수 분 걸릴 수 있습니다)"
+    )
+    if satellite_job is not None:
+        if satellite_job.status == "error":
+            st.error(f"새틀라이트 스캔 중 오류가 발생했습니다: {satellite_job.error}")
+        else:
+            st.session_state["champion_satellite_result"] = satellite_job.result
+
+    satellite_result = st.session_state.get("champion_satellite_result")
+    if satellite_result is None:
+        st.caption("아직 스캔하지 않았습니다.")
+    else:
+        selected = satellite_result["selected"]
+        per_ticker_weights = satellite_result.get("per_ticker_weights", {})
+        st.caption(
+            f"스캔 {satellite_result['scanned_count']}종목 중 브레이크아웃 후보 {len(satellite_result['candidates'])}개, "
+            f"기준일 {satellite_result['as_of']}, 사이징 방식: {satellite_result.get('sizing_method', 'equal')}"
+        )
+        if not selected:
+            st.info("현재 브레이크아웃 중인 종목이 없습니다 — 새틀라이트 비중(15%)이 사실상 현금입니다.")
+        else:
+            sat_cols = st.columns(len(selected))
+            for col, ticker in zip(sat_cols, selected):
+                row = satellite_result["candidates"][satellite_result["candidates"]["ticker"] == ticker].iloc[0]
+                with col:
+                    render_metric_card(
+                        ticker, f"{row['momentum_3m_pct']:+.1f}%", tone="good",
+                        sublabel=f"비중 {per_ticker_weights.get(ticker, 0.0) * 100:.1f}%",
+                    )
+                    guru_caption = _guru_cross_ref_caption(ticker)
+                    if guru_caption:
+                        st.caption(guru_caption)
+            with st.expander("브레이크아웃 후보 전체 보기"):
+                st.dataframe(satellite_result["candidates"], use_container_width=True, hide_index=True)
+
+# satellite_result는 아래 "오늘의 종합 판단"/"내 포트폴리오와 비교" 섹션에서 계속 쓰인다 —
+# point-in-time 결과(검증된 방법론)가 있으면 그쪽을 우선하고, 없으면 참고용 스캔 결과로 대체한다.
+satellite_result = st.session_state.get("champion_satellite_pit_result") or st.session_state.get("champion_satellite_result")
 
 # ----------------------------------------------------------------------------
 # 오늘의 종합 판단 — 코어/새틀라이트 상태를 한 곳에 모아 보여주는 요약 (2026-09-14 추가)

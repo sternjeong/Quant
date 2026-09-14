@@ -652,6 +652,154 @@ def test_run_satellite_backtest_raises_without_rebal_dates_in_range():
         champion_strategy.run_satellite_backtest("2022-02-01", "2022-02-10", short_idx)
 
 
+# ----------------------------------------------------------------------------
+# compute_satellite_recommendation_point_in_time — "라이브" 추천을 백테스트와 동일한 방법론
+# (_pick_satellite_at_date/반기 point-in-time)으로 계산하는 함수. 작업 60(2026-09-14) 추가.
+# ----------------------------------------------------------------------------
+
+
+def _fake_get_price_history_calendar(ticker, start=None, end=None, use_cache=True, **kwargs):
+    """거래일력 용도 — 실제 티커/구간과 무관하게 넉넉한 범위(2020년 말~2023년 말)의 매끄러운
+    영업일 시계열을 반환한다(다른 함수 테스트의 관례와 동일하게 인자를 무시)."""
+    return _price_series_over_range(BT_START, BT_END, annual_return_pct=8.0, seed=1, noise_std=0.0)
+
+
+def test_compute_satellite_recommendation_point_in_time_matches_pick_satellite_at_date(monkeypatch):
+    """point-in-time 함수가 고르는 종목/비중이 그 시점에 _pick_satellite_at_date를 직접 호출한
+    것과 정확히 같아야 한다 — 이 함수는 새 랭킹 로직을 만들지 않고 그대로 재사용해야 하므로."""
+    pool = ["AAA", "BBB", "CCC", "DDD"]
+    breakout = {"AAA", "BBB"}
+    _make_satellite_mocks(monkeypatch, pool, breakout)
+    monkeypatch.setattr(champion_strategy, "get_price_history", _fake_get_price_history_calendar)
+
+    as_of_date = "2022-03-15"
+    result = champion_strategy.compute_satellite_recommendation_point_in_time(as_of_date=as_of_date, top_k=3)
+
+    assert result["rebal_date"] == "2022-01-03"  # 2022년 1월 첫 거래일
+    expected = champion_strategy._pick_satellite_at_date(pd.Timestamp("2022-01-03"), top_k=3)
+    assert result["selected"] == expected["picks"]
+    assert result["pool_size"] == expected["pool_size"]
+    assert result["n_active_trend"] == expected["n_active_trend"]
+    for t, w in expected["weights"].items():
+        assert result["per_ticker_weights"][t] == pytest.approx(champion_strategy.SATELLITE_WEIGHT * w)
+
+
+@pytest.mark.parametrize(
+    "as_of_date, expected_rebal_date",
+    [
+        ("2022-03-15", "2022-01-03"),  # 3월 -> 직전 1월 리밸런싱
+        ("2022-08-10", "2022-07-01"),  # 8월 -> 직전 7월 리밸런싱
+        ("2023-01-15", "2023-01-02"),  # 1월 중이지만 이미 그 달 리밸런싱일이 지남 -> 이번 1월
+    ],
+)
+def test_compute_satellite_recommendation_point_in_time_picks_correct_rebal_date(
+    monkeypatch, as_of_date, expected_rebal_date
+):
+    pool = ["AAA", "BBB", "CCC", "DDD"]
+    breakout = {"AAA", "BBB"}
+    _make_satellite_mocks(monkeypatch, pool, breakout)
+    monkeypatch.setattr(champion_strategy, "get_price_history", _fake_get_price_history_calendar)
+
+    result = champion_strategy.compute_satellite_recommendation_point_in_time(as_of_date=as_of_date, top_k=3)
+    assert result["rebal_date"] == expected_rebal_date
+    assert result["as_of"] == as_of_date
+    assert result["trading_days_to_next_rebal"] > 0
+
+
+def test_compute_satellite_recommendation_point_in_time_reports_price_and_return_since_rebal(monkeypatch):
+    pool = ["AAA", "BBB", "CCC", "DDD"]
+    breakout = {"AAA", "BBB"}
+    _make_satellite_mocks(monkeypatch, pool, breakout)
+    monkeypatch.setattr(champion_strategy, "get_price_history", _fake_get_price_history_calendar)
+
+    result = champion_strategy.compute_satellite_recommendation_point_in_time(as_of_date="2022-03-15", top_k=3)
+    picks_df = result["picks"]
+
+    assert list(picks_df.columns) == ["ticker", "price_at_rebal", "current_price", "return_since_rebal_pct"]
+    assert set(picks_df["ticker"]) == set(result["selected"])
+    for _, row in picks_df.iterrows():
+        assert row["price_at_rebal"] > 0
+        assert row["current_price"] > 0
+        expected_ret = (row["current_price"] / row["price_at_rebal"] - 1.0) * 100
+        assert row["return_since_rebal_pct"] == pytest.approx(expected_ret, abs=0.05)
+        # 브레이크아웃 종목은 우상향 추세로 합성했으므로 리밸런싱 이후에도 양(+)의 수익률이어야 한다
+        assert row["return_since_rebal_pct"] > 0
+
+
+def test_compute_satellite_recommendation_point_in_time_empty_when_no_active_breakout(monkeypatch):
+    pool = ["CCC", "DDD"]
+    breakout: set[str] = set()  # 아무도 브레이크아웃 활성 상태가 아님
+    _make_satellite_mocks(monkeypatch, pool, breakout)
+    monkeypatch.setattr(champion_strategy, "get_price_history", _fake_get_price_history_calendar)
+
+    result = champion_strategy.compute_satellite_recommendation_point_in_time(as_of_date="2022-03-15", top_k=3)
+
+    assert result["selected"] == []
+    assert result["picks"].empty
+    assert result["per_ticker_weight"] == 0.0
+    assert result["per_ticker_weights"] == {}
+    assert result["unallocated_weight"] == pytest.approx(champion_strategy.SATELLITE_WEIGHT)
+
+
+def test_compute_satellite_recommendation_point_in_time_inverse_vol_sizing(monkeypatch):
+    pool = ["LOWVOL", "HIGHVOL", "AAA"]
+    breakout = {"LOWVOL", "HIGHVOL"}
+
+    def _fake_sample_universe(n, as_of_date=None, use_point_in_time_market_cap=False, use_cache=True):
+        return pd.DataFrame({"ticker": pool})
+
+    def _fake_get_multiple_price_history(tickers, start=None, end=None, interval="1d", use_cache=True):
+        out = {}
+        for t in tickers:
+            if t == "LOWVOL":
+                out[t] = _price_series_over_range(BT_START, BT_END, annual_return_pct=30.0, seed=1, noise_std=0.002, warmup_days=800)
+            elif t == "HIGHVOL":
+                out[t] = _price_series_over_range(BT_START, BT_END, annual_return_pct=30.0, seed=2, noise_std=0.05, warmup_days=800)
+            else:
+                out[t] = _price_series_over_range(BT_START, BT_END, annual_return_pct=-30.0, seed=3, warmup_days=800)
+        return out
+
+    monkeypatch.setattr(champion_strategy, "sample_universe", _fake_sample_universe)
+    monkeypatch.setattr(champion_strategy, "get_multiple_price_history", _fake_get_multiple_price_history)
+    monkeypatch.setattr(champion_strategy, "get_price_history", _fake_get_price_history_calendar)
+
+    result_equal = champion_strategy.compute_satellite_recommendation_point_in_time(
+        as_of_date="2022-03-15", top_k=3, sizing_method="equal"
+    )
+    result_inv = champion_strategy.compute_satellite_recommendation_point_in_time(
+        as_of_date="2022-03-15", top_k=3, sizing_method="inverse_vol"
+    )
+
+    assert result_equal["sizing_method"] == "equal"
+    assert result_inv["sizing_method"] == "inverse_vol"
+    if set(result_inv["selected"]) >= {"LOWVOL", "HIGHVOL"}:
+        assert result_inv["per_ticker_weights"]["LOWVOL"] > result_inv["per_ticker_weights"]["HIGHVOL"]
+        assert sum(result_inv["per_ticker_weights"].values()) == pytest.approx(
+            champion_strategy.SATELLITE_WEIGHT, abs=1e-6
+        )
+    # equal 사이징은 언제나 균등가중이어야 한다
+    if result_equal["selected"]:
+        expected_equal_w = champion_strategy.SATELLITE_WEIGHT / len(result_equal["selected"])
+        for w in result_equal["per_ticker_weights"].values():
+            assert w == pytest.approx(expected_equal_w)
+
+
+def test_compute_satellite_recommendation_point_in_time_rejects_unknown_sizing_method():
+    with pytest.raises(ValueError):
+        champion_strategy.compute_satellite_recommendation_point_in_time(sizing_method="bogus")
+
+
+def test_compute_satellite_recommendation_point_in_time_raises_without_rebal_dates_in_history(monkeypatch):
+    """as_of_date 이전 기간에 실제 거래일 데이터가 전혀 없으면(반기 리밸런싱일을 하나도 못 찾으면)
+    run_satellite_backtest와 마찬가지로 ValueError를 던져야 한다."""
+    def _empty_calendar(ticker, start=None, end=None, use_cache=True, **kwargs):
+        return pd.DataFrame()
+
+    monkeypatch.setattr(champion_strategy, "get_price_history", _empty_calendar)
+    with pytest.raises(ValueError):
+        champion_strategy.compute_satellite_recommendation_point_in_time(as_of_date="2022-03-15")
+
+
 def test_run_champion_backtest_blends_core_and_satellite(monkeypatch):
     def _fake_core_history(tickers, start=None, end=None, interval="1d", use_cache=True):
         return _fake_get_multiple_price_history_core(tickers, start, end, interval, use_cache)
