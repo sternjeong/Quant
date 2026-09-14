@@ -3,7 +3,8 @@
 매일 한국시간 00:00에는 시장 국면/섹터 강도 스냅샷을 미리 계산해두고,
 00:05~04:00에는 #3 전략을 서버가 허락하는 만큼 반복 미세튜닝하며,
 00:10에는 챔피언 전략(코어/새틀라이트) 신호 변경을 텔레그램으로 알리고,
-00:15에는 챔피언 전략 리밸런싱 예정일을 미리 텔레그램으로 알린다.
+00:15에는 챔피언 전략 리밸런싱 예정일을 미리 텔레그램으로 알리며,
+00:20에는 FRED 거시지표(원/달러 환율 등) 캐시를 미리 강제로 새로 받아와 데워둔다.
 
 Streamlit 앱과 완전히 별도의 프로세스로 실행된다 (브라우저를 안 열어도 동작해야 하므로).
 
@@ -59,6 +60,14 @@ Streamlit 앱과 완전히 별도의 프로세스로 실행된다 (브라우저�
       같은 리밸런싱 날짜에 대해서는 한 번만 알린다(data/cache/champion_rebalance_reminder_state.json
       으로 dedupe). 텔레그램 설정이 없으면 champion_signal_alert_job과 마찬가지로 조용히 알림만
       생략된다.
+    - 매일 한국시간(Asia/Seoul) 00:20에 fred_indicator_prewarm_job() 을 실행한다(2026-09-14 추가).
+      core.fred_data.get_series() 는 파일 캐시(TTL 24시간)가 만료되면 그날 처음 방문한 사용자가
+      실시간 FRED API 호출을 그 자리에서 떠안는 구조라(원/달러 환율 DEXKOUS 포함),
+      app/pages/7_시장_진단.py 의 경제지표/경기 사이클 섹션과 core.market_regime.
+      get_advisory_risk_signals() 가 쓰는 지표(core.fred_data.DEFAULT_INDICATORS 8종 +
+      BAMLH0A0HYM2/T10Y3M)를 이 잡이 cache_ttl=0으로 강제로 미리 새로 받아 캐시를 데워둔다 —
+      새 계산 로직은 없고 기존 get_series()를 그대로 재사용. 지표 하나가 실패해도(FRED_API_KEY
+      없음/일시적 오류) 나머지는 계속 갱신한다.
 
 주의:
     - 이 스크립트는 core.* 를 프로젝트 루트 기준으로 임포트하므로, 아래처럼 sys.path에
@@ -233,6 +242,40 @@ def champion_rebalance_reminder_job() -> None:
     print(f"[{datetime.now()}] champion_rebalance_reminder_job 종료")
 
 
+def fred_indicator_prewarm_job() -> None:
+    """FRED 거시지표(환율 등)를 새벽에 미리 강제로 새로 받아와 캐시를 데워둔다 (2026-09-14 추가).
+
+    배경: `core.fred_data.get_series()`는 파일 캐시(TTL 24시간)를 쓰는데, 캐시가 만료된 뒤 그날
+    처음 이 지표를 보는 사용자가 실시간 FRED API 호출(+실패 시 재시도)을 그 자리에서 그대로
+    떠안는 구조였다 — `app/pages/7_시장_진단.py`의 "경제지표"/"경기 사이클" 섹션(원/달러 환율
+    DEXKOUS 포함)과 `core.market_regime.get_advisory_risk_signals()`가 전부 이 방식이라, 새벽에
+    아무도 안 미리 데워두면 사용자가 접속할 때마다 느려질 수 있다. 새 계산 로직을 만들지 않고
+    이미 있는 `get_series()`를 그대로 재사용하되, `cache_ttl=0`을 줘서 "캐시가 있어도 무조건
+    새로 받아와서 저장"하도록만 강제한다(파일에는 정상적으로 저장됨 — use_cache=True는 그대로
+    유지, cache_ttl만 0이라 나이 체크가 항상 실패해 라이브 호출로 빠짐).
+
+    `core.fred_data.DEFAULT_INDICATORS`(대시보드 카드 8종 — 원/달러 환율 DEXKOUS 포함)에
+    `core.market_regime.get_advisory_risk_signals()`가 추가로 쓰는 BAMLH0A0HYM2(하이일드
+    스프레드)/T10Y3M(장단기금리차)까지 더해 전부 갱신한다. 개별 지표 하나가 실패해도(FRED_API_KEY
+    없음/일시적 API 오류) 나머지는 계속 진행한다."""
+    from core.fred_data import DEFAULT_INDICATORS, get_series
+
+    print(f"[{datetime.now()}] fred_indicator_prewarm_job 시작")
+    series_ids = list(DEFAULT_INDICATORS.keys()) + ["BAMLH0A0HYM2", "T10Y3M"]
+    refreshed = 0
+    for series_id in series_ids:
+        try:
+            series = get_series(series_id, cache_ttl=0)
+            if not series.empty:
+                refreshed += 1
+                print(f"  - {series_id}: 갱신 완료 (최신값 {series.dropna().iloc[-1] if not series.dropna().empty else 'N/A'})")
+            else:
+                print(f"  - {series_id}: 빈 결과(FRED_API_KEY 미설정 또는 API 오류)")
+        except Exception as e:  # noqa: BLE001 - 지표 하나 실패가 나머지를 막지 않게 함
+            print(f"  - {series_id}: 갱신 실패: {e}")
+    print(f"[{datetime.now()}] fred_indicator_prewarm_job 종료 ({refreshed}/{len(series_ids)}개 갱신)")
+
+
 # 사용자가 "매일 0시~4시 동안 #3 전략을 여러 차원에서 미세튜닝해서 최적의 전략을 찾아달라, 상위
 # 10개를 웹사이트에서 볼 수 있게 해달라"고 요청 (2026-07-15). #3 = 전략 라이브러리의 "볼린저 밴드
 # 하단 반전 1:2:6 전략". 배포된 Streamlit Community Cloud 사이트는 이 스케줄러가 아예 뜰 수 없는
@@ -362,12 +405,20 @@ def main() -> None:
         name="매일 한국시간 00:15 챔피언 전략 리밸런싱 예정일 사전 텔레그램 알림",
         replace_existing=True,
     )
+    scheduler.add_job(
+        fred_indicator_prewarm_job,
+        # 기존 00:00~00:15 잡들과 안 겹치도록 20분 뒤로 offset(비어있는 슬롯).
+        trigger=CronTrigger(hour=0, minute=20, timezone="Asia/Seoul"),
+        id="fred_indicator_prewarm",
+        name="매일 한국시간 00:20 FRED 거시지표(환율 등) 캐시 미리 갱신",
+        replace_existing=True,
+    )
 
     print("스케줄러 시작. 평일 16:30 에 관심 종목을 스캔하고, 매주 일요일 20:00 에 Threads 주간")
     print("인사이트 리포트를 생성합니다 (모두 America/New_York 기준). 매일 한국시간(Asia/Seoul)")
     print("00:00 에는 시장 국면/섹터 강도 스냅샷을 미리 계산해두고, 00:05~04:00 에는 #3 전략을")
     print("서버가 허락하는 만큼 반복 미세튜닝하며, 00:10 에는 챔피언 전략 신호 변경을, 00:15 에는")
-    print("챔피언 전략 리밸런싱 예정일을 텔레그램으로 알립니다.")
+    print("챔피언 전략 리밸런싱 예정일을, 00:20 에는 FRED 거시지표(환율 등) 캐시를 미리 갱신합니다.")
     print("Ctrl+C 로 종료할 수 있습니다.")
 
     try:

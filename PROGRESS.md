@@ -4458,3 +4458,31 @@ tuning.py`(train/test 75/25 분리, `compute_overfitting_curve`의 "train은 계
   `systemctl restart quant-streamlit quant-scheduler`)를 실행해야 신호알림/교차참조 배지가
   실제로 라이브 반영된다 — 이번 점검은 그 필요성을 확인한 것뿐, 배포 자체는 하지 않았다(요청 범위가
   읽기 전용 점검이었음).
+
+### 작업 64 (2026-09-14, 같은 대화 후속 — 작업57~63 배포 이후): FRED 거시지표(환율 등) 새벽 캐시 사전 갱신
+
+배포 후 사용자가 "환율 등 특정 데이터를 불러올 때 시간이 좀 걸리는 것 같다, 새벽에 미리 일괄로
+받아와서 접속했을 때 안 막히게 해달라"고 요청. 원인 조사(Explore 서브에이전트) 결과:
+`core.fred_data.get_series()`가 파일 캐시(TTL 24시간)를 쓰는데, 캐시가 만료된 뒤 **그날 처음
+이 페이지를 보는 사용자가 실시간 FRED API 호출(+실패 시 재시도)을 그 자리에서 그대로 떠안는
+구조**였다 — `app/pages/7_시장_진단.py`의 "경제지표"/"경기 사이클" 섹션(원/달러 환율 DEXKOUS
+포함)과 `core.market_regime.get_advisory_risk_signals()`가 쓰는 지표 전부 해당. 기존
+`market_snapshot_job`(00:00)은 yfinance 기반 시장국면/섹터강도만 미리 계산해두고 이 FRED
+지표들은 전혀 손대지 않고 있었다.
+
+- **`scheduler/run_scheduler.py::fred_indicator_prewarm_job()` 신규**: 새 계산 로직을 만들지
+  않는다 — 이미 있는 `core.fred_data.get_series(series_id, cache_ttl=0)`를 그대로 재사용하되
+  `cache_ttl=0`만 줘서 "캐시가 있어도 무조건 새로 받아와서 저장"하도록 강제한다
+  (`use_cache=True`는 그대로 유지되므로 받아온 값은 정상적으로 파일 캐시에 저장됨 — 나이 체크만
+  항상 실패하게 만드는 방식). `core.fred_data.DEFAULT_INDICATORS`(대시보드 카드 8종 — 원/달러
+  환율 DEXKOUS 포함) + `core.market_regime.get_advisory_risk_signals()`가 추가로 쓰는
+  BAMLH0A0HYM2(하이일드 스프레드)/T10Y3M(장단기금리차)까지 총 10개 지표를 순회 갱신. 지표 하나가
+  실패해도(FRED_API_KEY 없음/일시적 API 오류) 나머지는 계속 진행(예외 전파 없음).
+- 매일 한국시간 **00:20**에 실행하도록 등록(기존 00:00/00:05/00:10/00:15 잡과 안 겹치는 다음
+  빈 슬롯). 모듈 상단 독스트링 + "동작" 섹션에도 기존 스타일대로 설명 추가.
+- 검증: 실제로 함수를 직접 호출해 라이브 데이터로 end-to-end 확인 — 10개 지표 전부 정상 갱신
+  (원/달러 환율 DEXKOUS 최신값 1346.51원 등 실측), 약 10초 소요. 새 로직이 얇은 스케줄러 잡
+  래퍼(기존에 테스트된 `get_series()`만 재호출)라 기존 관례대로 별도 단위테스트는 추가하지
+  않음(다른 `*_job()` 함수들도 동일 관례). 전체 `pytest tests/` **824개 통과**(회귀 없음).
+- **아직 VM에 미배포** — 이 작업은 로컬에서만 완료됨. 커밋/푸시 후 오라클 VM에서
+  `git pull` + `systemctl restart quant-scheduler`를 해야 실제로 매일 밤 돌기 시작한다.
