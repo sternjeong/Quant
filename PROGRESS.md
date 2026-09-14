@@ -4539,3 +4539,18 @@ tuning.py`(train/test 75/25 분리, `compute_overfitting_curve`의 "train은 계
 - **아직 VM에 미배포, 아직 `claude login`도 안 함** — 이건 사용자가 직접 해야 하는 절차(대화형
   OAuth 로그인이라 원격으로 대신 할 수 없음). 프롬프트 파일도 아직 한 번도 실제로 무인 실행해본
   적이 없으므로, 배포 후 처음 한동안은 로그/결과물을 직접 확인해보는 걸 권장.
+
+**업데이트 (같은 날, 실제 로그인 진행 중 발견)**: `sudo -u quant claude login`이 문서대로 안 됐다.
+1) `claude login`은 CLI 인자로 안 먹힘(그냥 첫 채팅 메시지로 들어감) — 로그인은 대화형 세션
+안에서 `/login` 슬래시 명령으로 해야 함. 2) `sudo -H -u quant`로 `$HOME=/opt/quant`가 정확히
+설정됨을 별도로 확인했는데도(`sh -c 'echo $HOME'`으로 검증), claude CLI 자체는 설정 파일을
+`/home/ubuntu/.claude/`(원래 SSH 로그인 계정)에서 찾으려 해서 EACCES가 남 — `SUDO_USER` 등
+sudo 관련 환경변수를 지워봐도 동일, 정확한 원인은 못 밝힘. `CLAUDE_CONFIG_DIR=/opt/quant/.claude`
+환경변수로 명시적으로 강제 지정해서 우회함(`.claude.json`/`.credentials.json`이 정상적으로
+`/opt/quant/.claude/`에 quant 소유로 생성된 것 확인). 이 문제는 로그인 셋업(사람이 sudo 셸로
+들어가서 하는 것)에서만 겪는 문제이고, 실제 매일 밤 도는 systemd 서비스는 sudo 셸을 거치지
+않고 systemd가 직접 `Environment="HOME=/opt/quant"`/`Environment="CLAUDE_CONFIG_DIR=/opt/
+quant/.claude"`를 주입하므로(두 `.service` 파일에 반영) 이 문제가 재현되지 않는다 — 로그인은
+`sternjeong@gmail.com` 계정(Pro 구독)으로 성공, `autoContinueAtUsageLimit: true`도
+`/opt/quant/.claude/settings.json`에 반영 완료. `deploy/DEPLOYMENT_ORACLE.md` 10단계의
+2~3단계 절차를 실제로 성공한 순서대로 다시 씀.

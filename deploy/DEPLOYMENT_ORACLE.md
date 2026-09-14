@@ -157,24 +157,49 @@ sudo npm install -g @anthropic-ai/claude-code
 ```
 
 **2단계 — `quant` 서비스 계정으로 로그인** (대화형, 1회만 — 이건 사람이 직접 해야 함):
+
+실제로 해보니(2026-09-14) `claude login`은 CLI 인자로 안 먹힌다 — `login`이라는 문자열이 그냥
+첫 채팅 메시지로 들어가버린다. 그리고 `sudo -u quant`(`-H` 포함)로 실행해도 claude CLI가
+설정 파일을 찾을 때 `$HOME`/`getpwuid()`와 무관하게 **원래 SSH 로그인 계정(ubuntu)의 홈**을
+잘못 참조하는 현상이 있었다(정확한 원인은 못 밝힘 — sudo 환경변수 전달의 어떤 층위 문제로
+추정). 그래서 `CLAUDE_CONFIG_DIR`을 명시적으로 지정해서 우회해야 한다:
+
 ```bash
-sudo -u quant claude login
+sudo -H -u quant env CLAUDE_CONFIG_DIR=/opt/quant/.claude claude
 ```
-브라우저가 없는 서버라 화면에 인증 URL과 코드가 뜬다 — 그 URL을 본인 휴대폰/PC 브라우저로 열어
-로그인하고 코드를 입력하면 된다. `quant` 계정의 `$HOME`이 `/opt/quant`로 설정돼 있어
-(`deploy/setup_vm.sh`가 만듦) 자격증명이 `/opt/quant/.claude/`에 저장되고, 이후 systemd 서비스
-(`User=quant`로 실행)도 같은 자격증명을 그대로 쓴다.
+
+들어가면 "Settings Error"(`/home/ubuntu/.claude/settings.json` 권한 문제)가 뜨는데
+**"3. Continue without these settings"**를 선택해서 넘어간다(이건 로그인과 무관한 문제 —
+어차피 이 값은 3단계에서 직접 파일로 넣을 것이므로 상관없다). 대화형 화면에 들어가면
+`/login`을 입력(슬래시 명령)하고 **"1. Claude account with subscription"**을 선택 — API
+과금이 아니라 Pro/Max 구독으로 붙는다. 브라우저가 없는 서버라 인증 URL이 뜨면 본인
+휴대폰/PC 브라우저로 열어 로그인하면 된다. 성공하면 "Logged in as <이메일>"이 뜬다 — 확인 후
+`/exit`로 빠져나온다.
+
+확인:
+```bash
+ls -la /opt/quant/.claude/   # .claude.json, .credentials.json이 quant 소유로 있어야 함
+```
 
 **3단계 — 사용량 한도 자동 대기 설정**:
 ```bash
-sudo -u quant mkdir -p /opt/quant/.claude
-# 기존 설정이 있으면 덮어쓰지 말고 "autoContinueAtUsageLimit": true 를 손으로 병합해 추가할 것
-sudo -u quant tee -a /opt/quant/.claude/settings.json <<'EOF'
-{"autoContinueAtUsageLimit": true}
+cat /opt/quant/.claude/settings.json   # 먼저 기존 내용 확인(로그인 과정에서 이미 하나 생겼을 수 있음)
+```
+내용을 확인한 뒤, 기존 키를 유지하면서 `"autoContinueAtUsageLimit": true`만 손으로 추가한
+전체 JSON을 다시 씌운다(예: 기존에 `{"theme": "dark"}`뿐이었다면):
+```bash
+sudo -u quant tee /opt/quant/.claude/settings.json <<'EOF'
+{
+  "theme": "dark",
+  "autoContinueAtUsageLimit": true
+}
 EOF
 ```
-(`/opt/quant/.claude/settings.json`이 이미 존재하면 `cat`으로 먼저 내용을 확인하고 JSON을
-직접 병합하세요 — 위 명령은 파일이 없을 때만 안전합니다.)
+
+참고: 위 `$HOME` 오검출 문제는 **로그인(대화형 셋업)에서만** 겪은 문제다 — 실제 매일 밤 도는
+systemd 서비스는 `sudo` 셸을 거치지 않고 systemd가 프로세스를 직접 띄우면서
+`Environment="HOME=/opt/quant"`/`Environment="CLAUDE_CONFIG_DIR=/opt/quant/.claude"`를
+명시적으로 주입하므로(`.service` 파일에 이미 반영됨) 이 문제가 재현되지 않는다.
 
 **4단계 — systemd 등록**:
 ```bash

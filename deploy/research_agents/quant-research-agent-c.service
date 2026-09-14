@@ -8,6 +8,10 @@ Type=oneshot
 User=quant
 WorkingDirectory=/opt/quant
 EnvironmentFile=/opt/quant/.env
+# 2026-09-14 배포 중 발견한 claude CLI의 $HOME 오검출 문제를 systemd가 직접 환경변수를 주입하는
+# 방식으로 피해간다 — quant-research-agent-b.service 주석 참고.
+Environment="HOME=/opt/quant"
+Environment="CLAUDE_CONFIG_DIR=/opt/quant/.claude"
 TimeoutStartSec=82800
 ExecStart=/opt/quant/deploy/research_agents/run_research_agent.sh c agent_c_tenbagger.md
 

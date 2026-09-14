@@ -8,6 +8,13 @@ Type=oneshot
 User=quant
 WorkingDirectory=/opt/quant
 EnvironmentFile=/opt/quant/.env
+# HOME/CLAUDE_CONFIG_DIR을 명시적으로 박아둔다 — `sudo -u quant`로 로그인 셋업할 때 겪은 문제
+# (claude CLI의 설정 파일 조회 경로가 실제 $HOME/getpwuid()와 무관하게 원래 로그인 셸 사용자의
+# 홈(/home/ubuntu)을 잘못 가리키던 현상, 2026-09-14 배포 중 발견)를 systemd가 직접 환경변수를
+# 주입하는 방식으로 완전히 피해간다 — sudo 셸 경유 없이 systemd가 프로세스를 바로 띄우므로
+# 이 문제 자체가 재현되지 않는다.
+Environment="HOME=/opt/quant"
+Environment="CLAUDE_CONFIG_DIR=/opt/quant/.claude"
 # claude CLI 자체 대기(autoContinueAtUsageLimit)로 사용량 한도 초기화까지 기다릴 수 있으므로
 # 타임아웃을 넉넉히(23시간) 잡아 다음날 같은 시각 타이머와 겹치지 않을 정도로만 제한한다.
 TimeoutStartSec=82800
