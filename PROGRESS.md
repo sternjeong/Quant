@@ -4602,3 +4602,36 @@ quant/.claude"`를 주입하므로(두 `.service` 파일에 반영) 이 문제�
   `run_research_agent.sh`에 선택적 effort 인자 추가.
 - 검증: bash 문법 검사(`bash -n`) 통과, 전체 `pytest tests/` **824개 통과**(core/*.py 변경
   없음, 회귀 없음). 아직 VM에 미배포 — 로컬 커밋만 완료, 사용자 확인 후 push+VM 등록 예정.
+
+### 작업 67 (2026-09-14, 같은 대화 후속): 정정 — R&D 에이전트는 VM이 아니라 Codespace에서 실행
+
+작업66 배포 직후 사용자가 "이건 애초에 내 Codespace에서 돌아야 하는 거였다 — 내 서버(VM)는
+Codespace에서 나온 결론을 서비스로 배포하는 역할일 뿐"이라고 아키텍처를 정정. 실제로 VM에
+systemd 타이머로 무인 야간 실행되도록 배포한 게 이 의도와 정반대였음을 인정하고 되돌렸다.
+
+- **VM에서 완전히 제거**: `quant-research-agent-{b..h}.timer/.service` 전부 stop/disable/삭제
+  안내(사용자가 직접 실행).
+- **저장소 정리**: `deploy/research_agents/`(VM 배포 전용 디렉터리)를 폐기 —
+  `run_research_agent.sh`, `notify_if_accumulated.py`, `quant-research-agent-*.{service,timer}`
+  15개 파일 전부 삭제. 페르소나 프롬프트 7개(`agent_{b..h}_*.md`)만 저장소 최상위
+  `research_agents/`로 이동해 보존(내용 자체는 여전히 유효 — B/C가 이미 순열검정+블록부트스트랩
+  이중검증 등 이 프로젝트 방법론을 정확히 따라 실제로 유의미한 결과 하나(비AI 대조군 바스켓
+  변동성모멘텀 — 순열검정 비유의 p≈0.47~0.75로 정직하게 미결론 보고)를 냈던 걸 확인했으므로).
+  각 프롬프트의 "무인 서버에서 매일 밤 실행됩니다"/`/opt/quant` 절대경로 언급을 "Claude Code
+  세션(Codespace) 안에서 서브에이전트로, 사용자 요청 시 실행"으로 수정.
+- `deploy/setup_vm.sh`의 nodejs/npm 설치 줄(리서치 에이전트용으로 추가했던 것) 원복 —
+  더 이상 이 VM에 Node/Claude Code CLI가 필요 없음.
+- `deploy/DEPLOYMENT_ORACLE.md` 10단계를 "정정" 섹션으로 교체: VM은 배포 전용, 리서치는
+  Codespace에서 Claude Code가 서브에이전트로 직접 실행. **알아둘 제약**도 명시: GitHub
+  Codespace는 idle 타임아웃으로 자동 정지되므로 "매일 밤 자동 실행"은 사용자가 Codespace를
+  열어야만 가능 — 진짜 무인 야간 자동 실행이 필요해지면 이 저장소가 이미 쓰는
+  `.github/workflows/nightly_tuning.yml`과 같은 GitHub Actions 스케줄 워크플로가 다음 후보지
+  (VM/Codespace 둘 다 안 켜져 있어도 됨, 다만 Claude Pro 로그인 자격증명을 GitHub Secrets로
+  주입하는 추가 작업 필요 — 아직 미착수).
+- 검증: 전체 `pytest tests/` **824개 통과**(core/*.py 무변경). `bash -n deploy/setup_vm.sh`
+  통과.
+- 별개로, 사용자가 병행 진행 중인 Codex 기반 텔레그램 자동화(`deploy/codex_telegram/`, 이
+  세션이 만든 게 아니라 사용자의 별도 Codex 세션이 같은 Codespace 파일시스템에 직접 만든 것 —
+  건드리지 않고 그대로 둠)의 `config.example.json`을 보면 `/opt/quant/...` VM 경로를 전제로
+  짜여 있어, 이번 정정과 같은 긴장(리서치/명령수신 리스너를 VM에 둘지 Codespace로 옮길지)이
+  아직 그쪽에도 남아있음을 사용자에게 알림 — 이 저장소 커밋 범위 밖이라 손대지 않음.

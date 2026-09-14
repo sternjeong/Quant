@@ -132,118 +132,22 @@ sudo systemctl restart quant-streamlit quant-scheduler
 `scp ubuntu@<PUBLIC_IP>:/opt/quant/data/quant.db ./backup/quant-$(date +%F).db` 로 로컬에 받아
 두는 것을 권장한다(자동화는 필요해지면 cron으로 추가 가능).
 
-## 10. (신규, 2026-09-14) 리서치 에이전트 자동화 — 매일 밤 무인으로 Claude Code 실행
+## 10. (2026-09-14, 정정) 리서치 에이전트는 이 VM이 아니라 Codespace에서 돈다
 
-`deploy/research_agents/`에 매일 밤 Claude Code CLI를 무인으로 **7번**(에이전트 B~H 각각)
-실행해 새 정량 리서치 리포트를 생성하는 systemd 타이머 7개가 정의돼 있다. API 키 과금이 아니라
-**사용자의 Claude Pro/Max 구독 로그인**으로 동작한다(이 VM의 대화형 CLI 로그인은 1회만 사람이
-직접 해야 함 — 아래 참고).
+이 VM은 **완성된 서비스를 배포/서빙하는 역할**로 한정한다(Streamlit 앱 + `scheduler/
+run_scheduler.py`의 상시 잡들 — 이건 전부 "이미 확정된 제품 기능"이라 여기 남아있는 게 맞다).
 
-**7개 에이전트 구성 (2026-09-14, "R&D 섹터" 확장)**:
+2026-09-14에 한 차례 이 VM에 야간 무인 리서치 에이전트 7개(B~H, systemd 타이머)를 배포했다가,
+"리서치는 Codespace에서, VM은 완성된 결론만 서비스로 배포하는 역할"이라는 사용자의 원래 의도와
+어긋난다는 걸 확인하고 **VM에서 완전히 제거했다**(systemd 서비스/타이머 파일 삭제,
+`deploy/research_agents/`도 저장소에서 제거). 그 에이전트들의 페르소나 프롬프트는
+`research_agents/`(저장소 최상위)로 옮겨졌고, 이제 **Codespace 세션 안에서 Claude Code가
+서브에이전트로 직접 실행**한다 — VM에는 배포하지 않는다.
 
-| 에이전트 | 역할 | 시각(KST) | effort |
-|---|---|---|---|
-| B | 미국 10개 시장/S&P500 포트폴리오 리서치(기존) | 00:20 | 기본값 |
-| C | 개별주/텐베거 발굴 리서치(기존) | 00:20 | 기본값 |
-| D | 전략 구성가 — B/C 결과를 "월 1~3회 매매" 후보 전략으로 종합 | 00:25 | 기본값 |
-| E | 실행 준비가 — D의 후보를 "이번 달 실제 매매안"으로 번역 | 01:00 | 기본값 |
-| F | 비용/세금 감사관 — 수수료·환전·한국 거주자 양도세 반영 후 감사 | 01:30 | 기본값 |
-| G | 방법론 메타 감사관 — 다중비교 보정 등 프로그램 전체 통계적 건전성 | 02:00 | **high** |
-| H | 학술 문헌/외부 벤치마크 조사관 — 내부 결론을 외부 문헌과 대조 | 02:30 | **high** |
-
-D/E/F/G/H는 전날 밤 선행 에이전트 결과가 아직 없어도(예: D가 아직 안 끝났어도) **절대 그냥
-대기하고 끝내지 않는다** — 그럴 땐 이미 라이브로 도는 `core/champion_strategy.py`의 현재 설정을
-대체 대상으로 삼아 매일 밤 실질적인 결과물을 낸다(프롬프트 파일에 명시).
-
-- `agent_{b..h}_*.md`: 각 에이전트의 페르소나·규칙·"아직 안 풀린 문제" 목록을 담은 프롬프트.
-  이 저장소의 `analysis/`에 쌓인 기존 리서치 방법론(순열검정+블록부트스트랩 이중검증,
-  point-in-time 유니버스, 확신도 등급, 자기회의적 태도)을 그대로 이어가도록 지시한다. 결과물은
-  **git commit/push를 하지 않고** 워킹트리에만 쌓인다.
-- `analysis/LATEST_STRATEGY_CANDIDATE.md`: D가 매일 갱신하는 "현재 후보 전략" 요약 문서(다른
-  날짜 폴더들과 달리 유일하게 매번 덮어써지는 파일) — E/F/G/H가 여기서 오늘 다룰 대상을 찾는다.
-- `run_research_agent.sh <agent> <prompt.md> [effort]`: `claude -p "<프롬프트>"
-  --dangerously-skip-permissions [--effort <level>]`로 헤드리스 실행 후 `pytest tests/ -q`
-  회귀 확인 + `notify_if_accumulated.py` 호출. G/H는 "더 고도의 추론"이 필요하다는 사용자
-  요청으로 `--effort high`를 기본 인자로 넘긴다(계정의 `maxEffortLevel` 정책에 걸려 클램프된다는
-  로그가 보이면 사용자에게 상향을 요청할 것).
-- `notify_if_accumulated.py`: `analysis/` 밑에 아직 커밋되지 않은(untracked) 새 리포트 폴더가
-  마지막 알림 이후 3개 이상 쌓이면 텔레그램으로 한 번에 알린다(매번 알리면 스팸이 되므로).
-- "사용량 한도에 걸리면 초기화 후 이어서 계속" 동작은 별도 재시도 로직 없이 **Claude Code 자체
-  설정**(`autoContinueAtUsageLimit: true`)에 맡긴다 — 아래 3단계에서 설정한다. 에이전트 7개가
-  전부 같은 Pro/Max 사용량 풀을 공유하므로(사용자 본인의 대화형 사용량과도 공유), 낮 동안 직접
-  Claude Code를 쓸 수 있는 한도가 줄어들 수 있다는 점을 사용자가 이미 인지하고 승인함.
-
-**1단계 — Claude Code CLI 설치** (VM에 SSH 접속 후):
-```bash
-sudo apt-get install -y nodejs npm   # 이미 있으면 생략
-sudo npm install -g @anthropic-ai/claude-code
-```
-
-**2단계 — `quant` 서비스 계정으로 로그인** (대화형, 1회만 — 이건 사람이 직접 해야 함):
-
-실제로 해보니(2026-09-14) `claude login`은 CLI 인자로 안 먹힌다 — `login`이라는 문자열이 그냥
-첫 채팅 메시지로 들어가버린다. 그리고 `sudo -u quant`(`-H` 포함)로 실행해도 claude CLI가
-설정 파일을 찾을 때 `$HOME`/`getpwuid()`와 무관하게 **원래 SSH 로그인 계정(ubuntu)의 홈**을
-잘못 참조하는 현상이 있었다(정확한 원인은 못 밝힘 — sudo 환경변수 전달의 어떤 층위 문제로
-추정). 그래서 `CLAUDE_CONFIG_DIR`을 명시적으로 지정해서 우회해야 한다:
-
-```bash
-sudo -H -u quant env CLAUDE_CONFIG_DIR=/opt/quant/.claude claude
-```
-
-들어가면 "Settings Error"(`/home/ubuntu/.claude/settings.json` 권한 문제)가 뜨는데
-**"3. Continue without these settings"**를 선택해서 넘어간다(이건 로그인과 무관한 문제 —
-어차피 이 값은 3단계에서 직접 파일로 넣을 것이므로 상관없다). 대화형 화면에 들어가면
-`/login`을 입력(슬래시 명령)하고 **"1. Claude account with subscription"**을 선택 — API
-과금이 아니라 Pro/Max 구독으로 붙는다. 브라우저가 없는 서버라 인증 URL이 뜨면 본인
-휴대폰/PC 브라우저로 열어 로그인하면 된다. 성공하면 "Logged in as <이메일>"이 뜬다 — 확인 후
-`/exit`로 빠져나온다.
-
-확인:
-```bash
-ls -la /opt/quant/.claude/   # .claude.json, .credentials.json이 quant 소유로 있어야 함
-```
-
-**3단계 — 사용량 한도 자동 대기 설정**:
-```bash
-cat /opt/quant/.claude/settings.json   # 먼저 기존 내용 확인(로그인 과정에서 이미 하나 생겼을 수 있음)
-```
-내용을 확인한 뒤, 기존 키를 유지하면서 `"autoContinueAtUsageLimit": true`만 손으로 추가한
-전체 JSON을 다시 씌운다(예: 기존에 `{"theme": "dark"}`뿐이었다면):
-```bash
-sudo -u quant tee /opt/quant/.claude/settings.json <<'EOF'
-{
-  "theme": "dark",
-  "autoContinueAtUsageLimit": true
-}
-EOF
-```
-
-참고: 위 `$HOME` 오검출 문제는 **로그인(대화형 셋업)에서만** 겪은 문제다 — 실제 매일 밤 도는
-systemd 서비스는 `sudo` 셸을 거치지 않고 systemd가 프로세스를 직접 띄우면서
-`Environment="HOME=/opt/quant"`/`Environment="CLAUDE_CONFIG_DIR=/opt/quant/.claude"`를
-명시적으로 주입하므로(`.service` 파일에 이미 반영됨) 이 문제가 재현되지 않는다.
-
-**4단계 — systemd 등록** (B~H 7개 전부):
-```bash
-for a in b c d e f g h; do
-  sudo cp /opt/quant/deploy/research_agents/quant-research-agent-${a}.service /etc/systemd/system/
-  sudo cp /opt/quant/deploy/research_agents/quant-research-agent-${a}.timer /etc/systemd/system/
-done
-sudo systemctl daemon-reload
-sudo systemctl enable --now quant-research-agent-{b,c,d,e,f,g,h}.timer
-```
-
-**5단계 — 확인**:
-```bash
-systemctl list-timers | grep quant-research   # 7개 타이머 전부 다음 실행 예정 시각 확인
-# 당장 한 번 수동으로 테스트해보려면(타이머 안 기다리고), 로그 파일로 확인(journalctl 아님 —
-# run_research_agent.sh가 출력을 파일로 몰아서 씀):
-sudo systemctl start quant-research-agent-b.service
-tail -f /opt/quant/data/cache/research_agent_logs/agent_b_*.log
-# 살아서 도는지만 빠르게 확인하려면: ps aux | grep -i claude
-```
-
-**결과물 검토**: 매일 밤 `analysis/YYYY-MM-DD_*/` 밑에 새 폴더가 쌓인다(자동 커밋 안 됨). 3개
-이상 쌓이면 텔레그램으로 알림이 온다 — `git status`로 확인하고, 검토 후 원하는 것만 직접
-`git add`/`commit`/`push`하면 된다.
+**알아둘 제약**: GitHub Codespace는 일정 시간 조작이 없으면 자동으로 정지되므로, "매일 밤
+정해진 시각에 자동 실행"은 안 되고 사용자가 Codespace를 열어 요청할 때만 돈다. 진짜 매일 밤
+무인 자동 실행이 필요해지면, VM이나 항상 켜진 Codespace가 아니라 **GitHub Actions 스케줄
+워크플로**(이 저장소가 이미 `.github/workflows/nightly_tuning.yml`로 쓰고 있는 방식과 동일 —
+VM/Codespace 없이 GitHub이 자체적으로 임시 실행 환경을 띄웠다 없앤다)가 이 프로젝트의 기존
+관례에 맞는 다음 후보지다(Claude Pro 로그인 자격증명을 GitHub Secrets로 안전하게 주입하는
+추가 작업 필요 — 아직 안 함).

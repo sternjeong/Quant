@@ -23,9 +23,7 @@ fi
 
 echo "[1/6] 시스템 패키지 설치"
 apt-get update -y
-# nodejs/npm: 리서치 에이전트 자동화(deploy/research_agents/)가 Claude Code CLI를 쓰는데
-# CLI가 npm 패키지로 배포되므로 필요하다 (deploy/DEPLOYMENT_ORACLE.md 10단계 참고).
-apt-get install -y python3.12 python3.12-venv python3-pip git ufw nodejs npm
+apt-get install -y python3.12 python3.12-venv python3-pip git ufw
 
 echo "[2/6] 서비스 전용 사용자 생성 ($SERVICE_USER)"
 id -u "$SERVICE_USER" &>/dev/null || useradd --system --home "$APP_DIR" --shell /usr/sbin/nologin "$SERVICE_USER"
