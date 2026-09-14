@@ -4551,6 +4551,6 @@ sudo 관련 환경변수를 지워봐도 동일, 정확한 원인은 못 밝힘.
 들어가서 하는 것)에서만 겪는 문제이고, 실제 매일 밤 도는 systemd 서비스는 sudo 셸을 거치지
 않고 systemd가 직접 `Environment="HOME=/opt/quant"`/`Environment="CLAUDE_CONFIG_DIR=/opt/
 quant/.claude"`를 주입하므로(두 `.service` 파일에 반영) 이 문제가 재현되지 않는다 — 로그인은
-`sternjeong@gmail.com` 계정(Pro 구독)으로 성공, `autoContinueAtUsageLimit: true`도
+사용자 본인 계정(Pro 구독)으로 성공, `autoContinueAtUsageLimit: true`도
 `/opt/quant/.claude/settings.json`에 반영 완료. `deploy/DEPLOYMENT_ORACLE.md` 10단계의
 2~3단계 절차를 실제로 성공한 순서대로 다시 씀.
