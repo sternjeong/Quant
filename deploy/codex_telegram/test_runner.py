@@ -96,6 +96,32 @@ class PipelineTests(unittest.TestCase):
                              [(2,'claude','test'),(3,'codex','hello')])
             self.assertEqual(db.execute('SELECT count(*) FROM outbox').fetchone()[0], 4)
 
+    def test_repository_then_agent_selection_queues_job(self):
+        self.s.cfg['repository_selection'] = True
+        self.s.github_owner = lambda: 'owner'
+        class Result:
+            returncode = 0
+            stdout = 'owner/one\nowner/two\n'
+        with patch('runner.subprocess.run', return_value=Result()):
+            self.s.ingest([self.update()])
+        with self.s.db() as db:
+            markup = json.loads(db.execute('SELECT markup FROM outbox').fetchone()[0])
+            self.assertEqual(markup['inline_keyboard'][0][0]['text'], 'owner/one')
+            choice = markup['inline_keyboard'][0][0]['callback_data']
+        callback = {'update_id': 2, 'callback_query': {'id': 'callback-1', 'data': choice,
+                    'message': {'chat': {'id': 123}}}}
+        with patch.object(self.s, 'api', return_value=True): self.s.ingest([callback])
+        with self.s.db() as db:
+            agent = json.loads(db.execute('SELECT markup FROM outbox ORDER BY id DESC').fetchone()[0])
+            data = agent['inline_keyboard'][0][0]['callback_data']
+        callback['update_id'] = 3
+        callback['callback_query']['id'] = 'callback-2'
+        callback['callback_query']['data'] = data
+        with patch.object(self.s, 'api', return_value=True): self.s.ingest([callback])
+        with self.s.db() as db:
+            job = db.execute('SELECT project,backend FROM jobs').fetchone()
+            self.assertEqual(tuple(job), ('github:owner/one', 'claude'))
+
     def test_claude_result(self):
         update = self.update()
         update['message']['text'] = '/claude answer'
