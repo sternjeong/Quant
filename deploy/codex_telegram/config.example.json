@@ -7,8 +7,12 @@
   "claude_effort": "xhigh",
   "env_file": "/opt/quant/.codex-telegram-runtime/telegram.env",
   "state_dir": "/opt/quant/.codex-telegram-state",
+  "workspace_root": "/opt/projects",
   "default_project": "quant",
   "projects": {"quant": "/opt/quant"},
+  "repository_selection": true,
+  "repositories_dir": "/opt/quant/repositories",
+  "gh_bin": "/usr/bin/gh",
   "sandbox": "danger-full-access",
   "retry_seconds": 900,
   "retry_max_seconds": 3600

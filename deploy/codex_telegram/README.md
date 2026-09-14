@@ -2,6 +2,16 @@
 
 ## 실행 대상과 응답
 
+`repository_selection: true`이면 일반 지시를 받은 봇은 먼저 GitHub 저장소 목록을 inline 버튼으로
+표시한다. 저장소를 고른 뒤 Claude 또는 Codex를 선택한다. `＋ 새 private 저장소 만들기`를 고르면
+다음 메시지로 이름을 받아 `gh repo create OWNER/NAME --private`를 실행하고 같은 선택 단계로 돌아온다.
+선택한 기존 저장소는 `/opt/quant/repositories/OWNER/NAME`에 최초 한 번 clone한다. GitHub 계정은
+`gh auth login`과 `gh auth setup-git`으로 `quant` 사용자에 로그인되어 있어야 한다.
+
+기존 `/project quant` 방식은 저장소 선택 없이 현재 Quant 작업 공간을 직접 선택하는 고급 경로로
+계속 사용할 수 있다. 원격 이력 변경이 필요한 force push는 Telegram에서 별도 승인 절차를 만들기
+전까지 작업자에게 허용하지 않는다.
+
 같은 기존 봇에서 두 CLI에 지시하거나 질문할 수 있다.
 
 ```text
@@ -19,6 +29,26 @@
 각 메시지는 독립 작업이며 기존 터미널 세션이나 이전 대화 내용을 자동 공유하지 않는다.
 후속 지시에는 대상 파일이나 이전 작업 ID 등 필요한 맥락을 포함한다.
 두 CLI가 같은 프로젝트를 동시에 수정하지 않도록 기존 단일 작업자 큐를 공유한다.
+
+## GitHub 저장소 선택과 생성
+
+작업자는 현재 저장소와 `/opt/projects` 아래의 저장소를 확인해 지시와 가장 관련 있는 곳을 고른다.
+새 독립 프로젝트가 필요하면 `/opt/projects/<이름>`에 만들고, GitHub CLI 인증이 있을 때 private
+저장소를 생성해 commit/push한다. 공개 저장소는 Telegram 지시에 명시한 경우에만 만든다.
+
+현재 `Quant` Deploy Key는 해당 저장소에만 쓰기 권한이 있다. 다른 저장소 접근이나 새 저장소
+생성에는 `quant` 계정의 GitHub CLI 로그인이 필요하다. 권한이 없거나 대상 저장소가 모호하면 작업을
+`blocked`로 표시하고 응답 첫 줄에 `ACTION_REQUIRED:`와 필요한 조치를 보낸다. 해결한 뒤
+`/retry 작업ID`를 보내면 `RESUME_NOTE.md`에서 계속한다. `/status`로 작업 ID를 확인할 수 있다.
+
+```bash
+sudo -u quant env HOME=/opt/quant gh auth login --hostname github.com --git-protocol ssh --web
+sudo -u quant env HOME=/opt/quant gh auth status
+```
+
+브라우저 개발환경은 서버에 이미 `/usr/bin/code-server`가 설치되어 있고
+`code-server@ubuntu.service`로 실행 중이다. GitHub Codespaces는 서버에 설치하는 프로그램이
+아니므로 이 파이프라인에는 기존 code-server를 사용한다.
 
 Claude는 서버에 설치된 `/usr/local/bin/claude`와 `quant` 계정의 기존 로그인을 사용한다.
 `claude_bin`, `claude_config_dir`로 변경할 수 있다. 설치된 CLI의 `--help`로 다음 플래그를 확인했다.

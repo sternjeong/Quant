@@ -142,5 +142,20 @@ class PipelineTests(unittest.TestCase):
             self.s.work_once()
         self.assertIn('model_reasoning_effort="xhigh"', launch.call_args.args[0])
 
+    def test_action_required_blocks_and_retry_command_requeues(self):
+        self.s.ingest([self.update()])
+        class Child:
+            stdin = io.StringIO()
+            stdout = iter([json.dumps({'type':'item.completed','item':{'type':'agent_message','text':'ACTION_REQUIRED: GitHub 권한 필요'}}),
+                           json.dumps({'type':'turn.completed'})])
+            def wait(self): return 0
+        with patch('runner.subprocess.Popen', return_value=Child()):
+            self.s.work_once()
+        self.assertEqual(self.row()['status'], 'blocked')
+        retry = self.update(2)
+        retry['message']['text'] = '/retry 1'
+        self.s.ingest([retry])
+        self.assertEqual(self.row()['status'], 'retry')
+
 
 if __name__ == '__main__': unittest.main()

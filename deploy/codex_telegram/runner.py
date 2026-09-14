@@ -50,6 +50,11 @@ class Service:
             if 'backend' not in columns:
                 db.execute("ALTER TABLE jobs ADD COLUMN backend TEXT NOT NULL DEFAULT 'codex'")
             db.execute('CREATE TABLE IF NOT EXISTS outbox(id INTEGER PRIMARY KEY, chat TEXT, text TEXT)')
+            db.execute('CREATE TABLE IF NOT EXISTS requests(id INTEGER PRIMARY KEY, chat TEXT, instruction TEXT, repo TEXT, state TEXT)')
+            db.execute('CREATE TABLE IF NOT EXISTS repo_choices(request_id INTEGER, number INTEGER, repo TEXT, PRIMARY KEY(request_id, number))')
+            outbox_columns = {row[1] for row in db.execute('PRAGMA table_info(outbox)')}
+            if 'markup' not in outbox_columns:
+                db.execute('ALTER TABLE outbox ADD COLUMN markup TEXT')
 
     def db(self):
         db = sqlite3.connect(self.state / 'queue.sqlite', timeout=30)
@@ -72,6 +77,11 @@ class Service:
                 offset = db.execute("SELECT value FROM meta WHERE key='offset'").fetchone()
                 if offset and uid < int(offset[0]):
                     continue
+                callback = update.get('callback_query')
+                if callback:
+                    self.handle_callback(db, callback)
+                    db.execute("INSERT INTO meta VALUES('offset',?) ON CONFLICT(key) DO UPDATE SET value=max(cast(value as integer),cast(excluded.value as integer))", (str(uid + 1),))
+                    continue
                 msg = update.get('message', {})
                 chat = msg.get('chat', {})
                 instruction = msg.get('text', '')
@@ -92,8 +102,11 @@ class Service:
                     elif command == '/status':
                         rows = db.execute("SELECT id,backend,status FROM jobs ORDER BY id DESC LIMIT 8").fetchall()
                         reply = f'기본 실행 대상: {backend}\n' + '\n'.join(f'{r[0]} {r[1]} {r[2]}' for r in rows)
+                    elif command == '/retry' and rest.isdigit():
+                        changed = db.execute("UPDATE jobs SET status='retry',due=0,notified=0 WHERE id=? AND status='blocked'", (int(rest),)).rowcount
+                        reply = f'작업 {rest} 재시도 예약됨' if changed else f'재시도할 blocked 작업 {rest}을 찾지 못했습니다.'
                     elif command in ('/start', '/help'):
-                        reply = '/codex 지시\n/claude 지시\n/codex 또는 /claude: 기본 대상 변경\n/status: 최근 작업\n/project 별칭 다음 줄에 지시\n각 메시지는 새 작업이며 이전 대화 세션을 자동 공유하지 않습니다.'
+                        reply = '/codex 지시\n/claude 지시\n/codex 또는 /claude: 기본 대상 변경\n/status: 최근 작업\n/retry 작업ID: 권한 해결 후 재개\n/project 별칭 다음 줄에 지시\n각 메시지는 새 작업이며 이전 대화 세션을 자동 공유하지 않습니다.'
                     elif command.startswith('/') and command != '/project':
                         reply = '알 수 없는 명령입니다. /help를 확인하세요.'
                     project = self.cfg['default_project']
@@ -101,14 +114,97 @@ class Service:
                         first, _, instruction = instruction.partition('\n')
                         project = first.split(maxsplit=1)[1].strip()
                     if reply is None:
-                        if project in self.cfg['projects'] and instruction.strip():
+                        if project in self.cfg['projects'] and instruction.strip() and (instruction.startswith('/project ') or not self.cfg.get('repository_selection', False)):
                             db.execute('INSERT OR IGNORE INTO jobs(id,chat,project,instruction,backend) VALUES(?,?,?,?,?)',
                                        (uid, self.chat, project, instruction, backend))
                             reply = f'접수 {uid} [{backend}] 프로젝트: {project}'
+                        elif instruction.strip():
+                            pending = db.execute("SELECT * FROM requests WHERE chat=? AND state='new-name' ORDER BY id DESC LIMIT 1", (self.chat,)).fetchone()
+                            if pending:
+                                name = instruction.strip()
+                                if not re.fullmatch(r'[A-Za-z0-9_.-]{1,100}', name):
+                                    reply = '저장소 이름은 영문, 숫자, `.`, `_`, `-`만 사용할 수 있습니다.'
+                                else:
+                                    owner = self.github_owner()
+                                    repo = f'{owner}/{name}'
+                                    created = subprocess.run([self.cfg.get('gh_bin', '/usr/bin/gh'), 'repo', 'create', repo, '--private'], text=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                                    if created.returncode:
+                                        reply = 'GitHub 저장소 생성에 실패했습니다. `gh auth status`를 확인하세요.'
+                                    else:
+                                        db.execute("UPDATE requests SET repo=?,state='agent' WHERE id=?", (repo, pending['id']))
+                                        self.queue_agent_buttons(db, pending['id'], f'새 private 저장소 `{repo}`를 만들었습니다.')
+                            else:
+                                db.execute('INSERT OR REPLACE INTO requests(id,chat,instruction,state) VALUES(?,?,?,?)', (uid, self.chat, instruction, 'repo'))
+                                self.queue_repo_buttons(db, uid)
+                                reply = None
                         else:
                             reply = '프로젝트 또는 지시를 확인하세요. /help'
-                    db.execute('INSERT INTO outbox(chat,text) VALUES(?,?)', (self.chat, reply))
+                    if reply is not None:
+                        self.queue_outbox(db, self.chat, reply)
                 db.execute("INSERT INTO meta VALUES('offset',?) ON CONFLICT(key) DO UPDATE SET value=max(cast(value as integer),cast(excluded.value as integer))", (str(uid + 1),))
+
+    def queue_outbox(self, db, chat, text, markup=None):
+        db.execute('INSERT INTO outbox(chat,text,markup) VALUES(?,?,?)', (chat, text, json.dumps(markup) if markup else None))
+
+    def github_owner(self):
+        if self.cfg.get('github_owner'):
+            return self.cfg['github_owner']
+        result = subprocess.run([self.cfg.get('gh_bin', '/usr/bin/gh'), 'api', 'user', '--jq', '.login'], text=True, capture_output=True)
+        if result.returncode or not result.stdout.strip():
+            raise RuntimeError('GitHub CLI authentication is required')
+        return result.stdout.strip()
+
+    def queue_repo_buttons(self, db, request_id):
+        try:
+            owner = self.github_owner()
+            result = subprocess.run([self.cfg.get('gh_bin', '/usr/bin/gh'), 'repo', 'list', owner, '--limit', '30', '--json', 'nameWithOwner', '--jq', '.[].nameWithOwner'], text=True, capture_output=True)
+            if result.returncode:
+                raise RuntimeError()
+            repos = [x for x in result.stdout.splitlines() if x]
+        except RuntimeError:
+            self.queue_outbox(db, self.chat, 'GitHub 목록을 읽지 못했습니다. `gh auth status`를 확인하세요.')
+            return
+        for number, repo in enumerate(repos, 1):
+            db.execute('INSERT OR REPLACE INTO repo_choices VALUES(?,?,?)', (request_id, number, repo))
+        rows = [[{'text': repo, 'callback_data': f'r:{request_id}:{number}'}] for number, repo in enumerate(repos, 1)]
+        rows.append([{'text': '＋ 새 private 저장소 만들기', 'callback_data': f'n:{request_id}'}])
+        self.queue_outbox(db, self.chat, '이 지시를 실행할 저장소를 선택하세요.', {'inline_keyboard': rows})
+
+    def queue_agent_buttons(self, db, request_id, text='저장소를 선택했습니다.'):
+        self.queue_outbox(db, self.chat, text + '\n작업자를 선택하세요.', {'inline_keyboard': [[
+            {'text': 'Claude', 'callback_data': f'a:{request_id}:claude'},
+            {'text': 'Codex', 'callback_data': f'a:{request_id}:codex'}
+        ]]})
+
+    def handle_callback(self, db, callback):
+        chat = str(callback.get('message', {}).get('chat', {}).get('id', ''))
+        if chat != self.chat:
+            return
+        data = callback.get('data', '')
+        try:
+            kind, request_id, value = data.split(':', 2)
+            request_id = int(request_id)
+        except ValueError:
+            return
+        request = db.execute('SELECT * FROM requests WHERE id=? AND chat=?', (request_id, chat)).fetchone()
+        if not request:
+            return
+        if kind == 'r' and request['state'] == 'repo':
+            choice = db.execute('SELECT repo FROM repo_choices WHERE request_id=? AND number=?', (request_id, int(value))).fetchone()
+            if choice:
+                db.execute("UPDATE requests SET repo=?,state='agent' WHERE id=?", (choice['repo'], request_id))
+                self.queue_agent_buttons(db, request_id, f'저장소 `{choice["repo"]}`를 선택했습니다.')
+        elif kind == 'n' and request['state'] == 'repo':
+            db.execute("UPDATE requests SET state='new-name' WHERE id=?", (request_id,))
+            self.queue_outbox(db, chat, '새 private GitHub 저장소 이름을 다음 메시지로 보내세요.')
+        elif kind == 'a' and request['state'] == 'agent' and value in ('claude', 'codex'):
+            db.execute('INSERT OR IGNORE INTO jobs(id,chat,project,instruction,backend) VALUES(?,?,?,?,?)', (request_id, chat, 'github:' + request['repo'], request['instruction'], value))
+            db.execute("UPDATE requests SET state='queued' WHERE id=?", (request_id,))
+            self.queue_outbox(db, chat, f'접수 {request_id} [{value}] {request["repo"]}')
+        try:
+            self.api('answerCallbackQuery', {'callback_query_id': callback['id']})
+        except Exception:
+            pass
 
     def poll(self):
         while not self.stop.is_set():
@@ -126,7 +222,10 @@ class Service:
         with self.db() as db:
             rows = db.execute('SELECT * FROM outbox ORDER BY id').fetchall()
         for row in rows:
-            self.api('sendMessage', {'chat_id': row['chat'], 'text': row['text']})
+            payload = {'chat_id': row['chat'], 'text': row['text']}
+            if row['markup']:
+                payload['reply_markup'] = json.loads(row['markup'])
+            self.api('sendMessage', payload)
             with self.db() as db:
                 db.execute('DELETE FROM outbox WHERE id=?', (row['id'],))
 
@@ -137,7 +236,11 @@ class Service:
         return re.sub(r'(?i)(?:sk-[\w-]+|\d{6,}:[\w-]{20,})', '[REDACTED]', text)
 
     def run_job(self, job):
-        project = Path(self.cfg['projects'][job['project']]).resolve()
+        try:
+            project = self.project_path(job['project'])
+        except (OSError, RuntimeError) as exc:
+            self.finish(job['id'], 'blocked', f'저장소 준비 오류: {exc}')
+            return
         note = project / 'RESUME_NOTE.md'
         if job['attempts'] and not note.exists():
             self.finish(job['id'], 'done', 'RESUME_NOTE.md 삭제 확인: 재시도 종료')
@@ -162,12 +265,17 @@ class Service:
                '-c', 'sandbox_workspace_write.network_access=true',
                '-c', 'developer_instructions=' + json.dumps((HERE / 'worker_prompt.md').read_text(), ensure_ascii=False), '-']
         backend = job['backend']
+        workspace_root = self.cfg.get('workspace_root')
+        if workspace_root:
+            cmd[cmd.index('-C'):cmd.index('-C')] = ['--add-dir', workspace_root]
         if backend == 'claude':
             cmd = [self.cfg.get('claude_bin', '/usr/local/bin/claude'), '-p',
                    '--output-format', 'stream-json', '--verbose', '--no-session-persistence',
                    '--effort', self.cfg.get('claude_effort', 'xhigh'),
                    '--dangerously-skip-permissions', '--append-system-prompt',
                    (HERE / 'worker_prompt.md').read_text()]
+            if workspace_root:
+                cmd.extend(['--add-dir', workspace_root])
         child_env = os.environ.copy()
         if self.cfg.get('codex_home'):
             child_env['CODEX_HOME'] = self.cfg['codex_home']
@@ -217,7 +325,10 @@ class Service:
             rc = 1
         finally:
             self.child = None
-        if rc == 0 and completed and not failed and not limited and not note.exists():
+        action_required = summary.lstrip().startswith('ACTION_REQUIRED:')
+        if action_required:
+            self.finish(job['id'], 'blocked', summary)
+        elif rc == 0 and completed and not failed and not limited and not note.exists():
             self.finish(job['id'], 'done', summary or '작업 완료')
         elif limited or self.stop.is_set() or (rc == 0 and completed and note.exists()):
             delay = min(self.cfg.get('retry_max_seconds', 3600),
@@ -226,6 +337,23 @@ class Service:
                 db.execute("UPDATE jobs SET status='retry', due=? WHERE id=?", (time.time() + delay, job['id']))
         else:
             self.finish(job['id'], 'blocked', f'실행 오류(exit={rc}). 인증/CLI/권한 점검 필요; 메모 유지')
+
+    def project_path(self, project):
+        if project in self.cfg['projects']:
+            return Path(self.cfg['projects'][project]).resolve()
+        if not project.startswith('github:'):
+            raise RuntimeError('Unknown project')
+        repo = project.removeprefix('github:')
+        if not re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', repo):
+            raise RuntimeError('Invalid repository')
+        target = Path(self.cfg.get('repositories_dir', '/opt/quant/repositories')) / repo
+        if target.exists():
+            return target.resolve()
+        target.parent.mkdir(parents=True, exist_ok=True)
+        cloned = subprocess.run([self.cfg.get('gh_bin', '/usr/bin/gh'), 'repo', 'clone', repo, str(target)], text=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if cloned.returncode or not target.is_dir():
+            raise RuntimeError('Repository clone failed')
+        return target.resolve()
 
     def finish(self, uid, status, summary):
         with self.db() as db:
