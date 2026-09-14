@@ -3,6 +3,8 @@
   "claude_bin": "/usr/local/bin/claude",
   "claude_config_dir": "/opt/quant/.claude",
   "codex_home": "/opt/quant/.codex-telegram-runtime/auth",
+  "codex_reasoning_effort": "xhigh",
+  "claude_effort": "xhigh",
   "env_file": "/opt/quant/.codex-telegram-runtime/telegram.env",
   "state_dir": "/opt/quant/.codex-telegram-state",
   "default_project": "quant",

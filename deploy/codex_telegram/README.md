@@ -34,6 +34,12 @@ CLI 세션 기록은 저장하지 않으며, 기존 대화 세션에 원격으�
 두 CLI를 각각 합성 Telegram 메시지로 실행해 `done` 및 실제 Telegram 응답 전송을 확인했다.
 Claude 한도 오류는 모의 이벤트로 메모 보존과 재시도를 검증했다.
 
+두 실행 대상의 기본 추론 강도는 `xhigh`다. Codex에는
+`-c model_reasoning_effort="xhigh"`, Claude에는 `--effort xhigh`를 전달한다. 로그인 횟수가
+추론 품질을 높이는 것은 아니며, 이 설정이 각 CLI에 더 많은 추론 예산을 요청한다. 응답 시간이
+늘고 구독 사용량 한도에 더 빨리 도달할 수 있다. `config.json`의 `codex_reasoning_effort`와
+`claude_effort`로 조절할 수 있다.
+
 이 서비스는 Telegram private chat의 새 텍스트 메시지를 SQLite 영속 큐에 기록하고, 프로젝트별로
 하나씩 Codex CLI 작업자로 실행한다. Long polling을 사용하므로 공개 webhook URL·TLS 인증서가
 필요 없고, 작업자가 실행 중이어도 수신 루프는 계속 메시지를 저장한다.

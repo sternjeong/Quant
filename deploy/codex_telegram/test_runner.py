@@ -110,6 +110,8 @@ class PipelineTests(unittest.TestCase):
         with patch('runner.subprocess.Popen', return_value=Child()) as launch:
             self.s.work_once()
             self.assertIn('--append-system-prompt', launch.call_args.args[0])
+            self.assertIn('--effort', launch.call_args.args[0])
+            self.assertEqual(launch.call_args.args[0][launch.call_args.args[0].index('--effort') + 1], 'xhigh')
         self.assertEqual(self.row()['summary'], 'Claude reply')
         self.assertEqual(self.row()['status'], 'done')
 
@@ -126,6 +128,19 @@ class PipelineTests(unittest.TestCase):
             self.s.work_once()
         self.assertEqual(self.row()['status'], 'retry')
         self.assertTrue((self.root/'RESUME_NOTE.md').exists())
+
+    def test_codex_uses_xhigh_reasoning(self):
+        self.s.ingest([self.update()])
+        root = self.root
+        class Child:
+            stdin = io.StringIO()
+            stdout = iter([json.dumps({'type':'turn.completed'})])
+            def wait(self):
+                (root/'RESUME_NOTE.md').unlink()
+                return 0
+        with patch('runner.subprocess.Popen', return_value=Child()) as launch:
+            self.s.work_once()
+        self.assertIn('model_reasoning_effort="xhigh"', launch.call_args.args[0])
 
 
 if __name__ == '__main__': unittest.main()

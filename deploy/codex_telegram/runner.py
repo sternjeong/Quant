@@ -158,12 +158,14 @@ class Service:
                   '원래 텔레그램 지시:\n' + job['instruction'])
         cmd = [self.cfg['codex_bin'], '-a', 'never', 'exec', '--ephemeral', '--json', '--color', 'never',
                '-s', self.cfg.get('sandbox', 'danger-full-access'), '-C', str(project),
+               '-c', 'model_reasoning_effort=' + json.dumps(self.cfg.get('codex_reasoning_effort', 'xhigh')),
                '-c', 'sandbox_workspace_write.network_access=true',
                '-c', 'developer_instructions=' + json.dumps((HERE / 'worker_prompt.md').read_text(), ensure_ascii=False), '-']
         backend = job['backend']
         if backend == 'claude':
             cmd = [self.cfg.get('claude_bin', '/usr/local/bin/claude'), '-p',
                    '--output-format', 'stream-json', '--verbose', '--no-session-persistence',
+                   '--effort', self.cfg.get('claude_effort', 'xhigh'),
                    '--dangerously-skip-permissions', '--append-system-prompt',
                    (HERE / 'worker_prompt.md').read_text()]
         child_env = os.environ.copy()
