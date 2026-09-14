@@ -1,0 +1,67 @@
+{
+  "n_recession_cuts": 9,
+  "n_insurance_cuts": 12,
+  "TLT": {
+    "label": "채권(TLT)",
+    "recession_cut": {
+      "n": 9,
+      "fwd_5d_mean_pct": 0.166,
+      "fwd_5d_win_rate_pct": 55.6,
+      "fwd_20d_mean_pct": 0.321,
+      "fwd_20d_win_rate_pct": 22.2,
+      "fwd_60d_mean_pct": 0.657,
+      "fwd_60d_win_rate_pct": 33.3
+    },
+    "insurance_cut": {
+      "n": 12,
+      "fwd_5d_mean_pct": -0.553,
+      "fwd_5d_win_rate_pct": 33.3,
+      "fwd_20d_mean_pct": 0.697,
+      "fwd_20d_win_rate_pct": 41.7,
+      "fwd_60d_mean_pct": -0.203,
+      "fwd_60d_win_rate_pct": 50.0
+    }
+  },
+  "GLD": {
+    "label": "금(GLD)",
+    "recession_cut": {
+      "n": 9,
+      "fwd_5d_mean_pct": -1.248,
+      "fwd_5d_win_rate_pct": 22.2,
+      "fwd_20d_mean_pct": 0.392,
+      "fwd_20d_win_rate_pct": 44.4,
+      "fwd_60d_mean_pct": 4.097,
+      "fwd_60d_win_rate_pct": 66.7
+    },
+    "insurance_cut": {
+      "n": 12,
+      "fwd_5d_mean_pct": 0.813,
+      "fwd_5d_win_rate_pct": 75.0,
+      "fwd_20d_mean_pct": 4.803,
+      "fwd_20d_win_rate_pct": 66.7,
+      "fwd_60d_mean_pct": 12.895,
+      "fwd_60d_win_rate_pct": 91.7
+    }
+  },
+  "DX-Y.NYB": {
+    "label": "달러지수",
+    "recession_cut": {
+      "n": 9,
+      "fwd_5d_mean_pct": 0.768,
+      "fwd_5d_win_rate_pct": 55.6,
+      "fwd_20d_mean_pct": 1.287,
+      "fwd_20d_win_rate_pct": 66.7,
+      "fwd_60d_mean_pct": 0.288,
+      "fwd_60d_win_rate_pct": 55.6
+    },
+    "insurance_cut": {
+      "n": 12,
+      "fwd_5d_mean_pct": 0.226,
+      "fwd_5d_win_rate_pct": 58.3,
+      "fwd_20d_mean_pct": 0.261,
+      "fwd_20d_win_rate_pct": 50.0,
+      "fwd_60d_mean_pct": -0.598,
+      "fwd_60d_win_rate_pct": 41.7
+    }
+  }
+}

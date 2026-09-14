@@ -1,0 +1,395 @@
+<title>새틀라이트 전용 위기신호와 2021 성장주 언와인드 검증</title>
+<style>
+
+:root{
+  color-scheme: light;
+  --bg-page:#eef1ee; --surface:#ffffff; --surface-2:#f4f6f3;
+  --ink:#12181a; --ink-2:#495550; --ink-muted:#828d87;
+  --hairline:#d7ddd6; --border:rgba(11,11,11,0.10);
+  --accent:#1f4d3d; --accent-ink:#ffffff; --accent-2:#8a6a1f;
+  --accent-2-soft:#f2e6c8; --accent-soft:#e2ebe6; --chart-surface:#fcfcfb;
+  --blue:#2a78d6; --orange:#eb6834; --aqua:#1baf7a; --red:#e34948;
+  --gridline:#e1e0d9; --axis:#c3c2b7; --delta-pos:#184f95; --delta-neg:#b3261e;
+  --code-bg:#f4f6f3; --shadow: 0 1px 2px rgba(20,30,25,0.04), 0 8px 24px -16px rgba(20,30,25,0.18);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg-page:#0f1210; --surface:#171b16; --surface-2:#1c211b;
+    --ink:#f2f4f0; --ink-2:#c4cbc2; --ink-muted:#8b958a;
+    --hairline:#2c332a; --border:rgba(255,255,255,0.10);
+    --accent:#5aab89; --accent-ink:#0b1310; --accent-2:#d9b45c;
+    --accent-2-soft:#332a13; --accent-soft:#1b2921; --chart-surface:#1a1a19;
+    --blue:#3987e5; --orange:#d95926; --aqua:#199e70; --red:#e66767;
+    --gridline:#2c2c2a; --axis:#3a3f38; --delta-pos:#86b6ef; --delta-neg:#ff8a80;
+    --code-bg:#1c211b; --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -16px rgba(0,0,0,0.5);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg-page:#0f1210; --surface:#171b16; --surface-2:#1c211b;
+  --ink:#f2f4f0; --ink-2:#c4cbc2; --ink-muted:#8b958a;
+  --hairline:#2c332a; --border:rgba(255,255,255,0.10);
+  --accent:#5aab89; --accent-ink:#0b1310; --accent-2:#d9b45c;
+  --accent-2-soft:#332a13; --accent-soft:#1b2921; --chart-surface:#1a1a19;
+  --blue:#3987e5; --orange:#d95926; --aqua:#199e70; --red:#e66767;
+  --gridline:#2c2c2a; --axis:#3a3f38; --delta-pos:#86b6ef; --delta-neg:#ff8a80;
+  --code-bg:#1c211b; --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -16px rgba(0,0,0,0.5);
+}
+*{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{ margin:0; background:var(--bg-page); color:var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif; line-height:1.6; font-size:16px; }
+.serif{ font-family: "Iowan Old Style","Palatino Linotype", Georgia, serif; }
+.mono, .num, td.num, .tk-name, .kpi-value, code {
+  font-family: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+  font-variant-numeric: tabular-nums; }
+a{ color:var(--accent); }
+.wrap{ max-width: 960px; margin:0 auto; padding: 0 24px 96px; }
+.masthead{ background: var(--accent); color: var(--accent-ink); padding: 56px 24px 40px; }
+.masthead-inner{ max-width:960px; margin:0 auto; }
+.masthead-eyebrow{ font-size:12.5px; letter-spacing:0.12em; text-transform:uppercase; opacity:0.82;
+  font-family: ui-monospace, "SF Mono", Consolas, monospace; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.masthead-eyebrow .dot{ opacity:0.5; }
+h1.masthead-title{ font-family:"Iowan Old Style","Palatino Linotype", Georgia, serif; font-weight:600;
+  font-size: clamp(28px, 4.2vw, 44px); line-height:1.15; margin: 14px 0 10px; text-wrap: balance; max-width: 28ch; }
+.masthead-sub{ font-size:16.5px; max-width:68ch; opacity:0.92; margin:0 0 22px; }
+.masthead-meta{ display:flex; flex-wrap:wrap; gap: 10px 26px; font-size:13.5px; opacity:0.85;
+  border-top:1px solid rgba(255,255,255,0.22); padding-top:16px; }
+.masthead-meta b{ font-weight:600; }
+.section{ padding: 52px 0 8px; border-top:1px solid var(--hairline); }
+.section:first-of-type{ border-top:none; }
+.section h2{ font-family:"Iowan Old Style","Palatino Linotype", Georgia, serif; font-size: 25px;
+  font-weight:600; margin: 0 0 16px; display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+.sec-no{ font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size:13px; color: var(--accent);
+  border:1px solid var(--accent); border-radius:3px; padding:2px 6px; font-weight:600; letter-spacing:0.02em; }
+.section h3{ font-size:17.5px; margin: 30px 0 10px; font-weight:650; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.section h4{ font-size:15px; margin: 20px 0 8px; font-weight:650; color:var(--ink-2); }
+.lede{ font-size:16.5px; color:var(--ink-2); max-width:72ch; }
+.section p{ max-width:76ch; }
+.section > p, .section > .lede { margin-top: 0; }
+.section li{ max-width:72ch; }
+.callout{ background: var(--surface-2); border:1px solid var(--hairline); border-left: 3px solid var(--accent);
+  border-radius: 6px; padding: 18px 22px; margin: 20px 0 26px; }
+.callout-title{ font-size:11.5px; text-transform:uppercase; letter-spacing:0.08em; color:var(--accent);
+  font-weight:700; margin-bottom:8px; }
+.callout p{ margin:0; max-width:none; }
+.callout p + p{ margin-top:10px; }
+.callout.warn{ border-left-color: var(--delta-neg); }
+.callout.warn .callout-title{ color: var(--delta-neg); }
+.caveat{ font-size:14.5px; color:var(--ink-2); background:var(--surface-2); border-radius:6px;
+  padding:14px 18px; border:1px dashed var(--hairline); margin: 14px 0; }
+.kpi-row{ display:grid; grid-template-columns:repeat(auto-fit, minmax(190px,1fr)); gap:14px; margin: 20px 0 8px; }
+.kpi-tile{ background:var(--surface); border:1px solid var(--hairline); border-radius:8px; padding:16px 18px; box-shadow: var(--shadow); }
+.kpi-label{ font-size:12.5px; color:var(--ink-muted); margin-bottom:6px; }
+.kpi-value{ font-size:24px; font-weight:600; line-height:1.1; }
+.kpi-value.pos{ color:var(--delta-pos); }
+.kpi-value.neg{ color:var(--delta-neg); }
+.kpi-sub{ font-size:12.5px; color:var(--ink-muted); margin-top:4px; }
+.chart-card{ background:var(--chart-surface); border:1px solid var(--hairline); border-radius:10px;
+  padding:22px 22px 16px; margin: 22px 0; box-shadow: var(--shadow); }
+.chart-card h3{ margin: 0 0 4px; font-size:16px; }
+.chart-desc{ font-size:13.5px; color:var(--ink-muted); margin: 0 0 14px; max-width:none; }
+.table-wrap{ overflow-x:auto; border:1px solid var(--hairline); border-radius:8px; background:var(--surface); }
+table.data-table{ width:100%; border-collapse:collapse; font-size:13.5px; min-width:620px; }
+table.data-table th{ text-align:right; font-weight:600; font-size:11.5px; color:var(--ink-muted); text-transform:uppercase;
+  letter-spacing:0.03em; padding:10px 12px; border-bottom:1px solid var(--hairline); white-space:nowrap; }
+table.data-table th:first-child, table.data-table td:first-child{ text-align:left; }
+table.data-table td{ padding:8px 12px; border-bottom:1px solid var(--hairline); text-align:right; white-space:nowrap; }
+table.data-table tbody tr:hover{ background:var(--surface-2); }
+table.data-table tbody tr:last-child td{ border-bottom:none; }
+td.tk-cell{ text-align:left !important; }
+td.tk-cell .tk-name{ font-weight:650; margin-right:8px; }
+td.num.delta.pos, .delta.pos{ color:var(--delta-pos); font-weight:650; }
+td.num.delta.neg, .delta.neg{ color:var(--delta-neg); font-weight:650; }
+.strong{ font-weight:700; }
+tr.best-row{ background: var(--accent-soft); }
+tr.warn-row{ background: rgba(179,38,30,0.08); }
+footer{ max-width:960px; margin:40px auto 0; padding: 26px 24px 10px; border-top:1px solid var(--hairline);
+  font-size:12.5px; color:var(--ink-muted); }
+footer p{ max-width:none; }
+.toc{ display:flex; flex-wrap:wrap; gap:8px 18px; margin: 24px 0 4px; padding:16px 20px; background:var(--surface);
+  border:1px solid var(--hairline); border-radius:8px; }
+.toc a{ font-size:13.5px; color:var(--ink-2); text-decoration:none; }
+.toc a:hover{ color:var(--accent); text-decoration:underline; }
+.src-list{ font-size:13px; color:var(--ink-2); padding-left:18px; }
+.src-list li{ margin: 6px 0; }
+.verdict-badge{ display:inline-block; font-size:12px; font-weight:700; letter-spacing:0.03em;
+  padding:3px 10px; border-radius:20px; text-transform:uppercase; }
+.v-accept{ background: var(--accent-soft); color: var(--accent); border:1px solid var(--accent); }
+.v-reject{ background: rgba(179,38,30,0.10); color: var(--delta-neg); border:1px solid var(--delta-neg); }
+.v-partial{ background: var(--accent-2-soft); color: var(--accent-2); border:1px solid var(--accent-2); }
+.hyp-card{ background:var(--surface); border:1px solid var(--hairline); border-radius:8px; padding:16px 20px; margin:14px 0; }
+.hyp-card .hyp-id{ font-family: ui-monospace,"SF Mono",Consolas,monospace; font-weight:700; color:var(--accent); font-size:13px; }
+
+</style>
+
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="masthead-eyebrow">
+      <span>QUANT RESEARCH NOTE</span><span class="dot">·</span><span>Track D 7라운드</span><span class="dot">·</span><span>Hypothesis-Driven Study</span>
+    </div>
+    <h1 class="masthead-title">새틀라이트 전용 위기신호와 2021년 성장주 언와인드 검증</h1>
+    <p class="masthead-sub">작업34(H12/H13)가 스스로 남긴 한계 — "SPY 200일선 스위치는 2008년처럼
+      시장 전체가 무너지는 광범위 위기에서만 검증됐다. SPY는 멀쩡한데 새틀라이트 풀만 무너지는 국지적
+      위기는 못 잡을 수 있다" — 를 두 각도에서 직접 검증한다. (H14) 새틀라이트 자체의 point-in-time
+      후보 풀에서 만든 전용 위기신호(풀 breadth·실현낙폭)가 실제로 SPY와 다른 타이밍에 반응하는가,
+      더 나은가. (H15) 2021년 말~2022년 초 실제 성장주 언와인드 사례에서 SPY 스위치가 반응하기 전에
+      새틀라이트가 얼마나 손실을 입었는지 실측한다.</p>
+    <div class="masthead-meta">
+      <span><b>기준일</b> 2026-08-22</span>
+      <span><b>H14 구간</b> 2019-08~2026-08 · 2022 약세장 · 2007-01~2009-12(GFC)</span>
+      <span><b>H15 구간</b> 2021-09-01 ~ 2022-03-31</span>
+      <span><b>데이터</b> Yahoo Finance(yfinance) via core.market_data/core.point_in_time_market_cap/core.strategy_tuning 로컬 캐시</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <nav class="toc">
+    <a href="#scope">00 문제 제기</a>
+    <a href="#h14">01 H14 — 새틀라이트 전용 위기신호</a>
+    <a href="#h15">02 H15 — 2021년 성장주 언와인드 사례</a>
+    <a href="#synthesis">03 종합 — 현재 최선의 구성</a>
+    <a href="#limitations">04 한계</a>
+  </nav>
+
+  <section class="section" id="scope">
+    <h2><span class="sec-no">00</span> 문제 제기 — 6라운드가 명시적으로 남긴 한계</h2>
+    <p class="lede">작업34(H12/H13)는 챔피언이 이미 쓰던 이진 시장필터(SPY 종가 vs 200일 이동평균)를
+      그대로 재사용해 새틀라이트를 15%/0%로 전환하는 국면조건부 스위치를 검증했다. 2019~2026 전체 구간
+      샤프 1.03(코어단독)→1.12(상시15%)→1.07(스위치)로 강세장 이득의 상당 부분을 지켰고, 2008년
+      금융위기에서는 상시블렌드가 코어단독 +3.45%를 −4.36%로 뒤집었던 걸 스위치가 +3.04%로 거의
+      복구했다. 그 라운드가 "부분채택"에 그친 핵심 이유는 두 가지였다: (a) 위기 표본이 2008/2022
+      단 2개뿐이라는 근본적 한계, 그리고 (b) <b>"2008년엔 SPY 자체가 빨리 꺾여서 스위치가 통했을
+      뿐, 섹터 국지적 위기(SPY는 200일선 위인데 새틀라이트 풀만 무너지는 경우)는 이 스위치가 못 잡을
+      수 있다"</b>는 스스로 명시한 경고. 이번 라운드(H14/H15)는 그 경고를 직접 검증한다.</p>
+    <ul>
+      <li><b>H14</b> — 새틀라이트 자체의 point-in-time 후보 풀에서 계산한 전용 신호(풀 breadth,
+        실현낙폭)가 SPY와 다르게 반응하는 실제 역사적 사례가 있는가? 있다면 그 신호로 만든 스위치가
+        H12보다 나은가?</li>
+      <li><b>H15</b> — 2021년 말~2022년 초 실제 "성장주만 먼저 무너지고 SPY는 사상최고치 부근"이던
+        사례에서, SPY 스위치가 반응하기 전까지 실제 새틀라이트 보유종목이 얼마나 피를 흘렸는지
+        구체적 날짜·수치로 검증한다.</li>
+    </ul>
+    <p class="caveat">⚠️ 투자 조언이 아니다. 결과가 H12/H13의 기존 채택 판정을 낮추거나 경고를 더해야
+      한다면 있는 그대로 반영한다.</p>
+  </section>
+
+  <section class="section" id="h14">
+    <h2><span class="sec-no">01</span> H14 — 새틀라이트 전용 국지적 위기 신호 <span class="verdict-badge v-reject">기각</span></h2>
+    <p class="lede">두 가지 새 신호를 만들었다: (a) <b>풀 breadth</b> — H10과 동일한 point-in-time
+      새틀라이트 후보 풀(40종목, 반기마다 갱신, 챔피언 유니버스+SPY 제외)에서 자기 200일선 위에 있는
+      종목의 비율. 50% 미만이면 "약세". (b) <b>실현낙폭</b> — 실제 보유중인 새틀라이트 슬리브 자체의
+      running-peak 대비 트레일링 낙폭. −10% 넘으면 OFF, −5%보다 얕아지면 다시 ON(히스테리시스).
+      두 신호를 SPY 신호와 단독/AND/OR로 결합해 H12와 동일한 3개 구간에서 비교했다.</p>
+
+    <h3>(A) 진짜 괴리(divergence)가 있었는가</h3>
+    <p>2019~2026 전체기간에서 "SPY는 불(bull)인데 풀breadth는 약세"인 연속 10거래일 이상 구간을
+      찾은 결과 <b>1건</b>이 나왔다: 2019-08-12~2019-12-31(99거래일).
+      하지만 이 유일한 구간을 실제로 열어보면 2019-08-12(구간 시작일) 직후부터인데, 풀breadth 원시
+      값을 확인하니 이 구간의 실제 값은 <b>NaN</b>이었다 — 200일 이동평균 워밍업이 아직 안 끝난
+      시점을 "약세"로 잘못 분류한 계산 아티팩트였다(NaN과의 비교 연산이 pandas에서 False를 반환하기
+      때문). 이 아티팩트를 제외하면 <b>실제 괴리 사례는 0건</b>이다. 2008 GFC 구간에서도 괴리는
+      0건이었다 — 풀breadth가 SPY보다 먼저도, 다르게도 움직이지 않았다는 뜻이다.</p>
+    <div class="callout warn">
+      <div class="callout-title">1차 결과가 예상과 달랐던 점</div>
+      <p>H14를 설계할 때는 "섹터 국지적 위기에서 SPY와 새틀라이트 풀 breadth가 갈릴 것"을 기대했지만,
+        2019~2026·2007~2009 두 구간 모두에서 실측 괴리가 전혀 발견되지 않았다. 즉 이 저장소가 지금까지
+        관측한 역사적 표본 안에서는 "SPY는 멀쩡한데 새틀라이트 풀만 무너지는" 시나리오 자체가 아직
+        나타난 적이 없다(2008/2022 모두 광범위 위기였다) — H15가 정확히 그 시나리오의 후보로 지목한
+        2021년 말 사례를 별도로 훨씬 좁은 시야(개별 보유종목 3개)에서 다시 검증한다(02절).</p>
+    </div>
+
+    <h3>(B) 신호별 성과 비교 — 2008 GFC 위기구간(2007-10~2009-06)</h3>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>스위치 신호</th><th>CAGR</th><th>MDD</th><th>샤프</th><th>칼마</th></tr></thead>
+        <tbody>
+          <tr><td class="tk-cell"><span class="tk-name">코어 단독</span></td>
+            <td class="num">+3.45%</td><td class="num">-15.85%</td>
+            <td class="num">0.290</td><td class="num">0.220</td></tr>
+          <tr class="warn-row"><td class="tk-cell"><span class="tk-name">코어+상시15%(정적)</span></td>
+            <td class="num">-4.36%</td><td class="num">-19.96%</td>
+            <td class="num">-0.210</td><td class="num">-0.220</td></tr>
+          <tr class="best-row"><td class="tk-cell"><span class="tk-name">스위치: SPY(H12 기존)</span></td>
+            <td class="num strong">+3.04%</td><td class="num">-16.05%</td>
+            <td class="num strong">0.260</td><td class="num">0.190</td></tr>
+          <tr><td class="tk-cell"><span class="tk-name">스위치: 풀breadth(신규)</span></td>
+            <td class="num">+0.84%</td><td class="num">-16.60%</td>
+            <td class="num">0.130</td><td class="num">0.050</td></tr>
+          <tr><td class="tk-cell"><span class="tk-name">스위치: 실현낙폭(신규)</span></td>
+            <td class="num">+1.57%</td><td class="num">-15.85%</td>
+            <td class="num">0.180</td><td class="num">0.100</td></tr>
+          <tr><td class="tk-cell"><span class="tk-name">스위치: SPY AND 풀breadth</span></td>
+            <td class="num">+3.07%</td><td class="num">-16.05%</td>
+            <td class="num">0.260</td><td class="num">0.190</td></tr>
+          <tr><td class="tk-cell"><span class="tk-name">스위치: SPY OR 풀breadth</span></td>
+            <td class="num">+0.81%</td><td class="num">-16.60%</td>
+            <td class="num">0.130</td><td class="num">0.050</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>2008년 위기구간에서 <b>SPY 단독 신호(샤프0.260)가 모든 대안을 이긴다</b>.
+      풀breadth 단독은 샤프0.130로 오히려 코어 단독(0.290)보다도
+      약간 낮고, 실현낙폭 신호도 0.180로 SPY에 못 미친다. AND 결합은 SPY와 사실상
+      동일(대부분의 시간 SPY가 이미 OFF라서 AND 조건에서 추가로 걸리는 게 거의 없다), OR 결합은 노출을
+      늘려 방어력이 약해진다(0.130). 2019~2026 전체기간과 2022년에서도 같은 패턴이
+      반복된다(전체: SPY 샤프1.070 vs 풀breadth 1.050 vs
+      실현낙폭 1.000; 2022년만 예외적으로 풀breadth/OR가 근소하게 SPY를
+      앞선다(0.260 vs 0.240, 소수점 둘째자리 차이).</p>
+
+    <div class="callout">
+      <div class="callout-title">해석 — 정직한 결론</div>
+      <p>가설이 기대했던 "새틀라이트 전용 신호가 SPY가 못 잡는 국지적 위기를 잡아낸다"는 결과가
+        나오지 않았다. 오히려 반대다: 개별주 40종목 풀의 breadth나 3종목짜리 슬리브 자체의 실현낙폭은
+        표본이 훨씬 작고 변동성이 크기 때문에(SPY 1개 지수 vs 개별주 3~40개) <b>노이즈가 많고 SPY보다
+        신뢰도가 낮다</b> — 이 라운드가 시작할 때 스스로 경계했던 "개별주 breadth가 광범위 지수의 추세보다
+        노이즈가 더 클 수 있다"는 우려가 실측으로 확인됐다. 또한 SPY와의 실제 역사적 괴리 자체가 관측되지
+        않았으므로, 현재로서는 새 신호를 도입할 근거가 약하다.</p>
+    </div>
+  </section>
+
+  <section class="section" id="h15">
+    <h2><span class="sec-no">02</span> H15 — 2021년 말~2022년 초 성장주 언와인드 사례 <span class="verdict-badge v-partial">부분채택</span></h2>
+    <p class="lede">H14가 넓은 통계로 "괴리 없음"을 보였다면, H15는 가장 유력한 후보 사례를 직접
+      들여다본다. 이 시기 실제 새틀라이트(H10 추세추종 선정) 보유종목은 무엇이었고, SPY 스위치가
+      반응하기 전까지 정말로 손실을 입었는가?</p>
+
+    <h3>(A) 실제 보유종목 — 유명 성장주 대참사(ARKK류)와 겹치는가</h3>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>반기</th><th>보유종목</th></tr></thead>
+        <tbody>
+          <tr><td class="tk-cell"><span class="tk-name">2021-07-01 ~ 2022-01-02</span></td>
+            <td class="tk-cell">TSLA, NVDA, UPS</td></tr>
+          <tr><td class="tk-cell"><span class="tk-name">2022-01-03 ~ 2022-06-30</span></td>
+            <td class="tk-cell">COP, PLD, GOOGL</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>정직한 확인: 2021년 하반기 보유종목(TSLA, NVDA, UPS)에 TSLA·NVDA가 포함돼 있다 — 둘 다 그 시기 널리 회자된 고성장/고밸류에이션 대형주 조정의 핵심 종목이었다. 다만 ARKK류 소형 초고밸류 성장주(예: 태생적 적자기업)와는 다르고, UPS는 성장주가 아닌 물류주다.
+      2022-01-03 리밸런싱(반기 정적 스케줄, 스위치와 무관)에서 새틀라이트는 COP/PLD/GOOGL(에너지·리츠·GOOGL)로
+      갈아탔다 — 이는 스위치가 작동해서가 아니라 원래 정해진 반기 일정 때문이었고, 결과적으로
+      2022년 러시아-우크라이나 전쟁발 에너지 랠리(COP)로 이후 구간에서 오히려 도움이 됐다는 점도
+      짚어둔다(운이 좋았던 우연에 가깝다).</p>
+
+    <h3>(B) SPY 스위치는 언제 꺼졌고, 그때까지 새틀라이트는 얼마나 피를 흘렸나</h3>
+    <div class="kpi-row">
+      <div class="kpi-tile"><div class="kpi-label">새틀라이트 국지적 피크</div><div class="kpi-value">2021-11-19</div><div class="kpi-sub">윈도우 내 트로프 직전 러닝피크</div></div>
+      <div class="kpi-tile"><div class="kpi-label">새틀라이트 국지적 트로프</div><div class="kpi-value neg">-13.20%</div><div class="kpi-sub">2021-12-20 낙폭</div></div>
+      <div class="kpi-tile"><div class="kpi-label">SPY 스위치 첫 OFF</div><div class="kpi-value">2022-01-24</div><div class="kpi-sub">피크 이후 43거래일</div></div>
+      <div class="kpi-tile"><div class="kpi-label">SPY OFF 시점까지 실현된 낙폭 비율</div><div class="kpi-value neg">25.6%</div><div class="kpi-sub">낮을수록 SPY가 늦게 반응</div></div>
+    </div>
+    <p>새틀라이트는 <b>2021-11-19</b>(TSLA/NVDA/UPS 보유 중)를 국지적 고점으로 <b>2021-12-20</b>까지
+      22거래일 만에 <b>-13.20%</b> 낙폭을 기록했다.
+      반면 SPY 200일선 스위치는 그로부터 한 달도 더 지난 <b>2022-01-24</b>에야
+      처음 꺼졌다 — 그때는 이미 12-20 저점을 지나 새틀라이트가 (2022-01-03 반기 리밸런싱으로 COP/PLD/GOOGL로
+      갈아탄 덕에) 낙폭의 상당 부분을 스스로 회복한 뒤였다(스위치 OFF 시점 낙폭은
+      -3.38%로 얕아져 있었다). 즉 <b>SPY 스위치는
+      2021년 11~12월의 실제 손실 구간 동안 단 한 번도 방어 역할을 하지 못했다</b> — 그 손실을 피한 것은
+      스위치가 아니라 우연히 시기가 맞은 정기 반기 리밸런싱이었다. 이것이 정확히 작업34가 경고한
+      시나리오의 <b>실증적 확인</b>이다: SPY는 2022-01-24까지 200일선 위에 머물렀고(그마저도 뒤늦게
+      비교적 넓은 시장 조정이 시작된 이후였다), 개별 성장주 슬리브는 그보다 훨씬 먼저 무너졌다.</p>
+
+    <h3>(C) H14의 풀breadth 신호는 이 사례에서 더 빨랐는가</h3>
+    <div class="kpi-row">
+      <div class="kpi-tile"><div class="kpi-label">풀breadth 스위치 첫 OFF</div><div class="kpi-value">2022-02-17</div><div class="kpi-sub">SPY(2022-01-24) 대비</div></div>
+      <div class="kpi-tile"><div class="kpi-label">SPY 대비 리드(일)</div><div class="kpi-value neg">-24일</div><div class="kpi-sub">양수면 breadth가 먼저 반응</div></div>
+      <div class="kpi-tile"><div class="kpi-label">breadth OFF 시점 낙폭</div><div class="kpi-value neg">-6.83%</div><div class="kpi-sub">이미 반등 이후 시점</div></div>
+    </div>
+    <p>결과는 명확하게 부정적이다 — 풀breadth 신호는 <b>2022-02-17</b>에야
+      꺼졌다. SPY보다도 <b>24일 더 늦게</b> 반응한
+      것이다. H14에서 이미 확인한 "풀breadth는 SPY보다 신뢰도가 낮다"는 결론이 이 구체적 사례에서도
+      그대로 재현된다 — <b>H14의 새 신호는 H15가 지목한 바로 그 문제를 해결하지 못한다.</b></p>
+
+    <div class="callout warn">
+      <div class="callout-title">해석 — 위험은 실재하지만, 대안이 아직 없다</div>
+      <p>H15는 작업34의 경고가 이론적 우려가 아니라 <b>실제로 일어났던 일</b>임을 확인했다: 2021년 말
+        새틀라이트 슬리브는 SPY가 사상최고치 부근이던 시점에 이미 두 자릿수 낙폭을 겪었고, 그 손실을
+        스위치는 전혀 막지 못했다(스스로 회복한 것이지 스위치가 지켜준 게 아니다). 그러나 H14가 만든
+        대안 신호(풀breadth) 역시 이 사례에서 SPY보다 느렸다 — "새틀라이트 전용 신호를 쓰면 해결된다"는
+        가설은 이 구체적 사례에서도 기각된다.</p>
+    </div>
+  </section>
+
+  <section class="section" id="synthesis">
+    <h2><span class="sec-no">03</span> 종합 — 현재 최선의 추천 구성</h2>
+    <p>이번 라운드는 작업34가 스스로 남긴 두 가지 숙제에 모두 답했지만, 둘 다 "새 신호를 도입하라"는
+      방향이 아니라 <b>"기존 SPY 스위치를 그대로 두되, 한계를 명확히 인지하라"</b>는 결론으로 수렴했다.</p>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>질문</th><th>답</th></tr></thead>
+        <tbody>
+          <tr><td class="tk-cell"><span class="tk-name">H14: 새틀라이트 전용 신호가 SPY보다 통계적으로 나은가</span></td>
+            <td class="tk-cell">아니오 — 2008 GFC 위기구간에서 SPY 샤프 0.260가
+              풀breadth 0.130·실현낙폭 0.180를 모두 이긴다.
+              전체기간·2022년도 대체로 동일한 패턴(2022년만 근소한 예외).</td></tr>
+          <tr><td class="tk-cell"><span class="tk-name">H14: SPY와의 실제 역사적 괴리가 있었는가</span></td>
+            <td class="tk-cell">아니오(워밍업 계산 아티팩트 1건 제외 시 0건) — 2019~2026·2007~2009
+              두 구간 모두 풀breadth가 SPY와 사실상 같은 시점에 움직였다.</td></tr>
+          <tr><td class="tk-cell"><span class="tk-name">H15: 2021년 말 성장주 언와인드에서 SPY가 늦게 반응한 실제 갭이 있었는가</span></td>
+            <td class="tk-cell">예 — 새틀라이트가 2021-11-19~12-20 사이 -13.20%
+              낙폭을 겪는 동안 SPY 스위치는 계속 ON이었고, 2022-01-24에야
+              (이미 회복 이후) 꺼졌다.</td></tr>
+          <tr><td class="tk-cell"><span class="tk-name">H15: H14의 풀breadth 신호가 이 사례에서 더 빨랐는가</span></td>
+            <td class="tk-cell">아니오 — 풀breadth는 SPY보다 24일
+              더 늦게 반응했다.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="hyp-card">
+      <div class="hyp-id">현재 시점 최선의 추천 구성</div>
+      <p style="margin:8px 0 0;"><b>작업34가 채택한 구성(17자산 챔피언 + 추세추종 새틀라이트 + SPY vs
+        200일선 이진 스위치, 15%/0%)을 그대로 유지한다 — 스위치 신호를 교체하지 않는다.</b> 이번 라운드가
+        시도한 두 가지 대안(풀breadth, 실현낙폭 단독/AND/OR 결합)은 모두 기존 SPY 신호보다 통계적으로
+        열등했고, 유일하게 실재했던 국지적 위기 사례(2021년 말 성장주 언와인드)에서조차 더 빠르지
+        않았다. <b>새 신호를 추가하는 것은 복잡성만 늘릴 뿐 방어력을 높이지 못한다</b> — "고치지 않는
+        것"이 이번 라운드의 실질적 결론이다. 다만 H15가 확인한 실제 갭(SPY 스위치가 국지적 성장주
+        조정에는 무방비였다는 사실)은 여전히 유효한 경고로 남는다: 이는 "고칠 방법을 아직 못 찾았다"는
+        뜻이지 "위험이 없다"는 뜻이 아니다.</p>
+    </div>
+  </section>
+
+  <section class="section" id="limitations">
+    <h2><span class="sec-no">04</span> 한계</h2>
+    <ul>
+      <li><b>새 신호 설계 공간을 다 탐색하지 못함</b> — 풀breadth 임계값(50%)과 실현낙폭 임계값(−10%/−5%
+        히스테리시스)은 한 세트만 시도했다. 다른 임계값이나 더 정교한 신호(예: 풀 내 중앙값 모멘텀,
+        상대강도 스프레드)는 시도하지 않았다 — 이번 결과가 "새틀라이트 전용 신호는 원천적으로 불가능하다"를
+        증명하지는 않는다, "이번에 시도한 두 가지 단순한 버전은 안 통했다"일 뿐이다.</li>
+      <li><b>H15는 사례 1개</b> — 2021년 말~2022년 초 성장주 언와인드는 이 저장소가 찾은 유일한
+        "SPY 멀쩡, 새틀라이트 취약" 후보 사례다. 다른 유사 사례(예: 2015-16 에너지주 붕괴, 2018년 4분기
+        조정)는 이번 라운드에서 검증하지 않았다.</li>
+      <li><b>H15의 갭이 "우연히 회복"으로 상쇄됐다는 점 자체가 취약한 안전판</b> — 2022-01-03 반기
+        리밸런싱이 마침 그 시점에 있었고, 마침 COP(에너지)가 그 이후 랠리했기 때문에 실제 실현손실이
+        제한됐다. 반기 일정이 다르게 맞춰졌거나 새 보유종목이 하락을 이어갔다면 훨씬 큰 손실이 실현됐을
+        수 있다 — "운이 좋아서 괜찮았다"는 것이지 "메커니즘이 방어했다"는 게 아니다.</li>
+      <li><b>풀breadth의 point-in-time 재구축은 계산비용이 매우 크다</b> — 반기 리밸런싱마다
+        sample_universe + 40종목 가격이력 재조회(회당 약 50~58초)가 필요해 이번 라운드에서 전체+2022,
+        2008 GFC 두 파트에만 약 24분이 소요됐다 — 향후 다른 임계값을 조합해 그리드서치하려면 상당한
+        재실행 비용이 든다.</li>
+      <li><b>2008년 코어는 3자산(SPY/TLT/GLD) 근사, 새틀라이트 풀 생존편향</b> — 작업33/34와 동일한
+        제약이 그대로 적용된다.</li>
+      <li><b>다중비교 위험</b> — 이 저장소가 지금까지 수십 개의 파라미터/구조 변형을 반복 검증해온
+        근본적 한계(작업21이 이미 명시)는 이번 연구에도 그대로 적용된다.</li>
+    </ul>
+  </section>
+
+</div>
+
+<footer>
+  <p>analysis/2026-08-22_satellite_specific_crisis_signal_and_2021_case_study/ (데이터: report_data.json,
+    빌드: build_report.py) · h14_satellite_specific_signal.py는
+    analysis/2026-08-22_regime_conditional_satellite_switch/의 h12_regime_switch.py(SPY 신호·스위치
+    가중치·성과 함수),
+    analysis/2026-08-21_satellite_signal_upgrade_and_crisis_test/의 h10(추세추종 새틀라이트)/h11(GFC
+    3자산 코어+point-in-time 새틀라이트) 로직을, h15_2021_growth_unwind_case_study.py는 H10/H12/H14가
+    저장한 일간 수익률·비중·신호 CSV를 그대로 재사용했다(재실행 없음). 모든 수치는
+    core.market_data/core.point_in_time_market_cap/core.strategy_tuning의 로컬 캐시를 통한 실제 Yahoo
+    Finance 데이터로 계산한 결과다(추정치 아님). 이 워크트리는 main과 분기된 시점 이후 인프라 변경이
+    반영되지 않을 수 있어, 모든 스크립트가 main 체크아웃(/workspaces/Quant)의 core/를 직접 참조해
+    실행했다 — 이 워크트리의 core/는 건드리지 않았다.</p>
+</footer>

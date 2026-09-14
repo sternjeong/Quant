@@ -1,0 +1,11 @@
+홀드아웃 구간: 2013-01-02 ~ 2014-12-30, 502거래일
+/workspaces/Quant/analysis/kostolany_market_report_2026-08-12/hypothesis_holdout_bridge.py:38: FutureWarning: The behavior of DataFrame.idxmax with all-NA values, or any-NA and skipna=False, is deprecated. In a future version this will raise ValueError
+  leader = z_scores.idxmax(axis=1)
+쏠림강세 비율: 99.4 %
+리더 섹터 분포: {'XLV': 223, 'XLF': 119, 'XLY': 69, 'XLI': 54, 'XLK': 16, 'XLB': 12, 'XLU': 5, 'XLE': 1}
+[baseline, 오버레이 없음]: {'cumulative_return': 40.62, 'cagr': 18.68, 'mdd': -7.34, 'sharpe': 1.65, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 2.54, 'avg_drawdown_days': 9.5}
+[틸트, 오버레이 없음]: {'cumulative_return': 43.13, 'cagr': 19.74, 'mdd': -7.15, 'sharpe': 1.65, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 2.76, 'avg_drawdown_days': 9.7}
+[baseline+변동성타게팅]: {'cumulative_return': 40.12, 'cagr': 18.47, 'mdd': -6.56, 'sharpe': 1.66, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 2.82, 'avg_drawdown_days': 9.6}
+[틸트+변동성타게팅]: {'cumulative_return': 43.72, 'cagr': 19.99, 'mdd': -5.8, 'sharpe': 1.71, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 3.44, 'avg_drawdown_days': 9.6}
+S&P500: {'cumulative_return': 42.95, 'cagr': 19.7, 'mdd': -7.4, 'sharpe': 1.68, 'win_rate': 100.0, 'avg_holding_days': 726.0, 'trade_count': 1, 'profit_factor': 999.0, 'calmar': 2.66, 'avg_drawdown_days': 9.1}
+DONE

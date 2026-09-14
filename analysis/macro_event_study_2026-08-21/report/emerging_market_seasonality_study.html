@@ -1,0 +1,357 @@
+<title>계절성, 신흥시장에서는</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #eef1ee; --surface: #ffffff; --surface-2: #e6eae5;
+    --ink: #17211d; --ink-muted: #57635c; --ink-faint: #8b968f; --line: #d9dfd8;
+    --hike: #a8461f; --hike-soft: #f4e3da; --cut: #1f6e79; --cut-soft: #dcedee; --gold: #8a6d1f;
+    --shadow: 0 1px 2px rgba(23,33,29,.06), 0 8px 24px -12px rgba(23,33,29,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+      --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+      --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+      --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+    --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+    --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+    --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Public Sans", -apple-system, "Noto Sans KR", sans-serif;
+    font-size: 16px; line-height: 1.65;
+  }
+  ::selection { background: var(--gold); color: #1a1408; }
+  a { color: var(--cut); }
+  .page { max-width: 880px; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 1rem;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 500;
+    font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.08; letter-spacing: -.01em;
+    margin: 0 0 1rem; text-wrap: balance;
+  }
+  .dek { font-size: 1.15rem; color: var(--ink-muted); max-width: 62ch; margin: 0 0 1.75rem; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: .4rem 1.6rem;
+    font-family: "IBM Plex Mono", monospace; font-size: .82rem; color: var(--ink-muted);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: .85rem 0;
+  }
+  .meta-row b { color: var(--ink); font-weight: 600; }
+  section { margin: 3.2rem 0; }
+  section > h2 {
+    font-family: "Fraunces", serif; font-weight: 500; font-size: 1.6rem;
+    letter-spacing: -.005em; margin: 0 0 .3rem; text-wrap: balance;
+  }
+  section > .lede { color: var(--ink-muted); max-width: 66ch; margin: 0 0 1.4rem; }
+  p { max-width: 68ch; }
+  .note {
+    background: var(--surface-2); border-left: 3px solid var(--gold); border-radius: 4px;
+    padding: .9rem 1.1rem; font-size: .93rem; color: var(--ink-muted); max-width: 68ch; margin: 1.1rem 0;
+  }
+  .note b { color: var(--ink); }
+  .callout {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.2rem 1.4rem; box-shadow: var(--shadow); margin: 1.4rem 0;
+  }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .9rem; margin: 1.3rem 0 1.6rem; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.1rem; }
+  .tile .label { font-size: .78rem; color: var(--ink-muted); margin-bottom: .35rem; }
+  .tile .value { font-family: "IBM Plex Mono", monospace; font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tile .value.hike { color: var(--hike); }
+  .tile .value.cut { color: var(--cut); }
+  .tile .sub { font-size: .76rem; color: var(--ink-faint); margin-top: .25rem; }
+
+  .hyp-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.1rem 1.3rem; box-shadow: var(--shadow); margin: 1rem 0;
+  }
+  .hyp-card .hyp-id {
+    font-family: "IBM Plex Mono", monospace; font-size: .74rem; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--gold); margin-bottom: .4rem; font-weight: 600;
+  }
+  .hyp-card p { margin: 0; max-width: none; }
+
+  .verdict {
+    display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: .78rem;
+    font-weight: 600; letter-spacing: .04em; padding: .28rem .7rem; border-radius: 999px;
+    margin-top: .7rem;
+  }
+  .verdict.confirmed { background: var(--cut-soft); color: var(--cut); }
+  .verdict.disconfirmed { background: var(--hike-soft); color: var(--hike); }
+  .verdict.mixed { background: var(--surface-2); color: var(--ink-muted); border: 1px solid var(--line); }
+
+  .table-wrap { overflow-x: auto; margin: 1.2rem 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 480px; font-size: .92rem; }
+  caption { text-align: left; font-size: .82rem; color: var(--ink-faint); padding-bottom: .5rem; }
+  th, td { padding: .62rem .8rem; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; font-family: "IBM Plex Mono", monospace; }
+  th:first-child, td:first-child { text-align: left; font-family: "Public Sans", sans-serif; }
+  thead th { font-family: "Public Sans", sans-serif; font-weight: 600; font-size: .78rem; letter-spacing: .02em; color: var(--ink-muted); text-transform: uppercase; border-bottom: 1px solid var(--ink-faint); }
+  tr.row-fav td:first-child { border-left: 3px solid var(--cut); padding-left: .65rem; }
+  tr.row-unfav td:first-child { border-left: 3px solid var(--hike); padding-left: .65rem; }
+  tr.row-sep td:first-child { border-left: 3px solid var(--gold); padding-left: .65rem; }
+  tbody tr:hover { background: var(--surface-2); }
+  td.neg { color: var(--hike); }
+  td.pos { color: var(--cut); }
+  td.pass { color: var(--cut); font-weight: 600; }
+  td.fail { color: var(--hike); font-weight: 600; }
+
+  ul.findings { padding-left: 1.2rem; max-width: 68ch; }
+  ul.findings li { margin-bottom: .9rem; }
+  ul.findings b { color: var(--ink); }
+  .footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--line); font-size: .82rem; color: var(--ink-faint); }
+</style>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">MACRO EVENT STUDY · 트랙 D 후속 · 신흥시장 비교 · 보베스파·센섹스·코스피</div>
+    <h1>계절성, 신흥시장에서도 통할까</h1>
+    <p class="dek">직전 리포트에서 독일·일본·영국 세 선진시장 전부에서 "5월에 팔고 떠나라"와
+    9월 효과가 강하게 재현됐다(3/3). 그런데 그 세 시장은 전부 기관투자자 비중이 높고
+    미국·유럽과 회계·거래 관행을 공유하는 "선진시장"이다. 시장 구조 자체가 다른 신흥시장 —
+    통화위험·원자재 사이클·자본유출입이 더 크게 작동하고 기관/알고리즘 참여 비중은 낮은 —
+    에서도 같은 계절성이 나타날지, 아니면 선진시장에서만 통하는 현상인지가 이번 질문이다.</p>
+    <div class="meta-row">
+      <span>브라질 보베스파 <b>1993~2025</b>(33년)</span>
+      <span>인도 센섹스 <b>1997~2025</b>(29년)</span>
+      <span>한국 코스피 <b>1996~2025</b>(29년)</span>
+    </div>
+    <div class="note"><b>브라질 데이터 주의.</b> 1993~94년은 헤알화 도입(1994년 7월,
+    Plano Real) 이전의 초인플레이션기라 명목 지수 수익률이 극단적으로 부풀려져 있다(예:
+    1993년 한 해 지수가 24.5 → 375.5). 이 리포트는 전체 기간 결과와 함께 1995년 이후만
+    떼어낸 "안정화 이후" 결과를 별도로 병기해 왜곡 여부를 확인했다.</div>
+  </header>
+
+  <section>
+    <h2>사전등록 가설 (결과 계산 전 명시)</h2>
+    <div class="hyp-card">
+      <div class="hyp-id">H1</div>
+      <p>"5월에 팔고 떠나라" 격차가 신흥시장 3개 중 최소 2개에서 같은 부호+우호적 반기
+      승률&gt;55%로 재현된다(선진시장과 동일한 기준). <b>선진시장(3/3)과 비교해 재현
+      강도가 3/3(동일)·2/3(부분)·0~1/3(거의 없음) 중 어느 쪽인지 명시적으로 비교한다.</b></p>
+    </div>
+    <div class="hyp-card">
+      <div class="hyp-id">H2</div>
+      <p>격차가 재현된다면 그 크기가 선진시장보다 (a) 더 크고 노이즈가 많을지(비효율적
+      시장, 차익거래 부족) 또는 (b) 더 작고 신뢰도가 낮을지(통화위험·원자재 사이클 등
+      다른 거시 동인이 지배적) — 사전에 우세 가설을 정하지 않고 데이터가 보여주는 방향을
+      그대로 보고한다.</p>
+    </div>
+    <div class="hyp-card">
+      <div class="hyp-id">H3</div>
+      <p>(탐색적) 9월 효과(서구 회계연도말·절세매도 캘린더에 묶인 현상일 수 있음)가
+      신흥시장에서도 나타나는지, 아니면 선진시장 고유 현상인지 확인한다.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>H1 — 반기 구간 비교, 선진시장과 나란히</h2>
+    <div class="table-wrap">
+      <table>
+        <caption>신흥시장 3곳 + 선진시장 3곳(직전 리포트) 11~4월 vs 5~10월 비교</caption>
+        <thead><tr><th>지수</th><th>11~4월 평균</th><th>승률(n)</th><th>5~10월 평균</th><th>승률(n)</th><th>H1</th></tr></thead>
+        <tbody id="half-year-body"></tbody>
+      </table>
+    </div>
+    <p><b>브라질(전체기간)·코스피는 재현(격차 방향 일치+승률&gt;55%), 인도는 재현 안 됨</b> —
+    인도는 오히려 5~10월(+8.09%, 승률71.4%)이 11~4월(+6.28%, 승률71.4%)보다 미세하게
+    높아 방향 자체가 반대다. 코스피는 격차가 가장 극적이다(11~4월 +10.83%/승률67.9% vs
+    5~10월 &minus;0.15%/승률41.4% — 5~10월 승률이 41.4%로 세 신흥시장 중 유일하게 50% 밑).
+    브라질은 1995년 이후만 떼어내도 여전히 재현된다(+13.59%/승률83.3% vs +2.76%/승률61.3%,
+    표 하단 참고).</p>
+    <div class="verdict mixed" id="h1-verdict">H1: MIXED(부분 재현, 2/3 지수 통과) — 선진시장의 3/3보다 재현 강도가 약함</div>
+  </section>
+
+  <section>
+    <h2>H2 — 격차의 크기, 선진시장보다 크거나 작거나</h2>
+    <div class="tiles">
+      <div class="tile"><div class="label">신흥시장 3곳 평균 격차</div><div class="value" id="em-gap"></div><div class="sub">(브라질 전체기간 포함, 인도 포함)</div></div>
+      <div class="tile"><div class="label">선진시장 3곳 평균 격차</div><div class="value" id="dev-gap"></div><div class="sub">DAX·니케이·FTSE</div></div>
+      <div class="tile"><div class="label">브라질 1995년 이후만 반영시</div><div class="value" id="em-gap-adj"></div><div class="sub">하이퍼인플레이션 왜곡 제거</div></div>
+    </div>
+    <p>단순 평균으로 보면 신흥시장 격차(<span id="em-gap-inline"></span>)가 선진시장
+    (<span id="dev-gap-inline"></span>)보다 <b>작다</b> — 사전에 제시한 두 가설 중
+    "(b) 다른 거시 동인이 지배적이라 격차가 더 작고 신뢰도가 낮다"는 쪽에 가깝다. 다만
+    이 평균은 인도의 역방향 결과(&minus;1.81p)에 크게 좌우된다 — 재현에 성공한 두 지수
+    (브라질·코스피)만 놓고 보면 격차 자체는 오히려 선진시장 평균과 비슷하거나 더 크다
+    (브라질 1995~ +10.83p, 코스피 +10.98p vs 선진시장 평균 +7.68p). <b>즉 "재현되는
+    시장에서는 격차가 작지 않다 — 애초에 재현되는지 여부(H1)가 신흥시장에서 더 갈린다"는
+    게 더 정확한 설명이다.</b></p>
+    <div class="verdict mixed" id="h2-verdict">H2: SMALLER(3개 평균 기준) — 단, 재현 성공 지수만 보면 결론이 달라짐(하단 해설 참고)</div>
+  </section>
+
+  <section>
+    <h2>H3 — 9월 효과, 신흥시장에서는</h2>
+    <div class="table-wrap">
+      <table>
+        <caption>지수별 9월 평균수익률(%)과 12개월 중 순위(낮은 순, 1위=최저) — 신흥시장 vs 선진시장</caption>
+        <thead><tr><th>지수</th><th>9월 평균</th><th>순위(낮은 순)</th><th>9월 효과</th></tr></thead>
+        <tbody id="september-body"></tbody>
+      </table>
+    </div>
+    <p><b>9월 효과는 신흥시장에서 훨씬 약하게 나타났다</b> — 코스피만 9월이 12개월 중 최저
+    (1위)였고, 브라질은 오히려 9월이 플러스(+2.02%, 12개월 중 4위로 중간)였으며 1995년
+    이후만 봐도 순위는 그대로 4위, 인도는 9월도 플러스(+1.16%)이고 순위는 7위로 딱히 나쁜
+    달도 아니다. 선진시장 3곳은 전부 1~2위(가장 나쁜 두 달 안)였던 것과 뚜렷이 대비된다 —
+    "서구 회계연도말·절세매도 캘린더"라는 가설상의 원인이 신흥시장에는 상대적으로 덜
+    적용될 수 있다는 정황과 일치한다.</p>
+    <div class="verdict disconfirmed" id="h3-verdict">H3: MIXED(1/3 지수 통과, 사실상 DISCONFIRMED에 가까움) — 9월 효과는 선진시장에 더 특화된 현상으로 보임</div>
+  </section>
+
+  <section>
+    <h2>가설 x 지수 종합 판정표</h2>
+    <div class="table-wrap">
+      <table>
+        <caption>H1(반기 재현)·H3(9월 효과) 지수별 결과 — 선진시장 3곳은 직전 리포트에서 전부 PASS</caption>
+        <thead><tr><th>지수</th><th>구분</th><th>H1(반기 재현)</th><th>H3(9월 효과)</th></tr></thead>
+        <tbody id="matrix-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>경제학 지식 없이 읽는 법</h2>
+    <ul class="findings">
+      <li><b>"5월에 팔고 떠나라"는 신흥시장 전부에서 통하지는 않았다.</b> 선진시장은 3/3 완벽
+      재현이었지만 신흥시장은 2/3(인도만 예외)로 재현 강도가 눈에 띄게 약해졌다 — 계절성이
+      "전세계 보편 법칙"은 아니라는 뜻이다.</li>
+      <li><b>격차의 크기 자체는 재현되는 시장에서는 작지 않다.</b> 오히려 브라질·코스피는
+      선진시장 평균과 비슷하거나 더 큰 격차를 보였다 — "신흥시장은 격차가 작다"보다
+      "신흥시장은 재현 여부 자체가 시장마다 크게 갈린다"가 더 정확한 요약이다.</li>
+      <li><b>9월 효과는 훨씬 더 선진시장 특화된 현상으로 보인다.</b> 선진시장 3곳 전부
+      9월이 최악·차악이었지만 신흥시장은 코스피 하나만 재현됐다 — 서구 회계연도·세금 캘린더에
+      묶인 현상이라는 가설과 방향이 일치한다(다만 이 리포트는 그 인과관계까지 검증하진
+      않았다).</li>
+      <li><b>브라질 데이터는 초인플레이션기를 빼도 결론이 바뀌지 않았다.</b> 1993~94년의
+      극단적 명목수익률을 걷어내도(1995년 이후만) 반기 격차와 9월 순위 둘 다 거의 그대로 —
+      최소한 이 두 결론은 통화 왜곡의 인공물이 아니다.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>한계</h2>
+    <div class="callout">
+      <ul class="findings" style="margin:0;">
+        <li><b>브라질 전체기간 수익률은 초인플레이션으로 왜곡돼 있다.</b> 1993~94년 명목
+        지수가 15배 이상 뛴 구간이 포함돼 있어, 이 리포트는 1995년 이후만 별도로 병기했지만
+        그래도 33년 중 2년(전체의 6%)이 극단치라는 점은 감안해야 한다.</li>
+        <li><b>표본 기간이 선진시장보다도 더 짧다.</b> 신흥시장 3곳 모두 29~33년으로,
+        직전 선진시장 리포트(38~61년)보다 짧고 미국(76년)의 절반에도 못 미친다.</li>
+        <li><b>환헤지·자본통제·거래비용 미반영.</b> 실제로 해외에서 이 계절성을 거래하려면
+        환율 변동, 일부 신흥국의 자본유출입 규제, 더 높은 거래비용이 격차를 상당 부분
+        깎아먹을 수 있다.</li>
+        <li><b>3개 신흥시장만 확인했다.</b> 중국·멕시코·남아공 등 다른 주요 신흥시장은
+        아직 검증하지 않았다 — "신흥시장 전체는 이렇다"는 결론이 아니라 3개 사례일 뿐이다.</li>
+        <li><b>인도가 재현되지 않은 "왜"는 검증하지 않았다.</b> 인도 특유의 회계연도(4월
+        시작)나 자본시장 구조 때문일 수 있지만 이 리포트는 상관관계만 확인했다.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="footer">
+    데이터: Yahoo Finance(^BVSP·^BSESN·^KS11, 각 지수 상장 이후~2025) · 분석 스크립트:
+    emerging_market_seasonality_study.py(international_seasonality_study.py·seasonality_event_study.py의
+    로직 재사용) · 같은 프로젝트, 관련 리포트:
+    <a href="https://claude.ai/code/artifact/e53da7be-426b-4cca-b6b9-2d07304105e9">5월에 팔고 떠나라는 미국만의 이야기였을까</a>(선진시장 3곳 비교, 이 리포트의 직전 편),
+    <a href="https://claude.ai/code/artifact/fe955a38-0bed-4df2-b323-5790af5469c3">증시의 달력 효과 세 가지</a>(미국 원본 리포트)
+  </div>
+</div>
+
+<script>
+const DATA = {"results": {"^BVSP": {"name_kr": "브라질 보베스파", "first_year": 1993, "last_year": 2026, "unfavorable": {"n": 33, "mean_pct": 28.232, "win_rate_pct": 63.6}, "favorable": {"n": 32, "mean_pct": 37.925, "win_rate_pct": 81.2}, "gap_pct": 9.693, "h1_pass": true, "september_mean_pct": 2.024, "september_win_rate": 69.7, "september_rank_lowest": 4, "h3_pass": false, "post1995_robustness": {"unfavorable": {"n": 31, "mean_pct": 2.764, "win_rate_pct": 61.3}, "favorable": {"n": 30, "mean_pct": 13.589, "win_rate_pct": 83.3}, "gap_pct": 10.825, "september_mean_pct": 0.381, "september_rank_lowest": 4}}, "^BSESN": {"name_kr": "인도 센섹스", "first_year": 1997, "last_year": 2026, "unfavorable": {"n": 28, "mean_pct": 8.094, "win_rate_pct": 71.4}, "favorable": {"n": 28, "mean_pct": 6.281, "win_rate_pct": 71.4}, "gap_pct": -1.813, "h1_pass": false, "september_mean_pct": 1.16, "september_win_rate": 55.2, "september_rank_lowest": 7, "h3_pass": false}, "^KS11": {"name_kr": "한국 코스피", "first_year": 1996, "last_year": 2026, "unfavorable": {"n": 29, "mean_pct": -0.151, "win_rate_pct": 41.4}, "favorable": {"n": 28, "mean_pct": 10.825, "win_rate_pct": 67.9}, "gap_pct": 10.976, "h1_pass": true, "september_mean_pct": -1.263, "september_win_rate": 55.2, "september_rank_lowest": 1, "h3_pass": true}}, "developed_baseline": {"dax": {"name_kr": "독일 DAX", "favorable": {"mean_pct": 10.264, "win_rate_pct": 75.7}, "unfavorable": {"mean_pct": 0.526, "win_rate_pct": 57.9}, "september_mean_pct": -2.026, "september_rank_lowest": 1}, "nikkei": {"name_kr": "일본 니케이225", "favorable": {"mean_pct": 7.733, "win_rate_pct": 71.7}, "unfavorable": {"mean_pct": 0.846, "win_rate_pct": 52.5}, "september_mean_pct": -0.361, "september_rank_lowest": 2}, "ftse": {"name_kr": "영국 FTSE100", "favorable": {"mean_pct": 6.336, "win_rate_pct": 80.5}, "unfavorable": {"mean_pct": -0.075, "win_rate_pct": 57.1}, "september_mean_pct": -0.806, "september_rank_lowest": 1}}, "h2_em_avg_gap": 6.285, "h2_dev_avg_gap": 7.679};
+
+const emOrder = ["^BVSP", "^BSESN", "^KS11"];
+const devOrder = ["dax", "nikkei", "ftse"];
+
+function fmt(v) { return (v == null) ? "-" : (v >= 0 ? "+" : "") + v.toFixed(2) + "%"; }
+
+const halfBody = document.getElementById("half-year-body");
+emOrder.forEach(k => {
+  const r = DATA.results[k];
+  const tr = document.createElement("tr");
+  const favCls = r.favorable.mean_pct >= 0 ? "pos" : "neg";
+  const unfavCls = r.unfavorable.mean_pct >= 0 ? "pos" : "neg";
+  const h1Cell = r.h1_pass ? '<span class="pass">PASS</span>' : '<span class="fail">FAIL</span>';
+  tr.innerHTML = `<td>${r.name_kr}(신흥)</td>
+    <td class="${favCls}">${fmt(r.favorable.mean_pct)}</td><td>${r.favorable.win_rate_pct.toFixed(1)}% (n=${r.favorable.n})</td>
+    <td class="${unfavCls}">${fmt(r.unfavorable.mean_pct)}</td><td>${r.unfavorable.win_rate_pct.toFixed(1)}% (n=${r.unfavorable.n})</td>
+    <td>${h1Cell}</td>`;
+  halfBody.appendChild(tr);
+});
+// 브라질 1995년 이후 별도 행
+const bvsp95 = DATA.results["^BVSP"].post1995_robustness;
+const tr95 = document.createElement("tr");
+tr95.style.color = "var(--ink-faint)";
+tr95.innerHTML = `<td style="font-style:italic">브라질(1995년 이후만)</td>
+  <td class="pos">${fmt(bvsp95.favorable.mean_pct)}</td><td>${bvsp95.favorable.win_rate_pct.toFixed(1)}% (n=${bvsp95.favorable.n})</td>
+  <td class="pos">${fmt(bvsp95.unfavorable.mean_pct)}</td><td>${bvsp95.unfavorable.win_rate_pct.toFixed(1)}% (n=${bvsp95.unfavorable.n})</td>
+  <td><span class="pass">PASS</span></td>`;
+halfBody.appendChild(tr95);
+devOrder.forEach(k => {
+  const r = DATA.developed_baseline[k];
+  const tr = document.createElement("tr");
+  tr.style.color = "var(--ink-faint)";
+  const favCls = r.favorable.mean_pct >= 0 ? "pos" : "neg";
+  const unfavCls = r.unfavorable.mean_pct >= 0 ? "pos" : "neg";
+  tr.innerHTML = `<td style="font-style:italic">${r.name_kr}(선진, 참고)</td>
+    <td class="${favCls}">${fmt(r.favorable.mean_pct)}</td><td>${r.favorable.win_rate_pct.toFixed(1)}%</td>
+    <td class="${unfavCls}">${fmt(r.unfavorable.mean_pct)}</td><td>${r.unfavorable.win_rate_pct.toFixed(1)}%</td>
+    <td><span class="pass">PASS</span></td>`;
+  halfBody.appendChild(tr);
+});
+
+document.getElementById("em-gap").textContent = fmt(DATA.h2_em_avg_gap) + "p";
+document.getElementById("dev-gap").textContent = fmt(DATA.h2_dev_avg_gap) + "p";
+document.getElementById("em-gap-inline").textContent = fmt(DATA.h2_em_avg_gap) + "p";
+document.getElementById("dev-gap-inline").textContent = fmt(DATA.h2_dev_avg_gap) + "p";
+const adjGap = ((bvsp95.gap_pct + DATA.results["^BSESN"].gap_pct + DATA.results["^KS11"].gap_pct) / 3);
+document.getElementById("em-gap-adj").textContent = fmt(adjGap) + "p";
+
+const sepBody = document.getElementById("september-body");
+emOrder.forEach(k => {
+  const r = DATA.results[k];
+  const tr = document.createElement("tr");
+  const cls = r.september_mean_pct >= 0 ? "pos" : "neg";
+  const cell = r.h3_pass ? '<span class="pass">있음</span>' : '<span class="fail">없음</span>';
+  tr.innerHTML = `<td>${r.name_kr}(신흥)</td><td class="${cls}">${fmt(r.september_mean_pct)}</td>
+    <td>${r.september_rank_lowest}위 / 12</td><td>${cell}</td>`;
+  sepBody.appendChild(tr);
+});
+devOrder.forEach(k => {
+  const r = DATA.developed_baseline[k];
+  const tr = document.createElement("tr");
+  tr.style.color = "var(--ink-faint)";
+  const cls = r.september_mean_pct >= 0 ? "pos" : "neg";
+  tr.innerHTML = `<td style="font-style:italic">${r.name_kr}(선진, 참고)</td><td class="${cls}">${fmt(r.september_mean_pct)}</td>
+    <td>${r.september_rank_lowest}위 / 12</td><td><span class="pass">있음</span></td>`;
+  sepBody.appendChild(tr);
+});
+
+const matrixBody = document.getElementById("matrix-body");
+emOrder.forEach(k => {
+  const r = DATA.results[k];
+  const tr = document.createElement("tr");
+  const h1 = r.h1_pass ? '<span class="pass">PASS</span>' : '<span class="fail">FAIL</span>';
+  const h3 = r.h3_pass ? '<span class="pass">PASS</span>' : '<span class="fail">FAIL</span>';
+  tr.innerHTML = `<td>${r.name_kr}</td><td>신흥</td><td>${h1}</td><td>${h3}</td>`;
+  matrixBody.appendChild(tr);
+});
+devOrder.forEach(k => {
+  const r = DATA.developed_baseline[k];
+  const tr = document.createElement("tr");
+  tr.style.color = "var(--ink-faint)";
+  tr.innerHTML = `<td style="font-style:italic">${r.name_kr}</td><td>선진(참고)</td><td><span class="pass">PASS</span></td><td><span class="pass">PASS</span></td>`;
+  matrixBody.appendChild(tr);
+});
+</script>

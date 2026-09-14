@@ -1,0 +1,195 @@
+[h34] === (a) SPY buy-and-hold 데이터 준비 ===
+[h34]   spy_buyhold full_2019_2026: n_obs=1764
+[h34]   spy_buyhold gfc_2008: n_obs=441
+[h34]   spy_buyhold covid_2020: n_obs=51
+[h34]   spy_buyhold bear_2022: n_obs=251
+[h34]   spy_buyhold selloff_2018: n_obs=91
+[h34]   spy_buyhold correction_2015_2016: n_obs=135
+[h34] === (b) 변동성타겟팅 데이터 준비 (신규 백테스트 6회) ===
+[h34]   vol_targeting full_2019_2026: n_obs=1764 t=1.0s
+$XLC: possibly delisted; no price data found  (1d 2006-08-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1156651200, endDate = 1529294400")
+$XLRE: possibly delisted; no price data found  (1d 2006-08-27 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1156651200, endDate = 1444190400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2006-08-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1156651200, endDate = 1529294400")
+
+1 Failed download:
+['XLRE']: possibly delisted; no price data found  (1d 2006-08-27 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1156651200, endDate = 1444190400")
+$HYG: possibly delisted; no price data found  (1d 2006-08-27 -> 2007-04-10) (Yahoo error = "Data doesn't exist for startDate = 1156651200, endDate = 1176177600")
+
+1 Failed download:
+['HYG']: possibly delisted; no price data found  (1d 2006-08-27 -> 2007-04-10) (Yahoo error = "Data doesn't exist for startDate = 1156651200, endDate = 1176177600")
+[h34]   vol_targeting gfc_2008: n_obs=440 t=2.1s
+[h34]   vol_targeting covid_2020: n_obs=50 t=2.2s
+[h34]   vol_targeting bear_2022: n_obs=251 t=2.4s
+$XLC: possibly delisted; no price data found  (1d 2017-07-28 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1501214400, endDate = 1529294400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2017-07-28 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1501214400, endDate = 1529294400")
+[h34]   vol_targeting selloff_2018: n_obs=91 t=2.8s
+$XLC: possibly delisted; no price data found  (1d 2014-06-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1403841600, endDate = 1529294400")
+$XLRE: possibly delisted; no price data found  (1d 2014-06-27 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1403841600, endDate = 1444190400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2014-06-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1403841600, endDate = 1529294400")
+
+1 Failed download:
+['XLRE']: possibly delisted; no price data found  (1d 2014-06-27 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1403841600, endDate = 1444190400")
+[h34]   vol_targeting correction_2015_2016: n_obs=135 t=3.2s
+[h34] === (c) 리밸런싱 주기 데이터 준비 (신규 백테스트 12회) ===
+$XLC: possibly delisted; no price data found  (1d 2016-08-07 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1470542400, endDate = 1529294400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2016-08-07 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1470542400, endDate = 1529294400")
+[h34]   rebalance full_2019_2026/monthly_21d: n_obs=1764 t=0.7s
+$XLC: possibly delisted; no price data found  (1d 2016-08-07 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1470542400, endDate = 1529294400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2016-08-07 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1470542400, endDate = 1529294400")
+[h34]   rebalance full_2019_2026/quarterly_63d: n_obs=1764 t=1.0s
+$XLC: possibly delisted; no price data found  (1d 2004-09-26 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1096171200, endDate = 1529294400")
+$XLRE: possibly delisted; no price data found  (1d 2004-09-26 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1096171200, endDate = 1444190400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2004-09-26 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1096171200, endDate = 1529294400")
+
+1 Failed download:
+['XLRE']: possibly delisted; no price data found  (1d 2004-09-26 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1096171200, endDate = 1444190400")
+$GLD: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-11-17) (Yahoo error = "Data doesn't exist for startDate = 1096171200, endDate = 1100667600")
+
+1 Failed download:
+['GLD']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-11-17) (Yahoo error = "Data doesn't exist for startDate = 1096171200, endDate = 1100667600")
+$DBC: possibly delisted; no price data found  (1d 2004-09-26 -> 2006-02-05) (Yahoo error = "Data doesn't exist for startDate = 1096171200, endDate = 1139115600")
+
+1 Failed download:
+['DBC']: possibly delisted; no price data found  (1d 2004-09-26 -> 2006-02-05) (Yahoo error = "Data doesn't exist for startDate = 1096171200, endDate = 1139115600")
+$EFA: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['EFA']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$HYG: possibly delisted; no price data found  (1d 2004-09-26 -> 2007-04-10) (Yahoo error = "Data doesn't exist for startDate = 1096171200, endDate = 1176177600")
+
+1 Failed download:
+['HYG']: possibly delisted; no price data found  (1d 2004-09-26 -> 2007-04-10) (Yahoo error = "Data doesn't exist for startDate = 1096171200, endDate = 1176177600")
+[h34]   rebalance gfc_2008/monthly_21d: n_obs=440 t=2.0s
+$XLRE: possibly delisted; no price data found  (1d 2004-09-26 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1096171200, endDate = 1444190400")
+
+1 Failed download:
+['XLRE']: possibly delisted; no price data found  (1d 2004-09-26 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1096171200, endDate = 1444190400")
+$XLC: possibly delisted; no price data found  (1d 2004-09-26 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1096171200, endDate = 1529294400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2004-09-26 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1096171200, endDate = 1529294400")
+$GLD: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-11-17) (Yahoo error = "Data doesn't exist for startDate = 1096171200, endDate = 1100667600")
+$HYG: possibly delisted; no price data found  (1d 2004-09-26 -> 2007-04-10) (Yahoo error = "Data doesn't exist for startDate = 1096171200, endDate = 1176177600")
+
+1 Failed download:
+$DBC: possibly delisted; no price data found  (1d 2004-09-26 -> 2006-02-05) (Yahoo error = "Data doesn't exist for startDate = 1096171200, endDate = 1139115600")
+['GLD']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-11-17) (Yahoo error = "Data doesn't exist for startDate = 1096171200, endDate = 1100667600")
+
+1 Failed download:
+['HYG']: possibly delisted; no price data found  (1d 2004-09-26 -> 2007-04-10) (Yahoo error = "Data doesn't exist for startDate = 1096171200, endDate = 1176177600")
+
+1 Failed download:
+$EFA: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+['DBC']: possibly delisted; no price data found  (1d 2004-09-26 -> 2006-02-05) (Yahoo error = "Data doesn't exist for startDate = 1096171200, endDate = 1139115600")
+
+1 Failed download:
+['EFA']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+[h34]   rebalance gfc_2008/quarterly_63d: n_obs=440 t=2.2s
+$XLC: possibly delisted; no price data found  (1d 2017-02-14 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1487048400, endDate = 1529294400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2017-02-14 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1487048400, endDate = 1529294400")
+[h34]   rebalance covid_2020/monthly_21d: n_obs=50 t=2.7s
+$XLC: possibly delisted; no price data found  (1d 2017-02-14 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1487048400, endDate = 1529294400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2017-02-14 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1487048400, endDate = 1529294400")
+[h34]   rebalance covid_2020/quarterly_63d: n_obs=50 t=2.8s
+[h34]   rebalance bear_2022/monthly_21d: n_obs=251 t=3.0s
+[h34]   rebalance bear_2022/quarterly_63d: n_obs=251 t=3.1s
+$XLRE: possibly delisted; no price data found  (1d 2015-08-28 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1440734400, endDate = 1444190400")
+
+1 Failed download:
+['XLRE']: possibly delisted; no price data found  (1d 2015-08-28 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1440734400, endDate = 1444190400")
+$XLC: possibly delisted; no price data found  (1d 2015-08-28 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1440734400, endDate = 1529294400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2015-08-28 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1440734400, endDate = 1529294400")
+[h34]   rebalance selloff_2018/monthly_21d: n_obs=91 t=3.7s
+$XLC: possibly delisted; no price data found  (1d 2015-08-28 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1440734400, endDate = 1529294400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2015-08-28 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1440734400, endDate = 1529294400")
+$XLRE: possibly delisted; no price data found  (1d 2015-08-28 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1440734400, endDate = 1444190400")
+
+1 Failed download:
+['XLRE']: possibly delisted; no price data found  (1d 2015-08-28 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1440734400, endDate = 1444190400")
+[h34]   rebalance selloff_2018/quarterly_63d: n_obs=91 t=3.8s
+$XLRE: possibly delisted; no price data found  (1d 2012-07-27 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1343361600, endDate = 1444190400")
+$XLC: possibly delisted; no price data found  (1d 2012-07-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1343361600, endDate = 1529294400")
+
+1 Failed download:
+['XLRE']: possibly delisted; no price data found  (1d 2012-07-27 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1343361600, endDate = 1444190400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2012-07-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1343361600, endDate = 1529294400")
+[h34]   rebalance correction_2015_2016/monthly_21d: n_obs=135 t=4.2s
+$XLRE: possibly delisted; no price data found  (1d 2012-07-27 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1343361600, endDate = 1444190400")
+
+1 Failed download:
+['XLRE']: possibly delisted; no price data found  (1d 2012-07-27 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1343361600, endDate = 1444190400")
+$XLC: possibly delisted; no price data found  (1d 2012-07-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1343361600, endDate = 1529294400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2012-07-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1343361600, endDate = 1529294400")
+[h34]   rebalance correction_2015_2016/quarterly_63d: n_obs=135 t=4.4s
+[h34] 데이터 준비 완료 t=9.0s. 부트스트랩 시작.
+[h34]   [H26] bootstrap full_2019_2026/spy_buyhold: point=0.796, L=20 CI90=[0.22587889775016612, 1.482782956690861]
+[h34]   [H26] bootstrap full_2019_2026/core_alone: point=1.033, L=20 CI90=[0.49673935789753576, 1.5614789960461668]
+[h34]   [H26] bootstrap full_2019_2026/case_a_static_satellite: point=1.121, L=20 CI90=[0.6008289463165689, 1.6562099970004918]
+[h34]   [H26] bootstrap gfc_2008/spy_buyhold: point=-0.602, L=20 CI90=[-1.4566556158623165, 0.3119629980842817]
+[h34]   [H26] bootstrap gfc_2008/core_alone: point=0.286, L=20 CI90=[-0.8210480498448581, 1.4553566350411256]
+[h34]   [H26] bootstrap gfc_2008/case_a_static_satellite: point=-0.210, L=20 CI90=[-1.364287648611554, 0.9818628124846801]
+[h34]   [H26] bootstrap covid_2020/spy_buyhold: point=-0.785, L=20 CI90=[-3.6760693651347123, 3.073038103164569]
+[h34]   [H26] bootstrap covid_2020/core_alone: point=0.127, L=20 CI90=[-2.802704912378385, 4.740670513866284]
+[h34]   [H26] bootstrap covid_2020/case_a_static_satellite: point=0.042, L=20 CI90=[-3.0161001801618186, 4.280863030411381]
+[h34]   [H26] bootstrap bear_2022/spy_buyhold: point=-0.775, L=20 CI90=[-2.0922067854853412, 0.7009991903154648]
+[h34]   [H26] bootstrap bear_2022/core_alone: point=0.239, L=20 CI90=[-1.1453868581906241, 1.7316373432625127]
+[h34]   [H26] bootstrap bear_2022/case_a_static_satellite: point=0.201, L=20 CI90=[-1.1540708426572384, 1.6359660951745678]
+[h34]   [H26] bootstrap selloff_2018/spy_buyhold: point=-1.289, L=20 CI90=[-3.322644964819565, 1.0255789398583912]
+[h34]   [H26] bootstrap selloff_2018/core_alone: point=-1.882, L=20 CI90=[-3.2604687564144785, -0.04899876552943559]
+[h34]   [H26] bootstrap selloff_2018/case_a_static_satellite: point=-1.657, L=20 CI90=[-3.0904094032626164, 0.15292142143939397]
+[h34]   [H26] bootstrap correction_2015_2016/spy_buyhold: point=-1.017, L=20 CI90=[-2.5738728765975414, 0.9746524702488558]
+[h34]   [H26] bootstrap correction_2015_2016/core_alone: point=-1.890, L=20 CI90=[-3.1206919281466603, -0.4703649336975692]
+[h34]   [H26] bootstrap correction_2015_2016/case_a_static_satellite: point=-1.691, L=20 CI90=[-2.9565068849802993, -0.14786760301895618]
+[h34]   [H28] bootstrap full_2019_2026/no_overlay: point=1.033, L=20 CI90=[0.4622074368732446, 1.5331502189139985]
+[h34]   [H28] bootstrap full_2019_2026/vol_targeted: point=1.010, L=20 CI90=[0.4865989193984944, 1.5829976570671562]
+[h34]   [H28] bootstrap gfc_2008/no_overlay: point=0.058, L=20 CI90=[-0.95671062715383, 1.0560285878624596]
+[h34]   [H28] bootstrap gfc_2008/vol_targeted: point=0.034, L=20 CI90=[-0.9912392903499938, 1.0710074082065415]
+[h34]   [H28] bootstrap covid_2020/no_overlay: point=0.217, L=20 CI90=[-2.877153235319561, 5.057355175015479]
+[h34]   [H28] bootstrap covid_2020/vol_targeted: point=0.179, L=20 CI90=[-2.924450515107063, 5.049962069225539]
+[h34]   [H28] bootstrap bear_2022/no_overlay: point=0.121, L=20 CI90=[-1.200175278690908, 1.5349578059859355]
+[h34]   [H28] bootstrap bear_2022/vol_targeted: point=0.136, L=20 CI90=[-1.2120082640613163, 1.6106710682651821]
+[h34]   [H28] bootstrap selloff_2018/no_overlay: point=-1.930, L=20 CI90=[-3.3822378117508745, -0.16212677404830764]
+[h34]   [H28] bootstrap selloff_2018/vol_targeted: point=-2.031, L=20 CI90=[-3.4218569074639995, -0.1599721005845912]
+[h34]   [H28] bootstrap correction_2015_2016/no_overlay: point=-1.860, L=20 CI90=[-3.0579999011014656, -0.5404176158786786]
+[h34]   [H28] bootstrap correction_2015_2016/vol_targeted: point=-1.790, L=20 CI90=[-2.970258908061158, -0.3954251523016709]
+[h34]   [H32] bootstrap full_2019_2026/monthly_21d: point=0.804, L=20 CI90=[0.21931487406001257, 1.5222399696262319]
+[h34]   [H32] bootstrap full_2019_2026/quarterly_63d: point=0.739, L=20 CI90=[0.141055584574346, 1.4436201184151929]
+[h34]   [H32] bootstrap gfc_2008/monthly_21d: point=-0.109, L=20 CI90=[-1.24598431997872, 0.9682641684176575]
+[h34]   [H32] bootstrap gfc_2008/quarterly_63d: point=-0.434, L=20 CI90=[-1.4834497518292675, 0.5431676292976625]
+[h34]   [H32] bootstrap covid_2020/monthly_21d: point=-2.027, L=20 CI90=[-4.213235269536543, 1.6234595893554102]
+[h34]   [H32] bootstrap covid_2020/quarterly_63d: point=-1.171, L=20 CI90=[-4.240478505970084, 2.251238389234003]
+[h34]   [H32] bootstrap bear_2022/monthly_21d: point=0.657, L=20 CI90=[-1.115799631323182, 2.1724648204953514]
+[h34]   [H32] bootstrap bear_2022/quarterly_63d: point=0.660, L=20 CI90=[-1.0788128398099088, 2.2815074771751003]
+[h34]   [H32] bootstrap selloff_2018/monthly_21d: point=-1.983, L=20 CI90=[-3.4163913116797224, -0.2239678723131533]
+[h34]   [H32] bootstrap selloff_2018/quarterly_63d: point=-1.883, L=20 CI90=[-3.6938732543971473, 0.37080334280796473]
+[h34]   [H32] bootstrap correction_2015_2016/monthly_21d: point=-0.934, L=20 CI90=[-2.3312455905546257, 0.9114976665501504]
+[h34]   [H32] bootstrap correction_2015_2016/quarterly_63d: point=-0.951, L=20 CI90=[-2.255464520508365, 0.7100423297815065]
+[h34] H26 system vs SPY combined win_rate(system)=0.597
+[h34] H26 core_alone vs SPY combined win_rate(core_alone)=0.536
+[h34] H28 vol_targeted vs no_overlay combined win_rate(vol_targeted)=0.503
+[h34] H32 quarterly vs monthly combined win_rate(quarterly)=0.496
+[h34] saved h34_results.json, total runtime=25.1s

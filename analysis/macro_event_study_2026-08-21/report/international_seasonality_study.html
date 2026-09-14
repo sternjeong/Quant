@@ -1,0 +1,316 @@
+<title>계절성의 국제 재현성</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #eef1ee; --surface: #ffffff; --surface-2: #e6eae5;
+    --ink: #17211d; --ink-muted: #57635c; --ink-faint: #8b968f; --line: #d9dfd8;
+    --hike: #a8461f; --hike-soft: #f4e3da; --cut: #1f6e79; --cut-soft: #dcedee; --gold: #8a6d1f;
+    --shadow: 0 1px 2px rgba(23,33,29,.06), 0 8px 24px -12px rgba(23,33,29,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+      --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+      --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+      --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+    --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+    --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+    --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Public Sans", -apple-system, "Noto Sans KR", sans-serif;
+    font-size: 16px; line-height: 1.65;
+  }
+  ::selection { background: var(--gold); color: #1a1408; }
+  a { color: var(--cut); }
+  .page { max-width: 880px; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 1rem;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 500;
+    font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.08; letter-spacing: -.01em;
+    margin: 0 0 1rem; text-wrap: balance;
+  }
+  .dek { font-size: 1.15rem; color: var(--ink-muted); max-width: 62ch; margin: 0 0 1.75rem; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: .4rem 1.6rem;
+    font-family: "IBM Plex Mono", monospace; font-size: .82rem; color: var(--ink-muted);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: .85rem 0;
+  }
+  .meta-row b { color: var(--ink); font-weight: 600; }
+  section { margin: 3.2rem 0; }
+  section > h2 {
+    font-family: "Fraunces", serif; font-weight: 500; font-size: 1.6rem;
+    letter-spacing: -.005em; margin: 0 0 .3rem; text-wrap: balance;
+  }
+  section > .lede { color: var(--ink-muted); max-width: 66ch; margin: 0 0 1.4rem; }
+  p { max-width: 68ch; }
+  .note {
+    background: var(--surface-2); border-left: 3px solid var(--gold); border-radius: 4px;
+    padding: .9rem 1.1rem; font-size: .93rem; color: var(--ink-muted); max-width: 68ch; margin: 1.1rem 0;
+  }
+  .note b { color: var(--ink); }
+  .callout {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.2rem 1.4rem; box-shadow: var(--shadow); margin: 1.4rem 0;
+  }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .9rem; margin: 1.3rem 0 1.6rem; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.1rem; }
+  .tile .label { font-size: .78rem; color: var(--ink-muted); margin-bottom: .35rem; }
+  .tile .value { font-family: "IBM Plex Mono", monospace; font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tile .value.hike { color: var(--hike); }
+  .tile .value.cut { color: var(--cut); }
+  .tile .sub { font-size: .76rem; color: var(--ink-faint); margin-top: .25rem; }
+
+  .hyp-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.1rem 1.3rem; box-shadow: var(--shadow); margin: 1rem 0;
+  }
+  .hyp-card .hyp-id {
+    font-family: "IBM Plex Mono", monospace; font-size: .74rem; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--gold); margin-bottom: .4rem; font-weight: 600;
+  }
+  .hyp-card p { margin: 0; max-width: none; }
+
+  .verdict {
+    display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: .78rem;
+    font-weight: 600; letter-spacing: .04em; padding: .28rem .7rem; border-radius: 999px;
+    margin-top: .7rem;
+  }
+  .verdict.confirmed { background: var(--cut-soft); color: var(--cut); }
+  .verdict.disconfirmed { background: var(--hike-soft); color: var(--hike); }
+  .verdict.mixed { background: var(--surface-2); color: var(--ink-muted); border: 1px solid var(--line); }
+
+  .table-wrap { overflow-x: auto; margin: 1.2rem 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 480px; font-size: .92rem; }
+  caption { text-align: left; font-size: .82rem; color: var(--ink-faint); padding-bottom: .5rem; }
+  th, td { padding: .62rem .8rem; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; font-family: "IBM Plex Mono", monospace; }
+  th:first-child, td:first-child { text-align: left; font-family: "Public Sans", sans-serif; }
+  thead th { font-family: "Public Sans", sans-serif; font-weight: 600; font-size: .78rem; letter-spacing: .02em; color: var(--ink-muted); text-transform: uppercase; border-bottom: 1px solid var(--ink-faint); }
+  tr.row-fav td:first-child { border-left: 3px solid var(--cut); padding-left: .65rem; }
+  tr.row-unfav td:first-child { border-left: 3px solid var(--hike); padding-left: .65rem; }
+  tbody tr:hover { background: var(--surface-2); }
+  td.neg { color: var(--hike); }
+  td.pos { color: var(--cut); }
+  td.pass { color: var(--cut); font-weight: 600; }
+  td.fail { color: var(--hike); font-weight: 600; }
+
+  ul.findings { padding-left: 1.2rem; max-width: 68ch; }
+  ul.findings li { margin-bottom: .9rem; }
+  ul.findings b { color: var(--ink); }
+  .footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--line); font-size: .82rem; color: var(--ink-faint); }
+</style>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">MACRO EVENT STUDY · 트랙 D 후속 · 국제 비교 · DAX·니케이225·FTSE100</div>
+    <h1>"5월에 팔고 떠나라"는 미국만의 이야기였을까</h1>
+    <p class="dek">이 프로젝트가 지금까지 확인한 계절성 효과들 — 11~4월이 5~10월을 압도하는
+    현상, 그 안에서도 특히 9월이 나쁜 "9월 효과", 그리고 요일효과에서 발견된 "이상현상 소멸"
+    — 은 전부 S&amp;P500(미국) 하나만으로 검증됐다. 미국 시장 고유의 현상인지, 여러 시장에
+    걸쳐 나타나는 보편적 계절성인지를 확인하기 위해 구조적으로 다른 3개 비미국 지수 — 독일
+    DAX(유럽), 일본 니케이225(아시아, 가장 긴 데이터), 영국 FTSE100(다른 성격의 유럽
+    금융허브) — 로 같은 검증을 반복했다.</p>
+    <div class="meta-row">
+      <span>독일 DAX <b>1987~2025</b>(38년)</span>
+      <span>일본 니케이225 <b>1965~2025</b>(61년)</span>
+      <span>영국 FTSE100 <b>1984~2025</b>(42년)</span>
+    </div>
+    <div class="note">미국(76년)보다 세 지수 모두 데이터 기간이 훨씬 짧다 — 특히 독일(38년)은
+    미국의 절반 수준이다. 이 점을 감안하고 결과를 읽어야 한다.</div>
+  </header>
+
+  <section>
+    <h2>사전등록 가설 (결과 계산 전 명시)</h2>
+    <div class="hyp-card">
+      <div class="hyp-id">H1</div>
+      <p>"5월에 팔고 떠나라"(11~4월 &gt; 5~10월) 격차가 3개 지수 중 최소 2개에서 같은 부호로
+      재현된다. <b>재현 기준을 미리 정한다</b> — 평균 격차가 양수인 것만으로는 부족하고,
+      우호적 반기(11~4월)의 승률이 55%를 넘어야 노이즈가 아니라고 판단한다.</p>
+    </div>
+    <div class="hyp-card">
+      <div class="hyp-id">H2</div>
+      <p>9월 효과(9월이 최저 또는 최저에 가까운 달) 자체가 3개 지수 중 최소 2개에서 재현된다 —
+      "5~10월 전체가 약하다"와는 별개의 주장이므로 H1과 분리해서 검증한다.</p>
+    </div>
+    <div class="hyp-card">
+      <div class="hyp-id">H3</div>
+      <p>(탐색적, 강한 사전 확신 없음) 미국 요일효과에서 나타난 "이상현상 소멸"(과거엔 강했으나
+      최근 20~30년 약화·역전)이 계절성 효과에서도 3개 지수 중 어딘가 나타나는지 확인한다.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>지수별 반기 구간 비교</h2>
+    <p class="lede">각 지수의 전체 가용 기간으로 11~4월 vs 5~10월 반기 수익률을 비교했다.
+    진행 중인 2026년(및 그 반기)은 제외.</p>
+    <div class="table-wrap">
+      <table>
+        <caption>지수별 11~4월(우호적) vs 5~10월(비우호적) 반기 평균수익률(%) · 승률 · n</caption>
+        <thead><tr><th>지수</th><th>11~4월 평균</th><th>승률(n)</th><th>5~10월 평균</th><th>승률(n)</th><th>미국(참고)</th></tr></thead>
+        <tbody id="half-year-body"></tbody>
+      </table>
+    </div>
+    <p>세 지수 모두 방향이 미국과 같다 — <b>11~4월이 5~10월을 확실히 앞선다.</b> 격차의
+    크기는 다르다: 독일이 가장 극적이고(+10.26% vs +0.53%), 영국은 승률 격차가 가장 크다
+    (80.5% vs 57.1%). 일본은 표본이 가장 길지만(61년) 격차 자체는 상대적으로 완만하다.</p>
+  </section>
+
+  <section>
+    <h2>월별 분해 — 9월은 어디서나 나쁜가</h2>
+    <div class="table-wrap">
+      <table>
+        <caption>지수별 9월 평균수익률(%)과 12개월 중 순위(낮은 순, 1위=최저)</caption>
+        <thead><tr><th>지수</th><th>9월 평균</th><th>승률</th><th>12개월 중 순위(낮은 순)</th></tr></thead>
+        <tbody id="september-body"></tbody>
+      </table>
+    </div>
+    <p>세 지수 모두 9월이 <b>최저 또는 2위</b>(12개월 중)를 기록했다 — 독일·영국은 9월이
+    아예 1위(가장 나쁜 달), 일본은 2위였다(8월이 근소하게 더 나쁨). 미국에서 발견된 "9월
+    효과"가 특정 시장의 우연이 아니라 <b>여러 주요 시장에 공통으로 나타나는 패턴</b>일
+    가능성을 뒷받침한다.</p>
+  </section>
+
+  <section>
+    <h2>H3 탐색 — 최근 구간에서도 계절성이 버텼나</h2>
+    <p class="lede">미국 요일효과처럼 "과거엔 있었지만 최근엔 사라진" 패턴이 있는지 확인하기
+    위해, 각 지수의 가용 기간 중 최근 구간(최대 30년, 짧은 지수는 가용 기간의 절반)만 따로
+    재검증했다.</p>
+    <div class="table-wrap">
+      <table>
+        <caption>지수별 전체 기간 vs 최근 구간 반기 격차 비교</caption>
+        <thead><tr><th>지수</th><th>전체기간 격차(11~4월&minus;5~10월)</th><th>최근구간 격차</th><th>재검증 구간</th></tr></thead>
+        <tbody id="recent-body"></tbody>
+      </table>
+    </div>
+    <p><b>세 지수 모두 소멸 신호가 나타나지 않았다</b> — 최근 구간에서도 격차의 방향과 크기가
+    유지되거나(독일·영국) 오히려 약간 커졌다(일본: 최근 30년 5~10월이 소폭 마이너스로 돌아서며
+    격차가 더 벌어짐). 미국의 요일효과 소멸은 이 세 시장에서는 재현되지 않는다 — "이상현상
+    소멸"이 모든 계절성 효과에 자동으로 적용되는 보편 법칙은 아니라는 뜻이다.</p>
+  </section>
+
+  <section>
+    <h2>가설 x 지수 종합 판정표</h2>
+    <div class="table-wrap">
+      <table>
+        <caption>H1(반기 재현) · H2(9월 효과 재현) · H3(소멸 감지 여부) 지수별 결과</caption>
+        <thead><tr><th>지수</th><th>H1(반기 재현)</th><th>H2(9월 효과)</th><th>H3(소멸 감지)</th></tr></thead>
+        <tbody id="matrix-body"></tbody>
+      </table>
+    </div>
+    <div class="verdict confirmed">H1 종합: CONFIRMED (3/3 지수 통과, 기준 2/3)</div><br>
+    <div class="verdict confirmed">H2 종합: CONFIRMED (3/3 지수 통과, 기준 2/3)</div><br>
+    <div class="verdict mixed">H3 종합: 소멸 미감지(3/3) — 탐색적 결과, 미국 요일효과와 달리
+    계절성은 세 시장 모두에서 유지됨</div>
+  </section>
+
+  <section>
+    <h2>경제학 지식 없이 읽는 법</h2>
+    <ul class="findings">
+      <li><b>"5월에 팔고 떠나라"는 미국만의 우연이 아니었다.</b> 구조가 전혀 다른 3개
+      시장(유럽 두 곳, 아시아 한 곳)에서 같은 방향의 격차가 재현됐다 — 계절성 효과 중에서는
+      이 프로젝트에서 가장 견고하게 국제적으로 재현된 발견이다.</li>
+      <li><b>9월 효과도 우연이 아닐 가능성이 크다.</b> 세 지수 모두 9월이 12개월 중 가장
+      나쁜 두 달 안에 들었다 — 여름휴가철 거래량 감소, 회계연도·리밸런싱 주기 같은 설명이
+      여러 시장에서 동시에 작동할 가능성을 시사한다(단 이 리포트는 "왜"까지는 검증하지
+      않았다).</li>
+      <li><b>다만 "이상현상 소멸"은 계절성 효과 전체에 적용되는 법칙이 아니다.</b> 미국
+      요일효과는 최근 30년 사이 사실상 사라졌지만, 계절성(5~10월 vs 11~4월) 효과는 세 비미국
+      시장 어디에서도 약화되지 않았다 — 효과의 종류(요일 단위 초단기 패턴 vs 반기 단위 계절
+      패턴)에 따라 소멸 여부가 다를 수 있다는 뜻이다.</li>
+      <li><b>격차의 "크기"는 시장마다 다르다.</b> 방향은 셋 다 같지만 독일이 가장 극적이고
+      일본이 가장 완만하다 — "패턴이 있다"와 "크기까지 똑같다"는 다른 얘기다.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>한계</h2>
+    <div class="callout">
+      <ul class="findings" style="margin:0;">
+        <li><b>비미국 지수의 데이터 기간이 미국보다 훨씬 짧다.</b> 독일 38년, 영국 42년,
+        일본 61년으로 미국의 76년에 못 미친다 — 특히 독일·영국은 "최근 구간" 재검증에 쓸 수
+        있는 표본이 20년 안팎으로 더 작아진다.</li>
+        <li><b>거래비용·세금·환헤지 미반영.</b> 실제로 해외 지수에 투자해 이 계절성을
+        실행하려면 환율 변동·해외 세금·수수료가 추가로 격차를 깎아먹을 수 있다.</li>
+        <li><b>세 지수가 서로 완전히 독립적인 시장이 아니다.</b> 글로벌 증시는 서로 상관관계가
+        높아(특히 위기 국면), "3개 시장에서 재현됐다"고 해서 3개의 완전히 독립적인 증거로
+        보기는 어렵다.</li>
+        <li><b>4개(미국 포함) 시장만 확인했다.</b> 신흥국·중국·인도 등 아직 확인 안 된 시장이
+        많다 — 이 리포트가 "전세계 보편 법칙"을 증명한 건 아니다.</li>
+        <li><b>9월 효과의 "왜"는 여전히 검증하지 않았다.</b> 여러 시장에서 재현된다는 사실이
+        "왜 9월인가"라는 원인을 설명해주지는 않는다.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="footer">
+    데이터: Yahoo Finance(^GDAXI·^N225·^FTSE, 각 지수 상장 이후~2025) · 분석 스크립트:
+    international_seasonality_study.py(seasonality_event_study.py의 반기·월별 로직 재사용) ·
+    같은 프로젝트, 관련 리포트: <a href="https://claude.ai/code/artifact/fe955a38-0bed-4df2-b323-5790af5469c3">증시의 달력 효과 세 가지</a>(이 계절성·9월효과·요일효과 소멸을 미국 시장에서 처음 검증한 원본 리포트),
+    <a href="https://claude.ai/code/artifact/5e616a5d-37bc-4525-b32a-7b75e46b66c1">대선주기 x 계절성 스택</a>(같은 트랙 D의 다른 후속 검증)
+  </div>
+</div>
+
+<script>
+const DATA = {"results": {"^GDAXI": {"name_kr": "독일 DAX", "first_year": 1987, "last_year": 2026, "unfavorable": {"n": 38, "mean_pct": 0.526, "win_rate_pct": 57.9}, "favorable": {"n": 37, "mean_pct": 10.264, "win_rate_pct": 75.7}, "h1_pass": true, "september_mean_pct": -2.026, "september_win_rate": 39.5, "september_rank_lowest": 1, "h2_pass": true, "recent_years_window": 19, "recent_unfavorable": {"n": 19, "mean_pct": 0.727, "win_rate_pct": 63.2}, "recent_favorable": {"n": 18, "mean_pct": 7.462, "win_rate_pct": 66.7}, "h3_decay_detected": false}, "^N225": {"name_kr": "일본 니케이225", "first_year": 1965, "last_year": 2026, "unfavorable": {"n": 61, "mean_pct": 0.846, "win_rate_pct": 52.5}, "favorable": {"n": 60, "mean_pct": 7.733, "win_rate_pct": 71.7}, "h1_pass": true, "september_mean_pct": -0.361, "september_win_rate": 47.5, "september_rank_lowest": 2, "h2_pass": true, "recent_years_window": 30, "recent_unfavorable": {"n": 30, "mean_pct": -0.098, "win_rate_pct": 50.0}, "recent_favorable": {"n": 29, "mean_pct": 5.684, "win_rate_pct": 65.5}, "h3_decay_detected": false}, "^FTSE": {"name_kr": "영국 FTSE100", "first_year": 1984, "last_year": 2026, "unfavorable": {"n": 42, "mean_pct": -0.075, "win_rate_pct": 57.1}, "favorable": {"n": 41, "mean_pct": 6.336, "win_rate_pct": 80.5}, "h1_pass": true, "september_mean_pct": -0.806, "september_win_rate": 47.6, "september_rank_lowest": 1, "h2_pass": true, "recent_years_window": 21, "recent_unfavorable": {"n": 21, "mean_pct": 0.09, "win_rate_pct": 52.4}, "recent_favorable": {"n": 20, "mean_pct": 4.416, "win_rate_pct": 80.0}, "h3_decay_detected": false}}, "us_baseline": {"favorable": {"mean_pct": 6.95, "win_rate_pct": 76.0}, "unfavorable": {"mean_pct": 2.09, "win_rate_pct": 65.8}, "september_mean_pct": -0.63}};
+
+const order = ["^GDAXI", "^N225", "^FTSE"];
+
+function fmt(v) { return (v == null) ? "-" : (v >= 0 ? "+" : "") + v.toFixed(2) + "%"; }
+
+const halfBody = document.getElementById("half-year-body");
+order.forEach(k => {
+  const r = DATA.results[k];
+  const tr = document.createElement("tr");
+  const favCls = r.favorable.mean_pct >= 0 ? "pos" : "neg";
+  const unfavCls = r.unfavorable.mean_pct >= 0 ? "pos" : "neg";
+  tr.innerHTML = `<td>${r.name_kr}</td>
+    <td class="${favCls}">${fmt(r.favorable.mean_pct)}</td><td>${r.favorable.win_rate_pct.toFixed(1)}% (n=${r.favorable.n})</td>
+    <td class="${unfavCls}">${fmt(r.unfavorable.mean_pct)}</td><td>${r.unfavorable.win_rate_pct.toFixed(1)}% (n=${r.unfavorable.n})</td>
+    <td style="color:var(--ink-faint)">+${DATA.us_baseline.favorable.mean_pct}% / +${DATA.us_baseline.unfavorable.mean_pct}%</td>`;
+  halfBody.appendChild(tr);
+});
+
+const sepBody = document.getElementById("september-body");
+order.forEach(k => {
+  const r = DATA.results[k];
+  const tr = document.createElement("tr");
+  const cls = r.september_mean_pct >= 0 ? "pos" : "neg";
+  tr.innerHTML = `<td>${r.name_kr}</td><td class="${cls}">${fmt(r.september_mean_pct)}</td>
+    <td>${r.september_win_rate.toFixed(1)}%</td><td>${r.september_rank_lowest}위 / 12</td>`;
+  sepBody.appendChild(tr);
+});
+
+const recentBody = document.getElementById("recent-body");
+order.forEach(k => {
+  const r = DATA.results[k];
+  const fullGap = r.favorable.mean_pct - r.unfavorable.mean_pct;
+  const recentGap = r.recent_favorable.mean_pct - r.recent_unfavorable.mean_pct;
+  const tr = document.createElement("tr");
+  tr.innerHTML = `<td>${r.name_kr}</td><td class="pos">${fmt(fullGap)}p</td><td class="pos">${fmt(recentGap)}p</td>
+    <td style="font-family:'Public Sans',sans-serif;text-align:left">최근 ${r.recent_years_window}년</td>`;
+  recentBody.appendChild(tr);
+});
+
+const matrixBody = document.getElementById("matrix-body");
+order.forEach(k => {
+  const r = DATA.results[k];
+  const tr = document.createElement("tr");
+  const h1 = r.h1_pass ? '<span class="pass">PASS</span>' : '<span class="fail">FAIL</span>';
+  const h2 = r.h2_pass ? '<span class="pass">PASS</span>' : '<span class="fail">FAIL</span>';
+  const h3 = r.h3_decay_detected ? '<span class="fail">감지됨</span>' : '<span class="pass">미감지</span>';
+  tr.innerHTML = `<td>${r.name_kr}</td><td>${h1}</td><td>${h2}</td><td>${h3}</td>`;
+  matrixBody.appendChild(tr);
+});
+</script>

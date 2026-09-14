@@ -1,0 +1,64 @@
+
+==================== 강세장 ====================
+$XLRE: possibly delisted; no price data found  (1d 2013-03-20 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1444190400")
+
+1 Failed download:
+['XLRE']: possibly delisted; no price data found  (1d 2013-03-20 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1444190400")
+$XLC: possibly delisted; no price data found  (1d 2013-03-20 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1529294400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2013-03-20 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1529294400")
+VIX>30.0 비율: 5.4%
+/workspaces/Quant/analysis/kostolany_market_report_2026-08-12/multi_regime_multi_strategy.py:63: FutureWarning: The behavior of DataFrame.idxmax with all-NA values, or any-NA and skipna=False, is deprecated. In a future version this will raise ValueError
+  leader = z_scores.idxmax(axis=1)
+[VIX방어배수=1.0]: CAGR=9.68, MDD=-18.44, 샤프=0.8, calmar=0.52
+[VIX방어배수=0.5]: CAGR=8.58, MDD=-17.42, 샤프=0.74, calmar=0.49
+[VIX방어배수=0.25]: CAGR=8.02, MDD=-16.9, 샤프=0.71, calmar=0.47
+S&P500: {'cumulative_return': 276.69, 'cagr': 12.11, 'mdd': -33.92, 'sharpe': 0.74, 'win_rate': 100.0, 'avg_holding_days': 4238.0, 'trade_count': 1, 'profit_factor': 999.0, 'calmar': 0.36, 'avg_drawdown_days': 19.5}
+
+==================== 약세장포함 ====================
+$XLF: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLF']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$XLK: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLK']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$XLP: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLP']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$XLE: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLE']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$XLV: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLV']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$XLB: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$XLU: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLB']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLU']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$XLI: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLI']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$XLY: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLY']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+VIX>30.0 비율: 14.2%
+/workspaces/Quant/analysis/kostolany_market_report_2026-08-12/multi_regime_multi_strategy.py:63: FutureWarning: The behavior of DataFrame.idxmax with all-NA values, or any-NA and skipna=False, is deprecated. In a future version this will raise ValueError
+  leader = z_scores.idxmax(axis=1)
+[VIX방어배수=1.0]: CAGR=2.99, MDD=-37.42, 샤프=0.28, calmar=0.08
+[VIX방어배수=0.5]: CAGR=2.61, MDD=-35.85, 샤프=0.26, calmar=0.07
+[VIX방어배수=0.25]: CAGR=2.38, MDD=-36.02, 샤프=0.25, calmar=0.07
+S&P500: {'cumulative_return': -2.55, 'cagr': -0.2, 'mdd': -56.78, 'sharpe': 0.1, 'win_rate': 0.0, 'avg_holding_days': 4742.0, 'trade_count': 1, 'profit_factor': 0.0, 'calmar': -0.0, 'avg_drawdown_days': 351.2}
+
+DONE

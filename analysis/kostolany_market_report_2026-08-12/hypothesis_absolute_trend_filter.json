@@ -1,0 +1,128 @@
+{
+  "2015_2026": {
+    "below_ma_pct": 18.9,
+    "mult_1.0": {
+      "cumulative_return": 192.2,
+      "cagr": 9.68,
+      "mdd": -18.44,
+      "sharpe": 0.8,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.52,
+      "avg_drawdown_days": 24.4
+    },
+    "mult_0.75": {
+      "cumulative_return": 167.98,
+      "cagr": 8.86,
+      "mdd": -17.21,
+      "sharpe": 0.79,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.52,
+      "avg_drawdown_days": 24.9
+    },
+    "mult_0.5": {
+      "cumulative_return": 144.78,
+      "cagr": 8.02,
+      "mdd": -15.99,
+      "sharpe": 0.76,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.5,
+      "avg_drawdown_days": 27.7
+    },
+    "mult_0.25": {
+      "cumulative_return": 122.72,
+      "cagr": 7.14,
+      "mdd": -14.87,
+      "sharpe": 0.72,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.48,
+      "avg_drawdown_days": 31.0
+    },
+    "sp500_bh": {
+      "cumulative_return": 276.69,
+      "cagr": 12.11,
+      "mdd": -33.92,
+      "sharpe": 0.74,
+      "win_rate": 100.0,
+      "avg_holding_days": 4238.0,
+      "trade_count": 1,
+      "profit_factor": 999.0,
+      "calmar": 0.36,
+      "avg_drawdown_days": 19.5
+    }
+  },
+  "2000_2012": {
+    "below_ma_pct": 40.4,
+    "mult_1.0": {
+      "cumulative_return": 46.56,
+      "cagr": 2.99,
+      "mdd": -37.42,
+      "sharpe": 0.28,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.08,
+      "avg_drawdown_days": 57.3
+    },
+    "mult_0.75": {
+      "cumulative_return": 45.39,
+      "cagr": 2.92,
+      "mdd": -33.58,
+      "sharpe": 0.29,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.09,
+      "avg_drawdown_days": 59.1
+    },
+    "mult_0.5": {
+      "cumulative_return": 43.04,
+      "cagr": 2.79,
+      "mdd": -29.74,
+      "sharpe": 0.3,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.09,
+      "avg_drawdown_days": 67.3
+    },
+    "mult_0.25": {
+      "cumulative_return": 39.56,
+      "cagr": 2.6,
+      "mdd": -25.92,
+      "sharpe": 0.3,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.1,
+      "avg_drawdown_days": 72.6
+    },
+    "sp500_bh": {
+      "cumulative_return": -2.55,
+      "cagr": -0.2,
+      "mdd": -56.78,
+      "sharpe": 0.1,
+      "win_rate": 0.0,
+      "avg_holding_days": 4742.0,
+      "trade_count": 1,
+      "profit_factor": 0.0,
+      "calmar": -0.0,
+      "avg_drawdown_days": 351.2
+    }
+  }
+}

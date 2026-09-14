@@ -1,0 +1,320 @@
+<title>2020년 이후 국면 감사</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #eef1ee; --surface: #ffffff; --surface-2: #e6eae5;
+    --ink: #17211d; --ink-muted: #57635c; --ink-faint: #8b968f; --line: #d9dfd8;
+    --hike: #a8461f; --hike-soft: #f4e3da; --cut: #1f6e79; --cut-soft: #dcedee; --gold: #8a6d1f; --gold-soft: #f1e6c8;
+    --shadow: 0 1px 2px rgba(23,33,29,.06), 0 8px 24px -12px rgba(23,33,29,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+      --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+      --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+      --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c; --gold-soft: #3a3016;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+    --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+    --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+    --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c; --gold-soft: #3a3016;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Public Sans", -apple-system, "Noto Sans KR", sans-serif;
+    font-size: 16px; line-height: 1.65;
+  }
+  ::selection { background: var(--gold); color: #1a1408; }
+  a { color: var(--cut); }
+  .page { max-width: 880px; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 1rem;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 500;
+    font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.08; letter-spacing: -.01em;
+    margin: 0 0 1rem; text-wrap: balance;
+  }
+  .dek { font-size: 1.15rem; color: var(--ink-muted); max-width: 62ch; margin: 0 0 1.75rem; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: .4rem 1.6rem;
+    font-family: "IBM Plex Mono", monospace; font-size: .82rem; color: var(--ink-muted);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: .85rem 0;
+  }
+  .meta-row b { color: var(--ink); font-weight: 600; }
+  section { margin: 3.2rem 0; }
+  section > h2 {
+    font-family: "Fraunces", serif; font-weight: 500; font-size: 1.6rem;
+    letter-spacing: -.005em; margin: 0 0 .3rem; text-wrap: balance;
+  }
+  section > .lede { color: var(--ink-muted); max-width: 66ch; margin: 0 0 1.4rem; }
+  p { max-width: 68ch; }
+  .note {
+    background: var(--surface-2); border-left: 3px solid var(--gold); border-radius: 4px;
+    padding: .9rem 1.1rem; font-size: .93rem; color: var(--ink-muted); max-width: 68ch; margin: 1.1rem 0;
+  }
+  .note b { color: var(--ink); }
+  .callout {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.2rem 1.4rem; box-shadow: var(--shadow); margin: 1.4rem 0;
+  }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .9rem; margin: 1.3rem 0 1.6rem; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.1rem; }
+  .tile .label { font-size: .78rem; color: var(--ink-muted); margin-bottom: .35rem; }
+  .tile .value { font-family: "IBM Plex Mono", monospace; font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tile .value.hike { color: var(--hike); }
+  .tile .value.cut { color: var(--cut); }
+  .tile .sub { font-size: .76rem; color: var(--ink-faint); margin-top: .25rem; }
+  .table-wrap { overflow-x: auto; margin: 1.2rem 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 480px; font-size: .92rem; }
+  caption { text-align: left; font-size: .82rem; color: var(--ink-faint); padding-bottom: .5rem; }
+  th, td { padding: .62rem .8rem; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; font-family: "IBM Plex Mono", monospace; }
+  th:first-child, td:first-child { text-align: left; font-family: "Public Sans", sans-serif; }
+  thead th { font-family: "Public Sans", sans-serif; font-weight: 600; font-size: .78rem; letter-spacing: .02em; color: var(--ink-muted); text-transform: uppercase; border-bottom: 1px solid var(--ink-faint); }
+  tr.row-hot td:first-child { border-left: 3px solid var(--hike); padding-left: .65rem; }
+  tr.row-cool td:first-child { border-left: 3px solid var(--cut); padding-left: .65rem; }
+  tbody tr:hover { background: var(--surface-2); }
+  ul.findings { padding-left: 1.2rem; max-width: 68ch; }
+  ul.findings li { margin-bottom: .9rem; }
+  ul.findings b { color: var(--ink); }
+  .footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--line); font-size: .82rem; color: var(--ink-faint); }
+
+  .hyp-list { display: flex; flex-direction: column; gap: 1rem; margin: 1.2rem 0; }
+  .hyp-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.1rem 1.3rem; box-shadow: var(--shadow);
+  }
+  .hyp-card .hyp-tag {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .08em;
+    color: var(--gold); text-transform: uppercase; margin-bottom: .35rem;
+  }
+  .hyp-card p { margin: 0; max-width: 66ch; }
+  .verdict-row { display: flex; flex-wrap: wrap; align-items: center; gap: .7rem; margin: .2rem 0 1rem; }
+  .verdict-pill {
+    font-family: "IBM Plex Mono", monospace; font-size: .78rem; font-weight: 600; letter-spacing: .04em;
+    padding: .3rem .75rem; border-radius: 20px; text-transform: uppercase;
+  }
+  .verdict-pill.holds { background: var(--cut-soft); color: var(--cut); }
+  .verdict-pill.era { background: var(--hike-soft); color: var(--hike); }
+  .verdict-row h3 { font-family: "Fraunces", serif; font-weight: 500; font-size: 1.3rem; margin: 0; text-wrap: balance; }
+</style>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">MACRO EVENT STUDY · 품질관리 감사 · 2020년 이후 국면 왜곡 점검</div>
+    <h1>2020년 이후가 다른 발견들도 왜곡했을까</h1>
+    <p class="dek">GDP×NFP 베스트셀 재검증에서 그 스터디의 깜짝 1등 셀이 낸 초과수익의
+    50.05%가 "포스트코로나 국면"(2020-11~2025-11) 하나에 몰려 있다는 걸 발견했다. 이건
+    새 발견을 찾는 스터디가 아니다 — 이미 검증된 4개 발견을 다시 계산하지 않고, 같은 사건별
+    분류 로직을 그대로 재사용해 2020년을 기준으로 쪼개서 "핵심 결론이 두 시대 모두에서
+    같은 방향으로 성립하는가"만 재확인하는 감사(audit)다.</p>
+    <div class="meta-row">
+      <span>감사 대상 <b>4개 기존 발견</b></span>
+      <span>기준일 <b>2020-01-01</b></span>
+      <span>목적 <b>새 발견이 아니라 기존 발견의 신뢰도 재점검</b></span>
+    </div>
+  </header>
+
+  <section>
+    <h2>사전 등록 가설</h2>
+    <p class="lede">결과를 계산하기 전에 먼저 적어둔, 4개 스터디 전부에 동일하게 적용한
+    가설이다. "성립한다"의 기준: 두 하위표본(2020년 이전/이후)에서 방향(부호)이 같으면 통과
+    — 크기가 달라도 무방. 부호가 뒤집히거나 거의 사라지면 "시대의존적"으로 명시한다.</p>
+    <div class="hyp-list">
+      <div class="hyp-card">
+        <div class="hyp-tag">H1</div>
+        <p>아래 4개 스터디의 핵심 결론이 2020년 이전과 2020년 이후 둘 다에서 같은 방향으로
+        성립한다:</p>
+        <ul class="findings" style="margin: .6rem 0 0;">
+          <li><b>스터디 A</b>(CPI×GDP 조인트): "물가감속 국면이 성장 방향과 무관하게 물가가속
+          국면보다 60일 승률이 높다"</li>
+          <li><b>스터디 B</b>(NFP×CPI 조인트): "같은 패턴이 NFP를 트리거로 삼아도 재현된다"</li>
+          <li><b>스터디 C</b>(자산군교차 FOMC): "금(GLD)은 인하 후 반응이 인상 후 반응보다
+          크고, 둘 다 양(+)이다"</li>
+          <li><b>스터디 D</b>(섹터 로테이션): "금융(XLF)은 인하 후 평균 마이너스이고 승률도
+          50% 미만이다"</li>
+        </ul>
+      </div>
+      <div class="hyp-card">
+        <div class="hyp-tag">H2 (탐색적)</div>
+        <p>4개 감사 대상에 걸쳐 2020년 이후 하위표본이 2020년 이전과 체계적으로 다른 공통
+        패턴이 있는지 서술적으로만 확인한다 — 억지로 하나의 결론으로 몰아가지 않는다.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>스터디 A — CPI×GDP 조인트</h2>
+    <div class="table-wrap">
+      <table>
+        <caption>+60거래일 승률(%) · 물가감속 vs 물가가속</caption>
+        <thead><tr><th>시대</th><th>물가감속</th><th>물가가속</th><th>격차</th></tr></thead>
+        <tbody>
+          <tr><td>2020년 이전 (n=321)</td><td>73.6% (n=163)</td><td>63.3% (n=158)</td><td>10.3%p</td></tr>
+          <tr class="row-cool"><td>2020년 이후 (n=80)</td><td>83.3% (n=36)</td><td>63.6% (n=44)</td><td>19.7%p</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><b>방향 유지 — 두 시대 모두 물가감속이 물가가속을 앞섰다.</b> 격차는 2020년 이후
+    오히려 더 벌어졌다(10.3%p → 19.7%p). "디스인플레이션 축이 지배적"이라는 핵심 결론은
+    표본이 400건이 넘고 두 시대 모두 최소 36건씩은 확보돼 있어 신뢰도가 높다.</p>
+  </section>
+
+  <section>
+    <h2>스터디 B — NFP×CPI 조인트</h2>
+    <div class="table-wrap">
+      <table>
+        <caption>+60거래일 승률(%) · 물가감속 vs 물가가속(NFP를 트리거로 고정)</caption>
+        <thead><tr><th>시대</th><th>물가감속</th><th>물가가속</th><th>격차</th></tr></thead>
+        <tbody>
+          <tr><td>2020년 이전 (n=307)</td><td>74.4% (n=156)</td><td>63.6% (n=151)</td><td>10.8%p</td></tr>
+          <tr class="row-cool"><td>2020년 이후 (n=75)</td><td>83.8% (n=37)</td><td>60.5% (n=38)</td><td>23.3%p</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><b>방향 유지 — A와 거의 같은 모양이다.</b> 트리거를 NFP로 바꿔도 물가감속 우위는
+    그대로였고, 격차도 A와 비슷하게 2020년 이후 더 벌어졌다(10.8%p → 23.3%p). 두 스터디가
+    같은 패턴, 같은 방향의 시대별 변화를 독립적으로 보여준다는 점에서 서로를 교차 확인해준다.</p>
+  </section>
+
+  <section>
+    <h2>스터디 C — 금(GLD)의 FOMC 반응</h2>
+    <div class="table-wrap">
+      <table>
+        <caption>+60거래일 평균 수익률(%) · 인하 vs 인상</caption>
+        <thead><tr><th>시대</th><th>인하</th><th>인상</th></tr></thead>
+        <tbody>
+          <tr><td>2020년 이전 (인하n=13/인상n=21)</td><td>+5.55%</td><td>+4.48%</td></tr>
+          <tr class="row-cool"><td>2020년 이후 (인하n=8/인상n=11)</td><td>+14.93%</td><td>+0.45%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><b>방향은 유지됐지만, 크기는 2020년 이후가 훨씬 컸다.</b> "인하 반응 &gt; 인상 반응,
+    둘 다 양"이라는 순서는 두 시대 모두에서 그대로였다. 하지만 2020년 이전엔 인하(+5.55%)와
+    인상(+4.48%)의 차이가 크지 않았던 반면, 2020년 이후엔 인하가 +14.93%까지 뛰고 인상은
+    +0.45%로 거의 사라졌다 — 원래 스터디의 전체 풀링된 숫자(인하 +9.12%, 인상 +3.09%)가
+    사실상 2020년 이후 표본(코로나 긴급인하, 2024~25년 인하 사이클)에 크게 좌우된 결과라는
+    뜻이다. 순서는 안전하지만, "인상 후 금이 이 정도는 오른다"는 크기 감각은 온전히 2020년
+    이전 기준으로 다시 세워야 한다.</p>
+  </section>
+
+  <section>
+    <h2>스터디 D — 금융(XLF)의 인하 반응</h2>
+    <div class="table-wrap">
+      <table>
+        <caption>+60거래일 반응(%) · 괄호는 승률</caption>
+        <thead><tr><th>시대</th><th>인하 후 반응</th></tr></thead>
+        <tbody>
+          <tr class="row-hot"><td>2020년 이전 (n=13)</td><td>&minus;12.45% (승률23.1%)</td></tr>
+          <tr class="row-cool"><td>2020년 이후 (n=8)</td><td><b>+2.74% (승률75.0%)</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><b>부호가 완전히 뒤집혔다.</b> 원래 스터디의 "금융주는 인하 후 가장 크게 다친다"
+    (풀링 &minus;6.66%, 승률42.9%)는 결론은 사실상 2020년 이전 표본(2008년 금융위기 인하
+    다수 포함)이 만든 숫자였다 — 2020년 이전만 보면 훨씬 더 나빴다(&minus;12.45%,
+    승률23.1%). 그런데 2020년 이후(코로나 긴급인하, 2024~25년 인하 사이클)만 보면 <b>금융주는
+    오히려 좋았다</b>(+2.74%, 승률75.0%) — 완전한 반전이다. "금융주는 인하 후 아프다"는
+    일반화된 결론으로 계속 쓰기는 어렵다 — 정확히는 "2008년 금융위기급 인하에서 아팠다"에
+    더 가깝고, 최근 인하 사이클에서는 그렇지 않았다.</p>
+  </section>
+
+  <section>
+    <h2>가설별 최종 판정</h2>
+    <div class="verdict-row">
+      <span class="verdict-pill holds">HOLDS-UP</span>
+      <h3>스터디 A — 디스인플레이션 축 우위</h3>
+    </div>
+    <p>두 시대 모두 물가감속이 물가가속을 앞섰다(73.6%→83.3% vs 63.3%→63.6%). 격차가
+    2020년 이후 커졌을 뿐 방향은 그대로다.</p>
+
+    <div class="verdict-row">
+      <span class="verdict-pill holds">HOLDS-UP</span>
+      <h3>스터디 B — NFP 트리거에서도 재현</h3>
+    </div>
+    <p>A와 거의 동일한 패턴 — 두 시대 모두 물가감속 우위, 격차는 2020년 이후 확대(10.8%p
+    → 23.3%p).</p>
+
+    <div class="verdict-row">
+      <span class="verdict-pill holds">HOLDS-UP (크기는 재검토 필요)</span>
+      <h3>스터디 C — 금은 인하에 더 강하게 반응</h3>
+    </div>
+    <p>순서(인하&gt;인상, 둘 다 양)는 두 시대 모두 유지됐다. 다만 격차의 절대 크기는
+    2020년 이후 표본에 크게 좌우돼(인하 +14.93% vs 인상 +0.45%), 원래 풀링된 숫자를 인용할
+    때는 "2020년 이후 효과가 크게 반영된 숫자"라는 유보문구가 필요하다.</p>
+
+    <div class="verdict-row">
+      <span class="verdict-pill era">시대의존적 — 유보문구 필요</span>
+      <h3>스터디 D — 금융주는 인하 후 아프다</h3>
+    </div>
+    <p>2020년 이전(&minus;12.45%, 승률23.1%)과 2020년 이후(+2.74%, 승률75.0%)의 부호가
+    완전히 반대다. "금융주는 인하 후 다친다"는 일반화는 더 이상 유지할 수 없다 — 정확히는
+    "2008년 금융위기급 인하에서 다쳤다"로 좁혀 써야 하고, 섹터 로테이션 리포트에 이 유보문구를
+    추가해야 한다.</p>
+  </section>
+
+  <section>
+    <h2>H2 — 2020년 이후는 어떻게 다르게 움직였나</h2>
+    <p>네 개 감사 전부에서 공통으로 보이는 패턴이 하나 있다: <b>2020년 이후 표본은 기존
+    패턴을 뒤집기보다 증폭시키는 경우가 더 많았다.</b> A·B(물가국면 조인트)는 방향은 그대로,
+    격차만 거의 2배로 커졌다. C(금)도 방향은 그대로, 격차가 훨씬 크게 벌어졌다. 유일한
+    예외가 D(금융주)인데, 이건 증폭이 아니라 완전한 반전이었다 — 그 이유도 짐작 가능하다.
+    2020년 이전 표본에 2008년 금융위기라는, 금융 섹터에만 유독 나쁜 특수 사건이 다수
+    섞여 있었기 때문에(위기의 진앙이 은행 시스템 자체였다), 그 사건들을 표본에서 걷어내자
+    금융주의 "평상시" 인하 반응이 드러난 것으로 보인다. 즉 A·B·C에서 본 "증폭"과 D에서
+    본 "반전"은 서로 다른 메커니즘일 가능성이 크다 — 전자는 2020년 이후의 급격한 정책·시장
+    환경 변화가 기존 효과를 키운 것이고, 후자는 2020년 이전 표본 자체가 섹터 특수적인
+    위기 사건으로 오염돼 있었던 것이다.</p>
+  </section>
+
+  <section>
+    <h2>경제학 지식 없이 읽는 법</h2>
+    <ul class="findings">
+      <li><b>4개 중 3개는 여전히 믿을 만하다.</b> "물가가 식고 있으면 주가에 좋다"는 두
+      가지 버전(A, B)과 "금은 인하에 더 강하게 반응한다"(C)는 방향 자체는 흔들리지 않았다
+      — 다만 정확한 크기는 최근 몇 년의 특수한 환경 때문에 부풀려졌을 수 있다는 걸 감안해서
+      읽어야 한다.</li>
+      <li><b>1개는 다시 써야 한다.</b> "금융주는 금리인하 후 다친다"는 사실 "2008년 같은
+      금융위기급 인하에서만 다쳤다"였다 — 최근(코로나, 2024~25년) 인하에서는 오히려 좋았다.
+      이런 식으로 "표본 전체의 평균"이 사실은 특정 시기 하나에 크게 의존하는 경우가 있다는
+      걸 이번 감사가 보여준다.</li>
+      <li><b>"평균이 맞다"와 "언제나 맞다"는 다른 말이다.</b> 이번 감사 전체가 이 한 문장으로
+      요약된다 — 평균적으로 맞는 방향이라도, 그 평균을 만든 시기를 알아야 그 결론을 언제
+      믿고 언제 의심해야 할지 판단할 수 있다.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>한계</h2>
+    <div class="callout">
+      <ul class="findings" style="margin:0;">
+        <li><b>이 감사 자체가 감사 대상이 될 수 있다.</b> 2020-01-01이라는 기준일도
+        사후에 편리하게 고른 것처럼 보일 수 있다 — 다만 이건 코로나19라는, 이 시기 구분을
+        정당화하는 외부의 명백한 사건 기준이라 임의적인 사후 임계값 선택과는 다르다고
+        본다.</li>
+        <li><b>C·D의 2020년 이후 표본은 매우 작다(각각 인하 n=8).</b> 이 정도 표본에서는
+        승률 한두 개 차이가 사건 한 건으로도 크게 흔들릴 수 있다.</li>
+        <li><b>4개만 감사했다 — 이 프로젝트의 다른 조인트/자산군 발견 전부를 검사한 건
+        아니다.</b> 감사하지 않은 다른 발견에도 비슷한 시대 의존성이 숨어 있을 수 있다.</li>
+        <li><b>"방향이 같으면 통과"라는 기준 자체가 관대하다.</b> 크기가 몇 배씩 달라져도
+        방향만 같으면 "HOLDS-UP"으로 표시했다 — C처럼 크기 차이가 아주 큰 경우는 방향은
+        유지돼도 실질적으로는 "부분적으로 다른 이야기"에 가깝다는 걸 본문에서 별도로
+        지적했다.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="footer">
+    데이터: FRED(CPIAUCSL, PAYEMS, GDPC1, DFEDTAR/DFEDTARU/DFEDTARL, release/dates API),
+    Yahoo Finance(^GSPC, GLD, XLF) · 분석 스크립트: pre_post_covid_regime_audit.py(본 감사,
+    아래 4개 스크립트의 로직을 그대로 재사용) · 감사 대상: joint_regime_event_study.py,
+    nfp_cpi_joint_regime_study.py, cross_asset_fomc_study.py, cross_asset_sector_fomc.py
+  </div>
+</div>

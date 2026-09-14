@@ -1,0 +1,78 @@
+{
+  "quarterly(기존)": {
+    "y2022": {
+      "cumulative_return": 0.24,
+      "cagr": 0.24,
+      "mdd": -15.12,
+      "sharpe": 0.1,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.02,
+      "avg_drawdown_days": 6.7
+    },
+    "full_2015_2026": {
+      "cumulative_return": 190.84,
+      "cagr": 9.64,
+      "mdd": -17.07,
+      "sharpe": 0.8,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.56,
+      "avg_drawdown_days": 24.3
+    }
+  },
+  "monthly(신가설)": {
+    "y2022": {
+      "cumulative_return": 0.29,
+      "cagr": 0.29,
+      "mdd": -15.09,
+      "sharpe": 0.1,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.02,
+      "avg_drawdown_days": 6.1
+    },
+    "full_2015_2026": {
+      "cumulative_return": 191.77,
+      "cagr": 9.67,
+      "mdd": -16.57,
+      "sharpe": 0.8,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.58,
+      "avg_drawdown_days": 23.6
+    }
+  },
+  "sp500_2022": {
+    "cumulative_return": -19.95,
+    "cagr": -20.16,
+    "mdd": -25.43,
+    "sharpe": -0.81,
+    "win_rate": 0.0,
+    "avg_holding_days": 361.0,
+    "trade_count": 1,
+    "profit_factor": 0.0,
+    "calmar": -0.79,
+    "avg_drawdown_days": 0.0
+  },
+  "sp500_full": {
+    "cumulative_return": 275.48,
+    "cagr": 12.08,
+    "mdd": -33.92,
+    "sharpe": 0.73,
+    "win_rate": 100.0,
+    "avg_holding_days": 4239.0,
+    "trade_count": 1,
+    "profit_factor": 999.0,
+    "calmar": 0.36,
+    "avg_drawdown_days": 19.5
+  }
+}

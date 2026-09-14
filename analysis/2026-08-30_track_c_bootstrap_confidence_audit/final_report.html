@@ -1,0 +1,342 @@
+<title>트랙 C 부트스트랩 신뢰도 감사</title>
+<style>
+
+:root{
+  color-scheme: light;
+  --bg-page:#eef1ee; --surface:#ffffff; --surface-2:#f4f6f3;
+  --ink:#12181a; --ink-2:#495550; --ink-muted:#828d87;
+  --hairline:#d7ddd6; --border:rgba(11,11,11,0.10);
+  --accent:#1f4d3d; --accent-ink:#ffffff; --accent-2:#8a6a1f;
+  --accent-2-soft:#f2e6c8; --accent-soft:#e2ebe6; --chart-surface:#fcfcfb;
+  --blue:#2a78d6; --orange:#eb6834; --aqua:#1baf7a; --red:#e34948;
+  --gridline:#e1e0d9; --axis:#c3c2b7; --delta-pos:#184f95; --delta-neg:#b3261e;
+  --code-bg:#f4f6f3; --shadow: 0 1px 2px rgba(20,30,25,0.04), 0 8px 24px -16px rgba(20,30,25,0.18);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg-page:#0f1210; --surface:#171b16; --surface-2:#1c211b;
+    --ink:#f2f4f0; --ink-2:#c4cbc2; --ink-muted:#8b958a;
+    --hairline:#2c332a; --border:rgba(255,255,255,0.10);
+    --accent:#5aab89; --accent-ink:#0b1310; --accent-2:#d9b45c;
+    --accent-2-soft:#332a13; --accent-soft:#1b2921; --chart-surface:#1a1a19;
+    --blue:#3987e5; --orange:#d95926; --aqua:#199e70; --red:#e66767;
+    --gridline:#2c2c2a; --axis:#3a3f38; --delta-pos:#86b6ef; --delta-neg:#ff8a80;
+    --code-bg:#1c211b; --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -16px rgba(0,0,0,0.5);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg-page:#0f1210; --surface:#171b16; --surface-2:#1c211b;
+  --ink:#f2f4f0; --ink-2:#c4cbc2; --ink-muted:#8b958a;
+  --hairline:#2c332a; --border:rgba(255,255,255,0.10);
+  --accent:#5aab89; --accent-ink:#0b1310; --accent-2:#d9b45c;
+  --accent-2-soft:#332a13; --accent-soft:#1b2921; --chart-surface:#1a1a19;
+  --blue:#3987e5; --orange:#d95926; --aqua:#199e70; --red:#e66767;
+  --gridline:#2c2c2a; --axis:#3a3f38; --delta-pos:#86b6ef; --delta-neg:#ff8a80;
+  --code-bg:#1c211b; --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -16px rgba(0,0,0,0.5);
+}
+*{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{ margin:0; background:var(--bg-page); color:var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif; line-height:1.6; font-size:16px; }
+.serif{ font-family: "Iowan Old Style","Palatino Linotype", Georgia, serif; }
+.mono, .num, td.num, .tk-name, .kpi-value, code {
+  font-family: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+  font-variant-numeric: tabular-nums; }
+a{ color:var(--accent); }
+.wrap{ max-width: 1020px; margin:0 auto; padding: 0 24px 96px; }
+.masthead{ background: var(--accent); color: var(--accent-ink); padding: 56px 24px 40px; }
+.masthead-inner{ max-width:1020px; margin:0 auto; }
+.masthead-eyebrow{ font-size:12.5px; letter-spacing:0.12em; text-transform:uppercase; opacity:0.82;
+  font-family: ui-monospace, "SF Mono", Consolas, monospace; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.masthead-eyebrow .dot{ opacity:0.5; }
+h1.masthead-title{ font-family:"Iowan Old Style","Palatino Linotype", Georgia, serif; font-weight:600;
+  font-size: clamp(28px, 4.2vw, 44px); line-height:1.15; margin: 14px 0 10px; text-wrap: balance; max-width: 32ch; }
+.masthead-sub{ font-size:16.5px; max-width:74ch; opacity:0.92; margin:0 0 22px; }
+.masthead-meta{ display:flex; flex-wrap:wrap; gap: 10px 26px; font-size:13.5px; opacity:0.85;
+  border-top:1px solid rgba(255,255,255,0.22); padding-top:16px; }
+.masthead-meta b{ font-weight:600; }
+.section{ padding: 52px 0 8px; border-top:1px solid var(--hairline); }
+.section:first-of-type{ border-top:none; }
+.section h2{ font-family:"Iowan Old Style","Palatino Linotype", Georgia, serif; font-size: 25px;
+  font-weight:600; margin: 0 0 16px; display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+.sec-no{ font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size:13px; color: var(--accent);
+  border:1px solid var(--accent); border-radius:3px; padding:2px 6px; font-weight:600; letter-spacing:0.02em; }
+.section h3{ font-size:17.5px; margin: 30px 0 10px; font-weight:650; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.section h4{ font-size:15px; margin: 20px 0 8px; font-weight:650; color:var(--ink-2); }
+.lede{ font-size:16.5px; color:var(--ink-2); max-width:76ch; }
+.section p{ max-width:80ch; }
+.section > p, .section > .lede { margin-top: 0; }
+.section li{ max-width:76ch; }
+.callout{ background: var(--surface-2); border:1px solid var(--hairline); border-left: 3px solid var(--accent);
+  border-radius: 6px; padding: 18px 22px; margin: 20px 0 26px; }
+.callout-title{ font-size:11.5px; text-transform:uppercase; letter-spacing:0.08em; color:var(--accent);
+  font-weight:700; margin-bottom:8px; }
+.callout p{ margin:0; max-width:none; }
+.callout p + p{ margin-top:10px; }
+.callout.warn{ border-left-color: var(--delta-neg); }
+.callout.warn .callout-title{ color: var(--delta-neg); }
+.caveat{ font-size:14.5px; color:var(--ink-2); background:var(--surface-2); border-radius:6px;
+  padding:14px 18px; border:1px dashed var(--hairline); margin: 14px 0; }
+.kpi-row{ display:grid; grid-template-columns:repeat(auto-fit, minmax(190px,1fr)); gap:14px; margin: 20px 0 8px; }
+.kpi-tile{ background:var(--surface); border:1px solid var(--hairline); border-radius:8px; padding:16px 18px; box-shadow: var(--shadow); }
+.kpi-label{ font-size:12.5px; color:var(--ink-muted); margin-bottom:6px; }
+.kpi-value{ font-size:24px; font-weight:600; line-height:1.1; }
+.kpi-value.pos{ color:var(--delta-pos); }
+.kpi-value.neg{ color:var(--delta-neg); }
+.kpi-sub{ font-size:12.5px; color:var(--ink-muted); margin-top:4px; }
+.table-wrap{ overflow-x:auto; border:1px solid var(--hairline); border-radius:8px; background:var(--surface); }
+table.data-table{ width:100%; border-collapse:collapse; font-size:13.5px; min-width:720px; }
+table.data-table th{ text-align:right; font-weight:600; font-size:11.5px; color:var(--ink-muted); text-transform:uppercase;
+  letter-spacing:0.03em; padding:10px 12px; border-bottom:1px solid var(--hairline); white-space:nowrap; }
+table.data-table th:first-child, table.data-table td:first-child{ text-align:left; }
+table.data-table td{ padding:8px 12px; border-bottom:1px solid var(--hairline); text-align:right; white-space:nowrap; }
+table.data-table tbody tr:hover{ background:var(--surface-2); }
+table.data-table tbody tr:last-child td{ border-bottom:none; }
+td.tk-cell{ text-align:left !important; }
+td.tk-cell .tk-name{ font-weight:650; margin-right:8px; }
+.strong{ font-weight:700; }
+tr.warn-row{ background: rgba(179,38,30,0.08); }
+tr.hero-row{ background: rgba(31,77,61,0.08); }
+footer{ max-width:1020px; margin:40px auto 0; padding: 26px 24px 10px; border-top:1px solid var(--hairline);
+  font-size:12.5px; color:var(--ink-muted); }
+footer p{ max-width:none; }
+.toc{ display:flex; flex-wrap:wrap; gap:8px 18px; margin: 24px 0 4px; padding:16px 20px; background:var(--surface);
+  border:1px solid var(--hairline); border-radius:8px; }
+.toc a{ font-size:13.5px; color:var(--ink-2); text-decoration:none; }
+.toc a:hover{ color:var(--accent); text-decoration:underline; }
+.verdict-badge{ display:inline-block; font-size:12px; font-weight:700; letter-spacing:0.03em;
+  padding:3px 10px; border-radius:20px; text-transform:uppercase; }
+.v-accept{ background: var(--accent-soft); color: var(--accent); border:1px solid var(--accent); }
+.v-reject{ background: rgba(179,38,30,0.10); color: var(--delta-neg); border:1px solid var(--delta-neg); }
+.v-partial{ background: var(--accent-2-soft); color: var(--accent-2); border:1px solid var(--accent-2); }
+.confidence-grade{ display:inline-block; font-size:12px; font-weight:700; padding:2px 9px; border-radius:4px; }
+.grade-A{ background: var(--accent-soft); color:var(--accent); }
+.grade-B{ background: var(--accent-2-soft); color:var(--accent-2); }
+.grade-C{ background: rgba(179,38,30,0.10); color:var(--delta-neg); }
+
+</style>
+
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="masthead-eyebrow">
+      <span>QUANT RESEARCH NOTE</span><span class="dot">·</span><span>트랙 C 재감사</span><span class="dot">·</span><span>Hypothesis-Driven Study</span>
+    </div>
+    <h1 class="masthead-title">트랙D의 엄밀함을 트랙C로: IREN 챔피언과 베타헤지 판정이 표본오차 앞에서 어떻게 바뀌는가</h1>
+    <p class="masthead-sub">트랙D(작업39~47)는 디리클레 기저확률 몬테카를로 + 원형 이동블록부트스트랩을
+      결합해 "채택"으로 보였던 판정 대부분이 실은 동전던지기에 가까운 "약함" 등급이라는 걸 반복
+      확인했다. 트랙C의 IREN 추세추종 챔피언(작업27)과 베타/알파 헤징 4가설(작업28)은 이 감사를 한
+      번도 받지 않았다 — 이 리포트가 그 갭을 처음으로 메운다.</p>
+    <div class="masthead-meta">
+      <span><b>기준일</b> 2026-09-04</span>
+      <span><b>블록부트스트랩</b> 조합당 2,000회, 블록길이 10일, 20일, 40일</span>
+      <span><b>시나리오 MC</b> 10,000 draws, 디리클레 K=15, 30, 60</span>
+      <span><b>대상</b> 감사1 IREN 추세추종 · 감사2 H1/H3 베타헤징</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <nav class="toc">
+    <a href="#scope">00 문제 제기</a>
+    <a href="#audit1">01 감사1 — IREN 추세추종 챔피언</a>
+    <a href="#audit2">02 감사2 — 베타/알파 헤징 H1·H3</a>
+    <a href="#synthesis">03 종합 — 트랙C 결론들의 갱신된 신뢰도</a>
+    <a href="#limitations">04 한계</a>
+  </nav>
+
+  <section class="section" id="scope">
+    <h2><span class="sec-no">00</span> 문제 제기 — 트랙D가 개발한 엄밀함을 트랙C에 왜, 어떻게 적용하는가</h2>
+    <p class="lede">트랙D 15~19라운드(작업42~45)의 반복된 발견: 6개 위기 창을 어떻게 가중하느냐의
+      불확실성(디리클레 몬테카를로)만 보면 "채택" 판정이 90~99% 확신처럼 보이지만, 그 6개 숫자 자체가
+      얼마나 정확한지(블록부트스트랩 표본오차)까지 더하면 대부분 50~60%대의 "약함" 등급으로 무너진다
+      — 심지어 방향(어느 쪽이 이기는가)조차 바뀌지 않았는데도 "확신"이라는 단어를 쓸 근거가 사라진다.
+      트랙C의 두 핵심 결론 — IREN류 바스켓의 추세추종 챔피언(작업27, 순열검정만 받음)과 베타/알파
+      헤징 H1·H3(작업28, 단순 백테스트 1회 비교만 받음) — 은 이 감사를 받은 적이 없다.</p>
+    <p>트랙D의 "6개 위기 아키타입"(2008 GFC·COVID·2022 약세장·2018 급락·2015-16 조정·전체기간)은
+      17자산 다중사이클 로테이션 챔피언 얘기라 그대로 옮겨붙일 수 없다 — 이 종목군(IREN·CIFR·CLSK·
+      WULF·HUT·BTDR)은 2008년에 존재하지도 않았다. 대신 감사2에서는 이 바스켓이 실제로 겪은 4개의
+      뚜렷한 국면(크립토 강세장 2020-21 → 크립토 겨울 2022 → AI 피벗 재평가 2023-25 → 2026 최신구간)
+      을 "시나리오 아키타입"으로 재정의하고, 그 국면이 표본 안에서 차지한 실제 거래일 비중을 기저확률
+      추정치로 삼는다(정답이 아니라 하나의 정직한 가정이라는 걸 명시하고 디리클레 집중도 K=15/30/60
+      스윕으로 민감도를 함께 보고한다). 감사1은 순수하게 통계적 신뢰구간(부트스트랩)의 문제라 별도의
+      시나리오 가중치 없이 원본 백테스트 수익률에 직접 적용한다.</p>
+  </section>
+
+  <section class="section" id="audit1">
+    <h2><span class="sec-no">01</span> 감사1 — IREN 추세추종 챔피언(20일 돈치안+15% 트레일링스탑)</h2>
+    <p class="lede">작업32(H3, 트랙D)가 200회 셔플 순열검정으로 확인한 건 "이 신호가 우연한 셔플
+      대비 특별한가"였다 — 바스켓은 93번째 백분위(p≈0.075, 5% 문턱 미달), IREN 단일종목은 100번째
+      백분위(p≈0.005)로 훨씬 강했다. 이번 감사는 다른 질문을 던진다: "그 샤프비율 자체가 표본오차로
+      얼마나 흔들리는가?" — 원본 backtest.py의 신호·비용 로직을 그대로 재실행해 공통구간
+      (2022-05-19~2026-08-18, n=1064거래일)의
+      실제 일별 전략수익률을 복원하고, H33/H34와 동일한 원형 이동블록부트스트랩을 적용했다.</p>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>구성</th><th>블록길이</th><th>n_obs</th><th>점추정 샤프</th><th>90% 부트스트랩 CI</th><th>P(샤프≤0)</th></tr></thead>
+        <tbody><tr><td class="tk-cell"><span class="tk-name">IREN 단일종목</span></td><td class="num">10일</td><td class="num">1064</td><td class="num">+1.225</td><td class="num">[+0.461, +1.987]</td><td class="num">0.50%</td></tr><tr><td class="tk-cell"><span class="tk-name">IREN 단일종목</span></td><td class="num">20일</td><td class="num">1064</td><td class="num">+1.225</td><td class="num">[+0.388, +2.010]</td><td class="num">0.80%</td></tr><tr><td class="tk-cell"><span class="tk-name">IREN 단일종목</span></td><td class="num">40일</td><td class="num">1064</td><td class="num">+1.225</td><td class="num">[+0.377, +2.051]</td><td class="num">0.70%</td></tr><tr><td class="tk-cell"><span class="tk-name">6종목 바스켓</span></td><td class="num">10일</td><td class="num">1064</td><td class="num">+1.306</td><td class="num">[+0.484, +2.158]</td><td class="num">0.35%</td></tr><tr><td class="tk-cell"><span class="tk-name">6종목 바스켓</span></td><td class="num">20일</td><td class="num">1064</td><td class="num">+1.306</td><td class="num">[+0.440, +2.147]</td><td class="num">0.75%</td></tr><tr><td class="tk-cell"><span class="tk-name">6종목 바스켓</span></td><td class="num">40일</td><td class="num">1064</td><td class="num">+1.306</td><td class="num">[+0.405, +2.138]</td><td class="num">0.70%</td></tr></tbody>
+      </table>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi-tile"><div class="kpi-label">IREN 단일 90% CI 폭 (L=20)</div>
+        <div class="kpi-value">1.62</div>
+        <div class="kpi-sub">[+0.39, +2.01]</div></div>
+      <div class="kpi-tile"><div class="kpi-label">바스켓 90% CI 폭 (L=20)</div>
+        <div class="kpi-value">1.71</div>
+        <div class="kpi-sub">[+0.44, +2.15]</div></div>
+    </div>
+    <div class="callout">
+      <div class="callout-title">순열검정의 비대칭이 부트스트랩에서는 재현되지 않는다</div>
+      <p>순열검정은 바스켓(93pct)과 IREN 단일(100pct) 사이에 뚜렷한 격차를 보였지만, 블록부트스트랩
+        결과는 정반대로 <b>두 버전이 거의 똑같이 넓고 똑같이 0을 배제한다</b> — IREN 단일 90% CI
+        1.62, 바스켓 1.71로 폭 차이가 미미하고, 두 구성 모두
+        L=10/20/40 전 블록길이에서 P(샤프≤0)가 1% 안팎에 불과하다. 이건 모순이 아니라 두 검정이
+        서로 다른 질문에 답한다는 뜻이다 — 순열검정은 "이 신호가 무작위 셔플된 가짜 신호보다 나은가"
+        를 묻고, 부트스트랩은 "이 점추정치 자체가 재표본추출에도 안정적인가"를 묻는다. 즉 작업27이
+        원래 "IREN 단일종목이 과최적화 위험이 낮아 보인다"고 조심스럽게 적었던 것과 달리, <b>표본오차
+        관점에서는 바스켓과 단일종목의 강건성에 실질적 차이가 없다</b> — 공통구간이 짧다는(약
+        1064거래일, ≈4.2년) 근본적 한계가 두 버전에 똑같이 적용되기
+        때문이다. 다만 두 CI 모두 0을 넉넉히 배제한다는 점에서, "이 챔피언 자체가 순수 노이즈"라는
+        가장 비관적인 해석은 이 감사로도 기각된다 — CI 폭 자체(대략 1.6~1.7 샤프 단위)가 여전히 커서
+        "실전에서 얼마의 샤프가 나올지"를 좁게 예측할 근거는 아니라는 게 정직한 결론이다.</p>
+    </div>
+  </section>
+
+  <section class="section" id="audit2">
+    <h2><span class="sec-no">02</span> 감사2 — 베타/알파 헤징 H1(시장베타헤지)·H3(BAB 저베타틸트)</h2>
+    <p class="lede">작업28은 H1을 "0/7종목 샤프 개선, 기각"으로, H3를 "주표본 채택·강건성표본
+      역전, 부분채택"으로 결론지었다 — 둘 다 전체구간 단일 백테스트 비교뿐이었다. 이번 감사는 위
+      00절에서 정의한 4개 시나리오 아키타입별로 원본 h1/h3 로직을 재실행해 일별수익률을 복원하고,
+      H33b와 동일한 3단계 전파(가중치만/표본오차만/결합)로 승률을 계산했다.</p>
+
+    <h3>H1 — 7종목 바스켓, 무헤지(베이스라인) vs 롤링베타헤지(챌린저)</h3>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>아키타입</th><th>n_obs</th><th>무헤지 점추정</th><th>90% CI</th><th>헤지 점추정</th><th>90% CI</th></tr></thead>
+        <tbody><tr class="warn-row"><td class="tk-cell"><span class="tk-name">크립토 강세장 2020-21</span> (데이터 부족, 기저확률 계산 제외)</td><td class="num">0</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td></tr><tr class="warn-row"><td class="tk-cell"><span class="tk-name">크립토 겨울 2022</span> (데이터 부족, 기저확률 계산 제외)</td><td class="num">0</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td></tr><tr class=""><td class="tk-cell"><span class="tk-name">AI 피벗 재평가 2023-25</span></td><td class="num">360</td><td class="num">+1.145</td><td class="num">[-0.156, +2.523]</td><td class="num">+0.806</td><td class="num">[-0.435, +2.099]</td></tr><tr class=""><td class="tk-cell"><span class="tk-name">2026 최신구간</span></td><td class="num">157</td><td class="num">+0.888</td><td class="num">[-0.754, +2.687]</td><td class="num">-0.030</td><td class="num">[-1.462, +1.706]</td></tr></tbody>
+      </table>
+    </div>
+    <p class="caveat">⚠️ 크립토 강세장(2020-21)·크립토 겨울(2022) 두 아키타입은 7종목(IREN·CIFR·
+      BTDR 등 상장이 늦은 종목 포함) 교집합 데이터가 사실상 없어(n_obs=0) 기저확률 계산에서 제외했다
+      — 이 바스켓 자체가 최근 몇 년의 국면만 겪었다는 트랙C 고유의 한계가 여기서도 그대로 드러난다.
+      유효 아키타입은 AI피벗재평가(2023-25, 기저확률 69.6%)와
+      2026최신구간(30.4%) 둘뿐이다.</p>
+
+    <h3>H3 — 6종목 주표본, EW(베이스라인) vs 저베타틸트 LB(챌린저)</h3>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>아키타입</th><th>n_obs</th><th>EW 점추정</th><th>90% CI</th><th>LB 점추정</th><th>90% CI</th></tr></thead>
+        <tbody><tr class="warn-row"><td class="tk-cell"><span class="tk-name">크립토 강세장 2020-21</span> (데이터 부족, 기저확률 계산 제외)</td><td class="num">0</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td></tr><tr class=""><td class="tk-cell"><span class="tk-name">크립토 겨울 2022</span></td><td class="num">191</td><td class="num">-2.226</td><td class="num">[-3.887, -0.521]</td><td class="num">-2.156</td><td class="num">[-3.801, -0.480]</td></tr><tr class=""><td class="tk-cell"><span class="tk-name">AI 피벗 재평가 2023-25</span></td><td class="num">752</td><td class="num">+1.517</td><td class="num">[+0.506, +2.432]</td><td class="num">+1.236</td><td class="num">[+0.186, +2.274]</td></tr><tr class=""><td class="tk-cell"><span class="tk-name">2026 최신구간</span></td><td class="num">157</td><td class="num">+0.871</td><td class="num">[-0.743, +2.573]</td><td class="num">+0.885</td><td class="num">[-0.607, +2.655]</td></tr></tbody>
+      </table>
+    </div>
+
+    <h3>가중치×표본오차 결합 전파</h3>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>가설</th><th>가중치만(H30 방식)</th><th>표본오차만</th><th>결합</th><th>90% CI(격차, 챌린저−베이스라인)</th><th>등급</th></tr></thead>
+        <tbody>
+          <tr class="warn-row"><td class="tk-cell"><span class="tk-name">H1 시장베타헤지</span></td>
+            <td class="num">0.0%</td><td class="num">29.9%</td><td class="num">30.7%</td>
+            <td class="num">[-2.019, +1.003]</td>
+            <td><span class="confidence-grade grade-C">약함(동전던지기 근처)</span></td></tr>
+          <tr><td class="tk-cell"><span class="tk-name">H3 저베타틸트</span></td>
+            <td class="num">0.0%</td><td class="num">40.9%</td><td class="num">40.5%</td>
+            <td class="num">[-1.317, +0.967]</td>
+            <td><span class="confidence-grade grade-C">약함(동전던지기 근처)</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout warn">
+      <div class="callout-title">두 판정 모두 트랙D의 반대 방향으로 움직인다 — "부분채택"이 오히려 더 약해진다</div>
+      <p>트랙D의 반복 패턴은 "가중치만으로 90%대 확신 → 표본오차 결합 시 50%대로 하락"이었다. 여기서는
+        정반대 출발점이다: <b>가중치만 반영하면 H1·H3 둘 다 챌린저(헤지/저베타) 승률이 정확히 0%</b>다
+        — 유효한 아키타입 전 구간에서 기저확률을 아무리 흔들어도(K=15/30/60 전부 0%) 헤지·저베타가
+        이기는 가중치 조합이 단 하나도 없다는 뜻이다(H1은 두 유효 아키타입 모두, H3는 지배적 비중
+        68%을 차지하는 AI피벗구간에서
+        챌린저가 진다). 표본오차까지 결합하면 승률이 H1 30.7%, H3 40.5%로 올라오지만
+        — 이건 "확신이 무너진다"가 아니라 "원래도 지는 쪽이었는데, 표본오차를 넉넉히 허용하면 아주
+        가끔은 이길 수도 있다"는 정반대 의미다. H1의 "기각" 판정은 이 감사로 오히려 <b>더 굳어졌다</b>
+        (원래도 명백한 기각이었는데, 이제는 시나리오 불확실성을 다 넣어도 뒤집히지 않는다는 것까지
+        확인). H3의 "부분채택"은 <b>더 약해졌다</b> — 원래 주표본(2015-2026 전체, 6.75년)에서는
+        LB가 EW·MOM·HB를 모두 이겼지만, 이 감사가 쓰는 최근 국면 중심 재가중(AI피벗구간이 압도적
+        비중을 차지)에서는 LB가 그 지배적 구간 자체에서 진다 — H3가 스스로 밝혔던 "강건성표본에서
+        역전됐다"는 경고가 이번에도 재확인된 셈이다.</p>
+    </div>
+  </section>
+
+  <section class="section" id="synthesis">
+    <h2><span class="sec-no">03</span> 종합 — 트랙C 결론들의 갱신된 신뢰도</h2>
+    <p class="lede">트랙D가 20라운드에 걸쳐 확인한 패턴은 "방향은 대개 유지되지만 확신은 거의 항상
+      약해진다"였다. 트랙C를 처음으로 같은 잣대에 세워보니, 그 패턴이 그대로 반복되는 판정(감사1)과
+      오히려 정반대로 움직이는 판정(감사2)이 공존한다는 게 이번 라운드의 핵심 발견이다.</p>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>판정</th><th>원래(작업27/28)</th><th>이번 감사 결과</th><th>방향</th></tr></thead>
+        <tbody>
+          <tr class="hero-row"><td class="tk-cell"><span class="tk-name">IREN 단일 추세추종</span></td>
+            <td>순열검정 100pct(p≈0.005), "강함"</td>
+            <td>부트스트랩 90% CI [+0.39, +2.01], 0 배제하지만 폭 1.62</td>
+            <td>유지 (CI 넓지만 0 배제)</td></tr>
+          <tr class="warn-row"><td class="tk-cell"><span class="tk-name">바스켓 추세추종</span></td>
+            <td>순열검정 93pct(p≈0.075), "문턱 미달"</td>
+            <td>부트스트랩 90% CI [+0.44, +2.15], IREN 단일과 사실상 동일한 폭</td>
+            <td>재평가 — 순열검정만큼 단일종목과 차이나지 않음</td></tr>
+          <tr><td class="tk-cell"><span class="tk-name">H1 시장베타헤지</span></td>
+            <td>0/7종목 개선, "기각"</td>
+            <td>가중치만 0% 승률, 결합 30.7% 승률 — <span class="confidence-grade grade-C">약함(동전던지기 근처)</span></td>
+            <td>기각 판정 강화</td></tr>
+          <tr><td class="tk-cell"><span class="tk-name">H3 저베타틸트</span></td>
+            <td>주표본 채택, 강건성표본 역전, "부분채택"</td>
+            <td>가중치만 0% 승률, 결합 40.5% 승률 — <span class="confidence-grade grade-C">약함(동전던지기 근처)</span></td>
+            <td>부분채택 판정 약화, 기각에 근접</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>트랙D와 비교하면: 트랙D는 6개 창 모두 실제 백테스트 데이터를 갖고 있어 "가중치 재표본"만으로도
+      상당한 신뢰(90%대)를 만들 수 있었고, 표본오차를 더하면 그 신뢰가 깎였다. 트랙C의 감사2는
+      정반대다 — 애초에 이 바스켓이 겪은 국면이 적고(4개 중 2개는 데이터가 아예 없어 제외) 그마저도
+      압도적으로 한 국면(AI피벗재평가)에 쏠려 있어서, 가중치를 아무리 흔들어도 결론이 안 바뀌는 "0%
+      아니면 100%에 가까운" 극단적으로 확정적인 결과가 나왔다 — 이건 "확신이 강하다"는 뜻이 아니라
+      "애초에 판정을 좌우할 만큼 다양한 국면 표본 자체가 부족하다"는 뜻으로 읽어야 한다. 감사1은
+      트랙D 패턴과 결이 비슷하다(넓은 CI, 그러나 방향 유지) — 다만 트랙D처럼 "90%대에서 50%대로
+      추락"하는 극적인 붕괴는 아니고, 애초에 순열검정 자체가 정성적으로 다른 질문에 답했다는 걸
+      재확인했을 뿐이다. <b>종합하면 트랙C의 두 축 모두 원래 결론의 방향은 유지되지만, "얼마나 확신할
+      수 있는가"에 대한 근거는 트랙D와 마찬가지로 겸허해져야 한다 — 특히 H3의 "부분채택"은 이번
+      감사로 사실상 "기각에 가까움"으로 재분류하는 게 더 정직하다.</b></p>
+  </section>
+
+  <section class="section" id="limitations">
+    <h2><span class="sec-no">04</span> 한계</h2>
+    <ul>
+      <li>감사2의 시나리오 아키타입(크립토강세장/크립토겨울/AI피벗재평가/2026최신)은 트랙D의 위기
+        아키타입처럼 수십 년치 거시경제 문헌으로 뒷받침되는 범주가 아니라, 이 특정 종목군의 짧은
+        역사(2020년 이후)를 사후적으로 4구간으로 나눈 것이다 — "다음 국면이 이 4개 중 하나를 닮을
+        것"이라는 가정 자체가 트랙D의 위기 유형 가정보다 훨씬 약하다.</li>
+      <li>H1의 크립토강세장(2020-21)·크립토겨울(2022) 두 아키타입은 7종목 교집합 데이터가 없어
+        완전히 제외됐다 — 즉 감사2의 결론은 사실상 "2023년 이후 국면에서만" 검증된 것이고, 이 바스켓이
+        오리지널 채굴주였던 초기 국면의 헤징 효과는 이번 감사에 전혀 반영되지 않았다.</li>
+      <li>블록부트스트랩은 여전히 "역사적으로 실현된 하나의 경로가 대표성 있다"는 전제 위에 있다 —
+        실제로 일어난 적 없는 다른 경로(예: BTC가 이 구간에 반토막났다면)는 만들어내지 못한다. 특히
+        crypto_winter_2022 아키타입(H3, n=191일)처럼 짧은 창은 CI가 넓고 불안정하다.</li>
+      <li>감사1의 순열검정 vs 부트스트랩 비교는 두 방법이 답하는 질문이 다르다는 것 자체가 결론이라,
+        "부트스트랩이 순열검정보다 우월하다"는 뜻으로 읽으면 안 된다 — 오히려 두 검정을 함께 봐야
+        완전한 그림이 된다는 게 이 절의 요지다.</li>
+      <li>거래비용 모형(왕복 0.1%)·생존편향(현재 시점에 살아남은 6~7종목만 사용)은 원본 트랙C 리포트
+        의 한계를 그대로 물려받았다 — 이번 감사는 표본오차만 다뤘을 뿐 모형오차(specification error)
+        는 다루지 않는다.</li>
+      <li>H1/H3 원본 스크립트가 저장하지 않은 일별 수익률 시계열을 이번에 새로 복원했다 — 원본
+        h1_market_beta_hedge.py/h3_low_beta_tilt.py와 동일한 함수(rolling_beta, one_factor_ols 등)를
+        그대로 재사용했지만, 재계산된 점추정 샤프가 작업28의 report_data.json 원본과 소수점 단위까지
+        일치하는지 자동화된 diff로 재검증하지는 않았다(로직이 동일하므로 실질적 차이는 없을 것으로
+        본다).</li>
+    </ul>
+  </section>
+
+</div>
+
+<footer>
+  <p>QUANT RESEARCH · 트랙C 부트스트랩 신뢰도 감사 · IREN 추세추종 챔피언 + H1/H3 베타헤징 재감사 ·
+    기준일 2026-09-04 · 이 문서는 투자 조언이 아니며 저자 개인의 연구 기록입니다.</p>
+</footer>

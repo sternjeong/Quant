@@ -1,0 +1,23 @@
+/workspaces/Quant/analysis/macro_event_study_2026-08-21/fomc_cpi_cross_study.py:26: FutureWarning: The default fill_method='pad' in Series.pct_change is deprecated and will be removed in a future version. Either fill in any non-leading NA values prior to calling pct_change or specify 'fill_method=None' to not fill NA values.
+  cpi_yoy = cpi.pct_change(12) * 100
+$^GSPC: possibly delisted; no price data found  (1d 1989-01-01 -> 1989-01-02)
+
+1 Failed download:
+['^GSPC']: possibly delisted; no price data found  (1d 1989-01-01 -> 1989-01-02)
+인하 이벤트(CPI 매칭됨): 40건
+
+=== 기존 축: 침체 여부(NBER) ===
+[침체 중 인하] n=16, +20일=-0.551%(승률56.2%), +60일=-0.599%(승률37.5%)
+[보험성 인하] n=24, +20일=0.65%(승률66.7%), +60일=1.529%(승률66.7%)
+
+=== 새 축: 물가 가속/감속 ===
+[물가가속 중 인하] n=16, +20일=0.012%(승률50.0%), +60일=-0.304%(승률50.0%)
+[물가감속 중 인하] n=24, +20일=0.275%(승률70.8%), +60일=1.332%(승률58.3%)
+
+=== 두 축 동시 교차(2x2) ===
+[침체+물가가속] n=7, +20일=-0.806%(승률42.9%), +60일=1.065%(승률42.9%)
+[침체+물가감속] n=9, +20일=-0.353%(승률66.7%), +60일=-1.892%(승률33.3%)
+[비침체+물가가속] n=9, +20일=0.648%(승률55.6%), +60일=-1.368%(승률55.6%)
+[비침체+물가감속(진짜 보험성)] n=15, +20일=0.651%(승률73.3%), +60일=3.267%(승률73.3%)
+
+DONE

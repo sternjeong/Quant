@@ -1,0 +1,19 @@
+2005-01-01 이후 금리변경 이벤트: 53건 (인상 32, 인하 21)
+$GLD: possibly delisted; no price data found  (1d 2004-06-01 -> 2004-11-17) (Yahoo error = "Data doesn't exist for startDate = 1086062400, endDate = 1100667600")
+
+1 Failed download:
+['GLD']: possibly delisted; no price data found  (1d 2004-06-01 -> 2004-11-17) (Yahoo error = "Data doesn't exist for startDate = 1086062400, endDate = 1100667600")
+
+=== 채권(TLT) ===
+  [인상] n=32, +60일=-1.51%(승률50.0%)
+  [인하] n=21, +60일=0.165%(승률42.9%)
+
+=== 금(GLD) ===
+  [인상] n=32, +60일=3.09%(승률68.8%)
+  [인하] n=21, +60일=9.124%(승률81.0%)
+
+=== 달러지수 ===
+  [인상] n=32, +60일=0.371%(승률62.5%)
+  [인하] n=21, +60일=-0.218%(승률47.6%)
+
+DONE

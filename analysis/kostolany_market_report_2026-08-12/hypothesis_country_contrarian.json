@@ -1,0 +1,90 @@
+{
+  "no_tilt(세션15 최선안)": {
+    "1998_2012": {
+      "cumulative_return": 115.97,
+      "cagr": 5.27,
+      "mdd": -43.12,
+      "sharpe": 0.42,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.12,
+      "avg_drawdown_days": 52.1
+    },
+    "2013_2026": {
+      "cumulative_return": 68.64,
+      "cagr": 3.92,
+      "mdd": -26.64,
+      "sharpe": 0.38,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.15,
+      "avg_drawdown_days": 71.1
+    },
+    "full_1998_2026": {
+      "cumulative_return": 270.27,
+      "cagr": 4.68,
+      "mdd": -43.12,
+      "sharpe": 0.4,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.11,
+      "avg_drawdown_days": 70.4
+    }
+  },
+  "contrarian_laggard_tilt(신가설)": {
+    "1998_2012": {
+      "cumulative_return": 116.27,
+      "cagr": 5.28,
+      "mdd": -41.55,
+      "sharpe": 0.42,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.13,
+      "avg_drawdown_days": 48.5
+    },
+    "2013_2026": {
+      "cumulative_return": 90.76,
+      "cagr": 4.86,
+      "mdd": -25.11,
+      "sharpe": 0.44,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.19,
+      "avg_drawdown_days": 57.0
+    },
+    "full_1998_2026": {
+      "cumulative_return": 319.46,
+      "cagr": 5.14,
+      "mdd": -41.55,
+      "sharpe": 0.43,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.12,
+      "avg_drawdown_days": 59.8
+    }
+  },
+  "sp500_full": {
+    "cumulative_return": 695.16,
+    "cagr": 7.52,
+    "mdd": -56.78,
+    "sharpe": 0.47,
+    "win_rate": 100.0,
+    "avg_holding_days": 10447.0,
+    "trade_count": 1,
+    "profit_factor": 999.0,
+    "calmar": 0.13,
+    "avg_drawdown_days": 33.6
+  }
+}

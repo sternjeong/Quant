@@ -1,0 +1,72 @@
+{
+  "XLF": {
+    "label": "금융",
+    "hike_fwd60_mean": 0.39,
+    "cut_fwd60_mean": -4.49,
+    "n_hike": 43,
+    "n_cut": 34
+  },
+  "XLRE": {
+    "label": "리츠",
+    "hike_fwd60_mean": -1.52,
+    "cut_fwd60_mean": 0.75,
+    "n_hike": 20,
+    "n_cut": 11
+  },
+  "XLU": {
+    "label": "유틸리티",
+    "hike_fwd60_mean": 1.78,
+    "cut_fwd60_mean": -0.68,
+    "n_hike": 43,
+    "n_cut": 34
+  },
+  "XLK": {
+    "label": "기술",
+    "hike_fwd60_mean": 2.7,
+    "cut_fwd60_mean": -0.27,
+    "n_hike": 43,
+    "n_cut": 34
+  },
+  "XLY": {
+    "label": "임의소비재",
+    "hike_fwd60_mean": 0.48,
+    "cut_fwd60_mean": 1.45,
+    "n_hike": 43,
+    "n_cut": 34
+  },
+  "XLP": {
+    "label": "필수소비재",
+    "hike_fwd60_mean": 0.26,
+    "cut_fwd60_mean": 0.14,
+    "n_hike": 43,
+    "n_cut": 34
+  },
+  "XLE": {
+    "label": "에너지",
+    "hike_fwd60_mean": 2.85,
+    "cut_fwd60_mean": 1.27,
+    "n_hike": 43,
+    "n_cut": 34
+  },
+  "XLI": {
+    "label": "산업재",
+    "hike_fwd60_mean": 1.09,
+    "cut_fwd60_mean": -0.9,
+    "n_hike": 43,
+    "n_cut": 34
+  },
+  "XLV": {
+    "label": "헬스케어",
+    "hike_fwd60_mean": 0.94,
+    "cut_fwd60_mean": 0.93,
+    "n_hike": 43,
+    "n_cut": 34
+  },
+  "XLB": {
+    "label": "소재",
+    "hike_fwd60_mean": -0.37,
+    "cut_fwd60_mean": 1.8,
+    "n_hike": 43,
+    "n_cut": 34
+  }
+}

@@ -1,0 +1,299 @@
+{
+  "2015_2026": {
+    "regime_distribution": {
+      "쏠림강세": 1553,
+      "데이터부족": 574,
+      "횡보장": 547,
+      "약세장": 217,
+      "광범위강세": 27
+    },
+    "results": {
+      "baseline": {
+        "no_overlay": {
+          "cumulative_return": 168.64,
+          "cagr": 8.89,
+          "mdd": -36.01,
+          "sharpe": 0.61,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.25,
+          "avg_drawdown_days": 24.7
+        },
+        "final": {
+          "cumulative_return": 155.71,
+          "cagr": 8.43,
+          "mdd": -17.55,
+          "sharpe": 0.73,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.48,
+          "avg_drawdown_days": 25.5
+        }
+      },
+      "etf_tilt": {
+        "no_overlay": {
+          "cumulative_return": 217.99,
+          "cagr": 10.48,
+          "mdd": -37.28,
+          "sharpe": 0.69,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.28,
+          "avg_drawdown_days": 22.9
+        },
+        "final": {
+          "cumulative_return": 192.21,
+          "cagr": 9.68,
+          "mdd": -18.44,
+          "sharpe": 0.8,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.52,
+          "avg_drawdown_days": 24.4
+        }
+      },
+      "stock_tilt": {
+        "no_overlay": {
+          "cumulative_return": 93.88,
+          "cagr": 5.87,
+          "mdd": -39.72,
+          "sharpe": 0.4,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.15,
+          "avg_drawdown_days": 58.7
+        },
+        "final": {
+          "cumulative_return": 75.36,
+          "cagr": 4.96,
+          "mdd": -24.26,
+          "sharpe": 0.4,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.2,
+          "avg_drawdown_days": 58.9
+        }
+      },
+      "combined_tilt": {
+        "no_overlay": {
+          "cumulative_return": 161.97,
+          "cagr": 8.65,
+          "mdd": -36.73,
+          "sharpe": 0.57,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.24,
+          "avg_drawdown_days": 29.4
+        },
+        "final": {
+          "cumulative_return": 132.09,
+          "cagr": 7.52,
+          "mdd": -20.28,
+          "sharpe": 0.61,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.37,
+          "avg_drawdown_days": 32.6
+        }
+      }
+    },
+    "sp500_bh": {
+      "cumulative_return": 276.69,
+      "cagr": 12.11,
+      "mdd": -33.92,
+      "sharpe": 0.74,
+      "win_rate": 100.0,
+      "avg_holding_days": 4238.0,
+      "trade_count": 1,
+      "profit_factor": 999.0,
+      "calmar": 0.36,
+      "avg_drawdown_days": 19.5
+    },
+    "regime_breakdown": {
+      "약세장": {
+        "days": 217,
+        "baseline_mean_daily_pct": -0.012,
+        "etf_tilt_mean_daily_pct": -0.012
+      },
+      "횡보장": {
+        "days": 547,
+        "baseline_mean_daily_pct": -0.0509,
+        "etf_tilt_mean_daily_pct": -0.0509
+      },
+      "광범위강세": {
+        "days": 27,
+        "baseline_mean_daily_pct": 0.1789,
+        "etf_tilt_mean_daily_pct": 0.1789
+      },
+      "쏠림강세": {
+        "days": 1553,
+        "baseline_mean_daily_pct": 0.0578,
+        "etf_tilt_mean_daily_pct": 0.0698
+      }
+    }
+  },
+  "2000_2012": {
+    "regime_distribution": {
+      "쏠림강세": 1778,
+      "약세장": 767,
+      "횡보장": 664,
+      "광범위강세": 59
+    },
+    "results": {
+      "baseline": {
+        "no_overlay": {
+          "cumulative_return": 44.66,
+          "cagr": 2.88,
+          "mdd": -50.53,
+          "sharpe": 0.25,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.06,
+          "avg_drawdown_days": 65.9
+        },
+        "final": {
+          "cumulative_return": 40.14,
+          "cagr": 2.63,
+          "mdd": -34.08,
+          "sharpe": 0.26,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.08,
+          "avg_drawdown_days": 67.9
+        }
+      },
+      "etf_tilt": {
+        "no_overlay": {
+          "cumulative_return": 50.75,
+          "cagr": 3.21,
+          "mdd": -49.93,
+          "sharpe": 0.26,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.06,
+          "avg_drawdown_days": 73.8
+        },
+        "final": {
+          "cumulative_return": 47.4,
+          "cagr": 3.03,
+          "mdd": -37.06,
+          "sharpe": 0.28,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.08,
+          "avg_drawdown_days": 57.3
+        }
+      },
+      "stock_tilt": {
+        "no_overlay": {
+          "cumulative_return": 29.02,
+          "cagr": 1.98,
+          "mdd": -52.14,
+          "sharpe": 0.2,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.04,
+          "avg_drawdown_days": 146.9
+        },
+        "final": {
+          "cumulative_return": 28.09,
+          "cagr": 1.92,
+          "mdd": -39.65,
+          "sharpe": 0.2,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.05,
+          "avg_drawdown_days": 127.7
+        }
+      },
+      "combined_tilt": {
+        "no_overlay": {
+          "cumulative_return": 43.26,
+          "cagr": 2.81,
+          "mdd": -50.67,
+          "sharpe": 0.24,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.06,
+          "avg_drawdown_days": 77.3
+        },
+        "final": {
+          "cumulative_return": 42.18,
+          "cagr": 2.75,
+          "mdd": -38.52,
+          "sharpe": 0.26,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.07,
+          "avg_drawdown_days": 74.3
+        }
+      }
+    },
+    "sp500_bh": {
+      "cumulative_return": -2.55,
+      "cagr": -0.2,
+      "mdd": -56.78,
+      "sharpe": 0.1,
+      "win_rate": 0.0,
+      "avg_holding_days": 4742.0,
+      "trade_count": 1,
+      "profit_factor": 0.0,
+      "calmar": -0.0,
+      "avg_drawdown_days": 351.2
+    },
+    "regime_breakdown": {
+      "약세장": {
+        "days": 767,
+        "baseline_mean_daily_pct": -0.0331,
+        "etf_tilt_mean_daily_pct": -0.0331
+      },
+      "횡보장": {
+        "days": 664,
+        "baseline_mean_daily_pct": -0.0224,
+        "etf_tilt_mean_daily_pct": -0.0224
+      },
+      "광범위강세": {
+        "days": 59,
+        "baseline_mean_daily_pct": -0.0547,
+        "etf_tilt_mean_daily_pct": -0.0547
+      },
+      "쏠림강세": {
+        "days": 1778,
+        "baseline_mean_daily_pct": 0.0605,
+        "etf_tilt_mean_daily_pct": 0.0711
+      }
+    }
+  }
+}

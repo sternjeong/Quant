@@ -1,0 +1,34 @@
+
+==================== 강세장 ====================
+$XLC: possibly delisted; no price data found  (1d 2013-03-20 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1529294400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2013-03-20 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1529294400")
+$XLRE: possibly delisted; no price data found  (1d 2013-03-20 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1444190400")
+
+1 Failed download:
+['XLRE']: possibly delisted; no price data found  (1d 2013-03-20 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1444190400")
+/workspaces/Quant/analysis/kostolany_market_report_2026-08-12/hypothesis_dual_momentum_switch.py:49: FutureWarning: The behavior of DataFrame.idxmax with all-NA values, or any-NA and skipna=False, is deprecated. In a future version this will raise ValueError
+  best_defensive = pd.concat({"TLT": tlt_mom, "GLD": gld_mom}, axis=1).idxmax(axis=1)
+/workspaces/Quant/analysis/kostolany_market_report_2026-08-12/multi_regime_multi_strategy.py:63: FutureWarning: The behavior of DataFrame.idxmax with all-NA values, or any-NA and skipna=False, is deprecated. In a future version this will raise ValueError
+  leader = z_scores.idxmax(axis=1)
+리스크오프(SPY 12개월모멘텀<=0) 비율: 15.9%
+[baseline: 확정 시스템]: {'cumulative_return': 192.21, 'cagr': 9.68, 'mdd': -18.44, 'sharpe': 0.8, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.52, 'avg_drawdown_days': 24.4}
+[듀얼모멘텀 하드스위치]: {'cumulative_return': 113.31, 'cagr': 6.75, 'mdd': -23.4, 'sharpe': 0.61, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.29, 'avg_drawdown_days': 37.6}
+S&P500: {'cumulative_return': 276.69, 'cagr': 12.11, 'mdd': -33.92, 'sharpe': 0.74, 'win_rate': 100.0, 'avg_holding_days': 4238.0, 'trade_count': 1, 'profit_factor': 999.0, 'calmar': 0.36, 'avg_drawdown_days': 19.5}
+
+==================== 약세장포함 부분구간 ====================
+$GLD: possibly delisted; no price data found  (1d 2004-03-20 -> 2004-11-17) (Yahoo error = "Data doesn't exist for startDate = 1079758800, endDate = 1100667600")
+
+1 Failed download:
+['GLD']: possibly delisted; no price data found  (1d 2004-03-20 -> 2004-11-17) (Yahoo error = "Data doesn't exist for startDate = 1079758800, endDate = 1100667600")
+/workspaces/Quant/analysis/kostolany_market_report_2026-08-12/hypothesis_dual_momentum_switch.py:49: FutureWarning: The behavior of DataFrame.idxmax with all-NA values, or any-NA and skipna=False, is deprecated. In a future version this will raise ValueError
+  best_defensive = pd.concat({"TLT": tlt_mom, "GLD": gld_mom}, axis=1).idxmax(axis=1)
+/workspaces/Quant/analysis/kostolany_market_report_2026-08-12/multi_regime_multi_strategy.py:63: FutureWarning: The behavior of DataFrame.idxmax with all-NA values, or any-NA and skipna=False, is deprecated. In a future version this will raise ValueError
+  leader = z_scores.idxmax(axis=1)
+리스크오프(SPY 12개월모멘텀<=0) 비율: 26.8%
+[baseline: 확정 시스템]: {'cumulative_return': 39.61, 'cagr': 4.89, 'mdd': -26.79, 'sharpe': 0.4, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.18, 'avg_drawdown_days': 29.1}
+[듀얼모멘텀 하드스위치]: {'cumulative_return': 14.38, 'cagr': 1.94, 'mdd': -32.05, 'sharpe': 0.2, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.06, 'avg_drawdown_days': 17.4}
+S&P500: {'cumulative_return': 11.77, 'cagr': 1.61, 'mdd': -56.78, 'sharpe': 0.19, 'win_rate': 100.0, 'avg_holding_days': 2550.0, 'trade_count': 1, 'profit_factor': 999.0, 'calmar': 0.03, 'avg_drawdown_days': 17.1}
+
+DONE

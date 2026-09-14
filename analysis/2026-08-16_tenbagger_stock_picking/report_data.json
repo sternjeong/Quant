@@ -1,0 +1,524 @@
+{
+  "meta": {
+    "generated": "2026-08-16",
+    "universe_size": 503,
+    "universe_source": "S&P500 (core.screener.get_universe, 위키피디아 캐시)"
+  },
+  "market_regime": {
+    "regime": "강세장",
+    "total_score": 74.74643652536147,
+    "trend_position": {
+      "score": 25.0,
+      "above_200sma": true,
+      "close": 7783.169921875,
+      "sma200": 7074.88935546875,
+      "pct_vs_sma200": 10.011189303741741
+    },
+    "ma_cross": {
+      "score": 25.0,
+      "golden_cross": true,
+      "sma50": 7512.337421875,
+      "sma200": 7074.88935546875
+    },
+    "drawdown": {
+      "score": -0.25356347463852125,
+      "drawdown_pct": -0.202850779710817,
+      "is_bear_market_drawdown": false,
+      "week52_high": 7798.990234375
+    },
+    "breadth": {
+      "score": 25.0,
+      "pct_above_200sma": 72.85429141716567,
+      "is_overheated": false,
+      "n_total": 503,
+      "n_above": 365,
+      "n_data_ok": 501
+    },
+    "short_term": {
+      "1개월": {
+        "regime": "중립/혼조",
+        "period_return_pct": 3.310426276581069,
+        "window_days": 21
+      },
+      "3개월": {
+        "regime": "중립/혼조",
+        "period_return_pct": 3.7584409869722,
+        "window_days": 63
+      }
+    },
+    "benchmark_ticker": "^GSPC",
+    "computed_at": "2026-08-14T15:55:08.978710"
+  },
+  "theme_strength": {
+    "computed_at": "2026-08-14T15:55:08.978710",
+    "themes": [
+      {
+        "theme": "반도체",
+        "proxies": "SOXX, SMH",
+        "strength_factor": 46.0879274334,
+        "return_3m": 1.7415998396,
+        "return_6m": 48.945986373,
+        "return_12m": 103.3256976621,
+        "trend": "하락",
+        "trend_change": -9.653656235,
+        "rs_score": 100.0
+      },
+      {
+        "theme": "사이버보안",
+        "proxies": "CIBR",
+        "strength_factor": 35.3892125355,
+        "return_3m": 27.7501309051,
+        "return_6m": 53.7711301126,
+        "return_12m": 37.4313679157,
+        "trend": "상승",
+        "trend_change": 4.3082501419,
+        "rs_score": 95.0
+      },
+      {
+        "theme": "클라우드",
+        "proxies": "SKYY, WCLD",
+        "strength_factor": 33.9040757681,
+        "return_3m": 36.3915894288,
+        "return_6m": 49.0373642505,
+        "return_12m": 29.8735502694,
+        "trend": "상승",
+        "trend_change": 22.4665736453,
+        "rs_score": 90.0
+      },
+      {
+        "theme": "기술",
+        "proxies": "XLK",
+        "strength_factor": 23.5867692893,
+        "return_3m": 5.5821155771,
+        "return_6m": 36.1395649168,
+        "return_12m": 41.2693520073,
+        "trend": "상승",
+        "trend_change": 1.0171538409,
+        "rs_score": 85.0
+      },
+      {
+        "theme": "에너지",
+        "proxies": "XLE",
+        "strength_factor": 21.5650330158,
+        "return_3m": 6.6213212346,
+        "return_6m": 14.6998915165,
+        "return_12m": 44.5936509967,
+        "trend": "상승",
+        "trend_change": 3.2836518511,
+        "rs_score": 80.0
+      },
+      {
+        "theme": "우주",
+        "proxies": "UFO, ARKX, ROKT",
+        "strength_factor": 17.9834259153,
+        "return_3m": -7.3284584882,
+        "return_6m": 16.2819267194,
+        "return_12m": 51.291569536,
+        "trend": "상승",
+        "trend_change": 13.8636612284,
+        "rs_score": 75.0
+      },
+      {
+        "theme": "냉각",
+        "proxies": "DTCR",
+        "strength_factor": 17.8671089229,
+        "return_3m": -4.6716768267,
+        "return_6m": 12.0583689679,
+        "return_12m": 53.9841642764,
+        "trend": "상승",
+        "trend_change": 0.4474298117,
+        "rs_score": 70.0
+      },
+      {
+        "theme": "방산",
+        "proxies": "ITA",
+        "strength_factor": 15.9207199832,
+        "return_3m": 12.0645040374,
+        "return_6m": 8.1752868906,
+        "return_12m": 27.8085444878,
+        "trend": "상승",
+        "trend_change": 10.6987070911,
+        "rs_score": 65.0
+      },
+      {
+        "theme": "헬스케어",
+        "proxies": "XLV",
+        "strength_factor": 14.5572502023,
+        "return_3m": 14.256972027,
+        "return_6m": 7.3942331167,
+        "return_12m": 25.6921090111,
+        "trend": "상승",
+        "trend_change": 3.5643644926,
+        "rs_score": 60.0
+      },
+      {
+        "theme": "산업재",
+        "proxies": "XLI",
+        "strength_factor": 12.80373146,
+        "return_3m": 6.6987581281,
+        "return_6m": 7.785815889,
+        "return_12m": 22.114377076,
+        "trend": "상승",
+        "trend_change": 1.5564096396,
+        "rs_score": 55.0
+      },
+      {
+        "theme": "금융",
+        "proxies": "XLF",
+        "strength_factor": 11.8744101056,
+        "return_3m": 13.5016555146,
+        "return_6m": 12.6233346861,
+        "return_12m": 10.3392759754,
+        "trend": "상승",
+        "trend_change": 5.0743396553,
+        "rs_score": 50.0
+      },
+      {
+        "theme": "소재",
+        "proxies": "XLB",
+        "strength_factor": 7.560641556,
+        "return_3m": 1.5773223733,
+        "return_6m": -0.6530403346,
+        "return_12m": 15.37700302,
+        "trend": "상승",
+        "trend_change": 2.4777439032,
+        "rs_score": 45.0
+      },
+      {
+        "theme": "부동산",
+        "proxies": "XLRE",
+        "strength_factor": 6.0255648009,
+        "return_3m": 2.3184834814,
+        "return_6m": 5.6892556465,
+        "return_12m": 10.1144074832,
+        "trend": "하락",
+        "trend_change": -2.3105270851,
+        "rs_score": 40.0
+      },
+      {
+        "theme": "메모리/DRAM",
+        "proxies": "DRAM",
+        "strength_factor": 5.7352649786,
+        "return_3m": 5.7352649786,
+        "return_6m": NaN,
+        "return_12m": NaN,
+        "trend": "하락",
+        "trend_change": -44.7213555786,
+        "rs_score": 35.0
+      },
+      {
+        "theme": "필수소비재",
+        "proxies": "XLP",
+        "strength_factor": 3.043628179,
+        "return_3m": 1.4502223325,
+        "return_6m": -3.3601577979,
+        "return_12m": 4.3354776829,
+        "trend": "하락",
+        "trend_change": -2.2705680509,
+        "rs_score": 30.0
+      },
+      {
+        "theme": "임의소비재",
+        "proxies": "XLY",
+        "strength_factor": 0.539028649,
+        "return_3m": -0.362349635,
+        "return_6m": 1.8169298719,
+        "return_12m": 2.8844852939,
+        "trend": "상승",
+        "trend_change": 1.654205292,
+        "rs_score": 25.0
+      },
+      {
+        "theme": "로보틱스",
+        "proxies": "BOTZ",
+        "strength_factor": -0.7113566769,
+        "return_3m": -8.3414406475,
+        "return_6m": -0.7112762494,
+        "return_12m": 9.9795684951,
+        "trend": "상승",
+        "trend_change": 3.7053603164,
+        "rs_score": 20.0
+      },
+      {
+        "theme": "유틸리티",
+        "proxies": "XLU",
+        "strength_factor": -0.7652494797,
+        "return_3m": -1.3919821353,
+        "return_6m": -2.1546927605,
+        "return_12m": 2.4054606241,
+        "trend": "하락",
+        "trend_change": -2.4029477693,
+        "rs_score": 15.0
+      },
+      {
+        "theme": "커뮤니케이션",
+        "proxies": "XLC",
+        "strength_factor": -1.3747954097,
+        "return_3m": -3.1175054154,
+        "return_6m": -3.1009038748,
+        "return_12m": 2.6031770944,
+        "trend": "하락",
+        "trend_change": -0.0916693278,
+        "rs_score": 10.0
+      },
+      {
+        "theme": "원자력",
+        "proxies": "NLR",
+        "strength_factor": -9.8306033865,
+        "return_3m": -11.4710265537,
+        "return_6m": -15.9780020391,
+        "return_12m": 2.4063278077,
+        "trend": "상승",
+        "trend_change": 15.8546456792,
+        "rs_score": 5.0
+      }
+    ]
+  },
+  "hot_sectors_gics": [
+    "Information Technology",
+    "Energy",
+    "Industrials"
+  ],
+  "theme_to_gics_top": [
+    {
+      "theme": "반도체",
+      "rs_score": 100.0,
+      "gics_sector": "Information Technology"
+    },
+    {
+      "theme": "사이버보안",
+      "rs_score": 95.0,
+      "gics_sector": "Information Technology"
+    },
+    {
+      "theme": "클라우드",
+      "rs_score": 90.0,
+      "gics_sector": "Information Technology"
+    },
+    {
+      "theme": "기술",
+      "rs_score": 85.0,
+      "gics_sector": "Information Technology"
+    },
+    {
+      "theme": "에너지",
+      "rs_score": 80.0,
+      "gics_sector": "Energy"
+    },
+    {
+      "theme": "우주",
+      "rs_score": 75.0,
+      "gics_sector": "Industrials"
+    }
+  ],
+  "screen_filters_stage1": {
+    "sectors": [
+      "Information Technology",
+      "Energy",
+      "Industrials"
+    ],
+    "market_cap_max": 30000000000,
+    "per_max": 60,
+    "above_sma200": true
+  },
+  "screen_stage1_results": [
+    {
+      "ticker": "HAL",
+      "name": "Halliburton Company",
+      "sector": "Energy",
+      "per": 18.020943,
+      "pbr": 2.607378,
+      "market_cap": 28676345856,
+      "price": 34.41999816894531,
+      "rsi": 55.56849448791532,
+      "above_sma200": true
+    },
+    {
+      "ticker": "HUBB",
+      "name": "Hubbell Incorporated",
+      "sector": "Industrials",
+      "per": 30.728563,
+      "pbr": 7.017814,
+      "market_cap": 27452860416,
+      "price": 511.3900146484375,
+      "rsi": 55.97227426293618,
+      "above_sma200": true
+    },
+    {
+      "ticker": "JBHT",
+      "name": "J.B. Hunt Transport Services, Inc.",
+      "sector": "Industrials",
+      "per": 39.844727,
+      "pbr": 7.182917,
+      "market_cap": 26268946432,
+      "price": 279.7099914550781,
+      "rsi": 52.93816163085426,
+      "above_sma200": true
+    },
+    {
+      "ticker": "EXPD",
+      "name": "Expeditors International of Washington, Inc.",
+      "sector": "Industrials",
+      "per": 27.091703,
+      "pbr": 11.421908,
+      "market_cap": 24193853440,
+      "price": 186.1199951171875,
+      "rsi": 66.15011822138851,
+      "above_sma200": true
+    },
+    {
+      "ticker": "VLTO",
+      "name": "Veralto Corporation",
+      "sector": "Industrials",
+      "per": 24.677582,
+      "pbr": 7.7251225,
+      "market_cap": 23884433408,
+      "price": 97.68000030517578,
+      "rsi": 59.820042582656654,
+      "above_sma200": true
+    },
+    {
+      "ticker": "LUV",
+      "name": "Southwest Airlines Co.",
+      "sector": "Industrials",
+      "per": 27.662498,
+      "pbr": 3.0574744,
+      "market_cap": 21652353024,
+      "price": 44.2599983215332,
+      "rsi": 40.96757792390864,
+      "above_sma200": true
+    },
+    {
+      "ticker": "SNA",
+      "name": "Snap-on Incorporated",
+      "sector": "Industrials",
+      "per": 20.579296,
+      "pbr": 3.4549594,
+      "market_cap": 20874997760,
+      "price": 403.55999755859375,
+      "rsi": 46.25732520358495,
+      "above_sma200": true
+    },
+    {
+      "ticker": "IEX",
+      "name": "IDEX Corporation",
+      "sector": "Industrials",
+      "per": 34.379856,
+      "pbr": 4.41158,
+      "market_cap": 17614632960,
+      "price": 238.94000244140625,
+      "rsi": 64.28901602086216,
+      "above_sma200": true
+    },
+    {
+      "ticker": "NDSN",
+      "name": "Nordson Corporation",
+      "sector": "Industrials",
+      "per": 33.300533,
+      "pbr": 5.4175944,
+      "market_cap": 17348339712,
+      "price": 308.7200012207031,
+      "rsi": 61.027755117655445,
+      "above_sma200": true
+    },
+    {
+      "ticker": "J",
+      "name": "Jacobs Solutions Inc.",
+      "sector": "Industrials",
+      "per": 49.043186,
+      "pbr": 5.2967343,
+      "market_cap": 17277239296,
+      "price": 144.66000366210938,
+      "rsi": 63.76810945325482,
+      "above_sma200": true
+    },
+    {
+      "ticker": "SWK",
+      "name": "Stanley Black & Decker, Inc.",
+      "sector": "Industrials",
+      "per": 24.95599,
+      "pbr": 1.7674459,
+      "market_cap": 15414267904,
+      "price": 102.06999969482422,
+      "rsi": 63.270103643884426,
+      "above_sma200": true
+    },
+    {
+      "ticker": "MAS",
+      "name": "Masco Corporation",
+      "sector": "Industrials",
+      "per": 17.126728,
+      "pbr": -40.156673,
+      "market_cap": 14656942080,
+      "price": 74.33000183105469,
+      "rsi": 45.84146766332589,
+      "above_sma200": true
+    },
+    {
+      "ticker": "APA",
+      "name": "APA Corporation",
+      "sector": "Energy",
+      "per": 8.537975,
+      "pbr": 2.0212767,
+      "market_cap": 14178726912,
+      "price": 40.470001220703125,
+      "rsi": 64.98148807275771,
+      "above_sma200": true
+    },
+    {
+      "ticker": "ALLE",
+      "name": "Allegion plc",
+      "sector": "Industrials",
+      "per": 21.653088,
+      "pbr": 6.615811,
+      "market_cap": 14012360704,
+      "price": 164.77999877929688,
+      "rsi": 64.71836089786035,
+      "above_sma200": true
+    },
+    {
+      "ticker": "GNRC",
+      "name": "Generac Holdings Inc.",
+      "sector": "Industrials",
+      "per": 49.62299,
+      "pbr": 4.4261723,
+      "market_cap": 12737113088,
+      "price": 219.3000030517578,
+      "rsi": 50.08978839972715,
+      "above_sma200": true
+    }
+  ],
+  "screen_filters_stage2": {
+    "peg_max": 1.5,
+    "earnings_growth_min_pct": 15.0,
+    "roe_proxy_min_pct": 15.0
+  },
+  "final_candidates": [
+    {
+      "ticker": "APA",
+      "name": "APA Corporation",
+      "sector": "Energy",
+      "market_cap": 14178726912,
+      "per": 8.216982,
+      "pbr": 2.0212767,
+      "peg": 0.2551857763975155,
+      "earnings_growth_pct": 32.2,
+      "roe_proxy_pct": 23.21252600459871,
+      "rsi": 64.98148807275771,
+      "above_sma200": true
+    },
+    {
+      "ticker": "JBHT",
+      "name": "J.B. Hunt Transport Services, Inc.",
+      "sector": "Industrials",
+      "market_cap": 26268946432,
+      "per": 39.844727,
+      "pbr": 7.182917,
+      "peg": 0.8699722052401746,
+      "earnings_growth_pct": 45.800000000000004,
+      "roe_proxy_pct": 18.027272026912506,
+      "rsi": 52.93816163085426,
+      "above_sma200": true
+    }
+  ]
+}

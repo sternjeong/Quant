@@ -8,22 +8,32 @@
 
 import html
 import json
+from typing import Optional
 
+import pandas as pd
+import plotly.graph_objects as go
 import streamlit as st
 import streamlit.components.v1 as components
 
+# 리서치 터미널풍 다크 팔레트 — 기존 Notion 스타일(#191919 회색조)보다 더 어둡고 채도 낮은 배경 +
+# 차트 패널(TRADINGVIEW_CHART_BG 등, 아래)과 톤을 맞춰 앱 크롬과 차트가 하나의 화면처럼 보이게 한다.
 _DARK = {
-    "bg": "#191919",
-    "bg_secondary": "#202020",
-    "text": "#e9e9e7",
-    "border": "#2f2f2f",
-    "accent": "#529cca",
+    "bg": "#0d0e12",
+    "bg_secondary": "#15161b",
+    "text": "#d7d8db",
+    "text_muted": "#888b93",
+    "border": "#262830",
+    "accent": "#2962ff",
+    "green": "#26a69a",
+    "red": "#ef5350",
 }
 
 _FONT = (
     '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, '
     '"Apple SD Gothic Neo", "Noto Sans KR", Arial, sans-serif'
 )
+
+_MONO = '"SF Mono", "Fira Code", Consolas, Menlo, monospace'
 
 
 def apply_theme() -> None:
@@ -63,10 +73,23 @@ def apply_theme() -> None:
 
         a {{ color: {c['accent']} !important; }}
 
-        div[data-testid="stMetric"], div[data-testid="stDataFrame"],
-        div[data-testid="stExpander"] {{
+        div[data-testid="stDataFrame"], div[data-testid="stExpander"], div[data-testid="stJson"] {{
             border: 1px solid {c['border']};
             border-radius: 8px;
+        }}
+
+        /* 통계 지표(st.metric)를 리서치 터미널 스타일 카드 타일로 — 배경/테두리 + 값은 모노스페이스 */
+        div[data-testid="stMetric"] {{
+            background-color: {c['bg_secondary']};
+            border: 1px solid {c['border']};
+            border-radius: 8px;
+            padding: 10px 14px 12px;
+        }}
+        div[data-testid="stMetricValue"] {{
+            font-family: {_MONO};
+        }}
+        div[data-testid="stMetricLabel"] {{
+            color: {c['text_muted']} !important;
         }}
 
         hr {{ border-color: {c['border']}; }}
@@ -244,6 +267,144 @@ def style_chart_like_tradingview(fig):
     )
     fig.update_yaxes(gridcolor=TRADINGVIEW_CHART_GRID, zerolinecolor=TRADINGVIEW_CHART_GRID, linecolor=TRADINGVIEW_CHART_GRID)
     return fig
+
+
+def render_drawdown_chart(drawdown: pd.Series, height: int = 220) -> go.Figure:
+    """underwater(드로다운) 영역 차트 — 자산가치가 직전 신고점 대비 몇 %나 빠져 있는지, 시간 흐름에
+    따라 채워진 영역으로 보여준다. `core.backtest_engine.compute_drawdown_series()`의 결과를 그대로
+    받는다(항상 0 이하 값)."""
+    fig = go.Figure()
+    fig.add_trace(
+        go.Scatter(
+            x=drawdown.index, y=drawdown.values, mode="lines", fill="tozeroy",
+            line=dict(width=1, color=_DARK["red"]),
+            fillcolor="rgba(239,83,80,0.25)",
+            name="드로다운",
+        )
+    )
+    fig.update_layout(
+        height=height, yaxis_title="드로다운(%)",
+        margin=dict(l=10, r=10, t=10, b=10), showlegend=False,
+    )
+    return style_chart_like_tradingview(fig)
+
+
+def render_monthly_returns_heatmap(monthly_returns: pd.DataFrame, height: int = 260):
+    """`core.backtest_engine.compute_monthly_returns()`가 만든 (연도×월) 수익률(%) 표를 히트맵으로
+    그린다. 양수=초록/음수=빨강(RdYlGn, 0을 중심으로 대칭)으로, 값이 없는 달(데이터 시작/끝 등)은
+    빈 셀로 남는다."""
+    months = [f"{m}월" for m in range(1, 13)]
+    years = [str(y) for y in monthly_returns.index]
+    z = monthly_returns.values
+    text = [["" if pd.isna(v) else f"{v:+.1f}" for v in row] for row in z]
+
+    fig = go.Figure(
+        data=go.Heatmap(
+            z=z, x=months, y=years, text=text, texttemplate="%{text}", textfont=dict(size=11),
+            colorscale="RdYlGn", zmid=0, showscale=False,
+            hovertemplate="%{y} %{x}: %{z:+.2f}%<extra></extra>",
+        )
+    )
+    fig.update_layout(height=height, margin=dict(l=10, r=10, t=10, b=10))
+    fig.update_yaxes(autorange="reversed")
+    return style_chart_like_tradingview(fig)
+
+
+def render_trade_pnl_histogram(trades: list, height: int = 220):
+    """완료된 매매의 손익률(%) 분포를 히스토그램으로 그린다 (승리=초록/손실=빨강).
+
+    `trades`는 `return_pct` 속성을 가진 객체 리스트(core.strategy_engine.Trade 등)를 그대로 받는다 —
+    `core.position_sizing.compute_trade_stats()`와 동일한 덕타이핑 관례."""
+    returns = [t.return_pct for t in trades if getattr(t, "return_pct", None) is not None]
+    fig = go.Figure()
+    if returns:
+        wins = [r for r in returns if r > 0]
+        losses = [r for r in returns if r <= 0]
+        if wins:
+            fig.add_trace(go.Histogram(x=wins, marker_color=_DARK["green"], name="승리", opacity=0.85))
+        if losses:
+            fig.add_trace(go.Histogram(x=losses, marker_color=_DARK["red"], name="손실", opacity=0.85))
+    fig.update_layout(
+        height=height, barmode="overlay", showlegend=False,
+        xaxis_title="매매 손익률(%)", yaxis_title="빈도",
+        margin=dict(l=10, r=10, t=10, b=10),
+    )
+    return style_chart_like_tradingview(fig)
+
+
+def render_status_bar(items: list[tuple[str, str]]) -> None:
+    """리서치 터미널 상단 상태바처럼, 짧은 라벨·값 쌍을 한 줄 모노스페이스 캡션으로 보여준다.
+
+    예: render_status_bar([("ENGINE", "LOCAL"), ("SAMPLE", "2020-01 → 2025-12"), ("BARS", "1512")])
+    """
+    text = "  ·  ".join(f"{label} {value}" for label, value in items)
+    st.markdown(
+        f'<div style="font-family:{_MONO};font-size:0.75rem;color:{_DARK["text_muted"]};padding:2px 0 10px;">🟢 {html.escape(text)}</div>',
+        unsafe_allow_html=True,
+    )
+
+
+def render_metric_card(label: str, value: str, tone: str = "neutral", sublabel: Optional[str] = None) -> None:
+    """st.metric 대신 값 색상을 직접 제어할 수 있는 카드 하나를 그린다 (양수/음수 부호가 아니라
+    "이 지표는 높을수록 좋은가/항상 나쁜 신호인가" 같은 의미론적 판단이 필요한 경우 호출부가 tone을
+    직접 정해야 하므로 st.metric의 자동 delta 색상만으로는 표현이 안 됨). tone: "good"/"bad"/"neutral"."""
+    color = {"good": _DARK["green"], "bad": _DARK["red"]}.get(tone, _DARK["text"])
+    sub_html = (
+        f'<div style="font-size:0.68rem;color:{_DARK["text_muted"]};margin-top:2px;">{html.escape(sublabel)}</div>'
+        if sublabel else ""
+    )
+    # HTML 태그 전체가 한 줄에 있어야 st.markdown이 안정적으로 렌더링한다 (render_gemini_usage_badge()
+    # 참고 — 여러 줄로 나누면 markdown이 일부를 코드블록/일반 텍스트로 오인해 "</div>" 같은 태그가
+    # 그대로 화면에 노출되는 경우가 실제로 발생함, 직접 확인함).
+    card_html = (
+        f'<div style="background:{_DARK["bg_secondary"]};border:1px solid {_DARK["border"]};border-radius:8px;padding:10px 14px 12px;">'
+        f'<div style="font-size:0.72rem;color:{_DARK["text_muted"]};">{html.escape(label)}</div>'
+        f'<div style="font-size:1.4rem;font-weight:600;font-family:{_MONO};color:{color};">{html.escape(value)}</div>'
+        f'{sub_html}'
+        f'</div>'
+    )
+    st.markdown(card_html, unsafe_allow_html=True)
+
+
+def render_verdict_panel(risk_bullets: list[str], permutation_result: Optional[dict] = None) -> None:
+    """전략 검증 요약 패널 — "무엇이 이 결과를 깨뜨릴 수 있는가"(데이터 기반 리스크 신호)와 "통계적으로
+    우연이 아니라고 볼 수 있는가"(순열검정 p-value, 실행했을 때만)를 한 곳에 모아 보여준다.
+
+    검증되지 않은 강한 주장(예: 실제 통과 여부를 알 수 없는데 "PASSES GATE" 같은 배지)을 만들어내지
+    않는다 — 순열검정을 아직 실행하지 않았으면 "미검증" 상태를 그대로 보여준다.
+    """
+    bullets_html = (
+        "".join(f'<li style="margin-bottom:4px;">{html.escape(b)}</li>' for b in risk_bullets)
+        if risk_bullets else
+        f'<li style="color:{_DARK["text_muted"]};">감지된 리스크 신호가 없습니다 (아래 항목 기준).</li>'
+    )
+
+    if permutation_result and permutation_result.get("permuted_metrics"):
+        p_value = permutation_result.get("p_value")
+        if p_value is not None and p_value < 0.05:
+            verdict_color, verdict_label = _DARK["green"], f"✅ 통계적 유의성 확인 (p={p_value:.4f})"
+        else:
+            pv = f"{p_value:.4f}" if p_value is not None else "N/A"
+            verdict_color, verdict_label = _DARK["red"], f"⚠️ 유의성 부족 (p={pv})"
+        verdict_detail = (
+            f"순열(무작위 재배열 데이터) {permutation_result.get('n_permutations', '?')}개 중 "
+            f"상위 {100 - permutation_result.get('percentile', 0):.1f}% 수준"
+        )
+    else:
+        verdict_color, verdict_label = _DARK["text_muted"], "🔬 미검증"
+        verdict_detail = "'순열검정' 탭에서 실행하면 우연(노이즈)만으로 이런 결과가 나올 확률(p-value)을 확인할 수 있습니다."
+
+    # (render_metric_card와 동일한 이유로) 태그 전체를 한 줄로 압축한다.
+    panel_html = (
+        f'<div style="background:{_DARK["bg_secondary"]};border:1px solid {_DARK["border"]};border-left:3px solid {verdict_color};border-radius:8px;padding:14px 16px;">'
+        f'<div style="font-size:0.72rem;color:{_DARK["text_muted"]};letter-spacing:0.03em;margin-bottom:6px;">⚠️ 무엇이 이 결과를 깨뜨릴 수 있는가</div>'
+        f'<ul style="margin:0 0 12px 0;padding-left:18px;font-size:0.85rem;">{bullets_html}</ul>'
+        f'<div style="font-size:0.72rem;color:{_DARK["text_muted"]};letter-spacing:0.03em;margin-bottom:4px;">검증 결과 (VERDICT)</div>'
+        f'<div style="font-family:{_MONO};font-size:0.95rem;color:{verdict_color};font-weight:600;">{html.escape(verdict_label)}</div>'
+        f'<div style="font-size:0.78rem;color:{_DARK["text_muted"]};margin-top:2px;">{html.escape(verdict_detail)}</div>'
+        f'</div>'
+    )
+    st.markdown(panel_html, unsafe_allow_html=True)
 
 
 # core.market_regime.historical_regime_segments()의 결과를 아무 Plotly Figure에나 겹쳐 그리기 위한

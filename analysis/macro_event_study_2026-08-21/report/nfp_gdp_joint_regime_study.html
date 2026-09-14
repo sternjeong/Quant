@@ -1,0 +1,344 @@
+<title>냉각이 세 번째엔 지지 않았다</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #eef1ee; --surface: #ffffff; --surface-2: #e6eae5;
+    --ink: #17211d; --ink-muted: #57635c; --ink-faint: #8b968f; --line: #d9dfd8;
+    --hike: #a8461f; --hike-soft: #f4e3da; --cut: #1f6e79; --cut-soft: #dcedee; --gold: #8a6d1f;
+    --gold-soft: #f1e9d2;
+    --shadow: 0 1px 2px rgba(23,33,29,.06), 0 8px 24px -12px rgba(23,33,29,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+      --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+      --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+      --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c; --gold-soft: #33291a;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+    --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+    --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+    --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c; --gold-soft: #33291a;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Public Sans", -apple-system, "Noto Sans KR", sans-serif;
+    font-size: 16px; line-height: 1.65;
+  }
+  ::selection { background: var(--gold); color: #1a1408; }
+  a { color: var(--cut); }
+  .page { max-width: 880px; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 1rem;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 500;
+    font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.08; letter-spacing: -.01em;
+    margin: 0 0 1rem; text-wrap: balance;
+  }
+  .dek { font-size: 1.15rem; color: var(--ink-muted); max-width: 62ch; margin: 0 0 1.75rem; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: .4rem 1.6rem;
+    font-family: "IBM Plex Mono", monospace; font-size: .82rem; color: var(--ink-muted);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: .85rem 0;
+  }
+  .meta-row b { color: var(--ink); font-weight: 600; }
+  section { margin: 3.2rem 0; }
+  section > h2 {
+    font-family: "Fraunces", serif; font-weight: 500; font-size: 1.6rem;
+    letter-spacing: -.005em; margin: 0 0 .3rem; text-wrap: balance;
+  }
+  section > h3 {
+    font-family: "Fraunces", serif; font-weight: 500; font-size: 1.18rem;
+    letter-spacing: -.005em; margin: 1.6rem 0 .5rem;
+  }
+  section > .lede { color: var(--ink-muted); max-width: 66ch; margin: 0 0 1.4rem; }
+  p { max-width: 68ch; }
+  .note {
+    background: var(--surface-2); border-left: 3px solid var(--gold); border-radius: 4px;
+    padding: .9rem 1.1rem; font-size: .93rem; color: var(--ink-muted); max-width: 68ch; margin: 1.1rem 0;
+  }
+  .note b { color: var(--ink); }
+  .callout {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.2rem 1.4rem; box-shadow: var(--shadow); margin: 1.4rem 0;
+  }
+  .hyp {
+    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--ink-faint);
+    border-radius: 8px; padding: 1rem 1.2rem; margin: 1rem 0; box-shadow: var(--shadow);
+  }
+  .hyp .tag {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: .4rem;
+  }
+  .verdict {
+    display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: .78rem;
+    letter-spacing: .06em; text-transform: uppercase; padding: .3rem .7rem; border-radius: 20px;
+    font-weight: 600; margin-left: .5rem;
+  }
+  .verdict.confirmed { background: var(--cut-soft); color: var(--cut); }
+  .verdict.disconfirmed { background: var(--hike-soft); color: var(--hike); }
+  .verdict.mixed { background: var(--gold-soft); color: var(--gold); border: 1px solid var(--gold); }
+
+  .grid2x2 { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; margin: 1.2rem 0; }
+  .quad {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1rem 1.1rem; box-shadow: var(--shadow);
+  }
+  .quad.highlight { border: 2px solid var(--gold); }
+  .quad .qlabel { font-family: "Fraunces", serif; font-weight: 500; font-size: 1rem; margin-bottom: .5rem; }
+  .quad .qn { font-family: "IBM Plex Mono", monospace; font-size: .72rem; color: var(--ink-faint); margin-bottom: .5rem; }
+  .quad .qstats { display: flex; gap: 1rem; }
+  .quad .qstats div { font-family: "IBM Plex Mono", monospace; }
+  .quad .qstats .k { font-size: .68rem; color: var(--ink-faint); }
+  .quad .qstats .v { font-weight: 600; font-size: 1.05rem; }
+  .quad .qstats .v.pos { color: var(--cut); }
+  .quad .qstats .v.neg { color: var(--hike); }
+  @media (max-width: 560px) { .grid2x2 { grid-template-columns: 1fr; } }
+
+  .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: .6rem; margin: 1rem 0 1.4rem; }
+  .stat-cell {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
+    text-align: center; padding: .7rem .3rem;
+  }
+  .stat-cell .k { font-size: .68rem; color: var(--ink-faint); margin-bottom: .25rem; font-family: "IBM Plex Mono", monospace;}
+  .stat-cell .v {
+    font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 1.05rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-cell .v.pos { color: var(--cut); }
+  .stat-cell .v.neg { color: var(--hike); }
+  @media (max-width: 560px) { .stat-row { grid-template-columns: repeat(2, 1fr); } }
+
+  .table-wrap { overflow-x: auto; margin: 1rem 0; border: 1px solid var(--line); border-radius: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: .88rem; background: var(--surface); }
+  th, td { padding: .55rem .75rem; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th { font-family: "IBM Plex Mono", monospace; font-size: .68rem; letter-spacing: .04em;
+    text-transform: uppercase; color: var(--ink-faint); text-align: right; background: var(--surface-2); }
+  td:first-child, th:first-child { text-align: left; }
+  tr:last-child td { border-bottom: none; }
+  td.pos { color: var(--cut); font-family: "IBM Plex Mono", monospace; }
+  td.neg { color: var(--hike); font-family: "IBM Plex Mono", monospace; }
+
+  ul.findings { padding-left: 1.2rem; max-width: 68ch; }
+  ul.findings li { margin-bottom: .9rem; }
+  ul.findings b { color: var(--ink); }
+
+  .footer {
+    margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--line);
+    font-size: .82rem; color: var(--ink-faint);
+  }
+  .footer a { color: var(--ink-faint); text-decoration: underline; }
+</style>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">MACRO EVENT STUDY · 트랙 A · 세 번째 교차검증 · 1994&ndash;2026</div>
+    <h1>고용×성장을 교차했더니, "냉각"이 이번엔 지지 않았다</h1>
+    <p class="dek">물가×성장(CPI×GDP), 고용×물가(NFP×CPI)에 이어 3대 거시지표(물가·성장·고용)의
+    마지막 남은 짝인 성장×고용(GDP×NFP)을 교차했다. 앞선 두 번의 교차검증에서 "냉각(둘 다
+    둔화)이 골디락스(둘 다 가속)를 근소하게 이긴다"는 패턴이 나왔는데, 이게 완전히 다른 지표
+    조합에서도 세 번째로 재현되는지가 이번 질문이다.</p>
+    <div class="meta-row">
+      <span>트리거 <b>NFP 발표일</b>(매월) · 배경변수 <b>GDP 성장 추세</b></span>
+      <span>교차분류 가능 <b>385건</b>(1994~2026)</span>
+      <span>칸당 표본 <b>n=82~116</b></span>
+    </div>
+  </header>
+
+  <section>
+    <h2>사전등록 가설 &mdash; 결과를 보기 전에 먼저 적어둔다</h2>
+    <p class="lede">계산 전에 기준을 못박고, 결과를 본 뒤 문구를 손대지 않는다.</p>
+
+    <div class="hyp">
+      <div class="tag">H1 (재현검증)</div>
+      <p style="margin:0;color:var(--ink-muted);">"고용둔화+성장둔화"("냉각" 칸)가 "고용가속+
+      성장가속"(진짜 "둘 다 좋음" = 골디락스에 해당하는 칸)보다 +60일 평균수익률이 더 높거나
+      비슷하다 &mdash; "냉각이 골디락스를 이기거나 최소한 대등하다"는 패턴이 완전히 다른 지표
+      조합에서 세 번째로 독립 재현되는지 검증한다.</p>
+    </div>
+    <div class="hyp">
+      <div class="tag">H2 (트리거 vs 배경변수 재확인)</div>
+      <p style="margin:0;color:var(--ink-muted);">이 2x2 안에서 배경변수인 GDP가 앞선 두
+      교차검증에서 CPI가 그랬던 것처럼 결과를 지배하는가, 아니면 트리거인 NFP가 더 큰 역할을
+      하는가? <b>사전 예측</b>: GDP는 원 4개 지표 비교에서 가장 큰 단독 격차(승률 79% vs 58%)를
+      보였지만 그건 "GDP가 그날의 뉴스일 때"에 국한된 것으로 이미 확인됐다 &mdash; 여기선
+      GDP가 배경변수이므로, CPI가 두 스터디에서 구조적으로 지배했던 것보다 GDP의 영향력은
+      더 약할 것으로 예측한다.</p>
+    </div>
+    <div class="hyp">
+      <div class="tag">H3 (표본 크기 사전 점검)</div>
+      <p style="margin:0;color:var(--ink-muted);">GDP는 분기당 3번만 발표되는 지표라 NFP×CPI
+      스터디의 칸당 n=79~114보다 표본이 작을 수 있다 &mdash; 칸당 n&lt;30이면 앞선 두 교차검증
+      보다 신뢰도가 낮은 재현임을 명시적으로 밝히고, 대등한 확신도로 보고하지 않는다.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>2x2 교차표 (+60거래일 기준)</h2>
+    <p class="lede">NFP 발표 시점에 이미 알려진 GDP 성장 추세를 배경변수로 태깅했다.</p>
+    <div class="grid2x2">
+      <div class="quad highlight">
+        <div class="qlabel">고용가속 + 성장가속 (골디락스형)</div>
+        <div class="qn">n=96</div>
+        <div class="qstats">
+          <div><div class="k">평균</div><div class="v pos">+2.56%</div></div>
+          <div><div class="k">승률</div><div class="v pos">71.9%</div></div>
+        </div>
+      </div>
+      <div class="quad">
+        <div class="qlabel">고용가속 + 성장둔화</div>
+        <div class="qn">n=91</div>
+        <div class="qstats">
+          <div><div class="k">평균</div><div class="v pos">+1.01%</div></div>
+          <div><div class="k">승률</div><div class="v pos">64.8%</div></div>
+        </div>
+      </div>
+      <div class="quad highlight">
+        <div class="qlabel">고용둔화 + 성장가속 &mdash; 전체 1위</div>
+        <div class="qn">n=82</div>
+        <div class="qstats">
+          <div><div class="k">평균</div><div class="v pos">+4.51%</div></div>
+          <div><div class="k">승률</div><div class="v pos">81.7%</div></div>
+        </div>
+      </div>
+      <div class="quad">
+        <div class="qlabel">고용둔화 + 성장둔화 ("냉각")</div>
+        <div class="qn">n=116</div>
+        <div class="qstats">
+          <div><div class="k">평균</div><div class="v pos">+1.36%</div></div>
+          <div><div class="k">승률</div><div class="v pos">61.2%</div></div>
+        </div>
+      </div>
+    </div>
+    <p class="note"><b>이번엔 "냉각"이 최하위권이었다.</b> 4칸 중 평균수익률·승률 모두 사실상
+    최저(+1.36%/61.2%)에 가깝다. 대신 전혀 예상 못한 조합 &mdash; "고용은 둔화되는데 성장은
+    가속"(+4.51%, 승률81.7%)이 이 프로젝트 전체를 통틀어서도 손꼽히게 강한 단일 신호로
+    나타났다.</p>
+  </section>
+
+  <section>
+    <h2>H1 검증 &mdash; 냉각이 세 번째도 골디락스를 이겼는가</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>비교</th><th>냉각(둘 다 둔화)</th><th>골디락스(둘 다 가속)</th><th>승자</th></tr></thead>
+        <tbody>
+          <tr><td>물가×성장(CPI×GDP)</td><td class="pos">승률 75.8%</td><td class="pos">승률 75.0%</td><td>냉각(근소)</td></tr>
+          <tr><td>고용×물가(NFP×CPI)</td><td class="pos">평균 +3.98%</td><td class="pos">평균 +3.55%*</td><td>냉각(근소)</td></tr>
+          <tr><td><b>성장×고용(GDP×NFP, 이번)</b></td><td class="neg">평균 +1.36% / 승률 61.2%</td><td class="pos">평균 +2.56% / 승률 71.9%</td><td><b>골디락스(뚜렷하게)</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">* NFP×CPI 스터디에서는 "골디락스"에 해당하는 칸이 "고용가속+물가감속"(승률
+    1위 칸)이었다 &mdash; 두 지표 조합마다 어느 칸이 "이상적인 조합"인지는 다르다.</p>
+    <p>이번엔 정반대였다. 냉각 칸(+1.36%, 승률 61.2%)이 골디락스 칸(+2.56%, 승률 71.9%)에
+    평균수익률·승률 둘 다에서 뚜렷하게 뒤졌다 &mdash; 앞선 두 번의 "근소한 역전"과 달리 격차도
+    작지 않다. 세 번째 시도에서 패턴이 깨졌다.</p>
+  </section>
+
+  <section>
+    <h2>H2 검증 &mdash; GDP(배경변수)가 CPI만큼 지배했는가</h2>
+    <div class="stat-row">
+      <div class="stat-cell"><div class="k">GDP축 효과<br>(NFP가속 내)</div><div class="v pos">1.55pp</div></div>
+      <div class="stat-cell"><div class="k">GDP축 효과<br>(NFP둔화 내)</div><div class="v pos">3.15pp</div></div>
+      <div class="stat-cell"><div class="k">NFP축 효과<br>(GDP가속 내)</div><div class="v pos">1.95pp</div></div>
+      <div class="stat-cell"><div class="k">NFP축 효과<br>(GDP둔화 내)</div><div class="v pos">0.35pp</div></div>
+    </div>
+    <p>참고로 NFP×CPI 스터디에서는 CPI축 효과가 2.92~3.10pp인데 NFP축 효과는 0.24~0.43pp뿐
+    &mdash; CPI가 NFP를 7~13배 압도했다. 이번 GDP×NFP에서는 GDP축 평균 효과(약 2.35pp)가
+    NFP축 평균 효과(약 1.15pp)보다는 크지만, 그 격차는 <b>약 2배 수준</b>으로 CPI의 7~13배
+    압도와는 비교가 안 된다. 사전 예측대로 <b>GDP(배경변수)의 지배력이 CPI(배경변수)보다
+    확실히 약했다</b> &mdash; 다만 완전히 무력하지는 않고 NFP보다는 여전히 더 큰 축이었다.</p>
+  </section>
+
+  <section>
+    <h2>H3 검증 &mdash; 표본이 정말 더 작았는가</h2>
+    <div class="stat-row">
+      <div class="stat-cell"><div class="k">골디락스<br>(가속+가속)</div><div class="v">n=96</div></div>
+      <div class="stat-cell"><div class="k">가속+둔화</div><div class="v">n=91</div></div>
+      <div class="stat-cell"><div class="k">둔화+가속</div><div class="v">n=82</div></div>
+      <div class="stat-cell"><div class="k">냉각<br>(둔화+둔화)</div><div class="v">n=116</div></div>
+    </div>
+    <p>예상과 달리 <b>표본이 작지 않았다</b>. NFP를 트리거로 고정했기 때문에(매월 발표) GDP
+    발표일이 아니라 NFP 발표일 기준으로 이벤트를 셌고, 그 결과 칸당 n=82~116으로 NFP×CPI
+    스터디(n=79~114)와 거의 동일한 규모다. "GDP가 분기 지표라 표본이 작을 것"이라는 우려는
+    트리거를 NFP로 고정하는 설계 선택 덕분에 실제로는 발생하지 않았다.</p>
+  </section>
+
+  <section>
+    <h2>가설별 최종 판정</h2>
+
+    <div class="hyp">
+      <div class="tag">H1<span class="verdict disconfirmed">재현 안 됨(NOT REPLICATED)</span></div>
+      <p style="margin:0;color:var(--ink-muted);">냉각 칸(+1.36%, 승률61.2%)이 골디락스 칸
+      (+2.56%, 승률71.9%)에 평균·승률 둘 다 뚜렷하게 뒤졌다. 이전 두 번의 "냉각이 근소하게
+      이김"과 정반대 결과 &mdash; 이 패턴은 모든 지표 조합에 적용되는 보편 법칙이 아니라, 특정
+      조합(물가가 낀 조합)에서만 나타나는 현상일 가능성이 커졌다. 이번 조합에서는 오히려
+      "고용은 식어도 성장이 가속되는" 예상 밖의 칸이 압도적 1위였다(+4.51%, 승률81.7%) &mdash;
+      다음 과제로 남겨둘 만한 새 발견이다.</p>
+    </div>
+    <div class="hyp">
+      <div class="tag">H2<span class="verdict confirmed">확인</span></div>
+      <p style="margin:0;color:var(--ink-muted);">GDP(배경변수)의 영향력이 NFP(트리거)보다
+      크긴 했지만(약 2배), CPI가 두 스터디에서 보인 7~13배 압도적 지배력에는 훨씬 못 미쳤다
+      &mdash; "GDP의 힘은 그날의 뉴스일 때만 강하고, 배경변수로 쓰이면 CPI만큼 지배적이지
+      않다"는 사전 예측과 일치.</p>
+    </div>
+    <div class="hyp">
+      <div class="tag">H3<span class="verdict disconfirmed">기각(예상과 반대)</span></div>
+      <p style="margin:0;color:var(--ink-muted);">칸당 n=82~116으로
+      NFP×CPI 스터디와 대등한 규모였다 &mdash; 표본이 작을 거라는 우려는 트리거를 NFP로 고정한
+      설계 덕분에 실현되지 않았다. 이번 결과는 앞선 두 교차검증과 대등한 확신도로 볼 수 있다.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>경제학 지식 없이 읽는 법</h2>
+    <ul class="findings">
+      <li><b>"두 지표가 같이 나쁘면 오히려 좋다"는 패턴이 만능은 아니었다.</b> 물가가 낀
+      조합(CPI×GDP, NFP×CPI)에서는 두 번 다 "냉각"이 근소하게 앞섰지만, 물가가 빠지고 성장·
+      고용만 남은 이번 조합에서는 정반대였다 &mdash; 아마도 "물가가 식는다"는 신호 자체가
+      워낙 강력해서 다른 지표와 짝지어도 그 힘을 유지했던 것이지, "아무 두 지표나 같이
+      나쁘면 좋다"는 보편 법칙은 아니라는 뜻일 수 있다.</li>
+      <li><b>제일 뜻밖의 승자는 "고용은 식는데 성장은 오히려 가속"하는 조합이었다.</b> 언뜻
+      모순처럼 들리지만, 고용은 대체로 성장보다 늦게 반응하는 지표라(경기가 좋아져도 채용은
+      몇 달 뒤에 늘어남) 이런 조합이 "이제 막 좋아지기 시작한 초기 국면"을 포착했을 가능성이
+      있다.</li>
+      <li><b>어떤 지표를 "배경"으로 놓고 어떤 지표를 "그날의 사건"으로 놓느냐가 결과를 계속
+      바꾼다.</b> 이 프로젝트에서 벌써 세 번째로 확인된 교훈 &mdash; 같은 지표라도 트리거냐
+      배경이냐에 따라 영향력이 완전히 달라진다.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>한계</h2>
+    <div class="callout">
+      <ul class="findings" style="margin:0;">
+        <li><b>NFP·GDP 모두 진짜 컨센서스 대비 서프라이즈가 아니라 추세(모멘텀) 프록시다.</b>
+        기존 두 스터디와 동일한 한계이며, 무료 컨센서스 데이터가 없어 이 프로젝트 전체에
+        걸쳐 계속되는 제약이다.</li>
+        <li><b>"고용둔화+성장가속" 1위 칸은 이번에 처음 발견된 결과라 아직 다른 각도로
+        재검증되지 않았다.</b> 우연일 가능성을 배제할 수 없다 &mdash; 다음 과제로 이 칸만
+        따로 파고드는 후속 검증이 필요하다.</li>
+        <li><b>GDP 배경변수 태깅에 1개월 시차 컷오프를 적용했지만, 실제 GDP 속보치 발표
+        시차(분기 종료 후 약 1개월)와 정확히 일치하지 않을 수 있다</b> &mdash; 기존
+        `gdp_release_event_study.py`와 동일한 컷오프를 그대로 재사용했다.</li>
+        <li><b>3개 교차검증(CPI×GDP, NFP×CPI, GDP×NFP)으로 "물가가 낀 조합에서만 냉각이
+        이긴다"는 재해석을 시도했지만, 이것도 세 번의 사례로 내린 잠정적 결론이다.</b></li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="footer">
+    데이터: FRED(PAYEMS, GDPC1) · Yahoo Finance(^GSPC) · 관련 리포트:
+    <a href="https://claude.ai/code/artifact/5063fd3a-c2f3-417b-9076-b1206552de15">고용지표가 선명해지는 순간</a>(NFP×CPI) ·
+    분석 스크립트: nfp_gdp_joint_regime_study.py
+  </div>
+</div>

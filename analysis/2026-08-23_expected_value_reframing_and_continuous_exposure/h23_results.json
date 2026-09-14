@@ -1,0 +1,468 @@
+{
+  "meta": {
+    "satellite_weight_on": 0.15,
+    "vix_calm": 15.0,
+    "vix_panic": 30.0,
+    "spy_dd_saturation": 0.15,
+    "logistic_steepness": 6.0,
+    "episode_order": [
+      "gfc_2008",
+      "correction_2015_2016",
+      "selloff_2018",
+      "bear_2022",
+      "covid_2020",
+      "full_2019_2026"
+    ],
+    "formula": "crisis_prob = sigmoid(6*(soft_or(vix_component, spy_component) - 0.5)); satellite_weight = 0.15*(1-crisis_prob)"
+  },
+  "episodes": {
+    "gfc_2008": {
+      "full_period": [
+        "2007-01-01",
+        "2009-12-31"
+      ],
+      "crisis_window": [
+        "2007-10-01",
+        "2009-06-30"
+      ],
+      "windows": {
+        "full_period": {
+          "core_alone": {
+            "cumulative_return": 35.58,
+            "cagr": 10.72,
+            "mdd": -15.85,
+            "sharpe": 0.75,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.68,
+            "avg_drawdown_days": 25.8,
+            "n_days": 755
+          },
+          "case_e_continuous_exposure": {
+            "cumulative_return": 34.61,
+            "cagr": 10.45,
+            "mdd": -15.99,
+            "sharpe": 0.75,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.65,
+            "avg_drawdown_days": 25.1,
+            "n_days": 755
+          }
+        },
+        "crisis_window": {
+          "core_alone": {
+            "cumulative_return": 6.1,
+            "cagr": 3.45,
+            "mdd": -15.85,
+            "sharpe": 0.29,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.22,
+            "avg_drawdown_days": 27.3,
+            "n_days": 441
+          },
+          "case_e_continuous_exposure": {
+            "cumulative_return": 4.5,
+            "cagr": 2.55,
+            "mdd": -15.99,
+            "sharpe": 0.24,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.16,
+            "avg_drawdown_days": 27.3,
+            "n_days": 441
+          }
+        }
+      },
+      "avg_daily_abs_delta_weight_full_period": 0.006701457346067341,
+      "mean_crisis_prob_full_period": 0.617848081456949,
+      "mean_satellite_weight_full_period": 0.05737559716143273,
+      "elapsed_s": 0.3
+    },
+    "correction_2015_2016": {
+      "full_period": [
+        "2014-06-01",
+        "2016-06-30"
+      ],
+      "crisis_window": [
+        "2015-08-01",
+        "2016-02-15"
+      ],
+      "windows": {
+        "full_period": {
+          "core_alone": {
+            "cumulative_return": -5.79,
+            "cagr": -2.83,
+            "mdd": -16.82,
+            "sharpe": -0.19,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.17,
+            "avg_drawdown_days": 14.6,
+            "n_days": 525
+          },
+          "case_e_continuous_exposure": {
+            "cumulative_return": -7.12,
+            "cagr": -3.5,
+            "mdd": -16.54,
+            "sharpe": -0.25,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.21,
+            "avg_drawdown_days": 13.6,
+            "n_days": 525
+          }
+        },
+        "crisis_window": {
+          "core_alone": {
+            "cumulative_return": -14.58,
+            "cagr": -25.79,
+            "mdd": -15.09,
+            "sharpe": -1.9,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.71,
+            "avg_drawdown_days": 1.0,
+            "n_days": 135
+          },
+          "case_e_continuous_exposure": {
+            "cumulative_return": -14.27,
+            "cagr": -25.28,
+            "mdd": -15.19,
+            "sharpe": -1.88,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.66,
+            "avg_drawdown_days": 0.0,
+            "n_days": 135
+          }
+        }
+      },
+      "avg_daily_abs_delta_weight_full_period": 0.006216151944309512,
+      "mean_crisis_prob_full_period": 0.19054912649171007,
+      "mean_satellite_weight_full_period": 0.12144264355423696,
+      "elapsed_s": 0.3
+    },
+    "selloff_2018": {
+      "full_period": [
+        "2017-06-01",
+        "2019-06-30"
+      ],
+      "crisis_window": [
+        "2018-09-01",
+        "2019-01-15"
+      ],
+      "windows": {
+        "full_period": {
+          "core_alone": {
+            "cumulative_return": 5.6,
+            "cagr": 2.66,
+            "mdd": -15.5,
+            "sharpe": 0.28,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.17,
+            "avg_drawdown_days": 6.1,
+            "n_days": 523
+          },
+          "case_e_continuous_exposure": {
+            "cumulative_return": 11.36,
+            "cagr": 5.33,
+            "mdd": -14.97,
+            "sharpe": 0.49,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.36,
+            "avg_drawdown_days": 15.4,
+            "n_days": 523
+          }
+        },
+        "crisis_window": {
+          "core_alone": {
+            "cumulative_return": -9.71,
+            "cagr": -24.45,
+            "mdd": -14.6,
+            "sharpe": -1.9,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.67,
+            "avg_drawdown_days": 6.7,
+            "n_days": 92
+          },
+          "case_e_continuous_exposure": {
+            "cumulative_return": -9.87,
+            "cagr": -24.83,
+            "mdd": -14.97,
+            "sharpe": -1.93,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.66,
+            "avg_drawdown_days": 5.7,
+            "n_days": 92
+          }
+        }
+      },
+      "avg_daily_abs_delta_weight_full_period": 0.005042262849005139,
+      "mean_crisis_prob_full_period": 0.15016852288962243,
+      "mean_satellite_weight_full_period": 0.12734419375260433,
+      "elapsed_s": 0.3
+    },
+    "bear_2022": {
+      "full_period": [
+        "2019-08-12",
+        "2026-08-19"
+      ],
+      "crisis_window": [
+        "2022-01-01",
+        "2022-12-31"
+      ],
+      "windows": {
+        "full_period": {
+          "core_alone": {
+            "cumulative_return": 139.19,
+            "cagr": 13.23,
+            "mdd": -17.74,
+            "sharpe": 1.03,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.75,
+            "avg_drawdown_days": 20.2,
+            "n_days": 1764
+          },
+          "case_e_continuous_exposure": {
+            "cumulative_return": 137.96,
+            "cagr": 13.15,
+            "mdd": -17.52,
+            "sharpe": 1.05,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.75,
+            "avg_drawdown_days": 22.2,
+            "n_days": 1764
+          }
+        },
+        "crisis_window": {
+          "core_alone": {
+            "cumulative_return": 2.19,
+            "cagr": 2.21,
+            "mdd": -11.05,
+            "sharpe": 0.24,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.2,
+            "avg_drawdown_days": 6.8,
+            "n_days": 251
+          },
+          "case_e_continuous_exposure": {
+            "cumulative_return": 2.03,
+            "cagr": 2.06,
+            "mdd": -10.98,
+            "sharpe": 0.23,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.19,
+            "avg_drawdown_days": 7.5,
+            "n_days": 251
+          }
+        }
+      },
+      "avg_daily_abs_delta_weight_full_period": 0.007814383300697631,
+      "mean_crisis_prob_full_period": 0.34662223377341433,
+      "mean_satellite_weight_full_period": 0.09803764518200034,
+      "elapsed_s": 0.3
+    },
+    "covid_2020": {
+      "full_period": [
+        "2019-01-01",
+        "2020-12-31"
+      ],
+      "crisis_window": [
+        "2020-02-19",
+        "2020-04-30"
+      ],
+      "windows": {
+        "full_period": {
+          "core_alone": {
+            "cumulative_return": 27.53,
+            "cagr": 12.98,
+            "mdd": -9.07,
+            "sharpe": 1.14,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 1.43,
+            "avg_drawdown_days": 15.3,
+            "n_days": 504
+          },
+          "case_e_continuous_exposure": {
+            "cumulative_return": 29.16,
+            "cagr": 13.7,
+            "mdd": -9.1,
+            "sharpe": 1.19,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 1.5,
+            "avg_drawdown_days": 16.8,
+            "n_days": 504
+          }
+        },
+        "crisis_window": {
+          "core_alone": {
+            "cumulative_return": 0.17,
+            "cagr": 0.86,
+            "mdd": -6.71,
+            "sharpe": 0.13,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.13,
+            "avg_drawdown_days": 31.0,
+            "n_days": 51
+          },
+          "case_e_continuous_exposure": {
+            "cumulative_return": -0.74,
+            "cagr": -3.74,
+            "mdd": -7.45,
+            "sharpe": -0.2,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.5,
+            "avg_drawdown_days": 0.0,
+            "n_days": 51
+          }
+        }
+      },
+      "avg_daily_abs_delta_weight_full_period": 0.00565621075013926,
+      "mean_crisis_prob_full_period": 0.40802495887819684,
+      "mean_satellite_weight_full_period": 0.08895309361833538,
+      "elapsed_s": 0.4
+    },
+    "full_2019_2026": {
+      "full_period": [
+        "2019-08-12",
+        "2026-08-19"
+      ],
+      "crisis_window": [
+        "2022-01-01",
+        "2022-12-31"
+      ],
+      "windows": {
+        "full_period": {
+          "core_alone": {
+            "cumulative_return": 139.19,
+            "cagr": 13.23,
+            "mdd": -17.74,
+            "sharpe": 1.03,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.75,
+            "avg_drawdown_days": 20.2,
+            "n_days": 1764
+          },
+          "case_e_continuous_exposure": {
+            "cumulative_return": 137.96,
+            "cagr": 13.15,
+            "mdd": -17.52,
+            "sharpe": 1.05,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.75,
+            "avg_drawdown_days": 22.2,
+            "n_days": 1764
+          }
+        },
+        "crisis_window": {
+          "core_alone": {
+            "cumulative_return": 2.19,
+            "cagr": 2.21,
+            "mdd": -11.05,
+            "sharpe": 0.24,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.2,
+            "avg_drawdown_days": 6.8,
+            "n_days": 251
+          },
+          "case_e_continuous_exposure": {
+            "cumulative_return": 2.03,
+            "cagr": 2.06,
+            "mdd": -10.98,
+            "sharpe": 0.23,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.19,
+            "avg_drawdown_days": 7.5,
+            "n_days": 251
+          }
+        }
+      },
+      "avg_daily_abs_delta_weight_full_period": 0.007814383300697631,
+      "mean_crisis_prob_full_period": 0.34662223377341433,
+      "mean_satellite_weight_full_period": 0.09803764518200034,
+      "elapsed_s": 0.4
+    }
+  },
+  "reaction_speed_covid_gfc": {
+    "covid_2020": {
+      "weight_at_crisis_start": 0.14288611902336498,
+      "weight_at_crisis_end": 0.007113880976634995,
+      "first_date_weight_below_half": "2020-02-25",
+      "first_date_weight_near_zero": "2020-02-28",
+      "min_weight_in_crisis_window": 0.007113880976634995
+    },
+    "gfc_2008": {
+      "weight_at_crisis_start": 0.12872234026492682,
+      "weight_at_crisis_end": 0.03634804994714638,
+      "first_date_weight_below_half": "2007-09-04",
+      "first_date_weight_near_zero": "2007-11-12",
+      "min_weight_in_crisis_window": 0.007113880976634995
+    }
+  }
+}

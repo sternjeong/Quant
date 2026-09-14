@@ -1,0 +1,541 @@
+{
+  "series_used": "BAA10Y (originally planned BAMLH0A0HYM2, truncated to 3yr by FRED policy 2026-04)",
+  "spread_history": {
+    "start": "1986-01-02",
+    "end": "2026-08-20",
+    "n": 10159
+  },
+  "primary_threshold": {
+    "type": "rolling_3yr_p90",
+    "window_days": 756,
+    "percentile": 0.9
+  },
+  "fixed_threshold_pp": 3.0,
+  "events_pctile": [
+    {
+      "date": "1990-11-30",
+      "pos": 1495,
+      "fwd_5d_pct": 1.716,
+      "fwd_20d_pct": 2.483,
+      "fwd_60d_pct": 14.127,
+      "fwd_120d_pct": 16.368,
+      "fwd_250d_pct": 17.299,
+      "recession": true
+    },
+    {
+      "date": "1991-12-20",
+      "pos": 1762,
+      "fwd_5d_pct": 7.26,
+      "fwd_20d_pct": 6.614,
+      "fwd_60d_pct": 5.713,
+      "fwd_120d_pct": 5.87,
+      "fwd_250d_pct": 11.492,
+      "recession": false
+    },
+    {
+      "date": "1992-09-24",
+      "pos": 1954,
+      "fwd_5d_pct": -0.521,
+      "fwd_20d_pct": -0.853,
+      "fwd_60d_pct": 5.451,
+      "fwd_120d_pct": 7.131,
+      "fwd_250d_pct": 8.24,
+      "recession": false
+    },
+    {
+      "date": "1998-08-21",
+      "pos": 3447,
+      "fwd_5d_pct": -5.004,
+      "fwd_20d_pct": -5.304,
+      "fwd_60d_pct": 5.053,
+      "fwd_120d_pct": 13.77,
+      "fwd_250d_pct": 22.414,
+      "recession": false
+    },
+    {
+      "date": "2000-10-11",
+      "pos": 3987,
+      "fwd_5d_pct": -1.646,
+      "fwd_20d_pct": 3.275,
+      "fwd_60d_pct": -5.037,
+      "fwd_120d_pct": -19.152,
+      "fwd_250d_pct": -20.124,
+      "recession": false
+    },
+    {
+      "date": "2000-11-17",
+      "pos": 4014,
+      "fwd_5d_pct": -1.371,
+      "fwd_20d_pct": -3.289,
+      "fwd_60d_pct": -3.006,
+      "fwd_120d_pct": -8.686,
+      "fwd_250d_pct": -16.867,
+      "recession": false
+    },
+    {
+      "date": "2001-08-08",
+      "pos": 4194,
+      "fwd_5d_pct": -0.466,
+      "fwd_20d_pct": -6.517,
+      "fwd_60d_pct": -5.723,
+      "fwd_120d_pct": -7.901,
+      "fwd_250d_pct": -23.635,
+      "recession": true
+    },
+    {
+      "date": "2002-06-18",
+      "pos": 4406,
+      "fwd_5d_pct": -5.882,
+      "fwd_20d_pct": -12.641,
+      "fwd_60d_pct": -14.485,
+      "fwd_120d_pct": -12.044,
+      "fwd_250d_pct": -2.545,
+      "recession": false
+    },
+    {
+      "date": "2007-08-15",
+      "pos": 5705,
+      "fwd_5d_pct": 4.078,
+      "fwd_20d_pct": 5.492,
+      "fwd_60d_pct": 4.839,
+      "fwd_120d_pct": -5.705,
+      "fwd_250d_pct": -8.325,
+      "recession": false
+    },
+    {
+      "date": "2008-06-30",
+      "pos": 5925,
+      "fwd_5d_pct": -0.492,
+      "fwd_20d_pct": -1.313,
+      "fwd_60d_pct": -7.354,
+      "fwd_120d_pct": -30.837,
+      "fwd_250d_pct": -28.211,
+      "recession": true
+    },
+    {
+      "date": "2012-05-22",
+      "pos": 6907,
+      "fwd_5d_pct": -0.251,
+      "fwd_20d_pct": 2.967,
+      "fwd_60d_pct": 7.51,
+      "fwd_120d_pct": 4.398,
+      "fwd_250d_pct": 25.726,
+      "recession": false
+    },
+    {
+      "date": "2015-08-10",
+      "pos": 7715,
+      "fwd_5d_pct": -0.083,
+      "fwd_20d_pct": -6.405,
+      "fwd_60d_pct": 0.267,
+      "fwd_120d_pct": -7.832,
+      "fwd_250d_pct": 3.74,
+      "recession": false
+    },
+    {
+      "date": "2020-02-28",
+      "pos": 8861,
+      "fwd_5d_pct": 0.614,
+      "fwd_20d_pct": -13.972,
+      "fwd_60d_pct": 1.271,
+      "fwd_120d_pct": 14.238,
+      "fwd_250d_pct": 29.623,
+      "recession": false
+    }
+  ],
+  "events_fixed": [
+    {
+      "date": "2001-09-17",
+      "pos": 4217,
+      "fwd_5d_pct": -3.4,
+      "fwd_20d_pct": 4.93,
+      "fwd_60d_pct": 9.433,
+      "fwd_120d_pct": 12.466,
+      "fwd_250d_pct": -14.34
+    },
+    {
+      "date": "2002-06-18",
+      "pos": 4406,
+      "fwd_5d_pct": -5.882,
+      "fwd_20d_pct": -12.641,
+      "fwd_60d_pct": -14.485,
+      "fwd_120d_pct": -12.044,
+      "fwd_250d_pct": -2.545
+    },
+    {
+      "date": "2008-02-05",
+      "pos": 5824,
+      "fwd_5d_pct": 0.914,
+      "fwd_20d_pct": -0.22,
+      "fwd_60d_pct": 5.439,
+      "fwd_120d_pct": -7.651,
+      "fwd_250d_pct": -38.245
+    },
+    {
+      "date": "2008-06-27",
+      "pos": 5924,
+      "fwd_5d_pct": -2.039,
+      "fwd_20d_pct": -3.443,
+      "fwd_60d_pct": -7.053,
+      "fwd_120d_pct": -29.253,
+      "fwd_250d_pct": -28.014
+    },
+    {
+      "date": "2010-06-10",
+      "pos": 6415,
+      "fwd_5d_pct": 2.687,
+      "fwd_20d_pct": -0.817,
+      "fwd_60d_pct": 1.626,
+      "fwd_120d_pct": 8.622,
+      "fwd_250d_pct": 18.227
+    },
+    {
+      "date": "2010-09-16",
+      "pos": 6483,
+      "fwd_5d_pct": 0.015,
+      "fwd_20d_pct": 4.37,
+      "fwd_60d_pct": 10.291,
+      "fwd_120d_pct": 17.371,
+      "fwd_250d_pct": 4.287
+    },
+    {
+      "date": "2011-08-09",
+      "pos": 6709,
+      "fwd_5d_pct": 1.725,
+      "fwd_20d_pct": 2.225,
+      "fwd_60d_pct": 5.575,
+      "fwd_120d_pct": 11.93,
+      "fwd_250d_pct": 18.908
+    },
+    {
+      "date": "2015-08-18",
+      "pos": 7721,
+      "fwd_5d_pct": -10.936,
+      "fwd_20d_pct": -4.846,
+      "fwd_60d_pct": -1.045,
+      "fwd_120d_pct": -11.67,
+      "fwd_250d_pct": 4.446
+    },
+    {
+      "date": "2020-03-12",
+      "pos": 8870,
+      "fwd_5d_pct": -2.872,
+      "fwd_20d_pct": 12.464,
+      "fwd_60d_pct": 30.305,
+      "fwd_120d_pct": 42.167,
+      "fwd_250d_pct": 57.17
+    }
+  ],
+  "summary_pctile": {
+    "n": 13,
+    "fwd_5d_mean_pct": -0.158,
+    "fwd_5d_win_rate_pct": 30.8,
+    "fwd_5d_min_pct": -5.882,
+    "fwd_5d_max_pct": 7.26,
+    "fwd_20d_mean_pct": -2.266,
+    "fwd_20d_win_rate_pct": 38.5,
+    "fwd_20d_min_pct": -13.972,
+    "fwd_20d_max_pct": 6.614,
+    "fwd_60d_mean_pct": 0.664,
+    "fwd_60d_win_rate_pct": 61.5,
+    "fwd_60d_min_pct": -14.485,
+    "fwd_60d_max_pct": 14.127,
+    "fwd_120d_mean_pct": -2.337,
+    "fwd_120d_win_rate_pct": 46.2,
+    "fwd_120d_min_pct": -30.837,
+    "fwd_120d_max_pct": 16.368,
+    "fwd_250d_mean_pct": 1.448,
+    "fwd_250d_win_rate_pct": 53.8,
+    "fwd_250d_min_pct": -28.211,
+    "fwd_250d_max_pct": 29.623
+  },
+  "summary_fixed": {
+    "n": 9,
+    "fwd_5d_mean_pct": -2.199,
+    "fwd_5d_win_rate_pct": 44.4,
+    "fwd_5d_min_pct": -10.936,
+    "fwd_5d_max_pct": 2.687,
+    "fwd_20d_mean_pct": 0.225,
+    "fwd_20d_win_rate_pct": 44.4,
+    "fwd_20d_min_pct": -12.641,
+    "fwd_20d_max_pct": 12.464,
+    "fwd_60d_mean_pct": 4.454,
+    "fwd_60d_win_rate_pct": 66.7,
+    "fwd_60d_min_pct": -14.485,
+    "fwd_60d_max_pct": 30.305,
+    "fwd_120d_mean_pct": 3.549,
+    "fwd_120d_win_rate_pct": 55.6,
+    "fwd_120d_min_pct": -29.253,
+    "fwd_120d_max_pct": 42.167,
+    "fwd_250d_mean_pct": 2.21,
+    "fwd_250d_win_rate_pct": 55.6,
+    "fwd_250d_min_pct": -38.245,
+    "fwd_250d_max_pct": 57.17
+  },
+  "baseline": {
+    "n": 10488,
+    "fwd_5d_mean_pct": 0.212,
+    "fwd_5d_win_rate_pct": 58.3,
+    "fwd_20d_mean_pct": 0.829,
+    "fwd_20d_win_rate_pct": 64.1,
+    "fwd_60d_mean_pct": 2.459,
+    "fwd_60d_win_rate_pct": 70.8,
+    "fwd_120d_mean_pct": 4.923,
+    "fwd_120d_win_rate_pct": 74.6,
+    "fwd_250d_mean_pct": 10.506,
+    "fwd_250d_win_rate_pct": 80.0
+  },
+  "h2_lag": {
+    "records": [
+      {
+        "trough_date": "1991-01-09",
+        "lag_trading_days": 26,
+        "lag_calendar_days": 40,
+        "event_date": "1990-11-30"
+      },
+      {
+        "trough_date": "1991-12-20",
+        "lag_trading_days": 0,
+        "lag_calendar_days": 0,
+        "event_date": "1991-12-20"
+      },
+      {
+        "trough_date": "1992-10-09",
+        "lag_trading_days": 11,
+        "lag_calendar_days": 15,
+        "event_date": "1992-09-24"
+      },
+      {
+        "trough_date": "1998-08-31",
+        "lag_trading_days": 6,
+        "lag_calendar_days": 10,
+        "event_date": "1998-08-21"
+      },
+      {
+        "trough_date": "2001-09-21",
+        "lag_trading_days": 234,
+        "lag_calendar_days": 345,
+        "event_date": "2000-10-11"
+      },
+      {
+        "trough_date": "2001-09-21",
+        "lag_trading_days": 207,
+        "lag_calendar_days": 308,
+        "event_date": "2000-11-17"
+      },
+      {
+        "trough_date": "2002-07-23",
+        "lag_trading_days": 236,
+        "lag_calendar_days": 349,
+        "event_date": "2001-08-08"
+      },
+      {
+        "trough_date": "2002-10-09",
+        "lag_trading_days": 79,
+        "lag_calendar_days": 113,
+        "event_date": "2002-06-18"
+      },
+      {
+        "trough_date": "2008-07-15",
+        "lag_trading_days": 230,
+        "lag_calendar_days": 335,
+        "event_date": "2007-08-15"
+      },
+      {
+        "trough_date": "2009-03-09",
+        "lag_trading_days": 173,
+        "lag_calendar_days": 252,
+        "event_date": "2008-06-30"
+      },
+      {
+        "trough_date": "2012-06-01",
+        "lag_trading_days": 7,
+        "lag_calendar_days": 10,
+        "event_date": "2012-05-22"
+      },
+      {
+        "trough_date": "2016-02-11",
+        "lag_trading_days": 128,
+        "lag_calendar_days": 185,
+        "event_date": "2015-08-10"
+      },
+      {
+        "trough_date": "2020-03-23",
+        "lag_trading_days": 16,
+        "lag_calendar_days": 24,
+        "event_date": "2020-02-28"
+      }
+    ],
+    "summary": {
+      "n": 13,
+      "median_lag_trading_days": 79.0,
+      "mean_lag_trading_days": 104.07692307692308,
+      "median_lag_calendar_days": 113.0,
+      "mean_lag_calendar_days": 152.76923076923077
+    }
+  },
+  "h3": {
+    "n_recession": 3,
+    "n_norecession": 10,
+    "recession": {
+      "n": 3
+    },
+    "norecession": {
+      "n": 10,
+      "fwd_5d_mean_pct": -0.281,
+      "fwd_5d_win_rate_pct": 30.0,
+      "fwd_5d_min_pct": -5.882,
+      "fwd_5d_max_pct": 7.26,
+      "fwd_20d_mean_pct": -2.412,
+      "fwd_20d_win_rate_pct": 40.0,
+      "fwd_20d_min_pct": -13.972,
+      "fwd_20d_max_pct": 6.614,
+      "fwd_60d_mean_pct": 0.758,
+      "fwd_60d_win_rate_pct": 70.0,
+      "fwd_60d_min_pct": -14.485,
+      "fwd_60d_max_pct": 7.51,
+      "fwd_120d_mean_pct": -0.801,
+      "fwd_120d_win_rate_pct": 50.0,
+      "fwd_120d_min_pct": -19.152,
+      "fwd_120d_max_pct": 14.238,
+      "fwd_250d_mean_pct": 5.337,
+      "fwd_250d_win_rate_pct": 60.0,
+      "fwd_250d_min_pct": -20.124,
+      "fwd_250d_max_pct": 29.623
+    },
+    "recession_events": [
+      {
+        "date": "1990-11-30",
+        "pos": 1495,
+        "fwd_5d_pct": 1.716,
+        "fwd_20d_pct": 2.483,
+        "fwd_60d_pct": 14.127,
+        "fwd_120d_pct": 16.368,
+        "fwd_250d_pct": 17.299,
+        "recession": true
+      },
+      {
+        "date": "2001-08-08",
+        "pos": 4194,
+        "fwd_5d_pct": -0.466,
+        "fwd_20d_pct": -6.517,
+        "fwd_60d_pct": -5.723,
+        "fwd_120d_pct": -7.901,
+        "fwd_250d_pct": -23.635,
+        "recession": true
+      },
+      {
+        "date": "2008-06-30",
+        "pos": 5925,
+        "fwd_5d_pct": -0.492,
+        "fwd_20d_pct": -1.313,
+        "fwd_60d_pct": -7.354,
+        "fwd_120d_pct": -30.837,
+        "fwd_250d_pct": -28.211,
+        "recession": true
+      }
+    ],
+    "norecession_events": [
+      {
+        "date": "1991-12-20",
+        "pos": 1762,
+        "fwd_5d_pct": 7.26,
+        "fwd_20d_pct": 6.614,
+        "fwd_60d_pct": 5.713,
+        "fwd_120d_pct": 5.87,
+        "fwd_250d_pct": 11.492,
+        "recession": false
+      },
+      {
+        "date": "1992-09-24",
+        "pos": 1954,
+        "fwd_5d_pct": -0.521,
+        "fwd_20d_pct": -0.853,
+        "fwd_60d_pct": 5.451,
+        "fwd_120d_pct": 7.131,
+        "fwd_250d_pct": 8.24,
+        "recession": false
+      },
+      {
+        "date": "1998-08-21",
+        "pos": 3447,
+        "fwd_5d_pct": -5.004,
+        "fwd_20d_pct": -5.304,
+        "fwd_60d_pct": 5.053,
+        "fwd_120d_pct": 13.77,
+        "fwd_250d_pct": 22.414,
+        "recession": false
+      },
+      {
+        "date": "2000-10-11",
+        "pos": 3987,
+        "fwd_5d_pct": -1.646,
+        "fwd_20d_pct": 3.275,
+        "fwd_60d_pct": -5.037,
+        "fwd_120d_pct": -19.152,
+        "fwd_250d_pct": -20.124,
+        "recession": false
+      },
+      {
+        "date": "2000-11-17",
+        "pos": 4014,
+        "fwd_5d_pct": -1.371,
+        "fwd_20d_pct": -3.289,
+        "fwd_60d_pct": -3.006,
+        "fwd_120d_pct": -8.686,
+        "fwd_250d_pct": -16.867,
+        "recession": false
+      },
+      {
+        "date": "2002-06-18",
+        "pos": 4406,
+        "fwd_5d_pct": -5.882,
+        "fwd_20d_pct": -12.641,
+        "fwd_60d_pct": -14.485,
+        "fwd_120d_pct": -12.044,
+        "fwd_250d_pct": -2.545,
+        "recession": false
+      },
+      {
+        "date": "2007-08-15",
+        "pos": 5705,
+        "fwd_5d_pct": 4.078,
+        "fwd_20d_pct": 5.492,
+        "fwd_60d_pct": 4.839,
+        "fwd_120d_pct": -5.705,
+        "fwd_250d_pct": -8.325,
+        "recession": false
+      },
+      {
+        "date": "2012-05-22",
+        "pos": 6907,
+        "fwd_5d_pct": -0.251,
+        "fwd_20d_pct": 2.967,
+        "fwd_60d_pct": 7.51,
+        "fwd_120d_pct": 4.398,
+        "fwd_250d_pct": 25.726,
+        "recession": false
+      },
+      {
+        "date": "2015-08-10",
+        "pos": 7715,
+        "fwd_5d_pct": -0.083,
+        "fwd_20d_pct": -6.405,
+        "fwd_60d_pct": 0.267,
+        "fwd_120d_pct": -7.832,
+        "fwd_250d_pct": 3.74,
+        "recession": false
+      },
+      {
+        "date": "2020-02-28",
+        "pos": 8861,
+        "fwd_5d_pct": 0.614,
+        "fwd_20d_pct": -13.972,
+        "fwd_60d_pct": 1.271,
+        "fwd_120d_pct": 14.238,
+        "fwd_250d_pct": 29.623,
+        "recession": false
+      }
+    ]
+  }
+}

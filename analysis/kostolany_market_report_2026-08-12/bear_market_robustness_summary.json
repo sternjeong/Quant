@@ -1,0 +1,39 @@
+{
+  "equal_no_overlay": {
+    "cumulative_return": 245.17,
+    "cagr": 10.01,
+    "mdd": -58.8,
+    "sharpe": 0.53,
+    "win_rate": 0.0,
+    "avg_holding_days": 0.0,
+    "trade_count": 0,
+    "profit_factor": 0.0,
+    "calmar": 0.17,
+    "avg_drawdown_days": 34.6
+  },
+  "riskparity_no_overlay": {
+    "cumulative_return": 151.26,
+    "cagr": 7.35,
+    "mdd": -48.39,
+    "sharpe": 0.47,
+    "win_rate": 0.0,
+    "avg_holding_days": 0.0,
+    "trade_count": 0,
+    "profit_factor": 0.0,
+    "calmar": 0.15,
+    "avg_drawdown_days": 34.3
+  },
+  "sp500_bh": {
+    "cumulative_return": -3.63,
+    "cagr": -0.28,
+    "mdd": -56.78,
+    "sharpe": 0.09,
+    "win_rate": 0.0,
+    "avg_holding_days": 4743.0,
+    "trade_count": 1,
+    "profit_factor": 0.0,
+    "calmar": -0.01,
+    "avg_drawdown_days": 351.2
+  },
+  "n_tickers": 55
+}

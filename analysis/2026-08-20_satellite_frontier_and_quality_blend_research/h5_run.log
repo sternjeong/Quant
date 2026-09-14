@@ -1,0 +1,1768 @@
+[h5] 코어(17자산 챔피언) 실행: 2019-08-12 ~ 2026-08-19
+[h5] 코어 지표: {'cumulative_return': 139.19, 'cagr': 13.23, 'mdd': -17.74, 'sharpe': 1.03, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.75, 'avg_drawdown_days': 20.2}
+[h5] 새틀라이트(point-in-time 반기 리밸런싱) 구축...
+[satellite] 14개 반기 리밸런싱일: ['2020-01-02', '2020-07-01', '2021-01-04', '2021-07-01', '2022-01-03', '2022-07-01', '2023-01-03', '2023-07-03', '2024-01-02', '2024-07-01', '2025-01-02', '2025-07-01', '2026-01-02', '2026-07-01']
+
+1 Failed download:
+['ABC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['ABMD']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$ADS: possibly delisted; no timezone found
+
+1 Failed download:
+['ADS']: possibly delisted; no timezone found
+
+1 Failed download:
+['AGN']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['ALXN']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['ANSS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$ANTM: possibly delisted; no timezone found
+$ANTM: possibly delisted; no timezone found
+
+1 Failed download:
+['ANTM']: possibly delisted; no timezone found
+$ARNC: possibly delisted; no timezone found
+
+1 Failed download:
+['ARNC']: possibly delisted; no timezone found
+
+1 Failed download:
+['ATVI']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['BK']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['BLL']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['CERN']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['CMA']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['COG']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$CTL: possibly delisted; no timezone found
+
+1 Failed download:
+['CTL']: possibly delisted; no timezone found
+
+1 Failed download:
+['CTXS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['CXO']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['DFS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$DISCK: possibly delisted; no timezone found
+
+1 Failed download:
+['DISCA']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$DISCK: possibly delisted; no timezone found
+
+1 Failed download:
+['DISCK']: possibly delisted; no timezone found
+$DISH: possibly delisted; no timezone found
+$DISH: possibly delisted; no timezone found
+
+1 Failed download:
+['DISH']: possibly delisted; no timezone found
+
+1 Failed download:
+['DRE']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['ETFC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['FB']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$FBHS: possibly delisted; no timezone found
+$FBHS: possibly delisted; no timezone found
+
+1 Failed download:
+['FBHS']: possibly delisted; no timezone found
+$FLIR: possibly delisted; no timezone found
+
+1 Failed download:
+['FLIR']: possibly delisted; no timezone found
+
+1 Failed download:
+['FLT']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$FRC: possibly delisted; no timezone found
+$FRC: possibly delisted; no timezone found
+
+1 Failed download:
+['FRC']: possibly delisted; no timezone found
+
+1 Failed download:
+['GPS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['HBI']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$HFC: possibly delisted; no timezone found
+$HFC: possibly delisted; no timezone found
+
+1 Failed download:
+['HFC']: possibly delisted; no timezone found
+
+1 Failed download:
+['HES']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['HOLX']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['INFO']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['IPG']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$JWN: possibly delisted; no timezone found
+
+1 Failed download:
+['JWN']: possibly delisted; no timezone found
+$JNPR: possibly delisted; no timezone found
+
+1 Failed download:
+['JNPR']: possibly delisted; no timezone found
+
+1 Failed download:
+['K']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['KSU']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['LB']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['MMC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['MRO']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$NBL: possibly delisted; no timezone found
+$MXIM: possibly delisted; no timezone found
+$MXIM: possibly delisted; no timezone found
+
+1 Failed download:
+['MXIM']: possibly delisted; no timezone found
+$NBL: possibly delisted; no timezone found
+
+1 Failed download:
+['NBL']: possibly delisted; no timezone found
+
+1 Failed download:
+['MYL']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$NLOK: possibly delisted; no timezone found
+
+1 Failed download:
+['NLOK']: possibly delisted; no timezone found
+
+1 Failed download:
+['NLSN']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['PBCT']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$PEAK: possibly delisted; no timezone found
+$PEAK: possibly delisted; no timezone found
+
+1 Failed download:
+['PEAK']: possibly delisted; no timezone found
+
+1 Failed download:
+['PKI']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$PXD: possibly delisted; no timezone found
+
+1 Failed download:
+['PXD']: possibly delisted; no timezone found
+
+1 Failed download:
+['RE']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['RTN']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$SEE: possibly delisted; no timezone found
+$SEE: possibly delisted; no timezone found
+
+1 Failed download:
+['SEE']: possibly delisted; no timezone found
+
+1 Failed download:
+['SIVB']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['TIF']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['TWTR']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['UTX']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$VAR: possibly delisted; no timezone found
+$VAR: possibly delisted; no timezone found
+
+1 Failed download:
+['VAR']: possibly delisted; no timezone found
+
+1 Failed download:
+['VIAC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$WBA: possibly delisted; no timezone found
+
+1 Failed download:
+['WBA']: possibly delisted; no timezone found
+
+1 Failed download:
+['WCG']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$WLTW: possibly delisted; no timezone found
+$WLTW: possibly delisted; no timezone found
+
+1 Failed download:
+['WLTW']: possibly delisted; no timezone found
+
+1 Failed download:
+['WRK']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$XLNX: possibly delisted; no timezone found
+$XLNX: possibly delisted; no timezone found
+
+1 Failed download:
+['XLNX']: possibly delisted; no timezone found
+
+1 Failed download:
+['XEC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+  [1/14] 2020-01-02: picks=['AAPL', 'MSFT', 'PLD'] (pool=40, +모멘텀=39, 54.0s)
+$ABMD: possibly delisted; no timezone found
+$ABMD: possibly delisted; no timezone found
+
+1 Failed download:
+['ABMD']: possibly delisted; no timezone found
+
+1 Failed download:
+['ABC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['ALXN']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$ANTM: possibly delisted; no timezone found
+$ANTM: possibly delisted; no timezone found
+
+1 Failed download:
+['ANTM']: possibly delisted; no timezone found
+
+1 Failed download:
+['ANSS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['ATVI']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['BK']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$BIO: possibly delisted; no price data found  (1d 2020-06-21 -> 2020-06-21)
+
+1 Failed download:
+['BIO']: possibly delisted; no price data found  (1d 2020-06-21 -> 2020-06-21)
+
+1 Failed download:
+['BLL']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['CERN']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['CMA']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['COG']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$CTL: possibly delisted; no timezone found
+$CTL: possibly delisted; no timezone found
+
+1 Failed download:
+['CTL']: possibly delisted; no timezone found
+$CTXS: possibly delisted; no timezone found
+
+1 Failed download:
+['CTXS']: possibly delisted; no timezone found
+
+1 Failed download:
+['CXO']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$DFS: possibly delisted; no timezone found
+$DFS: possibly delisted; no timezone found
+
+1 Failed download:
+['DFS']: possibly delisted; no timezone found
+$DISCK: possibly delisted; no timezone found
+$DISH: possibly delisted; no timezone found
+$DISCK: possibly delisted; no timezone found
+
+1 Failed download:
+['DISCK']: possibly delisted; no timezone found
+$DISH: possibly delisted; no timezone found
+
+1 Failed download:
+['DISH']: possibly delisted; no timezone found
+
+1 Failed download:
+['DISCA']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['DRE']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$DPZ: possibly delisted; no price data found  (1d 2020-06-21 -> 2020-06-21)
+
+1 Failed download:
+['DPZ']: possibly delisted; no price data found  (1d 2020-06-21 -> 2020-06-21)
+$DXCM: possibly delisted; no price data found  (1d 2020-06-21 -> 2020-06-21)
+
+1 Failed download:
+['DXCM']: possibly delisted; no price data found  (1d 2020-06-21 -> 2020-06-21)
+
+1 Failed download:
+['ETFC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$FBHS: possibly delisted; no timezone found
+$FBHS: possibly delisted; no timezone found
+
+1 Failed download:
+['FBHS']: possibly delisted; no timezone found
+
+1 Failed download:
+['FB']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$FLIR: possibly delisted; no timezone found
+$FLIR: possibly delisted; no timezone found
+
+1 Failed download:
+['FLIR']: possibly delisted; no timezone found
+
+1 Failed download:
+['FLT']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$FRC: possibly delisted; no timezone found
+$FRC: possibly delisted; no timezone found
+
+1 Failed download:
+['FRC']: possibly delisted; no timezone found
+$HFC: possibly delisted; no timezone found
+
+1 Failed download:
+['GPS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$HFC: possibly delisted; no timezone found
+
+1 Failed download:
+['HFC']: possibly delisted; no timezone found
+$HOLX: possibly delisted; no timezone found
+$HOLX: possibly delisted; no timezone found
+$HES: possibly delisted; no timezone found
+
+1 Failed download:
+['HOLX']: possibly delisted; no timezone found
+
+1 Failed download:
+['HBI']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$HES: possibly delisted; no timezone found
+
+1 Failed download:
+['HES']: possibly delisted; no timezone found
+$HWM: possibly delisted; no price data found  (1d 2020-06-21 -> 2020-06-21)
+
+1 Failed download:
+['HWM']: possibly delisted; no price data found  (1d 2020-06-21 -> 2020-06-21)
+
+1 Failed download:
+['INFO']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['IPG']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$JNPR: possibly delisted; no timezone found
+$JNPR: possibly delisted; no timezone found
+
+1 Failed download:
+['JNPR']: possibly delisted; no timezone found
+
+1 Failed download:
+['K']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['KSU']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['LB']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['MMC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['MRO']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$MXIM: possibly delisted; no timezone found
+$MXIM: possibly delisted; no timezone found
+
+1 Failed download:
+['MXIM']: possibly delisted; no timezone found
+$NBL: possibly delisted; no timezone found
+$NBL: possibly delisted; no timezone found
+
+1 Failed download:
+['NBL']: possibly delisted; no timezone found
+$NLOK: possibly delisted; no timezone found
+$NLOK: possibly delisted; no timezone found
+
+1 Failed download:
+['MYL']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['NLOK']: possibly delisted; no timezone found
+
+1 Failed download:
+['NLSN']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$OTIS: possibly delisted; no price data found  (1d 2020-06-21 -> 2020-06-21)
+
+1 Failed download:
+['OTIS']: possibly delisted; no price data found  (1d 2020-06-21 -> 2020-06-21)
+$PAYC: possibly delisted; no price data found  (1d 2020-06-21 -> 2020-06-21)
+
+1 Failed download:
+['PAYC']: possibly delisted; no price data found  (1d 2020-06-21 -> 2020-06-21)
+$PEAK: possibly delisted; no timezone found
+$PEAK: possibly delisted; no timezone found
+
+1 Failed download:
+['PEAK']: possibly delisted; no timezone found
+
+1 Failed download:
+['PBCT']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['PKI']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$PXD: possibly delisted; no timezone found
+$PXD: possibly delisted; no timezone found
+
+1 Failed download:
+['PXD']: possibly delisted; no timezone found
+
+1 Failed download:
+['RE']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$SEE: possibly delisted; no timezone found
+$SEE: possibly delisted; no timezone found
+
+1 Failed download:
+['SEE']: possibly delisted; no timezone found
+
+1 Failed download:
+['SIVB']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$RTX: possibly delisted; no price data found  (1d 2020-06-21 -> 2020-06-21)
+
+1 Failed download:
+['RTX']: possibly delisted; no price data found  (1d 2020-06-21 -> 2020-06-21)
+$TDY: possibly delisted; no price data found  (1d 2020-06-21 -> 2020-06-21)
+
+1 Failed download:
+['TDY']: possibly delisted; no price data found  (1d 2020-06-21 -> 2020-06-21)
+
+1 Failed download:
+['TIF']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['TWTR']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$TYL: possibly delisted; no price data found  (1d 2020-06-21 -> 2020-06-21)
+
+1 Failed download:
+['TYL']: possibly delisted; no price data found  (1d 2020-06-21 -> 2020-06-21)
+$VAR: possibly delisted; no timezone found
+$VAR: possibly delisted; no timezone found
+
+1 Failed download:
+['VAR']: possibly delisted; no timezone found
+
+1 Failed download:
+['VIAC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$WBA: possibly delisted; no timezone found
+$WBA: possibly delisted; no timezone found
+
+1 Failed download:
+['WBA']: possibly delisted; no timezone found
+$WLTW: possibly delisted; no timezone found
+$WLTW: possibly delisted; no timezone found
+
+1 Failed download:
+['WLTW']: possibly delisted; no timezone found
+$XLNX: possibly delisted; no timezone found
+$XLNX: possibly delisted; no timezone found
+
+1 Failed download:
+['WRK']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['XLNX']: possibly delisted; no timezone found
+$WST: possibly delisted; no price data found  (1d 2020-06-21 -> 2020-06-21)
+
+1 Failed download:
+['WST']: possibly delisted; no price data found  (1d 2020-06-21 -> 2020-06-21)
+  [2/14] 2020-07-01: picks=['NVDA', 'AAPL', 'MSFT'] (pool=40, +모멘텀=26, 52.2s)
+$ABMD: possibly delisted; no timezone found
+$ABMD: possibly delisted; no timezone found
+
+1 Failed download:
+['ABMD']: possibly delisted; no timezone found
+
+1 Failed download:
+['ABC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['ALXN']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$ANTM: possibly delisted; no timezone found
+$ANTM: possibly delisted; no timezone found
+
+1 Failed download:
+['ANTM']: possibly delisted; no timezone found
+
+1 Failed download:
+['ANSS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['ATVI']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$BK: possibly delisted; no timezone found
+
+1 Failed download:
+['BK']: possibly delisted; no timezone found
+
+1 Failed download:
+['BLL']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['CERN']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['CMA']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['COG']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$CTXS: possibly delisted; no timezone found
+$CTXS: possibly delisted; no timezone found
+
+1 Failed download:
+['CTXS']: possibly delisted; no timezone found
+
+1 Failed download:
+['CTLT']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$DFS: possibly delisted; no timezone found
+$DFS: possibly delisted; no timezone found
+
+1 Failed download:
+['DFS']: possibly delisted; no timezone found
+
+1 Failed download:
+['CXO']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$DISCK: possibly delisted; no timezone found
+$DISCK: possibly delisted; no timezone found
+
+1 Failed download:
+['DISCK']: possibly delisted; no timezone found
+$DISH: possibly delisted; no timezone found
+$DISH: possibly delisted; no timezone found
+
+1 Failed download:
+['DISH']: possibly delisted; no timezone found
+
+1 Failed download:
+['DISCA']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['DRE']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$ETSY: possibly delisted; no price data found  (1d 2020-12-25 -> 2020-12-27)
+
+1 Failed download:
+['ETSY']: possibly delisted; no price data found  (1d 2020-12-25 -> 2020-12-27)
+$FBHS: possibly delisted; no timezone found
+$FBHS: possibly delisted; no timezone found
+
+1 Failed download:
+['FBHS']: possibly delisted; no timezone found
+
+1 Failed download:
+['FB']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$FLIR: possibly delisted; no timezone found
+$FLIR: possibly delisted; no timezone found
+
+1 Failed download:
+['FLIR']: possibly delisted; no timezone found
+$FRC: possibly delisted; no timezone found
+$FRC: possibly delisted; no timezone found
+
+1 Failed download:
+['FRC']: possibly delisted; no timezone found
+
+1 Failed download:
+['FLT']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['GPS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$HES: possibly delisted; no timezone found
+$HES: possibly delisted; no timezone found
+$HFC: possibly delisted; no timezone found
+
+1 Failed download:
+['HES']: possibly delisted; no timezone found
+$HFC: possibly delisted; no timezone found
+
+1 Failed download:
+['HFC']: possibly delisted; no timezone found
+
+1 Failed download:
+['HBI']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$HOLX: possibly delisted; no timezone found
+$HOLX: possibly delisted; no timezone found
+
+1 Failed download:
+['HOLX']: possibly delisted; no timezone found
+
+1 Failed download:
+['INFO']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['IPG']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$JNPR: possibly delisted; no timezone found
+$JNPR: possibly delisted; no timezone found
+
+1 Failed download:
+['JNPR']: possibly delisted; no timezone found
+
+1 Failed download:
+['K']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['KSU']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['LB']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$LUMN: possibly delisted; no price data found  (1d 2020-12-25 -> 2020-12-27)
+
+1 Failed download:
+['LUMN']: possibly delisted; no price data found  (1d 2020-12-25 -> 2020-12-27)
+
+1 Failed download:
+['MMC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['MRO']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$MXIM: possibly delisted; no timezone found
+$MXIM: possibly delisted; no timezone found
+
+1 Failed download:
+['MXIM']: possibly delisted; no timezone found
+$NLOK: possibly delisted; no timezone found
+$NLOK: possibly delisted; no timezone found
+
+1 Failed download:
+['NLOK']: possibly delisted; no timezone found
+
+1 Failed download:
+['NLSN']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$PEAK: possibly delisted; no timezone found
+$PEAK: possibly delisted; no timezone found
+
+1 Failed download:
+['PEAK']: possibly delisted; no timezone found
+
+1 Failed download:
+['PBCT']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['PKI']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$POOL: possibly delisted; no price data found  (1d 2020-12-25 -> 2020-12-27)
+
+1 Failed download:
+['POOL']: possibly delisted; no price data found  (1d 2020-12-25 -> 2020-12-27)
+$PXD: possibly delisted; no timezone found
+$PXD: possibly delisted; no timezone found
+
+1 Failed download:
+['PXD']: possibly delisted; no timezone found
+
+1 Failed download:
+['RE']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$SEE: possibly delisted; no timezone found
+$SEE: possibly delisted; no timezone found
+
+1 Failed download:
+['SEE']: possibly delisted; no timezone found
+
+1 Failed download:
+['SIVB']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['TIF']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['TWTR']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$VAR: possibly delisted; no timezone found
+$VAR: possibly delisted; no timezone found
+
+1 Failed download:
+['VAR']: possibly delisted; no timezone found
+$VNT: possibly delisted; no price data found  (1d 2020-12-25 -> 2020-12-27)
+
+1 Failed download:
+['VNT']: possibly delisted; no price data found  (1d 2020-12-25 -> 2020-12-27)
+
+1 Failed download:
+['VIAC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$WBA: possibly delisted; no timezone found
+$WBA: possibly delisted; no timezone found
+
+1 Failed download:
+['WBA']: possibly delisted; no timezone found
+$WLTW: possibly delisted; no timezone found
+$WLTW: possibly delisted; no timezone found
+
+1 Failed download:
+['WLTW']: possibly delisted; no timezone found
+$VTRS: possibly delisted; no price data found  (1d 2020-12-25 -> 2020-12-27)
+
+1 Failed download:
+['VTRS']: possibly delisted; no price data found  (1d 2020-12-25 -> 2020-12-27)
+
+1 Failed download:
+['WRK']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$XLNX: possibly delisted; no timezone found
+$XLNX: possibly delisted; no timezone found
+
+1 Failed download:
+['XLNX']: possibly delisted; no timezone found
+  [3/14] 2021-01-04: picks=['TSLA', 'NVDA', 'AAPL'] (pool=40, +모멘텀=30, 52.6s)
+$ABMD: possibly delisted; no timezone found
+$ABMD: possibly delisted; no timezone found
+
+1 Failed download:
+['ABMD']: possibly delisted; no timezone found
+
+1 Failed download:
+['ABC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['ALXN']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$ANTM: possibly delisted; no timezone found
+$ANTM: possibly delisted; no timezone found
+
+1 Failed download:
+['ANTM']: possibly delisted; no timezone found
+
+1 Failed download:
+['ANSS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['ATVI']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$BK: possibly delisted; no timezone found
+$BK: possibly delisted; no timezone found
+
+1 Failed download:
+['BK']: possibly delisted; no timezone found
+
+1 Failed download:
+['BLL']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['CERN']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['CMA']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['COG']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$CTXS: possibly delisted; no timezone found
+$CTXS: possibly delisted; no timezone found
+
+1 Failed download:
+['CTXS']: possibly delisted; no timezone found
+
+1 Failed download:
+['CTLT']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$DFS: possibly delisted; no timezone found
+$DFS: possibly delisted; no timezone found
+
+1 Failed download:
+['DFS']: possibly delisted; no timezone found
+$DISCK: possibly delisted; no timezone found
+$DISH: possibly delisted; no timezone found
+$DISCK: possibly delisted; no timezone found
+
+1 Failed download:
+['DISCK']: possibly delisted; no timezone found
+$DISH: possibly delisted; no timezone found
+
+1 Failed download:
+['DISH']: possibly delisted; no timezone found
+
+1 Failed download:
+['DISCA']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['DRE']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$FBHS: possibly delisted; no timezone found
+$FBHS: possibly delisted; no timezone found
+
+1 Failed download:
+['FBHS']: possibly delisted; no timezone found
+
+1 Failed download:
+['FB']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$FRC: possibly delisted; no timezone found
+
+1 Failed download:
+['FLT']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$FRC: possibly delisted; no timezone found
+
+1 Failed download:
+['FRC']: possibly delisted; no timezone found
+
+1 Failed download:
+['GPS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$HES: possibly delisted; no timezone found
+$HES: possibly delisted; no timezone found
+
+1 Failed download:
+['HES']: possibly delisted; no timezone found
+
+1 Failed download:
+['HBI']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$HOLX: possibly delisted; no timezone found
+$HOLX: possibly delisted; no timezone found
+
+1 Failed download:
+['HOLX']: possibly delisted; no timezone found
+$INFO: possibly delisted; no price data found  (1d 2021-06-21 -> 2021-07-02) (Yahoo error = "Data doesn't exist for startDate = 1624248000, endDate = 1625198400")
+
+1 Failed download:
+['INFO']: possibly delisted; no price data found  (1d 2021-06-21 -> 2021-07-02) (Yahoo error = "Data doesn't exist for startDate = 1624248000, endDate = 1625198400")
+
+1 Failed download:
+['IPG']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$JNPR: possibly delisted; no timezone found
+$JNPR: possibly delisted; no timezone found
+
+1 Failed download:
+['JNPR']: possibly delisted; no timezone found
+
+1 Failed download:
+['K']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['KSU']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['LB']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['MMC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['MRO']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$MXIM: possibly delisted; no timezone found
+$MXIM: possibly delisted; no timezone found
+
+1 Failed download:
+['MXIM']: possibly delisted; no timezone found
+$NLOK: possibly delisted; no timezone found
+$NLOK: possibly delisted; no timezone found
+
+1 Failed download:
+['NLOK']: possibly delisted; no timezone found
+
+1 Failed download:
+['NLSN']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$PEAK: possibly delisted; no timezone found
+$PEAK: possibly delisted; no timezone found
+
+1 Failed download:
+['PEAK']: possibly delisted; no timezone found
+
+1 Failed download:
+['PBCT']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['PKI']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$PXD: possibly delisted; no timezone found
+$PXD: possibly delisted; no timezone found
+
+1 Failed download:
+['PXD']: possibly delisted; no timezone found
+
+1 Failed download:
+['RE']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$SEE: possibly delisted; no timezone found
+$SEE: possibly delisted; no timezone found
+
+1 Failed download:
+['SEE']: possibly delisted; no timezone found
+
+1 Failed download:
+['SIVB']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['TWTR']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['VIAC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$WBA: possibly delisted; no timezone found
+$WBA: possibly delisted; no timezone found
+
+1 Failed download:
+['WBA']: possibly delisted; no timezone found
+$WLTW: possibly delisted; no timezone found
+$WLTW: possibly delisted; no timezone found
+
+1 Failed download:
+['WLTW']: possibly delisted; no timezone found
+
+1 Failed download:
+['WRK']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$XLNX: possibly delisted; no timezone found
+$XLNX: possibly delisted; no timezone found
+
+1 Failed download:
+['XLNX']: possibly delisted; no timezone found
+  [4/14] 2021-07-01: picks=['TSLA', 'NVDA', 'UPS'] (pool=40, +모멘텀=40, 52.1s)
+$ABMD: possibly delisted; no timezone found
+$ABMD: possibly delisted; no timezone found
+
+1 Failed download:
+['ABMD']: possibly delisted; no timezone found
+
+1 Failed download:
+['ABC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$ANTM: possibly delisted; no timezone found
+$ANTM: possibly delisted; no timezone found
+
+1 Failed download:
+['ANTM']: possibly delisted; no timezone found
+
+1 Failed download:
+['ANSS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['ATVI']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$BK: possibly delisted; no timezone found
+$BK: possibly delisted; no timezone found
+
+1 Failed download:
+['BK']: possibly delisted; no timezone found
+$BBWI: possibly delisted; no price data found  (1d 2021-12-24 -> 2021-12-26)
+
+1 Failed download:
+['BBWI']: possibly delisted; no price data found  (1d 2021-12-24 -> 2021-12-26)
+
+1 Failed download:
+['BLL']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$BRO: possibly delisted; no price data found  (1d 2021-12-24 -> 2021-12-26)
+
+1 Failed download:
+['BRO']: possibly delisted; no price data found  (1d 2021-12-24 -> 2021-12-26)
+
+1 Failed download:
+['CDAY']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$CERN: possibly delisted; no timezone found
+$CERN: possibly delisted; no timezone found
+
+1 Failed download:
+['CERN']: possibly delisted; no timezone found
+
+1 Failed download:
+['CMA']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$CTXS: possibly delisted; no timezone found
+$CTXS: possibly delisted; no timezone found
+
+1 Failed download:
+['CTXS']: possibly delisted; no timezone found
+$CTRA: possibly delisted; no timezone found
+$CTRA: possibly delisted; no timezone found
+
+1 Failed download:
+['CTRA']: possibly delisted; no timezone found
+
+1 Failed download:
+['CTLT']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$DFS: possibly delisted; no timezone found
+$DFS: possibly delisted; no timezone found
+
+1 Failed download:
+['DFS']: possibly delisted; no timezone found
+$DISCK: possibly delisted; no timezone found
+$DISCK: possibly delisted; no timezone found
+
+1 Failed download:
+['DISCK']: possibly delisted; no timezone found
+$DISH: possibly delisted; no timezone found
+$DISH: possibly delisted; no timezone found
+
+1 Failed download:
+['DISH']: possibly delisted; no timezone found
+
+1 Failed download:
+['DISCA']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['DRE']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$EPAM: possibly delisted; no price data found  (1d 2021-12-24 -> 2021-12-26)
+
+1 Failed download:
+['EPAM']: possibly delisted; no price data found  (1d 2021-12-24 -> 2021-12-26)
+$FBHS: possibly delisted; no timezone found
+$FBHS: possibly delisted; no timezone found
+
+1 Failed download:
+['FBHS']: possibly delisted; no timezone found
+
+1 Failed download:
+['FB']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$FRC: possibly delisted; no timezone found
+
+1 Failed download:
+['FLT']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$FRC: possibly delisted; no timezone found
+
+1 Failed download:
+['FRC']: possibly delisted; no timezone found
+
+1 Failed download:
+['GPS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$HES: possibly delisted; no timezone found
+$HES: possibly delisted; no timezone found
+
+1 Failed download:
+['HES']: possibly delisted; no timezone found
+$HOLX: possibly delisted; no timezone found
+$HOLX: possibly delisted; no timezone found
+
+1 Failed download:
+['HOLX']: possibly delisted; no timezone found
+
+1 Failed download:
+['INFO']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['IPG']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$JNPR: possibly delisted; no timezone found
+$JNPR: possibly delisted; no timezone found
+
+1 Failed download:
+['JNPR']: possibly delisted; no timezone found
+
+1 Failed download:
+['K']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['MMC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$MRNA: possibly delisted; no price data found  (1d 2021-12-24 -> 2021-12-26)
+
+1 Failed download:
+['MRNA']: possibly delisted; no price data found  (1d 2021-12-24 -> 2021-12-26)
+
+1 Failed download:
+['MRO']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$NLOK: possibly delisted; no timezone found
+$NLOK: possibly delisted; no timezone found
+
+1 Failed download:
+['NLOK']: possibly delisted; no timezone found
+
+1 Failed download:
+['NLSN']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$PEAK: possibly delisted; no timezone found
+$PEAK: possibly delisted; no timezone found
+
+1 Failed download:
+['PEAK']: possibly delisted; no timezone found
+
+1 Failed download:
+['PBCT']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['PKI']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$PXD: possibly delisted; no timezone found
+$PXD: possibly delisted; no timezone found
+
+1 Failed download:
+['PXD']: possibly delisted; no timezone found
+
+1 Failed download:
+['RE']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['SBNY']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$SEE: possibly delisted; no timezone found
+$SEE: possibly delisted; no timezone found
+
+1 Failed download:
+['SEE']: possibly delisted; no timezone found
+$SEDG: possibly delisted; no price data found  (1d 2021-12-24 -> 2021-12-26)
+
+1 Failed download:
+['SEDG']: possibly delisted; no price data found  (1d 2021-12-24 -> 2021-12-26)
+
+1 Failed download:
+['SIVB']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['TWTR']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['VIAC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$WBA: possibly delisted; no timezone found
+$WBA: possibly delisted; no timezone found
+
+1 Failed download:
+['WBA']: possibly delisted; no timezone found
+$WLTW: possibly delisted; no timezone found
+$WLTW: possibly delisted; no timezone found
+
+1 Failed download:
+['WLTW']: possibly delisted; no timezone found
+
+1 Failed download:
+['WRK']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$XLNX: possibly delisted; no timezone found
+$XLNX: possibly delisted; no timezone found
+
+1 Failed download:
+['XLNX']: possibly delisted; no timezone found
+$MTCH: possibly delisted; no price data found  (1d 2020-11-29 -> 2020-11-29)
+
+1 Failed download:
+['MTCH']: possibly delisted; no price data found  (1d 2020-11-29 -> 2020-11-29)
+  [5/14] 2022-01-03: picks=['NVDA', 'COP', 'PLD'] (pool=40, +모멘텀=35, 52.5s)
+$ABMD: possibly delisted; no timezone found
+$ABMD: possibly delisted; no timezone found
+
+1 Failed download:
+['ABMD']: possibly delisted; no timezone found
+
+1 Failed download:
+['ABC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['ANSS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['ATVI']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$BK: possibly delisted; no timezone found
+$BK: possibly delisted; no timezone found
+
+1 Failed download:
+['BK']: possibly delisted; no timezone found
+
+1 Failed download:
+['CDAY']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['CMA']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$CTRA: possibly delisted; no timezone found
+$CTRA: possibly delisted; no timezone found
+
+1 Failed download:
+['CTRA']: possibly delisted; no timezone found
+$CTXS: possibly delisted; no timezone found
+$CTXS: possibly delisted; no timezone found
+
+1 Failed download:
+['CTXS']: possibly delisted; no timezone found
+
+1 Failed download:
+['CTLT']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$DFS: possibly delisted; no timezone found
+$DFS: possibly delisted; no timezone found
+
+1 Failed download:
+['DFS']: possibly delisted; no timezone found
+$DISH: possibly delisted; no timezone found
+$DISH: possibly delisted; no timezone found
+
+1 Failed download:
+['DISH']: possibly delisted; no timezone found
+
+1 Failed download:
+['DRE']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$FBHS: possibly delisted; no timezone found
+$FBHS: possibly delisted; no timezone found
+
+1 Failed download:
+['FBHS']: possibly delisted; no timezone found
+$FRC: possibly delisted; no timezone found
+$FRC: possibly delisted; no timezone found
+
+1 Failed download:
+['FRC']: possibly delisted; no timezone found
+
+1 Failed download:
+['FLT']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$HES: possibly delisted; no timezone found
+$HES: possibly delisted; no timezone found
+
+1 Failed download:
+['HES']: possibly delisted; no timezone found
+$HOLX: possibly delisted; no timezone found
+$HOLX: possibly delisted; no timezone found
+
+1 Failed download:
+['HOLX']: possibly delisted; no timezone found
+
+1 Failed download:
+['IPG']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$JNPR: possibly delisted; no timezone found
+$JNPR: possibly delisted; no timezone found
+
+1 Failed download:
+['JNPR']: possibly delisted; no timezone found
+
+1 Failed download:
+['K']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['MMC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['MRO']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$NLOK: possibly delisted; no timezone found
+$NLOK: possibly delisted; no timezone found
+
+1 Failed download:
+['NLOK']: possibly delisted; no timezone found
+
+1 Failed download:
+['NLSN']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$PEAK: possibly delisted; no timezone found
+$PEAK: possibly delisted; no timezone found
+
+1 Failed download:
+['PEAK']: possibly delisted; no timezone found
+
+1 Failed download:
+['PKI']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$PXD: possibly delisted; no timezone found
+$PXD: possibly delisted; no timezone found
+
+1 Failed download:
+['PXD']: possibly delisted; no timezone found
+
+1 Failed download:
+['RE']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$SEE: possibly delisted; no timezone found
+
+1 Failed download:
+['SBNY']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$SEE: possibly delisted; no timezone found
+
+1 Failed download:
+['SEE']: possibly delisted; no timezone found
+
+1 Failed download:
+['SIVB']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['TWTR']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$WBA: possibly delisted; no timezone found
+$WBA: possibly delisted; no timezone found
+
+1 Failed download:
+['WBA']: possibly delisted; no timezone found
+
+1 Failed download:
+['WRK']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+  [6/14] 2022-07-01: picks=['COP', 'LLY', 'CVX'] (pool=40, +모멘텀=14, 52.3s)
+
+1 Failed download:
+['ABC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$ACGL: possibly delisted; no price data found  (1d 2022-12-24 -> 2022-12-26)
+
+1 Failed download:
+['ACGL']: possibly delisted; no price data found  (1d 2022-12-24 -> 2022-12-26)
+
+1 Failed download:
+['ANSS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['ATVI']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$BK: possibly delisted; no timezone found
+$BK: possibly delisted; no timezone found
+
+1 Failed download:
+['BK']: possibly delisted; no timezone found
+
+1 Failed download:
+['CDAY']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['CMA']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$CTRA: possibly delisted; no timezone found
+$CTRA: possibly delisted; no timezone found
+
+1 Failed download:
+['CTRA']: possibly delisted; no timezone found
+
+1 Failed download:
+['CTLT']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$DFS: possibly delisted; no timezone found
+$DFS: possibly delisted; no timezone found
+
+1 Failed download:
+['DFS']: possibly delisted; no timezone found
+$DISH: possibly delisted; no timezone found
+$DISH: possibly delisted; no timezone found
+
+1 Failed download:
+['DISH']: possibly delisted; no timezone found
+$FRC: possibly delisted; no timezone found
+
+1 Failed download:
+['FLT']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$FRC: possibly delisted; no timezone found
+
+1 Failed download:
+['FRC']: possibly delisted; no timezone found
+$FSLR: possibly delisted; no price data found  (1d 2022-12-24 -> 2022-12-26)
+
+1 Failed download:
+['FSLR']: possibly delisted; no price data found  (1d 2022-12-24 -> 2022-12-26)
+$HES: possibly delisted; no timezone found
+$HES: possibly delisted; no timezone found
+
+1 Failed download:
+['HES']: possibly delisted; no timezone found
+$HOLX: possibly delisted; no timezone found
+$HOLX: possibly delisted; no timezone found
+
+1 Failed download:
+['HOLX']: possibly delisted; no timezone found
+$INVH: possibly delisted; no price data found  (1d 2022-12-24 -> 2022-12-26)
+
+1 Failed download:
+['INVH']: possibly delisted; no price data found  (1d 2022-12-24 -> 2022-12-26)
+
+1 Failed download:
+['IPG']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$JNPR: possibly delisted; no timezone found
+$JNPR: possibly delisted; no timezone found
+
+1 Failed download:
+['JNPR']: possibly delisted; no timezone found
+
+1 Failed download:
+['K']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['MMC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['MRO']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$PEAK: possibly delisted; no timezone found
+$PEAK: possibly delisted; no timezone found
+
+1 Failed download:
+['PEAK']: possibly delisted; no timezone found
+
+1 Failed download:
+['PKI']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$PXD: possibly delisted; no timezone found
+$PXD: possibly delisted; no timezone found
+
+1 Failed download:
+['PXD']: possibly delisted; no timezone found
+
+1 Failed download:
+['RE']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$SEE: possibly delisted; no timezone found
+$SEE: possibly delisted; no timezone found
+
+1 Failed download:
+['SEE']: possibly delisted; no timezone found
+
+1 Failed download:
+['SBNY']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$SIVB: possibly delisted; no timezone found
+$SIVB: possibly delisted; no timezone found
+
+1 Failed download:
+['SIVB']: possibly delisted; no timezone found
+$WBA: possibly delisted; no timezone found
+$WBA: possibly delisted; no timezone found
+
+1 Failed download:
+['WBA']: possibly delisted; no timezone found
+
+1 Failed download:
+['WRK']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+  [7/14] 2023-01-03: picks=['XOM', 'COP', 'CVX'] (pool=40, +모멘텀=14, 53.1s)
+
+1 Failed download:
+['ABC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['ANSS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['ATVI']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$BK: possibly delisted; no timezone found
+$BK: possibly delisted; no timezone found
+
+1 Failed download:
+['BK']: possibly delisted; no timezone found
+
+1 Failed download:
+['CDAY']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['CMA']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$CTRA: possibly delisted; no timezone found
+$CTRA: possibly delisted; no timezone found
+
+1 Failed download:
+['CTRA']: possibly delisted; no timezone found
+
+1 Failed download:
+['CTLT']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$DFS: possibly delisted; no timezone found
+$DFS: possibly delisted; no timezone found
+
+1 Failed download:
+['DFS']: possibly delisted; no timezone found
+
+1 Failed download:
+['FLT']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$HES: possibly delisted; no timezone found
+$HES: possibly delisted; no timezone found
+
+1 Failed download:
+['HES']: possibly delisted; no timezone found
+$HOLX: possibly delisted; no timezone found
+$HOLX: possibly delisted; no timezone found
+
+1 Failed download:
+['HOLX']: possibly delisted; no timezone found
+
+1 Failed download:
+['IPG']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$JNPR: possibly delisted; no timezone found
+$JNPR: possibly delisted; no timezone found
+
+1 Failed download:
+['JNPR']: possibly delisted; no timezone found
+
+1 Failed download:
+['K']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['MMC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['MRO']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$PEAK: possibly delisted; no timezone found
+$PEAK: possibly delisted; no timezone found
+
+1 Failed download:
+['PEAK']: possibly delisted; no timezone found
+$PXD: possibly delisted; no timezone found
+$PXD: possibly delisted; no timezone found
+
+1 Failed download:
+['PXD']: possibly delisted; no timezone found
+
+1 Failed download:
+['RE']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$SEE: possibly delisted; no timezone found
+$SEE: possibly delisted; no timezone found
+
+1 Failed download:
+['SEE']: possibly delisted; no timezone found
+$WBA: possibly delisted; no timezone found
+$WBA: possibly delisted; no timezone found
+
+1 Failed download:
+['WBA']: possibly delisted; no timezone found
+
+1 Failed download:
+['WRK']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+  [8/14] 2023-07-03: picks=['NVDA', 'NFLX', 'AVGO'] (pool=40, +모멘텀=31, 52.2s)
+
+1 Failed download:
+['ANSS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$BK: possibly delisted; no timezone found
+$BK: possibly delisted; no timezone found
+
+1 Failed download:
+['BK']: possibly delisted; no timezone found
+$BLDR: possibly delisted; no price data found  (1d 2023-12-23 -> 2023-12-25)
+
+1 Failed download:
+['BLDR']: possibly delisted; no price data found  (1d 2023-12-23 -> 2023-12-25)
+$BX: possibly delisted; no price data found  (1d 2023-12-23 -> 2023-12-25)
+
+1 Failed download:
+['BX']: possibly delisted; no price data found  (1d 2023-12-23 -> 2023-12-25)
+
+1 Failed download:
+['CDAY']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['CMA']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$COR: possibly delisted; no price data found  (1d 2023-12-23 -> 2023-12-25)
+
+1 Failed download:
+['COR']: possibly delisted; no price data found  (1d 2023-12-23 -> 2023-12-25)
+$CTRA: possibly delisted; no timezone found
+$CTRA: possibly delisted; no timezone found
+
+1 Failed download:
+['CTRA']: possibly delisted; no timezone found
+
+1 Failed download:
+['CTLT']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$DFS: possibly delisted; no timezone found
+$DFS: possibly delisted; no timezone found
+
+1 Failed download:
+['DFS']: possibly delisted; no timezone found
+$EG: possibly delisted; no price data found  (1d 2023-12-23 -> 2023-12-25)
+
+1 Failed download:
+['EG']: possibly delisted; no price data found  (1d 2023-12-23 -> 2023-12-25)
+
+1 Failed download:
+['FLT']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$HES: possibly delisted; no timezone found
+$HES: possibly delisted; no timezone found
+
+1 Failed download:
+['HES']: possibly delisted; no timezone found
+$HOLX: possibly delisted; no timezone found
+$HOLX: possibly delisted; no timezone found
+
+1 Failed download:
+['HOLX']: possibly delisted; no timezone found
+$HUBB: possibly delisted; no price data found  (1d 2023-12-23 -> 2023-12-25)
+
+1 Failed download:
+['HUBB']: possibly delisted; no price data found  (1d 2023-12-23 -> 2023-12-25)
+
+1 Failed download:
+['IPG']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$JNPR: possibly delisted; no timezone found
+$JNPR: possibly delisted; no timezone found
+
+1 Failed download:
+['JNPR']: possibly delisted; no timezone found
+
+1 Failed download:
+['K']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$KVUE: possibly delisted; no price data found  (1d 2023-12-23 -> 2023-12-25)
+
+1 Failed download:
+['KVUE']: possibly delisted; no price data found  (1d 2023-12-23 -> 2023-12-25)
+
+1 Failed download:
+['MMC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['MRO']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$PEAK: possibly delisted; no timezone found
+$PEAK: possibly delisted; no timezone found
+
+1 Failed download:
+['PEAK']: possibly delisted; no timezone found
+$PXD: possibly delisted; no timezone found
+$PXD: possibly delisted; no timezone found
+
+1 Failed download:
+['PXD']: possibly delisted; no timezone found
+$VLTO: possibly delisted; no price data found  (1d 2023-12-23 -> 2023-12-25)
+
+1 Failed download:
+['VLTO']: possibly delisted; no price data found  (1d 2023-12-23 -> 2023-12-25)
+$WBA: possibly delisted; no timezone found
+$WBA: possibly delisted; no timezone found
+
+1 Failed download:
+['WBA']: possibly delisted; no timezone found
+
+1 Failed download:
+['WRK']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+  [9/14] 2024-01-02: picks=['NVDA', 'META', 'TSLA'] (pool=40, +모멘텀=30, 52.5s)
+
+1 Failed download:
+['ANSS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$BK: possibly delisted; no timezone found
+$BK: possibly delisted; no timezone found
+
+1 Failed download:
+['BK']: possibly delisted; no timezone found
+$CTRA: possibly delisted; no timezone found
+$CTRA: possibly delisted; no timezone found
+
+1 Failed download:
+['CTRA']: possibly delisted; no timezone found
+
+1 Failed download:
+['CTLT']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$DFS: possibly delisted; no timezone found
+$DFS: possibly delisted; no timezone found
+
+1 Failed download:
+['DFS']: possibly delisted; no timezone found
+$HES: possibly delisted; no timezone found
+$HES: possibly delisted; no timezone found
+
+1 Failed download:
+['HES']: possibly delisted; no timezone found
+$HOLX: possibly delisted; no timezone found
+$HOLX: possibly delisted; no timezone found
+
+1 Failed download:
+['HOLX']: possibly delisted; no timezone found
+
+1 Failed download:
+['IPG']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$JNPR: possibly delisted; no timezone found
+$JNPR: possibly delisted; no timezone found
+
+1 Failed download:
+['JNPR']: possibly delisted; no timezone found
+
+1 Failed download:
+['K']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['MMC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['MRO']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$WBA: possibly delisted; no timezone found
+$WBA: possibly delisted; no timezone found
+
+1 Failed download:
+['WBA']: possibly delisted; no timezone found
+
+1 Failed download:
+['WRK']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+  [10/14] 2024-07-01: picks=['NVDA', 'LLY', 'GE'] (pool=40, +모멘텀=35, 51.8s)
+
+1 Failed download:
+['ANSS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$BK: possibly delisted; no timezone found
+$BK: possibly delisted; no timezone found
+
+1 Failed download:
+['BK']: possibly delisted; no timezone found
+$CTRA: possibly delisted; no timezone found
+$CTRA: possibly delisted; no timezone found
+
+1 Failed download:
+['CTRA']: possibly delisted; no timezone found
+$DFS: possibly delisted; no timezone found
+$DFS: possibly delisted; no timezone found
+
+1 Failed download:
+['DFS']: possibly delisted; no timezone found
+$HES: possibly delisted; no timezone found
+$HES: possibly delisted; no timezone found
+
+1 Failed download:
+['HES']: possibly delisted; no timezone found
+$HOLX: possibly delisted; no timezone found
+$HOLX: possibly delisted; no timezone found
+
+1 Failed download:
+['HOLX']: possibly delisted; no timezone found
+
+1 Failed download:
+['IPG']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$JNPR: possibly delisted; no timezone found
+$JNPR: possibly delisted; no timezone found
+
+1 Failed download:
+['JNPR']: possibly delisted; no timezone found
+
+1 Failed download:
+['K']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['MMC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$WBA: possibly delisted; no timezone found
+$WBA: possibly delisted; no timezone found
+
+1 Failed download:
+['WBA']: possibly delisted; no timezone found
+  [11/14] 2025-01-02: picks=['NVDA', 'AVGO', 'NFLX'] (pool=40, +모멘텀=33, 52.6s)
+
+1 Failed download:
+['ANSS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$BK: possibly delisted; no timezone found
+$BK: possibly delisted; no timezone found
+
+1 Failed download:
+['BK']: possibly delisted; no timezone found
+$CTRA: possibly delisted; no timezone found
+$CTRA: possibly delisted; no timezone found
+
+1 Failed download:
+['CTRA']: possibly delisted; no timezone found
+$HES: possibly delisted; no timezone found
+$HES: possibly delisted; no timezone found
+
+1 Failed download:
+['HES']: possibly delisted; no timezone found
+$HOLX: possibly delisted; no timezone found
+$HOLX: possibly delisted; no timezone found
+
+1 Failed download:
+['HOLX']: possibly delisted; no timezone found
+
+1 Failed download:
+['IPG']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$JNPR: possibly delisted; no timezone found
+$JNPR: possibly delisted; no timezone found
+
+1 Failed download:
+['JNPR']: possibly delisted; no timezone found
+
+1 Failed download:
+['K']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['MMC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$WBA: possibly delisted; no timezone found
+$WBA: possibly delisted; no timezone found
+
+1 Failed download:
+['WBA']: possibly delisted; no timezone found
+  [12/14] 2025-07-01: picks=['NFLX', 'AVGO', 'TSLA'] (pool=40, +모멘텀=28, 52.4s)
+$BK: possibly delisted; no timezone found
+$BK: possibly delisted; no timezone found
+
+1 Failed download:
+['BK']: possibly delisted; no timezone found
+$CTRA: possibly delisted; no timezone found
+$CTRA: possibly delisted; no timezone found
+
+1 Failed download:
+['CTRA']: possibly delisted; no timezone found
+$HOLX: possibly delisted; no timezone found
+$HOLX: possibly delisted; no timezone found
+
+1 Failed download:
+['HOLX']: possibly delisted; no timezone found
+
+1 Failed download:
+['MMC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+  [13/14] 2026-01-02: picks=['NEM', 'GE', 'GOOGL'] (pool=40, +모멘텀=32, 52.3s)
+  [14/14] 2026-07-01: picks=['CAT', 'GEV', 'GOOGL'] (pool=40, +모멘텀=30, 53.8s)
+
+1 Failed download:
+['GEV']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+[h5] 새틀라이트 지표: {'cumulative_return': 464.14, 'cagr': 27.96, 'mdd': -33.54, 'sharpe': 0.91, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.83, 'avg_drawdown_days': 27.6}
+[h5]   sw=0.00: sharpe=1.030 cagr=13.23% mdd=-17.74% calmar=0.750
+[h5]   sw=0.05: sharpe=1.060 cagr=14.13% mdd=-17.77% calmar=0.800
+[h5]   sw=0.10: sharpe=1.080 cagr=15.01% mdd=-17.80% calmar=0.840
+[h5]   sw=0.15: sharpe=1.090 cagr=15.88% mdd=-17.85% calmar=0.890
+[h5]   sw=0.20: sharpe=1.090 cagr=16.73% mdd=-17.90% calmar=0.930
+[h5]   sw=0.30: sharpe=1.080 cagr=18.39% mdd=-18.04% calmar=1.020
+[h5]   sw=0.40: sharpe=1.060 cagr=19.98% mdd=-18.59% calmar=1.070
+[h5]   sw=0.50: sharpe=1.030 cagr=21.50% mdd=-20.84% calmar=1.030
+[h5] 저장 완료: /workspaces/Quant/.claude/worktrees/agent-a3cb7703ff189d4dd/analysis/2026-08-20_satellite_frontier_and_quality_blend_research/h5_results.json
+[h5] 샤프 정점: sw=0.15 sharpe=1.09

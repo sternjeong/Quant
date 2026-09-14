@@ -1,0 +1,12 @@
+CPI 발표일 조회 중...
+/workspaces/Quant/analysis/macro_event_study_2026-08-21/joint_regime_event_study.py:42: FutureWarning: The default fill_method='pad' in Series.pct_change is deprecated and will be removed in a future version. Either fill in any non-leading NA values prior to calling pct_change or specify 'fill_method=None' to not fill NA values.
+  cpi_yoy = cpi.pct_change(12) * 100
+교차분류 가능 표본: 401/405건
+
+=== 2x2 교차 국면 ===
+[골디락스(물가감속+성장가속)] n=104, +20일=1.057%(승률63.5%), +60일=3.171%(승률75.0%)
+[스태그플레이션(물가가속+성장감속)] n=114, +20일=-0.052%(승률57.9%), +60일=0.154%(승률58.8%)
+[혼합1(물가가속+성장가속, 과열)] n=88, +20일=0.447%(승률65.9%), +60일=2.142%(승률69.3%)
+[혼합2(물가감속+성장감속, 냉각)] n=95, +20일=1.232%(승률64.2%), +60일=3.891%(승률75.8%)
+
+DONE

@@ -1,0 +1,310 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found]){display:none!important}</style></head><body>
+<title>반전처럼 보였지만, 극단값 두 개였다</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #eef1ee; --surface: #ffffff; --surface-2: #e6eae5;
+    --ink: #17211d; --ink-muted: #57635c; --ink-faint: #8b968f; --line: #d9dfd8;
+    --hike: #a8461f; --hike-soft: #f4e3da; --cut: #1f6e79; --cut-soft: #dcedee; --gold: #8a6d1f;
+    --shadow: 0 1px 2px rgba(23,33,29,.06), 0 8px 24px -12px rgba(23,33,29,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+      --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+      --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+      --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+    --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+    --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+    --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Public Sans", -apple-system, "Noto Sans KR", sans-serif;
+    font-size: 16px; line-height: 1.65;
+  }
+  ::selection { background: var(--gold); color: #1a1408; }
+  a { color: var(--cut); }
+  .page { max-width: 880px; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 1rem;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 500;
+    font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.08; letter-spacing: -.01em;
+    margin: 0 0 1rem; text-wrap: balance;
+  }
+  .dek { font-size: 1.15rem; color: var(--ink-muted); max-width: 62ch; margin: 0 0 1.75rem; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: .4rem 1.6rem;
+    font-family: "IBM Plex Mono", monospace; font-size: .82rem; color: var(--ink-muted);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: .85rem 0;
+  }
+  .meta-row b { color: var(--ink); font-weight: 600; }
+  section { margin: 3.2rem 0; }
+  section > h2 {
+    font-family: "Fraunces", serif; font-weight: 500; font-size: 1.6rem;
+    letter-spacing: -.005em; margin: 0 0 .3rem; text-wrap: balance;
+  }
+  section > .lede { color: var(--ink-muted); max-width: 66ch; margin: 0 0 1.4rem; }
+  p { max-width: 68ch; }
+  .note {
+    background: var(--surface-2); border-left: 3px solid var(--gold); border-radius: 4px;
+    padding: .9rem 1.1rem; font-size: .93rem; color: var(--ink-muted); max-width: 68ch; margin: 1.1rem 0;
+  }
+  .note b { color: var(--ink); }
+  .callout {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.2rem 1.4rem; box-shadow: var(--shadow); margin: 1.4rem 0;
+  }
+  .hyp {
+    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--ink-faint);
+    border-radius: 8px; padding: 1rem 1.2rem; margin: 1rem 0; box-shadow: var(--shadow);
+  }
+  .hyp .tag {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: .4rem;
+  }
+  .verdict {
+    display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: .78rem;
+    letter-spacing: .06em; text-transform: uppercase; padding: .3rem .7rem; border-radius: 20px;
+    font-weight: 600; margin-top: .5rem;
+  }
+  .verdict.confirmed { background: var(--cut-soft); color: var(--cut); }
+  .verdict.disconfirmed { background: var(--hike-soft); color: var(--hike); }
+  .verdict.mixed { background: var(--surface-2); color: var(--gold); border: 1px solid var(--gold); }
+  .verdict.descriptive { background: var(--surface-2); color: var(--ink-muted); border: 1px solid var(--line); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .8rem; margin: 1.3rem 0 1.6rem; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: .9rem 1rem; }
+  .tile .label { font-size: .74rem; color: var(--ink-muted); margin-bottom: .3rem; }
+  .tile .value { font-family: "IBM Plex Mono", monospace; font-size: 1.3rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tile .value.hike { color: var(--hike); }
+  .tile .value.cut { color: var(--cut); }
+  .tile .sub { font-size: .72rem; color: var(--ink-faint); margin-top: .2rem; }
+  .table-wrap { overflow-x: auto; margin: 1.2rem 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: .92rem; }
+  caption { text-align: left; font-size: .82rem; color: var(--ink-faint); padding-bottom: .5rem; }
+  th, td { padding: .62rem .8rem; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; font-family: "IBM Plex Mono", monospace; }
+  th:first-child, td:first-child { text-align: left; font-family: "Public Sans", sans-serif; }
+  thead th { font-family: "Public Sans", sans-serif; font-weight: 600; font-size: .78rem; letter-spacing: .02em; color: var(--ink-muted); text-transform: uppercase; border-bottom: 1px solid var(--ink-faint); }
+  tr.row-inv td:first-child { border-left: 3px solid var(--hike); padding-left: .65rem; }
+  tr.row-norm td:first-child { border-left: 3px solid var(--cut); padding-left: .65rem; }
+  tr.row-base td:first-child { border-left: 3px solid var(--ink-faint); padding-left: .65rem; }
+  tr.row-gold td:first-child { border-left: 3px solid var(--gold); padding-left: .65rem; }
+  tbody tr:hover { background: var(--surface-2); }
+  ul.findings { padding-left: 1.2rem; max-width: 68ch; }
+  ul.findings li { margin-bottom: .9rem; }
+  ul.findings b { color: var(--ink); }
+  .footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--line); font-size: .82rem; color: var(--ink-faint); }
+</style>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">MACRO EVENT STUDY · 트랙 H 후속 · 1986&ndash;2026</div>
+    <h1>반전처럼 보였지만, 사실은 극단값 두 개였다</h1>
+    <p class="dek">네 개의 위기 게이지 대시보드가 보여준 "장기엔 단조적으로 나빠지지만 단기엔
+    오히려 반전"되는 특이한 모양이, VIX(빠른 신호)&times;침체 조합에서는 재현되지 않았다.
+    그 스터디가 남긴 다음 후보 &mdash; 크레딧 스프레드(느린, 동행에 가까운 신호)&times;침체
+    조합 &mdash; 로 다시 확인해봤다. 결과: 침체중 이벤트가 겨우 3건뿐이고, 그마저 정반대의
+    두 극단 사례(1990년 회복 vs 2008년 리먼 붕괴)로 갈라져 있어, 기계적으로는 "재현"처럼
+    나오지만 속을 들여다보면 진짜 반전이 아니라 표본 크기가 만든 착시에 가깝다.</p>
+    <div class="meta-row">
+      <span>크레딧스트레스 이벤트 <b>13건</b> (1986&ndash;2026, credit_spread_event_study.py
+      원 정의 그대로 재사용)</span>
+      <span>침체중 <b>3건</b> vs 비침체 <b>10건</b></span>
+      <span>데이터 <b>FRED(BAA10Y, USREC)</b>, S&amp;P500(^GSPC)</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>사전등록: 결과를 보기 전에 못박는다</h2>
+    <p class="lede">크레딧스트레스 이벤트는 credit_spread_event_study.py의 탐지 로직(직전
+    3년·756거래일 rolling 90퍼센타일 상향돌파 + 10거래일 연속 유지 필터, 절대 bp 기준 아님)을
+    그대로 재사용하고, 침체 태깅은 cross_asset_recession_split.py의 USREC 방식을 그대로
+    재사용한다 &mdash; 새로 만든 규칙은 없다.</p>
+    <div class="hyp">
+      <div class="tag">H1 · 같은 호라이즌-반전 모양이 재현되는가</div>
+      <p style="margin:0">크레딧 스프레드 스트레스 이벤트를 침체중/비침체로 나누면, 네 게이지
+      대시보드와 같은 "장기엔 단조적으로 나쁘지만 단기엔 반전"되는 모양이 나타날 것이다.
+      <b>사전 예측(결과를 보기 전에 명시)</b>: 크레딧 스프레드는 이미 credit_spread_event_
+      study.py의 H2에서 "장단기 금리역전보다 동행에 가깝다"(저점까지 중앙값 79거래일)고
+      확립된, VIX 같은 빠른 평균회귀 성질이 없는 신호다 &mdash; 따라서 이 가설은 VIX&times;
+      침체 조합과 마찬가지로 <b>재현되지 않을 것</b>으로 예측한다. 즉 침체중 크레딧스트레스
+      이벤트는 장기뿐 아니라 단기에도 비침체보다 한결같이(단조적으로) 약할 것으로 예상한다
+      (반전 없음). 예측이 맞으면 "호라이즌-반전은 VIX 같은 빠른 평균회귀 성분이 최소 하나
+      있어야 나온다"는 이론에 두 번째 독립 증거가 되고, 틀리면(반전이 실제로 나타나면) 그
+      이론을 직접 반박하는 놀라운 발견이 된다.</p>
+    </div>
+    <div class="hyp">
+      <div class="tag">H2 · 표본크기 정직성(결과를 보기 전에 명시)</div>
+      <p style="margin:0">credit_spread_event_study.py의 H3에서 이미 13건의 주 기준 이벤트 중
+      침체중은 단 3건뿐이었다 &mdash; 이번에도 침체중 셀은 <b>n&lt;5</b>일 가능성이 매우 높다.
+      이 프로젝트의 소표본 원칙(샴의 법칙, VIX&ge;50 리포트와 동일)에 따라 n&lt;5인 셀은
+      평균&middot;승률 집계 대신 <b>사례별 원자료를 그대로</b> 표로 싣는다.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>결과: 표본이 겨우 3건, 그마저 정반대로 갈라졌다</h2>
+    <div class="tiles">
+      <div class="tile"><div class="label">침체중 크레딧스트레스 이벤트</div><div class="value hike">3건</div><div class="sub">사전기준 n&lt;5 &rarr; 집계 대신 개별 사례</div></div>
+      <div class="tile"><div class="label">비침체 이벤트</div><div class="value cut">10건</div></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <caption>크레딧스트레스 이벤트, 침체 여부별 S&amp;P500 순방향 수익률(%) &middot; 괄호는 승률
+        &middot; 침체중 행은 n=3이라 통계가 아니라 참고용 평균(아래 개별사례 참조)</caption>
+        <thead><tr><th>구간</th><th>이벤트 수</th><th>+5일</th><th>+20일</th><th>+60일</th><th>+120일</th></tr></thead>
+        <tbody>
+          <tr class="row-base"><td>전체</td><td>13</td><td>&minus;0.16 (31%)</td><td>&minus;2.27 (38%)</td><td>+0.66 (62%)</td><td>&minus;2.34 (46%)</td></tr>
+          <tr class="row-norm"><td>비침체</td><td>10</td><td>&minus;0.28 (30%)</td><td>&minus;2.41 (40%)</td><td>+0.76 (70%)</td><td>&minus;0.80 (50%)</td></tr>
+          <tr class="row-inv"><td>침체중(참고용)</td><td>3</td><td>+0.25 (33%)</td><td>&minus;1.78 (33%)</td><td>+0.35 (33%)</td><td>&minus;7.46 (33%)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>얼핏 보면 침체중 행이 딱 원하는 모양을 만든다 &mdash; 단기(+5&middot;20일)는 비침체와
+    비슷하거나 오히려 나은데, 장기(+120일)에서만 뚝 떨어진다. 하지만 승률을 보면 이야기가
+    완전히 달라진다: 침체중 승률은 <b>+5&middot;20&middot;60&middot;120일 전부 정확히 33%로
+    똑같다</b>. 이건 우연이 아니라 산수다 &mdash; 3건 중 1건(1990년)은 4개 호라이즌 전부에서
+    플러스였고, 나머지 2건(2001년, 2008년)은 4개 호라이즌 전부에서 마이너스였다. 세 사례
+    중 어느 것도 "당장은 괜찮다가 나중에 나빠지는" 진짜 반전 경로를 보이지 않았다 &mdash;
+    각 사례는 첫날부터 이미 한쪽으로 기울어져 있었고 그 방향을 끝까지 유지했을 뿐이다.</p>
+
+    <div class="table-wrap">
+      <table>
+        <caption>침체중 크레딧스트레스 이벤트 3건 전부(n&lt;5, 개별 사례 그대로 공개)</caption>
+        <thead><tr><th>날짜</th><th>스프레드</th><th>배경</th><th>+5일</th><th>+20일</th><th>+60일</th><th>+120일</th></tr></thead>
+        <tbody>
+          <tr class="row-gold"><td>1990-11-30</td><td>2.27%p</td><td style="text-align:left;font-family:'Public Sans',sans-serif">저축대부조합 위기(시스템 붕괴 없이 봉쇄)</td><td>+1.72</td><td>+2.48</td><td>+14.13</td><td>+16.37</td></tr>
+          <tr class="row-inv"><td>2001-08-08</td><td>2.88%p</td><td style="text-align:left;font-family:'Public Sans',sans-serif">닷컴버블 후폭풍(9&middot;11 이전)</td><td>&minus;0.47</td><td>&minus;6.52</td><td>&minus;5.72</td><td>&minus;7.90</td></tr>
+          <tr class="row-inv"><td>2008-06-30</td><td>3.05%p</td><td style="text-align:left;font-family:'Public Sans',sans-serif">글로벌 금융위기 전조(리먼 파산 3개월 전)</td><td>&minus;0.49</td><td>&minus;1.31</td><td>&minus;7.35</td><td>&minus;30.84</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="hyp" style="border-left-color:var(--gold)">
+      <div class="tag">H1 기계적 체크(참고용, n=3 &mdash; 취약함)</div>
+      <p style="margin:0">horizon_reversal_replication_study.py와 완전히 동일한 자동 판정
+      규칙(장기 60&middot;120일 평균이 침체중에서 더 나쁜가 + 단기 5&middot;20일 승률 중
+      최소 하나는 침체중이 안 나쁘거나 같은가)을 그대로 적용하면, 이번엔 <b>두 조건 모두
+      "통과"로 계산된다</b>(장기 더 나쁨=True, 단기 반전 여지=True) &mdash; 표면적으로는
+      "재현됨"이다. 하지만 이 통과는 +5일 승률 33.3%(1990년 한 건) vs 비침체 30.0%라는,
+      <b>사례 딱 1건의 부호 하나에 전적으로 의존하는 근소한 차이</b>에서 나온다 &mdash; 만약
+      1990-11-30 사례의 +5일 수익률이 마이너스였다면(당시 정황상 충분히 있을 수 있는 일이다)
+      이 자동판정은 곧바로 뒤집혀 VIX&times;침체와 똑같은 "미재현"이 됐을 것이다. 통계적
+      근거가 아니라 동전 던지기 수준의 우연으로 취급해야 한다.</p>
+      <span class="verdict mixed">INCONCLUSIVE(n=3, 판정 보류)</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>H1 최종 판정: 확정도 반박도 아니다 &mdash; 표본이 질문에 답을 못 준다</h2>
+    <p>사전 예측은 "침체중 크레딧스트레스는 VIX&times;침체처럼 모든 호라이즌에서 한결같이
+    약할 것(반전 없음)"이었다. 실제로 나온 건 그 예측과도, 그 반대(진짜 반전)와도 딱 맞지
+    않는 세 번째 그림이다 &mdash; <b>3건의 사례가 "1건은 완전히 좋았고 2건은 완전히 나빴다"는
+    양극단으로 갈라져 있어서, 평균을 내면 우연히 반전처럼 보이는 모양이 나오지만 그 안에
+    진짜 반전을 겪은 개별 사례는 단 하나도 없다.</b> 승률이 네 호라이즌 전부에서 33%로
+    똑같다는 사실이 이걸 가장 분명하게 보여준다 &mdash; 이건 "장기엔 나쁘고 단기엔 좋다"는
+    모양이 아니라, 그냥 3개의 서로 다른 결과가 매 시점 그대로 유지된 것뿐이다.</p>
+    <p><b>"빠른 신호가 최소 하나 있어야 반전이 나온다"는 이론에 대해 이 결과가 의미하는 바</b>:
+    이번 테스트는 그 이론을 두 번째로 확인해주지도, 반박하지도 못한다. VIX&times;침체(n=6)는
+    표본이 작아도 6건 모두가 방향적으로 일관되게 "고르게 약함"을 보여 최소한 정직한 방향
+    불일치를 보고할 수 있었다. 크레딧&times;침체(n=3)는 그마저도 안 된다 &mdash; 표본이
+    너무 작고 너무 양극화돼 있어서 "모양이 있다/없다" 자체를 판정할 근거가 없다. 이론을
+    지지하는 쪽으로 살짝 기운다고 볼 수는 있다(개별 사례 중 진짜 반전을 겪은 건 없으므로)는
+    점은 정직하게 언급하되, 이걸 "두 번째 독립 확인"이라고 부르는 건 과장이다.</p>
+    <div class="hyp" style="border-left-color:var(--hike)">
+      <div class="tag">H1 최종 판정</div>
+      <p style="margin:0">n=3, 그중 2건이 서로 완전히 반대되는 극단값(1990 회복 vs 2008 붕괴)
+      &mdash; 통계적으로 재현/미재현을 가를 수 없다. 다만 개별 사례 수준에서 "당장은 괜찮다가
+      나중에 나빠지는" 진짜 반전 경로를 보인 사례는 0건이라는 점은 "이론을 반박하는 놀라운
+      결과"는 확실히 아니라는 것만은 말할 수 있다.</p>
+      <span class="verdict mixed">INCONCLUSIVE(n=3) &mdash; 반박 근거는 없음, 확인 근거로도 부족</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>더 눈에 띄는 것: 이 3건은 사실 이 프로젝트가 8번 넘게 봐온 그 패턴이다</h2>
+    <p>1990년(시스템 붕괴 없이 봉쇄된 저축대부조합 위기) &rarr; 강한 회복(+120일 +16.4%),
+    2001년(닷컴버블 후폭풍, 부분적 신용 손상) &rarr; 뚜렷한 하락(&minus;7.9%), 2008년
+    (리먼 브라더스 파산 전조, 실제 은행시스템 붕괴) &rarr; 최악(&minus;30.8%). 이건 이
+    프로젝트가 트랙 A(침체+디스인플레이션 인하)&middot;트랙 B(큐레이션 충격 사건)&middot;
+    트랙 F(VIX&ge;50 급등)&middot;트랙 H(크레딧스프레드 원 스터디 자체)에서 이미 여러 번
+    확인한 <b>"사건이 얼마나 무서워 보였는지보다 실제로 금융시스템이 무너졌는지가 결과를
+    가른다"</b>는 패턴과 방향이 정확히 같다. 다만 이건 <b>새로운 증거가 아니다</b> &mdash;
+    이 3건은 credit_spread_event_study.py의 H3가 이미 똑같이 보고했던 바로 그 3건을 다른
+    호라이즌 세트로 다시 계산한 것뿐이라, "호라이즌-반전" 질문에는 답을 못 주지만
+    "시스템 붕괴가 중요하다"는 이미 확립된 결론과는 여전히 방향이 일치한다는 점만 재확인해준다.</p>
+  </section>
+
+  <section>
+    <h2>경제학 지식 없이 읽는 법</h2>
+    <ul class="findings">
+      <li><b>이번엔 "예/아니오"로 답을 못 냈다 &mdash; 그것도 정직한 결과다.</b> 회사채
+      금리가 국채보다 얼마나 더 높은지(크레딧 스프레드)가 갑자기 튀어 오른 사건을 침체 중인
+      경우와 아닌 경우로 나눠서, "당장은 괜찮다가 몇 달 뒤엔 더 나빠지는" 특이한 패턴이
+      다시 나오는지 봤다. 그런데 침체 중에 이런 일이 일어난 사례가 딱 3번뿐이었고, 그 3번이
+      하필 "완전히 좋았던 경우 1번"과 "완전히 나빴던 경우 2번"으로 극단적으로 갈려 있어서,
+      평균만 보면 마치 패턴이 있는 것처럼 보이지만 실제로는 각 사례가 처음부터 끝까지 한
+      방향만 유지했을 뿐이다.</li>
+      <li><b>"운 좋게 맞아떨어진 숫자"를 구분하는 법.</b> 승률(3건 중 몇 건이 플러스였나)을
+      보면 4개 기간 전부에서 정확히 33%(3건 중 1건)로 똑같다 &mdash; 이건 패턴이 아니라
+      그냥 "3건이 4개월 뒤에도, 4일 뒤에도 각자 자기 방향을 그대로 유지했다"는 뜻이다.</li>
+      <li><b>진짜 발견은 따로 있다.</b> 1990년(위기가 실제로 번지지 않고 진정됨)은 회복,
+      2001년&middot;2008년(신용 문제가 실제로 더 심각했던 시기)은 하락 &mdash; 이건 이
+      프로젝트가 계속 확인해온 "사건이 무서워 보이는가보다 실제로 금융시스템이 무너졌는가가
+      더 중요하다"는 결론과 방향이 같다. 다만 이 3건은 예전에 이미 살펴본 바로 그 3건이라
+      완전히 새로운 확인은 아니다.</li>
+      <li><b>표본이 작으면 "증명됐다"고 말하지 않는다.</b> 3건으로는 통계가 아니다 &mdash;
+      이 리포트는 그 사실을 숨기지 않고, 오히려 그 작은 표본 안에서 무슨 일이 벌어지고
+      있는지(양극단으로 갈라짐)까지 구체적으로 보여준다.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>한계</h2>
+    <div class="callout">
+      <ul class="findings" style="margin:0;">
+        <li><b>침체중 셀 n=3은 이 프로젝트 안에서도 가장 작은 축에 속한다.</b> 통계적으로
+        어떤 "모양"도 확정할 수 없는 크기다.</li>
+        <li><b>이 3건은 새로 발견한 사례가 아니다.</b> credit_spread_event_study.py의 H3가
+        이미 완전히 동일한 3건(1990-11-30&middot;2001-08-08&middot;2008-06-30)을 보고했다
+        &mdash; 이번 스터디는 같은 3건을 5&middot;20&middot;60&middot;120일이라는 다른
+        호라이즌 세트로 다시 계산해 "호라이즌-반전" 질문에 적용했을 뿐, 독립적인 새 표본이
+        아니다.</li>
+        <li><b>기계적 자동판정(H1 체크)이 "통과"로 나온 건 사례 1건의 부호 하나에 전적으로
+        의존한다.</b> 1990년 사례의 +5일 수익률 부호가 반대였다면 판정 자체가 뒤집혔을
+        것이다 &mdash; 이 정도로 취약한 결과를 "재현됨"으로 부르지 않는다.</li>
+        <li><b>크레딧 스프레드는 이미 credit_spread_event_study.py에서 확립했듯 VIX보다
+        느리게 움직이는(동행에 가까운) 신호</b>라 애초에 "빠른 반등" 자체가 기대하기 어려운
+        지표다 &mdash; 이번 조합은 "느린 신호 두 개"를 겹친 것이라 원래 "빠른 신호+느린
+        신호"였던 네 게이지 대시보드의 조건 자체를 충족하지 못했을 수 있다는 것도 함께
+        밝혀둔다.</li>
+        <li><b>BAA10Y는 진짜 하이일드(투기등급) 스프레드가 아니라 투자등급 중 낮은 등급
+        스프레드다</b>(credit_spread_event_study.py의 데이터 출처 대체 사유 참조) &mdash;
+        이 한계는 원 스터디에서 이어받은 것이다.</li>
+        <li><b>거래비용&middot;세금은 반영하지 않았다.</b> 다른 리포트와 동일하게 순수
+        가격 반응만 본다.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="footer">
+    데이터: FRED(BAA10Y, USREC) &middot; Yahoo Finance(^GSPC) &middot; 분석 스크립트:
+    credit_recession_horizon_study.py(credit_spread_event_study.py의 이벤트 탐지 로직,
+    cross_asset_recession_split.py의 USREC 태깅 방식 재사용) &middot; 같은 프로젝트:
+    신용시장의 공포지수(원 크레딧스프레드 스터디), 호라이즌 반전 다시 나타날까(VIX&times;침체
+    재현 시도), 네 개의 경고등을 한 판에(원 발견)
+  </div>
+</div>
+
+</body></html>

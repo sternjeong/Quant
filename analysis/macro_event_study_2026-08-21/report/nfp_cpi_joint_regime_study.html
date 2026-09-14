@@ -1,0 +1,308 @@
+<title>고용지표가 선명해지는 순간</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #eef1ee; --surface: #ffffff; --surface-2: #e6eae5;
+    --ink: #17211d; --ink-muted: #57635c; --ink-faint: #8b968f; --line: #d9dfd8;
+    --hike: #a8461f; --hike-soft: #f4e3da; --cut: #1f6e79; --cut-soft: #dcedee; --gold: #8a6d1f;
+    --shadow: 0 1px 2px rgba(23,33,29,.06), 0 8px 24px -12px rgba(23,33,29,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+      --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+      --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+      --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+    --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+    --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+    --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Public Sans", -apple-system, "Noto Sans KR", sans-serif;
+    font-size: 16px; line-height: 1.65;
+  }
+  ::selection { background: var(--gold); color: #1a1408; }
+  a { color: var(--cut); }
+  .page { max-width: 880px; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 1rem;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 500;
+    font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.08; letter-spacing: -.01em;
+    margin: 0 0 1rem; text-wrap: balance;
+  }
+  .dek { font-size: 1.15rem; color: var(--ink-muted); max-width: 62ch; margin: 0 0 1.75rem; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: .4rem 1.6rem;
+    font-family: "IBM Plex Mono", monospace; font-size: .82rem; color: var(--ink-muted);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: .85rem 0;
+  }
+  .meta-row b { color: var(--ink); font-weight: 600; }
+  section { margin: 3.2rem 0; }
+  section > h2 {
+    font-family: "Fraunces", serif; font-weight: 500; font-size: 1.6rem;
+    letter-spacing: -.005em; margin: 0 0 .3rem; text-wrap: balance;
+  }
+  section > .lede { color: var(--ink-muted); max-width: 66ch; margin: 0 0 1.4rem; }
+  p { max-width: 68ch; }
+  .note {
+    background: var(--surface-2); border-left: 3px solid var(--gold); border-radius: 4px;
+    padding: .9rem 1.1rem; font-size: .93rem; color: var(--ink-muted); max-width: 68ch; margin: 1.1rem 0;
+  }
+  .note b { color: var(--ink); }
+  .callout {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.2rem 1.4rem; box-shadow: var(--shadow); margin: 1.4rem 0;
+  }
+  .hyp {
+    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--ink-faint);
+    border-radius: 8px; padding: 1rem 1.2rem; margin: 1rem 0; box-shadow: var(--shadow);
+  }
+  .hyp .tag {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: .4rem;
+  }
+  .verdict {
+    display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: .78rem;
+    letter-spacing: .06em; text-transform: uppercase; padding: .3rem .7rem; border-radius: 20px;
+    font-weight: 600; margin-top: .5rem;
+  }
+  .verdict.confirmed { background: var(--cut-soft); color: var(--cut); }
+  .verdict.disconfirmed { background: var(--hike-soft); color: var(--hike); }
+  .verdict.mixed { background: var(--surface-2); color: var(--gold); border: 1px solid var(--gold); }
+  .verdict.replicated { background: var(--surface-2); color: var(--gold); border: 1px solid var(--gold); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .8rem; margin: 1.3rem 0 1.6rem; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: .9rem 1rem; }
+  .tile .label { font-size: .74rem; color: var(--ink-muted); margin-bottom: .3rem; }
+  .tile .value { font-family: "IBM Plex Mono", monospace; font-size: 1.3rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tile .value.hike { color: var(--hike); }
+  .tile .value.cut { color: var(--cut); }
+  .tile .sub { font-size: .72rem; color: var(--ink-faint); margin-top: .2rem; }
+  .table-wrap { overflow-x: auto; margin: 1.2rem 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: .92rem; }
+  caption { text-align: left; font-size: .82rem; color: var(--ink-faint); padding-bottom: .5rem; }
+  th, td { padding: .62rem .8rem; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; font-family: "IBM Plex Mono", monospace; }
+  th:first-child, td:first-child { text-align: left; font-family: "Public Sans", sans-serif; }
+  thead th { font-family: "Public Sans", sans-serif; font-weight: 600; font-size: .78rem; letter-spacing: .02em; color: var(--ink-muted); text-transform: uppercase; border-bottom: 1px solid var(--ink-faint); }
+  tr.row-inv td:first-child { border-left: 3px solid var(--hike); padding-left: .65rem; }
+  tr.row-norm td:first-child { border-left: 3px solid var(--cut); padding-left: .65rem; }
+  tr.row-base td:first-child { border-left: 3px solid var(--ink-faint); padding-left: .65rem; }
+  tr.row-gold td:first-child { border-left: 3px solid var(--gold); padding-left: .65rem; }
+  tbody tr:hover { background: var(--surface-2); }
+  ul.findings { padding-left: 1.2rem; max-width: 68ch; }
+  ul.findings li { margin-bottom: .9rem; }
+  ul.findings b { color: var(--ink); }
+  .footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--line); font-size: .82rem; color: var(--ink-faint); }
+</style>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">MACRO EVENT STUDY · 트랙 A 후속 · 1994&ndash;2026 · FRED PAYEMS &amp; CPIAUCSL</div>
+    <h1>고용지표는 물가와 겹칠 때만 선명해졌다</h1>
+    <p class="dek">고용지표(NFP) 단독으로는 가속/둔화가 거의 갈리지 않았다는 게 이 프로젝트의
+    기존 발견이었다 — "고용은 좋아도 나빠도 이중적으로 읽히는 지표"라서다. 이번엔 그 발표
+    시점에 이미 알려진 물가(CPI) 국면을 함께 태깅해 2x2로 쪼개, 정말 물가와 겹치면 고용지표가
+    선명해지는지 <b>결과를 보기 전에 못박은 세 가설</b>로 검증한다.</p>
+    <div class="meta-row">
+      <span>NFP 발표 <b>398건</b> 중 교차분류 가능 <b>382건</b></span>
+      <span>구간 <b>1994 ~ 2026</b></span>
+      <span>데이터 <b>FRED(PAYEMS, CPIAUCSL, release/dates)</b>, S&amp;P500(^GSPC)</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>사전등록: 결과를 보기 전에 무엇을 검증할지 먼저 못박는다</h2>
+    <p class="lede">사건(트리거)은 <b>NFP 발표일</b>로 고정한다 — 그날 시장에 새로 도착하는
+    뉴스는 고용지표이고, CPI는 그 시점에 이미 알려진 "배경 국면"일 뿐이기 때문이다. 이 프로젝트가
+    CPI×GDP 교차검증에서 이미 확인했듯, "무엇을 트리거로 잡고 무엇을 배경변수로 태깅하는가"는
+    결과에 실제로 영향을 준다 — 그래서 이 선택을 미리 명시해둔다.</p>
+    <div class="hyp">
+      <div class="tag">H1 · 교차하면 격차가 커지는가</div>
+      <p style="margin:0">NFP 모멘텀(가속/둔화)×CPI 추세(가속/감속) 2x2 교차의 최고&minus;최저
+      셀 격차가, NFP 단독 분리의 격차(+60일 기준 <b>2.66% &minus; 1.81% = 0.85%p</b>, 이미
+      메모에 기록된 기준선)보다 <b>더 클 것이다</b>.</p>
+    </div>
+    <div class="hyp">
+      <div class="tag">H2 · 방향성 예측(단순히 "격차가 있다"가 아니라)</div>
+      <p style="margin:0">"고용가속+물가감속"(강한 고용＋식는 물가 — 가장 덜 모호한 호재
+      조합)이 네 칸 중 <b>단독 최고 성과</b>일 것이다.</p>
+    </div>
+    <div class="hyp">
+      <div class="tag">H3 · CPI×GDP 교차검증 결과의 재현 여부 확인</div>
+      <p style="margin:0">CPI 축 하나만으로(NFP 상태를 무시하고 합쳐서) 교차표 변동의 대부분을
+      설명할 것이다 — 즉 교차표 안에서도 CPI 축이 여전히 일을 대부분 하고, NFP 자체의 축은
+      약할 것이다. 이는 "이벤트 트리거 vs 배경변수" 패턴의 재현 여부를 보는 것이지, 진짜
+      NFP&times;CPI 상호작용을 주장하는 게 아니다. 재현되는지 명확히 밝힌다.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>먼저: 이번 표본에서 NFP·CPI 단독 축을 재확인</h2>
+    <div class="table-wrap">
+      <table>
+        <caption>이번 표본(n=382)에서 단독 분리 재확인(%) · 괄호는 승률</caption>
+        <thead><tr><th>구분</th><th>건수</th><th>+20일</th><th>+60일</th></tr></thead>
+        <tbody>
+          <tr><td>NFP 가속</td><td>184</td><td>+0.12 (59%)</td><td>+1.89 (70%)</td></tr>
+          <tr><td>NFP 둔화</td><td>198</td><td>+1.35 (67%)</td><td>+2.66 (70%)</td></tr>
+          <tr class="row-inv"><td>CPI 가속</td><td>189</td><td>+0.03 (59%)</td><td>+0.74 (63%)</td></tr>
+          <tr class="row-norm"><td>CPI 감속</td><td>193</td><td>+1.47 (67%)</td><td>+3.80 (76%)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>NFP 단독 격차는 이번 표본에서도 여전히 작다(+60일 1.89% vs 2.66%, 격차 0.78%p —
+    메모에 기록된 0.85%p와 거의 같음, 재현성 확인). 반면 <b>같은 표본에서 CPI 단독 격차는
+    3배 이상 크다</b>(0.74% vs 3.80%, 격차 3.06%p) — H3에서 이 대비가 다시 나온다.</p>
+  </section>
+
+  <section>
+    <h2>H1 결과: 2x2로 쪼개니 격차가 훨씬 커졌다</h2>
+    <div class="table-wrap">
+      <table>
+        <caption>NFP&times;CPI 2x2 교차표, +60거래일 S&amp;P500 순방향 수익률(%) · 괄호는 승률</caption>
+        <thead><tr><th>조합</th><th>건수</th><th>+20일</th><th>+60일</th></tr></thead>
+        <tbody>
+          <tr class="row-gold"><td>고용가속+물가감속(최선 후보)</td><td>79</td><td>+1.13 (68%)</td><td>+3.55 (80%)</td></tr>
+          <tr class="row-inv"><td>고용가속+물가가속(과열/모호)</td><td>105</td><td>&minus;0.64 (52%)</td><td>+0.64 (62%)</td></tr>
+          <tr class="row-norm"><td>고용둔화+물가감속(냉각)</td><td>114</td><td>+1.70 (67%)</td><td>+3.98 (74%)</td></tr>
+          <tr><td>고용둔화+물가가속(스태그플레이션 우려)</td><td>84</td><td>+0.87 (68%)</td><td>+0.88 (64%)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="tiles">
+      <div class="tile"><div class="label">NFP 단독 격차(+60일)</div><div class="value">0.78%p</div><div class="sub">기준선 0.85%p와 거의 일치</div></div>
+      <div class="tile"><div class="label">2x2 최고&minus;최저 격차</div><div class="value cut">3.34%p</div><div class="sub">+3.98%(냉각) &minus; +0.64%(과열)</div></div>
+    </div>
+    <p>격차가 <b>4배 이상 커졌다</b>(0.78%p → 3.34%p). NFP 하나만 봐서는 안 보이던 차이가
+    물가 국면과 겹치자 뚜렷하게 드러났다.</p>
+    <div class="hyp" style="border-left-color:var(--cut)">
+      <div class="tag">H1 검증 결과</div>
+      <p style="margin:0">교차표의 최고&minus;최저 격차(3.34%p)가 NFP 단독 격차(0.78~0.85%p)를
+      확실히 웃돈다.</p>
+      <span class="verdict confirmed">CONFIRMED</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>H2 결과: 예상한 "최선 조합"이 이기긴 했는데, 아슬아슬했다</h2>
+    <p class="lede">가설은 "고용가속+물가감속"이 단독 1위일 거라고 했다. 실제로는 승률 기준으로는
+    맞았지만 평균수익률 기준으로는 근소하게 밀렸다.</p>
+    <div class="table-wrap">
+      <table>
+        <caption>+60거래일 기준 4개 셀 순위(%)</caption>
+        <thead><tr><th>순위</th><th>조합</th><th>+60일 평균</th><th>승률</th></tr></thead>
+        <tbody>
+          <tr class="row-norm"><td>1위(평균 기준)</td><td>고용둔화+물가감속(냉각)</td><td>+3.98</td><td>74%</td></tr>
+          <tr class="row-gold"><td>2위(평균)/<b>1위(승률)</b></td><td>고용가속+물가감속(최선 후보)</td><td>+3.55</td><td><b>80%</b></td></tr>
+          <tr><td>3위</td><td>고용둔화+물가가속(스태그플레이션 우려)</td><td>+0.88</td><td>64%</td></tr>
+          <tr class="row-inv"><td>4위(꼴찌)</td><td>고용가속+물가가속(과열/모호)</td><td>+0.64</td><td>62%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>"고용가속+물가감속"은 <b>네 칸 중 승률이 가장 높다(80%)</b> — 이 부분은 가설과 정확히
+    일치한다. 그런데 평균수익률로 보면 "고용둔화+물가감속"(이른바 "냉각" 국면)이 근소하게
+    앞선다(+3.98% vs +3.55%). <b>이건 낯선 패턴이 아니다</b> — 이 프로젝트의 CPI×GDP 교차검증
+    (`joint_regime_event_study.py`)에서도 정확히 같은 일이 있었다: 진짜 "골디락스"(물가감속+
+    성장가속)가 아니라 "냉각"(물가감속+성장감속)이 근소하게 앞섰다. <b>물가가 식고 있다는 것
+    자체가 성장/고용 축의 방향보다 더 중요하게 작용하는 패턴이 NFP×CPI 교차에서도 그대로
+    반복됐다.</b></p>
+    <div class="hyp" style="border-left-color:var(--gold)">
+      <div class="tag">H2 검증 결과</div>
+      <p style="margin:0">승률 기준으로는 가설이 맞았지만(80%로 단독 1위), 평균수익률 기준으로는
+      "냉각" 조합에 근소하게 밀렸다(3.55% vs 3.98%). 지표 선택에 따라 결론이 달라지는 경계
+      사례다.</p>
+      <span class="verdict mixed">MIXED</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>H3 결과: CPI 축이 교차표 안에서도 여전히 대부분의 일을 했다</h2>
+    <p class="lede">NFP가 트리거인데도, 실제로 결과를 가른 건 여전히 CPI 쪽이었다.</p>
+    <div class="table-wrap">
+      <table>
+        <caption>같은 CPI 상태 안에서 NFP 축이 만드는 차이 vs 같은 NFP 상태 안에서 CPI 축이 만드는 차이(+60일, %p)</caption>
+        <thead><tr><th>고정한 축</th><th>비교</th><th>격차(%p)</th></tr></thead>
+        <tbody>
+          <tr><td>CPI 가속 고정, NFP만 비교</td><td>+0.64(고용가속) vs +0.88(고용둔화)</td><td>0.24</td></tr>
+          <tr><td>CPI 감속 고정, NFP만 비교</td><td>+3.55(고용가속) vs +3.98(고용둔화)</td><td>0.43</td></tr>
+          <tr class="row-inv"><td>NFP 가속 고정, CPI만 비교</td><td>+0.64(물가가속) vs +3.55(물가감속)</td><td><b>2.92</b></td></tr>
+          <tr class="row-inv"><td>NFP 둔화 고정, CPI만 비교</td><td>+0.88(물가가속) vs +3.98(물가감속)</td><td><b>3.10</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>CPI 상태를 고정한 채 NFP만 바꾸면 결과가 겨우 0.24~0.43%p밖에 안 움직인다. 반대로 NFP
+    상태를 고정한 채 CPI만 바꾸면 결과가 2.92~3.10%p나 움직인다 — <b>격차가 7~13배 차이난다.</b>
+    즉 2x2 교차표가 선명해 보이는 진짜 이유는 "NFP와 CPI가 서로 상호작용해서"가 아니라,
+    <b>CPI 혼자서 대부분의 변동을 설명하고 있기 때문</b>이다. NFP를 트리거(그날의 뉴스)로
+    고정했는데도 여전히 CPI가 결과를 지배한다는 건, 이 프로젝트가 CPI×GDP 교차검증에서 봤던
+    "트리거보다 배경변수가 더 강하게 작용할 수 있다"는 패턴이 방향을 바꿔서도(이번엔 CPI가
+    배경변수 역할인데도) 다시 나타난 셈이다.</p>
+    <div class="hyp" style="border-left-color:var(--gold)">
+      <div class="tag">H3 검증 결과</div>
+      <p style="margin:0">재현됨 — CPI 축이 트리거 지위와 무관하게 이 교차표에서도 거의 모든
+      변동을 설명했고, NFP 자체의 축은 교차표 안에서도 여전히 약했다.</p>
+      <span class="verdict replicated">REPLICATED</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>경제학 지식 없이 읽는 법</h2>
+    <ul class="findings">
+      <li><b>고용지표만 따로 보면 별 의미가 없다는 기존 결론은 다시 확인됐다.</b> 고용이
+      늘든 줄든 그 자체만으로는 주가 방향에 큰 차이가 없었다 — 좋은 고용은 "경기가 좋다"와
+      "연준이 더 오래 긴축한다"는 두 가지로 동시에 읽히기 때문이라는 기존 설명이 이번에도
+      맞았다.</li>
+      <li><b>하지만 그 시점에 물가가 식고 있었는지를 같이 보면 이야기가 완전히 달라진다.</b>
+      물가가 식고 있을 때(감속)의 고용 발표는 승률 74~80%로 좋았고, 물가가 계속 뜨거울 때
+      (가속)의 고용 발표는 승률 62~64%로 확연히 약했다.</li>
+      <li><b>진짜 승부처는 "고용"이 아니라 "물가가 식고 있는가"였다.</b> 물가가 식고 있으면
+      그 시점의 고용이 좋든 나쁘든 결과는 비슷하게 괜찮았고(+3.55%/+3.98%), 물가가 계속
+      뜨거우면 고용이 좋든 나쁘든 결과는 비슷하게 약했다(+0.64%/+0.88%). 이 프로젝트에서
+      반복 확인되는 결론 — <b>"물가가 식고 있는가"가 다른 어떤 지표보다 시장 반응을 잘
+      설명하는 단일 축</b>이라는 게 이번에도 재확인됐다.</li>
+      <li><b>"고용가속+물가감속"이 이론상 가장 깨끗한 호재 조합이지만, 실제로 제일 좋았던
+      건 아니었다.</b> 승률로는 1등(80%)이었지만 평균수익률로는 "고용둔화+물가감속"에 근소하게
+      밀렸다 — 딱 떨어지는 스토리는 아니라는 점을 솔직하게 인정해야 한다.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>한계</h2>
+    <div class="callout">
+      <ul class="findings" style="margin:0;">
+        <li><b>컨센서스(시장 예상치) 데이터가 없어 "가속/둔화"를 트레일링 3개월 모멘텀으로
+        대신했다.</b> NFP·CPI 두 지표 모두 이전 스터디와 동일한 대리 지표를 그대로 재사용했다
+        — 실제 "서프라이즈"(예상 대비 결과)를 반영하지 못한다는 한계는 그대로 남아 있다.</li>
+        <li><b>과열/모호(고용가속+물가가속) 칸의 승률 62%는 절대적으로 나쁜 수치는 아니다.</b>
+        "가장 약한 조합"이라는 것과 "이 조합에서 사면 진다"는 것은 다른 이야기다 — 상대적
+        순위로만 읽어야 한다.</li>
+        <li><b>2x2 셀 크기는 n=79~114로 이 프로젝트 기준으로는 준수한 편이지만</b>, 여전히
+        서로 다른 연대(1990년대 vs 2020년대)의 사례가 섞여 있어 시대 효과를 따로 통제하지
+        않았다.</li>
+        <li><b>H2의 "평균수익률 vs 승률" 불일치는 이상치(outlier) 한두 건이 평균을 끌어당겼을
+        가능성을 배제하지 못한다</b> — 이번 스크립트는 셀별 분포(중앙값, 표준편차)까지는
+        따로 보지 않았다. 다음 과제로 남긴다.</li>
+        <li><b>이 스터디는 "NFP 발표 시점에 CPI 국면이 어땠는가"만 봤다</b>, 인과관계(둘 중
+        무엇이 진짜 원인인가)를 증명한 게 아니다.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="footer">
+    데이터: FRED(PAYEMS, CPIAUCSL, release/dates API) · Yahoo Finance(^GSPC) · 분석 스크립트:
+    nfp_cpi_joint_regime_study.py(nfp_release_event_study.py, joint_regime_event_study.py의
+    로직 재사용) · 같은 프로젝트: 물가·고용·성장 지표 비교, CPI&times;GDP 교차검증, 연준
+    인하&times;침체&times;CPI 교차검증
+  </div>
+</div>

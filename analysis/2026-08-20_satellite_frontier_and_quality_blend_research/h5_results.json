@@ -1,0 +1,414 @@
+{
+  "period": {
+    "start": "2019-08-12",
+    "end": "2026-08-19"
+  },
+  "methodology_note": "H1(2026-08-19)과 동일한 point-in-time 새틀라이트 구축 로직을 그대로 재사용, 비중만 0~50%로 스윕",
+  "core_metrics": {
+    "cumulative_return": 139.19,
+    "cagr": 13.23,
+    "mdd": -17.74,
+    "sharpe": 1.03,
+    "win_rate": 0.0,
+    "avg_holding_days": 0.0,
+    "trade_count": 0,
+    "profit_factor": 0.0,
+    "calmar": 0.75,
+    "avg_drawdown_days": 20.2
+  },
+  "satellite_standalone_metrics": {
+    "cumulative_return": 464.14,
+    "cagr": 27.96,
+    "mdd": -33.54,
+    "sharpe": 0.91,
+    "win_rate": 0.0,
+    "avg_holding_days": 0.0,
+    "trade_count": 0,
+    "profit_factor": 0.0,
+    "calmar": 0.83,
+    "avg_drawdown_days": 27.6
+  },
+  "satellite_rebal_log": [
+    {
+      "date": "2020-01-02",
+      "pool_size": 40,
+      "n_positive_momentum": 39,
+      "picks": [
+        "AAPL",
+        "MSFT",
+        "PLD"
+      ],
+      "pick_momentum": {
+        "AAPL": 0.8616,
+        "MSFT": 0.5526,
+        "PLD": 0.5181
+      }
+    },
+    {
+      "date": "2020-07-01",
+      "pool_size": 40,
+      "n_positive_momentum": 26,
+      "picks": [
+        "NVDA",
+        "AAPL",
+        "MSFT"
+      ],
+      "pick_momentum": {
+        "NVDA": 1.3133,
+        "AAPL": 0.8432,
+        "MSFT": 0.4999
+      }
+    },
+    {
+      "date": "2021-01-04",
+      "pool_size": 40,
+      "n_positive_momentum": 30,
+      "picks": [
+        "TSLA",
+        "NVDA",
+        "AAPL"
+      ],
+      "pick_momentum": {
+        "TSLA": 7.4344,
+        "NVDA": 1.2193,
+        "AAPL": 0.8075
+      }
+    },
+    {
+      "date": "2021-07-01",
+      "pool_size": 40,
+      "n_positive_momentum": 40,
+      "picks": [
+        "TSLA",
+        "NVDA",
+        "UPS"
+      ],
+      "pick_momentum": {
+        "TSLA": 2.367,
+        "NVDA": 1.106,
+        "UPS": 0.8706
+      }
+    },
+    {
+      "date": "2022-01-03",
+      "pool_size": 40,
+      "n_positive_momentum": 35,
+      "picks": [
+        "NVDA",
+        "COP",
+        "PLD"
+      ],
+      "pick_momentum": {
+        "NVDA": 1.2373,
+        "COP": 0.805,
+        "PLD": 0.7037
+      }
+    },
+    {
+      "date": "2022-07-01",
+      "pool_size": 40,
+      "n_positive_momentum": 14,
+      "picks": [
+        "COP",
+        "LLY",
+        "CVX"
+      ],
+      "pick_momentum": {
+        "COP": 0.4747,
+        "LLY": 0.4136,
+        "CVX": 0.3823
+      }
+    },
+    {
+      "date": "2023-01-03",
+      "pool_size": 40,
+      "n_positive_momentum": 14,
+      "picks": [
+        "XOM",
+        "COP",
+        "CVX"
+      ],
+      "pick_momentum": {
+        "XOM": 0.8144,
+        "COP": 0.6325,
+        "CVX": 0.5285
+      }
+    },
+    {
+      "date": "2023-07-03",
+      "pool_size": 40,
+      "n_positive_momentum": 31,
+      "picks": [
+        "NVDA",
+        "NFLX",
+        "AVGO"
+      ],
+      "pick_momentum": {
+        "NVDA": 1.7218,
+        "NFLX": 1.4697,
+        "AVGO": 0.7688
+      }
+    },
+    {
+      "date": "2024-01-02",
+      "pool_size": 40,
+      "n_positive_momentum": 30,
+      "picks": [
+        "NVDA",
+        "META",
+        "TSLA"
+      ],
+      "pick_momentum": {
+        "NVDA": 2.5282,
+        "META": 2.0614,
+        "TSLA": 1.2775
+      }
+    },
+    {
+      "date": "2024-07-01",
+      "pool_size": 40,
+      "n_positive_momentum": 35,
+      "picks": [
+        "NVDA",
+        "LLY",
+        "GE"
+      ],
+      "pick_momentum": {
+        "NVDA": 2.0046,
+        "LLY": 0.9491,
+        "GE": 0.8985
+      }
+    },
+    {
+      "date": "2025-01-02",
+      "pool_size": 40,
+      "n_positive_momentum": 33,
+      "picks": [
+        "NVDA",
+        "AVGO",
+        "NFLX"
+      ],
+      "pick_momentum": {
+        "NVDA": 1.7117,
+        "AVGO": 1.077,
+        "NFLX": 0.8307
+      }
+    },
+    {
+      "date": "2025-07-01",
+      "pool_size": 40,
+      "n_positive_momentum": 28,
+      "picks": [
+        "NFLX",
+        "AVGO",
+        "TSLA"
+      ],
+      "pick_momentum": {
+        "NFLX": 0.976,
+        "AVGO": 0.7315,
+        "TSLA": 0.6177
+      }
+    },
+    {
+      "date": "2026-01-02",
+      "pool_size": 40,
+      "n_positive_momentum": 32,
+      "picks": [
+        "NEM",
+        "GE",
+        "GOOGL"
+      ],
+      "pick_momentum": {
+        "NEM": 1.6387,
+        "GE": 0.8111,
+        "GOOGL": 0.6238
+      }
+    },
+    {
+      "date": "2026-07-01",
+      "pool_size": 40,
+      "n_positive_momentum": 30,
+      "picks": [
+        "CAT",
+        "GEV",
+        "GOOGL"
+      ],
+      "pick_momentum": {
+        "CAT": 1.7681,
+        "GEV": 1.2608,
+        "GOOGL": 1.0017
+      }
+    }
+  ],
+  "satellite_tickers_ever_held": [
+    "AAPL",
+    "AVGO",
+    "CAT",
+    "COP",
+    "CVX",
+    "GE",
+    "GEV",
+    "GOOGL",
+    "LLY",
+    "META",
+    "MSFT",
+    "NEM",
+    "NFLX",
+    "NVDA",
+    "PLD",
+    "TSLA",
+    "UPS",
+    "XOM"
+  ],
+  "frontier": [
+    {
+      "satellite_weight": 0.0,
+      "metrics": {
+        "cumulative_return": 139.19,
+        "cagr": 13.23,
+        "mdd": -17.74,
+        "sharpe": 1.03,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.75,
+        "avg_drawdown_days": 20.2
+      },
+      "sharpe_delta_vs_core": 0.0,
+      "mdd_delta_vs_core_pct_points": 0.0
+    },
+    {
+      "satellite_weight": 0.05,
+      "metrics": {
+        "cumulative_return": 152.79,
+        "cagr": 14.13,
+        "mdd": -17.77,
+        "sharpe": 1.06,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.8,
+        "avg_drawdown_days": 18.6
+      },
+      "sharpe_delta_vs_core": 0.03,
+      "mdd_delta_vs_core_pct_points": -0.03
+    },
+    {
+      "satellite_weight": 0.1,
+      "metrics": {
+        "cumulative_return": 166.81,
+        "cagr": 15.01,
+        "mdd": -17.8,
+        "sharpe": 1.08,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.84,
+        "avg_drawdown_days": 17.9
+      },
+      "sharpe_delta_vs_core": 0.05,
+      "mdd_delta_vs_core_pct_points": -0.06
+    },
+    {
+      "satellite_weight": 0.15,
+      "metrics": {
+        "cumulative_return": 181.25,
+        "cagr": 15.88,
+        "mdd": -17.85,
+        "sharpe": 1.09,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.89,
+        "avg_drawdown_days": 17.4
+      },
+      "sharpe_delta_vs_core": 0.06,
+      "mdd_delta_vs_core_pct_points": -0.11
+    },
+    {
+      "satellite_weight": 0.2,
+      "metrics": {
+        "cumulative_return": 196.08,
+        "cagr": 16.73,
+        "mdd": -17.9,
+        "sharpe": 1.09,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.93,
+        "avg_drawdown_days": 17.1
+      },
+      "sharpe_delta_vs_core": 0.06,
+      "mdd_delta_vs_core_pct_points": -0.16
+    },
+    {
+      "satellite_weight": 0.3,
+      "metrics": {
+        "cumulative_return": 226.85,
+        "cagr": 18.39,
+        "mdd": -18.04,
+        "sharpe": 1.08,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 1.02,
+        "avg_drawdown_days": 17.8
+      },
+      "sharpe_delta_vs_core": 0.05,
+      "mdd_delta_vs_core_pct_points": -0.3
+    },
+    {
+      "satellite_weight": 0.4,
+      "metrics": {
+        "cumulative_return": 258.93,
+        "cagr": 19.98,
+        "mdd": -18.59,
+        "sharpe": 1.06,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 1.07,
+        "avg_drawdown_days": 19.8
+      },
+      "sharpe_delta_vs_core": 0.03,
+      "mdd_delta_vs_core_pct_points": -0.85
+    },
+    {
+      "satellite_weight": 0.5,
+      "metrics": {
+        "cumulative_return": 292.12,
+        "cagr": 21.5,
+        "mdd": -20.84,
+        "sharpe": 1.03,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 1.03,
+        "avg_drawdown_days": 20.9
+      },
+      "sharpe_delta_vs_core": 0.0,
+      "mdd_delta_vs_core_pct_points": -3.1
+    }
+  ],
+  "peak_sharpe_weight": 0.15,
+  "peak_sharpe_metrics": {
+    "cumulative_return": 181.25,
+    "cagr": 15.88,
+    "mdd": -17.85,
+    "sharpe": 1.09,
+    "win_rate": 0.0,
+    "avg_holding_days": 0.0,
+    "trade_count": 0,
+    "profit_factor": 0.0,
+    "calmar": 0.89,
+    "avg_drawdown_days": 17.4
+  }
+}

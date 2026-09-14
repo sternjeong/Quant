@@ -1,0 +1,275 @@
+<title>1월 효과 검증</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #eef1ee; --surface: #ffffff; --surface-2: #e6eae5;
+    --ink: #17211d; --ink-muted: #57635c; --ink-faint: #8b968f; --line: #d9dfd8;
+    --hike: #a8461f; --hike-soft: #f4e3da; --cut: #1f6e79; --cut-soft: #dcedee; --gold: #8a6d1f;
+    --shadow: 0 1px 2px rgba(23,33,29,.06), 0 8px 24px -12px rgba(23,33,29,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+      --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+      --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+      --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+    --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+    --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+    --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Public Sans", -apple-system, "Noto Sans KR", sans-serif;
+    font-size: 16px; line-height: 1.65;
+  }
+  ::selection { background: var(--gold); color: #1a1408; }
+  a { color: var(--cut); }
+  .page { max-width: 880px; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 1rem;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 500;
+    font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.08; letter-spacing: -.01em;
+    margin: 0 0 1rem; text-wrap: balance;
+  }
+  .dek { font-size: 1.15rem; color: var(--ink-muted); max-width: 62ch; margin: 0 0 1.75rem; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: .4rem 1.6rem;
+    font-family: "IBM Plex Mono", monospace; font-size: .82rem; color: var(--ink-muted);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: .85rem 0;
+  }
+  .meta-row b { color: var(--ink); font-weight: 600; }
+  section { margin: 3.2rem 0; }
+  section > h2 {
+    font-family: "Fraunces", serif; font-weight: 500; font-size: 1.6rem;
+    letter-spacing: -.005em; margin: 0 0 .3rem; text-wrap: balance;
+  }
+  section > .lede { color: var(--ink-muted); max-width: 66ch; margin: 0 0 1.4rem; }
+  p { max-width: 68ch; }
+  .note {
+    background: var(--surface-2); border-left: 3px solid var(--gold); border-radius: 4px;
+    padding: .9rem 1.1rem; font-size: .93rem; color: var(--ink-muted); max-width: 68ch; margin: 1.1rem 0;
+  }
+  .note b { color: var(--ink); }
+  .callout {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.2rem 1.4rem; box-shadow: var(--shadow); margin: 1.4rem 0;
+  }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .9rem; margin: 1.3rem 0 1.6rem; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.1rem; }
+  .tile .label { font-size: .78rem; color: var(--ink-muted); margin-bottom: .35rem; }
+  .tile .value { font-family: "IBM Plex Mono", monospace; font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tile .value.hike { color: var(--hike); }
+  .tile .value.cut { color: var(--cut); }
+  .tile .sub { font-size: .76rem; color: var(--ink-faint); margin-top: .25rem; }
+
+  .hyp-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.1rem 1.3rem; box-shadow: var(--shadow); margin: 1rem 0;
+  }
+  .hyp-card .hyp-id {
+    font-family: "IBM Plex Mono", monospace; font-size: .74rem; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--gold); margin-bottom: .4rem; font-weight: 600;
+  }
+  .hyp-card p { margin: 0; max-width: none; }
+
+  .verdict {
+    display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: .78rem;
+    font-weight: 600; letter-spacing: .04em; padding: .28rem .7rem; border-radius: 999px;
+    margin-top: .7rem;
+  }
+  .verdict.confirmed { background: var(--cut-soft); color: var(--cut); }
+  .verdict.disconfirmed { background: var(--hike-soft); color: var(--hike); }
+  .verdict.mixed { background: var(--surface-2); color: var(--ink-muted); border: 1px solid var(--line); }
+
+  .table-wrap { overflow-x: auto; margin: 1.2rem 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 480px; font-size: .92rem; }
+  caption { text-align: left; font-size: .82rem; color: var(--ink-faint); padding-bottom: .5rem; }
+  th, td { padding: .62rem .8rem; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; font-family: "IBM Plex Mono", monospace; }
+  th:first-child, td:first-child { text-align: left; font-family: "Public Sans", sans-serif; }
+  thead th { font-family: "Public Sans", sans-serif; font-weight: 600; font-size: .78rem; letter-spacing: .02em; color: var(--ink-muted); text-transform: uppercase; border-bottom: 1px solid var(--ink-faint); }
+  tr.row-jan td:first-child { border-left: 3px solid var(--gold); padding-left: .65rem; }
+  tr.row-dec td:first-child { border-left: 3px solid var(--cut); padding-left: .65rem; }
+  tbody tr:hover { background: var(--surface-2); }
+  td.neg { color: var(--hike); }
+  td.pos { color: var(--cut); }
+
+  ul.findings { padding-left: 1.2rem; max-width: 68ch; }
+  ul.findings li { margin-bottom: .9rem; }
+  ul.findings b { color: var(--ink); }
+  .footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--line); font-size: .82rem; color: var(--ink-faint); }
+</style>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">MACRO EVENT STUDY · 트랙 D 후속 · 1988&ndash;2025 · 러셀2000 vs S&amp;P500</div>
+    <h1>"1월엔 소형주가 이긴다"는 사실일까</h1>
+    <p class="dek">지금까지 트랙 D의 계절성 효과들("5월에 팔고 떠나라", 9월 효과)은 전부
+    "언제 시장에 있어야 하는가"에 관한 것이었다. 1월 효과는 질문 자체가 다르다 — "어떤
+    종목이 특정 달에 유독 잘 나가는가"다. 전통적 설명은 12월 절세매도(손실 난 소형주를
+    연말에 세금 목적으로 팔았다가 1월에 되사들인다는 이론)다. 소형주 대표 러셀2000과 대형주
+    대표 S&amp;P500의 월별 수익률 스프레드로 이 통설을 검증한다.</p>
+    <div class="meta-row">
+      <span>공통 구간 <b>1988 ~ 2025</b>(39년, 러셀2000 데이터 제약으로 다른 미국
+      계절성 스터디의 76년보다 짧음)</span>
+      <span>월별 스프레드 <b>468건</b>(39년 x 12개월)</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>사전등록 가설 (결과 계산 전 명시)</h2>
+    <div class="hyp-card">
+      <div class="hyp-id">H1</div>
+      <p>1월의 (소형주&minus;대형주) 스프레드가 12개월 중 <b>상위 2위 안</b>에 들어야
+      "확인"으로 판정한다 — 단순히 양수인 것만으로는 부족하다.</p>
+    </div>
+    <div class="hyp-card">
+      <div class="hyp-id">H2</div>
+      <p>1월 효과가 존재했다면, 잘 알려지고 차익거래하기 쉬운 효과이므로 최근 15~20년만
+      떼어보면 요일효과처럼 약화·소멸됐는지 확인한다(반면 이전 스터디의 "5~10월 계절성"은
+      차익거래가 어려운 6개월 단위 효과라 소멸하지 않았다).</p>
+    </div>
+    <div class="hyp-card">
+      <div class="hyp-id">H3</div>
+      <p>(탐색적) 전통적 설명(12월 절세매도)이 맞다면 12월엔 스프레드가 평균보다 낮아야
+      (소형주가 상대적으로 부진해야) 한다 — 실제로 그런지 확인한다.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>12개월 전체 스프레드표</h2>
+    <p class="lede">매달 "러셀2000 월수익률 &minus; S&amp;P500 월수익률"을 계산해 39년치
+    평균을 냈다. 양수면 그 달엔 소형주가 대형주를 이겼다는 뜻이다.</p>
+    <div class="table-wrap">
+      <table>
+        <caption>월별 (소형주&minus;대형주) 평균 스프레드(%p) · 소형주 우세 비율 · 순위(높은 순)</caption>
+        <thead><tr><th>월</th><th>평균 스프레드</th><th>소형주 우세비율</th><th>순위(높은 순)</th></tr></thead>
+        <tbody id="month-body"></tbody>
+      </table>
+    </div>
+    <p><b>1월은 12개월 중 8위 — 오히려 평균 이하다.</b> 1월 평균 스프레드는 +0.055%p로
+    39년 전체 12개월 평균(+0.006%p)과 사실상 같은 수준이고, 소형주 우세 비율은 41.0%로
+    오히려 절반에도 못 미친다. 가장 강한 달은 2월(+0.94%p)과 12월(+0.95%p)이었고, 가장
+    약한 달은 10월(&minus;1.34%p)과 7월(&minus;1.11%p)이었다 — "1월이 특별하다"는 통설이
+    이 39년 데이터에서는 지지되지 않는다.</p>
+    <div class="verdict disconfirmed" id="h1-verdict">H1: DISCONFIRMED (1월 순위 8/12, 상위 2위 기준 미달)</div>
+  </section>
+
+  <section>
+    <h2>H2 — 그래도 "예전엔 있었다가 사라졌나"</h2>
+    <p class="lede">H1이 이미 기각됐지만, 초기 구간에서라도 약하게 존재했다가 최근에
+    완전히 사라졌을 가능성을 확인하기 위해 전체 기간을 절반으로 나눠 1월 스프레드만 따로
+    비교했다.</p>
+    <div class="tiles">
+      <div class="tile"><div class="label">초기 구간(1988~2006)</div><div class="value cut">+0.42%p</div><div class="sub">소형주 우세비율 42.1% · n=19</div></div>
+      <div class="tile"><div class="label">최근 19년(2007~2025)</div><div class="value hike">&minus;0.30%p</div><div class="sub">소형주 우세비율 40.0% · n=20</div></div>
+    </div>
+    <p>초기 구간엔 평균 스프레드가 근소하게 플러스(+0.42%p)였지만, 그 구간의 소형주
+    우세비율조차 42.1%로 낮았다 — 즉 애초에 몇몇 큰 상승 해가 평균을 끌어올렸을 뿐, 대다수
+    해에서는 소형주가 1월에 이기지 못했다는 뜻이다. 최근 19년은 평균 자체가 마이너스로
+    돌아섰다(&minus;0.30%p). 형식적으로는 "초기 양수 → 최근 음수"로 소멸 패턴에 해당하지만,
+    <b>애초에 H1에서 "확인된 효과"가 아니었으므로 "한때 있었다가 사라졌다"기보다는 "39년
+    내내 뚜렷한 효과가 없었다"는 설명이 더 정확하다.</b></p>
+    <div class="verdict mixed" id="h2-verdict">H2: 형식적으로는 소멸 패턴과 일치하나, H1이 기각된 상태라 "원래 없던 효과의 노이즈"에 가까움</div>
+  </section>
+
+  <section>
+    <h2>H3 — 12월 절세매도설은 맞았나</h2>
+    <div class="tiles">
+      <div class="tile"><div class="label">12월 평균 스프레드</div><div class="value cut">+0.95%p</div><div class="sub">12개월 중 1위(가장 높음) · 소형주 우세비율 59.0%</div></div>
+      <div class="tile"><div class="label">12개월 전체 평균</div><div class="value">+0.01%p</div><div class="sub">참고 기준선</div></div>
+    </div>
+    <p><b>정반대로 나왔다.</b> "12월엔 절세매도로 소형주가 눌린다"는 전통적 설명이 맞다면
+    12월 스프레드가 평균보다 낮아야 하는데, 실제로는 <b>12월이 12개월 중 가장 높은
+    스프레드(+0.95%p, 소형주 우세비율 59.0%)</b>였다 — 소형주가 12월에 눌리기는커녕 오히려
+    대형주보다 더 잘 나갔다. 절세매도가 실제로 일어나지 않는다는 뜻은 아니지만, 최소한
+    "그로 인해 12월에 소형주가 상대적으로 부진하다"는 메커니즘 자체는 이 데이터에서 지지되지
+    않는다.</p>
+    <div class="verdict disconfirmed" id="h3-verdict">H3: DISCONFIRMED (12월 스프레드가 오히려 12개월 중 최고)</div>
+  </section>
+
+  <section>
+    <h2>경제학 지식 없이 읽는 법</h2>
+    <ul class="findings">
+      <li><b>이 프로젝트에서 처음으로 "유명한 통설이 아예 안 보인" 사례다.</b> 지금까지
+      계절성 스터디(5월에 팔고 떠나라, 9월 효과)는 통설이 대체로 지지됐는데, 1월 효과는
+      39년 데이터에서 흔적조차 뚜렷하지 않았다.</li>
+      <li><b>다만 이건 "1월 효과가 완전히 허구"라는 뜻은 아니다.</b> 학계에서 1월 효과가
+      처음 보고된 건 1980년대 초반 훨씬 이전 데이터(더 작은 소형주, 지금보다 거래비용이
+      훨씬 높던 시절)에서였다 — 이 리포트가 쓸 수 있는 데이터(1988~) 자체가 이미 그 효과가
+      알려지고 차익거래되기 시작한 이후일 가능성이 있다.</li>
+      <li><b>절세매도 메커니즘은 방향 자체가 반대로 나왔다.</b> 12월에 소형주가 눌린다는
+      설명과 달리, 실제로는 12월이 소형주에게 가장 좋은 달이었다 — 이런 반직관적 결과가
+      나올 때는 "메커니즘 자체가 틀렸다" 또는 "다른 계절 효과(산타랠리 등)가 절세매도 효과를
+      덮어씌웠다"는 두 가지 해석이 모두 가능하다(이 리포트는 어느 쪽인지 구분하지 않았다).</li>
+      <li><b>표본 기간이 이 프로젝트의 다른 미국 계절성 스터디보다 짧다.</b> 러셀2000
+      데이터 제약으로 39년(1988~2025)만 쓸 수 있었다 — 76년치인 계절성·대선주기 스터디보다
+      신뢰도가 상대적으로 낮다.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>한계</h2>
+    <div class="callout">
+      <ul class="findings" style="margin:0;">
+        <li><b>러셀2000 지수 자체의 데이터 기간 제약.</b> 지수는 1984년 만들어졌지만
+        야후파이낸스 일별 데이터는 1987년 9월부터만 확보돼 39년치로 이 프로젝트의 다른
+        미국 스터디(76년)보다 짧다.</li>
+        <li><b>지수 단위 비교라 개별 종목 수준의 "진짜 소형주 효과"(초소형주, 저유동성
+        종목)는 놓칠 수 있다.</b> 학계의 원래 1월 효과 연구는 종종 시가총액 최하위 분위
+        종목만 따로 뽑아 검증했는데, 러셀2000은 이미 상당히 큰 소형주 상위권까지 포함한다.</li>
+        <li><b>거래비용·세금 미반영.</b> 실제로 매달 리밸런싱하며 이 스프레드를 거래하려면
+        수수료가 격차의 상당 부분을 깎아먹을 수 있다(애초에 이 리포트가 발견한 격차 자체가
+        미미하다).</li>
+        <li><b>H2의 "소멸" 해석은 조심스럽게 읽어야 한다.</b> H1에서 애초에 뚜렷한 효과가
+        확인되지 않았으므로, 초기구간 양수 → 최근구간 음수라는 변화가 "실재했던 효과의
+        소멸"인지 "원래 존재하지 않던 것의 표본 노이즈"인지 이 데이터만으로는 확정할 수
+        없다.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="footer">
+    데이터: Yahoo Finance(^RUT·^GSPC, 1987~2025) · 분석 스크립트:
+    january_effect_study.py(seasonality_event_study.py의 월별 수익률 로직 재사용) ·
+    같은 프로젝트, 관련 리포트:
+    <a href="https://claude.ai/code/artifact/fe955a38-0bed-4df2-b323-5790af5469c3">증시의 달력 효과 세 가지</a>(미국 계절성·요일효과 원본),
+    <a href="https://claude.ai/code/artifact/e53da7be-426b-4cca-b6b9-2d07304105e9">5월에 팔고 떠나라는 미국만의 이야기였을까</a>(국제 재현성),
+    <a href="https://claude.ai/code/artifact/98186ab8-b41f-4053-a4d6-5b07ffb7c4f5">계절성, 신흥시장에서는</a>(신흥시장 재현성)
+  </div>
+</div>
+
+<script>
+const DATA = {"monthly_summary": {"1": {"n": 39, "mean_spread_pct": 0.055, "win_rate_pct": 41.0}, "2": {"n": 39, "mean_spread_pct": 0.94, "win_rate_pct": 59.0}, "3": {"n": 39, "mean_spread_pct": -0.339, "win_rate_pct": 51.3}, "4": {"n": 39, "mean_spread_pct": -0.56, "win_rate_pct": 33.3}, "5": {"n": 39, "mean_spread_pct": 0.086, "win_rate_pct": 51.3}, "6": {"n": 39, "mean_spread_pct": 0.615, "win_rate_pct": 66.7}, "7": {"n": 39, "mean_spread_pct": -1.112, "win_rate_pct": 30.8}, "8": {"n": 39, "mean_spread_pct": 0.172, "win_rate_pct": 53.8}, "9": {"n": 39, "mean_spread_pct": 0.144, "win_rate_pct": 53.8}, "10": {"n": 39, "mean_spread_pct": -1.338, "win_rate_pct": 35.9}, "11": {"n": 39, "mean_spread_pct": 0.461, "win_rate_pct": 53.8}, "12": {"n": 39, "mean_spread_pct": 0.952, "win_rate_pct": 59.0}}};
+
+const MONTH_LABELS = ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"];
+
+function fmt(v) { return (v >= 0 ? "+" : "") + v.toFixed(3) + "%p"; }
+
+const ranked = Object.entries(DATA.monthly_summary).map(([m, d]) => [parseInt(m), d.mean_spread_pct])
+  .sort((a, b) => b[1] - a[1]);
+const rankMap = {};
+ranked.forEach(([m], i) => { rankMap[m] = i + 1; });
+
+const tbody = document.getElementById("month-body");
+for (let m = 1; m <= 12; m++) {
+  const d = DATA.monthly_summary[m];
+  const tr = document.createElement("tr");
+  if (m === 1) tr.className = "row-jan";
+  if (m === 12) tr.className = "row-dec";
+  const cls = d.mean_spread_pct >= 0 ? "pos" : "neg";
+  tr.innerHTML = `<td>${MONTH_LABELS[m-1]}</td><td class="${cls}">${fmt(d.mean_spread_pct)}</td>
+    <td>${d.win_rate_pct.toFixed(1)}%</td><td>${rankMap[m]}위 / 12</td>`;
+  tbody.appendChild(tr);
+}
+</script>

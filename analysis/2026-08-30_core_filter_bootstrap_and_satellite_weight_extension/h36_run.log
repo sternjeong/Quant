@@ -1,0 +1,90 @@
+[h36]   [full17] h16 캐시 CSV 재사용 (n=1764)
+[h36]   full_2019_2026 sw=0.00: full_sharpe=1.03
+[h36]   full_2019_2026 sw=0.05: full_sharpe=1.07
+[h36]   full_2019_2026 sw=0.10: full_sharpe=1.1
+[h36]   full_2019_2026 sw=0.15: full_sharpe=1.12
+[h36]   full_2019_2026 sw=0.20: full_sharpe=1.13
+[h36]   full_2019_2026 sw=0.25: full_sharpe=1.13
+[h36]   full_2019_2026 sw=0.30: full_sharpe=1.13
+[h36]   full_2019_2026 sw=0.40: full_sharpe=1.12
+[h36]   full_2019_2026 sw=0.50: full_sharpe=1.1
+[h36]   full_2019_2026 sw=0.60: full_sharpe=1.07
+[h36]   full_2019_2026 sw=0.70: full_sharpe=1.05
+[h36]   full_2019_2026 sw=0.80: full_sharpe=1.02
+[h36]   full_2019_2026 sw=0.90: full_sharpe=1.0
+[h36]   full_2019_2026 sw=1.00: full_sharpe=0.98
+[h36]   bear_2022 sw=0.00: full_sharpe=1.03 crisis_sharpe=0.24 crisis_mdd=-11.05
+[h36]   bear_2022 sw=0.05: full_sharpe=1.07 crisis_sharpe=0.23 crisis_mdd=-11.55
+[h36]   bear_2022 sw=0.10: full_sharpe=1.1 crisis_sharpe=0.21 crisis_mdd=-12.04
+[h36]   bear_2022 sw=0.15: full_sharpe=1.12 crisis_sharpe=0.2 crisis_mdd=-12.54
+[h36]   bear_2022 sw=0.20: full_sharpe=1.13 crisis_sharpe=0.19 crisis_mdd=-13.04
+[h36]   bear_2022 sw=0.25: full_sharpe=1.13 crisis_sharpe=0.18 crisis_mdd=-13.54
+[h36]   bear_2022 sw=0.30: full_sharpe=1.13 crisis_sharpe=0.16 crisis_mdd=-14.05
+[h36]   bear_2022 sw=0.40: full_sharpe=1.12 crisis_sharpe=0.14 crisis_mdd=-15.45
+[h36]   bear_2022 sw=0.50: full_sharpe=1.1 crisis_sharpe=0.12 crisis_mdd=-16.88
+[h36]   bear_2022 sw=0.60: full_sharpe=1.07 crisis_sharpe=0.1 crisis_mdd=-18.31
+[h36]   bear_2022 sw=0.70: full_sharpe=1.05 crisis_sharpe=0.09 crisis_mdd=-19.74
+[h36]   bear_2022 sw=0.80: full_sharpe=1.02 crisis_sharpe=0.07 crisis_mdd=-21.54
+[h36]   bear_2022 sw=0.90: full_sharpe=1.0 crisis_sharpe=0.06 crisis_mdd=-23.35
+[h36]   bear_2022 sw=1.00: full_sharpe=0.98 crisis_sharpe=0.05 crisis_mdd=-25.13
+[h36]   [gfc3] 코어 재계산(champion_strategy, 3자산, 필터=ON), 새틀라이트는 h12 캐시 재사용
+[h36]   gfc_2008 sw=0.00: full_sharpe=1.0 crisis_sharpe=0.46 crisis_mdd=-4.01
+[h36]   gfc_2008 sw=0.05: full_sharpe=0.84 crisis_sharpe=-0.05 crisis_mdd=-6.5
+[h36]   gfc_2008 sw=0.10: full_sharpe=0.62 crisis_sharpe=-0.42 crisis_mdd=-10.51
+[h36]   gfc_2008 sw=0.15: full_sharpe=0.43 crisis_sharpe=-0.61 crisis_mdd=-14.78
+[h36]   gfc_2008 sw=0.20: full_sharpe=0.29 crisis_sharpe=-0.72 crisis_mdd=-19.24
+[h36]   gfc_2008 sw=0.25: full_sharpe=0.18 crisis_sharpe=-0.78 crisis_mdd=-24.06
+[h36]   gfc_2008 sw=0.30: full_sharpe=0.11 crisis_sharpe=-0.81 crisis_mdd=-28.68
+[h36]   gfc_2008 sw=0.40: full_sharpe=0.01 crisis_sharpe=-0.86 crisis_mdd=-37.31
+[h36]   gfc_2008 sw=0.50: full_sharpe=-0.06 crisis_sharpe=-0.88 crisis_mdd=-45.16
+[h36]   gfc_2008 sw=0.60: full_sharpe=-0.1 crisis_sharpe=-0.9 crisis_mdd=-52.23
+[h36]   gfc_2008 sw=0.70: full_sharpe=-0.13 crisis_sharpe=-0.91 crisis_mdd=-58.56
+[h36]   gfc_2008 sw=0.80: full_sharpe=-0.15 crisis_sharpe=-0.92 crisis_mdd=-64.2
+[h36]   gfc_2008 sw=0.90: full_sharpe=-0.17 crisis_sharpe=-0.92 crisis_mdd=-69.2
+[h36]   gfc_2008 sw=1.00: full_sharpe=-0.19 crisis_sharpe=-0.93 crisis_mdd=-73.62
+[h36]   [covid17] H24 캐시 CSV 재사용
+[h36]   covid_2020 sw=0.00: full_sharpe=1.14 crisis_sharpe=0.13 crisis_mdd=-6.71
+[h36]   covid_2020 sw=0.05: full_sharpe=1.18 crisis_sharpe=0.09 crisis_mdd=-7.63
+[h36]   covid_2020 sw=0.10: full_sharpe=1.21 crisis_sharpe=0.07 crisis_mdd=-8.57
+[h36]   covid_2020 sw=0.15: full_sharpe=1.22 crisis_sharpe=0.04 crisis_mdd=-9.58
+[h36]   covid_2020 sw=0.20: full_sharpe=1.23 crisis_sharpe=0.03 crisis_mdd=-10.69
+[h36]   covid_2020 sw=0.25: full_sharpe=1.23 crisis_sharpe=0.01 crisis_mdd=-11.92
+[h36]   covid_2020 sw=0.30: full_sharpe=1.22 crisis_sharpe=0.0 crisis_mdd=-13.16
+[h36]   covid_2020 sw=0.40: full_sharpe=1.2 crisis_sharpe=-0.01 crisis_mdd=-15.63
+[h36]   covid_2020 sw=0.50: full_sharpe=1.18 crisis_sharpe=-0.03 crisis_mdd=-18.09
+[h36]   covid_2020 sw=0.60: full_sharpe=1.15 crisis_sharpe=-0.03 crisis_mdd=-20.55
+[h36]   covid_2020 sw=0.70: full_sharpe=1.13 crisis_sharpe=-0.04 crisis_mdd=-23.13
+[h36]   covid_2020 sw=0.80: full_sharpe=1.11 crisis_sharpe=-0.04 crisis_mdd=-25.69
+[h36]   covid_2020 sw=0.90: full_sharpe=1.09 crisis_sharpe=-0.05 crisis_mdd=-28.22
+[h36]   covid_2020 sw=1.00: full_sharpe=1.07 crisis_sharpe=-0.05 crisis_mdd=-30.72
+[h36]   [selloff17] H24 캐시 CSV 재사용
+[h36]   selloff_2018 sw=0.00: full_sharpe=0.28 crisis_sharpe=-1.9 crisis_mdd=-14.6
+[h36]   selloff_2018 sw=0.05: full_sharpe=0.36 crisis_sharpe=-1.82 crisis_mdd=-15.12
+[h36]   selloff_2018 sw=0.10: full_sharpe=0.44 crisis_sharpe=-1.75 crisis_mdd=-15.64
+[h36]   selloff_2018 sw=0.15: full_sharpe=0.52 crisis_sharpe=-1.67 crisis_mdd=-16.15
+[h36]   selloff_2018 sw=0.20: full_sharpe=0.59 crisis_sharpe=-1.6 crisis_mdd=-16.67
+[h36]   selloff_2018 sw=0.25: full_sharpe=0.65 crisis_sharpe=-1.54 crisis_mdd=-17.19
+[h36]   selloff_2018 sw=0.30: full_sharpe=0.72 crisis_sharpe=-1.48 crisis_mdd=-17.71
+[h36]   selloff_2018 sw=0.40: full_sharpe=0.83 crisis_sharpe=-1.37 crisis_mdd=-18.74
+[h36]   selloff_2018 sw=0.50: full_sharpe=0.92 crisis_sharpe=-1.27 crisis_mdd=-19.77
+[h36]   selloff_2018 sw=0.60: full_sharpe=1.01 crisis_sharpe=-1.19 crisis_mdd=-20.79
+[h36]   selloff_2018 sw=0.70: full_sharpe=1.07 crisis_sharpe=-1.12 crisis_mdd=-21.82
+[h36]   selloff_2018 sw=0.80: full_sharpe=1.13 crisis_sharpe=-1.05 crisis_mdd=-22.84
+[h36]   selloff_2018 sw=0.90: full_sharpe=1.18 crisis_sharpe=-1.0 crisis_mdd=-23.86
+[h36]   selloff_2018 sw=1.00: full_sharpe=1.22 crisis_sharpe=-0.95 crisis_mdd=-24.88
+[h36]   [correction17] H24 캐시 CSV 재사용
+[h36]   correction_2015_2016 sw=0.00: full_sharpe=-0.19 crisis_sharpe=-1.9 crisis_mdd=-15.09
+[h36]   correction_2015_2016 sw=0.05: full_sharpe=-0.21 crisis_sharpe=-1.84 crisis_mdd=-15.2
+[h36]   correction_2015_2016 sw=0.10: full_sharpe=-0.24 crisis_sharpe=-1.77 crisis_mdd=-15.37
+[h36]   correction_2015_2016 sw=0.15: full_sharpe=-0.26 crisis_sharpe=-1.7 crisis_mdd=-15.58
+[h36]   correction_2015_2016 sw=0.20: full_sharpe=-0.28 crisis_sharpe=-1.64 crisis_mdd=-15.79
+[h36]   correction_2015_2016 sw=0.25: full_sharpe=-0.29 crisis_sharpe=-1.57 crisis_mdd=-16.02
+[h36]   correction_2015_2016 sw=0.30: full_sharpe=-0.31 crisis_sharpe=-1.5 crisis_mdd=-16.24
+[h36]   correction_2015_2016 sw=0.40: full_sharpe=-0.33 crisis_sharpe=-1.38 crisis_mdd=-16.7
+[h36]   correction_2015_2016 sw=0.50: full_sharpe=-0.35 crisis_sharpe=-1.26 crisis_mdd=-17.19
+[h36]   correction_2015_2016 sw=0.60: full_sharpe=-0.36 crisis_sharpe=-1.16 crisis_mdd=-17.69
+[h36]   correction_2015_2016 sw=0.70: full_sharpe=-0.37 crisis_sharpe=-1.07 crisis_mdd=-18.2
+[h36]   correction_2015_2016 sw=0.80: full_sharpe=-0.38 crisis_sharpe=-0.99 crisis_mdd=-19.48
+[h36]   correction_2015_2016 sw=0.90: full_sharpe=-0.39 crisis_sharpe=-0.91 crisis_mdd=-20.91
+[h36]   correction_2015_2016 sw=1.00: full_sharpe=-0.39 crisis_sharpe=-0.85 crisis_mdd=-22.33
+[h36] 저장 완료: h36_results.json (총 0s)

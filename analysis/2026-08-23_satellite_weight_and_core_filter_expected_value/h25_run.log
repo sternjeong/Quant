@@ -1,0 +1,78 @@
+[h25] full_2019_2026: 코어 실행 2019-08-12~2026-08-19 (17자산, 필터 ON/OFF 각 1회)
+[h25]   filter=ON  전체지표: {'cumulative_return': 139.19, 'cagr': 13.23, 'mdd': -17.74, 'sharpe': 1.03, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.75, 'avg_drawdown_days': 20.2}
+[h25]   filter=OFF 전체지표: {'cumulative_return': 178.91, 'cagr': 15.74, 'mdd': -18.26, 'sharpe': 1.07, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.86, 'avg_drawdown_days': 18.2}
+[h25] gfc_2008: 코어 실행 2007-01-01~2009-12-31 (3자산, 필터 ON/OFF 각 1회)
+[h25]   filter=ON  전체지표: {'cumulative_return': 17.39, 'cagr': 5.51, 'mdd': -4.01, 'sharpe': 1.0, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 1.37, 'avg_drawdown_days': 26.4}
+[h25]   filter=OFF 전체지표: {'cumulative_return': 17.48, 'cagr': 5.54, 'mdd': -7.99, 'sharpe': 0.75, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.69, 'avg_drawdown_days': 28.4}
+[h25]   crisis(2007-10-01~2009-06-30) with_filter sharpe=0.46 without_filter sharpe=0.3
+[h25] covid_2020: 코어 실행 2019-01-01~2020-12-31 (17자산, 필터 ON/OFF 각 1회)
+$XLC: possibly delisted; no price data found  (1d 2017-11-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1511758800, endDate = 1529294400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2017-11-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1511758800, endDate = 1529294400")
+$XLC: possibly delisted; no price data found  (1d 2017-11-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1511758800, endDate = 1529294400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2017-11-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1511758800, endDate = 1529294400")
+[h25]   filter=ON  전체지표: {'cumulative_return': 27.53, 'cagr': 12.98, 'mdd': -9.07, 'sharpe': 1.14, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 1.43, 'avg_drawdown_days': 15.3}
+[h25]   filter=OFF 전체지표: {'cumulative_return': 36.33, 'cagr': 16.82, 'mdd': -10.38, 'sharpe': 1.28, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 1.62, 'avg_drawdown_days': 13.7}
+[h25]   crisis(2020-02-19~2020-04-30) with_filter sharpe=0.13 without_filter sharpe=0.77
+[h25] bear_2022: 원시데이터 재사용(2019-08-12~2026-08-19, 17자산)
+[h25]   crisis(2022-01-01~2022-12-31) with_filter sharpe=0.24 without_filter sharpe=0.31
+[h25] selloff_2018: 코어 실행 2017-06-01~2019-06-30 (17자산, 필터 ON/OFF 각 1회)
+$XLC: possibly delisted; no price data found  (1d 2016-04-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1461729600, endDate = 1529294400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2016-04-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1461729600, endDate = 1529294400")
+$XLC: possibly delisted; no price data found  (1d 2016-04-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1461729600, endDate = 1529294400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2016-04-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1461729600, endDate = 1529294400")
+[h25]   filter=ON  전체지표: {'cumulative_return': 5.6, 'cagr': 2.66, 'mdd': -15.5, 'sharpe': 0.28, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.17, 'avg_drawdown_days': 6.1}
+[h25]   filter=OFF 전체지표: {'cumulative_return': 2.99, 'cagr': 1.43, 'mdd': -22.25, 'sharpe': 0.17, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.06, 'avg_drawdown_days': 6.1}
+[h25]   crisis(2018-09-01~2019-01-15) with_filter sharpe=-1.9 without_filter sharpe=-1.95
+[h25] correction_2015_2016: 코어 실행 2014-06-01~2016-06-30 (17자산, 필터 ON/OFF 각 1회)
+$XLC: possibly delisted; no price data found  (1d 2013-04-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1367035200, endDate = 1529294400")
+$XLRE: possibly delisted; no price data found  (1d 2013-04-27 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1367035200, endDate = 1444190400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2013-04-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1367035200, endDate = 1529294400")
+
+1 Failed download:
+['XLRE']: possibly delisted; no price data found  (1d 2013-04-27 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1367035200, endDate = 1444190400")
+$DBC: possibly delisted; no price data found  (1d 2013-04-27 -> 2013-04-28)
+
+1 Failed download:
+['DBC']: possibly delisted; no price data found  (1d 2013-04-27 -> 2013-04-28)
+$HYG: possibly delisted; no price data found  (1d 2013-04-27 -> 2013-04-28)
+
+1 Failed download:
+['HYG']: possibly delisted; no price data found  (1d 2013-04-27 -> 2013-04-28)
+$EFA: possibly delisted; no price data found  (1d 2013-04-27 -> 2013-04-28)
+
+1 Failed download:
+['EFA']: possibly delisted; no price data found  (1d 2013-04-27 -> 2013-04-28)
+$XLRE: possibly delisted; no price data found  (1d 2013-04-27 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1367035200, endDate = 1444190400")
+$EFA: possibly delisted; no price data found  (1d 2013-04-27 -> 2013-04-28)
+$HYG: possibly delisted; no price data found  (1d 2013-04-27 -> 2013-04-28)
+
+1 Failed download:
+['XLRE']: possibly delisted; no price data found  (1d 2013-04-27 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1367035200, endDate = 1444190400")
+
+1 Failed download:
+['EFA']: possibly delisted; no price data found  (1d 2013-04-27 -> 2013-04-28)
+$DBC: possibly delisted; no price data found  (1d 2013-04-27 -> 2013-04-28)
+
+1 Failed download:
+['HYG']: possibly delisted; no price data found  (1d 2013-04-27 -> 2013-04-28)
+$XLC: possibly delisted; no price data found  (1d 2013-04-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1367035200, endDate = 1529294400")
+
+1 Failed download:
+['DBC']: possibly delisted; no price data found  (1d 2013-04-27 -> 2013-04-28)
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2013-04-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1367035200, endDate = 1529294400")
+[h25]   filter=ON  전체지표: {'cumulative_return': -5.79, 'cagr': -2.83, 'mdd': -16.82, 'sharpe': -0.19, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': -0.17, 'avg_drawdown_days': 14.6}
+[h25]   filter=OFF 전체지표: {'cumulative_return': -3.01, 'cagr': -1.46, 'mdd': -17.98, 'sharpe': -0.05, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': -0.08, 'avg_drawdown_days': 14.6}
+[h25]   crisis(2015-08-01~2016-02-15) with_filter sharpe=-1.9 without_filter sharpe=-1.72
+[h25] 저장 완료: h25_results.json (총 4s)

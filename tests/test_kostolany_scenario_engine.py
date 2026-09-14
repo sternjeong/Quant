@@ -192,3 +192,82 @@ class TestRunThemeScenarios:
         assert set(df["theme"]) == {"테마A", "테마B"}
         assert list(df["excess_return"]) == sorted(df["excess_return"], reverse=True)
         assert {"bench_cumulative_return", "bench_cagr", "bench_mdd", "excess_return_vs_benchmark"}.issubset(df.columns)
+
+
+class TestBuildPositionFromPhasesBidirectional:
+    """2026-08-12 사용자 요청: 매도 검토 국면에서 현금 대신 인버스를 매수하는 양방향 모드."""
+
+    def test_sell_phases_map_to_negative_one(self):
+        idx = pd.date_range("2024-01-01", periods=6, freq="B")
+        # 장기: A1=buy(1), A2=hold(직전유지=1), A3=sell(-1), B1=sell(-1), B2=hold(직전유지=-1), B3=buy(1)
+        phase = pd.Series(["A1", "A2", "A3", "B1", "B2", "B3"], index=idx)
+        position = engine.build_position_from_phases(phase, style="장기", bidirectional=True)
+        assert list(position) == [1.0, 1.0, -1.0, -1.0, -1.0, 1.0]
+
+    def test_default_is_unaffected(self):
+        idx = pd.date_range("2024-01-01", periods=3, freq="B")
+        phase = pd.Series(["A1", "A3", "B3"], index=idx)
+        position = engine.build_position_from_phases(phase, style="장기", bidirectional=False)
+        assert list(position) == [1.0, 0.0, 1.0]
+
+
+class TestExtractBidirectionalTrades:
+    def test_direct_flip_closes_long_and_opens_inverse_same_day(self):
+        # 신호(raw position)가 [0,1,1,1,-1,-1,-1]이면 하루 뒤 체결(shift(1))되어 실제 실행 포지션은
+        # [0,0,1,1,1,-1,-1] — 인덱스2에서 롱 진입, 인덱스5에서 hold 없이 바로 인버스로 뒤집힌다.
+        idx = pd.date_range("2024-01-01", periods=7, freq="B")
+        close = pd.Series([100, 101, 102, 103, 104, 90, 80], index=idx, dtype=float, name="Close")
+        df = pd.DataFrame({"Close": close})
+        position = pd.Series([0, 1, 1, 1, -1, -1, -1], index=idx, dtype=float)
+
+        trades = engine.extract_bidirectional_trades(df, position)
+
+        assert len(trades) == 2
+        long_trade, inverse_trade = trades
+        assert long_trade.direction == "long"
+        assert long_trade.entry_date == idx[2] and long_trade.exit_date == idx[5]
+        assert long_trade.return_pct == pytest.approx((90 / 102 - 1) * 100)
+
+        assert inverse_trade.direction == "inverse"
+        # 같은 날(idx[5])에 롱 청산과 동시에 인버스 진입 — 청산일과 다음 트레이드 진입일이 겹친다.
+        assert inverse_trade.entry_date == idx[5] and inverse_trade.exit_date == idx[6]
+        # 가격이 90 -> 80으로 더 떨어졌으니 인버스 포지션은 이익이어야 한다.
+        assert inverse_trade.return_pct == pytest.approx((90 / 80 - 1) * 100)
+        assert inverse_trade.return_pct > 0
+
+
+class TestRunKostolanyScenarioBidirectional:
+    def test_sell_phase_uses_inverse_leg(self):
+        # 고점권에서 거래량 급증 + 상승 -> A3(과열/매도검토) 발생 데이터(test_sell_phase_exits_market와
+        # 동일 구성). bidirectional=True면 그 구간이 포지션 0이 아니라 -1(인버스 매수)이어야 한다.
+        idx = pd.date_range("2020-01-01", periods=320, freq="B")
+        base = np.concatenate([np.linspace(100, 100, 300), np.linspace(100, 200, 20)])
+        close = pd.Series(base, index=idx, name="Close")
+        volume = pd.Series([1_000_000.0] * 300 + [5_000_000.0] * 20, index=idx, name="Volume")
+        df = pd.DataFrame({"Close": close, "Volume": volume})
+
+        run = engine.run_kostolany_scenario(
+            df, label="합성", style="장기", start="2021-01-01", bidirectional=True
+        )
+        assert run.bidirectional is True
+        assert (run.position == -1.0).any()
+        assert any(t.direction == "inverse" for t in run.trades)
+
+    def test_default_run_is_not_bidirectional(self):
+        close, volume = _price_volume(400, seed=7)
+        df = pd.DataFrame({"Close": close, "Volume": volume})
+        run = engine.run_kostolany_scenario(df, label="합성", style="장기", start="2021-01-01")
+        assert run.bidirectional is False
+        assert not (run.position == -1.0).any()
+
+    def test_monthly_contribution_is_ignored_when_bidirectional(self):
+        # 인버스(-1) 포지션은 "현금 대비 비중" 개념(0~1로 클립되는 simulate_contribution_equity)과
+        # 결합할 수 없어, bidirectional=True면 월 적립 옵션을 넘겨도 목돈 일시투입 경로로 빠져야 한다
+        # (contributed_capital이 채워지지 않는 것으로 확인).
+        close, volume = _price_volume(400, seed=11)
+        df = pd.DataFrame({"Close": close, "Volume": volume})
+        run = engine.run_kostolany_scenario(
+            df, label="합성", style="장기", start="2021-01-01",
+            monthly_contribution=100.0, bidirectional=True,
+        )
+        assert run.contributed_capital is None

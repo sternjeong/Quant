@@ -1,0 +1,50 @@
+{
+  "hy_oas_available_range": {
+    "start": "2023-09-05",
+    "end": "2026-09-03"
+  },
+  "hy_oas_covers_march_2023": false,
+  "h1": {
+    "pre_crisis_baseline_pct": 1.79,
+    "crisis_peak_pct": 2.26,
+    "crisis_peak_date": "2023-03-23",
+    "relative_widening_pct": 26.3,
+    "full_history_percentile_of_peak": 58.7,
+    "adaptive_90pct_threshold_crossed": false,
+    "fixed_3.0pp_threshold_crossed": false,
+    "comparison_2008_relative_widening_pct": 286.4,
+    "comparison_2020_relative_widening_pct": 112.3
+  },
+  "h2_timeline": [
+    {
+      "equity_event": "SVB 파산·당국 인수 (금요일)",
+      "date": "2023-03-10",
+      "baa10y_on_date": 1.96,
+      "baa10y_prior_trading_day": 1.85
+    },
+    {
+      "equity_event": "시그니처은행 폐쇄 주말 이후 첫 거래일",
+      "date": "2023-03-13",
+      "baa10y_on_date": 2.14,
+      "baa10y_prior_trading_day": 1.96
+    },
+    {
+      "equity_event": "크레디트스위스-UBS 인수 발표 이후 첫 거래일",
+      "date": "2023-03-20",
+      "baa10y_on_date": 2.19,
+      "baa10y_prior_trading_day": 2.21
+    }
+  ],
+  "h3": {
+    "panic_trough_date": "2023-03-13",
+    "panic_trough_close": 3855.760009765625,
+    "fwd_returns_from_trough_pct": {
+      "fwd_5d_pct": 2.48,
+      "fwd_20d_pct": 6.57,
+      "fwd_60d_pct": 10.68
+    },
+    "svb_curated_event_fwd_60d_pct": 10.935,
+    "comparison_ltcm_covid_120d_pct_range": "+15% ~ +32%",
+    "comparison_lehman_120d_pct": -43.3
+  }
+}

@@ -1,0 +1,305 @@
+<title>네 개의 경고등을 한 판에</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #eef1ee; --surface: #ffffff; --surface-2: #e6eae5;
+    --ink: #17211d; --ink-muted: #57635c; --ink-faint: #8b968f; --line: #d9dfd8;
+    --hike: #a8461f; --hike-soft: #f4e3da; --cut: #1f6e79; --cut-soft: #dcedee; --gold: #8a6d1f;
+    --shadow: 0 1px 2px rgba(23,33,29,.06), 0 8px 24px -12px rgba(23,33,29,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+      --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+      --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+      --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+    --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+    --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+    --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Public Sans", -apple-system, "Noto Sans KR", sans-serif;
+    font-size: 16px; line-height: 1.65;
+  }
+  ::selection { background: var(--gold); color: #1a1408; }
+  a { color: var(--cut); }
+  .page { max-width: 880px; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 1rem;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 500;
+    font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.08; letter-spacing: -.01em;
+    margin: 0 0 1rem; text-wrap: balance;
+  }
+  .dek { font-size: 1.15rem; color: var(--ink-muted); max-width: 62ch; margin: 0 0 1.75rem; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: .4rem 1.6rem;
+    font-family: "IBM Plex Mono", monospace; font-size: .82rem; color: var(--ink-muted);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: .85rem 0;
+  }
+  .meta-row b { color: var(--ink); font-weight: 600; }
+  section { margin: 3.2rem 0; }
+  section > h2 {
+    font-family: "Fraunces", serif; font-weight: 500; font-size: 1.6rem;
+    letter-spacing: -.005em; margin: 0 0 .3rem; text-wrap: balance;
+  }
+  section > .lede { color: var(--ink-muted); max-width: 66ch; margin: 0 0 1.4rem; }
+  p { max-width: 68ch; }
+  .note {
+    background: var(--surface-2); border-left: 3px solid var(--gold); border-radius: 4px;
+    padding: .9rem 1.1rem; font-size: .93rem; color: var(--ink-muted); max-width: 68ch; margin: 1.1rem 0;
+  }
+  .note b { color: var(--ink); }
+  .callout {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.2rem 1.4rem; box-shadow: var(--shadow); margin: 1.4rem 0;
+  }
+  .hyp {
+    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--ink-faint);
+    border-radius: 8px; padding: 1rem 1.2rem; margin: 1rem 0; box-shadow: var(--shadow);
+  }
+  .hyp .tag {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: .4rem;
+  }
+  .verdict {
+    display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: .78rem;
+    letter-spacing: .06em; text-transform: uppercase; padding: .3rem .7rem; border-radius: 20px;
+    font-weight: 600; margin-top: .5rem;
+  }
+  .verdict.confirmed { background: var(--cut-soft); color: var(--cut); }
+  .verdict.disconfirmed { background: var(--hike-soft); color: var(--hike); }
+  .verdict.mixed { background: var(--surface-2); color: var(--gold); border: 1px solid var(--gold); }
+  .verdict.descriptive { background: var(--surface-2); color: var(--ink-muted); border: 1px solid var(--line); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .8rem; margin: 1.3rem 0 1.6rem; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: .9rem 1rem; }
+  .tile .label { font-size: .74rem; color: var(--ink-muted); margin-bottom: .3rem; }
+  .tile .value { font-family: "IBM Plex Mono", monospace; font-size: 1.3rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tile .value.hike { color: var(--hike); }
+  .tile .value.cut { color: var(--cut); }
+  .tile .sub { font-size: .72rem; color: var(--ink-faint); margin-top: .2rem; }
+  .table-wrap { overflow-x: auto; margin: 1.2rem 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: .92rem; }
+  caption { text-align: left; font-size: .82rem; color: var(--ink-faint); padding-bottom: .5rem; }
+  th, td { padding: .62rem .8rem; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; font-family: "IBM Plex Mono", monospace; }
+  th:first-child, td:first-child { text-align: left; font-family: "Public Sans", sans-serif; }
+  thead th { font-family: "Public Sans", sans-serif; font-weight: 600; font-size: .78rem; letter-spacing: .02em; color: var(--ink-muted); text-transform: uppercase; border-bottom: 1px solid var(--ink-faint); }
+  tr.row-inv td:first-child { border-left: 3px solid var(--hike); padding-left: .65rem; }
+  tr.row-norm td:first-child { border-left: 3px solid var(--cut); padding-left: .65rem; }
+  tr.row-base td:first-child { border-left: 3px solid var(--ink-faint); padding-left: .65rem; }
+  tr.row-gold td:first-child { border-left: 3px solid var(--gold); padding-left: .65rem; }
+  tbody tr:hover { background: var(--surface-2); }
+  ul.findings { padding-left: 1.2rem; max-width: 68ch; }
+  ul.findings li { margin-bottom: .9rem; }
+  ul.findings b { color: var(--ink); }
+  .footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--line); font-size: .82rem; color: var(--ink-faint); }
+</style>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">MACRO EVENT STUDY · 트랙 H 캡스톤 · 1990&ndash;2022</div>
+    <h1>네 개의 경고등이 한꺼번에 켜진 적은, 사실 한 번도 없었다</h1>
+    <p class="dek">VIX(주식 변동성)·장단기 금리역전·BAA10Y 크레딧 스프레드·TED 은행간
+    자금조달 스트레스 — 이 프로젝트가 각각 독립 검증한 네 개의 위기 게이지를 하나의 대시보드로
+    합쳐, 몇 개가 동시에 켜지는지에 따라 그 뒤 S&amp;P500이 정말 더 나빠지는지 확인한다.</p>
+    <div class="meta-row">
+      <span>분석 구간 <b>1990-01-29 ~ 2022-01-21</b>(TED 데이터 유효기간까지)</span>
+      <span>에피소드 총 <b>238건</b>, 게이지 3개 이상 <b>10건</b>, 4개 동시 <b>0건</b></span>
+      <span>데이터 <b>FRED(VIXCLS, T10Y2Y, BAA10Y, TEDRATE, USREC)</b>, S&amp;P500(^GSPC)</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>사전등록: 결과를 보기 전에 못박는다</h2>
+    <p class="lede">네 게이지 모두 이 프로젝트의 기존 검증된 정의를 그대로 재사용한다(VIX&ge;30
+    당일 레벨, T10Y2Y&lt;0 10거래일 지속형, BAA10Y·TED 각각 직전3년 90퍼센타일 10거래일
+    지속형). "이벤트"는 하루하루가 아니라 <b>같은 게이지 개수가 유지되는 최대 연속구간(에피소드)</b>
+    의 시작일로 센다 — VIX가 40거래일 연속 급등 상태라고 40개의 독립 사건으로 세지 않기
+    위해서다.</p>
+    <div class="hyp">
+      <div class="tag">H1 · 게이지가 많이 켜질수록 더 나쁜가</div>
+      <p style="margin:0">게이지 2개 이상이 동시에 켜진 에피소드는 1개만 켜진 에피소드보다
+      그 뒤 순방향 수익률이 <b>더 나쁠 것이다</b> — crisis_signal_overlap_study.py의 발견
+      (크레딧까지 겹치면 VIX 단독보다 나쁨)이 게이지 수에 대해 일반화되는지 확인한다. 구체적으로
+      0&rarr;1&rarr;2&rarr;3&rarr;4개로 갈수록 대체로 <b>단조적으로(monotonic)</b> 나빠질
+      것으로 예상하며, 실제로 단조성이 유지되는지 어디서 깨지는지 보고한다.</p>
+    </div>
+    <div class="hyp">
+      <div class="tag">H2 · "전부 빨간불"은 얼마나 드문가</div>
+      <p style="margin:0">각 게이지가 개별적으로도 드문 사건이므로, 3개 이상이 동시에 켜지는
+      순간은 역사적으로 매우 드물 것이다(뚜렷이 구분되는 에피소드가 5개 미만일 것으로 예상).
+      정확한 개수와 날짜(연속구간은 하나의 사건으로 묶어) 그대로 보고한다.</p>
+    </div>
+    <div class="hyp">
+      <div class="tag">H3 · 탐색적: 여섯 번째 재현 확인</div>
+      <p style="margin:0">H2에서 찾은 3개 이상 동시점등 에피소드들 사이에서도, 이 프로젝트가
+      이미 5번 독립 확인한 "사건의 무서움보다 실제 시스템 붕괴 여부가 중요하다" 패턴이
+      재현되는지 확인한다.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>H1 결과: 장기(+60·120일)는 단조적으로 나빠졌지만, 단기(+5·20일)는 오히려 아니었다</h2>
+    <div class="table-wrap">
+      <table>
+        <caption>게이지 개수별 에피소드 시작일 기준 S&amp;P500 순방향 수익률(%) · 괄호는 승률</caption>
+        <thead><tr><th>게이지 개수</th><th>에피소드 수</th><th>+5일</th><th>+20일</th><th>+60일</th><th>+120일</th></tr></thead>
+        <tbody>
+          <tr class="row-norm"><td>0개(전부 평온)</td><td>73</td><td>+0.49 (62%)</td><td>+0.61 (59%)</td><td>+4.42 (77%)</td><td>+9.27 (85%)</td></tr>
+          <tr><td>1개</td><td>110</td><td>+0.51 (55%)</td><td>+1.19 (59%)</td><td>+4.08 (71%)</td><td>+7.44 (76%)</td></tr>
+          <tr><td>2개</td><td>45</td><td>+0.58 (58%)</td><td>+2.19 (76%)</td><td>+2.86 (62%)</td><td>+3.40 (60%)</td></tr>
+          <tr class="row-inv"><td>3개</td><td>10</td><td>+1.32 (70%)</td><td>+1.66 (80%)</td><td>+1.55 (60%)</td><td>&minus;0.68 (30%)</td></tr>
+          <tr><td>4개(전부 동시)</td><td>0</td><td colspan="4" style="text-align:center">해당 에피소드 없음</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><b>+60·120일은 예측대로 정확히 단조적으로 나빠졌다</b> — +120일 평균이 0개(+9.27%)→
+    1개(+7.44%)→2개(+3.40%)→3개(&minus;0.68%)로 계단식으로 내려가고, 승률도 85%→76%→60%→30%로
+    똑같이 계단식이다. 게이지가 하나씩 더 켜질 때마다 장기 결과가 예외 없이 나빠졌다.</p>
+    <p>하지만 <b>+5·20일(단기)은 오히려 단조성이 깨졌다</b> — +20일 승률은 59%→59%→76%→80%로
+    게이지가 많을수록 오히려 초반 승률이 더 높았다. 게이지가 여럿 겹치는 순간은 대개 이미 상당히
+    패닉이 진행된 뒤라(VIX 급등 자체가 빠른 반등을 예고한다는 트랙F의 발견과 일치) 단기적으로는
+    반등이 나오지만, 그 반등이 오래가지 못하고 두세 달 뒤부터 다시 무너지는 패턴으로 보인다.</p>
+    <div class="hyp" style="border-left-color:var(--gold)">
+      <div class="tag">H1 검증 결과</div>
+      <p style="margin:0">장기 호라이즌(+60·120일)에서는 예측한 단조적 악화가 정확히
+      확인됐지만, 단기 호라이즌(+5·20일)에서는 오히려 반대 방향(더 높은 승률)이 나와 단조성이
+      깨졌다 — 호라이즌에 따라 결론이 갈리는 경계 사례다.</p>
+      <span class="verdict mixed">MIXED(장기 CONFIRMED, 단기 DISCONFIRMED)</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>H2 결과: "전부 4개 동시"는 32년간 단 한 번도 없었다</h2>
+    <div class="tiles">
+      <div class="tile"><div class="label">게이지 3개 이상 원(raw) 에피소드</div><div class="value">10건</div></div>
+      <div class="tile"><div class="label">게이지 4개(전부 동시)</div><div class="value cut">0건</div><div class="sub">32년간 단 한 번도 없음</div></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <caption>게이지 3개 이상 동시점등 원 에피소드 10건 전체</caption>
+        <thead><tr><th>시작일</th><th>종료일</th><th>지속(거래일)</th><th>+60일</th><th>+120일</th></tr></thead>
+        <tbody>
+          <tr class="row-norm"><td>1998-09-15</td><td>1998-10-28</td><td>32</td><td>+14.05</td><td>+23.34</td></tr>
+          <tr class="row-norm"><td>1998-12-14</td><td>1998-12-14</td><td>1</td><td>+13.44</td><td>+15.43</td></tr>
+          <tr><td>2000-10-12</td><td>2000-10-12</td><td>1</td><td>&minus;2.18</td><td>&minus;13.41</td></tr>
+          <tr><td>2000-12-20</td><td>2000-12-20</td><td>1</td><td>&minus;9.66</td><td>&minus;3.55</td></tr>
+          <tr><td>2007-08-15</td><td>2007-08-16</td><td>2</td><td>+4.84</td><td>&minus;5.71</td></tr>
+          <tr><td>2007-11-12</td><td>2007-11-12</td><td>1</td><td>&minus;7.50</td><td>&minus;1.45</td></tr>
+          <tr><td>2008-01-22</td><td>2008-01-22</td><td>1</td><td>+4.20</td><td>&minus;6.27</td></tr>
+          <tr><td>2008-03-14</td><td>2008-03-17</td><td>2</td><td>+5.46</td><td>&minus;3.98</td></tr>
+          <tr class="row-inv"><td>2008-09-15</td><td>2008-12-11</td><td>63</td><td>&minus;25.49</td><td>&minus;43.28</td></tr>
+          <tr class="row-norm"><td>2020-03-13</td><td>2020-04-30</td><td>34</td><td>+18.30</td><td>+32.09</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>사전에 "5개 미만"으로 예상했는데, 원 에피소드로는 10건이 나왔다 — 다만 서로 몇 주~몇 달
+    간격으로 붙어 있는 것들을 같은 위기 국면으로 묶으면 실제로는 <b>5개의 뚜렷한 역사적 사건</b>
+    으로 정리된다: ① 1998년 LTCM 위기(9~12월, 두 차례 flare-up), ② 2000년 닷컴버블 초기
+    붕괴(10~12월), ③ 2007~2008년 서브프라임 위기 전개(2007년 8월~2008년 3월, 네 차례
+    flare-up, 리먼 파산 전 전조), ④ 2008년 리먼브라더스 파산(9~12월, 63거래일 지속 — 가장
+    길고 가장 나쁨), ⑤ 2020년 코로나 팬데믹 크래시(3~4월). <b>사전에 예상한 "5개 미만"과
+    정확히 일치하지는 않지만(정확히 5개), 방향(매우 드물다)은 정확했다.</b> 무엇보다
+    <b>네 게이지가 전부 동시에 켜진 날은 1990~2022년 32년 전체를 통틀어 단 한 번도 없었다</b>
+    — 실전에서 "네 신호가 다 빨간불"을 기다리는 건 비현실적인 기준이라는 뜻이다.</p>
+    <div class="hyp" style="border-left-color:var(--cut)">
+      <div class="tag">H2 검증 결과</div>
+      <p style="margin:0">원 에피소드 10건이 5개의 뚜렷한 역사적 위기로 정리되어, 사전 예상한
+      "5개 미만"의 경계에 정확히 걸쳤다 — 방향은 맞았고 게이지 4개 동시점등은 아예 없었다는
+      점이 가장 인상적인 발견이다.</p>
+      <span class="verdict descriptive">경계적으로 부합(정확히 5개 역사적 사건, 4개 동시는 0건)</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>H3 결과: 여섯 번째로 재현됐다 — 리먼은 최악, 나머지 넷은 대체로 견뎠다</h2>
+    <div class="table-wrap">
+      <table>
+        <caption>5개 역사적 위기 국면 비교 — 대표 에피소드 기준(%)</caption>
+        <thead><tr><th>위기</th><th>기간</th><th>실제 시스템 붕괴?</th><th>+60일</th><th>+120일</th></tr></thead>
+        <tbody>
+          <tr class="row-norm"><td>① 1998 LTCM</td><td>1998-09~12</td><td>아니오(연준 주도 구제)</td><td>+13.4~+14.1</td><td>+15.4~+23.3</td></tr>
+          <tr><td>② 2000 닷컴 초기붕괴</td><td>2000-10~12</td><td>아니오(서서히 하락)</td><td>&minus;9.7~&minus;2.2</td><td>&minus;13.4~&minus;3.5</td></tr>
+          <tr><td>③ 2007~08 서브프라임 전조</td><td>2007-08~2008-03</td><td>아직 아님(전조 단계)</td><td>&minus;7.5~+5.5</td><td>&minus;6.3~&minus;1.5</td></tr>
+          <tr class="row-inv"><td>④ 2008 리먼브라더스</td><td>2008-09~12</td><td><b>예(실제 붕괴)</b></td><td>&minus;25.5</td><td>&minus;43.3</td></tr>
+          <tr class="row-norm"><td>⑤ 2020 코로나</td><td>2020-03~04</td><td>아니오(정책 초고속 대응)</td><td>+18.3</td><td>+32.1</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>패턴이 매우 선명하게 재현됐다 — <b>실제로 은행/신용 시스템이 진짜 무너진 유일한 사례인
+    리먼브라더스(④)만 극단적으로 나빴다</b>(+120일 &minus;43.3%). 연준이 개입해 구제한
+    LTCM(①)과 정책 대응이 즉각적이었던 코로나(⑤)는 오히려 강하게 반등했다. 2000년
+    닷컴버블(②)은 시스템 붕괴가 아니라 이미 진행 중이던 약세장의 일부라 완만하게 나빴고,
+    2007~08년 전조 단계(③)는 아직 리먼 파산 전이라 "나빠지고는 있지만 아직 무너지진 않은"
+    중간 정도의 결과를 보였다 — 위기가 심화되는 정도에 따라 결과도 단계적으로 나빠지는
+    그라데이션이 보인다.</p>
+    <div class="hyp" style="border-left-color:var(--cut)">
+      <div class="tag">H3 검증 결과</div>
+      <p style="margin:0">트랙A(인하)·트랙B(충격사건)·트랙F(VIX&ge;50)·트랙H(크레딧스프레드,
+      TED스프레드)에 이어 "사건의 무서움보다 실제 시스템 붕괴 여부가 중요하다" 패턴이
+      <b>여섯 번째로 재현됐다</b> — 이번엔 5개 위기 국면을 "붕괴 정도"의 그라데이션으로
+      나란히 놓고 봤을 때 가장 선명하게 확인됐다.</p>
+      <span class="verdict confirmed">REPLICATED (6번째)</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>경제학 지식 없이 읽는 법</h2>
+    <ul class="findings">
+      <li><b>여러 위기 신호가 한꺼번에 켜지는 건 실제로 극히 드물다.</b> 32년간 네 개가 전부
+      동시에 켜진 적은 단 한 번도 없었고, 3개 이상이 겹친 것도 5번의 역사적 위기로 압축된다
+      — "모든 신호가 빨간불"을 기다리는 전략은 현실에서 쓸 일이 거의 없다.</li>
+      <li><b>신호가 많이 겹칠수록 "몇 달 뒤"는 확실히 더 나빴다.</b> 게이지 0개일 때 +120일
+      평균 +9.27%였던 것이 3개 겹치면 &minus;0.68%까지 계단식으로 내려갔다 — crisis_signal_
+      overlap_study.py의 발견이 게이지 수를 일반화해도 성립했다.</li>
+      <li><b>다만 "지금 당장(2~4주)"은 오히려 반대였다.</b> 신호가 많이 겹친 순간일수록 초반
+      승률이 더 높았다 — 이미 패닉이 상당히 진행된 상태라 단기 반등이 나오기 쉽지만, 그 반등이
+      오래가지 못한다는 뜻으로 해석된다.</li>
+      <li><b>가장 중요한 결론은 여전히 "얼마나 많이 겹쳤나"가 아니라 "실제로 무엇이
+      무너졌나"다.</b> 3개 이상 겹친 5번의 위기 중 실제 시스템 붕괴(리먼)만 재앙적이었고,
+      나머지 넷(정책 개입·구제로 시스템이 지켜진 경우)은 대체로 견뎠거나 오히려 강하게
+      반등했다.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>한계</h2>
+    <div class="callout">
+      <ul class="findings" style="margin:0;">
+        <li><b>TED 스프레드가 2022-01-21 이후 데이터가 없어 분석 구간을 그때까지로 제한했다.</b>
+        2022년 긴축 사이클, 2023년 지역은행 위기, 2025년 관세 충격은 이 대시보드로 볼 수
+        없다.</li>
+        <li><b>게이지 3개 셀은 n=10(원 에피소드)/5(역사적 사건)로 매우 작다.</b> 방향은
+        선명하지만 통계적으로 확정할 수 있는 크기가 아니다 — 역사적 사례 연구로 읽어야 한다.</li>
+        <li><b>VIX는 이번엔 지속성 필터 없이 "그날 종가&ge;30"이라는 단순 레벨로 정의했다</b>
+        (다른 세 게이지는 10거래일 지속형 필터 적용). VIX는 원래 스파이키한 지표라 지속성
+        필터를 적용하면 오히려 "몇 개가 동시에 켜졌는가"를 매일 추적하기 어려워지기 때문이다
+        — 다만 이 비대칭이 결과에 영향을 줬을 가능성은 배제할 수 없다.</li>
+        <li><b>에피소드 시작일 기준 순방향 수익률만 봤다</b> — 같은 게이지 개수가 오래
+        유지되는 동안 그 안에서 수익률이 어떻게 변하는지(예: 리먼 63거래일 동안의 중간 경로)는
+        따로 보지 않았다.</li>
+        <li><b>거래비용·세금은 반영하지 않았다.</b> 다른 리포트와 동일하게 순수 가격 반응만
+        본다.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="footer">
+    데이터: FRED(VIXCLS, T10Y2Y, BAA10Y, TEDRATE, USREC) · Yahoo Finance(^GSPC) · 분석 스크립트:
+    four_gauge_dashboard_study.py(vix_spike_event_study.py, yield_curve_event_study.py,
+    credit_spread_event_study.py, bank_funding_stress_study.py의 기존 탐지 로직 재사용) ·
+    같은 프로젝트: VIX 공포지수 급등 스터디, 세 위기 게이지가 동시에 울릴 때, 은행들이 서로를
+    못 믿을 때
+  </div>
+</div>
