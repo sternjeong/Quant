@@ -1,0 +1,485 @@
+#!/usr/bin/env python3
+"""report_data.json을 읽어 final_report.html을 만든다.
+
+analysis/2026-08-30_core_filter_bootstrap_and_satellite_weight_extension/build_report.py와
+동일한 디자인 시스템(다크네이비/올리브 톤, 세리프 헤드라인, TOC, 섹션 번호, 판정 배지)을 재사용한다.
+"""
+import json
+import math
+import os
+
+OUT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+with open(f"{OUT_DIR}/report_data.json", encoding="utf-8") as f:
+    R = json.load(f)
+
+GEN = R["meta"]["generated"]
+MAIN = R["main"]
+OTM5 = R["sensitivity_otm5"]
+EP_ORDER = R["meta"]["episode_order"]
+
+EP_LABEL = {
+    "full_2019_2026": "전체기간 2019-2026",
+    "gfc_2008": "2008 GFC",
+    "covid_2020": "COVID 2020 (~5주)",
+    "bear_2022": "2022 완만약세장",
+    "selloff_2018": "2018 4분기 급락",
+    "correction_2015_2016": "2015-16 조정",
+}
+
+CFG_ORDER = ["core_alone", "unhedged_satellite", "protective_put", "collar", "trend_hybrid_switch"]
+CFG_LABEL = {
+    "core_alone": "코어단독(새틀라이트 無)",
+    "unhedged_satellite": "새틀라이트 무헤지(현행)",
+    "protective_put": "새틀라이트+합성 프로텍티브풋",
+    "collar": "새틀라이트+합성 칼라",
+    "trend_hybrid_switch": "새틀라이트+작업38 트렌드 하이브리드",
+}
+
+
+def fnum(v, digits=2, signed=False):
+    if v is None or (isinstance(v, float) and math.isnan(v)):
+        return "—"
+    s = f"{v:,.{digits}f}"
+    if signed and v > 0:
+        s = "+" + s
+    return s
+
+
+def esc(s):
+    return str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+CSS = """
+:root{
+  color-scheme: light;
+  --bg-page:#eef1ee; --surface:#ffffff; --surface-2:#f4f6f3;
+  --ink:#12181a; --ink-2:#495550; --ink-muted:#828d87;
+  --hairline:#d7ddd6; --border:rgba(11,11,11,0.10);
+  --accent:#1f4d3d; --accent-ink:#ffffff; --accent-2:#8a6a1f;
+  --accent-2-soft:#f2e6c8; --accent-soft:#e2ebe6; --chart-surface:#fcfcfb;
+  --blue:#2a78d6; --orange:#eb6834; --aqua:#1baf7a; --red:#e34948;
+  --gridline:#e1e0d9; --axis:#c3c2b7; --delta-pos:#184f95; --delta-neg:#b3261e;
+  --code-bg:#f4f6f3; --shadow: 0 1px 2px rgba(20,30,25,0.04), 0 8px 24px -16px rgba(20,30,25,0.18);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg-page:#0f1210; --surface:#171b16; --surface-2:#1c211b;
+    --ink:#f2f4f0; --ink-2:#c4cbc2; --ink-muted:#8b958a;
+    --hairline:#2c332a; --border:rgba(255,255,255,0.10);
+    --accent:#5aab89; --accent-ink:#0b1310; --accent-2:#d9b45c;
+    --accent-2-soft:#332a13; --accent-soft:#1b2921; --chart-surface:#1a1a19;
+    --blue:#3987e5; --orange:#d95926; --aqua:#199e70; --red:#e66767;
+    --gridline:#2c2c2a; --axis:#3a3f38; --delta-pos:#86b6ef; --delta-neg:#ff8a80;
+    --code-bg:#1c211b; --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -16px rgba(0,0,0,0.5);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg-page:#0f1210; --surface:#171b16; --surface-2:#1c211b;
+  --ink:#f2f4f0; --ink-2:#c4cbc2; --ink-muted:#8b958a;
+  --hairline:#2c332a; --border:rgba(255,255,255,0.10);
+  --accent:#5aab89; --accent-ink:#0b1310; --accent-2:#d9b45c;
+  --accent-2-soft:#332a13; --accent-soft:#1b2921; --chart-surface:#1a1a19;
+  --blue:#3987e5; --orange:#d95926; --aqua:#199e70; --red:#e66767;
+  --gridline:#2c2c2a; --axis:#3a3f38; --delta-pos:#86b6ef; --delta-neg:#ff8a80;
+  --code-bg:#1c211b; --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -16px rgba(0,0,0,0.5);
+}
+*{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{ margin:0; background:var(--bg-page); color:var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif; line-height:1.6; font-size:16px; }
+.serif{ font-family: "Iowan Old Style","Palatino Linotype", Georgia, serif; }
+.mono, .num, td.num, .tk-name, .kpi-value, code {
+  font-family: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+  font-variant-numeric: tabular-nums; }
+a{ color:var(--accent); }
+.wrap{ max-width: 1060px; margin:0 auto; padding: 0 24px 96px; }
+.masthead{ background: var(--accent); color: var(--accent-ink); padding: 56px 24px 40px; }
+.masthead-inner{ max-width:1060px; margin:0 auto; }
+.masthead-eyebrow{ font-size:12.5px; letter-spacing:0.12em; text-transform:uppercase; opacity:0.82;
+  font-family: ui-monospace, "SF Mono", Consolas, monospace; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.masthead-eyebrow .dot{ opacity:0.5; }
+h1.masthead-title{ font-family:"Iowan Old Style","Palatino Linotype", Georgia, serif; font-weight:600;
+  font-size: clamp(28px, 4.2vw, 44px); line-height:1.15; margin: 14px 0 10px; text-wrap: balance; max-width: 34ch; }
+.masthead-sub{ font-size:16.5px; max-width:76ch; opacity:0.92; margin:0 0 22px; }
+.masthead-meta{ display:flex; flex-wrap:wrap; gap: 10px 26px; font-size:13.5px; opacity:0.85;
+  border-top:1px solid rgba(255,255,255,0.22); padding-top:16px; }
+.masthead-meta b{ font-weight:600; }
+.section{ padding: 52px 0 8px; border-top:1px solid var(--hairline); }
+.section:first-of-type{ border-top:none; }
+.section h2{ font-family:"Iowan Old Style","Palatino Linotype", Georgia, serif; font-size: 25px;
+  font-weight:600; margin: 0 0 16px; display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+.sec-no{ font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size:13px; color: var(--accent);
+  border:1px solid var(--accent); border-radius:3px; padding:2px 6px; font-weight:600; letter-spacing:0.02em; }
+.section h3{ font-size:17.5px; margin: 30px 0 10px; font-weight:650; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.section h4{ font-size:15px; margin: 20px 0 8px; font-weight:650; color:var(--ink-2); }
+.lede{ font-size:16.5px; color:var(--ink-2); max-width:78ch; }
+.section p{ max-width:82ch; }
+.section > p, .section > .lede { margin-top: 0; }
+.section li{ max-width:78ch; }
+.callout{ background: var(--surface-2); border:1px solid var(--hairline); border-left: 3px solid var(--accent);
+  border-radius: 6px; padding: 18px 22px; margin: 20px 0 26px; }
+.callout-title{ font-size:11.5px; text-transform:uppercase; letter-spacing:0.08em; color:var(--accent);
+  font-weight:700; margin-bottom:8px; }
+.callout p{ margin:0; max-width:none; }
+.callout p + p{ margin-top:10px; }
+.callout.warn{ border-left-color: var(--delta-neg); }
+.callout.warn .callout-title{ color: var(--delta-neg); }
+.callout.good{ border-left-color: var(--aqua); }
+.callout.good .callout-title{ color: var(--aqua); }
+.caveat{ font-size:14.5px; color:var(--ink-2); background:var(--surface-2); border-radius:6px;
+  padding:14px 18px; border:1px dashed var(--hairline); margin: 14px 0; }
+.kpi-row{ display:grid; grid-template-columns:repeat(auto-fit, minmax(190px,1fr)); gap:14px; margin: 20px 0 8px; }
+.kpi-tile{ background:var(--surface); border:1px solid var(--hairline); border-radius:8px; padding:16px 18px; box-shadow: var(--shadow); }
+.kpi-label{ font-size:12.5px; color:var(--ink-muted); margin-bottom:6px; }
+.kpi-value{ font-size:24px; font-weight:600; line-height:1.1; }
+.kpi-value.pos{ color:var(--delta-pos); }
+.kpi-value.neg{ color:var(--delta-neg); }
+.kpi-sub{ font-size:12.5px; color:var(--ink-muted); margin-top:4px; }
+.table-wrap{ overflow-x:auto; border:1px solid var(--hairline); border-radius:8px; background:var(--surface); }
+table.data-table{ width:100%; border-collapse:collapse; font-size:13.5px; min-width:760px; }
+table.data-table th{ text-align:right; font-weight:600; font-size:11.5px; color:var(--ink-muted); text-transform:uppercase;
+  letter-spacing:0.03em; padding:10px 12px; border-bottom:1px solid var(--hairline); white-space:nowrap; }
+table.data-table th:first-child, table.data-table td:first-child{ text-align:left; }
+table.data-table td{ padding:8px 12px; border-bottom:1px solid var(--hairline); text-align:right; white-space:nowrap; }
+table.data-table tbody tr:hover{ background:var(--surface-2); }
+table.data-table tbody tr:last-child td{ border-bottom:none; }
+td.tk-cell{ text-align:left !important; }
+td.tk-cell .tk-name{ font-weight:650; margin-right:8px; }
+.strong{ font-weight:700; }
+tr.warn-row{ background: rgba(179,38,30,0.08); }
+tr.hero-row{ background: rgba(31,77,61,0.08); }
+footer{ max-width:1060px; margin:40px auto 0; padding: 26px 24px 10px; border-top:1px solid var(--hairline);
+  font-size:12.5px; color:var(--ink-muted); }
+footer p{ max-width:none; }
+.toc{ display:flex; flex-wrap:wrap; gap:8px 18px; margin: 24px 0 4px; padding:16px 20px; background:var(--surface);
+  border:1px solid var(--hairline); border-radius:8px; }
+.toc a{ font-size:13.5px; color:var(--ink-2); text-decoration:none; }
+.toc a:hover{ color:var(--accent); text-decoration:underline; }
+"""
+
+
+def episode_table(dataset, use_crisis_when_available=True):
+    rows = []
+    for ep in EP_ORDER:
+        e = dataset["episodes"][ep]
+        wkey = "table_crisis_window" if (use_crisis_when_available and e["window_used"] == "crisis_window") else "table_full_period"
+        w = e[wkey]
+        for cfg in CFG_ORDER:
+            m = w[cfg]
+            hero = " hero-row" if cfg == "collar" else ""
+            rows.append(
+                f'<tr class="{hero.strip()}"><td class="tk-cell"><span class="tk-name">{esc(EP_LABEL[ep])}</span></td>'
+                f'<td class="tk-cell">{esc(CFG_LABEL[cfg])}</td>'
+                f'<td class="num">{fnum(m.get("cagr"),2,signed=True)}%</td>'
+                f'<td class="num">{fnum(m.get("mdd"),2)}%</td>'
+                f'<td class="num">{fnum(m.get("sharpe"),2,signed=True)}</td>'
+                f'<td class="num">{fnum(m.get("calmar"),2,signed=True)}</td></tr>'
+            )
+    return "".join(rows)
+
+
+def covid_focus_table(dataset):
+    e = dataset["episodes"]["covid_2020"]["table_crisis_window"]
+    rows = []
+    for cfg in CFG_ORDER:
+        m = e[cfg]
+        hero = " hero-row" if cfg == "collar" else ""
+        rows.append(
+            f'<tr class="{hero.strip()}"><td class="tk-cell"><span class="tk-name">{esc(CFG_LABEL[cfg])}</span></td>'
+            f'<td class="num">{fnum(m.get("cagr"),2,signed=True)}%</td>'
+            f'<td class="num">{fnum(m.get("mdd"),2)}%</td>'
+            f'<td class="num">{fnum(m.get("sharpe"),2,signed=True)}</td>'
+            f'<td class="num">{fnum(m.get("calmar"),2,signed=True)}</td></tr>'
+        )
+    return "".join(rows)
+
+
+def premium_diag_table(dataset):
+    rows = []
+    for ep in EP_ORDER:
+        e = dataset["episodes"][ep]
+        rows.append(
+            f'<tr><td class="tk-cell"><span class="tk-name">{esc(EP_LABEL[ep])}</span></td>'
+            f'<td class="num">{e["n_option_rolls"]}</td>'
+            f'<td class="num">{fnum(e["put_cumulative_premium_paid_pct"],1)}%</td>'
+            f'<td class="num">{fnum(e["put_cumulative_payoff_received_pct"],1)}%</td>'
+            f'<td class="num">{fnum(e["put_net_pnl_pct_of_notional"],1,signed=True)}%</td>'
+            f'<td class="num">{fnum(e["collar_net_pnl_pct_of_notional"],1,signed=True)}%</td></tr>'
+        )
+    return "".join(rows)
+
+
+def sensitivity_covid_row(label, dataset):
+    e = dataset["episodes"]["covid_2020"]["table_crisis_window"]
+    put_s = e["protective_put"]["sharpe"]
+    collar_s = e["collar"]["sharpe"]
+    return f'<tr><td class="tk-cell"><span class="tk-name">{esc(label)}</span></td><td class="num">{fnum(put_s,2,signed=True)}</td><td class="num">{fnum(collar_s,2,signed=True)}</td></tr>'
+
+
+def sensitivity_full_row(label, dataset):
+    e = dataset["episodes"]["full_2019_2026"]["table_full_period"]
+    return (f'<tr><td class="tk-cell"><span class="tk-name">{esc(label)}</span></td>'
+            f'<td class="num">{fnum(e["protective_put"]["cagr"],2,signed=True)}%</td>'
+            f'<td class="num">{fnum(e["collar"]["cagr"],2,signed=True)}%</td></tr>')
+
+
+COVID_MAIN = MAIN["episodes"]["covid_2020"]["table_crisis_window"]
+FULL_MAIN = MAIN["episodes"]["full_2019_2026"]["table_full_period"]
+
+HTML = f"""<title>합성 옵션 테일 리스크 헤지</title>
+<style>
+{CSS}
+</style>
+
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="masthead-eyebrow">
+      <span>QUANT RESEARCH NOTE</span><span class="dot">·</span><span>신규 트랙</span><span class="dot">·</span><span>Hypothesis-Driven Study</span>
+    </div>
+    <h1 class="masthead-title">추세신호가 못 푼 COVID형 급락, 합성 칼라 옵션은 감지 없이도 막아냈다 — 대가는 평시의 꾸준한 프리미엄 드래그</h1>
+    <p class="masthead-sub">작업33~38은 SPY-200일선, VIX 신속신호, 둘의 하이브리드까지 세 가지 추세추종
+      메커니즘으로 새틀라이트 슬리브를 위기에서 지키려 했지만, 셋 다 "급락을 감지한 뒤" 반응하는
+      후행 지표라 COVID처럼 5주 만에 벌어지는 초고속 붕괴에는 구조적으로 늦었다(하이브리드 COVID
+      Sharpe {fnum(MAIN['episodes']['covid_2020']['table_crisis_window']['trend_hybrid_switch']['sharpe'],2,signed=True)}
+      vs 무대응 코어단독 {fnum(MAIN['episodes']['covid_2020']['table_crisis_window']['core_alone']['sharpe'],2,signed=True)}
+      — 방어 시도가 오히려 더 나빴다). 이번 라운드는 감지가 필요 없는 도구, 즉 사전에 페이오프가
+      정의된 옵션을 시도했다. 결과: <b>합성 SPY 칼라(풋매수+콜매도)는 COVID 구간 Sharpe를
+      {fnum(COVID_MAIN['collar']['sharpe'],2,signed=True)}까지 끌어올려 코어단독과 세 추세 메커니즘
+      전부를 뛰어넘었다</b> — 하지만 평시(전체기간)에는 CAGR을 {fnum(FULL_MAIN['unhedged_satellite']['cagr'],2)}%에서
+      {fnum(FULL_MAIN['collar']['cagr'],2)}%로 깎는 꾸준한 비용을 냈다.</p>
+    <div class="masthead-meta">
+      <span><b>기준일</b> {esc(GEN)}</span>
+      <span><b>가격결정</b> Black-Scholes, 변동성=VIX/100, 금리=FRED FEDFUNDS</span>
+      <span><b>롤링주기</b> 월간(21거래일), ATM 풋 + 5%OTM 콜(칼라)</span>
+      <span><b>새틀라이트 헤지비중</b> 포트폴리오의 {MAIN['meta']['satellite_weight']*100:.0f}%(새틀라이트 노셔널)</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <nav class="toc">
+    <a href="#scope">00 문제 제기</a>
+    <a href="#pricing">01 합성 옵션 가격결정 모형</a>
+    <a href="#backtest">02 프로텍티브풋 vs 칼라 백테스트 (6개 창)</a>
+    <a href="#covid">03 COVID 구간 특화 분석</a>
+    <a href="#synthesis">04 종합 — 실전에서 쓸 만한가</a>
+    <a href="#limitations">05 한계</a>
+  </nav>
+
+  <section class="section" id="scope">
+    <h2><span class="sec-no">00</span> 문제 제기 — 추세신호로는 못 푼 COVID형 급락, 다른 도구로</h2>
+    <p class="lede">작업34/37/38에 걸친 시도(SPY-200일선 스위치 → VIX 신속 스위치 → 둘의 OR 결합
+      하이브리드)는 하나의 구조적 결론으로 수렴했다: 셋 다 "가격이 이미 움직인 뒤"에야 반응하는
+      추세 기반 신호라, 2008처럼 몇 달에 걸쳐 진행되는 위기에는 방어력이 있지만 COVID처럼 몇 주
+      만에 벌어지는 급락에는 근본적으로 느리다. 작업38의 결론을 그대로 인용하면 "COVID는 무대응보다
+      나쁜 상태로 남았다." 이 라운드는 질문 자체를 바꾼다 — <b>"더 빠른 감지 신호"</b>가 아니라
+      <b>"감지가 필요 없는 도구"</b>를 쓴다면 어떨까? 옵션은 정확히 이런 도구다: 풋옵션의 페이오프는
+      매수 시점에 이미 계약으로 확정돼 있어, 위기가 "본격화됐다"고 판단할 때까지 기다릴 필요가 없다
+      — 위기가 일어나기만 하면 페이오프가 자동으로 실현된다.</p>
+    <p>다만 옵션은 공짜가 아니다. 보험이 다 그렇듯 평상시에 꾸준히 프리미엄을 지불해야 하고,
+      실증 연구도 이 비용이 만만치 않다는 걸 반복해서 보여준다 — CBOE의 프로텍티브풋 지수(PPUT)는
+      1986~2018 장기간 연 6.6%/Sharpe 0.55로 S&amp;P500 자체의 연 9.8%/Sharpe 0.66에 못 미쳤고
+      (Cboe/Bondarenko 등의 PPUT 방법론·성과 연구), Elm Wealth 등 실무 자산운용사의 분석도 상시
+      풋 매수 전략이 구조적으로 "보험료가 보험금 기대값을 초과하는" 음(-)의 위험프리미엄을 갖는다는
+      점을 지적한다. 이 라운드는 이 트레이드오프를 우리 챔피언+새틀라이트 구조에서 실제로 얼마나
+      크게, 얼마나 유리하게 발생하는지를 직접 계산한다 — "COVID를 막았으니 승리"라고 선언하지 않고
+      평시 비용까지 정직하게 같이 보고한다.</p>
+  </section>
+
+  <section class="section" id="pricing">
+    <h2><span class="sec-no">01</span> 합성 옵션 가격결정 모형 — 명시적 가정</h2>
+    <p class="lede">이 저장소에는 기존 옵션 가격결정/백테스트 인프라가 없어(core/에서 black_scholes,
+      option, implied_vol 검색 결과 없음), 이번 라운드에서 직접 구현했다. 실제 상장옵션 체인 데이터는
+      쓰지 않는다(비싸거나 구할 수 없음) — 대신 실제 과거 SPY 종가와 VIX 종가를 입력으로 하는
+      Black-Scholes 합성 가격결정을 쓴다.</p>
+    <ul>
+      <li><b>기초자산</b>: 새틀라이트 바스켓 자체가 아니라 SPY. 새틀라이트는 반기 리밸런싱되는
+        3종목 바스켓이라 상장옵션이 없거나 유동성이 부족한 경우가 흔하고, 종목이 바뀔 때마다
+        바스켓 옵션을 새로 설계해야 해 비현실적이다. 실전에서 포트폴리오 레벨 테일 리스크를
+        옵션으로 방어할 때는 거의 항상 SPY/SPX 같은 유동성 큰 지수 상품을 쓰고, 새틀라이트는
+        개별주 강세장 베타가 커서 시장 전체 급락 시 동반 하락하는 상관관계가 높다(이번 COVID/2008
+        사례가 정확히 이런 "동반 급락" 케이스) — 지수 풋이 합리적인 대리 헤지다.</li>
+      <li><b>노셔널</b>: 포트폴리오의 새틀라이트 비중({MAIN['meta']['satellite_weight']*100:.0f}%)만큼만
+        SPY 풋/칼라로 방어한다. 전체 포트폴리오가 아니라 "감지 없이 새틀라이트를 보호"하는 게 목표다.</li>
+      <li><b>내재변동성 σ</b>: VIX 종가/100을 그대로 사용(VIX 자체가 S&amp;P500 30일 내재변동성 지수라
+        흔히 쓰이는 대리치). 실제 옵션의 스마일/스큐, 만기별 텀 구조는 반영하지 않는다.</li>
+      <li><b>무위험금리 r</b>: FRED FEDFUNDS(실효 연방기금금리) 캐시에서 롤 시점 직전 최신값.</li>
+      <li><b>만기 T</b>: {MAIN['meta']['tenor_days']}거래일(~1개월). 새틀라이트의 반기 리밸런싱보다
+        훨씬 빈번하지만, 실제 상장옵션의 표준 만기 주기(월물)에 맞춘 현실적 선택 — 반기물 옵션은
+        유동성이 낮고 실전에서 거의 쓰이지 않는다.</li>
+      <li><b>행사가 K</b>: 메인 구성은 풋 ATM(모네니스 1.00), 칼라의 콜은 5%OTM(1.05). 민감도
+        체크로 풋 5%OTM(0.95)도 별도로 돌렸다(아래 04절).</li>
+      <li><b>프리미엄/페이오프 인식</b>: 매 롤 시점(월초)에 프리미엄을 그날 하루치 초과수익률로
+        차감(칼라는 콜 매도 수취분을 가산)하고, 페이오프는 만기일(다음 롤 직전 거래일)에 하루짜리
+        수익률로 인식한다 — 옵션의 일일 델타/감마 변화(마크투마켓)는 추적하지 않는 단순화다. 이
+        방식은 "옵션은 실제로 돈이 드는 보험"이라는 핵심 경제성(평시 프리미엄 드래그, 위기 시
+        페이오프)은 그대로 보존하면서 계산을 크게 단순화한다. 한계 섹션에서 이 단순화의 영향을
+        추가로 논한다.</li>
+    </ul>
+  </section>
+
+  <section class="section" id="backtest">
+    <h2><span class="sec-no">02</span> 프로텍티브풋 vs 칼라 백테스트 — 6개 창</h2>
+    <p class="lede">작업38(h20/h21)이 이미 계산·캐시해 둔 6개 창(5개 위기 에피소드 + 전체기간
+      2019-2026)의 코어/새틀라이트(실시간청산)/트렌드 하이브리드 스위치 일별 수익률 시계열을 그대로
+      재사용하고, 여기에 새로 계산한 옵션 오버레이만 더했다(코어·새틀라이트 재백테스트 없음).</p>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>창</th><th>구성</th><th>CAGR</th><th>MDD</th><th>Sharpe</th><th>Calmar</th></tr></thead>
+        <tbody>{episode_table(MAIN)}</tbody>
+      </table>
+    </div>
+    <p class="caveat">각 위기 창은 위기 구간(crisis_window)만, 전체기간 창은 2019-08~2026-08 전체를
+      기준으로 한다(작업38과 동일 관례). 강조된(연두색) 행은 칼라 구성.</p>
+    <h3>평시 프리미엄 드래그 진단 (풋/칼라 실제 손익)</h3>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>창</th><th>옵션 롤 횟수</th><th>풋 누적 프리미엄(지불)</th><th>풋 누적 페이오프(수취)</th>
+          <th>풋 순손익(SPY노셔널 기준)</th><th>칼라 순손익(SPY노셔널 기준)</th></tr></thead>
+        <tbody>{premium_diag_table(MAIN)}</tbody>
+      </table>
+    </div>
+    <div class="callout warn">
+      <div class="callout-title">보험은 실제로 돈이 든다 — 전체기간 7년간 풋 프리미엄만 SPY노셔널의 약 192%를 지불했다</div>
+      <p>전체기간(2019-08~2026-08, {MAIN['episodes']['full_2019_2026']['n_option_rolls']}회 월간 롤)
+        동안 ATM 풋에 지불한 누적 프리미엄은 SPY 노셔널의 {fnum(MAIN['episodes']['full_2019_2026']['put_cumulative_premium_paid_pct'],1)}%,
+        돌려받은 페이오프는 {fnum(MAIN['episodes']['full_2019_2026']['put_cumulative_payoff_received_pct'],1)}%뿐이라
+        순손실이 노셔널의 {fnum(MAIN['episodes']['full_2019_2026']['put_net_pnl_pct_of_notional'],1,signed=True)}%에
+        달한다. 새틀라이트 비중({MAIN['meta']['satellite_weight']*100:.0f}%)으로 환산하면 포트폴리오
+        CAGR을 {fnum(FULL_MAIN['unhedged_satellite']['cagr'],2)}%→{fnum(FULL_MAIN['protective_put']['cagr'],2)}%로
+        깎는다 — 정확히 PPUT 지수 실증연구가 보여주는 "평시엔 지고, 위기에만 이기는" 보험의 전형적
+        패턴이다. 콜 매도로 프리미엄을 상쇄하는 칼라는 드래그를 {fnum(FULL_MAIN['collar']['cagr'],2)}%까지만
+        줄이는 절반의 완화책이다(콜 매도가 상승장 수익을 함께 깎기 때문).</p>
+    </div>
+  </section>
+
+  <section class="section" id="covid">
+    <h2><span class="sec-no">03</span> COVID 구간 특화 분석 — 감지가 필요 없다는 게 실제로 통했는가</h2>
+    <p class="lede">COVID 위기 구간(2020-02-19~2020-04-30, SPY 약 -34%)은 작업38이 세 가지 추세
+      메커니즘 전부의 실패를 확인한 정확히 그 구간이다. 옵션 헤지는 이 구간에서 유일하게
+      "감지"가 필요 없는 방어선이었다 — 2월 초 이미 매수해 둔 3월 만기 풋이 급락을 그대로 맞았다.</p>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>구성</th><th>CAGR</th><th>MDD</th><th>Sharpe</th><th>Calmar</th></tr></thead>
+        <tbody>{covid_focus_table(MAIN)}</tbody>
+      </table>
+    </div>
+    <div class="callout good">
+      <div class="callout-title">칼라가 COVID에서 코어단독과 세 추세 메커니즘을 전부 이겼다</div>
+      <p>무헤지 새틀라이트는 COVID에서 Sharpe {fnum(COVID_MAIN['unhedged_satellite']['sharpe'],2,signed=True)}로
+        무너졌고, 작업38의 최선 트렌드 메커니즘(하이브리드 스위치)조차
+        {fnum(COVID_MAIN['trend_hybrid_switch']['sharpe'],2,signed=True)}에 머물러 코어단독
+        {fnum(COVID_MAIN['core_alone']['sharpe'],2,signed=True)}보다 나빴다(작업38의 "COVID는 무대응보다
+        나쁜 상태로 남았다"는 결론 그대로). 반면 합성 칼라는 Sharpe
+        {fnum(COVID_MAIN['collar']['sharpe'],2,signed=True)}로 코어단독과 하이브리드 둘 다를 이겼고,
+        프로텍티브풋 단독도 {fnum(COVID_MAIN['protective_put']['sharpe'],2,signed=True)}로 무헤지·하이브리드
+        보다 뚜렷이 낫다. 메커니즘은 명확하다 — 2월 초에 매수한 3월 만기 풋/칼라는 "위기가 본격화됐다"는
+        판단을 전혀 필요로 하지 않고 계약대로 페이오프를 지급했을 뿐이다. 칼라가 순수 풋보다도 나은
+        이유는 이 구간 자체가 콜이 손실을 낼 만큼 강하게 반등하지 않았기 때문에, 콜 매도 프리미엄
+        수취분이 거의 순이익으로 남았기 때문이다.</p>
+    </div>
+  </section>
+
+  <section class="section" id="synthesis">
+    <h2><span class="sec-no">04</span> 종합 — 실전에서 쓸 만한가</h2>
+    <p class="lede">6개 창 전체를 보면 옵션 헤지는 "COVID는 확실히 개선, 다른 위기는 대체로 소폭
+      개선, 평시는 꾸준히 손해"라는 일관된 패턴을 보인다. 2008 GFC 위기창에서도 칼라(Sharpe
+      {fnum(MAIN['episodes']['gfc_2008']['table_crisis_window']['collar']['sharpe'],2,signed=True)})는
+      하이브리드({fnum(MAIN['episodes']['gfc_2008']['table_crisis_window']['trend_hybrid_switch']['sharpe'],2,signed=True)})에는
+      못 미치지만 무헤지({fnum(MAIN['episodes']['gfc_2008']['table_crisis_window']['unhedged_satellite']['sharpe'],2,signed=True)})는
+      크게 이긴다. 2015-16/2018처럼 "위기로 번지지 않은 조정" 구간에서도 옵션은 하이브리드만큼은
+      아니어도 무헤지보다 소폭 낫다 — 트렌드 스위치가 이런 얕은 조정에서 휘프쏘를 만드는 것과 달리,
+      옵션은 만기까지 그냥 들고 있다가 페이오프가 없으면 프리미엄만 잃고 끝나는 구조라 "잘못된 신호로
+      전체 새틀라이트를 꺼버리는" 실수 자체가 구조적으로 없다.</p>
+
+    <h3>모네니스 민감도 체크 — 더 싼 헤지(5%OTM 풋)는 얼마나 덜 보호하는가</h3>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>구성</th><th>COVID 풋 Sharpe</th><th>COVID 칼라 Sharpe</th></tr></thead>
+        <tbody>
+          {sensitivity_covid_row("ATM 풋(메인)", MAIN)}
+          {sensitivity_covid_row("5%OTM 풋(민감도)", OTM5)}
+        </tbody>
+      </table>
+    </div>
+    <div class="table-wrap" style="margin-top:14px;">
+      <table class="data-table">
+        <thead><tr><th>구성</th><th>전체기간 풋 CAGR</th><th>전체기간 칼라 CAGR</th></tr></thead>
+        <tbody>
+          {sensitivity_full_row("ATM 풋(메인)", MAIN)}
+          {sensitivity_full_row("5%OTM 풋(민감도)", OTM5)}
+        </tbody>
+      </table>
+    </div>
+    <p>예상대로 모네니스는 정직한 트레이드오프다 — 5%OTM으로 행사가를 낮추면(더 싼 보험) 전체기간
+      드래그는 줄지만(풋 CAGR {fnum(OTM5['episodes']['full_2019_2026']['table_full_period']['protective_put']['cagr'],2)}%로
+      ATM {fnum(FULL_MAIN['protective_put']['cagr'],2)}%보다 나은 회복), COVID 방어력도 함께
+      떨어진다(풋 Sharpe {fnum(OTM5['episodes']['covid_2020']['table_crisis_window']['protective_put']['sharpe'],2,signed=True)}로
+      ATM {fnum(COVID_MAIN['protective_put']['sharpe'],2,signed=True)}보다 악화, 칼라도
+      {fnum(OTM5['episodes']['covid_2020']['table_crisis_window']['collar']['sharpe'],2,signed=True)}로
+      ATM {fnum(COVID_MAIN['collar']['sharpe'],2,signed=True)}보다 약해져 코어단독
+      {fnum(COVID_MAIN['core_alone']['sharpe'],2,signed=True)}을 거의 이기지 못한다). "얼마나 깊게
+      방어할지"는 공짜로 정해지지 않는다 — 방어를 깊게 할수록(ATM에 가까울수록) 비용도, 효과도 커진다.</p>
+
+    <h3>최종 판정</h3>
+    <div class="callout">
+      <div class="callout-title">정직한 결론: 옵션은 COVID형 급락을 트렌드 신호보다 확실히 잘 막지만, "공짜 점심"은 아니다</div>
+      <p>이 라운드의 핵심 질문 — "감지가 필요 없는 도구가 트렌드 신호의 구조적 약점(COVID형
+        급락에 느림)을 실제로 고치는가" — 에 대한 답은 <b>예, 부분적으로</b>다. 합성 칼라는 COVID
+        구간에서 무대응(코어단독)과 세 가지 트렌드 메커니즘을 전부 이겼고, 이건 옵션이 "감지"가
+        아니라 "사전 계약"으로 작동한다는 이론적 이유가 실제로 확인된 결과다. 동시에 전체기간
+        드래그(칼라 CAGR -{fnum(FULL_MAIN['unhedged_satellite']['cagr']-FULL_MAIN['collar']['cagr'],2)}%p,
+        풋은 -{fnum(FULL_MAIN['unhedged_satellite']['cagr']-FULL_MAIN['protective_put']['cagr'],2)}%p)는
+        결코 무시할 크기가 아니다 — CBOE PPUT 지수의 장기 실증 성과(연 6.6%, Sharpe 0.55 vs S&amp;P500
+        9.8%/0.66)와 방향이 정확히 일치한다. 실전에서 쓸 만한지는 "위기 대비를 얼마나 중요하게
+        여기는가"에 달린 가치판단의 문제이지, 이 백테스트가 "명백히 이득"이라고 선언할 수 있는
+        문제가 아니다. 다만 칼라가 순수 풋보다 일관되게 나은 위험조정수익을 보였다는 점(6개 창 중
+        5개에서 칼라 Sharpe &gt; 풋 Sharpe)은 실전 채택 시 순수 풋보다 칼라 쪽이 더 합리적인
+        출발점이라는 걸 시사한다.</p>
+    </div>
+  </section>
+
+  <section class="section" id="limitations">
+    <h2><span class="sec-no">05</span> 한계</h2>
+    <ul>
+      <li><b>합성 가격결정의 근본적 한계</b>: 실제 상장 SPY/SPX 옵션은 변동성 스마일/스큐(OTM 풋이
+        ATM보다 상대적으로 비싼 "fear skew"), 만기별 텀 구조, 매수-매도 호가 스프레드, 조기행사
+        가능성(미국식 옵션 특유의 배당 관련 조기행사 - 이 경우 SPY 자체는 유러피언 스타일 SPX 옵션이
+        더 흔히 쓰이므로 큰 문제는 아니지만) 등을 갖는데, 이 모형은 전부 무시한다. 특히 스큐를
+        무시하면 실제로는 이 백테스트가 계산한 것보다 OTM 풋이 더 비싸다 — 즉 이 리포트의 드래그
+        추정치는 오히려 낙관적(보수적이지 않은) 쪽으로 편향돼 있을 가능성이 크다.</li>
+      <li><b>일일 마크투마켓 미추적</b>: 프리미엄/페이오프를 롤/만기 시점에만 하루짜리 수익률로
+        인식하고 옵션의 델타/감마에 따른 일일 가치 변동은 추적하지 않는다 - 실제 포지션이라면
+        위기 중간에 델타가 커지며 포트폴리오 변동성 궤적이 이 백테스트보다 더 매끄러울 수 있다
+        (단, 최종 P&amp;L 경제성 자체는 만기까지 들고 가는 정책이라면 동일하다).</li>
+      <li><b>VIX=내재변동성 대리치의 한계</b>: VIX는 SPX 옵션의 30일 내재변동성 지수이지 개별
+        옵션(만기 21거래일, 특정 행사가)의 정확한 내재변동성이 아니다 - 근사치로 충분히 합리적이지만
+        정밀하지는 않다.</li>
+      <li><b>SPY 프록시 헤지의 상관관계 위험</b>: 새틀라이트가 SPY와 항상 높은 상관관계로 급락한다는
+        보장은 없다 - 이번 COVID/2008처럼 시장 전체가 무너지는 위기에서는 유효했지만, 새틀라이트만
+        개별적으로 무너지는(시장은 멀쩡한) 상황에서는 SPY 풋이 전혀 방어하지 못한다(작업22
+        satellite_specific_crisis_signal 연구가 다룬 케이스와 유사한 갭).</li>
+      <li><b>거래비용 미반영</b>: 옵션 자체의 매매수수료/슬리피지는 반영하지 않았다(기초자산인
+        코어/새틀라이트의 거래비용은 기존 관례대로 반영됨) - 월간 롤링이라 수수료 누적 효과가
+        작지 않을 수 있다.</li>
+      <li><b>6개 창 = 5번의 역사적 위기 실현치</b>일 뿐, 표본오차 감사(H33/H34/H35식 블록부트스트랩)를
+        이번 라운드에서 적용하지 않았다 - 특히 COVID(약 51거래일)처럼 표본이 짧은 창의 결론은 다음
+        라운드가 감사할 만한 숙제로 남긴다.</li>
+    </ul>
+  </section>
+
+</div>
+
+<footer>
+  <p>QUANT RESEARCH · 신규 트랙(합성 옵션 테일 리스크 헤지) · 기준일 {esc(GEN)} · 이 문서는 투자
+    조언이 아니며 저자 개인의 연구 기록입니다.</p>
+</footer>
+"""
+
+with open(f"{OUT_DIR}/final_report.html", "w", encoding="utf-8") as f:
+    f.write(HTML)
+print("[build_report] saved final_report.html")

@@ -1,0 +1,13 @@
+홀드아웃 구간: 2013-01-02 ~ 2014-12-30, 502거래일
+/workspaces/Quant/analysis/kostolany_market_report_2026-08-12/multi_regime_multi_strategy.py:63: FutureWarning: The behavior of DataFrame.idxmax with all-NA values, or any-NA and skipna=False, is deprecated. In a future version this will raise ValueError
+  leader = z_scores.idxmax(axis=1)
+[baseline: 확정 시스템(섹터ETF만)]: {'cumulative_return': 43.72, 'cagr': 19.99, 'mdd': -5.8, 'sharpe': 1.71, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 3.44, 'avg_drawdown_days': 9.6}
+/workspaces/Quant/analysis/kostolany_market_report_2026-08-12/multi_regime_multi_strategy.py:63: FutureWarning: The behavior of DataFrame.idxmax with all-NA values, or any-NA and skipna=False, is deprecated. In a future version this will raise ValueError
+  leader = z_scores.idxmax(axis=1)
+/workspaces/Quant/analysis/kostolany_market_report_2026-08-12/hypothesis_defensive_assets_bear.py:38: FutureWarning: DataFrame.fillna with 'method' is deprecated and will raise in a future version. Use obj.ffill() or obj.bfill() instead.
+  rp_extended = rp_extended.reindex(etf_df.index).fillna(method="ffill").fillna(method="bfill")
+[v3 통합: 쏠림틸트+약세장 방어자산]: {'cumulative_return': 43.73, 'cagr': 19.99, 'mdd': -5.8, 'sharpe': 1.71, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 3.44, 'avg_drawdown_days': 9.6}
+약세장 거래일수: 0 / 총 502일
+S&P500: {'cumulative_return': 42.95, 'cagr': 19.7, 'mdd': -7.4, 'sharpe': 1.68, 'win_rate': 100.0, 'avg_holding_days': 726.0, 'trade_count': 1, 'profit_factor': 999.0, 'calmar': 2.66, 'avg_drawdown_days': 9.1}
+
+DONE

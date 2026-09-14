@@ -1,0 +1,1490 @@
+{
+  "half_year_records": [
+    {
+      "year": 1950,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1950-05~1950-10",
+      "return_pct": 8.742
+    },
+    {
+      "year": 1950,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1950-11~1951-04",
+      "return_pct": 14.849
+    },
+    {
+      "year": 1951,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1951-05~1951-10",
+      "return_pct": 2.274
+    },
+    {
+      "year": 1951,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1951-11~1952-04",
+      "return_pct": 1.656
+    },
+    {
+      "year": 1952,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1952-05~1952-10",
+      "return_pct": 5.146
+    },
+    {
+      "year": 1952,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1952-11~1953-04",
+      "return_pct": 0.408
+    },
+    {
+      "year": 1953,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1953-05~1953-10",
+      "return_pct": -0.325
+    },
+    {
+      "year": 1953,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1953-11~1954-04",
+      "return_pct": 15.159
+    },
+    {
+      "year": 1954,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1954-05~1954-10",
+      "return_pct": 12.102
+    },
+    {
+      "year": 1954,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1954-11~1955-04",
+      "return_pct": 19.823
+    },
+    {
+      "year": 1955,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1955-05~1955-10",
+      "return_pct": 11.538
+    },
+    {
+      "year": 1955,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1955-11~1956-04",
+      "return_pct": 14.265
+    },
+    {
+      "year": 1956,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1956-05~1956-10",
+      "return_pct": -5.788
+    },
+    {
+      "year": 1956,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1956-11~1957-04",
+      "return_pct": 0.351
+    },
+    {
+      "year": 1957,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1957-05~1957-10",
+      "return_pct": -10.232
+    },
+    {
+      "year": 1957,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1957-11~1958-04",
+      "return_pct": 5.796
+    },
+    {
+      "year": 1958,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1958-05~1958-10",
+      "return_pct": 18.163
+    },
+    {
+      "year": 1958,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1958-11~1959-04",
+      "return_pct": 12.196
+    },
+    {
+      "year": 1959,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1959-05~1959-10",
+      "return_pct": -0.122
+    },
+    {
+      "year": 1959,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1959-11~1960-04",
+      "return_pct": -5.476
+    },
+    {
+      "year": 1960,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1960-05~1960-10",
+      "return_pct": -1.802
+    },
+    {
+      "year": 1960,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1960-11~1961-04",
+      "return_pct": 22.326
+    },
+    {
+      "year": 1961,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1961-05~1961-10",
+      "return_pct": 5.068
+    },
+    {
+      "year": 1961,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1961-11~1962-04",
+      "return_pct": -4.926
+    },
+    {
+      "year": 1962,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1962-05~1962-10",
+      "return_pct": -13.366
+    },
+    {
+      "year": 1962,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1962-11~1963-04",
+      "return_pct": 23.496
+    },
+    {
+      "year": 1963,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1963-05~1963-10",
+      "return_pct": 6.032
+    },
+    {
+      "year": 1963,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1963-11~1964-04",
+      "return_pct": 7.364
+    },
+    {
+      "year": 1964,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1964-05~1964-10",
+      "return_pct": 6.796
+    },
+    {
+      "year": 1964,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1964-11~1965-04",
+      "return_pct": 5.008
+    },
+    {
+      "year": 1965,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1965-05~1965-10",
+      "return_pct": 3.715
+    },
+    {
+      "year": 1965,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1965-11~1966-04",
+      "return_pct": -1.472
+    },
+    {
+      "year": 1966,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1966-05~1966-10",
+      "return_pct": -11.926
+    },
+    {
+      "year": 1966,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1966-11~1967-04",
+      "return_pct": 17.219
+    },
+    {
+      "year": 1967,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1967-05~1967-10",
+      "return_pct": -0.755
+    },
+    {
+      "year": 1967,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1967-11~1968-04",
+      "return_pct": 4.459
+    },
+    {
+      "year": 1968,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1968-05~1968-10",
+      "return_pct": 6.105
+    },
+    {
+      "year": 1968,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1968-11~1969-04",
+      "return_pct": 0.271
+    },
+    {
+      "year": 1969,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1969-05~1969-10",
+      "return_pct": -6.336
+    },
+    {
+      "year": 1969,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1969-11~1970-04",
+      "return_pct": -16.063
+    },
+    {
+      "year": 1970,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1970-05~1970-10",
+      "return_pct": 2.122
+    },
+    {
+      "year": 1970,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1970-11~1971-04",
+      "return_pct": 24.865
+    },
+    {
+      "year": 1971,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1971-05~1971-10",
+      "return_pct": -9.351
+    },
+    {
+      "year": 1971,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1971-11~1972-04",
+      "return_pct": 14.263
+    },
+    {
+      "year": 1972,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1972-05~1972-10",
+      "return_pct": 3.631
+    },
+    {
+      "year": 1972,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1972-11~1973-04",
+      "return_pct": -4.132
+    },
+    {
+      "year": 1973,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1973-05~1973-10",
+      "return_pct": 1.234
+    },
+    {
+      "year": 1973,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1973-11~1974-04",
+      "return_pct": -16.604
+    },
+    {
+      "year": 1974,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1974-05~1974-10",
+      "return_pct": -18.171
+    },
+    {
+      "year": 1974,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1974-11~1975-04",
+      "return_pct": 18.133
+    },
+    {
+      "year": 1975,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1975-05~1975-10",
+      "return_pct": 1.993
+    },
+    {
+      "year": 1975,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1975-11~1976-04",
+      "return_pct": 14.151
+    },
+    {
+      "year": 1976,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1976-05~1976-10",
+      "return_pct": 1.24
+    },
+    {
+      "year": 1976,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1976-11~1977-04",
+      "return_pct": -4.334
+    },
+    {
+      "year": 1977,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1977-05~1977-10",
+      "return_pct": -6.197
+    },
+    {
+      "year": 1977,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1977-11~1978-04",
+      "return_pct": 4.862
+    },
+    {
+      "year": 1978,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1978-05~1978-10",
+      "return_pct": -3.8
+    },
+    {
+      "year": 1978,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1978-11~1979-04",
+      "return_pct": 9.243
+    },
+    {
+      "year": 1979,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1979-05~1979-10",
+      "return_pct": 0.059
+    },
+    {
+      "year": 1979,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1979-11~1980-04",
+      "return_pct": 4.39
+    },
+    {
+      "year": 1980,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1980-05~1980-10",
+      "return_pct": 19.927
+    },
+    {
+      "year": 1980,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1980-11~1981-04",
+      "return_pct": 4.189
+    },
+    {
+      "year": 1981,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1981-05~1981-10",
+      "return_pct": -8.222
+    },
+    {
+      "year": 1981,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1981-11~1982-04",
+      "return_pct": -4.471
+    },
+    {
+      "year": 1982,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1982-05~1982-10",
+      "return_pct": 14.84
+    },
+    {
+      "year": 1982,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1982-11~1983-04",
+      "return_pct": 22.966
+    },
+    {
+      "year": 1983,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1983-05~1983-10",
+      "return_pct": -0.535
+    },
+    {
+      "year": 1983,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1983-11~1984-04",
+      "return_pct": -2.14
+    },
+    {
+      "year": 1984,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1984-05~1984-10",
+      "return_pct": 3.774
+    },
+    {
+      "year": 1984,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1984-11~1985-04",
+      "return_pct": 8.273
+    },
+    {
+      "year": 1985,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1985-05~1985-10",
+      "return_pct": 5.555
+    },
+    {
+      "year": 1985,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1985-11~1986-04",
+      "return_pct": 24.075
+    },
+    {
+      "year": 1986,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1986-05~1986-10",
+      "return_pct": 3.592
+    },
+    {
+      "year": 1986,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1986-11~1987-04",
+      "return_pct": 18.19
+    },
+    {
+      "year": 1987,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1987-05~1987-10",
+      "return_pct": -12.682
+    },
+    {
+      "year": 1987,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1987-11~1988-04",
+      "return_pct": 3.789
+    },
+    {
+      "year": 1988,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1988-05~1988-10",
+      "return_pct": 6.75
+    },
+    {
+      "year": 1988,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1988-11~1989-04",
+      "return_pct": 10.994
+    },
+    {
+      "year": 1989,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1989-05~1989-10",
+      "return_pct": 9.921
+    },
+    {
+      "year": 1989,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1989-11~1990-04",
+      "return_pct": -2.809
+    },
+    {
+      "year": 1990,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1990-05~1990-10",
+      "return_pct": -8.102
+    },
+    {
+      "year": 1990,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1990-11~1991-04",
+      "return_pct": 23.467
+    },
+    {
+      "year": 1991,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1991-05~1991-10",
+      "return_pct": 4.559
+    },
+    {
+      "year": 1991,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1991-11~1992-04",
+      "return_pct": 5.733
+    },
+    {
+      "year": 1992,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1992-05~1992-10",
+      "return_pct": 0.899
+    },
+    {
+      "year": 1992,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1992-11~1993-04",
+      "return_pct": 5.138
+    },
+    {
+      "year": 1993,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1993-05~1993-10",
+      "return_pct": 6.279
+    },
+    {
+      "year": 1993,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1993-11~1994-04",
+      "return_pct": -3.617
+    },
+    {
+      "year": 1994,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1994-05~1994-10",
+      "return_pct": 4.755
+    },
+    {
+      "year": 1994,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1994-11~1995-04",
+      "return_pct": 8.968
+    },
+    {
+      "year": 1995,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1995-05~1995-10",
+      "return_pct": 12.976
+    },
+    {
+      "year": 1995,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1995-11~1996-04",
+      "return_pct": 12.497
+    },
+    {
+      "year": 1996,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1996-05~1996-10",
+      "return_pct": 7.811
+    },
+    {
+      "year": 1996,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1996-11~1997-04",
+      "return_pct": 13.622
+    },
+    {
+      "year": 1997,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1997-05~1997-10",
+      "return_pct": 14.136
+    },
+    {
+      "year": 1997,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1997-11~1998-04",
+      "return_pct": 21.553
+    },
+    {
+      "year": 1998,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1998-05~1998-10",
+      "return_pct": -1.177
+    },
+    {
+      "year": 1998,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1998-11~1999-04",
+      "return_pct": 21.527
+    },
+    {
+      "year": 1999,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "1999-05~1999-10",
+      "return_pct": 2.078
+    },
+    {
+      "year": 1999,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "1999-11~2000-04",
+      "return_pct": 6.567
+    },
+    {
+      "year": 2000,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "2000-05~2000-10",
+      "return_pct": -1.586
+    },
+    {
+      "year": 2000,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "2000-11~2001-04",
+      "return_pct": -12.589
+    },
+    {
+      "year": 2001,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "2001-05~2001-10",
+      "return_pct": -15.181
+    },
+    {
+      "year": 2001,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "2001-11~2002-04",
+      "return_pct": 1.617
+    },
+    {
+      "year": 2002,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "2002-05~2002-10",
+      "return_pct": -17.751
+    },
+    {
+      "year": 2002,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "2002-11~2003-04",
+      "return_pct": 3.518
+    },
+    {
+      "year": 2003,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "2003-05~2003-10",
+      "return_pct": 14.591
+    },
+    {
+      "year": 2003,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "2003-11~2004-04",
+      "return_pct": 5.386
+    },
+    {
+      "year": 2004,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "2004-05~2004-10",
+      "return_pct": 2.068
+    },
+    {
+      "year": 2004,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "2004-11~2005-04",
+      "return_pct": 2.358
+    },
+    {
+      "year": 2005,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "2005-05~2005-10",
+      "return_pct": 4.336
+    },
+    {
+      "year": 2005,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "2005-11~2006-04",
+      "return_pct": 8.583
+    },
+    {
+      "year": 2006,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "2006-05~2006-10",
+      "return_pct": 5.137
+    },
+    {
+      "year": 2006,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "2006-11~2007-04",
+      "return_pct": 7.579
+    },
+    {
+      "year": 2007,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "2007-05~2007-10",
+      "return_pct": 4.52
+    },
+    {
+      "year": 2007,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "2007-11~2008-04",
+      "return_pct": -10.571
+    },
+    {
+      "year": 2008,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "2008-05~2008-10",
+      "return_pct": -30.084
+    },
+    {
+      "year": 2008,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "2008-11~2009-04",
+      "return_pct": -9.903
+    },
+    {
+      "year": 2009,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "2009-05~2009-10",
+      "return_pct": 18.719
+    },
+    {
+      "year": 2009,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "2009-11~2010-04",
+      "return_pct": 14.524
+    },
+    {
+      "year": 2010,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "2010-05~2010-10",
+      "return_pct": -0.289
+    },
+    {
+      "year": 2010,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "2010-11~2011-04",
+      "return_pct": 15.242
+    },
+    {
+      "year": 2011,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "2011-05~2011-10",
+      "return_pct": -8.09
+    },
+    {
+      "year": 2011,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "2011-11~2012-04",
+      "return_pct": 11.538
+    },
+    {
+      "year": 2012,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "2012-05~2012-10",
+      "return_pct": 1.019
+    },
+    {
+      "year": 2012,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "2012-11~2013-04",
+      "return_pct": 13.13
+    },
+    {
+      "year": 2013,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "2013-05~2013-10",
+      "return_pct": 9.951
+    },
+    {
+      "year": 2013,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "2013-11~2014-04",
+      "return_pct": 7.253
+    },
+    {
+      "year": 2014,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "2014-05~2014-10",
+      "return_pct": 7.118
+    },
+    {
+      "year": 2014,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "2014-11~2015-04",
+      "return_pct": 3.343
+    },
+    {
+      "year": 2015,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "2015-05~2015-10",
+      "return_pct": -0.295
+    },
+    {
+      "year": 2015,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "2015-11~2016-04",
+      "return_pct": -0.676
+    },
+    {
+      "year": 2016,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "2016-05~2016-10",
+      "return_pct": 2.946
+    },
+    {
+      "year": 2016,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "2016-11~2017-04",
+      "return_pct": 12.137
+    },
+    {
+      "year": 2017,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "2017-05~2017-10",
+      "return_pct": 8.014
+    },
+    {
+      "year": 2017,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "2017-11~2018-04",
+      "return_pct": 2.827
+    },
+    {
+      "year": 2018,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "2018-05~2018-10",
+      "return_pct": 2.405
+    },
+    {
+      "year": 2018,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "2018-11~2019-04",
+      "return_pct": 8.632
+    },
+    {
+      "year": 2019,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "2019-05~2019-10",
+      "return_pct": 3.114
+    },
+    {
+      "year": 2019,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "2019-11~2020-04",
+      "return_pct": -4.119
+    },
+    {
+      "year": 2020,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "2020-05~2020-10",
+      "return_pct": 12.276
+    },
+    {
+      "year": 2020,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "2020-11~2021-04",
+      "return_pct": 27.866
+    },
+    {
+      "year": 2021,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "2021-05~2021-10",
+      "return_pct": 10.146
+    },
+    {
+      "year": 2021,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "2021-11~2022-04",
+      "return_pct": -10.28
+    },
+    {
+      "year": 2022,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "2022-05~2022-10",
+      "return_pct": -6.291
+    },
+    {
+      "year": 2022,
+      "cycle_year": 2,
+      "cycle_label": "2년차(중간선거)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "2022-11~2023-04",
+      "return_pct": 7.683
+    },
+    {
+      "year": 2023,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "2023-05~2023-10",
+      "return_pct": 0.583
+    },
+    {
+      "year": 2023,
+      "cycle_year": 3,
+      "cycle_label": "3년차(대선전해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "2023-11~2024-04",
+      "return_pct": 20.075
+    },
+    {
+      "year": 2024,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "2024-05~2024-10",
+      "return_pct": 13.3
+    },
+    {
+      "year": 2024,
+      "cycle_year": 0,
+      "cycle_label": "4년차(대선해)",
+      "half": "favorable",
+      "half_label": "11~4월",
+      "period": "2024-11~2025-04",
+      "return_pct": -2.391
+    },
+    {
+      "year": 2025,
+      "cycle_year": 1,
+      "cycle_label": "1년차(집권원년)",
+      "half": "unfavorable",
+      "half_label": "5~10월",
+      "period": "2025-05~2025-10",
+      "return_pct": 22.825
+    }
+  ],
+  "cross_tab": {
+    "1": {
+      "11~4월": {
+        "n": 18,
+        "mean_pct": 2.556,
+        "win_rate_pct": 55.6,
+        "worst_pct": -16.6,
+        "best_pct": 24.07,
+        "small_sample": false
+      },
+      "5~10월": {
+        "n": 19,
+        "mean_pct": 3.863,
+        "win_rate_pct": 68.4,
+        "worst_pct": -15.18,
+        "best_pct": 22.82,
+        "small_sample": false
+      }
+    },
+    "2": {
+      "11~4월": {
+        "n": 19,
+        "mean_pct": 14.786,
+        "win_rate_pct": 100.0,
+        "worst_pct": 3.34,
+        "best_pct": 24.86,
+        "small_sample": false
+      },
+      "5~10월": {
+        "n": 19,
+        "mean_pct": -0.1,
+        "win_rate_pct": 52.6,
+        "worst_pct": -18.17,
+        "best_pct": 18.16,
+        "small_sample": false
+      }
+    },
+    "3": {
+      "11~4월": {
+        "n": 19,
+        "mean_pct": 5.429,
+        "win_rate_pct": 73.7,
+        "worst_pct": -10.57,
+        "best_pct": 20.07,
+        "small_sample": false
+      },
+      "5~10월": {
+        "n": 19,
+        "mean_pct": 1.71,
+        "win_rate_pct": 63.2,
+        "worst_pct": -12.68,
+        "best_pct": 14.59,
+        "small_sample": false
+      }
+    },
+    "0": {
+      "11~4월": {
+        "n": 19,
+        "mean_pct": 4.88,
+        "win_rate_pct": 73.7,
+        "worst_pct": -12.59,
+        "best_pct": 27.87,
+        "small_sample": false
+      },
+      "5~10월": {
+        "n": 19,
+        "mean_pct": 2.865,
+        "win_rate_pct": 78.9,
+        "worst_pct": -30.08,
+        "best_pct": 19.93,
+        "small_sample": false
+      }
+    }
+  },
+  "annual_summary_by_cycle_year": {
+    "1": {
+      "n": 19,
+      "mean_pct": 8.35,
+      "win_rate_pct": 63.2,
+      "worst_pct": -17.37,
+      "best_pct": 31.01,
+      "small_sample": false
+    },
+    "2": {
+      "n": 18,
+      "mean_pct": 3.685,
+      "win_rate_pct": 55.6,
+      "worst_pct": -29.72,
+      "best_pct": 45.02,
+      "small_sample": false
+    },
+    "3": {
+      "n": 19,
+      "mean_pct": 17.178,
+      "win_rate_pct": 89.5,
+      "worst_pct": -0.73,
+      "best_pct": 34.11,
+      "small_sample": false
+    },
+    "0": {
+      "n": 19,
+      "mean_pct": 8.106,
+      "win_rate_pct": 84.2,
+      "worst_pct": -38.49,
+      "best_pct": 25.77,
+      "small_sample": false
+    }
+  },
+  "half_summary_overall": {
+    "11~4월": {
+      "n": 75,
+      "mean_pct": 6.971,
+      "win_rate_pct": 76.0,
+      "worst_pct": -16.6,
+      "best_pct": 27.87,
+      "small_sample": false
+    },
+    "5~10월": {
+      "n": 76,
+      "mean_pct": 2.085,
+      "win_rate_pct": 65.8,
+      "worst_pct": -30.08,
+      "best_pct": 22.82,
+      "small_sample": false
+    }
+  },
+  "h1_verdict": "DISCONFIRMED"
+}

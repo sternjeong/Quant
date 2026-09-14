@@ -1,0 +1,434 @@
+<title>증시의 달력 효과 세 가지</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #eef1ee; --surface: #ffffff; --surface-2: #e6eae5;
+    --ink: #17211d; --ink-muted: #57635c; --ink-faint: #8b968f; --line: #d9dfd8;
+    --hike: #a8461f; --hike-soft: #f4e3da; --cut: #1f6e79; --cut-soft: #dcedee; --gold: #8a6d1f;
+    --shadow: 0 1px 2px rgba(23,33,29,.06), 0 8px 24px -12px rgba(23,33,29,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+      --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+      --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+      --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+    --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+    --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+    --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Public Sans", -apple-system, "Noto Sans KR", sans-serif;
+    font-size: 16px; line-height: 1.65;
+  }
+  ::selection { background: var(--gold); color: #1a1408; }
+  a { color: var(--cut); }
+  .page { max-width: 880px; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 1rem;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 500;
+    font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.08; letter-spacing: -.01em;
+    margin: 0 0 1rem; text-wrap: balance;
+  }
+  .dek { font-size: 1.15rem; color: var(--ink-muted); max-width: 62ch; margin: 0 0 1.75rem; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: .4rem 1.6rem;
+    font-family: "IBM Plex Mono", monospace; font-size: .82rem; color: var(--ink-muted);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: .85rem 0;
+  }
+  .meta-row b { color: var(--ink); font-weight: 600; }
+  section { margin: 3.2rem 0; }
+  section > h2 {
+    font-family: "Fraunces", serif; font-weight: 500; font-size: 1.6rem;
+    letter-spacing: -.005em; margin: 0 0 .3rem; text-wrap: balance;
+  }
+  section > .lede { color: var(--ink-muted); max-width: 66ch; margin: 0 0 1.4rem; }
+  p { max-width: 68ch; }
+  .note {
+    background: var(--surface-2); border-left: 3px solid var(--gold); border-radius: 4px;
+    padding: .9rem 1.1rem; font-size: .93rem; color: var(--ink-muted); max-width: 68ch; margin: 1.1rem 0;
+  }
+  .note b { color: var(--ink); }
+  .callout {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.2rem 1.4rem; box-shadow: var(--shadow); margin: 1.4rem 0;
+  }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .9rem; margin: 1.3rem 0 1.6rem; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.1rem; }
+  .tile .label { font-size: .78rem; color: var(--ink-muted); margin-bottom: .35rem; }
+  .tile .value { font-family: "IBM Plex Mono", monospace; font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tile .value.hike { color: var(--hike); }
+  .tile .value.cut { color: var(--cut); }
+  .tile .sub { font-size: .76rem; color: var(--ink-faint); margin-top: .25rem; }
+
+  .chart-card {
+    margin: 1.6rem 0 2rem; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 10px; padding: 1.4rem 1.4rem 1.1rem; box-shadow: var(--shadow);
+  }
+  .chart-card h3 { font-family: "Fraunces", serif; font-weight: 500; font-size: 1.05rem; margin: 0 0 .2rem; }
+  .chart-card .sub { color: var(--ink-muted); font-size: .85rem; margin: 0 0 1rem; }
+  .chart-wrap { overflow-x: auto; }
+  #month-chart { width: 100%; height: 260px; display: block; }
+
+  .table-wrap { overflow-x: auto; margin: 1.2rem 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 480px; font-size: .92rem; }
+  caption { text-align: left; font-size: .82rem; color: var(--ink-faint); padding-bottom: .5rem; }
+  th, td { padding: .62rem .8rem; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; font-family: "IBM Plex Mono", monospace; }
+  th:first-child, td:first-child { text-align: left; font-family: "Public Sans", sans-serif; }
+  thead th { font-family: "Public Sans", sans-serif; font-weight: 600; font-size: .78rem; letter-spacing: .02em; color: var(--ink-muted); text-transform: uppercase; border-bottom: 1px solid var(--ink-faint); }
+  tr.row-fav td:first-child { border-left: 3px solid var(--cut); padding-left: .65rem; }
+  tr.row-unfav td:first-child { border-left: 3px solid var(--hike); padding-left: .65rem; }
+  tbody tr:hover { background: var(--surface-2); }
+
+  ul.findings { padding-left: 1.2rem; max-width: 68ch; }
+  ul.findings li { margin-bottom: .9rem; }
+  ul.findings b { color: var(--ink); }
+  .footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--line); font-size: .82rem; color: var(--ink-faint); }
+</style>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">MACRO EVENT STUDY · 계절성 · 1950&ndash;2026 · S&amp;P500</div>
+    <h1>증시에 진짜로 있는(그리고 사라진) 달력 효과들</h1>
+    <p class="dek">지금까지 이 프로젝트가 검증한 유명한 "신호"들(금리역전·샴의 법칙 등)은 대부분
+    통념보다 훨씬 헷갈리거나 타이밍이 어긋났다. 순수 달력 효과 세 가지를 검증해보니 이야기가
+    갈린다 — "5월에 팔고 떠나라"는 계절성과 "대선 3년차가 가장 좋다"는 대통령 임기주기 효과는
+    76년 내내 놀랍도록 일관됐지만, 가장 유명한 "월요일 효과"는 과거엔 실재했다가 최근 30년
+    사이 사실상 사라졌다.</p>
+    <div class="meta-row">
+      <span>구간 <b>1950 ~ 2026</b>(76년)</span>
+      <span>계절성 6개월쌍 <b>76건</b> · 임기연차 <b>75건</b> · 일별 수익률 <b>19,278건</b></span>
+      <span>데이터 <b>S&amp;P500 일별 종가</b></span>
+    </div>
+  </header>
+
+  <section>
+    <h2>① 11~4월이 5~10월보다 3배 이상 더 벌었다</h2>
+    <p class="lede">매년 두 구간(5월~10월, 11월~이듬해 4월)의 수익률을 76년치 전부 비교했다.</p>
+    <div class="tiles">
+      <div class="tile"><div class="label">5~10월(비우호적 계절)</div><div class="value hike">+2.09%</div><div class="sub">평균 · 승률 65.8% · n=76</div></div>
+      <div class="tile"><div class="label">11~4월(우호적 계절)</div><div class="value cut">+6.95%</div><div class="sub">평균 · 승률 76.3% · n=76</div></div>
+    </div>
+    <p>단순 평균 수익률로 <b>3.3배 차이</b>, 승률도 65.8% vs 76.3%로 뚜렷이 갈린다. 76년이라는
+    긴 표본, 그리고 매년 반복되는 규칙적인 패턴이라는 점에서 — 이 프로젝트가 지금까지 검증한
+    어떤 "신호"보다 일관되고 재현성이 높다.</p>
+  </section>
+
+  <section>
+    <h2>범인은 사실 9월 하나다</h2>
+    <p class="lede">"5~10월 전체가 나쁘다"는 아니다 — 월별로 쪼개보면 정확히 어디서 그 격차가
+    나오는지 보인다.</p>
+    <div class="chart-card">
+      <h3>월별 평균 수익률(%), 1950~2026</h3>
+      <p class="sub">막대 위 숫자는 승률(%) · 주황=비우호적 계절(5~10월), 청록=우호적 계절(11~4월)</p>
+      <div class="chart-wrap"><svg id="month-chart" viewBox="0 0 880 280" preserveAspectRatio="none"></svg></div>
+    </div>
+    <p><b>9월이 유일하게 마이너스 평균(&minus;0.63%)이자 유일하게 승률이 50% 밑(44.7%)인
+    달이다</b> — "9월 효과(September Effect)"라고 따로 이름 붙을 만큼 잘 알려진 계절성이 여기서도
+    그대로 확인된다. 반면 같은 "비우호적 계절"에 속한 7월은 오히려 +1.29%(승률 60%)로 괜찮은
+    편이었다 — <b>"5~10월 전체가 나쁘다"보다는 "8~9월이 특히 나쁘고 나머지는 그럭저럭"이 더
+    정확한 설명</b>이다. 반대로 가장 좋은 두 달은 11월(+1.86%, 승률70%)과 12월(+1.42%, 승률72%)
+    — 연말 랠리("산타랠리")로 알려진 계절성과도 일치한다.</p>
+  </section>
+
+  <section>
+    <h2>② 대선 3년차, 이번엔 통설이 더 강하게 맞았다</h2>
+    <p class="lede">"대통령 임기 3년차(대선 전 해)가 증시에 가장 좋다"는 통설도 검증했다.
+    대선은 항상 4로 나눠지는 해에 열려 임기 연차가 달력 연산만으로 정확히 나뉜다(날짜를 따로
+    찾을 필요가 없는, 그 자체로 검증 가능한 사실).</p>
+    <div class="chart-card">
+      <h3>임기 연차별 연간수익률(%), 1951~2025(75년, 진행 중인 2026년은 제외)</h3>
+      <p class="sub">막대 위 숫자는 승률(%)</p>
+      <div class="chart-wrap"><svg id="cycle-chart" viewBox="0 0 880 280" preserveAspectRatio="none"></svg></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <caption>임기 연차별 연간수익률(%) 요약 · n은 표본 연도 수</caption>
+        <thead><tr><th>연차</th><th>평균</th><th>승률</th><th>최저</th><th>최고</th></tr></thead>
+        <tbody>
+          <tr><td>1년차(집권원년)</td><td>+8.35</td><td>63.2% (n=19)</td><td>&minus;17.37</td><td>+31.01</td></tr>
+          <tr><td>2년차(중간선거)</td><td>+3.69</td><td>55.6% (n=18)</td><td>&minus;29.72</td><td>+45.02</td></tr>
+          <tr class="row-fav"><td>3년차(대선전해)</td><td><b>+17.18</b></td><td><b>89.5%</b> (n=19)</td><td>&minus;0.73</td><td>+34.11</td></tr>
+          <tr><td>4년차(대선해)</td><td>+8.11</td><td>84.2% (n=19)</td><td>&minus;38.49</td><td>+25.77</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><b>3년차는 다른 어떤 해보다도 2배 이상 좋았고, 심지어 거의 항상 좋았다</b> — 75년 중
+    19번의 3년차 가운데 마이너스로 끝난 해는 <b>단 1번, 2011년(&minus;0.03%, 사실상 보합)</b>
+    뿐이었다. 반대로 2년차(중간선거 해)는 가장 약했고 변동성도 가장 컸다(최저 &minus;29.72%,
+    최고 +45.02% — 널뛰기가 가장 심한 해). 흔히 거론되는 설명은 "정치적 경기순환"이론이다 —
+    집권 세력이 대선을 앞두고 경기 부양책·완화적 통화정책 압박을 강화하는 경향이 있어, 대선
+    전 해에 그 효과가 가장 뚜렷이 나타난다는 것이다(이 리포트는 그 인과관계 자체를 검증하지는
+    않았다).</p>
+  </section>
+
+  <section>
+    <h2>③ 월요일 효과 — 있었지만, 최근엔 사라졌다</h2>
+    <p class="lede">"월요일엔 수익률이 유독 나쁘다"는 계절성 중에서도 가장 유명한 통설이다.
+    이번엔 표본이 압도적으로 크다(76년치 일별 수익률 19,278건, 요일당 3,600~3,900건) — 그런데
+    결과가 앞의 두 효과와는 다르게 갈린다.</p>
+    <div class="table-wrap">
+      <table>
+        <caption>요일별 평균 일간수익률(%) — 전체 76년 vs 최근 30년</caption>
+        <thead><tr><th>요일</th><th>전체(1950~2026) 평균</th><th>승률</th><th>최근30년(1996~) 평균</th><th>승률</th></tr></thead>
+        <tbody>
+          <tr class="row-unfav"><td>월요일</td><td>&minus;0.045%</td><td>49.7%</td><td>+0.034%</td><td>54.3%</td></tr>
+          <tr><td>화요일</td><td>+0.044%</td><td>51.0%</td><td>+0.070%</td><td>52.1%</td></tr>
+          <tr class="row-fav"><td>수요일</td><td>+0.078%</td><td>55.7%</td><td>+0.046%</td><td>54.4%</td></tr>
+          <tr><td>목요일</td><td>+0.035%</td><td>53.3%</td><td>+0.019%</td><td>53.5%</td></tr>
+          <tr class="row-fav"><td>금요일</td><td>+0.066%</td><td>56.0%</td><td>+0.029%</td><td>54.7%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><b>전체 76년으로 보면 통설이 정확히 맞다</b> — 월요일만 유일하게 평균 마이너스(&minus;0.045%)
+    이자 유일하게 승률이 50% 밑(49.7%)이었다. 그런데 <b>최근 30년(1996~2026)만 떼어 보면
+    완전히 뒤집힌다</b> — 월요일은 오히려 플러스(+0.034%)로 돌아섰고 승률도 54.3%로, 5개 요일
+    중 가장 나쁜 쪽이 아니라 오히려 상위권이다. 학계에서는 이런 현상을 "이상현상의 소멸(anomaly
+    decay)"이라 부른다 — 어떤 패턴이 유명해지고 많은 사람이 그걸 이용해 매매하기 시작하면,
+    그 매매 자체가 가격에 반영되면서 패턴이 옅어지거나 사라진다는 설명이다. <b>월요일 효과는
+    "한때는 실재했지만 유명해지면서 없어진" 이상현상의 교과서적 사례로 보인다.</b></p>
+  </section>
+
+  <section>
+    <h2>④ 신뢰도 재점검 — 앞의 두 효과도 최근엔 사라졌을까?</h2>
+    <p class="lede">월요일 효과가 사라진 걸 보고 나니, "76년 평균"만 믿고 넘어갔던 앞의 두
+    효과도 다시 확인해야 했다 — 최근 30년(1996~2026)만 따로 떼어봤다.</p>
+    <div class="table-wrap">
+      <table>
+        <caption>①·② 효과, 최근 30년(1996~2026)만 재검증</caption>
+        <thead><tr><th>구분</th><th>전체 76년 평균</th><th>최근 30년 평균</th><th>최근 30년 승률</th></tr></thead>
+        <tbody>
+          <tr><td>5~10월(비우호적)</td><td>+2.09%</td><td>+2.88%</td><td>70.0% (n=30)</td></tr>
+          <tr class="row-fav"><td>11~4월(우호적)</td><td>+6.95%</td><td>+6.38%</td><td>76.7% (n=30)</td></tr>
+          <tr><td>1년차(집권원년)</td><td>+8.35%</td><td>+17.09%</td><td>87.5% (n=8)</td></tr>
+          <tr><td>2년차(중간선거)</td><td>+3.69%</td><td>+2.20%</td><td>57.1% (n=7)</td></tr>
+          <tr class="row-fav"><td>3년차(대선전해)</td><td>+17.18%</td><td>+14.55%</td><td>71.4% (n=7)</td></tr>
+          <tr><td>4년차(대선해)</td><td>+8.11%</td><td>+5.39%</td><td>75.0% (n=8)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><b>계절성은 최근에도 그대로 버틴다</b> — 격차 비율은 3.3배에서 2.2배로 약간 줄었지만
+    방향과 크기 모두 여전히 뚜렷하다. <b>대선주기는 "2년차가 가장 약하다"는 핵심은 그대로
+    유지되지만, "3년차가 항상 1등"이라는 부분은 최근엔 살짝 흔들린다</b> — 최근 30년만 보면
+    오히려 1년차(+17.09%)가 3년차(+14.55%)를 근소하게 앞섰다(단, 표본이 7~8개뿐이라 이
+    역전이 진짜 의미 있는지는 확실치 않다). 정리하면: <b>월요일 효과처럼 완전히 사라진 건
+    없지만, 대선주기의 "몇 등이 1등인가" 같은 세부 순위는 표본이 작아질수록 흔들릴 수 있다는
+    걸 확인했다</b> — "패턴이 있다"는 살아있어도 "정확히 몇 번째 해가 최고냐"는 과신하면
+    안 된다.</p>
+  </section>
+
+  <section>
+    <h2>경제학 지식 없이 읽는 법</h2>
+    <ul class="findings">
+      <li><b>이번엔 통설이 이 프로젝트 안에서 가장 잘 버텼다.</b> 다른 리포트들(금리역전, 샴의
+      법칙 등)은 "통설과 실제가 다르다"는 쪽으로 결론났는데, 계절성만큼은 76년 동안 방향이
+      꽤 일관되게 유지됐다.</li>
+      <li><b>그래도 "왜"는 명확하지 않다.</b> 여름휴가철 거래량 감소, 기관투자자의 리밸런싱
+      주기, 심리적 자기실현 등 여러 가설이 있지만 이 리포트는 "패턴이 있다"만 확인했을 뿐
+      "왜 있는가"는 검증하지 않았다.</li>
+      <li><b>격차 자체는 크지만, 5~10월도 평균은 여전히 플러스(+2.09%)다.</b> "5월에 완전히
+      현금화하라"가 아니라 "상대적으로 약한 계절"이라는 뜻 — 매도 후 재매수에 드는 세금·수수료를
+      감안하면 실제로 이 패턴을 매매 전략으로 실행했을 때 이득이 얼마나 남는지는 별도로 따져야
+      한다.</li>
+      <li><b>대선 3년차 효과는 더 극적이지만 표본은 더 작다.</b> 75년치 데이터라도 "3년차"는
+      19번뿐이다 — 계절성(연 1회 반복, 76쌍)보다 표본 크기 자체는 작다는 걸 감안해야 한다.</li>
+      <li><b>과거에 있었다고 지금도 있다는 보장은 없다.</b> 월요일 효과가 가장 좋은 반례다 —
+      "전체 76년"만 보고 판단하면 위험하다는 걸, 표본이 가장 큰 요일 효과 스터디가 가장 분명하게
+      보여줬다. 다른 두 효과(계절성·대선주기)도 최근 구간만 따로 재검증할 필요는 여전히 남아있다.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>한계</h2>
+    <div class="callout">
+      <ul class="findings" style="margin:0;">
+        <li><b>거래비용·세금 미반영.</b> 매년 두 번 전량 매도·매수하는 전략을 실제로 실행하면
+        수수료·스프레드·양도소득세가 이 격차의 상당 부분을 깎아먹을 수 있다.</li>
+        <li><b>구간을 76개로 쪼갰지만 서로 독립적인 사건이 아니다.</b> 연속된 해의 시장 상황은
+        상관관계가 있어(예: 강세장이 몇 년씩 이어짐), 진짜 "독립 표본" 76개로 보기는 어렵다 —
+        통계적 유의성을 과신하면 안 된다.</li>
+        <li><b>계절성·대선주기 효과는 최근 구간만 따로 재검증하지 않았다</b> — 요일 효과에서
+        확인했듯 "전체 76년 평균"과 "최근 30년"이 다를 수 있으므로, 앞의 두 효과도 최근 구간만
+        따로 떼어보는 검증이 다음 과제로 남는다.</li>
+        <li><b>대선 3년차 효과의 "왜"도 검증하지 않았다.</b> "정치적 경기순환"은 널리 통용되는
+        설명일 뿐, 이 리포트는 실제 재정·통화정책 데이터로 그 인과관계를 확인하지 않았다 —
+        상관관계만 확인했다.</li>
+        <li><b>월요일 효과의 "최근 30년" 구간(n=1,450)도 그 안에서 더 쪼개면(예: 최근 10년만)
+        다시 바뀔 수 있다</b> — "사라졌다"는 것도 하나의 스냅샷일 뿐, 영구적 결론은 아니다.</li>
+        <li><b>세 계절 효과를 겹쳐서(예: "3년차의 11~4월"만) 보면 더 강한지는 다음 과제로
+        남긴다.</b></li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="footer">
+    데이터: Yahoo Finance(^GSPC, 1950~2026) · 분석 스크립트: seasonality_event_study.py,
+    presidential_cycle_event_study.py, weekday_event_study.py, recent_period_recheck.py ·
+    같은 프로젝트: 연준 금리 이벤트 스터디, 물가·고용·성장 지표 비교, 충격 뉴스와 증시 반응,
+    유명한 침체 신호 두 개
+  </div>
+</div>
+
+<script>
+const DATA = {"monthly_breakdown": {"1": {"n": 77, "mean_pct": 1.092, "win_rate_pct": 61.0}, "2": {"n": 77, "mean_pct": -0.038, "win_rate_pct": 53.2}, "3": {"n": 77, "mean_pct": 0.959, "win_rate_pct": 63.6}, "4": {"n": 77, "mean_pct": 1.543, "win_rate_pct": 70.1}, "5": {"n": 77, "mean_pct": 0.437, "win_rate_pct": 62.3}, "6": {"n": 77, "mean_pct": 0.186, "win_rate_pct": 54.5}, "7": {"n": 77, "mean_pct": 1.289, "win_rate_pct": 59.7}, "8": {"n": 77, "mean_pct": 0.078, "win_rate_pct": 55.8}, "9": {"n": 76, "mean_pct": -0.625, "win_rate_pct": 44.7}, "10": {"n": 76, "mean_pct": 0.895, "win_rate_pct": 59.2}, "11": {"n": 76, "mean_pct": 1.861, "win_rate_pct": 69.7}, "12": {"n": 76, "mean_pct": 1.415, "win_rate_pct": 72.4}}, "cycle_summary": {"1": {"n": 19, "mean_pct": 8.35, "win_rate_pct": 63.2, "worst_pct": -17.37, "best_pct": 31.01}, "2": {"n": 18, "mean_pct": 3.685, "win_rate_pct": 55.6, "worst_pct": -29.72, "best_pct": 45.02}, "3": {"n": 19, "mean_pct": 17.178, "win_rate_pct": 89.5, "worst_pct": -0.73, "best_pct": 34.11}, "0": {"n": 19, "mean_pct": 8.106, "win_rate_pct": 84.2, "worst_pct": -38.49, "best_pct": 25.77}}};
+
+(function drawMonthChart() {
+  const svg = document.getElementById('month-chart');
+  const W = 880, H = 280, PAD_L = 40, PAD_R = 10, PAD_T = 24, PAD_B = 40;
+  const months = DATA.monthly_breakdown; // {1: {mean_pct, win_rate_pct, n}, ...}
+  const labels = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  const unfavorable = new Set([5,6,7,8,9,10]);
+
+  const vals = labels.map((_, i) => months[String(i+1)].mean_pct);
+  const yMax = Math.max(...vals, 0.5);
+  const yMin = Math.min(...vals, -0.5);
+  const barW = (W - PAD_L - PAD_R) / labels.length * 0.62;
+  const slot = (W - PAD_L - PAD_R) / labels.length;
+  const yScale = v => PAD_T + (yMax - v) / (yMax - yMin) * (H - PAD_T - PAD_B);
+  const zeroY = yScale(0);
+
+  const ns = 'http://www.w3.org/2000/svg';
+  const cs = getComputedStyle(document.documentElement);
+  const inkFaint = cs.getPropertyValue('--ink-faint').trim() || '#8b968f';
+  const lineCol = cs.getPropertyValue('--line').trim() || '#d9dfd8';
+  const inkCol = cs.getPropertyValue('--ink').trim() || '#17211d';
+  const hikeCol = cs.getPropertyValue('--hike').trim() || '#a8461f';
+  const cutCol = cs.getPropertyValue('--cut').trim() || '#1f6e79';
+
+  const zl = document.createElementNS(ns, 'line');
+  zl.setAttribute('x1', PAD_L); zl.setAttribute('x2', W - PAD_R);
+  zl.setAttribute('y1', zeroY); zl.setAttribute('y2', zeroY);
+  zl.setAttribute('stroke', lineCol); zl.setAttribute('stroke-width', '1');
+  svg.appendChild(zl);
+
+  labels.forEach((lbl, i) => {
+    const m = months[String(i + 1)];
+    const x = PAD_L + i * slot + (slot - barW) / 2;
+    const v = m.mean_pct;
+    const y = yScale(Math.max(v, 0));
+    const barH = Math.abs(yScale(v) - zeroY);
+    const color = unfavorable.has(i + 1) ? hikeCol : cutCol;
+
+    const rect = document.createElementNS(ns, 'rect');
+    rect.setAttribute('x', x);
+    rect.setAttribute('y', v >= 0 ? y : zeroY);
+    rect.setAttribute('width', barW);
+    rect.setAttribute('height', Math.max(barH, 1));
+    rect.setAttribute('fill', color);
+    rect.setAttribute('opacity', i + 1 === 9 ? '1' : '0.75');
+    svg.appendChild(rect);
+
+    const winLbl = document.createElementNS(ns, 'text');
+    winLbl.setAttribute('x', x + barW / 2);
+    winLbl.setAttribute('y', v >= 0 ? y - 6 : zeroY + barH + 14);
+    winLbl.setAttribute('font-size', '9');
+    winLbl.setAttribute('fill', inkFaint);
+    winLbl.setAttribute('font-family', 'IBM Plex Mono, monospace');
+    winLbl.setAttribute('text-anchor', 'middle');
+    winLbl.textContent = m.win_rate_pct.toFixed(0) + '%';
+    svg.appendChild(winLbl);
+
+    const monthLbl = document.createElementNS(ns, 'text');
+    monthLbl.setAttribute('x', x + barW / 2);
+    monthLbl.setAttribute('y', H - 12);
+    monthLbl.setAttribute('font-size', '10');
+    monthLbl.setAttribute('fill', i + 1 === 9 ? inkCol : inkFaint);
+    monthLbl.setAttribute('font-family', i + 1 === 9 ? 'IBM Plex Mono, monospace' : 'Public Sans, sans-serif');
+    monthLbl.setAttribute('font-weight', i + 1 === 9 ? '700' : '400');
+    monthLbl.setAttribute('text-anchor', 'middle');
+    monthLbl.textContent = lbl;
+    svg.appendChild(monthLbl);
+  });
+})();
+
+(function drawCycleChart() {
+  const svg = document.getElementById('cycle-chart');
+  const W = 880, H = 280, PAD_L = 40, PAD_R = 10, PAD_T = 24, PAD_B = 40;
+  const cyc = DATA.cycle_summary; // {"1": {...}, "2": {...}, "3": {...}, "0": {...}}
+  const order = ['1', '2', '3', '0'];
+  const labels = ['1년차', '2년차', '3년차', '4년차'];
+
+  const vals = order.map(k => cyc[k].mean_pct);
+  const yMax = Math.max(...vals) * 1.15;
+  const yMin = 0;
+  const slot = (W - PAD_L - PAD_R) / order.length;
+  const barW = slot * 0.5;
+  const yScale = v => PAD_T + (yMax - v) / (yMax - yMin) * (H - PAD_T - PAD_B);
+  const zeroY = yScale(0);
+
+  const ns = 'http://www.w3.org/2000/svg';
+  const cs = getComputedStyle(document.documentElement);
+  const inkFaint = cs.getPropertyValue('--ink-faint').trim() || '#8b968f';
+  const lineCol = cs.getPropertyValue('--line').trim() || '#d9dfd8';
+  const inkCol = cs.getPropertyValue('--ink').trim() || '#17211d';
+  const cutCol = cs.getPropertyValue('--cut').trim() || '#1f6e79';
+  const goldCol = cs.getPropertyValue('--gold').trim() || '#8a6d1f';
+
+  const zl = document.createElementNS(ns, 'line');
+  zl.setAttribute('x1', PAD_L); zl.setAttribute('x2', W - PAD_R);
+  zl.setAttribute('y1', zeroY); zl.setAttribute('y2', zeroY);
+  zl.setAttribute('stroke', lineCol); zl.setAttribute('stroke-width', '1');
+  svg.appendChild(zl);
+
+  order.forEach((k, i) => {
+    const m = cyc[k];
+    const x = PAD_L + i * slot + (slot - barW) / 2;
+    const y = yScale(m.mean_pct);
+    const barH = zeroY - y;
+    const isThird = k === '3';
+
+    const rect = document.createElementNS(ns, 'rect');
+    rect.setAttribute('x', x);
+    rect.setAttribute('y', y);
+    rect.setAttribute('width', barW);
+    rect.setAttribute('height', Math.max(barH, 1));
+    rect.setAttribute('fill', isThird ? goldCol : cutCol);
+    rect.setAttribute('opacity', isThird ? '1' : '0.6');
+    svg.appendChild(rect);
+
+    const valLbl = document.createElementNS(ns, 'text');
+    valLbl.setAttribute('x', x + barW / 2);
+    valLbl.setAttribute('y', y - 20);
+    valLbl.setAttribute('font-size', '13');
+    valLbl.setAttribute('font-weight', '700');
+    valLbl.setAttribute('fill', inkCol);
+    valLbl.setAttribute('font-family', 'IBM Plex Mono, monospace');
+    valLbl.setAttribute('text-anchor', 'middle');
+    valLbl.textContent = '+' + m.mean_pct.toFixed(1) + '%';
+    svg.appendChild(valLbl);
+
+    const winLbl = document.createElementNS(ns, 'text');
+    winLbl.setAttribute('x', x + barW / 2);
+    winLbl.setAttribute('y', y - 6);
+    winLbl.setAttribute('font-size', '9');
+    winLbl.setAttribute('fill', inkFaint);
+    winLbl.setAttribute('font-family', 'IBM Plex Mono, monospace');
+    winLbl.setAttribute('text-anchor', 'middle');
+    winLbl.textContent = '승률 ' + m.win_rate_pct.toFixed(0) + '%';
+    svg.appendChild(winLbl);
+
+    const labelText = document.createElementNS(ns, 'text');
+    labelText.setAttribute('x', x + barW / 2);
+    labelText.setAttribute('y', H - 12);
+    labelText.setAttribute('font-size', '11');
+    labelText.setAttribute('fill', isThird ? inkCol : inkFaint);
+    labelText.setAttribute('font-family', 'Public Sans, sans-serif');
+    labelText.setAttribute('font-weight', isThird ? '700' : '400');
+    labelText.setAttribute('text-anchor', 'middle');
+    labelText.textContent = labels[i];
+    svg.appendChild(labelText);
+  });
+})();
+</script>

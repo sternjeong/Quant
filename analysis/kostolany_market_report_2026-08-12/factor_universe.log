@@ -1,0 +1,19 @@
+구간: 2014-06-01 ~ 2026-08-12
+$MTUM: possibly delisted; no price data found  (1d 2012-08-18 -> 2013-04-17) (Yahoo error = "Data doesn't exist for startDate = 1345262400, endDate = 1366171200")
+
+1 Failed download:
+['MTUM']: possibly delisted; no price data found  (1d 2012-08-18 -> 2013-04-17) (Yahoo error = "Data doesn't exist for startDate = 1345262400, endDate = 1366171200")
+/workspaces/Quant/analysis/kostolany_market_report_2026-08-12/multi_regime_multi_strategy.py:63: FutureWarning: The behavior of DataFrame.idxmax with all-NA values, or any-NA and skipna=False, is deprecated. In a future version this will raise ValueError
+  leader = z_scores.idxmax(axis=1)
+국면 분포: {'쏠림강세': 1971, '횡보장': 415, '광범위강세': 388, '약세장': 293}
+쏠림강세 리더 팩터 분포: {'MTUM': 825, 'IWF': 724, 'USMV': 216, 'IWD': 161, 'SPHQ': 45}
+/workspaces/Quant/analysis/kostolany_market_report_2026-08-12/multi_regime_multi_strategy.py:63: FutureWarning: The behavior of DataFrame.idxmax with all-NA values, or any-NA and skipna=False, is deprecated. In a future version this will raise ValueError
+  leader = z_scores.idxmax(axis=1)
+[with_tilt]: CAGR=10.07, MDD=-22.76, 샤프=0.81, calmar=0.44
+/workspaces/Quant/analysis/kostolany_market_report_2026-08-12/multi_regime_multi_strategy.py:63: FutureWarning: The behavior of DataFrame.idxmax with all-NA values, or any-NA and skipna=False, is deprecated. In a future version this will raise ValueError
+  leader = z_scores.idxmax(axis=1)
+[no_tilt]: CAGR=10.44, MDD=-22.2, 샤프=0.87, calmar=0.47
+[동일가중 매수보유]: {'cumulative_return': 289.28, 'cagr': 11.79, 'mdd': -33.8, 'sharpe': 0.75, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.35, 'avg_drawdown_days': 18.4}
+S&P500: {'cumulative_return': 302.77, 'cagr': 12.11, 'mdd': -33.92, 'sharpe': 0.74, 'win_rate': 100.0, 'avg_holding_days': 4452.0, 'trade_count': 1, 'profit_factor': 999.0, 'calmar': 0.36, 'avg_drawdown_days': 18.8}
+
+DONE

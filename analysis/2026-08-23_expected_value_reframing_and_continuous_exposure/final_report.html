@@ -1,0 +1,404 @@
+<title>기댓값 재구성과 연속 노출 사이징 연구</title>
+<style>
+
+:root{
+  color-scheme: light;
+  --bg-page:#eef1ee; --surface:#ffffff; --surface-2:#f4f6f3;
+  --ink:#12181a; --ink-2:#495550; --ink-muted:#828d87;
+  --hairline:#d7ddd6; --border:rgba(11,11,11,0.10);
+  --accent:#1f4d3d; --accent-ink:#ffffff; --accent-2:#8a6a1f;
+  --accent-2-soft:#f2e6c8; --accent-soft:#e2ebe6; --chart-surface:#fcfcfb;
+  --blue:#2a78d6; --orange:#eb6834; --aqua:#1baf7a; --red:#e34948;
+  --gridline:#e1e0d9; --axis:#c3c2b7; --delta-pos:#184f95; --delta-neg:#b3261e;
+  --code-bg:#f4f6f3; --shadow: 0 1px 2px rgba(20,30,25,0.04), 0 8px 24px -16px rgba(20,30,25,0.18);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg-page:#0f1210; --surface:#171b16; --surface-2:#1c211b;
+    --ink:#f2f4f0; --ink-2:#c4cbc2; --ink-muted:#8b958a;
+    --hairline:#2c332a; --border:rgba(255,255,255,0.10);
+    --accent:#5aab89; --accent-ink:#0b1310; --accent-2:#d9b45c;
+    --accent-2-soft:#332a13; --accent-soft:#1b2921; --chart-surface:#1a1a19;
+    --blue:#3987e5; --orange:#d95926; --aqua:#199e70; --red:#e66767;
+    --gridline:#2c2c2a; --axis:#3a3f38; --delta-pos:#86b6ef; --delta-neg:#ff8a80;
+    --code-bg:#1c211b; --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -16px rgba(0,0,0,0.5);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg-page:#0f1210; --surface:#171b16; --surface-2:#1c211b;
+  --ink:#f2f4f0; --ink-2:#c4cbc2; --ink-muted:#8b958a;
+  --hairline:#2c332a; --border:rgba(255,255,255,0.10);
+  --accent:#5aab89; --accent-ink:#0b1310; --accent-2:#d9b45c;
+  --accent-2-soft:#332a13; --accent-soft:#1b2921; --chart-surface:#1a1a19;
+  --blue:#3987e5; --orange:#d95926; --aqua:#199e70; --red:#e66767;
+  --gridline:#2c2c2a; --axis:#3a3f38; --delta-pos:#86b6ef; --delta-neg:#ff8a80;
+  --code-bg:#1c211b; --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -16px rgba(0,0,0,0.5);
+}
+*{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{ margin:0; background:var(--bg-page); color:var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif; line-height:1.6; font-size:16px; }
+.serif{ font-family: "Iowan Old Style","Palatino Linotype", Georgia, serif; }
+.mono, .num, td.num, .tk-name, .kpi-value, code {
+  font-family: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+  font-variant-numeric: tabular-nums; }
+a{ color:var(--accent); }
+.wrap{ max-width: 1020px; margin:0 auto; padding: 0 24px 96px; }
+.masthead{ background: var(--accent); color: var(--accent-ink); padding: 56px 24px 40px; }
+.masthead-inner{ max-width:1020px; margin:0 auto; }
+.masthead-eyebrow{ font-size:12.5px; letter-spacing:0.12em; text-transform:uppercase; opacity:0.82;
+  font-family: ui-monospace, "SF Mono", Consolas, monospace; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.masthead-eyebrow .dot{ opacity:0.5; }
+h1.masthead-title{ font-family:"Iowan Old Style","Palatino Linotype", Georgia, serif; font-weight:600;
+  font-size: clamp(28px, 4.2vw, 44px); line-height:1.15; margin: 14px 0 10px; text-wrap: balance; max-width: 32ch; }
+.masthead-sub{ font-size:16.5px; max-width:74ch; opacity:0.92; margin:0 0 22px; }
+.masthead-meta{ display:flex; flex-wrap:wrap; gap: 10px 26px; font-size:13.5px; opacity:0.85;
+  border-top:1px solid rgba(255,255,255,0.22); padding-top:16px; }
+.masthead-meta b{ font-weight:600; }
+.section{ padding: 52px 0 8px; border-top:1px solid var(--hairline); }
+.section:first-of-type{ border-top:none; }
+.section h2{ font-family:"Iowan Old Style","Palatino Linotype", Georgia, serif; font-size: 25px;
+  font-weight:600; margin: 0 0 16px; display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+.sec-no{ font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size:13px; color: var(--accent);
+  border:1px solid var(--accent); border-radius:3px; padding:2px 6px; font-weight:600; letter-spacing:0.02em; }
+.section h3{ font-size:17.5px; margin: 30px 0 10px; font-weight:650; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.section h4{ font-size:15px; margin: 20px 0 8px; font-weight:650; color:var(--ink-2); }
+.lede{ font-size:16.5px; color:var(--ink-2); max-width:76ch; }
+.section p{ max-width:80ch; }
+.section > p, .section > .lede { margin-top: 0; }
+.section li{ max-width:76ch; }
+.callout{ background: var(--surface-2); border:1px solid var(--hairline); border-left: 3px solid var(--accent);
+  border-radius: 6px; padding: 18px 22px; margin: 20px 0 26px; }
+.callout-title{ font-size:11.5px; text-transform:uppercase; letter-spacing:0.08em; color:var(--accent);
+  font-weight:700; margin-bottom:8px; }
+.callout p{ margin:0; max-width:none; }
+.callout p + p{ margin-top:10px; }
+.callout.warn{ border-left-color: var(--delta-neg); }
+.callout.warn .callout-title{ color: var(--delta-neg); }
+.caveat{ font-size:14.5px; color:var(--ink-2); background:var(--surface-2); border-radius:6px;
+  padding:14px 18px; border:1px dashed var(--hairline); margin: 14px 0; }
+.kpi-row{ display:grid; grid-template-columns:repeat(auto-fit, minmax(190px,1fr)); gap:14px; margin: 20px 0 8px; }
+.kpi-tile{ background:var(--surface); border:1px solid var(--hairline); border-radius:8px; padding:16px 18px; box-shadow: var(--shadow); }
+.kpi-label{ font-size:12.5px; color:var(--ink-muted); margin-bottom:6px; }
+.kpi-value{ font-size:24px; font-weight:600; line-height:1.1; }
+.kpi-value.pos{ color:var(--delta-pos); }
+.kpi-value.neg{ color:var(--delta-neg); }
+.kpi-sub{ font-size:12.5px; color:var(--ink-muted); margin-top:4px; }
+.chart-card{ background:var(--chart-surface); border:1px solid var(--hairline); border-radius:10px;
+  padding:22px 22px 16px; margin: 22px 0; box-shadow: var(--shadow); }
+.chart-card h3{ margin: 0 0 4px; font-size:16px; }
+.chart-desc{ font-size:13.5px; color:var(--ink-muted); margin: 0 0 14px; max-width:none; }
+.table-wrap{ overflow-x:auto; border:1px solid var(--hairline); border-radius:8px; background:var(--surface); }
+table.data-table{ width:100%; border-collapse:collapse; font-size:13.5px; min-width:720px; }
+table.data-table th{ text-align:right; font-weight:600; font-size:11.5px; color:var(--ink-muted); text-transform:uppercase;
+  letter-spacing:0.03em; padding:10px 12px; border-bottom:1px solid var(--hairline); white-space:nowrap; }
+table.data-table th:first-child, table.data-table td:first-child{ text-align:left; }
+table.data-table td{ padding:8px 12px; border-bottom:1px solid var(--hairline); text-align:right; white-space:nowrap; }
+table.data-table tbody tr:hover{ background:var(--surface-2); }
+table.data-table tbody tr:last-child td{ border-bottom:none; }
+td.tk-cell{ text-align:left !important; }
+td.tk-cell .tk-name{ font-weight:650; margin-right:8px; }
+td.num.delta.pos, .delta.pos{ color:var(--delta-pos); font-weight:650; }
+td.num.delta.neg, .delta.neg{ color:var(--delta-neg); font-weight:650; }
+.strong{ font-weight:700; }
+tr.best-row{ background: var(--accent-soft); }
+tr.warn-row{ background: rgba(179,38,30,0.08); }
+footer{ max-width:1020px; margin:40px auto 0; padding: 26px 24px 10px; border-top:1px solid var(--hairline);
+  font-size:12.5px; color:var(--ink-muted); }
+footer p{ max-width:none; }
+.toc{ display:flex; flex-wrap:wrap; gap:8px 18px; margin: 24px 0 4px; padding:16px 20px; background:var(--surface);
+  border:1px solid var(--hairline); border-radius:8px; }
+.toc a{ font-size:13.5px; color:var(--ink-2); text-decoration:none; }
+.toc a:hover{ color:var(--accent); text-decoration:underline; }
+.src-list{ font-size:13px; color:var(--ink-2); padding-left:18px; }
+.src-list li{ margin: 6px 0; }
+.verdict-badge{ display:inline-block; font-size:12px; font-weight:700; letter-spacing:0.03em;
+  padding:3px 10px; border-radius:20px; text-transform:uppercase; }
+.v-accept{ background: var(--accent-soft); color: var(--accent); border:1px solid var(--accent); }
+.v-reject{ background: rgba(179,38,30,0.10); color: var(--delta-neg); border:1px solid var(--delta-neg); }
+.v-partial{ background: var(--accent-2-soft); color: var(--accent-2); border:1px solid var(--accent-2); }
+.hyp-card{ background:var(--surface); border:1px solid var(--hairline); border-radius:8px; padding:16px 20px; margin:14px 0; }
+.hyp-card .hyp-id{ font-family: ui-monospace,"SF Mono",Consolas,monospace; font-weight:700; color:var(--accent); font-size:13px; }
+
+</style>
+
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="masthead-eyebrow">
+      <span>QUANT RESEARCH NOTE</span><span class="dot">·</span><span>Track D 11라운드</span><span class="dot">·</span><span>Hypothesis-Driven Study</span>
+    </div>
+    <h1 class="masthead-title">기댓값 재구성과 연속 노출 사이징 연구</h1>
+    <p class="masthead-sub">8-10라운드는 "정적보유/SPY스위치/VIX스위치/하이브리드"를 6개 창(5위기+
+      전체기간)에서 window-by-window로 비교하며 "단일 정답은 없다"는 결론을 세 번 반복했다. 사용자는
+      이 결론에 대해 "단일 정답이 없어도 확률을 통해 기댓값을 올리는 게 목표"라고 재프레이밍했다 —
+      이번 라운드는 (H22) 각 창을 "미래에 실제로 얼마나 자주 일어날지"에 대한 기저확률로 가중해
+      명시적인 기댓값 순위를 처음으로 계산하고, (H23) 이산 온오프 스위치가 아니라 위기확률에 따라
+      매일 연속적으로 비중을 조절하는 새 메커니즘을 새로 백테스트해 기댓값 관점에서 이산 스위치를
+      실제로 이기는지 검증한다.</p>
+    <div class="masthead-meta">
+      <span><b>기준일</b> 2026-08-23</span>
+      <span><b>H22 입력</b> 작업37(H19 스탑폭 스윕)·작업38(H20/H21 4구성×6창) report_data.json 재종합, 재계산 없음</span>
+      <span><b>H23 입력</b> h20_series_cache.pkl 재사용 + VIX/SPY 실데이터로 신규 연속노출 백테스트</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <nav class="toc">
+    <a href="#scope">00 문제 제기</a>
+    <a href="#h22">01 H22 — 기저확률 가중 기댓값 계산</a>
+    <a href="#h23">02 H23 — 연속 확률 기반 노출 사이징</a>
+    <a href="#synthesis">03 종합 — 트랙D(작업33-38) 전체를 아우르는 기댓값-최적 구성</a>
+    <a href="#limitations">04 한계</a>
+  </nav>
+
+  <section class="section" id="scope">
+    <h2><span class="sec-no">00</span> 문제 제기 — "단일 정답은 없어도 기댓값은 있다"를 계산 가능하게 만들기</h2>
+    <p class="lede">10라운드까지의 검증 방식은 구조적으로 "각 창에서 어느 구성이 이겼는가"만 셌다 —
+      2008에서는 SPY스위치가, COVID에서는 VIX/하이브리드가, 전체기간에서는 정적보유가 이기는 식으로
+      승자가 매번 바뀌었고, 그때마다 "프로필별로 정답이 다르다"는 결론에 머물렀다. 이 방식의 맹점은
+      각 창에 <b>암묵적으로 동일한 가중치(1/6)</b>를 준다는 점이다 — 그러나 2008형 시스템 위기와
+      2018형 단기조정이 미래에 실제로 일어날 확률은 결코 같지 않다. 사용자의 재프레이밍은 이 맹점을
+      정확히 지적한 것이다: <b>"우리는 단일 정답은 없어도 그래도 확률을 통해 기댓값을 올리는
+      거니깐"</b>.</p>
+    <p>이번 라운드는 이 재프레이밍을 두 가지로 정식화한다.</p>
+    <ul>
+      <li><b>H22</b> — 6개 창 각각에 "미래에 얼마나 자주 일어날 레짐인지"에 대한 기저확률(문헌 근거
+        + 명시적 가정)을 부여하고, 이미 존재하는 작업37/38의 실측 Sharpe/CAGR을 그 확률로 가중평균해
+        각 구성의 <b>기댓값 순위</b>를 처음으로 계산한다. 기저확률 추정 자체의 불확실성을 인정하고
+        3가지 시나리오(기본/강세장편향/위기편향)로 민감도를 확인한다.</li>
+      <li><b>H23</b> — "어느 구성이 이기는가"를 매일 이진으로 결정하지 않고, 위기확률 자체를 매일
+        연속값으로 추정해 새틀라이트 비중을 0~15% 사이에서 부드럽게 조절하는 메커니즘을 새로
+        백테스트한다. 이산 스위치가 강요하는 "지금이 위기냐 아니냐"라는 올인/올아웃 베팅을 피함으로써
+        기댓값이 실제로 개선되는지 직접 확인한다.</li>
+    </ul>
+    <p class="caveat">⚠️ 투자 조언이 아니다. H22의 기저확률은 추정치이며 정밀한 확률표가 아니다 —
+      본문에서 근거와 함께 명시하고, 민감도분석으로 결론의 견고성을 별도로 보고한다.</p>
+  </section>
+
+  <section class="section" id="h22">
+    <h2><span class="sec-no">01</span> H22 — 기저확률 가중 기댓값 계산 <span class="verdict-badge v-accept">채택</span></h2>
+    <p class="lede">각 검증 창을 6개 "레짐 아키타입"에 매핑하고, 각각의 역사적 발생빈도를 최선 추정치로
+      부여했다. 새 백테스트 없이 작업37(H19)·작업38(H20/H21)이 이미 저장한 <code>report_data.json</code>의
+      실측 수치만 재종합한다.</p>
+
+    <h3>레짐 아키타입과 기저확률 근거</h3>
+    <ul>
+      <li><b>평시/강세장</b> — S&P500은 2차대전 이후 대다수 연도가 상승 마감(NDR·CFRA 등 실무 통계로
+        연간 플러스 비율이 대략 70% 안팎으로 보고됨). 이 연구가 반복 사용해온 전체기간 창(2019-2026)
+        자체가 이미 강세장 편향 구간이라는 점을 스스로 인정해온 만큼, 이 아키타입에 가장 큰 가중치를
+        준다.</li>
+      <li><b>완만·광범위 시스템 위기(2008형)</b> — 1929, 1973-74, 2000-02, 2007-09 정도가 "시스템
+        전반이 18개월 안팎 무너진" 등급으로 꼽힌다. 100년에 4회 안팎 — 대략 <b>25~35년에 한 번</b>
+        수준으로 가정한다(연간 확률 약 3%).</li>
+      <li><b>초고속 크래시(COVID형)</b> — 1987년 블랙먼데이, 2020년 COVID 정도가 "몇 주 안에 -30%대"
+        급의 진짜 사례다. 현대 시장구조(알고리즘/패시브 자금 비중 증가)가 급락 속도를 오히려 높였을
+        가능성을 감안해 다소 보수적으로 <b>연간 약 4%</b>로 가정한다.</li>
+      <li><b>중간강도 약세장(2022형)</b> — 매크로(금리인상) 기반의 -20~25%급 약세장은 2000, 2008,
+        2018Q4, 2022 등으로 대략 <b>6~8년에 한 번</b> 빈도(연간 약 10~15%)로 잡는다.</li>
+      <li><b>단기·급격 조정(2018년말형)</b> — 연중 10% 안팎 조정은 Ned Davis Research류 통계로 거의
+        매년 한 번꼴로 관찰된다고 알려져 있다. <b>연간 약 15~18%</b>로 가정한다.</li>
+      <li><b>완만한 중기 조정(2015-16형)</b> — 경기침체까지 가지 않는 성장통(중국 경착륙 우려, 유가
+        급락 등)도 비슷한 빈도로 잡아 <b>연간 약 15~18%</b>로 가정한다.</li>
+    </ul>
+    <p class="caveat">⚠️ 이 수치들은 정밀한 확률표가 아니라 "합리적인 최선 추정"이다 — 정확한
+      기저율은 표본기간 선택과 "위기"의 정의에 따라 크게 달라진다. 그래서 아래 3가지 시나리오로
+      민감도를 함께 보고한다.</p>
+
+    <h3>3가지 가중치 시나리오 (정규화됨)</h3>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>레짐 아키타입</th><th>기본</th><th>강세장편향</th><th>위기편향</th></tr></thead>
+        <tbody><tr><td class="tk-cell"><span class="tk-name">평시/강세장 (2019-2026 전체기간 대용)</span></td><td class="num">50.0%</td><td class="num">65.0%</td><td class="num">35.0%</td></tr><tr><td class="tk-cell"><span class="tk-name">완만·광범위 시스템 위기 (2008 GFC형)</span></td><td class="num">3.0%</td><td class="num">1.5%</td><td class="num">6.0%</td></tr><tr><td class="tk-cell"><span class="tk-name">초고속 크래시 (COVID형)</span></td><td class="num">4.0%</td><td class="num">2.0%</td><td class="num">7.0%</td></tr><tr><td class="tk-cell"><span class="tk-name">중간강도 약세장 (2022형)</span></td><td class="num">10.0%</td><td class="num">6.5%</td><td class="num">14.0%</td></tr><tr><td class="tk-cell"><span class="tk-name">단기·급격 조정 (2018년말형)</span></td><td class="num">16.0%</td><td class="num">12.0%</td><td class="num">19.0%</td></tr><tr><td class="tk-cell"><span class="tk-name">완만한 중기 조정 (2015-16형)</span></td><td class="num">17.0%</td><td class="num">13.0%</td><td class="num">19.0%</td></tr></tbody>
+      </table>
+    </div>
+
+    <h3>기댓값 순위 — 기본 시나리오 (E[Sharpe] / E[CAGR] / 위기창 최악 MDD)</h3>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>구성</th><th>E[Sharpe]</th><th>E[CAGR]</th><th>위기창 최악 MDD(참고)</th></tr></thead>
+        <tbody><tr class="best-row"><td class="tk-cell"><span class="tk-name">1. Case A(정적보유, 스위치없음)</span></td><td class="num">0.0191</td><td class="num">-0.386%</td><td class="num">-19.96%</td></tr><tr class=""><td class="tk-cell"><span class="tk-name">2. Case D(하이브리드 OR)</span></td><td class="num">-0.0579</td><td class="num">-1.419%</td><td class="num">-15.99%</td></tr><tr class=""><td class="tk-cell"><span class="tk-name">3. 코어단독</span></td><td class="num">-0.0741</td><td class="num">-1.322%</td><td class="num">-15.85%</td></tr><tr class=""><td class="tk-cell"><span class="tk-name">4. Case E(연속노출 사이징, 신규)</span></td><td class="num">-0.0812</td><td class="num">-1.562%</td><td class="num">-15.99%</td></tr><tr class=""><td class="tk-cell"><span class="tk-name">5. Case C(VIX 스위치)</span></td><td class="num">-0.0825</td><td class="num">-1.626%</td><td class="num">-15.63%</td></tr><tr class=""><td class="tk-cell"><span class="tk-name">6. Case B(SPY 200일선 스위치)</span></td><td class="num">-0.0830</td><td class="num">-1.732%</td><td class="num">-15.99%</td></tr></tbody>
+      </table>
+    </div>
+    <p class="kpi-sub">E[Sharpe]는 6개 창의 실측 Sharpe를 기저확률로 가중평균한 값 — 실제 장기 포트폴리오
+      Sharpe의 예측치가 아니라 "여러 구성 간의 상대적 기댓값 순위"를 위한 지표다. 위기창들은 다수가
+      마이너스 Sharpe이므로 전체 기댓값도 음수로 나오는 것이 정상이며, 순위 비교에만 의미가 있다.</p>
+
+    <div class="callout">
+      <div class="callout-title">민감도분석 — 순위가 3가지 시나리오에서 얼마나 안정적인가</div>
+      <p>강세장편향/위기편향 두 극단 시나리오에서도 순위 1위는 바뀌지 않는다:</p>
+      <div class="table-wrap" style="margin-top:10px;">
+        <table class="data-table">
+          <thead><tr><th>시나리오</th><th>1위</th><th>2위</th><th>3위</th></tr></thead>
+          <tbody>
+            <tr><td class="tk-cell"><span class="tk-name">기본(중심 추정)</span></td><td class="num">Case A(정적보유, 스위치없음) (0.019)</td><td class="num">Case D(하이브리드 OR) (-0.058)</td><td class="num">코어단독 (-0.074)</td></tr><tr><td class="tk-cell"><span class="tk-name">강세장 편향(보수적)</span></td><td class="num">Case A(정적보유, 스위치없음) (0.317)</td><td class="num">Case D(하이브리드 OR) (0.236)</td><td class="num">Case E(연속노출 사이징, 신규) (0.221)</td></tr><tr><td class="tk-cell"><span class="tk-name">위기 편향(비관적)</span></td><td class="num">Case A(정적보유, 스위치없음) (-0.230)</td><td class="num">Case D(하이브리드 OR) (-0.295)</td><td class="num">코어단독 (-0.301)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="margin-top:10px;"><b>Case A(정적보유, 스위치 없음)가 세 시나리오 전부에서 1위</b>다 —
+        위기편향 시나리오에서도 순위가 흔들리지 않는다. 반대로 이산 스위치들(B/C/D)과 이번 라운드
+        신규 검증한 연속노출(E)은 세 시나리오 모두에서 정적보유보다 낮은 순위에 머문다 — 스위칭
+        메커니즘 자체(이산이든 연속이든)가 위기 방어에서 얻는 이득보다 평시(가장 빈번한 레짐) 상승장
+        참여 기회비용이 기댓값 관점에서 더 크다는 뜻이다.</p>
+    </div>
+
+    <h3>H19 스탑폭 스윕(10~30%)도 같은 방식으로 기댓값화</h3>
+    <p>9라운드(작업37)는 트레일링스탑 폭 10/15/20/25/30%를 스윕해 "프로필별 최선"을 제시했지만
+      기댓값 계산은 없었다. 같은 기저확률로 가중하면:</p>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>스탑폭</th><th>E[Sharpe]</th><th>E[CAGR]</th></tr></thead>
+        <tbody><tr class="best-row"><td class="tk-cell"><span class="tk-name">10%</span></td><td class="num">-0.0384</td><td class="num">-1.337%</td></tr><tr class=""><td class="tk-cell"><span class="tk-name">15%</span></td><td class="num">-0.0830</td><td class="num">-1.732%</td></tr><tr class=""><td class="tk-cell"><span class="tk-name">20%</span></td><td class="num">-0.1006</td><td class="num">-1.712%</td></tr><tr class=""><td class="tk-cell"><span class="tk-name">25%</span></td><td class="num">-0.1130</td><td class="num">-1.810%</td></tr><tr class=""><td class="tk-cell"><span class="tk-name">30%</span></td><td class="num">-0.1093</td><td class="num">-1.697%</td></tr></tbody>
+      </table>
+    </div>
+    <p>기본 시나리오에서 기댓값 최선은 <b>10%</b> 폭이며(E[Sharpe]=
+      -0.0384), 강세장편향/위기편향 두 시나리오 모두에서도 동일하게
+      가장 좁은 10%가 1위를 유지한다(0.2624 /
+      -0.2829) — 폭을 넓힐수록
+      위기창에서의 손실 억제력이 약해지는 게 평시 이득보다 기댓값에서 더 크게 작용한다.</p>
+
+    <div class="callout">
+      <div class="callout-title">H22 종합 판정 — 채택: 정적보유(스위칭 없음)가 기댓값 관점에서 견고한 1위</div>
+      <p>window-by-window 비교로는 절대 나올 수 없었던 명확한 답이 나왔다 — 기저확률로 가중하면
+        <b>Case A(정적보유, 스위치없음)</b>가 세 가지 합리적 가정 범위 전부에서 1위다. 8-10라운드가
+        반복해온 "프로필별 다른 정답"은 여전히 사실이지만(각 창의 window-by-window 승자는 매번
+        다르다), "평균적인 미래"에 대한 단일 최선의 사전(ex-ante) 선택을 묻는다면 답은 견고하게
+        정적보유다. 스위칭(SPY/VIX/하이브리드/연속노출 전부)의 문제는 "위기를 못 막아서"가 아니라
+        <b>"위기가 실제로는 평시보다 훨씬 드물게 일어나서, 평시 상승장에서 잃는 기회비용이 위기에서
+        아끼는 손실보다 기댓값 상 더 크다"</b>는 것이다.</p>
+    </div>
+  </section>
+
+  <section class="section" id="h23">
+    <h2><span class="sec-no">02</span> H23 — 연속 확률 기반 노출 사이징 <span class="verdict-badge v-reject">기각</span></h2>
+    <p class="lede">모든 스위치는 이산(0% 또는 15%)이었다. crisis_prob(t) = sigmoid(6×(soft_or(VIX정규화,
+      SPY-200일선괴리 정규화) - 0.5))로 매일 연속적인 위기확률을 추정하고, 새틀라이트 비중을
+      0.15×(1-crisis_prob(t))로 매끄럽게 조절하는 Case E를 새로 백테스트했다(h20_series_cache.pkl의
+      코어/새틀라이트 시계열 재사용, 위기확률 신호만 신규 계산).</p>
+
+    <h3>6개 창 - 6개 구성 Sharpe 전체 비교</h3>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>검증 창</th><th>코어단독</th><th>A(정적)</th><th>B(SPY)</th><th>C(VIX)</th><th>D(하이브리드)</th><th>E(연속노출)</th></tr></thead>
+        <tbody><tr><td class="tk-cell"><span class="tk-name">2008 금융위기(GFC)</span></td><td class="num">0.29</td><td class="num">-0.21</td><td class="num">0.28</td><td class="num">0.16</td><td class="num">0.27</td><td class="num strong">0.24</td></tr><tr><td class="tk-cell"><span class="tk-name">2015-16 조정</span></td><td class="num">-1.90</td><td class="num">-1.70</td><td class="num">-1.76</td><td class="num">-1.93</td><td class="num">-1.76</td><td class="num strong">-1.88</td></tr><tr><td class="tk-cell"><span class="tk-name">2018년말 셀오프</span></td><td class="num">-1.90</td><td class="num">-1.67</td><td class="num">-1.86</td><td class="num">-1.90</td><td class="num">-1.86</td><td class="num strong">-1.93</td></tr><tr><td class="tk-cell"><span class="tk-name">2022 약세장</span></td><td class="num">0.24</td><td class="num">0.20</td><td class="num">0.18</td><td class="num">0.27</td><td class="num">0.18</td><td class="num strong">0.23</td></tr><tr><td class="tk-cell"><span class="tk-name">COVID 급락</span></td><td class="num">0.13</td><td class="num">0.04</td><td class="num">-0.44</td><td class="num">-0.18</td><td class="num">-0.18</td><td class="num strong">-0.20</td></tr><tr><td class="tk-cell"><span class="tk-name">전체기간(2019-2026)</span></td><td class="num">1.03</td><td class="num">1.12</td><td class="num">1.01</td><td class="num">1.05</td><td class="num">1.04</td><td class="num strong">1.05</td></tr></tbody>
+      </table>
+    </div>
+    <p class="kpi-sub">셀 값은 Sharpe. Case E는 대부분의 창에서 이산 스위치들(B/C/D)과 비슷하거나
+      그 사이 어딘가에 위치한다 — "최고를 넘어서는 최고"가 아니라 "중간값으로 수렴하는 절충안"이다.</p>
+
+    <div class="kpi-row">
+      <div class="kpi-tile"><div class="kpi-label">전체기간 평균 새틀라이트 비중</div><div class="kpi-value">9.8%</div><div class="kpi-sub">목표치 15% 대비 항상 위기확률만큼 할인됨</div></div>
+      <div class="kpi-tile"><div class="kpi-label">COVID 위기창 Case E 최소비중</div><div class="kpi-value">-0.20 Sharpe</div><div class="kpi-sub">VIX스위치(-0.18)와 거의 동일 수준</div></div>
+      <div class="kpi-tile"><div class="kpi-label">전체기간 일평균 |Δ비중|</div><div class="kpi-value">0.781%p</div><div class="kpi-sub">이산 스위치의 "전환" 대신 매일 미세조정</div></div>
+    </div>
+
+    <h3>COVID·2008 반응속도/휘프쏘 특성 — 여전히 같은 원재료로 만들어졌다</h3>
+    <p>COVID 위기창에서 연속노출 비중은 위기 시작 시점(0.14288611902336498
+      → 0.15 기준 이미 5% 할인된 상태)부터
+      빠르게 줄어 <b>2020-02-25</b>에 절반 이하로,
+      <b>2020-02-28</b>에 거의 0에 수렴했다 — VIX스위치의
+      최초 OFF일(2020-02-25)과 거의 같은 날짜다. 연속 사이징이 "부드럽다"는 것이 "더 일찍 반응한다"는
+      뜻은 아니다 — 결국 VIX 레벨/ROC를 원재료로 쓰기 때문에, 반응 타이밍 자체는 VIX스위치와 사실상
+      동일하고 단지 임계값을 넘는 순간의 급격한 전환이 매끄러운 곡선으로 바뀔 뿐이다. 2008에서도
+      마찬가지로 위기 진입 초입(2007-09-04에 이미 절반 이하로
+      할인)부터 서서히 줄었지만, 완만하고 긴 위기라는 특성상 SPY-200일선 성분이 지배적으로 작용해
+      SPY스위치와 유사한 궤적을 그렸다.</p>
+
+    <div class="callout warn">
+      <div class="callout-title">H23 종합 판정 — 기각: "두 마리 토끼"가 아니라 중간으로 수렴하는 절충안</div>
+      <p>가설이 제시한 두 시나리오 중 실제로 일어난 것은 두 번째다 — 연속노출은 6개 창 전체에서
+        이산 스위치들의 최고 성과를 능가하지 못했고, 대체로 그 사이 어딘가(때로는 VIX스위치와 사실상
+        동일, 때로는 SPY스위치와 사실상 동일)에 위치했다. 매끄러운 전환 자체는 실제로 관측되지만
+        (일평균 비중변화가 이산 스위치의 "전환일당 15%p 점프"보다 훨씬 작다), 그 매끄러움이 Sharpe나
+        CAGR 개선으로 이어지지는 않았다 — 반응 속도가 VIX/SPY 원재료 신호와 동일한 한계를 그대로
+        물려받기 때문이다. H22의 기댓값 순위에서도 Case E는 이산 스위치들과 마찬가지로 정적보유보다
+        낮은 순위(세 시나리오 전부)에 머물렀다 — "연속이라서 특별히 낫다"는 근거는 데이터에서
+        나오지 않았다. 정직한 부정적 결과다.</p>
+    </div>
+  </section>
+
+  <section class="section" id="synthesis">
+    <h2><span class="sec-no">03</span> 종합 — 트랙D(작업33-38) 전체를 아우르는 기댓값-최적 구성</h2>
+    <p class="lede">6개 작업(33~38)에 걸쳐 시도한 메커니즘은 셋으로 요약된다: (1) 새틀라이트를
+      정적으로 항상 켜두기, (2) 추세/변동성 기반 이산 온오프 스위치(SPY/VIX/하이브리드), (3) 이번
+      라운드가 추가한 연속 확률 사이징. window-by-window 비교로는 셋 중 무엇도 "모든 창을 지배"하지
+      못했다는 게 8-10라운드의 결론이었다. 이번 라운드가 기저확률 가중으로 명확히 한 것은, 그
+      "무승부"가 사실은 무승부가 아니라는 점이다.</p>
+
+    <div class="hyp-card">
+      <div class="hyp-id">최종 권고 — 정적보유(Case A, 15% 고정 새틀라이트, 스위치 없음)를 기본 구성으로 채택</div>
+      <p style="margin:8px 0 0;">기저확률 가중 기댓값에서 정적보유는 기본/강세장편향/위기편향 세
+        시나리오 전부에서 1위이고, 위기편향 시나리오에서조차 이산·연속 스위치를 이긴다. 이유는
+        직관적이다 — 평시(가장 흔한 레짐, 이 연구의 세 시나리오 모두에서 35~65% 가중치)에서 스위치들은
+        정적보유보다 구조적으로 열위인 반면(전체기간 Sharpe: 정적 1.12
+        vs SPY 1.01/VIX
+        1.05/하이브리드
+        1.04/연속
+        1.05),
+        위기창에서 스위치들이 벌어들이는 방어력 이득은 그 평시 열위를 상쇄할 만큼 자주 일어나지
+        않는다. "위기를 얼마나 잘 방어하는가"만 보면 스위치가 이기는 창이 실제로 있지만(2008/COVID
+        등), "1년을 무작위로 하나 뽑았을 때 기대할 수 있는 성과"라는 질문에는 정적보유가 더 나은
+        답이다.</p>
+    </div>
+    <div class="hyp-card">
+      <div class="hyp-id">스위치/연속노출이 여전히 유용한 맥락 — 꼬리위험 관리가 목적이라면</div>
+      <p style="margin:8px 0 0;">H22 표에서 "위기창 최악 MDD" 열을 보면 정적보유가 항상 가장 나쁜
+        MDD를 기록한다(-19.96%) —
+        스위치 계열(B/C/D/E)은 전부 그보다 방어적이다. 즉 <b>기댓값(Sharpe/CAGR) 최적화가 목표라면
+        정적보유, 특정 위기 시나리오에서의 최대낙폭 상한을 우선시하는 리스크예산이 있다면 스위치
+        계열</b> — 이 트레이드오프는 이번 라운드로 사라지지 않았고, 오히려 숫자로 더 명확해졌다.
+        연속노출(E)은 이 축에서도 이산 스위치 대비 뚜렷한 우위를 보이지 못했다(꼬리위험 방어력은
+        VIX/SPY와 비슷한 수준, 기댓값은 오히려 소폭 열위) — "연속이니까 리스크관리용으로도 더
+        낫다"는 가설 역시 지지되지 않는다.</p>
+    </div>
+    <div class="hyp-card">
+      <div class="hyp-id">스탑폭도 같은 논리 — 넓히지 말고 좁게(10%)</div>
+      <p style="margin:8px 0 0;">9라운드(작업37)가 "프로필별로 15~25% 사이 어딘가"라고 남긴 스탑폭
+        권고도, 기댓값 계산에서는 세 시나리오 모두 <b>10%(가장 좁음)</b>가 1위였다 — 넓은 스탑은
+        평시 조기청산 손실을 줄이지만, 위기창에서의 방어력 저하가 기댓값 상 더 크게 작용한다.</p>
+    </div>
+  </section>
+
+  <section class="section" id="limitations">
+    <h2><span class="sec-no">04</span> 한계</h2>
+    <ul>
+      <li><b>기저확률 자체가 추정치다</b> — 본문에 명시한 3%/4%/10%/16%/17%/50% 같은 숫자는 역사적
+        선례를 참고한 "합리적 최선 추정"이지, 학술적으로 검증된 정밀한 확률표가 아니다. "위기"의
+        정의(낙폭 기준, 기간 기준)에 따라 실제 빈도는 얼마든지 달라질 수 있다. 민감도분석으로 순위의
+        견고성을 확인했지만, 극단적으로 다른 가정(예: 위기 발생확률을 50%까지 올리는 등 비현실적
+        시나리오)까지 테스트하지는 않았다.</li>
+      <li><b>6개 창은 여전히 표본이 작고 서로 겹친다</b> — 특히 full_2019_2026 창과 bear_2022 위기창은
+        같은 원시 데이터 구간을 공유하며, 5개 위기 에피소드도 상당 부분 이 저장소가 반복 재사용해온
+        동일한 코어/새틀라이트 수익률 시계열에서 파생됐다(작업33-38 전체가 같은 17자산 챔피언 구조를
+        공유). 기저확률로 가중해도 "표본 자체의 다양성 부족"이라는 근본 한계는 해소되지 않는다.</li>
+      <li><b>H23의 연속확률 함수형태(로지스틱 스티프니스 6, VIX 15/30, SPY괴리 15% 포화)는 그리드서치
+        없이 한 번에 고른 값</b> — 다른 스티프니스나 정규화 상수를 쓰면 결과가 달라질 수 있고,
+        이번 라운드는 그 민감도를 탐색하지 않았다.</li>
+      <li><b>기댓값(E[Sharpe])은 창별 실측 Sharpe의 단순 가중평균</b>이며, 각 창의 표본크기(거래일수)
+        차이나 창 간 상관관계를 통계적으로 엄밀하게 반영한 몬테카를로/베이지안 추정이 아니다 — "상대
+        순위 비교용 지표"로만 해석해야 한다.</li>
+      <li><b>다중비교 위험</b> — 이 저장소가 지금까지 수십 개의 파라미터/구조 변형을 반복 검증해온
+        근본적 한계(작업21이 이미 명시)는 이번 연구에도 그대로 적용된다. 정적보유가 사후적으로
+        기댓값 1위로 나온다는 것이, 애초에 무작위로 골랐어도 그만큼 좋았을 것이라는 보장은 아니다.</li>
+      <li><b>H23은 코어/새틀라이트 자체를 재계산하지 않고 h20 저장분을 재사용</b> — h20/h18의 데이터
+        제약(2008 3자산 근사, 일부 자산 최근 상장, 생존편향 등)이 그대로 승계된다.</li>
+    </ul>
+  </section>
+
+</div>
+
+<footer>
+  <p>analysis/2026-08-23_expected_value_reframing_and_continuous_exposure/ (데이터: report_data.json,
+    빌드: build_report.py) · h22_expected_value_reweighting.py는
+    analysis/2026-08-23_vix_fast_crash_signal_and_hybrid_switch/report_data.json과
+    analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/report_data.json의 기존 실측치를
+    재계산 없이 기저확률로 재가중한 순수 종합 스크립트다. h23_continuous_exposure_sizing.py는
+    h20_series_cache.pkl의 코어/새틀라이트 수익률 시계열을 재사용하되, 위기확률 신호(VIX+SPY-200일선
+    소프트OR 로지스틱 블렌드)는 신규 계산해 core.market_data를 통한 실제 Yahoo Finance(^VIX, SPY) 데이터로
+    새로 백테스트했다(추정치 아님). 이 워크트리는 main과 분기된 시점 이후 인프라 변경이 반영되지
+    않을 수 있어, 모든 스크립트가 main 체크아웃(/workspaces/Quant)의 core/ 및 이전 라운드 analysis/를
+    직접 참조해 실행했다 — 이 워크트리의 core/는 건드리지 않았다.</p>
+</footer>

@@ -1,0 +1,707 @@
+#!/usr/bin/env python3
+"""report_data.json을 읽어 최종 HTML 리포트(final_report.html)를 만든다.
+
+analysis/2026-08-16_tenbagger_stock_picking/build_report.py 와 동일한 파이프라인 패턴
+(데이터 JSON + 빌드 스크립트 -> 완성 HTML)과 동일한 CSS 디자인 시스템(다크네이비/올리브 톤,
+세리프 헤드라인, TOC, 섹션 번호)을 재사용한다.
+"""
+import json
+import math
+import os
+
+OUT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+with open(f"{OUT_DIR}/report_data.json", encoding="utf-8") as f:
+    R = json.load(f)
+
+GEN = R["meta"]["generated"][:10]
+PEERS = R["meta"]["peer_tickers"]
+H1, H2, H3, H4, H5 = R["h1"], R["h2"], R["h3"], R["h4"], R["h5"]
+
+# 각 스크립트의 verdict_hint는 이진(채택/기각) 자동판정이다. 본문 서술은 표본별로 엇갈리는 결과를
+# (예: H2는 다수 종목에서 확인되지만 헤지 자체의 실익은 없음, H3은 주표본은 채택이지만 강건성
+# 표본에서 모멘텀에 패배) 정성적으로 더 정확히 반영하는 "부분채택"으로 표시한다 — 배지와 본문
+# 서술이 어긋나지 않도록 여기서 한 곳으로 통일한다.
+DISPLAY_VERDICT = {"H1": H1["verdict_hint"], "H2": "부분채택", "H3": "부분채택", "H4": H4["verdict_hint"]}
+
+
+def fnum(v, digits=1, signed=False):
+    if v is None or (isinstance(v, float) and math.isnan(v)):
+        return "—"
+    s = f"{v:,.{digits}f}"
+    if signed and v > 0:
+        s = "+" + s
+    return s
+
+
+def esc(s):
+    return str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def verdict_badge(v):
+    cls = "v-accept" if v == "채택" else ("v-reject" if v == "기각" else "v-partial")
+    return f'<span class="verdict-badge {cls}">{esc(v)}</span>'
+
+
+# ---------------------------------------------------------------------------
+# CSS — tenbagger 리포트와 동일한 디자인 시스템 + 판정 배지 스타일 추가
+# ---------------------------------------------------------------------------
+CSS = """
+:root{
+  color-scheme: light;
+  --bg-page:#eef1ee; --surface:#ffffff; --surface-2:#f4f6f3;
+  --ink:#12181a; --ink-2:#495550; --ink-muted:#828d87;
+  --hairline:#d7ddd6; --border:rgba(11,11,11,0.10);
+  --accent:#1f4d3d; --accent-ink:#ffffff; --accent-2:#8a6a1f;
+  --accent-2-soft:#f2e6c8; --accent-soft:#e2ebe6; --chart-surface:#fcfcfb;
+  --blue:#2a78d6; --orange:#eb6834; --aqua:#1baf7a; --red:#e34948;
+  --gridline:#e1e0d9; --axis:#c3c2b7; --delta-pos:#184f95; --delta-neg:#b3261e;
+  --code-bg:#f4f6f3; --shadow: 0 1px 2px rgba(20,30,25,0.04), 0 8px 24px -16px rgba(20,30,25,0.18);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg-page:#0f1210; --surface:#171b16; --surface-2:#1c211b;
+    --ink:#f2f4f0; --ink-2:#c4cbc2; --ink-muted:#8b958a;
+    --hairline:#2c332a; --border:rgba(255,255,255,0.10);
+    --accent:#5aab89; --accent-ink:#0b1310; --accent-2:#d9b45c;
+    --accent-2-soft:#332a13; --accent-soft:#1b2921; --chart-surface:#1a1a19;
+    --blue:#3987e5; --orange:#d95926; --aqua:#199e70; --red:#e66767;
+    --gridline:#2c2c2a; --axis:#3a3f38; --delta-pos:#86b6ef; --delta-neg:#ff8a80;
+    --code-bg:#1c211b; --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -16px rgba(0,0,0,0.5);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg-page:#0f1210; --surface:#171b16; --surface-2:#1c211b;
+  --ink:#f2f4f0; --ink-2:#c4cbc2; --ink-muted:#8b958a;
+  --hairline:#2c332a; --border:rgba(255,255,255,0.10);
+  --accent:#5aab89; --accent-ink:#0b1310; --accent-2:#d9b45c;
+  --accent-2-soft:#332a13; --accent-soft:#1b2921; --chart-surface:#1a1a19;
+  --blue:#3987e5; --orange:#d95926; --aqua:#199e70; --red:#e66767;
+  --gridline:#2c2c2a; --axis:#3a3f38; --delta-pos:#86b6ef; --delta-neg:#ff8a80;
+  --code-bg:#1c211b; --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -16px rgba(0,0,0,0.5);
+}
+*{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{ margin:0; background:var(--bg-page); color:var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif; line-height:1.6; font-size:16px; }
+.serif{ font-family: "Iowan Old Style","Palatino Linotype", Georgia, serif; }
+.mono, .num, td.num, .tk-name, .kpi-value, code {
+  font-family: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+  font-variant-numeric: tabular-nums; }
+a{ color:var(--accent); }
+.wrap{ max-width: 920px; margin:0 auto; padding: 0 24px 96px; }
+.masthead{ background: var(--accent); color: var(--accent-ink); padding: 56px 24px 40px; }
+.masthead-inner{ max-width:920px; margin:0 auto; }
+.masthead-eyebrow{ font-size:12.5px; letter-spacing:0.12em; text-transform:uppercase; opacity:0.82;
+  font-family: ui-monospace, "SF Mono", Consolas, monospace; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.masthead-eyebrow .dot{ opacity:0.5; }
+h1.masthead-title{ font-family:"Iowan Old Style","Palatino Linotype", Georgia, serif; font-weight:600;
+  font-size: clamp(28px, 4.2vw, 44px); line-height:1.15; margin: 14px 0 10px; text-wrap: balance; max-width: 22ch; }
+.masthead-sub{ font-size:16.5px; max-width:66ch; opacity:0.92; margin:0 0 22px; }
+.masthead-meta{ display:flex; flex-wrap:wrap; gap: 10px 26px; font-size:13.5px; opacity:0.85;
+  border-top:1px solid rgba(255,255,255,0.22); padding-top:16px; }
+.masthead-meta b{ font-weight:600; }
+.section{ padding: 52px 0 8px; border-top:1px solid var(--hairline); }
+.section:first-of-type{ border-top:none; }
+.section h2{ font-family:"Iowan Old Style","Palatino Linotype", Georgia, serif; font-size: 25px;
+  font-weight:600; margin: 0 0 16px; display:flex; align-items:baseline; gap:12px; }
+.sec-no{ font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size:13px; color: var(--accent);
+  border:1px solid var(--accent); border-radius:3px; padding:2px 6px; font-weight:600; letter-spacing:0.02em; }
+.section h3{ font-size:17.5px; margin: 30px 0 10px; font-weight:650; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.section h4{ font-size:15px; margin: 20px 0 8px; font-weight:650; color:var(--ink-2); }
+.lede{ font-size:16.5px; color:var(--ink-2); max-width:72ch; }
+.section p{ max-width:74ch; }
+.section > p, .section > .lede { margin-top: 0; }
+.section li{ max-width:70ch; }
+.callout{ background: var(--surface-2); border:1px solid var(--hairline); border-left: 3px solid var(--accent);
+  border-radius: 6px; padding: 18px 22px; margin: 20px 0 26px; }
+.callout-title{ font-size:11.5px; text-transform:uppercase; letter-spacing:0.08em; color:var(--accent);
+  font-weight:700; margin-bottom:8px; }
+.callout p{ margin:0; max-width:none; }
+.callout p + p{ margin-top:10px; }
+.caveat{ font-size:14.5px; color:var(--ink-2); background:var(--surface-2); border-radius:6px;
+  padding:14px 18px; border:1px dashed var(--hairline); margin: 14px 0; }
+.formula-box{ background:var(--code-bg); border:1px solid var(--hairline); border-radius:8px;
+  padding:18px 22px; margin: 16px 0; overflow-x:auto; }
+.formula-box .f-line{ font-family: ui-monospace,"SF Mono",Consolas,monospace; font-size:15px;
+  color:var(--ink); white-space:nowrap; margin: 4px 0; }
+.formula-box .f-note{ font-size:12.5px; color:var(--ink-muted); margin-top:8px; font-family: system-ui,-apple-system,sans-serif; white-space:normal; }
+.kpi-row{ display:grid; grid-template-columns:repeat(auto-fit, minmax(190px,1fr)); gap:14px; margin: 20px 0 8px; }
+.kpi-tile{ background:var(--surface); border:1px solid var(--hairline); border-radius:8px; padding:16px 18px; box-shadow: var(--shadow); }
+.kpi-label{ font-size:12.5px; color:var(--ink-muted); margin-bottom:6px; }
+.kpi-value{ font-size:26px; font-weight:600; line-height:1.1; }
+.kpi-value.pos{ color:var(--delta-pos); }
+.kpi-value.neg{ color:var(--delta-neg); }
+.kpi-sub{ font-size:12.5px; color:var(--ink-muted); margin-top:4px; }
+.chart-card{ background:var(--chart-surface); border:1px solid var(--hairline); border-radius:10px;
+  padding:22px 22px 16px; margin: 22px 0; box-shadow: var(--shadow); }
+.chart-card h3{ margin: 0 0 4px; font-size:16px; }
+.chart-desc{ font-size:13.5px; color:var(--ink-muted); margin: 0 0 14px; max-width:none; }
+.legend{ display:flex; gap:18px; flex-wrap:wrap; margin: 2px 0 14px; font-size:12.5px; color:var(--ink-2); }
+.legend .lg-item{ display:flex; align-items:center; gap:6px; }
+.legend .lg-swatch{ width:14px; height:3px; border-radius:2px; display:inline-block; }
+.fig-caption{ font-size:12.5px; color:var(--ink-muted); margin: 10px 0 0; max-width:none; }
+svg.chart-svg{ width:100%; height:auto; display:block; overflow:visible; }
+svg.chart-svg text{ fill:var(--ink-2); font-family: system-ui,-apple-system,"Segoe UI",sans-serif; }
+svg.chart-svg .tick-label{ fill:var(--ink-muted); font-size:10.5px; }
+svg.chart-svg .axis-line{ stroke:var(--axis); stroke-width:1; }
+svg.chart-svg .grid-line{ stroke:var(--gridline); stroke-width:1; }
+svg.chart-svg .bar-label{ font-size:11px; fill:var(--ink-2); font-family: ui-monospace,"SF Mono",Consolas,monospace; }
+svg.chart-svg .cat-label{ font-size:12px; fill:var(--ink); }
+.table-wrap{ overflow-x:auto; border:1px solid var(--hairline); border-radius:8px; background:var(--surface); }
+table.data-table{ width:100%; border-collapse:collapse; font-size:13.5px; min-width:600px; }
+table.data-table th{ text-align:right; font-weight:600; font-size:11.5px; color:var(--ink-muted); text-transform:uppercase;
+  letter-spacing:0.03em; padding:10px 12px; border-bottom:1px solid var(--hairline); white-space:nowrap; }
+table.data-table .th-sub{ text-transform:none; font-weight:400; letter-spacing:0; font-size:10.5px; display:block; }
+table.data-table th:first-child, table.data-table td:first-child{ text-align:left; }
+table.data-table td{ padding:8px 12px; border-bottom:1px solid var(--hairline); text-align:right; white-space:nowrap; }
+table.data-table tbody tr:hover{ background:var(--surface-2); }
+table.data-table tbody tr:last-child td{ border-bottom:none; }
+td.tk-cell{ text-align:left !important; }
+td.tk-cell .tk-name{ font-weight:650; margin-right:8px; }
+td.tk-cell .tk-sector{ font-size:11.5px; color:var(--ink-muted); font-family: system-ui,-apple-system,sans-serif; }
+td.ctr{ text-align:center !important; }
+td.num.delta.pos, .delta.pos{ color:var(--delta-pos); font-weight:650; }
+td.num.delta.neg, .delta.neg{ color:var(--delta-neg); font-weight:650; }
+.strong{ font-weight:700; }
+tr.best-row{ background: var(--accent-soft); }
+footer{ max-width:920px; margin:40px auto 0; padding: 26px 24px 10px; border-top:1px solid var(--hairline);
+  font-size:12.5px; color:var(--ink-muted); }
+footer p{ max-width:none; }
+.toc{ display:flex; flex-wrap:wrap; gap:8px 18px; margin: 24px 0 4px; padding:16px 20px; background:var(--surface);
+  border:1px solid var(--hairline); border-radius:8px; }
+.toc a{ font-size:13.5px; color:var(--ink-2); text-decoration:none; }
+.toc a:hover{ color:var(--accent); text-decoration:underline; }
+.src-list{ font-size:13px; color:var(--ink-2); padding-left:18px; }
+.src-list li{ margin: 6px 0; }
+.verdict-badge{ display:inline-block; font-size:12px; font-weight:700; letter-spacing:0.03em;
+  padding:3px 10px; border-radius:20px; text-transform:uppercase; }
+.v-accept{ background: var(--accent-soft); color: var(--accent); border:1px solid var(--accent); }
+.v-reject{ background: rgba(179,38,30,0.10); color: var(--delta-neg); border:1px solid var(--delta-neg); }
+.v-partial{ background: var(--accent-2-soft); color: var(--accent-2); border:1px solid var(--accent-2); }
+.hyp-card{ background:var(--surface); border:1px solid var(--hairline); border-radius:8px; padding:16px 20px; margin:14px 0; }
+.hyp-card .hyp-id{ font-family: ui-monospace,"SF Mono",Consolas,monospace; font-weight:700; color:var(--accent); font-size:13px; }
+"""
+
+# ---------------------------------------------------------------------------
+# SVG 막대차트 (Sharpe 비교용, 범용)
+# ---------------------------------------------------------------------------
+def bar_chart(rows, max_val=None, unit="", w=860):
+    """rows: list of (label, value, color_var). 0 기준 가로막대."""
+    H = 34 * len(rows) + 30
+    left_pad, right_pad, top_pad = 190, 70, 10
+    bar_area_w = w - left_pad - right_pad
+    if max_val is None:
+        max_val = max(v for _, v, _ in rows) * 1.15
+
+    def x_for(v):
+        return left_pad + (v / max_val) * bar_area_w if max_val else left_pad
+
+    parts = [f'<svg class="chart-svg" viewBox="0 0 {w} {H}" role="img" aria-label="비교 막대차트">']
+    steps = 4
+    for si in range(steps + 1):
+        gv = max_val * si / steps
+        gx = x_for(gv)
+        parts.append(f'<line class="grid-line" x1="{gx:.1f}" y1="{top_pad}" x2="{gx:.1f}" y2="{H-10}"/>')
+        parts.append(f'<text class="tick-label" x="{gx:.1f}" y="{H-2}" text-anchor="middle">{gv:.2f}{unit}</text>')
+
+    for i, (label, val, color) in enumerate(rows):
+        y = top_pad + i * 34 + 17
+        bx = x_for(max(val, 0))
+        parts.append(f'<text class="cat-label" x="{left_pad-10}" y="{y+4}" text-anchor="end">{esc(label)}</text>')
+        parts.append(f'<rect x="{left_pad}" y="{y-9}" width="{max(bx-left_pad,2):.1f}" height="18" rx="3" fill="{color}" opacity="0.88"/>')
+        parts.append(f'<text class="bar-label" x="{bx+8:.1f}" y="{y+4}">{val:.3f}{unit}</text>')
+    parts.append("</svg>")
+    return "".join(parts)
+
+
+# ---------------------------------------------------------------------------
+# H1 표 (IREN + 6개 피어 + 바스켓)
+# ---------------------------------------------------------------------------
+def h1_row(tkr, d, is_basket=False):
+    return (
+        "<tr>"
+        f'<td class="tk-cell"><span class="tk-name">{esc(tkr)}</span></td>'
+        f'<td class="num">{fnum(d["avg_rolling_beta"],2)}</td>'
+        f'<td class="num">{fnum(d["unhedged"]["ann_vol_pct"],0)}%</td>'
+        f'<td class="num">{fnum(d["unhedged"]["cagr_pct"],1,True)}%</td>'
+        f'<td class="num strong">{fnum(d["unhedged"]["sharpe"],3)}</td>'
+        f'<td class="num">{fnum(d["unhedged"]["mdd_pct"],1)}%</td>'
+        f'<td class="num">{fnum(d["rolling_hedged"]["cagr_pct"],1,True)}%</td>'
+        f'<td class="num strong">{fnum(d["rolling_hedged"]["sharpe"],3)}</td>'
+        f'<td class="num">{fnum(d["rolling_hedged"]["mdd_pct"],1)}%</td>'
+        f'<td class="num delta {"pos" if d["sharpe_improved_rolling"] else "neg"}">{fnum(d["sharpe_delta_rolling"],3,True)}</td>'
+        "</tr>"
+    )
+
+
+h1_rows = [h1_row("IREN (본종목)", H1["iren"])]
+for t, d in H1["peers"].items():
+    h1_rows.append(h1_row(t, d))
+h1_table_html = "\n".join(h1_rows)
+
+h1_sharpe_bar = bar_chart(
+    [("IREN 무헤지", H1["iren"]["unhedged"]["sharpe"], "var(--aqua)"),
+     ("IREN 롤링헤지", H1["iren"]["rolling_hedged"]["sharpe"], "var(--red)"),
+     ("바스켓(7종목) 무헤지", H1["basket"]["unhedged"]["sharpe"], "var(--aqua)"),
+     ("바스켓(7종목) 롤링헤지", H1["basket"]["rolling_hedged"]["sharpe"], "var(--red)")],
+    unit="", w=860,
+)
+
+# ---------------------------------------------------------------------------
+# H2 표
+# ---------------------------------------------------------------------------
+def h2_row(tkr, d):
+    sr = d["static_regression"]
+    hs = d["hedge_simulation"]["sharpes"]
+    return (
+        "<tr>"
+        f'<td class="tk-cell"><span class="tk-name">{esc(tkr)}</span></td>'
+        f'<td class="num">{fnum(sr["market_only"]["r2"],3)}</td>'
+        f'<td class="num strong">{fnum(sr["btc_only"]["r2"],3)}</td>'
+        f'<td class="num">{fnum(sr["market_and_btc"]["r2"],3)}</td>'
+        f'<td class="num">{fnum(sr["market_and_btc"]["beta_mkt"],2)}</td>'
+        f'<td class="num">{fnum(sr["market_and_btc"]["beta_btc"],2)}</td>'
+        f'<td class="num">{fnum(hs["market_hedge"],3)}</td>'
+        f'<td class="num strong">{fnum(hs["btc_hedge"],3)}</td>'
+        f'<td class="num">{esc(d["hedge_simulation"]["best_hedge"].replace("_"," "))}</td>'
+        "</tr>"
+    )
+
+
+h2_rows = [h2_row("IREN (본종목)", H2["iren"])]
+for t, d in H2["peers"].items():
+    h2_rows.append(h2_row(t, d))
+h2_table_html = "\n".join(h2_rows)
+
+h2_r2_bar = bar_chart(
+    [("시장(SPY)만", H2["summary"]["avg_r2_market_only"], "var(--blue)"),
+     ("BTC만", H2["summary"]["avg_r2_btc_only"], "var(--orange)"),
+     ("시장+BTC 동시", H2["summary"]["avg_r2_market_and_btc"], "var(--aqua)")],
+    unit="", w=860,
+)
+
+# ---------------------------------------------------------------------------
+# H3 표 (primary + robustness)
+# ---------------------------------------------------------------------------
+def h3_table(block):
+    order = [("EW", "동일가중"), ("LB", "저베타 틸트"), ("HB", "고베타 틸트(대조군)"), ("MOM", "모멘텀 랭킹")]
+    rows = []
+    for key, label in order:
+        m = block["metrics"][key]
+        rb = block["realized_beta"].get(key)
+        best = key == max(block["metrics"], key=lambda k: block["metrics"][k]["sharpe"])
+        cls = "best-row" if best else ""
+        rows.append(
+            f'<tr class="{cls}">'
+            f'<td class="tk-cell"><span class="tk-name">{esc(label)}</span><span class="tk-sector">{esc(key)}</span></td>'
+            f'<td class="num">{fnum(rb,2) if rb is not None else "—"}</td>'
+            f'<td class="num">{fnum(m["cagr_pct"],1,True)}%</td>'
+            f'<td class="num">{fnum(m["ann_vol_pct"],0)}%</td>'
+            f'<td class="num strong">{fnum(m["sharpe"],3)}</td>'
+            f'<td class="num">{fnum(m["mdd_pct"],1)}%</td>'
+            "</tr>"
+        )
+    return "\n".join(rows)
+
+
+h3_primary_table = h3_table(H3["primary"])
+h3_robust_table = h3_table(H3["robustness_all7"])
+h3_primary_bar = bar_chart(
+    [("동일가중(EW)", H3["primary"]["metrics"]["EW"]["sharpe"], "var(--blue)"),
+     ("저베타틸트(LB)", H3["primary"]["metrics"]["LB"]["sharpe"], "var(--aqua)"),
+     ("고베타틸트(HB)", H3["primary"]["metrics"]["HB"]["sharpe"], "var(--red)"),
+     ("모멘텀랭킹(MOM)", H3["primary"]["metrics"]["MOM"]["sharpe"], "var(--orange)")],
+    unit="", w=860,
+)
+
+# ---------------------------------------------------------------------------
+# H4 표
+# ---------------------------------------------------------------------------
+def h4_table(block):
+    rows = []
+    for key, label in [("EW_budget", "동일가중 + 베타예산"), ("InvBeta_budget", "역베타가중 + 베타예산")]:
+        m = block["metrics"][key]
+        ep = block["expost_regression"][key]
+        inv = block["avg_invested_fraction"][key]
+        rows.append(
+            "<tr>"
+            f'<td class="tk-cell"><span class="tk-name">{esc(label)}</span></td>'
+            f'<td class="num">{fnum(inv*100,1)}%</td>'
+            f'<td class="num">{fnum(ep["realized_beta"],2)}</td>'
+            f'<td class="num">{fnum(m["cagr_pct"],1,True)}%</td>'
+            f'<td class="num strong">{fnum(m["sharpe"],3)}</td>'
+            f'<td class="num">{fnum(m["mdd_pct"],1)}%</td>'
+            f'<td class="num strong">{fnum(ep["alpha_annualized_pct"],2,True)}%</td>'
+            "</tr>"
+        )
+    return "\n".join(rows)
+
+
+h4_primary_table = h4_table(H4["primary"])
+h4_robust_table = h4_table(H4["robustness_all7"])
+
+# ---------------------------------------------------------------------------
+# H5 목록
+# ---------------------------------------------------------------------------
+h5_points_html = "\n".join(f"<li>{esc(p)}</li>" for p in H5["points"])
+h5_sources_html = "\n".join(f'<li><a href="{s["url"]}" target="_blank" rel="noopener">{esc(s["title"])}</a></li>' for s in H5["sources"])
+
+peer_sources_html = "\n".join(f'<li><a href="{s["url"]}" target="_blank" rel="noopener">{esc(s["title"])}</a></li>' for s in R["peer_context_sources"])
+bab_src = R["bab_source"]
+
+# ---------------------------------------------------------------------------
+# 최종 HTML 조립
+# ---------------------------------------------------------------------------
+HTML = f"""<title>베타는 지키고 알파는 쫓기</title>
+<style>
+{CSS}
+</style>
+
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="masthead-eyebrow">
+      <span>QUANT RESEARCH NOTE</span><span class="dot">·</span><span>Track C · 가설검증</span><span class="dot">·</span><span>Hypothesis-Driven Study</span>
+    </div>
+    <h1 class="masthead-title">베타는 지키고 알파는 쫓기 — IREN류 비트코인채굴→AI 피벗주의 베타/알파 분리 전략 4가설 검증</h1>
+    <p class="masthead-sub">IREN(아이리스에너지) 같은 소형·고변동성 테마주는 정작 투자자가 베팅하고 싶은 것(피벗 서사의
+      고유 알파)보다 원치 않는 것(시장 베타, 비트코인 가격 베타)이 더 크게 수익률을 흔든다. 시장베타 헤지·
+      비트코인베타 분해·저베타 틸트·베타가중 사이징 4개 가설을 실제 가격 데이터로 검증하고, 채택/기각을
+      가감없이 보고한다.</p>
+    <div class="masthead-meta">
+      <span><b>기준일</b> {esc(GEN)}</span>
+      <span><b>대상 종목</b> {esc(", ".join(PEERS))}</span>
+      <span><b>벤치마크</b> SPY(시장) · BTC-USD(비트코인)</span>
+      <span><b>데이터</b> Yahoo Finance(yfinance) via core.market_data 로컬 캐시</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <nav class="toc">
+    <a href="#scope">00 문제 제기</a>
+    <a href="#hypotheses">01 가설 목록</a>
+    <a href="#methodology">02 데이터·방법론</a>
+    <a href="#h1">03 H1 — 시장베타 헤지</a>
+    <a href="#h2">04 H2 — 비트코인베타 분해</a>
+    <a href="#h3">05 H3 — 저베타 틸트(BAB)</a>
+    <a href="#h4">06 H4 — 베타가중 사이징</a>
+    <a href="#h5">07 H5 — 옵션 헤지(정성)</a>
+    <a href="#synthesis">08 종합</a>
+    <a href="#limitations">09 한계</a>
+    <a href="#sources">부록: 출처</a>
+  </nav>
+
+  <section class="section" id="scope">
+    <h2><span class="sec-no">00</span> 문제 제기 — 왜 이 종목군에서 베타/알파 분리가 특히 중요한가</h2>
+    <p class="lede">IREN은 원래 비트코인 채굴 회사였다가 AI/HPC(고성능 컴퓨팅) 데이터센터 임대로 사업을
+      재편 중이다 — 마이크로소프트와 97억 달러 규모 10년 계약을 체결하는 등, 시장이 주목하는 것은
+      "이 회사의 피벗 서사가 재평가(re-rate)될 것"이라는 고유(idiosyncratic) 알파 스토리다. 그런데
+      이런 종목의 주가는 그 스토리와 무관한 두 가지 요인에도 동시에 크게 흔들린다.</p>
+    <ol>
+      <li><b>시장 베타</b> — 아래 03장 실측대로 이 종목군의 평균 롤링 베타는 SPY 대비 약 2~3배에
+        달한다. 시장이 5% 빠지면 이 종목군은 평균 10~15% 빠질 수 있다는 뜻이고, 이건 "피벗 서사가
+        틀렸다"와 아무 상관 없는 순수 시장 하락의 증폭일 뿐이다.</li>
+      <li><b>테마 베타(비트코인 가격)</b> — 아직 대차대조표에 비트코인을 보유하고 있거나(또는 최근까지
+        보유했던) 채굴 매출 비중이 남아있는 한, 이 종목군은 비트코인 가격과도 별도로 연동된다.
+        04장 실측대로 일부 종목은 비트코인 익스포저가 시장 익스포저보다 설명력이 크다.</li>
+    </ol>
+    <p>즉 롱 포지션 하나에 "시장 익스포저 + 비트코인 익스포저 + 피벗 서사 고유 알파" 세 가지가
+      뒤섞여 있다. 이 리포트는 앞의 두 개(원치 않는 베타)를 걷어내고 세 번째(원하는 알파)만 남기는
+      것이 실제로 가능한지, 가능하다면 그게 위험조정 수익을 개선하는지를 실측한다.</p>
+    <p class="caveat">⚠️ 이 리포트는 투자 조언이 아니다. 특정 종목의 매수/매도를 추천하지 않으며,
+      아래 실측 결과 중 다수는 "헤지가 도움이 안 됐다"는 방향으로 나왔다 — 이 저장소의 다른
+      리서치(No.06 변동성타겟팅·회전율버퍼 기각 등)와 마찬가지로, 예상과 반대되는 결과도 그대로
+      보고하는 것이 원칙이다.</p>
+  </section>
+
+  <section class="section" id="hypotheses">
+    <h2><span class="sec-no">01</span> 가설 목록 — 검증 가능한 문장으로</h2>
+    <div class="hyp-card">
+      <div class="hyp-id">H1 — 시장 베타 헤지</div>
+      <p style="margin:6px 0 0;">종목(또는 바스켓)의 롱 포지션에 대해 SPY 대비 롤링 OLS 베타만큼
+        숏 헤지를 걸면, 헤지 없는 순수 롱보다 샤프비율이 개선된다.</p>
+    </div>
+    <div class="hyp-card">
+      <div class="hyp-id">H2 — 테마 베타(비트코인) 헤지</div>
+      <p style="margin:6px 0 0;">이 종목군의 수익률은 시장수익률보다 비트코인수익률에 대한 설명력
+        (R²)이 더 크거나 비슷한 수준이며, 비트코인 베타 기준 헤지가 시장 베타 기준 헤지보다 "노이즈"를
+        더 잘 제거해 헤지 후 잔차(고유 알파)의 샤프비율이 더 높다.</p>
+    </div>
+    <div class="hyp-card">
+      <div class="hyp-id">H3 — 베팅어게인스트베타(BAB) 저베타 이상현상</div>
+      <p style="margin:6px 0 0;">후보군 내에서도 상대적으로 베타가 낮은 종목/구간에 더 많은 비중을
+        주는 저베타 틸트 포트폴리오가, 단순 동일가중이나 모멘텀 랭킹 포트폴리오보다 위험조정 수익
+        (샤프비율)이 높다. Frazzini &amp; Pedersen(2014, JFE) "Betting Against Beta"의 저베타 이상현상이
+        이 좁은 소형 테마주 후보군 내부에서도 성립하는지 검증한다.</p>
+    </div>
+    <div class="hyp-card">
+      <div class="hyp-id">H4 — 베타가중 포지션 사이징(고정 베타 예산)</div>
+      <p style="margin:6px 0 0;">포트폴리오 전체의 목표 베타를 고정(0.3)해두고 종목별 베타에
+        반비례하게 비중을 배분(역베타가중)하면, 동일한 목표 베타·동일한 위험 수준에서 단순
+        동일가중보다 고유 알파(사후 회귀 알파) 기여와 샤프비율이 더 크다.</p>
+    </div>
+    <div class="hyp-card">
+      <div class="hyp-id">H5 — 옵션 기반 헤지 (정성적, 실측 생략)</div>
+      <p style="margin:6px 0 0;">Protective put/collar가 이 종목군에 실전적으로 유효한지를, 이
+        저장소에 옵션 백테스트 인프라가 없어 실측 대신 딥서치 근거로 프레이밍만 정리한다.</p>
+    </div>
+  </section>
+
+  <section class="section" id="methodology">
+    <h2><span class="sec-no">02</span> 데이터·방법론</h2>
+    <p class="lede">대상 종목은 IREN과 비트코인채굴→AI/HPC 피벗 동종 6개사
+      ({esc(", ".join(t for t in PEERS if t != "IREN"))}) — 딥서치로 2026년 8월 시점 유효성을 확인했다
+      (마이크로소프트·CoreWeave 등과의 대형 AI 호스팅 계약 공시가 이 그룹의 공통 서사).</p>
+    <ul>
+      <li><b>베타 추정</b> — statsmodels/scipy 없이(이 저장소 의존성 최소화 원칙) numpy 기반 OLS만 사용.
+        단순회귀는 <code>Cov(R_stock,R_mkt)/Var(R_mkt)</code>(rolling), 다변량회귀(H2 두 요인)는
+        <code>numpy.linalg.lstsq</code>. 룩어헤드 방지를 위해 t일의 헤지비율/베타는 항상 t-1일까지의
+        데이터로 추정한 값을 쓴다(<code>shift(1)</code>).</li>
+      <li><b>롤링 윈도우</b> — H1/H2는 126거래일(약 6개월), H3/H4는 90거래일 베타 + 월간(21거래일)
+        리밸런싱.</li>
+      <li><b>성과지표</b> — 이 저장소 <code>core.backtest_engine</code>과 동일한 정의(무위험수익률=0,
+        Sharpe = 일간수익률평균/표준편차 × √252)를 그대로 따라 다른 리포트와 숫자가 바로 비교되게 했다.</li>
+      <li><b>데이터 시작일</b> — 개별종목 분석(H1/H2)은 2020-01-01부터로 통일했다. 이보다 이른 구간은
+        WULF/CLSK/HUT처럼 오래된 티커의 피벗 이전(리버스머지·셸기업) 시기가 섞여 하루 +100%를 넘는
+        극단치(예: CLSK 2018-09-19 +386.7%)가 베타·변동성 추정을 왜곡하기 때문이다(09장 참고).
+        H3/H4(포트폴리오 구성)는 IREN 상장일(2021-11-18) 기준 6종목 공통구간을 주 표본으로, CORZ를
+        포함한 7종목 공통구간(2024-01-25~)을 강건성 검증으로 병행했다.</li>
+      <li><b>비용</b> — 거래비용·공매도 차입비용·마진 이자는 반영하지 않았다(09장 한계).</li>
+    </ul>
+  </section>
+
+  <section class="section" id="h1">
+    <h2><span class="sec-no">03</span> H1 — 시장 베타 헤지 {verdict_badge(DISPLAY_VERDICT["H1"])}</h2>
+    <p class="lede">IREN 및 6개 피어 종목 각각에 대해 롤링 베타만큼 SPY를 숏 헤지했을 때 샤프비율이
+      개선되는지 검증했다. 결과: <b>{H1["n_tickers_sharpe_improved"]}/{H1["n_tickers_total"]}종목에서만
+      샤프비율 개선</b> — 전 종목에서 헤지 후 샤프비율이 오히려 하락했다.</p>
+    <div class="chart-card">
+      <h3>무헤지 vs 롤링 베타헤지 샤프비율 비교</h3>
+      <p class="chart-desc">IREN 단독과 7종목 동일가중 바스켓 모두에서 헤지 후 샤프비율이 뚜렷하게 하락한다.</p>
+      {h1_sharpe_bar}
+    </div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>종목</th><th>평균롤링베타</th><th>무헤지 연변동성</th><th>무헤지 CAGR</th><th>무헤지 샤프</th><th>무헤지 MDD</th><th>헤지 CAGR</th><th>헤지 샤프</th><th>헤지 MDD</th><th>샤프 변화</th></tr></thead>
+        <tbody>{h1_table_html}</tbody>
+      </table>
+    </div>
+    <p class="caveat">⚠️ <b>왜 기각됐는가</b> — 이 종목군은 분석기간 내내(2020~2026, 특히 2024년 이후 AI
+      피벗 랠리) 시장을 크게 웃도는 양의 초과수익을 냈다(IREN 무헤지 CAGR {fnum(H1["iren"]["unhedged"]["cagr_pct"],0,True)}%).
+      베타 헤지는 하락장 방어 효과(MDD는 IREN {fnum(H1["iren"]["unhedged"]["mdd_pct"],0)}%→{fnum(H1["iren"]["rolling_hedged"]["mdd_pct"],0)}%로 실제로 개선)를
+      내긴 했지만, 시장과 함께 오를 때 벌어야 했던 수익까지 통째로 깎아내 총위험조정수익(샤프)은
+      오히려 나빠졌다 — "베타를 지킨다"는 것이 공짜가 아니라 이 종목군처럼 베타 자체가 초과수익의
+      상당 부분을 차지할 때는 비용이 매우 크다는 뜻이다.</p>
+  </section>
+
+  <section class="section" id="h2">
+    <h2><span class="sec-no">04</span> H2 — 테마 베타(비트코인) 분해 {verdict_badge(DISPLAY_VERDICT["H2"])}</h2>
+    <p class="lede">시장(SPY)과 비트코인(BTC-USD) 두 요인에 동시 회귀시켜 설명력(R²)을 비교했다.
+      전체 {H2["summary"]["n_tickers"]}종목 중 <b>{H2["summary"]["n_btc_r2_greater_than_market_r2"]}종목에서
+      비트코인 단독 R²가 시장 단독 R²보다 컸고</b>, 평균으로도 BTC R²
+      ({fnum(H2["summary"]["avg_r2_btc_only"],3)})가 시장 R²({fnum(H2["summary"]["avg_r2_market_only"],3)})보다
+      높았다. 헤지 시뮬레이션에서도 <b>{H2["summary"]["best_hedge_vote_counts"].get("btc_hedge",0)}/{H2["summary"]["n_tickers"]}종목에서
+      BTC 헤지가 시장 헤지보다 헤지 후 샤프비율이 더 높았다</b>(=BTC 헤지가 노이즈를 더 잘 제거).</p>
+    <div class="chart-card">
+      <h3>평균 설명력(R²) — 시장만 vs 비트코인만 vs 동시회귀</h3>
+      <p class="chart-desc">동시회귀(시장+BTC)의 R²가 둘 중 어느 단일요인보다도 항상 높다는 것은
+        두 베타가 서로 다른 정보를 담고 있어(중복이 아니라 보완) 둘 다 걷어내야 잔차가 더 깨끗해진다는 뜻이다.</p>
+      {h2_r2_bar}
+    </div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>종목</th><th>R²(시장만)</th><th>R²(BTC만)</th><th>R²(동시)</th><th>β시장(동시회귀)</th><th>β BTC(동시회귀)</th><th>시장헤지 샤프</th><th>BTC헤지 샤프</th><th>최적 헤지</th></tr></thead>
+        <tbody>{h2_table_html}</tbody>
+      </table>
+    </div>
+    <h3>IREN 상세</h3>
+    <p>IREN 단독으로는 BTC R²({fnum(H2["iren"]["static_regression"]["btc_only"]["r2"],3)})가 시장
+      R²({fnum(H2["iren"]["static_regression"]["market_only"]["r2"],3)})보다 뚜렷이 크고, 동시회귀
+      R²는 {fnum(H2["iren"]["static_regression"]["market_and_btc"]["r2"],3)}까지 올라간다(β시장
+      {fnum(H2["iren"]["static_regression"]["market_and_btc"]["beta_mkt"],2)}, β BTC
+      {fnum(H2["iren"]["static_regression"]["market_and_btc"]["beta_btc"],2)}). 헤지 시뮬레이션에서
+      BTC 단독 헤지(샤프 {fnum(H2["iren"]["hedge_simulation"]["sharpes"]["btc_hedge"],3)})가 시장
+      단독 헤지(샤프 {fnum(H2["iren"]["hedge_simulation"]["sharpes"]["market_hedge"],3)})보다 무헤지
+      샤프({fnum(H2["iren"]["hedge_simulation"]["sharpes"]["unhedged"],3)})에 훨씬 가깝게 유지된다 —
+      "덜 나쁜 헤지"라는 뜻이다. 다만 시장+BTC 동시헤지(샤프
+      {fnum(H2["iren"]["hedge_simulation"]["sharpes"]["both_hedge"],3)})는 오히려 셋 중 가장 나쁘다 —
+      두 헤지를 동시에 걸면 IREN 고유의 상승 드리프트(피벗 재평가 알파)까지 과도하게 깎여나가기
+      때문으로 보인다.</p>
+    <p class="caveat">⚠️ <b>부분채택으로 판정한 이유</b> — H1과 마찬가지로 어떤 헤지도 무헤지를 샤프
+      기준으로 이기지 못했다(즉 "헤지하라"는 결론은 아니다). 다만 H2가 실제로 검증하려던 좁은
+      질문 — "굳이 헤지한다면 시장보다 비트코인 기준이 나은가" — 에는 과반 종목에서 그렇다는
+      답이 나왔다. 두 결과를 합쳐 "BTC 익스포저는 실재하고 시장 익스포저보다 정보가치가 크지만,
+      그렇다고 헤지 자체가 이득이 되는 건 아니다"로 정리하는 게 정확하다.</p>
+  </section>
+
+  <section class="section" id="h3">
+    <h2><span class="sec-no">05</span> H3 — 베팅어게인스트베타(BAB) 저베타 틸트 {verdict_badge(DISPLAY_VERDICT["H3"])}</h2>
+    <p class="lede">월간 리밸런싱으로 저베타 틸트(LB)·동일가중(EW)·고베타 틸트(HB, 대조군)·모멘텀
+      랭킹(MOM) 4개 포트폴리오를 100% 투자 상태로 비교했다(현금 없음 — H4와의 핵심 차이).</p>
+    <h3>주 표본 — {esc(H3["primary"]["label"])} ({esc(H3["primary"]["start"])} ~ {esc(H3["primary"]["end"])})</h3>
+    <div class="chart-card">
+      <h3>포트폴리오별 샤프비율</h3>
+      <p class="chart-desc">저베타 틸트(LB)가 동일가중·고베타 틸트·모멘텀 랭킹을 모두 앞선다 —
+        Frazzini &amp; Pedersen의 저베타 이상현상과 같은 방향.</p>
+      {h3_primary_bar}
+    </div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>포트폴리오</th><th>실현베타(사후)</th><th>CAGR</th><th>연변동성</th><th>샤프</th><th>MDD</th></tr></thead>
+        <tbody>{h3_primary_table}</tbody>
+      </table>
+    </div>
+    <h3>강건성 검증 — {esc(H3["robustness_all7"]["label"])} ({esc(H3["robustness_all7"]["start"])} ~ {esc(H3["robustness_all7"]["end"])})</h3>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>포트폴리오</th><th>실현베타(사후)</th><th>CAGR</th><th>연변동성</th><th>샤프</th><th>MDD</th></tr></thead>
+        <tbody>{h3_robust_table}</tbody>
+      </table>
+    </div>
+    <p class="caveat">⚠️ <b>부분채택인 이유</b> — 주 표본(4.75년, 6종목)에서는 LB가 EW·HB·MOM을 전부
+      앞서 가설이 온전히 채택된다. 그런데 최근 2년(2024-01~2026-08, AI 피벗 랠리가 본격화된 구간,
+      CORZ 포함 7종목) 강건성 표본에서는 LB가 EW·HB는 여전히 이기지만 <b>모멘텀 랭킹(MOM)에는
+      진다</b>(샤프 {fnum(H3["robustness_all7"]["metrics"]["MOM"]["sharpe"],2)} vs
+      {fnum(H3["robustness_all7"]["metrics"]["LB"]["sharpe"],2)}) — 서사가 실제로 재평가되며 주가가
+      폭등하던 국면에서는 "낮은 베타"보다 "이미 오르고 있는 종목을 따라가는 것"이 더 잘 먹혔다는
+      뜻이다. 즉 BAB 효과(EW·HB 대비 LB 우위)는 두 표본 모두에서 방향이 일관되게 확인되지만,
+      모멘텀까지 이기는 건 변동성 국면에 따라 갈린다.</p>
+  </section>
+
+  <section class="section" id="h4">
+    <h2><span class="sec-no">06</span> H4 — 베타가중 포지션 사이징(고정 베타예산 0.3) {verdict_badge(DISPLAY_VERDICT["H4"])}</h2>
+    <p class="lede">H3과 달리 포트폴리오 전체 베타를 {fnum(H4["target_beta"],1)}으로 고정(현금오버레이로
+      투자비중을 낮춤)한 뒤, 그 안에서 동일가중과 역베타가중 중 어느 쪽의 사후 알파·샤프가 더 큰지
+      비교했다.</p>
+    <h3>주 표본 — {esc(H4["primary"]["label"])} ({esc(H4["primary"]["start"])} ~ {esc(H4["primary"]["end"])})</h3>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>포트폴리오</th><th>평균 투자비중</th><th>실현베타(사후)</th><th>CAGR</th><th>샤프</th><th>MDD</th><th>연환산 알파</th></tr></thead>
+        <tbody>{h4_primary_table}</tbody>
+      </table>
+    </div>
+    <h3>강건성 검증 — {esc(H4["robustness_all7"]["label"])} ({esc(H4["robustness_all7"]["start"])} ~ {esc(H4["robustness_all7"]["end"])})</h3>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>포트폴리오</th><th>평균 투자비중</th><th>실현베타(사후)</th><th>CAGR</th><th>샤프</th><th>MDD</th><th>연환산 알파</th></tr></thead>
+        <tbody>{h4_robust_table}</tbody>
+      </table>
+    </div>
+    <p class="caveat">⚠️ <b>기각된 이유 — H3과 정반대 결과</b> — 두 포트폴리오 모두 목표 베타
+      0.3 근처(사후 실현베타 약 0.27~0.30)에 정확히 도달해 현금오버레이 메커니즘 자체는 의도대로
+      작동했다. 그런데 주 표본에서는 역베타가중(InvBeta_budget)이 동일가중(EW_budget)보다 샤프
+      ({fnum(H4["primary"]["metrics"]["InvBeta_budget"]["sharpe"],2)} vs
+      {fnum(H4["primary"]["metrics"]["EW_budget"]["sharpe"],2)})·연환산 알파
+      ({fnum(H4["primary"]["expost_regression"]["InvBeta_budget"]["alpha_annualized_pct"],1,True)}%
+      vs {fnum(H4["primary"]["expost_regression"]["EW_budget"]["alpha_annualized_pct"],1,True)}%)
+      모두 뚜렷이 낮다 — H3에서는 저베타 틸트가 이겼는데 여기서는 진다. 투자비중이 11~16%로
+      낮아지면 역베타가중은 "그 시점 우연히 베타가 낮게 추정된 소수 종목"에 자본을 몰아주게
+      되는데, 소형 테마주의 베타 추정 자체가 잡음이 커서(H3 09장 참고) 이 몰아주기가 오히려
+      분산을 해치고 예측력 없는 종목에 걸 확률을 높인 것으로 보인다. 강건성 표본(최근 2년,
+      투자비중 9~10%)에서는 역베타가중이 근소하게 앞서지만({fnum(H4["robustness_all7"]["metrics"]["InvBeta_budget"]["sharpe"],3)}
+      vs {fnum(H4["robustness_all7"]["metrics"]["EW_budget"]["sharpe"],3)}) 차이가 워낙 작아 잡음
+      범위 안이라고 보는 게 안전하다 — 종합하면 "베타 예산을 낮게 고정한 채 역베타가중까지 얹는"
+      전략은 이 표본에서 뚜렷한 이점이 없다.</p>
+  </section>
+
+  <section class="section" id="h5">
+    <h2><span class="sec-no">07</span> H5 — 옵션 기반 헤지 (정성적 프레이밍, 실측 생략)</h2>
+    <p class="lede">{esc(H5["why_no_backtest"])}</p>
+    <ul>
+      {h5_points_html}
+    </ul>
+    <h4>출처</h4>
+    <ul class="src-list">
+      {h5_sources_html}
+    </ul>
+  </section>
+
+  <section class="section" id="synthesis">
+    <h2><span class="sec-no">08</span> 종합 — 실제로 베타를 지키며 알파를 쫓는 데 효과적이었던 설계</h2>
+    <p class="lede">4개 가설 중 조건 없이 완전히 채택된 것은 없다 — 부분채택 둘(H2, H3), 명확히
+      기각된 것 둘(H1, H4)이다. 이 패턴 자체가 핵심 결론을 담고 있다.</p>
+    <p><b>결론 1 — "숏 헤지로 베타를 지운다"는 접근(H1, H4)은 이 종목군에서 대체로 역효과였다.</b>
+      시장이든 비트코인이든, 노출을 실제로 지우거나(H1) 위험예산을 인위적으로 낮추면(H4)
+      위험조정수익이 오히려 나빠졌다 — 이 종목군의 초과수익 상당 부분이 바로 그 "지우려는" 베타
+      노출 자체에서 나왔기 때문이다. 헤지는 공짜 보험이 아니라 기대수익을 깎는 거래이고, 이
+      종목군처럼 베타가 곧 상승 동력의 일부인 자산에서는 그 대가가 특히 크다.</p>
+    <p><b>결론 2 — "무엇에 노출돼 있는지 정확히 아는 것"(H2)과 "같은 노출 안에서 상대적으로 더 싼
+      쪽에 담는 것"(H3)은 효과적이었다.</b> H2는 이 종목군의 베타가 시장 하나가 아니라 시장+비트코인
+      두 갈래라는 것을 실제로 확인시켜줬고(동시회귀 R²가 항상 단일요인보다 높음), 굳이 헤지해야
+      한다면 비트코인 기준이 시장 기준보다 덜 나쁘다는 실용적 시사점을 남겼다. H3은 100% 투자
+      상태를 유지한 채 "같은 익스포저 안에서 상대적으로 베타가 낮은 종목에 더 담는" 틸트만으로
+      샤프비율이 개선됐다 — 익스포저를 줄이지 않고도(=알파 기회를 포기하지 않고도) 위험조정수익을
+      개선할 수 있다는 뜻이다.</p>
+    <div class="callout">
+      <div class="callout-title">실전 시사점</div>
+      <p>"베타를 지킨다"는 표현을 문자 그대로(숏 헤지·현금오버레이로 노출을 지운다)로 구현하면
+        이 종목군에서는 알파까지 함께 지워질 위험이 크다. 반대로 "베타를 안다"(어떤 요인에 얼마나
+        노출됐는지 회귀로 계량화)와 "베타를 상대적으로 고른다"(같은 후보군 안에서 저베타 종목에
+        기울인다)는 접근은 실제로 위험조정수익을 개선했다. 즉 이 연구가 지지하는 전략 설계는
+        <b>노출 제거가 아니라 노출의 인식과 상대적 선별</b>이다.</p>
+    </div>
+  </section>
+
+  <section class="section" id="limitations">
+    <h2><span class="sec-no">09</span> 한계</h2>
+    <ul>
+      <li><b>표본 크기</b> — 후보군이 7종목뿐이고, CORZ는 파산 재상장(2024-01-24부터) 때문에
+        공통구간이 훨씬 짧다(H3/H4 강건성 표본은 약 2.5년). H3/H4 주 표본도 IREN 상장 이후
+        4.75년으로 한 번의 강세장 사이클(2022년 약세장은 일부 포함)에 크게 치우쳐 있다 —
+        약세장이 지배적인 다른 구간에서는 결론이 달라질 수 있다.</li>
+      <li><b>티커 연속성 데이터품질</b> — WULF/CLSK/HUT 같은 오래된 티커는 리버스머지·셸기업 시절
+        이력이 섞여 있어(CLSK 2018-09-19 +386.7% 등 극단치 실측 확인), 2020-01-01 이전 구간을
+        제외하는 방식으로 완화했지만 완전히 제거하지는 못했다. BTDR도 SPAC 합병 이전 이력이 섞여
+        있을 가능성이 있다.</li>
+      <li><b>회귀 안정성</b> — 소형·고변동성 종목의 90~126일 롤링 베타는 추정 오차가 크다(H1 실측
+        beta_std가 평균베타 대비 상당히 크게 나옴). 베타를 −2~5로 클리핑해 극단치 폭주는 막았지만,
+        추정치 자체의 잡음이 H4의 역베타가중이 저조했던 이유 중 하나로 추정된다.</li>
+      <li><b>거래비용·차입비용 미반영</b> — 공매도(H1/H2 헤지), 월간 리밸런싱(H3/H4)의 왕복
+        거래비용·차입비용·마진이자를 전혀 반영하지 않았다. 실전에서는 이 리포트의 헤지 시나리오가
+        보여주는 것보다 더 나쁘고, H3/H4의 리밸런싱 전략들도 여기 숫자보다 실제 성과가 낮을
+        가능성이 높다.</li>
+      <li><b>선택 편향 가능성</b> — 대상 7종목은 "AI 피벗에 성공적으로 올라탄" 것으로 이미 알려진
+        종목들이다(이 저장소 트랙 B No.09/10이 정확히 같은 문제 — 사후에 승자였다고 알려진 종목을
+        표본으로 쓰는 것 — 를 지적하고 point-in-time 검증으로 챔피언 전략을 기각한 바 있다).
+        이 리포트는 개별 종목 선택이 아니라 "같은 후보군 내부에서의 상대적 가중 방식"을 비교하는
+        것이라 그 편향의 영향이 상대적으로 작지만, 완전히 자유롭지는 않다.</li>
+      <li><b>H5은 실측이 아니다</b> — 옵션 인프라 부재로 정성적 서술에 그쳤다. 실제 protective
+        put/collar 비용은 이 종목군의 실현 IV(90~120%대 실현변동성으로 유추 가능)를 고려하면
+        상당히 클 것으로 예상되나 숫자로 확인하지 않았다.</li>
+    </ul>
+  </section>
+
+  <section class="section" id="sources">
+    <h2><span class="sec-no">부록</span> 출처</h2>
+    <h4>핵심 학술 근거</h4>
+    <ul class="src-list">
+      <li><a href="{bab_src['url']}" target="_blank" rel="noopener">{esc(bab_src['title'])}</a></li>
+    </ul>
+    <h4>피어 유효성(2026년 8월 시점 AI/HPC 피벗 현황) 딥서치 출처</h4>
+    <ul class="src-list">
+      {peer_sources_html}
+    </ul>
+    <h4>H5 옵션 헤지 프레이밍 출처</h4>
+    <ul class="src-list">
+      {h5_sources_html}
+    </ul>
+  </section>
+
+</div>
+
+<footer>
+  <p>analysis/2026-08-19_iren_beta_alpha_hedging/ (데이터: report_data.json, 빌드: build_report.py) ·
+    h1~h4 각 가설 스크립트가 core.market_data 로컬 캐시로 실제 가격 데이터를 받아 실행한 결과를
+    그대로 사용했다(추정치 아님). 이 저장소의 다른 리서치(예: momentum_rotation_point_in_time_verdict.html)와
+    마찬가지로, 예상과 다르게 나온 결과(H1·H4 기각)도 그대로 보고했다.</p>
+</footer>
+"""
+
+out_file = f"{OUT_DIR}/final_report.html"
+with open(out_file, "w", encoding="utf-8") as f:
+    f.write(HTML)
+print(f"작성 완료: {out_file} ({len(HTML):,} bytes)")

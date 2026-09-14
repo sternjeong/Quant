@@ -1,8 +1,10 @@
 """모듈 G: FRED(미 연준) 거시경제 지표 조회 + 파일 캐싱.
 
 core.market_data 와 동일하게 data/cache/ 아래 CSV로 캐싱한다(스케줄러에서도 재사용 가능하도록
-Streamlit에 의존하지 않음). FRED_API_KEY가 없거나 호출이 실패해도 예외를 던지지 않고 빈 Series를
-반환한다 (UI가 "API 키를 설정해주세요" 안내를 보여줄 수 있도록).
+Streamlit에 의존하지 않음). FRED_API_KEY가 없거나 호출이 최종적으로 실패해도 예외를 던지지 않고
+빈 Series를 반환한다 (UI가 "API 키를 설정해주세요" 안내를 보여줄 수 있도록). 다만 그 전에
+`core.retry.retry_with_backoff`로 몇 차례 재시도한다(2026-09-13) — 새벽 스케줄러가 매크로 캐시를
+갱신하다 일시적 네트워크 순단 한 번으로 그날 하루치 지표가 통째로 빈 값이 되는 사고를 막기 위함.
 """
 
 from __future__ import annotations
@@ -14,6 +16,8 @@ from typing import Optional
 
 import pandas as pd
 from dotenv import load_dotenv
+
+from core.retry import default_on_retry, retry_with_backoff
 
 load_dotenv()
 
@@ -86,7 +90,10 @@ def get_series(
         from fredapi import Fred
 
         fred = Fred(api_key=api_key)
-        series = fred.get_series(series_id, observation_start=start, observation_end=end)
+        series = retry_with_backoff(
+            lambda: fred.get_series(series_id, observation_start=start, observation_end=end),
+            on_retry=default_on_retry(f"[fred_data] {series_id}"),
+        )
         series.name = series_id
 
         if use_cache and not series.empty:

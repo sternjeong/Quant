@@ -1,0 +1,30 @@
+Top10 equal: {'cumulative_return': 1839.94, 'cagr': 29.11, 'mdd': -29.88, 'sharpe': 1.15, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0}
+  + vol-target(12.0): {'cumulative_return': 380.7, 'cagr': 14.49, 'mdd': -13.13, 'sharpe': 1.1, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0}
+  + vol-target(15.0): {'cumulative_return': 585.12, 'cagr': 18.04, 'mdd': -16.09, 'sharpe': 1.13, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0}
+Top10 inverse_vol: {'cumulative_return': 1396.96, 'cagr': 26.26, 'mdd': -27.26, 'sharpe': 1.13, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0}
+  + vol-target(12.0): {'cumulative_return': 382.71, 'cagr': 14.53, 'mdd': -12.91, 'sharpe': 1.12, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0}
+  + vol-target(15.0): {'cumulative_return': 566.36, 'cagr': 17.75, 'mdd': -15.91, 'sharpe': 1.14, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0}
+Top15 equal: {'cumulative_return': 1083.33, 'cagr': 23.73, 'mdd': -29.49, 'sharpe': 1.08, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0}
+  + vol-target(12.0): {'cumulative_return': 330.34, 'cagr': 13.4, 'mdd': -17.13, 'sharpe': 1.04, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0}
+  + vol-target(15.0): {'cumulative_return': 497.3, 'cagr': 16.65, 'mdd': -19.89, 'sharpe': 1.09, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0}
+Top15 inverse_vol: {'cumulative_return': 856.81, 'cagr': 21.48, 'mdd': -28.11, 'sharpe': 1.07, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0}
+  + vol-target(12.0): {'cumulative_return': 329.42, 'cagr': 13.38, 'mdd': -16.13, 'sharpe': 1.06, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0}
+  + vol-target(15.0): {'cumulative_return': 472.98, 'cagr': 16.23, 'mdd': -17.15, 'sharpe': 1.11, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0}
+
+=== 요약 (샤프 내림차순) ===
+    top_n    weighting overlay  cumulative_return   cagr    mdd  sharpe  win_rate  avg_holding_days  trade_count
+0      10        equal    none            1839.94  29.11 -29.88    1.15       0.0               0.0            0
+5      10  inverse_vol  vt15.0             566.36  17.75 -15.91    1.14       0.0               0.0            0
+3      10  inverse_vol    none            1396.96  26.26 -27.26    1.13       0.0               0.0            0
+2      10        equal  vt15.0             585.12  18.04 -16.09    1.13       0.0               0.0            0
+4      10  inverse_vol  vt12.0             382.71  14.53 -12.91    1.12       0.0               0.0            0
+11     15  inverse_vol  vt15.0             472.98  16.23 -17.15    1.11       0.0               0.0            0
+1      10        equal  vt12.0             380.70  14.49 -13.13    1.10       0.0               0.0            0
+8      15        equal  vt15.0             497.30  16.65 -19.89    1.09       0.0               0.0            0
+6      15        equal    none            1083.33  23.73 -29.49    1.08       0.0               0.0            0
+9      15  inverse_vol    none             856.81  21.48 -28.11    1.07       0.0               0.0            0
+10     15  inverse_vol  vt12.0             329.42  13.38 -16.13    1.06       0.0               0.0            0
+7      15        equal  vt12.0             330.34  13.40 -17.13    1.04       0.0               0.0            0
+
+S&P500: cagr=12.08, mdd=-33.92, sharpe=0.73
+DONE

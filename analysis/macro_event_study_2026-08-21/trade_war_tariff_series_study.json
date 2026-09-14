@@ -1,0 +1,130 @@
+{
+  "escalation_events": [
+    {
+      "seq": 1,
+      "date": "2018-03-22",
+      "label": "무역법 301조 관세 각서 서명(1차 경고)",
+      "day_minus1_return_pct": -0.184,
+      "day0_return_pct": -2.516,
+      "abs_day0_return_pct": 2.516,
+      "recovered_60d_vs_prior": true,
+      "fwd_1d_pct": -2.097,
+      "fwd_5d_pct": -0.107,
+      "fwd_20d_pct": 1.0,
+      "fwd_60d_pct": 4.92
+    },
+    {
+      "seq": 2,
+      "date": "2018-06-15",
+      "label": "340억달러 관세 리스트 최초 발표",
+      "day_minus1_return_pct": 0.247,
+      "day0_return_pct": -0.102,
+      "abs_day0_return_pct": 0.102,
+      "recovered_60d_vs_prior": true,
+      "fwd_1d_pct": -0.213,
+      "fwd_5d_pct": -0.891,
+      "fwd_20d_pct": 0.675,
+      "fwd_60d_pct": 3.894
+    },
+    {
+      "seq": 3,
+      "date": "2018-07-06",
+      "label": "1차 관세($34B) 실제 발효",
+      "day_minus1_return_pct": 0.862,
+      "day0_return_pct": 0.848,
+      "abs_day0_return_pct": 0.848,
+      "recovered_60d_vs_prior": true,
+      "fwd_1d_pct": 0.882,
+      "fwd_5d_pct": 1.503,
+      "fwd_20d_pct": 2.918,
+      "fwd_60d_pct": 5.97
+    },
+    {
+      "seq": 4,
+      "date": "2018-08-23",
+      "label": "2차 관세($16B) 발효",
+      "day_minus1_return_pct": -0.04,
+      "day0_return_pct": -0.169,
+      "abs_day0_return_pct": 0.169,
+      "recovered_60d_vs_prior": false,
+      "fwd_1d_pct": 0.62,
+      "fwd_5d_pct": 1.545,
+      "fwd_20d_pct": 2.544,
+      "fwd_60d_pct": -4.225
+    },
+    {
+      "seq": 5,
+      "date": "2018-09-17",
+      "label": "3차 관세($200B) 발표(9/24 10% 발효 예고)",
+      "day_minus1_return_pct": 0.028,
+      "day0_return_pct": -0.557,
+      "abs_day0_return_pct": 0.557,
+      "recovered_60d_vs_prior": false,
+      "fwd_1d_pct": 0.537,
+      "fwd_5d_pct": 1.058,
+      "fwd_20d_pct": -4.777,
+      "fwd_60d_pct": -8.229
+    },
+    {
+      "seq": 6,
+      "date": "2019-05-06",
+      "label": "트럼프, 관세 25%로 인상 위협 트윗(5/5 일요일→5/6 첫 거래일 반영)",
+      "day_minus1_return_pct": 0.964,
+      "day0_return_pct": -0.447,
+      "abs_day0_return_pct": 0.447,
+      "recovered_60d_vs_prior": true,
+      "fwd_1d_pct": -1.651,
+      "fwd_5d_pct": -4.113,
+      "fwd_20d_pct": -4.406,
+      "fwd_60d_pct": 1.634
+    },
+    {
+      "seq": 7,
+      "date": "2019-08-01",
+      "label": "잔여 $300B에 신규 10% 관세 부과 트윗",
+      "day_minus1_return_pct": -1.089,
+      "day0_return_pct": -0.9,
+      "abs_day0_return_pct": 0.9,
+      "recovered_60d_vs_prior": true,
+      "fwd_1d_pct": -0.728,
+      "fwd_5d_pct": -0.524,
+      "fwd_20d_pct": -0.981,
+      "fwd_60d_pct": 2.336
+    },
+    {
+      "seq": 8,
+      "date": "2019-08-23",
+      "label": "중국 보복관세 발표 + 트럼프 '미국기업 대체처 모색 지시' 트윗",
+      "day_minus1_return_pct": -0.051,
+      "day0_return_pct": -2.595,
+      "abs_day0_return_pct": 2.595,
+      "recovered_60d_vs_prior": true,
+      "fwd_1d_pct": 1.098,
+      "fwd_5d_pct": 2.787,
+      "fwd_20d_pct": 5.081,
+      "fwd_60d_pct": 9.656
+    }
+  ],
+  "deescalation_event": {
+    "date": "2019-12-13",
+    "label": "1단계(Phase One) 무역합의 공식 발표",
+    "day_minus1_return_pct": 0.858,
+    "day0_return_pct": 0.007,
+    "abs_day0_return_pct": 0.007,
+    "recovered_60d_vs_prior": false,
+    "fwd_1d_pct": 0.715,
+    "fwd_5d_pct": 1.654,
+    "fwd_20d_pct": 3.609,
+    "fwd_60d_pct": -21.717
+  },
+  "h1_spearman_rho": 0.3333,
+  "h3": {
+    "baseline_n": 10,
+    "baseline_recovery_rate_pct": 80.0,
+    "n_events": 8,
+    "n_recovered": 6,
+    "recovery_rate_pct": 75.0,
+    "mean_fwd60_pct": 1.994,
+    "win_rate_fwd60_pct": 75.0
+  }
+}

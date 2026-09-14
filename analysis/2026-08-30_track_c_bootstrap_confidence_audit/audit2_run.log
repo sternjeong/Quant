@@ -1,0 +1,43 @@
+[audit2] H1 데이터 로딩 (7종목 피어 바스켓)...
+$IREN: possibly delisted; no price data found  (1d 2020-01-01 -> 2021-11-16) (Yahoo error = "Data doesn't exist for startDate = 1577854800, endDate = 1637038800")
+
+1 Failed download:
+['IREN']: possibly delisted; no price data found  (1d 2020-01-01 -> 2021-11-16) (Yahoo error = "Data doesn't exist for startDate = 1577854800, endDate = 1637038800")
+$CIFR: possibly delisted; no price data found  (1d 2020-01-01 -> 2020-10-19) (Yahoo error = "Data doesn't exist for startDate = 1577854800, endDate = 1603080000")
+
+1 Failed download:
+['CIFR']: possibly delisted; no price data found  (1d 2020-01-01 -> 2020-10-19) (Yahoo error = "Data doesn't exist for startDate = 1577854800, endDate = 1603080000")
+$CORZ: possibly delisted; no price data found  (1d 2020-01-01 -> 2024-01-23) (Yahoo error = "Data doesn't exist for startDate = 1577854800, endDate = 1705986000")
+
+1 Failed download:
+['CORZ']: possibly delisted; no price data found  (1d 2020-01-01 -> 2024-01-23) (Yahoo error = "Data doesn't exist for startDate = 1577854800, endDate = 1705986000")
+$BTDR: possibly delisted; no price data found  (1d 2020-01-01 -> 2021-07-27) (Yahoo error = "Data doesn't exist for startDate = 1577854800, endDate = 1627358400")
+
+1 Failed download:
+['BTDR']: possibly delisted; no price data found  (1d 2020-01-01 -> 2021-07-27) (Yahoo error = "Data doesn't exist for startDate = 1577854800, endDate = 1627358400")
+[audit2] H1_market_beta_hedge_basket: 아키타입별 부트스트랩 계산 중...
+[audit2] H3 데이터 로딩 (6종목 주표본, EW vs LB)...
+$IREN: possibly delisted; no price data found  (1d 2015-01-01 -> 2021-11-16) (Yahoo error = "Data doesn't exist for startDate = 1420088400, endDate = 1637038800")
+
+1 Failed download:
+['IREN']: possibly delisted; no price data found  (1d 2015-01-01 -> 2021-11-16) (Yahoo error = "Data doesn't exist for startDate = 1420088400, endDate = 1637038800")
+$CIFR: possibly delisted; no price data found  (1d 2015-01-01 -> 2020-10-19) (Yahoo error = "Data doesn't exist for startDate = 1420088400, endDate = 1603080000")
+
+1 Failed download:
+['CIFR']: possibly delisted; no price data found  (1d 2015-01-01 -> 2020-10-19) (Yahoo error = "Data doesn't exist for startDate = 1420088400, endDate = 1603080000")
+$CLSK: possibly delisted; no price data found  (1d 2015-01-01 -> 2016-11-15) (Yahoo error = "Data doesn't exist for startDate = 1420088400, endDate = 1479186000")
+
+1 Failed download:
+['CLSK']: possibly delisted; no price data found  (1d 2015-01-01 -> 2016-11-15) (Yahoo error = "Data doesn't exist for startDate = 1420088400, endDate = 1479186000")
+$HUT: possibly delisted; no price data found  (1d 2015-01-01 -> 2018-03-07) (Yahoo error = "Data doesn't exist for startDate = 1420088400, endDate = 1520398800")
+
+1 Failed download:
+['HUT']: possibly delisted; no price data found  (1d 2015-01-01 -> 2018-03-07) (Yahoo error = "Data doesn't exist for startDate = 1420088400, endDate = 1520398800")
+$BTDR: possibly delisted; no price data found  (1d 2015-01-01 -> 2021-07-27) (Yahoo error = "Data doesn't exist for startDate = 1420088400, endDate = 1627358400")
+
+1 Failed download:
+['BTDR']: possibly delisted; no price data found  (1d 2015-01-01 -> 2021-07-27) (Yahoo error = "Data doesn't exist for startDate = 1420088400, endDate = 1627358400")
+[audit2] H3_low_beta_tilt: 아키타입별 부트스트랩 계산 중...
+[audit2] 저장 완료 audit2_results.json (10.1s)
+[audit2] H1 weighting-only win(hedge)=0.000, combined=0.307
+[audit2] H3 weighting-only win(LB)=0.000, combined=0.405

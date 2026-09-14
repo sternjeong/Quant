@@ -1,0 +1,15 @@
+2022년 구간: 2022-01-03 ~ 2022-12-30, 251거래일
+2022년 TLT 누적수익률: -32.82%, GLD 누적수익률: -0.77%
+/workspaces/Quant/analysis/kostolany_market_report_2026-08-12/multi_regime_multi_strategy.py:63: FutureWarning: The behavior of DataFrame.idxmax with all-NA values, or any-NA and skipna=False, is deprecated. In a future version this will raise ValueError
+  leader = z_scores.idxmax(axis=1)
+2022년 약세장 국면 거래일수: 89/251
+/workspaces/Quant/analysis/kostolany_market_report_2026-08-12/multi_regime_multi_strategy.py:63: FutureWarning: The behavior of DataFrame.idxmax with all-NA values, or any-NA and skipna=False, is deprecated. In a future version this will raise ValueError
+  leader = z_scores.idxmax(axis=1)
+/workspaces/Quant/analysis/kostolany_market_report_2026-08-12/hypothesis_defensive_assets_bear.py:38: FutureWarning: DataFrame.fillna with 'method' is deprecated and will raise in a future version. Use obj.ffill() or obj.bfill() instead.
+  rp_extended = rp_extended.reindex(etf_df.index).fillna(method="ffill").fillna(method="bfill")
+2022년 평균 방어자산(TLT+GLD) 비중: 7.1%
+[baseline: 섹터ETF만]: {'cumulative_return': 1.97, 'cagr': 1.99, 'mdd': -14.6, 'sharpe': 0.2, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.14, 'avg_drawdown_days': 6.7}
+[방어자산 블렌드 포함]: {'cumulative_return': 0.24, 'cagr': 0.24, 'mdd': -15.12, 'sharpe': 0.1, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.02, 'avg_drawdown_days': 6.7}
+S&P500: {'cumulative_return': -19.75, 'cagr': -20.01, 'mdd': -25.43, 'sharpe': -0.8, 'win_rate': 0.0, 'avg_holding_days': 360.0, 'trade_count': 1, 'profit_factor': 0.0, 'calmar': -0.79, 'avg_drawdown_days': 0.0}
+
+DONE

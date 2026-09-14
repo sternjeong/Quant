@@ -1,0 +1,656 @@
+{
+  "fallback_to_yahoo_vix": false,
+  "vix_range": [
+    "1990-01-02",
+    "2026-08-20"
+  ],
+  "spx_range": [
+    "1990-01-02",
+    "2026-08-19"
+  ],
+  "lookback_below_days": 20,
+  "thresholds": [
+    30,
+    40,
+    50
+  ],
+  "horizons": [
+    5,
+    20,
+    60,
+    120
+  ],
+  "results": {
+    "30": {
+      "events": [
+        {
+          "date": "1990-08-06",
+          "vix": 35.9,
+          "recession": true,
+          "threshold": 30,
+          "fwd_5d_pct": 1.319,
+          "fwd_20d_pct": -3.391,
+          "fwd_60d_pct": -9.081,
+          "fwd_120d_pct": 0.49
+        },
+        {
+          "date": "1991-01-08",
+          "vix": 30.4,
+          "recession": true,
+          "threshold": 30,
+          "fwd_5d_pct": -0.372,
+          "fwd_20d_pct": 11.547,
+          "fwd_60d_pct": 20.6,
+          "fwd_120d_pct": 17.866
+        },
+        {
+          "date": "1997-10-27",
+          "vix": 31.1,
+          "recession": false,
+          "threshold": 30,
+          "fwd_5d_pct": 7.07,
+          "fwd_20d_pct": 7.945,
+          "fwd_60d_pct": 9.191,
+          "fwd_120d_pct": 28.47
+        },
+        {
+          "date": "1997-12-24",
+          "vix": 30.3,
+          "recession": false,
+          "threshold": 30,
+          "fwd_5d_pct": 4.54,
+          "fwd_20d_pct": 2.6,
+          "fwd_60d_pct": 18.543,
+          "fwd_120d_pct": 18.62
+        },
+        {
+          "date": "1998-08-04",
+          "vix": 31.1,
+          "recession": false,
+          "threshold": 30,
+          "fwd_5d_pct": -0.293,
+          "fwd_20d_pct": -7.262,
+          "fwd_60d_pct": -0.376,
+          "fwd_120d_pct": 16.807
+        },
+        {
+          "date": "1998-12-14",
+          "vix": 31.3,
+          "recession": false,
+          "threshold": 30,
+          "fwd_5d_pct": 5.401,
+          "fwd_20d_pct": 8.167,
+          "fwd_60d_pct": 13.441,
+          "fwd_120d_pct": 15.434
+        },
+        {
+          "date": "2000-04-14",
+          "vix": 33.5,
+          "recession": false,
+          "threshold": 30,
+          "fwd_5d_pct": 5.403,
+          "fwd_20d_pct": 7.062,
+          "fwd_60d_pct": 10.052,
+          "fwd_120d_pct": 5.877
+        },
+        {
+          "date": "2000-10-12",
+          "vix": 30.5,
+          "recession": false,
+          "threshold": 30,
+          "fwd_5d_pct": 4.435,
+          "fwd_20d_pct": 5.291,
+          "fwd_60d_pct": -2.179,
+          "fwd_120d_pct": -13.411
+        },
+        {
+          "date": "2000-12-20",
+          "vix": 31.7,
+          "recession": false,
+          "threshold": 30,
+          "fwd_5d_pct": 5.494,
+          "fwd_20d_pct": 6.18,
+          "fwd_60d_pct": -9.656,
+          "fwd_120d_pct": -3.548
+        },
+        {
+          "date": "2001-03-12",
+          "vix": 30.3,
+          "recession": false,
+          "threshold": 30,
+          "fwd_5d_pct": -0.792,
+          "fwd_20d_pct": -3.607,
+          "fwd_60d_pct": 7.615,
+          "fwd_120d_pct": -4.332
+        },
+        {
+          "date": "2001-09-07",
+          "vix": 31.0,
+          "recession": true,
+          "threshold": 30,
+          "fwd_5d_pct": -9.324,
+          "fwd_20d_pct": 1.073,
+          "fwd_60d_pct": 6.68,
+          "fwd_120d_pct": 6.609
+        },
+        {
+          "date": "2002-07-09",
+          "vix": 30.2,
+          "recession": false,
+          "threshold": 30,
+          "fwd_5d_pct": -5.446,
+          "fwd_20d_pct": -9.788,
+          "fwd_60d_pct": -13.11,
+          "fwd_120d_pct": -8.126
+        },
+        {
+          "date": "2003-01-24",
+          "vix": 31.5,
+          "recession": false,
+          "threshold": 30,
+          "fwd_5d_pct": -0.662,
+          "fwd_20d_pct": -3.346,
+          "fwd_60d_pct": 5.801,
+          "fwd_120d_pct": 13.969
+        },
+        {
+          "date": "2007-08-15",
+          "vix": 30.7,
+          "recession": false,
+          "threshold": 30,
+          "fwd_5d_pct": 4.078,
+          "fwd_20d_pct": 5.492,
+          "fwd_60d_pct": 4.839,
+          "fwd_120d_pct": -5.705
+        },
+        {
+          "date": "2007-11-12",
+          "vix": 31.1,
+          "recession": false,
+          "threshold": 30,
+          "fwd_5d_pct": -0.411,
+          "fwd_20d_pct": 2.673,
+          "fwd_60d_pct": -7.497,
+          "fwd_120d_pct": -1.454
+        },
+        {
+          "date": "2008-01-22",
+          "vix": 31.0,
+          "recession": true,
+          "threshold": 30,
+          "fwd_5d_pct": 3.953,
+          "fwd_20d_pct": 3.779,
+          "fwd_60d_pct": 4.201,
+          "fwd_120d_pct": -6.272
+        },
+        {
+          "date": "2008-03-14",
+          "vix": 31.2,
+          "recession": true,
+          "threshold": 30,
+          "fwd_5d_pct": 4.793,
+          "fwd_20d_pct": 3.119,
+          "fwd_60d_pct": 5.457,
+          "fwd_120d_pct": -3.983
+        },
+        {
+          "date": "2008-09-15",
+          "vix": 31.7,
+          "recession": true,
+          "threshold": 30,
+          "fwd_5d_pct": 1.207,
+          "fwd_20d_pct": -15.876,
+          "fwd_60d_pct": -25.491,
+          "fwd_120d_pct": -43.277
+        },
+        {
+          "date": "2009-10-30",
+          "vix": 30.7,
+          "recession": false,
+          "threshold": 30,
+          "fwd_5d_pct": 3.195,
+          "fwd_20d_pct": 5.736,
+          "fwd_60d_pct": 4.665,
+          "fwd_120d_pct": 16.972
+        },
+        {
+          "date": "2010-05-06",
+          "vix": 32.8,
+          "recession": false,
+          "threshold": 30,
+          "fwd_5d_pct": 2.596,
+          "fwd_20d_pct": -5.608,
+          "fwd_60d_pct": -0.203,
+          "fwd_120d_pct": 5.096
+        },
+        {
+          "date": "2011-08-04",
+          "vix": 31.7,
+          "recession": false,
+          "threshold": 30,
+          "fwd_5d_pct": -2.286,
+          "fwd_20d_pct": 0.362,
+          "fwd_60d_pct": 7.085,
+          "fwd_120d_pct": 9.863
+        },
+        {
+          "date": "2015-08-24",
+          "vix": 40.7,
+          "recession": false,
+          "threshold": 30,
+          "fwd_5d_pct": 4.171,
+          "fwd_20d_pct": 2.616,
+          "fwd_60d_pct": 8.305,
+          "fwd_120d_pct": 0.125
+        },
+        {
+          "date": "2018-02-05",
+          "vix": 37.3,
+          "recession": false,
+          "threshold": 30,
+          "fwd_5d_pct": 0.267,
+          "fwd_20d_pct": 2.989,
+          "fwd_60d_pct": -0.501,
+          "fwd_120d_pct": 6.413
+        },
+        {
+          "date": "2018-12-21",
+          "vix": 30.1,
+          "recession": false,
+          "threshold": 30,
+          "fwd_5d_pct": 3.734,
+          "fwd_20d_pct": 9.19,
+          "fwd_60d_pct": 18.135,
+          "fwd_120d_pct": 19.575
+        },
+        {
+          "date": "2020-02-27",
+          "vix": 39.2,
+          "recession": false,
+          "threshold": 30,
+          "fwd_5d_pct": 1.517,
+          "fwd_20d_pct": -11.706,
+          "fwd_60d_pct": -0.783,
+          "fwd_120d_pct": 13.798
+        },
+        {
+          "date": "2020-09-03",
+          "vix": 33.6,
+          "recession": false,
+          "threshold": 30,
+          "fwd_5d_pct": -3.302,
+          "fwd_20d_pct": -3.086,
+          "fwd_60d_pct": 4.821,
+          "fwd_120d_pct": 10.306
+        },
+        {
+          "date": "2020-10-26",
+          "vix": 32.5,
+          "recession": false,
+          "threshold": 30,
+          "fwd_5d_pct": -2.668,
+          "fwd_20d_pct": 5.193,
+          "fwd_60d_pct": 12.952,
+          "fwd_120d_pct": 21.581
+        },
+        {
+          "date": "2021-01-27",
+          "vix": 37.2,
+          "recession": false,
+          "threshold": 30,
+          "fwd_5d_pct": 2.117,
+          "fwd_20d_pct": 2.095,
+          "fwd_60d_pct": 11.448,
+          "fwd_120d_pct": 15.258
+        },
+        {
+          "date": "2021-12-01",
+          "vix": 31.1,
+          "recession": false,
+          "threshold": 30,
+          "fwd_5d_pct": 4.169,
+          "fwd_20d_pct": 5.887,
+          "fwd_60d_pct": -3.082,
+          "fwd_120d_pct": -12.665
+        },
+        {
+          "date": "2022-01-25",
+          "vix": 31.2,
+          "recession": false,
+          "threshold": 30,
+          "fwd_5d_pct": 4.363,
+          "fwd_20d_pct": -3.006,
+          "fwd_60d_pct": 0.854,
+          "fwd_120d_pct": -9.635
+        },
+        {
+          "date": "2022-04-26",
+          "vix": 33.5,
+          "recession": false,
+          "threshold": 30,
+          "fwd_5d_pct": 0.007,
+          "fwd_20d_pct": -5.598,
+          "fwd_60d_pct": -5.115,
+          "fwd_120d_pct": -11.91
+        },
+        {
+          "date": "2022-09-26",
+          "vix": 32.3,
+          "recession": false,
+          "threshold": 30,
+          "fwd_5d_pct": 0.64,
+          "fwd_20d_pct": 3.893,
+          "fwd_60d_pct": 4.558,
+          "fwd_120d_pct": 8.113
+        },
+        {
+          "date": "2024-08-05",
+          "vix": 38.6,
+          "recession": false,
+          "threshold": 30,
+          "fwd_5d_pct": 3.048,
+          "fwd_20d_pct": 6.606,
+          "fwd_60d_pct": 12.467,
+          "fwd_120d_pct": 16.994
+        },
+        {
+          "date": "2025-04-03",
+          "vix": 30.0,
+          "recession": false,
+          "threshold": 30,
+          "fwd_5d_pct": -2.381,
+          "fwd_20d_pct": 5.377,
+          "fwd_60d_pct": 14.852,
+          "fwd_120d_pct": 22.389
+        },
+        {
+          "date": "2026-03-27",
+          "vix": 31.1,
+          "recession": false,
+          "threshold": 30,
+          "fwd_5d_pct": 3.815,
+          "fwd_20d_pct": 12.641,
+          "fwd_60d_pct": 15.535,
+          "fwd_120d_pct": NaN
+        }
+      ],
+      "summary_all": {
+        "n": 35,
+        "fwd_5d_mean_pct": 1.526,
+        "fwd_5d_win_rate_pct": 68.6,
+        "fwd_20d_mean_pct": 1.578,
+        "fwd_20d_win_rate_pct": 68.6,
+        "fwd_60d_mean_pct": 4.144,
+        "fwd_60d_win_rate_pct": 65.7,
+        "fwd_120d_mean_pct": 4.891,
+        "fwd_120d_win_rate_pct": 64.7
+      },
+      "summary_recession": {
+        "n": 6,
+        "fwd_5d_mean_pct": 0.263,
+        "fwd_5d_win_rate_pct": 66.7,
+        "fwd_20d_mean_pct": 0.042,
+        "fwd_20d_win_rate_pct": 66.7,
+        "fwd_60d_mean_pct": 0.394,
+        "fwd_60d_win_rate_pct": 66.7,
+        "fwd_120d_mean_pct": -4.761,
+        "fwd_120d_win_rate_pct": 50.0
+      },
+      "summary_norecession": {
+        "n": 29,
+        "fwd_5d_mean_pct": 1.787,
+        "fwd_5d_win_rate_pct": 69.0,
+        "fwd_20d_mean_pct": 1.896,
+        "fwd_20d_win_rate_pct": 69.0,
+        "fwd_60d_mean_pct": 4.919,
+        "fwd_60d_win_rate_pct": 65.5,
+        "fwd_120d_mean_pct": 6.96,
+        "fwd_120d_win_rate_pct": 67.9
+      }
+    },
+    "40": {
+      "events": [
+        {
+          "date": "1998-08-31",
+          "vix": 44.3,
+          "recession": false,
+          "threshold": 40,
+          "fwd_5d_pct": 6.913,
+          "fwd_20d_pct": 9.583,
+          "fwd_60d_pct": 23.578,
+          "fwd_120d_pct": 32.791
+        },
+        {
+          "date": "2001-09-17",
+          "vix": 41.8,
+          "recession": true,
+          "threshold": 40,
+          "fwd_5d_pct": -3.4,
+          "fwd_20d_pct": 4.93,
+          "fwd_60d_pct": 9.433,
+          "fwd_120d_pct": 12.466
+        },
+        {
+          "date": "2002-07-22",
+          "vix": 41.9,
+          "recession": false,
+          "threshold": 40,
+          "fwd_5d_pct": 9.649,
+          "fwd_20d_pct": 15.96,
+          "fwd_60d_pct": 7.492,
+          "fwd_120d_pct": 13.139
+        },
+        {
+          "date": "2002-09-19",
+          "vix": 40.6,
+          "recession": false,
+          "threshold": 40,
+          "fwd_5d_pct": 1.379,
+          "fwd_20d_pct": 4.255,
+          "fwd_60d_pct": 5.474,
+          "fwd_120d_pct": -1.354
+        },
+        {
+          "date": "2008-09-29",
+          "vix": 46.7,
+          "recession": true,
+          "threshold": 40,
+          "fwd_5d_pct": -4.477,
+          "fwd_20d_pct": -23.273,
+          "fwd_60d_pct": -21.986,
+          "fwd_120d_pct": -25.623
+        },
+        {
+          "date": "2010-05-07",
+          "vix": 41.0,
+          "recession": false,
+          "threshold": 40,
+          "fwd_5d_pct": 2.232,
+          "fwd_20d_pct": -5.438,
+          "fwd_60d_pct": 0.862,
+          "fwd_120d_pct": 6.443
+        },
+        {
+          "date": "2011-08-08",
+          "vix": 48.0,
+          "recession": false,
+          "threshold": 40,
+          "fwd_5d_pct": 7.596,
+          "fwd_20d_pct": 4.089,
+          "fwd_60d_pct": 8.827,
+          "fwd_120d_pct": 17.29
+        },
+        {
+          "date": "2011-09-22",
+          "vix": 41.4,
+          "recession": false,
+          "threshold": 40,
+          "fwd_5d_pct": 2.73,
+          "fwd_20d_pct": 7.599,
+          "fwd_60d_pct": 7.977,
+          "fwd_120d_pct": 24.172
+        },
+        {
+          "date": "2015-08-24",
+          "vix": 40.7,
+          "recession": false,
+          "threshold": 40,
+          "fwd_5d_pct": 4.171,
+          "fwd_20d_pct": 2.616,
+          "fwd_60d_pct": 8.305,
+          "fwd_120d_pct": 0.125
+        },
+        {
+          "date": "2020-02-28",
+          "vix": 40.1,
+          "recession": false,
+          "threshold": 40,
+          "fwd_5d_pct": 0.614,
+          "fwd_20d_pct": -13.972,
+          "fwd_60d_pct": 1.271,
+          "fwd_120d_pct": 14.238
+        },
+        {
+          "date": "2020-06-11",
+          "vix": 40.8,
+          "recession": false,
+          "threshold": 40,
+          "fwd_5d_pct": 3.772,
+          "fwd_20d_pct": 6.094,
+          "fwd_60d_pct": 14.152,
+          "fwd_120d_pct": 21.996
+        },
+        {
+          "date": "2020-10-28",
+          "vix": 40.3,
+          "recession": false,
+          "threshold": 40,
+          "fwd_5d_pct": 5.271,
+          "fwd_20d_pct": 10.964,
+          "fwd_60d_pct": 17.688,
+          "fwd_120d_pct": 26.412
+        },
+        {
+          "date": "2025-04-04",
+          "vix": 45.3,
+          "recession": false,
+          "threshold": 40,
+          "fwd_5d_pct": 5.701,
+          "fwd_20d_pct": 11.358,
+          "fwd_60d_pct": 22.73,
+          "fwd_120d_pct": 30.934
+        }
+      ],
+      "summary_all": {
+        "n": 13,
+        "fwd_5d_mean_pct": 3.242,
+        "fwd_5d_win_rate_pct": 84.6,
+        "fwd_20d_mean_pct": 2.674,
+        "fwd_20d_win_rate_pct": 76.9,
+        "fwd_60d_mean_pct": 8.139,
+        "fwd_60d_win_rate_pct": 92.3,
+        "fwd_120d_mean_pct": 13.31,
+        "fwd_120d_win_rate_pct": 84.6
+      },
+      "summary_recession": {
+        "n": 2,
+        "fwd_5d_mean_pct": -3.939,
+        "fwd_5d_win_rate_pct": 0.0,
+        "fwd_20d_mean_pct": -9.172,
+        "fwd_20d_win_rate_pct": 50.0,
+        "fwd_60d_mean_pct": -6.276,
+        "fwd_60d_win_rate_pct": 50.0,
+        "fwd_120d_mean_pct": -6.579,
+        "fwd_120d_win_rate_pct": 50.0
+      },
+      "summary_norecession": {
+        "n": 11,
+        "fwd_5d_mean_pct": 4.548,
+        "fwd_5d_win_rate_pct": 100.0,
+        "fwd_20d_mean_pct": 4.828,
+        "fwd_20d_win_rate_pct": 81.8,
+        "fwd_60d_mean_pct": 10.76,
+        "fwd_60d_win_rate_pct": 100.0,
+        "fwd_120d_mean_pct": 16.926,
+        "fwd_120d_win_rate_pct": 90.9
+      }
+    },
+    "50": {
+      "events": [
+        {
+          "date": "2008-10-06",
+          "vix": 52.0,
+          "recession": true,
+          "threshold": 50,
+          "fwd_5d_pct": -5.066,
+          "fwd_20d_pct": -8.571,
+          "fwd_60d_pct": -14.537,
+          "fwd_120d_pct": -25.486
+        },
+        {
+          "date": "2009-02-23",
+          "vix": 52.6,
+          "recession": true,
+          "threshold": 50,
+          "fwd_5d_pct": -5.719,
+          "fwd_20d_pct": 10.707,
+          "fwd_60d_pct": 22.171,
+          "fwd_120d_pct": 36.242
+        },
+        {
+          "date": "2020-03-09",
+          "vix": 54.5,
+          "recession": true,
+          "threshold": 50,
+          "fwd_5d_pct": -13.123,
+          "fwd_20d_pct": -3.018,
+          "fwd_60d_pct": 13.701,
+          "fwd_120d_pct": 26.87
+        },
+        {
+          "date": "2025-04-08",
+          "vix": 52.3,
+          "recession": false,
+          "threshold": 50,
+          "fwd_5d_pct": 8.306,
+          "fwd_20d_pct": 13.015,
+          "fwd_60d_pct": 25.03,
+          "fwd_120d_pct": 34.232
+        }
+      ],
+      "summary_all": {
+        "n": 4,
+        "fwd_5d_mean_pct": -3.901,
+        "fwd_5d_win_rate_pct": 25.0,
+        "fwd_20d_mean_pct": 3.033,
+        "fwd_20d_win_rate_pct": 50.0,
+        "fwd_60d_mean_pct": 11.591,
+        "fwd_60d_win_rate_pct": 75.0,
+        "fwd_120d_mean_pct": 17.964,
+        "fwd_120d_win_rate_pct": 75.0
+      },
+      "summary_recession": {
+        "n": 3,
+        "fwd_5d_mean_pct": -7.969,
+        "fwd_5d_win_rate_pct": 0.0,
+        "fwd_20d_mean_pct": -0.294,
+        "fwd_20d_win_rate_pct": 33.3,
+        "fwd_60d_mean_pct": 7.112,
+        "fwd_60d_win_rate_pct": 66.7,
+        "fwd_120d_mean_pct": 12.542,
+        "fwd_120d_win_rate_pct": 66.7
+      },
+      "summary_norecession": {
+        "n": 1,
+        "fwd_5d_mean_pct": 8.306,
+        "fwd_5d_win_rate_pct": 100.0,
+        "fwd_20d_mean_pct": 13.015,
+        "fwd_20d_win_rate_pct": 100.0,
+        "fwd_60d_mean_pct": 25.03,
+        "fwd_60d_win_rate_pct": 100.0,
+        "fwd_120d_mean_pct": 34.232,
+        "fwd_120d_win_rate_pct": 100.0
+      }
+    }
+  }
+}

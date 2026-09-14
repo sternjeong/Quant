@@ -1,0 +1,29 @@
+{
+  "portfolio_strategy": {
+    "cumulative_return": 493.95,
+    "cagr": 16.59,
+    "mdd": -34.15,
+    "sharpe": 0.97,
+    "win_rate": 0.0,
+    "avg_holding_days": 0.0,
+    "trade_count": 0
+  },
+  "portfolio_bh": {
+    "cumulative_return": 523.59,
+    "cagr": 17.08,
+    "mdd": -34.95,
+    "sharpe": 0.97,
+    "win_rate": 0.0,
+    "avg_holding_days": 0.0,
+    "trade_count": 0
+  },
+  "sp500_bh": {
+    "cumulative_return": 276.69,
+    "cagr": 12.11,
+    "mdd": -33.92,
+    "sharpe": 0.74,
+    "win_rate": 100.0,
+    "avg_holding_days": 4238.0,
+    "trade_count": 1
+  }
+}

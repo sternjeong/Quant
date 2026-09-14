@@ -1,0 +1,306 @@
+
+==================== 강세장 (2015-01-01~2026-08-12) ====================
+$XLC: possibly delisted; no price data found  (1d 2013-03-20 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1529294400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2013-03-20 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1529294400")
+$XLRE: possibly delisted; no price data found  (1d 2013-03-20 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1444190400")
+
+1 Failed download:
+['XLRE']: possibly delisted; no price data found  (1d 2013-03-20 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1444190400")
+$ADT: possibly delisted; no price data found  (1d 2013-03-20 -> 2018-01-18) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1516251600")
+
+1 Failed download:
+['ADT']: possibly delisted; no price data found  (1d 2013-03-20 -> 2018-01-18) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1516251600")
+$NWSA: possibly delisted; no price data found  (1d 2013-03-20 -> 2013-06-18) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1371528000")
+
+1 Failed download:
+['NWSA']: possibly delisted; no price data found  (1d 2013-03-20 -> 2013-06-18) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1371528000")
+$NE: possibly delisted; no price data found  (1d 2013-03-20 -> 2021-06-08) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1623124800")
+
+1 Failed download:
+['NE']: possibly delisted; no price data found  (1d 2013-03-20 -> 2021-06-08) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1623124800")
+섹터ETF -> 종목 수: {'XLK': 4, 'XLF': 13, 'XLV': 1, 'XLY': 15, 'XLP': 5, 'XLE': 2, 'XLI': 14, 'XLB': 2, 'XLU': 6, 'XLRE': 2, 'XLC': 2}
+/workspaces/Quant/analysis/kostolany_market_report_2026-08-12/hypothesis_true_sector_leader.py:63: FutureWarning: The behavior of DataFrame.idxmax with all-NA values, or any-NA and skipna=False, is deprecated. In a future version this will raise ValueError
+  leader_etf = z_scores.idxmax(axis=1)
+'섹터 내 후보 없음' fallback 발생일: 267
+[검증] baseline 비중 합계 이탈: 0.000000
+[baseline] 오버레이 없음: {'cumulative_return': 168.64, 'cagr': 8.89, 'mdd': -36.01, 'sharpe': 0.61, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.25, 'avg_drawdown_days': 24.7}
+[baseline] 변동성타게팅 적용: {'cumulative_return': 184.25, 'cagr': 9.42, 'mdd': -18.56, 'sharpe': 0.78, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.51, 'avg_drawdown_days': 23.2}
+[검증] etf_tilt 비중 합계 이탈: 0.000000
+[etf_tilt] 오버레이 없음: {'cumulative_return': 217.99, 'cagr': 10.48, 'mdd': -37.28, 'sharpe': 0.69, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.28, 'avg_drawdown_days': 22.9}
+[etf_tilt] 변동성타게팅 적용: {'cumulative_return': 224.82, 'cagr': 10.68, 'mdd': -19.44, 'sharpe': 0.84, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.55, 'avg_drawdown_days': 22.2}
+[검증] true_sector_leader 비중 합계 이탈: 0.000000
+[true_sector_leader] 오버레이 없음: {'cumulative_return': 98.72, 'cagr': 6.1, 'mdd': -46.96, 'sharpe': 0.39, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.13, 'avg_drawdown_days': 54.4}
+[true_sector_leader] 변동성타게팅 적용: {'cumulative_return': 105.34, 'cagr': 6.4, 'mdd': -26.09, 'sharpe': 0.46, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.25, 'avg_drawdown_days': 38.3}
+S&P500: {'cumulative_return': 276.69, 'cagr': 12.11, 'mdd': -33.92, 'sharpe': 0.74, 'win_rate': 100.0, 'avg_holding_days': 4238.0, 'trade_count': 1, 'profit_factor': 999.0, 'calmar': 0.36, 'avg_drawdown_days': 19.5}
+
+==================== 약세장포함 (2000-01-03~2012-12-31) ====================
+$XLF: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLF']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$XLY: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLY']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$XLI: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLI']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$XLP: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLP']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$XLE: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$XLK: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLE']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLK']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$XLB: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$XLU: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLU']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLB']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$XLV: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLV']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$AFL: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['AFL']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$AIG: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['AIG']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$APA: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$AON: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['APA']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['AON']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$AMGN: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['AMGN']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$ASH: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['ASH']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$ALL: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['ALL']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$AXP: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['AXP']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$BAC: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['BAC']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$COMS: possibly delisted; no price data found  (1d 1998-03-22 -> 2008-08-14) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 1218686400")
+
+1 Failed download:
+['COMS']: possibly delisted; no price data found  (1d 1998-03-22 -> 2008-08-14) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 1218686400")
+$BAX: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['BAX']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$BBY: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['BBY']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$CB: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['CB']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$BUD: possibly delisted; no price data found  (1d 1998-03-22 -> 2009-06-30) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 1246334400")
+
+1 Failed download:
+['BUD']: possibly delisted; no price data found  (1d 1998-03-22 -> 2009-06-30) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 1246334400")
+$CMI: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['CMI']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$AZO: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['AZO']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$COP: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['COP']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$CVS: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['CVS']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$DXC: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['DXC']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$EC: possibly delisted; no price data found  (1d 1998-03-22 -> 2008-09-17) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 1221624000")
+
+1 Failed download:
+['EC']: possibly delisted; no price data found  (1d 1998-03-22 -> 2008-09-17) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 1221624000")
+$EFX: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['EFX']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$EXC: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$FMC: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['EXC']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['FMC']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$GIS: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['GIS']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$HAL: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['HAL']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$HAS: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['HAS']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$HPQ: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['HPQ']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$HRB: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['HRB']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$IBM: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['IBM']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$JPM: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['JPM']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$L: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['L']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$LLY: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['LLY']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$LOW: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['LOW']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$M: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['M']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$MCD: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['MCD']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$MCO: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['MCO']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$MMM: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['MMM']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$MO: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['MO']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$MU: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['MU']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$MSI: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['MSI']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$NWL: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['NWL']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$SLM: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['SLM']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$T: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['T']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$SUB: possibly delisted; no price data found  (1d 1998-03-22 -> 2008-11-18) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 1226984400")
+
+1 Failed download:
+['SUB']: possibly delisted; no price data found  (1d 1998-03-22 -> 2008-11-18) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 1226984400")
+$TER: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['TER']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$TROW: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['TROW']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$TWX: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['TWX']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$UNM: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['UNM']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$TX: possibly delisted; no price data found  (1d 1998-03-22 -> 2006-01-31) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 1138683600")
+
+1 Failed download:
+['TX']: possibly delisted; no price data found  (1d 1998-03-22 -> 2006-01-31) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 1138683600")
+$VMC: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['VMC']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$VO: possibly delisted; no price data found  (1d 1998-03-22 -> 2004-01-29) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 1075352400")
+
+1 Failed download:
+['VO']: possibly delisted; no price data found  (1d 1998-03-22 -> 2004-01-29) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 1075352400")
+$WEN: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['WEN']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$WMT: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['WMT']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+$XRX: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+
+1 Failed download:
+['XRX']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-03-22)
+섹터ETF -> 종목 수: {'XLK': 8, 'XLF': 13, 'XLV': 4, 'XLY': 8, 'XLP': 5, 'XLE': 4, 'XLI': 4, 'XLB': 4, 'XLU': 1}
+/workspaces/Quant/analysis/kostolany_market_report_2026-08-12/hypothesis_true_sector_leader.py:63: FutureWarning: The behavior of DataFrame.idxmax with all-NA values, or any-NA and skipna=False, is deprecated. In a future version this will raise ValueError
+  leader_etf = z_scores.idxmax(axis=1)
+'섹터 내 후보 없음' fallback 발생일: 0
+[검증] baseline 비중 합계 이탈: 0.000000
+[baseline] 오버레이 없음: {'cumulative_return': 44.66, 'cagr': 2.88, 'mdd': -50.53, 'sharpe': 0.25, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.06, 'avg_drawdown_days': 65.9}
+[baseline] 변동성타게팅 적용: {'cumulative_return': 33.71, 'cagr': 2.26, 'mdd': -38.21, 'sharpe': 0.22, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.06, 'avg_drawdown_days': 76.4}
+[검증] etf_tilt 비중 합계 이탈: 0.000000
+[etf_tilt] 오버레이 없음: {'cumulative_return': 50.75, 'cagr': 3.21, 'mdd': -49.93, 'sharpe': 0.26, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.06, 'avg_drawdown_days': 73.8}
+[etf_tilt] 변동성타게팅 적용: {'cumulative_return': 40.63, 'cagr': 2.66, 'mdd': -41.01, 'sharpe': 0.25, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.06, 'avg_drawdown_days': 60.2}
+[검증] true_sector_leader 비중 합계 이탈: 0.000000
+[true_sector_leader] 오버레이 없음: {'cumulative_return': 93.06, 'cagr': 5.2, 'mdd': -49.98, 'sharpe': 0.33, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.1, 'avg_drawdown_days': 97.7}
+[true_sector_leader] 변동성타게팅 적용: {'cumulative_return': 68.1, 'cagr': 4.08, 'mdd': -43.65, 'sharpe': 0.31, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.09, 'avg_drawdown_days': 90.8}
+S&P500: {'cumulative_return': -2.55, 'cagr': -0.2, 'mdd': -56.78, 'sharpe': 0.1, 'win_rate': 0.0, 'avg_holding_days': 4742.0, 'trade_count': 1, 'profit_factor': 0.0, 'calmar': -0.0, 'avg_drawdown_days': 351.2}
+
+DONE

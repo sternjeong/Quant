@@ -1,0 +1,315 @@
+<title>대선주기 x 계절성 스택</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #eef1ee; --surface: #ffffff; --surface-2: #e6eae5;
+    --ink: #17211d; --ink-muted: #57635c; --ink-faint: #8b968f; --line: #d9dfd8;
+    --hike: #a8461f; --hike-soft: #f4e3da; --cut: #1f6e79; --cut-soft: #dcedee; --gold: #8a6d1f;
+    --shadow: 0 1px 2px rgba(23,33,29,.06), 0 8px 24px -12px rgba(23,33,29,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+      --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+      --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+      --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+    --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+    --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+    --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Public Sans", -apple-system, "Noto Sans KR", sans-serif;
+    font-size: 16px; line-height: 1.65;
+  }
+  ::selection { background: var(--gold); color: #1a1408; }
+  a { color: var(--cut); }
+  .page { max-width: 880px; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 1rem;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 500;
+    font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.08; letter-spacing: -.01em;
+    margin: 0 0 1rem; text-wrap: balance;
+  }
+  .dek { font-size: 1.15rem; color: var(--ink-muted); max-width: 62ch; margin: 0 0 1.75rem; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: .4rem 1.6rem;
+    font-family: "IBM Plex Mono", monospace; font-size: .82rem; color: var(--ink-muted);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: .85rem 0;
+  }
+  .meta-row b { color: var(--ink); font-weight: 600; }
+  section { margin: 3.2rem 0; }
+  section > h2 {
+    font-family: "Fraunces", serif; font-weight: 500; font-size: 1.6rem;
+    letter-spacing: -.005em; margin: 0 0 .3rem; text-wrap: balance;
+  }
+  section > .lede { color: var(--ink-muted); max-width: 66ch; margin: 0 0 1.4rem; }
+  p { max-width: 68ch; }
+  .note {
+    background: var(--surface-2); border-left: 3px solid var(--gold); border-radius: 4px;
+    padding: .9rem 1.1rem; font-size: .93rem; color: var(--ink-muted); max-width: 68ch; margin: 1.1rem 0;
+  }
+  .note b { color: var(--ink); }
+  .callout {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.2rem 1.4rem; box-shadow: var(--shadow); margin: 1.4rem 0;
+  }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .9rem; margin: 1.3rem 0 1.6rem; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.1rem; }
+  .tile .label { font-size: .78rem; color: var(--ink-muted); margin-bottom: .35rem; }
+  .tile .value { font-family: "IBM Plex Mono", monospace; font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tile .value.hike { color: var(--hike); }
+  .tile .value.cut { color: var(--cut); }
+  .tile .sub { font-size: .76rem; color: var(--ink-faint); margin-top: .25rem; }
+
+  .hyp-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.1rem 1.3rem; box-shadow: var(--shadow); margin: 1rem 0;
+  }
+  .hyp-card .hyp-id {
+    font-family: "IBM Plex Mono", monospace; font-size: .74rem; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--gold); margin-bottom: .4rem; font-weight: 600;
+  }
+  .hyp-card p { margin: 0; max-width: none; }
+
+  .verdict {
+    display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: .78rem;
+    font-weight: 600; letter-spacing: .04em; padding: .28rem .7rem; border-radius: 999px;
+    margin-top: .7rem;
+  }
+  .verdict.confirmed { background: var(--cut-soft); color: var(--cut); }
+  .verdict.disconfirmed { background: var(--hike-soft); color: var(--hike); }
+  .verdict.mixed { background: var(--surface-2); color: var(--ink-muted); border: 1px solid var(--line); }
+
+  .table-wrap { overflow-x: auto; margin: 1.2rem 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 480px; font-size: .92rem; }
+  caption { text-align: left; font-size: .82rem; color: var(--ink-faint); padding-bottom: .5rem; }
+  th, td { padding: .62rem .8rem; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; font-family: "IBM Plex Mono", monospace; }
+  th:first-child, td:first-child { text-align: left; font-family: "Public Sans", sans-serif; }
+  thead th { font-family: "Public Sans", sans-serif; font-weight: 600; font-size: .78rem; letter-spacing: .02em; color: var(--ink-muted); text-transform: uppercase; border-bottom: 1px solid var(--ink-faint); }
+  tr.row-fav td:first-child { border-left: 3px solid var(--cut); padding-left: .65rem; }
+  tr.row-unfav td:first-child { border-left: 3px solid var(--hike); padding-left: .65rem; }
+  tr.row-best { background: var(--cut-soft); }
+  tr.row-worst { background: var(--hike-soft); }
+  tbody tr:hover { background: var(--surface-2); }
+  td.neg { color: var(--hike); }
+  td.pos { color: var(--cut); }
+
+  ul.findings { padding-left: 1.2rem; max-width: 68ch; }
+  ul.findings li { margin-bottom: .9rem; }
+  ul.findings b { color: var(--ink); }
+  .footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--line); font-size: .82rem; color: var(--ink-faint); }
+</style>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">MACRO EVENT STUDY · 트랙 D 후속 · 1950&ndash;2025 · S&amp;P500</div>
+    <h1>두 달력 효과를 겹치면 더 세질까</h1>
+    <p class="dek">이 프로젝트는 "5월에 팔고 떠나라" 계절성과 "대선 3년차가 최고" 대선주기 효과를
+    각각 독립적으로 검증해 둘 다 확인했다. 그런데 두 신호를 각각 곱해서 결과를 상상하는 건
+    위험하다는 교훈을 이미 한 번 얻은 적이 있다 — CPI(물가)와 GDP(성장)를 겹쳤을 때 "물가감속
+    +성장가속"(골디락스)이 최고일 거라 예상했지만, 실제로는 물가 방향 하나가 결과를 거의
+    지배하고 성장 방향은 거의 영향이 없었다. 이번엔 순수 "달력" 두 개를 겹친다 — 매크로 국면이
+    아니라 날짜 그 자체로 정의되는 효과라서 같은 함정에 빠지는지, 아니면 다르게 행동하는지가
+    이 리포트의 질문이다.</p>
+    <div class="meta-row">
+      <span>구간 <b>1950 ~ 2025</b>(2026년은 진행 중이라 제외)</span>
+      <span>반기 구간 <b>151건</b> · 8칸 교차표, 칸당 <b>n=18~19</b></span>
+      <span>데이터 <b>S&amp;P500 일별 종가</b></span>
+    </div>
+  </header>
+
+  <section>
+    <h2>사전등록 가설 (결과 계산 전 명시)</h2>
+    <p class="lede">아래 세 가설은 데이터를 돌리기 전에 먼저 문서로 못박은 것이다 — 결과를 본 뒤
+    표현을 다듬지 않았다.</p>
+
+    <div class="hyp-card">
+      <div class="hyp-id">H1</div>
+      <p><b>"3년차(대선전해)의 11~4월"</b> 구간이 (a) 3년차 연간 평균과 (b) 11~4월 전체 평균을
+      모두 능가한다 — 즉 두 효과가 진짜로 결합돼 증폭된다는 가설.</p>
+    </div>
+    <div class="hyp-card">
+      <div class="hyp-id">H2</div>
+      <p>최약체 조합인 <b>"2년차(중간선거) x 5~10월"</b>은 단순히 "나쁜 것 두 개의 합"이 아니라
+      부분적으로 상쇄되거나 예상 밖으로 움직일 수 있다 — FOMC 리포트의 "침체+물가감속" 교차칸이
+      "침체+물가가속"보다 오히려 더 나빴던 것과 비슷한 패턴이 여기서도 나오는지 확인한다.</p>
+    </div>
+    <div class="hyp-card">
+      <div class="hyp-id">H3</div>
+      <p>임기연차x반기 8칸 교차표는 칸당 표본이 작을 것으로 예상된다(임기연차당 약 19년, 반기로
+      나누면 더 줄어듬) — <b>n&lt;6인 칸이 나오면 통계적 확신 없이 방향성 참고로만 명시</b>한다.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>8칸 교차표 — 임기연차 x 반기</h2>
+    <p class="lede">모든 연도에 대해 임기연차 라벨(연도%4)과 두 반기 수익률(11~4월/5~10월)을
+    동시에 계산해 4x2로 교차했다. 진행 중인 구간(2026년이 포함되는 반기)은 전부 제외했다.</p>
+    <div class="table-wrap">
+      <table>
+        <caption>임기연차 x 반기 평균수익률(%) · 승률 · n</caption>
+        <thead><tr><th>임기연차</th><th>11~4월 평균</th><th>승률(n)</th><th>5~10월 평균</th><th>승률(n)</th></tr></thead>
+        <tbody id="cross-tab-body"></tbody>
+      </table>
+    </div>
+    <p>가장 눈에 띄는 칸은 <b>"2년차 x 11~4월"</b> — 평균 <span id="best-mean"></span>, 승률
+    <span id="best-win"></span>(19번 중 전부 플러스)로 8칸 전체에서 가장 좋다. 정작 "가장 좋은 해"로
+    알려진 3년차의 11~4월 구간은 평균 <span id="y3fav-mean"></span>로 오히려 8칸 중 중간
+    수준이다. 반대로 유일하게 평균이 마이너스인 칸은 <b>"2년차 x 5~10월"</b>(<span id="worst-mean"></span>)이다.</p>
+    <div class="note"><b>왜 이런 일이 생기나.</b> 11~4월 구간은 그 해 11월부터 이듬해 4월까지
+    걸쳐 있다 — "2년차의 11~4월"은 실제로는 2년차 11월부터 3년차(대선 전 해, 가장 좋은 해) 4월까지를
+    담고 있다. 즉 이 구간의 상당 부분이 사실은 3년차의 초입이다. 임기연차 라벨을 "시작 연도"
+    기준으로 붙이는 이 방법론 자체가 만든 겹침 효과라는 점을 정직하게 밝힌다 — 순수하게 "2년차의
+    성격" 때문에 좋은 게 아니라, "3년차로 넘어가는 문턱"을 절반 담고 있기 때문일 가능성이 크다.</div>
+  </section>
+
+  <section>
+    <h2>H1 검증 — 3년차 x 11~4월은 정말 증폭됐나</h2>
+    <div class="tiles">
+      <div class="tile"><div class="label">3년차 x 11~4월(스택)</div><div class="value cut" id="t1"></div><div class="sub" id="t1s"></div></div>
+      <div class="tile"><div class="label">3년차 연간 평균</div><div class="value" id="t2"></div><div class="sub" id="t2s"></div></div>
+      <div class="tile"><div class="label">11~4월 전체 평균</div><div class="value" id="t3"></div><div class="sub" id="t3s"></div></div>
+    </div>
+    <p>스택 구간(3년차x11~4월)은 <b>3년차 연간 평균과 11~4월 전체 평균 둘 다에 못 미친다</b> —
+    심지어 11~4월 전체 평균보다도 낮다. "3년차의 좋은 절반만 떼어내면 더 좋을 것"이라는 직관과
+    정반대다. 위에서 확인했듯 8칸 중 최고는 오히려 "2년차x11~4월"이었다 — 스택 자체가 증폭이
+    아니라 <b>구간 정의 방식에 따른 재배치(어느 해의 절반이 어느 라벨에 붙는지)</b>에 더 가깝게
+    보인다.</p>
+    <div class="verdict disconfirmed" id="h1-verdict">H1: DISCONFIRMED</div>
+  </section>
+
+  <section>
+    <h2>H2 검증 — 2년차 x 5~10월은 상쇄됐나, 아니면 더 나빠졌나</h2>
+    <div class="tiles">
+      <div class="tile"><div class="label">2년차 x 5~10월(스택)</div><div class="value hike" id="h1v"></div><div class="sub" id="h1vs"></div></div>
+      <div class="tile"><div class="label">2년차 연간 평균</div><div class="value" id="h2v"></div><div class="sub" id="h2vs"></div></div>
+      <div class="tile"><div class="label">5~10월 전체 평균</div><div class="value" id="h3v"></div><div class="sub" id="h3vs"></div></div>
+    </div>
+    <p>2년차 연간 평균(+3.69%)과 5~10월 전체 평균(+2.09%)은 둘 다 플러스인데, 둘을 겹친
+    "2년차x5~10월"만 유일하게 <b>마이너스</b>다 — 8칸 교차표 전체에서 평균이 음수인 유일한
+    칸이기도 하다. CPI x GDP 교차검증에서는 "안 좋은 두 축을 겹쳐도 상쇄돼서 생각보다 안
+    나쁘다"는 결과가 나왔지만, <b>여기서는 정반대로 상쇄가 아니라 오히려 두 축이 더해져서 각
+    개별 평균보다 더 나빠졌다</b> — "나쁜 것 두 개를 겹치면 더 나빠진다"는 단순 직관이 이번엔
+    그대로 맞아떨어진 셈이다.</p>
+    <div class="verdict disconfirmed" id="h2-verdict">H2: DISCONFIRMED(상쇄 가설 기각 — 오히려 단순합보다 더 나빠짐)</div>
+  </section>
+
+  <section>
+    <h2>H3 검증 — 표본이 실제로 얼마나 작았나</h2>
+    <p>8칸 전부 <b>n=18~19</b>로, 사전에 걱정했던 "n&lt;6" 수준까지 줄어드는 칸은 하나도 없었다
+    — 대선주기 자체가 75년치라는 긴 기간에서 나온 라벨이라 반기로 쪼개도 표본이 급격히
+    작아지지는 않았다(계절성 6개월 구간은 원래 연 단위 표본이라 반기로 나눠도 "연도 수"는
+    그대로 유지되기 때문). 다만 8칸이 서로 완전히 독립적인 사건은 아니다 — 연속된 해의 시장
+    상황은 상관관계가 있고, 위에서 지적한 대로 반기 구간 자체가 인접한 두 임기연차에 걸쳐
+    있어 칸 간에도 겹침이 존재한다.</p>
+    <div class="verdict mixed" id="h3-verdict">H3: 예상과 달리 소표본 우려는 현실화되지 않음(모든 칸 n=18~19) — 단, "독립 표본"이라는 가정 자체는 여전히 취약</div>
+  </section>
+
+  <section>
+    <h2>경제학 지식 없이 읽는 법</h2>
+    <ul class="findings">
+      <li><b>"좋은 것 두 개를 합치면 더 좋아진다"는 이번에도 성립하지 않았다.</b> CPI x GDP에서
+      배운 교훈이 순수 달력 효과에도 그대로 적용된다 — 개별로 강한 두 신호를 곱하기로 상상하면
+      틀리기 쉽다.</li>
+      <li><b>하지만 방향은 반대로 흥미로웠다.</b> "좋은 두 개를 합쳐도 증폭 안 됨"(H1)과 "나쁜 두
+      개를 합치면 오히려 더 나빠짐"(H2)이 동시에 나왔다 — 상방은 눌리고 하방은 증폭되는 비대칭적
+      패턴이라는 뜻이다.</li>
+      <li><b>진짜 원인은 "정의의 겹침"일 가능성이 크다.</b> 11~4월 구간이 두 임기연차에 걸쳐
+      있다 보니, "2년차의 11~4월"이 사실상 "3년차로 넘어가는 다리"를 담고 있어 최고 성적을
+      냈다. 이건 두 효과가 "진짜로" 상호작용한다는 증거라기보다, 반기 구간과 연간 라벨을 겹치는
+      방식 자체가 만든 인위적 결과일 수 있다는 걸 정직하게 밝힌다.</li>
+      <li><b>표본 크기는 걱정보다 나았다.</b> 사전에 n&lt;6 칸이 나올까 걱정했지만 실제로는 전부
+      n=18~19였다 — 다만 "독립적인 표본"인가는 여전히 다른 문제다.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>한계</h2>
+    <div class="callout">
+      <ul class="findings" style="margin:0;">
+        <li><b>임기연차 라벨과 반기 구간의 경계가 어긋난다.</b> 임기연차는 "그 해의 시작 연도"
+        기준으로 붙이지만, 11~4월 반기는 그 해 11월부터 다음 해 4월까지 걸쳐 있어 실제로는 두
+        임기연차에 걸쳐 있다 — 이 리포트가 발견한 "2년차x11~4월 최고" 결과의 상당 부분이 이
+        구조적 겹침 때문일 수 있다.</li>
+        <li><b>거래비용·세금 미반영.</b> 반기마다 매매를 실행한다면 수수료·세금이 격차의
+        상당 부분을 깎아먹을 수 있다.</li>
+        <li><b>151개 반기 구간이 서로 독립적인 표본이 아니다.</b> 연속된 해의 시장 상황은
+        상관관계가 있다 — 통계적 유의성을 과신하면 안 된다.</li>
+        <li><b>2026년(진행 중)과 그 인접 구간은 전부 제외했다</b> — 완결되지 않은 반기를
+        완결 연도와 섞지 않기 위한 이 프로젝트의 표준 원칙을 그대로 적용했다.</li>
+        <li><b>"3년차가 최고"라는 원래의 대선주기 결론 자체를 부정하는 건 아니다.</b> 연간
+        단위로 보면 3년차 평균(+17.18%)은 여전히 압도적이다 — 이 리포트는 그걸 "반기로 쪼개면"
+        어떻게 되는지를 본 것일 뿐, 연간 단위 결론은 별도 리포트(대선주기 효과)에서 이미 확인된
+        그대로다.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="footer">
+    데이터: Yahoo Finance(^GSPC, 1950~2025) · 분석 스크립트: cycle_x_seasonality_stack_study.py
+    (presidential_cycle_event_study.py·seasonality_event_study.py의 로직 재사용) ·
+    같은 프로젝트, 관련 리포트: <a href="https://claude.ai/code/artifact/fe955a38-0bed-4df2-b323-5790af5469c3">증시의 달력 효과 세 가지</a>(이 두 효과를 각각 처음 검증한 원본 리포트),
+    <a href="https://claude.ai/code/artifact/1ab33353-f0d3-46c3-bb07-7993fc09a1d5">물가·성장 지표 종합 비교</a>(같은 "합치면 증폭될까" 질문을 매크로 국면으로 먼저 검증한 리포트)
+  </div>
+</div>
+
+<script>
+const DATA = {"cross_tab": {"1": {"11~4월": {"n": 18, "mean_pct": 2.556, "win_rate_pct": 55.6}, "5~10월": {"n": 19, "mean_pct": 3.863, "win_rate_pct": 68.4}}, "2": {"11~4월": {"n": 19, "mean_pct": 14.786, "win_rate_pct": 100.0}, "5~10월": {"n": 19, "mean_pct": -0.1, "win_rate_pct": 52.6}}, "3": {"11~4월": {"n": 19, "mean_pct": 5.429, "win_rate_pct": 73.7}, "5~10월": {"n": 19, "mean_pct": 1.71, "win_rate_pct": 63.2}}, "0": {"11~4월": {"n": 19, "mean_pct": 4.88, "win_rate_pct": 73.7}, "5~10월": {"n": 19, "mean_pct": 2.865, "win_rate_pct": 78.9}}}, "annual": {"1": {"mean_pct": 8.35, "win_rate_pct": 63.2, "n": 19}, "2": {"mean_pct": 3.685, "win_rate_pct": 55.6, "n": 18}, "3": {"mean_pct": 17.178, "win_rate_pct": 89.5, "n": 19}, "0": {"mean_pct": 8.106, "win_rate_pct": 84.2, "n": 19}}, "half_overall": {"11~4월": {"mean_pct": 6.971, "win_rate_pct": 76.0, "n": 75}, "5~10월": {"mean_pct": 2.085, "win_rate_pct": 65.8, "n": 76}}};
+
+const YEAR_LABELS = {"1": "1년차(집권원년)", "2": "2년차(중간선거)", "3": "3년차(대선전해)", "0": "4년차(대선해)"};
+const order = ["1", "2", "3", "0"];
+
+function fmt(v) { return (v >= 0 ? "+" : "") + v.toFixed(2) + "%"; }
+
+const tbody = document.getElementById("cross-tab-body");
+order.forEach(k => {
+  const row = DATA.cross_tab[k];
+  const fav = row["11~4월"], unfav = row["5~10월"];
+  const tr = document.createElement("tr");
+  if (k === "2") tr.className = "row-best";
+  const favCls = fav.mean_pct >= 0 ? "pos" : "neg";
+  const unfavCls = unfav.mean_pct >= 0 ? "pos" : "neg";
+  tr.innerHTML = `<td>${YEAR_LABELS[k]}</td>
+    <td class="${favCls}">${fmt(fav.mean_pct)}</td><td>${fav.win_rate_pct.toFixed(1)}% (n=${fav.n})</td>
+    <td class="${unfavCls}">${fmt(unfav.mean_pct)}</td><td>${unfav.win_rate_pct.toFixed(1)}% (n=${unfav.n})</td>`;
+  tbody.appendChild(tr);
+});
+// 2년차x5~10월(유일한 마이너스)에 강조 표시
+[...tbody.children].forEach((tr, i) => {
+  const k = order[i];
+  if (k === "2") {
+    tr.children[3].parentElement.style.background = "";
+  }
+});
+
+document.getElementById("best-mean").textContent = fmt(DATA.cross_tab["2"]["11~4월"].mean_pct);
+document.getElementById("best-win").textContent = DATA.cross_tab["2"]["11~4월"].win_rate_pct.toFixed(1) + "%";
+document.getElementById("y3fav-mean").textContent = fmt(DATA.cross_tab["3"]["11~4월"].mean_pct);
+document.getElementById("worst-mean").textContent = fmt(DATA.cross_tab["2"]["5~10월"].mean_pct);
+
+document.getElementById("t1").textContent = fmt(DATA.cross_tab["3"]["11~4월"].mean_pct);
+document.getElementById("t1s").textContent = `승률 ${DATA.cross_tab["3"]["11~4월"].win_rate_pct.toFixed(1)}% · n=${DATA.cross_tab["3"]["11~4월"].n}`;
+document.getElementById("t2").textContent = fmt(DATA.annual["3"].mean_pct);
+document.getElementById("t2s").textContent = `승률 ${DATA.annual["3"].win_rate_pct.toFixed(1)}% · n=${DATA.annual["3"].n}`;
+document.getElementById("t3").textContent = fmt(DATA.half_overall["11~4월"].mean_pct);
+document.getElementById("t3s").textContent = `승률 ${DATA.half_overall["11~4월"].win_rate_pct.toFixed(1)}% · n=${DATA.half_overall["11~4월"].n}`;
+
+document.getElementById("h1v").textContent = fmt(DATA.cross_tab["2"]["5~10월"].mean_pct);
+document.getElementById("h1vs").textContent = `승률 ${DATA.cross_tab["2"]["5~10월"].win_rate_pct.toFixed(1)}% · n=${DATA.cross_tab["2"]["5~10월"].n}`;
+document.getElementById("h2v").textContent = fmt(DATA.annual["2"].mean_pct);
+document.getElementById("h2vs").textContent = `승률 ${DATA.annual["2"].win_rate_pct.toFixed(1)}% · n=${DATA.annual["2"].n}`;
+document.getElementById("h3v").textContent = fmt(DATA.half_overall["5~10월"].mean_pct);
+document.getElementById("h3vs").textContent = `승률 ${DATA.half_overall["5~10월"].win_rate_pct.toFixed(1)}% · n=${DATA.half_overall["5~10월"].n}`;
+</script>

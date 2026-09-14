@@ -1,0 +1,346 @@
+{
+  "n_cuts_2005": 21,
+  "n_cpi_matched": 21,
+  "n_disinflationary": 9,
+  "n_stable": 12,
+  "events": [
+    {
+      "date": "2007-09-18 00:00:00",
+      "change_bps": -50.0,
+      "new_rate": 4.75,
+      "cpi_accel_pp": -0.812437263771737,
+      "disinflationary": true
+    },
+    {
+      "date": "2007-10-31 00:00:00",
+      "change_bps": -25.0,
+      "new_rate": 4.5,
+      "cpi_accel_pp": 0.14106131600604144,
+      "disinflationary": false
+    },
+    {
+      "date": "2007-12-11 00:00:00",
+      "change_bps": -25.0,
+      "new_rate": 4.25,
+      "cpi_accel_pp": 2.47581884783179,
+      "disinflationary": false
+    },
+    {
+      "date": "2008-01-22 00:00:00",
+      "change_bps": -75.0,
+      "new_rate": 3.5,
+      "cpi_accel_pp": 1.2749869624372634,
+      "disinflationary": false
+    },
+    {
+      "date": "2008-01-30 00:00:00",
+      "change_bps": -50.0,
+      "new_rate": 3.0,
+      "cpi_accel_pp": 1.2749869624372634,
+      "disinflationary": false
+    },
+    {
+      "date": "2008-03-18 00:00:00",
+      "change_bps": -75.0,
+      "new_rate": 2.25,
+      "cpi_accel_pp": -0.23030805612069827,
+      "disinflationary": true
+    },
+    {
+      "date": "2008-04-30 00:00:00",
+      "change_bps": -25.0,
+      "new_rate": 2.0,
+      "cpi_accel_pp": -0.13390984228309755,
+      "disinflationary": true
+    },
+    {
+      "date": "2008-10-08 00:00:00",
+      "change_bps": -50.0,
+      "new_rate": 1.5,
+      "cpi_accel_pp": 0.017353769188210855,
+      "disinflationary": false
+    },
+    {
+      "date": "2008-10-29 00:00:00",
+      "change_bps": -50.0,
+      "new_rate": 1.0,
+      "cpi_accel_pp": 0.017353769188210855,
+      "disinflationary": false
+    },
+    {
+      "date": "2008-12-16 00:00:00",
+      "change_bps": -88.0,
+      "new_rate": 0.125,
+      "cpi_accel_pp": -4.208099691474554,
+      "disinflationary": true
+    },
+    {
+      "date": "2019-08-01 00:00:00",
+      "change_bps": -25.0,
+      "new_rate": 2.125,
+      "cpi_accel_pp": -0.17425213517199278,
+      "disinflationary": true
+    },
+    {
+      "date": "2019-09-19 00:00:00",
+      "change_bps": -25.0,
+      "new_rate": 1.875,
+      "cpi_accel_pp": -0.058269344693973046,
+      "disinflationary": true
+    },
+    {
+      "date": "2019-10-31 00:00:00",
+      "change_bps": -25.0,
+      "new_rate": 1.625,
+      "cpi_accel_pp": 0.013302809649107239,
+      "disinflationary": false
+    },
+    {
+      "date": "2020-03-04 00:00:00",
+      "change_bps": -50.0,
+      "new_rate": 1.125,
+      "cpi_accel_pp": 0.24902628489660295,
+      "disinflationary": false
+    },
+    {
+      "date": "2020-03-16 00:00:00",
+      "change_bps": -100.0,
+      "new_rate": 0.125,
+      "cpi_accel_pp": 0.24902628489660295,
+      "disinflationary": false
+    },
+    {
+      "date": "2024-09-19 00:00:00",
+      "change_bps": -50.0,
+      "new_rate": 4.875,
+      "cpi_accel_pp": -0.6371340933110758,
+      "disinflationary": true
+    },
+    {
+      "date": "2024-11-08 00:00:00",
+      "change_bps": -25.0,
+      "new_rate": 4.625,
+      "cpi_accel_pp": -0.3626317396869583,
+      "disinflationary": true
+    },
+    {
+      "date": "2024-12-19 00:00:00",
+      "change_bps": -25.0,
+      "new_rate": 4.375,
+      "cpi_accel_pp": 0.11232797059279598,
+      "disinflationary": false
+    },
+    {
+      "date": "2025-09-18 00:00:00",
+      "change_bps": -25.0,
+      "new_rate": 4.125,
+      "cpi_accel_pp": 0.5613266356635283,
+      "disinflationary": false
+    },
+    {
+      "date": "2025-10-30 00:00:00",
+      "change_bps": -25.0,
+      "new_rate": 3.875,
+      "cpi_accel_pp": 0.34211771880310327,
+      "disinflationary": false
+    },
+    {
+      "date": "2025-12-11 00:00:00",
+      "change_bps": -25.0,
+      "new_rate": 3.625,
+      "cpi_accel_pp": -0.2421478265376642,
+      "disinflationary": true
+    }
+  ],
+  "sectors": {
+    "XLK": {
+      "label": "기술",
+      "disinflationary": {
+        "n": 9,
+        "fwd_5d_mean_pct": -1.169,
+        "fwd_5d_win_rate_pct": 33.3,
+        "fwd_20d_mean_pct": 0.886,
+        "fwd_20d_win_rate_pct": 66.7,
+        "fwd_60d_mean_pct": 0.762,
+        "fwd_60d_win_rate_pct": 55.6
+      },
+      "stable": {
+        "n": 12,
+        "fwd_5d_mean_pct": -1.739,
+        "fwd_5d_win_rate_pct": 41.7,
+        "fwd_20d_mean_pct": -0.997,
+        "fwd_20d_win_rate_pct": 33.3,
+        "fwd_60d_mean_pct": 1.717,
+        "fwd_60d_win_rate_pct": 50.0
+      }
+    },
+    "XLF": {
+      "label": "금융",
+      "disinflationary": {
+        "n": 9,
+        "fwd_5d_mean_pct": -1.823,
+        "fwd_5d_win_rate_pct": 22.2,
+        "fwd_20d_mean_pct": -3.18,
+        "fwd_20d_win_rate_pct": 44.4,
+        "fwd_60d_mean_pct": -7.425,
+        "fwd_60d_win_rate_pct": 44.4
+      },
+      "stable": {
+        "n": 12,
+        "fwd_5d_mean_pct": -2.128,
+        "fwd_5d_win_rate_pct": 50.0,
+        "fwd_20d_mean_pct": -3.629,
+        "fwd_20d_win_rate_pct": 41.7,
+        "fwd_60d_mean_pct": -6.094,
+        "fwd_60d_win_rate_pct": 41.7
+      }
+    },
+    "XLE": {
+      "label": "에너지",
+      "disinflationary": {
+        "n": 9,
+        "fwd_5d_mean_pct": -2.509,
+        "fwd_5d_win_rate_pct": 22.2,
+        "fwd_20d_mean_pct": -0.303,
+        "fwd_20d_win_rate_pct": 55.6,
+        "fwd_60d_mean_pct": 0.652,
+        "fwd_60d_win_rate_pct": 44.4
+      },
+      "stable": {
+        "n": 12,
+        "fwd_5d_mean_pct": -3.866,
+        "fwd_5d_win_rate_pct": 58.3,
+        "fwd_20d_mean_pct": 1.298,
+        "fwd_20d_win_rate_pct": 66.7,
+        "fwd_60d_mean_pct": 7.24,
+        "fwd_60d_win_rate_pct": 50.0
+      }
+    },
+    "XLV": {
+      "label": "헬스케어",
+      "disinflationary": {
+        "n": 9,
+        "fwd_5d_mean_pct": -1.195,
+        "fwd_5d_win_rate_pct": 33.3,
+        "fwd_20d_mean_pct": -0.246,
+        "fwd_20d_win_rate_pct": 44.4,
+        "fwd_60d_mean_pct": -1.127,
+        "fwd_60d_win_rate_pct": 44.4
+      },
+      "stable": {
+        "n": 12,
+        "fwd_5d_mean_pct": -2.22,
+        "fwd_5d_win_rate_pct": 41.7,
+        "fwd_20d_mean_pct": 1.777,
+        "fwd_20d_win_rate_pct": 75.0,
+        "fwd_60d_mean_pct": 2.669,
+        "fwd_60d_win_rate_pct": 58.3
+      }
+    },
+    "XLI": {
+      "label": "산업재",
+      "disinflationary": {
+        "n": 9,
+        "fwd_5d_mean_pct": -1.328,
+        "fwd_5d_win_rate_pct": 11.1,
+        "fwd_20d_mean_pct": -0.43,
+        "fwd_20d_win_rate_pct": 44.4,
+        "fwd_60d_mean_pct": -3.054,
+        "fwd_60d_win_rate_pct": 44.4
+      },
+      "stable": {
+        "n": 12,
+        "fwd_5d_mean_pct": -2.282,
+        "fwd_5d_win_rate_pct": 33.3,
+        "fwd_20d_mean_pct": -1.18,
+        "fwd_20d_win_rate_pct": 41.7,
+        "fwd_60d_mean_pct": 0.646,
+        "fwd_60d_win_rate_pct": 58.3
+      }
+    },
+    "XLY": {
+      "label": "임의소비재",
+      "disinflationary": {
+        "n": 9,
+        "fwd_5d_mean_pct": -0.545,
+        "fwd_5d_win_rate_pct": 55.6,
+        "fwd_20d_mean_pct": 1.048,
+        "fwd_20d_win_rate_pct": 77.8,
+        "fwd_60d_mean_pct": -1.872,
+        "fwd_60d_win_rate_pct": 55.6
+      },
+      "stable": {
+        "n": 12,
+        "fwd_5d_mean_pct": -2.109,
+        "fwd_5d_win_rate_pct": 41.7,
+        "fwd_20d_mean_pct": -1.233,
+        "fwd_20d_win_rate_pct": 50.0,
+        "fwd_60d_mean_pct": 1.281,
+        "fwd_60d_win_rate_pct": 58.3
+      }
+    },
+    "XLP": {
+      "label": "필수소비재",
+      "disinflationary": {
+        "n": 9,
+        "fwd_5d_mean_pct": 0.082,
+        "fwd_5d_win_rate_pct": 66.7,
+        "fwd_20d_mean_pct": 0.834,
+        "fwd_20d_win_rate_pct": 66.7,
+        "fwd_60d_mean_pct": 0.652,
+        "fwd_60d_win_rate_pct": 55.6
+      },
+      "stable": {
+        "n": 12,
+        "fwd_5d_mean_pct": -1.93,
+        "fwd_5d_win_rate_pct": 25.0,
+        "fwd_20d_mean_pct": 0.4,
+        "fwd_20d_win_rate_pct": 58.3,
+        "fwd_60d_mean_pct": 0.866,
+        "fwd_60d_win_rate_pct": 41.7
+      }
+    },
+    "XLU": {
+      "label": "유틸리티",
+      "disinflationary": {
+        "n": 9,
+        "fwd_5d_mean_pct": -0.386,
+        "fwd_5d_win_rate_pct": 55.6,
+        "fwd_20d_mean_pct": 1.337,
+        "fwd_20d_win_rate_pct": 55.6,
+        "fwd_60d_mean_pct": 0.049,
+        "fwd_60d_win_rate_pct": 44.4
+      },
+      "stable": {
+        "n": 12,
+        "fwd_5d_mean_pct": -2.525,
+        "fwd_5d_win_rate_pct": 41.7,
+        "fwd_20d_mean_pct": 1.332,
+        "fwd_20d_win_rate_pct": 75.0,
+        "fwd_60d_mean_pct": 1.199,
+        "fwd_60d_win_rate_pct": 66.7
+      }
+    },
+    "XLB": {
+      "label": "소재",
+      "disinflationary": {
+        "n": 9,
+        "fwd_5d_mean_pct": -1.284,
+        "fwd_5d_win_rate_pct": 55.6,
+        "fwd_20d_mean_pct": 0.912,
+        "fwd_20d_win_rate_pct": 55.6,
+        "fwd_60d_mean_pct": -1.575,
+        "fwd_60d_win_rate_pct": 55.6
+      },
+      "stable": {
+        "n": 12,
+        "fwd_5d_mean_pct": -2.688,
+        "fwd_5d_win_rate_pct": 33.3,
+        "fwd_20d_mean_pct": 0.238,
+        "fwd_20d_win_rate_pct": 50.0,
+        "fwd_60d_mean_pct": 3.684,
+        "fwd_60d_win_rate_pct": 50.0
+      }
+    }
+  }
+}

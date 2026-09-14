@@ -1,0 +1,4072 @@
+{
+  "stage1": {
+    "episode_windows": {
+      "full_2019_2026": [
+        "2019-08-12",
+        "2026-08-19"
+      ],
+      "gfc_2008": [
+        "2007-10-01",
+        "2009-06-30"
+      ],
+      "covid_2020": [
+        "2020-02-19",
+        "2020-04-30"
+      ],
+      "bear_2022": [
+        "2022-01-01",
+        "2022-12-31"
+      ],
+      "selloff_2018": [
+        "2018-09-01",
+        "2019-01-15"
+      ],
+      "correction_2015_2016": [
+        "2015-08-01",
+        "2016-02-15"
+      ]
+    },
+    "lookback_months": [
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18
+    ],
+    "frequencies": {
+      "monthly_21d": 21,
+      "sixweek_30d": 30,
+      "twomonth_42d": 42,
+      "quarterly_63d": 63
+    },
+    "sequential_choice": {
+      "lookback_months": 12,
+      "freq_name": "monthly_21d"
+    },
+    "h31_coarse_winner": {
+      "lookback_months": 15,
+      "freq_name": "quarterly_63d"
+    },
+    "raw_lookup_table": {
+      "full_2019_2026": {
+        "9": {
+          "monthly_21d": {
+            "sharpe": 0.85,
+            "cagr": 11.45,
+            "mdd": -21.19,
+            "avg_annual_turnover_pct": 575.0
+          },
+          "sixweek_30d": {
+            "sharpe": 0.6,
+            "cagr": 8.34,
+            "mdd": -26.39,
+            "avg_annual_turnover_pct": 478.6
+          },
+          "twomonth_42d": {
+            "sharpe": 0.7,
+            "cagr": 10.07,
+            "mdd": -26.39,
+            "avg_annual_turnover_pct": 414.3
+          },
+          "quarterly_63d": {
+            "sharpe": 0.94,
+            "cagr": 14.4,
+            "mdd": -25.18,
+            "avg_annual_turnover_pct": 303.6
+          }
+        },
+        "10": {
+          "monthly_21d": {
+            "sharpe": 0.7,
+            "cagr": 9.12,
+            "mdd": -20.82,
+            "avg_annual_turnover_pct": 521.4
+          },
+          "sixweek_30d": {
+            "sharpe": 0.93,
+            "cagr": 12.59,
+            "mdd": -18.61,
+            "avg_annual_turnover_pct": 432.1
+          },
+          "twomonth_42d": {
+            "sharpe": 0.55,
+            "cagr": 8.3,
+            "mdd": -32.52,
+            "avg_annual_turnover_pct": 396.4
+          },
+          "quarterly_63d": {
+            "sharpe": 0.75,
+            "cagr": 11.12,
+            "mdd": -22.58,
+            "avg_annual_turnover_pct": 339.3
+          }
+        },
+        "11": {
+          "monthly_21d": {
+            "sharpe": 0.78,
+            "cagr": 10.66,
+            "mdd": -23.08,
+            "avg_annual_turnover_pct": 507.1
+          },
+          "sixweek_30d": {
+            "sharpe": 0.65,
+            "cagr": 9.33,
+            "mdd": -29.28,
+            "avg_annual_turnover_pct": 464.3
+          },
+          "twomonth_42d": {
+            "sharpe": 0.67,
+            "cagr": 10.32,
+            "mdd": -30.45,
+            "avg_annual_turnover_pct": 364.3
+          },
+          "quarterly_63d": {
+            "sharpe": 0.94,
+            "cagr": 14.53,
+            "mdd": -25.59,
+            "avg_annual_turnover_pct": 257.1
+          }
+        },
+        "12": {
+          "monthly_21d": {
+            "sharpe": 0.8,
+            "cagr": 11.86,
+            "mdd": -29.73,
+            "avg_annual_turnover_pct": 482.1
+          },
+          "sixweek_30d": {
+            "sharpe": 0.56,
+            "cagr": 8.18,
+            "mdd": -36.88,
+            "avg_annual_turnover_pct": 378.6
+          },
+          "twomonth_42d": {
+            "sharpe": 0.6,
+            "cagr": 9.33,
+            "mdd": -34.75,
+            "avg_annual_turnover_pct": 371.4
+          },
+          "quarterly_63d": {
+            "sharpe": 0.74,
+            "cagr": 11.9,
+            "mdd": -34.88,
+            "avg_annual_turnover_pct": 289.3
+          }
+        },
+        "13": {
+          "monthly_21d": {
+            "sharpe": 0.59,
+            "cagr": 8.36,
+            "mdd": -32.02,
+            "avg_annual_turnover_pct": 464.3
+          },
+          "sixweek_30d": {
+            "sharpe": 0.89,
+            "cagr": 11.67,
+            "mdd": -15.69,
+            "avg_annual_turnover_pct": 382.1
+          },
+          "twomonth_42d": {
+            "sharpe": 0.77,
+            "cagr": 10.23,
+            "mdd": -15.57,
+            "avg_annual_turnover_pct": 342.9
+          },
+          "quarterly_63d": {
+            "sharpe": 0.61,
+            "cagr": 9.57,
+            "mdd": -36.88,
+            "avg_annual_turnover_pct": 321.4
+          }
+        },
+        "14": {
+          "monthly_21d": {
+            "sharpe": 0.84,
+            "cagr": 10.6,
+            "mdd": -18.57,
+            "avg_annual_turnover_pct": 503.6
+          },
+          "sixweek_30d": {
+            "sharpe": 0.8,
+            "cagr": 10.66,
+            "mdd": -16.59,
+            "avg_annual_turnover_pct": 392.9
+          },
+          "twomonth_42d": {
+            "sharpe": 0.61,
+            "cagr": 8.92,
+            "mdd": -28.01,
+            "avg_annual_turnover_pct": 353.6
+          },
+          "quarterly_63d": {
+            "sharpe": 1.03,
+            "cagr": 14.27,
+            "mdd": -15.69,
+            "avg_annual_turnover_pct": 260.7
+          }
+        },
+        "15": {
+          "monthly_21d": {
+            "sharpe": 0.7,
+            "cagr": 9.38,
+            "mdd": -23.01,
+            "avg_annual_turnover_pct": 475.0
+          },
+          "sixweek_30d": {
+            "sharpe": 0.58,
+            "cagr": 7.95,
+            "mdd": -28.01,
+            "avg_annual_turnover_pct": 453.6
+          },
+          "twomonth_42d": {
+            "sharpe": 0.91,
+            "cagr": 12.4,
+            "mdd": -15.57,
+            "avg_annual_turnover_pct": 346.4
+          },
+          "quarterly_63d": {
+            "sharpe": 0.88,
+            "cagr": 13.81,
+            "mdd": -28.01,
+            "avg_annual_turnover_pct": 296.4
+          }
+        },
+        "16": {
+          "monthly_21d": {
+            "sharpe": 0.74,
+            "cagr": 10.19,
+            "mdd": -23.01,
+            "avg_annual_turnover_pct": 471.4
+          },
+          "sixweek_30d": {
+            "sharpe": 0.73,
+            "cagr": 10.41,
+            "mdd": -24.24,
+            "avg_annual_turnover_pct": 382.1
+          },
+          "twomonth_42d": {
+            "sharpe": 0.69,
+            "cagr": 9.94,
+            "mdd": -24.24,
+            "avg_annual_turnover_pct": 342.9
+          },
+          "quarterly_63d": {
+            "sharpe": 0.97,
+            "cagr": 15.36,
+            "mdd": -28.01,
+            "avg_annual_turnover_pct": 253.6
+          }
+        },
+        "17": {
+          "monthly_21d": {
+            "sharpe": 0.77,
+            "cagr": 10.55,
+            "mdd": -23.01,
+            "avg_annual_turnover_pct": 450.0
+          },
+          "sixweek_30d": {
+            "sharpe": 0.96,
+            "cagr": 12.69,
+            "mdd": -15.57,
+            "avg_annual_turnover_pct": 367.9
+          },
+          "twomonth_42d": {
+            "sharpe": 0.69,
+            "cagr": 9.94,
+            "mdd": -24.24,
+            "avg_annual_turnover_pct": 335.7
+          },
+          "quarterly_63d": {
+            "sharpe": 0.76,
+            "cagr": 11.67,
+            "mdd": -28.01,
+            "avg_annual_turnover_pct": 285.7
+          }
+        },
+        "18": {
+          "monthly_21d": {
+            "sharpe": 0.75,
+            "cagr": 10.13,
+            "mdd": -23.01,
+            "avg_annual_turnover_pct": 407.1
+          },
+          "sixweek_30d": {
+            "sharpe": 0.76,
+            "cagr": 10.86,
+            "mdd": -24.24,
+            "avg_annual_turnover_pct": 346.4
+          },
+          "twomonth_42d": {
+            "sharpe": 0.52,
+            "cagr": 7.78,
+            "mdd": -32.85,
+            "avg_annual_turnover_pct": 314.3
+          },
+          "quarterly_63d": {
+            "sharpe": 0.82,
+            "cagr": 12.51,
+            "mdd": -28.01,
+            "avg_annual_turnover_pct": 250.0
+          }
+        }
+      },
+      "gfc_2008": {
+        "9": {
+          "monthly_21d": {
+            "sharpe": -0.32,
+            "cagr": -3.59,
+            "mdd": -13.78,
+            "avg_annual_turnover_pct": 300.7
+          },
+          "sixweek_30d": {
+            "sharpe": -0.32,
+            "cagr": -4.23,
+            "mdd": -16.21,
+            "avg_annual_turnover_pct": 300.7
+          },
+          "twomonth_42d": {
+            "sharpe": -0.72,
+            "cagr": -10.08,
+            "mdd": -21.28,
+            "avg_annual_turnover_pct": 229.1
+          },
+          "quarterly_63d": {
+            "sharpe": -0.72,
+            "cagr": -8.08,
+            "mdd": -18.78,
+            "avg_annual_turnover_pct": 229.1
+          }
+        },
+        "10": {
+          "monthly_21d": {
+            "sharpe": -0.37,
+            "cagr": -4.39,
+            "mdd": -16.02,
+            "avg_annual_turnover_pct": 286.4
+          },
+          "sixweek_30d": {
+            "sharpe": 0.05,
+            "cagr": -0.2,
+            "mdd": -14.26,
+            "avg_annual_turnover_pct": 286.4
+          },
+          "twomonth_42d": {
+            "sharpe": -0.49,
+            "cagr": -7.68,
+            "mdd": -17.6,
+            "avg_annual_turnover_pct": 171.8
+          },
+          "quarterly_63d": {
+            "sharpe": -0.61,
+            "cagr": -7.43,
+            "mdd": -19.28,
+            "avg_annual_turnover_pct": 229.1
+          }
+        },
+        "11": {
+          "monthly_21d": {
+            "sharpe": -0.33,
+            "cagr": -4.24,
+            "mdd": -14.9,
+            "avg_annual_turnover_pct": 315.0
+          },
+          "sixweek_30d": {
+            "sharpe": 0.06,
+            "cagr": -0.01,
+            "mdd": -15.09,
+            "avg_annual_turnover_pct": 272.0
+          },
+          "twomonth_42d": {
+            "sharpe": -0.4,
+            "cagr": -6.35,
+            "mdd": -16.26,
+            "avg_annual_turnover_pct": 179.0
+          },
+          "quarterly_63d": {
+            "sharpe": -0.51,
+            "cagr": -5.99,
+            "mdd": -17.67,
+            "avg_annual_turnover_pct": 200.5
+          }
+        },
+        "12": {
+          "monthly_21d": {
+            "sharpe": -0.11,
+            "cagr": -1.83,
+            "mdd": -16.32,
+            "avg_annual_turnover_pct": 286.4
+          },
+          "sixweek_30d": {
+            "sharpe": 0.05,
+            "cagr": -0.26,
+            "mdd": -15.25,
+            "avg_annual_turnover_pct": 272.0
+          },
+          "twomonth_42d": {
+            "sharpe": -0.28,
+            "cagr": -4.82,
+            "mdd": -15.98,
+            "avg_annual_turnover_pct": 179.0
+          },
+          "quarterly_63d": {
+            "sharpe": -0.43,
+            "cagr": -5.61,
+            "mdd": -19.91,
+            "avg_annual_turnover_pct": 186.1
+          }
+        },
+        "13": {
+          "monthly_21d": {
+            "sharpe": -0.18,
+            "cagr": -2.73,
+            "mdd": -12.34,
+            "avg_annual_turnover_pct": 243.4
+          },
+          "sixweek_30d": {
+            "sharpe": -0.2,
+            "cagr": -3.36,
+            "mdd": -12.78,
+            "avg_annual_turnover_pct": 272.0
+          },
+          "twomonth_42d": {
+            "sharpe": -0.73,
+            "cagr": -11.46,
+            "mdd": -21.64,
+            "avg_annual_turnover_pct": 200.5
+          },
+          "quarterly_63d": {
+            "sharpe": -0.52,
+            "cagr": -6.69,
+            "mdd": -16.51,
+            "avg_annual_turnover_pct": 214.8
+          }
+        },
+        "14": {
+          "monthly_21d": {
+            "sharpe": -0.06,
+            "cagr": -1.38,
+            "mdd": -12.15,
+            "avg_annual_turnover_pct": 214.8
+          },
+          "sixweek_30d": {
+            "sharpe": 0.15,
+            "cagr": 1.07,
+            "mdd": -12.78,
+            "avg_annual_turnover_pct": 214.8
+          },
+          "twomonth_42d": {
+            "sharpe": -0.62,
+            "cagr": -10.2,
+            "mdd": -22.04,
+            "avg_annual_turnover_pct": 157.5
+          },
+          "quarterly_63d": {
+            "sharpe": -0.25,
+            "cagr": -3.77,
+            "mdd": -14.83,
+            "avg_annual_turnover_pct": 171.8
+          }
+        },
+        "15": {
+          "monthly_21d": {
+            "sharpe": -0.11,
+            "cagr": -2.01,
+            "mdd": -13.69,
+            "avg_annual_turnover_pct": 171.8
+          },
+          "sixweek_30d": {
+            "sharpe": -0.59,
+            "cagr": -8.61,
+            "mdd": -18.81,
+            "avg_annual_turnover_pct": 200.5
+          },
+          "twomonth_42d": {
+            "sharpe": -0.62,
+            "cagr": -10.2,
+            "mdd": -22.04,
+            "avg_annual_turnover_pct": 157.5
+          },
+          "quarterly_63d": {
+            "sharpe": -0.22,
+            "cagr": -3.43,
+            "mdd": -14.83,
+            "avg_annual_turnover_pct": 171.8
+          }
+        },
+        "16": {
+          "monthly_21d": {
+            "sharpe": -0.26,
+            "cagr": -3.87,
+            "mdd": -13.57,
+            "avg_annual_turnover_pct": 200.5
+          },
+          "sixweek_30d": {
+            "sharpe": -0.66,
+            "cagr": -9.66,
+            "mdd": -20.91,
+            "avg_annual_turnover_pct": 229.1
+          },
+          "twomonth_42d": {
+            "sharpe": -0.54,
+            "cagr": -8.58,
+            "mdd": -20.56,
+            "avg_annual_turnover_pct": 150.3
+          },
+          "quarterly_63d": {
+            "sharpe": -0.35,
+            "cagr": -4.74,
+            "mdd": -14.83,
+            "avg_annual_turnover_pct": 171.8
+          }
+        },
+        "17": {
+          "monthly_21d": {
+            "sharpe": -0.28,
+            "cagr": -3.87,
+            "mdd": -13.58,
+            "avg_annual_turnover_pct": 186.1
+          },
+          "sixweek_30d": {
+            "sharpe": -0.65,
+            "cagr": -9.92,
+            "mdd": -24.02,
+            "avg_annual_turnover_pct": 229.1
+          },
+          "twomonth_42d": {
+            "sharpe": -0.54,
+            "cagr": -8.58,
+            "mdd": -20.56,
+            "avg_annual_turnover_pct": 150.3
+          },
+          "quarterly_63d": {
+            "sharpe": -0.51,
+            "cagr": -6.62,
+            "mdd": -15.26,
+            "avg_annual_turnover_pct": 171.8
+          }
+        },
+        "18": {
+          "monthly_21d": {
+            "sharpe": -0.45,
+            "cagr": -5.9,
+            "mdd": -19.63,
+            "avg_annual_turnover_pct": 257.7
+          },
+          "sixweek_30d": {
+            "sharpe": -0.54,
+            "cagr": -8.6,
+            "mdd": -22.63,
+            "avg_annual_turnover_pct": 243.4
+          },
+          "twomonth_42d": {
+            "sharpe": -0.26,
+            "cagr": -5.03,
+            "mdd": -21.35,
+            "avg_annual_turnover_pct": 150.3
+          },
+          "quarterly_63d": {
+            "sharpe": -0.49,
+            "cagr": -7.7,
+            "mdd": -22.24,
+            "avg_annual_turnover_pct": 171.8
+          }
+        }
+      },
+      "covid_2020": {
+        "9": {
+          "monthly_21d": {
+            "sharpe": -1.48,
+            "cagr": -50.1,
+            "mdd": -21.23,
+            "avg_annual_turnover_pct": 1134.0
+          },
+          "sixweek_30d": {
+            "sharpe": -1.28,
+            "cagr": -54.44,
+            "mdd": -26.43,
+            "avg_annual_turnover_pct": 1008.0
+          },
+          "twomonth_42d": {
+            "sharpe": -0.87,
+            "cagr": -46.24,
+            "mdd": -26.43,
+            "avg_annual_turnover_pct": 1008.0
+          },
+          "quarterly_63d": {
+            "sharpe": -0.42,
+            "cagr": -31.19,
+            "mdd": -25.22,
+            "avg_annual_turnover_pct": 1008.0
+          }
+        },
+        "10": {
+          "monthly_21d": {
+            "sharpe": -1.65,
+            "cagr": -52.65,
+            "mdd": -20.86,
+            "avg_annual_turnover_pct": 1134.0
+          },
+          "sixweek_30d": {
+            "sharpe": -0.87,
+            "cagr": -30.56,
+            "mdd": -18.65,
+            "avg_annual_turnover_pct": 882.0
+          },
+          "twomonth_42d": {
+            "sharpe": -1.14,
+            "cagr": -63.06,
+            "mdd": -32.56,
+            "avg_annual_turnover_pct": 1134.0
+          },
+          "quarterly_63d": {
+            "sharpe": -0.59,
+            "cagr": -33.78,
+            "mdd": -22.62,
+            "avg_annual_turnover_pct": 1008.0
+          }
+        },
+        "11": {
+          "monthly_21d": {
+            "sharpe": -1.79,
+            "cagr": -57.05,
+            "mdd": -23.12,
+            "avg_annual_turnover_pct": 1134.0
+          },
+          "sixweek_30d": {
+            "sharpe": -1.26,
+            "cagr": -56.9,
+            "mdd": -29.31,
+            "avg_annual_turnover_pct": 1008.0
+          },
+          "twomonth_42d": {
+            "sharpe": -0.83,
+            "cagr": -53.08,
+            "mdd": -30.48,
+            "avg_annual_turnover_pct": 1134.0
+          },
+          "quarterly_63d": {
+            "sharpe": -0.7,
+            "cagr": -40.76,
+            "mdd": -25.63,
+            "avg_annual_turnover_pct": 1008.0
+          }
+        },
+        "12": {
+          "monthly_21d": {
+            "sharpe": -2.07,
+            "cagr": -72.15,
+            "mdd": -29.77,
+            "avg_annual_turnover_pct": 1260.0
+          },
+          "sixweek_30d": {
+            "sharpe": -1.78,
+            "cagr": -76.18,
+            "mdd": -36.91,
+            "avg_annual_turnover_pct": 1134.0
+          },
+          "twomonth_42d": {
+            "sharpe": -1.29,
+            "cagr": -68.39,
+            "mdd": -34.79,
+            "avg_annual_turnover_pct": 1134.0
+          },
+          "quarterly_63d": {
+            "sharpe": -1.2,
+            "cagr": -65.66,
+            "mdd": -34.91,
+            "avg_annual_turnover_pct": 1134.0
+          }
+        },
+        "13": {
+          "monthly_21d": {
+            "sharpe": -2.2,
+            "cagr": -76.66,
+            "mdd": -32.05,
+            "avg_annual_turnover_pct": 1134.0
+          },
+          "sixweek_30d": {
+            "sharpe": -0.63,
+            "cagr": -21.21,
+            "mdd": -15.73,
+            "avg_annual_turnover_pct": 882.0
+          },
+          "twomonth_42d": {
+            "sharpe": 0.09,
+            "cagr": -2.95,
+            "mdd": -15.57,
+            "avg_annual_turnover_pct": 882.0
+          },
+          "quarterly_63d": {
+            "sharpe": -1.46,
+            "cagr": -73.14,
+            "mdd": -36.91,
+            "avg_annual_turnover_pct": 1134.0
+          }
+        },
+        "14": {
+          "monthly_21d": {
+            "sharpe": -1.45,
+            "cagr": -33.23,
+            "mdd": -13.94,
+            "avg_annual_turnover_pct": 882.0
+          },
+          "sixweek_30d": {
+            "sharpe": -0.49,
+            "cagr": -19.28,
+            "mdd": -16.59,
+            "avg_annual_turnover_pct": 882.0
+          },
+          "twomonth_42d": {
+            "sharpe": -0.62,
+            "cagr": -41.31,
+            "mdd": -28.01,
+            "avg_annual_turnover_pct": 1008.0
+          },
+          "quarterly_63d": {
+            "sharpe": -0.03,
+            "cagr": -6.05,
+            "mdd": -15.73,
+            "avg_annual_turnover_pct": 882.0
+          }
+        },
+        "15": {
+          "monthly_21d": {
+            "sharpe": -1.4,
+            "cagr": -51.59,
+            "mdd": -23.01,
+            "avg_annual_turnover_pct": 1134.0
+          },
+          "sixweek_30d": {
+            "sharpe": -1.03,
+            "cagr": -49.84,
+            "mdd": -28.01,
+            "avg_annual_turnover_pct": 1008.0
+          },
+          "twomonth_42d": {
+            "sharpe": 0.09,
+            "cagr": -3.19,
+            "mdd": -15.57,
+            "avg_annual_turnover_pct": 882.0
+          },
+          "quarterly_63d": {
+            "sharpe": -0.63,
+            "cagr": -41.45,
+            "mdd": -28.01,
+            "avg_annual_turnover_pct": 1008.0
+          }
+        },
+        "16": {
+          "monthly_21d": {
+            "sharpe": -1.4,
+            "cagr": -51.44,
+            "mdd": -23.01,
+            "avg_annual_turnover_pct": 1008.0
+          },
+          "sixweek_30d": {
+            "sharpe": -0.88,
+            "cagr": -42.84,
+            "mdd": -24.27,
+            "avg_annual_turnover_pct": 1008.0
+          },
+          "twomonth_42d": {
+            "sharpe": -0.46,
+            "cagr": -32.19,
+            "mdd": -24.27,
+            "avg_annual_turnover_pct": 1008.0
+          },
+          "quarterly_63d": {
+            "sharpe": -0.62,
+            "cagr": -41.31,
+            "mdd": -28.01,
+            "avg_annual_turnover_pct": 1008.0
+          }
+        },
+        "17": {
+          "monthly_21d": {
+            "sharpe": -1.4,
+            "cagr": -51.44,
+            "mdd": -23.01,
+            "avg_annual_turnover_pct": 1008.0
+          },
+          "sixweek_30d": {
+            "sharpe": -0.26,
+            "cagr": -12.9,
+            "mdd": -15.57,
+            "avg_annual_turnover_pct": 882.0
+          },
+          "twomonth_42d": {
+            "sharpe": -0.46,
+            "cagr": -32.19,
+            "mdd": -24.27,
+            "avg_annual_turnover_pct": 1008.0
+          },
+          "quarterly_63d": {
+            "sharpe": -0.62,
+            "cagr": -41.31,
+            "mdd": -28.01,
+            "avg_annual_turnover_pct": 1008.0
+          }
+        },
+        "18": {
+          "monthly_21d": {
+            "sharpe": -1.61,
+            "cagr": -55.45,
+            "mdd": -23.01,
+            "avg_annual_turnover_pct": 1134.0
+          },
+          "sixweek_30d": {
+            "sharpe": -1.01,
+            "cagr": -46.33,
+            "mdd": -24.27,
+            "avg_annual_turnover_pct": 1008.0
+          },
+          "twomonth_42d": {
+            "sharpe": -0.76,
+            "cagr": -53.71,
+            "mdd": -32.69,
+            "avg_annual_turnover_pct": 1134.0
+          },
+          "quarterly_63d": {
+            "sharpe": -0.62,
+            "cagr": -41.31,
+            "mdd": -28.01,
+            "avg_annual_turnover_pct": 1008.0
+          }
+        }
+      },
+      "bear_2022": {
+        "9": {
+          "monthly_21d": {
+            "sharpe": 0.14,
+            "cagr": 0.99,
+            "mdd": -8.75,
+            "avg_annual_turnover_pct": 502.0
+          },
+          "sixweek_30d": {
+            "sharpe": -0.38,
+            "cagr": -4.16,
+            "mdd": -8.86,
+            "avg_annual_turnover_pct": 351.4
+          },
+          "twomonth_42d": {
+            "sharpe": 0.36,
+            "cagr": 3.46,
+            "mdd": -8.05,
+            "avg_annual_turnover_pct": 376.5
+          },
+          "quarterly_63d": {
+            "sharpe": -0.44,
+            "cagr": -5.8,
+            "mdd": -10.95,
+            "avg_annual_turnover_pct": 351.4
+          }
+        },
+        "10": {
+          "monthly_21d": {
+            "sharpe": -0.52,
+            "cagr": -6.38,
+            "mdd": -10.58,
+            "avg_annual_turnover_pct": 451.8
+          },
+          "sixweek_30d": {
+            "sharpe": -0.22,
+            "cagr": -2.61,
+            "mdd": -8.21,
+            "avg_annual_turnover_pct": 263.5
+          },
+          "twomonth_42d": {
+            "sharpe": 0.63,
+            "cagr": 6.88,
+            "mdd": -9.36,
+            "avg_annual_turnover_pct": 301.2
+          },
+          "quarterly_63d": {
+            "sharpe": -0.98,
+            "cagr": -13.62,
+            "mdd": -16.58,
+            "avg_annual_turnover_pct": 276.1
+          }
+        },
+        "11": {
+          "monthly_21d": {
+            "sharpe": 0.51,
+            "cagr": 5.21,
+            "mdd": -9.63,
+            "avg_annual_turnover_pct": 376.5
+          },
+          "sixweek_30d": {
+            "sharpe": -0.44,
+            "cagr": -4.83,
+            "mdd": -10.16,
+            "avg_annual_turnover_pct": 301.2
+          },
+          "twomonth_42d": {
+            "sharpe": 1.03,
+            "cagr": 11.65,
+            "mdd": -8.21,
+            "avg_annual_turnover_pct": 263.5
+          },
+          "quarterly_63d": {
+            "sharpe": 0.65,
+            "cagr": 7.2,
+            "mdd": -9.58,
+            "avg_annual_turnover_pct": 276.1
+          }
+        },
+        "12": {
+          "monthly_21d": {
+            "sharpe": 0.66,
+            "cagr": 6.88,
+            "mdd": -9.89,
+            "avg_annual_turnover_pct": 376.5
+          },
+          "sixweek_30d": {
+            "sharpe": 0.34,
+            "cagr": 2.88,
+            "mdd": -8.28,
+            "avg_annual_turnover_pct": 326.3
+          },
+          "twomonth_42d": {
+            "sharpe": 0.92,
+            "cagr": 10.23,
+            "mdd": -7.45,
+            "avg_annual_turnover_pct": 301.2
+          },
+          "quarterly_63d": {
+            "sharpe": 0.66,
+            "cagr": 6.9,
+            "mdd": -10.68,
+            "avg_annual_turnover_pct": 251.0
+          }
+        },
+        "13": {
+          "monthly_21d": {
+            "sharpe": 0.7,
+            "cagr": 7.4,
+            "mdd": -8.36,
+            "avg_annual_turnover_pct": 376.5
+          },
+          "sixweek_30d": {
+            "sharpe": 0.29,
+            "cagr": 2.42,
+            "mdd": -8.9,
+            "avg_annual_turnover_pct": 326.3
+          },
+          "twomonth_42d": {
+            "sharpe": 0.8,
+            "cagr": 8.79,
+            "mdd": -7.63,
+            "avg_annual_turnover_pct": 276.1
+          },
+          "quarterly_63d": {
+            "sharpe": 0.77,
+            "cagr": 8.41,
+            "mdd": -8.26,
+            "avg_annual_turnover_pct": 225.9
+          }
+        },
+        "14": {
+          "monthly_21d": {
+            "sharpe": 0.52,
+            "cagr": 5.4,
+            "mdd": -10.69,
+            "avg_annual_turnover_pct": 401.6
+          },
+          "sixweek_30d": {
+            "sharpe": 0.3,
+            "cagr": 2.51,
+            "mdd": -8.68,
+            "avg_annual_turnover_pct": 301.2
+          },
+          "twomonth_42d": {
+            "sharpe": 0.83,
+            "cagr": 9.47,
+            "mdd": -8.46,
+            "avg_annual_turnover_pct": 276.1
+          },
+          "quarterly_63d": {
+            "sharpe": 0.55,
+            "cagr": 5.92,
+            "mdd": -11.89,
+            "avg_annual_turnover_pct": 276.1
+          }
+        },
+        "15": {
+          "monthly_21d": {
+            "sharpe": 0.38,
+            "cagr": 3.79,
+            "mdd": -11.79,
+            "avg_annual_turnover_pct": 451.8
+          },
+          "sixweek_30d": {
+            "sharpe": 0.0,
+            "cagr": -0.45,
+            "mdd": -10.27,
+            "avg_annual_turnover_pct": 338.8
+          },
+          "twomonth_42d": {
+            "sharpe": 0.59,
+            "cagr": 6.43,
+            "mdd": -11.15,
+            "avg_annual_turnover_pct": 326.3
+          },
+          "quarterly_63d": {
+            "sharpe": 0.76,
+            "cagr": 8.58,
+            "mdd": -9.72,
+            "avg_annual_turnover_pct": 276.1
+          }
+        },
+        "16": {
+          "monthly_21d": {
+            "sharpe": 0.58,
+            "cagr": 6.18,
+            "mdd": -8.88,
+            "avg_annual_turnover_pct": 326.3
+          },
+          "sixweek_30d": {
+            "sharpe": 0.02,
+            "cagr": -0.31,
+            "mdd": -10.58,
+            "avg_annual_turnover_pct": 326.3
+          },
+          "twomonth_42d": {
+            "sharpe": 0.26,
+            "cagr": 2.39,
+            "mdd": -8.54,
+            "avg_annual_turnover_pct": 276.1
+          },
+          "quarterly_63d": {
+            "sharpe": 0.83,
+            "cagr": 9.67,
+            "mdd": -8.36,
+            "avg_annual_turnover_pct": 251.0
+          }
+        },
+        "17": {
+          "monthly_21d": {
+            "sharpe": 0.16,
+            "cagr": 1.24,
+            "mdd": -8.78,
+            "avg_annual_turnover_pct": 476.9
+          },
+          "sixweek_30d": {
+            "sharpe": -0.14,
+            "cagr": -1.95,
+            "mdd": -8.13,
+            "avg_annual_turnover_pct": 351.4
+          },
+          "twomonth_42d": {
+            "sharpe": 0.3,
+            "cagr": 2.92,
+            "mdd": -10.13,
+            "avg_annual_turnover_pct": 326.3
+          },
+          "quarterly_63d": {
+            "sharpe": -0.07,
+            "cagr": -1.71,
+            "mdd": -10.05,
+            "avg_annual_turnover_pct": 326.3
+          }
+        },
+        "18": {
+          "monthly_21d": {
+            "sharpe": 0.32,
+            "cagr": 3.1,
+            "mdd": -8.88,
+            "avg_annual_turnover_pct": 376.5
+          },
+          "sixweek_30d": {
+            "sharpe": -0.31,
+            "cagr": -3.67,
+            "mdd": -10.17,
+            "avg_annual_turnover_pct": 351.4
+          },
+          "twomonth_42d": {
+            "sharpe": 0.16,
+            "cagr": 1.26,
+            "mdd": -10.04,
+            "avg_annual_turnover_pct": 301.2
+          },
+          "quarterly_63d": {
+            "sharpe": 0.1,
+            "cagr": 0.42,
+            "mdd": -9.23,
+            "avg_annual_turnover_pct": 225.9
+          }
+        }
+      },
+      "selloff_2018": {
+        "9": {
+          "monthly_21d": {
+            "sharpe": -1.58,
+            "cagr": -19.55,
+            "mdd": -11.52,
+            "avg_annual_turnover_pct": 761.5
+          },
+          "sixweek_30d": {
+            "sharpe": -2.61,
+            "cagr": -36.46,
+            "mdd": -18.1,
+            "avg_annual_turnover_pct": 900.0
+          },
+          "twomonth_42d": {
+            "sharpe": -1.62,
+            "cagr": -22.56,
+            "mdd": -12.95,
+            "avg_annual_turnover_pct": 692.3
+          },
+          "quarterly_63d": {
+            "sharpe": -1.58,
+            "cagr": -22.07,
+            "mdd": -12.95,
+            "avg_annual_turnover_pct": 553.8
+          }
+        },
+        "10": {
+          "monthly_21d": {
+            "sharpe": -1.57,
+            "cagr": -20.19,
+            "mdd": -12.35,
+            "avg_annual_turnover_pct": 830.8
+          },
+          "sixweek_30d": {
+            "sharpe": -2.59,
+            "cagr": -38.04,
+            "mdd": -18.65,
+            "avg_annual_turnover_pct": 969.2
+          },
+          "twomonth_42d": {
+            "sharpe": -1.64,
+            "cagr": -23.46,
+            "mdd": -13.92,
+            "avg_annual_turnover_pct": 623.1
+          },
+          "quarterly_63d": {
+            "sharpe": -1.71,
+            "cagr": -22.78,
+            "mdd": -14.44,
+            "avg_annual_turnover_pct": 553.8
+          }
+        },
+        "11": {
+          "monthly_21d": {
+            "sharpe": -1.75,
+            "cagr": -22.85,
+            "mdd": -14.34,
+            "avg_annual_turnover_pct": 761.5
+          },
+          "sixweek_30d": {
+            "sharpe": -3.57,
+            "cagr": -46.35,
+            "mdd": -21.12,
+            "avg_annual_turnover_pct": 726.9
+          },
+          "twomonth_42d": {
+            "sharpe": -1.66,
+            "cagr": -21.77,
+            "mdd": -14.31,
+            "avg_annual_turnover_pct": 553.8
+          },
+          "quarterly_63d": {
+            "sharpe": -2.0,
+            "cagr": -27.36,
+            "mdd": -15.32,
+            "avg_annual_turnover_pct": 553.8
+          }
+        },
+        "12": {
+          "monthly_21d": {
+            "sharpe": -2.0,
+            "cagr": -25.86,
+            "mdd": -14.7,
+            "avg_annual_turnover_pct": 900.0
+          },
+          "sixweek_30d": {
+            "sharpe": -3.28,
+            "cagr": -44.94,
+            "mdd": -20.9,
+            "avg_annual_turnover_pct": 865.4
+          },
+          "twomonth_42d": {
+            "sharpe": -2.03,
+            "cagr": -27.65,
+            "mdd": -15.32,
+            "avg_annual_turnover_pct": 692.3
+          },
+          "quarterly_63d": {
+            "sharpe": -1.9,
+            "cagr": -24.83,
+            "mdd": -15.74,
+            "avg_annual_turnover_pct": 484.6
+          }
+        },
+        "13": {
+          "monthly_21d": {
+            "sharpe": -2.12,
+            "cagr": -27.52,
+            "mdd": -16.63,
+            "avg_annual_turnover_pct": 830.8
+          },
+          "sixweek_30d": {
+            "sharpe": -3.4,
+            "cagr": -45.53,
+            "mdd": -22.41,
+            "avg_annual_turnover_pct": 761.5
+          },
+          "twomonth_42d": {
+            "sharpe": -1.66,
+            "cagr": -21.77,
+            "mdd": -14.31,
+            "avg_annual_turnover_pct": 553.8
+          },
+          "quarterly_63d": {
+            "sharpe": -1.9,
+            "cagr": -24.83,
+            "mdd": -15.74,
+            "avg_annual_turnover_pct": 484.6
+          }
+        },
+        "14": {
+          "monthly_21d": {
+            "sharpe": -1.7,
+            "cagr": -22.63,
+            "mdd": -14.84,
+            "avg_annual_turnover_pct": 623.1
+          },
+          "sixweek_30d": {
+            "sharpe": -2.94,
+            "cagr": -42.74,
+            "mdd": -21.41,
+            "avg_annual_turnover_pct": 657.7
+          },
+          "twomonth_42d": {
+            "sharpe": -1.63,
+            "cagr": -21.42,
+            "mdd": -14.31,
+            "avg_annual_turnover_pct": 415.4
+          },
+          "quarterly_63d": {
+            "sharpe": -1.88,
+            "cagr": -23.84,
+            "mdd": -14.05,
+            "avg_annual_turnover_pct": 484.6
+          }
+        },
+        "15": {
+          "monthly_21d": {
+            "sharpe": -2.25,
+            "cagr": -29.09,
+            "mdd": -16.72,
+            "avg_annual_turnover_pct": 692.3
+          },
+          "sixweek_30d": {
+            "sharpe": -2.83,
+            "cagr": -40.66,
+            "mdd": -21.12,
+            "avg_annual_turnover_pct": 623.1
+          },
+          "twomonth_42d": {
+            "sharpe": -1.87,
+            "cagr": -23.72,
+            "mdd": -14.05,
+            "avg_annual_turnover_pct": 623.1
+          },
+          "quarterly_63d": {
+            "sharpe": -1.88,
+            "cagr": -23.84,
+            "mdd": -14.05,
+            "avg_annual_turnover_pct": 484.6
+          }
+        },
+        "16": {
+          "monthly_21d": {
+            "sharpe": -1.71,
+            "cagr": -23.03,
+            "mdd": -15.52,
+            "avg_annual_turnover_pct": 623.1
+          },
+          "sixweek_30d": {
+            "sharpe": -2.73,
+            "cagr": -39.72,
+            "mdd": -21.12,
+            "avg_annual_turnover_pct": 553.8
+          },
+          "twomonth_42d": {
+            "sharpe": -1.63,
+            "cagr": -21.42,
+            "mdd": -14.31,
+            "avg_annual_turnover_pct": 415.4
+          },
+          "quarterly_63d": {
+            "sharpe": -1.74,
+            "cagr": -24.07,
+            "mdd": -14.28,
+            "avg_annual_turnover_pct": 484.6
+          }
+        },
+        "17": {
+          "monthly_21d": {
+            "sharpe": -2.06,
+            "cagr": -26.69,
+            "mdd": -15.96,
+            "avg_annual_turnover_pct": 761.5
+          },
+          "sixweek_30d": {
+            "sharpe": -2.62,
+            "cagr": -38.41,
+            "mdd": -20.43,
+            "avg_annual_turnover_pct": 623.1
+          },
+          "twomonth_42d": {
+            "sharpe": -1.71,
+            "cagr": -23.79,
+            "mdd": -14.28,
+            "avg_annual_turnover_pct": 623.1
+          },
+          "quarterly_63d": {
+            "sharpe": -1.74,
+            "cagr": -24.39,
+            "mdd": -14.82,
+            "avg_annual_turnover_pct": 484.6
+          }
+        },
+        "18": {
+          "monthly_21d": {
+            "sharpe": -1.82,
+            "cagr": -26.13,
+            "mdd": -16.03,
+            "avg_annual_turnover_pct": 553.8
+          },
+          "sixweek_30d": {
+            "sharpe": -2.36,
+            "cagr": -39.44,
+            "mdd": -21.36,
+            "avg_annual_turnover_pct": 623.1
+          },
+          "twomonth_42d": {
+            "sharpe": -1.74,
+            "cagr": -24.47,
+            "mdd": -14.82,
+            "avg_annual_turnover_pct": 623.1
+          },
+          "quarterly_63d": {
+            "sharpe": -1.74,
+            "cagr": -24.39,
+            "mdd": -14.82,
+            "avg_annual_turnover_pct": 484.6
+          }
+        }
+      },
+      "correction_2015_2016": {
+        "9": {
+          "monthly_21d": {
+            "sharpe": -1.21,
+            "cagr": -13.32,
+            "mdd": -7.9,
+            "avg_annual_turnover_pct": 1166.7
+          },
+          "sixweek_30d": {
+            "sharpe": -2.91,
+            "cagr": -24.98,
+            "mdd": -14.31,
+            "avg_annual_turnover_pct": 653.3
+          },
+          "twomonth_42d": {
+            "sharpe": -1.07,
+            "cagr": -11.61,
+            "mdd": -8.17,
+            "avg_annual_turnover_pct": 700.0
+          },
+          "quarterly_63d": {
+            "sharpe": -1.17,
+            "cagr": -15.81,
+            "mdd": -11.3,
+            "avg_annual_turnover_pct": 443.3
+          }
+        },
+        "10": {
+          "monthly_21d": {
+            "sharpe": -1.11,
+            "cagr": -16.28,
+            "mdd": -11.56,
+            "avg_annual_turnover_pct": 1003.3
+          },
+          "sixweek_30d": {
+            "sharpe": -2.26,
+            "cagr": -21.14,
+            "mdd": -12.06,
+            "avg_annual_turnover_pct": 676.7
+          },
+          "twomonth_42d": {
+            "sharpe": -1.15,
+            "cagr": -17.87,
+            "mdd": -11.41,
+            "avg_annual_turnover_pct": 536.7
+          },
+          "quarterly_63d": {
+            "sharpe": -1.29,
+            "cagr": -17.74,
+            "mdd": -11.3,
+            "avg_annual_turnover_pct": 466.7
+          }
+        },
+        "11": {
+          "monthly_21d": {
+            "sharpe": -1.34,
+            "cagr": -14.97,
+            "mdd": -8.45,
+            "avg_annual_turnover_pct": 933.3
+          },
+          "sixweek_30d": {
+            "sharpe": -2.44,
+            "cagr": -23.27,
+            "mdd": -13.29,
+            "avg_annual_turnover_pct": 700.0
+          },
+          "twomonth_42d": {
+            "sharpe": -1.43,
+            "cagr": -15.4,
+            "mdd": -8.59,
+            "avg_annual_turnover_pct": 746.7
+          },
+          "quarterly_63d": {
+            "sharpe": -0.99,
+            "cagr": -14.79,
+            "mdd": -11.3,
+            "avg_annual_turnover_pct": 326.7
+          }
+        },
+        "12": {
+          "monthly_21d": {
+            "sharpe": -0.94,
+            "cagr": -13.27,
+            "mdd": -10.99,
+            "avg_annual_turnover_pct": 700.0
+          },
+          "sixweek_30d": {
+            "sharpe": -2.33,
+            "cagr": -22.05,
+            "mdd": -12.67,
+            "avg_annual_turnover_pct": 560.0
+          },
+          "twomonth_42d": {
+            "sharpe": -0.84,
+            "cagr": -12.71,
+            "mdd": -11.05,
+            "avg_annual_turnover_pct": 513.3
+          },
+          "quarterly_63d": {
+            "sharpe": -0.96,
+            "cagr": -13.48,
+            "mdd": -11.3,
+            "avg_annual_turnover_pct": 466.7
+          }
+        },
+        "13": {
+          "monthly_21d": {
+            "sharpe": -1.13,
+            "cagr": -12.83,
+            "mdd": -8.2,
+            "avg_annual_turnover_pct": 816.7
+          },
+          "sixweek_30d": {
+            "sharpe": -2.21,
+            "cagr": -22.0,
+            "mdd": -12.83,
+            "avg_annual_turnover_pct": 536.7
+          },
+          "twomonth_42d": {
+            "sharpe": -1.19,
+            "cagr": -13.25,
+            "mdd": -8.17,
+            "avg_annual_turnover_pct": 583.3
+          },
+          "quarterly_63d": {
+            "sharpe": -1.15,
+            "cagr": -16.35,
+            "mdd": -11.3,
+            "avg_annual_turnover_pct": 420.0
+          }
+        },
+        "14": {
+          "monthly_21d": {
+            "sharpe": -1.18,
+            "cagr": -16.49,
+            "mdd": -10.76,
+            "avg_annual_turnover_pct": 793.3
+          },
+          "sixweek_30d": {
+            "sharpe": -2.28,
+            "cagr": -22.68,
+            "mdd": -12.83,
+            "avg_annual_turnover_pct": 606.7
+          },
+          "twomonth_42d": {
+            "sharpe": -1.2,
+            "cagr": -17.59,
+            "mdd": -11.05,
+            "avg_annual_turnover_pct": 606.7
+          },
+          "quarterly_63d": {
+            "sharpe": -1.15,
+            "cagr": -16.35,
+            "mdd": -11.3,
+            "avg_annual_turnover_pct": 420.0
+          }
+        },
+        "15": {
+          "monthly_21d": {
+            "sharpe": -1.15,
+            "cagr": -17.44,
+            "mdd": -11.3,
+            "avg_annual_turnover_pct": 700.0
+          },
+          "sixweek_30d": {
+            "sharpe": -2.12,
+            "cagr": -21.0,
+            "mdd": -12.24,
+            "avg_annual_turnover_pct": 466.7
+          },
+          "twomonth_42d": {
+            "sharpe": -1.09,
+            "cagr": -17.15,
+            "mdd": -11.41,
+            "avg_annual_turnover_pct": 513.3
+          },
+          "quarterly_63d": {
+            "sharpe": -1.12,
+            "cagr": -16.0,
+            "mdd": -11.3,
+            "avg_annual_turnover_pct": 373.3
+          }
+        },
+        "16": {
+          "monthly_21d": {
+            "sharpe": -1.12,
+            "cagr": -16.59,
+            "mdd": -11.62,
+            "avg_annual_turnover_pct": 840.0
+          },
+          "sixweek_30d": {
+            "sharpe": -2.12,
+            "cagr": -21.3,
+            "mdd": -12.15,
+            "avg_annual_turnover_pct": 560.0
+          },
+          "twomonth_42d": {
+            "sharpe": -1.14,
+            "cagr": -17.81,
+            "mdd": -11.41,
+            "avg_annual_turnover_pct": 560.0
+          },
+          "quarterly_63d": {
+            "sharpe": -1.12,
+            "cagr": -16.0,
+            "mdd": -11.3,
+            "avg_annual_turnover_pct": 373.3
+          }
+        },
+        "17": {
+          "monthly_21d": {
+            "sharpe": -0.84,
+            "cagr": -12.81,
+            "mdd": -10.93,
+            "avg_annual_turnover_pct": 606.7
+          },
+          "sixweek_30d": {
+            "sharpe": -2.18,
+            "cagr": -21.08,
+            "mdd": -12.02,
+            "avg_annual_turnover_pct": 560.0
+          },
+          "twomonth_42d": {
+            "sharpe": -0.86,
+            "cagr": -13.58,
+            "mdd": -10.65,
+            "avg_annual_turnover_pct": 513.3
+          },
+          "quarterly_63d": {
+            "sharpe": -0.99,
+            "cagr": -14.79,
+            "mdd": -11.3,
+            "avg_annual_turnover_pct": 326.7
+          }
+        },
+        "18": {
+          "monthly_21d": {
+            "sharpe": -1.04,
+            "cagr": -15.2,
+            "mdd": -10.93,
+            "avg_annual_turnover_pct": 746.7
+          },
+          "sixweek_30d": {
+            "sharpe": -2.26,
+            "cagr": -22.35,
+            "mdd": -12.91,
+            "avg_annual_turnover_pct": 560.0
+          },
+          "twomonth_42d": {
+            "sharpe": -0.84,
+            "cagr": -13.27,
+            "mdd": -10.65,
+            "avg_annual_turnover_pct": 466.7
+          },
+          "quarterly_63d": {
+            "sharpe": -1.12,
+            "cagr": -16.0,
+            "mdd": -11.3,
+            "avg_annual_turnover_pct": 373.3
+          }
+        }
+      }
+    },
+    "scenarios": {
+      "base": {
+        "weights_normalized": {
+          "full_2019_2026": 0.5,
+          "gfc_2008": 0.03,
+          "covid_2020": 0.04,
+          "bear_2022": 0.1,
+          "selloff_2018": 0.16,
+          "correction_2015_2016": 0.17
+        },
+        "expected_value_grid": {
+          "9|monthly_21d": {
+            "lookback_months": 9,
+            "freq_name": "monthly_21d",
+            "expected_sharpe": -0.0883,
+            "expected_cagr_pct": -1.6801,
+            "mdd_worst_case": -21.23
+          },
+          "9|sixweek_30d": {
+            "lookback_months": 9,
+            "freq_name": "sixweek_30d",
+            "expected_sharpe": -0.7111,
+            "expected_cagr_pct": -8.6307,
+            "mdd_worst_case": -26.43
+          },
+          "9|twomonth_42d": {
+            "lookback_months": 9,
+            "freq_name": "twomonth_42d",
+            "expected_sharpe": -0.1115,
+            "expected_cagr_pct": -2.3543,
+            "mdd_worst_case": -26.43
+          },
+          "9|quarterly_63d": {
+            "lookback_months": 9,
+            "freq_name": "quarterly_63d",
+            "expected_sharpe": -0.0641,
+            "expected_cagr_pct": -1.0889,
+            "mdd_worst_case": -25.22
+          },
+          "10|monthly_21d": {
+            "lookback_months": 10,
+            "freq_name": "monthly_21d",
+            "expected_sharpe": -0.219,
+            "expected_cagr_pct": -4.3137,
+            "mdd_worst_case": -20.86
+          },
+          "10|sixweek_30d": {
+            "lookback_months": 10,
+            "freq_name": "sixweek_30d",
+            "expected_sharpe": -0.3889,
+            "expected_cagr_pct": -4.8746,
+            "mdd_worst_case": -18.65
+          },
+          "10|twomonth_42d": {
+            "lookback_months": 10,
+            "freq_name": "twomonth_42d",
+            "expected_sharpe": -0.1802,
+            "expected_cagr_pct": -4.7063,
+            "mdd_worst_case": -32.56
+          },
+          "10|quarterly_63d": {
+            "lookback_months": 10,
+            "freq_name": "quarterly_63d",
+            "expected_sharpe": -0.2578,
+            "expected_cagr_pct": -4.0367,
+            "mdd_worst_case": -22.62
+          },
+          "11|monthly_21d": {
+            "lookback_months": 11,
+            "freq_name": "monthly_21d",
+            "expected_sharpe": -0.1483,
+            "expected_cagr_pct": -2.7591,
+            "mdd_worst_case": -23.12
+          },
+          "11|sixweek_30d": {
+            "lookback_months": 11,
+            "freq_name": "sixweek_30d",
+            "expected_sharpe": -0.7536,
+            "expected_cagr_pct": -9.4662,
+            "mdd_worst_case": -29.31
+          },
+          "11|twomonth_42d": {
+            "lookback_months": 11,
+            "freq_name": "twomonth_42d",
+            "expected_sharpe": -0.1159,
+            "expected_cagr_pct": -2.0899,
+            "mdd_worst_case": -30.48
+          },
+          "11|quarterly_63d": {
+            "lookback_months": 11,
+            "freq_name": "quarterly_63d",
+            "expected_sharpe": 0.0034,
+            "expected_cagr_pct": -0.717,
+            "mdd_worst_case": -25.63
+          },
+          "12|monthly_21d": {
+            "lookback_months": 12,
+            "freq_name": "monthly_21d",
+            "expected_sharpe": -0.0999,
+            "expected_cagr_pct": -2.7164,
+            "mdd_worst_case": -29.77
+          },
+          "12|sixweek_30d": {
+            "lookback_months": 12,
+            "freq_name": "sixweek_30d",
+            "expected_sharpe": -0.6766,
+            "expected_cagr_pct": -9.6159,
+            "mdd_worst_case": -36.91
+          },
+          "12|twomonth_42d": {
+            "lookback_months": 12,
+            "freq_name": "twomonth_42d",
+            "expected_sharpe": -0.1356,
+            "expected_cagr_pct": -3.7769,
+            "mdd_worst_case": -34.79
+          },
+          "12|quarterly_63d": {
+            "lookback_months": 12,
+            "freq_name": "quarterly_63d",
+            "expected_sharpe": -0.0921,
+            "expected_cagr_pct": -2.4191,
+            "mdd_worst_case": -34.91
+          },
+          "13|monthly_21d": {
+            "lookback_months": 13,
+            "freq_name": "monthly_21d",
+            "expected_sharpe": -0.2597,
+            "expected_cagr_pct": -4.8126,
+            "mdd_worst_case": -32.05
+          },
+          "13|sixweek_30d": {
+            "lookback_months": 13,
+            "freq_name": "sixweek_30d",
+            "expected_sharpe": -0.4769,
+            "expected_cagr_pct": -5.897,
+            "mdd_worst_case": -22.41
+          },
+          "13|twomonth_42d": {
+            "lookback_months": 13,
+            "freq_name": "twomonth_42d",
+            "expected_sharpe": -0.0212,
+            "expected_cagr_pct": -0.2035,
+            "mdd_worst_case": -21.64
+          },
+          "13|quarterly_63d": {
+            "lookback_months": 13,
+            "freq_name": "quarterly_63d",
+            "expected_sharpe": -0.1915,
+            "expected_cagr_pct": -4.2526,
+            "mdd_worst_case": -36.91
+          },
+          "14|monthly_21d": {
+            "lookback_months": 14,
+            "freq_name": "monthly_21d",
+            "expected_sharpe": -0.0604,
+            "expected_cagr_pct": -1.9547,
+            "mdd_worst_case": -14.84
+          },
+          "14|sixweek_30d": {
+            "lookback_months": 14,
+            "freq_name": "sixweek_30d",
+            "expected_sharpe": -0.4431,
+            "expected_cagr_pct": -5.8521,
+            "mdd_worst_case": -21.41
+          },
+          "14|twomonth_42d": {
+            "lookback_months": 14,
+            "freq_name": "twomonth_42d",
+            "expected_sharpe": -0.1202,
+            "expected_cagr_pct": -2.9689,
+            "mdd_worst_case": -28.01
+          },
+          "14|quarterly_63d": {
+            "lookback_months": 14,
+            "freq_name": "quarterly_63d",
+            "expected_sharpe": 0.065,
+            "expected_cagr_pct": 0.778,
+            "mdd_worst_case": -15.73
+          },
+          "15|monthly_21d": {
+            "lookback_months": 15,
+            "freq_name": "monthly_21d",
+            "expected_sharpe": -0.2268,
+            "expected_cagr_pct": -4.6741,
+            "mdd_worst_case": -23.01
+          },
+          "15|sixweek_30d": {
+            "lookback_months": 15,
+            "freq_name": "sixweek_30d",
+            "expected_sharpe": -0.5821,
+            "expected_cagr_pct": -8.3975,
+            "mdd_worst_case": -28.01
+          },
+          "15|twomonth_42d": {
+            "lookback_months": 15,
+            "freq_name": "twomonth_42d",
+            "expected_sharpe": 0.0145,
+            "expected_cagr_pct": -0.3013,
+            "mdd_worst_case": -22.04
+          },
+          "15|quarterly_63d": {
+            "lookback_months": 15,
+            "freq_name": "quarterly_63d",
+            "expected_sharpe": -0.007,
+            "expected_cagr_pct": -0.5323,
+            "mdd_worst_case": -28.01
+          },
+          "16|monthly_21d": {
+            "lookback_months": 16,
+            "freq_name": "monthly_21d",
+            "expected_sharpe": -0.0998,
+            "expected_cagr_pct": -2.9658,
+            "mdd_worst_case": -23.01
+          },
+          "16|sixweek_30d": {
+            "lookback_months": 16,
+            "freq_name": "sixweek_30d",
+            "expected_sharpe": -0.4852,
+            "expected_cagr_pct": -6.8056,
+            "mdd_worst_case": -24.27
+          },
+          "16|twomonth_42d": {
+            "lookback_months": 16,
+            "freq_name": "twomonth_42d",
+            "expected_sharpe": -0.1182,
+            "expected_cagr_pct": -2.7909,
+            "mdd_worst_case": -24.27
+          },
+          "16|quarterly_63d": {
+            "lookback_months": 16,
+            "freq_name": "quarterly_63d",
+            "expected_sharpe": 0.0639,
+            "expected_cagr_pct": 0.2812,
+            "mdd_worst_case": -28.01
+          },
+          "17|monthly_21d": {
+            "lookback_months": 17,
+            "freq_name": "monthly_21d",
+            "expected_sharpe": -0.1358,
+            "expected_cagr_pct": -3.2228,
+            "mdd_worst_case": -23.01
+          },
+          "17|sixweek_30d": {
+            "lookback_months": 17,
+            "freq_name": "sixweek_30d",
+            "expected_sharpe": -0.3537,
+            "expected_cagr_pct": -4.3928,
+            "mdd_worst_case": -24.02
+          },
+          "17|twomonth_42d": {
+            "lookback_months": 17,
+            "freq_name": "twomonth_42d",
+            "expected_sharpe": -0.0794,
+            "expected_cagr_pct": -2.398,
+            "mdd_worst_case": -24.27
+          },
+          "17|quarterly_63d": {
+            "lookback_months": 17,
+            "freq_name": "quarterly_63d",
+            "expected_sharpe": -0.1138,
+            "expected_cagr_pct": -2.6037,
+            "mdd_worst_case": -28.01
+          },
+          "18|monthly_21d": {
+            "lookback_months": 18,
+            "freq_name": "monthly_21d",
+            "expected_sharpe": -0.1389,
+            "expected_cagr_pct": -3.7848,
+            "mdd_worst_case": -23.01
+          },
+          "18|sixweek_30d": {
+            "lookback_months": 18,
+            "freq_name": "sixweek_30d",
+            "expected_sharpe": -0.4694,
+            "expected_cagr_pct": -7.1581,
+            "mdd_worst_case": -24.27
+          },
+          "18|twomonth_42d": {
+            "lookback_months": 18,
+            "freq_name": "twomonth_42d",
+            "expected_sharpe": -0.1834,
+            "expected_cagr_pct": -4.4544,
+            "mdd_worst_case": -32.69
+          },
+          "18|quarterly_63d": {
+            "lookback_months": 18,
+            "freq_name": "quarterly_63d",
+            "expected_sharpe": -0.0883,
+            "expected_cagr_pct": -2.2088,
+            "mdd_worst_case": -28.01
+          }
+        },
+        "ranking_by_expected_sharpe": [
+          [
+            "14|quarterly_63d",
+            {
+              "lookback_months": 14,
+              "freq_name": "quarterly_63d",
+              "expected_sharpe": 0.065,
+              "expected_cagr_pct": 0.778,
+              "mdd_worst_case": -15.73
+            }
+          ],
+          [
+            "16|quarterly_63d",
+            {
+              "lookback_months": 16,
+              "freq_name": "quarterly_63d",
+              "expected_sharpe": 0.0639,
+              "expected_cagr_pct": 0.2812,
+              "mdd_worst_case": -28.01
+            }
+          ],
+          [
+            "15|twomonth_42d",
+            {
+              "lookback_months": 15,
+              "freq_name": "twomonth_42d",
+              "expected_sharpe": 0.0145,
+              "expected_cagr_pct": -0.3013,
+              "mdd_worst_case": -22.04
+            }
+          ],
+          [
+            "11|quarterly_63d",
+            {
+              "lookback_months": 11,
+              "freq_name": "quarterly_63d",
+              "expected_sharpe": 0.0034,
+              "expected_cagr_pct": -0.717,
+              "mdd_worst_case": -25.63
+            }
+          ],
+          [
+            "15|quarterly_63d",
+            {
+              "lookback_months": 15,
+              "freq_name": "quarterly_63d",
+              "expected_sharpe": -0.007,
+              "expected_cagr_pct": -0.5323,
+              "mdd_worst_case": -28.01
+            }
+          ],
+          [
+            "13|twomonth_42d",
+            {
+              "lookback_months": 13,
+              "freq_name": "twomonth_42d",
+              "expected_sharpe": -0.0212,
+              "expected_cagr_pct": -0.2035,
+              "mdd_worst_case": -21.64
+            }
+          ],
+          [
+            "14|monthly_21d",
+            {
+              "lookback_months": 14,
+              "freq_name": "monthly_21d",
+              "expected_sharpe": -0.0604,
+              "expected_cagr_pct": -1.9547,
+              "mdd_worst_case": -14.84
+            }
+          ],
+          [
+            "9|quarterly_63d",
+            {
+              "lookback_months": 9,
+              "freq_name": "quarterly_63d",
+              "expected_sharpe": -0.0641,
+              "expected_cagr_pct": -1.0889,
+              "mdd_worst_case": -25.22
+            }
+          ],
+          [
+            "17|twomonth_42d",
+            {
+              "lookback_months": 17,
+              "freq_name": "twomonth_42d",
+              "expected_sharpe": -0.0794,
+              "expected_cagr_pct": -2.398,
+              "mdd_worst_case": -24.27
+            }
+          ],
+          [
+            "9|monthly_21d",
+            {
+              "lookback_months": 9,
+              "freq_name": "monthly_21d",
+              "expected_sharpe": -0.0883,
+              "expected_cagr_pct": -1.6801,
+              "mdd_worst_case": -21.23
+            }
+          ],
+          [
+            "18|quarterly_63d",
+            {
+              "lookback_months": 18,
+              "freq_name": "quarterly_63d",
+              "expected_sharpe": -0.0883,
+              "expected_cagr_pct": -2.2088,
+              "mdd_worst_case": -28.01
+            }
+          ],
+          [
+            "12|quarterly_63d",
+            {
+              "lookback_months": 12,
+              "freq_name": "quarterly_63d",
+              "expected_sharpe": -0.0921,
+              "expected_cagr_pct": -2.4191,
+              "mdd_worst_case": -34.91
+            }
+          ],
+          [
+            "16|monthly_21d",
+            {
+              "lookback_months": 16,
+              "freq_name": "monthly_21d",
+              "expected_sharpe": -0.0998,
+              "expected_cagr_pct": -2.9658,
+              "mdd_worst_case": -23.01
+            }
+          ],
+          [
+            "12|monthly_21d",
+            {
+              "lookback_months": 12,
+              "freq_name": "monthly_21d",
+              "expected_sharpe": -0.0999,
+              "expected_cagr_pct": -2.7164,
+              "mdd_worst_case": -29.77
+            }
+          ],
+          [
+            "9|twomonth_42d",
+            {
+              "lookback_months": 9,
+              "freq_name": "twomonth_42d",
+              "expected_sharpe": -0.1115,
+              "expected_cagr_pct": -2.3543,
+              "mdd_worst_case": -26.43
+            }
+          ],
+          [
+            "17|quarterly_63d",
+            {
+              "lookback_months": 17,
+              "freq_name": "quarterly_63d",
+              "expected_sharpe": -0.1138,
+              "expected_cagr_pct": -2.6037,
+              "mdd_worst_case": -28.01
+            }
+          ],
+          [
+            "11|twomonth_42d",
+            {
+              "lookback_months": 11,
+              "freq_name": "twomonth_42d",
+              "expected_sharpe": -0.1159,
+              "expected_cagr_pct": -2.0899,
+              "mdd_worst_case": -30.48
+            }
+          ],
+          [
+            "16|twomonth_42d",
+            {
+              "lookback_months": 16,
+              "freq_name": "twomonth_42d",
+              "expected_sharpe": -0.1182,
+              "expected_cagr_pct": -2.7909,
+              "mdd_worst_case": -24.27
+            }
+          ],
+          [
+            "14|twomonth_42d",
+            {
+              "lookback_months": 14,
+              "freq_name": "twomonth_42d",
+              "expected_sharpe": -0.1202,
+              "expected_cagr_pct": -2.9689,
+              "mdd_worst_case": -28.01
+            }
+          ],
+          [
+            "12|twomonth_42d",
+            {
+              "lookback_months": 12,
+              "freq_name": "twomonth_42d",
+              "expected_sharpe": -0.1356,
+              "expected_cagr_pct": -3.7769,
+              "mdd_worst_case": -34.79
+            }
+          ],
+          [
+            "17|monthly_21d",
+            {
+              "lookback_months": 17,
+              "freq_name": "monthly_21d",
+              "expected_sharpe": -0.1358,
+              "expected_cagr_pct": -3.2228,
+              "mdd_worst_case": -23.01
+            }
+          ],
+          [
+            "18|monthly_21d",
+            {
+              "lookback_months": 18,
+              "freq_name": "monthly_21d",
+              "expected_sharpe": -0.1389,
+              "expected_cagr_pct": -3.7848,
+              "mdd_worst_case": -23.01
+            }
+          ],
+          [
+            "11|monthly_21d",
+            {
+              "lookback_months": 11,
+              "freq_name": "monthly_21d",
+              "expected_sharpe": -0.1483,
+              "expected_cagr_pct": -2.7591,
+              "mdd_worst_case": -23.12
+            }
+          ],
+          [
+            "10|twomonth_42d",
+            {
+              "lookback_months": 10,
+              "freq_name": "twomonth_42d",
+              "expected_sharpe": -0.1802,
+              "expected_cagr_pct": -4.7063,
+              "mdd_worst_case": -32.56
+            }
+          ],
+          [
+            "18|twomonth_42d",
+            {
+              "lookback_months": 18,
+              "freq_name": "twomonth_42d",
+              "expected_sharpe": -0.1834,
+              "expected_cagr_pct": -4.4544,
+              "mdd_worst_case": -32.69
+            }
+          ],
+          [
+            "13|quarterly_63d",
+            {
+              "lookback_months": 13,
+              "freq_name": "quarterly_63d",
+              "expected_sharpe": -0.1915,
+              "expected_cagr_pct": -4.2526,
+              "mdd_worst_case": -36.91
+            }
+          ],
+          [
+            "10|monthly_21d",
+            {
+              "lookback_months": 10,
+              "freq_name": "monthly_21d",
+              "expected_sharpe": -0.219,
+              "expected_cagr_pct": -4.3137,
+              "mdd_worst_case": -20.86
+            }
+          ],
+          [
+            "15|monthly_21d",
+            {
+              "lookback_months": 15,
+              "freq_name": "monthly_21d",
+              "expected_sharpe": -0.2268,
+              "expected_cagr_pct": -4.6741,
+              "mdd_worst_case": -23.01
+            }
+          ],
+          [
+            "10|quarterly_63d",
+            {
+              "lookback_months": 10,
+              "freq_name": "quarterly_63d",
+              "expected_sharpe": -0.2578,
+              "expected_cagr_pct": -4.0367,
+              "mdd_worst_case": -22.62
+            }
+          ],
+          [
+            "13|monthly_21d",
+            {
+              "lookback_months": 13,
+              "freq_name": "monthly_21d",
+              "expected_sharpe": -0.2597,
+              "expected_cagr_pct": -4.8126,
+              "mdd_worst_case": -32.05
+            }
+          ],
+          [
+            "17|sixweek_30d",
+            {
+              "lookback_months": 17,
+              "freq_name": "sixweek_30d",
+              "expected_sharpe": -0.3537,
+              "expected_cagr_pct": -4.3928,
+              "mdd_worst_case": -24.02
+            }
+          ],
+          [
+            "10|sixweek_30d",
+            {
+              "lookback_months": 10,
+              "freq_name": "sixweek_30d",
+              "expected_sharpe": -0.3889,
+              "expected_cagr_pct": -4.8746,
+              "mdd_worst_case": -18.65
+            }
+          ],
+          [
+            "14|sixweek_30d",
+            {
+              "lookback_months": 14,
+              "freq_name": "sixweek_30d",
+              "expected_sharpe": -0.4431,
+              "expected_cagr_pct": -5.8521,
+              "mdd_worst_case": -21.41
+            }
+          ],
+          [
+            "18|sixweek_30d",
+            {
+              "lookback_months": 18,
+              "freq_name": "sixweek_30d",
+              "expected_sharpe": -0.4694,
+              "expected_cagr_pct": -7.1581,
+              "mdd_worst_case": -24.27
+            }
+          ],
+          [
+            "13|sixweek_30d",
+            {
+              "lookback_months": 13,
+              "freq_name": "sixweek_30d",
+              "expected_sharpe": -0.4769,
+              "expected_cagr_pct": -5.897,
+              "mdd_worst_case": -22.41
+            }
+          ],
+          [
+            "16|sixweek_30d",
+            {
+              "lookback_months": 16,
+              "freq_name": "sixweek_30d",
+              "expected_sharpe": -0.4852,
+              "expected_cagr_pct": -6.8056,
+              "mdd_worst_case": -24.27
+            }
+          ],
+          [
+            "15|sixweek_30d",
+            {
+              "lookback_months": 15,
+              "freq_name": "sixweek_30d",
+              "expected_sharpe": -0.5821,
+              "expected_cagr_pct": -8.3975,
+              "mdd_worst_case": -28.01
+            }
+          ],
+          [
+            "12|sixweek_30d",
+            {
+              "lookback_months": 12,
+              "freq_name": "sixweek_30d",
+              "expected_sharpe": -0.6766,
+              "expected_cagr_pct": -9.6159,
+              "mdd_worst_case": -36.91
+            }
+          ],
+          [
+            "9|sixweek_30d",
+            {
+              "lookback_months": 9,
+              "freq_name": "sixweek_30d",
+              "expected_sharpe": -0.7111,
+              "expected_cagr_pct": -8.6307,
+              "mdd_worst_case": -26.43
+            }
+          ],
+          [
+            "11|sixweek_30d",
+            {
+              "lookback_months": 11,
+              "freq_name": "sixweek_30d",
+              "expected_sharpe": -0.7536,
+              "expected_cagr_pct": -9.4662,
+              "mdd_worst_case": -29.31
+            }
+          ]
+        ],
+        "fine_grid_optimum": {
+          "key": "14|quarterly_63d",
+          "lookback_months": 14,
+          "freq_name": "quarterly_63d",
+          "expected_sharpe": 0.065,
+          "expected_cagr_pct": 0.778,
+          "mdd_worst_case": -15.73
+        },
+        "sequential_choice_value": {
+          "key": "12|monthly_21d",
+          "lookback_months": 12,
+          "freq_name": "monthly_21d",
+          "expected_sharpe": -0.0999,
+          "expected_cagr_pct": -2.7164,
+          "mdd_worst_case": -29.77
+        },
+        "sequential_rank_out_of_40": 14,
+        "h31_coarse_winner_value": {
+          "key": "15|quarterly_63d",
+          "lookback_months": 15,
+          "freq_name": "quarterly_63d",
+          "expected_sharpe": -0.007,
+          "expected_cagr_pct": -0.5323,
+          "mdd_worst_case": -28.01
+        },
+        "h31_coarse_winner_rank_out_of_40": 5,
+        "sharpe_gap_fine_minus_sequential": 0.1649,
+        "sharpe_gap_fine_minus_h31coarse": 0.072
+      },
+      "calm_heavy": {
+        "weights_normalized": {
+          "full_2019_2026": 0.65,
+          "gfc_2008": 0.015,
+          "covid_2020": 0.02,
+          "bear_2022": 0.065,
+          "selloff_2018": 0.12,
+          "correction_2015_2016": 0.13
+        },
+        "expected_value_grid": {
+          "9|monthly_21d": {
+            "lookback_months": 9,
+            "freq_name": "monthly_21d",
+            "expected_sharpe": 0.1803,
+            "expected_cagr_pct": 2.3734,
+            "mdd_worst_case": -21.23
+          },
+          "9|sixweek_30d": {
+            "lookback_months": 9,
+            "freq_name": "sixweek_30d",
+            "expected_sharpe": -0.3566,
+            "expected_cagr_pct": -3.6242,
+            "mdd_worst_case": -26.43
+          },
+          "9|twomonth_42d": {
+            "lookback_months": 9,
+            "freq_name": "twomonth_42d",
+            "expected_sharpe": 0.1167,
+            "expected_cagr_pct": 1.4779,
+            "mdd_worst_case": -26.43
+          },
+          "9|quarterly_63d": {
+            "lookback_months": 9,
+            "freq_name": "quarterly_63d",
+            "expected_sharpe": 0.2215,
+            "expected_cagr_pct": 3.5343,
+            "mdd_worst_case": -25.22
+          },
+          "10|monthly_21d": {
+            "lookback_months": 10,
+            "freq_name": "monthly_21d",
+            "expected_sharpe": 0.0499,
+            "expected_cagr_pct": -0.1448,
+            "mdd_worst_case": -20.86
+          },
+          "10|sixweek_30d": {
+            "lookback_months": 10,
+            "freq_name": "sixweek_30d",
+            "expected_sharpe": -0.031,
+            "expected_cagr_pct": 0.0867,
+            "mdd_worst_case": -18.65
+          },
+          "10|twomonth_42d": {
+            "lookback_months": 10,
+            "freq_name": "twomonth_42d",
+            "expected_sharpe": 0.022,
+            "expected_cagr_pct": -0.6725,
+            "mdd_worst_case": -32.56
+          },
+          "10|quarterly_63d": {
+            "lookback_months": 10,
+            "freq_name": "quarterly_63d",
+            "expected_sharpe": 0.03,
+            "expected_cagr_pct": 0.5158,
+            "mdd_worst_case": -22.62
+          },
+          "11|monthly_21d": {
+            "lookback_months": 11,
+            "freq_name": "monthly_21d",
+            "expected_sharpe": 0.1152,
+            "expected_cagr_pct": 1.375,
+            "mdd_worst_case": -23.12
+          },
+          "11|sixweek_30d": {
+            "lookback_months": 11,
+            "freq_name": "sixweek_30d",
+            "expected_sharpe": -0.376,
+            "expected_cagr_pct": -3.9747,
+            "mdd_worst_case": -29.31
+          },
+          "11|twomonth_42d": {
+            "lookback_months": 11,
+            "freq_name": "twomonth_42d",
+            "expected_sharpe": 0.0948,
+            "expected_cagr_pct": 1.694,
+            "mdd_worst_case": -30.48
+          },
+          "11|quarterly_63d": {
+            "lookback_months": 11,
+            "freq_name": "quarterly_63d",
+            "expected_sharpe": 0.2629,
+            "expected_cagr_pct": 3.8015,
+            "mdd_worst_case": -25.63
+          },
+          "12|monthly_21d": {
+            "lookback_months": 12,
+            "freq_name": "monthly_21d",
+            "expected_sharpe": 0.1577,
+            "expected_cagr_pct": 1.8574,
+            "mdd_worst_case": -29.77
+          },
+          "12|sixweek_30d": {
+            "lookback_months": 12,
+            "freq_name": "sixweek_30d",
+            "expected_sharpe": -0.3452,
+            "expected_cagr_pct": -4.2826,
+            "mdd_worst_case": -36.91
+          },
+          "12|twomonth_42d": {
+            "lookback_months": 12,
+            "freq_name": "twomonth_42d",
+            "expected_sharpe": 0.067,
+            "expected_cagr_pct": 0.3191,
+            "mdd_worst_case": -34.79
+          },
+          "12|quarterly_63d": {
+            "lookback_months": 12,
+            "freq_name": "quarterly_63d",
+            "expected_sharpe": 0.1406,
+            "expected_cagr_pct": 2.0542,
+            "mdd_worst_case": -34.91
+          },
+          "13|monthly_21d": {
+            "lookback_months": 13,
+            "freq_name": "monthly_21d",
+            "expected_sharpe": -0.019,
+            "expected_cagr_pct": -0.6294,
+            "mdd_worst_case": -32.05
+          },
+          "13|sixweek_30d": {
+            "lookback_months": 13,
+            "freq_name": "sixweek_30d",
+            "expected_sharpe": -0.1135,
+            "expected_cagr_pct": -1.0554,
+            "mdd_worst_case": -22.41
+          },
+          "13|twomonth_42d": {
+            "lookback_months": 13,
+            "freq_name": "twomonth_42d",
+            "expected_sharpe": 0.1895,
+            "expected_cagr_pct": 2.6551,
+            "mdd_worst_case": -21.64
+          },
+          "13|quarterly_63d": {
+            "lookback_months": 13,
+            "freq_name": "quarterly_63d",
+            "expected_sharpe": 0.0321,
+            "expected_cagr_pct": 0.0989,
+            "mdd_worst_case": -36.91
+          },
+          "14|monthly_21d": {
+            "lookback_months": 14,
+            "freq_name": "monthly_21d",
+            "expected_sharpe": 0.1925,
+            "expected_cagr_pct": 1.6964,
+            "mdd_worst_case": -14.84
+          },
+          "14|sixweek_30d": {
+            "lookback_months": 14,
+            "freq_name": "sixweek_30d",
+            "expected_sharpe": -0.1173,
+            "expected_cagr_pct": -1.3546,
+            "mdd_worst_case": -21.41
+          },
+          "14|twomonth_42d": {
+            "lookback_months": 14,
+            "freq_name": "twomonth_42d",
+            "expected_sharpe": 0.0772,
+            "expected_cagr_pct": 0.5772,
+            "mdd_worst_case": -28.01
+          },
+          "14|quarterly_63d": {
+            "lookback_months": 14,
+            "freq_name": "quarterly_63d",
+            "expected_sharpe": 0.3258,
+            "expected_cagr_pct": 4.4964,
+            "mdd_worst_case": -15.73
+          },
+          "15|monthly_21d": {
+            "lookback_months": 15,
+            "freq_name": "monthly_21d",
+            "expected_sharpe": 0.0305,
+            "expected_cagr_pct": -0.4766,
+            "mdd_worst_case": -23.01
+          },
+          "15|sixweek_30d": {
+            "lookback_months": 15,
+            "freq_name": "sixweek_30d",
+            "expected_sharpe": -0.2677,
+            "expected_cagr_pct": -3.5969,
+            "mdd_worst_case": -28.01
+          },
+          "15|twomonth_42d": {
+            "lookback_months": 15,
+            "freq_name": "twomonth_42d",
+            "expected_sharpe": 0.2562,
+            "expected_cagr_pct": 3.1853,
+            "mdd_worst_case": -22.04
+          },
+          "15|quarterly_63d": {
+            "lookback_months": 15,
+            "freq_name": "quarterly_63d",
+            "expected_sharpe": 0.2343,
+            "expected_cagr_pct": 3.713,
+            "mdd_worst_case": -28.01
+          },
+          "16|monthly_21d": {
+            "lookback_months": 16,
+            "freq_name": "monthly_21d",
+            "expected_sharpe": 0.136,
+            "expected_cagr_pct": 1.0181,
+            "mdd_worst_case": -23.01
+          },
+          "16|sixweek_30d": {
+            "lookback_months": 16,
+            "freq_name": "sixweek_30d",
+            "expected_sharpe": -0.1549,
+            "expected_cagr_pct": -1.7907,
+            "mdd_worst_case": -24.27
+          },
+          "16|twomonth_42d": {
+            "lookback_months": 16,
+            "freq_name": "twomonth_42d",
+            "expected_sharpe": 0.1043,
+            "expected_cagr_pct": 0.9582,
+            "mdd_worst_case": -24.27
+          },
+          "16|quarterly_63d": {
+            "lookback_months": 16,
+            "freq_name": "quarterly_63d",
+            "expected_sharpe": 0.3124,
+            "expected_cagr_pct": 4.7469,
+            "mdd_worst_case": -28.01
+          },
+          "17|monthly_21d": {
+            "lookback_months": 17,
+            "freq_name": "monthly_21d",
+            "expected_sharpe": 0.1223,
+            "expected_cagr_pct": 0.9832,
+            "mdd_worst_case": -23.01
+          },
+          "17|sixweek_30d": {
+            "lookback_months": 17,
+            "freq_name": "sixweek_30d",
+            "expected_sharpe": 0.0021,
+            "expected_cagr_pct": 0.3654,
+            "mdd_worst_case": -24.02
+          },
+          "17|twomonth_42d": {
+            "lookback_months": 17,
+            "freq_name": "twomonth_42d",
+            "expected_sharpe": 0.1337,
+            "expected_cagr_pct": 1.2581,
+            "mdd_worst_case": -24.27
+          },
+          "17|quarterly_63d": {
+            "lookback_months": 17,
+            "freq_name": "quarterly_63d",
+            "expected_sharpe": 0.1319,
+            "expected_cagr_pct": 1.6993,
+            "mdd_worst_case": -28.01
+          },
+          "18|monthly_21d": {
+            "lookback_months": 18,
+            "freq_name": "monthly_21d",
+            "expected_sharpe": 0.1157,
+            "expected_cagr_pct": 0.4769,
+            "mdd_worst_case": -23.01
+          },
+          "18|sixweek_30d": {
+            "lookback_months": 18,
+            "freq_name": "sixweek_30d",
+            "expected_sharpe": -0.1314,
+            "expected_cagr_pct": -1.8734,
+            "mdd_worst_case": -24.27
+          },
+          "18|twomonth_42d": {
+            "lookback_months": 18,
+            "freq_name": "twomonth_42d",
+            "expected_sharpe": 0.0113,
+            "expected_cagr_pct": -0.6722,
+            "mdd_worst_case": -32.69
+          },
+          "18|quarterly_63d": {
+            "lookback_months": 18,
+            "freq_name": "quarterly_63d",
+            "expected_sharpe": 0.1654,
+            "expected_cagr_pct": 2.2103,
+            "mdd_worst_case": -28.01
+          }
+        },
+        "ranking_by_expected_sharpe": [
+          [
+            "14|quarterly_63d",
+            {
+              "lookback_months": 14,
+              "freq_name": "quarterly_63d",
+              "expected_sharpe": 0.3258,
+              "expected_cagr_pct": 4.4964,
+              "mdd_worst_case": -15.73
+            }
+          ],
+          [
+            "16|quarterly_63d",
+            {
+              "lookback_months": 16,
+              "freq_name": "quarterly_63d",
+              "expected_sharpe": 0.3124,
+              "expected_cagr_pct": 4.7469,
+              "mdd_worst_case": -28.01
+            }
+          ],
+          [
+            "11|quarterly_63d",
+            {
+              "lookback_months": 11,
+              "freq_name": "quarterly_63d",
+              "expected_sharpe": 0.2629,
+              "expected_cagr_pct": 3.8015,
+              "mdd_worst_case": -25.63
+            }
+          ],
+          [
+            "15|twomonth_42d",
+            {
+              "lookback_months": 15,
+              "freq_name": "twomonth_42d",
+              "expected_sharpe": 0.2562,
+              "expected_cagr_pct": 3.1853,
+              "mdd_worst_case": -22.04
+            }
+          ],
+          [
+            "15|quarterly_63d",
+            {
+              "lookback_months": 15,
+              "freq_name": "quarterly_63d",
+              "expected_sharpe": 0.2343,
+              "expected_cagr_pct": 3.713,
+              "mdd_worst_case": -28.01
+            }
+          ],
+          [
+            "9|quarterly_63d",
+            {
+              "lookback_months": 9,
+              "freq_name": "quarterly_63d",
+              "expected_sharpe": 0.2215,
+              "expected_cagr_pct": 3.5343,
+              "mdd_worst_case": -25.22
+            }
+          ],
+          [
+            "14|monthly_21d",
+            {
+              "lookback_months": 14,
+              "freq_name": "monthly_21d",
+              "expected_sharpe": 0.1925,
+              "expected_cagr_pct": 1.6964,
+              "mdd_worst_case": -14.84
+            }
+          ],
+          [
+            "13|twomonth_42d",
+            {
+              "lookback_months": 13,
+              "freq_name": "twomonth_42d",
+              "expected_sharpe": 0.1895,
+              "expected_cagr_pct": 2.6551,
+              "mdd_worst_case": -21.64
+            }
+          ],
+          [
+            "9|monthly_21d",
+            {
+              "lookback_months": 9,
+              "freq_name": "monthly_21d",
+              "expected_sharpe": 0.1803,
+              "expected_cagr_pct": 2.3734,
+              "mdd_worst_case": -21.23
+            }
+          ],
+          [
+            "18|quarterly_63d",
+            {
+              "lookback_months": 18,
+              "freq_name": "quarterly_63d",
+              "expected_sharpe": 0.1654,
+              "expected_cagr_pct": 2.2103,
+              "mdd_worst_case": -28.01
+            }
+          ],
+          [
+            "12|monthly_21d",
+            {
+              "lookback_months": 12,
+              "freq_name": "monthly_21d",
+              "expected_sharpe": 0.1577,
+              "expected_cagr_pct": 1.8574,
+              "mdd_worst_case": -29.77
+            }
+          ],
+          [
+            "12|quarterly_63d",
+            {
+              "lookback_months": 12,
+              "freq_name": "quarterly_63d",
+              "expected_sharpe": 0.1406,
+              "expected_cagr_pct": 2.0542,
+              "mdd_worst_case": -34.91
+            }
+          ],
+          [
+            "16|monthly_21d",
+            {
+              "lookback_months": 16,
+              "freq_name": "monthly_21d",
+              "expected_sharpe": 0.136,
+              "expected_cagr_pct": 1.0181,
+              "mdd_worst_case": -23.01
+            }
+          ],
+          [
+            "17|twomonth_42d",
+            {
+              "lookback_months": 17,
+              "freq_name": "twomonth_42d",
+              "expected_sharpe": 0.1337,
+              "expected_cagr_pct": 1.2581,
+              "mdd_worst_case": -24.27
+            }
+          ],
+          [
+            "17|quarterly_63d",
+            {
+              "lookback_months": 17,
+              "freq_name": "quarterly_63d",
+              "expected_sharpe": 0.1319,
+              "expected_cagr_pct": 1.6993,
+              "mdd_worst_case": -28.01
+            }
+          ],
+          [
+            "17|monthly_21d",
+            {
+              "lookback_months": 17,
+              "freq_name": "monthly_21d",
+              "expected_sharpe": 0.1223,
+              "expected_cagr_pct": 0.9832,
+              "mdd_worst_case": -23.01
+            }
+          ],
+          [
+            "9|twomonth_42d",
+            {
+              "lookback_months": 9,
+              "freq_name": "twomonth_42d",
+              "expected_sharpe": 0.1167,
+              "expected_cagr_pct": 1.4779,
+              "mdd_worst_case": -26.43
+            }
+          ],
+          [
+            "18|monthly_21d",
+            {
+              "lookback_months": 18,
+              "freq_name": "monthly_21d",
+              "expected_sharpe": 0.1157,
+              "expected_cagr_pct": 0.4769,
+              "mdd_worst_case": -23.01
+            }
+          ],
+          [
+            "11|monthly_21d",
+            {
+              "lookback_months": 11,
+              "freq_name": "monthly_21d",
+              "expected_sharpe": 0.1152,
+              "expected_cagr_pct": 1.375,
+              "mdd_worst_case": -23.12
+            }
+          ],
+          [
+            "16|twomonth_42d",
+            {
+              "lookback_months": 16,
+              "freq_name": "twomonth_42d",
+              "expected_sharpe": 0.1043,
+              "expected_cagr_pct": 0.9582,
+              "mdd_worst_case": -24.27
+            }
+          ],
+          [
+            "11|twomonth_42d",
+            {
+              "lookback_months": 11,
+              "freq_name": "twomonth_42d",
+              "expected_sharpe": 0.0948,
+              "expected_cagr_pct": 1.694,
+              "mdd_worst_case": -30.48
+            }
+          ],
+          [
+            "14|twomonth_42d",
+            {
+              "lookback_months": 14,
+              "freq_name": "twomonth_42d",
+              "expected_sharpe": 0.0772,
+              "expected_cagr_pct": 0.5772,
+              "mdd_worst_case": -28.01
+            }
+          ],
+          [
+            "12|twomonth_42d",
+            {
+              "lookback_months": 12,
+              "freq_name": "twomonth_42d",
+              "expected_sharpe": 0.067,
+              "expected_cagr_pct": 0.3191,
+              "mdd_worst_case": -34.79
+            }
+          ],
+          [
+            "10|monthly_21d",
+            {
+              "lookback_months": 10,
+              "freq_name": "monthly_21d",
+              "expected_sharpe": 0.0499,
+              "expected_cagr_pct": -0.1448,
+              "mdd_worst_case": -20.86
+            }
+          ],
+          [
+            "13|quarterly_63d",
+            {
+              "lookback_months": 13,
+              "freq_name": "quarterly_63d",
+              "expected_sharpe": 0.0321,
+              "expected_cagr_pct": 0.0989,
+              "mdd_worst_case": -36.91
+            }
+          ],
+          [
+            "15|monthly_21d",
+            {
+              "lookback_months": 15,
+              "freq_name": "monthly_21d",
+              "expected_sharpe": 0.0305,
+              "expected_cagr_pct": -0.4766,
+              "mdd_worst_case": -23.01
+            }
+          ],
+          [
+            "10|quarterly_63d",
+            {
+              "lookback_months": 10,
+              "freq_name": "quarterly_63d",
+              "expected_sharpe": 0.03,
+              "expected_cagr_pct": 0.5158,
+              "mdd_worst_case": -22.62
+            }
+          ],
+          [
+            "10|twomonth_42d",
+            {
+              "lookback_months": 10,
+              "freq_name": "twomonth_42d",
+              "expected_sharpe": 0.022,
+              "expected_cagr_pct": -0.6725,
+              "mdd_worst_case": -32.56
+            }
+          ],
+          [
+            "18|twomonth_42d",
+            {
+              "lookback_months": 18,
+              "freq_name": "twomonth_42d",
+              "expected_sharpe": 0.0113,
+              "expected_cagr_pct": -0.6722,
+              "mdd_worst_case": -32.69
+            }
+          ],
+          [
+            "17|sixweek_30d",
+            {
+              "lookback_months": 17,
+              "freq_name": "sixweek_30d",
+              "expected_sharpe": 0.0021,
+              "expected_cagr_pct": 0.3654,
+              "mdd_worst_case": -24.02
+            }
+          ],
+          [
+            "13|monthly_21d",
+            {
+              "lookback_months": 13,
+              "freq_name": "monthly_21d",
+              "expected_sharpe": -0.019,
+              "expected_cagr_pct": -0.6294,
+              "mdd_worst_case": -32.05
+            }
+          ],
+          [
+            "10|sixweek_30d",
+            {
+              "lookback_months": 10,
+              "freq_name": "sixweek_30d",
+              "expected_sharpe": -0.031,
+              "expected_cagr_pct": 0.0867,
+              "mdd_worst_case": -18.65
+            }
+          ],
+          [
+            "13|sixweek_30d",
+            {
+              "lookback_months": 13,
+              "freq_name": "sixweek_30d",
+              "expected_sharpe": -0.1135,
+              "expected_cagr_pct": -1.0554,
+              "mdd_worst_case": -22.41
+            }
+          ],
+          [
+            "14|sixweek_30d",
+            {
+              "lookback_months": 14,
+              "freq_name": "sixweek_30d",
+              "expected_sharpe": -0.1173,
+              "expected_cagr_pct": -1.3546,
+              "mdd_worst_case": -21.41
+            }
+          ],
+          [
+            "18|sixweek_30d",
+            {
+              "lookback_months": 18,
+              "freq_name": "sixweek_30d",
+              "expected_sharpe": -0.1314,
+              "expected_cagr_pct": -1.8734,
+              "mdd_worst_case": -24.27
+            }
+          ],
+          [
+            "16|sixweek_30d",
+            {
+              "lookback_months": 16,
+              "freq_name": "sixweek_30d",
+              "expected_sharpe": -0.1549,
+              "expected_cagr_pct": -1.7907,
+              "mdd_worst_case": -24.27
+            }
+          ],
+          [
+            "15|sixweek_30d",
+            {
+              "lookback_months": 15,
+              "freq_name": "sixweek_30d",
+              "expected_sharpe": -0.2677,
+              "expected_cagr_pct": -3.5969,
+              "mdd_worst_case": -28.01
+            }
+          ],
+          [
+            "12|sixweek_30d",
+            {
+              "lookback_months": 12,
+              "freq_name": "sixweek_30d",
+              "expected_sharpe": -0.3452,
+              "expected_cagr_pct": -4.2826,
+              "mdd_worst_case": -36.91
+            }
+          ],
+          [
+            "9|sixweek_30d",
+            {
+              "lookback_months": 9,
+              "freq_name": "sixweek_30d",
+              "expected_sharpe": -0.3566,
+              "expected_cagr_pct": -3.6242,
+              "mdd_worst_case": -26.43
+            }
+          ],
+          [
+            "11|sixweek_30d",
+            {
+              "lookback_months": 11,
+              "freq_name": "sixweek_30d",
+              "expected_sharpe": -0.376,
+              "expected_cagr_pct": -3.9747,
+              "mdd_worst_case": -29.31
+            }
+          ]
+        ],
+        "fine_grid_optimum": {
+          "key": "14|quarterly_63d",
+          "lookback_months": 14,
+          "freq_name": "quarterly_63d",
+          "expected_sharpe": 0.3258,
+          "expected_cagr_pct": 4.4964,
+          "mdd_worst_case": -15.73
+        },
+        "sequential_choice_value": {
+          "key": "12|monthly_21d",
+          "lookback_months": 12,
+          "freq_name": "monthly_21d",
+          "expected_sharpe": 0.1577,
+          "expected_cagr_pct": 1.8574,
+          "mdd_worst_case": -29.77
+        },
+        "sequential_rank_out_of_40": 11,
+        "h31_coarse_winner_value": {
+          "key": "15|quarterly_63d",
+          "lookback_months": 15,
+          "freq_name": "quarterly_63d",
+          "expected_sharpe": 0.2343,
+          "expected_cagr_pct": 3.713,
+          "mdd_worst_case": -28.01
+        },
+        "h31_coarse_winner_rank_out_of_40": 5,
+        "sharpe_gap_fine_minus_sequential": 0.1681,
+        "sharpe_gap_fine_minus_h31coarse": 0.0915
+      },
+      "crisis_heavy": {
+        "weights_normalized": {
+          "full_2019_2026": 0.35,
+          "gfc_2008": 0.06,
+          "covid_2020": 0.07,
+          "bear_2022": 0.14,
+          "selloff_2018": 0.19,
+          "correction_2015_2016": 0.19
+        },
+        "expected_value_grid": {
+          "9|monthly_21d": {
+            "lookback_months": 9,
+            "freq_name": "monthly_21d",
+            "expected_sharpe": -0.3358,
+            "expected_cagr_pct": -5.8216,
+            "mdd_worst_case": -21.23
+          },
+          "9|sixweek_30d": {
+            "lookback_months": 9,
+            "freq_name": "sixweek_30d",
+            "expected_sharpe": -1.0008,
+            "expected_cagr_pct": -13.4016,
+            "mdd_worst_case": -26.43
+          },
+          "9|twomonth_42d": {
+            "lookback_months": 9,
+            "freq_name": "twomonth_42d",
+            "expected_sharpe": -0.3198,
+            "expected_cagr_pct": -6.325,
+            "mdd_worst_case": -26.43
+          },
+          "9|quarterly_63d": {
+            "lookback_months": 9,
+            "freq_name": "quarterly_63d",
+            "expected_sharpe": -0.3277,
+            "expected_cagr_pct": -5.6373,
+            "mdd_worst_case": -25.22
+          },
+          "10|monthly_21d": {
+            "lookback_months": 10,
+            "freq_name": "monthly_21d",
+            "expected_sharpe": -0.4747,
+            "expected_cagr_pct": -8.5794,
+            "mdd_worst_case": -20.86
+          },
+          "10|sixweek_30d": {
+            "lookback_months": 10,
+            "freq_name": "sixweek_30d",
+            "expected_sharpe": -0.6847,
+            "expected_cagr_pct": -9.3543,
+            "mdd_worst_case": -18.65
+          },
+          "10|twomonth_42d": {
+            "lookback_months": 10,
+            "freq_name": "twomonth_42d",
+            "expected_sharpe": -0.3586,
+            "expected_cagr_pct": -8.8595,
+            "mdd_worst_case": -32.56
+          },
+          "10|quarterly_63d": {
+            "lookback_months": 10,
+            "freq_name": "quarterly_63d",
+            "expected_sharpe": -0.5226,
+            "expected_cagr_pct": -8.524,
+            "mdd_worst_case": -22.62
+          },
+          "11|monthly_21d": {
+            "lookback_months": 11,
+            "freq_name": "monthly_21d",
+            "expected_sharpe": -0.3878,
+            "expected_cagr_pct": -6.9733,
+            "mdd_worst_case": -23.12
+          },
+          "11|sixweek_30d": {
+            "lookback_months": 11,
+            "freq_name": "sixweek_30d",
+            "expected_sharpe": -1.0606,
+            "expected_cagr_pct": -14.6221,
+            "mdd_worst_case": -29.31
+          },
+          "11|twomonth_42d": {
+            "lookback_months": 11,
+            "freq_name": "twomonth_42d",
+            "expected_sharpe": -0.2905,
+            "expected_cagr_pct": -5.9159,
+            "mdd_worst_case": -30.48
+          },
+          "11|quarterly_63d": {
+            "lookback_months": 11,
+            "freq_name": "quarterly_63d",
+            "expected_sharpe": -0.2277,
+            "expected_cagr_pct": -5.1276,
+            "mdd_worst_case": -25.63
+          },
+          "12|monthly_21d": {
+            "lookback_months": 12,
+            "freq_name": "monthly_21d",
+            "expected_sharpe": -0.3377,
+            "expected_cagr_pct": -7.4808,
+            "mdd_worst_case": -29.77
+          },
+          "12|sixweek_30d": {
+            "lookback_months": 12,
+            "freq_name": "sixweek_30d",
+            "expected_sharpe": -0.9439,
+            "expected_cagr_pct": -14.8101,
+            "mdd_worst_case": -36.91
+          },
+          "12|twomonth_42d": {
+            "lookback_months": 12,
+            "freq_name": "twomonth_42d",
+            "expected_sharpe": -0.3136,
+            "expected_cagr_pct": -8.0472,
+            "mdd_worst_case": -34.79
+          },
+          "12|quarterly_63d": {
+            "lookback_months": 12,
+            "freq_name": "quarterly_63d",
+            "expected_sharpe": -0.3018,
+            "expected_cagr_pct": -7.0807,
+            "mdd_worst_case": -34.91
+          },
+          "13|monthly_21d": {
+            "lookback_months": 13,
+            "freq_name": "monthly_21d",
+            "expected_sharpe": -0.4778,
+            "expected_cagr_pct": -9.2345,
+            "mdd_worst_case": -32.05
+          },
+          "13|sixweek_30d": {
+            "lookback_months": 13,
+            "freq_name": "sixweek_30d",
+            "expected_sharpe": -0.7699,
+            "expected_cagr_pct": -10.0937,
+            "mdd_worst_case": -22.41
+          },
+          "13|twomonth_42d": {
+            "lookback_months": 13,
+            "freq_name": "twomonth_42d",
+            "expected_sharpe": -0.1975,
+            "expected_cagr_pct": -2.7368,
+            "mdd_worst_case": -21.64
+          },
+          "13|quarterly_63d": {
+            "lookback_months": 13,
+            "freq_name": "quarterly_63d",
+            "expected_sharpe": -0.3916,
+            "expected_cagr_pct": -8.8185,
+            "mdd_worst_case": -36.91
+          },
+          "14|monthly_21d": {
+            "lookback_months": 14,
+            "freq_name": "monthly_21d",
+            "expected_sharpe": -0.2855,
+            "expected_cagr_pct": -5.3757,
+            "mdd_worst_case": -14.84
+          },
+          "14|sixweek_30d": {
+            "lookback_months": 14,
+            "freq_name": "sixweek_30d",
+            "expected_sharpe": -0.6951,
+            "expected_cagr_pct": -9.6328,
+            "mdd_worst_case": -21.41
+          },
+          "14|twomonth_42d": {
+            "lookback_months": 14,
+            "freq_name": "twomonth_42d",
+            "expected_sharpe": -0.2886,
+            "expected_cagr_pct": -6.4678,
+            "mdd_worst_case": -28.01
+          },
+          "14|quarterly_63d": {
+            "lookback_months": 14,
+            "freq_name": "quarterly_63d",
+            "expected_sharpe": -0.1553,
+            "expected_cagr_pct": -2.4625,
+            "mdd_worst_case": -15.73
+          },
+          "15|monthly_21d": {
+            "lookback_months": 15,
+            "freq_name": "monthly_21d",
+            "expected_sharpe": -0.4524,
+            "expected_cagr_pct": -8.759,
+            "mdd_worst_case": -23.01
+          },
+          "15|sixweek_30d": {
+            "lookback_months": 15,
+            "freq_name": "sixweek_30d",
+            "expected_sharpe": -0.845,
+            "expected_cagr_pct": -13.0013,
+            "mdd_worst_case": -28.01
+          },
+          "15|twomonth_42d": {
+            "lookback_months": 15,
+            "freq_name": "twomonth_42d",
+            "expected_sharpe": -0.1922,
+            "expected_cagr_pct": -3.3604,
+            "mdd_worst_case": -22.04
+          },
+          "15|quarterly_63d": {
+            "lookback_months": 15,
+            "freq_name": "quarterly_63d",
+            "expected_sharpe": -0.2129,
+            "expected_cagr_pct": -4.6422,
+            "mdd_worst_case": -28.01
+          },
+          "16|monthly_21d": {
+            "lookback_months": 16,
+            "freq_name": "monthly_21d",
+            "expected_sharpe": -0.3111,
+            "expected_cagr_pct": -6.9291,
+            "mdd_worst_case": -23.01
+          },
+          "16|sixweek_30d": {
+            "lookback_months": 16,
+            "freq_name": "sixweek_30d",
+            "expected_sharpe": -0.7644,
+            "expected_cagr_pct": -11.5721,
+            "mdd_worst_case": -24.27
+          },
+          "16|twomonth_42d": {
+            "lookback_months": 16,
+            "freq_name": "twomonth_42d",
+            "expected_sharpe": -0.313,
+            "expected_cagr_pct": -6.4082,
+            "mdd_worst_case": -24.27
+          },
+          "16|quarterly_63d": {
+            "lookback_months": 16,
+            "freq_name": "quarterly_63d",
+            "expected_sharpe": -0.1521,
+            "expected_cagr_pct": -4.0596,
+            "mdd_worst_case": -28.01
+          },
+          "17|monthly_21d": {
+            "lookback_months": 17,
+            "freq_name": "monthly_21d",
+            "expected_sharpe": -0.3739,
+            "expected_cagr_pct": -7.4719,
+            "mdd_worst_case": -23.01
+          },
+          "17|sixweek_30d": {
+            "lookback_months": 17,
+            "freq_name": "sixweek_30d",
+            "expected_sharpe": -0.6528,
+            "expected_cagr_pct": -8.6328,
+            "mdd_worst_case": -24.02
+          },
+          "17|twomonth_42d": {
+            "lookback_months": 17,
+            "freq_name": "twomonth_42d",
+            "expected_sharpe": -0.2694,
+            "expected_cagr_pct": -5.9806,
+            "mdd_worst_case": -24.27
+          },
+          "17|quarterly_63d": {
+            "lookback_months": 17,
+            "freq_name": "quarterly_63d",
+            "expected_sharpe": -0.3365,
+            "expected_cagr_pct": -6.888,
+            "mdd_worst_case": -28.01
+          },
+          "18|monthly_21d": {
+            "lookback_months": 18,
+            "freq_name": "monthly_21d",
+            "expected_sharpe": -0.3758,
+            "expected_cagr_pct": -8.1087,
+            "mdd_worst_case": -23.01
+          },
+          "18|sixweek_30d": {
+            "lookback_months": 18,
+            "freq_name": "sixweek_30d",
+            "expected_sharpe": -0.7583,
+            "expected_cagr_pct": -12.212,
+            "mdd_worst_case": -24.27
+          },
+          "18|twomonth_42d": {
+            "lookback_months": 18,
+            "freq_name": "twomonth_42d",
+            "expected_sharpe": -0.3546,
+            "expected_cagr_pct": -8.3327,
+            "mdd_worst_case": -32.69
+          },
+          "18|quarterly_63d": {
+            "lookback_months": 18,
+            "freq_name": "quarterly_63d",
+            "expected_sharpe": -0.3152,
+            "expected_cagr_pct": -6.5905,
+            "mdd_worst_case": -28.01
+          }
+        },
+        "ranking_by_expected_sharpe": [
+          [
+            "16|quarterly_63d",
+            {
+              "lookback_months": 16,
+              "freq_name": "quarterly_63d",
+              "expected_sharpe": -0.1521,
+              "expected_cagr_pct": -4.0596,
+              "mdd_worst_case": -28.01
+            }
+          ],
+          [
+            "14|quarterly_63d",
+            {
+              "lookback_months": 14,
+              "freq_name": "quarterly_63d",
+              "expected_sharpe": -0.1553,
+              "expected_cagr_pct": -2.4625,
+              "mdd_worst_case": -15.73
+            }
+          ],
+          [
+            "15|twomonth_42d",
+            {
+              "lookback_months": 15,
+              "freq_name": "twomonth_42d",
+              "expected_sharpe": -0.1922,
+              "expected_cagr_pct": -3.3604,
+              "mdd_worst_case": -22.04
+            }
+          ],
+          [
+            "13|twomonth_42d",
+            {
+              "lookback_months": 13,
+              "freq_name": "twomonth_42d",
+              "expected_sharpe": -0.1975,
+              "expected_cagr_pct": -2.7368,
+              "mdd_worst_case": -21.64
+            }
+          ],
+          [
+            "15|quarterly_63d",
+            {
+              "lookback_months": 15,
+              "freq_name": "quarterly_63d",
+              "expected_sharpe": -0.2129,
+              "expected_cagr_pct": -4.6422,
+              "mdd_worst_case": -28.01
+            }
+          ],
+          [
+            "11|quarterly_63d",
+            {
+              "lookback_months": 11,
+              "freq_name": "quarterly_63d",
+              "expected_sharpe": -0.2277,
+              "expected_cagr_pct": -5.1276,
+              "mdd_worst_case": -25.63
+            }
+          ],
+          [
+            "17|twomonth_42d",
+            {
+              "lookback_months": 17,
+              "freq_name": "twomonth_42d",
+              "expected_sharpe": -0.2694,
+              "expected_cagr_pct": -5.9806,
+              "mdd_worst_case": -24.27
+            }
+          ],
+          [
+            "14|monthly_21d",
+            {
+              "lookback_months": 14,
+              "freq_name": "monthly_21d",
+              "expected_sharpe": -0.2855,
+              "expected_cagr_pct": -5.3757,
+              "mdd_worst_case": -14.84
+            }
+          ],
+          [
+            "14|twomonth_42d",
+            {
+              "lookback_months": 14,
+              "freq_name": "twomonth_42d",
+              "expected_sharpe": -0.2886,
+              "expected_cagr_pct": -6.4678,
+              "mdd_worst_case": -28.01
+            }
+          ],
+          [
+            "11|twomonth_42d",
+            {
+              "lookback_months": 11,
+              "freq_name": "twomonth_42d",
+              "expected_sharpe": -0.2905,
+              "expected_cagr_pct": -5.9159,
+              "mdd_worst_case": -30.48
+            }
+          ],
+          [
+            "12|quarterly_63d",
+            {
+              "lookback_months": 12,
+              "freq_name": "quarterly_63d",
+              "expected_sharpe": -0.3018,
+              "expected_cagr_pct": -7.0807,
+              "mdd_worst_case": -34.91
+            }
+          ],
+          [
+            "16|monthly_21d",
+            {
+              "lookback_months": 16,
+              "freq_name": "monthly_21d",
+              "expected_sharpe": -0.3111,
+              "expected_cagr_pct": -6.9291,
+              "mdd_worst_case": -23.01
+            }
+          ],
+          [
+            "16|twomonth_42d",
+            {
+              "lookback_months": 16,
+              "freq_name": "twomonth_42d",
+              "expected_sharpe": -0.313,
+              "expected_cagr_pct": -6.4082,
+              "mdd_worst_case": -24.27
+            }
+          ],
+          [
+            "12|twomonth_42d",
+            {
+              "lookback_months": 12,
+              "freq_name": "twomonth_42d",
+              "expected_sharpe": -0.3136,
+              "expected_cagr_pct": -8.0472,
+              "mdd_worst_case": -34.79
+            }
+          ],
+          [
+            "18|quarterly_63d",
+            {
+              "lookback_months": 18,
+              "freq_name": "quarterly_63d",
+              "expected_sharpe": -0.3152,
+              "expected_cagr_pct": -6.5905,
+              "mdd_worst_case": -28.01
+            }
+          ],
+          [
+            "9|twomonth_42d",
+            {
+              "lookback_months": 9,
+              "freq_name": "twomonth_42d",
+              "expected_sharpe": -0.3198,
+              "expected_cagr_pct": -6.325,
+              "mdd_worst_case": -26.43
+            }
+          ],
+          [
+            "9|quarterly_63d",
+            {
+              "lookback_months": 9,
+              "freq_name": "quarterly_63d",
+              "expected_sharpe": -0.3277,
+              "expected_cagr_pct": -5.6373,
+              "mdd_worst_case": -25.22
+            }
+          ],
+          [
+            "9|monthly_21d",
+            {
+              "lookback_months": 9,
+              "freq_name": "monthly_21d",
+              "expected_sharpe": -0.3358,
+              "expected_cagr_pct": -5.8216,
+              "mdd_worst_case": -21.23
+            }
+          ],
+          [
+            "17|quarterly_63d",
+            {
+              "lookback_months": 17,
+              "freq_name": "quarterly_63d",
+              "expected_sharpe": -0.3365,
+              "expected_cagr_pct": -6.888,
+              "mdd_worst_case": -28.01
+            }
+          ],
+          [
+            "12|monthly_21d",
+            {
+              "lookback_months": 12,
+              "freq_name": "monthly_21d",
+              "expected_sharpe": -0.3377,
+              "expected_cagr_pct": -7.4808,
+              "mdd_worst_case": -29.77
+            }
+          ],
+          [
+            "18|twomonth_42d",
+            {
+              "lookback_months": 18,
+              "freq_name": "twomonth_42d",
+              "expected_sharpe": -0.3546,
+              "expected_cagr_pct": -8.3327,
+              "mdd_worst_case": -32.69
+            }
+          ],
+          [
+            "10|twomonth_42d",
+            {
+              "lookback_months": 10,
+              "freq_name": "twomonth_42d",
+              "expected_sharpe": -0.3586,
+              "expected_cagr_pct": -8.8595,
+              "mdd_worst_case": -32.56
+            }
+          ],
+          [
+            "17|monthly_21d",
+            {
+              "lookback_months": 17,
+              "freq_name": "monthly_21d",
+              "expected_sharpe": -0.3739,
+              "expected_cagr_pct": -7.4719,
+              "mdd_worst_case": -23.01
+            }
+          ],
+          [
+            "18|monthly_21d",
+            {
+              "lookback_months": 18,
+              "freq_name": "monthly_21d",
+              "expected_sharpe": -0.3758,
+              "expected_cagr_pct": -8.1087,
+              "mdd_worst_case": -23.01
+            }
+          ],
+          [
+            "11|monthly_21d",
+            {
+              "lookback_months": 11,
+              "freq_name": "monthly_21d",
+              "expected_sharpe": -0.3878,
+              "expected_cagr_pct": -6.9733,
+              "mdd_worst_case": -23.12
+            }
+          ],
+          [
+            "13|quarterly_63d",
+            {
+              "lookback_months": 13,
+              "freq_name": "quarterly_63d",
+              "expected_sharpe": -0.3916,
+              "expected_cagr_pct": -8.8185,
+              "mdd_worst_case": -36.91
+            }
+          ],
+          [
+            "15|monthly_21d",
+            {
+              "lookback_months": 15,
+              "freq_name": "monthly_21d",
+              "expected_sharpe": -0.4524,
+              "expected_cagr_pct": -8.759,
+              "mdd_worst_case": -23.01
+            }
+          ],
+          [
+            "10|monthly_21d",
+            {
+              "lookback_months": 10,
+              "freq_name": "monthly_21d",
+              "expected_sharpe": -0.4747,
+              "expected_cagr_pct": -8.5794,
+              "mdd_worst_case": -20.86
+            }
+          ],
+          [
+            "13|monthly_21d",
+            {
+              "lookback_months": 13,
+              "freq_name": "monthly_21d",
+              "expected_sharpe": -0.4778,
+              "expected_cagr_pct": -9.2345,
+              "mdd_worst_case": -32.05
+            }
+          ],
+          [
+            "10|quarterly_63d",
+            {
+              "lookback_months": 10,
+              "freq_name": "quarterly_63d",
+              "expected_sharpe": -0.5226,
+              "expected_cagr_pct": -8.524,
+              "mdd_worst_case": -22.62
+            }
+          ],
+          [
+            "17|sixweek_30d",
+            {
+              "lookback_months": 17,
+              "freq_name": "sixweek_30d",
+              "expected_sharpe": -0.6528,
+              "expected_cagr_pct": -8.6328,
+              "mdd_worst_case": -24.02
+            }
+          ],
+          [
+            "10|sixweek_30d",
+            {
+              "lookback_months": 10,
+              "freq_name": "sixweek_30d",
+              "expected_sharpe": -0.6847,
+              "expected_cagr_pct": -9.3543,
+              "mdd_worst_case": -18.65
+            }
+          ],
+          [
+            "14|sixweek_30d",
+            {
+              "lookback_months": 14,
+              "freq_name": "sixweek_30d",
+              "expected_sharpe": -0.6951,
+              "expected_cagr_pct": -9.6328,
+              "mdd_worst_case": -21.41
+            }
+          ],
+          [
+            "18|sixweek_30d",
+            {
+              "lookback_months": 18,
+              "freq_name": "sixweek_30d",
+              "expected_sharpe": -0.7583,
+              "expected_cagr_pct": -12.212,
+              "mdd_worst_case": -24.27
+            }
+          ],
+          [
+            "16|sixweek_30d",
+            {
+              "lookback_months": 16,
+              "freq_name": "sixweek_30d",
+              "expected_sharpe": -0.7644,
+              "expected_cagr_pct": -11.5721,
+              "mdd_worst_case": -24.27
+            }
+          ],
+          [
+            "13|sixweek_30d",
+            {
+              "lookback_months": 13,
+              "freq_name": "sixweek_30d",
+              "expected_sharpe": -0.7699,
+              "expected_cagr_pct": -10.0937,
+              "mdd_worst_case": -22.41
+            }
+          ],
+          [
+            "15|sixweek_30d",
+            {
+              "lookback_months": 15,
+              "freq_name": "sixweek_30d",
+              "expected_sharpe": -0.845,
+              "expected_cagr_pct": -13.0013,
+              "mdd_worst_case": -28.01
+            }
+          ],
+          [
+            "12|sixweek_30d",
+            {
+              "lookback_months": 12,
+              "freq_name": "sixweek_30d",
+              "expected_sharpe": -0.9439,
+              "expected_cagr_pct": -14.8101,
+              "mdd_worst_case": -36.91
+            }
+          ],
+          [
+            "9|sixweek_30d",
+            {
+              "lookback_months": 9,
+              "freq_name": "sixweek_30d",
+              "expected_sharpe": -1.0008,
+              "expected_cagr_pct": -13.4016,
+              "mdd_worst_case": -26.43
+            }
+          ],
+          [
+            "11|sixweek_30d",
+            {
+              "lookback_months": 11,
+              "freq_name": "sixweek_30d",
+              "expected_sharpe": -1.0606,
+              "expected_cagr_pct": -14.6221,
+              "mdd_worst_case": -29.31
+            }
+          ]
+        ],
+        "fine_grid_optimum": {
+          "key": "16|quarterly_63d",
+          "lookback_months": 16,
+          "freq_name": "quarterly_63d",
+          "expected_sharpe": -0.1521,
+          "expected_cagr_pct": -4.0596,
+          "mdd_worst_case": -28.01
+        },
+        "sequential_choice_value": {
+          "key": "12|monthly_21d",
+          "lookback_months": 12,
+          "freq_name": "monthly_21d",
+          "expected_sharpe": -0.3377,
+          "expected_cagr_pct": -7.4808,
+          "mdd_worst_case": -29.77
+        },
+        "sequential_rank_out_of_40": 20,
+        "h31_coarse_winner_value": {
+          "key": "15|quarterly_63d",
+          "lookback_months": 15,
+          "freq_name": "quarterly_63d",
+          "expected_sharpe": -0.2129,
+          "expected_cagr_pct": -4.6422,
+          "mdd_worst_case": -28.01
+        },
+        "h31_coarse_winner_rank_out_of_40": 5,
+        "sharpe_gap_fine_minus_sequential": 0.1856,
+        "sharpe_gap_fine_minus_h31coarse": 0.0608
+      }
+    }
+  },
+  "stage2": {
+    "period": {
+      "start": "2019-08-12",
+      "end": "2026-08-19"
+    },
+    "methodology_note": "H5(2026-08-20)와 동일한 point-in-time 새틀라이트 구축 로직(반기 리밸런싱, 12개월 모멘텀 상위 3종목)을 그대로 재사용. point-in-time 유니버스 표본추출 비용 때문에 전체기간 단일창만 사용(H5와 동일한 절충) - Stage 1의 6창 기댓값 가중은 여기 적용되지 않는다.",
+    "core_sequential_metrics": {
+      "cumulative_return": 139.19,
+      "cagr": 13.23,
+      "mdd": -17.74,
+      "sharpe": 1.03,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.75,
+      "avg_drawdown_days": 20.2
+    },
+    "core_refined_metrics": {
+      "sharpe": 1.03,
+      "cagr": 14.27,
+      "mdd": -15.69,
+      "avg_annual_turnover_pct": 260.7
+    },
+    "refined_optimum_used": {
+      "lookback_months": 14,
+      "freq_name": "quarterly_63d"
+    },
+    "satellite_standalone_metrics": {
+      "cumulative_return": 464.14,
+      "cagr": 27.96,
+      "mdd": -33.54,
+      "sharpe": 0.91,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.83,
+      "avg_drawdown_days": 27.6
+    },
+    "satellite_tickers_ever_held": [
+      "AAPL",
+      "AVGO",
+      "CAT",
+      "COP",
+      "CVX",
+      "GE",
+      "GEV",
+      "GOOGL",
+      "LLY",
+      "META",
+      "MSFT",
+      "NEM",
+      "NFLX",
+      "NVDA",
+      "PLD",
+      "TSLA",
+      "UPS",
+      "XOM"
+    ],
+    "sequential_core_frontier": {
+      "frontier": [
+        {
+          "satellite_weight": 0.0,
+          "metrics": {
+            "cumulative_return": 139.19,
+            "cagr": 13.23,
+            "mdd": -17.74,
+            "sharpe": 1.03,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.75,
+            "avg_drawdown_days": 20.2
+          }
+        },
+        {
+          "satellite_weight": 0.1,
+          "metrics": {
+            "cumulative_return": 166.81,
+            "cagr": 15.01,
+            "mdd": -17.8,
+            "sharpe": 1.08,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.84,
+            "avg_drawdown_days": 17.9
+          }
+        },
+        {
+          "satellite_weight": 0.15,
+          "metrics": {
+            "cumulative_return": 181.25,
+            "cagr": 15.88,
+            "mdd": -17.85,
+            "sharpe": 1.09,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.89,
+            "avg_drawdown_days": 17.4
+          }
+        },
+        {
+          "satellite_weight": 0.2,
+          "metrics": {
+            "cumulative_return": 196.08,
+            "cagr": 16.73,
+            "mdd": -17.9,
+            "sharpe": 1.09,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.93,
+            "avg_drawdown_days": 17.1
+          }
+        },
+        {
+          "satellite_weight": 0.25,
+          "metrics": {
+            "cumulative_return": 211.29,
+            "cagr": 17.57,
+            "mdd": -17.97,
+            "sharpe": 1.09,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.98,
+            "avg_drawdown_days": 17.7
+          }
+        },
+        {
+          "satellite_weight": 0.3,
+          "metrics": {
+            "cumulative_return": 226.85,
+            "cagr": 18.39,
+            "mdd": -18.04,
+            "sharpe": 1.08,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 1.02,
+            "avg_drawdown_days": 17.8
+          }
+        }
+      ],
+      "peak_sharpe_weight": 0.15,
+      "peak_sharpe_metrics": {
+        "cumulative_return": 181.25,
+        "cagr": 15.88,
+        "mdd": -17.85,
+        "sharpe": 1.09,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.89,
+        "avg_drawdown_days": 17.4
+      }
+    },
+    "refined_core_frontier": {
+      "frontier": [
+        {
+          "satellite_weight": 0.0,
+          "metrics": {
+            "sharpe": 1.03,
+            "cagr": 14.27,
+            "mdd": -15.69,
+            "avg_annual_turnover_pct": 260.7
+          }
+        },
+        {
+          "satellite_weight": 0.1,
+          "metrics": {
+            "cumulative_return": 181.63,
+            "cagr": 15.9,
+            "mdd": -16.68,
+            "sharpe": 1.05,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.95,
+            "avg_drawdown_days": 18.4
+          }
+        },
+        {
+          "satellite_weight": 0.15,
+          "metrics": {
+            "cumulative_return": 195.48,
+            "cagr": 16.7,
+            "mdd": -17.35,
+            "sharpe": 1.06,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.96,
+            "avg_drawdown_days": 19.6
+          }
+        },
+        {
+          "satellite_weight": 0.2,
+          "metrics": {
+            "cumulative_return": 209.66,
+            "cagr": 17.48,
+            "mdd": -18.12,
+            "sharpe": 1.06,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.96,
+            "avg_drawdown_days": 20.0
+          }
+        },
+        {
+          "satellite_weight": 0.25,
+          "metrics": {
+            "cumulative_return": 224.17,
+            "cagr": 18.25,
+            "mdd": -18.89,
+            "sharpe": 1.05,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.97,
+            "avg_drawdown_days": 19.7
+          }
+        },
+        {
+          "satellite_weight": 0.3,
+          "metrics": {
+            "cumulative_return": 238.98,
+            "cagr": 19.0,
+            "mdd": -19.66,
+            "sharpe": 1.05,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.97,
+            "avg_drawdown_days": 19.7
+          }
+        }
+      ],
+      "peak_sharpe_weight": 0.15,
+      "peak_sharpe_metrics": {
+        "cumulative_return": 195.48,
+        "cagr": 16.7,
+        "mdd": -17.35,
+        "sharpe": 1.06,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.96,
+        "avg_drawdown_days": 19.6
+      }
+    }
+  },
+  "refined_optimum_used_for_stage2": {
+    "lookback_months": 14,
+    "freq_name": "quarterly_63d"
+  },
+  "total_runtime_sec": 1401.4
+}

@@ -1,0 +1,1714 @@
+{
+  "meta": {
+    "satellite_weight": 0.15,
+    "max_research_per_slot": 5
+  },
+  "full_and_2022": {
+    "windows": {
+      "full_2019_2026": {
+        "static_hold_baseline_H10": {
+          "cumulative_return": 184.37,
+          "cagr": 16.06,
+          "mdd": -18.45,
+          "sharpe": 1.12,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.87,
+          "avg_drawdown_days": 17.3,
+          "n_days": 1764
+        },
+        "realtime_exit_cash_until_rebal_H16": {
+          "cumulative_return": 129.25,
+          "cagr": 12.55,
+          "mdd": -16.55,
+          "sharpe": 1.02,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.76,
+          "avg_drawdown_days": 22.4,
+          "n_days": 1764
+        },
+        "realtime_exit_immediate_reentry_H17": {
+          "cumulative_return": 131.94,
+          "cagr": 12.74,
+          "mdd": -17.23,
+          "sharpe": 0.94,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.74,
+          "avg_drawdown_days": 24.4,
+          "n_days": 1764
+        }
+      },
+      "bear_2022": {
+        "static_hold_baseline_H10": {
+          "cumulative_return": 1.79,
+          "cagr": 1.81,
+          "mdd": -12.54,
+          "sharpe": 0.2,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.14,
+          "avg_drawdown_days": 8.9,
+          "n_days": 251
+        },
+        "realtime_exit_cash_until_rebal_H16": {
+          "cumulative_return": 2.46,
+          "cagr": 2.49,
+          "mdd": -10.28,
+          "sharpe": 0.27,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.24,
+          "avg_drawdown_days": 8.7,
+          "n_days": 251
+        },
+        "realtime_exit_immediate_reentry_H17": {
+          "cumulative_return": 4.22,
+          "cagr": 4.27,
+          "mdd": -10.98,
+          "sharpe": 0.37,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.39,
+          "avg_drawdown_days": 8.3,
+          "n_days": 251
+        }
+      }
+    },
+    "n_reentries": 79,
+    "events": [
+      {
+        "slot": 0,
+        "ticker": "AAPL",
+        "exit_date": "2020-02-27",
+        "period_rebal_date": "2020-01-02"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "NEE",
+        "entry_date": "2020-02-27",
+        "period_rebal_date": "2020-01-02"
+      },
+      {
+        "slot": 0,
+        "ticker": "NEE",
+        "exit_date": "2020-03-12",
+        "period_rebal_date": "2020-01-02"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "WMT",
+        "entry_date": "2020-03-12",
+        "period_rebal_date": "2020-01-02"
+      },
+      {
+        "slot": 1,
+        "ticker": "MSFT",
+        "exit_date": "2020-02-27",
+        "period_rebal_date": "2020-01-02"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "NEE",
+        "entry_date": "2020-02-27",
+        "period_rebal_date": "2020-01-02"
+      },
+      {
+        "slot": 1,
+        "ticker": "NEE",
+        "exit_date": "2020-03-12",
+        "period_rebal_date": "2020-01-02"
+      },
+      {
+        "slot": 2,
+        "ticker": "PLD",
+        "exit_date": "2020-02-28",
+        "period_rebal_date": "2020-01-02"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "AMT",
+        "entry_date": "2020-02-28",
+        "period_rebal_date": "2020-01-02"
+      },
+      {
+        "slot": 2,
+        "ticker": "AMT",
+        "exit_date": "2020-03-12",
+        "period_rebal_date": "2020-01-02"
+      },
+      {
+        "slot": 0,
+        "ticker": "NVDA",
+        "exit_date": "2020-09-08",
+        "period_rebal_date": "2020-07-01"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "NFLX",
+        "entry_date": "2020-09-08",
+        "period_rebal_date": "2020-07-01"
+      },
+      {
+        "slot": 0,
+        "ticker": "NFLX",
+        "exit_date": "2020-09-17",
+        "period_rebal_date": "2020-07-01"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "AMZN",
+        "entry_date": "2020-09-17",
+        "period_rebal_date": "2020-07-01"
+      },
+      {
+        "slot": 0,
+        "ticker": "AMZN",
+        "exit_date": "2020-09-18",
+        "period_rebal_date": "2020-07-01"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "MSFT",
+        "entry_date": "2020-09-18",
+        "period_rebal_date": "2020-07-01"
+      },
+      {
+        "slot": 1,
+        "ticker": "AAPL",
+        "exit_date": "2020-09-08",
+        "period_rebal_date": "2020-07-01"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "NFLX",
+        "entry_date": "2020-09-08",
+        "period_rebal_date": "2020-07-01"
+      },
+      {
+        "slot": 1,
+        "ticker": "NFLX",
+        "exit_date": "2020-09-17",
+        "period_rebal_date": "2020-07-01"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "AMZN",
+        "entry_date": "2020-09-17",
+        "period_rebal_date": "2020-07-01"
+      },
+      {
+        "slot": 1,
+        "ticker": "AMZN",
+        "exit_date": "2020-09-18",
+        "period_rebal_date": "2020-07-01"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "APD",
+        "entry_date": "2020-09-18",
+        "period_rebal_date": "2020-07-01"
+      },
+      {
+        "slot": 1,
+        "ticker": "APD",
+        "exit_date": "2020-11-12",
+        "period_rebal_date": "2020-07-01"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "NVDA",
+        "entry_date": "2020-11-12",
+        "period_rebal_date": "2020-07-01"
+      },
+      {
+        "slot": 0,
+        "ticker": "TSLA",
+        "exit_date": "2021-02-22",
+        "period_rebal_date": "2021-01-04"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "NVDA",
+        "entry_date": "2021-02-22",
+        "period_rebal_date": "2021-01-04"
+      },
+      {
+        "slot": 0,
+        "ticker": "NVDA",
+        "exit_date": "2021-03-03",
+        "period_rebal_date": "2021-01-04"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "UPS",
+        "entry_date": "2021-03-03",
+        "period_rebal_date": "2021-01-04"
+      },
+      {
+        "slot": 1,
+        "ticker": "NVDA",
+        "exit_date": "2021-03-03",
+        "period_rebal_date": "2021-01-04"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "DIS",
+        "entry_date": "2021-03-03",
+        "period_rebal_date": "2021-01-04"
+      },
+      {
+        "slot": 1,
+        "ticker": "DIS",
+        "exit_date": "2021-05-17",
+        "period_rebal_date": "2021-01-04"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "JPM",
+        "entry_date": "2021-05-17",
+        "period_rebal_date": "2021-01-04"
+      },
+      {
+        "slot": 2,
+        "ticker": "AAPL",
+        "exit_date": "2021-02-25",
+        "period_rebal_date": "2021-01-04"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "NVDA",
+        "entry_date": "2021-02-25",
+        "period_rebal_date": "2021-01-04"
+      },
+      {
+        "slot": 2,
+        "ticker": "NVDA",
+        "exit_date": "2021-03-03",
+        "period_rebal_date": "2021-01-04"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "DIS",
+        "entry_date": "2021-03-03",
+        "period_rebal_date": "2021-01-04"
+      },
+      {
+        "slot": 2,
+        "ticker": "DIS",
+        "exit_date": "2021-05-17",
+        "period_rebal_date": "2021-01-04"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "HON",
+        "entry_date": "2021-05-17",
+        "period_rebal_date": "2021-01-04"
+      },
+      {
+        "slot": 0,
+        "ticker": "TSLA",
+        "exit_date": "2021-11-09",
+        "period_rebal_date": "2021-07-01"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "COP",
+        "entry_date": "2021-11-09",
+        "period_rebal_date": "2021-07-01"
+      },
+      {
+        "slot": 1,
+        "ticker": "NVDA",
+        "exit_date": "2021-12-13",
+        "period_rebal_date": "2021-07-01"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "PLD",
+        "entry_date": "2021-12-13",
+        "period_rebal_date": "2021-07-01"
+      },
+      {
+        "slot": 2,
+        "ticker": "UPS",
+        "exit_date": "2021-09-29",
+        "period_rebal_date": "2021-07-01"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "TSLA",
+        "entry_date": "2021-09-29",
+        "period_rebal_date": "2021-07-01"
+      },
+      {
+        "slot": 2,
+        "ticker": "TSLA",
+        "exit_date": "2021-11-09",
+        "period_rebal_date": "2021-07-01"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "NVDA",
+        "entry_date": "2021-11-09",
+        "period_rebal_date": "2021-07-01"
+      },
+      {
+        "slot": 2,
+        "ticker": "NVDA",
+        "exit_date": "2021-12-13",
+        "period_rebal_date": "2021-07-01"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "GOOG",
+        "entry_date": "2021-12-13",
+        "period_rebal_date": "2021-07-01"
+      },
+      {
+        "slot": 0,
+        "ticker": "COP",
+        "exit_date": "2022-04-26",
+        "period_rebal_date": "2022-01-03"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "CVX",
+        "entry_date": "2022-04-26",
+        "period_rebal_date": "2022-01-03"
+      },
+      {
+        "slot": 0,
+        "ticker": "CVX",
+        "exit_date": "2022-06-17",
+        "period_rebal_date": "2022-01-03"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "KO",
+        "entry_date": "2022-06-17",
+        "period_rebal_date": "2022-01-03"
+      },
+      {
+        "slot": 1,
+        "ticker": "PLD",
+        "exit_date": "2022-02-18",
+        "period_rebal_date": "2022-01-03"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "COP",
+        "entry_date": "2022-02-18",
+        "period_rebal_date": "2022-01-03"
+      },
+      {
+        "slot": 1,
+        "ticker": "COP",
+        "exit_date": "2022-04-26",
+        "period_rebal_date": "2022-01-03"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "CVX",
+        "entry_date": "2022-04-26",
+        "period_rebal_date": "2022-01-03"
+      },
+      {
+        "slot": 1,
+        "ticker": "CVX",
+        "exit_date": "2022-06-17",
+        "period_rebal_date": "2022-01-03"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "SO",
+        "entry_date": "2022-06-17",
+        "period_rebal_date": "2022-01-03"
+      },
+      {
+        "slot": 2,
+        "ticker": "GOOGL",
+        "exit_date": "2022-01-25",
+        "period_rebal_date": "2022-01-03"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "COP",
+        "entry_date": "2022-01-25",
+        "period_rebal_date": "2022-01-03"
+      },
+      {
+        "slot": 2,
+        "ticker": "COP",
+        "exit_date": "2022-04-26",
+        "period_rebal_date": "2022-01-03"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "CVX",
+        "entry_date": "2022-04-26",
+        "period_rebal_date": "2022-01-03"
+      },
+      {
+        "slot": 2,
+        "ticker": "CVX",
+        "exit_date": "2022-06-17",
+        "period_rebal_date": "2022-01-03"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "JNJ",
+        "entry_date": "2022-06-17",
+        "period_rebal_date": "2022-01-03"
+      },
+      {
+        "slot": 2,
+        "ticker": "SO",
+        "exit_date": "2022-09-30",
+        "period_rebal_date": "2022-07-01"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "CVX",
+        "entry_date": "2022-09-30",
+        "period_rebal_date": "2022-07-01"
+      },
+      {
+        "slot": 0,
+        "ticker": "XOM",
+        "exit_date": "2023-03-16",
+        "period_rebal_date": "2023-01-03"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "APD",
+        "entry_date": "2023-03-16",
+        "period_rebal_date": "2023-01-03"
+      },
+      {
+        "slot": 0,
+        "ticker": "APD",
+        "exit_date": "2023-03-17",
+        "period_rebal_date": "2023-01-03"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "TMUS",
+        "entry_date": "2023-03-17",
+        "period_rebal_date": "2023-01-03"
+      },
+      {
+        "slot": 0,
+        "ticker": "TMUS",
+        "exit_date": "2023-06-06",
+        "period_rebal_date": "2023-01-03"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "NVDA",
+        "entry_date": "2023-06-06",
+        "period_rebal_date": "2023-01-03"
+      },
+      {
+        "slot": 1,
+        "ticker": "CVX",
+        "exit_date": "2023-03-10",
+        "period_rebal_date": "2023-01-03"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "XOM",
+        "entry_date": "2023-03-10",
+        "period_rebal_date": "2023-01-03"
+      },
+      {
+        "slot": 1,
+        "ticker": "XOM",
+        "exit_date": "2023-03-16",
+        "period_rebal_date": "2023-01-03"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "APD",
+        "entry_date": "2023-03-16",
+        "period_rebal_date": "2023-01-03"
+      },
+      {
+        "slot": 1,
+        "ticker": "APD",
+        "exit_date": "2023-03-17",
+        "period_rebal_date": "2023-01-03"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "TMUS",
+        "entry_date": "2023-03-17",
+        "period_rebal_date": "2023-01-03"
+      },
+      {
+        "slot": 1,
+        "ticker": "TMUS",
+        "exit_date": "2023-06-06",
+        "period_rebal_date": "2023-01-03"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "LLY",
+        "entry_date": "2023-06-06",
+        "period_rebal_date": "2023-01-03"
+      },
+      {
+        "slot": 2,
+        "ticker": "LLY",
+        "exit_date": "2023-02-27",
+        "period_rebal_date": "2023-01-03"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "XOM",
+        "entry_date": "2023-02-27",
+        "period_rebal_date": "2023-01-03"
+      },
+      {
+        "slot": 2,
+        "ticker": "XOM",
+        "exit_date": "2023-03-16",
+        "period_rebal_date": "2023-01-03"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "APD",
+        "entry_date": "2023-03-16",
+        "period_rebal_date": "2023-01-03"
+      },
+      {
+        "slot": 2,
+        "ticker": "APD",
+        "exit_date": "2023-03-17",
+        "period_rebal_date": "2023-01-03"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "TMUS",
+        "entry_date": "2023-03-17",
+        "period_rebal_date": "2023-01-03"
+      },
+      {
+        "slot": 2,
+        "ticker": "TMUS",
+        "exit_date": "2023-06-06",
+        "period_rebal_date": "2023-01-03"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "LLY",
+        "entry_date": "2023-06-06",
+        "period_rebal_date": "2023-01-03"
+      },
+      {
+        "slot": 0,
+        "ticker": "NVDA",
+        "exit_date": "2023-09-21",
+        "period_rebal_date": "2023-07-03"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "META",
+        "entry_date": "2023-09-21",
+        "period_rebal_date": "2023-07-03"
+      },
+      {
+        "slot": 1,
+        "ticker": "NFLX",
+        "exit_date": "2023-08-17",
+        "period_rebal_date": "2023-07-03"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "NVDA",
+        "entry_date": "2023-08-17",
+        "period_rebal_date": "2023-07-03"
+      },
+      {
+        "slot": 1,
+        "ticker": "NVDA",
+        "exit_date": "2023-09-21",
+        "period_rebal_date": "2023-07-03"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "LLY",
+        "entry_date": "2023-09-21",
+        "period_rebal_date": "2023-07-03"
+      },
+      {
+        "slot": 0,
+        "ticker": "NVDA",
+        "exit_date": "2024-04-19",
+        "period_rebal_date": "2024-01-02"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "META",
+        "entry_date": "2024-04-19",
+        "period_rebal_date": "2024-01-02"
+      },
+      {
+        "slot": 0,
+        "ticker": "META",
+        "exit_date": "2024-04-25",
+        "period_rebal_date": "2024-01-02"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "AVGO",
+        "entry_date": "2024-04-25",
+        "period_rebal_date": "2024-01-02"
+      },
+      {
+        "slot": 1,
+        "ticker": "META",
+        "exit_date": "2024-04-25",
+        "period_rebal_date": "2024-01-02"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "LLY",
+        "entry_date": "2024-04-25",
+        "period_rebal_date": "2024-01-02"
+      },
+      {
+        "slot": 2,
+        "ticker": "TSLA",
+        "exit_date": "2024-01-12",
+        "period_rebal_date": "2024-01-02"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "NVDA",
+        "entry_date": "2024-01-12",
+        "period_rebal_date": "2024-01-02"
+      },
+      {
+        "slot": 2,
+        "ticker": "NVDA",
+        "exit_date": "2024-04-19",
+        "period_rebal_date": "2024-01-02"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "META",
+        "entry_date": "2024-04-19",
+        "period_rebal_date": "2024-01-02"
+      },
+      {
+        "slot": 2,
+        "ticker": "META",
+        "exit_date": "2024-04-25",
+        "period_rebal_date": "2024-01-02"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "NFLX",
+        "entry_date": "2024-04-25",
+        "period_rebal_date": "2024-01-02"
+      },
+      {
+        "slot": 0,
+        "ticker": "NVDA",
+        "exit_date": "2024-07-24",
+        "period_rebal_date": "2024-07-01"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "LLY",
+        "entry_date": "2024-07-24",
+        "period_rebal_date": "2024-07-01"
+      },
+      {
+        "slot": 0,
+        "ticker": "LLY",
+        "exit_date": "2024-07-26",
+        "period_rebal_date": "2024-07-01"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "GE",
+        "entry_date": "2024-07-26",
+        "period_rebal_date": "2024-07-01"
+      },
+      {
+        "slot": 0,
+        "ticker": "GE",
+        "exit_date": "2024-12-12",
+        "period_rebal_date": "2024-07-01"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "NVDA",
+        "entry_date": "2024-12-12",
+        "period_rebal_date": "2024-07-01"
+      },
+      {
+        "slot": 1,
+        "ticker": "LLY",
+        "exit_date": "2024-07-26",
+        "period_rebal_date": "2024-07-01"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "GE",
+        "entry_date": "2024-07-26",
+        "period_rebal_date": "2024-07-01"
+      },
+      {
+        "slot": 1,
+        "ticker": "GE",
+        "exit_date": "2024-12-12",
+        "period_rebal_date": "2024-07-01"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "NFLX",
+        "entry_date": "2024-12-12",
+        "period_rebal_date": "2024-07-01"
+      },
+      {
+        "slot": 2,
+        "ticker": "GE",
+        "exit_date": "2024-12-12",
+        "period_rebal_date": "2024-07-01"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "META",
+        "entry_date": "2024-12-12",
+        "period_rebal_date": "2024-07-01"
+      },
+      {
+        "slot": 0,
+        "ticker": "NVDA",
+        "exit_date": "2025-01-27",
+        "period_rebal_date": "2025-01-02"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "GE",
+        "entry_date": "2025-01-27",
+        "period_rebal_date": "2025-01-02"
+      },
+      {
+        "slot": 0,
+        "ticker": "GE",
+        "exit_date": "2025-04-04",
+        "period_rebal_date": "2025-01-02"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "NFLX",
+        "entry_date": "2025-04-04",
+        "period_rebal_date": "2025-01-02"
+      },
+      {
+        "slot": 1,
+        "ticker": "AVGO",
+        "exit_date": "2025-01-27",
+        "period_rebal_date": "2025-01-02"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "GE",
+        "entry_date": "2025-01-27",
+        "period_rebal_date": "2025-01-02"
+      },
+      {
+        "slot": 1,
+        "ticker": "GE",
+        "exit_date": "2025-04-04",
+        "period_rebal_date": "2025-01-02"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "SO",
+        "entry_date": "2025-04-04",
+        "period_rebal_date": "2025-01-02"
+      },
+      {
+        "slot": 2,
+        "ticker": "NFLX",
+        "exit_date": "2025-03-07",
+        "period_rebal_date": "2025-01-02"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "GE",
+        "entry_date": "2025-03-07",
+        "period_rebal_date": "2025-01-02"
+      },
+      {
+        "slot": 2,
+        "ticker": "GE",
+        "exit_date": "2025-04-04",
+        "period_rebal_date": "2025-01-02"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "NFLX",
+        "entry_date": "2025-04-04",
+        "period_rebal_date": "2025-01-02"
+      },
+      {
+        "slot": 0,
+        "ticker": "NFLX",
+        "exit_date": "2025-10-22",
+        "period_rebal_date": "2025-07-01"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "TSLA",
+        "entry_date": "2025-10-22",
+        "period_rebal_date": "2025-07-01"
+      },
+      {
+        "slot": 0,
+        "ticker": "TSLA",
+        "exit_date": "2025-11-20",
+        "period_rebal_date": "2025-07-01"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "AVGO",
+        "entry_date": "2025-11-20",
+        "period_rebal_date": "2025-07-01"
+      },
+      {
+        "slot": 0,
+        "ticker": "AVGO",
+        "exit_date": "2025-12-15",
+        "period_rebal_date": "2025-07-01"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "NEM",
+        "entry_date": "2025-12-15",
+        "period_rebal_date": "2025-07-01"
+      },
+      {
+        "slot": 1,
+        "ticker": "AVGO",
+        "exit_date": "2025-12-15",
+        "period_rebal_date": "2025-07-01"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "GE",
+        "entry_date": "2025-12-15",
+        "period_rebal_date": "2025-07-01"
+      },
+      {
+        "slot": 0,
+        "ticker": "NEM",
+        "exit_date": "2026-02-05",
+        "period_rebal_date": "2026-01-02"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "CAT",
+        "entry_date": "2026-02-05",
+        "period_rebal_date": "2026-01-02"
+      },
+      {
+        "slot": 1,
+        "ticker": "GE",
+        "exit_date": "2026-03-19",
+        "period_rebal_date": "2026-01-02"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "GOOGL",
+        "entry_date": "2026-03-19",
+        "period_rebal_date": "2026-01-02"
+      },
+      {
+        "slot": 1,
+        "ticker": "GOOGL",
+        "exit_date": "2026-03-24",
+        "period_rebal_date": "2026-01-02"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "AVGO",
+        "entry_date": "2026-03-24",
+        "period_rebal_date": "2026-01-02"
+      },
+      {
+        "slot": 1,
+        "ticker": "AVGO",
+        "exit_date": "2026-03-30",
+        "period_rebal_date": "2026-01-02"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "JNJ",
+        "entry_date": "2026-03-30",
+        "period_rebal_date": "2026-01-02"
+      },
+      {
+        "slot": 2,
+        "ticker": "GOOGL",
+        "exit_date": "2026-03-24",
+        "period_rebal_date": "2026-01-02"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "AVGO",
+        "entry_date": "2026-03-24",
+        "period_rebal_date": "2026-01-02"
+      },
+      {
+        "slot": 2,
+        "ticker": "AVGO",
+        "exit_date": "2026-03-30",
+        "period_rebal_date": "2026-01-02"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "XOM",
+        "entry_date": "2026-03-30",
+        "period_rebal_date": "2026-01-02"
+      },
+      {
+        "slot": 2,
+        "ticker": "XOM",
+        "exit_date": "2026-05-08",
+        "period_rebal_date": "2026-01-02"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "GOOGL",
+        "entry_date": "2026-05-08",
+        "period_rebal_date": "2026-01-02"
+      },
+      {
+        "slot": 2,
+        "ticker": "GOOGL",
+        "exit_date": "2026-06-26",
+        "period_rebal_date": "2026-01-02"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "LLY",
+        "entry_date": "2026-06-26",
+        "period_rebal_date": "2026-01-02"
+      },
+      {
+        "slot": 0,
+        "ticker": "CAT",
+        "exit_date": "2026-07-16",
+        "period_rebal_date": "2026-07-01"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "GEV",
+        "entry_date": "2026-07-16",
+        "period_rebal_date": "2026-07-01"
+      },
+      {
+        "slot": 0,
+        "ticker": "GEV",
+        "exit_date": "2026-07-22",
+        "period_rebal_date": "2026-07-01"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "JNJ",
+        "entry_date": "2026-07-22",
+        "period_rebal_date": "2026-07-01"
+      },
+      {
+        "slot": 1,
+        "ticker": "GEV",
+        "exit_date": "2026-07-22",
+        "period_rebal_date": "2026-07-01"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "AAPL",
+        "entry_date": "2026-07-22",
+        "period_rebal_date": "2026-07-01"
+      }
+    ]
+  },
+  "gfc_2008": {
+    "windows": {
+      "full_2007_2009": {
+        "static_hold_baseline_H10": {
+          "cumulative_return": 24.83,
+          "cagr": 7.7,
+          "mdd": -19.96,
+          "sharpe": 0.6,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.39,
+          "avg_drawdown_days": 33.7,
+          "n_days": 755
+        },
+        "realtime_exit_cash_until_rebal_H16": {
+          "cumulative_return": 25.46,
+          "cagr": 7.88,
+          "mdd": -14.52,
+          "sharpe": 0.64,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.54,
+          "avg_drawdown_days": 28.5,
+          "n_days": 755
+        },
+        "realtime_exit_immediate_reentry_H17": {
+          "cumulative_return": 10.08,
+          "cagr": 3.26,
+          "mdd": -20.56,
+          "sharpe": 0.31,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.16,
+          "avg_drawdown_days": 10.7,
+          "n_days": 755
+        }
+      },
+      "crisis_2007_10_2009_06": {
+        "static_hold_baseline_H10": {
+          "cumulative_return": -7.5,
+          "cagr": -4.36,
+          "mdd": -19.96,
+          "sharpe": -0.21,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": -0.22,
+          "avg_drawdown_days": 32.5,
+          "n_days": 441
+        },
+        "realtime_exit_cash_until_rebal_H16": {
+          "cumulative_return": -1.1,
+          "cagr": -0.63,
+          "mdd": -14.52,
+          "sharpe": 0.03,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": -0.04,
+          "avg_drawdown_days": 32.2,
+          "n_days": 441
+        },
+        "realtime_exit_immediate_reentry_H17": {
+          "cumulative_return": -13.95,
+          "cagr": -8.24,
+          "mdd": -20.56,
+          "sharpe": -0.52,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": -0.4,
+          "avg_drawdown_days": 3.7,
+          "n_days": 441
+        }
+      }
+    },
+    "n_reentries": 46,
+    "events": [
+      {
+        "slot": 0,
+        "ticker": "AVB",
+        "exit_date": "2007-08-15",
+        "period_rebal_date": "2007-07-02"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "NOV",
+        "entry_date": "2007-08-15",
+        "period_rebal_date": "2007-07-02"
+      },
+      {
+        "slot": 0,
+        "ticker": "NOV",
+        "exit_date": "2007-08-16",
+        "period_rebal_date": "2007-07-02"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "CSCO",
+        "entry_date": "2007-08-16",
+        "period_rebal_date": "2007-07-02"
+      },
+      {
+        "slot": 0,
+        "ticker": "CSCO",
+        "exit_date": "2007-11-09",
+        "period_rebal_date": "2007-07-02"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "NOV",
+        "entry_date": "2007-11-09",
+        "period_rebal_date": "2007-07-02"
+      },
+      {
+        "slot": 0,
+        "ticker": "NOV",
+        "exit_date": "2007-11-12",
+        "period_rebal_date": "2007-07-02"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "PEG",
+        "entry_date": "2007-11-12",
+        "period_rebal_date": "2007-07-02"
+      },
+      {
+        "slot": 1,
+        "ticker": "AAPL",
+        "exit_date": "2007-08-14",
+        "period_rebal_date": "2007-07-02"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "AVB",
+        "entry_date": "2007-08-14",
+        "period_rebal_date": "2007-07-02"
+      },
+      {
+        "slot": 1,
+        "ticker": "AVB",
+        "exit_date": "2007-08-15",
+        "period_rebal_date": "2007-07-02"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "NOV",
+        "entry_date": "2007-08-15",
+        "period_rebal_date": "2007-07-02"
+      },
+      {
+        "slot": 1,
+        "ticker": "NOV",
+        "exit_date": "2007-08-16",
+        "period_rebal_date": "2007-07-02"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "CSCO",
+        "entry_date": "2007-08-16",
+        "period_rebal_date": "2007-07-02"
+      },
+      {
+        "slot": 1,
+        "ticker": "CSCO",
+        "exit_date": "2007-11-09",
+        "period_rebal_date": "2007-07-02"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "NOV",
+        "entry_date": "2007-11-09",
+        "period_rebal_date": "2007-07-02"
+      },
+      {
+        "slot": 1,
+        "ticker": "NOV",
+        "exit_date": "2007-11-12",
+        "period_rebal_date": "2007-07-02"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "MCD",
+        "entry_date": "2007-11-12",
+        "period_rebal_date": "2007-07-02"
+      },
+      {
+        "slot": 2,
+        "ticker": "NOV",
+        "exit_date": "2007-08-16",
+        "period_rebal_date": "2007-07-02"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "CSCO",
+        "entry_date": "2007-08-16",
+        "period_rebal_date": "2007-07-02"
+      },
+      {
+        "slot": 2,
+        "ticker": "CSCO",
+        "exit_date": "2007-11-09",
+        "period_rebal_date": "2007-07-02"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "NOV",
+        "entry_date": "2007-11-09",
+        "period_rebal_date": "2007-07-02"
+      },
+      {
+        "slot": 2,
+        "ticker": "NOV",
+        "exit_date": "2007-11-12",
+        "period_rebal_date": "2007-07-02"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "UNP",
+        "entry_date": "2007-11-12",
+        "period_rebal_date": "2007-07-02"
+      },
+      {
+        "slot": 0,
+        "ticker": "AAPL",
+        "exit_date": "2008-01-15",
+        "period_rebal_date": "2008-01-02"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "SLB",
+        "entry_date": "2008-01-15",
+        "period_rebal_date": "2008-01-02"
+      },
+      {
+        "slot": 0,
+        "ticker": "SLB",
+        "exit_date": "2008-01-16",
+        "period_rebal_date": "2008-01-02"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "PEG",
+        "entry_date": "2008-01-16",
+        "period_rebal_date": "2008-01-02"
+      },
+      {
+        "slot": 0,
+        "ticker": "PEG",
+        "exit_date": "2008-03-20",
+        "period_rebal_date": "2008-01-02"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "AAPL",
+        "entry_date": "2008-03-20",
+        "period_rebal_date": "2008-01-02"
+      },
+      {
+        "slot": 1,
+        "ticker": "AMZN",
+        "exit_date": "2008-01-11",
+        "period_rebal_date": "2008-01-02"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "SLB",
+        "entry_date": "2008-01-11",
+        "period_rebal_date": "2008-01-02"
+      },
+      {
+        "slot": 1,
+        "ticker": "SLB",
+        "exit_date": "2008-01-16",
+        "period_rebal_date": "2008-01-02"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "PEG",
+        "entry_date": "2008-01-16",
+        "period_rebal_date": "2008-01-02"
+      },
+      {
+        "slot": 1,
+        "ticker": "PEG",
+        "exit_date": "2008-03-20",
+        "period_rebal_date": "2008-01-02"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "KO",
+        "entry_date": "2008-03-20",
+        "period_rebal_date": "2008-01-02"
+      },
+      {
+        "slot": 1,
+        "ticker": "KO",
+        "exit_date": "2008-06-13",
+        "period_rebal_date": "2008-01-02"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "FCX",
+        "entry_date": "2008-06-13",
+        "period_rebal_date": "2008-01-02"
+      },
+      {
+        "slot": 2,
+        "ticker": "SLB",
+        "exit_date": "2008-01-16",
+        "period_rebal_date": "2008-01-02"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "PEG",
+        "entry_date": "2008-01-16",
+        "period_rebal_date": "2008-01-02"
+      },
+      {
+        "slot": 2,
+        "ticker": "PEG",
+        "exit_date": "2008-03-20",
+        "period_rebal_date": "2008-01-02"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "KO",
+        "entry_date": "2008-03-20",
+        "period_rebal_date": "2008-01-02"
+      },
+      {
+        "slot": 2,
+        "ticker": "KO",
+        "exit_date": "2008-06-13",
+        "period_rebal_date": "2008-01-02"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "UNP",
+        "entry_date": "2008-06-13",
+        "period_rebal_date": "2008-01-02"
+      },
+      {
+        "slot": 0,
+        "ticker": "FCX",
+        "exit_date": "2008-07-08",
+        "period_rebal_date": "2008-07-01"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "AAPL",
+        "entry_date": "2008-07-08",
+        "period_rebal_date": "2008-07-01"
+      },
+      {
+        "slot": 0,
+        "ticker": "AAPL",
+        "exit_date": "2008-07-24",
+        "period_rebal_date": "2008-07-01"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "CSX",
+        "entry_date": "2008-07-24",
+        "period_rebal_date": "2008-07-01"
+      },
+      {
+        "slot": 0,
+        "ticker": "CSX",
+        "exit_date": "2008-09-04",
+        "period_rebal_date": "2008-07-01"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "WMT",
+        "entry_date": "2008-09-04",
+        "period_rebal_date": "2008-07-01"
+      },
+      {
+        "slot": 0,
+        "ticker": "WMT",
+        "exit_date": "2008-10-09",
+        "period_rebal_date": "2008-07-01"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "CME",
+        "entry_date": "2008-10-09",
+        "period_rebal_date": "2008-07-01"
+      },
+      {
+        "slot": 0,
+        "ticker": "CME",
+        "exit_date": "2008-10-21",
+        "period_rebal_date": "2008-07-01"
+      },
+      {
+        "slot": 1,
+        "ticker": "CSX",
+        "exit_date": "2008-07-02",
+        "period_rebal_date": "2008-07-01"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "AAPL",
+        "entry_date": "2008-07-02",
+        "period_rebal_date": "2008-07-01"
+      },
+      {
+        "slot": 1,
+        "ticker": "AAPL",
+        "exit_date": "2008-07-24",
+        "period_rebal_date": "2008-07-01"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "CSX",
+        "entry_date": "2008-07-24",
+        "period_rebal_date": "2008-07-01"
+      },
+      {
+        "slot": 1,
+        "ticker": "CSX",
+        "exit_date": "2008-09-04",
+        "period_rebal_date": "2008-07-01"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "WMT",
+        "entry_date": "2008-09-04",
+        "period_rebal_date": "2008-07-01"
+      },
+      {
+        "slot": 1,
+        "ticker": "WMT",
+        "exit_date": "2008-10-09",
+        "period_rebal_date": "2008-07-01"
+      },
+      {
+        "slot": 2,
+        "ticker": "AAPL",
+        "exit_date": "2008-07-24",
+        "period_rebal_date": "2008-07-01"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "CSX",
+        "entry_date": "2008-07-24",
+        "period_rebal_date": "2008-07-01"
+      },
+      {
+        "slot": 2,
+        "ticker": "CSX",
+        "exit_date": "2008-09-04",
+        "period_rebal_date": "2008-07-01"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "UNP",
+        "entry_date": "2008-09-04",
+        "period_rebal_date": "2008-07-01"
+      },
+      {
+        "slot": 2,
+        "ticker": "UNP",
+        "exit_date": "2008-09-09",
+        "period_rebal_date": "2008-07-01"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "MCD",
+        "entry_date": "2008-09-09",
+        "period_rebal_date": "2008-07-01"
+      },
+      {
+        "slot": 2,
+        "ticker": "MCD",
+        "exit_date": "2008-10-07",
+        "period_rebal_date": "2008-07-01"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "NKE",
+        "entry_date": "2008-10-07",
+        "period_rebal_date": "2008-07-01"
+      },
+      {
+        "slot": 2,
+        "ticker": "NKE",
+        "exit_date": "2008-10-08",
+        "period_rebal_date": "2008-07-01"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "JNJ",
+        "entry_date": "2008-10-08",
+        "period_rebal_date": "2008-07-01"
+      },
+      {
+        "slot": 2,
+        "ticker": "JNJ",
+        "exit_date": "2008-10-09",
+        "period_rebal_date": "2008-07-01"
+      },
+      {
+        "slot": 0,
+        "ticker": "WMT",
+        "exit_date": "2009-01-21",
+        "period_rebal_date": "2009-01-02"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "MCD",
+        "entry_date": "2009-01-21",
+        "period_rebal_date": "2009-01-02"
+      },
+      {
+        "slot": 0,
+        "ticker": "MCD",
+        "exit_date": "2009-02-23",
+        "period_rebal_date": "2009-01-02"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "ABT",
+        "entry_date": "2009-02-23",
+        "period_rebal_date": "2009-01-02"
+      },
+      {
+        "slot": 0,
+        "ticker": "ABT",
+        "exit_date": "2009-02-27",
+        "period_rebal_date": "2009-01-02"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "WMT",
+        "entry_date": "2009-02-27",
+        "period_rebal_date": "2009-01-02"
+      },
+      {
+        "slot": 1,
+        "ticker": "BBT",
+        "exit_date": "2009-01-09",
+        "period_rebal_date": "2009-01-02"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "MCD",
+        "entry_date": "2009-01-09",
+        "period_rebal_date": "2009-01-02"
+      },
+      {
+        "slot": 1,
+        "ticker": "MCD",
+        "exit_date": "2009-02-23",
+        "period_rebal_date": "2009-01-02"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "ABT",
+        "entry_date": "2009-02-23",
+        "period_rebal_date": "2009-01-02"
+      },
+      {
+        "slot": 1,
+        "ticker": "ABT",
+        "exit_date": "2009-02-27",
+        "period_rebal_date": "2009-01-02"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "MA",
+        "entry_date": "2009-02-27",
+        "period_rebal_date": "2009-01-02"
+      },
+      {
+        "slot": 1,
+        "ticker": "MA",
+        "exit_date": "2009-06-22",
+        "period_rebal_date": "2009-01-02"
+      },
+      {
+        "slot": 1,
+        "replaced_by": "ESRX",
+        "entry_date": "2009-06-22",
+        "period_rebal_date": "2009-01-02"
+      },
+      {
+        "slot": 2,
+        "ticker": "PSA",
+        "exit_date": "2009-01-09",
+        "period_rebal_date": "2009-01-02"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "MCD",
+        "entry_date": "2009-01-09",
+        "period_rebal_date": "2009-01-02"
+      },
+      {
+        "slot": 2,
+        "ticker": "MCD",
+        "exit_date": "2009-02-23",
+        "period_rebal_date": "2009-01-02"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "ABT",
+        "entry_date": "2009-02-23",
+        "period_rebal_date": "2009-01-02"
+      },
+      {
+        "slot": 2,
+        "ticker": "ABT",
+        "exit_date": "2009-02-27",
+        "period_rebal_date": "2009-01-02"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "MA",
+        "entry_date": "2009-02-27",
+        "period_rebal_date": "2009-01-02"
+      },
+      {
+        "slot": 2,
+        "ticker": "MA",
+        "exit_date": "2009-06-22",
+        "period_rebal_date": "2009-01-02"
+      },
+      {
+        "slot": 2,
+        "replaced_by": "MCD",
+        "entry_date": "2009-06-22",
+        "period_rebal_date": "2009-01-02"
+      },
+      {
+        "slot": 0,
+        "ticker": "AMZN",
+        "exit_date": "2009-09-01",
+        "period_rebal_date": "2009-07-01"
+      },
+      {
+        "slot": 0,
+        "replaced_by": "JPM",
+        "entry_date": "2009-09-01",
+        "period_rebal_date": "2009-07-01"
+      }
+    ]
+  }
+}

@@ -59,7 +59,10 @@ def test_get_series_fetches_and_caches(monkeypatch):
 
 
 def test_get_series_handles_api_failure_gracefully(monkeypatch):
+    """2026-09-13부터 실패 시 core.retry.retry_with_backoff로 재시도를 다 소진한 뒤에야 빈
+    Series를 반환한다 — 테스트가 실제로 몇 초씩 대기하지 않도록 time.sleep을 무력화한다."""
     monkeypatch.setenv("FRED_API_KEY", "fake-key")
+    monkeypatch.setattr("core.retry.time.sleep", lambda _seconds: None)
 
     class _FailingFred:
         def __init__(self, api_key):
@@ -77,6 +80,37 @@ def test_get_series_handles_api_failure_gracefully(monkeypatch):
 
     result = fred_data.get_series("FEDFUNDS", use_cache=False)
     assert result.empty
+
+
+def test_get_series_retries_transient_failure_then_succeeds(monkeypatch):
+    """처음 두 번 실패해도 세 번째 시도에서 성공하면 그 결과를 그대로 반환해야 한다(2026-09-13,
+    Day5 "self-healing data pipeline" 아이디어를 FRED 조회 지점에 적용)."""
+    monkeypatch.setenv("FRED_API_KEY", "fake-key")
+    monkeypatch.setattr("core.retry.time.sleep", lambda _seconds: None)
+    attempts = {"n": 0}
+
+    class _FlakyThenOkFred:
+        def __init__(self, api_key):
+            pass
+
+        def get_series(self, series_id, observation_start=None, observation_end=None):
+            attempts["n"] += 1
+            if attempts["n"] < 3:
+                raise ConnectionError("일시적 네트워크 오류")
+            idx = pd.date_range("2024-01-01", periods=2, freq="ME")
+            return pd.Series([5.0, 5.25], index=idx)
+
+    import sys
+    import types
+
+    fake_module = types.ModuleType("fredapi")
+    fake_module.Fred = _FlakyThenOkFred
+    monkeypatch.setitem(sys.modules, "fredapi", fake_module)
+
+    result = fred_data.get_series("FEDFUNDS", use_cache=False)
+
+    assert attempts["n"] == 3
+    assert list(result) == [5.0, 5.25]
 
 
 def test_get_latest_value(monkeypatch):

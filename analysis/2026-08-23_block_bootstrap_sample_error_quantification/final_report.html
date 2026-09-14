@@ -1,0 +1,312 @@
+<title>블록부트스트랩 표본오차 정량화</title>
+<style>
+
+:root{
+  color-scheme: light;
+  --bg-page:#eef1ee; --surface:#ffffff; --surface-2:#f4f6f3;
+  --ink:#12181a; --ink-2:#495550; --ink-muted:#828d87;
+  --hairline:#d7ddd6; --border:rgba(11,11,11,0.10);
+  --accent:#1f4d3d; --accent-ink:#ffffff; --accent-2:#8a6a1f;
+  --accent-2-soft:#f2e6c8; --accent-soft:#e2ebe6; --chart-surface:#fcfcfb;
+  --blue:#2a78d6; --orange:#eb6834; --aqua:#1baf7a; --red:#e34948;
+  --gridline:#e1e0d9; --axis:#c3c2b7; --delta-pos:#184f95; --delta-neg:#b3261e;
+  --code-bg:#f4f6f3; --shadow: 0 1px 2px rgba(20,30,25,0.04), 0 8px 24px -16px rgba(20,30,25,0.18);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg-page:#0f1210; --surface:#171b16; --surface-2:#1c211b;
+    --ink:#f2f4f0; --ink-2:#c4cbc2; --ink-muted:#8b958a;
+    --hairline:#2c332a; --border:rgba(255,255,255,0.10);
+    --accent:#5aab89; --accent-ink:#0b1310; --accent-2:#d9b45c;
+    --accent-2-soft:#332a13; --accent-soft:#1b2921; --chart-surface:#1a1a19;
+    --blue:#3987e5; --orange:#d95926; --aqua:#199e70; --red:#e66767;
+    --gridline:#2c2c2a; --axis:#3a3f38; --delta-pos:#86b6ef; --delta-neg:#ff8a80;
+    --code-bg:#1c211b; --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -16px rgba(0,0,0,0.5);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg-page:#0f1210; --surface:#171b16; --surface-2:#1c211b;
+  --ink:#f2f4f0; --ink-2:#c4cbc2; --ink-muted:#8b958a;
+  --hairline:#2c332a; --border:rgba(255,255,255,0.10);
+  --accent:#5aab89; --accent-ink:#0b1310; --accent-2:#d9b45c;
+  --accent-2-soft:#332a13; --accent-soft:#1b2921; --chart-surface:#1a1a19;
+  --blue:#3987e5; --orange:#d95926; --aqua:#199e70; --red:#e66767;
+  --gridline:#2c2c2a; --axis:#3a3f38; --delta-pos:#86b6ef; --delta-neg:#ff8a80;
+  --code-bg:#1c211b; --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -16px rgba(0,0,0,0.5);
+}
+*{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{ margin:0; background:var(--bg-page); color:var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif; line-height:1.6; font-size:16px; }
+.serif{ font-family: "Iowan Old Style","Palatino Linotype", Georgia, serif; }
+.mono, .num, td.num, .tk-name, .kpi-value, code {
+  font-family: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+  font-variant-numeric: tabular-nums; }
+a{ color:var(--accent); }
+.wrap{ max-width: 1020px; margin:0 auto; padding: 0 24px 96px; }
+.masthead{ background: var(--accent); color: var(--accent-ink); padding: 56px 24px 40px; }
+.masthead-inner{ max-width:1020px; margin:0 auto; }
+.masthead-eyebrow{ font-size:12.5px; letter-spacing:0.12em; text-transform:uppercase; opacity:0.82;
+  font-family: ui-monospace, "SF Mono", Consolas, monospace; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.masthead-eyebrow .dot{ opacity:0.5; }
+h1.masthead-title{ font-family:"Iowan Old Style","Palatino Linotype", Georgia, serif; font-weight:600;
+  font-size: clamp(28px, 4.2vw, 44px); line-height:1.15; margin: 14px 0 10px; text-wrap: balance; max-width: 32ch; }
+.masthead-sub{ font-size:16.5px; max-width:74ch; opacity:0.92; margin:0 0 22px; }
+.masthead-meta{ display:flex; flex-wrap:wrap; gap: 10px 26px; font-size:13.5px; opacity:0.85;
+  border-top:1px solid rgba(255,255,255,0.22); padding-top:16px; }
+.masthead-meta b{ font-weight:600; }
+.section{ padding: 52px 0 8px; border-top:1px solid var(--hairline); }
+.section:first-of-type{ border-top:none; }
+.section h2{ font-family:"Iowan Old Style","Palatino Linotype", Georgia, serif; font-size: 25px;
+  font-weight:600; margin: 0 0 16px; display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+.sec-no{ font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size:13px; color: var(--accent);
+  border:1px solid var(--accent); border-radius:3px; padding:2px 6px; font-weight:600; letter-spacing:0.02em; }
+.section h3{ font-size:17.5px; margin: 30px 0 10px; font-weight:650; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.section h4{ font-size:15px; margin: 20px 0 8px; font-weight:650; color:var(--ink-2); }
+.lede{ font-size:16.5px; color:var(--ink-2); max-width:76ch; }
+.section p{ max-width:80ch; }
+.section > p, .section > .lede { margin-top: 0; }
+.section li{ max-width:76ch; }
+.callout{ background: var(--surface-2); border:1px solid var(--hairline); border-left: 3px solid var(--accent);
+  border-radius: 6px; padding: 18px 22px; margin: 20px 0 26px; }
+.callout-title{ font-size:11.5px; text-transform:uppercase; letter-spacing:0.08em; color:var(--accent);
+  font-weight:700; margin-bottom:8px; }
+.callout p{ margin:0; max-width:none; }
+.callout p + p{ margin-top:10px; }
+.callout.warn{ border-left-color: var(--delta-neg); }
+.callout.warn .callout-title{ color: var(--delta-neg); }
+.caveat{ font-size:14.5px; color:var(--ink-2); background:var(--surface-2); border-radius:6px;
+  padding:14px 18px; border:1px dashed var(--hairline); margin: 14px 0; }
+.kpi-row{ display:grid; grid-template-columns:repeat(auto-fit, minmax(190px,1fr)); gap:14px; margin: 20px 0 8px; }
+.kpi-tile{ background:var(--surface); border:1px solid var(--hairline); border-radius:8px; padding:16px 18px; box-shadow: var(--shadow); }
+.kpi-label{ font-size:12.5px; color:var(--ink-muted); margin-bottom:6px; }
+.kpi-value{ font-size:24px; font-weight:600; line-height:1.1; }
+.kpi-value.pos{ color:var(--delta-pos); }
+.kpi-value.neg{ color:var(--delta-neg); }
+.kpi-sub{ font-size:12.5px; color:var(--ink-muted); margin-top:4px; }
+.table-wrap{ overflow-x:auto; border:1px solid var(--hairline); border-radius:8px; background:var(--surface); }
+table.data-table{ width:100%; border-collapse:collapse; font-size:13.5px; min-width:720px; }
+table.data-table th{ text-align:right; font-weight:600; font-size:11.5px; color:var(--ink-muted); text-transform:uppercase;
+  letter-spacing:0.03em; padding:10px 12px; border-bottom:1px solid var(--hairline); white-space:nowrap; }
+table.data-table th:first-child, table.data-table td:first-child{ text-align:left; }
+table.data-table td{ padding:8px 12px; border-bottom:1px solid var(--hairline); text-align:right; white-space:nowrap; }
+table.data-table tbody tr:hover{ background:var(--surface-2); }
+table.data-table tbody tr:last-child td{ border-bottom:none; }
+td.tk-cell{ text-align:left !important; }
+td.tk-cell .tk-name{ font-weight:650; margin-right:8px; }
+.strong{ font-weight:700; }
+tr.warn-row{ background: rgba(179,38,30,0.08); }
+footer{ max-width:1020px; margin:40px auto 0; padding: 26px 24px 10px; border-top:1px solid var(--hairline);
+  font-size:12.5px; color:var(--ink-muted); }
+footer p{ max-width:none; }
+.toc{ display:flex; flex-wrap:wrap; gap:8px 18px; margin: 24px 0 4px; padding:16px 20px; background:var(--surface);
+  border:1px solid var(--hairline); border-radius:8px; }
+.toc a{ font-size:13.5px; color:var(--ink-2); text-decoration:none; }
+.toc a:hover{ color:var(--accent); text-decoration:underline; }
+.verdict-badge{ display:inline-block; font-size:12px; font-weight:700; letter-spacing:0.03em;
+  padding:3px 10px; border-radius:20px; text-transform:uppercase; }
+.v-accept{ background: var(--accent-soft); color: var(--accent); border:1px solid var(--accent); }
+.v-reject{ background: rgba(179,38,30,0.10); color: var(--delta-neg); border:1px solid var(--delta-neg); }
+.v-partial{ background: var(--accent-2-soft); color: var(--accent-2); border:1px solid var(--accent-2); }
+.confidence-grade{ display:inline-block; font-size:12px; font-weight:700; padding:2px 9px; border-radius:4px; }
+.grade-A{ background: var(--accent-soft); color:var(--accent); }
+.grade-B{ background: var(--accent-2-soft); color:var(--accent-2); }
+.grade-C{ background: rgba(179,38,30,0.10); color:var(--delta-neg); }
+
+</style>
+
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="masthead-eyebrow">
+      <span>QUANT RESEARCH NOTE</span><span class="dot">·</span><span>16라운드</span><span class="dot">·</span><span>Hypothesis-Driven Study</span>
+    </div>
+    <h1 class="masthead-title">6개 창의 샤프비율, 그 자체는 얼마나 정확한가</h1>
+    <p class="masthead-sub">작업42(H30)는 명시적으로 "여전히 6개 창뿐이다 — 몬테카를로는 이 6개 숫자를
+      어떻게 가중하느냐의 불확실성만 다루지, 이 6개 숫자 자체가 얼마나 정확한가의 불확실성(백테스트
+      표본오차)은 다루지 않는다"는 한계를 남겼다. 이번 라운드는 이동블록부트스트랩으로 그 표본오차를
+      직접 측정하고, H30의 가중치 불확실성과 교차시켜 결합 신뢰구간을 만든다. 결과는 예상보다 훨씬
+      더 중요했다 — <b>표본오차가 가중치 불확실성보다 압도적으로 더 큰 불확실성원이었다.</b></p>
+    <div class="masthead-meta">
+      <span><b>기준일</b> 2026-08-24</span>
+      <span><b>블록부트스트랩</b> 창×구성당 2,000회, 블록길이 10일, 20일, 40일</span>
+      <span><b>결합전파</b> 10,000 draws (디리클레×부트스트랩)</span>
+      <span><b>대상 비교</b> H22 핵심비교: 코어단독 vs 정적보유 새틀라이트(15%)</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <nav class="toc">
+    <a href="#scope">00 문제 제기</a>
+    <a href="#design">01 블록부트스트랩 설계</a>
+    <a href="#ci">02 창별 신뢰구간</a>
+    <a href="#blocksens">03 블록길이 민감도</a>
+    <a href="#propagation">04 가중치×표본오차 결합 전파</a>
+    <a href="#synthesis">05 종합</a>
+    <a href="#limitations">06 한계</a>
+  </nav>
+
+  <section class="section" id="scope">
+    <h2><span class="sec-no">00</span> 문제 제기 — H30이 명시적으로 남긴 한계</h2>
+    <p class="lede">작업42(H30)의 08 한계 절은 이렇게 적었다: <i>"몬테카를로는 '이 6개 숫자를 어떻게
+      가중하느냐'의 불확실성만 다루지, '이 6개 숫자 자체가 얼마나 정확한가'의 불확실성(백테스트
+      표본오차, 생존편향, 거래비용 가정)은 다루지 않는다 — 두 불확실성을 합치면 실제 신뢰구간은
+      여기 보고된 것보다 더 넓을 가능성이 높다."</i></p>
+    <p>H22~H31 전체 트랙D 연구가 의존하는 6개 창의 Sharpe/CAGR 숫자는 전부 "그 역사적 경로 하나"에서
+      계산된 점추정치다. 예컨대 COVID 창은 단 51거래일(~5주)의 실현치일 뿐이다 — 만약 2020년 2~4월의
+      시장이 조금 다르게 흘러갔다면(같은 "COVID형 급락"이라는 성격은 유지하면서) 그 51일의 정확한
+      순서와 크기는 달랐을 것이고, 계산된 Sharpe도 어느 정도 달랐을 것이다. 이 라운드는 그 표본오차를
+      <b>이동블록부트스트랩</b>으로 직접 정량화하고, H30의 디리클레 가중치 불확실성과 결합해 진짜
+      결합 불확실성을 계산한다.</p>
+    <p class="caveat">⚠️ 투자 조언이 아니다. 대상은 H22의 핵심 비교(코어단독 vs 정적보유 새틀라이트
+      15%)로 한정했다. 챔피언의 시장필터 유무 비교(작업안 (b))는 이 라운드 실행 시점에 해당
+      analysis 폴더가 아직 존재하지 않아(병렬로 진행 중인 다른 라운드의 결과물) 포함하지 못했다 —
+      다른 라운드의 미완료 작업을 막지 않기 위해 의도적으로 생략했다.</p>
+  </section>
+
+  <section class="section" id="design">
+    <h2><span class="sec-no">01</span> 블록부트스트랩 설계</h2>
+    <p class="lede">일별 금융수익률은 자기상관과 변동성 군집(GARCH 효과)이 있어, 개별 날짜를
+      i.i.d.로 독립 리샘플하면 실제보다 훨씬 좁은(과신하는) 신뢰구간이 나온다. 이 라운드는
+      <b>순환 이동블록부트스트랩(circular moving block bootstrap)</b>을 쓴다 — 원 시계열에서
+      길이 L일짜리 연속 조각을 복원추출로 이어붙여 원래 길이와 같은 합성 수익률 시계열을 만들고,
+      그 연율화 샤프비율을 기록하는 과정을 창×구성당 2,000회 반복한다.</p>
+    <p>블록길이 L=20일(약 1개월 거래일수 - 일별 금융수익률 부트스트랩에서 흔히 쓰이는 관례적
+      선택으로, 월간 스케일의 변동성 군집을 대략 포착한다)을 중심값으로 채택하고, L=10/40도 함께
+      계산해 결론이 블록길이 선택 자체에 얼마나 민감한지 로버스트니스로 보고한다 — H30이 K=15/30/60
+      세 값으로 사전분포 폭 민감도를 보고한 것과 동일한 정신이다.</p>
+    <p class="kpi-sub">구현: 각 창의 저장된 일별 순수익률(core_alone/case_a_static_satellite,
+      기존 저장 CSV 재사용 — GFC는 H12, 2022/전체기간은 H16 저장분, 2015-16/2018/COVID 3개 창은
+      캐시가 없어 champion_strategy.run_champion + h11.build_satellite_returns_period로 신규
+      백테스트해 복원)에 대해 <code>numpy.random.default_rng(20260823)</code>로 블록 시작점을
+      매 리샘플마다 균등추출한다.</p>
+  </section>
+
+  <section class="section" id="ci">
+    <h2><span class="sec-no">02</span> 창별 부트스트랩 신뢰구간 (블록길이 20일)</h2>
+    <p class="lede">각 창의 관측 표본 수(n_obs, 거래일)가 작을수록 "비독립 블록" 개수가 적어져
+      신뢰구간이 급격히 넓어진다. COVID(51일)와 2018(92일)은 특히 주의 — 빨간 배경 행은 n_obs &lt;
+      100인 초단기 창이다.</p>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>창</th><th>구성</th><th>n_obs(거래일)</th><th>점추정 Sharpe</th>
+          <th>90% 부트스트랩 CI (L=20)</th><th>≈비독립 블록수</th></tr></thead>
+        <tbody><tr class=""><td class="tk-cell"><span class="tk-name">전체기간 2019-2026</span></td><td class="tk-cell">코어 단독</td><td class="num">1764</td><td class="num">+1.033</td><td class="num">[+0.518, +1.575]</td><td class="num">88.2</td></tr><tr class=""><td class="tk-cell"><span class="tk-name">전체기간 2019-2026</span></td><td class="tk-cell">정적보유 새틀라이트(15%)</td><td class="num">1764</td><td class="num">+1.121</td><td class="num">[+0.607, +1.670]</td><td class="num">88.2</td></tr><tr class=""><td class="tk-cell"><span class="tk-name">2008 GFC</span></td><td class="tk-cell">코어 단독</td><td class="num">441</td><td class="num">+0.286</td><td class="num">[-0.947, +1.496]</td><td class="num">22.1</td></tr><tr class=""><td class="tk-cell"><span class="tk-name">2008 GFC</span></td><td class="tk-cell">정적보유 새틀라이트(15%)</td><td class="num">441</td><td class="num">-0.210</td><td class="num">[-1.304, +0.962]</td><td class="num">22.1</td></tr><tr class="warn-row"><td class="tk-cell"><span class="tk-name">COVID 2020 (~5주)</span></td><td class="tk-cell">코어 단독</td><td class="num">51</td><td class="num">+0.127</td><td class="num">[-2.954, +4.612]</td><td class="num">2.5</td></tr><tr class="warn-row"><td class="tk-cell"><span class="tk-name">COVID 2020 (~5주)</span></td><td class="tk-cell">정적보유 새틀라이트(15%)</td><td class="num">51</td><td class="num">+0.042</td><td class="num">[-3.001, +4.649]</td><td class="num">2.5</td></tr><tr class=""><td class="tk-cell"><span class="tk-name">2022 완만약세장</span></td><td class="tk-cell">코어 단독</td><td class="num">251</td><td class="num">+0.239</td><td class="num">[-1.101, +1.610]</td><td class="num">12.6</td></tr><tr class=""><td class="tk-cell"><span class="tk-name">2022 완만약세장</span></td><td class="tk-cell">정적보유 새틀라이트(15%)</td><td class="num">251</td><td class="num">+0.201</td><td class="num">[-1.164, +1.638]</td><td class="num">12.6</td></tr><tr class="warn-row"><td class="tk-cell"><span class="tk-name">2018 4분기 급락</span></td><td class="tk-cell">코어 단독</td><td class="num">92</td><td class="num">-1.882</td><td class="num">[-3.365, -0.113]</td><td class="num">4.6</td></tr><tr class="warn-row"><td class="tk-cell"><span class="tk-name">2018 4분기 급락</span></td><td class="tk-cell">정적보유 새틀라이트(15%)</td><td class="num">92</td><td class="num">-1.657</td><td class="num">[-3.067, +0.174]</td><td class="num">4.6</td></tr><tr class=""><td class="tk-cell"><span class="tk-name">2015-16 조정</span></td><td class="tk-cell">코어 단독</td><td class="num">135</td><td class="num">-1.890</td><td class="num">[-3.096, -0.629]</td><td class="num">6.8</td></tr><tr class=""><td class="tk-cell"><span class="tk-name">2015-16 조정</span></td><td class="tk-cell">정적보유 새틀라이트(15%)</td><td class="num">135</td><td class="num">-1.691</td><td class="num">[-2.955, -0.230]</td><td class="num">6.8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="callout warn">
+      <div class="callout-title">COVID 신뢰구간을 액면 그대로 믿지 말 것</div>
+      <p>COVID 창은 51거래일에 블록길이 20일이면 비독립 블록이 겨우 ~2.5개뿐이다. 코어단독의 90%
+        CI는 [-2.95,
+        +4.61]로
+        점추정치(+0.13)를 중심으로
+        플러스/마이너스 방향 모두 극단적으로 넓게 벌어진다 — "COVID형 급락에서 코어단독이 우수했다"는
+        단일 관찰은 통계적으로 사실상 거의 아무것도 확정하지 않는다고 보는 게 정직하다.</p>
+    </div>
+  </section>
+
+  <section class="section" id="blocksens">
+    <h2><span class="sec-no">03</span> 블록길이 민감도 — COVID vs 전체기간 대조</h2>
+    <p class="lede">가장 짧은 창(COVID)과 가장 긴 창(전체기간)에서 블록길이 10/20/40일이 신뢰구간
+      폭에 미치는 영향을 나란히 놓는다. 짧은 창일수록 블록길이를 늘릴수록(=비독립 블록이 더 적어질수록)
+      부트스트랩 표준편차가 인위적으로 작아지는(과소추정) 패턴이 뚜렷하다 — 그 자체가 "이 창은
+      신뢰구간을 신뢰하기 어렵다"는 신호다.</p>
+    <h3>COVID 2020 (n_obs=51)</h3>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>블록길이</th><th>구성</th><th>부트스트랩 표준편차</th><th>90% CI</th></tr></thead>
+        <tbody><tr><td class="tk-cell">10일</td><td class="tk-cell">코어 단독</td><td class="num">2.156</td><td class="num">[-3.067, +3.971]</td></tr><tr><td class="tk-cell">10일</td><td class="tk-cell">정적보유 새틀라이트(15%)</td><td class="num">2.007</td><td class="num">[-2.902, +3.783]</td></tr><tr><td class="tk-cell">20일</td><td class="tk-cell">코어 단독</td><td class="num">2.247</td><td class="num">[-2.954, +4.612]</td></tr><tr><td class="tk-cell">20일</td><td class="tk-cell">정적보유 새틀라이트(15%)</td><td class="num">2.213</td><td class="num">[-3.001, +4.649]</td></tr><tr><td class="tk-cell">40일</td><td class="tk-cell">코어 단독</td><td class="num">1.348</td><td class="num">[-1.982, +2.471]</td></tr><tr><td class="tk-cell">40일</td><td class="tk-cell">정적보유 새틀라이트(15%)</td><td class="num">1.297</td><td class="num">[-1.967, +2.401]</td></tr></tbody>
+      </table>
+    </div>
+    <h3>전체기간 2019-2026 (n_obs=1764)</h3>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>블록길이</th><th>구성</th><th>부트스트랩 표준편차</th><th>90% CI</th></tr></thead>
+        <tbody><tr><td class="tk-cell">10일</td><td class="tk-cell">코어 단독</td><td class="num">0.346</td><td class="num">[+0.453, +1.593]</td></tr><tr><td class="tk-cell">10일</td><td class="tk-cell">정적보유 새틀라이트(15%)</td><td class="num">0.340</td><td class="num">[+0.562, +1.681]</td></tr><tr><td class="tk-cell">20일</td><td class="tk-cell">코어 단독</td><td class="num">0.321</td><td class="num">[+0.518, +1.575]</td></tr><tr><td class="tk-cell">20일</td><td class="tk-cell">정적보유 새틀라이트(15%)</td><td class="num">0.326</td><td class="num">[+0.607, +1.670]</td></tr><tr><td class="tk-cell">40일</td><td class="tk-cell">코어 단독</td><td class="num">0.303</td><td class="num">[+0.524, +1.518]</td></tr><tr><td class="tk-cell">40일</td><td class="tk-cell">정적보유 새틀라이트(15%)</td><td class="num">0.300</td><td class="num">[+0.639, +1.606]</td></tr></tbody>
+      </table>
+    </div>
+    <p>전체기간은 블록길이를 10→40일로 늘려도 표준편차가 상대적으로 안정적(1764거래일 기준 비독립
+      블록이 최소 44개는 남음)이지만, COVID는 L=40에서 표준편차가 L=10 대비 뚜렷이 줄어든다(비독립
+      블록이 ~1.3개로 줄기 때문) — 결론이 "COVID의 참 불확실성이 작다"가 아니라 "COVID는 애초에
+      블록부트스트랩으로 안정적인 추정이 어려운 표본"이라는 뜻이다.</p>
+  </section>
+
+  <section class="section" id="propagation">
+    <h2><span class="sec-no">04</span> 가중치×표본오차 결합 전파 — H30과 직접 비교</h2>
+    <p class="lede">H22의 핵심 결론("정적보유 새틀라이트가 코어단독보다 낫다")에 대해 세 가지
+      불확실성 시나리오로 코어단독 대비 격차(gap = 정적보유 E[Sharpe] − 코어단독 E[Sharpe])의
+      기댓값 분포를 만들었다. 10,000 draws, 디리클레 K=30(H30 중심 시나리오와
+      동일).</p>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>불확실성원</th><th>정적보유 승률</th><th>평균 격차</th><th>90% CI(격차)</th>
+          <th>정적보유가 여전히 앞서는 draw 비율</th></tr></thead>
+        <tbody>
+          <tr><td class="tk-cell"><span class="tk-name">가중치만 (H30 방식 재현)</span></td><td class="num">99.7%</td><td class="num">+0.0915</td><td class="num">[+0.0477, +0.1259]</td><td class="num">99.7%</td></tr>
+          <tr><td class="tk-cell"><span class="tk-name">표본오차만 (가중치 고정, 창별 부트스트랩만)</span></td><td class="num">58.3%</td><td class="num">+0.0884</td><td class="num">[-0.5820, +0.7707]</td><td class="num">58.3%</td></tr>
+          <tr><td class="tk-cell"><span class="tk-name">결합 (가중치 + 표본오차 동시)</span></td><td class="num">57.9%</td><td class="num">+0.0944</td><td class="num">[-0.6418, +0.8554]</td><td class="num">57.9%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout warn">
+      <div class="callout-title">표본오차가 가중치 불확실성을 압도한다 — H30의 함의를 뒤집는 결과</div>
+      <p>가중치만 흔들면(H30 방식) 정적보유의 승률은 99.7%로
+        거의 확정적이다. 하지만 창별 Sharpe 자체의 표본오차만 흔기면(가중치는 고정) 승률이
+        58.3%까지 떨어진다 — 사실상 동전던지기에
+        가깝다. 결합(둘 다 흔들기)도 57.9%로 표본오차만
+        흔든 경우와 거의 같다. 즉 <b>H30이 "매우 강건하다"고 결론 낸 H22의 핵심 비교는, 표본오차까지
+        고려하면 훨씬 덜 확실하다</b> — H30 혼자로는 결코 드러나지 않았을 사실이다.</p>
+    </div>
+  </section>
+
+  <section class="section" id="synthesis">
+    <h2><span class="sec-no">05</span> 종합 — 두 불확실성원 중 무엇이 지배적인가</h2>
+    <p class="lede">이번 라운드의 핵심 방법론적 질문("표본오차를 더하면 신뢰구간이 의미 있게
+      넓어지는가, 아니면 가중치 불확실성이 이미 지배적이어서 표본오차는 2차적인가")에 대한 답은
+      명확하다: <b>표본오차가 압도적으로 더 큰 불확실성원이다.</b> 격차의 90% CI 폭을 비교하면
+      가중치만 흔들 때는 [+0.048,
+      +0.126](폭 0.078) 인데,
+      표본오차를 더하면 [-0.642,
+      +0.855](폭
+      1.497)로
+      약 19.2배
+      넓어진다.</p>
+    <p>정책적 함의: 정적보유 새틀라이트를 채택한 원래 결정(작업33~39)을 당장 뒤집을 만큼 강한 반증은
+      아니다 — 평균 격차는 여전히 양수(정적보유 우위)이고, 결합 시나리오에서도 정적보유가 여전히
+      57.9%의 draw에서 코어단독을 앞선다.
+      다만 "정적보유가 이긴다"를 <b>거의 확정적 사실</b>처럼 서술했던 H22~H30의 어조는 지나치게
+      강했다는 게 이 라운드의 정직한 결론이다 — 실제로는 "약하게 우위인 편이지만 표본오차를 감안하면
+      확실한 승자라고 말하기는 어렵다"는 게 더 정확한 신뢰도 등급이다.</p>
+  </section>
+
+  <section class="section" id="limitations">
+    <h2><span class="sec-no">06</span> 한계</h2>
+    <ul>
+      <li>블록부트스트랩도 그 자체로 가정이다 — 원 역사적 창 자체가 "대표성 있는 하나의 실현"이라는
+        전제 위에 서 있고, 실제로 일어난 적 없는 "다른 위기"를 만들어내지 못한다. COVID처럼 극히
+        짧은 창(51거래일)은 L=20 블록길이에서도 비독립 블록이 2~3개뿐이라, 신뢰구간 자체가 불안정할
+        수 있다는 점을 02절에서 이미 명시했다.</li>
+      <li>이번 라운드는 H22의 핵심 비교(코어단독 vs 정적보유)에만 집중했다 — H26(시스템 vs SPY),
+        H27(룩백기간), H28/H29(변동성타겟팅/리밸런싱 주기) 등 H30이 함께 다뤘던 다른 4개 가설에는
+        같은 결합전파를 적용하지 않았다. "표본오차가 지배적"이라는 결론이 그 가설들에도 그대로
+        적용되는지는 검증하지 않았다(방법론은 동일하게 재사용 가능하지만 이번 라운드 범위 밖).</li>
+      <li>챔피언의 시장필터 유무 비교(작업안 (b))는 병렬로 진행 중인 다른 라운드의 결과물이 이번
+        라운드 실행 시점에 아직 존재하지 않아 포함하지 못했다.</li>
+      <li>부트스트랩은 각 창 내부의 시간의존 구조(자기상관/변동성군집)만 반영한다 — 창 사이의
+        상관(예: 2008과 2022가 실제로는 완전 독립이 아닐 가능성)은 모델링하지 않았고, 이는 H30이
+        이미 지적한 디리클레의 "카테고리 간 독립성 가정" 한계와 동일한 종류의 단순화다.</li>
+      <li>거래비용/생존편향 등 H30이 함께 언급했던 다른 불확실성원(백테스트 자체의 구조적 가정)은
+        이번 라운드에서도 다루지 않았다 — 표본오차(sampling)만 다뤘을 뿐, 모형오차(specification
+        error)는 별개의 미해결 과제로 남는다.</li>
+    </ul>
+  </section>
+
+</div>
+
+<footer>
+  <p>QUANT RESEARCH · 16라운드 · H33 블록부트스트랩 표본오차 정량화 · 기준일 2026-08-24 ·
+    이 문서는 투자 조언이 아니며 저자 개인의 연구 기록입니다.</p>
+</footer>

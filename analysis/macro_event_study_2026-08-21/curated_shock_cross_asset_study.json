@@ -1,0 +1,236 @@
+{
+  "TLT": {
+    "label": "채권(TLT)",
+    "skipped_pre_listing": [
+      "2001-09-17"
+    ],
+    "n_testable": 9,
+    "overall": {
+      "n": 9,
+      "fwd_5d_mean_pct": -1.542,
+      "fwd_5d_win_rate_pct": 44.4,
+      "fwd_20d_mean_pct": -0.074,
+      "fwd_20d_win_rate_pct": 44.4,
+      "fwd_60d_mean_pct": 0.686,
+      "fwd_60d_win_rate_pct": 33.3
+    },
+    "systemic": {
+      "n": 2,
+      "fwd_5d_mean_pct": -1.475,
+      "fwd_5d_win_rate_pct": 50.0,
+      "fwd_20d_mean_pct": -1.12,
+      "fwd_20d_win_rate_pct": 50.0,
+      "fwd_60d_mean_pct": 5.835,
+      "fwd_60d_win_rate_pct": 50.0
+    },
+    "nonsystemic": {
+      "n": 7,
+      "fwd_5d_mean_pct": -1.562,
+      "fwd_5d_win_rate_pct": 42.9,
+      "fwd_20d_mean_pct": 0.224,
+      "fwd_20d_win_rate_pct": 42.9,
+      "fwd_60d_mean_pct": -0.785,
+      "fwd_60d_win_rate_pct": 28.6
+    },
+    "cases": [
+      {
+        "date": "2011-08-08",
+        "label": "S&P, 미국 국가신용등급 첫 강등(AAA→AA+)",
+        "category": "신용등급",
+        "systemic": false,
+        "fwd_5d_pct": -0.995,
+        "fwd_20d_pct": 7.703,
+        "fwd_60d_pct": 13.169
+      },
+      {
+        "date": "2016-11-09",
+        "label": "트럼프 1기 당선 확정",
+        "category": "선거",
+        "systemic": false,
+        "fwd_5d_pct": -1.252,
+        "fwd_20d_pct": -4.487,
+        "fwd_60d_pct": -3.187
+      },
+      {
+        "date": "2018-12-24",
+        "label": "역대 최장 연방정부 셧다운 중 크리스마스이브 급락",
+        "category": "정책/정치",
+        "systemic": false,
+        "fwd_5d_pct": 0.684,
+        "fwd_20d_pct": -0.173,
+        "fwd_60d_pct": 2.918
+      },
+      {
+        "date": "2020-03-11",
+        "label": "WHO, 코로나19 팬데믹 공식 선언",
+        "category": "팬데믹",
+        "systemic": false,
+        "fwd_5d_pct": -7.781,
+        "fwd_20d_pct": 5.469,
+        "fwd_60d_pct": -0.268
+      },
+      {
+        "date": "2022-02-24",
+        "label": "러시아, 우크라이나 전면 침공",
+        "category": "지정학",
+        "systemic": false,
+        "fwd_5d_pct": 0.797,
+        "fwd_20d_pct": -4.606,
+        "fwd_60d_pct": -13.351
+      },
+      {
+        "date": "2023-03-10",
+        "label": "실리콘밸리은행(SVB) 파산·당국 인수",
+        "category": "금융권 부실",
+        "systemic": true,
+        "fwd_5d_pct": 1.193,
+        "fwd_20d_pct": 1.127,
+        "fwd_60d_pct": -3.021
+      },
+      {
+        "date": "2025-04-03",
+        "label": "'해방의 날' 관세 발표 다음날 반응",
+        "category": "무역정책",
+        "systemic": false,
+        "fwd_5d_pct": -5.912,
+        "fwd_20d_pct": -4.486,
+        "fwd_60d_pct": -4.039
+      },
+      {
+        "date": "2008-09-15",
+        "label": "리먼브라더스 파산 신청",
+        "category": "금융권 부실",
+        "systemic": true,
+        "fwd_5d_pct": -4.142,
+        "fwd_20d_pct": -3.367,
+        "fwd_60d_pct": 14.691
+      },
+      {
+        "date": "2016-06-24",
+        "label": "브렉시트(영국 EU 탈퇴) 국민투표 결과",
+        "category": "선거",
+        "systemic": false,
+        "fwd_5d_pct": 3.528,
+        "fwd_20d_pct": 2.151,
+        "fwd_60d_pct": -0.736
+      }
+    ]
+  },
+  "GLD": {
+    "label": "금(GLD)",
+    "skipped_pre_listing": [
+      "2001-09-17"
+    ],
+    "n_testable": 9,
+    "overall": {
+      "n": 9,
+      "fwd_5d_mean_pct": 2.009,
+      "fwd_5d_win_rate_pct": 77.8,
+      "fwd_20d_mean_pct": 2.418,
+      "fwd_20d_win_rate_pct": 77.8,
+      "fwd_60d_mean_pct": 1.118,
+      "fwd_60d_win_rate_pct": 55.6
+    },
+    "systemic": {
+      "n": 2,
+      "fwd_5d_mean_pct": 10.338,
+      "fwd_5d_win_rate_pct": 100.0,
+      "fwd_20d_mean_pct": 6.088,
+      "fwd_20d_win_rate_pct": 100.0,
+      "fwd_60d_mean_pct": 1.642,
+      "fwd_60d_win_rate_pct": 50.0
+    },
+    "nonsystemic": {
+      "n": 7,
+      "fwd_5d_mean_pct": -0.371,
+      "fwd_5d_win_rate_pct": 71.4,
+      "fwd_20d_mean_pct": 1.369,
+      "fwd_20d_win_rate_pct": 71.4,
+      "fwd_60d_mean_pct": 0.968,
+      "fwd_60d_win_rate_pct": 57.1
+    },
+    "cases": [
+      {
+        "date": "2011-08-08",
+        "label": "S&P, 미국 국가신용등급 첫 강등(AAA→AA+)",
+        "category": "신용등급",
+        "systemic": false,
+        "fwd_5d_pct": 2.8,
+        "fwd_20d_pct": 9.442,
+        "fwd_60d_pct": 0.156
+      },
+      {
+        "date": "2016-11-09",
+        "label": "트럼프 1기 당선 확정",
+        "category": "선거",
+        "systemic": false,
+        "fwd_5d_pct": -3.94,
+        "fwd_20d_pct": -8.218,
+        "fwd_60d_pct": -3.373
+      },
+      {
+        "date": "2018-12-24",
+        "label": "역대 최장 연방정부 셧다운 중 크리스마스이브 급락",
+        "category": "정책/정치",
+        "systemic": false,
+        "fwd_5d_pct": 1.091,
+        "fwd_20d_pct": 0.892,
+        "fwd_60d_pct": 3.291
+      },
+      {
+        "date": "2020-03-11",
+        "label": "WHO, 코로나19 팬데믹 공식 선언",
+        "category": "팬데믹",
+        "systemic": false,
+        "fwd_5d_pct": -8.595,
+        "fwd_20d_pct": 0.468,
+        "fwd_60d_pct": 2.651
+      },
+      {
+        "date": "2022-02-24",
+        "label": "러시아, 우크라이나 전면 침공",
+        "category": "지정학",
+        "systemic": false,
+        "fwd_5d_pct": 2.066,
+        "fwd_20d_pct": 3.382,
+        "fwd_60d_pct": -2.885
+      },
+      {
+        "date": "2023-03-10",
+        "label": "실리콘밸리은행(SVB) 파산·당국 인수",
+        "category": "금융권 부실",
+        "systemic": true,
+        "fwd_5d_pct": 5.694,
+        "fwd_20d_pct": 6.465,
+        "fwd_60d_pct": 4.871
+      },
+      {
+        "date": "2025-04-03",
+        "label": "'해방의 날' 관세 발표 다음날 반응",
+        "category": "무역정책",
+        "systemic": false,
+        "fwd_5d_pct": 2.07,
+        "fwd_20d_pct": 4.036,
+        "fwd_60d_pct": 7.377
+      },
+      {
+        "date": "2008-09-15",
+        "label": "리먼브라더스 파산 신청",
+        "category": "금융권 부실",
+        "systemic": true,
+        "fwd_5d_pct": 14.982,
+        "fwd_20d_pct": 5.712,
+        "fwd_60d_pct": -1.586
+      },
+      {
+        "date": "2016-06-24",
+        "label": "브렉시트(영국 EU 탈퇴) 국민투표 결과",
+        "category": "선거",
+        "systemic": false,
+        "fwd_5d_pct": 1.913,
+        "fwd_20d_pct": -0.421,
+        "fwd_60d_pct": -0.444
+      }
+    ]
+  }
+}

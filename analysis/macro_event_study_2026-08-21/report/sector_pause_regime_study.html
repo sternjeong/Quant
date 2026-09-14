@@ -1,0 +1,255 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found]){display:none!important}</style></head><body>
+<title>동결 국면의 섹터 성적표</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #eef1ee; --surface: #ffffff; --surface-2: #e6eae5;
+    --ink: #17211d; --ink-muted: #57635c; --ink-faint: #8b968f; --line: #d9dfd8;
+    --hike: #a8461f; --hike-soft: #f4e3da; --cut: #1f6e79; --cut-soft: #dcedee; --gold: #8a6d1f;
+    --shadow: 0 1px 2px rgba(23,33,29,.06), 0 8px 24px -12px rgba(23,33,29,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+      --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+      --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+      --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+    --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+    --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+    --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Public Sans", -apple-system, "Noto Sans KR", sans-serif;
+    font-size: 16px; line-height: 1.65;
+  }
+  ::selection { background: var(--gold); color: #1a1408; }
+  a { color: var(--cut); }
+  .page { max-width: 900px; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 1rem;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 500;
+    font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.08; letter-spacing: -.01em;
+    margin: 0 0 1rem; text-wrap: balance;
+  }
+  .dek { font-size: 1.15rem; color: var(--ink-muted); max-width: 62ch; margin: 0 0 1.75rem; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: .4rem 1.6rem;
+    font-family: "IBM Plex Mono", monospace; font-size: .82rem; color: var(--ink-muted);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: .85rem 0;
+  }
+  .meta-row b { color: var(--ink); font-weight: 600; }
+  section { margin: 3.2rem 0; }
+  section > h2 {
+    font-family: "Fraunces", serif; font-weight: 500; font-size: 1.6rem;
+    letter-spacing: -.005em; margin: 0 0 .3rem; text-wrap: balance;
+  }
+  section > .lede { color: var(--ink-muted); max-width: 66ch; margin: 0 0 1.4rem; }
+  p { max-width: 68ch; }
+  .note {
+    background: var(--surface-2); border-left: 3px solid var(--gold); border-radius: 4px;
+    padding: .9rem 1.1rem; font-size: .93rem; color: var(--ink-muted); max-width: 68ch; margin: 1.1rem 0;
+  }
+  .note b { color: var(--ink); }
+  .callout {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.2rem 1.4rem; box-shadow: var(--shadow); margin: 1.4rem 0;
+  }
+  .table-wrap { overflow-x: auto; margin: 1.2rem 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 620px; font-size: .9rem; }
+  caption { text-align: left; font-size: .82rem; color: var(--ink-faint); padding-bottom: .5rem; }
+  th, td { padding: .6rem .75rem; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; font-family: "IBM Plex Mono", monospace; }
+  th:first-child, td:first-child { text-align: left; font-family: "Public Sans", sans-serif; }
+  thead th { font-family: "Public Sans", sans-serif; font-weight: 600; font-size: .76rem; letter-spacing: .02em; color: var(--ink-muted); text-transform: uppercase; border-bottom: 1px solid var(--ink-faint); }
+  tr.row-cool td:first-child { border-left: 3px solid var(--cut); padding-left: .6rem; }
+  tr.row-hot td:first-child { border-left: 3px solid var(--hike); padding-left: .6rem; }
+  tbody tr:hover { background: var(--surface-2); }
+  td.pos { color: var(--cut); }
+  td.neg { color: var(--hike); }
+  ul.findings { padding-left: 1.2rem; max-width: 68ch; }
+  ul.findings li { margin-bottom: .9rem; }
+  ul.findings b { color: var(--ink); }
+  .hyp-list { display: flex; flex-direction: column; gap: 1rem; margin: 1.2rem 0; }
+  .hyp {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.1rem 1.3rem; box-shadow: var(--shadow);
+  }
+  .hyp .tag {
+    display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: .72rem;
+    letter-spacing: .06em; padding: .18rem .55rem; border-radius: 999px; margin-bottom: .55rem;
+    background: var(--surface-2); color: var(--ink-muted);
+  }
+  .verdict {
+    font-family: "IBM Plex Mono", monospace; font-size: .78rem; letter-spacing: .04em;
+    padding: .18rem .6rem; border-radius: 999px; margin-left: .5rem;
+  }
+  .verdict.confirmed { background: var(--cut-soft); color: var(--cut); }
+  .verdict.disconfirmed { background: var(--hike-soft); color: var(--hike); }
+  .verdict.mixed { background: var(--surface-2); color: var(--gold); }
+  .footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--line); font-size: .82rem; color: var(--ink-faint); }
+</style>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">MACRO EVENT STUDY · 트랙 A × 트랙 E 크로스오버 · 동결 국면 × 섹터 · 2005&ndash;2026</div>
+    <h1>동결 국면의 섹터 성적표</h1>
+    <p class="dek">연준이 금리를 오래(180일 이상) 그대로 두는 "장기 동결 국면"은 S&amp;P500
+    전체에 유리하다는 게 이미 확인됐다(동결 평균 연율화 +14.75% vs 무조건부 +8.73%). 그런데
+    이 프로젝트에서 인상·인하 때마다 반복해서 나온 패턴 &mdash; "전체가 좋아 보여도 섹터별로
+    쪼개면 크게 갈린다" &mdash; 이 동결 국면에도 똑같이 적용될까? 9개 섹터ETF로 처음 확인한다.</p>
+    <div class="meta-row">
+      <span>장기 동결 구간 <b>18건</b> 중 2005년 이후 시작 <b>9건</b> 사용</span>
+      <span>섹터 <b>9개</b>(오리지널 SPDR) · 비교 구간 <b>2005 ~ 2026</b></span>
+      <span>데이터 <b>FRED(DFEDTAR 계열), Yahoo Finance(섹터 SPDR ETF)</b></span>
+    </div>
+  </header>
+
+  <section>
+    <h2>사전등록 가설</h2>
+    <p class="lede">결과를 계산하기 전에 아래 세 가지를 먼저 적어두고 시작했다.</p>
+    <div class="hyp-list">
+      <div class="hyp">
+        <span class="tag">H1</span>
+        <p style="margin:0 0 .4rem">금융(XLF)은 인하 국면에 가장 크게 다쳤다(<code>cross_asset_sector_fomc.py</code>
+        기존 수치: 인상 후 +60일 +0.41%/승률56.2%, 인하 후 &minus;6.66%/승률42.9% &mdash; 9개
+        섹터 중 최악). "동결 = 마진압박도 위험도 없는 가장 편안한 국면"이라면, 금융의 동결
+        구간 반응이 자기 자신의 인상·인하 반응보다 확연히 나아야 한다.</p>
+      </div>
+      <div class="hyp">
+        <span class="tag">H2</span>
+        <p style="margin:0 0 .4rem">9개 섹터를 동결 구간 성적으로 순위 매기면, 그 순위가 인상
+        국면 순위(동결은 흔히 "인상 사이클이 끝났다"는 판단 뒤에 옴)와 인하 국면 순위(동결은
+        때로 인하를 앞둠) 중 어느 쪽과 더 비슷한지 확인한다. 방향은 미리 정하지 않는다.</p>
+      </div>
+      <div class="hyp">
+        <span class="tag">H3 · 탐색적</span>
+        <p style="margin:0 0 .4rem">"동결 구간 성적 &minus; 무조건부(전체 기간) 성적" 격차가
+        가장 큰 섹터, 즉 인상/인하 축보다 "동결이냐 아니냐" 축에 더 크게 좌우되는 섹터가
+        어디인지 찾는다.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>9개 섹터, 동결 국면 성적표</h2>
+    <p class="lede">18개 동결 구간 중 섹터ETF 데이터가 있는 2005년 이후 시작 구간은 9건
+    (2006&ndash;07 · 2008&ndash;15 제로금리기 · 2015&ndash;16 · 2017 · 2018&ndash;19 ·
+    2020&ndash;22 · 2023&ndash;24 · 2024&ndash;25 · 2025&ndash;현재, 마지막은 아직 진행중)
+    &mdash; 각 섹터의 동결 구간 연율화 수익률을 9건 평균 낸 값이다.</p>
+    <div class="table-wrap">
+      <table>
+        <caption>동결 구간 평균 연율화 수익률(%, n=9) · 무조건부(2005~2026 전체) 연율화 · 기존 인상/인하 반응(+60거래일) · 동결 성적순 정렬</caption>
+        <thead>
+          <tr><th>섹터</th><th>동결 평균(연율화)</th><th>무조건부(전체)</th><th>격차</th><th>인상 반응(+60일)</th><th>인하 반응(+60일)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>기술(XLK)</td><td class="pos">+29.96%</td><td>+14.17%</td><td class="pos">+15.79%p</td><td class="pos">+2.91% (68.8%)</td><td class="pos">+1.31% (52.4%)</td></tr>
+          <tr><td>에너지(XLE)</td><td class="pos">+23.63%</td><td>+6.15%</td><td class="pos">+17.48%p</td><td class="pos">+2.12% (50.0%)</td><td class="pos">+4.42% (47.6%)</td></tr>
+          <tr><td>산업재(XLI)</td><td class="pos">+21.75%</td><td>+8.56%</td><td class="pos">+13.19%p</td><td class="pos">+1.24% (59.4%)</td><td class="neg">&minus;0.94% (52.4%)</td></tr>
+          <tr><td>소재(XLB)</td><td class="pos">+20.60%</td><td>+6.06%</td><td class="pos">+14.54%p</td><td class="pos">+0.36% (53.1%)</td><td class="pos">+1.43% (52.4%)</td></tr>
+          <tr class="row-hot"><td>금융(XLF)</td><td class="pos"><b>+20.49%</b></td><td>+3.98%</td><td class="pos">+16.51%p</td><td class="pos">+0.41% (56.2%)</td><td class="neg"><b>&minus;6.66% (42.9%)</b></td></tr>
+          <tr><td>임의소비재(XLY)</td><td class="pos">+17.16%</td><td>+9.24%</td><td class="pos">+7.91%p</td><td class="pos">+1.04% (56.2%)</td><td class="neg">&minus;0.07% (57.1%)</td></tr>
+          <tr><td>헬스케어(XLV)</td><td class="pos">+13.22%</td><td>+8.54%</td><td class="pos">+4.67%p</td><td class="pos">+1.25% (71.9%)</td><td class="pos">+1.04% (52.4%)</td></tr>
+          <tr><td>유틸리티(XLU)</td><td class="pos">+12.30%</td><td>+5.52%</td><td class="pos">+6.78%p</td><td class="pos">+1.40% (56.2%)</td><td class="pos">+0.71% (57.1%)</td></tr>
+          <tr><td>필수소비재(XLP)</td><td class="pos">+10.16%</td><td>+6.30%</td><td class="pos">+3.86%p</td><td class="pos">+0.47% (59.4%)</td><td class="pos">+0.77% (47.6%)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>먼저 눈에 띄는 건 <b>9개 섹터 전부 동결 구간 평균이 무조건부 평균보다 높았다</b>는
+    점 &mdash; S&amp;P500 전체 스터디의 "동결=우호적" 결론이 개별 섹터 수준에서도 예외 없이
+    재현된다. 다만 그 폭은 3.9%p(필수소비재)부터 17.5%p(에너지)까지 크게 갈린다.</p>
+  </section>
+
+  <section>
+    <h2>검증 결과</h2>
+
+    <div class="callout">
+      <span class="tag">H1</span><span class="verdict confirmed">CONFIRMED</span>
+      <p>금융(XLF)의 동결 구간 평균 연율화 수익률은 <b>+20.49%</b>로 9개 섹터 중 5위(중위권)다.
+      기존에 확인된 자기 자신의 인상 반응(+0.41%, 거의 평평)이나 인하 반응(&minus;6.66%,
+      9개 섹터 중 최악)과 비교하면 극적인 차이 &mdash; 인하 국면에서 가장 크게 다쳤던 섹터가
+      동결 국면에서는 오히려 무조건부 평균(+3.98%)의 5배가 넘는 성적을 냈다. "동결이 금융의
+      가장 편안한 국면"이라는 예측이 뚜렷하게 확인됐다. 다만 이 프로젝트가 반복해서 지적했듯
+      숫자 자체(연율화 vs +60거래일 누적)의 단위가 달라 직접 뺄셈 비교는 아니라는 점, 그리고
+      기술·에너지·산업재도 비슷하거나 더 큰 격차를 보였다는 점(아래 H3)에서 "동결이 유독
+      금융에게만 특별한 국면"은 아니라는 걸 함께 봐야 한다.</p>
+    </div>
+
+    <div class="callout">
+      <span class="tag">H2</span><span class="verdict mixed">MIXED</span>
+      <p>동결 순위와 인상 순위의 스피어만 순위상관은 <b>+0.367</b>, 동결 순위와 인하 순위는
+      <b>+0.333</b> &mdash; 둘 다 약한 양의 상관이고 차이도 근소하다(0.03 차이). "동결이
+      인상 후반부와 더 닮았다" 혹은 "인하를 앞둔 국면과 더 닮았다"는 두 직관 중 어느 쪽도
+      뚜렷하게 지지되지 않는다 &mdash; 동결 순위(1위 기술 → 9위 필수소비재)는 인상 순위에서도
+      1위가 기술이라 표면적으로는 살짝 더 가까워 보이지만, 상관계수 자체는 통계적으로 의미
+      있다고 하기엔 둘 다 약하다. 동결 국면은 인상의 연장도 인하의 전조도 아니라 <b>그 자체로
+      다른 섹터 순위를 만드는 독립적인 국면</b>이라는 해석이 더 정확해 보인다.</p>
+    </div>
+
+    <div class="callout">
+      <span class="tag">H3 · 탐색적</span><span class="verdict">식별 완료</span>
+      <p>동결&minus;무조건부 격차가 가장 큰 섹터는 <b>에너지(XLE, +17.48%p)</b>였다 &mdash;
+      근소한 차이로 금융(+16.51%p)과 기술(+15.79%p)을 앞선다. 즉 H1에서 예상했던 "금융이
+      국면 전환에 가장 민감한 섹터"라는 가설은 절반만 맞다 &mdash; 금융도 크게 민감하지만,
+      실제로 가장 민감한 건 에너지다. 에너지는 이미 인하 스터디에서도 "승률은 낮지만 평균은
+      가장 좋은"(소수의 큰 반등이 평균을 끌어올리는) 섹터로 지목된 적이 있어, 이번 동결
+      스터디에서도 비슷한 메커니즘(안정적 국면에서의 원자재 강세 시기가 소수 끼어 평균을
+      끌어올렸을 가능성)이 반복됐을 수 있다 &mdash; n=9라 확정할 수는 없다.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>경제학 지식 없이 읽는 법</h2>
+    <ul class="findings">
+      <li><b>"동결 = 시장에 좋다"는 섹터를 나눠봐도 깨지지 않았다.</b> 9개 섹터 전부 동결
+      구간 성적이 평소보다 좋았다 &mdash; 인상/인하 스터디와 달리, 이번엔 "전체가 좋아 보이는
+      게 사실 특정 섹터 때문"이라는 반전은 없었다.</li>
+      <li><b>다만 얼마나 좋아지는지는 섹터마다 3배 넘게 차이 난다.</b> 필수소비재는
+      "동결이라 특별히 더 좋다"고 말하기 애매한 수준(+3.9%p)인 반면, 에너지·금융·기술은
+      동결 국면에 유독 강하게 반응한다(+15~17%p).</li>
+      <li><b>금융주는 "국면"을 크게 타는 섹터다.</b> 인하 국면(최악)·동결 국면(중상위)·
+      인상 국면(평범)에서 전부 다른 얼굴을 보인다 &mdash; "금융주는 원래 이렇다"는 한 문장으로
+      요약할 수 없고, "지금이 어떤 금리 국면이냐"를 먼저 물어야 한다.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>한계</h2>
+    <div class="callout">
+      <ul class="findings" style="margin:0;">
+        <li><b>동결 구간 표본이 9건뿐이다.</b> 그중 하나(2008&ndash;2015년 제로금리기, 2556일)는
+        단일 구간이 나머지 8건을 합친 것보다 길어 사실상 그 시기 하나가 평균을 크게 좌우할 수
+        있다 &mdash; 9건 단순평균이 "9개의 독립된 사건"을 뜻하지는 않는다.</li>
+        <li><b>인상/인하 반응 수치는 재계산이 아니라 기존 <code>cross_asset_sector_fomc.py</code>
+        결과를 그대로 인용했다.</b> 연율화(동결)와 +60거래일 누적(인상/인하)은 단위가 달라
+        표에서 나란히 뒀지만 엄밀한 차감 비교는 아니다.</li>
+        <li><b>동결 구간 자체가 "회의별 결정"이 아니라 변경일 사이 간격의 역산</b>이라는 점은
+        원 스터디(<code>fomc_pause_regime_study.py</code>)의 한계를 그대로 물려받는다.</li>
+        <li><b>섹터 데이터가 2005년 이후로 제한돼</b> 18개 동결 구간 중 9건만 사용했다 &mdash;
+        1990년대의 긴 동결(예: 1996&ndash;97년 20.7% 연율화)은 섹터 비교에서 빠졌다.</li>
+        <li><b>H2의 순위상관은 n=9로 매우 작다.</b> 스피어만 상관 0.3대는 통계적으로 유의하다고
+        말하기엔 표본이 부족해 "약한 신호" 정도로만 읽어야 한다.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="footer">
+    데이터: FRED(DFEDTAR/DFEDTARU/DFEDTARL), Yahoo Finance(XLK, XLF, XLE, XLV, XLI, XLY, XLP,
+    XLU, XLB) · 분석 스크립트: sector_pause_regime_study.py(동결 탐지는 fomc_pause_regime_study.py,
+    인상/인하 수치는 cross_asset_sector_fomc.py 재사용) · 같은 프로젝트: 연준 장기 동결 국면
+    스터디, 섹터 로테이션과 금리결정
+  </div>
+</div>
+
+</body></html>

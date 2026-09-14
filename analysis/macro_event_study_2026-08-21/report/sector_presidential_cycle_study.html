@@ -1,0 +1,258 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}</style></head><body>
+<title>섹터별 대선주기</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #eef1ee; --surface: #ffffff; --surface-2: #e6eae5;
+    --ink: #17211d; --ink-muted: #57635c; --ink-faint: #8b968f; --line: #d9dfd8;
+    --hike: #a8461f; --hike-soft: #f4e3da; --cut: #1f6e79; --cut-soft: #dcedee; --gold: #8a6d1f;
+    --shadow: 0 1px 2px rgba(23,33,29,.06), 0 8px 24px -12px rgba(23,33,29,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+      --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+      --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+      --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+    --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+    --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+    --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Public Sans", -apple-system, "Noto Sans KR", sans-serif;
+    font-size: 16px; line-height: 1.65;
+  }
+  ::selection { background: var(--gold); color: #1a1408; }
+  a { color: var(--cut); }
+  .page { max-width: 880px; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 1rem;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 500;
+    font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.08; letter-spacing: -.01em;
+    margin: 0 0 1rem; text-wrap: balance;
+  }
+  .dek { font-size: 1.15rem; color: var(--ink-muted); max-width: 62ch; margin: 0 0 1.75rem; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: .4rem 1.6rem;
+    font-family: "IBM Plex Mono", monospace; font-size: .82rem; color: var(--ink-muted);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: .85rem 0;
+  }
+  .meta-row b { color: var(--ink); font-weight: 600; }
+  section { margin: 3.2rem 0; }
+  section > h2 {
+    font-family: "Fraunces", serif; font-weight: 500; font-size: 1.6rem;
+    letter-spacing: -.005em; margin: 0 0 .3rem; text-wrap: balance;
+  }
+  section > .lede { color: var(--ink-muted); max-width: 66ch; margin: 0 0 1.4rem; }
+  p { max-width: 68ch; }
+  .note {
+    background: var(--surface-2); border-left: 3px solid var(--gold); border-radius: 4px;
+    padding: .9rem 1.1rem; font-size: .93rem; color: var(--ink-muted); max-width: 68ch; margin: 1.1rem 0;
+  }
+  .note b { color: var(--ink); }
+  .callout {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.2rem 1.4rem; box-shadow: var(--shadow); margin: 1.4rem 0;
+  }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .9rem; margin: 1.3rem 0 1.6rem; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.1rem; }
+  .tile .label { font-size: .78rem; color: var(--ink-muted); margin-bottom: .35rem; }
+  .tile .value { font-family: "IBM Plex Mono", monospace; font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tile .value.hike { color: var(--hike); }
+  .tile .value.cut { color: var(--cut); }
+  .tile .sub { font-size: .76rem; color: var(--ink-faint); margin-top: .25rem; }
+  .table-wrap { overflow-x: auto; margin: 1.2rem 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 480px; font-size: .92rem; }
+  caption { text-align: left; font-size: .82rem; color: var(--ink-faint); padding-bottom: .5rem; }
+  th, td { padding: .62rem .8rem; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; font-family: "IBM Plex Mono", monospace; }
+  th:first-child, td:first-child { text-align: left; font-family: "Public Sans", sans-serif; }
+  thead th { font-family: "Public Sans", sans-serif; font-weight: 600; font-size: .78rem; letter-spacing: .02em; color: var(--ink-muted); text-transform: uppercase; border-bottom: 1px solid var(--ink-faint); }
+  tr.row-hot td:first-child { border-left: 3px solid var(--hike); padding-left: .65rem; }
+  tr.row-cool td:first-child { border-left: 3px solid var(--cut); padding-left: .65rem; }
+  tbody tr:hover { background: var(--surface-2); }
+  ul.findings { padding-left: 1.2rem; max-width: 68ch; }
+  ul.findings li { margin-bottom: .9rem; }
+  ul.findings b { color: var(--ink); }
+  .verdict { display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: .74rem; letter-spacing: .06em; font-weight: 600; padding: .18rem .55rem; border-radius: 5px; margin-left: .4rem; vertical-align: middle; }
+  .verdict.confirmed { background: var(--cut-soft); color: var(--cut); }
+  .verdict.disconfirmed { background: var(--hike-soft); color: var(--hike); }
+  .verdict.mixed { background: var(--surface-2); color: var(--gold); }
+  .hyp { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1.1rem 1.3rem; box-shadow: var(--shadow); margin: 1rem 0; }
+  .hyp .htitle { font-family: "IBM Plex Mono", monospace; font-size: .78rem; letter-spacing: .04em; color: var(--ink-muted); text-transform: uppercase; margin-bottom: .4rem; }
+  .footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--line); font-size: .82rem; color: var(--ink-faint); }
+</style>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">MACRO EVENT STUDY · 트랙 D&times;E 크로스오버 · 섹터&times;대선주기 · 2005&ndash;2025</div>
+    <h1>대선 3년차 효과, 섹터별로 보니 완전히 다른 이야기였다</h1>
+    <p class="dek">앞서 이 프로젝트는 S&amp;P500 전체 기준으로 "임기 3년차(대선전해)가 압도적으로
+    좋다"는 걸 확인했고(+17.18%, 승률89.5%), 채권&middot;금&middot;달러로 넓혀보니 자산마다
+    최고의 해가 전부 달랐다는 것도 이미 확인했다. 이번엔 같은 질문을 9개 섹터ETF에 던진다 &mdash;
+    섹터별로도 "3년차가 최고"라는 이야기가 균일하게 재현될까, 아니면 여기서도 갈릴까.</p>
+    <div class="meta-row">
+      <span>섹터ETF <b>9개</b>(오리지널 SPDR) &middot; 구간 <b>2005&ndash;2025</b>(완결 연도만)</span>
+      <span>완결 임기 사이클 <b>4~5바퀴</b>(연차당 n=5~6)</span>
+      <span>데이터 <b>Yahoo Finance</b></span>
+    </div>
+  </header>
+
+  <section>
+    <h2>사전등록 가설</h2>
+    <div class="hyp">
+      <div class="htitle">H1 &mdash; 3년차가 섹터에도 균일하게 최고일까</div>
+      <p style="margin:0 0 .6rem;">2005년 이후 완결 연도만 쓰면 임기 사이클은 겨우 4~5바퀴뿐이다
+      (연차당 n=5~6) &mdash; S&amp;P500 전체 스터디의 75년/18~19바퀴보다 훨씬 작은 표본이라는 걸
+      먼저 밝혀둔다. <b>사전 예측</b>: 채권&middot;금&middot;달러 크로스에셋 확장에서 이미 자산마다
+      최고의 해가 전부 달랐던 전례가 있으므로, 9개 섹터 중 최소 2~3개는 3년차가 아닌 다른 해를
+      최고로 보일 것이다.</p>
+    </div>
+    <div class="hyp">
+      <div class="htitle">H2(탐색적) &mdash; 경기민감 섹터가 더 많이 벗어날까</div>
+      <p style="margin:0;">3년차에서 벗어나는 섹터가 있다면, 이 프로젝트의 인상&middot;인하
+      스터디에서 이미 정책금리에 유독 민감하다고 확인된 경기민감 섹터(금융XLF&middot;산업재XLI&middot;
+      소재XLB)가 방어주(유틸리티XLU&middot;필수소비재XLP&middot;헬스케어XLV)보다 더 크게
+      벗어나는지 본다. 어느 쪽으로 나오든 있는 그대로 보고한다.</p>
+    </div>
+    <div class="hyp">
+      <div class="htitle">H3 &mdash; 표본 정직성 확인</div>
+      <p style="margin:0;">연차당 표본이 n=5~6으로 매우 작을 것이 뻔하므로, 어떤 단일 섹터의
+      "최고의 해" 주장도 과신하지 않는다 &mdash; 9섹터&times;4연차 표 전체를 그대로 공개하고,
+      극단값(한두 해가 칸 전체를 좌우하는 경우)은 명시적으로 플래그한다.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>9섹터 &times; 4연차 전체 표</h2>
+    <p class="lede">연간 수익률 평균(%) &middot; 괄호는 승률 &middot; 각 칸 n=5~6, 2005~2025년
+    완결 연도만.</p>
+    <div class="table-wrap">
+      <table>
+        <caption>임기 연차별 섹터 연간수익률(%) &middot; 굵은 값=해당 섹터의 최고 연차</caption>
+        <thead><tr><th>섹터</th><th>1년차(집권원년)</th><th>2년차(중간선거)</th><th>3년차(대선전해)</th><th>4년차(대선해)</th></tr></thead>
+        <tbody>
+          <tr><td>기술(XLK)</td><td><b>+26.91% (83.3%)</b></td><td>+1.07% (60.0%)</td><td>+24.36% (100.0%)</td><td>+9.34% (80.0%)</td></tr>
+          <tr><td>금융(XLF)</td><td><b>+19.66% (100.0%)</b></td><td>+2.57% (60.0%)</td><td>&minus;0.85% (40.0%)</td><td>+2.75% (60.0%)</td></tr>
+          <tr><td>에너지(XLE)</td><td><b>+21.43% (83.3%)</b></td><td>+12.53% (60.0%)</td><td>+2.67% (60.0%)</td><td>&minus;9.26% (60.0%)</td></tr>
+          <tr><td>헬스케어(XLV)</td><td><b>+19.63% (100.0%)</b></td><td>+6.27% (80.0%)</td><td>+7.81% (100.0%)</td><td>&minus;0.38% (60.0%)</td></tr>
+          <tr><td>산업재(XLI)</td><td><b>+19.42% (100.0%)</b></td><td>+4.62% (60.0%)</td><td>+8.98% (60.0%)</td><td>+2.75% (80.0%)</td></tr>
+          <tr><td>임의소비재(XLY)</td><td><b>+21.04% (83.3%)</b></td><td>+2.92% (80.0%)</td><td>+12.60% (80.0%)</td><td>+9.07% (80.0%)</td></tr>
+          <tr><td>필수소비재(XLP)</td><td><b>+9.69% (83.3%)</b></td><td>+4.33% (60.0%)</td><td>+9.18% (80.0%)</td><td>+1.79% (80.0%)</td></tr>
+          <tr><td>유틸리티(XLU)</td><td><b>+10.62% (100.0%)</b></td><td>+8.26% (80.0%)</td><td>+6.74% (60.0%)</td><td>&minus;1.12% (40.0%)</td></tr>
+          <tr><td>소재(XLB)</td><td><b>+20.80% (100.0%)</b></td><td>+1.16% (60.0%)</td><td>+5.60% (60.0%)</td><td>&minus;0.54% (60.0%)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><b>결과는 예상을 훨씬 뛰어넘었다 &mdash; 9개 섹터 전부(9/9)가 3년차가 아니라 1년차
+    (집권 원년)를 최고로 보였다.</b> S&amp;P500 전체 스터디의 "3년차가 압도적으로 좋다"는 결론이
+    섹터 단위에선 단 하나도 재현되지 않았다.</p>
+  </section>
+
+  <section>
+    <h2>H1 검증 &mdash; <span class="verdict disconfirmed">DISCONFIRMED (더 극단적으로)</span></h2>
+    <p class="lede">사전 예측은 "9개 중 2~3개는 3년차가 아닐 것"이었는데, 실제로는 9개 전부가
+    3년차가 아니었다. 게다가 크로스에셋 확장(채권&middot;금&middot;달러)처럼 각자 다른 해로
+    흩어진 게 아니라, <b>9개 섹터가 전부 똑같이 1년차로 수렴</b>했다 &mdash; 예상하지 못한 형태의
+    불일치다.</p>
+    <div class="note"><b>극단값 점검(H3 약속 이행)</b>: 1년차 표본(2005/2009/2013/2017/2021/2025)
+    중 2009년(글로벌 금융위기 직후 반등)과 2021년(코로나 폭락 직후 반등)은 우연히 둘 다 "1년차"에
+    해당한다 &mdash; 2008년 위기(4년차)와 2020년 위기(4년차) 다음 해가 마침 1년차였을 뿐, 대선
+    주기 자체의 효과가 아닐 위험이 있다. 이 두 해를 빼고 다시 계산해도 기술(+19.7%)&middot;금융
+    (+17.6%)&middot;헬스케어(+19.1%)&middot;산업재(+19.6%)&middot;유틸리티(+10.7%)는 여전히
+    1년차가 강한 편으로 남았지만, 에너지(+15.7%)&middot;임의소비재(+15.3%)&middot;소재(+13.6%)는
+    체감상 꽤 낮아졌다 &mdash; <b>완전히 우연은 아니지만, 두 위기-반등 해가 1년차 평균을
+    상당히 부풀린 것도 사실</b>이라는 두 갈래 결론이다.</p>
+  </section>
+
+  <section>
+    <h2>H2 검증 &mdash; <span class="verdict confirmed">CONFIRMED</span></h2>
+    <p class="lede">"경기민감 섹터가 3년차에서 더 크게 벗어난다"를 3년차 평균과 그 섹터의
+    최고연차(=1년차) 평균의 차이(이탈폭)로 측정했다.</p>
+    <div class="table-wrap">
+      <table>
+        <caption>3년차 평균 대비 최고연차(1년차) 이탈폭(%p)</caption>
+        <thead><tr><th>섹터</th><th>구분</th><th>3년차 평균</th><th>1년차 평균</th><th>이탈폭</th></tr></thead>
+        <tbody>
+          <tr><td>금융(XLF)</td><td>경기민감</td><td>&minus;0.85%</td><td>+19.66%</td><td><b>20.51pp</b></td></tr>
+          <tr><td>소재(XLB)</td><td>경기민감</td><td>+5.60%</td><td>+20.80%</td><td><b>15.21pp</b></td></tr>
+          <tr><td>산업재(XLI)</td><td>경기민감</td><td>+8.98%</td><td>+19.42%</td><td><b>10.44pp</b></td></tr>
+          <tr><td>헬스케어(XLV)</td><td>방어</td><td>+7.81%</td><td>+19.63%</td><td>11.82pp</td></tr>
+          <tr><td>유틸리티(XLU)</td><td>방어</td><td>+6.74%</td><td>+10.62%</td><td>3.89pp</td></tr>
+          <tr><td>필수소비재(XLP)</td><td>방어</td><td>+9.18%</td><td>+9.69%</td><td>0.51pp</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>경기민감 3섹터의 평균 이탈폭은 <b>15.4pp</b>, 방어 3섹터는 <b>5.4pp</b>로 약 3배 차이 &mdash;
+    가설대로 정책금리에 민감하다고 이미 확인된 경기민감 섹터(특히 금융)가 대선주기 이탈폭도 더
+    크게 나타났다. 다만 헬스케어(방어주)가 예외적으로 이탈폭이 큰 편(11.82pp)이라 "방어주는
+    다 똑같이 작다"는 식으로 일반화하지는 않는다.</p>
+  </section>
+
+  <section>
+    <h2>H3 검증 &mdash; <span class="verdict confirmed">이행됨</span></h2>
+    <p>위 9&times;4 표를 그대로 공개했고, 가장 두드러진 칸(9개 섹터 전부의 1년차)에 대해 극단값
+    2건(2009&middot;2021)을 명시적으로 분리해 재계산까지 제시했다. n=5~6짜리 표에서 나온 어떤
+    숫자도 &ldquo;확정된 법칙&rdquo;으로 포장하지 않는다.</p>
+  </section>
+
+  <section>
+    <h2>경제학 지식 없이 읽는 법</h2>
+    <ul class="findings">
+      <li><b>"대선 3년차가 최고"라는 이야기는 섹터로 쪼개면 사라진다.</b> S&amp;P500 전체로 보면
+      3년차가 압도적으로 좋았지만, 그걸 구성하는 9개 섹터 중 단 하나도 3년차가 최고인 섹터가
+      없었다 &mdash; 전체 지수의 패턴이 반드시 그 구성요소 하나하나에서도 똑같이 나타나는 건
+      아니라는 뜻이다.</li>
+      <li><b>대신 9개 섹터가 전부 "1년차(대통령 취임 첫해)"로 수렴했다.</b> 이건 크로스에셋
+      확장(채권&middot;금&middot;달러가 제각각 다른 해를 최고로 꼽았던 것)과도 다른 패턴 &mdash;
+      자산군을 넓혔을 땐 "각자 다르다"였는데, 섹터를 넓혔을 땐 "모두 같은데 그게 3년차가
+      아니다"로 나왔다.</li>
+      <li><b>단, 그 1년차 강세의 상당 부분은 위기 이후 반등 두 해(2009&middot;2021)가 만든
+      것일 수 있다.</b> 2008년 금융위기와 2020년 코로나 폭락이 우연히 둘 다 "4년차"에 일어났고,
+      그 다음 해인 "1년차"에 강하게 반등했다 &mdash; 이건 대선주기 자체의 힘이라기보다 "위기
+      다음 해엔 반등한다"는 훨씬 단순한 이야기가 대선주기라는 이름으로 포장됐을 위험이 있다.</li>
+      <li><b>그래도 경기에 민감한 섹터일수록 이 결과가 더 크게 벗어났다.</b> 금리·경기 흐름에
+      민감하다고 이미 확인된 금융&middot;소재&middot;산업재가, 상대적으로 안정적인 유틸리티·
+      필수소비재보다 3배 가까이 더 크게 흔들렸다 &mdash; 이 프로젝트가 반복해서 확인해온 "경기
+      민감 섹터는 여러 신호에 더 크게 반응한다"는 큰 그림과 일치한다.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>한계</h2>
+    <div class="callout">
+      <ul class="findings" style="margin:0;">
+        <li><b>표본이 매우 작다.</b> 연차당 n=5~6, 완결된 임기 사이클은 4~5바퀴뿐이다.
+        S&amp;P500 전체 스터디(75년, 18~19바퀴)와 비교하면 신뢰도가 현저히 낮은 참고용 결과다.</li>
+        <li><b>2005년 이후만 볼 수 있다.</b> 섹터ETF(오리지널 SPDR)가 1998년 상장이라 안전하게
+        쓸 수 있는 구간이 2005년부터로 제한됐다 &mdash; 하필 그 짧은 구간 안에 2008년·2020년이라는
+        두 개의 대형 위기가 들어 있어, "1년차 최고" 결과가 우연히 그 두 위기의 반등 효과를
+        크게 반영했을 가능성이 있다(본문에서 정량적으로 분리해 제시했다).</li>
+        <li><b>연속된 연도는 완전히 독립적인 표본이 아니다.</b> 이 프로젝트의 모든 연간수익률
+        스터디에 적용되는 표준 한계 &mdash; 강세장/약세장은 여러 해에 걸쳐 이어지는 경향이 있다.</li>
+        <li><b>인과관계는 검증하지 않았다.</b> "왜 1년차가 강한가"에 대한 설명(신임 대통령 정책
+        기대, 위기 이후 반등 등)은 제시했지만 어느 것도 인과적으로 검증된 것은 아니다.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="footer">
+    데이터: Yahoo Finance(XLK/XLF/XLE/XLV/XLI/XLY/XLP/XLU/XLB) · 분석 스크립트:
+    sector_presidential_cycle_study.py(presidential_cycle_event_study.py의 연차 계산,
+    cross_asset_sector_fomc.py의 섹터ETF 데이터 패턴 재사용) · 같은 프로젝트: 대선주기 4년
+    효과(S&amp;P500 전체), 대선주기 자산군 교차분석(채권·금·달러), 섹터별 연준 금리결정 반응
+  </div>
+</div>
+
+</body></html>

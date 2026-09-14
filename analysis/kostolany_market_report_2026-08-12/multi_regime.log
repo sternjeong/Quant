@@ -1,0 +1,120 @@
+
+======================== 강세장 (2015-01-01~2026-08-12) ========================
+$XLRE: possibly delisted; no price data found  (1d 2013-03-20 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1444190400")
+$XLC: possibly delisted; no price data found  (1d 2013-03-20 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1529294400")
+
+1 Failed download:
+['XLRE']: possibly delisted; no price data found  (1d 2013-03-20 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1444190400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2013-03-20 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1529294400")
+$ADT: possibly delisted; no price data found  (1d 2013-03-20 -> 2018-01-18) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1516251600")
+
+1 Failed download:
+['ADT']: possibly delisted; no price data found  (1d 2013-03-20 -> 2018-01-18) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1516251600")
+$NE: possibly delisted; no price data found  (1d 2013-03-20 -> 2021-06-08) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1623124800")
+
+1 Failed download:
+['NE']: possibly delisted; no price data found  (1d 2013-03-20 -> 2021-06-08) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1623124800")
+$NWSA: possibly delisted; no price data found  (1d 2013-03-20 -> 2013-06-18) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1371528000")
+
+1 Failed download:
+['NWSA']: possibly delisted; no price data found  (1d 2013-03-20 -> 2013-06-18) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1371528000")
+/workspaces/Quant/analysis/kostolany_market_report_2026-08-12/multi_regime_multi_strategy.py:63: FutureWarning: The behavior of DataFrame.idxmax with all-NA values, or any-NA and skipna=False, is deprecated. In a future version this will raise ValueError
+  leader = z_scores.idxmax(axis=1)
+국면 분포: {'쏠림강세': 1553, '데이터부족': 574, '횡보장': 547, '약세장': 217, '광범위강세': 27}
+[검증] baseline 비중 합계 1.0으로부터 최대 이탈: 0.000000
+[검증] etf_tilt 비중 합계 1.0으로부터 최대 이탈: 0.000000
+[검증] stock_tilt 비중 합계 1.0으로부터 최대 이탈: 0.000000
+[검증] combined_tilt 비중 합계 1.0으로부터 최대 이탈: 0.000000
+[baseline] 오버레이 없음: {'cumulative_return': 168.64, 'cagr': 8.89, 'mdd': -36.01, 'sharpe': 0.61, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.25, 'avg_drawdown_days': 24.7}
+[baseline] 국면별 변동성타게팅 적용: {'cumulative_return': 155.71, 'cagr': 8.43, 'mdd': -17.55, 'sharpe': 0.73, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.48, 'avg_drawdown_days': 25.5}
+[etf_tilt] 오버레이 없음: {'cumulative_return': 217.99, 'cagr': 10.48, 'mdd': -37.28, 'sharpe': 0.69, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.28, 'avg_drawdown_days': 22.9}
+[etf_tilt] 국면별 변동성타게팅 적용: {'cumulative_return': 192.21, 'cagr': 9.68, 'mdd': -18.44, 'sharpe': 0.8, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.52, 'avg_drawdown_days': 24.4}
+[stock_tilt] 오버레이 없음: {'cumulative_return': 93.88, 'cagr': 5.87, 'mdd': -39.72, 'sharpe': 0.4, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.15, 'avg_drawdown_days': 58.7}
+[stock_tilt] 국면별 변동성타게팅 적용: {'cumulative_return': 75.36, 'cagr': 4.96, 'mdd': -24.26, 'sharpe': 0.4, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.2, 'avg_drawdown_days': 58.9}
+[combined_tilt] 오버레이 없음: {'cumulative_return': 161.97, 'cagr': 8.65, 'mdd': -36.73, 'sharpe': 0.57, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.24, 'avg_drawdown_days': 29.4}
+[combined_tilt] 국면별 변동성타게팅 적용: {'cumulative_return': 132.09, 'cagr': 7.52, 'mdd': -20.28, 'sharpe': 0.61, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.37, 'avg_drawdown_days': 32.6}
+S&P500: {'cumulative_return': 276.69, 'cagr': 12.11, 'mdd': -33.92, 'sharpe': 0.74, 'win_rate': 100.0, 'avg_holding_days': 4238.0, 'trade_count': 1, 'profit_factor': 999.0, 'calmar': 0.36, 'avg_drawdown_days': 19.5}
+국면별 일평균 수익률 분해: {'약세장': {'days': 217, 'baseline_mean_daily_pct': -0.012, 'etf_tilt_mean_daily_pct': -0.012}, '횡보장': {'days': 547, 'baseline_mean_daily_pct': -0.0509, 'etf_tilt_mean_daily_pct': -0.0509}, '광범위강세': {'days': 27, 'baseline_mean_daily_pct': 0.1789, 'etf_tilt_mean_daily_pct': 0.1789}, '쏠림강세': {'days': 1553, 'baseline_mean_daily_pct': 0.0578, 'etf_tilt_mean_daily_pct': 0.0698}}
+
+======================== 약세장포함 (2000-01-03~2012-12-31) ========================
+$XLY: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$XLF: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLF']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLY']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$XLE: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$XLP: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLE']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLP']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$XLK: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$XLV: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLK']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLV']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$XLU: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$XLI: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLI']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLU']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$XLB: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLB']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$BUD: possibly delisted; no price data found  (1d 1998-03-22 -> 2009-06-30) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 1246334400")
+
+1 Failed download:
+['BUD']: possibly delisted; no price data found  (1d 1998-03-22 -> 2009-06-30) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 1246334400")
+$COMS: possibly delisted; no price data found  (1d 1998-03-22 -> 2008-08-14) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 1218686400")
+
+1 Failed download:
+['COMS']: possibly delisted; no price data found  (1d 1998-03-22 -> 2008-08-14) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 1218686400")
+$EC: possibly delisted; no price data found  (1d 1998-03-22 -> 2008-09-17) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 1221624000")
+
+1 Failed download:
+['EC']: possibly delisted; no price data found  (1d 1998-03-22 -> 2008-09-17) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 1221624000")
+$SUB: possibly delisted; no price data found  (1d 1998-03-22 -> 2008-11-18) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 1226984400")
+
+1 Failed download:
+['SUB']: possibly delisted; no price data found  (1d 1998-03-22 -> 2008-11-18) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 1226984400")
+$TX: possibly delisted; no price data found  (1d 1998-03-22 -> 2006-01-31) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 1138683600")
+
+1 Failed download:
+['TX']: possibly delisted; no price data found  (1d 1998-03-22 -> 2006-01-31) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 1138683600")
+$VO: possibly delisted; no price data found  (1d 1998-03-22 -> 2004-01-29) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 1075352400")
+
+1 Failed download:
+['VO']: possibly delisted; no price data found  (1d 1998-03-22 -> 2004-01-29) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 1075352400")
+/workspaces/Quant/analysis/kostolany_market_report_2026-08-12/multi_regime_multi_strategy.py:63: FutureWarning: The behavior of DataFrame.idxmax with all-NA values, or any-NA and skipna=False, is deprecated. In a future version this will raise ValueError
+  leader = z_scores.idxmax(axis=1)
+국면 분포: {'쏠림강세': 1778, '약세장': 767, '횡보장': 664, '광범위강세': 59}
+[검증] baseline 비중 합계 1.0으로부터 최대 이탈: 0.000000
+[검증] etf_tilt 비중 합계 1.0으로부터 최대 이탈: 0.000000
+[검증] stock_tilt 비중 합계 1.0으로부터 최대 이탈: 0.000000
+[검증] combined_tilt 비중 합계 1.0으로부터 최대 이탈: 0.000000
+[baseline] 오버레이 없음: {'cumulative_return': 44.66, 'cagr': 2.88, 'mdd': -50.53, 'sharpe': 0.25, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.06, 'avg_drawdown_days': 65.9}
+[baseline] 국면별 변동성타게팅 적용: {'cumulative_return': 40.14, 'cagr': 2.63, 'mdd': -34.08, 'sharpe': 0.26, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.08, 'avg_drawdown_days': 67.9}
+[etf_tilt] 오버레이 없음: {'cumulative_return': 50.75, 'cagr': 3.21, 'mdd': -49.93, 'sharpe': 0.26, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.06, 'avg_drawdown_days': 73.8}
+[etf_tilt] 국면별 변동성타게팅 적용: {'cumulative_return': 47.4, 'cagr': 3.03, 'mdd': -37.06, 'sharpe': 0.28, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.08, 'avg_drawdown_days': 57.3}
+[stock_tilt] 오버레이 없음: {'cumulative_return': 29.02, 'cagr': 1.98, 'mdd': -52.14, 'sharpe': 0.2, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.04, 'avg_drawdown_days': 146.9}
+[stock_tilt] 국면별 변동성타게팅 적용: {'cumulative_return': 28.09, 'cagr': 1.92, 'mdd': -39.65, 'sharpe': 0.2, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.05, 'avg_drawdown_days': 127.7}
+[combined_tilt] 오버레이 없음: {'cumulative_return': 43.26, 'cagr': 2.81, 'mdd': -50.67, 'sharpe': 0.24, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.06, 'avg_drawdown_days': 77.3}
+[combined_tilt] 국면별 변동성타게팅 적용: {'cumulative_return': 42.18, 'cagr': 2.75, 'mdd': -38.52, 'sharpe': 0.26, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.07, 'avg_drawdown_days': 74.3}
+S&P500: {'cumulative_return': -2.55, 'cagr': -0.2, 'mdd': -56.78, 'sharpe': 0.1, 'win_rate': 0.0, 'avg_holding_days': 4742.0, 'trade_count': 1, 'profit_factor': 0.0, 'calmar': -0.0, 'avg_drawdown_days': 351.2}
+국면별 일평균 수익률 분해: {'약세장': {'days': 767, 'baseline_mean_daily_pct': -0.0331, 'etf_tilt_mean_daily_pct': -0.0331}, '횡보장': {'days': 664, 'baseline_mean_daily_pct': -0.0224, 'etf_tilt_mean_daily_pct': -0.0224}, '광범위강세': {'days': 59, 'baseline_mean_daily_pct': -0.0547, 'etf_tilt_mean_daily_pct': -0.0547}, '쏠림강세': {'days': 1778, 'baseline_mean_daily_pct': 0.0605, 'etf_tilt_mean_daily_pct': 0.0711}}
+
+DONE

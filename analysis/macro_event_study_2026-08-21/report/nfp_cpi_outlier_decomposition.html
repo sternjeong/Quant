@@ -1,0 +1,325 @@
+<title>평균과 승률이 갈라진 이유</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #eef1ee; --surface: #ffffff; --surface-2: #e6eae5;
+    --ink: #17211d; --ink-muted: #57635c; --ink-faint: #8b968f; --line: #d9dfd8;
+    --hike: #a8461f; --hike-soft: #f4e3da; --cut: #1f6e79; --cut-soft: #dcedee; --gold: #8a6d1f;
+    --gold-soft: #f1e9d2;
+    --shadow: 0 1px 2px rgba(23,33,29,.06), 0 8px 24px -12px rgba(23,33,29,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+      --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+      --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+      --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c; --gold-soft: #33291a;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+    --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+    --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+    --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c; --gold-soft: #33291a;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Public Sans", -apple-system, "Noto Sans KR", sans-serif;
+    font-size: 16px; line-height: 1.65;
+  }
+  ::selection { background: var(--gold); color: #1a1408; }
+  a { color: var(--cut); }
+  .page { max-width: 880px; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 1rem;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 500;
+    font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.08; letter-spacing: -.01em;
+    margin: 0 0 1rem; text-wrap: balance;
+  }
+  .dek { font-size: 1.15rem; color: var(--ink-muted); max-width: 62ch; margin: 0 0 1.75rem; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: .4rem 1.6rem;
+    font-family: "IBM Plex Mono", monospace; font-size: .82rem; color: var(--ink-muted);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: .85rem 0;
+  }
+  .meta-row b { color: var(--ink); font-weight: 600; }
+  section { margin: 3.2rem 0; }
+  section > h2 {
+    font-family: "Fraunces", serif; font-weight: 500; font-size: 1.6rem;
+    letter-spacing: -.005em; margin: 0 0 .3rem; text-wrap: balance;
+  }
+  section > h3 {
+    font-family: "Fraunces", serif; font-weight: 500; font-size: 1.18rem;
+    letter-spacing: -.005em; margin: 1.6rem 0 .5rem;
+  }
+  section > .lede { color: var(--ink-muted); max-width: 66ch; margin: 0 0 1.4rem; }
+  p { max-width: 68ch; }
+  .note {
+    background: var(--surface-2); border-left: 3px solid var(--gold); border-radius: 4px;
+    padding: .9rem 1.1rem; font-size: .93rem; color: var(--ink-muted); max-width: 68ch; margin: 1.1rem 0;
+  }
+  .note b { color: var(--ink); }
+  .callout {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.2rem 1.4rem; box-shadow: var(--shadow); margin: 1.4rem 0;
+  }
+  .hyp {
+    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--ink-faint);
+    border-radius: 8px; padding: 1rem 1.2rem; margin: 1rem 0; box-shadow: var(--shadow);
+  }
+  .hyp .tag {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: .4rem;
+  }
+  .verdict {
+    display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: .78rem;
+    letter-spacing: .06em; text-transform: uppercase; padding: .3rem .7rem; border-radius: 20px;
+    font-weight: 600; margin-left: .5rem;
+  }
+  .verdict.confirmed { background: var(--cut-soft); color: var(--cut); }
+  .verdict.disconfirmed { background: var(--hike-soft); color: var(--hike); }
+  .verdict.mixed { background: var(--gold-soft); color: var(--gold); border: 1px solid var(--gold); }
+
+  .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: .6rem; margin: 1rem 0 1.4rem; }
+  .stat-cell {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
+    text-align: center; padding: .7rem .3rem;
+  }
+  .stat-cell .k { font-size: .68rem; color: var(--ink-faint); margin-bottom: .25rem; font-family: "IBM Plex Mono", monospace;}
+  .stat-cell .v {
+    font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 1.05rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-cell .v.pos { color: var(--cut); }
+  .stat-cell .v.neg { color: var(--hike); }
+  @media (max-width: 560px) { .stat-row { grid-template-columns: repeat(2, 1fr); } }
+
+  .table-wrap { overflow-x: auto; margin: 1rem 0; border: 1px solid var(--line); border-radius: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: .88rem; background: var(--surface); }
+  th, td { padding: .55rem .75rem; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th { font-family: "IBM Plex Mono", monospace; font-size: .68rem; letter-spacing: .04em;
+    text-transform: uppercase; color: var(--ink-faint); text-align: right; background: var(--surface-2); }
+  td:first-child, th:first-child { text-align: left; }
+  td:nth-child(2), th:nth-child(2) { text-align: center; }
+  tr:last-child td { border-bottom: none; }
+  td.pos { color: var(--cut); font-family: "IBM Plex Mono", monospace; }
+  td.neg { color: var(--hike); font-family: "IBM Plex Mono", monospace; }
+  .rec-tag {
+    font-family: "IBM Plex Mono", monospace; font-size: .65rem; padding: .12rem .4rem;
+    border-radius: 4px; background: var(--gold-soft); color: var(--gold);
+  }
+  .norec-tag {
+    font-family: "IBM Plex Mono", monospace; font-size: .65rem; padding: .12rem .4rem;
+    border-radius: 4px; background: var(--surface-2); color: var(--ink-faint);
+  }
+
+  ul.findings { padding-left: 1.2rem; max-width: 68ch; }
+  ul.findings li { margin-bottom: .9rem; }
+  ul.findings b { color: var(--ink); }
+
+  .footer {
+    margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--line);
+    font-size: .82rem; color: var(--ink-faint);
+  }
+  .footer a { color: var(--ink-faint); text-decoration: underline; }
+</style>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">MACRO EVENT STUDY · 트랙 A 후속의 후속 · 1997&ndash;2026</div>
+    <h1>승률 1등인데 왜 평균은 2등이었을까</h1>
+    <p class="dek">NFP×CPI 2x2 교차 스터디에서 "고용가속+물가감속"(최선 후보) 칸은 승률로는
+    79.7%로 4칸 중 1등이었지만, 평균수익률로는 "고용둔화+물가감속"(냉각) 칸에 밀렸다. 이
+    불일치가 소수의 큰 이상치 때문인지, 아니면 두 칸이 애초에 다른 위험/분포 형태를 가진
+    "진짜" 차이인지 파헤친다.</p>
+    <div class="meta-row">
+      <span>원 데이터 <b>NFP×CPI 교차 스터디 재사용</b>(1994~2026, n=382)</span>
+      <span>비교 대상 <b>고용가속+물가감속(n=79) vs 고용둔화+물가감속(n=114)</b></span>
+      <span>방법 <b>leave-one-out-max 이상치 제거</b></span>
+    </div>
+  </header>
+
+  <section>
+    <h2>사전등록 가설 &mdash; 결과를 보기 전에 먼저 적어둔다</h2>
+    <p class="lede">계산 전에 기준을 못박고, 결과를 본 뒤 문구를 손대지 않는다.</p>
+
+    <div class="hyp">
+      <div class="tag">H1</div>
+      <p style="margin:0;color:var(--ink-muted);">"냉각"(고용둔화+물가감속) 칸의 더 높은 평균은
+      소수의 큰 양(+)의 이상치가 끌어올린 것이지, 분포 전체가 고르게 나은 게 아니다 &mdash; 각
+      칸에서 가장 큰 양의 +60일 수익률 1건씩만 제거하면 두 칸의 평균 격차가 <b>최소 30% 이상
+      줄어들어야</b> "상당히 축소"로 인정한다(기준을 사전에 못박음).</p>
+    </div>
+    <div class="hyp">
+      <div class="tag">H2</div>
+      <p style="margin:0;color:var(--ink-muted);">"냉각" 칸의 최대 이상치들이 특정 NBER
+      침체-회복기(예: 2009, 2020)에 몰려 있다 &mdash; 라벨이 마침 이미 과매도된 시장의 반등과
+      우연히 겹쳤을 뿐, 라벨 자체가 원인이 아닌 교란요인일 가능성을 USREC 플래그로 검증한다.</p>
+    </div>
+    <div class="hyp">
+      <div class="tag">H3</div>
+      <p style="margin:0;color:var(--ink-muted);">칸당 상위 1개, 그리고 별도로 상위 3개를
+      제거한 뒤(결론이 뒤집히는 개수를 임의로 고르지 않기 위해 둘 다 보고), 승률 1위("고용가속+
+      물가감속")가 평균수익률에서도 1위가 되는지 확인한다. 되면 원래 불일치는 이상치 때문,
+      안 되면 두 칸은 이상치와 무관하게 서로 다른 분포 형태를 가진다는 뜻 &mdash; 어느 쪽이든
+      있는 그대로 보고한다.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>원본 격차 재확인</h2>
+    <div class="stat-row">
+      <div class="stat-cell"><div class="k">고용가속+물가감속<br>평균(n=79)</div><div class="v pos">+3.55%</div></div>
+      <div class="stat-cell"><div class="k">고용가속+물가감속<br>승률</div><div class="v pos">79.7%</div></div>
+      <div class="stat-cell"><div class="k">냉각(고용둔화+물가감속)<br>평균(n=114)</div><div class="v pos">+3.98%</div></div>
+      <div class="stat-cell"><div class="k">냉각<br>승률</div><div class="v pos">73.7%</div></div>
+    </div>
+    <p>승률은 고용가속+물가감속이 6.0%p 앞서지만(79.7% vs 73.7%), 평균수익률은 냉각 칸이
+    오히려 0.43%p 앞선다(+3.98% vs +3.55%). 승률과 평균 순위가 뒤바뀌는 전형적인 불일치다.</p>
+  </section>
+
+  <section>
+    <h2>H1 검증 &mdash; top-1 제거 시 격차가 30% 이상 줄어드는가</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>구분</th><th>고용가속+물가감속 평균</th><th>냉각 평균</th><th>격차(냉각&minus;가속)</th></tr></thead>
+        <tbody>
+          <tr><td>원본</td><td class="pos">+3.55%</td><td class="pos">+3.98%</td><td class="pos">+0.43pp</td></tr>
+          <tr><td>각 칸 top-1 제거</td><td class="pos">+3.35%</td><td class="pos">+3.68%</td><td class="pos">+0.33pp</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>top-1 이상치를 제거하자 격차는 0.43pp&rarr;0.33pp로 <b>22.8% 축소</b>됐다. 사전에 정한
+    기준(30% 이상)에 못 미친다 &mdash; 이상치 1건 제거만으로는 격차가 "상당히" 줄었다고 보기
+    어렵다.</p>
+  </section>
+
+  <section>
+    <h2>H2 검증 &mdash; 이상치가 침체-회복기에 몰려 있는가</h2>
+    <p class="lede">각 칸의 +60일 수익률 상위 5건과, 그 시점(전월 기준)이 NBER 침체 중이었는지.</p>
+
+    <h3>냉각(고용둔화+물가감속) 칸 상위 5건</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>발표일</th><th>침체 여부</th><th>+60일</th></tr></thead>
+        <tbody>
+          <tr><td>2009-03-06</td><td style="text-align:center;"><span class="rec-tag">침체중</span></td><td class="pos">+38.25%</td></tr>
+          <tr><td>2020-04-03</td><td style="text-align:center;"><span class="rec-tag">침체중</span></td><td class="pos">+24.58%</td></tr>
+          <tr><td>1998-10-02</td><td style="text-align:center;"><span class="norec-tag">평시</span></td><td class="pos">+23.86%</td></tr>
+          <tr><td>2025-04-04</td><td style="text-align:center;"><span class="norec-tag">평시</span></td><td class="pos">+22.73%</td></tr>
+          <tr><td>1998-09-04</td><td style="text-align:center;"><span class="norec-tag">평시</span></td><td class="pos">+20.68%</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>고용가속+물가감속 칸 상위 5건 (비교용)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>발표일</th><th>침체 여부</th><th>+60일</th></tr></thead>
+        <tbody>
+          <tr><td>1998-01-09</td><td style="text-align:center;"><span class="norec-tag">평시</span></td><td class="pos">+19.60%</td></tr>
+          <tr><td>2009-07-02</td><td style="text-align:center;"><span class="rec-tag">침체중</span></td><td class="pos">+18.58%</td></tr>
+          <tr><td>1997-04-04</td><td style="text-align:center;"><span class="norec-tag">평시</span></td><td class="pos">+16.79%</td></tr>
+          <tr><td>1997-05-02</td><td style="text-align:center;"><span class="norec-tag">평시</span></td><td class="pos">+15.91%</td></tr>
+          <tr><td>2019-01-04</td><td style="text-align:center;"><span class="norec-tag">평시</span></td><td class="pos">+13.24%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>냉각 칸의 <b>가장 큰 두 이상치(2009-03, 2020-04)는 정확히 가설이 예로 든 침체-회복기와
+    일치</b>했다 &mdash; 2009년 금융위기 바닥 직후, 2020년 팬데믹 급락 직후의 반등이다. 하지만
+    상위 5건 중 나머지 3건(1998년 두 번, 2025년)은 침체와 무관한 평시였다 &mdash; 침체가
+    유일한 원인은 아니다. 비교 칸(고용가속+물가감속)도 상위 5건 중 1건(2009-07)만 침체중이라
+    비율(2/5 vs 1/5)은 냉각 칸이 다소 높지만 압도적이지는 않다.</p>
+  </section>
+
+  <section>
+    <h2>H3 검증 &mdash; top-1, top-3 제거 후에도 순위가 유지되는가</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>구분</th><th>고용가속+물가감속 평균</th><th>냉각 평균</th><th>평균 1위</th></tr></thead>
+        <tbody>
+          <tr><td>원본</td><td class="pos">+3.55%</td><td class="pos">+3.98%</td><td>냉각</td></tr>
+          <tr><td>top-1 제거</td><td class="pos">+3.35%</td><td class="pos">+3.68%</td><td>냉각</td></tr>
+          <tr><td>top-3 제거</td><td class="pos">+2.97%</td><td class="pos">+3.31%</td><td>냉각</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>상위 1개를 빼도, 상위 3개를 빼도 <b>냉각 칸이 계속 평균수익률 1위를 지켰다</b> &mdash;
+    승률 1위인 고용가속+물가감속 칸이 평균수익률에서도 1위로 올라서는 일은 일어나지 않았다.
+    즉 원래의 불일치는 소수 이상치가 만든 착시가 아니라, 이상치를 제거해도 남아있는 진짜
+    구조적 차이다.</p>
+  </section>
+
+  <section>
+    <h2>가설별 최종 판정</h2>
+
+    <div class="hyp">
+      <div class="tag">H1<span class="verdict disconfirmed">기각</span></div>
+      <p style="margin:0;color:var(--ink-muted);">top-1 제거로 격차가 22.8%만 줄어 사전 기준
+      (30%)에 못 미쳤다. 격차가 소수 이상치 하나로 설명되지 않는다.</p>
+    </div>
+    <div class="hyp">
+      <div class="tag">H2<span class="verdict mixed">부분 일치(MIXED)</span></div>
+      <p style="margin:0;color:var(--ink-muted);">냉각 칸의 최상위 2개 이상치(2009-03, 2020-04)는
+      가설이 예로 든 침체-회복기와 정확히 일치했지만, 상위 5건 중 3건은 침체와 무관한 평시였다.
+      침체는 이상치 일부를 설명하는 요인이지 지배적 원인은 아니다.</p>
+    </div>
+    <div class="hyp">
+      <div class="tag">H3<span class="verdict disconfirmed">기각(순위 유지)</span></div>
+      <p style="margin:0;color:var(--ink-muted);">top-1·top-3 제거 둘 다 시도했지만 냉각 칸이
+      계속 평균 1위를 지켰다 &mdash; 승률 1위 칸이 평균 1위로 뒤집히지 않았다. 원래 불일치는
+      이상치 아티팩트가 아니라, <b>두 칸이 서로 다른 수익률 분포(위험/스큐) 형태를 가진다는
+      진짜 발견</b>으로 봐야 한다.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>경제학 지식 없이 읽는 법</h2>
+    <ul class="findings">
+      <li><b>"승률"과 "평균 수익률"은 다른 질문에 답한다.</b> 승률은 "얼마나 자주 이겼는가",
+      평균은 "이겼을 때 얼마나 크게 이겼는가"를 더 많이 반영한다. 고용가속+물가감속 칸은
+      "자주 이기는" 유형이고, 냉각 칸은 "가끔 지지만 이길 때 크게 이기는" 유형에 더 가깝다
+      &mdash; 이건 이상치를 지워도 사라지지 않는 차이였다.</li>
+      <li><b>냉각 국면(고용도 식고 물가도 식는)의 큰 반등 상당수는 침체 직후 바닥 탈출과
+      겹친다.</b> 2009년 금융위기, 2020년 팬데믹 급락 직후가 대표 사례 &mdash; "고용·물가가
+      둘 다 식었다"는 신호 자체보다 "이미 바닥까지 떨어진 뒤였다"는 배경이 반등 크기에 크게
+      기여했을 가능성이 있다(단 이번 검증에서 지배적 원인까진 아님을 확인).</li>
+      <li><b>이상치를 지워보는 건 "이 결과가 몇 개의 극단값 때문인지" 확인하는 표준적인
+      방법이다.</b> 이번엔 지워도 결론이 안 바뀌었다는 것 자체가 의미 있는 결과다 &mdash;
+      "혹시 우연이었나"를 의심하고 검증했는데 우연이 아니었다는 뜻이니까.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>한계</h2>
+    <div class="callout">
+      <ul class="findings" style="margin:0;">
+        <li><b>이건 원 스터디의 재분석이지 새로운 독립 검증이 아니다.</b> 이벤트 분류·수익률
+        계산 로직 모두 `nfp_cpi_joint_regime_study.py`를 그대로 재사용했다 &mdash; 그 스터디
+        자체의 한계(NFP 모멘텀·CPI 추세 모두 진짜 컨센서스 대비 서프라이즈가 아니라 추세
+        프록시)가 여기도 그대로 적용된다.</li>
+        <li><b>이상치 제거 기준(top-1, top-3)은 표준적이지만 자의적이다.</b> top-5나 top-10을
+        제거하면 다른 결과가 나올 수 있다 &mdash; 다만 결론을 뒤집는 개수를 사후에 골라 보고한
+        게 아니라 사전에 정한 두 가지(1개, 3개)를 그대로 보고했다는 점은 밝혀둔다.</li>
+        <li><b>침체 플래그(USREC)는 월 단위이고 "전월 기준"으로 태깅했다.</b> 침체 종료 직후
+        수개월(회복 초입)까지 포함한 더 넓은 "회복기" 정의를 썼다면 H2의 일치 비율이 달라졌을
+        수 있다.</li>
+        <li><b>표본이 여전히 두 칸 각각 n=79·114로, 상위 5개 이상치의 비중이 결과에 큰 영향을
+        준다</b> &mdash; 표본이 수천 건이었다면 이 정도 이상치 분석 자체가 덜 중요했을 것이다.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="footer">
+    데이터: FRED(PAYEMS, CPIAUCSL, USREC) · Yahoo Finance(^GSPC) · 원 스터디:
+    <a href="https://claude.ai/code/artifact/5063fd3a-c2f3-417b-9076-b1206552de15">고용지표가 선명해지는 순간</a>(NFP×CPI 교차) ·
+    분석 스크립트: nfp_cpi_outlier_decomposition.py
+  </div>
+</div>

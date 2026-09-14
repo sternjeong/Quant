@@ -1,0 +1,1115 @@
+{
+  "meta": {
+    "generated": "2026-08-19T03:36:57",
+    "market_ticker": "SPY",
+    "btc_ticker": "BTC-USD",
+    "peer_tickers": [
+      "IREN",
+      "CIFR",
+      "CLSK",
+      "WULF",
+      "HUT",
+      "CORZ",
+      "BTDR"
+    ]
+  },
+  "h1": {
+    "hypothesis": "H1",
+    "window_days": 126,
+    "market_ticker": "SPY",
+    "iren": {
+      "ticker": "IREN",
+      "n_days": 1064,
+      "start": "2022-05-20",
+      "end": "2026-08-18",
+      "avg_rolling_beta": 2.94,
+      "beta_std": 0.85,
+      "static_full_sample_beta": 2.535,
+      "static_beta_r2": 0.139,
+      "unhedged": {
+        "cagr_pct": 54.24,
+        "ann_vol_pct": 117.95,
+        "sharpe": 0.931,
+        "mdd_pct": -83.04,
+        "total_return_pct": 523.15,
+        "n_days": 1064
+      },
+      "rolling_hedged": {
+        "cagr_pct": 1.07,
+        "ann_vol_pct": 109.23,
+        "sharpe": 0.529,
+        "mdd_pct": -81.38,
+        "total_return_pct": 4.6,
+        "n_days": 1064
+      },
+      "static_hedged": {
+        "cagr_pct": 5.65,
+        "ann_vol_pct": 109.12,
+        "sharpe": 0.569,
+        "mdd_pct": -81.56,
+        "total_return_pct": 26.12,
+        "n_days": 1064
+      },
+      "sharpe_improved_rolling": false,
+      "sharpe_delta_rolling": -0.402,
+      "mdd_improved_rolling": true
+    },
+    "peers": {
+      "CIFR": {
+        "ticker": "CIFR",
+        "n_days": 1336,
+        "start": "2021-04-23",
+        "end": "2026-08-18",
+        "avg_rolling_beta": 2.531,
+        "beta_std": 1.212,
+        "static_full_sample_beta": 2.307,
+        "static_beta_r2": 0.115,
+        "unhedged": {
+          "cagr_pct": 9.21,
+          "ann_vol_pct": 118.5,
+          "sharpe": 0.654,
+          "mdd_pct": -97.16,
+          "total_return_pct": 59.51,
+          "n_days": 1336
+        },
+        "rolling_hedged": {
+          "cagr_pct": -18.5,
+          "ann_vol_pct": 111.02,
+          "sharpe": 0.361,
+          "mdd_pct": -96.16,
+          "total_return_pct": -66.19,
+          "n_days": 1336
+        },
+        "static_hedged": {
+          "cagr_pct": -15.1,
+          "ann_vol_pct": 111.1,
+          "sharpe": 0.397,
+          "mdd_pct": -95.95,
+          "total_return_pct": -58.0,
+          "n_days": 1336
+        },
+        "sharpe_improved_rolling": false,
+        "sharpe_delta_rolling": -0.293,
+        "mdd_improved_rolling": true
+      },
+      "CLSK": {
+        "ticker": "CLSK",
+        "n_days": 1538,
+        "start": "2020-07-06",
+        "end": "2026-08-18",
+        "avg_rolling_beta": 2.857,
+        "beta_std": 0.933,
+        "static_full_sample_beta": 1.932,
+        "static_beta_r2": 0.102,
+        "unhedged": {
+          "cagr_pct": 29.25,
+          "ann_vol_pct": 107.18,
+          "sharpe": 0.76,
+          "mdd_pct": -95.59,
+          "total_return_pct": 378.78,
+          "n_days": 1538
+        },
+        "rolling_hedged": {
+          "cagr_pct": -6.0,
+          "ann_vol_pct": 97.44,
+          "sharpe": 0.41,
+          "mdd_pct": -95.45,
+          "total_return_pct": -31.44,
+          "n_days": 1538
+        },
+        "static_hedged": {
+          "cagr_pct": 1.25,
+          "ann_vol_pct": 97.87,
+          "sharpe": 0.487,
+          "mdd_pct": -94.99,
+          "total_return_pct": 7.89,
+          "n_days": 1538
+        },
+        "sharpe_improved_rolling": false,
+        "sharpe_delta_rolling": -0.35,
+        "mdd_improved_rolling": true
+      },
+      "WULF": {
+        "ticker": "WULF",
+        "n_days": 1538,
+        "start": "2020-07-06",
+        "end": "2026-08-18",
+        "avg_rolling_beta": 2.248,
+        "beta_std": 1.408,
+        "static_full_sample_beta": 1.523,
+        "static_beta_r2": 0.065,
+        "unhedged": {
+          "cagr_pct": 31.72,
+          "ann_vol_pct": 121.72,
+          "sharpe": 0.816,
+          "mdd_pct": -98.5,
+          "total_return_pct": 437.31,
+          "n_days": 1538
+        },
+        "rolling_hedged": {
+          "cagr_pct": 1.05,
+          "ann_vol_pct": 115.62,
+          "sharpe": 0.57,
+          "mdd_pct": -98.1,
+          "total_return_pct": 6.6,
+          "n_days": 1538
+        },
+        "static_hedged": {
+          "cagr_pct": 7.14,
+          "ann_vol_pct": 116.69,
+          "sharpe": 0.622,
+          "mdd_pct": -98.02,
+          "total_return_pct": 52.37,
+          "n_days": 1538
+        },
+        "sharpe_improved_rolling": false,
+        "sharpe_delta_rolling": -0.246,
+        "mdd_improved_rolling": true
+      },
+      "HUT": {
+        "ticker": "HUT",
+        "n_days": 1538,
+        "start": "2020-07-06",
+        "end": "2026-08-18",
+        "avg_rolling_beta": 3.016,
+        "beta_std": 0.927,
+        "static_full_sample_beta": 2.353,
+        "static_beta_r2": 0.159,
+        "unhedged": {
+          "cagr_pct": 63.63,
+          "ann_vol_pct": 114.09,
+          "sharpe": 0.984,
+          "mdd_pct": -95.04,
+          "total_return_pct": 1919.75,
+          "n_days": 1538
+        },
+        "rolling_hedged": {
+          "cagr_pct": 16.81,
+          "ann_vol_pct": 103.1,
+          "sharpe": 0.649,
+          "mdd_pct": -92.58,
+          "total_return_pct": 158.17,
+          "n_days": 1538
+        },
+        "static_hedged": {
+          "cagr_pct": 21.58,
+          "ann_vol_pct": 103.37,
+          "sharpe": 0.688,
+          "mdd_pct": -91.86,
+          "total_return_pct": 229.63,
+          "n_days": 1538
+        },
+        "sharpe_improved_rolling": false,
+        "sharpe_delta_rolling": -0.335,
+        "mdd_improved_rolling": true
+      },
+      "CORZ": {
+        "ticker": "CORZ",
+        "n_days": 517,
+        "start": "2024-07-26",
+        "end": "2026-08-18",
+        "avg_rolling_beta": 2.508,
+        "beta_std": 0.42,
+        "static_full_sample_beta": 2.359,
+        "static_beta_r2": 0.19,
+        "unhedged": {
+          "cagr_pct": 40.3,
+          "ann_vol_pct": 80.34,
+          "sharpe": 0.825,
+          "mdd_pct": -64.95,
+          "total_return_pct": 100.32,
+          "n_days": 517
+        },
+        "rolling_hedged": {
+          "cagr_pct": -1.24,
+          "ann_vol_pct": 70.74,
+          "sharpe": 0.335,
+          "mdd_pct": -51.1,
+          "total_return_pct": -2.52,
+          "n_days": 517
+        },
+        "static_hedged": {
+          "cagr_pct": -4.86,
+          "ann_vol_pct": 70.02,
+          "sharpe": 0.279,
+          "mdd_pct": -53.17,
+          "total_return_pct": -9.71,
+          "n_days": 517
+        },
+        "sharpe_improved_rolling": false,
+        "sharpe_delta_rolling": -0.49,
+        "mdd_improved_rolling": true
+      },
+      "BTDR": {
+        "ticker": "BTDR",
+        "n_days": 1143,
+        "start": "2022-01-27",
+        "end": "2026-08-18",
+        "avg_rolling_beta": 1.942,
+        "beta_std": 1.596,
+        "static_full_sample_beta": 1.503,
+        "static_beta_r2": 0.065,
+        "unhedged": {
+          "cagr_pct": -2.19,
+          "ann_vol_pct": 106.28,
+          "sharpe": 0.499,
+          "mdd_pct": -79.52,
+          "total_return_pct": -9.55,
+          "n_days": 1143
+        },
+        "rolling_hedged": {
+          "cagr_pct": -26.9,
+          "ann_vol_pct": 99.87,
+          "sharpe": 0.175,
+          "mdd_pct": -84.16,
+          "total_return_pct": -75.86,
+          "n_days": 1143
+        },
+        "static_hedged": {
+          "cagr_pct": -19.48,
+          "ann_vol_pct": 102.55,
+          "sharpe": 0.29,
+          "mdd_pct": -79.2,
+          "total_return_pct": -62.57,
+          "n_days": 1143
+        },
+        "sharpe_improved_rolling": false,
+        "sharpe_delta_rolling": -0.324,
+        "mdd_improved_rolling": false
+      }
+    },
+    "basket": {
+      "tickers": [
+        "IREN",
+        "CIFR",
+        "CLSK",
+        "WULF",
+        "HUT",
+        "CORZ",
+        "BTDR"
+      ],
+      "n_days": 517,
+      "start": "2024-07-26",
+      "end": "2026-08-18",
+      "avg_rolling_beta": 3.309,
+      "unhedged": {
+        "cagr_pct": 73.64,
+        "ann_vol_pct": 87.3,
+        "sharpe": 1.068,
+        "mdd_pct": -63.34,
+        "total_return_pct": 210.2,
+        "n_days": 517
+      },
+      "rolling_hedged": {
+        "cagr_pct": 14.78,
+        "ann_vol_pct": 72.72,
+        "sharpe": 0.553,
+        "mdd_pct": -51.75,
+        "total_return_pct": 32.68,
+        "n_days": 517
+      },
+      "sharpe_improved_rolling": false,
+      "sharpe_delta_rolling": -0.515
+    },
+    "n_tickers_sharpe_improved": 0,
+    "n_tickers_total": 7,
+    "verdict_hint": "기각"
+  },
+  "h2": {
+    "hypothesis": "H2",
+    "window_days": 126,
+    "iren": {
+      "ticker": "IREN",
+      "n_days": 1189,
+      "start": "2021-11-18",
+      "end": "2026-08-17",
+      "static_regression": {
+        "market_only": {
+          "alpha_daily_pct": 0.1848,
+          "beta": 2.532,
+          "r2": 0.139
+        },
+        "btc_only": {
+          "alpha_daily_pct": 0.303,
+          "beta": 1.054,
+          "r2": 0.177
+        },
+        "market_and_btc": {
+          "alpha_daily_pct": 0.2209,
+          "beta_mkt": 1.609,
+          "beta_btc": 0.803,
+          "r2": 0.223
+        },
+        "r2_incremental_from_btc": 0.084,
+        "btc_explains_more_than_market": true
+      },
+      "hedge_simulation": {
+        "n_days": 1062,
+        "start": "2022-05-23",
+        "end": "2026-08-17",
+        "unhedged": {
+          "cagr_pct": 59.66,
+          "ann_vol_pct": 117.96,
+          "sharpe": 0.96,
+          "mdd_pct": -82.96,
+          "total_return_pct": 618.4,
+          "n_days": 1062
+        },
+        "market_hedge": {
+          "cagr_pct": 3.85,
+          "ann_vol_pct": 109.25,
+          "sharpe": 0.554,
+          "mdd_pct": -78.95,
+          "total_return_pct": 17.28,
+          "n_days": 1062
+        },
+        "btc_hedge": {
+          "cagr_pct": 26.06,
+          "ann_vol_pct": 107.8,
+          "sharpe": 0.735,
+          "mdd_pct": -81.11,
+          "total_return_pct": 165.36,
+          "n_days": 1062
+        },
+        "both_hedge": {
+          "cagr_pct": -7.81,
+          "ann_vol_pct": 104.38,
+          "sharpe": 0.423,
+          "mdd_pct": -86.6,
+          "total_return_pct": -29.03,
+          "n_days": 1062
+        },
+        "sharpes": {
+          "unhedged": 0.96,
+          "market_hedge": 0.554,
+          "btc_hedge": 0.735,
+          "both_hedge": 0.423
+        },
+        "best_hedge": "btc_hedge"
+      }
+    },
+    "peers": {
+      "CIFR": {
+        "ticker": "CIFR",
+        "n_days": 1461,
+        "start": "2020-10-21",
+        "end": "2026-08-17",
+        "static_regression": {
+          "market_only": {
+            "alpha_daily_pct": 0.1401,
+            "beta": 2.302,
+            "r2": 0.115
+          },
+          "btc_only": {
+            "alpha_daily_pct": 0.2123,
+            "beta": 0.665,
+            "r2": 0.097
+          },
+          "market_and_btc": {
+            "alpha_daily_pct": 0.121,
+            "beta_mkt": 1.755,
+            "beta_btc": 0.457,
+            "r2": 0.154
+          },
+          "r2_incremental_from_btc": 0.039,
+          "btc_explains_more_than_market": false
+        },
+        "hedge_simulation": {
+          "n_days": 1334,
+          "start": "2021-04-26",
+          "end": "2026-08-17",
+          "unhedged": {
+            "cagr_pct": 12.28,
+            "ann_vol_pct": 118.45,
+            "sharpe": 0.678,
+            "mdd_pct": -97.16,
+            "total_return_pct": 84.63,
+            "n_days": 1334
+          },
+          "market_hedge": {
+            "cagr_pct": -16.61,
+            "ann_vol_pct": 111.01,
+            "sharpe": 0.382,
+            "mdd_pct": -96.16,
+            "total_return_pct": -61.76,
+            "n_days": 1334
+          },
+          "btc_hedge": {
+            "cagr_pct": -0.23,
+            "ann_vol_pct": 109.95,
+            "sharpe": 0.54,
+            "mdd_pct": -94.97,
+            "total_return_pct": -1.21,
+            "n_days": 1334
+          },
+          "both_hedge": {
+            "cagr_pct": -22.98,
+            "ann_vol_pct": 106.84,
+            "sharpe": 0.284,
+            "mdd_pct": -95.33,
+            "total_return_pct": -74.9,
+            "n_days": 1334
+          },
+          "sharpes": {
+            "unhedged": 0.678,
+            "market_hedge": 0.382,
+            "btc_hedge": 0.54,
+            "both_hedge": 0.284
+          },
+          "best_hedge": "btc_hedge"
+        }
+      },
+      "CLSK": {
+        "ticker": "CLSK",
+        "n_days": 1663,
+        "start": "2020-01-03",
+        "end": "2026-08-17",
+        "static_regression": {
+          "market_only": {
+            "alpha_daily_pct": 0.1901,
+            "beta": 1.93,
+            "r2": 0.102
+          },
+          "btc_only": {
+            "alpha_daily_pct": 0.1822,
+            "beta": 0.784,
+            "r2": 0.126
+          },
+          "market_and_btc": {
+            "alpha_daily_pct": 0.1284,
+            "beta_mkt": 1.295,
+            "beta_btc": 0.601,
+            "r2": 0.165
+          },
+          "r2_incremental_from_btc": 0.063,
+          "btc_explains_more_than_market": true
+        },
+        "hedge_simulation": {
+          "n_days": 1536,
+          "start": "2020-07-07",
+          "end": "2026-08-17",
+          "unhedged": {
+            "cagr_pct": 26.22,
+            "ann_vol_pct": 106.84,
+            "sharpe": 0.737,
+            "mdd_pct": -95.59,
+            "total_return_pct": 313.33,
+            "n_days": 1536
+          },
+          "market_hedge": {
+            "cagr_pct": -8.47,
+            "ann_vol_pct": 97.11,
+            "sharpe": 0.381,
+            "mdd_pct": -95.45,
+            "total_return_pct": -41.7,
+            "n_days": 1536
+          },
+          "btc_hedge": {
+            "cagr_pct": 13.3,
+            "ann_vol_pct": 93.2,
+            "sharpe": 0.591,
+            "mdd_pct": -94.14,
+            "total_return_pct": 114.03,
+            "n_days": 1536
+          },
+          "both_hedge": {
+            "cagr_pct": -9.41,
+            "ann_vol_pct": 89.66,
+            "sharpe": 0.33,
+            "mdd_pct": -97.24,
+            "total_return_pct": -45.26,
+            "n_days": 1536
+          },
+          "sharpes": {
+            "unhedged": 0.737,
+            "market_hedge": 0.381,
+            "btc_hedge": 0.591,
+            "both_hedge": 0.33
+          },
+          "best_hedge": "btc_hedge"
+        }
+      },
+      "WULF": {
+        "ticker": "WULF",
+        "n_days": 1663,
+        "start": "2020-01-03",
+        "end": "2026-08-17",
+        "static_regression": {
+          "market_only": {
+            "alpha_daily_pct": 0.255,
+            "beta": 1.52,
+            "r2": 0.065
+          },
+          "btc_only": {
+            "alpha_daily_pct": 0.2556,
+            "beta": 0.577,
+            "r2": 0.07
+          },
+          "market_and_btc": {
+            "alpha_daily_pct": 0.2112,
+            "beta_mkt": 1.07,
+            "beta_btc": 0.426,
+            "r2": 0.098
+          },
+          "r2_incremental_from_btc": 0.033,
+          "btc_explains_more_than_market": true
+        },
+        "hedge_simulation": {
+          "n_days": 1536,
+          "start": "2020-07-07",
+          "end": "2026-08-17",
+          "unhedged": {
+            "cagr_pct": 33.55,
+            "ann_vol_pct": 121.7,
+            "sharpe": 0.827,
+            "mdd_pct": -98.5,
+            "total_return_pct": 483.19,
+            "n_days": 1536
+          },
+          "market_hedge": {
+            "cagr_pct": 2.1,
+            "ann_vol_pct": 115.63,
+            "sharpe": 0.579,
+            "mdd_pct": -98.1,
+            "total_return_pct": 13.51,
+            "n_days": 1536
+          },
+          "btc_hedge": {
+            "cagr_pct": 5.71,
+            "ann_vol_pct": 115.51,
+            "sharpe": 0.606,
+            "mdd_pct": -98.54,
+            "total_return_pct": 40.29,
+            "n_days": 1536
+          },
+          "both_hedge": {
+            "cagr_pct": -13.23,
+            "ann_vol_pct": 112.62,
+            "sharpe": 0.42,
+            "mdd_pct": -98.98,
+            "total_return_pct": -57.88,
+            "n_days": 1536
+          },
+          "sharpes": {
+            "unhedged": 0.827,
+            "market_hedge": 0.579,
+            "btc_hedge": 0.606,
+            "both_hedge": 0.42
+          },
+          "best_hedge": "btc_hedge"
+        }
+      },
+      "HUT": {
+        "ticker": "HUT",
+        "n_days": 1663,
+        "start": "2020-01-03",
+        "end": "2026-08-17",
+        "static_regression": {
+          "market_only": {
+            "alpha_daily_pct": 0.3031,
+            "beta": 2.351,
+            "r2": 0.159
+          },
+          "btc_only": {
+            "alpha_daily_pct": 0.2655,
+            "beta": 1.117,
+            "r2": 0.268
+          },
+          "market_and_btc": {
+            "alpha_daily_pct": 0.2083,
+            "beta_mkt": 1.376,
+            "beta_btc": 0.923,
+            "r2": 0.314
+          },
+          "r2_incremental_from_btc": 0.156,
+          "btc_explains_more_than_market": true
+        },
+        "hedge_simulation": {
+          "n_days": 1536,
+          "start": "2020-07-07",
+          "end": "2026-08-17",
+          "unhedged": {
+            "cagr_pct": 65.33,
+            "ann_vol_pct": 114.11,
+            "sharpe": 0.993,
+            "mdd_pct": -95.04,
+            "total_return_pct": 2042.09,
+            "n_days": 1536
+          },
+          "market_hedge": {
+            "cagr_pct": 17.8,
+            "ann_vol_pct": 103.14,
+            "sharpe": 0.657,
+            "mdd_pct": -92.58,
+            "total_return_pct": 171.4,
+            "n_days": 1536
+          },
+          "btc_hedge": {
+            "cagr_pct": 18.04,
+            "ann_vol_pct": 96.9,
+            "sharpe": 0.643,
+            "mdd_pct": -92.0,
+            "total_return_pct": 174.83,
+            "n_days": 1536
+          },
+          "both_hedge": {
+            "cagr_pct": -11.06,
+            "ann_vol_pct": 92.89,
+            "sharpe": 0.326,
+            "mdd_pct": -94.48,
+            "total_return_pct": -51.06,
+            "n_days": 1536
+          },
+          "sharpes": {
+            "unhedged": 0.993,
+            "market_hedge": 0.657,
+            "btc_hedge": 0.643,
+            "both_hedge": 0.326
+          },
+          "best_hedge": "market_hedge"
+        }
+      },
+      "CORZ": {
+        "ticker": "CORZ",
+        "n_days": 642,
+        "start": "2024-01-25",
+        "end": "2026-08-17",
+        "static_regression": {
+          "market_only": {
+            "alpha_daily_pct": 0.2262,
+            "beta": 2.353,
+            "r2": 0.19
+          },
+          "btc_only": {
+            "alpha_daily_pct": 0.3533,
+            "beta": 0.726,
+            "r2": 0.136
+          },
+          "market_and_btc": {
+            "alpha_daily_pct": 0.2248,
+            "beta_mkt": 1.858,
+            "beta_btc": 0.463,
+            "r2": 0.237
+          },
+          "r2_incremental_from_btc": 0.047,
+          "btc_explains_more_than_market": false
+        },
+        "hedge_simulation": {
+          "n_days": 515,
+          "start": "2024-07-29",
+          "end": "2026-08-17",
+          "unhedged": {
+            "cagr_pct": 39.4,
+            "ann_vol_pct": 80.16,
+            "sharpe": 0.817,
+            "mdd_pct": -64.95,
+            "total_return_pct": 97.16,
+            "n_days": 515
+          },
+          "market_hedge": {
+            "cagr_pct": -1.69,
+            "ann_vol_pct": 70.69,
+            "sharpe": 0.328,
+            "mdd_pct": -51.1,
+            "total_return_pct": -3.42,
+            "n_days": 515
+          },
+          "btc_hedge": {
+            "cagr_pct": 14.3,
+            "ann_vol_pct": 74.98,
+            "sharpe": 0.555,
+            "mdd_pct": -70.04,
+            "total_return_pct": 31.4,
+            "n_days": 515
+          },
+          "both_hedge": {
+            "cagr_pct": -13.86,
+            "ann_vol_pct": 69.54,
+            "sharpe": 0.134,
+            "mdd_pct": -53.08,
+            "total_return_pct": -26.29,
+            "n_days": 515
+          },
+          "sharpes": {
+            "unhedged": 0.817,
+            "market_hedge": 0.328,
+            "btc_hedge": 0.555,
+            "both_hedge": 0.134
+          },
+          "best_hedge": "btc_hedge"
+        }
+      },
+      "BTDR": {
+        "ticker": "BTDR",
+        "n_days": 1268,
+        "start": "2021-07-29",
+        "end": "2026-08-17",
+        "static_regression": {
+          "market_only": {
+            "alpha_daily_pct": 0.1089,
+            "beta": 1.501,
+            "r2": 0.065
+          },
+          "btc_only": {
+            "alpha_daily_pct": 0.1691,
+            "beta": 0.515,
+            "r2": 0.061
+          },
+          "market_and_btc": {
+            "alpha_daily_pct": 0.1159,
+            "beta_mkt": 1.083,
+            "beta_btc": 0.358,
+            "r2": 0.089
+          },
+          "r2_incremental_from_btc": 0.025,
+          "btc_explains_more_than_market": false
+        },
+        "hedge_simulation": {
+          "n_days": 1141,
+          "start": "2022-01-28",
+          "end": "2026-08-17",
+          "unhedged": {
+            "cagr_pct": -1.27,
+            "ann_vol_pct": 106.35,
+            "sharpe": 0.508,
+            "mdd_pct": -79.52,
+            "total_return_pct": -5.63,
+            "n_days": 1141
+          },
+          "market_hedge": {
+            "cagr_pct": -26.72,
+            "ann_vol_pct": 99.96,
+            "sharpe": 0.178,
+            "mdd_pct": -84.16,
+            "total_return_pct": -75.53,
+            "n_days": 1141
+          },
+          "btc_hedge": {
+            "cagr_pct": -11.17,
+            "ann_vol_pct": 99.98,
+            "sharpe": 0.371,
+            "mdd_pct": -81.75,
+            "total_return_pct": -41.51,
+            "n_days": 1141
+          },
+          "both_hedge": {
+            "cagr_pct": -30.15,
+            "ann_vol_pct": 97.29,
+            "sharpe": 0.109,
+            "mdd_pct": -87.43,
+            "total_return_pct": -80.3,
+            "n_days": 1141
+          },
+          "sharpes": {
+            "unhedged": 0.508,
+            "market_hedge": 0.178,
+            "btc_hedge": 0.371,
+            "both_hedge": 0.109
+          },
+          "best_hedge": "btc_hedge"
+        }
+      }
+    },
+    "summary": {
+      "n_tickers": 7,
+      "n_btc_r2_greater_than_market_r2": 4,
+      "avg_r2_market_only": 0.119,
+      "avg_r2_btc_only": 0.134,
+      "avg_r2_market_and_btc": 0.183,
+      "best_hedge_vote_counts": {
+        "btc_hedge": 6,
+        "market_hedge": 1
+      }
+    },
+    "verdict_hint": "채택"
+  },
+  "h3": {
+    "hypothesis": "H3",
+    "beta_window_days": 90,
+    "momentum_window_days": 63,
+    "rebalance_every_days": 21,
+    "primary": {
+      "label": "6종목(CORZ 제외, 긴 공통구간)",
+      "tickers": [
+        "IREN",
+        "CIFR",
+        "CLSK",
+        "WULF",
+        "HUT",
+        "BTDR"
+      ],
+      "n_days": 1190,
+      "start": "2021-11-18",
+      "end": "2026-08-18",
+      "realized_beta": {
+        "EW": 2.585,
+        "LB": 2.145,
+        "HB": 2.79
+      },
+      "metrics": {
+        "EW": {
+          "cagr_pct": 45.77,
+          "ann_vol_pct": 90.35,
+          "sharpe": 0.864,
+          "mdd_pct": -80.57,
+          "total_return_pct": 418.18,
+          "n_days": 1100
+        },
+        "LB": {
+          "cagr_pct": 47.76,
+          "ann_vol_pct": 86.66,
+          "sharpe": 0.878,
+          "mdd_pct": -74.0,
+          "total_return_pct": 449.78,
+          "n_days": 1100
+        },
+        "HB": {
+          "cagr_pct": 35.16,
+          "ann_vol_pct": 94.08,
+          "sharpe": 0.785,
+          "mdd_pct": -85.85,
+          "total_return_pct": 272.53,
+          "n_days": 1100
+        },
+        "MOM": {
+          "cagr_pct": 38.5,
+          "ann_vol_pct": 94.63,
+          "sharpe": 0.812,
+          "mdd_pct": -71.25,
+          "total_return_pct": 314.44,
+          "n_days": 1100
+        }
+      },
+      "lb_beats_ew_sharpe": true,
+      "lb_beats_mom_sharpe": true,
+      "lb_beats_hb_sharpe": true,
+      "verdict_hint": "채택"
+    },
+    "robustness_all7": {
+      "label": "7종목 전체(CORZ 포함, 짧은 공통구간)",
+      "tickers": [
+        "IREN",
+        "CIFR",
+        "CLSK",
+        "WULF",
+        "HUT",
+        "CORZ",
+        "BTDR"
+      ],
+      "n_days": 643,
+      "start": "2024-01-25",
+      "end": "2026-08-18",
+      "realized_beta": {
+        "EW": 2.978,
+        "LB": 2.93,
+        "HB": 3.024
+      },
+      "metrics": {
+        "EW": {
+          "cagr_pct": 106.73,
+          "ann_vol_pct": 87.86,
+          "sharpe": 1.265,
+          "mdd_pct": -63.34,
+          "total_return_pct": 392.17,
+          "n_days": 553
+        },
+        "LB": {
+          "cagr_pct": 114.06,
+          "ann_vol_pct": 86.48,
+          "sharpe": 1.312,
+          "mdd_pct": -62.74,
+          "total_return_pct": 431.31,
+          "n_days": 553
+        },
+        "HB": {
+          "cagr_pct": 100.39,
+          "ann_vol_pct": 89.3,
+          "sharpe": 1.223,
+          "mdd_pct": -64.04,
+          "total_return_pct": 359.69,
+          "n_days": 553
+        },
+        "MOM": {
+          "cagr_pct": 148.77,
+          "ann_vol_pct": 91.65,
+          "sharpe": 1.452,
+          "mdd_pct": -66.16,
+          "total_return_pct": 638.84,
+          "n_days": 553
+        }
+      },
+      "lb_beats_ew_sharpe": true,
+      "lb_beats_mom_sharpe": false,
+      "lb_beats_hb_sharpe": true,
+      "verdict_hint": "기각"
+    },
+    "verdict_hint": "채택"
+  },
+  "h4": {
+    "hypothesis": "H4",
+    "target_beta": 0.3,
+    "beta_window_days": 90,
+    "rebalance_every_days": 21,
+    "primary": {
+      "label": "6종목(CORZ 제외, 긴 공통구간)",
+      "tickers": [
+        "IREN",
+        "CIFR",
+        "CLSK",
+        "WULF",
+        "HUT",
+        "BTDR"
+      ],
+      "target_beta": 0.3,
+      "n_days": 1190,
+      "start": "2021-11-18",
+      "end": "2026-08-18",
+      "avg_invested_fraction": {
+        "EW_budget": 0.114,
+        "InvBeta_budget": 0.16
+      },
+      "metrics": {
+        "EW_budget": {
+          "cagr_pct": 7.74,
+          "ann_vol_pct": 10.31,
+          "sharpe": 0.775,
+          "mdd_pct": -20.03,
+          "total_return_pct": 38.44,
+          "n_days": 1100
+        },
+        "InvBeta_budget": {
+          "cagr_pct": 5.69,
+          "ann_vol_pct": 13.33,
+          "sharpe": 0.482,
+          "mdd_pct": -29.6,
+          "total_return_pct": 27.33,
+          "n_days": 1100
+        }
+      },
+      "expost_regression": {
+        "EW_budget": {
+          "realized_beta": 0.289,
+          "alpha_daily_pct": 0.0151,
+          "alpha_annualized_pct": 3.87,
+          "r2": 0.234
+        },
+        "InvBeta_budget": {
+          "realized_beta": 0.297,
+          "alpha_daily_pct": 0.0084,
+          "alpha_annualized_pct": 2.15,
+          "r2": 0.148
+        }
+      },
+      "invbeta_beats_ew_alpha": false,
+      "invbeta_beats_ew_sharpe": false,
+      "verdict_hint": "기각"
+    },
+    "robustness_all7": {
+      "label": "7종목 전체(CORZ 포함, 짧은 공통구간)",
+      "tickers": [
+        "IREN",
+        "CIFR",
+        "CLSK",
+        "WULF",
+        "HUT",
+        "CORZ",
+        "BTDR"
+      ],
+      "target_beta": 0.3,
+      "n_days": 643,
+      "start": "2024-01-25",
+      "end": "2026-08-18",
+      "avg_invested_fraction": {
+        "EW_budget": 0.093,
+        "InvBeta_budget": 0.097
+      },
+      "metrics": {
+        "EW_budget": {
+          "cagr_pct": 13.25,
+          "ann_vol_pct": 8.12,
+          "sharpe": 1.572,
+          "mdd_pct": -6.27,
+          "total_return_pct": 31.39,
+          "n_days": 553
+        },
+        "InvBeta_budget": {
+          "cagr_pct": 13.74,
+          "ann_vol_pct": 8.36,
+          "sharpe": 1.581,
+          "mdd_pct": -6.29,
+          "total_return_pct": 32.65,
+          "n_days": 553
+        }
+      },
+      "expost_regression": {
+        "EW_budget": {
+          "realized_beta": 0.265,
+          "alpha_daily_pct": 0.0301,
+          "alpha_annualized_pct": 7.87,
+          "r2": 0.289
+        },
+        "InvBeta_budget": {
+          "realized_beta": 0.271,
+          "alpha_daily_pct": 0.0314,
+          "alpha_annualized_pct": 8.24,
+          "r2": 0.284
+        }
+      },
+      "invbeta_beats_ew_alpha": true,
+      "invbeta_beats_ew_sharpe": true,
+      "verdict_hint": "채택"
+    },
+    "verdict_hint": "기각"
+  },
+  "h5": {
+    "hypothesis": "H5",
+    "title": "옵션 기반 헤지(protective put / collar) — 정성적 프레이밍만 (실측 생략)",
+    "why_no_backtest": "이 저장소에는 옵션 가격결정/그릭스/옵션체인 이력 데이터 인프라가 없다(core/에 옵션 모듈 부재). IV 이력이나 옵션체인 스냅샷 없이 protective put/collar를 실측 백테스트하면 사실상 등가의 델타 헤지(=H1의 시장베타 헤지)를 재계산하는 것과 다르지 않아 새로운 정보가 없다. 억지로 근사 시뮬레이션을 만들지 말라는 과제 지침에 따라, 실전에서 언제/왜 유효한지만 딥서치 근거로 정리한다.",
+    "points": [
+      "Protective put(주식 롱 + 풋 매수)은 하방을 무제한 방어하지만 프리미엄이 순수 비용으로 빠져나간다 — 이 프리미엄은 내재변동성(IV)에 비례하는데, IREN류 소형 테마주는 개별 IV가 구조적으로 높아(52주 실현변동성 90~120%대, H1/H3 실측 결과 참고) 상시 보험 비용이 매우 비싸다는 게 핵심 실전 제약이다.",
+      "Collar(풋 매수 + 콜 매도)는 콜 프리미엄으로 풋 비용을 상쇄해 순비용을 낮추지만, 상단 수익을 행사가로 제한한다 — CBOE S&P500 95-110 Collar Index 실측 사례가 장기 수익률의 약 71%를 변동성 약 67% 수준에서 얻었다는 업계 참고치가 있다. 이는 지수 콜라 사례이며, 개별 소형주(유동성이 낮고 옵션체인이 얕은 종목)는 스프레드 비용이 더 크고 콜 매도로 상단을 자르는 대가가 훨씬 뼈아프다 — H1/H3에서 실측된 이 종목군의 상단 폭발력(피벗 서사가 재평가될 때 단기간 수백% 상승) 자체가 이들의 핵심 알파원이기 때문에, 콜라의 상단 캡이 알파를 스스로 깎아먹는 구조적 모순이 있다.",
+      "IV는 실적발표/계약 공시(예: 대형 AI 호스팅 계약 발표) 직전에 스파이크한다는 것이 옵션 시장의 일반적 패턴이다 — 이런 촉매 이벤트가 주가 변동의 핵심 동력인 이 종목군에서는 '가장 보험이 필요한 시점'과 '보험이 가장 비싸지는 시점'이 구조적으로 겹친다는 뜻이라, 상시 보유보다는 촉매 이벤트 직전에만 전술적으로 쓰는 편이 비용 대비 합리적일 수 있다는 정성적 시사점이 있다.",
+      "결론(정성적): H1이 이미 보여주듯 '보험'에는 대가가 있고, 그 대가가 옵션에서는 프리미엄으로 더 명시적으로 드러날 뿐이다 — 옵션 헤지가 델타 헤지보다 우월하다고 말할 근거는 이 리서치 범위에서는 없으며, 오히려 얕은 유동성·높은 IV 탓에 실전에서는 델타 헤지보다 비용이 더 클 가능성이 높다."
+    ],
+    "sources": [
+      {
+        "title": "Betting Against Beta (Frazzini & Pedersen, 2014, JFE)",
+        "url": "https://pages.stern.nyu.edu/~lpederse/papers/BettingAgainstBeta.pdf"
+      },
+      {
+        "title": "What Are Options Collars? — Charles Schwab",
+        "url": "https://www.schwab.com/learn/story/what-are-options-collars"
+      },
+      {
+        "title": "Collar (long stock + long put + short call) — Fidelity",
+        "url": "https://www.fidelity.com/learning-center/investment-products/options/options-strategy-guide/collar"
+      },
+      {
+        "title": "Protective Puts and Collars — Equicurious",
+        "url": "https://equicurious.com/learn/derivatives/options-strategies-and-greeks/protective-puts-and-collars"
+      }
+    ]
+  },
+  "peer_context_sources": [
+    {
+      "title": "The Transformation Of Bitcoin Mining Into AI Hosting: Opportunities And Risks (Seeking Alpha)",
+      "url": "https://seekingalpha.com/article/4895793-the-transformation-of-bitcoin-mining-into-ai-hosting-opportunities-and-risks"
+    },
+    {
+      "title": "Miners Beat Bitcoin by 70% in 2026 as Terawulf Locks $12.8B in AI Contracts (news.Bitcoin.com)",
+      "url": "https://news.bitcoin.com/miners-beat-bitcoin-by-70-in-2026-as-terawulf-locks-12-8b-in-ai-contracts/"
+    },
+    {
+      "title": "Bitcoin miners' AI pivot faces $50 billion reality check, says VanEck (CoinDesk)",
+      "url": "https://www.coindesk.com/markets/2026/06/16/bitcoin-miners-ai-pivot-faces-usd50-billion-reality-check-says-vaneck"
+    },
+    {
+      "title": "Bitcoin Mining's AI Pivot: 2026 Thesis Update (insights4vc)",
+      "url": "https://insights4vc.substack.com/p/bitcoin-minings-ai-pivot-2026-thesis"
+    }
+  ],
+  "bab_source": {
+    "title": "Betting Against Beta (Frazzini & Pedersen, 2014, Journal of Financial Economics, Vol.111 No.1, pp.1-25)",
+    "url": "https://pages.stern.nyu.edu/~lpederse/papers/BettingAgainstBeta.pdf"
+  }
+}

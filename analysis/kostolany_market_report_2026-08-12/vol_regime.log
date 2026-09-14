@@ -1,0 +1,35 @@
+regime scale stats (전체 구간): count    3194.000000
+mean        0.866917
+std         0.252927
+min         0.300000
+25%         1.000000
+50%         1.000000
+75%         1.000000
+max         1.000000
+dtype: float64
+E4 (오버레이 없음) {'label': 'E4 (오버레이 없음)', 'mean_sharpe': np.float64(0.527), 'median_sharpe': np.float64(0.495), 'mean_cagr': np.float64(13.36), 'mean_excess_vs_bench': np.float64(1.25), 'win_rate_vs_bench_pct': np.float64(40.0), 'index_cagr': np.float64(11.43), 'index_sharpe': np.float64(0.74), 'index_mdd': np.float64(-26.48)}
+H1_vt12.0_cap1.0 {'label': 'H1_vt12.0_cap1.0', 'mean_sharpe': np.float64(0.499), 'median_sharpe': np.float64(0.485), 'mean_cagr': np.float64(6.07), 'mean_excess_vs_bench': np.float64(-6.04), 'win_rate_vs_bench_pct': np.float64(14.0), 'index_cagr': np.float64(8.38), 'index_sharpe': np.float64(0.85), 'index_mdd': np.float64(-15.72)}
+H1_vt12.0_cap1.3 {'label': 'H1_vt12.0_cap1.3', 'mean_sharpe': np.float64(0.499), 'median_sharpe': np.float64(0.485), 'mean_cagr': np.float64(6.11), 'mean_excess_vs_bench': np.float64(-6.0), 'win_rate_vs_bench_pct': np.float64(16.0), 'index_cagr': np.float64(8.48), 'index_sharpe': np.float64(0.8), 'index_mdd': np.float64(-15.93)}
+H1_vt18.0_cap1.0 {'label': 'H1_vt18.0_cap1.0', 'mean_sharpe': np.float64(0.509), 'median_sharpe': np.float64(0.515), 'mean_cagr': np.float64(8.41), 'mean_excess_vs_bench': np.float64(-3.7), 'win_rate_vs_bench_pct': np.float64(28.0), 'index_cagr': np.float64(10.01), 'index_sharpe': np.float64(0.82), 'index_mdd': np.float64(-21.67)}
+H1_vt18.0_cap1.3 {'label': 'H1_vt18.0_cap1.3', 'mean_sharpe': np.float64(0.5), 'median_sharpe': np.float64(0.485), 'mean_cagr': np.float64(8.57), 'mean_excess_vs_bench': np.float64(-3.54), 'win_rate_vs_bench_pct': np.float64(28.0), 'index_cagr': np.float64(11.73), 'index_sharpe': np.float64(0.85), 'index_mdd': np.float64(-23.08)}
+H1_vt25.0_cap1.0 {'label': 'H1_vt25.0_cap1.0', 'mean_sharpe': np.float64(0.519), 'median_sharpe': np.float64(0.53), 'mean_cagr': np.float64(10.33), 'mean_excess_vs_bench': np.float64(-1.78), 'win_rate_vs_bench_pct': np.float64(36.0), 'index_cagr': np.float64(10.75), 'index_sharpe': np.float64(0.8), 'index_mdd': np.float64(-24.68)}
+H1_vt25.0_cap1.3 {'label': 'H1_vt25.0_cap1.3', 'mean_sharpe': np.float64(0.512), 'median_sharpe': np.float64(0.515), 'mean_cagr': np.float64(10.9), 'mean_excess_vs_bench': np.float64(-1.2), 'win_rate_vs_bench_pct': np.float64(40.0), 'index_cagr': np.float64(13.18), 'index_sharpe': np.float64(0.82), 'index_mdd': np.float64(-28.21)}
+H2_bearscale0.0 {'label': 'H2_bearscale0.0', 'mean_sharpe': np.float64(0.41), 'median_sharpe': np.float64(0.415), 'mean_cagr': np.float64(7.98), 'mean_excess_vs_bench': np.float64(-4.13), 'win_rate_vs_bench_pct': np.float64(26.0), 'index_cagr': np.float64(6.39), 'index_sharpe': np.float64(0.69), 'index_mdd': np.float64(-19.19)}
+H2_bearscale0.3 {'label': 'H2_bearscale0.3', 'mean_sharpe': np.float64(0.473), 'median_sharpe': np.float64(0.48), 'mean_cagr': np.float64(9.94), 'mean_excess_vs_bench': np.float64(-2.17), 'win_rate_vs_bench_pct': np.float64(34.0), 'index_cagr': np.float64(8.04), 'index_sharpe': np.float64(0.77), 'index_mdd': np.float64(-18.47)}
+H2_bearscale0.5 {'label': 'H2_bearscale0.5', 'mean_sharpe': np.float64(0.499), 'median_sharpe': np.float64(0.5), 'mean_cagr': np.float64(11.09), 'mean_excess_vs_bench': np.float64(-1.02), 'win_rate_vs_bench_pct': np.float64(38.0), 'index_cagr': np.float64(9.08), 'index_sharpe': np.float64(0.78), 'index_mdd': np.float64(-19.23)}
+H3 (vol target + regime) {'label': 'H3 (vol target + regime)', 'mean_sharpe': np.float64(0.439), 'median_sharpe': np.float64(0.47), 'mean_cagr': np.float64(6.66), 'mean_excess_vs_bench': np.float64(-5.45), 'win_rate_vs_bench_pct': np.float64(24.0), 'index_cagr': np.float64(8.84), 'index_sharpe': np.float64(0.78), 'index_mdd': np.float64(-19.53)}
+
+=== 전체 요약 (mean_sharpe 내림차순) ===
+                       label  mean_sharpe  median_sharpe  mean_cagr  mean_excess_vs_bench  win_rate_vs_bench_pct  index_cagr  index_sharpe  index_mdd
+0               E4 (오버레이 없음)        0.527          0.495      13.36                  1.25                   40.0       11.43          0.74     -26.48
+5           H1_vt25.0_cap1.0        0.519          0.530      10.33                 -1.78                   36.0       10.75          0.80     -24.68
+6           H1_vt25.0_cap1.3        0.512          0.515      10.90                 -1.20                   40.0       13.18          0.82     -28.21
+3           H1_vt18.0_cap1.0        0.509          0.515       8.41                 -3.70                   28.0       10.01          0.82     -21.67
+4           H1_vt18.0_cap1.3        0.500          0.485       8.57                 -3.54                   28.0       11.73          0.85     -23.08
+2           H1_vt12.0_cap1.3        0.499          0.485       6.11                 -6.00                   16.0        8.48          0.80     -15.93
+1           H1_vt12.0_cap1.0        0.499          0.485       6.07                 -6.04                   14.0        8.38          0.85     -15.72
+9            H2_bearscale0.5        0.499          0.500      11.09                 -1.02                   38.0        9.08          0.78     -19.23
+8            H2_bearscale0.3        0.473          0.480       9.94                 -2.17                   34.0        8.04          0.77     -18.47
+10  H3 (vol target + regime)        0.439          0.470       6.66                 -5.45                   24.0        8.84          0.78     -19.53
+7            H2_bearscale0.0        0.410          0.415       7.98                 -4.13                   26.0        6.39          0.69     -19.19
+DONE

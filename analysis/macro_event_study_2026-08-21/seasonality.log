@@ -1,0 +1,27 @@
+S&P500 일별 데이터 조회 중...
+$^GSPC: possibly delisted; no price data found  (1d 1950-01-01 -> 1950-01-02)
+
+1 Failed download:
+['^GSPC']: possibly delisted; no price data found  (1d 1950-01-01 -> 1950-01-02)
+/workspaces/Quant/analysis/macro_event_study_2026-08-21/seasonality_event_study.py:38: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+  ret = round(100 * (seg.iloc[-1] / close.asof(unfav_start - pd.Timedelta(days=1)) - 1), 3)
+/workspaces/Quant/analysis/macro_event_study_2026-08-21/seasonality_event_study.py:47: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+  ret = round(100 * (seg.iloc[-1] / close.asof(fav_start - pd.Timedelta(days=1)) - 1), 3)
+
+=== 6개월 구간 비교 ===
+[5~10월(sell in May)] n=76, 평균=2.085%, 승률=65.8%
+[11~4월(우호적 계절)] n=76, 평균=6.95%, 승률=76.3%
+[1월] n=77, 평균=1.092%, 승률=61.0%
+[2월] n=77, 평균=-0.038%, 승률=53.2%
+[3월] n=77, 평균=0.959%, 승률=63.6%
+[4월] n=77, 평균=1.543%, 승률=70.1%
+[5월] n=77, 평균=0.437%, 승률=62.3%
+[6월] n=77, 평균=0.186%, 승률=54.5%
+[7월] n=77, 평균=1.289%, 승률=59.7%
+[8월] n=77, 평균=0.078%, 승률=55.8%
+[9월] n=76, 평균=-0.625%, 승률=44.7%
+[10월] n=76, 평균=0.895%, 승률=59.2%
+[11월] n=76, 평균=1.861%, 승률=69.7%
+[12월] n=76, 평균=1.415%, 승률=72.4%
+
+DONE

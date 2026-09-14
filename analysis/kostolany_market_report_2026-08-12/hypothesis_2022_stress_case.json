@@ -1,0 +1,43 @@
+{
+  "tlt_2022_return_pct": -32.82,
+  "gld_2022_return_pct": -0.77,
+  "bear_days_2022": 89,
+  "total_days_2022": 251,
+  "avg_defensive_weight_pct": 7.1,
+  "baseline": {
+    "cumulative_return": 1.97,
+    "cagr": 1.99,
+    "mdd": -14.6,
+    "sharpe": 0.2,
+    "win_rate": 0.0,
+    "avg_holding_days": 0.0,
+    "trade_count": 0,
+    "profit_factor": 0.0,
+    "calmar": 0.14,
+    "avg_drawdown_days": 6.7
+  },
+  "defensive_blend": {
+    "cumulative_return": 0.24,
+    "cagr": 0.24,
+    "mdd": -15.12,
+    "sharpe": 0.1,
+    "win_rate": 0.0,
+    "avg_holding_days": 0.0,
+    "trade_count": 0,
+    "profit_factor": 0.0,
+    "calmar": 0.02,
+    "avg_drawdown_days": 6.7
+  },
+  "sp500_bh": {
+    "cumulative_return": -19.75,
+    "cagr": -20.01,
+    "mdd": -25.43,
+    "sharpe": -0.8,
+    "win_rate": 0.0,
+    "avg_holding_days": 360.0,
+    "trade_count": 1,
+    "profit_factor": 0.0,
+    "calmar": -0.79,
+    "avg_drawdown_days": 0.0
+  }
+}

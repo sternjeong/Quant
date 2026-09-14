@@ -1,0 +1,258 @@
+<title>3대 거시지표 반응 비교</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #eef1ee; --surface: #ffffff; --surface-2: #e6eae5;
+    --ink: #17211d; --ink-muted: #57635c; --ink-faint: #8b968f; --line: #d9dfd8;
+    --hike: #a8461f; --hike-soft: #f4e3da; --cut: #1f6e79; --cut-soft: #dcedee; --gold: #8a6d1f;
+    --shadow: 0 1px 2px rgba(23,33,29,.06), 0 8px 24px -12px rgba(23,33,29,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+      --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+      --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+      --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+    --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+    --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+    --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Public Sans", -apple-system, "Noto Sans KR", sans-serif;
+    font-size: 16px; line-height: 1.65;
+  }
+  ::selection { background: var(--gold); color: #1a1408; }
+  a { color: var(--cut); }
+  .page { max-width: 880px; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 1rem;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 500;
+    font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.08; letter-spacing: -.01em;
+    margin: 0 0 1rem; text-wrap: balance;
+  }
+  .dek { font-size: 1.15rem; color: var(--ink-muted); max-width: 62ch; margin: 0 0 1.75rem; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: .4rem 1.6rem;
+    font-family: "IBM Plex Mono", monospace; font-size: .82rem; color: var(--ink-muted);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: .85rem 0;
+  }
+  .meta-row b { color: var(--ink); font-weight: 600; }
+  section { margin: 3.2rem 0; }
+  section > h2 {
+    font-family: "Fraunces", serif; font-weight: 500; font-size: 1.6rem;
+    letter-spacing: -.005em; margin: 0 0 .3rem; text-wrap: balance;
+  }
+  section > .lede { color: var(--ink-muted); max-width: 66ch; margin: 0 0 1.4rem; }
+  p { max-width: 68ch; }
+  .note {
+    background: var(--surface-2); border-left: 3px solid var(--gold); border-radius: 4px;
+    padding: .9rem 1.1rem; font-size: .93rem; color: var(--ink-muted); max-width: 68ch; margin: 1.1rem 0;
+  }
+  .note b { color: var(--ink); }
+  .callout {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.2rem 1.4rem; box-shadow: var(--shadow); margin: 1.4rem 0;
+  }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .9rem; margin: 1.3rem 0 1.6rem; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.1rem; }
+  .tile .label { font-size: .78rem; color: var(--ink-muted); margin-bottom: .35rem; }
+  .tile .value { font-family: "IBM Plex Mono", monospace; font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tile .value.hike { color: var(--hike); }
+  .tile .value.cut { color: var(--cut); }
+  .tile .sub { font-size: .76rem; color: var(--ink-faint); margin-top: .25rem; }
+  .table-wrap { overflow-x: auto; margin: 1.2rem 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 520px; font-size: .92rem; }
+  caption { text-align: left; font-size: .82rem; color: var(--ink-faint); padding-bottom: .5rem; }
+  th, td { padding: .62rem .8rem; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; font-family: "IBM Plex Mono", monospace; }
+  th:first-child, td:first-child { text-align: left; font-family: "Public Sans", sans-serif; }
+  thead th { font-family: "Public Sans", sans-serif; font-weight: 600; font-size: .78rem; letter-spacing: .02em; color: var(--ink-muted); text-transform: uppercase; border-bottom: 1px solid var(--ink-faint); }
+  tr.row-hot td:first-child { border-left: 3px solid var(--hike); padding-left: .65rem; }
+  tr.row-cool td:first-child { border-left: 3px solid var(--cut); padding-left: .65rem; }
+  tbody tr:hover { background: var(--surface-2); }
+  ul.findings { padding-left: 1.2rem; max-width: 68ch; }
+  ul.findings li { margin-bottom: .9rem; }
+  ul.findings b { color: var(--ink); }
+  .footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--line); font-size: .82rem; color: var(--ink-faint); }
+</style>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">MACRO EVENT STUDY · TRACK A · FRED 1994&ndash;2026</div>
+    <h1>물가·고용·성장, 어느 지표가 증시를 더 흔드나</h1>
+    <p class="dek">누구나 뉴스에서 듣는 3대 거시지표 — 물가(CPI·PCE), 고용(NFP), 성장(GDP) —
+    발표일을 전부 훑었다. 세 지표 모두 "수치가 좋았는가 나빴는가"가 아니라 "흐름이 가속 중이었는가
+    둔화 중이었는가"로 국면을 나눴는데, 그 구분이 지표마다 전혀 다른 크기로 시장 반응을 갈랐다.</p>
+    <div class="meta-row">
+      <span>CPI <b>405</b> · PCE <b>394</b> · NFP <b>385</b> · GDP <b>143</b></span>
+      <span>구간 <b>1994 ~ 2026</b></span>
+      <span>데이터 <b>FRED(발표일 공식 API)</b>, S&amp;P500</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>물가가 식어갈 때와 뜨거워질 때, 완전히 다른 그림</h2>
+    <p class="lede">발표되는 CPI의 절대적인 수치(예상보다 높았는지)는 무료 데이터로는 확인할 수
+    없었다 — 대신 "최근 3개월 사이 전년동월비 물가상승률 자체가 더 가팔라졌는가, 완만해졌는가"를
+    대리 지표로 썼다. 쉽게 말해 <b>물가가 계속 뜨거워지는 흐름인지, 이제 식는 흐름인지</b>를
+    구분한 것이다.</p>
+    <div class="tiles">
+      <div class="tile"><div class="label">가속(뜨거워지는 물가) · +60일</div><div class="value hike">+1.02%</div><div class="sub">승률 63.4% · n=202</div></div>
+      <div class="tile"><div class="label">감속(식는 물가) · +60일</div><div class="value cut">+3.52%</div><div class="sub">승률 75.4% · n=199</div></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <caption>CPI 발표일 이후 누적수익률(%) · 괄호는 승률</caption>
+        <thead><tr><th>구분</th><th>발표일</th><th>+5일</th><th>+20일</th><th>+60일</th></tr></thead>
+        <tbody>
+          <tr class="row-hot"><td>가속(202)</td><td>+0.05</td><td>&minus;0.07 (52%)</td><td>+0.17 (61%)</td><td>+1.02 (63%)</td></tr>
+          <tr class="row-cool"><td>감속(199)</td><td>+0.10</td><td>+0.26 (58%)</td><td>+1.14 (64%)</td><td>+3.52 (75%)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>발표 당일 자체는 두 국면이 거의 차이가 없다(+0.05% vs +0.10%) — 차이는 오직 시간이 지나며
+    벌어진다. <b>물가가 식어가는 흐름일 때 나온 CPI 발표는 60거래일 뒤 승률이 4명 중 3명꼴(75%)로
+    올라가 있었던 반면, 물가가 계속 뜨거워지는 흐름일 때는 그 절반 수준(63%)</b>이었다.</p>
+    <div class="note">경제학 지식 없이 읽으면: 물가가 식고 있다는 건 "연준이 금리를 더 안 올려도
+    되거나, 오히려 내릴 여지가 생긴다"는 신호로 시장이 받아들이는 경우가 많다 — 앞선 <b>연준 금리
+    이벤트 스터디</b>에서 확인한 "보험성 인하가 꾸준히 좋다"는 결론과 같은 방향의 이야기다. 물가와
+    금리는 서로 다른 지표지만, 시장이 보는 건 결국 같은 것 — "연준이 얼마나 더 조여야 하는가"다.</div>
+    <p class="note"><b>로버스트니스 확인</b> — CPI 대신 연준이 실제 목표(2%)로 삼는 물가지표인
+    PCE(개인소비지출 물가지수, 402건)로 똑같이 나눠봐도 거의 같은 숫자가 나온다: 가속 +60일
+    +1.45%(승률63.3%), 감속 +60일 +3.25%(승률75.5%) — CPI의 63.4%/75.4%와 사실상 동일하다.
+    특정 물가지표 하나에서 우연히 나온 결과가 아니라는 뜻이다.</p>
+  </section>
+
+  <section>
+    <h2>그런데 고용지표는 다르다 — 가속/둔화가 거의 차이를 안 만든다</h2>
+    <p class="lede">같은 방식으로 고용지표(비농업고용, NFP) 385건을 "고용 증가세가 강화되는
+    흐름"과 "약화되는 흐름"으로 나눠봤다.</p>
+    <div class="tiles">
+      <div class="tile"><div class="label">고용 가속(강화) · +60일</div><div class="value hike">+1.81%</div><div class="sub">승률 68.4% · n=187</div></div>
+      <div class="tile"><div class="label">고용 둔화(약화) · +60일</div><div class="value cut">+2.66%</div><div class="sub">승률 69.7% · n=198</div></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <caption>NFP 발표일 이후 누적수익률(%) · 괄호는 승률</caption>
+        <thead><tr><th>구분</th><th>발표일</th><th>+5일</th><th>+20일</th><th>+60일</th></tr></thead>
+        <tbody>
+          <tr class="row-hot"><td>가속(187)</td><td>+0.07</td><td>+0.02 (53%)</td><td>+0.08 (58%)</td><td>+1.81 (68%)</td></tr>
+          <tr class="row-cool"><td>둔화(198)</td><td>+0.13</td><td>0.00 (52%)</td><td>+1.35 (67%)</td><td>+2.66 (70%)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>물가와 방향은 같다(둔화 쪽이 더 낫다) — 하지만 <b>격차가 훨씬 작다</b>(CPI는 +1.02%
+    vs +3.52%로 3배 이상 차이, NFP는 +1.81% vs +2.66%로 격차가 절반도 안 된다). 승률도 물가는
+    63% vs 75%로 12%p 벌어졌지만 고용은 68% vs 70%로 사실상 붙어있다.</p>
+    <div class="callout">
+      <p style="margin-top:0;"><b>왜 물가가 고용보다 시장을 더 크게 흔드는가</b> — 고용지표는
+      "좋을 때도 나쁠 때도 시장엔 좋게 읽히는" 이중적인 지표다. 고용이 강하면 "경기가 튼튼하다"는
+      호재지만 "연준이 금리를 더 오래 높게 유지할 수 있다"는 악재도 같이 딸려온다 — 이 둘이 서로
+      상쇄돼 방향성 반응이 흐려진다. 반면 물가는 그런 이중성이 약하다 — <b>물가가 식는다는 신호는
+      거의 언제나 "연준이 완화적으로 움직일 여지가 생긴다"는 한 방향으로만 읽힌다.</b> 결과적으로
+      시장에 더 깨끗하게 반영된다.</p>
+      <p style="margin-bottom:0;">실전에서 시사하는 바: 뉴스에서 "이번 달 고용지표가 나온다"와
+      "이번 달 물가지표가 나온다" 중 시장의 방향성 반응을 예상하는 데는 <b>물가지표 쪽이 더
+      신뢰할 만한 신호</b>라는 뜻이다(단, 이건 방향성 국면 구분이지 진짜 서프라이즈가 아니라는
+      점은 아래 한계에서도 다시 짚는다).</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>성장(GDP)은 반대 방향, 그리고 가장 크게 갈랐다</h2>
+    <p class="lede">GDP는 분기당 속보치·2차·3차, 3번 발표된다. "시장은 속보치에 가장 크게
+    반응한다"는 통설을 먼저 확인하고, 속보치만 따로 골라 성장 가속/둔화로 나눠봤다.</p>
+    <div class="table-wrap">
+      <table>
+        <caption>속보치 vs 수정치(2·3차) — 발표 순서 자체가 반응 크기를 가르는지</caption>
+        <thead><tr><th>구분</th><th>발표일</th><th>+5일</th><th>+20일</th><th>+60일</th></tr></thead>
+        <tbody>
+          <tr><td>속보치(143)</td><td>+0.12</td><td>+0.20 (57%)</td><td>+0.38 (62%)</td><td>+2.25 (69%)</td></tr>
+          <tr><td>수정치(289)</td><td>+0.09</td><td>+0.41 (63%)</td><td>+1.05 (65%)</td><td>+2.37 (70%)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">뜻밖의 결과 — <b>속보치와 수정치가 거의 차이가 없다</b>(60일 승률 69% vs 70%).
+    "첫 발표에 가장 크게 반응한다"는 통설과 달리, 이 표본에서는 발표 순서 자체가 반응 크기를
+    가르지 않았다.</p>
+    <div class="tiles">
+      <div class="tile"><div class="label">성장 가속(강화) · +60일</div><div class="value cut">+3.25%</div><div class="sub">승률 78.9% · n=76</div></div>
+      <div class="tile"><div class="label">성장 감속(둔화) · +60일</div><div class="value hike">+1.11%</div><div class="sub">승률 58.2% · n=67</div></div>
+    </div>
+    <p>속보치만 놓고 성장 가속/둔화로 나누면 <b>이번 스터디 전체를 통틀어 가장 크게 갈리는
+    승률 차이(78.9% vs 58.2%, 20.7%p)</b>가 나온다. 방향은 물가와 반대다 — 물가는 "식어야"(감속)
+    좋고, 성장은 "강해져야"(가속) 좋다. 여기까지만 보면 "물가는 식고 성장은 튼튼한 골디락스가
+    최고"라고 결론짓고 싶어진다 — 그런데 이 둘을 <b>따로따로</b> 봤을 뿐 직접 교차해서 확인하지는
+    않았다. 아래 절에서 실제로 교차해보면 이 예상이 틀렸다는 게 드러난다.</p>
+  </section>
+
+  <section>
+    <h2>직접 교차해보니 — "골디락스" 가설은 틀렸다</h2>
+    <p class="lede">CPI 발표일마다 그 시점 물가 국면(가속/감속)과 성장 국면(가속/감속)을 동시에
+    태깅해 2x2로 나눠, 진짜 "물가감속+성장가속"이 다른 조합보다 나은지 직접 검증했다.</p>
+    <div class="table-wrap">
+      <table>
+        <caption>물가×성장 2x2 교차국면, CPI 발표일 기준 +60거래일 반응</caption>
+        <thead><tr><th>조합</th><th>+20일</th><th>+60일</th><th>승률(60일)</th></tr></thead>
+        <tbody>
+          <tr class="row-cool"><td>골디락스(물가감속+성장가속)</td><td>+1.06%</td><td>+3.17%</td><td>75.0% (n=104)</td></tr>
+          <tr><td>냉각(물가감속+성장감속)</td><td>+1.23%</td><td>+3.89%</td><td>75.8% (n=95)</td></tr>
+          <tr><td>과열(물가가속+성장가속)</td><td>+0.45%</td><td>+2.14%</td><td>69.3% (n=88)</td></tr>
+          <tr class="row-hot"><td>스태그플레이션(물가가속+성장감속)</td><td>&minus;0.05%</td><td>+0.15%</td><td>58.8% (n=114)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note"><b>가설 수정 — "골디락스"가 최고가 아니라, "물가감속" 자체가 핵심이었다.</b>
+    "냉각"(물가도 식고 성장도 둔화)이 오히려 "골디락스"와 사실상 동률이거나 근소하게 더 낫다
+    (승률 75.8% vs 75.0%). 반면 물가가 가속 중인 두 조합(과열·스태그플레이션)은 성장이 강하든
+    약하든 둘 다 상대적으로 약하다(69.3%, 58.8%). <b>즉 성장이 가속인지 둔화인지는 큰 차이를
+    안 만들고, "물가가 식고 있는가"라는 한 가지 축이 사실상 결과를 지배한다.</b></p>
+    <p>그렇다면 앞 절의 GDP 단독 스터디(가속 79% vs 둔화 58%)와 왜 다른 결론처럼 보일까 —
+    <b>기준일 자체가 다르기 때문</b>이다. GDP 단독 스터디는 "GDP 발표일 그 자체"에 대한 반응을
+    봤고(그날의 뉴스가 GDP), 이 교차분석은 "CPI 발표일"에 대한 반응에 GDP는 배경 국면으로만
+    태깅했다(그날의 뉴스는 CPI). <b>GDP가 그날의 주인공일 땐 성장 가속/둔화가 크게 갈랐지만,
+    GDP가 배경일 뿐이고 그날의 실제 뉴스가 CPI일 땐 성장 국면은 부차적이었다</b> — 이건 이
+    스터디가 처음부터 지켜온 원칙(사후에 유리한 해석을 고르지 않고, 모순돼 보이면 왜 그런지
+    끝까지 파고든다)을 스스로에게도 적용한 결과다.</p>
+  </section>
+
+  <section>
+    <h2>한계</h2>
+    <div class="callout">
+      <ul class="findings" style="margin:0;">
+        <li><b>진짜 "서프라이즈"가 아니다.</b> 시장 컨센서스(전문가들의 사전 예상치) 데이터는
+        무료로 구하지 못해, "예상보다 높았나"가 아니라 "최근 추세가 가속/감속이었나"로 대신했다 —
+        방향성 국면 구분이지 진짜 서프라이즈 측정이 아니다.</li>
+        <li><b>발표 당일 시각 정보가 없다.</b> CPI·GDP는 보통 개장 전(오전 8:30 ET)에 나오는데, 이
+        분석은 종가 기준 일별 데이터라 발표 이후 첫 몇 분~몇 시간의 반응은 못 담는다.</li>
+        <li><b>거시 추세와 경기 국면은 서로 얽혀 있다.</b> 물가가 식는 시기·성장이 강한 시기는
+        종종 서로 겹친다 — 연준 금리 스터디의 "침체/보험성" 구분과 마찬가지로, 이 결과들도 복수의
+        거시 요인이 섞여 있을 가능성을 배제할 수 없다. 세 지표를 완전히 독립적으로 통제한 재분석은
+        다음 과제로 남긴다.</li>
+        <li><b>GDP 표본은 분기 단위라 CPI·PCE·NFP(월간)보다 훨씬 작다</b>(속보치 143건) —
+        승률 차이가 가장 컸지만 그만큼 표본 변동성에 더 취약할 수 있다.</li>
+        <li><b>교차분석의 GDP 태깅은 발표시차 처리가 근사치다.</b> "분기말+45일이 지나야 시장이
+        안다"고 가정했는데, 실제 GDP 속보치 발표 시점은 분기마다 조금씩 다르다 — 완벽한 시차 매칭은
+        아니다.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="footer">
+    데이터: FRED(release/dates API, CPIAUCSL, PCEPI, PAYEMS, GDPC1), Yahoo Finance(^GSPC) · 분석
+    스크립트: cpi_release_event_study.py, pce_release_event_study.py, nfp_release_event_study.py,
+    gdp_release_event_study.py, joint_regime_event_study.py · 같은 프로젝트: 연준 금리 이벤트
+    스터디, 충격 뉴스와 증시 반응
+  </div>
+</div>

@@ -1,0 +1,92 @@
+
+==================== 강세장 ====================
+$XLC: possibly delisted; no price data found  (1d 2013-03-20 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1529294400")
+$XLRE: possibly delisted; no price data found  (1d 2013-03-20 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1444190400")
+
+1 Failed download:
+['XLRE']: possibly delisted; no price data found  (1d 2013-03-20 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1444190400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2013-03-20 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1529294400")
+/workspaces/Quant/analysis/kostolany_market_report_2026-08-12/hypothesis_transaction_costs.py:44: FutureWarning: The behavior of DataFrame.idxmax with all-NA values, or any-NA and skipna=False, is deprecated. In a future version this will raise ValueError
+  leader = z_scores.idxmax(axis=1)
+[매일 재조정] 일평균 턴오버 8.622%
+   cost_0.0bps: CAGR=10.68, MDD=-19.44, 샤프=0.84
+   cost_2.0bps: CAGR=10.21, MDD=-19.58, 샤프=0.81
+   cost_5.0bps: CAGR=9.49, MDD=-19.8, 샤프=0.76
+   cost_10.0bps: CAGR=8.31, MDD=-20.15, 샤프=0.68
+   cost_20.0bps: CAGR=5.99, MDD=-20.85, 샤프=0.51
+[매주 재조정] 일평균 턴오버 6.621%
+   cost_0.0bps: CAGR=9.33, MDD=-23.06, 샤프=0.72
+   cost_2.0bps: CAGR=8.97, MDD=-23.12, 샤프=0.7
+   cost_5.0bps: CAGR=8.42, MDD=-23.22, 샤프=0.66
+   cost_10.0bps: CAGR=7.53, MDD=-23.37, 샤프=0.6
+   cost_20.0bps: CAGR=5.75, MDD=-23.69, 샤프=0.48
+[매월 재조정] 일평균 턴오버 5.343%
+   cost_0.0bps: CAGR=9.41, MDD=-19.65, 샤프=0.74
+   cost_2.0bps: CAGR=9.11, MDD=-19.73, 샤프=0.72
+   cost_5.0bps: CAGR=8.68, MDD=-19.84, 샤프=0.69
+   cost_10.0bps: CAGR=7.95, MDD=-20.03, 샤프=0.64
+   cost_20.0bps: CAGR=6.51, MDD=-20.42, 샤프=0.54
+S&P500: {'cumulative_return': 276.69, 'cagr': 12.11, 'mdd': -33.92, 'sharpe': 0.74, 'win_rate': 100.0, 'avg_holding_days': 4238.0, 'trade_count': 1, 'profit_factor': 999.0, 'calmar': 0.36, 'avg_drawdown_days': 19.5}
+
+==================== 약세장포함 ====================
+$XLK: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$XLE: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLE']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLK']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$XLV: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLV']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$XLP: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLP']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$XLU: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLU']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$XLF: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLF']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$XLB: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$XLY: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLB']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLY']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+$XLI: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+
+1 Failed download:
+['XLI']: possibly delisted; no price data found  (1d 1998-03-22 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 890542800, endDate = 914216400")
+/workspaces/Quant/analysis/kostolany_market_report_2026-08-12/hypothesis_transaction_costs.py:44: FutureWarning: The behavior of DataFrame.idxmax with all-NA values, or any-NA and skipna=False, is deprecated. In a future version this will raise ValueError
+  leader = z_scores.idxmax(axis=1)
+[매일 재조정] 일평균 턴오버 11.664%
+   cost_0.0bps: CAGR=2.66, MDD=-41.03, 샤프=0.25
+   cost_2.0bps: CAGR=2.06, MDD=-42.15, 샤프=0.21
+   cost_5.0bps: CAGR=1.16, MDD=-43.79, 샤프=0.15
+   cost_10.0bps: CAGR=-0.31, MDD=-46.42, 샤프=0.06
+   cost_20.0bps: CAGR=-3.2, MDD=-51.32, 샤프=-0.13
+[매주 재조정] 일평균 턴오버 8.282%
+   cost_0.0bps: CAGR=3.23, MDD=-38.93, 샤프=0.28
+   cost_2.0bps: CAGR=2.8, MDD=-39.57, 샤프=0.25
+   cost_5.0bps: CAGR=2.16, MDD=-40.51, 샤프=0.21
+   cost_10.0bps: CAGR=1.1, MDD=-42.05, 샤프=0.15
+   cost_20.0bps: CAGR=-0.99, MDD=-45.0, 샤프=0.02
+[매월 재조정] 일평균 턴오버 5.861%
+   cost_0.0bps: CAGR=2.95, MDD=-38.81, 샤프=0.26
+   cost_2.0bps: CAGR=2.65, MDD=-39.11, 샤프=0.25
+   cost_5.0bps: CAGR=2.19, MDD=-39.56, 샤프=0.22
+   cost_10.0bps: CAGR=1.44, MDD=-40.29, 샤프=0.17
+   cost_20.0bps: CAGR=-0.04, MDD=-41.74, 샤프=0.08
+S&P500: {'cumulative_return': -2.55, 'cagr': -0.2, 'mdd': -56.78, 'sharpe': 0.1, 'win_rate': 0.0, 'avg_holding_days': 4742.0, 'trade_count': 1, 'profit_factor': 0.0, 'calmar': -0.0, 'avg_drawdown_days': 351.2}
+
+DONE

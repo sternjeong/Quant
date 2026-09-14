@@ -1,0 +1,53 @@
+{
+  "n_total": 401,
+  "quadrants": {
+    "goldilocks": {
+      "n": 104,
+      "day0_mean_pct": 0.076,
+      "fwd_1d_mean_pct": 0.033,
+      "fwd_1d_win_rate_pct": 53.8,
+      "fwd_5d_mean_pct": 0.335,
+      "fwd_5d_win_rate_pct": 58.7,
+      "fwd_20d_mean_pct": 1.057,
+      "fwd_20d_win_rate_pct": 63.5,
+      "fwd_60d_mean_pct": 3.171,
+      "fwd_60d_win_rate_pct": 75.0
+    },
+    "stagflation": {
+      "n": 114,
+      "day0_mean_pct": -0.005,
+      "fwd_1d_mean_pct": -0.152,
+      "fwd_1d_win_rate_pct": 52.6,
+      "fwd_5d_mean_pct": -0.062,
+      "fwd_5d_win_rate_pct": 52.6,
+      "fwd_20d_mean_pct": -0.052,
+      "fwd_20d_win_rate_pct": 57.9,
+      "fwd_60d_mean_pct": 0.154,
+      "fwd_60d_win_rate_pct": 58.8
+    },
+    "overheating": {
+      "n": 88,
+      "day0_mean_pct": 0.118,
+      "fwd_1d_mean_pct": 0.165,
+      "fwd_1d_win_rate_pct": 58.0,
+      "fwd_5d_mean_pct": -0.081,
+      "fwd_5d_win_rate_pct": 51.1,
+      "fwd_20d_mean_pct": 0.447,
+      "fwd_20d_win_rate_pct": 65.9,
+      "fwd_60d_mean_pct": 2.142,
+      "fwd_60d_win_rate_pct": 69.3
+    },
+    "cooling_off": {
+      "n": 95,
+      "day0_mean_pct": 0.118,
+      "fwd_1d_mean_pct": -0.016,
+      "fwd_1d_win_rate_pct": 63.2,
+      "fwd_5d_mean_pct": 0.171,
+      "fwd_5d_win_rate_pct": 57.9,
+      "fwd_20d_mean_pct": 1.232,
+      "fwd_20d_win_rate_pct": 64.2,
+      "fwd_60d_mean_pct": 3.891,
+      "fwd_60d_win_rate_pct": 75.8
+    }
+  }
+}
