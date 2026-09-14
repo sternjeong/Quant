@@ -6,6 +6,7 @@
 
 import json
 import math
+from datetime import date
 
 import numpy as np
 import pandas as pd
@@ -1040,3 +1041,127 @@ def test_check_and_notify_signal_changes_persists_state_to_disk(monkeypatch, tmp
     assert path.exists()
     saved = json.loads(path.read_text(encoding="utf-8"))
     assert saved["core_top4"] == ["XLK"]
+
+
+# ----------------------------------------------------------------------------
+# 리밸런싱 예정일 사전 알림 (작업 61, 2026-09-14 추가)
+# ----------------------------------------------------------------------------
+
+
+def _patch_reminder_state_path(monkeypatch, tmp_path):
+    path = tmp_path / "champion_rebalance_reminder_state.json"
+    monkeypatch.setattr(champion_strategy, "REBALANCE_REMINDER_STATE_CACHE_PATH", path)
+    return path
+
+
+def test_check_and_notify_upcoming_rebalance_fires_for_core_only(monkeypatch, tmp_path):
+    _patch_reminder_state_path(monkeypatch, tmp_path)
+    monkeypatch.setattr(champion_strategy, "_is_core_rebalance_date", lambda d: True)
+    monkeypatch.setattr(champion_strategy, "_is_satellite_rebalance_date", lambda d: False)
+    sent = []
+
+    result = champion_strategy.check_and_notify_upcoming_rebalance(notify_fn=sent.append)
+
+    assert result["notified"] is True
+    assert result["core_rebalance_date"] is not None
+    assert result["satellite_rebalance_date"] is None
+    assert len(sent) == 1
+    assert "코어 리밸런싱 예정일" in sent[0]
+    assert "새틀라이트" not in sent[0].split("\n")[1]  # 본문 첫 줄에는 새틀라이트 언급 없음
+
+
+def test_check_and_notify_upcoming_rebalance_fires_for_satellite_only(monkeypatch, tmp_path):
+    _patch_reminder_state_path(monkeypatch, tmp_path)
+    monkeypatch.setattr(champion_strategy, "_is_core_rebalance_date", lambda d: False)
+    monkeypatch.setattr(champion_strategy, "_is_satellite_rebalance_date", lambda d: True)
+    sent = []
+
+    result = champion_strategy.check_and_notify_upcoming_rebalance(notify_fn=sent.append)
+
+    assert result["notified"] is True
+    assert result["core_rebalance_date"] is None
+    assert result["satellite_rebalance_date"] is not None
+    assert len(sent) == 1
+    assert "새틀라이트 리밸런싱 예정일" in sent[0]
+
+
+def test_check_and_notify_upcoming_rebalance_fires_for_both(monkeypatch, tmp_path):
+    _patch_reminder_state_path(monkeypatch, tmp_path)
+    monkeypatch.setattr(champion_strategy, "_is_core_rebalance_date", lambda d: True)
+    monkeypatch.setattr(champion_strategy, "_is_satellite_rebalance_date", lambda d: True)
+    sent = []
+
+    result = champion_strategy.check_and_notify_upcoming_rebalance(notify_fn=sent.append)
+
+    assert result["notified"] is True
+    assert result["core_rebalance_date"] == result["satellite_rebalance_date"]
+    assert len(sent) == 1
+    assert "동시" in sent[0]
+
+
+def test_check_and_notify_upcoming_rebalance_silent_when_neither(monkeypatch, tmp_path):
+    _patch_reminder_state_path(monkeypatch, tmp_path)
+    monkeypatch.setattr(champion_strategy, "_is_core_rebalance_date", lambda d: False)
+    monkeypatch.setattr(champion_strategy, "_is_satellite_rebalance_date", lambda d: False)
+    sent = []
+
+    result = champion_strategy.check_and_notify_upcoming_rebalance(notify_fn=sent.append)
+
+    assert result["notified"] is False
+    assert result["core_rebalance_date"] is None
+    assert result["satellite_rebalance_date"] is None
+    assert result["message"] is None
+    assert len(sent) == 0
+
+
+def test_check_and_notify_upcoming_rebalance_dedupes_same_upcoming_date(monkeypatch, tmp_path):
+    _patch_reminder_state_path(monkeypatch, tmp_path)
+    monkeypatch.setattr(champion_strategy, "_is_core_rebalance_date", lambda d: True)
+    monkeypatch.setattr(champion_strategy, "_is_satellite_rebalance_date", lambda d: False)
+    sent = []
+
+    first = champion_strategy.check_and_notify_upcoming_rebalance(days_before=3, notify_fn=sent.append)
+    second = champion_strategy.check_and_notify_upcoming_rebalance(days_before=3, notify_fn=sent.append)
+
+    assert first["notified"] is True
+    assert second["notified"] is False
+    assert second["core_rebalance_date"] == first["core_rebalance_date"]
+    assert len(sent) == 1  # 두 번째 호출에서는 알림이 추가되지 않음
+
+
+def test_check_and_notify_upcoming_rebalance_persists_state_to_disk(monkeypatch, tmp_path):
+    path = _patch_reminder_state_path(monkeypatch, tmp_path)
+    monkeypatch.setattr(champion_strategy, "_is_core_rebalance_date", lambda d: True)
+    monkeypatch.setattr(champion_strategy, "_is_satellite_rebalance_date", lambda d: False)
+
+    champion_strategy.check_and_notify_upcoming_rebalance(notify_fn=lambda m: None)
+
+    assert path.exists()
+    saved = json.loads(path.read_text(encoding="utf-8"))
+    assert "dedupe_key" in saved
+
+
+def test_is_calendar_first_trading_day_of_month_heuristic():
+    # 평일이고 그 전 평일이 다른 달이면 첫 거래일로 판정
+    assert champion_strategy._is_calendar_first_trading_day_of_month(date(2026, 9, 1)) is True  # 화요일
+    # 같은 달 중간 평일은 첫 거래일이 아님
+    assert champion_strategy._is_calendar_first_trading_day_of_month(date(2026, 9, 15)) is False
+    # 주말은 애초에 거래일이 아님
+    assert champion_strategy._is_calendar_first_trading_day_of_month(date(2026, 9, 5)) is False  # 토요일
+    # 월요일이 그 달의 첫 평일이면(1일이 토/일이라 건너뜀) 첫 거래일로 판정
+    assert champion_strategy._is_calendar_first_trading_day_of_month(date(2026, 8, 3)) is True  # 월요일(8/1=토)
+
+
+def test_is_satellite_rebalance_date_restricted_to_january_and_july():
+    # 2026-01-01(목)은 실제로는 신정 휴장일이라 실제 첫 거래일은 1/2(금)이지만, 이 함수는 달력
+    # 요일만 보므로 1/1을 첫 거래일로 오판한다 — 문서화된 알려진 한계(휴장일 미반영)를 그대로 검증.
+    assert champion_strategy._is_satellite_rebalance_date(date(2026, 1, 1)) is True
+    assert champion_strategy._is_satellite_rebalance_date(date(2026, 1, 2)) is False
+    assert champion_strategy._is_satellite_rebalance_date(date(2026, 7, 1)) is True  # 7월 첫 거래일(수), 휴장일 없음
+    assert champion_strategy._is_satellite_rebalance_date(date(2026, 9, 1)) is False  # 첫 거래일이지만 9월
+
+
+def test_upcoming_weekdays_skips_weekends():
+    # 2026-09-04(금) 다음: 09-05/06(토/일) 건너뛰고 09-07(월)부터
+    days = champion_strategy._upcoming_weekdays(date(2026, 9, 5), 3)
+    assert days == [date(2026, 9, 7), date(2026, 9, 8), date(2026, 9, 9)]

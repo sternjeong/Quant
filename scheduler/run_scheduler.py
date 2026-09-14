@@ -2,7 +2,8 @@
 매주 일요일 저녁에는 Threads 추적 티커별 주간 AI 인사이트 리포트를 생성하고,
 매일 한국시간 00:00에는 시장 국면/섹터 강도 스냅샷을 미리 계산해두고,
 00:05~04:00에는 #3 전략을 서버가 허락하는 만큼 반복 미세튜닝하며,
-00:10에는 챔피언 전략(코어/새틀라이트) 신호 변경을 텔레그램으로 알린다.
+00:10에는 챔피언 전략(코어/새틀라이트) 신호 변경을 텔레그램으로 알리고,
+00:15에는 챔피언 전략 리밸런싱 예정일을 미리 텔레그램으로 알린다.
 
 Streamlit 앱과 완전히 별도의 프로세스로 실행된다 (브라우저를 안 열어도 동작해야 하므로).
 
@@ -47,6 +48,17 @@ Streamlit 앱과 완전히 별도의 프로세스로 실행된다 (브라우저�
       보유종목을 어제 저장된 상태(data/cache/champion_signal_state.json)와 비교해, 달라졌을 때만
       core.telegram_notify 로 알린다. .env에 TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID가 없으면 조용히
       알림만 생략되고(예외 없음) 상태 저장은 계속된다.
+    - 매일 한국시간(Asia/Seoul) 00:15에 champion_rebalance_reminder_job() 을 실행한다(2026-09-14
+      추가). champion_signal_alert_job(00:10, 사후 알림)과 짝을 이루는 사전 알림 — 내일(기본
+      1거래일 이내) 코어(매월 첫 거래일) 또는 새틀라이트(1월/7월 첫 거래일) 리밸런싱일이 다가오면
+      core.champion_strategy.check_and_notify_upcoming_rebalance() 가 텔레그램으로 미리 알린다.
+      "내일이 리밸런싱일인지"는 달력 요일 기준 근사치로 판정한다(주말 제외 + 전날이 다른 달이면
+      그 달의 첫 거래일로 봄) — 과거 가격 데이터로는 미래의 실제 거래소 휴장일(신정/추수감사절 등)을
+      알 수 없어서다. 그래서 휴장일이 월초에 낀 해에는 최대 며칠 오차가 날 수 있다(예: 신정이
+      평일이면 실제 첫 거래일은 그 다음날이지만 이 근사치는 신정 당일을 첫 거래일로 오판할 수 있음).
+      같은 리밸런싱 날짜에 대해서는 한 번만 알린다(data/cache/champion_rebalance_reminder_state.json
+      으로 dedupe). 텔레그램 설정이 없으면 champion_signal_alert_job과 마찬가지로 조용히 알림만
+      생략된다.
 
 주의:
     - 이 스크립트는 core.* 를 프로젝트 루트 기준으로 임포트하므로, 아래처럼 sys.path에
@@ -73,7 +85,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
 
 from core.db import get_session, init_db
-from core.champion_strategy import check_and_notify_signal_changes
+from core.champion_strategy import check_and_notify_signal_changes, check_and_notify_upcoming_rebalance
 from core.kostolany_cycle import (
     compute_theme_cycle_phases,
     get_market_cycle_phase,
@@ -197,6 +209,30 @@ def champion_signal_alert_job() -> None:
     print(f"[{datetime.now()}] champion_signal_alert_job 종료")
 
 
+def champion_rebalance_reminder_job() -> None:
+    """내일(기본 1거래일 이내) 챔피언 전략 코어/새틀라이트 리밸런싱일이 다가오면 텔레그램으로
+    미리 알린다 (2026-09-14 추가). champion_signal_alert_job(00:10, 사후 알림 — 리밸런싱이 이미
+    반영된 신호와 어제 상태를 비교)과 짝을 이루는 사전 알림이다.
+
+    core.champion_strategy.check_and_notify_upcoming_rebalance()가 실제 판정/알림/저장을 전부
+    담당한다 — 이 잡은 그냥 호출만 한다. "내일이 리밸런싱일인지"는 달력 요일 기준 근사치로
+    판정한다(실제 거래소 휴장일은 반영하지 못함 — 예: 신정이 평일이면 그 날을 리밸런싱일로
+    오판할 수 있음, check_and_notify_upcoming_rebalance 문서 참고). 같은 리밸런싱 날짜에 대해서는
+    한 번만 알린다(data/cache/champion_rebalance_reminder_state.json으로 dedupe). 텔레그램 설정이
+    없으면 champion_signal_alert_job과 마찬가지로 조용히 알림만 생략된다.
+    """
+    print(f"[{datetime.now()}] champion_rebalance_reminder_job 시작")
+    result = check_and_notify_upcoming_rebalance()
+    if result["notified"]:
+        print(f"  - 리밸런싱 예정 감지, 텔레그램 알림 전송 시도:\n{result['message']}")
+    else:
+        print(
+            f"  - 알림 없음 (core={result['core_rebalance_date']}, "
+            f"satellite={result['satellite_rebalance_date']})"
+        )
+    print(f"[{datetime.now()}] champion_rebalance_reminder_job 종료")
+
+
 # 사용자가 "매일 0시~4시 동안 #3 전략을 여러 차원에서 미세튜닝해서 최적의 전략을 찾아달라, 상위
 # 10개를 웹사이트에서 볼 수 있게 해달라"고 요청 (2026-07-15). #3 = 전략 라이브러리의 "볼린저 밴드
 # 하단 반전 1:2:6 전략". 배포된 Streamlit Community Cloud 사이트는 이 스케줄러가 아예 뜰 수 없는
@@ -318,12 +354,20 @@ def main() -> None:
         name="매일 한국시간 00:10 챔피언 전략 신호 변경 텔레그램 알림",
         replace_existing=True,
     )
+    scheduler.add_job(
+        champion_rebalance_reminder_job,
+        # 기존 00:00/00:05/00:10 잡과 겹치지 않도록 15분 뒤로 offset(비어있는 슬롯).
+        trigger=CronTrigger(hour=0, minute=15, timezone="Asia/Seoul"),
+        id="champion_rebalance_reminder",
+        name="매일 한국시간 00:15 챔피언 전략 리밸런싱 예정일 사전 텔레그램 알림",
+        replace_existing=True,
+    )
 
     print("스케줄러 시작. 평일 16:30 에 관심 종목을 스캔하고, 매주 일요일 20:00 에 Threads 주간")
     print("인사이트 리포트를 생성합니다 (모두 America/New_York 기준). 매일 한국시간(Asia/Seoul)")
     print("00:00 에는 시장 국면/섹터 강도 스냅샷을 미리 계산해두고, 00:05~04:00 에는 #3 전략을")
-    print("서버가 허락하는 만큼 반복 미세튜닝하며, 00:10 에는 챔피언 전략 신호 변경을 텔레그램으로")
-    print("알립니다.")
+    print("서버가 허락하는 만큼 반복 미세튜닝하며, 00:10 에는 챔피언 전략 신호 변경을, 00:15 에는")
+    print("챔피언 전략 리밸런싱 예정일을 텔레그램으로 알립니다.")
     print("Ctrl+C 로 종료할 수 있습니다.")
 
     try:
