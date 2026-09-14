@@ -24,7 +24,7 @@ from __future__ import annotations
 
 import json
 import math
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Optional
 
@@ -1293,3 +1293,141 @@ def check_and_notify_signal_changes(include_satellite: bool = True, notify_fn=No
 
     _save_signal_state(new_state)
     return {"changed": changed, "message": message, "state": new_state}
+
+
+# ----------------------------------------------------------------------------
+# 리밸런싱 예정일 사전 알림 (2026-09-14 추가)
+#
+# check_and_notify_signal_changes()는 리밸런싱이 "이미 일어난 뒤"(전날 신호와 비교)에만 알린다 —
+# 사용자가 실제로 다음날 아침 주문을 넣으려면 "내일이 리밸런싱일"이라는 사전 예고가 따로 필요하다.
+# 이 함수는 새 배분 로직을 만들지 않는다 — 코어는 _build_core_weights가 쓰는
+# core.backtest_engine._first_trading_day_of_month_mask("매월 첫 거래일")와, 새틀라이트는
+# _semiannual_rebal_dates/SATELLITE_REBAL_MONTHS("1월/7월 첫 거래일")와 동일한 규칙을 그대로
+# 따르되, "내일(들)"은 아직 실현되지 않은 미래라 실제 거래소 캘린더(휴장일 포함)를 알 수 없다는
+# 근본적 제약이 있다 — get_price_history 등은 과거 거래일만 반환하므로 "내일이 거래일인지"조차
+# 데이터로 확인할 수 없다.
+#
+# 그래서 아래 _is_calendar_first_trading_day_of_month()는 **달력 요일 기준 근사치**를 쓴다:
+# "그 날짜 이전의 가장 가까운 평일(주말이 아닌 날)이 다른 달에 속하면 이 달의 첫 거래일로 본다."
+# 미국 거래소 휴장일(신정/추수감사절/성탄절 등, 주말이 아닌 날)이 달 첫 며칠에 끼면 최대 며칠 오차가
+# 날 수 있다 — 예: 어느 해 1월 1일이 평일이면 실제 첫 거래일은 1월 2일이지만 이 함수는 1월 1일을
+# 오판할 수 있다. 이 오차는 의도적으로 감수한다(휴장일 캘린더 라이브러리를 새로 도입하는 대신, 이미
+# 이 코드베이스에 있는 "달력 기준" 관례를 재사용 — 다른 core 모듈에서 별도 거래캘린더 유틸을 찾지
+# 못했다). 알림은 "리마인더"일 뿐 실제 리밸런싱 계산(compute_core_recommendation 등)의 정확한 날짜
+# 판정에는 관여하지 않으므로, 하루 이틀의 오차가 있어도 사용자가 달력을 다시 확인하는 정도의
+# 영향으로 그친다.
+# ----------------------------------------------------------------------------
+
+REBALANCE_REMINDER_STATE_CACHE_PATH = PROJECT_ROOT / "data" / "cache" / "champion_rebalance_reminder_state.json"
+
+
+def _is_calendar_first_trading_day_of_month(d: date) -> bool:
+    """d가 그 달의 첫 거래일인지 달력 요일만으로 근사 판정한다 (주말 제외, 미국 거래소 휴장일은
+    미반영 — 위 섹션 설명의 알려진 오차 참고)."""
+    if d.weekday() >= 5:  # 토(5)/일(6)이면 애초에 거래일이 아님
+        return False
+    prev = d - timedelta(days=1)
+    while prev.weekday() >= 5:
+        prev -= timedelta(days=1)
+    return prev.month != d.month
+
+
+def _is_core_rebalance_date(d: date) -> bool:
+    """코어(17자산) 리밸런싱일 여부 — 매월 첫 거래일, 달력 근사치."""
+    return _is_calendar_first_trading_day_of_month(d)
+
+
+def _is_satellite_rebalance_date(d: date) -> bool:
+    """새틀라이트 리밸런싱일 여부 — 1월/7월 첫 거래일(SATELLITE_REBAL_MONTHS), 달력 근사치."""
+    return d.month in SATELLITE_REBAL_MONTHS and _is_calendar_first_trading_day_of_month(d)
+
+
+def _upcoming_weekdays(start: date, n: int) -> list[date]:
+    """start(포함)부터 주말을 건너뛰며 평일 n개를 모아 반환한다 — "다음 n거래일"의 달력 기준
+    근사치(휴장일 미반영, 위 섹션 설명 참고)."""
+    days: list[date] = []
+    d = start
+    while len(days) < n:
+        if d.weekday() < 5:
+            days.append(d)
+        d += timedelta(days=1)
+    return days
+
+
+def _load_last_reminder_state() -> Optional[dict]:
+    if not REBALANCE_REMINDER_STATE_CACHE_PATH.exists():
+        return None
+    try:
+        with open(REBALANCE_REMINDER_STATE_CACHE_PATH, encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return None
+
+
+def _save_reminder_state(state: dict) -> None:
+    REBALANCE_REMINDER_STATE_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with open(REBALANCE_REMINDER_STATE_CACHE_PATH, "w", encoding="utf-8") as f:
+        json.dump(state, f, ensure_ascii=False, indent=2)
+
+
+def check_and_notify_upcoming_rebalance(days_before: int = 1, notify_fn=None) -> dict:
+    """향후 days_before 거래일(달력 근사치, 위 섹션 설명 참고) 이내에 코어/새틀라이트 리밸런싱일이
+    있으면 텔레그램으로 미리 알린다. check_and_notify_signal_changes()(사후 알림)와 짝을 이루는
+    사전 알림.
+
+    Args:
+        days_before: 오늘로부터 며칠(거래일 근사치) 이내를 "곧 다가올 리밸런싱"으로 볼지. 기본 1 =
+            "내일"만 확인.
+        notify_fn: 텔레그램 전송 함수(테스트 주입용). None이면 core.telegram_notify.send_message.
+
+    Returns:
+        {"as_of", "core_rebalance_date", "satellite_rebalance_date" (있으면 ISO 날짜 문자열,
+         없으면 None), "notified": bool, "message": str|None}
+
+    같은 리밸런싱 날짜 조합에 대해서는 한 번만 알린다(data/cache/champion_rebalance_reminder_state.json에
+    직전에 알린 날짜 조합을 저장해두고 비교 — days_before가 1보다 커서 같은 미래 날짜가 여러 날에
+    걸쳐 "곧 다가옴"으로 반복 감지돼도 매일 알림이 가지 않도록 dedupe한다).
+    """
+    if notify_fn is None:
+        from core.telegram_notify import send_message as notify_fn
+
+    today = date.today()
+    upcoming = _upcoming_weekdays(today + timedelta(days=1), days_before)
+
+    core_date = next((d for d in upcoming if _is_core_rebalance_date(d)), None)
+    satellite_date = next((d for d in upcoming if _is_satellite_rebalance_date(d)), None)
+
+    result = {
+        "as_of": today.isoformat(),
+        "core_rebalance_date": core_date.isoformat() if core_date else None,
+        "satellite_rebalance_date": satellite_date.isoformat() if satellite_date else None,
+        "notified": False,
+        "message": None,
+    }
+    if core_date is None and satellite_date is None:
+        return result
+
+    dedupe_key = f"{result['core_rebalance_date']}|{result['satellite_rebalance_date']}"
+    last_state = _load_last_reminder_state()
+    already_sent = last_state is not None and last_state.get("dedupe_key") == dedupe_key
+
+    if not already_sent:
+        lines = ["⏰ 챔피언 전략 리밸런싱 예정 알림"]
+        if core_date and satellite_date:
+            if core_date == satellite_date:
+                lines.append(f"{core_date.isoformat()}: 코어+새틀라이트 동시 리밸런싱 예정")
+            else:
+                lines.append(f"코어 리밸런싱 예정일: {core_date.isoformat()}")
+                lines.append(f"새틀라이트 리밸런싱 예정일: {satellite_date.isoformat()}")
+        elif core_date:
+            lines.append(f"코어 리밸런싱 예정일: {core_date.isoformat()}")
+        else:
+            lines.append(f"새틀라이트 리밸런싱 예정일: {satellite_date.isoformat()}")
+        lines.append("(달력 요일 기준 근사치 — 실제 거래소 휴장일 미반영, 최대 며칠 오차 가능)")
+        message = "\n".join(lines)
+        notify_fn(message)
+        result["notified"] = True
+        result["message"] = message
+
+    _save_reminder_state({"as_of": result["as_of"], "dedupe_key": dedupe_key})
+    return result

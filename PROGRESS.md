@@ -4280,3 +4280,43 @@ tuning.py`(train/test 75/25 분리, `compute_overfitting_curve`의 "train은 계
   신규 6개(설정 유무, 전송 성공/실패/네트워크예외, 실제 요청 payload 검증) 추가 — 전체
   `pytest tests/` **794개 통과**. Streamlit `AppTest`로 "5. 내 포트폴리오와 비교" 섹션을 실제
   임시 DB에 TLT/NVDA 보유를 넣고 렌더링까지 확인(예외 없음, diff 테이블 정상 표시).
+
+### 작업 61 (2026-09-14, 같은 대화 후속): 챔피언 전략 리밸런싱 예정일 사전(D-1) 텔레그램 알림
+
+작업59의 `check_and_notify_signal_changes()`(00:10)는 리밸런싱이 "이미 일어난 뒤" 어제 상태와
+비교해서만 알린다 — 사용자가 다음날 아침 실제로 주문을 넣으려면 "내일이 리밸런싱일"이라는 사전
+예고가 따로 필요하다는 걸 확인하고 그 갭을 메움.
+
+- **`core/champion_strategy.py::check_and_notify_upcoming_rebalance(days_before=1, notify_fn=None)`
+  신규**: 새 배분 로직을 만들지 않는다 — 코어는 `_build_core_weights`가 쓰는
+  `core.backtest_engine._first_trading_day_of_month_mask`("매월 첫 거래일")와, 새틀라이트는
+  `_semiannual_rebal_dates`/`SATELLITE_REBAL_MONTHS`("1월/7월 첫 거래일")와 같은 규칙만 재사용한다.
+  **핵심 제약**: "내일"은 아직 실현되지 않은 미래라 실제 거래소 캘린더(휴장일 포함)를 알 수
+  없다 — `get_price_history` 등은 과거 거래일만 반환하므로 미래 휴장일은 원천적으로 알 방법이
+  없다. 그래서 이 코드베이스에 별도 거래캘린더 유틸이 있는지부터 확인했지만(없음을 확인),
+  새로 라이브러리를 들이는 대신 **달력 요일 기준 근사치**를 정직하게 채택: "그 날짜 이전의 가장
+  가까운 평일(주말 제외)이 다른 달에 속하면 이 달의 첫 거래일로 본다"(`_is_calendar_first_trading_
+  day_of_month`). 미국 거래소 휴장일(신정/추수감사절/성탄절 등, 주말이 아닌 날)이 월초에 끼면
+  최대 며칠 오차가 날 수 있다는 걸 함수 독스트링/스케줄러 모듈 독스트링에 명시(예: 신정이 평일이면
+  실제 첫 거래일은 다음날이지만 이 근사치는 신정 당일을 오판할 수 있음) — 정확성을 과장하지 않는
+  이 프로젝트 관례를 그대로 따름. 코어/새틀라이트 판정을 각각 `_is_core_rebalance_date`/
+  `_is_satellite_rebalance_date`로 분리해 독립적으로 테스트 가능하게 함. 같은 리밸런싱 날짜
+  조합에 대해서는 한 번만 알린다 — `data/cache/champion_rebalance_reminder_state.json`에 직전에
+  알린 날짜 조합을 저장해두고 비교(`_load_last_reminder_state`/`_save_reminder_state`,
+  `check_and_notify_signal_changes`의 상태 캐시 패턴 그대로 재사용) — `days_before`가 1보다
+  커서 같은 미래 날짜가 여러 날에 걸쳐 감지돼도 중복 알림을 보내지 않는다.
+- **`scheduler/run_scheduler.py::champion_rebalance_reminder_job()` 신규**: 매일 한국시간
+  00:15(00:00/00:05/00:10 기존 잡과 안 겹치는 빈 슬롯)에 등록, `check_and_notify_upcoming_
+  rebalance()` 호출만 담당. 모듈 상단 독스트링에 잡 설명 추가(기존 스타일 그대로). 텔레그램
+  설정이 없으면 다른 챔피언 잡들과 마찬가지로 조용히 알림만 생략(예외 없음).
+  `compute_satellite_recommendation`/`compute_core_recommendation`/`compute_rebalance_diff`/
+  UI 페이지(`app/pages/11_챔피언_전략.py`)는 건드리지 않음(다른 서브에이전트가 같은 파일들을
+  병행 작업 중이라는 지시에 따름) — 이번 작업은 스케줄러 + 독립 함수 추가로 한정.
+- 검증: `tests/test_champion_strategy.py`에 신규 단위테스트 9개 — 사전알림 6개(코어 단독/
+  새틀라이트 단독/코어+새틀라이트 동시/둘 다 없음 시 침묵/같은 예정일 재호출 시 dedupe/디스크
+  영속화 — `check_and_notify_signal_changes` 테스트와 동일한 monkeypatch 상태캐시경로 + notify_fn
+  리스트-append 패턴), 달력 근사 헬퍼 3개(`_is_calendar_first_trading_day_of_month`가 신정 오판
+  케이스를 포함해 의도대로 동작하는지, `_is_satellite_rebalance_date`가 1월/7월에만 True인지,
+  `_upcoming_weekdays`가 주말을 건너뛰는지) — 전체 `pytest tests/` **803개 통과**(신규 9개 +
+  기존 794개, 기존에 있던 `test_strategy_library_archive.py` 실패 2건은 이번 작업과 무관하게
+  베이스라인에서도 이미 실패 중이던 것으로 확인, 손대지 않음).
