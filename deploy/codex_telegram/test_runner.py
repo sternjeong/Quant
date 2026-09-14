@@ -13,7 +13,7 @@ class PipelineTests(unittest.TestCase):
         self.addCleanup(self.tmp.cleanup)
         self.root = Path(self.tmp.name)
         self.s = Service({'state_dir': str(self.root/'state'), 'projects': {'test': str(self.root)},
-                          'default_project': 'test', 'codex_bin': 'codex', 'retry_seconds': 1})
+                          'default_project': 'test', 'default_backend': 'codex', 'codex_bin': 'codex', 'retry_seconds': 1})
         self.s.chat = '123'
 
     def update(self, uid=1, chat=123):
@@ -27,7 +27,7 @@ class PipelineTests(unittest.TestCase):
         self.s.ingest([self.update(), self.update(), self.update(2, 999)])
         with self.s.db() as db:
             self.assertEqual(db.execute('SELECT count(*) FROM jobs').fetchone()[0], 1)
-            self.assertEqual(db.execute('SELECT value FROM meta').fetchone()[0], '3')
+            self.assertEqual(db.execute("SELECT value FROM meta WHERE key='offset'").fetchone()[0], '3')
 
     def test_limit_then_resume(self):
         self.s.ingest([self.update()])

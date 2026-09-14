@@ -9,6 +9,7 @@
   "state_dir": "/opt/quant/.codex-telegram-state",
   "workspace_root": "/opt/projects",
   "default_project": "quant",
+  "default_backend": "claude",
   "projects": {"quant": "/opt/quant"},
   "repository_selection": true,
   "repositories_dir": "/opt/quant/repositories",

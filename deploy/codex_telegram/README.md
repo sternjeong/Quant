@@ -7,6 +7,8 @@
 다음 메시지로 이름을 받아 `gh repo create OWNER/NAME --private`를 실행하고 같은 선택 단계로 돌아온다.
 선택한 기존 저장소는 `/opt/quant/repositories/OWNER/NAME`에 최초 한 번 clone한다. GitHub 계정은
 `gh auth login`과 `gh auth setup-git`으로 `quant` 사용자에 로그인되어 있어야 한다.
+기본 작업자는 `default_backend`의 Claude이며, 매 작업 버튼에서 Codex로 바꿀 수 있다. `/status`로
+작업 번호와 상태를 확인하고, 인증·권한 문제로 `blocked`가 된 작업은 `/retry 작업번호`로 재개한다.
 
 기존 `/project quant` 방식은 저장소 선택 없이 현재 Quant 작업 공간을 직접 선택하는 고급 경로로
 계속 사용할 수 있다. 원격 이력 변경이 필요한 force push는 Telegram에서 별도 승인 절차를 만들기

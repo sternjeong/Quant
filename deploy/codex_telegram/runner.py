@@ -49,6 +49,7 @@ class Service:
             columns = {row[1] for row in db.execute('PRAGMA table_info(jobs)')}
             if 'backend' not in columns:
                 db.execute("ALTER TABLE jobs ADD COLUMN backend TEXT NOT NULL DEFAULT 'codex'")
+            db.execute("INSERT OR IGNORE INTO meta(key,value) VALUES('backend',?)", (cfg.get('default_backend', 'claude'),))
             db.execute('CREATE TABLE IF NOT EXISTS outbox(id INTEGER PRIMARY KEY, chat TEXT, text TEXT)')
             db.execute('CREATE TABLE IF NOT EXISTS requests(id INTEGER PRIMARY KEY, chat TEXT, instruction TEXT, repo TEXT, state TEXT)')
             db.execute('CREATE TABLE IF NOT EXISTS repo_choices(request_id INTEGER, number INTEGER, repo TEXT, PRIMARY KEY(request_id, number))')
@@ -106,7 +107,12 @@ class Service:
                         changed = db.execute("UPDATE jobs SET status='retry',due=0,notified=0 WHERE id=? AND status='blocked'", (int(rest),)).rowcount
                         reply = f'작업 {rest} 재시도 예약됨' if changed else f'재시도할 blocked 작업 {rest}을 찾지 못했습니다.'
                     elif command in ('/start', '/help'):
-                        reply = '/codex 지시\n/claude 지시\n/codex 또는 /claude: 기본 대상 변경\n/status: 최근 작업\n/retry 작업ID: 권한 해결 후 재개\n/project 별칭 다음 줄에 지시\n각 메시지는 새 작업이며 이전 대화 세션을 자동 공유하지 않습니다.'
+                        reply = ('일반 지시: 저장소 → Claude/Codex 버튼을 차례로 선택\n'
+                                 '새 저장소: 저장소 목록의 `＋ 새 private 저장소 만들기` 선택 후 이름 전송\n'
+                                 '/claude 또는 /codex: 기본 실행 대상 변경\n'
+                                 '/claude 지시 또는 /codex 지시: 해당 작업만 지정\n'
+                                 '/status: 최근 작업 상태\n/retry 작업ID: blocked 작업 재개\n'
+                                 '/project quant 다음 줄에 지시: 현재 Quant를 바로 선택')
                     elif command.startswith('/') and command != '/project':
                         reply = '알 수 없는 명령입니다. /help를 확인하세요.'
                     project = self.cfg['default_project']
