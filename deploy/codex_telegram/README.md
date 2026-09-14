@@ -123,8 +123,12 @@ exit 1은 실행 실패다. 임시 프로젝트와 큐는 조사할 수 있도�
 - 단위 테스트 5개 통과: 허용 채팅/중복 수신, 오류 분류, 한도 후 실제 두 번째 worker 호출,
   메모 삭제 시 중지, 일반 실행 오류 보류.
 - 합성 Telegram update가 실제 Codex CLI로 전달됨. 실제 사용량 한도로 `retry`와 메모 보존 확인.
-  정상 작업 완료 및 모델에 의한 commit/push는 한도 해제 전이므로 미검증.
+  최종 호스트 재시험에서는 `done`, 테스트 파일 생성, 모델의 commit/push와 원격 HEAD 일치,
+  `RESUME_NOTE.md` 삭제를 모두 확인했다. 앞서 실제 한도에 걸렸던 동일 작업도 다시 실행해
+  `attempts=2`, `done`, commit/push와 메모 삭제를 확인했다. 이 시험에서는 대기 시각을
+  수동으로 당겼으며, 실제 한도 초기화 시각 자체는 측정하지 않았다.
 - 실제 봇 `getMe` 인증 성공, webhook 미설정 확인 후 long polling 활성화.
+- 완료된 테스트 작업의 요약을 래퍼 `notify()`로 실제 Telegram에 전달하고 `notified=1` 확인.
 - `quant-vm`에서 systemd `enabled`, `active (running)` 확인.
   메인 프로세스 SIGKILL 후 30초 뒤 새 PID와 `NRestarts=1` 확인.
   호스트 재부팅 자체는 기존 서비스를 중단시키므로 실시하지 않았다.
