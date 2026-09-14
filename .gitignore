@@ -33,3 +33,8 @@ data/cache/*
 
 # --- 임시 분석/튜닝 스크립트 산출물 (재현 가능, 커밋하지 않음) ---
 .tuning_runs/
+
+# Telegram Codex private runtime
+.codex-telegram-runtime/
+.codex-telegram-state/
+deploy/codex_telegram/config.json

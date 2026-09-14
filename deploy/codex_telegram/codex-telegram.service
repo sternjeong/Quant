@@ -1,0 +1,21 @@
+[Unit]
+Description=Telegram Codex durable listener and worker
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=quant
+WorkingDirectory=/opt/quant
+ExecStart=/usr/bin/python3 /opt/quant/deploy/codex_telegram/runner.py --config /opt/quant/deploy/codex_telegram/config.json
+Environment=PATH=/opt/quant/.codex-telegram-runtime/node_modules/.bin:/usr/local/bin:/usr/bin:/bin
+Environment=HOME=/opt/quant
+UMask=0077
+Restart=always
+RestartSec=30
+KillMode=control-group
+TimeoutStopSec=45
+
+[Install]
+WantedBy=multi-user.target

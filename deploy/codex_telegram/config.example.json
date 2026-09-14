@@ -1,0 +1,11 @@
+{
+  "codex_bin": "/opt/quant/.codex-telegram-runtime/node_modules/.bin/codex",
+  "codex_home": "/opt/quant/.codex-telegram-runtime/auth",
+  "env_file": "/opt/quant/.codex-telegram-runtime/telegram.env",
+  "state_dir": "/opt/quant/.codex-telegram-state",
+  "default_project": "quant",
+  "projects": {"quant": "/opt/quant"},
+  "sandbox": "danger-full-access",
+  "retry_seconds": 900,
+  "retry_max_seconds": 3600
+}
