@@ -23,6 +23,7 @@ from core.portfolio import (
     add_holding,
     generate_portfolio_comment,
     generate_thesis_review,
+    get_cash_balance,
     get_portfolio_pnl,
     get_portfolio_risk,
     get_recommended_weights,
@@ -33,6 +34,7 @@ from core.portfolio import (
     remove_holding,
     save_portfolio_correlation_snapshot,
     save_thesis_review,
+    set_cash_balance,
     update_holding,
 )
 from core.theme import apply_theme
@@ -63,6 +65,22 @@ with st.expander("➕ 보유 종목 추가"):
         try:
             add_holding(new_ticker, new_qty, new_price, new_date, thesis=new_thesis)
             st.toast(f"{new_ticker.strip().upper()} 추가 완료.", icon="✅")
+            st.rerun()
+        except ValueError as e:
+            st.error(str(e))
+
+with st.expander("💵 현금 잔고"):
+    st.caption("계좌에 남아있는 현금 잔고를 입력하면, 챔피언 전략 페이지의 리밸런싱 비교에서 총 계좌가치에 반영됩니다.")
+    with st.form("cash_balance_form"):
+        new_cash_balance = st.number_input(
+            "현금 잔고($)", min_value=0.0, step=100.0, value=get_cash_balance()
+        )
+        cash_submitted = st.form_submit_button("저장")
+
+    if cash_submitted:
+        try:
+            set_cash_balance(new_cash_balance)
+            st.toast(f"현금 잔고를 ${new_cash_balance:,.0f}로 저장했습니다.", icon="✅")
             st.rerun()
         except ValueError as e:
             st.error(str(e))
