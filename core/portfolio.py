@@ -21,7 +21,7 @@ import pandas as pd
 from core import gemini_client, market_regime, position_sizing
 from core.db import get_session
 from core.market_data import get_latest_price, get_multiple_price_history
-from core.models import CorrelationSnapshot, PortfolioHolding, PortfolioThesisReview
+from core.models import CorrelationSnapshot, PortfolioCashBalance, PortfolioHolding, PortfolioThesisReview
 from core.screener import get_fundamentals
 
 TRADING_DAYS_PER_YEAR = 252
@@ -121,6 +121,35 @@ def list_holdings() -> list[dict]:
             }
             for r in rows
         ]
+
+
+# ----------------------------------------------------------------------------
+# 현금 잔고 (2026-09-14 추가)
+#
+# PortfolioHolding은 투자된 종목만 다루므로, 계좌에 남아있는 현금은 이 앱이 지금까지 전혀 알
+# 방법이 없었다(core.champion_strategy.compute_rebalance_diff가 총 계좌가치를 "보유 종목 시가총액
+# 합계"로만 근사하던 이유). PortfolioCashBalance는 이력을 쌓을 필요가 없는 단일 스칼라 값이라
+# 단일 행만 유지한다(get_or_create 방식 upsert).
+# ----------------------------------------------------------------------------
+
+
+def get_cash_balance() -> float:
+    """저장된 현금 잔고를 반환한다. 한 번도 설정한 적이 없으면 0.0."""
+    with get_session() as session:
+        row = session.query(PortfolioCashBalance).order_by(PortfolioCashBalance.id).first()
+        return row.amount if row is not None else 0.0
+
+
+def set_cash_balance(amount: float) -> None:
+    """현금 잔고를 갱신한다 (단일 행 upsert — 없으면 새로 만들고, 있으면 값만 덮어쓴다)."""
+    if amount < 0:
+        raise ValueError("현금 잔고는 0 이상이어야 합니다.")
+    with get_session() as session:
+        row = session.query(PortfolioCashBalance).order_by(PortfolioCashBalance.id).first()
+        if row is None:
+            session.add(PortfolioCashBalance(amount=amount))
+        else:
+            row.amount = amount
 
 
 # ----------------------------------------------------------------------------

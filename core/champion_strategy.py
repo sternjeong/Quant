@@ -1103,9 +1103,8 @@ def load_market_regime_context() -> Optional[dict]:
 # 이 함수는 새 신호를 만들지 않는다 — 이미 계산된 core_result/satellite_result와 이미 저장된
 # 보유 종목을 그대로 비교해서 "무엇을 얼마나 사고 팔아야 하는지"의 차이표만 만든다.
 #
-# 총 계좌가치는 "현재 보유 종목 시가총액 합계"로 근사한다 — 이 앱은 현금 잔고를 입력받지 않으므로
-# (전량 투자 가정), 사용자가 실제로 현금을 들고 있다면 목표금액이 그만큼 부풀려질 수 있다는 걸
-# UI에서 안내해야 한다.
+# 총 계좌가치는 "현재 보유 종목 시가총액 합계 + 현금 잔고(core.portfolio.get_cash_balance())"로
+# 계산한다(2026-09-14 — 이전에는 현금 잔고를 입력받지 않아 보유 종목 시가총액 합계로만 근사했다).
 # ----------------------------------------------------------------------------
 
 REBALANCE_DIFF_COLUMNS = [
@@ -1119,6 +1118,7 @@ def compute_rebalance_diff(
     core_result: dict,
     satellite_result: Optional[dict] = None,
     holdings_pnl: Optional[pd.DataFrame] = None,
+    cash_balance: Optional[float] = None,
 ) -> pd.DataFrame:
     """챔피언 엔진의 오늘 추천 배분과 실제 보유(core.portfolio.get_portfolio_pnl())를 비교해
     종목별 목표비중/현재비중/차액(비중%p, 금액)을 계산한다.
@@ -1129,16 +1129,24 @@ def compute_rebalance_diff(
             새틀라이트 목표비중은 diff에 포함하지 않는다(모르는 것을 안다고 표시하지 않음).
         holdings_pnl: core.portfolio.get_portfolio_pnl()과 동일한 형식(ticker/market_value/
             weight_pct 컬럼). None이면 직접 호출한다(테스트에서 주입 가능하도록 인자화).
+        cash_balance: 현금 잔고(달러). None이면 core.portfolio.get_cash_balance()를 직접 호출한다
+            (holdings_pnl과 동일한 지연 임포트 패턴 — 테스트에서 주입 가능하도록 인자화, 2026-09-14 추가).
 
     Returns: REBALANCE_DIFF_COLUMNS 컬럼의 DataFrame, diff_pct 내림차순(가장 많이 사야 할 것부터)
-        정렬. 보유 종목이 하나도 없으면(총 계좌가치 0) 빈 DataFrame.
+        정렬. 총 계좌가치(보유 종목 시가총액 + 현금 잔고)가 0이면 빈 DataFrame.
     """
     if holdings_pnl is None:
         from core.portfolio import get_portfolio_pnl
 
         holdings_pnl = get_portfolio_pnl()
 
-    total_value = float(holdings_pnl["market_value"].sum(skipna=True)) if not holdings_pnl.empty else 0.0
+    if cash_balance is None:
+        from core.portfolio import get_cash_balance
+
+        cash_balance = get_cash_balance()
+
+    holdings_value = float(holdings_pnl["market_value"].sum(skipna=True)) if not holdings_pnl.empty else 0.0
+    total_value = holdings_value + cash_balance
     if total_value <= 0:
         return pd.DataFrame(columns=REBALANCE_DIFF_COLUMNS)
 
@@ -1156,11 +1164,25 @@ def compute_rebalance_diff(
             target_weights[t] = target_weights.get(t, 0.0) + w
             sources[t] = f"{sources[t]}+새틀라이트" if t in sources else "새틀라이트"
 
+    # 현재비중은 holdings_pnl에 이미 있는 weight_pct(보유 종목끼리의 비중)를 그대로 쓰지 않고
+    # current_value/total_value로 다시 계산한다 — total_value가 이제 현금까지 포함하므로 분모가
+    # 다르다(보유 종목만의 합계가 아님).
     current_weights: dict[str, float] = {}
     current_values: dict[str, float] = {}
     for _, row in holdings_pnl.iterrows():
-        current_weights[row["ticker"]] = float(row["weight_pct"] or 0.0) / 100.0
         current_values[row["ticker"]] = float(row["market_value"] or 0.0)
+        current_weights[row["ticker"]] = current_values[row["ticker"]] / total_value
+
+    # CASH도 다른 종목과 동일한 target/current 딕셔너리에 넣어 아래 루프에서 diff_pct/action을
+    # 특별취급 없이 똑같은 방식으로 계산한다(현금 잔고를 몰랐던 예전과 달리 이제는 실제 값을 아니까).
+    cash_weight = core_result.get("cash_weight_from_filter", 0.0)
+    if satellite_result is not None:
+        cash_weight += satellite_result.get("unallocated_weight", 0.0)
+    if cash_weight > 1e-9 or cash_balance > 1e-9:
+        target_weights["CASH"] = target_weights.get("CASH", 0.0) + cash_weight
+        sources["CASH"] = "현금(시장필터 축소분" + ("/새틀라이트 미배정" if satellite_result is not None else "") + ")"
+        current_values["CASH"] = cash_balance
+        current_weights["CASH"] = cash_balance / total_value
 
     rows = []
     for t in sorted(set(target_weights) | set(current_weights)):
@@ -1187,24 +1209,6 @@ def compute_rebalance_diff(
                 "target_value": round(target_v, 2),
                 "delta_value": round(delta_v, 2),
                 "action": action,
-            }
-        )
-
-    cash_weight = core_result.get("cash_weight_from_filter", 0.0)
-    if satellite_result is not None:
-        cash_weight += satellite_result.get("unallocated_weight", 0.0)
-    if cash_weight > 1e-9:
-        rows.append(
-            {
-                "ticker": "CASH",
-                "source": "현금(시장필터 축소분" + ("/새틀라이트 미배정" if satellite_result is not None else "") + ")",
-                "target_weight_pct": round(cash_weight * 100, 2),
-                "current_weight_pct": 0.0,  # 이 앱은 현금 보유를 추적하지 않음(전량 투자 가정)
-                "diff_pct": round(cash_weight * 100, 2),
-                "current_value": 0.0,
-                "target_value": round(cash_weight * total_value, 2),
-                "delta_value": round(cash_weight * total_value, 2),
-                "action": "현금 보유",
             }
         )
 

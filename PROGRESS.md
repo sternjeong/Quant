@@ -4320,3 +4320,49 @@ tuning.py`(train/test 75/25 분리, `compute_overfitting_curve`의 "train은 계
   `_upcoming_weekdays`가 주말을 건너뛰는지) — 전체 `pytest tests/` **803개 통과**(신규 9개 +
   기존 794개, 기존에 있던 `test_strategy_library_archive.py` 실패 2건은 이번 작업과 무관하게
   베이스라인에서도 이미 실패 중이던 것으로 확인, 손대지 않음).
+
+### 작업 62 (2026-09-14, 별도 서브에이전트): 현금 잔고 추적 추가 — 리밸런싱 diff의 "CASH 행 0.0 하드코딩" 근사치 제거
+
+작업59가 `compute_rebalance_diff`를 만들 때 "이 앱은 현금 잔고를 입력받지 않는다"는 전제로 총
+계좌가치를 "보유 종목 시가총액 합계"로만 근사하고, CASH 행의 현재비중/현재금액을 0.0으로
+하드코딩해뒀다(UI에도 그 사실을 사과하는 캡션). 이번 작업은 그 전제 자체를 없애 현금 잔고를
+실제로 추적하도록 만들었다.
+
+- **저장 위치 결정**: `core/watchlist.py`/`core/page_order.py` 등 기존 모듈을 먼저 훑어봤지만
+  이 프로젝트에는 재사용할 만한 범용 단일행 설정(key-value AppSetting) 패턴이 없었다(page_order.py는
+  파일시스템 rename 기반이라 무관). 그래서 `PortfolioHolding`과 나란히 `core/models.py`에
+  `PortfolioCashBalance` 모델을 신규 추가 — 이력을 쌓을 필요가 없는 "현재 값 하나"라서(다른
+  스냅샷류 테이블들과 달리) 단일 행만 유지하는 get-or-create(upsert) 방식으로 설계했다.
+- **`core/portfolio.py`**: `get_cash_balance() -> float`(저장된 적 없으면 0.0)/
+  `set_cash_balance(amount: float) -> None`(음수 거부, 단일 행 upsert) 추가 — 기존
+  `add_holding`/`update_holding`과 동일한 `with get_session()` 패턴을 그대로 재사용.
+- **`app/pages/8_포트폴리오_관리.py`**: "➕ 보유 종목 추가" 폼 바로 아래 "💵 현금 잔고" expander를
+  신규 추가(보유 종목이 하나도 없을 때 페이지가 조기 종료(`st.stop()`)되기 전에 배치해, 종목이
+  없어도 현금만 먼저 기록할 수 있게 함) — number_input + 저장 버튼, 기존 폼 스타일 그대로.
+  페이지의 나머지 구조(손익/리스크/매매근거 섹션)는 건드리지 않음.
+- **`core/champion_strategy.py::compute_rebalance_diff`**: `cash_balance: Optional[float] = None`
+  파라미터 추가(None이면 `holdings_pnl`과 동일한 지연 임포트 패턴으로 `core.portfolio.
+  get_cash_balance()`를 직접 호출 — 테스트 주입 가능). `total_value`에 현금 잔고를 더하고, 이제
+  분모가 "보유종목만의 합"이 아니게 됐으므로 각 종목의 현재비중도 `holdings_pnl`이 들고 있던
+  `weight_pct`(보유종목끼리의 비중)를 쓰지 않고 `current_value/total_value`로 다시 계산하도록
+  고쳤다. CASH도 다른 종목과 같은 target/current 딕셔너리에 넣어 같은 루프를 타게 만들어서,
+  diff_pct/action(매수/매도/유지)이 다른 행과 완전히 동일한 기준으로 계산되게 했다 — 예전처럼
+  무조건 "현금 보유"로 특수취급하지 않는다. 목표 현금비중이 0이어도(시장필터/새틀라이트가 완전
+  배분) 실제 현금 잔고가 있으면 CASH 행이 뜨도록(목표 0 vs 현재 보유 → "매도"=다른 자산으로
+  옮기라는 신호) 표시 조건을 `cash_weight > 0 또는 cash_balance > 0`으로 넓혔다(예전엔 현금을
+  아예 몰랐으니 이런 케이스 자체가 없었음).
+- **`app/pages/11_챔피언_전략.py`**: "5. 내 포트폴리오와 비교" 섹션의 캡션만 수정(다른 부분은
+  손대지 않음 — 같은 파일의 새틀라이트 부분을 다른 서브에이전트가 병렬로 작업 중이라 범위를
+  캡션 + `compute_rebalance_diff` 호출부로 한정) — "현금 잔고를 안 받는다"는 사과성 문구를
+  제거하고 "총 계좌가치 = 보유 종목 + 현금 잔고, 8번 페이지에서 최신 상태로 유지해야 정확함"
+  안내로 교체.
+- 검증: `tests/test_portfolio.py`에 현금 잔고 CRUD 신규 테스트 5개(미설정 시 기본값 0.0/설정-조회
+  라운드트립/반복 설정해도 단일 행 유지/음수 거부/0 허용), `tests/test_champion_strategy.py`
+  기존 `compute_rebalance_diff` 테스트 7개 전부에 `cash_balance=0.0`을 명시로 추가해 실제 DB에
+  의존하지 않게 고치고(현금 하드코딩 CASH 행 "현금 보유" 액션 단언은 이제 표준 매수/매도/유지
+  판정을 따르므로 "매수"로 수정), 신규 테스트 4개(직접 주입 시 CASH 현재값/현재비중 및 다른
+  종목 현재비중도 전체 계좌가치 기준으로 재계산되는지, 목표 0인데 실제 현금 있으면 CASH 행이
+  뜨는지, `get_cash_balance()` 지연 호출 패턴) 추가. 전체 `pytest tests/` **800개 통과**(사전에
+  이미 존재하던 무관한 실패 2건 `tests/test_strategy_library_archive.py::test_archive_unknown_
+  strategy_raises`/`test_unarchive_unknown_strategy_raises`는 이번 작업과 무관 — 별도 테이블
+  초기화 이슈로 이번 변경 전부터 실패하고 있었음, 손대지 않음).

@@ -441,8 +441,8 @@ else:
             "섹션에서 스캔을 실행하면 전체(코어+새틀라이트) 비교로 확장됩니다."
         )
     st.caption(
-        "⚠️ 이 앱은 현금 잔고를 별도로 입력받지 않습니다 — 총 계좌가치를 '현재 보유 종목 시가총액 "
-        "합계'로 근사하므로, 실제로 현금을 들고 있다면 목표 금액이 그만큼 부풀려질 수 있습니다."
+        "ℹ️ 총 계좌가치는 '보유 종목 시가총액 합계 + 현금 잔고'로 계산합니다 — 현금 잔고는 "
+        "[8_포트폴리오_관리] 페이지에서 최신 상태로 입력해두어야 정확합니다."
     )
     diff_df = compute_rebalance_diff(core_result, satellite_result=satellite_result, holdings_pnl=holdings_pnl)
     if diff_df.empty:

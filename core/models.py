@@ -191,6 +191,26 @@ class PortfolioHolding(Base):
         return f"<PortfolioHolding id={self.id} ticker={self.ticker!r} qty={self.quantity}>"
 
 
+class PortfolioCashBalance(Base):
+    """포트폴리오 현금 잔고 (모듈 H 확장, 2026-09-14).
+
+    보유 종목(PortfolioHolding)과 달리 매매 시점별 이력이 의미있는 값이 아니라 "지금 현금이
+    얼마 남아있는지" 단일 스칼라 값이면 충분하므로, 여러 행을 쌓지 않고 단일 행만 유지한다
+    (id=1 고정, core.portfolio.set_cash_balance()가 upsert로 그 행을 갱신/생성한다).
+    챔피언 전략 리밸런싱 diff(core.champion_strategy.compute_rebalance_diff)가 총 계좌가치를
+    "보유 종목 시가총액 + 이 현금 잔고"로 정확히 계산하기 위해 도입했다.
+    """
+
+    __tablename__ = "portfolio_cash_balance"
+
+    id = Column(Integer, primary_key=True)
+    amount = Column(Float, nullable=False, default=0.0)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    def __repr__(self) -> str:
+        return f"<PortfolioCashBalance id={self.id} amount={self.amount}>"
+
+
 class PortfolioThesisReview(Base):
     """매매근거(PortfolioHolding.thesis) 사후 검증 이력 (모듈 H 확장).
 

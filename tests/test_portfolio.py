@@ -90,6 +90,39 @@ def test_get_holding_returns_none_for_missing_id(patched_session):
 
 
 # ----------------------------------------------------------------------------
+# 현금 잔고 (2026-09-14 추가)
+# ----------------------------------------------------------------------------
+
+
+def test_get_cash_balance_defaults_to_zero_when_never_set(patched_session):
+    assert portfolio.get_cash_balance() == 0.0
+
+
+def test_set_and_get_cash_balance_round_trip(patched_session):
+    portfolio.set_cash_balance(1500.0)
+    assert portfolio.get_cash_balance() == 1500.0
+
+
+def test_set_cash_balance_upserts_single_row_on_repeated_calls(patched_session):
+    portfolio.set_cash_balance(1000.0)
+    portfolio.set_cash_balance(2500.0)
+    assert portfolio.get_cash_balance() == 2500.0
+    # 여러 번 설정해도 행이 하나만 남아야 한다(단일 행 upsert).
+    assert patched_session.query(portfolio.PortfolioCashBalance).count() == 1
+
+
+def test_set_cash_balance_rejects_negative_amount(patched_session):
+    with pytest.raises(ValueError):
+        portfolio.set_cash_balance(-1.0)
+
+
+def test_set_cash_balance_allows_zero(patched_session):
+    portfolio.set_cash_balance(500.0)
+    portfolio.set_cash_balance(0.0)
+    assert portfolio.get_cash_balance() == 0.0
+
+
+# ----------------------------------------------------------------------------
 # compute_pnl
 # ----------------------------------------------------------------------------
 

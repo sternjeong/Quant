@@ -854,14 +854,14 @@ _CORE_RESULT_NO_FILTER = {
 
 
 def test_compute_rebalance_diff_empty_when_no_holdings():
-    df = champion_strategy.compute_rebalance_diff(_CORE_RESULT_NO_FILTER, holdings_pnl=pd.DataFrame())
+    df = champion_strategy.compute_rebalance_diff(_CORE_RESULT_NO_FILTER, holdings_pnl=pd.DataFrame(), cash_balance=0.0)
     assert df.empty
     assert list(df.columns) == champion_strategy.REBALANCE_DIFF_COLUMNS
 
 
 def test_compute_rebalance_diff_flags_buy_for_recommended_ticker_not_held():
     holdings = _holdings_pnl_df([{"ticker": "TLT", "market_value": 10_000.0}])
-    df = champion_strategy.compute_rebalance_diff(_CORE_RESULT_NO_FILTER, holdings_pnl=holdings)
+    df = champion_strategy.compute_rebalance_diff(_CORE_RESULT_NO_FILTER, holdings_pnl=holdings, cash_balance=0.0)
 
     xlk_row = df[df["ticker"] == "XLK"].iloc[0]
     assert xlk_row["action"] == "매수"
@@ -879,7 +879,7 @@ def test_compute_rebalance_diff_holds_when_within_band():
     holdings = _holdings_pnl_df(
         [{"ticker": "XLK", "market_value": target_pct * 10_000.0}, {"ticker": "CASH_FILLER", "market_value": (1 - target_pct) * 10_000.0}]
     )
-    df = champion_strategy.compute_rebalance_diff(_CORE_RESULT_NO_FILTER, holdings_pnl=holdings)
+    df = champion_strategy.compute_rebalance_diff(_CORE_RESULT_NO_FILTER, holdings_pnl=holdings, cash_balance=0.0)
     xlk_row = df[df["ticker"] == "XLK"].iloc[0]
     assert xlk_row["action"] == "유지"
 
@@ -889,7 +889,9 @@ def test_compute_rebalance_diff_combines_core_and_satellite_weight_for_overlappi
     satellite_result = {"selected": ["NVDA", "AMD"], "per_ticker_weights": {"NVDA": 0.10, "AMD": 0.05}, "unallocated_weight": 0.0}
     holdings = _holdings_pnl_df([{"ticker": "NVDA", "market_value": 5_000.0}])
 
-    df = champion_strategy.compute_rebalance_diff(core_result, satellite_result=satellite_result, holdings_pnl=holdings)
+    df = champion_strategy.compute_rebalance_diff(
+        core_result, satellite_result=satellite_result, holdings_pnl=holdings, cash_balance=0.0
+    )
 
     nvda_row = df[df["ticker"] == "NVDA"].iloc[0]
     assert nvda_row["source"] == "코어+새틀라이트"
@@ -901,16 +903,59 @@ def test_compute_rebalance_diff_adds_cash_row_when_filter_and_satellite_leave_un
     satellite_result = {"selected": [], "per_ticker_weights": {}, "unallocated_weight": 0.15}
     holdings = _holdings_pnl_df([{"ticker": "XLK", "market_value": 1_000.0}])
 
-    df = champion_strategy.compute_rebalance_diff(core_result, satellite_result=satellite_result, holdings_pnl=holdings)
+    df = champion_strategy.compute_rebalance_diff(
+        core_result, satellite_result=satellite_result, holdings_pnl=holdings, cash_balance=0.0
+    )
 
     cash_row = df[df["ticker"] == "CASH"].iloc[0]
     assert cash_row["target_weight_pct"] == pytest.approx((0.85 * 0.5 + 0.15) * 100)
-    assert cash_row["action"] == "현금 보유"
+    assert cash_row["current_weight_pct"] == pytest.approx(0.0)
+    assert cash_row["current_value"] == pytest.approx(0.0)
+    # cash_balance=0인데 목표비중은 크므로(> HOLD_BAND) 다른 종목과 동일한 기준으로 "매수"가 나와야 함
+    # (예전처럼 무조건 "현금 보유"로 특수취급하지 않음).
+    assert cash_row["action"] == "매수"
+
+
+def test_compute_rebalance_diff_cash_balance_injected_reflects_actual_current_value():
+    """cash_balance를 직접 주입하면 CASH 행의 current_weight_pct/current_value가 실제 값을 반영하고,
+    총 계좌가치에도 더해진다(2026-09-14 추가 — 현금 잔고 추적 기능)."""
+    core_result = {"top4": ["XLK"], "per_ticker_weight": 0.85 / 4 * 0.5, "cash_weight_from_filter": 0.85 * 0.5}
+    satellite_result = {"selected": [], "per_ticker_weights": {}, "unallocated_weight": 0.15}
+    holdings = _holdings_pnl_df([{"ticker": "XLK", "market_value": 1_000.0}])
+
+    df = champion_strategy.compute_rebalance_diff(
+        core_result, satellite_result=satellite_result, holdings_pnl=holdings, cash_balance=2_000.0
+    )
+
+    total_value = 1_000.0 + 2_000.0
+    cash_row = df[df["ticker"] == "CASH"].iloc[0]
+    assert cash_row["current_value"] == pytest.approx(2_000.0)
+    assert cash_row["current_weight_pct"] == pytest.approx(2_000.0 / total_value * 100, abs=0.01)
+
+    xlk_row = df[df["ticker"] == "XLK"].iloc[0]
+    # XLK의 현재비중도 이제 (보유종목+현금) 전체 계좌가치를 분모로 계산되어야 함
+    assert xlk_row["current_weight_pct"] == pytest.approx(1_000.0 / total_value * 100, abs=0.01)
+    assert xlk_row["target_value"] == pytest.approx(core_result["per_ticker_weight"] * total_value)
+
+
+def test_compute_rebalance_diff_cash_only_no_target_still_shown_when_actual_cash_present():
+    """목표 현금비중이 0이어도(코어/새틀라이트가 완전히 배분됨) 실제 현금 잔고가 있으면 CASH 행이
+    나와야 한다(예전엔 현금을 아예 몰랐으니 이런 행 자체가 있을 수 없었음)."""
+    holdings = _holdings_pnl_df([{"ticker": "XLK", "market_value": 1_000.0}])
+    df = champion_strategy.compute_rebalance_diff(_CORE_RESULT_NO_FILTER, holdings_pnl=holdings, cash_balance=500.0)
+
+    assert "CASH" in df["ticker"].tolist()
+    cash_row = df[df["ticker"] == "CASH"].iloc[0]
+    assert cash_row["target_weight_pct"] == pytest.approx(0.0)
+    assert cash_row["current_value"] == pytest.approx(500.0)
+    assert cash_row["action"] == "매도"  # 목표 0인데 현금을 들고 있으니 다른 자산으로 옮기라는 신호
 
 
 def test_compute_rebalance_diff_omits_satellite_when_not_yet_scanned():
     holdings = _holdings_pnl_df([{"ticker": "XLK", "market_value": 1_000.0}])
-    df = champion_strategy.compute_rebalance_diff(_CORE_RESULT_NO_FILTER, satellite_result=None, holdings_pnl=holdings)
+    df = champion_strategy.compute_rebalance_diff(
+        _CORE_RESULT_NO_FILTER, satellite_result=None, holdings_pnl=holdings, cash_balance=0.0
+    )
     assert "CASH" not in df["ticker"].tolist()  # 새틀라이트 미배정분을 모르는 채로 현금이라 단정하지 않음
 
 
@@ -924,8 +969,27 @@ def test_compute_rebalance_diff_calls_get_portfolio_pnl_when_not_injected(monkey
     import core.portfolio as portfolio
 
     monkeypatch.setattr(portfolio, "get_portfolio_pnl", _fake_get_portfolio_pnl)
+    monkeypatch.setattr(portfolio, "get_cash_balance", lambda: 0.0)
     champion_strategy.compute_rebalance_diff(_CORE_RESULT_NO_FILTER)
     assert called["n"] == 1
+
+
+def test_compute_rebalance_diff_calls_get_cash_balance_when_not_injected(monkeypatch):
+    called = {"n": 0}
+
+    def _fake_get_cash_balance():
+        called["n"] += 1
+        return 3_000.0
+
+    import core.portfolio as portfolio
+
+    holdings = _holdings_pnl_df([{"ticker": "XLK", "market_value": 1_000.0}])
+    monkeypatch.setattr(portfolio, "get_portfolio_pnl", lambda: holdings)
+    monkeypatch.setattr(portfolio, "get_cash_balance", _fake_get_cash_balance)
+    df = champion_strategy.compute_rebalance_diff(_CORE_RESULT_NO_FILTER)
+    assert called["n"] == 1
+    cash_row = df[df["ticker"] == "CASH"].iloc[0]
+    assert cash_row["current_value"] == pytest.approx(3_000.0)
 
 
 # ----------------------------------------------------------------------------
