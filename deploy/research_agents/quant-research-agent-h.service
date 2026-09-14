@@ -1,0 +1,18 @@
+[Unit]
+Description=Quant R&D agent H (학술 문헌/외부 벤치마크 조사관, 고도 추론) — 1회 실행용
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=quant
+WorkingDirectory=/opt/quant
+EnvironmentFile=/opt/quant/.env
+Environment="HOME=/opt/quant"
+Environment="CLAUDE_CONFIG_DIR=/opt/quant/.claude"
+TimeoutStartSec=82800
+# 2026-09-14: G와 동일한 이유로 effort=high (외부 문헌 대조는 검색+비판적 종합이 필요).
+ExecStart=/opt/quant/deploy/research_agents/run_research_agent.sh h agent_h_literature_benchmark.md high
+
+[Install]
+WantedBy=multi-user.target

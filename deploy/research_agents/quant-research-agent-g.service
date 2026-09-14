@@ -1,0 +1,21 @@
+[Unit]
+Description=Quant R&D agent G (방법론 메타 감사관 — 다중비교/일관성 감사, 고도 추론) — 1회 실행용
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=quant
+WorkingDirectory=/opt/quant
+EnvironmentFile=/opt/quant/.env
+Environment="HOME=/opt/quant"
+Environment="CLAUDE_CONFIG_DIR=/opt/quant/.claude"
+TimeoutStartSec=82800
+# 2026-09-14: 사용자가 "더 고도의 추론"을 요청 + effort 부족하면 늘려주겠다고 확인 — 이 에이전트는
+# 통계적 메타 감사(다중비교 보정 등)라 추론 강도를 높게(high) 설정했다. 로그에서 effort가
+# maxEffortLevel 정책으로 클램프됐다는 메시지가 보이면, 사용자 Claude 계정 설정에서 최대 effort
+# 한도를 올려달라고 요청할 것(deploy/DEPLOYMENT_ORACLE.md 10단계 참고).
+ExecStart=/opt/quant/deploy/research_agents/run_research_agent.sh g agent_g_methodology_auditor.md high
+
+[Install]
+WantedBy=multi-user.target

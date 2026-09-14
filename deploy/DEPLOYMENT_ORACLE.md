@@ -134,21 +134,44 @@ sudo systemctl restart quant-streamlit quant-scheduler
 
 ## 10. (신규, 2026-09-14) 리서치 에이전트 자동화 — 매일 밤 무인으로 Claude Code 실행
 
-`deploy/research_agents/`에 매일 한국시간 00:20에 Claude Code CLI를 무인으로 두 번(에이전트
-B/C 각각) 실행해 새 정량 리서치 리포트를 생성하는 systemd 타이머 두 개가 정의돼 있다. API 키
-과금이 아니라 **사용자의 Claude Pro/Max 구독 로그인**으로 동작한다(이 VM의 대화형 CLI 로그인은
-1회만 사람이 직접 해야 함 — 아래 참고).
+`deploy/research_agents/`에 매일 밤 Claude Code CLI를 무인으로 **7번**(에이전트 B~H 각각)
+실행해 새 정량 리서치 리포트를 생성하는 systemd 타이머 7개가 정의돼 있다. API 키 과금이 아니라
+**사용자의 Claude Pro/Max 구독 로그인**으로 동작한다(이 VM의 대화형 CLI 로그인은 1회만 사람이
+직접 해야 함 — 아래 참고).
 
-- `agent_b_market_portfolio.md` / `agent_c_tenbagger.md`: 각 에이전트의 페르소나·규칙·"아직
-  안 풀린 문제" 목록을 담은 프롬프트. 이 저장소의 `analysis/`에 쌓인 기존 리서치 방법론(순열검정+
-  블록부트스트랩 이중검증, point-in-time 유니버스, 확신도 등급, 자기회의적 태도)을 그대로
-  이어가도록 지시한다. 결과물은 **git commit/push를 하지 않고** 워킹트리에만 쌓인다.
-- `run_research_agent.sh`: `claude -p "<프롬프트>" --dangerously-skip-permissions`로 헤드리스
-  실행 후 `pytest tests/ -q` 회귀 확인 + `notify_if_accumulated.py` 호출.
+**7개 에이전트 구성 (2026-09-14, "R&D 섹터" 확장)**:
+
+| 에이전트 | 역할 | 시각(KST) | effort |
+|---|---|---|---|
+| B | 미국 10개 시장/S&P500 포트폴리오 리서치(기존) | 00:20 | 기본값 |
+| C | 개별주/텐베거 발굴 리서치(기존) | 00:20 | 기본값 |
+| D | 전략 구성가 — B/C 결과를 "월 1~3회 매매" 후보 전략으로 종합 | 00:25 | 기본값 |
+| E | 실행 준비가 — D의 후보를 "이번 달 실제 매매안"으로 번역 | 01:00 | 기본값 |
+| F | 비용/세금 감사관 — 수수료·환전·한국 거주자 양도세 반영 후 감사 | 01:30 | 기본값 |
+| G | 방법론 메타 감사관 — 다중비교 보정 등 프로그램 전체 통계적 건전성 | 02:00 | **high** |
+| H | 학술 문헌/외부 벤치마크 조사관 — 내부 결론을 외부 문헌과 대조 | 02:30 | **high** |
+
+D/E/F/G/H는 전날 밤 선행 에이전트 결과가 아직 없어도(예: D가 아직 안 끝났어도) **절대 그냥
+대기하고 끝내지 않는다** — 그럴 땐 이미 라이브로 도는 `core/champion_strategy.py`의 현재 설정을
+대체 대상으로 삼아 매일 밤 실질적인 결과물을 낸다(프롬프트 파일에 명시).
+
+- `agent_{b..h}_*.md`: 각 에이전트의 페르소나·규칙·"아직 안 풀린 문제" 목록을 담은 프롬프트.
+  이 저장소의 `analysis/`에 쌓인 기존 리서치 방법론(순열검정+블록부트스트랩 이중검증,
+  point-in-time 유니버스, 확신도 등급, 자기회의적 태도)을 그대로 이어가도록 지시한다. 결과물은
+  **git commit/push를 하지 않고** 워킹트리에만 쌓인다.
+- `analysis/LATEST_STRATEGY_CANDIDATE.md`: D가 매일 갱신하는 "현재 후보 전략" 요약 문서(다른
+  날짜 폴더들과 달리 유일하게 매번 덮어써지는 파일) — E/F/G/H가 여기서 오늘 다룰 대상을 찾는다.
+- `run_research_agent.sh <agent> <prompt.md> [effort]`: `claude -p "<프롬프트>"
+  --dangerously-skip-permissions [--effort <level>]`로 헤드리스 실행 후 `pytest tests/ -q`
+  회귀 확인 + `notify_if_accumulated.py` 호출. G/H는 "더 고도의 추론"이 필요하다는 사용자
+  요청으로 `--effort high`를 기본 인자로 넘긴다(계정의 `maxEffortLevel` 정책에 걸려 클램프된다는
+  로그가 보이면 사용자에게 상향을 요청할 것).
 - `notify_if_accumulated.py`: `analysis/` 밑에 아직 커밋되지 않은(untracked) 새 리포트 폴더가
   마지막 알림 이후 3개 이상 쌓이면 텔레그램으로 한 번에 알린다(매번 알리면 스팸이 되므로).
 - "사용량 한도에 걸리면 초기화 후 이어서 계속" 동작은 별도 재시도 로직 없이 **Claude Code 자체
-  설정**(`autoContinueAtUsageLimit: true`)에 맡긴다 — 아래 3단계에서 설정한다.
+  설정**(`autoContinueAtUsageLimit: true`)에 맡긴다 — 아래 3단계에서 설정한다. 에이전트 7개가
+  전부 같은 Pro/Max 사용량 풀을 공유하므로(사용자 본인의 대화형 사용량과도 공유), 낮 동안 직접
+  Claude Code를 쓸 수 있는 한도가 줄어들 수 있다는 점을 사용자가 이미 인지하고 승인함.
 
 **1단계 — Claude Code CLI 설치** (VM에 SSH 접속 후):
 ```bash
@@ -201,22 +224,24 @@ systemd 서비스는 `sudo` 셸을 거치지 않고 systemd가 프로세스를 �
 `Environment="HOME=/opt/quant"`/`Environment="CLAUDE_CONFIG_DIR=/opt/quant/.claude"`를
 명시적으로 주입하므로(`.service` 파일에 이미 반영됨) 이 문제가 재현되지 않는다.
 
-**4단계 — systemd 등록**:
+**4단계 — systemd 등록** (B~H 7개 전부):
 ```bash
-sudo cp /opt/quant/deploy/research_agents/quant-research-agent-b.service /etc/systemd/system/
-sudo cp /opt/quant/deploy/research_agents/quant-research-agent-b.timer /etc/systemd/system/
-sudo cp /opt/quant/deploy/research_agents/quant-research-agent-c.service /etc/systemd/system/
-sudo cp /opt/quant/deploy/research_agents/quant-research-agent-c.timer /etc/systemd/system/
+for a in b c d e f g h; do
+  sudo cp /opt/quant/deploy/research_agents/quant-research-agent-${a}.service /etc/systemd/system/
+  sudo cp /opt/quant/deploy/research_agents/quant-research-agent-${a}.timer /etc/systemd/system/
+done
 sudo systemctl daemon-reload
-sudo systemctl enable --now quant-research-agent-b.timer quant-research-agent-c.timer
+sudo systemctl enable --now quant-research-agent-{b,c,d,e,f,g,h}.timer
 ```
 
 **5단계 — 확인**:
 ```bash
-systemctl list-timers | grep quant-research   # 다음 실행 예정 시각 확인
-# 당장 한 번 수동으로 테스트해보려면(타이머 안 기다리고):
+systemctl list-timers | grep quant-research   # 7개 타이머 전부 다음 실행 예정 시각 확인
+# 당장 한 번 수동으로 테스트해보려면(타이머 안 기다리고), 로그 파일로 확인(journalctl 아님 —
+# run_research_agent.sh가 출력을 파일로 몰아서 씀):
 sudo systemctl start quant-research-agent-b.service
-journalctl -u quant-research-agent-b -f   # 실시간 로그(claude 세션 출력 포함)
+tail -f /opt/quant/data/cache/research_agent_logs/agent_b_*.log
+# 살아서 도는지만 빠르게 확인하려면: ps aux | grep -i claude
 ```
 
 **결과물 검토**: 매일 밤 `analysis/YYYY-MM-DD_*/` 밑에 새 폴더가 쌓인다(자동 커밋 안 됨). 3개
