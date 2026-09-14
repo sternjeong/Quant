@@ -1,5 +1,7 @@
 {
   "codex_bin": "/opt/quant/.codex-telegram-runtime/node_modules/.bin/codex",
+  "claude_bin": "/usr/local/bin/claude",
+  "claude_config_dir": "/opt/quant/.claude",
   "codex_home": "/opt/quant/.codex-telegram-runtime/auth",
   "env_file": "/opt/quant/.codex-telegram-runtime/telegram.env",
   "state_dir": "/opt/quant/.codex-telegram-state",

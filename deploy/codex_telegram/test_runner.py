@@ -82,5 +82,50 @@ class PipelineTests(unittest.TestCase):
             self.assertIsNotNone(LIMIT.search(text))
         self.assertIsNone(LIMIT.search('401 Unauthorized'))
 
+    def test_backend_selection_and_status(self):
+        first = self.update()
+        first['message']['text'] = '/claude'
+        self.s.ingest([first, self.update(2)])
+        third = self.update(3)
+        third['message']['text'] = '/codex hello'
+        status = self.update(4)
+        status['message']['text'] = '/status'
+        self.s.ingest([third, status, status])
+        with self.s.db() as db:
+            self.assertEqual([tuple(r) for r in db.execute('SELECT id,backend,instruction FROM jobs ORDER BY id')],
+                             [(2,'claude','test'),(3,'codex','hello')])
+            self.assertEqual(db.execute('SELECT count(*) FROM outbox').fetchone()[0], 4)
+
+    def test_claude_result(self):
+        update = self.update()
+        update['message']['text'] = '/claude answer'
+        self.s.ingest([update])
+        root = self.root
+        class Child:
+            stdin = io.StringIO()
+            stdout = iter([json.dumps({'type':'result','subtype':'success','is_error':False,'result':'Claude reply'})])
+            def wait(self):
+                (root/'RESUME_NOTE.md').unlink()
+                return 0
+        with patch('runner.subprocess.Popen', return_value=Child()) as launch:
+            self.s.work_once()
+            self.assertIn('--append-system-prompt', launch.call_args.args[0])
+        self.assertEqual(self.row()['summary'], 'Claude reply')
+        self.assertEqual(self.row()['status'], 'done')
+
+    def test_claude_limit_preserves_note(self):
+        update = self.update()
+        update['message']['text'] = '/claude work'
+        self.s.ingest([update])
+        class Child:
+            stdin = io.StringIO()
+            stdout = iter([json.dumps({'type':'result','subtype':'error_during_execution',
+                                      'is_error':True,'result':"You've hit your limit"})])
+            def wait(self): return 1
+        with patch('runner.subprocess.Popen', return_value=Child()):
+            self.s.work_once()
+        self.assertEqual(self.row()['status'], 'retry')
+        self.assertTrue((self.root/'RESUME_NOTE.md').exists())
+
 
 if __name__ == '__main__': unittest.main()

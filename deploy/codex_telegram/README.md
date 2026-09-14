@@ -1,4 +1,38 @@
-# Telegram → Codex 무인 작업 파이프라인
+# Telegram → Codex / Claude 무인 작업 파이프라인
+
+## 실행 대상과 응답
+
+같은 기존 봇에서 두 CLI에 지시하거나 질문할 수 있다.
+
+```text
+/codex README를 확인하고 현재 프로젝트 상태를 알려줘
+/claude 최근 변경사항을 검토해줘
+```
+
+`/claude`만 보내면 이후 평문 메시지는 Claude로, `/codex`만 보내면 Codex로 전달한다.
+이 선택은 서비스 재시작 후에도 유지된다. `/claude 지시`처럼 내용을 붙인 명령은 해당 작업에만
+적용한다. 초기 기본값은 Codex다. `/status`는 최근 작업 상태, `/help`는 명령 목록을 반환한다.
+`/claude /project quant` 다음 줄에 지시를 넣어 프로젝트도 선택할 수 있다.
+
+접수 시 작업 ID와 실행 대상을 알려주고, 완료 시 해당 CLI의 최종 응답을 Telegram에 전달한다.
+긴 응답은 나눠 보낸다. 질문만 처리한 경우 불필요한 commit을 만들지 않는다.
+각 메시지는 독립 작업이며 기존 터미널 세션이나 이전 대화 내용을 자동 공유하지 않는다.
+후속 지시에는 대상 파일이나 이전 작업 ID 등 필요한 맥락을 포함한다.
+두 CLI가 같은 프로젝트를 동시에 수정하지 않도록 기존 단일 작업자 큐를 공유한다.
+
+Claude는 서버에 설치된 `/usr/local/bin/claude`와 `quant` 계정의 기존 로그인을 사용한다.
+`claude_bin`, `claude_config_dir`로 변경할 수 있다. 설치된 CLI의 `--help`로 다음 플래그를 확인했다.
+
+```text
+claude -p --output-format stream-json --verbose --no-session-persistence --dangerously-skip-permissions --append-system-prompt PROMPT
+```
+
+지시는 stdin으로 전달하고 `result` 이벤트의 성공 여부와 응답을 읽는다. Claude도 한도 오류 시
+같은 메모 및 재시도 규칙을 적용한다. 인증 등 일반 오류는 `blocked`로 알린다.
+CLI 세션 기록은 저장하지 않으며, 기존 대화 세션에 원격으로 붙는 방식은 아니다.
+
+두 CLI를 각각 합성 Telegram 메시지로 실행해 `done` 및 실제 Telegram 응답 전송을 확인했다.
+Claude 한도 오류는 모의 이벤트로 메모 보존과 재시도를 검증했다.
 
 이 서비스는 Telegram private chat의 새 텍스트 메시지를 SQLite 영속 큐에 기록하고, 프로젝트별로
 하나씩 Codex CLI 작업자로 실행한다. Long polling을 사용하므로 공개 webhook URL·TLS 인증서가

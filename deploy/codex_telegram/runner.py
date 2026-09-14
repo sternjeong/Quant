@@ -15,6 +15,7 @@ import urllib.request
 
 HERE = Path(__file__).resolve().parent
 LIMIT = re.compile(r"usage_limit_(?:reached|exceeded)|usage limit|rate_limit_exceeded|rate limit|too many requests|\b429\b", re.I)
+CLAUDE_LIMIT = re.compile(r"usage limit|rate.?limit|hit your limit|out of extra usage|\b429\b", re.I)
 
 
 def env_file(path):
@@ -45,6 +46,10 @@ class Service:
               instruction TEXT, status TEXT DEFAULT 'queued', attempts INTEGER DEFAULT 0,
               due REAL DEFAULT 0, summary TEXT DEFAULT '', notified INTEGER DEFAULT 0);
             ''')
+            columns = {row[1] for row in db.execute('PRAGMA table_info(jobs)')}
+            if 'backend' not in columns:
+                db.execute("ALTER TABLE jobs ADD COLUMN backend TEXT NOT NULL DEFAULT 'codex'")
+            db.execute('CREATE TABLE IF NOT EXISTS outbox(id INTEGER PRIMARY KEY, chat TEXT, text TEXT)')
 
     def db(self):
         db = sqlite3.connect(self.state / 'queue.sqlite', timeout=30)
@@ -64,17 +69,45 @@ class Service:
         with self.db() as db:
             for update in updates:
                 uid = int(update['update_id'])
+                offset = db.execute("SELECT value FROM meta WHERE key='offset'").fetchone()
+                if offset and uid < int(offset[0]):
+                    continue
                 msg = update.get('message', {})
                 chat = msg.get('chat', {})
                 instruction = msg.get('text', '')
                 if str(chat.get('id')) == self.chat and chat.get('type') == 'private' and instruction:
+                    selected = db.execute("SELECT value FROM meta WHERE key='backend'").fetchone()
+                    backend = selected[0] if selected else 'codex'
+                    # Accept a newline after the command as well as a space.
+                    parts = instruction.split(maxsplit=1)
+                    command = parts[0].split('@')[0]
+                    rest = parts[1] if len(parts) > 1 else ''
+                    reply = None
+                    if command in ('/codex', '/claude'):
+                        backend = command[1:]
+                        instruction = rest
+                        if not rest:
+                            db.execute("INSERT INTO meta VALUES('backend',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value", (backend,))
+                            reply = f'기본 실행 대상: {backend}. 다음 메시지부터 적용됩니다.'
+                    elif command == '/status':
+                        rows = db.execute("SELECT id,backend,status FROM jobs ORDER BY id DESC LIMIT 8").fetchall()
+                        reply = f'기본 실행 대상: {backend}\n' + '\n'.join(f'{r[0]} {r[1]} {r[2]}' for r in rows)
+                    elif command in ('/start', '/help'):
+                        reply = '/codex 지시\n/claude 지시\n/codex 또는 /claude: 기본 대상 변경\n/status: 최근 작업\n/project 별칭 다음 줄에 지시\n각 메시지는 새 작업이며 이전 대화 세션을 자동 공유하지 않습니다.'
+                    elif command.startswith('/') and command != '/project':
+                        reply = '알 수 없는 명령입니다. /help를 확인하세요.'
                     project = self.cfg['default_project']
                     if instruction.startswith('/project '):
                         first, _, instruction = instruction.partition('\n')
                         project = first.split(maxsplit=1)[1].strip()
-                    if project in self.cfg['projects'] and instruction.strip():
-                        db.execute('INSERT OR IGNORE INTO jobs(id,chat,project,instruction) VALUES(?,?,?,?)',
-                                   (uid, self.chat, project, instruction))
+                    if reply is None:
+                        if project in self.cfg['projects'] and instruction.strip():
+                            db.execute('INSERT OR IGNORE INTO jobs(id,chat,project,instruction,backend) VALUES(?,?,?,?,?)',
+                                       (uid, self.chat, project, instruction, backend))
+                            reply = f'접수 {uid} [{backend}] 프로젝트: {project}'
+                        else:
+                            reply = '프로젝트 또는 지시를 확인하세요. /help'
+                    db.execute('INSERT INTO outbox(chat,text) VALUES(?,?)', (self.chat, reply))
                 db.execute("INSERT INTO meta VALUES('offset',?) ON CONFLICT(key) DO UPDATE SET value=max(cast(value as integer),cast(excluded.value as integer))", (str(uid + 1),))
 
     def poll(self):
@@ -84,9 +117,18 @@ class Service:
                     row = db.execute("SELECT value FROM meta WHERE key='offset'").fetchone()
                 self.ingest(self.api('getUpdates', {'offset': int(row[0]) if row else 0,
                                                    'timeout': 25, 'allowed_updates': ['message']}))
+                self.send_outbox()
             except Exception:
                 print('Telegram polling unavailable; retry in 30 seconds', flush=True)
                 self.stop.wait(30)
+
+    def send_outbox(self):
+        with self.db() as db:
+            rows = db.execute('SELECT * FROM outbox ORDER BY id').fetchall()
+        for row in rows:
+            self.api('sendMessage', {'chat_id': row['chat'], 'text': row['text']})
+            with self.db() as db:
+                db.execute('DELETE FROM outbox WHERE id=?', (row['id'],))
 
     def redact(self, text):
         for value in self.secrets.values():
@@ -109,6 +151,7 @@ class Service:
         with self.db() as db:
             db.execute("UPDATE jobs SET status='running', attempts=attempts+1 WHERE id=?", (job['id'],))
         prompt = (f'프로젝트: {project}\n이 프로젝트에서만 작업하세요. RESUME_NOTE.md를 먼저 읽고 이어서 작업하세요. '
+                  '질문에 대한 답변만 요구되고 파일 변경이 필요 없다면 답변 후 메모를 삭제하고 종료하세요. 이 경우 불필요한 커밋은 만들지 마세요. '
                   '중요 단계마다 메모를 갱신하세요. commit과 push 성공 후에만 메모를 삭제하세요. '
                   'RESUME_NOTE.md는 커밋 대상에서 제외하세요. '
                   '최종 응답은 래퍼가 텔레그램으로 전달하므로 완료 요약을 최종 응답으로 작성하세요.\n\n'
@@ -117,9 +160,19 @@ class Service:
                '-s', self.cfg.get('sandbox', 'danger-full-access'), '-C', str(project),
                '-c', 'sandbox_workspace_write.network_access=true',
                '-c', 'developer_instructions=' + json.dumps((HERE / 'worker_prompt.md').read_text(), ensure_ascii=False), '-']
+        backend = job['backend']
+        if backend == 'claude':
+            cmd = [self.cfg.get('claude_bin', '/usr/local/bin/claude'), '-p',
+                   '--output-format', 'stream-json', '--verbose', '--no-session-persistence',
+                   '--dangerously-skip-permissions', '--append-system-prompt',
+                   (HERE / 'worker_prompt.md').read_text()]
         child_env = os.environ.copy()
         if self.cfg.get('codex_home'):
             child_env['CODEX_HOME'] = self.cfg['codex_home']
+        if backend == 'claude':
+            child_env.pop('CLAUDECODE', None)
+            if self.cfg.get('claude_config_dir'):
+                child_env['CLAUDE_CONFIG_DIR'] = self.cfg['claude_config_dir']
         for key in self.secrets:
             if key.startswith('TELEGRAM_'):
                 child_env.pop(key, None)
@@ -135,16 +188,26 @@ class Service:
                 try:
                     event = json.loads(line)
                 except ValueError:
-                    limited |= bool(LIMIT.search(line))
+                    limited |= bool((CLAUDE_LIMIT if backend == 'claude' else LIMIT).search(line))
                     continue
                 kind = event.get('type', '')
+                if backend == 'claude':
+                    if kind == 'result':
+                        failed = bool(event.get('is_error')) or event.get('subtype') != 'success'
+                        completed = not failed
+                        summary = self.redact(event.get('result', ''))
+                        if failed:
+                            limited |= bool(CLAUDE_LIMIT.search(json.dumps(event)))
+                    elif kind == 'assistant' and event.get('error'):
+                        limited |= bool(CLAUDE_LIMIT.search(json.dumps(event)))
+                    continue
                 if kind in ('error', 'turn.failed'):
                     limited |= bool(LIMIT.search(json.dumps(event)))
                     failed |= kind == 'turn.failed'
                 completed |= kind == 'turn.completed'
                 item = event.get('item', {})
                 if kind == 'item.completed' and item.get('type') == 'agent_message':
-                    summary = self.redact(item.get('text', ''))[:3000]
+                    summary = self.redact(item.get('text', ''))
             rc = self.child.wait()
         except (OSError, BrokenPipeError):
             if self.child:
@@ -180,7 +243,9 @@ class Service:
             rows = db.execute("SELECT * FROM jobs WHERE status IN ('done','blocked') AND notified=0").fetchall()
         for row in rows:
             try:
-                self.api('sendMessage', {'chat_id': row['chat'], 'text': f"작업 {row['id']} [{row['status']}]\n{row['summary']}"})
+                message = f"작업 {row['id']} [{row['backend']}: {row['status']}]\n{row['summary']}"
+                for start in range(0, len(message), 1800):
+                    self.api('sendMessage', {'chat_id': row['chat'], 'text': message[start:start + 1800]})
                 with self.db() as db:
                     db.execute('UPDATE jobs SET notified=1 WHERE id=?', (row['id'],))
             except Exception:
