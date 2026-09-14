@@ -1,0 +1,330 @@
+<title>정상 긴축과 인플레이션 진압</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #eef1ee; --surface: #ffffff; --surface-2: #e6eae5;
+    --ink: #17211d; --ink-muted: #57635c; --ink-faint: #8b968f; --line: #d9dfd8;
+    --hike: #a8461f; --hike-soft: #f4e3da; --cut: #1f6e79; --cut-soft: #dcedee; --gold: #8a6d1f; --gold-soft: #f1e6c8;
+    --shadow: 0 1px 2px rgba(23,33,29,.06), 0 8px 24px -12px rgba(23,33,29,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+      --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+      --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+      --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c; --gold-soft: #3a3016;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+    --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+    --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+    --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c; --gold-soft: #3a3016;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Public Sans", -apple-system, "Noto Sans KR", sans-serif;
+    font-size: 16px; line-height: 1.65;
+  }
+  ::selection { background: var(--gold); color: #1a1408; }
+  a { color: var(--cut); }
+  .page { max-width: 880px; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 1rem;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 500;
+    font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.08; letter-spacing: -.01em;
+    margin: 0 0 1rem; text-wrap: balance;
+  }
+  .dek { font-size: 1.15rem; color: var(--ink-muted); max-width: 62ch; margin: 0 0 1.75rem; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: .4rem 1.6rem;
+    font-family: "IBM Plex Mono", monospace; font-size: .82rem; color: var(--ink-muted);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: .85rem 0;
+  }
+  .meta-row b { color: var(--ink); font-weight: 600; }
+  section { margin: 3.2rem 0; }
+  section > h2 {
+    font-family: "Fraunces", serif; font-weight: 500; font-size: 1.6rem;
+    letter-spacing: -.005em; margin: 0 0 .3rem; text-wrap: balance;
+  }
+  section > .lede { color: var(--ink-muted); max-width: 66ch; margin: 0 0 1.4rem; }
+  p { max-width: 68ch; }
+  .note {
+    background: var(--surface-2); border-left: 3px solid var(--gold); border-radius: 4px;
+    padding: .9rem 1.1rem; font-size: .93rem; color: var(--ink-muted); max-width: 68ch; margin: 1.1rem 0;
+  }
+  .note b { color: var(--ink); }
+  .callout {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.2rem 1.4rem; box-shadow: var(--shadow); margin: 1.4rem 0;
+  }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .9rem; margin: 1.3rem 0 1.6rem; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.1rem; }
+  .tile .label { font-size: .78rem; color: var(--ink-muted); margin-bottom: .35rem; }
+  .tile .value { font-family: "IBM Plex Mono", monospace; font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tile .value.hike { color: var(--hike); }
+  .tile .value.cut { color: var(--cut); }
+  .tile .sub { font-size: .76rem; color: var(--ink-faint); margin-top: .25rem; }
+  .table-wrap { overflow-x: auto; margin: 1.2rem 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 480px; font-size: .92rem; }
+  caption { text-align: left; font-size: .82rem; color: var(--ink-faint); padding-bottom: .5rem; }
+  th, td { padding: .62rem .8rem; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; font-family: "IBM Plex Mono", monospace; }
+  th:first-child, td:first-child { text-align: left; font-family: "Public Sans", sans-serif; }
+  thead th { font-family: "Public Sans", sans-serif; font-weight: 600; font-size: .78rem; letter-spacing: .02em; color: var(--ink-muted); text-transform: uppercase; border-bottom: 1px solid var(--ink-faint); }
+  tr.row-hot td:first-child { border-left: 3px solid var(--hike); padding-left: .65rem; }
+  tr.row-cool td:first-child { border-left: 3px solid var(--cut); padding-left: .65rem; }
+  tbody tr:hover { background: var(--surface-2); }
+  ul.findings { padding-left: 1.2rem; max-width: 68ch; }
+  ul.findings li { margin-bottom: .9rem; }
+  ul.findings b { color: var(--ink); }
+  .footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--line); font-size: .82rem; color: var(--ink-faint); }
+
+  /* Hypothesis + verdict components */
+  .hyp-list { display: flex; flex-direction: column; gap: 1rem; margin: 1.2rem 0; }
+  .hyp-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.1rem 1.3rem; box-shadow: var(--shadow);
+  }
+  .hyp-card .hyp-tag {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .08em;
+    color: var(--gold); text-transform: uppercase; margin-bottom: .35rem;
+  }
+  .hyp-card p { margin: 0; max-width: 66ch; }
+  .verdict-row { display: flex; flex-wrap: wrap; align-items: center; gap: .7rem; margin: .2rem 0 1rem; }
+  .verdict-pill {
+    font-family: "IBM Plex Mono", monospace; font-size: .78rem; font-weight: 600; letter-spacing: .04em;
+    padding: .3rem .75rem; border-radius: 20px; text-transform: uppercase;
+  }
+  .verdict-pill.confirmed { background: var(--cut-soft); color: var(--cut); }
+  .verdict-pill.disconfirmed { background: var(--hike-soft); color: var(--hike); }
+  .verdict-pill.mixed { background: var(--gold-soft); color: var(--gold); }
+  .verdict-row h3 { font-family: "Fraunces", serif; font-weight: 500; font-size: 1.3rem; margin: 0; text-wrap: balance; }
+</style>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">MACRO EVENT STUDY · 트랙 G · 인상 사이클의 두 얼굴 · 가설검증형 스터디</div>
+    <h1>인상이라고 다 같은 인상이 아니다</h1>
+    <p class="dek">이 프로젝트의 이전 인상(rate hike) 분석들은 전부 인상을 하나로 묶어서 봤다.
+    하지만 "경기가 튼튼해서 하는 인상"과 "물가를 잡으려고 방어적으로 하는 인상"은 성격이 다를
+    수 있다 — 가장 뚜렷한 예가 2022년 인상 사이클이다. 이 리포트는 두 인상 유형을 미리 정한
+    기준으로 나누고, 결과를 보기 전에 세 가지 가설을 먼저 적어둔 뒤 검증한다.</p>
+    <div class="meta-row">
+      <span>전체 인상 <b>51건</b>(1994&ndash;2023)</span>
+      <span>분류 기준 <b>발표 시점 CPI YoY &gt; 3.0%</b></span>
+      <span>섹터 검증 구간 <b>2005&ndash;2026</b></span>
+    </div>
+  </header>
+
+  <section>
+    <h2>사전 등록 가설</h2>
+    <p class="lede">결과를 계산하기 전에 먼저 적어둔 세 가지 가설이다 — 결과를 본 뒤 문구를
+    바꾸지 않는다.</p>
+    <div class="hyp-list">
+      <div class="hyp-card">
+        <div class="hyp-tag">H1</div>
+        <p>인플레이션 진압형 인상은 정상 긴축형 인상보다 60거래일 뒤 S&amp;P500 수익률이 더
+        낮거나 마이너스일 것이다.</p>
+      </div>
+      <div class="hyp-card">
+        <div class="hyp-tag">H2</div>
+        <p>섹터 반응 스터디(트랙E)에서 나온 "기술주가 인상기에도 잘 갔다"는 결과(XLK +2.91%,
+        승률68.8%, 2005년 이후 인상 32건 전체 기준)는 정상 긴축형 인상이 견인한 것이고,
+        인플레이션 진압형 인상에서는 기술주 성과가 뚜렷이 나쁠 것이다.</p>
+      </div>
+      <div class="hyp-card">
+        <div class="hyp-tag">H3 (탐색적, 방향 예측 없음)</div>
+        <p>유틸리티·필수소비재(XLU·XLP, "방어주")는 원래 금리에 덜 민감하므로 두 인상 유형
+        사이의 격차가 기술주보다 작을 것이다.</p>
+      </div>
+    </div>
+    <p class="note"><b>분류 기준을 먼저 정했다.</b> 연준의 암묵적 물가 안전권(약 2%)보다
+    확실히 위인 <b>CPI 전년동월비 3.0%</b>를 기준값으로 삼아, 인상 시점에 이미 알려져 있던
+    가장 최근 CPI YoY가 이 값을 넘으면 "인플레이션 진압형", 아니면 "정상 긴축형"으로 분류했다
+    (발표 시차를 감안해 2개월 전 데이터까지만 "알려져 있었다"고 보수적으로 가정). 결과가
+    깔끔해 보이도록 기준을 고르지 않았다는 걸 보이기 위해, 대안 기준값 2.5%로도 같은 분석을
+    반복해 뒤쪽 "기준값 민감도 체크" 절에서 비교한다.</p>
+  </section>
+
+  <section>
+    <h2>분류 결과</h2>
+    <p class="lede">1994~2023년 51건의 인상 이벤트를 기준값 3.0%로 나눈 결과다.</p>
+    <div class="tiles">
+      <div class="tile"><div class="label">정상 긴축형</div><div class="value cut">26건</div><div class="sub">CPI YoY ≤ 3.0%</div></div>
+      <div class="tile"><div class="label">인플레이션 진압형</div><div class="value hike">25건</div><div class="sub">CPI YoY &gt; 3.0%</div></div>
+    </div>
+    <p>두 그룹 모두 표본이 25건 안팎으로, 이 프로젝트의 다른 소분류(n=9~15)보다 충분히
+    커서 방향성뿐 아니라 크기까지 어느 정도 신뢰하고 읽을 수 있는 수준이다.</p>
+  </section>
+
+  <section>
+    <h2>H1 검증 — S&amp;P500, 1994년 이후 전체 구간</h2>
+    <p class="lede">CPI 데이터가 있는 1994년부터 전체를 썼다 — 이 스터디는 GLD·TLT가 필요
+    없어 이 프로젝트의 다른 자산군 분석보다 2005년 제약 없이 더 긴 구간을 쓸 수 있었다.</p>
+    <div class="table-wrap">
+      <table>
+        <caption>인상 후 누적수익률(%) · 괄호는 승률 · n=정상긴축26 / 진압25</caption>
+        <thead><tr><th>구간</th><th>정상 긴축형</th><th>인플레이션 진압형</th></tr></thead>
+        <tbody>
+          <tr><td>+5거래일</td><td>&minus;0.25%</td><td>&minus;0.23%</td></tr>
+          <tr><td>+20거래일</td><td>&minus;0.86%</td><td>+1.09%</td></tr>
+          <tr class="row-cool"><td>+60거래일</td><td>+1.19% (승률65.4%)</td><td><b>+2.00% (승률56.0%)</b></td></tr>
+          <tr><td>+120거래일</td><td>+4.45%</td><td>+4.37%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><b>가설과 반대 방향이 나왔다.</b> 60거래일 평균 수익률은 인플레이션 진압형(+2.00%)이
+    정상 긴축형(+1.19%)보다 오히려 더 높았다 — H1이 예측한 "더 낮거나 마이너스"와 정반대다.
+    다만 <b>승률은 진압형이 더 낮다</b>(56.0% vs 65.4%) — 평균은 비슷하거나 오히려 높지만
+    개별 사례의 변동성·불확실성은 더 크다는 뜻으로 읽을 수 있다. 120거래일 시점에서는 두
+    그룹이 거의 같은 값(4.45% vs 4.37%)으로 수렴해, 장기로 갈수록 차이 자체가 희미해진다.</p>
+  </section>
+
+  <section>
+    <h2>H2 · H3 검증 — 섹터ETF 9종, 2005년 이후</h2>
+    <p class="lede">기술주(XLK)와 방어주(XLU·XLP)를 포함해 9개 섹터의 반응을 두 인상 유형별로
+    나눠봤다.</p>
+    <div class="table-wrap">
+      <table>
+        <caption>인상 후 +60거래일 반응(%) · 괄호는 승률 · 2005년 이후, n=정상긴축11 / 진압21</caption>
+        <thead><tr><th>섹터</th><th>정상 긴축형</th><th>인플레이션 진압형</th><th>격차(정상&minus;진압)</th></tr></thead>
+        <tbody>
+          <tr class="row-hot"><td>기술(XLK)</td><td>+3.22% (72.7%)</td><td>+2.75% (66.7%)</td><td>0.48%p</td></tr>
+          <tr><td>금융(XLF)</td><td>+0.18% (63.6%)</td><td>+0.53% (52.4%)</td><td>&minus;0.35%p</td></tr>
+          <tr><td>에너지(XLE)</td><td>&minus;1.39% (36.4%)</td><td>+3.96% (57.1%)</td><td>&minus;5.35%p</td></tr>
+          <tr><td>헬스케어(XLV)</td><td>+2.05% (72.7%)</td><td>+0.82% (71.4%)</td><td>1.23%p</td></tr>
+          <tr><td>산업재(XLI)</td><td>+0.54% (72.7%)</td><td>+1.61% (52.4%)</td><td>&minus;1.07%p</td></tr>
+          <tr><td>임의소비재(XLY)</td><td>+1.36% (63.6%)</td><td>+0.87% (52.4%)</td><td>0.49%p</td></tr>
+          <tr class="row-cool"><td>필수소비재(XLP)</td><td>+0.67% (54.5%)</td><td>+0.36% (61.9%)</td><td>0.31%p</td></tr>
+          <tr class="row-cool"><td>유틸리티(XLU)</td><td>+3.23% (63.6%)</td><td>+0.45% (52.4%)</td><td><b>2.79%p</b></td></tr>
+          <tr><td>소재(XLB)</td><td>&minus;0.06% (63.6%)</td><td>+0.59% (47.6%)</td><td>&minus;0.65%p</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><b>H2: 기술주는 진압형 인상에서도 여전히 강했다.</b> 정상 긴축형(+3.22%, 승률72.7%)이
+    진압형(+2.75%, 승률66.7%)보다 살짝 나았을 뿐, 둘 다 확실히 플러스에 승률도 60%대 후반~70%대
+    초반으로 견조하다. 격차(0.48%p)는 9개 섹터 중에서도 작은 축에 속한다 — "기술주가 인플레이션
+    진압형 인상에서는 뚜렷이 나쁠 것"이라는 예측은 지지되지 않는다.</p>
+    <p><b>H3: 방어주 두 종목의 결과가 서로 엇갈렸다.</b> 필수소비재(XLP)는 격차 0.31%p로
+    기술주(0.48%p)보다 실제로 더 작아 가설과 일치했지만, <b>유틸리티(XLU)는 오히려 격차가
+    2.79%p로 9개 섹터 중 두 번째로 컸다</b> — 정상 긴축형(+3.23%)에서는 최상위권이었다가
+    진압형(+0.45%)에서는 하위권으로 떨어졌다. "방어주라서 금리 유형에 덜 민감할 것"이라는
+    가설이 한 섹터에서는 맞고 다른 섹터에서는 정반대로 틀렸다.</p>
+  </section>
+
+  <section>
+    <h2>기준값 민감도 체크</h2>
+    <p class="lede">H1의 결론이 "3.0%"라는 기준값 선택에 좌우되는 건 아닌지, 대안 기준값
+    2.5%로도 같은 분석을 반복했다.</p>
+    <div class="table-wrap">
+      <table>
+        <caption>threshold=2.5%로 재분류 · S&amp;P500 +60거래일 반응(%)</caption>
+        <thead><tr><th>구간</th><th>정상 긴축형</th><th>인플레이션 진압형</th></tr></thead>
+        <tbody>
+          <tr><td>건수</td><td>13건</td><td>38건</td></tr>
+          <tr><td>+60거래일</td><td>+1.45% (승률61.5%)</td><td>+1.63% (승률60.5%)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><b>결론은 기준값에 견고했다 — 같은 방향으로 다시 나왔다.</b> 기준값을 2.5%로 낮추면
+    정상 긴축형 표본이 26건→13건으로 절반이 되고 진압형은 25건→38건으로 늘어나지만(2%대
+    후반 물가에서 인상한 사례가 많았다는 뜻), 60거래일 평균은 여전히 진압형(+1.63%)이 정상
+    긴축형(+1.45%)과 비슷하거나 근소하게 높다 — 3.0% 기준에서 나온 "진압형이 평균적으로
+    더 나쁘지 않다"는 결론이 기준값을 바꿔도 뒤집히지 않았다. 다만 이 대안 기준에서는 두
+    그룹의 격차 자체가 거의 사라져(0.18%p) 3.0% 기준(0.81%p 격차)보다도 더 밋밋한 그림이
+    됐다 — 기준값이 낮아질수록 "인플레이션 진압형이 딱히 나쁘지 않다"는 결론이 오히려 더
+    분명해지는 방향이었다.</p>
+  </section>
+
+  <section>
+    <h2>가설별 최종 판정</h2>
+    <div class="verdict-row">
+      <span class="verdict-pill disconfirmed">DISCONFIRMED</span>
+      <h3>H1 — 인플레이션 진압형이 더 나쁘다</h3>
+    </div>
+    <p>60거래일 평균 수익률은 오히려 진압형(+2.00%)이 정상 긴축형(+1.19%)보다 높았고, 대안
+    기준값(2.5%)에서도 방향이 뒤집히지 않았다. 유일하게 가설 방향과 일치한 부분은 승률
+    차이(56.0% vs 65.4%)뿐이다 — "평균 수익률이 더 낮다"는 핵심 주장은 지지되지 않아
+    DISCONFIRMED로 판정한다. 다만 승률이 낮다는 건 "물가를 잡으려는 인상 국면은 결과가
+    더 들쭉날쭉하다"는 별개의(더 약한) 시사점으로는 남겨둘 만하다.</p>
+
+    <div class="verdict-row">
+      <span class="verdict-pill disconfirmed">DISCONFIRMED</span>
+      <h3>H2 — 기술주 호조는 정상 긴축형에 국한된다</h3>
+    </div>
+    <p>기술주는 두 인상 유형 모두에서 플러스였고 승률도 66~73%로 견조했다 — 격차는 9개
+    섹터 중 오히려 작은 축(0.48%p)이었다. 트랙E 섹터 스터디의 "기술주가 인상기에도 잘 갔다"는
+    결과는 정상 긴축형 인상만의 산물이 아니라, 두 유형 모두에 걸쳐 상당히 안정적으로
+    나타나는 패턴으로 보인다.</p>
+
+    <div class="verdict-row">
+      <span class="verdict-pill mixed">MIXED</span>
+      <h3>H3 — 방어주는 격차가 더 작다</h3>
+    </div>
+    <p>필수소비재(XLP)는 가설대로 기술주보다 격차가 작았지만, 유틸리티(XLU)는 정반대로
+    9개 섹터 중 두 번째로 큰 격차를 보였다. 같은 "방어주" 범주 안에서도 결과가 갈려, 하나의
+    방향으로 정리할 수 없다.</p>
+  </section>
+
+  <section>
+    <h2>경제학 지식 없이 읽는 법</h2>
+    <ul class="findings">
+      <li><b>"인상은 다 나쁘다"도, "물가를 잡으려는 인상이 특히 나쁘다"도 이 데이터로는
+      지지되지 않는다.</b> 오히려 두 인상 유형의 평균 시장 반응은 비슷하거나, 인플레이션
+      진압형이 약간 더 좋기까지 했다 — "왜" 인상하는지가 시장 반응의 평균값 자체를 크게
+      바꾸지는 않는다는 뜻이다.</li>
+      <li><b>평균은 비슷해도 승률은 다르다.</b> 인플레이션 진압형 인상 뒤에는 결과가 더
+      들쭉날쭉했다(승률 56% vs 65%) — "어떤 인상이든 60거래일 뒤엔 평균적으로 비슷하게
+      오른다"는 말과 "어떤 인상 뒤에도 마음 편히 있어도 된다"는 말은 다르다.</li>
+      <li><b>기술주의 인상기 호조는 우연한 조합이 아니었다.</b> 정상 긴축이든 인플레이션
+      진압이든 상관없이 꾸준히 나타나, 이 프로젝트의 섹터 스터디에서 남겨뒀던 의문을
+      해소했다.</li>
+      <li><b>"방어주"라는 이름을 너무 믿으면 안 된다.</b> 유틸리티는 이름과 달리 인상의
+      '성격'에 따라 반응이 크게 갈렸다(정상긴축 +3.23% → 진압 +0.45%) — 방어적 섹터라고
+      다 같은 이유로 방어적인 건 아니다(유틸리티는 배당·부채 부담 때문에 금리 자체에 민감하고,
+      필수소비재는 경기와 무관한 수요 때문에 방어적이다 — 서로 다른 메커니즘).</li>
+      <li><b>기준값을 하나만 써서 결론을 내리지 않았다.</b> 3.0%와 2.5%, 두 기준값 모두
+      같은 방향의 결론을 냈다는 걸 직접 확인한 뒤에야 "결론이 기준값 선택 때문에 생긴 착시가
+      아니다"라고 말할 수 있었다.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>한계</h2>
+    <div class="callout">
+      <ul class="findings" style="margin:0;">
+        <li><b>"진압형/정상형" 분류는 진짜 컨센서스(시장 예상)가 아니라 사후에 관측된 CPI
+        레벨 기준이다.</b> 이 프로젝트의 다른 CPI 스터디들과 마찬가지로, 연준이나 시장이
+        그 시점에 정말로 "인플레이션과 싸우고 있다"고 인식했는지를 직접 확인한 건 아니다.</li>
+        <li><b>발표 시차 가정(2개월 전 데이터까지 알려져 있었다)은 근사치다.</b> 실제 CPI
+        발표 캘린더와 정확히 맞추면 일부 이벤트의 분류가 바뀔 수 있다.</li>
+        <li><b>섹터 검증은 2005년 이후로 제한됐다(섹터ETF 데이터 제약).</b> S&amp;P500
+        전체 검증(1994~)보다 짧은 구간이라, 2000~2004년의 인상 이벤트는 섹터 분석에서
+        빠졌다.</li>
+        <li><b>표본 25건 안팎은 이 프로젝트 기준으로는 큰 편이지만, 절대적으로 크지는
+        않다.</b> 특히 섹터별 분석은 정상긴축 11건·진압 21건으로 나뉘어 더 작아진다 —
+        승률 차이 몇 %p는 사건 한두 건만 바뀌어도 흔들릴 수 있는 크기다.</li>
+        <li><b>2022년 사이클 하나가 "인플레이션 진압형"의 상당 부분을 차지한다.</b> 51건 중
+        진압형 25건 안에 2022~2023년의 연쇄 인상(75bp 자이언트 스텝 포함)이 다수 포함돼,
+        이 그룹의 결과가 사실상 "2022년이 어떻게 흘러갔는가"에 크게 좌우됐을 가능성이 있다
+        — 표본이 이벤트 개수로는 25건이어도 실질적으로 독립적인 "사이클"의 수는 그보다
+        훨씬 적다.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="footer">
+    데이터: FRED(DFEDTAR/DFEDTARU/DFEDTARL, CPIAUCSL), Yahoo Finance(^GSPC, XLK/XLF/XLE/XLV/
+    XLI/XLY/XLP/XLU/XLB) · 분석 스크립트: hike_character_split_study.py(본 스터디),
+    fomc_rate_event_study.py·cpi_release_event_study.py·cross_asset_sector_fomc.py(재사용한
+    방법론) · 같은 프로젝트: 연준 금리 이벤트 스터디, 섹터 로테이션과 금리결정, 자산군
+    교차분석
+  </div>
+</div>

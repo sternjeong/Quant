@@ -1,0 +1,1052 @@
+{
+  "meta": {
+    "generated": "2026-08-23"
+  },
+  "h22": {
+    "scenarios": {
+      "base": {
+        "weights_normalized": {
+          "full_2019_2026": 0.5,
+          "gfc_2008": 0.03,
+          "covid_2020": 0.04,
+          "bear_2022": 0.1,
+          "selloff_2018": 0.16,
+          "correction_2015_2016": 0.17
+        },
+        "expected_value": {
+          "core_alone": {
+            "sharpe": -0.07409999999999994,
+            "cagr": -1.3224,
+            "mdd_worst_case": -15.85
+          },
+          "case_a_static_satellite": {
+            "sharpe": 0.019100000000000117,
+            "cagr": -0.3855000000000013,
+            "mdd_worst_case": -19.96
+          },
+          "case_b_spy_switch": {
+            "sharpe": -0.08300000000000013,
+            "cagr": -1.7315000000000014,
+            "mdd_worst_case": -15.99
+          },
+          "case_c_vix_switch": {
+            "sharpe": -0.0824999999999999,
+            "cagr": -1.6255000000000002,
+            "mdd_worst_case": -15.63
+          },
+          "case_d_hybrid_or_switch": {
+            "sharpe": -0.05790000000000001,
+            "cagr": -1.4189999999999996,
+            "mdd_worst_case": -15.99
+          },
+          "case_e_continuous_exposure": {
+            "sharpe": -0.0812,
+            "cagr": -1.5624999999999996,
+            "mdd_worst_case": -15.99
+          }
+        },
+        "ranking_by_expected_sharpe": [
+          [
+            "case_a_static_satellite",
+            0.019100000000000117
+          ],
+          [
+            "case_d_hybrid_or_switch",
+            -0.05790000000000001
+          ],
+          [
+            "core_alone",
+            -0.07409999999999994
+          ],
+          [
+            "case_e_continuous_exposure",
+            -0.0812
+          ],
+          [
+            "case_c_vix_switch",
+            -0.0824999999999999
+          ],
+          [
+            "case_b_spy_switch",
+            -0.08300000000000013
+          ]
+        ],
+        "ranking_by_expected_cagr": [
+          [
+            "case_a_static_satellite",
+            -0.3855000000000013
+          ],
+          [
+            "core_alone",
+            -1.3224
+          ],
+          [
+            "case_d_hybrid_or_switch",
+            -1.4189999999999996
+          ],
+          [
+            "case_e_continuous_exposure",
+            -1.5624999999999996
+          ],
+          [
+            "case_c_vix_switch",
+            -1.6255000000000002
+          ],
+          [
+            "case_b_spy_switch",
+            -1.7315000000000014
+          ]
+        ]
+      },
+      "calm_heavy": {
+        "weights_normalized": {
+          "full_2019_2026": 0.65,
+          "gfc_2008": 0.015,
+          "covid_2020": 0.02,
+          "bear_2022": 0.065,
+          "selloff_2018": 0.12,
+          "correction_2015_2016": 0.13
+        },
+        "expected_value": {
+          "core_alone": {
+            "sharpe": 0.21705000000000008,
+            "cagr": 2.5254000000000016,
+            "mdd_worst_case": -15.85
+          },
+          "case_a_static_satellite": {
+            "sharpe": 0.31725000000000014,
+            "cagr": 4.0905499999999995,
+            "mdd_worst_case": -19.96
+          },
+          "case_b_spy_switch": {
+            "sharpe": 0.21160000000000007,
+            "cagr": 2.1470000000000002,
+            "mdd_worst_case": -15.99
+          },
+          "case_c_vix_switch": {
+            "sharpe": 0.21994999999999998,
+            "cagr": 2.3070000000000013,
+            "mdd_worst_case": -15.63
+          },
+          "case_d_hybrid_or_switch": {
+            "sharpe": 0.23615000000000003,
+            "cagr": 2.434050000000001,
+            "mdd_worst_case": -15.99
+          },
+          "case_e_continuous_exposure": {
+            "sharpe": 0.2210500000000002,
+            "cagr": 2.3788500000000017,
+            "mdd_worst_case": -15.99
+          }
+        },
+        "ranking_by_expected_sharpe": [
+          [
+            "case_a_static_satellite",
+            0.31725000000000014
+          ],
+          [
+            "case_d_hybrid_or_switch",
+            0.23615000000000003
+          ],
+          [
+            "case_e_continuous_exposure",
+            0.2210500000000002
+          ],
+          [
+            "case_c_vix_switch",
+            0.21994999999999998
+          ],
+          [
+            "core_alone",
+            0.21705000000000008
+          ],
+          [
+            "case_b_spy_switch",
+            0.21160000000000007
+          ]
+        ],
+        "ranking_by_expected_cagr": [
+          [
+            "case_a_static_satellite",
+            4.0905499999999995
+          ],
+          [
+            "core_alone",
+            2.5254000000000016
+          ],
+          [
+            "case_d_hybrid_or_switch",
+            2.434050000000001
+          ],
+          [
+            "case_e_continuous_exposure",
+            2.3788500000000017
+          ],
+          [
+            "case_c_vix_switch",
+            2.3070000000000013
+          ],
+          [
+            "case_b_spy_switch",
+            2.1470000000000002
+          ]
+        ]
+      },
+      "crisis_heavy": {
+        "weights_normalized": {
+          "full_2019_2026": 0.35,
+          "gfc_2008": 0.06,
+          "covid_2020": 0.07,
+          "bear_2022": 0.14,
+          "selloff_2018": 0.19,
+          "correction_2015_2016": 0.19
+        },
+        "expected_value": {
+          "core_alone": {
+            "sharpe": -0.30139999999999995,
+            "cagr": -4.338500000000001,
+            "mdd_worst_case": -15.85
+          },
+          "case_a_static_satellite": {
+            "sharpe": -0.23009999999999992,
+            "cagr": -4.1637,
+            "mdd_worst_case": -19.96
+          },
+          "case_b_spy_switch": {
+            "sharpe": -0.3231000000000001,
+            "cagr": -4.899500000000001,
+            "mdd_worst_case": -15.99
+          },
+          "case_c_vix_switch": {
+            "sharpe": -0.32539999999999997,
+            "cagr": -4.797500000000001,
+            "mdd_worst_case": -15.63
+          },
+          "case_d_hybrid_or_switch": {
+            "sharpe": -0.2950000000000001,
+            "cagr": -4.523400000000001,
+            "mdd_worst_case": -15.99
+          },
+          "case_e_continuous_exposure": {
+            "sharpe": -0.3237999999999999,
+            "cagr": -4.7388,
+            "mdd_worst_case": -15.99
+          }
+        },
+        "ranking_by_expected_sharpe": [
+          [
+            "case_a_static_satellite",
+            -0.23009999999999992
+          ],
+          [
+            "case_d_hybrid_or_switch",
+            -0.2950000000000001
+          ],
+          [
+            "core_alone",
+            -0.30139999999999995
+          ],
+          [
+            "case_b_spy_switch",
+            -0.3231000000000001
+          ],
+          [
+            "case_e_continuous_exposure",
+            -0.3237999999999999
+          ],
+          [
+            "case_c_vix_switch",
+            -0.32539999999999997
+          ]
+        ],
+        "ranking_by_expected_cagr": [
+          [
+            "case_a_static_satellite",
+            -4.1637
+          ],
+          [
+            "core_alone",
+            -4.338500000000001
+          ],
+          [
+            "case_d_hybrid_or_switch",
+            -4.523400000000001
+          ],
+          [
+            "case_e_continuous_exposure",
+            -4.7388
+          ],
+          [
+            "case_c_vix_switch",
+            -4.797500000000001
+          ],
+          [
+            "case_b_spy_switch",
+            -4.899500000000001
+          ]
+        ]
+      }
+    },
+    "h19_stop_width_expected_value": {
+      "base": {
+        "0.1": {
+          "stop_pct": 0.1,
+          "expected_sharpe": -0.0384,
+          "expected_cagr_pct": -1.3375
+        },
+        "0.15": {
+          "stop_pct": 0.15,
+          "expected_sharpe": -0.083,
+          "expected_cagr_pct": -1.7315
+        },
+        "0.2": {
+          "stop_pct": 0.2,
+          "expected_sharpe": -0.1006,
+          "expected_cagr_pct": -1.7117
+        },
+        "0.25": {
+          "stop_pct": 0.25,
+          "expected_sharpe": -0.113,
+          "expected_cagr_pct": -1.8099
+        },
+        "0.3": {
+          "stop_pct": 0.3,
+          "expected_sharpe": -0.1093,
+          "expected_cagr_pct": -1.6973
+        }
+      },
+      "calm_heavy": {
+        "0.1": {
+          "stop_pct": 0.1,
+          "expected_sharpe": 0.2624,
+          "expected_cagr_pct": 2.5022
+        },
+        "0.15": {
+          "stop_pct": 0.15,
+          "expected_sharpe": 0.2116,
+          "expected_cagr_pct": 2.147
+        },
+        "0.2": {
+          "stop_pct": 0.2,
+          "expected_sharpe": 0.204,
+          "expected_cagr_pct": 2.3783
+        },
+        "0.25": {
+          "stop_pct": 0.25,
+          "expected_sharpe": 0.1974,
+          "expected_cagr_pct": 2.4008
+        },
+        "0.3": {
+          "stop_pct": 0.3,
+          "expected_sharpe": 0.2025,
+          "expected_cagr_pct": 2.5673
+        }
+      },
+      "crisis_heavy": {
+        "0.1": {
+          "stop_pct": 0.1,
+          "expected_sharpe": -0.2829,
+          "expected_cagr_pct": -4.4479
+        },
+        "0.15": {
+          "stop_pct": 0.15,
+          "expected_sharpe": -0.3231,
+          "expected_cagr_pct": -4.8995
+        },
+        "0.2": {
+          "stop_pct": 0.2,
+          "expected_sharpe": -0.3527,
+          "expected_cagr_pct": -5.1165
+        },
+        "0.25": {
+          "stop_pct": 0.25,
+          "expected_sharpe": -0.3695,
+          "expected_cagr_pct": -5.3093
+        },
+        "0.3": {
+          "stop_pct": 0.3,
+          "expected_sharpe": -0.367,
+          "expected_cagr_pct": -5.2484
+        }
+      }
+    },
+    "config_order": [
+      "core_alone",
+      "case_a_static_satellite",
+      "case_b_spy_switch",
+      "case_c_vix_switch",
+      "case_d_hybrid_or_switch",
+      "case_e_continuous_exposure"
+    ],
+    "episode_archetype_map": {
+      "full_2019_2026": "calm_bull",
+      "gfc_2008": "slow_broad_systemic_2008type",
+      "covid_2020": "fast_crash_covid_type",
+      "bear_2022": "moderate_bear_2022type",
+      "selloff_2018": "short_sharp_correction_2018type",
+      "correction_2015_2016": "slower_moderate_correction_2015_16type"
+    },
+    "raw_lookup_table": {
+      "gfc_2008": {
+        "core_alone": {
+          "sharpe": 0.29,
+          "cagr": 3.45,
+          "mdd": -15.85
+        },
+        "case_a_static_satellite": {
+          "sharpe": -0.21,
+          "cagr": -4.36,
+          "mdd": -19.96
+        },
+        "case_b_spy_switch": {
+          "sharpe": 0.28,
+          "cagr": 3.23,
+          "mdd": -15.99
+        },
+        "case_c_vix_switch": {
+          "sharpe": 0.16,
+          "cagr": 1.27,
+          "mdd": -15.63
+        },
+        "case_d_hybrid_or_switch": {
+          "sharpe": 0.27,
+          "cagr": 3.2,
+          "mdd": -15.99
+        },
+        "case_e_continuous_exposure": {
+          "sharpe": 0.24,
+          "cagr": 2.55,
+          "mdd": -15.99
+        }
+      },
+      "correction_2015_2016": {
+        "core_alone": {
+          "sharpe": -1.9,
+          "cagr": -25.79,
+          "mdd": -15.09
+        },
+        "case_a_static_satellite": {
+          "sharpe": -1.7,
+          "cagr": -25.73,
+          "mdd": -15.58
+        },
+        "case_b_spy_switch": {
+          "sharpe": -1.76,
+          "cagr": -24.12,
+          "mdd": -14.52
+        },
+        "case_c_vix_switch": {
+          "sharpe": -1.93,
+          "cagr": -26.02,
+          "mdd": -15.58
+        },
+        "case_d_hybrid_or_switch": {
+          "sharpe": -1.76,
+          "cagr": -24.12,
+          "mdd": -14.52
+        },
+        "case_e_continuous_exposure": {
+          "sharpe": -1.88,
+          "cagr": -25.28,
+          "mdd": -15.19
+        }
+      },
+      "selloff_2018": {
+        "core_alone": {
+          "sharpe": -1.9,
+          "cagr": -24.45,
+          "mdd": -14.6
+        },
+        "case_a_static_satellite": {
+          "sharpe": -1.67,
+          "cagr": -25.25,
+          "mdd": -16.15
+        },
+        "case_b_spy_switch": {
+          "sharpe": -1.86,
+          "cagr": -24.42,
+          "mdd": -14.9
+        },
+        "case_c_vix_switch": {
+          "sharpe": -1.9,
+          "cagr": -24.26,
+          "mdd": -14.75
+        },
+        "case_d_hybrid_or_switch": {
+          "sharpe": -1.86,
+          "cagr": -24.45,
+          "mdd": -14.91
+        },
+        "case_e_continuous_exposure": {
+          "sharpe": -1.93,
+          "cagr": -24.83,
+          "mdd": -14.97
+        }
+      },
+      "bear_2022": {
+        "core_alone": {
+          "sharpe": 0.24,
+          "cagr": 2.21,
+          "mdd": -11.05
+        },
+        "case_a_static_satellite": {
+          "sharpe": 0.2,
+          "cagr": 1.81,
+          "mdd": -12.54
+        },
+        "case_b_spy_switch": {
+          "sharpe": 0.18,
+          "cagr": 1.53,
+          "mdd": -11.05
+        },
+        "case_c_vix_switch": {
+          "sharpe": 0.27,
+          "cagr": 2.47,
+          "mdd": -10.28
+        },
+        "case_d_hybrid_or_switch": {
+          "sharpe": 0.18,
+          "cagr": 1.53,
+          "mdd": -11.05
+        },
+        "case_e_continuous_exposure": {
+          "sharpe": 0.23,
+          "cagr": 2.06,
+          "mdd": -10.98
+        }
+      },
+      "covid_2020": {
+        "core_alone": {
+          "sharpe": 0.13,
+          "cagr": 0.86,
+          "mdd": -6.71
+        },
+        "case_a_static_satellite": {
+          "sharpe": 0.04,
+          "cagr": -1.29,
+          "mdd": -9.58
+        },
+        "case_b_spy_switch": {
+          "sharpe": -0.44,
+          "cagr": -7.22,
+          "mdd": -8.15
+        },
+        "case_c_vix_switch": {
+          "sharpe": -0.18,
+          "cagr": -3.39,
+          "mdd": -7.42
+        },
+        "case_d_hybrid_or_switch": {
+          "sharpe": -0.18,
+          "cagr": -3.39,
+          "mdd": -7.42
+        },
+        "case_e_continuous_exposure": {
+          "sharpe": -0.2,
+          "cagr": -3.74,
+          "mdd": -7.45
+        }
+      },
+      "full_2019_2026": {
+        "core_alone": {
+          "sharpe": 1.03,
+          "cagr": 13.23,
+          "mdd": -17.74
+        },
+        "case_a_static_satellite": {
+          "sharpe": 1.12,
+          "cagr": 16.06,
+          "mdd": -18.45
+        },
+        "case_b_spy_switch": {
+          "sharpe": 1.01,
+          "cagr": 12.63,
+          "mdd": -17.9
+        },
+        "case_c_vix_switch": {
+          "sharpe": 1.05,
+          "cagr": 13.06,
+          "mdd": -16.61
+        },
+        "case_d_hybrid_or_switch": {
+          "sharpe": 1.04,
+          "cagr": 12.96,
+          "mdd": -17.9
+        },
+        "case_e_continuous_exposure": {
+          "sharpe": 1.05,
+          "cagr": 13.15,
+          "mdd": -17.52
+        }
+      }
+    }
+  },
+  "h23": {
+    "meta": {
+      "satellite_weight_on": 0.15,
+      "vix_calm": 15.0,
+      "vix_panic": 30.0,
+      "spy_dd_saturation": 0.15,
+      "logistic_steepness": 6.0,
+      "episode_order": [
+        "gfc_2008",
+        "correction_2015_2016",
+        "selloff_2018",
+        "bear_2022",
+        "covid_2020",
+        "full_2019_2026"
+      ],
+      "formula": "crisis_prob = sigmoid(6*(soft_or(vix_component, spy_component) - 0.5)); satellite_weight = 0.15*(1-crisis_prob)"
+    },
+    "episodes": {
+      "gfc_2008": {
+        "full_period": [
+          "2007-01-01",
+          "2009-12-31"
+        ],
+        "crisis_window": [
+          "2007-10-01",
+          "2009-06-30"
+        ],
+        "windows": {
+          "full_period": {
+            "core_alone": {
+              "cumulative_return": 35.58,
+              "cagr": 10.72,
+              "mdd": -15.85,
+              "sharpe": 0.75,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.68,
+              "avg_drawdown_days": 25.8,
+              "n_days": 755
+            },
+            "case_e_continuous_exposure": {
+              "cumulative_return": 34.61,
+              "cagr": 10.45,
+              "mdd": -15.99,
+              "sharpe": 0.75,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.65,
+              "avg_drawdown_days": 25.1,
+              "n_days": 755
+            }
+          },
+          "crisis_window": {
+            "core_alone": {
+              "cumulative_return": 6.1,
+              "cagr": 3.45,
+              "mdd": -15.85,
+              "sharpe": 0.29,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.22,
+              "avg_drawdown_days": 27.3,
+              "n_days": 441
+            },
+            "case_e_continuous_exposure": {
+              "cumulative_return": 4.5,
+              "cagr": 2.55,
+              "mdd": -15.99,
+              "sharpe": 0.24,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.16,
+              "avg_drawdown_days": 27.3,
+              "n_days": 441
+            }
+          }
+        },
+        "avg_daily_abs_delta_weight_full_period": 0.006701457346067341,
+        "mean_crisis_prob_full_period": 0.617848081456949,
+        "mean_satellite_weight_full_period": 0.05737559716143273,
+        "elapsed_s": 0.3
+      },
+      "correction_2015_2016": {
+        "full_period": [
+          "2014-06-01",
+          "2016-06-30"
+        ],
+        "crisis_window": [
+          "2015-08-01",
+          "2016-02-15"
+        ],
+        "windows": {
+          "full_period": {
+            "core_alone": {
+              "cumulative_return": -5.79,
+              "cagr": -2.83,
+              "mdd": -16.82,
+              "sharpe": -0.19,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -0.17,
+              "avg_drawdown_days": 14.6,
+              "n_days": 525
+            },
+            "case_e_continuous_exposure": {
+              "cumulative_return": -7.12,
+              "cagr": -3.5,
+              "mdd": -16.54,
+              "sharpe": -0.25,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -0.21,
+              "avg_drawdown_days": 13.6,
+              "n_days": 525
+            }
+          },
+          "crisis_window": {
+            "core_alone": {
+              "cumulative_return": -14.58,
+              "cagr": -25.79,
+              "mdd": -15.09,
+              "sharpe": -1.9,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -1.71,
+              "avg_drawdown_days": 1.0,
+              "n_days": 135
+            },
+            "case_e_continuous_exposure": {
+              "cumulative_return": -14.27,
+              "cagr": -25.28,
+              "mdd": -15.19,
+              "sharpe": -1.88,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -1.66,
+              "avg_drawdown_days": 0.0,
+              "n_days": 135
+            }
+          }
+        },
+        "avg_daily_abs_delta_weight_full_period": 0.006216151944309512,
+        "mean_crisis_prob_full_period": 0.19054912649171007,
+        "mean_satellite_weight_full_period": 0.12144264355423696,
+        "elapsed_s": 0.3
+      },
+      "selloff_2018": {
+        "full_period": [
+          "2017-06-01",
+          "2019-06-30"
+        ],
+        "crisis_window": [
+          "2018-09-01",
+          "2019-01-15"
+        ],
+        "windows": {
+          "full_period": {
+            "core_alone": {
+              "cumulative_return": 5.6,
+              "cagr": 2.66,
+              "mdd": -15.5,
+              "sharpe": 0.28,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.17,
+              "avg_drawdown_days": 6.1,
+              "n_days": 523
+            },
+            "case_e_continuous_exposure": {
+              "cumulative_return": 11.36,
+              "cagr": 5.33,
+              "mdd": -14.97,
+              "sharpe": 0.49,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.36,
+              "avg_drawdown_days": 15.4,
+              "n_days": 523
+            }
+          },
+          "crisis_window": {
+            "core_alone": {
+              "cumulative_return": -9.71,
+              "cagr": -24.45,
+              "mdd": -14.6,
+              "sharpe": -1.9,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -1.67,
+              "avg_drawdown_days": 6.7,
+              "n_days": 92
+            },
+            "case_e_continuous_exposure": {
+              "cumulative_return": -9.87,
+              "cagr": -24.83,
+              "mdd": -14.97,
+              "sharpe": -1.93,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -1.66,
+              "avg_drawdown_days": 5.7,
+              "n_days": 92
+            }
+          }
+        },
+        "avg_daily_abs_delta_weight_full_period": 0.005042262849005139,
+        "mean_crisis_prob_full_period": 0.15016852288962243,
+        "mean_satellite_weight_full_period": 0.12734419375260433,
+        "elapsed_s": 0.3
+      },
+      "bear_2022": {
+        "full_period": [
+          "2019-08-12",
+          "2026-08-19"
+        ],
+        "crisis_window": [
+          "2022-01-01",
+          "2022-12-31"
+        ],
+        "windows": {
+          "full_period": {
+            "core_alone": {
+              "cumulative_return": 139.19,
+              "cagr": 13.23,
+              "mdd": -17.74,
+              "sharpe": 1.03,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.75,
+              "avg_drawdown_days": 20.2,
+              "n_days": 1764
+            },
+            "case_e_continuous_exposure": {
+              "cumulative_return": 137.96,
+              "cagr": 13.15,
+              "mdd": -17.52,
+              "sharpe": 1.05,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.75,
+              "avg_drawdown_days": 22.2,
+              "n_days": 1764
+            }
+          },
+          "crisis_window": {
+            "core_alone": {
+              "cumulative_return": 2.19,
+              "cagr": 2.21,
+              "mdd": -11.05,
+              "sharpe": 0.24,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.2,
+              "avg_drawdown_days": 6.8,
+              "n_days": 251
+            },
+            "case_e_continuous_exposure": {
+              "cumulative_return": 2.03,
+              "cagr": 2.06,
+              "mdd": -10.98,
+              "sharpe": 0.23,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.19,
+              "avg_drawdown_days": 7.5,
+              "n_days": 251
+            }
+          }
+        },
+        "avg_daily_abs_delta_weight_full_period": 0.007814383300697631,
+        "mean_crisis_prob_full_period": 0.34662223377341433,
+        "mean_satellite_weight_full_period": 0.09803764518200034,
+        "elapsed_s": 0.3
+      },
+      "covid_2020": {
+        "full_period": [
+          "2019-01-01",
+          "2020-12-31"
+        ],
+        "crisis_window": [
+          "2020-02-19",
+          "2020-04-30"
+        ],
+        "windows": {
+          "full_period": {
+            "core_alone": {
+              "cumulative_return": 27.53,
+              "cagr": 12.98,
+              "mdd": -9.07,
+              "sharpe": 1.14,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 1.43,
+              "avg_drawdown_days": 15.3,
+              "n_days": 504
+            },
+            "case_e_continuous_exposure": {
+              "cumulative_return": 29.16,
+              "cagr": 13.7,
+              "mdd": -9.1,
+              "sharpe": 1.19,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 1.5,
+              "avg_drawdown_days": 16.8,
+              "n_days": 504
+            }
+          },
+          "crisis_window": {
+            "core_alone": {
+              "cumulative_return": 0.17,
+              "cagr": 0.86,
+              "mdd": -6.71,
+              "sharpe": 0.13,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.13,
+              "avg_drawdown_days": 31.0,
+              "n_days": 51
+            },
+            "case_e_continuous_exposure": {
+              "cumulative_return": -0.74,
+              "cagr": -3.74,
+              "mdd": -7.45,
+              "sharpe": -0.2,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -0.5,
+              "avg_drawdown_days": 0.0,
+              "n_days": 51
+            }
+          }
+        },
+        "avg_daily_abs_delta_weight_full_period": 0.00565621075013926,
+        "mean_crisis_prob_full_period": 0.40802495887819684,
+        "mean_satellite_weight_full_period": 0.08895309361833538,
+        "elapsed_s": 0.4
+      },
+      "full_2019_2026": {
+        "full_period": [
+          "2019-08-12",
+          "2026-08-19"
+        ],
+        "crisis_window": [
+          "2022-01-01",
+          "2022-12-31"
+        ],
+        "windows": {
+          "full_period": {
+            "core_alone": {
+              "cumulative_return": 139.19,
+              "cagr": 13.23,
+              "mdd": -17.74,
+              "sharpe": 1.03,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.75,
+              "avg_drawdown_days": 20.2,
+              "n_days": 1764
+            },
+            "case_e_continuous_exposure": {
+              "cumulative_return": 137.96,
+              "cagr": 13.15,
+              "mdd": -17.52,
+              "sharpe": 1.05,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.75,
+              "avg_drawdown_days": 22.2,
+              "n_days": 1764
+            }
+          },
+          "crisis_window": {
+            "core_alone": {
+              "cumulative_return": 2.19,
+              "cagr": 2.21,
+              "mdd": -11.05,
+              "sharpe": 0.24,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.2,
+              "avg_drawdown_days": 6.8,
+              "n_days": 251
+            },
+            "case_e_continuous_exposure": {
+              "cumulative_return": 2.03,
+              "cagr": 2.06,
+              "mdd": -10.98,
+              "sharpe": 0.23,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.19,
+              "avg_drawdown_days": 7.5,
+              "n_days": 251
+            }
+          }
+        },
+        "avg_daily_abs_delta_weight_full_period": 0.007814383300697631,
+        "mean_crisis_prob_full_period": 0.34662223377341433,
+        "mean_satellite_weight_full_period": 0.09803764518200034,
+        "elapsed_s": 0.4
+      }
+    },
+    "reaction_speed_covid_gfc": {
+      "covid_2020": {
+        "weight_at_crisis_start": 0.14288611902336498,
+        "weight_at_crisis_end": 0.007113880976634995,
+        "first_date_weight_below_half": "2020-02-25",
+        "first_date_weight_near_zero": "2020-02-28",
+        "min_weight_in_crisis_window": 0.007113880976634995
+      },
+      "gfc_2008": {
+        "weight_at_crisis_start": 0.12872234026492682,
+        "weight_at_crisis_end": 0.03634804994714638,
+        "first_date_weight_below_half": "2007-09-04",
+        "first_date_weight_near_zero": "2007-11-12",
+        "min_weight_in_crisis_window": 0.007113880976634995
+      }
+    }
+  }
+}

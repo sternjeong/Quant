@@ -1,0 +1,583 @@
+{
+  "pause_min_days": 180,
+  "sector_start": "2005-01-01",
+  "n_pauses_total": 18,
+  "n_pauses_usable": 9,
+  "pauses_usable": [
+    {
+      "start": "2006-06-29",
+      "end": "2007-09-18",
+      "duration_days": 446
+    },
+    {
+      "start": "2008-12-16",
+      "end": "2015-12-16",
+      "duration_days": 2556
+    },
+    {
+      "start": "2015-12-16",
+      "end": "2016-12-14",
+      "duration_days": 364
+    },
+    {
+      "start": "2017-06-15",
+      "end": "2017-12-14",
+      "duration_days": 182
+    },
+    {
+      "start": "2018-12-20",
+      "end": "2019-08-01",
+      "duration_days": 224
+    },
+    {
+      "start": "2020-03-16",
+      "end": "2022-03-17",
+      "duration_days": 731
+    },
+    {
+      "start": "2023-07-27",
+      "end": "2024-09-19",
+      "duration_days": 420
+    },
+    {
+      "start": "2024-12-19",
+      "end": "2025-09-18",
+      "duration_days": 273
+    },
+    {
+      "start": "2025-12-11",
+      "end": "2026-08-20",
+      "duration_days": 252
+    }
+  ],
+  "sectors": {
+    "XLK": {
+      "label": "기술",
+      "n_pauses": 9,
+      "pause_mean_annualized_pct": 29.958,
+      "unconditional_annualized_pct": 14.167,
+      "gap_pause_minus_unconditional_pct": 15.791,
+      "hike_60d_mean_pct": 2.909,
+      "hike_60d_win_pct": 68.8,
+      "cut_60d_mean_pct": 1.308,
+      "cut_60d_win_pct": 52.4,
+      "pause_detail": [
+        {
+          "start": "2006-06-29",
+          "end": "2007-09-18",
+          "annualized_pct": 23.197
+        },
+        {
+          "start": "2008-12-16",
+          "end": "2015-12-16",
+          "annualized_pct": 15.55
+        },
+        {
+          "start": "2015-12-16",
+          "end": "2016-12-14",
+          "annualized_pct": 11.497
+        },
+        {
+          "start": "2017-06-15",
+          "end": "2017-12-14",
+          "annualized_pct": 33.062
+        },
+        {
+          "start": "2018-12-20",
+          "end": "2019-08-01",
+          "annualized_pct": 55.415
+        },
+        {
+          "start": "2020-03-16",
+          "end": "2022-03-17",
+          "annualized_pct": 44.679
+        },
+        {
+          "start": "2023-07-27",
+          "end": "2024-09-19",
+          "annualized_pct": 23.426
+        },
+        {
+          "start": "2024-12-19",
+          "end": "2025-09-18",
+          "annualized_pct": 25.873
+        },
+        {
+          "start": "2025-12-11",
+          "end": "2026-08-20",
+          "annualized_pct": 36.926
+        }
+      ]
+    },
+    "XLF": {
+      "label": "금융",
+      "n_pauses": 9,
+      "pause_mean_annualized_pct": 20.494,
+      "unconditional_annualized_pct": 3.981,
+      "gap_pause_minus_unconditional_pct": 16.513,
+      "hike_60d_mean_pct": 0.412,
+      "hike_60d_win_pct": 56.2,
+      "cut_60d_mean_pct": -6.664,
+      "cut_60d_win_pct": 42.9,
+      "pause_detail": [
+        {
+          "start": "2006-06-29",
+          "end": "2007-09-18",
+          "annualized_pct": 6.27
+        },
+        {
+          "start": "2008-12-16",
+          "end": "2015-12-16",
+          "annualized_pct": 9.525
+        },
+        {
+          "start": "2015-12-16",
+          "end": "2016-12-14",
+          "annualized_pct": 18.282
+        },
+        {
+          "start": "2017-06-15",
+          "end": "2017-12-14",
+          "annualized_pct": 28.791
+        },
+        {
+          "start": "2018-12-20",
+          "end": "2019-08-01",
+          "annualized_pct": 30.966
+        },
+        {
+          "start": "2020-03-16",
+          "end": "2022-03-17",
+          "annualized_pct": 39.834
+        },
+        {
+          "start": "2023-07-27",
+          "end": "2024-09-19",
+          "annualized_pct": 25.679
+        },
+        {
+          "start": "2024-12-19",
+          "end": "2025-09-18",
+          "annualized_pct": 18.103
+        },
+        {
+          "start": "2025-12-11",
+          "end": "2026-08-20",
+          "annualized_pct": 6.996
+        }
+      ]
+    },
+    "XLE": {
+      "label": "에너지",
+      "n_pauses": 9,
+      "pause_mean_annualized_pct": 23.628,
+      "unconditional_annualized_pct": 6.151,
+      "gap_pause_minus_unconditional_pct": 17.477,
+      "hike_60d_mean_pct": 2.124,
+      "hike_60d_win_pct": 50.0,
+      "cut_60d_mean_pct": 4.417,
+      "cut_60d_win_pct": 47.6,
+      "pause_detail": [
+        {
+          "start": "2006-06-29",
+          "end": "2007-09-18",
+          "annualized_pct": 25.792
+        },
+        {
+          "start": "2008-12-16",
+          "end": "2015-12-16",
+          "annualized_pct": 3.249
+        },
+        {
+          "start": "2015-12-16",
+          "end": "2016-12-14",
+          "annualized_pct": 23.303
+        },
+        {
+          "start": "2017-06-15",
+          "end": "2017-12-14",
+          "annualized_pct": 11.208
+        },
+        {
+          "start": "2018-12-20",
+          "end": "2019-08-01",
+          "annualized_pct": 11.922
+        },
+        {
+          "start": "2020-03-16",
+          "end": "2022-03-17",
+          "annualized_pct": 63.013
+        },
+        {
+          "start": "2023-07-27",
+          "end": "2024-09-19",
+          "annualized_pct": 3.415
+        },
+        {
+          "start": "2024-12-19",
+          "end": "2025-09-18",
+          "annualized_pct": 10.392
+        },
+        {
+          "start": "2025-12-11",
+          "end": "2026-08-20",
+          "annualized_pct": 60.359
+        }
+      ]
+    },
+    "XLV": {
+      "label": "헬스케어",
+      "n_pauses": 9,
+      "pause_mean_annualized_pct": 13.216,
+      "unconditional_annualized_pct": 8.544,
+      "gap_pause_minus_unconditional_pct": 4.672,
+      "hike_60d_mean_pct": 1.245,
+      "hike_60d_win_pct": 71.9,
+      "cut_60d_mean_pct": 1.042,
+      "cut_60d_win_pct": 52.4,
+      "pause_detail": [
+        {
+          "start": "2006-06-29",
+          "end": "2007-09-18",
+          "annualized_pct": 14.034
+        },
+        {
+          "start": "2008-12-16",
+          "end": "2015-12-16",
+          "annualized_pct": 15.769
+        },
+        {
+          "start": "2015-12-16",
+          "end": "2016-12-14",
+          "annualized_pct": -4.463
+        },
+        {
+          "start": "2017-06-15",
+          "end": "2017-12-14",
+          "annualized_pct": 14.017
+        },
+        {
+          "start": "2018-12-20",
+          "end": "2019-08-01",
+          "annualized_pct": 14.251
+        },
+        {
+          "start": "2020-03-16",
+          "end": "2022-03-17",
+          "annualized_pct": 29.053
+        },
+        {
+          "start": "2023-07-27",
+          "end": "2024-09-19",
+          "annualized_pct": 13.501
+        },
+        {
+          "start": "2024-12-19",
+          "end": "2025-09-18",
+          "annualized_pct": 1.17
+        },
+        {
+          "start": "2025-12-11",
+          "end": "2026-08-20",
+          "annualized_pct": 21.609
+        }
+      ]
+    },
+    "XLI": {
+      "label": "산업재",
+      "n_pauses": 9,
+      "pause_mean_annualized_pct": 21.751,
+      "unconditional_annualized_pct": 8.561,
+      "gap_pause_minus_unconditional_pct": 13.19,
+      "hike_60d_mean_pct": 1.237,
+      "hike_60d_win_pct": 59.4,
+      "cut_60d_mean_pct": -0.94,
+      "cut_60d_win_pct": 52.4,
+      "pause_detail": [
+        {
+          "start": "2006-06-29",
+          "end": "2007-09-18",
+          "annualized_pct": 15.836
+        },
+        {
+          "start": "2008-12-16",
+          "end": "2015-12-16",
+          "annualized_pct": 12.646
+        },
+        {
+          "start": "2015-12-16",
+          "end": "2016-12-14",
+          "annualized_pct": 17.311
+        },
+        {
+          "start": "2017-06-15",
+          "end": "2017-12-14",
+          "annualized_pct": 17.073
+        },
+        {
+          "start": "2018-12-20",
+          "end": "2019-08-01",
+          "annualized_pct": 33.768
+        },
+        {
+          "start": "2020-03-16",
+          "end": "2022-03-17",
+          "annualized_pct": 35.472
+        },
+        {
+          "start": "2023-07-27",
+          "end": "2024-09-19",
+          "annualized_pct": 19.307
+        },
+        {
+          "start": "2024-12-19",
+          "end": "2025-09-18",
+          "annualized_pct": 21.24
+        },
+        {
+          "start": "2025-12-11",
+          "end": "2026-08-20",
+          "annualized_pct": 23.105
+        }
+      ]
+    },
+    "XLY": {
+      "label": "임의소비재",
+      "n_pauses": 9,
+      "pause_mean_annualized_pct": 17.156,
+      "unconditional_annualized_pct": 9.244,
+      "gap_pause_minus_unconditional_pct": 7.912,
+      "hike_60d_mean_pct": 1.04,
+      "hike_60d_win_pct": 56.2,
+      "cut_60d_mean_pct": -0.07,
+      "cut_60d_win_pct": 57.1,
+      "pause_detail": [
+        {
+          "start": "2006-06-29",
+          "end": "2007-09-18",
+          "annualized_pct": 10.844
+        },
+        {
+          "start": "2008-12-16",
+          "end": "2015-12-16",
+          "annualized_pct": 20.32
+        },
+        {
+          "start": "2015-12-16",
+          "end": "2016-12-14",
+          "annualized_pct": 4.479
+        },
+        {
+          "start": "2017-06-15",
+          "end": "2017-12-14",
+          "annualized_pct": 17.167
+        },
+        {
+          "start": "2018-12-20",
+          "end": "2019-08-01",
+          "annualized_pct": 41.347
+        },
+        {
+          "start": "2020-03-16",
+          "end": "2022-03-17",
+          "annualized_pct": 41.17
+        },
+        {
+          "start": "2023-07-27",
+          "end": "2024-09-19",
+          "annualized_pct": 13.817
+        },
+        {
+          "start": "2024-12-19",
+          "end": "2025-09-18",
+          "annualized_pct": 7.183
+        },
+        {
+          "start": "2025-12-11",
+          "end": "2026-08-20",
+          "annualized_pct": -1.919
+        }
+      ]
+    },
+    "XLP": {
+      "label": "필수소비재",
+      "n_pauses": 9,
+      "pause_mean_annualized_pct": 10.16,
+      "unconditional_annualized_pct": 6.303,
+      "gap_pause_minus_unconditional_pct": 3.857,
+      "hike_60d_mean_pct": 0.467,
+      "hike_60d_win_pct": 59.4,
+      "cut_60d_mean_pct": 0.774,
+      "cut_60d_win_pct": 47.6,
+      "pause_detail": [
+        {
+          "start": "2006-06-29",
+          "end": "2007-09-18",
+          "annualized_pct": 11.448
+        },
+        {
+          "start": "2008-12-16",
+          "end": "2015-12-16",
+          "annualized_pct": 11.681
+        },
+        {
+          "start": "2015-12-16",
+          "end": "2016-12-14",
+          "annualized_pct": 1.292
+        },
+        {
+          "start": "2017-06-15",
+          "end": "2017-12-14",
+          "annualized_pct": -1.124
+        },
+        {
+          "start": "2018-12-20",
+          "end": "2019-08-01",
+          "annualized_pct": 26.901
+        },
+        {
+          "start": "2020-03-16",
+          "end": "2022-03-17",
+          "annualized_pct": 18.422
+        },
+        {
+          "start": "2023-07-27",
+          "end": "2024-09-19",
+          "annualized_pct": 8.411
+        },
+        {
+          "start": "2024-12-19",
+          "end": "2025-09-18",
+          "annualized_pct": -0.201
+        },
+        {
+          "start": "2025-12-11",
+          "end": "2026-08-20",
+          "annualized_pct": 14.607
+        }
+      ]
+    },
+    "XLU": {
+      "label": "유틸리티",
+      "n_pauses": 9,
+      "pause_mean_annualized_pct": 12.303,
+      "unconditional_annualized_pct": 5.523,
+      "gap_pause_minus_unconditional_pct": 6.78,
+      "hike_60d_mean_pct": 1.404,
+      "hike_60d_win_pct": 56.2,
+      "cut_60d_mean_pct": 0.706,
+      "cut_60d_win_pct": 57.1,
+      "pause_detail": [
+        {
+          "start": "2006-06-29",
+          "end": "2007-09-18",
+          "annualized_pct": 21.119
+        },
+        {
+          "start": "2008-12-16",
+          "end": "2015-12-16",
+          "annualized_pct": 5.713
+        },
+        {
+          "start": "2015-12-16",
+          "end": "2016-12-14",
+          "annualized_pct": 10.522
+        },
+        {
+          "start": "2017-06-15",
+          "end": "2017-12-14",
+          "annualized_pct": 3.843
+        },
+        {
+          "start": "2018-12-20",
+          "end": "2019-08-01",
+          "annualized_pct": 17.482
+        },
+        {
+          "start": "2020-03-16",
+          "end": "2022-03-17",
+          "annualized_pct": 18.186
+        },
+        {
+          "start": "2023-07-27",
+          "end": "2024-09-19",
+          "annualized_pct": 13.878
+        },
+        {
+          "start": "2024-12-19",
+          "end": "2025-09-18",
+          "annualized_pct": 16.654
+        },
+        {
+          "start": "2025-12-11",
+          "end": "2026-08-20",
+          "annualized_pct": 3.33
+        }
+      ]
+    },
+    "XLB": {
+      "label": "소재",
+      "n_pauses": 9,
+      "pause_mean_annualized_pct": 20.602,
+      "unconditional_annualized_pct": 6.061,
+      "gap_pause_minus_unconditional_pct": 14.541,
+      "hike_60d_mean_pct": 0.363,
+      "hike_60d_win_pct": 53.1,
+      "cut_60d_mean_pct": 1.43,
+      "cut_60d_win_pct": 52.4,
+      "pause_detail": [
+        {
+          "start": "2006-06-29",
+          "end": "2007-09-18",
+          "annualized_pct": 23.394
+        },
+        {
+          "start": "2008-12-16",
+          "end": "2015-12-16",
+          "annualized_pct": 8.77
+        },
+        {
+          "start": "2015-12-16",
+          "end": "2016-12-14",
+          "annualized_pct": 14.879
+        },
+        {
+          "start": "2017-06-15",
+          "end": "2017-12-14",
+          "annualized_pct": 19.352
+        },
+        {
+          "start": "2018-12-20",
+          "end": "2019-08-01",
+          "annualized_pct": 30.121
+        },
+        {
+          "start": "2020-03-16",
+          "end": "2022-03-17",
+          "annualized_pct": 43.758
+        },
+        {
+          "start": "2023-07-27",
+          "end": "2024-09-19",
+          "annualized_pct": 10.255
+        },
+        {
+          "start": "2024-12-19",
+          "end": "2025-09-18",
+          "annualized_pct": 10.16
+        },
+        {
+          "start": "2025-12-11",
+          "end": "2026-08-20",
+          "annualized_pct": 24.732
+        }
+      ]
+    }
+  },
+  "h2_spearman": {
+    "pause_vs_hike": 0.367,
+    "pause_vs_cut": 0.333
+  },
+  "h3_top_gap_ticker": "XLE",
+  "h3_top_gap_pct": 17.477
+}

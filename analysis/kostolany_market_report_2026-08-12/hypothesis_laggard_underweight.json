@@ -1,0 +1,102 @@
+{
+  "2015_2026": {
+    "leader_only (기존 채택안)": {
+      "cumulative_return": 224.82,
+      "cagr": 10.68,
+      "mdd": -19.44,
+      "sharpe": 0.84,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.55,
+      "avg_drawdown_days": 22.2
+    },
+    "leader+laggard_full": {
+      "cumulative_return": 235.93,
+      "cagr": 11.01,
+      "mdd": -20.33,
+      "sharpe": 0.83,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.54,
+      "avg_drawdown_days": 25.5
+    },
+    "leader+laggard_half": {
+      "cumulative_return": 212.8,
+      "cagr": 10.33,
+      "mdd": -19.46,
+      "sharpe": 0.82,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.53,
+      "avg_drawdown_days": 22.5
+    },
+    "sp500_bh": {
+      "cumulative_return": 276.69,
+      "cagr": 12.11,
+      "mdd": -33.92,
+      "sharpe": 0.74,
+      "win_rate": 100.0,
+      "avg_holding_days": 4238.0,
+      "trade_count": 1,
+      "profit_factor": 999.0,
+      "calmar": 0.36,
+      "avg_drawdown_days": 19.5
+    }
+  },
+  "2000_2012": {
+    "leader_only (기존 채택안)": {
+      "cumulative_return": 40.57,
+      "cagr": 2.66,
+      "mdd": -41.03,
+      "sharpe": 0.25,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.06,
+      "avg_drawdown_days": 60.2
+    },
+    "leader+laggard_full": {
+      "cumulative_return": 48.6,
+      "cagr": 3.1,
+      "mdd": -41.89,
+      "sharpe": 0.27,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.07,
+      "avg_drawdown_days": 60.2
+    },
+    "leader+laggard_half": {
+      "cumulative_return": 43.41,
+      "cagr": 2.82,
+      "mdd": -40.19,
+      "sharpe": 0.26,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.07,
+      "avg_drawdown_days": 66.1
+    },
+    "sp500_bh": {
+      "cumulative_return": -2.55,
+      "cagr": -0.2,
+      "mdd": -56.78,
+      "sharpe": 0.1,
+      "win_rate": 0.0,
+      "avg_holding_days": 4742.0,
+      "trade_count": 1,
+      "profit_factor": 0.0,
+      "calmar": -0.0,
+      "avg_drawdown_days": 351.2
+    }
+  }
+}

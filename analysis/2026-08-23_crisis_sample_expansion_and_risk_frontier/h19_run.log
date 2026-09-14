@@ -1,0 +1,209 @@
+[h19] 전체기간(2019-2026) 스윕 시작 - H10 rebal_log 재사용
+/workspaces/Quant/analysis/2026-08-22_regime_conditional_satellite_switch/h12_regime_switch.py:84: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  signal_lagged = regime_aligned.shift(1).fillna(False)  # 전일 신호를 오늘 적용(챔피언 관례와 동일)
+
+1 Failed download:
+['GEV']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+/workspaces/Quant/.claude/worktrees/agent-a89b994c40fc5c1e7/analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/h19_risk_return_frontier.py:86: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+  period_end = rebal_dates_sorted[period_i + 1] if period_i + 1 < len(rebal_dates_sorted) else full_idx[-1] + pd.Timedelta(days=1)
+[h19]   stop=0.1: exits=39/42 full_sharpe(noswitch)=1.09 full_sharpe(switch)=1.08 (4s)
+
+1 Failed download:
+['GEV']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+/workspaces/Quant/.claude/worktrees/agent-a89b994c40fc5c1e7/analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/h19_risk_return_frontier.py:86: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+  period_end = rebal_dates_sorted[period_i + 1] if period_i + 1 < len(rebal_dates_sorted) else full_idx[-1] + pd.Timedelta(days=1)
+[h19]   stop=0.15: exits=36/42 full_sharpe(noswitch)=1.02 full_sharpe(switch)=1.01 (3s)
+
+1 Failed download:
+['GEV']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+/workspaces/Quant/.claude/worktrees/agent-a89b994c40fc5c1e7/analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/h19_risk_return_frontier.py:86: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+  period_end = rebal_dates_sorted[period_i + 1] if period_i + 1 < len(rebal_dates_sorted) else full_idx[-1] + pd.Timedelta(days=1)
+[h19]   stop=0.2: exits=24/42 full_sharpe(noswitch)=1.03 full_sharpe(switch)=1.02 (2s)
+
+1 Failed download:
+['GEV']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+/workspaces/Quant/.claude/worktrees/agent-a89b994c40fc5c1e7/analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/h19_risk_return_frontier.py:86: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+  period_end = rebal_dates_sorted[period_i + 1] if period_i + 1 < len(rebal_dates_sorted) else full_idx[-1] + pd.Timedelta(days=1)
+[h19]   stop=0.25: exits=16/42 full_sharpe(noswitch)=1.03 full_sharpe(switch)=1.03 (3s)
+
+1 Failed download:
+['GEV']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+/workspaces/Quant/.claude/worktrees/agent-a89b994c40fc5c1e7/analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/h19_risk_return_frontier.py:86: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+  period_end = rebal_dates_sorted[period_i + 1] if period_i + 1 < len(rebal_dates_sorted) else full_idx[-1] + pd.Timedelta(days=1)
+[h19]   stop=0.3: exits=8/42 full_sharpe(noswitch)=1.04 full_sharpe(switch)=1.04 (2s)
+/workspaces/Quant/analysis/2026-08-22_regime_conditional_satellite_switch/h12_regime_switch.py:84: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  signal_lagged = regime_aligned.shift(1).fillna(False)  # 전일 신호를 오늘 적용(챔피언 관례와 동일)
+/workspaces/Quant/.claude/worktrees/agent-a89b994c40fc5c1e7/analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/h19_risk_return_frontier.py:86: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+  period_end = rebal_dates_sorted[period_i + 1] if period_i + 1 < len(rebal_dates_sorted) else full_idx[-1] + pd.Timedelta(days=1)
+[h19]   [gfc_2008] stop=0.1: crisis_sharpe=0.28 crisis_mdd=-15.99 (1s)
+/workspaces/Quant/.claude/worktrees/agent-a89b994c40fc5c1e7/analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/h19_risk_return_frontier.py:86: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+  period_end = rebal_dates_sorted[period_i + 1] if period_i + 1 < len(rebal_dates_sorted) else full_idx[-1] + pd.Timedelta(days=1)
+[h19]   [gfc_2008] stop=0.15: crisis_sharpe=0.28 crisis_mdd=-15.99 (1s)
+/workspaces/Quant/.claude/worktrees/agent-a89b994c40fc5c1e7/analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/h19_risk_return_frontier.py:86: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+  period_end = rebal_dates_sorted[period_i + 1] if period_i + 1 < len(rebal_dates_sorted) else full_idx[-1] + pd.Timedelta(days=1)
+[h19]   [gfc_2008] stop=0.2: crisis_sharpe=0.3 crisis_mdd=-15.99 (1s)
+/workspaces/Quant/.claude/worktrees/agent-a89b994c40fc5c1e7/analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/h19_risk_return_frontier.py:86: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+  period_end = rebal_dates_sorted[period_i + 1] if period_i + 1 < len(rebal_dates_sorted) else full_idx[-1] + pd.Timedelta(days=1)
+[h19]   [gfc_2008] stop=0.25: crisis_sharpe=0.31 crisis_mdd=-15.99 (1s)
+/workspaces/Quant/.claude/worktrees/agent-a89b994c40fc5c1e7/analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/h19_risk_return_frontier.py:86: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+  period_end = rebal_dates_sorted[period_i + 1] if period_i + 1 < len(rebal_dates_sorted) else full_idx[-1] + pd.Timedelta(days=1)
+[h19]   [gfc_2008] stop=0.3: crisis_sharpe=0.28 crisis_mdd=-15.99 (1s)
+/workspaces/Quant/analysis/2026-08-22_regime_conditional_satellite_switch/h12_regime_switch.py:84: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  signal_lagged = regime_aligned.shift(1).fillna(False)  # 전일 신호를 오늘 적용(챔피언 관례와 동일)
+
+1 Failed download:
+['GEV']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+/workspaces/Quant/.claude/worktrees/agent-a89b994c40fc5c1e7/analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/h19_risk_return_frontier.py:86: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+  period_end = rebal_dates_sorted[period_i + 1] if period_i + 1 < len(rebal_dates_sorted) else full_idx[-1] + pd.Timedelta(days=1)
+[h19]   [bear_2022] stop=0.1: crisis_sharpe=0.15 crisis_mdd=-11.05
+
+1 Failed download:
+['GEV']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+/workspaces/Quant/.claude/worktrees/agent-a89b994c40fc5c1e7/analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/h19_risk_return_frontier.py:86: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+  period_end = rebal_dates_sorted[period_i + 1] if period_i + 1 < len(rebal_dates_sorted) else full_idx[-1] + pd.Timedelta(days=1)
+[h19]   [bear_2022] stop=0.15: crisis_sharpe=0.18 crisis_mdd=-11.05
+
+1 Failed download:
+['GEV']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+/workspaces/Quant/.claude/worktrees/agent-a89b994c40fc5c1e7/analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/h19_risk_return_frontier.py:86: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+  period_end = rebal_dates_sorted[period_i + 1] if period_i + 1 < len(rebal_dates_sorted) else full_idx[-1] + pd.Timedelta(days=1)
+[h19]   [bear_2022] stop=0.2: crisis_sharpe=0.18 crisis_mdd=-11.05
+
+1 Failed download:
+['GEV']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+/workspaces/Quant/.claude/worktrees/agent-a89b994c40fc5c1e7/analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/h19_risk_return_frontier.py:86: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+  period_end = rebal_dates_sorted[period_i + 1] if period_i + 1 < len(rebal_dates_sorted) else full_idx[-1] + pd.Timedelta(days=1)
+[h19]   [bear_2022] stop=0.25: crisis_sharpe=0.18 crisis_mdd=-11.05
+
+1 Failed download:
+['GEV']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+/workspaces/Quant/.claude/worktrees/agent-a89b994c40fc5c1e7/analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/h19_risk_return_frontier.py:86: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+  period_end = rebal_dates_sorted[period_i + 1] if period_i + 1 < len(rebal_dates_sorted) else full_idx[-1] + pd.Timedelta(days=1)
+[h19]   [bear_2022] stop=0.3: crisis_sharpe=0.24 crisis_mdd=-11.05
+[h19] 위기 에피소드 스윕: covid_2020 (2020-02-19~2020-04-30)
+
+1 Failed download:
+['XLC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+/workspaces/Quant/analysis/2026-08-22_regime_conditional_satellite_switch/h12_regime_switch.py:84: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  signal_lagged = regime_aligned.shift(1).fillna(False)  # 전일 신호를 오늘 적용(챔피언 관례와 동일)
+/workspaces/Quant/.claude/worktrees/agent-a89b994c40fc5c1e7/analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/h19_risk_return_frontier.py:86: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+  period_end = rebal_dates_sorted[period_i + 1] if period_i + 1 < len(rebal_dates_sorted) else full_idx[-1] + pd.Timedelta(days=1)
+[h19]   [covid_2020] stop=0.1: crisis_sharpe=-0.21 crisis_mdd=-7.51 (0s)
+/workspaces/Quant/.claude/worktrees/agent-a89b994c40fc5c1e7/analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/h19_risk_return_frontier.py:86: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+  period_end = rebal_dates_sorted[period_i + 1] if period_i + 1 < len(rebal_dates_sorted) else full_idx[-1] + pd.Timedelta(days=1)
+[h19]   [covid_2020] stop=0.15: crisis_sharpe=-0.44 crisis_mdd=-8.15 (0s)
+/workspaces/Quant/.claude/worktrees/agent-a89b994c40fc5c1e7/analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/h19_risk_return_frontier.py:86: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+  period_end = rebal_dates_sorted[period_i + 1] if period_i + 1 < len(rebal_dates_sorted) else full_idx[-1] + pd.Timedelta(days=1)
+[h19]   [covid_2020] stop=0.2: crisis_sharpe=-0.74 crisis_mdd=-8.94 (1s)
+/workspaces/Quant/.claude/worktrees/agent-a89b994c40fc5c1e7/analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/h19_risk_return_frontier.py:86: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+  period_end = rebal_dates_sorted[period_i + 1] if period_i + 1 < len(rebal_dates_sorted) else full_idx[-1] + pd.Timedelta(days=1)
+[h19]   [covid_2020] stop=0.25: crisis_sharpe=-0.74 crisis_mdd=-8.94 (0s)
+/workspaces/Quant/.claude/worktrees/agent-a89b994c40fc5c1e7/analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/h19_risk_return_frontier.py:86: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+  period_end = rebal_dates_sorted[period_i + 1] if period_i + 1 < len(rebal_dates_sorted) else full_idx[-1] + pd.Timedelta(days=1)
+[h19]   [covid_2020] stop=0.3: crisis_sharpe=-0.74 crisis_mdd=-8.94 (0s)
+[h19] 위기 에피소드 스윕: selloff_2018 (2018-09-01~2019-01-15)
+
+1 Failed download:
+['XLC']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+/workspaces/Quant/analysis/2026-08-22_regime_conditional_satellite_switch/h12_regime_switch.py:83: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  regime_aligned = regime_bull_raw.reindex(trading_index).ffill()
+/workspaces/Quant/analysis/2026-08-22_regime_conditional_satellite_switch/h12_regime_switch.py:84: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  signal_lagged = regime_aligned.shift(1).fillna(False)  # 전일 신호를 오늘 적용(챔피언 관례와 동일)
+/workspaces/Quant/.claude/worktrees/agent-a89b994c40fc5c1e7/analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/h19_risk_return_frontier.py:86: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+  period_end = rebal_dates_sorted[period_i + 1] if period_i + 1 < len(rebal_dates_sorted) else full_idx[-1] + pd.Timedelta(days=1)
+[h19]   [selloff_2018] stop=0.1: crisis_sharpe=-1.86 crisis_mdd=-14.23 (0s)
+/workspaces/Quant/.claude/worktrees/agent-a89b994c40fc5c1e7/analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/h19_risk_return_frontier.py:86: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+  period_end = rebal_dates_sorted[period_i + 1] if period_i + 1 < len(rebal_dates_sorted) else full_idx[-1] + pd.Timedelta(days=1)
+[h19]   [selloff_2018] stop=0.15: crisis_sharpe=-1.86 crisis_mdd=-14.9 (0s)
+/workspaces/Quant/.claude/worktrees/agent-a89b994c40fc5c1e7/analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/h19_risk_return_frontier.py:86: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+  period_end = rebal_dates_sorted[period_i + 1] if period_i + 1 < len(rebal_dates_sorted) else full_idx[-1] + pd.Timedelta(days=1)
+[h19]   [selloff_2018] stop=0.2: crisis_sharpe=-1.93 crisis_mdd=-15.29 (0s)
+/workspaces/Quant/.claude/worktrees/agent-a89b994c40fc5c1e7/analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/h19_risk_return_frontier.py:86: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+  period_end = rebal_dates_sorted[period_i + 1] if period_i + 1 < len(rebal_dates_sorted) else full_idx[-1] + pd.Timedelta(days=1)
+[h19]   [selloff_2018] stop=0.25: crisis_sharpe=-2.03 crisis_mdd=-15.79 (1s)
+/workspaces/Quant/.claude/worktrees/agent-a89b994c40fc5c1e7/analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/h19_risk_return_frontier.py:86: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+  period_end = rebal_dates_sorted[period_i + 1] if period_i + 1 < len(rebal_dates_sorted) else full_idx[-1] + pd.Timedelta(days=1)
+[h19]   [selloff_2018] stop=0.3: crisis_sharpe=-2.07 crisis_mdd=-16.05 (1s)
+[h19] 위기 에피소드 스윕: correction_2015_2016 (2015-08-01~2016-02-15)
+
+1 Failed download:
+['XLRE']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$XLC: possibly delisted; no price data found  (1d 2013-04-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1367035200, endDate = 1529294400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2013-04-27 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1367035200, endDate = 1529294400")
+$HYG: possibly delisted; no price data found  (1d 2013-04-27 -> 2013-04-28)
+$EFA: possibly delisted; no price data found  (1d 2013-04-27 -> 2013-04-28)
+
+1 Failed download:
+['HYG']: possibly delisted; no price data found  (1d 2013-04-27 -> 2013-04-28)
+
+1 Failed download:
+['EFA']: possibly delisted; no price data found  (1d 2013-04-27 -> 2013-04-28)
+$DBC: possibly delisted; no price data found  (1d 2013-04-27 -> 2013-04-28)
+
+1 Failed download:
+['DBC']: possibly delisted; no price data found  (1d 2013-04-27 -> 2013-04-28)
+/workspaces/Quant/analysis/2026-08-22_regime_conditional_satellite_switch/h12_regime_switch.py:84: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  signal_lagged = regime_aligned.shift(1).fillna(False)  # 전일 신호를 오늘 적용(챔피언 관례와 동일)
+$GOOG: possibly delisted; no price data found  (1d 2012-07-01 -> 2012-07-01)
+$NFLX: possibly delisted; no price data found  (1d 2012-07-01 -> 2012-07-01)
+
+1 Failed download:
+['GOOG']: possibly delisted; no price data found  (1d 2012-07-01 -> 2012-07-01)
+
+1 Failed download:
+['NFLX']: possibly delisted; no price data found  (1d 2012-07-01 -> 2012-07-01)
+/workspaces/Quant/.claude/worktrees/agent-a89b994c40fc5c1e7/analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/h19_risk_return_frontier.py:86: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+  period_end = rebal_dates_sorted[period_i + 1] if period_i + 1 < len(rebal_dates_sorted) else full_idx[-1] + pd.Timedelta(days=1)
+[h19]   [correction_2015_2016] stop=0.1: crisis_sharpe=-1.74 crisis_mdd=-14.28 (1s)
+$GOOG: possibly delisted; no price data found  (1d 2012-07-01 -> 2012-07-01)
+$NFLX: possibly delisted; no price data found  (1d 2012-07-01 -> 2012-07-01)
+
+1 Failed download:
+['GOOG']: possibly delisted; no price data found  (1d 2012-07-01 -> 2012-07-01)
+
+1 Failed download:
+['NFLX']: possibly delisted; no price data found  (1d 2012-07-01 -> 2012-07-01)
+/workspaces/Quant/.claude/worktrees/agent-a89b994c40fc5c1e7/analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/h19_risk_return_frontier.py:86: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+  period_end = rebal_dates_sorted[period_i + 1] if period_i + 1 < len(rebal_dates_sorted) else full_idx[-1] + pd.Timedelta(days=1)
+[h19]   [correction_2015_2016] stop=0.15: crisis_sharpe=-1.76 crisis_mdd=-14.52 (1s)
+$NFLX: possibly delisted; no price data found  (1d 2012-07-01 -> 2012-07-01)
+$GOOG: possibly delisted; no price data found  (1d 2012-07-01 -> 2012-07-01)
+
+1 Failed download:
+['NFLX']: possibly delisted; no price data found  (1d 2012-07-01 -> 2012-07-01)
+
+1 Failed download:
+['GOOG']: possibly delisted; no price data found  (1d 2012-07-01 -> 2012-07-01)
+/workspaces/Quant/.claude/worktrees/agent-a89b994c40fc5c1e7/analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/h19_risk_return_frontier.py:86: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+  period_end = rebal_dates_sorted[period_i + 1] if period_i + 1 < len(rebal_dates_sorted) else full_idx[-1] + pd.Timedelta(days=1)
+[h19]   [correction_2015_2016] stop=0.2: crisis_sharpe=-1.76 crisis_mdd=-14.52 (0s)
+$GOOG: possibly delisted; no price data found  (1d 2012-07-01 -> 2012-07-01)
+$NFLX: possibly delisted; no price data found  (1d 2012-07-01 -> 2012-07-01)
+
+1 Failed download:
+['GOOG']: possibly delisted; no price data found  (1d 2012-07-01 -> 2012-07-01)
+
+1 Failed download:
+['NFLX']: possibly delisted; no price data found  (1d 2012-07-01 -> 2012-07-01)
+/workspaces/Quant/.claude/worktrees/agent-a89b994c40fc5c1e7/analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/h19_risk_return_frontier.py:86: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+  period_end = rebal_dates_sorted[period_i + 1] if period_i + 1 < len(rebal_dates_sorted) else full_idx[-1] + pd.Timedelta(days=1)
+[h19]   [correction_2015_2016] stop=0.25: crisis_sharpe=-1.77 crisis_mdd=-14.84 (0s)
+$NFLX: possibly delisted; no price data found  (1d 2012-07-01 -> 2012-07-01)
+$GOOG: possibly delisted; no price data found  (1d 2012-07-01 -> 2012-07-01)
+
+1 Failed download:
+['NFLX']: possibly delisted; no price data found  (1d 2012-07-01 -> 2012-07-01)
+
+1 Failed download:
+['GOOG']: possibly delisted; no price data found  (1d 2012-07-01 -> 2012-07-01)
+/workspaces/Quant/.claude/worktrees/agent-a89b994c40fc5c1e7/analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/h19_risk_return_frontier.py:86: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+  period_end = rebal_dates_sorted[period_i + 1] if period_i + 1 < len(rebal_dates_sorted) else full_idx[-1] + pd.Timedelta(days=1)
+[h19]   [correction_2015_2016] stop=0.3: crisis_sharpe=-1.77 crisis_mdd=-14.84 (0s)
+[h19] 저장 완료: /workspaces/Quant/.claude/worktrees/agent-a89b994c40fc5c1e7/analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/h19_results.json (총 39s)
+[h19]   stop=0.1: full_sharpe=1.08 avg_crisis_sharpe=-0.6759999999999999 pareto(sharpe/mdd)=True pareto(bull/crisis)=True
+[h19]   stop=0.15: full_sharpe=1.01 avg_crisis_sharpe=-0.72 pareto(sharpe/mdd)=False pareto(bull/crisis)=False
+[h19]   stop=0.2: full_sharpe=1.02 avg_crisis_sharpe=-0.79 pareto(sharpe/mdd)=False pareto(bull/crisis)=True
+[h19]   stop=0.25: full_sharpe=1.03 avg_crisis_sharpe=-0.8099999999999999 pareto(sharpe/mdd)=False pareto(bull/crisis)=True
+[h19]   stop=0.3: full_sharpe=1.04 avg_crisis_sharpe=-0.8119999999999999 pareto(sharpe/mdd)=False pareto(bull/crisis)=True

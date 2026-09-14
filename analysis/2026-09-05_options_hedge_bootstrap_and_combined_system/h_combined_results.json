@@ -1,0 +1,323 @@
+{
+  "meta": {
+    "episode_order": [
+      "full_2019_2026",
+      "gfc_2008",
+      "covid_2020",
+      "bear_2022",
+      "selloff_2018",
+      "correction_2015_2016"
+    ],
+    "configs": [
+      "core_alone",
+      "unhedged_satellite",
+      "collar_full_system"
+    ],
+    "base_rate_scenarios": {
+      "base": {
+        "full_2019_2026": 0.5,
+        "gfc_2008": 0.03,
+        "covid_2020": 0.04,
+        "bear_2022": 0.1,
+        "selloff_2018": 0.16,
+        "correction_2015_2016": 0.17
+      },
+      "calm_heavy": {
+        "full_2019_2026": 0.65,
+        "gfc_2008": 0.015,
+        "covid_2020": 0.02,
+        "bear_2022": 0.065,
+        "selloff_2018": 0.12,
+        "correction_2015_2016": 0.13
+      },
+      "crisis_heavy": {
+        "full_2019_2026": 0.35,
+        "gfc_2008": 0.06,
+        "covid_2020": 0.07,
+        "bear_2022": 0.14,
+        "selloff_2018": 0.19,
+        "correction_2015_2016": 0.19
+      }
+    },
+    "satellite_weight": 0.15
+  },
+  "per_episode_metrics": {
+    "full_2019_2026": {
+      "window_used": [
+        "2019-08-12",
+        "2026-08-19"
+      ],
+      "wkey": "full_period",
+      "core_alone": {
+        "sharpe": 1.03,
+        "cagr": 13.23,
+        "mdd": -17.74
+      },
+      "unhedged_satellite": {
+        "sharpe": 1.02,
+        "cagr": 12.55,
+        "mdd": -16.55
+      },
+      "collar_full_system": {
+        "sharpe": 0.91,
+        "cagr": 11.16,
+        "mdd": -15.3
+      }
+    },
+    "gfc_2008": {
+      "window_used": [
+        "2007-10-01",
+        "2009-06-30"
+      ],
+      "wkey": "crisis_window",
+      "core_alone": {
+        "sharpe": 0.29,
+        "cagr": 3.45,
+        "mdd": -15.85
+      },
+      "unhedged_satellite": {
+        "sharpe": 0.03,
+        "cagr": -0.63,
+        "mdd": -14.52
+      },
+      "collar_full_system": {
+        "sharpe": 0.21,
+        "cagr": 2.03,
+        "mdd": -13.42
+      }
+    },
+    "covid_2020": {
+      "window_used": [
+        "2020-02-19",
+        "2020-04-30"
+      ],
+      "wkey": "crisis_window",
+      "core_alone": {
+        "sharpe": 0.13,
+        "cagr": 0.86,
+        "mdd": -6.71
+      },
+      "unhedged_satellite": {
+        "sharpe": -0.64,
+        "cagr": -9.09,
+        "mdd": -7.58
+      },
+      "collar_full_system": {
+        "sharpe": 0.28,
+        "cagr": 2.93,
+        "mdd": -7.35
+      }
+    },
+    "bear_2022": {
+      "window_used": [
+        "2022-01-01",
+        "2022-12-31"
+      ],
+      "wkey": "crisis_window",
+      "core_alone": {
+        "sharpe": 0.24,
+        "cagr": 2.21,
+        "mdd": -11.05
+      },
+      "unhedged_satellite": {
+        "sharpe": 0.27,
+        "cagr": 2.49,
+        "mdd": -10.28
+      },
+      "collar_full_system": {
+        "sharpe": 0.39,
+        "cagr": 4.07,
+        "mdd": -9.11
+      }
+    },
+    "selloff_2018": {
+      "window_used": [
+        "2018-09-01",
+        "2019-01-15"
+      ],
+      "wkey": "crisis_window",
+      "core_alone": {
+        "sharpe": -1.9,
+        "cagr": -24.45,
+        "mdd": -14.6
+      },
+      "unhedged_satellite": {
+        "sharpe": -1.94,
+        "cagr": -24.32,
+        "mdd": -14.43
+      },
+      "collar_full_system": {
+        "sharpe": -1.53,
+        "cagr": -20.9,
+        "mdd": -13.76
+      }
+    },
+    "correction_2015_2016": {
+      "window_used": [
+        "2015-08-01",
+        "2016-02-15"
+      ],
+      "wkey": "crisis_window",
+      "core_alone": {
+        "sharpe": -1.9,
+        "cagr": -25.79,
+        "mdd": -15.09
+      },
+      "unhedged_satellite": {
+        "sharpe": -1.91,
+        "cagr": -25.52,
+        "mdd": -15.28
+      },
+      "collar_full_system": {
+        "sharpe": -1.88,
+        "cagr": -24.78,
+        "mdd": -14.7
+      }
+    }
+  },
+  "expected_value_by_scenario": {
+    "base": {
+      "core_alone": {
+        "sharpe": -0.07409999999999994,
+        "cagr": -1.3224,
+        "mdd_worst_case": -15.85
+      },
+      "unhedged_satellite": {
+        "sharpe": -0.12280000000000002,
+        "cagr": -2.0881000000000003,
+        "mdd_worst_case": -15.28
+      },
+      "collar_full_system": {
+        "sharpe": -0.05290000000000006,
+        "cagr": -1.3914999999999993,
+        "mdd_worst_case": -14.7
+      }
+    },
+    "calm_heavy": {
+      "core_alone": {
+        "sharpe": 0.21705000000000008,
+        "cagr": 2.5254000000000016,
+        "mdd_worst_case": -15.85
+      },
+      "unhedged_satellite": {
+        "sharpe": 0.1870999999999999,
+        "cagr": 1.8921000000000014,
+        "mdd_worst_case": -15.28
+      },
+      "collar_full_system": {
+        "sharpe": 0.19760000000000005,
+        "cagr": 1.8782000000000005,
+        "mdd_worst_case": -14.7
+      }
+    },
+    "crisis_heavy": {
+      "core_alone": {
+        "sharpe": -0.30139999999999995,
+        "cagr": -4.338500000000001,
+        "mdd_worst_case": -15.85
+      },
+      "unhedged_satellite": {
+        "sharpe": -0.3797,
+        "cagr": -5.4026,
+        "mdd_worst_case": -15.28
+      },
+      "collar_full_system": {
+        "sharpe": -0.24259999999999998,
+        "cagr": -3.8765000000000005,
+        "mdd_worst_case": -14.7
+      }
+    }
+  },
+  "rank_by_scenario": {
+    "base": {
+      "by_sharpe": [
+        [
+          "collar_full_system",
+          -0.05290000000000006
+        ],
+        [
+          "core_alone",
+          -0.07409999999999994
+        ],
+        [
+          "unhedged_satellite",
+          -0.12280000000000002
+        ]
+      ],
+      "by_cagr": [
+        [
+          "core_alone",
+          -1.3224
+        ],
+        [
+          "collar_full_system",
+          -1.3914999999999993
+        ],
+        [
+          "unhedged_satellite",
+          -2.0881000000000003
+        ]
+      ]
+    },
+    "calm_heavy": {
+      "by_sharpe": [
+        [
+          "core_alone",
+          0.21705000000000008
+        ],
+        [
+          "collar_full_system",
+          0.19760000000000005
+        ],
+        [
+          "unhedged_satellite",
+          0.1870999999999999
+        ]
+      ],
+      "by_cagr": [
+        [
+          "core_alone",
+          2.5254000000000016
+        ],
+        [
+          "unhedged_satellite",
+          1.8921000000000014
+        ],
+        [
+          "collar_full_system",
+          1.8782000000000005
+        ]
+      ]
+    },
+    "crisis_heavy": {
+      "by_sharpe": [
+        [
+          "collar_full_system",
+          -0.24259999999999998
+        ],
+        [
+          "core_alone",
+          -0.30139999999999995
+        ],
+        [
+          "unhedged_satellite",
+          -0.3797
+        ]
+      ],
+      "by_cagr": [
+        [
+          "collar_full_system",
+          -3.8765000000000005
+        ],
+        [
+          "core_alone",
+          -4.338500000000001
+        ],
+        [
+          "unhedged_satellite",
+          -5.4026
+        ]
+      ]
+    }
+  }
+}

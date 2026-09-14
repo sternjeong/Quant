@@ -1,0 +1,33 @@
+{
+  "vol_targeted": {
+    "cumulative_return": 143.55,
+    "cagr": 7.97,
+    "mdd": -17.74,
+    "sharpe": 0.6,
+    "win_rate": 0.0,
+    "avg_holding_days": 0.0,
+    "trade_count": 0
+  },
+  "no_overlay": {
+    "cumulative_return": 156.64,
+    "cagr": 8.46,
+    "mdd": -31.5,
+    "sharpe": 0.56,
+    "win_rate": 0.0,
+    "avg_holding_days": 0.0,
+    "trade_count": 0
+  },
+  "sp500_bh": {
+    "cumulative_return": 275.48,
+    "cagr": 12.08,
+    "mdd": -33.92,
+    "sharpe": 0.73,
+    "win_rate": 100.0,
+    "avg_holding_days": 4239.0,
+    "trade_count": 1
+  },
+  "params": {
+    "target_vol": 18.0,
+    "cap": 1.0
+  }
+}

@@ -1,0 +1,370 @@
+<title>챔피언의 정체와 새틀라이트</title>
+<style>
+
+:root{
+  color-scheme: light;
+  --bg-page:#eef1ee; --surface:#ffffff; --surface-2:#f4f6f3;
+  --ink:#12181a; --ink-2:#495550; --ink-muted:#828d87;
+  --hairline:#d7ddd6; --border:rgba(11,11,11,0.10);
+  --accent:#1f4d3d; --accent-ink:#ffffff; --accent-2:#8a6a1f;
+  --accent-2-soft:#f2e6c8; --accent-soft:#e2ebe6; --chart-surface:#fcfcfb;
+  --blue:#2a78d6; --orange:#eb6834; --aqua:#1baf7a; --red:#e34948;
+  --gridline:#e1e0d9; --axis:#c3c2b7; --delta-pos:#184f95; --delta-neg:#b3261e;
+  --code-bg:#f4f6f3; --shadow: 0 1px 2px rgba(20,30,25,0.04), 0 8px 24px -16px rgba(20,30,25,0.18);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg-page:#0f1210; --surface:#171b16; --surface-2:#1c211b;
+    --ink:#f2f4f0; --ink-2:#c4cbc2; --ink-muted:#8b958a;
+    --hairline:#2c332a; --border:rgba(255,255,255,0.10);
+    --accent:#5aab89; --accent-ink:#0b1310; --accent-2:#d9b45c;
+    --accent-2-soft:#332a13; --accent-soft:#1b2921; --chart-surface:#1a1a19;
+    --blue:#3987e5; --orange:#d95926; --aqua:#199e70; --red:#e66767;
+    --gridline:#2c2c2a; --axis:#3a3f38; --delta-pos:#86b6ef; --delta-neg:#ff8a80;
+    --code-bg:#1c211b; --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -16px rgba(0,0,0,0.5);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg-page:#0f1210; --surface:#171b16; --surface-2:#1c211b;
+  --ink:#f2f4f0; --ink-2:#c4cbc2; --ink-muted:#8b958a;
+  --hairline:#2c332a; --border:rgba(255,255,255,0.10);
+  --accent:#5aab89; --accent-ink:#0b1310; --accent-2:#d9b45c;
+  --accent-2-soft:#332a13; --accent-soft:#1b2921; --chart-surface:#1a1a19;
+  --blue:#3987e5; --orange:#d95926; --aqua:#199e70; --red:#e66767;
+  --gridline:#2c2c2a; --axis:#3a3f38; --delta-pos:#86b6ef; --delta-neg:#ff8a80;
+  --code-bg:#1c211b; --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -16px rgba(0,0,0,0.5);
+}
+*{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{ margin:0; background:var(--bg-page); color:var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif; line-height:1.6; font-size:16px; }
+.serif{ font-family: "Iowan Old Style","Palatino Linotype", Georgia, serif; }
+.mono, .num, td.num, .tk-name, .kpi-value, code {
+  font-family: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+  font-variant-numeric: tabular-nums; }
+a{ color:var(--accent); }
+.wrap{ max-width: 920px; margin:0 auto; padding: 0 24px 96px; }
+.masthead{ background: var(--accent); color: var(--accent-ink); padding: 56px 24px 40px; }
+.masthead-inner{ max-width:920px; margin:0 auto; }
+.masthead-eyebrow{ font-size:12.5px; letter-spacing:0.12em; text-transform:uppercase; opacity:0.82;
+  font-family: ui-monospace, "SF Mono", Consolas, monospace; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.masthead-eyebrow .dot{ opacity:0.5; }
+h1.masthead-title{ font-family:"Iowan Old Style","Palatino Linotype", Georgia, serif; font-weight:600;
+  font-size: clamp(28px, 4.2vw, 44px); line-height:1.15; margin: 14px 0 10px; text-wrap: balance; max-width: 26ch; }
+.masthead-sub{ font-size:16.5px; max-width:66ch; opacity:0.92; margin:0 0 22px; }
+.masthead-meta{ display:flex; flex-wrap:wrap; gap: 10px 26px; font-size:13.5px; opacity:0.85;
+  border-top:1px solid rgba(255,255,255,0.22); padding-top:16px; }
+.masthead-meta b{ font-weight:600; }
+.section{ padding: 52px 0 8px; border-top:1px solid var(--hairline); }
+.section:first-of-type{ border-top:none; }
+.section h2{ font-family:"Iowan Old Style","Palatino Linotype", Georgia, serif; font-size: 25px;
+  font-weight:600; margin: 0 0 16px; display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+.sec-no{ font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size:13px; color: var(--accent);
+  border:1px solid var(--accent); border-radius:3px; padding:2px 6px; font-weight:600; letter-spacing:0.02em; }
+.section h3{ font-size:17.5px; margin: 30px 0 10px; font-weight:650; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.section h4{ font-size:15px; margin: 20px 0 8px; font-weight:650; color:var(--ink-2); }
+.lede{ font-size:16.5px; color:var(--ink-2); max-width:72ch; }
+.section p{ max-width:74ch; }
+.section > p, .section > .lede { margin-top: 0; }
+.section li{ max-width:70ch; }
+.callout{ background: var(--surface-2); border:1px solid var(--hairline); border-left: 3px solid var(--accent);
+  border-radius: 6px; padding: 18px 22px; margin: 20px 0 26px; }
+.callout-title{ font-size:11.5px; text-transform:uppercase; letter-spacing:0.08em; color:var(--accent);
+  font-weight:700; margin-bottom:8px; }
+.callout p{ margin:0; max-width:none; }
+.callout p + p{ margin-top:10px; }
+.caveat{ font-size:14.5px; color:var(--ink-2); background:var(--surface-2); border-radius:6px;
+  padding:14px 18px; border:1px dashed var(--hairline); margin: 14px 0; }
+.kpi-row{ display:grid; grid-template-columns:repeat(auto-fit, minmax(190px,1fr)); gap:14px; margin: 20px 0 8px; }
+.kpi-tile{ background:var(--surface); border:1px solid var(--hairline); border-radius:8px; padding:16px 18px; box-shadow: var(--shadow); }
+.kpi-label{ font-size:12.5px; color:var(--ink-muted); margin-bottom:6px; }
+.kpi-value{ font-size:26px; font-weight:600; line-height:1.1; }
+.kpi-value.pos{ color:var(--delta-pos); }
+.kpi-value.neg{ color:var(--delta-neg); }
+.kpi-sub{ font-size:12.5px; color:var(--ink-muted); margin-top:4px; }
+.chart-card{ background:var(--chart-surface); border:1px solid var(--hairline); border-radius:10px;
+  padding:22px 22px 16px; margin: 22px 0; box-shadow: var(--shadow); }
+.chart-card h3{ margin: 0 0 4px; font-size:16px; }
+.chart-desc{ font-size:13.5px; color:var(--ink-muted); margin: 0 0 14px; max-width:none; }
+svg.chart-svg{ width:100%; height:auto; display:block; overflow:visible; }
+svg.chart-svg text{ fill:var(--ink-2); font-family: system-ui,-apple-system,"Segoe UI",sans-serif; }
+svg.chart-svg .tick-label{ fill:var(--ink-muted); font-size:10.5px; }
+svg.chart-svg .axis-line{ stroke:var(--axis); stroke-width:1; }
+svg.chart-svg .grid-line{ stroke:var(--gridline); stroke-width:1; }
+svg.chart-svg .bar-label{ font-size:11px; fill:var(--ink-2); font-family: ui-monospace,"SF Mono",Consolas,monospace; }
+svg.chart-svg .cat-label{ font-size:12px; fill:var(--ink); }
+.table-wrap{ overflow-x:auto; border:1px solid var(--hairline); border-radius:8px; background:var(--surface); }
+table.data-table{ width:100%; border-collapse:collapse; font-size:13.5px; min-width:600px; }
+table.data-table th{ text-align:right; font-weight:600; font-size:11.5px; color:var(--ink-muted); text-transform:uppercase;
+  letter-spacing:0.03em; padding:10px 12px; border-bottom:1px solid var(--hairline); white-space:nowrap; }
+table.data-table th:first-child, table.data-table td:first-child{ text-align:left; }
+table.data-table td{ padding:8px 12px; border-bottom:1px solid var(--hairline); text-align:right; white-space:nowrap; }
+table.data-table tbody tr:hover{ background:var(--surface-2); }
+table.data-table tbody tr:last-child td{ border-bottom:none; }
+td.tk-cell{ text-align:left !important; }
+td.tk-cell .tk-name{ font-weight:650; margin-right:8px; }
+td.num.delta.pos, .delta.pos{ color:var(--delta-pos); font-weight:650; }
+td.num.delta.neg, .delta.neg{ color:var(--delta-neg); font-weight:650; }
+.strong{ font-weight:700; }
+tr.best-row{ background: var(--accent-soft); }
+footer{ max-width:920px; margin:40px auto 0; padding: 26px 24px 10px; border-top:1px solid var(--hairline);
+  font-size:12.5px; color:var(--ink-muted); }
+footer p{ max-width:none; }
+.toc{ display:flex; flex-wrap:wrap; gap:8px 18px; margin: 24px 0 4px; padding:16px 20px; background:var(--surface);
+  border:1px solid var(--hairline); border-radius:8px; }
+.toc a{ font-size:13.5px; color:var(--ink-2); text-decoration:none; }
+.toc a:hover{ color:var(--accent); text-decoration:underline; }
+.src-list{ font-size:13px; color:var(--ink-2); padding-left:18px; }
+.src-list li{ margin: 6px 0; }
+.verdict-badge{ display:inline-block; font-size:12px; font-weight:700; letter-spacing:0.03em;
+  padding:3px 10px; border-radius:20px; text-transform:uppercase; }
+.v-accept{ background: var(--accent-soft); color: var(--accent); border:1px solid var(--accent); }
+.v-reject{ background: rgba(179,38,30,0.10); color: var(--delta-neg); border:1px solid var(--delta-neg); }
+.v-partial{ background: var(--accent-2-soft); color: var(--accent-2); border:1px solid var(--accent-2); }
+.hyp-card{ background:var(--surface); border:1px solid var(--hairline); border-radius:8px; padding:16px 20px; margin:14px 0; }
+.hyp-card .hyp-id{ font-family: ui-monospace,"SF Mono",Consolas,monospace; font-weight:700; color:var(--accent); font-size:13px; }
+
+</style>
+
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="masthead-eyebrow">
+      <span>QUANT RESEARCH NOTE</span><span class="dot">·</span><span>Track B 연장 · 가설검증</span><span class="dot">·</span><span>Hypothesis-Driven Study</span>
+    </div>
+    <h1 class="masthead-title">챔피언의 정체와 새틀라이트 — 17자산 로테이션의 베타 정체성 재심문 + point-in-time 개별주 새틀라이트 실험</h1>
+    <p class="masthead-sub">이 저장소가 지금까지 검증한 최고 성과 전략(11개 GICS 섹터+채권+금+국제주식+원자재
+      17자산 듀얼모멘텀 로테이션, No.07/08)을 두 방향에서 다시 심문한다. (1) point-in-time으로만 고른
+      개별주 새틀라이트를 소액만 얹으면 이 챔피언을 더 낫게 만들 수 있는가 — No.09가 반복한 사후편향
+      실수를 반복하지 않고. (2) 이 챔피언의 초과수익 자체가 진짜 실력(알파)인가, 아니면 IREN류 종목
+      연구(작업28)가 발견한 것처럼 그냥 위장된 베타인가.</p>
+    <div class="masthead-meta">
+      <span><b>기준일</b> 2026-08-20</span>
+      <span><b>챔피언 유니버스</b> 17자산(11 GICS 섹터 ETF+TLT/IEF/GLD+EFA/HYG/DBC)</span>
+      <span><b>벤치마크</b> SPY</span>
+      <span><b>데이터</b> Yahoo Finance(yfinance) via core.market_data/core.point_in_time_market_cap 로컬 캐시</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <nav class="toc">
+    <a href="#scope">00 문제 제기</a>
+    <a href="#h1">01 H1 — 코어-새틀라이트</a>
+    <a href="#h2">02 H2 — 챔피언의 베타 정체성</a>
+    <a href="#synthesis">03 종합</a>
+    <a href="#limitations">04 한계</a>
+  </nav>
+
+  <section class="section" id="scope">
+    <h2><span class="sec-no">00</span> 문제 제기 — 이 연구가 지금까지의 무엇을 잇는가</h2>
+    <p class="lede">작업19~23이 검증한 17자산 듀얼모멘텀 로테이션(GICS 11섹터+TLT/IEF/GLD+EFA/HYG/DBC,
+      top4·12개월 모멘텀·월간 리밸런싱·SPY 200일선 이진 시장필터)은 2008년 금융위기·2000년 닷컴버블·
+      2022년 약세장까지 아웃오브샘플로 검증된, 이 저장소의 현재 "챔피언"이다. 작업24/25는 이 챔피언에
+      개별주를 섞어 수익을 더 끌어올리려다 사후편향(2026년 기준 AI 랠리 승자를 무의식적으로 우대 선택)에
+      걸렸고, point-in-time 시가총액 인프라(<code>core.point_in_time_market_cap</code>)로 재검증하자
+      샤프비율이 1.23에서 0.68로 폭락해 개별주 전면 대체 갈래를 공식 기각했다(No.10). 같은 주에 진행된
+      작업28(트랙 C)은 IREN류 변동성 테마주에 대해 "베타를 제거하는 헤지는 전부 손해 — 초과수익 자체가
+      베타"라는 결론을 냈다.</p>
+    <p>이 연구는 두 결론을 챔피언 전략 자체에 정면으로 적용한다. <b>H1</b>은 No.09의 실수(전면 대체·
+      사후편향)를 반복하지 않는 다른 설계 — 코어는 그대로 두고 point-in-time으로만 고른 개별주를
+      소액 새틀라이트로만 얹으면 여전히 개선 여지가 있는지 — 를 검증한다. <b>H2</b>는 작업28의 베타
+      헤지 방법론을 개별 종목이 아니라 챔피언 "포트폴리오 자체"의 일간 수익률 시계열에 그대로 적용해,
+      이 저장소가 지금까지 "이겼다"고 불러온 챔피언의 초과수익이 진짜 알파인지 재확인한다.</p>
+    <p class="caveat">⚠️ 투자 조언이 아니다. 아래 결과 중 일부(특히 H2)는 챔피언 전략의 성격에 대해
+      기존 서술보다 덜 낙관적인 재해석을 담고 있다 — 이 저장소의 원칙대로 그대로 보고한다.</p>
+  </section>
+
+  <section class="section" id="h1">
+    <h2><span class="sec-no">01</span> H1 — 코어-새틀라이트: point-in-time 개별주가 챔피언을 개선하는가 <span class="verdict-badge v-accept">채택</span></h2>
+    <p class="lede">코어(17자산 챔피언, 80~90%)에
+      반기(6개월)마다 <code>sample_universe(as_of_date=t, use_point_in_time_market_cap=True)</code>로 뽑은
+      point-in-time 후보 풀(40종목, 섹터균등) 안에서 12개월 모멘텀 상위 3종목을 동일가중으로 담는
+      새틀라이트(10~20%)를 얹었다. 검증 구간은
+      챔피언의 기존 주 검증 구간(2019-08-12~2026-08-19)과 동일하다.</p>
+
+    <div class="kpi-row">
+      <div class="kpi-tile"><div class="kpi-label">코어 단독 샤프</div><div class="kpi-value">1.030</div><div class="kpi-sub">CAGR +13.23% · MDD -17.74%</div></div>
+      <div class="kpi-tile"><div class="kpi-label">새틀라이트 단독 샤프(참고)</div><div class="kpi-value">0.800</div><div class="kpi-sub">CAGR +23.12% · MDD -33.54%</div></div>
+      <div class="kpi-tile"><div class="kpi-label">블렌드 10% 샤프</div><div class="kpi-value pos">1.060</div><div class="kpi-sub">CAGR +14.56% · MDD -17.80%</div></div>
+      <div class="kpi-tile"><div class="kpi-label">블렌드 20% 샤프</div><div class="kpi-value pos">1.050</div><div class="kpi-sub">CAGR +15.82% · MDD -17.90%</div></div>
+    </div>
+
+    <div class="chart-card">
+      <h3>샤프비율 비교 — 코어 vs 새틀라이트 vs 블렌드</h3>
+      <p class="chart-desc">블렌드 막대가 코어 막대보다 오른쪽에 있으면 새틀라이트 추가가 실제로 위험조정수익을 개선했다는 뜻이다.</p>
+      <svg class="chart-svg" viewBox="0 0 860 166" role="img" aria-label="비교 막대차트"><line class="grid-line" x1="210.0" y1="10" x2="210.0" y2="156"/><text class="tick-label" x="210.0" y="164" text-anchor="middle">0.00</text><line class="grid-line" x1="355.0" y1="10" x2="355.0" y2="156"/><text class="tick-label" x="355.0" y="164" text-anchor="middle">0.30</text><line class="grid-line" x1="500.0" y1="10" x2="500.0" y2="156"/><text class="tick-label" x="500.0" y="164" text-anchor="middle">0.61</text><line class="grid-line" x1="645.0" y1="10" x2="645.0" y2="156"/><text class="tick-label" x="645.0" y="164" text-anchor="middle">0.91</text><line class="grid-line" x1="790.0" y1="10" x2="790.0" y2="156"/><text class="tick-label" x="790.0" y="164" text-anchor="middle">1.22</text><text class="cat-label" x="200" y="31" text-anchor="end">코어(17자산 챔피언)</text><rect x="210" y="18" width="490.1" height="18" rx="3" fill="var(--blue)" opacity="0.88"/><text class="bar-label" x="708.1" y="31">1.030</text><text class="cat-label" x="200" y="65" text-anchor="end">새틀라이트 단독</text><rect x="210" y="52" width="380.6" height="18" rx="3" fill="var(--orange)" opacity="0.88"/><text class="bar-label" x="598.6" y="65">0.800</text><text class="cat-label" x="200" y="99" text-anchor="end">블렌드 10%</text><rect x="210" y="86" width="504.3" height="18" rx="3" fill="var(--aqua)" opacity="0.88"/><text class="bar-label" x="722.3" y="99">1.060</text><text class="cat-label" x="200" y="133" text-anchor="end">블렌드 20%</text><rect x="210" y="120" width="499.6" height="18" rx="3" fill="var(--aqua)" opacity="0.88"/><text class="bar-label" x="717.6" y="133">1.050</text></svg>
+    </div>
+    <div class="chart-card">
+      <h3>칼마지수(MDD 대비 CAGR) 비교</h3>
+      <svg class="chart-svg" viewBox="0 0 860 166" role="img" aria-label="비교 막대차트"><line class="grid-line" x1="210.0" y1="10" x2="210.0" y2="156"/><text class="tick-label" x="210.0" y="164" text-anchor="middle">0.00</text><line class="grid-line" x1="355.0" y1="10" x2="355.0" y2="156"/><text class="tick-label" x="355.0" y="164" text-anchor="middle">0.25</text><line class="grid-line" x1="500.0" y1="10" x2="500.0" y2="156"/><text class="tick-label" x="500.0" y="164" text-anchor="middle">0.51</text><line class="grid-line" x1="645.0" y1="10" x2="645.0" y2="156"/><text class="tick-label" x="645.0" y="164" text-anchor="middle">0.76</text><line class="grid-line" x1="790.0" y1="10" x2="790.0" y2="156"/><text class="tick-label" x="790.0" y="164" text-anchor="middle">1.01</text><text class="cat-label" x="200" y="31" text-anchor="end">코어(17자산 챔피언)</text><rect x="210" y="18" width="429.8" height="18" rx="3" fill="var(--blue)" opacity="0.88"/><text class="bar-label" x="647.8" y="31">0.750</text><text class="cat-label" x="200" y="65" text-anchor="end">새틀라이트 단독</text><rect x="210" y="52" width="395.5" height="18" rx="3" fill="var(--orange)" opacity="0.88"/><text class="bar-label" x="613.5" y="65">0.690</text><text class="cat-label" x="200" y="99" text-anchor="end">블렌드 10%</text><rect x="210" y="86" width="470.0" height="18" rx="3" fill="var(--aqua)" opacity="0.88"/><text class="bar-label" x="688.0" y="99">0.820</text><text class="cat-label" x="200" y="133" text-anchor="end">블렌드 20%</text><rect x="210" y="120" width="504.3" height="18" rx="3" fill="var(--aqua)" opacity="0.88"/><text class="bar-label" x="722.3" y="133">0.880</text></svg>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>구성</th><th>CAGR</th><th>MDD</th><th>샤프</th><th>칼마</th><th>누적수익률</th></tr></thead>
+        <tbody><tr><td class="tk-cell"><span class="tk-name">코어(17자산 챔피언) 100%</span></td><td class="num">+13.23%</td><td class="num">-17.74%</td><td class="num strong">1.030</td><td class="num">0.750</td><td class="num">+139.2%</td></tr>
+<tr><td class="tk-cell"><span class="tk-name">새틀라이트 단독 100%(참고)</span></td><td class="num">+23.12%</td><td class="num">-33.54%</td><td class="num strong">0.800</td><td class="num">0.690</td><td class="num">+330.4%</td></tr>
+<tr class="best-row"><td class="tk-cell"><span class="tk-name">블렌드 — 새틀라이트 10%</span></td><td class="num">+14.56%</td><td class="num">-17.80%</td><td class="num strong">1.060</td><td class="num">0.820</td><td class="num">+159.6%</td></tr>
+<tr class="best-row"><td class="tk-cell"><span class="tk-name">블렌드 — 새틀라이트 20%</span></td><td class="num">+15.82%</td><td class="num">-17.90%</td><td class="num strong">1.050</td><td class="num">0.880</td><td class="num">+180.3%</td></tr></tbody>
+      </table>
+    </div>
+
+    <h3>새틀라이트 반기 리밸런싱 로그 (point-in-time 선정 실제 기록)</h3>
+    <p>후보 풀은 매 리밸런싱일마다 <code>core.strategy_tuning.sample_universe(n=40,
+      as_of_date=&lt;그 날짜&gt;, use_point_in_time_market_cap=True)</code>로 새로 뽑았다 — "지금 유명한
+      종목"이 아니라 "그 시점에 실제로 그 규모였던 종목"만 후보가 된다. 아래 표는 그 point-in-time
+      후보 풀 안에서 12개월 모멘텀이 양(+)인 종목 중 상위 3개를 그대로 실은 것이다(사후에 손으로 고른
+      종목 없음).</p>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>리밸런싱일</th><th>후보 풀 크기</th><th>양(+)모멘텀 후보 수</th><th>실제 선정 종목</th></tr></thead>
+        <tbody><tr><td class="tk-cell">2020-01-02</td><td class="num">40</td><td class="num">39</td><td class="tk-cell">AAPL, MSFT, PLD</td></tr>
+<tr><td class="tk-cell">2020-07-01</td><td class="num">40</td><td class="num">26</td><td class="tk-cell">NVDA, AAPL, MSFT</td></tr>
+<tr><td class="tk-cell">2021-01-04</td><td class="num">40</td><td class="num">30</td><td class="tk-cell">TSLA, NVDA, AAPL</td></tr>
+<tr><td class="tk-cell">2021-07-01</td><td class="num">40</td><td class="num">40</td><td class="tk-cell">TSLA, NVDA, UPS</td></tr>
+<tr><td class="tk-cell">2022-01-03</td><td class="num">40</td><td class="num">35</td><td class="tk-cell">NVDA, COP, PLD</td></tr>
+<tr><td class="tk-cell">2022-07-01</td><td class="num">40</td><td class="num">15</td><td class="tk-cell">COP, LLY, CVX</td></tr>
+<tr><td class="tk-cell">2023-01-03</td><td class="num">40</td><td class="num">14</td><td class="tk-cell">XOM, COP, CVX</td></tr>
+<tr><td class="tk-cell">2023-07-03</td><td class="num">40</td><td class="num">31</td><td class="tk-cell">NVDA, NFLX, AVGO</td></tr>
+<tr><td class="tk-cell">2024-01-02</td><td class="num">40</td><td class="num">29</td><td class="tk-cell">NVDA, META, TSLA</td></tr>
+<tr><td class="tk-cell">2024-07-01</td><td class="num">40</td><td class="num">35</td><td class="tk-cell">NVDA, LLY, GE</td></tr>
+<tr><td class="tk-cell">2025-01-02</td><td class="num">40</td><td class="num">31</td><td class="tk-cell">NVDA, AVGO, NFLX</td></tr>
+<tr><td class="tk-cell">2025-07-01</td><td class="num">40</td><td class="num">29</td><td class="tk-cell">NFLX, AVGO, PAYC</td></tr>
+<tr><td class="tk-cell">2026-01-02</td><td class="num">40</td><td class="num">32</td><td class="tk-cell">NEM, GE, GOOGL</td></tr>
+<tr><td class="tk-cell">2026-07-01</td><td class="num">38</td><td class="num">29</td><td class="tk-cell">CAT, GEV, GOOGL</td></tr></tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <div class="callout-title">해석</div>
+      <p>새틀라이트를 10~20%만 얹으면 코어 단독(샤프 1.03)보다 두 비중 모두에서
+        샤프비율이 개선된다(10%: 1.06,
+        20%: 1.05) — MDD는 거의 그대로면서
+        (코어 -17.7% → 10%
+        -17.8%/20% -17.9%)
+        CAGR은 뚜렷이 오른다(13.2% → 14.6%/15.8%).
+        No.09가 걸렸던 함정(사후에 승자였던 종목 위주로 표본이 뽑히는 편향)을 이번엔 반복하지
+        않았다는 게 핵심이다 — 위 리밸런싱 로그를 보면 NVDA·TSLA·AVGO처럼 실제로 이 구간 승자였던
+        종목도 등장하지만, XOM/COP/CVX(2022-2023 에너지 강세장)·NEM(2026년 금 강세)·GE/CAT(2024-25
+        산업재)처럼 그 시점 국면에 맞는 다양한 종목도 함께 뽑혔다 — "미래를 아는 사람이 고른 리스트"가
+        아니라 "그 시점 모멘텀 규칙이 실제로 골랐을 리스트"라는 뜻이다. 다만 새틀라이트 단독 성과
+        (샤프 0.80, MDD -33.5%)는 코어보다 뚜렷이 변동성이 크므로,
+        이 개선은 "새틀라이트가 그 자체로 더 나은 전략"이어서가 아니라 "이미 낮은 변동성의 코어에
+        비상관적인 소량의 고변동성 알파를 섞는 분산 효과"로 해석하는 것이 더 정확하다.</p>
+    </div>
+  </section>
+
+  <section class="section" id="h2">
+    <h2><span class="sec-no">02</span> H2 — 챔피언의 베타 정체성: 초과수익은 알파인가 베타인가 <span class="verdict-badge v-reject">기각</span></h2>
+    <p class="lede">작업28의 방법론(개별 종목의 롤링 SPY 베타만큼 숏 헤지 → 헤지 전후 샤프 비교)을
+      챔피언 "포트폴리오"의 일간 수익률 시계열에 그대로 적용했다. 세 구간에서 독립적으로 검증했다 —
+      챔피언의 주 검증 구간(2019-08~2026-08), 더 어려운 확장 구간(2015-01~2026-08, 2018~2019년
+      느린 구간 포함), 그리고 2008년 금융위기를 포함하는 3자산(SPY+TLT+GLD) 근사판(2007-07~2026-08,
+      작업22 H20 재사용 — 섹터 ETF가 2018년 이후 상장이라 17자산 원판은 2008년까지 못 감).</p>
+
+    <div class="kpi-row">
+      <div class="kpi-tile"><div class="kpi-label">평균 롤링 베타(2019~26)</div><div class="kpi-value">0.64</div><div class="kpi-sub">정적(전체구간) 베타 0.40, R² 0.389</div></div>
+      <div class="kpi-tile"><div class="kpi-label">무헤지 샤프(2019~26)</div><div class="kpi-value">1.045</div><div class="kpi-sub">SPY 0.729</div></div>
+      <div class="kpi-tile"><div class="kpi-label">롤링헤지 후 샤프(2019~26)</div><div class="kpi-value neg">0.470</div><div class="kpi-sub">Δ -0.575</div></div>
+      <div class="kpi-tile"><div class="kpi-label">회귀 알파(연율화, 2019~26)</div><div class="kpi-value">+7.08%</div><div class="kpi-sub">전체 CAGR의 51.8%</div></div>
+    </div>
+
+    <div class="chart-card">
+      <h3>세 구간 모두: 무헤지 vs 롤링 베타헤지 샤프</h3>
+      <p class="chart-desc">헤지 막대(붉은색)가 무헤지 막대(청록색)보다 항상 낮다 — 베타를 물리적으로 제거하면 세 구간 모두 위험조정수익이 나빠진다.</p>
+      <svg class="chart-svg" viewBox="0 0 860 234" role="img" aria-label="비교 막대차트"><line class="grid-line" x1="210.0" y1="10" x2="210.0" y2="224"/><text class="tick-label" x="210.0" y="232" text-anchor="middle">0.00</text><line class="grid-line" x1="355.0" y1="10" x2="355.0" y2="224"/><text class="tick-label" x="355.0" y="232" text-anchor="middle">0.30</text><line class="grid-line" x1="500.0" y1="10" x2="500.0" y2="224"/><text class="tick-label" x="500.0" y="232" text-anchor="middle">0.60</text><line class="grid-line" x1="645.0" y1="10" x2="645.0" y2="224"/><text class="tick-label" x="645.0" y="232" text-anchor="middle">0.90</text><line class="grid-line" x1="790.0" y1="10" x2="790.0" y2="224"/><text class="tick-label" x="790.0" y="232" text-anchor="middle">1.20</text><text class="cat-label" x="200" y="31" text-anchor="end">2019~2026 무헤지</text><rect x="210" y="18" width="504.3" height="18" rx="3" fill="var(--aqua)" opacity="0.88"/><text class="bar-label" x="722.3" y="31">1.045</text><text class="cat-label" x="200" y="65" text-anchor="end">2019~2026 롤링헤지</text><rect x="210" y="52" width="226.8" height="18" rx="3" fill="var(--red)" opacity="0.88"/><text class="bar-label" x="444.8" y="65">0.470</text><text class="cat-label" x="200" y="99" text-anchor="end">2015~2026 무헤지</text><rect x="210" y="86" width="302.6" height="18" rx="3" fill="var(--aqua)" opacity="0.88"/><text class="bar-label" x="520.6" y="99">0.627</text><text class="cat-label" x="200" y="133" text-anchor="end">2015~2026 롤링헤지</text><rect x="210" y="120" width="2.0" height="18" rx="3" fill="var(--red)" opacity="0.88"/><text class="bar-label" x="218.0" y="133">-0.053</text><text class="cat-label" x="200" y="167" text-anchor="end">2007~2026(3자산 근사) 무헤지</text><rect x="210" y="154" width="344.1" height="18" rx="3" fill="var(--aqua)" opacity="0.88"/><text class="bar-label" x="562.1" y="167">0.713</text><text class="cat-label" x="200" y="201" text-anchor="end">2007~2026(3자산 근사) 롤링헤지</text><rect x="210" y="188" width="215.7" height="18" rx="3" fill="var(--red)" opacity="0.88"/><text class="bar-label" x="433.7" y="201">0.447</text></svg>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>구간</th><th>평균 롤링베타</th><th>무헤지 샤프</th><th>롤링헤지 샤프</th><th>Δ샤프</th><th>무헤지 MDD</th><th>회귀알파(연율)</th><th>알파/전체CAGR</th></tr></thead>
+        <tbody><tr><td class="tk-cell"><span class="tk-name">17자산 챔피언 (2019-08~2026-08, 주표본)</span></td><td class="num">0.64</td><td class="num">1.045</td><td class="num">0.470</td><td class="num delta neg">-0.575</td><td class="num">-17.7%</td><td class="num">+7.08%</td><td class="num">51.8%</td></tr>
+<tr><td class="tk-cell"><span class="tk-name">17자산 챔피언 (2015-01~2026-08, 강건성)</span></td><td class="num">0.68</td><td class="num">0.627</td><td class="num">-0.053</td><td class="num delta neg">-0.680</td><td class="num">-21.7%</td><td class="num">+1.27%</td><td class="num">17.4%</td></tr>
+<tr><td class="tk-cell"><span class="tk-name">3자산 근사 SPY+TLT+GLD (2007-07~2026-08, GFC 포함)</span></td><td class="num">0.29</td><td class="num">0.713</td><td class="num">0.447</td><td class="num delta neg">-0.266</td><td class="num">-18.7%</td><td class="num">—</td><td class="num">—</td></tr></tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <div class="callout-title">초과수익 분해</div>
+      <p>2019~2026 주표본에서 챔피언의 CAGR(13.67%)은 SPY(13.60%)와
+        원금 기준으로는 거의 같다(격차 +0.07%p) — 이 구간에서
+        챔피언의 진짜 우위는 원금 수익률이 아니라 <b>위험조정 수익률과 낙폭</b>이다(샤프
+        1.04 vs 0.73, MDD
+        -17.7% vs -34.1%). 단일요인
+        회귀(젠센 알파)로 베타를 통계적으로 통제하면 연율 +7.08%의
+        알파가 남는다 — 전체 CAGR의 51.8%에 해당하는, 결코 작지
+        않은 몫이다. 그런데도 그 베타를 실제로 롤링 헤지로 걷어내면(H1 방법론 그대로) 샤프가
+        1.045→0.470로 오히려 나빠진다 —
+        2015~2026 강건성 표본과 2007~2026(3자산 근사, GFC 포함) 구간 모두 같은 방향으로 재현됐다.</p>
+      <p>이 두 사실은 겉보기엔 모순 같지만 같이 읽으면 하나의 결론으로 수렴한다: 통계적으로 정의된
+        "알파"(회귀 절편)는 실재하지만, 그 알파는 베타 노출과 분리된 별도의 신호가 아니라 <b>"베타
+        노출의 크기를 시점마다 동적으로 조절하는 것 자체"</b>에서 나온다(시장필터가 SPY 약세 국면에
+        비중을 50%로 줄이고, 모멘텀 랭킹이 자산군 간 베타를 이동시킨다 — 2020년 4월엔 채권·금으로,
+        2022년엔 원자재·에너지로). 고정 배율의 롤링 베타 숏 오버레이는 이 "동적 타이밍"을 정적인
+        상시 헤지로 뭉개버려 정확히 그 가치를 없앤다. 즉 <b>베타와 알파를 물리적으로 분리할 수는
+        없다 — 이 전략에서는 베타의 타이밍 자체가 알파다.</b></p>
+    </div>
+  </section>
+
+  <section class="section" id="synthesis">
+    <h2><span class="sec-no">03</span> 종합 — "시장을 이긴다"는 것에 대해 이번 라운드가 더한 것</h2>
+    <p>이 저장소는 작업19부터 지금까지 "시장을 이긴다"는 말의 의미를 계속 좁혀왔다 — 처음엔 단순
+      원금수익률(작업19), 그다음엔 위험조정수익률(작업20/21), 그다음엔 아웃오브샘플 강건성(작업22/23),
+      그다음엔 그 우위가 사후편향이 아닌지(작업24/25/No.09/10)였다. 이번 라운드는 거기에 두 가지를
+      더한다.</p>
+    <p><b>첫째(H1), "코어를 지키고 새틀라이트로만 개별주를 더하면" 사후편향 없이도 개선 여지가 있다.</b>
+      No.09/10이 확정한 결론("개별주로 챔피언을 통째로 대체하면 안 된다")은 여전히 유효하지만, 이번
+      결과는 그 결론이 "개별주는 전혀 도움이 안 된다"는 뜻은 아니었음을 보여준다 — 비중을 작게 유지하고
+      point-in-time 규율을 지키면, 개별주는 코어의 낮은 변동성을 거의 해치지 않으면서 수익을 끌어올리는
+      분산 효과를 낼 수 있다. "전부 바꾸느냐 전혀 안 쓰느냐"가 아니라 "얼마나 섞느냐"가 진짜 질문이었다.</p>
+    <p><b>둘째(H2), 챔피언의 초과수익 자체가 "시장을 이긴다"는 서술이 암시하는 만큼 깔끔한 알파가
+      아니다.</b> 이 저장소는 지금까지 챔피언의 샤프비율·MDD 우위를 "전략의 실력"으로 서술해왔다(작업21의
+      순열검정도 "무작위 자산 선택 대비 우위"를 확인했을 뿐, 베타 노출 자체의 기여는 따로 떼어보지
+      않았다). 이번에 처음으로 베타를 물리적으로 제거해보니, 세 개의 독립된 구간(2019~2026·2015~2026·
+      2007~2026 GFC 포함) 모두에서 헤지가 샤프비율을 깎았다 — 작업28이 IREN류 개별 테마주에서 낸
+      결론과 정확히 같은 방향이다. 다만 개별주 사례와 다른 결이 하나 있다 — 회귀 알파(젠센 알파)
+      자체는 통계적으로 작지 않게 남는다(2019~2026 구간 기준 전체 CAGR의 약
+      52%). 이 저장소가 얻은 가장 정확한 문장은
+      "챔피언의 초과수익은 베타가 전부다"가 아니라, <b>"챔피언의 알파는 베타 노출을 언제·얼마나
+      가져갈지 국면에 따라 조절하는 능력 그 자체이며, 그래서 베타와 알파를 물리적으로 분리하려는
+      시도(정적 숏 헤지)는 그 알파의 원천을 파괴한다"</b>는 것이다. "시장을 이긴다"는 건 이 전략에서는
+      시장 익스포저를 없애는 게 아니라 그 익스포저의 크기를 국면에 맞게 조절하는 능력이었다.</p>
+  </section>
+
+  <section class="section" id="limitations">
+    <h2><span class="sec-no">04</span> 한계</h2>
+    <ul>
+      <li><b>새틀라이트 반기 리밸런싱의 표본 크기</b> — 2019~2026 구간에 14회 리밸런싱뿐이라, 특정
+        2~3회의 좋거나 나쁜 픽이 전체 결과를 좌우할 수 있다(예: 2020-2021년 반기에 반복 등장한
+        NVDA/TSLA/AAPL). 순열검정 등 통계적 유의성 검정은 이번 범위에 포함하지 않았다.</li>
+      <li><b>point-in-time 시가총액의 알려진 근사 오차</b> — <code>core/point_in_time_market_cap.py</code>
+        자체 문서화된 한계(발행주식수는 분기 단위 계단식 데이터, 상장 초기 이력 부재 종목은 근사)가
+        새틀라이트 후보 풀에도 그대로 적용된다.</li>
+      <li><b>코어·새틀라이트 블렌드의 단순화</b> — 두 슬리브를 일별로 비용 없이 정확히 목표 비중대로
+        재조정한다고 가정한 선형 블렌드다. 실제로는 슬리브 간 리밸런싱에도 거래비용이 든다.</li>
+      <li><b>H1을 2008년 금융위기·2000년 닷컴버블까지 확장하지 못함</b> — point-in-time 유니버스
+        표본추출이 회당 약 1분(500종목 스캔) 걸려, 반기 리밸런싱을 두 시기까지 확장하면 계산비용이
+        커 이번 라운드 예산 안에서는 2019~2026 주 구간에 집중했다. 코어(H2)는 세 구간 모두 검증했지만
+        새틀라이트(H1)는 아니라는 비대칭이 있다.</li>
+      <li><b>H2 헤지 시뮬레이션의 표준 한계</b> — 공매도 차입비용·마진 이자·헤지 리밸런싱 자체의
+        거래비용 미반영(작업28과 동일 한계). 베타 추정 롤링윈도우(126거래일) 선택에 따라 결과가
+        달라질 수 있다(민감도 분석은 이번 범위 밖).</li>
+      <li><b>다중비교 위험</b> — 이 저장소가 지금까지 수십 개의 파라미터/구조 변형을 같은 챔피언
+        후보에 반복 검증해왔다는 근본적 한계(작업21이 이미 명시)는 이번 연구에도 그대로 적용된다.</li>
+    </ul>
+  </section>
+
+</div>
+
+<footer>
+  <p>analysis/2026-08-19_champion_beta_and_satellite_research/ (데이터: report_data.json, 빌드:
+    build_report.py) · champion_strategy.py/h1_core_satellite.py/h2_champion_beta_hedge.py가
+    core.market_data/core.point_in_time_market_cap/core.strategy_tuning의 로컬 캐시로 실제 가격·
+    point-in-time 시가총액 데이터를 받아 실행한 결과를 그대로 사용했다(추정치 아님). 원 챔피언 스크립트
+    (작업19~23)는 연구용 스크래치라 삭제되어, 이 리포트의 champion_strategy.py는 PROGRESS.md에 기록된
+    스펙을 독립적으로 재구현한 것이다 — 발표 수치가 원 리포트와 소수점 단위로 다를 수 있으나 2019-08-12~
+    2026-08-19 구간에서 방향과 크기가 일치함을 SPY 대조군으로 교차검증했다.</p>
+</footer>

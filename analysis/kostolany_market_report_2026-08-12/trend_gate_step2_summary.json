@@ -1,0 +1,40 @@
+{
+  "best_up_th": 15.0,
+  "best_down_th": -25.0,
+  "tuned_only": {
+    "mean_sharpe": 0.47,
+    "mean_cagr": 9.9,
+    "mean_excess_cagr_vs_bench": -2.21,
+    "median_excess_cagr_vs_bench": -3.39,
+    "win_rate_vs_bh_pct": 24.0,
+    "win_rate_vs_bench_pct": 26.0,
+    "index_cagr": 9.68,
+    "index_sharpe": 0.68,
+    "index_mdd": -22.37,
+    "index_excess_vs_bench": -2.43
+  },
+  "gate_only": {
+    "mean_sharpe": 0.438,
+    "mean_cagr": 8.08,
+    "mean_excess_cagr_vs_bench": -4.03,
+    "median_excess_cagr_vs_bench": -6.76,
+    "win_rate_vs_bh_pct": 22.0,
+    "win_rate_vs_bench_pct": 22.0,
+    "index_cagr": 4.56,
+    "index_sharpe": 0.41,
+    "index_mdd": -22.37,
+    "index_excess_vs_bench": -7.55
+  },
+  "combined": {
+    "mean_sharpe": 0.516,
+    "mean_cagr": 12.93,
+    "mean_excess_cagr_vs_bench": 0.82,
+    "median_excess_cagr_vs_bench": -2.24,
+    "win_rate_vs_bh_pct": 28.0,
+    "win_rate_vs_bench_pct": 40.0,
+    "index_cagr": 10.6,
+    "index_sharpe": 0.71,
+    "index_mdd": -25.43,
+    "index_excess_vs_bench": -1.51
+  }
+}

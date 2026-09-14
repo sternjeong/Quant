@@ -1,0 +1,191 @@
+{
+  "XLK": {
+    "label": "기술",
+    "hike": {
+      "n": 32,
+      "fwd_5d_mean_pct": 0.095,
+      "fwd_5d_win_rate_pct": 46.9,
+      "fwd_20d_mean_pct": 0.707,
+      "fwd_20d_win_rate_pct": 56.2,
+      "fwd_60d_mean_pct": 2.909,
+      "fwd_60d_win_rate_pct": 68.8
+    },
+    "cut": {
+      "n": 21,
+      "fwd_5d_mean_pct": -1.495,
+      "fwd_5d_win_rate_pct": 38.1,
+      "fwd_20d_mean_pct": -0.19,
+      "fwd_20d_win_rate_pct": 47.6,
+      "fwd_60d_mean_pct": 1.308,
+      "fwd_60d_win_rate_pct": 52.4
+    }
+  },
+  "XLF": {
+    "label": "금융",
+    "hike": {
+      "n": 32,
+      "fwd_5d_mean_pct": -0.045,
+      "fwd_5d_win_rate_pct": 50.0,
+      "fwd_20d_mean_pct": 0.513,
+      "fwd_20d_win_rate_pct": 59.4,
+      "fwd_60d_mean_pct": 0.412,
+      "fwd_60d_win_rate_pct": 56.2
+    },
+    "cut": {
+      "n": 21,
+      "fwd_5d_mean_pct": -1.997,
+      "fwd_5d_win_rate_pct": 38.1,
+      "fwd_20d_mean_pct": -3.436,
+      "fwd_20d_win_rate_pct": 42.9,
+      "fwd_60d_mean_pct": -6.664,
+      "fwd_60d_win_rate_pct": 42.9
+    }
+  },
+  "XLE": {
+    "label": "에너지",
+    "hike": {
+      "n": 32,
+      "fwd_5d_mean_pct": -0.667,
+      "fwd_5d_win_rate_pct": 50.0,
+      "fwd_20d_mean_pct": 1.923,
+      "fwd_20d_win_rate_pct": 62.5,
+      "fwd_60d_mean_pct": 2.124,
+      "fwd_60d_win_rate_pct": 50.0
+    },
+    "cut": {
+      "n": 21,
+      "fwd_5d_mean_pct": -3.284,
+      "fwd_5d_win_rate_pct": 42.9,
+      "fwd_20d_mean_pct": 0.612,
+      "fwd_20d_win_rate_pct": 61.9,
+      "fwd_60d_mean_pct": 4.417,
+      "fwd_60d_win_rate_pct": 47.6
+    }
+  },
+  "XLV": {
+    "label": "헬스케어",
+    "hike": {
+      "n": 32,
+      "fwd_5d_mean_pct": 0.284,
+      "fwd_5d_win_rate_pct": 43.8,
+      "fwd_20d_mean_pct": 0.997,
+      "fwd_20d_win_rate_pct": 65.6,
+      "fwd_60d_mean_pct": 1.245,
+      "fwd_60d_win_rate_pct": 71.9
+    },
+    "cut": {
+      "n": 21,
+      "fwd_5d_mean_pct": -1.781,
+      "fwd_5d_win_rate_pct": 38.1,
+      "fwd_20d_mean_pct": 0.91,
+      "fwd_20d_win_rate_pct": 61.9,
+      "fwd_60d_mean_pct": 1.042,
+      "fwd_60d_win_rate_pct": 52.4
+    }
+  },
+  "XLI": {
+    "label": "산업재",
+    "hike": {
+      "n": 32,
+      "fwd_5d_mean_pct": 0.032,
+      "fwd_5d_win_rate_pct": 46.9,
+      "fwd_20d_mean_pct": 0.587,
+      "fwd_20d_win_rate_pct": 62.5,
+      "fwd_60d_mean_pct": 1.237,
+      "fwd_60d_win_rate_pct": 59.4
+    },
+    "cut": {
+      "n": 21,
+      "fwd_5d_mean_pct": -1.874,
+      "fwd_5d_win_rate_pct": 23.8,
+      "fwd_20d_mean_pct": -0.859,
+      "fwd_20d_win_rate_pct": 42.9,
+      "fwd_60d_mean_pct": -0.94,
+      "fwd_60d_win_rate_pct": 52.4
+    }
+  },
+  "XLY": {
+    "label": "임의소비재",
+    "hike": {
+      "n": 32,
+      "fwd_5d_mean_pct": -0.087,
+      "fwd_5d_win_rate_pct": 43.8,
+      "fwd_20d_mean_pct": 0.258,
+      "fwd_20d_win_rate_pct": 56.2,
+      "fwd_60d_mean_pct": 1.04,
+      "fwd_60d_win_rate_pct": 56.2
+    },
+    "cut": {
+      "n": 21,
+      "fwd_5d_mean_pct": -1.439,
+      "fwd_5d_win_rate_pct": 47.6,
+      "fwd_20d_mean_pct": -0.255,
+      "fwd_20d_win_rate_pct": 61.9,
+      "fwd_60d_mean_pct": -0.07,
+      "fwd_60d_win_rate_pct": 57.1
+    }
+  },
+  "XLP": {
+    "label": "필수소비재",
+    "hike": {
+      "n": 32,
+      "fwd_5d_mean_pct": 0.042,
+      "fwd_5d_win_rate_pct": 46.9,
+      "fwd_20d_mean_pct": 0.346,
+      "fwd_20d_win_rate_pct": 56.2,
+      "fwd_60d_mean_pct": 0.467,
+      "fwd_60d_win_rate_pct": 59.4
+    },
+    "cut": {
+      "n": 21,
+      "fwd_5d_mean_pct": -1.068,
+      "fwd_5d_win_rate_pct": 42.9,
+      "fwd_20d_mean_pct": 0.586,
+      "fwd_20d_win_rate_pct": 61.9,
+      "fwd_60d_mean_pct": 0.774,
+      "fwd_60d_win_rate_pct": 47.6
+    }
+  },
+  "XLU": {
+    "label": "유틸리티",
+    "hike": {
+      "n": 32,
+      "fwd_5d_mean_pct": -0.305,
+      "fwd_5d_win_rate_pct": 53.1,
+      "fwd_20d_mean_pct": 0.522,
+      "fwd_20d_win_rate_pct": 65.6,
+      "fwd_60d_mean_pct": 1.404,
+      "fwd_60d_win_rate_pct": 56.2
+    },
+    "cut": {
+      "n": 21,
+      "fwd_5d_mean_pct": -1.608,
+      "fwd_5d_win_rate_pct": 47.6,
+      "fwd_20d_mean_pct": 1.334,
+      "fwd_20d_win_rate_pct": 66.7,
+      "fwd_60d_mean_pct": 0.706,
+      "fwd_60d_win_rate_pct": 57.1
+    }
+  },
+  "XLB": {
+    "label": "소재",
+    "hike": {
+      "n": 32,
+      "fwd_5d_mean_pct": -0.402,
+      "fwd_5d_win_rate_pct": 31.2,
+      "fwd_20d_mean_pct": 0.249,
+      "fwd_20d_win_rate_pct": 56.2,
+      "fwd_60d_mean_pct": 0.363,
+      "fwd_60d_win_rate_pct": 53.1
+    },
+    "cut": {
+      "n": 21,
+      "fwd_5d_mean_pct": -2.086,
+      "fwd_5d_win_rate_pct": 42.9,
+      "fwd_20d_mean_pct": 0.527,
+      "fwd_20d_win_rate_pct": 52.4,
+      "fwd_60d_mean_pct": 1.43,
+      "fwd_60d_win_rate_pct": 52.4
+    }
+  }
+}

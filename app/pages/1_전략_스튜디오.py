@@ -36,6 +36,8 @@ from core.backtest_engine import (
     BacktestRun,
     compare_with_benchmarks,
     compute_alpha_decay,
+    compute_drawdown_series,
+    compute_monthly_returns,
     compute_regime_breakdown,
     compute_strategy_correlation,
     compute_strategy_regime_correlation,
@@ -79,7 +81,16 @@ from core.strategy_library import (
     update_strategy,
 )
 from core.strategy_tuning import get_top_tuning_results, list_tuning_runs
-from core.theme import TRADINGVIEW_CHART_CONFIG, apply_theme
+from core.theme import (
+    TRADINGVIEW_CHART_CONFIG,
+    apply_theme,
+    render_drawdown_chart,
+    render_metric_card,
+    render_monthly_returns_heatmap,
+    render_status_bar,
+    render_trade_pnl_histogram,
+    render_verdict_panel,
+)
 
 init_db()
 
@@ -919,6 +930,14 @@ with tab_backtest:
             st.error(f"{st.session_state['last_ticker']} 데이터를 가져오지 못했습니다. 티커를 확인해주세요.")
         else:
             st.markdown("#### 캔들차트 + 지표 오버레이")
+            render_status_bar(
+                [
+                    ("ENGINE", "LOCAL"),
+                    ("TICKER", st.session_state["last_ticker"]),
+                    ("SAMPLE", f"{st.session_state['last_start']} → {st.session_state['last_end']}"),
+                    ("BARS", str(len(strategy_run.df))),
+                ]
+            )
             st.caption("마우스 휠로 확대/축소, 드래그로 화면 이동이 가능합니다.")
             if is_staged_config(indicator_config):
                 st.plotly_chart(
@@ -949,46 +968,98 @@ with tab_backtest:
 
             last_monthly_contribution = st.session_state.get("last_monthly_contribution", 0.0)
 
-            st.markdown("#### 전략 vs 매수보유 비교 (자산가치, 시작=100)")
-            st.plotly_chart(render_equity_comparison(results), use_container_width=True)
+            # 이미지 속 리서치 터미널 레이아웃(중앙 차트 영역 + 우측 시그널정의/검증 패널)을 참고해
+            # 2단으로 나눔 — 캔들차트(위)는 그리기 도구 상호작용 때문에 전체 폭을 그대로 유지.
+            col_main, col_side = st.columns([2, 1])
 
-            if last_monthly_contribution:
-                st.caption(
-                    f"💰 월 {last_monthly_contribution:,.0f} 적립 적용 중 — 매수보유 두 곡선은 정액적립식(DCA), "
-                    "전략 적용 곡선은 관망 중 현금 누적 후 매수 시그널에 몰빵하는 방식(코스톨로니 법칙)입니다. "
-                    "이 경우 아래 누적수익률/CAGR은 원금(총 납입액) 대비 손익률 / 자금가중 연환산수익률(XIRR)로 "
-                    "재정의되어, 서로 다른 시점에 다른 금액이 투입된 세 전략을 공정하게 비교할 수 있습니다."
+            with col_main:
+                st.markdown("#### 전략 vs 매수보유 비교 (자산가치, 시작=100)")
+                st.plotly_chart(render_equity_comparison(results), use_container_width=True)
+
+                st.markdown("#### 드로다운 (전략, 신고점 대비 하락폭)")
+                st.plotly_chart(
+                    render_drawdown_chart(compute_drawdown_series(strategy_run.equity_curve)),
+                    use_container_width=True,
                 )
-                contrib_rows = []
-                for run in results.values():
-                    m = run.metrics
-                    contrib_rows.append(
-                        {
-                            "구분": run.label,
-                            "총 납입액": m.get("total_contributed"),
-                            "최종 평가액": round(float(run.equity_curve.iloc[-1]), 2) if not run.equity_curve.empty else None,
-                            "손익": m.get("total_profit"),
-                            "원금대비 손익률(%)": m.get("cumulative_return"),
-                            "XIRR(%)": m.get("cagr"),
-                        }
+
+                if last_monthly_contribution:
+                    st.caption(
+                        f"💰 월 {last_monthly_contribution:,.0f} 적립 적용 중 — 매수보유 두 곡선은 정액적립식(DCA), "
+                        "전략 적용 곡선은 관망 중 현금 누적 후 매수 시그널에 몰빵하는 방식(코스톨로니 법칙)입니다. "
+                        "이 경우 아래 누적수익률/CAGR은 원금(총 납입액) 대비 손익률 / 자금가중 연환산수익률(XIRR)로 "
+                        "재정의되어, 서로 다른 시점에 다른 금액이 투입된 세 전략을 공정하게 비교할 수 있습니다."
                     )
-                st.dataframe(pd.DataFrame(contrib_rows), use_container_width=True, hide_index=True)
+                    contrib_rows = []
+                    for run in results.values():
+                        m = run.metrics
+                        contrib_rows.append(
+                            {
+                                "구분": run.label,
+                                "총 납입액": m.get("total_contributed"),
+                                "최종 평가액": round(float(run.equity_curve.iloc[-1]), 2) if not run.equity_curve.empty else None,
+                                "손익": m.get("total_profit"),
+                                "원금대비 손익률(%)": m.get("cumulative_return"),
+                                "XIRR(%)": m.get("cagr"),
+                            }
+                        )
+                    st.dataframe(pd.DataFrame(contrib_rows), use_container_width=True, hide_index=True)
 
-            st.markdown("#### 성과 지표")
-            selected_metrics = st.multiselect(
-                "표시할 지표 선택",
-                options=list(METRIC_LABELS.keys()),
-                default=list(METRIC_LABELS.keys()),
-                format_func=lambda m: METRIC_LABELS[m],
-            )
-            if selected_metrics:
-                st.dataframe(metrics_dataframe(results, selected_metrics), use_container_width=True)
-            else:
-                st.info("표시할 지표를 1개 이상 선택하세요.")
+                st.markdown("#### 성과 지표")
+                m = strategy_run.metrics
+                card_cols = st.columns(5)
+                with card_cols[0]:
+                    render_metric_card("누적수익률", f"{m.get('cumulative_return', 0):+.1f}%", tone="good" if m.get("cumulative_return", 0) >= 0 else "bad")
+                with card_cols[1]:
+                    render_metric_card("CAGR", f"{m.get('cagr', 0):+.1f}%", tone="good" if m.get("cagr", 0) >= 0 else "bad")
+                with card_cols[2]:
+                    render_metric_card("MDD", f"{m.get('mdd', 0):.1f}%", tone="bad" if m.get("mdd", 0) < -20 else "neutral")
+                with card_cols[3]:
+                    render_metric_card("샤프지수", f"{m.get('sharpe', 0):.2f}", tone="good" if m.get("sharpe", 0) >= 1 else "neutral")
+                with card_cols[4]:
+                    render_metric_card("승률", f"{m.get('win_rate', 0):.1f}%", sublabel=f"매매 {int(m.get('trade_count', 0))}건")
 
-            reliability_warning = trade_count_reliability_warning(int(strategy_run.metrics.get("trade_count", 0)))
-            if reliability_warning:
-                st.warning(reliability_warning)
+                st.markdown("#### 매매 손익 분포")
+                st.plotly_chart(render_trade_pnl_histogram(strategy_run.trades), use_container_width=True)
+
+                monthly_returns = compute_monthly_returns(strategy_run.equity_curve)
+                if not monthly_returns.empty:
+                    st.markdown("#### 월별 수익률")
+                    st.plotly_chart(render_monthly_returns_heatmap(monthly_returns), use_container_width=True)
+
+                with st.expander("상세 지표 표"):
+                    selected_metrics = st.multiselect(
+                        "표시할 지표 선택",
+                        options=list(METRIC_LABELS.keys()),
+                        default=list(METRIC_LABELS.keys()),
+                        format_func=lambda m: METRIC_LABELS[m],
+                    )
+                    if selected_metrics:
+                        st.dataframe(metrics_dataframe(results, selected_metrics), use_container_width=True)
+                    else:
+                        st.info("표시할 지표를 1개 이상 선택하세요.")
+
+            with col_side:
+                st.markdown("#### 🧬 시그널 정의")
+                st.code(json.dumps(indicator_config, indent=2, ensure_ascii=False), language="json")
+
+                st.markdown("#### 검증 요약")
+                risk_bullets = []
+                reliability_warning = trade_count_reliability_warning(int(strategy_run.metrics.get("trade_count", 0)))
+                if reliability_warning:
+                    risk_bullets.append(reliability_warning)
+                profit_factor = strategy_run.metrics.get("profit_factor")
+                if profit_factor is not None and 0.9 <= profit_factor <= 1.3:
+                    risk_bullets.append(
+                        f"손익비(Profit Factor) {profit_factor:.2f}로 1에 가까워, 거래비용(수수료/슬리피지)이 "
+                        "조금만 높아져도 손실로 전환될 수 있습니다."
+                    )
+                mdd_value = strategy_run.metrics.get("mdd")
+                if mdd_value is not None and mdd_value <= -30:
+                    risk_bullets.append(f"최대낙폭(MDD) {mdd_value:.1f}%로 커서, 실제 보유 중 심리적으로 버티기 어려울 수 있습니다.")
+                sens_result = st.session_state.get("sensitivity_result")
+                if sens_result and sens_result.get("is_robust") is False:
+                    risk_bullets.append("민감도 테스트에서 파라미터를 살짝만 바꿔도 결과가 크게 튀었습니다 — 과최적화(curve-fitting) 의심.")
+                render_verdict_panel(risk_bullets, st.session_state.get("permutation_result"))
 
             with st.expander("💰 포지션 사이징 제안"):
                 st.caption(
@@ -1248,6 +1319,12 @@ with tab_backtest:
                         st.error(f"순열검정 중 오류가 발생했습니다: {perm_job.error}")
                     else:
                         st.session_state["permutation_result"] = perm_job.result
+                        st.session_state["permutation_metric"] = perm_metric
+                        # 위쪽 "검증 요약" 패널은 이 코드보다 먼저(스크립트 순서상 더 위에서) 실행되므로,
+                        # 이번 rerun에서 방금 채운 permutation_result를 이 rerun 안에서는 아직 보여줄 수 없다
+                        # (다음 rerun에서야 위쪽 패널이 최신 값을 읽는다). 한 번 더 rerun을 걸어 사용자가
+                        # 버튼을 다시 누르지 않아도 검증 요약이 즉시 갱신되게 한다.
+                        st.rerun()
                         st.session_state["permutation_metric"] = perm_metric
 
                 perm_result = st.session_state.get("permutation_result")
@@ -2383,6 +2460,87 @@ with tab_tuning:
                             ]
                         )
                         st.dataframe(trail_df, use_container_width=True, hide_index=True)
+
+                        # 2026-09-13 추가: train 점수 1등(=위 표의 "채택" 행)만 test로 검증하던 기존
+                        # 흐름에, 상위 후보 전체를 test에서도 평가해 "train이 좋아질수록 test도 같이
+                        # 좋아지다가 어느 지점부터 갈라지는지"(과적합 시작 지점)를 보여주는 진단을
+                        # 추가한다. compute_overfitting_curve()는 진단 전용이며 채택 결과에는
+                        # 관여하지 않는다(위 캡션의 "채택" 원칙 그대로 유지).
+                        overfit_state_key = f"overfit_diag_{run_data['id']}_{style}_{regime}"
+                        if st.button(
+                            "🔬 과적합 진단 실행 (상위 10개 후보를 test 구간에서도 평가)",
+                            key=f"{overfit_state_key}_btn",
+                            help=(
+                                "위 표는 train(워크포워드) 점수만 보여줍니다 — 실제로 채택된 것은 "
+                                "1등뿐이고 나머지 후보의 test 성과는 지금까지 확인한 적이 없습니다. "
+                                "이 버튼은 상위 10개 후보를 test 구간에서도 추가로 평가해, 1등이 "
+                                "정말 test에서도 최선이었는지 확인합니다. 진단 전용이며 실행해도 "
+                                "채택된 설정 자체는 바뀌지 않습니다."
+                            ),
+                        ):
+                            group_tickers = sorted(
+                                {
+                                    r["ticker"] for r in run_data["results"]
+                                    if (r.get("style_type") or "-") == style
+                                    and (r.get("trained_regime") or "-") == regime
+                                }
+                            )
+                            _, _, diag_test_start, diag_test_end = strategy_tuning.train_test_split_dates(
+                                run_data["start_date"], run_data["end_date"], run_data["train_ratio"]
+                            )
+                            with st.spinner(f"{len(group_tickers)}종목 × 상위 {min(10, len(trail))}개 후보 test 평가 중..."):
+                                st.session_state[overfit_state_key] = strategy_tuning.compute_overfitting_curve(
+                                    group_tickers, trail, diag_test_start, diag_test_end,
+                                    regime=(regime if regime != "-" else None),
+                                    max_holding_days=run_data.get("max_holding_days"),
+                                )
+
+                        overfit_result = st.session_state.get(overfit_state_key)
+                        if overfit_result and overfit_result["points"]:
+                            pts = overfit_result["points"]
+                            ranks = [p["rank"] for p in pts]
+                            overfit_fig = go.Figure()
+                            overfit_fig.add_trace(
+                                go.Scatter(
+                                    x=ranks, y=[p["train_score"] for p in pts],
+                                    mode="lines+markers", name="train 점수 (워크포워드)",
+                                )
+                            )
+                            overfit_fig.add_trace(
+                                go.Scatter(
+                                    x=ranks, y=[p["test_score"] for p in pts],
+                                    mode="lines+markers", name="test 성과 (초과수익 %)", connectgaps=False,
+                                )
+                            )
+                            overfit_fig.update_layout(
+                                xaxis_title="순위 (숫자가 작을수록 train 점수 높음 · 1등 = 채택된 설정)",
+                                xaxis=dict(autorange="reversed"),  # 1등(가장 학습됨)이 오른쪽에 오도록
+                                yaxis_title="점수 / 초과수익(%)",
+                                height=320, margin=dict(l=10, r=10, t=30, b=10),
+                                legend=dict(orientation="h", yanchor="bottom", y=1.02),
+                            )
+                            st.plotly_chart(overfit_fig, use_container_width=True, key=f"{overfit_state_key}_chart")
+                            if overfit_result["is_overfit"]:
+                                st.warning(
+                                    f"⚠️ train 점수 1등(채택된 설정)이 test에서는 최선이 아니었습니다 — "
+                                    f"상위 {len(pts)}개 중 {overfit_result['best_test_rank']}순위 후보가 test에서 "
+                                    "더 좋았습니다. 그래프에서 오른쪽(1등 방향)으로 갈수록 test 곡선이 "
+                                    "꺾여 내려가는 구간이 과적합 신호입니다."
+                                )
+                            elif overfit_result["n_valid_test"] < 2:
+                                st.caption(
+                                    f"test에서 실제로 검증 가능했던 후보가 {overfit_result['n_valid_test']}개뿐이라 "
+                                    "(나머지는 매매횟수 부족 등으로 검증 불가) 비교할 상대가 없어 과적합 여부를 "
+                                    "판단할 근거가 부족합니다."
+                                )
+                            elif overfit_result["best_test_rank"] == 1:
+                                st.caption(
+                                    f"✅ train 점수 1등(채택된 설정)이 test에서 검증 가능했던 "
+                                    f"{overfit_result['n_valid_test']}개 후보 중 최고였습니다 — 이 구간에서는 "
+                                    "뚜렷한 과적합 징후가 보이지 않습니다."
+                                )
+                            else:
+                                st.caption("상위 후보 중 test 성과를 검증할 수 있었던 후보가 없습니다(매매횟수 부족 등).")
 
                 st.divider()
                 col_sort, col_topn = st.columns(2)

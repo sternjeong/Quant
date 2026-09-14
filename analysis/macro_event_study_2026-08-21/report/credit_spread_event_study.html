@@ -1,0 +1,340 @@
+<title>신용시장의 공포지수</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #eef1ee; --surface: #ffffff; --surface-2: #e6eae5;
+    --ink: #17211d; --ink-muted: #57635c; --ink-faint: #8b968f; --line: #d9dfd8;
+    --hike: #a8461f; --hike-soft: #f4e3da; --cut: #1f6e79; --cut-soft: #dcedee; --gold: #8a6d1f; --gold-soft: #f1e6c8;
+    --shadow: 0 1px 2px rgba(23,33,29,.06), 0 8px 24px -12px rgba(23,33,29,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+      --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+      --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+      --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c; --gold-soft: #3a3016;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+    --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+    --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+    --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c; --gold-soft: #3a3016;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Public Sans", -apple-system, "Noto Sans KR", sans-serif;
+    font-size: 16px; line-height: 1.65;
+  }
+  ::selection { background: var(--gold); color: #1a1408; }
+  a { color: var(--cut); }
+  .page { max-width: 880px; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 1rem;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 500;
+    font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.08; letter-spacing: -.01em;
+    margin: 0 0 1rem; text-wrap: balance;
+  }
+  .dek { font-size: 1.15rem; color: var(--ink-muted); max-width: 62ch; margin: 0 0 1.75rem; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: .4rem 1.6rem;
+    font-family: "IBM Plex Mono", monospace; font-size: .82rem; color: var(--ink-muted);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: .85rem 0;
+  }
+  .meta-row b { color: var(--ink); font-weight: 600; }
+  section { margin: 3.2rem 0; }
+  section > h2 {
+    font-family: "Fraunces", serif; font-weight: 500; font-size: 1.6rem;
+    letter-spacing: -.005em; margin: 0 0 .3rem; text-wrap: balance;
+  }
+  section > .lede { color: var(--ink-muted); max-width: 66ch; margin: 0 0 1.4rem; }
+  p { max-width: 68ch; }
+  .note {
+    background: var(--surface-2); border-left: 3px solid var(--gold); border-radius: 4px;
+    padding: .9rem 1.1rem; font-size: .93rem; color: var(--ink-muted); max-width: 68ch; margin: 1.1rem 0;
+  }
+  .note b { color: var(--ink); }
+  .callout {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.2rem 1.4rem; box-shadow: var(--shadow); margin: 1.4rem 0;
+  }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .9rem; margin: 1.3rem 0 1.6rem; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.1rem; }
+  .tile .label { font-size: .78rem; color: var(--ink-muted); margin-bottom: .35rem; }
+  .tile .value { font-family: "IBM Plex Mono", monospace; font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tile .value.hike { color: var(--hike); }
+  .tile .value.cut { color: var(--cut); }
+  .tile .sub { font-size: .76rem; color: var(--ink-faint); margin-top: .25rem; }
+  .table-wrap { overflow-x: auto; margin: 1.2rem 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 480px; font-size: .92rem; }
+  caption { text-align: left; font-size: .82rem; color: var(--ink-faint); padding-bottom: .5rem; }
+  th, td { padding: .62rem .8rem; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; font-family: "IBM Plex Mono", monospace; }
+  th:first-child, td:first-child { text-align: left; font-family: "Public Sans", sans-serif; }
+  thead th { font-family: "Public Sans", sans-serif; font-weight: 600; font-size: .78rem; letter-spacing: .02em; color: var(--ink-muted); text-transform: uppercase; border-bottom: 1px solid var(--ink-faint); }
+  tr.row-hot td:first-child { border-left: 3px solid var(--hike); padding-left: .65rem; }
+  tr.row-cool td:first-child { border-left: 3px solid var(--cut); padding-left: .65rem; }
+  tbody tr:hover { background: var(--surface-2); }
+  ul.findings { padding-left: 1.2rem; max-width: 68ch; }
+  ul.findings li { margin-bottom: .9rem; }
+  ul.findings b { color: var(--ink); }
+  .footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--line); font-size: .82rem; color: var(--ink-faint); }
+
+  .hyp-list { display: flex; flex-direction: column; gap: 1rem; margin: 1.2rem 0; }
+  .hyp-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.1rem 1.3rem; box-shadow: var(--shadow);
+  }
+  .hyp-card .hyp-tag {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .08em;
+    color: var(--gold); text-transform: uppercase; margin-bottom: .35rem;
+  }
+  .hyp-card p { margin: 0; max-width: 66ch; }
+  .verdict-row { display: flex; flex-wrap: wrap; align-items: center; gap: .7rem; margin: .2rem 0 1rem; }
+  .verdict-pill {
+    font-family: "IBM Plex Mono", monospace; font-size: .78rem; font-weight: 600; letter-spacing: .04em;
+    padding: .3rem .75rem; border-radius: 20px; text-transform: uppercase;
+  }
+  .verdict-pill.confirmed { background: var(--cut-soft); color: var(--cut); }
+  .verdict-pill.disconfirmed { background: var(--hike-soft); color: var(--hike); }
+  .verdict-pill.mixed { background: var(--gold-soft); color: var(--gold); }
+  .verdict-row h3 { font-family: "Fraunces", serif; font-weight: 500; font-size: 1.3rem; margin: 0; text-wrap: balance; }
+</style>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">MACRO EVENT STUDY · 트랙 H · 신용시장 스트레스 · 가설검증형 스터디</div>
+    <h1>신용시장의 공포지수</h1>
+    <p class="dek">VIX(주식 변동성)와 장단기 금리차(금리 기대)에 이어, 세 번째로 다른 정보원을
+    본다 — 정크본드가 국채보다 얼마나 높은 이자를 요구하는지, "크레딧 스프레드"다. 이 스프레드가
+    급격히 벌어지는 게 주식시장에 공포 매수 신호로 통하는지, 그리고 장단기 금리역전과는 다르게
+    침체와 더 가까운 시점에 붙어 다니는 "동행지표"인지를 사전에 정한 가설로 검증한다.</p>
+    <div class="meta-row">
+      <span>스트레스 이벤트(주 기준) <b>13건</b></span>
+      <span>구간 <b>1989 ~ 2026</b></span>
+      <span>지표 <b>FRED BAA10Y(무디스 Baa 회사채&minus;10년국채)</b></span>
+    </div>
+  </header>
+
+  <section>
+    <h2>데이터 출처를 바꾼 이유부터 밝힌다</h2>
+    <p class="lede">원래 계획한 지표를 그대로 쓸 수 없어서, 대체 지표로 넘어간 과정을 먼저
+    투명하게 적는다.</p>
+    <p>원래 쓰려던 지표는 FRED의 BAMLH0A0HYM2(ICE BofA 미국 하이일드 지수 옵션조정스프레드) —
+    진짜 "정크본드" 스프레드였다. 그런데 조회해보니 FRED가 <b>2026년 4월부터 이 시리즈를 최근
+    3년치(2023-08~2026-08)만 제공</b>하는 것으로 정책을 바꿨다는 걸 발견했다(라이선스 제공처인
+    ICE Data의 정책 변경으로 보인다). 3년치로는 2008·2020 같은 진짜 신용위기를 하나도 담지
+    못해 이 스터디의 목적 자체가 무의미해진다.</p>
+    <p>그래서 <b>FRED BAA10Y(무디스 Baa등급 회사채 금리 &minus; 10년 국채금리, 1986년부터
+    제한 없이 전체 제공)로 대체</b>했다. 하이일드(투기등급)보다 한 단계 위인 "낮은 투자등급"
+    스프레드지만, 신용시장 스트레스 게이지로 학계·연준 이코노미스트들도 흔히 쓰는 지표이고,
+    무엇보다 이 프로젝트가 다뤄온 모든 위기 국면(1990·2001·2008·2011·2015~16·2020)을 실제로
+    담고 있다. 원래 쓰려던 800bp라는 절대 임계값은 하이일드 스프레드용으로 설계된 값이라 그대로
+    못 쓴다 — 대신 BAA10Y 전체 역사에서 뚜렷한 스트레스로 볼 수 있는 수준으로 <b>3.0%p(300bp)</b>를
+    사전에 골라 보조 기준으로 썼다(2008년 정점 약 6%p, 2020년 정점 약 4%p와 비교하면 감이 온다).</p>
+  </section>
+
+  <section>
+    <h2>사전 등록 가설</h2>
+    <p class="lede">결과를 계산하기 전에 먼저 적어둔 세 가지 가설이다.</p>
+    <div class="hyp-list">
+      <div class="hyp-card">
+        <div class="hyp-tag">H1</div>
+        <p>크레딧 스프레드가 극단적으로 벌어지는(신용 스트레스) 이벤트 이후, S&amp;P500의
+        60~120거래일 순방향 수익률은 평상시(기준선) 평균보다 높다 — VIX 급등 스터디의
+        "공포에 사라"와 같은 역발상 매수 신호로 기능한다는 가설. 주 기준은 스프레드가 자기 자신의
+        직전 3년(756거래일) rolling 90퍼센타일을 넘는 것(국면에 맞춰 적응), 보조 기준은 고정
+        3.0%p 절대 임계값.</p>
+      </div>
+      <div class="hyp-card">
+        <div class="hyp-tag">H2</div>
+        <p>장단기 금리역전(선행지표, 실제 침체까지 시차 6개월~2년+, 이미 이 프로젝트에서
+        확인됨)과 달리, 크레딧 스프레드 급등은 "동행"에 가까운 신호일 것이다 — 스프레드 급등
+        이벤트가 이후 250거래일 안에서 S&amp;P500이 저점을 찍는 시점과 시간적으로 더 가까울
+        것이다.</p>
+      </div>
+      <div class="hyp-card">
+        <div class="hyp-tag">H3 (탐색적)</div>
+        <p>침체(NBER USREC)중 이벤트는 결과가 양극화(일부는 크게 반등, 일부는 실제로 계속
+        하락)되고, 비침체중 이벤트는 더 일관되게 완만한 상승을 보일 것이다 — 샴의 법칙 양극화와
+        비슷한 패턴. 표본이 5건 미만인 셀은 통계표 대신 정성적으로만 서술한다.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>이벤트 탐지 결과</h2>
+    <p class="lede">장단기 금리역전 스터디와 동일하게, 상태 변화가 최소 10거래일 연속 유지될
+    때만 진짜 이벤트로 인정해 노이즈를 걸렀다.</p>
+    <div class="tiles">
+      <div class="tile"><div class="label">주 기준(직전3년 90퍼센타일)</div><div class="value hike">13건</div><div class="sub">1990~2020</div></div>
+      <div class="tile"><div class="label">보조 기준(고정 3.0%p)</div><div class="value hike">9건</div><div class="sub">2001~2020</div></div>
+    </div>
+    <p>주 기준 13건은 1990년 저축대부조합 위기, 2001년 닷컴버블 붕괴, 2008년 금융위기,
+    2011년 유럽재정위기, 2015~16년 에너지신용 위기, 2020년 코로나 등 이 프로젝트가 이미
+    다룬 위기들과 정확히 겹친다 — 대체 지표가 그럴듯한 위기 목록을 잘 잡아내고 있다는 뜻이다.</p>
+  </section>
+
+  <section>
+    <h2>H1 검증 — 스트레스 이후 S&amp;P500, 평상시와 비교</h2>
+    <p class="lede">평상시 기준선(전체 거래일 평균 순방향 수익률)과 나란히 비교한다.</p>
+    <div class="table-wrap">
+      <table>
+        <caption>순방향 수익률(%) · 괄호는 승률 · 기준선 n=10,488(전체 거래일)</caption>
+        <thead><tr><th>구간</th><th>주 기준(n=13)</th><th>보조 기준(n=9)</th><th>기준선(평상시)</th></tr></thead>
+        <tbody>
+          <tr><td>+5거래일</td><td>&minus;0.16%</td><td>&minus;2.20%</td><td>+0.21% (58.3%)</td></tr>
+          <tr><td>+20거래일</td><td>&minus;2.27%</td><td>+0.23%</td><td>+0.83% (64.1%)</td></tr>
+          <tr class="row-hot"><td>+60거래일</td><td>+0.66% (61.5%)</td><td>+4.45% (66.7%)</td><td>+2.46% (70.8%)</td></tr>
+          <tr class="row-hot"><td>+120거래일</td><td>&minus;2.34% (46.2%)</td><td>+3.55% (55.6%)</td><td>+4.92% (74.6%)</td></tr>
+          <tr><td>+250거래일</td><td>+1.45% (53.8%)</td><td>+2.21% (55.6%)</td><td>+10.51% (80.0%)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><b>VIX 급등 스터디와 정반대 그림이 나왔다.</b> 주 기준(직전3년 90퍼센타일)으로 보면
+    스트레스 이벤트 이후 수익률은 <b>모든 호라이즌에서 평상시 기준선보다 낮다</b> — 특히
+    120거래일 시점에서 격차가 가장 크다(&minus;2.34% vs +4.92%, 승률도 46.2% vs 74.6%로
+    동전 던지기보다도 못하다). 보조 기준(고정 3.0%p)에서는 60거래일 평균만 기준선을 웃돌지만
+    (+4.45% vs +2.46%), 승률은 여전히 낮고(66.7% vs 70.8%) 120·250거래일에서는 다시 기준선에
+    못 미친다. <b>두 기준 모두에서 "평상시보다 확실히 낫다"는 일관된 그림은 나오지 않았다</b> —
+    VIX(주식 변동성) 공포는 역발상 매수 신호로 작동했지만, 신용시장 스프레드 급등은 그런
+    식으로 작동하지 않는다.</p>
+  </section>
+
+  <section>
+    <h2>H2 검증 — 저점까지의 시차</h2>
+    <p class="lede">각 스트레스 이벤트 시점부터 이후 250거래일 안에서 S&amp;P500이 실제
+    저점을 찍은 시점까지 며칠이 걸렸는지 측정했다.</p>
+    <div class="tiles">
+      <div class="tile"><div class="label">중앙값 시차</div><div class="value cut">79거래일</div><div class="sub">약 113일(3.7개월)</div></div>
+      <div class="tile"><div class="label">평균 시차</div><div class="value cut">104거래일</div><div class="sub">약 153일(5개월)</div></div>
+      <div class="tile"><div class="label">비교: 장단기 금리역전</div><div class="value hike">6개월~2년+</div><div class="sub">이미 확인된 값(인용)</div></div>
+    </div>
+    <p><b>크레딧 스프레드는 장단기 금리역전보다 확실히 더 "동행"에 가까웠다.</b> 중앙값
+    79거래일(약 3.7개월), 평균 104거래일(약 5개월)로, 장단기 금리역전의 시차(6개월~2년+, 이
+    프로젝트에서 이미 확인)보다 짧다 — 심지어 평균조차 금리역전의 시차 하한(6개월)에 못 미친다.
+    다만 13건 중 4건(2000-10-11·2000-11-17·2001-08-08·2007-08-15)은 저점까지 230~236거래일이
+    걸려 250거래일 관측창의 경계에 근접해 있다 — 이 사례들은 진짜 저점이 관측창 밖(250거래일
+    이후)에 있었을 가능성이 있어, 시차를 과소평가했을 수 있다는 걸 한계에서 밝혀둔다.</p>
+  </section>
+
+  <section>
+    <h2>H3 검증 — 침체/비침체 분리</h2>
+    <p class="lede">침체중 이벤트가 3건뿐이라 통계표로 만들지 않고, 개별 사례를 그대로
+    나열한다.</p>
+    <div class="table-wrap">
+      <table>
+        <caption>침체중 이벤트 3건 전체(정성적 서술용, 통계 추론 불가) — +60일/+120일 수익률(%)</caption>
+        <thead><tr><th>이벤트</th><th>+60거래일</th><th>+120거래일</th></tr></thead>
+        <tbody>
+          <tr class="row-cool"><td>1990-11-30</td><td>+14.13%</td><td>+16.37%</td></tr>
+          <tr class="row-hot"><td>2001-08-08</td><td>&minus;5.72%</td><td>&minus;7.90%</td></tr>
+          <tr class="row-hot"><td>2008-06-30</td><td>&minus;7.35%</td><td>&minus;30.84%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><b>n=3은 통계적으로 아무것도 확정할 수 없는 크기다</b> — 침체중 표본이 5건 미만이라
+    사전 약속대로 통계표 대신 이렇게 사례만 나열한다. 그래도 방향은 눈에 띈다: 하나는 강한
+    반등(+14~16%), 둘은 뚜렷한 하락(&minus;6~31%)으로 이미 극단적으로 갈려 있다 — 가설이
+    말하는 "양극화"와 겉보기엔 비슷하지만, n=3으로는 우연과 구분할 수 없다.</p>
+    <p>비침체중 이벤트(n=10)는 <b>"일관되게 완만한 상승"이라는 가설과도 맞지 않았다</b> —
+    +60거래일 평균은 +0.76%(승률70%)로 완만했지만, 개별 사례를 보면 최저 &minus;14.49%
+    (2002-06-18, 월드컴 회계부정 사태)부터 최고 +7.51%(2012-05-22)까지 폭이 넓다 — "비침체=
+    안전"이라고 단순화할 수 없다.</p>
+  </section>
+
+  <section>
+    <h2>가설별 최종 판정</h2>
+    <div class="verdict-row">
+      <span class="verdict-pill disconfirmed">DISCONFIRMED</span>
+      <h3>H1 — 신용 스트레스는 VIX처럼 역발상 매수 신호다</h3>
+    </div>
+    <p>주 기준(90퍼센타일)에서는 모든 호라이즌에서 평상시 기준선보다 낮았고, 보조 기준(고정
+    3.0%p)에서도 60거래일만 근소하게 기준선을 웃돌았을 뿐 나머지는 못 미쳤다. VIX 급등
+    스터디에서 확인된 "공포에 사라" 패턴이 크레딧 스프레드에는 재현되지 않았다 — 같은
+    "공포지수"라는 이름이 붙어도 주식 변동성과 신용 스프레드는 시장 타이밍 신호로서 다르게
+    작동한다.</p>
+
+    <div class="verdict-row">
+      <span class="verdict-pill confirmed">CONFIRMED</span>
+      <h3>H2 — 크레딧 스프레드는 장단기 금리역전보다 동행에 가깝다</h3>
+    </div>
+    <p>중앙값 79거래일(약 3.7개월)·평균 104거래일(약 5개월)의 저점까지 시차는, 장단기
+    금리역전의 6개월~2년+ 시차보다 뚜렷하게 짧다. "선행지표(금리역전, 시차가 길고 들쭉날쭉)"와
+    "동행에 가까운 신호(크레딧 스프레드, 시차가 상대적으로 짧고 촘촘)"라는 구분이 이 데이터로
+    지지된다. 다만 4건은 관측창 경계 근처에 있어 실제 시차가 더 길었을 가능성이 있다는 점은
+    한계로 남긴다.</p>
+
+    <div class="verdict-row">
+      <span class="verdict-pill mixed">MIXED (표본 부족)</span>
+      <h3>H3 — 침체중 이벤트는 더 양극화된다</h3>
+    </div>
+    <p>침체중 이벤트가 3건뿐이라 통계적으로 확정할 수 없다. 방향은 가설과 겉보기에 비슷했지만
+    (1건 강한 반등, 2건 뚜렷한 하락), 비침체중 이벤트(n=10)도 &minus;14.5%~+7.5%로 폭이 넓어
+    "비침체=일관된 완만한 상승"이라는 가설의 뒷부분도 깨끗이 지지되지 않았다. 진짜 신용위기
+    자체가 드문 사건이라는 걸 이 스터디가 그대로 보여준 셈이다.</p>
+  </section>
+
+  <section>
+    <h2>경제학 지식 없이 읽는 법</h2>
+    <ul class="findings">
+      <li><b>"공포지수"라는 이름이 같다고 다 같은 신호는 아니다.</b> VIX(주식시장이 얼마나
+      출렁일지에 대한 공포)는 급등 후 반등이 잘 나왔지만, 크레딧 스프레드(회사채 시장의
+      신용 불안)는 급등 후 오히려 평상시보다 못한 수익률을 보였다 — 두 지표가 재는 "공포"의
+      성격이 다르기 때문일 수 있다.</li>
+      <li><b>대신 크레딧 스프레드는 "타이밍"에는 더 유용할 수 있다.</b> 장단기 금리역전처럼
+      맞는 방향을 가리키지만 시차가 6개월~2년으로 길고 들쭉날쭉한 신호보다, 크레딧 스프레드는
+      저점까지 평균 5개월 정도로 더 가까이 붙어 있다 — "이 신호가 언제 진짜가 되는지"를 물을
+      때 금리역전보다 크레딧 스프레드 쪽이 답에 더 가깝다는 뜻이다(단, 매수 타이밍으로 쓰라는
+      뜻은 아니다 — H1이 보여주듯 스프레드 급등 자체가 좋은 매수 신호는 아니었다).</li>
+      <li><b>진짜 위기와 그렇지 않은 위기는 또 갈렸다.</b> 침체중 이벤트 3건 중, 시스템 자체가
+      멈췄던 2008년 금융위기(&minus;30.8%)와 닷컴버블 후폭풍이 이어지던 2001년(&minus;7.9%)은
+      크게 나빴지만, 1990년 저축대부조합 위기(+16.4%)는 오히려 강하게 반등했다 — 이 프로젝트
+      다른 트랙(연준 인하의 침체중/보험성 구분, VIX 급등의 침체 교차, 리먼 vs 다른 충격들)에서
+      반복해서 나온 "사건이 얼마나 무서워 보였는가보다 실제로 시스템이 무너졌는가가 더 중요하다"는
+      패턴이 여기서도 방향은 비슷하게 나타났다(단, n=3이라 이것도 확정은 아니다).</li>
+      <li><b>지표를 바꿔 쓴 이유를 숨기지 않았다.</b> 원래 계획한 하이일드 스프레드가 최근
+      정책 변경으로 3년치만 남아버린 걸 발견하고, 더 긴 역사를 가진 대체 지표(BAA10Y)로
+      옮겨간 과정 자체를 리포트에 그대로 적었다 — 데이터가 계획대로 안 나올 때 조용히
+      바꿔치기하지 않는 게 이 프로젝트의 원칙이다.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>한계</h2>
+    <div class="callout">
+      <ul class="findings" style="margin:0;">
+        <li><b>BAA10Y는 진짜 "하이일드(투기등급)" 스프레드가 아니라 낮은 투자등급 스프레드다.</b>
+        방향성은 비슷하게 움직이지만, 정크본드 시장에 특화된 스트레스(예: 에너지 섹터 하이일드
+        비중이 큰 2015~16년 위기)의 강도를 과소평가했을 수 있다.</li>
+        <li><b>이벤트 표본이 13건(보조 기준은 9건)으로 작다.</b> 이 프로젝트의 다른 "희귀
+        이벤트" 스터디(장단기 금리역전 n=12, VIX&ge;50 n=4)와 비슷한 크기이며, 승률·평균 모두
+        사건 한두 건만 바뀌어도 흔들릴 수 있다.</li>
+        <li><b>H2의 저점 탐지 방법(250거래일 창 안에서 최저 종가)은 단순하다.</b> 실제로는
+        "저점"이 여러 번의 파동을 거쳐야 확정되는 경우도 있고, 4건은 관측창 경계에 걸려
+        진짜 저점이 창 밖에 있었을 가능성을 배제할 수 없다.</li>
+        <li><b>H3은 침체중 표본(n=3)이 통계적으로 무의미한 크기다.</b> 사전에 "5건 미만이면
+        정성적으로만 서술한다"고 약속한 대로 통계표를 만들지 않았지만, 그 정성적 서술조차
+        n=3에서는 우연과 패턴을 구분할 근거가 부족하다는 걸 감안해서 읽어야 한다.</li>
+        <li><b>기준선(전체 거래일 평균) 자체가 미국 주식시장이 장기적으로 우상향해온 결과를
+        포함한다.</b> 250거래일 기준선이 +10.5%(승률80%)로 매우 높은 건 "미국 주식은 장기
+        보유하면 대체로 오른다"는 배경 효과가 크게 깔려 있기 때문이다 — 크레딧 스프레드
+        이벤트가 이 기준선보다 낮다는 게 "나쁜 신호"라기보다, 애초에 기준선 자체가 매우
+        높다는 점도 함께 감안해야 한다.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="footer">
+    데이터: FRED(BAA10Y — 당초 계획한 BAMLH0A0HYM2는 2026년 4월부터 최근 3년치만 제공되도록
+    정책이 바뀌어 대체함, USREC), Yahoo Finance(^GSPC) · 분석 스크립트:
+    credit_spread_event_study.py · 같은 프로젝트: 장단기 금리역전·샴의 법칙 두 침체 신호,
+    VIX 공포지수 검증
+  </div>
+</div>

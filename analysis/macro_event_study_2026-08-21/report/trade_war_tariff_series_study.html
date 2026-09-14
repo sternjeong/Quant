@@ -1,0 +1,342 @@
+<title>관세 시리즈와 이벤트 피로</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #eef1ee; --surface: #ffffff; --surface-2: #e6eae5;
+    --ink: #17211d; --ink-muted: #57635c; --ink-faint: #8b968f; --line: #d9dfd8;
+    --hike: #a8461f; --hike-soft: #f4e3da; --cut: #1f6e79; --cut-soft: #dcedee; --gold: #8a6d1f; --gold-soft: #f1e6c8;
+    --shadow: 0 1px 2px rgba(23,33,29,.06), 0 8px 24px -12px rgba(23,33,29,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+      --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+      --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+      --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c; --gold-soft: #3a3016;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+    --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+    --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+    --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c; --gold-soft: #3a3016;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Public Sans", -apple-system, "Noto Sans KR", sans-serif;
+    font-size: 16px; line-height: 1.65;
+  }
+  ::selection { background: var(--gold); color: #1a1408; }
+  a { color: var(--cut); }
+  .page { max-width: 880px; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 1rem;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 500;
+    font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.08; letter-spacing: -.01em;
+    margin: 0 0 1rem; text-wrap: balance;
+  }
+  .dek { font-size: 1.15rem; color: var(--ink-muted); max-width: 62ch; margin: 0 0 1.75rem; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: .4rem 1.6rem;
+    font-family: "IBM Plex Mono", monospace; font-size: .82rem; color: var(--ink-muted);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: .85rem 0;
+  }
+  .meta-row b { color: var(--ink); font-weight: 600; }
+  section { margin: 3.2rem 0; }
+  section > h2 {
+    font-family: "Fraunces", serif; font-weight: 500; font-size: 1.6rem;
+    letter-spacing: -.005em; margin: 0 0 .3rem; text-wrap: balance;
+  }
+  section > .lede { color: var(--ink-muted); max-width: 66ch; margin: 0 0 1.4rem; }
+  p { max-width: 68ch; }
+  .note {
+    background: var(--surface-2); border-left: 3px solid var(--gold); border-radius: 4px;
+    padding: .9rem 1.1rem; font-size: .93rem; color: var(--ink-muted); max-width: 68ch; margin: 1.1rem 0;
+  }
+  .note b { color: var(--ink); }
+  .callout {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.2rem 1.4rem; box-shadow: var(--shadow); margin: 1.4rem 0;
+  }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .9rem; margin: 1.3rem 0 1.6rem; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.1rem; }
+  .tile .label { font-size: .78rem; color: var(--ink-muted); margin-bottom: .35rem; }
+  .tile .value { font-family: "IBM Plex Mono", monospace; font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tile .value.hike { color: var(--hike); }
+  .tile .value.cut { color: var(--cut); }
+  .tile .sub { font-size: .76rem; color: var(--ink-faint); margin-top: .25rem; }
+  .table-wrap { overflow-x: auto; margin: 1.2rem 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 480px; font-size: .92rem; }
+  caption { text-align: left; font-size: .82rem; color: var(--ink-faint); padding-bottom: .5rem; }
+  th, td { padding: .62rem .8rem; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; font-family: "IBM Plex Mono", monospace; }
+  th:first-child, td:first-child { text-align: left; font-family: "Public Sans", sans-serif; }
+  thead th { font-family: "Public Sans", sans-serif; font-weight: 600; font-size: .78rem; letter-spacing: .02em; color: var(--ink-muted); text-transform: uppercase; border-bottom: 1px solid var(--ink-faint); }
+  tr.row-hot td:first-child { border-left: 3px solid var(--hike); padding-left: .65rem; }
+  tr.row-cool td:first-child { border-left: 3px solid var(--cut); padding-left: .65rem; }
+  tbody tr:hover { background: var(--surface-2); }
+  ul.findings { padding-left: 1.2rem; max-width: 68ch; }
+  ul.findings li { margin-bottom: .9rem; }
+  ul.findings b { color: var(--ink); }
+  .footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--line); font-size: .82rem; color: var(--ink-faint); }
+
+  .hyp-list { display: flex; flex-direction: column; gap: 1rem; margin: 1.2rem 0; }
+  .hyp-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.1rem 1.3rem; box-shadow: var(--shadow);
+  }
+  .hyp-card .hyp-tag {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .08em;
+    color: var(--gold); text-transform: uppercase; margin-bottom: .35rem;
+  }
+  .hyp-card p { margin: 0; max-width: 66ch; }
+  .verdict-row { display: flex; flex-wrap: wrap; align-items: center; gap: .7rem; margin: .2rem 0 1rem; }
+  .verdict-pill {
+    font-family: "IBM Plex Mono", monospace; font-size: .78rem; font-weight: 600; letter-spacing: .04em;
+    padding: .3rem .75rem; border-radius: 20px; text-transform: uppercase;
+  }
+  .verdict-pill.confirmed { background: var(--cut-soft); color: var(--cut); }
+  .verdict-pill.disconfirmed { background: var(--hike-soft); color: var(--hike); }
+  .verdict-pill.mixed { background: var(--gold-soft); color: var(--gold); }
+  .verdict-row h3 { font-family: "Fraunces", serif; font-weight: 500; font-size: 1.3rem; margin: 0; text-wrap: balance; }
+
+  .timeline { display: flex; flex-direction: column; gap: .5rem; margin: 1.2rem 0; }
+  .tl-row {
+    display: grid; grid-template-columns: 2.2rem 6.2rem 1fr auto; gap: .8rem; align-items: center;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: .7rem 1rem;
+  }
+  .tl-seq { font-family: "IBM Plex Mono", monospace; color: var(--ink-faint); font-size: .82rem; }
+  .tl-date { font-family: "IBM Plex Mono", monospace; font-size: .82rem; color: var(--ink-muted); }
+  .tl-label { font-size: .9rem; }
+  .tl-ret { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: .95rem; text-align: right; font-variant-numeric: tabular-nums; }
+  .tl-ret.neg { color: var(--hike); }
+  .tl-ret.pos { color: var(--cut); }
+  .tl-row.deesc { border-color: var(--cut); border-width: 1.5px; }
+</style>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">MACRO EVENT STUDY · 트랙 B 확장 · 미중 무역전쟁 관세 시리즈</div>
+    <h1>관세는 반복될수록 덜 놀라웠을까</h1>
+    <p class="dek">트랙B의 지금까지 사건은 전부 "1회성"이었다(전쟁 발발, 팬데믹 선언, 은행
+    파산 등). 미중 무역전쟁은 이 프로젝트에서 처음 다루는 "같은 유형의 충격이 반복된 시리즈"다
+    — 같은 나쁜 뉴스가 반복되면 시장이 점점 덜 반응하는 "이벤트 피로"가 실제로 있는지, 8건의
+    에스컬레이션과 1건의 디에스컬레이션(무역합의)을 순서대로 검증한다.</p>
+    <div class="meta-row">
+      <span>검증된 에스컬레이션 <b>8건</b>(2018-03 ~ 2019-08)</span>
+      <span>디에스컬레이션 <b>1건</b>(2019-12, 1단계 무역합의)</span>
+      <span>같은 트랙 <b><a href="https://claude.ai/code/artifact/fa632f59-17d0-447e-b387-881bc3cba1eb">충격 뉴스와 증시 반응</a></b></span>
+    </div>
+  </header>
+
+  <section>
+    <h2>날짜 검증 — 무엇을 쓰고, 무엇을 뺐나</h2>
+    <p class="lede">트랙B의 전통대로, 후보 날짜를 기억으로 나열하지 않고 실제 S&amp;P500
+    가격 데이터로 교차검증한 뒤에만 이벤트로 확정했다.</p>
+    <p>후보 중 <b>2019-05-05는 일요일(거래일 아님)</b>이라, 관세 위협 트윗이 시장에 처음
+    반영된 다음 거래일(2019-05-06)을 이벤트일로 썼다. 같은 에스컬레이션 사이클 안에서 뒤따르는
+    두 번째 날짜(<b>2019-05-10 실제 발효일, 2018-09-24 3차 관세 발효일, 2019-08-26 중국
+    추가 보복 트윗</b>)는 별도 이벤트로 세지 않고 제외했다 — 발표 시점에 이미 예상된 "결과"라서
+    같은 에스컬레이션을 중복 계산하는 걸 피하기 위해서다(실제로 5/10 발효일의 반응은
+    +0.37%로 미미해, 이미 소화된 뉴스였다는 정황과 맞는다). 결과적으로 <b>에스컬레이션 8건 +
+    디에스컬레이션 1건</b>으로 확정했다 — 처음 제안됐던 9개 항목에서 날짜 자체가 틀린 건
+    없었고, 중복 계산 방지를 위한 통합만 있었다.</p>
+  </section>
+
+  <section>
+    <h2>사전 등록 가설</h2>
+    <p class="lede">결과를 계산하기 전에 먼저 적어둔 세 가지 가설이다.</p>
+    <div class="hyp-list">
+      <div class="hyp-card">
+        <div class="hyp-tag">H1 (이벤트 피로)</div>
+        <p>시리즈 안에서 각 에스컬레이션 사건의 당일(day-0) S&amp;P500 절대 반응크기는 사건
+        순서가 뒤로 갈수록 평균적으로 작아진다 — 사건 순서(1~8)와 절대반응크기 사이의
+        스피어만 순위상관으로 확인한다. 음의 상관 = 가설 지지. n=8이라 통계적 유의성은
+        주장하지 않고 방향과 크기만 정직하게 보고한다.</p>
+      </div>
+      <div class="hyp-card">
+        <div class="hyp-tag">H2 (대조군)</div>
+        <p>디에스컬레이션 사건(2019-12-13, 1단계 무역합의)의 반응은 H1이 예측하는 "피로해진"
+        후반 에스컬레이션 사건들과 비교해 동등하거나 더 큰 양(+)의 반응을 보일 것이다 —
+        "좋은 뉴스는 똑같이 둔감해지지 않았는가"를 정직하게 확인한다.</p>
+      </div>
+      <div class="hyp-card">
+        <div class="hyp-tag">H3</div>
+        <p>이 시리즈 에스컬레이션 사건들의 평균 +60거래일 회복률은, 이 프로젝트의 다른 트랙B
+        1회성 충격들의 평균 회복률(<b>기존 10건 중 8건이 60거래일 내 회복, 메모리 기록,
+        인용</b>)보다 나쁠 것이다 — 반복되는 장기전형 충격은 2022년 긴축장(우크라이나 침공이
+        유일하게 회복 못한 배경)과 비슷하게 작동할 수 있다는 가설.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>이벤트 타임라인 — 당일 반응 순서대로</h2>
+    <p class="lede">이 스터디의 핵심 표다. 평균 하나로 뭉뚱그리지 않고, 8건을 순서대로 그대로
+    보여준다.</p>
+    <div class="timeline">
+      <div class="tl-row"><div class="tl-seq">#1</div><div class="tl-date">2018-03-22</div>
+        <div class="tl-label">301조 관세 각서 서명(1차 경고)</div><div class="tl-ret neg">&minus;2.52%</div></div>
+      <div class="tl-row"><div class="tl-seq">#2</div><div class="tl-date">2018-06-15</div>
+        <div class="tl-label">$34B 관세 리스트 최초 발표</div><div class="tl-ret neg">&minus;0.10%</div></div>
+      <div class="tl-row"><div class="tl-seq">#3</div><div class="tl-date">2018-07-06</div>
+        <div class="tl-label">1차 관세($34B) 실제 발효</div><div class="tl-ret pos">+0.85%</div></div>
+      <div class="tl-row"><div class="tl-seq">#4</div><div class="tl-date">2018-08-23</div>
+        <div class="tl-label">2차 관세($16B) 발효</div><div class="tl-ret neg">&minus;0.17%</div></div>
+      <div class="tl-row"><div class="tl-seq">#5</div><div class="tl-date">2018-09-17</div>
+        <div class="tl-label">3차 관세($200B) 발표</div><div class="tl-ret neg">&minus;0.56%</div></div>
+      <div class="tl-row"><div class="tl-seq">#6</div><div class="tl-date">2019-05-06</div>
+        <div class="tl-label">25%로 인상 위협 트윗(첫 반영일)</div><div class="tl-ret neg">&minus;0.45%</div></div>
+      <div class="tl-row"><div class="tl-seq">#7</div><div class="tl-date">2019-08-01</div>
+        <div class="tl-label">잔여 $300B 신규 10% 관세 트윗</div><div class="tl-ret neg">&minus;0.90%</div></div>
+      <div class="tl-row"><div class="tl-seq">#8</div><div class="tl-date">2019-08-23</div>
+        <div class="tl-label">중국 보복 + "미국기업 대체처 모색" 트윗</div><div class="tl-ret neg">&minus;2.60%</div></div>
+      <div class="tl-row deesc"><div class="tl-seq">&mdash;</div><div class="tl-date">2019-12-13</div>
+        <div class="tl-label">1단계 무역합의(디에스컬레이션, 공식발표일)</div><div class="tl-ret pos">+0.01%</div></div>
+    </div>
+    <p class="note">1단계 무역합의는 사실 <b>전날(2019-12-12) 루머로 이미 +0.86% 반영</b>됐고
+    공식발표일(12/13) 자체는 거의 평평했다(+0.01%) — 이 프로젝트가 다른 사건(2022년 우크라이나
+    침공, 2023년 SVB)에서도 확인한 "소문에 사고 뉴스에 무덤덤"류 패턴이 여기서도 나타났다.</p>
+  </section>
+
+  <section>
+    <h2>H1 검증 — 사건 순서 vs 반응크기</h2>
+    <div class="tiles">
+      <div class="tile"><div class="label">스피어만 순위상관(rho)</div><div class="value hike">+0.33</div><div class="sub">n=8, 양수=가설과 반대</div></div>
+      <div class="tile"><div class="label">가장 큰 반응</div><div class="value hike">#1, #8</div><div class="sub">각 &minus;2.52%, &minus;2.60%</div></div>
+      <div class="tile"><div class="label">가장 작은 반응</div><div class="value cut">#2, #4</div><div class="sub">각 &minus;0.10%, &minus;0.17%</div></div>
+    </div>
+    <p><b>둔감화 가설과 정반대 방향이 나왔다.</b> 사건 순서와 절대 반응크기의 스피어만 상관은
+    +0.33으로 양수 — 순서가 뒤로 갈수록 반응이 "작아진다"가 아니라 오히려 미세하게 "커지는"
+    쪽으로 나타났다. 실제 모양을 보면 단조로운 추세가 아니라 <b>U자에 가깝다</b> — 첫 사건
+    (#1, 2018-03-22, &minus;2.52%)이 가장 컸고, 중간 사건들(#2~#6)은 대부분 1% 미만으로
+    확실히 잠잠했지만, <b>마지막 사건(#8, 2019-08-23, &minus;2.60%)이 시리즈 전체에서 가장
+    큰 반응으로 다시 튀어올랐다</b>. n=8로는 통계적으로 확정할 수 없지만, 적어도 "단순
+    반복=단조로운 둔감화"라는 그림은 이 데이터에 없다 — 중간 사건들이 잠잠했던 건 둔감화라기보다,
+    사건 자체의 뉴스 가치(이미 예고된 발효일 vs 새로운 위협)가 달랐기 때문일 가능성이 크다.</p>
+  </section>
+
+  <section>
+    <h2>H2 검증 — 좋은 뉴스도 똑같이 둔감해졌나</h2>
+    <div class="table-wrap">
+      <table>
+        <caption>디에스컬레이션 반응 vs 후반 에스컬레이션 사건들(%)</caption>
+        <thead><tr><th>이벤트</th><th>반응</th></tr></thead>
+        <tbody>
+          <tr><td>#6 (25% 인상 위협)</td><td>&minus;0.45%</td></tr>
+          <tr><td>#7 (신규 10% 관세)</td><td>&minus;0.90%</td></tr>
+          <tr><td>#8 (중국 보복)</td><td>&minus;2.60%</td></tr>
+          <tr class="row-cool"><td>1단계 합의(루머일, 12/12)</td><td><b>+0.86%</b></td></tr>
+          <tr><td>1단계 합의(공식발표일, 12/13)</td><td>+0.01%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><b>어느 날을 "반응일"로 보느냐에 따라 결론이 갈린다.</b> 뉴스가 실제로 소화된
+    날(12/12 루머일, +0.86%)을 기준으로 보면, 후반 에스컬레이션 사건들(#6~#7)보다는 크고
+    #8보다는 작은, "중간 정도"의 양(+)의 반응이었다 — 최소한 "완전히 둔감해지진 않았다"고는
+    말할 수 있다. 하지만 <b>공식 발표일(12/13) 자체만 놓고 보면 거의 평평했다(+0.01%)</b> —
+    이건 좋은 뉴스가 둔감해진 게 아니라 전날 이미 다 반영됐기 때문이다. 어느 쪽으로 읽어도
+    "후반 에스컬레이션 사건들이 특별히 컸던 것도 아니다"라는 점에서 H1의 결론과 방향은
+    일치한다.</p>
+  </section>
+
+  <section>
+    <h2>H3 검증 — 회복률 비교</h2>
+    <div class="tiles">
+      <div class="tile"><div class="label">기준선(기존 트랙B, n=10)</div><div class="value cut">80.0%</div><div class="sub">60거래일 내 회복</div></div>
+      <div class="tile"><div class="label">이 스터디(n=8)</div><div class="value cut">75.0%</div><div class="sub">6/8건 회복</div></div>
+      <div class="tile"><div class="label">+60거래일 평균</div><div class="value cut">+1.99%</div><div class="sub">승률 75.0%</div></div>
+    </div>
+    <p>회복률은 75.0%(6/8건)로 기존 트랙B 기준선(80.0%, 10건)보다 살짝 낮지만, <b>표본
+    2건 차이(n=8 vs n=10)로 만들어질 수 있는 정도의 격차라 의미 있게 더 나쁘다고 보기
+    어렵다.</b> +60거래일 평균 수익률도 +1.99%(승률75%)로 견조하게 플러스였다 — 2022년
+    긴축장처럼 반복 충격이 시장을 끌고 내려가는 그림은 나타나지 않았다.</p>
+    <p><b>회복하지 못한 2건(#4, #5)에는 중요한 교란요인이 있다.</b> #4(2018-08-23)의
+    +60거래일 지점은 2018-11-16, #5(2018-09-17)의 +60거래일 지점은 2018-12-12로, 둘 다
+    2018년 4분기의 광범위한 시장 조정(연준 긴축 우려가 주된 원인으로 널리 지목된 국면,
+    이 프로젝트의 트랙B 원본 리포트가 이미 다룬 "2018-12-24 셧다운 중 최악의 거래일"과 같은
+    시기) 안에 들어간다 — 이 두 사건이 회복하지 못한 게 순전히 관세 때문인지, 동시에 진행된
+    Q4 2018 긴축 우려 때문인지 이 데이터만으로는 분리할 수 없다.</p>
+  </section>
+
+  <section>
+    <h2>가설별 최종 판정</h2>
+    <div class="verdict-row">
+      <span class="verdict-pill disconfirmed">DISCONFIRMED</span>
+      <h3>H1 — 반복될수록 반응이 작아진다(이벤트 피로)</h3>
+    </div>
+    <p>스피어만 상관이 +0.33으로 가설이 예측한 음의 방향과 반대였다. 첫 사건과 마지막 사건이
+    시리즈 전체에서 가장 컸고, 중간 사건들이 잠잠했던 패턴은 "점진적 둔감화"가 아니라 각
+    사건의 개별 뉴스 가치 차이로 더 잘 설명된다.</p>
+
+    <div class="verdict-row">
+      <span class="verdict-pill mixed">MIXED</span>
+      <h3>H2 — 좋은 뉴스는 똑같이 둔감해지지 않았다</h3>
+    </div>
+    <p>뉴스가 실제로 소화된 날(루머일 +0.86%)을 기준으로는 "중간 정도로 견조했다"고 볼 수
+    있지만, 공식 발표일만 보면 거의 평평했다(+0.01%, 전날 이미 선반영). 어느 날을 기준으로
+    삼느냐에 따라 결론이 달라져 한 방향으로 정리할 수 없다.</p>
+
+    <div class="verdict-row">
+      <span class="verdict-pill disconfirmed">DISCONFIRMED</span>
+      <h3>H3 — 반복 충격은 회복률이 눈에 띄게 나쁘다</h3>
+    </div>
+    <p>75.0%(6/8) vs 기존 기준선 80.0%(8/10) — 격차가 5%p에 표본 차이도 2건뿐이라 "눈에
+    띄게 나쁘다"고 하기엔 근거가 약하다. +60거래일 평균 수익률도 견조하게 플러스였다 —
+    반복되는 무역전쟁형 충격이 2022년 긴축장처럼 시장을 끌고 내려가는 패턴은 이 데이터에서
+    확인되지 않았다.</p>
+  </section>
+
+  <section>
+    <h2>경제학 지식 없이 읽는 법</h2>
+    <ul class="findings">
+      <li><b>"같은 나쁜 뉴스가 반복되면 시장이 무뎌진다"는 통념은 이 8건에서는 지지되지 않았다.</b>
+      오히려 첫 사건과 마지막 사건이 가장 크게 흔들렸다 — 반복 횟수 자체보다, 그 사건이
+      "얼마나 새로운 정보였는가"가 더 중요해 보인다(이미 발표된 관세가 실제로 발효되는 날은
+      잠잠했고, 완전히 새로운 위협이나 보복은 여전히 크게 흔들었다).</li>
+      <li><b>"좋은 뉴스"와 "나쁜 뉴스"를 비교할 때는 정확히 어느 날을 보는지가 중요하다.</b>
+      1단계 무역합의는 공식 발표일엔 평평했지만 그 전날 루머로 이미 크게 올랐다 — 뉴스의
+      "내용"만큼 "타이밍"(언제 시장에 알려졌는가)도 반응의 크기를 결정한다.</li>
+      <li><b>반복되는 충격이라고 꼭 시장을 더 오래 끌고 내려가는 건 아니었다.</b> 회복률은
+      기존 1회성 충격들과 비슷한 수준(75% vs 80%)이었고, 평균 수익률도 플러스였다 — 다만
+      회복하지 못한 두 사건이 마침 2018년 말의 다른 시장 불안(연준 긴축 우려)과 겹쳐 있어서,
+      "관세 때문에 회복 못했다"고 단정하기는 어렵다.</li>
+      <li><b>표본이 8건뿐이라는 걸 잊지 않아야 한다.</b> 순위상관 +0.33이라는 숫자 자체보다,
+      "8건 중 극단값 두 개가 처음과 끝에 몰려 있었다"는 이야기 구조를 그대로 보는 게 더
+      정직한 읽기다.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>한계</h2>
+    <div class="callout">
+      <ul class="findings" style="margin:0;">
+        <li><b>n=8은 순위상관 같은 통계적 도구를 쓰기엔 매우 작은 표본이다.</b> +0.33이라는
+        상관계수는 방향성 참고일 뿐, 이 정도 표본에서는 우연히 뒤집힐 수 있는 크기다.</li>
+        <li><b>날짜 통합(같은 사이클의 발표일/발효일 중 하나만 대표로 선택)은 저자의 판단이
+        들어간 선택이다.</b> 다른 기준으로 통합했다면(예: 발효일을 대표로 삼았다면) 순서와
+        반응크기가 달라졌을 수 있다.</li>
+        <li><b>2018년 4분기의 두 미회복 사건(#4, #5)은 연준 긴축 우려라는 동시 진행 사건과
+        섞여 있다.</b> 순수하게 관세만의 효과로 분리하지 못했다는 걸 명시한다.</li>
+        <li><b>디에스컬레이션 사건의 +60거래일 순방향 수익률(&minus;21.7%)은 이 리포트에
+        싣지 않았다.</b> 이 날짜(2019-12-13)의 +60거래일 지점은 2020년 3월 코로나 폭락과
+        정확히 겹쳐, 무역합의와 완전히 무관한 사건이 그 수치를 지배하기 때문이다 — 잘못된
+        인상을 줄 수 있는 숫자라 의도적으로 본문에서 뺐다.</li>
+        <li><b>사건 유형이 전부 "트윗/발표"로 비슷해 보이지만 실제 정책적 무게는 서로 다르다.</b>
+        각서 서명(#1)과 실제 관세 발효(#3, #4)는 성격이 다른 사건인데 같은 "에스컬레이션"
+        범주로 묶었다 — 세부 유형별로 더 잘게 나누면 다른 그림이 나올 수 있다.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="footer">
+    데이터: Yahoo Finance(^GSPC) · 분석 스크립트: trade_war_tariff_series_study.py · 같은
+    프로젝트: <a href="https://claude.ai/code/artifact/fa632f59-17d0-447e-b387-881bc3cba1eb">충격 뉴스와 증시 반응</a>(트랙B 원본, 1회성 충격 10건)
+  </div>
+</div>

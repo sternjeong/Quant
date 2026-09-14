@@ -1,0 +1,269 @@
+{
+  "period": {
+    "start": "2019-08-12",
+    "end": "2026-08-19"
+  },
+  "methodology_note": "H5(2026-08-20)와 동일한 point-in-time 새틀라이트 구축 로직(반기 리밸런싱, 12개월 모멘텀 상위 3종목)을 그대로 재사용. point-in-time 유니버스 표본추출 비용 때문에 전체기간 단일창만 사용(H5와 동일한 절충) - Stage 1의 6창 기댓값 가중은 여기 적용되지 않는다.",
+  "core_sequential_metrics": {
+    "cumulative_return": 139.19,
+    "cagr": 13.23,
+    "mdd": -17.74,
+    "sharpe": 1.03,
+    "win_rate": 0.0,
+    "avg_holding_days": 0.0,
+    "trade_count": 0,
+    "profit_factor": 0.0,
+    "calmar": 0.75,
+    "avg_drawdown_days": 20.2
+  },
+  "core_refined_metrics": {
+    "sharpe": 1.03,
+    "cagr": 14.27,
+    "mdd": -15.69,
+    "avg_annual_turnover_pct": 260.7
+  },
+  "refined_optimum_used": {
+    "lookback_months": 14,
+    "freq_name": "quarterly_63d"
+  },
+  "satellite_standalone_metrics": {
+    "cumulative_return": 464.14,
+    "cagr": 27.96,
+    "mdd": -33.54,
+    "sharpe": 0.91,
+    "win_rate": 0.0,
+    "avg_holding_days": 0.0,
+    "trade_count": 0,
+    "profit_factor": 0.0,
+    "calmar": 0.83,
+    "avg_drawdown_days": 27.6
+  },
+  "satellite_tickers_ever_held": [
+    "AAPL",
+    "AVGO",
+    "CAT",
+    "COP",
+    "CVX",
+    "GE",
+    "GEV",
+    "GOOGL",
+    "LLY",
+    "META",
+    "MSFT",
+    "NEM",
+    "NFLX",
+    "NVDA",
+    "PLD",
+    "TSLA",
+    "UPS",
+    "XOM"
+  ],
+  "sequential_core_frontier": {
+    "frontier": [
+      {
+        "satellite_weight": 0.0,
+        "metrics": {
+          "cumulative_return": 139.19,
+          "cagr": 13.23,
+          "mdd": -17.74,
+          "sharpe": 1.03,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.75,
+          "avg_drawdown_days": 20.2
+        }
+      },
+      {
+        "satellite_weight": 0.1,
+        "metrics": {
+          "cumulative_return": 166.81,
+          "cagr": 15.01,
+          "mdd": -17.8,
+          "sharpe": 1.08,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.84,
+          "avg_drawdown_days": 17.9
+        }
+      },
+      {
+        "satellite_weight": 0.15,
+        "metrics": {
+          "cumulative_return": 181.25,
+          "cagr": 15.88,
+          "mdd": -17.85,
+          "sharpe": 1.09,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.89,
+          "avg_drawdown_days": 17.4
+        }
+      },
+      {
+        "satellite_weight": 0.2,
+        "metrics": {
+          "cumulative_return": 196.08,
+          "cagr": 16.73,
+          "mdd": -17.9,
+          "sharpe": 1.09,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.93,
+          "avg_drawdown_days": 17.1
+        }
+      },
+      {
+        "satellite_weight": 0.25,
+        "metrics": {
+          "cumulative_return": 211.29,
+          "cagr": 17.57,
+          "mdd": -17.97,
+          "sharpe": 1.09,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.98,
+          "avg_drawdown_days": 17.7
+        }
+      },
+      {
+        "satellite_weight": 0.3,
+        "metrics": {
+          "cumulative_return": 226.85,
+          "cagr": 18.39,
+          "mdd": -18.04,
+          "sharpe": 1.08,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 1.02,
+          "avg_drawdown_days": 17.8
+        }
+      }
+    ],
+    "peak_sharpe_weight": 0.15,
+    "peak_sharpe_metrics": {
+      "cumulative_return": 181.25,
+      "cagr": 15.88,
+      "mdd": -17.85,
+      "sharpe": 1.09,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.89,
+      "avg_drawdown_days": 17.4
+    }
+  },
+  "refined_core_frontier": {
+    "frontier": [
+      {
+        "satellite_weight": 0.0,
+        "metrics": {
+          "sharpe": 1.03,
+          "cagr": 14.27,
+          "mdd": -15.69,
+          "avg_annual_turnover_pct": 260.7
+        }
+      },
+      {
+        "satellite_weight": 0.1,
+        "metrics": {
+          "cumulative_return": 181.63,
+          "cagr": 15.9,
+          "mdd": -16.68,
+          "sharpe": 1.05,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.95,
+          "avg_drawdown_days": 18.4
+        }
+      },
+      {
+        "satellite_weight": 0.15,
+        "metrics": {
+          "cumulative_return": 195.48,
+          "cagr": 16.7,
+          "mdd": -17.35,
+          "sharpe": 1.06,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.96,
+          "avg_drawdown_days": 19.6
+        }
+      },
+      {
+        "satellite_weight": 0.2,
+        "metrics": {
+          "cumulative_return": 209.66,
+          "cagr": 17.48,
+          "mdd": -18.12,
+          "sharpe": 1.06,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.96,
+          "avg_drawdown_days": 20.0
+        }
+      },
+      {
+        "satellite_weight": 0.25,
+        "metrics": {
+          "cumulative_return": 224.17,
+          "cagr": 18.25,
+          "mdd": -18.89,
+          "sharpe": 1.05,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.97,
+          "avg_drawdown_days": 19.7
+        }
+      },
+      {
+        "satellite_weight": 0.3,
+        "metrics": {
+          "cumulative_return": 238.98,
+          "cagr": 19.0,
+          "mdd": -19.66,
+          "sharpe": 1.05,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.97,
+          "avg_drawdown_days": 19.7
+        }
+      }
+    ],
+    "peak_sharpe_weight": 0.15,
+    "peak_sharpe_metrics": {
+      "cumulative_return": 195.48,
+      "cagr": 16.7,
+      "mdd": -17.35,
+      "sharpe": 1.06,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.96,
+      "avg_drawdown_days": 19.6
+    }
+  }
+}

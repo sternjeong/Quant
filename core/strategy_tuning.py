@@ -1430,6 +1430,126 @@ def _group_mean_excess_return(per_ticker_test: dict[str, dict]) -> float:
     return sum(values) / len(values) if values else float("-inf")
 
 
+# ----------------------------------------------------------------------------
+# 과적합(overfitting) 진단 — train 워크포워드 점수 vs test 성과 곡선 (2026-09-13)
+#
+# 인스타그램(@fidetolabs) "Building A Self-Improving AI Trading Agent" 시리즈 Day 6(Model Lab)의
+# "관찰 중인 게 학습이 아니라 검증(validation)이다 — train(파란 선)은 계속 좋아지는데 valid가
+# 나빠지기 시작하면 이미 최적점을 지난 것"이라는 아이디어를, 이 프로젝트의 실제 튜닝 파이프라인에
+# 적용한다. 이 프로젝트에는 "학습 스텝"이 없지만(그리드 서치이지 경사하강이 아니므로), 이미
+# `_select_best_group_config_walkforward`가 만드는 tuning_trail이 "후보를 train 워크포워드
+# 점수 내림차순으로 정렬한 목록"을 갖고 있다 — 이 순서를 x축(rank)으로 쓰면 rank가 1에 가까울수록
+# "train 기준으로 더 많이 맞춰진(더 학습된)" 후보다. tuning_trail은 이미 계산이 끝난 값이라 공짜로
+# 재사용하고, test(out-of-sample) 성과만 상위 top_n개에 대해 추가로 평가한다.
+#
+# 중요: 이 함수는 진단/보고 전용이다. tune_strategy_for_group()이 지키는 "채택 여부는 test 성과가
+# 아니라 train 워크포워드 점수로만 결정한다"(4b/11.2절, 그 이유는 해당 함수 주석 참고 — test로
+# 고르면 데이터 스누핑) 원칙을 이 함수도 그대로 따른다: 여기서 나온 "더 잘 일반화되는 것처럼 보이는"
+# 후보를 자동으로 채택하지 않고, 사람이 보고 판단하도록 곡선과 진단 결과만 반환한다.
+# ----------------------------------------------------------------------------
+
+
+def compute_overfitting_curve(
+    tickers: list[str],
+    tuning_trail: list[dict],
+    test_start: str,
+    test_end: str,
+    regime: Optional[str] = None,
+    max_holding_days: Optional[int] = None,
+    top_n: int = 10,
+) -> dict:
+    """tuning_trail 상위 top_n개 후보를 test 구간에서 추가로 평가해 train vs test 곡선을 만든다.
+
+    tuning_trail은 이미 점수(train 워크포워드 mean_sharpe - std_sharpe*가중치) 내림차순으로 정렬된
+    리스트다(`_select_best_group_config_walkforward` 반환값, `tune_strategy_for_group`의
+    "tuning_trail" 필드). rank=1이 실제로 채택된 config(가장 높은 train 점수)다.
+
+    각 후보를 rank가 큰(=train 점수가 낮은, "덜 학습된") 순서부터 rank=1(train 점수가 가장
+    높은, "가장 학습된")까지 나열하면, train_score는 정의상 단조 비증가(점수 내림차순으로 만든
+    목록을 뒤집었으므로 단조 비감소)한다 — 신경망 학습 곡선의 "학습이 진행될수록 train loss가
+    계속 좋아진다"는 모양과 같다. test_score(실제 out-of-sample 그룹 평균 초과수익)는 항상 같은
+    방향으로 움직이지 않을 수 있다 — 어느 지점부터 train은 계속 좋아지는데 test는 오히려 나빠지기
+    시작한다면, 그 지점이 바로 "과적합이 시작된 지점"이다.
+
+    Args:
+        tickers: 이 tuning_trail을 만든 것과 같은 그룹의 종목 리스트(tune_strategy_for_group에
+            넘겼던 것과 동일해야 함).
+        tuning_trail: tune_strategy_for_group()이 반환한 "tuning_trail" (점수 내림차순).
+        test_start, test_end: `train_test_split_dates()`가 만든 test 구간 (regime이 주어지면
+            그 구간 중 국면이 일치하는 세그먼트만 내부적으로 골라 씀 — tune_strategy_for_group과
+            동일한 정책).
+        regime: None이면 test 구간 전체로, "약세장"/"강세장"이면 국면 일치 세그먼트로 평가한다.
+        max_holding_days: 스윙 트레이딩 보유기간 상한 (tune_strategy_for_group과 동일하게 전달).
+        top_n: test에서 추가로 평가할 후보 개수(train 점수 상위 top_n개). 후보 하나당 그룹
+            종목 수만큼 백테스트가 추가로 도므로, 너무 크게 잡으면 느려진다.
+
+    Returns:
+        {
+            "points": [{"rank": int, "train_score": float, "test_score": float|None}, ...],
+                # rank=1이 train 점수 최고(=실제 채택된 config). 리스트 자체는 rank가 큰 것부터
+                # 작은 것 순(=train 점수가 오르는 방향)으로 정렬해 그대로 라인차트 x축에 쓸 수 있다.
+            "best_train_rank": 1이었으면 None(항상 1), 실제로는 참고용으로 항상 1을 반환,
+            "best_test_rank": test_score가 가장 좋았던 후보의 rank (유효한 test_score가 하나도
+                없으면 None),
+            "n_valid_test": test_score를 실제로 계산할 수 있었던 후보 개수(매매횟수 부족 등으로
+                검증 불가한 후보는 제외). 이 값이 2 미만이면 "비교"라고 부를 근거가 없다(비교 상대가
+                없거나 하나뿐이므로) — is_overfit 판정에 이 조건이 반영된다.
+            "is_overfit": n_valid_test가 2 이상이고 best_test_rank가 1이 아닐 때만 True — "가장
+                train에 맞춰진 후보가, 실제로 비교 가능했던 다른 후보들보다 test에서 못했다"는 뜻.
+                tuning_trail이 비었거나 유효 비교 대상이 2개 미만이면 (판단 근거 부족으로) False.
+        }
+    """
+    if not tuning_trail:
+        return {
+            "points": [], "best_train_rank": None, "best_test_rank": None,
+            "n_valid_test": 0, "is_overfit": False,
+        }
+
+    top_candidates = tuning_trail[: max(1, top_n)]  # 이미 점수 내림차순 -> index 0 = rank 1
+
+    points = []
+    for idx, candidate in enumerate(top_candidates):
+        rank = idx + 1
+        config = candidate["config"]
+        if regime is None:
+            per_ticker = _evaluate_group_config_on_test(tickers, config, test_start, test_end, max_holding_days)
+            test_score = _group_mean_excess_return(per_ticker)
+        else:
+            matched = _evaluate_group_config_on_regime_matched_test(
+                tickers, config, test_start, test_end, regime, max_holding_days
+            )
+            test_score = (
+                matched.get("mean_excess_return") if matched is not None else None
+            )
+        points.append(
+            {
+                "rank": rank,
+                "train_score": candidate["score"],
+                "test_score": None if test_score in (None, float("-inf")) else round(test_score, 2),
+            }
+        )
+
+    # rank가 큰 것(train 점수 낮음)부터 작은 것(train 점수 높음, rank=1)까지 = "학습이 진행되는" 방향.
+    points.sort(key=lambda p: p["rank"], reverse=True)
+
+    valid = [p for p in points if p["test_score"] is not None]
+    best_test_rank = max(valid, key=lambda p: p["test_score"])["rank"] if valid else None
+
+    # 유효 비교 대상이 2개 미만이면(예: 나머지 후보는 매매횟수 부족 등으로 test 검증 자체가 불가)
+    # "1등이 test에서도 최고였다"는 판단 자체가 성립하지 않는다 — 비교할 상대가 없는데 "최고"라고
+    # 말하는 건 과신이다. n_valid_test로 이 상황을 노출해 호출부(UI)가 "확인 불가"와 "확인해보니
+    # 실제로 최고였다"를 구분해서 보여줄 수 있게 한다.
+    is_overfit = len(valid) >= 2 and best_test_rank is not None and best_test_rank != 1
+
+    return {
+        "points": points,
+        "best_train_rank": 1,
+        "best_test_rank": best_test_rank,
+        "n_valid_test": len(valid),
+        "is_overfit": is_overfit,
+    }
+
+
 def _compute_tuning_significance(
     tickers: list[str],
     config: dict,

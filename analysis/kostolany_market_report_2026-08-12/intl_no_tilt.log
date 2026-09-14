@@ -1,0 +1,19 @@
+$TLT: possibly delisted; no price data found  (1d 1996-03-20 -> 2002-07-29) (Yahoo error = "Data doesn't exist for startDate = 827298000, endDate = 1027915200")
+
+1 Failed download:
+['TLT']: possibly delisted; no price data found  (1d 1996-03-20 -> 2002-07-29) (Yahoo error = "Data doesn't exist for startDate = 827298000, endDate = 1027915200")
+$GLD: possibly delisted; no price data found  (1d 1996-03-20 -> 2004-11-17) (Yahoo error = "Data doesn't exist for startDate = 827298000, endDate = 1100667600")
+
+1 Failed download:
+['GLD']: possibly delisted; no price data found  (1d 1996-03-20 -> 2004-11-17) (Yahoo error = "Data doesn't exist for startDate = 827298000, endDate = 1100667600")
+/workspaces/Quant/analysis/kostolany_market_report_2026-08-12/multi_regime_multi_strategy.py:63: FutureWarning: The behavior of DataFrame.idxmax with all-NA values, or any-NA and skipna=False, is deprecated. In a future version this will raise ValueError
+  leader = z_scores.idxmax(axis=1)
+[with_tilt][1998_2012]: CAGR=3.83, MDD=-44.99, 샤프=0.32
+[with_tilt][2013_2026]: CAGR=3.28, MDD=-27.88, 샤프=0.32
+[with_tilt][full_1998_2026]: CAGR=3.63, MDD=-44.99, 샤프=0.32
+[no_tilt][1998_2012]: CAGR=5.27, MDD=-43.12, 샤프=0.42
+[no_tilt][2013_2026]: CAGR=3.92, MDD=-26.64, 샤프=0.38
+[no_tilt][full_1998_2026]: CAGR=4.68, MDD=-43.12, 샤프=0.4
+S&P500(전체): {'cumulative_return': 695.16, 'cagr': 7.52, 'mdd': -56.78, 'sharpe': 0.47, 'win_rate': 100.0, 'avg_holding_days': 10447.0, 'trade_count': 1, 'profit_factor': 999.0, 'calmar': 0.13, 'avg_drawdown_days': 33.6}
+
+DONE

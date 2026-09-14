@@ -1,0 +1,29 @@
+[h6] S&P500 섹터균등 표본 100종목 추출 (seed=42, H4와 동일)...
+[h6] 품질 지표(PEG/성장률/ROE프록시) 조회...
+[h6]    (참고) 동일 지표로 H4식 경성 필터 적용 시 통과: 24/100
+[h6] 가격 데이터 로딩...
+$CEG: possibly delisted; no price data found  (1d 2018-07-08 -> 2022-01-18) (Yahoo error = "Data doesn't exist for startDate = 1531022400, endDate = 1642482000")
+
+1 Failed download:
+['DASH']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['CEG']: possibly delisted; no price data found  (1d 2018-07-08 -> 2022-01-18) (Yahoo error = "Data doesn't exist for startDate = 1531022400, endDate = 1642482000")
+
+1 Failed download:
+['EXE']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['FDXF']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+[h6]    로딩 완료: 100/100종목
+[h6] 1) 순수 모멘텀 베이스라인...
+[h6]    순수 모멘텀: {'cumulative_return': 183.78, 'cagr': 16.07, 'mdd': -30.97, 'sharpe': 0.68, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.52, 'avg_drawdown_days': 33.3}
+[h6] 2) 소프트 블렌드 equal_50_50 (quality_w=0.5, momentum_w=0.5)...
+[h6]    equal_50_50: {'cumulative_return': 98.3, 'cagr': 10.28, 'mdd': -30.5, 'sharpe': 0.5, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.34, 'avg_drawdown_days': 53.1}
+[h6]    현금화/폭 통계: {'n_months': 97, 'mean_eligible_pool': 53.23, 'pct_months_filled_topn': 87.6, 'pct_months_zero_eligible': 12.4}
+[h6] 2) 소프트 블렌드 momentum_tilted_30_70 (quality_w=0.3, momentum_w=0.7)...
+[h6]    momentum_tilted_30_70: {'cumulative_return': 143.61, 'cagr': 13.57, 'mdd': -30.8, 'sharpe': 0.6, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.44, 'avg_drawdown_days': 48.1}
+[h6]    현금화/폭 통계: {'n_months': 97, 'mean_eligible_pool': 53.23, 'pct_months_filled_topn': 87.6, 'pct_months_zero_eligible': 12.4}
+[h6] 3) H4 경성 필터 결과 인용(원본 h4_results.json)...
+[h6] 4) 벤치마크...
+[h6] 저장 완료: /workspaces/Quant/.claude/worktrees/agent-a3cb7703ff189d4dd/analysis/2026-08-20_satellite_frontier_and_quality_blend_research/h6_results.json

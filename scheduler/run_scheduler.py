@@ -1,7 +1,8 @@
 """독립 실행 스케줄러: 매일 미국 장마감 후 관심 종목 50개를 스캔해 타점 알림을 보내고,
 매주 일요일 저녁에는 Threads 추적 티커별 주간 AI 인사이트 리포트를 생성하고,
 매일 한국시간 00:00에는 시장 국면/섹터 강도 스냅샷을 미리 계산해두고,
-00:05~04:00에는 #3 전략을 서버가 허락하는 만큼 반복 미세튜닝한다.
+00:05~04:00에는 #3 전략을 서버가 허락하는 만큼 반복 미세튜닝하며,
+00:10에는 챔피언 전략(코어/새틀라이트) 신호 변경을 텔레그램으로 알린다.
 
 Streamlit 앱과 완전히 별도의 프로세스로 실행된다 (브라우저를 안 열어도 동작해야 하므로).
 
@@ -41,6 +42,11 @@ Streamlit 앱과 완전히 별도의 프로세스로 실행된다 (브라우저�
       snapshot_job과 달리) 페이지 쪽 폴백이 없다 — 결과를 보려면 이 스크립트가 실제로 밤마다
       돌고 있어야 한다(그리고 리더보드 페이지는 이 스크립트와 같은 로컬 DB를 보는 로컬 앱에서만
       의미가 있다 — Streamlit Community Cloud 배포본은 DB가 분리돼 있어 이 잡의 결과를 볼 수 없다).
+    - 매일 한국시간(Asia/Seoul) 00:10에 champion_signal_alert_job() 을 실행한다(2026-09-14 추가).
+      core.champion_strategy.check_and_notify_signal_changes() 가 코어 top4/시장필터/새틀라이트
+      보유종목을 어제 저장된 상태(data/cache/champion_signal_state.json)와 비교해, 달라졌을 때만
+      core.telegram_notify 로 알린다. .env에 TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID가 없으면 조용히
+      알림만 생략되고(예외 없음) 상태 저장은 계속된다.
 
 주의:
     - 이 스크립트는 core.* 를 프로젝트 루트 기준으로 임포트하므로, 아래처럼 sys.path에
@@ -67,6 +73,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
 
 from core.db import get_session, init_db
+from core.champion_strategy import check_and_notify_signal_changes
 from core.kostolany_cycle import (
     compute_theme_cycle_phases,
     get_market_cycle_phase,
@@ -169,6 +176,25 @@ def market_snapshot_job() -> None:
         f"{len(theme_df)}개 테마 RS 점수 갱신, 코스톨라니 국면(시장)={cycle_label}.",
     )
     print(f"[{datetime.now()}] market_snapshot_job 종료")
+
+
+def champion_signal_alert_job() -> None:
+    """챔피언 전략(app/pages/11_챔피언_전략.py)의 코어 top4/시장필터/새틀라이트 보유종목이
+    어제 저장된 상태와 달라졌으면 텔레그램으로 알린다 (2026-09-14 추가).
+
+    core.champion_strategy.check_and_notify_signal_changes()가 실제 계산/비교/알림/저장을 전부
+    담당한다 — 이 잡은 그냥 호출만 한다. include_satellite=True라 새틀라이트 스캔(S&P500 500종목
+    순차 조회, 수 분 소요)까지 매번 수행한다 — market_snapshot_job과 마찬가지로 무거운 전체
+    스캔이라 야간 시간대에 배치한다. 텔레그램 설정(TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID)이 없으면
+    core.telegram_notify.send_message가 조용히 False를 반환할 뿐 예외는 나지 않는다.
+    """
+    print(f"[{datetime.now()}] champion_signal_alert_job 시작")
+    result = check_and_notify_signal_changes(include_satellite=True)
+    if result["changed"]:
+        print(f"  - 신호 변경 감지, 텔레그램 알림 전송 시도:\n{result['message']}")
+    else:
+        print("  - 신호 변경 없음 (알림 생략)")
+    print(f"[{datetime.now()}] champion_signal_alert_job 종료")
 
 
 # 사용자가 "매일 0시~4시 동안 #3 전략을 여러 차원에서 미세튜닝해서 최적의 전략을 찾아달라, 상위
@@ -282,11 +308,22 @@ def main() -> None:
         name="매일 한국시간 00:05~04:00 #3 전략 반복 미세튜닝",
         replace_existing=True,
     )
+    scheduler.add_job(
+        champion_signal_alert_job,
+        # market_snapshot_job(00:00)과 겹치지 않도록 10분 뒤로 offset. 새틀라이트 스캔(수 분)이
+        # strategy_nightly_tuning_job(00:05~04:00)과 같은 시간대에 겹쳐도, 별도 스레드(APScheduler
+        # 기본 ThreadPoolExecutor)에서 동시 실행되므로 서로 막지 않는다.
+        trigger=CronTrigger(hour=0, minute=10, timezone="Asia/Seoul"),
+        id="champion_signal_alert",
+        name="매일 한국시간 00:10 챔피언 전략 신호 변경 텔레그램 알림",
+        replace_existing=True,
+    )
 
     print("스케줄러 시작. 평일 16:30 에 관심 종목을 스캔하고, 매주 일요일 20:00 에 Threads 주간")
     print("인사이트 리포트를 생성합니다 (모두 America/New_York 기준). 매일 한국시간(Asia/Seoul)")
     print("00:00 에는 시장 국면/섹터 강도 스냅샷을 미리 계산해두고, 00:05~04:00 에는 #3 전략을")
-    print("서버가 허락하는 만큼 반복 미세튜닝합니다.")
+    print("서버가 허락하는 만큼 반복 미세튜닝하며, 00:10 에는 챔피언 전략 신호 변경을 텔레그램으로")
+    print("알립니다.")
     print("Ctrl+C 로 종료할 수 있습니다.")
 
     try:

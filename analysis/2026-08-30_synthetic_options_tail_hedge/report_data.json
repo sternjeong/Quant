@@ -1,0 +1,2161 @@
+{
+  "meta": {
+    "generated": "2026-09-04",
+    "satellite_weight": 0.15,
+    "tenor_days": 21,
+    "episode_order": [
+      "gfc_2008",
+      "correction_2015_2016",
+      "selloff_2018",
+      "bear_2022",
+      "covid_2020",
+      "full_2019_2026"
+    ]
+  },
+  "main": {
+    "meta": {
+      "satellite_weight": 0.15,
+      "tenor_days": 21,
+      "put_moneyness": 1.0,
+      "call_moneyness": 1.05,
+      "vol_source": "VIX close / 100 (implied-vol proxy)",
+      "rate_source": "FRED FEDFUNDS (effective fed funds, daily asof)",
+      "episode_order": [
+        "gfc_2008",
+        "correction_2015_2016",
+        "selloff_2018",
+        "bear_2022",
+        "covid_2020",
+        "full_2019_2026"
+      ],
+      "tag": "main"
+    },
+    "episodes": {
+      "gfc_2008": {
+        "window_used": "crisis_window",
+        "full_period": [
+          "2007-01-01",
+          "2009-12-31"
+        ],
+        "crisis_window": [
+          "2007-10-01",
+          "2009-06-30"
+        ],
+        "table_full_period": {
+          "core_alone": {
+            "cumulative_return": 35.58,
+            "cagr": 10.72,
+            "mdd": -15.85,
+            "sharpe": 0.75,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.68,
+            "avg_drawdown_days": 25.8,
+            "n_days": 755
+          },
+          "unhedged_satellite": {
+            "cumulative_return": 25.46,
+            "cagr": 7.88,
+            "mdd": -14.52,
+            "sharpe": 0.64,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.54,
+            "avg_drawdown_days": 28.5,
+            "n_days": 755
+          },
+          "protective_put": {
+            "cumulative_return": 23.08,
+            "cagr": 7.19,
+            "mdd": -13.2,
+            "sharpe": 0.58,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.55,
+            "avg_drawdown_days": 29.6,
+            "n_days": 755
+          },
+          "collar": {
+            "cumulative_return": 28.55,
+            "cagr": 8.76,
+            "mdd": -13.43,
+            "sharpe": 0.69,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.65,
+            "avg_drawdown_days": 27.7,
+            "n_days": 755
+          },
+          "trend_hybrid_switch": {
+            "cumulative_return": 34.56,
+            "cagr": 10.44,
+            "mdd": -15.99,
+            "sharpe": 0.75,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.65,
+            "avg_drawdown_days": 25.9,
+            "n_days": 755
+          }
+        },
+        "table_crisis_window": {
+          "core_alone": {
+            "cumulative_return": 6.1,
+            "cagr": 3.45,
+            "mdd": -15.85,
+            "sharpe": 0.29,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.22,
+            "avg_drawdown_days": 27.3,
+            "n_days": 441
+          },
+          "unhedged_satellite": {
+            "cumulative_return": -1.1,
+            "cagr": -0.63,
+            "mdd": -14.52,
+            "sharpe": 0.03,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.04,
+            "avg_drawdown_days": 32.2,
+            "n_days": 441
+          },
+          "protective_put": {
+            "cumulative_return": 0.33,
+            "cagr": 0.19,
+            "mdd": -13.2,
+            "sharpe": 0.09,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.01,
+            "avg_drawdown_days": 32.3,
+            "n_days": 441
+          },
+          "collar": {
+            "cumulative_return": 3.58,
+            "cagr": 2.03,
+            "mdd": -13.42,
+            "sharpe": 0.21,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.15,
+            "avg_drawdown_days": 29.6,
+            "n_days": 441
+          },
+          "trend_hybrid_switch": {
+            "cumulative_return": 5.66,
+            "cagr": 3.2,
+            "mdd": -15.99,
+            "sharpe": 0.27,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.2,
+            "avg_drawdown_days": 27.3,
+            "n_days": 441
+          }
+        },
+        "n_option_rolls": 36,
+        "put_cumulative_premium_paid_pct": -108.88,
+        "put_cumulative_payoff_received_pct": 96.626,
+        "put_net_pnl_pct_of_notional": -12.254,
+        "collar_net_premium_pct": -57.235,
+        "collar_net_payoff_pct": 73.893,
+        "collar_net_pnl_pct_of_notional": 16.658
+      },
+      "correction_2015_2016": {
+        "window_used": "crisis_window",
+        "full_period": [
+          "2014-06-01",
+          "2016-06-30"
+        ],
+        "crisis_window": [
+          "2015-08-01",
+          "2016-02-15"
+        ],
+        "table_full_period": {
+          "core_alone": {
+            "cumulative_return": -5.79,
+            "cagr": -2.83,
+            "mdd": -16.82,
+            "sharpe": -0.19,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.17,
+            "avg_drawdown_days": 14.6,
+            "n_days": 525
+          },
+          "unhedged_satellite": {
+            "cumulative_return": -8.19,
+            "cagr": -4.03,
+            "mdd": -16.59,
+            "sharpe": -0.3,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.24,
+            "avg_drawdown_days": 16.2,
+            "n_days": 525
+          },
+          "protective_put": {
+            "cumulative_return": -10.11,
+            "cagr": -5.01,
+            "mdd": -17.37,
+            "sharpe": -0.4,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.29,
+            "avg_drawdown_days": 25.0,
+            "n_days": 525
+          },
+          "collar": {
+            "cumulative_return": -9.21,
+            "cagr": -4.55,
+            "mdd": -16.85,
+            "sharpe": -0.36,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.27,
+            "avg_drawdown_days": 22.1,
+            "n_days": 525
+          },
+          "trend_hybrid_switch": {
+            "cumulative_return": -5.97,
+            "cagr": -2.93,
+            "mdd": -15.86,
+            "sharpe": -0.2,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.18,
+            "avg_drawdown_days": 12.6,
+            "n_days": 525
+          }
+        },
+        "table_crisis_window": {
+          "core_alone": {
+            "cumulative_return": -14.58,
+            "cagr": -25.79,
+            "mdd": -15.09,
+            "sharpe": -1.9,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.71,
+            "avg_drawdown_days": 1.0,
+            "n_days": 135
+          },
+          "unhedged_satellite": {
+            "cumulative_return": -14.42,
+            "cagr": -25.52,
+            "mdd": -15.28,
+            "sharpe": -1.91,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.67,
+            "avg_drawdown_days": 0.0,
+            "n_days": 135
+          },
+          "protective_put": {
+            "cumulative_return": -14.16,
+            "cagr": -25.09,
+            "mdd": -14.84,
+            "sharpe": -1.9,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.69,
+            "avg_drawdown_days": 1.0,
+            "n_days": 135
+          },
+          "collar": {
+            "cumulative_return": -13.97,
+            "cagr": -24.78,
+            "mdd": -14.7,
+            "sharpe": -1.88,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.69,
+            "avg_drawdown_days": 1.0,
+            "n_days": 135
+          },
+          "trend_hybrid_switch": {
+            "cumulative_return": -13.57,
+            "cagr": -24.12,
+            "mdd": -14.52,
+            "sharpe": -1.76,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.66,
+            "avg_drawdown_days": 0.0,
+            "n_days": 135
+          }
+        },
+        "n_option_rolls": 25,
+        "put_cumulative_premium_paid_pct": -46.034,
+        "put_cumulative_payoff_received_pct": 31.744,
+        "put_net_pnl_pct_of_notional": -14.29,
+        "collar_net_premium_pct": -36.193,
+        "collar_net_payoff_pct": 28.52,
+        "collar_net_pnl_pct_of_notional": -7.673
+      },
+      "selloff_2018": {
+        "window_used": "crisis_window",
+        "full_period": [
+          "2017-06-01",
+          "2019-06-30"
+        ],
+        "crisis_window": [
+          "2018-09-01",
+          "2019-01-15"
+        ],
+        "table_full_period": {
+          "core_alone": {
+            "cumulative_return": 5.6,
+            "cagr": 2.66,
+            "mdd": -15.5,
+            "sharpe": 0.28,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.17,
+            "avg_drawdown_days": 6.1,
+            "n_days": 523
+          },
+          "unhedged_satellite": {
+            "cumulative_return": 12.12,
+            "cagr": 5.68,
+            "mdd": -14.43,
+            "sharpe": 0.52,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.39,
+            "avg_drawdown_days": 14.6,
+            "n_days": 523
+          },
+          "protective_put": {
+            "cumulative_return": 10.87,
+            "cagr": 5.1,
+            "mdd": -13.89,
+            "sharpe": 0.47,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.37,
+            "avg_drawdown_days": 15.5,
+            "n_days": 523
+          },
+          "collar": {
+            "cumulative_return": 11.51,
+            "cagr": 5.4,
+            "mdd": -13.76,
+            "sharpe": 0.49,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.39,
+            "avg_drawdown_days": 15.4,
+            "n_days": 523
+          },
+          "trend_hybrid_switch": {
+            "cumulative_return": 11.15,
+            "cagr": 5.23,
+            "mdd": -14.91,
+            "sharpe": 0.48,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.35,
+            "avg_drawdown_days": 15.3,
+            "n_days": 523
+          }
+        },
+        "table_crisis_window": {
+          "core_alone": {
+            "cumulative_return": -9.71,
+            "cagr": -24.45,
+            "mdd": -14.6,
+            "sharpe": -1.9,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.67,
+            "avg_drawdown_days": 6.7,
+            "n_days": 92
+          },
+          "unhedged_satellite": {
+            "cumulative_return": -9.65,
+            "cagr": -24.32,
+            "mdd": -14.43,
+            "sharpe": -1.94,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.69,
+            "avg_drawdown_days": 5.7,
+            "n_days": 92
+          },
+          "protective_put": {
+            "cumulative_return": -8.51,
+            "cagr": -21.67,
+            "mdd": -13.89,
+            "sharpe": -1.59,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.56,
+            "avg_drawdown_days": 6.3,
+            "n_days": 92
+          },
+          "collar": {
+            "cumulative_return": -8.18,
+            "cagr": -20.9,
+            "mdd": -13.76,
+            "sharpe": -1.53,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.52,
+            "avg_drawdown_days": 6.3,
+            "n_days": 92
+          },
+          "trend_hybrid_switch": {
+            "cumulative_return": -9.71,
+            "cagr": -24.45,
+            "mdd": -14.91,
+            "sharpe": -1.86,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.64,
+            "avg_drawdown_days": 5.7,
+            "n_days": 92
+          }
+        },
+        "n_option_rolls": 25,
+        "put_cumulative_premium_paid_pct": -39.643,
+        "put_cumulative_payoff_received_pct": 32.479,
+        "put_net_pnl_pct_of_notional": -7.164,
+        "collar_net_premium_pct": -31.732,
+        "collar_net_payoff_pct": 28.367,
+        "collar_net_pnl_pct_of_notional": -3.365
+      },
+      "bear_2022": {
+        "window_used": "crisis_window",
+        "full_period": [
+          "2019-08-12",
+          "2026-08-19"
+        ],
+        "crisis_window": [
+          "2022-01-01",
+          "2022-12-31"
+        ],
+        "table_full_period": {
+          "core_alone": {
+            "cumulative_return": 139.19,
+            "cagr": 13.23,
+            "mdd": -17.74,
+            "sharpe": 1.03,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.75,
+            "avg_drawdown_days": 20.2,
+            "n_days": 1764
+          },
+          "unhedged_satellite": {
+            "cumulative_return": 129.25,
+            "cagr": 12.55,
+            "mdd": -16.55,
+            "sharpe": 1.02,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.76,
+            "avg_drawdown_days": 22.4,
+            "n_days": 1764
+          },
+          "protective_put": {
+            "cumulative_return": 102.86,
+            "cagr": 10.61,
+            "mdd": -15.92,
+            "sharpe": 0.87,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.67,
+            "avg_drawdown_days": 25.5,
+            "n_days": 1764
+          },
+          "collar": {
+            "cumulative_return": 110.1,
+            "cagr": 11.16,
+            "mdd": -15.3,
+            "sharpe": 0.91,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.73,
+            "avg_drawdown_days": 24.2,
+            "n_days": 1764
+          },
+          "trend_hybrid_switch": {
+            "cumulative_return": 135.22,
+            "cagr": 12.96,
+            "mdd": -17.9,
+            "sharpe": 1.04,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.72,
+            "avg_drawdown_days": 22.3,
+            "n_days": 1764
+          }
+        },
+        "table_crisis_window": {
+          "core_alone": {
+            "cumulative_return": 2.19,
+            "cagr": 2.21,
+            "mdd": -11.05,
+            "sharpe": 0.24,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.2,
+            "avg_drawdown_days": 6.8,
+            "n_days": 251
+          },
+          "unhedged_satellite": {
+            "cumulative_return": 2.46,
+            "cagr": 2.49,
+            "mdd": -10.28,
+            "sharpe": 0.27,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.24,
+            "avg_drawdown_days": 8.7,
+            "n_days": 251
+          },
+          "protective_put": {
+            "cumulative_return": 2.6,
+            "cagr": 2.63,
+            "mdd": -9.72,
+            "sharpe": 0.28,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.27,
+            "avg_drawdown_days": 8.8,
+            "n_days": 251
+          },
+          "collar": {
+            "cumulative_return": 4.02,
+            "cagr": 4.07,
+            "mdd": -9.11,
+            "sharpe": 0.39,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.45,
+            "avg_drawdown_days": 8.8,
+            "n_days": 251
+          },
+          "trend_hybrid_switch": {
+            "cumulative_return": 1.51,
+            "cagr": 1.53,
+            "mdd": -11.05,
+            "sharpe": 0.18,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.14,
+            "avg_drawdown_days": 8.6,
+            "n_days": 251
+          }
+        },
+        "n_option_rolls": 85,
+        "put_cumulative_premium_paid_pct": -191.728,
+        "put_cumulative_payoff_received_pct": 110.512,
+        "put_net_pnl_pct_of_notional": -81.216,
+        "collar_net_premium_pct": -123.798,
+        "collar_net_payoff_pct": 66.234,
+        "collar_net_pnl_pct_of_notional": -57.564
+      },
+      "covid_2020": {
+        "window_used": "crisis_window",
+        "full_period": [
+          "2019-01-01",
+          "2020-12-31"
+        ],
+        "crisis_window": [
+          "2020-02-19",
+          "2020-04-30"
+        ],
+        "table_full_period": {
+          "core_alone": {
+            "cumulative_return": 27.53,
+            "cagr": 12.98,
+            "mdd": -9.07,
+            "sharpe": 1.14,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 1.43,
+            "avg_drawdown_days": 15.3,
+            "n_days": 504
+          },
+          "unhedged_satellite": {
+            "cumulative_return": 28.82,
+            "cagr": 13.55,
+            "mdd": -9.45,
+            "sharpe": 1.18,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 1.43,
+            "avg_drawdown_days": 16.6,
+            "n_days": 504
+          },
+          "protective_put": {
+            "cumulative_return": 23.79,
+            "cagr": 11.3,
+            "mdd": -9.45,
+            "sharpe": 1.0,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 1.2,
+            "avg_drawdown_days": 15.6,
+            "n_days": 504
+          },
+          "collar": {
+            "cumulative_return": 23.01,
+            "cagr": 10.95,
+            "mdd": -9.45,
+            "sharpe": 0.97,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 1.16,
+            "avg_drawdown_days": 15.6,
+            "n_days": 504
+          },
+          "trend_hybrid_switch": {
+            "cumulative_return": 30.81,
+            "cagr": 14.42,
+            "mdd": -9.29,
+            "sharpe": 1.25,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 1.55,
+            "avg_drawdown_days": 15.4,
+            "n_days": 504
+          }
+        },
+        "table_crisis_window": {
+          "core_alone": {
+            "cumulative_return": 0.17,
+            "cagr": 0.86,
+            "mdd": -6.71,
+            "sharpe": 0.13,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.13,
+            "avg_drawdown_days": 31.0,
+            "n_days": 51
+          },
+          "unhedged_satellite": {
+            "cumulative_return": -1.84,
+            "cagr": -9.09,
+            "mdd": -7.58,
+            "sharpe": -0.64,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.2,
+            "avg_drawdown_days": 0.0,
+            "n_days": 51
+          },
+          "protective_put": {
+            "cumulative_return": -0.41,
+            "cagr": -2.09,
+            "mdd": -7.61,
+            "sharpe": -0.08,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.27,
+            "avg_drawdown_days": 0.0,
+            "n_days": 51
+          },
+          "collar": {
+            "cumulative_return": 0.56,
+            "cagr": 2.93,
+            "mdd": -7.35,
+            "sharpe": 0.28,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.4,
+            "avg_drawdown_days": 21.0,
+            "n_days": 51
+          },
+          "trend_hybrid_switch": {
+            "cumulative_return": -0.67,
+            "cagr": -3.39,
+            "mdd": -7.42,
+            "sharpe": -0.18,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.46,
+            "avg_drawdown_days": 0.0,
+            "n_days": 51
+          }
+        },
+        "n_option_rolls": 24,
+        "put_cumulative_premium_paid_pct": -61.739,
+        "put_cumulative_payoff_received_pct": 35.244,
+        "put_net_pnl_pct_of_notional": -26.495,
+        "collar_net_premium_pct": -37.642,
+        "collar_net_payoff_pct": 7.032,
+        "collar_net_pnl_pct_of_notional": -30.61
+      },
+      "full_2019_2026": {
+        "window_used": "full_period",
+        "full_period": [
+          "2019-08-12",
+          "2026-08-19"
+        ],
+        "crisis_window": [
+          "2022-01-01",
+          "2022-12-31"
+        ],
+        "table_full_period": {
+          "core_alone": {
+            "cumulative_return": 139.19,
+            "cagr": 13.23,
+            "mdd": -17.74,
+            "sharpe": 1.03,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.75,
+            "avg_drawdown_days": 20.2,
+            "n_days": 1764
+          },
+          "unhedged_satellite": {
+            "cumulative_return": 129.25,
+            "cagr": 12.55,
+            "mdd": -16.55,
+            "sharpe": 1.02,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.76,
+            "avg_drawdown_days": 22.4,
+            "n_days": 1764
+          },
+          "protective_put": {
+            "cumulative_return": 102.86,
+            "cagr": 10.61,
+            "mdd": -15.92,
+            "sharpe": 0.87,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.67,
+            "avg_drawdown_days": 25.5,
+            "n_days": 1764
+          },
+          "collar": {
+            "cumulative_return": 110.1,
+            "cagr": 11.16,
+            "mdd": -15.3,
+            "sharpe": 0.91,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.73,
+            "avg_drawdown_days": 24.2,
+            "n_days": 1764
+          },
+          "trend_hybrid_switch": {
+            "cumulative_return": 135.22,
+            "cagr": 12.96,
+            "mdd": -17.9,
+            "sharpe": 1.04,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.72,
+            "avg_drawdown_days": 22.3,
+            "n_days": 1764
+          }
+        },
+        "table_crisis_window": null,
+        "n_option_rolls": 85,
+        "put_cumulative_premium_paid_pct": -191.728,
+        "put_cumulative_payoff_received_pct": 110.512,
+        "put_net_pnl_pct_of_notional": -81.216,
+        "collar_net_premium_pct": -123.798,
+        "collar_net_payoff_pct": 66.234,
+        "collar_net_pnl_pct_of_notional": -57.564
+      }
+    },
+    "summary_table": [
+      {
+        "episode": "gfc_2008",
+        "window_used": "crisis_window",
+        "core_alone": {
+          "cagr": 3.45,
+          "mdd": -15.85,
+          "sharpe": 0.29,
+          "calmar": 0.22
+        },
+        "unhedged_satellite": {
+          "cagr": -0.63,
+          "mdd": -14.52,
+          "sharpe": 0.03,
+          "calmar": -0.04
+        },
+        "protective_put": {
+          "cagr": 0.19,
+          "mdd": -13.2,
+          "sharpe": 0.09,
+          "calmar": 0.01
+        },
+        "collar": {
+          "cagr": 2.03,
+          "mdd": -13.42,
+          "sharpe": 0.21,
+          "calmar": 0.15
+        },
+        "trend_hybrid_switch": {
+          "cagr": 3.2,
+          "mdd": -15.99,
+          "sharpe": 0.27,
+          "calmar": 0.2
+        }
+      },
+      {
+        "episode": "correction_2015_2016",
+        "window_used": "crisis_window",
+        "core_alone": {
+          "cagr": -25.79,
+          "mdd": -15.09,
+          "sharpe": -1.9,
+          "calmar": -1.71
+        },
+        "unhedged_satellite": {
+          "cagr": -25.52,
+          "mdd": -15.28,
+          "sharpe": -1.91,
+          "calmar": -1.67
+        },
+        "protective_put": {
+          "cagr": -25.09,
+          "mdd": -14.84,
+          "sharpe": -1.9,
+          "calmar": -1.69
+        },
+        "collar": {
+          "cagr": -24.78,
+          "mdd": -14.7,
+          "sharpe": -1.88,
+          "calmar": -1.69
+        },
+        "trend_hybrid_switch": {
+          "cagr": -24.12,
+          "mdd": -14.52,
+          "sharpe": -1.76,
+          "calmar": -1.66
+        }
+      },
+      {
+        "episode": "selloff_2018",
+        "window_used": "crisis_window",
+        "core_alone": {
+          "cagr": -24.45,
+          "mdd": -14.6,
+          "sharpe": -1.9,
+          "calmar": -1.67
+        },
+        "unhedged_satellite": {
+          "cagr": -24.32,
+          "mdd": -14.43,
+          "sharpe": -1.94,
+          "calmar": -1.69
+        },
+        "protective_put": {
+          "cagr": -21.67,
+          "mdd": -13.89,
+          "sharpe": -1.59,
+          "calmar": -1.56
+        },
+        "collar": {
+          "cagr": -20.9,
+          "mdd": -13.76,
+          "sharpe": -1.53,
+          "calmar": -1.52
+        },
+        "trend_hybrid_switch": {
+          "cagr": -24.45,
+          "mdd": -14.91,
+          "sharpe": -1.86,
+          "calmar": -1.64
+        }
+      },
+      {
+        "episode": "bear_2022",
+        "window_used": "crisis_window",
+        "core_alone": {
+          "cagr": 2.21,
+          "mdd": -11.05,
+          "sharpe": 0.24,
+          "calmar": 0.2
+        },
+        "unhedged_satellite": {
+          "cagr": 2.49,
+          "mdd": -10.28,
+          "sharpe": 0.27,
+          "calmar": 0.24
+        },
+        "protective_put": {
+          "cagr": 2.63,
+          "mdd": -9.72,
+          "sharpe": 0.28,
+          "calmar": 0.27
+        },
+        "collar": {
+          "cagr": 4.07,
+          "mdd": -9.11,
+          "sharpe": 0.39,
+          "calmar": 0.45
+        },
+        "trend_hybrid_switch": {
+          "cagr": 1.53,
+          "mdd": -11.05,
+          "sharpe": 0.18,
+          "calmar": 0.14
+        }
+      },
+      {
+        "episode": "covid_2020",
+        "window_used": "crisis_window",
+        "core_alone": {
+          "cagr": 0.86,
+          "mdd": -6.71,
+          "sharpe": 0.13,
+          "calmar": 0.13
+        },
+        "unhedged_satellite": {
+          "cagr": -9.09,
+          "mdd": -7.58,
+          "sharpe": -0.64,
+          "calmar": -1.2
+        },
+        "protective_put": {
+          "cagr": -2.09,
+          "mdd": -7.61,
+          "sharpe": -0.08,
+          "calmar": -0.27
+        },
+        "collar": {
+          "cagr": 2.93,
+          "mdd": -7.35,
+          "sharpe": 0.28,
+          "calmar": 0.4
+        },
+        "trend_hybrid_switch": {
+          "cagr": -3.39,
+          "mdd": -7.42,
+          "sharpe": -0.18,
+          "calmar": -0.46
+        }
+      },
+      {
+        "episode": "full_2019_2026",
+        "window_used": "full_period",
+        "core_alone": {
+          "cagr": 13.23,
+          "mdd": -17.74,
+          "sharpe": 1.03,
+          "calmar": 0.75
+        },
+        "unhedged_satellite": {
+          "cagr": 12.55,
+          "mdd": -16.55,
+          "sharpe": 1.02,
+          "calmar": 0.76
+        },
+        "protective_put": {
+          "cagr": 10.61,
+          "mdd": -15.92,
+          "sharpe": 0.87,
+          "calmar": 0.67
+        },
+        "collar": {
+          "cagr": 11.16,
+          "mdd": -15.3,
+          "sharpe": 0.91,
+          "calmar": 0.73
+        },
+        "trend_hybrid_switch": {
+          "cagr": 12.96,
+          "mdd": -17.9,
+          "sharpe": 1.04,
+          "calmar": 0.72
+        }
+      }
+    ]
+  },
+  "sensitivity_otm5": {
+    "meta": {
+      "satellite_weight": 0.15,
+      "tenor_days": 21,
+      "put_moneyness": 0.95,
+      "call_moneyness": 1.05,
+      "vol_source": "VIX close / 100 (implied-vol proxy)",
+      "rate_source": "FRED FEDFUNDS (effective fed funds, daily asof)",
+      "episode_order": [
+        "gfc_2008",
+        "correction_2015_2016",
+        "selloff_2018",
+        "bear_2022",
+        "covid_2020",
+        "full_2019_2026"
+      ],
+      "tag": "otm5"
+    },
+    "episodes": {
+      "gfc_2008": {
+        "window_used": "crisis_window",
+        "full_period": [
+          "2007-01-01",
+          "2009-12-31"
+        ],
+        "crisis_window": [
+          "2007-10-01",
+          "2009-06-30"
+        ],
+        "table_full_period": {
+          "core_alone": {
+            "cumulative_return": 35.58,
+            "cagr": 10.72,
+            "mdd": -15.85,
+            "sharpe": 0.75,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.68,
+            "avg_drawdown_days": 25.8,
+            "n_days": 755
+          },
+          "unhedged_satellite": {
+            "cumulative_return": 25.46,
+            "cagr": 7.88,
+            "mdd": -14.52,
+            "sharpe": 0.64,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.54,
+            "avg_drawdown_days": 28.5,
+            "n_days": 755
+          },
+          "protective_put": {
+            "cumulative_return": 24.02,
+            "cagr": 7.46,
+            "mdd": -13.41,
+            "sharpe": 0.61,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.56,
+            "avg_drawdown_days": 29.4,
+            "n_days": 755
+          },
+          "collar": {
+            "cumulative_return": 29.51,
+            "cagr": 9.03,
+            "mdd": -13.0,
+            "sharpe": 0.72,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.69,
+            "avg_drawdown_days": 28.4,
+            "n_days": 755
+          },
+          "trend_hybrid_switch": {
+            "cumulative_return": 34.56,
+            "cagr": 10.44,
+            "mdd": -15.99,
+            "sharpe": 0.75,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.65,
+            "avg_drawdown_days": 25.9,
+            "n_days": 755
+          }
+        },
+        "table_crisis_window": {
+          "core_alone": {
+            "cumulative_return": 6.1,
+            "cagr": 3.45,
+            "mdd": -15.85,
+            "sharpe": 0.29,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.22,
+            "avg_drawdown_days": 27.3,
+            "n_days": 441
+          },
+          "unhedged_satellite": {
+            "cumulative_return": -1.1,
+            "cagr": -0.63,
+            "mdd": -14.52,
+            "sharpe": 0.03,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.04,
+            "avg_drawdown_days": 32.2,
+            "n_days": 441
+          },
+          "protective_put": {
+            "cumulative_return": -0.85,
+            "cagr": -0.49,
+            "mdd": -13.41,
+            "sharpe": 0.04,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.04,
+            "avg_drawdown_days": 35.0,
+            "n_days": 441
+          },
+          "collar": {
+            "cumulative_return": 2.34,
+            "cagr": 1.33,
+            "mdd": -13.0,
+            "sharpe": 0.16,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.1,
+            "avg_drawdown_days": 32.1,
+            "n_days": 441
+          },
+          "trend_hybrid_switch": {
+            "cumulative_return": 5.66,
+            "cagr": 3.2,
+            "mdd": -15.99,
+            "sharpe": 0.27,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.2,
+            "avg_drawdown_days": 27.3,
+            "n_days": 441
+          }
+        },
+        "n_option_rolls": 36,
+        "put_cumulative_premium_paid_pct": -44.708,
+        "put_cumulative_payoff_received_pct": 37.079,
+        "put_net_pnl_pct_of_notional": -7.629,
+        "collar_net_premium_pct": 6.939,
+        "collar_net_payoff_pct": 14.346,
+        "collar_net_pnl_pct_of_notional": 21.285
+      },
+      "correction_2015_2016": {
+        "window_used": "crisis_window",
+        "full_period": [
+          "2014-06-01",
+          "2016-06-30"
+        ],
+        "crisis_window": [
+          "2015-08-01",
+          "2016-02-15"
+        ],
+        "table_full_period": {
+          "core_alone": {
+            "cumulative_return": -5.79,
+            "cagr": -2.83,
+            "mdd": -16.82,
+            "sharpe": -0.19,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.17,
+            "avg_drawdown_days": 14.6,
+            "n_days": 525
+          },
+          "unhedged_satellite": {
+            "cumulative_return": -8.19,
+            "cagr": -4.03,
+            "mdd": -16.59,
+            "sharpe": -0.3,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.24,
+            "avg_drawdown_days": 16.2,
+            "n_days": 525
+          },
+          "protective_put": {
+            "cumulative_return": -8.85,
+            "cagr": -4.37,
+            "mdd": -16.84,
+            "sharpe": -0.33,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.26,
+            "avg_drawdown_days": 16.2,
+            "n_days": 525
+          },
+          "collar": {
+            "cumulative_return": -7.94,
+            "cagr": -3.91,
+            "mdd": -16.43,
+            "sharpe": -0.29,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.24,
+            "avg_drawdown_days": 16.2,
+            "n_days": 525
+          },
+          "trend_hybrid_switch": {
+            "cumulative_return": -5.97,
+            "cagr": -2.93,
+            "mdd": -15.86,
+            "sharpe": -0.2,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.18,
+            "avg_drawdown_days": 12.6,
+            "n_days": 525
+          }
+        },
+        "table_crisis_window": {
+          "core_alone": {
+            "cumulative_return": -14.58,
+            "cagr": -25.79,
+            "mdd": -15.09,
+            "sharpe": -1.9,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.71,
+            "avg_drawdown_days": 1.0,
+            "n_days": 135
+          },
+          "unhedged_satellite": {
+            "cumulative_return": -14.42,
+            "cagr": -25.52,
+            "mdd": -15.28,
+            "sharpe": -1.91,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.67,
+            "avg_drawdown_days": 0.0,
+            "n_days": 135
+          },
+          "protective_put": {
+            "cumulative_return": -14.48,
+            "cagr": -25.62,
+            "mdd": -15.33,
+            "sharpe": -1.93,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.67,
+            "avg_drawdown_days": 0.0,
+            "n_days": 135
+          },
+          "collar": {
+            "cumulative_return": -14.29,
+            "cagr": -25.31,
+            "mdd": -15.16,
+            "sharpe": -1.91,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.67,
+            "avg_drawdown_days": 0.0,
+            "n_days": 135
+          },
+          "trend_hybrid_switch": {
+            "cumulative_return": -13.57,
+            "cagr": -24.12,
+            "mdd": -14.52,
+            "sharpe": -1.76,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.66,
+            "avg_drawdown_days": 0.0,
+            "n_days": 135
+          }
+        },
+        "n_option_rolls": 25,
+        "put_cumulative_premium_paid_pct": -8.445,
+        "put_cumulative_payoff_received_pct": 3.59,
+        "put_net_pnl_pct_of_notional": -4.855,
+        "collar_net_premium_pct": 1.399,
+        "collar_net_payoff_pct": 0.366,
+        "collar_net_pnl_pct_of_notional": 1.765
+      },
+      "selloff_2018": {
+        "window_used": "crisis_window",
+        "full_period": [
+          "2017-06-01",
+          "2019-06-30"
+        ],
+        "crisis_window": [
+          "2018-09-01",
+          "2019-01-15"
+        ],
+        "table_full_period": {
+          "core_alone": {
+            "cumulative_return": 5.6,
+            "cagr": 2.66,
+            "mdd": -15.5,
+            "sharpe": 0.28,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.17,
+            "avg_drawdown_days": 6.1,
+            "n_days": 523
+          },
+          "unhedged_satellite": {
+            "cumulative_return": 12.12,
+            "cagr": 5.68,
+            "mdd": -14.43,
+            "sharpe": 0.52,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.39,
+            "avg_drawdown_days": 14.6,
+            "n_days": 523
+          },
+          "protective_put": {
+            "cumulative_return": 12.53,
+            "cagr": 5.86,
+            "mdd": -14.12,
+            "sharpe": 0.53,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.41,
+            "avg_drawdown_days": 15.4,
+            "n_days": 523
+          },
+          "collar": {
+            "cumulative_return": 13.18,
+            "cagr": 6.15,
+            "mdd": -13.99,
+            "sharpe": 0.55,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.44,
+            "avg_drawdown_days": 14.6,
+            "n_days": 523
+          },
+          "trend_hybrid_switch": {
+            "cumulative_return": 11.15,
+            "cagr": 5.23,
+            "mdd": -14.91,
+            "sharpe": 0.48,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.35,
+            "avg_drawdown_days": 15.3,
+            "n_days": 523
+          }
+        },
+        "table_crisis_window": {
+          "core_alone": {
+            "cumulative_return": -9.71,
+            "cagr": -24.45,
+            "mdd": -14.6,
+            "sharpe": -1.9,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.67,
+            "avg_drawdown_days": 6.7,
+            "n_days": 92
+          },
+          "unhedged_satellite": {
+            "cumulative_return": -9.65,
+            "cagr": -24.32,
+            "mdd": -14.43,
+            "sharpe": -1.94,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.69,
+            "avg_drawdown_days": 5.7,
+            "n_days": 92
+          },
+          "protective_put": {
+            "cumulative_return": -8.84,
+            "cagr": -22.45,
+            "mdd": -14.12,
+            "sharpe": -1.73,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.59,
+            "avg_drawdown_days": 5.7,
+            "n_days": 92
+          },
+          "collar": {
+            "cumulative_return": -8.52,
+            "cagr": -21.69,
+            "mdd": -13.99,
+            "sharpe": -1.66,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.55,
+            "avg_drawdown_days": 5.7,
+            "n_days": 92
+          },
+          "trend_hybrid_switch": {
+            "cumulative_return": -9.71,
+            "cagr": -24.45,
+            "mdd": -14.91,
+            "sharpe": -1.86,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.64,
+            "avg_drawdown_days": 5.7,
+            "n_days": 92
+          }
+        },
+        "n_option_rolls": 25,
+        "put_cumulative_premium_paid_pct": -5.991,
+        "put_cumulative_payoff_received_pct": 8.516,
+        "put_net_pnl_pct_of_notional": 2.525,
+        "collar_net_premium_pct": 1.917,
+        "collar_net_payoff_pct": 4.404,
+        "collar_net_pnl_pct_of_notional": 6.321
+      },
+      "bear_2022": {
+        "window_used": "crisis_window",
+        "full_period": [
+          "2019-08-12",
+          "2026-08-19"
+        ],
+        "crisis_window": [
+          "2022-01-01",
+          "2022-12-31"
+        ],
+        "table_full_period": {
+          "core_alone": {
+            "cumulative_return": 139.19,
+            "cagr": 13.23,
+            "mdd": -17.74,
+            "sharpe": 1.03,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.75,
+            "avg_drawdown_days": 20.2,
+            "n_days": 1764
+          },
+          "unhedged_satellite": {
+            "cumulative_return": 129.25,
+            "cagr": 12.55,
+            "mdd": -16.55,
+            "sharpe": 1.02,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.76,
+            "avg_drawdown_days": 22.4,
+            "n_days": 1764
+          },
+          "protective_put": {
+            "cumulative_return": 118.46,
+            "cagr": 11.78,
+            "mdd": -16.68,
+            "sharpe": 0.96,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.71,
+            "avg_drawdown_days": 23.8,
+            "n_days": 1764
+          },
+          "collar": {
+            "cumulative_return": 126.24,
+            "cagr": 12.34,
+            "mdd": -16.06,
+            "sharpe": 1.0,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.77,
+            "avg_drawdown_days": 23.0,
+            "n_days": 1764
+          },
+          "trend_hybrid_switch": {
+            "cumulative_return": 135.22,
+            "cagr": 12.96,
+            "mdd": -17.9,
+            "sharpe": 1.04,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.72,
+            "avg_drawdown_days": 22.3,
+            "n_days": 1764
+          }
+        },
+        "table_crisis_window": {
+          "core_alone": {
+            "cumulative_return": 2.19,
+            "cagr": 2.21,
+            "mdd": -11.05,
+            "sharpe": 0.24,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.2,
+            "avg_drawdown_days": 6.8,
+            "n_days": 251
+          },
+          "unhedged_satellite": {
+            "cumulative_return": 2.46,
+            "cagr": 2.49,
+            "mdd": -10.28,
+            "sharpe": 0.27,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.24,
+            "avg_drawdown_days": 8.7,
+            "n_days": 251
+          },
+          "protective_put": {
+            "cumulative_return": 1.81,
+            "cagr": 1.83,
+            "mdd": -10.35,
+            "sharpe": 0.21,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.18,
+            "avg_drawdown_days": 8.8,
+            "n_days": 251
+          },
+          "collar": {
+            "cumulative_return": 3.22,
+            "cagr": 3.26,
+            "mdd": -9.75,
+            "sharpe": 0.33,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.33,
+            "avg_drawdown_days": 8.7,
+            "n_days": 251
+          },
+          "trend_hybrid_switch": {
+            "cumulative_return": 1.51,
+            "cagr": 1.53,
+            "mdd": -11.05,
+            "sharpe": 0.18,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.14,
+            "avg_drawdown_days": 8.6,
+            "n_days": 251
+          }
+        },
+        "n_option_rolls": 85,
+        "put_cumulative_premium_paid_pct": -54.629,
+        "put_cumulative_payoff_received_pct": 22.451,
+        "put_net_pnl_pct_of_notional": -32.178,
+        "collar_net_premium_pct": 13.304,
+        "collar_net_payoff_pct": -21.827,
+        "collar_net_pnl_pct_of_notional": -8.523
+      },
+      "covid_2020": {
+        "window_used": "crisis_window",
+        "full_period": [
+          "2019-01-01",
+          "2020-12-31"
+        ],
+        "crisis_window": [
+          "2020-02-19",
+          "2020-04-30"
+        ],
+        "table_full_period": {
+          "core_alone": {
+            "cumulative_return": 27.53,
+            "cagr": 12.98,
+            "mdd": -9.07,
+            "sharpe": 1.14,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 1.43,
+            "avg_drawdown_days": 15.3,
+            "n_days": 504
+          },
+          "unhedged_satellite": {
+            "cumulative_return": 28.82,
+            "cagr": 13.55,
+            "mdd": -9.45,
+            "sharpe": 1.18,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 1.43,
+            "avg_drawdown_days": 16.6,
+            "n_days": 504
+          },
+          "protective_put": {
+            "cumulative_return": 27.15,
+            "cagr": 12.81,
+            "mdd": -9.45,
+            "sharpe": 1.12,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 1.35,
+            "avg_drawdown_days": 13.9,
+            "n_days": 504
+          },
+          "collar": {
+            "cumulative_return": 26.34,
+            "cagr": 12.45,
+            "mdd": -9.45,
+            "sharpe": 1.09,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 1.32,
+            "avg_drawdown_days": 15.0,
+            "n_days": 504
+          },
+          "trend_hybrid_switch": {
+            "cumulative_return": 30.81,
+            "cagr": 14.42,
+            "mdd": -9.29,
+            "sharpe": 1.25,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 1.55,
+            "avg_drawdown_days": 15.4,
+            "n_days": 504
+          }
+        },
+        "table_crisis_window": {
+          "core_alone": {
+            "cumulative_return": 0.17,
+            "cagr": 0.86,
+            "mdd": -6.71,
+            "sharpe": 0.13,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.13,
+            "avg_drawdown_days": 31.0,
+            "n_days": 51
+          },
+          "unhedged_satellite": {
+            "cumulative_return": -1.84,
+            "cagr": -9.09,
+            "mdd": -7.58,
+            "sharpe": -0.64,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.2,
+            "avg_drawdown_days": 0.0,
+            "n_days": 51
+          },
+          "protective_put": {
+            "cumulative_return": -1.0,
+            "cagr": -5.04,
+            "mdd": -7.81,
+            "sharpe": -0.32,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.65,
+            "avg_drawdown_days": 0.0,
+            "n_days": 51
+          },
+          "collar": {
+            "cumulative_return": -0.04,
+            "cagr": -0.2,
+            "mdd": -7.55,
+            "sharpe": 0.05,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.03,
+            "avg_drawdown_days": 68.0,
+            "n_days": 51
+          },
+          "trend_hybrid_switch": {
+            "cumulative_return": -0.67,
+            "cagr": -3.39,
+            "mdd": -7.42,
+            "sharpe": -0.18,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.46,
+            "avg_drawdown_days": 0.0,
+            "n_days": 51
+          }
+        },
+        "n_option_rolls": 24,
+        "put_cumulative_premium_paid_pct": -21.025,
+        "put_cumulative_payoff_received_pct": 12.278,
+        "put_net_pnl_pct_of_notional": -8.747,
+        "collar_net_premium_pct": 3.07,
+        "collar_net_payoff_pct": -15.934,
+        "collar_net_pnl_pct_of_notional": -12.864
+      },
+      "full_2019_2026": {
+        "window_used": "full_period",
+        "full_period": [
+          "2019-08-12",
+          "2026-08-19"
+        ],
+        "crisis_window": [
+          "2022-01-01",
+          "2022-12-31"
+        ],
+        "table_full_period": {
+          "core_alone": {
+            "cumulative_return": 139.19,
+            "cagr": 13.23,
+            "mdd": -17.74,
+            "sharpe": 1.03,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.75,
+            "avg_drawdown_days": 20.2,
+            "n_days": 1764
+          },
+          "unhedged_satellite": {
+            "cumulative_return": 129.25,
+            "cagr": 12.55,
+            "mdd": -16.55,
+            "sharpe": 1.02,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.76,
+            "avg_drawdown_days": 22.4,
+            "n_days": 1764
+          },
+          "protective_put": {
+            "cumulative_return": 118.46,
+            "cagr": 11.78,
+            "mdd": -16.68,
+            "sharpe": 0.96,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.71,
+            "avg_drawdown_days": 23.8,
+            "n_days": 1764
+          },
+          "collar": {
+            "cumulative_return": 126.24,
+            "cagr": 12.34,
+            "mdd": -16.06,
+            "sharpe": 1.0,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.77,
+            "avg_drawdown_days": 23.0,
+            "n_days": 1764
+          },
+          "trend_hybrid_switch": {
+            "cumulative_return": 135.22,
+            "cagr": 12.96,
+            "mdd": -17.9,
+            "sharpe": 1.04,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.72,
+            "avg_drawdown_days": 22.3,
+            "n_days": 1764
+          }
+        },
+        "table_crisis_window": null,
+        "n_option_rolls": 85,
+        "put_cumulative_premium_paid_pct": -54.629,
+        "put_cumulative_payoff_received_pct": 22.451,
+        "put_net_pnl_pct_of_notional": -32.178,
+        "collar_net_premium_pct": 13.304,
+        "collar_net_payoff_pct": -21.827,
+        "collar_net_pnl_pct_of_notional": -8.523
+      }
+    },
+    "summary_table": [
+      {
+        "episode": "gfc_2008",
+        "window_used": "crisis_window",
+        "core_alone": {
+          "cagr": 3.45,
+          "mdd": -15.85,
+          "sharpe": 0.29,
+          "calmar": 0.22
+        },
+        "unhedged_satellite": {
+          "cagr": -0.63,
+          "mdd": -14.52,
+          "sharpe": 0.03,
+          "calmar": -0.04
+        },
+        "protective_put": {
+          "cagr": -0.49,
+          "mdd": -13.41,
+          "sharpe": 0.04,
+          "calmar": -0.04
+        },
+        "collar": {
+          "cagr": 1.33,
+          "mdd": -13.0,
+          "sharpe": 0.16,
+          "calmar": 0.1
+        },
+        "trend_hybrid_switch": {
+          "cagr": 3.2,
+          "mdd": -15.99,
+          "sharpe": 0.27,
+          "calmar": 0.2
+        }
+      },
+      {
+        "episode": "correction_2015_2016",
+        "window_used": "crisis_window",
+        "core_alone": {
+          "cagr": -25.79,
+          "mdd": -15.09,
+          "sharpe": -1.9,
+          "calmar": -1.71
+        },
+        "unhedged_satellite": {
+          "cagr": -25.52,
+          "mdd": -15.28,
+          "sharpe": -1.91,
+          "calmar": -1.67
+        },
+        "protective_put": {
+          "cagr": -25.62,
+          "mdd": -15.33,
+          "sharpe": -1.93,
+          "calmar": -1.67
+        },
+        "collar": {
+          "cagr": -25.31,
+          "mdd": -15.16,
+          "sharpe": -1.91,
+          "calmar": -1.67
+        },
+        "trend_hybrid_switch": {
+          "cagr": -24.12,
+          "mdd": -14.52,
+          "sharpe": -1.76,
+          "calmar": -1.66
+        }
+      },
+      {
+        "episode": "selloff_2018",
+        "window_used": "crisis_window",
+        "core_alone": {
+          "cagr": -24.45,
+          "mdd": -14.6,
+          "sharpe": -1.9,
+          "calmar": -1.67
+        },
+        "unhedged_satellite": {
+          "cagr": -24.32,
+          "mdd": -14.43,
+          "sharpe": -1.94,
+          "calmar": -1.69
+        },
+        "protective_put": {
+          "cagr": -22.45,
+          "mdd": -14.12,
+          "sharpe": -1.73,
+          "calmar": -1.59
+        },
+        "collar": {
+          "cagr": -21.69,
+          "mdd": -13.99,
+          "sharpe": -1.66,
+          "calmar": -1.55
+        },
+        "trend_hybrid_switch": {
+          "cagr": -24.45,
+          "mdd": -14.91,
+          "sharpe": -1.86,
+          "calmar": -1.64
+        }
+      },
+      {
+        "episode": "bear_2022",
+        "window_used": "crisis_window",
+        "core_alone": {
+          "cagr": 2.21,
+          "mdd": -11.05,
+          "sharpe": 0.24,
+          "calmar": 0.2
+        },
+        "unhedged_satellite": {
+          "cagr": 2.49,
+          "mdd": -10.28,
+          "sharpe": 0.27,
+          "calmar": 0.24
+        },
+        "protective_put": {
+          "cagr": 1.83,
+          "mdd": -10.35,
+          "sharpe": 0.21,
+          "calmar": 0.18
+        },
+        "collar": {
+          "cagr": 3.26,
+          "mdd": -9.75,
+          "sharpe": 0.33,
+          "calmar": 0.33
+        },
+        "trend_hybrid_switch": {
+          "cagr": 1.53,
+          "mdd": -11.05,
+          "sharpe": 0.18,
+          "calmar": 0.14
+        }
+      },
+      {
+        "episode": "covid_2020",
+        "window_used": "crisis_window",
+        "core_alone": {
+          "cagr": 0.86,
+          "mdd": -6.71,
+          "sharpe": 0.13,
+          "calmar": 0.13
+        },
+        "unhedged_satellite": {
+          "cagr": -9.09,
+          "mdd": -7.58,
+          "sharpe": -0.64,
+          "calmar": -1.2
+        },
+        "protective_put": {
+          "cagr": -5.04,
+          "mdd": -7.81,
+          "sharpe": -0.32,
+          "calmar": -0.65
+        },
+        "collar": {
+          "cagr": -0.2,
+          "mdd": -7.55,
+          "sharpe": 0.05,
+          "calmar": -0.03
+        },
+        "trend_hybrid_switch": {
+          "cagr": -3.39,
+          "mdd": -7.42,
+          "sharpe": -0.18,
+          "calmar": -0.46
+        }
+      },
+      {
+        "episode": "full_2019_2026",
+        "window_used": "full_period",
+        "core_alone": {
+          "cagr": 13.23,
+          "mdd": -17.74,
+          "sharpe": 1.03,
+          "calmar": 0.75
+        },
+        "unhedged_satellite": {
+          "cagr": 12.55,
+          "mdd": -16.55,
+          "sharpe": 1.02,
+          "calmar": 0.76
+        },
+        "protective_put": {
+          "cagr": 11.78,
+          "mdd": -16.68,
+          "sharpe": 0.96,
+          "calmar": 0.71
+        },
+        "collar": {
+          "cagr": 12.34,
+          "mdd": -16.06,
+          "sharpe": 1.0,
+          "calmar": 0.77
+        },
+        "trend_hybrid_switch": {
+          "cagr": 12.96,
+          "mdd": -17.9,
+          "sharpe": 1.04,
+          "calmar": 0.72
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+고용지표(NFP) 발표일 조회 중...
+발표일 398건 (1994-01-07 ~ 2026-08-07)
+/workspaces/Quant/analysis/macro_event_study_2026-08-21/nfp_cpi_joint_regime_study.py:58: FutureWarning: The default fill_method='pad' in Series.pct_change is deprecated and will be removed in a future version. Either fill in any non-leading NA values prior to calling pct_change or specify 'fill_method=None' to not fill NA values.
+  cpi_yoy = cpi.pct_change(12) * 100
+
+교차분류 가능 표본: 382/385건
+
+=== NFP 단독 축(이번 표본에서 재확인) ===
+[NFP 가속(전체)] n=184, +20일=0.118%(승률59.2%), +60일=1.887%(승률69.6%)
+[NFP 둔화(전체)] n=198, +20일=1.347%(승률67.2%), +60일=2.663%(승률69.7%)
+
+=== CPI 단독 축(이번 표본에서 재확인) ===
+[CPI 가속(전체)] n=189, +20일=0.029%(승률59.3%), +60일=0.743%(승률63.0%)
+[CPI 감속(전체)] n=193, +20일=1.466%(승률67.4%), +60일=3.804%(승률76.2%)
+
+=== 2x2 교차 국면 (NFP x CPI) ===
+[고용가속+물가감속(최선 후보)] n=79, +20일=1.131%(승률68.4%), +60일=3.552%(승률79.7%)
+[고용가속+물가가속(과열/모호)] n=105, +20일=-0.644%(승률52.4%), +60일=0.635%(승률61.9%)
+[고용둔화+물가감속(냉각)] n=114, +20일=1.699%(승률66.7%), +60일=3.978%(승률73.7%)
+[고용둔화+물가가속(스태그플레이션 우려)] n=84, +20일=0.87%(승률67.9%), +60일=0.878%(승률64.3%)
+
+DONE

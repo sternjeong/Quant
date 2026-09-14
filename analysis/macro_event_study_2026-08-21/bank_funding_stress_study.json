@@ -1,0 +1,370 @@
+{
+  "series_used": "TEDRATE (FRED, valid through 2022-01-21 due to LIBOR discontinuation)",
+  "ted_history": {
+    "start": "1986-01-02",
+    "end": "2022-01-21"
+  },
+  "primary_threshold": {
+    "type": "rolling_3yr_p90",
+    "window_days": 756,
+    "percentile": 0.9
+  },
+  "events": [
+    {
+      "date": "1994-09-28",
+      "fwd_5d_pct": -2.435,
+      "fwd_20d_pct": -0.478,
+      "fwd_60d_pct": -1.11,
+      "fwd_120d_pct": 6.503,
+      "recession": false
+    },
+    {
+      "date": "1996-12-09",
+      "fwd_5d_pct": -3.839,
+      "fwd_20d_pct": -0.18,
+      "fwd_60d_pct": 6.509,
+      "fwd_120d_pct": 12.884,
+      "recession": false
+    },
+    {
+      "date": "1997-05-01",
+      "fwd_5d_pct": 2.721,
+      "fwd_20d_pct": 6.23,
+      "fwd_60d_pct": 17.272,
+      "fwd_120d_pct": 21.759,
+      "recession": false
+    },
+    {
+      "date": "1997-09-16",
+      "fwd_5d_pct": 0.665,
+      "fwd_20d_pct": 2.606,
+      "fwd_60d_pct": 2.554,
+      "fwd_120d_pct": 12.543,
+      "recession": false
+    },
+    {
+      "date": "1998-09-15",
+      "fwd_5d_pct": -0.776,
+      "fwd_20d_pct": -4.132,
+      "fwd_60d_pct": 14.052,
+      "fwd_120d_pct": 23.337,
+      "recession": false
+    },
+    {
+      "date": "1999-09-29",
+      "fwd_5d_pct": 4.496,
+      "fwd_20d_pct": 2.234,
+      "fwd_60d_pct": 14.977,
+      "fwd_120d_pct": 17.779,
+      "recession": false
+    },
+    {
+      "date": "2000-06-07",
+      "fwd_5d_pct": -0.056,
+      "fwd_20d_pct": -0.998,
+      "fwd_60d_pct": 3.148,
+      "fwd_120d_pct": -8.318,
+      "recession": false
+    },
+    {
+      "date": "2004-07-07",
+      "fwd_5d_pct": -0.613,
+      "fwd_20d_pct": -1.762,
+      "fwd_60d_pct": -0.335,
+      "fwd_120d_pct": 7.743,
+      "recession": false
+    },
+    {
+      "date": "2004-09-28",
+      "fwd_5d_pct": 2.2,
+      "fwd_20d_pct": 0.093,
+      "fwd_60d_pct": 8.964,
+      "fwd_120d_pct": 6.641,
+      "recession": false
+    },
+    {
+      "date": "2004-12-14",
+      "fwd_5d_pct": 0.172,
+      "fwd_20d_pct": -1.303,
+      "fwd_60d_pct": -0.274,
+      "fwd_120d_pct": -0.509,
+      "recession": false
+    },
+    {
+      "date": "2005-03-23",
+      "fwd_5d_pct": 0.687,
+      "fwd_20d_pct": -1.073,
+      "fwd_60d_pct": 3.789,
+      "fwd_120d_pct": 5.004,
+      "recession": false
+    },
+    {
+      "date": "2005-09-21",
+      "fwd_5d_pct": 0.553,
+      "fwd_20d_pct": -1.193,
+      "fwd_60d_pct": 5.019,
+      "fwd_120d_pct": 7.67,
+      "recession": false
+    },
+    {
+      "date": "2006-05-18",
+      "fwd_5d_pct": 0.877,
+      "fwd_20d_pct": -0.814,
+      "fwd_60d_pct": 0.507,
+      "fwd_120d_pct": 9.592,
+      "recession": false
+    },
+    {
+      "date": "2006-09-06",
+      "fwd_5d_pct": 1.37,
+      "fwd_20d_pct": 3.841,
+      "fwd_60d_pct": 7.719,
+      "fwd_120d_pct": 7.915,
+      "recession": false
+    },
+    {
+      "date": "2007-04-30",
+      "fwd_5d_pct": 1.829,
+      "fwd_20d_pct": 2.411,
+      "fwd_60d_pct": 2.41,
+      "fwd_120d_pct": 3.893,
+      "recession": false
+    },
+    {
+      "date": "2007-08-09",
+      "fwd_5d_pct": -2.878,
+      "fwd_20d_pct": 0.032,
+      "fwd_60d_pct": 3.892,
+      "fwd_120d_pct": -5.13,
+      "recession": false
+    },
+    {
+      "date": "2008-03-04",
+      "fwd_5d_pct": -0.46,
+      "fwd_20d_pct": 3.074,
+      "fwd_60d_pct": 5.39,
+      "fwd_120d_pct": -2.604,
+      "recession": true
+    },
+    {
+      "date": "2008-04-09",
+      "fwd_5d_pct": 0.755,
+      "fwd_20d_pct": 2.811,
+      "fwd_60d_pct": -6.762,
+      "fwd_120d_pct": -18.315,
+      "recession": true
+    },
+    {
+      "date": "2008-09-15",
+      "fwd_5d_pct": 1.207,
+      "fwd_20d_pct": -15.876,
+      "fwd_60d_pct": -25.491,
+      "fwd_120d_pct": -43.277,
+      "recession": true
+    },
+    {
+      "date": "2015-09-16",
+      "fwd_5d_pct": -2.834,
+      "fwd_20d_pct": -0.054,
+      "fwd_60d_pct": 2.853,
+      "fwd_120d_pct": -0.303,
+      "recession": false
+    },
+    {
+      "date": "2015-12-17",
+      "fwd_5d_pct": 0.935,
+      "fwd_20d_pct": -7.863,
+      "fwd_60d_pct": -0.718,
+      "fwd_120d_pct": 2.653,
+      "recession": false
+    },
+    {
+      "date": "2018-03-21",
+      "fwd_5d_pct": -3.943,
+      "fwd_20d_pct": -0.693,
+      "fwd_60d_pct": 2.497,
+      "fwd_120d_pct": 6.488,
+      "recession": false
+    },
+    {
+      "date": "2020-03-13",
+      "fwd_5d_pct": -14.98,
+      "fwd_20d_pct": 1.867,
+      "fwd_60d_pct": 18.302,
+      "fwd_120d_pct": 32.085,
+      "recession": true
+    }
+  ],
+  "summary": {
+    "n": 23,
+    "fwd_5d_mean_pct": -0.624,
+    "fwd_5d_win_rate_pct": 56.5,
+    "fwd_20d_mean_pct": -0.488,
+    "fwd_20d_win_rate_pct": 43.5,
+    "fwd_60d_mean_pct": 3.703,
+    "fwd_60d_win_rate_pct": 73.9,
+    "fwd_120d_mean_pct": 4.61,
+    "fwd_120d_win_rate_pct": 69.6
+  },
+  "baseline": {
+    "n": 10236,
+    "fwd_5d_mean_pct": 0.205,
+    "fwd_5d_win_rate_pct": 58.1,
+    "fwd_20d_mean_pct": 0.809,
+    "fwd_20d_win_rate_pct": 64.1,
+    "fwd_60d_mean_pct": 2.387,
+    "fwd_60d_win_rate_pct": 70.6,
+    "fwd_120d_mean_pct": 4.738,
+    "fwd_120d_win_rate_pct": 73.9
+  },
+  "h2_crosstab": {
+    "events": [
+      {
+        "date": "1994-09-28",
+        "ted": 0.71,
+        "vix_ge30_that_day": false,
+        "credit_stress": false
+      },
+      {
+        "date": "1996-12-09",
+        "ted": 0.68,
+        "vix_ge30_that_day": false,
+        "credit_stress": false
+      },
+      {
+        "date": "1997-05-01",
+        "ted": 0.71,
+        "vix_ge30_that_day": false,
+        "credit_stress": false
+      },
+      {
+        "date": "1997-09-16",
+        "ted": 0.76,
+        "vix_ge30_that_day": false,
+        "credit_stress": false
+      },
+      {
+        "date": "1998-09-15",
+        "ted": 0.83,
+        "vix_ge30_that_day": true,
+        "credit_stress": true
+      },
+      {
+        "date": "1999-09-29",
+        "ted": 1.39,
+        "vix_ge30_that_day": false,
+        "credit_stress": false
+      },
+      {
+        "date": "2000-06-07",
+        "ted": 1.05,
+        "vix_ge30_that_day": false,
+        "credit_stress": false
+      },
+      {
+        "date": "2004-07-07",
+        "ted": 0.3,
+        "vix_ge30_that_day": false,
+        "credit_stress": false
+      },
+      {
+        "date": "2004-09-28",
+        "ted": 0.29,
+        "vix_ge30_that_day": false,
+        "credit_stress": false
+      },
+      {
+        "date": "2004-12-14",
+        "ted": 0.32,
+        "vix_ge30_that_day": false,
+        "credit_stress": false
+      },
+      {
+        "date": "2005-03-23",
+        "ted": 0.32,
+        "vix_ge30_that_day": false,
+        "credit_stress": false
+      },
+      {
+        "date": "2005-09-21",
+        "ted": 0.62,
+        "vix_ge30_that_day": false,
+        "credit_stress": false
+      },
+      {
+        "date": "2006-05-18",
+        "ted": 0.48,
+        "vix_ge30_that_day": false,
+        "credit_stress": false
+      },
+      {
+        "date": "2006-09-06",
+        "ted": 0.55,
+        "vix_ge30_that_day": false,
+        "credit_stress": false
+      },
+      {
+        "date": "2007-04-30",
+        "ted": 0.57,
+        "vix_ge30_that_day": false,
+        "credit_stress": false
+      },
+      {
+        "date": "2007-08-09",
+        "ted": 0.83,
+        "vix_ge30_that_day": false,
+        "credit_stress": false
+      },
+      {
+        "date": "2008-03-04",
+        "ted": 1.38,
+        "vix_ge30_that_day": false,
+        "credit_stress": true
+      },
+      {
+        "date": "2008-04-09",
+        "ted": 1.43,
+        "vix_ge30_that_day": false,
+        "credit_stress": true
+      },
+      {
+        "date": "2008-09-15",
+        "ted": 1.79,
+        "vix_ge30_that_day": true,
+        "credit_stress": true
+      },
+      {
+        "date": "2015-09-16",
+        "ted": 0.28,
+        "vix_ge30_that_day": false,
+        "credit_stress": true
+      },
+      {
+        "date": "2015-12-17",
+        "ted": 0.34,
+        "vix_ge30_that_day": false,
+        "credit_stress": true
+      },
+      {
+        "date": "2018-03-21",
+        "ted": 0.56,
+        "vix_ge30_that_day": false,
+        "credit_stress": false
+      },
+      {
+        "date": "2020-03-13",
+        "ted": 0.57,
+        "vix_ge30_that_day": true,
+        "credit_stress": true
+      }
+    ],
+    "n_total": 23,
+    "n_vix": 3,
+    "n_credit": 7,
+    "n_both": 3
+  },
+  "h3_recession_split": {
+    "n_recession": 4,
+    "n_norecession": 19
+  }
+}

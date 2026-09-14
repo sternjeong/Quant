@@ -1,0 +1,283 @@
+{
+  "vix_threshold": 30,
+  "vix_lookback": 20,
+  "n_vix_events": 35,
+  "h3_crosstab": {
+    "events": [
+      {
+        "date": "1990-08-06",
+        "vix": 35.9,
+        "inverted": false,
+        "credit_stress": false
+      },
+      {
+        "date": "1991-01-08",
+        "vix": 30.4,
+        "inverted": false,
+        "credit_stress": false
+      },
+      {
+        "date": "1997-10-27",
+        "vix": 31.1,
+        "inverted": false,
+        "credit_stress": false
+      },
+      {
+        "date": "1997-12-24",
+        "vix": 30.3,
+        "inverted": false,
+        "credit_stress": false
+      },
+      {
+        "date": "1998-08-04",
+        "vix": 31.1,
+        "inverted": false,
+        "credit_stress": false
+      },
+      {
+        "date": "1998-12-14",
+        "vix": 31.3,
+        "inverted": false,
+        "credit_stress": true
+      },
+      {
+        "date": "2000-04-14",
+        "vix": 33.5,
+        "inverted": true,
+        "credit_stress": false
+      },
+      {
+        "date": "2000-10-12",
+        "vix": 30.5,
+        "inverted": true,
+        "credit_stress": true
+      },
+      {
+        "date": "2000-12-20",
+        "vix": 31.7,
+        "inverted": true,
+        "credit_stress": true
+      },
+      {
+        "date": "2001-03-12",
+        "vix": 30.3,
+        "inverted": false,
+        "credit_stress": true
+      },
+      {
+        "date": "2001-09-07",
+        "vix": 31.0,
+        "inverted": false,
+        "credit_stress": true
+      },
+      {
+        "date": "2002-07-09",
+        "vix": 30.2,
+        "inverted": false,
+        "credit_stress": true
+      },
+      {
+        "date": "2003-01-24",
+        "vix": 31.5,
+        "inverted": false,
+        "credit_stress": false
+      },
+      {
+        "date": "2007-08-15",
+        "vix": 30.7,
+        "inverted": false,
+        "credit_stress": true
+      },
+      {
+        "date": "2007-11-12",
+        "vix": 31.1,
+        "inverted": false,
+        "credit_stress": true
+      },
+      {
+        "date": "2008-01-22",
+        "vix": 31.0,
+        "inverted": false,
+        "credit_stress": true
+      },
+      {
+        "date": "2008-03-14",
+        "vix": 31.2,
+        "inverted": false,
+        "credit_stress": true
+      },
+      {
+        "date": "2008-09-15",
+        "vix": 31.7,
+        "inverted": false,
+        "credit_stress": true
+      },
+      {
+        "date": "2009-10-30",
+        "vix": 30.7,
+        "inverted": false,
+        "credit_stress": false
+      },
+      {
+        "date": "2010-05-06",
+        "vix": 32.8,
+        "inverted": false,
+        "credit_stress": false
+      },
+      {
+        "date": "2011-08-04",
+        "vix": 31.7,
+        "inverted": false,
+        "credit_stress": false
+      },
+      {
+        "date": "2015-08-24",
+        "vix": 40.7,
+        "inverted": false,
+        "credit_stress": true
+      },
+      {
+        "date": "2018-02-05",
+        "vix": 37.3,
+        "inverted": false,
+        "credit_stress": false
+      },
+      {
+        "date": "2018-12-21",
+        "vix": 30.1,
+        "inverted": false,
+        "credit_stress": false
+      },
+      {
+        "date": "2020-02-27",
+        "vix": 39.2,
+        "inverted": false,
+        "credit_stress": false
+      },
+      {
+        "date": "2020-09-03",
+        "vix": 33.6,
+        "inverted": false,
+        "credit_stress": false
+      },
+      {
+        "date": "2020-10-26",
+        "vix": 32.5,
+        "inverted": false,
+        "credit_stress": false
+      },
+      {
+        "date": "2021-01-27",
+        "vix": 37.2,
+        "inverted": false,
+        "credit_stress": false
+      },
+      {
+        "date": "2021-12-01",
+        "vix": 31.1,
+        "inverted": false,
+        "credit_stress": false
+      },
+      {
+        "date": "2022-01-25",
+        "vix": 31.2,
+        "inverted": false,
+        "credit_stress": false
+      },
+      {
+        "date": "2022-04-26",
+        "vix": 33.5,
+        "inverted": false,
+        "credit_stress": false
+      },
+      {
+        "date": "2022-09-26",
+        "vix": 32.3,
+        "inverted": true,
+        "credit_stress": false
+      },
+      {
+        "date": "2024-08-05",
+        "vix": 38.6,
+        "inverted": true,
+        "credit_stress": false
+      },
+      {
+        "date": "2025-04-03",
+        "vix": 30.0,
+        "inverted": false,
+        "credit_stress": false
+      },
+      {
+        "date": "2026-03-27",
+        "vix": 31.1,
+        "inverted": false,
+        "credit_stress": false
+      }
+    ],
+    "n_total": 35,
+    "n_inverted": 5,
+    "n_credit_stress": 12,
+    "n_both": 2
+  },
+  "h1": {
+    "vix_x_inverted": {
+      "n_events": 5,
+      "summary": {
+        "n": 5,
+        "fwd_5d_mean_pct": 3.804,
+        "fwd_5d_win_rate_pct": 100.0,
+        "fwd_20d_mean_pct": 5.806,
+        "fwd_20d_win_rate_pct": 100.0,
+        "fwd_60d_mean_pct": 3.048,
+        "fwd_60d_win_rate_pct": 60.0,
+        "fwd_120d_mean_pct": 2.805,
+        "fwd_120d_win_rate_pct": 60.0
+      }
+    },
+    "vix_x_not_inverted": {
+      "n_events": 30,
+      "summary": {
+        "n": 30,
+        "fwd_5d_mean_pct": 1.146,
+        "fwd_5d_win_rate_pct": 63.3,
+        "fwd_20d_mean_pct": 0.874,
+        "fwd_20d_win_rate_pct": 63.3,
+        "fwd_60d_mean_pct": 4.326,
+        "fwd_60d_win_rate_pct": 66.7,
+        "fwd_120d_mean_pct": 5.251,
+        "fwd_120d_win_rate_pct": 65.5
+      }
+    }
+  },
+  "h2": {
+    "vix_x_credit_stress": {
+      "n_events": 12,
+      "summary": {
+        "n": 12,
+        "fwd_5d_mean_pct": 1.463,
+        "fwd_5d_win_rate_pct": 66.7,
+        "fwd_20d_mean_pct": 0.76,
+        "fwd_20d_win_rate_pct": 75.0,
+        "fwd_60d_mean_pct": -0.616,
+        "fwd_60d_win_rate_pct": 58.3,
+        "fwd_120d_mean_pct": -5.662,
+        "fwd_120d_win_rate_pct": 25.0
+      }
+    },
+    "vix_x_credit_calm": {
+      "n_events": 23,
+      "summary": {
+        "n": 23,
+        "fwd_5d_mean_pct": 1.558,
+        "fwd_5d_win_rate_pct": 69.6,
+        "fwd_20d_mean_pct": 2.005,
+        "fwd_20d_win_rate_pct": 65.2,
+        "fwd_60d_mean_pct": 6.627,
+        "fwd_60d_win_rate_pct": 69.6,
+        "fwd_120d_mean_pct": 10.648,
+        "fwd_120d_win_rate_pct": 86.4
+      }
+    }
+  }
+}

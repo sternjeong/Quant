@@ -1,0 +1,323 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}</style></head><body>
+<title>지역은행 위기, 신용시장 렌즈</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #eef1ee; --surface: #ffffff; --surface-2: #e6eae5;
+    --ink: #17211d; --ink-muted: #57635c; --ink-faint: #8b968f; --line: #d9dfd8;
+    --hike: #a8461f; --hike-soft: #f4e3da; --cut: #1f6e79; --cut-soft: #dcedee; --gold: #8a6d1f; --gold-soft: #f1e6c8;
+    --shadow: 0 1px 2px rgba(23,33,29,.06), 0 8px 24px -12px rgba(23,33,29,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+      --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+      --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+      --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c; --gold-soft: #3a3016;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+    --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+    --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+    --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c; --gold-soft: #3a3016;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Public Sans", -apple-system, "Noto Sans KR", sans-serif;
+    font-size: 16px; line-height: 1.65;
+  }
+  ::selection { background: var(--gold); color: #1a1408; }
+  a { color: var(--cut); }
+  .page { max-width: 880px; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 1rem;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 500;
+    font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.08; letter-spacing: -.01em;
+    margin: 0 0 1rem; text-wrap: balance;
+  }
+  .dek { font-size: 1.15rem; color: var(--ink-muted); max-width: 62ch; margin: 0 0 1.75rem; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: .4rem 1.6rem;
+    font-family: "IBM Plex Mono", monospace; font-size: .82rem; color: var(--ink-muted);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: .85rem 0;
+  }
+  .meta-row b { color: var(--ink); font-weight: 600; }
+  section { margin: 3.2rem 0; }
+  section > h2 {
+    font-family: "Fraunces", serif; font-weight: 500; font-size: 1.6rem;
+    letter-spacing: -.005em; margin: 0 0 .3rem; text-wrap: balance;
+  }
+  section > .lede { color: var(--ink-muted); max-width: 66ch; margin: 0 0 1.4rem; }
+  p { max-width: 68ch; }
+  .note {
+    background: var(--surface-2); border-left: 3px solid var(--gold); border-radius: 4px;
+    padding: .9rem 1.1rem; font-size: .93rem; color: var(--ink-muted); max-width: 68ch; margin: 1.1rem 0;
+  }
+  .note b { color: var(--ink); }
+  .callout {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.2rem 1.4rem; box-shadow: var(--shadow); margin: 1.4rem 0;
+  }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .9rem; margin: 1.3rem 0 1.6rem; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.1rem; }
+  .tile .label { font-size: .78rem; color: var(--ink-muted); margin-bottom: .35rem; }
+  .tile .value { font-family: "IBM Plex Mono", monospace; font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tile .value.hike { color: var(--hike); }
+  .tile .value.cut { color: var(--cut); }
+  .tile .sub { font-size: .76rem; color: var(--ink-faint); margin-top: .25rem; }
+  .table-wrap { overflow-x: auto; margin: 1.2rem 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 480px; font-size: .92rem; }
+  caption { text-align: left; font-size: .82rem; color: var(--ink-faint); padding-bottom: .5rem; }
+  th, td { padding: .62rem .8rem; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; font-family: "IBM Plex Mono", monospace; }
+  th:first-child, td:first-child { text-align: left; font-family: "Public Sans", sans-serif; }
+  thead th { font-family: "Public Sans", sans-serif; font-weight: 600; font-size: .78rem; letter-spacing: .02em; color: var(--ink-muted); text-transform: uppercase; border-bottom: 1px solid var(--ink-faint); }
+  tr.row-hot td:first-child { border-left: 3px solid var(--hike); padding-left: .65rem; }
+  tr.row-cool td:first-child { border-left: 3px solid var(--cut); padding-left: .65rem; }
+  tbody tr:hover { background: var(--surface-2); }
+  ul.findings { padding-left: 1.2rem; max-width: 68ch; }
+  ul.findings li { margin-bottom: .9rem; }
+  ul.findings b { color: var(--ink); }
+  .footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--line); font-size: .82rem; color: var(--ink-faint); }
+
+  .hyp-list { display: flex; flex-direction: column; gap: 1rem; margin: 1.2rem 0; }
+  .hyp-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.1rem 1.3rem; box-shadow: var(--shadow);
+  }
+  .hyp-card .hyp-tag {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .08em;
+    color: var(--gold); text-transform: uppercase; margin-bottom: .35rem;
+  }
+  .hyp-card p { margin: 0; max-width: 66ch; }
+  .verdict-row { display: flex; flex-wrap: wrap; align-items: center; gap: .7rem; margin: .2rem 0 1rem; }
+  .verdict-pill {
+    font-family: "IBM Plex Mono", monospace; font-size: .78rem; font-weight: 600; letter-spacing: .04em;
+    padding: .3rem .75rem; border-radius: 20px; text-transform: uppercase;
+  }
+  .verdict-pill.confirmed { background: var(--cut-soft); color: var(--cut); }
+  .verdict-pill.disconfirmed { background: var(--hike-soft); color: var(--hike); }
+  .verdict-pill.mixed { background: var(--gold-soft); color: var(--gold); }
+  .verdict-row h3 { font-family: "Fraunces", serif; font-weight: 500; font-size: 1.3rem; margin: 0; text-wrap: balance; }
+</style>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">MACRO EVENT STUDY · 트랙 H 후속 · 2023년 지역은행 위기 · 가설검증형 미니 스터디</div>
+    <h1>지역은행 위기, 신용시장 렌즈로 다시 보기</h1>
+    <p class="dek">2023년 3월 SVB(실리콘밸리은행)·시그니처은행 파산, 크레디트스위스-UBS 인수는
+    이미 이 프로젝트의 주식시장 충격사건 스터디(Track B)에서 다뤘다. 이번엔 같은 사건을
+    "신용시장" 렌즈 — 회사채가 국채보다 얼마나 높은 이자를 요구하는지 — 로 짧게 다시 본다.
+    Track H 본 스터디가 오래 남겨둔 "다음 후보" 항목을 채우는 작업이다.</p>
+    <div class="meta-row">
+      <span>사건 구간 <b>2023-03-08 ~ 2023-03-23</b></span>
+      <span>지표 <b>FRED BAA10Y</b></span>
+      <span>보조 확인 <b>FRED BAMLH0A0HYM2</b></span>
+    </div>
+  </header>
+
+  <section>
+    <h2>계산 전에 먼저 밝히는 것: 전제가 틀렸다</h2>
+    <p class="lede">이 미니 스터디의 출발점이었던 전제부터 검증했더니, 예상과 다른 결과가
+    나왔다 — 그대로 적는다.</p>
+    <p>이 후속 스터디의 원래 아이디어는 "Track H가 대체 지표(BAA10Y)로 넘어가기 전에 원래
+    쓰려던 FRED BAMLH0A0HYM2(하이일드 옵션조정스프레드)를 다시 조회했더니, 2026년 4월부터
+    적용된 '최근 3년치만 제공'이라는 제약이 마침 2023년 3월 지역은행 위기를 담고 있을
+    것"이라는 것이었다. 그런데 실제로 조회해보니 <b>2026-09-05 기준 이 시리즈의 가용 구간은
+    2023-09-05 ~ 2026-09-03</b>이다. "최근 3년"은 고정된 창이 아니라 <b>오늘 날짜 기준으로
+    매일 굴러가는 rolling window</b>였고, 이미 2023년 3월은 이 창 밖으로 완전히 밀려나 있다
+    — 단 하루도 남아 있지 않다.</p>
+    <p>이 프로젝트의 로컬 캐시 기록을 git 히스토리로 거슬러 올라가 확인해봐도, Track H 본
+    스터디가 진행되던 2026-08-23 시점의 캐시조차 최초 관측치가 2023-07-17이었다 — <b>이
+    프로젝트가 이 시리즈를 다뤄본 어느 시점에도 2023년 3월 데이터를 가진 적이 없다.</b>
+    즉 "3년치 창이 3월 위기를 담고 있을 것"이라는 이 미션의 출발 전제 자체가 틀렸다. 조용히
+    넘기지 않고 이 사실 자체를 첫 번째 결과로 보고한 뒤, Track H 본 스터디와 똑같은 방식으로
+    <b>BAA10Y(무디스 Baa 회사채&minus;10년국채, 1986년부터 무제한 제공)</b>로 대체해서 계속
+    진행한다.</p>
+  </section>
+
+  <section>
+    <h2>사전 등록 가설</h2>
+    <p class="lede">결과를 계산하기 전에 먼저 적어둔 세 가지 가설이다.</p>
+    <div class="hyp-list">
+      <div class="hyp-card">
+        <div class="hyp-tag">H1</div>
+        <p>BAA10Y가 2023년 3월 지역은행 위기 구간(2023-03-08 SVB 파산 전조 ~ 2023-03-23
+        크레디트스위스-UBS 인수 이후 고점)에서 진짜, 감지 가능한 벌어짐을 보인다. 절대 bp
+        크기가 아니라 상대적 크기(위기 전 기준선 대비 %증가, BAA10Y 34년 역사 안에서 이
+        구간 고점의 퍼센타일)로 따져서, 이 프로젝트가 이미 검증한 2008·2020 위기의 BAA10Y
+        기반 벌어짐과 "상대적으로" 비교할 만한 크기인지 확인한다.</p>
+      </div>
+      <div class="hyp-card">
+        <div class="hyp-tag">H2</div>
+        <p>이 스프레드 벌어짐이, 이 사건의 유명한 주식시장 스트레스 날짜들(SVB 파산
+        2023-03-10, 시그니처은행 폐쇄 주말 이후 2023-03-13, 크레디트스위스-UBS 인수 발표
+        이후 2023-03-20)보다 먼저 움직였는지, 같이 움직였는지, 늦게 움직였는지를 본다.</p>
+      </div>
+      <div class="hyp-card">
+        <div class="hyp-tag">H3 (탐색적)</div>
+        <p>2023년 3월이 결국 "당국 개입(FDIC 전액보증·연준 BTFP·UBS의 CS 인수)으로 더 큰
+        붕괴를 막은 봉쇄된 해프닝"이었는지, 신용시장 데이터가 더 깊은 위기의 흔적을
+        보이는지 확인한다. 패닉 최저점부터의 60거래일 순방향 수익률을, 이 프로젝트가 이미
+        정리한 "봉쇄된 해프닝"(LTCM·코로나, +120일 +15~32%)과 "진짜 시스템 붕괴"(리먼,
+        +120일 &minus;43.3%) 사례와 비교한다.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>H1 검증 — 벌어짐은 진짜였지만, 상대적으로 작았다</h2>
+    <div class="tiles">
+      <div class="tile"><div class="label">위기 전 기준선(3/8)</div><div class="value">1.79%p</div><div class="sub">BAA10Y</div></div>
+      <div class="tile"><div class="label">구간 고점(3/23)</div><div class="value hike">2.26%p</div><div class="sub">BAA10Y</div></div>
+      <div class="tile"><div class="label">상대적 벌어짐</div><div class="value hike">+26.3%</div><div class="sub">기준선 대비</div></div>
+      <div class="tile"><div class="label">34년 역사 내 퍼센타일</div><div class="value">58.7%</div><div class="sub">중간보다 살짝 위 수준일 뿐</div></div>
+    </div>
+    <p>기준선(1.79%p)에서 고점(2.26%p)까지 <b>10거래일 만에 +26.3% 벌어졌다</b> — 방향과
+    속도 모두 "진짜, 감지 가능한" 신용시장 반응이라 부를 만하다. 하지만 두 가지 기준으로
+    보면 규모는 상대적으로 작았다: 첫째, Track H 본 스터디가 이벤트 탐지에 쓴 두 임계값(직전
+    3년 90퍼센타일 적응형 기준, 고정 3.0%p 절대 기준) <b>어느 쪽도 넘지 못했다</b> — 본
+    스터디의 탐지 기준으로는 이 사건이 아예 "신용 스트레스 이벤트"로 잡히지 않는다. 둘째,
+    같은 방식으로 계산한 2008년(기준선 대비 +286.4%)·2020년(+112.3%)의 상대적 벌어짐과
+    비교하면, 2023년 3월의 +26.3%는 그 4분의 1~10분의 1 수준에 불과하다. 셋째, 고점(2.26%p)
+    자체가 BAA10Y 34년 역사 안에서 58.7퍼센타일 — 상위권 스트레스 근처도 못 간, 그냥
+    중간보다 살짝 높은 수준이다.</p>
+  </section>
+
+  <section>
+    <h2>H2 검증 — 신용시장은 주식시장과 거의 같은 날 반응했다</h2>
+    <div class="table-wrap">
+      <table>
+        <caption>주요 사건일의 BAA10Y와 그 전 거래일 대비 변화(%p)</caption>
+        <thead><tr><th>사건</th><th>날짜</th><th>당일 BAA10Y</th><th>전거래일</th><th>변화</th></tr></thead>
+        <tbody>
+          <tr class="row-hot"><td>SVB 파산·당국 인수</td><td>2023-03-10</td><td>1.96</td><td>1.85</td><td>+0.11</td></tr>
+          <tr class="row-hot"><td>시그니처은행 폐쇄 이후 첫 거래일</td><td>2023-03-13</td><td>2.14</td><td>1.96</td><td>+0.18</td></tr>
+          <tr><td>CS-UBS 인수 발표 이후 첫 거래일</td><td>2023-03-20</td><td>2.19</td><td>2.21</td><td>&minus;0.02</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><b>초반엔 정확히 "동시" — 신용시장은 주식시장 패닉과 같은 날 함께 움직였다.</b> SVB
+    파산일(3/10)과 시그니처은행 폐쇄 이후 첫 거래일(3/13, 공교롭게도 S&amp;P500 최저 종가일과
+    같은 날)에 BAA10Y가 각각 +0.11%p, +0.18%p 뛰었다 — 신용시장이 뒤늦게 반응한 게 아니라
+    주식시장과 정확히 같은 타이밍에 움직였다. 다만 <b>스프레드의 최종 고점(3/23)은 CS-UBS
+    발표(3/19 주말) 이후 첫 거래일(3/20)보다 사흘 더 늦게 찍혔다</b> — 3/20 당일엔 오히려
+    전날보다 소폭 하락(&minus;0.02%p)했다가, 그 다음 며칠에 걸쳐 다시 올라가 3/23에 고점을
+    찍었다. 결론적으로 <b>초반 반응은 동행, 스프레드의 완전한 정점은 주식시장 저점(3/13)보다
+    약 8거래일 늦게 나타났다</b> — 순수한 선행지표도, 순수한 동행지표도 아닌, "동시에
+    시작해서 조금 더 오래 끄는" 패턴이다.</p>
+  </section>
+
+  <section>
+    <h2>H3 검증 — 신용 데이터도, 실제 결과도 "봉쇄된 해프닝" 쪽이었다</h2>
+    <div class="tiles">
+      <div class="tile"><div class="label">패닉 최저 종가일</div><div class="value">2023-03-13</div><div class="sub">S&amp;P500 3855.76</div></div>
+      <div class="tile"><div class="label">+60거래일 순방향</div><div class="value cut">+10.68%</div><div class="sub">패닉 최저점 기준</div></div>
+      <div class="tile"><div class="label">비교: 봉쇄된 해프닝</div><div class="value cut">+15% ~ +32%</div><div class="sub">LTCM·코로나, +120일</div></div>
+      <div class="tile"><div class="label">비교: 진짜 시스템 붕괴</div><div class="value hike">&minus;43.3%</div><div class="sub">리먼, +120일</div></div>
+    </div>
+    <p>신용 데이터 자체가 이미 "봉쇄된 해프닝" 쪽을 가리켰다 — H1에서 본 것처럼 스프레드
+    벌어짐이 2008·2020 대비 4분의 1~10분의 1 수준에 그쳤고, 이 프로젝트가 이미 신용 스트레스
+    이벤트로 확정한 임계값(3.0%p, 90퍼센타일)조차 넘지 못했다. 실제 시장 결과도 정확히 같은
+    방향이다: 패닉 최저 종가일(2023-03-13)부터 <b>60거래일 만에 +10.68%</b> 반등했다 — 이
+    프로젝트의 curated shock 스터디가 SVB 파산일(3/10) 기준으로 이미 확인한 +10.94%(60일)와
+    거의 같은 숫자다. 이건 시스템이 실제로 무너진 리먼(+120일 &minus;43.3%)이 아니라, 당국
+    개입으로 시스템이 보존된 LTCM·코로나(+120일 +15~32%) 쪽 패턴과 훨씬 가깝다. FDIC의 전액
+    예금보증, 연준의 BTFP(은행기간대출프로그램) 신설, UBS의 CS 인수라는 신속한 3중 개입이
+    신용시장 데이터에서도, 실제 주가 반응에서도 "더 큰 붕괴를 막았다"는 이야기와 일관된
+    그림을 그린다 — 이 프로젝트가 이미 7번(트랙A·B·F·H 안의 크레딧스프레드·TED스프레드·
+    네게이지 대시보드) 독립 재현한 "사건의 무서움보다 실제 시스템 붕괴 여부가 중요하다"는
+    패턴이 여기서 8번째로 재현된 셈이다.</p>
+  </section>
+
+  <section>
+    <h2>가설별 최종 판정</h2>
+    <div class="verdict-row">
+      <span class="verdict-pill mixed">MIXED</span>
+      <h3>H1 — 상대적으로 비교할 만한 벌어짐이었다</h3>
+    </div>
+    <p>벌어짐 자체는 진짜였고 방향도 뚜렷했다(+26.3%, 10거래일 만에) — 이 부분은 CONFIRMED다.
+    하지만 "이 프로젝트가 이미 본 다른 위기와 상대적으로 비교할 만한 크기"라는 후반부는
+    DISCONFIRMED에 가깝다 — 2008(+286.4%)·2020(+112.3%) 대비 4분의 1~10분의 1 수준에
+    불과했고, Track H 본 스터디의 이벤트 탐지 임계값 어느 쪽도 넘지 못했다. 두 부분이 갈려서
+    전체는 MIXED로 판정한다.</p>
+
+    <div class="verdict-row">
+      <span class="verdict-pill mixed">MIXED</span>
+      <h3>H2 — 초반은 동행, 정점은 지연</h3>
+    </div>
+    <p>SVB 파산일·시그니처은행 폐쇄 이후 첫 거래일 모두 신용 스프레드가 주식시장 패닉과
+    같은 날 함께 반응했다(동행) — 이 부분은 CONFIRMED다. 하지만 스프레드의 최종 고점은
+    주식시장 저점보다 약 8거래일 늦게 나타나, "완전히 동시"라고 하기엔 정점 타이밍에
+    지연이 있었다. 신용시장 신호가 선행하지는 않았지만, 순수한 동행보다는 살짝 더 오래
+    끄는 성격이라 MIXED로 판정한다.</p>
+
+    <div class="verdict-row">
+      <span class="verdict-pill confirmed">CONFIRMED</span>
+      <h3>H3 — 신용 데이터도, 실제 결과도 봉쇄된 해프닝을 가리켰다</h3>
+    </div>
+    <p>신용 스프레드의 상대적 벌어짐 크기(H1)와 임계값 미달, 그리고 패닉 최저점부터의
+    +60거래일 +10.68%(이 프로젝트 curated shock 스터디의 +10.94%와 거의 일치)가 모두 같은
+    방향을 가리킨다 — 2023년 3월은 신용시장 데이터로 봐도, 실제 주가 결과로 봐도 리먼(진짜
+    시스템 붕괴)이 아니라 LTCM·코로나(당국 개입으로 봉쇄된 해프닝) 쪽에 훨씬 가까웠다.</p>
+  </section>
+
+  <section>
+    <h2>경제학 지식 없이 읽는 법</h2>
+    <ul class="findings">
+      <li><b>"최근 3년치만 제공"이라는 제약은 고정된 창이 아니라 매일 굴러가는 창이다.</b>
+      2026-08-23엔 이 창이 2023년 여름 어딘가부터 시작했을 것이고, 2026-09-05인 지금은
+      2023년 9월부터 시작한다 — 즉 이런 "최근 N년" 제약이 있는 데이터는 오늘 조회한 범위가
+      내일도 똑같을 거라고 가정하면 안 된다.</li>
+      <li><b>스프레드가 "벌어졌다"는 것과 "역사적으로 크게 벌어졌다"는 것은 다르다.</b> 2023년
+      3월엔 회사채 시장이 분명히 긴장했지만(+26.3%), 2008년·2020년과 비교하면 그 긴장의
+      크기는 몇 분의 1 수준에 불과했다 — 뉴스 헤드라인의 긴박함과 신용시장이 실제로 겪은
+      스트레스의 크기는 다른 이야기일 수 있다.</li>
+      <li><b>신용시장과 주식시장이 "같은 날" 반응했다는 것 자체가 흥미로운 사실이다.</b> 이
+      사건에서는 신용시장이 주식시장보다 먼저 경고를 준 것도, 뒤늦게 뒤따라간 것도 아니라
+      정확히 같은 날 함께 움직였다 — 다만 "완전히 진정되는 시점"은 신용시장 쪽이 조금 더
+      오래 걸렸다.</li>
+      <li><b>당국의 빠른 개입이 신용시장 데이터에도 흔적을 남긴다.</b> FDIC·연준·UBS의
+      3중 개입이 있었던 2023년 3월은, 신용 스프레드가 2008년급으로 벌어지지 않았고 60거래일
+      만에 시장이 강하게 반등했다 — "왜 이번엔 리먼처럼 안 됐을까"라는 질문에, 신용시장
+      데이터 자체가 "그 정도로 벌어지지 않았기 때문"이라는 답을 준다.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>한계</h2>
+    <div class="callout">
+      <ul class="findings" style="margin:0;">
+        <li><b>이건 짧은 미니 스터디이지 완결된 연구가 아니다.</b> 사건 하나만 다루고 있어서
+        (n=1), Track H 본 스터디처럼 여러 이벤트에 걸친 통계적 결론이 아니라 "이 사건 하나가
+        어떻게 보였는가"에 대한 서술이다.</li>
+        <li><b>BAA10Y는 여전히 진짜 하이일드(투기등급) 스프레드가 아니다.</b> 지역은행이라는
+        특정 섹터의 신용 스트레스는 은행 자체의 신용부도스와프(CDS)나 지역은행 회사채
+        스프레드처럼 더 좁혀진 지표에서 더 극적으로 나타났을 수 있고, 이 스터디는 그런
+        섹터 특화 지표를 보지 않았다.</li>
+        <li><b>H2의 "타이밍" 비교는 세 날짜만 본 것이다.</b> 매일 단위로 촘촘히 리드-래그
+        분석을 한 게 아니라 이미 알려진 사건일 세 개에 스프레드 값을 대응시킨 수준이라,
+        "며칠 먼저/늦게"라는 정밀한 통계적 시차 추정은 아니다.</li>
+        <li><b>H3의 "봉쇄된 해프닝 vs 시스템 붕괴" 비교는 이미 이 프로젝트가 정리해둔 소수
+        사례(LTCM·코로나·리먼)와의 정성적 대조다.</b> 새로운 통계 검정이 아니라, 기존에
+        확립된 두 부류 중 어느 쪽에 이 사건이 더 가까운 그림을 그리는지 살펴본 것이다.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="footer">
+    데이터: FRED(BAA10Y, BAMLH0A0HYM2 가용범위 확인용), Yahoo Finance(^GSPC) · 분석 스크립트:
+    regional_bank_crisis_2023_study.py · 원자료 재사용: curated_shock_events.json(SVB 파산일
+    +60일 반응) · 같은 프로젝트: <a href="https://claude.ai/code/artifact/e26038d1-2d9c-494d-9d68-1c6f655ae97b">신용시장의 공포지수(Track H 본 스터디)</a>,
+    <a href="https://claude.ai/code/artifact/fa632f59-17d0-447e-b387-881bc3cba1eb">충격사건 10건 스터디(Track B)</a>
+  </div>
+</div>
+
+</body></html>

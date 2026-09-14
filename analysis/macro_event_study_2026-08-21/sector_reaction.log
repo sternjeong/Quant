@@ -1,0 +1,47 @@
+이벤트 109건
+
+1 Failed download:
+['XLRE']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['XLB']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$XLF: possibly delisted; no price data found  (1d 1998-01-01 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 883630800, endDate = 914216400")
+
+1 Failed download:
+['XLF']: possibly delisted; no price data found  (1d 1998-01-01 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 883630800, endDate = 914216400")
+
+1 Failed download:
+['XLI']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$XLP: possibly delisted; no price data found  (1d 1998-01-01 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 883630800, endDate = 914216400")
+
+1 Failed download:
+['XLP']: possibly delisted; no price data found  (1d 1998-01-01 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 883630800, endDate = 914216400")
+
+1 Failed download:
+['XLY']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$XLK: possibly delisted; no price data found  (1d 1998-01-01 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 883630800, endDate = 914216400")
+
+1 Failed download:
+['XLK']: possibly delisted; no price data found  (1d 1998-01-01 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 883630800, endDate = 914216400")
+
+1 Failed download:
+['XLE']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$XLU: possibly delisted; no price data found  (1d 1998-01-01 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 883630800, endDate = 914216400")
+
+1 Failed download:
+['XLU']: possibly delisted; no price data found  (1d 1998-01-01 -> 1998-12-21) (Yahoo error = "Data doesn't exist for startDate = 883630800, endDate = 914216400")
+
+1 Failed download:
+['XLV']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+[금융(XLF)] 인상후+60일평균=0.39%(n=43), 인하후+60일평균=-4.49%(n=34), 격차=-4.88%p
+[리츠(XLRE)] 인상후+60일평균=-1.52%(n=20), 인하후+60일평균=0.75%(n=11), 격차=2.27%p
+[유틸리티(XLU)] 인상후+60일평균=1.78%(n=43), 인하후+60일평균=-0.68%(n=34), 격차=-2.46%p
+[기술(XLK)] 인상후+60일평균=2.7%(n=43), 인하후+60일평균=-0.27%(n=34), 격차=-2.97%p
+[임의소비재(XLY)] 인상후+60일평균=0.48%(n=43), 인하후+60일평균=1.45%(n=34), 격차=0.97%p
+[필수소비재(XLP)] 인상후+60일평균=0.26%(n=43), 인하후+60일평균=0.14%(n=34), 격차=-0.12%p
+[에너지(XLE)] 인상후+60일평균=2.85%(n=43), 인하후+60일평균=1.27%(n=34), 격차=-1.58%p
+[산업재(XLI)] 인상후+60일평균=1.09%(n=43), 인하후+60일평균=-0.9%(n=34), 격차=-1.99%p
+[헬스케어(XLV)] 인상후+60일평균=0.94%(n=43), 인하후+60일평균=0.93%(n=34), 격차=-0.01%p
+[소재(XLB)] 인상후+60일평균=-0.37%(n=43), 인하후+60일평균=1.8%(n=34), 격차=2.17%p
+
+DONE

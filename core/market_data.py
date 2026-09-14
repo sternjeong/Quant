@@ -30,6 +30,8 @@ from typing import Optional
 import pandas as pd
 import yfinance as yf
 
+from core.retry import default_on_retry, retry_with_backoff
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 CACHE_DIR = PROJECT_ROOT / "data" / "cache"
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
@@ -122,14 +124,31 @@ def _save_store(store_file: Path, df: pd.DataFrame) -> None:
 
 
 def _download(ticker: str, start: Optional[str], end: Optional[str], interval: str) -> pd.DataFrame:
-    df = yf.download(
-        ticker,
-        start=start,
-        end=end,
-        interval=interval,
-        auto_adjust=False,
-        progress=False,
-    )
+    """yfinance 실제 다운로드 (지수 백오프 재시도 포함, 2026-09-13).
+
+    원래 이 함수는 재시도 로직이 전혀 없었고, get_price_history()도 이 호출을 try/except로
+    감싸지 않아서 yfinance 쪽 일시적 네트워크 오류(순단, 레이트리밋 등)가 그대로 호출부까지
+    예외로 전파될 수 있었다 — get_price_history()의 독스트링이 약속하는 "데이터가 없으면 빈
+    DataFrame을 반환한다(예외를 던지지 않음)"가 실제로는 지켜지지 않는 경우였다. 이제 예외 발생 시
+    core.retry.retry_with_backoff로 몇 차례 더 시도하고, 그래도 안 되면 그 실패를 여기서 흡수해
+    빈 DataFrame을 반환한다(독스트링의 계약을 실제로 지킴). 정상적으로 비어있는 응답(예: 상장일
+    이전 구간 조회)은 예외가 아니므로 재시도 대상이 아니다.
+    """
+    try:
+        df = retry_with_backoff(
+            lambda: yf.download(
+                ticker,
+                start=start,
+                end=end,
+                interval=interval,
+                auto_adjust=False,
+                progress=False,
+            ),
+            on_retry=default_on_retry(f"[market_data] {ticker}({interval})"),
+        )
+    except Exception as exc:  # noqa: BLE001 - 재시도까지 모두 실패하면 빈 데이터로 흡수(호출부 계약 유지)
+        print(f"[market_data] {ticker}({interval}) 다운로드 최종 실패, 빈 데이터로 처리: {exc}")
+        df = None
 
     if df is None:
         df = pd.DataFrame()

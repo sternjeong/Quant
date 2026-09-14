@@ -196,8 +196,13 @@ def test_get_multiple_price_history_fetches_all_tickers(monkeypatch, tmp_path):
 
 def test_get_multiple_price_history_isolates_per_ticker_failure(monkeypatch, tmp_path):
     """한 티커 조회가 실패해도(네트워크 오류 등) 나머지 티커 결과에는 영향이 없어야 한다
-    (병렬화 이전부터 있던 계약 — 스레드풀로 바뀌어도 동일하게 유지되는지 확인)."""
+    (병렬화 이전부터 있던 계약 — 스레드풀로 바뀌어도 동일하게 유지되는지 확인).
+
+    2026-09-13부터 _download()가 실패 시 core.retry.retry_with_backoff로 재시도하므로, "BAD"
+    티커는 매번 실패해 재시도를 다 소진한다 — 테스트가 실제로 몇 초씩 대기하지 않도록 time.sleep을
+    무력화한다(재시도 자체는 여전히 일어나지만 대기 없이 즉시 다음 시도로 넘어감)."""
     monkeypatch.setattr(market_data, "CACHE_DIR", tmp_path)
+    monkeypatch.setattr("core.retry.time.sleep", lambda _seconds: None)
 
     def _flaky_download(ticker, start=None, end=None, interval="1d", **kwargs):
         if ticker == "BAD":
@@ -222,3 +227,52 @@ def test_get_multiple_price_history_isolates_per_ticker_failure(monkeypatch, tmp
 
 def test_get_multiple_price_history_empty_ticker_list_returns_empty_dict():
     assert market_data.get_multiple_price_history([]) == {}
+
+
+# ----------------------------------------------------------------------------
+# _download() 재시도 (2026-09-13: core.retry.retry_with_backoff 도입, Day5 "self-healing
+# data pipeline" 아이디어를 실제 network fetch 지점에 적용)
+# ----------------------------------------------------------------------------
+
+
+def test_download_retries_transient_failure_then_succeeds(monkeypatch, tmp_path):
+    """처음 두 번은 예외가 나도, 세 번째 시도에서 성공하면 그 결과를 그대로 반환해야 한다."""
+    monkeypatch.setattr(market_data, "CACHE_DIR", tmp_path)
+    monkeypatch.setattr("core.retry.time.sleep", lambda _seconds: None)
+
+    attempts = {"n": 0}
+
+    def _flaky_then_ok(ticker, start=None, end=None, interval="1d", **kwargs):
+        attempts["n"] += 1
+        if attempts["n"] < 3:
+            raise ConnectionError("일시적 네트워크 오류")
+        idx = pd.date_range(start, end, freq="B", inclusive="left")
+        n = len(idx)
+        return pd.DataFrame(
+            {"Open": range(n), "High": range(n), "Low": range(n), "Close": range(n),
+             "Adj Close": range(n), "Volume": [100] * n},
+            index=idx,
+        )
+
+    monkeypatch.setattr(market_data.yf, "download", _flaky_then_ok)
+
+    df = market_data.get_price_history("RETRY_OK", start="2024-01-01", end="2024-01-10")
+
+    assert attempts["n"] == 3  # 2번 실패 + 1번 성공
+    assert not df.empty
+
+
+def test_download_exhausts_retries_and_returns_empty_without_raising(monkeypatch, tmp_path):
+    """재시도를 다 소진해도 계속 실패하면, get_price_history()가 예외를 던지지 않고 빈
+    DataFrame을 반환해야 한다(독스트링이 약속하는 계약 — 2026-09-13 이전에는 지켜지지 않았다)."""
+    monkeypatch.setattr(market_data, "CACHE_DIR", tmp_path)
+    monkeypatch.setattr("core.retry.time.sleep", lambda _seconds: None)
+
+    def _always_fails(ticker, start=None, end=None, interval="1d", **kwargs):
+        raise ConnectionError("영구적인 것처럼 보이는 네트워크 오류")
+
+    monkeypatch.setattr(market_data.yf, "download", _always_fails)
+
+    df = market_data.get_price_history("ALWAYS_BAD", start="2024-01-01", end="2024-01-10")
+
+    assert df.empty

@@ -1,0 +1,80 @@
+{
+  "2015_2026": {
+    "sideways_days": 547,
+    "baseline": {
+      "cumulative_return": 192.21,
+      "cagr": 9.68,
+      "mdd": -18.44,
+      "sharpe": 0.8,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.52,
+      "avg_drawdown_days": 24.4
+    },
+    "contrarian_sideways": {
+      "cumulative_return": 166.37,
+      "cagr": 8.81,
+      "mdd": -18.88,
+      "sharpe": 0.72,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.47,
+      "avg_drawdown_days": 26.2
+    },
+    "sp500_bh": {
+      "cumulative_return": 276.69,
+      "cagr": 12.11,
+      "mdd": -33.92,
+      "sharpe": 0.74,
+      "win_rate": 100.0,
+      "avg_holding_days": 4238.0,
+      "trade_count": 1,
+      "profit_factor": 999.0,
+      "calmar": 0.36,
+      "avg_drawdown_days": 19.5
+    }
+  },
+  "2000_2012": {
+    "sideways_days": 664,
+    "baseline": {
+      "cumulative_return": 47.33,
+      "cagr": 3.03,
+      "mdd": -37.09,
+      "sharpe": 0.28,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.08,
+      "avg_drawdown_days": 57.3
+    },
+    "contrarian_sideways": {
+      "cumulative_return": 24.7,
+      "cagr": 1.71,
+      "mdd": -45.44,
+      "sharpe": 0.19,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.04,
+      "avg_drawdown_days": 102.5
+    },
+    "sp500_bh": {
+      "cumulative_return": -2.55,
+      "cagr": -0.2,
+      "mdd": -56.78,
+      "sharpe": 0.1,
+      "win_rate": 0.0,
+      "avg_holding_days": 4742.0,
+      "trade_count": 1,
+      "profit_factor": 0.0,
+      "calmar": -0.0,
+      "avg_drawdown_days": 351.2
+    }
+  }
+}

@@ -1,0 +1,287 @@
+{
+  "results": {
+    "^GDAXI": {
+      "name_kr": "독일 DAX",
+      "first_year": 1987,
+      "last_year": 2026,
+      "unfavorable": {
+        "n": 38,
+        "mean_pct": 0.526,
+        "win_rate_pct": 57.9
+      },
+      "favorable": {
+        "n": 37,
+        "mean_pct": 10.264,
+        "win_rate_pct": 75.7
+      },
+      "h1_pass": true,
+      "monthly_breakdown": {
+        "1": {
+          "n": 39,
+          "mean_pct": 0.845,
+          "win_rate_pct": 59.0
+        },
+        "2": {
+          "n": 39,
+          "mean_pct": 1.061,
+          "win_rate_pct": 56.4
+        },
+        "3": {
+          "n": 39,
+          "mean_pct": 0.401,
+          "win_rate_pct": 51.3
+        },
+        "4": {
+          "n": 39,
+          "mean_pct": 2.653,
+          "win_rate_pct": 71.8
+        },
+        "5": {
+          "n": 39,
+          "mean_pct": 1.033,
+          "win_rate_pct": 64.1
+        },
+        "6": {
+          "n": 39,
+          "mean_pct": -0.036,
+          "win_rate_pct": 48.7
+        },
+        "7": {
+          "n": 39,
+          "mean_pct": 1.602,
+          "win_rate_pct": 66.7
+        },
+        "8": {
+          "n": 39,
+          "mean_pct": -1.857,
+          "win_rate_pct": 48.7
+        },
+        "9": {
+          "n": 38,
+          "mean_pct": -2.026,
+          "win_rate_pct": 39.5
+        },
+        "10": {
+          "n": 38,
+          "mean_pct": 1.988,
+          "win_rate_pct": 68.4
+        },
+        "11": {
+          "n": 38,
+          "mean_pct": 2.614,
+          "win_rate_pct": 65.8
+        },
+        "12": {
+          "n": 38,
+          "mean_pct": 2.208,
+          "win_rate_pct": 73.7
+        }
+      },
+      "september_mean_pct": -2.026,
+      "september_rank_lowest": 1,
+      "h2_pass": true,
+      "recent_years_window": 19,
+      "recent_unfavorable": {
+        "n": 19,
+        "mean_pct": 0.727,
+        "win_rate_pct": 63.2
+      },
+      "recent_favorable": {
+        "n": 18,
+        "mean_pct": 7.462,
+        "win_rate_pct": 66.7
+      },
+      "h3_decay_detected": false
+    },
+    "^N225": {
+      "name_kr": "일본 니케이225",
+      "first_year": 1965,
+      "last_year": 2026,
+      "unfavorable": {
+        "n": 61,
+        "mean_pct": 0.846,
+        "win_rate_pct": 52.5
+      },
+      "favorable": {
+        "n": 60,
+        "mean_pct": 7.733,
+        "win_rate_pct": 71.7
+      },
+      "h1_pass": true,
+      "monthly_breakdown": {
+        "1": {
+          "n": 62,
+          "mean_pct": 1.313,
+          "win_rate_pct": 64.5
+        },
+        "2": {
+          "n": 62,
+          "mean_pct": 0.764,
+          "win_rate_pct": 56.5
+        },
+        "3": {
+          "n": 62,
+          "mean_pct": 1.079,
+          "win_rate_pct": 58.1
+        },
+        "4": {
+          "n": 62,
+          "mean_pct": 1.356,
+          "win_rate_pct": 62.9
+        },
+        "5": {
+          "n": 62,
+          "mean_pct": 0.644,
+          "win_rate_pct": 53.2
+        },
+        "6": {
+          "n": 62,
+          "mean_pct": 0.664,
+          "win_rate_pct": 61.3
+        },
+        "7": {
+          "n": 62,
+          "mean_pct": -0.07,
+          "win_rate_pct": 48.4
+        },
+        "8": {
+          "n": 62,
+          "mean_pct": -0.371,
+          "win_rate_pct": 50.0
+        },
+        "9": {
+          "n": 61,
+          "mean_pct": -0.361,
+          "win_rate_pct": 47.5
+        },
+        "10": {
+          "n": 61,
+          "mean_pct": 0.404,
+          "win_rate_pct": 52.5
+        },
+        "11": {
+          "n": 61,
+          "mean_pct": 1.295,
+          "win_rate_pct": 59.0
+        },
+        "12": {
+          "n": 61,
+          "mean_pct": 1.486,
+          "win_rate_pct": 68.9
+        }
+      },
+      "september_mean_pct": -0.361,
+      "september_rank_lowest": 2,
+      "h2_pass": true,
+      "recent_years_window": 30,
+      "recent_unfavorable": {
+        "n": 30,
+        "mean_pct": -0.098,
+        "win_rate_pct": 50.0
+      },
+      "recent_favorable": {
+        "n": 29,
+        "mean_pct": 5.684,
+        "win_rate_pct": 65.5
+      },
+      "h3_decay_detected": false
+    },
+    "^FTSE": {
+      "name_kr": "영국 FTSE100",
+      "first_year": 1984,
+      "last_year": 2026,
+      "unfavorable": {
+        "n": 42,
+        "mean_pct": -0.075,
+        "win_rate_pct": 57.1
+      },
+      "favorable": {
+        "n": 41,
+        "mean_pct": 6.336,
+        "win_rate_pct": 80.5
+      },
+      "h1_pass": true,
+      "monthly_breakdown": {
+        "1": {
+          "n": 43,
+          "mean_pct": 0.634,
+          "win_rate_pct": 55.8
+        },
+        "2": {
+          "n": 43,
+          "mean_pct": 0.798,
+          "win_rate_pct": 60.5
+        },
+        "3": {
+          "n": 43,
+          "mean_pct": 0.12,
+          "win_rate_pct": 55.8
+        },
+        "4": {
+          "n": 43,
+          "mean_pct": 1.915,
+          "win_rate_pct": 74.4
+        },
+        "5": {
+          "n": 43,
+          "mean_pct": 0.052,
+          "win_rate_pct": 55.8
+        },
+        "6": {
+          "n": 43,
+          "mean_pct": -0.748,
+          "win_rate_pct": 41.9
+        },
+        "7": {
+          "n": 43,
+          "mean_pct": 1.211,
+          "win_rate_pct": 62.8
+        },
+        "8": {
+          "n": 43,
+          "mean_pct": -0.041,
+          "win_rate_pct": 55.8
+        },
+        "9": {
+          "n": 42,
+          "mean_pct": -0.806,
+          "win_rate_pct": 47.6
+        },
+        "10": {
+          "n": 42,
+          "mean_pct": 0.513,
+          "win_rate_pct": 69.0
+        },
+        "11": {
+          "n": 42,
+          "mean_pct": 0.89,
+          "win_rate_pct": 57.1
+        },
+        "12": {
+          "n": 42,
+          "mean_pct": 2.15,
+          "win_rate_pct": 78.6
+        }
+      },
+      "september_mean_pct": -0.806,
+      "september_rank_lowest": 1,
+      "h2_pass": true,
+      "recent_years_window": 21,
+      "recent_unfavorable": {
+        "n": 21,
+        "mean_pct": 0.09,
+        "win_rate_pct": 52.4
+      },
+      "recent_favorable": {
+        "n": 20,
+        "mean_pct": 4.416,
+        "win_rate_pct": 80.0
+      },
+      "h3_decay_detected": false
+    }
+  },
+  "h1_overall_verdict": "CONFIRMED",
+  "h2_overall_verdict": "CONFIRMED",
+  "h1_pass_count": 3,
+  "h2_pass_count": 3
+}

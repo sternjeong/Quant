@@ -1,0 +1,398 @@
+{
+  "TLT": {
+    "label": "채권(TLT)",
+    "years": [
+      {
+        "year": 2005,
+        "cycle_year": 1,
+        "return_pct": 3.783
+      },
+      {
+        "year": 2006,
+        "cycle_year": 2,
+        "return_pct": -3.776
+      },
+      {
+        "year": 2007,
+        "cycle_year": 3,
+        "return_pct": 5.213
+      },
+      {
+        "year": 2008,
+        "cycle_year": 0,
+        "return_pct": 28.278
+      },
+      {
+        "year": 2009,
+        "cycle_year": 1,
+        "return_pct": -24.684
+      },
+      {
+        "year": 2010,
+        "cycle_year": 2,
+        "return_pct": 4.706
+      },
+      {
+        "year": 2011,
+        "cycle_year": 3,
+        "return_pct": 28.825
+      },
+      {
+        "year": 2012,
+        "cycle_year": 0,
+        "return_pct": -0.058
+      },
+      {
+        "year": 2013,
+        "cycle_year": 1,
+        "return_pct": -15.943
+      },
+      {
+        "year": 2014,
+        "cycle_year": 2,
+        "return_pct": 23.621
+      },
+      {
+        "year": 2015,
+        "cycle_year": 3,
+        "return_pct": -4.241
+      },
+      {
+        "year": 2016,
+        "cycle_year": 0,
+        "return_pct": -1.203
+      },
+      {
+        "year": 2017,
+        "cycle_year": 1,
+        "return_pct": 6.489
+      },
+      {
+        "year": 2018,
+        "cycle_year": 2,
+        "return_pct": -4.217
+      },
+      {
+        "year": 2019,
+        "cycle_year": 3,
+        "return_pct": 11.497
+      },
+      {
+        "year": 2020,
+        "cycle_year": 0,
+        "return_pct": 16.423
+      },
+      {
+        "year": 2021,
+        "cycle_year": 1,
+        "return_pct": -6.048
+      },
+      {
+        "year": 2022,
+        "cycle_year": 2,
+        "return_pct": -32.816
+      },
+      {
+        "year": 2023,
+        "cycle_year": 3,
+        "return_pct": -0.683
+      },
+      {
+        "year": 2024,
+        "cycle_year": 0,
+        "return_pct": -11.681
+      },
+      {
+        "year": 2025,
+        "cycle_year": 1,
+        "return_pct": -0.195
+      }
+    ],
+    "summary": {
+      "1": {
+        "n": 6,
+        "mean_pct": -6.1,
+        "win_rate_pct": 33.3
+      },
+      "2": {
+        "n": 5,
+        "mean_pct": -2.496,
+        "win_rate_pct": 40.0
+      },
+      "3": {
+        "n": 5,
+        "mean_pct": 8.122,
+        "win_rate_pct": 60.0
+      },
+      "0": {
+        "n": 5,
+        "mean_pct": 6.352,
+        "win_rate_pct": 40.0
+      }
+    }
+  },
+  "GLD": {
+    "label": "금(GLD)",
+    "years": [
+      {
+        "year": 2005,
+        "cycle_year": 1,
+        "return_pct": 17.763
+      },
+      {
+        "year": 2006,
+        "cycle_year": 2,
+        "return_pct": 22.547
+      },
+      {
+        "year": 2007,
+        "cycle_year": 3,
+        "return_pct": 30.454
+      },
+      {
+        "year": 2008,
+        "cycle_year": 0,
+        "return_pct": 4.924
+      },
+      {
+        "year": 2009,
+        "cycle_year": 1,
+        "return_pct": 24.029
+      },
+      {
+        "year": 2010,
+        "cycle_year": 2,
+        "return_pct": 29.27
+      },
+      {
+        "year": 2011,
+        "cycle_year": 3,
+        "return_pct": 9.566
+      },
+      {
+        "year": 2012,
+        "cycle_year": 0,
+        "return_pct": 6.599
+      },
+      {
+        "year": 2013,
+        "cycle_year": 1,
+        "return_pct": -28.33
+      },
+      {
+        "year": 2014,
+        "cycle_year": 2,
+        "return_pct": -2.187
+      },
+      {
+        "year": 2015,
+        "cycle_year": 3,
+        "return_pct": -10.671
+      },
+      {
+        "year": 2016,
+        "cycle_year": 0,
+        "return_pct": 8.033
+      },
+      {
+        "year": 2017,
+        "cycle_year": 1,
+        "return_pct": 12.809
+      },
+      {
+        "year": 2018,
+        "cycle_year": 2,
+        "return_pct": -1.941
+      },
+      {
+        "year": 2019,
+        "cycle_year": 3,
+        "return_pct": 17.856
+      },
+      {
+        "year": 2020,
+        "cycle_year": 0,
+        "return_pct": 24.815
+      },
+      {
+        "year": 2021,
+        "cycle_year": 1,
+        "return_pct": -4.149
+      },
+      {
+        "year": 2022,
+        "cycle_year": 2,
+        "return_pct": -0.772
+      },
+      {
+        "year": 2023,
+        "cycle_year": 3,
+        "return_pct": 12.692
+      },
+      {
+        "year": 2024,
+        "cycle_year": 0,
+        "return_pct": 26.657
+      },
+      {
+        "year": 2025,
+        "cycle_year": 1,
+        "return_pct": 63.677
+      }
+    ],
+    "summary": {
+      "1": {
+        "n": 6,
+        "mean_pct": 14.3,
+        "win_rate_pct": 66.7
+      },
+      "2": {
+        "n": 5,
+        "mean_pct": 9.383,
+        "win_rate_pct": 40.0
+      },
+      "3": {
+        "n": 5,
+        "mean_pct": 11.979,
+        "win_rate_pct": 80.0
+      },
+      "0": {
+        "n": 5,
+        "mean_pct": 14.206,
+        "win_rate_pct": 100.0
+      }
+    }
+  },
+  "DX-Y.NYB": {
+    "label": "달러지수",
+    "years": [
+      {
+        "year": 2005,
+        "cycle_year": 1,
+        "return_pct": 12.764
+      },
+      {
+        "year": 2006,
+        "cycle_year": 2,
+        "return_pct": -8.172
+      },
+      {
+        "year": 2007,
+        "cycle_year": 3,
+        "return_pct": -8.385
+      },
+      {
+        "year": 2008,
+        "cycle_year": 0,
+        "return_pct": 6.01
+      },
+      {
+        "year": 2009,
+        "cycle_year": 1,
+        "return_pct": -4.243
+      },
+      {
+        "year": 2010,
+        "cycle_year": 2,
+        "return_pct": 1.503
+      },
+      {
+        "year": 2011,
+        "cycle_year": 3,
+        "return_pct": 1.442
+      },
+      {
+        "year": 2012,
+        "cycle_year": 0,
+        "return_pct": -0.499
+      },
+      {
+        "year": 2013,
+        "cycle_year": 1,
+        "return_pct": 0.338
+      },
+      {
+        "year": 2014,
+        "cycle_year": 2,
+        "return_pct": 12.781
+      },
+      {
+        "year": 2015,
+        "cycle_year": 3,
+        "return_pct": 9.261
+      },
+      {
+        "year": 2016,
+        "cycle_year": 0,
+        "return_pct": 3.812
+      },
+      {
+        "year": 2017,
+        "cycle_year": 1,
+        "return_pct": -10.03
+      },
+      {
+        "year": 2018,
+        "cycle_year": 2,
+        "return_pct": 4.396
+      },
+      {
+        "year": 2019,
+        "cycle_year": 3,
+        "return_pct": 0.229
+      },
+      {
+        "year": 2020,
+        "cycle_year": 0,
+        "return_pct": -6.692
+      },
+      {
+        "year": 2021,
+        "cycle_year": 1,
+        "return_pct": 6.371
+      },
+      {
+        "year": 2022,
+        "cycle_year": 2,
+        "return_pct": 8.205
+      },
+      {
+        "year": 2023,
+        "cycle_year": 3,
+        "return_pct": -2.116
+      },
+      {
+        "year": 2024,
+        "cycle_year": 0,
+        "return_pct": 7.066
+      },
+      {
+        "year": 2025,
+        "cycle_year": 1,
+        "return_pct": -9.411
+      }
+    ],
+    "summary": {
+      "1": {
+        "n": 6,
+        "mean_pct": -0.702,
+        "win_rate_pct": 50.0
+      },
+      "2": {
+        "n": 5,
+        "mean_pct": 3.743,
+        "win_rate_pct": 80.0
+      },
+      "3": {
+        "n": 5,
+        "mean_pct": 0.086,
+        "win_rate_pct": 60.0
+      },
+      "0": {
+        "n": 5,
+        "mean_pct": 1.939,
+        "win_rate_pct": 60.0
+      }
+    }
+  }
+}

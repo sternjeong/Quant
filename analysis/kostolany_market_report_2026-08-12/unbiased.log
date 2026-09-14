@@ -1,0 +1,166 @@
+2015-01-01 시점 S&P500 구성종목 수: 499
+무작위 표본 100종목(seed=42): ['ABBV', 'ADSK', 'ADT', 'AEP', 'AES', 'AIZ', 'AKAM', 'AN', 'ANDV', 'APC', 'ARG', 'AVB', 'AVP', 'AXP', 'AZO', 'BBT', 'BHGE', 'BRK-B', 'CAM', 'CB', 'CBS', 'CMCSA', 'CMI', 'COL', 'COV', 'CPB', 'CRM', 'CSX', 'CTL', 'CVC', 'DE', 'DNB', 'DNR', 'DRI', 'DTV', 'EBAY', 'ED', 'FAST', 'FCX', 'FDX', 'FITB', 'FLR', 'FMC', 'FOSL', 'FTI', 'GE', 'GGP', 'HCBK', 'HD', 'HSY', 'ICE', 'INTU', 'KMX', 'LMT', 'LUV', 'M', 'MAT', 'MHK', 'MNK', 'MNST', 'MRO', 'MS', 'MYL', 'NE', 'NFX', 'NKE', 'NRG', 'NSC', 'NWSA', 'ORLY', 'PBCT', 'PCG', 'PFG', 'PGR', 'PH', 'PNC', 'PRU', 'PWR', 'PXD', 'RHT', 'RL', 'RSG', 'SPLS', 'SRCL', 'SRE', 'SYMC', 'TGNA', 'TGT', 'TSS', 'TWC', 'UNM', 'URBN', 'VIAB', 'VTR', 'WFM', 'WIN', 'WMT', 'WYND', 'XL', 'YUM']
+가격 데이터 수집 중 (시간이 걸릴 수 있음)...
+$ARG: possibly delisted; no price data found  (1d 2013-11-27 -> 2026-08-12)
+
+1 Failed download:
+['ARG']: possibly delisted; no price data found  (1d 2013-11-27 -> 2026-08-12)
+$ADT: possibly delisted; no price data found  (1d 2013-11-27 -> 2018-01-18) (Yahoo error = "Data doesn't exist for startDate = 1385528400, endDate = 1516251600")
+
+1 Failed download:
+['ADT']: possibly delisted; no price data found  (1d 2013-11-27 -> 2018-01-18) (Yahoo error = "Data doesn't exist for startDate = 1385528400, endDate = 1516251600")
+$APC: possibly delisted; no price data found  (1d 2013-11-27 -> 2026-02-11) (Yahoo error = "Data doesn't exist for startDate = 1385528400, endDate = 1770786000")
+
+1 Failed download:
+['APC']: possibly delisted; no price data found  (1d 2013-11-27 -> 2026-02-11) (Yahoo error = "Data doesn't exist for startDate = 1385528400, endDate = 1770786000")
+$BHGE: possibly delisted; no timezone found
+
+1 Failed download:
+['BHGE']: possibly delisted; no timezone found
+$AVP: possibly delisted; no timezone found
+
+1 Failed download:
+['AVP']: possibly delisted; no timezone found
+$CAM: possibly delisted; no price data found  (1d 2013-11-27 -> 2025-10-05) (Yahoo error = "Data doesn't exist for startDate = 1385528400, endDate = 1759636800")
+
+1 Failed download:
+['CAM']: possibly delisted; no price data found  (1d 2013-11-27 -> 2025-10-05) (Yahoo error = "Data doesn't exist for startDate = 1385528400, endDate = 1759636800")
+$CBS: possibly delisted; no timezone found
+
+1 Failed download:
+['CBS']: possibly delisted; no timezone found
+$COV: possibly delisted; no price data found  (1d 2013-11-27 -> 2026-08-12)
+
+1 Failed download:
+['COV']: possibly delisted; no price data found  (1d 2013-11-27 -> 2026-08-12)
+$CVC: possibly delisted; no price data found  (1d 2013-11-27 -> 2026-08-12)
+
+1 Failed download:
+['CVC']: possibly delisted; no price data found  (1d 2013-11-27 -> 2026-08-12)
+$CTL: possibly delisted; no timezone found
+
+1 Failed download:
+['CTL']: possibly delisted; no timezone found
+$DNR: possibly delisted; no timezone found
+
+1 Failed download:
+['DNR']: possibly delisted; no timezone found
+$DNB: possibly delisted; no timezone found
+
+1 Failed download:
+['DNB']: possibly delisted; no timezone found
+$GGP: possibly delisted; no price data found  (1d 2013-11-27 -> 2026-08-12)
+
+1 Failed download:
+['GGP']: possibly delisted; no price data found  (1d 2013-11-27 -> 2026-08-12)
+$DTV: possibly delisted; no timezone found
+$HCBK: possibly delisted; no price data found  (1d 2013-11-27 -> 2026-08-12)
+
+1 Failed download:
+['HCBK']: possibly delisted; no price data found  (1d 2013-11-27 -> 2026-08-12)
+
+1 Failed download:
+['DTV']: possibly delisted; no timezone found
+$MRO: possibly delisted; no timezone found
+$MNK: possibly delisted; no timezone found
+
+1 Failed download:
+['MRO']: possibly delisted; no timezone found
+
+1 Failed download:
+['MNK']: possibly delisted; no timezone found
+$MYL: possibly delisted; no timezone found
+$NE: possibly delisted; no price data found  (1d 2013-11-27 -> 2021-06-08) (Yahoo error = "Data doesn't exist for startDate = 1385528400, endDate = 1623124800")
+
+1 Failed download:
+['MYL']: possibly delisted; no timezone found
+
+1 Failed download:
+['NE']: possibly delisted; no price data found  (1d 2013-11-27 -> 2021-06-08) (Yahoo error = "Data doesn't exist for startDate = 1385528400, endDate = 1623124800")
+$NFX: possibly delisted; no price data found  (1d 2013-11-27 -> 2026-07-06) (Yahoo error = "Data doesn't exist for startDate = 1385528400, endDate = 1783310400")
+
+1 Failed download:
+['NFX']: possibly delisted; no price data found  (1d 2013-11-27 -> 2026-07-06) (Yahoo error = "Data doesn't exist for startDate = 1385528400, endDate = 1783310400")
+$PBCT: possibly delisted; no timezone found
+
+1 Failed download:
+['PBCT']: possibly delisted; no timezone found
+$RHT: possibly delisted; no timezone found
+$PXD: possibly delisted; no timezone found
+
+1 Failed download:
+['RHT']: possibly delisted; no timezone found
+
+1 Failed download:
+['PXD']: possibly delisted; no timezone found
+$SRCL: possibly delisted; no timezone found
+$SPLS: possibly delisted; no price data found  (1d 2013-11-27 -> 2026-01-15) (Yahoo error = "Data doesn't exist for startDate = 1385528400, endDate = 1768453200")
+
+1 Failed download:
+['SRCL']: possibly delisted; no timezone found
+
+1 Failed download:
+['SPLS']: possibly delisted; no price data found  (1d 2013-11-27 -> 2026-01-15) (Yahoo error = "Data doesn't exist for startDate = 1385528400, endDate = 1768453200")
+$SYMC: possibly delisted; no timezone found
+$TGNA: possibly delisted; no timezone found
+
+1 Failed download:
+['SYMC']: possibly delisted; no timezone found
+
+1 Failed download:
+['TGNA']: possibly delisted; no timezone found
+$TWC: possibly delisted; no price data found  (1d 2013-11-27 -> 2026-08-12)
+
+1 Failed download:
+['TWC']: possibly delisted; no price data found  (1d 2013-11-27 -> 2026-08-12)
+$TSS: possibly delisted; no timezone found
+
+1 Failed download:
+['TSS']: possibly delisted; no timezone found
+$WFM: possibly delisted; no price data found  (1d 2013-11-27 -> 2026-08-12)
+
+1 Failed download:
+['WFM']: possibly delisted; no price data found  (1d 2013-11-27 -> 2026-08-12)
+$VIAB: possibly delisted; no timezone found
+
+1 Failed download:
+['VIAB']: possibly delisted; no timezone found
+$WIN: possibly delisted; no timezone found
+$WYND: possibly delisted; no timezone found
+
+1 Failed download:
+['WIN']: possibly delisted; no timezone found
+
+1 Failed download:
+['WYND']: possibly delisted; no timezone found
+$XL: possibly delisted; no timezone found
+
+1 Failed download:
+['XL']: possibly delisted; no timezone found
+데이터 확보된 종목 수: 68 / 100
+S&P500 매수보유: {'cumulative_return': 275.48, 'cagr': 12.08, 'mdd': -33.92, 'sharpe': 0.73, 'win_rate': 100.0, 'avg_holding_days': 4239.0, 'trade_count': 1}
+
+Top10 동일비중 모멘텀 로테이션(편향제거 68종목 유니버스): {'cumulative_return': 221.96, 'cagr': 10.6, 'mdd': -34.35, 'sharpe': 0.59, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0}
+  + vol-target(12.0, cap=1.0): {'cumulative_return': 82.57, 'cagr': 5.32, 'mdd': -17.77, 'sharpe': 0.47, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0}
+  + vol-target(15.0, cap=1.0): {'cumulative_return': 107.5, 'cagr': 6.49, 'mdd': -20.51, 'sharpe': 0.5, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0}
+  + vol-target(18.0, cap=1.0): {'cumulative_return': 132.78, 'cagr': 7.55, 'mdd': -22.66, 'sharpe': 0.52, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0}
+
+Top15 동일비중 모멘텀 로테이션(편향제거 68종목 유니버스): {'cumulative_return': 232.34, 'cagr': 10.9, 'mdd': -36.21, 'sharpe': 0.63, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0}
+  + vol-target(12.0, cap=1.0): {'cumulative_return': 110.6, 'cagr': 6.63, 'mdd': -18.54, 'sharpe': 0.58, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0}
+  + vol-target(15.0, cap=1.0): {'cumulative_return': 149.31, 'cagr': 8.19, 'mdd': -20.83, 'sharpe': 0.62, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0}
+  + vol-target(18.0, cap=1.0): {'cumulative_return': 169.2, 'cagr': 8.91, 'mdd': -23.59, 'sharpe': 0.62, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0}
+
+=== 전체 요약 (샤프 내림차순) ===
+   top_n overlay  cumulative_return   cagr    mdd  sharpe  win_rate  avg_holding_days  trade_count
+4     15    none             232.34  10.90 -36.21    0.63       0.0               0.0            0
+6     15  vt15.0             149.31   8.19 -20.83    0.62       0.0               0.0            0
+7     15  vt18.0             169.20   8.91 -23.59    0.62       0.0               0.0            0
+0     10    none             221.96  10.60 -34.35    0.59       0.0               0.0            0
+5     15  vt12.0             110.60   6.63 -18.54    0.58       0.0               0.0            0
+3     10  vt18.0             132.78   7.55 -22.66    0.52       0.0               0.0            0
+2     10  vt15.0             107.50   6.49 -20.51    0.50       0.0               0.0            0
+1     10  vt12.0              82.57   5.32 -17.77    0.47       0.0               0.0            0
+
+참고 S&P500: cagr=12.08, mdd=-33.92, sharpe=0.73
+참고(08장, 사후편향 있는 50종목 유니버스): Top10 no-overlay cagr=29.11, mdd=-29.88, sharpe=1.15
+DONE

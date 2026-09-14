@@ -1,0 +1,3132 @@
+{
+  "meta": {
+    "generated": "2026-08-23"
+  },
+  "h20": {
+    "meta": {
+      "satellite_weight": 0.15,
+      "vix_level_threshold": 30.0,
+      "vix_roc_window": 10,
+      "vix_roc_threshold": 0.5,
+      "episode_order": [
+        "gfc_2008",
+        "correction_2015_2016",
+        "selloff_2018",
+        "bear_2022",
+        "covid_2020",
+        "full_2019_2026"
+      ]
+    },
+    "episodes": {
+      "gfc_2008": {
+        "label": "gfc_2008",
+        "full_period": [
+          "2007-01-01",
+          "2009-12-31"
+        ],
+        "crisis_window": [
+          "2007-10-01",
+          "2009-06-30"
+        ],
+        "windows": {
+          "full_period": {
+            "core_alone": {
+              "cumulative_return": 35.58,
+              "cagr": 10.72,
+              "mdd": -15.85,
+              "sharpe": 0.75,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.68,
+              "avg_drawdown_days": 25.8,
+              "n_days": 755
+            },
+            "case_a_static_satellite": {
+              "cumulative_return": 24.83,
+              "cagr": 7.7,
+              "mdd": -19.96,
+              "sharpe": 0.6,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.39,
+              "avg_drawdown_days": 33.7,
+              "n_days": 755
+            },
+            "case_b_spy_switch": {
+              "cumulative_return": 35.02,
+              "cagr": 10.56,
+              "mdd": -15.99,
+              "sharpe": 0.76,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.66,
+              "avg_drawdown_days": 25.8,
+              "n_days": 755
+            },
+            "case_c_vix_switch": {
+              "cumulative_return": 29.03,
+              "cagr": 8.9,
+              "mdd": -15.63,
+              "sharpe": 0.68,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.57,
+              "avg_drawdown_days": 27.5,
+              "n_days": 755
+            }
+          },
+          "crisis_window": {
+            "core_alone": {
+              "cumulative_return": 6.1,
+              "cagr": 3.45,
+              "mdd": -15.85,
+              "sharpe": 0.29,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.22,
+              "avg_drawdown_days": 27.3,
+              "n_days": 441
+            },
+            "case_a_static_satellite": {
+              "cumulative_return": -7.5,
+              "cagr": -4.36,
+              "mdd": -19.96,
+              "sharpe": -0.21,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -0.22,
+              "avg_drawdown_days": 32.5,
+              "n_days": 441
+            },
+            "case_b_spy_switch": {
+              "cumulative_return": 5.71,
+              "cagr": 3.23,
+              "mdd": -15.99,
+              "sharpe": 0.28,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.2,
+              "avg_drawdown_days": 27.3,
+              "n_days": 441
+            },
+            "case_c_vix_switch": {
+              "cumulative_return": 2.23,
+              "cagr": 1.27,
+              "mdd": -15.63,
+              "sharpe": 0.16,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.08,
+              "avg_drawdown_days": 32.1,
+              "n_days": 441
+            }
+          }
+        },
+        "spy_switch_flips_full": {
+          "n_flip_to_on": 13,
+          "n_flip_to_off": 12,
+          "total_flips": 25,
+          "flip_off_dates": [
+            "2007-08-06",
+            "2007-08-13",
+            "2007-08-29",
+            "2007-09-10",
+            "2007-11-08",
+            "2007-12-04",
+            "2007-12-12",
+            "2007-12-17",
+            "2007-12-28",
+            "2008-05-21",
+            "2009-06-23",
+            "2009-07-08"
+          ],
+          "flip_on_dates": [
+            "2007-01-04",
+            "2007-08-07",
+            "2007-08-23",
+            "2007-08-30",
+            "2007-09-12",
+            "2007-12-03",
+            "2007-12-06",
+            "2007-12-13",
+            "2007-12-26",
+            "2008-05-20",
+            "2009-06-02",
+            "2009-06-25",
+            "2009-07-14"
+          ]
+        },
+        "vix_switch_flips_full": {
+          "n_flip_to_on": 17,
+          "n_flip_to_off": 16,
+          "total_flips": 33,
+          "flip_off_dates": [
+            "2007-02-28",
+            "2007-03-02",
+            "2007-07-30",
+            "2007-08-01",
+            "2007-08-16",
+            "2007-11-13",
+            "2008-01-23",
+            "2008-03-17",
+            "2008-09-16",
+            "2009-05-22",
+            "2009-06-02",
+            "2009-06-04",
+            "2009-06-16",
+            "2009-06-23",
+            "2009-07-08",
+            "2009-11-02"
+          ],
+          "flip_on_dates": [
+            "2007-01-04",
+            "2007-03-01",
+            "2007-03-08",
+            "2007-07-31",
+            "2007-08-02",
+            "2007-08-20",
+            "2007-11-14",
+            "2008-01-24",
+            "2008-03-19",
+            "2009-05-20",
+            "2009-06-01",
+            "2009-06-03",
+            "2009-06-08",
+            "2009-06-22",
+            "2009-06-25",
+            "2009-07-10",
+            "2009-11-03"
+          ]
+        },
+        "spy_switch_flips_crisis_window": {
+          "n_flip_to_on": 7,
+          "n_flip_to_off": 7,
+          "total_flips": 14,
+          "flip_off_dates": [
+            "2007-11-08",
+            "2007-12-04",
+            "2007-12-12",
+            "2007-12-17",
+            "2007-12-28",
+            "2008-05-21",
+            "2009-06-23"
+          ],
+          "flip_on_dates": [
+            "2007-12-03",
+            "2007-12-06",
+            "2007-12-13",
+            "2007-12-26",
+            "2008-05-20",
+            "2009-06-02",
+            "2009-06-25"
+          ]
+        },
+        "vix_switch_flips_crisis_window": {
+          "n_flip_to_on": 9,
+          "n_flip_to_off": 9,
+          "total_flips": 18,
+          "flip_off_dates": [
+            "2007-11-13",
+            "2008-01-23",
+            "2008-03-17",
+            "2008-09-16",
+            "2009-05-22",
+            "2009-06-02",
+            "2009-06-04",
+            "2009-06-16",
+            "2009-06-23"
+          ],
+          "flip_on_dates": [
+            "2007-11-14",
+            "2008-01-24",
+            "2008-03-19",
+            "2009-05-20",
+            "2009-06-01",
+            "2009-06-03",
+            "2009-06-08",
+            "2009-06-22",
+            "2009-06-25"
+          ]
+        },
+        "elapsed_s": 1.1,
+        "note": "코어/새틀라이트는 h12/h16 저장분 재사용, VIX 스위치만 신규 계산"
+      },
+      "bear_2022": {
+        "label": "bear_2022",
+        "full_period": [
+          "2019-08-12",
+          "2026-08-19"
+        ],
+        "crisis_window": [
+          "2022-01-01",
+          "2022-12-31"
+        ],
+        "windows": {
+          "full_period": {
+            "core_alone": {
+              "cumulative_return": 139.19,
+              "cagr": 13.23,
+              "mdd": -17.74,
+              "sharpe": 1.03,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.75,
+              "avg_drawdown_days": 20.2,
+              "n_days": 1764
+            },
+            "case_a_static_satellite": {
+              "cumulative_return": 184.37,
+              "cagr": 16.06,
+              "mdd": -18.45,
+              "sharpe": 1.12,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.87,
+              "avg_drawdown_days": 17.3,
+              "n_days": 1764
+            },
+            "case_b_spy_switch": {
+              "cumulative_return": 130.35,
+              "cagr": 12.63,
+              "mdd": -17.9,
+              "sharpe": 1.01,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.71,
+              "avg_drawdown_days": 23.1,
+              "n_days": 1764
+            },
+            "case_c_vix_switch": {
+              "cumulative_return": 136.61,
+              "cagr": 13.06,
+              "mdd": -16.61,
+              "sharpe": 1.05,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.79,
+              "avg_drawdown_days": 22.2,
+              "n_days": 1764
+            }
+          },
+          "crisis_window": {
+            "core_alone": {
+              "cumulative_return": 2.19,
+              "cagr": 2.21,
+              "mdd": -11.05,
+              "sharpe": 0.24,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.2,
+              "avg_drawdown_days": 6.8,
+              "n_days": 251
+            },
+            "case_a_static_satellite": {
+              "cumulative_return": 1.79,
+              "cagr": 1.81,
+              "mdd": -12.54,
+              "sharpe": 0.2,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.14,
+              "avg_drawdown_days": 8.9,
+              "n_days": 251
+            },
+            "case_b_spy_switch": {
+              "cumulative_return": 1.51,
+              "cagr": 1.53,
+              "mdd": -11.05,
+              "sharpe": 0.18,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.14,
+              "avg_drawdown_days": 8.6,
+              "n_days": 251
+            },
+            "case_c_vix_switch": {
+              "cumulative_return": 2.44,
+              "cagr": 2.47,
+              "mdd": -10.28,
+              "sharpe": 0.27,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.24,
+              "avg_drawdown_days": 8.7,
+              "n_days": 251
+            }
+          }
+        },
+        "spy_switch_flips_full": {
+          "n_flip_to_on": 22,
+          "n_flip_to_off": 21,
+          "total_flips": 43,
+          "flip_off_dates": [
+            "2020-02-28",
+            "2020-03-04",
+            "2020-03-06",
+            "2020-06-12",
+            "2020-06-29",
+            "2022-01-24",
+            "2022-02-14",
+            "2022-02-18",
+            "2022-03-24",
+            "2022-04-07",
+            "2022-04-11",
+            "2022-12-06",
+            "2023-01-19",
+            "2023-03-10",
+            "2023-03-20",
+            "2023-03-23",
+            "2023-10-23",
+            "2023-10-26",
+            "2025-03-11",
+            "2025-03-27",
+            "2026-03-20"
+          ],
+          "flip_on_dates": [
+            "2019-08-13",
+            "2020-03-03",
+            "2020-03-05",
+            "2020-05-28",
+            "2020-06-15",
+            "2020-06-30",
+            "2022-02-01",
+            "2022-02-16",
+            "2022-03-23",
+            "2022-03-25",
+            "2022-04-08",
+            "2022-12-01",
+            "2023-01-17",
+            "2023-01-24",
+            "2023-03-17",
+            "2023-03-21",
+            "2023-03-24",
+            "2023-10-25",
+            "2023-11-03",
+            "2025-03-25",
+            "2025-05-13",
+            "2026-04-09"
+          ]
+        },
+        "vix_switch_flips_full": {
+          "n_flip_to_on": 34,
+          "n_flip_to_off": 33,
+          "total_flips": 67,
+          "flip_off_dates": [
+            "2020-02-03",
+            "2020-02-25",
+            "2020-05-13",
+            "2020-05-20",
+            "2020-06-12",
+            "2020-07-14",
+            "2020-09-04",
+            "2020-10-27",
+            "2021-01-28",
+            "2021-05-13",
+            "2021-09-21",
+            "2021-11-29",
+            "2021-12-01",
+            "2022-01-25",
+            "2022-02-24",
+            "2022-03-01",
+            "2022-04-27",
+            "2022-05-02",
+            "2022-05-06",
+            "2022-05-19",
+            "2022-06-14",
+            "2022-06-17",
+            "2022-09-27",
+            "2022-10-07",
+            "2024-08-06",
+            "2024-12-19",
+            "2025-03-04",
+            "2025-03-07",
+            "2025-04-04",
+            "2025-04-22",
+            "2025-10-17",
+            "2026-03-09",
+            "2026-03-30"
+          ],
+          "flip_on_dates": [
+            "2019-08-14",
+            "2020-02-04",
+            "2020-05-11",
+            "2020-05-19",
+            "2020-05-21",
+            "2020-07-02",
+            "2020-07-15",
+            "2020-09-10",
+            "2020-11-05",
+            "2021-02-03",
+            "2021-05-14",
+            "2021-09-22",
+            "2021-11-30",
+            "2021-12-08",
+            "2022-01-31",
+            "2022-02-28",
+            "2022-03-16",
+            "2022-04-29",
+            "2022-05-04",
+            "2022-05-16",
+            "2022-05-20",
+            "2022-06-16",
+            "2022-06-23",
+            "2022-10-05",
+            "2022-10-21",
+            "2024-08-09",
+            "2024-12-23",
+            "2025-03-06",
+            "2025-03-10",
+            "2025-04-21",
+            "2025-04-24",
+            "2025-10-20",
+            "2026-03-10",
+            "2026-04-01"
+          ]
+        },
+        "spy_switch_flips_crisis_window": {
+          "n_flip_to_on": 6,
+          "n_flip_to_off": 7,
+          "total_flips": 13,
+          "flip_off_dates": [
+            "2022-01-24",
+            "2022-02-14",
+            "2022-02-18",
+            "2022-03-24",
+            "2022-04-07",
+            "2022-04-11",
+            "2022-12-06"
+          ],
+          "flip_on_dates": [
+            "2022-02-01",
+            "2022-02-16",
+            "2022-03-23",
+            "2022-03-25",
+            "2022-04-08",
+            "2022-12-01"
+          ]
+        },
+        "vix_switch_flips_crisis_window": {
+          "n_flip_to_on": 11,
+          "n_flip_to_off": 11,
+          "total_flips": 22,
+          "flip_off_dates": [
+            "2022-01-25",
+            "2022-02-24",
+            "2022-03-01",
+            "2022-04-27",
+            "2022-05-02",
+            "2022-05-06",
+            "2022-05-19",
+            "2022-06-14",
+            "2022-06-17",
+            "2022-09-27",
+            "2022-10-07"
+          ],
+          "flip_on_dates": [
+            "2022-01-31",
+            "2022-02-28",
+            "2022-03-16",
+            "2022-04-29",
+            "2022-05-04",
+            "2022-05-16",
+            "2022-05-20",
+            "2022-06-16",
+            "2022-06-23",
+            "2022-10-05",
+            "2022-10-21"
+          ]
+        },
+        "elapsed_s": 0.1,
+        "note": "코어/새틀라이트는 h12/h16 저장분 재사용, VIX 스위치만 신규 계산"
+      },
+      "correction_2015_2016": {
+        "label": "correction_2015_2016",
+        "full_period": [
+          "2014-06-01",
+          "2016-06-30"
+        ],
+        "crisis_window": [
+          "2015-08-01",
+          "2016-02-15"
+        ],
+        "windows": {
+          "full_period": {
+            "core_alone": {
+              "cumulative_return": -5.79,
+              "cagr": -2.83,
+              "mdd": -16.82,
+              "sharpe": -0.19,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -0.17,
+              "avg_drawdown_days": 14.6,
+              "n_days": 525
+            },
+            "case_a_static_satellite": {
+              "cumulative_return": -7.91,
+              "cagr": -3.89,
+              "mdd": -17.39,
+              "sharpe": -0.26,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -0.22,
+              "avg_drawdown_days": 14.6,
+              "n_days": 525
+            },
+            "case_b_spy_switch": {
+              "cumulative_return": -6.25,
+              "cagr": -3.06,
+              "mdd": -15.86,
+              "sharpe": -0.21,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -0.19,
+              "avg_drawdown_days": 12.6,
+              "n_days": 525
+            },
+            "case_c_vix_switch": {
+              "cumulative_return": -7.16,
+              "cagr": -3.52,
+              "mdd": -16.91,
+              "sharpe": -0.25,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -0.21,
+              "avg_drawdown_days": 12.6,
+              "n_days": 525
+            }
+          },
+          "crisis_window": {
+            "core_alone": {
+              "cumulative_return": -14.58,
+              "cagr": -25.79,
+              "mdd": -15.09,
+              "sharpe": -1.9,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -1.71,
+              "avg_drawdown_days": 1.0,
+              "n_days": 135
+            },
+            "case_a_static_satellite": {
+              "cumulative_return": -14.55,
+              "cagr": -25.73,
+              "mdd": -15.58,
+              "sharpe": -1.7,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -1.65,
+              "avg_drawdown_days": 0.0,
+              "n_days": 135
+            },
+            "case_b_spy_switch": {
+              "cumulative_return": -13.57,
+              "cagr": -24.12,
+              "mdd": -14.52,
+              "sharpe": -1.76,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -1.66,
+              "avg_drawdown_days": 0.0,
+              "n_days": 135
+            },
+            "case_c_vix_switch": {
+              "cumulative_return": -14.72,
+              "cagr": -26.02,
+              "mdd": -15.58,
+              "sharpe": -1.93,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -1.67,
+              "avg_drawdown_days": 0.0,
+              "n_days": 135
+            }
+          }
+        },
+        "spy_switch_flips_full": {
+          "n_flip_to_on": 10,
+          "n_flip_to_off": 9,
+          "total_flips": 19,
+          "flip_off_dates": [
+            "2014-10-13",
+            "2015-07-09",
+            "2015-08-21",
+            "2015-11-13",
+            "2015-12-04",
+            "2015-12-10",
+            "2015-12-18",
+            "2015-12-31",
+            "2016-06-28"
+          ],
+          "flip_on_dates": [
+            "2014-06-03",
+            "2014-10-22",
+            "2015-07-13",
+            "2015-10-26",
+            "2015-11-19",
+            "2015-12-07",
+            "2015-12-17",
+            "2015-12-30",
+            "2016-03-14",
+            "2016-06-29"
+          ]
+        },
+        "vix_switch_flips_full": {
+          "n_flip_to_on": 13,
+          "n_flip_to_off": 12,
+          "total_flips": 25,
+          "flip_off_dates": [
+            "2014-10-14",
+            "2014-10-16",
+            "2014-12-11",
+            "2014-12-17",
+            "2015-07-09",
+            "2015-08-24",
+            "2015-12-14",
+            "2016-01-08",
+            "2016-01-14",
+            "2016-06-14",
+            "2016-06-23",
+            "2016-06-27"
+          ],
+          "flip_on_dates": [
+            "2014-06-03",
+            "2014-10-15",
+            "2014-10-21",
+            "2014-12-16",
+            "2014-12-19",
+            "2015-07-13",
+            "2015-09-04",
+            "2015-12-15",
+            "2016-01-13",
+            "2016-01-15",
+            "2016-06-15",
+            "2016-06-24",
+            "2016-06-28"
+          ]
+        },
+        "spy_switch_flips_crisis_window": {
+          "n_flip_to_on": 5,
+          "n_flip_to_off": 6,
+          "total_flips": 11,
+          "flip_off_dates": [
+            "2015-08-21",
+            "2015-11-13",
+            "2015-12-04",
+            "2015-12-10",
+            "2015-12-18",
+            "2015-12-31"
+          ],
+          "flip_on_dates": [
+            "2015-10-26",
+            "2015-11-19",
+            "2015-12-07",
+            "2015-12-17",
+            "2015-12-30"
+          ]
+        },
+        "vix_switch_flips_crisis_window": {
+          "n_flip_to_on": 4,
+          "n_flip_to_off": 4,
+          "total_flips": 8,
+          "flip_off_dates": [
+            "2015-08-24",
+            "2015-12-14",
+            "2016-01-08",
+            "2016-01-14"
+          ],
+          "flip_on_dates": [
+            "2015-09-04",
+            "2015-12-15",
+            "2016-01-13",
+            "2016-01-15"
+          ]
+        },
+        "elapsed_s": 259.9
+      },
+      "selloff_2018": {
+        "label": "selloff_2018",
+        "full_period": [
+          "2017-06-01",
+          "2019-06-30"
+        ],
+        "crisis_window": [
+          "2018-09-01",
+          "2019-01-15"
+        ],
+        "windows": {
+          "full_period": {
+            "core_alone": {
+              "cumulative_return": 5.6,
+              "cagr": 2.66,
+              "mdd": -15.5,
+              "sharpe": 0.28,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.17,
+              "avg_drawdown_days": 6.1,
+              "n_days": 523
+            },
+            "case_a_static_satellite": {
+              "cumulative_return": 12.64,
+              "cagr": 5.91,
+              "mdd": -16.15,
+              "sharpe": 0.52,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.37,
+              "avg_drawdown_days": 14.6,
+              "n_days": 523
+            },
+            "case_b_spy_switch": {
+              "cumulative_return": 11.45,
+              "cagr": 5.37,
+              "mdd": -14.9,
+              "sharpe": 0.49,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.36,
+              "avg_drawdown_days": 14.6,
+              "n_days": 523
+            },
+            "case_c_vix_switch": {
+              "cumulative_return": 11.91,
+              "cagr": 5.58,
+              "mdd": -14.75,
+              "sharpe": 0.51,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.38,
+              "avg_drawdown_days": 15.3,
+              "n_days": 523
+            }
+          },
+          "crisis_window": {
+            "core_alone": {
+              "cumulative_return": -9.71,
+              "cagr": -24.45,
+              "mdd": -14.6,
+              "sharpe": -1.9,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -1.67,
+              "avg_drawdown_days": 6.7,
+              "n_days": 92
+            },
+            "case_a_static_satellite": {
+              "cumulative_return": -10.05,
+              "cagr": -25.25,
+              "mdd": -16.15,
+              "sharpe": -1.67,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -1.56,
+              "avg_drawdown_days": 5.7,
+              "n_days": 92
+            },
+            "case_b_spy_switch": {
+              "cumulative_return": -9.69,
+              "cagr": -24.42,
+              "mdd": -14.9,
+              "sharpe": -1.86,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -1.64,
+              "avg_drawdown_days": 5.7,
+              "n_days": 92
+            },
+            "case_c_vix_switch": {
+              "cumulative_return": -9.62,
+              "cagr": -24.26,
+              "mdd": -14.75,
+              "sharpe": -1.9,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -1.64,
+              "avg_drawdown_days": 5.7,
+              "n_days": 92
+            }
+          }
+        },
+        "spy_switch_flips_full": {
+          "n_flip_to_on": 9,
+          "n_flip_to_off": 8,
+          "total_flips": 17,
+          "flip_off_dates": [
+            "2018-03-26",
+            "2018-04-03",
+            "2018-10-12",
+            "2018-10-19",
+            "2018-11-13",
+            "2018-12-06",
+            "2019-03-11",
+            "2019-06-03"
+          ],
+          "flip_on_dates": [
+            "2017-06-02",
+            "2018-03-27",
+            "2018-04-04",
+            "2018-10-17",
+            "2018-11-08",
+            "2018-12-04",
+            "2019-02-13",
+            "2019-03-12",
+            "2019-06-05"
+          ]
+        },
+        "vix_switch_flips_full": {
+          "n_flip_to_on": 9,
+          "n_flip_to_off": 8,
+          "total_flips": 17,
+          "flip_off_dates": [
+            "2017-08-11",
+            "2018-02-05",
+            "2018-03-26",
+            "2018-10-11",
+            "2018-12-19",
+            "2018-12-24",
+            "2019-05-08",
+            "2019-05-14"
+          ],
+          "flip_on_dates": [
+            "2017-06-02",
+            "2017-08-15",
+            "2018-02-15",
+            "2018-03-27",
+            "2018-10-17",
+            "2018-12-20",
+            "2018-12-28",
+            "2019-05-09",
+            "2019-05-15"
+          ]
+        },
+        "spy_switch_flips_crisis_window": {
+          "n_flip_to_on": 3,
+          "n_flip_to_off": 4,
+          "total_flips": 7,
+          "flip_off_dates": [
+            "2018-10-12",
+            "2018-10-19",
+            "2018-11-13",
+            "2018-12-06"
+          ],
+          "flip_on_dates": [
+            "2018-10-17",
+            "2018-11-08",
+            "2018-12-04"
+          ]
+        },
+        "vix_switch_flips_crisis_window": {
+          "n_flip_to_on": 3,
+          "n_flip_to_off": 3,
+          "total_flips": 6,
+          "flip_off_dates": [
+            "2018-10-11",
+            "2018-12-19",
+            "2018-12-24"
+          ],
+          "flip_on_dates": [
+            "2018-10-17",
+            "2018-12-20",
+            "2018-12-28"
+          ]
+        },
+        "elapsed_s": 243.0
+      },
+      "covid_2020": {
+        "label": "covid_2020",
+        "full_period": [
+          "2019-01-01",
+          "2020-12-31"
+        ],
+        "crisis_window": [
+          "2020-02-19",
+          "2020-04-30"
+        ],
+        "windows": {
+          "full_period": {
+            "core_alone": {
+              "cumulative_return": 27.53,
+              "cagr": 12.98,
+              "mdd": -9.07,
+              "sharpe": 1.14,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 1.43,
+              "avg_drawdown_days": 15.3,
+              "n_days": 504
+            },
+            "case_a_static_satellite": {
+              "cumulative_return": 35.63,
+              "cagr": 16.52,
+              "mdd": -10.06,
+              "sharpe": 1.22,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 1.64,
+              "avg_drawdown_days": 13.6,
+              "n_days": 504
+            },
+            "case_b_spy_switch": {
+              "cumulative_return": 29.16,
+              "cagr": 13.7,
+              "mdd": -9.45,
+              "sharpe": 1.18,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 1.45,
+              "avg_drawdown_days": 16.4,
+              "n_days": 504
+            },
+            "case_c_vix_switch": {
+              "cumulative_return": 31.34,
+              "cagr": 14.66,
+              "mdd": -9.29,
+              "sharpe": 1.26,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 1.58,
+              "avg_drawdown_days": 15.3,
+              "n_days": 504
+            }
+          },
+          "crisis_window": {
+            "core_alone": {
+              "cumulative_return": 0.17,
+              "cagr": 0.86,
+              "mdd": -6.71,
+              "sharpe": 0.13,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.13,
+              "avg_drawdown_days": 31.0,
+              "n_days": 51
+            },
+            "case_a_static_satellite": {
+              "cumulative_return": -0.25,
+              "cagr": -1.29,
+              "mdd": -9.58,
+              "sharpe": 0.04,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -0.13,
+              "avg_drawdown_days": 0.0,
+              "n_days": 51
+            },
+            "case_b_spy_switch": {
+              "cumulative_return": -1.45,
+              "cagr": -7.22,
+              "mdd": -8.15,
+              "sharpe": -0.44,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -0.89,
+              "avg_drawdown_days": 0.0,
+              "n_days": 51
+            },
+            "case_c_vix_switch": {
+              "cumulative_return": -0.67,
+              "cagr": -3.39,
+              "mdd": -7.42,
+              "sharpe": -0.18,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -0.46,
+              "avg_drawdown_days": 0.0,
+              "n_days": 51
+            }
+          }
+        },
+        "spy_switch_flips_full": {
+          "n_flip_to_on": 8,
+          "n_flip_to_off": 7,
+          "total_flips": 15,
+          "flip_off_dates": [
+            "2019-03-11",
+            "2019-06-03",
+            "2020-02-28",
+            "2020-03-04",
+            "2020-03-06",
+            "2020-06-12",
+            "2020-06-29"
+          ],
+          "flip_on_dates": [
+            "2019-02-13",
+            "2019-03-12",
+            "2019-06-05",
+            "2020-03-03",
+            "2020-03-05",
+            "2020-05-28",
+            "2020-06-15",
+            "2020-06-30"
+          ]
+        },
+        "vix_switch_flips_full": {
+          "n_flip_to_on": 13,
+          "n_flip_to_off": 12,
+          "total_flips": 25,
+          "flip_off_dates": [
+            "2019-05-08",
+            "2019-05-14",
+            "2019-08-06",
+            "2019-08-13",
+            "2020-02-03",
+            "2020-02-25",
+            "2020-05-13",
+            "2020-05-20",
+            "2020-06-12",
+            "2020-07-14",
+            "2020-09-04",
+            "2020-10-27"
+          ],
+          "flip_on_dates": [
+            "2019-01-03",
+            "2019-05-09",
+            "2019-05-15",
+            "2019-08-09",
+            "2019-08-14",
+            "2020-02-04",
+            "2020-05-11",
+            "2020-05-19",
+            "2020-05-21",
+            "2020-07-02",
+            "2020-07-15",
+            "2020-09-10",
+            "2020-11-05"
+          ]
+        },
+        "spy_switch_flips_crisis_window": {
+          "n_flip_to_on": 2,
+          "n_flip_to_off": 3,
+          "total_flips": 5,
+          "flip_off_dates": [
+            "2020-02-28",
+            "2020-03-04",
+            "2020-03-06"
+          ],
+          "flip_on_dates": [
+            "2020-03-03",
+            "2020-03-05"
+          ]
+        },
+        "vix_switch_flips_crisis_window": {
+          "n_flip_to_on": 0,
+          "n_flip_to_off": 1,
+          "total_flips": 1,
+          "flip_off_dates": [
+            "2020-02-25"
+          ],
+          "flip_on_dates": []
+        },
+        "elapsed_s": 256.6
+      },
+      "full_2019_2026": {
+        "label": "full_2019_2026",
+        "full_period": [
+          "2019-08-12",
+          "2026-08-19"
+        ],
+        "crisis_window": [
+          "2022-01-01",
+          "2022-12-31"
+        ],
+        "windows": {
+          "full_period": {
+            "core_alone": {
+              "cumulative_return": 139.19,
+              "cagr": 13.23,
+              "mdd": -17.74,
+              "sharpe": 1.03,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.75,
+              "avg_drawdown_days": 20.2,
+              "n_days": 1764
+            },
+            "case_a_static_satellite": {
+              "cumulative_return": 184.37,
+              "cagr": 16.06,
+              "mdd": -18.45,
+              "sharpe": 1.12,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.87,
+              "avg_drawdown_days": 17.3,
+              "n_days": 1764
+            },
+            "case_b_spy_switch": {
+              "cumulative_return": 130.35,
+              "cagr": 12.63,
+              "mdd": -17.9,
+              "sharpe": 1.01,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.71,
+              "avg_drawdown_days": 23.1,
+              "n_days": 1764
+            },
+            "case_c_vix_switch": {
+              "cumulative_return": 136.61,
+              "cagr": 13.06,
+              "mdd": -16.61,
+              "sharpe": 1.05,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.79,
+              "avg_drawdown_days": 22.2,
+              "n_days": 1764
+            }
+          },
+          "crisis_window": {
+            "core_alone": {
+              "cumulative_return": 2.19,
+              "cagr": 2.21,
+              "mdd": -11.05,
+              "sharpe": 0.24,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.2,
+              "avg_drawdown_days": 6.8,
+              "n_days": 251
+            },
+            "case_a_static_satellite": {
+              "cumulative_return": 1.79,
+              "cagr": 1.81,
+              "mdd": -12.54,
+              "sharpe": 0.2,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.14,
+              "avg_drawdown_days": 8.9,
+              "n_days": 251
+            },
+            "case_b_spy_switch": {
+              "cumulative_return": 1.51,
+              "cagr": 1.53,
+              "mdd": -11.05,
+              "sharpe": 0.18,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.14,
+              "avg_drawdown_days": 8.6,
+              "n_days": 251
+            },
+            "case_c_vix_switch": {
+              "cumulative_return": 2.44,
+              "cagr": 2.47,
+              "mdd": -10.28,
+              "sharpe": 0.27,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.24,
+              "avg_drawdown_days": 8.7,
+              "n_days": 251
+            }
+          }
+        },
+        "spy_switch_flips_full": {
+          "n_flip_to_on": 22,
+          "n_flip_to_off": 21,
+          "total_flips": 43,
+          "flip_off_dates": [
+            "2020-02-28",
+            "2020-03-04",
+            "2020-03-06",
+            "2020-06-12",
+            "2020-06-29",
+            "2022-01-24",
+            "2022-02-14",
+            "2022-02-18",
+            "2022-03-24",
+            "2022-04-07",
+            "2022-04-11",
+            "2022-12-06",
+            "2023-01-19",
+            "2023-03-10",
+            "2023-03-20",
+            "2023-03-23",
+            "2023-10-23",
+            "2023-10-26",
+            "2025-03-11",
+            "2025-03-27",
+            "2026-03-20"
+          ],
+          "flip_on_dates": [
+            "2019-08-13",
+            "2020-03-03",
+            "2020-03-05",
+            "2020-05-28",
+            "2020-06-15",
+            "2020-06-30",
+            "2022-02-01",
+            "2022-02-16",
+            "2022-03-23",
+            "2022-03-25",
+            "2022-04-08",
+            "2022-12-01",
+            "2023-01-17",
+            "2023-01-24",
+            "2023-03-17",
+            "2023-03-21",
+            "2023-03-24",
+            "2023-10-25",
+            "2023-11-03",
+            "2025-03-25",
+            "2025-05-13",
+            "2026-04-09"
+          ]
+        },
+        "vix_switch_flips_full": {
+          "n_flip_to_on": 34,
+          "n_flip_to_off": 33,
+          "total_flips": 67,
+          "flip_off_dates": [
+            "2020-02-03",
+            "2020-02-25",
+            "2020-05-13",
+            "2020-05-20",
+            "2020-06-12",
+            "2020-07-14",
+            "2020-09-04",
+            "2020-10-27",
+            "2021-01-28",
+            "2021-05-13",
+            "2021-09-21",
+            "2021-11-29",
+            "2021-12-01",
+            "2022-01-25",
+            "2022-02-24",
+            "2022-03-01",
+            "2022-04-27",
+            "2022-05-02",
+            "2022-05-06",
+            "2022-05-19",
+            "2022-06-14",
+            "2022-06-17",
+            "2022-09-27",
+            "2022-10-07",
+            "2024-08-06",
+            "2024-12-19",
+            "2025-03-04",
+            "2025-03-07",
+            "2025-04-04",
+            "2025-04-22",
+            "2025-10-17",
+            "2026-03-09",
+            "2026-03-30"
+          ],
+          "flip_on_dates": [
+            "2019-08-14",
+            "2020-02-04",
+            "2020-05-11",
+            "2020-05-19",
+            "2020-05-21",
+            "2020-07-02",
+            "2020-07-15",
+            "2020-09-10",
+            "2020-11-05",
+            "2021-02-03",
+            "2021-05-14",
+            "2021-09-22",
+            "2021-11-30",
+            "2021-12-08",
+            "2022-01-31",
+            "2022-02-28",
+            "2022-03-16",
+            "2022-04-29",
+            "2022-05-04",
+            "2022-05-16",
+            "2022-05-20",
+            "2022-06-16",
+            "2022-06-23",
+            "2022-10-05",
+            "2022-10-21",
+            "2024-08-09",
+            "2024-12-23",
+            "2025-03-06",
+            "2025-03-10",
+            "2025-04-21",
+            "2025-04-24",
+            "2025-10-20",
+            "2026-03-10",
+            "2026-04-01"
+          ]
+        },
+        "spy_switch_flips_crisis_window": {
+          "n_flip_to_on": 6,
+          "n_flip_to_off": 7,
+          "total_flips": 13,
+          "flip_off_dates": [
+            "2022-01-24",
+            "2022-02-14",
+            "2022-02-18",
+            "2022-03-24",
+            "2022-04-07",
+            "2022-04-11",
+            "2022-12-06"
+          ],
+          "flip_on_dates": [
+            "2022-02-01",
+            "2022-02-16",
+            "2022-03-23",
+            "2022-03-25",
+            "2022-04-08",
+            "2022-12-01"
+          ]
+        },
+        "vix_switch_flips_crisis_window": {
+          "n_flip_to_on": 11,
+          "n_flip_to_off": 11,
+          "total_flips": 22,
+          "flip_off_dates": [
+            "2022-01-25",
+            "2022-02-24",
+            "2022-03-01",
+            "2022-04-27",
+            "2022-05-02",
+            "2022-05-06",
+            "2022-05-19",
+            "2022-06-14",
+            "2022-06-17",
+            "2022-09-27",
+            "2022-10-07"
+          ],
+          "flip_on_dates": [
+            "2022-01-31",
+            "2022-02-28",
+            "2022-03-16",
+            "2022-04-29",
+            "2022-05-04",
+            "2022-05-16",
+            "2022-05-20",
+            "2022-06-16",
+            "2022-06-23",
+            "2022-10-05",
+            "2022-10-21"
+          ]
+        },
+        "elapsed_s": 0.0,
+        "note": "코어/새틀라이트는 h12/h16 저장분 재사용, VIX 스위치만 신규 계산"
+      }
+    },
+    "summary_table": [
+      {
+        "episode": "gfc_2008",
+        "window_used": "crisis_window",
+        "window_dates": [
+          "2007-10-01",
+          "2009-06-30"
+        ],
+        "core_alone": {
+          "cagr": 3.45,
+          "mdd": -15.85,
+          "sharpe": 0.29
+        },
+        "case_a_static_satellite": {
+          "cagr": -4.36,
+          "mdd": -19.96,
+          "sharpe": -0.21
+        },
+        "case_b_spy_switch": {
+          "cagr": 3.23,
+          "mdd": -15.99,
+          "sharpe": 0.28
+        },
+        "case_c_vix_switch": {
+          "cagr": 1.27,
+          "mdd": -15.63,
+          "sharpe": 0.16
+        }
+      },
+      {
+        "episode": "correction_2015_2016",
+        "window_used": "crisis_window",
+        "window_dates": [
+          "2015-08-01",
+          "2016-02-15"
+        ],
+        "core_alone": {
+          "cagr": -25.79,
+          "mdd": -15.09,
+          "sharpe": -1.9
+        },
+        "case_a_static_satellite": {
+          "cagr": -25.73,
+          "mdd": -15.58,
+          "sharpe": -1.7
+        },
+        "case_b_spy_switch": {
+          "cagr": -24.12,
+          "mdd": -14.52,
+          "sharpe": -1.76
+        },
+        "case_c_vix_switch": {
+          "cagr": -26.02,
+          "mdd": -15.58,
+          "sharpe": -1.93
+        }
+      },
+      {
+        "episode": "selloff_2018",
+        "window_used": "crisis_window",
+        "window_dates": [
+          "2018-09-01",
+          "2019-01-15"
+        ],
+        "core_alone": {
+          "cagr": -24.45,
+          "mdd": -14.6,
+          "sharpe": -1.9
+        },
+        "case_a_static_satellite": {
+          "cagr": -25.25,
+          "mdd": -16.15,
+          "sharpe": -1.67
+        },
+        "case_b_spy_switch": {
+          "cagr": -24.42,
+          "mdd": -14.9,
+          "sharpe": -1.86
+        },
+        "case_c_vix_switch": {
+          "cagr": -24.26,
+          "mdd": -14.75,
+          "sharpe": -1.9
+        }
+      },
+      {
+        "episode": "bear_2022",
+        "window_used": "crisis_window",
+        "window_dates": [
+          "2022-01-01",
+          "2022-12-31"
+        ],
+        "core_alone": {
+          "cagr": 2.21,
+          "mdd": -11.05,
+          "sharpe": 0.24
+        },
+        "case_a_static_satellite": {
+          "cagr": 1.81,
+          "mdd": -12.54,
+          "sharpe": 0.2
+        },
+        "case_b_spy_switch": {
+          "cagr": 1.53,
+          "mdd": -11.05,
+          "sharpe": 0.18
+        },
+        "case_c_vix_switch": {
+          "cagr": 2.47,
+          "mdd": -10.28,
+          "sharpe": 0.27
+        }
+      },
+      {
+        "episode": "covid_2020",
+        "window_used": "crisis_window",
+        "window_dates": [
+          "2020-02-19",
+          "2020-04-30"
+        ],
+        "core_alone": {
+          "cagr": 0.86,
+          "mdd": -6.71,
+          "sharpe": 0.13
+        },
+        "case_a_static_satellite": {
+          "cagr": -1.29,
+          "mdd": -9.58,
+          "sharpe": 0.04
+        },
+        "case_b_spy_switch": {
+          "cagr": -7.22,
+          "mdd": -8.15,
+          "sharpe": -0.44
+        },
+        "case_c_vix_switch": {
+          "cagr": -3.39,
+          "mdd": -7.42,
+          "sharpe": -0.18
+        }
+      },
+      {
+        "episode": "full_2019_2026",
+        "window_used": "full_period",
+        "window_dates": [
+          "2019-08-12",
+          "2026-08-19"
+        ],
+        "core_alone": {
+          "cagr": 13.23,
+          "mdd": -17.74,
+          "sharpe": 1.03
+        },
+        "case_a_static_satellite": {
+          "cagr": 16.06,
+          "mdd": -18.45,
+          "sharpe": 1.12
+        },
+        "case_b_spy_switch": {
+          "cagr": 12.63,
+          "mdd": -17.9,
+          "sharpe": 1.01
+        },
+        "case_c_vix_switch": {
+          "cagr": 13.06,
+          "mdd": -16.61,
+          "sharpe": 1.05
+        }
+      }
+    ],
+    "covid_reaction_speed_comparison": {
+      "crisis_window": [
+        "2020-02-19",
+        "2020-04-30"
+      ],
+      "spy_switch_first_off_date": "2020-02-28",
+      "vix_switch_first_off_date": "2020-02-25",
+      "spy_market_final_dd_pct": -34.1,
+      "spy_market_final_dd_date": "2020-03-23",
+      "satellite_realtime_final_dd_pct": -14.23,
+      "pct_of_spy_market_dd_already_realized_at_spy_switch_off": 36.5,
+      "pct_of_spy_market_dd_already_realized_at_vix_switch_off": 22.3,
+      "pct_of_satellite_dd_already_realized_at_spy_switch_off": 100.0,
+      "pct_of_satellite_dd_already_realized_at_vix_switch_off": 64.3
+    },
+    "whipsaw_false_alarm_check": {
+      "correction_2015_2016": {
+        "spy_switch_total_flips_full_period": 19,
+        "vix_switch_total_flips_full_period": 25,
+        "spy_switch_flips_in_crisis_window": 11,
+        "vix_switch_flips_in_crisis_window": 8,
+        "vix_switch_off_dates_full_period": [
+          "2014-10-14",
+          "2014-10-16",
+          "2014-12-11",
+          "2014-12-17",
+          "2015-07-09",
+          "2015-08-24",
+          "2015-12-14",
+          "2016-01-08",
+          "2016-01-14",
+          "2016-06-14",
+          "2016-06-23",
+          "2016-06-27"
+        ],
+        "spy_switch_off_dates_full_period": [
+          "2014-10-13",
+          "2015-07-09",
+          "2015-08-21",
+          "2015-11-13",
+          "2015-12-04",
+          "2015-12-10",
+          "2015-12-18",
+          "2015-12-31",
+          "2016-06-28"
+        ],
+        "case_b_spy_vs_case_c_vix_sharpe_crisis_window": {
+          "spy": -1.76,
+          "vix": -1.93
+        }
+      },
+      "selloff_2018": {
+        "spy_switch_total_flips_full_period": 17,
+        "vix_switch_total_flips_full_period": 17,
+        "spy_switch_flips_in_crisis_window": 7,
+        "vix_switch_flips_in_crisis_window": 6,
+        "vix_switch_off_dates_full_period": [
+          "2017-08-11",
+          "2018-02-05",
+          "2018-03-26",
+          "2018-10-11",
+          "2018-12-19",
+          "2018-12-24",
+          "2019-05-08",
+          "2019-05-14"
+        ],
+        "spy_switch_off_dates_full_period": [
+          "2018-03-26",
+          "2018-04-03",
+          "2018-10-12",
+          "2018-10-19",
+          "2018-11-13",
+          "2018-12-06",
+          "2019-03-11",
+          "2019-06-03"
+        ],
+        "case_b_spy_vs_case_c_vix_sharpe_crisis_window": {
+          "spy": -1.86,
+          "vix": -1.9
+        }
+      }
+    }
+  },
+  "h21": {
+    "meta": {
+      "satellite_weight": 0.15,
+      "switch_cost_bps_per_side": 5.0,
+      "episode_order": [
+        "gfc_2008",
+        "correction_2015_2016",
+        "selloff_2018",
+        "bear_2022",
+        "covid_2020",
+        "full_2019_2026"
+      ]
+    },
+    "episodes": {
+      "gfc_2008": {
+        "crisis_window": [
+          "2007-10-01",
+          "2009-06-30"
+        ],
+        "full_period": [
+          "2007-01-01",
+          "2009-12-31"
+        ],
+        "windows": {
+          "full_period": {
+            "core_alone": {
+              "cumulative_return": 35.58,
+              "cagr": 10.72,
+              "mdd": -15.85,
+              "sharpe": 0.75,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.68,
+              "avg_drawdown_days": 25.8,
+              "n_days": 755
+            },
+            "case_a_static_satellite": {
+              "cumulative_return": 24.83,
+              "cagr": 7.7,
+              "mdd": -19.96,
+              "sharpe": 0.6,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.39,
+              "avg_drawdown_days": 33.7,
+              "n_days": 755
+            },
+            "case_b_spy_switch": {
+              "cumulative_return": 35.02,
+              "cagr": 10.56,
+              "mdd": -15.99,
+              "sharpe": 0.76,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.66,
+              "avg_drawdown_days": 25.8,
+              "n_days": 755
+            },
+            "case_c_vix_switch": {
+              "cumulative_return": 29.03,
+              "cagr": 8.9,
+              "mdd": -15.63,
+              "sharpe": 0.68,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.57,
+              "avg_drawdown_days": 27.5,
+              "n_days": 755
+            },
+            "case_d_hybrid_or_switch": {
+              "cumulative_return": 34.56,
+              "cagr": 10.44,
+              "mdd": -15.99,
+              "sharpe": 0.75,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.65,
+              "avg_drawdown_days": 25.9,
+              "n_days": 755
+            }
+          },
+          "crisis_window": {
+            "core_alone": {
+              "cumulative_return": 6.1,
+              "cagr": 3.45,
+              "mdd": -15.85,
+              "sharpe": 0.29,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.22,
+              "avg_drawdown_days": 27.3,
+              "n_days": 441
+            },
+            "case_a_static_satellite": {
+              "cumulative_return": -7.5,
+              "cagr": -4.36,
+              "mdd": -19.96,
+              "sharpe": -0.21,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -0.22,
+              "avg_drawdown_days": 32.5,
+              "n_days": 441
+            },
+            "case_b_spy_switch": {
+              "cumulative_return": 5.71,
+              "cagr": 3.23,
+              "mdd": -15.99,
+              "sharpe": 0.28,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.2,
+              "avg_drawdown_days": 27.3,
+              "n_days": 441
+            },
+            "case_c_vix_switch": {
+              "cumulative_return": 2.23,
+              "cagr": 1.27,
+              "mdd": -15.63,
+              "sharpe": 0.16,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.08,
+              "avg_drawdown_days": 32.1,
+              "n_days": 441
+            },
+            "case_d_hybrid_or_switch": {
+              "cumulative_return": 5.66,
+              "cagr": 3.2,
+              "mdd": -15.99,
+              "sharpe": 0.27,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.2,
+              "avg_drawdown_days": 27.3,
+              "n_days": 441
+            }
+          }
+        },
+        "hybrid_flips_full_period": {
+          "n_flip_to_on": 20,
+          "n_flip_to_off": 19,
+          "total_flips": 39,
+          "flip_off_dates": [
+            "2007-02-28",
+            "2007-03-02",
+            "2007-07-30",
+            "2007-08-01",
+            "2007-08-06",
+            "2007-08-13",
+            "2007-08-29",
+            "2007-09-10",
+            "2007-11-08",
+            "2007-12-04",
+            "2007-12-12",
+            "2007-12-17",
+            "2007-12-28",
+            "2008-05-21",
+            "2009-06-04",
+            "2009-06-16",
+            "2009-06-23",
+            "2009-07-08",
+            "2009-11-02"
+          ]
+        },
+        "hybrid_flips_crisis_window": {
+          "n_flip_to_on": 9,
+          "n_flip_to_off": 9,
+          "total_flips": 18,
+          "flip_off_dates": [
+            "2007-11-08",
+            "2007-12-04",
+            "2007-12-12",
+            "2007-12-17",
+            "2007-12-28",
+            "2008-05-21",
+            "2009-06-04",
+            "2009-06-16",
+            "2009-06-23"
+          ]
+        },
+        "spy_flips_full_period_total": 25,
+        "vix_flips_full_period_total": 33,
+        "hybrid_switch_cost_full_period": {
+          "sharpe_before_cost": 0.75,
+          "sharpe_after_cost": 0.74,
+          "cumulative_cost_drag_bps": 29.25
+        }
+      },
+      "correction_2015_2016": {
+        "crisis_window": [
+          "2015-08-01",
+          "2016-02-15"
+        ],
+        "full_period": [
+          "2014-06-01",
+          "2016-06-30"
+        ],
+        "windows": {
+          "full_period": {
+            "core_alone": {
+              "cumulative_return": -5.79,
+              "cagr": -2.83,
+              "mdd": -16.82,
+              "sharpe": -0.19,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -0.17,
+              "avg_drawdown_days": 14.6,
+              "n_days": 525
+            },
+            "case_a_static_satellite": {
+              "cumulative_return": -7.91,
+              "cagr": -3.89,
+              "mdd": -17.39,
+              "sharpe": -0.26,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -0.22,
+              "avg_drawdown_days": 14.6,
+              "n_days": 525
+            },
+            "case_b_spy_switch": {
+              "cumulative_return": -6.25,
+              "cagr": -3.06,
+              "mdd": -15.86,
+              "sharpe": -0.21,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -0.19,
+              "avg_drawdown_days": 12.6,
+              "n_days": 525
+            },
+            "case_c_vix_switch": {
+              "cumulative_return": -7.16,
+              "cagr": -3.52,
+              "mdd": -16.91,
+              "sharpe": -0.25,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -0.21,
+              "avg_drawdown_days": 12.6,
+              "n_days": 525
+            },
+            "case_d_hybrid_or_switch": {
+              "cumulative_return": -5.97,
+              "cagr": -2.93,
+              "mdd": -15.86,
+              "sharpe": -0.2,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -0.18,
+              "avg_drawdown_days": 12.6,
+              "n_days": 525
+            }
+          },
+          "crisis_window": {
+            "core_alone": {
+              "cumulative_return": -14.58,
+              "cagr": -25.79,
+              "mdd": -15.09,
+              "sharpe": -1.9,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -1.71,
+              "avg_drawdown_days": 1.0,
+              "n_days": 135
+            },
+            "case_a_static_satellite": {
+              "cumulative_return": -14.55,
+              "cagr": -25.73,
+              "mdd": -15.58,
+              "sharpe": -1.7,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -1.65,
+              "avg_drawdown_days": 0.0,
+              "n_days": 135
+            },
+            "case_b_spy_switch": {
+              "cumulative_return": -13.57,
+              "cagr": -24.12,
+              "mdd": -14.52,
+              "sharpe": -1.76,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -1.66,
+              "avg_drawdown_days": 0.0,
+              "n_days": 135
+            },
+            "case_c_vix_switch": {
+              "cumulative_return": -14.72,
+              "cagr": -26.02,
+              "mdd": -15.58,
+              "sharpe": -1.93,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -1.67,
+              "avg_drawdown_days": 0.0,
+              "n_days": 135
+            },
+            "case_d_hybrid_or_switch": {
+              "cumulative_return": -13.57,
+              "cagr": -24.12,
+              "mdd": -14.52,
+              "sharpe": -1.76,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -1.66,
+              "avg_drawdown_days": 0.0,
+              "n_days": 135
+            }
+          }
+        },
+        "hybrid_flips_full_period": {
+          "n_flip_to_on": 14,
+          "n_flip_to_off": 13,
+          "total_flips": 27,
+          "flip_off_dates": [
+            "2014-10-13",
+            "2014-12-11",
+            "2014-12-17",
+            "2015-07-09",
+            "2015-08-21",
+            "2015-11-13",
+            "2015-12-04",
+            "2015-12-10",
+            "2015-12-18",
+            "2015-12-31",
+            "2016-06-14",
+            "2016-06-23",
+            "2016-06-27"
+          ]
+        },
+        "hybrid_flips_crisis_window": {
+          "n_flip_to_on": 5,
+          "n_flip_to_off": 6,
+          "total_flips": 11,
+          "flip_off_dates": [
+            "2015-08-21",
+            "2015-11-13",
+            "2015-12-04",
+            "2015-12-10",
+            "2015-12-18",
+            "2015-12-31"
+          ]
+        },
+        "spy_flips_full_period_total": 19,
+        "vix_flips_full_period_total": 25,
+        "hybrid_switch_cost_full_period": {
+          "sharpe_before_cost": -0.2,
+          "sharpe_after_cost": -0.21,
+          "cumulative_cost_drag_bps": 20.25
+        }
+      },
+      "selloff_2018": {
+        "crisis_window": [
+          "2018-09-01",
+          "2019-01-15"
+        ],
+        "full_period": [
+          "2017-06-01",
+          "2019-06-30"
+        ],
+        "windows": {
+          "full_period": {
+            "core_alone": {
+              "cumulative_return": 5.6,
+              "cagr": 2.66,
+              "mdd": -15.5,
+              "sharpe": 0.28,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.17,
+              "avg_drawdown_days": 6.1,
+              "n_days": 523
+            },
+            "case_a_static_satellite": {
+              "cumulative_return": 12.64,
+              "cagr": 5.91,
+              "mdd": -16.15,
+              "sharpe": 0.52,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.37,
+              "avg_drawdown_days": 14.6,
+              "n_days": 523
+            },
+            "case_b_spy_switch": {
+              "cumulative_return": 11.45,
+              "cagr": 5.37,
+              "mdd": -14.9,
+              "sharpe": 0.49,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.36,
+              "avg_drawdown_days": 14.6,
+              "n_days": 523
+            },
+            "case_c_vix_switch": {
+              "cumulative_return": 11.91,
+              "cagr": 5.58,
+              "mdd": -14.75,
+              "sharpe": 0.51,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.38,
+              "avg_drawdown_days": 15.3,
+              "n_days": 523
+            },
+            "case_d_hybrid_or_switch": {
+              "cumulative_return": 11.15,
+              "cagr": 5.23,
+              "mdd": -14.91,
+              "sharpe": 0.48,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.35,
+              "avg_drawdown_days": 15.3,
+              "n_days": 523
+            }
+          },
+          "crisis_window": {
+            "core_alone": {
+              "cumulative_return": -9.71,
+              "cagr": -24.45,
+              "mdd": -14.6,
+              "sharpe": -1.9,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -1.67,
+              "avg_drawdown_days": 6.7,
+              "n_days": 92
+            },
+            "case_a_static_satellite": {
+              "cumulative_return": -10.05,
+              "cagr": -25.25,
+              "mdd": -16.15,
+              "sharpe": -1.67,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -1.56,
+              "avg_drawdown_days": 5.7,
+              "n_days": 92
+            },
+            "case_b_spy_switch": {
+              "cumulative_return": -9.69,
+              "cagr": -24.42,
+              "mdd": -14.9,
+              "sharpe": -1.86,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -1.64,
+              "avg_drawdown_days": 5.7,
+              "n_days": 92
+            },
+            "case_c_vix_switch": {
+              "cumulative_return": -9.62,
+              "cagr": -24.26,
+              "mdd": -14.75,
+              "sharpe": -1.9,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -1.64,
+              "avg_drawdown_days": 5.7,
+              "n_days": 92
+            },
+            "case_d_hybrid_or_switch": {
+              "cumulative_return": -9.71,
+              "cagr": -24.45,
+              "mdd": -14.91,
+              "sharpe": -1.86,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -1.64,
+              "avg_drawdown_days": 5.7,
+              "n_days": 92
+            }
+          }
+        },
+        "hybrid_flips_full_period": {
+          "n_flip_to_on": 13,
+          "n_flip_to_off": 12,
+          "total_flips": 25,
+          "flip_off_dates": [
+            "2017-08-11",
+            "2018-02-05",
+            "2018-03-26",
+            "2018-04-03",
+            "2018-10-11",
+            "2018-10-19",
+            "2018-11-13",
+            "2018-12-06",
+            "2019-03-11",
+            "2019-05-08",
+            "2019-05-14",
+            "2019-06-03"
+          ]
+        },
+        "hybrid_flips_crisis_window": {
+          "n_flip_to_on": 3,
+          "n_flip_to_off": 4,
+          "total_flips": 7,
+          "flip_off_dates": [
+            "2018-10-11",
+            "2018-10-19",
+            "2018-11-13",
+            "2018-12-06"
+          ]
+        },
+        "spy_flips_full_period_total": 17,
+        "vix_flips_full_period_total": 17,
+        "hybrid_switch_cost_full_period": {
+          "sharpe_before_cost": 0.48,
+          "sharpe_after_cost": 0.47,
+          "cumulative_cost_drag_bps": 18.75
+        }
+      },
+      "bear_2022": {
+        "crisis_window": [
+          "2022-01-01",
+          "2022-12-31"
+        ],
+        "full_period": [
+          "2019-08-12",
+          "2026-08-19"
+        ],
+        "windows": {
+          "full_period": {
+            "core_alone": {
+              "cumulative_return": 139.19,
+              "cagr": 13.23,
+              "mdd": -17.74,
+              "sharpe": 1.03,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.75,
+              "avg_drawdown_days": 20.2,
+              "n_days": 1764
+            },
+            "case_a_static_satellite": {
+              "cumulative_return": 184.37,
+              "cagr": 16.06,
+              "mdd": -18.45,
+              "sharpe": 1.12,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.87,
+              "avg_drawdown_days": 17.3,
+              "n_days": 1764
+            },
+            "case_b_spy_switch": {
+              "cumulative_return": 130.35,
+              "cagr": 12.63,
+              "mdd": -17.9,
+              "sharpe": 1.01,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.71,
+              "avg_drawdown_days": 23.1,
+              "n_days": 1764
+            },
+            "case_c_vix_switch": {
+              "cumulative_return": 136.61,
+              "cagr": 13.06,
+              "mdd": -16.61,
+              "sharpe": 1.05,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.79,
+              "avg_drawdown_days": 22.2,
+              "n_days": 1764
+            },
+            "case_d_hybrid_or_switch": {
+              "cumulative_return": 135.22,
+              "cagr": 12.96,
+              "mdd": -17.9,
+              "sharpe": 1.04,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.72,
+              "avg_drawdown_days": 22.3,
+              "n_days": 1764
+            }
+          },
+          "crisis_window": {
+            "core_alone": {
+              "cumulative_return": 2.19,
+              "cagr": 2.21,
+              "mdd": -11.05,
+              "sharpe": 0.24,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.2,
+              "avg_drawdown_days": 6.8,
+              "n_days": 251
+            },
+            "case_a_static_satellite": {
+              "cumulative_return": 1.79,
+              "cagr": 1.81,
+              "mdd": -12.54,
+              "sharpe": 0.2,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.14,
+              "avg_drawdown_days": 8.9,
+              "n_days": 251
+            },
+            "case_b_spy_switch": {
+              "cumulative_return": 1.51,
+              "cagr": 1.53,
+              "mdd": -11.05,
+              "sharpe": 0.18,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.14,
+              "avg_drawdown_days": 8.6,
+              "n_days": 251
+            },
+            "case_c_vix_switch": {
+              "cumulative_return": 2.44,
+              "cagr": 2.47,
+              "mdd": -10.28,
+              "sharpe": 0.27,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.24,
+              "avg_drawdown_days": 8.7,
+              "n_days": 251
+            },
+            "case_d_hybrid_or_switch": {
+              "cumulative_return": 1.51,
+              "cagr": 1.53,
+              "mdd": -11.05,
+              "sharpe": 0.18,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.14,
+              "avg_drawdown_days": 8.6,
+              "n_days": 251
+            }
+          }
+        },
+        "hybrid_flips_full_period": {
+          "n_flip_to_on": 34,
+          "n_flip_to_off": 33,
+          "total_flips": 67,
+          "flip_off_dates": [
+            "2020-02-03",
+            "2020-02-25",
+            "2020-06-12",
+            "2020-07-14",
+            "2020-09-04",
+            "2020-10-27",
+            "2021-01-28",
+            "2021-05-13",
+            "2021-09-21",
+            "2021-11-29",
+            "2021-12-01",
+            "2022-01-24",
+            "2022-02-14",
+            "2022-02-18",
+            "2022-03-24",
+            "2022-04-07",
+            "2022-04-11",
+            "2022-12-06",
+            "2023-01-19",
+            "2023-03-10",
+            "2023-03-20",
+            "2023-03-23",
+            "2023-10-23",
+            "2023-10-26",
+            "2024-08-06",
+            "2024-12-19",
+            "2025-03-04",
+            "2025-03-07",
+            "2025-03-11",
+            "2025-03-27",
+            "2025-10-17",
+            "2026-03-09",
+            "2026-03-20"
+          ]
+        },
+        "hybrid_flips_crisis_window": {
+          "n_flip_to_on": 6,
+          "n_flip_to_off": 7,
+          "total_flips": 13,
+          "flip_off_dates": [
+            "2022-01-24",
+            "2022-02-14",
+            "2022-02-18",
+            "2022-03-24",
+            "2022-04-07",
+            "2022-04-11",
+            "2022-12-06"
+          ]
+        },
+        "spy_flips_full_period_total": 43,
+        "vix_flips_full_period_total": 67,
+        "hybrid_switch_cost_full_period": {
+          "sharpe_before_cost": 1.04,
+          "sharpe_after_cost": 1.03,
+          "cumulative_cost_drag_bps": 50.25
+        }
+      },
+      "covid_2020": {
+        "crisis_window": [
+          "2020-02-19",
+          "2020-04-30"
+        ],
+        "full_period": [
+          "2019-01-01",
+          "2020-12-31"
+        ],
+        "windows": {
+          "full_period": {
+            "core_alone": {
+              "cumulative_return": 27.53,
+              "cagr": 12.98,
+              "mdd": -9.07,
+              "sharpe": 1.14,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 1.43,
+              "avg_drawdown_days": 15.3,
+              "n_days": 504
+            },
+            "case_a_static_satellite": {
+              "cumulative_return": 35.63,
+              "cagr": 16.52,
+              "mdd": -10.06,
+              "sharpe": 1.22,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 1.64,
+              "avg_drawdown_days": 13.6,
+              "n_days": 504
+            },
+            "case_b_spy_switch": {
+              "cumulative_return": 29.16,
+              "cagr": 13.7,
+              "mdd": -9.45,
+              "sharpe": 1.18,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 1.45,
+              "avg_drawdown_days": 16.4,
+              "n_days": 504
+            },
+            "case_c_vix_switch": {
+              "cumulative_return": 31.34,
+              "cagr": 14.66,
+              "mdd": -9.29,
+              "sharpe": 1.26,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 1.58,
+              "avg_drawdown_days": 15.3,
+              "n_days": 504
+            },
+            "case_d_hybrid_or_switch": {
+              "cumulative_return": 30.81,
+              "cagr": 14.42,
+              "mdd": -9.29,
+              "sharpe": 1.25,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 1.55,
+              "avg_drawdown_days": 15.4,
+              "n_days": 504
+            }
+          },
+          "crisis_window": {
+            "core_alone": {
+              "cumulative_return": 0.17,
+              "cagr": 0.86,
+              "mdd": -6.71,
+              "sharpe": 0.13,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.13,
+              "avg_drawdown_days": 31.0,
+              "n_days": 51
+            },
+            "case_a_static_satellite": {
+              "cumulative_return": -0.25,
+              "cagr": -1.29,
+              "mdd": -9.58,
+              "sharpe": 0.04,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -0.13,
+              "avg_drawdown_days": 0.0,
+              "n_days": 51
+            },
+            "case_b_spy_switch": {
+              "cumulative_return": -1.45,
+              "cagr": -7.22,
+              "mdd": -8.15,
+              "sharpe": -0.44,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -0.89,
+              "avg_drawdown_days": 0.0,
+              "n_days": 51
+            },
+            "case_c_vix_switch": {
+              "cumulative_return": -0.67,
+              "cagr": -3.39,
+              "mdd": -7.42,
+              "sharpe": -0.18,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -0.46,
+              "avg_drawdown_days": 0.0,
+              "n_days": 51
+            },
+            "case_d_hybrid_or_switch": {
+              "cumulative_return": -0.67,
+              "cagr": -3.39,
+              "mdd": -7.42,
+              "sharpe": -0.18,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": -0.46,
+              "avg_drawdown_days": 0.0,
+              "n_days": 51
+            }
+          }
+        },
+        "hybrid_flips_full_period": {
+          "n_flip_to_on": 13,
+          "n_flip_to_off": 12,
+          "total_flips": 25,
+          "flip_off_dates": [
+            "2019-03-11",
+            "2019-05-08",
+            "2019-05-14",
+            "2019-06-03",
+            "2019-08-06",
+            "2019-08-13",
+            "2020-02-03",
+            "2020-02-25",
+            "2020-06-12",
+            "2020-07-14",
+            "2020-09-04",
+            "2020-10-27"
+          ]
+        },
+        "hybrid_flips_crisis_window": {
+          "n_flip_to_on": 0,
+          "n_flip_to_off": 1,
+          "total_flips": 1,
+          "flip_off_dates": [
+            "2020-02-25"
+          ]
+        },
+        "spy_flips_full_period_total": 15,
+        "vix_flips_full_period_total": 25,
+        "hybrid_switch_cost_full_period": {
+          "sharpe_before_cost": 1.25,
+          "sharpe_after_cost": 1.24,
+          "cumulative_cost_drag_bps": 18.75
+        }
+      },
+      "full_2019_2026": {
+        "crisis_window": [
+          "2022-01-01",
+          "2022-12-31"
+        ],
+        "full_period": [
+          "2019-08-12",
+          "2026-08-19"
+        ],
+        "windows": {
+          "full_period": {
+            "core_alone": {
+              "cumulative_return": 139.19,
+              "cagr": 13.23,
+              "mdd": -17.74,
+              "sharpe": 1.03,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.75,
+              "avg_drawdown_days": 20.2,
+              "n_days": 1764
+            },
+            "case_a_static_satellite": {
+              "cumulative_return": 184.37,
+              "cagr": 16.06,
+              "mdd": -18.45,
+              "sharpe": 1.12,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.87,
+              "avg_drawdown_days": 17.3,
+              "n_days": 1764
+            },
+            "case_b_spy_switch": {
+              "cumulative_return": 130.35,
+              "cagr": 12.63,
+              "mdd": -17.9,
+              "sharpe": 1.01,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.71,
+              "avg_drawdown_days": 23.1,
+              "n_days": 1764
+            },
+            "case_c_vix_switch": {
+              "cumulative_return": 136.61,
+              "cagr": 13.06,
+              "mdd": -16.61,
+              "sharpe": 1.05,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.79,
+              "avg_drawdown_days": 22.2,
+              "n_days": 1764
+            },
+            "case_d_hybrid_or_switch": {
+              "cumulative_return": 135.22,
+              "cagr": 12.96,
+              "mdd": -17.9,
+              "sharpe": 1.04,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.72,
+              "avg_drawdown_days": 22.3,
+              "n_days": 1764
+            }
+          },
+          "crisis_window": {
+            "core_alone": {
+              "cumulative_return": 2.19,
+              "cagr": 2.21,
+              "mdd": -11.05,
+              "sharpe": 0.24,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.2,
+              "avg_drawdown_days": 6.8,
+              "n_days": 251
+            },
+            "case_a_static_satellite": {
+              "cumulative_return": 1.79,
+              "cagr": 1.81,
+              "mdd": -12.54,
+              "sharpe": 0.2,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.14,
+              "avg_drawdown_days": 8.9,
+              "n_days": 251
+            },
+            "case_b_spy_switch": {
+              "cumulative_return": 1.51,
+              "cagr": 1.53,
+              "mdd": -11.05,
+              "sharpe": 0.18,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.14,
+              "avg_drawdown_days": 8.6,
+              "n_days": 251
+            },
+            "case_c_vix_switch": {
+              "cumulative_return": 2.44,
+              "cagr": 2.47,
+              "mdd": -10.28,
+              "sharpe": 0.27,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.24,
+              "avg_drawdown_days": 8.7,
+              "n_days": 251
+            },
+            "case_d_hybrid_or_switch": {
+              "cumulative_return": 1.51,
+              "cagr": 1.53,
+              "mdd": -11.05,
+              "sharpe": 0.18,
+              "win_rate": 0.0,
+              "avg_holding_days": 0.0,
+              "trade_count": 0,
+              "profit_factor": 0.0,
+              "calmar": 0.14,
+              "avg_drawdown_days": 8.6,
+              "n_days": 251
+            }
+          }
+        },
+        "hybrid_flips_full_period": {
+          "n_flip_to_on": 34,
+          "n_flip_to_off": 33,
+          "total_flips": 67,
+          "flip_off_dates": [
+            "2020-02-03",
+            "2020-02-25",
+            "2020-06-12",
+            "2020-07-14",
+            "2020-09-04",
+            "2020-10-27",
+            "2021-01-28",
+            "2021-05-13",
+            "2021-09-21",
+            "2021-11-29",
+            "2021-12-01",
+            "2022-01-24",
+            "2022-02-14",
+            "2022-02-18",
+            "2022-03-24",
+            "2022-04-07",
+            "2022-04-11",
+            "2022-12-06",
+            "2023-01-19",
+            "2023-03-10",
+            "2023-03-20",
+            "2023-03-23",
+            "2023-10-23",
+            "2023-10-26",
+            "2024-08-06",
+            "2024-12-19",
+            "2025-03-04",
+            "2025-03-07",
+            "2025-03-11",
+            "2025-03-27",
+            "2025-10-17",
+            "2026-03-09",
+            "2026-03-20"
+          ]
+        },
+        "hybrid_flips_crisis_window": {
+          "n_flip_to_on": 6,
+          "n_flip_to_off": 7,
+          "total_flips": 13,
+          "flip_off_dates": [
+            "2022-01-24",
+            "2022-02-14",
+            "2022-02-18",
+            "2022-03-24",
+            "2022-04-07",
+            "2022-04-11",
+            "2022-12-06"
+          ]
+        },
+        "spy_flips_full_period_total": 43,
+        "vix_flips_full_period_total": 67,
+        "hybrid_switch_cost_full_period": {
+          "sharpe_before_cost": 1.04,
+          "sharpe_after_cost": 1.03,
+          "cumulative_cost_drag_bps": 50.25
+        }
+      }
+    },
+    "summary_table": [
+      {
+        "episode": "gfc_2008",
+        "window_used": "crisis_window",
+        "core_alone": {
+          "cagr": 3.45,
+          "mdd": -15.85,
+          "sharpe": 0.29
+        },
+        "case_a_static_satellite": {
+          "cagr": -4.36,
+          "mdd": -19.96,
+          "sharpe": -0.21
+        },
+        "case_b_spy_switch": {
+          "cagr": 3.23,
+          "mdd": -15.99,
+          "sharpe": 0.28
+        },
+        "case_c_vix_switch": {
+          "cagr": 1.27,
+          "mdd": -15.63,
+          "sharpe": 0.16
+        },
+        "case_d_hybrid_or_switch": {
+          "cagr": 3.2,
+          "mdd": -15.99,
+          "sharpe": 0.27
+        }
+      },
+      {
+        "episode": "correction_2015_2016",
+        "window_used": "crisis_window",
+        "core_alone": {
+          "cagr": -25.79,
+          "mdd": -15.09,
+          "sharpe": -1.9
+        },
+        "case_a_static_satellite": {
+          "cagr": -25.73,
+          "mdd": -15.58,
+          "sharpe": -1.7
+        },
+        "case_b_spy_switch": {
+          "cagr": -24.12,
+          "mdd": -14.52,
+          "sharpe": -1.76
+        },
+        "case_c_vix_switch": {
+          "cagr": -26.02,
+          "mdd": -15.58,
+          "sharpe": -1.93
+        },
+        "case_d_hybrid_or_switch": {
+          "cagr": -24.12,
+          "mdd": -14.52,
+          "sharpe": -1.76
+        }
+      },
+      {
+        "episode": "selloff_2018",
+        "window_used": "crisis_window",
+        "core_alone": {
+          "cagr": -24.45,
+          "mdd": -14.6,
+          "sharpe": -1.9
+        },
+        "case_a_static_satellite": {
+          "cagr": -25.25,
+          "mdd": -16.15,
+          "sharpe": -1.67
+        },
+        "case_b_spy_switch": {
+          "cagr": -24.42,
+          "mdd": -14.9,
+          "sharpe": -1.86
+        },
+        "case_c_vix_switch": {
+          "cagr": -24.26,
+          "mdd": -14.75,
+          "sharpe": -1.9
+        },
+        "case_d_hybrid_or_switch": {
+          "cagr": -24.45,
+          "mdd": -14.91,
+          "sharpe": -1.86
+        }
+      },
+      {
+        "episode": "bear_2022",
+        "window_used": "crisis_window",
+        "core_alone": {
+          "cagr": 2.21,
+          "mdd": -11.05,
+          "sharpe": 0.24
+        },
+        "case_a_static_satellite": {
+          "cagr": 1.81,
+          "mdd": -12.54,
+          "sharpe": 0.2
+        },
+        "case_b_spy_switch": {
+          "cagr": 1.53,
+          "mdd": -11.05,
+          "sharpe": 0.18
+        },
+        "case_c_vix_switch": {
+          "cagr": 2.47,
+          "mdd": -10.28,
+          "sharpe": 0.27
+        },
+        "case_d_hybrid_or_switch": {
+          "cagr": 1.53,
+          "mdd": -11.05,
+          "sharpe": 0.18
+        }
+      },
+      {
+        "episode": "covid_2020",
+        "window_used": "crisis_window",
+        "core_alone": {
+          "cagr": 0.86,
+          "mdd": -6.71,
+          "sharpe": 0.13
+        },
+        "case_a_static_satellite": {
+          "cagr": -1.29,
+          "mdd": -9.58,
+          "sharpe": 0.04
+        },
+        "case_b_spy_switch": {
+          "cagr": -7.22,
+          "mdd": -8.15,
+          "sharpe": -0.44
+        },
+        "case_c_vix_switch": {
+          "cagr": -3.39,
+          "mdd": -7.42,
+          "sharpe": -0.18
+        },
+        "case_d_hybrid_or_switch": {
+          "cagr": -3.39,
+          "mdd": -7.42,
+          "sharpe": -0.18
+        }
+      },
+      {
+        "episode": "full_2019_2026",
+        "window_used": "full_period",
+        "core_alone": {
+          "cagr": 13.23,
+          "mdd": -17.74,
+          "sharpe": 1.03
+        },
+        "case_a_static_satellite": {
+          "cagr": 16.06,
+          "mdd": -18.45,
+          "sharpe": 1.12
+        },
+        "case_b_spy_switch": {
+          "cagr": 12.63,
+          "mdd": -17.9,
+          "sharpe": 1.01
+        },
+        "case_c_vix_switch": {
+          "cagr": 13.06,
+          "mdd": -16.61,
+          "sharpe": 1.05
+        },
+        "case_d_hybrid_or_switch": {
+          "cagr": 12.96,
+          "mdd": -17.9,
+          "sharpe": 1.04
+        }
+      }
+    ],
+    "turnover_comparison_all_windows_combined": {
+      "total_hybrid_flips": 250,
+      "total_spy_only_flips": 162,
+      "total_vix_only_flips": 234,
+      "flips_per_episode_hybrid": {
+        "gfc_2008": 39,
+        "correction_2015_2016": 27,
+        "selloff_2018": 25,
+        "bear_2022": 67,
+        "covid_2020": 25,
+        "full_2019_2026": 67
+      },
+      "flips_per_episode_hybrid_crisis_window_only": {
+        "gfc_2008": 18,
+        "correction_2015_2016": 11,
+        "selloff_2018": 7,
+        "bear_2022": 13,
+        "covid_2020": 1,
+        "full_2019_2026": 13
+      }
+    }
+  }
+}

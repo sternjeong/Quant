@@ -1,0 +1,152 @@
+{
+  "hypothesis": "H2",
+  "primary_17asset_2019_2026": {
+    "period": {
+      "start": "2020-02-12",
+      "end": "2026-08-18"
+    },
+    "window_days": 126,
+    "avg_rolling_beta": 0.642,
+    "beta_std": 0.294,
+    "static_full_sample_beta": 0.404,
+    "static_beta_r2": 0.389,
+    "unhedged": {
+      "cagr_pct": 13.67,
+      "ann_vol_pct": 13.09,
+      "sharpe": 1.045,
+      "mdd_pct": -17.74,
+      "total_return_pct": 129.86,
+      "n_days": 1637
+    },
+    "rolling_hedged": {
+      "cagr_pct": 3.9,
+      "ann_vol_pct": 8.99,
+      "sharpe": 0.47,
+      "mdd_pct": -18.76,
+      "total_return_pct": 28.18,
+      "n_days": 1637
+    },
+    "static_hedged": {
+      "cagr_pct": 7.44,
+      "ann_vol_pct": 10.15,
+      "sharpe": 0.758,
+      "mdd_pct": -14.51,
+      "total_return_pct": 59.35,
+      "n_days": 1637
+    },
+    "spy_benchmark": {
+      "cagr_pct": 13.6,
+      "ann_vol_pct": 20.35,
+      "sharpe": 0.729,
+      "mdd_pct": -34.1,
+      "total_return_pct": 128.91,
+      "n_days": 1637
+    },
+    "sharpe_improved_rolling": false,
+    "sharpe_delta_rolling": -0.575,
+    "mdd_improved_rolling": false,
+    "excess_return_vs_spy_cagr_pct": 0.07,
+    "beta_explained_cagr_pct": 9.77,
+    "alpha_after_hedge_cagr_pct": 3.9,
+    "static_alpha_annualized_pct": 7.08,
+    "alpha_share_of_total_cagr_pct": 51.8,
+    "verdict_hint": "기각(베타 정체성)"
+  },
+  "robustness_17asset_2015_2026": {
+    "period": {
+      "start": "2015-07-07",
+      "end": "2026-08-18"
+    },
+    "window_days": 126,
+    "avg_rolling_beta": 0.681,
+    "beta_std": 0.292,
+    "static_full_sample_beta": 0.472,
+    "static_beta_r2": 0.454,
+    "unhedged": {
+      "cagr_pct": 7.28,
+      "ann_vol_pct": 12.46,
+      "sharpe": 0.627,
+      "mdd_pct": -21.68,
+      "total_return_pct": 118.13,
+      "n_days": 2796
+    },
+    "rolling_hedged": {
+      "cagr_pct": -0.76,
+      "ann_vol_pct": 8.1,
+      "sharpe": -0.053,
+      "mdd_pct": -31.38,
+      "total_return_pct": -8.08,
+      "n_days": 2796
+    },
+    "static_hedged": {
+      "cagr_pct": 1.05,
+      "ann_vol_pct": 9.24,
+      "sharpe": 0.159,
+      "mdd_pct": -27.39,
+      "total_return_pct": 12.26,
+      "n_days": 2796
+    },
+    "spy_benchmark": {
+      "cagr_pct": 12.55,
+      "ann_vol_pct": 17.87,
+      "sharpe": 0.751,
+      "mdd_pct": -34.1,
+      "total_return_pct": 271.25,
+      "n_days": 2796
+    },
+    "sharpe_improved_rolling": false,
+    "sharpe_delta_rolling": -0.68,
+    "mdd_improved_rolling": false,
+    "excess_return_vs_spy_cagr_pct": -5.27,
+    "beta_explained_cagr_pct": 8.04,
+    "alpha_after_hedge_cagr_pct": -0.76,
+    "static_alpha_annualized_pct": 1.27,
+    "alpha_share_of_total_cagr_pct": 17.4,
+    "verdict_hint": "기각(베타 정체성)"
+  },
+  "three_asset_proxy_2007_2026_incl_gfc": {
+    "period": {
+      "start": "2007-07-06",
+      "end": "2026-08-18"
+    },
+    "core_metrics_full_period": {
+      "cumulative_return": 346.58,
+      "cagr": 7.92,
+      "mdd": -18.68,
+      "sharpe": 0.72,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.42,
+      "avg_drawdown_days": 42.2
+    },
+    "avg_rolling_beta": 0.289,
+    "unhedged": {
+      "cagr_pct": 7.8,
+      "ann_vol_pct": 11.47,
+      "sharpe": 0.713,
+      "mdd_pct": -18.68,
+      "total_return_pct": 319.52,
+      "n_days": 4809
+    },
+    "rolling_hedged": {
+      "cagr_pct": 4.05,
+      "ann_vol_pct": 10.02,
+      "sharpe": 0.447,
+      "mdd_pct": -27.05,
+      "total_return_pct": 113.31,
+      "n_days": 4809
+    },
+    "spy_benchmark": {
+      "cagr_pct": 8.85,
+      "ann_vol_pct": 19.8,
+      "sharpe": 0.527,
+      "mdd_pct": -56.47,
+      "total_return_pct": 404.3,
+      "n_days": 4809
+    },
+    "sharpe_improved_rolling": false,
+    "sharpe_delta_rolling": -0.266
+  }
+}

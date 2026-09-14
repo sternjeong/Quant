@@ -4,10 +4,10 @@
 # 고정되어 페이지마다 다크모드 여부가 다른 것처럼 보인다.
 [theme]
 base = "dark"
-primaryColor = "#529cca"
-backgroundColor = "#191919"
-secondaryBackgroundColor = "#202020"
-textColor = "#e9e9e7"
+primaryColor = "#2962ff"
+backgroundColor = "#0d0e12"
+secondaryBackgroundColor = "#15161b"
+textColor = "#d7d8db"
 font = "sans serif"
 
 [server]

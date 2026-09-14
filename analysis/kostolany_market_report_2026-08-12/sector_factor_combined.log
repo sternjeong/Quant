@@ -1,0 +1,26 @@
+구간: 2014-06-01 ~ 2026-08-12
+$XLC: possibly delisted; no price data found  (1d 2012-08-18 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1345262400, endDate = 1529294400")
+$XLRE: possibly delisted; no price data found  (1d 2012-08-18 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1345262400, endDate = 1444190400")
+
+1 Failed download:
+['XLRE']: possibly delisted; no price data found  (1d 2012-08-18 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1345262400, endDate = 1444190400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2012-08-18 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1345262400, endDate = 1529294400")
+$MTUM: possibly delisted; no price data found  (1d 2012-08-18 -> 2013-04-17) (Yahoo error = "Data doesn't exist for startDate = 1345262400, endDate = 1366171200")
+
+1 Failed download:
+['MTUM']: possibly delisted; no price data found  (1d 2012-08-18 -> 2013-04-17) (Yahoo error = "Data doesn't exist for startDate = 1345262400, endDate = 1366171200")
+결합 유니버스 자산 수: 16개 (섹터11+팩터5)
+/workspaces/Quant/analysis/kostolany_market_report_2026-08-12/multi_regime_multi_strategy.py:63: FutureWarning: The behavior of DataFrame.idxmax with all-NA values, or any-NA and skipna=False, is deprecated. In a future version this will raise ValueError
+  leader = z_scores.idxmax(axis=1)
+[섹터만(9개)]: CAGR=9.93, MDD=-16.44, 샤프=0.82, calmar=0.6
+/workspaces/Quant/analysis/kostolany_market_report_2026-08-12/multi_regime_multi_strategy.py:63: FutureWarning: The behavior of DataFrame.idxmax with all-NA values, or any-NA and skipna=False, is deprecated. In a future version this will raise ValueError
+  leader = z_scores.idxmax(axis=1)
+[팩터만(5개)]: CAGR=10.85, MDD=-22.2, 샤프=0.86, calmar=0.49
+/workspaces/Quant/analysis/kostolany_market_report_2026-08-12/multi_regime_multi_strategy.py:63: FutureWarning: The behavior of DataFrame.idxmax with all-NA values, or any-NA and skipna=False, is deprecated. In a future version this will raise ValueError
+  leader = z_scores.idxmax(axis=1)
+[결합(14개)]: CAGR=10.62, MDD=-18.46, 샤프=0.86, calmar=0.58
+S&P500: {'cumulative_return': 180.65, 'cagr': 13.51, 'mdd': -33.92, 'sharpe': 0.75, 'win_rate': 100.0, 'avg_holding_days': 2974.0, 'trade_count': 1, 'profit_factor': 999.0, 'calmar': 0.4, 'avg_drawdown_days': 18.5}
+
+DONE

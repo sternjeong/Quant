@@ -1,0 +1,279 @@
+<title>세 위기 게이지가 동시에 울릴 때</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #eef1ee; --surface: #ffffff; --surface-2: #e6eae5;
+    --ink: #17211d; --ink-muted: #57635c; --ink-faint: #8b968f; --line: #d9dfd8;
+    --hike: #a8461f; --hike-soft: #f4e3da; --cut: #1f6e79; --cut-soft: #dcedee; --gold: #8a6d1f;
+    --shadow: 0 1px 2px rgba(23,33,29,.06), 0 8px 24px -12px rgba(23,33,29,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+      --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+      --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+      --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+    --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+    --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+    --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Public Sans", -apple-system, "Noto Sans KR", sans-serif;
+    font-size: 16px; line-height: 1.65;
+  }
+  ::selection { background: var(--gold); color: #1a1408; }
+  a { color: var(--cut); }
+  .page { max-width: 880px; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 1rem;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 500;
+    font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.08; letter-spacing: -.01em;
+    margin: 0 0 1rem; text-wrap: balance;
+  }
+  .dek { font-size: 1.15rem; color: var(--ink-muted); max-width: 62ch; margin: 0 0 1.75rem; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: .4rem 1.6rem;
+    font-family: "IBM Plex Mono", monospace; font-size: .82rem; color: var(--ink-muted);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: .85rem 0;
+  }
+  .meta-row b { color: var(--ink); font-weight: 600; }
+  section { margin: 3.2rem 0; }
+  section > h2 {
+    font-family: "Fraunces", serif; font-weight: 500; font-size: 1.6rem;
+    letter-spacing: -.005em; margin: 0 0 .3rem; text-wrap: balance;
+  }
+  section > .lede { color: var(--ink-muted); max-width: 66ch; margin: 0 0 1.4rem; }
+  p { max-width: 68ch; }
+  .note {
+    background: var(--surface-2); border-left: 3px solid var(--gold); border-radius: 4px;
+    padding: .9rem 1.1rem; font-size: .93rem; color: var(--ink-muted); max-width: 68ch; margin: 1.1rem 0;
+  }
+  .note b { color: var(--ink); }
+  .callout {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.2rem 1.4rem; box-shadow: var(--shadow); margin: 1.4rem 0;
+  }
+  .hyp {
+    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--ink-faint);
+    border-radius: 8px; padding: 1rem 1.2rem; margin: 1rem 0; box-shadow: var(--shadow);
+  }
+  .hyp .tag {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: .4rem;
+  }
+  .verdict {
+    display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: .78rem;
+    letter-spacing: .06em; text-transform: uppercase; padding: .3rem .7rem; border-radius: 20px;
+    font-weight: 600; margin-top: .5rem;
+  }
+  .verdict.confirmed { background: var(--cut-soft); color: var(--cut); }
+  .verdict.disconfirmed { background: var(--hike-soft); color: var(--hike); }
+  .verdict.mixed { background: var(--surface-2); color: var(--gold); border: 1px solid var(--gold); }
+  .verdict.descriptive { background: var(--surface-2); color: var(--ink-muted); border: 1px solid var(--line); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .8rem; margin: 1.3rem 0 1.6rem; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: .9rem 1rem; }
+  .tile .label { font-size: .74rem; color: var(--ink-muted); margin-bottom: .3rem; }
+  .tile .value { font-family: "IBM Plex Mono", monospace; font-size: 1.3rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tile .value.hike { color: var(--hike); }
+  .tile .value.cut { color: var(--cut); }
+  .tile .sub { font-size: .72rem; color: var(--ink-faint); margin-top: .2rem; }
+  .table-wrap { overflow-x: auto; margin: 1.2rem 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: .92rem; }
+  caption { text-align: left; font-size: .82rem; color: var(--ink-faint); padding-bottom: .5rem; }
+  th, td { padding: .62rem .8rem; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; font-family: "IBM Plex Mono", monospace; }
+  th:first-child, td:first-child { text-align: left; font-family: "Public Sans", sans-serif; }
+  thead th { font-family: "Public Sans", sans-serif; font-weight: 600; font-size: .78rem; letter-spacing: .02em; color: var(--ink-muted); text-transform: uppercase; border-bottom: 1px solid var(--ink-faint); }
+  tr.row-inv td:first-child { border-left: 3px solid var(--hike); padding-left: .65rem; }
+  tr.row-norm td:first-child { border-left: 3px solid var(--cut); padding-left: .65rem; }
+  tr.row-base td:first-child { border-left: 3px solid var(--ink-faint); padding-left: .65rem; }
+  tr.row-gold td:first-child { border-left: 3px solid var(--gold); padding-left: .65rem; }
+  tbody tr:hover { background: var(--surface-2); }
+  ul.findings { padding-left: 1.2rem; max-width: 68ch; }
+  ul.findings li { margin-bottom: .9rem; }
+  ul.findings b { color: var(--ink); }
+  .footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--line); font-size: .82rem; color: var(--ink-faint); }
+</style>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">MACRO EVENT STUDY · 트랙 F&times;H 후속 · 1990&ndash;2026</div>
+    <h1>세 위기 게이지는 서로 거의 다른 얘기를 하고 있었다</h1>
+    <p class="dek">이 프로젝트는 VIX 급등(빠른 반등 신호, 트랙F)·장단기 금리역전(느린 선행신호,
+    트랙A확장)·크레딧 스프레드 급등(동행신호, "공포에 사라"는 안 통함, 트랙H)을 각각 따로
+    검증했다. 세 신호를 겹쳐보면 무슨 일이 벌어질까 — <b>결과를 보기 전에 못박은 세 가지
+    질문</b>으로 확인한다.</p>
+    <div class="meta-row">
+      <span>VIX&ge;30 급등 <b>35건</b> 중 역전중 <b>5건</b>·크레딧스트레스중 <b>12건</b></span>
+      <span>구간 <b>1990 ~ 2026</b></span>
+      <span>데이터 <b>FRED(VIXCLS, T10Y2Y, BAA10Y)</b>, S&amp;P500(^GSPC)</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>사전등록: 세 가지 질문을 결과를 보기 전에 못박는다</h2>
+    <p class="lede">세 신호 모두 이미 이 프로젝트가 검증을 마친 기존 정의를 그대로 재사용한다
+    (새 임계값을 발명하지 않는다) — VIX&ge;30(직전 20거래일 미만 후 첫 돌파), T10Y2Y&lt;0
+    (10거래일 연속 유지돼야 "진짜 역전"), BAA10Y가 직전 3년 롤링 90퍼센타일을 넘어섬(마찬가지로
+    10거래일 연속 유지).</p>
+    <div class="hyp">
+      <div class="tag">H1 · VIX 급등 &times; 금리역전 상태</div>
+      <p style="margin:0">VIX&ge;30 급등이 "금리역전이 이미 진행 중인 시기"에 벌어지면, "역전이
+      없는 시기"에 벌어진 VIX 급등과 순방향 60·120거래일 수익률이 <b>다를 것이다</b>(방향은
+      미리 정하지 않는다 — VIX 급등 자체는 빠른 반등을 예고하지만, 역전 중이라는 건 침체가
+      상대적으로 더 가까울 수 있다는 뜻이라 두 힘이 충돌하는 구간이다). 겹치는 사건이 매우
+      적을 것으로 예상되며, <b>n&lt;8이면 방향성 참고로만</b> 다룬다.</p>
+    </div>
+    <div class="hyp">
+      <div class="tag">H2 · VIX 급등 &times; 크레딧 스트레스 상태</div>
+      <p style="margin:0">크레딧 스프레드도 함께 스트레스 상태인 VIX&ge;30 급등은, 크레딧
+      스프레드가 평온한 VIX&ge;30 급등보다 <b>+5·+20일 반등이 더 약하고 느릴 것이다</b>(신용
+      스트레스는 트랙H에서 빠른 반등 신호가 아니라고 확인됐으므로, "신용시장이 진짜라고
+      확인해주는" VIX 급등은 단순 패닉이 아닐 수 있다). 다만 <b>+120일까지 가면 VIX 급등의
+      장기 반등력 덕분에 격차가 좁혀질 것</b>으로 예상한다.</p>
+    </div>
+    <div class="hyp">
+      <div class="tag">H3 · 탐색적 교차표(가설 검정 아님)</div>
+      <p style="margin:0">원래 VIX&ge;30 급등 35건 중 몇 건이 역전 중이었고 몇 건이 크레딧
+      스트레스 중이었는지 단순 교차표로 확인한다 — 세 신호가 실제로 얼마나 독립적인지, 향후
+      "위기 신호 종합 대시보드"를 만들 때 참고할 기초 자료다.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>H3: 세 신호는 대체로 따로 논다</h2>
+    <div class="tiles">
+      <div class="tile"><div class="label">VIX&ge;30 급등 전체</div><div class="value">35건</div></div>
+      <div class="tile"><div class="label">그중 역전중</div><div class="value hike">5건</div><div class="sub">14.3%</div></div>
+      <div class="tile"><div class="label">그중 크레딧스트레스중</div><div class="value hike">12건</div><div class="sub">34.3%</div></div>
+      <div class="tile"><div class="label">셋 다(역전+크레딧 동시)</div><div class="value hike">2건</div><div class="sub">5.7%</div></div>
+    </div>
+    <p>VIX 급등 35건 중 금리역전과 겹친 경우는 5건(14%), 크레딧 스트레스와 겹친 경우는 12건
+    (34%)뿐이었고, 셋(VIX·역전·크레딧)이 동시에 켜진 경우는 단 2건(2000-10-12, 2000-12-20 —
+    둘 다 닷컴버블 붕괴 국면)이었다. <b>세 신호는 대체로 서로 독립적으로 움직인다</b> — VIX가
+    급등한다고 금리역전이나 크레딧 스트레스가 자동으로 같이 켜지는 게 아니라는 뜻이다. 이건
+    "위기 신호 대시보드"를 만들 때 중요한 함의를 준다 — 세 신호가 늘 같이 오지 않으므로,
+    각각을 독립적인 정보원으로 취급해야지 서로의 확인 도장으로 기대하면 안 된다.</p>
+    <span class="verdict descriptive">설명적 교차표만(가설 검정 아님)</span>
+  </section>
+
+  <section>
+    <h2>H1 결과: 역전 중의 VIX 급등은 초반엔 더 강했다가 후반엔 꺾였다</h2>
+    <div class="table-wrap">
+      <table>
+        <caption>VIX&ge;30 급등, 금리역전중 vs 비역전중 순방향 S&amp;P500(%) · 괄호는 승률</caption>
+        <thead><tr><th>구분</th><th>건수</th><th>+5일</th><th>+20일</th><th>+60일</th><th>+120일</th></tr></thead>
+        <tbody>
+          <tr class="row-inv"><td>VIX급등 &times; 역전중</td><td>5</td><td>+3.80 (100%)</td><td>+5.81 (100%)</td><td>+3.05 (60%)</td><td>+2.81 (60%)</td></tr>
+          <tr class="row-norm"><td>VIX급등 &times; 비역전중</td><td>30</td><td>+1.15 (63%)</td><td>+0.87 (63%)</td><td>+4.33 (67%)</td><td>+5.25 (66%)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>흥미로운 반전이 나왔다 — <b>역전 중의 VIX 급등은 초반(+5·+20일)엔 오히려 더 강하고
+    깨끗했다</b>(승률 100%, +3.8%/+5.8%)가, <b>+60·120일로 가면 비역전중 급등에 역전당한다</b>
+    (승률 60% vs 66~67%, 수익률도 더 낮음). 5건뿐이라 확정할 수 없지만, 방향 자체는 뚜렷하다
+    — "역전 중이라 하방압력이 이미 있다"는 배경이 초반 반등력을 꺾지는 못했지만, 장기적으로는
+    발목을 잡는 모습이다.</p>
+    <div class="hyp" style="border-left-color:var(--gold)">
+      <div class="tag">H1 검증 결과</div>
+      <p style="margin:0">역전중 vs 비역전중은 확실히 다른 패턴을 보였다(초반 더 강함 &rarr;
+      후반 더 약함이라는 역전된 시간 구조) — 사전에 방향을 정하지 않았던 만큼 "다르다"는
+      가설 자체는 지지되지만, <b>n=5로 방향성 참고 수준</b>이다.</p>
+      <span class="verdict mixed">CONFIRMED(소표본, 방향성 참고)</span>
+    </div>
+    <div class="note">n=5 사례를 다 밝힌다: 2000-04-14, 2000-10-12, 2000-12-20(이상 닷컴버블
+    붕괴 국면), 2022-09-26, 2024-08-05. 5건 중 3건이 2000년 한 해에 몰려 있어 사실상 하나의
+    거시 국면(닷컴버블 붕괴)이 표본을 지배하고 있을 위험이 있다 — 독립적인 5개 사례로 보기
+    어렵다는 점을 밝혀둔다.</div>
+  </section>
+
+  <section>
+    <h2>H2 결과: 방향은 맞았지만 "좁혀진다"는 예측은 틀렸다 — 오히려 격차가 커졌다</h2>
+    <div class="table-wrap">
+      <table>
+        <caption>VIX&ge;30 급등, 크레딧스트레스중 vs 크레딧평온 순방향 S&amp;P500(%) · 괄호는 승률</caption>
+        <thead><tr><th>구분</th><th>건수</th><th>+5일</th><th>+20일</th><th>+60일</th><th>+120일</th></tr></thead>
+        <tbody>
+          <tr class="row-inv"><td>VIX급등 &times; 크레딧스트레스중</td><td>12</td><td>+1.46 (67%)</td><td>+0.76 (75%)</td><td>&minus;0.62 (58%)</td><td>&minus;5.66 (25%)</td></tr>
+          <tr class="row-norm"><td>VIX급등 &times; 크레딧평온</td><td>23</td><td>+1.56 (70%)</td><td>+2.01 (65%)</td><td>+6.63 (70%)</td><td>+10.65 (86%)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>+5일은 거의 같았고(+1.46% vs +1.56%, 예상과 달리 초반부터 벌어지지 않음), +20일부터
+    크레딧스트레스중 쪽이 약해지기 시작(+0.76% vs +2.01%)했다 — 여기까지는 가설과 대체로
+    맞는 방향이다. 그런데 <b>+120일까지 가면 예상과 정반대로 격차가 좁혀지긴커녕 훨씬
+    벌어졌다</b> — 크레딧스트레스중 급등은 +120일 평균 &minus;5.66%(승률 25%, 4건 중 1건만
+    플러스)로 오히려 완전히 무너졌고, 크레딧평온 급등은 +10.65%(승률 86%)로 이 프로젝트에서
+    본 가장 강한 반등 축에 속한다.</p>
+    <div class="hyp" style="border-left-color:var(--hike)">
+      <div class="tag">H2 검증 결과</div>
+      <p style="margin:0">"크레딧 스트레스가 겹치면 초반 반등이 더 약하다"는 방향은 대체로
+      맞았지만, "+120일이면 격차가 좁혀질 것"이라는 핵심 예측은 <b>틀렸다</b> — 오히려 시간이
+      갈수록 격차가 더 벌어졌다. 크레딧 스프레드가 함께 스트레스 상태였던 VIX 급등은 "패닉이지만
+      결국 반등하는 흔한 VIX 급등"이 아니라, <b>신용시장이 진짜로 뭔가 잘못됐다고 확인해주는
+      급등</b>일 가능성이 이 데이터로는 더 설득력 있어 보인다.</p>
+      <span class="verdict mixed">MIXED(방향 일부 확인, 핵심 예측은 반박)</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>경제학 지식 없이 읽는 법</h2>
+    <ul class="findings">
+      <li><b>세 위기 신호는 대부분 따로 온다.</b> VIX가 급등했다고 금리역전이나 크레딧 스트레스가
+      자동으로 같이 켜지는 게 아니다(겹침 14~34%, 셋 다 동시는 5.7%뿐) — 서로 다른 정보를
+      담고 있는 독립적인 신호로 취급해야 한다.</li>
+      <li><b>"크레딧 스프레드가 같이 나빠지고 있다"는 게 VIX 급등의 신뢰도를 가르는 가장 중요한
+      단서였다.</b> 크레딧이 평온한 채 VIX만 급등했을 땐 +120일 평균 +10.65%(승률 86%)로
+      매우 강하게 반등했지만, 크레딧까지 같이 무너지고 있을 땐 +120일 평균 &minus;5.66%(승률
+      25%)로 정반대였다. "공포에 사라"는 신용시장이 조용할 때만 안전하게 통하는 조언일 수
+      있다는 뜻이다.</li>
+      <li><b>금리역전이 겹친 VIX 급등은 초반엔 오히려 더 강했다.</b> 직관과 다르게, "이미
+      역전 상태"라는 배경이 초반 반등을 방해하지 않았다(+5·+20일 승률 100%) — 다만 표본이
+      5건뿐이고 그중 3건이 2000년 한 해에 몰려 있어 신중하게 읽어야 한다.</li>
+      <li><b>"VIX 급등은 무조건 사라"는 여전히 대체로 맞는 조언이지만, 무조건은 아니다.</b>
+      이 스터디는 "언제 이 조언이 위험해지는가"에 대한 첫 단서를 준다 — 크레딧 스프레드가
+      동시에 나빠지고 있다면 조심할 신호일 수 있다.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>한계</h2>
+    <div class="callout">
+      <ul class="findings" style="margin:0;">
+        <li><b>H1의 표본(n=5)은 통계적으로 확정할 수 없다.</b> 게다가 5건 중 3건이 2000년
+        닷컴버블 붕괴라는 하나의 거시 국면에 몰려 있어, 사실상 서로 독립적인 5개 사례가 아닐
+        수 있다.</li>
+        <li><b>H2의 표본(n=12/n=23)도 크지 않다.</b> +120일 &minus;5.66%라는 숫자는 4건 중
+        1건만 플러스라는 뜻이라, 극단적인 사례(예: 2008년 위기) 한두 건이 평균을 크게 끌어당겼을
+        가능성을 배제할 수 없다 — 셀별 개별 사례는 원본 JSON에 전부 남겨뒀다.</li>
+        <li><b>세 신호 모두 이 프로젝트가 이미 정한 기존 임계값(VIX&ge;30, 10거래일 지속형
+        역전, 90퍼센타일 크레딧)을 그대로 재사용했다</b> — 이 조합 자체를 재검증한 게 아니라,
+        이미 검증된 정의들을 겹쳤을 때 무슨 일이 나는지만 봤다. 임계값을 바꾸면(예: VIX&ge;40)
+        겹침 표본이 더 작아지거나 결과가 달라질 수 있다.</li>
+        <li><b>이 스터디는 세 신호의 "조합"만 봤다</b>, 왜 크레딧 스트레스가 동반된 VIX 급등이
+        더 나쁜지에 대한 메커니즘(예: 실제 신용경색이 있었는지)은 사례별로 따로 확인하지
+        않았다.</li>
+        <li><b>거래비용·세금은 반영하지 않았다.</b> 다른 리포트와 마찬가지로 순수 가격 반응만
+        본다.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="footer">
+    데이터: FRED(VIXCLS, T10Y2Y, BAA10Y) · Yahoo Finance(^GSPC) · 분석 스크립트:
+    crisis_signal_overlap_study.py(vix_spike_event_study.py, yield_curve_event_study.py,
+    credit_spread_event_study.py의 기존 탐지 로직 재사용) · 같은 프로젝트: VIX 공포지수 급등
+    스터디, 장단기 금리역전&middot;샴의 법칙, 신용시장의 공포지수(크레딧 스프레드)
+  </div>
+</div>

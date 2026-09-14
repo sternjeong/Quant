@@ -1,0 +1,286 @@
+<title>은행들이 서로를 못 믿을 때</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #eef1ee; --surface: #ffffff; --surface-2: #e6eae5;
+    --ink: #17211d; --ink-muted: #57635c; --ink-faint: #8b968f; --line: #d9dfd8;
+    --hike: #a8461f; --hike-soft: #f4e3da; --cut: #1f6e79; --cut-soft: #dcedee; --gold: #8a6d1f;
+    --shadow: 0 1px 2px rgba(23,33,29,.06), 0 8px 24px -12px rgba(23,33,29,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+      --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+      --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+      --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+    --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+    --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+    --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Public Sans", -apple-system, "Noto Sans KR", sans-serif;
+    font-size: 16px; line-height: 1.65;
+  }
+  ::selection { background: var(--gold); color: #1a1408; }
+  a { color: var(--cut); }
+  .page { max-width: 880px; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 1rem;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 500;
+    font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.08; letter-spacing: -.01em;
+    margin: 0 0 1rem; text-wrap: balance;
+  }
+  .dek { font-size: 1.15rem; color: var(--ink-muted); max-width: 62ch; margin: 0 0 1.75rem; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: .4rem 1.6rem;
+    font-family: "IBM Plex Mono", monospace; font-size: .82rem; color: var(--ink-muted);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: .85rem 0;
+  }
+  .meta-row b { color: var(--ink); font-weight: 600; }
+  section { margin: 3.2rem 0; }
+  section > h2 {
+    font-family: "Fraunces", serif; font-weight: 500; font-size: 1.6rem;
+    letter-spacing: -.005em; margin: 0 0 .3rem; text-wrap: balance;
+  }
+  section > .lede { color: var(--ink-muted); max-width: 66ch; margin: 0 0 1.4rem; }
+  p { max-width: 68ch; }
+  .note {
+    background: var(--surface-2); border-left: 3px solid var(--gold); border-radius: 4px;
+    padding: .9rem 1.1rem; font-size: .93rem; color: var(--ink-muted); max-width: 68ch; margin: 1.1rem 0;
+  }
+  .note b { color: var(--ink); }
+  .callout {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.2rem 1.4rem; box-shadow: var(--shadow); margin: 1.4rem 0;
+  }
+  .hyp {
+    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--ink-faint);
+    border-radius: 8px; padding: 1rem 1.2rem; margin: 1rem 0; box-shadow: var(--shadow);
+  }
+  .hyp .tag {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: .4rem;
+  }
+  .verdict {
+    display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: .78rem;
+    letter-spacing: .06em; text-transform: uppercase; padding: .3rem .7rem; border-radius: 20px;
+    font-weight: 600; margin-top: .5rem;
+  }
+  .verdict.confirmed { background: var(--cut-soft); color: var(--cut); }
+  .verdict.disconfirmed { background: var(--hike-soft); color: var(--hike); }
+  .verdict.mixed { background: var(--surface-2); color: var(--gold); border: 1px solid var(--gold); }
+  .verdict.descriptive { background: var(--surface-2); color: var(--ink-muted); border: 1px solid var(--line); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .8rem; margin: 1.3rem 0 1.6rem; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: .9rem 1rem; }
+  .tile .label { font-size: .74rem; color: var(--ink-muted); margin-bottom: .3rem; }
+  .tile .value { font-family: "IBM Plex Mono", monospace; font-size: 1.3rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tile .value.hike { color: var(--hike); }
+  .tile .value.cut { color: var(--cut); }
+  .tile .sub { font-size: .72rem; color: var(--ink-faint); margin-top: .2rem; }
+  .table-wrap { overflow-x: auto; margin: 1.2rem 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: .92rem; }
+  caption { text-align: left; font-size: .82rem; color: var(--ink-faint); padding-bottom: .5rem; }
+  th, td { padding: .62rem .8rem; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; font-family: "IBM Plex Mono", monospace; }
+  th:first-child, td:first-child { text-align: left; font-family: "Public Sans", sans-serif; }
+  thead th { font-family: "Public Sans", sans-serif; font-weight: 600; font-size: .78rem; letter-spacing: .02em; color: var(--ink-muted); text-transform: uppercase; border-bottom: 1px solid var(--ink-faint); }
+  tr.row-inv td:first-child { border-left: 3px solid var(--hike); padding-left: .65rem; }
+  tr.row-norm td:first-child { border-left: 3px solid var(--cut); padding-left: .65rem; }
+  tr.row-base td:first-child { border-left: 3px solid var(--ink-faint); padding-left: .65rem; }
+  tr.row-gold td:first-child { border-left: 3px solid var(--gold); padding-left: .65rem; }
+  tbody tr:hover { background: var(--surface-2); }
+  ul.findings { padding-left: 1.2rem; max-width: 68ch; }
+  ul.findings li { margin-bottom: .9rem; }
+  ul.findings b { color: var(--ink); }
+  .footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--line); font-size: .82rem; color: var(--ink-faint); }
+</style>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">MACRO EVENT STUDY · 트랙 H 네 번째 게이지 · 1986&ndash;2022</div>
+    <h1>은행들이 서로를 못 믿을 때, 시장은 곧바로 웃지 않았다</h1>
+    <p class="dek">VIX(주식 변동성)·장단기 금리역전(금리 기대)·BAA10Y 크레딧 스프레드(회사채
+    신용)에 이어 네 번째 위기 게이지 — 은행끼리 단기자금을 빌려줄 때 요구하는 금리가 국채
+    금리보다 얼마나 높은지(TED 스프레드)를 검증한다. "은행 시스템이 서로를 얼마나 못 믿는가"를
+    재는 지표다.</p>
+    <div class="meta-row">
+      <span>TED 스트레스 이벤트 <b>23건</b></span>
+      <span>구간 <b>1986 ~ 2022</b>(LIBOR 폐지로 이후 데이터 없음)</span>
+      <span>데이터 <b>FRED(TEDRATE, VIXCLS, BAA10Y, USREC)</b>, S&amp;P500(^GSPC)</span>
+    </div>
+  </header>
+
+  <div class="note"><b>데이터 출처를 왜 이렇게 정했나</b>: 원래 쓰려던 TED 스프레드(TEDRATE,
+  3개월 LIBOR&minus;3개월 국채금리)는 LIBOR 산정 방식이 2022년 단계적으로 폐지되면서
+  <b>2022-01-21을 마지막으로 더 이상 갱신되지 않는다</b>. SOFR 기반 대체 스프레드는 SOFR
+  역사가 2018년부터라 너무 짧고, FRED의 경제정책 불확실성지수(WLEMUINDXD)는 은행 시스템과
+  무관한 다른 성격의 지표라 이번 목적엔 맞지 않는다. 그래서 <b>TEDRATE를 그대로 쓰되 2022년
+  이후(2022년 긴축, 2023년 지역은행 위기, 2025년 관세 충격)는 이 지표로 볼 수 없다는 한계를
+  그대로 밝힌다</b> — 크레딧 스프레드 스터디가 BAMLH0A0HYM2→BAA10Y로 바꾼 것과 같은 방식의
+  투명한 공개다. 1986~2022년 안에 2008 금융위기·2011 유럽위기·2018 변동성쇼크·2020 코로나
+  등 이 프로젝트가 다룬 주요 위기 대부분이 담겨 있어 검증 목적엔 충분하다.</div>
+
+  <section>
+    <h2>사전등록: 결과를 보기 전에 못박는다</h2>
+    <p class="lede">이벤트 탐지는 크레딧 스프레드 스터디와 완전히 동일한 방식을 그대로 재사용한다
+    — TED 스프레드가 직전 3년 롤링 90퍼센타일을 넘어서고, 10거래일 연속 유지돼야 진짜 이벤트로
+    인정한다(노이즈 필터링).</p>
+    <div class="hyp">
+      <div class="tag">H1 · TED 스트레스는 어느 쪽 패턴에 가까운가</div>
+      <p style="margin:0">은행간 자금조달 스트레스 이후 S&amp;P500 순방향 수익률은, VIX
+      급등의 패턴(강한 역발상 반등)보다는 <b>크레딧 스프레드의 패턴(동행에 가까움, "공포에
+      사라"가 안 통함)에 더 가까울 것이다</b> — 자금조달 스트레스와 신용 스트레스는 둘 다
+      은행/신용 시스템을 재는 지표라 경제적으로 더 가깝기 때문이다.</p>
+    </div>
+    <div class="hyp">
+      <div class="tag">H2 · 기존 VIX·크레딧 신호와 얼마나 겹치는가</div>
+      <p style="margin:0">TED 스트레스 이벤트를 기존에 확정한 VIX&ge;30·BAA10Y 크레딧스트레스와
+      교차해, 겹침이 낮으면 진짜 네 번째 독립 신호이고 높으면 기존 신호의 재탕이라는 뜻이다.</p>
+    </div>
+    <div class="hyp">
+      <div class="tag">H3 · 탐색적: 다섯 번째 재현 확인</div>
+      <p style="margin:0">이 프로젝트가 이미 4번(트랙A·B·F·H) 독립 확인한 "사건의 무서움보다
+      실제 시스템 붕괴 여부가 중요하다" 패턴이 TED 스트레스 이벤트에서도 재현되는지 확인한다.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>H1 결과: 초반엔 크레딧처럼, 후반엔 기준선 근처로 — VIX만큼 강하진 않았다</h2>
+    <div class="table-wrap">
+      <table>
+        <caption>TED 스트레스 이후 S&amp;P500(%) · 기준선(전체 거래일 평균)과 비교 · 괄호는 승률</caption>
+        <thead><tr><th>구분</th><th>건수</th><th>+5일</th><th>+20일</th><th>+60일</th><th>+120일</th></tr></thead>
+        <tbody>
+          <tr class="row-base"><td>기준선(전체 거래일 평균)</td><td>&mdash;</td><td>+0.21 (58%)</td><td>+0.81 (64%)</td><td>+2.39 (71%)</td><td>+4.74 (74%)</td></tr>
+          <tr class="row-inv"><td>TED 스트레스</td><td>23</td><td>&minus;0.62 (57%)</td><td>&minus;0.49 (44%)</td><td>+3.70 (74%)</td><td>+4.61 (70%)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>가설이 예측한 대로 <b>초반(+5·20일)엔 기준선보다 확실히 나빴다</b>(+20일 &minus;0.49%/
+    승률44% vs 기준선 +0.81%/64%) — VIX 급등이라면 초반부터 강하게 반등했을 텐데(트랙F), 그런
+    "공포에 사라" 반응이 여기선 나오지 않았다. 크레딧 스프레드 스터디와 같은 방향이다.</p>
+    <p>다만 <b>+60·120일로 가면 기준선과 거의 비슷한 수준으로 돌아왔다</b>(+120일 +4.61% vs
+    기준선 +4.74%, 승률 70% vs 74%로 근소하게 낮을 뿐) — 크레딧 스프레드 스터디가 +120일까지도
+    기준선보다 확연히 나빴던 것(당시 +120일 &minus;2.34%/승률46.2% vs 기준선 +4.92%/74.6%)과는
+    다르다. <b>TED는 크레딧보다는 덜 나쁘고, VIX보다는 덜 좋은, 그 중간 어딘가에 위치한
+    신호였다.</b></p>
+    <div class="hyp" style="border-left-color:var(--gold)">
+      <div class="tag">H1 검증 결과</div>
+      <p style="margin:0">초반 패턴은 예측대로 크레딧 스프레드 쪽에 가까웠지만(기준선보다
+      나쁨, VIX식 즉각 반등 없음), 장기(+120일)로 가면 크레딧만큼 계속 나쁘지 않고 기준선
+      근처로 회복했다 — "크레딧과 완전히 같다"는 예측은 절반만 맞았다.</p>
+      <span class="verdict mixed">MIXED</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>H2 결과: 기존 신호와 거의 안 겹친다 — 진짜 네 번째 신호</h2>
+    <div class="tiles">
+      <div class="tile"><div class="label">TED 스트레스 전체</div><div class="value">23건</div></div>
+      <div class="tile"><div class="label">그날 VIX도&ge;30</div><div class="value hike">3건</div><div class="sub">13.0%</div></div>
+      <div class="tile"><div class="label">그때 크레딧도 스트레스중</div><div class="value hike">7건</div><div class="sub">30.4%</div></div>
+      <div class="tile"><div class="label">셋 다 동시</div><div class="value hike">3건</div><div class="sub">13.0%</div></div>
+    </div>
+    <p>TED 스트레스 23건 중 그날 VIX가 30을 넘긴 경우는 3건(13%)뿐이었고, 크레딧 스트레스와
+    겹친 경우는 7건(30%)이었다 — 이전 "세 위기 게이지" 스터디에서 확인한 것과 비슷한 낮은
+    겹침 수준(14~34%)이다. <b>TED 스프레드는 VIX·크레딧과 대체로 독립적으로 움직이는 진짜
+    네 번째 정보원이다</b> — 겹친 3건(1998-09, 2008-09, 2020-03)은 전부 이 프로젝트가 이미
+    아는 대형 위기(LTCM, 리먼, 코로나)로, 정말 큰 위기일 때만 세 신호가 한꺼번에 켜진다는
+    뜻이다.</p>
+    <div class="hyp" style="border-left-color:var(--cut)">
+      <div class="tag">H2 검증 결과</div>
+      <p style="margin:0">겹침이 13~30%로 낮다 — 기존 신호의 재탕이 아니라 독립적인 네 번째
+      신호로 판정된다.</p>
+      <span class="verdict confirmed">CONFIRMED</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>H3 결과: 다섯 번째로 재현됐다 — 리먼은 최악, 코로나는 오히려 최고였다</h2>
+    <div class="table-wrap">
+      <table>
+        <caption>침체중 TED 스트레스 이벤트 4건 개별 비교(%)</caption>
+        <thead><tr><th>날짜</th><th>당시 상황</th><th>+5일</th><th>+20일</th><th>+60일</th><th>+120일</th></tr></thead>
+        <tbody>
+          <tr class="row-inv"><td>2008-03-04</td><td>베어스턴스 구제 직전</td><td>&minus;0.46</td><td>+3.07</td><td>+5.39</td><td>&minus;2.60</td></tr>
+          <tr class="row-inv"><td>2008-04-09</td><td>금융위기 진행중</td><td>+0.76</td><td>+2.81</td><td>&minus;6.76</td><td>&minus;18.32</td></tr>
+          <tr class="row-inv"><td>2008-09-15</td><td>리먼브라더스 파산 당일</td><td>+1.21</td><td>&minus;15.88</td><td>&minus;25.49</td><td>&minus;43.28</td></tr>
+          <tr class="row-norm"><td>2020-03-13</td><td>코로나 팬데믹 선언 직후</td><td>&minus;14.98</td><td>+1.87</td><td>+18.30</td><td>+32.09</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>4건 모두 공식 침체 기간이지만 결과는 극과 극이다 — <b>2008-09-15(리먼 파산, 실제로
+    은행 시스템이 멈춘 순간)는 +120일 &minus;43.3%로 이 프로젝트 전체에서 본 가장 나쁜 결과
+    중 하나</b>다. 반면 <b>2020-03-13(코로나, 표면적으로는 더 갑작스럽고 무서웠던 충격)은
+    +120일 +32.1%로 정반대 결과</b>다. 차이는 "실제로 은행 시스템이 무너졌는가"다 — 2008년엔
+    은행 간 신뢰가 실제로 붕괴돼 자금이 안 돌았지만, 2020년엔 연준과 재정정책이 초고속으로
+    개입해 은행 시스템 자체는 멀쩡하게 유지됐다.</p>
+    <div class="hyp" style="border-left-color:var(--cut)">
+      <div class="tag">H3 검증 결과</div>
+      <p style="margin:0">이 프로젝트에서 이미 4번(트랙A 인하, 트랙B 충격사건, 트랙F VIX&ge;50,
+      트랙H 크레딧스프레드) 독립 확인된 "사건의 무서움보다 실제 시스템 붕괴 여부가 중요하다"
+      패턴이 <b>다섯 번째로 재현됐다</b> — 리먼(진짜 붕괴)은 최악, 코로나(충격은 컸지만 정책
+      대응으로 시스템 자체는 지켜짐)는 최고였다. n=4로 통계적 확정은 아니지만, 대비 자체는
+      매우 선명하다.</p>
+      <span class="verdict confirmed">REPLICATED (5번째)</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>경제학 지식 없이 읽는 법</h2>
+    <ul class="findings">
+      <li><b>은행들이 서로를 못 믿기 시작하면(TED 스프레드 급등), 처음 한 달 정도는 VIX
+      급등 때와 달리 "공포에 사라"가 안 통했다.</b> 시장이 곧바로 반등하지 않고 오히려 기준선
+      보다 약했다.</li>
+      <li><b>하지만 크레딧 스프레드처럼 오래 나쁘지도 않았다.</b> 60~120거래일이 지나면 평상시
+      수준으로 거의 돌아왔다 — 네 가지 신호 중 "회복 속도"로 보면 VIX와 크레딧스프레드
+      사이의 중간에 위치한다.</li>
+      <li><b>이 지표는 VIX·크레딧과 따로 논다.</b> 4건 중 3건만 이미 아는 다른 두 신호와
+      겹쳤고(13~30%), 나머지는 이 지표만 따로 잡아낸 스트레스였다 — 진짜 독립적인 네 번째
+      정보원이라는 뜻이다.</li>
+      <li><b>이번에도 "얼마나 무서웠는가"보다 "실제로 무엇이 무너졌는가"가 중요했다.</b>
+      코로나는 순식간에 시장이 폭락하고 뉴스도 훨씬 자극적이었지만, 은행 시스템 자체는
+      정책대응 덕에 지켜져 결국 강하게 반등했다. 리먼은 겉으로는 코로나보다 덜 극적으로
+      보일 수 있지만 실제 은행 시스템이 멈췄고, 결국 훨씬 오래 나빴다.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>한계</h2>
+    <div class="callout">
+      <ul class="findings" style="margin:0;">
+        <li><b>TEDRATE는 2022-01-21 이후 데이터가 없다.</b> 2022년 긴축 사이클, 2023년
+        지역은행(SVB) 위기, 2025년 관세 충격은 이 지표로 아예 볼 수 없다 — 이 지표의 검증
+        범위는 1986~2022년으로 한정된다.</li>
+        <li><b>H3의 침체중 표본은 n=4뿐이다.</b> 리먼과 코로나의 극명한 대비는 매우 인상적이지만
+        통계적으로 확정할 수 있는 크기가 아니다 — 사례 연구로 읽어야 한다.</li>
+        <li><b>H2의 "겹침"은 그날 하루의 VIX 종가&ge;30 여부로만 확인했다</b>, VIX 급등
+        스터디의 "급등 이벤트"(직전 20거래일 미만 후 첫 돌파) 정의와는 약간 다른 더 단순한
+        기준이다 — 정확히 같은 정의로 다시 확인하면 겹침 비율이 소폭 달라질 수 있다.</li>
+        <li><b>이 스터디는 "TED 스트레스 이후 주가가 어떻게 움직였는가"만 봤다</b>, 왜 은행간
+        신뢰가 무너졌는지(어떤 특정 은행의 문제였는지 등)의 메커니즘은 사례별로 따로 검증하지
+        않았다.</li>
+        <li><b>거래비용·세금은 반영하지 않았다.</b> 다른 리포트와 동일하게 순수 가격 반응만
+        본다.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="footer">
+    데이터: FRED(TEDRATE, VIXCLS, BAA10Y, USREC) · Yahoo Finance(^GSPC) · 분석 스크립트:
+    bank_funding_stress_study.py(credit_spread_event_study.py, vix_spike_event_study.py,
+    cross_asset_recession_split.py의 기존 탐지/정렬 로직 재사용) · 같은 프로젝트: VIX 공포지수
+    급등 스터디, 신용시장의 공포지수(크레딧 스프레드), 세 위기 게이지가 동시에 울릴 때
+  </div>
+</div>

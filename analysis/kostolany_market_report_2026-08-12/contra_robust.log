@@ -1,0 +1,20 @@
+$GLD: possibly delisted; no price data found  (1d 1996-03-20 -> 2004-11-17) (Yahoo error = "Data doesn't exist for startDate = 827298000, endDate = 1100667600")
+
+1 Failed download:
+['GLD']: possibly delisted; no price data found  (1d 1996-03-20 -> 2004-11-17) (Yahoo error = "Data doesn't exist for startDate = 827298000, endDate = 1100667600")
+$TLT: possibly delisted; no price data found  (1d 1996-03-20 -> 2002-07-29) (Yahoo error = "Data doesn't exist for startDate = 827298000, endDate = 1027915200")
+
+1 Failed download:
+['TLT']: possibly delisted; no price data found  (1d 1996-03-20 -> 2002-07-29) (Yahoo error = "Data doesn't exist for startDate = 827298000, endDate = 1027915200")
+/workspaces/Quant/analysis/kostolany_market_report_2026-08-12/hypothesis_country_contrarian_robustness.py:41: FutureWarning: The behavior of DataFrame.idxmin with all-NA values, or any-NA and skipna=False, is deprecated. In a future version this will raise ValueError
+  laggard = z_scores.idxmin(axis=1)
+/workspaces/Quant/analysis/kostolany_market_report_2026-08-12/multi_regime_multi_strategy.py:63: FutureWarning: The behavior of DataFrame.idxmax with all-NA values, or any-NA and skipna=False, is deprecated. In a future version this will raise ValueError
+  leader = z_scores.idxmax(axis=1)
+[z>=0.5] 쏠림비율=53.4%: CAGR=4.92, MDD=-41.55, 샤프=0.42
+[z>=0.75] 쏠림비율=53.0%: CAGR=4.95, MDD=-41.55, 샤프=0.42
+[z>=1.0] 쏠림비율=51.6%: CAGR=5.12, MDD=-41.55, 샤프=0.43
+[z>=1.5] 쏠림비율=27.9%: CAGR=4.91, MDD=-41.55, 샤프=0.42
+[z>=2.0] 쏠림비율=4.1%: CAGR=4.99, MDD=-41.62, 샤프=0.42
+S&P500: {'cumulative_return': 695.16, 'cagr': 7.52, 'mdd': -56.78, 'sharpe': 0.47, 'win_rate': 100.0, 'avg_holding_days': 10447.0, 'trade_count': 1, 'profit_factor': 999.0, 'calmar': 0.13, 'avg_drawdown_days': 33.6}
+
+DONE

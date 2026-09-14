@@ -1,0 +1,760 @@
+{
+  "primary_threshold": 3.0,
+  "alt_threshold": 2.5,
+  "n_total_hikes": 51,
+  "primary": {
+    "n_normal": 26,
+    "n_fighting": 25,
+    "spx_normal": {
+      "n": 26,
+      "fwd_5d_mean_pct": -0.25,
+      "fwd_5d_win_rate_pct": 50.0,
+      "fwd_20d_mean_pct": -0.855,
+      "fwd_20d_win_rate_pct": 46.2,
+      "fwd_60d_mean_pct": 1.189,
+      "fwd_60d_win_rate_pct": 65.4,
+      "fwd_120d_mean_pct": 4.453,
+      "fwd_120d_win_rate_pct": 76.9
+    },
+    "spx_fighting": {
+      "n": 25,
+      "fwd_5d_mean_pct": -0.228,
+      "fwd_5d_win_rate_pct": 48.0,
+      "fwd_20d_mean_pct": 1.092,
+      "fwd_20d_win_rate_pct": 64.0,
+      "fwd_60d_mean_pct": 1.998,
+      "fwd_60d_win_rate_pct": 56.0,
+      "fwd_120d_mean_pct": 4.367,
+      "fwd_120d_win_rate_pct": 72.0
+    },
+    "hike_events": [
+      {
+        "date": "1994-02-04",
+        "change_bps": 25,
+        "cpi_yoy_asof": NaN,
+        "character": "normal_tightening",
+        "fwd_5d_pct": 0.079,
+        "fwd_20d_pct": -0.617,
+        "fwd_60d_pct": -3.85,
+        "fwd_120d_pct": -2.458
+      },
+      {
+        "date": "1994-03-22",
+        "change_bps": 25,
+        "cpi_yoy_asof": 2.450980392156854,
+        "character": "normal_tightening",
+        "fwd_5d_pct": -3.481,
+        "fwd_20d_pct": -5.725,
+        "fwd_60d_pct": -2.208,
+        "fwd_120d_pct": -0.275
+      },
+      {
+        "date": "1994-04-18",
+        "change_bps": 25,
+        "cpi_yoy_asof": 2.515723270440251,
+        "character": "normal_tightening",
+        "fwd_5d_pct": 2.317,
+        "fwd_20d_pct": 1.562,
+        "fwd_60d_pct": 2.475,
+        "fwd_120d_pct": 2.857
+      },
+      {
+        "date": "1994-05-17",
+        "change_bps": 50,
+        "cpi_yoy_asof": 2.6517794836008246,
+        "character": "normal_tightening",
+        "fwd_5d_pct": 1.211,
+        "fwd_20d_pct": 2.501,
+        "fwd_60d_pct": 2.116,
+        "fwd_120d_pct": 2.873
+      },
+      {
+        "date": "1994-08-16",
+        "change_bps": 50,
+        "cpi_yoy_asof": 2.494802494802495,
+        "character": "normal_tightening",
+        "fwd_5d_pct": -0.108,
+        "fwd_20d_pct": 0.815,
+        "fwd_60d_pct": 0.084,
+        "fwd_120d_pct": 3.469
+      },
+      {
+        "date": "1994-11-15",
+        "change_bps": 75,
+        "cpi_yoy_asof": 2.965517241379323,
+        "character": "normal_tightening",
+        "fwd_5d_pct": -3.213,
+        "fwd_20d_pct": -2.163,
+        "fwd_60d_pct": 3.533,
+        "fwd_120d_pct": 12.586
+      },
+      {
+        "date": "1995-02-01",
+        "change_bps": 50,
+        "cpi_yoy_asof": 2.597402597402576,
+        "character": "normal_tightening",
+        "fwd_5d_pct": 2.294,
+        "fwd_20d_pct": 3.131,
+        "fwd_60d_pct": 9.42,
+        "fwd_120d_pct": 19.281
+      },
+      {
+        "date": "1997-03-25",
+        "change_bps": 25,
+        "cpi_yoy_asof": 3.0381383322559907,
+        "character": "inflation_fighting",
+        "fwd_5d_pct": -4.937,
+        "fwd_20d_pct": -1.955,
+        "fwd_60d_pct": 13.804,
+        "fwd_120d_pct": 16.564
+      },
+      {
+        "date": "1999-06-30",
+        "change_bps": 25,
+        "cpi_yoy_asof": 2.281134401972884,
+        "character": "normal_tightening",
+        "fwd_5d_pct": 1.582,
+        "fwd_20d_pct": -2.308,
+        "fwd_60d_pct": -6.946,
+        "fwd_120d_pct": 3.306
+      },
+      {
+        "date": "1999-08-24",
+        "change_bps": 25,
+        "cpi_yoy_asof": 1.9656019656019597,
+        "character": "normal_tightening",
+        "fwd_5d_pct": -3.16,
+        "fwd_20d_pct": -3.886,
+        "fwd_60d_pct": 3.462,
+        "fwd_120d_pct": 1.939
+      },
+      {
+        "date": "1999-11-16",
+        "change_bps": 25,
+        "cpi_yoy_asof": 2.629969418960254,
+        "character": "normal_tightening",
+        "fwd_5d_pct": -1.087,
+        "fwd_20d_pct": -0.475,
+        "fwd_60d_pct": -2.32,
+        "fwd_120d_pct": -0.558
+      },
+      {
+        "date": "2000-02-02",
+        "change_bps": 25,
+        "cpi_yoy_asof": 2.676399026763998,
+        "character": "normal_tightening",
+        "fwd_5d_pct": 0.184,
+        "fwd_20d_pct": -1.942,
+        "fwd_60d_pct": 3.074,
+        "fwd_120d_pct": 4.638
+      },
+      {
+        "date": "2000-03-21",
+        "change_bps": 25,
+        "cpi_yoy_asof": 2.792956891317555,
+        "character": "normal_tightening",
+        "fwd_5d_pct": 0.928,
+        "fwd_20d_pct": -3.498,
+        "fwd_60d_pct": -1.013,
+        "fwd_120d_pct": -0.309
+      },
+      {
+        "date": "2000-05-16",
+        "change_bps": 50,
+        "cpi_yoy_asof": 3.762135922330101,
+        "character": "inflation_fighting",
+        "fwd_5d_pct": -6.288,
+        "fwd_20d_pct": 0.307,
+        "fwd_60d_pct": -0.395,
+        "fwd_120d_pct": -2.684
+      },
+      {
+        "date": "2004-06-30",
+        "change_bps": 25,
+        "cpi_yoy_asof": 2.2925764192139875,
+        "character": "normal_tightening",
+        "fwd_5d_pct": -2.781,
+        "fwd_20d_pct": -3.542,
+        "fwd_60d_pct": -2.694,
+        "fwd_120d_pct": 4.717
+      },
+      {
+        "date": "2004-08-10",
+        "change_bps": 25,
+        "cpi_yoy_asof": 3.1676679410158393,
+        "character": "inflation_fighting",
+        "fwd_5d_pct": 0.247,
+        "fwd_20d_pct": 3.45,
+        "fwd_60d_pct": 5.946,
+        "fwd_120d_pct": 9.474
+      },
+      {
+        "date": "2004-09-21",
+        "change_bps": 25,
+        "cpi_yoy_asof": 2.939575394665228,
+        "character": "normal_tightening",
+        "fwd_5d_pct": -1.704,
+        "fwd_20d_pct": -2.309,
+        "fwd_60d_pct": 6.767,
+        "fwd_120d_pct": 6.865
+      },
+      {
+        "date": "2004-11-10",
+        "change_bps": 25,
+        "cpi_yoy_asof": 2.5391680172879516,
+        "character": "normal_tightening",
+        "fwd_5d_pct": 1.636,
+        "fwd_20d_pct": 2.264,
+        "fwd_60d_pct": 3.337,
+        "fwd_120d_pct": 1.096
+      },
+      {
+        "date": "2004-12-14",
+        "change_bps": 25,
+        "cpi_yoy_asof": 3.1909140075716547,
+        "character": "inflation_fighting",
+        "fwd_5d_pct": 0.172,
+        "fwd_20d_pct": -1.303,
+        "fwd_60d_pct": -0.274,
+        "fwd_120d_pct": -0.509
+      },
+      {
+        "date": "2005-02-02",
+        "change_bps": 25,
+        "cpi_yoy_asof": 3.3423180592991875,
+        "character": "inflation_fighting",
+        "fwd_5d_pct": -0.101,
+        "fwd_20d_pct": 1.448,
+        "fwd_60d_pct": -3.046,
+        "fwd_120d_pct": 3.182
+      },
+      {
+        "date": "2005-03-22",
+        "change_bps": 25,
+        "cpi_yoy_asof": 2.8448738593666034,
+        "character": "normal_tightening",
+        "fwd_5d_pct": 0.828,
+        "fwd_20d_pct": -2.92,
+        "fwd_60d_pct": 3.35,
+        "fwd_120d_pct": 5.876
+      },
+      {
+        "date": "2005-05-03",
+        "change_bps": 25,
+        "cpi_yoy_asof": 3.2068412613575736,
+        "character": "inflation_fighting",
+        "fwd_5d_pct": 0.435,
+        "fwd_20d_pct": 3.535,
+        "fwd_60d_pct": 7.109,
+        "fwd_120d_pct": 1.586
+      },
+      {
+        "date": "2005-06-30",
+        "change_bps": 25,
+        "cpi_yoy_asof": 3.3617929562433257,
+        "character": "inflation_fighting",
+        "fwd_5d_pct": 1.723,
+        "fwd_20d_pct": 3.597,
+        "fwd_60d_pct": 2.04,
+        "fwd_120d_pct": 5.732
+      },
+      {
+        "date": "2005-08-09",
+        "change_bps": 25,
+        "cpi_yoy_asof": 2.541026998411855,
+        "character": "normal_tightening",
+        "fwd_5d_pct": -0.978,
+        "fwd_20d_pct": 0.404,
+        "fwd_60d_pct": -1.35,
+        "fwd_120d_pct": 3.955
+      },
+      {
+        "date": "2005-09-20",
+        "change_bps": 25,
+        "cpi_yoy_asof": 3.067160232681121,
+        "character": "inflation_fighting",
+        "fwd_5d_pct": -0.465,
+        "fwd_20d_pct": -3.537,
+        "fwd_60d_pct": 4.208,
+        "fwd_120d_pct": 6.234
+      },
+      {
+        "date": "2005-11-01",
+        "change_bps": 25,
+        "cpi_yoy_asof": 4.741833508956805,
+        "character": "inflation_fighting",
+        "fwd_5d_pct": 1.316,
+        "fwd_20d_pct": 3.884,
+        "fwd_60d_pct": 6.853,
+        "fwd_120d_pct": 8.535
+      },
+      {
+        "date": "2005-12-13",
+        "change_bps": 25,
+        "cpi_yoy_asof": 4.350104821802936,
+        "character": "inflation_fighting",
+        "fwd_5d_pct": -0.616,
+        "fwd_20d_pct": 1.47,
+        "fwd_60d_pct": 1.318,
+        "fwd_120d_pct": -0.89
+      },
+      {
+        "date": "2006-01-31",
+        "change_bps": 25,
+        "cpi_yoy_asof": 3.3385498174230532,
+        "character": "inflation_fighting",
+        "fwd_5d_pct": -1.976,
+        "fwd_20d_pct": 0.872,
+        "fwd_60d_pct": 2.315,
+        "fwd_120d_pct": -1.498
+      },
+      {
+        "date": "2006-03-28",
+        "change_bps": 25,
+        "cpi_yoy_asof": 4.018789144050117,
+        "character": "inflation_fighting",
+        "fwd_5d_pct": 0.982,
+        "fwd_20d_pct": 0.942,
+        "fwd_60d_pct": -3.683,
+        "fwd_120d_pct": 2.161
+      },
+      {
+        "date": "2006-05-10",
+        "change_bps": 25,
+        "cpi_yoy_asof": 3.4179181771103018,
+        "character": "inflation_fighting",
+        "fwd_5d_pct": -3.971,
+        "fwd_20d_pct": -4.908,
+        "fwd_60d_pct": -3.288,
+        "fwd_120d_pct": 4.164
+      },
+      {
+        "date": "2006-06-29",
+        "change_bps": 25,
+        "cpi_yoy_asof": 3.613835828600931,
+        "character": "inflation_fighting",
+        "fwd_5d_pct": -0.581,
+        "fwd_20d_pct": 0.446,
+        "fwd_60d_pct": 4.203,
+        "fwd_120d_pct": 11.995
+      },
+      {
+        "date": "2015-12-16",
+        "change_bps": 25,
+        "cpi_yoy_asof": 0.12761656067050708,
+        "character": "normal_tightening",
+        "fwd_5d_pct": -0.424,
+        "fwd_20d_pct": -9.297,
+        "fwd_60d_pct": -2.756,
+        "fwd_120d_pct": 2.046
+      },
+      {
+        "date": "2016-12-14",
+        "change_bps": 25,
+        "cpi_yoy_asof": 1.685924966243646,
+        "character": "normal_tightening",
+        "fwd_5d_pct": 0.528,
+        "fwd_20d_pct": 0.948,
+        "fwd_60d_pct": 4.978,
+        "fwd_120d_pct": 8.011
+      },
+      {
+        "date": "2017-03-16",
+        "change_bps": 25,
+        "cpi_yoy_asof": 2.5103933482571117,
+        "character": "normal_tightening",
+        "fwd_5d_pct": -1.487,
+        "fwd_20d_pct": -2.202,
+        "fwd_60d_pct": 2.016,
+        "fwd_120d_pct": 3.534
+      },
+      {
+        "date": "2017-06-15",
+        "change_bps": 25,
+        "cpi_yoy_asof": 2.176223471915395,
+        "character": "normal_tightening",
+        "fwd_5d_pct": 0.084,
+        "fwd_20d_pct": 1.102,
+        "fwd_60d_pct": 2.288,
+        "fwd_120d_pct": 8.103
+      },
+      {
+        "date": "2017-12-14",
+        "change_bps": 25,
+        "cpi_yoy_asof": 2.020757753132485,
+        "character": "normal_tightening",
+        "fwd_5d_pct": 1.228,
+        "fwd_20d_pct": 4.691,
+        "fwd_60d_pct": 3.675,
+        "fwd_120d_pct": 4.79
+      },
+      {
+        "date": "2018-03-22",
+        "change_bps": 25,
+        "cpi_yoy_asof": 2.151318868063945,
+        "character": "normal_tightening",
+        "fwd_5d_pct": -0.107,
+        "fwd_20d_pct": 1.0,
+        "fwd_60d_pct": 4.92,
+        "fwd_120d_pct": 9.276
+      },
+      {
+        "date": "2018-06-14",
+        "change_bps": 25,
+        "cpi_yoy_asof": 2.4709963021052994,
+        "character": "normal_tightening",
+        "fwd_5d_pct": -1.176,
+        "fwd_20d_pct": 0.676,
+        "fwd_60d_pct": 3.401,
+        "fwd_120d_pct": -2.962
+      },
+      {
+        "date": "2018-09-27",
+        "change_bps": 25,
+        "cpi_yoy_asof": 2.854124785561929,
+        "character": "normal_tightening",
+        "fwd_5d_pct": -0.425,
+        "fwd_20d_pct": -7.153,
+        "fwd_60d_pct": -19.317,
+        "fwd_120d_pct": -3.888
+      },
+      {
+        "date": "2018-12-20",
+        "change_bps": 25,
+        "cpi_yoy_asof": 2.492032470218053,
+        "character": "normal_tightening",
+        "fwd_5d_pct": 0.742,
+        "fwd_20d_pct": 6.707,
+        "fwd_60d_pct": 14.461,
+        "fwd_120d_pct": 17.004
+      },
+      {
+        "date": "2022-03-17",
+        "change_bps": 25,
+        "cpi_yoy_asof": 7.558805726967832,
+        "character": "inflation_fighting",
+        "fwd_5d_pct": 2.459,
+        "fwd_20d_pct": -0.432,
+        "fwd_60d_pct": -15.007,
+        "fwd_120d_pct": -9.191
+      },
+      {
+        "date": "2022-05-05",
+        "change_bps": 50,
+        "cpi_yoy_asof": 8.572204966013853,
+        "character": "inflation_fighting",
+        "fwd_5d_pct": -5.228,
+        "fwd_20d_pct": -0.924,
+        "fwd_60d_pct": -1.343,
+        "fwd_120d_pct": -7.627
+      },
+      {
+        "date": "2022-06-16",
+        "change_bps": 75,
+        "cpi_yoy_asof": 8.231750770777225,
+        "character": "inflation_fighting",
+        "fwd_5d_pct": 6.681,
+        "fwd_20d_pct": 4.475,
+        "fwd_60d_pct": 7.252,
+        "fwd_120d_pct": 7.286
+      },
+      {
+        "date": "2022-07-28",
+        "change_bps": 75,
+        "cpi_yoy_asof": 8.538171195642065,
+        "character": "inflation_fighting",
+        "fwd_5d_pct": 1.952,
+        "fwd_20d_pct": 3.111,
+        "fwd_60d_pct": -7.85,
+        "fwd_120d_pct": -4.262
+      },
+      {
+        "date": "2022-09-22",
+        "change_bps": 75,
+        "cpi_yoy_asof": 8.462576727730099,
+        "character": "inflation_fighting",
+        "fwd_5d_pct": -3.127,
+        "fwd_20d_pct": -2.454,
+        "fwd_60d_pct": 2.511,
+        "fwd_120d_pct": 5.383
+      },
+      {
+        "date": "2022-11-03",
+        "change_bps": 75,
+        "cpi_yoy_asof": 8.192106896425821,
+        "character": "inflation_fighting",
+        "fwd_5d_pct": 6.357,
+        "fwd_20d_pct": 9.458,
+        "fwd_60d_pct": 10.735,
+        "fwd_120d_pct": 12.086
+      },
+      {
+        "date": "2022-12-15",
+        "change_bps": 50,
+        "cpi_yoy_asof": 7.758813957693,
+        "character": "inflation_fighting",
+        "fwd_5d_pct": -1.883,
+        "fwd_20d_pct": 2.444,
+        "fwd_60d_pct": -0.098,
+        "fwd_120d_pct": 10.347
+      },
+      {
+        "date": "2023-02-02",
+        "change_bps": 25,
+        "cpi_yoy_asof": 6.404600402357152,
+        "character": "inflation_fighting",
+        "fwd_5d_pct": -2.351,
+        "fwd_20d_pct": -3.209,
+        "fwd_60d_pct": -0.284,
+        "fwd_120d_pct": 8.557
+      },
+      {
+        "date": "2023-03-23",
+        "change_bps": 25,
+        "cpi_yoy_asof": 6.327178517960097,
+        "character": "inflation_fighting",
+        "fwd_5d_pct": 2.586,
+        "fwd_20d_pct": 4.68,
+        "fwd_60d_pct": 11.143,
+        "fwd_120d_pct": 14.09
+      },
+      {
+        "date": "2023-05-04",
+        "change_bps": 25,
+        "cpi_yoy_asof": 4.917719362889961,
+        "character": "inflation_fighting",
+        "fwd_5d_pct": 1.709,
+        "fwd_20d_pct": 5.445,
+        "fwd_60d_pct": 12.693,
+        "fwd_120d_pct": 3.091
+      },
+      {
+        "date": "2023-07-27",
+        "change_bps": 25,
+        "cpi_yoy_asof": 4.131851231385042,
+        "character": "inflation_fighting",
+        "fwd_5d_pct": -0.783,
+        "fwd_20d_pct": -3.55,
+        "fwd_60d_pct": -6.904,
+        "fwd_120d_pct": 5.367
+      }
+    ]
+  },
+  "alt": {
+    "n_normal": 13,
+    "n_fighting": 38,
+    "spx_normal": {
+      "n": 13,
+      "fwd_5d_mean_pct": -0.538,
+      "fwd_5d_win_rate_pct": 46.2,
+      "fwd_20d_mean_pct": -0.726,
+      "fwd_20d_win_rate_pct": 53.8,
+      "fwd_60d_mean_pct": 1.447,
+      "fwd_60d_win_rate_pct": 61.5,
+      "fwd_120d_mean_pct": 4.382,
+      "fwd_120d_win_rate_pct": 76.9
+    },
+    "spx_fighting": {
+      "n": 38,
+      "fwd_5d_mean_pct": -0.136,
+      "fwd_5d_win_rate_pct": 50.0,
+      "fwd_20d_mean_pct": 0.381,
+      "fwd_20d_win_rate_pct": 55.3,
+      "fwd_60d_mean_pct": 1.633,
+      "fwd_60d_win_rate_pct": 60.5,
+      "fwd_120d_mean_pct": 4.42,
+      "fwd_120d_win_rate_pct": 73.7
+    }
+  },
+  "sectors": {
+    "XLK": {
+      "label": "기술",
+      "normal_tightening": {
+        "n": 11,
+        "fwd_5d_mean_pct": -0.452,
+        "fwd_5d_win_rate_pct": 45.5,
+        "fwd_20d_mean_pct": -1.028,
+        "fwd_20d_win_rate_pct": 54.5,
+        "fwd_60d_mean_pct": 3.223,
+        "fwd_60d_win_rate_pct": 72.7
+      },
+      "inflation_fighting": {
+        "n": 21,
+        "fwd_5d_mean_pct": 0.382,
+        "fwd_5d_win_rate_pct": 47.6,
+        "fwd_20d_mean_pct": 1.616,
+        "fwd_20d_win_rate_pct": 57.1,
+        "fwd_60d_mean_pct": 2.745,
+        "fwd_60d_win_rate_pct": 66.7
+      }
+    },
+    "XLF": {
+      "label": "금융",
+      "normal_tightening": {
+        "n": 11,
+        "fwd_5d_mean_pct": -0.457,
+        "fwd_5d_win_rate_pct": 45.5,
+        "fwd_20d_mean_pct": -1.244,
+        "fwd_20d_win_rate_pct": 54.5,
+        "fwd_60d_mean_pct": 0.182,
+        "fwd_60d_win_rate_pct": 63.6
+      },
+      "inflation_fighting": {
+        "n": 21,
+        "fwd_5d_mean_pct": 0.171,
+        "fwd_5d_win_rate_pct": 52.4,
+        "fwd_20d_mean_pct": 1.433,
+        "fwd_20d_win_rate_pct": 61.9,
+        "fwd_60d_mean_pct": 0.533,
+        "fwd_60d_win_rate_pct": 52.4
+      }
+    },
+    "XLE": {
+      "label": "에너지",
+      "normal_tightening": {
+        "n": 11,
+        "fwd_5d_mean_pct": -0.484,
+        "fwd_5d_win_rate_pct": 36.4,
+        "fwd_20d_mean_pct": -0.012,
+        "fwd_20d_win_rate_pct": 36.4,
+        "fwd_60d_mean_pct": -1.386,
+        "fwd_60d_win_rate_pct": 36.4
+      },
+      "inflation_fighting": {
+        "n": 21,
+        "fwd_5d_mean_pct": -0.763,
+        "fwd_5d_win_rate_pct": 57.1,
+        "fwd_20d_mean_pct": 2.937,
+        "fwd_20d_win_rate_pct": 76.2,
+        "fwd_60d_mean_pct": 3.963,
+        "fwd_60d_win_rate_pct": 57.1
+      }
+    },
+    "XLV": {
+      "label": "헬스케어",
+      "normal_tightening": {
+        "n": 11,
+        "fwd_5d_mean_pct": 0.146,
+        "fwd_5d_win_rate_pct": 45.5,
+        "fwd_20d_mean_pct": 0.581,
+        "fwd_20d_win_rate_pct": 72.7,
+        "fwd_60d_mean_pct": 2.051,
+        "fwd_60d_win_rate_pct": 72.7
+      },
+      "inflation_fighting": {
+        "n": 21,
+        "fwd_5d_mean_pct": 0.356,
+        "fwd_5d_win_rate_pct": 42.9,
+        "fwd_20d_mean_pct": 1.214,
+        "fwd_20d_win_rate_pct": 61.9,
+        "fwd_60d_mean_pct": 0.823,
+        "fwd_60d_win_rate_pct": 71.4
+      }
+    },
+    "XLI": {
+      "label": "산업재",
+      "normal_tightening": {
+        "n": 11,
+        "fwd_5d_mean_pct": -0.481,
+        "fwd_5d_win_rate_pct": 36.4,
+        "fwd_20d_mean_pct": -1.133,
+        "fwd_20d_win_rate_pct": 54.5,
+        "fwd_60d_mean_pct": 0.535,
+        "fwd_60d_win_rate_pct": 72.7
+      },
+      "inflation_fighting": {
+        "n": 21,
+        "fwd_5d_mean_pct": 0.301,
+        "fwd_5d_win_rate_pct": 52.4,
+        "fwd_20d_mean_pct": 1.488,
+        "fwd_20d_win_rate_pct": 66.7,
+        "fwd_60d_mean_pct": 1.605,
+        "fwd_60d_win_rate_pct": 52.4
+      }
+    },
+    "XLY": {
+      "label": "임의소비재",
+      "normal_tightening": {
+        "n": 11,
+        "fwd_5d_mean_pct": -0.63,
+        "fwd_5d_win_rate_pct": 27.3,
+        "fwd_20d_mean_pct": -1.058,
+        "fwd_20d_win_rate_pct": 45.5,
+        "fwd_60d_mean_pct": 1.363,
+        "fwd_60d_win_rate_pct": 63.6
+      },
+      "inflation_fighting": {
+        "n": 21,
+        "fwd_5d_mean_pct": 0.198,
+        "fwd_5d_win_rate_pct": 52.4,
+        "fwd_20d_mean_pct": 0.948,
+        "fwd_20d_win_rate_pct": 61.9,
+        "fwd_60d_mean_pct": 0.871,
+        "fwd_60d_win_rate_pct": 52.4
+      }
+    },
+    "XLP": {
+      "label": "필수소비재",
+      "normal_tightening": {
+        "n": 11,
+        "fwd_5d_mean_pct": -0.248,
+        "fwd_5d_win_rate_pct": 36.4,
+        "fwd_20d_mean_pct": -0.647,
+        "fwd_20d_win_rate_pct": 45.5,
+        "fwd_60d_mean_pct": 0.672,
+        "fwd_60d_win_rate_pct": 54.5
+      },
+      "inflation_fighting": {
+        "n": 21,
+        "fwd_5d_mean_pct": 0.195,
+        "fwd_5d_win_rate_pct": 52.4,
+        "fwd_20d_mean_pct": 0.867,
+        "fwd_20d_win_rate_pct": 61.9,
+        "fwd_60d_mean_pct": 0.36,
+        "fwd_60d_win_rate_pct": 61.9
+      }
+    },
+    "XLU": {
+      "label": "유틸리티",
+      "normal_tightening": {
+        "n": 11,
+        "fwd_5d_mean_pct": -0.255,
+        "fwd_5d_win_rate_pct": 63.6,
+        "fwd_20d_mean_pct": 0.507,
+        "fwd_20d_win_rate_pct": 72.7,
+        "fwd_60d_mean_pct": 3.234,
+        "fwd_60d_win_rate_pct": 63.6
+      },
+      "inflation_fighting": {
+        "n": 21,
+        "fwd_5d_mean_pct": -0.33,
+        "fwd_5d_win_rate_pct": 47.6,
+        "fwd_20d_mean_pct": 0.531,
+        "fwd_20d_win_rate_pct": 61.9,
+        "fwd_60d_mean_pct": 0.446,
+        "fwd_60d_win_rate_pct": 52.4
+      }
+    },
+    "XLB": {
+      "label": "소재",
+      "normal_tightening": {
+        "n": 11,
+        "fwd_5d_mean_pct": -0.611,
+        "fwd_5d_win_rate_pct": 27.3,
+        "fwd_20d_mean_pct": -2.116,
+        "fwd_20d_win_rate_pct": 45.5,
+        "fwd_60d_mean_pct": -0.06,
+        "fwd_60d_win_rate_pct": 63.6
+      },
+      "inflation_fighting": {
+        "n": 21,
+        "fwd_5d_mean_pct": -0.292,
+        "fwd_5d_win_rate_pct": 33.3,
+        "fwd_20d_mean_pct": 1.487,
+        "fwd_20d_win_rate_pct": 61.9,
+        "fwd_60d_mean_pct": 0.585,
+        "fwd_60d_win_rate_pct": 47.6
+      }
+    }
+  }
+}

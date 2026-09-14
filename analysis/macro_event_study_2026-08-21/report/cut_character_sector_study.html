@@ -1,0 +1,299 @@
+<title>인하 국면별 섹터 반응</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #eef1ee; --surface: #ffffff; --surface-2: #e6eae5;
+    --ink: #17211d; --ink-muted: #57635c; --ink-faint: #8b968f; --line: #d9dfd8;
+    --hike: #a8461f; --hike-soft: #f4e3da; --cut: #1f6e79; --cut-soft: #dcedee; --gold: #8a6d1f; --gold-soft: #f1e6c8;
+    --shadow: 0 1px 2px rgba(23,33,29,.06), 0 8px 24px -12px rgba(23,33,29,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+      --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+      --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+      --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c; --gold-soft: #3a3016;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+    --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+    --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+    --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c; --gold-soft: #3a3016;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Public Sans", -apple-system, "Noto Sans KR", sans-serif;
+    font-size: 16px; line-height: 1.65;
+  }
+  ::selection { background: var(--gold); color: #1a1408; }
+  a { color: var(--cut); }
+  .page { max-width: 880px; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 1rem;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 500;
+    font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.08; letter-spacing: -.01em;
+    margin: 0 0 1rem; text-wrap: balance;
+  }
+  .dek { font-size: 1.15rem; color: var(--ink-muted); max-width: 62ch; margin: 0 0 1.75rem; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: .4rem 1.6rem;
+    font-family: "IBM Plex Mono", monospace; font-size: .82rem; color: var(--ink-muted);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: .85rem 0;
+  }
+  .meta-row b { color: var(--ink); font-weight: 600; }
+  section { margin: 3.2rem 0; }
+  section > h2 {
+    font-family: "Fraunces", serif; font-weight: 500; font-size: 1.6rem;
+    letter-spacing: -.005em; margin: 0 0 .3rem; text-wrap: balance;
+  }
+  section > .lede { color: var(--ink-muted); max-width: 66ch; margin: 0 0 1.4rem; }
+  p { max-width: 68ch; }
+  .note {
+    background: var(--surface-2); border-left: 3px solid var(--gold); border-radius: 4px;
+    padding: .9rem 1.1rem; font-size: .93rem; color: var(--ink-muted); max-width: 68ch; margin: 1.1rem 0;
+  }
+  .note b { color: var(--ink); }
+  .callout {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.2rem 1.4rem; box-shadow: var(--shadow); margin: 1.4rem 0;
+  }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .9rem; margin: 1.3rem 0 1.6rem; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.1rem; }
+  .tile .label { font-size: .78rem; color: var(--ink-muted); margin-bottom: .35rem; }
+  .tile .value { font-family: "IBM Plex Mono", monospace; font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tile .value.hike { color: var(--hike); }
+  .tile .value.cut { color: var(--cut); }
+  .tile .sub { font-size: .76rem; color: var(--ink-faint); margin-top: .25rem; }
+  .table-wrap { overflow-x: auto; margin: 1.2rem 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 480px; font-size: .92rem; }
+  caption { text-align: left; font-size: .82rem; color: var(--ink-faint); padding-bottom: .5rem; }
+  th, td { padding: .62rem .8rem; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; font-family: "IBM Plex Mono", monospace; }
+  th:first-child, td:first-child { text-align: left; font-family: "Public Sans", sans-serif; }
+  thead th { font-family: "Public Sans", sans-serif; font-weight: 600; font-size: .78rem; letter-spacing: .02em; color: var(--ink-muted); text-transform: uppercase; border-bottom: 1px solid var(--ink-faint); }
+  tr.row-hot td:first-child { border-left: 3px solid var(--hike); padding-left: .65rem; }
+  tr.row-cool td:first-child { border-left: 3px solid var(--cut); padding-left: .65rem; }
+  tbody tr:hover { background: var(--surface-2); }
+  ul.findings { padding-left: 1.2rem; max-width: 68ch; }
+  ul.findings li { margin-bottom: .9rem; }
+  ul.findings b { color: var(--ink); }
+  .footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--line); font-size: .82rem; color: var(--ink-faint); }
+
+  .hyp-list { display: flex; flex-direction: column; gap: 1rem; margin: 1.2rem 0; }
+  .hyp-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.1rem 1.3rem; box-shadow: var(--shadow);
+  }
+  .hyp-card .hyp-tag {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .08em;
+    color: var(--gold); text-transform: uppercase; margin-bottom: .35rem;
+  }
+  .hyp-card p { margin: 0; max-width: 66ch; }
+  .verdict-row { display: flex; flex-wrap: wrap; align-items: center; gap: .7rem; margin: .2rem 0 1rem; }
+  .verdict-pill {
+    font-family: "IBM Plex Mono", monospace; font-size: .78rem; font-weight: 600; letter-spacing: .04em;
+    padding: .3rem .75rem; border-radius: 20px; text-transform: uppercase;
+  }
+  .verdict-pill.confirmed { background: var(--cut-soft); color: var(--cut); }
+  .verdict-pill.disconfirmed { background: var(--hike-soft); color: var(--hike); }
+  .verdict-pill.mixed { background: var(--gold-soft); color: var(--gold); }
+  .verdict-row h3 { font-family: "Fraunces", serif; font-weight: 500; font-size: 1.3rem; margin: 0; text-wrap: balance; }
+</style>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">MACRO EVENT STUDY · 트랙 G × 트랙 E 크로스오버 · 인하의 섹터별 반응</div>
+    <h1>금융주는 어떤 인하에서 더 아팠을까</h1>
+    <p class="dek">섹터 로테이션 스터디는 "금융주가 인하 후 가장 크게 다친다"(21건 전체
+    풀링 기준 &minus;6.66%, 승률42.9%, 9개 섹터 중 최악)는 반직관적 결과를 찾았다. 인상
+    스터디는 "기술주가 인상기에도 잘 갔다"는 결과가 인상의 두 성격(정상긴축/인플레이션진압)
+    모두에서 재현되는지 확인했다 — 이번엔 그 거울상으로, 금융주의 부진과 에너지의 호조와
+    기술주의 회복력이 인하의 두 성격(디스인플레이션/안정물가)에서도 똑같이 나타나는지
+    확인한다.</p>
+    <div class="meta-row">
+      <span>2005년 이후 인하 <b>21건</b></span>
+      <span>디스인플레이션 <b>9건</b> · 안정물가 <b>12건</b></span>
+      <span>섹터 <b>9종(XLK/XLF/XLE/XLV/XLI/XLY/XLP/XLU/XLB)</b></span>
+    </div>
+  </header>
+
+  <section>
+    <h2>사전 등록 가설</h2>
+    <p class="lede">결과를 계산하기 전에 먼저 적어둔 세 가지 가설이다.</p>
+    <div class="hyp-list">
+      <div class="hyp-card">
+        <div class="hyp-tag">H1</div>
+        <p>금융주(XLF)의 인하 후 부진("순이자마진 압박" 가설)은 안정물가 인하보다
+        디스인플레이션 인하에서 더 심할 것이다 — 물가가 실제로 식고 있다는 건 더 길고 깊은
+        인하 사이클을 암시하므로, 순이자마진 압박 논리가 더 강하게 작동할 것이라는 예상.</p>
+      </div>
+      <div class="hyp-card">
+        <div class="hyp-tag">H2</div>
+        <p>에너지(XLE)의 인하 후 호조(원래 스터디에서 +4.42%였지만 승률 47.6%로 절반 미만
+        — "소수의 큰 반등이 평균을 끌어올렸을 뿐"이라고 이미 한계로 명시됨)는 두 인하 성격
+        중 한쪽에 쏠려 있을 것이다 — 어느 쪽이 더 일관된(승률이 더 높은) 성과를 보이는지
+        확인한다.</p>
+      </div>
+      <div class="hyp-card">
+        <div class="hyp-tag">H3 (인상 스터디 재현 시도)</div>
+        <p>기술주(XLK)는 인하의 두 성격 사이에서도 격차가 작을 것이다 — 인상 스터디에서
+        확인된 "기술주는 정상긴축/인플레이션진압 격차가 9개 섹터 중 가장 작았다(0.48%p)"는
+        패턴이, 인하 쪽 두 성격 사이에서도 재현되는지 — 즉 "여러 국면에 걸친 회복력"이 인상
+        상황에서만 나타나는 게 아니라 기술주 자체의 일반적 속성인지 확인한다.</p>
+      </div>
+    </div>
+    <p class="note">인하 21건을 디스인플레이션 9건·안정물가 12건으로 나눈 뒤 섹터 9종에
+    적용하면 셀당 표본이 더 작아질 것으로 예상된다 — n&lt;5인 셀은 방향성 참고로만
+    다룬다고 미리 밝혀둔다(실제로는 9·12건으로 나뉘어 5건 미만 셀은 없었다).</p>
+  </section>
+
+  <section>
+    <h2>섹터별 전체 결과 — 두 인하 성격 나란히 비교</h2>
+    <p class="lede">+60거래일 반응(%) · 괄호는 승률 · n=디스인플레이션9 / 안정물가12</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>섹터</th><th>디스인플레이션 인하</th><th>안정물가 인하</th><th>격차(안정&minus;디스)</th></tr></thead>
+        <tbody>
+          <tr><td>기술(XLK)</td><td>+0.76% (55.6%)</td><td>+1.72% (50.0%)</td><td>0.96%p</td></tr>
+          <tr class="row-hot"><td>금융(XLF)</td><td>&minus;7.43% (44.4%)</td><td>&minus;6.09% (41.7%)</td><td>1.33%p</td></tr>
+          <tr class="row-cool"><td>에너지(XLE)</td><td>+0.65% (44.4%)</td><td>+7.24% (50.0%)</td><td><b>6.59%p</b></td></tr>
+          <tr><td>헬스케어(XLV)</td><td>&minus;1.13% (44.4%)</td><td>+2.67% (58.3%)</td><td>3.80%p</td></tr>
+          <tr><td>산업재(XLI)</td><td>&minus;3.05% (44.4%)</td><td>+0.65% (58.3%)</td><td>3.70%p</td></tr>
+          <tr><td>임의소비재(XLY)</td><td>&minus;1.87% (55.6%)</td><td>+1.28% (58.3%)</td><td>3.15%p</td></tr>
+          <tr class="row-cool"><td>필수소비재(XLP)</td><td>+0.65% (55.6%)</td><td>+0.87% (41.7%)</td><td>0.21%p</td></tr>
+          <tr><td>유틸리티(XLU)</td><td>+0.05% (44.4%)</td><td>+1.20% (66.7%)</td><td>1.15%p</td></tr>
+          <tr><td>소재(XLB)</td><td>&minus;1.58% (55.6%)</td><td>+3.68% (50.0%)</td><td>5.26%p</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>가장 눈에 띄는 건 <b>금융(XLF)이 두 국면 모두에서 확실히 부진했다</b>는 것 — 두
+    성격 모두 승률 50% 밑에 평균도 &minus;6~7%대로 나빴다. 반대로 <b>에너지(XLE)의 격차가
+    9개 섹터 중 가장 컸다</b>(6.59%p) — 안정물가 인하에서만 크게 좋았다.</p>
+  </section>
+
+  <section>
+    <h2>H1 검증 — 금융주는 디스인플레이션 인하에서 더 아팠나</h2>
+    <div class="tiles">
+      <div class="tile"><div class="label">디스인플레이션 인하</div><div class="value hike">&minus;7.43%</div><div class="sub">승률 44.4% · n=9</div></div>
+      <div class="tile"><div class="label">안정물가 인하</div><div class="value hike">&minus;6.09%</div><div class="sub">승률 41.7% · n=12</div></div>
+    </div>
+    <p><b>방향은 가설과 일치했지만 격차는 작았다.</b> 평균 수익률은 디스인플레이션 인하
+    (&minus;7.43%)가 안정물가 인하(&minus;6.09%)보다 더 나빴다 — "물가가 실제로 식고 있으면
+    더 긴 인하 사이클을 암시해 순이자마진 압박이 더 강하다"는 논리와 방향이 맞는다. 다만
+    <b>승률은 오히려 디스인플레이션 쪽이 근소하게 높았다</b>(44.4% vs 41.7%, 4/9 대
+    5/12 수준의 차이라 사실상 동률에 가깝다). 무엇보다 <b>두 국면 모두 확실히, 비슷한
+    수준으로 나빴다</b>는 게 더 중요한 그림이다 — 원래 스터디의 "금융주가 인하 후 가장
+    아프다"는 결과는 어느 한쪽 국면 때문이 아니라 인하 자체와 함께 오는 일반적 현상으로
+    보인다.</p>
+  </section>
+
+  <section>
+    <h2>H2 검증 — 에너지의 호조는 어디에 쏠려 있었나</h2>
+    <div class="tiles">
+      <div class="tile"><div class="label">디스인플레이션 인하</div><div class="value hike">+0.65%</div><div class="sub">승률 44.4% · n=9</div></div>
+      <div class="tile"><div class="label">안정물가 인하</div><div class="value cut">+7.24%</div><div class="sub">승률 50.0% · n=12</div></div>
+    </div>
+    <p><b>확실히 안정물가 인하 쪽에 쏠려 있었다.</b> 평균 수익률은 안정물가 인하(+7.24%)가
+    디스인플레이션 인하(+0.65%)를 압도한다 — 원래 풀링된 결과(+4.42%)는 사실상 안정물가
+    인하 12건이 만든 숫자였다는 뜻이다. 다만 <b>안정물가 인하의 승률조차 50.0%로 정확히
+    반반</b>이라, "그 국면에서는 신뢰할 만한 우위"라고 하기엔 여전히 부족하다 — 원래 스터디가
+    한계로 지적했던 "소수의 큰 반등이 평균을 끌어올렸을 뿐"이라는 해석이, 국면을 나눠봐도
+    여전히 유효해 보인다.</p>
+  </section>
+
+  <section>
+    <h2>H3 검증 — 기술주는 인하 국면에서도 격차가 작았나</h2>
+    <div class="tiles">
+      <div class="tile"><div class="label">디스인플레이션 인하</div><div class="value cut">+0.76%</div><div class="sub">승률 55.6% · n=9</div></div>
+      <div class="tile"><div class="label">안정물가 인하</div><div class="value cut">+1.72%</div><div class="sub">승률 50.0% · n=12</div></div>
+      <div class="tile"><div class="label">격차 순위(9개 중)</div><div class="value cut">2위</div><div class="sub">필수소비재 다음으로 작음</div></div>
+    </div>
+    <p><b>절대적으로는 인상 쪽보다 격차가 컸지만, 상대적 위치는 재현됐다.</b> 기술주의
+    격차(0.96%p)는 인상 스터디에서 확인된 값(0.48%p)보다 수치상 약 2배 크다. 하지만 <b>9개
+    섹터 안에서의 순위로 보면, 이번에도 기술주는 필수소비재(0.21%p) 다음으로 격차가 작은
+    섹터였다</b>(에너지 6.59%p, 소재 5.26%p 등 나머지 대부분이 훨씬 크게 벌어진 것과 대비된다).
+    "여러 국면에 걸쳐 상대적으로 안정적"이라는 기술주의 특징이 인상·인하 양쪽에서 공통으로
+    나타난 셈이다 — 다만 절대적인 격차 숫자 자체를 "인상 때와 똑같이 작다"고 말하기는
+    어렵다는 걸 정직하게 남겨둔다.</p>
+  </section>
+
+  <section>
+    <h2>가설별 최종 판정</h2>
+    <div class="verdict-row">
+      <span class="verdict-pill confirmed">CONFIRMED (약한 효과)</span>
+      <h3>H1 — 금융주는 디스인플레이션 인하에서 더 아프다</h3>
+    </div>
+    <p>평균 수익률 방향은 가설과 일치했다(&minus;7.43% vs &minus;6.09%). 다만 승률은
+    오히려 반대(44.4% vs 41.7%, 사실상 동률)였고, 격차 자체도 크지 않다 — "더 아프다"는
+    맞지만 "훨씬 더 아프다"는 아니다. 더 중요한 발견은 두 국면 모두에서 금융주가 일관되게
+    부진했다는 점이다.</p>
+
+    <div class="verdict-row">
+      <span class="verdict-pill confirmed">CONFIRMED</span>
+      <h3>H2 — 에너지의 호조는 안정물가 인하에 쏠려 있다</h3>
+    </div>
+    <p>안정물가 인하(+7.24%)가 디스인플레이션 인하(+0.65%)를 압도적으로 앞섰다 — 원래
+    풀링된 +4.42%는 사실상 안정물가 인하 쪽이 만든 숫자였다. 다만 그 안정물가 인하의
+    승률조차 50.0%(반반)라 "신뢰할 만한 우위"까지는 아니라는 한계를 함께 명시한다.</p>
+
+    <div class="verdict-row">
+      <span class="verdict-pill confirmed">CONFIRMED (상대순위 기준)</span>
+      <h3>H3 — 기술주는 인하 국면에서도 격차가 작다</h3>
+    </div>
+    <p>9개 섹터 중 두 번째로 작은 격차(0.96%p, 필수소비재 다음)로, "여러 국면에 걸친
+    회복력"이라는 상대적 위치는 재현됐다. 다만 절대적인 격차 크기는 인상 스터디의 값(0.48%p)
+    보다 약 2배 커서, "인상 때와 똑같이 작다"는 강한 의미로는 확인되지 않았다.</p>
+  </section>
+
+  <section>
+    <h2>경제학 지식 없이 읽는 법</h2>
+    <ul class="findings">
+      <li><b>금융주의 인하 후 부진은 "어떤 인하냐"의 문제가 아니라 인하 자체의 문제로
+      보인다.</b> 물가가 식고 있든 아니든 상관없이 두 경우 모두 비슷하게 나빴다 — 순이자마진
+      압박이라는 설명이 맞다면, 그 압박은 인하의 이유와 무관하게 작동하는 것 같다.</li>
+      <li><b>에너지의 "인하 후 호조"는 사실 안정물가 인하 쪽 이야기였다.</b> 물가가 식고
+      있을 때는 에너지가 딱히 좋지 않았다 — 어쩌면 물가 감속 자체가 에너지 수요·가격에는
+      역풍(원자재 가격 하락과 같은 흐름)이기 때문일 수 있다.</li>
+      <li><b>승률이 50%에 가까우면 "평균이 좋다"는 말을 곧이곧대로 믿으면 안 된다.</b>
+      안정물가 인하에서의 에너지 평균(+7.24%)은 인상적이지만, 승률은 정확히 반반이다 —
+      소수의 사건이 평균을 크게 끌어올렸을 가능성을 항상 의심해야 한다.</li>
+      <li><b>기술주의 "여러 국면에 걸친 안정성"은 인상에서만 나온 우연이 아니었다.</b>
+      인하를 두 가지로 쪼개도 여전히 격차가 작은 축에 속했다 — 다른 섹터들이 국면에 따라
+      크게 출렁이는 것과 대비된다.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>한계</h2>
+    <div class="callout">
+      <ul class="findings" style="margin:0;">
+        <li><b>셀 크기가 9건·12건으로 작다.</b> 이 프로젝트의 다른 2x2·분할 교차분석과
+        비슷한 수준이지만, 승률 같은 지표는 사건 한두 건만 바뀌어도 크게 흔들릴 수 있는
+        크기다.</li>
+        <li><b>CPI 국면 판정은 진짜 컨센서스가 아니라 사후 관측된 추세다.</b> 이 프로젝트의
+        다른 CPI 관련 스터디들과 같은 한계를 물려받는다.</li>
+        <li><b>2008년 금융위기의 인하 다수가 디스인플레이션 쪽에 들어간다.</b>(2008-12-16
+        등) — 금융주 부진이 순수하게 "디스인플레이션"이라는 물가 국면 때문인지, 그 인하들이
+        하필 금융위기 한복판이었기 때문인지 완전히 분리되지 않는다.</li>
+        <li><b>+60거래일이라는 단일 호라이즌만 봤다.</b> 다른 호라이즌(20·120거래일)에서는
+        순서나 격차가 달라질 수 있다 — 트랙G의 다른 스터디들에서 이미 확인했듯 호라이즌에
+        따라 결론이 바뀌는 경우가 드물지 않다.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="footer">
+    데이터: FRED(DFEDTAR/DFEDTARU/DFEDTARL, CPIAUCSL), Yahoo Finance(XLK/XLF/XLE/XLV/XLI/
+    XLY/XLP/XLU/XLB) · 분석 스크립트: cut_character_sector_study.py · 재사용한 방법론:
+    fomc_rate_event_study.py·cut_character_split_study.py·cross_asset_sector_fomc.py ·
+    같은 트랙: <a href="https://claude.ai/code/artifact/fe91a898-d5c4-44a2-b238-3a8c76702a7c">인상이라고 다 같은 인상이 아니다</a>(트랙G) ·
+    <a href="https://claude.ai/code/artifact/fc4e4cb5-421a-4fd2-bb57-d5cd18a9500d">인하의 두 얼굴</a>(트랙G 확장)
+  </div>
+</div>

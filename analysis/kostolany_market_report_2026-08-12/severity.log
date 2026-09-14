@@ -1,0 +1,28 @@
+
+==================== 강세장 ====================
+$XLC: possibly delisted; no price data found  (1d 2013-03-20 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1529294400")
+$XLRE: possibly delisted; no price data found  (1d 2013-03-20 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1444190400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2013-03-20 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1529294400")
+
+1 Failed download:
+['XLRE']: possibly delisted; no price data found  (1d 2013-03-20 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1363752000, endDate = 1444190400")
+/workspaces/Quant/analysis/kostolany_market_report_2026-08-12/multi_regime_multi_strategy.py:63: FutureWarning: The behavior of DataFrame.idxmax with all-NA values, or any-NA and skipna=False, is deprecated. In a future version this will raise ValueError
+  leader = z_scores.idxmax(axis=1)
+[binary_switch(기존②)]: CAGR=9.64, MDD=-17.07, 샤프=0.8, calmar=0.56
+[severity_scaled(신가설)]: CAGR=9.61, MDD=-18.02, 샤프=0.79, calmar=0.53
+S&P500: {'cumulative_return': 276.69, 'cagr': 12.11, 'mdd': -33.92, 'sharpe': 0.74, 'win_rate': 100.0, 'avg_holding_days': 4238.0, 'trade_count': 1, 'profit_factor': 999.0, 'calmar': 0.36, 'avg_drawdown_days': 19.5}
+
+==================== 약세장포함 부분구간 ====================
+$GLD: possibly delisted; no price data found  (1d 2004-03-20 -> 2004-11-17) (Yahoo error = "Data doesn't exist for startDate = 1079758800, endDate = 1100667600")
+
+1 Failed download:
+['GLD']: possibly delisted; no price data found  (1d 2004-03-20 -> 2004-11-17) (Yahoo error = "Data doesn't exist for startDate = 1079758800, endDate = 1100667600")
+/workspaces/Quant/analysis/kostolany_market_report_2026-08-12/multi_regime_multi_strategy.py:63: FutureWarning: The behavior of DataFrame.idxmax with all-NA values, or any-NA and skipna=False, is deprecated. In a future version this will raise ValueError
+  leader = z_scores.idxmax(axis=1)
+[binary_switch(기존②)]: CAGR=5.14, MDD=-26.38, 샤프=0.42, calmar=0.19
+[severity_scaled(신가설)]: CAGR=4.86, MDD=-27.02, 샤프=0.4, calmar=0.18
+S&P500: {'cumulative_return': 11.77, 'cagr': 1.61, 'mdd': -56.78, 'sharpe': 0.19, 'win_rate': 100.0, 'avg_holding_days': 2550.0, 'trade_count': 1, 'profit_factor': 999.0, 'calmar': 0.03, 'avg_drawdown_days': 17.1}
+
+DONE

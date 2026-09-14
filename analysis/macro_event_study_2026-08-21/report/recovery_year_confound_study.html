@@ -1,0 +1,291 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found]){display:none!important}</style></head><body>
+<title>1년차 효과, 회복연도 착시였을까</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #eef1ee; --surface: #ffffff; --surface-2: #e6eae5;
+    --ink: #17211d; --ink-muted: #57635c; --ink-faint: #8b968f; --line: #d9dfd8;
+    --hike: #a8461f; --hike-soft: #f4e3da; --cut: #1f6e79; --cut-soft: #dcedee; --gold: #8a6d1f;
+    --shadow: 0 1px 2px rgba(23,33,29,.06), 0 8px 24px -12px rgba(23,33,29,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+      --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+      --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+      --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+    --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+    --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+    --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Public Sans", -apple-system, "Noto Sans KR", sans-serif;
+    font-size: 16px; line-height: 1.65;
+  }
+  ::selection { background: var(--gold); color: #1a1408; }
+  a { color: var(--cut); }
+  .page { max-width: 880px; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 1rem;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 500;
+    font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.08; letter-spacing: -.01em;
+    margin: 0 0 1rem; text-wrap: balance;
+  }
+  .dek { font-size: 1.15rem; color: var(--ink-muted); max-width: 62ch; margin: 0 0 1.75rem; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: .4rem 1.6rem;
+    font-family: "IBM Plex Mono", monospace; font-size: .82rem; color: var(--ink-muted);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: .85rem 0;
+  }
+  .meta-row b { color: var(--ink); font-weight: 600; }
+  section { margin: 3.2rem 0; }
+  section > h2 {
+    font-family: "Fraunces", serif; font-weight: 500; font-size: 1.6rem;
+    letter-spacing: -.005em; margin: 0 0 .3rem; text-wrap: balance;
+  }
+  section > .lede { color: var(--ink-muted); max-width: 66ch; margin: 0 0 1.4rem; }
+  p { max-width: 68ch; }
+  .note {
+    background: var(--surface-2); border-left: 3px solid var(--gold); border-radius: 4px;
+    padding: .9rem 1.1rem; font-size: .93rem; color: var(--ink-muted); max-width: 68ch; margin: 1.1rem 0;
+  }
+  .note b { color: var(--ink); }
+  .callout {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.2rem 1.4rem; box-shadow: var(--shadow); margin: 1.4rem 0;
+  }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .9rem; margin: 1.3rem 0 1.6rem; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.1rem; }
+  .tile .label { font-size: .78rem; color: var(--ink-muted); margin-bottom: .35rem; }
+  .tile .value { font-family: "IBM Plex Mono", monospace; font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tile .value.hike { color: var(--hike); }
+  .tile .value.cut { color: var(--cut); }
+  .tile .sub { font-size: .76rem; color: var(--ink-faint); margin-top: .25rem; }
+  .table-wrap { overflow-x: auto; margin: 1.2rem 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 480px; font-size: .92rem; }
+  caption { text-align: left; font-size: .82rem; color: var(--ink-faint); padding-bottom: .5rem; }
+  th, td { padding: .62rem .8rem; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; font-family: "IBM Plex Mono", monospace; }
+  th:first-child, td:first-child { text-align: left; font-family: "Public Sans", sans-serif; }
+  thead th { font-family: "Public Sans", sans-serif; font-weight: 600; font-size: .78rem; letter-spacing: .02em; color: var(--ink-muted); text-transform: uppercase; border-bottom: 1px solid var(--ink-faint); }
+  tr.row-hot td:first-child { border-left: 3px solid var(--hike); padding-left: .65rem; }
+  tr.row-cool td:first-child { border-left: 3px solid var(--cut); padding-left: .65rem; }
+  tbody tr:hover { background: var(--surface-2); }
+  ul.findings { padding-left: 1.2rem; max-width: 68ch; }
+  ul.findings li { margin-bottom: .9rem; }
+  ul.findings b { color: var(--ink); }
+  .verdict { display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: .74rem; letter-spacing: .06em; font-weight: 600; padding: .18rem .55rem; border-radius: 5px; margin-left: .4rem; vertical-align: middle; }
+  .verdict.confirmed { background: var(--cut-soft); color: var(--cut); }
+  .verdict.disconfirmed { background: var(--hike-soft); color: var(--hike); }
+  .verdict.mixed { background: var(--surface-2); color: var(--gold); }
+  .hyp { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1.1rem 1.3rem; box-shadow: var(--shadow); margin: 1rem 0; }
+  .hyp .htitle { font-family: "IBM Plex Mono", monospace; font-size: .78rem; letter-spacing: .04em; color: var(--ink-muted); text-transform: uppercase; margin-bottom: .4rem; }
+  .footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--line); font-size: .82rem; color: var(--ink-faint); }
+</style>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">MACRO EVENT STUDY · 트랙 D&times;E 교란요인 검증 · 대선주기&times;침체회복 · 1951&ndash;2025</div>
+    <h1>1년차 효과, 회복연도 착시였을까</h1>
+    <p class="dek">직전 스터디는 9개 섹터 전부가 "임기 3년차"가 아니라 "임기 1년차(집권 원년)"를
+    최고의 해로 보인다는 걸 발견했고, 스스로 미해결 교란요인을 하나 남겼다: 그 1년차 표본에
+    2009년과 2021년&mdash;둘 다 침체 직후 회복기&mdash;이 우연히 섞여 있었다는 것. 이번 스터디는
+    "1년차가 진짜 강한가, 아니면 회복연도가 강한데 어쩌다 1년차 자리에 몰렸을 뿐인가"를
+    FRED의 공식 침체판정(USREC)으로 직접 가른다.</p>
+    <div class="meta-row">
+      <span>전체지수 <b>1951&ndash;2025</b>(75년) &middot; 섹터ETF <b>2005&ndash;2025</b>(9개)</span>
+      <span>회복연도 판정 <b>USREC 침체 종료월+1년</b></span>
+      <span>데이터 <b>FRED · Yahoo Finance</b></span>
+    </div>
+  </header>
+
+  <section>
+    <h2>사전등록 가설</h2>
+    <div class="hyp">
+      <div class="htitle">H1 &mdash; 회복연도를 빼면 "1년차 우위"가 무너질까</div>
+      <p style="margin:0 0 .6rem;">임기 1년차 버킷에서 "침체 직후 회복연도"에 해당하는 달력연도를
+      제외하면(USREC 침체 종료월의 다음 달력연도를 회복연도로 태깅), 전체지수(1951&ndash;2025)와
+      섹터(2005&ndash;2025) 둘 다에서 남은 "1년차&middot;비회복연도"가 더 이상 3년차보다 압도적으로
+      강해 보이지 않을 것이다&mdash;즉 "1년차가 강하다"가 "회복연도가 강한데 우연히 1년차에
+      몰려 있었다"로 무너지는지 본다. <b>사전 예측</b>: 2009년&middot;2021년이 둘 다 1년차로
+      추정됐던 만큼, 회복연도 제외 후 전체지수 표본에서는 3년차가 다시 우위를 되찾거나 최소한
+      격차가 크게 좁혀질 것&mdash;3년차 발견 자체가 75년치로 매우 견고했으므로. 다만 섹터
+      스터디는 표본이 훨씬 작아(사이클 4~5바퀴) 2개 연도만 빼도 결과가 애매해질 수 있다고
+      미리 경계한다.</p>
+    </div>
+    <div class="hyp">
+      <div class="htitle">H2(역방향 검증, 확증편향 방지용) &mdash; 회복연도 자체가 독자적으로 강한가</div>
+      <p style="margin:0;">임기연차 라벨과 완전히 무관하게, "침체 종료 다음 달력연도"만을
+      독립된 축으로 놓고 1951년부터 가용한 전체 기간 S&amp;P500 수익률을 계산한다. 회복연도가
+      어떤 임기연차에 해당하든 상관없이 그 자체로 강한 성과를 보인다면, "1년차 효과"가 사실
+      "회복연도 효과"를 임기연차로 잘못 라벨링한 결과라는 독립적 증거가 된다.</p>
+    </div>
+    <div class="hyp">
+      <div class="htitle">H3 &mdash; 소표본 정직성(계산 전에 인정)</div>
+      <p style="margin:0;">섹터 스터디는 칸당 표본이 이미 n=5~6으로 작은데, 여기서 회복연도까지
+      추가로 빼면 남는 표본은 n=3~4로 매우 얇아진다. 섹터별 제외-후 비교는 어떤 결과가 나오든
+      방향성 참고용으로만 취급하고, 확신 있는 결론은 표본이 훨씬 큰 전체지수 결과 쪽에 더
+      무겁게 둔다.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>계산 도중 발견한 방법론적 수정</h2>
+    <div class="note">
+      원래 짐작은 "2009년과 2021년, 둘 다 회복연도"였다. 그런데 USREC의 실제 침체 <b>종료월</b>
+      (마지막 침체=1인 달)로 엄밀히 계산하면 2008&ndash;09년 대침체는 <b>2009년 6월</b>에
+      끝났다&mdash;즉 2009년 자체는 1&ndash;6월이 여전히 침체 중이라 "완전한 회복연도"가 아니라
+      침체와 회복이 섞인 해다. 진짜 "다음 달력연도" 기준 회복연도는 <b>2010년</b>이고, 2010년은
+      임기 2년차에 해당한다(2009년은 1년차). 코로나 침체는 2020년 4월 종료라 다음 해 2021년이
+      회복연도라는 원래 짐작과 일치한다(2021년도 1년차). 결과적으로 <b>1년차 버킷에서 실제로
+      빠지는 회복연도는 2021년 하나뿐</b>&mdash;2009년은 애초에 "엄밀한 회복연도"가 아니었다.
+      이 자체가 흥미로운 결과라 아래 표에 그대로 반영했다.
+    </div>
+    <p>FRED USREC(1948~) 기준 회복연도 전체 목록: 1950, 1955, 1959, 1962, 1971, 1976, 1981,
+    1983, 1992, 2002, <b>2010</b>, <b>2021</b>.</p>
+  </section>
+
+  <section>
+    <h2>전체지수(1951&ndash;2025) &mdash; 회복연도 제외 전후</h2>
+    <p class="lede">임기 연차별 연간수익률 평균(%), n=제외 전/후.</p>
+    <div class="table-wrap">
+      <table>
+        <caption>제외연도: 1년차=2021 · 2년차=2010(2002,1962도 해당)</caption>
+        <thead><tr><th>연차</th><th>제외전 평균(n)</th><th>제외후 평균(n)</th><th>제외연도</th></tr></thead>
+        <tbody>
+          <tr><td>1년차(집권원년)</td><td>+8.35% (19)</td><td>+8.32% (17)</td><td>1981, 2021</td></tr>
+          <tr><td>2년차(중간선거)</td><td>+3.69% (18)</td><td>+5.91% (15)</td><td>1962, 2002, 2010</td></tr>
+          <tr><td>3년차(대선전해)</td><td class="row-cool"><b>+17.18% (19)</b></td><td><b>+17.56% (15)</b></td><td>1955, 1959, 1971, 1983</td></tr>
+          <tr><td>4년차(대선해)</td><td>+8.11% (19)</td><td>+7.67% (17)</td><td>1976, 1992</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><b>1년차는 회복연도를 빼도 거의 그대로다</b>(+8.35%→+8.32%, 사실상 무변화)&mdash;위의
+    수정에서 확인했듯 2009년이 애초에 "회복연도"로 분류되지 않아 뺄 게 2021년 하나뿐이었기
+    때문이다. 3년차는 오히려 소폭 <b>더 강해졌다</b>(+17.18%→+17.56%). 결과적으로 1년차와
+    3년차의 격차는 회복연도 제외 후에도 좁혀지지 않고 그대로(약 8.8~9.2pp) 유지된다.</p>
+  </section>
+
+  <section>
+    <h2>섹터(2005&ndash;2025, 1년차 버킷) &mdash; 회복연도(2021) 제외 전후</h2>
+    <p class="lede">1년차 버킷에서 2021년 하나만 제외 가능(2010년은 애초에 이 표본 밖의
+    2년차라 해당 없음). 참고로 각 섹터의 3년차 평균도 병기.</p>
+    <div class="table-wrap">
+      <table>
+        <caption>1년차 연간수익률 평균(%) · 괄호는 n · 3년차는 참고용(변경 없음)</caption>
+        <thead><tr><th>섹터</th><th>제외전(n=6)</th><th>제외후(n=5, 2021제외)</th><th>참고: 3년차 평균</th></tr></thead>
+        <tbody>
+          <tr><td>기술(XLK)</td><td>+26.91%</td><td>+25.55%</td><td>+24.36%</td></tr>
+          <tr><td>금융(XLF)</td><td>+19.66%</td><td>+17.10%</td><td>&minus;0.85%</td></tr>
+          <tr><td>에너지(XLE)</td><td>+21.43%</td><td>+16.42%</td><td>+2.67%</td></tr>
+          <tr><td>헬스케어(XLV)</td><td>+19.63%</td><td>+18.71%</td><td>+7.81%</td></tr>
+          <tr><td>산업재(XLI)</td><td>+19.42%</td><td>+19.40%</td><td>+8.98%</td></tr>
+          <tr><td>임의소비재(XLY)</td><td>+21.04%</td><td>+19.82%</td><td>+12.60%</td></tr>
+          <tr><td>필수소비재(XLP)</td><td>+9.69%</td><td>+8.76%</td><td>+9.18%</td></tr>
+          <tr><td>유틸리티(XLU)</td><td>+10.62%</td><td>+9.91%</td><td>+6.74%</td></tr>
+          <tr><td>소재(XLB)</td><td>+20.80%</td><td>+19.93%</td><td>+5.60%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>2021년 한 해를 빼도 9개 섹터 전부가 여전히 1년차가 3년차를 큰 폭으로 앞선다(예: 금융
+    +17.10% vs &minus;0.85%, 에너지 +16.42% vs +2.67%). n=5짜리 표본에서 나온 숫자라 방향성
+    참고용이지만, "회복연도 하나 빼면 결론이 뒤집힐 것"이라는 예상과는 거리가 멀다.</p>
+  </section>
+
+  <section>
+    <h2>H2 &mdash; 회복연도 단독축(1951&ndash;2025 전체 기간)</h2>
+    <div class="tiles">
+      <div class="tile"><div class="label">회복연도 (n=11)</div><div class="value cut">+7.39%</div><div class="sub">승률 72.7%</div></div>
+      <div class="tile"><div class="label">비회복연도 (n=64)</div><div class="value">+9.75%</div><div class="sub">승률 73.4%</div></div>
+    </div>
+    <p>임기연차 라벨을 완전히 걷어내고 "침체 종료 다음 달력연도"만 독자적인 축으로 놓았더니,
+    회복연도(+7.39%/72.7%)가 비회복연도(+9.75%/73.4%)보다 오히려 <b>평균도 승률도 낮았다</b>&mdash;
+    회복연도가 그 자체로 강한 해라는 전제 자체가 이 75년 표본에서는 지지되지 않는다.</p>
+  </section>
+
+  <section>
+    <h2>가설별 최종 판정</h2>
+    <div class="hyp">
+      <div class="htitle">H1 <span class="verdict disconfirmed">DISCONFIRMED</span></div>
+      <p style="margin:0;">전체지수·섹터 둘 다에서 회복연도를 빼도 "1년차가 3년차보다 강하다"는
+      결론은 거의 그대로였다(전체지수 격차는 오히려 소폭 확대). 사전 예측(3년차가 우위를
+      되찾거나 격차가 크게 좁혀질 것)은 지지되지 않았다.</p>
+    </div>
+    <div class="hyp">
+      <div class="htitle">H2 <span class="verdict disconfirmed">DISCONFIRMED</span></div>
+      <p style="margin:0;">회복연도는 임기연차와 무관하게 봐도 비회복연도보다 강하지 않았다
+      (오히려 평균·승률 둘 다 낮음). "회복연도 효과가 1년차로 잘못 라벨링됐다"는 역방향 가설은
+      기각&mdash;애초에 회복연도 자체가 독자적으로 강한 패턴이 아니었다.</p>
+    </div>
+    <div class="hyp">
+      <div class="htitle">H3 <span class="verdict confirmed">이행됨</span></div>
+      <p style="margin:0;">섹터 결과는 n=5(회복연도 제외 후)라는 얇은 표본임을 명시하고
+      방향성 참고로만 취급했다. 확신 있는 결론(H1·H2)은 표본이 훨씬 큰 전체지수(n=15&ndash;19)
+      결과에 근거했다.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>경제학 지식 없이 읽는 법</h2>
+    <ul class="findings">
+      <li><b>"1년차가 강한 건 회복연도 착시였다"는 의심은, 이번 정밀검증으로는 지지되지 않았다.</b>
+      직전 스터디가 스스로 남긴 미해결 의문에 최선을 다해 답한 결과, 오히려 "1년차 우위는 꽤
+      단단하다"는 쪽에 더 힘이 실렸다.</li>
+      <li><b>도중에 뜻밖의 발견이 하나 있었다.</b> 2009년은 원래 "금융위기 직후 회복연도"라고
+      짐작됐지만, 미국 정부의 공식 침체 판정 기준(NBER)으로 정밀하게 따지면 2009년 상반기는
+      여전히 침체 "안"이었다&mdash;진짜 첫 완전한 회복연도는 2010년이었다. 흔히 쓰는 어림짐작
+      ("위기 다음 해가 회복연도")과 공식 통계 기준이 항상 정확히 일치하지는 않는다는 걸 보여준
+      사례다.</li>
+      <li><b>"회복연도"라는 개념 자체가, 적어도 이 75년 데이터에서는 증시에 특별히 유리한
+      시기가 아니었다.</b> 임기연차와 상관없이 따로 떼어봐도 회복연도의 평균 수익률과 승률은
+      평범한 해보다 오히려 살짝 낮았다&mdash;"침체가 끝나면 증시가 곧바로 크게 뛴다"는 통념도
+      정밀하게 보면 그렇게 깨끗하게 맞아떨어지진 않는다.</li>
+      <li><b>그래서 "임기 1년차가 강하다"는 발견은 지금까지 나온 설명 중 가장 오래 살아남았다.</b>
+      다른 트랙의 여러 발견들이 교란요인 검증에서 무너지거나 약해졌던 것과 달리, 이 발견은
+      가장 유력한 반박 시도(회복연도 혼입)를 통과했다&mdash;다만 "왜 1년차가 강한가"에 대한
+      진짜 인과적 설명은 여전히 미해결로 남는다.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>한계</h2>
+    <div class="callout">
+      <ul class="findings" style="margin:0;">
+        <li><b>"회복연도" 정의 자체가 하나의 선택이다.</b> "침체 종료월의 다음 달력연도 전체"를
+        회복연도로 정의했는데, 이는 원 스터디들의 짐작(2009·2021)보다 더 엄밀하지만, 다른
+        정의(예: 침체 종료 후 12개월 롤링, 혹은 시장 저점 기준)를 쓰면 다른 연도가 나올 수
+        있다&mdash;특히 2009년을 포함시키는 정의를 쓰면 결과가 달라질 가능성이 있다는 점은
+        인정한다.</li>
+        <li><b>섹터 스터디는 표본이 극도로 작다(n=5, 심지어 n=6에서 하나 뺀 값).</b> 통계적
+        증명이 아니라 방향성 관찰 수준으로만 취급해야 한다.</li>
+        <li><b>H2의 회복연도 n=11도 크지 않다.</b> 75년치 중 11개뿐이라, 우연히 특정 시대에
+        쏠렸을 가능성(예: 1950&ndash;80년대 침체가 잦았던 시기)까지 분리하지는 않았다.</li>
+        <li><b>인과관계는 여전히 검증하지 않았다.</b> "1년차가 강하다"가 재확인됐다고 해서
+        "왜"에 대한 설명(신임 대통령 정책 기대, 통화정책 완화 지속 등)이 검증된 건 아니다.</li>
+        <li><b>연속된 연도는 완전히 독립적인 표본이 아니다.</b> 이 프로젝트의 모든 연간수익률
+        스터디에 적용되는 표준 한계.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="footer">
+    데이터: FRED(USREC) · Yahoo Finance(^GSPC, 9개 섹터ETF) · 분석 스크립트:
+    recovery_year_confound_study.py(presidential_cycle_event_study.py·sector_presidential_cycle_study.py의
+    연차 계산 결과와 cross_asset_recession_split.py의 USREC 침체판정 로직 재사용, 가격 재조회 없음) ·
+    같은 프로젝트: 대선주기 4년 효과(S&amp;P500 전체) · 섹터&times;대선주기(직전 스터디, 이번
+    검증의 출발점)
+  </div>
+</div>
+
+</body></html>

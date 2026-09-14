@@ -1,0 +1,398 @@
+{
+  "pause_min_days": 180,
+  "baseline_annualized_pct": 8.728,
+  "pauses": [
+    {
+      "start": "1990-01-01",
+      "end": "1990-07-13",
+      "duration_days": 193,
+      "ending_type": "cut",
+      "total_return_pct": 2.118,
+      "annualized_pct": 4.069
+    },
+    {
+      "start": "1992-09-04",
+      "end": "1994-02-04",
+      "duration_days": 518,
+      "ending_type": "hike",
+      "total_return_pct": 12.643,
+      "annualized_pct": 8.757
+    },
+    {
+      "start": "1996-01-31",
+      "end": "1997-03-25",
+      "duration_days": 419,
+      "ending_type": "hike",
+      "total_return_pct": 24.064,
+      "annualized_pct": 20.679
+    },
+    {
+      "start": "1997-03-25",
+      "end": "1998-09-29",
+      "duration_days": 553,
+      "ending_type": "cut",
+      "total_return_pct": 32.944,
+      "annualized_pct": 20.693
+    },
+    {
+      "start": "1998-11-17",
+      "end": "1999-06-30",
+      "duration_days": 225,
+      "ending_type": "hike",
+      "total_return_pct": 20.485,
+      "annualized_pct": 35.326
+    },
+    {
+      "start": "2000-05-16",
+      "end": "2001-01-03",
+      "duration_days": 232,
+      "ending_type": "cut",
+      "total_return_pct": -8.082,
+      "annualized_pct": -12.425
+    },
+    {
+      "start": "2001-12-11",
+      "end": "2002-11-06",
+      "duration_days": 330,
+      "ending_type": "cut",
+      "total_return_pct": -18.737,
+      "annualized_pct": -20.519
+    },
+    {
+      "start": "2002-11-06",
+      "end": "2003-06-25",
+      "duration_days": 231,
+      "ending_type": "cut",
+      "total_return_pct": 5.582,
+      "annualized_pct": 8.967
+    },
+    {
+      "start": "2003-06-25",
+      "end": "2004-06-30",
+      "duration_days": 371,
+      "ending_type": "hike",
+      "total_return_pct": 16.971,
+      "annualized_pct": 16.687
+    },
+    {
+      "start": "2006-06-29",
+      "end": "2007-09-18",
+      "duration_days": 446,
+      "ending_type": "cut",
+      "total_return_pct": 19.398,
+      "annualized_pct": 15.626
+    },
+    {
+      "start": "2008-12-16",
+      "end": "2015-12-16",
+      "duration_days": 2556,
+      "ending_type": "hike",
+      "total_return_pct": 127.017,
+      "annualized_pct": 12.43
+    },
+    {
+      "start": "2015-12-16",
+      "end": "2016-12-14",
+      "duration_days": 364,
+      "ending_type": "hike",
+      "total_return_pct": 8.693,
+      "annualized_pct": 8.724
+    },
+    {
+      "start": "2017-06-15",
+      "end": "2017-12-14",
+      "duration_days": 182,
+      "ending_type": "hike",
+      "total_return_pct": 9.026,
+      "annualized_pct": 18.937
+    },
+    {
+      "start": "2018-12-20",
+      "end": "2019-08-01",
+      "duration_days": 224,
+      "ending_type": "cut",
+      "total_return_pct": 19.702,
+      "annualized_pct": 34.077
+    },
+    {
+      "start": "2020-03-16",
+      "end": "2022-03-17",
+      "duration_days": 731,
+      "ending_type": "hike",
+      "total_return_pct": 84.888,
+      "annualized_pct": 35.945
+    },
+    {
+      "start": "2023-07-27",
+      "end": "2024-09-19",
+      "duration_days": 420,
+      "ending_type": "cut",
+      "total_return_pct": 25.923,
+      "annualized_pct": 22.196
+    },
+    {
+      "start": "2024-12-19",
+      "end": "2025-09-18",
+      "duration_days": 273,
+      "ending_type": "cut",
+      "total_return_pct": 13.037,
+      "annualized_pct": 17.816
+    },
+    {
+      "start": "2025-12-11",
+      "end": "2026-08-20",
+      "duration_days": 252,
+      "ending_type": "censored",
+      "total_return_pct": 11.694,
+      "annualized_pct": 17.46
+    }
+  ],
+  "h1": {
+    "mean_pause_annualized": 14.747,
+    "n_beat_baseline": 14,
+    "n_total": 18
+  },
+  "h2": {
+    "day30_mean": 4.511,
+    "day200_mean": 7.364,
+    "detail": [
+      {
+        "start": "1990-01-01",
+        "end": "1990-07-13",
+        "fwd60_from_day30": 3.867,
+        "fwd60_from_day200": null
+      },
+      {
+        "start": "1992-09-04",
+        "end": "1994-02-04",
+        "fwd60_from_day30": 5.051,
+        "fwd60_from_day200": 3.027
+      },
+      {
+        "start": "1996-01-31",
+        "end": "1997-03-25",
+        "fwd60_from_day30": 4.882,
+        "fwd60_from_day200": 7.427
+      },
+      {
+        "start": "1997-03-25",
+        "end": "1998-09-29",
+        "fwd60_from_day30": 16.125,
+        "fwd60_from_day200": 17.293
+      },
+      {
+        "start": "1998-11-17",
+        "end": "1999-06-30",
+        "fwd60_from_day30": 5.818,
+        "fwd60_from_day200": null
+      },
+      {
+        "start": "2000-05-16",
+        "end": "2001-01-03",
+        "fwd60_from_day30": -0.419,
+        "fwd60_from_day200": null
+      },
+      {
+        "start": "2001-12-11",
+        "end": "2002-11-06",
+        "fwd60_from_day30": -2.852,
+        "fwd60_from_day200": null
+      },
+      {
+        "start": "2002-11-06",
+        "end": "2003-06-25",
+        "fwd60_from_day30": -1.157,
+        "fwd60_from_day200": null
+      },
+      {
+        "start": "2003-06-25",
+        "end": "2004-06-30",
+        "fwd60_from_day30": 7.862,
+        "fwd60_from_day200": null
+      },
+      {
+        "start": "2006-06-29",
+        "end": "2007-09-18",
+        "fwd60_from_day30": 8.924,
+        "fwd60_from_day200": 5.433
+      },
+      {
+        "start": "2008-12-16",
+        "end": "2015-12-16",
+        "fwd60_from_day30": 3.545,
+        "fwd60_from_day200": 9.851
+      },
+      {
+        "start": "2015-12-16",
+        "end": "2016-12-14",
+        "fwd60_from_day30": 8.032,
+        "fwd60_from_day200": null
+      },
+      {
+        "start": "2017-06-15",
+        "end": "2017-12-14",
+        "fwd60_from_day30": 3.757,
+        "fwd60_from_day200": null
+      },
+      {
+        "start": "2018-12-20",
+        "end": "2019-08-01",
+        "fwd60_from_day30": 6.568,
+        "fwd60_from_day200": null
+      },
+      {
+        "start": "2020-03-16",
+        "end": "2022-03-17",
+        "fwd60_from_day30": 13.001,
+        "fwd60_from_day200": 6.641
+      },
+      {
+        "start": "2023-07-27",
+        "end": "2024-09-19",
+        "fwd60_from_day30": 2.519,
+        "fwd60_from_day200": 1.875
+      },
+      {
+        "start": "2024-12-19",
+        "end": "2025-09-18",
+        "fwd60_from_day30": -6.183,
+        "fwd60_from_day200": null
+      },
+      {
+        "start": "2025-12-11",
+        "end": "2026-08-20",
+        "fwd60_from_day30": 1.86,
+        "fwd60_from_day200": null
+      }
+    ]
+  },
+  "h3": {
+    "cut_ending_n": 9,
+    "cut_ending_pre20_mean": 4.757,
+    "cut_ending_pre60_mean": 3.381,
+    "hike_ending_n": 8,
+    "hike_ending_pre20_mean": 1.42,
+    "hike_ending_pre60_mean": 2.997,
+    "detail": [
+      {
+        "start": "1990-01-01",
+        "end": "1990-07-13",
+        "ending_type": "cut",
+        "pre_20d_pct": 1.215,
+        "pre_60d_pct": 7.804
+      },
+      {
+        "start": "1992-09-04",
+        "end": "1994-02-04",
+        "ending_type": "hike",
+        "pre_20d_pct": -0.019,
+        "pre_60d_pct": 1.313
+      },
+      {
+        "start": "1996-01-31",
+        "end": "1997-03-25",
+        "ending_type": "hike",
+        "pre_20d_pct": -2.827,
+        "pre_60d_pct": 4.265
+      },
+      {
+        "start": "1997-03-25",
+        "end": "1998-09-29",
+        "ending_type": "cut",
+        "pre_20d_pct": 9.583,
+        "pre_60d_pct": -9.359
+      },
+      {
+        "start": "1998-11-17",
+        "end": "1999-06-30",
+        "ending_type": "hike",
+        "pre_20d_pct": 6.016,
+        "pre_60d_pct": 4.16
+      },
+      {
+        "start": "2000-05-16",
+        "end": "2001-01-03",
+        "ending_type": "cut",
+        "pre_20d_pct": 1.705,
+        "pre_60d_pct": -4.36
+      },
+      {
+        "start": "2001-12-11",
+        "end": "2002-11-06",
+        "ending_type": "cut",
+        "pre_20d_pct": 18.925,
+        "pre_60d_pct": 4.473
+      },
+      {
+        "start": "2002-11-06",
+        "end": "2003-06-25",
+        "ending_type": "cut",
+        "pre_20d_pct": 2.318,
+        "pre_60d_pct": 14.99
+      },
+      {
+        "start": "2003-06-25",
+        "end": "2004-06-30",
+        "ending_type": "hike",
+        "pre_20d_pct": 1.752,
+        "pre_60d_pct": -0.085
+      },
+      {
+        "start": "2006-06-29",
+        "end": "2007-09-18",
+        "ending_type": "cut",
+        "pre_20d_pct": 5.135,
+        "pre_60d_pct": 1.146
+      },
+      {
+        "start": "2008-12-16",
+        "end": "2015-12-16",
+        "ending_type": "hike",
+        "pre_20d_pct": 1.104,
+        "pre_60d_pct": 6.709
+      },
+      {
+        "start": "2015-12-16",
+        "end": "2016-12-14",
+        "ending_type": "hike",
+        "pre_20d_pct": 3.343,
+        "pre_60d_pct": 5.305
+      },
+      {
+        "start": "2017-06-15",
+        "end": "2017-12-14",
+        "ending_type": "hike",
+        "pre_20d_pct": 3.408,
+        "pre_60d_pct": 5.732
+      },
+      {
+        "start": "2018-12-20",
+        "end": "2019-08-01",
+        "ending_type": "cut",
+        "pre_20d_pct": -1.411,
+        "pre_60d_pct": 2.41
+      },
+      {
+        "start": "2020-03-16",
+        "end": "2022-03-17",
+        "ending_type": "hike",
+        "pre_20d_pct": -1.415,
+        "pre_60d_pct": -3.423
+      },
+      {
+        "start": "2023-07-27",
+        "end": "2024-09-19",
+        "ending_type": "cut",
+        "pre_20d_pct": 1.651,
+        "pre_60d_pct": 4.467
+      },
+      {
+        "start": "2024-12-19",
+        "end": "2025-09-18",
+        "ending_type": "cut",
+        "pre_20d_pct": 3.693,
+        "pre_60d_pct": 8.86
+      }
+    ]
+  }
+}

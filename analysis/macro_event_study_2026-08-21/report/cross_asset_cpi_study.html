@@ -1,0 +1,287 @@
+<title>자산군 교차분석</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #eef1ee; --surface: #ffffff; --surface-2: #e6eae5;
+    --ink: #17211d; --ink-muted: #57635c; --ink-faint: #8b968f; --line: #d9dfd8;
+    --hike: #a8461f; --hike-soft: #f4e3da; --cut: #1f6e79; --cut-soft: #dcedee; --gold: #8a6d1f;
+    --shadow: 0 1px 2px rgba(23,33,29,.06), 0 8px 24px -12px rgba(23,33,29,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+      --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+      --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+      --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+    --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+    --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+    --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Public Sans", -apple-system, "Noto Sans KR", sans-serif;
+    font-size: 16px; line-height: 1.65;
+  }
+  ::selection { background: var(--gold); color: #1a1408; }
+  a { color: var(--cut); }
+  .page { max-width: 880px; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 1rem;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 500;
+    font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.08; letter-spacing: -.01em;
+    margin: 0 0 1rem; text-wrap: balance;
+  }
+  .dek { font-size: 1.15rem; color: var(--ink-muted); max-width: 62ch; margin: 0 0 1.75rem; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: .4rem 1.6rem;
+    font-family: "IBM Plex Mono", monospace; font-size: .82rem; color: var(--ink-muted);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: .85rem 0;
+  }
+  .meta-row b { color: var(--ink); font-weight: 600; }
+  section { margin: 3.2rem 0; }
+  section > h2 {
+    font-family: "Fraunces", serif; font-weight: 500; font-size: 1.6rem;
+    letter-spacing: -.005em; margin: 0 0 .3rem; text-wrap: balance;
+  }
+  section > .lede { color: var(--ink-muted); max-width: 66ch; margin: 0 0 1.4rem; }
+  p { max-width: 68ch; }
+  .note {
+    background: var(--surface-2); border-left: 3px solid var(--gold); border-radius: 4px;
+    padding: .9rem 1.1rem; font-size: .93rem; color: var(--ink-muted); max-width: 68ch; margin: 1.1rem 0;
+  }
+  .note b { color: var(--ink); }
+  .callout {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.2rem 1.4rem; box-shadow: var(--shadow); margin: 1.4rem 0;
+  }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .9rem; margin: 1.3rem 0 1.6rem; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.1rem; }
+  .tile .label { font-size: .78rem; color: var(--ink-muted); margin-bottom: .35rem; }
+  .tile .value { font-family: "IBM Plex Mono", monospace; font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tile .value.hike { color: var(--hike); }
+  .tile .value.cut { color: var(--cut); }
+  .tile .sub { font-size: .76rem; color: var(--ink-faint); margin-top: .25rem; }
+  .table-wrap { overflow-x: auto; margin: 1.2rem 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 480px; font-size: .92rem; }
+  caption { text-align: left; font-size: .82rem; color: var(--ink-faint); padding-bottom: .5rem; }
+  th, td { padding: .62rem .8rem; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; font-family: "IBM Plex Mono", monospace; }
+  th:first-child, td:first-child { text-align: left; font-family: "Public Sans", sans-serif; }
+  thead th { font-family: "Public Sans", sans-serif; font-weight: 600; font-size: .78rem; letter-spacing: .02em; color: var(--ink-muted); text-transform: uppercase; border-bottom: 1px solid var(--ink-faint); }
+  tr.row-hot td:first-child { border-left: 3px solid var(--hike); padding-left: .65rem; }
+  tr.row-cool td:first-child { border-left: 3px solid var(--cut); padding-left: .65rem; }
+  tbody tr:hover { background: var(--surface-2); }
+  ul.findings { padding-left: 1.2rem; max-width: 68ch; }
+  ul.findings li { margin-bottom: .9rem; }
+  ul.findings b { color: var(--ink); }
+  .footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--line); font-size: .82rem; color: var(--ink-faint); }
+</style>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">MACRO EVENT STUDY · 트랙 E · 자산군 교차분석 · 2005&ndash;2026</div>
+    <h1>채권과 금은 교과서와 다르게 움직였다</h1>
+    <p class="dek">지금까지 이 프로젝트는 항상 "S&amp;P500이 어떻게 반응했나"만 봤다. 이번엔
+    CPI 발표(물가 가속/감속)와 연준 금리결정(인상/인하), 두 종류의 이벤트에 채권(TLT)·금(GLD)·
+    달러지수가 어떻게 반응했는지 봤다 — "물가 오르면 금 사고 채권 팔아라"는 교과서적 조언이
+    실제로도 맞는지 검증한다.</p>
+    <div class="meta-row">
+      <span>CPI 발표일 <b>272건</b> · 금리변경 <b>53건</b>(2005년 이후)</span>
+      <span>구간 <b>2005 ~ 2026</b></span>
+      <span>데이터 <b>FRED, Yahoo Finance(TLT/GLD/달러지수)</b></span>
+    </div>
+  </header>
+
+  <section>
+    <h2>① CPI 이벤트 기준 — 채권, "물가 오르면 팔아라"가 뒤집혔다</h2>
+    <p class="lede">교과서 논리: 물가가 오르면 연준이 금리를 올리고, 금리가 오르면 채권가격은
+    떨어진다. 그런데 실제로는 정반대였다.</p>
+    <div class="tiles">
+      <div class="tile"><div class="label">물가가속 · +60일</div><div class="value cut">+0.85%</div><div class="sub">승률 53.7% · n=136</div></div>
+      <div class="tile"><div class="label">물가감속 · +60일</div><div class="value hike">&minus;0.67%</div><div class="sub">승률 50.7% · n=136</div></div>
+    </div>
+    <p><b>채권(TLT)은 물가가 가속할 때 오히려 더 나았고, 물가가 식을 때 오히려 더 나빴다</b> —
+    교과서와 정확히 반대 방향이다. 격차 자체는 크지 않지만(+0.85% vs &minus;0.67%) 방향이
+    뒤집혔다는 게 핵심이다.</p>
+  </section>
+
+  <section>
+    <h2>금 — "인플레이션 헤지"라는 이름값을 못했다</h2>
+    <p class="lede">교과서 논리: 물가가 오르면 화폐가치가 떨어지니 실물자산인 금이 오른다.
+    이번에도 방향은 예상과 달랐다(다만 둘 다 플러스라 채권만큼 극적이진 않다).</p>
+    <div class="tiles">
+      <div class="tile"><div class="label">물가가속 · +60일</div><div class="value hike">+2.73%</div><div class="sub">승률 58.8% · n=136</div></div>
+      <div class="tile"><div class="label">물가감속 · +60일</div><div class="value cut">+3.08%</div><div class="sub">승률 65.4% · n=136</div></div>
+    </div>
+    <p><b>금은 물가가 "가속"할 때보다 오히려 "감속"할 때 더 좋았다(+3.08% vs +2.73%, 승률도
+    65% vs 59%)</b> — "물가가 오르니까 금을 산다"는 통념과는 다른 그림이다. 대신 <b>금값은
+    물가 자체보다 "실질금리"(명목금리&minus;물가상승률)와 더 밀접하다</b>는 설명이 더 잘 맞는다 —
+    물가가 식으면 연준이 금리를 낮출 여지가 생기고, 명목금리가 물가보다 더 빨리 떨어지면 실질금리가
+    하락해 이자를 안 주는 금을 들고 있는 기회비용이 줄어든다. "인플레이션 자체"가 아니라
+    "인플레이션과 금리의 상대적 속도"가 금값을 움직인다는 뜻이다.</p>
+  </section>
+
+  <section>
+    <h2>달러 — 여기는 교과서가 맞았다</h2>
+    <p class="lede">세 자산 중 유일하게 통념과 방향이 일치했다.</p>
+    <div class="tiles">
+      <div class="tile"><div class="label">물가가속 · +60일</div><div class="value hike">+0.60%</div><div class="sub">승률 56.6% · n=136</div></div>
+      <div class="tile"><div class="label">물가감속 · +60일</div><div class="value cut">+0.08%</div><div class="sub">승률 52.9% · n=136</div></div>
+    </div>
+    <p>물가가 뜨거워질 때 달러가 더 강했다 — "물가가 뜨거우면 연준이 더 오래 긴축적으로 갈
+    것"이라는 기대가 달러를 지지한다는, 비교적 직관적인 논리와 일치한다.</p>
+  </section>
+
+  <section>
+    <h2>② 연준 금리결정 기준 — 이번엔 금이 압도적으로 확실했다</h2>
+    <p class="lede">CPI "데이터"가 아니라 연준의 실제 "행동"(금리 인상/인하 53건, 2005년 이후)에
+    세 자산이 어떻게 반응했는지 다시 봤다 — 데이터에 대한 반응과 실제 정책행동에 대한 반응은
+    다를 수 있다.</p>
+    <div class="table-wrap">
+      <table>
+        <caption>금리 변경 이후 +60거래일 반응(%) · 괄호는 승률</caption>
+        <thead><tr><th>자산</th><th>인상 후</th><th>인하 후</th></tr></thead>
+        <tbody>
+          <tr><td>채권(TLT)</td><td>&minus;1.51% (50.0%)</td><td>+0.17% (42.9%)</td></tr>
+          <tr class="row-cool"><td>금(GLD)</td><td>+3.09% (68.8%)</td><td><b>+9.12% (81.0%)</b></td></tr>
+          <tr><td>달러지수</td><td>+0.37% (62.5%)</td><td>&minus;0.22% (47.6%)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><b>금은 이번엔 통념과 완벽히 일치했고, 그것도 아주 강하게 —</b> 연준이 실제로 금리를
+    내리면 60거래일 뒤 금은 평균 +9.12%, 승률 81%로 이 프로젝트 전체를 통틀어 가장 깨끗한
+    신호 중 하나였다. CPI 데이터만 봤을 때는 가속·감속 차이가 크지 않았는데(+2.73% vs
+    +3.08%), <b>연준이 실제로 움직이는 순간엔 훨씬 크고 분명하게 반응한다</b> — 금은 "물가
+    보고서"보다 "연준의 실제 행동"에 훨씬 민감하다는 뜻이다.</p>
+    <p class="note"><b>그런데 채권은 여기서도 이상하다</b> — 인하 후 수익률이 겨우 +0.17%,
+    심지어 승률은 42.9%로 오히려 50% 밑이다. "금리를 내리면 채권값이 오른다"는 교과서와
+    다시 어긋난다. 트랙 A(연준 금리 스터디)에서 이미 확인했듯 <b>인하는 종종 경기가 이미
+    나빠진 국면에서 나온다</b> — 그 시기엔 장기채(TLT)가 단기금리 인하 하나만으로는 설명 안
+    되는 다른 압력(성장·인플레이션 기대 변화, 신용 스트레스)을 같이 받는 것으로 보인다.</p>
+  </section>
+
+  <section>
+    <h2>③ 인하를 둘로 쪼개보니 — 채권은 여전히 이상했지만, 금은 훨씬 더 선명해졌다</h2>
+    <p class="lede">트랙 A의 "침체 중 인하 vs 보험성 인하" 구분(NBER 공식 침체판정)을 이번엔
+    자산군 반응에 그대로 적용했다. 채권의 이상한 반응이 위기성 인하(2008·2020) 때문이었는지
+    직접 확인하기 위해서다.</p>
+    <div class="table-wrap">
+      <table>
+        <caption>인하 후 +60거래일 반응(%) · 괄호는 승률 · 2005년 이후 21건(침체중9·보험성12)</caption>
+        <thead><tr><th>자산</th><th>침체중 인하</th><th>보험성 인하</th></tr></thead>
+        <tbody>
+          <tr><td>채권(TLT)</td><td>+0.66% (33.3%)</td><td>&minus;0.20% (50.0%)</td></tr>
+          <tr class="row-cool"><td>금(GLD)</td><td>+4.10% (66.7%)</td><td><b>+12.90% (91.7%)</b></td></tr>
+          <tr><td>달러지수</td><td>+0.29% (55.6%)</td><td>&minus;0.60% (41.7%)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><b>가설이 절반만 맞았다.</b> 채권은 둘로 쪼개도 여전히 이상하다 — 침체중 인하는 평균은
+    플러스지만 승률이 33.3%(변동성이 커서 소수의 큰 반등이 평균을 끌어올렸을 뿐), 보험성
+    인하는 평균 자체가 마이너스다. <b>위기성 인하가 평상시 인하를 오염시켰다는 가설로는
+    설명이 안 된다 — 채권은 두 경우 모두 교과서와 다르게 움직였다.</b></p>
+    <p><b>반면 금은 극적으로 선명해졌다</b> — 보험성 인하 후엔 60거래일 평균 +12.90%, 승률
+    91.7%(12건 중 11건)로 이 프로젝트 전체에서 가장 강력하고 일관된 신호가 나왔다. 오히려
+    <b>위기성 인하보다 "차분한" 보험성 인하일 때 금이 더 잘 올랐다</b> — 위기 상황에서는
+    초반 패닉 국면에 마진콜·현금확보 목적의 금 매도가 섞여 상승이 둔화되는 반면(2020년 3월
+    코로나 폭락 초반에 금도 잠시 같이 빠졌던 것으로 유명하다), 보험성 인하는 그런 잡음 없이
+    "완화적 통화정책"이라는 순수한 호재만 반영되는 것으로 보인다.</p>
+  </section>
+
+  <section>
+    <h2>④ 대선주기도 자산군별로 다르게 반응할까</h2>
+    <p class="lede">이 프로젝트 초반(트랙 D)에서 "임기 3년차가 S&amp;P500에 가장 좋다"는 통설이
+    강하게 확인됐다(+17.18%, 승률89.5%). 같은 틀을 채권·금·달러에도 적용해봤다 — 단, GLD
+    상장 제약으로 2005~2025년 21개 완결 연도만 써서 연차별 표본이 5~6개뿐이라는 걸 미리
+    밝혀둔다.</p>
+    <div class="table-wrap">
+      <table>
+        <caption>연간 수익률(%) · 괄호는 승률 · 2005~2025년, 연차당 n=5~6</caption>
+        <thead><tr><th>자산</th><th>1년차</th><th>2년차</th><th>3년차</th><th>4년차</th></tr></thead>
+        <tbody>
+          <tr><td>채권(TLT)</td><td>&minus;6.10% (33.3%)</td><td>&minus;2.50% (40.0%)</td>
+          <td><b>+8.12% (60.0%)</b></td><td>+6.35% (40.0%)</td></tr>
+          <tr class="row-cool"><td>금(GLD)</td><td>+14.30% (66.7%)</td><td>+9.38% (40.0%)</td>
+          <td>+11.98% (80.0%)</td><td><b>+14.21% (100.0%)</b></td></tr>
+          <tr><td>달러지수</td><td>&minus;0.70% (50.0%)</td><td><b>+3.74% (80.0%)</b></td>
+          <td>+0.09% (60.0%)</td><td>+1.94% (60.0%)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><b>S&amp;P500과 완전히 같은 이야기는 아니다.</b> 채권만 S&amp;P500과 비슷하게 3년차에
+    가장 좋았다(+8.12%, 승률60%) — 주식·채권이 같은 해에 함께 좋았다는 뜻이다. 금은 오히려
+    <b>4년차(대선 해)</b>가 가장 좋았고(승률 100%, 5건 전부 상승), 3년차도 나쁘지 않았다.
+    달러는 이 프로젝트에서 가장 뜻밖의 결과를 냈다 — <b>중간선거 해(2년차)</b>가 가장 강했다
+    (+3.74%, 승률80%)는데, 2년차는 S&amp;P500에서 가장 약한 해로 알려진 해다. 표본이 워낙
+    작아(연차당 5~6개) 단정하기는 이르지만, "대선주기 = 3년차가 만능으로 좋다"는 단순화는
+    자산군을 넓히면 더 이상 성립하지 않는다는 점만은 분명하다.</p>
+  </section>
+
+  <section>
+    <h2>경제학 지식 없이 읽는 법</h2>
+    <ul class="findings">
+      <li><b>"물가 오르면 이 자산을 사라"는 단순한 공식은 세 자산 중 하나(달러)에서만 맞았다.</b>
+      채권·금은 오히려 반대이거나 예상과 다른 방향으로 움직였다 — 교과서 논리와 실제 시장가격은
+      다를 수 있다.</li>
+      <li><b>물가 그 자체보다 "물가와 금리의 상대적 속도"가 더 중요해 보인다.</b> 앞선 물가·성장
+      교차분석(트랙 A)에서도 "물가 감속" 자체가 결과를 지배했던 것과 같은 맥락 — 이번엔 그 감속이
+      금값에도 비슷한 방식으로 작동했다.</li>
+      <li><b>격차의 크기는 자산마다 다르다.</b> 채권의 방향 반전이 가장 뚜렷했고, 금은 방향은
+      반대지만 격차가 작았고, 달러는 통념과 일치했다 — "인플레이션 헤지"라는 한 단어로 여러
+      자산을 뭉뚱그리면 안 된다는 뜻이다.</li>
+      <li><b>"데이터"와 "행동"은 다르다.</b> 금은 CPI 발표(데이터)에는 약하게 반응했지만
+      연준의 실제 금리 결정(행동)에는 훨씬 크고 분명하게 반응했다(+9.12%, 승률81%) — 같은
+      주제(물가·통화정책)라도 어떤 형태의 이벤트로 오느냐에 따라 시장 반응의 크기가 크게
+      달라질 수 있다.</li>
+      <li><b>채권은 CPI든 FOMC든, 심지어 침체/보험성으로 나눠봐도 이상했다.</b> 세 번을 다르게
+      쪼개봤지만 채권은 어느 조건에서도 교과서가 말하는 "유리한 국면=채권 강세"를 보여주지
+      않았다 — 우연이 아니라 일관된 패턴으로 보인다.</li>
+      <li><b>금은 반대로 쪼갤수록 더 선명해졌다.</b> "물가 데이터"보다 "연준 행동"에, 그리고
+      그 행동 중에서도 "차분한 인하"일 때 가장 강하고 일관되게 반응했다(승률 91.7%) — 세
+      단계로 조건을 좁힐수록 신호가 오히려 더 깨끗해지는, 이 프로젝트에서 보기 드문 패턴이다.</li>
+      <li><b>"대선 3년차가 최고"라는 통설도 자산마다 답이 다르다.</b> 주식·채권은 3년차가
+      좋았지만, 금은 4년차, 달러는 2년차가 가장 강했다 — 한 자산에서 확인한 계절성을 다른
+      자산에 그대로 대입하면 틀릴 수 있다.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>한계</h2>
+    <div class="callout">
+      <ul class="findings" style="margin:0;">
+        <li><b>이번에도 "가속/감속" 국면과 다른 거시 요인(성장 국면 등)이 섞여 있을 수 있다.</b>
+        트랙 A의 물가×성장 교차분석에서 이미 확인했듯, "물가감속"은 종종 "경기도 괜찮다"는
+        시기와 겹친다 — 이 결과가 순수하게 "물가"만의 효과인지, 그 배경 국면과 뒤섞인 결과인지는
+        추가로 통제해야 한다.</li>
+        <li><b>구간이 2005년 이후로 제한됐다.</b> 금 ETF(GLD)가 2004년 말에야 상장돼, 세 자산을
+        나란히 비교하려면 그 이전 시대(1994~2004년의 CPI 이벤트)는 제외할 수밖에 없었다.</li>
+        <li><b>"발표 당일"이 아니라 "+60거래일 누적" 기준이다.</b> 발표 직후의 즉각적 반응과
+        그 뒤 2~3개월에 걸친 반응은 다른 이야기일 수 있다 — 이 리포트는 후자만 다뤘다.</li>
+        <li><b>침체중/보험성으로 나눈 표본은 특히 작다(각각 9건, 12건).</b> 금의 +12.90%·
+        승률91.7%는 매우 인상적이지만 12건 중 11건이라는 뜻이기도 하다 — 표본이 조금만
+        늘어나거나 줄어도 승률이 크게 흔들릴 수 있는 크기다. 강력한 신호일수록 표본 크기를
+        더 의심해야 한다는 원칙을 여기서도 지킨다.</li>
+        <li><b>대선주기 자산군 비교는 표본이 더 작다(연차당 5~6개 연도).</b> 21개 완결 연도를
+        4개 연차로 나눈 결과라 통계적으로는 참고 수준이며, 특히 달러의 "2년차가 최강" 결과는
+        단 5개 연도(2006·2010·2014·2018·2022)의 평균이라는 점을 감안해서 읽어야 한다.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="footer">
+    데이터: FRED(CPIAUCSL, DFEDTAR/DFEDTARU/DFEDTARL, USREC, release/dates API), Yahoo
+    Finance(TLT, GLD, DX-Y.NYB) · 분석 스크립트: cross_asset_cpi_study.py,
+    cross_asset_fomc_study.py, cross_asset_recession_split.py, cross_asset_presidential_cycle.py
+    · 같은 프로젝트: 연준 금리 이벤트 스터디, 물가·고용·성장 지표 비교, 증시의 달력 효과 세 가지
+  </div>
+</div>

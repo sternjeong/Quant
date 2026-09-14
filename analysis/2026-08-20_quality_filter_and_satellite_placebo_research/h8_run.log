@@ -1,0 +1,283 @@
+[h8] h4_results.json 로드 (표본 100종목 + 품질통과 26종목 확인)...
+[h8]    표본 100종목, 품질통과 26종목, h4 기록 샤프=0.82
+[h8] 가격 데이터 로딩 (표본 100 + SPY, 로컬 파케이 캐시 활용)...
+$PM: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['PM']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$CRWD: possibly delisted; no price data found  (1d 2018-07-08 -> 2019-06-11) (Yahoo error = "Data doesn't exist for startDate = 1531022400, endDate = 1560225600")
+
+1 Failed download:
+['CRWD']: possibly delisted; no price data found  (1d 2018-07-08 -> 2019-06-11) (Yahoo error = "Data doesn't exist for startDate = 1531022400, endDate = 1560225600")
+$APH: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['APH']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$ABT: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['ABT']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$VRTX: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['VRTX']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$SPGI: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['SPGI']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$LIN: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['LIN']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$ADP: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['ADP']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$ACN: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['ACN']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$PSX: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['PSX']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$CEG: possibly delisted; no price data found  (1d 2018-07-08 -> 2022-01-18) (Yahoo error = "Data doesn't exist for startDate = 1531022400, endDate = 1642482000")
+
+1 Failed download:
+['CEG']: possibly delisted; no price data found  (1d 2018-07-08 -> 2022-01-18) (Yahoo error = "Data doesn't exist for startDate = 1531022400, endDate = 1642482000")
+$HCA: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['HCA']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$DASH: possibly delisted; no price data found  (1d 2018-07-08 -> 2020-12-08) (Yahoo error = "Data doesn't exist for startDate = 1531022400, endDate = 1607403600")
+
+1 Failed download:
+['DASH']: possibly delisted; no price data found  (1d 2018-07-08 -> 2020-12-08) (Yahoo error = "Data doesn't exist for startDate = 1531022400, endDate = 1607403600")
+$NOC: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['NOC']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$MDLZ: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['MDLZ']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$KMI: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['KMI']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$ROST: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['ROST']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$TRGP: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['TRGP']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$CL: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['CL']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$TEL: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['TEL']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$DAL: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['DAL']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$FANG: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['FANG']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$AMP: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['AMP']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$CARR: possibly delisted; no price data found  (1d 2018-07-08 -> 2020-03-18) (Yahoo error = "Data doesn't exist for startDate = 1531022400, endDate = 1584504000")
+
+1 Failed download:
+['CARR']: possibly delisted; no price data found  (1d 2018-07-08 -> 2020-03-18) (Yahoo error = "Data doesn't exist for startDate = 1531022400, endDate = 1584504000")
+$LYV: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['LYV']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$IRM: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['IRM']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$ROP: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['ROP']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$WEC: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$EME: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['EME']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['WEC']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$STLD: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['STLD']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$KMB: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['KMB']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$JBL: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['JBL']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$CNC: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['CNC']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$KR: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['KR']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$RDDT: possibly delisted; no price data found  (1d 2018-07-08 -> 2024-03-20) (Yahoo error = "Data doesn't exist for startDate = 1531022400, endDate = 1710907200")
+
+1 Failed download:
+['RDDT']: possibly delisted; no price data found  (1d 2018-07-08 -> 2024-03-20) (Yahoo error = "Data doesn't exist for startDate = 1531022400, endDate = 1710907200")
+$TPR: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['TPR']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$PPL: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['PPL']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$LH: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['LH']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$FOX: possibly delisted; no price data found  (1d 2018-07-08 -> 2019-03-12) (Yahoo error = "Data doesn't exist for startDate = 1531022400, endDate = 1552363200")
+
+1 Failed download:
+['FOX']: possibly delisted; no price data found  (1d 2018-07-08 -> 2019-03-12) (Yahoo error = "Data doesn't exist for startDate = 1531022400, endDate = 1552363200")
+$SW: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['SW']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$TPL: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['TPL']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$GPN: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$KEY: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['KEY']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['GPN']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$STE: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['STE']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$EXE: possibly delisted; no price data found  (1d 2018-07-08 -> 2021-02-09) (Yahoo error = "Data doesn't exist for startDate = 1531022400, endDate = 1612846800")
+$DOW: possibly delisted; no price data found  (1d 2018-07-08 -> 2019-03-19) (Yahoo error = "Data doesn't exist for startDate = 1531022400, endDate = 1552968000")
+
+1 Failed download:
+['EXE']: possibly delisted; no price data found  (1d 2018-07-08 -> 2021-02-09) (Yahoo error = "Data doesn't exist for startDate = 1531022400, endDate = 1612846800")
+
+1 Failed download:
+['DOW']: possibly delisted; no price data found  (1d 2018-07-08 -> 2019-03-19) (Yahoo error = "Data doesn't exist for startDate = 1531022400, endDate = 1552968000")
+$IFF: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['IFF']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$FDXF: possibly delisted; no price data found  (1d 2018-07-08 -> 2026-05-26) (Yahoo error = "Data doesn't exist for startDate = 1531022400, endDate = 1779768000")
+
+1 Failed download:
+['FDXF']: possibly delisted; no price data found  (1d 2018-07-08 -> 2026-05-26) (Yahoo error = "Data doesn't exist for startDate = 1531022400, endDate = 1779768000")
+$LEN: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['LEN']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$TSN: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['TSN']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$ESS: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['ESS']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$ZBH: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['ZBH']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$EVRG: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['EVRG']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$NWS: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['NWS']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$GPC: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['GPC']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$CDW: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['CDW']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$FTV: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['FTV']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$ALB: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['ALB']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$MAA: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['MAA']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$UDR: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$DOC: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['UDR']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['DOC']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$LULU: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['LULU']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$RVTY: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['RVTY']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$PNW: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['PNW']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$MOS: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$GDDY: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['GDDY']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['MOS']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+$VMRK: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+
+1 Failed download:
+['VMRK']: possibly delisted; no price data found  (1d 2018-07-08 -> 2018-07-08)
+[h8]    가격데이터 확보: 표본 100/100, 품질통과 26/26
+[h8] 1) 실제 품질필터+모멘텀 로테이션 재현...
+[h8]    재현 결과: {'cumulative_return': 236.03, 'cagr': 18.91, 'mdd': -24.43, 'sharpe': 0.82, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.77, 'avg_drawdown_days': 32.8}
+[h8]    참고: 순수 모멘텀(표본 100) 샤프=0.68
+[h8] 3) 무작위 26종목 추출 x 200회 널분포 생성 (base_seed=20260820)...
+[h8]    40/200 완료 (경과 11s)
+[h8]    80/200 완료 (경과 18s)
+[h8]    120/200 완료 (경과 24s)
+[h8]    160/200 완료 (경과 31s)
+[h8]    200/200 완료 (경과 37s)
+[h8] 저장 완료: /workspaces/Quant/.claude/worktrees/agent-a4b9bde9cc53813c4/analysis/2026-08-20_quality_filter_and_satellite_placebo_research/h8_results.json
+[h8] 실제 품질필터 샤프=0.820, 널분포 mean=0.783 median=0.790 std=0.179, 백분위=58.5% (총 37s)

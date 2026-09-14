@@ -1,0 +1,1552 @@
+{
+  "meta": {
+    "generated_from": "h24_satellite_weight_expected_value.py",
+    "satellite_weights": [
+      0.0,
+      0.05,
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3,
+      0.4,
+      0.5
+    ],
+    "elapsed_s": 705.8
+  },
+  "episodes": {
+    "full_2019_2026": {
+      "full_period": [
+        "2019-08-12",
+        "2026-08-19"
+      ],
+      "crisis_window": null,
+      "universe_n": 17,
+      "frontier": [
+        {
+          "satellite_weight": 0.0,
+          "full_period": {
+            "cumulative_return": 139.19,
+            "cagr": 13.23,
+            "mdd": -17.74,
+            "sharpe": 1.03,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.75,
+            "avg_drawdown_days": 20.2,
+            "n_days": 1764
+          },
+          "crisis_window": null
+        },
+        {
+          "satellite_weight": 0.05,
+          "full_period": {
+            "cumulative_return": 153.69,
+            "cagr": 14.19,
+            "mdd": -17.97,
+            "sharpe": 1.07,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.79,
+            "avg_drawdown_days": 18.7,
+            "n_days": 1764
+          },
+          "crisis_window": null
+        },
+        {
+          "satellite_weight": 0.1,
+          "full_period": {
+            "cumulative_return": 168.76,
+            "cagr": 15.13,
+            "mdd": -18.2,
+            "sharpe": 1.1,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.83,
+            "avg_drawdown_days": 17.2,
+            "n_days": 1764
+          },
+          "crisis_window": null
+        },
+        {
+          "satellite_weight": 0.15,
+          "full_period": {
+            "cumulative_return": 184.37,
+            "cagr": 16.06,
+            "mdd": -18.45,
+            "sharpe": 1.12,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.87,
+            "avg_drawdown_days": 17.3,
+            "n_days": 1764
+          },
+          "crisis_window": null
+        },
+        {
+          "satellite_weight": 0.2,
+          "full_period": {
+            "cumulative_return": 200.53,
+            "cagr": 16.98,
+            "mdd": -18.69,
+            "sharpe": 1.13,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.91,
+            "avg_drawdown_days": 17.1,
+            "n_days": 1764
+          },
+          "crisis_window": null
+        },
+        {
+          "satellite_weight": 0.25,
+          "full_period": {
+            "cumulative_return": 217.23,
+            "cagr": 17.88,
+            "mdd": -18.95,
+            "sharpe": 1.13,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.94,
+            "avg_drawdown_days": 18.0,
+            "n_days": 1764
+          },
+          "crisis_window": null
+        },
+        {
+          "satellite_weight": 0.3,
+          "full_period": {
+            "cumulative_return": 234.46,
+            "cagr": 18.77,
+            "mdd": -19.2,
+            "sharpe": 1.13,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.98,
+            "avg_drawdown_days": 18.2,
+            "n_days": 1764
+          },
+          "crisis_window": null
+        },
+        {
+          "satellite_weight": 0.4,
+          "full_period": {
+            "cumulative_return": 270.43,
+            "cagr": 20.52,
+            "mdd": -19.74,
+            "sharpe": 1.12,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 1.04,
+            "avg_drawdown_days": 19.2,
+            "n_days": 1764
+          },
+          "crisis_window": null
+        },
+        {
+          "satellite_weight": 0.5,
+          "full_period": {
+            "cumulative_return": 308.31,
+            "cagr": 22.2,
+            "mdd": -20.29,
+            "sharpe": 1.1,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 1.09,
+            "avg_drawdown_days": 19.4,
+            "n_days": 1764
+          },
+          "crisis_window": null
+        }
+      ]
+    },
+    "bear_2022": {
+      "full_period": [
+        "2019-08-12",
+        "2026-08-19"
+      ],
+      "crisis_window": [
+        "2022-01-01",
+        "2022-12-31"
+      ],
+      "universe_n": 17,
+      "frontier": [
+        {
+          "satellite_weight": 0.0,
+          "full_period": {
+            "cumulative_return": 139.19,
+            "cagr": 13.23,
+            "mdd": -17.74,
+            "sharpe": 1.03,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.75,
+            "avg_drawdown_days": 20.2,
+            "n_days": 1764
+          },
+          "crisis_window": {
+            "cumulative_return": 2.19,
+            "cagr": 2.21,
+            "mdd": -11.05,
+            "sharpe": 0.24,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.2,
+            "avg_drawdown_days": 6.8,
+            "n_days": 251
+          }
+        },
+        {
+          "satellite_weight": 0.05,
+          "full_period": {
+            "cumulative_return": 153.69,
+            "cagr": 14.19,
+            "mdd": -17.97,
+            "sharpe": 1.07,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.79,
+            "avg_drawdown_days": 18.7,
+            "n_days": 1764
+          },
+          "crisis_window": {
+            "cumulative_return": 2.06,
+            "cagr": 2.09,
+            "mdd": -11.55,
+            "sharpe": 0.23,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.18,
+            "avg_drawdown_days": 6.5,
+            "n_days": 251
+          }
+        },
+        {
+          "satellite_weight": 0.1,
+          "full_period": {
+            "cumulative_return": 168.76,
+            "cagr": 15.13,
+            "mdd": -18.2,
+            "sharpe": 1.1,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.83,
+            "avg_drawdown_days": 17.2,
+            "n_days": 1764
+          },
+          "crisis_window": {
+            "cumulative_return": 1.93,
+            "cagr": 1.95,
+            "mdd": -12.04,
+            "sharpe": 0.21,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.16,
+            "avg_drawdown_days": 7.7,
+            "n_days": 251
+          }
+        },
+        {
+          "satellite_weight": 0.15,
+          "full_period": {
+            "cumulative_return": 184.37,
+            "cagr": 16.06,
+            "mdd": -18.45,
+            "sharpe": 1.12,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.87,
+            "avg_drawdown_days": 17.3,
+            "n_days": 1764
+          },
+          "crisis_window": {
+            "cumulative_return": 1.79,
+            "cagr": 1.81,
+            "mdd": -12.54,
+            "sharpe": 0.2,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.14,
+            "avg_drawdown_days": 8.9,
+            "n_days": 251
+          }
+        },
+        {
+          "satellite_weight": 0.2,
+          "full_period": {
+            "cumulative_return": 200.53,
+            "cagr": 16.98,
+            "mdd": -18.69,
+            "sharpe": 1.13,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.91,
+            "avg_drawdown_days": 17.1,
+            "n_days": 1764
+          },
+          "crisis_window": {
+            "cumulative_return": 1.64,
+            "cagr": 1.66,
+            "mdd": -13.04,
+            "sharpe": 0.19,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.13,
+            "avg_drawdown_days": 9.0,
+            "n_days": 251
+          }
+        },
+        {
+          "satellite_weight": 0.25,
+          "full_period": {
+            "cumulative_return": 217.23,
+            "cagr": 17.88,
+            "mdd": -18.95,
+            "sharpe": 1.13,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.94,
+            "avg_drawdown_days": 18.0,
+            "n_days": 1764
+          },
+          "crisis_window": {
+            "cumulative_return": 1.48,
+            "cagr": 1.5,
+            "mdd": -13.54,
+            "sharpe": 0.18,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.11,
+            "avg_drawdown_days": 9.9,
+            "n_days": 251
+          }
+        },
+        {
+          "satellite_weight": 0.3,
+          "full_period": {
+            "cumulative_return": 234.46,
+            "cagr": 18.77,
+            "mdd": -19.2,
+            "sharpe": 1.13,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.98,
+            "avg_drawdown_days": 18.2,
+            "n_days": 1764
+          },
+          "crisis_window": {
+            "cumulative_return": 1.31,
+            "cagr": 1.33,
+            "mdd": -14.05,
+            "sharpe": 0.16,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.09,
+            "avg_drawdown_days": 10.0,
+            "n_days": 251
+          }
+        },
+        {
+          "satellite_weight": 0.4,
+          "full_period": {
+            "cumulative_return": 270.43,
+            "cagr": 20.52,
+            "mdd": -19.74,
+            "sharpe": 1.12,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 1.04,
+            "avg_drawdown_days": 19.2,
+            "n_days": 1764
+          },
+          "crisis_window": {
+            "cumulative_return": 0.95,
+            "cagr": 0.96,
+            "mdd": -15.45,
+            "sharpe": 0.14,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.06,
+            "avg_drawdown_days": 13.8,
+            "n_days": 251
+          }
+        },
+        {
+          "satellite_weight": 0.5,
+          "full_period": {
+            "cumulative_return": 308.31,
+            "cagr": 22.2,
+            "mdd": -20.29,
+            "sharpe": 1.1,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 1.09,
+            "avg_drawdown_days": 19.4,
+            "n_days": 1764
+          },
+          "crisis_window": {
+            "cumulative_return": 0.56,
+            "cagr": 0.56,
+            "mdd": -16.88,
+            "sharpe": 0.12,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.03,
+            "avg_drawdown_days": 11.3,
+            "n_days": 251
+          }
+        }
+      ]
+    },
+    "gfc_2008": {
+      "full_period": [
+        "2007-01-01",
+        "2009-12-31"
+      ],
+      "crisis_window": [
+        "2007-10-01",
+        "2009-06-30"
+      ],
+      "universe_n": 3,
+      "frontier": [
+        {
+          "satellite_weight": 0.0,
+          "full_period": {
+            "cumulative_return": 17.39,
+            "cagr": 5.51,
+            "mdd": -4.01,
+            "sharpe": 1.0,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 1.37,
+            "avg_drawdown_days": 26.4,
+            "n_days": 755
+          },
+          "crisis_window": {
+            "cumulative_return": 3.83,
+            "cagr": 2.18,
+            "mdd": -4.01,
+            "sharpe": 0.46,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.54,
+            "avg_drawdown_days": 27.3,
+            "n_days": 441
+          }
+        },
+        {
+          "satellite_weight": 0.05,
+          "full_period": {
+            "cumulative_return": 15.0,
+            "cagr": 4.78,
+            "mdd": -6.5,
+            "sharpe": 0.84,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.74,
+            "avg_drawdown_days": 30.5,
+            "n_days": 755
+          },
+          "crisis_window": {
+            "cumulative_return": -0.73,
+            "cagr": -0.42,
+            "mdd": -6.5,
+            "sharpe": -0.05,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.06,
+            "avg_drawdown_days": 21.5,
+            "n_days": 441
+          }
+        },
+        {
+          "satellite_weight": 0.1,
+          "full_period": {
+            "cumulative_return": 12.5,
+            "cagr": 4.02,
+            "mdd": -10.51,
+            "sharpe": 0.62,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.38,
+            "avg_drawdown_days": 33.0,
+            "n_days": 755
+          },
+          "crisis_window": {
+            "cumulative_return": -5.22,
+            "cagr": -3.02,
+            "mdd": -10.51,
+            "sharpe": -0.42,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.29,
+            "avg_drawdown_days": 33.5,
+            "n_days": 441
+          }
+        },
+        {
+          "satellite_weight": 0.15,
+          "full_period": {
+            "cumulative_return": 9.91,
+            "cagr": 3.21,
+            "mdd": -14.78,
+            "sharpe": 0.43,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.22,
+            "avg_drawdown_days": 10.9,
+            "n_days": 755
+          },
+          "crisis_window": {
+            "cumulative_return": -9.61,
+            "cagr": -5.62,
+            "mdd": -14.78,
+            "sharpe": -0.61,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.38,
+            "avg_drawdown_days": 10.9,
+            "n_days": 441
+          }
+        },
+        {
+          "satellite_weight": 0.2,
+          "full_period": {
+            "cumulative_return": 7.24,
+            "cagr": 2.36,
+            "mdd": -19.24,
+            "sharpe": 0.29,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.12,
+            "avg_drawdown_days": 9.0,
+            "n_days": 755
+          },
+          "crisis_window": {
+            "cumulative_return": -13.91,
+            "cagr": -8.21,
+            "mdd": -19.24,
+            "sharpe": -0.72,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.43,
+            "avg_drawdown_days": 3.3,
+            "n_days": 441
+          }
+        },
+        {
+          "satellite_weight": 0.25,
+          "full_period": {
+            "cumulative_return": 4.48,
+            "cagr": 1.48,
+            "mdd": -24.06,
+            "sharpe": 0.18,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.06,
+            "avg_drawdown_days": 7.9,
+            "n_days": 755
+          },
+          "crisis_window": {
+            "cumulative_return": -18.1,
+            "cagr": -10.8,
+            "mdd": -24.06,
+            "sharpe": -0.78,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.45,
+            "avg_drawdown_days": 3.3,
+            "n_days": 441
+          }
+        },
+        {
+          "satellite_weight": 0.3,
+          "full_period": {
+            "cumulative_return": 1.66,
+            "cagr": 0.55,
+            "mdd": -28.68,
+            "sharpe": 0.11,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.02,
+            "avg_drawdown_days": 7.6,
+            "n_days": 755
+          },
+          "crisis_window": {
+            "cumulative_return": -22.18,
+            "cagr": -13.38,
+            "mdd": -28.68,
+            "sharpe": -0.81,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.47,
+            "avg_drawdown_days": 3.3,
+            "n_days": 441
+          }
+        },
+        {
+          "satellite_weight": 0.4,
+          "full_period": {
+            "cumulative_return": -4.14,
+            "cagr": -1.4,
+            "mdd": -37.31,
+            "sharpe": 0.01,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.04,
+            "avg_drawdown_days": 7.4,
+            "n_days": 755
+          },
+          "crisis_window": {
+            "cumulative_return": -30.01,
+            "cagr": -18.48,
+            "mdd": -37.31,
+            "sharpe": -0.86,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.5,
+            "avg_drawdown_days": 2.3,
+            "n_days": 441
+          }
+        },
+        {
+          "satellite_weight": 0.5,
+          "full_period": {
+            "cumulative_return": -10.1,
+            "cagr": -3.5,
+            "mdd": -45.16,
+            "sharpe": -0.06,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.08,
+            "avg_drawdown_days": 7.4,
+            "n_days": 755
+          },
+          "crisis_window": {
+            "cumulative_return": -37.37,
+            "cagr": -23.5,
+            "mdd": -45.16,
+            "sharpe": -0.88,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.52,
+            "avg_drawdown_days": 3.4,
+            "n_days": 441
+          }
+        }
+      ]
+    },
+    "covid_2020": {
+      "full_period": [
+        "2019-01-01",
+        "2020-12-31"
+      ],
+      "crisis_window": [
+        "2020-02-19",
+        "2020-04-30"
+      ],
+      "universe_n": 17,
+      "frontier": [
+        {
+          "satellite_weight": 0.0,
+          "full_period": {
+            "cumulative_return": 27.53,
+            "cagr": 12.98,
+            "mdd": -9.07,
+            "sharpe": 1.14,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 1.43,
+            "avg_drawdown_days": 15.3,
+            "n_days": 504
+          },
+          "crisis_window": {
+            "cumulative_return": 0.17,
+            "cagr": 0.86,
+            "mdd": -6.71,
+            "sharpe": 0.13,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.13,
+            "avg_drawdown_days": 31.0,
+            "n_days": 51
+          }
+        },
+        {
+          "satellite_weight": 0.05,
+          "full_period": {
+            "cumulative_return": 30.22,
+            "cagr": 14.17,
+            "mdd": -9.4,
+            "sharpe": 1.18,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 1.51,
+            "avg_drawdown_days": 14.8,
+            "n_days": 504
+          },
+          "crisis_window": {
+            "cumulative_return": 0.05,
+            "cagr": 0.26,
+            "mdd": -7.63,
+            "sharpe": 0.09,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.03,
+            "avg_drawdown_days": 68.0,
+            "n_days": 51
+          }
+        },
+        {
+          "satellite_weight": 0.1,
+          "full_period": {
+            "cumulative_return": 32.92,
+            "cagr": 15.35,
+            "mdd": -9.73,
+            "sharpe": 1.21,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 1.58,
+            "avg_drawdown_days": 14.2,
+            "n_days": 504
+          },
+          "crisis_window": {
+            "cumulative_return": -0.09,
+            "cagr": -0.46,
+            "mdd": -8.57,
+            "sharpe": 0.07,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.05,
+            "avg_drawdown_days": 68.0,
+            "n_days": 51
+          }
+        },
+        {
+          "satellite_weight": 0.15,
+          "full_period": {
+            "cumulative_return": 35.63,
+            "cagr": 16.52,
+            "mdd": -10.06,
+            "sharpe": 1.22,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 1.64,
+            "avg_drawdown_days": 13.6,
+            "n_days": 504
+          },
+          "crisis_window": {
+            "cumulative_return": -0.25,
+            "cagr": -1.29,
+            "mdd": -9.58,
+            "sharpe": 0.04,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.13,
+            "avg_drawdown_days": 0.0,
+            "n_days": 51
+          }
+        },
+        {
+          "satellite_weight": 0.2,
+          "full_period": {
+            "cumulative_return": 38.34,
+            "cagr": 17.68,
+            "mdd": -10.69,
+            "sharpe": 1.23,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 1.66,
+            "avg_drawdown_days": 13.5,
+            "n_days": 504
+          },
+          "crisis_window": {
+            "cumulative_return": -0.44,
+            "cagr": -2.24,
+            "mdd": -10.69,
+            "sharpe": 0.03,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.21,
+            "avg_drawdown_days": 0.0,
+            "n_days": 51
+          }
+        },
+        {
+          "satellite_weight": 0.25,
+          "full_period": {
+            "cumulative_return": 41.05,
+            "cagr": 18.84,
+            "mdd": -11.94,
+            "sharpe": 1.23,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 1.58,
+            "avg_drawdown_days": 13.1,
+            "n_days": 504
+          },
+          "crisis_window": {
+            "cumulative_return": -0.65,
+            "cagr": -3.31,
+            "mdd": -11.92,
+            "sharpe": 0.01,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.28,
+            "avg_drawdown_days": 0.0,
+            "n_days": 51
+          }
+        },
+        {
+          "satellite_weight": 0.3,
+          "full_period": {
+            "cumulative_return": 43.77,
+            "cagr": 19.98,
+            "mdd": -13.2,
+            "sharpe": 1.22,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 1.51,
+            "avg_drawdown_days": 14.2,
+            "n_days": 504
+          },
+          "crisis_window": {
+            "cumulative_return": -0.89,
+            "cagr": -4.48,
+            "mdd": -13.16,
+            "sharpe": 0.0,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.34,
+            "avg_drawdown_days": 0.0,
+            "n_days": 51
+          }
+        },
+        {
+          "satellite_weight": 0.4,
+          "full_period": {
+            "cumulative_return": 49.19,
+            "cagr": 22.23,
+            "mdd": -15.72,
+            "sharpe": 1.2,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 1.41,
+            "avg_drawdown_days": 13.1,
+            "n_days": 504
+          },
+          "crisis_window": {
+            "cumulative_return": -1.43,
+            "cagr": -7.12,
+            "mdd": -15.63,
+            "sharpe": -0.01,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.46,
+            "avg_drawdown_days": 0.0,
+            "n_days": 51
+          }
+        },
+        {
+          "satellite_weight": 0.5,
+          "full_period": {
+            "cumulative_return": 54.58,
+            "cagr": 24.42,
+            "mdd": -18.22,
+            "sharpe": 1.18,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 1.34,
+            "avg_drawdown_days": 10.1,
+            "n_days": 504
+          },
+          "crisis_window": {
+            "cumulative_return": -2.06,
+            "cagr": -10.14,
+            "mdd": -18.09,
+            "sharpe": -0.03,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.56,
+            "avg_drawdown_days": 0.0,
+            "n_days": 51
+          }
+        }
+      ]
+    },
+    "selloff_2018": {
+      "full_period": [
+        "2017-06-01",
+        "2019-06-30"
+      ],
+      "crisis_window": [
+        "2018-09-01",
+        "2019-01-15"
+      ],
+      "universe_n": 17,
+      "frontier": [
+        {
+          "satellite_weight": 0.0,
+          "full_period": {
+            "cumulative_return": 5.6,
+            "cagr": 2.66,
+            "mdd": -15.5,
+            "sharpe": 0.28,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.17,
+            "avg_drawdown_days": 6.1,
+            "n_days": 523
+          },
+          "crisis_window": {
+            "cumulative_return": -9.71,
+            "cagr": -24.45,
+            "mdd": -14.6,
+            "sharpe": -1.9,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.67,
+            "avg_drawdown_days": 6.7,
+            "n_days": 92
+          }
+        },
+        {
+          "satellite_weight": 0.05,
+          "full_period": {
+            "cumulative_return": 7.9,
+            "cagr": 3.74,
+            "mdd": -15.21,
+            "sharpe": 0.36,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.25,
+            "avg_drawdown_days": 6.1,
+            "n_days": 523
+          },
+          "crisis_window": {
+            "cumulative_return": -9.82,
+            "cagr": -24.71,
+            "mdd": -15.12,
+            "sharpe": -1.82,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.63,
+            "avg_drawdown_days": 6.7,
+            "n_days": 92
+          }
+        },
+        {
+          "satellite_weight": 0.1,
+          "full_period": {
+            "cumulative_return": 10.25,
+            "cagr": 4.82,
+            "mdd": -15.64,
+            "sharpe": 0.44,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.31,
+            "avg_drawdown_days": 15.5,
+            "n_days": 523
+          },
+          "crisis_window": {
+            "cumulative_return": -9.93,
+            "cagr": -24.97,
+            "mdd": -15.64,
+            "sharpe": -1.75,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.6,
+            "avg_drawdown_days": 6.0,
+            "n_days": 92
+          }
+        },
+        {
+          "satellite_weight": 0.15,
+          "full_period": {
+            "cumulative_return": 12.64,
+            "cagr": 5.91,
+            "mdd": -16.15,
+            "sharpe": 0.52,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.37,
+            "avg_drawdown_days": 14.6,
+            "n_days": 523
+          },
+          "crisis_window": {
+            "cumulative_return": -10.05,
+            "cagr": -25.25,
+            "mdd": -16.15,
+            "sharpe": -1.67,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.56,
+            "avg_drawdown_days": 5.7,
+            "n_days": 92
+          }
+        },
+        {
+          "satellite_weight": 0.2,
+          "full_period": {
+            "cumulative_return": 15.06,
+            "cagr": 7.0,
+            "mdd": -16.67,
+            "sharpe": 0.59,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.42,
+            "avg_drawdown_days": 13.0,
+            "n_days": 523
+          },
+          "crisis_window": {
+            "cumulative_return": -10.18,
+            "cagr": -25.53,
+            "mdd": -16.67,
+            "sharpe": -1.6,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.53,
+            "avg_drawdown_days": 5.7,
+            "n_days": 92
+          }
+        },
+        {
+          "satellite_weight": 0.25,
+          "full_period": {
+            "cumulative_return": 17.53,
+            "cagr": 8.1,
+            "mdd": -17.19,
+            "sharpe": 0.65,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.47,
+            "avg_drawdown_days": 12.6,
+            "n_days": 523
+          },
+          "crisis_window": {
+            "cumulative_return": -10.31,
+            "cagr": -25.82,
+            "mdd": -17.19,
+            "sharpe": -1.54,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.5,
+            "avg_drawdown_days": 4.0,
+            "n_days": 92
+          }
+        },
+        {
+          "satellite_weight": 0.3,
+          "full_period": {
+            "cumulative_return": 20.04,
+            "cagr": 9.21,
+            "mdd": -17.71,
+            "sharpe": 0.72,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.52,
+            "avg_drawdown_days": 11.6,
+            "n_days": 523
+          },
+          "crisis_window": {
+            "cumulative_return": -10.44,
+            "cagr": -26.12,
+            "mdd": -17.71,
+            "sharpe": -1.48,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.48,
+            "avg_drawdown_days": 3.4,
+            "n_days": 92
+          }
+        },
+        {
+          "satellite_weight": 0.4,
+          "full_period": {
+            "cumulative_return": 25.18,
+            "cagr": 11.44,
+            "mdd": -18.74,
+            "sharpe": 0.83,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.61,
+            "avg_drawdown_days": 9.4,
+            "n_days": 523
+          },
+          "crisis_window": {
+            "cumulative_return": -10.72,
+            "cagr": -26.75,
+            "mdd": -18.74,
+            "sharpe": -1.37,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.43,
+            "avg_drawdown_days": 3.2,
+            "n_days": 92
+          }
+        },
+        {
+          "satellite_weight": 0.5,
+          "full_period": {
+            "cumulative_return": 30.49,
+            "cagr": 13.7,
+            "mdd": -19.77,
+            "sharpe": 0.92,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": 0.69,
+            "avg_drawdown_days": 8.8,
+            "n_days": 523
+          },
+          "crisis_window": {
+            "cumulative_return": -11.01,
+            "cagr": -27.41,
+            "mdd": -19.77,
+            "sharpe": -1.27,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.39,
+            "avg_drawdown_days": 3.4,
+            "n_days": 92
+          }
+        }
+      ]
+    },
+    "correction_2015_2016": {
+      "full_period": [
+        "2014-06-01",
+        "2016-06-30"
+      ],
+      "crisis_window": [
+        "2015-08-01",
+        "2016-02-15"
+      ],
+      "universe_n": 17,
+      "frontier": [
+        {
+          "satellite_weight": 0.0,
+          "full_period": {
+            "cumulative_return": -5.79,
+            "cagr": -2.83,
+            "mdd": -16.82,
+            "sharpe": -0.19,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.17,
+            "avg_drawdown_days": 14.6,
+            "n_days": 525
+          },
+          "crisis_window": {
+            "cumulative_return": -14.58,
+            "cagr": -25.79,
+            "mdd": -15.09,
+            "sharpe": -1.9,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.71,
+            "avg_drawdown_days": 1.0,
+            "n_days": 135
+          }
+        },
+        {
+          "satellite_weight": 0.05,
+          "full_period": {
+            "cumulative_return": -6.48,
+            "cagr": -3.18,
+            "mdd": -16.9,
+            "sharpe": -0.21,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.19,
+            "avg_drawdown_days": 13.4,
+            "n_days": 525
+          },
+          "crisis_window": {
+            "cumulative_return": -14.56,
+            "cagr": -25.76,
+            "mdd": -15.2,
+            "sharpe": -1.84,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.69,
+            "avg_drawdown_days": 1.0,
+            "n_days": 135
+          }
+        },
+        {
+          "satellite_weight": 0.1,
+          "full_period": {
+            "cumulative_return": -7.19,
+            "cagr": -3.53,
+            "mdd": -17.12,
+            "sharpe": -0.24,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.21,
+            "avg_drawdown_days": 13.5,
+            "n_days": 525
+          },
+          "crisis_window": {
+            "cumulative_return": -14.55,
+            "cagr": -25.74,
+            "mdd": -15.37,
+            "sharpe": -1.77,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.68,
+            "avg_drawdown_days": 0.0,
+            "n_days": 135
+          }
+        },
+        {
+          "satellite_weight": 0.15,
+          "full_period": {
+            "cumulative_return": -7.91,
+            "cagr": -3.89,
+            "mdd": -17.39,
+            "sharpe": -0.26,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.22,
+            "avg_drawdown_days": 14.6,
+            "n_days": 525
+          },
+          "crisis_window": {
+            "cumulative_return": -14.55,
+            "cagr": -25.73,
+            "mdd": -15.58,
+            "sharpe": -1.7,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.65,
+            "avg_drawdown_days": 0.0,
+            "n_days": 135
+          }
+        },
+        {
+          "satellite_weight": 0.2,
+          "full_period": {
+            "cumulative_return": -8.63,
+            "cagr": -4.26,
+            "mdd": -17.66,
+            "sharpe": -0.28,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.24,
+            "avg_drawdown_days": 25.2,
+            "n_days": 525
+          },
+          "crisis_window": {
+            "cumulative_return": -14.54,
+            "cagr": -25.73,
+            "mdd": -15.79,
+            "sharpe": -1.64,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.63,
+            "avg_drawdown_days": 0.0,
+            "n_days": 135
+          }
+        },
+        {
+          "satellite_weight": 0.25,
+          "full_period": {
+            "cumulative_return": -9.36,
+            "cagr": -4.63,
+            "mdd": -17.93,
+            "sharpe": -0.29,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.26,
+            "avg_drawdown_days": 26.0,
+            "n_days": 525
+          },
+          "crisis_window": {
+            "cumulative_return": -14.55,
+            "cagr": -25.74,
+            "mdd": -16.02,
+            "sharpe": -1.57,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.61,
+            "avg_drawdown_days": 0.0,
+            "n_days": 135
+          }
+        },
+        {
+          "satellite_weight": 0.3,
+          "full_period": {
+            "cumulative_return": -10.11,
+            "cagr": -5.0,
+            "mdd": -18.21,
+            "sharpe": -0.31,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.27,
+            "avg_drawdown_days": 36.0,
+            "n_days": 525
+          },
+          "crisis_window": {
+            "cumulative_return": -14.56,
+            "cagr": -25.75,
+            "mdd": -16.24,
+            "sharpe": -1.5,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.59,
+            "avg_drawdown_days": 0.0,
+            "n_days": 135
+          }
+        },
+        {
+          "satellite_weight": 0.4,
+          "full_period": {
+            "cumulative_return": -11.61,
+            "cagr": -5.77,
+            "mdd": -19.45,
+            "sharpe": -0.33,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.3,
+            "avg_drawdown_days": 14.6,
+            "n_days": 525
+          },
+          "crisis_window": {
+            "cumulative_return": -14.6,
+            "cagr": -25.81,
+            "mdd": -16.7,
+            "sharpe": -1.38,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.55,
+            "avg_drawdown_days": 0.0,
+            "n_days": 135
+          }
+        },
+        {
+          "satellite_weight": 0.5,
+          "full_period": {
+            "cumulative_return": -13.15,
+            "cagr": -6.57,
+            "mdd": -21.57,
+            "sharpe": -0.35,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -0.3,
+            "avg_drawdown_days": 14.4,
+            "n_days": 525
+          },
+          "crisis_window": {
+            "cumulative_return": -14.65,
+            "cagr": -25.91,
+            "mdd": -17.19,
+            "sharpe": -1.26,
+            "win_rate": 0.0,
+            "avg_holding_days": 0.0,
+            "trade_count": 0,
+            "profit_factor": 0.0,
+            "calmar": -1.51,
+            "avg_drawdown_days": 0.0,
+            "n_days": 135
+          }
+        }
+      ]
+    }
+  }
+}

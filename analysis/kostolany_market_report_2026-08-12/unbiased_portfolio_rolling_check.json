@@ -1,0 +1,43 @@
+{
+  "rolling_no_overlay": {
+    "cumulative_return": 231.24,
+    "cagr": 10.86,
+    "mdd": -38.46,
+    "sharpe": 0.7,
+    "win_rate": 0.0,
+    "avg_holding_days": 0.0,
+    "trade_count": 0,
+    "profit_factor": 0.0,
+    "calmar": 0.28,
+    "avg_drawdown_days": 24.3
+  },
+  "rolling_final": {
+    "cumulative_return": 253.6,
+    "cagr": 11.49,
+    "mdd": -17.58,
+    "sharpe": 0.88,
+    "win_rate": 0.0,
+    "avg_holding_days": 0.0,
+    "trade_count": 0,
+    "profit_factor": 0.0,
+    "calmar": 0.65,
+    "avg_drawdown_days": 23.7
+  },
+  "sp500_bh": {
+    "cumulative_return": 278.92,
+    "cagr": 12.16,
+    "mdd": -33.92,
+    "sharpe": 0.74,
+    "win_rate": 100.0,
+    "avg_holding_days": 4241.0,
+    "trade_count": 1,
+    "profit_factor": 999.0,
+    "calmar": 0.36,
+    "avg_drawdown_days": 19.4
+  },
+  "static_lookahead_reference": {
+    "cagr": 12.09,
+    "mdd": -17.42,
+    "sharpe": 0.92
+  }
+}

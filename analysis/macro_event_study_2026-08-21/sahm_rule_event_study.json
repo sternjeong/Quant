@@ -1,0 +1,97 @@
+{
+  "events": [
+    {
+      "trigger_month": "1976-11-01",
+      "release_date": "1976-12-03",
+      "sahm_value": 0.5,
+      "fwd_5d_pct": 1.888,
+      "fwd_20d_pct": 4.126,
+      "fwd_60d_pct": -2.044,
+      "fwd_250d_pct": -7.717,
+      "fwd_500d_pct": -6.588
+    },
+    {
+      "trigger_month": "1980-04-01",
+      "release_date": "1980-05-02",
+      "sahm_value": 0.67,
+      "fwd_5d_pct": -0.815,
+      "fwd_20d_pct": 4.906,
+      "fwd_60d_pct": 15.931,
+      "fwd_250d_pct": 25.791,
+      "fwd_500d_pct": 11.764
+    },
+    {
+      "trigger_month": "1981-11-01",
+      "release_date": "1981-12-04",
+      "sahm_value": 0.8,
+      "fwd_5d_pct": -1.053,
+      "fwd_20d_pct": -4.918,
+      "fwd_60d_pct": -12.15,
+      "fwd_250d_pct": 9.869,
+      "fwd_500d_pct": 32.409
+    },
+    {
+      "trigger_month": "1990-11-01",
+      "release_date": "1990-12-07",
+      "sahm_value": 0.5,
+      "fwd_5d_pct": -0.284,
+      "fwd_20d_pct": -3.921,
+      "fwd_60d_pct": 14.773,
+      "fwd_250d_pct": 15.963,
+      "fwd_500d_pct": 31.609
+    },
+    {
+      "trigger_month": "2001-06-01",
+      "release_date": "2001-07-06",
+      "sahm_value": 0.53,
+      "fwd_5d_pct": 2.107,
+      "fwd_20d_pct": 1.996,
+      "fwd_60d_pct": -10.013,
+      "fwd_250d_pct": -22.688,
+      "fwd_500d_pct": -15.35
+    },
+    {
+      "trigger_month": "2008-04-01",
+      "release_date": "2008-05-02",
+      "sahm_value": 0.5,
+      "fwd_5d_pct": -1.812,
+      "fwd_20d_pct": -1.997,
+      "fwd_60d_pct": -10.658,
+      "fwd_250d_pct": -38.269,
+      "fwd_500d_pct": -15.739
+    },
+    {
+      "trigger_month": "2020-04-01",
+      "release_date": "2020-05-08",
+      "sahm_value": 4.0,
+      "fwd_5d_pct": -2.256,
+      "fwd_20d_pct": 10.328,
+      "fwd_60d_pct": 12.858,
+      "fwd_250d_pct": 43.41,
+      "fwd_500d_pct": 42.518
+    },
+    {
+      "trigger_month": "2024-07-01",
+      "release_date": "2024-08-02",
+      "sahm_value": 0.53,
+      "fwd_5d_pct": -0.045,
+      "fwd_20d_pct": 5.645,
+      "fwd_60d_pct": 8.921,
+      "fwd_250d_pct": 18.393,
+      "fwd_500d_pct": 42.157
+    }
+  ],
+  "summary": {
+    "n": 8,
+    "fwd_5d_mean_pct": -0.284,
+    "fwd_5d_win_rate_pct": 25.0,
+    "fwd_20d_mean_pct": 2.021,
+    "fwd_20d_win_rate_pct": 62.5,
+    "fwd_60d_mean_pct": 2.202,
+    "fwd_60d_win_rate_pct": 50.0,
+    "fwd_250d_mean_pct": 5.594,
+    "fwd_250d_win_rate_pct": 62.5,
+    "fwd_500d_mean_pct": 15.348,
+    "fwd_500d_win_rate_pct": 62.5
+  }
+}

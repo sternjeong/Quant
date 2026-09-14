@@ -1,0 +1,243 @@
+{
+  "meta": {
+    "chosen_method": "trend_following",
+    "chosen_satellite_weight": 0.15,
+    "h10_reference": {
+      "h9_null_source": "/workspaces/Quant/analysis/2026-08-20_quality_filter_and_satellite_placebo_research/h9_results.json",
+      "null_n_draws": 200,
+      "null_mean": 1.019,
+      "null_median": 1.01,
+      "null_std": 0.0624,
+      "satellite_weight_compared": 0.15,
+      "momentum_real_sharpe": 1.09,
+      "momentum_percentile_recomputed": 86.0,
+      "momentum_percentile_h9_original_report": 88.0,
+      "trend_following_real_sharpe": 1.12,
+      "trend_following_percentile": 93.0
+    }
+  },
+  "part_a_2022_bear_market": {
+    "satellite_weight": 0.15,
+    "chosen_method": "trend_following",
+    "full_period_2019_2026": {
+      "core_alone": {
+        "cumulative_return": 139.19,
+        "cagr": 13.23,
+        "mdd": -17.74,
+        "sharpe": 1.03,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.75,
+        "avg_drawdown_days": 20.2,
+        "n_days": 1764
+      },
+      "core_plus_satellite": {
+        "cumulative_return": 184.37,
+        "cagr": 16.06,
+        "mdd": -18.45,
+        "sharpe": 1.12,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.87,
+        "avg_drawdown_days": 17.3,
+        "n_days": 1764
+      }
+    },
+    "crisis_2022_full_year": {
+      "core_alone": {
+        "cumulative_return": 2.19,
+        "cagr": 2.21,
+        "mdd": -11.05,
+        "sharpe": 0.24,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.2,
+        "avg_drawdown_days": 6.8,
+        "n_days": 251
+      },
+      "core_plus_satellite": {
+        "cumulative_return": 1.79,
+        "cagr": 1.81,
+        "mdd": -12.54,
+        "sharpe": 0.2,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.14,
+        "avg_drawdown_days": 8.9,
+        "n_days": 251
+      },
+      "satellite_alone": {
+        "cumulative_return": -1.91,
+        "cagr": -1.94,
+        "mdd": -25.13,
+        "sharpe": 0.05,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": -0.08,
+        "avg_drawdown_days": 15.0,
+        "n_days": 251
+      }
+    }
+  },
+  "part_b_2008_gfc": {
+    "satellite_weight": 0.15,
+    "chosen_method": "trend_following",
+    "satellite_rebal_log": [
+      {
+        "date": "2007-01-03",
+        "pool_size": 40,
+        "n_eligible": 40,
+        "picks": [
+          "CSCO",
+          "VFC",
+          "T"
+        ]
+      },
+      {
+        "date": "2007-07-02",
+        "pool_size": 40,
+        "n_eligible": 37,
+        "picks": [
+          "AAPL",
+          "NOV",
+          "FCX"
+        ]
+      },
+      {
+        "date": "2008-01-02",
+        "pool_size": 40,
+        "n_eligible": 35,
+        "picks": [
+          "AAPL",
+          "AMZN",
+          "SLB"
+        ]
+      },
+      {
+        "date": "2008-07-01",
+        "pool_size": 40,
+        "n_eligible": 24,
+        "picks": [
+          "FCX",
+          "CSX",
+          "AAPL"
+        ]
+      },
+      {
+        "date": "2009-01-02",
+        "pool_size": 40,
+        "n_eligible": 28,
+        "picks": [
+          "WMT",
+          "BBT",
+          "PSA"
+        ]
+      },
+      {
+        "date": "2009-07-01",
+        "pool_size": 40,
+        "n_eligible": 30,
+        "picks": [
+          "AMZN",
+          "ESRX",
+          "MCD"
+        ]
+      }
+    ],
+    "satellite_tickers_ever_held": [
+      "AAPL",
+      "AMZN",
+      "BBT",
+      "CSCO",
+      "CSX",
+      "ESRX",
+      "FCX",
+      "MCD",
+      "NOV",
+      "PSA",
+      "SLB",
+      "T",
+      "VFC",
+      "WMT"
+    ],
+    "full_period_2007_2009": {
+      "core_alone": {
+        "cumulative_return": 35.58,
+        "cagr": 10.72,
+        "mdd": -15.85,
+        "sharpe": 0.75,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.68,
+        "avg_drawdown_days": 25.8,
+        "n_days": 755
+      },
+      "core_plus_satellite": {
+        "cumulative_return": 27.97,
+        "cagr": 8.6,
+        "mdd": -19.96,
+        "sharpe": 0.65,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.43,
+        "avg_drawdown_days": 32.1,
+        "n_days": 755
+      }
+    },
+    "crisis_2007_10_2009_06": {
+      "core_alone": {
+        "cumulative_return": 6.1,
+        "cagr": 3.45,
+        "mdd": -15.85,
+        "sharpe": 0.29,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.22,
+        "avg_drawdown_days": 27.3,
+        "n_days": 441
+      },
+      "core_plus_satellite": {
+        "cumulative_return": -6.37,
+        "cagr": -3.7,
+        "mdd": -19.96,
+        "sharpe": -0.16,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": -0.19,
+        "avg_drawdown_days": 25.8,
+        "n_days": 441
+      },
+      "satellite_alone": {
+        "cumulative_return": -63.9,
+        "cagr": -44.2,
+        "mdd": -72.64,
+        "sharpe": -0.83,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": -0.61,
+        "avg_drawdown_days": 2.9,
+        "n_days": 441
+      }
+    }
+  }
+}

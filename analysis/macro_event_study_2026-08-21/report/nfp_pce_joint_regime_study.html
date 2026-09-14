@@ -1,0 +1,294 @@
+<title>PCE로도 냉각이 이겼다</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #eef1ee; --surface: #ffffff; --surface-2: #e6eae5;
+    --ink: #17211d; --ink-muted: #57635c; --ink-faint: #8b968f; --line: #d9dfd8;
+    --hike: #a8461f; --hike-soft: #f4e3da; --cut: #1f6e79; --cut-soft: #dcedee; --gold: #8a6d1f;
+    --shadow: 0 1px 2px rgba(23,33,29,.06), 0 8px 24px -12px rgba(23,33,29,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+      --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+      --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+      --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121613; --surface: #1a201c; --surface-2: #212822;
+    --ink: #e8ede8; --ink-muted: #9aa79f; --ink-faint: #69756e;
+    --line: #2b332e; --hike: #e08a5c; --hike-soft: #3a2a20;
+    --cut: #62c2cb; --cut-soft: #163136; --gold: #d9bc6c;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Public Sans", -apple-system, "Noto Sans KR", sans-serif;
+    font-size: 16px; line-height: 1.65;
+  }
+  ::selection { background: var(--gold); color: #1a1408; }
+  a { color: var(--cut); }
+  .page { max-width: 880px; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 1rem;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 500;
+    font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.08; letter-spacing: -.01em;
+    margin: 0 0 1rem; text-wrap: balance;
+  }
+  .dek { font-size: 1.15rem; color: var(--ink-muted); max-width: 62ch; margin: 0 0 1.75rem; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: .4rem 1.6rem;
+    font-family: "IBM Plex Mono", monospace; font-size: .82rem; color: var(--ink-muted);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: .85rem 0;
+  }
+  .meta-row b { color: var(--ink); font-weight: 600; }
+  section { margin: 3.2rem 0; }
+  section > h2 {
+    font-family: "Fraunces", serif; font-weight: 500; font-size: 1.6rem;
+    letter-spacing: -.005em; margin: 0 0 .3rem; text-wrap: balance;
+  }
+  section > .lede { color: var(--ink-muted); max-width: 66ch; margin: 0 0 1.4rem; }
+  p { max-width: 68ch; }
+  .note {
+    background: var(--surface-2); border-left: 3px solid var(--gold); border-radius: 4px;
+    padding: .9rem 1.1rem; font-size: .93rem; color: var(--ink-muted); max-width: 68ch; margin: 1.1rem 0;
+  }
+  .note b { color: var(--ink); }
+  .callout {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.2rem 1.4rem; box-shadow: var(--shadow); margin: 1.4rem 0;
+  }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .9rem; margin: 1.3rem 0 1.6rem; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.1rem; }
+  .tile .label { font-size: .78rem; color: var(--ink-muted); margin-bottom: .35rem; }
+  .tile .value { font-family: "IBM Plex Mono", monospace; font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tile .value.hike { color: var(--hike); }
+  .tile .value.cut { color: var(--cut); }
+  .tile .sub { font-size: .76rem; color: var(--ink-faint); margin-top: .25rem; }
+
+  .hyp-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1.1rem 1.3rem; box-shadow: var(--shadow); margin: 1rem 0;
+  }
+  .hyp-card .hyp-id {
+    font-family: "IBM Plex Mono", monospace; font-size: .74rem; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--gold); margin-bottom: .4rem; font-weight: 600;
+  }
+  .hyp-card p { margin: 0; max-width: none; }
+
+  .verdict {
+    display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: .78rem;
+    font-weight: 600; letter-spacing: .04em; padding: .28rem .7rem; border-radius: 999px;
+    margin-top: .7rem;
+  }
+  .verdict.confirmed { background: var(--cut-soft); color: var(--cut); }
+  .verdict.disconfirmed { background: var(--hike-soft); color: var(--hike); }
+  .verdict.mixed { background: var(--surface-2); color: var(--ink-muted); border: 1px solid var(--line); }
+
+  .table-wrap { overflow-x: auto; margin: 1.2rem 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 480px; font-size: .92rem; }
+  caption { text-align: left; font-size: .82rem; color: var(--ink-faint); padding-bottom: .5rem; }
+  th, td { padding: .62rem .8rem; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; font-family: "IBM Plex Mono", monospace; }
+  th:first-child, td:first-child { text-align: left; font-family: "Public Sans", sans-serif; }
+  thead th { font-family: "Public Sans", sans-serif; font-weight: 600; font-size: .78rem; letter-spacing: .02em; color: var(--ink-muted); text-transform: uppercase; border-bottom: 1px solid var(--ink-faint); }
+  tr.row-best td:first-child { border-left: 3px solid var(--cut); padding-left: .65rem; }
+  tr.row-worst td:first-child { border-left: 3px solid var(--hike); padding-left: .65rem; }
+  tbody tr:hover { background: var(--surface-2); }
+  td.neg { color: var(--hike); }
+  td.pos { color: var(--cut); }
+
+  ul.findings { padding-left: 1.2rem; max-width: 68ch; }
+  ul.findings li { margin-bottom: .9rem; }
+  ul.findings b { color: var(--ink); }
+  .footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--line); font-size: .82rem; color: var(--ink-faint); }
+</style>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">MACRO EVENT STUDY · 트랙 A 후속 · 1994&ndash;2026 · NFP x PCE 교차검증</div>
+    <h1>PCE로 바꿔도 "냉각이 이겼다"</h1>
+    <p class="dek">"냉각(물가감속+성장·고용둔화)이 골디락스를 근소하게 이긴다"는 패턴이
+    CPI×GDP·NFP×CPI에서 두 번 재현됐다가, GDP×NFP(성장×고용 조합)에서 깨졌다 — 골디락스가
+    뚜렷하게 앞섰다. 이걸 두고 "CPI라는 지표 자체가 특별한가, 아니면 인플레이션 감속이라는
+    개념 자체가 특별한가"라는 질문이 남았다. CPI를 연준이 실제로 쓰는 물가지표인 PCE로
+    바꿔서 NFP×PCE 교차검증을 똑같이 반복해 이 질문에 답한다.</p>
+    <div class="meta-row">
+      <span>NFP 발표일 트리거 <b>1994~2026</b>(382건 교차분류 가능)</span>
+      <span>PCE YoY 추세를 배경변수로 태깅</span>
+      <span>방법론 <b>nfp_cpi_joint_regime_study.py와 완전 동일, CPI→PCE만 교체</b></span>
+    </div>
+  </header>
+
+  <section>
+    <h2>사전등록 가설 (결과 계산 전 명시)</h2>
+    <div class="hyp-card">
+      <div class="hyp-id">H1</div>
+      <p>PCE×NFP 2x2에서 "고용둔화+물가감속"(냉각)이 "고용가속+물가감속"(골디락스형)보다
+      평균수익률이 높거나 대등해야 CPI 기반 패턴이 재현된 것으로 판정한다. CPI와 PCE가 단독
+      스플릿에서 거의 동일했다는 걸 감안해, <b>이 가설은 재현될 것(CONFIRMED/REPLICATED)으로
+      예측한다</b> — 재현되면 GDP×NFP의 반증은 "CPI 특정성"이 아니라 "성장&minus;고용 조합
+      특성"이라는 쪽으로 해석이 강화된다.</p>
+    </div>
+    <div class="hyp-card">
+      <div class="hyp-id">H2</div>
+      <p>PCE가 교차표 안에서 보이는 배경변수 지배력(같은 NFP 상태 안에서 PCE만 바꿀 때의
+      결과 변화)이 CPI가 NFP×CPI 스터디에서 보인 7~13배 압도와 비슷한 규모인지 확인한다 —
+      비슷하면 "CPI 고유 현상"이 아니라 "물가지표라면 다 그렇다"는 쪽을 지지한다.</p>
+    </div>
+    <div class="hyp-card">
+      <div class="hyp-id">H3</div>
+      <p>(표본 규모 사전 점검) PCE 발표일도 월간이라 NFP×CPI 스터디(칸당 n=79~114)와
+      비슷한 규모가 나올 것으로 예상한다 — 눈에 띄게 작거나 크면 이유를 밝힌다.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>NFP x PCE 2x2 교차표 vs NFP x CPI 원본(나란히 비교)</h2>
+    <div class="table-wrap">
+      <table>
+        <caption>+60일 평균수익률(%) · 승률 · n — PCE 버전(이번 스터디)과 CPI 버전(원본) 병기</caption>
+        <thead><tr><th>국면</th><th>PCE +60일 평균</th><th>PCE 승률(n)</th><th>CPI +60일 평균(원본)</th><th>CPI 승률(n, 원본)</th></tr></thead>
+        <tbody id="quad-body"></tbody>
+      </table>
+    </div>
+    <p><b>거의 그대로 재현됐다.</b> PCE 버전에서도 "고용둔화+물가감속"(냉각, +3.66%/승률72.8%)이
+    "고용가속+물가감속"(골디락스형, +3.55%/승률82.4%)보다 <b>평균수익률로는 근소하게 앞서고,
+    승률로는 오히려 뒤진다</b> — CPI 버전(냉각 +3.98%/73.7% vs 골디락스 +3.55%/79.7%)과 완전히
+    같은 형태의 "평균 vs 승률 불일치"다. 심지어 골디락스 칸의 절대 수치(3.546% vs 3.552%)까지
+    우연이라 하기엔 놀랍도록 비슷하다.</p>
+    <div class="verdict confirmed" id="h1-verdict">H1: CONFIRMED(REPLICATED) — 예측대로 재현됨</div>
+  </section>
+
+  <section>
+    <h2>H2 — PCE의 배경변수 지배력, CPI와 비슷한가</h2>
+    <div class="tiles">
+      <div class="tile"><div class="label">PCE 지배력 비율</div><div class="value cut">6.7~20.3배</div><div class="sub">이번 스터디(NFP×PCE)</div></div>
+      <div class="tile"><div class="label">CPI 지배력 비율</div><div class="value cut">7~13배</div><div class="sub">원본(NFP×CPI)</div></div>
+    </div>
+    <p>같은 NFP 상태 안에서 PCE만 바꾸면 결과가 2.36~2.63%p 움직이는데, 같은 PCE 상태 안에서
+    NFP만 바꾸면 0.12~0.39%p만 움직인다 — 비율로 6.7~20.3배, CPI가 보였던 7~13배와 <b>같은
+    자릿수(한 자리~20배 초반) 안에 들어온다</b>. 즉 "NFP가 트리거인데도 물가 축이 결과를
+    지배한다"는 구조 자체가 CPI에서만 나오는 게 아니라 PCE에서도 똑같이 나온다 — "CPI라는
+    시리즈 자체가 특별하다"는 설명보다 "물가지표라면(CPI든 PCE든) 이 프로젝트의 교차검증에서
+    일관되게 결과를 지배한다"는 더 넓은 설명이 지지된다.</p>
+    <div class="verdict confirmed" id="h2-verdict">H2: CONFIRMED — CPI와 비슷한 자릿수의 지배력, "물가지표 일반" 가설 지지</div>
+  </section>
+
+  <section>
+    <h2>H3 — 표본 규모</h2>
+    <p>이번 2x2 칸당 n=68~116으로, 원본 NFP×CPI 스터디의 n=79~114와 거의 같은 범위다 —
+    유일하게 골디락스형(고용가속+물가감속) 칸만 68로 원본(79)보다 조금 작지만, 이 정도
+    차이는 PCE와 CPI YoY 추세가 완전히 같은 시점에 같은 방향으로 안 움직이는 달이 소수
+    존재하기 때문으로 보이며 결론에 영향을 줄 정도는 아니다.</p>
+    <div class="verdict mixed" id="h3-verdict">H3: 예상대로 비슷한 규모(n=68~116 vs 원본 79~114) — 눈에 띄는 차이 없음</div>
+  </section>
+
+  <section>
+    <h2>정리 — CPI 특정성 이론은 어떻게 되나</h2>
+    <p>GDP×NFP에서 "냉각이 이긴다" 패턴이 깨졌을 때 두 가지 설명이 가능했다: (a) CPI라는
+    시리즈 자체에 뭔가 특별한 게 있다, 또는 (b) 인플레이션 감속이라는 개념 자체가 특별하고
+    GDP×NFP는 애초에 물가 축이 아예 없는 조합이라 이 패턴이 나타날 이유가 없었을 뿐이다.
+    이번 결과는 <b>(b)를 지지한다</b> — PCE도 CPI와 똑같이 냉각 우위 패턴과 물가축 지배력을
+    보였으므로, "냉각이 이긴다"는 CPI라는 특정 시리즈의 우연이 아니라 "물가 축이 낀 조합이면
+    감속이 이긴다"는, CPI보다 한 단계 더 일반적인 규칙으로 격상시킬 수 있다. 반대로 GDP×NFP의
+    반증은 "물가 축이 아예 없는 조합에는 이 규칙이 적용되지 않는다"는 원래의 해석과 정확히
+    들어맞는다.</p>
+  </section>
+
+  <section>
+    <h2>경제학 지식 없이 읽는 법</h2>
+    <ul class="findings">
+      <li><b>이 프로젝트에서 세 번째로 "냉각이 이긴다"가 확인됐다.</b> CPI×GDP, NFP×CPI에
+      이어 NFP×PCE까지 — 물가지표가 낀 교차검증에서는 매번 "물가가 식고 있다"는 사실 하나가
+      결과를 거의 다 설명한다.</li>
+      <li><b>CPI와 PCE는 서로 다른 방식으로 집계되는 지표인데도 결과가 거의 똑같다.</b>
+      CPI는 소비자가 낸 영수증 기반, PCE는 기업 판매 데이터까지 포함해 더 넓게 집계한다 —
+      집계 방식이 달라도 "인플레이션이 식고 있는가"라는 단일 질문이 시장 반응을 지배한다는
+      게 이번 결과로 한 번 더 확인됐다.</li>
+      <li><b>"고용둔화+물가감속"이 평균으로는 1위, 승률로는 2위라는 불일치도 CPI 버전과
+      똑같이 재현됐다.</b> 이 프로젝트는 이미 이 불일치가 이상치 때문이 아니라 두 칸의
+      수익률 분포 형태 자체가 다르기 때문이라고 결론낸 적이 있다(nfp_cpi_outlier_decomposition
+      스터디) — PCE 버전에서도 같은 설명이 적용될 가능성이 크다.</li>
+      <li><b>GDP×NFP의 반증은 "패턴이 틀렸다"가 아니라 "적용 범위가 좁혀졌다"로 다시
+      읽을 수 있다.</b> "물가 축이 낀 조합에서는 냉각이 이긴다"는 여전히 이 프로젝트 안에서
+      세 번 검증된 강한 패턴이고, "물가 축이 없는 조합"에는 애초에 적용 대상이 아니었다는
+      쪽으로 해석이 정리된다.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>한계</h2>
+    <div class="callout">
+      <ul class="findings" style="margin:0;">
+        <li><b>PCE도 CPI와 마찬가지로 트레일링 모멘텀 대리지표를 쓴다.</b> 실제 컨센서스
+        대비 서프라이즈가 아니라 최근 3개월 추세 가속/감속으로 국면을 정의했다 — 두 지표
+        모두 같은 방법론적 한계를 공유한다.</li>
+        <li><b>CPI와 PCE의 가속/감속 국면이 완전히 같은 달에 일치하지는 않는다.</b> 두
+        지표가 서로 다른 항목 구성·가중치를 쓰기 때문에 일부 달에는 방향이 갈릴 수 있고,
+        이게 표본 크기 차이(68 vs 79)의 원인일 가능성이 있다 — 이 부분을 별도로 분해하지는
+        않았다.</li>
+        <li><b>여전히 "왜 물가 축이 결과를 지배하는가"의 인과 메커니즘은 검증하지 않았다.</b>
+        "물가감속=연준이 완화적으로 갈 여지"라는 설명이 그럴듯하지만, 이 리포트도 앞의
+        스터디들처럼 상관관계만 확인했다.</li>
+        <li><b>세 번의 "냉각 우위" 재현이 전부 물가 축을 공유하는 조합이라 서로 완전히
+        독립적인 증거는 아니다.</b> CPI×GDP, NFP×CPI, NFP×PCE 모두 물가 축을 포함하므로,
+        엄밀히는 "물가 축 하나"가 세 번 각기 다른 배경변수와 짝지어졌을 뿐이라고도 볼 수
+        있다.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="footer">
+    데이터: FRED(PAYEMS·PCEPI release/dates), Yahoo Finance(^GSPC, 1994~2026) · 분석 스크립트:
+    nfp_pce_joint_regime_study.py(nfp_cpi_joint_regime_study.py·pce_release_event_study.py의
+    로직 재사용) · 같은 프로젝트, 관련 리포트:
+    <a href="https://claude.ai/code/artifact/5063fd3a-c2f3-417b-9076-b1206552de15">고용지표가 선명해지는 순간</a>(NFP×CPI 원본),
+    <a href="https://claude.ai/code/artifact/e6da3694-90d6-4720-ac14-94715da268bb">성장×고용 교차검증</a>(GDP×NFP, "냉각 우위" 패턴이 깨진 케이스)
+  </div>
+</div>
+
+<script>
+const DATA = {"quadrants": {
+  "accel_decel": {"n": 68, "fwd_60d_mean_pct": 3.546, "fwd_60d_win_rate_pct": 82.4},
+  "accel_accel": {"n": 116, "fwd_60d_mean_pct": 0.915, "fwd_60d_win_rate_pct": 62.1},
+  "decel_decel": {"n": 114, "fwd_60d_mean_pct": 3.662, "fwd_60d_win_rate_pct": 72.8},
+  "decel_accel": {"n": 84, "fwd_60d_mean_pct": 1.307, "fwd_60d_win_rate_pct": 65.5}
+}};
+const CPI_ORIGINAL = {
+  "accel_decel": {"n": 79, "fwd_60d_mean_pct": 3.552, "fwd_60d_win_rate_pct": 79.7},
+  "accel_accel": {"n": 105, "fwd_60d_mean_pct": 0.635, "fwd_60d_win_rate_pct": 61.9},
+  "decel_decel": {"n": 114, "fwd_60d_mean_pct": 3.978, "fwd_60d_win_rate_pct": 73.7},
+  "decel_accel": {"n": 84, "fwd_60d_mean_pct": 0.878, "fwd_60d_win_rate_pct": 64.3}
+};
+const LABELS = {
+  "accel_decel": "고용가속+물가감속(골디락스형)",
+  "accel_accel": "고용가속+물가가속(과열/모호)",
+  "decel_decel": "고용둔화+물가감속(냉각)",
+  "decel_accel": "고용둔화+물가가속(스태그플레이션 우려)"
+};
+const order = ["accel_decel", "accel_accel", "decel_decel", "decel_accel"];
+
+function fmt(v) { return (v >= 0 ? "+" : "") + v.toFixed(2) + "%"; }
+
+const tbody = document.getElementById("quad-body");
+order.forEach(k => {
+  const p = DATA.quadrants[k];
+  const c = CPI_ORIGINAL[k];
+  const tr = document.createElement("tr");
+  if (k === "decel_decel") tr.className = "row-best";
+  if (k === "accel_accel") tr.className = "row-worst";
+  const pCls = p.fwd_60d_mean_pct >= 0 ? "pos" : "neg";
+  const cCls = c.fwd_60d_mean_pct >= 0 ? "pos" : "neg";
+  tr.innerHTML = `<td>${LABELS[k]}</td>
+    <td class="${pCls}">${fmt(p.fwd_60d_mean_pct)}</td><td>${p.fwd_60d_win_rate_pct.toFixed(1)}% (n=${p.n})</td>
+    <td class="${cCls}">${fmt(c.fwd_60d_mean_pct)}</td><td>${c.fwd_60d_win_rate_pct.toFixed(1)}% (n=${c.n})</td>`;
+  tbody.appendChild(tr);
+});
+</script>
