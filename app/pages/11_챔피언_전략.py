@@ -11,6 +11,7 @@
 import sys
 from datetime import date
 from pathlib import Path
+from typing import Optional
 
 # --- sys.path 부트스트랩: 프로젝트 루트를 추가해 core.* 임포트 가능하게 함 (app/pages/*.py 공통 규칙) ---
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -39,6 +40,7 @@ from core.champion_strategy import (
     run_champion_backtest_with_collar,
 )
 from core.db import init_db
+from core.guru_tracker import find_gurus_holding_ticker, get_synced_guru_names
 from core.market_data import get_price_history
 from core.portfolio import get_portfolio_pnl
 from core.theme import (
@@ -72,8 +74,34 @@ render_status_bar(
         ("SATELLITE UNIVERSE", "S&P500"),
     ]
 )
+if _SYNCED_GURU_COUNT > 0:
+    st.caption(
+        "🏛️ 배지: [4_거장_포트폴리오]에서 추적 중인 투자자/펀드도 같은 종목을 보유 중이라는 "
+        "참고 정보입니다 — 이 종목이 좋다는 뜻이 아니며 배분에도 반영되지 않습니다."
+    )
 
 _GRADE_BADGE = {"robust": "🟢 robust", "moderate": "🔵 moderate", "weak": "🟡 weak", "reversed": "🔴 reversed"}
+
+# ----------------------------------------------------------------------------
+# 거장 포트폴리오 교차참조 배지 (2026-09-14 추가) — 순수 참고 정보, 새 신호가 아니다.
+#
+# [4_거장_포트폴리오]에서 추적 중인 투자자/펀드가 코어 top4/새틀라이트 추천 종목과 같은 종목을
+# 들고 있으면 캡션 하나로만 알려준다. 이 종목이 좋다는 뜻도, 이 엔진의 배분 근거도 아니다 —
+# core/guru_tracker.find_gurus_holding_ticker()가 순수 조회만 하고 배분 로직은 건드리지 않는다.
+# 동기화된 거장이 하나도 없으면(get_synced_guru_names() 비어있음) 아무것도 표시하지 않는다.
+# ----------------------------------------------------------------------------
+_SYNCED_GURU_COUNT = len(get_synced_guru_names())
+
+
+def _guru_cross_ref_caption(ticker: str) -> Optional[str]:
+    if _SYNCED_GURU_COUNT == 0:
+        return None
+    gurus = find_gurus_holding_ticker(ticker)
+    if not gurus:
+        return None
+    if len(gurus) == 1:
+        return f"🏛️ {gurus[0]}도 보유 중"
+    return f"🏛️ {gurus[0]} 등 {len(gurus)}명의 추적 대상도 보유 중"
 
 # ----------------------------------------------------------------------------
 # 코어: 17자산 모멘텀 랭킹 + 시장필터 (17종목만 조회하므로 빠름 — 페이지 진입 시 자동 계산)
@@ -141,6 +169,9 @@ else:
                     ticker, f"{row['momentum_pct']:+.1f}%", tone="good",
                     sublabel=f"비중 {core_result['per_ticker_weight'] * 100:.1f}%",
                 )
+                guru_caption = _guru_cross_ref_caption(ticker)
+                if guru_caption:
+                    st.caption(guru_caption)
 
     with st.expander("전체 17자산 랭킹 보기"):
         st.dataframe(
@@ -206,6 +237,9 @@ else:
                     ticker, f"{row['momentum_3m_pct']:+.1f}%", tone="good",
                     sublabel=f"비중 {per_ticker_weights.get(ticker, 0.0) * 100:.1f}%",
                 )
+                guru_caption = _guru_cross_ref_caption(ticker)
+                if guru_caption:
+                    st.caption(guru_caption)
         with st.expander("브레이크아웃 후보 전체 보기"):
             st.dataframe(satellite_result["candidates"], use_container_width=True, hide_index=True)
 

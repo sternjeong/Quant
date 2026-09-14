@@ -169,6 +169,46 @@ def test_resolve_ticker_uses_cache(tmp_path, monkeypatch):
     assert call_count["n"] == 1  # 두 번째 호출은 캐시에서 바로 반환
 
 
+def test_find_gurus_holding_ticker_empty_when_nothing_synced(patched_session):
+    assert guru_tracker.find_gurus_holding_ticker("AAPL") == []
+
+
+def test_find_gurus_holding_ticker_single_and_multiple_holders(patched_session):
+    patched_session.add_all(
+        [
+            GuruHolding(guru_name="워런 버핏", ticker="AAPL", weight_pct=40.0, fund_name="Berkshire Hathaway"),
+            GuruHolding(guru_name="빌 애크먼", ticker="AAPL", weight_pct=10.0, fund_name="Pershing Square"),
+            GuruHolding(guru_name="빌 애크먼", ticker="MSFT", weight_pct=20.0, fund_name="Pershing Square"),
+        ]
+    )
+    patched_session.commit()
+
+    aapl_holders = guru_tracker.find_gurus_holding_ticker("AAPL")
+    assert aapl_holders == ["빌 애크먼", "워런 버핏"]  # 이름순 정렬
+
+    msft_holders = guru_tracker.find_gurus_holding_ticker("MSFT")
+    assert msft_holders == ["빌 애크먼"]
+
+
+def test_find_gurus_holding_ticker_none_when_ticker_not_held(patched_session):
+    patched_session.add_all(
+        [GuruHolding(guru_name="워런 버핏", ticker="AAPL", weight_pct=40.0, fund_name="Berkshire Hathaway")]
+    )
+    patched_session.commit()
+
+    assert guru_tracker.find_gurus_holding_ticker("TSLA") == []
+
+
+def test_find_gurus_holding_ticker_normalizes_case_and_blank(patched_session):
+    patched_session.add_all(
+        [GuruHolding(guru_name="워런 버핏", ticker="AAPL", weight_pct=40.0, fund_name="Berkshire Hathaway")]
+    )
+    patched_session.commit()
+
+    assert guru_tracker.find_gurus_holding_ticker("aapl") == ["워런 버핏"]
+    assert guru_tracker.find_gurus_holding_ticker("") == []
+
+
 def test_parse_infotable_xml_aggregates_by_issuer():
     xml_bytes = b"""<?xml version="1.0"?>
     <informationTable xmlns="http://www.sec.gov/edgar/document/thirteenf/informationtable">

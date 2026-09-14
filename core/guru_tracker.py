@@ -554,6 +554,30 @@ def get_last_sync_info() -> dict[str, Optional[str]]:
         return {name: (d.isoformat() if d else None) for name, d in latest.items()}
 
 
+def find_gurus_holding_ticker(ticker: str) -> list[str]:
+    """지정한 티커를 현재 동기화된 거장(펀드) 중 누가 보유하고 있는지 이름 목록으로 반환한다.
+
+    다른 화면(예: 챔피언 전략 페이지의 코어/새틀라이트 추천)에서 "이 종목을 추적 대상 거장도
+    보유 중인가?"를 참고용으로 표시하기 위한 순수 조회 함수 — 결과는 정보 제공용일 뿐, 그 자체가
+    매수 근거나 검증된 신호는 아니다(거장 포트폴리오 추종 자체도 이 저장소에서 별도로 검증하는
+    대상이지, 이 함수가 새로운 주장을 추가하지 않는다).
+
+    아직 한 번도 동기화된 거장이 없으면(=GuruHolding 테이블이 비어있으면) 빈 리스트를 반환한다.
+    """
+    ticker = (ticker or "").strip().upper()
+    if not ticker:
+        return []
+    with get_session() as session:
+        rows = (
+            session.query(GuruHolding.guru_name)
+            .filter(GuruHolding.ticker == ticker)
+            .distinct()
+            .order_by(GuruHolding.guru_name)
+            .all()
+        )
+        return [r[0] for r in rows]
+
+
 def get_common_holdings(guru_names: list[str]) -> list[dict]:
     """여러 거장이 공통으로 보유한 종목(교집합)을 비중 합산 기준으로 정렬해 반환한다.
 

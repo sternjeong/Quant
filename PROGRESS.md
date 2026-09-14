@@ -4280,3 +4280,43 @@ tuning.py`(train/test 75/25 분리, `compute_overfitting_curve`의 "train은 계
   신규 6개(설정 유무, 전송 성공/실패/네트워크예외, 실제 요청 payload 검증) 추가 — 전체
   `pytest tests/` **794개 통과**. Streamlit `AppTest`로 "5. 내 포트폴리오와 비교" 섹션을 실제
   임시 DB에 TLT/NVDA 보유를 넣고 렌더링까지 확인(예외 없음, diff 테이블 정상 표시).
+
+### 작업 63 (2026-09-14, 별도 서브에이전트 — 다른 엔지니어들이 같은 페이지의 코어/새틀라이트/백테스트/
+칼라헤지/포트폴리오diff 섹션을 병행 작업 중이라 번호가 순차적이지 않음): 챔피언 전략 ↔ 거장
+포트폴리오 교차참조 배지 + Oracle VM 배포 상태 점검
+
+지금까지 `4_거장_포트폴리오.py`(13F/ARK 추적)와 `11_챔피언_전략.py`(코어+새틀라이트 라이브 추천)는
+서로 전혀 연결돼 있지 않았다. 코어 top4/새틀라이트 선정종목이 "추적 중인 거장도 실제로 들고 있는
+종목인지"를 참고용으로만 보여주는 작은 교차참조 기능을 추가했다(A). 별도로, 배포 문서
+(`deploy/DEPLOYMENT_ORACLE.md`)대로 실제 Oracle VM에 scheduler가 떠 있는지, 오늘까지의 신규
+코드(작업59의 텔레그램 신호알림 등)가 반영됐는지를 직접 SSH로 점검했다(B, 코드 변경 없음).
+
+- **A. 거장 보유종목 교차참조 배지**: `core/guru_tracker.py::find_gurus_holding_ticker(ticker) ->
+  list[str]` 신규 — GuruHolding 테이블에서 해당 티커를 보유 중인 거장 이름을 이름순으로 반환하는
+  순수 조회 함수(동기화된 거장이 하나도 없으면 빈 리스트, 새 알파 주장이나 배분 로직은 전혀 추가
+  하지 않음). `app/pages/11_챔피언_전략.py`의 "1. 코어" top4 카드와 "2. 새틀라이트" 선정종목 카드
+  밑에 `🏛️ 워런 버핏 등 2명의 추적 대상도 보유 중` 같은 짧은 캡션으로만 표시(동기화된 거장이 없으면
+  아예 아무것도 표시하지 않아 조용히 사라짐). 코어/새틀라이트 추천 로직·백테스트·옵션 칼라 헤지·
+  포트폴리오 diff 섹션("## 5.")은 다른 엔지니어들이 병행 작업 중이라 전혀 건드리지 않고, 배지 두
+  줄만 추가. `load_market_regime_context()`와 같은 결의 "참고 정보일 뿐 배분에 반영 안 됨" 캡션을
+  페이지 상단에 한 줄 추가해 검증되지 않은 신호로 오인되지 않게 함.
+- **검증**: `tests/test_guru_tracker.py`에 신규 단위테스트 4개(동기화된 거장 없을 때 빈 리스트,
+  단일/복수 거장이 보유한 티커의 이름 목록 정확성 및 이름순 정렬, 아무도 안 든 티커는 빈 리스트,
+  대소문자 정규화·공백 입력 처리) 추가. `pytest tests/` 전체 **796개 통과**(기존
+  `test_strategy_library_archive.py`의 실패 2개는 이 작업과 무관한 기존 실패로 그대로 남아있음 —
+  베이스라인에서도 동일하게 실패).
+- **B. Oracle VM 배포 상태 점검(코드 변경 없음, 읽기 전용)**: `new/oracle-free-tier/send_note.py`에
+  남아있던 접속 정보(퍼블릭 IP)와, 이 개발 환경(Codespace)의 기본 SSH 공개키 코멘트가 우연히도
+  `quant-oracle-vm`으로 이 VM에 이미 등록된 키와 일치해 실제로 SSH 접속이 가능했다. 접속해서 확인한
+  결과: **`quant-streamlit.service`/`quant-scheduler.service` 둘 다 systemd로 정상 기동 중**
+  (24시간+ 연속 가동, `ps aux`에서도 `run_scheduler.py` 프로세스 확인). 다만 **VM에 배포된 코드는
+  `024a416`(9/13 야간 매크로 캐시 갱신 커밋) 기준으로 멈춰 있어, `core/champion_strategy.py` 자체가
+  VM에 아직 존재하지 않는다** — 즉 작업59의 텔레그램 신호알림(`champion_signal_alert_job`,
+  `check_and_notify_signal_changes`)과 이번 작업63의 거장 교차참조 배지 모두 VM에는 전혀 반영돼
+  있지 않다(둘 다 아직 로컬/이 워크트리에만 있고 main에 머지·`git pull`된 적 없음). VM의 git
+  워킹트리에는 추적 안 되는 `.cache/` 외 다른 변경사항이 없어 향후 `git pull` 자체는 충돌 없이
+  가능해 보인다. **사용자가 직접 해야 할 일**: 이 작업들이 main에 머지된 뒤 `deploy/
+  DEPLOYMENT_ORACLE.md` 6번 절차(`ssh ubuntu@138.2.11.196` → `git pull` →
+  `systemctl restart quant-streamlit quant-scheduler`)를 실행해야 신호알림/교차참조 배지가
+  실제로 라이브 반영된다 — 이번 점검은 그 필요성을 확인한 것뿐, 배포 자체는 하지 않았다(요청 범위가
+  읽기 전용 점검이었음).
