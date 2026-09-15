@@ -4970,3 +4970,45 @@ H 하나만 먼저 서브에이전트로 시험 실행. `analysis/LATEST_STRATEG
   결과" 섹션만 포함, D/E/F/G가 이후 각자 섹션을 추가할 예정).
 - `core/*.py` 무변경(기존 `champion_strategy.py`/`backtest_engine.py` 함수만 재사용) — 회귀
   테스트 불필요. **git commit/push 없음**(지시대로 워크트리에 미커밋 상태로 남김).
+
+### 작업 75 (2026-09-15, 텔레그램 지시 — 운영/인프라, 리서치 결과 아님): 리서치 에이전트 B/C 수동 기동 +
+야간 systemd 타이머 등록 유실 발견
+
+텔레그램으로 "연구 에이전트 2개 작동시켜" 지시를 받고 점검한 결과, 작업65가 만든
+`quant-research-agent-b.timer`/`-c.timer`는 어젯밤(2026-09-15 00:20 KST = 09-14 15:20 UTC)에는
+정상 발화해 두 에이전트 모두 완주했음을 로그로 확인했다(`data/cache/research_agent_logs/
+agent_b_20260914_152001.log`, `agent_c_20260914_152001.log` — 둘 다 pytest 823 통과/1건 무관한
+기존 실패 후 정상 종료, `notify_if_accumulated.py`가 "미커밋 리포트 2개, 임계치 미달"로 알림은
+생략). 문제는 **지금(같은 날 낮) 시점**: `systemctl list-timers`에 두 타이머 모두 `not-found
+inactive dead`로 떠서 점검해보니, `/etc/systemd/system/timers.target.wants/`에는 활성화
+심볼릭 링크가 남아있는데 그 링크가 가리키는 실제 유닛 파일
+(`/etc/systemd/system/quant-research-agent-{b,c}.{service,timer}`)이 통째로 사라져 있었다 —
+`deploy/research_agents/`의 원본 유닛 파일은 멀쩡하니, 누군가/무언가 어젯밤 발화 이후
+`/etc/systemd/system/`에서 이 4개 파일만 지운 것으로 추정(원인은 특정 못함 — 이 세션은
+`sudo`/`journalctl` 권한이 없는 `quant` 유저라 `/etc/systemd/system/`에 다시 파일을 넣거나
+`daemon-reload`를 실행할 수 없다). 근본 원인은 별개로 **`deploy/setup_vm.sh`가 애초에 이 4개 유닛
+파일을 한 번도 `/etc/systemd/system/`에 설치하는 단계를 포함한 적이 없었다**는 것 — 작업65/67이
+수동으로(스크립트 밖에서) `cp`+`enable`했을 뿐이라 재부팅/재프로비저닝 시 재현 안 되는 취약점이
+있었음. `deploy/setup_vm.sh`의 "[5/6] systemd 서비스 등록" 단계에 두 리서치 에이전트 타이머/서비스
+`cp`+`enable --now`를 추가해 앞으로의 배포에서는 이 누락이 재현되지 않게 고쳤다(이번 세션 권한으로는
+로컬 VM에 직접 재적용은 못 했고, 다음에 `sudo bash deploy/setup_vm.sh`를 재실행하거나 4개 파일을
+`sudo cp ... && systemctl daemon-reload && systemctl enable --now quant-research-agent-{b,c}.timer`로
+수동 재등록하면 됨).
+
+- **지시 이행**: 타이머 등록을 직접 고칠 권한이 없으므로, 오늘 요청받은 "리서치 에이전트 2개"를
+  실제로 지금 기동하는 것으로 지시를 이행했다. `run_research_agent.sh`가 쓰는 것과 동일한 환경
+  (`HOME=/opt/quant`, `CLAUDE_CONFIG_DIR=/opt/quant/.claude`, `.env` 로드)을 그대로 재현해
+  `setsid`로 완전히 분리한 백그라운드 프로세스로 에이전트 B(`agent_b_market_portfolio.md`)와
+  에이전트 C(`agent_c_tenbagger.md`)를 각각 기동(PPID가 1로 재부모화된 것 확인, 이 텔레그램 세션이
+  끝나도 계속 실행됨). 기동 시각 2026-09-15 08:48 UTC(17:48 KST), 로그는
+  `data/cache/research_agent_logs/agent_{b,c}_20260915_084800.log` 이하. 각 에이전트는 최대
+  23시간(`TimeoutStartSec=82800`)까지 실행되도록 설계돼 있어 오늘 이 세션 안에서 완주 결과까지는
+  확인하지 못했다 — 페르소나 지시대로 두 에이전트 모두 스스로 git commit/push는 하지 않으므로,
+  완료되면 결과물이 `/opt/quant` 워킹트리(신규 `analysis/` 폴더 + `PROGRESS.md`/
+  `docs/reports/README.md` 추가분)에 미커밋 상태로 쌓인다 — 다음 라운드(작업76+)에서 검토 후
+  병합/커밋 필요.
+- 이 항목 자체는 `/opt/projects/sternjeong/Quant`(이 지시를 처리하려고 새로 만든 클론)에서
+  작성해 커밋+푸시한다 — 실행 중인 리서치 에이전트들은 `/opt/quant`(라이브 배포 인스턴스)의
+  워킹트리에서 직접 돌고 있으니, 이 커밋과는 별개다.
+- `core/*.py`/`app/*.py` 무변경(운영/문서성 변경만: `deploy/setup_vm.sh` + 이 `PROGRESS.md` 항목).
+  회귀 테스트 불필요.

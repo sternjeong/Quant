@@ -48,9 +48,15 @@ sudo -u "$SERVICE_USER" mkdir -p "$APP_DIR/data/cache"
 echo "[5/6] systemd 서비스 등록"
 cp "$APP_DIR/deploy/quant-streamlit.service" /etc/systemd/system/
 cp "$APP_DIR/deploy/quant-scheduler.service" /etc/systemd/system/
+cp "$APP_DIR/deploy/research_agents/quant-research-agent-b.service" /etc/systemd/system/
+cp "$APP_DIR/deploy/research_agents/quant-research-agent-b.timer" /etc/systemd/system/
+cp "$APP_DIR/deploy/research_agents/quant-research-agent-c.service" /etc/systemd/system/
+cp "$APP_DIR/deploy/research_agents/quant-research-agent-c.timer" /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable --now quant-streamlit.service
 systemctl enable --now quant-scheduler.service
+systemctl enable --now quant-research-agent-b.timer
+systemctl enable --now quant-research-agent-c.timer
 
 echo "[6/6] 방화벽(OS 레벨)에서 8501 포트 허용"
 ufw allow 22/tcp || true
@@ -61,6 +67,7 @@ echo
 echo "완료. 상태 확인:"
 echo "  systemctl status quant-streamlit"
 echo "  systemctl status quant-scheduler"
+echo "  systemctl list-timers quant-research-agent-b.timer quant-research-agent-c.timer"
 echo "  journalctl -u quant-streamlit -f     # 실시간 로그"
 echo
 echo "주의: Oracle Cloud 콘솔의 VCN Security List(또는 NSG)에서도 8501/tcp Ingress 규칙을"
