@@ -122,6 +122,25 @@ class PipelineTests(unittest.TestCase):
             job = db.execute('SELECT project,backend FROM jobs').fetchone()
             self.assertEqual(tuple(job), ('github:owner/one', 'claude'))
 
+    def test_new_repository_button_accepts_callback(self):
+        self.s.cfg['repository_selection'] = True
+        self.s.github_owner = lambda: 'owner'
+        class Result:
+            returncode = 0
+            stdout = ''
+        with patch('runner.subprocess.run', return_value=Result()):
+            self.s.ingest([self.update()])
+        with self.s.db() as db:
+            markup = json.loads(db.execute('SELECT markup FROM outbox').fetchone()[0])
+            choice = markup['inline_keyboard'][-1][0]['callback_data']
+        self.assertEqual(choice, 'n:1:new')
+        callback = {'update_id': 2, 'callback_query': {'id': 'callback-new', 'data': choice,
+                    'message': {'chat': {'id': 123}}}}
+        with patch.object(self.s, 'api', return_value=True):
+            self.s.ingest([callback])
+        with self.s.db() as db:
+            self.assertEqual(db.execute('SELECT state FROM requests WHERE id=1').fetchone()[0], 'new-name')
+
     def test_claude_result(self):
         update = self.update()
         update['message']['text'] = '/claude answer'

@@ -177,7 +177,7 @@ class Service:
         for number, repo in enumerate(repos, 1):
             db.execute('INSERT OR REPLACE INTO repo_choices VALUES(?,?,?)', (request_id, number, repo))
         rows = [[{'text': repo, 'callback_data': f'r:{request_id}:{number}'}] for number, repo in enumerate(repos, 1)]
-        rows.append([{'text': '＋ 새 private 저장소 만들기', 'callback_data': f'n:{request_id}'}])
+        rows.append([{'text': '＋ 새 private 저장소 만들기', 'callback_data': f'n:{request_id}:new'}])
         self.queue_outbox(db, self.chat, '이 지시를 실행할 저장소를 선택하세요.', {'inline_keyboard': rows})
 
     def queue_agent_buttons(self, db, request_id, text='저장소를 선택했습니다.'):
@@ -222,7 +222,7 @@ class Service:
                 with self.db() as db:
                     row = db.execute("SELECT value FROM meta WHERE key='offset'").fetchone()
                 self.ingest(self.api('getUpdates', {'offset': int(row[0]) if row else 0,
-                                                   'timeout': 25, 'allowed_updates': ['message']}))
+                                                   'timeout': 25, 'allowed_updates': ['message', 'callback_query']}))
                 self.send_outbox()
             except Exception:
                 print('Telegram polling unavailable; retry in 30 seconds', flush=True)
