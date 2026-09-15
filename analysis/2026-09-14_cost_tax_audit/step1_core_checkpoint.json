@@ -1,0 +1,89 @@
+{
+  "meta": {
+    "full_start": "2019-08-12",
+    "full_end": "2026-09-11",
+    "n_years": 7.082819986310746
+  },
+  "core_trade_events": 148,
+  "core_rebal_change_days": 63,
+  "core_trades_per_year": 20.895632006184773,
+  "core_results": {
+    "current_0.1pct_rt": {
+      "cost_bps_per_side": 5.0,
+      "metrics": {
+        "cumulative_return": 146.66,
+        "cagr": 13.6,
+        "mdd": -17.74,
+        "sharpe": 1.06,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.77,
+        "avg_drawdown_days": 20.5
+      },
+      "avg_annual_cost_drag_pct": 0.28060857170467723
+    },
+    "moderate_0.3pct_rt": {
+      "cost_bps_per_side": 15.0,
+      "metrics": {
+        "cumulative_return": 137.05,
+        "cagr": 12.96,
+        "mdd": -18.13,
+        "sharpe": 1.02,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.71,
+        "avg_drawdown_days": 20.9
+      },
+      "avg_annual_cost_drag_pct": 0.8418257151140317
+    },
+    "conservative_0.5pct_rt": {
+      "cost_bps_per_side": 25.0,
+      "metrics": {
+        "cumulative_return": 127.81,
+        "cagr": 12.33,
+        "mdd": -18.52,
+        "sharpe": 0.97,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.67,
+        "avg_drawdown_days": 21.6
+      },
+      "avg_annual_cost_drag_pct": 1.4030428585233863
+    },
+    "no_promo_0.8pct_rt": {
+      "cost_bps_per_side": 40.0,
+      "metrics": {
+        "cumulative_return": 114.6,
+        "cagr": 11.38,
+        "mdd": -19.1,
+        "sharpe": 0.91,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.6,
+        "avg_drawdown_days": 24.7
+      },
+      "avg_annual_cost_drag_pct": 2.244868573637418
+    }
+  },
+  "spy_buyhold_metrics": {
+    "cumulative_return": 165.31,
+    "cagr": 14.77,
+    "mdd": -34.1,
+    "sharpe": 0.8,
+    "win_rate": 0.0,
+    "avg_holding_days": 0.0,
+    "trade_count": 0,
+    "profit_factor": 0.0,
+    "calmar": 0.43,
+    "avg_drawdown_days": 16.9
+  },
+  "satellite_done": false
+}

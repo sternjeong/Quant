@@ -1,0 +1,165 @@
+{
+  "meta": {
+    "tax_rate": 0.22,
+    "annual_deduction_krw": 2500000,
+    "roundtrip_cost_pct_used": 0.005,
+    "n_trades": 72,
+    "period": [
+      "2019-08-12",
+      "2026-09-14"
+    ],
+    "tax_source_note": "2026-09-14 웹검색: 국세청/미래에셋증권/유안타증권/calculatorhost.com — 해외주식 양도소득세 22%(양도세20%+지방세2%), 기본공제 연 250만원, 손익통산은 같은 과세연도 내에서만, 연도간 이월공제 없음."
+  },
+  "account_scenarios": {
+    "30000000": {
+      "account_krw": 30000000,
+      "core_capital_krw": 25500000.0,
+      "annual": {
+        "2019": {
+          "realized_gain_krw": 262477.0,
+          "taxable_base_krw": 0.0,
+          "tax_krw": 0.0
+        },
+        "2020": {
+          "realized_gain_krw": 11717.0,
+          "taxable_base_krw": 0.0,
+          "tax_krw": 0.0
+        },
+        "2021": {
+          "realized_gain_krw": 8109641.0,
+          "taxable_base_krw": 5609641.0,
+          "tax_krw": 1234121.0
+        },
+        "2022": {
+          "realized_gain_krw": -1989117.0,
+          "taxable_base_krw": 0.0,
+          "tax_krw": 0.0
+        },
+        "2023": {
+          "realized_gain_krw": 4902321.0,
+          "taxable_base_krw": 2402321.0,
+          "tax_krw": 528511.0
+        },
+        "2024": {
+          "realized_gain_krw": 4800169.0,
+          "taxable_base_krw": 2300169.0,
+          "tax_krw": 506037.0
+        },
+        "2025": {
+          "realized_gain_krw": 301505.0,
+          "taxable_base_krw": 0.0,
+          "tax_krw": 0.0
+        },
+        "2026": {
+          "realized_gain_krw": 5308758.0,
+          "taxable_base_krw": 2808758.0,
+          "tax_krw": 617927.0
+        }
+      },
+      "total_pretax_gain_krw": 21707472.0,
+      "total_tax_krw": 2886596.0,
+      "total_aftertax_gain_krw": 18820877.0,
+      "effective_tax_rate_on_total_gain_pct": 13.3
+    },
+    "100000000": {
+      "account_krw": 100000000,
+      "core_capital_krw": 85000000.0,
+      "annual": {
+        "2019": {
+          "realized_gain_krw": 874925.0,
+          "taxable_base_krw": 0.0,
+          "tax_krw": 0.0
+        },
+        "2020": {
+          "realized_gain_krw": 39057.0,
+          "taxable_base_krw": 0.0,
+          "tax_krw": 0.0
+        },
+        "2021": {
+          "realized_gain_krw": 27032138.0,
+          "taxable_base_krw": 24532138.0,
+          "tax_krw": 5397070.0
+        },
+        "2022": {
+          "realized_gain_krw": -6630389.0,
+          "taxable_base_krw": 0.0,
+          "tax_krw": 0.0
+        },
+        "2023": {
+          "realized_gain_krw": 16341071.0,
+          "taxable_base_krw": 13841071.0,
+          "tax_krw": 3045036.0
+        },
+        "2024": {
+          "realized_gain_krw": 16000565.0,
+          "taxable_base_krw": 13500565.0,
+          "tax_krw": 2970124.0
+        },
+        "2025": {
+          "realized_gain_krw": 1005016.0,
+          "taxable_base_krw": 0.0,
+          "tax_krw": 0.0
+        },
+        "2026": {
+          "realized_gain_krw": 17695860.0,
+          "taxable_base_krw": 15195860.0,
+          "tax_krw": 3343089.0
+        }
+      },
+      "total_pretax_gain_krw": 72358241.0,
+      "total_tax_krw": 14755319.0,
+      "total_aftertax_gain_krw": 57602922.0,
+      "effective_tax_rate_on_total_gain_pct": 20.39
+    },
+    "300000000": {
+      "account_krw": 300000000,
+      "core_capital_krw": 255000000.0,
+      "annual": {
+        "2019": {
+          "realized_gain_krw": 2624775.0,
+          "taxable_base_krw": 124775.0,
+          "tax_krw": 27450.0
+        },
+        "2020": {
+          "realized_gain_krw": 117170.0,
+          "taxable_base_krw": 0.0,
+          "tax_krw": 0.0
+        },
+        "2021": {
+          "realized_gain_krw": 81096415.0,
+          "taxable_base_krw": 78596415.0,
+          "tax_krw": 17291211.0
+        },
+        "2022": {
+          "realized_gain_krw": -19891168.0,
+          "taxable_base_krw": 0.0,
+          "tax_krw": 0.0
+        },
+        "2023": {
+          "realized_gain_krw": 49023213.0,
+          "taxable_base_krw": 46523213.0,
+          "tax_krw": 10235107.0
+        },
+        "2024": {
+          "realized_gain_krw": 48001694.0,
+          "taxable_base_krw": 45501694.0,
+          "tax_krw": 10010373.0
+        },
+        "2025": {
+          "realized_gain_krw": 3015048.0,
+          "taxable_base_krw": 515048.0,
+          "tax_krw": 113311.0
+        },
+        "2026": {
+          "realized_gain_krw": 53087579.0,
+          "taxable_base_krw": 50587579.0,
+          "tax_krw": 11129267.0
+        }
+      },
+      "total_pretax_gain_krw": 217074724.0,
+      "total_tax_krw": 48806719.0,
+      "total_aftertax_gain_krw": 168268005.0,
+      "effective_tax_rate_on_total_gain_pct": 22.48
+    }
+  }
+}

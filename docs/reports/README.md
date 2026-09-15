@@ -11,6 +11,32 @@ Artifact로만 존재하던 리포트/강의노트를 **로컬 저장소에 백�
   리포트. 49개 작업·25개 이상 리포트를 하나로 묶어 "최종 권고 시스템이 뭐고, 각 구성요소를 얼마나
   믿어야 하는지"를 신뢰도 등급표 하나로 정리했다. 아래 개별 리포트를 전부 읽을 시간이 없다면
   이것부터 보는 게 가장 빠르다.
+- `methodology_meta_audit_2026-09-14.html` — **위 종합 캡스톤을 포함해 이 저장소 전체 연구
+  프로그램(67개 작업, 30개 이상 라운드)이 지금까지 한 번도 하지 않았던 다중비교(multiple
+  comparisons) 보정을 처음 적용한 메타 감사**(리서치 에이전트 G, R&D 섹터). 헤드라인 가설 수를
+  80개(챔피언 전략 계보만, macro_event_study 55개+와 야간 종목별 튜닝 순열검정은 별도)로 실제
+  집계하고, 정량적 유의성 지표가 있는 최종층위 결론 12개에 Bonferroni/Benjamini-Hochberg FDR을
+  적용한 결과 **가장 관대한 가정에서도 12개 중 최대 1개, 이 프로그램의 실제 가설 규모(N=80)
+  기준으로는 0개만 생존**한다는 결론에 도달했다. 등급 일관성 감사에서는 "형식적 부트스트랩
+  재감사를 받은 결론은 대부분 weak/reversed로 강등된 반면, 한 번도 형식 검정을 받지 않은 결론
+  (코어 자산군 17자산, 새틀라이트 청산 메커니즘)이 오히려 robust/moderate로 남아있는 이중 잣대"를
+  발견했고, 최근 2주 내 추가된 스크립트 5개를 직접 읽어 point-in-time 재점검도 수행했다(신규
+  버그는 발견 못함, 정직한 긍정 결과). 결론이 불리해도 완화하지 않는 게 이 리포트의 존재 이유이니,
+  위 종합 캡스톤의 confidence_table을 읽을 때는 반드시 같이 볼 것. 원본:
+  `analysis/2026-09-14_methodology_meta_audit/final_report.html`(계산 스크립트:
+  `count_tests.py`/`bonferroni_fdr_audit.py`, 데이터: `report_data.json`), 감사 결과는
+  `analysis/LATEST_STRATEGY_CANDIDATE.md`에도 "메타 감사 결과(다중비교 보정)" 섹션으로 추가됨.
+
+## R&D 실행 브리핑 (매일 산출, HTML 사본 없음 — analysis/ 원본을 직접 참고)
+
+- `analysis/2026-09-14_execution_readiness/EXECUTION_BRIEF.md` — 리서치 에이전트 E(실행
+  준비가)가 "오늘 실제로 뭘 사고팔아야 하는지"를 코어+새틀라이트 목표비중(%)으로 정리한 실행
+  지시서. 다른 항목들과 달리 매일 값이 바뀌는 운영 산출물이라 이 README에 HTML 사본을 만들지
+  않고 원본 위치를 직접 안내한다(다음 실행이 같은 날짜 폴더를 덮어쓰지 않고 새 날짜 폴더를 만드는
+  방식이라, 최신본은 `analysis/` 아래 `_execution_readiness`로 끝나는 폴더 중 가장 최근 날짜를
+  찾으면 된다). 이번 실행 기준 중요 발견: 앱 페이지(`app/pages/11_챔피언_전략.py`)의 실제
+  리밸런싱 diff가 백테스트 검증 방법론(point-in-time)이 아니라 미검증 근사 스캔 방법을 쓰고
+  있어 서로 다른 새틀라이트 종목을 추천함(구현 격차로 문서화, 아직 미수정 — 브리핑 3/5절 참고).
 
 ## 읽는 순서
 
@@ -41,6 +67,10 @@ Artifact로만 존재하던 리포트/강의노트를 **로컬 저장소에 백�
 - `track_c_bootstrap_confidence_audit_research.html` — 트랙D가 개발한 몬테카를로+블록부트스트랩
   방법론을 트랙C 자신의 두 핵심 결론(IREN 추세추종 챔피언, 베타/알파 헤징 H1/H3)에 처음으로
   적용해 신뢰도를 다시 매긴 감사 라운드
+- `iren_basket_collar_hedge_transplant_research.html` — 위 베타/알파 헤징 리포트가 "옵션 인프라가
+  없어 정성 논의만 했다"고 남긴 H5를, 트랙D가 라이브로 구현한 합성 블랙숄즈 칼라로 처음 실측
+  검증한 후속 리포트. SPY 콜라 헤지가 이 바스켓엔 어떤 노셔널로도 안 통한다는 걸 확인하고, 그
+  이유(이 바스켓의 최악 낙폭이 SPY와 거의 무관한 idiosyncratic 사건)까지 구조적으로 규명
 
 **트랙 D — 종합 가설 검증** (트랙 B+C 통합, 독립 — 지금까지의 두 트랙 결론을 서로 교차검증한다)
 - `permutation_and_quality_momentum_research.html` — (1) 트랙 C의 추세추종 챔피언이 트랙 B에서 쓴
@@ -99,6 +129,10 @@ Artifact로만 존재하던 리포트/강의노트를 **로컬 저장소에 백�
 - `bootstrap_confidence_audit_remaining_verdicts_research.html` — 블록부트스트랩 신뢰도 감사를
   나머지 주요 판정(시스템vsSPY, 변동성타겟팅, 리밸런싱주기)까지 전부 확장해 완성한 트랙D 전체
   최종 권고의 신뢰도 종합표
+- `cost_tax_audit_research.html` — 리서치 에이전트 F(비용/세금 감사관)의 첫 실행. 지금까지 한 번도
+  감사되지 않았던 왕복 0.1% 거래비용 가정을 현실화(왕복 0.5%)하고 한국 거주자 해외주식 양도소득세
+  (22%, 250만원 공제)까지 반영 — 방향은 유지되지만 코어의 순열검정 p-value가 0.17~0.24로 관례적
+  유의수준을 통과하지 못해 confidence를 WEAK로 하향
 - `satellite_weight_and_core_filter_expected_value_research.html` — 새틀라이트 비중(15%)과
   트랙B의 가장 근본적인 설계인 챔피언 코어 자체의 이진 시장필터를 처음으로 기댓값 렌즈로
   재검증 — 필터도 새틀라이트 스위치들과 같은 패턴으로 기댓값에서 진다는 걸 확인한 라운드
@@ -114,6 +148,13 @@ Artifact로만 존재하던 리포트/강의노트를 **로컬 저장소에 백�
 - `options_hedge_bootstrap_and_combined_system_research.html` — 위 옵션헤지가 남긴 두 과제(표본오차
   감사·통합시스템 검증)를 마무리 — COVID 단일창의 극적 승리는 부트스트랩 신뢰구간 앞에서 흔들리지만,
   새틀라이트 비중(15%)으로 희석된 코어+새틀라이트+칼라 통합 시스템에서는 오히려 기댓값이 개선됨
+- `collar_hedge_parameter_sensitivity_research.html` — 작업57에서 라이브화된 합성 칼라(ATM풋/5%OTM콜/
+  21일 롤)의 정확한 숫자가 다른 합리적 선택보다 통계적으로 우월한지 처음 감사 — 24조합 완만성
+  그리드는 고원(스파이크 아님)이라 과최적화 의심은 낮췄지만, 무작위 파라미터 200개 대조군 대비
+  58.5번째 백분위로 "이 특정 숫자가 정밀 조정된 최적값"이라는 근거는 없음(근거부족). 롤 주기를
+  42일(2개월물)로 늘리면 결합전파 승률이 5개 대표 구성 중 가장 높다는 단서는 남겼지만 이 역시
+  90% 문턱에는 못 미침(다음 라운드 후보). "칼라가 무헤지보다 기댓값에서 낫다"는 기존 판정(약함)
+  자체는 5개 파라미터 변형 전부에서 재확인돼 바뀌지 않음
 
 **참고용** (독립 문서, 번호 없음, 아무 때나) — `market_regime_sector_strength_note.html`
 
@@ -296,6 +337,35 @@ H3의 "부분채택"은 완전 기각 쪽으로 더 약해짐(지배적인 AI피
 아니라 "국면 표본 수 자체가 너무 적어서 어느 쪽으로도 잘 안 흔들리기 때문"이라고 리포트가 스스로
 명시. 원본: `analysis/2026-08-30_track_c_bootstrap_confidence_audit/final_report.html`(빌드: 같은
 폴더의 `build_report.py`, 검증: `audit1_iren_trend_bootstrap.py`/`audit2_hedging_bootstrap_mc.py`).
+
+### [iren_basket_collar_hedge_transplant_research.html](./iren_basket_collar_hedge_transplant_research.html)
+*(analysis 사본, 트랙 C, No.5)* "SPY 콜라 옵션 헤지를 IREN 바스켓에 이식하다 — 그리고 왜 안 통하는지
+확인하다" — `iren_beta_alpha_hedging_research`가 "옵션 백테스트 인프라가 없어 정성적 논의로만
+다뤘다"고 명시적으로 남긴 H5를, 트랙D(작업48/49)가 챔피언 새틀라이트 슬리브용으로 라이브 구현한
+합성 블랙숄즈 칼라(`core.champion_strategy.build_collar_overlay_returns`, SPY 종가+VIX 대리변동성+
+FRED 금리, ATM풋매수+5%OTM콜매도, 매월 첫거래일 롤)로 처음 실측 검증했다. 새 옵션가격 로직을
+만들지 않고 기존 세 엔진(피벗 바스켓 돈치안+트레일링스탑 챔피언, 라이브 칼라 오버레이, 트랙C가
+이미 자신에게 적용한 원형 이동블록부트스트랩)만 이어붙였다. **H1(무헤지+콜라1x)·H2(추세추종
+챔피언+콜라1x) 둘 다 기각** — 매수후보유·추세추종, 바스켓·IREN단일 4개 구성 전부 샤프가
+악화(−0.05~−0.09)했고, 이미 15% 트레일링스탑으로 방어 중인 챔피언(H2)은 MDD까지 더 나빠져
+순수 중복비용임을 확인. **H3(베타 스케일링 노셔널 스윕) 기각** — 실측 정적베타(1.5~2.7배)를
+포함해 0~4배로 스윕했지만 샤프 기준으로는 언제나 0배(무헤지)가 1등, 내부 정점이 존재하지 않음
+(MDD만 2배 부근에서 비단조적으로 소폭 개선되나 그 대가가 훨씬 큼). **H4(크래시 정합성 진단)** —
+이 바스켓의 최악 낙폭이 SPY 동시구간 수익률과 사실상 무관함을 확인(챔피언 기준 5개 중 4개,
+매수후보유 기준 5개 중 3개가 idiosyncratic — 예: 챔피언 최악낙폭 −71.0% 구간에 SPY는 −1.56%)
+— SPY 옵션이 트리거될 기회조차 없었다는 뜻. 콜라 순기여가 가장 컸던 구간(2022년 하반기,
++8.33%p)은 공교롭게도 SPY 자체도 진짜 약세장(−12.34%)이던 경우였지만, 두 번째로 컸던 구간
+(+5.36%p)은 SPY가 겨우 −3.96%만 움직였는데도 나온 값이라 "SPY가 빠질수록 콜라가 번다"는
+깔끔한 선형관계는 아니고, 부호와 무관하게 어느 구간도 기여분이 한 자릿수%p를 못 넘어 50~70%대
+낙폭 앞에서는 반올림 오차 수준이었다. **H5(쌍대 블록부트스트랩 감사)** — 무헤지 승률 92~93%(콜라 승률 6.9~8.4%)로 "무헤지가
+이긴다"는 방향이 표본오차를 감안해도 강건함을 재확인(단 90%CI 상단이 근소하게 0을 넘어 "절대적
+확신"까지는 과장). 종합: 작업28 H1(물리적 베타헤지, "베타를 지우면 알파도 지워진다")과 다른
+메커니즘 — 이번엔 "볼록한 보험이라도 잘못된 기초자산에 걸면 지급조건 자체가 안 맞는다"는 정합성
+(basis) 문제로 진단, 이 바스켓을 옵션으로 방어하려면 SPY가 아니라 바스켓 자체(또는 BTC) 기초의
+파생상품이 필요하지만 그런 유동적 시장이 이 종목군엔 사실상 없다는 한계까지 정직하게 기록. 원본:
+`analysis/2026-09-14_iren_basket_collar_hedge_transplant/final_report.html`(빌드: 같은 폴더의
+`build_report.py`, 가설별 검증: `h1_h2_collar_transplant.py`/`h3_beta_scaled_sizing_sweep.py`/
+`h4_crash_alignment_check.py`/`h5_bootstrap_audit.py`).
 
 ### [permutation_and_quality_momentum_research.html](./permutation_and_quality_momentum_research.html)
 *(analysis 사본, 트랙 D, No.1)* "순열검정으로 챔피언을 다시 심문하고, 퀄리티로 모멘텀을 걸러본다" —
@@ -784,6 +854,91 @@ H22와 동일한 기저확률 가중으로 코어단독/코어+새틀라이트(�
 우위"로 결론이 정정됨 — 확신 있는 채택이 아니라 "약하게 채택 쪽으로 기움"으로 등급 하향. 원본:
 `analysis/2026-09-05_options_hedge_bootstrap_and_combined_system/final_report.html`(빌드: 같은
 폴더의 `build_report.py`, 검증: `h_bootstrap_audit.py`/`h_combined_system_ev.py`).
+
+### [collar_hedge_parameter_sensitivity_research.html](./collar_hedge_parameter_sensitivity_research.html)
+*(analysis 사본, 트랙D 이후 독립)* "칼라 옵션 헤지의 행사가·만기 숫자는 특별하지 않다" — 작업57이
+core/champion_strategy.py로 라이브화한 합성 칼라(ATM 풋 매수+5% OTM 콜 매도, 21거래일 월물 롤)의
+정확한 파라미터가 이 프로그램의 표준 감사(스윕+플라시보+블록부트스트랩+기저확률 기댓값)를 한 번도
+거친 적이 없었다는 걸 발견해 닫은 라운드(agent_b_market_portfolio.md가 명시한 미해결 과제). **H-A
+완만성 그리드(24조합)**: put_moneyness×call_moneyness×tenor_days 스윕 결과 EV Sharpe(base) 범위
+−0.0875~−0.0329, 표준편차가 범위 폭의 약 20%로 완만한 고원 — 라이브 기본값은 24개 중 9위(중위권)라
+고립된 스파이크(과최적화)는 아님을 확인. **H-B 플라시보(무작위 파라미터 200개 대조군)**: 라이브
+기본값이 무작위 평균보다는 낫지만 겨우 58.5번째 백분위 — 작업30 H4 퀄리티 필터가 "무작위와 구별
+안 됨"으로 하향 정정됐을 때와 같은 구간, 95% 유의 문턱에 크게 못 미쳐 "이 특정 숫자가 정밀 조정된
+최적값"이라는 근거는 없다고 정직하게 결론(근거부족 판정, 칼라라는 메커니즘 자체의 기존 "약함" 판정과는
+별개). **H-C/H-D 블록부트스트랩+결합전파(대표 파라미터 5개)**: H33/H_bootstrap과 동일 방법론(순환
+이동블록, L=10/20/40, 창×구성당 2,000회)+H33b/H_combined 결합전파(디리클레 K=30, 3개 기저확률
+시나리오, 10,000draw)를 라이브 기본값 포함 5개 구성에 적용 — "칼라가 무헤지보다 낫다"는 기존 방향성은
+5개 변형 전부에서 재확인(승률 42~64%, 작업49의 55%대와 일치)됐지만 여전히 CI가 넓어 약함 그대로.
+다만 **롤 주기를 21일에서 42일(2개월물)로 늘리면 5개 구성 중 모든 기저확률 시나리오에서 승률이
+가장 높음**(위기가중 64.1%)이라는 단서를 새로 발견 — 그리드에서 나온 관찰이 부트스트랩을 거치고도
+살아남았지만 90% 문턱에는 못 미쳐 "다음 라운드 후보"로만 남김. **core/app 변경 없음**(리서치
+전용 라운드, 라이브 파라미터를 바꿀 만한 근거는 발견하지 못함). 원본:
+`analysis/2026-09-14_collar_hedge_parameter_sensitivity/final_report.html`(빌드: 같은 폴더의
+`build_report.py`, 검증: `h_collar_sensitivity.py`).
+
+### [strategy_candidate_1_trade_frequency_research.html](./strategy_candidate_1_trade_frequency_research.html)
+*(analysis 사본, R&D 섹터 에이전트 D, 라운드 1, 독립)* "기존 챔피언 구조 중 어느 쪽이 '월 1~3회'
+제약에 맞는가" — 사용자가 실제로 원하는 매매빈도(월 1회, 많아야 3회)를 이 저장소가 처음으로
+직접 실측한 라운드. 새 전략을 발명하지 않고 `core/champion_strategy.py`의 라이브 기본값 두
+구성(코어단독 vs 코어+15% 반기 새틀라이트)을 그대로 백테스트해 "회전율"이 아니라 실제 주문
+발생 건수를 세었다 — **후보1(코어단독) 월평균 2.22회, 후보2(코어+새틀라이트) 월평균 2.87회로
+둘 다 제약을 충족**(CAGR 13.57%/16.59%, MDD -17.74%/-18.45%, 샤프 1.06/1.15, 칼마 0.76/0.90,
+SPY 매수보유 대비 참고: CAGR 14.64%, MDD -34.10%, 샤프 0.79). 순열검정(작업21 방법론
+재구현, 무작위 양모멘텀 선택 200회 대비)으로 코어 로테이션의 통계적 엣지를 이번 구간에서
+재확인(p=0.0149, 99.0백분위, moderate 등급 일관). 블록부트스트랩(순환 이동블록, L=10/20/40일,
+1,500회)으로 두 후보와 SPY 각각의 샤프 표본오차를 감사하고, 후보2가 후보1을 이기는 빈도를
+페어 비교(58.1% — confidence_table의 기존 "새틀라이트 포함 여부: weak" 등급과 일관)했다.
+**결론**: 코어+새틀라이트(후보2)를 최선의 후보로 유지하되, 그 우위 자체는 약함 등급이라
+매매빈도 안전마진을 더 원하면 코어단독(후보1)도 실질적으로 동등한 대안. 최신 결론은 항상
+`analysis/LATEST_STRATEGY_CANDIDATE.md`에 갱신된다. 원본:
+`analysis/2026-09-14_strategy_candidate_1/final_report.html`(빌드: 같은 폴더의
+`build_report.py`, 계산: `build_candidates.py`).
+
+### [cost_tax_audit_research.html](./cost_tax_audit_research.html)
+*(analysis 사본, 리서치 에이전트 F 첫 실행, 독립)* "왕복 0.1% 비용가정, 이 저장소가 지금까지
+한 번도 감사하지 않은 숫자를 처음 열어본다" — R&D 섹터 에이전트 F(비용/세금/리스크 감사관)의
+첫 실행. 실행 시점에 에이전트 D의 새 후보(`analysis/LATEST_STRATEGY_CANDIDATE.md`)가 아직 없어,
+페르소나 프롬프트의 명시적 폴백 지시에 따라 지금 라이브로 도는 `core/champion_strategy.py`
+기본설정(코어 17자산 로테이션+새틀라이트 반기 추세추종)을 감사 대상으로 삼았다. **거래비용
+현실화**: 이 저장소 모든 백테스트가 써온 왕복 0.1%(`BACKTEST_COST_BPS_PER_SIDE=5.0`) 가정을
+웹검색으로 확인한 한국 증권사 실제 수수료(0.25%/편도 표준)로 재계산하면 왕복 0.5%로 뛰지만,
+코어 CAGR 13.60%→12.33%·Sharpe 1.06→0.97로 방향 자체는 유지됨을 확인. **핵심 신규 발견 —
+순열검정**: `_shuffle_daily_bars` 재사용 순열검정(N=200)에서 코어의 p-value가 현재비용 0.2388,
+보수적비용 0.1741로 이 프로젝트의 관례적 채택 기준(p<0.05)을 통과하지 못함 — 블록부트스트랩
+신뢰구간은 0 위쪽에 안정적이지만(서로 다른 귀무가설), confidence 등급은 더 엄격한 검정을 따라야
+한다는 원칙에 따라 하향 근거가 됨. **세금**: 2026-09-14 웹검색으로 확인한 한국 거주자 해외주식
+양도소득세(22%=양도세20%+지방세2%, 연 250만원 공제, 이월공제 없음)를 코어 실현거래(72건)에
+적용한 결과 계좌 규모별 실효세율 13.3%(3천만원)~22.5%(3억원). **환전비용**: 리밸런싱은 이미
+보유한 USD 자산 간 교체라 통합증거금 계좌에서는 매번 환전이 필요 없다는 구조적 사실을 확인 —
+일회성 진입/출금 비용만 연환산 0.02~0.4%p 수준으로 작음. **최종 판정**: 비용만으로는 결론이
+안 뒤집히지만 순열검정 실패+세금 드래그를 더하면 confidence를 **약함(WEAK)**으로 하향 —
+"방향은 맞을 수 있지만 비용·세금 다 반영 후에도 통계적으로 확신하기엔 이르다". 한계: 새틀라이트는
+계산비용(yfinance rate-limit) 문제로 라이브 기본값(전체기간·pool_n=40)이 아니라 최근 반기
+4회·pool_n=15로 축소 재구성. 원본: `analysis/2026-09-14_cost_tax_audit/final_report.html`(빌드:
+같은 폴더의 `build_report.py`, 검증: `step1_cost_scenarios.py`/`step2_permutation_bootstrap.py`/
+`step3_tax_simulation.py`).
+
+### [literature_benchmark_momentum_ranking_research.html](./literature_benchmark_momentum_ranking_research.html)
+*(analysis 사본, 리서치 에이전트 H — 학술 문헌/외부 벤치마크 조사관, 첫 실행)* "모멘텀 랭킹
+문헌 대조" — 이 저장소 밖의 시각(학술 논문)을 처음으로 들여온 리포트. confidence_table의
+"모멘텀 랭킹 방식"(moderate)·"위험조정 모멘텀 랭킹"(reversed) 두 항목을 실제 웹검색으로 찾은
+문헌 7편(Jegadeesh&Titman 1993, Novy-Marx 2012, Rachev et al. 2007, Barroso&Santa-Clara 2015,
+Daniel&Moskowitz 2016, Moreira&Muir 2017, Cederburg et al. 2020)과 대조했다. **부분 일치**:
+"원시수익 랭킹이 절대성과에서 위험조정 변형을 이긴다"는 내부 결론은 Rachev et al.(2007)과
+방향이 같지만, 그들은 위험조정 랭킹이 독립적 위험조정 성과지표에서는 더 낫다고 보는 반면 이
+저장소는 raw가 Sharpe·Calmar까지 이겨 갈린다(유니버스 차이로 설명). **불일치, 메커니즘
+설명 가능**: Barroso&Santa-Clara(2015)/Moreira&Muir(2017)의 "변동성관리가 모멘텀 Sharpe를
+크게 개선한다"는 결과가 재현 안 되는데, 원 논문은 포지션 노출 크기를 스케일링하는 반면 이
+저장소는 랭킹 단계에 적용했기 때문(층위가 다름) — 실제로 노출 층위에서 시도한 H28/H34
+변동성타겟팅 오버레이의 실패(동전던지기 49.7%)는 오히려 더 최근 문헌 Cederburg et al.(2020)의
+비판과 일치. **신규 반례**: Jegadeesh&Titman/Novy-Marx의 표준 "12-2"(최근 1개월 제외) 모멘텀을
+`skip_month_momentum.py`로 이 저장소 데이터에 처음 재현했더니, 전체기간(Sharpe 1.03→0.81)과
+특히 COVID 2020(CAGR +2.14%→**-41.78%**, 이번 대조 최악의 숫자)에서 원본보다 뚜렷이 나빴다 —
+"느린 신호는 수직급락에 취약하다"는 이 저장소의 반복 패턴이 학술 관행에도 예외 없이 적용됨을
+보여준다(순열검정 200회, 전체기간 격차 자체는 p=0.8159로 비유의). 원본:
+`analysis/2026-09-14_literature_benchmark/final_report.html`(빌드: 같은 폴더의
+`build_report.py`, 검증: `run_literature_benchmark.py`/`skip_month_momentum.py`).
 
 ### [quant_lecture_notes.html](./quant_lecture_notes.html)
 *(Artifact 백업, No.03)* "퀀트 강의노트 — 성과지표·사이징·다각화·검증의 수학적 기초" — 스터디

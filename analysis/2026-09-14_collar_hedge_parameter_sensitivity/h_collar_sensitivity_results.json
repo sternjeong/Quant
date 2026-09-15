@@ -1,0 +1,2212 @@
+{
+  "meta": {
+    "episode_order": [
+      "full_2019_2026",
+      "gfc_2008",
+      "covid_2020",
+      "bear_2022",
+      "selloff_2018",
+      "correction_2015_2016"
+    ],
+    "live_default": {
+      "put_moneyness": 1.0,
+      "call_moneyness": 1.05,
+      "tenor_days": 21
+    },
+    "grid_put_moneyness": [
+      1.0,
+      0.95
+    ],
+    "grid_call_moneyness": [
+      1.03,
+      1.05,
+      1.07,
+      1.1
+    ],
+    "grid_tenor_days": [
+      21,
+      42,
+      63
+    ],
+    "representative_configs": {
+      "live_default_atm_put_5pct_call_monthly": {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.05,
+        "tenor_days": 21
+      },
+      "cheaper_otm_put_5pct": {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.05,
+        "tenor_days": 21
+      },
+      "wider_call_10pct": {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.1,
+        "tenor_days": 21
+      },
+      "quarterly_tenor_63d": {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.05,
+        "tenor_days": 63
+      },
+      "bimonthly_tenor_42d": {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.05,
+        "tenor_days": 42
+      }
+    },
+    "base_rate_scenarios": {
+      "base": {
+        "full_2019_2026": 0.5,
+        "gfc_2008": 0.03,
+        "covid_2020": 0.04,
+        "bear_2022": 0.1,
+        "selloff_2018": 0.16,
+        "correction_2015_2016": 0.17
+      },
+      "calm_heavy": {
+        "full_2019_2026": 0.65,
+        "gfc_2008": 0.015,
+        "covid_2020": 0.02,
+        "bear_2022": 0.065,
+        "selloff_2018": 0.12,
+        "correction_2015_2016": 0.13
+      },
+      "crisis_heavy": {
+        "full_2019_2026": 0.35,
+        "gfc_2008": 0.06,
+        "covid_2020": 0.07,
+        "bear_2022": 0.14,
+        "selloff_2018": 0.19,
+        "correction_2015_2016": 0.19
+      }
+    },
+    "block_lengths": [
+      10,
+      20,
+      40
+    ],
+    "n_boot": 2000,
+    "n_draws_combined": 10000,
+    "k_central": 30.0,
+    "n_placebo": 200,
+    "seed": 20260914
+  },
+  "smoothness_grid": {
+    "grid_rows": [
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.03,
+        "tenor_days": 21,
+        "ev_sharpe_base": -0.04720000000000002,
+        "per_episode": {
+          "full_2019_2026": {
+            "sharpe": 0.89,
+            "cagr": 10.94,
+            "mdd": -15.51
+          },
+          "gfc_2008": {
+            "sharpe": 0.24,
+            "cagr": 2.44,
+            "mdd": -13.92
+          },
+          "covid_2020": {
+            "sharpe": 0.35,
+            "cagr": 4.04,
+            "mdd": -7.26
+          },
+          "bear_2022": {
+            "sharpe": 0.38,
+            "cagr": 3.89,
+            "mdd": -8.98
+          },
+          "selloff_2018": {
+            "sharpe": -1.47,
+            "cagr": -20.23,
+            "mdd": -13.64
+          },
+          "correction_2015_2016": {
+            "sharpe": -1.86,
+            "cagr": -24.54,
+            "mdd": -14.65
+          }
+        }
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.03,
+        "tenor_days": 42,
+        "ev_sharpe_base": -0.03369999999999995,
+        "per_episode": {
+          "full_2019_2026": {
+            "sharpe": 0.79,
+            "cagr": 9.6,
+            "mdd": -14.92
+          },
+          "gfc_2008": {
+            "sharpe": 0.43,
+            "cagr": 5.69,
+            "mdd": -14.14
+          },
+          "covid_2020": {
+            "sharpe": 0.88,
+            "cagr": 13.78,
+            "mdd": -7.23
+          },
+          "bear_2022": {
+            "sharpe": 0.56,
+            "cagr": 6.21,
+            "mdd": -7.95
+          },
+          "selloff_2018": {
+            "sharpe": -1.46,
+            "cagr": -19.85,
+            "mdd": -13.16
+          },
+          "correction_2015_2016": {
+            "sharpe": -1.76,
+            "cagr": -24.04,
+            "mdd": -14.96
+          }
+        }
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.03,
+        "tenor_days": 63,
+        "ev_sharpe_base": -0.08419999999999997,
+        "per_episode": {
+          "full_2019_2026": {
+            "sharpe": 0.66,
+            "cagr": 7.8,
+            "mdd": -14.76
+          },
+          "gfc_2008": {
+            "sharpe": 0.67,
+            "cagr": 10.02,
+            "mdd": -13.34
+          },
+          "covid_2020": {
+            "sharpe": 0.43,
+            "cagr": 5.78,
+            "mdd": -7.73
+          },
+          "bear_2022": {
+            "sharpe": 0.83,
+            "cagr": 9.38,
+            "mdd": -6.84
+          },
+          "selloff_2018": {
+            "sharpe": -1.46,
+            "cagr": -19.73,
+            "mdd": -13.57
+          },
+          "correction_2015_2016": {
+            "sharpe": -1.77,
+            "cagr": -24.49,
+            "mdd": -15.13
+          }
+        }
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.05,
+        "tenor_days": 21,
+        "ev_sharpe_base": -0.05290000000000006,
+        "per_episode": {
+          "full_2019_2026": {
+            "sharpe": 0.91,
+            "cagr": 11.16,
+            "mdd": -15.3
+          },
+          "gfc_2008": {
+            "sharpe": 0.21,
+            "cagr": 2.03,
+            "mdd": -13.42
+          },
+          "covid_2020": {
+            "sharpe": 0.28,
+            "cagr": 2.93,
+            "mdd": -7.35
+          },
+          "bear_2022": {
+            "sharpe": 0.39,
+            "cagr": 4.07,
+            "mdd": -9.11
+          },
+          "selloff_2018": {
+            "sharpe": -1.53,
+            "cagr": -20.9,
+            "mdd": -13.76
+          },
+          "correction_2015_2016": {
+            "sharpe": -1.88,
+            "cagr": -24.78,
+            "mdd": -14.7
+          }
+        }
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.05,
+        "tenor_days": 42,
+        "ev_sharpe_base": -0.03290000000000004,
+        "per_episode": {
+          "full_2019_2026": {
+            "sharpe": 0.83,
+            "cagr": 10.12,
+            "mdd": -15.02
+          },
+          "gfc_2008": {
+            "sharpe": 0.39,
+            "cagr": 5.09,
+            "mdd": -14.19
+          },
+          "covid_2020": {
+            "sharpe": 0.82,
+            "cagr": 12.48,
+            "mdd": -7.33
+          },
+          "bear_2022": {
+            "sharpe": 0.5,
+            "cagr": 5.35,
+            "mdd": -8.34
+          },
+          "selloff_2018": {
+            "sharpe": -1.52,
+            "cagr": -20.48,
+            "mdd": -13.31
+          },
+          "correction_2015_2016": {
+            "sharpe": -1.76,
+            "cagr": -24.04,
+            "mdd": -14.82
+          }
+        }
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.05,
+        "tenor_days": 63,
+        "ev_sharpe_base": -0.0826,
+        "per_episode": {
+          "full_2019_2026": {
+            "sharpe": 0.71,
+            "cagr": 8.51,
+            "mdd": -14.18
+          },
+          "gfc_2008": {
+            "sharpe": 0.62,
+            "cagr": 9.17,
+            "mdd": -13.41
+          },
+          "covid_2020": {
+            "sharpe": 0.36,
+            "cagr": 4.55,
+            "mdd": -7.83
+          },
+          "bear_2022": {
+            "sharpe": 0.72,
+            "cagr": 7.96,
+            "mdd": -7.04
+          },
+          "selloff_2018": {
+            "sharpe": -1.5,
+            "cagr": -20.12,
+            "mdd": -13.74
+          },
+          "correction_2015_2016": {
+            "sharpe": -1.78,
+            "cagr": -24.58,
+            "mdd": -15.04
+          }
+        }
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.07,
+        "tenor_days": 21,
+        "ev_sharpe_base": -0.060799999999999965,
+        "per_episode": {
+          "full_2019_2026": {
+            "sharpe": 0.91,
+            "cagr": 11.09,
+            "mdd": -15.23
+          },
+          "gfc_2008": {
+            "sharpe": 0.2,
+            "cagr": 1.88,
+            "mdd": -12.82
+          },
+          "covid_2020": {
+            "sharpe": 0.21,
+            "cagr": 2.0,
+            "mdd": -7.42
+          },
+          "bear_2022": {
+            "sharpe": 0.39,
+            "cagr": 4.05,
+            "mdd": -9.13
+          },
+          "selloff_2018": {
+            "sharpe": -1.56,
+            "cagr": -21.27,
+            "mdd": -13.82
+          },
+          "correction_2015_2016": {
+            "sharpe": -1.88,
+            "cagr": -24.76,
+            "mdd": -14.64
+          }
+        }
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.07,
+        "tenor_days": 42,
+        "ev_sharpe_base": -0.04249999999999998,
+        "per_episode": {
+          "full_2019_2026": {
+            "sharpe": 0.84,
+            "cagr": 10.21,
+            "mdd": -15.38
+          },
+          "gfc_2008": {
+            "sharpe": 0.35,
+            "cagr": 4.44,
+            "mdd": -14.17
+          },
+          "covid_2020": {
+            "sharpe": 0.75,
+            "cagr": 11.33,
+            "mdd": -7.41
+          },
+          "bear_2022": {
+            "sharpe": 0.44,
+            "cagr": 4.64,
+            "mdd": -8.73
+          },
+          "selloff_2018": {
+            "sharpe": -1.57,
+            "cagr": -21.12,
+            "mdd": -13.42
+          },
+          "correction_2015_2016": {
+            "sharpe": -1.74,
+            "cagr": -23.81,
+            "mdd": -14.6
+          }
+        }
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.07,
+        "tenor_days": 63,
+        "ev_sharpe_base": -0.07350000000000004,
+        "per_episode": {
+          "full_2019_2026": {
+            "sharpe": 0.76,
+            "cagr": 9.12,
+            "mdd": -14.16
+          },
+          "gfc_2008": {
+            "sharpe": 0.57,
+            "cagr": 8.29,
+            "mdd": -13.42
+          },
+          "covid_2020": {
+            "sharpe": 0.29,
+            "cagr": 3.43,
+            "mdd": -7.92
+          },
+          "bear_2022": {
+            "sharpe": 0.62,
+            "cagr": 6.77,
+            "mdd": -7.22
+          },
+          "selloff_2018": {
+            "sharpe": -1.51,
+            "cagr": -20.25,
+            "mdd": -13.87
+          },
+          "correction_2015_2016": {
+            "sharpe": -1.78,
+            "cagr": -24.65,
+            "mdd": -14.97
+          }
+        }
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.1,
+        "tenor_days": 21,
+        "ev_sharpe_base": -0.07750000000000001,
+        "per_episode": {
+          "full_2019_2026": {
+            "sharpe": 0.9,
+            "cagr": 10.94,
+            "mdd": -15.42
+          },
+          "gfc_2008": {
+            "sharpe": 0.19,
+            "cagr": 1.71,
+            "mdd": -13.04
+          },
+          "covid_2020": {
+            "sharpe": 0.13,
+            "cagr": 0.9,
+            "mdd": -7.5
+          },
+          "bear_2022": {
+            "sharpe": 0.34,
+            "cagr": 3.35,
+            "mdd": -9.41
+          },
+          "selloff_2018": {
+            "sharpe": -1.58,
+            "cagr": -21.53,
+            "mdd": -13.87
+          },
+          "correction_2015_2016": {
+            "sharpe": -1.88,
+            "cagr": -24.82,
+            "mdd": -14.68
+          }
+        }
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.1,
+        "tenor_days": 42,
+        "ev_sharpe_base": -0.06140000000000001,
+        "per_episode": {
+          "full_2019_2026": {
+            "sharpe": 0.83,
+            "cagr": 10.01,
+            "mdd": -15.95
+          },
+          "gfc_2008": {
+            "sharpe": 0.31,
+            "cagr": 3.69,
+            "mdd": -14.04
+          },
+          "covid_2020": {
+            "sharpe": 0.67,
+            "cagr": 9.87,
+            "mdd": -7.51
+          },
+          "bear_2022": {
+            "sharpe": 0.39,
+            "cagr": 3.99,
+            "mdd": -9.17
+          },
+          "selloff_2018": {
+            "sharpe": -1.63,
+            "cagr": -21.69,
+            "mdd": -13.53
+          },
+          "correction_2015_2016": {
+            "sharpe": -1.71,
+            "cagr": -23.55,
+            "mdd": -14.36
+          }
+        }
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.1,
+        "tenor_days": 63,
+        "ev_sharpe_base": -0.08750000000000002,
+        "per_episode": {
+          "full_2019_2026": {
+            "sharpe": 0.79,
+            "cagr": 9.48,
+            "mdd": -14.98
+          },
+          "gfc_2008": {
+            "sharpe": 0.52,
+            "cagr": 7.29,
+            "mdd": -13.35
+          },
+          "covid_2020": {
+            "sharpe": 0.2,
+            "cagr": 1.96,
+            "mdd": -8.04
+          },
+          "bear_2022": {
+            "sharpe": 0.51,
+            "cagr": 5.38,
+            "mdd": -7.53
+          },
+          "selloff_2018": {
+            "sharpe": -1.58,
+            "cagr": -20.95,
+            "mdd": -14.01
+          },
+          "correction_2015_2016": {
+            "sharpe": -1.79,
+            "cagr": -24.85,
+            "mdd": -14.98
+          }
+        }
+      },
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.03,
+        "tenor_days": 21,
+        "ev_sharpe_base": -0.043800000000000006,
+        "per_episode": {
+          "full_2019_2026": {
+            "sharpe": 0.98,
+            "cagr": 12.11,
+            "mdd": -16.27
+          },
+          "gfc_2008": {
+            "sharpe": 0.19,
+            "cagr": 1.74,
+            "mdd": -13.51
+          },
+          "covid_2020": {
+            "sharpe": 0.13,
+            "cagr": 0.88,
+            "mdd": -7.46
+          },
+          "bear_2022": {
+            "sharpe": 0.31,
+            "cagr": 3.08,
+            "mdd": -9.62
+          },
+          "selloff_2018": {
+            "sharpe": -1.59,
+            "cagr": -21.02,
+            "mdd": -13.87
+          },
+          "correction_2015_2016": {
+            "sharpe": -1.89,
+            "cagr": -25.08,
+            "mdd": -15.05
+          }
+        }
+      },
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.03,
+        "tenor_days": 42,
+        "ev_sharpe_base": -0.049699999999999966,
+        "per_episode": {
+          "full_2019_2026": {
+            "sharpe": 0.92,
+            "cagr": 11.36,
+            "mdd": -14.88
+          },
+          "gfc_2008": {
+            "sharpe": 0.38,
+            "cagr": 4.82,
+            "mdd": -13.5
+          },
+          "covid_2020": {
+            "sharpe": 0.48,
+            "cagr": 6.32,
+            "mdd": -7.43
+          },
+          "bear_2022": {
+            "sharpe": 0.53,
+            "cagr": 5.72,
+            "mdd": -8.52
+          },
+          "selloff_2018": {
+            "sharpe": -1.7,
+            "cagr": -21.89,
+            "mdd": -13.98
+          },
+          "correction_2015_2016": {
+            "sharpe": -1.89,
+            "cagr": -25.29,
+            "mdd": -15.52
+          }
+        }
+      },
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.03,
+        "tenor_days": 63,
+        "ev_sharpe_base": -0.07330000000000014,
+        "per_episode": {
+          "full_2019_2026": {
+            "sharpe": 0.8,
+            "cagr": 9.74,
+            "mdd": -14.21
+          },
+          "gfc_2008": {
+            "sharpe": 0.56,
+            "cagr": 7.81,
+            "mdd": -13.35
+          },
+          "covid_2020": {
+            "sharpe": 0.44,
+            "cagr": 5.83,
+            "mdd": -7.41
+          },
+          "bear_2022": {
+            "sharpe": 0.66,
+            "cagr": 7.31,
+            "mdd": -7.45
+          },
+          "selloff_2018": {
+            "sharpe": -1.62,
+            "cagr": -21.06,
+            "mdd": -14.14
+          },
+          "correction_2015_2016": {
+            "sharpe": -1.85,
+            "cagr": -24.8,
+            "mdd": -15.18
+          }
+        }
+      },
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.05,
+        "tenor_days": 21,
+        "ev_sharpe_base": -0.050499999999999934,
+        "per_episode": {
+          "full_2019_2026": {
+            "sharpe": 1.0,
+            "cagr": 12.34,
+            "mdd": -16.06
+          },
+          "gfc_2008": {
+            "sharpe": 0.16,
+            "cagr": 1.33,
+            "mdd": -13.0
+          },
+          "covid_2020": {
+            "sharpe": 0.05,
+            "cagr": -0.2,
+            "mdd": -7.55
+          },
+          "bear_2022": {
+            "sharpe": 0.33,
+            "cagr": 3.26,
+            "mdd": -9.75
+          },
+          "selloff_2018": {
+            "sharpe": -1.66,
+            "cagr": -21.69,
+            "mdd": -13.99
+          },
+          "correction_2015_2016": {
+            "sharpe": -1.91,
+            "cagr": -25.31,
+            "mdd": -15.16
+          }
+        }
+      },
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.05,
+        "tenor_days": 42,
+        "ev_sharpe_base": -0.048800000000000066,
+        "per_episode": {
+          "full_2019_2026": {
+            "sharpe": 0.96,
+            "cagr": 11.89,
+            "mdd": -15.24
+          },
+          "gfc_2008": {
+            "sharpe": 0.35,
+            "cagr": 4.23,
+            "mdd": -13.55
+          },
+          "covid_2020": {
+            "sharpe": 0.4,
+            "cagr": 5.11,
+            "mdd": -7.53
+          },
+          "bear_2022": {
+            "sharpe": 0.46,
+            "cagr": 4.86,
+            "mdd": -8.9
+          },
+          "selloff_2018": {
+            "sharpe": -1.75,
+            "cagr": -22.51,
+            "mdd": -14.14
+          },
+          "correction_2015_2016": {
+            "sharpe": -1.89,
+            "cagr": -25.29,
+            "mdd": -15.39
+          }
+        }
+      },
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.05,
+        "tenor_days": 63,
+        "ev_sharpe_base": -0.06670000000000004,
+        "per_episode": {
+          "full_2019_2026": {
+            "sharpe": 0.86,
+            "cagr": 10.47,
+            "mdd": -14.2
+          },
+          "gfc_2008": {
+            "sharpe": 0.51,
+            "cagr": 6.99,
+            "mdd": -13.41
+          },
+          "covid_2020": {
+            "sharpe": 0.37,
+            "cagr": 4.6,
+            "mdd": -7.52
+          },
+          "bear_2022": {
+            "sharpe": 0.55,
+            "cagr": 5.91,
+            "mdd": -7.84
+          },
+          "selloff_2018": {
+            "sharpe": -1.66,
+            "cagr": -21.44,
+            "mdd": -14.31
+          },
+          "correction_2015_2016": {
+            "sharpe": -1.86,
+            "cagr": -24.89,
+            "mdd": -15.08
+          }
+        }
+      },
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.07,
+        "tenor_days": 21,
+        "ev_sharpe_base": -0.05799999999999994,
+        "per_episode": {
+          "full_2019_2026": {
+            "sharpe": 1.0,
+            "cagr": 12.26,
+            "mdd": -15.99
+          },
+          "gfc_2008": {
+            "sharpe": 0.15,
+            "cagr": 1.18,
+            "mdd": -12.45
+          },
+          "covid_2020": {
+            "sharpe": -0.01,
+            "cagr": -1.09,
+            "mdd": -7.62
+          },
+          "bear_2022": {
+            "sharpe": 0.33,
+            "cagr": 3.24,
+            "mdd": -9.77
+          },
+          "selloff_2018": {
+            "sharpe": -1.69,
+            "cagr": -22.06,
+            "mdd": -14.06
+          },
+          "correction_2015_2016": {
+            "sharpe": -1.91,
+            "cagr": -25.29,
+            "mdd": -15.13
+          }
+        }
+      },
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.07,
+        "tenor_days": 42,
+        "ev_sharpe_base": -0.059599999999999986,
+        "per_episode": {
+          "full_2019_2026": {
+            "sharpe": 0.97,
+            "cagr": 11.98,
+            "mdd": -15.6
+          },
+          "gfc_2008": {
+            "sharpe": 0.31,
+            "cagr": 3.59,
+            "mdd": -13.54
+          },
+          "covid_2020": {
+            "sharpe": 0.34,
+            "cagr": 4.04,
+            "mdd": -7.62
+          },
+          "bear_2022": {
+            "sharpe": 0.4,
+            "cagr": 4.16,
+            "mdd": -9.29
+          },
+          "selloff_2018": {
+            "sharpe": -1.81,
+            "cagr": -23.13,
+            "mdd": -14.25
+          },
+          "correction_2015_2016": {
+            "sharpe": -1.87,
+            "cagr": -25.06,
+            "mdd": -15.16
+          }
+        }
+      },
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.07,
+        "tenor_days": 63,
+        "ev_sharpe_base": -0.056599999999999984,
+        "per_episode": {
+          "full_2019_2026": {
+            "sharpe": 0.91,
+            "cagr": 11.09,
+            "mdd": -14.64
+          },
+          "gfc_2008": {
+            "sharpe": 0.46,
+            "cagr": 6.12,
+            "mdd": -13.43
+          },
+          "covid_2020": {
+            "sharpe": 0.3,
+            "cagr": 3.49,
+            "mdd": -7.61
+          },
+          "bear_2022": {
+            "sharpe": 0.46,
+            "cagr": 4.75,
+            "mdd": -8.27
+          },
+          "selloff_2018": {
+            "sharpe": -1.67,
+            "cagr": -21.57,
+            "mdd": -14.44
+          },
+          "correction_2015_2016": {
+            "sharpe": -1.86,
+            "cagr": -24.97,
+            "mdd": -15.02
+          }
+        }
+      },
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.1,
+        "tenor_days": 21,
+        "ev_sharpe_base": -0.07730000000000004,
+        "per_episode": {
+          "full_2019_2026": {
+            "sharpe": 0.99,
+            "cagr": 12.12,
+            "mdd": -16.18
+          },
+          "gfc_2008": {
+            "sharpe": 0.14,
+            "cagr": 1.02,
+            "mdd": -12.72
+          },
+          "covid_2020": {
+            "sharpe": -0.09,
+            "cagr": -2.16,
+            "mdd": -7.69
+          },
+          "bear_2022": {
+            "sharpe": 0.27,
+            "cagr": 2.55,
+            "mdd": -10.05
+          },
+          "selloff_2018": {
+            "sharpe": -1.72,
+            "cagr": -22.31,
+            "mdd": -14.1
+          },
+          "correction_2015_2016": {
+            "sharpe": -1.91,
+            "cagr": -25.35,
+            "mdd": -15.17
+          }
+        }
+      },
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.1,
+        "tenor_days": 42,
+        "ev_sharpe_base": -0.07750000000000012,
+        "per_episode": {
+          "full_2019_2026": {
+            "sharpe": 0.96,
+            "cagr": 11.79,
+            "mdd": -16.07
+          },
+          "gfc_2008": {
+            "sharpe": 0.26,
+            "cagr": 2.84,
+            "mdd": -13.4
+          },
+          "covid_2020": {
+            "sharpe": 0.25,
+            "cagr": 2.68,
+            "mdd": -7.72
+          },
+          "bear_2022": {
+            "sharpe": 0.35,
+            "cagr": 3.51,
+            "mdd": -9.73
+          },
+          "selloff_2018": {
+            "sharpe": -1.87,
+            "cagr": -23.69,
+            "mdd": -14.35
+          },
+          "correction_2015_2016": {
+            "sharpe": -1.83,
+            "cagr": -24.8,
+            "mdd": -14.93
+          }
+        }
+      },
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.1,
+        "tenor_days": 63,
+        "ev_sharpe_base": -0.06920000000000004,
+        "per_episode": {
+          "full_2019_2026": {
+            "sharpe": 0.94,
+            "cagr": 11.45,
+            "mdd": -15.5
+          },
+          "gfc_2008": {
+            "sharpe": 0.4,
+            "cagr": 5.16,
+            "mdd": -13.35
+          },
+          "covid_2020": {
+            "sharpe": 0.21,
+            "cagr": 2.02,
+            "mdd": -7.72
+          },
+          "bear_2022": {
+            "sharpe": 0.35,
+            "cagr": 3.38,
+            "mdd": -8.8
+          },
+          "selloff_2018": {
+            "sharpe": -1.74,
+            "cagr": -22.26,
+            "mdd": -14.58
+          },
+          "correction_2015_2016": {
+            "sharpe": -1.86,
+            "cagr": -25.16,
+            "mdd": -15.02
+          }
+        }
+      }
+    ],
+    "n_combos": 24,
+    "ev_sharpe_range": [
+      -0.08750000000000002,
+      -0.03290000000000004
+    ],
+    "ev_sharpe_std": 0.015505751061210247,
+    "live_default_ev_sharpe": -0.05290000000000006,
+    "live_default_rank_from_top": 9
+  },
+  "placebo_test": {
+    "n_placebo": 200,
+    "param_ranges": {
+      "put_moneyness": [
+        0.85,
+        1.0
+      ],
+      "call_moneyness": [
+        1.02,
+        1.2
+      ],
+      "tenor_days": [
+        15,
+        70
+      ]
+    },
+    "live_default_ev_sharpe": -0.05290000000000006,
+    "random_mean": -0.058568999999999996,
+    "random_median": -0.06359999999999996,
+    "random_std": 0.04230510062628383,
+    "random_min": -0.15500000000000003,
+    "random_max": 0.04569999999999991,
+    "live_default_percentile": 58.5,
+    "random_params_sample": [
+      {
+        "put_moneyness": 0.9669,
+        "call_moneyness": 1.0657,
+        "tenor_days": 34
+      },
+      {
+        "put_moneyness": 0.897,
+        "call_moneyness": 1.1229,
+        "tenor_days": 42
+      },
+      {
+        "put_moneyness": 0.9984,
+        "call_moneyness": 1.1865,
+        "tenor_days": 39
+      },
+      {
+        "put_moneyness": 0.9293,
+        "call_moneyness": 1.0573,
+        "tenor_days": 40
+      },
+      {
+        "put_moneyness": 0.9053,
+        "call_moneyness": 1.1404,
+        "tenor_days": 24
+      },
+      {
+        "put_moneyness": 0.8718,
+        "call_moneyness": 1.1334,
+        "tenor_days": 35
+      },
+      {
+        "put_moneyness": 0.8875,
+        "call_moneyness": 1.1529,
+        "tenor_days": 46
+      },
+      {
+        "put_moneyness": 0.9163,
+        "call_moneyness": 1.1806,
+        "tenor_days": 65
+      },
+      {
+        "put_moneyness": 0.9338,
+        "call_moneyness": 1.1809,
+        "tenor_days": 70
+      },
+      {
+        "put_moneyness": 0.9065,
+        "call_moneyness": 1.1951,
+        "tenor_days": 62
+      }
+    ]
+  },
+  "bootstrap_and_combined": {
+    "unhedged_satellite_point": {
+      "full_2019_2026": 1.0188790401036878,
+      "gfc_2008": 0.02763823880834525,
+      "covid_2020": -0.630401151963613,
+      "bear_2022": 0.26887615139376525,
+      "selloff_2018": -1.926242165706022,
+      "correction_2015_2016": -1.8929843928277414
+    },
+    "representative_configs": {
+      "live_default_atm_put_5pct_call_monthly": {
+        "params": {
+          "put_moneyness": 1.0,
+          "call_moneyness": 1.05,
+          "tenor_days": 21
+        },
+        "by_episode": {
+          "full_2019_2026": {
+            "point_sharpe": 0.9117064005123913,
+            "n_obs": 1764,
+            "bootstrap_by_block_len": {
+              "10": {
+                "mean": 0.9130645791986256,
+                "std": 0.35045236743489244,
+                "ci90": [
+                  0.3464690753766174,
+                  1.5000367398275145
+                ]
+              },
+              "20": {
+                "mean": 0.9093927323224267,
+                "std": 0.32577091958313315,
+                "ci90": [
+                  0.3670429198815582,
+                  1.452306720039889
+                ]
+              },
+              "40": {
+                "mean": 0.9104599121623341,
+                "std": 0.30011825265888564,
+                "ci90": [
+                  0.41669244727880267,
+                  1.4145660203035944
+                ]
+              }
+            }
+          },
+          "gfc_2008": {
+            "point_sharpe": 0.21014744119319212,
+            "n_obs": 441,
+            "bootstrap_by_block_len": {
+              "10": {
+                "mean": 0.18966962395689735,
+                "std": 0.7393778864214974,
+                "ci90": [
+                  -1.0342181189390873,
+                  1.392109534982934
+                ]
+              },
+              "20": {
+                "mean": 0.18261559205462993,
+                "std": 0.7321560947790131,
+                "ci90": [
+                  -1.0022532566497426,
+                  1.4011794220466045
+                ]
+              },
+              "40": {
+                "mean": 0.20107715800900558,
+                "std": 0.609515426929525,
+                "ci90": [
+                  -0.7627479110467209,
+                  1.2402014923204276
+                ]
+              }
+            }
+          },
+          "covid_2020": {
+            "point_sharpe": 0.27004156115404077,
+            "n_obs": 51,
+            "bootstrap_by_block_len": {
+              "10": {
+                "mean": 0.5735168168431639,
+                "std": 2.621324397096525,
+                "ci90": [
+                  -3.430247160441749,
+                  5.279801602015111
+                ]
+              },
+              "20": {
+                "mean": 0.6594899532727186,
+                "std": 2.89872934794847,
+                "ci90": [
+                  -3.6268139672333604,
+                  6.091968807293116
+                ]
+              },
+              "40": {
+                "mean": 0.44530160035505995,
+                "std": 1.7342067419494722,
+                "ci90": [
+                  -2.2561409685625877,
+                  3.5592214989103894
+                ]
+              }
+            }
+          },
+          "bear_2022": {
+            "point_sharpe": 0.3917715370371767,
+            "n_obs": 251,
+            "bootstrap_by_block_len": {
+              "10": {
+                "mean": 0.3996309567237099,
+                "std": 0.8745678059173896,
+                "ci90": [
+                  -1.0665227587804593,
+                  1.8072326525872688
+                ]
+              },
+              "20": {
+                "mean": 0.4666557222388993,
+                "std": 0.7812092345634687,
+                "ci90": [
+                  -0.7865327353002785,
+                  1.7524684586962138
+                ]
+              },
+              "40": {
+                "mean": 0.4072696458622952,
+                "std": 0.6658260492453509,
+                "ci90": [
+                  -0.6487850332514484,
+                  1.5413388546585312
+                ]
+              }
+            }
+          },
+          "selloff_2018": {
+            "point_sharpe": -1.517325732688113,
+            "n_obs": 92,
+            "bootstrap_by_block_len": {
+              "10": {
+                "mean": -1.4359276766915519,
+                "std": 1.4054221555416397,
+                "ci90": [
+                  -3.709522947862573,
+                  0.9983764079901922
+                ]
+              },
+              "20": {
+                "mean": -1.4267478726252072,
+                "std": 1.0753369065451548,
+                "ci90": [
+                  -3.0544681355452608,
+                  0.4967052791315316
+                ]
+              },
+              "40": {
+                "mean": -1.4644514015793875,
+                "std": 0.8441052079969524,
+                "ci90": [
+                  -2.7358455142672873,
+                  0.03581394432740824
+                ]
+              }
+            }
+          },
+          "correction_2015_2016": {
+            "point_sharpe": -1.861671824261534,
+            "n_obs": 135,
+            "bootstrap_by_block_len": {
+              "10": {
+                "mean": -1.7784287463145616,
+                "std": 1.0560949405159508,
+                "ci90": [
+                  -3.4483132819792743,
+                  -0.03722473237248552
+                ]
+              },
+              "20": {
+                "mean": -1.8212383756199155,
+                "std": 0.804571810964358,
+                "ci90": [
+                  -3.0780074181221515,
+                  -0.39675346017925855
+                ]
+              },
+              "40": {
+                "mean": -1.801060113557316,
+                "std": 0.6929415757002627,
+                "ci90": [
+                  -2.797732737720586,
+                  -0.5405543493029599
+                ]
+              }
+            }
+          }
+        },
+        "combined_dirichlet_x_bootstrap": {
+          "base": {
+            "win_rate_collar": 0.5484,
+            "mean_gap": 0.060697798186361396,
+            "ci90_gap": [
+              -0.7144465937581563,
+              0.8397619729401037
+            ],
+            "mean_ev_collar": -0.009353605200838408,
+            "mean_ev_unhedged": -0.0700514033871998
+          },
+          "calm_heavy": {
+            "win_rate_collar": 0.5057,
+            "mean_gap": 0.009492400639953142,
+            "ci90_gap": [
+              -0.6816973187880486,
+              0.7066193317227811
+            ],
+            "mean_ev_collar": 0.2263491127013679,
+            "mean_ev_unhedged": 0.21685671206141477
+          },
+          "crisis_heavy": {
+            "win_rate_collar": 0.5971,
+            "mean_gap": 0.13779340149973726,
+            "ci90_gap": [
+              -0.7696445701541579,
+              1.0670650699970528
+            ],
+            "mean_ev_collar": -0.1766684527012129,
+            "mean_ev_unhedged": -0.3144618542009502
+          }
+        }
+      },
+      "cheaper_otm_put_5pct": {
+        "params": {
+          "put_moneyness": 0.95,
+          "call_moneyness": 1.05,
+          "tenor_days": 21
+        },
+        "by_episode": {
+          "full_2019_2026": {
+            "point_sharpe": 1.0000594652125558,
+            "n_obs": 1764,
+            "bootstrap_by_block_len": {
+              "10": {
+                "mean": 1.0098686415729805,
+                "std": 0.35139151464162277,
+                "ci90": [
+                  0.4309249308188996,
+                  1.5591578907004249
+                ]
+              },
+              "20": {
+                "mean": 0.9932206920216836,
+                "std": 0.3259477680193881,
+                "ci90": [
+                  0.4691007544413819,
+                  1.5379479328925798
+                ]
+              },
+              "40": {
+                "mean": 1.00273592931032,
+                "std": 0.30324642658383466,
+                "ci90": [
+                  0.5072128914376369,
+                  1.5051532974847297
+                ]
+              }
+            }
+          },
+          "gfc_2008": {
+            "point_sharpe": 0.1635713869508827,
+            "n_obs": 441,
+            "bootstrap_by_block_len": {
+              "10": {
+                "mean": 0.15636854877282605,
+                "std": 0.7182130254662257,
+                "ci90": [
+                  -0.9994803981302958,
+                  1.3554451160847225
+                ]
+              },
+              "20": {
+                "mean": 0.15361550216114786,
+                "std": 0.7082613769088814,
+                "ci90": [
+                  -1.0350678593848426,
+                  1.3688345177795107
+                ]
+              },
+              "40": {
+                "mean": 0.14896760649394378,
+                "std": 0.6007150930652811,
+                "ci90": [
+                  -0.7906116358914661,
+                  1.183137347673935
+                ]
+              }
+            }
+          },
+          "covid_2020": {
+            "point_sharpe": 0.05157104783056346,
+            "n_obs": 51,
+            "bootstrap_by_block_len": {
+              "10": {
+                "mean": 0.3581247950506373,
+                "std": 2.8179066184326564,
+                "ci90": [
+                  -3.596403948827695,
+                  5.581927740358667
+                ]
+              },
+              "20": {
+                "mean": 0.5024664760752363,
+                "std": 2.9677669833783855,
+                "ci90": [
+                  -3.657797443136445,
+                  6.537197856256514
+                ]
+              },
+              "40": {
+                "mean": 0.26282110867231256,
+                "std": 1.7284126555391746,
+                "ci90": [
+                  -2.369780202617407,
+                  3.4301237899408346
+                ]
+              }
+            }
+          },
+          "bear_2022": {
+            "point_sharpe": 0.33085927889338,
+            "n_obs": 251,
+            "bootstrap_by_block_len": {
+              "10": {
+                "mean": 0.34915978225802624,
+                "std": 0.9285243444861678,
+                "ci90": [
+                  -1.166587853465004,
+                  1.9059798953459943
+                ]
+              },
+              "20": {
+                "mean": 0.35626418529327863,
+                "std": 0.8096816647240216,
+                "ci90": [
+                  -1.0042068908662816,
+                  1.7263523577282633
+                ]
+              },
+              "40": {
+                "mean": 0.3324780069545041,
+                "std": 0.6673128903868835,
+                "ci90": [
+                  -0.7465045216741414,
+                  1.4419400162529337
+                ]
+              }
+            }
+          },
+          "selloff_2018": {
+            "point_sharpe": -1.6430119514914323,
+            "n_obs": 92,
+            "bootstrap_by_block_len": {
+              "10": {
+                "mean": -1.5659704807184918,
+                "std": 1.3388313486980572,
+                "ci90": [
+                  -3.59328879293756,
+                  0.7624228784138217
+                ]
+              },
+              "20": {
+                "mean": -1.548126015748545,
+                "std": 1.078462679581323,
+                "ci90": [
+                  -3.1887432102897115,
+                  0.3049704087286907
+                ]
+              },
+              "40": {
+                "mean": -1.626828089691764,
+                "std": 0.8375772446200848,
+                "ci90": [
+                  -2.866990633878075,
+                  -0.12804160488060654
+                ]
+              }
+            }
+          },
+          "correction_2015_2016": {
+            "point_sharpe": -1.8924526768956471,
+            "n_obs": 135,
+            "bootstrap_by_block_len": {
+              "10": {
+                "mean": -1.8636555514065927,
+                "std": 1.0785256466029878,
+                "ci90": [
+                  -3.5925441340311908,
+                  -0.04962445380334731
+                ]
+              },
+              "20": {
+                "mean": -1.8410524646030335,
+                "std": 0.8555369430035472,
+                "ci90": [
+                  -3.1214021738212794,
+                  -0.3605462932121179
+                ]
+              },
+              "40": {
+                "mean": -1.855184054346671,
+                "std": 0.7583270871518685,
+                "ci90": [
+                  -2.947962426993916,
+                  -0.5401512562173575
+                ]
+              }
+            }
+          }
+        },
+        "combined_dirichlet_x_bootstrap": {
+          "base": {
+            "win_rate_collar": 0.5579,
+            "mean_gap": 0.07056000361744216,
+            "ci90_gap": [
+              -0.7148232221394621,
+              0.8926799937934452
+            ],
+            "mean_ev_collar": -0.006921615619445859,
+            "mean_ev_unhedged": -0.07748161923688802
+          },
+          "calm_heavy": {
+            "win_rate_collar": 0.534,
+            "mean_gap": 0.035808986058581446,
+            "ci90_gap": [
+              -0.6678249831219336,
+              0.7353194821423993
+            ],
+            "mean_ev_collar": 0.25692012019300486,
+            "mean_ev_unhedged": 0.2211111341344234
+          },
+          "crisis_heavy": {
+            "win_rate_collar": 0.5708,
+            "mean_gap": 0.10019027273082377,
+            "ci90_gap": [
+              -0.8117980775297281,
+              1.019245419436887
+            ],
+            "mean_ev_collar": -0.20989507598548676,
+            "mean_ev_unhedged": -0.31008534871631055
+          }
+        }
+      },
+      "wider_call_10pct": {
+        "params": {
+          "put_moneyness": 1.0,
+          "call_moneyness": 1.1,
+          "tenor_days": 21
+        },
+        "by_episode": {
+          "full_2019_2026": {
+            "point_sharpe": 0.8985228751203409,
+            "n_obs": 1764,
+            "bootstrap_by_block_len": {
+              "10": {
+                "mean": 0.9025668867231129,
+                "std": 0.34368539748531535,
+                "ci90": [
+                  0.31788894252074545,
+                  1.4642960310561028
+                ]
+              },
+              "20": {
+                "mean": 0.9030254994857978,
+                "std": 0.319674223730494,
+                "ci90": [
+                  0.3723702283256019,
+                  1.4149136885453688
+                ]
+              },
+              "40": {
+                "mean": 0.914276962359364,
+                "std": 0.297480607955381,
+                "ci90": [
+                  0.41087789213944964,
+                  1.40134220933243
+                ]
+              }
+            }
+          },
+          "gfc_2008": {
+            "point_sharpe": 0.18880335560020203,
+            "n_obs": 441,
+            "bootstrap_by_block_len": {
+              "10": {
+                "mean": 0.16838123578081782,
+                "std": 0.7392447075835291,
+                "ci90": [
+                  -1.0096838667383021,
+                  1.408240041380134
+                ]
+              },
+              "20": {
+                "mean": 0.21262127190468685,
+                "std": 0.7392647952609324,
+                "ci90": [
+                  -0.9283892035020505,
+                  1.4668989401861008
+                ]
+              },
+              "40": {
+                "mean": 0.19532835573309548,
+                "std": 0.6023394261631133,
+                "ci90": [
+                  -0.7340070410221953,
+                  1.232158216537109
+                ]
+              }
+            }
+          },
+          "covid_2020": {
+            "point_sharpe": 0.1303009375454409,
+            "n_obs": 51,
+            "bootstrap_by_block_len": {
+              "10": {
+                "mean": 0.24077207342917803,
+                "std": 2.6939451015604186,
+                "ci90": [
+                  -3.94060659608705,
+                  4.974128669418633
+                ]
+              },
+              "20": {
+                "mean": 0.4145640988782376,
+                "std": 2.7846305023570475,
+                "ci90": [
+                  -3.700456654262245,
+                  5.803901548332158
+                ]
+              },
+              "40": {
+                "mean": 0.21560729112946977,
+                "std": 1.6759019965077468,
+                "ci90": [
+                  -2.367644182079295,
+                  3.2266786463111248
+                ]
+              }
+            }
+          },
+          "bear_2022": {
+            "point_sharpe": 0.33478688135218154,
+            "n_obs": 251,
+            "bootstrap_by_block_len": {
+              "10": {
+                "mean": 0.34673291537226303,
+                "std": 0.8662037907754518,
+                "ci90": [
+                  -1.1177603688129074,
+                  1.7585246436553237
+                ]
+              },
+              "20": {
+                "mean": 0.3603321696392797,
+                "std": 0.7823567449181209,
+                "ci90": [
+                  -0.9507766592481405,
+                  1.685603609637436
+                ]
+              },
+              "40": {
+                "mean": 0.328753324241304,
+                "std": 0.6844969080576208,
+                "ci90": [
+                  -0.7523550149844607,
+                  1.5131595406706344
+                ]
+              }
+            }
+          },
+          "selloff_2018": {
+            "point_sharpe": -1.5723827764327185,
+            "n_obs": 92,
+            "bootstrap_by_block_len": {
+              "10": {
+                "mean": -1.5548865841102852,
+                "std": 1.3684114623415506,
+                "ci90": [
+                  -3.713233419549247,
+                  0.6877949632017047
+                ]
+              },
+              "20": {
+                "mean": -1.5218951744536608,
+                "std": 1.0621749066519208,
+                "ci90": [
+                  -3.1504339151755336,
+                  0.26431896432109314
+                ]
+              },
+              "40": {
+                "mean": -1.5359694542812266,
+                "std": 0.8072128285182744,
+                "ci90": [
+                  -2.7491285609411658,
+                  -0.08662505613827853
+                ]
+              }
+            }
+          },
+          "correction_2015_2016": {
+            "point_sharpe": -1.861057377537195,
+            "n_obs": 135,
+            "bootstrap_by_block_len": {
+              "10": {
+                "mean": -1.7939015927454691,
+                "std": 1.0589307439853572,
+                "ci90": [
+                  -3.5363274796007715,
+                  0.010582321576507679
+                ]
+              },
+              "20": {
+                "mean": -1.8243084180297406,
+                "std": 0.840064704179784,
+                "ci90": [
+                  -3.1190515768610863,
+                  -0.4019975249619909
+                ]
+              },
+              "40": {
+                "mean": -1.8558187804673463,
+                "std": 0.709407757684549,
+                "ci90": [
+                  -2.886384083083081,
+                  -0.5797264320123149
+                ]
+              }
+            }
+          }
+        },
+        "combined_dirichlet_x_bootstrap": {
+          "base": {
+            "win_rate_collar": 0.5259,
+            "mean_gap": 0.03394831288582858,
+            "ci90_gap": [
+              -0.752720286131321,
+              0.8232884633769085
+            ],
+            "mean_ev_collar": -0.04413311910191895,
+            "mean_ev_unhedged": -0.07808143198774753
+          },
+          "calm_heavy": {
+            "win_rate_collar": 0.4767,
+            "mean_gap": -0.01871890601772467,
+            "ci90_gap": [
+              -0.7036036233456355,
+              0.6782364797402812
+            ],
+            "mean_ev_collar": 0.2079976372465273,
+            "mean_ev_unhedged": 0.22671654326425195
+          },
+          "crisis_heavy": {
+            "win_rate_collar": 0.5543,
+            "mean_gap": 0.08182208144546504,
+            "ci90_gap": [
+              -0.8127484178884001,
+              0.9985754833710138
+            ],
+            "mean_ev_collar": -0.23003495491978324,
+            "mean_ev_unhedged": -0.3118570363652483
+          }
+        }
+      },
+      "quarterly_tenor_63d": {
+        "params": {
+          "put_moneyness": 1.0,
+          "call_moneyness": 1.05,
+          "tenor_days": 63
+        },
+        "by_episode": {
+          "full_2019_2026": {
+            "point_sharpe": 0.7129140503779566,
+            "n_obs": 1764,
+            "bootstrap_by_block_len": {
+              "10": {
+                "mean": 0.7119767104745869,
+                "std": 0.3385340354663534,
+                "ci90": [
+                  0.1606356850193925,
+                  1.2762923459428719
+                ]
+              },
+              "20": {
+                "mean": 0.7066279836400425,
+                "std": 0.3228717259572836,
+                "ci90": [
+                  0.1839082455453097,
+                  1.2300153430238556
+                ]
+              },
+              "40": {
+                "mean": 0.7189041094019241,
+                "std": 0.29498543628190327,
+                "ci90": [
+                  0.23051029068877066,
+                  1.196845959709622
+                ]
+              }
+            }
+          },
+          "gfc_2008": {
+            "point_sharpe": 0.621035038323607,
+            "n_obs": 441,
+            "bootstrap_by_block_len": {
+              "10": {
+                "mean": 0.6148181728724312,
+                "std": 0.7082480192779322,
+                "ci90": [
+                  -0.552923197600079,
+                  1.72437540579659
+                ]
+              },
+              "20": {
+                "mean": 0.6094308377526176,
+                "std": 0.7341040261803582,
+                "ci90": [
+                  -0.5651817474326876,
+                  1.860406603777059
+                ]
+              },
+              "40": {
+                "mean": 0.619545964432379,
+                "std": 0.6698505047978647,
+                "ci90": [
+                  -0.41821824929094087,
+                  1.8223621366284668
+                ]
+              }
+            }
+          },
+          "covid_2020": {
+            "point_sharpe": 0.3505977106751785,
+            "n_obs": 51,
+            "bootstrap_by_block_len": {
+              "10": {
+                "mean": 0.3219815252379451,
+                "std": 2.4906319669000796,
+                "ci90": [
+                  -3.887751929401912,
+                  4.630832007353617
+                ]
+              },
+              "20": {
+                "mean": 0.4180128967446194,
+                "std": 2.563728460353018,
+                "ci90": [
+                  -3.8594038203186556,
+                  4.868198413759546
+                ]
+              },
+              "40": {
+                "mean": 0.3419127057127846,
+                "std": 1.6193218762795034,
+                "ci90": [
+                  -2.4602672386639206,
+                  3.0436174284185813
+                ]
+              }
+            }
+          },
+          "bear_2022": {
+            "point_sharpe": 0.7180590456842613,
+            "n_obs": 251,
+            "bootstrap_by_block_len": {
+              "10": {
+                "mean": 0.716052702364045,
+                "std": 0.9305508302654051,
+                "ci90": [
+                  -0.8353124493596586,
+                  2.252245561576302
+                ]
+              },
+              "20": {
+                "mean": 0.7307637337895585,
+                "std": 0.8288168555881948,
+                "ci90": [
+                  -0.6278553421100833,
+                  2.105696107696449
+                ]
+              },
+              "40": {
+                "mean": 0.7281655147946389,
+                "std": 0.6868086306794274,
+                "ci90": [
+                  -0.38850115083426806,
+                  1.900546880596378
+                ]
+              }
+            }
+          },
+          "selloff_2018": {
+            "point_sharpe": -1.490407452869135,
+            "n_obs": 92,
+            "bootstrap_by_block_len": {
+              "10": {
+                "mean": -1.427793026210093,
+                "std": 1.4283195887403277,
+                "ci90": [
+                  -3.633718050908412,
+                  0.952276747620497
+                ]
+              },
+              "20": {
+                "mean": -1.4093557866592596,
+                "std": 1.101963755942544,
+                "ci90": [
+                  -3.0984982845346805,
+                  0.49845019465124607
+                ]
+              },
+              "40": {
+                "mean": -1.4163268085823078,
+                "std": 0.8732624847153222,
+                "ci90": [
+                  -2.780125659505334,
+                  0.12133645653645059
+                ]
+              }
+            }
+          },
+          "correction_2015_2016": {
+            "point_sharpe": -1.7616015155767566,
+            "n_obs": 135,
+            "bootstrap_by_block_len": {
+              "10": {
+                "mean": -1.7672674274255338,
+                "std": 1.0971278997799252,
+                "ci90": [
+                  -3.513239697902306,
+                  0.10557385623302064
+                ]
+              },
+              "20": {
+                "mean": -1.7137062627306077,
+                "std": 0.9227572609466423,
+                "ci90": [
+                  -3.1937064248102907,
+                  -0.1114114976606348
+                ]
+              },
+              "40": {
+                "mean": -1.7400911186784018,
+                "std": 0.7707786908485833,
+                "ci90": [
+                  -2.817670270334513,
+                  -0.3449815253752526
+                ]
+              }
+            }
+          }
+        },
+        "combined_dirichlet_x_bootstrap": {
+          "base": {
+            "win_rate_collar": 0.5001,
+            "mean_gap": 0.01032033107702028,
+            "ci90_gap": [
+              -0.7779301269285082,
+              0.8165209778693836
+            ],
+            "mean_ev_collar": -0.05344428931305157,
+            "mean_ev_unhedged": -0.06376462039007186
+          },
+          "calm_heavy": {
+            "win_rate_collar": 0.4222,
+            "mean_gap": -0.08299642045112487,
+            "ci90_gap": [
+              -0.7984401849377413,
+              0.6448895955721137
+            ],
+            "mean_ev_collar": 0.13315227893137827,
+            "mean_ev_unhedged": 0.21614869938250314
+          },
+          "crisis_heavy": {
+            "win_rate_collar": 0.5975,
+            "mean_gap": 0.13168427165020016,
+            "ci90_gap": [
+              -0.7986667067659521,
+              1.0615632696366752
+            ],
+            "mean_ev_collar": -0.17817886300093116,
+            "mean_ev_unhedged": -0.30986313465113136
+          }
+        }
+      },
+      "bimonthly_tenor_42d": {
+        "params": {
+          "put_moneyness": 1.0,
+          "call_moneyness": 1.05,
+          "tenor_days": 42
+        },
+        "by_episode": {
+          "full_2019_2026": {
+            "point_sharpe": 0.831109880814409,
+            "n_obs": 1764,
+            "bootstrap_by_block_len": {
+              "10": {
+                "mean": 0.8566879055242559,
+                "std": 0.34250331327009476,
+                "ci90": [
+                  0.3002258785544116,
+                  1.4033042950568912
+                ]
+              },
+              "20": {
+                "mean": 0.854639165686349,
+                "std": 0.3287194053071696,
+                "ci90": [
+                  0.3406159562144668,
+                  1.4029175528387376
+                ]
+              },
+              "40": {
+                "mean": 0.8404299303650677,
+                "std": 0.3029735261570189,
+                "ci90": [
+                  0.34744807563630853,
+                  1.354880724812663
+                ]
+              }
+            }
+          },
+          "gfc_2008": {
+            "point_sharpe": 0.39056307520447736,
+            "n_obs": 441,
+            "bootstrap_by_block_len": {
+              "10": {
+                "mean": 0.33435566429803026,
+                "std": 0.7473471345402538,
+                "ci90": [
+                  -0.881086708995305,
+                  1.581858845706706
+                ]
+              },
+              "20": {
+                "mean": 0.3785465707527543,
+                "std": 0.7653338261842236,
+                "ci90": [
+                  -0.9006267290883275,
+                  1.6131200444024707
+                ]
+              },
+              "40": {
+                "mean": 0.384666725416235,
+                "std": 0.6673025908086834,
+                "ci90": [
+                  -0.6884815422754987,
+                  1.529762217721101
+                ]
+              }
+            }
+          },
+          "covid_2020": {
+            "point_sharpe": 0.7998090971118413,
+            "n_obs": 51,
+            "bootstrap_by_block_len": {
+              "10": {
+                "mean": 0.8436789666958712,
+                "std": 2.3402134107827814,
+                "ci90": [
+                  -2.996512471739792,
+                  4.78398364057559
+                ]
+              },
+              "20": {
+                "mean": 0.8792189319288978,
+                "std": 2.4161109206717164,
+                "ci90": [
+                  -3.154255024421257,
+                  4.99164920097949
+                ]
+              },
+              "40": {
+                "mean": 0.8011814895026949,
+                "std": 1.537565060535422,
+                "ci90": [
+                  -1.819614315294947,
+                  3.391840975327077
+                ]
+              }
+            }
+          },
+          "bear_2022": {
+            "point_sharpe": 0.49551966588545965,
+            "n_obs": 251,
+            "bootstrap_by_block_len": {
+              "10": {
+                "mean": 0.5087582915286754,
+                "std": 0.9311824656818818,
+                "ci90": [
+                  -0.9567999161109196,
+                  2.099555702810621
+                ]
+              },
+              "20": {
+                "mean": 0.5476576528038191,
+                "std": 0.8172004749854102,
+                "ci90": [
+                  -0.7794131114391692,
+                  1.8946535753742126
+                ]
+              },
+              "40": {
+                "mean": 0.48691368585256356,
+                "std": 0.6810196132443063,
+                "ci90": [
+                  -0.5834561631372372,
+                  1.6459541705758813
+                ]
+              }
+            }
+          },
+          "selloff_2018": {
+            "point_sharpe": -1.5063480506603586,
+            "n_obs": 92,
+            "bootstrap_by_block_len": {
+              "10": {
+                "mean": -1.5161107069262467,
+                "std": 1.3761996772170604,
+                "ci90": [
+                  -3.701137631616508,
+                  0.7822946858775538
+                ]
+              },
+              "20": {
+                "mean": -1.392085249422561,
+                "std": 1.0720189040401185,
+                "ci90": [
+                  -3.076117038041878,
+                  0.47669413647666065
+                ]
+              },
+              "40": {
+                "mean": -1.4764215156585807,
+                "std": 0.7863456030159799,
+                "ci90": [
+                  -2.718373190635163,
+                  -0.12345843753789722
+                ]
+              }
+            }
+          },
+          "correction_2015_2016": {
+            "point_sharpe": -1.7472167658166213,
+            "n_obs": 135,
+            "bootstrap_by_block_len": {
+              "10": {
+                "mean": -1.7099695368816292,
+                "std": 1.1173521881505983,
+                "ci90": [
+                  -3.435634882123616,
+                  0.1857968787646289
+                ]
+              },
+              "20": {
+                "mean": -1.662187879815935,
+                "std": 0.9212393864903939,
+                "ci90": [
+                  -3.054802465362938,
+                  -0.09018743697386772
+                ]
+              },
+              "40": {
+                "mean": -1.7068965244509757,
+                "std": 0.7284610419347584,
+                "ci90": [
+                  -2.742045792306268,
+                  -0.3475830158376724
+                ]
+              }
+            }
+          }
+        },
+        "combined_dirichlet_x_bootstrap": {
+          "base": {
+            "win_rate_collar": 0.5884,
+            "mean_gap": 0.10130921354205047,
+            "ci90_gap": [
+              -0.6777069325633726,
+              0.8872780068402419
+            ],
+            "mean_ev_collar": 0.02634227678912439,
+            "mean_ev_unhedged": -0.07496693675292608
+          },
+          "calm_heavy": {
+            "win_rate_collar": 0.5075,
+            "mean_gap": 0.010132576068243773,
+            "ci90_gap": [
+              -0.704621178273013,
+              0.729747370406731
+            ],
+            "mean_ev_collar": 0.22819092124224843,
+            "mean_ev_unhedged": 0.21805834517400466
+          },
+          "crisis_heavy": {
+            "win_rate_collar": 0.6406,
+            "mean_gap": 0.18961151922950137,
+            "ci90_gap": [
+              -0.7321511499266974,
+              1.0988881421492798
+            ],
+            "mean_ev_collar": -0.11979563992181685,
+            "mean_ev_unhedged": -0.3094071591513182
+          }
+        }
+      }
+    }
+  }
+}

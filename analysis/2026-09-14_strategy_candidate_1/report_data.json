@@ -1,0 +1,1034 @@
+{
+  "meta": {
+    "generated": "2026-09-14",
+    "round": 1,
+    "period": {
+      "start": "2019-08-12",
+      "end": "2026-09-11"
+    },
+    "seed": 20260914,
+    "n_permutations": 200,
+    "n_boot": 1500,
+    "block_lengths": [
+      10,
+      20,
+      40
+    ]
+  },
+  "candidate_1_core_only": {
+    "label": "코어 단독 (챔피언 코어 기본값 그대로, 새틀라이트 제외)",
+    "start": "2019-08-12",
+    "end": "2026-09-10",
+    "metrics": {
+      "cumulative_return": 146.12,
+      "cagr": 13.57,
+      "mdd": -17.74,
+      "sharpe": 1.06,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.76,
+      "avg_drawdown_days": 20.5
+    },
+    "trades": {
+      "total_trades": 189,
+      "n_rebalance_events": 63,
+      "per_event": [
+        {
+          "date": "2019-08-12",
+          "n_tickers_traded": 4
+        },
+        {
+          "date": "2019-09-03",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2019-11-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2019-12-02",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2020-01-02",
+          "n_tickers_traded": 4
+        },
+        {
+          "date": "2020-02-03",
+          "n_tickers_traded": 6
+        },
+        {
+          "date": "2020-03-02",
+          "n_tickers_traded": 5
+        },
+        {
+          "date": "2020-06-01",
+          "n_tickers_traded": 5
+        },
+        {
+          "date": "2020-07-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2020-08-03",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2020-09-01",
+          "n_tickers_traded": 4
+        },
+        {
+          "date": "2021-02-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2021-04-01",
+          "n_tickers_traded": 4
+        },
+        {
+          "date": "2021-05-03",
+          "n_tickers_traded": 4
+        },
+        {
+          "date": "2021-07-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2021-09-01",
+          "n_tickers_traded": 4
+        },
+        {
+          "date": "2021-10-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2021-11-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2022-01-03",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2022-02-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2022-03-01",
+          "n_tickers_traded": 5
+        },
+        {
+          "date": "2022-04-01",
+          "n_tickers_traded": 5
+        },
+        {
+          "date": "2022-05-02",
+          "n_tickers_traded": 5
+        },
+        {
+          "date": "2022-06-01",
+          "n_tickers_traded": 4
+        },
+        {
+          "date": "2022-07-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2022-10-03",
+          "n_tickers_traded": 1
+        },
+        {
+          "date": "2022-11-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2022-12-01",
+          "n_tickers_traded": 4
+        },
+        {
+          "date": "2023-01-03",
+          "n_tickers_traded": 4
+        },
+        {
+          "date": "2023-02-01",
+          "n_tickers_traded": 4
+        },
+        {
+          "date": "2023-03-01",
+          "n_tickers_traded": 3
+        },
+        {
+          "date": "2023-04-03",
+          "n_tickers_traded": 3
+        },
+        {
+          "date": "2023-05-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2023-06-01",
+          "n_tickers_traded": 4
+        },
+        {
+          "date": "2023-07-03",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2023-08-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2023-09-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2023-10-02",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2023-11-01",
+          "n_tickers_traded": 5
+        },
+        {
+          "date": "2023-12-01",
+          "n_tickers_traded": 5
+        },
+        {
+          "date": "2024-01-02",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2024-04-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2024-05-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2024-07-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2024-10-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2024-11-01",
+          "n_tickers_traded": 4
+        },
+        {
+          "date": "2024-12-02",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2025-01-02",
+          "n_tickers_traded": 4
+        },
+        {
+          "date": "2025-03-03",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2025-04-01",
+          "n_tickers_traded": 4
+        },
+        {
+          "date": "2025-06-02",
+          "n_tickers_traded": 5
+        },
+        {
+          "date": "2025-07-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2025-08-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2025-09-02",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2025-10-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2025-11-03",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2025-12-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2026-02-02",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2026-03-02",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2026-04-01",
+          "n_tickers_traded": 6
+        },
+        {
+          "date": "2026-05-01",
+          "n_tickers_traded": 4
+        },
+        {
+          "date": "2026-07-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2026-08-03",
+          "n_tickers_traded": 2
+        }
+      ]
+    },
+    "trades_per_month": 2.224
+  },
+  "candidate_2_core_satellite": {
+    "label": "코어+새틀라이트 (챔피언 기본값 그대로, 15% 반기 새틀라이트 포함)",
+    "start": "2019-08-12",
+    "end": "2026-09-11",
+    "metrics": {
+      "cumulative_return": 196.42,
+      "cagr": 16.59,
+      "mdd": -18.45,
+      "sharpe": 1.15,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.9,
+      "avg_drawdown_days": 18.2
+    },
+    "core_trades": {
+      "total_trades": 189,
+      "n_rebalance_events": 63,
+      "per_event": [
+        {
+          "date": "2019-08-12",
+          "n_tickers_traded": 4
+        },
+        {
+          "date": "2019-09-03",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2019-11-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2019-12-02",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2020-01-02",
+          "n_tickers_traded": 4
+        },
+        {
+          "date": "2020-02-03",
+          "n_tickers_traded": 6
+        },
+        {
+          "date": "2020-03-02",
+          "n_tickers_traded": 5
+        },
+        {
+          "date": "2020-06-01",
+          "n_tickers_traded": 5
+        },
+        {
+          "date": "2020-07-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2020-08-03",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2020-09-01",
+          "n_tickers_traded": 4
+        },
+        {
+          "date": "2021-02-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2021-04-01",
+          "n_tickers_traded": 4
+        },
+        {
+          "date": "2021-05-03",
+          "n_tickers_traded": 4
+        },
+        {
+          "date": "2021-07-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2021-09-01",
+          "n_tickers_traded": 4
+        },
+        {
+          "date": "2021-10-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2021-11-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2022-01-03",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2022-02-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2022-03-01",
+          "n_tickers_traded": 5
+        },
+        {
+          "date": "2022-04-01",
+          "n_tickers_traded": 5
+        },
+        {
+          "date": "2022-05-02",
+          "n_tickers_traded": 5
+        },
+        {
+          "date": "2022-06-01",
+          "n_tickers_traded": 4
+        },
+        {
+          "date": "2022-07-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2022-10-03",
+          "n_tickers_traded": 1
+        },
+        {
+          "date": "2022-11-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2022-12-01",
+          "n_tickers_traded": 4
+        },
+        {
+          "date": "2023-01-03",
+          "n_tickers_traded": 4
+        },
+        {
+          "date": "2023-02-01",
+          "n_tickers_traded": 4
+        },
+        {
+          "date": "2023-03-01",
+          "n_tickers_traded": 3
+        },
+        {
+          "date": "2023-04-03",
+          "n_tickers_traded": 3
+        },
+        {
+          "date": "2023-05-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2023-06-01",
+          "n_tickers_traded": 4
+        },
+        {
+          "date": "2023-07-03",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2023-08-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2023-09-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2023-10-02",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2023-11-01",
+          "n_tickers_traded": 5
+        },
+        {
+          "date": "2023-12-01",
+          "n_tickers_traded": 5
+        },
+        {
+          "date": "2024-01-02",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2024-04-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2024-05-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2024-07-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2024-10-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2024-11-01",
+          "n_tickers_traded": 4
+        },
+        {
+          "date": "2024-12-02",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2025-01-02",
+          "n_tickers_traded": 4
+        },
+        {
+          "date": "2025-03-03",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2025-04-01",
+          "n_tickers_traded": 4
+        },
+        {
+          "date": "2025-06-02",
+          "n_tickers_traded": 5
+        },
+        {
+          "date": "2025-07-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2025-08-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2025-09-02",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2025-10-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2025-11-03",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2025-12-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2026-02-02",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2026-03-02",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2026-04-01",
+          "n_tickers_traded": 6
+        },
+        {
+          "date": "2026-05-01",
+          "n_tickers_traded": 4
+        },
+        {
+          "date": "2026-07-01",
+          "n_tickers_traded": 2
+        },
+        {
+          "date": "2026-08-03",
+          "n_tickers_traded": 2
+        }
+      ]
+    },
+    "satellite_trades": {
+      "total_trades": 55,
+      "n_rebalance_events": 14,
+      "per_event": [
+        {
+          "date": "2020-01-02",
+          "n_tickers_traded": 3,
+          "picks": [
+            "AAPL",
+            "MSFT",
+            "PLD"
+          ]
+        },
+        {
+          "date": "2020-07-01",
+          "n_tickers_traded": 4,
+          "picks": [
+            "NVDA",
+            "AAPL",
+            "MKTX"
+          ]
+        },
+        {
+          "date": "2021-01-04",
+          "n_tickers_traded": 2,
+          "picks": [
+            "TSLA",
+            "NVDA",
+            "AAPL"
+          ]
+        },
+        {
+          "date": "2021-07-01",
+          "n_tickers_traded": 2,
+          "picks": [
+            "TSLA",
+            "NVDA",
+            "ETSY"
+          ]
+        },
+        {
+          "date": "2022-01-03",
+          "n_tickers_traded": 6,
+          "picks": [
+            "COP",
+            "PLD",
+            "GOOGL"
+          ]
+        },
+        {
+          "date": "2022-07-01",
+          "n_tickers_traded": 6,
+          "picks": [
+            "LLY",
+            "UNH",
+            "SO"
+          ]
+        },
+        {
+          "date": "2023-01-03",
+          "n_tickers_traded": 4,
+          "picks": [
+            "XOM",
+            "CVX",
+            "LLY"
+          ]
+        },
+        {
+          "date": "2023-07-03",
+          "n_tickers_traded": 6,
+          "picks": [
+            "NVDA",
+            "NFLX",
+            "AVGO"
+          ]
+        },
+        {
+          "date": "2024-01-02",
+          "n_tickers_traded": 4,
+          "picks": [
+            "NVDA",
+            "META",
+            "TSLA"
+          ]
+        },
+        {
+          "date": "2024-07-01",
+          "n_tickers_traded": 4,
+          "picks": [
+            "NVDA",
+            "LLY",
+            "AVGO"
+          ]
+        },
+        {
+          "date": "2025-01-02",
+          "n_tickers_traded": 2,
+          "picks": [
+            "NVDA",
+            "AVGO",
+            "NFLX"
+          ]
+        },
+        {
+          "date": "2025-07-01",
+          "n_tickers_traded": 2,
+          "picks": [
+            "NFLX",
+            "AVGO",
+            "GE"
+          ]
+        },
+        {
+          "date": "2026-01-02",
+          "n_tickers_traded": 4,
+          "picks": [
+            "NEM",
+            "GE",
+            "GOOGL"
+          ]
+        },
+        {
+          "date": "2026-07-01",
+          "n_tickers_traded": 6,
+          "picks": [
+            "CAT",
+            "GEV",
+            "JNJ"
+          ]
+        }
+      ]
+    },
+    "total_trades": 244,
+    "trades_per_month": 2.872
+  },
+  "spy_buyhold": {
+    "metrics": {
+      "cumulative_return": 163.07,
+      "cagr": 14.64,
+      "mdd": -34.1,
+      "sharpe": 0.79,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.43,
+      "avg_drawdown_days": 16.9
+    }
+  },
+  "n_months_in_period": 84.96,
+  "permutation_test_candidate_1": {
+    "actual_sharpe": 1.06,
+    "permuted_sharpes": [
+      0.79,
+      0.75,
+      0.88,
+      1.26,
+      0.51,
+      0.39,
+      0.41,
+      0.76,
+      0.49,
+      0.39,
+      0.81,
+      0.72,
+      0.63,
+      0.57,
+      0.71,
+      0.6,
+      0.67,
+      1.12,
+      0.81,
+      0.71,
+      0.48,
+      0.56,
+      0.71,
+      0.29,
+      0.59,
+      0.55,
+      0.49,
+      0.47,
+      0.52,
+      0.64,
+      0.68,
+      0.88,
+      0.52,
+      0.5,
+      0.55,
+      0.58,
+      0.59,
+      0.52,
+      0.77,
+      0.48,
+      0.5,
+      0.61,
+      0.5,
+      0.79,
+      0.71,
+      0.33,
+      0.97,
+      0.43,
+      0.48,
+      0.77,
+      0.56,
+      0.28,
+      0.89,
+      0.73,
+      0.54,
+      0.59,
+      0.43,
+      0.48,
+      0.98,
+      0.71,
+      0.74,
+      0.85,
+      0.66,
+      0.77,
+      0.66,
+      0.48,
+      0.79,
+      0.44,
+      0.71,
+      0.65,
+      1.0,
+      0.57,
+      0.42,
+      0.25,
+      0.78,
+      0.67,
+      0.58,
+      0.62,
+      0.76,
+      0.74,
+      0.49,
+      0.4,
+      0.61,
+      0.52,
+      0.8,
+      0.48,
+      0.49,
+      0.6,
+      0.58,
+      0.61,
+      0.47,
+      0.38,
+      0.55,
+      0.69,
+      0.64,
+      0.8,
+      0.67,
+      0.47,
+      0.61,
+      0.75,
+      0.63,
+      0.64,
+      0.62,
+      0.49,
+      0.35,
+      0.48,
+      0.52,
+      0.36,
+      0.38,
+      0.64,
+      0.73,
+      0.5,
+      0.68,
+      0.79,
+      0.69,
+      0.72,
+      0.64,
+      0.65,
+      0.58,
+      0.65,
+      0.4,
+      0.56,
+      0.62,
+      0.51,
+      0.45,
+      0.62,
+      0.59,
+      0.65,
+      0.68,
+      0.43,
+      0.58,
+      0.46,
+      0.71,
+      0.38,
+      0.57,
+      0.58,
+      0.62,
+      0.57,
+      0.46,
+      0.38,
+      0.52,
+      0.39,
+      0.42,
+      0.73,
+      0.58,
+      0.7,
+      0.82,
+      0.48,
+      0.67,
+      0.61,
+      0.75,
+      0.41,
+      0.76,
+      0.74,
+      0.66,
+      0.08,
+      0.56,
+      0.6,
+      0.47,
+      0.74,
+      0.74,
+      0.77,
+      0.65,
+      0.86,
+      0.67,
+      0.73,
+      0.49,
+      0.66,
+      0.76,
+      0.63,
+      0.55,
+      0.57,
+      0.66,
+      0.62,
+      0.9,
+      0.51,
+      0.59,
+      0.64,
+      0.55,
+      0.6,
+      0.45,
+      0.51,
+      0.63,
+      0.41,
+      0.64,
+      0.56,
+      0.37,
+      0.54,
+      0.63,
+      0.45,
+      1.01,
+      0.18,
+      1.02,
+      0.71,
+      0.53,
+      0.63,
+      0.29,
+      0.66,
+      0.58,
+      0.49
+    ],
+    "permuted_mean": 0.6053,
+    "permuted_std": 0.1638,
+    "percentile": 99.0,
+    "p_value": 0.0149,
+    "n_permutations": 200,
+    "methodology": "작업21(No.06) 방법론 재구현 — 매달 상위4개 모멘텀 랭킹 대신 양(+)모멘텀 후보 중 무작위 4개를 뽑되 시장필터/비용모델/리밸런싱 스케줄은 실제 후보1과 완전히 동일하게 유지."
+  },
+  "bootstrap_audit": {
+    "by_config": {
+      "candidate_1_core_only": {
+        "n_obs": 1780,
+        "point_estimate_sharpe": 1.0576769926147667,
+        "bootstrap_by_block_len": {
+          "10": {
+            "n_boot_valid": 1500,
+            "mean": 1.0587289740051387,
+            "std": 0.34095458833779113,
+            "ci90": [
+              0.4921397084748943,
+              1.6267627989526101
+            ]
+          },
+          "20": {
+            "n_boot_valid": 1500,
+            "mean": 1.05339218254678,
+            "std": 0.323138479019807,
+            "ci90": [
+              0.5232268522632441,
+              1.5858399867762358
+            ]
+          },
+          "40": {
+            "n_boot_valid": 1500,
+            "mean": 1.0621055867522962,
+            "std": 0.29320081340998605,
+            "ci90": [
+              0.5844264051193814,
+              1.5457858222297396
+            ]
+          }
+        }
+      },
+      "candidate_2_core_satellite": {
+        "n_obs": 1780,
+        "point_estimate_sharpe": 1.1504439353629354,
+        "bootstrap_by_block_len": {
+          "10": {
+            "n_boot_valid": 1500,
+            "mean": 1.1714418911980227,
+            "std": 0.3439284005353272,
+            "ci90": [
+              0.6218295215164183,
+              1.7298305733625767
+            ]
+          },
+          "20": {
+            "n_boot_valid": 1500,
+            "mean": 1.1528415324601697,
+            "std": 0.3333020725730094,
+            "ci90": [
+              0.614868479774323,
+              1.7148262031815613
+            ]
+          },
+          "40": {
+            "n_boot_valid": 1500,
+            "mean": 1.1548905842973585,
+            "std": 0.3072421948621646,
+            "ci90": [
+              0.6413628601453789,
+              1.652067987725826
+            ]
+          }
+        }
+      },
+      "spy_buyhold": {
+        "n_obs": 1780,
+        "point_estimate_sharpe": 0.7913417035839891,
+        "bootstrap_by_block_len": {
+          "10": {
+            "n_boot_valid": 1500,
+            "mean": 0.8232596594055801,
+            "std": 0.3685716810035359,
+            "ci90": [
+              0.21488022185164501,
+              1.4278965148946865
+            ]
+          },
+          "20": {
+            "n_boot_valid": 1500,
+            "mean": 0.8297535912085089,
+            "std": 0.3725028655114571,
+            "ci90": [
+              0.24848641404871927,
+              1.4610859767238333
+            ]
+          },
+          "40": {
+            "n_boot_valid": 1500,
+            "mean": 0.8244760355868402,
+            "std": 0.36588862718251713,
+            "ci90": [
+              0.24873044035608205,
+              1.443827190366165
+            ]
+          }
+        }
+      }
+    },
+    "candidate2_vs_candidate1_win_rate_L20": 0.5806666666666667
+  },
+  "total_runtime_sec": 1816.2
+}

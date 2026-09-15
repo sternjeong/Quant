@@ -1,0 +1,381 @@
+{
+  "claims": [
+    {
+      "id": "momentum_ranking_vs_random",
+      "label": "모멘텀 랭킹 방식(12개월) — 무작위 선택 대비",
+      "program_grade": "moderate",
+      "method": "permutation test, N=200 reshuffle (작업21 5라운드)",
+      "p_or_implied": 0.025,
+      "note": "97.5th percentile ≈ p=0.025. 이것이 이 프로그램 전체에서 가장 강한 '정식' 유의성 근거."
+    },
+    {
+      "id": "momentum_ranking_12m_vs_9m",
+      "label": "모멘텀 랭킹 12개월 vs 9개월 lookback",
+      "program_grade": "moderate(위 결론의 강건성 체크)",
+      "method": "H30 몬테카를로 민감도, win_rate=0.555",
+      "p_or_implied": 0.4449,
+      "note": "동전던지기에 가까움 — 같은 '모멘텀 랭킹' 결론의 파라미터 선택 자체가 이미 약함."
+    },
+    {
+      "id": "rebalance_monthly_vs_quarterly",
+      "label": "리밸런싱 주기(월간 vs 분기)",
+      "program_grade": "weak",
+      "method": "H34 결합전파(가중치+표본오차) win_rate=0.496",
+      "p_or_implied": 0.504,
+      "note": "부호조차 방향이 사실상 반전(월간 우위가 근거 없음)."
+    },
+    {
+      "id": "binary_market_filter",
+      "label": "이진 시장필터(SPY<200일선 → 50% 축소)",
+      "program_grade": "weak",
+      "method": "H35 결합전파 win_rate=0.552(무필터 우세)",
+      "p_or_implied": 0.448,
+      "note": "가중치만 99.97%였던 것이 표본오차 반영 후 55.2%로 붕괴."
+    },
+    {
+      "id": "core_vol_targeting",
+      "label": "코어 레벨 변동성 타겟팅 오버레이",
+      "program_grade": "reversed",
+      "method": "H34 결합전파 win_rate=0.497",
+      "p_or_implied": 0.503,
+      "note": "완전한 동전던지기."
+    },
+    {
+      "id": "satellite_inclusion",
+      "label": "새틀라이트 포함 여부(15%, point-in-time 추세추종)",
+      "program_grade": "weak",
+      "method": "H33/H34 결합전파 win_rate=0.579",
+      "p_or_implied": 0.421,
+      "note": "가중치만 99.7%였던 것이 결합전파 후 57.9%."
+    },
+    {
+      "id": "satellite_trend_following_vs_random",
+      "label": "새틀라이트 선정방식(추세추종) — 무작위 대비",
+      "program_grade": "weak",
+      "method": "H10 순열검정, 93rd percentile",
+      "p_or_implied": 0.07,
+      "note": "95% 유의 문턱 미달로 이미 프로그램 스스로 'weak' 판정."
+    },
+    {
+      "id": "satellite_momentum_vs_random",
+      "label": "새틀라이트 선정방식(순수 모멘텀) — 무작위 대비",
+      "program_grade": "weak(위 항목에 앞선 이전 버전)",
+      "method": "H9 순열검정, 88th percentile",
+      "p_or_implied": 0.12,
+      "note": "위 항목으로 대체되기 전 버전."
+    },
+    {
+      "id": "collar_hedge_sleeve",
+      "label": "칼라 옵션 헤지(새틀라이트 슬리브 단독)",
+      "program_grade": "weak",
+      "method": "부트스트랩 슬리브 단독 승률 55~59%(중앙값 57% 사용)",
+      "p_or_implied": 0.43,
+      "note": "90% CI가 부호조차 확정 못함."
+    },
+    {
+      "id": "risk_adjusted_momentum",
+      "label": "위험조정 모멘텀 랭킹 (원시모멘텀 대비 우위 주장)",
+      "program_grade": "reversed",
+      "method": "순열검정 N=200 (작업48/49)",
+      "p_or_implied": 0.667,
+      "note": "이미 프로그램 스스로 기각."
+    },
+    {
+      "id": "iren_basket_trend_following",
+      "label": "IREN류 바스켓 추세추종 — 무작위 대비",
+      "program_grade": "weak",
+      "method": "순열검정, 93rd percentile (작업27/29)",
+      "p_or_implied": 0.075,
+      "note": "5% 문턱 미달로 이미 스스로 인지."
+    },
+    {
+      "id": "iren_single_trend_following",
+      "label": "IREN 단일종목 추세추종 — 무작위 대비",
+      "program_grade": "weak(부트스트랩 CI 폭이 바스켓과 동일해 하향)",
+      "method": "순열검정, 100th percentile (작업27/29)",
+      "p_or_implied": 0.005,
+      "note": "프로그램 전체에서 명목 p-value가 가장 작은 단일 결과. 그런데도 부트스트랩 감사(작업48)에서 신뢰구간 폭이 바스켓과 사실상 동일해 'weak'로 하향 조정됨."
+    }
+  ],
+  "qualitative_only_claims_excluded_from_calc": [
+    {
+      "id": "core_universe_17asset",
+      "label": "코어 자산군(17자산 유니버스) — robust 등급",
+      "program_grade": "robust",
+      "why_excluded": "단일 2008 GFC 실제 역사적 위기 구간에서의 실현 성과(+8.4% vs SPY -40.4%)에 근거 — 재표본추출/순열검정 등 형식적 유의성 검정이 이 결정 자체에는 한 번도 적용된 적이 없다(하위 파라미터들은 여러 라운드에 걸쳐 검정됨). p-value가 존재하지 않아 Bonferroni/FDR을 기계적으로 적용할 수 없다 — 본문에서 별도로 '유효 독립 위기표본 개수' 관점으로 논한다."
+    },
+    {
+      "id": "satellite_exit_mechanism_static",
+      "label": "새틀라이트 청산/스위치 메커니즘(정적보유가 기댓값 최적) — moderate 등급",
+      "program_grade": "moderate",
+      "why_excluded": "H12~H23 6라운드에 걸쳐 반복 재현된 패턴이라는 '정성적' 근거로 moderate를 부여했다고 원문(작업47/50)이 명시 — '아직 블록부트스트랩 감사를 거치지 않았다'고 스스로 인정. 형식적 p-value가 없어 계산 대상에서 제외."
+    },
+    {
+      "id": "per_pbr_valuation_frame",
+      "label": "PER/PBR 대수적 밸류에이션 프레임 — moderate 등급 (트랙C)",
+      "program_grade": "moderate",
+      "why_excluded": "이론적 유도의 견고함에 근거한 정성적 판단 — 실증 스크리닝은 오히려 스코프 한계를 드러냈을 뿐 별도의 통계적 검정을 거치지 않음."
+    }
+  ],
+  "bh_fdr_on_final_layer_pvalues": {
+    "n": 12,
+    "q": 0.05,
+    "sorted_p": [
+      0.005,
+      0.025,
+      0.07,
+      0.075,
+      0.12,
+      0.421,
+      0.43,
+      0.4449,
+      0.448,
+      0.503,
+      0.504,
+      0.667
+    ],
+    "thresholds": [
+      0.004166666666666667,
+      0.008333333333333333,
+      0.0125,
+      0.016666666666666666,
+      0.020833333333333336,
+      0.025,
+      0.02916666666666667,
+      0.03333333333333333,
+      0.037500000000000006,
+      0.04166666666666667,
+      0.04583333333333334,
+      0.05
+    ],
+    "largest_i_satisfying": -1,
+    "survivor_count": 0,
+    "survivor_original_indices": []
+  },
+  "bonferroni_by_family_size": {
+    "N=9 (가장 관대함: 작업20-21 파라미터 탐색 라운드 수만, 모멘텀랭킹 주장 하나 기준)": {
+      "alpha": 0.05,
+      "family_size": 9,
+      "per_test_threshold": 0.005555555555555556,
+      "results": [
+        {
+          "p": 0.025,
+          "survives": false
+        },
+        {
+          "p": 0.4449,
+          "survives": false
+        },
+        {
+          "p": 0.504,
+          "survives": false
+        },
+        {
+          "p": 0.448,
+          "survives": false
+        },
+        {
+          "p": 0.503,
+          "survives": false
+        },
+        {
+          "p": 0.421,
+          "survives": false
+        },
+        {
+          "p": 0.07,
+          "survives": false
+        },
+        {
+          "p": 0.12,
+          "survives": false
+        },
+        {
+          "p": 0.43,
+          "survives": false
+        },
+        {
+          "p": 0.667,
+          "survives": false
+        },
+        {
+          "p": 0.075,
+          "survives": false
+        },
+        {
+          "p": 0.005,
+          "survives": true
+        }
+      ],
+      "survivor_count": 1
+    },
+    "N=25 (Track B 전체 헤드라인 가설 수)": {
+      "alpha": 0.05,
+      "family_size": 25,
+      "per_test_threshold": 0.002,
+      "results": [
+        {
+          "p": 0.025,
+          "survives": false
+        },
+        {
+          "p": 0.4449,
+          "survives": false
+        },
+        {
+          "p": 0.504,
+          "survives": false
+        },
+        {
+          "p": 0.448,
+          "survives": false
+        },
+        {
+          "p": 0.503,
+          "survives": false
+        },
+        {
+          "p": 0.421,
+          "survives": false
+        },
+        {
+          "p": 0.07,
+          "survives": false
+        },
+        {
+          "p": 0.12,
+          "survives": false
+        },
+        {
+          "p": 0.43,
+          "survives": false
+        },
+        {
+          "p": 0.667,
+          "survives": false
+        },
+        {
+          "p": 0.075,
+          "survives": false
+        },
+        {
+          "p": 0.005,
+          "survives": false
+        }
+      ],
+      "survivor_count": 0
+    },
+    "N=80 (챔피언 계보 전체 헤드라인 가설 수, count_tests.py 산출)": {
+      "alpha": 0.05,
+      "family_size": 80,
+      "per_test_threshold": 0.000625,
+      "results": [
+        {
+          "p": 0.025,
+          "survives": false
+        },
+        {
+          "p": 0.4449,
+          "survives": false
+        },
+        {
+          "p": 0.504,
+          "survives": false
+        },
+        {
+          "p": 0.448,
+          "survives": false
+        },
+        {
+          "p": 0.503,
+          "survives": false
+        },
+        {
+          "p": 0.421,
+          "survives": false
+        },
+        {
+          "p": 0.07,
+          "survives": false
+        },
+        {
+          "p": 0.12,
+          "survives": false
+        },
+        {
+          "p": 0.43,
+          "survives": false
+        },
+        {
+          "p": 0.667,
+          "survives": false
+        },
+        {
+          "p": 0.075,
+          "survives": false
+        },
+        {
+          "p": 0.005,
+          "survives": false
+        }
+      ],
+      "survivor_count": 0
+    },
+    "N=1022 (report_data.json 전수 스캔 granular 리프 수, 상한 추정)": {
+      "alpha": 0.05,
+      "family_size": 1022,
+      "per_test_threshold": 4.892367906066536e-05,
+      "results": [
+        {
+          "p": 0.025,
+          "survives": false
+        },
+        {
+          "p": 0.4449,
+          "survives": false
+        },
+        {
+          "p": 0.504,
+          "survives": false
+        },
+        {
+          "p": 0.448,
+          "survives": false
+        },
+        {
+          "p": 0.503,
+          "survives": false
+        },
+        {
+          "p": 0.421,
+          "survives": false
+        },
+        {
+          "p": 0.07,
+          "survives": false
+        },
+        {
+          "p": 0.12,
+          "survives": false
+        },
+        {
+          "p": 0.43,
+          "survives": false
+        },
+        {
+          "p": 0.667,
+          "survives": false
+        },
+        {
+          "p": 0.075,
+          "survives": false
+        },
+        {
+          "p": 0.005,
+          "survives": false
+        }
+      ],
+      "survivor_count": 0
+    }
+  }
+}

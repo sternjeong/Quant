@@ -1,0 +1,464 @@
+#!/usr/bin/env python3
+"""report_data.json을 읽어 final_report.html을 만든다. 디자인 시스템은
+analysis/2026-09-05_options_hedge_bootstrap_and_combined_system/build_report.py와 동일
+(다크네이비/올리브 톤, 세리프 헤드라인, TOC, 섹션 번호, 판정 배지)."""
+import json
+import math
+import os
+
+OUT_DIR = os.path.dirname(os.path.abspath(__file__))
+with open(f"{OUT_DIR}/report_data.json", encoding="utf-8") as f:
+    R = json.load(f)
+
+META = R["meta"]
+GEN = META["generated"]
+EP_ORDER = META["episode_order"]
+GRID = R["smoothness_grid"]
+PLACEBO = R["placebo_test"]
+BC = R["bootstrap_and_combined"]
+CONFIGS = BC["representative_configs"]
+
+EP_LABEL = {
+    "full_2019_2026": "전체기간 2019-2026",
+    "gfc_2008": "2008 GFC",
+    "covid_2020": "COVID 2020 (~51거래일)",
+    "bear_2022": "2022 완만약세장",
+    "selloff_2018": "2018 4분기 급락",
+    "correction_2015_2016": "2015-16 조정",
+}
+CFG_LABEL = {
+    "live_default_atm_put_5pct_call_monthly": "라이브 기본값 (ATM풋/5%OTM콜/21일)",
+    "cheaper_otm_put_5pct": "저렴한 5%OTM 풋 (5%OTM풋/5%OTM콜/21일)",
+    "wider_call_10pct": "더 넓은 10%OTM 콜 (ATM풋/10%OTM콜/21일)",
+    "quarterly_tenor_63d": "분기물(약 63거래일) 롤",
+    "bimonthly_tenor_42d": "2개월물(약 42거래일) 롤",
+}
+SCEN_LABEL = {"base": "기본(base)", "calm_heavy": "평시가중(calm_heavy)", "crisis_heavy": "위기가중(crisis_heavy)"}
+
+
+def fnum(v, digits=2, signed=False):
+    if v is None or (isinstance(v, float) and math.isnan(v)):
+        return "—"
+    s = f"{v:,.{digits}f}"
+    if signed and v > 0:
+        s = "+" + s
+    return s
+
+
+def esc(s):
+    return str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+CSS = """
+:root{
+  color-scheme: light;
+  --bg-page:#eef1ee; --surface:#ffffff; --surface-2:#f4f6f3;
+  --ink:#12181a; --ink-2:#495550; --ink-muted:#828d87;
+  --hairline:#d7ddd6; --border:rgba(11,11,11,0.10);
+  --accent:#1f4d3d; --accent-ink:#ffffff; --accent-2:#8a6a1f;
+  --accent-2-soft:#f2e6c8; --accent-soft:#e2ebe6; --chart-surface:#fcfcfb;
+  --blue:#2a78d6; --orange:#eb6834; --aqua:#1baf7a; --red:#e34948;
+  --gridline:#e1e0d9; --axis:#c3c2b7; --delta-pos:#184f95; --delta-neg:#b3261e;
+  --code-bg:#f4f6f3; --shadow: 0 1px 2px rgba(20,30,25,0.04), 0 8px 24px -16px rgba(20,30,25,0.18);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg-page:#0f1210; --surface:#171b16; --surface-2:#1c211b;
+    --ink:#f2f4f0; --ink-2:#c4cbc2; --ink-muted:#8b958a;
+    --hairline:#2c332a; --border:rgba(255,255,255,0.10);
+    --accent:#5aab89; --accent-ink:#0b1310; --accent-2:#d9b45c;
+    --accent-2-soft:#332a13; --accent-soft:#1b2921; --chart-surface:#1a1a19;
+    --blue:#3987e5; --orange:#d95926; --aqua:#199e70; --red:#e66767;
+    --gridline:#2c2c2a; --axis:#3a3f38; --delta-pos:#86b6ef; --delta-neg:#ff8a80;
+    --code-bg:#1c211b; --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -16px rgba(0,0,0,0.5);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg-page:#0f1210; --surface:#171b16; --surface-2:#1c211b;
+  --ink:#f2f4f0; --ink-2:#c4cbc2; --ink-muted:#8b958a;
+  --hairline:#2c332a; --border:rgba(255,255,255,0.10);
+  --accent:#5aab89; --accent-ink:#0b1310; --accent-2:#d9b45c;
+  --accent-2-soft:#332a13; --accent-soft:#1b2921; --chart-surface:#1a1a19;
+  --blue:#3987e5; --orange:#d95926; --aqua:#199e70; --red:#e66767;
+  --gridline:#2c2c2a; --axis:#3a3f38; --delta-pos:#86b6ef; --delta-neg:#ff8a80;
+  --code-bg:#1c211b; --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -16px rgba(0,0,0,0.5);
+}
+*{box-sizing:border-box;}
+body{ margin:0; background:var(--bg-page); color:var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif; line-height:1.6; font-size:16px; }
+.serif{ font-family: "Iowan Old Style","Palatino Linotype", Georgia, serif; }
+.mono, .num, td.num, .tk-name, .kpi-value, code {
+  font-family: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+  font-variant-numeric: tabular-nums; }
+a{ color:var(--accent); }
+.wrap{ max-width: 1060px; margin:0 auto; padding: 0 24px 96px; }
+.masthead{ background: var(--accent); color: var(--accent-ink); padding: 56px 24px 40px; }
+.masthead-inner{ max-width:1060px; margin:0 auto; }
+.masthead-eyebrow{ font-size:12.5px; letter-spacing:0.12em; text-transform:uppercase; opacity:0.82;
+  font-family: ui-monospace, "SF Mono", Consolas, monospace; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.masthead-eyebrow .dot{ opacity:0.5; }
+h1.masthead-title{ font-family:"Iowan Old Style","Palatino Linotype", Georgia, serif; font-weight:600;
+  font-size: clamp(28px, 4.2vw, 44px); line-height:1.15; margin: 14px 0 10px; text-wrap: balance; max-width: 36ch; }
+.masthead-sub{ font-size:16.5px; max-width:76ch; opacity:0.92; margin:0 0 22px; }
+.masthead-meta{ display:flex; flex-wrap:wrap; gap: 10px 26px; font-size:13.5px; opacity:0.85;
+  border-top:1px solid rgba(255,255,255,0.22); padding-top:16px; }
+.masthead-meta b{ font-weight:600; }
+.section{ padding: 52px 0 8px; border-top:1px solid var(--hairline); }
+.section:first-of-type{ border-top:none; }
+.section h2{ font-family:"Iowan Old Style","Palatino Linotype", Georgia, serif; font-size: 25px;
+  font-weight:600; margin: 0 0 16px; display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+.sec-no{ font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size:13px; color: var(--accent);
+  border:1px solid var(--accent); border-radius:3px; padding:2px 6px; font-weight:600; letter-spacing:0.02em; }
+.section h3{ font-size:17.5px; margin: 30px 0 10px; font-weight:650; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.section h4{ font-size:15px; margin: 20px 0 8px; font-weight:650; color:var(--ink-2); }
+.lede{ font-size:16.5px; color:var(--ink-2); max-width:78ch; }
+.section p{ max-width:82ch; }
+.section > p, .section > .lede { margin-top: 0; }
+.section li{ max-width:78ch; }
+.callout{ background: var(--surface-2); border:1px solid var(--hairline); border-left: 3px solid var(--accent);
+  border-radius: 6px; padding: 18px 22px; margin: 20px 0 26px; }
+.callout-title{ font-size:11.5px; text-transform:uppercase; letter-spacing:0.08em; color:var(--accent);
+  font-weight:700; margin-bottom:8px; }
+.callout p{ margin:0; max-width:none; }
+.callout p + p{ margin-top:10px; }
+.callout.warn{ border-left-color: var(--delta-neg); }
+.callout.warn .callout-title{ color: var(--delta-neg); }
+.callout.good{ border-left-color: var(--aqua); }
+.callout.good .callout-title{ color: var(--aqua); }
+.caveat{ font-size:14.5px; color:var(--ink-2); background:var(--surface-2); border-radius:6px;
+  padding:14px 18px; border:1px dashed var(--hairline); margin: 14px 0; }
+.kpi-row{ display:grid; grid-template-columns:repeat(auto-fit, minmax(190px,1fr)); gap:14px; margin: 20px 0 8px; }
+.kpi-tile{ background:var(--surface); border:1px solid var(--hairline); border-radius:8px; padding:16px 18px; box-shadow: var(--shadow); }
+.kpi-label{ font-size:12.5px; color:var(--ink-muted); margin-bottom:6px; }
+.kpi-value{ font-size:24px; font-weight:600; line-height:1.1; }
+.kpi-value.pos{ color:var(--delta-pos); }
+.kpi-value.neg{ color:var(--delta-neg); }
+.kpi-sub{ font-size:12.5px; color:var(--ink-muted); margin-top:4px; }
+.table-wrap{ overflow-x:auto; border:1px solid var(--hairline); border-radius:8px; background:var(--surface); }
+table.data-table{ width:100%; border-collapse:collapse; font-size:13.5px; min-width:760px; }
+table.data-table th{ text-align:right; font-weight:600; font-size:11.5px; color:var(--ink-muted); text-transform:uppercase;
+  letter-spacing:0.03em; padding:10px 12px; border-bottom:1px solid var(--hairline); white-space:nowrap; }
+table.data-table th:first-child, table.data-table td:first-child{ text-align:left; }
+table.data-table td{ padding:8px 12px; border-bottom:1px solid var(--hairline); text-align:right; white-space:nowrap; }
+table.data-table tbody tr:hover{ background:var(--surface-2); }
+table.data-table tbody tr:last-child td{ border-bottom:none; }
+td.tk-cell{ text-align:left !important; }
+td.tk-cell .tk-name{ font-weight:650; margin-right:8px; }
+.strong{ font-weight:700; }
+tr.warn-row{ background: rgba(179,38,30,0.08); }
+tr.hero-row{ background: rgba(31,77,61,0.08); }
+.badge{ display:inline-block; font-size:11.5px; font-weight:700; letter-spacing:0.03em; text-transform:uppercase;
+  border-radius:4px; padding:3px 9px; }
+.badge.reject{ background:rgba(179,38,30,0.12); color:var(--delta-neg); }
+.badge.weak{ background:var(--accent-2-soft); color:var(--accent-2); }
+.badge.accept{ background:rgba(27,175,122,0.14); color:var(--aqua); }
+.badge.unsupported{ background:rgba(130,141,135,0.18); color:var(--ink-muted); }
+footer{ max-width:1060px; margin:40px auto 0; padding: 26px 24px 10px; border-top:1px solid var(--hairline);
+  font-size:12.5px; color:var(--ink-muted); }
+footer p{ max-width:none; }
+.toc{ display:flex; flex-wrap:wrap; gap:8px 18px; margin: 24px 0 4px; padding:16px 20px; background:var(--surface);
+  border:1px solid var(--hairline); border-radius:8px; }
+.toc a{ font-size:13.5px; color:var(--ink-2); text-decoration:none; }
+.toc a:hover{ color:var(--accent); text-decoration:underline; }
+"""
+
+# ---- Section 1: 완만성 그리드 ----
+GRID_ROWS_SORTED = sorted(GRID["grid_rows"], key=lambda r: -r["ev_sharpe_base"])
+
+
+def grid_table(rows):
+    out = []
+    for r in rows:
+        is_live = r["put_moneyness"] == 1.00 and r["call_moneyness"] == 1.05 and r["tenor_days"] == 21
+        hero = " hero-row" if is_live else ""
+        out.append(
+            f'<tr class="{hero.strip()}"><td class="tk-cell"><span class="tk-name">'
+            f'{r["put_moneyness"]:.2f} / {r["call_moneyness"]:.2f} / {r["tenor_days"]}일{" ← 라이브 기본값" if is_live else ""}</span></td>'
+            f'<td class="num">{fnum(r["ev_sharpe_base"],4,signed=True)}</td></tr>'
+        )
+    return "".join(out)
+
+
+# ---- Section 3: 부트스트랩 CI (config별 6개 창) ----
+def bootstrap_table():
+    rows = []
+    for cfg_name, cfg in CONFIGS.items():
+        for ep in EP_ORDER:
+            d = cfg["by_episode"][ep]
+            l20 = d["bootstrap_by_block_len"].get("20")
+            ci = l20["ci90"] if l20 else [None, None]
+            warn = " warn-row" if ep == "covid_2020" else ""
+            rows.append(
+                f'<tr class="{warn.strip()}"><td class="tk-cell"><span class="tk-name">{esc(CFG_LABEL[cfg_name])}</span></td>'
+                f'<td class="tk-cell">{esc(EP_LABEL[ep])}</td>'
+                f'<td class="num">{d["n_obs"]}</td>'
+                f'<td class="num">{fnum(d["point_sharpe"],2,signed=True)}</td>'
+                f'<td class="num">[{fnum(ci[0],2,signed=True)}, {fnum(ci[1],2,signed=True)}]</td></tr>'
+            )
+    return "".join(rows)
+
+
+# ---- Section 4: 결합전파 승률 ----
+def combined_table():
+    rows = []
+    best_crisis = max(CONFIGS.items(), key=lambda kv: kv[1]["combined_dirichlet_x_bootstrap"]["crisis_heavy"]["win_rate_collar"])
+    for cfg_name, cfg in CONFIGS.items():
+        for scen in ["base", "calm_heavy", "crisis_heavy"]:
+            g = cfg["combined_dirichlet_x_bootstrap"][scen]
+            hero = " hero-row" if cfg_name == best_crisis[0] else ""
+            rows.append(
+                f'<tr class="{hero.strip()}"><td class="tk-cell"><span class="tk-name">{esc(CFG_LABEL[cfg_name])}</span></td>'
+                f'<td class="tk-cell">{esc(SCEN_LABEL[scen])}</td>'
+                f'<td class="num">{fnum(g["win_rate_collar"]*100,1)}%</td>'
+                f'<td class="num">{fnum(g["mean_gap"],3,signed=True)}</td>'
+                f'<td class="num">[{fnum(g["ci90_gap"][0],3,signed=True)}, {fnum(g["ci90_gap"][1],3,signed=True)}]</td></tr>'
+            )
+    return "".join(rows)
+
+
+LIVE_KEY = "live_default_atm_put_5pct_call_monthly"
+LIVE_CFG = CONFIGS[LIVE_KEY]
+BEST42_KEY = "bimonthly_tenor_42d"
+BEST42_CFG = CONFIGS[BEST42_KEY]
+
+LIVE_WR_BASE = LIVE_CFG["combined_dirichlet_x_bootstrap"]["base"]["win_rate_collar"]
+LIVE_WR_CALM = LIVE_CFG["combined_dirichlet_x_bootstrap"]["calm_heavy"]["win_rate_collar"]
+LIVE_WR_CRISIS = LIVE_CFG["combined_dirichlet_x_bootstrap"]["crisis_heavy"]["win_rate_collar"]
+B42_WR_BASE = BEST42_CFG["combined_dirichlet_x_bootstrap"]["base"]["win_rate_collar"]
+B42_WR_CALM = BEST42_CFG["combined_dirichlet_x_bootstrap"]["calm_heavy"]["win_rate_collar"]
+B42_WR_CRISIS = BEST42_CFG["combined_dirichlet_x_bootstrap"]["crisis_heavy"]["win_rate_collar"]
+
+GRID_MIN, GRID_MAX = GRID["ev_sharpe_range"]
+GRID_STD = GRID["ev_sharpe_std"]
+LIVE_GRID_EV = GRID["live_default_ev_sharpe"]
+LIVE_RANK = GRID["live_default_rank_from_top"]
+N_COMBOS = GRID["n_combos"]
+
+PLACEBO_PCTL = PLACEBO["live_default_percentile"]
+PLACEBO_MEAN = PLACEBO["random_mean"]
+PLACEBO_STD = PLACEBO["random_std"]
+N_PLACEBO = PLACEBO["n_placebo"]
+
+HTML = f"""<title>옵션 칼라 헤지 파라미터 민감도</title>
+<style>
+{CSS}
+</style>
+
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="masthead-eyebrow">
+      <span>QUANT RESEARCH NOTE</span><span class="dot">·</span><span>작업57 라이브화 후속</span><span class="dot">·</span><span>Parameter Sensitivity Audit</span>
+    </div>
+    <h1 class="masthead-title">칼라 옵션 헤지의 행사가·만기 숫자는 특별하지 않다 — 완만한 고원이지만, 무작위 대조군과도 구별이 잘 안 된다</h1>
+    <p class="masthead-sub">작업57은 새틀라이트 슬리브를 보호하는 합성 칼라(ATM 풋 매수 + 5% OTM 콜
+      매도, 21거래일 월물 롤)를 core/champion_strategy.py로 라이브화했지만, 이 정확한 숫자들이
+      다른 합리적 선택보다 나은지는 한 번도 감사한 적이 없었다. 이번 라운드는 이 프로그램의 표준
+      절차대로 (1) moneyness·만기 24개 조합의 완만성 그리드, (2) 200개 무작위 파라미터 대조군
+      플라시보 검정, (3) 대표 파라미터 5개에 대한 순환 이동블록부트스트랩, (4) 디리클레 기저확률 x
+      부트스트랩 결합전파를 전부 적용했다. 결론: 그리드는 완만한 고원(스파이크 아님)이라 과최적화
+      의심은 낮지만, 라이브 기본값은 무작위 대조군 대비 겨우 {fnum(PLACEBO_PCTL,1)}번째 백분위 —
+      <b>이 특정 숫자를 "정밀 조정된 최적값"으로 포장하면 안 된다.</b> 다만 롤 주기를 21일(월물)에서
+      42일(2개월물)로 늘리면 5개 구성 중 결합전파 승률이 가장 높아(위기가중 시나리오
+      {fnum(B42_WR_CRISIS*100,0)}%) 다음 라운드에서 더 볼 가치가 있는 단서로 남긴다.</p>
+    <div class="masthead-meta">
+      <span><b>기준일</b> {esc(GEN)}</span>
+      <span><b>그리드</b> put∈{{1.00,0.95}} × call∈{{1.03,1.05,1.07,1.10}} × tenor∈{{21,42,63}}일 = {N_COMBOS}조합</span>
+      <span><b>플라시보</b> N={N_PLACEBO} 무작위 파라미터(put 0.85~1.00, call 1.02~1.20, tenor 15~70일)</span>
+      <span><b>부트스트랩</b> 순환 이동블록, L=10/20/40(중심 20), 창×구성당 2,000회</span>
+      <span><b>결합전파</b> 디리클레(K=30) × 부트스트랩, 3개 기저확률 시나리오, 10,000 draw</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<div class="toc">
+  <a href="#s0">0. 문제 제기</a>
+  <a href="#s1">1. 완만성 그리드 — 스파이크인가 고원인가</a>
+  <a href="#s2">2. 플라시보 — 무작위 파라미터 대조군</a>
+  <a href="#s3">3. 블록부트스트랩 — 대표 파라미터 5개</a>
+  <a href="#s4">4. 결합전파 기댓값 — 칼라 vs 무헤지 승률</a>
+  <a href="#s5">5. 종합 판정</a>
+  <a href="#s6">6. 한계</a>
+</div>
+
+<div class="section" id="s0">
+  <h2><span class="sec-no">0</span>문제 제기 — 라이브화된 칼라는 왜 이 숫자들을 쓰는가</h2>
+  <p class="lede">작업57(챔피언 전략 엔진 고도화)은 작업48의 연구 스크립트(h_options_hedge.py)를
+    core/champion_strategy.py로 그대로 이식했다 — ATM 풋 매수(moneyness=1.00), 5% OTM 콜 매도
+    (moneyness=1.05), 21거래일(약 1개월) 롤. 이 숫자들은 처음부터 "합리적인 기본값"으로 골라진
+    것이지 그리드서치로 찾은 최적값이 아니다. 이 리포트는 agent_b_market_portfolio.md가 명시한
+    미해결 과제("칼라 헤지의 파라미터 민감도가 아직 이 프로그램의 표준 감사를 거치지 않았다")를
+    닫는다 — moneyness·만기를 스윕해서 (a) 지금 쓰는 숫자가 고립된 우연의 봉우리는 아닌지,
+    (b) 아예 무작위로 고른 숫자와 통계적으로 구별되는지, (c) 대표적인 대안들이 부트스트랩·기댓값
+    감사를 통과하는지 확인한다.</p>
+</div>
+
+<div class="section" id="s1">
+  <h2><span class="sec-no">1</span>완만성 그리드 — 스파이크인가 고원인가</h2>
+  <p class="lede">put_moneyness × call_moneyness × tenor_days {N_COMBOS}개 조합 전부에 대해 6개 창을
+    기본(base) 기저확률로 가중한 기댓값 Sharpe(부트스트랩 없는 점추정)를 계산했다. "이건 하나의
+    가설 검증이지 데이터마이닝이 아니다"라는 이 프로그램의 규칙에 따라 최댓값을 새 기본값으로
+    제안하지 않고, 분포의 모양만 본다.</p>
+  <div class="kpi-row">
+    <div class="kpi-tile"><div class="kpi-label">그리드 범위 (EV Sharpe, base)</div>
+      <div class="kpi-value">{fnum(GRID_MIN,4,signed=True)} ~ {fnum(GRID_MAX,4,signed=True)}</div>
+      <div class="kpi-sub">폭 {fnum(GRID_MAX-GRID_MIN,4)}, 표준편차 {fnum(GRID_STD,4)}</div></div>
+    <div class="kpi-tile"><div class="kpi-label">라이브 기본값 EV Sharpe</div>
+      <div class="kpi-value">{fnum(LIVE_GRID_EV,4,signed=True)}</div>
+      <div class="kpi-sub">{N_COMBOS}개 중 상위 {LIVE_RANK}위 (중위권)</div></div>
+    <div class="kpi-tile"><div class="kpi-label">완만성 판정</div>
+      <div class="kpi-value">고원</div>
+      <div class="kpi-sub">표준편차가 범위 폭의 약 {fnum(GRID_STD/(GRID_MAX-GRID_MIN)*100,0)}% — 고립된 스파이크 아님</div></div>
+  </div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>파라미터 (put/call/tenor)</th><th>EV Sharpe (base)</th></tr></thead>
+      <tbody>{grid_table(GRID_ROWS_SORTED)}</tbody>
+    </table>
+  </div>
+  <div class="callout">
+    <div class="callout-title">관찰 — tenor=42일(2개월물)이 반복적으로 상위권</div>
+    <p>상위 5개 조합 중 3개, 하위 5개 조합 중 3개가 각각 tenor=42일과 tenor=63일에 몰려있다
+      (tenor=21일 라이브 기본값은 중간). moneyness보다 롤 주기(tenor)가 점추정치를 더 크게 흔든다는
+      뜻 — 그리드 자체는 완만한 고원이라 과최적화 스파이크는 아니지만, "42일 롤이 21일보다 나을 수
+      있다"는 단서는 2절 이후 부트스트랩으로 별도 확인한다(대표 파라미터에
+      <code>bimonthly_tenor_42d</code>로 포함).</p>
+  </div>
+</div>
+
+<div class="section" id="s2">
+  <h2><span class="sec-no">2</span>플라시보 — 무작위 파라미터 대조군</h2>
+  <p class="lede">이 프로그램의 규칙("새 필터를 제안하려면 무작위 대조군과 비교하라")을 파라미터
+    선택에도 그대로 적용했다. put_moneyness~U(0.85,1.00), call_moneyness~U(1.02,1.20),
+    tenor_days~정수균등(15,70)에서 {N_PLACEBO}개를 무작위로 뽑아 각각의 EV Sharpe(base)를 계산하고,
+    라이브 기본값(1.00/1.05/21)이 이 무작위 분포에서 몇 백분위인지 확인했다.</p>
+  <div class="kpi-row">
+    <div class="kpi-tile"><div class="kpi-label">라이브 기본값 백분위</div>
+      <div class="kpi-value">{fnum(PLACEBO_PCTL,1)}번째</div>
+      <div class="kpi-sub">95% 유의 문턱(95th)에 크게 못 미침</div></div>
+    <div class="kpi-tile"><div class="kpi-label">무작위 대조군 평균 ± 표준편차</div>
+      <div class="kpi-value">{fnum(PLACEBO_MEAN,4,signed=True)}</div>
+      <div class="kpi-sub">± {fnum(PLACEBO_STD,4)} (N={N_PLACEBO})</div></div>
+    <div class="kpi-tile"><div class="kpi-label">무작위 범위</div>
+      <div class="kpi-value">{fnum(PLACEBO['random_min'],3,signed=True)} ~ {fnum(PLACEBO['random_max'],3,signed=True)}</div>
+      <div class="kpi-sub">라이브값은 이 범위 안쪽 중상위</div></div>
+  </div>
+  <div class="callout warn">
+    <div class="callout-title">판정 — 이 특정 숫자는 "정밀 조정"이 아니라 "합리적인 기본값"이다</div>
+    <p>라이브 기본값이 무작위 평균보다는 낫지만({fnum(PLACEBO_MEAN,4,signed=True)} 대비
+      {fnum(LIVE_GRID_EV,4,signed=True)}), {fnum(PLACEBO_PCTL,1)}번째 백분위는 이 프로그램이 다른
+      곳에서 "무작위와 통계적으로 구별 안 됨"이라고 판정한 사례들(예: 작업30 H4 퀄리티 필터,
+      58.5번째 백분위로 하향 정정됨)과 사실상 같은 구간이다. <span class="badge unsupported">근거 부족(UNSUPPORTED)</span>
+      "ATM 풋 + 5% OTM 콜 + 21일"이라는 조합 자체를 정밀하게 최적화된 값으로 제시해서는 안 된다 —
+      옵션 만기 주기를 현실적인 월물에 맞춘 공학적 선택일 뿐, 통계적으로 우월한 지점이 아니다.
+      (주의: 이 판정은 "칼라라는 메커니즘 자체가 무헤지보다 나은가"라는 작업48/49의 별도 질문에는
+      영향을 주지 않는다 — 그 질문은 이미 "약함"으로 채택돼 있고 이번 라운드로 재확인만 한다,
+      4절 참고.)</p>
+  </div>
+</div>
+
+<div class="section" id="s3">
+  <h2><span class="sec-no">3</span>블록부트스트랩 — 대표 파라미터 5개</h2>
+  <p class="lede">그리드서치 최댓값을 그대로 채택하는 대신, 실무적으로 구별되는 대표 파라미터 5개
+    (라이브 기본값 + 저렴한 풋 + 넓은 콜 + 분기물 + 2개월물)를 미리 정해 H33/H_bootstrap과 정확히
+    같은 방법론(순환 이동블록부트스트랩, L=10/20/40, 창×구성당 2,000회)으로 감사했다. 아래는
+    L=20(중심 블록길이) 기준 90% 신뢰구간이다.</p>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>파라미터 구성</th><th>창</th><th>N(거래일)</th><th>점추정 Sharpe</th><th>L=20 CI90</th></tr></thead>
+      <tbody>{bootstrap_table()}</tbody>
+    </table>
+  </div>
+  <div class="callout warn">
+    <div class="callout-title">모든 구성에서 신뢰구간이 넓다</div>
+    <p>COVID(n_obs=51) 행은 이전 라운드와 동일하게 부호조차 확정 못할 만큼 CI가 넓고, 나머지 창도
+      대부분 90% CI가 0을 가로지른다 — 파라미터를 바꿔도 이 근본적인 표본 크기 문제는 해결되지
+      않는다(H33이 이미 경고한 패턴의 재확인).</p>
+  </div>
+</div>
+
+<div class="section" id="s4">
+  <h2><span class="sec-no">4</span>결합전파 기댓값 — 칼라 vs 무헤지 승률</h2>
+  <p class="lede">H33b/H_combined와 동일하게, 매 draw마다 기저확률 가중치(디리클레, K=30) 1개와
+    각 창의 부트스트랩 Sharpe 표본(L=20) 1개씩을 동시에 뽑아 10,000회 반복해 "칼라가 무헤지 새틀라이트
+    보다 기댓값 Sharpe가 높은 draw의 비율"을 5개 파라미터 구성 × 3개 기저확률 시나리오로 계산했다.</p>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>파라미터 구성</th><th>기저확률 시나리오</th><th>승률(칼라 우위)</th><th>평균 갭</th><th>갭 CI90</th></tr></thead>
+      <tbody>{combined_table()}</tbody>
+    </table>
+  </div>
+  <div class="callout good">
+    <div class="callout-title">방향은 전 구성에서 재확인, 크기는 여전히 약함 — 2개월물이 근소하게 최선</div>
+    <p>라이브 기본값(1.00/1.05/21일)의 승률은 {fnum(LIVE_WR_BASE*100,1)}%(기본)~{fnum(LIVE_WR_CRISIS*100,1)}%
+      (위기가중)로 작업49가 이미 보고한 55%대와 일치한다(재현성 확인). 5개 구성 전부에서 위기가중
+      시나리오 승률이 기본/평시가중보다 높다는 방향성도 동일하게 나타나 — 칼라가 위기 비중이 커질수록
+      상대적으로 유리해진다는 직관과 일치한다. 다만 <b>2개월물(42일) 롤은 5개 구성 중 모든 시나리오
+      에서 가장 높은 승률</b>을 기록했다(기본 {fnum(B42_WR_BASE*100,1)}%, 평시가중
+      {fnum(B42_WR_CALM*100,1)}%, 위기가중 {fnum(B42_WR_CRISIS*100,1)}%) — 1절 그리드의 단서가
+      부트스트랩+결합전파를 거치고도 살아남았다. 그래도 <span class="badge weak">약함(WEAK)</span>:
+      90% 문턱에는 전혀 못 미치고, 갭의 CI90은 5개 구성 전부에서 0을 크게 가로지른다.</p>
+  </div>
+</div>
+
+<div class="section" id="s5">
+  <h2><span class="sec-no">5</span>종합 판정</h2>
+  <p>세 가지를 분리해서 봐야 한다:</p>
+  <ul>
+    <li><b>"칼라가 무헤지보다 기댓값에서 낫다"는 방향성</b>(작업48/49의 기존 판정) —
+      <span class="badge weak">약함(WEAK)</span>, 이번 라운드로 5개 파라미터 변형 전부에서 재확인됐다.
+      바뀌지 않음.</li>
+    <li><b>"ATM 풋 + 5% OTM 콜 + 21일"이라는 정확한 숫자가 다른 합리적 선택보다 통계적으로 우월하다"</b>
+      (이번 라운드의 새 질문) — <span class="badge unsupported">근거 부족(UNSUPPORTED)</span>.
+      완만성 그리드에서는 24개 중 9위(중위권)이고, 200개 무작위 대조군 대비 58.5번째 백분위로
+      95% 유의 문턱에 한참 못 미친다. 이 숫자들을 "정밀하게 조정된 최적값"이라고 부르면 안 되고,
+      "만기 주기를 현실적인 옵션 월물에 맞춘 공학적 기본값"이라고 정직하게 불러야 한다.</li>
+    <li><b>롤 주기를 21일에서 42일(2개월물)로 늘리는 안</b>(이번 라운드가 새로 발견한 단서) —
+      완만성 그리드 상위권, 대표 파라미터 5개 중 결합전파 승률 최고(위기가중 {fnum(B42_WR_CRISIS*100,1)}%)로
+      나쁘지 않은 신호지만, 이 역시 CI가 넓어 <span class="badge unsupported">근거 부족
+      (UNSUPPORTED, 다음 라운드 후보)</span> 이상으로 격상할 근거는 없다.</li>
+  </ul>
+  <p><b>라이브 엔진에 대한 권고</b>: core/champion_strategy.py의 COLLAR_PUT_MONEYNESS/
+    COLLAR_CALL_MONEYNESS/COLLAR_TENOR_DAYS 기본값을 지금 당장 바꿀 근거는 없다(이번 라운드는
+    "다른 숫자가 확실히 낫다"를 증명하지 못했다 — 단지 "지금 숫자가 특별히 낫지도 않다"를 보였을
+    뿐이다). 다만 UI/문서에서 이 파라미터를 "리서치로 검증된 최적값"처럼 표현하고 있다면 "공학적
+    기본값, 파라미터 자체의 정밀도는 미검증"으로 문구를 수정할 필요가 있다. 42일 롤 후보는 별도
+    라운드에서 실제 라이브 백테스트(run_champion_backtest_with_collar에 tenor_days 파라미터를
+    노출)로 더 볼 가치가 있는 단서로 남긴다 — 이번 라운드에서 core/app을 바꾸지는 않았다.</p>
+</div>
+
+<div class="section" id="s6">
+  <h2><span class="sec-no">6</span>한계</h2>
+  <ul>
+    <li>완만성 그리드(1절)와 플라시보(2절)는 부트스트랩 없는 점추정 EV Sharpe다 — "고원이다"는
+      관찰 자체도 표본오차를 감안하면 더 넓은 불확실성 띠를 가질 수 있다. 3~4절의 대표 파라미터
+      5개만 완전한 부트스트랩+결합전파를 거쳤다.</li>
+    <li>옵션 가격결정은 여전히 Black-Scholes + VIX/100 대리변동성이라는 단순화를 쓴다(작업48 승계) —
+      moneyness/tenor를 바꿔도 이 가격결정 모형 자체의 한계(스마일/스큐, 일일 마크투마켓 미반영)는
+      그대로 남는다.</li>
+    <li>플라시보 무작위 파라미터 범위(put 0.85~1.00, call 1.02~1.20, tenor 15~70일)는 임의로 정한
+      "합리적으로 실무에서 쓸 법한" 범위다 — 범위를 넓히거나 좁히면 58.5번째 백분위라는 숫자
+      자체는 바뀔 수 있다(다만 방향, 즉 "특별히 유의하지 않다"는 결론이 쉽게 뒤집힐 정도로 좁은
+      범위는 아니라고 판단).</li>
+    <li>디리클레 K=30 결합전파는 6개 창의 상관관계를 독립으로 가정한다 — 이전 라운드(H30/H33b)와
+      동일한 단순화를 그대로 승계.</li>
+    <li>새틀라이트 슬리브 단독 비교이며(작업49의 2절 "통합 시스템" 스케일과는 다름), 파라미터를
+      바꿔도 통합 시스템 레벨의 희석 효과까지 다시 계산하지는 않았다.</li>
+  </ul>
+</div>
+
+</div>
+<footer>
+  <p>산출물: analysis/2026-09-14_collar_hedge_parameter_sensitivity/ (h_collar_sensitivity.py,
+    report_data.json, build_report.py). 작업57(챔피언 전략 엔진 고도화 — 옵션 칼라 헤지 라이브화)의
+    직접 후속이자 agent_b_market_portfolio.md가 명시한 미해결 과제를 닫는 라운드. core/, app/는
+    수정하지 않음(리서치 전용 라운드).</p>
+</footer>
+"""
+
+with open(f"{OUT_DIR}/final_report.html", "w", encoding="utf-8") as f:
+    f.write(HTML)
+print("wrote final_report.html", len(HTML))

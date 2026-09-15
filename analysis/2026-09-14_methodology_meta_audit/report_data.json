@@ -1,0 +1,720 @@
+{
+  "meta": {
+    "title": "방법론 메타 감사 -- 다중비교 보정(Bonferroni/FDR)",
+    "generated": "2026-09-14",
+    "agent": "리서치 에이전트 G (방법론 메타 감사관)",
+    "scope": "PROGRESS.md 작업 1-67 전체 + analysis/ 29개 report_data.json + research_program_synthesis 확신도 등급표(17개 결론)"
+  },
+  "test_counts": {
+    "headline_by_track": {
+      "Track B (No.04-10, 작업19-25)": {
+        "subtotal": 26,
+        "items": {
+          "no04_kostolany_baseline (사전, 작업19 이전)": 1,
+          "작업19 (모멘텀로테이션 vs SPY vs 코스톨라니로테이션)": 1,
+          "작업20 1라운드 (7가설: TopN/lookback/rebal빈도/필터방식/역변동성가중/레짐필터)": 7,
+          "작업20 2라운드 (시장필터 축소율 0/25/50/75/100% 그리드)": 1,
+          "작업20 3라운드 (강건성/하위기간 격차 재확인)": 1,
+          "작업21 4라운드 (변동성타겟팅 기각 + 회전율버퍼 기각)": 2,
+          "작업21 5라운드 (멀티에셋 확장 채택 + 순열검정 유의성확인, N=200, p≈0.025)": 2,
+          "작업22 H18/H19/H20 (연속필터 기각/유니버스확장 채택/2008 GFC OOS)": 3,
+          "작업23 H21/H22/H23 (닷컴버블/2022약세장/시그모이드필터 재기각)": 3,
+          "작업24 H24 + 자기검증 재실행 + 비중상한(설계실패) + 금은오버레이": 4,
+          "작업25 (point-in-time 최종 재검증, No.09 사후편향 확정)": 1
+        }
+      },
+      "Track C (작업26-28, 48)": {
+        "subtotal": 14,
+        "items": {
+          "작업26 텐베거 스크리닝 방법론(unsupported)": 1,
+          "작업27 IREN 변동성모멘텀 (정적보유/모멘텀로테이션/추세추종+스탑/변동성타겟팅/강건성/대조바스켓, 6개 헤드라인 메커니즘)": 6,
+          "작업28 iren_beta_alpha_hedging H1~H5": 5,
+          "작업48 트랙C 부트스트랩 재감사 (audit1 IREN추세추종, audit2 베타헤지H1/BABH3)": 2
+        }
+      },
+      "Track D (작업29-47, H1-H36)": {
+        "subtotal": 35,
+        "items": {
+          "작업29~47 Track D H1~H36 (H7은 설계만 되고 스킵됨 → 35개 실제 실행)": 35
+        }
+      },
+      "Track D 이후 독립 라운드 (작업48-49)": {
+        "subtotal": 5,
+        "items": {
+          "작업48 risk_adjusted_momentum_ranking (4개 변형 + 순열검정 p=0.667)": 1,
+          "작업48 synthetic_options_tail_hedge (main + otm5 민감도)": 2,
+          "작업49 options_hedge_bootstrap_and_combined_system (bootstrap + combined)": 2
+        }
+      }
+    },
+    "headline_total": 80,
+    "excluded_from_headline_total": {
+      "macro_event_study_2026-08-21 (별도 스레드, 챔피언 전략 계보 밖)": 55,
+      "core/strategy_tuning.py 야간/온디맨드 종목별 순열검정 (_compute_tuning_significance, 작업16~ 현재까지 반복 실행 — 정확한 총 실행 횟수는 실행 로그가 남아있지 않아 이 스크립트로는 집계 불가, 100종목 표본 x 여러 스타일그룹 x 반복 실행 규모로 볼 때 최소 수백 회 이상으로 추정)": null
+    },
+    "granular_scan": {
+      "per_file": {
+        "analysis/2026-08-16_iren_volatile_momentum_stocks/report_data.json": {
+          "p_value": 0,
+          "multiarm_winrate_arms": 0,
+          "multiarm_winrate_groups": 0,
+          "verdict_hint": 0,
+          "scalar_winrate": 52
+        },
+        "analysis/2026-08-16_tenbagger_stock_picking/report_data.json": {
+          "p_value": 0,
+          "multiarm_winrate_arms": 0,
+          "multiarm_winrate_groups": 0,
+          "verdict_hint": 0,
+          "scalar_winrate": 0
+        },
+        "analysis/2026-08-19_champion_beta_and_satellite_research/report_data.json": {
+          "p_value": 0,
+          "multiarm_winrate_arms": 0,
+          "multiarm_winrate_groups": 0,
+          "verdict_hint": 2,
+          "scalar_winrate": 5
+        },
+        "analysis/2026-08-19_iren_beta_alpha_hedging/report_data.json": {
+          "p_value": 0,
+          "multiarm_winrate_arms": 0,
+          "multiarm_winrate_groups": 0,
+          "verdict_hint": 8,
+          "scalar_winrate": 0
+        },
+        "analysis/2026-08-19_permutation_and_quality_momentum_research/report_data.json": {
+          "p_value": 2,
+          "multiarm_winrate_arms": 0,
+          "multiarm_winrate_groups": 0,
+          "verdict_hint": 0,
+          "scalar_winrate": 25
+        },
+        "analysis/2026-08-20_quality_filter_and_satellite_placebo_research/report_data.json": {
+          "p_value": 0,
+          "multiarm_winrate_arms": 0,
+          "multiarm_winrate_groups": 0,
+          "verdict_hint": 0,
+          "scalar_winrate": 6
+        },
+        "analysis/2026-08-20_satellite_frontier_and_quality_blend_research/report_data.json": {
+          "p_value": 0,
+          "multiarm_winrate_arms": 0,
+          "multiarm_winrate_groups": 0,
+          "verdict_hint": 0,
+          "scalar_winrate": 18
+        },
+        "analysis/2026-08-21_satellite_signal_upgrade_and_crisis_test/report_data.json": {
+          "p_value": 0,
+          "multiarm_winrate_arms": 0,
+          "multiarm_winrate_groups": 0,
+          "verdict_hint": 0,
+          "scalar_winrate": 19
+        },
+        "analysis/2026-08-22_regime_conditional_satellite_switch/report_data.json": {
+          "p_value": 0,
+          "multiarm_winrate_arms": 0,
+          "multiarm_winrate_groups": 0,
+          "verdict_hint": 0,
+          "scalar_winrate": 16
+        },
+        "analysis/2026-08-22_satellite_realtime_stop_and_reentry_research/report_data.json": {
+          "p_value": 0,
+          "multiarm_winrate_arms": 0,
+          "multiarm_winrate_groups": 0,
+          "verdict_hint": 0,
+          "scalar_winrate": 28
+        },
+        "analysis/2026-08-22_satellite_specific_crisis_signal_and_2021_case_study/report_data.json": {
+          "p_value": 0,
+          "multiarm_winrate_arms": 0,
+          "multiarm_winrate_groups": 0,
+          "verdict_hint": 0,
+          "scalar_winrate": 28
+        },
+        "analysis/2026-08-23_base_rate_monte_carlo_sensitivity/report_data.json": {
+          "p_value": 0,
+          "multiarm_winrate_arms": 66,
+          "multiarm_winrate_groups": 15,
+          "verdict_hint": 0,
+          "scalar_winrate": 0
+        },
+        "analysis/2026-08-23_block_bootstrap_sample_error_quantification/report_data.json": {
+          "p_value": 0,
+          "multiarm_winrate_arms": 6,
+          "multiarm_winrate_groups": 3,
+          "verdict_hint": 0,
+          "scalar_winrate": 0
+        },
+        "analysis/2026-08-23_champion_parameter_fine_resolution_and_satellite_joint/report_data.json": {
+          "p_value": 0,
+          "multiarm_winrate_arms": 0,
+          "multiarm_winrate_groups": 0,
+          "verdict_hint": 0,
+          "scalar_winrate": 15
+        },
+        "analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/report_data.json": {
+          "p_value": 0,
+          "multiarm_winrate_arms": 0,
+          "multiarm_winrate_groups": 0,
+          "verdict_hint": 0,
+          "scalar_winrate": 65
+        },
+        "analysis/2026-08-23_expected_value_reframing_and_continuous_exposure/report_data.json": {
+          "p_value": 0,
+          "multiarm_winrate_arms": 0,
+          "multiarm_winrate_groups": 0,
+          "verdict_hint": 0,
+          "scalar_winrate": 24
+        },
+        "analysis/2026-08-23_joint_parameter_interaction_grid_search/report_data.json": {
+          "p_value": 0,
+          "multiarm_winrate_arms": 0,
+          "multiarm_winrate_groups": 0,
+          "verdict_hint": 0,
+          "scalar_winrate": 0
+        },
+        "analysis/2026-08-23_satellite_weight_and_core_filter_expected_value/report_data.json": {
+          "p_value": 0,
+          "multiarm_winrate_arms": 0,
+          "multiarm_winrate_groups": 0,
+          "verdict_hint": 0,
+          "scalar_winrate": 121
+        },
+        "analysis/2026-08-23_system_vs_buyhold_and_lookback_robustness/report_data.json": {
+          "p_value": 0,
+          "multiarm_winrate_arms": 0,
+          "multiarm_winrate_groups": 0,
+          "verdict_hint": 0,
+          "scalar_winrate": 0
+        },
+        "analysis/2026-08-23_vix_fast_crash_signal_and_hybrid_switch/report_data.json": {
+          "p_value": 0,
+          "multiarm_winrate_arms": 0,
+          "multiarm_winrate_groups": 0,
+          "verdict_hint": 0,
+          "scalar_winrate": 108
+        },
+        "analysis/2026-08-23_vol_targeting_and_rebalance_frequency_expected_value/report_data.json": {
+          "p_value": 0,
+          "multiarm_winrate_arms": 0,
+          "multiarm_winrate_groups": 0,
+          "verdict_hint": 0,
+          "scalar_winrate": 0
+        },
+        "analysis/2026-08-24_bootstrap_confidence_audit_remaining_verdicts/report_data.json": {
+          "p_value": 0,
+          "multiarm_winrate_arms": 6,
+          "multiarm_winrate_groups": 3,
+          "verdict_hint": 0,
+          "scalar_winrate": 0
+        },
+        "analysis/2026-08-30_core_filter_bootstrap_and_satellite_weight_extension/report_data.json": {
+          "p_value": 0,
+          "multiarm_winrate_arms": 0,
+          "multiarm_winrate_groups": 0,
+          "verdict_hint": 0,
+          "scalar_winrate": 166
+        },
+        "analysis/2026-08-30_risk_adjusted_momentum_ranking/report_data.json": {
+          "p_value": 0,
+          "multiarm_winrate_arms": 0,
+          "multiarm_winrate_groups": 0,
+          "verdict_hint": 0,
+          "scalar_winrate": 24
+        },
+        "analysis/2026-08-30_synthetic_options_tail_hedge/report_data.json": {
+          "p_value": 0,
+          "multiarm_winrate_arms": 0,
+          "multiarm_winrate_groups": 0,
+          "verdict_hint": 0,
+          "scalar_winrate": 110
+        },
+        "analysis/2026-08-30_track_c_bootstrap_confidence_audit/report_data.json": {
+          "p_value": 0,
+          "multiarm_winrate_arms": 0,
+          "multiarm_winrate_groups": 0,
+          "verdict_hint": 0,
+          "scalar_winrate": 0
+        },
+        "analysis/2026-09-05_options_hedge_bootstrap_and_combined_system/report_data.json": {
+          "p_value": 0,
+          "multiarm_winrate_arms": 0,
+          "multiarm_winrate_groups": 0,
+          "verdict_hint": 0,
+          "scalar_winrate": 0
+        },
+        "analysis/2026-09-05_research_program_synthesis/report_data.json": {
+          "p_value": 0,
+          "multiarm_winrate_arms": 0,
+          "multiarm_winrate_groups": 0,
+          "verdict_hint": 0,
+          "scalar_winrate": 0
+        },
+        "analysis/kostolany_market_report_2026-08-12/report_data.json": {
+          "p_value": 0,
+          "multiarm_winrate_arms": 0,
+          "multiarm_winrate_groups": 0,
+          "verdict_hint": 0,
+          "scalar_winrate": 102
+        }
+      },
+      "totals": {
+        "formal_permutation_p_values": 2,
+        "multiarm_winrate_arms": 78,
+        "multiarm_winrate_groups": 21,
+        "explicit_verdict_hint_calls": 10,
+        "scalar_descriptive_winrate_leaves": 932
+      }
+    }
+  },
+  "bonferroni_fdr": {
+    "claims": [
+      {
+        "id": "momentum_ranking_vs_random",
+        "label": "모멘텀 랭킹 방식(12개월) — 무작위 선택 대비",
+        "program_grade": "moderate",
+        "method": "permutation test, N=200 reshuffle (작업21 5라운드)",
+        "p_or_implied": 0.025,
+        "note": "97.5th percentile ≈ p=0.025. 이것이 이 프로그램 전체에서 가장 강한 '정식' 유의성 근거."
+      },
+      {
+        "id": "momentum_ranking_12m_vs_9m",
+        "label": "모멘텀 랭킹 12개월 vs 9개월 lookback",
+        "program_grade": "moderate(위 결론의 강건성 체크)",
+        "method": "H30 몬테카를로 민감도, win_rate=0.555",
+        "p_or_implied": 0.4449,
+        "note": "동전던지기에 가까움 — 같은 '모멘텀 랭킹' 결론의 파라미터 선택 자체가 이미 약함."
+      },
+      {
+        "id": "rebalance_monthly_vs_quarterly",
+        "label": "리밸런싱 주기(월간 vs 분기)",
+        "program_grade": "weak",
+        "method": "H34 결합전파(가중치+표본오차) win_rate=0.496",
+        "p_or_implied": 0.504,
+        "note": "부호조차 방향이 사실상 반전(월간 우위가 근거 없음)."
+      },
+      {
+        "id": "binary_market_filter",
+        "label": "이진 시장필터(SPY<200일선 → 50% 축소)",
+        "program_grade": "weak",
+        "method": "H35 결합전파 win_rate=0.552(무필터 우세)",
+        "p_or_implied": 0.448,
+        "note": "가중치만 99.97%였던 것이 표본오차 반영 후 55.2%로 붕괴."
+      },
+      {
+        "id": "core_vol_targeting",
+        "label": "코어 레벨 변동성 타겟팅 오버레이",
+        "program_grade": "reversed",
+        "method": "H34 결합전파 win_rate=0.497",
+        "p_or_implied": 0.503,
+        "note": "완전한 동전던지기."
+      },
+      {
+        "id": "satellite_inclusion",
+        "label": "새틀라이트 포함 여부(15%, point-in-time 추세추종)",
+        "program_grade": "weak",
+        "method": "H33/H34 결합전파 win_rate=0.579",
+        "p_or_implied": 0.421,
+        "note": "가중치만 99.7%였던 것이 결합전파 후 57.9%."
+      },
+      {
+        "id": "satellite_trend_following_vs_random",
+        "label": "새틀라이트 선정방식(추세추종) — 무작위 대비",
+        "program_grade": "weak",
+        "method": "H10 순열검정, 93rd percentile",
+        "p_or_implied": 0.07,
+        "note": "95% 유의 문턱 미달로 이미 프로그램 스스로 'weak' 판정."
+      },
+      {
+        "id": "satellite_momentum_vs_random",
+        "label": "새틀라이트 선정방식(순수 모멘텀) — 무작위 대비",
+        "program_grade": "weak(위 항목에 앞선 이전 버전)",
+        "method": "H9 순열검정, 88th percentile",
+        "p_or_implied": 0.12,
+        "note": "위 항목으로 대체되기 전 버전."
+      },
+      {
+        "id": "collar_hedge_sleeve",
+        "label": "칼라 옵션 헤지(새틀라이트 슬리브 단독)",
+        "program_grade": "weak",
+        "method": "부트스트랩 슬리브 단독 승률 55~59%(중앙값 57% 사용)",
+        "p_or_implied": 0.43,
+        "note": "90% CI가 부호조차 확정 못함."
+      },
+      {
+        "id": "risk_adjusted_momentum",
+        "label": "위험조정 모멘텀 랭킹 (원시모멘텀 대비 우위 주장)",
+        "program_grade": "reversed",
+        "method": "순열검정 N=200 (작업48/49)",
+        "p_or_implied": 0.667,
+        "note": "이미 프로그램 스스로 기각."
+      },
+      {
+        "id": "iren_basket_trend_following",
+        "label": "IREN류 바스켓 추세추종 — 무작위 대비",
+        "program_grade": "weak",
+        "method": "순열검정, 93rd percentile (작업27/29)",
+        "p_or_implied": 0.075,
+        "note": "5% 문턱 미달로 이미 스스로 인지."
+      },
+      {
+        "id": "iren_single_trend_following",
+        "label": "IREN 단일종목 추세추종 — 무작위 대비",
+        "program_grade": "weak(부트스트랩 CI 폭이 바스켓과 동일해 하향)",
+        "method": "순열검정, 100th percentile (작업27/29)",
+        "p_or_implied": 0.005,
+        "note": "프로그램 전체에서 명목 p-value가 가장 작은 단일 결과. 그런데도 부트스트랩 감사(작업48)에서 신뢰구간 폭이 바스켓과 사실상 동일해 'weak'로 하향 조정됨."
+      }
+    ],
+    "qualitative_only_claims_excluded_from_calc": [
+      {
+        "id": "core_universe_17asset",
+        "label": "코어 자산군(17자산 유니버스) — robust 등급",
+        "program_grade": "robust",
+        "why_excluded": "단일 2008 GFC 실제 역사적 위기 구간에서의 실현 성과(+8.4% vs SPY -40.4%)에 근거 — 재표본추출/순열검정 등 형식적 유의성 검정이 이 결정 자체에는 한 번도 적용된 적이 없다(하위 파라미터들은 여러 라운드에 걸쳐 검정됨). p-value가 존재하지 않아 Bonferroni/FDR을 기계적으로 적용할 수 없다 — 본문에서 별도로 '유효 독립 위기표본 개수' 관점으로 논한다."
+      },
+      {
+        "id": "satellite_exit_mechanism_static",
+        "label": "새틀라이트 청산/스위치 메커니즘(정적보유가 기댓값 최적) — moderate 등급",
+        "program_grade": "moderate",
+        "why_excluded": "H12~H23 6라운드에 걸쳐 반복 재현된 패턴이라는 '정성적' 근거로 moderate를 부여했다고 원문(작업47/50)이 명시 — '아직 블록부트스트랩 감사를 거치지 않았다'고 스스로 인정. 형식적 p-value가 없어 계산 대상에서 제외."
+      },
+      {
+        "id": "per_pbr_valuation_frame",
+        "label": "PER/PBR 대수적 밸류에이션 프레임 — moderate 등급 (트랙C)",
+        "program_grade": "moderate",
+        "why_excluded": "이론적 유도의 견고함에 근거한 정성적 판단 — 실증 스크리닝은 오히려 스코프 한계를 드러냈을 뿐 별도의 통계적 검정을 거치지 않음."
+      }
+    ],
+    "bh_fdr_on_final_layer_pvalues": {
+      "n": 12,
+      "q": 0.05,
+      "sorted_p": [
+        0.005,
+        0.025,
+        0.07,
+        0.075,
+        0.12,
+        0.421,
+        0.43,
+        0.4449,
+        0.448,
+        0.503,
+        0.504,
+        0.667
+      ],
+      "thresholds": [
+        0.004166666666666667,
+        0.008333333333333333,
+        0.0125,
+        0.016666666666666666,
+        0.020833333333333336,
+        0.025,
+        0.02916666666666667,
+        0.03333333333333333,
+        0.037500000000000006,
+        0.04166666666666667,
+        0.04583333333333334,
+        0.05
+      ],
+      "largest_i_satisfying": -1,
+      "survivor_count": 0,
+      "survivor_original_indices": []
+    },
+    "bonferroni_by_family_size": {
+      "N=9 (가장 관대함: 작업20-21 파라미터 탐색 라운드 수만, 모멘텀랭킹 주장 하나 기준)": {
+        "alpha": 0.05,
+        "family_size": 9,
+        "per_test_threshold": 0.005555555555555556,
+        "results": [
+          {
+            "p": 0.025,
+            "survives": false
+          },
+          {
+            "p": 0.4449,
+            "survives": false
+          },
+          {
+            "p": 0.504,
+            "survives": false
+          },
+          {
+            "p": 0.448,
+            "survives": false
+          },
+          {
+            "p": 0.503,
+            "survives": false
+          },
+          {
+            "p": 0.421,
+            "survives": false
+          },
+          {
+            "p": 0.07,
+            "survives": false
+          },
+          {
+            "p": 0.12,
+            "survives": false
+          },
+          {
+            "p": 0.43,
+            "survives": false
+          },
+          {
+            "p": 0.667,
+            "survives": false
+          },
+          {
+            "p": 0.075,
+            "survives": false
+          },
+          {
+            "p": 0.005,
+            "survives": true
+          }
+        ],
+        "survivor_count": 1
+      },
+      "N=25 (Track B 전체 헤드라인 가설 수)": {
+        "alpha": 0.05,
+        "family_size": 25,
+        "per_test_threshold": 0.002,
+        "results": [
+          {
+            "p": 0.025,
+            "survives": false
+          },
+          {
+            "p": 0.4449,
+            "survives": false
+          },
+          {
+            "p": 0.504,
+            "survives": false
+          },
+          {
+            "p": 0.448,
+            "survives": false
+          },
+          {
+            "p": 0.503,
+            "survives": false
+          },
+          {
+            "p": 0.421,
+            "survives": false
+          },
+          {
+            "p": 0.07,
+            "survives": false
+          },
+          {
+            "p": 0.12,
+            "survives": false
+          },
+          {
+            "p": 0.43,
+            "survives": false
+          },
+          {
+            "p": 0.667,
+            "survives": false
+          },
+          {
+            "p": 0.075,
+            "survives": false
+          },
+          {
+            "p": 0.005,
+            "survives": false
+          }
+        ],
+        "survivor_count": 0
+      },
+      "N=80 (챔피언 계보 전체 헤드라인 가설 수, count_tests.py 산출)": {
+        "alpha": 0.05,
+        "family_size": 80,
+        "per_test_threshold": 0.000625,
+        "results": [
+          {
+            "p": 0.025,
+            "survives": false
+          },
+          {
+            "p": 0.4449,
+            "survives": false
+          },
+          {
+            "p": 0.504,
+            "survives": false
+          },
+          {
+            "p": 0.448,
+            "survives": false
+          },
+          {
+            "p": 0.503,
+            "survives": false
+          },
+          {
+            "p": 0.421,
+            "survives": false
+          },
+          {
+            "p": 0.07,
+            "survives": false
+          },
+          {
+            "p": 0.12,
+            "survives": false
+          },
+          {
+            "p": 0.43,
+            "survives": false
+          },
+          {
+            "p": 0.667,
+            "survives": false
+          },
+          {
+            "p": 0.075,
+            "survives": false
+          },
+          {
+            "p": 0.005,
+            "survives": false
+          }
+        ],
+        "survivor_count": 0
+      },
+      "N=1022 (report_data.json 전수 스캔 granular 리프 수, 상한 추정)": {
+        "alpha": 0.05,
+        "family_size": 1022,
+        "per_test_threshold": 4.892367906066536e-05,
+        "results": [
+          {
+            "p": 0.025,
+            "survives": false
+          },
+          {
+            "p": 0.4449,
+            "survives": false
+          },
+          {
+            "p": 0.504,
+            "survives": false
+          },
+          {
+            "p": 0.448,
+            "survives": false
+          },
+          {
+            "p": 0.503,
+            "survives": false
+          },
+          {
+            "p": 0.421,
+            "survives": false
+          },
+          {
+            "p": 0.07,
+            "survives": false
+          },
+          {
+            "p": 0.12,
+            "survives": false
+          },
+          {
+            "p": 0.43,
+            "survives": false
+          },
+          {
+            "p": 0.667,
+            "survives": false
+          },
+          {
+            "p": 0.075,
+            "survives": false
+          },
+          {
+            "p": 0.005,
+            "survives": false
+          }
+        ],
+        "survivor_count": 0
+      }
+    }
+  },
+  "consistency_and_leakage_audit": {
+    "grading_rule_found": {
+      "source": "analysis/2026-08-24_bootstrap_confidence_audit_remaining_verdicts/build_report_data.py L20-29",
+      "rule": {
+        "robust": "win_rate >= 0.90",
+        "moderate": "win_rate >= 0.70",
+        "weak": "win_rate >= 0.50",
+        "reversed": "win_rate < 0.50"
+      },
+      "observation": "이 수치 규칙은 트랙D 후반 라운드(작업44-47, H22/H25/H26/H26b/H28/H32)에서만 코드로 존재한다. 트랙B(No.04-10)와 트랙C 원 리포트(작업26-28)의 '채택/부분채택/기각' 판정에는 이에 대응하는 수치 규칙이 전혀 문서화되어 있지 않다 -- 순열검정 percentile을 이 규칙에 그대로 대입하면(percentile/100을 win_rate처럼 취급) 97.5th percentile(p=0.025, 작업21 5라운드)은 'robust'(>=0.90) 문턱을 넘지만, 최종 종합 리포트(research_program_synthesis)는 이를 'moderate'로만 매겼다 -- 이 특정 사례는 H30 몬테카를로 후속 발견(55.5%) 덕에 정당하게 하향된 것으로 보이나, 규칙 자체가 프로그램 전체에 일관되게 적용된 적은 없다."
+    },
+    "grading_double_standard": {
+      "finding": "프로그램에 '확신도 robust/moderate'로 남아있는 4개 결론 중 정확히 2개(코어 자산군 17자산, 새틀라이트 청산 메커니즘의 정적보유 우위)는 단 한 번도 형식적 유의성 검정(순열검정이든 부트스트랩이든)을 거치지 않은 순수 서술적/패턴 반복 근거로 등급이 매겨졌다. 반면 같은 시기 또는 그 이후에 나온 H22/H25/H26/H28/H32 같은 유사하거나 더 강해보였던 '가중치만 반영 시 90%+' 결론들은 전부 블록부트스트랩+디리클레 기저확률 결합전파를 거쳐 weak/reversed로 강등됐다. 즉 '검정을 받지 않은 결론'이 '검정을 받고 떨어진 결론'보다 오히려 더 높은 등급을 유지하고 있다 -- 감사 커버리지 자체가 불균등하다.",
+      "concrete_contrast": [
+        {
+          "claim": "코어 자산군(17자산) -- robust, 형식적 검정 없음",
+          "vs": "H22 정적보유 새틀라이트 -- 가중치만 99.69%(would-be robust)였으나 부트스트랩 후 57.93%로 weak 강등"
+        },
+        {
+          "claim": "새틀라이트 청산 메커니즘(정적보유 최적) -- moderate, '6라운드 반복 재현'이라는 정성적 근거만, 저자 스스로 '아직 블록부트스트랩 감사를 거치지 않았다'고 명시(작업47/50)",
+          "vs": "H28 코어 변동성타겟팅 -- 가중치만 96.55%(would-be robust)였으나 부트스트랩 후 49.69%로 reversed 강등"
+        }
+      ]
+    },
+    "hypothesis_id_namespace_collision": {
+      "finding": "H18/H19/H20/H21/H22/H23 라벨이 두 개의 서로 무관한 네임스페이스에서 재사용됐다 -- (1) 트랙B/작업22-23(No.07/08): H18=연속 시장필터, H19=17자산 유니버스 확장, H20=2008 GFC OOS, H21=닷컴버블, H22=2022년 약세장, H23=시그모이드 연속필터. (2) 트랙D/작업36-40(2026-08-23 라운드들): H18=위기표본 확장, H19=새틀라이트 비중 프런티어, H20=VIX 신속신호, H21=하이브리드 스위치, H22=새틀라이트 정적보유 vs 코어단독 기댓값, H23=연속노출(continuous exposure). 두 세트는 완전히 다른 질문을 다루면서 같은 번호를 쓴다 -- 향후 어떤 리포트나 에이전트가 'H22'만 인용하면 어느 트랙을 가리키는지 문맥 없이는 알 수 없다. 실제 사고는 없었던 것으로 확인했으나(각 report_data.json 파일이 자기 완결적이라 혼선이 실제 결론에 영향을 준 사례는 못 찾음), 순수한 표기 위생 문제로 향후 리스크가 있다.",
+      "severity": "low-to-moderate (실제 오판 사례는 발견 못했으나 재발 방지책 없음)"
+    },
+    "same_evidence_different_grade_case": {
+      "finding": "작업29(2026-08-19)의 H3는 바스켓 버전(93rd percentile, p≈0.075, 5%문턱 미달)과 IREN 단일종목 버전(100th percentile, p≈0.005)을 하나의 '부분채택' 판정으로 묶어 보고했다 -- 통계적으로 유의하지 않은 결과(p=0.075)와 매우 강한 결과(p=0.005)가 같은 우산 등급 아래 섞여, 리포트를 훑어보는 독자는 바스켓 버전도 단일종목만큼 강하다고 오인하기 쉽다. 반대 사례로 작업32(H9, 88th percentile, p≈0.12)와 작업33(H10, 93rd percentile, p≈0.07)은 둘 다 정직하게 '부분채택'(사실상 미달)으로 남겨 방향은 일관됐다."
+    },
+    "look_ahead_bias_spotcheck": {
+      "method": "'최근 2주 이내(2026-08-30 이후)' 추가된 분석 스크립트에서 무작위로 5개를 골라 신호 계산 로직을 직접 읽고, 리밸런싱/포지션 신호가 그 시점 이후 데이터를 참조하는지 검증했다.",
+      "files_checked": [
+        {
+          "file": "analysis/2026-08-30_risk_adjusted_momentum_ranking/risk_adjusted_champion.py (build_weights_with_ranking)",
+          "finding": "clean -- signal_date = closes.index[i-1]로 리밸런싱 전날 종가만 사용, rolling 통계도 전부 과거 창(min_periods 포함)만 참조. 절대모멘텀 게이트도 신호일 기준으로 고정."
+        },
+        {
+          "file": "analysis/2026-08-30_track_c_bootstrap_confidence_audit/audit1_iren_trend_bootstrap.py (+ core.champion_strategy.donchian_trailing_stop_positions 재사용)",
+          "finding": "clean -- rolling_max = close.shift(1).rolling(...).max()로 당일 이전 데이터만으로 돌파 기준선을 만들고, 포지션은 호출부에서 다시 .shift(1) 되어 실제 수익률에 반영. 이중 lag로 오히려 보수적."
+        },
+        {
+          "file": "analysis/2026-08-30_synthetic_options_tail_hedge/h_options_hedge.py (build_option_overlay_returns)",
+          "finding": "clean -- 옵션 행사가(K)는 롤 시점 S0로, 페이오프는 만기 시점 S_T로 각각 그 날짜에만 알려진 값을 사용. 무위험금리도 fedfunds.asof(rd)로 과거 값만 조회."
+        },
+        {
+          "file": "analysis/2026-08-30_core_filter_bootstrap_and_satellite_weight_extension/h35_core_filter_bootstrap_audit.py",
+          "finding": "clean -- champion_strategy.run_champion을 그대로 재실행하는 재감사 스크립트라 새로운 신호 계산 경로가 없음, 기존 결정론적 백테스트 결과와 대조 검증 로직 포함."
+        },
+        {
+          "file": "core/champion_strategy.py::compute_live_collar_state (2026-09-14, 작업57)",
+          "finding": "clean(단, 백테스트가 아니라 라이브 신호 계산 함수 -- lookahead 개념 자체가 다르게 적용됨) -- S_now/vix_now는 오늘 종가, roll_date는 이번 달 첫 거래일로 전부 '오늘 시점에 이미 알려진' 값만 사용."
+        }
+      ],
+      "verdict": "무작위 표본 5개에서 신규 point-in-time/lookahead 버그는 발견하지 못했다 -- No.09(작업24) 사후편향 사건 이후 이 저장소의 신호-실행 lag 규율(신호일 확정 -> shift(1) -> 실행)은 최근 라운드들에서 일관되게 지켜지고 있는 것으로 보인다. 이는 정직하게 보고하는 긍정적 결과이며, 발견하지 못했다고 완화해서 하는 말이 아니다.",
+      "caveat": "5개는 이 저장소 전체 코드베이스(특히 core/strategy_tuning.py의 야간 튜닝 파이프라인, app/의 UI 트리거 로직)를 대표하지 않는다 -- 이번 표본은 전부 'analysis/' 리서치 스크립트에 국한됐다."
+    },
+    "deeper_finding_effective_independent_regime_count": {
+      "finding": "Bonferroni/FDR가 '검정 횟수'를 문제 삼는 것과는 별개로, 이 프로그램이 반복적으로 '아웃오브샘플/위기 검증'이라고 부르는 것은 실제로는 서로 겹치지 않는 독립 사건이 아니다. 사용된 위기/레짐 구간은 사실상 6개뿐이다: 2000-2002 닷컴버블, 2007-2009 GFC, 2015-2016 조정, 2018년 4분기 셀오프, 2020년 COVID, 2022년 약세장. 이 6개 구간이 H11/H12/H14/H16/H17/H18/H19/H23/H25 등 최소 9개 이상의 서로 다른 트랙D 가설과 트랙B No.07/08/09/10 검증에 반복 재사용됐다. 즉 '35개 가설이 각각 위기구간에서 검증됐다'는 서술은 표본 크기가 35x가 아니라 실질적으로 독립 관측치 ~6개에 가설 수십 개를 반복 투영한 것에 가깝다 -- Bonferroni/FDR 같은 가설-개수 기반 보정을 통과해도, 애초에 검증에 쓰인 역사적 '자연실험' 표본 자체가 극히 작다는 점은 별도로 남는 근본적 한계다.",
+      "severity": "high -- 이 문제는 순열검정/부트스트랩으로도 고쳐지지 않는다(둘 다 같은 6개 구간 안에서의 재표본추출이므로)"
+    }
+  },
+  "meta_conclusion": {
+    "headline": "research_program_synthesis.confidence_table + track_c_table가 매긴 17개 '최종' 결론 중 정량적 유의성 지표(p-value 또는 부트스트랩/몬테카를로 승률)를 보유한 12개를 다중비교 보정하면, Bonferroni는 어떤 현실적인 가설-족(family) 크기(N=9~1022)를 가정해도 12개 중 최대 1개(가장 관대한 N=9 가정에서 IREN 단일종목 추세추종, p=0.005)만 살아남고, Benjamini-Hochberg FDR(q=0.05)은 이 12개짜리 '최종 층위'만 놓고 봐도 단 하나도 살아남지 못한다(가장 작은 p=0.005조차 순위 1의 임계값 0.00417을 넘지 못함).",
+    "on_robust_grade": "'robust' 등급은 프로그램 전체에서 딱 1개(코어 자산군 17자산 유니버스)뿐인데, 이 결론은애초에 p-value가 존재하지 않는 단일 역사적 사건(2008 GFC) 기반 정성 판단이라 Bonferroni/FDR을 기계적으로 적용할 대상 자체가 아니다. 이 결론이 진짜로 안전한지는 '유효 독립 위기표본 개수' 관점에서 봐야 하는데, 이 프로그램이 반복 사용하는 위기구간은 실질적으로 6개뿐이고 그중 2008 GFC 하나에 이 결론 전체가 의존한다 -- 표본 크기 1의 '아웃오브샘플 검증'이다. 따라서 'robust'라는 라벨은 과장이며, 최소한 'moderate(단일 강한 사례, 재현 불가)'로 낮춰야 한다.",
+    "on_moderate_grades": "'moderate' 등급 3개(모멘텀 랭킹 방식, 새틀라이트 청산 메커니즘, PER/PBR 밸류에이션 프레임) 중 형식적 p-value가 있는 것은 모멘텀 랭킹 방식 하나뿐(p=0.025)이며, 이마저 어떤 다중비교 보정도 통과하지 못한다(Bonferroni 최소요구 N=2에서조차 경계선). 나머지 둘은 애초에 형식적 검정이 없다. 세 항목 모두 'moderate'에서 'weak'로 낮추는 것이 맞다.",
+    "verdict_on_champion_strategy": "결론적으로, 오늘(2026-09-14) 라이브로 도는 core/champion_strategy.py의 최종 설정 중 다중비교 보정을 통과해 '통계적으로 유의미하다'고 부를 수 있는 구성요소는 하나도 없다. 이 전략이 지금 이대로 운용을 지속할 근거는 '통계적으로 증명된 우위'가 아니라 (1) 2008년 한 차례의 강력한 실제 위기 대응 사례, (2) 정적 배분이 여러 라운드에 걸쳐 반복적으로 동적 스위치를 이겼다는 정성적 패턴, (3) 다른 대안들이 이보다 더 나쁜 증거를 가졌다는 상대적 우위 -- 세 가지 경제적/서사적 근거이지, 가설검정으로 확정된 근거가 아니다. 이 구분을 운용자(사용자)에게 명시적으로 알려야 한다."
+  }
+}

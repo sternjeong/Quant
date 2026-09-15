@@ -1,0 +1,262 @@
+{
+  "headline_by_track": {
+    "Track B (No.04-10, 작업19-25)": {
+      "subtotal": 26,
+      "items": {
+        "no04_kostolany_baseline (사전, 작업19 이전)": 1,
+        "작업19 (모멘텀로테이션 vs SPY vs 코스톨라니로테이션)": 1,
+        "작업20 1라운드 (7가설: TopN/lookback/rebal빈도/필터방식/역변동성가중/레짐필터)": 7,
+        "작업20 2라운드 (시장필터 축소율 0/25/50/75/100% 그리드)": 1,
+        "작업20 3라운드 (강건성/하위기간 격차 재확인)": 1,
+        "작업21 4라운드 (변동성타겟팅 기각 + 회전율버퍼 기각)": 2,
+        "작업21 5라운드 (멀티에셋 확장 채택 + 순열검정 유의성확인, N=200, p≈0.025)": 2,
+        "작업22 H18/H19/H20 (연속필터 기각/유니버스확장 채택/2008 GFC OOS)": 3,
+        "작업23 H21/H22/H23 (닷컴버블/2022약세장/시그모이드필터 재기각)": 3,
+        "작업24 H24 + 자기검증 재실행 + 비중상한(설계실패) + 금은오버레이": 4,
+        "작업25 (point-in-time 최종 재검증, No.09 사후편향 확정)": 1
+      }
+    },
+    "Track C (작업26-28, 48)": {
+      "subtotal": 14,
+      "items": {
+        "작업26 텐베거 스크리닝 방법론(unsupported)": 1,
+        "작업27 IREN 변동성모멘텀 (정적보유/모멘텀로테이션/추세추종+스탑/변동성타겟팅/강건성/대조바스켓, 6개 헤드라인 메커니즘)": 6,
+        "작업28 iren_beta_alpha_hedging H1~H5": 5,
+        "작업48 트랙C 부트스트랩 재감사 (audit1 IREN추세추종, audit2 베타헤지H1/BABH3)": 2
+      }
+    },
+    "Track D (작업29-47, H1-H36)": {
+      "subtotal": 35,
+      "items": {
+        "작업29~47 Track D H1~H36 (H7은 설계만 되고 스킵됨 → 35개 실제 실행)": 35
+      }
+    },
+    "Track D 이후 독립 라운드 (작업48-49)": {
+      "subtotal": 5,
+      "items": {
+        "작업48 risk_adjusted_momentum_ranking (4개 변형 + 순열검정 p=0.667)": 1,
+        "작업48 synthetic_options_tail_hedge (main + otm5 민감도)": 2,
+        "작업49 options_hedge_bootstrap_and_combined_system (bootstrap + combined)": 2
+      }
+    }
+  },
+  "headline_total": 80,
+  "excluded_from_headline_total": {
+    "macro_event_study_2026-08-21 (별도 스레드, 챔피언 전략 계보 밖)": 55,
+    "core/strategy_tuning.py 야간/온디맨드 종목별 순열검정 (_compute_tuning_significance, 작업16~ 현재까지 반복 실행 — 정확한 총 실행 횟수는 실행 로그가 남아있지 않아 이 스크립트로는 집계 불가, 100종목 표본 x 여러 스타일그룹 x 반복 실행 규모로 볼 때 최소 수백 회 이상으로 추정)": null
+  },
+  "granular_scan": {
+    "per_file": {
+      "analysis/2026-08-16_iren_volatile_momentum_stocks/report_data.json": {
+        "p_value": 0,
+        "multiarm_winrate_arms": 0,
+        "multiarm_winrate_groups": 0,
+        "verdict_hint": 0,
+        "scalar_winrate": 52
+      },
+      "analysis/2026-08-16_tenbagger_stock_picking/report_data.json": {
+        "p_value": 0,
+        "multiarm_winrate_arms": 0,
+        "multiarm_winrate_groups": 0,
+        "verdict_hint": 0,
+        "scalar_winrate": 0
+      },
+      "analysis/2026-08-19_champion_beta_and_satellite_research/report_data.json": {
+        "p_value": 0,
+        "multiarm_winrate_arms": 0,
+        "multiarm_winrate_groups": 0,
+        "verdict_hint": 2,
+        "scalar_winrate": 5
+      },
+      "analysis/2026-08-19_iren_beta_alpha_hedging/report_data.json": {
+        "p_value": 0,
+        "multiarm_winrate_arms": 0,
+        "multiarm_winrate_groups": 0,
+        "verdict_hint": 8,
+        "scalar_winrate": 0
+      },
+      "analysis/2026-08-19_permutation_and_quality_momentum_research/report_data.json": {
+        "p_value": 2,
+        "multiarm_winrate_arms": 0,
+        "multiarm_winrate_groups": 0,
+        "verdict_hint": 0,
+        "scalar_winrate": 25
+      },
+      "analysis/2026-08-20_quality_filter_and_satellite_placebo_research/report_data.json": {
+        "p_value": 0,
+        "multiarm_winrate_arms": 0,
+        "multiarm_winrate_groups": 0,
+        "verdict_hint": 0,
+        "scalar_winrate": 6
+      },
+      "analysis/2026-08-20_satellite_frontier_and_quality_blend_research/report_data.json": {
+        "p_value": 0,
+        "multiarm_winrate_arms": 0,
+        "multiarm_winrate_groups": 0,
+        "verdict_hint": 0,
+        "scalar_winrate": 18
+      },
+      "analysis/2026-08-21_satellite_signal_upgrade_and_crisis_test/report_data.json": {
+        "p_value": 0,
+        "multiarm_winrate_arms": 0,
+        "multiarm_winrate_groups": 0,
+        "verdict_hint": 0,
+        "scalar_winrate": 19
+      },
+      "analysis/2026-08-22_regime_conditional_satellite_switch/report_data.json": {
+        "p_value": 0,
+        "multiarm_winrate_arms": 0,
+        "multiarm_winrate_groups": 0,
+        "verdict_hint": 0,
+        "scalar_winrate": 16
+      },
+      "analysis/2026-08-22_satellite_realtime_stop_and_reentry_research/report_data.json": {
+        "p_value": 0,
+        "multiarm_winrate_arms": 0,
+        "multiarm_winrate_groups": 0,
+        "verdict_hint": 0,
+        "scalar_winrate": 28
+      },
+      "analysis/2026-08-22_satellite_specific_crisis_signal_and_2021_case_study/report_data.json": {
+        "p_value": 0,
+        "multiarm_winrate_arms": 0,
+        "multiarm_winrate_groups": 0,
+        "verdict_hint": 0,
+        "scalar_winrate": 28
+      },
+      "analysis/2026-08-23_base_rate_monte_carlo_sensitivity/report_data.json": {
+        "p_value": 0,
+        "multiarm_winrate_arms": 66,
+        "multiarm_winrate_groups": 15,
+        "verdict_hint": 0,
+        "scalar_winrate": 0
+      },
+      "analysis/2026-08-23_block_bootstrap_sample_error_quantification/report_data.json": {
+        "p_value": 0,
+        "multiarm_winrate_arms": 6,
+        "multiarm_winrate_groups": 3,
+        "verdict_hint": 0,
+        "scalar_winrate": 0
+      },
+      "analysis/2026-08-23_champion_parameter_fine_resolution_and_satellite_joint/report_data.json": {
+        "p_value": 0,
+        "multiarm_winrate_arms": 0,
+        "multiarm_winrate_groups": 0,
+        "verdict_hint": 0,
+        "scalar_winrate": 15
+      },
+      "analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/report_data.json": {
+        "p_value": 0,
+        "multiarm_winrate_arms": 0,
+        "multiarm_winrate_groups": 0,
+        "verdict_hint": 0,
+        "scalar_winrate": 65
+      },
+      "analysis/2026-08-23_expected_value_reframing_and_continuous_exposure/report_data.json": {
+        "p_value": 0,
+        "multiarm_winrate_arms": 0,
+        "multiarm_winrate_groups": 0,
+        "verdict_hint": 0,
+        "scalar_winrate": 24
+      },
+      "analysis/2026-08-23_joint_parameter_interaction_grid_search/report_data.json": {
+        "p_value": 0,
+        "multiarm_winrate_arms": 0,
+        "multiarm_winrate_groups": 0,
+        "verdict_hint": 0,
+        "scalar_winrate": 0
+      },
+      "analysis/2026-08-23_satellite_weight_and_core_filter_expected_value/report_data.json": {
+        "p_value": 0,
+        "multiarm_winrate_arms": 0,
+        "multiarm_winrate_groups": 0,
+        "verdict_hint": 0,
+        "scalar_winrate": 121
+      },
+      "analysis/2026-08-23_system_vs_buyhold_and_lookback_robustness/report_data.json": {
+        "p_value": 0,
+        "multiarm_winrate_arms": 0,
+        "multiarm_winrate_groups": 0,
+        "verdict_hint": 0,
+        "scalar_winrate": 0
+      },
+      "analysis/2026-08-23_vix_fast_crash_signal_and_hybrid_switch/report_data.json": {
+        "p_value": 0,
+        "multiarm_winrate_arms": 0,
+        "multiarm_winrate_groups": 0,
+        "verdict_hint": 0,
+        "scalar_winrate": 108
+      },
+      "analysis/2026-08-23_vol_targeting_and_rebalance_frequency_expected_value/report_data.json": {
+        "p_value": 0,
+        "multiarm_winrate_arms": 0,
+        "multiarm_winrate_groups": 0,
+        "verdict_hint": 0,
+        "scalar_winrate": 0
+      },
+      "analysis/2026-08-24_bootstrap_confidence_audit_remaining_verdicts/report_data.json": {
+        "p_value": 0,
+        "multiarm_winrate_arms": 6,
+        "multiarm_winrate_groups": 3,
+        "verdict_hint": 0,
+        "scalar_winrate": 0
+      },
+      "analysis/2026-08-30_core_filter_bootstrap_and_satellite_weight_extension/report_data.json": {
+        "p_value": 0,
+        "multiarm_winrate_arms": 0,
+        "multiarm_winrate_groups": 0,
+        "verdict_hint": 0,
+        "scalar_winrate": 166
+      },
+      "analysis/2026-08-30_risk_adjusted_momentum_ranking/report_data.json": {
+        "p_value": 0,
+        "multiarm_winrate_arms": 0,
+        "multiarm_winrate_groups": 0,
+        "verdict_hint": 0,
+        "scalar_winrate": 24
+      },
+      "analysis/2026-08-30_synthetic_options_tail_hedge/report_data.json": {
+        "p_value": 0,
+        "multiarm_winrate_arms": 0,
+        "multiarm_winrate_groups": 0,
+        "verdict_hint": 0,
+        "scalar_winrate": 110
+      },
+      "analysis/2026-08-30_track_c_bootstrap_confidence_audit/report_data.json": {
+        "p_value": 0,
+        "multiarm_winrate_arms": 0,
+        "multiarm_winrate_groups": 0,
+        "verdict_hint": 0,
+        "scalar_winrate": 0
+      },
+      "analysis/2026-09-05_options_hedge_bootstrap_and_combined_system/report_data.json": {
+        "p_value": 0,
+        "multiarm_winrate_arms": 0,
+        "multiarm_winrate_groups": 0,
+        "verdict_hint": 0,
+        "scalar_winrate": 0
+      },
+      "analysis/2026-09-05_research_program_synthesis/report_data.json": {
+        "p_value": 0,
+        "multiarm_winrate_arms": 0,
+        "multiarm_winrate_groups": 0,
+        "verdict_hint": 0,
+        "scalar_winrate": 0
+      },
+      "analysis/kostolany_market_report_2026-08-12/report_data.json": {
+        "p_value": 0,
+        "multiarm_winrate_arms": 0,
+        "multiarm_winrate_groups": 0,
+        "verdict_hint": 0,
+        "scalar_winrate": 102
+      }
+    },
+    "totals": {
+      "formal_permutation_p_values": 2,
+      "multiarm_winrate_arms": 78,
+      "multiarm_winrate_groups": 21,
+      "explicit_verdict_hint_calls": 10,
+      "scalar_descriptive_winrate_leaves": 932
+    }
+  }
+}

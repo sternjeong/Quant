@@ -1,0 +1,113 @@
+[step1] 코어+SPY 가격 로딩 (fetch_start=2018-07-08)...
+[step1] 코어: 리밸런싱 변경일수=63, 총 진입/청산 이벤트=148, 기간=7.08년 -> 연평균 매매(편도 기준)=20.90회/년
+[step1] 코어 [current_0.1pct_rt] cost_bps/side=5.0: {'cumulative_return': 146.66, 'cagr': 13.6, 'mdd': -17.74, 'sharpe': 1.06, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.77, 'avg_drawdown_days': 20.5}, 연평균비용drag=0.281%
+[step1] 코어 [moderate_0.3pct_rt] cost_bps/side=15.0: {'cumulative_return': 137.05, 'cagr': 12.96, 'mdd': -18.13, 'sharpe': 1.02, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.71, 'avg_drawdown_days': 20.9}, 연평균비용drag=0.842%
+[step1] 코어 [conservative_0.5pct_rt] cost_bps/side=25.0: {'cumulative_return': 127.81, 'cagr': 12.33, 'mdd': -18.52, 'sharpe': 0.97, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.67, 'avg_drawdown_days': 21.6}, 연평균비용drag=1.403%
+[step1] 코어 [no_promo_0.8pct_rt] cost_bps/side=40.0: {'cumulative_return': 114.6, 'cagr': 11.38, 'mdd': -19.1, 'sharpe': 0.91, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.6, 'avg_drawdown_days': 24.7}, 연평균비용drag=2.245%
+[step1] SPY 매수보유 참고: {'cumulative_return': 165.31, 'cagr': 14.77, 'mdd': -34.1, 'sharpe': 0.8, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.43, 'avg_drawdown_days': 16.9}
+[step1] 체크포인트 저장: step1_core_checkpoint.json (코어 완료, 새틀라이트 시작 전)
+[step1] 새틀라이트 반기 리밸런싱 point-in-time 스캔 시작 (최근 4회만, 감사 실용화)...
+
+1 Failed download:
+['ANSS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['AVB']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['BK']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['DFS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['EA']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['EQR']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['HES']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['HOLX']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['IPG']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['JNPR']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['K']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+[step1]    반기 리밸런싱 2025-01-02: pool=15, 활성추세=8, picks=['NVDA', 'WMT', 'AMZN']
+
+1 Failed download:
+['ANSS']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['AVB']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['BK']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['EA']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['EQR']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['HES']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$HOLX: possibly delisted; no timezone found
+$HOLX: possibly delisted; no timezone found
+
+1 Failed download:
+['HOLX']: possibly delisted; no timezone found
+
+1 Failed download:
+['IPG']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+$JNPR: possibly delisted; no timezone found
+
+1 Failed download:
+['JNPR']: possibly delisted; no timezone found
+
+1 Failed download:
+['K']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+[step1]    반기 리밸런싱 2025-07-01: pool=15, 활성추세=14, picks=['GE', 'JPM', 'WMT']
+
+1 Failed download:
+['AVB']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['BK']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['EA']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['EQR']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['HOLX']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+[step1]    반기 리밸런싱 2026-01-02: pool=15, 활성추세=15, picks=['NEM', 'GE', 'GOOGL']
+
+1 Failed download:
+['AVB']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['EA']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['EQR']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+
+1 Failed download:
+['AVB']: YFRateLimitError('Too Many Requests. Rate limited. Try after a while.')
+[step1]    반기 리밸런싱 2026-07-01: pool=15, 활성추세=7, picks=['CAT', 'LLY', 'WELL']
+[step1] 새틀라이트: 최근 반기 리밸런싱 4회(1.69년 창), 총 진입/청산 이벤트=17 -> 연평균 매매(편도 기준)=10.06회/년
+[step1] 새틀라이트 [current_0.1pct_rt] cost_bps/side=5.0: {'cumulative_return': 31.76, 'cagr': 17.74, 'mdd': -25.51, 'sharpe': 0.75, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.7, 'avg_drawdown_days': 15.4}, 연평균비용drag=0.168%
+[step1] 새틀라이트 [moderate_0.3pct_rt] cost_bps/side=15.0: {'cumulative_return': 31.02, 'cagr': 17.35, 'mdd': -25.51, 'sharpe': 0.73, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.68, 'avg_drawdown_days': 15.4}, 연평균비용drag=0.503%
+[step1] 새틀라이트 [conservative_0.5pct_rt] cost_bps/side=25.0: {'cumulative_return': 30.29, 'cagr': 16.96, 'mdd': -25.51, 'sharpe': 0.72, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.66, 'avg_drawdown_days': 15.4}, 연평균비용drag=0.839%
+[step1] 새틀라이트 [no_promo_0.8pct_rt] cost_bps/side=40.0: {'cumulative_return': 29.19, 'cagr': 16.37, 'mdd': -25.51, 'sharpe': 0.7, 'win_rate': 0.0, 'avg_holding_days': 0.0, 'trade_count': 0, 'profit_factor': 0.0, 'calmar': 0.64, 'avg_drawdown_days': 15.4}, 연평균비용drag=1.342%
+[step1] 통합(코어+새틀라이트) 연평균 매매(편도)=30.96회/년 (왕복 기준 대략 15.48회/년)
+[step1] step1_results.json 저장 완료

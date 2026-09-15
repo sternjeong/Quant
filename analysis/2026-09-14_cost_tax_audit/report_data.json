@@ -1,0 +1,1020 @@
+{
+  "meta": {
+    "generated": "2026-09-14",
+    "title": "비용/세금 감사 — 챔피언 전략(core/champion_strategy.py) 라이브 기본설정",
+    "agent": "F (리서치 에이전트 F, 비용/세금/리스크 감사관)",
+    "fallback_reason": "D의 새 후보(analysis/LATEST_STRATEGY_CANDIDATE.md)가 없어 라이브 기본설정을 폴백 감사"
+  },
+  "step1_cost_scenarios": {
+    "meta": {
+      "full_start": "2019-08-12",
+      "full_end": "2026-09-11",
+      "n_years": 7.082819986310746,
+      "satellite_window_start": "2025-01-02",
+      "satellite_n_years": 1.6892539356605065,
+      "satellite_audit_note": "새틀라이트는 계산비용(yfinance rate-limit) 문제로 전체기간이 아니라 최근 반기 리밸런싱 4회(1.69년 창)만, pool_n=15(라이브 기본값 40 대신)으로 축소 재계산했다. 코어(85% 비중, 이 감사의 핵심)는 전체 2019-2026 구간 그대로."
+    },
+    "core_trade_events": 148,
+    "core_rebal_change_days": 63,
+    "core_trades_per_year": 20.895632006184773,
+    "core_results": {
+      "current_0.1pct_rt": {
+        "cost_bps_per_side": 5.0,
+        "metrics": {
+          "cumulative_return": 146.66,
+          "cagr": 13.6,
+          "mdd": -17.74,
+          "sharpe": 1.06,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.77,
+          "avg_drawdown_days": 20.5
+        },
+        "avg_annual_cost_drag_pct": 0.28060857170467723
+      },
+      "moderate_0.3pct_rt": {
+        "cost_bps_per_side": 15.0,
+        "metrics": {
+          "cumulative_return": 137.05,
+          "cagr": 12.96,
+          "mdd": -18.13,
+          "sharpe": 1.02,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.71,
+          "avg_drawdown_days": 20.9
+        },
+        "avg_annual_cost_drag_pct": 0.8418257151140317
+      },
+      "conservative_0.5pct_rt": {
+        "cost_bps_per_side": 25.0,
+        "metrics": {
+          "cumulative_return": 127.81,
+          "cagr": 12.33,
+          "mdd": -18.52,
+          "sharpe": 0.97,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.67,
+          "avg_drawdown_days": 21.6
+        },
+        "avg_annual_cost_drag_pct": 1.4030428585233863
+      },
+      "no_promo_0.8pct_rt": {
+        "cost_bps_per_side": 40.0,
+        "metrics": {
+          "cumulative_return": 114.6,
+          "cagr": 11.38,
+          "mdd": -19.1,
+          "sharpe": 0.91,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.6,
+          "avg_drawdown_days": 24.7
+        },
+        "avg_annual_cost_drag_pct": 2.244868573637418
+      }
+    },
+    "spy_buyhold_metrics": {
+      "cumulative_return": 165.31,
+      "cagr": 14.77,
+      "mdd": -34.1,
+      "sharpe": 0.8,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.43,
+      "avg_drawdown_days": 16.9
+    },
+    "satellite_rebal_log": [
+      {
+        "date": "2025-01-02",
+        "pool_size": 15,
+        "n_active_trend": 8,
+        "picks": [
+          "NVDA",
+          "WMT",
+          "AMZN"
+        ]
+      },
+      {
+        "date": "2025-07-01",
+        "pool_size": 15,
+        "n_active_trend": 14,
+        "picks": [
+          "GE",
+          "JPM",
+          "WMT"
+        ]
+      },
+      {
+        "date": "2026-01-02",
+        "pool_size": 15,
+        "n_active_trend": 15,
+        "picks": [
+          "NEM",
+          "GE",
+          "GOOGL"
+        ]
+      },
+      {
+        "date": "2026-07-01",
+        "pool_size": 15,
+        "n_active_trend": 7,
+        "picks": [
+          "CAT",
+          "LLY",
+          "WELL"
+        ]
+      }
+    ],
+    "satellite_trade_events": 17,
+    "satellite_trades_per_year": 10.063614262560778,
+    "satellite_results": {
+      "current_0.1pct_rt": {
+        "cost_bps_per_side": 5.0,
+        "metrics": {
+          "cumulative_return": 31.76,
+          "cagr": 17.74,
+          "mdd": -25.51,
+          "sharpe": 0.75,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.7,
+          "avg_drawdown_days": 15.4
+        },
+        "avg_annual_cost_drag_pct": 0.16772690437601295
+      },
+      "moderate_0.3pct_rt": {
+        "cost_bps_per_side": 15.0,
+        "metrics": {
+          "cumulative_return": 31.02,
+          "cagr": 17.35,
+          "mdd": -25.51,
+          "sharpe": 0.73,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.68,
+          "avg_drawdown_days": 15.4
+        },
+        "avg_annual_cost_drag_pct": 0.5031807131280388
+      },
+      "conservative_0.5pct_rt": {
+        "cost_bps_per_side": 25.0,
+        "metrics": {
+          "cumulative_return": 30.29,
+          "cagr": 16.96,
+          "mdd": -25.51,
+          "sharpe": 0.72,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.66,
+          "avg_drawdown_days": 15.4
+        },
+        "avg_annual_cost_drag_pct": 0.8386345218800648
+      },
+      "no_promo_0.8pct_rt": {
+        "cost_bps_per_side": 40.0,
+        "metrics": {
+          "cumulative_return": 29.19,
+          "cagr": 16.37,
+          "mdd": -25.51,
+          "sharpe": 0.7,
+          "win_rate": 0.0,
+          "avg_holding_days": 0.0,
+          "trade_count": 0,
+          "profit_factor": 0.0,
+          "calmar": 0.64,
+          "avg_drawdown_days": 15.4
+        },
+        "avg_annual_cost_drag_pct": 1.3418152350081036
+      }
+    },
+    "total_trade_events": 165,
+    "total_trades_per_year": 30.959246268745552
+  },
+  "step2_permutation_bootstrap": {
+    "permutation_core": {
+      "current_0.1pct_rt": {
+        "cost_bps_per_side": 5.0,
+        "actual_sharpe": 1.06,
+        "actual_cagr": 13.6,
+        "permuted_sharpes": [
+          0.93,
+          0.26,
+          0.95,
+          0.66,
+          0.74,
+          1.62,
+          1.06,
+          0.72,
+          0.56,
+          0.76,
+          1.59,
+          0.57,
+          0.86,
+          0.57,
+          0.57,
+          0.6,
+          0.66,
+          0.78,
+          1.07,
+          0.69,
+          1.09,
+          1.06,
+          0.15,
+          1.24,
+          0.01,
+          1.42,
+          0.73,
+          0.55,
+          0.85,
+          0.37,
+          0.66,
+          0.84,
+          0.55,
+          0.7,
+          0.33,
+          1.03,
+          1.17,
+          1.04,
+          0.98,
+          0.48,
+          0.68,
+          0.65,
+          0.85,
+          0.67,
+          1.0,
+          0.52,
+          1.22,
+          0.75,
+          0.75,
+          1.16,
+          0.92,
+          1.07,
+          0.84,
+          0.86,
+          0.96,
+          0.98,
+          1.11,
+          0.85,
+          1.06,
+          1.24,
+          0.54,
+          0.01,
+          0.99,
+          0.76,
+          1.17,
+          0.86,
+          0.33,
+          0.84,
+          0.63,
+          1.56,
+          1.1,
+          1.26,
+          0.71,
+          0.92,
+          0.95,
+          0.48,
+          0.65,
+          1.02,
+          0.41,
+          1.02,
+          1.59,
+          1.03,
+          0.65,
+          0.89,
+          0.64,
+          0.81,
+          0.64,
+          1.15,
+          0.67,
+          1.12,
+          0.63,
+          0.4,
+          0.93,
+          0.4,
+          1.14,
+          0.89,
+          0.8,
+          0.64,
+          1.11,
+          0.76,
+          0.43,
+          1.33,
+          0.57,
+          1.23,
+          0.56,
+          0.79,
+          0.73,
+          0.36,
+          0.88,
+          0.6,
+          0.49,
+          0.26,
+          1.08,
+          0.91,
+          0.42,
+          0.74,
+          0.61,
+          0.47,
+          0.78,
+          0.65,
+          0.76,
+          0.96,
+          1.4,
+          1.13,
+          0.95,
+          1.18,
+          1.46,
+          0.83,
+          0.52,
+          0.98,
+          0.64,
+          0.13,
+          0.81,
+          0.75,
+          1.21,
+          0.86,
+          0.88,
+          0.6,
+          0.98,
+          0.84,
+          0.99,
+          0.86,
+          0.34,
+          0.28,
+          0.21,
+          1.24,
+          0.46,
+          0.98,
+          0.6,
+          0.63,
+          0.88,
+          1.13,
+          0.7,
+          0.76,
+          0.68,
+          1.06,
+          1.18,
+          0.44,
+          1.15,
+          1.1,
+          0.76,
+          0.51,
+          0.51,
+          0.56,
+          0.6,
+          0.85,
+          0.75,
+          0.53,
+          0.65,
+          0.98,
+          0.72,
+          0.48,
+          1.74,
+          0.9,
+          0.92,
+          1.28,
+          0.82,
+          1.17,
+          0.82,
+          1.65,
+          1.23,
+          0.98,
+          0.64,
+          0.73,
+          1.48,
+          0.58,
+          0.43,
+          0.28,
+          0.94,
+          0.96,
+          1.15,
+          1.15,
+          0.98,
+          0.92,
+          1.27,
+          0.53,
+          0.52,
+          0.71,
+          1.03,
+          0.58
+        ],
+        "permuted_mean": 0.8222,
+        "permuted_std": 0.3155,
+        "percentile": 76.5,
+        "p_value": 0.2388,
+        "n_permutations": 200
+      },
+      "conservative_0.5pct_rt": {
+        "cost_bps_per_side": 25.0,
+        "actual_sharpe": 0.97,
+        "actual_cagr": 12.33,
+        "permuted_sharpes": [
+          0.8,
+          0.74,
+          0.03,
+          0.35,
+          0.57,
+          0.37,
+          0.8,
+          0.99,
+          1.07,
+          0.59,
+          0.91,
+          0.97,
+          0.41,
+          0.23,
+          0.77,
+          0.68,
+          0.81,
+          0.42,
+          0.54,
+          0.16,
+          0.86,
+          1.2,
+          0.65,
+          0.64,
+          0.58,
+          0.48,
+          0.68,
+          0.77,
+          0.37,
+          0.9,
+          0.44,
+          0.78,
+          0.69,
+          0.85,
+          0.28,
+          0.65,
+          0.78,
+          1.06,
+          0.86,
+          0.04,
+          0.89,
+          0.7,
+          0.41,
+          0.99,
+          0.71,
+          1.02,
+          1.14,
+          0.84,
+          0.95,
+          0.78,
+          0.89,
+          0.39,
+          0.74,
+          0.91,
+          0.59,
+          0.84,
+          0.53,
+          0.09,
+          0.33,
+          0.67,
+          0.81,
+          0.89,
+          0.15,
+          -0.19,
+          0.57,
+          0.61,
+          1.12,
+          0.77,
+          0.58,
+          0.53,
+          0.69,
+          0.38,
+          0.74,
+          0.08,
+          0.3,
+          0.6,
+          0.72,
+          0.69,
+          1.0,
+          0.61,
+          0.4,
+          0.42,
+          0.56,
+          0.39,
+          1.07,
+          1.07,
+          0.58,
+          0.49,
+          0.2,
+          0.76,
+          0.66,
+          0.49,
+          0.27,
+          0.82,
+          0.87,
+          0.64,
+          0.62,
+          1.2,
+          0.92,
+          0.7,
+          0.75,
+          1.2,
+          0.45,
+          0.85,
+          0.34,
+          1.2,
+          0.43,
+          0.72,
+          1.34,
+          0.71,
+          0.98,
+          0.5,
+          0.98,
+          0.27,
+          1.05,
+          0.55,
+          0.69,
+          -0.06,
+          1.35,
+          0.73,
+          0.69,
+          0.84,
+          0.99,
+          0.55,
+          0.38,
+          0.7,
+          0.39,
+          0.69,
+          0.32,
+          0.95,
+          0.39,
+          0.11,
+          0.83,
+          0.81,
+          1.03,
+          1.37,
+          0.26,
+          0.69,
+          1.39,
+          1.11,
+          0.42,
+          1.11,
+          0.81,
+          0.88,
+          1.55,
+          0.33,
+          0.09,
+          0.42,
+          0.69,
+          0.78,
+          0.68,
+          0.85,
+          0.68,
+          1.24,
+          0.95,
+          1.43,
+          1.1,
+          0.82,
+          0.35,
+          0.94,
+          0.28,
+          0.19,
+          0.8,
+          0.89,
+          0.53,
+          0.68,
+          0.67,
+          0.21,
+          0.55,
+          0.49,
+          1.03,
+          1.13,
+          0.67,
+          0.61,
+          0.67,
+          0.43,
+          0.34,
+          0.23,
+          0.86,
+          0.48,
+          0.59,
+          0.92,
+          0.65,
+          0.53,
+          0.93,
+          0.5,
+          0.9,
+          0.93,
+          0.64,
+          0.34,
+          0.69,
+          0.94,
+          0.93,
+          0.65,
+          1.15,
+          0.51,
+          0.5,
+          0.37,
+          1.02,
+          0.58
+        ],
+        "permuted_mean": 0.6831,
+        "permuted_std": 0.3057,
+        "percentile": 83.0,
+        "p_value": 0.1741,
+        "n_permutations": 200
+      }
+    },
+    "block_bootstrap": {
+      "core": {
+        "current_0.1pct_rt": {
+          "actual_sharpe": 1.0598,
+          "n_days": 1781,
+          "block_10": {
+            "ci_2.5": 0.398,
+            "ci_97.5": 1.77,
+            "pct_bootstrap_sharpe_positive": 100.0,
+            "boot_mean": 1.063,
+            "boot_std": 0.344
+          },
+          "block_20": {
+            "ci_2.5": 0.437,
+            "ci_97.5": 1.694,
+            "pct_bootstrap_sharpe_positive": 99.9,
+            "boot_mean": 1.064,
+            "boot_std": 0.32
+          },
+          "block_40": {
+            "ci_2.5": 0.462,
+            "ci_97.5": 1.684,
+            "pct_bootstrap_sharpe_positive": 99.85,
+            "boot_mean": 1.062,
+            "boot_std": 0.312
+          }
+        },
+        "moderate_0.3pct_rt": {
+          "actual_sharpe": 1.0158,
+          "n_days": 1781,
+          "block_10": {
+            "ci_2.5": 0.328,
+            "ci_97.5": 1.672,
+            "pct_bootstrap_sharpe_positive": 99.85,
+            "boot_mean": 1.015,
+            "boot_std": 0.345
+          },
+          "block_20": {
+            "ci_2.5": 0.399,
+            "ci_97.5": 1.671,
+            "pct_bootstrap_sharpe_positive": 99.9,
+            "boot_mean": 1.028,
+            "boot_std": 0.327
+          },
+          "block_40": {
+            "ci_2.5": 0.416,
+            "ci_97.5": 1.614,
+            "pct_bootstrap_sharpe_positive": 100.0,
+            "boot_mean": 1.007,
+            "boot_std": 0.299
+          }
+        },
+        "conservative_0.5pct_rt": {
+          "actual_sharpe": 0.9716,
+          "n_days": 1781,
+          "block_10": {
+            "ci_2.5": 0.305,
+            "ci_97.5": 1.66,
+            "pct_bootstrap_sharpe_positive": 99.8,
+            "boot_mean": 0.977,
+            "boot_std": 0.348
+          },
+          "block_20": {
+            "ci_2.5": 0.356,
+            "ci_97.5": 1.603,
+            "pct_bootstrap_sharpe_positive": 99.9,
+            "boot_mean": 0.98,
+            "boot_std": 0.322
+          },
+          "block_40": {
+            "ci_2.5": 0.398,
+            "ci_97.5": 1.56,
+            "pct_bootstrap_sharpe_positive": 99.95,
+            "boot_mean": 0.982,
+            "boot_std": 0.302
+          }
+        },
+        "no_promo_0.8pct_rt": {
+          "actual_sharpe": 0.905,
+          "n_days": 1781,
+          "block_10": {
+            "ci_2.5": 0.278,
+            "ci_97.5": 1.59,
+            "pct_bootstrap_sharpe_positive": 99.75,
+            "boot_mean": 0.912,
+            "boot_std": 0.34
+          },
+          "block_20": {
+            "ci_2.5": 0.261,
+            "ci_97.5": 1.545,
+            "pct_bootstrap_sharpe_positive": 99.75,
+            "boot_mean": 0.904,
+            "boot_std": 0.325
+          },
+          "block_40": {
+            "ci_2.5": 0.311,
+            "ci_97.5": 1.471,
+            "pct_bootstrap_sharpe_positive": 99.55,
+            "boot_mean": 0.902,
+            "boot_std": 0.298
+          }
+        }
+      },
+      "satellite": {
+        "current_0.1pct_rt": {
+          "actual_sharpe": 0.7457,
+          "n_days": 424,
+          "block_10": {
+            "ci_2.5": -0.531,
+            "ci_97.5": 2.044,
+            "pct_bootstrap_sharpe_positive": 87.35,
+            "boot_mean": 0.748,
+            "boot_std": 0.671
+          },
+          "block_20": {
+            "ci_2.5": -0.461,
+            "ci_97.5": 2.156,
+            "pct_bootstrap_sharpe_positive": 88.65,
+            "boot_mean": 0.776,
+            "boot_std": 0.671
+          },
+          "block_40": {
+            "ci_2.5": -0.487,
+            "ci_97.5": 2.165,
+            "pct_bootstrap_sharpe_positive": 87.75,
+            "boot_mean": 0.792,
+            "boot_std": 0.681
+          }
+        },
+        "moderate_0.3pct_rt": {
+          "actual_sharpe": 0.7332,
+          "n_days": 424,
+          "block_10": {
+            "ci_2.5": -0.518,
+            "ci_97.5": 2.011,
+            "pct_bootstrap_sharpe_positive": 87.8,
+            "boot_mean": 0.755,
+            "boot_std": 0.648
+          },
+          "block_20": {
+            "ci_2.5": -0.576,
+            "ci_97.5": 2.088,
+            "pct_bootstrap_sharpe_positive": 86.9,
+            "boot_mean": 0.764,
+            "boot_std": 0.676
+          },
+          "block_40": {
+            "ci_2.5": -0.527,
+            "ci_97.5": 2.054,
+            "pct_bootstrap_sharpe_positive": 86.25,
+            "boot_mean": 0.745,
+            "boot_std": 0.667
+          }
+        },
+        "conservative_0.5pct_rt": {
+          "actual_sharpe": 0.7208,
+          "n_days": 424,
+          "block_10": {
+            "ci_2.5": -0.631,
+            "ci_97.5": 2.026,
+            "pct_bootstrap_sharpe_positive": 86.85,
+            "boot_mean": 0.74,
+            "boot_std": 0.67
+          },
+          "block_20": {
+            "ci_2.5": -0.528,
+            "ci_97.5": 2.074,
+            "pct_bootstrap_sharpe_positive": 86.9,
+            "boot_mean": 0.738,
+            "boot_std": 0.66
+          },
+          "block_40": {
+            "ci_2.5": -0.539,
+            "ci_97.5": 2.117,
+            "pct_bootstrap_sharpe_positive": 87.4,
+            "boot_mean": 0.764,
+            "boot_std": 0.671
+          }
+        },
+        "no_promo_0.8pct_rt": {
+          "actual_sharpe": 0.702,
+          "n_days": 424,
+          "block_10": {
+            "ci_2.5": -0.616,
+            "ci_97.5": 1.95,
+            "pct_bootstrap_sharpe_positive": 85.4,
+            "boot_mean": 0.684,
+            "boot_std": 0.656
+          },
+          "block_20": {
+            "ci_2.5": -0.605,
+            "ci_97.5": 2.039,
+            "pct_bootstrap_sharpe_positive": 86.75,
+            "boot_mean": 0.706,
+            "boot_std": 0.668
+          },
+          "block_40": {
+            "ci_2.5": -0.552,
+            "ci_97.5": 2.062,
+            "pct_bootstrap_sharpe_positive": 85.85,
+            "boot_mean": 0.721,
+            "boot_std": 0.669
+          }
+        }
+      }
+    },
+    "meta": {
+      "n_permutations": 200,
+      "seed": 20260914,
+      "n_boot": 2000,
+      "block_lengths": [
+        10,
+        20,
+        40
+      ]
+    }
+  },
+  "step3_tax_simulation": {
+    "meta": {
+      "tax_rate": 0.22,
+      "annual_deduction_krw": 2500000,
+      "roundtrip_cost_pct_used": 0.005,
+      "n_trades": 72,
+      "period": [
+        "2019-08-12",
+        "2026-09-14"
+      ],
+      "tax_source_note": "2026-09-14 웹검색: 국세청/미래에셋증권/유안타증권/calculatorhost.com — 해외주식 양도소득세 22%(양도세20%+지방세2%), 기본공제 연 250만원, 손익통산은 같은 과세연도 내에서만, 연도간 이월공제 없음."
+    },
+    "account_scenarios": {
+      "30000000": {
+        "account_krw": 30000000,
+        "core_capital_krw": 25500000.0,
+        "annual": {
+          "2019": {
+            "realized_gain_krw": 262477.0,
+            "taxable_base_krw": 0.0,
+            "tax_krw": 0.0
+          },
+          "2020": {
+            "realized_gain_krw": 11717.0,
+            "taxable_base_krw": 0.0,
+            "tax_krw": 0.0
+          },
+          "2021": {
+            "realized_gain_krw": 8109641.0,
+            "taxable_base_krw": 5609641.0,
+            "tax_krw": 1234121.0
+          },
+          "2022": {
+            "realized_gain_krw": -1989117.0,
+            "taxable_base_krw": 0.0,
+            "tax_krw": 0.0
+          },
+          "2023": {
+            "realized_gain_krw": 4902321.0,
+            "taxable_base_krw": 2402321.0,
+            "tax_krw": 528511.0
+          },
+          "2024": {
+            "realized_gain_krw": 4800169.0,
+            "taxable_base_krw": 2300169.0,
+            "tax_krw": 506037.0
+          },
+          "2025": {
+            "realized_gain_krw": 301505.0,
+            "taxable_base_krw": 0.0,
+            "tax_krw": 0.0
+          },
+          "2026": {
+            "realized_gain_krw": 5308758.0,
+            "taxable_base_krw": 2808758.0,
+            "tax_krw": 617927.0
+          }
+        },
+        "total_pretax_gain_krw": 21707472.0,
+        "total_tax_krw": 2886596.0,
+        "total_aftertax_gain_krw": 18820877.0,
+        "effective_tax_rate_on_total_gain_pct": 13.3
+      },
+      "100000000": {
+        "account_krw": 100000000,
+        "core_capital_krw": 85000000.0,
+        "annual": {
+          "2019": {
+            "realized_gain_krw": 874925.0,
+            "taxable_base_krw": 0.0,
+            "tax_krw": 0.0
+          },
+          "2020": {
+            "realized_gain_krw": 39057.0,
+            "taxable_base_krw": 0.0,
+            "tax_krw": 0.0
+          },
+          "2021": {
+            "realized_gain_krw": 27032138.0,
+            "taxable_base_krw": 24532138.0,
+            "tax_krw": 5397070.0
+          },
+          "2022": {
+            "realized_gain_krw": -6630389.0,
+            "taxable_base_krw": 0.0,
+            "tax_krw": 0.0
+          },
+          "2023": {
+            "realized_gain_krw": 16341071.0,
+            "taxable_base_krw": 13841071.0,
+            "tax_krw": 3045036.0
+          },
+          "2024": {
+            "realized_gain_krw": 16000565.0,
+            "taxable_base_krw": 13500565.0,
+            "tax_krw": 2970124.0
+          },
+          "2025": {
+            "realized_gain_krw": 1005016.0,
+            "taxable_base_krw": 0.0,
+            "tax_krw": 0.0
+          },
+          "2026": {
+            "realized_gain_krw": 17695860.0,
+            "taxable_base_krw": 15195860.0,
+            "tax_krw": 3343089.0
+          }
+        },
+        "total_pretax_gain_krw": 72358241.0,
+        "total_tax_krw": 14755319.0,
+        "total_aftertax_gain_krw": 57602922.0,
+        "effective_tax_rate_on_total_gain_pct": 20.39
+      },
+      "300000000": {
+        "account_krw": 300000000,
+        "core_capital_krw": 255000000.0,
+        "annual": {
+          "2019": {
+            "realized_gain_krw": 2624775.0,
+            "taxable_base_krw": 124775.0,
+            "tax_krw": 27450.0
+          },
+          "2020": {
+            "realized_gain_krw": 117170.0,
+            "taxable_base_krw": 0.0,
+            "tax_krw": 0.0
+          },
+          "2021": {
+            "realized_gain_krw": 81096415.0,
+            "taxable_base_krw": 78596415.0,
+            "tax_krw": 17291211.0
+          },
+          "2022": {
+            "realized_gain_krw": -19891168.0,
+            "taxable_base_krw": 0.0,
+            "tax_krw": 0.0
+          },
+          "2023": {
+            "realized_gain_krw": 49023213.0,
+            "taxable_base_krw": 46523213.0,
+            "tax_krw": 10235107.0
+          },
+          "2024": {
+            "realized_gain_krw": 48001694.0,
+            "taxable_base_krw": 45501694.0,
+            "tax_krw": 10010373.0
+          },
+          "2025": {
+            "realized_gain_krw": 3015048.0,
+            "taxable_base_krw": 515048.0,
+            "tax_krw": 113311.0
+          },
+          "2026": {
+            "realized_gain_krw": 53087579.0,
+            "taxable_base_krw": 50587579.0,
+            "tax_krw": 11129267.0
+          }
+        },
+        "total_pretax_gain_krw": 217074724.0,
+        "total_tax_krw": 48806719.0,
+        "total_aftertax_gain_krw": 168268005.0,
+        "effective_tax_rate_on_total_gain_pct": 22.48
+      }
+    }
+  }
+}

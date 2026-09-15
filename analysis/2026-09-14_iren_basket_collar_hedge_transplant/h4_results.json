@@ -1,0 +1,121 @@
+{
+  "meta": {
+    "generated": "2026-09-14"
+  },
+  "episodes": {
+    "basket_bh": [
+      {
+        "peak_date": "2024-12-09",
+        "trough_date": "2025-04-08",
+        "recovery_date": "2025-08-29",
+        "depth_pct": -65.59,
+        "spy_return_over_same_window_pct": -17.89,
+        "n_overlapping_collar_rolls": 5,
+        "collar_net_payoff_pct_sum": 9.959,
+        "collar_net_premium_pct_sum": -6.693,
+        "collar_net_contribution_pct_sum": 3.266
+      },
+      {
+        "peak_date": "2022-08-16",
+        "trough_date": "2022-12-28",
+        "recovery_date": "2023-07-03",
+        "depth_pct": -64.16,
+        "spy_return_over_same_window_pct": -12.34,
+        "n_overlapping_collar_rolls": 5,
+        "collar_net_payoff_pct_sum": 16.153,
+        "collar_net_premium_pct_sum": -7.826,
+        "collar_net_contribution_pct_sum": 8.327
+      },
+      {
+        "peak_date": "2023-07-14",
+        "trough_date": "2023-10-13",
+        "recovery_date": "2023-12-27",
+        "depth_pct": -60.54,
+        "spy_return_over_same_window_pct": -3.96,
+        "n_overlapping_collar_rolls": 4,
+        "collar_net_payoff_pct_sum": 9.89,
+        "collar_net_premium_pct_sum": -4.533,
+        "collar_net_contribution_pct_sum": 5.357
+      },
+      {
+        "peak_date": "2023-12-28",
+        "trough_date": "2024-01-24",
+        "recovery_date": "2024-06-12",
+        "depth_pct": -55.19,
+        "spy_return_over_same_window_pct": 1.83,
+        "n_overlapping_collar_rolls": 2,
+        "collar_net_payoff_pct_sum": 0.0,
+        "collar_net_premium_pct_sum": -2.108,
+        "collar_net_contribution_pct_sum": -2.108
+      },
+      {
+        "peak_date": "2024-07-17",
+        "trough_date": "2024-09-06",
+        "recovery_date": "2024-11-11",
+        "depth_pct": -54.32,
+        "spy_return_over_same_window_pct": -2.98,
+        "n_overlapping_collar_rolls": 3,
+        "collar_net_payoff_pct_sum": 0.0,
+        "collar_net_premium_pct_sum": -3.67,
+        "collar_net_contribution_pct_sum": -3.67
+      }
+    ],
+    "basket_trend": [
+      {
+        "peak_date": "2025-10-16",
+        "trough_date": "2026-03-31",
+        "recovery_date": "미회복(구간 끝까지)",
+        "depth_pct": -71.0,
+        "spy_return_over_same_window_pct": -1.56,
+        "n_overlapping_collar_rolls": 6,
+        "collar_net_payoff_pct_sum": 6.729,
+        "collar_net_premium_pct_sum": -7.941,
+        "collar_net_contribution_pct_sum": -1.212
+      },
+      {
+        "peak_date": "2024-12-09",
+        "trough_date": "2025-04-30",
+        "recovery_date": "2025-08-14",
+        "depth_pct": -59.49,
+        "spy_return_over_same_window_pct": -8.29,
+        "n_overlapping_collar_rolls": 5,
+        "collar_net_payoff_pct_sum": 9.959,
+        "collar_net_premium_pct_sum": -6.693,
+        "collar_net_contribution_pct_sum": 3.266
+      },
+      {
+        "peak_date": "2023-07-14",
+        "trough_date": "2023-11-17",
+        "recovery_date": "2023-12-21",
+        "depth_pct": -55.78,
+        "spy_return_over_same_window_pct": 0.34,
+        "n_overlapping_collar_rolls": 5,
+        "collar_net_payoff_pct_sum": 6.268,
+        "collar_net_premium_pct_sum": -5.768,
+        "collar_net_contribution_pct_sum": 0.5
+      },
+      {
+        "peak_date": "2024-07-17",
+        "trough_date": "2024-10-10",
+        "recovery_date": "2024-11-11",
+        "depth_pct": -48.19,
+        "spy_return_over_same_window_pct": 3.45,
+        "n_overlapping_collar_rolls": 4,
+        "collar_net_payoff_pct_sum": 0.0,
+        "collar_net_premium_pct_sum": -5.011,
+        "collar_net_contribution_pct_sum": -5.011
+      },
+      {
+        "peak_date": "2024-02-15",
+        "trough_date": "2024-05-01",
+        "recovery_date": "2024-06-12",
+        "depth_pct": -39.95,
+        "spy_return_over_same_window_pct": -0.33,
+        "n_overlapping_collar_rolls": 4,
+        "collar_net_payoff_pct_sum": 3.465,
+        "collar_net_premium_pct_sum": -4.441,
+        "collar_net_contribution_pct_sum": -0.976
+      }
+    ]
+  }
+}

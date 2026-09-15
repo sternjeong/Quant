@@ -1,0 +1,49 @@
+[step2] 코어+SPY 원본 OHLCV(전 이력) 로딩...
+$XLRE: possibly delisted; no price data found  (1d 2008-01-01 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1199163600, endDate = 1444190400")
+
+1 Failed download:
+['XLRE']: possibly delisted; no price data found  (1d 2008-01-01 -> 2015-10-07) (Yahoo error = "Data doesn't exist for startDate = 1199163600, endDate = 1444190400")
+$XLC: possibly delisted; no price data found  (1d 2008-01-01 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1199163600, endDate = 1529294400")
+
+1 Failed download:
+['XLC']: possibly delisted; no price data found  (1d 2008-01-01 -> 2018-06-18) (Yahoo error = "Data doesn't exist for startDate = 1199163600, endDate = 1529294400")
+[step2] 순열검정 시작 [current_0.1pct_rt] cost_bps/side=5.0, N=200
+[step2]    [current_0.1pct_rt] 40/200 완료 (평균 샤프 0.787)
+[step2]    [current_0.1pct_rt] 80/200 완료 (평균 샤프 0.823)
+[step2]    [current_0.1pct_rt] 120/200 완료 (평균 샤프 0.805)
+[step2]    [current_0.1pct_rt] 160/200 완료 (평균 샤프 0.813)
+[step2]    [current_0.1pct_rt] 200/200 완료 (평균 샤프 0.822)
+[step2] [current_0.1pct_rt] 실제 샤프=1.06 -> 백분위=76.5, p=0.2388, 순열평균=0.822(sd=0.316)
+[step2] 순열검정 시작 [conservative_0.5pct_rt] cost_bps/side=25.0, N=200
+[step2]    [conservative_0.5pct_rt] 40/200 완료 (평균 샤프 0.644)
+[step2]    [conservative_0.5pct_rt] 80/200 완료 (평균 샤프 0.648)
+[step2]    [conservative_0.5pct_rt] 120/200 완료 (평균 샤프 0.667)
+[step2]    [conservative_0.5pct_rt] 160/200 완료 (평균 샤프 0.691)
+[step2]    [conservative_0.5pct_rt] 200/200 완료 (평균 샤프 0.683)
+[step2] [conservative_0.5pct_rt] 실제 샤프=0.97 -> 백분위=83.0, p=0.1741, 순열평균=0.683(sd=0.306)
+[step2] 블록부트스트랩 시작 (코어/새틀라이트, 비용시나리오별 저장된 ret CSV 재사용)...
+[step2]    core/current_0.1pct_rt/L=10: 실제샤프=1.060, 95%CI=[0.398,1.770], 부트스트랩샤프>0 비율=100.0%
+[step2]    core/current_0.1pct_rt/L=20: 실제샤프=1.060, 95%CI=[0.437,1.694], 부트스트랩샤프>0 비율=99.9%
+[step2]    core/current_0.1pct_rt/L=40: 실제샤프=1.060, 95%CI=[0.462,1.684], 부트스트랩샤프>0 비율=99.9%
+[step2]    core/moderate_0.3pct_rt/L=10: 실제샤프=1.016, 95%CI=[0.328,1.672], 부트스트랩샤프>0 비율=99.9%
+[step2]    core/moderate_0.3pct_rt/L=20: 실제샤프=1.016, 95%CI=[0.399,1.671], 부트스트랩샤프>0 비율=99.9%
+[step2]    core/moderate_0.3pct_rt/L=40: 실제샤프=1.016, 95%CI=[0.416,1.614], 부트스트랩샤프>0 비율=100.0%
+[step2]    core/conservative_0.5pct_rt/L=10: 실제샤프=0.972, 95%CI=[0.305,1.660], 부트스트랩샤프>0 비율=99.8%
+[step2]    core/conservative_0.5pct_rt/L=20: 실제샤프=0.972, 95%CI=[0.356,1.603], 부트스트랩샤프>0 비율=99.9%
+[step2]    core/conservative_0.5pct_rt/L=40: 실제샤프=0.972, 95%CI=[0.398,1.560], 부트스트랩샤프>0 비율=100.0%
+[step2]    core/no_promo_0.8pct_rt/L=10: 실제샤프=0.905, 95%CI=[0.278,1.590], 부트스트랩샤프>0 비율=99.8%
+[step2]    core/no_promo_0.8pct_rt/L=20: 실제샤프=0.905, 95%CI=[0.261,1.545], 부트스트랩샤프>0 비율=99.8%
+[step2]    core/no_promo_0.8pct_rt/L=40: 실제샤프=0.905, 95%CI=[0.311,1.471], 부트스트랩샤프>0 비율=99.6%
+[step2]    satellite/current_0.1pct_rt/L=10: 실제샤프=0.746, 95%CI=[-0.531,2.044], 부트스트랩샤프>0 비율=87.4%
+[step2]    satellite/current_0.1pct_rt/L=20: 실제샤프=0.746, 95%CI=[-0.461,2.156], 부트스트랩샤프>0 비율=88.6%
+[step2]    satellite/current_0.1pct_rt/L=40: 실제샤프=0.746, 95%CI=[-0.487,2.165], 부트스트랩샤프>0 비율=87.8%
+[step2]    satellite/moderate_0.3pct_rt/L=10: 실제샤프=0.733, 95%CI=[-0.518,2.011], 부트스트랩샤프>0 비율=87.8%
+[step2]    satellite/moderate_0.3pct_rt/L=20: 실제샤프=0.733, 95%CI=[-0.576,2.088], 부트스트랩샤프>0 비율=86.9%
+[step2]    satellite/moderate_0.3pct_rt/L=40: 실제샤프=0.733, 95%CI=[-0.527,2.054], 부트스트랩샤프>0 비율=86.2%
+[step2]    satellite/conservative_0.5pct_rt/L=10: 실제샤프=0.721, 95%CI=[-0.631,2.026], 부트스트랩샤프>0 비율=86.9%
+[step2]    satellite/conservative_0.5pct_rt/L=20: 실제샤프=0.721, 95%CI=[-0.528,2.074], 부트스트랩샤프>0 비율=86.9%
+[step2]    satellite/conservative_0.5pct_rt/L=40: 실제샤프=0.721, 95%CI=[-0.539,2.117], 부트스트랩샤프>0 비율=87.4%
+[step2]    satellite/no_promo_0.8pct_rt/L=10: 실제샤프=0.702, 95%CI=[-0.616,1.950], 부트스트랩샤프>0 비율=85.4%
+[step2]    satellite/no_promo_0.8pct_rt/L=20: 실제샤프=0.702, 95%CI=[-0.605,2.039], 부트스트랩샤프>0 비율=86.8%
+[step2]    satellite/no_promo_0.8pct_rt/L=40: 실제샤프=0.702, 95%CI=[-0.552,2.062], 부트스트랩샤프>0 비율=85.9%
+[step2] step2_results.json 저장 완료

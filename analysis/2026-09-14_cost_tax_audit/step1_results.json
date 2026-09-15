@@ -1,0 +1,203 @@
+{
+  "meta": {
+    "full_start": "2019-08-12",
+    "full_end": "2026-09-11",
+    "n_years": 7.082819986310746,
+    "satellite_window_start": "2025-01-02",
+    "satellite_n_years": 1.6892539356605065,
+    "satellite_audit_note": "새틀라이트는 계산비용(yfinance rate-limit) 문제로 전체기간이 아니라 최근 반기 리밸런싱 4회(1.69년 창)만, pool_n=15(라이브 기본값 40 대신)으로 축소 재계산했다. 코어(85% 비중, 이 감사의 핵심)는 전체 2019-2026 구간 그대로."
+  },
+  "core_trade_events": 148,
+  "core_rebal_change_days": 63,
+  "core_trades_per_year": 20.895632006184773,
+  "core_results": {
+    "current_0.1pct_rt": {
+      "cost_bps_per_side": 5.0,
+      "metrics": {
+        "cumulative_return": 146.66,
+        "cagr": 13.6,
+        "mdd": -17.74,
+        "sharpe": 1.06,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.77,
+        "avg_drawdown_days": 20.5
+      },
+      "avg_annual_cost_drag_pct": 0.28060857170467723
+    },
+    "moderate_0.3pct_rt": {
+      "cost_bps_per_side": 15.0,
+      "metrics": {
+        "cumulative_return": 137.05,
+        "cagr": 12.96,
+        "mdd": -18.13,
+        "sharpe": 1.02,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.71,
+        "avg_drawdown_days": 20.9
+      },
+      "avg_annual_cost_drag_pct": 0.8418257151140317
+    },
+    "conservative_0.5pct_rt": {
+      "cost_bps_per_side": 25.0,
+      "metrics": {
+        "cumulative_return": 127.81,
+        "cagr": 12.33,
+        "mdd": -18.52,
+        "sharpe": 0.97,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.67,
+        "avg_drawdown_days": 21.6
+      },
+      "avg_annual_cost_drag_pct": 1.4030428585233863
+    },
+    "no_promo_0.8pct_rt": {
+      "cost_bps_per_side": 40.0,
+      "metrics": {
+        "cumulative_return": 114.6,
+        "cagr": 11.38,
+        "mdd": -19.1,
+        "sharpe": 0.91,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.6,
+        "avg_drawdown_days": 24.7
+      },
+      "avg_annual_cost_drag_pct": 2.244868573637418
+    }
+  },
+  "spy_buyhold_metrics": {
+    "cumulative_return": 165.31,
+    "cagr": 14.77,
+    "mdd": -34.1,
+    "sharpe": 0.8,
+    "win_rate": 0.0,
+    "avg_holding_days": 0.0,
+    "trade_count": 0,
+    "profit_factor": 0.0,
+    "calmar": 0.43,
+    "avg_drawdown_days": 16.9
+  },
+  "satellite_rebal_log": [
+    {
+      "date": "2025-01-02",
+      "pool_size": 15,
+      "n_active_trend": 8,
+      "picks": [
+        "NVDA",
+        "WMT",
+        "AMZN"
+      ]
+    },
+    {
+      "date": "2025-07-01",
+      "pool_size": 15,
+      "n_active_trend": 14,
+      "picks": [
+        "GE",
+        "JPM",
+        "WMT"
+      ]
+    },
+    {
+      "date": "2026-01-02",
+      "pool_size": 15,
+      "n_active_trend": 15,
+      "picks": [
+        "NEM",
+        "GE",
+        "GOOGL"
+      ]
+    },
+    {
+      "date": "2026-07-01",
+      "pool_size": 15,
+      "n_active_trend": 7,
+      "picks": [
+        "CAT",
+        "LLY",
+        "WELL"
+      ]
+    }
+  ],
+  "satellite_trade_events": 17,
+  "satellite_trades_per_year": 10.063614262560778,
+  "satellite_results": {
+    "current_0.1pct_rt": {
+      "cost_bps_per_side": 5.0,
+      "metrics": {
+        "cumulative_return": 31.76,
+        "cagr": 17.74,
+        "mdd": -25.51,
+        "sharpe": 0.75,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.7,
+        "avg_drawdown_days": 15.4
+      },
+      "avg_annual_cost_drag_pct": 0.16772690437601295
+    },
+    "moderate_0.3pct_rt": {
+      "cost_bps_per_side": 15.0,
+      "metrics": {
+        "cumulative_return": 31.02,
+        "cagr": 17.35,
+        "mdd": -25.51,
+        "sharpe": 0.73,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.68,
+        "avg_drawdown_days": 15.4
+      },
+      "avg_annual_cost_drag_pct": 0.5031807131280388
+    },
+    "conservative_0.5pct_rt": {
+      "cost_bps_per_side": 25.0,
+      "metrics": {
+        "cumulative_return": 30.29,
+        "cagr": 16.96,
+        "mdd": -25.51,
+        "sharpe": 0.72,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.66,
+        "avg_drawdown_days": 15.4
+      },
+      "avg_annual_cost_drag_pct": 0.8386345218800648
+    },
+    "no_promo_0.8pct_rt": {
+      "cost_bps_per_side": 40.0,
+      "metrics": {
+        "cumulative_return": 29.19,
+        "cagr": 16.37,
+        "mdd": -25.51,
+        "sharpe": 0.7,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.64,
+        "avg_drawdown_days": 15.4
+      },
+      "avg_annual_cost_drag_pct": 1.3418152350081036
+    }
+  },
+  "total_trade_events": 165,
+  "total_trades_per_year": 30.959246268745552
+}

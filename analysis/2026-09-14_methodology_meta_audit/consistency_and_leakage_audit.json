@@ -1,0 +1,63 @@
+{
+  "grading_rule_found": {
+    "source": "analysis/2026-08-24_bootstrap_confidence_audit_remaining_verdicts/build_report_data.py L20-29",
+    "rule": {
+      "robust": "win_rate >= 0.90",
+      "moderate": "win_rate >= 0.70",
+      "weak": "win_rate >= 0.50",
+      "reversed": "win_rate < 0.50"
+    },
+    "observation": "이 수치 규칙은 트랙D 후반 라운드(작업44-47, H22/H25/H26/H26b/H28/H32)에서만 코드로 존재한다. 트랙B(No.04-10)와 트랙C 원 리포트(작업26-28)의 '채택/부분채택/기각' 판정에는 이에 대응하는 수치 규칙이 전혀 문서화되어 있지 않다 -- 순열검정 percentile을 이 규칙에 그대로 대입하면(percentile/100을 win_rate처럼 취급) 97.5th percentile(p=0.025, 작업21 5라운드)은 'robust'(>=0.90) 문턱을 넘지만, 최종 종합 리포트(research_program_synthesis)는 이를 'moderate'로만 매겼다 -- 이 특정 사례는 H30 몬테카를로 후속 발견(55.5%) 덕에 정당하게 하향된 것으로 보이나, 규칙 자체가 프로그램 전체에 일관되게 적용된 적은 없다."
+  },
+  "grading_double_standard": {
+    "finding": "프로그램에 '확신도 robust/moderate'로 남아있는 4개 결론 중 정확히 2개(코어 자산군 17자산, 새틀라이트 청산 메커니즘의 정적보유 우위)는 단 한 번도 형식적 유의성 검정(순열검정이든 부트스트랩이든)을 거치지 않은 순수 서술적/패턴 반복 근거로 등급이 매겨졌다. 반면 같은 시기 또는 그 이후에 나온 H22/H25/H26/H28/H32 같은 유사하거나 더 강해보였던 '가중치만 반영 시 90%+' 결론들은 전부 블록부트스트랩+디리클레 기저확률 결합전파를 거쳐 weak/reversed로 강등됐다. 즉 '검정을 받지 않은 결론'이 '검정을 받고 떨어진 결론'보다 오히려 더 높은 등급을 유지하고 있다 -- 감사 커버리지 자체가 불균등하다.",
+    "concrete_contrast": [
+      {
+        "claim": "코어 자산군(17자산) -- robust, 형식적 검정 없음",
+        "vs": "H22 정적보유 새틀라이트 -- 가중치만 99.69%(would-be robust)였으나 부트스트랩 후 57.93%로 weak 강등"
+      },
+      {
+        "claim": "새틀라이트 청산 메커니즘(정적보유 최적) -- moderate, '6라운드 반복 재현'이라는 정성적 근거만, 저자 스스로 '아직 블록부트스트랩 감사를 거치지 않았다'고 명시(작업47/50)",
+        "vs": "H28 코어 변동성타겟팅 -- 가중치만 96.55%(would-be robust)였으나 부트스트랩 후 49.69%로 reversed 강등"
+      }
+    ]
+  },
+  "hypothesis_id_namespace_collision": {
+    "finding": "H18/H19/H20/H21/H22/H23 라벨이 두 개의 서로 무관한 네임스페이스에서 재사용됐다 -- (1) 트랙B/작업22-23(No.07/08): H18=연속 시장필터, H19=17자산 유니버스 확장, H20=2008 GFC OOS, H21=닷컴버블, H22=2022년 약세장, H23=시그모이드 연속필터. (2) 트랙D/작업36-40(2026-08-23 라운드들): H18=위기표본 확장, H19=새틀라이트 비중 프런티어, H20=VIX 신속신호, H21=하이브리드 스위치, H22=새틀라이트 정적보유 vs 코어단독 기댓값, H23=연속노출(continuous exposure). 두 세트는 완전히 다른 질문을 다루면서 같은 번호를 쓴다 -- 향후 어떤 리포트나 에이전트가 'H22'만 인용하면 어느 트랙을 가리키는지 문맥 없이는 알 수 없다. 실제 사고는 없었던 것으로 확인했으나(각 report_data.json 파일이 자기 완결적이라 혼선이 실제 결론에 영향을 준 사례는 못 찾음), 순수한 표기 위생 문제로 향후 리스크가 있다.",
+    "severity": "low-to-moderate (실제 오판 사례는 발견 못했으나 재발 방지책 없음)"
+  },
+  "same_evidence_different_grade_case": {
+    "finding": "작업29(2026-08-19)의 H3는 바스켓 버전(93rd percentile, p≈0.075, 5%문턱 미달)과 IREN 단일종목 버전(100th percentile, p≈0.005)을 하나의 '부분채택' 판정으로 묶어 보고했다 -- 통계적으로 유의하지 않은 결과(p=0.075)와 매우 강한 결과(p=0.005)가 같은 우산 등급 아래 섞여, 리포트를 훑어보는 독자는 바스켓 버전도 단일종목만큼 강하다고 오인하기 쉽다. 반대 사례로 작업32(H9, 88th percentile, p≈0.12)와 작업33(H10, 93rd percentile, p≈0.07)은 둘 다 정직하게 '부분채택'(사실상 미달)으로 남겨 방향은 일관됐다."
+  },
+  "look_ahead_bias_spotcheck": {
+    "method": "'최근 2주 이내(2026-08-30 이후)' 추가된 분석 스크립트에서 무작위로 5개를 골라 신호 계산 로직을 직접 읽고, 리밸런싱/포지션 신호가 그 시점 이후 데이터를 참조하는지 검증했다.",
+    "files_checked": [
+      {
+        "file": "analysis/2026-08-30_risk_adjusted_momentum_ranking/risk_adjusted_champion.py (build_weights_with_ranking)",
+        "finding": "clean -- signal_date = closes.index[i-1]로 리밸런싱 전날 종가만 사용, rolling 통계도 전부 과거 창(min_periods 포함)만 참조. 절대모멘텀 게이트도 신호일 기준으로 고정."
+      },
+      {
+        "file": "analysis/2026-08-30_track_c_bootstrap_confidence_audit/audit1_iren_trend_bootstrap.py (+ core.champion_strategy.donchian_trailing_stop_positions 재사용)",
+        "finding": "clean -- rolling_max = close.shift(1).rolling(...).max()로 당일 이전 데이터만으로 돌파 기준선을 만들고, 포지션은 호출부에서 다시 .shift(1) 되어 실제 수익률에 반영. 이중 lag로 오히려 보수적."
+      },
+      {
+        "file": "analysis/2026-08-30_synthetic_options_tail_hedge/h_options_hedge.py (build_option_overlay_returns)",
+        "finding": "clean -- 옵션 행사가(K)는 롤 시점 S0로, 페이오프는 만기 시점 S_T로 각각 그 날짜에만 알려진 값을 사용. 무위험금리도 fedfunds.asof(rd)로 과거 값만 조회."
+      },
+      {
+        "file": "analysis/2026-08-30_core_filter_bootstrap_and_satellite_weight_extension/h35_core_filter_bootstrap_audit.py",
+        "finding": "clean -- champion_strategy.run_champion을 그대로 재실행하는 재감사 스크립트라 새로운 신호 계산 경로가 없음, 기존 결정론적 백테스트 결과와 대조 검증 로직 포함."
+      },
+      {
+        "file": "core/champion_strategy.py::compute_live_collar_state (2026-09-14, 작업57)",
+        "finding": "clean(단, 백테스트가 아니라 라이브 신호 계산 함수 -- lookahead 개념 자체가 다르게 적용됨) -- S_now/vix_now는 오늘 종가, roll_date는 이번 달 첫 거래일로 전부 '오늘 시점에 이미 알려진' 값만 사용."
+      }
+    ],
+    "verdict": "무작위 표본 5개에서 신규 point-in-time/lookahead 버그는 발견하지 못했다 -- No.09(작업24) 사후편향 사건 이후 이 저장소의 신호-실행 lag 규율(신호일 확정 -> shift(1) -> 실행)은 최근 라운드들에서 일관되게 지켜지고 있는 것으로 보인다. 이는 정직하게 보고하는 긍정적 결과이며, 발견하지 못했다고 완화해서 하는 말이 아니다.",
+    "caveat": "5개는 이 저장소 전체 코드베이스(특히 core/strategy_tuning.py의 야간 튜닝 파이프라인, app/의 UI 트리거 로직)를 대표하지 않는다 -- 이번 표본은 전부 'analysis/' 리서치 스크립트에 국한됐다."
+  },
+  "deeper_finding_effective_independent_regime_count": {
+    "finding": "Bonferroni/FDR가 '검정 횟수'를 문제 삼는 것과는 별개로, 이 프로그램이 반복적으로 '아웃오브샘플/위기 검증'이라고 부르는 것은 실제로는 서로 겹치지 않는 독립 사건이 아니다. 사용된 위기/레짐 구간은 사실상 6개뿐이다: 2000-2002 닷컴버블, 2007-2009 GFC, 2015-2016 조정, 2018년 4분기 셀오프, 2020년 COVID, 2022년 약세장. 이 6개 구간이 H11/H12/H14/H16/H17/H18/H19/H23/H25 등 최소 9개 이상의 서로 다른 트랙D 가설과 트랙B No.07/08/09/10 검증에 반복 재사용됐다. 즉 '35개 가설이 각각 위기구간에서 검증됐다'는 서술은 표본 크기가 35x가 아니라 실질적으로 독립 관측치 ~6개에 가설 수십 개를 반복 투영한 것에 가깝다 -- Bonferroni/FDR 같은 가설-개수 기반 보정을 통과해도, 애초에 검증에 쓰인 역사적 '자연실험' 표본 자체가 극히 작다는 점은 별도로 남는 근본적 한계다.",
+    "severity": "high -- 이 문제는 순열검정/부트스트랩으로도 고쳐지지 않는다(둘 다 같은 6개 구간 안에서의 재표본추출이므로)"
+  }
+}
