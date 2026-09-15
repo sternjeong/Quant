@@ -120,7 +120,8 @@ class Service:
                         first, _, instruction = instruction.partition('\n')
                         project = first.split(maxsplit=1)[1].strip()
                     if reply is None:
-                        if project in self.cfg['projects'] and instruction.strip() and (instruction.startswith('/project ') or not self.cfg.get('repository_selection', False)):
+                        auto_repo = self.cfg.get('auto_repository_selection', False)
+                        if project in self.cfg['projects'] and instruction.strip() and (auto_repo or instruction.startswith('/project ') or not self.cfg.get('repository_selection', False)):
                             db.execute('INSERT OR IGNORE INTO jobs(id,chat,project,instruction,backend) VALUES(?,?,?,?,?)',
                                        (uid, self.chat, project, instruction, backend))
                             reply = f'접수 {uid} [{backend}] 프로젝트: {project}'
@@ -274,6 +275,8 @@ class Service:
                '-c', 'model_reasoning_effort=' + json.dumps(self.cfg.get('codex_reasoning_effort', 'xhigh')),
                '-c', 'sandbox_workspace_write.network_access=true',
                '-c', 'developer_instructions=' + json.dumps((HERE / 'worker_prompt.md').read_text(), ensure_ascii=False), '-']
+        if not (project / '.git').exists():
+            cmd.insert(cmd.index('-C'), '--skip-git-repo-check')
         backend = job['backend']
         workspace_root = self.cfg.get('workspace_root')
         if workspace_root:

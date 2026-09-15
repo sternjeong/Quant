@@ -43,6 +43,11 @@
 `blocked`로 표시하고 응답 첫 줄에 `ACTION_REQUIRED:`와 필요한 조치를 보낸다. 해결한 뒤
 `/retry 작업ID`를 보내면 `RESUME_NOTE.md`에서 계속한다. `/status`로 작업 ID를 확인할 수 있다.
 
+기본 설정에서는 평문, `/codex 지시`, `/claude 지시`를 `workspace` 작업으로 접수한다. 작업자가
+`gh repo list`와 로컬 clone을 조사해 저장소를 스스로 선택한다. `/project quant`처럼 명시하면
+자동 선택을 건너뛴다. 수동 버튼 선택 흐름도 코드에 남아 있으며 `auto_repository_selection`을
+`false`로 바꾸면 사용한다.
+
 ```bash
 sudo -u quant env HOME=/opt/quant gh auth login --hostname github.com --git-protocol ssh --web
 sudo -u quant env HOME=/opt/quant gh auth status

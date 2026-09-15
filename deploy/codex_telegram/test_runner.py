@@ -141,6 +141,12 @@ class PipelineTests(unittest.TestCase):
         with self.s.db() as db:
             self.assertEqual(db.execute('SELECT state FROM requests WHERE id=1').fetchone()[0], 'new-name')
 
+    def test_auto_repository_selection_queues_workspace(self):
+        self.s.cfg.update({'repository_selection': True, 'auto_repository_selection': True,
+                           'default_project': 'workspace', 'projects': {'workspace': str(self.root)}})
+        self.s.ingest([self.update()])
+        self.assertEqual(self.row()['project'], 'workspace')
+
     def test_claude_result(self):
         update = self.update()
         update['message']['text'] = '/claude answer'

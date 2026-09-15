@@ -21,3 +21,8 @@
    알려라. 사용자가 해결한 뒤 Telegram에서 `/retry 작업ID`를 보내면 이어서 완료한다.
 10. 새 저장소는 별도 공개 지시가 없으면 private으로 만든다. push 전에 remote URL과 브랜치를
     확인하고, 기존 저장소의 강제 push나 이력 덮어쓰기는 하지 않는다.
+11. 시작 폴더가 `/opt/projects`이면 이는 저장소 자체가 아니라 저장소 선택용 작업공간이다.
+    `gh repo list`, `/opt/projects`의 기존 clone, 지시의 프로젝트명과 내용을 함께 보고 관련 저장소를
+    판단한다. 선택한 GitHub 저장소가 로컬에 없으면 `/opt/projects/<owner>/<repo>`로 clone한다.
+    새 독립 프로젝트가 분명히 필요한 경우에만 `gh repo create <owner>/<name> --private --clone`으로
+    만든다. 작업과 commit/push는 선택하거나 생성한 실제 저장소 안에서 수행한다.
