@@ -5012,3 +5012,23 @@ inactive dead`로 떠서 점검해보니, `/etc/systemd/system/timers.target.wan
   워킹트리에서 직접 돌고 있으니, 이 커밋과는 별개다.
 - `core/*.py`/`app/*.py` 무변경(운영/문서성 변경만: `deploy/setup_vm.sh` + 이 `PROGRESS.md` 항목).
   회귀 테스트 불필요.
+
+### 작업 76 (2026-09-15, 텔레그램 지시 — 문서만): "추후 로그인해서 해야 할 것" 메모 신설
+
+텔레그램으로 "내가 추후 로그인해서 해야할것 메모해줘" 지시를 받고, 이 저장소에 이미 흩어져
+있던 "사람이 직접 로그인/sudo/SSH로만 처리 가능한" 대기 항목 3개를 `PROGRESS.md`/
+`deploy/DEPLOYMENT_ORACLE.md`/`deploy/codex_telegram/README.md`에서 찾아 한 곳으로 모았다.
+
+- **`deploy/PENDING_MANUAL_LOGIN_ACTIONS.md` 신규**: (1) 작업75가 발견한 리서치 에이전트
+  B/C의 `/etc/systemd/system/` 타이머 유닛 유실(`sudo`로 재설치 필요, 작업67의 "VM 대신
+  Codespace" 정정과 상충한다는 점도 메모), (2) Oracle 배포 VM(`138.2.11.196`)이 오래된 커밋에
+  멈춰 있어 최근 기능(신호알림/거장 배지/FRED 사전예열)이 라이브 미반영(SSH 로그인 후
+  `git pull`+서비스 재시작 필요), (3) GitHub Actions 나이틀리 리서치 자동화용 Secrets 미등록
+  (아직 미착수, 우선순위 낮음) 세 항목을 각각 확인 명령/조치 명령과 함께 정리.
+  `gh auth`/`claude login`/Codex 인증은 이 VM(`/opt/quant`)에서 이미 완료된 상태임을 직접
+  `gh auth status`·`systemctl status codex-telegram`으로 재확인해 목록에서 제외했다.
+  `deploy/DEPLOYMENT_ORACLE.md` 상단에 이 문서로의 링크 한 줄 추가.
+- `core/*.py`/`app/*.py` 무변경(문서 신설/링크 추가뿐). 회귀 테스트 불필요.
+- 이 항목도 작업75와 동일하게 `/opt/projects/sternjeong/Quant`(텔레그램 지시 처리용 클론)에서
+  작성해 커밋+푸시한다 — 라이브 인스턴스(`/opt/quant`)는 다른 진행 중 변경사항(연구 에이전트
+  결과물 미커밋분, `deploy/codex_telegram/` 진행 중 수정분)이 있어 건드리지 않았다.

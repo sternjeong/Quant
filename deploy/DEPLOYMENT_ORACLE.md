@@ -8,6 +8,9 @@ DB로 옮길 필요가 없다.
 계정 가입·VM 발급·SSH 접속은 본인만 할 수 있는 단계라 아래는 직접 따라 하는 가이드다. 리포에 있는
 `deploy/setup_vm.sh` 는 그중 반복 작업(패키지 설치/systemd 등록/방화벽)만 대신 해준다.
 
+무인 에이전트가 대신 못 하고 사람이 직접 로그인해서 처리해야 할 대기 항목은
+[`PENDING_MANUAL_LOGIN_ACTIONS.md`](./PENDING_MANUAL_LOGIN_ACTIONS.md)에 모아둔다.
+
 ## 0. 사전 준비
 
 - Oracle Cloud 계정 (신용카드 등록은 필요하지만 Always Free 리소스는 과금되지 않음)
