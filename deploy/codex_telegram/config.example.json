@@ -12,7 +12,7 @@
   "default_backend": "claude",
   "projects": {"quant": "/opt/quant"},
   "repository_selection": true,
-  "repositories_dir": "/opt/quant/repositories",
+  "repositories_dir": "/opt/projects",
   "gh_bin": "/usr/bin/gh",
   "sandbox": "danger-full-access",
   "retry_seconds": 900,

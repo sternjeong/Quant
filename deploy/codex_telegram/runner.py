@@ -131,14 +131,18 @@ class Service:
                                 if not re.fullmatch(r'[A-Za-z0-9_.-]{1,100}', name):
                                     reply = '저장소 이름은 영문, 숫자, `.`, `_`, `-`만 사용할 수 있습니다.'
                                 else:
-                                    owner = self.github_owner()
-                                    repo = f'{owner}/{name}'
-                                    created = subprocess.run([self.cfg.get('gh_bin', '/usr/bin/gh'), 'repo', 'create', repo, '--private'], text=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                                    if created.returncode:
+                                    try:
+                                        owner = self.github_owner()
+                                    except RuntimeError:
                                         reply = 'GitHub 저장소 생성에 실패했습니다. `gh auth status`를 확인하세요.'
                                     else:
-                                        db.execute("UPDATE requests SET repo=?,state='agent' WHERE id=?", (repo, pending['id']))
-                                        self.queue_agent_buttons(db, pending['id'], f'새 private 저장소 `{repo}`를 만들었습니다.')
+                                        repo = f'{owner}/{name}'
+                                        created = subprocess.run([self.cfg.get('gh_bin', '/usr/bin/gh'), 'repo', 'create', repo, '--private'], text=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                                        if created.returncode:
+                                            reply = 'GitHub 저장소 생성에 실패했습니다. 이름 중복이나 권한을 확인하세요.'
+                                        else:
+                                            db.execute("UPDATE requests SET repo=?,state='agent' WHERE id=?", (repo, pending['id']))
+                                            self.queue_agent_buttons(db, pending['id'], f'새 private 저장소 `{repo}`를 만들었습니다.')
                             else:
                                 db.execute('INSERT OR REPLACE INTO requests(id,chat,instruction,state) VALUES(?,?,?,?)', (uid, self.chat, instruction, 'repo'))
                                 self.queue_repo_buttons(db, uid)
@@ -352,7 +356,7 @@ class Service:
         repo = project.removeprefix('github:')
         if not re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', repo):
             raise RuntimeError('Invalid repository')
-        target = Path(self.cfg.get('repositories_dir', '/opt/quant/repositories')) / repo
+        target = Path(self.cfg.get('repositories_dir', '/opt/projects')) / repo
         if target.exists():
             return target.resolve()
         target.parent.mkdir(parents=True, exist_ok=True)
