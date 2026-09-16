@@ -4,6 +4,12 @@
 대신 할 수 없다. 이 문서는 그래서 사람이 직접 로그인해서 처리해야 남아있는 항목만 모은 목록이다.
 완료했으면 해당 항목을 지우고 `PROGRESS.md`에 짧게 기록해두면 된다.
 
+> **2026-09-16 확인**: 이 Telegram→Claude 무인 에이전트 자체가 Oracle 배포 VM
+> (`138.2.11.196`)의 `quant` 계정으로 직접 돈다 (`codex-telegram.service`, `/opt/quant`).
+> 즉 아래 항목들을 처리할 때 **별도 SSH 로그인은 이미 필요 없고, `quant` 계정의 sudo 비밀번호만
+> 있으면 된다** (`sudo -n true` → `a password is required`로 확인, passwordless sudo 아님).
+> 이번에 사람이 sudo로 로그인한 뒤 그 세션에서 비밀번호를 입력해 아래 명령만 실행하면 된다.
+
 ## 1. 리서치 에이전트 B/C 야간 systemd 타이머 복구 (Oracle VM, `sudo` 필요)
 
 - **문제**: `quant-research-agent-{b,c}.service`/`.timer` 4개 파일이 `/etc/systemd/system/`에서
@@ -29,20 +35,24 @@
   돌아간 상태다. 이 모순은 이 메모가 판단할 범위가 아니니, 복구 전에 "정말 VM에서 계속 돌릴지"
   먼저 확인하고 진행하는 게 안전하다.
 
-## 2. Oracle 배포 VM 코드 최신화 (SSH 로그인 필요)
+## 2. Oracle 배포 VM 코드 최신화 (`sudo`로 서비스 재시작만 남음)
 
-- **문제**: 라이브 VM(`138.2.11.196`)의 `quant-streamlit`/`quant-scheduler`가 오래된 커밋에
-  멈춰 있어 이후 머지된 기능(텔레그램 신호알림, 거장 교차참조 배지, FRED 지표 새벽 사전예열 등)이
-  실제 서비스에 반영돼 있지 않다.
-- **조치**:
+- **문제**: 라이브 VM(`138.2.11.196`)의 `quant-streamlit`/`quant-scheduler`가 오래된 커밋
+  (`8004880`)에 멈춰 있어 이후 머지된 기능(텔레그램 신호알림, 거장 교차참조 배지, FRED 지표
+  새벽 사전예열 등)이 실제 서비스에 반영돼 있지 않았다.
+- **2026-09-16에 무인 에이전트가 이미 처리함**: `/opt/quant`에서 `git pull --ff-only`로
+  코드를 최신(`ef314e8`, origin/main과 동일)까지 당겨왔다. `requirements.txt`/`pyproject.toml`은
+  `8004880..ef314e8` 사이에 변경 없음 — `pip install` 재실행 불필요. (사전 확인 결과
+  `deploy/codex_telegram/*` 5개 파일은 diff가 있었지만 실제로는 이미 origin/main과 바이트
+  단위로 동일한 내용이었음 — 에이전트가 `git status` 기준으로만 판단하지 않고 `git diff
+  origin/main -- <files>`로 직접 대조해 안전을 확인한 뒤 진행했다.)
+- **남은 조치 (사람이 sudo로만 가능)**:
   ```bash
-  ssh ubuntu@138.2.11.196
+  # 138.2.11.196에 quant 계정으로 이미 로그인되어 있다고 가정 (별도 SSH 불필요, sudo 비밀번호만)
   cd /opt/quant
-  sudo git pull
-  sudo -u quant .venv/bin/pip install -r requirements.txt   # 의존성 바뀐 경우만
   sudo systemctl restart quant-streamlit quant-scheduler
   ```
-  (`deploy/DEPLOYMENT_ORACLE.md` 6번 절차와 동일)
+  (`deploy/DEPLOYMENT_ORACLE.md` 6번 절차 중 재시작 단계만 남음)
 
 ## 3. GitHub Actions 나이틀리 리서치 자동화 (GitHub 웹 로그인 + Secrets 등록, 미착수 — 우선순위 낮음)
 
@@ -53,3 +63,7 @@
   안전하게 주입하는 작업이 아직 없다.
 - **조치**: GitHub 웹에 로그인 → 저장소 Settings → Secrets and variables → Actions에 자격증명
   등록 → 대응 워크플로 yml 신규 작성(현재 없음). 원할 때만 진행.
+- **2026-09-16**: 사용자가 "결제가 필요한 것은 제외"라는 조건으로 나머지 항목 실행을 허용해서
+  검토했음. 이 항목은 GitHub Actions에서 Claude/Codex를 매일 밤 자동 실행하는 구조라 API/Actions
+  사용량 과금이 계속 발생한다 — 조건에 걸려 이번에 진행하지 않았다. 정말 원하면 다음에 명시적으로
+  "결제 발생해도 진행"이라고 지시해야 한다.
