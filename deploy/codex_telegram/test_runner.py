@@ -2,6 +2,7 @@ import io
 import json
 from pathlib import Path
 import signal
+import subprocess
 import tempfile
 import threading
 import time
@@ -354,6 +355,131 @@ class PipelineTests(unittest.TestCase):
         with self.s.db() as db:
             texts = [r['text'] for r in db.execute('SELECT text FROM outbox').fetchall()]
         self.assertTrue(any('아직 실행 중' in t for t in texts), texts)
+
+    def test_job_timeout_marks_retry_with_note(self):
+        self.s.cfg['job_timeout_seconds'] = 0.05
+        self.s.ingest([self.update(1)])
+        release = threading.Event()
+
+        class SlowChild:
+            stdin = io.StringIO()
+            pid = 555555
+            def __init__(self):
+                def gen():
+                    release.wait(5)
+                    yield json.dumps({'type': 'turn.completed'})
+                self.stdout = gen()
+            def wait(self):
+                return 0
+
+        with patch('runner.subprocess.Popen', return_value=SlowChild()), patch('runner.os.killpg') as killpg:
+            worker = threading.Thread(target=self.s.work_once)
+            worker.start()
+            deadline = time.time() + 3
+            while not killpg.called and time.time() < deadline:
+                time.sleep(0.01)
+            self.assertTrue(killpg.called, 'watchdog never fired')
+            release.set()
+            worker.join(5)
+        self.assertEqual(self.row()['status'], 'retry')
+        with self.s.db() as db:
+            text = db.execute('SELECT text FROM outbox ORDER BY id DESC LIMIT 1').fetchone()['text']
+        self.assertIn('시간 초과', text)
+
+    def test_diff_job_reports_commit_stat(self):
+        subprocess.run(['git', 'init', '-q', str(self.root)], check=True)
+        subprocess.run(['git', '-C', str(self.root), 'config', 'user.email', 'a@b.c'], check=True)
+        subprocess.run(['git', '-C', str(self.root), 'config', 'user.name', 'x'], check=True)
+        (self.root / 'seed.txt').write_text('seed')
+        subprocess.run(['git', '-C', str(self.root), 'add', 'seed.txt'], check=True)
+        subprocess.run(['git', '-C', str(self.root), 'commit', '-q', '-m', 'seed'], check=True)
+
+        self.s.ingest([self.update()])
+        root = self.root
+
+        class Child:
+            stdin = io.StringIO()
+            def __init__(self):
+                (root / 'new.txt').write_text('hi')
+                subprocess.run(['git', '-C', str(root), 'add', 'new.txt'], check=True)
+                subprocess.run(['git', '-C', str(root), 'commit', '-q', '-m', 'agent change'], check=True)
+                self.stdout = iter([json.dumps({'type': 'turn.completed'})])
+            def wait(self):
+                (root / 'RESUME_NOTE.md').unlink()
+                return 0
+
+        # run_job's own git_head() calls real `git` via subprocess.run too, which internally
+        # calls Popen -- let those through to the real subprocess.Popen and only fake the
+        # actual agent-CLI launch, otherwise git_head's own subprocess.run would get the Child
+        # mock back instead of a real process.
+        real_popen = subprocess.Popen
+        def popen_side_effect(cmd, **kwargs):
+            return real_popen(cmd, **kwargs) if cmd[0] == 'git' else Child()
+
+        with patch('runner.subprocess.Popen', side_effect=popen_side_effect):
+            self.s.work_once()
+        self.assertEqual(self.row()['status'], 'done')
+
+        diff_update = self.update(2)
+        diff_update['message']['text'] = '/diff 1'
+        self.s.ingest([diff_update])
+        with self.s.db() as db:
+            text = db.execute('SELECT text FROM outbox ORDER BY id DESC LIMIT 1').fetchone()['text']
+        self.assertIn('new.txt', text)
+        self.assertIn('agent change', text)
+
+    def test_diff_job_without_commits_reports_no_info(self):
+        diff_update = self.update(1)
+        diff_update['message']['text'] = '/diff 999'
+        self.s.ingest([diff_update])
+        with self.s.db() as db:
+            text = db.execute('SELECT text FROM outbox ORDER BY id DESC LIMIT 1').fetchone()['text']
+        self.assertIn('찾지 못했습니다', text)
+
+    def test_reply_to_completion_message_inherits_project_and_backend(self):
+        update = self.update()
+        update['message']['text'] = '/claude first'
+        self.s.ingest([update])
+        with self.s.db() as db:
+            db.execute('INSERT INTO job_messages(message_id, job_id) VALUES(?,?)', (999, 1))
+        reply_update = self.update(2)
+        reply_update['message']['text'] = 'second, continue'
+        reply_update['message']['reply_to_message'] = {'message_id': 999}
+        self.s.ingest([reply_update])
+        with self.s.db() as db:
+            job2 = db.execute('SELECT project, backend, instruction FROM jobs WHERE id=2').fetchone()
+        self.assertEqual(job2['project'], 'test')
+        self.assertEqual(job2['backend'], 'claude')
+        self.assertEqual(job2['instruction'], 'second, continue')
+
+    def test_reply_to_github_project_job_bypasses_repo_buttons(self):
+        with self.s.db() as db:
+            db.execute("INSERT INTO jobs(id,chat,project,instruction,backend,status) VALUES(1,'123','github:owner/repo','first','codex','done')")
+            db.execute('INSERT INTO job_messages(message_id, job_id) VALUES(555,1)')
+        self.s.cfg['repository_selection'] = True
+        reply_update = self.update(2)
+        reply_update['message']['text'] = 'keep going'
+        reply_update['message']['reply_to_message'] = {'message_id': 555}
+        self.s.ingest([reply_update])
+        with self.s.db() as db:
+            job2 = db.execute('SELECT project, backend FROM jobs WHERE id=2').fetchone()
+        self.assertEqual(job2['project'], 'github:owner/repo')
+        self.assertEqual(job2['backend'], 'codex')
+
+    def test_usage_summary_counts_limit_hits(self):
+        self.s.ingest([self.update()])
+        class Child:
+            stdin = io.StringIO()
+            stdout = iter([json.dumps({'type': 'turn.failed', 'error': {'message': 'usage_limit_exceeded'}})])
+            def wait(self): return 1
+        with patch('runner.subprocess.Popen', return_value=Child()):
+            self.s.work_once()
+        usage_update = self.update(2)
+        usage_update['message']['text'] = '/usage'
+        self.s.ingest([usage_update])
+        with self.s.db() as db:
+            text = db.execute('SELECT text FROM outbox ORDER BY id DESC LIMIT 1').fetchone()['text']
+        self.assertIn('한도 도달 1회', text)
 
     def test_action_required_blocks_and_retry_command_requeues(self):
         self.s.ingest([self.update()])

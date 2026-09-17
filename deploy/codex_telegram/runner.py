@@ -43,6 +43,8 @@ class Service:
         self.children = {}
         self.cancel_lock = threading.Lock()
         self.cancel_requested = set()
+        self.timeout_lock = threading.Lock()
+        self.timeout_hit = set()
         with self.db() as db:
             db.executescript('''
             CREATE TABLE IF NOT EXISTS meta(key TEXT PRIMARY KEY, value TEXT);
@@ -53,13 +55,24 @@ class Service:
             columns = {row[1] for row in db.execute('PRAGMA table_info(jobs)')}
             if 'backend' not in columns:
                 db.execute("ALTER TABLE jobs ADD COLUMN backend TEXT NOT NULL DEFAULT 'codex'")
+            if 'commit_before' not in columns:
+                db.execute("ALTER TABLE jobs ADD COLUMN commit_before TEXT")
+            if 'commit_after' not in columns:
+                db.execute("ALTER TABLE jobs ADD COLUMN commit_after TEXT")
+            if 'limit_hits' not in columns:
+                db.execute("ALTER TABLE jobs ADD COLUMN limit_hits INTEGER NOT NULL DEFAULT 0")
+            if 'created_at' not in columns:
+                db.execute("ALTER TABLE jobs ADD COLUMN created_at REAL NOT NULL DEFAULT 0")
             db.execute("INSERT OR IGNORE INTO meta(key,value) VALUES('backend',?)", (cfg.get('default_backend', 'claude'),))
             db.execute('CREATE TABLE IF NOT EXISTS outbox(id INTEGER PRIMARY KEY, chat TEXT, text TEXT)')
             db.execute('CREATE TABLE IF NOT EXISTS requests(id INTEGER PRIMARY KEY, chat TEXT, instruction TEXT, repo TEXT, state TEXT)')
             db.execute('CREATE TABLE IF NOT EXISTS repo_choices(request_id INTEGER, number INTEGER, repo TEXT, PRIMARY KEY(request_id, number))')
+            db.execute('CREATE TABLE IF NOT EXISTS job_messages(message_id INTEGER PRIMARY KEY, job_id INTEGER)')
             outbox_columns = {row[1] for row in db.execute('PRAGMA table_info(outbox)')}
             if 'markup' not in outbox_columns:
                 db.execute('ALTER TABLE outbox ADD COLUMN markup TEXT')
+            if 'job_id' not in outbox_columns:
+                db.execute('ALTER TABLE outbox ADD COLUMN job_id INTEGER')
 
     def db(self):
         db = sqlite3.connect(self.state / 'queue.sqlite', timeout=30)
@@ -114,6 +127,10 @@ class Service:
                                  '\n'.join(f'{r["id"]} [{r["backend"]}] {r["project"]} - {r["status"]}' for r in rows))
                     elif command == '/cancel' and rest.isdigit():
                         reply = self.cancel_job(db, int(rest))
+                    elif command == '/diff' and rest.isdigit():
+                        reply = self.diff_job(db, int(rest))
+                    elif command == '/usage':
+                        reply = self.usage_summary(db)
                     elif command == '/retry' and rest.isdigit():
                         changed = db.execute("UPDATE jobs SET status='retry',due=0,notified=0 WHERE id=? AND status='blocked'", (int(rest),)).rowcount
                         reply = f'작업 {rest} 재시도 예약됨' if changed else f'재시도할 blocked 작업 {rest}을 찾지 못했습니다.'
@@ -124,20 +141,44 @@ class Service:
                                  '/claude 지시 또는 /codex 지시: 해당 작업만 지정\n'
                                  '/status: 최근 작업 상태 8개\n/queue: 대기·실행·차단 중인 작업 전체\n'
                                  '/cancel 작업ID: 대기 중인 작업 취소 또는 실행 중인 작업 중지 요청\n'
+                                 '/diff 작업ID: 그 작업이 실제로 커밋한 내용 요약\n'
+                                 '/usage: 최근 7일 사용량·한도 도달 횟수\n'
                                  '/retry 작업ID: blocked 작업 재개\n'
-                                 '/project quant 다음 줄에 지시: 현재 Quant를 바로 선택')
+                                 '/project quant 다음 줄에 지시: 현재 Quant를 바로 선택\n'
+                                 '완료/접수 메시지에 답장(reply)하면 같은 프로젝트로 이어서 지시할 수 있습니다.')
                     elif command.startswith('/') and command != '/project':
                         reply = '알 수 없는 명령입니다. /help를 확인하세요.'
                     project = self.cfg['default_project']
+                    via_reply = False
+                    reply_to_id = msg.get('reply_to_message', {}).get('message_id')
+                    if reply_to_id and reply is None:
+                        # A plain-text reply to a job's own "접수"/완료 Telegram message continues
+                        # that job's project (and backend, unless this message overrides it with
+                        # /codex or /claude) — so a phone-only follow-up doesn't need to repeat
+                        # /project or re-pick a repo button.
+                        linked = db.execute('SELECT job_id FROM job_messages WHERE message_id=?', (reply_to_id,)).fetchone()
+                        origin = db.execute('SELECT project, backend FROM jobs WHERE id=?', (linked['job_id'],)).fetchone() if linked else None
+                        if origin:
+                            project = origin['project']
+                            via_reply = True
+                            if command not in ('/codex', '/claude'):
+                                backend = origin['backend']
+                    reply_job_id = None
                     if instruction.startswith('/project '):
                         first, _, instruction = instruction.partition('\n')
                         project = first.split(maxsplit=1)[1].strip()
+                        via_reply = False
                     if reply is None:
                         auto_repo = self.cfg.get('auto_repository_selection', False)
-                        if project in self.cfg['projects'] and instruction.strip() and (auto_repo or instruction.startswith('/project ') or not self.cfg.get('repository_selection', False)):
-                            db.execute('INSERT OR IGNORE INTO jobs(id,chat,project,instruction,backend) VALUES(?,?,?,?,?)',
-                                       (uid, self.chat, project, instruction, backend))
+                        # A reply-inherited project is already unambiguous (it came from a real
+                        # prior job, possibly a github:owner/repo chosen via the button flow), so
+                        # it bypasses the repository-selection-button gate like /project does.
+                        project_known = project in self.cfg['projects'] or (via_reply and project.startswith('github:'))
+                        if project_known and instruction.strip() and (auto_repo or instruction.startswith('/project ') or via_reply or not self.cfg.get('repository_selection', False)):
+                            db.execute('INSERT OR IGNORE INTO jobs(id,chat,project,instruction,backend,created_at) VALUES(?,?,?,?,?,?)',
+                                       (uid, self.chat, project, instruction, backend, time.time()))
                             reply = f'접수 {uid} [{backend}] 프로젝트: {project}'
+                            reply_job_id = uid
                         elif instruction.strip():
                             pending = db.execute("SELECT * FROM requests WHERE chat=? AND state='new-name' ORDER BY id DESC LIMIT 1", (self.chat,)).fetchone()
                             if pending:
@@ -164,11 +205,13 @@ class Service:
                         else:
                             reply = '프로젝트 또는 지시를 확인하세요. /help'
                     if reply is not None:
-                        self.queue_outbox(db, self.chat, reply)
+                        self.queue_outbox(db, self.chat, reply, job_id=reply_job_id)
                 db.execute("INSERT INTO meta VALUES('offset',?) ON CONFLICT(key) DO UPDATE SET value=max(cast(value as integer),cast(excluded.value as integer))", (str(uid + 1),))
 
-    def queue_outbox(self, db, chat, text, markup=None):
-        db.execute('INSERT INTO outbox(chat,text,markup) VALUES(?,?,?)', (chat, text, json.dumps(markup) if markup else None))
+    def queue_outbox(self, db, chat, text, markup=None, job_id=None):
+        # Telegram's sendMessage caps a message at 4096 chars; truncate defensively so one
+        # oversized reply (e.g. a big /diff) can never wedge every message queued behind it.
+        db.execute('INSERT INTO outbox(chat,text,markup,job_id) VALUES(?,?,?,?)', (chat, text[:3900], json.dumps(markup) if markup else None, job_id))
 
     def github_owner(self):
         if self.cfg.get('github_owner'):
@@ -222,9 +265,10 @@ class Service:
             db.execute("UPDATE requests SET state='new-name' WHERE id=?", (request_id,))
             self.queue_outbox(db, chat, '새 private GitHub 저장소 이름을 다음 메시지로 보내세요.')
         elif kind == 'a' and request['state'] == 'agent' and value in ('claude', 'codex'):
-            db.execute('INSERT OR IGNORE INTO jobs(id,chat,project,instruction,backend) VALUES(?,?,?,?,?)', (request_id, chat, 'github:' + request['repo'], request['instruction'], value))
+            db.execute('INSERT OR IGNORE INTO jobs(id,chat,project,instruction,backend,created_at) VALUES(?,?,?,?,?,?)',
+                       (request_id, chat, 'github:' + request['repo'], request['instruction'], value, time.time()))
             db.execute("UPDATE requests SET state='queued' WHERE id=?", (request_id,))
-            self.queue_outbox(db, chat, f'접수 {request_id} [{value}] {request["repo"]}')
+            self.queue_outbox(db, chat, f'접수 {request_id} [{value}] {request["repo"]}', job_id=request_id)
         try:
             self.api('answerCallbackQuery', {'callback_query_id': callback['id']})
         except Exception:
@@ -254,6 +298,41 @@ class Service:
             return f'작업 {job_id} 중지를 요청했습니다. 곧 취소 처리됩니다.'
         return f'작업 {job_id}은 이미 {status} 상태라 취소할 수 없습니다.'
 
+    def diff_job(self, db, job_id):
+        row = db.execute('SELECT project, commit_before, commit_after FROM jobs WHERE id=?', (job_id,)).fetchone()
+        if not row:
+            return f'작업 {job_id}를 찾지 못했습니다.'
+        before = row['commit_before']
+        if not before:
+            return f'작업 {job_id}: 커밋 정보가 없습니다 (아직 시작 전이거나 git 저장소가 아님).'
+        after = row['commit_after'] or before
+        if before == after:
+            return f'작업 {job_id}: 커밋 변경 없음 ({before[:7]}).'
+        try:
+            project = self.project_path(row['project'])
+        except (OSError, RuntimeError):
+            return f'작업 {job_id}: 저장소 경로를 확인할 수 없습니다.'
+        commits = subprocess.run(['git', '-C', str(project), 'log', '--oneline', f'{before}..{after}'],
+                                 text=True, capture_output=True, timeout=10)
+        stat = subprocess.run(['git', '-C', str(project), 'diff', '--stat', f'{before}..{after}'],
+                              text=True, capture_output=True, timeout=10)
+        return (f'작업 {job_id}: {before[:7]}..{after[:7]}\n'
+                f'{commits.stdout.strip() or "(커밋 없음)"}\n\n'
+                f'{stat.stdout.strip() or "(변경 통계 없음)"}')
+
+    def usage_summary(self, db):
+        window_start = time.time() - 7 * 86400
+        rows = db.execute("""SELECT backend, COUNT(*) AS total,
+            SUM(CASE WHEN status='done' THEN 1 ELSE 0 END) AS done,
+            SUM(limit_hits) AS hits
+            FROM jobs WHERE created_at >= ? GROUP BY backend""", (window_start,)).fetchall()
+        if not rows:
+            return '최근 7일간 작업 기록이 없습니다.'
+        lines = ['최근 7일 사용량:']
+        for r in rows:
+            lines.append(f'{r["backend"]}: 작업 {r["total"]}개 (완료 {r["done"]}개), 한도 도달 {r["hits"] or 0}회')
+        return '\n'.join(lines)
+
     def poll(self):
         while not self.stop.is_set():
             try:
@@ -273,8 +352,12 @@ class Service:
             payload = {'chat_id': row['chat'], 'text': row['text']}
             if row['markup']:
                 payload['reply_markup'] = json.loads(row['markup'])
-            self.api('sendMessage', payload)
+            sent = self.api('sendMessage', payload)
             with self.db() as db:
+                if row['job_id'] is not None:
+                    # Lets a later reply to *this* Telegram message resolve back to the job.
+                    db.execute('INSERT OR REPLACE INTO job_messages(message_id, job_id) VALUES(?,?)',
+                               (sent['message_id'], row['job_id']))
                 db.execute('DELETE FROM outbox WHERE id=?', (row['id'],))
 
     def heartbeat(self, job_id, backend, start, stop_event):
@@ -284,13 +367,40 @@ class Service:
         while not stop_event.wait(interval):
             elapsed = int((time.time() - start) / 60)
             with self.db() as db:
-                self.queue_outbox(db, self.chat, f'작업 {job_id} [{backend}] 아직 실행 중입니다 ({elapsed}분 경과).')
+                self.queue_outbox(db, self.chat, f'작업 {job_id} [{backend}] 아직 실행 중입니다 ({elapsed}분 경과).', job_id=job_id)
+
+    def watchdog(self, job_id, stop_event):
+        # Safety net for a genuinely hung Claude/Codex process: without this, a stuck job would
+        # occupy one of the limited concurrent worker slots forever, and since nobody may be
+        # watching Telegram for hours, nobody would notice. 0/None disables it.
+        timeout = self.cfg.get('job_timeout_seconds')
+        if not timeout or stop_event.wait(timeout):
+            return
+        with self.timeout_lock:
+            self.timeout_hit.add(job_id)
+        with self.children_lock:
+            child = self.children.get(job_id)
+        if child:
+            try:
+                os.killpg(child.pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
 
     def redact(self, text):
         for value in self.secrets.values():
             if len(value) >= 6:
                 text = text.replace(value, '[REDACTED]')
         return re.sub(r'(?i)(?:sk-[\w-]+|\d{6,}:[\w-]{20,})', '[REDACTED]', text)
+
+    def git_head(self, project):
+        if not (Path(project) / '.git').exists():
+            return None
+        try:
+            result = subprocess.run(['git', '-C', str(project), 'rev-parse', 'HEAD'],
+                                    text=True, capture_output=True, timeout=10)
+        except (OSError, subprocess.TimeoutExpired):
+            return None
+        return result.stdout.strip() if result.returncode == 0 else None
 
     def run_job(self, job):
         try:
@@ -344,6 +454,7 @@ class Service:
             if key.startswith('TELEGRAM_'):
                 child_env.pop(key, None)
         limited, failed, completed, summary = False, False, False, ''
+        commit_before = self.git_head(project)
         child = None
         heartbeat_stop = threading.Event()
         try:
@@ -355,6 +466,7 @@ class Service:
             if self.stop.is_set():
                 os.killpg(child.pid, signal.SIGTERM)
             threading.Thread(target=self.heartbeat, args=(job['id'], backend, time.time(), heartbeat_stop), daemon=True).start()
+            threading.Thread(target=self.watchdog, args=(job['id'], heartbeat_stop), daemon=True).start()
             child.stdin.write(prompt)
             child.stdin.close()
             for line in child.stdout:
@@ -394,9 +506,22 @@ class Service:
         with self.cancel_lock:
             cancelled = job['id'] in self.cancel_requested
             self.cancel_requested.discard(job['id'])
+        with self.timeout_lock:
+            timed_out = job['id'] in self.timeout_hit
+            self.timeout_hit.discard(job['id'])
+        commit_after = self.git_head(project)
+        with self.db() as db:
+            db.execute('UPDATE jobs SET commit_before=?, commit_after=? WHERE id=?', (commit_before, commit_after, job['id']))
         action_required = summary.lstrip().startswith('ACTION_REQUIRED:')
         if cancelled:
             self.finish(job['id'], 'cancelled', summary or '사용자가 취소함')
+        elif timed_out:
+            delay = min(self.cfg.get('retry_max_seconds', 3600),
+                        self.cfg.get('retry_seconds', 900) * 2 ** min(job['attempts'], 8))
+            timeout_minutes = self.cfg.get('job_timeout_seconds', 0) // 60
+            with self.db() as db:
+                db.execute("UPDATE jobs SET status='retry', due=? WHERE id=?", (time.time() + delay, job['id']))
+                self.queue_outbox(db, self.chat, f'작업 {job["id"]} [{backend}] 시간 초과({timeout_minutes}분)로 중단했습니다. 재시도 예약됨.', job_id=job['id'])
         elif action_required:
             self.finish(job['id'], 'blocked', summary)
         elif rc == 0 and completed and not failed and not limited and not note.exists():
@@ -405,7 +530,8 @@ class Service:
             delay = min(self.cfg.get('retry_max_seconds', 3600),
                         self.cfg.get('retry_seconds', 900) * 2 ** min(job['attempts'], 8))
             with self.db() as db:
-                db.execute("UPDATE jobs SET status='retry', due=? WHERE id=?", (time.time() + delay, job['id']))
+                db.execute("UPDATE jobs SET status='retry', due=?, limit_hits=limit_hits+? WHERE id=?",
+                           (time.time() + delay, 1 if limited else 0, job['id']))
         else:
             self.finish(job['id'], 'blocked', f'실행 오류(exit={rc}). 인증/CLI/권한 점검 필요; 메모 유지')
 
@@ -459,9 +585,12 @@ class Service:
         for row in rows:
             try:
                 message = f"작업 {row['id']} [{row['backend']}: {row['status']}]\n{row['summary']}"
-                for start in range(0, len(message), 1800):
-                    self.api('sendMessage', {'chat_id': row['chat'], 'text': message[start:start + 1800]})
                 with self.db() as db:
+                    for start in range(0, len(message), 1800):
+                        sent = self.api('sendMessage', {'chat_id': row['chat'], 'text': message[start:start + 1800]})
+                        # Any chunk can be the one the user replies to, so a follow-up
+                        # instruction resolves back to this job regardless of which they pick.
+                        db.execute('INSERT OR REPLACE INTO job_messages(message_id, job_id) VALUES(?,?)', (sent['message_id'], row['id']))
                     db.execute('UPDATE jobs SET notified=1 WHERE id=?', (row['id'],))
             except Exception:
                 break
