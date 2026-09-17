@@ -17,5 +17,6 @@
   "gh_bin": "/usr/bin/gh",
   "sandbox": "danger-full-access",
   "retry_seconds": 900,
-  "retry_max_seconds": 3600
+  "retry_max_seconds": 3600,
+  "max_concurrent_jobs": 3
 }

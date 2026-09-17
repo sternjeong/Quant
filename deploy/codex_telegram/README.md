@@ -30,7 +30,9 @@
 긴 응답은 나눠 보낸다. 질문만 처리한 경우 불필요한 commit을 만들지 않는다.
 각 메시지는 독립 작업이며 기존 터미널 세션이나 이전 대화 내용을 자동 공유하지 않는다.
 후속 지시에는 대상 파일이나 이전 작업 ID 등 필요한 맥락을 포함한다.
-두 CLI가 같은 프로젝트를 동시에 수정하지 않도록 기존 단일 작업자 큐를 공유한다.
+두 CLI가 같은 프로젝트를 동시에 수정하지 않도록 프로젝트 단위로 순서를 맞춘 공유 큐를 쓴다.
+서로 다른 프로젝트(또는 서로 다른 저장소)의 작업은 `max_concurrent_jobs` 개수만큼 동시에 실행되므로,
+한 작업이 실행 중이어도 다른 프로젝트로 보낸 다음 지시가 그 작업이 끝날 때까지 무작정 기다리지 않는다.
 
 ## GitHub 저장소 선택과 생성
 
@@ -77,9 +79,10 @@ Claude 한도 오류는 모의 이벤트로 메모 보존과 재시도를 검증
 늘고 구독 사용량 한도에 더 빨리 도달할 수 있다. `config.json`의 `codex_reasoning_effort`와
 `claude_effort`로 조절할 수 있다.
 
-이 서비스는 Telegram private chat의 새 텍스트 메시지를 SQLite 영속 큐에 기록하고, 프로젝트별로
-하나씩 Codex CLI 작업자로 실행한다. Long polling을 사용하므로 공개 webhook URL·TLS 인증서가
-필요 없고, 작업자가 실행 중이어도 수신 루프는 계속 메시지를 저장한다.
+이 서비스는 Telegram private chat의 새 텍스트 메시지를 SQLite 영속 큐에 기록하고, 최대
+`max_concurrent_jobs`(기본 3)개의 작업자 스레드가 동시에 큐를 소비한다. 같은 프로젝트의 작업은
+항상 순서대로만 실행되지만, 서로 다른 프로젝트는 병렬로 실행된다. Long polling을 사용하므로 공개
+webhook URL·TLS 인증서가 필요 없고, 작업자가 실행 중이어도 수신 루프는 계속 메시지를 저장한다.
 
 ## 설치
 
@@ -139,9 +142,10 @@ README의 오류를 고치고 테스트 후 커밋과 push까지 해줘.
 sudo -u quant sqlite3 /opt/quant/.codex-telegram-state/queue.sqlite "UPDATE jobs SET status='retry',due=0,notified=0 WHERE id=123 AND status='blocked';"
 ```
 
-등록 프로젝트는 작업자 한 개가 순서대로 실행한다. 재시도 대기 중에는 다른 프로젝트를 실행할 수
-있으며, 동일 프로젝트는 앞선 작업 완료까지 대기한다. 실행 중 서비스가 죽으면 systemd가 하위
-프로세스까지 정리하고 재시작 시 `running` 작업을 재개한다. SQLite 큐와 수신 offset은 함께 커밋한다.
+동일 프로젝트는 앞선 작업 완료까지 대기하지만, 서로 다른 프로젝트는 `max_concurrent_jobs`개의
+작업자 스레드가 동시에 실행한다. 재시도 대기 중에는 다른 프로젝트를 계속 실행할 수 있다. 실행 중
+서비스가 죽으면 systemd가 하위 프로세스까지 정리하고 재시작 시 `running` 작업을 재개한다. SQLite
+큐와 수신 offset은 함께 커밋한다.
 
 ## 사용량 한도 재개
 

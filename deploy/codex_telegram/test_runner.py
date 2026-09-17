@@ -2,6 +2,7 @@ import io
 import json
 from pathlib import Path
 import tempfile
+import threading
 import unittest
 from unittest.mock import patch
 from runner import Service, LIMIT
@@ -192,6 +193,57 @@ class PipelineTests(unittest.TestCase):
         with patch('runner.subprocess.Popen', return_value=Child()) as launch:
             self.s.work_once()
         self.assertIn('model_reasoning_effort="xhigh"', launch.call_args.args[0])
+
+    def test_other_project_job_runs_while_one_project_is_still_busy(self):
+        other = self.root / 'other'
+        other.mkdir()
+        self.s.cfg['projects']['other'] = str(other)
+        self.s.ingest([self.update(1)])
+        second = self.update(2)
+        second['message']['text'] = '/project other\nhello'
+        self.s.ingest([second])
+
+        slow_started = threading.Event()
+        release_slow = threading.Event()
+        root = self.root.resolve()
+        other_resolved = other.resolve()
+
+        class SlowChild:
+            stdin = io.StringIO()
+            def __init__(self):
+                def gen():
+                    slow_started.set()
+                    release_slow.wait(5)
+                    yield json.dumps({'type': 'turn.completed'})
+                self.stdout = gen()
+            def wait(self):
+                (root / 'RESUME_NOTE.md').unlink()
+                return 0
+
+        class FastChild:
+            stdin = io.StringIO()
+            stdout = iter([json.dumps({'type': 'turn.completed'})])
+            def wait(self):
+                (other_resolved / 'RESUME_NOTE.md').unlink()
+                return 0
+
+        def popen(cmd, **kwargs):
+            return SlowChild() if Path(kwargs['cwd']) == root else FastChild()
+
+        with patch('runner.subprocess.Popen', side_effect=popen):
+            slow_worker = threading.Thread(target=self.s.work_once)
+            slow_worker.start()
+            self.assertTrue(slow_started.wait(2), 'first job never started')
+            # A second, unrelated project must be claimable and finish while the
+            # first job is still mid-flight, instead of waiting for it to finish.
+            self.assertTrue(self.s.work_once())
+            with self.s.db() as db:
+                self.assertEqual(db.execute('SELECT status FROM jobs WHERE id=2').fetchone()[0], 'done')
+                self.assertEqual(db.execute('SELECT status FROM jobs WHERE id=1').fetchone()[0], 'running')
+            release_slow.set()
+            slow_worker.join(5)
+        with self.s.db() as db:
+            self.assertEqual(db.execute('SELECT status FROM jobs WHERE id=1').fetchone()[0], 'done')
 
     def test_action_required_blocks_and_retry_command_requeues(self):
         self.s.ingest([self.update()])

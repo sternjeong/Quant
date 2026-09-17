@@ -38,7 +38,9 @@ class Service:
         self.token = self.secrets.get('TELEGRAM_BOT_TOKEN', '')
         self.chat = str(self.secrets.get('TELEGRAM_CHAT_ID', ''))
         self.stop = threading.Event()
-        self.child = None
+        self.claim_lock = threading.Lock()
+        self.children_lock = threading.Lock()
+        self.children = {}
         with self.db() as db:
             db.executescript('''
             CREATE TABLE IF NOT EXISTS meta(key TEXT PRIMARY KEY, value TEXT);
@@ -262,8 +264,6 @@ class Service:
         if not note.exists():
             note.write_text(f'# Resume job {job["id"]}\n작업을 시작합니다. 원래 지시는 영속 큐에 보관되어 있습니다.\n'
                             'README, PROGRESS, git status/log로 진행 상태를 확인하고 원래 지시를 완료하세요.\n')
-        with self.db() as db:
-            db.execute("UPDATE jobs SET status='running', attempts=attempts+1 WHERE id=?", (job['id'],))
         prompt = (f'프로젝트: {project}\n이 프로젝트에서만 작업하세요. RESUME_NOTE.md를 먼저 읽고 이어서 작업하세요. '
                   '질문에 대한 답변만 요구되고 파일 변경이 필요 없다면 답변 후 메모를 삭제하고 종료하세요. 이 경우 불필요한 커밋은 만들지 마세요. '
                   '중요 단계마다 메모를 갱신하세요. commit과 push 성공 후에만 메모를 삭제하세요. '
@@ -300,13 +300,18 @@ class Service:
             if key.startswith('TELEGRAM_'):
                 child_env.pop(key, None)
         limited, failed, completed, summary = False, False, False, ''
+        child = None
         try:
-            self.child = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                          stderr=subprocess.STDOUT, text=True, cwd=project, env=child_env,
-                                          start_new_session=True)
-            self.child.stdin.write(prompt)
-            self.child.stdin.close()
-            for line in self.child.stdout:
+            child = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                     stderr=subprocess.STDOUT, text=True, cwd=project, env=child_env,
+                                     start_new_session=True)
+            with self.children_lock:
+                self.children[job['id']] = child
+            if self.stop.is_set():
+                os.killpg(child.pid, signal.SIGTERM)
+            child.stdin.write(prompt)
+            child.stdin.close()
+            for line in child.stdout:
                 # Raw model/tool output is deliberately never persisted or sent to journald.
                 try:
                     event = json.loads(line)
@@ -331,13 +336,14 @@ class Service:
                 item = event.get('item', {})
                 if kind == 'item.completed' and item.get('type') == 'agent_message':
                     summary = self.redact(item.get('text', ''))
-            rc = self.child.wait()
+            rc = child.wait()
         except (OSError, BrokenPipeError):
-            if self.child:
-                self.child.wait()
+            if child:
+                child.wait()
             rc = 1
         finally:
-            self.child = None
+            with self.children_lock:
+                self.children.pop(job['id'], None)
         action_required = summary.lstrip().startswith('ACTION_REQUIRED:')
         if action_required:
             self.finish(job['id'], 'blocked', summary)
@@ -372,14 +378,28 @@ class Service:
         with self.db() as db:
             db.execute('UPDATE jobs SET status=?,summary=? WHERE id=?', (status, summary, uid))
 
+    def claim_job(self):
+        # Claiming (select + mark 'running') must be atomic across worker threads so two
+        # workers can never pick the same job, or two jobs from the same project at once.
+        with self.claim_lock:
+            with self.db() as db:
+                job = db.execute("""SELECT * FROM jobs j WHERE status IN ('queued','retry') AND due<=?
+                  AND NOT EXISTS (SELECT 1 FROM jobs k WHERE k.project=j.project AND k.id<j.id
+                  AND k.status IN ('queued','retry','running','blocked')) ORDER BY id LIMIT 1""", (time.time(),)).fetchone()
+                if job:
+                    db.execute("UPDATE jobs SET status='running', attempts=attempts+1 WHERE id=?", (job['id'],))
+        return job
+
     def work_once(self):
-        with self.db() as db:
-            job = db.execute("""SELECT * FROM jobs j WHERE status IN ('queued','retry') AND due<=?
-              AND NOT EXISTS (SELECT 1 FROM jobs k WHERE k.project=j.project AND k.id<j.id
-              AND k.status IN ('queued','retry','running','blocked')) ORDER BY id LIMIT 1""", (time.time(),)).fetchone()
+        job = self.claim_job()
         if job:
             self.run_job(job)
         return bool(job)
+
+    def worker_loop(self):
+        while not self.stop.is_set():
+            if not self.work_once():
+                self.stop.wait(2)
 
     def notify(self):
         with self.db() as db:
@@ -403,19 +423,27 @@ class Service:
             db.execute("UPDATE jobs SET status='retry' WHERE status='running'")
         def shutdown(*_):
             self.stop.set()
-            if self.child:
+            with self.children_lock:
+                children = list(self.children.values())
+            for child in children:
                 try:
-                    os.killpg(self.child.pid, signal.SIGTERM)
+                    os.killpg(child.pid, signal.SIGTERM)
                 except ProcessLookupError:
                     pass
         signal.signal(signal.SIGTERM, shutdown)
         signal.signal(signal.SIGINT, shutdown)
-        thread = threading.Thread(target=self.poll, daemon=True)
-        thread.start()
+        threading.Thread(target=self.poll, daemon=True).start()
+        # Multiple workers let independent projects/backends run at the same time instead of
+        # a new Telegram command sitting stuck behind whatever job is currently executing.
+        workers = [threading.Thread(target=self.worker_loop, daemon=True)
+                   for _ in range(max(1, self.cfg.get('max_concurrent_jobs', 3)))]
+        for worker in workers:
+            worker.start()
         while not self.stop.is_set():
-            self.work_once()
             self.notify()
             self.stop.wait(2)
+        for worker in workers:
+            worker.join()
 
 
 def main():
