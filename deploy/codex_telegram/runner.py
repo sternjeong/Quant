@@ -63,11 +63,14 @@ class Service:
                 db.execute("ALTER TABLE jobs ADD COLUMN limit_hits INTEGER NOT NULL DEFAULT 0")
             if 'created_at' not in columns:
                 db.execute("ALTER TABLE jobs ADD COLUMN created_at REAL NOT NULL DEFAULT 0")
+            if 'finished_at' not in columns:
+                db.execute("ALTER TABLE jobs ADD COLUMN finished_at REAL NOT NULL DEFAULT 0")
             db.execute("INSERT OR IGNORE INTO meta(key,value) VALUES('backend',?)", (cfg.get('default_backend', 'claude'),))
             db.execute('CREATE TABLE IF NOT EXISTS outbox(id INTEGER PRIMARY KEY, chat TEXT, text TEXT)')
             db.execute('CREATE TABLE IF NOT EXISTS requests(id INTEGER PRIMARY KEY, chat TEXT, instruction TEXT, repo TEXT, state TEXT)')
             db.execute('CREATE TABLE IF NOT EXISTS repo_choices(request_id INTEGER, number INTEGER, repo TEXT, PRIMARY KEY(request_id, number))')
             db.execute('CREATE TABLE IF NOT EXISTS job_messages(message_id INTEGER PRIMARY KEY, job_id INTEGER)')
+            db.execute('CREATE TABLE IF NOT EXISTS ideas(id INTEGER PRIMARY KEY, chat TEXT, text TEXT, created_at REAL)')
             outbox_columns = {row[1] for row in db.execute('PRAGMA table_info(outbox)')}
             if 'markup' not in outbox_columns:
                 db.execute('ALTER TABLE outbox ADD COLUMN markup TEXT')
@@ -131,6 +134,20 @@ class Service:
                         reply = self.diff_job(db, int(rest))
                     elif command == '/usage':
                         reply = self.usage_summary(db)
+                    elif command == '/digest':
+                        reply = self.digest_summary(db)
+                    elif command == '/idea' and rest.strip():
+                        db.execute('INSERT OR IGNORE INTO ideas(id,chat,text,created_at) VALUES(?,?,?,?)',
+                                   (uid, self.chat, rest.strip(), time.time()))
+                        count = db.execute('SELECT COUNT(*) FROM ideas WHERE chat=?', (self.chat,)).fetchone()[0]
+                        reply = f'아이디어 저장됨 (대기 {count}개). /ideas로 확인하세요.'
+                    elif command == '/ideas' and rest.strip() == '비우기':
+                        db.execute('DELETE FROM ideas WHERE chat=?', (self.chat,))
+                        reply = '저장된 아이디어를 모두 지웠습니다.'
+                    elif command == '/ideas':
+                        rows = db.execute('SELECT text FROM ideas WHERE chat=? ORDER BY id', (self.chat,)).fetchall()
+                        reply = ('저장된 아이디어가 없습니다.' if not rows else
+                                 '\n'.join(f'{i}. {r["text"]}' for i, r in enumerate(rows, 1)))
                     elif command == '/retry' and rest.isdigit():
                         changed = db.execute("UPDATE jobs SET status='retry',due=0,notified=0 WHERE id=? AND status='blocked'", (int(rest),)).rowcount
                         reply = f'작업 {rest} 재시도 예약됨' if changed else f'재시도할 blocked 작업 {rest}을 찾지 못했습니다.'
@@ -143,6 +160,9 @@ class Service:
                                  '/cancel 작업ID: 대기 중인 작업 취소 또는 실행 중인 작업 중지 요청\n'
                                  '/diff 작업ID: 그 작업이 실제로 커밋한 내용 요약\n'
                                  '/usage: 최근 7일 사용량·한도 도달 횟수\n'
+                                 '/digest: 마지막 확인 이후 끝난 작업 + 지금 대기/실행 중인 작업 한눈에 보기\n'
+                                 '/idea 메모: Claude/Codex 호출 없이 아이디어만 저장\n'
+                                 '/ideas: 저장된 아이디어 목록, /ideas 비우기: 전체 삭제\n'
                                  '/retry 작업ID: blocked 작업 재개\n'
                                  '/project quant 다음 줄에 지시: 현재 Quant를 바로 선택\n'
                                  '완료/접수 메시지에 답장(reply)하면 같은 프로젝트로 이어서 지시할 수 있습니다.')
@@ -282,7 +302,8 @@ class Service:
         if status in ('queued', 'retry'):
             # notified=1: this reply already tells the user; run_job's async notify() would
             # otherwise send a redundant second message for a job that never actually ran.
-            db.execute("UPDATE jobs SET status='cancelled', summary='사용자가 취소함', notified=1 WHERE id=? AND status=?", (job_id, status))
+            db.execute("UPDATE jobs SET status='cancelled', summary='사용자가 취소함', notified=1, finished_at=? WHERE id=? AND status=?",
+                       (time.time(), job_id, status))
             return f'작업 {job_id} 취소됨 (대기열에서 제거).'
         if status == 'running':
             with self.children_lock:
@@ -331,6 +352,34 @@ class Service:
         lines = ['최근 7일 사용량:']
         for r in rows:
             lines.append(f'{r["backend"]}: 작업 {r["total"]}개 (완료 {r["done"]}개), 한도 도달 {r["hits"] or 0}회')
+        return '\n'.join(lines)
+
+    def digest_summary(self, db):
+        # A single "catch me up" command instead of scrolling every individual notification --
+        # meant for someone who only opens Telegram in short, infrequent windows.
+        last = db.execute("SELECT value FROM meta WHERE key='last_digest_at'").fetchone()
+        since = float(last[0]) if last else 0
+        now = time.time()
+        db.execute("INSERT INTO meta VALUES('last_digest_at',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value", (str(now),))
+        finished = db.execute("SELECT id,backend,project,status FROM jobs WHERE finished_at > ? ORDER BY id DESC LIMIT 20",
+                              (since,)).fetchall()
+        finished_total = db.execute('SELECT COUNT(*) FROM jobs WHERE finished_at > ?', (since,)).fetchone()[0]
+        active = db.execute("SELECT id,backend,project,status FROM jobs WHERE status IN "
+                            "('queued','retry','running','blocked') ORDER BY id").fetchall()
+        lines = []
+        if finished:
+            lines.append(f'지난 확인 이후 끝난 작업 {finished_total}건:')
+            lines.extend(f'  {r["id"]} [{r["backend"]}] {r["project"]} - {r["status"]}' for r in reversed(finished))
+            if finished_total > len(finished):
+                lines.append(f'  ...외 {finished_total - len(finished)}건 더 (/queue, /status 참고)')
+        else:
+            lines.append('지난 확인 이후 새로 끝난 작업 없음.')
+        lines.append('')
+        if active:
+            lines.append(f'지금 대기/실행/차단 중 {len(active)}건:')
+            lines.extend(f'  {r["id"]} [{r["backend"]}] {r["project"]} - {r["status"]}' for r in active)
+        else:
+            lines.append('지금 대기/실행 중인 작업 없음.')
         return '\n'.join(lines)
 
     def poll(self):
@@ -554,7 +603,7 @@ class Service:
 
     def finish(self, uid, status, summary):
         with self.db() as db:
-            db.execute('UPDATE jobs SET status=?,summary=? WHERE id=?', (status, summary, uid))
+            db.execute('UPDATE jobs SET status=?,summary=?,finished_at=? WHERE id=?', (status, summary, time.time(), uid))
 
     def claim_job(self):
         # Claiming (select + mark 'running') must be atomic across worker threads so two

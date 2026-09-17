@@ -481,6 +481,66 @@ class PipelineTests(unittest.TestCase):
             text = db.execute('SELECT text FROM outbox ORDER BY id DESC LIMIT 1').fetchone()['text']
         self.assertIn('한도 도달 1회', text)
 
+    def test_idea_capture_and_list_and_clear(self):
+        idea1 = self.update(1)
+        idea1['message']['text'] = '/idea 다크모드 추가하면 좋겠다'
+        idea2 = self.update(2)
+        idea2['message']['text'] = '/idea 알림 소리 옵션'
+        self.s.ingest([idea1, idea2])
+        with self.s.db() as db:
+            self.assertEqual(db.execute('SELECT COUNT(*) FROM ideas').fetchone()[0], 2)
+            confirm_text = db.execute('SELECT text FROM outbox ORDER BY id DESC LIMIT 1').fetchone()['text']
+        self.assertIn('대기 2개', confirm_text)
+
+        list_update = self.update(3)
+        list_update['message']['text'] = '/ideas'
+        self.s.ingest([list_update])
+        with self.s.db() as db:
+            listing = db.execute('SELECT text FROM outbox ORDER BY id DESC LIMIT 1').fetchone()['text']
+        self.assertIn('다크모드', listing)
+        self.assertIn('알림 소리', listing)
+
+        clear_update = self.update(4)
+        clear_update['message']['text'] = '/ideas 비우기'
+        self.s.ingest([clear_update])
+        with self.s.db() as db:
+            self.assertEqual(db.execute('SELECT COUNT(*) FROM ideas').fetchone()[0], 0)
+
+        empty_update = self.update(5)
+        empty_update['message']['text'] = '/ideas'
+        self.s.ingest([empty_update])
+        with self.s.db() as db:
+            empty_text = db.execute('SELECT text FROM outbox ORDER BY id DESC LIMIT 1').fetchone()['text']
+        self.assertIn('없습니다', empty_text)
+
+    def test_digest_lists_finished_and_active_then_advances_watermark(self):
+        self.s.ingest([self.update(1)])
+        root = self.root
+        class Child:
+            stdin = io.StringIO()
+            stdout = iter([json.dumps({'type': 'turn.completed'})])
+            def wait(self):
+                (root / 'RESUME_NOTE.md').unlink()
+                return 0
+        with patch('runner.subprocess.Popen', return_value=Child()):
+            self.s.work_once()
+        self.s.ingest([self.update(2)])  # stays queued behind nothing, but project is free -> queued
+
+        digest_update = self.update(3)
+        digest_update['message']['text'] = '/digest'
+        self.s.ingest([digest_update])
+        with self.s.db() as db:
+            first_digest = db.execute('SELECT text FROM outbox ORDER BY id DESC LIMIT 1').fetchone()['text']
+        self.assertIn('끝난 작업 1건', first_digest)
+        self.assertIn('대기/실행/차단 중 1건', first_digest)
+
+        digest_update2 = self.update(4)
+        digest_update2['message']['text'] = '/digest'
+        self.s.ingest([digest_update2])
+        with self.s.db() as db:
+            second_digest = db.execute('SELECT text FROM outbox ORDER BY id DESC LIMIT 1').fetchone()['text']
+        self.assertIn('새로 끝난 작업 없음', second_digest)
+
     def test_action_required_blocks_and_retry_command_requeues(self):
         self.s.ingest([self.update()])
         class Child:
