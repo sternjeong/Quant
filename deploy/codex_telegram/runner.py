@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Durable Telegram polling and single-worker Codex supervisor (stdlib only)."""
+"""Durable Telegram polling and concurrent Codex/Claude job supervisor (stdlib only)."""
 import argparse
 import fcntl
 import json
@@ -41,6 +41,8 @@ class Service:
         self.claim_lock = threading.Lock()
         self.children_lock = threading.Lock()
         self.children = {}
+        self.cancel_lock = threading.Lock()
+        self.cancel_requested = set()
         with self.db() as db:
             db.executescript('''
             CREATE TABLE IF NOT EXISTS meta(key TEXT PRIMARY KEY, value TEXT);
@@ -105,6 +107,13 @@ class Service:
                     elif command == '/status':
                         rows = db.execute("SELECT id,backend,status FROM jobs ORDER BY id DESC LIMIT 8").fetchall()
                         reply = f'기본 실행 대상: {backend}\n' + '\n'.join(f'{r[0]} {r[1]} {r[2]}' for r in rows)
+                    elif command == '/queue':
+                        rows = db.execute("SELECT id,project,backend,status FROM jobs WHERE status IN "
+                                          "('queued','retry','running','blocked') ORDER BY id").fetchall()
+                        reply = ('대기/실행 중인 작업이 없습니다.' if not rows else
+                                 '\n'.join(f'{r["id"]} [{r["backend"]}] {r["project"]} - {r["status"]}' for r in rows))
+                    elif command == '/cancel' and rest.isdigit():
+                        reply = self.cancel_job(db, int(rest))
                     elif command == '/retry' and rest.isdigit():
                         changed = db.execute("UPDATE jobs SET status='retry',due=0,notified=0 WHERE id=? AND status='blocked'", (int(rest),)).rowcount
                         reply = f'작업 {rest} 재시도 예약됨' if changed else f'재시도할 blocked 작업 {rest}을 찾지 못했습니다.'
@@ -113,7 +122,9 @@ class Service:
                                  '새 저장소: 저장소 목록의 `＋ 새 private 저장소 만들기` 선택 후 이름 전송\n'
                                  '/claude 또는 /codex: 기본 실행 대상 변경\n'
                                  '/claude 지시 또는 /codex 지시: 해당 작업만 지정\n'
-                                 '/status: 최근 작업 상태\n/retry 작업ID: blocked 작업 재개\n'
+                                 '/status: 최근 작업 상태 8개\n/queue: 대기·실행·차단 중인 작업 전체\n'
+                                 '/cancel 작업ID: 대기 중인 작업 취소 또는 실행 중인 작업 중지 요청\n'
+                                 '/retry 작업ID: blocked 작업 재개\n'
                                  '/project quant 다음 줄에 지시: 현재 Quant를 바로 선택')
                     elif command.startswith('/') and command != '/project':
                         reply = '알 수 없는 명령입니다. /help를 확인하세요.'
@@ -219,6 +230,30 @@ class Service:
         except Exception:
             pass
 
+    def cancel_job(self, db, job_id):
+        row = db.execute('SELECT status FROM jobs WHERE id=?', (job_id,)).fetchone()
+        if not row:
+            return f'작업 {job_id}를 찾지 못했습니다.'
+        status = row['status']
+        if status in ('queued', 'retry'):
+            # notified=1: this reply already tells the user; run_job's async notify() would
+            # otherwise send a redundant second message for a job that never actually ran.
+            db.execute("UPDATE jobs SET status='cancelled', summary='사용자가 취소함', notified=1 WHERE id=? AND status=?", (job_id, status))
+            return f'작업 {job_id} 취소됨 (대기열에서 제거).'
+        if status == 'running':
+            with self.children_lock:
+                child = self.children.get(job_id)
+            if not child:
+                return f'작업 {job_id}은 시작 준비 중입니다. 잠시 후 다시 /cancel {job_id}를 시도하세요.'
+            with self.cancel_lock:
+                self.cancel_requested.add(job_id)
+            try:
+                os.killpg(child.pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
+            return f'작업 {job_id} 중지를 요청했습니다. 곧 취소 처리됩니다.'
+        return f'작업 {job_id}은 이미 {status} 상태라 취소할 수 없습니다.'
+
     def poll(self):
         while not self.stop.is_set():
             try:
@@ -241,6 +276,15 @@ class Service:
             self.api('sendMessage', payload)
             with self.db() as db:
                 db.execute('DELETE FROM outbox WHERE id=?', (row['id'],))
+
+    def heartbeat(self, job_id, backend, start, stop_event):
+        interval = self.cfg.get('heartbeat_seconds', 600)
+        if not interval:
+            return
+        while not stop_event.wait(interval):
+            elapsed = int((time.time() - start) / 60)
+            with self.db() as db:
+                self.queue_outbox(db, self.chat, f'작업 {job_id} [{backend}] 아직 실행 중입니다 ({elapsed}분 경과).')
 
     def redact(self, text):
         for value in self.secrets.values():
@@ -301,6 +345,7 @@ class Service:
                 child_env.pop(key, None)
         limited, failed, completed, summary = False, False, False, ''
         child = None
+        heartbeat_stop = threading.Event()
         try:
             child = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                      stderr=subprocess.STDOUT, text=True, cwd=project, env=child_env,
@@ -309,6 +354,7 @@ class Service:
                 self.children[job['id']] = child
             if self.stop.is_set():
                 os.killpg(child.pid, signal.SIGTERM)
+            threading.Thread(target=self.heartbeat, args=(job['id'], backend, time.time(), heartbeat_stop), daemon=True).start()
             child.stdin.write(prompt)
             child.stdin.close()
             for line in child.stdout:
@@ -342,10 +388,16 @@ class Service:
                 child.wait()
             rc = 1
         finally:
+            heartbeat_stop.set()
             with self.children_lock:
                 self.children.pop(job['id'], None)
+        with self.cancel_lock:
+            cancelled = job['id'] in self.cancel_requested
+            self.cancel_requested.discard(job['id'])
         action_required = summary.lstrip().startswith('ACTION_REQUIRED:')
-        if action_required:
+        if cancelled:
+            self.finish(job['id'], 'cancelled', summary or '사용자가 취소함')
+        elif action_required:
             self.finish(job['id'], 'blocked', summary)
         elif rc == 0 and completed and not failed and not limited and not note.exists():
             self.finish(job['id'], 'done', summary or '작업 완료')
@@ -403,7 +455,7 @@ class Service:
 
     def notify(self):
         with self.db() as db:
-            rows = db.execute("SELECT * FROM jobs WHERE status IN ('done','blocked') AND notified=0").fetchall()
+            rows = db.execute("SELECT * FROM jobs WHERE status IN ('done','blocked','cancelled') AND notified=0").fetchall()
         for row in rows:
             try:
                 message = f"작업 {row['id']} [{row['backend']}: {row['status']}]\n{row['summary']}"

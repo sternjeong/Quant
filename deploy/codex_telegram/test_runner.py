@@ -1,8 +1,10 @@
 import io
 import json
 from pathlib import Path
+import signal
 import tempfile
 import threading
+import time
 import unittest
 from unittest.mock import patch
 from runner import Service, LIMIT
@@ -244,6 +246,114 @@ class PipelineTests(unittest.TestCase):
             slow_worker.join(5)
         with self.s.db() as db:
             self.assertEqual(db.execute('SELECT status FROM jobs WHERE id=1').fetchone()[0], 'done')
+
+    def test_queue_lists_active_jobs(self):
+        self.s.ingest([self.update(1)])
+        queue_update = self.update(2)
+        queue_update['message']['text'] = '/queue'
+        self.s.ingest([queue_update])
+        with self.s.db() as db:
+            text = db.execute('SELECT text FROM outbox ORDER BY id DESC LIMIT 1').fetchone()['text']
+        self.assertIn('1 [codex] test - queued', text)
+
+    def test_cancel_queued_job_removes_it(self):
+        self.s.ingest([self.update(1)])
+        cancel = self.update(2)
+        cancel['message']['text'] = '/cancel 1'
+        self.s.ingest([cancel])
+        self.assertEqual(self.row()['status'], 'cancelled')
+        self.assertEqual(self.row()['notified'], 1)
+        self.assertFalse(self.s.work_once())
+
+    def test_cancel_unknown_job(self):
+        cancel = self.update(1)
+        cancel['message']['text'] = '/cancel 999'
+        self.s.ingest([cancel])
+        with self.s.db() as db:
+            text = db.execute('SELECT text FROM outbox ORDER BY id DESC LIMIT 1').fetchone()['text']
+        self.assertIn('찾지 못했습니다', text)
+
+    def test_cancel_finished_job_is_rejected(self):
+        update = self.update()
+        update['message']['text'] = '/claude answer'
+        self.s.ingest([update])
+        root = self.root
+        class Child:
+            stdin = io.StringIO()
+            stdout = iter([json.dumps({'type': 'result', 'subtype': 'success', 'is_error': False, 'result': 'ok'})])
+            def wait(self):
+                (root / 'RESUME_NOTE.md').unlink()
+                return 0
+        with patch('runner.subprocess.Popen', return_value=Child()):
+            self.s.work_once()
+        cancel = self.update(2)
+        cancel['message']['text'] = '/cancel 1'
+        self.s.ingest([cancel])
+        with self.s.db() as db:
+            text = db.execute('SELECT text FROM outbox ORDER BY id DESC LIMIT 1').fetchone()['text']
+        self.assertIn('이미 done 상태', text)
+
+    def test_cancel_running_job_sends_sigterm_and_marks_cancelled(self):
+        self.s.ingest([self.update(1)])
+        started = threading.Event()
+        release = threading.Event()
+        root = self.root.resolve()
+
+        class SlowChild:
+            stdin = io.StringIO()
+            pid = 424242
+            def __init__(self):
+                def gen():
+                    started.set()
+                    release.wait(5)
+                    yield json.dumps({'type': 'turn.completed'})
+                self.stdout = gen()
+            def wait(self):
+                (root / 'RESUME_NOTE.md').unlink()
+                return 0
+
+        with patch('runner.subprocess.Popen', return_value=SlowChild()):
+            worker = threading.Thread(target=self.s.work_once)
+            worker.start()
+            self.assertTrue(started.wait(2), 'job never started')
+            cancel = self.update(2)
+            cancel['message']['text'] = '/cancel 1'
+            with patch('runner.os.killpg') as killpg:
+                self.s.ingest([cancel])
+                killpg.assert_called_once_with(424242, signal.SIGTERM)
+            with self.s.db() as db:
+                text = db.execute('SELECT text FROM outbox ORDER BY id DESC LIMIT 1').fetchone()['text']
+            self.assertIn('중지를 요청했습니다', text)
+            release.set()
+            worker.join(5)
+        self.assertEqual(self.row()['status'], 'cancelled')
+
+    def test_heartbeat_sends_progress_message_during_long_job(self):
+        self.s.cfg['heartbeat_seconds'] = 0.05
+        self.s.ingest([self.update()])
+        root = self.root
+        release = threading.Event()
+
+        class Child:
+            stdin = io.StringIO()
+            def __init__(self):
+                def gen():
+                    release.wait(2)
+                    yield json.dumps({'type': 'turn.completed'})
+                self.stdout = gen()
+            def wait(self):
+                (root / 'RESUME_NOTE.md').unlink()
+                return 0
+
+        with patch('runner.subprocess.Popen', return_value=Child()):
+            worker = threading.Thread(target=self.s.work_once)
+            worker.start()
+            time.sleep(0.3)
+            release.set()
+            worker.join(5)
+        with self.s.db() as db:
+            texts = [r['text'] for r in db.execute('SELECT text FROM outbox').fetchall()]
+        self.assertTrue(any('아직 실행 중' in t for t in texts), texts)
 
     def test_action_required_blocks_and_retry_command_requeues(self):
         self.s.ingest([self.update()])

@@ -1,0 +1,11 @@
+[Unit]
+Description=Quant VM 헬스체크 주기 실행(부팅 5분 후 시작, 이후 15분마다)
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=15min
+Persistent=true
+Unit=quant-vm-health.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,126 @@
+#!/usr/bin/env bash
+# Oracle VM에서 GitHub main에 새 커밋이 올라오면 사람이 SSH로 들어와 `git pull` +
+# `systemctl restart`를 손으로 하지 않아도 되게 자동화하는 스크립트.
+# systemd 타이머(quant-auto-deploy.timer)가 주기적으로 root 권한으로 이 스크립트를 실행한다
+# (서비스를 재시작하려면 root가 필요하지만, git 자체는 항상 quant 계정 권한으로만 돌린다 —
+# /opt/quant 워킹트리 소유자가 quant라서 root로 바로 git을 돌리면 최신 git의
+# "dubious ownership" 안전장치에 걸린다).
+#
+# ★ 안전 원칙 (반드시 지킬 것): 여기서 쓰는 git 조작은 `git fetch`와 `git pull --ff-only`
+# 뿐이다. fast-forward가 안 되는 상황(히스토리 분기, 로컬 수정이 막고 있음, 충돌 등)이면
+# 그 자리에서 즉시 포기하고 텔레그램으로 알린다 — `git reset --hard`, `git clean`,
+# `git checkout .`, 강제 push, stash/drop 같은 건 이 스크립트에 존재하지 않고 앞으로도
+# 추가하면 안 된다. VM 워킹트리에는 지우면 안 되는 로컬 수정 파일과 미커밋 리서치 결과물이
+# 실제로 쌓여 있다 (deploy/PENDING_MANUAL_LOGIN_ACTIONS.md 참고) — 자동 배포가 그걸 건드리는
+# 순간 이 자동화 전체의 존재 이유가 사라진다.
+#
+# 흔한 경우(타이머가 5분마다 실행 — 대부분 새 커밋 없음)는 `git fetch` + 해시 비교만 하고
+# 조용히(로그도 안 남기고) 끝난다. 새 커밋이 있을 때만 pull/서비스 재시작/텔레그램 발송처럼
+# 비용이 드는 작업을 한다.
+set -euo pipefail
+
+APP_DIR="/opt/quant"
+SERVICE_USER="quant"
+SERVICES=(codex-telegram quant-streamlit quant-scheduler)
+ALERT_SCRIPT="$APP_DIR/deploy/send_telegram_alert.sh"
+
+log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"; }
+
+# 항상 quant 계정 권한으로 git을 돌린다 (워킹트리 소유자가 quant이기 때문).
+# -n: 혹시라도 비밀번호가 필요한 상황이면 무인 실행 중 멈춰서 기다리지 말고 바로 실패한다.
+git_as_quant() {
+  sudo -n -u "$SERVICE_USER" git -C "$APP_DIR" "$@"
+}
+
+cd "$APP_DIR"
+
+if ! fetch_output="$(git_as_quant fetch origin --quiet 2>&1)"; then
+  # 흔치 않은 경로지만(네트워크 일시 장애 등) 조용히 넘어가면 안 되니 저널에는 남긴다.
+  # 5분마다 도는 스크립트라 매번 텔레그램까지 보내면 일시적 장애에도 스팸이 되므로,
+  # 알림은 실제 배포 실패(git pull --ff-only 실패) 케이스로만 한정한다.
+  log "git fetch 실패 — 이번 주기는 건너뜀 (일시적 네트워크 문제일 수 있음, 텔레그램 알림 생략)"
+  log "$fetch_output"
+  exit 1
+fi
+
+local_head="$(git_as_quant rev-parse HEAD)"
+remote_head="$(git_as_quant rev-parse origin/main)"
+
+if [ "$local_head" = "$remote_head" ]; then
+  # 흔한 경우: 새 커밋 없음 — 출력도 남기지 않고 바로 종료 (요구사항: no-op은 조용하고 가볍게)
+  exit 0
+fi
+
+log "새 커밋 감지: ${local_head:0:7} -> ${remote_head:0:7}. git pull --ff-only 시도"
+
+if pull_output="$(git_as_quant pull --ff-only 2>&1)"; then
+  new_head="$(git_as_quant rev-parse HEAD)"
+  commit_count="$(git_as_quant rev-list --count "${local_head}..${new_head}")"
+  commit_summary="$(git_as_quant log --oneline "${local_head}..${new_head}")"
+  commit_summary_short="$(printf '%s' "$commit_summary" | head -c 1500)"
+  if [ "${#commit_summary}" -gt 1500 ]; then
+    commit_summary_short="${commit_summary_short}
+... (생략)"
+  fi
+
+  log "pull 성공: ${local_head:0:7} -> ${new_head:0:7} ($commit_count 커밋)"
+  log "$commit_summary"
+
+  deps_note=""
+  if git_as_quant diff --name-only "${local_head}..${new_head}" | grep -qx 'requirements.txt'; then
+    log "requirements.txt 변경 감지 — 서비스 재시작 전에 pip install 먼저 실행"
+    if pip_output="$(sudo -n -u "$SERVICE_USER" "$APP_DIR/.venv/bin/pip" install -r "$APP_DIR/requirements.txt" 2>&1)"; then
+      log "pip install 완료"
+      deps_note="의존성(requirements.txt) 변경 감지 — pip install 완료 후 재시작함
+"
+    else
+      log "pip install 실패 — 서비스는 재시작하지 않음(기존 버전 계속 실행 중), 수동 확인 필요"
+      log "$pip_output"
+      truncated_pip_output="$(printf '%s' "$pip_output" | tail -c 1500)"
+      message="[자동배포] 코드는 pull됐지만 pip install 실패 — 수동 확인 필요
+${local_head:0:7}..${new_head:0:7} ($commit_count 커밋)
+requirements.txt가 바뀌었는데 의존성 설치가 실패해서 서비스는 재시작하지 않았음(기존 버전 계속 실행 중).
+
+pip install 에러:
+$truncated_pip_output"
+      "$ALERT_SCRIPT" "$message" || log "텔레그램 알림 전송도 실패"
+      exit 1
+    fi
+  fi
+
+  log "서비스 재시작: ${SERVICES[*]}"
+
+  systemctl restart "${SERVICES[@]}"
+
+  log "재시작 완료"
+
+  message="[자동배포] 성공
+${local_head:0:7}..${new_head:0:7} ($commit_count 커밋)
+${deps_note}재시작: ${SERVICES[*]}
+
+$commit_summary_short"
+  if ! "$ALERT_SCRIPT" "$message"; then
+    log "텔레그램 알림 전송 실패 (배포 자체는 이미 성공했음)"
+  fi
+
+  log "완료"
+  exit 0
+else
+  pull_status=$?
+  log "git pull --ff-only 실패 (exit $pull_status) — 워킹트리는 그대로 두고 서비스도 건드리지 않음. 수동 확인 필요"
+  log "$pull_output"
+
+  truncated_output="$(printf '%s' "$pull_output" | tail -c 1500)"
+
+  message="[자동배포] 실패 — 수동 확인 필요
+로컬 ${local_head:0:7}, 원격 ${remote_head:0:7} (fast-forward 불가 또는 오류로 추정)
+워킹트리는 건드리지 않았음. git reset/clean 등 자동 복구는 하지 않음.
+
+git pull --ff-only 에러:
+$truncated_output"
+  if ! "$ALERT_SCRIPT" "$message"; then
+    log "텔레그램 알림 전송도 실패"
+  fi
+
+  exit 1
+fi

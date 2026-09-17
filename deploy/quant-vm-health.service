@@ -1,0 +1,13 @@
+[Unit]
+Description=Quant VM 헬스체크(디스크/메모리 사용률 확인 후 임계값 초과 시 텔레그램 알림) — 1회 실행용
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=quant
+WorkingDirectory=/opt/quant
+ExecStart=/opt/quant/deploy/vm_health_check.sh
+
+[Install]
+WantedBy=multi-user.target

@@ -87,6 +87,10 @@ sudo bash deploy/setup_vm.sh
 - 전용 시스템 계정(`quant`)으로 서비스 실행(root로 앱을 돌리지 않기 위함)
 - `deploy/quant-streamlit.service` / `deploy/quant-scheduler.service` 를 systemd에 등록해
   **부팅 시 자동 시작 + 죽으면 자동 재시작**하도록 설정
+- `deploy/quant-vm-health.service` + `.timer`를 등록해 디스크/메모리 사용률을 주기적으로 확인하고
+  임계값 초과 시 텔레그램 알림(11번 참고)
+- `deploy/quant-auto-deploy.service` + `.timer`를 등록해 GitHub main에 새 커밋이 올라오면 자동으로
+  `git pull --ff-only` + 서비스 재시작(12번 참고)
 - OS 방화벽(ufw)에서 8501 허용
 
 ## 5. 확인
@@ -100,7 +104,44 @@ sudo journalctl -u quant-scheduler -f   # 스케줄러 실시간 로그(장 마�
 브라우저에서 `http://<PUBLIC_IP>:8501` 접속되면 성공. `data/quant.db` 는 최초 접속 시
 `core.db.init_db()` 가 자동 생성한다.
 
+## 5-1. 서비스 죽으면 텔레그램으로 자동 알림
+
+`codex-telegram` / `quant-streamlit` / `quant-scheduler` 세 서비스는 죽거나(비정상 종료) 재시작될
+때마다 systemd의 `OnFailure=` 메커니즘으로 자동으로 텔레그램 알림을 보낸다. 별도 감시 프로세스를
+새로 띄우는 게 아니라, 각 서비스 유닛 파일의 `[Unit]`에 붙은 `OnFailure=quant-alert@%n.service`
+한 줄이 전부다 — 그 서비스가 실패하는 순간 systemd가 `deploy/quant-alert@.service`(템플릿 유닛)를
+인스턴스화해서 대신 실행하고, 이 유닛이 기존 `deploy/send_telegram_alert.sh`(codex-telegram
+러너와 같은 봇/채팅을 쓰는 공용 헬퍼)를 호출해 "⚠️ \<실패한 유닛 이름\> 실패/재시작됨 (시각)"
+메시지를 보낸다.
+
+- `quant-alert@.service`는 템플릿 유닛이라 그 자체를 `enable --now` 하지 않는다 —
+  `setup_vm.sh`(공용 3서비스 경로)와 `deploy/codex_telegram/install.sh`(codex-telegram 단독 설치
+  경로) 둘 다 `/etc/systemd/system/`에 파일만 복사해두고, 필요할 때 systemd가 알아서
+  인스턴스화한다.
+- 알림 봇/채팅 설정은 새로 필요 없다 — `send_telegram_alert.sh`가 이미 codex-telegram이 쓰는
+  `/opt/quant/.codex-telegram-runtime/telegram.env`를 그대로 읽는다.
+
+**수동 테스트 (실제로 서비스를 죽이는 조작이니 운영 중에는 주의해서 실행)**:
+
+```bash
+sudo systemctl kill --signal=SIGKILL quant-streamlit
+```
+
+몇 초 안에 텔레그램으로 "⚠️ quant-streamlit.service 실패/재시작됨 (...)" 메시지가 오면 정상이다.
+세 서비스 모두 `Restart=always` 또는 `Restart=on-failure`가 걸려 있어 알림이 간 뒤 자동으로 다시
+살아난다(상태는 `systemctl status quant-streamlit`로 확인). `codex-telegram` / `quant-scheduler`도
+서비스 이름만 바꿔 같은 방식으로 테스트할 수 있다.
+
+메시지 문구를 바꾸고 싶으면 `deploy/quant-alert@.service`의 `ExecStart` 한 줄만 고치면 된다
+(`%i`가 실패한 유닛 이름으로 치환된다). 수정 후에는 VM에서 `sudo cp deploy/quant-alert@.service
+/etc/systemd/system/ && sudo systemctl daemon-reload`로 반영한다 — 템플릿 유닛이라 재시작할
+필요는 없다.
+
 ## 6. 코드 업데이트 배포
+
+> 이 수동 절차는 이제 기본적으로 필요 없다 — `quant-auto-deploy` 타이머(12번 참고)가 5분마다
+> 자동으로 감지해서 pull + 재시작까지 한다. 지금 당장 반영하고 싶어서 5분을 못 기다리거나,
+> 타이머를 껐을 때만 아래를 손으로 실행한다.
 
 로컬(또는 Codespace)에서 작업한 변경사항을 반영하려면:
 
@@ -154,3 +195,104 @@ run_scheduler.py`의 상시 잡들 — 이건 전부 "이미 확정된 제품 �
 VM/Codespace 없이 GitHub이 자체적으로 임시 실행 환경을 띄웠다 없앤다)가 이 프로젝트의 기존
 관례에 맞는 다음 후보지다(Claude Pro 로그인 자격증명을 GitHub Secrets로 안전하게 주입하는
 추가 작업 필요 — 아직 안 함).
+
+## 11. VM 헬스체크(디스크/메모리) 알림
+
+Always Free 티어는 디스크/메모리가 넉넉하지 않다. `deploy/vm_health_check.sh`가
+`quant-vm-health.timer`(부팅 5분 후 시작, 이후 15분마다)로 주기 실행되며 루트 파티션(`/`) 사용률과
+메모리 사용률을 확인해서 임계값을 넘으면 `deploy/send_telegram_alert.sh`로 텔레그램 알림을 보낸다.
+`codex-telegram`이 쓰는 큐 상태(`/opt/quant/.codex-telegram-state/`)와는 별개로
+`/opt/quant/.vm-health-state/`에 자체 상태(마지막 알림 시각)를 저장해서, 임계값을 한 번 넘은 뒤로는
+회복될 때까지 6시간에 한 번만 재알림하고(스팸 방지), 회복되면 "복구됨" 메시지를 한 번 보내고
+다음 초과에 대비해 상태를 지운다. 디스크/메모리는 서로 독립된 조건으로 취급한다(하나만 알림 중이어도
+다른 하나는 별도로 추적).
+
+**기본 임계값**: 디스크 85%, 메모리 90% (메모리는 `free`의 available 컬럼 기준 — 회수 가능한
+페이지캐시는 "사용중"으로 안 침). `deploy/setup_vm.sh`가 등록하는 유닛에는 값이 하드코딩돼 있지
+않고 스크립트 기본값을 그대로 쓰므로, 바꾸려면 systemd 쪽에서 환경변수를 얹어야 한다:
+
+```bash
+sudo systemctl edit quant-vm-health.service
+```
+
+에디터가 열리면(드롭인 파일 생성) 아래처럼 채운다:
+
+```ini
+[Service]
+Environment=DISK_THRESHOLD_PERCENT=80
+Environment=MEM_THRESHOLD_PERCENT=85
+Environment=ALERT_COOLDOWN_SECONDS=21600
+```
+
+저장 후:
+
+```bash
+sudo systemctl daemon-reload
+```
+
+(타이머가 다음 주기에 알아서 새 값으로 실행한다 — 서비스 자체는 oneshot이라 재시작할 필요 없음.)
+
+**동작 확인**:
+
+```bash
+sudo systemctl list-timers quant-vm-health.timer   # 다음 실행 예정 시각
+sudo journalctl -u quant-vm-health                 # 실행 로그(정상일 땐 출력 없음 — 조용한 게 정상)
+sudo systemctl start quant-vm-health.service        # 지금 바로 1회 실행해보기
+```
+
+**강제로 알림 한 번 발생시켜보기** (실제로 디스크/메모리가 꽉 찰 때까지 기다리지 않고 알림 경로
+전체 — 텔레그램 발송까지 — 를 검증하고 싶을 때):
+
+```bash
+sudo systemctl edit quant-vm-health.service
+# [Service] 아래에 Environment=DISK_THRESHOLD_PERCENT=0 추가 → 저장 (무조건 임계값 초과 상태가 됨)
+sudo systemctl daemon-reload
+sudo systemctl start quant-vm-health.service
+# 텔레그램으로 "⚠️ ... 디스크(/) 사용률 ... 초과" 메시지가 오는지 확인
+
+sudo systemctl revert quant-vm-health.service   # 드롭인 제거, 기본 임계값(85%)으로 원복
+sudo systemctl daemon-reload
+sudo systemctl start quant-vm-health.service     # 정상 범위로 "복구됨" 알림이 한 번 더 오는지 확인
+# (원복 후에도 /opt/quant/.vm-health-state/disk.alerting 이 남아있는 상태에서 실행해야
+#  "복구됨" 메시지가 뜬다 — 위 두 명령을 순서대로 실행하면 자연스럽게 그렇게 됨)
+```
+
+## 12. 자동 배포 (`quant-auto-deploy` 타이머)
+
+6번 절차(`git pull` → 재시작)를 사람이 SSH로 들어와 손으로 할 필요가 없도록, GitHub main에
+새 커밋이 올라오면 VM이 스스로 감지해서 반영하는 systemd 타이머다. `deploy/setup_vm.sh`가
+`deploy/quant-auto-deploy.service`(oneshot, `deploy/auto_deploy.sh` 실행) +
+`deploy/quant-auto-deploy.timer`(부팅 2분 후 1회, 이후 5분마다)를 함께 설치·활성화한다.
+
+**동작**: 매번 `git fetch`로 `origin/main`만 조회하고, 로컬 `HEAD`와 같으면 아무 것도 안 하고
+조용히 끝난다(가장 흔한 경우). 다를 때만 `sudo -u quant git pull --ff-only`를 시도하고,
+성공하면 `requirements.txt`가 이번 범위에서 바뀌었는지 확인해 바뀌었을 때만 먼저
+`pip install -r requirements.txt`를 실행한 뒤(실패하면 서비스는 재시작하지 않고 기존 버전을
+그대로 둔 채 텔레그램으로 알리고 종료), `codex-telegram`/`quant-streamlit`/`quant-scheduler`
+세 서비스를 모두 재시작하고 배포 결과(구→신 커밋, 커밋 개수, 재시작한 서비스 목록)를
+텔레그램으로 한 번 알린다.
+
+**비파괴 원칙(★)**: 여기서 쓰는 git 명령은 `git fetch`와 `git pull --ff-only` 뿐이다.
+Fast-forward가 안 되는 상황(히스토리 분기, 로컬 수정이 막고 있음, 충돌 등)이면 **그 자리에서
+즉시 포기**하고 워킹트리는 손도 대지 않은 채 텔레그램으로 "수동 확인 필요" 알림만 보낸 뒤
+종료한다. `git reset --hard`, `git clean`, `git checkout .`, 강제 push, stash/drop 같은 자동
+복구 시도는 절대 하지 않는다 — VM 워킹트리에는 지우면 안 되는 로컬 수정 파일과 미커밋
+리서치 결과물이 실제로 쌓여 있을 수 있기 때문이다(`PENDING_MANUAL_LOGIN_ACTIONS.md` 참고).
+
+**확인**:
+```bash
+systemctl list-timers quant-auto-deploy.timer   # 다음 실행 예정 시각
+journalctl -u quant-auto-deploy                 # 배포 이력/에러 로그 (평소엔 no-op이라 거의 비어있음)
+```
+
+**수동 배포로 되돌리고 싶으면**:
+```bash
+sudo systemctl disable --now quant-auto-deploy.timer
+```
+이후로는 6번 절차대로 손으로 `git pull` + `systemctl restart` 하면 된다.
+
+**알아둘 트레이드오프**: 배포가 성공하면 `codex-telegram` 서비스도 재시작되는데, 그 시점에
+텔레그램 에이전트가 작업을 실행 중이었다면 그 작업이 중단된다. 다만 `runner.py`가 종료 시그널을
+받으면 실행 중이던 작업을 그냥 죽이지 않고 `retry` 상태로 표시해두므로(다음 실행 때 자동으로
+이어서 재개), 데이터 유실이 아니라 그 작업이 몇 분 늦게 끝나는 정도의 사소하고 감수할 만한
+불편이다.

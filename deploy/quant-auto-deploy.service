@@ -1,0 +1,13 @@
+[Unit]
+Description=Quant 자동 배포 (GitHub main 새 커밋 감지 시 git pull --ff-only + 서비스 재시작)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/opt/quant
+ExecStart=/opt/quant/deploy/auto_deploy.sh
+
+[Install]
+WantedBy=multi-user.target

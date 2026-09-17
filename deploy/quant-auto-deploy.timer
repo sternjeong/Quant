@@ -1,0 +1,11 @@
+[Unit]
+Description=Quant 자동 배포 타이머 (부팅 2분 후 1회, 이후 5분마다 GitHub main 새 커밋 확인)
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+Persistent=true
+Unit=quant-auto-deploy.service
+
+[Install]
+WantedBy=timers.target

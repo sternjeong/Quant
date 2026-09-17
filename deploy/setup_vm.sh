@@ -46,17 +46,24 @@ echo "[4/6] data/ 디렉터리 준비 (SQLite 파일 + 캐시가 여기 저장�
 sudo -u "$SERVICE_USER" mkdir -p "$APP_DIR/data/cache"
 
 echo "[5/6] systemd 서비스 등록"
+install -d -o "$SERVICE_USER" -g "$SERVICE_USER" "$APP_DIR/.vm-health-state"
+cp "$APP_DIR/deploy/quant-alert@.service" /etc/systemd/system/
 cp "$APP_DIR/deploy/quant-streamlit.service" /etc/systemd/system/
 cp "$APP_DIR/deploy/quant-scheduler.service" /etc/systemd/system/
-cp "$APP_DIR/deploy/research_agents/quant-research-agent-b.service" /etc/systemd/system/
-cp "$APP_DIR/deploy/research_agents/quant-research-agent-b.timer" /etc/systemd/system/
-cp "$APP_DIR/deploy/research_agents/quant-research-agent-c.service" /etc/systemd/system/
-cp "$APP_DIR/deploy/research_agents/quant-research-agent-c.timer" /etc/systemd/system/
+cp "$APP_DIR/deploy/quant-vm-health.service" /etc/systemd/system/
+cp "$APP_DIR/deploy/quant-vm-health.timer" /etc/systemd/system/
+cp "$APP_DIR/deploy/quant-auto-deploy.service" /etc/systemd/system/
+cp "$APP_DIR/deploy/quant-auto-deploy.timer" /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable --now quant-streamlit.service
 systemctl enable --now quant-scheduler.service
-systemctl enable --now quant-research-agent-b.timer
-systemctl enable --now quant-research-agent-c.timer
+systemctl enable --now quant-vm-health.timer
+# quant-auto-deploy.service는 oneshot이라 직접 enable하지 않고, 주기 실행을 맡는
+# 타이머만 enable --now 한다 (타이머가 활성화되면 필요할 때 서비스를 기동한다).
+systemctl enable --now quant-auto-deploy.timer
+# 리서치 에이전트 B/C는 더 이상 VM 상주 systemd 타이머가 아니다 (DEPLOYMENT_ORACLE.md 10번
+# 참고 — Codespace 세션 안에서 Claude Code가 대신 실행한다). deploy/research_agents/는
+# 저장소에서 제거됐으므로 여기서 더는 참조하지 않는다.
 
 echo "[6/6] 방화벽(OS 레벨)에서 8501 포트 허용"
 ufw allow 22/tcp || true
@@ -67,7 +74,7 @@ echo
 echo "완료. 상태 확인:"
 echo "  systemctl status quant-streamlit"
 echo "  systemctl status quant-scheduler"
-echo "  systemctl list-timers quant-research-agent-b.timer quant-research-agent-c.timer"
+echo "  systemctl list-timers quant-vm-health.timer quant-auto-deploy.timer"
 echo "  journalctl -u quant-streamlit -f     # 실시간 로그"
 echo
 echo "주의: Oracle Cloud 콘솔의 VCN Security List(또는 NSG)에서도 8501/tcp Ingress 규칙을"

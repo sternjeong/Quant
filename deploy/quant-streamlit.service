@@ -2,6 +2,7 @@
 Description=Quant Streamlit dashboard
 After=network-online.target
 Wants=network-online.target
+OnFailure=quant-alert@%n.service
 
 [Service]
 Type=simple

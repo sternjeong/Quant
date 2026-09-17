@@ -1,0 +1,26 @@
+# 다른 서비스가 실패했을 때 systemd가 자동으로 인스턴스화해서 실행하는 "알림 전용" 템플릿 유닛.
+# 이 유닛 자체를 사람이 직접 enable/start 하지 않는다 — 감시 대상 서비스의 [Unit]에 적어둔
+# `OnFailure=quant-alert@%n.service`를 통해 systemd가 실패 시점에 대신 인스턴스화한다.
+#
+# specifier 치환 순서(중요, 헷갈리기 쉬운 부분):
+#   1. 예) codex-telegram.service의 [Unit]에 `OnFailure=quant-alert@%n.service`라고 적어둔다.
+#      이 줄은 codex-telegram.service "자기 자신"의 디렉티브이므로, 여기 쓰인 %n은
+#      "이 디렉티브가 적힌 유닛 자신의 전체 이름"으로 치환된다 — 즉 codex-telegram.service가
+#      실패하는 순간 %n은 "codex-telegram.service"가 된다 (타입 접미사 .service 포함).
+#   2. 따라서 실제로 인스턴스화되는 유닛 이름은
+#      `quant-alert@codex-telegram.service.service` 가 된다 — @ 뒤 ~ 마지막 "."전까지가
+#      인스턴스 문자열("codex-telegram.service")이고, 맨 끝 ".service"가 이 템플릿 자신의
+#      타입 접미사다.
+#   3. 지금 이 파일(quant-alert@.service)이 바로 그 인스턴스로 실행되므로, 여기서는 %i로
+#      그 인스턴스 문자열을 되읽는다 — 즉 %i는 "codex-telegram.service"로 치환된다.
+#      (%n/%i 둘 다 이 파일이 아니라 "치환이 일어나는 시점의 유닛" 기준이라는 점에 주의:
+#      1번의 %n은 codex-telegram.service 기준, 3번의 %i는 quant-alert@....service 기준이다.)
+[Unit]
+Description=%i 실패 알림 (OnFailure=로 자동 트리거되는 텔레그램 발송 유닛)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=quant
+ExecStart=/bin/sh -c '/opt/quant/deploy/send_telegram_alert.sh "⚠️ %i 실패/재시작됨 ($(date))"'
