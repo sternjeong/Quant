@@ -32,6 +32,16 @@ core.strategy_engine 이 만든 포지션(0/1) 시리즈를 받아 자산가치 
     save_strategy_correlation_snapshot(corr_matrix) / list_strategy_correlation_snapshots() — "이번 달만
         보고 판단하지 말라"는 원칙대로 상관관계도 이력을 쌓아 추이를 볼 수 있게 저장(CorrelationSnapshot)
 
+팩터 분해(Fama-French 스타일, ETF 프록시) — 전략 수익률이 "어디서" 왔는지(시장/사이즈/가치/모멘텀
+노출) 설명한다. run_permutation_test가 "우연이 아닌가"를 검증하는 도구라면, 이 둘은 이미 검증을
+통과한 전략이 왜 그런 성과를 냈는지 설명하는 보완 도구다:
+    compute_factor_returns(start, end) -> pd.DataFrame (컬럼: MKT_RF/SMB/HML/MOM)
+    run_factor_regression(strategy_daily_returns, factor_returns) -> dict (알파/베타/R²)
+
+몬테카를로 시뮬레이션(블록 부트스트랩) — 실제로 벌어진 경로 단 하나만으로 미래를 낙관/비관하지
+않도록, 과거 일간수익률의 변동성 군집 구조를 유지한 채 재표집한 대안 경로 분포를 만든다:
+    run_monte_carlo_simulation(daily_returns, n_simulations=1000, horizon_days=None, block_size=20) -> dict
+
 전략 스키마는 core.strategy_engine이 6종(레짐/직접수식/1:2:6 단계별/복합/코스톨라니/앙상블 스코어링)을
 지원하며, 이 엔진은 스키마를 몰라도 되도록 run_backtest()가 내부적으로 적절한 포지션 생성 함수로
 분기한다(_simulate_on_raw 참고) — 앙상블 스코어링은 여러 지표를 -1~1 연속 점수로 정규화해 가중평균한
@@ -53,7 +63,8 @@ from typing import Any, Optional
 import numpy as np
 import pandas as pd
 
-from core.market_data import get_price_history
+from core import fred_data
+from core.market_data import get_multiple_price_history, get_price_history
 from core.strategy_engine import (
     Trade,
     extract_staged_trades,
@@ -1345,3 +1356,258 @@ def list_decay_checks(strategy_id: int, limit: int = 20) -> list[dict]:
             }
             for r in rows
         ]
+
+
+# =============================================================================
+# 팩터 분해 (Fama-French 스타일, ETF 프록시)
+#
+# 이 프로젝트는 정식 팩터 데이터(Ken French Data Library 등) 소스를 갖고 있지 않고 새로 추가하지도
+# 않는다 — 대신 이미 이 프로젝트가 쓰고 있는 get_multiple_price_history로 받을 수 있는 유동성 높은
+# ETF들의 수익률 차이로 각 팩터를 근사한다. 이는 Portfolio Visualizer 등에서 실제로 쓰이는, 개인/
+# 실무 투자자 사이에 널리 알려진 정석적인 근사 기법이다 — 그러나 어디까지나 "근사치"이지 실제 Ken
+# French 팩터 데이터가 아니므로, 아래 함수들과 UI 모두 이 점을 분명히 밝힌다.
+#
+# run_permutation_test(그 결과가 우연이 아닌지 검증)를 대체하지 않는다 — 이미 순열검정을 통과한
+# 전략이 "왜" 그런 수익을 냈는지(시장/사이즈/가치/모멘텀 중 어디서 왔는지) 설명하는 보완 도구다.
+# =============================================================================
+
+# 시장(SPY) / 사이즈(소형주 IJR) / 가치(IWD) / 성장(IWF, HML 계산용) / 모멘텀(MTUM) 프록시.
+# 전부 유동성이 매우 높은 대형 ETF라 get_multiple_price_history가 이미 캐싱까지 포함해 안정적으로
+# 받아올 수 있다.
+FACTOR_PROXY_TICKERS = ["SPY", "IJR", "IWD", "IWF", "MTUM"]
+
+# 무위험수익률(risk-free rate) 프록시 — 이 프로젝트가 이미 매크로 대시보드에서 쓰고 있는 FRED
+# 연방기금금리(연율 %) 시계열을 재사용한다 (core/fred_data.py DEFAULT_INDICATORS 참고).
+_RISK_FREE_FRED_SERIES = "FEDFUNDS"
+
+# run_factor_regression이 회귀분석을 신뢰하기 위한 최소 공통 관측치 수 — MIN_TRADE_COUNT_CAUTION과
+# 같은 대수의 법칙 경험칙(표본이 적으면 회귀계수가 우연히 크게 흔들릴 수 있음)을 그대로 적용한다.
+_FACTOR_REGRESSION_MIN_OBSERVATIONS = 30
+
+
+def compute_factor_returns(start: str, end: str) -> pd.DataFrame:
+    """Fama-French 스타일 4팩터(시장/사이즈/가치/모멘텀)를 ETF 수익률로 근사해 일별 시계열로 만든다.
+
+    실제 Ken French 데이터 라이브러리의 팩터가 아니라, 유동성 높은 ETF들의 일간수익률 "차이"로
+    근사한 프록시다:
+      - MKT_RF(시장 초과수익률): SPY 일간수익률 - 무위험수익률(FRED FEDFUNDS 연율%를 252로 나눈
+        일간 근사치)
+      - SMB(사이즈, Small Minus Big): 소형주 ETF(IJR) 수익률 - SPY 수익률
+      - HML(가치, High Minus Low): 가치주 ETF(IWD) 수익률 - 성장주 ETF(IWF) 수익률
+      - MOM(모멘텀): 모멘텀 팩터 ETF(MTUM) 수익률 - SPY 수익률
+
+    FRED_API_KEY가 설정되지 않았거나 조회가 실패해 무위험수익률을 못 가져오면(core.fred_data의
+    기존 관례대로 예외 없이 빈 Series 반환) 0으로 대체하고 그대로 계산을 진행한다 — MKT_RF가
+    사실상 SPY 총수익률이 되어 근사치의 정확도가 살짝 떨어질 뿐, 이 프로젝트의 "선택적 데이터가
+    없으면 성능 저하 없이 계속 진행한다"는 기존 원칙(core.fred_data 독스트링 참고)을 그대로 따른다.
+
+    Returns:
+        DatetimeIndex 기준 일별 DataFrame, 컬럼 ["MKT_RF", "SMB", "HML", "MOM"]. 프록시 ETF 중
+        하나라도 가격 데이터를 가져오지 못하면(네트워크 오류 등) 빈 DataFrame을 반환한다(예외를
+        던지지 않음 — 호출부가 그대로 "계산 불가" 상태로 처리할 수 있게 함).
+    """
+    # core.portfolio는 core.market_regime을 import하고, market_regime은 다시 core.backtest_engine을
+    # 모듈 최상단에서 import한다 — 순환참조를 피하려고(compute_regime_breakdown 등과 동일한 이유로)
+    # 여기서 지연 import한다.
+    from core.portfolio import compute_daily_returns
+
+    price_histories = get_multiple_price_history(FACTOR_PROXY_TICKERS, start=start, end=end, use_cache=True)
+    daily_returns = compute_daily_returns(price_histories)
+    if daily_returns.empty or not set(FACTOR_PROXY_TICKERS).issubset(set(daily_returns.columns)):
+        return pd.DataFrame()
+
+    # 무위험수익률(FRED FEDFUNDS, 연율 %)은 월별 발표라, 일별 인덱스에 맞춰 직전 발표값을 그대로
+    # 이어쓴다(reindex + ffill = as-of 방식). 일간수익률 시작일 바로 앞의 값이 필요할 수 있어 조회
+    # 구간에 넉넉히 버퍼를 둔다.
+    fetch_start = (pd.Timestamp(start) - pd.DateOffset(days=90)).date().isoformat()
+    rf_annual_pct = fred_data.get_series(_RISK_FREE_FRED_SERIES, start=fetch_start, end=end)
+    if rf_annual_pct.empty:
+        daily_rf = pd.Series(0.0, index=daily_returns.index)
+    else:
+        daily_rf = rf_annual_pct.reindex(daily_returns.index, method="ffill") / 100.0 / TRADING_DAYS_PER_YEAR
+        # FEDFUNDS 이력이 일간수익률 시작일보다 짧아 ffill로도 못 채우는 극초반 구간은 0으로 둔다.
+        daily_rf = daily_rf.fillna(0.0)
+
+    factors = pd.DataFrame(
+        {
+            "MKT_RF": daily_returns["SPY"] - daily_rf,
+            "SMB": daily_returns["IJR"] - daily_returns["SPY"],
+            "HML": daily_returns["IWD"] - daily_returns["IWF"],
+            "MOM": daily_returns["MTUM"] - daily_returns["SPY"],
+        }
+    )
+    return factors.dropna(how="any")
+
+
+_FACTOR_NAMES = ("MKT_RF", "SMB", "HML", "MOM")
+
+
+def run_factor_regression(strategy_daily_returns: pd.Series, factor_returns: pd.DataFrame) -> dict:
+    """전략 일간수익률을 4개 팩터(MKT_RF/SMB/HML/MOM)에 OLS 회귀분석해 알파/베타/R²를 구한다.
+
+    scipy/statsmodels 없이(이 프로젝트의 의존성 정책, requirements.txt 참고) numpy.linalg.lstsq로
+    직접 최소자승 회귀를 계산한다 — run_permutation_test 등 이 파일의 다른 통계 검증과 동일하게
+    순수 numpy로 구현하는 방식을 따른다.
+
+    "알파(alpha_daily)"의 의미: 회귀식의 절편(intercept) — 4개 팩터 노출로는 설명되지 않는, 하루
+    평균 초과수익률이다. 양수면 팩터 노출만으로 설명 안 되는 몫(종목 선정/타이밍의 실력, 혹은 아직
+    못 잡아낸 다른 요인)이 있다는 뜻이고, 음수면 팩터 노출을 감안했을 때 오히려 손해를 보고 있다는
+    뜻이다.
+
+    "베타(betas)"의 의미: 각 팩터에 대한 민감도(기여도) — 예를 들어 MKT_RF 베타가 1.2면 시장이 1%
+    움직일 때 전략이 평균 1.2% 움직인다는 뜻이고, SMB 베타가 양수면 소형주 성향, HML 베타가 양수면
+    가치주 성향, MOM 베타가 양수면 모멘텀 추종 성향을 보인다는 뜻이다. Portfolio Visualizer의 팩터
+    회귀분석과 동일한 해석 방식이다.
+
+    이 분석은 run_permutation_test(백테스트 결과가 우연인지 아닌지)를 대체하지 않는다 — 이미 순열
+    검정을 통과한 전략이 "왜" 그런 수익을 냈는지 설명하는 보완 도구일 뿐이다.
+
+    두 시리즈가 이미 정렬돼 있다고 가정하지 않고, 공통 거래일만 골라(inner join) 정렬한 뒤
+    회귀한다.
+
+    Returns:
+        {
+            "alpha_daily": float, "alpha_annualized_pct": float,
+            "betas": {"MKT_RF": float, "SMB": float, "HML": float, "MOM": float},
+            "r_squared": float, "n_observations": int,
+        }
+        공통 관측치가 _FACTOR_REGRESSION_MIN_OBSERVATIONS(30) 미만이면(회귀를 신뢰하기엔 표본이
+        너무 적음) 대신 {"error": str, "n_observations": int}를 반환한다 — 예외를 던지거나 의미
+        없는 계수를 그대로 내보내지 않는다.
+    """
+    aligned = factor_returns.join(strategy_daily_returns.rename("strategy"), how="inner").dropna()
+    n = len(aligned)
+    if n < _FACTOR_REGRESSION_MIN_OBSERVATIONS:
+        return {
+            "error": (
+                f"공통 관측치가 {n}개로 너무 적어 팩터 회귀분석을 신뢰할 수 없습니다 "
+                f"(최소 {_FACTOR_REGRESSION_MIN_OBSERVATIONS}개 필요)."
+            ),
+            "n_observations": n,
+        }
+
+    x = aligned[list(_FACTOR_NAMES)].to_numpy(dtype=float)
+    y = aligned["strategy"].to_numpy(dtype=float)
+    x_with_intercept = np.column_stack([np.ones(n), x])  # 절편(알파) 항을 첫 컬럼으로 추가
+
+    coefs, _, _, _ = np.linalg.lstsq(x_with_intercept, y, rcond=None)
+    alpha_daily = float(coefs[0])
+    betas = {name: float(b) for name, b in zip(_FACTOR_NAMES, coefs[1:])}
+
+    residuals = y - x_with_intercept @ coefs
+    ss_res = float(np.sum(residuals**2))
+    ss_tot = float(np.sum((y - y.mean()) ** 2))
+    r_squared = 1.0 - ss_res / ss_tot if ss_tot > 0 else 0.0
+
+    return {
+        "alpha_daily": alpha_daily,
+        "alpha_annualized_pct": ((1.0 + alpha_daily) ** TRADING_DAYS_PER_YEAR - 1.0) * 100.0,
+        "betas": betas,
+        "r_squared": r_squared,
+        "n_observations": n,
+    }
+
+
+# =============================================================================
+# 몬테카를로 시뮬레이션 (블록 부트스트랩)
+#
+# 실제로 벌어진 경로는 하나뿐이다 — 그 하나의 표본만으로 "이 전략은 이 정도 수익/낙폭이 난다"고
+# 단정하면, 우연히 유리했던(또는 불리했던) 순서 하나에 과도하게 의존하게 된다. 여기서는 과거 일간
+# 수익률을 재표집해 대안 경로 여러 개를 만들어, 최종 성과의 분포(그리고 손실로 끝날 확률)를 보여준다.
+#
+# 하루 단위로 독립적으로(i.i.d.) 재표집하지 않고 "연속된 블록" 단위로 복원추출하는 이유: 실제
+# 수익률에는 변동성 군집(vol clustering)과 자기상관이 있는데, i.i.d. 재표집은 이 구조를 완전히
+# 파괴해 꼬리 위험(tail risk)을 실제보다 과소평가하게 만든다. 블록 단위로 뽑으면 "변동성이 높았던
+# 한 달"이 통째로 재사용되므로 이 구조가 어느 정도 보존된다.
+# =============================================================================
+
+# 블록 길이(거래일 기준) 기본값 — 약 1개월. 짧은 구간의 변동성 군집/자기상관을 보존하기에 충분히
+# 길면서도 표집 다양성을 해칠 만큼 길지는 않은 절충값이다(이동블록 부트스트랩의 실무적 경험칙:
+# 표본 크기의 제곱근~세제곱근 근방을 흔히 쓴다).
+DEFAULT_MONTE_CARLO_BLOCK_SIZE = 20
+
+
+def run_monte_carlo_simulation(
+    daily_returns: pd.Series,
+    n_simulations: int = 1000,
+    horizon_days: Optional[int] = None,
+    block_size: int = DEFAULT_MONTE_CARLO_BLOCK_SIZE,
+    random_seed: Optional[int] = None,
+) -> dict:
+    """일간수익률 시계열을 블록 부트스트랩으로 재표집해 미래 경로 n_simulations개를 시뮬레이션한다.
+
+    block_size(기본 20거래일 ≈ 1개월) 길이의 연속된 구간을 통째로 무작위 복원추출해 이어붙이는
+    방식이다(모듈 상단 설명 참고 — i.i.d. 재표집과 달리 변동성 군집 구조를 보존한다).
+    horizon_days(기본값: len(daily_returns), 즉 과거와 같은 길이만큼 미래를 시뮬레이션)에 도달할
+    때까지 블록을 이어붙이고, 마지막 블록은 필요한 만큼만 잘라 정확히 horizon_days 길이를 맞춘다.
+
+    random_seed를 주면 (테스트에서 값을 고정해 검증할 수 있도록) 항상 같은 결과가 나오고, 주지
+    않으면 매번 새로운 난수열(np.random.default_rng())을 쓴다.
+
+    1000개 시뮬레이션 x 수백 거래일 규모는 numpy만으로 1초 이내에 끝나는 계산량이라, Streamlit
+    버튼 클릭에 동기적으로 실행해도 무방하다 — 별도 백그라운드 작업(core.job_manager)으로 뺄 필요는
+    없다.
+
+    Returns:
+        {
+            "paths": np.ndarray, shape (n_simulations, horizon_days) — 각 시뮬레이션의 누적수익률
+                배수(1.0=원금 그대로, 1.2=+20%) 경로.
+            "percentile_bands": {"p10": array, "p50": array, "p90": array} — 각 날짜별로 전체
+                시뮬레이션 중 10/50/90 백분위수 누적수익률 배수 (길이 horizon_days).
+            "final_return_pct": {"p10": float, "p50": float, "p90": float} — 마지막 날 누적수익률(%)
+                의 10/50/90 백분위수.
+            "prob_of_loss": float — 마지막 날 누적수익률이 0% 미만으로 끝난 시뮬레이션의 비율(0~1).
+            "n_simulations": int, "horizon_days": int,
+        }
+        daily_returns가 비어있거나 horizon_days/n_simulations가 0 이하면, 예외를 던지는 대신 모든
+        수치를 빈 값/0으로 채운 동일한 형태의 dict를 반환한다(이 프로젝트의 "데이터/입력이 부족하면
+        그대로 진행한다" 기존 원칙).
+    """
+    horizon = horizon_days if horizon_days is not None else len(daily_returns)
+    returns_arr = daily_returns.dropna().to_numpy(dtype=float)
+    n_obs = len(returns_arr)
+
+    if n_obs == 0 or horizon <= 0 or n_simulations <= 0:
+        return {
+            "paths": np.zeros((0, max(horizon, 0))),
+            "percentile_bands": {"p10": np.array([]), "p50": np.array([]), "p90": np.array([])},
+            "final_return_pct": {"p10": 0.0, "p50": 0.0, "p90": 0.0},
+            "prob_of_loss": 0.0,
+            "n_simulations": 0,
+            "horizon_days": max(horizon, 0),
+        }
+
+    rng = np.random.default_rng(random_seed)
+    # 표본이 block_size보다 짧으면(극단적으로 짧은 백테스트) 표본 길이 자체를 블록 길이로 줄인다 —
+    # 그래도 최소 1은 되어야 블록을 하나 이상 뽑을 수 있다.
+    effective_block = max(1, min(block_size, n_obs))
+    n_blocks_needed = math.ceil(horizon / effective_block)
+    max_start = n_obs - effective_block  # 블록이 표본 끝을 넘어가지 않는 가장 늦은 시작 인덱스
+
+    paths = np.empty((n_simulations, horizon), dtype=float)
+    for sim in range(n_simulations):
+        block_starts = rng.integers(0, max_start + 1, size=n_blocks_needed)
+        sim_returns = np.concatenate([returns_arr[s : s + effective_block] for s in block_starts])[:horizon]
+        paths[sim] = np.cumprod(1.0 + sim_returns)
+
+    percentile_bands = {
+        "p10": np.percentile(paths, 10, axis=0),
+        "p50": np.percentile(paths, 50, axis=0),
+        "p90": np.percentile(paths, 90, axis=0),
+    }
+    final_return_pct_values = (paths[:, -1] - 1.0) * 100.0
+    final_return_pct = {
+        "p10": float(np.percentile(final_return_pct_values, 10)),
+        "p50": float(np.percentile(final_return_pct_values, 50)),
+        "p90": float(np.percentile(final_return_pct_values, 90)),
+    }
+    prob_of_loss = float(np.mean(final_return_pct_values < 0.0))
+
+    return {
+        "paths": paths,
+        "percentile_bands": percentile_bands,
+        "final_return_pct": final_return_pct,
+        "prob_of_loss": prob_of_loss,
+        "n_simulations": n_simulations,
+        "horizon_days": horizon,
+    }

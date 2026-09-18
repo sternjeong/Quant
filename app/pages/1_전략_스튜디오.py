@@ -37,6 +37,7 @@ from core.backtest_engine import (
     compare_with_benchmarks,
     compute_alpha_decay,
     compute_drawdown_series,
+    compute_factor_returns,
     compute_monthly_returns,
     compute_regime_breakdown,
     compute_strategy_correlation,
@@ -45,6 +46,8 @@ from core.backtest_engine import (
     list_strategy_correlation_snapshots,
     run_backtest,
     run_buy_and_hold,
+    run_factor_regression,
+    run_monte_carlo_simulation,
     run_partition_test,
     run_permutation_test,
     run_sensitivity_sweep,
@@ -342,6 +345,20 @@ def metrics_dataframe(results: dict[str, BacktestRun], selected: list[str]) -> p
     }
     index = [METRIC_LABELS[m] for m in selected]
     return pd.DataFrame(data, index=index).T
+
+
+def _run_factor_analysis(strategy_returns: pd.Series, start: str, end: str) -> dict:
+    """팩터 프록시 ETF 데이터 조회(네트워크 I/O) + 회귀분석을 하나의 job_manager 작업으로 묶는다 —
+    job_manager.start는 콜러블 하나만 백그라운드로 돌리므로, 이 페이지의 다른 검증 테스트들과 동일하게
+    작은 래퍼 함수로 감싼다. compute_factor_returns가 프록시 ETF 데이터를 하나도 못 가져오면(네트워크
+    오류 등) run_factor_regression의 "관측치 부족" 에러보다 원인을 더 명확히 알려준다."""
+    factor_returns = compute_factor_returns(start, end)
+    if factor_returns.empty:
+        return {
+            "error": "팩터 프록시 ETF(SPY/IJR/IWD/IWF/MTUM) 가격 데이터를 가져오지 못했습니다.",
+            "n_observations": 0,
+        }
+    return run_factor_regression(strategy_returns, factor_returns)
 
 
 _EXPRESSION_NUMBER_RE = re.compile(r"(?<![\w.])\d+\.?\d*(?![\w.])")
@@ -1160,6 +1177,155 @@ with tab_backtest:
                     st.dataframe(breakdown_df, use_container_width=True, hide_index=True)
                 else:
                     st.info("벤치마크 데이터를 가져올 수 없어 국면별 분해를 계산하지 못했습니다.")
+
+            with st.expander("🧮 팩터 분해 (Fama-French 스타일, ETF 프록시)"):
+                st.caption(
+                    "전략 수익률이 시장/사이즈/가치/모멘텀 중 어디서 왔는지, 유동성 높은 ETF 수익률로 "
+                    "근사 분해합니다(SPY=시장, IJR=소형주, IWD·IWF=가치·성장, MTUM=모멘텀 + FRED 기준금리). "
+                    "실제 Ken French 팩터 데이터가 아니라 근사치이며, 순열검정(우연 여부 검증)을 대체하지 "
+                    "않고 이미 통과한 결과가 '왜' 그런지 설명하는 보완 도구입니다."
+                )
+                if strategy_run.equity_curve.empty:
+                    st.info("팩터 분해를 계산할 자산가치 곡선이 없습니다.")
+                elif st.button("🧮 팩터 회귀분석 실행", key="run_factor_regression"):
+                    strategy_daily_returns = strategy_run.equity_curve.pct_change().dropna()
+                    job_manager.start(
+                        "factor_regression", _run_factor_analysis,
+                        strategy_daily_returns, st.session_state["last_start"], st.session_state["last_end"],
+                        label="팩터 회귀분석",
+                    )
+
+                factor_job = job_manager.render(
+                    "factor_regression", running_label="팩터 프록시 ETF 데이터를 가져와 회귀분석하는 중"
+                )
+                if factor_job is not None:
+                    if factor_job.status == "error":
+                        st.error(f"팩터 분석 중 오류가 발생했습니다: {factor_job.error}")
+                    else:
+                        st.session_state["factor_regression_result"] = factor_job.result
+
+                factor_result = st.session_state.get("factor_regression_result")
+                if factor_result:
+                    if factor_result.get("error"):
+                        st.warning(f"⚠️ {factor_result['error']}")
+                    else:
+                        col_alpha, col_r2, col_n = st.columns(3)
+                        with col_alpha:
+                            st.metric("연환산 알파", f"{factor_result['alpha_annualized_pct']:+.2f}%")
+                        with col_r2:
+                            st.metric("R² (설명력)", f"{factor_result['r_squared']:.2f}")
+                        with col_n:
+                            st.metric("공통 관측일수", f"{factor_result['n_observations']:,}일")
+
+                        factor_labels = {
+                            "MKT_RF": "시장(Mkt-RF)", "SMB": "사이즈(SMB)",
+                            "HML": "가치(HML)", "MOM": "모멘텀(MOM)",
+                        }
+                        betas = factor_result["betas"]
+                        beta_keys = list(betas.keys())
+                        beta_values = [betas[k] for k in beta_keys]
+                        # 베타는 부호가 있는(양/음) 값이라 0을 중심으로 색을 나눈다(diverging) — 이 페이지의
+                        # 국면별/전략 상관관계 히트맵(RdBu_r, 0 중심)과 같은 발상을 막대그래프에 적용.
+                        bar_colors = ["#5B8DEF" if v >= 0 else "#e5533d" for v in beta_values]
+                        fig_beta = go.Figure(
+                            go.Bar(
+                                x=[factor_labels.get(k, k) for k in beta_keys], y=beta_values,
+                                marker_color=bar_colors,
+                                text=[f"{v:+.2f}" for v in beta_values], textposition="outside",
+                            )
+                        )
+                        fig_beta.add_hline(y=0, line=dict(color="#c3c2b7", width=1))
+                        fig_beta.update_layout(
+                            height=280, yaxis_title="베타(팩터 민감도)", template="plotly_white",
+                            margin=dict(l=10, r=10, t=30, b=10), showlegend=False,
+                        )
+                        st.plotly_chart(fig_beta, use_container_width=True)
+                        st.caption(
+                            "베타 부호/크기는 이 전략이 어떤 스타일에 가까운지를 보여줍니다 — 예: MKT_RF "
+                            "베타가 1보다 크면 시장보다 변동성이 큰 전략, SMB/HML/MOM이 양수면 각각 "
+                            "소형주/가치주/모멘텀 성향입니다. 위 4개 ETF 프록시로 근사한 결과라 실제 "
+                            "Ken French 팩터 데이터와는 다를 수 있습니다."
+                        )
+
+            with st.expander("🎲 몬테카를로 시뮬레이션 (블록 부트스트랩)"):
+                st.caption(
+                    "과거 일간수익률을 20거래일(약 1개월) 블록 단위로 무작위 복원추출해(변동성 군집 구조를 "
+                    "보존하기 위해 하루씩 섞지 않음) 대안 경로 여러 개를 시뮬레이션합니다 — 실제로 벌어진 "
+                    "경로 단 하나만 보고 미래를 낙관/비관하지 않기 위한 참고 지표입니다."
+                )
+                if strategy_run.equity_curve.empty:
+                    st.info("시뮬레이션할 자산가치 곡선이 없습니다.")
+                else:
+                    n_sims = st.slider(
+                        "시뮬레이션 횟수", min_value=200, max_value=2000, value=1000, step=100, key="mc_n_simulations"
+                    )
+                    if st.button("🎲 몬테카를로 시뮬레이션 실행", key="run_monte_carlo"):
+                        mc_daily_returns = strategy_run.equity_curve.pct_change().dropna()
+                        st.session_state["monte_carlo_result"] = run_monte_carlo_simulation(
+                            mc_daily_returns, n_simulations=int(n_sims), random_seed=None,
+                        )
+                        st.session_state["monte_carlo_n_obs"] = len(mc_daily_returns)
+
+                mc_result = st.session_state.get("monte_carlo_result")
+                if mc_result is not None:
+                    if mc_result["n_simulations"] == 0:
+                        st.info("시뮬레이션에 사용할 일간수익률 데이터가 부족합니다.")
+                    else:
+                        bands = mc_result["percentile_bands"]
+                        x_axis = list(range(1, mc_result["horizon_days"] + 1))
+                        p10_pct = (bands["p10"] - 1.0) * 100
+                        p50_pct = (bands["p50"] - 1.0) * 100
+                        p90_pct = (bands["p90"] - 1.0) * 100
+
+                        fig_mc = go.Figure()
+                        fig_mc.add_trace(
+                            go.Scatter(
+                                x=x_axis, y=p90_pct, mode="lines", line=dict(width=0),
+                                showlegend=False, hoverinfo="skip",
+                            )
+                        )
+                        fig_mc.add_trace(
+                            go.Scatter(
+                                x=x_axis, y=p10_pct, mode="lines", line=dict(width=0),
+                                fill="tonexty", fillcolor="rgba(91,141,239,0.18)",
+                                name="p10~p90 구간", hoverinfo="skip",
+                            )
+                        )
+                        fig_mc.add_trace(
+                            go.Scatter(
+                                x=x_axis, y=p50_pct, mode="lines",
+                                line=dict(width=2.5, color="#5B8DEF"), name="p50(중앙값)",
+                            )
+                        )
+                        # 선택적 직접 라벨: p50 경로의 마지막 값만 짚어준다(모든 점에 라벨을 달지 않음).
+                        fig_mc.add_annotation(
+                            x=x_axis[-1], y=float(p50_pct[-1]), text=f"{p50_pct[-1]:+.1f}%",
+                            showarrow=False, xanchor="left", xshift=6,
+                            font=dict(color="#5B8DEF", size=12),
+                        )
+                        fig_mc.update_layout(
+                            height=340, xaxis_title="경과 거래일", yaxis_title="누적수익률(%)",
+                            template="plotly_white", margin=dict(l=10, r=48, t=30, b=10),
+                            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
+                        )
+                        st.plotly_chart(fig_mc, use_container_width=True)
+
+                        final = mc_result["final_return_pct"]
+                        col_p10, col_p50, col_p90, col_loss = st.columns(4)
+                        with col_p10:
+                            st.metric(f"{mc_result['horizon_days']}일 후 p10", f"{final['p10']:+.1f}%")
+                        with col_p50:
+                            st.metric(f"{mc_result['horizon_days']}일 후 p50", f"{final['p50']:+.1f}%")
+                        with col_p90:
+                            st.metric(f"{mc_result['horizon_days']}일 후 p90", f"{final['p90']:+.1f}%")
+                        with col_loss:
+                            st.metric("손실 확률", f"{mc_result['prob_of_loss'] * 100:.1f}%")
+                        st.caption(
+                            f"과거 {st.session_state.get('monte_carlo_n_obs', mc_result['horizon_days']):,}거래일 "
+                            f"수익률을 블록 부트스트랩(블록 길이 20거래일)으로 {mc_result['n_simulations']:,}회 "
+                            f"재표집해 같은 길이({mc_result['horizon_days']}거래일)만큼 미래를 시뮬레이션한 "
+                            "결과입니다 — 실제 미래 예측이 아니라 과거 통계 구조를 유지한 대안 경로 분포입니다."
+                        )
 
             st.markdown("#### 🔬 전략 검증 테스트 (Masters의 4대 검증)")
             st.caption(

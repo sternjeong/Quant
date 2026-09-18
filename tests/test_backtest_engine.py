@@ -803,3 +803,211 @@ def test_run_backtest_ensemble_with_fees_does_not_crash():
     config = {"schema": "ensemble", "indicators": [{"indicator": "rsi"}], "entry_threshold": 0.3, "exit_threshold": 0.1}
     run = backtest_engine.run_backtest("TEST", config, "2021-06-01", "2022-06-01", fee_bps=5.0, slippage_bps=10.0)
     assert not run.equity_curve.empty
+
+
+# =============================================================================
+# 팩터 분해 (compute_factor_returns / run_factor_regression) 단위 테스트
+# =============================================================================
+
+
+def _factor_ticker_price_histories(start=None, end=None, n=300, base_date="2021-01-04"):
+    """FACTOR_PROXY_TICKERS 5종에 대해 서로 다른 난수 시드로 만든 합성 OHLCV를 반환한다
+    (get_multiple_price_history를 monkeypatch할 때 쓰는 가짜 응답)."""
+    idx = pd.bdate_range(base_date, periods=n)
+    out = {}
+    for i, ticker in enumerate(backtest_engine.FACTOR_PROXY_TICKERS):
+        rng = np.random.default_rng(100 + i)
+        returns = rng.normal(0.0004, 0.01, n)
+        close = 100 * np.cumprod(1 + returns)
+        df = pd.DataFrame(
+            {"Open": close, "High": close * 1.01, "Low": close * 0.99, "Close": close, "Volume": 1_000_000},
+            index=idx,
+        )
+        if start:
+            df = df[df.index >= pd.Timestamp(start)]
+        if end:
+            df = df[df.index <= pd.Timestamp(end)]
+        out[ticker] = df
+    return out
+
+
+def test_compute_factor_returns_shape_and_columns(monkeypatch):
+    def _fake_multi(tickers, start=None, end=None, interval="1d", use_cache=True):
+        return _factor_ticker_price_histories(start=start, end=end)
+
+    def _fake_fred_series(series_id, start=None, end=None, **kwargs):
+        idx = pd.bdate_range("2020-12-01", periods=400)
+        return pd.Series(5.0, index=idx, name=series_id)
+
+    monkeypatch.setattr(backtest_engine, "get_multiple_price_history", _fake_multi)
+    monkeypatch.setattr(backtest_engine.fred_data, "get_series", _fake_fred_series)
+
+    result = backtest_engine.compute_factor_returns("2021-01-04", "2022-03-01")
+    assert not result.empty
+    assert list(result.columns) == ["MKT_RF", "SMB", "HML", "MOM"]
+    assert result.index.is_monotonic_increasing
+    assert np.isfinite(result.to_numpy()).all()
+
+
+def test_compute_factor_returns_missing_fred_key_defaults_rf_to_zero(monkeypatch):
+    prices = _factor_ticker_price_histories()
+
+    def _fake_multi(tickers, start=None, end=None, interval="1d", use_cache=True):
+        return prices
+
+    def _fake_fred_series_empty(series_id, start=None, end=None, **kwargs):
+        return pd.Series(dtype=float, name=series_id)  # FRED_API_KEY 미설정을 흉내 (빈 Series)
+
+    monkeypatch.setattr(backtest_engine, "get_multiple_price_history", _fake_multi)
+    monkeypatch.setattr(backtest_engine.fred_data, "get_series", _fake_fred_series_empty)
+
+    result = backtest_engine.compute_factor_returns("2021-01-04", "2022-03-01")
+    assert not result.empty
+
+    from core.portfolio import compute_daily_returns
+
+    expected_spy_returns = compute_daily_returns(prices)["SPY"].reindex(result.index)
+    # 무위험수익률을 못 가져왔으면 0으로 대체하므로 MKT_RF는 SPY 일간수익률과 정확히 같아야 한다.
+    assert result["MKT_RF"].to_numpy() == pytest.approx(expected_spy_returns.to_numpy())
+
+
+def test_compute_factor_returns_missing_ticker_returns_empty(monkeypatch):
+    prices = _factor_ticker_price_histories()
+    del prices["MTUM"]  # 한 종목 조회 실패를 흉내
+
+    monkeypatch.setattr(backtest_engine, "get_multiple_price_history", lambda *a, **k: prices)
+    monkeypatch.setattr(backtest_engine.fred_data, "get_series", lambda *a, **k: pd.Series(dtype=float))
+
+    result = backtest_engine.compute_factor_returns("2021-01-04", "2022-03-01")
+    assert result.empty
+
+
+def test_run_factor_regression_recovers_known_beta():
+    """strategy_returns = 0.5*MKT_RF + 작은 노이즈로 합성해, 회귀가 실제로 그 베타를 복원하는지 확인."""
+    idx = pd.bdate_range("2021-01-04", periods=250)
+    rng = np.random.default_rng(7)
+    factor_returns = pd.DataFrame(
+        {
+            "MKT_RF": rng.normal(0.0005, 0.01, len(idx)),
+            "SMB": rng.normal(0.0, 0.005, len(idx)),
+            "HML": rng.normal(0.0, 0.005, len(idx)),
+            "MOM": rng.normal(0.0, 0.005, len(idx)),
+        },
+        index=idx,
+    )
+    true_alpha = 0.0002
+    noise = rng.normal(0.0, 0.0008, len(idx))
+    strategy_returns = pd.Series(true_alpha + 0.5 * factor_returns["MKT_RF"].to_numpy() + noise, index=idx)
+
+    result = backtest_engine.run_factor_regression(strategy_returns, factor_returns)
+    assert "error" not in result
+    assert result["n_observations"] == len(idx)
+    assert result["betas"]["MKT_RF"] == pytest.approx(0.5, abs=0.1)
+    assert abs(result["betas"]["SMB"]) < 0.2
+    assert abs(result["betas"]["HML"]) < 0.2
+    assert abs(result["betas"]["MOM"]) < 0.2
+    assert result["alpha_daily"] == pytest.approx(true_alpha, abs=0.0005)
+    assert 0.0 <= result["r_squared"] <= 1.0
+    assert result["r_squared"] > 0.5
+    assert result["alpha_annualized_pct"] == pytest.approx(
+        ((1.0 + result["alpha_daily"]) ** backtest_engine.TRADING_DAYS_PER_YEAR - 1.0) * 100.0
+    )
+
+
+def test_run_factor_regression_aligns_on_common_dates_only():
+    idx_factors = pd.bdate_range("2021-01-04", periods=150)
+    idx_strategy = pd.bdate_range("2021-02-01", periods=150)  # 일부만 겹치는 기간
+    rng = np.random.default_rng(3)
+    factor_returns = pd.DataFrame(
+        {f: rng.normal(0.0, 0.01, len(idx_factors)) for f in ("MKT_RF", "SMB", "HML", "MOM")},
+        index=idx_factors,
+    )
+    strategy_returns = pd.Series(rng.normal(0.0, 0.01, len(idx_strategy)), index=idx_strategy)
+    expected_common = len(idx_factors.intersection(idx_strategy))
+    assert expected_common >= 30  # 이 테스트는 "정렬 로직"을 확인하는 것이지 degenerate 케이스가 아님
+
+    result = backtest_engine.run_factor_regression(strategy_returns, factor_returns)
+    assert "error" not in result
+    assert result["n_observations"] == expected_common
+
+
+def test_run_factor_regression_too_few_observations_returns_error():
+    idx = pd.bdate_range("2021-01-04", periods=10)
+    factor_returns = pd.DataFrame({f: np.zeros(10) for f in ("MKT_RF", "SMB", "HML", "MOM")}, index=idx)
+    strategy_returns = pd.Series(np.zeros(10), index=idx)
+
+    result = backtest_engine.run_factor_regression(strategy_returns, factor_returns)
+    assert "error" in result
+    assert result["n_observations"] == 10
+    assert "betas" not in result
+
+
+# =============================================================================
+# 몬테카를로 시뮬레이션 (run_monte_carlo_simulation) 단위 테스트
+# =============================================================================
+
+
+def test_run_monte_carlo_simulation_output_shapes_and_invariants():
+    rng = np.random.default_rng(11)
+    daily_returns = pd.Series(rng.normal(0.001, 0.01, 252))
+
+    result = backtest_engine.run_monte_carlo_simulation(daily_returns, n_simulations=200, block_size=20, random_seed=42)
+
+    assert result["paths"].shape == (200, 252)
+    assert result["n_simulations"] == 200
+    assert result["horizon_days"] == 252
+
+    bands = result["percentile_bands"]
+    assert bands["p10"].shape == (252,)
+    assert (bands["p10"] <= bands["p50"] + 1e-12).all()
+    assert (bands["p50"] <= bands["p90"] + 1e-12).all()
+
+    final = result["final_return_pct"]
+    assert final["p10"] <= final["p50"] <= final["p90"]
+    assert 0.0 <= result["prob_of_loss"] <= 1.0
+    assert np.all(np.isfinite(result["paths"]))
+
+
+def test_run_monte_carlo_simulation_reproducible_with_seed():
+    rng = np.random.default_rng(5)
+    daily_returns = pd.Series(rng.normal(0.0005, 0.012, 180))
+
+    result_a = backtest_engine.run_monte_carlo_simulation(daily_returns, n_simulations=50, random_seed=123)
+    result_b = backtest_engine.run_monte_carlo_simulation(daily_returns, n_simulations=50, random_seed=123)
+
+    assert np.array_equal(result_a["paths"], result_b["paths"])
+    assert result_a["final_return_pct"] == result_b["final_return_pct"]
+
+
+def test_run_monte_carlo_simulation_default_horizon_matches_input_length():
+    daily_returns = pd.Series(np.random.default_rng(1).normal(0.0, 0.01, 100))
+    result = backtest_engine.run_monte_carlo_simulation(daily_returns, n_simulations=10, random_seed=1)
+    assert result["horizon_days"] == 100
+    assert result["paths"].shape == (10, 100)
+
+
+def test_run_monte_carlo_simulation_short_input_shorter_than_block_size():
+    """표본이 block_size(기본 20)보다 짧아도 죽지 않고 블록 길이를 표본 길이로 줄여 계산해야 한다."""
+    short_returns = pd.Series([0.01, -0.02, 0.005, 0.0, 0.01])
+    result = backtest_engine.run_monte_carlo_simulation(short_returns, n_simulations=50, random_seed=3)
+    assert result["paths"].shape == (50, 5)
+    assert np.all(np.isfinite(result["paths"]))
+
+
+def test_run_monte_carlo_simulation_empty_input_returns_safe_defaults():
+    empty_returns = pd.Series(dtype=float)
+    result = backtest_engine.run_monte_carlo_simulation(empty_returns, n_simulations=10)
+    assert result["n_simulations"] == 0
+    assert result["paths"].shape == (0, 0)
+    assert result["prob_of_loss"] == 0.0
+    assert result["final_return_pct"] == {"p10": 0.0, "p50": 0.0, "p90": 0.0}
+
+
+def test_run_monte_carlo_simulation_custom_horizon_longer_than_history():
+    """horizon_days를 과거 표본보다 길게 주면 블록을 여러 번 복원추출해서라도 그 길이를 채워야 한다."""
+    daily_returns = pd.Series(np.random.default_rng(2).normal(0.0003, 0.01, 60))
+    result = backtest_engine.run_monte_carlo_simulation(
+        daily_returns, n_simulations=20, horizon_days=500, block_size=20, random_seed=9
+    )
+    assert result["paths"].shape == (20, 500)
+    assert result["horizon_days"] == 500
