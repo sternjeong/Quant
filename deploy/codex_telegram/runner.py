@@ -82,6 +82,68 @@ class Service:
         db.row_factory = sqlite3.Row
         return db
 
+    def experiment_paths(self):
+        """Paths shared with the experiment supervisor, without storing secrets in SQLite."""
+        root = Path(self.cfg['projects'].get('quant', '/opt/quant')).resolve()
+        control_dir = Path(self.cfg.get('experiment_control_dir', root / '.experiment-control'))
+        return root, control_dir, control_dir / 'control.json', control_dir / 'state.json'
+
+    def read_json_file(self, path, default):
+        try:
+            return json.loads(path.read_text())
+        except (OSError, ValueError):
+            return default
+
+    def write_json_file(self, path, value):
+        path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+        temporary = path.with_suffix(path.suffix + '.tmp')
+        temporary.write_text(json.dumps(value, ensure_ascii=False, indent=2) + '\n')
+        temporary.replace(path)
+
+    def experiment_status(self):
+        _, _, control_path, state_path = self.experiment_paths()
+        control = self.read_json_file(control_path, {'mode': 'not-installed'})
+        state = self.read_json_file(state_path, {})
+        if control.get('mode') == 'not-installed' and not state:
+            return '실험 감독 서비스 상태 파일이 아직 없습니다. 배포 상태를 확인하세요.'
+        lines = [f"실험: {control.get('mode', 'running')}"]
+        lines.append(f"단계: {state.get('phase', 'starting')}")
+        lines.append(f"완료 프로토콜: {state.get('completed_days', 0)}/14일")
+        if state.get('current_activity'):
+            lines.append(f"현재: {state['current_activity']}")
+        if state.get('last_agent_at'):
+            lines.append(f"마지막 Codex 감독: {time.strftime('%Y-%m-%d %H:%M UTC', time.gmtime(state['last_agent_at']))}")
+        if state.get('last_report_path'):
+            lines.append('일일 HTML 보고서: 전송됨')
+        if state.get('last_error'):
+            lines.append(f"최근 오류: {state['last_error'][:300]}")
+        return '\n'.join(lines)
+
+    def update_experiment_control(self, mode, interrupt=False):
+        _, _, control_path, state_path = self.experiment_paths()
+        control = self.read_json_file(control_path, {})
+        control.update({'mode': mode, 'requested_at': time.time()})
+        self.write_json_file(control_path, control)
+        if interrupt:
+            state = self.read_json_file(state_path, {})
+            pid = state.get('agent_pid')
+            if isinstance(pid, int) and pid > 1:
+                try:
+                    os.killpg(pid, signal.SIGTERM)
+                except ProcessLookupError:
+                    pass
+
+    def queue_experiment_agent(self, db, uid, backend, instruction):
+        project = 'quant'
+        full_instruction = (
+            '2주 전략 검증 실험에 대한 사용자의 명시적 지시입니다. '
+            'docs/TWO_WEEK_STRATEGY_VALIDATION_PROTOCOL.md와 docs/experiment_validation/PROGRESS.md, '
+            '.experiment-control/state.json을 먼저 읽고, 사전등록 규칙을 바꾸지 않는 범위에서 수행하세요. '
+            '실계좌 주문·API 키 변경은 금지합니다. 변경 사항, 검증, 재개 지점을 문서에 남기세요.\n\n'
+            + instruction)
+        db.execute('INSERT OR IGNORE INTO jobs(id,chat,project,instruction,backend,created_at) VALUES(?,?,?,?,?,?)',
+                   (uid, self.chat, project, full_instruction, backend, time.time()))
+
     def api(self, method, data):
         req = urllib.request.Request('https://api.telegram.org/bot' + self.token + '/' + method,
                                      data=json.dumps(data).encode(), headers={'Content-Type': 'application/json'})
@@ -114,6 +176,7 @@ class Service:
                     command = parts[0].split('@')[0]
                     rest = parts[1] if len(parts) > 1 else ''
                     reply = None
+                    reply_job_id = None
                     if command in ('/codex', '/claude'):
                         backend = command[1:]
                         instruction = rest
@@ -136,6 +199,27 @@ class Service:
                         reply = self.usage_summary(db)
                     elif command == '/digest':
                         reply = self.digest_summary(db)
+                    elif command == '/experiment':
+                        subcommand, _, experiment_instruction = rest.strip().partition(' ')
+                        subcommand = subcommand.lower()
+                        if not subcommand or subcommand == 'status':
+                            reply = self.experiment_status()
+                        elif subcommand in ('pause', 'resume', 'stop') and not experiment_instruction:
+                            mode = {'pause': 'paused', 'resume': 'running', 'stop': 'stopped'}[subcommand]
+                            # stop is deliberately the immediate abort control. Pause retains the
+                            # current atomic Codex turn and blocks subsequent turns.
+                            self.update_experiment_control(mode, interrupt=subcommand == 'stop')
+                            reply = {'pause': '실험의 다음 감독 실행을 일시정지했습니다.',
+                                     'resume': '실험 감독을 재개했습니다.',
+                                     'stop': '실험 중지를 요청했고, 실행 중인 Codex 감독에도 종료 신호를 보냈습니다.'}[subcommand]
+                        elif subcommand in ('claude', 'codex') and experiment_instruction.strip():
+                            self.queue_experiment_agent(db, uid, subcommand, experiment_instruction.strip())
+                            reply = f'접수 {uid} [{subcommand}] Quant 실험 지시'
+                            reply_job_id = uid
+                        else:
+                            reply = ('/experiment: 상태\n/experiment pause: 다음 감독 실행 일시정지\n'
+                                     '/experiment resume: 재개\n/experiment stop: 실행 중인 감독까지 중지\n'
+                                     '/experiment claude 지시 또는 /experiment codex 지시: 실험 수정·질문')
                     elif command == '/idea' and rest.strip():
                         db.execute('INSERT OR IGNORE INTO ideas(id,chat,text,created_at) VALUES(?,?,?,?)',
                                    (uid, self.chat, rest.strip(), time.time()))
@@ -164,6 +248,7 @@ class Service:
                                  '/idea 메모: Claude/Codex 호출 없이 아이디어만 저장\n'
                                  '/ideas: 저장된 아이디어 목록, /ideas 비우기: 전체 삭제\n'
                                  '/retry 작업ID: blocked 작업 재개\n'
+                                 '/experiment: 2주 실험 상태, pause/resume/stop, Claude/Codex 실험 지시\n'
                                  '/project quant 다음 줄에 지시: 현재 Quant를 바로 선택\n'
                                  '완료/접수 메시지에 답장(reply)하면 같은 프로젝트로 이어서 지시할 수 있습니다.')
                     elif command.startswith('/') and command != '/project':
@@ -183,7 +268,6 @@ class Service:
                             via_reply = True
                             if command not in ('/codex', '/claude'):
                                 backend = origin['backend']
-                    reply_job_id = None
                     if instruction.startswith('/project '):
                         first, _, instruction = instruction.partition('\n')
                         project = first.split(maxsplit=1)[1].strip()
@@ -605,9 +689,44 @@ class Service:
         with self.db() as db:
             db.execute('UPDATE jobs SET status=?,summary=?,finished_at=? WHERE id=?', (status, summary, time.time(), uid))
 
+    def available_memory_mb(self):
+        try:
+            with open('/proc/meminfo') as meminfo:
+                for line in meminfo:
+                    if line.startswith('MemAvailable:'):
+                        return int(line.split()[1]) / 1024
+        except (OSError, ValueError, IndexError):
+            return None
+        return None
+
+    def has_capacity(self):
+        # max_concurrent_jobs (worker thread count) is just an upper ceiling now -- this decides,
+        # within that ceiling, whether the VM actually has room for one more concurrent job right
+        # now, based on real load/memory rather than a fixed guess. Oracle's Always-Free tier is
+        # small (2 OCPU/12GB on this instance) so headroom is genuinely scarce.
+        with self.children_lock:
+            running = len(self.children)
+        if running == 0:
+            # Never block the very first job -- a chronically "full" reading (e.g. from something
+            # else on the box) must not stall the whole pipeline forever with nobody watching.
+            return True
+        try:
+            load1 = os.getloadavg()[0]
+        except OSError:
+            load1 = 0.0
+        cpu_count = os.cpu_count() or 1
+        if load1 >= cpu_count * self.cfg.get('max_load_per_cpu', 1.5):
+            return False
+        available = self.available_memory_mb()
+        if available is not None and available < self.cfg.get('min_free_memory_mb', 1024):
+            return False
+        return True
+
     def claim_job(self):
         # Claiming (select + mark 'running') must be atomic across worker threads so two
         # workers can never pick the same job, or two jobs from the same project at once.
+        if not self.has_capacity():
+            return None
         with self.claim_lock:
             with self.db() as db:
                 job = db.execute("""SELECT * FROM jobs j WHERE status IN ('queued','retry') AND due<=?
@@ -665,8 +784,11 @@ class Service:
         threading.Thread(target=self.poll, daemon=True).start()
         # Multiple workers let independent projects/backends run at the same time instead of
         # a new Telegram command sitting stuck behind whatever job is currently executing.
+        # max_concurrent_jobs is just the upper ceiling on thread count -- has_capacity() (in
+        # claim_job) is what actually decides how many run at once, based on real CPU load and
+        # free memory, so this can safely be set higher than the VM could ever really sustain.
         workers = [threading.Thread(target=self.worker_loop, daemon=True)
-                   for _ in range(max(1, self.cfg.get('max_concurrent_jobs', 3)))]
+                   for _ in range(max(1, self.cfg.get('max_concurrent_jobs', 8)))]
         for worker in workers:
             worker.start()
         while not self.stop.is_set():

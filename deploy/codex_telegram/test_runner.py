@@ -233,7 +233,10 @@ class PipelineTests(unittest.TestCase):
         def popen(cmd, **kwargs):
             return SlowChild() if Path(kwargs['cwd']) == root else FastChild()
 
-        with patch('runner.subprocess.Popen', side_effect=popen):
+        # This test is about claim/concurrency correctness, not the resource-headroom gate
+        # (which has its own dedicated tests) -- pin capacity available so it isn't flaky
+        # depending on the real host's load/memory at test time.
+        with patch('runner.subprocess.Popen', side_effect=popen), patch.object(self.s, 'has_capacity', return_value=True):
             slow_worker = threading.Thread(target=self.s.work_once)
             slow_worker.start()
             self.assertTrue(slow_started.wait(2), 'first job never started')
@@ -247,6 +250,43 @@ class PipelineTests(unittest.TestCase):
             slow_worker.join(5)
         with self.s.db() as db:
             self.assertEqual(db.execute('SELECT status FROM jobs WHERE id=1').fetchone()[0], 'done')
+
+    def test_has_capacity_always_true_when_nothing_running(self):
+        # Even under real system load, the very first job must never be blocked -- otherwise a
+        # chronically "full" reading (from something unrelated on the box) would stall the whole
+        # pipeline forever with nobody watching.
+        with patch('runner.os.getloadavg', return_value=(999.0, 999.0, 999.0)), \
+             patch.object(self.s, 'available_memory_mb', return_value=0):
+            self.assertTrue(self.s.has_capacity())
+
+    def test_has_capacity_blocks_second_job_under_high_load(self):
+        with self.s.children_lock:
+            self.s.children[1] = object()
+        with patch('runner.os.getloadavg', return_value=(999.0, 999.0, 999.0)), \
+             patch('runner.os.cpu_count', return_value=2):
+            self.assertFalse(self.s.has_capacity())
+
+    def test_has_capacity_blocks_second_job_under_low_memory(self):
+        with self.s.children_lock:
+            self.s.children[1] = object()
+        with patch('runner.os.getloadavg', return_value=(0.1, 0.1, 0.1)), \
+             patch.object(self.s, 'available_memory_mb', return_value=100):
+            self.assertFalse(self.s.has_capacity())
+
+    def test_has_capacity_allows_second_job_when_headroom_exists(self):
+        with self.s.children_lock:
+            self.s.children[1] = object()
+        with patch('runner.os.getloadavg', return_value=(0.1, 0.1, 0.1)), \
+             patch('runner.os.cpu_count', return_value=4), \
+             patch.object(self.s, 'available_memory_mb', return_value=4096):
+            self.assertTrue(self.s.has_capacity())
+
+    def test_claim_job_returns_none_without_capacity(self):
+        self.s.ingest([self.update()])
+        with patch.object(self.s, 'has_capacity', return_value=False):
+            self.assertIsNone(self.s.claim_job())
+        with self.s.db() as db:
+            self.assertEqual(db.execute('SELECT status FROM jobs WHERE id=1').fetchone()[0], 'queued')
 
     def test_queue_lists_active_jobs(self):
         self.s.ingest([self.update(1)])
