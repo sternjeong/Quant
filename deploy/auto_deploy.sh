@@ -6,13 +6,17 @@
 # /opt/quant 워킹트리 소유자가 quant라서 root로 바로 git을 돌리면 최신 git의
 # "dubious ownership" 안전장치에 걸린다).
 #
-# ★ 안전 원칙 (반드시 지킬 것): 여기서 쓰는 git 조작은 `git fetch`와 `git pull --ff-only`
-# 뿐이다. fast-forward가 안 되는 상황(히스토리 분기, 로컬 수정이 막고 있음, 충돌 등)이면
-# 그 자리에서 즉시 포기하고 텔레그램으로 알린다 — `git reset --hard`, `git clean`,
-# `git checkout .`, 강제 push, stash/drop 같은 건 이 스크립트에 존재하지 않고 앞으로도
+# ★ 안전 원칙 (반드시 지킬 것): 여기서 쓰는 git 조작은 `git fetch`와 `git pull --ff-only`,
+# 그리고 아래에서 설명하는 `data/cache/fred_*.csv` 전용 `git checkout --` 한 줄뿐이다.
+# 그 외에 fast-forward가 안 되는 상황(히스토리 분기, 다른 파일의 로컬 수정이 막고 있음, 충돌
+# 등)이면 그 자리에서 즉시 포기하고 텔레그램으로 알린다 — `git reset --hard`, `git clean`,
+# 범용 `git checkout .`, 강제 push, stash/drop 같은 건 이 스크립트에 존재하지 않고 앞으로도
 # 추가하면 안 된다. VM 워킹트리에는 지우면 안 되는 로컬 수정 파일과 미커밋 리서치 결과물이
 # 실제로 쌓여 있다 (deploy/PENDING_MANUAL_LOGIN_ACTIONS.md 참고) — 자동 배포가 그걸 건드리는
-# 순간 이 자동화 전체의 존재 이유가 사라진다.
+# 순간 이 자동화 전체의 존재 이유가 사라진다. `fred_*.csv` 예외는 어떤 파일이든 지워도 되는
+# 게 아니라, .gitignore가 이미 "VM에서 다시 만들어져도 되는 캐시"로 명시적으로 선언해둔
+# 딱 그 패턴 하나만 대상으로 한다 — 새 예외를 추가하려면 같은 근거(외부에서 재요청 가능한
+# 멱등 캐시인지)를 먼저 확인해야 한다.
 #
 # 흔한 경우(타이머가 5분마다 실행 — 대부분 새 커밋 없음)는 `git fetch` + 해시 비교만 하고
 # 조용히(로그도 안 남기고) 끝난다. 새 커밋이 있을 때만 pull/서비스 재시작/텔레그램 발송처럼
@@ -23,8 +27,17 @@ APP_DIR="/opt/quant"
 SERVICE_USER="quant"
 SERVICES=(codex-telegram quant-streamlit quant-scheduler)
 ALERT_SCRIPT="$APP_DIR/deploy/send_telegram_alert.sh"
+STATE_DIR="${AUTO_DEPLOY_STATE_DIR:-/opt/quant/.auto-deploy-state}"
+FAIL_ALERT_FILE="$STATE_DIR/pull_failure_last_alert"
+# A persistent (non-transient) pull failure would otherwise re-alert every timer tick (5min) --
+# this caps it to one alert per cooldown window instead of spamming forever.
+ALERT_COOLDOWN_SECONDS="${AUTO_DEPLOY_ALERT_COOLDOWN_SECONDS:-21600}"
 
 log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"; }
+
+clear_failure_state() {
+  rm -f "$FAIL_ALERT_FILE" 2>/dev/null || true
+}
 
 # 항상 quant 계정 권한으로 git을 돌린다 (워킹트리 소유자가 quant이기 때문).
 # -n: 혹시라도 비밀번호가 필요한 상황이면 무인 실행 중 멈춰서 기다리지 말고 바로 실패한다.
@@ -33,6 +46,7 @@ git_as_quant() {
 }
 
 cd "$APP_DIR"
+mkdir -p "$STATE_DIR" 2>/dev/null || true
 
 if ! fetch_output="$(git_as_quant fetch origin --quiet 2>&1)"; then
   # 흔치 않은 경로지만(네트워크 일시 장애 등) 조용히 넘어가면 안 되니 저널에는 남긴다.
@@ -43,11 +57,25 @@ if ! fetch_output="$(git_as_quant fetch origin --quiet 2>&1)"; then
   exit 1
 fi
 
+# data/cache/fred_*.csv는 .gitignore에서 일부러 추적 대상으로 남겨둔 예외다(야간 매크로 캐시
+# 자동화가 커밋해서 라이브 앱이 재사용하도록). 그런데 이 VM의 quant-scheduler도 같은 FRED
+# 시계열을 독립적으로 새로고침해서 로컬에 쓰기 때문에, 원격에서 같은 파일을 건드리는 커밋이
+# 오면 매번 "로컬 변경이 있어 --ff-only 불가"로 막힌다. 이 데이터는 외부 API에서 그대로
+# 재요청 가능한 멱등 캐시라 VM의 로컬 버전을 버려도 다음 스케줄러 주기에 다시 채워지므로
+# 안전하다 -- 아래는 그 파일 패턴 하나만 골라 되돌리는 것이지, 금지된 범용 checkout/reset이
+# 아니다(.gitignore가 이미 선언한 것과 동일한 범위).
+stale_cache="$(git_as_quant status --porcelain -- 'data/cache/fred_*.csv' | awk '{print $2}')"
+if [ -n "$stale_cache" ]; then
+  log "로컬에서 갱신된 FRED 캐시 파일을 pull 전에 되돌림: $(printf '%s' "$stale_cache" | tr '\n' ' ')"
+  git_as_quant checkout -- 'data/cache/fred_*.csv'
+fi
+
 local_head="$(git_as_quant rev-parse HEAD)"
 remote_head="$(git_as_quant rev-parse origin/main)"
 
 if [ "$local_head" = "$remote_head" ]; then
   # 흔한 경우: 새 커밋 없음 — 출력도 남기지 않고 바로 종료 (요구사항: no-op은 조용하고 가볍게)
+  clear_failure_state
   exit 0
 fi
 
@@ -94,8 +122,16 @@ $truncated_pip_output"
 
   log "재시작 완료"
 
+  # 직전까지 실패 알림 쿨다운 상태였다면, 이번에 복구됐다는 걸 메시지에 덧붙이고 상태를 지운다.
+  recovery_note=""
+  if [ -f "$FAIL_ALERT_FILE" ]; then
+    recovery_note="(이전 배포 실패 상태에서 복구됨)
+"
+    clear_failure_state
+  fi
+
   message="[자동배포] 성공
-${local_head:0:7}..${new_head:0:7} ($commit_count 커밋)
+${recovery_note}${local_head:0:7}..${new_head:0:7} ($commit_count 커밋)
 ${deps_note}재시작: ${SERVICES[*]}
 
 $commit_summary_short"
@@ -112,9 +148,25 @@ else
 
   truncated_output="$(printf '%s' "$pull_output" | tail -c 1500)"
 
+  now="$(date +%s)"
+  should_alert=1
+  if [ -f "$FAIL_ALERT_FILE" ]; then
+    last_alert="$(cat "$FAIL_ALERT_FILE" 2>/dev/null || echo 0)"
+    [[ "$last_alert" =~ ^[0-9]+$ ]] || last_alert=0
+    if [ $((now - last_alert)) -lt "$ALERT_COOLDOWN_SECONDS" ]; then
+      should_alert=0
+    fi
+  fi
+  if [ "$should_alert" -eq 0 ]; then
+    log "직전 실패 알림 쿨다운 중이라 이번엔 텔레그램 재알림을 생략함 (계속 실패 중 -- journalctl -u quant-auto-deploy 로 계속 확인 가능)"
+    exit 1
+  fi
+  echo "$now" > "$FAIL_ALERT_FILE"
+
   message="[자동배포] 실패 — 수동 확인 필요
 로컬 ${local_head:0:7}, 원격 ${remote_head:0:7} (fast-forward 불가 또는 오류로 추정)
 워킹트리는 건드리지 않았음. git reset/clean 등 자동 복구는 하지 않음.
+같은 문제가 계속되면 해결 전까지 ${ALERT_COOLDOWN_SECONDS}초(기본 6시간)마다 한 번만 다시 알림.
 
 git pull --ff-only 에러:
 $truncated_output"

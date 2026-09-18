@@ -272,12 +272,20 @@ sudo systemctl start quant-vm-health.service     # 정상 범위로 "복구됨" 
 세 서비스를 모두 재시작하고 배포 결과(구→신 커밋, 커밋 개수, 재시작한 서비스 목록)를
 텔레그램으로 한 번 알린다.
 
-**비파괴 원칙(★)**: 여기서 쓰는 git 명령은 `git fetch`와 `git pull --ff-only` 뿐이다.
-Fast-forward가 안 되는 상황(히스토리 분기, 로컬 수정이 막고 있음, 충돌 등)이면 **그 자리에서
-즉시 포기**하고 워킹트리는 손도 대지 않은 채 텔레그램으로 "수동 확인 필요" 알림만 보낸 뒤
-종료한다. `git reset --hard`, `git clean`, `git checkout .`, 강제 push, stash/drop 같은 자동
-복구 시도는 절대 하지 않는다 — VM 워킹트리에는 지우면 안 되는 로컬 수정 파일과 미커밋
-리서치 결과물이 실제로 쌓여 있을 수 있기 때문이다(`PENDING_MANUAL_LOGIN_ACTIONS.md` 참고).
+**비파괴 원칙(★)**: 여기서 쓰는 git 명령은 `git fetch`와 `git pull --ff-only`, 그리고
+`data/cache/fred_*.csv` 하나만 대상으로 하는 `git checkout --` 뿐이다. 이 FRED 캐시 파일들은
+`.gitignore`가 이미 "VM에서 다시 만들어져도 되는 캐시"로 명시적으로 추적 예외를 둔 파일이라,
+이 VM의 `quant-scheduler`가 로컬에서 독립적으로 새로고침해도 매번 `pull`을 다시 시도하기 전에
+안전하게 되돌린다(외부 API에서 그대로 재요청 가능한 멱등 데이터라 버려도 다음 스케줄러
+주기에 다시 채워짐). 그 외 파일에서 fast-forward가 안 되는 상황(히스토리 분기, 로컬 수정이
+막고 있음, 충돌 등)이면 **그 자리에서 즉시 포기**하고 워킹트리는 손도 대지 않은 채 텔레그램으로
+"수동 확인 필요" 알림만 보낸 뒤 종료한다. `git reset --hard`, `git clean`, 범용 `git checkout .`,
+강제 push, stash/drop 같은 자동 복구 시도는 절대 하지 않는다 — VM 워킹트리에는 지우면 안 되는
+로컬 수정 파일과 미커밋 리서치 결과물이 실제로 쌓여 있을 수 있기 때문이다
+(`PENDING_MANUAL_LOGIN_ACTIONS.md` 참고). 이 실패 알림은 같은 문제가 계속되는 동안
+`AUTO_DEPLOY_ALERT_COOLDOWN_SECONDS`(기본 21600초 = 6시간)마다 한 번만 다시 보낸다 — 매
+5분마다 재알림해서 스팸이 되는 걸 막기 위함이다(2026-09-18 실제로 `fred_*.csv` 충돌로
+178개가 쌓인 뒤 추가됨).
 
 **확인**:
 ```bash
