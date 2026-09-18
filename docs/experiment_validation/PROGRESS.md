@@ -113,3 +113,9 @@ manifest의 원래 참고 SHA `ba408756b47e53c170a168db63e53a45d979baf6`는 변�
 기존 게시 worktree 경로가 사라져 원래 연구 브랜치 `dced9bc`에서
 `research/day1-review-20260918`을 만들었다. worktree: `/tmp/quant-day1-review-20260918`.
 main과 기존 미커밋 연구를 보존하며 이 기록만 새 연구 브랜치에 게시한다.
+
+### 이번 재개 검토 게시 결과
+
+증거 커밋 `74c21a347cb6d585a44d0ae8580d3705cced1016`를 `origin/research/day1-review-20260918`에 push했고,
+`git ls-remote`로 같은 SHA를 확인했다. `day1_review_20260918T141530Z/publication.json`에 기록했다.
+Day 1 보류 상태는 그대로다. 다음 감독은 새 사전등록 근거가 있는지 확인한 뒤 재개한다.

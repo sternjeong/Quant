@@ -1,0 +1,13 @@
+{
+  "published_at_verified": "2026-09-18T14:22:17.177955+00:00",
+  "status": "evidence_commit_pushed_and_remote_verified",
+  "evidence_commit": "74c21a347cb6d585a44d0ae8580d3705cced1016",
+  "remote_branch": "origin/research/day1-review-20260918",
+  "remote_verified_sha": "74c21a347cb6d585a44d0ae8580d3705cced1016",
+  "publication_worktree": "/tmp/quant-day1-review-20260918",
+  "base_commit": "dced9bcddc23566b9212b2746e1d1490173774be",
+  "main_pushed": false,
+  "day_1_status": "BLOCKED",
+  "completion_marker_written": false,
+  "result_hashes_sha256": "ed2d32ecbf8b123e6978db68b61d28d7d08d988aa63a6131964c18786e8eaa6f"
+}
