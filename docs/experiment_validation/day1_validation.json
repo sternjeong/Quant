@@ -1,0 +1,24 @@
+{
+  "evidence_integrity": "PASS",
+  "day_1_status": "BLOCKED",
+  "errors": [],
+  "blockers": [
+    "B1",
+    "B2",
+    "B3",
+    "data_not_verified:sp500_membership",
+    "spec_not_frozen",
+    "manifest_not_frozen"
+  ],
+  "checked_artifacts": 55,
+  "market_datasets_captured": 19,
+  "scope": "No execution/backtest correctness claim; no completion marker written",
+  "required_completion_exit_code": 2,
+  "adversarial_tests": "6 passed",
+  "preexisting_tracked_changes_preserved": {
+    "PROGRESS.md": true,
+    "deploy/codex_telegram/runner.py": true,
+    "docs/TWO_WEEK_STRATEGY_VALIDATION_PROTOCOL.md": true,
+    "docs/reports/README.md": true
+  }
+}

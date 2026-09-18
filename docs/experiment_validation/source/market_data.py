@@ -1,0 +1,355 @@
+"""yfinance 기반 시장 데이터 fetch 유틸 (로컬 영구 저장소 기반 캐싱 래퍼).
+
+core 패키지는 Streamlit에 의존하지 않으므로(스케줄러 스크립트에서도 사용) st.cache_data
+대신 data/cache/ 아래에 (ticker, interval)별로 하나씩 Parquet 파일을 두고 "지금까지 받아온
+전체 이력"을 계속 누적하는 자체 로컬 저장소를 사용한다. (start, end)가 정확히 같아야만
+캐시가 맞아떨어지던 예전 방식과 달리, 요청 범위가 이미 저장된 범위 안에 있으면 조회 날짜가
+달라도 네트워크 호출 없이 바로 응답하고, 저장된 범위를 벗어난 부분(더 과거로 확장되는 구간 /
+아직 안 받은 최신 구간)만 델타로 받아와 이어붙인다. 이미 확정된 과거 봉은 다시 받아오지 않으므로,
+백테스트/다종목 튜닝처럼 같은 과거 구간을 반복 조회하는 워크로드는 최초 1회 이후 완전히 로컬
+데이터만으로 응답한다 (캐시 나이(cache_ttl)와 무관 — 과거 구간을 벗어나지 않는 요청은 절대
+재다운로드하지 않는다. 아래 get_price_history() 참고).
+
+Streamlit 페이지에서 반복 호출로 인한 재계산이 신경 쓰이면, 각 페이지에서 이 함수를
+@st.cache_data 로 한 번 더 감싸서 써도 무방하다 (아래 예시 참고).
+
+    import streamlit as st
+    from core.market_data import get_price_history
+
+    @st.cache_data(ttl=3600)
+    def _cached_price_history(ticker, start, end, interval="1d"):
+        return get_price_history(ticker, start, end, interval)
+"""
+
+import time
+from concurrent.futures import ThreadPoolExecutor
+from datetime import date, timedelta
+from pathlib import Path
+from typing import Optional
+
+import pandas as pd
+import yfinance as yf
+
+from core.retry import default_on_retry, retry_with_backoff
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+CACHE_DIR = PROJECT_ROOT / "data" / "cache"
+CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
+# 저장된 범위가 이미 "오늘"까지 닿아 있을 때, 최신 구간(오늘자 봉 등)을 다시 확인하기까지
+# 기다리는 시간(초). 명시적 end가 있는(=완전히 과거로 국한된) 요청은 이 값과 무관하게 저장된
+# 데이터만으로 즉시 응답한다 — 확정된 과거 봉은 바뀌지 않기 때문.
+DEFAULT_CACHE_TTL_SECONDS = 6 * 60 * 60  # 6시간
+
+# ".full" 마커(더 과거로 확장할 필요 없음 표시)를 다시 확인하기까지 기다리는 시간(초). 2026-08-12
+# 실사용 캐시 점검 중 발견한 버그: get_price_history가 start=None으로 한 번 받아본 뒤 그 결과가
+# 실제로 상장일까지 닿았는지 검증 없이 무조건 마커를 찍었다 — Yahoo Finance 쪽 일시적 레이트리밋/
+# 네트워크 문제로 그 한 번의 응답이 잘려서 왔으면(예: AAPL이 1980년대가 아니라 2017년부터로 캐시됨)
+# 그 잘린 상태가 영구적으로 고정되는 문제였다. 마커를 영구 신뢰하는 대신 이 기간이 지나면 한 번 더
+# 확장을 시도하게 해서(성공하면 마커 갱신, 이미 진짜 상장일이면 변화 없이 마커만 갱신) 이런 사고가
+# 스스로 복구되게 한다.
+FULL_HISTORY_RECHECK_SECONDS = 7 * 24 * 60 * 60  # 7일
+
+# get_multiple_price_history()가 여러 티커를 동시에 조회할 때 쓰는 스레드풀 크기. 네트워크 I/O
+# 위주라 병렬화 효과가 크지만(시장 국면/섹터 강도처럼 S&P500 전종목을 순회하는 기능에서 실측:
+# 순차 조회 시 수 분 소요), 너무 크면 Yahoo Finance 쪽에서 속도 제한(레이트리밋)에 걸릴 수 있어
+# core.job_manager의 스레드풀 크기(8)와 비슷한 수준으로 제한한다.
+_MULTI_FETCH_MAX_WORKERS = 10
+
+# yfinance가 interval별로 과거 조회를 허용하는 최대 기간(일). None이면 제한 없음(일봉 이상).
+# (Yahoo Finance 쪽 제약이며 yfinance 공식 문서 기준. 실제 경계에서 종종 며칠 짧게 잘리는 경우가
+# 있어 1m만 하루 여유를 뺐다.)
+INTERVAL_MAX_LOOKBACK_DAYS: dict[str, Optional[int]] = {
+    "1m": 6,
+    "2m": 60,
+    "5m": 60,
+    "15m": 60,
+    "30m": 60,
+    "60m": 730,
+    "90m": 60,
+    "1d": None,
+    "5d": None,
+    "1wk": None,
+    "1mo": None,
+    "3mo": None,
+}
+
+
+def clamp_start_for_interval(interval: str, start: date, end: date) -> tuple[date, bool]:
+    """interval이 지원하는 최대 조회 기간을 벗어나면 start를 당겨서 보정한다.
+
+    분봉/시간봉 등 짧은 interval은 yfinance가 최근 N일치만 제공하므로, UI에서
+    사용자가 그보다 오래된 start를 고르더라도 여기서 자동으로 당겨준다.
+
+    Returns:
+        (보정된 start 날짜, 보정이 발생했는지 여부)
+    """
+    max_days = INTERVAL_MAX_LOOKBACK_DAYS.get(interval)
+    if max_days is None:
+        return start, False
+    earliest_allowed = end - timedelta(days=max_days)
+    if start < earliest_allowed:
+        return earliest_allowed, True
+    return start, False
+
+
+def _store_path(ticker: str, interval: str) -> Path:
+    safe = ticker.replace("/", "-").replace(":", "-")
+    return CACHE_DIR / f"{safe}_{interval}.parquet"
+
+
+def _full_history_marker(store_file: Path) -> Path:
+    """store_file 옆에 두는 빈 마커 파일 경로. 존재하면 "start=None(전체 이력)"으로 이미 한 번
+    받아봤다는 뜻이라, 이후로는 더 과거로 확장해서 받아올 필요가 없다(그게 실제 상장일 기준
+    가장 이른 데이터이므로)."""
+    return store_file.with_suffix(".full")
+
+
+def _load_store(store_file: Path) -> pd.DataFrame:
+    if not store_file.exists():
+        return pd.DataFrame()
+    try:
+        df = pd.read_parquet(store_file)
+        df.index = pd.DatetimeIndex(df.index)
+        return df
+    except Exception:
+        return pd.DataFrame()  # 저장소 파일이 손상된 경우 처음부터 다시 받아온다
+
+
+def _save_store(store_file: Path, df: pd.DataFrame) -> None:
+    try:
+        df.to_parquet(store_file)
+    except Exception:
+        pass  # 저장 실패는 무시 (조회 결과 반환은 정상 진행)
+
+
+def _download(ticker: str, start: Optional[str], end: Optional[str], interval: str) -> pd.DataFrame:
+    """yfinance 실제 다운로드 (지수 백오프 재시도 포함, 2026-09-13).
+
+    원래 이 함수는 재시도 로직이 전혀 없었고, get_price_history()도 이 호출을 try/except로
+    감싸지 않아서 yfinance 쪽 일시적 네트워크 오류(순단, 레이트리밋 등)가 그대로 호출부까지
+    예외로 전파될 수 있었다 — get_price_history()의 독스트링이 약속하는 "데이터가 없으면 빈
+    DataFrame을 반환한다(예외를 던지지 않음)"가 실제로는 지켜지지 않는 경우였다. 이제 예외 발생 시
+    core.retry.retry_with_backoff로 몇 차례 더 시도하고, 그래도 안 되면 그 실패를 여기서 흡수해
+    빈 DataFrame을 반환한다(독스트링의 계약을 실제로 지킴). 정상적으로 비어있는 응답(예: 상장일
+    이전 구간 조회)은 예외가 아니므로 재시도 대상이 아니다.
+    """
+    try:
+        df = retry_with_backoff(
+            lambda: yf.download(
+                ticker,
+                start=start,
+                end=end,
+                interval=interval,
+                auto_adjust=False,
+                progress=False,
+            ),
+            on_retry=default_on_retry(f"[market_data] {ticker}({interval})"),
+        )
+    except Exception as exc:  # noqa: BLE001 - 재시도까지 모두 실패하면 빈 데이터로 흡수(호출부 계약 유지)
+        print(f"[market_data] {ticker}({interval}) 다운로드 최종 실패, 빈 데이터로 처리: {exc}")
+        df = None
+
+    if df is None:
+        df = pd.DataFrame()
+
+    # yfinance가 멀티 티커 조회 형식(MultiIndex 컬럼)으로 반환하는 경우 평탄화
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = df.columns.get_level_values(0)
+
+    df.index.name = "Date"
+    if not df.empty and getattr(df.index, "tz", None) is not None:
+        # 분봉/시간봉은 tz-aware 인덱스로 오는 경우가 있는데, 로컬 저장소는 항상 tz-naive로
+        # 통일해야 저장된 범위와 요청 범위를 안전하게 비교할 수 있다 (표시되는 날짜/시각 값 자체는
+        # 그대로 유지되고 tz 라벨만 제거됨).
+        df.index = df.index.tz_localize(None)
+
+    return df
+
+
+def _merge_price_data(*frames: pd.DataFrame) -> pd.DataFrame:
+    """여러 구간의 OHLCV DataFrame을 하나로 합친다. 날짜가 겹치면 뒤에 온(더 최신에 받아온)
+    프레임의 값으로 덮어쓴다 (수정종가 정정 등을 반영하기 위함)."""
+    non_empty = [f for f in frames if f is not None and not f.empty]
+    if not non_empty:
+        return pd.DataFrame()
+    combined = pd.concat(non_empty)
+    combined = combined[~combined.index.duplicated(keep="last")]
+    return combined.sort_index()
+
+
+def get_price_history(
+    ticker: str,
+    start: Optional[str] = None,
+    end: Optional[str] = None,
+    interval: str = "1d",
+    use_cache: bool = True,
+    cache_ttl: int = DEFAULT_CACHE_TTL_SECONDS,
+) -> pd.DataFrame:
+    """yfinance로 OHLCV 가격 데이터를 가져온다 ((ticker, interval)별 로컬 영구 저장소 사용).
+
+    처음 조회하는 (ticker, interval)이면 요청 범위를 그대로 받아와 저장한다. 이미 저장된 데이터가
+    있으면: 요청 시작일이 저장된 범위보다 더 과거면 그 차이만큼만 앞쪽을 추가로 받아오고, 명시적
+    end가 저장된 범위를 벗어나거나(아직 없는 구간) end가 없는(=오늘까지) 요청인데 저장 범위가
+    부족하거나 캐시가 cache_ttl보다 오래됐으면 뒤쪽(델타)만 추가로 받아온다.
+
+    명시적 end가 있고 그 범위가 이미 저장소 안에 있는 요청(예: 고정된 기간을 반복 조회하는
+    백테스트/다종목 튜닝)은 캐시 나이와 무관하게 로컬 데이터만으로 즉시 응답하고 네트워크를
+    타지 않는다 — 확정된 과거 봉은 바뀌지 않기 때문이다. "최신 구간"을 원하는 요청(end=None)만
+    cache_ttl에 따라 주기적으로 다시 확인한다.
+
+    Args:
+        ticker: 종목 티커 (예: "AAPL")
+        start: 조회 시작일 "YYYY-MM-DD" (None이면 상장일부터 전체 이력)
+        end: 조회 종료일 "YYYY-MM-DD", yfinance 관례대로 배타적(해당 날짜 미포함) (None이면 오늘까지)
+        interval: 캔들 주기 ("1d", "1wk", "1mo" 등, yfinance 지원값)
+        use_cache: True면 로컬 저장소를 읽고/쓴다. False면 매번 yfinance에서 직접 받아오고
+            저장소를 건드리지 않는다.
+        cache_ttl: 최신 구간을 다시 확인하기까지의 유효 시간(초). 위 설명 참고.
+
+    Returns:
+        DatetimeIndex(Date)와 Open/High/Low/Close/Adj Close/Volume 컬럼을 가진 DataFrame.
+        데이터가 없으면 빈 DataFrame을 반환한다 (예외를 던지지 않음).
+    """
+    if not use_cache:
+        return _download(ticker, start, end, interval)
+
+    store_file = _store_path(ticker, interval)
+    full_marker = _full_history_marker(store_file)
+    stored = _load_store(store_file)
+
+    req_start = pd.Timestamp(start) if start else None
+    updated = False
+
+    full_marker_fresh = full_marker.exists() and (
+        time.time() - full_marker.stat().st_mtime < FULL_HISTORY_RECHECK_SECONDS
+    )
+    need_older = (
+        not stored.empty
+        and not full_marker_fresh
+        and (req_start is None or req_start < stored.index.min())
+    )
+    if need_older:
+        older_end = (stored.index.min() - pd.Timedelta(1, unit="D")).strftime("%Y-%m-%d")
+        older = _download(ticker, start=start, end=older_end, interval=interval)
+        if not older.empty:
+            stored = _merge_price_data(older, stored)
+            updated = True
+        if req_start is None:
+            full_marker.touch()  # start=None으로 받아봤으니 이게 진짜 전체 이력의 시작
+
+    if stored.empty:
+        need_tail = True
+    elif end is not None:
+        # 명시적(배타적) end 요청: 이미 그 범위를 커버하면(1일 버퍼로 yfinance의 end-배타 관례를
+        # 맞춤) 과거 데이터이므로 캐시 나이와 무관하게 네트워크 불필요. 커버 못하면 무조건 받아옴.
+        need_tail = pd.Timestamp(end) > stored.index.max() + pd.Timedelta(1, unit="D")
+    else:
+        # end=None(오늘까지): 저장 범위가 오늘에 못 미치면 무조건, 닿아 있어도 캐시가 오래됐으면
+        # 한 번 더 확인한다.
+        is_stale = (not store_file.exists()) or (time.time() - store_file.stat().st_mtime >= cache_ttl)
+        need_tail = (pd.Timestamp(date.today()) > stored.index.max()) or is_stale
+
+    if need_tail:
+        tail_start = start if stored.empty else stored.index.max().strftime("%Y-%m-%d")
+        fresh = _download(ticker, start=tail_start, end=end, interval=interval)
+        if not fresh.empty:
+            stored = _merge_price_data(stored, fresh)
+            updated = True
+
+    if stored.empty:
+        return pd.DataFrame()
+
+    if updated:
+        _save_store(store_file, stored)
+
+    result = stored
+    if req_start is not None:
+        result = result[result.index >= req_start]
+    if end is not None:
+        result = result[result.index < pd.Timestamp(end)]  # yfinance와 동일하게 end는 배타적
+    return result.copy()
+
+
+def resample_ohlcv(df: pd.DataFrame, rule: str) -> pd.DataFrame:
+    """일봉 OHLCV를 주/월/분기 등 더 긴 봉으로 리샘플링한다.
+
+    yfinance가 직접 제공하는 "1wk"/"1mo"/"3mo" 데이터는 일봉과 별도 피드라 최신 데이터 반영이
+    하루 이상 늦어져 일봉과 날짜가 안 맞는 경우가 있다. 그 대신 항상 일봉을 받아 여기서 직접
+    집계하면 어떤 봉 주기를 선택해도 같은 일봉 데이터에서 파생되어 항상 동기화된다.
+
+    Open=구간 내 첫 거래일의 시가, High/Low=구간 내 최고/최저, Close=구간 내 마지막 거래일의 종가,
+    Volume=구간 합계. 인덱스는 달력상 주/월/분기의 마지막 날이 아니라 그 구간의 실제 마지막 거래일로
+    맞춘다 (주말/공휴일에 걸리면 실제로는 존재하지 않는 날짜가 라벨이 되는 것을 방지).
+
+    Args:
+        df: DatetimeIndex를 가진 일봉 OHLCV DataFrame.
+        rule: pandas resample 규칙 ("W-FRI"=주봉/금요일 기준, "ME"=월봉, "QE"=분기봉 등).
+    """
+    if df.empty:
+        return df
+    agg_map = {"Open": "first", "High": "max", "Low": "min", "Close": "last", "Volume": "sum"}
+    if "Adj Close" in df.columns:
+        agg_map["Adj Close"] = "last"
+    grouped = df.resample(rule)
+    out = grouped.agg(agg_map).dropna(subset=["Open", "High", "Low", "Close"])
+    real_dates = df.index.to_series().resample(rule).last().reindex(out.index)
+    out.index = pd.DatetimeIndex(real_dates.values)
+    out.index.name = "Date"
+    return out
+
+
+def get_latest_price(ticker: str) -> Optional[float]:
+    """가장 최근 종가(Close)를 반환한다. 데이터가 없으면 None."""
+    df = get_price_history(ticker, start=None, end=None, interval="1d", use_cache=True)
+    if df is None or df.empty:
+        return None
+    return float(df["Close"].iloc[-1])
+
+
+def get_multiple_price_history(
+    tickers: list[str],
+    start: Optional[str] = None,
+    end: Optional[str] = None,
+    interval: str = "1d",
+    use_cache: bool = True,
+) -> dict[str, pd.DataFrame]:
+    """여러 티커의 가격 데이터를 한 번에 가져온다 (관심 티커 스캔, 다종목 백테스트, 시장국면/섹터강도
+    처럼 S&P500 전종목·테마 프록시 ETF 다수를 훑는 기능 등에서 사용).
+
+    개별 티커 조회(네트워크 I/O 위주)를 스레드풀로 병렬 실행한다(2026-07-15) — 순차 for문이면
+    500종목 조회에 수 분이 걸리던 것(시장 국면 탭 최초 로딩 실측)을 동시에 처리해 단축한다. 각
+    티커는 (ticker, interval)별로 독립된 캐시 파일에 쓰기 때문에 스레드 간 쓰기 경합이 없다
+    (core.job_manager가 백그라운드 작업을 스레드풀로 돌리는 것과 같은 이유로 안전).
+
+    Returns:
+        {ticker: DataFrame} 딕셔너리. 개별 티커 조회 실패 시 해당 티커는 빈 DataFrame.
+    """
+    def _fetch(t: str) -> pd.DataFrame:
+        try:
+            return get_price_history(t, start=start, end=end, interval=interval, use_cache=use_cache)
+        except Exception:
+            return pd.DataFrame()
+
+    if not tickers:
+        return {}
+
+    with ThreadPoolExecutor(max_workers=_MULTI_FETCH_MAX_WORKERS) as executor:
+        futures = {t: executor.submit(_fetch, t) for t in tickers}
+        return {t: future.result() for t, future in futures.items()}
+
+
+def clear_cache(ticker: Optional[str] = None) -> int:
+    """로컬 가격 저장소 파일을 삭제한다. ticker를 지정하면 해당 티커(전체 interval)만,
+    None이면 전체 삭제.
+
+    Returns:
+        삭제한 파일 개수.
+    """
+    count = 0
+    prefix = f"{ticker}_" if ticker else ""
+    for pattern in (f"{prefix}*.parquet", f"{prefix}*.full"):
+        for f in CACHE_DIR.glob(pattern):
+            f.unlink()
+            count += 1
+    return count

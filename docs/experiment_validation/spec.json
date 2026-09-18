@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "day": 1,
+  "status": "draft_blocked_do_not_backtest",
+  "frozen": false,
+  "protocol_snapshot": "source/TWO_WEEK_STRATEGY_VALIDATION_PROTOCOL.md",
+  "candidate_yaml": "candidates.yaml",
+  "candidate_count": 6,
+  "existing_17_etf": [
+    "XLC",
+    "XLY",
+    "XLP",
+    "XLE",
+    "XLF",
+    "XLV",
+    "XLI",
+    "XLB",
+    "XLRE",
+    "XLK",
+    "XLU",
+    "TLT",
+    "IEF",
+    "GLD",
+    "EFA",
+    "HYG",
+    "DBC"
+  ],
+  "universe_source": "core/champion_strategy.py CORE_UNIVERSE at manifest code_commit_sha",
+  "baselines": [
+    {
+      "id": "SPY_buy_hold",
+      "rule": "SPY 매수보유"
+    },
+    {
+      "id": "SPY_IEF_60_40",
+      "rule": "60/40(SPY/IEF)"
+    },
+    {
+      "id": "candidate_universe_equal_weight",
+      "rule": "후보 유니버스 동일가중"
+    }
+  ],
+  "execution": {
+    "signal_observation": "session_close",
+    "fill_session": "strictly_next_exchange_trading_session",
+    "fill_price": "Open",
+    "same_day_close_fill_allowed": false,
+    "signal_data_after_signal_close_allowed": false,
+    "one_way_cost_bps": [
+      5,
+      10,
+      25
+    ],
+    "cost_basis": "absolute executed buy/sell notional; both legs charged separately",
+    "unavailable_open": "no fabricated close fill; stop and report unresolved order",
+    "execution_review_required": "Audit gap exposure, drift-aware turnover, cash/fees and adjustment basis before Day 3; shifted close-to-close returns do not prove open execution"
+  },
+  "samples": {
+    "actual": "Only actual listed ETF history with a common valid warmup; no synthetic prelisting prices",
+    "proxy": {
+      "mapping": {
+        "XLC": "VOX"
+      },
+      "label": "프록시",
+      "start_constraint": "common start in or after 2007",
+      "exact_start": null
+    },
+    "s6": "Only independently verified point-in-time coverage; S1/S6 comparison uses common dates only",
+    "oos_windows": [
+      "2007-2015",
+      "2016-2020",
+      "2021-최근"
+    ]
+  },
+  "data_rules": {
+    "adjusted_close_and_open": "Preserve both raw provider Open/Close and Adj Close; document any derived adjustment and avoid dividend double counting",
+    "missing_values": "No implicit forward/backfill, silent universe deletion or shortened warmup",
+    "current_day": "Exclude 2026-09-18 session; explicit download end is exclusive",
+    "timezone": "Preserve provider timezone; audit exchange session mapping on Day 2"
+  },
+  "selection_gates_verbatim": "모든 하드 게이트를 통과해야 후보로 남는다.\n\n- 데이터 누수, 미래 유니버스, 동일일 종가 체결, 미설명 결측 처리: 즉시 탈락.\n- 25bp 편도 비용에서 주문이 정의되지 않거나 성과가 기준선보다 일관되게 열세: 탈락.\n- 세 표본외 구간 중 두 구간 이상에서 SPY 또는 60/40 대비 비용 후 Calmar가 열세: 탈락.\n- PBO가 0.20 초과 또는 Deflated Sharpe Ratio가 0.95 미만: \"탐색\"으로만 보관하고 paper trading\n  후보에서는 제외.\n- S6은 S1보다 두 개 이상의 표본외 구간에서 개선되고 부트스트랩 개선 확률이 60% 이상일 때만\n  S1을 대체할 수 있다. 그렇지 않으면 새틀라이트는 paper shadow sleeve로만 유지한다.\n\n남은 후보 중 순위는 비용 후 Calmar, bootstrap 중앙값, 최악 3개월, turnover 순서로 매긴다.\n최종 두 전략은 월 수익률 상관 0.75 미만이어야 하며, 조건을 만족하지 않으면 하나만 또는 0개를\n선택한다.",
+  "unresolved_blockers": [
+    {
+      "id": "B1",
+      "subject": "Incomplete preregistered implementation choices",
+      "detail": "Protocol does not specify S5 tickers/lookback/weighting, precise S6 pool/selection/entry-exit rules, calendar versus trading-day month conventions, or baseline rebalance schedules. Existing Champion has additional filters and cannot supply missing choices by silent inheritance.",
+      "resolution": "Recover the pre-existing authoritative specification. If none exists, obtain an explicit clarification before freezing; do not optimize or add candidates."
+    },
+    {
+      "id": "B2",
+      "subject": "Long proxy panel cannot support first OOS window with the allowed proxy alone",
+      "detail": "Existing 17 ETF universe includes XLRE. Observed XLRE price history begins 2015-10-08. XLC->VOX alone therefore cannot supply a 12-month warmed-up common panel within 2007-2015. No XLRE substitution is authorized.",
+      "resolution": "Locate an already preregistered resolution or leave this experiment blocked for owner clarification. Do not invent XLRE->IYR, backfill prelisting prices, drop XLRE, or weaken the OOS gate."
+    },
+    {
+      "id": "B3",
+      "subject": "S6 point-in-time inputs not frozen with sufficient provenance",
+      "detail": "Local membership table has unknown upstream retrieval time/revisions, ends 2026-06-30, and has no frozen point-in-time sectors, share publication timestamps or delisted prices. Existing sampler uses current sectors and earliest future shares when past shares are unavailable.",
+      "resolution": "Establish an independently verifiable, bounded point-in-time input panel for the already specified S6 methodology. Do not claim currently cached data or current membership establishes past availability."
+    }
+  ],
+  "not_adopted_legacy_s6_defaults": {
+    "pool_n": 40,
+    "top_k": 3,
+    "donchian_days": 20,
+    "stop_pct": 0.15,
+    "rank_lookback_days": 252,
+    "rebalance_months": [
+      1,
+      7
+    ],
+    "reason": "Recorded as evidence from existing code, not asserted to be the preregistered S6 definition"
+  },
+  "scope": "Day 1 only. No performance metrics, ranking, trading or Day 2 output."
+}

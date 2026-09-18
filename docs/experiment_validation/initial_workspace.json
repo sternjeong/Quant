@@ -1,0 +1,57 @@
+{
+  "captured_at_utc": "2026-09-18T09:45:13.403864+00:00",
+  "head": "ba408756b47e53c170a168db63e53a45d979baf6",
+  "branch": "main",
+  "preexisting_tracked_changes": {
+    "PROGRESS.md": {
+      "sha256": "84c9a2377929e60a5ac7824c3263698bae57d1f30cd54ca76c43488805ce955b",
+      "mode": "0o600"
+    },
+    "deploy/codex_telegram/runner.py": {
+      "sha256": "43b94cbf9c15497605367a6f76eecd989017260b6bbeaef3f131bcf8b1894b28",
+      "mode": "0o750"
+    },
+    "docs/TWO_WEEK_STRATEGY_VALIDATION_PROTOCOL.md": {
+      "sha256": "93803ffc02be18e21fe054789e9f14de0f21f87d9c6df9a72a6614fe02935c80",
+      "mode": "0o644"
+    },
+    "docs/reports/README.md": {
+      "sha256": "3dcd2c36fe25c605509ac241902e0cc40eecfd004a92b5c410f1a9e2608f23dd",
+      "mode": "0o600"
+    }
+  },
+  "status": [
+    " M PROGRESS.md",
+    " M deploy/codex_telegram/runner.py",
+    " M docs/TWO_WEEK_STRATEGY_VALIDATION_PROTOCOL.md",
+    " M docs/reports/README.md",
+    "?? .auto-deploy-state/",
+    "?? .cache/",
+    "?? .claude.json",
+    "?? .claude/",
+    "?? .codex/",
+    "?? .config/",
+    "?? .experiment-control/",
+    "?? .gitconfig",
+    "?? .local/",
+    "?? .npm/",
+    "?? .streamlit/machine_id_v4",
+    "?? analysis.root_backup_20260914/",
+    "?? analysis/2026-09-14_nonai_control_basket_volatility_momentum/",
+    "?? analysis/2026-09-14_satellite_correlation_crisis_signal/",
+    "?? analysis/2026-09-15_options_collar_hedge_volatility_momentum_basket/",
+    "?? analysis/2026-09-15_options_collar_parameter_sensitivity/",
+    "?? analysis/2026-09-17_fine_grid_joint_candidate_bootstrap_audit/",
+    "?? analysis/2026-09-17_historical_era_trend_following_extension/",
+    "?? analysis/2026-09-17_live_tenbagger_screening_snapshot/",
+    "?? analysis/2026-09-17_lookback_rebal_candidate_bootstrap_audit/",
+    "?? deploy/experiment_supervisor.py",
+    "?? deploy/research_agents/",
+    "?? docs/reports/fine_grid_joint_candidate_bootstrap_audit_research.html",
+    "?? docs/reports/historical_era_trend_following_extension_research.html",
+    "?? docs/reports/nonai_control_basket_volatility_momentum_research.html",
+    "?? docs/reports/options_collar_btc_instrument_transplant_research.html",
+    "?? docs/reports/options_collar_moneyness_tenor_grid_and_placebo_research.html",
+    "?? docs/reports/satellite_correlation_crisis_signal_research.html"
+  ]
+}

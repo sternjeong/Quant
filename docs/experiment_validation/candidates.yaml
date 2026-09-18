@@ -1,0 +1,74 @@
+{
+  "format": "JSON syntax is YAML 1.2 compatible",
+  "status": "draft_blocked_do_not_backtest",
+  "candidate_count": 6,
+  "candidates": [
+    {
+      "id": "S1",
+      "protocol_rule": "17 ETF, 12개월 원시 상대모멘텀 상위 4개, 월간",
+      "explicit_parameters": {
+        "universe_ref": "existing_17_etf",
+        "lookback_months": 12,
+        "top_n": 4,
+        "rebalance": "monthly",
+        "ranking": "raw_relative_momentum"
+      }
+    },
+    {
+      "id": "S2",
+      "protocol_rule": "S1과 같지만 최근 1개월을 제외한 12-1개월 모멘텀",
+      "explicit_parameters": {
+        "inherits": "S1",
+        "exclude_recent_months": 1
+      }
+    },
+    {
+      "id": "S3",
+      "protocol_rule": "17 ETF 각각의 12개월 절대모멘텀 양수분만 동일가중, 음수분은 현금",
+      "explicit_parameters": {
+        "universe_ref": "existing_17_etf",
+        "lookback_months": 12,
+        "absolute_momentum_threshold": 0,
+        "positive_weighting": "equal",
+        "nonpositive_allocation": "cash"
+      }
+    },
+    {
+      "id": "S4",
+      "protocol_rule": "SPY/EFA/IEF/GLD/DBC의 10개월 SMA 추세배분, 월간",
+      "explicit_parameters": {
+        "universe": [
+          "SPY",
+          "EFA",
+          "IEF",
+          "GLD",
+          "DBC"
+        ],
+        "sma_months": 10,
+        "rebalance": "monthly"
+      }
+    },
+    {
+      "id": "S5",
+      "protocol_rule": "5 자산군 ETF의 절대모멘텀 양수분 중 상대모멘텀 상위 3개, 월간",
+      "explicit_parameters": {
+        "universe_size": 5,
+        "absolute_momentum_threshold": 0,
+        "top_n": 3,
+        "rebalance": "monthly"
+      }
+    },
+    {
+      "id": "S6",
+      "protocol_rule": "S1 85% + point-in-time 돈치안 새틀라이트 15%, 코어 월간/새틀라이트 반기",
+      "explicit_parameters": {
+        "core": "S1",
+        "core_weight": 0.85,
+        "satellite_weight": 0.15,
+        "satellite_signal": "point_in_time_donchian",
+        "core_rebalance": "monthly",
+        "satellite_rebalance": "semiannual"
+      }
+    }
+  ]
+}
