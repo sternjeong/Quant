@@ -67,10 +67,17 @@
 
 ## VM 운용
 
-quant-vm은 2코어이므로 검증 배치는 기존 Streamlit·scheduler 서비스와 겹치지 않게 매일
-KST 00:30~05:30에 단일 worker로 실행한다. 같은 결정론적 백테스트를 반복하지 않고, 당일 표의
-아직 끝나지 않은 산출물만 실행한다. 매 작업 후 manifest, 로그, 결과 해시를 저장하고 Telegram에는
-진행률·실패·중간 순위만 보낸다. 전략 규칙 변경은 14일 종료 전 금지한다.
+quant-vm은 2코어이므로 감독 서비스는 동시에 하나의 Codex만 실행하고, 완료·한도·오류를 감시하는
+서비스 자체는 상시 유지한다. 다음 감독 실행은 기본 4시간 뒤이며, 같은 결정론적 백테스트를 반복하지
+않고 아직 끝나지 않은 산출물 하나만 실행한다. 기존 Streamlit·scheduler 및 이미 활성화된 별도
+리서치 타이머는 이 프로토콜이 임의로 중지하지 않는다. 매 작업 후 manifest, 로그, 결과 해시를 저장하고
+Telegram에는 진행률·실패·중간 순위만 보낸다. 전략 규칙 변경은 14일 종료 전 금지한다.
+
+운영 상태는 git 밖의 `.experiment-control/state.json`, 일시정지·중지는
+`.experiment-control/control.json`에 기록한다. 각 Day가 모든 통과 조건을 충족했을 때만
+`docs/experiment_validation/PROGRESS.md`에 `DAY_N_COMPLETE` 표식을 기록한다. 감독기는 이 표식만
+다음 단계의 근거로 사용한다. 매 24시간 Telegram에 HTML 보고서를 보내며, 이 자동 생성 보고서는
+`.experiment-control/reports/`에 보관하고 커밋하지 않는다.
 
 ## 종료 후
 

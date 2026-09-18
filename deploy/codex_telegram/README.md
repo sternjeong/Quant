@@ -48,6 +48,31 @@
 `/usage`는 최근 7일간 백엔드별 작업 수·완료 수·사용량 한도(429 등) 도달 횟수를 보여준다.
 한도에 자주 걸리는 시간대/백엔드를 파악하는 용도다.
 
+## 2주 전략 실험 감독
+
+`quant-experiment-supervisor.service`는 `/opt/quant`에서 계속 실행된다. 한 번에 하나의 Codex
+감독만 실행하며, 4시간 간격으로 `docs/TWO_WEEK_STRATEGY_VALIDATION_PROTOCOL.md`의 아직 완료되지
+않은 단계를 진행한다. 각 단계가 완료됐다는 표식은 `docs/experiment_validation/PROGRESS.md`의
+`DAY_N_COMPLETE`뿐이다. 따라서 상태 파일이나 모델의 말만으로 단계를 건너뛰지 않는다. 기본 14단계가
+끝나면 결과와 사전등록 문서를 먼저 읽고, 기존 후보의 미세조정이 아닌 가설 하나를 새로 사전등록해
+첫 검증 단계만 진행한다. 이 서비스는 실계좌 주문과 인증정보 변경을 하지 않는다.
+
+매 24시간마다 현재 상태, 완료 단계, git HEAD, 오류를 담은 HTML 파일을 같은 private Telegram chat에
+`sendDocument`로 보낸다. Telegram 명령은 다음과 같다.
+
+```text
+/experiment                         # 즉시 상태 확인
+/experiment pause                   # 다음 Codex 감독 실행부터 일시정지
+/experiment resume                  # 감독 재개
+/experiment stop                    # 실행 중인 Codex 감독에 SIGTERM을 보내고 이후 실행 중지
+/experiment claude Day 4를 검토해줘 # Claude에게 Quant 실험 지시
+/experiment codex 비용 가정을 확인해줘
+```
+
+`pause`는 현재의 원자적 Codex 작업을 끝까지 두고 다음 작업부터 막는다. 진행 중인 작업까지 즉시
+멈춰야 하면 `stop`을 사용한다. `resume`은 중지·일시정지 어느 상태에서도 재개하며, 한도 오류가
+발생했을 때는 `RESUME_NOTE.md`를 남긴 뒤 15분 후 자동 재개한다.
+
 `/digest`는 마지막으로 `/digest`를 호출한 시점 이후 새로 끝난(`done`/`blocked`/`cancelled`)
 작업과, 지금 대기·실행·차단 중인 작업을 한 메시지로 압축해서 보여준다. 접속이 뜸한 상황에서
 알림 여러 개를 일일이 스크롤하는 대신 명령 하나로 따라잡는 용도 — 호출할 때마다 기준 시각이

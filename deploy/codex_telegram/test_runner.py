@@ -297,6 +297,17 @@ class PipelineTests(unittest.TestCase):
             text = db.execute('SELECT text FROM outbox ORDER BY id DESC LIMIT 1').fetchone()['text']
         self.assertIn('1 [codex] test - queued', text)
 
+    def test_experiment_codex_command_queues_quant_job(self):
+        update = self.update(1)
+        update['message']['text'] = '/experiment codex Day 1의 데이터 감사를 해줘'
+        self.s.ingest([update])
+        with self.s.db() as db:
+            job = db.execute('SELECT project,backend,instruction FROM jobs WHERE id=1').fetchone()
+            reply = db.execute('SELECT text FROM outbox ORDER BY id DESC LIMIT 1').fetchone()['text']
+        self.assertEqual((job['project'], job['backend']), ('quant', 'codex'))
+        self.assertIn('사전등록 규칙', job['instruction'])
+        self.assertIn('Quant 실험 지시', reply)
+
     def test_cancel_queued_job_removes_it(self):
         self.s.ingest([self.update(1)])
         cancel = self.update(2)
