@@ -73,3 +73,43 @@ runner 내용·권한 및 원본 프로토콜 파일 권한이 최초 관측과 
 루트 PROGRESS.md, 보고서 README 내용은 그대로다. 이번 작업은 해당 파일들을 쓰거나 되돌리지 않았다.
 `workspace_final_observation.json`에 최초/현재 SHA-256·권한·관측시각을 저장했다.
 게시 전 보존 검사와 이 최종 관측을 구분해야 한다. 고정 증거 55개 및 연구 브랜치의 산출물은 여전히 일치한다.
+
+
+## 2026-09-18 14:15 UTC — Day 1 재개 검토 (DAY_1_BLOCKED)
+
+사전등록 계약과 입력 패널의 보류 사유 B1/B2/B3가 남아 있어 Day 1 미완료를 유지한다.
+초기 프로토콜 커밋 및 로컬 연구 기록을 검색했으나 이들을 해소하는 승인 기록을 찾지 못했다.
+S6 역사적 방법의 근거(루트 작업55/60)는 확인했지만 S5 상세 정의·XLRE 표본 충돌·PIT 입력
+출처를 대신하지 못한다. 완료 표식은 기록하지 않는다. 다음 감독은 새 명세/입력 근거부터 확인한다.
+
+산출물 디렉터리: `day1_review_20260918T141530Z/`.
+생성 파일: `review.md`, `RESUME_NOTE.md`, `initial_observation.json`, `registration_search.json`,
+`integrity.json`, `tests.log`, `require_complete.json`, `commands.json`, `probe_reference_contract.py`,
+`reference_probe.json`, `current_reference_comparison.json`, `publication_validation.json`,
+`result_hashes.json`. 게시 및 최종 작업 보존 관측은 `publication.json`,
+`workspace_final_observation.json`에 추가 기록한다. 루트와 이 디렉터리의 진행/재개 기록은
+기존 내용을 보존하고 이번 결과만 덧붙였다.
+
+검증: 고정 증거 55개 일치; 데이터 20개(ETF 19+구성종목 1)의 저장/압축 전 해시 일치;
+기존 회귀 6 passed; 별도 게시 worktree에서도 6 passed; 완료 요구 검사 종료 코드 2.
+합성 검사에서 다음 시가가 109인 초기 매수의 실제 0.9174%와 참고 계산 10%의 차이,
+미래 주식수 fallback, 미래 구성종목 fallback을 재현했다. 세 참고 함수의 AST는 현재
+main에서도 같다. 결함 재현은 전략 통과를 뜻하지 않는다. 허용 프록시 후 첫 공통 일자는
+2015-10-08, 2015년 말까지 59행으로 12개월 신호를 첫 표본외 구간에 제공할 수 없다.
+
+| 고정 증거 | SHA-256 |
+| --- | --- |
+| 기존 `spec.json` | `c5296b50e31f35804ffae5ba3cfd738e64431ead2551b931b85becf970259d97` |
+| 기존 `manifest.json` | `09466ed870c477753a6ff7d0327cb0a6786dbfd142a6ea352d87d30df4210b9d` |
+| 기존 `snapshot_lock.json` | `3022ec9a3169c827ccb398c309b2cd0d46be87fce7f467e1ef0a20f366f62f9e` |
+| 데이터 20개 path→저장 해시 목록 (정렬 키 compact JSON, UTF-8, 개행 없음) | `de0ab5ab2117c537c61bfebca6bbfbc10c462a51d684ee3275ac04631c3a5bcc` |
+| 이번 `result_hashes.json` | `ed2d32ecbf8b123e6978db68b61d28d7d08d988aa63a6131964c18786e8eaa6f` |
+
+개별 데이터 해시 20개는 위의 원래 기록 및 `reference_probe.json`에 있다.
+관측한 main 코드 SHA: `3f122bce490505ea3ba84872ad39fea0513aaded`.
+manifest의 원래 참고 SHA `ba408756b47e53c170a168db63e53a45d979baf6`는 변경하지 않았다.
+새 실행 엔진의 인증이나 데이터의 point-in-time 적합성 통과를 주장하지 않는다.
+
+기존 게시 worktree 경로가 사라져 원래 연구 브랜치 `dced9bc`에서
+`research/day1-review-20260918`을 만들었다. worktree: `/tmp/quant-day1-review-20260918`.
+main과 기존 미커밋 연구를 보존하며 이 기록만 새 연구 브랜치에 게시한다.

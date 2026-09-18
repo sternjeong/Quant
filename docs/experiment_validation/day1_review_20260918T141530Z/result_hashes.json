@@ -1,0 +1,24 @@
+{
+  "scope": "Day 1 review evidence; original snapshot lock unchanged",
+  "created_at": "2026-09-18T14:20:40.263823+00:00",
+  "pinned_snapshot_lock_sha256": "3022ec9a3169c827ccb398c309b2cd0d46be87fce7f467e1ef0a20f366f62f9e",
+  "dataset_inventory_sha256": "de0ab5ab2117c537c61bfebca6bbfbc10c462a51d684ee3275ac04631c3a5bcc",
+  "artifacts": {
+    "RESUME_NOTE.md": "7c7fbd5e9bb71bedb42f7e7842e5fd5aa1aa9459625170868ec1bea069e46578",
+    "commands.json": "ef7800e627c0a5a1453dc04bcb3fbb24311a5b31336a0caa419e275f3f2f054e",
+    "current_reference_comparison.json": "73697f7867852358a77bcbe60c5c605f79c932a575d4fa3d1ca394c236bc21eb",
+    "initial_observation.json": "ceded3b9c650aa21eafddf59b0585b08a6f4166df571bc72ee709017a1908e40",
+    "integrity.json": "46a9dcda095e6ecf2a5cbf6b0d97a9c355fc1e5e20e5678eecef6a4e676523b4",
+    "probe_reference_contract.py": "12e52f69cf70ee91029d46243e8e08a91c9b5fadfac84708e7ee33a5431b63f9",
+    "publication_validation.json": "69e6387388b1ffbce406e6acfb1bb9ae1184124e335e663b397a7af8cbe67745",
+    "reference_probe.json": "398aab73a75104c902274fadedff2efffce6b703f05fc88e96b2d52486fdf317",
+    "registration_search.json": "8f52b1031df7e5d3b8aadc06edba7a10c2e63f7f01588e0d237fe8df6e5f2572",
+    "require_complete.json": "46a9dcda095e6ecf2a5cbf6b0d97a9c355fc1e5e20e5678eecef6a4e676523b4",
+    "review.md": "a099708cae60462a213ae5334f17857846490eaf6cd8956678d535a4c0afbb7d",
+    "tests.log": "bef8623b25b25ab880ba85efeef2d92c7d65627f885fe3b9c983593ce2c4795b"
+  },
+  "excluded_append_only_records": [
+    "publication.json",
+    "workspace_final_observation.json"
+  ]
+}

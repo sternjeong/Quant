@@ -1,0 +1,56 @@
+[
+  {
+    "argv": [
+      ".venv/bin/python",
+      "docs/experiment_validation/check_snapshot.py"
+    ],
+    "exit_code": 0,
+    "output": "integrity.json",
+    "stderr": "",
+    "finished_at": "2026-09-18T14:16:03.741881+00:00"
+  },
+  {
+    "argv": [
+      ".venv/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "docs/experiment_validation/test_snapshot.py"
+    ],
+    "exit_code": 0,
+    "output": "tests.log",
+    "stderr": "",
+    "finished_at": "2026-09-18T14:16:04.154358+00:00"
+  },
+  {
+    "argv": [
+      ".venv/bin/python",
+      "docs/experiment_validation/check_snapshot.py",
+      "--require-complete"
+    ],
+    "exit_code": 2,
+    "output": "require_complete.json",
+    "stderr": "",
+    "finished_at": "2026-09-18T14:16:04.199767+00:00"
+  },
+  {
+    "argv": [
+      ".venv/bin/python",
+      "docs/experiment_validation/day1_resume_20260918T135512Z/probe_reference_contract.py"
+    ],
+    "exit_code": 0,
+    "output": "reference_probe.json",
+    "stderr": "",
+    "finished_at": "2026-09-18T14:16:05.081192+00:00"
+  },
+  {
+    "argv": [
+      ".venv/bin/python",
+      "docs/experiment_validation/day1_review_20260918T141530Z/probe_reference_contract.py"
+    ],
+    "exit_code": 0,
+    "output_matches": "reference_probe.json",
+    "source_copy_sha256": "12e52f69cf70ee91029d46243e8e08a91c9b5fadfac84708e7ee33a5431b63f9",
+    "stderr": ""
+  }
+]

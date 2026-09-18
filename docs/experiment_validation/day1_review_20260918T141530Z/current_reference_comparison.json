@@ -1,0 +1,23 @@
+{
+  "current_head": "3f122bce490505ea3ba84872ad39fea0513aaded",
+  "checks": [
+    {
+      "file": "core/champion_strategy.py",
+      "function": "_compute_portfolio_returns",
+      "ast_matches_pinned_reference": true,
+      "current_function_ast_sha256": "5fa5504bae2a4ecdfd433ba71399c160ebc23daf72b5e6852f6193c8ccfe4c82"
+    },
+    {
+      "file": "core/point_in_time_market_cap.py",
+      "function": "get_market_cap_asof",
+      "ast_matches_pinned_reference": true,
+      "current_function_ast_sha256": "7421149d8a67cb3f758efa27ccc2e7e4bb66c2187869f3a8f3a2d47f38635e9f"
+    },
+    {
+      "file": "core/point_in_time_universe.py",
+      "function": "get_constituents_as_of",
+      "ast_matches_pinned_reference": true,
+      "current_function_ast_sha256": "8c5722ff955fda43336493d71525830a20d7f1fd015a714b484036b551d70256"
+    }
+  ]
+}

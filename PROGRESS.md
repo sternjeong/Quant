@@ -5032,3 +5032,17 @@ inactive dead`로 떠서 점검해보니, `/etc/systemd/system/timers.target.wan
 - 이 항목도 작업75와 동일하게 `/opt/projects/sternjeong/Quant`(텔레그램 지시 처리용 클론)에서
   작성해 커밋+푸시한다 — 라이브 인스턴스(`/opt/quant`)는 다른 진행 중 변경사항(연구 에이전트
   결과물 미커밋분, `deploy/codex_telegram/` 진행 중 수정분)이 있어 건드리지 않았다.
+
+
+### 2026-09-18 — 고정 14일 프로토콜 Day 1 재개 검토 (DAY_1_BLOCKED)
+
+Day 1만 검토했으며 아직 미완료다. 기존 증거 55개·데이터 20개의 해시 일치,
+관련 테스트 6개 통과, 완료 요구 검사는 종료 코드 2로 보류를 확인했다.
+합성 입력에서 기존 참고 코드의 다음 시가 체결 불일치와 미래 주식수/구성종목
+fallback을 재현했다. S5 등 상세 사전명세, XLRE의 첫 표본외 구간 충돌,
+S6 과거 시점 입력 출처가 해결되지 않아 완료 표식을 기록하지 않았다.
+생성 파일 목록·개별/종합 데이터 해시·검증 결과는
+`docs/experiment_validation/PROGRESS.md` 및
+`docs/experiment_validation/day1_review_20260918T141530Z/`에 기록했다.
+다음 감독은 그 디렉터리의 `RESUME_NOTE.md`에 따라 새 사전등록 근거부터
+확인한다. 기존 후보·기준선·선택 게이트는 그대로이며 Day 2는 시작하지 않았다.

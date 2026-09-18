@@ -1,0 +1,39 @@
+[
+  {
+    "argv": [
+      "/opt/quant/.venv/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "docs/experiment_validation/test_snapshot.py"
+    ],
+    "cwd": "/tmp/quant-day1-review-20260918",
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "stdout": "......                                                                   [100%]\n6 passed in 0.11s\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "/opt/quant/.venv/bin/python",
+      "docs/experiment_validation/day1_review_20260918T141530Z/probe_reference_contract.py"
+    ],
+    "cwd": "/tmp/quant-day1-review-20260918",
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "stdout": "{\n  \"scope\": \"Day 1 reference acceptance only; no strategy performance or Day 2/4 audit\",\n  \"locked_artifacts_verified\": 55,\n  \"published_lock_sha256\": \"3022ec9a3169c827ccb398c309b2cd0d46be87fce7f467e1ef0a20f366f62f9e\",\n  \"dataset_stored_and_content_hashes_verified\": 20,\n  \"dataset_hashes\": {\n    \"data/DBC.csv.gz\": \"adb17ff8c659e06b017c237cbb8d881df4af872ded7e970871b685cd74ed2ff7\",\n    \"data/EFA.csv.gz\": \"09648f56e8d1765a45603fba7bd01c6fda4ced6d73c2349ea014804d13eaeb51\",\n    \"data/GLD.csv.gz\": \"e4778ab8d72d5b658dc86d25b52aea1bc4410468dba4e956c563bffd2b8e60ea\",\n    \"data/HYG.csv.gz\": \"d92b75af5d242e3e4577257791c57438800b40e0f1eded317ce37cbfe6a797d5\",\n    \"data/IEF.csv.gz\": \"e43d148e1a2cededb8db2806698252359bbdf76db0d22152ffe621bc24995ef2\",\n    \"data/SPY.csv.gz\": \"07f2cb7fb47bd2788d4f09224a9ddc88e131c3ab1a1dd1063e3fa1a8a3271ea4\",\n    \"data/TLT.csv.gz\": \"0e639c16142f2b67102c5364fa91e290044678e673e7d50c6d4a3195d0c89ae4\",\n    \"data/VOX.csv.gz\": \"b2006fe6393cff69460175674997f27131b3162dd2da89f0e10f9c6feb9b417d\",\n    \"data/XLB.csv.gz\": \"ab4faa93a123aa15b8276a89815105db2dfb90506aac81ddcbbe48dc4f3e62e4\",\n    \"data/XLC.csv.gz\": \"b50dc748391fef615240c6ba40c134e71a6bc6318aae25530f0799bcd7da8ae0\",\n    \"data/XLE.csv.gz\": \"f804deb711677a20d599363835af6cb10ce545d28419934e894885414f028970\",\n    \"data/XLF.csv.gz\": \"f5b8c33f57c3b59ccb259436401da1918c2bbeb544c2c81fd52c424c2b1cea0d\",\n    \"data/XLI.csv.gz\": \"dedd39929a1f4951ca67fa32d978972407da8ed8178baafa81b877ad34a6732e\",\n    \"data/XLK.csv.gz\": \"dc42f7a3318eaba28f49bed0a8d8e59852b74fcfb8e0fc303450235a57c86db9\",\n    \"data/XLP.csv.gz\": \"cde5d5d8063726edf6f03bdd3e33f342f78811c7c84cb67d5098f199f36afb78\",\n    \"data/XLRE.csv.gz\": \"f62aa7257aaea8236bd0bc8c8ae7a2163fd33a3fed4fd5f64cb68c9278ca3d59\",\n    \"data/XLU.csv.gz\": \"b68c3f981108c6765448a6405618828bc81e79a8794f48284a965c0153945478\",\n    \"data/XLV.csv.gz\": \"a4efa0c6d3de98130e87f9db7aa11a2f396d7d4b3136cb3a3173cebfdc260603\",\n    \"data/XLY.csv.gz\": \"2264b80282598ee95eaa2c74aabeb5c1553638795684d461d88d7f87d4d7f746\",\n    \"data/sp500_historical_constituents.csv.gz\": \"a2d40878a6e8a6e6d48e11958ea0310715b3d245b9042d403298a88fc9953cb0\"\n  },\n  \"dataset_inventory_sha256\": \"de0ab5ab2117c537c61bfebca6bbfbc10c462a51d684ee3275ac04631c3a5bcc\",\n  \"dataset_inventory_encoding\": \"UTF-8 compact sorted-key JSON path->stored SHA-256; no newline\",\n  \"proxy_coverage\": {\n    \"mapping\": {\n      \"XLC\": \"VOX\"\n    },\n    \"common_first_date\": \"2015-10-08\",\n    \"common_last_date\": \"2026-09-17\",\n    \"common_rows_through_2015\": 59,\n    \"first_possible_252_session_lookback_date\": \"2016-10-07\",\n    \"calendar_12_month_anniversary\": \"2016-10-08\",\n    \"decision\": \"B2 unresolved under either convention; dates are bounds, not adopted parameters\"\n  },\n  \"synthetic_probes\": {\n    \"next_open_not_representable\": {\n      \"reproduced\": true,\n      \"legacy_close_return\": 0.10000000000000009,\n      \"required_gross_return_by_next_open\": {\n        \"100.0\": 0.10000000000000009,\n        \"109.0\": 0.00917431192660545\n      },\n      \"fee_bps_for_diagnostic_only\": 0\n    },\n    \"future_shares_fallback\": {\n      \"reproduced\": true,\n      \"requested_as_of\": \"2019-12-31\",\n      \"only_share_observation\": \"2020-01-02\",\n      \"returned_market_cap\": 10000.0\n    },\n    \"future_membership_fallback\": {\n      \"reproduced\": true,\n      \"requested_as_of\": \"2019-12-31\",\n      \"only_membership_observation\": \"2020-01-02\",\n      \"returned_members\": [\n        \"FUTURE_MEMBER\"\n      ]\n    }\n  },\n  \"day_1_status\": \"BLOCKED\",\n  \"interpretation\": \"Assertions pass by reproducing reference defects; this is not strategy acceptance\"\n}\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "/opt/quant/.venv/bin/python",
+      "docs/experiment_validation/check_snapshot.py",
+      "--require-complete"
+    ],
+    "cwd": "/tmp/quant-day1-review-20260918",
+    "exit_code": 2,
+    "expected_exit_code": 2,
+    "stdout": "{\n  \"evidence_integrity\": \"PASS\",\n  \"day_1_status\": \"BLOCKED\",\n  \"errors\": [],\n  \"blockers\": [\n    \"B1\",\n    \"B2\",\n    \"B3\",\n    \"data_not_verified:sp500_membership\",\n    \"spec_not_frozen\",\n    \"manifest_not_frozen\"\n  ],\n  \"checked_artifacts\": 55,\n  \"market_datasets_captured\": 19,\n  \"scope\": \"No execution/backtest correctness claim; no completion marker written\"\n}\n",
+    "stderr": ""
+  }
+]
