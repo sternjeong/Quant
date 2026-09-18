@@ -248,7 +248,12 @@ class Service:
                                  '/idea 메모: Claude/Codex 호출 없이 아이디어만 저장\n'
                                  '/ideas: 저장된 아이디어 목록, /ideas 비우기: 전체 삭제\n'
                                  '/retry 작업ID: blocked 작업 재개\n'
-                                 '/experiment: 2주 실험 상태, pause/resume/stop, Claude/Codex 실험 지시\n'
+                                 '/experiment: 2주 전략 실험 상태 확인\n'
+                                 '/experiment pause: 다음 감독 실행부터 일시정지\n'
+                                 '/experiment resume: 중지·일시정지 해제\n'
+                                 '/experiment stop: 실행 중인 감독에도 종료 신호, 이후 중지\n'
+                                 '/experiment claude 지시 또는 /experiment codex 지시: 실험 문서·상태를 '
+                                 '먼저 읽도록 강제된 작업으로 큐잉\n'
                                  '/project quant 다음 줄에 지시: 현재 Quant를 바로 선택\n'
                                  '완료/접수 메시지에 답장(reply)하면 같은 프로젝트로 이어서 지시할 수 있습니다.')
                     elif command.startswith('/') and command != '/project':
