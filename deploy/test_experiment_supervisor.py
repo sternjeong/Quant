@@ -1,5 +1,6 @@
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
 from experiment_supervisor import ExperimentSupervisor
@@ -32,3 +33,34 @@ class ExperimentSupervisorTests(unittest.TestCase):
         task = self.service.activity_prompt(state)
         self.assertIn('Day 2', task)
         self.assertEqual(state['phase'], 'validation')
+
+    def test_launch_agent_skipped_when_no_headroom(self):
+        # The Telegram queue and the scheduler's nightly tuning loop run independently on the
+        # same VM -- this supervisor must not launch a 3rd heavy Codex process on top of them.
+        service = ExperimentSupervisor(self.root, dry_run=False)
+        service.has_headroom = lambda: False
+        launched = []
+        service.launch_agent = lambda state: launched.append(state)
+        service.tick()
+        self.assertEqual(launched, [])
+        self.assertIn('여유 리소스 부족', service.state()['current_activity'])
+
+    def test_launch_agent_proceeds_when_headroom_available(self):
+        service = ExperimentSupervisor(self.root, dry_run=False)
+        service.has_headroom = lambda: True
+        launched = []
+        service.launch_agent = lambda state: launched.append(state)
+        service.tick()
+        self.assertEqual(len(launched), 1)
+
+    def test_has_headroom_blocks_on_high_load(self):
+        self.service.max_load_per_cpu = 1.0
+        with unittest.mock.patch('experiment_supervisor.os.getloadavg', return_value=(9.0, 9.0, 9.0)), \
+             unittest.mock.patch('experiment_supervisor.os.cpu_count', return_value=2):
+            self.assertFalse(self.service.has_headroom())
+
+    def test_has_headroom_true_under_normal_conditions(self):
+        with unittest.mock.patch('experiment_supervisor.os.getloadavg', return_value=(0.1, 0.1, 0.1)), \
+             unittest.mock.patch('experiment_supervisor.os.cpu_count', return_value=2), \
+             unittest.mock.patch.object(self.service, 'available_memory_mb', return_value=8000):
+            self.assertTrue(self.service.has_headroom())

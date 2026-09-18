@@ -82,6 +82,7 @@ Streamlit 앱과 완전히 별도의 프로세스로 실행된다 (브라우저�
 
 import json
 import sys
+import time as time_module  # `time`(아래)은 datetime.time 클래스라 모듈은 별칭으로 가져온다.
 from datetime import date, datetime, time, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -95,6 +96,7 @@ from apscheduler.triggers.cron import CronTrigger
 
 from core.db import get_session, init_db
 from core.champion_strategy import check_and_notify_signal_changes, check_and_notify_upcoming_rebalance
+from core.resource_guard import has_headroom
 from core.kostolany_cycle import (
     compute_theme_cycle_phases,
     get_market_cycle_phase,
@@ -295,6 +297,12 @@ _NIGHTLY_TUNING_STRATEGY_ID = 3
 _NIGHTLY_TUNING_UNIVERSE_N = 100
 _NIGHTLY_TUNING_LOOKBACK_YEARS = 5
 _NIGHTLY_TUNING_INTENSITIES = ["빠름", "보통", "정밀"]
+# 2026-09-18 추가: 이 잡은 00:00~04:00 사이 몇 시간을 반복 백테스트로 채우는 이 VM에서 가장 무거운
+# 작업이다. 같은 VM에서 독립적으로 도는 Telegram 큐(deploy/codex_telegram/runner.py)나 2주 실험
+# 감독기(deploy/experiment_supervisor.py)도 아무 때나 Claude/Codex를 돌릴 수 있어서, 반복 시작
+# 직전마다 core.resource_guard.has_headroom()으로 여유를 확인한다 — 부족하면 이번 반복을 건너뛰지
+# 않고 그냥 잠시 기다렸다 재확인한다(반복 인덱스/시드가 흐트러지면 안 되므로).
+_NIGHTLY_TUNING_HEADROOM_BACKOFF_SECONDS = 120
 _NIGHTLY_TUNING_WINDOW_END_KST = time(4, 0)  # 이 시각이 지나면 새 반복을 시작하지 않음
 
 
@@ -331,6 +339,11 @@ def strategy_nightly_tuning_job() -> None:
 
     iteration = 0
     while datetime.now(kst).time() < _NIGHTLY_TUNING_WINDOW_END_KST:
+        if not has_headroom():
+            print(f"  - 여유 리소스 부족(다른 작업과 겹침으로 추정) — "
+                  f"{_NIGHTLY_TUNING_HEADROOM_BACKOFF_SECONDS}초 대기 후 재확인")
+            time_module.sleep(_NIGHTLY_TUNING_HEADROOM_BACKOFF_SECONDS)
+            continue
         intensity = _NIGHTLY_TUNING_INTENSITIES[iteration % len(_NIGHTLY_TUNING_INTENSITIES)]
         seed = seed_base + iteration
         print(f"  - 반복 {iteration + 1}: 탐색 강도={intensity}, 종목 표본 시드={seed}")

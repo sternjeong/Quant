@@ -38,6 +38,11 @@ class ExperimentSupervisor:
         self.interval = int(os.environ.get('EXPERIMENT_AGENT_INTERVAL_SECONDS', '14400'))
         self.timeout = int(os.environ.get('EXPERIMENT_AGENT_TIMEOUT_SECONDS', '10800'))
         self.report_interval = int(os.environ.get('EXPERIMENT_REPORT_INTERVAL_SECONDS', '86400'))
+        # This VM also runs the Telegram job queue and the scheduler's nightly tuning loop
+        # independently -- checking real load/memory before launching a Codex turn keeps this
+        # supervisor from piling a 3rd heavy process on top of whatever they're already doing.
+        self.max_load_per_cpu = float(os.environ.get('EXPERIMENT_MAX_LOAD_PER_CPU', '1.5'))
+        self.min_free_memory_mb = float(os.environ.get('EXPERIMENT_MIN_FREE_MEMORY_MB', '1024'))
         self.codex = Path(os.environ.get(
             'CODEX_BIN', self.root / '.codex-telegram-runtime' / 'node_modules' / '.bin' / 'codex'))
         self.stop = False
@@ -85,6 +90,30 @@ class ExperimentSupervisor:
 
     def save(self, state):
         self.write_json(self.state_path, state)
+
+    @staticmethod
+    def available_memory_mb():
+        try:
+            with open('/proc/meminfo') as meminfo:
+                for line in meminfo:
+                    if line.startswith('MemAvailable:'):
+                        return int(line.split()[1]) / 1024
+        except (OSError, ValueError, IndexError):
+            return None
+        return None
+
+    def has_headroom(self):
+        try:
+            load1 = os.getloadavg()[0]
+        except OSError:
+            load1 = 0.0
+        cpu_count = os.cpu_count() or 1
+        if load1 >= cpu_count * self.max_load_per_cpu:
+            return False
+        available = self.available_memory_mb()
+        if available is not None and available < self.min_free_memory_mb:
+            return False
+        return True
 
     def git(self, *args):
         try:
@@ -296,7 +325,11 @@ class ExperimentSupervisor:
             self.save(state)
             return
         if not state.get('agent_pid') and now >= state.get('next_agent_at', now):
-            self.launch_agent(state)
+            if self.has_headroom():
+                self.launch_agent(state)
+            else:
+                state['current_activity'] = '여유 리소스 부족(다른 작업과 겹침으로 추정)으로 다음 감독 실행 대기'
+                self.save(state)
 
     def run(self):
         def shutdown(*_):
