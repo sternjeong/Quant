@@ -37,4 +37,5 @@ data/cache/*
 # Telegram Codex private runtime
 .codex-telegram-runtime/
 .codex-telegram-state/
+.news-digest/
 deploy/codex_telegram/config.json

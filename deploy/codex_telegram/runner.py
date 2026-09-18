@@ -84,7 +84,8 @@ class Service:
 
     def experiment_paths(self):
         """Paths shared with the experiment supervisor, without storing secrets in SQLite."""
-        root = Path(self.cfg['projects'].get('quant', '/opt/quant')).resolve()
+        default_project = self.cfg.get('default_project', '')
+        root = Path(self.cfg['projects'].get('quant', self.cfg['projects'].get(default_project, '/opt/quant'))).resolve()
         control_dir = Path(self.cfg.get('experiment_control_dir', root / '.experiment-control'))
         return root, control_dir, control_dir / 'control.json', control_dir / 'state.json'
 
@@ -117,6 +118,46 @@ class Service:
             lines.append('일일 HTML 보고서: 전송됨')
         if state.get('last_error'):
             lines.append(f"최근 오류: {state['last_error'][:300]}")
+        return '\n'.join(lines)
+
+    def news_digest_status(self, requested_ticker=''):
+        """Quant DB의 최신 뉴스 요약을 stdlib sqlite로 읽는다.
+
+        listener는 의도적으로 프로젝트 가상환경/SQLAlchemy에 의존하지 않는다. 뉴스 수집은
+        스케줄러가 맡고 이 명령은 저장된 결과만 읽으므로 Telegram polling을 막지 않는다.
+        """
+        ticker = requested_ticker.strip().upper()
+        if ticker and not re.fullmatch(r'[A-Z][A-Z0-9.\-]{0,14}', ticker):
+            return '사용법: /news 또는 /news XLK'
+        default_project = self.cfg.get('default_project', '')
+        root = Path(self.cfg['projects'].get('quant', self.cfg['projects'].get(default_project, '/opt/quant'))).resolve()
+        db_path = root / 'data' / 'quant.db'
+        if not db_path.is_file():
+            return '뉴스 DB가 아직 만들어지지 않았습니다. 서버 배포 후 첫 일일 수집을 기다리거나 웹의 뉴스 리서치에서 실행하세요.'
+        try:
+            with sqlite3.connect(db_path, timeout=5) as db:
+                db.row_factory = sqlite3.Row
+                if ticker:
+                    rows = db.execute(
+                        'SELECT ticker, article_count, summary, created_at FROM news_ticker_digests '
+                        'WHERE ticker=? ORDER BY id DESC LIMIT 1', (ticker,)
+                    ).fetchall()
+                else:
+                    rows = db.execute(
+                        'SELECT ticker, article_count, summary, created_at FROM news_ticker_digests '
+                        'WHERE id IN (SELECT MAX(id) FROM news_ticker_digests GROUP BY ticker) '
+                        'ORDER BY created_at DESC LIMIT 12'
+                    ).fetchall()
+        except sqlite3.Error:
+            return '뉴스 요약 테이블이 아직 준비되지 않았습니다. 첫 배포·수집 후 /news로 다시 확인하세요.'
+        if not rows:
+            return (f'{ticker} 뉴스 요약이 아직 없습니다.' if ticker else
+                    '아직 뉴스 요약이 없습니다. 웹의 뉴스 리서치에서 ‘지금 수집·요약’을 누르거나 다음 일일 보고를 기다리세요.')
+        lines = ['📰 최신 티커 뉴스 요약']
+        for row in rows:
+            summary = re.sub(r'\s+', ' ', row['summary'] or '').replace('•', '')[:260]
+            lines.append(f"• {row['ticker']} ({row['article_count']}건): {summary}")
+        lines.append('전체 출처 링크는 매일 첨부되는 HTML 또는 웹의 뉴스 리서치 페이지에서 확인하세요.')
         return '\n'.join(lines)
 
     def update_experiment_control(self, mode, interrupt=False):
@@ -199,6 +240,8 @@ class Service:
                         reply = self.usage_summary(db)
                     elif command == '/digest':
                         reply = self.digest_summary(db)
+                    elif command == '/news':
+                        reply = self.news_digest_status(rest)
                     elif command == '/experiment':
                         subcommand, _, experiment_instruction = rest.strip().partition(' ')
                         subcommand = subcommand.lower()
@@ -245,6 +288,7 @@ class Service:
                                  '/diff 작업ID: 그 작업이 실제로 커밋한 내용 요약\n'
                                  '/usage: 최근 7일 사용량·한도 도달 횟수\n'
                                  '/digest: 마지막 확인 이후 끝난 작업 + 지금 대기/실행 중인 작업 한눈에 보기\n'
+                                 '/news 또는 /news XLK: 최신 티커 뉴스 요약 (원문 링크는 일일 HTML/웹에서 확인)\n'
                                  '/idea 메모: Claude/Codex 호출 없이 아이디어만 저장\n'
                                  '/ideas: 저장된 아이디어 목록, /ideas 비우기: 전체 삭제\n'
                                  '/retry 작업ID: blocked 작업 재개\n'

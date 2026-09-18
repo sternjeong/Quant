@@ -469,3 +469,57 @@ class CorrelationSnapshot(Base):
 
     def __repr__(self) -> str:
         return f"<CorrelationSnapshot id={self.id} kind={self.kind!r} avg_correlation={self.avg_correlation}>"
+
+
+class NewsTickerSubscription(Base):
+    """뉴스 수집 대상 티커.
+
+    기본값은 챔피언 전략의 17개 코어 ETF지만, 사용자가 뉴스 리서치 화면에서 자유롭게
+    추가·제거할 수 있다. 별도 테이블로 두어 관심종목/매매 감시 목록과 의도적으로 분리한다.
+    """
+
+    __tablename__ = "news_ticker_subscriptions"
+
+    id = Column(Integer, primary_key=True)
+    ticker = Column(String(20), nullable=False, unique=True, index=True)
+    enabled = Column(Boolean, nullable=False, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class NewsArticle(Base):
+    """뉴스 API가 제공한 메타데이터만 보관하는 기사 인덱스.
+
+    기사 전문은 내려받거나 저장하지 않는다. headline/excerpt는 API 응답에 포함된 짧은
+    메타데이터이며, 원문 URL을 함께 남겨 사용자가 출처를 직접 확인할 수 있게 한다.
+    """
+
+    __tablename__ = "news_articles"
+
+    id = Column(Integer, primary_key=True)
+    provider = Column(String(30), nullable=False, index=True)  # finnhub | fmp
+    provider_id = Column(String(100), nullable=True, index=True)
+    url = Column(Text, nullable=False)
+    headline = Column(Text, nullable=False)
+    excerpt = Column(Text, nullable=True)
+    source = Column(String(200), nullable=True)
+    published_at = Column(DateTime, nullable=True, index=True)
+    fetched_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+    tickers = Column(Text, nullable=False, default="[]")  # JSON 배열
+    event_type = Column(String(30), nullable=False, default="other")
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class NewsTickerDigest(Base):
+    """티커별 일일 뉴스 종합 요약 이력."""
+
+    __tablename__ = "news_ticker_digests"
+
+    id = Column(Integer, primary_key=True)
+    ticker = Column(String(20), nullable=False, index=True)
+    period_start = Column(DateTime, nullable=False, index=True)
+    period_end = Column(DateTime, nullable=False)
+    article_count = Column(Integer, nullable=False, default=0)
+    summary = Column(Text, nullable=False)
+    source_links = Column(Text, nullable=False, default="[]")  # JSON [{title, url, source}]
+    summary_status = Column(String(30), nullable=False, default="fallback")  # gemini | fallback
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)

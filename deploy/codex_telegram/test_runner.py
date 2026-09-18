@@ -2,6 +2,7 @@ import io
 import json
 from pathlib import Path
 import signal
+import sqlite3
 import subprocess
 import tempfile
 import threading
@@ -99,6 +100,19 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual([tuple(r) for r in db.execute('SELECT id,backend,instruction FROM jobs ORDER BY id')],
                              [(2,'claude','test'),(3,'codex','hello')])
             self.assertEqual(db.execute('SELECT count(*) FROM outbox').fetchone()[0], 4)
+
+    def test_news_command_reads_latest_saved_digest(self):
+        data_dir = self.root / 'data'
+        data_dir.mkdir()
+        with sqlite3.connect(data_dir / 'quant.db') as db:
+            db.execute('CREATE TABLE news_ticker_digests(id INTEGER PRIMARY KEY, ticker TEXT, article_count INTEGER, summary TEXT, created_at TEXT)')
+            db.execute("INSERT INTO news_ticker_digests(ticker, article_count, summary, created_at) VALUES('XLK', 2, '새 요약', '2026-01-01')")
+        update = self.update()
+        update['message']['text'] = '/news XLK'
+        self.s.ingest([update])
+        with self.s.db() as db:
+            reply = db.execute('SELECT text FROM outbox').fetchone()[0]
+        self.assertIn('XLK (2건): 새 요약', reply)
 
     def test_repository_then_agent_selection_queues_job(self):
         self.s.cfg['repository_selection'] = True

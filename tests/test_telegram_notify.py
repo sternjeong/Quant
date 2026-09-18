@@ -69,3 +69,25 @@ def test_send_message_returns_false_on_network_exception(monkeypatch):
 
     monkeypatch.setattr(telegram_notify.requests, "post", _raise)
     assert telegram_notify.send_message("hello") is False
+
+
+def test_send_document_posts_html_report_when_configured(monkeypatch, tmp_path):
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "fake-token")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "12345")
+    report = tmp_path / "report.html"
+    report.write_text("<h1>report</h1>", encoding="utf-8")
+    calls = []
+
+    class _FakeResponse:
+        status_code = 200
+
+    def _fake_post(url, data=None, files=None, timeout=None):
+        calls.append({"url": url, "data": data, "files": files, "timeout": timeout})
+        return _FakeResponse()
+
+    monkeypatch.setattr(telegram_notify.requests, "post", _fake_post)
+
+    assert telegram_notify.send_document(report, "daily report") is True
+    assert calls[0]["url"] == "https://api.telegram.org/botfake-token/sendDocument"
+    assert calls[0]["data"] == {"chat_id": "12345", "caption": "daily report"}
+    assert calls[0]["files"]["document"][0] == "report.html"

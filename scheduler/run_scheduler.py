@@ -109,6 +109,8 @@ from core.screener import get_universe
 from core.sector_strength import compute_theme_strength, save_theme_strength_snapshot
 from core.strategy_tuning import _SWING_MAX_HOLDING_DAYS, run_and_save_tuning, sample_universe
 from core.threads_summary import generate_weekly_report, list_tracked_tickers, save_weekly_report
+from core.news_digest import render_daily_telegram_summary, run_news_pipeline, write_daily_html_report
+from core.telegram_notify import send_document, send_message
 from core.watchlist import scan_watchlist
 
 
@@ -278,6 +280,29 @@ def fred_indicator_prewarm_job() -> None:
     print(f"[{datetime.now()}] fred_indicator_prewarm_job 종료 ({refreshed}/{len(series_ids)}개 갱신)")
 
 
+def daily_news_digest_job() -> None:
+    """무료 뉴스 API의 최근 24시간 메타데이터를 HTML과 Telegram으로 보고한다.
+
+    야간 전체 스캔과 겹치지 않는 KST 07:30에 둔다. VM 여유가 없으면 API/Gemini 호출을
+    강행하지 않고 다음 일일 실행으로 넘긴다.
+    """
+    print(f"[{datetime.now()}] daily_news_digest_job 시작")
+    if not has_headroom():
+        print("  - 리소스 여유가 없어 뉴스 수집·요약을 이번 회차에는 건너뜁니다.")
+        return
+    try:
+        result = run_news_pipeline()
+        digests = result["digests"]
+        send_message(render_daily_telegram_summary(digests))
+        if digests:
+            report_path = write_daily_html_report(digests)
+            send_document(report_path, "📰 일일 티커 뉴스 리서치 전체 보고서")
+        print(f"  - 새 기사 {result['refresh']['added']}건, 새 요약 {len(digests)}개")
+    except Exception as exc:  # noqa: BLE001 - 다음 날 스케줄을 막지 않도록 기록만 남긴다.
+        print(f"  - 뉴스 일일 보고 실패: {type(exc).__name__}: {exc}")
+    print(f"[{datetime.now()}] daily_news_digest_job 종료")
+
+
 # 사용자가 "매일 0시~4시 동안 #3 전략을 여러 차원에서 미세튜닝해서 최적의 전략을 찾아달라, 상위
 # 10개를 웹사이트에서 볼 수 있게 해달라"고 요청 (2026-07-15). #3 = 전략 라이브러리의 "볼린저 밴드
 # 하단 반전 1:2:6 전략". 배포된 Streamlit Community Cloud 사이트는 이 스케줄러가 아예 뜰 수 없는
@@ -426,12 +451,20 @@ def main() -> None:
         name="매일 한국시간 00:20 FRED 거시지표(환율 등) 캐시 미리 갱신",
         replace_existing=True,
     )
+    scheduler.add_job(
+        daily_news_digest_job,
+        trigger=CronTrigger(hour=7, minute=30, timezone="Asia/Seoul"),
+        id="daily_news_digest",
+        name="매일 한국시간 07:30 티커별 뉴스 HTML/Telegram 보고",
+        replace_existing=True,
+    )
 
     print("스케줄러 시작. 평일 16:30 에 관심 종목을 스캔하고, 매주 일요일 20:00 에 Threads 주간")
     print("인사이트 리포트를 생성합니다 (모두 America/New_York 기준). 매일 한국시간(Asia/Seoul)")
     print("00:00 에는 시장 국면/섹터 강도 스냅샷을 미리 계산해두고, 00:05~04:00 에는 #3 전략을")
     print("서버가 허락하는 만큼 반복 미세튜닝하며, 00:10 에는 챔피언 전략 신호 변경을, 00:15 에는")
     print("챔피언 전략 리밸런싱 예정일을, 00:20 에는 FRED 거시지표(환율 등) 캐시를 미리 갱신합니다.")
+    print("매일 한국시간 07:30에는 무료 뉴스 API 기반 티커별 HTML/Telegram 리포트를 보냅니다.")
     print("Ctrl+C 로 종료할 수 있습니다.")
 
     try:
