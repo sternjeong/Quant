@@ -45,6 +45,23 @@ def test_refresh_deduplicates_url_and_merges_tickers(monkeypatch, db_session):
     assert json.loads(article.tickers) == ["XLK", "XLF"]
 
 
+def test_refresh_stops_retrying_a_provider_after_request_error(monkeypatch, db_session):
+    _patch_db(monkeypatch, db_session)
+    calls = []
+
+    def unavailable(ticker, since):
+        calls.append(ticker)
+        raise news_digest.requests.HTTPError("unauthorized")
+
+    monkeypatch.setattr(news_digest, "_finnhub_articles", unavailable)
+    monkeypatch.setattr(news_digest, "_fmp_articles", lambda ticker, since: [])
+
+    result = news_digest.refresh_news(["XLK", "XLF"])
+
+    assert calls == ["XLK"]
+    assert result["errors"] == ["XLK Finnhub: HTTPError"]
+
+
 def test_digest_uses_fallback_when_gemini_unavailable(monkeypatch, db_session):
     _patch_db(monkeypatch, db_session)
     db_session.add(NewsArticle(

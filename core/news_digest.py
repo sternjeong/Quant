@@ -140,11 +140,13 @@ def _finnhub_articles(ticker: str, since: datetime) -> list[ArticleInput]:
     key = os.getenv("FINNHUB_API_KEY")
     if not key:
         return []
-    payload = requests.get(
+    response = requests.get(
         "https://finnhub.io/api/v1/company-news",
         params={"symbol": ticker, "from": since.date().isoformat(), "to": _utcnow().date().isoformat(), "token": key},
         timeout=_REQUEST_TIMEOUT_SECONDS,
-    ).json()
+    )
+    response.raise_for_status()
+    payload = response.json()
     if not isinstance(payload, list):
         return []
     results: list[ArticleInput] = []
@@ -167,11 +169,13 @@ def _fmp_articles(ticker: str, since: datetime) -> list[ArticleInput]:
     key = os.getenv("FMP_API_KEY")
     if not key:
         return []
-    payload = requests.get(
+    response = requests.get(
         "https://financialmodelingprep.com/stable/news/stock",
         params={"symbols": ticker, "limit": 20, "apikey": key},
         timeout=_REQUEST_TIMEOUT_SECONDS,
-    ).json()
+    )
+    response.raise_for_status()
+    payload = response.json()
     if not isinstance(payload, list):
         return []
     results: list[ArticleInput] = []
@@ -220,10 +224,13 @@ def refresh_news(tickers: Iterable[str] | None = None, since_hours: int = 30) ->
     errors: list[str] = []
     added = 0
     attempted = 0
+    unavailable_providers: set[str] = set()
     init_db()
     with get_session() as session:
         for ticker in selected:
             for provider, fetcher in (("Finnhub", _finnhub_articles), ("FMP", _fmp_articles)):
+                if provider in unavailable_providers:
+                    continue
                 try:
                     articles = fetcher(ticker, since)
                     attempted += len(articles)
@@ -232,6 +239,9 @@ def refresh_news(tickers: Iterable[str] | None = None, since_hours: int = 30) ->
                 except (requests.RequestException, ValueError, TypeError) as exc:
                     # API key 및 응답 내용은 로그/화면에 노출하지 않는다.
                     errors.append(f"{ticker} {provider}: {type(exc).__name__}")
+                    # 인증/요금제/일시 장애가 난 공급자는 같은 회차의 다른 티커에도 성공할
+                    # 가능성이 낮으므로 중단한다. 나머지 공급자의 수집은 계속한다.
+                    unavailable_providers.add(provider)
     return {"tickers": selected, "added": added, "attempted": attempted, "errors": errors, "since": since}
 
 
