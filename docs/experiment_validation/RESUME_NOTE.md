@@ -75,3 +75,9 @@ This preserves the dirty main worktree and avoids the main-branch automatic
 deployment path. Do not merge or push main, restart services, stage unrelated
 research/runtime files, or use force push. The publication result is appended
 to this directory's progress record after the push.
+
+Publication succeeded: evidence commit `38a15e61dfe95c3b02aab539732dcc20b63252fc`
+is on `origin/research/day1-validation-20260918`. The main working tree remains
+on its original branch with these artifacts present as an untracked directory.
+Do not assume the artifacts are absent because main has not merged the research
+branch. The isolated worktree is `/tmp/quant-day1-validation-20260918`.
