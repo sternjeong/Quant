@@ -274,6 +274,8 @@ class ExperimentSupervisor:
         self.save(state)
 
     def tick(self, report_only=False):
+        if not self.control_path.exists():
+            self.write_json(self.control_path, {'mode': 'running', 'created_at': time.time()})
         state = self.state()
         count, _ = self.completed_days()
         state['completed_days'] = count
