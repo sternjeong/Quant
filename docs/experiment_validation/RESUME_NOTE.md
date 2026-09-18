@@ -10,7 +10,8 @@ modified. No daily HTML report was committed and no Telegram message was sent.
 The root `PROGRESS.md`, `deploy/codex_telegram/runner.py` (pre-existing mode
 change), `docs/TWO_WEEK_STRATEGY_VALIDATION_PROTOCOL.md`, and
 `docs/reports/README.md` had uncommitted changes on arrival. Their content hashes
-and permissions still match `initial_workspace.json`. Other untracked research
+and permissions matched `initial_workspace.json` at the pre-publication check.
+The final observation below records subsequent concurrent changes. Other untracked research
 and runtime directories were left in place. The current protocol's operational
 amendments are not in the reference commit, so the actual working-file snapshot
 is explicitly stored and hashed rather than misrepresented as that commit.
@@ -81,3 +82,23 @@ is on `origin/research/day1-validation-20260918`. The main working tree remains
 on its original branch with these artifacts present as an untracked directory.
 Do not assume the artifacts are absent because main has not merged the research
 branch. The isolated worktree is `/tmp/quant-day1-validation-20260918`.
+
+## Concurrent workspace change observed at final check
+
+At 2026-09-18T09:52:43+00:00, main had advanced from
+`ba408756b47e53c170a168db63e53a45d979baf6` to
+`17bad161b019eba3a62bd526f840394dea9ab340`, with separate commits
+`814ec7f` (supervision/reporting), `e598206` (state initialization), and
+`17bad16` (help text). The runner content SHA changed from
+`43b94cbf9c15497605367a6f76eecd989017260b6bbeaef3f131bcf8b1894b28` to
+`588df4f3fc5fc31762f654e90cc1ab39dec25d3a0bcc257e40dcd66b3848681d`,
+and permissions from 0750 to 0664. Protocol bytes stayed unchanged, but its
+permissions changed from 0644 to 0664 and it is now committed on main.
+Root PROGRESS.md and reports README bytes/permissions still matched.
+
+This task did not write those files or make those commits. No reset, restore,
+merge or service operation was attempted. Exact observations are saved in
+`workspace_final_observation.json`; the earlier preservation check is a prior
+checkpoint, not a statement that other workers cannot change shared files.
+Re-read current git status/log before resuming. The evidence code SHA remains
+the original inspected SHA; do not relabel it with the newer main HEAD.

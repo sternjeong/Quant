@@ -15,10 +15,12 @@
   "scope": "No execution/backtest correctness claim; no completion marker written",
   "required_completion_exit_code": 2,
   "adversarial_tests": "6 passed",
-  "preexisting_tracked_changes_preserved": {
+  "preexisting_tracked_changes_preserved_at_prepublication_check": {
     "PROGRESS.md": true,
     "deploy/codex_telegram/runner.py": true,
     "docs/TWO_WEEK_STRATEGY_VALIDATION_PROTOCOL.md": true,
     "docs/reports/README.md": true
-  }
+  },
+  "final_shared_workspace_observation": "workspace_final_observation.json",
+  "final_shared_workspace_note": "Independent main commits and runner/protocol mode changes observed after initial preservation check; not reverted. Frozen evidence remains intact."
 }
