@@ -28,12 +28,16 @@ from datetime import date, timedelta
 from pathlib import Path
 from typing import Optional
 
+import numpy as np
 import pandas as pd
 
 from core import fred_data
 from core.backtest_engine import _first_trading_day_of_month_mask, calculate_metrics
+from core.db import get_session
 from core.indicators import sma
 from core.market_data import get_multiple_price_history, get_price_history
+from core.models import CorrelationSnapshot
+from core.portfolio import compute_correlation_matrix, compute_daily_returns
 from core.screener import get_universe
 from core.strategy_tuning import sample_universe, train_test_split_dates
 
@@ -1552,3 +1556,274 @@ def check_and_notify_upcoming_rebalance(days_before: int = 1, notify_fn=None) ->
 
     _save_reminder_state({"as_of": result["as_of"], "dedupe_key": dedupe_key})
     return result
+
+
+# ----------------------------------------------------------------------------
+# 보유종목 상관관계 (2026-09-18 추가)
+#
+# core.portfolio(내 실제 보유종목, kind="portfolio")와 core.backtest_engine(전략 라이브러리 간,
+# kind="strategy")가 이미 같은 CorrelationSnapshot 테이블에 상관관계 이력을 쌓고 있다 — 여기서는
+# 새 계산 로직을 만들지 않고 같은 테이블을 kind="champion"으로 공유해, "지금 챔피언 전략이 실제로
+# 추천 중인" 코어 top4 + 새틀라이트 조합이 얼마나 분산돼 있는지를 같은 원칙(매번 새 스냅샷, 덮어쓰지
+# 않고 이력을 쌓음)으로 확인한다.
+# ----------------------------------------------------------------------------
+
+CHAMPION_CORRELATION_LOOKBACK_DAYS = 365
+
+
+def get_current_holdings() -> Optional[dict]:
+    """check_and_notify_signal_changes()가 매일 밤 저장해둔 상태(data/cache/champion_signal_state.json)에서
+    "지금 챔피언 전략이 추천 중인" 코어+새틀라이트 종목 목록을 읽는다.
+
+    이 함수는 새로 스캔하지 않는다 — compute_satellite_recommendation()은 S&P500 500종목을 순차
+    조회하는 무거운 작업(수 분 소요)이라, 상관관계/실적알림/주간보고처럼 "지금 뭘 들고 있는지만
+    알면 되는" 기능들은 스케줄러가 매일 00:10에 미리 계산해둔 캐시를 재사용해야 한다.
+
+    Returns: {"as_of", "core_top4", "satellite_selected", "tickers"(코어+새틀라이트 합집합, 중복
+        제거, 정렬됨)} — 아직 한 번도 계산된 적 없으면(캐시 파일 없음) None.
+    """
+    state = _load_last_signal_state()
+    if state is None:
+        return None
+    core_top4 = state.get("core_top4", [])
+    satellite_selected = state.get("satellite_selected", [])
+    return {
+        "as_of": state.get("as_of"),
+        "core_top4": core_top4,
+        "satellite_selected": satellite_selected,
+        "tickers": sorted(set(core_top4) | set(satellite_selected)),
+    }
+
+
+def compute_champion_correlation(lookback_days: int = CHAMPION_CORRELATION_LOOKBACK_DAYS) -> dict:
+    """현재 챔피언 전략 보유종목(코어+새틀라이트) 간 최근 lookback_days일 일간수익률 상관관계를
+    계산한다. core.portfolio.compute_correlation_matrix를 그대로 재사용한다 — 상관관계 계산 자체는
+    보유 이유(직접 매수든 챔피언 전략 추천이든)와 무관하므로 새 로직이 필요 없다.
+
+    Returns: {"as_of", "tickers", "correlation": DataFrame} — 아직 신호 캐시가 없거나 종목이
+        2개 미만이면 correlation은 빈 DataFrame.
+    """
+    holdings = get_current_holdings()
+    tickers = holdings["tickers"] if holdings else []
+    if len(tickers) < 2:
+        return {"as_of": holdings["as_of"] if holdings else None, "tickers": tickers, "correlation": pd.DataFrame()}
+    start = (pd.Timestamp.today() - pd.Timedelta(days=lookback_days)).strftime("%Y-%m-%d")
+    price_histories = get_multiple_price_history(tickers, start=start)
+    daily_returns = compute_daily_returns(price_histories)
+    return {"as_of": holdings["as_of"], "tickers": tickers, "correlation": compute_correlation_matrix(daily_returns)}
+
+
+def save_champion_correlation_snapshot(correlation: pd.DataFrame) -> int:
+    """compute_champion_correlation()의 상관행렬을 이력으로 저장한다 (core.portfolio의
+    save_portfolio_correlation_snapshot과 동일한 CorrelationSnapshot 테이블을 kind="champion"으로
+    공유)."""
+    labels = list(correlation.columns)
+    n = len(labels)
+    if n < 2:
+        raise ValueError("상관관계 스냅샷을 저장하려면 2종목 이상이 필요합니다.")
+    off_diag = correlation.to_numpy()[~np.eye(n, dtype=bool)]
+    with get_session() as session:
+        row = CorrelationSnapshot(
+            kind="champion",
+            labels=json.dumps(labels, ensure_ascii=False),
+            avg_correlation=float(off_diag.mean()),
+            max_correlation=float(off_diag.max()),
+            matrix=correlation.to_json(),
+        )
+        session.add(row)
+        session.flush()
+        return row.id
+
+
+def list_champion_correlation_snapshots(limit: int = 12) -> list[dict]:
+    """챔피언 전략 보유종목 상관관계 체크 이력을 최신순으로 반환한다."""
+    with get_session() as session:
+        rows = (
+            session.query(CorrelationSnapshot)
+            .filter(CorrelationSnapshot.kind == "champion")
+            .order_by(CorrelationSnapshot.computed_at.desc())
+            .limit(limit)
+            .all()
+        )
+        return [
+            {
+                "id": r.id,
+                "labels": json.loads(r.labels),
+                "avg_correlation": r.avg_correlation,
+                "max_correlation": r.max_correlation,
+                "computed_at": r.computed_at,
+            }
+            for r in rows
+        ]
+
+
+# ----------------------------------------------------------------------------
+# 새틀라이트 실적 발표일 사전 알림 (2026-09-18 추가)
+#
+# 코어(CORE_UNIVERSE)는 전부 섹터/채권/금/국제주식 ETF라 개별 기업 실적이 없다 — 이 알림이 실제로
+# 값을 주는 건 새틀라이트(개별 종목 브레이크아웃) 쪽뿐이다. check_and_notify_upcoming_rebalance()와
+# 같은 이유의 사전 알림이지만, 실적 발표는 리밸런싱일보다 주가를 더 크게 흔들 수 있는 이벤트인데도
+# 지금까지 아무 사전 경고가 없었다.
+# ----------------------------------------------------------------------------
+
+EARNINGS_REMINDER_STATE_CACHE_PATH = PROJECT_ROOT / "data" / "cache" / "champion_earnings_reminder_state.json"
+
+
+def get_upcoming_earnings(tickers: list[str], within_days: int = 5) -> list[dict]:
+    """개별 종목의 향후 within_days일 이내 실적 발표 예정일을 찾는다 (yfinance Ticker.calendar).
+
+    ETF나 데이터 없는 종목은 자연히 빈 calendar를 반환하므로 별도 분기 없이 건너뛴다. 종목 하나
+    조회가 실패해도(일시적 오류 등) 나머지는 계속 진행한다.
+
+    Returns: [{"ticker", "earnings_date"(ISO 날짜문자열)}, ...] — within_days 이내인 것만, 날짜순.
+        종목당 가장 이른 예정일 하나만 포함한다.
+    """
+    import yfinance as yf
+
+    today = date.today()
+    cutoff = today + timedelta(days=within_days)
+    upcoming = []
+    for ticker in tickers:
+        try:
+            calendar = yf.Ticker(ticker).calendar
+        except Exception:
+            continue
+        if not calendar:
+            continue
+        for raw in calendar.get("Earnings Date") or []:
+            try:
+                d = raw if isinstance(raw, date) else pd.Timestamp(raw).date()
+            except (TypeError, ValueError):
+                continue
+            if today <= d <= cutoff:
+                upcoming.append({"ticker": ticker, "earnings_date": d.isoformat()})
+                break
+    upcoming.sort(key=lambda r: r["earnings_date"])
+    return upcoming
+
+
+def _load_last_earnings_reminder_state() -> Optional[dict]:
+    if not EARNINGS_REMINDER_STATE_CACHE_PATH.exists():
+        return None
+    try:
+        with open(EARNINGS_REMINDER_STATE_CACHE_PATH, encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return None
+
+
+def _save_earnings_reminder_state(state: dict) -> None:
+    EARNINGS_REMINDER_STATE_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with open(EARNINGS_REMINDER_STATE_CACHE_PATH, "w", encoding="utf-8") as f:
+        json.dump(state, f, ensure_ascii=False, indent=2)
+
+
+def check_and_notify_upcoming_earnings(within_days: int = 5, notify_fn=None) -> dict:
+    """지금 챔피언 전략이 들고 있는 새틀라이트 종목 중 향후 within_days일 이내 실적 발표가 있으면
+    텔레그램으로 미리 알린다. 같은 (종목, 실적일) 조합에 대해서는 한 번만 알린다(dedupe, 리밸런싱
+    리마인더와 동일 원칙).
+
+    Args:
+        within_days: 오늘로부터 며칠 이내를 "곧 다가올 실적"으로 볼지. 기본 5.
+        notify_fn: 텔레그램 전송 함수(테스트 주입용). None이면 core.telegram_notify.send_message.
+
+    Returns: {"as_of", "upcoming"(get_upcoming_earnings 반환값), "notified", "message"}
+    """
+    if notify_fn is None:
+        from core.telegram_notify import send_message as notify_fn
+
+    holdings = get_current_holdings()
+    satellite_tickers = holdings["satellite_selected"] if holdings else []
+    upcoming = get_upcoming_earnings(satellite_tickers, within_days=within_days) if satellite_tickers else []
+
+    result = {"as_of": date.today().isoformat(), "upcoming": upcoming, "notified": False, "message": None}
+    if not upcoming:
+        return result
+
+    dedupe_key = json.dumps(upcoming, sort_keys=True)
+    already_sent = (_load_last_earnings_reminder_state() or {}).get("dedupe_key") == dedupe_key
+
+    if not already_sent:
+        lines = ["📅 챔피언 전략 새틀라이트 실적 발표 예정"]
+        lines.extend(f"{item['ticker']}: {item['earnings_date']}" for item in upcoming)
+        lines.append(f"(향후 {within_days}일 이내, yfinance 제공 예정일 — 기업이 발표 전 날짜를 바꿀 수 있음)")
+        message = "\n".join(lines)
+        notify_fn(message)
+        result["notified"] = True
+        result["message"] = message
+
+    _save_earnings_reminder_state({"as_of": result["as_of"], "dedupe_key": dedupe_key})
+    return result
+
+
+# ----------------------------------------------------------------------------
+# 주간 성과 HTML 보고 (2026-09-18 추가)
+#
+# deploy/experiment_supervisor.py가 이미 "상태를 HTML로 만들어 텔레그램 문서로 전송"하는 패턴을
+# 2주 실험 감독에 쓰고 있다 — 그 파일은 stdlib만 쓰는 별도 무인 서비스라 코드를 그대로 가져올 수는
+# 없지만, 같은 발상(새 인프라 없이 기존 데이터로 정기 보고서 조립)을 챔피언 전략에도 적용한다.
+# core.telegram_notify.send_document가 이미 있어 멀티파트 전송을 직접 구현할 필요가 없다.
+# ----------------------------------------------------------------------------
+
+CHAMPION_REPORT_DIR = PROJECT_ROOT / "data" / "cache" / "champion_reports"
+
+
+def generate_weekly_report_html() -> str:
+    """챔피언 전략의 이번 주 상태를 사람이 읽는 HTML 문서로 만든다.
+
+    코어는 compute_core_recommendation()으로 매번 새로 계산한다(17종목뿐이라 빠름). 새틀라이트는
+    get_current_holdings()의 캐시된 선정 결과를 쓴다(500종목 재스캔은 이 보고서엔 과함 — 이미
+    스케줄러가 매일 밤 갱신해둔 값으로 충분).
+    """
+    core_result = compute_core_recommendation()
+    holdings = get_current_holdings()
+    satellite_selected = holdings["satellite_selected"] if holdings else []
+
+    core_rows = "".join(f"<li><code>{t}</code> (모멘텀 {r:.1f}%)</li>"
+                        for t, r in zip(core_result["top4"],
+                                        core_result["ranked"].set_index("ticker").loc[core_result["top4"], "momentum_pct"]
+                                        if core_result["top4"] else [])) or "<li>없음(절대모멘텀 통과 종목 없음)</li>"
+    satellite_rows = "".join(f"<li><code>{t}</code></li>" for t in satellite_selected) or "<li>없음(브레이크아웃 종목 없음)</li>"
+
+    corr_history = list_champion_correlation_snapshots(limit=1)
+    corr_html = (
+        f"평균 {corr_history[0]['avg_correlation']:.2f} / 최대 {corr_history[0]['max_correlation']:.2f} "
+        f"({corr_history[0]['computed_at'].strftime('%Y-%m-%d')} 기준)"
+        if corr_history else "아직 계산된 적 없음 — Streamlit 챔피언 전략 페이지에서 확인 가능"
+    )
+    market_filter = "200일선 위 (정상 비중)" if core_result["above_200dma"] else "200일선 아래 (코어 비중 50% 축소)"
+    now = date.today().isoformat()
+
+    return f'''<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>챔피언 전략 주간 보고</title>
+<style>body{{font-family:system-ui,sans-serif;max-width:720px;margin:2rem auto;line-height:1.6;color:#1a1a1a}}
+code{{background:#f3f4f6;padding:.1rem .3rem;border-radius:3px}}ul{{padding-left:1.2rem}}
+.disclaimer{{color:#6b6b6b;font-size:.9em}}</style></head><body>
+<h1>🏆 챔피언 전략 주간 보고</h1><p>생성: <code>{now}</code></p>
+<h2>코어 — 섹터 로테이션 모멘텀 (85%)</h2>
+<p>시장필터: {market_filter}</p>
+<ul>{core_rows}</ul>
+<h2>새틀라이트 — 돈치안 브레이크아웃 (15%)</h2>
+<ul>{satellite_rows}</ul>
+<h2>보유종목 상관관계</h2>
+<p>{corr_html}</p>
+<p class="disclaimer">참고용 요약이며 투자 조언이 아닙니다. 백테스트·확신도 등 상세 내용은
+Streamlit 챔피언 전략 페이지에서 확인하세요.</p>
+</body></html>'''
+
+
+def send_weekly_report(dry_run: bool = False) -> dict:
+    """generate_weekly_report_html()을 파일로 저장하고 텔레그램 문서로 전송한다.
+
+    dry_run=True면 파일만 저장하고 전송은 생략한다(테스트/수동 미리보기용 — experiment_supervisor.py의
+    --dry-run과 같은 용도).
+
+    Returns: {"path": str, "sent": bool}
+    """
+    CHAMPION_REPORT_DIR.mkdir(parents=True, exist_ok=True)
+    report_path = CHAMPION_REPORT_DIR / f"champion_weekly_{date.today().isoformat()}.html"
+    report_path.write_text(generate_weekly_report_html(), encoding="utf-8")
+    sent = False
+    if not dry_run:
+        from core.telegram_notify import send_document
+        sent = send_document(report_path, caption="🏆 챔피언 전략 주간 보고")
+    return {"path": str(report_path), "sent": sent}

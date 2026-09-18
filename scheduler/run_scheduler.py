@@ -3,8 +3,11 @@
 매일 한국시간 00:00에는 시장 국면/섹터 강도 스냅샷을 미리 계산해두고,
 00:05~04:00에는 #3 전략을 서버가 허락하는 만큼 반복 미세튜닝하며,
 00:10에는 챔피언 전략(코어/새틀라이트) 신호 변경을 텔레그램으로 알리고,
-00:15에는 챔피언 전략 리밸런싱 예정일을 미리 텔레그램으로 알리며,
-00:20에는 FRED 거시지표(원/달러 환율 등) 캐시를 미리 강제로 새로 받아와 데워둔다.
+00:11에는 챔피언 전략 보유종목 상관관계 스냅샷을 저장하고,
+00:15에는 챔피언 전략 리밸런싱 예정일을 미리 텔레그램으로 알리고,
+00:16에는 챔피언 전략 새틀라이트 실적 발표 예정을 미리 텔레그램으로 알리며,
+00:20에는 FRED 거시지표(원/달러 환율 등) 캐시를 미리 강제로 새로 받아와 데워두고,
+매주 일요일 20:20(America/New_York)에는 챔피언 전략 주간 HTML 보고를 텔레그램으로 전송한다.
 
 Streamlit 앱과 완전히 별도의 프로세스로 실행된다 (브라우저를 안 열어도 동작해야 하므로).
 
@@ -60,6 +63,22 @@ Streamlit 앱과 완전히 별도의 프로세스로 실행된다 (브라우저�
       같은 리밸런싱 날짜에 대해서는 한 번만 알린다(data/cache/champion_rebalance_reminder_state.json
       으로 dedupe). 텔레그램 설정이 없으면 champion_signal_alert_job과 마찬가지로 조용히 알림만
       생략된다.
+    - 매일 한국시간(Asia/Seoul) 00:11에 champion_correlation_snapshot_job() 을 실행한다(2026-09-18
+      추가). champion_signal_alert_job(00:10)이 그날 갱신한 신호 캐시(코어 top4+새틀라이트)를 읽어
+      core.champion_strategy.compute_champion_correlation() 으로 보유종목 간 상관관계를 계산하고
+      save_champion_correlation_snapshot() 으로 이력에 저장한다 — 새로 스캔하지 않고 캐시만 읽으므로
+      가볍다. core.portfolio/core.backtest_engine이 이미 쓰는 "매번 새 스냅샷을 쌓아 추이를 보라"는
+      원칙을 챔피언 전략 보유종목에도 적용한다(app/pages/11_챔피언_전략.py 상관관계 섹션에서 확인).
+    - 매일 한국시간(Asia/Seoul) 00:16에 champion_earnings_reminder_job() 을 실행한다(2026-09-18
+      추가). 챔피언 전략 새틀라이트(개별 종목) 보유종목 중 향후 5거래일 이내 실적 발표가 있으면
+      core.champion_strategy.check_and_notify_upcoming_earnings() 가 텔레그램으로 미리 알린다.
+      코어는 전부 ETF라 개별 기업 실적이 없어 대상에서 자연히 제외된다. 같은 (종목, 실적일)
+      조합에는 한 번만 알린다(dedupe, champion_rebalance_reminder_job과 동일 원칙).
+    - 매주 일요일 20:20(America/New_York)에 champion_weekly_report_job() 을 실행한다(2026-09-18
+      추가). core.champion_strategy.send_weekly_report() 가 코어/새틀라이트 현황과 최근 상관관계를
+      담은 HTML을 만들어 core.telegram_notify.send_document로 전송한다 — deploy/experiment_supervisor.py의
+      "정기 HTML 보고서" 패턴과 같은 발상이다. threads_weekly_report_job(같은 요일 20:00)과 겹치지
+      않도록 20분 뒤로 offset했다.
     - 매일 한국시간(Asia/Seoul) 00:20에 fred_indicator_prewarm_job() 을 실행한다(2026-09-14 추가).
       core.fred_data.get_series() 는 파일 캐시(TTL 24시간)가 만료되면 그날 처음 방문한 사용자가
       실시간 FRED API 호출을 그 자리에서 떠안는 구조라(원/달러 환율 DEXKOUS 포함),
@@ -95,7 +114,14 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
 
 from core.db import get_session, init_db
-from core.champion_strategy import check_and_notify_signal_changes, check_and_notify_upcoming_rebalance
+from core.champion_strategy import (
+    check_and_notify_signal_changes,
+    check_and_notify_upcoming_earnings,
+    check_and_notify_upcoming_rebalance,
+    compute_champion_correlation,
+    save_champion_correlation_snapshot,
+    send_weekly_report,
+)
 from core.resource_guard import has_headroom
 from core.kostolany_cycle import (
     compute_theme_cycle_phases,
@@ -244,6 +270,47 @@ def champion_rebalance_reminder_job() -> None:
             f"satellite={result['satellite_rebalance_date']})"
         )
     print(f"[{datetime.now()}] champion_rebalance_reminder_job 종료")
+
+
+def champion_correlation_snapshot_job() -> None:
+    """챔피언 전략(코어+새틀라이트) 보유종목 간 상관관계를 계산해 이력으로 저장한다 (2026-09-18
+    추가). champion_signal_alert_job(00:10) 다음에 배치해, 그날 새로 갱신된 신호 캐시를 그대로
+    읽는다(core.champion_strategy.get_current_holdings 참고 — 새로 스캔하지 않고 캐시만 읽으므로
+    빠르다). "이번 한 번만 보고 판단하지 말고 이력을 쌓아 보라"는 원칙(core.portfolio/
+    core.backtest_engine의 기존 상관관계 스냅샷과 동일)을 챔피언 전략에도 적용한다.
+    """
+    print(f"[{datetime.now()}] champion_correlation_snapshot_job 시작")
+    result = compute_champion_correlation()
+    if result["correlation"].empty:
+        print(f"  - 종목이 2개 미만이라 건너뜀 (tickers={result['tickers']})")
+    else:
+        snap_id = save_champion_correlation_snapshot(result["correlation"])
+        print(f"  - 스냅샷 저장 완료 (id={snap_id}, 종목={result['tickers']})")
+    print(f"[{datetime.now()}] champion_correlation_snapshot_job 종료")
+
+
+def champion_earnings_reminder_job() -> None:
+    """챔피언 전략 새틀라이트 보유종목 중 향후 5거래일 이내 실적 발표가 있으면 텔레그램으로
+    미리 알린다 (2026-09-18 추가). 코어는 전부 ETF라 개별 기업 실적이 없으므로 새틀라이트만
+    대상이다 — core.champion_strategy.check_and_notify_upcoming_earnings 참고.
+    """
+    print(f"[{datetime.now()}] champion_earnings_reminder_job 시작")
+    result = check_and_notify_upcoming_earnings()
+    if result["notified"]:
+        print(f"  - 실적 발표 예정 감지, 텔레그램 알림 전송 시도:\n{result['message']}")
+    else:
+        print(f"  - 알림 없음 (upcoming={result['upcoming']})")
+    print(f"[{datetime.now()}] champion_earnings_reminder_job 종료")
+
+
+def champion_weekly_report_job() -> None:
+    """챔피언 전략의 이번 주 상태를 HTML 보고서로 만들어 텔레그램 문서로 전송한다 (2026-09-18
+    추가). core.champion_strategy.send_weekly_report가 실제 조립/전송을 담당한다.
+    """
+    print(f"[{datetime.now()}] champion_weekly_report_job 시작")
+    result = send_weekly_report()
+    print(f"  - 보고서 저장: {result['path']} (전송 {'성공' if result['sent'] else '실패/미설정'})")
+    print(f"[{datetime.now()}] champion_weekly_report_job 종료")
 
 
 def fred_indicator_prewarm_job() -> None:
@@ -436,11 +503,38 @@ def main() -> None:
         replace_existing=True,
     )
     scheduler.add_job(
+        champion_correlation_snapshot_job,
+        # champion_signal_alert_job(00:10)이 그날의 신호 캐시를 갱신한 직후 1분 뒤 — 캐시만 읽으므로
+        # 재스캔 없이 빠르다.
+        trigger=CronTrigger(hour=0, minute=11, timezone="Asia/Seoul"),
+        id="champion_correlation_snapshot",
+        name="매일 한국시간 00:11 챔피언 전략 보유종목 상관관계 스냅샷 저장",
+        replace_existing=True,
+    )
+    scheduler.add_job(
         champion_rebalance_reminder_job,
-        # 기존 00:00/00:05/00:10 잡과 겹치지 않도록 15분 뒤로 offset(비어있는 슬롯).
+        # 기존 00:00/00:05/00:10/00:11 잡과 겹치지 않도록 15분 뒤로 offset(비어있는 슬롯).
         trigger=CronTrigger(hour=0, minute=15, timezone="Asia/Seoul"),
         id="champion_rebalance_reminder",
         name="매일 한국시간 00:15 챔피언 전략 리밸런싱 예정일 사전 텔레그램 알림",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        champion_earnings_reminder_job,
+        # champion_rebalance_reminder_job(00:15) 바로 다음 슬롯(비어있음).
+        trigger=CronTrigger(hour=0, minute=16, timezone="Asia/Seoul"),
+        id="champion_earnings_reminder",
+        name="매일 한국시간 00:16 챔피언 전략 새틀라이트 실적 발표 예정 텔레그램 알림",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        champion_weekly_report_job,
+        # 기존 주간 잡(threads_weekly_report, 일요일 20:00 America/New_York)과 겹치지 않도록
+        # 20분 뒤로 offset — 일간 00:00~00:20 KST 블록과 달리 이건 주 1회면 충분한 보고서라
+        # 그 블록에 넣지 않고 다른 주간 잡 옆에 둔다.
+        trigger=CronTrigger(day_of_week="sun", hour=20, minute=20, timezone="America/New_York"),
+        id="champion_weekly_report",
+        name="매주 일요일 20:20(America/New_York) 챔피언 전략 주간 HTML 보고 Telegram 전송",
         replace_existing=True,
     )
     scheduler.add_job(
@@ -460,11 +554,12 @@ def main() -> None:
     )
 
     print("스케줄러 시작. 평일 16:30 에 관심 종목을 스캔하고, 매주 일요일 20:00 에 Threads 주간")
-    print("인사이트 리포트를 생성합니다 (모두 America/New_York 기준). 매일 한국시간(Asia/Seoul)")
-    print("00:00 에는 시장 국면/섹터 강도 스냅샷을 미리 계산해두고, 00:05~04:00 에는 #3 전략을")
-    print("서버가 허락하는 만큼 반복 미세튜닝하며, 00:10 에는 챔피언 전략 신호 변경을, 00:15 에는")
-    print("챔피언 전략 리밸런싱 예정일을, 00:20 에는 FRED 거시지표(환율 등) 캐시를 미리 갱신합니다.")
-    print("매일 한국시간 07:30에는 무료 뉴스 API 기반 티커별 HTML/Telegram 리포트를 보냅니다.")
+    print("인사이트 리포트를, 20:20 에 챔피언 전략 주간 보고를 생성합니다 (모두 America/New_York")
+    print("기준). 매일 한국시간(Asia/Seoul) 00:00 에는 시장 국면/섹터 강도 스냅샷을 미리 계산해두고,")
+    print("00:05~04:00 에는 #3 전략을 서버가 허락하는 만큼 반복 미세튜닝하며, 00:10 에는 챔피언")
+    print("전략 신호 변경을, 00:11 에는 보유종목 상관관계 스냅샷을, 00:15 에는 리밸런싱 예정일을,")
+    print("00:16 에는 새틀라이트 실적 발표 예정을, 00:20 에는 FRED 거시지표(환율 등) 캐시를 미리")
+    print("갱신/알립니다. 매일 한국시간 07:30에는 무료 뉴스 API 기반 티커별 HTML/Telegram 리포트를 보냅니다.")
     print("Ctrl+C 로 종료할 수 있습니다.")
 
     try:

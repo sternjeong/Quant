@@ -6,13 +6,28 @@
 
 import json
 import math
-from datetime import date
+from contextlib import contextmanager
+from datetime import date, timedelta
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import pytest
 
 import core.champion_strategy as champion_strategy
+
+
+@pytest.fixture()
+def patched_champion_session(db_session, monkeypatch):
+    """core.portfolio/test_portfolio.py의 patched_session과 동일한 패턴 — CorrelationSnapshot을
+    공유하는 champion_strategy 쪽 저장/조회 함수를 conftest의 임시 DB 세션으로 연결한다."""
+    @contextmanager
+    def _fake_get_session():
+        yield db_session
+        db_session.commit()
+
+    monkeypatch.setattr(champion_strategy, "get_session", _fake_get_session)
+    return db_session
 
 
 def _flat_then_return_df(n: int, total_return_pct: float) -> pd.DataFrame:
@@ -1377,3 +1392,220 @@ def test_upcoming_weekdays_skips_weekends():
     # 2026-09-04(금) 다음: 09-05/06(토/일) 건너뛰고 09-07(월)부터
     days = champion_strategy._upcoming_weekdays(date(2026, 9, 5), 3)
     assert days == [date(2026, 9, 7), date(2026, 9, 8), date(2026, 9, 9)]
+
+
+# ----------------------------------------------------------------------------
+# 보유종목 상관관계 (작업 2026-09-18 추가)
+# ----------------------------------------------------------------------------
+
+
+def test_get_current_holdings_none_when_no_signal_cache(monkeypatch, tmp_path):
+    monkeypatch.setattr(champion_strategy, "SIGNAL_STATE_CACHE_PATH", tmp_path / "missing.json")
+    assert champion_strategy.get_current_holdings() is None
+
+
+def test_get_current_holdings_combines_core_and_satellite(monkeypatch, tmp_path):
+    path = tmp_path / "champion_signal_state.json"
+    path.write_text(json.dumps({"as_of": "2026-09-18", "core_top4": ["XLK", "XLY"], "satellite_selected": ["NVDA", "XLK"]}))
+    monkeypatch.setattr(champion_strategy, "SIGNAL_STATE_CACHE_PATH", path)
+
+    holdings = champion_strategy.get_current_holdings()
+
+    assert holdings["as_of"] == "2026-09-18"
+    assert holdings["tickers"] == ["NVDA", "XLK", "XLY"]  # 합집합, 중복(XLK) 제거, 정렬
+
+
+def test_compute_champion_correlation_empty_without_holdings_cache(monkeypatch, tmp_path):
+    monkeypatch.setattr(champion_strategy, "SIGNAL_STATE_CACHE_PATH", tmp_path / "missing.json")
+    result = champion_strategy.compute_champion_correlation()
+    assert result["correlation"].empty
+    assert result["tickers"] == []
+
+
+def test_compute_champion_correlation_fetches_prices_for_current_holdings(monkeypatch, tmp_path):
+    path = tmp_path / "champion_signal_state.json"
+    path.write_text(json.dumps({"as_of": "2026-09-18", "core_top4": ["XLK"], "satellite_selected": ["NVDA"]}))
+    monkeypatch.setattr(champion_strategy, "SIGNAL_STATE_CACHE_PATH", path)
+
+    idx = pd.bdate_range(end=pd.Timestamp.today().normalize(), periods=30)
+    requested = {}
+
+    def _fake_get_multiple_price_history(tickers, start=None, end=None):
+        requested["tickers"] = sorted(tickers)
+        return {t: pd.DataFrame({"Close": np.linspace(100, 110, len(idx))}, index=idx) for t in tickers}
+
+    monkeypatch.setattr(champion_strategy, "get_multiple_price_history", _fake_get_multiple_price_history)
+
+    result = champion_strategy.compute_champion_correlation()
+
+    assert requested["tickers"] == ["NVDA", "XLK"]
+    assert list(result["correlation"].columns) == ["NVDA", "XLK"]
+    assert result["correlation"].loc["NVDA", "NVDA"] == pytest.approx(1.0)
+
+
+def test_save_and_list_champion_correlation_snapshot(patched_champion_session):
+    corr = pd.DataFrame({"XLK": [1.0, 0.4], "NVDA": [0.4, 1.0]}, index=["XLK", "NVDA"])
+    snap_id = champion_strategy.save_champion_correlation_snapshot(corr)
+    assert snap_id is not None
+
+    history = champion_strategy.list_champion_correlation_snapshots()
+    assert len(history) == 1
+    assert history[0]["labels"] == ["XLK", "NVDA"]
+    assert history[0]["avg_correlation"] == pytest.approx(0.4)
+
+
+def test_save_champion_correlation_snapshot_requires_two_tickers(patched_champion_session):
+    corr = pd.DataFrame({"XLK": [1.0]}, index=["XLK"])
+    with pytest.raises(ValueError):
+        champion_strategy.save_champion_correlation_snapshot(corr)
+
+
+def test_champion_correlation_snapshots_isolated_from_other_kinds(patched_champion_session):
+    """kind="champion"으로 저장한 스냅샷은 kind="portfolio"/"strategy" 조회에 섞여 나오면 안 된다."""
+    import core.portfolio as portfolio_module
+
+    corr = pd.DataFrame({"XLK": [1.0, 0.4], "NVDA": [0.4, 1.0]}, index=["XLK", "NVDA"])
+    champion_strategy.save_champion_correlation_snapshot(corr)
+
+    from contextlib import contextmanager
+
+    @contextmanager
+    def _fake_get_session():
+        yield patched_champion_session
+        patched_champion_session.commit()
+
+    import pytest as _pytest  # local alias avoids shadowing at module scope
+    with _pytest.MonkeyPatch.context() as mp:
+        mp.setattr(portfolio_module, "get_session", _fake_get_session)
+        assert portfolio_module.list_portfolio_correlation_snapshots() == []
+
+
+# ----------------------------------------------------------------------------
+# 새틀라이트 실적 발표일 사전 알림 (작업 2026-09-18 추가)
+# ----------------------------------------------------------------------------
+
+
+class _FakeYfTicker:
+    def __init__(self, calendar):
+        self.calendar = calendar
+
+
+def test_get_upcoming_earnings_filters_to_window(monkeypatch):
+    today = date.today()
+    near = today + timedelta(days=2)
+    far = today + timedelta(days=30)
+
+    def _fake_ticker(ticker):
+        if ticker == "NVDA":
+            return _FakeYfTicker({"Earnings Date": [near]})
+        if ticker == "AMD":
+            return _FakeYfTicker({"Earnings Date": [far]})
+        return _FakeYfTicker({})  # ETF 등 실적 없는 종목
+
+    import yfinance as yf
+    monkeypatch.setattr(yf, "Ticker", _fake_ticker)
+
+    upcoming = champion_strategy.get_upcoming_earnings(["NVDA", "AMD", "XLK"], within_days=5)
+
+    assert upcoming == [{"ticker": "NVDA", "earnings_date": near.isoformat()}]
+
+
+def test_get_upcoming_earnings_skips_tickers_that_error(monkeypatch):
+    def _fake_ticker(ticker):
+        raise RuntimeError("network down")
+
+    import yfinance as yf
+    monkeypatch.setattr(yf, "Ticker", _fake_ticker)
+
+    assert champion_strategy.get_upcoming_earnings(["NVDA"], within_days=5) == []
+
+
+def _patch_earnings_reminder_state_path(monkeypatch, tmp_path):
+    path = tmp_path / "champion_earnings_reminder_state.json"
+    monkeypatch.setattr(champion_strategy, "EARNINGS_REMINDER_STATE_CACHE_PATH", path)
+    return path
+
+
+def test_check_and_notify_upcoming_earnings_notifies_once_then_dedupes(monkeypatch, tmp_path):
+    _patch_earnings_reminder_state_path(monkeypatch, tmp_path)
+    monkeypatch.setattr(champion_strategy, "get_current_holdings", lambda: {"satellite_selected": ["NVDA"]})
+    upcoming = [{"ticker": "NVDA", "earnings_date": (date.today() + timedelta(days=2)).isoformat()}]
+    monkeypatch.setattr(champion_strategy, "get_upcoming_earnings", lambda tickers, within_days=5: upcoming)
+    sent = []
+
+    first = champion_strategy.check_and_notify_upcoming_earnings(notify_fn=sent.append)
+    second = champion_strategy.check_and_notify_upcoming_earnings(notify_fn=sent.append)
+
+    assert first["notified"] is True
+    assert second["notified"] is False  # 같은 (종목, 실적일) 조합 재알림 안 함
+    assert len(sent) == 1
+    assert "NVDA" in sent[0]
+
+
+def test_check_and_notify_upcoming_earnings_no_holdings_is_silent(monkeypatch, tmp_path):
+    _patch_earnings_reminder_state_path(monkeypatch, tmp_path)
+    monkeypatch.setattr(champion_strategy, "get_current_holdings", lambda: None)
+    sent = []
+
+    result = champion_strategy.check_and_notify_upcoming_earnings(notify_fn=sent.append)
+
+    assert result["upcoming"] == []
+    assert sent == []
+
+
+# ----------------------------------------------------------------------------
+# 주간 성과 HTML 보고 (작업 2026-09-18 추가)
+# ----------------------------------------------------------------------------
+
+
+def test_generate_weekly_report_html_includes_core_and_satellite(monkeypatch):
+    monkeypatch.setattr(
+        champion_strategy, "compute_core_recommendation",
+        lambda: {
+            "top4": ["XLK", "XLY"], "above_200dma": True,
+            "ranked": pd.DataFrame({"ticker": ["XLK", "XLY"], "momentum_pct": [12.3, 8.1]}),
+        },
+    )
+    monkeypatch.setattr(champion_strategy, "get_current_holdings", lambda: {"satellite_selected": ["NVDA"]})
+    monkeypatch.setattr(champion_strategy, "list_champion_correlation_snapshots", lambda limit=1: [])
+
+    html = champion_strategy.generate_weekly_report_html()
+
+    assert "XLK" in html and "XLY" in html and "NVDA" in html
+    assert "200일선 위" in html
+    assert "투자 조언이 아닙니다" in html
+
+
+def test_generate_weekly_report_html_handles_no_core_holdings(monkeypatch):
+    monkeypatch.setattr(
+        champion_strategy, "compute_core_recommendation",
+        lambda: {"top4": [], "above_200dma": False, "ranked": pd.DataFrame(columns=["ticker", "momentum_pct"])},
+    )
+    monkeypatch.setattr(champion_strategy, "get_current_holdings", lambda: None)
+    monkeypatch.setattr(champion_strategy, "list_champion_correlation_snapshots", lambda limit=1: [])
+
+    html = champion_strategy.generate_weekly_report_html()
+
+    assert "없음" in html
+
+
+def test_send_weekly_report_dry_run_saves_file_without_sending(monkeypatch, tmp_path):
+    monkeypatch.setattr(champion_strategy, "CHAMPION_REPORT_DIR", tmp_path)
+    monkeypatch.setattr(champion_strategy, "generate_weekly_report_html", lambda: "<html>ok</html>")
+
+    result = champion_strategy.send_weekly_report(dry_run=True)
+
+    assert result["sent"] is False
+    assert Path(result["path"]).read_text(encoding="utf-8") == "<html>ok</html>"
+
+
+def test_send_weekly_report_sends_document_when_not_dry_run(monkeypatch, tmp_path):
+    monkeypatch.setattr(champion_strategy, "CHAMPION_REPORT_DIR", tmp_path)
+    monkeypatch.setattr(champion_strategy, "generate_weekly_report_html", lambda: "<html>ok</html>")
+
+    import core.telegram_notify as telegram_notify
+    monkeypatch.setattr(telegram_notify, "send_document", lambda path, caption="": True)
+
+    result = champion_strategy.send_weekly_report(dry_run=False)
+
+    assert result["sent"] is True

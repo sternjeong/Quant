@@ -27,11 +27,15 @@ from core.backtest_engine import compute_drawdown_series, compute_monthly_return
 from core.champion_strategy import (
     CORE_UNIVERSE,
     SATELLITE_WEIGHT,
+    compute_champion_correlation,
     compute_core_recommendation,
     compute_live_collar_state,
     compute_rebalance_diff,
     compute_satellite_recommendation,
     compute_satellite_recommendation_point_in_time,
+    get_current_holdings,
+    get_upcoming_earnings,
+    list_champion_correlation_snapshots,
     load_confidence_table,
     load_final_config,
     load_market_regime_context,
@@ -39,6 +43,8 @@ from core.champion_strategy import (
     load_research_meta,
     run_champion_backtest,
     run_champion_backtest_with_collar,
+    save_champion_correlation_snapshot,
+    send_weekly_report,
 )
 from core.db import init_db
 from core.guru_tracker import find_gurus_holding_ticker, get_synced_guru_names
@@ -569,6 +575,90 @@ else:
             ),
             use_container_width=True, hide_index=True,
         )
+
+# ----------------------------------------------------------------------------
+# 보유종목 상관관계 + 새틀라이트 실적 발표 예정 (2026-09-18 추가)
+#
+# core.portfolio(내 실제 보유종목)/core.backtest_engine(전략 라이브러리 간)이 이미 하는 상관관계
+# 계산을 그대로 재사용한다 — "지금 챔피언 전략이 추천 중인" 코어+새틀라이트가 실제로 분산돼
+# 있는지는 이 엔진 자체에서는 아직 아무도 확인할 방법이 없었다. get_current_holdings()는 새로
+# 스캔하지 않고 스케줄러가 매일 00:10에 저장해둔 신호 캐시만 읽으므로 페이지 로드가 무겁지 않다.
+# ----------------------------------------------------------------------------
+st.markdown("## 6. 보유종목 상관관계 & 새틀라이트 실적 발표")
+
+_current_holdings = get_current_holdings()
+if _current_holdings is None:
+    st.caption(
+        "⚠️ 아직 신호 캐시가 없습니다 — 서버의 champion_signal_alert_job(매일 00:10 KST)이 최소 "
+        "한 번 실행된 뒤에 확인할 수 있습니다."
+    )
+else:
+    corr_col, earnings_col = st.columns(2)
+
+    with corr_col:
+        st.markdown("**보유종목 간 상관관계 (최근 1년 일간수익률)**")
+        st.caption(f"코어 {_current_holdings['core_top4']} + 새틀라이트 {_current_holdings['satellite_selected']}")
+        corr_result = compute_champion_correlation()
+        if corr_result["correlation"].empty:
+            st.caption("상관관계를 계산할 만큼 종목이 충분하지 않습니다 (2종목 이상 필요).")
+        else:
+            fig_champion_corr = go.Figure(
+                data=go.Heatmap(
+                    z=corr_result["correlation"].values,
+                    x=corr_result["correlation"].columns.tolist(),
+                    y=corr_result["correlation"].index.tolist(),
+                    zmin=-1, zmax=1, colorscale="RdBu_r",
+                )
+            )
+            fig_champion_corr.update_layout(height=350, margin=dict(l=10, r=10, t=10, b=10))
+            st.plotly_chart(fig_champion_corr, use_container_width=True)
+            if st.button("💾 이 상관관계를 이력에 저장", key="save_champion_corr"):
+                save_champion_correlation_snapshot(corr_result["correlation"])
+                st.toast("상관관계 스냅샷을 저장했습니다.", icon="✅")
+                st.rerun()
+
+        champion_corr_history = list_champion_correlation_snapshots()
+        if champion_corr_history:
+            st.caption("이력 (서버가 매일 00:11 KST에 자동으로도 저장합니다 — 이번 달만 보고 판단하지 마세요)")
+            st.dataframe(
+                pd.DataFrame(
+                    [
+                        {
+                            "체크 시각": h["computed_at"], "종목 수": len(h["labels"]),
+                            "평균 상관관계": h["avg_correlation"], "최대 상관관계": h["max_correlation"],
+                        }
+                        for h in champion_corr_history
+                    ]
+                ),
+                use_container_width=True, hide_index=True,
+            )
+
+    with earnings_col:
+        st.markdown("**새틀라이트 실적 발표 예정 (5거래일 이내)**")
+        st.caption("코어는 전부 ETF라 개별 기업 실적이 없습니다 — 대상은 새틀라이트 종목뿐입니다.")
+        if not _current_holdings["satellite_selected"]:
+            st.caption("현재 새틀라이트 보유 종목이 없습니다.")
+        else:
+            upcoming_earnings = get_upcoming_earnings(_current_holdings["satellite_selected"], within_days=5)
+            if not upcoming_earnings:
+                st.caption("5거래일 이내 예정된 실적 발표가 없습니다.")
+            else:
+                st.dataframe(
+                    pd.DataFrame(upcoming_earnings).rename(columns={"ticker": "티커", "earnings_date": "실적 발표 예정일"}),
+                    use_container_width=True, hide_index=True,
+                )
+                st.caption("yfinance 제공 예정일 — 기업이 발표 전 날짜를 바꿀 수 있습니다. 서버가 매일 00:16 KST에도 확인해 텔레그램으로 미리 알립니다.")
+
+    st.divider()
+    st.markdown("**주간 보고**")
+    st.caption("서버가 매주 일요일 20:20(America/New_York)에 자동으로 보내는 것과 같은 HTML 보고서를 지금 바로 받아볼 수 있습니다.")
+    if st.button("📨 지금 주간 보고 보내기", key="send_champion_weekly_report"):
+        report_result = send_weekly_report()
+        if report_result["sent"]:
+            st.toast("텔레그램으로 주간 보고를 보냈습니다.", icon="✅")
+        else:
+            st.warning("텔레그램 전송에 실패했습니다 (TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID 설정을 확인하세요). "
+                       f"보고서 파일은 저장됐습니다: {report_result['path']}")
 
 # ----------------------------------------------------------------------------
 # 확신도 등급 + 기각된 아이디어
