@@ -162,8 +162,26 @@ class ExperimentSupervisor:
 그리고 .experiment-control/state.json을 읽어라. 이 작업은 연구·백테스트·문서화만 허용한다.
 실계좌 주문, 브로커 인증정보 변경, .env 출력 또는 커밋, 기존 서비스 중지/재시작/삭제, force push는 금지다.
 사전등록된 6개 후보·기준선·선택 게이트는 변경하지 마라. 데이터 누수와 같은 날 종가 체결을 특히 점검하라.
-기존의 uncommitted 작업을 덮어쓰지 말고, 충돌이나 모호함은 RESUME_NOTE.md에 정확히 남겨라.
+기존의 uncommitted 작업을 덮어쓰지 말고, 새로운 충돌이나 모호함이 나오면 아래 "선조치 후보고" 절차를 따라라.
 유의미한 코드·문서 변경은 관련 테스트 후 git 관례를 확인해 commit/push하되, 자동 생성 일일 HTML 보고서는 커밋하지 마라.
+
+## 선조치 후보고(act-first-report-after) — 사전등록 모호함/명백한 버그 처리 절차
+
+사용자는 매 사전등록 모호함마다 응답을 기다리지 말고, 프로토콜 텍스트와 이미 검증된 기존 구현
+(core/champion_strategy.py 등)에 가장 부합하는 보수적 해석으로 스스로 판단해 즉시 진행하라고
+명시적으로 위임했다. 단, 후보/기준선/게이트 자체를 바꾸는 것이 아니라 "명시되지 않은 세부사항을
+채우는 것"이거나 "객관적으로 검증 가능한 코드 결함을 고치는 것"에 한한다. 결과를 보고 유리한 쪽으로
+해석을 고르는 것(=hindsight-driven parameter fitting)은 여전히 절대 금지다.
+
+이런 판단을 내릴 때마다 반드시 다음 순서를 지켜라:
+1. **체크포인트 생성** (변경 전): `python3 deploy/checkpoint_notify.py create --label <짧은-설명> --reason "<왜 이 판단인지 한 줄>" docs/experiment_validation .experiment-control`
+2. 판단을 실행하고, `docs/experiment_validation/day1_resolutions.md`류 문서에 "무엇을 왜 그렇게 정했는지, 프로토콜 어느 조항에 근거했는지"를 명확히 기록한다.
+3. **즉시 텔레그램 보고**: `python3 deploy/checkpoint_notify.py notify "<무엇을 왜 했는지 2~3문장>" --checkpoint-id <1번에서 받은 id>` — 이 명령이 자동으로 "되돌리려면 이렇게 답장하세요" 안내를 덧붙인다.
+4. 이후 계속 다음 작업으로 진행한다 (승인을 기다리며 멈추지 않는다).
+
+사용자가 나중에 "체크포인트 <id> 되돌려"라고 답하면, 그 요청을 받은 감독 차례는 다른 작업보다
+먼저 `python3 deploy/checkpoint_notify.py revert <id>`를 실행하고 결과를 다시 텔레그램으로 보고한다.
+되돌리기 직전 상태도 자동으로 별도 체크포인트에 보존되므로 되돌리기 자체도 항상 취소 가능하다.
 작업을 완료할 수 없거나 한도/오류로 중단되면 RESUME_NOTE.md에 다음 단계와 명령을 남겨라.
 
 이번 감독 차례의 단 하나의 목표:
