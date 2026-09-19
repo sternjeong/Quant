@@ -1863,3 +1863,250 @@ def test_check_and_notify_champion_alpha_decay_renotifies_when_ratio_worsens(mon
 
     assert second["notified"] is True  # 비율이 0.05 이상 더 나빠져서 재알림
     assert len(sent) == 2
+
+
+# ----------------------------------------------------------------------------
+# 페이퍼 트레이딩 원장 + 벤치마크 갭 알림 + 칼라 롤 리마인더 (2026-09-19 추가)
+# ----------------------------------------------------------------------------
+
+def test_record_daily_ledger_entry_first_run_has_zero_realized_return(patched_champion_session, monkeypatch):
+    monkeypatch.setattr(
+        champion_strategy, "compute_core_recommendation",
+        lambda: {"per_ticker_weights": {"XLK": 0.5}},
+    )
+    monkeypatch.setattr(
+        champion_strategy, "compute_satellite_recommendation",
+        lambda: {"per_ticker_weights": {"NVDA": 0.1}},
+    )
+
+    result = champion_strategy.record_daily_ledger_entry()
+
+    assert result["skipped"] is False
+    assert result["realized_return_pct"] == 0.0
+    assert result["cumulative_equity"] == 100.0
+    entries = champion_strategy.list_ledger_entries()
+    assert len(entries) == 1
+    assert entries[0]["core_weights"] == {"XLK": 0.5}
+    assert entries[0]["satellite_weights"] == {"NVDA": 0.1}
+
+
+def test_record_daily_ledger_entry_computes_realized_return_from_prior_weights(patched_champion_session, monkeypatch):
+    from core.models import ChampionLedgerEntry
+
+    yesterday = date.today() - timedelta(days=1)
+    patched_champion_session.add(ChampionLedgerEntry(
+        entry_date=yesterday, core_weights=json.dumps({"UP": 0.5}), satellite_weights=json.dumps({"DOWN": 0.2}),
+        realized_return_pct=0.0, cumulative_equity=100.0,
+    ))
+    patched_champion_session.commit()
+
+    up_df = pd.DataFrame({"Close": [100.0, 110.0]})  # +10%
+    down_df = pd.DataFrame({"Close": [100.0, 95.0]})  # -5%
+    monkeypatch.setattr(
+        champion_strategy, "get_multiple_price_history",
+        lambda tickers, start=None, interval="1d", **kw: {"UP": up_df, "DOWN": down_df},
+    )
+    monkeypatch.setattr(champion_strategy, "compute_core_recommendation", lambda: {"per_ticker_weights": {}})
+    monkeypatch.setattr(champion_strategy, "compute_satellite_recommendation", lambda: {"per_ticker_weights": {}})
+
+    result = champion_strategy.record_daily_ledger_entry()
+
+    expected_return = (0.5 * 0.10 + 0.2 * -0.05) * 100  # = 4.0%
+    assert result["realized_return_pct"] == pytest.approx(expected_return, abs=1e-6)
+    assert result["cumulative_equity"] == pytest.approx(100.0 * (1 + expected_return / 100), abs=1e-4)
+
+
+def test_record_daily_ledger_entry_skips_if_already_recorded_today(patched_champion_session, monkeypatch):
+    monkeypatch.setattr(champion_strategy, "compute_core_recommendation", lambda: {"per_ticker_weights": {}})
+    monkeypatch.setattr(champion_strategy, "compute_satellite_recommendation", lambda: {"per_ticker_weights": {}})
+
+    first = champion_strategy.record_daily_ledger_entry()
+    second = champion_strategy.record_daily_ledger_entry()
+
+    assert first["skipped"] is False
+    assert second["skipped"] is True
+    assert len(champion_strategy.list_ledger_entries()) == 1
+
+
+def test_record_daily_ledger_entry_treats_missing_price_data_as_zero_contribution(patched_champion_session, monkeypatch):
+    from core.models import ChampionLedgerEntry
+
+    yesterday = date.today() - timedelta(days=1)
+    patched_champion_session.add(ChampionLedgerEntry(
+        entry_date=yesterday, core_weights=json.dumps({"MISSING": 0.5}), satellite_weights="{}",
+        realized_return_pct=0.0, cumulative_equity=100.0,
+    ))
+    patched_champion_session.commit()
+
+    monkeypatch.setattr(champion_strategy, "get_multiple_price_history", lambda tickers, start=None, interval="1d", **kw: {})
+    monkeypatch.setattr(champion_strategy, "compute_core_recommendation", lambda: {"per_ticker_weights": {}})
+    monkeypatch.setattr(champion_strategy, "compute_satellite_recommendation", lambda: {"per_ticker_weights": {}})
+
+    result = champion_strategy.record_daily_ledger_entry()
+
+    assert result["realized_return_pct"] == 0.0
+    assert result["cumulative_equity"] == 100.0
+
+
+def test_compute_ledger_performance_summary_empty_without_entries(patched_champion_session):
+    result = champion_strategy.compute_ledger_performance_summary()
+    assert result["available"] is False
+    assert result["entry_count"] == 0
+
+
+def test_compute_ledger_performance_summary_computes_metrics_from_equity_curve(patched_champion_session, monkeypatch):
+    from core.models import ChampionLedgerEntry
+
+    base = date.today() - timedelta(days=5)
+    equity = 100.0
+    for i in range(5):
+        equity *= 1.01
+        patched_champion_session.add(ChampionLedgerEntry(
+            entry_date=base + timedelta(days=i), core_weights="{}", satellite_weights="{}",
+            realized_return_pct=1.0, cumulative_equity=round(equity, 4),
+        ))
+    patched_champion_session.commit()
+
+    result = champion_strategy.compute_ledger_performance_summary()
+
+    assert result["available"] is True
+    assert result["entry_count"] == 5
+    assert "cagr" in result["metrics"] or result["metrics"] is not None
+
+
+def _add_ledger_entries(session, n, equity_start=100.0, daily_pct=0.0):
+    from core.models import ChampionLedgerEntry
+
+    base = date.today() - timedelta(days=n)
+    equity = equity_start
+    for i in range(n):
+        equity *= (1 + daily_pct / 100)
+        session.add(ChampionLedgerEntry(
+            entry_date=base + timedelta(days=i), core_weights="{}", satellite_weights="{}",
+            realized_return_pct=daily_pct, cumulative_equity=round(equity, 6),
+        ))
+    session.commit()
+    return equity
+
+
+def test_compute_benchmark_comparison_unavailable_with_too_few_entries(patched_champion_session):
+    _add_ledger_entries(patched_champion_session, 3)
+    result = champion_strategy.compute_benchmark_comparison()
+    assert result["available"] is False
+    assert "미만" in result["reason"]
+
+
+def test_compute_benchmark_comparison_computes_gap_vs_benchmarks(patched_champion_session, monkeypatch):
+    final_equity = _add_ledger_entries(patched_champion_session, 25, daily_pct=0.1)  # 완만한 상승
+    spy_df = pd.DataFrame({"Close": [100.0, 130.0]})  # +30%
+    tlt_df = pd.DataFrame({"Close": [100.0, 90.0]})  # -10%
+    monkeypatch.setattr(
+        champion_strategy, "get_multiple_price_history",
+        lambda tickers, start=None, end=None, interval="1d", **kw: {"SPY": spy_df, "TLT": tlt_df},
+    )
+
+    result = champion_strategy.compute_benchmark_comparison()
+
+    assert result["available"] is True
+    ledger_return = (final_equity / 100.0 - 1.0) * 100
+    assert result["ledger_total_return_pct"] == pytest.approx(ledger_return, abs=1e-2)
+    assert result["spy_total_return_pct"] == pytest.approx(30.0, abs=1e-6)
+    expected_6040 = 0.6 * 30.0 + 0.4 * -10.0
+    assert result["sixty_forty_total_return_pct"] == pytest.approx(expected_6040, abs=1e-6)
+    assert result["gap_vs_sixty_forty_pct"] == pytest.approx(ledger_return - expected_6040, abs=1e-2)
+
+
+def _patch_benchmark_state_path(monkeypatch, tmp_path):
+    path = tmp_path / "champion_benchmark_state.json"
+    monkeypatch.setattr(champion_strategy, "BENCHMARK_STATE_CACHE_PATH", path)
+    return path
+
+
+def test_check_and_notify_benchmark_gap_notifies_when_lagging(monkeypatch, tmp_path):
+    _patch_benchmark_state_path(monkeypatch, tmp_path)
+    monkeypatch.setattr(
+        champion_strategy, "compute_benchmark_comparison",
+        lambda: {
+            "available": True, "start_date": "2026-08-01", "end_date": "2026-09-01",
+            "ledger_total_return_pct": -10.0, "spy_total_return_pct": 5.0,
+            "sixty_forty_total_return_pct": 3.0, "gap_vs_spy_pct": -15.0, "gap_vs_sixty_forty_pct": -13.0,
+        },
+    )
+    sent = []
+
+    result = champion_strategy.check_and_notify_benchmark_gap(notify_fn=sent.append)
+
+    assert result["notified"] is True
+    assert len(sent) == 1
+    assert "벤치마크" in sent[0]
+
+
+def test_check_and_notify_benchmark_gap_silent_when_unavailable(monkeypatch, tmp_path):
+    _patch_benchmark_state_path(monkeypatch, tmp_path)
+    monkeypatch.setattr(
+        champion_strategy, "compute_benchmark_comparison",
+        lambda: {"available": False, "reason": "표본 부족"},
+    )
+    sent = []
+    result = champion_strategy.check_and_notify_benchmark_gap(notify_fn=sent.append)
+    assert result["notified"] is False
+    assert sent == []
+
+
+def test_check_and_notify_benchmark_gap_dedupes_same_lagging_state(monkeypatch, tmp_path):
+    _patch_benchmark_state_path(monkeypatch, tmp_path)
+    comparison = {
+        "available": True, "start_date": "2026-08-01", "end_date": "2026-09-01",
+        "ledger_total_return_pct": -10.0, "spy_total_return_pct": 5.0,
+        "sixty_forty_total_return_pct": 3.0, "gap_vs_spy_pct": -15.0, "gap_vs_sixty_forty_pct": -13.0,
+    }
+    monkeypatch.setattr(champion_strategy, "compute_benchmark_comparison", lambda: comparison)
+    sent = []
+
+    first = champion_strategy.check_and_notify_benchmark_gap(notify_fn=sent.append)
+    second = champion_strategy.check_and_notify_benchmark_gap(notify_fn=sent.append)
+
+    assert first["notified"] is True
+    assert second["notified"] is False
+    assert len(sent) == 1
+
+
+def test_collar_roll_reminder_line_none_when_roll_not_imminent():
+    import core.champion_strategy as cs
+    with_days_far = {"days_remaining": 5, "mark_to_model_pnl_pct_of_satellite_notional": 0.1}
+    orig = cs.compute_live_collar_state
+    cs.compute_live_collar_state = lambda **kw: with_days_far
+    try:
+        assert cs._collar_roll_reminder_line() is None
+    finally:
+        cs.compute_live_collar_state = orig
+
+
+def test_collar_roll_reminder_line_present_when_roll_imminent(monkeypatch):
+    monkeypatch.setattr(
+        champion_strategy, "compute_live_collar_state",
+        lambda **kw: {"days_remaining": 1, "mark_to_model_pnl_pct_of_satellite_notional": -0.5},
+    )
+    line = champion_strategy._collar_roll_reminder_line()
+    assert line is not None
+    assert "칼라" in line
+
+
+def test_collar_roll_reminder_line_none_when_state_unavailable(monkeypatch):
+    monkeypatch.setattr(champion_strategy, "compute_live_collar_state", lambda **kw: None)
+    assert champion_strategy._collar_roll_reminder_line() is None
+
+
+def test_check_and_notify_upcoming_rebalance_includes_collar_line_when_core_rebalance_and_roll_imminent(monkeypatch, tmp_path):
+    _patch_reminder_state_path(monkeypatch, tmp_path)
+    monkeypatch.setattr(champion_strategy, "_is_core_rebalance_date", lambda d: True)
+    monkeypatch.setattr(champion_strategy, "_is_satellite_rebalance_date", lambda d: False)
+    monkeypatch.setattr(
+        champion_strategy, "compute_live_collar_state",
+        lambda **kw: {"days_remaining": 1, "mark_to_model_pnl_pct_of_satellite_notional": 0.2},
+    )
+    sent = []
+
+    champion_strategy.check_and_notify_upcoming_rebalance(notify_fn=sent.append)
+
+    assert "칼라" in sent[0]

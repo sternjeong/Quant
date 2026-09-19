@@ -525,3 +525,28 @@ class NewsTickerDigest(Base):
     sentiment = Column(String(20), nullable=True)  # bullish | neutral | bearish
     sentiment_score = Column(Float, nullable=True)  # -1.0 ~ 1.0
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+
+
+class ChampionLedgerEntry(Base):
+    """챔피언 전략 페이퍼 트레이딩 원장 — "매일의 추천 비중을 실제로 따랐다면 어떻게 됐을지"를
+    하루 한 번씩 누적 기록한다(2026-09-19 추가).
+
+    core.champion_strategy.record_daily_ledger_entry()가 매일 밤: (1) 어제 이 테이블에 저장해둔
+    core_weights/satellite_weights로 오늘 하루 실제 실현된 수익률을 계산해 realized_return_pct/
+    cumulative_equity에 기록하고, (2) 오늘 기준 새 추천 비중을 다시 계산해 다음날 쓸 core_weights/
+    satellite_weights로 저장한다 — "어제 정해진 비중이 오늘 실현된다"는 이 프로젝트 전역의
+    lookahead 방지 관례(weights.shift(1))를 라이브 원장에도 그대로 적용한 것이다.
+
+    entry_date는 유니크 — 하루에 한 번만 기록된다(같은 날 여러 번 실행돼도 덮어쓰지 않고
+    건너뛴다, record_daily_ledger_entry 참고).
+    """
+
+    __tablename__ = "champion_ledger_entries"
+
+    id = Column(Integer, primary_key=True)
+    entry_date = Column(Date, nullable=False, unique=True, index=True)
+    core_weights = Column(Text, nullable=False, default="{}")  # JSON {ticker: weight} — 내일부터 적용될 비중
+    satellite_weights = Column(Text, nullable=False, default="{}")  # JSON {ticker: weight}
+    realized_return_pct = Column(Float, nullable=False, default=0.0)  # 어제 비중으로 오늘 실현된 수익률(%)
+    cumulative_equity = Column(Float, nullable=False, default=100.0)  # 100에서 시작하는 누적 자산가치
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)

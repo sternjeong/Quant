@@ -36,7 +36,7 @@ from core.backtest_engine import _first_trading_day_of_month_mask, calculate_met
 from core.db import get_session
 from core.indicators import sma
 from core.market_data import get_multiple_price_history, get_price_history
-from core.models import CorrelationSnapshot
+from core.models import ChampionLedgerEntry, CorrelationSnapshot
 from core.portfolio import compute_correlation_matrix, compute_daily_returns
 from core.screener import get_universe
 from core.strategy_tuning import sample_universe, train_test_split_dates
@@ -1709,6 +1709,12 @@ def check_and_notify_upcoming_rebalance(days_before: int = 1, notify_fn=None) ->
             lines.append(f"코어 리밸런싱 예정일: {core_date.isoformat()}")
         else:
             lines.append(f"새틀라이트 리밸런싱 예정일: {satellite_date.isoformat()}")
+        if core_date:
+            # 칼라 헤지도 코어와 같은 월별 스케줄(매월 첫 거래일)로 롤되므로, 코어 리밸런싱이
+            # 임박했을 때만 같이 확인한다 — 별도 알림/스케줄링을 새로 만들지 않고 이 자리에 붙인다.
+            collar_line = _collar_roll_reminder_line()
+            if collar_line:
+                lines.append(collar_line)
         lines.append("(달력 요일 기준 근사치 — 실제 거래소 휴장일 미반영, 최대 며칠 오차 가능)")
         message = "\n".join(lines)
         notify_fn(message)
@@ -2120,3 +2126,276 @@ def check_and_notify_champion_alpha_decay(notify_fn=None) -> dict:
 
     _save_decay_state({"as_of": as_of, "is_decayed": decay["is_decayed"], "decay_ratio": ratio})
     return result
+
+
+# ----------------------------------------------------------------------------
+# 페이퍼 트레이딩 원장 (2026-09-19 추가)
+#
+# 지금까지의 알림들(신호 변경/리밸런싱/실적/상관관계/알파 감쇠)은 전부 "추천"이나 "과거 백테스트"만
+# 다뤘다 — 이 전략을 실제로 매일 따랐다면 지금 어떤 성과였을지는 아무 데도 기록되지 않았다. 이
+# 섹션은 매일 밤 그날의 실현 수익률을 누적 기록해서(get_current_holdings가 읽는 신호 캐시와는
+# 별개로, 실제 "매매를 실행했다면"의 관점) 나중에 알파 감쇠 체크나 벤치마크 비교의 근거로 쓸 수
+# 있게 한다. 새 백테스트 엔진이 아니라 이미 있는 compute_core_recommendation/
+# compute_satellite_recommendation의 라이브 추천을 그대로 누적 기록하는 것뿐이다.
+# ----------------------------------------------------------------------------
+
+LEDGER_HISTORY_FETCH_DAYS = 10  # 어제 종가 대비 오늘 종가만 필요하지만, 휴장일/데이터 지연에 대비해 여유를 둠
+
+
+def record_daily_ledger_entry() -> dict:
+    """오늘자 원장 항목을 기록한다 — 어제 저장해둔 비중으로 오늘 실현된 수익률을 계산하고,
+    오늘 기준 새 추천 비중을 다음날 쓸 값으로 저장한다.
+
+    같은 날짜에 이미 항목이 있으면(하루 여러 번 실행돼도) 아무것도 하지 않고 건너뛴다 — 원장은
+    "하루에 정확히 한 번"이 불변조건이어야 나중에 계산하는 누적수익률이 왜곡되지 않는다.
+
+    Returns:
+        {"skipped": bool, "as_of", "realized_return_pct", "cumulative_equity"} (skipped=True면
+        나머지 필드는 직전 항목 값 또는 없음)
+    """
+    today = date.today()
+    with get_session() as session:
+        last_entry = (
+            session.query(ChampionLedgerEntry).order_by(ChampionLedgerEntry.entry_date.desc()).first()
+        )
+        if last_entry is not None and last_entry.entry_date >= today:
+            return {
+                "skipped": True, "as_of": today.isoformat(),
+                "realized_return_pct": last_entry.realized_return_pct,
+                "cumulative_equity": last_entry.cumulative_equity,
+            }
+
+        realized_return_pct = 0.0
+        prev_equity = last_entry.cumulative_equity if last_entry is not None else 100.0
+        if last_entry is not None:
+            prev_weights: dict[str, float] = {
+                **json.loads(last_entry.core_weights), **json.loads(last_entry.satellite_weights)
+            }
+            if prev_weights:
+                tickers = list(prev_weights.keys())
+                fetch_start = (pd.Timestamp.today() - pd.Timedelta(days=LEDGER_HISTORY_FETCH_DAYS)).date().isoformat()
+                histories = get_multiple_price_history(tickers, start=fetch_start, interval="1d")
+                total = 0.0
+                for ticker, weight in prev_weights.items():
+                    df = histories.get(ticker)
+                    if df is None or len(df) < 2:
+                        continue  # 데이터를 못 받아온 종목은 그날 기여분을 0으로 본다(원장 전체를 막지 않음)
+                    day_return = float(df["Close"].iloc[-1] / df["Close"].iloc[-2] - 1.0)
+                    total += weight * day_return
+                realized_return_pct = round(total * 100, 4)
+
+        new_equity = round(prev_equity * (1 + realized_return_pct / 100), 4)
+
+        core_rec = compute_core_recommendation()
+        satellite_rec = compute_satellite_recommendation()
+
+        entry = ChampionLedgerEntry(
+            entry_date=today,
+            core_weights=json.dumps(core_rec["per_ticker_weights"]),
+            satellite_weights=json.dumps(satellite_rec["per_ticker_weights"]),
+            realized_return_pct=realized_return_pct,
+            cumulative_equity=new_equity,
+        )
+        session.add(entry)
+        session.flush()
+
+        return {
+            "skipped": False, "as_of": today.isoformat(),
+            "realized_return_pct": realized_return_pct, "cumulative_equity": new_equity,
+        }
+
+
+def list_ledger_entries(limit: int = 400) -> list[dict]:
+    """원장 항목을 날짜 오름차순으로 최근 limit개 반환한다 (성과 계산/차트용)."""
+    with get_session() as session:
+        rows = (
+            session.query(ChampionLedgerEntry)
+            .order_by(ChampionLedgerEntry.entry_date.desc())
+            .limit(limit)
+            .all()
+        )
+        rows = list(reversed(rows))
+        return [
+            {
+                "entry_date": row.entry_date.isoformat(),
+                "core_weights": json.loads(row.core_weights),
+                "satellite_weights": json.loads(row.satellite_weights),
+                "realized_return_pct": row.realized_return_pct,
+                "cumulative_equity": row.cumulative_equity,
+            }
+            for row in rows
+        ]
+
+
+def compute_ledger_performance_summary() -> dict:
+    """원장 누적 자산가치 곡선으로 실현 성과 지표(core.backtest_engine.calculate_metrics 재사용)를
+    계산한다. 항목이 하나도 없으면 {"available": False}."""
+    entries = list_ledger_entries()
+    if not entries:
+        return {"available": False, "entry_count": 0}
+
+    equity = pd.Series(
+        [e["cumulative_equity"] for e in entries],
+        index=pd.to_datetime([e["entry_date"] for e in entries]),
+    )
+    metrics = calculate_metrics(equity, [], equity.index[0], equity.index[-1])
+    return {
+        "available": True,
+        "entry_count": len(entries),
+        "start_date": entries[0]["entry_date"],
+        "end_date": entries[-1]["entry_date"],
+        "metrics": metrics,
+    }
+
+
+# ----------------------------------------------------------------------------
+# 벤치마크 대비 실시간 아웃퍼폼 추적 (2026-09-19 추가)
+#
+# 위 페이퍼 트레이딩 원장이 쌓이기 시작해야만 의미가 있다 — 원장이 없으면(또는
+# BENCHMARK_MIN_LEDGER_DAYS일 미만이면) "비교할 실현 성과 자체가 아직 없다"고 정직하게 답한다.
+# 60/40(SPY/TLT)을 참고 벤치마크로 쓴다 — 둘 다 이미 CORE_UNIVERSE에 있는 자산이라 새 데이터
+# 소스가 필요 없다.
+# ----------------------------------------------------------------------------
+
+BENCHMARK_MIN_LEDGER_DAYS = 20  # 이보다 적으면 비교가 통계적으로 무의미하다고 보고 비교를 건너뜀
+BENCHMARK_6040_EQUITY_TICKER = "SPY"
+BENCHMARK_6040_BOND_TICKER = "TLT"
+BENCHMARK_6040_EQUITY_WEIGHT = 0.6
+BENCHMARK_GAP_ALERT_THRESHOLD_PCT = -5.0  # 벤치마크 대비 이 %p 이상 뒤처지면 알림 (예: -5.0 = 5%p 뒤처짐)
+BENCHMARK_STATE_CACHE_PATH = PROJECT_ROOT / "data" / "cache" / "champion_benchmark_state.json"
+
+
+def compute_benchmark_comparison() -> dict:
+    """원장의 실현 성과를 같은 기간의 SPY 매수보유 및 60/40(SPY/TLT) 벤치마크와 비교한다.
+
+    Returns:
+        {"available": bool, "reason"(available=False일 때만), "start_date", "end_date",
+         "ledger_total_return_pct", "spy_total_return_pct", "sixty_forty_total_return_pct",
+         "gap_vs_spy_pct", "gap_vs_sixty_forty_pct"}
+        gap_* = 원장 누적수익률 - 벤치마크 누적수익률(%p) — 음수면 벤치마크보다 뒤처짐.
+    """
+    entries = list_ledger_entries()
+    if len(entries) < BENCHMARK_MIN_LEDGER_DAYS:
+        return {
+            "available": False,
+            "reason": f"원장 기록이 {BENCHMARK_MIN_LEDGER_DAYS}일 미만이라 벤치마크 비교를 건너뜀 (현재 {len(entries)}일).",
+        }
+
+    start_date = entries[0]["entry_date"]
+    end_date = entries[-1]["entry_date"]
+    ledger_total_return_pct = (entries[-1]["cumulative_equity"] / 100.0 - 1.0) * 100
+
+    histories = get_multiple_price_history(
+        [BENCHMARK_6040_EQUITY_TICKER, BENCHMARK_6040_BOND_TICKER], start=start_date, end=end_date, interval="1d"
+    )
+    spy = histories.get(BENCHMARK_6040_EQUITY_TICKER)
+    tlt = histories.get(BENCHMARK_6040_BOND_TICKER)
+    if spy is None or spy.empty:
+        return {"available": False, "reason": "SPY 가격 데이터를 가져오지 못해 벤치마크 비교를 건너뜀."}
+
+    spy_total_return_pct = float(spy["Close"].iloc[-1] / spy["Close"].iloc[0] - 1.0) * 100
+    if tlt is not None and not tlt.empty:
+        tlt_total_return_pct = float(tlt["Close"].iloc[-1] / tlt["Close"].iloc[0] - 1.0) * 100
+        sixty_forty_total_return_pct = (
+            BENCHMARK_6040_EQUITY_WEIGHT * spy_total_return_pct
+            + (1 - BENCHMARK_6040_EQUITY_WEIGHT) * tlt_total_return_pct
+        )
+    else:
+        sixty_forty_total_return_pct = None
+
+    return {
+        "available": True,
+        "start_date": start_date,
+        "end_date": end_date,
+        "ledger_total_return_pct": round(ledger_total_return_pct, 3),
+        "spy_total_return_pct": round(spy_total_return_pct, 3),
+        "sixty_forty_total_return_pct": round(sixty_forty_total_return_pct, 3) if sixty_forty_total_return_pct is not None else None,
+        "gap_vs_spy_pct": round(ledger_total_return_pct - spy_total_return_pct, 3),
+        "gap_vs_sixty_forty_pct": (
+            round(ledger_total_return_pct - sixty_forty_total_return_pct, 3)
+            if sixty_forty_total_return_pct is not None else None
+        ),
+    }
+
+
+def _load_last_benchmark_state() -> Optional[dict]:
+    if not BENCHMARK_STATE_CACHE_PATH.exists():
+        return None
+    try:
+        with open(BENCHMARK_STATE_CACHE_PATH, encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return None
+
+
+def _save_benchmark_state(state: dict) -> None:
+    BENCHMARK_STATE_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with open(BENCHMARK_STATE_CACHE_PATH, "w", encoding="utf-8") as f:
+        json.dump(state, f, ensure_ascii=False, indent=2)
+
+
+def check_and_notify_benchmark_gap(notify_fn=None) -> dict:
+    """compute_benchmark_comparison()의 60/40 대비 격차가 BENCHMARK_GAP_ALERT_THRESHOLD_PCT보다
+    더 나쁘면 텔레그램으로 알린다.
+
+    같은 격차 상태가 계속되는 동안은 매일 재알림하지 않는다(check_and_notify_champion_alpha_decay와
+    동일한 dedupe 원칙 — gap_vs_sixty_forty_pct가 2.0%p 이상 더 나빠지거나 격차 상태에서
+    회복됐을 때만 다시 알림).
+
+    Returns: {"as_of", "comparison", "notified", "message"}
+    """
+    if notify_fn is None:
+        from core.telegram_notify import send_message as notify_fn
+
+    comparison = compute_benchmark_comparison()
+    as_of = date.today().isoformat()
+    result = {"as_of": as_of, "comparison": comparison, "notified": False, "message": None}
+
+    if not comparison["available"] or comparison.get("gap_vs_sixty_forty_pct") is None:
+        return result
+
+    gap = comparison["gap_vs_sixty_forty_pct"]
+    is_lagging = gap <= BENCHMARK_GAP_ALERT_THRESHOLD_PCT
+
+    last_state = _load_last_benchmark_state() or {}
+    last_is_lagging = bool(last_state.get("is_lagging"))
+    last_gap = last_state.get("gap")
+
+    should_notify = is_lagging and (
+        not last_is_lagging or last_gap is None or (last_gap - gap) >= 2.0
+    )
+
+    if should_notify:
+        message = (
+            "📉 챔피언 전략, 60/40 벤치마크 대비 부진\n"
+            f"기간: {comparison['start_date']}~{comparison['end_date']} (페이퍼 트레이딩 원장 실현 기준)\n"
+            f"원장 누적수익률: {comparison['ledger_total_return_pct']}%\n"
+            f"SPY: {comparison['spy_total_return_pct']}% | 60/40(SPY/TLT): {comparison['sixty_forty_total_return_pct']}%\n"
+            f"격차(60/40 대비): {gap}%p\n"
+            "이건 실현 성과가 단순 벤치마크에 못 미친다는 신호일 뿐, 자동으로 전략을 멈추지 않습니다."
+        )
+        notify_fn(message)
+        result["notified"] = True
+        result["message"] = message
+
+    _save_benchmark_state({"as_of": as_of, "is_lagging": is_lagging, "gap": gap})
+    return result
+
+
+# ----------------------------------------------------------------------------
+# 칼라 헤지 롤 예정 알림 (2026-09-19 추가) — check_and_notify_upcoming_rebalance 확장
+# ----------------------------------------------------------------------------
+
+def _collar_roll_reminder_line() -> Optional[str]:
+    """compute_live_collar_state()의 남은 만기가 1거래일 이하면 알림 문구 한 줄을 만든다.
+    SPY/VIX 데이터를 못 받아오면(계산 불가) None — 리밸런싱 알림 자체는 막지 않는다."""
+    try:
+        collar = compute_live_collar_state()
+    except Exception:
+        return None
+    if collar is None or collar["days_remaining"] > 1:
+        return None
+    return (
+        f"🛡️ 칼라 헤지도 곧 롤 예정 (만기 {collar['days_remaining']}거래일 남음, "
+        f"이번 사이클 마크투모델 손익 {collar['mark_to_model_pnl_pct_of_satellite_notional']}%)"
+    )
