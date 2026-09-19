@@ -176,3 +176,11 @@ Day 1 원본 spec/manifest/lock/19개 가격은 바꾸지 않았다. VNQ는 기�
 지킨다. 프록시/실제 표본을 분리하고 Day 4의 S6 과거 공시시각 검증을 누락하지 않는다.
 별도 연구 브랜치 `research/day2-data-audit-20260919`에 게시하며 게시 SHA와 원격 확인은
 `day2/publication.json`에 추가 기록한다.
+
+
+### Day 2 게시 확인
+
+감사 증거 커밋 `57bc201121ea700c622165d740f7f89e2e7da028`를 `origin/research/day2-data-audit-20260919`에 push하고 원격 SHA 일치를 확인했다.
+게시 worktree에서도 테스트 27개 통과; 기존 미커밋 파일/진행 기록의 원래 내용 보존과 원본+신규 증거
+79개 해시 일치를 확인했다. `day2/publication.json`, `day2/workspace_final_observation.json`에 기록했다.
+main은 원래 HEAD를 유지하며 push/서비스 조작/일일 HTML 커밋은 하지 않았다.

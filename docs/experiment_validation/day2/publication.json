@@ -1,0 +1,21 @@
+{
+  "evidence_commit": "57bc201121ea700c622165d740f7f89e2e7da028",
+  "branch": "research/day2-data-audit-20260919",
+  "remote": "origin",
+  "remote_verified_sha": "57bc201121ea700c622165d740f7f89e2e7da028",
+  "verified_at_utc": "2026-09-19T16:02:12.908215+00:00",
+  "worktree": "/tmp/quant-day2-data-audit-20260919",
+  "base_commit": "8f5261a98b53a2b59b0c8a183d803f5808105bae",
+  "publication_tests": {
+    "passed": 27,
+    "failed": 0,
+    "duration_seconds": 0.92,
+    "command": "/opt/quant/.venv/bin/python -m pytest -q docs/experiment_validation/test_snapshot.py docs/experiment_validation/day2/test_data_contract.py"
+  },
+  "result_hashes_sha256": "4fd7ea3ced381b7e33957eccadf68cf653f7fad0f87be7d3d060d9a2cda6b2cc",
+  "original_dirty_workspace": "preserved; see workspace_final_observation.json",
+  "prior_dependency": "day1_resolutions.md and existing Day 1 completion entry copied unchanged; unrelated pre-existing research excluded",
+  "main_push": false,
+  "html_committed": false,
+  "completion_notification": "전송 성공"
+}
