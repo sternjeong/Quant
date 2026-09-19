@@ -8,6 +8,10 @@ Type=oneshot
 User=root
 WorkingDirectory=/opt/quant
 ExecStart=/opt/quant/deploy/auto_deploy.sh
+# 새 커밋이 있을 때만 도는 테스트 게이트(pytest, 최대 240초) + deploy 유닛테스트(최대 60초) +
+# git/pip 작업 시간까지 감안한 여유. 기본 DefaultTimeoutStartSec(보통 90초)로는 테스트 게이트
+# 도중에 타임아웃되어 알림도 못 보내고 죽을 수 있어 명시적으로 늘려둔다.
+TimeoutStartSec=600
 
 [Install]
 WantedBy=multi-user.target

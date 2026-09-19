@@ -32,6 +32,12 @@ FAIL_ALERT_FILE="$STATE_DIR/pull_failure_last_alert"
 # A persistent (non-transient) pull failure would otherwise re-alert every timer tick (5min) --
 # this caps it to one alert per cooldown window instead of spamming forever.
 ALERT_COOLDOWN_SECONDS="${AUTO_DEPLOY_ALERT_COOLDOWN_SECONDS:-21600}"
+# 새 커밋을 테스트했는데 실패한 그 커밋 해시를 기록해둔다. pull이 이미 그 커밋까지 끝난
+# 상태라 다음 타이머 틱에서는 local_head == remote_head라 자연히 재시도/재알림을 안 하게
+# 되므로(위 no-op 분기), 이 파일은 오직 "나중에 성공했을 때 복구 알림에 덧붙일 문구"용이다.
+TEST_FAIL_FLAG="$STATE_DIR/last_test_failure_commit"
+TEST_LOG="$STATE_DIR/last_test_output.log"
+TEST_TIMEOUT_SECONDS="${AUTO_DEPLOY_TEST_TIMEOUT_SECONDS:-240}"
 
 log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"; }
 
@@ -116,18 +122,56 @@ $truncated_pip_output"
     fi
   fi
 
+  log "서비스 재시작 전 테스트 게이트 실행 (tests/ + deploy 유닛테스트, 최대 ${TEST_TIMEOUT_SECONDS}초)"
+  : > "$TEST_LOG"
+  tests_ok=1
+  if ! sudo -n -u "$SERVICE_USER" timeout "$TEST_TIMEOUT_SECONDS" \
+        "$APP_DIR/.venv/bin/python" -m pytest "$APP_DIR/tests" -q >>"$TEST_LOG" 2>&1; then
+    tests_ok=0
+  fi
+  # runner.py/experiment_supervisor.py는 프로젝트 venv 없이 시스템 python3로 도는
+  # stdlib-only 프로세스라(core/resource_guard.py 주석 참고), 이 둘도 시스템 python3로 검증한다.
+  if ! sudo -n -u "$SERVICE_USER" timeout 60 python3 -m pytest \
+        "$APP_DIR/deploy/codex_telegram/test_runner.py" \
+        "$APP_DIR/deploy/test_experiment_supervisor.py" -q >>"$TEST_LOG" 2>&1; then
+    tests_ok=0
+  fi
+
+  if [ "$tests_ok" -eq 0 ]; then
+    log "테스트 실패 — 서비스는 재시작하지 않음(기존 버전 계속 실행 중). 워킹트리는 이미 새 커밋으로 이동했으므로, 다음 새 커밋이 올 때만 다시 테스트함(같은 커밋 재시도/재알림 없음)"
+    cat "$TEST_LOG"
+    echo "$new_head" > "$TEST_FAIL_FLAG"
+
+    truncated_test_output="$(tail -c 2000 "$TEST_LOG")"
+    message="[자동배포] pull은 됐지만 테스트 실패 — 서비스는 재시작하지 않음(기존 버전 계속 실행 중)
+${local_head:0:7}..${new_head:0:7} ($commit_count 커밋)
+워킹트리는 이미 새 커밋으로 옮겨갔지만 서비스는 이전 버전을 그대로 실행 중. 같은 커밋으로는
+재시도/재알림하지 않고, 다음에 새 커밋이 오면 그걸로 다시 테스트함.
+
+pytest 실패 출력(뒷부분):
+$truncated_test_output"
+    "$ALERT_SCRIPT" "$message" || log "텔레그램 알림 전송도 실패"
+    exit 1
+  fi
+
+  log "테스트 통과 (tests/ + deploy 유닛테스트)"
   log "서비스 재시작: ${SERVICES[*]}"
 
   systemctl restart "${SERVICES[@]}"
 
   log "재시작 완료"
 
-  # 직전까지 실패 알림 쿨다운 상태였다면, 이번에 복구됐다는 걸 메시지에 덧붙이고 상태를 지운다.
+  # 직전까지 실패 알림/테스트 실패 상태였다면, 이번에 복구됐다는 걸 메시지에 덧붙이고 상태를 지운다.
   recovery_note=""
   if [ -f "$FAIL_ALERT_FILE" ]; then
     recovery_note="(이전 배포 실패 상태에서 복구됨)
 "
     clear_failure_state
+  fi
+  if [ -f "$TEST_FAIL_FLAG" ]; then
+    recovery_note="${recovery_note}(이전 테스트 실패 상태에서 복구됨)
+"
+    rm -f "$TEST_FAIL_FLAG" 2>/dev/null || true
   fi
 
   message="[자동배포] 성공

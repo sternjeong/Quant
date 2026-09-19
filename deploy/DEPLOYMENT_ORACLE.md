@@ -267,10 +267,20 @@ sudo systemctl start quant-vm-health.service     # 정상 범위로 "복구됨" 
 **동작**: 매번 `git fetch`로 `origin/main`만 조회하고, 로컬 `HEAD`와 같으면 아무 것도 안 하고
 조용히 끝난다(가장 흔한 경우). 다를 때만 `sudo -u quant git pull --ff-only`를 시도하고,
 성공하면 `requirements.txt`가 이번 범위에서 바뀌었는지 확인해 바뀌었을 때만 먼저
-`pip install -r requirements.txt`를 실행한 뒤(실패하면 서비스는 재시작하지 않고 기존 버전을
-그대로 둔 채 텔레그램으로 알리고 종료), `codex-telegram`/`quant-streamlit`/`quant-scheduler`
-세 서비스를 모두 재시작하고 배포 결과(구→신 커밋, 커밋 개수, 재시작한 서비스 목록)를
-텔레그램으로 한 번 알린다.
+`pip install -r requirements.txt`를 실행한다(실패하면 서비스는 재시작하지 않고 기존 버전을
+그대로 둔 채 텔레그램으로 알리고 종료). 그다음 **서비스를 재시작하기 전에 테스트 게이트를
+돈다** — `tests/`(프로젝트 venv, `pytest`) + `deploy/codex_telegram/test_runner.py` /
+`deploy/test_experiment_supervisor.py`(시스템 `python3` — 이 두 파일이 검증하는
+`runner.py`/`experiment_supervisor.py` 자체가 venv 없이 시스템 python으로 도는 stdlib-only
+프로세스라서). 이 게이트가 실패하면 `codex-telegram`/`quant-streamlit`/`quant-scheduler`
+세 서비스를 **재시작하지 않고**(기존 버전이 계속 돎) 실패한 pytest 출력 뒷부분과 함께
+텔레그램으로 알린 뒤 종료한다 — 워킹트리 자체는 이미 새(깨진) 커밋으로 옮겨간 상태라, 다음
+타이머 틱에서는 `local HEAD == origin/main`이라 조용히 no-op으로 끝난다(같은 커밋을 반복
+테스트하거나 반복 알림하지 않음). 그다음에 새 커밋이 푸시되면 그걸로 다시 테스트를 시도한다.
+테스트까지 통과하면 세 서비스를 모두 재시작하고 배포 결과(구→신 커밋, 커밋 개수, 재시작한
+서비스 목록)를 텔레그램으로 한 번 알린다 — 직전에 pull 실패/테스트 실패 상태였다면 "복구됨"
+문구도 함께 붙는다. 테스트 게이트의 타임아웃은 기본 240초(`AUTO_DEPLOY_TEST_TIMEOUT_SECONDS`
+로 조절 가능)이며, 시간 초과도 실패로 취급해 서비스를 건드리지 않는다.
 
 **비파괴 원칙(★)**: 여기서 쓰는 git 명령은 `git fetch`와 `git pull --ff-only`, 그리고
 `data/cache/fred_*.csv` 하나만 대상으로 하는 `git checkout --` 뿐이다. 이 FRED 캐시 파일들은
@@ -303,4 +313,7 @@ sudo systemctl disable --now quant-auto-deploy.timer
 텔레그램 에이전트가 작업을 실행 중이었다면 그 작업이 중단된다. 다만 `runner.py`가 종료 시그널을
 받으면 실행 중이던 작업을 그냥 죽이지 않고 `retry` 상태로 표시해두므로(다음 실행 때 자동으로
 이어서 재개), 데이터 유실이 아니라 그 작업이 몇 분 늦게 끝나는 정도의 사소하고 감수할 만한
-불편이다.
+불편이다. 테스트 게이트 때문에 새 커밋이 있을 때만 배포가 최대 수 분(로컬 기준 `tests/`
+866개가 약 50초, VM은 더 느릴 수 있음 + deploy 유닛테스트) 더 걸릴 수 있는데, 평소 대부분의
+타이머 틱은 새 커밋이 없어 테스트 자체를 돌리지 않으므로 이 지연은 배포가 실제로 일어나는
+그 순간에만 발생한다.
