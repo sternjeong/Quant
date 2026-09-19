@@ -1,0 +1,17 @@
+Serialized replay PASS: actual_17
+Serialized replay PASS: proxy_17
+Serialized replay PASS: actual_5_full
+{
+  "status": "PASS",
+  "metrics_rows": 63,
+  "serialized_runs": 63,
+  "data_inventory_sha256": "a8132c4441f818e47309dee4cbb93bb3067b18edc40371bda00679862fb6e86d",
+  "all_costs_and_candidates_present": true,
+  "same_day_close_fills": 0,
+  "zero_volume_fills": 0,
+  "non_next_session_fills": 0,
+  "stored_metrics_recomputed_from_equity": true,
+  "total_order_legs": 54606,
+  "total_equity_sessions": 228360,
+  "max_relative_nav_replay_error": 6.5503158452884236e-15
+}

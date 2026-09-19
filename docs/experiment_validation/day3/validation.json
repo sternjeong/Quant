@@ -1,0 +1,52 @@
+{
+  "day": 3,
+  "status": "PASS",
+  "validated_at_utc": "2026-09-19T20:22:28.876699+00:00",
+  "scope": "Day 3 execution/cost pass only; no final candidate eligibility decision",
+  "criteria": {
+    "baselines_and_s1_through_s5_full_period_matrix": true,
+    "all_5_10_25_bps_cases": true,
+    "exact_next_session_open": true,
+    "no_same_day_close_fills": true,
+    "zero_volume_fills_rejected": true,
+    "cost_cash_drift_and_proxy_legs_replayed": true,
+    "saved_metrics_match_saved_equity": true,
+    "synthetic_timing_cost_and_future_mutation_tests": true,
+    "original_55_artifacts_and_day2_79_evidence_preserved": true,
+    "frozen_dataset_hashes_preserved": true,
+    "no_candidate_baseline_or_selection_gate_changes": true
+  },
+  "tests": {
+    "passed": 63,
+    "failed": 0,
+    "command": ".venv/bin/python -m pytest -q docs/experiment_validation/test_snapshot.py docs/experiment_validation/day2/test_data_contract.py docs/experiment_validation/day3/test_backtest.py",
+    "isolated_publication_worktree_passed": 63
+  },
+  "metrics_rows": 63,
+  "total_order_legs": 54606,
+  "total_equity_sessions": 228360,
+  "max_relative_nav_replay_error": 6.5503158452884236e-15,
+  "same_day_close_fills": 0,
+  "non_next_session_fills": 0,
+  "zero_volume_fills": 0,
+  "zero_volume_held_mark_rows_across_runs": 39,
+  "zero_volume_sessions_retained": [
+    "2015-10-14",
+    "2015-11-25",
+    "2015-11-27",
+    "2015-12-07",
+    "2016-01-25"
+  ],
+  "data_inventory_sha256": "a8132c4441f818e47309dee4cbb93bb3067b18edc40371bda00679862fb6e86d",
+  "datasets": 22,
+  "metrics_sha256": "57644d3e8fcbb4b0dda8dac10344e4f7b590f8a2d48c25df187ef72293cabcfd",
+  "known_limits": [
+    "Fixed provider adjustment vintage is not a historical release archive",
+    "Zero-volume closes retained as marked, unverified-tradability valuation observations",
+    "Proxy results are distinct from actual ETF results; XLRE conversion is a fixed mapping event",
+    "Common cohort warmup excludes earlier standalone S4 signals; see sample_boundary_audit.csv",
+    "No manufactured 2007 return for 17-slot universe; OOS windows remain unchanged",
+    "Fractional adjusted units and zero-interest cash; final holdings are marked, not liquidated",
+    "S6 PIT evidence, OOS gates, bootstrap, DSR/PBO and selection remain for later Days"
+  ]
+}

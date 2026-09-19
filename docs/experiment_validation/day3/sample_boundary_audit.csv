@@ -1,0 +1,4 @@
+sample,price_start,first_10_month_end_sma_available,first_s4_signal_after_2007_lower_bound,first_common_252_signal,common_first_fill,last_stored_session,last_complete_month_signal,s4_earlier_signals_excluded_for_common_comparison
+actual_17,2018-06-19,2019-03-29,2019-03-29,2019-06-28,2019-07-01,2026-09-17,2026-08-31,3
+proxy_17,2007-04-11,2008-01-31,2008-01-31,2008-04-30,2008-05-01,2026-09-17,2026-08-31,3
+actual_5_full,2006-02-06,2006-11-30,2007-01-31,2007-02-28,2007-03-01,2026-09-17,2026-08-31,1

@@ -184,3 +184,49 @@ Day 1 원본 spec/manifest/lock/19개 가격은 바꾸지 않았다. VNQ는 기�
 게시 worktree에서도 테스트 27개 통과; 기존 미커밋 파일/진행 기록의 원래 내용 보존과 원본+신규 증거
 79개 해시 일치를 확인했다. `day2/publication.json`, `day2/workspace_final_observation.json`에 기록했다.
 main은 원래 HEAD를 유지하며 push/서비스 조작/일일 HTML 커밋은 하지 않았다.
+
+
+## 2026-09-19 — Day 3 완료: 전 기간 비용 후 기준선/S1~S5
+
+DAY_3_COMPLETE
+
+Day 3 통과 조건인 정확한 다음 거래 세션 시가 체결과 양쪽 매매대금 비용 반영을 충족했다.
+실제 17자리 2019-07-01~, 프록시 17자리 2008-05-01~, 실제 5자산 2007-03-01~의
+공통 웜업 비교기간을 2026-09-17까지 평가했다. 실제/프록시 공통 표본 각각 24행,
+별도 5자산 15행으로 `baseline_metrics.csv`는 63행이다. 후보 수는 여전히 6개이며
+이번 평가 대상만 S1~S5다. S6·OOS·PBO/DSR·선택 게이트 판정은 해당 Day에 남긴다.
+
+생성 파일: `baseline_metrics.csv`, `day3_report.md`, `day3_resolutions.md`;
+`day3/backtest.py`, `run_day3.py`, `validate_results.py`, `verify_saved.py`,
+`finalize_evidence.py`, `test_backtest.py`, `initial_workspace.json`, `notification_log.json`,
+`run_manifest.json`, `run.log`, `tests.log`, `execution_validation.json`,
+`saved_validation.json`, `saved_validation.log`, `validation.json`, `sample_coverage.csv`,
+`sample_boundary_audit.csv`, `zero_volume_usage.csv`, `zero_volume_held_marks.csv`,
+`publication_validation.json`, `RESUME_NOTE.md`, `result_hashes.json`;
+63쌍의 `<sample>__<strategy>__<cost>bp.daily.csv.gz`/`.orders.csv.gz` 및
+`actual_17.signals.csv.gz`, `proxy_17.signals.csv.gz`, `actual_5_full.signals.csv.gz`.
+위 모든 파일의 실제 경로·SHA-256은 `day3/result_hashes.json`에 나열했다.
+게시 후 `publication.json`, `workspace_final_observation.json`을 추가한다.
+
+검증: 테스트 63 passed(기존 27+Day 3 36), 별도 게시 worktree 63 passed.
+63개 계좌의 체결 54,606개와 순자산 228,360행을 실제 티커 단위로 독립 재구성했고
+CSV 저장 후에도 일치했다(최대 NAV 상대오차 6.5503158452884236e-15).
+동일일 종가 체결/비정상 다음 세션/거래량 0 체결 모두 0건. 양쪽 비용, 진입비용,
+드리프트, 현금 슬롯, 보유 갭, 미래 가격 변경 불변, 결측 시가 차단을 확인했다.
+기존 증거 55개/Day 2 증거 79개/데이터 22개 해시 유지.
+거래량 0 XLRE 5개 날짜를 보존했고 실제 보유 가격 평가 39행(비용률별 계좌 합산)을
+명시했다. 거래가능성/과거 가격 빈티지의 한계는 남으며 S6 PIT 인증으로 대체하지 않는다.
+
+| 증거 | SHA-256 |
+| --- | --- |
+| 데이터 22개 path→sha 목록 (정렬 키 compact JSON, UTF-8, 개행 없음) | a8132c4441f818e47309dee4cbb93bb3067b18edc40371bda00679862fb6e86d |
+| baseline_metrics.csv | 57644d3e8fcbb4b0dda8dac10344e4f7b590f8a2d48c25df187ef72293cabcfd |
+| day3/result_hashes.json (기존+신규 232개 증거) | eead5ea262341b40897f2ee627e5d6342f308cda46843eb9f50ff5723cd812e1 |
+
+성과 조회 전 판단 체크포인트: `20260919T200502Z_day3-execution-contract`.
+`day3_resolutions.md`에 근거를 기록하고 즉시 Telegram 전송 성공했다. 후보/기준선/게이트
+변경 없음. 기존 미커밋 파일 보존 검사 통과; root와 실험 진행/인계 문서는 추가만 했다.
+
+다음 자동 감독은 **Day 4만** 수행한다: 실제 발표시각·과거 sector·주식수 단위·상장폐지
+가격을 포함한 S6 PIT 입력 인증과 S1 공통 일자 비교, `satellite_audit.md`.
+미래 fallback 금지. Day 3 결정론적 백테스트를 반복하지 않는다.

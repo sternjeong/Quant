@@ -30,3 +30,13 @@ Day 1은 기존 day1_resolutions.md와 완료 기록을 따른다. 이번 Day 2 
 `data_audit.md`, 게시 SHA/원격 확인은 `day2/publication.json`에 있다.
 원본 spec/manifest/lock은 증거로 유지하여 과거 BLOCKED 상태를 보존했다. 재다운로드나
 완료된 백테스트 반복 없이 5/10/25bp 기준선/S1~S5 next-open 백테스트를 새로 수행한다.
+
+
+## 2026-09-19 — 최신 인계: Day 3 검증 완료
+
+Day 3의 다음 시가/비용 조건은 통과했으며 두 PROGRESS.md에 완료 표식을 기록했다.
+다음 자동 감독은 Day 4만 수행한다. 자세한 명령/제약은
+`docs/experiment_validation/day3/RESUME_NOTE.md`, 결과는 `day3_report.md`,
+게시 확인 SHA는 `day3/publication.json`을 참조한다(경로는 실험 디렉터리 기준).
+Day 3 백테스트와 입력 재수집을 반복하지 않는다. S6 실제 PIT 입력 검증과 S1 공통 일자
+비교를 수행하고 미래/현재 데이터 fallback으로 과거를 채우지 않는다.

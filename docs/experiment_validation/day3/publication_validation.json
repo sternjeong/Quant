@@ -1,0 +1,12 @@
+{
+  "isolated_worktree": "/tmp/quant-day3-baseline-backtest-20260919",
+  "branch": "research/day3-baseline-backtest-20260919",
+  "base_commit": "2b290f6",
+  "tests": {
+    "command": "/opt/quant/.venv/bin/python -m pytest -q docs/experiment_validation/test_snapshot.py docs/experiment_validation/day2/test_data_contract.py docs/experiment_validation/day3/test_backtest.py",
+    "passed": 63,
+    "failed": 0,
+    "duration_seconds": 1.49
+  },
+  "scope": "Research files only; no main merge/push or service operations"
+}

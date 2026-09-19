@@ -5064,3 +5064,25 @@ DAY_2_COMPLETE
 다음 자동 감독은 Day 3만 수행: 기준선/S1~S5 비용 후 백테스트와 `baseline_metrics.csv`.
 HYG 웜업 공백, zero-volume 시가 차단, 프록시 연결 비용, 정확한 다음 시가 체결을 준수한다.
 Day 4의 S6 실제 PIT 입력 인증은 아직 수행하지 않았다. 게시 정보는 `day2/publication.json`.
+
+
+### 2026-09-19 — 고정 14일 프로토콜 Day 3 완료
+
+DAY_3_COMPLETE
+
+기준선 3개와 S1~S5의 전 기간 5/10/25bp 비용 후 백테스트를 완료했다.
+실제 17 ETF·장기 프록시·별도 5자산 표본을 분리한 63개 조합이며, 결과는
+`docs/experiment_validation/baseline_metrics.csv`, 설명은 `day3_report.md`에 있다.
+`day3/`에는 63쌍 일별 계좌/주문 gzip CSV, 3개 신호 로그, 표본/거래량 0 감사,
+코드·실행 manifest·테스트·검증·개별 해시를 저장했다(전체 생성 파일 목록은 result_hashes.json).
+관련 테스트 63개 및 게시 worktree의 63개 통과. 저장 파일 독립 재검증으로
+54,606개 체결·228,360개 순자산 행 일치, 최대 상대오차 6.55e-15.
+동일일 종가·다음 세션 위반·0거래량 체결 각각 0건; 프록시 보유 전환 양쪽 비용 확인.
+데이터 22개 목록 SHA-256: `a8132c4441f818e47309dee4cbb93bb3067b18edc40371bda00679862fb6e86d`.
+metrics CSV SHA-256: `57644d3e8fcbb4b0dda8dac10344e4f7b590f8a2d48c25df187ef72293cabcfd`.
+증거 232개 목록 SHA-256: `eead5ea262341b40897f2ee627e5d6342f308cda46843eb9f50ff5723cd812e1`.
+후보·기준선·게이트·기존 원본 해시와 미커밋 연구를 보존했다. 판단은 성과 조회 전
+체크포인트/문서/즉시 Telegram 보고로 처리했다. 결과는 최종 전략 선택 판정이 아니다.
+다음 자동 감독은 Day 4만: S6 실제 PIT 입력 인증 및 S1 공통 일자 비교,
+`satellite_audit.md` 작성. Day 3 백테스트 재실행 불필요.
+게시 브랜치 `research/day3-baseline-backtest-20260919`, 게시 확인은 `day3/publication.json`.
