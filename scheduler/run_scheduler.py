@@ -6,6 +6,7 @@
 00:11에는 챔피언 전략 보유종목 상관관계 스냅샷을 저장하고,
 00:15에는 챔피언 전략 리밸런싱 예정일을 미리 텔레그램으로 알리고,
 00:16에는 챔피언 전략 새틀라이트 실적 발표 예정을 미리 텔레그램으로 알리며,
+00:18에는 챔피언 전략 알파 감쇠(백테스트 성과 이탈) 여부를 체크해 감지되면 텔레그램으로 알리고,
 00:20에는 FRED 거시지표(원/달러 환율 등) 캐시를 미리 강제로 새로 받아와 데워두고,
 매주 일요일 20:20(America/New_York)에는 챔피언 전략 주간 HTML 보고를 텔레그램으로 전송한다.
 
@@ -79,6 +80,15 @@ Streamlit 앱과 완전히 별도의 프로세스로 실행된다 (브라우저�
       담은 HTML을 만들어 core.telegram_notify.send_document로 전송한다 — deploy/experiment_supervisor.py의
       "정기 HTML 보고서" 패턴과 같은 발상이다. threads_weekly_report_job(같은 요일 20:00)과 겹치지
       않도록 20분 뒤로 offset했다.
+    - 매일 한국시간(Asia/Seoul) 00:18에 champion_alpha_decay_job() 을 실행한다(2026-09-19 추가).
+      core.champion_strategy.check_and_notify_champion_alpha_decay() 가 챔피언 전략(코어+새틀라이트)
+      백테스트를 전체기간과 최근 6개월로 각각 돌려 최근 성과가 전체기간 대비 얼마나 이탈했는지
+      비교하고(core.backtest_engine.compute_alpha_decay와 동일한 판정 원칙), 감쇠가 감지되면
+      텔레그램으로 알린다 — "이 전략을 계속 믿어도 되는가"를 사람이 매번 수동으로 백테스트를
+      다시 돌려보지 않아도 알 수 있게 하는 라이브-백테스트 드리프트 감지다. 감쇠 상태가 계속되는
+      동안은 매일 재알림하지 않는다(dedupe). 전체기간(기본 8년) 백테스트를 매일 다시 돌리는 게
+      무거운 계산이라(챔피언 백테스트 안에서도 새틀라이트 반기 point-in-time 스캔이 가장 느림)
+      champion_earnings_reminder_job(00:16) 바로 다음 슬롯에 뒀다.
     - 매일 한국시간(Asia/Seoul) 00:20에 fred_indicator_prewarm_job() 을 실행한다(2026-09-14 추가).
       core.fred_data.get_series() 는 파일 캐시(TTL 24시간)가 만료되면 그날 처음 방문한 사용자가
       실시간 FRED API 호출을 그 자리에서 떠안는 구조라(원/달러 환율 DEXKOUS 포함),
@@ -115,6 +125,7 @@ from apscheduler.triggers.cron import CronTrigger
 
 from core.db import get_session, init_db
 from core.champion_strategy import (
+    check_and_notify_champion_alpha_decay,
     check_and_notify_signal_changes,
     check_and_notify_upcoming_earnings,
     check_and_notify_upcoming_rebalance,
@@ -301,6 +312,21 @@ def champion_earnings_reminder_job() -> None:
     else:
         print(f"  - 알림 없음 (upcoming={result['upcoming']})")
     print(f"[{datetime.now()}] champion_earnings_reminder_job 종료")
+
+
+def champion_alpha_decay_job() -> None:
+    """챔피언 전략(코어+새틀라이트) 백테스트 성과가 최근 이탈(감쇠)했는지 체크해 텔레그램으로
+    알린다 (2026-09-19 추가). core.champion_strategy.check_and_notify_champion_alpha_decay가
+    실제 계산/판정/dedupe/알림을 전부 담당한다.
+    """
+    print(f"[{datetime.now()}] champion_alpha_decay_job 시작")
+    result = check_and_notify_champion_alpha_decay()
+    decay = result["decay"]
+    if result["notified"]:
+        print(f"  - 알파 감쇠 감지, 텔레그램 알림 전송 시도:\n{result['message']}")
+    else:
+        print(f"  - 알림 없음 (is_decayed={decay['is_decayed']}, decay_ratio={decay['decay_ratio']})")
+    print(f"[{datetime.now()}] champion_alpha_decay_job 종료")
 
 
 def champion_weekly_report_job() -> None:
@@ -528,6 +554,16 @@ def main() -> None:
         replace_existing=True,
     )
     scheduler.add_job(
+        champion_alpha_decay_job,
+        # champion_earnings_reminder_job(00:16) 다음 비어있는 슬롯. 전체기간(기본 8년) 백테스트를
+        # 포함해 챔피언 잡 중 가장 무거운 계산이라 00:20(fred_indicator_prewarm)과는 겹치지 않게
+        # 2분 여유를 둔다.
+        trigger=CronTrigger(hour=0, minute=18, timezone="Asia/Seoul"),
+        id="champion_alpha_decay",
+        name="매일 한국시간 00:18 챔피언 전략 알파 감쇠(백테스트 성과 이탈) 체크 텔레그램 알림",
+        replace_existing=True,
+    )
+    scheduler.add_job(
         champion_weekly_report_job,
         # 기존 주간 잡(threads_weekly_report, 일요일 20:00 America/New_York)과 겹치지 않도록
         # 20분 뒤로 offset — 일간 00:00~00:20 KST 블록과 달리 이건 주 1회면 충분한 보고서라
@@ -558,8 +594,9 @@ def main() -> None:
     print("기준). 매일 한국시간(Asia/Seoul) 00:00 에는 시장 국면/섹터 강도 스냅샷을 미리 계산해두고,")
     print("00:05~04:00 에는 #3 전략을 서버가 허락하는 만큼 반복 미세튜닝하며, 00:10 에는 챔피언")
     print("전략 신호 변경을, 00:11 에는 보유종목 상관관계 스냅샷을, 00:15 에는 리밸런싱 예정일을,")
-    print("00:16 에는 새틀라이트 실적 발표 예정을, 00:20 에는 FRED 거시지표(환율 등) 캐시를 미리")
-    print("갱신/알립니다. 매일 한국시간 07:30에는 무료 뉴스 API 기반 티커별 HTML/Telegram 리포트를 보냅니다.")
+    print("00:16 에는 새틀라이트 실적 발표 예정을, 00:18 에는 챔피언 전략 알파 감쇠 여부를, 00:20 에는")
+    print("FRED 거시지표(환율 등) 캐시를 미리 갱신/알립니다.")
+    print("매일 한국시간 07:30에는 무료 뉴스 API 기반 티커별 HTML/Telegram 리포트를 보냅니다.")
     print("Ctrl+C 로 종료할 수 있습니다.")
 
     try:

@@ -58,6 +58,14 @@ MARKET_FILTER_TICKER = "SPY"
 MARKET_FILTER_SMA_WINDOW = 200
 MARKET_FILTER_EXPOSURE_CUT = 0.5  # 200일선 하회 시 코어 비중에 곱하는 배수
 
+# 2026-09-19 추가: 새틀라이트(SATELLITE_SIZING_METHODS)에는 이미 있던 "inverse_vol" 옵션을
+# 코어에도 동일한 원칙으로 제공한다 — 새 방법론 발명 없이 core.position_sizing의 기존 함수를
+# top4 종목에 그대로 적용. 새틀라이트와 마찬가지로 미검증 opt-in이며 기본값("equal")은 기존
+# 동작을 그대로 유지한다.
+CORE_SIZING_METHODS = ("equal", "inverse_vol")
+CORE_SIZING_MAX_WEIGHT = 0.50  # top4 중 한 종목이 코어 슬리브 내에서 가질 수 있는 최대 비중
+CORE_SIZING_VOL_LOOKBACK_DAYS = 20  # SATELLITE_SIZING_VOL_LOOKBACK_DAYS와 동일 관례
+
 SATELLITE_WEIGHT = 0.15
 SATELLITE_DONCHIAN_WINDOW = 20
 SATELLITE_MOMENTUM_LOOKBACK_DAYS = 63  # 약 3개월 — 브레이크아웃 후보 간 순위 매길 때만 사용
@@ -81,19 +89,30 @@ def _fetch_history_tail_length(ticker: str, lookback_days: int, buffer_days: int
     return df
 
 
-def compute_core_recommendation() -> dict:
+def compute_core_recommendation(sizing_method: str = "equal") -> dict:
     """코어 17자산 유니버스의 오늘 기준 모멘텀 랭킹 + 시장필터 상태를 계산한다.
+
+    sizing_method(2026-09-19 추가): "equal"(기본, 기존 동작 그대로 top4 균등가중) 또는
+    "inverse_vol"(compute_satellite_recommendation과 동일 원칙 — top4 종목의 최근
+    CORE_SIZING_VOL_LOOKBACK_DAYS일 변동성 역가중, CORE_SIZING_MAX_WEIGHT로 상한). 새틀라이트와
+    마찬가지로 "어떤 종목을 고를지"가 아니라 "고른 종목 안에서 비중을 어떻게 나눌지"만 바꾸는
+    미검증 opt-in 옵션 — 기본값이 아니다.
 
     Returns:
         as_of, ranked(전체 17종목 momentum_pct/passes_absolute_momentum/in_top4 DataFrame),
-        top4(list[str]), above_200dma, exposure_multiplier, per_ticker_weight, cash_weight_from_filter
+        top4(list[str]), above_200dma, exposure_multiplier, per_ticker_weight(하위호환용, 균등가중 값),
+        per_ticker_weights(dict[str,float], 실제 배분), cash_weight_from_filter
     """
+    if sizing_method not in CORE_SIZING_METHODS:
+        raise ValueError(f"알 수 없는 sizing_method: {sizing_method}")
     rows = []
+    histories: dict[str, pd.DataFrame] = {}
     for ticker in CORE_UNIVERSE:
         df = _fetch_history_tail_length(ticker, CORE_MOMENTUM_LOOKBACK_DAYS)
         if df is None:
             rows.append({"ticker": ticker, "momentum_pct": None, "last_close": None})
             continue
+        histories[ticker] = df
         close = df["Close"]
         momentum_pct = float(close.iloc[-1] / close.iloc[-1 - CORE_MOMENTUM_LOOKBACK_DAYS] - 1) * 100
         rows.append({"ticker": ticker, "momentum_pct": round(momentum_pct, 2), "last_close": float(close.iloc[-1])})
@@ -121,6 +140,15 @@ def compute_core_recommendation() -> dict:
     invested_core_weight = CORE_WEIGHT * exposure_multiplier
     per_ticker_weight = invested_core_weight / len(top4) if top4 else 0.0
 
+    per_ticker_weights: dict[str, float] = {t: per_ticker_weight for t in top4}
+    if sizing_method == "inverse_vol" and top4:
+        vol_weights = _inverse_vol_weights(
+            {t: histories[t] for t in top4 if t in histories}, top4, CORE_SIZING_VOL_LOOKBACK_DAYS,
+            max_weight=CORE_SIZING_MAX_WEIGHT,
+        )
+        if vol_weights:
+            per_ticker_weights = {t: invested_core_weight * w for t, w in vol_weights.items()}
+
     return {
         "as_of": date.today().isoformat(),
         "ranked": ranked,
@@ -129,7 +157,9 @@ def compute_core_recommendation() -> dict:
         "spy_price": spy_price,
         "spy_sma200": spy_sma200,
         "exposure_multiplier": exposure_multiplier,
-        "per_ticker_weight": per_ticker_weight,
+        "sizing_method": sizing_method,
+        "per_ticker_weight": per_ticker_weight,  # 하위호환용(균등가중 값) — 실제 배분은 per_ticker_weights 참고
+        "per_ticker_weights": per_ticker_weights,
         "cash_weight_from_filter": CORE_WEIGHT - invested_core_weight,
     }
 
@@ -137,6 +167,85 @@ def compute_core_recommendation() -> dict:
 SATELLITE_SIZING_METHODS = ("equal", "inverse_vol")
 SATELLITE_SIZING_MAX_WEIGHT = 0.40  # inverse_vol 사이징에서 한 종목이 새틀라이트 슬리브 내 가질 수 있는 최대 비중
 SATELLITE_SIZING_VOL_LOOKBACK_DAYS = 20  # position_sizing.realized_annual_volatility_pct 기본값과 동일
+# 2026-09-19 추가: "kelly"는 run_satellite_backtest/_pick_satellite_at_date(반기 point-in-time
+# 리밸런싱)가 검증한 방법론이 아니라서 위 SATELLITE_SIZING_METHODS(백테스트로 재현 가능한 집합)에는
+# 넣지 않는다 — compute_satellite_kelly_exposure()가 "현재 시점" 풀링된 거래 통계로 슬리브 전체
+# 익스포저를 한 번 스케일하는 것뿐이라, 리밸런싱일마다 다시 계산하는 point-in-time 백테스트에는
+# 아직 못 붙인다(회고적으로 매 리밸런싱일 시점의 풀링 통계를 재계산하면 더 정직하겠지만 계산비용이
+# 크다 — 다음 단계로 미룸). compute_satellite_recommendation()의 "지금 기준 라이브 추천"에서만
+# 쓸 수 있는 별도 opt-in이라는 걸 명시하려고 별도 튜플로 둔다.
+SATELLITE_LIVE_SIZING_METHODS = SATELLITE_SIZING_METHODS + ("kelly",)
+SATELLITE_KELLY_LOOKBACK_YEARS = 5
+SATELLITE_KELLY_SAMPLE_SIZE = 120  # 500종목 전부를 매번 스캔하면 느려서(수 분) 쓰는 결정적 부분표본 크기
+SATELLITE_KELLY_MIN_TRADES = 20  # 이보다 적으면 승률/손익비 추정이 통계적으로 불안정하다고 보고 미적용
+SATELLITE_KELLY_SAFETY_FRACTION = 0.5  # 하프켈리 — position_sizing.DEFAULT_KELLY_SAFETY_FRACTION과 동일
+
+
+def compute_satellite_kelly_exposure(
+    lookback_years: int = SATELLITE_KELLY_LOOKBACK_YEARS, sample_size: int = SATELLITE_KELLY_SAMPLE_SIZE
+) -> dict:
+    """새틀라이트 돈치안 브레이크아웃+트레일링스탑 신호 자체의 과거 승률/손익비로, 새틀라이트
+    슬리브 전체 익스포저에 곱할 켈리 기준 배율(0~1)을 구한다.
+
+    종목별로 켈리를 따로 구하지 않는다 — 개별 종목은 최근 lookback_years년간 브레이크아웃이 몇
+    번 안 일어나 거래 수가 너무 적다(승률 추정이 불안정). 대신 여러 종목의 거래를 모아(pooled)
+    "이 신호가 반복됐을 때의 승률/평균손익"을 하나로 추정한다 — "어떤 종목을 고를지"가 아니라
+    "이 신호를 얼마나 믿고 실을지"를 묻는 것이므로 종목별로 나눌 이유가 없다.
+
+    core.strategy_engine.extract_trades + core.position_sizing.{compute_trade_stats,kelly_fraction}를
+    그대로 재사용한다(새 백테스트 엔진을 새로 만들지 않음). 표본은 sample_size개로 제한한다
+    (500종목 전부를 스캔하면 compute_satellite_recommendation과 같은 이유로 느리다) — get_universe()
+    순서대로 앞에서부터 결정적으로 골라 호출마다 같은 종목을 봐서 재현 가능하게 한다.
+
+    Returns:
+        {"trade_count", "win_rate", "payoff_ratio", "full_kelly", "recommended_fraction",
+         "sampled_tickers", "note"}
+        recommended_fraction(0~1)이 새틀라이트 슬리브 익스포저에 곱할 배율 — 1.0이면 기존과 동일,
+        0에 가까울수록 "이 신호의 과거 승률/손익비로는 통계적 엣지가 약하다"는 뜻. 거래 표본이
+        SATELLITE_KELLY_MIN_TRADES 미만이면 recommended_fraction=1.0(변경 없음)과 함께 note에
+        이유를 남긴다 — 데이터가 부족하면 부족하다고 알리지, 억지로 추정치를 만들지 않는다.
+    """
+    from core.position_sizing import compute_trade_stats, kelly_fraction
+    from core.strategy_engine import extract_trades
+
+    universe = get_universe()["Symbol"].tolist()
+    sample = [t for t in universe if t not in CORE_UNIVERSE and t != MARKET_FILTER_TICKER][:sample_size]
+
+    fetch_start = (pd.Timestamp.today().normalize() - pd.DateOffset(years=lookback_years)).date().isoformat()
+    histories = get_multiple_price_history(sample, start=fetch_start, interval="1d")
+
+    all_trades = []
+    sampled_tickers = []
+    for t in sample:
+        df = histories.get(t)
+        if df is None or df.empty or len(df) < SATELLITE_DONCHIAN_WINDOW + 60:
+            continue
+        position = donchian_trailing_stop_positions(df["Close"])
+        trades = extract_trades(df, position)
+        if trades:
+            all_trades.extend(trades)
+            sampled_tickers.append(t)
+
+    stats = compute_trade_stats(all_trades)
+    if stats is None or stats.trade_count < SATELLITE_KELLY_MIN_TRADES:
+        return {
+            "trade_count": stats.trade_count if stats else 0,
+            "win_rate": None, "payoff_ratio": None, "full_kelly": None,
+            "recommended_fraction": 1.0, "sampled_tickers": sampled_tickers,
+            "note": f"거래 표본이 {SATELLITE_KELLY_MIN_TRADES}건 미만이라 켈리 추정을 적용하지 않고 익스포저를 그대로 둠(1.0).",
+        }
+    kelly = kelly_fraction(
+        stats.win_rate, stats.avg_win_pct, stats.avg_loss_pct, safety_fraction=SATELLITE_KELLY_SAFETY_FRACTION
+    )
+    return {
+        "trade_count": stats.trade_count,
+        "win_rate": round(stats.win_rate, 4),
+        "payoff_ratio": kelly["payoff_ratio"],
+        "full_kelly": kelly["full_kelly"],
+        "recommended_fraction": min(kelly["recommended_fraction"], 1.0),
+        "sampled_tickers": sampled_tickers,
+        "note": "",
+    }
 
 
 def compute_satellite_recommendation(
@@ -149,7 +258,7 @@ def compute_satellite_recommendation(
     호출부(페이지)가 job_manager로 감싸 백그라운드 실행해야 한다. 개별 종목 조회 실패는
     건너뛴다(전체 스캔이 종목 하나 때문에 멈추지 않도록).
 
-    sizing_method (2026-09-14 추가):
+    sizing_method (2026-09-14 추가, 2026-09-19에 "kelly" 추가):
       - "equal"(기본, 기존 동작 그대로): 선정 종목에 새틀라이트 비중을 균등 배분.
       - "inverse_vol": core.position_sizing.portfolio_volatility_target_weights(최근
         SATELLITE_SIZING_VOL_LOOKBACK_DAYS일 변동성의 역수 가중, SATELLITE_SIZING_MAX_WEIGHT로 상한)로
@@ -157,8 +266,13 @@ def compute_satellite_recommendation(
         졌다는 걸 확인했지만(confidence_table의 "위험조정 모멘텀 랭킹" reversed 등급 — 종목 선정
         기준 얘기), "선정된 종목 안에서 비중을 어떻게 나눌지"는 이 프로그램이 아직 감사하지 않은
         별개 질문이다 — 그래서 이 옵션은 기본값이 아니라 opt-in이며, UI에서도 "미검증" 라벨을 유지한다.
+      - "kelly": compute_satellite_kelly_exposure()로 슬리브 전체 익스포저(SATELLITE_WEIGHT)를
+        먼저 스케일한 뒤, 그 안에서는 균등 배분한다(inverse_vol과 동시에 쓰지 않음 — 한 번에 실험
+        변수 하나만 바꾸자는 이 프로젝트의 원칙). SATELLITE_SIZING_METHODS가 아니라
+        SATELLITE_LIVE_SIZING_METHODS에만 있다 — 아직 반기 point-in-time 백테스트로 재현되지
+        않은 라이브 전용 실험(위 compute_satellite_kelly_exposure 문서 참고).
     """
-    if sizing_method not in SATELLITE_SIZING_METHODS:
+    if sizing_method not in SATELLITE_LIVE_SIZING_METHODS:
         raise ValueError(f"알 수 없는 sizing_method: {sizing_method}")
     if universe is None:
         universe = get_universe()["Symbol"].tolist()
@@ -186,7 +300,14 @@ def compute_satellite_recommendation(
     if not candidates_df.empty:
         candidates_df = candidates_df.sort_values("momentum_3m_pct", ascending=False).reset_index(drop=True)
     selected = candidates_df.head(SATELLITE_TOP_N)["ticker"].tolist() if not candidates_df.empty else []
-    per_ticker_weight = SATELLITE_WEIGHT / len(selected) if selected else 0.0
+
+    kelly_info: Optional[dict] = None
+    effective_satellite_weight = SATELLITE_WEIGHT
+    if sizing_method == "kelly" and selected:
+        kelly_info = compute_satellite_kelly_exposure()
+        effective_satellite_weight = SATELLITE_WEIGHT * kelly_info["recommended_fraction"]
+
+    per_ticker_weight = effective_satellite_weight / len(selected) if selected else 0.0
 
     per_ticker_weights: dict[str, float] = {t: per_ticker_weight for t in selected}
     if sizing_method == "inverse_vol" and selected:
@@ -200,17 +321,24 @@ def compute_satellite_recommendation(
         "candidates": candidates_df,
         "selected": selected,
         "sizing_method": sizing_method,
+        "kelly_info": kelly_info,  # sizing_method=="kelly"일 때만 채워짐(익스포저 배율 근거)
         "per_ticker_weight": per_ticker_weight,  # 하위호환용(균등가중 값) — 실제 배분은 per_ticker_weights 참고
         "per_ticker_weights": per_ticker_weights,
-        "unallocated_weight": SATELLITE_WEIGHT if not selected else 0.0,
+        "unallocated_weight": SATELLITE_WEIGHT - sum(per_ticker_weights.values()) if selected else SATELLITE_WEIGHT,
     }
 
 
 def _inverse_vol_weights(
-    histories: dict[str, pd.DataFrame], tickers: list[str], lookback_days: int = SATELLITE_SIZING_VOL_LOOKBACK_DAYS
+    histories: dict[str, pd.DataFrame],
+    tickers: list[str],
+    lookback_days: int = SATELLITE_SIZING_VOL_LOOKBACK_DAYS,
+    max_weight: float = SATELLITE_SIZING_MAX_WEIGHT,
 ) -> dict[str, float]:
     """core.portfolio.compute_daily_returns + core.position_sizing.portfolio_volatility_target_weights를
     그대로 재사용해 선정 종목들의 최근 변동성 역가중 비중을 계산한다(새 방법론 발명 없음).
+
+    max_weight(2026-09-19 추가, 기본값은 기존 새틀라이트 상한 그대로)는 호출부가 코어(더 적은
+    종목수라 상한을 더 넉넉히 줄 수 있음)와 새틀라이트에서 서로 다른 집중도 상한을 쓸 수 있게 한다.
 
     데이터가 부족해(2종목 미만 등) 계산 불가하면 빈 dict(호출부가 균등가중으로 폴백)."""
     from core.portfolio import compute_daily_returns
@@ -220,7 +348,7 @@ def _inverse_vol_weights(
     if len(trimmed) < 2:
         return {}
     daily_returns = compute_daily_returns(trimmed)
-    return portfolio_volatility_target_weights(daily_returns, max_weight=SATELLITE_SIZING_MAX_WEIGHT)
+    return portfolio_volatility_target_weights(daily_returns, max_weight=max_weight)
 
 
 def _load_research_synthesis() -> dict:
@@ -276,7 +404,15 @@ def load_final_config() -> dict:
 # PROGRESS.md 참고).
 # ----------------------------------------------------------------------------
 
-BACKTEST_COST_BPS_PER_SIDE = 5.0  # 왕복 0.1% = 편도 5bp
+BACKTEST_COST_BPS_PER_SIDE = 5.0  # 왕복 0.1% = 편도 5bp — _compute_portfolio_returns의 기본값(미지정 호출부용)
+# 2026-09-19 추가: 코어(17자산, 전부 대형 ETF)와 새틀라이트(개별 S&P500 종목, 시총/유동성이
+# 훨씬 다양함)에 같은 5bp를 쓰는 건 새틀라이트 쪽 실전 비용을 과소평가한다 — ETF는 스프레드가
+# 매우 좁지만(SPY/XLK 등은 보통 1bp 미만) 개별주는 중소형주가 섞여 스프레드+시장충격이 더 크다.
+# run_core_backtest/run_satellite_backtest가 각각 이 상수를 명시적으로 넘긴다(아래 참고) —
+# 정교한 유동성 추정(호가창, ADV 대비 거래규모)까지는 안 갔고, 자산군별 보수적인 고정값 두 개로
+# 나눈 것뿐이다.
+CORE_COST_BPS_PER_SIDE = 3.0
+SATELLITE_COST_BPS_PER_SIDE = 8.0
 BACKTEST_WARMUP_DAYS = 400
 SATELLITE_BACKTEST_POOL_N = 40
 SATELLITE_BACKTEST_TOP_K = 3
@@ -324,6 +460,7 @@ def _build_core_weights(
     apply_market_filter: bool = True,
     top_n: int = CORE_TOP_N,
     exposure_cut: float = MARKET_FILTER_EXPOSURE_CUT,
+    sizing_method: str = "equal",
 ) -> pd.DataFrame:
     """월별 리밸런싱 목표 비중(리밸런싱일 이후 다음 리밸런싱일까지 ffill)을 계산한다.
 
@@ -332,7 +469,16 @@ def _build_core_weights(
     top_n/exposure_cut을 기본 상수(CORE_TOP_N/MARKET_FILTER_EXPOSURE_CUT)와 다르게 주면(2026-09-13
     추가 — 파라미터 민감도 분석용) 그 값으로 계산한다. 기존 호출부(run_core_backtest 기본 인자)의
     동작은 그대로 유지된다.
+
+    sizing_method(2026-09-19 추가, 기본값 "equal"이면 기존 동작 그대로): "inverse_vol"이면 리밸런싱일마다
+    선정된 top_n 종목의 그 시점까지 CORE_SIZING_VOL_LOOKBACK_DAYS일 변동성 역가중으로 배분한다
+    (compute_core_recommendation의 라이브 버전과 동일 원칙 — point-in-time으로, signal_date까지의
+    데이터만 사용해 lookahead를 피한다). 데이터가 부족하면 그 리밸런싱일만 균등가중으로 폴백한다.
     """
+    if sizing_method not in CORE_SIZING_METHODS:
+        raise ValueError(f"알 수 없는 sizing_method: {sizing_method}")
+    from core.position_sizing import portfolio_volatility_target_weights
+
     momentum = closes.pct_change(CORE_MOMENTUM_LOOKBACK_DAYS)
     is_rebal = _first_trading_day_of_month_mask(closes.index)
     sma200 = market_close.rolling(MARKET_FILTER_SMA_WINDOW, min_periods=MARKET_FILTER_SMA_WINDOW).mean()
@@ -347,7 +493,17 @@ def _build_core_weights(
             picks = candidates.index[:top_n]
             w = pd.Series(0.0, index=closes.columns)
             if len(picks) > 0:
-                w[picks] = 1.0 / top_n
+                vol_w: dict[str, float] = {}
+                if sizing_method == "inverse_vol":
+                    window = closes[picks].loc[:signal_date].tail(CORE_SIZING_VOL_LOOKBACK_DAYS + 1)
+                    if len(window) >= CORE_SIZING_VOL_LOOKBACK_DAYS + 1:
+                        daily_ret = window.pct_change().dropna()
+                        vol_w = portfolio_volatility_target_weights(daily_ret, max_weight=CORE_SIZING_MAX_WEIGHT)
+                if vol_w:
+                    for t, wt in vol_w.items():
+                        w[t] = wt
+                else:
+                    w[picks] = 1.0 / top_n
             if apply_market_filter and signal_date in sma200.index and not pd.isna(sma200.loc[signal_date]):
                 if market_close.loc[signal_date] < sma200.loc[signal_date]:
                     w = w * exposure_cut
@@ -382,11 +538,15 @@ def run_core_backtest(
     apply_market_filter: bool = True,
     top_n: int = CORE_TOP_N,
     exposure_cut: float = MARKET_FILTER_EXPOSURE_CUT,
+    sizing_method: str = "equal",
 ) -> dict:
     """순수 코어(17자산 로테이션)를 지정 구간에서 실행하고 지표+수익률 시계열을 반환한다.
 
     top_n/exposure_cut(2026-09-13 추가)은 기본값을 쓰면 기존 동작 그대로이고, 다른 값을 주면
-    (`run_core_param_sensitivity`가 하듯) 그 파라미터로 재계산한다."""
+    (`run_core_param_sensitivity`가 하듯) 그 파라미터로 재계산한다.
+
+    sizing_method(2026-09-19 추가, 기본값 "equal"이면 기존 동작 그대로): _build_core_weights에
+    그대로 전달 — "inverse_vol"은 미검증 opt-in 옵션(위 _build_core_weights 참고)."""
     tickers = list(CORE_UNIVERSE)
     fetch_start = (pd.Timestamp(start) - pd.DateOffset(days=BACKTEST_WARMUP_DAYS)).date().isoformat()
     histories = get_multiple_price_history(tickers + [MARKET_FILTER_TICKER], start=fetch_start, end=end, interval="1d")
@@ -395,7 +555,8 @@ def run_core_backtest(
     market_close = closes_all[MARKET_FILTER_TICKER]
 
     weights_full = _build_core_weights(
-        closes, market_close, apply_market_filter=apply_market_filter, top_n=top_n, exposure_cut=exposure_cut
+        closes, market_close, apply_market_filter=apply_market_filter, top_n=top_n, exposure_cut=exposure_cut,
+        sizing_method=sizing_method,
     )
 
     sliced_idx = closes.index[closes.index >= pd.Timestamp(start)]
@@ -404,7 +565,7 @@ def run_core_backtest(
     closes_sliced = closes.loc[sliced_idx]
     weights_sliced = weights_full.loc[sliced_idx]
 
-    result = _compute_portfolio_returns(closes_sliced, weights_sliced)
+    result = _compute_portfolio_returns(closes_sliced, weights_sliced, cost_bps_per_side=CORE_COST_BPS_PER_SIDE)
     metrics = calculate_metrics(result["equity_net"], [], sliced_idx[0], sliced_idx[-1])
 
     return {
@@ -538,7 +699,7 @@ def run_satellite_backtest(
             last_w = w
         weights.loc[dt] = last_w.values
 
-    result = _compute_portfolio_returns(closes, weights)
+    result = _compute_portfolio_returns(closes, weights, cost_bps_per_side=SATELLITE_COST_BPS_PER_SIDE)
     metrics = calculate_metrics(result["equity_net"], [], full_idx[0], full_idx[-1])
 
     return {
@@ -1827,3 +1988,135 @@ def send_weekly_report(dry_run: bool = False) -> dict:
         from core.telegram_notify import send_document
         sent = send_document(report_path, caption="🏆 챔피언 전략 주간 보고")
     return {"path": str(report_path), "sent": sent}
+
+
+# ----------------------------------------------------------------------------
+# 알파 감쇠(드리프트) 자동 체크 (2026-09-19 추가)
+#
+# core.backtest_engine.compute_alpha_decay는 "지표 하나짜리 단일 종목" 백테스트(run_backtest,
+# indicator_config 기반)를 위해 만들어져 있어 챔피언 전략(코어 17자산 로테이션 + 새틀라이트
+# 반기 point-in-time)의 자체 백테스트 함수(run_champion_backtest)와는 시그니처가 다르다 — 그래서
+# 새로 만들지만, 판정 로직(전체기간 대비 최근 구간 성과 비율이 임계값 아래로 떨어지거나 최근
+# 성과가 마이너스로 돌아서면 "감쇠")은 compute_alpha_decay와 동일한 원칙을 그대로 따른다(같은
+# 임계값 상수를 재사용).
+# ----------------------------------------------------------------------------
+
+from core.backtest_engine import DEFAULT_DECAY_METRIC, _DECAY_RATIO_THRESHOLD  # noqa: E402
+
+CHAMPION_DECAY_FULL_LOOKBACK_YEARS = 8  # 챔피언 백테스트가 흔히 쓰는 구간(analysis 리서치와 동일 규모)
+CHAMPION_DECAY_RECENT_MONTHS = 6  # backtest_engine.DEFAULT_DECAY_RECENT_MONTHS와 동일
+CHAMPION_DECAY_METRIC = DEFAULT_DECAY_METRIC  # "sharpe" — backtest_engine과 같은 지표를 써서 서로 비교 가능하게
+DECAY_STATE_CACHE_PATH = PROJECT_ROOT / "data" / "cache" / "champion_decay_state.json"
+
+
+def compute_champion_alpha_decay(
+    full_lookback_years: int = CHAMPION_DECAY_FULL_LOOKBACK_YEARS,
+    recent_months: int = CHAMPION_DECAY_RECENT_MONTHS,
+    metric: str = CHAMPION_DECAY_METRIC,
+) -> dict:
+    """챔피언 전략(run_champion_backtest) 전체기간 대비 최근 recent_months개월 성과가 얼마나
+    이탈했는지 비교한다 — core.backtest_engine.compute_alpha_decay와 동일한 판정 원칙(비율
+    임계값/부호전환)을 챔피언 전용 백테스트 함수에 적용한 버전.
+
+    Returns:
+        {"full_metrics", "recent_metrics", "metric", "decay_ratio", "is_decayed",
+         "full_start", "full_end", "recent_start"}
+        decay_ratio: recent_metric / full_metric (full_metric<=0이면 None).
+        is_decayed: decay_ratio < _DECAY_RATIO_THRESHOLD 이거나 최근 metric이 음수로 돌아섰으면 True.
+    """
+    full_end = date.today().isoformat()
+    full_start = (pd.Timestamp(full_end) - pd.DateOffset(years=full_lookback_years)).date().isoformat()
+    recent_start = (pd.Timestamp(full_end) - pd.DateOffset(months=recent_months)).date().isoformat()
+
+    full_run = run_champion_backtest(full_start, full_end)
+    recent_run = run_champion_backtest(recent_start, full_end)
+
+    full_metric = full_run["metrics"].get(metric)
+    recent_metric = recent_run["metrics"].get(metric)
+
+    decay_ratio: Optional[float] = None
+    is_decayed = False
+    if full_metric is not None and recent_metric is not None:
+        if full_metric > 0:
+            decay_ratio = recent_metric / full_metric
+            is_decayed = decay_ratio < _DECAY_RATIO_THRESHOLD or recent_metric < 0
+        else:
+            is_decayed = recent_metric < full_metric
+
+    return {
+        "full_metrics": full_run["metrics"],
+        "recent_metrics": recent_run["metrics"],
+        "metric": metric,
+        "decay_ratio": round(decay_ratio, 3) if decay_ratio is not None else None,
+        "is_decayed": is_decayed,
+        "full_start": full_start,
+        "full_end": full_end,
+        "recent_start": recent_start,
+    }
+
+
+def _load_last_decay_state() -> Optional[dict]:
+    if not DECAY_STATE_CACHE_PATH.exists():
+        return None
+    try:
+        with open(DECAY_STATE_CACHE_PATH, encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return None
+
+
+def _save_decay_state(state: dict) -> None:
+    DECAY_STATE_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with open(DECAY_STATE_CACHE_PATH, "w", encoding="utf-8") as f:
+        json.dump(state, f, ensure_ascii=False, indent=2)
+
+
+def check_and_notify_champion_alpha_decay(notify_fn=None) -> dict:
+    """compute_champion_alpha_decay()를 실행해 is_decayed면 텔레그램으로 알린다.
+
+    같은 감쇠 상태가 계속되는 동안은 매일 재알림하지 않는다(dedupe — as_of 날짜만 다르고
+    is_decayed/decay_ratio가 바뀌지 않았으면 조용히 넘어감) — 감쇠에서 회복되거나(is_decayed가
+    False로 바뀜) decay_ratio가 눈에 띄게(0.05 이상) 더 나빠졌을 때만 다시 알린다. 다른
+    check_and_notify_* 함수들과 동일한 "조용한 기본값" 원칙.
+
+    Args:
+        notify_fn: 텔레그램 전송 함수(테스트 주입용). None이면 core.telegram_notify.send_message.
+
+    Returns: {"as_of", "decay", "notified", "message"}
+    """
+    if notify_fn is None:
+        from core.telegram_notify import send_message as notify_fn
+
+    decay = compute_champion_alpha_decay()
+    as_of = date.today().isoformat()
+    result = {"as_of": as_of, "decay": decay, "notified": False, "message": None}
+
+    last_state = _load_last_decay_state() or {}
+    last_is_decayed = bool(last_state.get("is_decayed"))
+    last_ratio = last_state.get("decay_ratio")
+    ratio = decay["decay_ratio"]
+
+    should_notify = decay["is_decayed"] and (
+        not last_is_decayed
+        or last_ratio is None
+        or ratio is None
+        or abs(ratio - last_ratio) >= 0.05
+    )
+
+    if should_notify:
+        message = (
+            "⚠️ 챔피언 전략 알파 감쇠 감지\n"
+            f"지표: {decay['metric']}, 전체기간({decay['full_start']}~{decay['full_end']}): "
+            f"{decay['full_metrics'].get(decay['metric'])}\n"
+            f"최근 {CHAMPION_DECAY_RECENT_MONTHS}개월({decay['recent_start']}~{decay['full_end']}): "
+            f"{decay['recent_metrics'].get(decay['metric'])}\n"
+            f"비율(최근/전체): {ratio}\n"
+            "이건 이 전략의 백테스트 성과가 최근 이탈했다는 신호일 뿐, 자동으로 전략을 멈추거나 "
+            "비중을 바꾸지 않습니다 — 직접 확인해보세요."
+        )
+        notify_fn(message)
+        result["notified"] = True
+        result["message"] = message
+
+    _save_decay_state({"as_of": as_of, "is_decayed": decay["is_decayed"], "decay_ratio": ratio})
+    return result

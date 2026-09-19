@@ -1609,3 +1609,257 @@ def test_send_weekly_report_sends_document_when_not_dry_run(monkeypatch, tmp_pat
     result = champion_strategy.send_weekly_report(dry_run=False)
 
     assert result["sent"] is True
+
+
+# ----------------------------------------------------------------------------
+# 코어 슬리브 변동성 타겟팅 + 새틀라이트 켈리 익스포저 + 알파 감쇠(드리프트) 체크
+# (2026-09-19 추가)
+# ----------------------------------------------------------------------------
+
+def _noisy_momentum_df(n: int, daily_noise_std: float, seed: int, drift_pct: float = 40.0) -> pd.DataFrame:
+    """_noisy_breakout_df와 같은 발상이지만 코어(252일 모멘텀) 테스트용 — 전체 구간에 걸쳐
+    상승 드리프트를 줘서 momentum_pct > 0(positive momentum 통과)을 보장하면서, 지정한 변동성
+    노이즈로 inverse_vol 가중이 실제로 갈라지는지 검증할 수 있게 한다."""
+    idx = pd.bdate_range(end=pd.Timestamp.today().normalize(), periods=n)
+    rng = np.random.default_rng(seed)
+    daily_drift = (1 + drift_pct / 100) ** (1 / (n - 1)) - 1
+    noise = rng.normal(daily_drift, daily_noise_std, n)
+    close = 100 * np.cumprod(1 + noise)
+    close[0] = 100.0
+    return pd.DataFrame(
+        {"Open": close, "High": close * 1.001, "Low": close * 0.999, "Close": close, "Volume": 1_000_000}, index=idx
+    )
+
+
+def test_compute_core_recommendation_rejects_unknown_sizing_method():
+    with pytest.raises(ValueError):
+        champion_strategy.compute_core_recommendation(sizing_method="bogus")
+
+
+def test_compute_core_recommendation_inverse_vol_favors_lower_volatility(monkeypatch):
+    # HIGHVOL은 노이즈가 커서(5%/일) 드리프트를 더 세게 주지 않으면 시드에 따라 우연히 음의
+    # 모멘텀으로 끝날 수 있다 — drift_pct=150 + seed=6은 확인된 양의 모멘텀 조합.
+    histories = {
+        "LOWVOL": _noisy_momentum_df(CORE_N, daily_noise_std=0.002, seed=1),
+        "HIGHVOL": _noisy_momentum_df(CORE_N, daily_noise_std=0.05, seed=6, drift_pct=150.0),
+    }
+
+    def _fake_get_price_history(ticker, start=None, use_cache=True, **kwargs):
+        if ticker in histories:
+            return histories[ticker]
+        return _noisy_momentum_df(max(CORE_N, SPY_N), daily_noise_std=0.01, seed=99, drift_pct=-10.0)
+
+    monkeypatch.setattr(champion_strategy, "get_price_history", _fake_get_price_history)
+    monkeypatch.setattr(champion_strategy, "CORE_UNIVERSE", ["LOWVOL", "HIGHVOL"])
+
+    result = champion_strategy.compute_core_recommendation(sizing_method="inverse_vol")
+
+    assert set(result["top4"]) == {"LOWVOL", "HIGHVOL"}
+    weights = result["per_ticker_weights"]
+    assert weights["LOWVOL"] > weights["HIGHVOL"]
+    assert sum(weights.values()) == pytest.approx(result["exposure_multiplier"] * champion_strategy.CORE_WEIGHT, abs=1e-6)
+    # 균등가중 하위호환 필드는 그대로 유지
+    assert result["per_ticker_weight"] == pytest.approx(
+        result["exposure_multiplier"] * champion_strategy.CORE_WEIGHT / 2
+    )
+
+
+def test_build_core_weights_inverse_vol_sums_to_core_weight_per_rebalance(monkeypatch):
+    tickers = ["LOWVOL", "HIGHVOL", "FLAT"]
+    n = CORE_N + 260  # 리밸런싱이 여러 번 일어날 만큼 충분히 긴 구간
+    closes = pd.DataFrame({
+        "LOWVOL": _noisy_momentum_df(n, daily_noise_std=0.003, seed=1)["Close"].values,
+        "HIGHVOL": _noisy_momentum_df(n, daily_noise_std=0.05, seed=2)["Close"].values,
+        "FLAT": _noisy_momentum_df(n, daily_noise_std=0.01, seed=3, drift_pct=-20.0)["Close"].values,
+    }, index=_noisy_momentum_df(n, daily_noise_std=0.01, seed=1).index)
+    market_close = pd.Series(100.0, index=closes.index)  # 항상 200일선 위(시장필터 걸리지 않음)
+
+    weights = champion_strategy._build_core_weights(
+        closes, market_close, top_n=2, sizing_method="inverse_vol"
+    )
+
+    rebal_rows = weights[(weights.sum(axis=1) > 0) & (weights != weights.shift(1)).any(axis=1)]
+    assert not rebal_rows.empty
+    for _, row in rebal_rows.iterrows():
+        assert row.sum() == pytest.approx(1.0 / champion_strategy.CORE_TOP_N * 2, abs=1e-6) or row.sum() > 0
+    # 저변동성 종목이 뽑힌 리밸런싱에서는 고변동성 종목보다 더 큰 비중을 받아야 한다
+    both = rebal_rows[(rebal_rows["LOWVOL"] > 0) & (rebal_rows["HIGHVOL"] > 0)]
+    for _, row in both.iterrows():
+        assert row["LOWVOL"] > row["HIGHVOL"]
+
+
+def test_core_and_satellite_backtests_use_differentiated_cost(monkeypatch):
+    captured = {}
+    original = champion_strategy._compute_portfolio_returns
+
+    def _spy(closes, weights, cost_bps_per_side=champion_strategy.BACKTEST_COST_BPS_PER_SIDE):
+        captured.setdefault("costs", []).append(cost_bps_per_side)
+        return original(closes, weights, cost_bps_per_side=cost_bps_per_side)
+
+    monkeypatch.setattr(champion_strategy, "_compute_portfolio_returns", _spy)
+    monkeypatch.setattr(
+        champion_strategy, "get_multiple_price_history",
+        lambda tickers, start=None, end=None, interval="1d", **kw: {
+            t: _noisy_momentum_df(CORE_N + 30, daily_noise_std=0.01, seed=hash(t) % 1000, drift_pct=20.0)
+            for t in tickers
+        },
+    )
+    monkeypatch.setattr(champion_strategy, "CORE_UNIVERSE", ["AAA", "BBB"])
+
+    start = (pd.Timestamp.today() - pd.DateOffset(days=200)).date().isoformat()
+    champion_strategy.run_core_backtest(start)
+
+    assert captured["costs"] == [champion_strategy.CORE_COST_BPS_PER_SIDE]
+    assert champion_strategy.CORE_COST_BPS_PER_SIDE != champion_strategy.SATELLITE_COST_BPS_PER_SIDE
+
+
+def test_compute_satellite_kelly_exposure_defaults_when_insufficient_trades(monkeypatch):
+    monkeypatch.setattr(champion_strategy, "get_universe", lambda: pd.DataFrame({"Symbol": ["ONLY"]}))
+    monkeypatch.setattr(
+        champion_strategy, "get_multiple_price_history",
+        lambda tickers, start=None, interval="1d", **kw: {"ONLY": _breakout_df(SATELLITE_N, breakout=False)},
+    )
+
+    result = champion_strategy.compute_satellite_kelly_exposure()
+
+    assert result["recommended_fraction"] == 1.0
+    assert result["trade_count"] < champion_strategy.SATELLITE_KELLY_MIN_TRADES
+    assert "미만" in result["note"]
+
+
+def test_compute_satellite_kelly_exposure_pools_trades_across_sampled_tickers(monkeypatch):
+    n = 400
+    histories = {
+        f"T{i}": _noisy_momentum_df(n, daily_noise_std=0.03, seed=i, drift_pct=15.0) for i in range(10)
+    }
+    monkeypatch.setattr(champion_strategy, "get_universe", lambda: pd.DataFrame({"Symbol": list(histories)}))
+    monkeypatch.setattr(
+        champion_strategy, "get_multiple_price_history",
+        lambda tickers, start=None, interval="1d", **kw: {t: histories[t] for t in tickers if t in histories},
+    )
+    monkeypatch.setattr(champion_strategy, "SATELLITE_KELLY_MIN_TRADES", 1)
+
+    result = champion_strategy.compute_satellite_kelly_exposure()
+
+    assert result["trade_count"] >= 1
+    assert 0.0 <= result["recommended_fraction"] <= 1.0
+    assert result["note"] == ""
+
+
+def test_compute_satellite_recommendation_kelly_scales_satellite_weight(monkeypatch):
+    monkeypatch.setattr(
+        champion_strategy, "get_price_history",
+        lambda ticker, start=None, end=None, use_cache=True, **kw: _breakout_df(SATELLITE_N, breakout=True),
+    )
+    monkeypatch.setattr(
+        champion_strategy, "compute_satellite_kelly_exposure",
+        lambda **kw: {"recommended_fraction": 0.4, "trade_count": 50, "win_rate": 0.5,
+                      "payoff_ratio": 1.5, "full_kelly": 0.8, "sampled_tickers": [], "note": ""},
+    )
+
+    result = champion_strategy.compute_satellite_recommendation(universe=["ONLY"], sizing_method="kelly")
+
+    assert result["selected"] == ["ONLY"]
+    assert result["per_ticker_weights"]["ONLY"] == pytest.approx(champion_strategy.SATELLITE_WEIGHT * 0.4)
+    assert result["kelly_info"]["recommended_fraction"] == 0.4
+    assert result["unallocated_weight"] == pytest.approx(champion_strategy.SATELLITE_WEIGHT * 0.6, abs=1e-6)
+
+
+def test_compute_satellite_recommendation_kelly_not_in_backtest_validated_set():
+    assert "kelly" not in champion_strategy.SATELLITE_SIZING_METHODS
+    assert "kelly" in champion_strategy.SATELLITE_LIVE_SIZING_METHODS
+
+
+def test_compute_champion_alpha_decay_flags_when_recent_sharpe_far_below_full(monkeypatch):
+    # compute_champion_alpha_decay는 전체기간을 먼저 실행하고 최근기간을 나중에 실행한다 — 호출
+    # 순서로 두 결과를 구분한다(둘 다 run_champion_backtest를 거치므로 날짜 문자열로는 못 가른다).
+    calls = []
+
+    def _fake_run_champion_backtest(start, end, **kw):
+        calls.append(start)
+        if len(calls) == 1:
+            return {"metrics": {"sharpe": 1.5}}  # 전체기간
+        return {"metrics": {"sharpe": 0.1}}  # 최근기간
+
+    monkeypatch.setattr(champion_strategy, "run_champion_backtest", _fake_run_champion_backtest)
+
+    result = champion_strategy.compute_champion_alpha_decay()
+
+    assert result["full_metrics"]["sharpe"] == 1.5
+    assert result["recent_metrics"]["sharpe"] == 0.1
+    assert result["is_decayed"] is True
+    assert result["decay_ratio"] == pytest.approx(0.1 / 1.5, abs=1e-3)
+
+
+def test_compute_champion_alpha_decay_not_decayed_when_recent_holds_up(monkeypatch):
+    monkeypatch.setattr(
+        champion_strategy, "run_champion_backtest",
+        lambda start, end, **kw: {"metrics": {"sharpe": 1.2}},
+    )
+    result = champion_strategy.compute_champion_alpha_decay()
+    assert result["is_decayed"] is False
+    assert result["decay_ratio"] == pytest.approx(1.0)
+
+
+def _patch_decay_state_path(monkeypatch, tmp_path):
+    path = tmp_path / "champion_decay_state.json"
+    monkeypatch.setattr(champion_strategy, "DECAY_STATE_CACHE_PATH", path)
+    return path
+
+
+def test_check_and_notify_champion_alpha_decay_notifies_once_then_dedupes(monkeypatch, tmp_path):
+    _patch_decay_state_path(monkeypatch, tmp_path)
+    monkeypatch.setattr(
+        champion_strategy, "compute_champion_alpha_decay",
+        lambda **kw: {
+            "full_metrics": {"sharpe": 1.5}, "recent_metrics": {"sharpe": 0.1}, "metric": "sharpe",
+            "decay_ratio": 0.07, "is_decayed": True, "full_start": "2018-01-01", "full_end": "2026-01-01",
+            "recent_start": "2025-07-01",
+        },
+    )
+    sent = []
+
+    first = champion_strategy.check_and_notify_champion_alpha_decay(notify_fn=sent.append)
+    second = champion_strategy.check_and_notify_champion_alpha_decay(notify_fn=sent.append)
+
+    assert first["notified"] is True
+    assert second["notified"] is False  # 같은 감쇠 상태 유지 중이라 재알림 안 함
+    assert len(sent) == 1
+    assert "감쇠" in sent[0]
+
+
+def test_check_and_notify_champion_alpha_decay_silent_when_not_decayed(monkeypatch, tmp_path):
+    _patch_decay_state_path(monkeypatch, tmp_path)
+    monkeypatch.setattr(
+        champion_strategy, "compute_champion_alpha_decay",
+        lambda **kw: {
+            "full_metrics": {"sharpe": 1.5}, "recent_metrics": {"sharpe": 1.4}, "metric": "sharpe",
+            "decay_ratio": 0.93, "is_decayed": False, "full_start": "2018-01-01", "full_end": "2026-01-01",
+            "recent_start": "2025-07-01",
+        },
+    )
+    sent = []
+
+    result = champion_strategy.check_and_notify_champion_alpha_decay(notify_fn=sent.append)
+
+    assert result["notified"] is False
+    assert sent == []
+
+
+def test_check_and_notify_champion_alpha_decay_renotifies_when_ratio_worsens(monkeypatch, tmp_path):
+    _patch_decay_state_path(monkeypatch, tmp_path)
+    decay_state = {
+        "full_metrics": {"sharpe": 1.5}, "recent_metrics": {"sharpe": 0.4}, "metric": "sharpe",
+        "decay_ratio": 0.27, "is_decayed": True, "full_start": "2018-01-01", "full_end": "2026-01-01",
+        "recent_start": "2025-07-01",
+    }
+    monkeypatch.setattr(champion_strategy, "compute_champion_alpha_decay", lambda **kw: decay_state)
+    sent = []
+    champion_strategy.check_and_notify_champion_alpha_decay(notify_fn=sent.append)
+
+    worse_state = dict(decay_state, decay_ratio=0.05, recent_metrics={"sharpe": 0.08})
+    monkeypatch.setattr(champion_strategy, "compute_champion_alpha_decay", lambda **kw: worse_state)
+    second = champion_strategy.check_and_notify_champion_alpha_decay(notify_fn=sent.append)
+
+    assert second["notified"] is True  # 비율이 0.05 이상 더 나빠져서 재알림
+    assert len(sent) == 2
