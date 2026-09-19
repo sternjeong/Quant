@@ -1,0 +1,7 @@
+sample,cost_bps,s1_saved_return_sessions,s1_first_return_session,s1_last_session,s6_certified_sessions,common_sessions,status,s1_cagr,s6_cagr,calmar_difference,reason
+actual_17,5,1814,2019-07-01,2026-09-17,0,0,NOT_EVALUABLE,,,,no_certified_s6_input_panel
+actual_17,10,1814,2019-07-01,2026-09-17,0,0,NOT_EVALUABLE,,,,no_certified_s6_input_panel
+actual_17,25,1814,2019-07-01,2026-09-17,0,0,NOT_EVALUABLE,,,,no_certified_s6_input_panel
+proxy_17,5,4624,2008-05-01,2026-09-17,0,0,NOT_EVALUABLE,,,,no_certified_s6_input_panel
+proxy_17,10,4624,2008-05-01,2026-09-17,0,0,NOT_EVALUABLE,,,,no_certified_s6_input_panel
+proxy_17,25,4624,2008-05-01,2026-09-17,0,0,NOT_EVALUABLE,,,,no_certified_s6_input_panel

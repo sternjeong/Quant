@@ -230,3 +230,34 @@ CSV 저장 후에도 일치했다(최대 NAV 상대오차 6.5503158452884236e-15
 다음 자동 감독은 **Day 4만** 수행한다: 실제 발표시각·과거 sector·주식수 단위·상장폐지
 가격을 포함한 S6 PIT 입력 인증과 S1 공통 일자 비교, `satellite_audit.md`.
 미래 fallback 금지. Day 3 결정론적 백테스트를 반복하지 않는다.
+
+
+### 2026-09-19 — 고정 14일 프로토콜 Day 4 PIT 감사 보류
+
+DAY_4_BLOCKED
+
+S6 PIT 입력을 반기 40회·원본 식별자 949개·종목/시점 20,156건 감사했다.
+미래에만 존재하는 주식수 8,521건, 주식수 없음/빈 캐시 531건을 확인했고
+공개시각·과거 섹터·증권 식별자/단위·상장폐지 경로를 인증한 반기는 0개다.
+현재 섹터 변경에 따른 과거 pool 변동, 체결일 종가를 시총 순위에 쓰는 경로,
+미래 fallback 및 종가 근사의 next-open 불일치를 합성 입력으로 재현했다.
+S6를 실행하지 않았고 S1 공통 비교 6개는 NOT_EVALUABLE로 남겼다. 완료 표식 없음.
+
+생성 파일: `docs/experiment_validation/satellite_audit.md`, `day4_resolutions.md`,
+`day4/`의 입력 manifest·캐시 목록·고정 관측치·종목/반기 누락표·원본 식별자 매핑,
+코드/테스트/누수 재현 결과·비교 상태 CSV·검증 JSON·재개 문서.
+전체 생성 파일 경로·개별 SHA-256은 `day4/result_hashes.json`에 기록했다.
+검증: 78 tests passed(기존 63+신규 15), 게시 worktree에서도 78 passed;
+저장 파일 독립 감사 PASS(20,156행), S1 저장 주문 4,551건의 다음 시가·비용 일치.
+완료 요구 검사 종료 코드 2(BLOCKED); 기존 232개 증거 및 동결 데이터 22개 해시 유지.
+동결 데이터 목록 SHA-256: `a8132c4441f818e47309dee4cbb93bb3067b18edc40371bda00679862fb6e86d`.
+진단 입력 6개 목록 SHA-256: `691125e34c07b7a80ecafa717cf04bd30ffbd8b7cb28154206214d9c7b6b0cb8`.
+결과 증거 268개 목록 SHA-256: `e2feee3b02da9fe7685224b6c32bbfedce83937289a87469f1f6a1e424de5e4c`.
+
+판단은 체크포인트 `20260919T205729Z_day4-pit-certification` 후 문서화/즉시 Telegram 보고했다.
+후보·기준선·게이트·원본 해시·기존 미커밋 연구는 보존했다. Day 3 미게시 증거는 별도
+Day 4 브랜치의 의존 커밋 `6ea72a8`에 복사했고 기존 Day 3 worktree/index는 보존했다.
+게시 브랜치: `research/day4-satellite-audit-20260919`; 원격 확인은 `day4/publication.json`.
+다음 자동 감독은 Day 5로 넘어가지 않고 **Day 4 재개**: 공개시각을 검증할 수 있는
+PIT 입력을 확보한 뒤 S6 다음 시가 재현/S1 공통 날짜 비교를 수행한다. 새 증거가 없으면
+캐시 재수집·완료된 Day 3 백테스트 반복 금지. `day4/RESUME_NOTE.md`에 상세 명령을 남겼다.

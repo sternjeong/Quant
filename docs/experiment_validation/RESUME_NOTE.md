@@ -144,3 +144,18 @@ Day 3의 다음 시가/비용 조건은 통과했으며 두 PROGRESS.md에 완�
 게시 확인 SHA는 `day3/publication.json`을 참조한다(경로는 실험 디렉터리 기준).
 Day 3 백테스트와 입력 재수집을 반복하지 않는다. S6 실제 PIT 입력 검증과 S1 공통 일자
 비교를 수행하고 미래/현재 데이터 fallback으로 과거를 채우지 않는다.
+
+
+## 2026-09-19 — 최신 인계: Day 4 PIT 입력 인증 보류
+
+이 항목이 이전의 Day 4 착수 지침보다 우선한다. Day 4는 BLOCKED이며 완료 표식 없음.
+반기 40회/20,156행을 감사했으나 과거 공개시각·섹터·주식수 단위·상장폐지 입력을
+인증한 구간이 없어 S6 성과와 S1 공통 날짜 비교를 실행할 수 없다.
+다음 자동 감독은 Day 4에 머물고 `docs/experiment_validation/day4/RESUME_NOTE.md`의
+입력 계약/명령을 따른다. 새 인증 증거가 없으면 동일 백테스트/캐시 수집을 반복하지 않는다.
+현재 확인 명령: `.venv/bin/python docs/experiment_validation/day4/verify_saved.py --require-complete`
+(기대 종료 코드 2: 감사 일치 PASS, Day 4 BLOCKED). 테스트 78개 통과.
+보고서 `docs/experiment_validation/satellite_audit.md`; 해시 `day4/result_hashes.json`;
+게시 확인 `day4/publication.json`(위 두 경로는 실험 디렉터리 기준).
+Day 4 연구 브랜치에 기존 미게시 Day 3 의존 증거를 보존했다. 기존 Day 3 worktree/index,
+main 미커밋 연구, 서비스 및 인증정보는 변경하지 않았다. Day 5 진행 금지.

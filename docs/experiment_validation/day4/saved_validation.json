@@ -1,0 +1,16 @@
+{
+  "saved_audit_consistency": "PASS",
+  "day4_status": "BLOCKED",
+  "day4_complete": false,
+  "verified_at_utc": "2026-09-19T21:07:37.856081+00:00",
+  "prior_evidence_verified": 232,
+  "rebalance_boundaries_verified": 40,
+  "member_rows_independently_reconciled": 20156,
+  "backward_asof_share_rows": 11104,
+  "future_only_share_rows": 8521,
+  "missing_share_rows": 531,
+  "s1_saved_orders_checked": 4551,
+  "comparison_rows_not_evaluable": 6,
+  "frozen_data_inventory_sha256": "a8132c4441f818e47309dee4cbb93bb3067b18edc40371bda00679862fb6e86d",
+  "diagnostic_input_inventory_sha256": "691125e34c07b7a80ecafa717cf04bd30ffbd8b7cb28154206214d9c7b6b0cb8"
+}

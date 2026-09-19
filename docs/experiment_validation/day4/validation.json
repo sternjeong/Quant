@@ -1,0 +1,47 @@
+{
+  "day": 4,
+  "day4_status": "BLOCKED",
+  "day4_complete": false,
+  "audit_software_status": "PASS",
+  "tests": {
+    "passed": 78,
+    "failed": 0,
+    "duration_seconds": 1.67,
+    "day4_tests": 15,
+    "previous_regression_tests": 63,
+    "command": ".venv/bin/python -m pytest -q docs/experiment_validation/test_snapshot.py docs/experiment_validation/day2/test_data_contract.py docs/experiment_validation/day3/test_backtest.py docs/experiment_validation/day4/test_satellite_audit.py"
+  },
+  "isolated_worktree_tests": {
+    "passed": 78,
+    "failed": 0,
+    "duration_seconds": 1.74,
+    "worktree": "/tmp/quant-day4-satellite-audit-20260919"
+  },
+  "saved_result_validation": {
+    "saved_audit_consistency": "PASS",
+    "day4_status": "BLOCKED",
+    "day4_complete": false,
+    "verified_at_utc": "2026-09-19T21:07:37.856081+00:00",
+    "prior_evidence_verified": 232,
+    "rebalance_boundaries_verified": 40,
+    "member_rows_independently_reconciled": 20156,
+    "backward_asof_share_rows": 11104,
+    "future_only_share_rows": 8521,
+    "missing_share_rows": 531,
+    "s1_saved_orders_checked": 4551,
+    "comparison_rows_not_evaluable": 6,
+    "frozen_data_inventory_sha256": "a8132c4441f818e47309dee4cbb93bb3067b18edc40371bda00679862fb6e86d",
+    "diagnostic_input_inventory_sha256": "691125e34c07b7a80ecafa717cf04bd30ffbd8b7cb28154206214d9c7b6b0cb8"
+  },
+  "require_complete_exit_code": 2,
+  "pass_conditions": {
+    "pit_universe_and_ranking_inputs_certified": false,
+    "s6_next_open_costed_replay": false,
+    "s1_common_date_comparison": false
+  },
+  "completion_marker_written": false,
+  "s6_backtest_executed": false,
+  "candidate_baseline_gate_changes": false,
+  "day3_dependency_commit": "6ea72a81cff67449f7cb29c7a79eaf78414dd16f",
+  "validated_at_utc": "2026-09-19T21:11:32.086438+00:00"
+}

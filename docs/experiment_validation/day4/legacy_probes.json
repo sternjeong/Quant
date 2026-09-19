@@ -1,0 +1,33 @@
+{
+  "scope": "synthetic legacy defects; not S6 performance",
+  "current_sector_mutation": {
+    "before": [
+      "A",
+      "C"
+    ],
+    "after": [
+      "A",
+      "B"
+    ]
+  },
+  "selection_calls_market_cap_on_fill_date": [
+    "2020-07-01"
+  ],
+  "fill_day_close_leak": {
+    "signal_close_cap": 10000.0,
+    "fill_day_close_cap": 99000.0
+  },
+  "earliest_future_shares_cap": 10000.0,
+  "earliest_future_members": [
+    "FUTURE"
+  ],
+  "close_approximation_return": 0.10000000000000009,
+  "exact_next_open_return": 0.00917431192660545,
+  "current_function_ast_matches_frozen_reference": {
+    "strategy_tuning.py:sample_universe": true,
+    "point_in_time_market_cap.py:get_market_cap_asof": true,
+    "point_in_time_universe.py:get_constituents_as_of": true,
+    "champion_strategy.py:_pick_satellite_at_date": true,
+    "champion_strategy.py:_compute_portfolio_returns": true
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "command": [
+    "rg",
+    "-l",
+    "available_at|effective_at|publication_time|accepted_at|historical_sector|delisting_return",
+    "data",
+    "analysis",
+    "-g",
+    "*.json",
+    "-g",
+    "*.csv",
+    "-g",
+    "*.py",
+    "-g",
+    "!**/*curves*",
+    "-g",
+    "!**/*results*",
+    "-g",
+    "!**/*report*",
+    "-g",
+    "!**/*backtest*",
+    "-g",
+    "!**/*metrics*",
+    "-g",
+    "!**/*.log"
+  ],
+  "exit_code": 1,
+  "matching_files": [],
+  "scope": "Bounded metadata search of existing data and analysis, plus direct inspection of production S6 input paths; no claim that all possible external PIT sources are absent"
+}

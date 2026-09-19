@@ -1,0 +1,127 @@
+{
+  "day": 4,
+  "day4_status": "BLOCKED",
+  "day4_complete": false,
+  "audited_at_utc": "2026-09-19T21:04:27.452222+00:00",
+  "prior_artifacts_verified": 232,
+  "frozen_data_inventory_sha256": "a8132c4441f818e47309dee4cbb93bb3067b18edc40371bda00679862fb6e86d",
+  "diagnostic_input_inventory_sha256": "691125e34c07b7a80ecafa717cf04bd30ffbd8b7cb28154206214d9c7b6b0cb8",
+  "historical_membership_rows": 2718,
+  "membership_first_date": "1996-01-02",
+  "membership_last_date": "2026-06-30",
+  "membership_columns": [
+    "date",
+    "tickers"
+  ],
+  "rebalance_boundaries": 40,
+  "member_boundary_rows": 20156,
+  "raw_identifiers": 949,
+  "cache_ticker_hints": 923,
+  "ambiguous_cache_ticker_hints": 26,
+  "cache_inventory_counts": {
+    "price": {
+      "expected": 923,
+      "existing": 629,
+      "nonempty": 629,
+      "publication_timestamp_columns": 0
+    },
+    "shares": {
+      "expected": 923,
+      "existing": 918,
+      "nonempty": 835,
+      "publication_timestamp_columns": 0
+    }
+  },
+  "member_boundary_share_states": {
+    "dated_prior_observation_only": 11104,
+    "future_only": 8521,
+    "empty_or_missing": 531
+  },
+  "member_boundary_missing_current_sector": 6189,
+  "member_boundary_missing_cached_signal_close": 4583,
+  "member_boundary_missing_cached_fill_open": 4592,
+  "certified_rebalances": 0,
+  "certified_common_sessions": 0,
+  "s6_orders_executed": 0,
+  "s6_same_day_close_fill_audit": "NOT_RUN_NO_CERTIFIED_INPUTS",
+  "s1_saved_order_checks": [
+    {
+      "sample": "actual_17",
+      "cost_bps": 5,
+      "orders": 423,
+      "non_next_session": 0,
+      "wrong_signal_close": 0,
+      "wrong_fill_open": 0,
+      "max_fee_error": 9.874371285911732e-17,
+      "daily_sha256": "d578f247c34bddcc553fc54ff19d6023410400e5594ab2188f644a966e474f81",
+      "orders_sha256": "01ca7c1625f269f71e18fc61f82eb2e4d0f5a1b0174df32e254d0950d8b7a885"
+    },
+    {
+      "sample": "actual_17",
+      "cost_bps": 10,
+      "orders": 423,
+      "non_next_session": 0,
+      "wrong_signal_close": 0,
+      "wrong_fill_open": 0,
+      "max_fee_error": 9.849976737030808e-17,
+      "daily_sha256": "7711f38b6aa39512fbd217cfe25916633bc28cba288a20c03989565fef05f75d",
+      "orders_sha256": "2d645d957a6620521320610e788d0234693aa799b05f4e27c1ab786ab13f6e67"
+    },
+    {
+      "sample": "actual_17",
+      "cost_bps": 25,
+      "orders": 423,
+      "non_next_session": 0,
+      "wrong_signal_close": 0,
+      "wrong_fill_open": 0,
+      "max_fee_error": 9.877081791342945e-17,
+      "daily_sha256": "602e9b07ef0d05ff2bc71793e7808a6f4a972a02eb23c0ec5343d70d756e0e82",
+      "orders_sha256": "6f9ab5c3625bad22e4ed613408b33d85ab044ae25be598e0637f50f7032fc6ea"
+    },
+    {
+      "sample": "proxy_17",
+      "cost_bps": 5,
+      "orders": 1094,
+      "non_next_session": 0,
+      "wrong_signal_close": 0,
+      "wrong_fill_open": 0,
+      "max_fee_error": 9.977370492297855e-17,
+      "daily_sha256": "73074e8023e8604e86f23b43dfd5dc36d99dae6bff1e6a5914126ca7982a762c",
+      "orders_sha256": "3aa450cab123cb161976957eeb372595bc6eb16769915fe44e616051efe5dfd9"
+    },
+    {
+      "sample": "proxy_17",
+      "cost_bps": 10,
+      "orders": 1094,
+      "non_next_session": 0,
+      "wrong_signal_close": 0,
+      "wrong_fill_open": 0,
+      "max_fee_error": 9.947554932554503e-17,
+      "daily_sha256": "7c6b417b5a818de7e0fd4c217538c499dc4d53265975de4692d0495f31ddc679",
+      "orders_sha256": "c2d2426bd031d9f5cecbd1ef0e278a54c89e826c4780caf3dc7752b37beb80fa"
+    },
+    {
+      "sample": "proxy_17",
+      "cost_bps": 25,
+      "orders": 1094,
+      "non_next_session": 0,
+      "wrong_signal_close": 0,
+      "wrong_fill_open": 0,
+      "max_fee_error": 9.974659986866641e-17,
+      "daily_sha256": "ad384401d30e628ad12184517c5afc1042cd1bdd732f4c344567deda416f87c8",
+      "orders_sha256": "371bd708cef671231d9cb12dafe0e10f26bddee0b0705a9659417c92d2fb6dcc"
+    }
+  ],
+  "pass_conditions": {
+    "pit_universe_and_ranking_inputs_certified": false,
+    "s6_next_open_costed_replay": false,
+    "s1_common_date_comparison": false
+  },
+  "blockers": [
+    "D4-P1: membership dates lack historical availability and revision evidence",
+    "D4-P2: current sectors cannot certify historical sector quotas",
+    "D4-P3: share observations lack publication time and verified price/share units",
+    "D4-P4: ticker reuse/delisted security identity and full price paths unverified"
+  ],
+  "selection": "No ranking or S6 replacement decision; six candidates and all gates unchanged"
+}

@@ -1,0 +1,10 @@
+[
+  {
+    "url": "https://raw.githubusercontent.com/fja05680/sp500/a2430f2af0c79ddf0748e91de11bdeb1616ab5a7/README.md",
+    "commit": "a2430f2af0c79ddf0748e91de11bdeb1616ab5a7",
+    "captured_at_utc": "2026-09-19T21:01:51.591334+00:00",
+    "path": "upstream_README.md",
+    "sha256": "1b328209e11f1f02c27d1345cb078b0d147b47295fee36928cab59fef0b9df04",
+    "role": "methodology/provenance only; not point-in-time membership evidence"
+  }
+]

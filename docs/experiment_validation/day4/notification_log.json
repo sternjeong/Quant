@@ -1,0 +1,9 @@
+{
+  "checkpoint_id": "20260919T205729Z_day4-pit-certification",
+  "notification": "전송 성공",
+  "delivery_environment": "Existing supervisor Telegram configuration loaded without output or changes",
+  "initial_failures": [
+    "system Python missing dotenv",
+    "default Telegram configuration absent"
+  ]
+}
