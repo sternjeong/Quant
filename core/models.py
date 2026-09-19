@@ -521,5 +521,7 @@ class NewsTickerDigest(Base):
     article_count = Column(Integer, nullable=False, default=0)
     summary = Column(Text, nullable=False)
     source_links = Column(Text, nullable=False, default="[]")  # JSON [{title, url, source}]
-    summary_status = Column(String(30), nullable=False, default="fallback")  # gemini | fallback
+    summary_status = Column(String(30), nullable=False, default="fallback")  # claude | fallback
+    sentiment = Column(String(20), nullable=True)  # bullish | neutral | bearish
+    sentiment_score = Column(Float, nullable=True)  # -1.0 ~ 1.0
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)

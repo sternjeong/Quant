@@ -14,12 +14,13 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
+import subprocess
 from typing import Any, Iterable
 from urllib.parse import urlparse, urlunparse
 
 import requests
 
-from core import gemini_client
 from core.champion_strategy import CORE_UNIVERSE
 from core.db import get_session, init_db
 from core.models import NewsArticle, NewsTickerDigest, NewsTickerSubscription
@@ -269,10 +270,49 @@ def _fallback_summary(ticker: str, articles: list[NewsArticle]) -> str:
 
 _DIGEST_SYSTEM_PROMPT = """당신은 투자 리서치 보조자입니다. 제공된 기사 제목·짧은 설명만 사용해 한국어로 요약하세요.
 각 티커마다 2~4개의 짧은 불릿을 작성하고, 각 사실 문장 끝에 반드시 제공된 [기사ID]를 붙이세요.
-기사에 없는 사실, 가격 전망, 매수·매도 권고를 만들지 마세요. 상충하는 보도가 있으면 상충한다고 적으세요."""
+기사에 없는 사실, 가격 전망, 매수·매도 권고를 만들지 마세요. 상충하는 보도가 있으면 상충한다고 적으세요.
+각 티커에 대해 기사 내용만(가격 움직임 제외)을 근거로 감성을 판단하세요: sentiment는 "bullish"/"neutral"/"bearish" 중 하나,
+sentiment_score는 -1.0(매우 부정적)에서 1.0(매우 긍정적) 사이 실수이며, 내용이 엇갈리거나 불명확하면 neutral과 0에 가까운 값을 쓰세요.
+반드시 다른 설명 없이 아래 형식의 ```json 코드 블록 하나만 응답하세요:
+```json
+{"items": [{"ticker": "XLK", "summary": "...", "sentiment": "bullish", "sentiment_score": 0.4}]}
+```"""
+
+_JSON_FENCE_RE = re.compile(r"```json\s*(.*?)\s*```", re.DOTALL)
+_VALID_SENTIMENTS = {"bullish", "neutral", "bearish"}
 
 
-def _gemini_summaries(article_map: dict[str, list[NewsArticle]]) -> dict[str, str]:
+def _resolve_claude_cli_bin() -> str:
+    """Claude Code CLI 바이너리 경로를 찾는다. 없으면 예외를 던져 호출부가 폴백하게 한다."""
+    env_bin = os.getenv("CLAUDE_CLI_BIN")
+    if env_bin and Path(env_bin).exists():
+        return env_bin
+    default_bin = "/usr/local/bin/claude"
+    if Path(default_bin).exists():
+        return default_bin
+    which_bin = shutil.which("claude")
+    if which_bin:
+        return which_bin
+    raise RuntimeError("Claude CLI 바이너리를 찾을 수 없습니다 (CLAUDE_CLI_BIN 미설정, /usr/local/bin/claude 없음, PATH에도 없음).")
+
+
+def _extract_json_block(text: str) -> dict[str, Any]:
+    match = _JSON_FENCE_RE.search(text or "")
+    if match:
+        try:
+            return json.loads(match.group(1))
+        except ValueError:
+            pass
+    try:
+        return json.loads(text)
+    except ValueError as exc:
+        raise ValueError("Claude CLI 응답에서 JSON을 찾을 수 없습니다.") from exc
+
+
+def _claude_cli_summaries(article_map: dict[str, list[NewsArticle]]) -> dict[str, dict[str, Any]]:
+    """Claude Code CLI를 비대화형으로 호출해 티커별 요약·감성을 얻는다. 실패 시 예외를 던지며,
+    호출부(generate_daily_digests)가 이를 잡아 제목 기반 폴백으로 대체한다."""
+    claude_bin = _resolve_claude_cli_bin()
     payload = {
         "tickers": [
             {"ticker": ticker, "articles": [
@@ -282,29 +322,48 @@ def _gemini_summaries(article_map: dict[str, list[NewsArticle]]) -> dict[str, st
             for ticker, articles in article_map.items()
         ]
     }
-    schema: dict[str, Any] = {
-        "type": "object",
-        "properties": {"items": {"type": "array", "items": {"type": "object", "properties": {
-            "ticker": {"type": "string"}, "summary": {"type": "string"},
-        }, "required": ["ticker", "summary"], "additionalProperties": False}}},
-        "required": ["items"], "additionalProperties": False,
-    }
-    response = gemini_client.generate_content(
-        models=gemini_client.LIGHT_TASK_MODELS, contents=json.dumps(payload, ensure_ascii=False),
-        system_instruction=_DIGEST_SYSTEM_PROMPT, response_mime_type="application/json", response_json_schema=schema,
-    )
-    decoded = json.loads(response.text)
-    summaries = {
-        str(item.get("ticker", "")).upper(): _clean_text(item.get("summary"), 2400)
-        for item in decoded.get("items", []) if isinstance(item, dict)
-    }
-    return {ticker: summaries[ticker] for ticker in article_map if summaries.get(ticker)}
+    prompt = _DIGEST_SYSTEM_PROMPT + "\n\n" + json.dumps(payload, ensure_ascii=False)
+    cmd = [claude_bin, "-p", "--output-format", "json", "--no-session-persistence", "--effort", "high"]
+    try:
+        proc = subprocess.run(cmd, input=prompt, text=True, capture_output=True, timeout=120)
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError("Claude CLI 호출이 타임아웃되었습니다.") from exc
+    except OSError as exc:
+        raise RuntimeError(f"Claude CLI 실행 실패: {exc}") from exc
+    if proc.returncode != 0:
+        raise RuntimeError(f"Claude CLI가 비정상 종료했습니다 (exit={proc.returncode}): {proc.stderr[:500]}")
+    try:
+        envelope = json.loads(proc.stdout)
+    except ValueError as exc:
+        raise RuntimeError("Claude CLI 출력(JSON 봉투)을 해석할 수 없습니다.") from exc
+    if not isinstance(envelope, dict):
+        raise RuntimeError("Claude CLI 출력 형식이 예상과 다릅니다.")
+    if envelope.get("is_error") or envelope.get("subtype") != "success":
+        raise RuntimeError(f"Claude CLI가 오류를 보고했습니다: {envelope.get('subtype') or envelope.get('is_error')}")
+    decoded = _extract_json_block(str(envelope.get("result", "")))
+    results: dict[str, dict[str, Any]] = {}
+    for item in decoded.get("items", []) if isinstance(decoded, dict) else []:
+        if not isinstance(item, dict):
+            continue
+        ticker = str(item.get("ticker", "")).upper()
+        summary = _clean_text(item.get("summary"), 2400)
+        if not summary:
+            continue
+        sentiment = str(item.get("sentiment", "neutral")).lower()
+        if sentiment not in _VALID_SENTIMENTS:
+            sentiment = "neutral"
+        try:
+            sentiment_score = max(-1.0, min(1.0, float(item.get("sentiment_score", 0.0))))
+        except (TypeError, ValueError):
+            sentiment_score = 0.0
+        results[ticker] = {"summary": summary, "sentiment": sentiment, "sentiment_score": sentiment_score}
+    return {ticker: results[ticker] for ticker in article_map if ticker in results}
 
 
 def generate_daily_digests(
     tickers: Iterable[str] | None = None, days: int = 1, force: bool = False,
 ) -> dict[str, Any]:
-    """최근 뉴스로 티커별 요약을 만들고 저장한다. Gemini 실패 시 항상 제목 기반 폴백을 남긴다."""
+    """최근 뉴스로 티커별 요약을 만들고 저장한다. Claude CLI 실패 시 항상 제목 기반 폴백을 남긴다."""
     selected = normalise_tickers(tickers or ensure_default_subscriptions())
     period_end = _utcnow()
     period_start = period_end - timedelta(days=max(1, days))
@@ -320,28 +379,30 @@ def generate_daily_digests(
             }
             article_map = {ticker: articles for ticker, articles in article_map.items() if ticker not in existing_tickers}
         if not article_map:
-            return {"digests": [], "used_gemini": False, "reason": "새 기사 또는 새 요약 대상이 없습니다."}
-        summaries: dict[str, str] = {}
-        used_gemini = False
-        if gemini_client.has_api_key():
-            try:
-                summaries = _gemini_summaries(article_map)
-                used_gemini = bool(summaries)
-            except Exception:  # Gemini API 장애/쿼터는 제목 기반 요약으로 안전하게 대체한다.
-                summaries = {}
+            return {"digests": [], "used_ai_summary": False, "reason": "새 기사 또는 새 요약 대상이 없습니다."}
+        summaries: dict[str, dict[str, Any]] = {}
+        used_ai_summary = False
+        try:
+            summaries = _claude_cli_summaries(article_map)
+            used_ai_summary = bool(summaries)
+        except Exception:  # Claude CLI 장애/미설치는 제목 기반 요약으로 안전하게 대체한다.
+            summaries = {}
         created: list[dict[str, Any]] = []
         for ticker, articles in article_map.items():
-            summary = summaries.get(ticker) or _fallback_summary(ticker, articles)
-            status = "gemini" if ticker in summaries else "fallback"
+            entry = summaries.get(ticker)
+            summary = entry["summary"] if entry else _fallback_summary(ticker, articles)
+            status = "claude" if entry else "fallback"
             digest = NewsTickerDigest(
                 ticker=ticker, period_start=period_start, period_end=period_end, article_count=len(articles),
                 summary=summary, source_links=json.dumps([_article_link(row) for row in articles], ensure_ascii=False),
                 summary_status=status,
+                sentiment=entry["sentiment"] if entry else None,
+                sentiment_score=entry["sentiment_score"] if entry else None,
             )
             session.add(digest)
             session.flush()
             created.append(_digest_dict(digest))
-        return {"digests": created, "used_gemini": used_gemini, "reason": ""}
+        return {"digests": created, "used_ai_summary": used_ai_summary, "reason": ""}
 
 
 def run_news_pipeline(tickers: Iterable[str] | None = None, force: bool = False) -> dict[str, Any]:
@@ -359,7 +420,8 @@ def _digest_dict(row: NewsTickerDigest) -> dict[str, Any]:
     return {
         "id": row.id, "ticker": row.ticker, "period_start": row.period_start, "period_end": row.period_end,
         "article_count": row.article_count, "summary": row.summary, "source_links": links,
-        "summary_status": row.summary_status, "created_at": row.created_at,
+        "summary_status": row.summary_status, "sentiment": row.sentiment, "sentiment_score": row.sentiment_score,
+        "created_at": row.created_at,
     }
 
 

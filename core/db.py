@@ -74,6 +74,10 @@ def _add_missing_columns() -> None:
             ("calmar", "FLOAT"),
             ("avg_drawdown_days", "FLOAT"),
         ],
+        "news_ticker_digests": [
+            ("sentiment", "VARCHAR(20)"),
+            ("sentiment_score", "FLOAT"),
+        ],
     }
     inspector = inspect(engine)
     with engine.begin() as conn:

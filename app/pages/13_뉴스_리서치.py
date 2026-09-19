@@ -83,7 +83,12 @@ else:
         when = digest["created_at"].strftime("%Y-%m-%d %H:%M UTC")
         with st.expander(f"{digest['ticker']} · 기사 {digest['article_count']}건 · {when}", expanded=selected_ticker is not None):
             st.markdown(digest["summary"])
-            st.caption("Gemini 요약" if digest["summary_status"] == "gemini" else "제목 기반 대체 요약")
+            st.caption("Claude 요약" if digest["summary_status"] == "claude" else "제목 기반 대체 요약")
+            if digest.get("sentiment"):
+                badge = {"bullish": "🟢 긍정", "bearish": "🔴 부정", "neutral": "⚪ 중립"}.get(digest["sentiment"], "⚪ 중립")
+                score = digest.get("sentiment_score")
+                score_text = f" ({score:+.2f})" if score is not None else ""
+                st.caption(f"감성: {badge}{score_text}")
             st.markdown("**원문 출처**")
             for link in digest["source_links"]:
                 label = f"{link.get('source', '출처')} · {link.get('title', '원문')[:130]}"
