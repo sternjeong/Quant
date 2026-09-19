@@ -9,7 +9,8 @@
 00:18에는 챔피언 전략 알파 감쇠(백테스트 성과 이탈) 여부를 체크해 감지되면 텔레그램으로 알리고,
 00:20에는 FRED 거시지표(원/달러 환율 등) 캐시를 미리 강제로 새로 받아와 데워두고,
 00:22에는 가격/FRED 캐시/뉴스 다이제스트 데이터 무결성을 체크해 이상 감지 시 텔레그램으로 알리며,
-매주 일요일 20:20(America/New_York)에는 챔피언 전략 주간 HTML 보고를 텔레그램으로 전송한다.
+00:25에는 그날 밤 다른 모든 챔피언 전략 잡의 결과를 모아 "오늘의 브리핑" 한 장짜리 HTML로 텔레그램
+전송하고, 매주 일요일 20:20(America/New_York)에는 챔피언 전략 주간 HTML 보고를 텔레그램으로 전송한다.
 
 Streamlit 앱과 완전히 별도의 프로세스로 실행된다 (브라우저를 안 열어도 동작해야 하므로).
 
@@ -108,6 +109,14 @@ Streamlit 앱과 완전히 별도의 프로세스로 실행된다 (브라우저�
       캐시/DB를 읽기만 하는 읽기 전용 체크다. anomalies가 하나라도 있으면 core.telegram_notify로
       심각도별(critical/warning)로 묶어 알리고, 없으면(정상) 다른 champion_* 잡과 같은 원칙대로
       알림을 생략한다(매일 밤 "이상 없음" 스팸 방지).
+    - 매일 한국시간(Asia/Seoul) 00:25에 daily_briefing_job() 을 실행한다(2026-09-19 추가).
+      core.daily_briefing.send_daily_briefing() 이 그날 밤 다른 모든 챔피언 전략 잡(신호/상관관계/
+      리밸런싱/실적/알파감쇠/데이터무결성)이 이미 계산·저장해둔 결과를 읽기만 해서(새 계산 없음)
+      "오늘 확인이 필요한 게 있는가"를 30초 안에 훑어볼 수 있는 한 장짜리 HTML로 모아 텔레그램
+      문서로 전송한다 — 지금까지는 이 잡들이 각각 따로 텔레그램 메시지를 보내 흩어져 있었는데,
+      사용자가 이 프로젝트를 거의 전적으로 폰 텔레그램 봇으로 접하기 때문에(데스크톱 UI를 직접
+      여는 경우가 드묾) 하나로 모아 보여주는 게 더 유용하다. 요약할 데이터가 그날 밤 전부
+      갱신되어 있어야 의미가 있으므로, 00:00~00:22 블록의 다른 모든 잡보다 뒤(첫 빈 슬롯)에 둔다.
 
 주의:
     - 이 스크립트는 core.* 를 프로젝트 루트 기준으로 임포트하므로, 아래처럼 sys.path에
@@ -407,6 +416,21 @@ def data_integrity_check_job() -> None:
     print(f"[{datetime.now()}] data_integrity_check_job 종료")
 
 
+def daily_briefing_job() -> None:
+    """오늘의 브리핑 (2026-09-19 추가).
+
+    core.daily_briefing.send_daily_briefing()이 실제 조립·저장·전송을 전부 담당한다 — 이 잡은
+    호출하고 결과를 출력만 한다. 00:00~00:22 블록의 다른 모든 챔피언 전략/데이터무결성 잡보다
+    뒤에 실행되어야 그날 밤 갱신된 최신 데이터를 요약할 수 있다.
+    """
+    from core.daily_briefing import send_daily_briefing
+
+    print(f"[{datetime.now()}] daily_briefing_job 시작")
+    result = send_daily_briefing()
+    print(f"  - 브리핑 저장: {result['path']} (전송 {'성공' if result['sent'] else '실패/미설정'})")
+    print(f"[{datetime.now()}] daily_briefing_job 종료")
+
+
 def daily_news_digest_job() -> None:
     """무료 뉴스 API의 최근 24시간 메타데이터를 HTML과 Telegram으로 보고한다.
 
@@ -625,6 +649,16 @@ def main() -> None:
         replace_existing=True,
     )
     scheduler.add_job(
+        daily_briefing_job,
+        # data_integrity_check_job(00:22)까지가 00:00~00:22 KST 야간 블록의 마지막 잡이라, 그
+        # 다음 빈 슬롯(00:25)에 둔다 — 이 잡은 다른 모든 챔피언 전략 잡의 결과를 요약하므로 반드시
+        # 맨 마지막에 실행되어야 그날 밤 갱신된 데이터를 담는다.
+        trigger=CronTrigger(hour=0, minute=25, timezone="Asia/Seoul"),
+        id="daily_briefing",
+        name="매일 한국시간 00:25 오늘의 브리핑 HTML Telegram 전송",
+        replace_existing=True,
+    )
+    scheduler.add_job(
         daily_news_digest_job,
         trigger=CronTrigger(hour=7, minute=30, timezone="Asia/Seoul"),
         id="daily_news_digest",
@@ -639,7 +673,8 @@ def main() -> None:
     print("전략 신호 변경을, 00:11 에는 보유종목 상관관계 스냅샷을, 00:15 에는 리밸런싱 예정일을,")
     print("00:16 에는 새틀라이트 실적 발표 예정을, 00:18 에는 챔피언 전략 알파 감쇠 여부를, 00:20 에는")
     print("FRED 거시지표(환율 등) 캐시를 미리 갱신하고, 00:22 에는 가격/FRED 캐시/뉴스 다이제스트")
-    print("데이터 무결성을 체크해 이상 감지 시 텔레그램으로 알립니다.")
+    print("데이터 무결성을 체크해 이상 감지 시 텔레그램으로 알리며, 00:25 에는 그날 밤 결과를 모은")
+    print("오늘의 브리핑 HTML을 텔레그램으로 전송합니다.")
     print("매일 한국시간 07:30에는 무료 뉴스 API 기반 티커별 HTML/Telegram 리포트를 보냅니다.")
     print("Ctrl+C 로 종료할 수 있습니다.")
 
