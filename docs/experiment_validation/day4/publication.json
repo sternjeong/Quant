@@ -1,0 +1,22 @@
+{
+  "evidence_commit": "81723b7db1e88e6f45a096619a7fc7b0ffdeae97",
+  "branch": "research/day4-satellite-audit-20260919",
+  "remote": "origin",
+  "remote_verified_evidence_sha": "81723b7db1e88e6f45a096619a7fc7b0ffdeae97",
+  "verified_at_utc": "2026-09-19T21:15:18.684790+00:00",
+  "day3_dependency_commit": "6ea72a81cff67449f7cb29c7a79eaf78414dd16f",
+  "base_commit": "2b290f6fa6b8d2679fd2be250308b76b0142de75",
+  "worktree": "/tmp/quant-day4-satellite-audit-20260919",
+  "day4_status": "BLOCKED",
+  "day4_completion_marker_written": false,
+  "tests_passed": 78,
+  "publication_worktree_tests_passed": 78,
+  "publication_saved_validation": "PASS; --require-complete exit 2 as expected",
+  "result_hashes_sha256": "e2feee3b02da9fe7685224b6c32bbfedce83937289a87469f1f6a1e424de5e4c",
+  "main_push": false,
+  "daily_html_committed": false,
+  "predecessor_worktree_preserved": true,
+  "raw_upstream_readme_preserved": "Unchanged upstream whitespace retained for source hash; authored files pass git diff --check",
+  "telegram_report": "전송 성공",
+  "note": "This file records the verified evidence push; a later metadata commit contains this publication receipt."
+}

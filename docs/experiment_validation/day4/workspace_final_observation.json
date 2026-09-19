@@ -1,0 +1,41 @@
+{
+  "observed_at_utc": "2026-09-19T21:15:48.633219+00:00",
+  "main_head": "9ae6028afbc04a8020f58bda3c889c4452b490b3",
+  "main_head_unchanged": true,
+  "protected_files": {
+    "PROGRESS.md": {
+      "original_prefix_preserved": true,
+      "whole_file_unchanged": false,
+      "mode_unchanged": true,
+      "current_sha256": "5ee0abebea25f660b20022d6e0630e96c40c261b68ae7348fbb94a739f5040cd"
+    },
+    "RESUME_NOTE.md": {
+      "original_prefix_preserved": true,
+      "whole_file_unchanged": false,
+      "mode_unchanged": true,
+      "current_sha256": "07e472a40ce6a2a1084b79cf44036c0f3b8975a534b72e7bcb80416689be1699"
+    },
+    "docs/reports/README.md": {
+      "original_prefix_preserved": true,
+      "whole_file_unchanged": true,
+      "mode_unchanged": true,
+      "current_sha256": "9089ee1f344a01bd3950786cac275e99a8446c048fcd8ea0592250a39eae856c"
+    },
+    "docs/TWO_WEEK_STRATEGY_VALIDATION_PROTOCOL.md": {
+      "original_prefix_preserved": true,
+      "whole_file_unchanged": true,
+      "mode_unchanged": true,
+      "current_sha256": "93803ffc02be18e21fe054789e9f14de0f21f87d9c6df9a72a6614fe02935c80"
+    }
+  },
+  "existing_experiment_files_unchanged_excluding_appended_progress_resume": 261,
+  "day3_predecessor_index_and_status_unchanged": true,
+  "frozen_result_artifacts_matched": 268,
+  "day4_complete_marker_present": false,
+  "automatic_daily_html_committed": false,
+  "status": " M PROGRESS.md\n M docs/reports/README.md\n?? .auto-deploy-state/\n?? .cache/\n?? .claude.json\n?? .claude/\n?? .codex/\n?? .config/\n?? .experiment-control/\n?? .gitconfig\n?? .local/\n?? .npm/\n?? .streamlit/machine_id_v4\n?? RESUME_NOTE.md\n?? analysis.root_backup_20260914/\n?? analysis/2026-09-14_nonai_control_basket_volatility_momentum/\n?? analysis/2026-09-14_satellite_correlation_crisis_signal/\n?? analysis/2026-09-15_options_collar_hedge_volatility_momentum_basket/\n?? analysis/2026-09-15_options_collar_parameter_sensitivity/\n?? analysis/2026-09-17_fine_grid_joint_candidate_bootstrap_audit/\n?? analysis/2026-09-17_historical_era_trend_following_extension/\n?? analysis/2026-09-17_live_tenbagger_screening_snapshot/\n?? analysis/2026-09-17_lookback_rebal_candidate_bootstrap_audit/\n?? analysis/2026-09-18_satellite_switch_mechanism_bootstrap_audit/\n?? analysis/2026-09-19_basket_correlation_structure_predictor/\n?? deploy/research_agents/\n?? docs/experiment_validation/\n?? docs/reports/basket_correlation_structure_predictor_research.html\n?? docs/reports/fine_grid_joint_candidate_bootstrap_audit_research.html\n?? docs/reports/historical_era_trend_following_extension_research.html\n?? docs/reports/live_stock_discovery_snapshot_research.html\n?? docs/reports/nonai_control_basket_volatility_momentum_research.html\n?? docs/reports/options_collar_btc_instrument_transplant_research.html\n?? docs/reports/options_collar_moneyness_tenor_grid_and_placebo_research.html\n?? docs/reports/satellite_correlation_crisis_signal_research.html\n?? strategy_id3_seed.json\n",
+  "experiment_progress_resume_original_prefix_preserved": {
+    "PROGRESS.md": true,
+    "RESUME_NOTE.md": true
+  }
+}

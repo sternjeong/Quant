@@ -5117,3 +5117,7 @@ Day 4 브랜치의 의존 커밋 `6ea72a8`에 복사했고 기존 Day 3 worktree
 다음 자동 감독은 Day 5로 넘어가지 않고 **Day 4 재개**: 공개시각을 검증할 수 있는
 PIT 입력을 확보한 뒤 S6 다음 시가 재현/S1 공통 날짜 비교를 수행한다. 새 증거가 없으면
 캐시 재수집·완료된 Day 3 백테스트 반복 금지. `day4/RESUME_NOTE.md`에 상세 명령을 남겼다.
+
+Day 4 게시 확인: 증거 커밋 `81723b7db1e88e6f45a096619a7fc7b0ffdeae97`을
+`origin/research/day4-satellite-audit-20260919`에 push하고 원격 SHA 일치를 확인했다.
+보류 결과 Telegram 전송 성공. `day4/publication.json`에 기록했고 Day 4 미완료를 유지한다.
