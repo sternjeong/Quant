@@ -7,6 +7,7 @@
 00:15에는 챔피언 전략 리밸런싱 예정일을 미리 텔레그램으로 알리고,
 00:16에는 챔피언 전략 새틀라이트 실적 발표 예정을 미리 텔레그램으로 알리며,
 00:20에는 FRED 거시지표(원/달러 환율 등) 캐시를 미리 강제로 새로 받아와 데워두고,
+00:22에는 가격/FRED 캐시/뉴스 다이제스트 데이터 무결성을 체크해 이상 감지 시 텔레그램으로 알리며,
 매주 일요일 20:20(America/New_York)에는 챔피언 전략 주간 HTML 보고를 텔레그램으로 전송한다.
 
 Streamlit 앱과 완전히 별도의 프로세스로 실행된다 (브라우저를 안 열어도 동작해야 하므로).
@@ -87,6 +88,16 @@ Streamlit 앱과 완전히 별도의 프로세스로 실행된다 (브라우저�
       BAMLH0A0HYM2/T10Y3M)를 이 잡이 cache_ttl=0으로 강제로 미리 새로 받아 캐시를 데워둔다 —
       새 계산 로직은 없고 기존 get_series()를 그대로 재사용. 지표 하나가 실패해도(FRED_API_KEY
       없음/일시적 오류) 나머지는 계속 갱신한다.
+    - 매일 한국시간(Asia/Seoul) 00:22에 data_integrity_check_job() 을 실행한다(2026-09-19 추가).
+      fred_indicator_prewarm_job(00:20)이 FRED 캐시를 막 갱신한 직후라, 그 갱신이 조용히 실패했을
+      경우(예외 없이 빈 값/stale 캐시만 남는 경우)를 바로 그날 밤 잡아낼 수 있는 슬롯이다.
+      core.data_integrity.run_integrity_checks() 가 (1) 챔피언 전략 코어+새틀라이트+시장필터(SPY)
+      최근 가격의 종가<=0/이상 일간수익률/중복 인덱스/stale 여부, (2) data/cache/fred_*.csv 캐시의
+      비어있음/파싱 오류/발표주기 대비 stale 여부, (3) 최근 24시간 NewsTickerDigest 행의 빈 요약/
+      깨진 source_links JSON 여부를 검사해 findings를 반환한다 — 새 계산 로직 없이 기존에 저장된
+      캐시/DB를 읽기만 하는 읽기 전용 체크다. anomalies가 하나라도 있으면 core.telegram_notify로
+      심각도별(critical/warning)로 묶어 알리고, 없으면(정상) 다른 champion_* 잡과 같은 원칙대로
+      알림을 생략한다(매일 밤 "이상 없음" 스팸 방지).
 
 주의:
     - 이 스크립트는 core.* 를 프로젝트 루트 기준으로 임포트하므로, 아래처럼 sys.path에
@@ -347,6 +358,29 @@ def fred_indicator_prewarm_job() -> None:
     print(f"[{datetime.now()}] fred_indicator_prewarm_job 종료 ({refreshed}/{len(series_ids)}개 갱신)")
 
 
+def data_integrity_check_job() -> None:
+    """야간 데이터 무결성 체크 (2026-09-19 추가).
+
+    core.data_integrity.run_integrity_checks()가 실제 검사(가격 이상치/FRED 캐시 stale/뉴스
+    다이제스트 파싱 오류)를 전부 담당한다 — 이 잡은 호출하고 결과를 텔레그램으로 알리기만 한다.
+    다른 champion_* 잡들과 동일한 철학: anomalies가 비어있으면("이상 없음") 알림을 보내지 않는다
+    (매일 밤 "이상 없음" 스팸 방지). 텔레그램 설정이 없으면 send_message가 조용히 False를 반환할
+    뿐 예외는 나지 않는다.
+    """
+    from core.data_integrity import format_anomaly_telegram_message, run_integrity_checks
+
+    print(f"[{datetime.now()}] data_integrity_check_job 시작")
+    result = run_integrity_checks()
+    print(f"  - 체크 {len(result['checks'])}건, 이상 {len(result['anomalies'])}건")
+    if result["anomalies"]:
+        for a in result["anomalies"]:
+            print(f"    · [{a['severity']}] {a['check']}: {a['detail']}")
+        send_message(format_anomaly_telegram_message(result["anomalies"]))
+    else:
+        print("  - 이상 없음 (알림 생략)")
+    print(f"[{datetime.now()}] data_integrity_check_job 종료")
+
+
 def daily_news_digest_job() -> None:
     """무료 뉴스 API의 최근 24시간 메타데이터를 HTML과 Telegram으로 보고한다.
 
@@ -546,6 +580,15 @@ def main() -> None:
         replace_existing=True,
     )
     scheduler.add_job(
+        data_integrity_check_job,
+        # fred_indicator_prewarm_job(00:20)이 FRED 캐시를 막 갱신한 다음 슬롯(비어있는 슬롯) —
+        # 갱신 직후 상태를 검사해야 "방금 실패한 갱신"을 그날 바로 잡아낼 수 있다.
+        trigger=CronTrigger(hour=0, minute=22, timezone="Asia/Seoul"),
+        id="data_integrity_check",
+        name="매일 한국시간 00:22 가격/FRED 캐시/뉴스 다이제스트 데이터 무결성 체크",
+        replace_existing=True,
+    )
+    scheduler.add_job(
         daily_news_digest_job,
         trigger=CronTrigger(hour=7, minute=30, timezone="Asia/Seoul"),
         id="daily_news_digest",
@@ -559,7 +602,8 @@ def main() -> None:
     print("00:05~04:00 에는 #3 전략을 서버가 허락하는 만큼 반복 미세튜닝하며, 00:10 에는 챔피언")
     print("전략 신호 변경을, 00:11 에는 보유종목 상관관계 스냅샷을, 00:15 에는 리밸런싱 예정일을,")
     print("00:16 에는 새틀라이트 실적 발표 예정을, 00:20 에는 FRED 거시지표(환율 등) 캐시를 미리")
-    print("갱신/알립니다. 매일 한국시간 07:30에는 무료 뉴스 API 기반 티커별 HTML/Telegram 리포트를 보냅니다.")
+    print("갱신/알리고, 00:22 에는 가격/FRED 캐시/뉴스 다이제스트 데이터 무결성을 체크해 이상 감지 시")
+    print("텔레그램으로 알립니다. 매일 한국시간 07:30에는 무료 뉴스 API 기반 티커별 HTML/Telegram 리포트를 보냅니다.")
     print("Ctrl+C 로 종료할 수 있습니다.")
 
     try:
