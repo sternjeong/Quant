@@ -5046,3 +5046,21 @@ S6 과거 시점 입력 출처가 해결되지 않아 완료 표식을 기록하
 `docs/experiment_validation/day1_review_20260918T141530Z/`에 기록했다.
 다음 감독은 그 디렉터리의 `RESUME_NOTE.md`에 따라 새 사전등록 근거부터
 확인한다. 기존 후보·기준선·선택 게이트는 그대로이며 Day 2는 시작하지 않았다.
+
+
+### 2026-09-19 — 고정 14일 프로토콜 Day 2 완료
+
+DAY_2_COMPLETE
+
+`docs/experiment_validation/data_audit.md` 및 `day2/` 감사 산출물을 생성했다.
+원본 증거 55개 해시 유지; ETF 20개 98,245행 내부 결측 0, XLRE 거래량 0인 5행은 보존하고
+해당 시가 체결 차단, 기업행사·프록시·DST/거래소 달력·월말 248개 경계 감사 완료.
+미래 발행주식수 fallback 차단/next-open 차이 검증 포함 관련 테스트 27개 통과.
+데이터 22개 목록 SHA-256: `a8132c4441f818e47309dee4cbb93bb3067b18edc40371bda00679862fb6e86d`.
+결과 증거 79개 목록 SHA-256: `4fd7ea3ced381b7e33957eccadf68cf653f7fad0f87be7d3d060d9a2cda6b2cc`.
+생성 파일·개별 해시·검증 결과 전문은 `docs/experiment_validation/PROGRESS.md`,
+`day2/audit_results.json`, `day2/input_manifest.json`, `day2/validation.json`에 기록했다.
+후보·기준선·게이트 및 기존 미커밋 연구 보존, 판단 2건은 체크포인트 후 Telegram 보고했다.
+다음 자동 감독은 Day 3만 수행: 기준선/S1~S5 비용 후 백테스트와 `baseline_metrics.csv`.
+HYG 웜업 공백, zero-volume 시가 차단, 프록시 연결 비용, 정확한 다음 시가 체결을 준수한다.
+Day 4의 S6 실제 PIT 입력 인증은 아직 수행하지 않았다. 게시 정보는 `day2/publication.json`.

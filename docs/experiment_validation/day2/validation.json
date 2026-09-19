@@ -1,0 +1,33 @@
+{
+  "day": 2,
+  "status": "PASS",
+  "scope": "data audit and input guards only; no strategy selection or S6 historical coverage claim",
+  "criteria": {
+    "missing_treatment_documented": true,
+    "authorized_proxies_documented": true,
+    "splits_and_distribution_reviewed": true,
+    "delisting_limitations_and_no_silent_omission_documented": true,
+    "timezone_and_next_session_edges_verified": true,
+    "future_shares_fallback_rejected_in_research_path": true,
+    "original_frozen_artifacts_unchanged": true
+  },
+  "tests": {
+    "command": ".venv/bin/python -m pytest -q docs/experiment_validation/test_snapshot.py docs/experiment_validation/day2/test_data_contract.py",
+    "passed": 27,
+    "failed": 0
+  },
+  "calendar_boundaries": 248,
+  "original_artifacts": 55,
+  "dataset_count": 22,
+  "price_rows": 98245,
+  "data_inventory_sha256": "a8132c4441f818e47309dee4cbb93bb3067b18edc40371bda00679862fb6e86d",
+  "known_limitations": [
+    "XLRE zero-volume price rows retained; fills on those rows must stop",
+    "HYG bounds long common history to 2007-04-11; full 12-month signals cannot cover 2007",
+    "S6 actual publication/sector/share/delisted inputs await Day 4 verification",
+    "Old close-to-close engine cannot execute Day 3 orders; implement real next-open engine first",
+    "Original Day 1 checker remains BLOCKED by design of the immutable evidence snapshot; use subsequent resolution record too"
+  ],
+  "notification": "Both checkpoint notifications delivered via existing supervisor Telegram configuration",
+  "workspace_preservation_before_progress_append": "PASS"
+}

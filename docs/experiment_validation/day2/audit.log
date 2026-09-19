@@ -1,0 +1,10 @@
+{
+  "original_artifacts_verified": 55,
+  "price_files": 20,
+  "price_rows": 98245,
+  "missing_internal_sessions": 0,
+  "zero_volume_rows": 5,
+  "split_events": 6,
+  "monthly_next_open_boundaries_checked": 248,
+  "data_inventory_sha256": "a8132c4441f818e47309dee4cbb93bb3067b18edc40371bda00679862fb6e86d"
+}

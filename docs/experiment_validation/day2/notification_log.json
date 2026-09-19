@@ -1,0 +1,6 @@
+{
+  "initial_checkpoint": "20260919T154701Z_day2-data-contract",
+  "initial_notification": "sent after using existing supervisor Telegram environment; initial system-python missing dotenv and default config attempts failed",
+  "zero_volume_checkpoint": "20260919T155124Z_day2-zero-volume",
+  "zero_volume_notification": "전송 성공"
+}

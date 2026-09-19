@@ -119,3 +119,60 @@ main과 기존 미커밋 연구를 보존하며 이 기록만 새 연구 브랜�
 증거 커밋 `74c21a347cb6d585a44d0ae8580d3705cced1016`를 `origin/research/day1-review-20260918`에 push했고,
 `git ls-remote`로 같은 SHA를 확인했다. `day1_review_20260918T141530Z/publication.json`에 기록했다.
 Day 1 보류 상태는 그대로다. 다음 감독은 새 사전등록 근거가 있는지 확인한 뒤 재개한다.
+
+## Day 1 완료 — 소유자 위임 판단으로 B1/B2/B3 해소 (2026-09-19)
+
+사용자가 명시적으로 "진행시켜줘, 선조치 후보고로" 위임한 판단으로 세 보류 사유를 모두
+해소했다 (전문: `day1_resolutions.md`). 후보/기준선/게이트는 변경 없음.
+
+- **B1** (S5 미정 규칙): S4와 동일한 5-ETF 유니버스(SPY/EFA/IEF/GLD/DBC), 12개월 절대모멘텀
+  양수분 중 상대모멘텀 상위 3, 미달분은 현금으로 확정.
+- **B2** (XLRE 워밍업 부족): 프로토콜이 XLC에 이미 승인한 것과 동일한 방식으로, 2007–2015
+  장기 프록시 구간은 VNQ(2004년 상장)로 XLRE를 대체하고 결과를 "프록시"로 표기. 2015-10-08
+  이후는 실제 XLRE로 전환.
+- **B3** (S6 provenance 불명확): 데이터셋(fja05680/sp500)의 이 저장소 도입 시각을 커밋
+  `c0347056`(2026-07-17)로 기록해 upstream 발표 시각과 명시적으로 구분. S6 독립 평가는
+  기존 세 표본외 구간을 그대로 사용(추가 축소 불필요). 리뷰가 찾은 두 실제 코드 결함(미래
+  발행주식수 fallback 가능성, next-open 체결과 다른 shift(1) 근사)은 정책 판단이 아니므로
+  새로 만들지 않고 **Day 2/Day 6 통과 조건에 명시적으로 편입**: Day 2 산출물에 "미래
+  발행주식수 fallback 미사용 확인"을, Day 6 산출물에 "next-open 체결 엔진 단위테스트로
+  close-to-close 근사와의 차이 확인"을 추가 조건으로 요구한다.
+
+DAY_1_COMPLETE
+
+
+## 2026-09-19 — Day 2 완료: 가격·기업행사·프록시·시간대 감사
+
+DAY_2_COMPLETE
+
+판정: Day 2의 결측 처리/프록시 명시 조건 및 Day 1 B3의 미래 주식수 fallback 미사용
+조건을 연구 전용 입력 경로에서 충족했다. 원본 55개 해시 유지; ETF 20개 98,245행의 내부
+결측/중복/비양수 OHLC 0; 거래량 0인 XLRE 5행은 보존하고 해당 시가 주문은 차단.
+provider 분할 6건(실제 분할 5+XLF 현물분배 1), 조정계수 2% 초과 27건을 기록했다.
+완료 월말 248개에 대해 다음 세션 시가 경계를 검사했고 관련 테스트 27개 통과.
+기존 shift(1) 근사 10%와 실제 시가 109 체결 0.917431% 차이 및 미래 주식수 차단을 재현했다.
+완성된 전략 엔진/S6 PIT 패널 인증은 아니며 Day 3/4/6 인계 조건은 `data_audit.md`에 명시했다.
+
+보고서: `data_audit.md`; 판단: `day2_resolutions.md` (체크포인트 2개·즉시 Telegram 보고 성공).
+생성 파일: `day2/RESUME_NOTE.md`, `day2/VNQ.csv.gz`, `day2/XNYS_sessions.csv.gz`, `day2/audit.log`, `day2/audit_results.json`, `day2/capture.log`, `day2/capture_inputs.py`, `day2/corporate_actions.csv`, `day2/data_contract.py`, `day2/external_sources.json`, `day2/initial_workspace.json`, `day2/input_manifest.json`, `day2/monthly_session_edges.csv`, `day2/notification_log.json`, `day2/price_flags.csv`, `day2/price_inventory.csv`, `day2/proxy_splice.csv`, `day2/result_hashes.json`, `day2/run_audit.py`, `day2/test_data_contract.py`, `day2/tests.log`, `day2/validation.json`.
+Day 1 원본 spec/manifest/lock/19개 가격은 바꾸지 않았다. VNQ는 기존 Day 1 지정에 따라
+별도 입력으로 추가했으며 이후 그 해시도 고정한다. 자동 생성 일일 HTML은 게시하지 않는다.
+
+| 증거 | SHA-256 |
+| --- | --- |
+| 기존 spec.json | c5296b50e31f35804ffae5ba3cfd738e64431ead2551b931b85becf970259d97 |
+| 기존 manifest.json | 09466ed870c477753a6ff7d0327cb0a6786dbfd142a6ea352d87d30df4210b9d |
+| 기존 snapshot_lock.json | 3022ec9a3169c827ccb398c309b2cd0d46be87fce7f467e1ef0a20f366f62f9e |
+| 새 VNQ 저장 데이터 | e74c208a307cb4f59b8ca9390d7544096ecc6b2d1824bf68ed9aa00b9bafdbff |
+| 독립 XNYS 달력 | 94780f283f01ffe25ec3a05281a676fa5a0c34964f6e1e070b1c4b9ab60f85fa |
+| 데이터 22개 목록(정렬 키 compact JSON, UTF-8, 개행 없음) | a8132c4441f818e47309dee4cbb93bb3067b18edc40371bda00679862fb6e86d |
+| Day 2 result_hashes.json (기존+신규 증거 79개) | 4fd7ea3ced381b7e33957eccadf68cf653f7fad0f87be7d3d060d9a2cda6b2cc |
+
+모든 개별 데이터 해시는 `day2/audit_results.json`, 저장/압축 전 해시는 원본 및
+`day2/input_manifest.json`, 검증 결과는 `day2/validation.json`과 `day2/tests.log`에 있다.
+
+다음 감독은 Day 3만 수행한다. 실제 next-open/드리프트/현금/비용 엔진으로 기준선과 S1~S5의
+`baseline_metrics.csv`를 만들고, 2007년 HYG 웜업 공백·0거래량 시가 차단·VNQ→XLRE 양쪽 비용을
+지킨다. 프록시/실제 표본을 분리하고 Day 4의 S6 과거 공시시각 검증을 누락하지 않는다.
+별도 연구 브랜치 `research/day2-data-audit-20260919`에 게시하며 게시 SHA와 원격 확인은
+`day2/publication.json`에 추가 기록한다.

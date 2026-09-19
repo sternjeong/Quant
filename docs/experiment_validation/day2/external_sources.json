@@ -1,0 +1,62 @@
+[
+  {
+    "id": "nyse_hours",
+    "url": "https://www.nyse.com/trade/hours-calendars",
+    "checked_at_utc": "2026-09-19T15:58:13.329533+00:00",
+    "finding": "Regular core session 09:30–16:00 America/New_York; early closes must use the schedule.",
+    "verification": "web search/open; HTTP provenance below",
+    "http_status": 200,
+    "response_sha256": "b7c8c2fa1923de735a0bc29a4697b94957a6cc6ad7e219739282fea871d2de6f",
+    "bytes": 109133
+  },
+  {
+    "id": "special_closure",
+    "url": "https://ir.theice.com/press/news-details/2024/The-New-York-Stock-Exchange-Will-Close-Markets-on-January-9-to-Honor-the-Passing-of-Former-President-Jimmy-Carter-on-National-Day-of-Mourning/default.aspx",
+    "checked_at_utc": "2026-09-19T15:58:13.582246+00:00",
+    "finding": "NYSE Group equity and options markets closed on 2025-01-09.",
+    "verification": "web search/open; HTTP provenance below",
+    "http_status": 403,
+    "response_sha256": "66e2e46e99dc3781c6b4fb79254f45ce04847e846f74173fae6d8c33fcf34ad8",
+    "bytes": 6173
+  },
+  {
+    "id": "ssga_splits",
+    "url": "https://investors.statestreet.com/investor-news-events/press-releases/news-details/2025/State-Street-Investment-Management-Announces-Share-Splits-for-Five-Select-Sector-SPDR-ETFs/default.aspx",
+    "checked_at_utc": "2026-09-19T15:58:14.070215+00:00",
+    "finding": "Issuer announcement 2025-11-20: XLB/XLE/XLK/XLU/XLY 2-for-1, post-split trading 2025-12-05.",
+    "verification": "web search/open; HTTP provenance below",
+    "http_status": 403,
+    "response_sha256": "13b1be90e5bce4f3470ff5ddef0b3b7635b09e63e34dedf1ab0988a05d72cda3",
+    "bytes": 6122
+  },
+  {
+    "id": "xlf_distribution",
+    "url": "https://www.miaxglobal.com/sites/default/files/alert-files/XLF_Distribution_39575.pdf",
+    "checked_at_utc": "2026-09-19T15:58:14.570047+00:00",
+    "finding": "OCC memo 39575 dated 2016-08-25: XLF distributes XLRE, ex-distribution date 2016-09-19; not a plain share split.",
+    "verification": "web search/open; HTTP provenance below",
+    "http_status": 200,
+    "response_sha256": "3a5069cec93883ab030aba57c7dc9d2cf2b343b4361683708ba56aba6e150273",
+    "bytes": 131314
+  },
+  {
+    "id": "hyg_listing",
+    "url": "https://www.ishares.com/uk/professionals/en/products/239565/ishares-iboxx-high-yield-corporate-bond-etf?siteEntryPassthrough=true&switchLocale=y",
+    "checked_at_utc": "2026-09-19T15:58:14.948015+00:00",
+    "finding": "Fund launch 2007-04-04; NYSE Arca listing 2007-04-11. This matches the first saved price.",
+    "verification": "web search/open; HTTP provenance below",
+    "http_status": 200,
+    "response_sha256": "57fe683a8821f7341f5355dbd490deb949e0a6d013da1450c52c7108fae70e21",
+    "bytes": 1218921
+  },
+  {
+    "id": "calendar_library",
+    "url": "https://github.com/gerrymanoim/exchange_calendars",
+    "checked_at_utc": "2026-09-19T15:58:15.379997+00:00",
+    "finding": "Independent XNYS session schedule generated using version 4.13.2; artifact separately hashed.",
+    "verification": "web search/open; HTTP provenance below",
+    "http_status": 200,
+    "response_sha256": "b50c10efe9994f7f1adba947676c1e4287589660c6c06b7fc5322b1ace445b52",
+    "bytes": 447415
+  }
+]

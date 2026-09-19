@@ -1,0 +1,55 @@
+{
+  "scope": "Day 2 supplement only; original manifest unchanged",
+  "datasets": [
+    {
+      "id": "VNQ",
+      "provider": "Yahoo Finance",
+      "source_url": "https://finance.yahoo.com/quote/VNQ/history/",
+      "request": {
+        "start": "2006-01-01",
+        "end": "2026-09-18",
+        "interval": "1d",
+        "auto_adjust": false,
+        "back_adjust": false,
+        "actions": true,
+        "repair": false,
+        "keepna": true,
+        "prepost": false,
+        "rounding": false,
+        "ignore_tz": false,
+        "threads": false,
+        "progress": false,
+        "timeout": 20,
+        "multi_level_index": false
+      },
+      "query_started_at_utc": "2026-09-19T15:50:44.418572+00:00",
+      "query_completed_at_utc": "2026-09-19T15:50:45.100737+00:00",
+      "timezone": "America/New_York",
+      "path": "VNQ.csv.gz",
+      "sha256": "e74c208a307cb4f59b8ca9390d7544096ecc6b2d1824bf68ed9aa00b9bafdbff",
+      "content_sha256": "27da2040f7d77f1c69e9e6b8ccf8b73314e1935517483507144f31fa10a068dd",
+      "rows": 5209
+    },
+    {
+      "id": "XNYS",
+      "source_url": "https://github.com/gerrymanoim/exchange_calendars",
+      "generated_at_utc": "2026-09-19T15:50:45.583601+00:00",
+      "calendar": "XNYS",
+      "range": [
+        "2006-01-01",
+        "2026-09-21"
+      ],
+      "path": "XNYS_sessions.csv.gz",
+      "sha256": "94780f283f01ffe25ec3a05281a676fa5a0c34964f6e1e070b1c4b9ab60f85fa",
+      "content_sha256": "714375b57b2d21f52de88883d9290729ee1b0da51dd2371be4ba42a0624cdd91",
+      "rows": 5211
+    }
+  ],
+  "packages": {
+    "yfinance": "1.7.0",
+    "pandas": "2.3.3",
+    "numpy": "2.5.3",
+    "exchange_calendars": "4.13.2"
+  },
+  "script_sha256": "3849d38a9b9db90b0db03f0eab4fa9d8da5add98915bfb7950d317be673cf2c1"
+}
