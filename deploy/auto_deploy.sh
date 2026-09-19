@@ -131,9 +131,17 @@ $truncated_pip_output"
   fi
   # runner.py/experiment_supervisor.py는 프로젝트 venv 없이 시스템 python3로 도는
   # stdlib-only 프로세스라(core/resource_guard.py 주석 참고), 이 둘도 시스템 python3로 검증한다.
-  if ! sudo -n -u "$SERVICE_USER" timeout 60 python3 -m pytest \
-        "$APP_DIR/deploy/codex_telegram/test_runner.py" \
-        "$APP_DIR/deploy/test_experiment_supervisor.py" -q >>"$TEST_LOG" 2>&1; then
+  # pytest는 프로젝트 venv에만 설치돼 있고 시스템 python3에는 없다(stdlib-only라는 전제와
+  # 모순되므로 여기 설치하지 않는다) — 두 테스트 파일 다 unittest.TestCase라 표준 라이브러리
+  # unittest만으로 그대로 돌아간다. 상대 임포트(`from runner import ...`)가 풀리려면 각 테스트
+  # 파일이 있는 디렉터리에서 실행해야 한다(`python -m` 이 실행 당시 작업 디렉터리를 sys.path에
+  # 넣어주는 동작에 의존).
+  if ! sudo -n -u "$SERVICE_USER" timeout 60 bash -c \
+        "cd '$APP_DIR/deploy/codex_telegram' && python3 -m unittest test_runner" >>"$TEST_LOG" 2>&1; then
+    tests_ok=0
+  fi
+  if ! sudo -n -u "$SERVICE_USER" timeout 60 bash -c \
+        "cd '$APP_DIR/deploy' && python3 -m unittest test_experiment_supervisor" >>"$TEST_LOG" 2>&1; then
     tests_ok=0
   fi
 
