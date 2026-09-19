@@ -160,6 +160,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
 
 from core.db import get_session, init_db
+from core.process_registry import is_enabled
 from core.champion_strategy import (
     check_and_notify_benchmark_gap,
     check_and_notify_champion_alpha_decay,
@@ -195,6 +196,9 @@ def watchlist_scan_job() -> None:
     실제 스캔/알림 로직은 core.watchlist.scan_watchlist() 에 있다 (모듈 C 공용 로직,
     Streamlit UI의 수동 스캔 버튼과 동일한 함수를 재사용).
     """
+    if not is_enabled("watchlist_scan"):
+        print(f"[{datetime.now()}] watchlist_scan_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
     print(f"[{datetime.now()}] watchlist_scan_job 시작")
 
     results = scan_watchlist(notify_fn=send_desktop_notification)
@@ -213,6 +217,9 @@ def threads_weekly_report_job() -> None:
     실제 생성 로직은 core.threads_summary.generate_weekly_report() (모듈 B 공용 로직)를 그대로
     호출한다. 글이 하나도 없는 티커는 건너뛴다(빈 리포트를 저장하지 않음).
     """
+    if not is_enabled("threads_weekly_report"):
+        print(f"[{datetime.now()}] threads_weekly_report_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
     print(f"[{datetime.now()}] threads_weekly_report_job 시작")
 
     tickers = list_tracked_tickers()
@@ -248,6 +255,9 @@ def market_snapshot_job() -> None:
     Streamlit 페이지 로드마다 실시간으로 돌리는 대신 하루 한 번 여기서 미리 계산해 저장해두고
     app/pages/7_시장_진단.py 는 저장된 최신 스냅샷을 읽기만 한다.
     """
+    if not is_enabled("market_snapshot"):
+        print(f"[{datetime.now()}] market_snapshot_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
     print(f"[{datetime.now()}] market_snapshot_job 시작")
 
     tickers = get_universe()["Symbol"].tolist()
@@ -288,6 +298,9 @@ def champion_signal_alert_job() -> None:
     스캔이라 야간 시간대에 배치한다. 텔레그램 설정(TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID)이 없으면
     core.telegram_notify.send_message가 조용히 False를 반환할 뿐 예외는 나지 않는다.
     """
+    if not is_enabled("champion_signal_alert"):
+        print(f"[{datetime.now()}] champion_signal_alert_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
     print(f"[{datetime.now()}] champion_signal_alert_job 시작")
     result = check_and_notify_signal_changes(include_satellite=True)
     if result["changed"]:
@@ -309,6 +322,9 @@ def champion_rebalance_reminder_job() -> None:
     한 번만 알린다(data/cache/champion_rebalance_reminder_state.json으로 dedupe). 텔레그램 설정이
     없으면 champion_signal_alert_job과 마찬가지로 조용히 알림만 생략된다.
     """
+    if not is_enabled("champion_rebalance_reminder"):
+        print(f"[{datetime.now()}] champion_rebalance_reminder_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
     print(f"[{datetime.now()}] champion_rebalance_reminder_job 시작")
     result = check_and_notify_upcoming_rebalance()
     if result["notified"]:
@@ -328,6 +344,9 @@ def champion_correlation_snapshot_job() -> None:
     빠르다). "이번 한 번만 보고 판단하지 말고 이력을 쌓아 보라"는 원칙(core.portfolio/
     core.backtest_engine의 기존 상관관계 스냅샷과 동일)을 챔피언 전략에도 적용한다.
     """
+    if not is_enabled("champion_correlation_snapshot"):
+        print(f"[{datetime.now()}] champion_correlation_snapshot_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
     print(f"[{datetime.now()}] champion_correlation_snapshot_job 시작")
     result = compute_champion_correlation()
     if result["correlation"].empty:
@@ -345,6 +364,9 @@ def champion_ledger_record_job() -> None:
     (00:11) 다음 슬롯 — 코어/새틀라이트 추천을 다시 계산하므로 순서상 상관없지만 챔피언 관련
     일간 잡들을 한 블록에 모아둔다.
     """
+    if not is_enabled("champion_ledger_record"):
+        print(f"[{datetime.now()}] champion_ledger_record_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
     print(f"[{datetime.now()}] champion_ledger_record_job 시작")
     result = record_daily_ledger_entry()
     if result["skipped"]:
@@ -359,6 +381,9 @@ def champion_benchmark_gap_job() -> None:
     알린다 (2026-09-19 추가). champion_ledger_record_job(00:12) 바로 다음 슬롯 — 그날 막 기록된
     원장 항목을 포함해서 비교한다. core.champion_strategy.check_and_notify_benchmark_gap 참고.
     """
+    if not is_enabled("champion_benchmark_gap"):
+        print(f"[{datetime.now()}] champion_benchmark_gap_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
     print(f"[{datetime.now()}] champion_benchmark_gap_job 시작")
     result = check_and_notify_benchmark_gap()
     comparison = result["comparison"]
@@ -376,6 +401,9 @@ def champion_earnings_reminder_job() -> None:
     미리 알린다 (2026-09-18 추가). 코어는 전부 ETF라 개별 기업 실적이 없으므로 새틀라이트만
     대상이다 — core.champion_strategy.check_and_notify_upcoming_earnings 참고.
     """
+    if not is_enabled("champion_earnings_reminder"):
+        print(f"[{datetime.now()}] champion_earnings_reminder_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
     print(f"[{datetime.now()}] champion_earnings_reminder_job 시작")
     result = check_and_notify_upcoming_earnings()
     if result["notified"]:
@@ -390,6 +418,9 @@ def champion_alpha_decay_job() -> None:
     알린다 (2026-09-19 추가). core.champion_strategy.check_and_notify_champion_alpha_decay가
     실제 계산/판정/dedupe/알림을 전부 담당한다.
     """
+    if not is_enabled("champion_alpha_decay"):
+        print(f"[{datetime.now()}] champion_alpha_decay_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
     print(f"[{datetime.now()}] champion_alpha_decay_job 시작")
     result = check_and_notify_champion_alpha_decay()
     decay = result["decay"]
@@ -404,6 +435,9 @@ def champion_weekly_report_job() -> None:
     """챔피언 전략의 이번 주 상태를 HTML 보고서로 만들어 텔레그램 문서로 전송한다 (2026-09-18
     추가). core.champion_strategy.send_weekly_report가 실제 조립/전송을 담당한다.
     """
+    if not is_enabled("champion_weekly_report"):
+        print(f"[{datetime.now()}] champion_weekly_report_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
     print(f"[{datetime.now()}] champion_weekly_report_job 시작")
     result = send_weekly_report()
     print(f"  - 보고서 저장: {result['path']} (전송 {'성공' if result['sent'] else '실패/미설정'})")
@@ -426,6 +460,9 @@ def fred_indicator_prewarm_job() -> None:
     `core.market_regime.get_advisory_risk_signals()`가 추가로 쓰는 BAMLH0A0HYM2(하이일드
     스프레드)/T10Y3M(장단기금리차)까지 더해 전부 갱신한다. 개별 지표 하나가 실패해도(FRED_API_KEY
     없음/일시적 API 오류) 나머지는 계속 진행한다."""
+    if not is_enabled("fred_indicator_prewarm"):
+        print(f"[{datetime.now()}] fred_indicator_prewarm_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
     from core.fred_data import DEFAULT_INDICATORS, get_series
 
     print(f"[{datetime.now()}] fred_indicator_prewarm_job 시작")
@@ -453,6 +490,9 @@ def data_integrity_check_job() -> None:
     (매일 밤 "이상 없음" 스팸 방지). 텔레그램 설정이 없으면 send_message가 조용히 False를 반환할
     뿐 예외는 나지 않는다.
     """
+    if not is_enabled("data_integrity_check"):
+        print(f"[{datetime.now()}] data_integrity_check_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
     from core.data_integrity import format_anomaly_telegram_message, run_integrity_checks
 
     print(f"[{datetime.now()}] data_integrity_check_job 시작")
@@ -474,6 +514,9 @@ def daily_briefing_job() -> None:
     호출하고 결과를 출력만 한다. 00:00~00:22 블록의 다른 모든 챔피언 전략/데이터무결성 잡보다
     뒤에 실행되어야 그날 밤 갱신된 최신 데이터를 요약할 수 있다.
     """
+    if not is_enabled("daily_briefing"):
+        print(f"[{datetime.now()}] daily_briefing_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
     from core.daily_briefing import send_daily_briefing
 
     print(f"[{datetime.now()}] daily_briefing_job 시작")
@@ -488,6 +531,9 @@ def daily_news_digest_job() -> None:
     야간 전체 스캔과 겹치지 않는 KST 07:30에 둔다. VM 여유가 없으면 API/Gemini 호출을
     강행하지 않고 다음 일일 실행으로 넘긴다.
     """
+    if not is_enabled("daily_news_digest"):
+        print(f"[{datetime.now()}] daily_news_digest_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
     print(f"[{datetime.now()}] daily_news_digest_job 시작")
     if not has_headroom():
         print("  - 리소스 여유가 없어 뉴스 수집·요약을 이번 회차에는 건너뜁니다.")
@@ -548,6 +594,9 @@ def strategy_nightly_tuning_job() -> None:
 
     반복 하나가 실패해도(네트워크 오류 등) 그 반복만 건너뛰고 다음 반복을 계속 시도한다.
     """
+    if not is_enabled("strategy_nightly_tuning"):
+        print(f"[{datetime.now()}] strategy_nightly_tuning_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
     print(f"[{datetime.now()}] strategy_nightly_tuning_job 시작")
 
     with get_session() as session:
