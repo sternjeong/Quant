@@ -190,3 +190,14 @@ Day 4는 BLOCKED다. 로컬 3,470개 중 새 파일은 없고 가격 캐시 20�
 `docs/experiment_validation/day4_reentry_20260920T1456Z/RESUME_NOTE.md`를 따른다.
 실제 PIT export 또는 기존 데이터 경로를 확보해 인증한 뒤에 계속하며 Day 5로
 넘어가지 않는다. 원격 게시·알림 확인은 같은 디렉터리 `publication.json`에 있다.
+
+
+## 2026-09-20 19:05 UTC — 최신 인계: Day 4 실제 PIT 입력 보류
+
+Day 4는 BLOCKED다. 로컬 3,482개에서 새 파일 12개/메타데이터 변경 579개를 찾았지만
+별도 연구 결과·가격/매크로 캐시·현재 목록/스냅샷으로 PIT 누락을 해결하지 못했다.
+신규 delta/스키마/해시 및 기존 원천/동결 입력/증거 검증 PASS, 실제 S6 재현과
+S1 공통 비교는 미완료다. 완료된 테스트·백테스트는 반복하지 않았다.
+다음 단계/명령: `docs/experiment_validation/day4_reentry_20260920T1905Z/RESUME_NOTE.md`.
+실제 PIT export/기존 자료 경로를 확보해 인증한 뒤 계속하며, Day 5로 넘어가지 않는다.
+게시/알림 결과는 같은 폴더 `publication.json`.

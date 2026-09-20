@@ -1,0 +1,10 @@
+PASS: stored inventories independently reconciled; 3482 datasets, 12 additions, 579 metadata changes, 0 removals.
+PASS: all 591 added/changed content hashes checked and input schemas classified.
+PASS: classifications {'derived_research_returns': 30, 'derived_research_statistics': 7, 'price_cache': 539, 'current_signal_state': 1, 'macro_cache': 10, 'current_constituents_without_history_or_publication_time': 1, 'current_market_snapshot': 3}.
+PASS: previous evidence manifests 268+20+18+16+7+7 entries match.
+PASS: 1548 original source hashes and 22 frozen data hashes match.
+PASS: six saved comparisons remain NOT_EVALUABLE with absent returns; zero certified common sessions.
+PASS: no premature Day 4 completion marker.
+Prior 15 passed pytest log/code hashes verified; pytest not rerun.
+No strategy interpretation/code change; no S6 or Day 3 backtest run.
+Day 4 remains BLOCKED: actual PIT input certification and S6 common-date comparison missing.

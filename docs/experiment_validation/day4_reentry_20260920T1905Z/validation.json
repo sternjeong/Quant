@@ -1,0 +1,54 @@
+{
+  "verified_at_utc": "2026-09-20T19:07:24.306479+00:00",
+  "new_input_delta_validation": "PASS",
+  "independent_saved_inventory_comparison": "PASS",
+  "changed_file_content_hashes_verified": 591,
+  "classification_counts": {
+    "derived_research_returns": 30,
+    "derived_research_statistics": 7,
+    "price_cache": 539,
+    "current_signal_state": 1,
+    "macro_cache": 10,
+    "current_constituents_without_history_or_publication_time": 1,
+    "current_market_snapshot": 3
+  },
+  "prior_evidence_manifests_verified": {
+    "day4/result_hashes.json": 268,
+    "day4_review_20260920/result_hashes.json": 20,
+    "day4_sector_sources_20260920/result_hashes.json": 18,
+    "day4_input_handoff_20260920/result_hashes.json": 16,
+    "day4_reentry_20260920T1047Z/result_hashes.json": 7,
+    "day4_reentry_20260920T1456Z/result_hashes.json": 7
+  },
+  "prior_evidence_manifest_sha256": {
+    "day4/result_hashes.json": "e2feee3b02da9fe7685224b6c32bbfedce83937289a87469f1f6a1e424de5e4c",
+    "day4_review_20260920/result_hashes.json": "030a176b498e30a1d870a44dbb38682663f49c22a435e7008258f0b1824ba694",
+    "day4_sector_sources_20260920/result_hashes.json": "b1b66242954f473d5858a8717686bde6a064f9c577387ca212d9cd6d7f75f6fa",
+    "day4_input_handoff_20260920/result_hashes.json": "ee8b83c8458fa3f62dc7b5b0910e4b014f64e77bd61d3fd20cda4bdae00d78cc",
+    "day4_reentry_20260920T1047Z/result_hashes.json": "738936c67d5a1c8193e67b991d655801df902e5f0c1efbc14f9e38bebcff5a50",
+    "day4_reentry_20260920T1456Z/result_hashes.json": "ba7978b3595a6f2a71aea94ea42aafb0c57c4f76673355de26daee2217e2b609"
+  },
+  "prior_source_files_verified": 1548,
+  "source_inventory_sha256": "5b1b140be1a06dcbff5829bd82430fd5123baf8083ef4c5df6bebf4cd1e77123",
+  "frozen_data_files_verified": 22,
+  "frozen_data_inventory_sha256": "a8132c4441f818e47309dee4cbb93bb3067b18edc40371bda00679862fb6e86d",
+  "saved_blocked_comparison_guard": "PASS",
+  "completion_marker_guard": "PASS",
+  "certified_rebalances": 0,
+  "certified_common_sessions": 0,
+  "comparisons_not_evaluable": 6,
+  "new_pit_evidence_found": false,
+  "day4_status": "BLOCKED",
+  "day4_complete": false,
+  "s6_backtest_executed": false,
+  "day3_backtest_repeated": false,
+  "new_strategy_interpretations": false,
+  "pytest_rerun": false,
+  "previous_pytest_result": {
+    "path": "docs/experiment_validation/day4_reentry_20260920T1047Z/tests.log",
+    "sha256": "08106afa14fe3a0a17aed781b0fe12ab4cb07508996485889514a03e1678bdc0",
+    "passed": 15,
+    "code_and_evidence_hashes_unchanged": true
+  },
+  "validation_scope": "New local delta/schema/hash checks and existing stored status; no S6 execution certification. Prior pytest result reused because strategy/audit code unchanged."
+}

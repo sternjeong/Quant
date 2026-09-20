@@ -1,0 +1,22 @@
+{
+  "path_base": "docs/experiment_validation/day4_reentry_20260920T1905Z",
+  "algorithm": "sha256",
+  "artifacts": {
+    "RESUME_NOTE.md": "2b8458761089ac582a6a66ca0b6149ff80250d6d50c6a03d2d97bf6b8c378849",
+    "changed_file_details.json.gz": "8ea9a6943d7a88f5c69070d4cd6a5ce778eaa905d576433394a0b35b2a5a380f",
+    "checks.log": "dff834763a88ab47a28ecb293fa9ef8c7f9f786d911a237b68478c0663b0b844",
+    "initial_workspace.json": "f282895028b6947b0aab8b3b125f6d735056abd562246aa08d7f8610903b2d6a",
+    "local_input_delta.json": "e02ce33e4c5884d803817c51335873dcbc594dbbefbf15650b6e701b35629c45",
+    "local_scan.csv.gz": "cad98b31014f72edff6fae69bb1f82eab14651ef5881d41d22cfcc044ef202ca",
+    "review.md": "c160e18b2e0bbfd43f03ee63a06c248fd20582253af0ea11be4cdabef59b9dc9",
+    "validation.json": "a3e9e51cfc7fd37ebf1ded30c2f400c571124ffbfacd1a60ee156b92f725e17e"
+  },
+  "frozen_data_inventory_sha256": "a8132c4441f818e47309dee4cbb93bb3067b18edc40371bda00679862fb6e86d",
+  "source_inventory_sha256": "5b1b140be1a06dcbff5829bd82430fd5123baf8083ef4c5df6bebf4cd1e77123",
+  "day4_status": "BLOCKED",
+  "exclusions": [
+    "result_hashes.json (self)",
+    "publication.json and workspace_final.json (post-publication receipts)",
+    "append-only progress/resume pointers outside this run directory"
+  ]
+}
