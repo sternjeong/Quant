@@ -65,6 +65,8 @@ def _badge_html(status: UnitStatus) -> str:
 def _slot_href(slot: AppSlot, host: str) -> str:
     if slot.kind == "web":
         return f"http://{host}:{slot.port}/"
+    if slot.kind == "tunnel":
+        return f"/tunnel/{slot.id}"
     if slot.kind == "report":
         return f"/reports/{slot.id}"
     return f"/status/{slot.id}"
@@ -109,6 +111,50 @@ def render_status_page(slot: AppSlot) -> str:
         '<p style="margin-top:1rem;color:#5b6472;font-size:.78rem">'
         '이 엔진은 별도 웹 UI 없이 백그라운드로 동작합니다(결과는 텔레그램 알림으로 발송됩니다).'
         '</p></body></html>'
+    )
+
+
+def render_tunnel_page(slot: AppSlot, host: str) -> str:
+    """인터넷에 직접 열지 않은 서비스(예: code-server)에 SSH 터널로 접속하는 방법을 안내한다.
+
+    이 서비스는 VM 안에서 127.0.0.1에만 바인딩돼 있고 방화벽도 열려 있지 않다 — 셸 권한을 통째로
+    주는 IDE라서 HTTP+비밀번호 하나로 공개하지 않는다는 결정(2026-09-20)이다. 그래서 링크를 누르면
+    타임아웃이 나는 대신 이 페이지가 뜬다. host는 요청의 Host 헤더에서 온 값이라 SSH 명령의
+    접속 주소를 그대로 채운다(HTML 이스케이프 필수).
+    """
+    status = get_unit_status(slot.unit)
+    safe_host = html.escape(host)
+    port = slot.port
+    command = f"ssh -L {port}:localhost:{port} ubuntu@{safe_host}"
+    return (
+        '<!doctype html><html lang="ko"><head><meta charset="utf-8">'
+        f'<title>{html.escape(slot.title)} 접속 방법</title>{PAGE_STYLE}</head><body>'
+        '<p><a class="back" href="/">&larr; 관제 센터로</a></p>'
+        f'<h1>{html.escape(slot.title)}</h1>'
+        f'<p class="subtitle">{html.escape(slot.description)}</p>'
+        f'{_badge_html(status)}'
+        '<h2 style="margin-top:1.4rem;font-size:1rem">접속 방법 (SSH 터널)</h2>'
+        '<ol style="line-height:1.8;color:#c9ced6">'
+        '<li>VM의 SSH 키가 있는 곳의 터미널에서 아래 명령을 실행하고 <b>창을 켜둔 채로</b> 둡니다 '
+        '(내 PC의 PowerShell, 또는 GitHub Codespace 터미널).'
+        f'<pre style="background:#151a21;padding:.8rem;border-radius:6px;overflow-x:auto">{command}</pre>'
+        '</li>'
+        f'<li><b>내 PC에서 실행한 경우</b>: 브라우저에서 <a class="back" href="http://localhost:{port}/" '
+        f'target="_blank" rel="noopener">http://localhost:{port}/</a> 를 엽니다 '
+        '(이 주소는 내 PC 자신을 가리키고, 터널이 VM으로 이어줍니다).<br>'
+        f'<b>Codespace에서 실행한 경우</b>: VS Code 하단 <b>Ports 탭</b>에 {port}번 포트가 자동으로 생기니, '
+        '그 행의 지구본(브라우저에서 열기) 아이콘을 누릅니다. 이 포워딩 주소는 기본이 비공개라 '
+        'GitHub에 로그인한 본인만 열 수 있습니다.</li>'
+        '<li>code-server 로그인 화면에서 비밀번호를 입력합니다.</li>'
+        '</ol>'
+        '<p style="color:#9aa0a8;font-size:.82rem;line-height:1.7">'
+        'SSH 키 파일을 지정해야 하면 <code>ssh -i 키파일경로 -L ...</code> 형태로 씁니다. '
+        f'내 PC에서 이미 {port}번 포트를 쓰고 있으면 앞쪽 번호만 바꿔서(예: <code>-L 9090:localhost:{port}</code>) '
+        'http://localhost:9090/ 으로 접속하세요.</p>'
+        '<p style="color:#5b6472;font-size:.78rem">'
+        '인터넷에 직접 공개하지 않는 이유: 이 IDE는 VM의 셸을 통째로 주기 때문에, 암호화 없는 HTTP와 '
+        '비밀번호 하나로 노출하지 않습니다.</p>'
+        '</body></html>'
     )
 
 
@@ -164,6 +210,9 @@ class HubRequestHandler(BaseHTTPRequestHandler):
         elif path.startswith("/status/"):
             slot = find_slot(path.removeprefix("/status/"))
             self._send_html(render_status_page(slot)) if slot else self._send_html("not found", 404)
+        elif path.startswith("/tunnel/"):
+            slot = find_slot(path.removeprefix("/tunnel/"), kind="tunnel")
+            self._send_html(render_tunnel_page(slot, host)) if slot else self._send_html("not found", 404)
         elif path.startswith("/reports/"):
             slot = find_slot(path.removeprefix("/reports/"), kind="report")
             if slot is None:

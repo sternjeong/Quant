@@ -60,8 +60,8 @@ OS 방화벽(`setup_vm.sh`가 ufw로 처리)과는 별개로, Oracle 콘솔의 *
    Security List.
 2. **Add Ingress Rules**:
    - Source CIDR `0.0.0.0/0`, IP Protocol `TCP`, Destination Port `8501` (Streamlit)
-   - Source CIDR `0.0.0.0/0`, IP Protocol `TCP`, Destination Port `8080` (code-server 브라우저 코드
-     스페이스 — 14번 참고. 공개 노출이 부담스러우면 이 규칙은 생략하고 SSH 터널로만 접속해도 됨)
+   - (code-server 8080은 여기서 **열지 않는다** — 셸 권한을 통째로 주는 IDE라 SSH 터널로만 접속한다,
+     14번 참고)
    - (SSH용 22번은 기본 이미지 생성 시 이미 열려 있음)
 
 ## 3. SSH 접속 + 리포 클론 + .env 준비
@@ -358,13 +358,24 @@ ssh -L 8080:localhost:8080 ubuntu@<PUBLIC_IP>
 터널을 연 채로 로컬 브라우저에서 `http://localhost:8080` 접속 → code-server 로그인 화면(비밀번호는
 `ubuntu` 계정의 `~/.config/code-server/config.yaml`에 있음).
 
-**브라우저 주소만으로(터널 없이) 접속하고 싶다면**: `code-server`의 비밀번호 인증에 기대어 포트를
-직접 공개해야 한다(이 VM엔 도메인/TLS가 없어 nginx 서브패스 프록시 대신 Streamlit과 같은 방식으로
-포트를 그대로 여는 게 code-server의 상대경로 자산 문제를 피하는 가장 단순한 방법). `sudo`가 필요해
-사람이 직접 해야 하는 절차는 [`PENDING_MANUAL_LOGIN_ACTIONS.md`](./PENDING_MANUAL_LOGIN_ACTIONS.md)
-5번 참고. 완료하면 허브의 "브라우저 코드 스페이스" 카드가 `http://<PUBLIC_IP>:8080/`로 바로 연결된다
-(`hub/apps_registry.py`에 이미 슬롯 등록해둠).
+**Codespace에서 쓰는 법**: SSH 키가 이미 있는 GitHub Codespace 터미널에서
+`ssh -N -L 8080:localhost:8080 ubuntu@<PUBLIC_IP>`(또는 `~/.ssh/config`에 잡아둔 별칭)를 실행하면,
+VS Code 하단 **Ports 탭**에 8080이 자동으로 뜬다 — 그 행의 지구본 아이콘으로 브라우저에서 연다.
+Codespaces 포트 포워딩은 기본이 비공개(GitHub 로그인한 본인만)라 별도 인증이 하나 더 붙는다.
+Codespace가 idle로 꺼지면 터널도 함께 끊기므로 다시 열어주면 된다.
 
-**주의**: TLS 없이 평문 HTTP로 비밀번호가 오가므로, 신뢰하지 않는 네트워크에서는 SSH 터널 방식을
-쓰는 편이 안전하다. 나중에 도메인을 붙이면 `certbot`으로 HTTPS를 얹고 그 서브도메인을 code-server에
-proxy_pass하는 방식으로 바꾸는 게 좋다(지금은 미착수).
+**허브 카드**: 허브의 "브라우저 코드 스페이스" 카드는 `kind="tunnel"`이라 포트로 직접 링크하지 않고
+`/tunnel/code-server` 안내 페이지(위 명령과 접속 순서)를 보여준다 — 공개되지 않은 포트로 링크하면
+타임아웃이 나기 때문이다.
+
+**결정(2026-09-20): 8080을 인터넷에 직접 공개하지 않는다.** 이 IDE는 `sudo` 가능한 `ubuntu` 계정의
+셸을 그대로 주는데, 이 VM엔 도메인/TLS가 없어 평문 HTTP + 비밀번호 하나로만 보호되기 때문이다.
+나중에 도메인을 붙이면 Cloudflare Tunnel(+Access) 또는 `certbot` HTTPS 프록시로 안전하게 공개할 수
+있다(미착수).
+
+**알아둘 것 — 이 VM에서 `ufw allow`만으로는 포트가 열리지 않는다**: Oracle 우분투 이미지는
+`/etc/iptables/rules.v4`의 INPUT 체인에 기본 `REJECT`가 ufw 체인보다 **앞에** 있어서, ufw에만 허용
+규칙을 넣으면 패킷이 REJECT에서 끝나 ufw 체인에 도달하지 못한다(2026-09-20에 8080으로 확인 —
+Oracle VCN Security List는 통과하는데 VM 안에서 거절됨). 22/80/8501은 그 REJECT **앞에** 직접
+`iptables -I INPUT ... -j ACCEPT`로 넣고 `netfilter-persistent save`로 저장해둔 것이다. 새 포트를
+공개해야 하면 같은 방식으로 넣어야 한다.

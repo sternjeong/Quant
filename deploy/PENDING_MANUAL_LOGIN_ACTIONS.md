@@ -74,38 +74,10 @@
 `SERVICES`에 `quant-hub` 추가까지 전부 끝났다. `http://138.2.11.196/`에서 관제 센터가 뜨고
 `:8501` Streamlit도 그대로 동작함을 확인했다. 이후 `hub/*.py` 변경도 자동배포로 재시작까지 반영된다.
 
-## 5. 브라우저 코드 스페이스(code-server) 외부 접속 허용 — `sudo` + Oracle 콘솔 필요
+## 5. ~~브라우저 코드 스페이스(code-server) 외부 접속 허용~~ — 2026-09-20 공개하지 않기로 결정
 
-- **배경**: 텔레그램 지시("내 vm에 브라우저 코드 스페이스도 만들어주라, Github Codespaces를
-  모방해서")로 조사해보니 `code-server`(VS Code 브라우저 버전)가 이미 `ubuntu` 계정으로
-  `code-server@ubuntu.service`가 1주일 넘게 떠 있었다(`127.0.0.1:8080`만 바인딩, 외부 접속 불가
-  상태). 이 자동화 계정(`quant`)은 `/home/ubuntu/`를 읽을 권한이 없고 sudo도 안 돼서 비밀번호
-  확인·bind-addr 변경·서비스 재시작을 대신 할 수 없다.
-- **지금 당장 쓰는 법 (조치 불필요, 가장 안전)**: `ssh -L 8080:localhost:8080 ubuntu@138.2.11.196`
-  터널을 연 뒤 로컬에서 `http://localhost:8080` 접속. 자세한 내용은
-  `deploy/DEPLOYMENT_ORACLE.md` 14번.
-- **브라우저 주소(터널 없이)로도 열고 싶다면, 조치** (`138.2.11.196`에 `sudo` 가능한 계정으로
-  로그인 후):
-  ```bash
-  # 1) 비밀번호 확인/교체 (약하면 openssl rand -base64 24 등으로 새로 생성해 password: 에 넣기)
-  sudo cat /home/ubuntu/.config/code-server/config.yaml
-
-  # 2) 외부에서 접속되도록 바인드 주소 변경
-  sudo sed -i 's/^bind-addr: 127.0.0.1:8080/bind-addr: 0.0.0.0:8080/' \
-    /home/ubuntu/.config/code-server/config.yaml
-  sudo systemctl restart code-server@ubuntu
-  sudo systemctl status code-server@ubuntu --no-pager   # active (running) 확인
-
-  # 3) OS 방화벽
-  sudo ufw allow 8080/tcp
-  ```
-  그리고 Oracle Cloud 콘솔 → Networking → Virtual Cloud Networks → 해당 VCN → Security Lists →
-  Default Security List → Add Ingress Rules에서 `0.0.0.0/0` / TCP / `8080` 규칙을 추가한다
-  (`deploy/DEPLOYMENT_ORACLE.md` 2번과 동일한 절차, 포트만 8080).
-- **확인**: 브라우저에서 `http://138.2.11.196:8080/` 접속 → code-server 로그인 화면이 뜨고
-  비밀번호 입력 후 VS Code 화면이 열리면 성공. 허브(`http://138.2.11.196/`, 아직 4번 미완료면
-  안 뜸)를 먼저 배포했다면 "브라우저 코드 스페이스" 카드로도 바로 연결된다
-  (`hub/apps_registry.py`에 이미 슬롯 등록해둠, 별도 코드 변경 불필요).
-- **보안 참고**: 이 VM엔 도메인/TLS가 없어 평문 HTTP로 노출된다 — 비밀번호가 충분히 강한지
-  1번 단계에서 반드시 확인/교체할 것. 신뢰 안 되는 네트워크에서 접속할 땐 SSH 터널 방식을 쓰는
-  게 낫다.
+인터넷에 직접 여는 방식은 쓰지 않기로 했다(셸 권한을 통째로 주는 IDE를 평문 HTTP + 비밀번호로
+노출하는 건 위험). code-server는 `127.0.0.1:8080`에만 바인딩하고 SSH 터널(또는 Codespace의 Ports
+탭)로만 접속한다 — 방법은 `deploy/DEPLOYMENT_ORACLE.md` 14번, 허브의 "브라우저 코드 스페이스"
+카드(`/tunnel/code-server`)에도 안내가 뜬다. 남은 사람 작업은 없다. 다만 Oracle 콘솔의 VCN
+Security List에 예전에 추가한 `TCP / 8080 / 0.0.0.0/0` Ingress 규칙은 더 이상 필요 없으니 지워도 된다.

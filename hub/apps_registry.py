@@ -15,8 +15,8 @@ class AppSlot:
     title: str
     description: str
     unit: str  # 상태 조회에 쓸 systemd 유닛 이름
-    kind: str  # "web" (자체 웹 UI 있음) | "report" (최신 HTML 리포트 서빙) | "engine" (상태만 표시)
-    port: int | None = None  # kind == "web"일 때 슬롯이 직접 링크할 포트
+    kind: str  # "web" (자체 웹 UI 있음) | "tunnel" (외부 비공개, SSH 터널로만 접속) | "report" (최신 HTML 리포트 서빙) | "engine" (상태만 표시)
+    port: int | None = None  # kind == "web"이면 슬롯이 직접 링크할 포트, kind == "tunnel"이면 VM 내부 127.0.0.1 포트
     report_glob: str | None = None  # kind == "report"일 때 최신 파일을 찾을 glob 패턴(저장소 루트 기준)
 
 
@@ -61,9 +61,9 @@ SLOTS: list[AppSlot] = [
     AppSlot(
         id="code-server",
         title="브라우저 코드 스페이스",
-        description="VS Code 기반 브라우저 IDE(code-server) — SSH 없이 브라우저에서 바로 VM 코드 편집·터미널 사용",
+        description="VS Code 기반 브라우저 IDE(code-server) — 보안상 인터넷에 공개하지 않고 SSH 터널로만 접속 (누르면 접속 방법 안내)",
         unit="code-server@ubuntu.service",
-        kind="web",
+        kind="tunnel",
         port=8080,
     ),
 ]

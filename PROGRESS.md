@@ -5646,3 +5646,23 @@ S&P500 전체 과거 섹터로 편입하지 않았다. 전체 모집단 PIT/주�
   스크립트가 `set -e`로 죽을 위험이 있어 의도적으로 미뤄뒀던 것 — 이제 설치가 끝나 안전해짐).
   이후 `hub/*.py` 변경도 자동배포 재시작에 포함된다.
 - `PENDING_MANUAL_LOGIN_ACTIONS.md` 4번 항목을 완료로 정리.
+
+
+### 작업 92 (2026-09-20): 브라우저 코드 스페이스(code-server) — 공개 대신 SSH 터널로 결정
+
+허브의 "브라우저 코드 스페이스" 카드를 누르면 `ERR_CONNECTION_TIMED_OUT`이 나서 원인을 추적했다.
+
+- Oracle VCN Security List(8080 규칙 정상), NSG(없음)는 통과했다. Codespace에서 포트별로 찔러보니
+  22/80/8501은 열려 있고 8080만 막혔고, 8080 접속 시도 때 VM의 INPUT 체인 REJECT 카운터가 올라가서
+  **VM 안의 iptables가 원인**임을 확정했다. Oracle 우분투 이미지의 기본 `REJECT`가 ufw 체인보다 앞에
+  있어 `ufw allow 8080`은 효과가 없었다(22/80/8501은 REJECT 앞에 직접 ACCEPT를 넣어둔 것이라 통과).
+- 고치려면 iptables에 ACCEPT를 넣어야 했는데, 이 IDE는 `sudo` 가능한 `ubuntu` 셸을 통째로 주고
+  이 VM엔 TLS가 없어 HTTP+비밀번호 하나로 인터넷에 노출하게 되는 셈이라 **공개하지 않기로 결정**했다
+  (사용자와 논의해 SSH 터널 선택).
+- VM: code-server를 다시 `127.0.0.1:8080`에만 바인딩, ufw 8080 규칙 삭제.
+- `hub/`: `AppSlot.kind`에 `tunnel` 추가 — 카드가 공개되지 않은 포트로 링크하지 않고 `/tunnel/<id>`
+  안내 페이지(SSH 명령, PC와 Codespace Ports 탭 두 가지 접속법)를 보여준다. Host 헤더는 이스케이프.
+- 문서(`DEPLOYMENT_ORACLE.md` 2·14번, `PENDING_MANUAL_LOGIN_ACTIONS.md` 5번)와 `setup_vm.sh`의
+  8080 ufw/안내 문구를 결정에 맞게 정리하고, "ufw만으로는 이 VM에서 포트가 안 열린다"는 원인을 14번에 남겼다.
+- 미해결(이번 범위 밖): `setup_vm.sh`는 80/8501도 ufw로만 여는데, 새 Oracle 우분투 VM에서는 같은
+  이유로 안 열릴 가능성이 높다 — 신규 VM 부트스트랩 시 iptables ACCEPT 삽입이 필요할 수 있음.

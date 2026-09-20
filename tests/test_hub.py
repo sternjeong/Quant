@@ -25,7 +25,7 @@ def test_slots_have_unique_non_empty_ids():
 
 def test_slots_kind_specific_fields():
     for slot in SLOTS:
-        if slot.kind == "web":
+        if slot.kind in ("web", "tunnel"):
             assert slot.port is not None
         if slot.kind == "report":
             assert slot.report_glob is not None
@@ -68,6 +68,34 @@ def test_slot_href_web_points_to_own_port():
     web_slot = next(slot for slot in SLOTS if slot.kind == "web")
     href = server._slot_href(web_slot, "203.0.113.10")
     assert href == f"http://203.0.113.10:{web_slot.port}/"
+
+
+def test_slot_href_tunnel_points_to_guide_page_not_a_public_port():
+    tunnel_slot = next(slot for slot in SLOTS if slot.kind == "tunnel")
+    href = server._slot_href(tunnel_slot, "203.0.113.10")
+    assert href == f"/tunnel/{tunnel_slot.id}"
+    assert "203.0.113.10" not in href  # 외부에 열지 않은 포트로 직접 링크하면 타임아웃이 난다
+
+
+def test_code_server_is_a_tunnel_slot_not_publicly_linked():
+    slot = next(slot for slot in SLOTS if slot.id == "code-server")
+    assert slot.kind == "tunnel"
+
+
+def test_render_tunnel_page_shows_ssh_command_with_host_and_port():
+    tunnel_slot = next(slot for slot in SLOTS if slot.kind == "tunnel")
+    with _mock_active_status():
+        page = server.render_tunnel_page(tunnel_slot, "203.0.113.10")
+    assert f"ssh -L {tunnel_slot.port}:localhost:{tunnel_slot.port} ubuntu@203.0.113.10" in page
+    assert f"http://localhost:{tunnel_slot.port}/" in page
+    assert "Ports" in page
+
+
+def test_render_tunnel_page_escapes_host_header():
+    tunnel_slot = next(slot for slot in SLOTS if slot.kind == "tunnel")
+    with _mock_active_status():
+        page = server.render_tunnel_page(tunnel_slot, '"><script>alert(1)</script>')
+    assert "<script>alert(1)</script>" not in page
 
 
 def test_slot_href_report_points_to_reports_route():
