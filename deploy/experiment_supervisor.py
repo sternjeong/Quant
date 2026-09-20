@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 """Persistent, paper-only supervisor for the pre-registered Quant experiment.
 
-The supervisor owns operational state outside git, launches at most one Codex
+The supervisor owns operational state outside git, launches at most one Claude
 turn at a time, and sends a self-contained HTML report to the existing private
 Telegram chat every 24 hours.  It deliberately does not know brokerage keys or
 place orders.
+
+2026-09-19: switched from the Codex CLI to the Claude CLI (user request) --
+same flock/headroom/interval/report machinery, only the child-process command
+and its config dir changed. See deploy/codex_telegram/runner.py's `claude`
+backend for the invocation pattern this mirrors.
 """
 import argparse
 import html
@@ -19,7 +24,11 @@ import urllib.request
 import uuid
 
 
-LIMIT = re.compile(r"usage_limit_(?:reached|exceeded)|usage limit|rate_limit_exceeded|rate limit|too many requests|\b429\b", re.I)
+LIMIT = re.compile(
+    r"usage_limit_(?:reached|exceeded)|usage limit|rate.?limit|too many requests"
+    r"|hit your limit|out of extra usage|\b429\b",
+    re.I,
+)
 DAY_COMPLETE = re.compile(r"\bDAY[_ -]?(\d{1,2})[_ -]?COMPLETE\b", re.I)
 
 
@@ -39,12 +48,13 @@ class ExperimentSupervisor:
         self.timeout = int(os.environ.get('EXPERIMENT_AGENT_TIMEOUT_SECONDS', '10800'))
         self.report_interval = int(os.environ.get('EXPERIMENT_REPORT_INTERVAL_SECONDS', '86400'))
         # This VM also runs the Telegram job queue and the scheduler's nightly tuning loop
-        # independently -- checking real load/memory before launching a Codex turn keeps this
+        # independently -- checking real load/memory before launching a Claude turn keeps this
         # supervisor from piling a 3rd heavy process on top of whatever they're already doing.
         self.max_load_per_cpu = float(os.environ.get('EXPERIMENT_MAX_LOAD_PER_CPU', '1.5'))
         self.min_free_memory_mb = float(os.environ.get('EXPERIMENT_MIN_FREE_MEMORY_MB', '1024'))
-        self.codex = Path(os.environ.get(
-            'CODEX_BIN', self.root / '.codex-telegram-runtime' / 'node_modules' / '.bin' / 'codex'))
+        self.claude = Path(os.environ.get('CLAUDE_BIN', '/usr/local/bin/claude'))
+        self.claude_config_dir = os.environ.get('CLAUDE_CONFIG_DIR', str(self.root / '.claude'))
+        self.claude_effort = os.environ.get('EXPERIMENT_CLAUDE_EFFORT', 'xhigh')
         self.stop = False
         self.child = None
 
@@ -156,7 +166,7 @@ class ExperimentSupervisor:
 
     def prompt(self, state):
         task = self.activity_prompt(state)
-        return f'''당신은 Quant의 지속적 실험 감독 Codex다. 작업 루트는 {self.root}다.
+        return f'''당신은 Quant의 지속적 실험 감독 Claude다. 작업 루트는 {self.root}다.
 
 먼저 docs/TWO_WEEK_STRATEGY_VALIDATION_PROTOCOL.md, PROGRESS.md(있으면), git status/log,
 그리고 .experiment-control/state.json을 읽어라. 이 작업은 연구·백테스트·문서화만 허용한다.
@@ -190,22 +200,22 @@ class ExperimentSupervisor:
 최종 답변에는 수행한 일, 검증 결과, 다음 자동 감독이 해야 할 일을 짧게 적어라.'''
 
     def launch_agent(self, state):
-        if not self.codex.exists():
-            state['last_error'] = f'Codex CLI가 없습니다: {self.codex}'
+        if not self.claude.exists():
+            state['last_error'] = f'Claude CLI가 없습니다: {self.claude}'
             state['next_agent_at'] = time.time() + 3600
             self.save(state)
             return
         task = self.activity_prompt(state)
-        log_path = self.log_dir / f"codex_{time.strftime('%Y%m%d_%H%M%S', time.gmtime())}.jsonl"
+        log_path = self.log_dir / f"claude_{time.strftime('%Y%m%d_%H%M%S', time.gmtime())}.jsonl"
         self.log_dir.mkdir(parents=True, exist_ok=True)
         instructions = self.prompt(state)
-        cmd = ['/usr/bin/flock', '-n', str(self.control_dir / 'agent.lock'), str(self.codex),
-               '-a', 'never', 'exec', '--ephemeral', '--json', '--color', 'never',
-               '-s', 'danger-full-access', '-C', str(self.root),
-               '-c', 'model_reasoning_effort="xhigh"',
-               '-c', 'sandbox_workspace_write.network_access=true', '-']
+        cmd = ['/usr/bin/flock', '-n', str(self.control_dir / 'agent.lock'), str(self.claude),
+               '-p', '--output-format', 'stream-json', '--verbose', '--no-session-persistence',
+               '--effort', self.claude_effort, '--dangerously-skip-permissions',
+               '--add-dir', str(self.root)]
         env = os.environ.copy()
-        env['CODEX_HOME'] = str(self.root / '.codex-telegram-runtime' / 'auth')
+        env.pop('CLAUDECODE', None)
+        env['CLAUDE_CONFIG_DIR'] = self.claude_config_dir
         try:
             with log_path.open('w') as output:
                 child = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=output,
@@ -214,7 +224,7 @@ class ExperimentSupervisor:
                 child.stdin.write(instructions)
                 child.stdin.close()
         except OSError as exc:
-            state['last_error'] = f'Codex 시작 실패: {exc}'
+            state['last_error'] = f'Claude 시작 실패: {exc}'
             state['next_agent_at'] = time.time() + 3600
             self.save(state)
             return
@@ -250,9 +260,9 @@ class ExperimentSupervisor:
         if LIMIT.search(tail):
             note = self.root / 'RESUME_NOTE.md'
             if not note.exists():
-                note.write_text('# Experiment supervisor resume note\nCodex usage limit 또는 rate limit으로 중단됨. '
+                note.write_text('# Experiment supervisor resume note\nClaude usage limit 또는 rate limit으로 중단됨. '
                                 'docs/TWO_WEEK_STRATEGY_VALIDATION_PROTOCOL.md와 PROGRESS.md를 읽고 마지막 미완료 단계부터 재개하세요.\n')
-            state['last_error'] = 'Codex 사용량/요청 한도 감지: 15분 뒤 재개'
+            state['last_error'] = 'Claude 사용량/요청 한도 감지: 15분 뒤 재개'
             state['next_agent_at'] = time.time() + 900
         else:
             state['next_agent_at'] = time.time() + self.interval
@@ -265,7 +275,7 @@ class ExperimentSupervisor:
         if isinstance(pid, int) and started and time.time() - started > self.timeout:
             try:
                 os.killpg(pid, signal.SIGTERM)
-                state['last_error'] = f'Codex 감독 시간 제한({self.timeout // 60}분) 도달: 중지 후 재개 예정'
+                state['last_error'] = f'Claude 감독 시간 제한({self.timeout // 60}분) 도달: 중지 후 재개 예정'
                 self.save(state)
             except ProcessLookupError:
                 pass

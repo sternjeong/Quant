@@ -621,5 +621,52 @@ class PipelineTests(unittest.TestCase):
         self.s.ingest([retry])
         self.assertEqual(self.row()['status'], 'retry')
 
+    def test_processes_command_lists_all_with_nightly_tuning_off_by_default(self):
+        update = self.update()
+        update['message']['text'] = '/processes'
+        self.s.ingest([update])
+        with self.s.db() as db:
+            reply = db.execute('SELECT text,markup FROM outbox ORDER BY id DESC LIMIT 1').fetchone()
+        self.assertIn('⏸ 야간 전략 미세튜닝', reply['text'])
+        self.assertIn('✅ 챔피언 전략 신호 변경 알림', reply['text'])
+        self.assertIn('2주 전략 검증 실험', reply['text'])
+        markup = json.loads(reply['markup'])
+        self.assertEqual(len(markup['inline_keyboard']), 16)
+
+    def test_processes_toggle_button_flips_state_and_confirms(self):
+        update = self.update()
+        update['message']['text'] = '/processes'
+        self.s.ingest([update])
+        with self.s.db() as db:
+            markup = json.loads(db.execute('SELECT markup FROM outbox ORDER BY id DESC LIMIT 1').fetchone()['markup'])
+        tuning_data = markup['inline_keyboard'][0][0]['callback_data']  # strategy_nightly_tuning is index 0
+        self.assertTrue(tuning_data.startswith('p:0'))
+
+        callback = {'update_id': 2, 'callback_query': {'id': 'cb-1', 'data': tuning_data,
+                    'message': {'chat': {'id': 123}}}}
+        with patch.object(self.s, 'api', return_value=True):
+            self.s.ingest([callback])
+
+        self.assertTrue(self.s.is_process_enabled('strategy_nightly_tuning', False))
+        with self.s.db() as db:
+            confirm = db.execute('SELECT text FROM outbox ORDER BY id DESC LIMIT 1').fetchone()['text']
+        self.assertIn('✅ 켬', confirm)
+        self.assertIn('야간 전략 미세튜닝', confirm)
+
+    def test_processes_toggle_twice_returns_to_original_state(self):
+        self.assertFalse(self.s.is_process_enabled('strategy_nightly_tuning', False))
+        self.s.set_process_enabled('strategy_nightly_tuning', True)
+        self.assertTrue(self.s.is_process_enabled('strategy_nightly_tuning', False))
+        self.s.set_process_enabled('strategy_nightly_tuning', False)
+        self.assertFalse(self.s.is_process_enabled('strategy_nightly_tuning', False))
+
+    def test_processes_toggle_ignores_out_of_range_index(self):
+        callback = {'update_id': 2, 'callback_query': {'id': 'cb-1', 'data': 'p:9999',
+                    'message': {'chat': {'id': 123}}}}
+        with patch.object(self.s, 'api', return_value=True):
+            self.s.ingest([callback])  # 예외 없이 조용히 무시되어야 함
+        with self.s.db() as db:
+            self.assertEqual(db.execute('SELECT COUNT(*) FROM outbox').fetchone()[0], 0)
+
 
 if __name__ == '__main__': unittest.main()

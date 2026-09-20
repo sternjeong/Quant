@@ -17,6 +17,30 @@ HERE = Path(__file__).resolve().parent
 LIMIT = re.compile(r"usage_limit_(?:reached|exceeded)|usage limit|rate_limit_exceeded|rate limit|too many requests|\b429\b", re.I)
 CLAUDE_LIMIT = re.compile(r"usage limit|rate.?limit|hit your limit|out of extra usage|\b429\b", re.I)
 
+# core.process_registry.PROCESS_REGISTRY를 텔레그램(/processes)에서도 켜고 끌 수 있게 여기 그대로
+# 복제한다 -- 이 파일은 core/를 임포트하지 않는 stdlib-only 프로세스라서(위 docstring 참고,
+# core/resource_guard.py에 문서화된 이 저장소의 기존 관례) 라벨/기본값만 작게 중복해서 들고,
+# 실제 on/off 상태는 core.process_registry와 같은 파일(data/process_toggles.json)을 공유한다.
+# 새 스케줄러 잡을 추가하면 core/process_registry.py의 PROCESS_REGISTRY와 이 목록을 함께 갱신한다.
+PROCESS_CATALOG = [
+    ('strategy_nightly_tuning', '야간 전략 미세튜닝 (#3 볼린저밴드)', False),
+    ('champion_signal_alert', '챔피언 전략 신호 변경 알림', True),
+    ('champion_correlation_snapshot', '챔피언 전략 상관관계 스냅샷', True),
+    ('champion_ledger_record', '챔피언 전략 페이퍼 트레이딩 원장', True),
+    ('champion_benchmark_gap', '챔피언 전략 벤치마크 격차 알림', True),
+    ('champion_rebalance_reminder', '챔피언 전략 리밸런싱 예정 알림', True),
+    ('champion_earnings_reminder', '챔피언 전략 실적 발표 예정 알림', True),
+    ('champion_alpha_decay', '챔피언 전략 알파 감쇠 체크', True),
+    ('fred_indicator_prewarm', 'FRED 거시지표 캐시 예열', True),
+    ('data_integrity_check', '데이터 무결성 체크', True),
+    ('daily_briefing', '오늘의 브리핑', True),
+    ('champion_weekly_report', '챔피언 전략 주간 보고', True),
+    ('market_snapshot', '시장 국면/섹터 강도 스냅샷', True),
+    ('watchlist_scan', '관심종목 스캔', True),
+    ('threads_weekly_report', 'Threads 주간 인사이트', True),
+    ('daily_news_digest', '일일 뉴스 다이제스트', True),
+]
+
 
 def env_file(path):
     result = {}
@@ -101,6 +125,39 @@ class Service:
         temporary.write_text(json.dumps(value, ensure_ascii=False, indent=2) + '\n')
         temporary.replace(path)
 
+    def process_toggles_path(self):
+        """core.process_registry.TOGGLE_STATE_PATH와 동일한 파일 -- 같은 프로젝트 루트 산출
+        방식(experiment_paths 참고)을 그대로 써서 두 프로세스가 항상 같은 파일을 본다."""
+        default_project = self.cfg.get('default_project', '')
+        root = Path(self.cfg['projects'].get('quant', self.cfg['projects'].get(default_project, '/opt/quant'))).resolve()
+        return root / 'data' / 'process_toggles.json'
+
+    def is_process_enabled(self, key, default):
+        state = self.read_json_file(self.process_toggles_path(), {})
+        return bool(state.get(key, {}).get('enabled', default))
+
+    def set_process_enabled(self, key, enabled):
+        path = self.process_toggles_path()
+        state = self.read_json_file(path, {})
+        state[key] = {'enabled': enabled, 'updated_at': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
+                      'actor': f'telegram:{self.chat}'}
+        self.write_json_file(path, state)
+
+    def processes_status_text_and_markup(self):
+        lines = ['⚙️ 백그라운드 프로세스 (탭해서 켜고 끄기)', '']
+        rows = []
+        for index, (key, label, default) in enumerate(PROCESS_CATALOG):
+            enabled = self.is_process_enabled(key, default)
+            mark = '✅' if enabled else '⏸'
+            lines.append(f'{mark} {label}')
+            rows.append([{'text': f'{"끄기" if enabled else "켜기"} · {label}', 'callback_data': f'p:{index}'}])
+        experiment_control = self.read_json_file(self.experiment_paths()[2], {'mode': 'running'})
+        exp_mode = experiment_control.get('mode', 'running')
+        lines.append('')
+        lines.append(f'{"✅" if exp_mode == "running" else "⏸"} 2주 전략 검증 실험 (Claude 자동 연구) — {exp_mode}')
+        lines.append('(이건 /experiment pause 또는 /experiment resume 으로 켜고 끕니다)')
+        return '\n'.join(lines), {'inline_keyboard': rows}
+
     def experiment_status(self):
         _, _, control_path, state_path = self.experiment_paths()
         control = self.read_json_file(control_path, {'mode': 'not-installed'})
@@ -113,7 +170,7 @@ class Service:
         if state.get('current_activity'):
             lines.append(f"현재: {state['current_activity']}")
         if state.get('last_agent_at'):
-            lines.append(f"마지막 Codex 감독: {time.strftime('%Y-%m-%d %H:%M UTC', time.gmtime(state['last_agent_at']))}")
+            lines.append(f"마지막 Claude 감독: {time.strftime('%Y-%m-%d %H:%M UTC', time.gmtime(state['last_agent_at']))}")
         if state.get('last_report_path'):
             lines.append('일일 HTML 보고서: 전송됨')
         if state.get('last_error'):
@@ -218,6 +275,7 @@ class Service:
                     rest = parts[1] if len(parts) > 1 else ''
                     reply = None
                     reply_job_id = None
+                    reply_markup = None
                     if command in ('/codex', '/claude'):
                         backend = command[1:]
                         instruction = rest
@@ -250,11 +308,11 @@ class Service:
                         elif subcommand in ('pause', 'resume', 'stop') and not experiment_instruction:
                             mode = {'pause': 'paused', 'resume': 'running', 'stop': 'stopped'}[subcommand]
                             # stop is deliberately the immediate abort control. Pause retains the
-                            # current atomic Codex turn and blocks subsequent turns.
+                            # current atomic Claude turn and blocks subsequent turns.
                             self.update_experiment_control(mode, interrupt=subcommand == 'stop')
                             reply = {'pause': '실험의 다음 감독 실행을 일시정지했습니다.',
                                      'resume': '실험 감독을 재개했습니다.',
-                                     'stop': '실험 중지를 요청했고, 실행 중인 Codex 감독에도 종료 신호를 보냈습니다.'}[subcommand]
+                                     'stop': '실험 중지를 요청했고, 실행 중인 Claude 감독에도 종료 신호를 보냈습니다.'}[subcommand]
                         elif subcommand in ('claude', 'codex') and experiment_instruction.strip():
                             self.queue_experiment_agent(db, uid, subcommand, experiment_instruction.strip())
                             reply = f'접수 {uid} [{subcommand}] Quant 실험 지시'
@@ -263,6 +321,8 @@ class Service:
                             reply = ('/experiment: 상태\n/experiment pause: 다음 감독 실행 일시정지\n'
                                      '/experiment resume: 재개\n/experiment stop: 실행 중인 감독까지 중지\n'
                                      '/experiment claude 지시 또는 /experiment codex 지시: 실험 수정·질문')
+                    elif command == '/processes':
+                        reply, reply_markup = self.processes_status_text_and_markup()
                     elif command == '/idea' and rest.strip():
                         db.execute('INSERT OR IGNORE INTO ideas(id,chat,text,created_at) VALUES(?,?,?,?)',
                                    (uid, self.chat, rest.strip(), time.time()))
@@ -298,6 +358,7 @@ class Service:
                                  '/experiment stop: 실행 중인 감독에도 종료 신호, 이후 중지\n'
                                  '/experiment claude 지시 또는 /experiment codex 지시: 실험 문서·상태를 '
                                  '먼저 읽도록 강제된 작업으로 큐잉\n'
+                                 '/processes: 야간 스케줄러 잡 16개 on/off 목록 (버튼 탭으로 켜고 끄기)\n'
                                  '/project quant 다음 줄에 지시: 현재 Quant를 바로 선택\n'
                                  '완료/접수 메시지에 답장(reply)하면 같은 프로젝트로 이어서 지시할 수 있습니다.')
                     elif command.startswith('/') and command != '/project':
@@ -358,7 +419,7 @@ class Service:
                         else:
                             reply = '프로젝트 또는 지시를 확인하세요. /help'
                     if reply is not None:
-                        self.queue_outbox(db, self.chat, reply, job_id=reply_job_id)
+                        self.queue_outbox(db, self.chat, reply, markup=reply_markup, job_id=reply_job_id)
                 db.execute("INSERT INTO meta VALUES('offset',?) ON CONFLICT(key) DO UPDATE SET value=max(cast(value as integer),cast(excluded.value as integer))", (str(uid + 1),))
 
     def queue_outbox(self, db, chat, text, markup=None, job_id=None):
@@ -396,11 +457,32 @@ class Service:
             {'text': 'Codex', 'callback_data': f'a:{request_id}:codex'}
         ]]})
 
+    def handle_process_toggle_callback(self, db, chat, data, callback):
+        try:
+            index = int(data.split(':', 1)[1])
+            key, label, default = PROCESS_CATALOG[index]
+        except (ValueError, IndexError):
+            return
+        new_enabled = not self.is_process_enabled(key, default)
+        self.set_process_enabled(key, new_enabled)
+        text, markup = self.processes_status_text_and_markup()
+        self.queue_outbox(db, chat, f'{"✅ 켬" if new_enabled else "⏸ 끔"}: {label}\n\n' + text, markup)
+        try:
+            self.api('answerCallbackQuery', {'callback_query_id': callback['id'],
+                                             'text': f'{label}: {"켜짐" if new_enabled else "꺼짐"}'})
+        except Exception:
+            pass
+
     def handle_callback(self, db, callback):
         chat = str(callback.get('message', {}).get('chat', {}).get('id', ''))
         if chat != self.chat:
             return
         data = callback.get('data', '')
+        if data.startswith('p:'):
+            # /processes 토글 버튼 -- request_id 기반 대화 상태가 필요 없는 단발성 액션이라
+            # 아래 request_id 기반 콜백들과는 별도 경로로 먼저 처리한다.
+            self.handle_process_toggle_callback(db, chat, data, callback)
+            return
         try:
             kind, request_id, value = data.split(':', 2)
             request_id = int(request_id)

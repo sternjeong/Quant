@@ -3,7 +3,7 @@ import unittest
 import unittest.mock
 from pathlib import Path
 
-from experiment_supervisor import ExperimentSupervisor
+from experiment_supervisor import LIMIT, ExperimentSupervisor
 
 
 class ExperimentSupervisorTests(unittest.TestCase):
@@ -36,7 +36,7 @@ class ExperimentSupervisorTests(unittest.TestCase):
 
     def test_launch_agent_skipped_when_no_headroom(self):
         # The Telegram queue and the scheduler's nightly tuning loop run independently on the
-        # same VM -- this supervisor must not launch a 3rd heavy Codex process on top of them.
+        # same VM -- this supervisor must not launch a 3rd heavy Claude process on top of them.
         service = ExperimentSupervisor(self.root, dry_run=False)
         service.has_headroom = lambda: False
         launched = []
@@ -64,3 +64,48 @@ class ExperimentSupervisorTests(unittest.TestCase):
              unittest.mock.patch('experiment_supervisor.os.cpu_count', return_value=2), \
              unittest.mock.patch.object(self.service, 'available_memory_mb', return_value=8000):
             self.assertTrue(self.service.has_headroom())
+
+    def test_claude_binary_defaults_to_standard_install_path(self):
+        self.assertEqual(str(self.service.claude), '/usr/local/bin/claude')
+
+    def test_claude_config_dir_defaults_under_root(self):
+        self.assertEqual(self.service.claude_config_dir, str(self.root / '.claude'))
+
+    def test_launch_agent_invokes_claude_cli_not_codex(self):
+        # 2026-09-19: Codex에서 Claude CLI로 전환 -- 명령이 실제로 claude 바이너리를 부르고,
+        # 프롬프트는 stdin으로 전달되며(claude -p는 위치 인자 없이 stdin에서 읽음), 세션을
+        # 남기지 않고(--no-session-persistence) 확인 없이 진행하는지(--dangerously-skip-permissions)
+        # 확인한다.
+        service = ExperimentSupervisor(self.root, dry_run=False)
+        service.claude = Path('/usr/local/bin/claude')
+        with unittest.mock.patch.object(Path, 'exists', return_value=True), \
+             unittest.mock.patch('experiment_supervisor.subprocess.Popen') as popen:
+            mock_child = unittest.mock.MagicMock()
+            mock_child.pid = 4242
+            mock_child.stdin = unittest.mock.MagicMock()
+            popen.return_value = mock_child
+
+            state = service.state()
+            service.launch_agent(state)
+
+            cmd = popen.call_args.args[0]
+            self.assertIn(str(service.claude), cmd)
+            self.assertIn('-p', cmd)
+            self.assertIn('--dangerously-skip-permissions', cmd)
+            self.assertIn('--no-session-persistence', cmd)
+            self.assertNotIn('exec', cmd)  # codex 전용 서브커맨드가 남아있지 않아야 함
+            env = popen.call_args.kwargs['env']
+            self.assertEqual(env.get('CLAUDE_CONFIG_DIR'), service.claude_config_dir)
+            self.assertEqual(state['agent_pid'], 4242)
+
+    def test_launch_agent_records_error_when_claude_binary_missing(self):
+        service = ExperimentSupervisor(self.root, dry_run=False)
+        service.claude = self.root / 'no-such-claude-binary'
+        state = service.state()
+        service.launch_agent(state)
+        self.assertIn('Claude CLI가 없습니다', state['last_error'])
+
+    def test_limit_regex_catches_claude_specific_phrasing(self):
+        self.assertRegex('Error: hit your limit for this period', LIMIT)
+        self.assertRegex('you are out of extra usage', LIMIT)
+        self.assertRegex('rate limit exceeded', LIMIT)
