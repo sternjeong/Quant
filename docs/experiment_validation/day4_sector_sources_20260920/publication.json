@@ -1,0 +1,20 @@
+{
+  "evidence_commit": "683ed67f34a7d8526b0f05be7f42159c69fc1158",
+  "branch": "research/day4-sector-sources-20260920",
+  "remote": "origin",
+  "remote_verified_evidence_sha": "683ed67f34a7d8526b0f05be7f42159c69fc1158",
+  "verified_at_utc": "2026-09-20T05:40:25.419769+00:00",
+  "worktree": "/tmp/quant-day4-sector-sources-20260920",
+  "day4_status": "BLOCKED",
+  "day4_completion_marker_written": false,
+  "tests_passed": 26,
+  "publication_worktree_tests_passed": 26,
+  "prior_artifact_hashes_verified": 288,
+  "result_hashes_sha256": "b1b66242954f473d5858a8717686bde6a064f9c577387ca212d9cd6d7f75f6fa",
+  "telegram_report": "전송 실패",
+  "telegram_process_exit_code": 1,
+  "raw_sources_committed": false,
+  "main_push": false,
+  "daily_html_committed": false,
+  "note": "Evidence push verified. Receipt is included in a subsequent metadata commit; CSV CRLF line endings pass whitespace check with cr-at-eol enabled."
+}
