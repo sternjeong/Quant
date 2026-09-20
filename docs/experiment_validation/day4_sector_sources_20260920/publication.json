@@ -11,10 +11,25 @@
   "publication_worktree_tests_passed": 26,
   "prior_artifact_hashes_verified": 288,
   "result_hashes_sha256": "b1b66242954f473d5858a8717686bde6a064f9c577387ca212d9cd6d7f75f6fa",
-  "telegram_report": "전송 실패",
-  "telegram_process_exit_code": 1,
+  "telegram_report": "전송 성공",
+  "telegram_process_exit_code": 0,
   "raw_sources_committed": false,
   "main_push": false,
   "daily_html_committed": false,
-  "note": "Evidence push verified. Receipt is included in a subsequent metadata commit; CSV CRLF line endings pass whitespace check with cr-at-eol enabled."
+  "note": "Evidence push verified. Receipt is included in a subsequent metadata commit; CSV CRLF line endings pass whitespace check with cr-at-eol enabled.",
+  "telegram_initial_attempt": {
+    "python": "system python3",
+    "exit_code": 1,
+    "error_class": "ModuleNotFoundError",
+    "configuration_changed": false
+  },
+  "telegram_retry_interpreter": ".venv/bin/python3",
+  "telegram_retry_at_utc": "2026-09-20T05:42:32.840372+00:00",
+  "telegram_second_attempt": {
+    "python": ".venv/bin/python3",
+    "exit_code": 0,
+    "result": "전송 실패",
+    "reason": "Existing supervisor Telegram settings not inherited by this shell"
+  },
+  "telegram_configuration_source": "Existing experiment supervisor environment file, read-only; only Telegram keys passed to notification subprocess; no configuration changed or values printed"
 }
