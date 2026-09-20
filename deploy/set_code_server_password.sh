@@ -9,8 +9,10 @@
 # 사용법 (VM에서 root로): sudo bash deploy/set_code_server_password.sh
 #   원격에서 한 줄로:     ssh -t quant-vm 'sudo bash /opt/quant/deploy/set_code_server_password.sh'
 #
-# 규칙: 12자 이상, 영문/숫자/`.`/`_`/`-`만 (셸·YAML에서 안전하도록). 이 비밀번호 하나가 곧 VM 셸이라
-# 4자리 숫자 같은 건 받지 않는다 — 단어 3~4개를 하이픈으로 이으면 길이도 되고 외우기도 쉽다(blue-moon-cat-42 형태).
+# 규칙: 12자 이상, 영문/숫자/기호(! @ # ... 등)만 — 공백, 작은따옴표('), 한글 같은 ASCII 아닌 글자는 불가
+# (설정 파일 YAML과 로그인 확인에서 안전하도록). 이 비밀번호 하나가 곧 VM 셸이라 4자리 숫자 같은 건 받지 않는다 —
+# 단어 3~4개를 하이픈으로 이으면 길이도 되고 외우기도 쉽다(blue-moon-cat-42 형태).
+# 거절될 때는 어떤 *종류*의 글자가 문제인지만 알려준다(글자 자체는 출력하지 않음 — 출력이 대화에 붙여넣어질 수 있다).
 #
 # 새 비밀번호로 실제 로그인이 되는지 확인해서 안 되면 예전 설정으로 되돌린다. 설정 파일의 소유자/권한은 유지한다.
 #
@@ -39,7 +41,7 @@ if grep -q '^hashed-password:' "$CONFIG"; then
   exit 1
 fi
 
-read -rsp "새 비밀번호 (${MIN_LEN}자 이상, 영문/숫자/./_/-): " pw1 || { echo; echo "입력을 받지 못했습니다 — ssh에 -t를 붙여 대화형으로 실행하세요." >&2; exit 1; }
+read -rsp "새 비밀번호 (${MIN_LEN}자 이상, 영문/숫자/기호, 공백·한글 불가): " pw1 || { echo; echo "입력을 받지 못했습니다 — ssh에 -t를 붙여 대화형으로 실행하세요." >&2; exit 1; }
 echo
 read -rsp "한 번 더: " pw2 || { echo; echo "입력을 받지 못했습니다." >&2; exit 1; }
 echo
@@ -52,8 +54,18 @@ if [ "${#pw1}" -lt "$MIN_LEN" ]; then
   echo "너무 짧습니다(${#pw1}자). ${MIN_LEN}자 이상이어야 합니다 — 단어 3~4개를 하이픈으로 이어보세요. 아무것도 바꾸지 않았습니다." >&2
   exit 1
 fi
-if [[ ! "$pw1" =~ ^[A-Za-z0-9._-]+$ ]]; then
-  echo "영문/숫자/./_/- 만 쓸 수 있습니다(공백·한글·따옴표 등 불가). 아무것도 바꾸지 않았습니다." >&2
+# 허용: 공백(0x20)과 작은따옴표(0x27)를 뺀 인쇄 가능한 ASCII(0x21~0x7E). 그 밖의 글자만 남겨서 종류를 알아본다.
+bad="$(printf '%s' "$pw1" | LC_ALL=C tr -d '\041-\046\050-\176')"
+if [ -n "$bad" ]; then
+  kinds=()
+  [[ "$bad" == *" "* ]] && kinds+=("공백")
+  [[ "$bad" == *"'"* ]] && kinds+=("작은따옴표(')")
+  [ -n "$(printf '%s' "$bad" | LC_ALL=C tr -d '\000-\177')" ] && kinds+=("한글 등 영문이 아닌 글자 — 한/영 키가 한글 상태로 영문을 치면 이렇게 됩니다")
+  [ -n "$(printf '%s' "$bad" | LC_ALL=C tr -d '\040\047\200-\377')" ] && kinds+=("눈에 안 보이는 제어문자(붙여넣기 등)")
+  [ "${#kinds[@]}" -eq 0 ] && kinds+=("기타")
+  printf -v kinds_text '%s, ' "${kinds[@]}"
+  echo "쓸 수 없는 글자가 들어 있습니다: ${kinds_text%, }." >&2
+  echo "영문/숫자/기호만 쓰세요(공백·작은따옴표·한글 불가). 아무것도 바꾸지 않았습니다." >&2
   exit 1
 fi
 
@@ -97,8 +109,8 @@ if [ "$up" -ne 1 ]; then
 fi
 
 # 새 비밀번호로 로그인이 되는지 확인: 성공하면 302(리다이렉트), 틀리면 200(로그인 화면 재표시).
-# 본문은 stdin으로 넘겨 비밀번호가 명령줄에 안 남게 한다.
-code="$(printf 'password=%s' "$pw1" | curl -s -o /dev/null -m 10 -w '%{http_code}' -d @- "$LOGIN_URL" || true)"
+# 비밀번호는 stdin으로 넘겨 명령줄에 안 남게 하고, --data-urlencode로 &, +, %, # 같은 기호도 안전하게 보낸다.
+code="$(printf '%s' "$pw1" | curl -s -o /dev/null -m 10 -w '%{http_code}' --data-urlencode 'password@-' "$LOGIN_URL" || true)"
 case "$code" in
   302|303)
     rm -f "$backup"

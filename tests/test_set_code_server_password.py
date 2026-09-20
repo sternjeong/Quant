@@ -48,6 +48,42 @@ def test_valid_password_replaces_only_the_password_line(config):
     assert _leftovers(config) == []  # 백업/임시 파일이 남지 않는다(옛 비밀번호가 든 백업 포함)
 
 
+SYMBOL_PASSWORDS = [
+    "Blue-Moon-Cat-42!",
+    "p@ss#w0rd$%^&*()_+=~",
+    "back\\slash-and-more-chars",  # 역슬래시는 YAML 홑따옴표 안에서 그대로 문자다
+    "a&b=c+d%20e#f?g:h,i;j{k}[l]|m<n>o/p",
+]
+
+
+@pytest.mark.parametrize("password", SYMBOL_PASSWORDS)
+def test_symbols_including_exclamation_mark_are_accepted_and_round_trip(config, password):
+    yaml = pytest.importorskip("yaml")
+    result = _run(config, f"{password}\n{password}\n")
+    assert result.returncode == 0, result.stderr
+    loaded = yaml.safe_load(config.read_text())
+    assert loaded["password"] == password
+    assert loaded["auth"] == "password" and loaded["bind-addr"] == "127.0.0.1:8080" and loaded["cert"] is False
+    assert password not in result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    "password, expected_kind",
+    [
+        ("has space in it 123", "공백"),
+        ("quote'inside-abcdef", "작은따옴표"),
+        ("한글비밀번호열두글자이상입니다", "한글"),
+        ("tab\there-is-a-control-char", "제어문자"),
+    ],
+)
+def test_rejection_names_the_kind_of_bad_character_but_never_the_password(config, password, expected_kind):
+    result = _run(config, f"{password}\n{password}\n")
+    assert result.returncode != 0
+    assert expected_kind in result.stderr
+    assert password not in result.stdout + result.stderr
+    assert config.read_text() == ORIGINAL_CONFIG
+
+
 def test_password_is_never_echoed_back(config):
     result = _run(config, f"{GOOD_PASSWORD}\n{GOOD_PASSWORD}\n")
     assert GOOD_PASSWORD not in result.stdout + result.stderr
@@ -88,14 +124,18 @@ def test_config_without_password_line_is_refused(config):
 
 
 def _stub_bin(tmp_path: Path) -> Path:
-    """systemctl은 무조건 성공, curl은 로그인 요청(-d @-)에만 FAKE_LOGIN_CODE를 돌려주는 스텁."""
+    """systemctl은 무조건 성공, curl은 로그인 요청(--data-urlencode password@-)에만 FAKE_LOGIN_CODE를 돌려주는 스텁."""
     bin_dir = tmp_path / "stub-bin"
     bin_dir.mkdir()
     (bin_dir / "systemctl").write_text("#!/usr/bin/env bash\nexit 0\n")
     (bin_dir / "curl").write_text(
         "#!/usr/bin/env bash\n"
         'for a in "$@"; do\n'
-        '  if [ "$a" = "@-" ]; then cat >/dev/null; printf "%s" "$FAKE_LOGIN_CODE"; exit 0; fi\n'
+        '  if [ "$a" = "password@-" ]; then\n'
+        '    printf "%s\\n" "$*" > "$FAKE_CURL_ARGS_FILE"\n'
+        '    cat > "$FAKE_CURL_STDIN_FILE"\n'
+        '    printf "%s" "$FAKE_LOGIN_CODE"; exit 0\n'
+        "  fi\n"
         "done\n"
         "exit 0\n"
     )
@@ -113,6 +153,8 @@ def _run_with_restart(config: Path, tmp_path: Path, login_code: str) -> subproce
             "CODE_SERVER_SERVICE": "code-server@test.service",
             "PATH": f"{stub}:{os.environ['PATH']}",
             "FAKE_LOGIN_CODE": login_code,
+            "FAKE_CURL_ARGS_FILE": str(tmp_path / "curl-args.txt"),
+            "FAKE_CURL_STDIN_FILE": str(tmp_path / "curl-stdin.txt"),
         },
     )
 
@@ -121,12 +163,19 @@ def test_successful_login_check_keeps_new_password(config, tmp_path):
     result = _run_with_restart(config, tmp_path, "302")
     assert result.returncode == 0, result.stderr
     assert f"password: '{GOOD_PASSWORD}'" in config.read_text()
-    assert [n for n in _leftovers(config) if n != "stub-bin"] == []
+    assert [n for n in _leftovers(config) if n.startswith("config.yaml")] == []
+
+
+def test_login_check_sends_the_password_via_stdin_url_encoded_not_on_the_command_line(config, tmp_path):
+    _run_with_restart(config, tmp_path, "302")
+    assert GOOD_PASSWORD not in (tmp_path / "curl-args.txt").read_text()
+    assert "--data-urlencode" in (tmp_path / "curl-args.txt").read_text()
+    assert (tmp_path / "curl-stdin.txt").read_text() == GOOD_PASSWORD
 
 
 def test_failed_login_check_rolls_back_to_the_old_config(config, tmp_path):
     result = _run_with_restart(config, tmp_path, "200")
     assert result.returncode != 0
     assert config.read_text() == ORIGINAL_CONFIG
-    assert [n for n in _leftovers(config) if n != "stub-bin"] == []
+    assert [n for n in _leftovers(config) if n.startswith("config.yaml")] == []
     assert GOOD_PASSWORD not in result.stdout + result.stderr
