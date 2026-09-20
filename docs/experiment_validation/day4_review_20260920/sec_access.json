@@ -1,0 +1,33 @@
+{
+  "scope": "Endpoint availability only; no PIT certification or performance calculation",
+  "issuer_selection": "First alphabetical ticker A in previous Day 4 cache inventory; CIK from issuer SEC page",
+  "sources": [
+    {
+      "url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001090872/dei/EntityCommonStockSharesOutstanding.json",
+      "attempted_at_utc": "2026-09-20T01:19:45.096383+00:00",
+      "http_status": 200,
+      "response_sha256": "87a352a4d60b850709a67adc030d4b24a2d4500bb468ab177932ff0ceab19b3d",
+      "bytes": 10434,
+      "status": "CAPTURED_DIAGNOSTIC_ONLY",
+      "path": "agilent_share_concept.json",
+      "top_level_keys": [
+        "cik",
+        "description",
+        "entityName",
+        "label",
+        "tag",
+        "taxonomy",
+        "units"
+      ]
+    },
+    {
+      "url": "https://data.sec.gov/submissions/CIK0001090872.json",
+      "attempted_at_utc": "2026-09-20T01:19:45.363127+00:00",
+      "http_status": 200,
+      "response_sha256": "b58a2a9359a2c9c5b01b3663870eac9d611992176c06763b2edd372e370fa91c",
+      "bytes": 157952,
+      "status": "ACCESS_OR_SCHEMA_ERROR",
+      "error_type": "ValueError"
+    }
+  ]
+}

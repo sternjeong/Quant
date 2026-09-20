@@ -55,3 +55,12 @@ Day 3 백테스트와 입력 재수집을 반복하지 않는다. S6 실제 PIT 
 게시 확인 `day4/publication.json`(위 두 경로는 실험 디렉터리 기준).
 Day 4 연구 브랜치에 기존 미게시 Day 3 의존 증거를 보존했다. 기존 Day 3 worktree/index,
 main 미커밋 연구, 서비스 및 인증정보는 변경하지 않았다. Day 5 진행 금지.
+
+
+## 2026-09-20 — 최신 인계: Day 4 입력 인증 보류 유지
+
+Day 4의 실제 S6 재현·S1 공통 비교는 아직 미완료다. 다음 감독은 Day 5로 넘어가지 않는다.
+새 SEC 진단 원문 3개와 주식수 70행의 공시 연결을 저장했지만 전체 모집단 PIT 인증은 아니다.
+최신 다음 단계·명령: `docs/experiment_validation/day4_review_20260920/RESUME_NOTE.md`.
+새 입력 확보 전 같은 API/캐시 재수집이나 백테스트를 반복하지 않는다.
+검증·해시는 같은 폴더 `validation.json`, `result_hashes.json`, 게시 확인은 `publication.json`.

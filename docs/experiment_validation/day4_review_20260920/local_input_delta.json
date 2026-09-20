@@ -1,0 +1,10 @@
+{
+  "observed_at_utc": "2026-09-20T01:19:37.127961+00:00",
+  "scope": "rg file inventory of data/analysis/docs (excluding experiment artifacts), candidate PIT filenames modified since previous capture; plus byte hashes of all previous source files. Bounded search, not proof of absence of all external sources.",
+  "previous_source_files": 1548,
+  "unchanged_source_files": 1548,
+  "changed_source_files": [],
+  "missing_source_files": [],
+  "new_or_recent_pit_named_files": [],
+  "metadata_cutoff_utc": "2026-09-19T21:01:51.593997+00:00"
+}

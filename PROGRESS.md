@@ -5121,3 +5121,29 @@ PIT 입력을 확보한 뒤 S6 다음 시가 재현/S1 공통 날짜 비교를 �
 Day 4 게시 확인: 증거 커밋 `81723b7db1e88e6f45a096619a7fc7b0ffdeae97`을
 `origin/research/day4-satellite-audit-20260919`에 push하고 원격 SHA 일치를 확인했다.
 보류 결과 Telegram 전송 성공. `day4/publication.json`에 기록했고 Day 4 미완료를 유지한다.
+
+
+### 2026-09-20 — Day 4 재개: SEC 원천 확인, PIT 전체 인증 보류
+
+DAY_4_BLOCKED
+
+이전 Day 4 원천 1,548개와 증거 268개 해시를 확인했고 추가 로컬 PIT 자료는 찾지 못했다.
+새 SEC 원문 3개를 확보해 A(Agilent) 주식수 70행 전체를 공시 accession에 연결했다.
+관측일과 제출일은 70행 모두 다르고 수정 공시도 2행이다. 전체 모집단의 과거 섹터·공개시각·
+증권 단위·상장폐지 입력은 여전히 미인증이므로 S6 재현과 S1 공통 비교는 미완료다.
+완료 표식은 추가하지 않았고 Day 5를 시작하지 않았다.
+
+산출물: `docs/experiment_validation/day4_review_20260920/`의 `review.md`,
+SEC 원문 3개·조회 receipt·`input_manifest.json`·관측/공시 진단 JSON·소스/회귀 테스트,
+`local_input_delta.json`, `validation.json`, `result_hashes.json`, `RESUME_NOTE.md`.
+개별 경로·해시는 result_hashes.json(20개)에 기록했다. 신규/Day 4 회귀 30개 통과;
+기존 독립 감사 PASS(20,156행, S1 저장 주문 4,551건), 완료 요구 종료 코드 2(BLOCKED).
+데이터 22개 동결 목록 SHA-256: `a8132c4441f818e47309dee4cbb93bb3067b18edc40371bda00679862fb6e86d`.
+신규 SEC 원문 3개 목록 SHA-256: `772532f5e1596d41be27fd268aca88d6384ef13e829e77c77a28dc4f538a958a`.
+이번 결과 목록 파일 SHA-256: `030a176b498e30a1d870a44dbb38682663f49c22a435e7008258f0b1824ba694`.
+
+CIK 정수/문자열 처리 결함은 체크포인트 `20260920T012004Z_day4-sec-cik-type` 후
+문서화·즉시 Telegram 보고했다. 기존 결과/미커밋 연구·후보·기준선·게이트는 보존했다.
+다음 자동 감독은 Day 4에 머물러 전체 선정 모집단의 과거 구성·섹터·증권/단위·공개시각 및
+상장폐지 가격 자료를 확보한다. 이미 받은 SEC 파일이나 완료된 백테스트는 반복하지 않는다.
+연구 브랜치 `research/day4-source-review-20260920`; 실제 게시 결과는 같은 폴더 `publication.json`.

@@ -1,0 +1,15 @@
+{
+  "url": "https://data.sec.gov/submissions/CIK0001090872-submissions-001.json",
+  "attempted_at_utc": "2026-09-20T01:22:35.136247+00:00",
+  "http_status": 200,
+  "path": "agilent_submissions_history.json",
+  "sha256": "1a1442d830d3f78b5e4a2383d6e6b535a029b0bc9a58104bf446a81665e9d97f",
+  "bytes": 215913,
+  "advertised_metadata": {
+    "name": "CIK0001090872-submissions-001.json",
+    "filingCount": 1363,
+    "filingFrom": "1999-08-16",
+    "filingTo": "2016-11-28"
+  },
+  "scope": "Accession history diagnostics only; not strategy inputs"
+}

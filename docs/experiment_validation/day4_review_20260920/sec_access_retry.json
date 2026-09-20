@@ -1,0 +1,42 @@
+{
+  "scope": "Endpoint availability only; no PIT certification or performance calculation",
+  "issuer_selection": "First alphabetical ticker A in previous Day 4 cache inventory; CIK from issuer SEC page",
+  "sources": [
+    {
+      "url": "https://data.sec.gov/submissions/CIK0001090872.json",
+      "attempted_at_utc": "2026-09-20T01:21:12.747612+00:00",
+      "http_status": 200,
+      "response_sha256": "b58a2a9359a2c9c5b01b3663870eac9d611992176c06763b2edd372e370fa91c",
+      "bytes": 157952,
+      "cik_json_type": "str",
+      "status": "CAPTURED_DIAGNOSTIC_ONLY",
+      "path": "agilent_submissions.json",
+      "top_level_keys": [
+        "addresses",
+        "category",
+        "cik",
+        "description",
+        "ein",
+        "entityType",
+        "exchanges",
+        "filings",
+        "fiscalYearEnd",
+        "flags",
+        "formerNames",
+        "insiderTransactionForIssuerExists",
+        "insiderTransactionForOwnerExists",
+        "investorWebsite",
+        "lei",
+        "name",
+        "ownerOrg",
+        "phone",
+        "sic",
+        "sicDescription",
+        "stateOfIncorporation",
+        "stateOfIncorporationDescription",
+        "tickers",
+        "website"
+      ]
+    }
+  ]
+}

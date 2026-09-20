@@ -1,0 +1,12 @@
+{
+  "protected_files_verified": 2195,
+  "append_only_paths": [
+    "PROGRESS.md",
+    "RESUME_NOTE.md",
+    "docs/experiment_validation/PROGRESS.md"
+  ],
+  "all_other_preexisting_files_unchanged": true,
+  "main_index_not_changed": true,
+  "new_worktree": "/tmp/quant-day4-source-review-20260920",
+  "result_hashes_sha256": "030a176b498e30a1d870a44dbb38682663f49c22a435e7008258f0b1824ba694"
+}

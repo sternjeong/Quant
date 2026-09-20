@@ -1,0 +1,36 @@
+{
+  "validated_at_utc": "2026-09-20T01:25:24.522701+00:00",
+  "day4_status": "BLOCKED",
+  "day4_complete": false,
+  "completion_marker_written": false,
+  "tests": {
+    "passed": 30,
+    "failed": 0,
+    "duration_seconds": 0.62,
+    "command": ".venv/bin/python -m pytest -q docs/experiment_validation/day4_review_20260920/test_sec_probe.py docs/experiment_validation/day4/test_satellite_audit.py"
+  },
+  "saved_day4_audit_check": {
+    "command": ".venv/bin/python docs/experiment_validation/day4/verify_saved.py --require-complete",
+    "verified_at_utc": "2026-09-20T01:19:46.099603+00:00",
+    "exit_code": 2,
+    "saved_audit_consistency": "PASS",
+    "prior_evidence_verified": 232,
+    "rebalance_boundaries_verified": 40,
+    "member_rows_independently_reconciled": 20156,
+    "s1_saved_orders_checked": 4551,
+    "comparison_rows_not_evaluable": 6
+  },
+  "previous_day4_artifact_hashes_verified": 268,
+  "original_local_sources_unchanged": 1548,
+  "preexisting_protected_files_unchanged_before_progress_append": 2195,
+  "new_raw_files_hashes_verified": 3,
+  "sec_facts_independently_checked": 70,
+  "sec_facts_joined_to_recent_or_history": 70,
+  "certified_s6_rebalances": 0,
+  "certified_s6_common_sessions": 0,
+  "s6_backtest_executed": false,
+  "day3_backtest_repeated": false,
+  "candidate_baseline_gate_changes": false,
+  "frozen_data_inventory_sha256": "a8132c4441f818e47309dee4cbb93bb3067b18edc40371bda00679862fb6e86d",
+  "new_sec_raw_inventory_sha256": "772532f5e1596d41be27fd268aca88d6384ef13e829e77c77a28dc4f538a958a"
+}

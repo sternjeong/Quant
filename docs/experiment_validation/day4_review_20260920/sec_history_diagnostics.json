@@ -1,0 +1,63 @@
+{
+  "scope": "Source schema/chronology diagnostics only; no cross-issuer universe, ranking or portfolio return",
+  "raw_files_sha256": {
+    "agilent_share_concept.json": "87a352a4d60b850709a67adc030d4b24a2d4500bb468ab177932ff0ceab19b3d",
+    "agilent_submissions.json": "b58a2a9359a2c9c5b01b3663870eac9d611992176c06763b2edd372e370fa91c",
+    "agilent_submissions_history.json": "1a1442d830d3f78b5e4a2383d6e6b535a029b0bc9a58104bf446a81665e9d97f"
+  },
+  "raw_inventory_sha256": "772532f5e1596d41be27fd268aca88d6384ef13e829e77c77a28dc4f538a958a",
+  "issuer": "AGILENT TECHNOLOGIES, INC.",
+  "cik": 1090872,
+  "concept_cik_type": "int",
+  "submissions_cik_type": "str",
+  "fact_rows": 70,
+  "fact_end_range": [
+    "2009-07-31",
+    "2026-08-26"
+  ],
+  "filed_after_observation_end": 70,
+  "amended_filing_rows": 2,
+  "fact_rows_joined_to_recent_submission": 40,
+  "fact_rows_joined_including_history": 70,
+  "fact_rows_without_submission": 0,
+  "additional_submission_files_advertised": [
+    {
+      "name": "CIK0001090872-submissions-001.json",
+      "filingCount": 1363,
+      "filingFrom": "1999-08-16",
+      "filingTo": "2016-11-28"
+    }
+  ],
+  "first_fact_example": {
+    "end": "2009-07-31",
+    "val": 345112058,
+    "accn": "0001140361-09-022500",
+    "fy": 2009,
+    "fp": "Q3",
+    "form": "10-Q/A",
+    "filed": "2009-10-05",
+    "frame": "CY2009Q2I",
+    "acceptance_datetime_raw": "2009-10-05T17:16:45.000Z"
+  },
+  "last_matched_example": {
+    "end": "2026-08-26",
+    "val": 281928854,
+    "accn": "0001090872-26-000064",
+    "fy": 2026,
+    "fp": "Q3",
+    "form": "10-Q",
+    "filed": "2026-09-01",
+    "frame": "CY2026Q3I",
+    "acceptance_datetime_raw": "2026-09-01T20:11:15.000Z"
+  },
+  "limitations": [
+    "Observation end and filing date are different fields; neither proves intraday public availability.",
+    "Raw acceptance timestamps are reported without certifying their timezone or public dissemination.",
+    "CIK is a filer identity; it is not a historical security/share-class mapping or split-unit certificate.",
+    "Current SIC is not a historical GICS sector series and is not substituted into S6.",
+    "One issuer cannot certify all members used for sector allocation and market-cap ranking.",
+    "No missing delisted prices, corporate actions or historical membership timestamps were filled."
+  ],
+  "certified_s6_rebalances_added": 0,
+  "day4_complete": false
+}

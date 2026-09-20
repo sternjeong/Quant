@@ -1,0 +1,35 @@
+{
+  "path_base": "docs/experiment_validation/day4_review_20260920",
+  "algorithm": "sha256",
+  "artifacts": {
+    "RESUME_NOTE.md": "571d2e55df9edbd33c1de61724af4dfb0a0700dc2b0156b2ea0b235a97345b68",
+    "agilent_share_concept.json": "87a352a4d60b850709a67adc030d4b24a2d4500bb468ab177932ff0ceab19b3d",
+    "agilent_submissions.json": "b58a2a9359a2c9c5b01b3663870eac9d611992176c06763b2edd372e370fa91c",
+    "agilent_submissions_history.json": "1a1442d830d3f78b5e4a2383d6e6b535a029b0bc9a58104bf446a81665e9d97f",
+    "day4_resolutions.md": "772d098efd34f17f0cd9fb15cefd40c253c4cf105552d3928fab0b49c5ea7be6",
+    "initial_workspace.json": "b46d77bdfa14bc504664278bebcfd398f44861e3c9a805e0df85901d5f5bf979",
+    "input_manifest.json": "9ac0290f49359e35d224c0c2925bcf14d18231ff06852a75b39f18a6b7f437fd",
+    "inspect_sec_evidence.py": "f3d01cb6d0a45798776851c6d9acf47939351a388084d0c4609a27f9a9a68404",
+    "local_input_delta.json": "f25b874e104f997add93dffa18be543a58bac28d6529013617b0c54e64012f8f",
+    "notification.json": "e296f599113d85af36ac77bef31a390f6e33bd01fa3f27ac9f02cc42c3358a5c",
+    "probe_sec_access.py": "c2ef41642d05bf96e9bf80448564fa7774c0a8b63d0881742b2c14a6844facad",
+    "review.md": "f31f05756d61fc4668fdc017de27e8860e7d9553c68362805e34c610d60b0b3e",
+    "sec_access.json": "30b064613b49191158a8e035d5d355673c18645e5c92968315bec78bd45c7069",
+    "sec_access_retry.json": "6f9fca22e3a6b03e78af095bab5c02537d14bcae9513458fdef91cefefa385cd",
+    "sec_diagnostics.json": "d280c3f5c948668ea506831934d8b21a8041ffcfe605e097e3171d6394218f55",
+    "sec_history_access.json": "59628ccafc724b884ab947be8b528c45335dd6fd7d1a3a3b2e332988c993e48d",
+    "sec_history_diagnostics.json": "b154ced7cb77a8234b28b3fcf6bc8e66f0cee75000cf0626745394b075ba9764",
+    "test_sec_probe.py": "3f8fd5cd4ef405704eb0f84f300ce06c4a93e5b4cb11386b079506e301f38a40",
+    "tests.log": "dd298c5c34c4b9351e759508f65bab7b78c569a68bcddb559f686fbe6daa85d3",
+    "validation.json": "5ce57a95b86a8c6f27c350d562c136d3ea503248efb13090dd3086a5df889d72"
+  },
+  "data_inventory_sha256": "772532f5e1596d41be27fd268aca88d6384ef13e829e77c77a28dc4f538a958a",
+  "exclusions": [
+    "*.before (local preservation backups)",
+    "__pycache__",
+    "result_hashes.json (self)",
+    "publication.json (post-push receipt)",
+    "publication_validation.json (post-copy check)",
+    "workspace_final.json (post-append preservation)"
+  ]
+}
