@@ -1,0 +1,30 @@
+{
+  "verified_at_utc": "2026-09-20T19:11:23.494284+00:00",
+  "evidence_commit": "393e5dbc57e149d92bae732039844fdb344389d3",
+  "remote_verified_evidence_sha": "393e5dbc57e149d92bae732039844fdb344389d3",
+  "branch": "research/day4-reentry-20260920T1905Z",
+  "remote": "origin",
+  "worktree": "/tmp/quant-day4-reentry-20260920T1905Z",
+  "day4_status": "BLOCKED",
+  "day4_completion_marker_written": false,
+  "checks": "New delta/schema/hash/status checks PASS; previous 15 passed log/code hashes verified, pytest not rerun",
+  "publication_artifact_hashes": "PASS",
+  "result_hashes_sha256": "eebfc31eb86e8fabce882a21d19cfc6dcf1c99edcdefe0b9aebb23979bcb982f",
+  "telegram_report": "sent",
+  "telegram_process_exit_code": 0,
+  "telegram_configuration_source": "Existing supervisor Telegram env file; only two Telegram keys passed in memory; no values printed or changed",
+  "main_push": false,
+  "daily_html_committed": false,
+  "telegram_attempts": [
+    {
+      "interpreter": "system python3",
+      "exit_code": 1,
+      "failure": "python-dotenv unavailable; no message sent"
+    },
+    {
+      "interpreter": "existing .venv/bin/python",
+      "exit_code": 0,
+      "result": "sent"
+    }
+  ]
+}
