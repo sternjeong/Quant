@@ -1,0 +1,22 @@
+{
+  "checked_at_utc": "2026-09-20T10:51:51.579773+00:00",
+  "initial_main_head": "32495a8b7f66e6b02310eb8b09562374c847caae",
+  "final_main_head": "32495a8b7f66e6b02310eb8b09562374c847caae",
+  "preexisting_files_preserved": 383,
+  "append_only_progress_and_resume_files": [
+    "PROGRESS.md",
+    "RESUME_NOTE.md",
+    "docs/experiment_validation/PROGRESS.md",
+    "docs/experiment_validation/RESUME_NOTE.md"
+  ],
+  "new_result_hashes_verified": 7,
+  "day4_completion_marker_absent": true,
+  "final_tracked_status": [
+    " M PROGRESS.md"
+  ],
+  "existing_worktrees_and_indexes_modified": false,
+  "services_modified": false,
+  "broker_credentials_modified": false,
+  "daily_html_committed": false,
+  "new_strategy_interpretations": false
+}
