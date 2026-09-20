@@ -1,0 +1,18 @@
+{
+  "evidence_commit": "cd0ad356a6515563356243a3c54bd888a9622678",
+  "branch": "research/day4-source-review-20260920",
+  "remote": "origin",
+  "remote_verified_evidence_sha": "cd0ad356a6515563356243a3c54bd888a9622678",
+  "verified_at_utc": "2026-09-20T01:27:44.329526+00:00",
+  "worktree": "/tmp/quant-day4-source-review-20260920",
+  "day4_status": "BLOCKED",
+  "day4_completion_marker_written": false,
+  "tests_passed": 30,
+  "publication_worktree_tests_passed": 30,
+  "prior_artifact_hashes_verified": 268,
+  "result_hashes_sha256": "030a176b498e30a1d870a44dbb38682663f49c22a435e7008258f0b1824ba694",
+  "telegram_report": "전송 성공",
+  "main_push": false,
+  "daily_html_committed": false,
+  "note": "Evidence push verified; this receipt is included in a subsequent metadata commit."
+}
