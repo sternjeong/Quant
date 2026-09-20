@@ -5032,3 +5032,42 @@ inactive dead`로 떠서 점검해보니, `/etc/systemd/system/timers.target.wan
 - 이 항목도 작업75와 동일하게 `/opt/projects/sternjeong/Quant`(텔레그램 지시 처리용 클론)에서
   작성해 커밋+푸시한다 — 라이브 인스턴스(`/opt/quant`)는 다른 진행 중 변경사항(연구 에이전트
   결과물 미커밋분, `deploy/codex_telegram/` 진행 중 수정분)이 있어 건드리지 않았다.
+
+### 작업 77 (2026-09-20, 텔레그램 지시): 관제 허브(`hub/`) 신설 — IP 진입점을 앱 목록 대시보드로
+
+텔레그램 지시: "quant-vm 서버를... 여러 앱들을 관리하는 최상위 감시 모듈을 만든 후(IP 주소를
+치면 이게 나오도록) 슬롯을 누르면 대응되는 웹/엔진이 나오게" 만들어달라는 요청.
+
+- VM 현황 조사(이 세션이 실제로 `/opt/quant`에서 도는 그 `quant` 계정이라 직접 확인 가능):
+  nginx(80번)가 지금은 Streamlit(8501)에만 직접 프록시하고 있고, `quant-scheduler`/
+  `codex-telegram`/`quant-experiment-supervisor`/`quant-vm-health`는 전부 웹 UI 없는 백그라운드
+  서비스임을 확인. `quant` 계정은 sudo 없이도 `systemctl show <unit>`으로 다른 유닛 상태를 읽을 수
+  있지만(직접 확인함), `journalctl`은 `adm`/`systemd-journal` 그룹이 아니라서 권한이 없음 —
+  그래서 허브는 로그가 아니라 상태(active/inactive)까지만 보여주기로 결정.
+- **신규 `hub/` 모듈** (`__init__.py`, `apps_registry.py`, `status.py`, `server.py`): stdlib
+  `http.server`만 사용(신규 pip 의존성 없음). `apps_registry.SLOTS`에 앱/엔진 5개를 선언
+  (퀀트 대시보드=web, 스케줄러=engine, 실험 슈퍼바이저=report, codex-telegram=engine,
+  VM 헬스체크=engine). `/`가 카드 그리드를 렌더링하고, 카드를 누르면 kind별로 자기 포트로 직접
+  이동(web)/최신 HTML 리포트 서빙(report, `.experiment-control/reports/*.html`에서 mtime 최신
+  파일)/`systemctl show` 상태 페이지(engine)로 분기.
+- **배포 아티팩트**: `deploy/quant-hub.service`(127.0.0.1:8000, `OnFailure=quant-alert@%n.service`
+  기존 패턴 재사용), `deploy/nginx-quant.conf`(80번 `default_server`를 hub로 프록시, Streamlit은
+  건드리지 않고 그대로 `:8501` 직접 노출 유지 — baseUrlPath 등 건드릴 필요 없어 위험 최소화).
+  `deploy/setup_vm.sh`에 nginx 설치 + hub 서비스/사이트 등록 단계 추가(신규 VM 기준 자동 반영).
+- **의도적으로 안 한 것 (sudo 필요, 이 세션 권한 밖)**: 실제 VM(`138.2.11.196`)에 `quant-hub.service`
+  설치 + `/etc/nginx/sites-enabled/quant-streamlit` → `quant-hub`로 교체는 사람이 sudo로 해야
+  하므로 코드만 준비하고 `deploy/PENDING_MANUAL_LOGIN_ACTIONS.md` 4번에 정확한 명령을 남겼다.
+  `deploy/auto_deploy.sh`의 `SERVICES=(...)` 배열에는 **의도적으로 `quant-hub`를 아직 추가하지
+  않음** — 그 스크립트가 `systemctl restart "${SERVICES[@]}"`를 한 줄로 실행하는데 `quant-hub`
+  유닛이 VM에 설치되기 전에 이 커밋이 먼저 배포되면(자동배포 타이머가 5분마다 돌므로 실제로 그렇게
+  됨) `set -e`로 스크립트가 중단돼 `quant-streamlit`/`quant-scheduler` 재시작까지 함께 실패할
+  위험이 있었기 때문(로그 확인도 안 되는 이 세션 권한으로는 사후 복구도 어려움) — PENDING 문서
+  4번의 설치를 먼저 끝낸 뒤 별도 커밋으로 추가하기로 함.
+- `tests/test_hub.py` 신규(12개, `subprocess.run`을 목킹해 실제 systemd 의존 제거). 로컬에서
+  `/opt/quant/.venv/bin/python -m hub.server`를 실제로 띄워 `/`, `/healthz`, `/status/<id>`,
+  `/reports/<id>`, 404 경로를 curl로 직접 확인했고, 이 VM의 진짜 systemd 상태(Streamlit/스케줄러/
+  codex-telegram=active, VM헬스체크=inactive — 타이머 사이 대기 상태라 정상)가 카드에 정확히
+  반영됨을 확인. `pytest tests -q`(전체 회귀, auto_deploy.sh와 동일한 스코프) 957 passed, 기존에도
+  있던 무관한 실패 2건(`test_strategy_library_archive.py`, 이 변경 전 `git stash`로도 동일하게
+  재현돼 무관함을 확인)만 남음.
+- `README.md` 디렉터리 구조 + `deploy/DEPLOYMENT_ORACLE.md`(13번 절 신설)에 허브 구조/사용법 문서화.

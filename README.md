@@ -16,6 +16,10 @@ Quant/
 │   └── market_data.py        # yfinance 캐싱 래퍼
 ├── scheduler/
 │   └── run_scheduler.py    # 매일 미국 장마감 후 실행되는 독립 스케줄러
+├── hub/                   # VM 최상위 관제 대시보드 (IP만 치면 뜨는 앱/엔진 목록, deploy/DEPLOYMENT_ORACLE.md 13번 참고)
+│   ├── server.py           # stdlib http.server 기반 웹서버 (신규 의존성 없음)
+│   ├── apps_registry.py    # 슬롯(앱/엔진) 목록 선언
+│   └── status.py           # systemd 유닛 상태 조회
 ├── data/
 │   ├── quant.db (자동 생성) # SQLite DB 파일
 │   └── cache/               # 시장데이터 캐시 (git에는 커밋되지 않음)

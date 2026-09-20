@@ -1,0 +1,16 @@
+[Unit]
+Description=Quant VM 관제 허브 (최상위 대시보드, 각 앱/엔진으로 가는 진입점)
+After=network-online.target
+Wants=network-online.target
+OnFailure=quant-alert@%n.service
+
+[Service]
+Type=simple
+User=quant
+WorkingDirectory=/opt/quant
+ExecStart=/opt/quant/.venv/bin/python -m hub.server
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

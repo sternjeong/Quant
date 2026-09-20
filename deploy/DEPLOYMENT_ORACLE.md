@@ -317,3 +317,25 @@ sudo systemctl disable --now quant-auto-deploy.timer
 866개가 약 50초, VM은 더 느릴 수 있음 + deploy 유닛테스트) 더 걸릴 수 있는데, 평소 대부분의
 타이머 틱은 새 커밋이 없어 테스트 자체를 돌리지 않으므로 이 지연은 배포가 실제로 일어나는
 그 순간에만 발생한다.
+
+## 13. 관제 허브 (`hub/`) — 최상위 진입점
+
+VM의 IP만 치면(`http://<PUBLIC_IP>/`) 이 VM에서 돌고 있는 앱/엔진 전체를 카드 목록으로 보여주는
+최상위 대시보드가 뜨도록 하는 모듈. `hub/server.py`가 stdlib `http.server`만으로 127.0.0.1:8000에서
+돌고(신규 pip 의존성 없음), nginx가 80번 포트(`default_server`)를 여기로 프록시한다
+(`deploy/nginx-quant.conf`). 슬롯 목록은 `hub/apps_registry.py`의 `SLOTS`에 선언돼 있고, 카드를
+누르면:
+
+- `kind="web"` (예: 퀀트 대시보드): 그 앱 자신의 포트(예: `:8501`)로 직접 이동 — nginx가 경로를
+  다시 프록시하지 않으므로 Streamlit `--server.baseUrlPath` 같은 설정을 건드릴 필요가 없다.
+- `kind="report"` (예: 실험 슈퍼바이저): `hub/server.py`가 `report_glob` 패턴에 맞는 파일 중
+  가장 최근 것을 그대로 서빙한다(예: `.experiment-control/reports/*.html`).
+- `kind="engine"` (자체 웹 UI가 없는 백그라운드 서비스): `/status/<id>` 상태 페이지로 이동해
+  `systemctl show`로 조회한 ActiveState/SubState/가동 시각을 보여준다(참고: `quant` 계정은 sudo
+  없이도 이 읽기 전용 조회는 가능하지만 `journalctl`은 `adm`/`systemd-journal` 그룹이 아니라 권한이
+  없어 로그는 보여주지 않는다).
+
+새 서비스를 VM에 추가하면 `hub/apps_registry.py`에 `AppSlot` 하나만 추가하면 허브에 자동으로
+카드가 생긴다. 최초 설치(신규 VM은 `setup_vm.sh`가 자동으로 처리하지만, 이미 떠 있는 VM에
+`quant-hub.service`/nginx 사이트를 추가로 올리는 것은 `sudo`가 필요해 사람이 직접 해야 함)는
+[`PENDING_MANUAL_LOGIN_ACTIONS.md`](./PENDING_MANUAL_LOGIN_ACTIONS.md) 4번 참고.
