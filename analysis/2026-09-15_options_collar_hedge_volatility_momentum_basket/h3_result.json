@@ -1,0 +1,179 @@
+{
+  "meta": {
+    "btc_vol_proxy": "21d rolling realized vol (annualized)",
+    "tenor_days": 21
+  },
+  "full_period": {
+    "unhedged": {
+      "cumulative_return": 1626.32,
+      "cagr": 93.6,
+      "mdd": -71.0,
+      "sharpe": 1.22,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 1.32,
+      "avg_drawdown_days": 32.9
+    },
+    "collar_spy": {
+      "cumulative_return": 1212.31,
+      "cagr": 81.67,
+      "mdd": -72.43,
+      "sharpe": 1.14,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 1.13,
+      "avg_drawdown_days": 36.3
+    },
+    "collar_btc": {
+      "cumulative_return": 251.17,
+      "cagr": 33.82,
+      "mdd": -74.76,
+      "sharpe": 0.8,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.45,
+      "avg_drawdown_days": 65.3
+    }
+  },
+  "drawdown_episode": {
+    "window": {
+      "peak_date": "2025-10-15",
+      "trough_date": "2026-03-31",
+      "recovery_date": "2026-09-10",
+      "drawdown_pct": -71.0
+    },
+    "spy_drawdown_in_window_pct": -4.99,
+    "btc_drawdown_in_window_pct": -47.14,
+    "unhedged": {
+      "cumulative_return": -60.11,
+      "cagr": -63.84,
+      "mdd": -69.03,
+      "sharpe": -1.07,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": -0.92,
+      "avg_drawdown_days": 0.0,
+      "n_obs": 227
+    },
+    "collar_spy": {
+      "cumulative_return": -64.45,
+      "cagr": -68.16,
+      "mdd": -70.56,
+      "sharpe": -1.24,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": -0.97,
+      "avg_drawdown_days": 0.0,
+      "n_obs": 227
+    },
+    "collar_btc": {
+      "cumulative_return": -49.16,
+      "cagr": -52.7,
+      "mdd": -57.41,
+      "sharpe": -0.49,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": -0.92,
+      "avg_drawdown_days": 0.0,
+      "n_obs": 227
+    }
+  },
+  "btc_roll_log_sample": [
+    {
+      "roll_date": "2022-05-19",
+      "expiry_date": "2022-06-21",
+      "S0": 30314.334,
+      "S_T": 20710.5977,
+      "sigma": 0.7139,
+      "r": 0.0077,
+      "K_put": 30314.334,
+      "K_call": 31830.0507,
+      "put_premium_pct": 0.08172,
+      "call_premium_pct": 0.06171,
+      "net_premium_pct_debit": -0.02002,
+      "payoff_pct_credit": 0.31681
+    },
+    {
+      "roll_date": "2022-06-01",
+      "expiry_date": "2022-07-01",
+      "S0": 29799.0801,
+      "S_T": 19269.3672,
+      "sigma": 0.5772,
+      "r": 0.0121,
+      "K_put": 29799.0801,
+      "K_call": 31289.0341,
+      "put_premium_pct": 0.06586,
+      "call_premium_pct": 0.04632,
+      "net_premium_pct_debit": -0.01954,
+      "payoff_pct_credit": 0.35336
+    },
+    {
+      "roll_date": "2022-07-01",
+      "expiry_date": "2022-08-02",
+      "S0": 19269.3672,
+      "S_T": 22978.1172,
+      "sigma": 0.8335,
+      "r": 0.0168,
+      "K_put": 19269.3672,
+      "K_call": 20232.8355,
+      "put_premium_pct": 0.09499,
+      "call_premium_pct": 0.0757,
+      "net_premium_pct_debit": -0.01929,
+      "payoff_pct_credit": -0.14247
+    },
+    {
+      "roll_date": "2022-08-01",
+      "expiry_date": "2022-08-30",
+      "S0": 23314.1992,
+      "S_T": 19796.8086,
+      "sigma": 0.5308,
+      "r": 0.0233,
+      "K_put": 23314.1992,
+      "K_call": 24479.9092,
+      "put_premium_pct": 0.06004,
+      "call_premium_pct": 0.04144,
+      "net_premium_pct_debit": -0.0186,
+      "payoff_pct_credit": 0.15087
+    },
+    {
+      "roll_date": "2022-09-01",
+      "expiry_date": "2022-10-03",
+      "S0": 20127.1406,
+      "S_T": 19623.5801,
+      "sigma": 0.4793,
+      "r": 0.0256,
+      "K_put": 20127.1406,
+      "K_call": 21133.4977,
+      "put_premium_pct": 0.05403,
+      "call_premium_pct": 0.03576,
+      "net_premium_pct_debit": -0.01827,
+      "payoff_pct_credit": 0.02502
+    },
+    {
+      "roll_date": "2022-10-03",
+      "expiry_date": "2022-11-01",
+      "S0": 19623.5801,
+      "S_T": 20485.2734,
+      "sigma": 0.464,
+      "r": 0.0308,
+      "K_put": 19623.5801,
+      "K_call": 20604.7591,
+      "put_premium_pct": 0.05206,
+      "call_premium_pct": 0.03423,
+      "net_premium_pct_debit": -0.01783,
+      "payoff_pct_credit": 0.0
+    }
+  ]
+}

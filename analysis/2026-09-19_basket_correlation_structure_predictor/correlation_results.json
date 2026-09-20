@@ -1,0 +1,256 @@
+{
+  "iren": {
+    "tickers": [
+      "IREN",
+      "CIFR",
+      "CLSK",
+      "WULF",
+      "HUT",
+      "BTDR"
+    ],
+    "n_tickers": 6,
+    "common_start": "2022-05-19",
+    "end": "2026-08-18",
+    "n_trading_days": 1063,
+    "source": "작업27 analysis/2026-08-16_iren_volatile_momentum_stocks",
+    "correlation": {
+      "mean": 0.562812172323801,
+      "median": 0.5998050804144184,
+      "min": 0.4007625767899469,
+      "max": 0.718858813275851,
+      "n_pairs": 15,
+      "pairwise": {
+        "IREN-CIFR": 0.5998,
+        "IREN-CLSK": 0.6551,
+        "IREN-WULF": 0.5577,
+        "IREN-HUT": 0.6422,
+        "IREN-BTDR": 0.4172,
+        "CIFR-CLSK": 0.6307,
+        "CIFR-WULF": 0.5621,
+        "CIFR-HUT": 0.6629,
+        "CIFR-BTDR": 0.4398,
+        "CLSK-WULF": 0.603,
+        "CLSK-HUT": 0.7189,
+        "CLSK-BTDR": 0.4615,
+        "WULF-HUT": 0.6075,
+        "WULF-BTDR": 0.4008,
+        "HUT-BTDR": 0.4828
+      }
+    }
+  },
+  "shipping": {
+    "tickers": [
+      "ZIM",
+      "SBLK",
+      "DAC",
+      "FRO",
+      "STNG"
+    ],
+    "n_tickers": 5,
+    "common_start": "2021-07-29",
+    "end": "2026-09-12",
+    "n_trading_days": 1285,
+    "source": "작업77 analysis/2026-09-14_nonai_control_basket_volatility_momentum",
+    "correlation": {
+      "mean": 0.4222158983846116,
+      "median": 0.40577569520332885,
+      "min": 0.21610952213366466,
+      "max": 0.6619835270588339,
+      "n_pairs": 10,
+      "pairwise": {
+        "ZIM-SBLK": 0.381,
+        "ZIM-DAC": 0.5188,
+        "ZIM-FRO": 0.2161,
+        "ZIM-STNG": 0.245,
+        "SBLK-DAC": 0.5732,
+        "SBLK-FRO": 0.3941,
+        "SBLK-STNG": 0.4456,
+        "DAC-FRO": 0.369,
+        "DAC-STNG": 0.4174,
+        "FRO-STNG": 0.662
+      }
+    }
+  },
+  "cannabis": {
+    "tickers": [
+      "TLRY",
+      "CGC",
+      "ACB",
+      "CRON"
+    ],
+    "n_tickers": 4,
+    "common_start": "2019-01-18",
+    "end": "2026-09-12",
+    "n_trading_days": 1921,
+    "source": "작업77 analysis/2026-09-14_nonai_control_basket_volatility_momentum",
+    "correlation": {
+      "mean": 0.6251101803592903,
+      "median": 0.6169427777434792,
+      "min": 0.6033336834693903,
+      "max": 0.6775620352937767,
+      "n_pairs": 6,
+      "pairwise": {
+        "TLRY-CGC": 0.6156,
+        "TLRY-ACB": 0.6057,
+        "TLRY-CRON": 0.6302,
+        "CGC-ACB": 0.6776,
+        "CGC-CRON": 0.6033,
+        "ACB-CRON": 0.6183
+      }
+    }
+  },
+  "solar": {
+    "tickers": [
+      "ENPH",
+      "SEDG",
+      "RUN",
+      "FSLR",
+      "PLUG"
+    ],
+    "n_tickers": 5,
+    "common_start": "2016-02-04",
+    "end": "2026-09-12",
+    "n_trading_days": 2665,
+    "source": "작업77 analysis/2026-09-14_nonai_control_basket_volatility_momentum",
+    "correlation": {
+      "mean": 0.46905511390561544,
+      "median": 0.46664971344004447,
+      "min": 0.3361493110460036,
+      "max": 0.5984391952300999,
+      "n_pairs": 10,
+      "pairwise": {
+        "ENPH-SEDG": 0.5984,
+        "ENPH-RUN": 0.5405,
+        "ENPH-FSLR": 0.4395,
+        "ENPH-PLUG": 0.3553,
+        "SEDG-RUN": 0.5977,
+        "SEDG-FSLR": 0.4938,
+        "SEDG-PLUG": 0.3596,
+        "RUN-FSLR": 0.5358,
+        "RUN-PLUG": 0.4338,
+        "FSLR-PLUG": 0.3361
+      }
+    }
+  },
+  "crypto_winter_2018": {
+    "tickers": [
+      "MARA",
+      "RIOT"
+    ],
+    "n_tickers": 2,
+    "common_start": "2017-07-05",
+    "end": "2021-10-29",
+    "n_trading_days": 1088,
+    "source": "작업88 analysis/2026-09-17_historical_era_trend_following_extension",
+    "correlation": {
+      "mean": 0.6408934955866484,
+      "median": 0.6408934955866484,
+      "min": 0.6408934955866484,
+      "max": 0.6408934955866484,
+      "n_pairs": 1,
+      "pairwise": {
+        "MARA-RIOT": 0.6409
+      }
+    }
+  },
+  "dotcom_bubble_2000": {
+    "tickers": [
+      "CSCO",
+      "QCOM",
+      "EBAY",
+      "GLW",
+      "CIEN",
+      "AMZN"
+    ],
+    "n_tickers": 6,
+    "common_start": "1999-03-26",
+    "end": "2002-12-31",
+    "n_trading_days": 945,
+    "source": "작업88 analysis/2026-09-17_historical_era_trend_following_extension",
+    "correlation": {
+      "mean": 0.41784966317289435,
+      "median": 0.41143694604189573,
+      "min": 0.28379168052643894,
+      "max": 0.576236066077337,
+      "n_pairs": 15,
+      "pairwise": {
+        "CSCO-QCOM": 0.5282,
+        "CSCO-EBAY": 0.4753,
+        "CSCO-GLW": 0.5189,
+        "CSCO-CIEN": 0.5762,
+        "CSCO-AMZN": 0.4114,
+        "QCOM-EBAY": 0.3603,
+        "QCOM-GLW": 0.3554,
+        "QCOM-CIEN": 0.422,
+        "QCOM-AMZN": 0.2858,
+        "EBAY-GLW": 0.313,
+        "EBAY-CIEN": 0.3859,
+        "EBAY-AMZN": 0.5021,
+        "GLW-CIEN": 0.5136,
+        "GLW-AMZN": 0.2838,
+        "CIEN-AMZN": 0.3358
+      }
+    }
+  },
+  "ev_spac_bust": {
+    "tickers": [
+      "WKHS",
+      "HYLN",
+      "LCID",
+      "PSNY"
+    ],
+    "n_tickers": 4,
+    "common_start": "2021-11-15",
+    "end": "2026-09-18",
+    "n_trading_days": 1213,
+    "source": "이번 라운드(사전등록, 예측: 상관관계 HIGH)",
+    "correlation": {
+      "mean": 0.2795312954131565,
+      "median": 0.3050215730703924,
+      "min": 0.17288791990987099,
+      "max": 0.33428877144316776,
+      "n_pairs": 6,
+      "pairwise": {
+        "WKHS-HYLN": 0.326,
+        "WKHS-LCID": 0.3238,
+        "WKHS-PSNY": 0.1729,
+        "HYLN-LCID": 0.3343,
+        "HYLN-PSNY": 0.2339,
+        "LCID-PSNY": 0.2863
+      }
+    }
+  },
+  "biotech_catalyst": {
+    "tickers": [
+      "SRPT",
+      "IONS",
+      "RARE",
+      "ALNY",
+      "BMRN"
+    ],
+    "n_tickers": 5,
+    "common_start": "2014-08-01",
+    "end": "2026-09-18",
+    "n_trading_days": 3049,
+    "source": "이번 라운드(사전등록, 예측: 상관관계 LOW)",
+    "correlation": {
+      "mean": 0.35617852690181434,
+      "median": 0.3864852423012619,
+      "min": 0.24059741378697208,
+      "max": 0.4411763129281546,
+      "n_pairs": 10,
+      "pairwise": {
+        "SRPT-IONS": 0.2709,
+        "SRPT-RARE": 0.2772,
+        "SRPT-ALNY": 0.2406,
+        "SRPT-BMRN": 0.2681,
+        "IONS-RARE": 0.4372,
+        "IONS-ALNY": 0.4128,
+        "IONS-BMRN": 0.4408,
+        "RARE-ALNY": 0.3918,
+        "RARE-BMRN": 0.4412,
+        "ALNY-BMRN": 0.3811
+      }
+    }
+  }
+}

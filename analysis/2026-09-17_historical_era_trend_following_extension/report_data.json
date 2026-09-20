@@ -1,0 +1,582 @@
+{
+  "meta": {
+    "generated": "2026-09-17",
+    "n_permutations": 200,
+    "n_boot": 2000,
+    "block_lengths": [
+      10,
+      20,
+      40
+    ]
+  },
+  "iren_reference": {
+    "era_label": "AI/HPC 피벗 (2022-05~2026-08)",
+    "basket": [
+      "IREN",
+      "CIFR",
+      "CLSK",
+      "WULF",
+      "HUT",
+      "BTDR"
+    ],
+    "common_start": "2022-05-19",
+    "end": "2026-08-18",
+    "basket_static_buy_hold": {
+      "cumulative_return": 429.15,
+      "cagr": 48.05,
+      "mdd": -65.59,
+      "sharpe": 0.88,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.73,
+      "avg_drawdown_days": 57.0
+    },
+    "momentum_rotation": {
+      "cumulative_return": 165.68,
+      "cagr": 25.87,
+      "mdd": -66.54,
+      "sharpe": 0.69,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.39,
+      "avg_drawdown_days": 31.1
+    },
+    "trend_following_basket": {
+      "cumulative_return": 2118.18,
+      "cagr": 107.48,
+      "mdd": -71.0,
+      "sharpe": 1.31,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 1.51,
+      "avg_drawdown_days": 32.9,
+      "avg_active_names": 2.15
+    },
+    "trend_following_single": {
+      "cumulative_return": 1494.49,
+      "cagr": 91.96,
+      "mdd": -63.57,
+      "sharpe": 1.23,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 25,
+      "profit_factor": 0.0,
+      "calmar": 1.45,
+      "avg_drawdown_days": 41.1
+    },
+    "spy_buy_hold": {
+      "cumulative_return": 98.4,
+      "cagr": 17.51,
+      "mdd": -19.0,
+      "sharpe": 1.05,
+      "win_rate": 100.0,
+      "avg_holding_days": 1551.0,
+      "trade_count": 1,
+      "profit_factor": 999.0,
+      "calmar": 0.92,
+      "avg_drawdown_days": 17.0
+    },
+    "permutation_basket": {
+      "percentile": 93.0,
+      "p_value": 0.075
+    },
+    "permutation_single": {
+      "percentile": 100.0,
+      "p_value": 0.005
+    },
+    "bootstrap_L20": {
+      "basket": {
+        "block_len": 20,
+        "n_boot_valid": 2000,
+        "n_nonoverlapping_blocks_approx": 53.2,
+        "mean": 1.3033223992978156,
+        "std": 0.5209131293850513,
+        "ci90": [
+          0.43964568456140407,
+          2.147104188081468
+        ],
+        "ci50": [
+          0.9554752281632616,
+          1.669680056857295
+        ],
+        "pct_le_zero": 0.0075,
+        "pct_le_point_est_half": 0.1145
+      },
+      "single": {
+        "block_len": 20,
+        "n_boot_valid": 2000,
+        "n_nonoverlapping_blocks_approx": 53.2,
+        "mean": 1.226432763357313,
+        "std": 0.5023442496181795,
+        "ci90": [
+          0.3884214364438094,
+          2.009950962119758
+        ],
+        "ci50": [
+          0.8916769362279169,
+          1.5805051156574985
+        ],
+        "pct_le_zero": 0.008,
+        "pct_le_point_est_half": 0.112
+      }
+    }
+  },
+  "baskets": {
+    "crypto_winter_2018": {
+      "label": "크립토 채굴주 — AI 피벗 이전(2017 ICO붐~2021, 진짜 크립토윈터 포함)",
+      "tickers": [
+        "MARA",
+        "RIOT"
+      ],
+      "representative": "RIOT",
+      "narrative": "MARA(옛 Marathon Patent Group)·RIOT(옛 Bioptix Inc)는 2017년 하반기 비트코인 채굴로 사업을 전환한 뒤(RIOT는 2017-10, 거래량이 15만주대에서 1400만주대로 폭증하며 명확히 확인됨), 2017년 12월 ICO/크립토 마니아 정점(RIOT 종가 $28.4, MARA $16.68)을 찍고 2018년 한 해 동안 -90%대로 무너진 '진짜 크립토윈터'를 실제로 겪었다(RIOT 2018-12 $1.51, MARA 2019-01 $1.36 — 정점 대비 각각 -95%/-92%). 이후 2019년 횡보, 2020년 코로나 폭락/급반등, 2021년 두 번째 마니아 정점까지 포함한다. IREN은 이 기간에 존재하지도 않았다(2021-11 나스닥 상장) — 즉 같은 종목(MARA/RIOT)이지만 AI 서사가 전혀 없던, 지금까지 이 저장소가 한 번도 검증하지 않은 완전히 다른 시대의 표본이다.",
+      "load_start": "2017-01-01",
+      "listing_dates": {
+        "MARA": "2017-01-03",
+        "RIOT": "2017-01-03"
+      },
+      "common_start": "2017-07-05",
+      "end": "2021-10-29",
+      "top_n": 1,
+      "representative_buy_hold_full": {
+        "metrics": {
+          "cumulative_return": 620.63,
+          "cagr": 50.7,
+          "mdd": -98.32,
+          "sharpe": 0.93,
+          "win_rate": 100.0,
+          "avg_holding_days": 1759.0,
+          "trade_count": 1,
+          "profit_factor": 999.0,
+          "calmar": 0.52,
+          "avg_drawdown_days": 184.1
+        },
+        "start": "2017-01-03",
+        "end": "2021-10-29"
+      },
+      "representative_buy_hold_common_window": {
+        "cumulative_return": 602.55,
+        "cagr": 57.12,
+        "mdd": -98.32,
+        "sharpe": 0.97,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.58,
+        "avg_drawdown_days": 116.4
+      },
+      "basket_static_buy_hold": {
+        "cumulative_return": 714.42,
+        "cagr": 62.59,
+        "mdd": -98.31,
+        "sharpe": 0.97,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.64,
+        "avg_drawdown_days": 128.8
+      },
+      "spy_buy_hold_common_window": {
+        "cumulative_return": 88.79,
+        "cagr": 15.87,
+        "mdd": -34.1,
+        "sharpe": 0.84,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.47,
+        "avg_drawdown_days": 14.9
+      },
+      "momentum_rotation": {
+        "cumulative_return": 234.8,
+        "cagr": 32.32,
+        "mdd": -95.84,
+        "sharpe": 0.77,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.34,
+        "avg_drawdown_days": 157.6
+      },
+      "trend_following_single": {
+        "cumulative_return": 1472.53,
+        "cagr": 89.37,
+        "mdd": -72.1,
+        "sharpe": 1.13,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 25,
+        "profit_factor": 0.0,
+        "calmar": 1.24,
+        "avg_drawdown_days": 84.7
+      },
+      "trend_following_basket": {
+        "cumulative_return": 3771.28,
+        "cagr": 133.34,
+        "mdd": -76.96,
+        "sharpe": 1.24,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 1.73,
+        "avg_drawdown_days": 65.6,
+        "avg_active_names": 0.48
+      },
+      "representative_full_history_max_drawdown_pct": -98.3,
+      "audit": {
+        "common_start": "2017-07-05",
+        "representative": "RIOT",
+        "permutation_basket": {
+          "actual_sharpe": 1.24,
+          "percentile": 93.5,
+          "p_value": 0.0697,
+          "permuted_mean": 0.6045,
+          "permuted_std": 0.4015
+        },
+        "permutation_single": {
+          "actual_sharpe": 1.13,
+          "percentile": 97.0,
+          "p_value": 0.0348,
+          "permuted_mean": 0.4272,
+          "permuted_std": 0.3941
+        },
+        "bootstrap": {
+          "basket": {
+            "point_estimate_sharpe": 1.2391,
+            "n_obs": 1089,
+            "by_block_len": {
+              "10": {
+                "ci90": [
+                  0.6009613746456648,
+                  1.8335843184160103
+                ],
+                "pct_le_zero": 0.001,
+                "width": 1.2326229437703455
+              },
+              "20": {
+                "ci90": [
+                  0.6424789649572982,
+                  1.8246322757014743
+                ],
+                "pct_le_zero": 0.0,
+                "width": 1.1821533107441762
+              },
+              "40": {
+                "ci90": [
+                  0.6201016407707647,
+                  1.838092162494729
+                ],
+                "pct_le_zero": 0.0005,
+                "width": 1.2179905217239644
+              }
+            }
+          },
+          "single": {
+            "point_estimate_sharpe": 1.1309,
+            "n_obs": 1089,
+            "by_block_len": {
+              "10": {
+                "ci90": [
+                  0.4141724649559743,
+                  1.7858435090899334
+                ],
+                "pct_le_zero": 0.007,
+                "width": 1.371671044133959
+              },
+              "20": {
+                "ci90": [
+                  0.34200376758504886,
+                  1.807385420386456
+                ],
+                "pct_le_zero": 0.0115,
+                "width": 1.4653816528014072
+              },
+              "40": {
+                "ci90": [
+                  0.2873153146904006,
+                  1.8468402630630067
+                ],
+                "pct_le_zero": 0.0115,
+                "width": 1.5595249483726061
+              }
+            }
+          }
+        }
+      }
+    },
+    "dotcom_bubble_2000": {
+      "label": "닷컴버블 인터넷/통신 바스켓 (1998~2002, 진짜 -80~95% 약세장 포함)",
+      "tickers": [
+        "CSCO",
+        "QCOM",
+        "EBAY",
+        "GLW",
+        "CIEN",
+        "AMZN"
+      ],
+      "representative": "CSCO",
+      "narrative": "1998~2000년 인터넷/통신 인프라 붐(닷컴버블) 당시 가장 뜨거웠던 종목군 중 현재까지도 동일 티커로 거래되는 생존 종목만 골랐다(JDSU·PMCS·Sun Microsystems·Nortel 등 다수는 상장폐지/합병으로 yfinance에 이력이 없어 제외 — 생존편향을 그대로 명시). CSCO(-88%), QCOM(-83%), CIEN(-97%), GLW(-99%), AMZN(-95%), EBAY(-85%) 전부 2000~2002년 사이 고점 대비 극단적 낙폭을 실제로 겪은 진짜 약세장 표본 — IREN·크립토와도 테마가 무관하고 (인터넷 인프라 vs 크립토채굴/AI), 시대도 20여 년 전이라 이 저장소가 가진 어떤 표본과도 겹치지 않는 독립적인 검증이다.",
+      "load_start": "1997-06-01",
+      "listing_dates": {
+        "CSCO": "1997-06-02",
+        "QCOM": "1997-06-02",
+        "EBAY": "1998-09-24",
+        "GLW": "1997-06-02",
+        "CIEN": "1997-06-02",
+        "AMZN": "1997-06-02"
+      },
+      "common_start": "1999-03-26",
+      "end": "2002-12-31",
+      "top_n": 3,
+      "representative_buy_hold_full": {
+        "metrics": {
+          "cumulative_return": 72.05,
+          "cagr": 10.22,
+          "mdd": -89.26,
+          "sharpe": 0.46,
+          "win_rate": 100.0,
+          "avg_holding_days": 2037.0,
+          "trade_count": 1,
+          "profit_factor": 999.0,
+          "calmar": 0.11,
+          "avg_drawdown_days": 12.9
+        },
+        "start": "1997-06-02",
+        "end": "2002-12-31"
+      },
+      "representative_buy_hold_common_window": {
+        "cumulative_return": -50.68,
+        "cagr": -17.12,
+        "mdd": -89.26,
+        "sharpe": 0.05,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": -0.19,
+        "avg_drawdown_days": 11.5
+      },
+      "basket_static_buy_hold": {
+        "cumulative_return": -18.28,
+        "cagr": -5.22,
+        "mdd": -87.49,
+        "sharpe": 0.25,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": -0.06,
+        "avg_drawdown_days": 17.5
+      },
+      "spy_buy_hold_common_window": {
+        "cumulative_return": -31.47,
+        "cagr": -9.55,
+        "mdd": -49.14,
+        "sharpe": -0.32,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": -0.19,
+        "avg_drawdown_days": 21.0
+      },
+      "momentum_rotation": {
+        "cumulative_return": 232.03,
+        "cagr": 37.54,
+        "mdd": -51.49,
+        "sharpe": 0.88,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.73,
+        "avg_drawdown_days": 24.8
+      },
+      "trend_following_single": {
+        "cumulative_return": -39.83,
+        "cagr": -12.62,
+        "mdd": -80.79,
+        "sharpe": -0.17,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 18,
+        "profit_factor": 0.0,
+        "calmar": -0.16,
+        "avg_drawdown_days": 15.3
+      },
+      "trend_following_basket": {
+        "cumulative_return": 7.27,
+        "cagr": 1.88,
+        "mdd": -81.61,
+        "sharpe": 0.3,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.02,
+        "avg_drawdown_days": 11.5,
+        "avg_active_names": 2.62
+      },
+      "representative_full_history_max_drawdown_pct": -89.3,
+      "audit": {
+        "common_start": "1999-03-26",
+        "representative": "CSCO",
+        "permutation_basket": {
+          "actual_sharpe": 0.3,
+          "percentile": 12.5,
+          "p_value": 0.8756,
+          "permuted_mean": 0.7322,
+          "permuted_std": 0.4
+        },
+        "permutation_single": {
+          "actual_sharpe": -0.17,
+          "percentile": 13.0,
+          "p_value": 0.8706,
+          "permuted_mean": 0.2862,
+          "permuted_std": 0.4126
+        },
+        "bootstrap": {
+          "basket": {
+            "point_estimate_sharpe": 0.3003,
+            "n_obs": 946,
+            "by_block_len": {
+              "10": {
+                "ci90": [
+                  -0.5202284568910324,
+                  1.1301164830361636
+                ],
+                "pct_le_zero": 0.271,
+                "width": 1.650344939927196
+              },
+              "20": {
+                "ci90": [
+                  -0.5259980856717213,
+                  1.1503295818972408
+                ],
+                "pct_le_zero": 0.284,
+                "width": 1.676327667568962
+              },
+              "40": {
+                "ci90": [
+                  -0.6138423375846507,
+                  1.2899933962997778
+                ],
+                "pct_le_zero": 0.308,
+                "width": 1.9038357338844285
+              }
+            }
+          },
+          "single": {
+            "point_estimate_sharpe": -0.1684,
+            "n_obs": 946,
+            "by_block_len": {
+              "10": {
+                "ci90": [
+                  -1.0223882225294219,
+                  0.6468799081914289
+                ],
+                "pct_le_zero": 0.6105,
+                "width": 1.6692681307208508
+              },
+              "20": {
+                "ci90": [
+                  -1.0789795947791028,
+                  0.7079313837599502
+                ],
+                "pct_le_zero": 0.623,
+                "width": 1.7869109785390531
+              },
+              "40": {
+                "ci90": [
+                  -1.1882044975012762,
+                  0.7526432152669523
+                ],
+                "pct_le_zero": 0.6205,
+                "width": 1.9408477127682287
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "cross_era": {
+    "iren_ai_pivot": {
+      "era_label": "AI/HPC 피벗 (2022-26)",
+      "span": "4.25년",
+      "tf_sharpe": 1.31,
+      "bh_sharpe": 0.88,
+      "rot_sharpe": 0.69,
+      "perm_basket_p": 0.075,
+      "perm_single_p": 0.005,
+      "rep_mdd_full": null,
+      "replicates_iren_ranking": true
+    },
+    "shipping": {
+      "era_label": "해운 운임 슈퍼사이클 (2021 붐→버스트)",
+      "span": null,
+      "tf_sharpe": 0.62,
+      "bh_sharpe": 0.82,
+      "rot_sharpe": 1.0,
+      "perm_basket_p": 0.2438,
+      "perm_single_p": 0.4726,
+      "rep_mdd_full": null,
+      "replicates_iren_ranking": false
+    },
+    "cannabis": {
+      "era_label": "대마초 합법화 테마 (구조적 장기 하락)",
+      "span": null,
+      "tf_sharpe": -0.09,
+      "bh_sharpe": -0.28,
+      "rot_sharpe": -0.07,
+      "perm_basket_p": 0.7512,
+      "perm_single_p": 0.6418,
+      "rep_mdd_full": null,
+      "replicates_iren_ranking": false
+    },
+    "solar": {
+      "era_label": "태양광/클린에너지 ESG 테마 (2020-21 붐, 2022-23 버스트)",
+      "span": null,
+      "tf_sharpe": 0.7,
+      "bh_sharpe": 0.54,
+      "rot_sharpe": 0.69,
+      "perm_basket_p": 0.2139,
+      "perm_single_p": 0.0249,
+      "rep_mdd_full": null,
+      "replicates_iren_ranking": true
+    },
+    "crypto_winter_2018": {
+      "era_label": "크립토 채굴주 — AI 피벗 이전(2017 ICO붐~2021, 진짜 크립토윈터 포함)",
+      "span": "2017~2021",
+      "tf_sharpe": 1.24,
+      "bh_sharpe": 0.97,
+      "rot_sharpe": 0.77,
+      "perm_basket_p": 0.0697,
+      "perm_single_p": 0.0348,
+      "rep_mdd_full": -98.3,
+      "replicates_iren_ranking": true
+    },
+    "dotcom_bubble_2000": {
+      "era_label": "닷컴버블 인터넷/통신 바스켓 (1998~2002, 진짜 -80~95% 약세장 포함)",
+      "span": "1997~2002",
+      "tf_sharpe": 0.3,
+      "bh_sharpe": 0.25,
+      "rot_sharpe": 0.88,
+      "perm_basket_p": 0.8756,
+      "perm_single_p": 0.8706,
+      "rep_mdd_full": -89.3,
+      "replicates_iren_ranking": false
+    }
+  }
+}

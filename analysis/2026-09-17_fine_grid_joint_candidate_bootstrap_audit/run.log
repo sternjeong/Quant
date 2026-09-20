@@ -1,0 +1,362 @@
+[h37] === 데이터 준비: H34 기준선(12mo/monthly, 12mo/quarterly) 재사용 ===
+[h37] === 신규 백테스트: 14/15/16개월 + 분기 (18회) ===
+$XLC: Data doesn't exist for startDate = 1470542400, endDate = 1529294400
+
+1 Failed download:
+['XLC']: Data doesn't exist for startDate = 1470542400, endDate = 1529294400
+[h37]   full_2019_2026/m14_quarterly: sharpe=1.030 cagr=14.27% mdd=-15.69% t=1.4s
+$XLC: Data doesn't exist for startDate = 1470542400, endDate = 1529294400
+
+1 Failed download:
+['XLC']: Data doesn't exist for startDate = 1470542400, endDate = 1529294400
+[h37]   full_2019_2026/m15_quarterly: sharpe=0.880 cagr=13.81% mdd=-28.01% t=1.5s
+$XLC: Data doesn't exist for startDate = 1470542400, endDate = 1529294400
+
+1 Failed download:
+['XLC']: Data doesn't exist for startDate = 1470542400, endDate = 1529294400
+[h37]   full_2019_2026/m16_quarterly: sharpe=0.970 cagr=15.36% mdd=-28.01% t=1.7s
+$XLF: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['XLF']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$XLV: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['XLV']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$XLY: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['XLY']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$XLP: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['XLP']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$XLK: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$XLE: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['XLK']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['XLE']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$XLI: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$XLB: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['XLI']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['XLB']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$XLU: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['XLU']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$XLRE: Data doesn't exist for startDate = 1096171200, endDate = 1444190400
+
+1 Failed download:
+['XLRE']: Data doesn't exist for startDate = 1096171200, endDate = 1444190400
+$TLT: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['TLT']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$XLC: Data doesn't exist for startDate = 1096171200, endDate = 1529294400
+
+1 Failed download:
+['XLC']: Data doesn't exist for startDate = 1096171200, endDate = 1529294400
+$IEF: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['IEF']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$EFA: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['EFA']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$GLD: Data doesn't exist for startDate = 1096171200, endDate = 1100667600
+
+1 Failed download:
+['GLD']: Data doesn't exist for startDate = 1096171200, endDate = 1100667600
+$HYG: Data doesn't exist for startDate = 1096171200, endDate = 1176177600
+$DBC: Data doesn't exist for startDate = 1096171200, endDate = 1139115600
+
+1 Failed download:
+['HYG']: Data doesn't exist for startDate = 1096171200, endDate = 1176177600
+
+1 Failed download:
+['DBC']: Data doesn't exist for startDate = 1096171200, endDate = 1139115600
+$SPY: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['SPY']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+[h37]   gfc_2008/m14_quarterly: sharpe=-0.250 cagr=-3.77% mdd=-14.83% t=4.3s
+$XLP: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['XLP']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$XLV: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['XLV']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$XLE: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$XLY: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$XLK: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['XLY']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['XLK']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['XLE']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$XLF: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['XLF']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$XLI: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$XLB: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['XLI']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['XLB']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$XLRE: Data doesn't exist for startDate = 1096171200, endDate = 1444190400
+
+1 Failed download:
+['XLRE']: Data doesn't exist for startDate = 1096171200, endDate = 1444190400
+$TLT: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$XLC: Data doesn't exist for startDate = 1096171200, endDate = 1529294400
+
+1 Failed download:
+['TLT']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$XLU: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['XLC']: Data doesn't exist for startDate = 1096171200, endDate = 1529294400
+
+1 Failed download:
+['XLU']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$IEF: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$EFA: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+$GLD: Data doesn't exist for startDate = 1096171200, endDate = 1100667600
+['IEF']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$DBC: Data doesn't exist for startDate = 1096171200, endDate = 1139115600
+$HYG: Data doesn't exist for startDate = 1096171200, endDate = 1176177600
+$SPY: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+
+1 Failed download:
+['GLD']: Data doesn't exist for startDate = 1096171200, endDate = 1100667600
+['DBC']: Data doesn't exist for startDate = 1096171200, endDate = 1139115600
+
+1 Failed download:
+['EFA']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['HYG']: Data doesn't exist for startDate = 1096171200, endDate = 1176177600
+
+1 Failed download:
+['SPY']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+[h37]   gfc_2008/m15_quarterly: sharpe=-0.220 cagr=-3.43% mdd=-14.83% t=4.5s
+$XLP: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['XLP']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$XLY: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$XLV: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['XLY']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['XLV']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$XLF: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$XLU: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$XLRE: Data doesn't exist for startDate = 1096171200, endDate = 1444190400
+$XLB: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['XLF']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$XLI: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['XLRE']: Data doesn't exist for startDate = 1096171200, endDate = 1444190400
+
+1 Failed download:
+['XLU']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['XLI']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['XLB']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$XLE: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['XLE']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$XLK: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['XLK']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$XLC: Data doesn't exist for startDate = 1096171200, endDate = 1529294400
+$TLT: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['XLC']: Data doesn't exist for startDate = 1096171200, endDate = 1529294400
+
+1 Failed download:
+['TLT']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$IEF: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['IEF']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$DBC: Data doesn't exist for startDate = 1096171200, endDate = 1139115600
+$GLD: Data doesn't exist for startDate = 1096171200, endDate = 1100667600
+$EFA: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+
+1 Failed download:
+['GLD']: Data doesn't exist for startDate = 1096171200, endDate = 1100667600
+['DBC']: Data doesn't exist for startDate = 1096171200, endDate = 1139115600
+$SPY: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+$HYG: Data doesn't exist for startDate = 1096171200, endDate = 1176177600
+
+1 Failed download:
+['HYG']: Data doesn't exist for startDate = 1096171200, endDate = 1176177600
+
+1 Failed download:
+['SPY']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+
+1 Failed download:
+['EFA']: possibly delisted; no price data found  (1d 2004-09-26 -> 2004-09-26)
+[h37]   gfc_2008/m16_quarterly: sharpe=-0.350 cagr=-4.74% mdd=-14.83% t=4.7s
+$XLC: Data doesn't exist for startDate = 1487048400, endDate = 1529294400
+
+1 Failed download:
+['XLC']: Data doesn't exist for startDate = 1487048400, endDate = 1529294400
+[h37]   covid_2020/m14_quarterly: sharpe=-0.030 cagr=-6.05% mdd=-15.73% t=5.2s
+$XLC: Data doesn't exist for startDate = 1487048400, endDate = 1529294400
+
+1 Failed download:
+['XLC']: Data doesn't exist for startDate = 1487048400, endDate = 1529294400
+[h37]   covid_2020/m15_quarterly: sharpe=-0.630 cagr=-41.45% mdd=-28.01% t=5.3s
+$XLC: Data doesn't exist for startDate = 1487048400, endDate = 1529294400
+
+1 Failed download:
+['XLC']: Data doesn't exist for startDate = 1487048400, endDate = 1529294400
+[h37]   covid_2020/m16_quarterly: sharpe=-0.620 cagr=-41.31% mdd=-28.01% t=5.5s
+[h37]   bear_2022/m14_quarterly: sharpe=0.550 cagr=5.92% mdd=-11.89% t=5.6s
+[h37]   bear_2022/m15_quarterly: sharpe=0.760 cagr=8.58% mdd=-9.72% t=5.7s
+[h37]   bear_2022/m16_quarterly: sharpe=0.830 cagr=9.67% mdd=-8.36% t=5.8s
+$XLC: Data doesn't exist for startDate = 1440734400, endDate = 1529294400
+
+1 Failed download:
+['XLC']: Data doesn't exist for startDate = 1440734400, endDate = 1529294400
+$XLRE: Data doesn't exist for startDate = 1440734400, endDate = 1444190400
+
+1 Failed download:
+['XLRE']: Data doesn't exist for startDate = 1440734400, endDate = 1444190400
+[h37]   selloff_2018/m14_quarterly: sharpe=-1.880 cagr=-23.84% mdd=-14.05% t=6.4s
+$XLRE: Data doesn't exist for startDate = 1440734400, endDate = 1444190400
+$XLC: Data doesn't exist for startDate = 1440734400, endDate = 1529294400
+
+1 Failed download:
+['XLC']: Data doesn't exist for startDate = 1440734400, endDate = 1529294400
+
+1 Failed download:
+['XLRE']: Data doesn't exist for startDate = 1440734400, endDate = 1444190400
+[h37]   selloff_2018/m15_quarterly: sharpe=-1.880 cagr=-23.84% mdd=-14.05% t=6.5s
+$XLC: Data doesn't exist for startDate = 1440734400, endDate = 1529294400
+
+1 Failed download:
+['XLC']: Data doesn't exist for startDate = 1440734400, endDate = 1529294400
+$XLRE: Data doesn't exist for startDate = 1440734400, endDate = 1444190400
+
+1 Failed download:
+['XLRE']: Data doesn't exist for startDate = 1440734400, endDate = 1444190400
+[h37]   selloff_2018/m16_quarterly: sharpe=-1.740 cagr=-24.07% mdd=-14.28% t=6.6s
+$XLC: Data doesn't exist for startDate = 1343361600, endDate = 1529294400
+$XLRE: Data doesn't exist for startDate = 1343361600, endDate = 1444190400
+
+1 Failed download:
+['XLC']: Data doesn't exist for startDate = 1343361600, endDate = 1529294400
+
+1 Failed download:
+['XLRE']: Data doesn't exist for startDate = 1343361600, endDate = 1444190400
+[h37]   correction_2015_2016/m14_quarterly: sharpe=-1.150 cagr=-16.35% mdd=-11.30% t=7.2s
+$XLRE: Data doesn't exist for startDate = 1343361600, endDate = 1444190400
+
+1 Failed download:
+['XLRE']: Data doesn't exist for startDate = 1343361600, endDate = 1444190400
+$XLC: Data doesn't exist for startDate = 1343361600, endDate = 1529294400
+
+1 Failed download:
+['XLC']: Data doesn't exist for startDate = 1343361600, endDate = 1529294400
+[h37]   correction_2015_2016/m15_quarterly: sharpe=-1.120 cagr=-16.00% mdd=-11.30% t=7.3s
+$XLC: Data doesn't exist for startDate = 1343361600, endDate = 1529294400
+$XLRE: Data doesn't exist for startDate = 1343361600, endDate = 1444190400
+
+1 Failed download:
+['XLC']: Data doesn't exist for startDate = 1343361600, endDate = 1529294400
+
+1 Failed download:
+['XLRE']: Data doesn't exist for startDate = 1343361600, endDate = 1444190400
+[h37]   correction_2015_2016/m16_quarterly: sharpe=-1.120 cagr=-16.00% mdd=-11.30% t=7.4s
+[h37] === H1: 재현성 확인 (h32_stage1_results.json과 대조) ===
+[h37]   H1 verdict=exact_match max_abs_diff=0.0
+[h37] === H2/H3: 블록부트스트랩 (전체 5개 config x 6개 창 x 3개 블록길이) ===
+[h37]   bootstrap full_2019_2026/m12_monthly: point=0.804 L20_CI90=[0.2165268307714074, 1.5666476227568804]
+[h37]   bootstrap full_2019_2026/m12_quarterly: point=0.739 L20_CI90=[0.16769194216314162, 1.479159176037605]
+[h37]   bootstrap full_2019_2026/m14_quarterly: point=1.027 L20_CI90=[0.4702741362084925, 1.6377460858474395]
+[h37]   bootstrap full_2019_2026/m15_quarterly: point=0.880 L20_CI90=[0.3076844259464852, 1.5307257195456048]
+[h37]   bootstrap full_2019_2026/m16_quarterly: point=0.965 L20_CI90=[0.4191679146699455, 1.6739779088276483]
+[h37]   bootstrap gfc_2008/m12_monthly: point=-0.109 L20_CI90=[-1.2559083794214148, 0.996716044896422]
+[h37]   bootstrap gfc_2008/m12_quarterly: point=-0.434 L20_CI90=[-1.4487973613702778, 0.5310073820771165]
+[h37]   bootstrap gfc_2008/m14_quarterly: point=-0.245 L20_CI90=[-1.173117395143569, 0.7054020853003005]
+[h37]   bootstrap gfc_2008/m15_quarterly: point=-0.217 L20_CI90=[-1.1310421737649379, 0.6847377026707884]
+[h37]   bootstrap gfc_2008/m16_quarterly: point=-0.349 L20_CI90=[-1.2807607479389729, 0.5283622424128839]
+[h37]   bootstrap covid_2020/m12_monthly: point=-2.027 L20_CI90=[-4.24233167587138, 1.1958482164917827]
+[h37]   bootstrap covid_2020/m12_quarterly: point=-1.171 L20_CI90=[-4.144719818363759, 2.214940059514844]
+[h37]   bootstrap covid_2020/m14_quarterly: point=-0.027 L20_CI90=[-3.4567767885807057, 4.158312117171062]
+[h37]   bootstrap covid_2020/m15_quarterly: point=-0.613 L20_CI90=[-3.673828480292772, 3.1265483149604734]
+[h37]   bootstrap covid_2020/m16_quarterly: point=-0.609 L20_CI90=[-3.6193300055071216, 2.888922361635021]
+[h37]   bootstrap bear_2022/m12_monthly: point=0.657 L20_CI90=[-1.07549395321958, 2.2411637598439413]
+[h37]   bootstrap bear_2022/m12_quarterly: point=0.660 L20_CI90=[-1.0920059534210282, 2.1691709281190796]
+[h37]   bootstrap bear_2022/m14_quarterly: point=0.551 L20_CI90=[-1.2225376874330314, 2.0417822795422342]
+[h37]   bootstrap bear_2022/m15_quarterly: point=0.757 L20_CI90=[-0.7817062635409816, 2.2851051561403812]
+[h37]   bootstrap bear_2022/m16_quarterly: point=0.828 L20_CI90=[-0.5755013428171143, 2.232118051162105]
+[h37]   bootstrap selloff_2018/m12_monthly: point=-1.983 L20_CI90=[-3.416241477000326, -0.22472776586653898]
+[h37]   bootstrap selloff_2018/m12_quarterly: point=-1.883 L20_CI90=[-3.5581858794145584, 0.2044959753880323]
+[h37]   bootstrap selloff_2018/m14_quarterly: point=-1.861 L20_CI90=[-3.4058536964798436, 0.10305911562490654]
+[h37]   bootstrap selloff_2018/m15_quarterly: point=-1.861 L20_CI90=[-3.474390608958896, 0.027064475149643087]
+[h37]   bootstrap selloff_2018/m16_quarterly: point=-1.716 L20_CI90=[-3.357185096789711, 0.18121141802538226]
+[h37]   bootstrap correction_2015_2016/m12_monthly: point=-0.934 L20_CI90=[-2.4010243303758116, 0.9165277001371093]
+[h37]   bootstrap correction_2015_2016/m12_quarterly: point=-0.951 L20_CI90=[-2.2544238541232877, 0.8257092839463301]
+[h37]   bootstrap correction_2015_2016/m14_quarterly: point=-1.144 L20_CI90=[-2.4284150629282135, 0.46700496493401905]
+[h37]   bootstrap correction_2015_2016/m15_quarterly: point=-1.110 L20_CI90=[-2.473600647499231, 0.6350660072924218]
+[h37]   bootstrap correction_2015_2016/m16_quarterly: point=-1.110 L20_CI90=[-2.4194564324075225, 0.6207000704184926]
+[h37] === H2/H3: 결합전파 (3개 시나리오 x [baseline, freq_only] x 3개 joint 후보) ===
+[h37]   [base] m14_quarterly vs m12_monthly: weighting_only=0.999 sampling_only=0.614 combined=0.605
+[h37]   [base] m15_quarterly vs m12_monthly: weighting_only=0.995 sampling_only=0.557 combined=0.548
+[h37]   [base] m16_quarterly vs m12_monthly: weighting_only=1.000 sampling_only=0.627 combined=0.623
+[h37]   [base] m14_quarterly vs m12_quarterly: weighting_only=1.000 sampling_only=0.601 combined=0.601
+[h37]   [base] m15_quarterly vs m12_quarterly: weighting_only=1.000 sampling_only=0.546 combined=0.550
+[h37]   [base] m16_quarterly vs m12_quarterly: weighting_only=1.000 sampling_only=0.628 combined=0.611
+[h37]   [calm_heavy] m14_quarterly vs m12_monthly: weighting_only=1.000 sampling_only=0.619 combined=0.605
+[h37]   [calm_heavy] m15_quarterly vs m12_monthly: weighting_only=0.997 sampling_only=0.544 combined=0.548
+[h37]   [calm_heavy] m16_quarterly vs m12_monthly: weighting_only=1.000 sampling_only=0.623 combined=0.619
+[h37]   [calm_heavy] m14_quarterly vs m12_quarterly: weighting_only=1.000 sampling_only=0.638 combined=0.614
+[h37]   [calm_heavy] m15_quarterly vs m12_quarterly: weighting_only=1.000 sampling_only=0.558 combined=0.560
+[h37]   [calm_heavy] m16_quarterly vs m12_quarterly: weighting_only=1.000 sampling_only=0.646 combined=0.632
+[h37]   [crisis_heavy] m14_quarterly vs m12_monthly: weighting_only=0.997 sampling_only=0.632 combined=0.616
+[h37]   [crisis_heavy] m15_quarterly vs m12_monthly: weighting_only=0.996 sampling_only=0.583 combined=0.578
+[h37]   [crisis_heavy] m16_quarterly vs m12_monthly: weighting_only=1.000 sampling_only=0.635 combined=0.625
+[h37]   [crisis_heavy] m14_quarterly vs m12_quarterly: weighting_only=0.999 sampling_only=0.589 combined=0.600
+[h37]   [crisis_heavy] m15_quarterly vs m12_quarterly: weighting_only=0.999 sampling_only=0.558 combined=0.555
+[h37]   [crisis_heavy] m16_quarterly vs m12_quarterly: weighting_only=1.000 sampling_only=0.600 combined=0.597
+[h37] === H4: 40칸 전수 그리드 백분위 (재계산 없음) ===
+[h37] 전체 완료, h37_results.json 저장. 총 소요 15.9s

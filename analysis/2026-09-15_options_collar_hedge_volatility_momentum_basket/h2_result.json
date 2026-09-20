@@ -1,0 +1,99 @@
+{
+  "meta": {
+    "beta_window": 126,
+    "beta_min_cap": 0.5,
+    "beta_max_cap": 8.0
+  },
+  "beta_stats": {
+    "min": 1.55,
+    "median": 3.07,
+    "mean": 2.97,
+    "max": 4.53,
+    "n_rolls_used": 53
+  },
+  "full_period": {
+    "unhedged": {
+      "cumulative_return": 1626.32,
+      "cagr": 93.6,
+      "mdd": -71.0,
+      "sharpe": 1.22,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 1.32,
+      "avg_drawdown_days": 32.9
+    },
+    "collar_1x_notional": {
+      "cumulative_return": 1212.31,
+      "cagr": 81.67,
+      "mdd": -72.43,
+      "sharpe": 1.14,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 1.13,
+      "avg_drawdown_days": 36.3
+    },
+    "collar_beta_scaled": {
+      "cumulative_return": 492.32,
+      "cagr": 51.06,
+      "mdd": -77.56,
+      "sharpe": 0.91,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.66,
+      "avg_drawdown_days": 40.7
+    }
+  },
+  "drawdown_episode": {
+    "window": {
+      "peak_date": "2025-10-15",
+      "trough_date": "2026-03-31",
+      "recovery_date": "2026-09-10",
+      "drawdown_pct": -71.0
+    },
+    "unhedged": {
+      "cumulative_return": -60.11,
+      "cagr": -63.84,
+      "mdd": -69.03,
+      "sharpe": -1.07,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": -0.92,
+      "avg_drawdown_days": 0.0,
+      "n_obs": 227
+    },
+    "collar_1x_notional": {
+      "cumulative_return": -64.45,
+      "cagr": -68.16,
+      "mdd": -70.56,
+      "sharpe": -1.24,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": -0.97,
+      "avg_drawdown_days": 0.0,
+      "n_obs": 227
+    },
+    "collar_beta_scaled": {
+      "cumulative_return": -75.88,
+      "cagr": -79.28,
+      "mdd": -76.03,
+      "sharpe": -1.58,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": -1.04,
+      "avg_drawdown_days": 0.0,
+      "n_obs": 227
+    }
+  }
+}

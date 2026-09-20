@@ -1,0 +1,1133 @@
+{
+  "meta": {
+    "generated": "2026-09-19",
+    "end_date": "2026-09-18",
+    "n_permutations": 200,
+    "n_boot": 2000,
+    "block_lengths": [
+      10,
+      20,
+      40
+    ]
+  },
+  "existing6": {
+    "iren": {
+      "label": "IREN류 비트코인채굴→AI/HPC 피벗",
+      "tickers": [
+        "IREN",
+        "CIFR",
+        "CLSK",
+        "WULF",
+        "HUT",
+        "BTDR"
+      ],
+      "bh": {
+        "cumulative_return": 429.15,
+        "cagr": 48.05,
+        "mdd": -65.59,
+        "sharpe": 0.88,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.73,
+        "avg_drawdown_days": 57.0
+      },
+      "rot": {
+        "cumulative_return": 165.68,
+        "cagr": 25.87,
+        "mdd": -66.54,
+        "sharpe": 0.69,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.39,
+        "avg_drawdown_days": 31.1
+      },
+      "tf": {
+        "cumulative_return": 2118.18,
+        "cagr": 107.48,
+        "mdd": -71.0,
+        "sharpe": 1.31,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 1.51,
+        "avg_drawdown_days": 32.9,
+        "avg_active_names": 2.15
+      },
+      "spy": {
+        "cumulative_return": 98.4,
+        "cagr": 17.51,
+        "mdd": -19.0,
+        "sharpe": 1.05,
+        "win_rate": 100.0,
+        "avg_holding_days": 1551.0,
+        "trade_count": 1,
+        "profit_factor": 999.0,
+        "calmar": 0.92,
+        "avg_drawdown_days": 17.0
+      },
+      "common_start": "2022-05-19",
+      "end": "2026-08-18",
+      "source": "작업27"
+    },
+    "shipping": {
+      "label": "해운 운임 슈퍼사이클",
+      "tickers": [
+        "ZIM",
+        "SBLK",
+        "DAC",
+        "FRO",
+        "STNG"
+      ],
+      "bh": {
+        "cumulative_return": 218.12,
+        "cagr": 25.36,
+        "mdd": -53.41,
+        "sharpe": 0.82,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.47,
+        "avg_drawdown_days": 39.3
+      },
+      "rot": {
+        "cumulative_return": 305.22,
+        "cagr": 31.43,
+        "mdd": -28.26,
+        "sharpe": 1.0,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 1.11,
+        "avg_drawdown_days": 32.8
+      },
+      "tf": {
+        "cumulative_return": 119.94,
+        "cagr": 16.64,
+        "mdd": -54.38,
+        "sharpe": 0.62,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.31,
+        "avg_drawdown_days": 89.0,
+        "avg_active_names": 3.27
+      },
+      "spy": {
+        "cumulative_return": 73.45,
+        "cagr": 11.36,
+        "mdd": -25.36,
+        "sharpe": 0.72,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.45,
+        "avg_drawdown_days": 20.5
+      },
+      "common_start": "2021-07-29",
+      "end": "2026-09-12",
+      "source": "작업77"
+    },
+    "cannabis": {
+      "label": "대마초 구조적 장기하락",
+      "tickers": [
+        "TLRY",
+        "CGC",
+        "ACB",
+        "CRON"
+      ],
+      "bh": {
+        "cumulative_return": -94.43,
+        "cagr": -31.45,
+        "mdd": -97.58,
+        "sharpe": -0.28,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": -0.32,
+        "avg_drawdown_days": 2.0
+      },
+      "rot": {
+        "cumulative_return": -68.01,
+        "cagr": -13.85,
+        "mdd": -91.13,
+        "sharpe": -0.07,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": -0.15,
+        "avg_drawdown_days": 120.7
+      },
+      "tf": {
+        "cumulative_return": -85.61,
+        "cagr": -22.4,
+        "mdd": -93.92,
+        "sharpe": -0.09,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": -0.24,
+        "avg_drawdown_days": 15.0,
+        "avg_active_names": 1.15
+      },
+      "spy": {
+        "cumulative_return": 186.83,
+        "cagr": 14.77,
+        "mdd": -34.1,
+        "sharpe": 0.81,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.43,
+        "avg_drawdown_days": 16.1
+      },
+      "common_start": "2019-01-18",
+      "end": "2026-09-12",
+      "source": "작업77"
+    },
+    "solar": {
+      "label": "태양광/클린에너지 붐-버스트",
+      "tickers": [
+        "ENPH",
+        "SEDG",
+        "RUN",
+        "FSLR",
+        "PLUG"
+      ],
+      "bh": {
+        "cumulative_return": 346.1,
+        "cagr": 15.15,
+        "mdd": -89.27,
+        "sharpe": 0.54,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.17,
+        "avg_drawdown_days": 31.1
+      },
+      "rot": {
+        "cumulative_return": 849.3,
+        "cagr": 23.65,
+        "mdd": -70.09,
+        "sharpe": 0.69,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.34,
+        "avg_drawdown_days": 29.5
+      },
+      "tf": {
+        "cumulative_return": 1073.0,
+        "cagr": 26.14,
+        "mdd": -83.78,
+        "sharpe": 0.7,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.31,
+        "avg_drawdown_days": 21.6,
+        "avg_active_names": 2.42
+      },
+      "spy": {
+        "cumulative_return": 298.9,
+        "cagr": 13.94,
+        "mdd": -34.1,
+        "sharpe": 0.83,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.41,
+        "avg_drawdown_days": 16.9
+      },
+      "common_start": "2016-02-04",
+      "end": "2026-09-12",
+      "source": "작업77"
+    },
+    "crypto_winter_2018": {
+      "label": "크립토윈터 2018 (MARA/RIOT, AI피벗 이전)",
+      "tickers": [
+        "MARA",
+        "RIOT"
+      ],
+      "bh": {
+        "cumulative_return": 714.42,
+        "cagr": 62.59,
+        "mdd": -98.31,
+        "sharpe": 0.97,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.64,
+        "avg_drawdown_days": 128.8
+      },
+      "rot": {
+        "cumulative_return": 234.8,
+        "cagr": 32.32,
+        "mdd": -95.84,
+        "sharpe": 0.77,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.34,
+        "avg_drawdown_days": 157.6
+      },
+      "tf": {
+        "cumulative_return": 3771.28,
+        "cagr": 133.34,
+        "mdd": -76.96,
+        "sharpe": 1.24,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 1.73,
+        "avg_drawdown_days": 65.6,
+        "avg_active_names": 0.48
+      },
+      "spy": {
+        "cumulative_return": 88.79,
+        "cagr": 15.87,
+        "mdd": -34.1,
+        "sharpe": 0.84,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.47,
+        "avg_drawdown_days": 14.9
+      },
+      "common_start": "2017-07-05",
+      "end": "2021-10-29",
+      "source": "작업88"
+    },
+    "dotcom_bubble_2000": {
+      "label": "닷컴버블 2000 (생존 인터넷/통신주)",
+      "tickers": [
+        "CSCO",
+        "QCOM",
+        "EBAY",
+        "GLW",
+        "CIEN",
+        "AMZN"
+      ],
+      "bh": {
+        "cumulative_return": -18.28,
+        "cagr": -5.22,
+        "mdd": -87.49,
+        "sharpe": 0.25,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": -0.06,
+        "avg_drawdown_days": 17.5
+      },
+      "rot": {
+        "cumulative_return": 232.03,
+        "cagr": 37.54,
+        "mdd": -51.49,
+        "sharpe": 0.88,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.73,
+        "avg_drawdown_days": 24.8
+      },
+      "tf": {
+        "cumulative_return": 7.27,
+        "cagr": 1.88,
+        "mdd": -81.61,
+        "sharpe": 0.3,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.02,
+        "avg_drawdown_days": 11.5,
+        "avg_active_names": 2.62
+      },
+      "spy": {
+        "cumulative_return": -31.47,
+        "cagr": -9.55,
+        "mdd": -49.14,
+        "sharpe": -0.32,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": -0.19,
+        "avg_drawdown_days": 21.0
+      },
+      "common_start": "1999-03-26",
+      "end": "2002-12-31",
+      "source": "작업88"
+    }
+  },
+  "new_baskets": {
+    "ev_spac_bust": {
+      "label": "EV SPAC 붐-버스트 (2020-21 상장, 동일 실패각본)",
+      "tickers": [
+        "WKHS",
+        "HYLN",
+        "LCID",
+        "PSNY"
+      ],
+      "representative": "LCID",
+      "narrative": "2020~2021년 SPAC 합병 붐을 타고 상장한 전기차 스타트업들 — Workhorse(WKHS)·Hyliion(HYLN)·Lucid(LCID)·Polestar(PSNY). 브랜드·기술은 다르지만 전부 '양산 지연 → 현금 소진 → 대규모 증자/감원'이라는 동일한 실패 각본을 순차적으로 밟았고, 금리·EV 수요 둔화 같은 같은 거시 요인에 동시에 노출된다는 점에서 IREN류(부채로 짓는 캡엑스 + 서사 촉매 중심 가격형성)와 구조적으로 가장 가까운 신규 바스켓이다.",
+      "predicted_high_correlation": true,
+      "predicted_reproduce": true,
+      "listing_dates": {
+        "WKHS": "2010-06-02",
+        "HYLN": "2020-01-02",
+        "LCID": "2020-09-18",
+        "PSNY": "2021-05-18"
+      },
+      "common_start": "2021-11-15",
+      "end": "2026-09-18",
+      "top_n": 2,
+      "representative_buy_hold_full": {
+        "metrics": {
+          "cumulative_return": -95.67,
+          "cagr": -40.77,
+          "mdd": -99.3,
+          "sharpe": -0.17,
+          "win_rate": 0.0,
+          "avg_holding_days": 2190.0,
+          "trade_count": 1,
+          "profit_factor": 0.0,
+          "calmar": -0.41,
+          "avg_drawdown_days": 14.4
+        },
+        "start": "2020-09-18",
+        "end": "2026-09-18"
+      },
+      "representative_buy_hold_common_window": {
+        "cumulative_return": -99.05,
+        "cagr": -61.78,
+        "mdd": -99.27,
+        "sharpe": -0.76,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": -0.62,
+        "avg_drawdown_days": 0.0
+      },
+      "basket_static_buy_hold": {
+        "cumulative_return": -85.84,
+        "cagr": -33.24,
+        "mdd": -93.64,
+        "sharpe": -0.23,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": -0.35,
+        "avg_drawdown_days": 0.0
+      },
+      "spy_buy_hold_common_window": {
+        "cumulative_return": 63.15,
+        "cagr": 10.65,
+        "mdd": -25.36,
+        "sharpe": 0.67,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.42,
+        "avg_drawdown_days": 22.4
+      },
+      "momentum_rotation": {
+        "cumulative_return": -73.33,
+        "cagr": -23.9,
+        "mdd": -79.63,
+        "sharpe": -0.51,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": -0.3,
+        "avg_drawdown_days": 2.0
+      },
+      "trend_following_single": {
+        "cumulative_return": -56.8,
+        "cagr": -15.93,
+        "mdd": -67.13,
+        "sharpe": -0.13,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 24,
+        "profit_factor": 0.0,
+        "calmar": -0.24,
+        "avg_drawdown_days": 0.0
+      },
+      "trend_following_basket": {
+        "cumulative_return": -64.49,
+        "cagr": -19.27,
+        "mdd": -88.2,
+        "sharpe": -0.02,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": -0.22,
+        "avg_drawdown_days": 0.0,
+        "avg_active_names": 1.01
+      },
+      "audit": {
+        "common_start": "2021-11-15",
+        "representative": "LCID",
+        "permutation_basket": {
+          "actual_sharpe": -0.02,
+          "percentile": 53.0,
+          "p_value": 0.4726,
+          "permuted_mean": -0.0883,
+          "permuted_std": 0.4092
+        },
+        "permutation_single": {
+          "actual_sharpe": -0.13,
+          "percentile": 44.0,
+          "p_value": 0.5622,
+          "permuted_mean": -0.119,
+          "permuted_std": 0.3702
+        },
+        "bootstrap": {
+          "basket": {
+            "point_estimate_sharpe": -0.0153,
+            "n_obs": 1214,
+            "by_block_len": {
+              "10": {
+                "ci90": [
+                  -0.7662572822905921,
+                  0.6856887447859101
+                ],
+                "pct_le_zero": 0.5245,
+                "width": 1.4519460270765023
+              },
+              "20": {
+                "ci90": [
+                  -0.7989051650126322,
+                  0.7336442530785524
+                ],
+                "pct_le_zero": 0.531,
+                "width": 1.5325494180911847
+              },
+              "40": {
+                "ci90": [
+                  -0.7498103290327559,
+                  0.6633937776129522
+                ],
+                "pct_le_zero": 0.52,
+                "width": 1.4132041066457082
+              }
+            }
+          },
+          "single": {
+            "point_estimate_sharpe": -0.1317,
+            "n_obs": 1214,
+            "by_block_len": {
+              "10": {
+                "ci90": [
+                  -0.8958096381086527,
+                  0.4490662205074019
+                ],
+                "pct_le_zero": 0.663,
+                "width": 1.3448758586160545
+              },
+              "20": {
+                "ci90": [
+                  -0.7566156472077051,
+                  0.3575992575775923
+                ],
+                "pct_le_zero": 0.6655,
+                "width": 1.1142149047852974
+              },
+              "40": {
+                "ci90": [
+                  -0.6920981392126477,
+                  0.3173855333416133
+                ],
+                "pct_le_zero": 0.6845,
+                "width": 1.009483672554261
+              }
+            }
+          }
+        }
+      }
+    },
+    "biotech_catalyst": {
+      "label": "희귀질환 바이오텍 촉매주 (이종 임상 파이프라인)",
+      "tickers": [
+        "SRPT",
+        "IONS",
+        "RARE",
+        "ALNY",
+        "BMRN"
+      ],
+      "representative": "SRPT",
+      "narrative": "Sarepta(SRPT, 듀시엔 근이영양증)·Ionis(IONS, 안티센스 플랫폼)·Ultragenyx(RARE)·Alnylam(ALNY, RNAi)·BioMarin(BMRN) — 전부 고변동성 희귀질환 바이오텍이지만, 주가를 움직이는 촉매(개별 신약의 FDA 승인/거부, 개별 임상시험 결과 발표)가 서로 완전히 독립적이다. '같은 업종'이라는 것 외에 공유하는 거시 서사가 없어, 종목 수는 IREN(6종)과 비슷하지만 상관구조는 정반대(낮음)일 것으로 예측되는 대조 바스켓.",
+      "predicted_high_correlation": false,
+      "predicted_reproduce": false,
+      "listing_dates": {
+        "SRPT": "2005-01-03",
+        "IONS": "2005-01-03",
+        "RARE": "2014-01-31",
+        "ALNY": "2005-01-03",
+        "BMRN": "2005-01-03"
+      },
+      "common_start": "2014-08-01",
+      "end": "2026-09-18",
+      "top_n": 3,
+      "representative_buy_hold_full": {
+        "metrics": {
+          "cumulative_return": 53.03,
+          "cagr": 1.98,
+          "mdd": -94.45,
+          "sharpe": 0.44,
+          "win_rate": 100.0,
+          "avg_holding_days": 7927.0,
+          "trade_count": 1,
+          "profit_factor": 999.0,
+          "calmar": 0.02,
+          "avg_drawdown_days": 205.3
+        },
+        "start": "2005-01-03",
+        "end": "2026-09-18"
+      },
+      "representative_buy_hold_common_window": {
+        "cumulative_return": -5.92,
+        "cagr": -0.5,
+        "mdd": -93.33,
+        "sharpe": 0.4,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": -0.01,
+        "avg_drawdown_days": 55.6
+      },
+      "basket_static_buy_hold": {
+        "cumulative_return": 68.79,
+        "cagr": 4.41,
+        "mdd": -58.45,
+        "sharpe": 0.31,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.08,
+        "avg_drawdown_days": 57.2
+      },
+      "spy_buy_hold_common_window": {
+        "cumulative_return": 296.16,
+        "cagr": 12.02,
+        "mdd": -34.1,
+        "sharpe": 0.74,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.35,
+        "avg_drawdown_days": 19.1
+      },
+      "momentum_rotation": {
+        "cumulative_return": 40.74,
+        "cagr": 2.86,
+        "mdd": -58.6,
+        "sharpe": 0.26,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.05,
+        "avg_drawdown_days": 49.1
+      },
+      "trend_following_single": {
+        "cumulative_return": -77.39,
+        "cagr": -11.54,
+        "mdd": -97.65,
+        "sharpe": 0.08,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 93,
+        "profit_factor": 0.0,
+        "calmar": -0.12,
+        "avg_drawdown_days": 57.2
+      },
+      "trend_following_basket": {
+        "cumulative_return": -44.14,
+        "cagr": -4.69,
+        "mdd": -83.3,
+        "sharpe": 0.06,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": -0.06,
+        "avg_drawdown_days": 42.0,
+        "avg_active_names": 3.17
+      },
+      "audit": {
+        "common_start": "2014-08-01",
+        "representative": "SRPT",
+        "permutation_basket": {
+          "actual_sharpe": 0.06,
+          "percentile": 1.0,
+          "p_value": 0.99,
+          "permuted_mean": 0.5845,
+          "permuted_std": 0.2245
+        },
+        "permutation_single": {
+          "actual_sharpe": 0.08,
+          "percentile": 18.0,
+          "p_value": 0.8209,
+          "permuted_mean": 0.2843,
+          "permuted_std": 0.2283
+        },
+        "bootstrap": {
+          "basket": {
+            "point_estimate_sharpe": 0.0638,
+            "n_obs": 3050,
+            "by_block_len": {
+              "10": {
+                "ci90": [
+                  -0.3933950192214168,
+                  0.523640198114767
+                ],
+                "pct_le_zero": 0.3935,
+                "width": 0.9170352173361838
+              },
+              "20": {
+                "ci90": [
+                  -0.39877782718532834,
+                  0.5162900656450057
+                ],
+                "pct_le_zero": 0.3805,
+                "width": 0.915067892830334
+              },
+              "40": {
+                "ci90": [
+                  -0.4016069020580487,
+                  0.5275055001256854
+                ],
+                "pct_le_zero": 0.4015,
+                "width": 0.9291124021837341
+              }
+            }
+          },
+          "single": {
+            "point_estimate_sharpe": 0.0786,
+            "n_obs": 3050,
+            "by_block_len": {
+              "10": {
+                "ci90": [
+                  -0.41397275372102416,
+                  0.5445472439643738
+                ],
+                "pct_le_zero": 0.406,
+                "width": 0.958519997685398
+              },
+              "20": {
+                "ci90": [
+                  -0.4298673301824665,
+                  0.5342121047479783
+                ],
+                "pct_le_zero": 0.4045,
+                "width": 0.9640794349304448
+              },
+              "40": {
+                "ci90": [
+                  -0.43006875848405696,
+                  0.5589993083339285
+                ],
+                "pct_le_zero": 0.399,
+                "width": 0.9890680668179854
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "correlation": {
+    "iren": {
+      "tickers": [
+        "IREN",
+        "CIFR",
+        "CLSK",
+        "WULF",
+        "HUT",
+        "BTDR"
+      ],
+      "n_tickers": 6,
+      "common_start": "2022-05-19",
+      "end": "2026-08-18",
+      "n_trading_days": 1063,
+      "source": "작업27 analysis/2026-08-16_iren_volatile_momentum_stocks",
+      "correlation": {
+        "mean": 0.562812172323801,
+        "median": 0.5998050804144184,
+        "min": 0.4007625767899469,
+        "max": 0.718858813275851,
+        "n_pairs": 15,
+        "pairwise": {
+          "IREN-CIFR": 0.5998,
+          "IREN-CLSK": 0.6551,
+          "IREN-WULF": 0.5577,
+          "IREN-HUT": 0.6422,
+          "IREN-BTDR": 0.4172,
+          "CIFR-CLSK": 0.6307,
+          "CIFR-WULF": 0.5621,
+          "CIFR-HUT": 0.6629,
+          "CIFR-BTDR": 0.4398,
+          "CLSK-WULF": 0.603,
+          "CLSK-HUT": 0.7189,
+          "CLSK-BTDR": 0.4615,
+          "WULF-HUT": 0.6075,
+          "WULF-BTDR": 0.4008,
+          "HUT-BTDR": 0.4828
+        }
+      }
+    },
+    "shipping": {
+      "tickers": [
+        "ZIM",
+        "SBLK",
+        "DAC",
+        "FRO",
+        "STNG"
+      ],
+      "n_tickers": 5,
+      "common_start": "2021-07-29",
+      "end": "2026-09-12",
+      "n_trading_days": 1285,
+      "source": "작업77 analysis/2026-09-14_nonai_control_basket_volatility_momentum",
+      "correlation": {
+        "mean": 0.4222158983846116,
+        "median": 0.40577569520332885,
+        "min": 0.21610952213366466,
+        "max": 0.6619835270588339,
+        "n_pairs": 10,
+        "pairwise": {
+          "ZIM-SBLK": 0.381,
+          "ZIM-DAC": 0.5188,
+          "ZIM-FRO": 0.2161,
+          "ZIM-STNG": 0.245,
+          "SBLK-DAC": 0.5732,
+          "SBLK-FRO": 0.3941,
+          "SBLK-STNG": 0.4456,
+          "DAC-FRO": 0.369,
+          "DAC-STNG": 0.4174,
+          "FRO-STNG": 0.662
+        }
+      }
+    },
+    "cannabis": {
+      "tickers": [
+        "TLRY",
+        "CGC",
+        "ACB",
+        "CRON"
+      ],
+      "n_tickers": 4,
+      "common_start": "2019-01-18",
+      "end": "2026-09-12",
+      "n_trading_days": 1921,
+      "source": "작업77 analysis/2026-09-14_nonai_control_basket_volatility_momentum",
+      "correlation": {
+        "mean": 0.6251101803592903,
+        "median": 0.6169427777434792,
+        "min": 0.6033336834693903,
+        "max": 0.6775620352937767,
+        "n_pairs": 6,
+        "pairwise": {
+          "TLRY-CGC": 0.6156,
+          "TLRY-ACB": 0.6057,
+          "TLRY-CRON": 0.6302,
+          "CGC-ACB": 0.6776,
+          "CGC-CRON": 0.6033,
+          "ACB-CRON": 0.6183
+        }
+      }
+    },
+    "solar": {
+      "tickers": [
+        "ENPH",
+        "SEDG",
+        "RUN",
+        "FSLR",
+        "PLUG"
+      ],
+      "n_tickers": 5,
+      "common_start": "2016-02-04",
+      "end": "2026-09-12",
+      "n_trading_days": 2665,
+      "source": "작업77 analysis/2026-09-14_nonai_control_basket_volatility_momentum",
+      "correlation": {
+        "mean": 0.46905511390561544,
+        "median": 0.46664971344004447,
+        "min": 0.3361493110460036,
+        "max": 0.5984391952300999,
+        "n_pairs": 10,
+        "pairwise": {
+          "ENPH-SEDG": 0.5984,
+          "ENPH-RUN": 0.5405,
+          "ENPH-FSLR": 0.4395,
+          "ENPH-PLUG": 0.3553,
+          "SEDG-RUN": 0.5977,
+          "SEDG-FSLR": 0.4938,
+          "SEDG-PLUG": 0.3596,
+          "RUN-FSLR": 0.5358,
+          "RUN-PLUG": 0.4338,
+          "FSLR-PLUG": 0.3361
+        }
+      }
+    },
+    "crypto_winter_2018": {
+      "tickers": [
+        "MARA",
+        "RIOT"
+      ],
+      "n_tickers": 2,
+      "common_start": "2017-07-05",
+      "end": "2021-10-29",
+      "n_trading_days": 1088,
+      "source": "작업88 analysis/2026-09-17_historical_era_trend_following_extension",
+      "correlation": {
+        "mean": 0.6408934955866484,
+        "median": 0.6408934955866484,
+        "min": 0.6408934955866484,
+        "max": 0.6408934955866484,
+        "n_pairs": 1,
+        "pairwise": {
+          "MARA-RIOT": 0.6409
+        }
+      }
+    },
+    "dotcom_bubble_2000": {
+      "tickers": [
+        "CSCO",
+        "QCOM",
+        "EBAY",
+        "GLW",
+        "CIEN",
+        "AMZN"
+      ],
+      "n_tickers": 6,
+      "common_start": "1999-03-26",
+      "end": "2002-12-31",
+      "n_trading_days": 945,
+      "source": "작업88 analysis/2026-09-17_historical_era_trend_following_extension",
+      "correlation": {
+        "mean": 0.41784966317289435,
+        "median": 0.41143694604189573,
+        "min": 0.28379168052643894,
+        "max": 0.576236066077337,
+        "n_pairs": 15,
+        "pairwise": {
+          "CSCO-QCOM": 0.5282,
+          "CSCO-EBAY": 0.4753,
+          "CSCO-GLW": 0.5189,
+          "CSCO-CIEN": 0.5762,
+          "CSCO-AMZN": 0.4114,
+          "QCOM-EBAY": 0.3603,
+          "QCOM-GLW": 0.3554,
+          "QCOM-CIEN": 0.422,
+          "QCOM-AMZN": 0.2858,
+          "EBAY-GLW": 0.313,
+          "EBAY-CIEN": 0.3859,
+          "EBAY-AMZN": 0.5021,
+          "GLW-CIEN": 0.5136,
+          "GLW-AMZN": 0.2838,
+          "CIEN-AMZN": 0.3358
+        }
+      }
+    },
+    "ev_spac_bust": {
+      "tickers": [
+        "WKHS",
+        "HYLN",
+        "LCID",
+        "PSNY"
+      ],
+      "n_tickers": 4,
+      "common_start": "2021-11-15",
+      "end": "2026-09-18",
+      "n_trading_days": 1213,
+      "source": "이번 라운드(사전등록, 예측: 상관관계 HIGH)",
+      "correlation": {
+        "mean": 0.2795312954131565,
+        "median": 0.3050215730703924,
+        "min": 0.17288791990987099,
+        "max": 0.33428877144316776,
+        "n_pairs": 6,
+        "pairwise": {
+          "WKHS-HYLN": 0.326,
+          "WKHS-LCID": 0.3238,
+          "WKHS-PSNY": 0.1729,
+          "HYLN-LCID": 0.3343,
+          "HYLN-PSNY": 0.2339,
+          "LCID-PSNY": 0.2863
+        }
+      }
+    },
+    "biotech_catalyst": {
+      "tickers": [
+        "SRPT",
+        "IONS",
+        "RARE",
+        "ALNY",
+        "BMRN"
+      ],
+      "n_tickers": 5,
+      "common_start": "2014-08-01",
+      "end": "2026-09-18",
+      "n_trading_days": 3049,
+      "source": "이번 라운드(사전등록, 예측: 상관관계 LOW)",
+      "correlation": {
+        "mean": 0.35617852690181434,
+        "median": 0.3864852423012619,
+        "min": 0.24059741378697208,
+        "max": 0.4411763129281546,
+        "n_pairs": 10,
+        "pairwise": {
+          "SRPT-IONS": 0.2709,
+          "SRPT-RARE": 0.2772,
+          "SRPT-ALNY": 0.2406,
+          "SRPT-BMRN": 0.2681,
+          "IONS-RARE": 0.4372,
+          "IONS-ALNY": 0.4128,
+          "IONS-BMRN": 0.4408,
+          "RARE-ALNY": 0.3918,
+          "RARE-BMRN": 0.4412,
+          "ALNY-BMRN": 0.3811
+        }
+      }
+    }
+  },
+  "hypothesis_test": {
+    "meta": {
+      "method": "scipy 미설치 환경이라 스피어만/정확순열검정을 numpy로 직접 구현(표준 정의 그대로, 새 통계량 발명 없음)",
+      "n_baskets": 8
+    },
+    "per_basket": {
+      "iren": {
+        "avg_pairwise_corr": 0.5628,
+        "sharpe_gap": 0.43,
+        "reproduced": true,
+        "bh_sharpe": 0.88,
+        "rot_sharpe": 0.69,
+        "tf_basket_sharpe": 1.31
+      },
+      "shipping": {
+        "avg_pairwise_corr": 0.4222,
+        "sharpe_gap": -0.38,
+        "reproduced": false,
+        "bh_sharpe": 0.82,
+        "rot_sharpe": 1.0,
+        "tf_basket_sharpe": 0.62
+      },
+      "cannabis": {
+        "avg_pairwise_corr": 0.6251,
+        "sharpe_gap": -0.02,
+        "reproduced": false,
+        "bh_sharpe": -0.28,
+        "rot_sharpe": -0.07,
+        "tf_basket_sharpe": -0.09
+      },
+      "solar": {
+        "avg_pairwise_corr": 0.4691,
+        "sharpe_gap": 0.01,
+        "reproduced": true,
+        "bh_sharpe": 0.54,
+        "rot_sharpe": 0.69,
+        "tf_basket_sharpe": 0.7
+      },
+      "crypto_winter_2018": {
+        "avg_pairwise_corr": 0.6409,
+        "sharpe_gap": 0.27,
+        "reproduced": true,
+        "bh_sharpe": 0.97,
+        "rot_sharpe": 0.77,
+        "tf_basket_sharpe": 1.24
+      },
+      "dotcom_bubble_2000": {
+        "avg_pairwise_corr": 0.4178,
+        "sharpe_gap": -0.58,
+        "reproduced": false,
+        "bh_sharpe": 0.25,
+        "rot_sharpe": 0.88,
+        "tf_basket_sharpe": 0.3
+      },
+      "ev_spac_bust": {
+        "avg_pairwise_corr": 0.2795,
+        "sharpe_gap": 0.21,
+        "reproduced": true,
+        "bh_sharpe": -0.23,
+        "rot_sharpe": -0.51,
+        "tf_basket_sharpe": -0.02
+      },
+      "biotech_catalyst": {
+        "avg_pairwise_corr": 0.3562,
+        "sharpe_gap": -0.25,
+        "reproduced": false,
+        "bh_sharpe": 0.31,
+        "rot_sharpe": 0.26,
+        "tf_basket_sharpe": 0.06
+      }
+    },
+    "spearman_corr_vs_sharpe_gap_all8": 0.4286,
+    "spearman_corr_vs_sharpe_gap_orig6": 0.7143,
+    "exact_permutation_reproduced_grouping_all8": {
+      "observed_diff_mean_corr_A_minus_B": 0.0327,
+      "n_total_combinations": 70,
+      "exact_p_two_sided": 0.7714,
+      "percentile_of_observed": 62.86
+    },
+    "exact_permutation_reproduced_grouping_orig6": {
+      "observed_diff_mean_corr_A_minus_B": 0.0692,
+      "n_total_combinations": 20,
+      "exact_p_two_sided": 0.5,
+      "percentile_of_observed": 80.0
+    },
+    "preregistration_verdicts": {
+      "ev_spac_bust": {
+        "predicted_high_correlation": true,
+        "actual_avg_corr": 0.2795,
+        "actual_high_relative_to_existing6_median": false,
+        "correlation_mechanism_prediction_correct": false,
+        "predicted_reproduce": true,
+        "actual_reproduced": true,
+        "outcome_prediction_correct": true
+      },
+      "biotech_catalyst": {
+        "predicted_high_correlation": false,
+        "actual_avg_corr": 0.3562,
+        "actual_high_relative_to_existing6_median": false,
+        "correlation_mechanism_prediction_correct": true,
+        "predicted_reproduce": false,
+        "actual_reproduced": false,
+        "outcome_prediction_correct": true
+      }
+    }
+  }
+}

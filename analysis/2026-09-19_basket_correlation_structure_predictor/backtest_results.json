@@ -1,0 +1,234 @@
+{
+  "meta": {
+    "end_date": "2026-09-18",
+    "fee_bps_oneway": 5.0,
+    "round_trip_cost_pct": 0.1,
+    "entry_window": 20,
+    "stop_pct": 0.15,
+    "momentum_window_days": 126
+  },
+  "ev_spac_bust": {
+    "tickers": [
+      "WKHS",
+      "HYLN",
+      "LCID",
+      "PSNY"
+    ],
+    "representative": "LCID",
+    "label": "EV SPAC 붐-버스트 (2020-21 상장, 동일 실패각본)",
+    "narrative": "2020~2021년 SPAC 합병 붐을 타고 상장한 전기차 스타트업들 — Workhorse(WKHS)·Hyliion(HYLN)·Lucid(LCID)·Polestar(PSNY). 브랜드·기술은 다르지만 전부 '양산 지연 → 현금 소진 → 대규모 증자/감원'이라는 동일한 실패 각본을 순차적으로 밟았고, 금리·EV 수요 둔화 같은 같은 거시 요인에 동시에 노출된다는 점에서 IREN류(부채로 짓는 캡엑스 + 서사 촉매 중심 가격형성)와 구조적으로 가장 가까운 신규 바스켓이다.",
+    "predicted_high_correlation": true,
+    "predicted_reproduce": true,
+    "listing_dates": {
+      "WKHS": "2010-06-02",
+      "HYLN": "2020-01-02",
+      "LCID": "2020-09-18",
+      "PSNY": "2021-05-18"
+    },
+    "common_start": "2021-11-15",
+    "end": "2026-09-18",
+    "top_n": 2,
+    "representative_buy_hold_full": {
+      "metrics": {
+        "cumulative_return": -95.67,
+        "cagr": -40.77,
+        "mdd": -99.3,
+        "sharpe": -0.17,
+        "win_rate": 0.0,
+        "avg_holding_days": 2190.0,
+        "trade_count": 1,
+        "profit_factor": 0.0,
+        "calmar": -0.41,
+        "avg_drawdown_days": 14.4
+      },
+      "start": "2020-09-18",
+      "end": "2026-09-18"
+    },
+    "representative_buy_hold_common_window": {
+      "cumulative_return": -99.05,
+      "cagr": -61.78,
+      "mdd": -99.27,
+      "sharpe": -0.76,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": -0.62,
+      "avg_drawdown_days": 0.0
+    },
+    "basket_static_buy_hold": {
+      "cumulative_return": -85.84,
+      "cagr": -33.24,
+      "mdd": -93.64,
+      "sharpe": -0.23,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": -0.35,
+      "avg_drawdown_days": 0.0
+    },
+    "spy_buy_hold_common_window": {
+      "cumulative_return": 63.15,
+      "cagr": 10.65,
+      "mdd": -25.36,
+      "sharpe": 0.67,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.42,
+      "avg_drawdown_days": 22.4
+    },
+    "momentum_rotation": {
+      "cumulative_return": -73.33,
+      "cagr": -23.9,
+      "mdd": -79.63,
+      "sharpe": -0.51,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": -0.3,
+      "avg_drawdown_days": 2.0
+    },
+    "trend_following_single": {
+      "cumulative_return": -56.8,
+      "cagr": -15.93,
+      "mdd": -67.13,
+      "sharpe": -0.13,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 24,
+      "profit_factor": 0.0,
+      "calmar": -0.24,
+      "avg_drawdown_days": 0.0
+    },
+    "trend_following_basket": {
+      "cumulative_return": -64.49,
+      "cagr": -19.27,
+      "mdd": -88.2,
+      "sharpe": -0.02,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": -0.22,
+      "avg_drawdown_days": 0.0,
+      "avg_active_names": 1.01
+    }
+  },
+  "biotech_catalyst": {
+    "tickers": [
+      "SRPT",
+      "IONS",
+      "RARE",
+      "ALNY",
+      "BMRN"
+    ],
+    "representative": "SRPT",
+    "label": "희귀질환 바이오텍 촉매주 (이종 임상 파이프라인)",
+    "narrative": "Sarepta(SRPT, 듀시엔 근이영양증)·Ionis(IONS, 안티센스 플랫폼)·Ultragenyx(RARE)·Alnylam(ALNY, RNAi)·BioMarin(BMRN) — 전부 고변동성 희귀질환 바이오텍이지만, 주가를 움직이는 촉매(개별 신약의 FDA 승인/거부, 개별 임상시험 결과 발표)가 서로 완전히 독립적이다. '같은 업종'이라는 것 외에 공유하는 거시 서사가 없어, 종목 수는 IREN(6종)과 비슷하지만 상관구조는 정반대(낮음)일 것으로 예측되는 대조 바스켓.",
+    "predicted_high_correlation": false,
+    "predicted_reproduce": false,
+    "listing_dates": {
+      "SRPT": "2005-01-03",
+      "IONS": "2005-01-03",
+      "RARE": "2014-01-31",
+      "ALNY": "2005-01-03",
+      "BMRN": "2005-01-03"
+    },
+    "common_start": "2014-08-01",
+    "end": "2026-09-18",
+    "top_n": 3,
+    "representative_buy_hold_full": {
+      "metrics": {
+        "cumulative_return": 53.03,
+        "cagr": 1.98,
+        "mdd": -94.45,
+        "sharpe": 0.44,
+        "win_rate": 100.0,
+        "avg_holding_days": 7927.0,
+        "trade_count": 1,
+        "profit_factor": 999.0,
+        "calmar": 0.02,
+        "avg_drawdown_days": 205.3
+      },
+      "start": "2005-01-03",
+      "end": "2026-09-18"
+    },
+    "representative_buy_hold_common_window": {
+      "cumulative_return": -5.92,
+      "cagr": -0.5,
+      "mdd": -93.33,
+      "sharpe": 0.4,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": -0.01,
+      "avg_drawdown_days": 55.6
+    },
+    "basket_static_buy_hold": {
+      "cumulative_return": 68.79,
+      "cagr": 4.41,
+      "mdd": -58.45,
+      "sharpe": 0.31,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.08,
+      "avg_drawdown_days": 57.2
+    },
+    "spy_buy_hold_common_window": {
+      "cumulative_return": 296.16,
+      "cagr": 12.02,
+      "mdd": -34.1,
+      "sharpe": 0.74,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.35,
+      "avg_drawdown_days": 19.1
+    },
+    "momentum_rotation": {
+      "cumulative_return": 40.74,
+      "cagr": 2.86,
+      "mdd": -58.6,
+      "sharpe": 0.26,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.05,
+      "avg_drawdown_days": 49.1
+    },
+    "trend_following_single": {
+      "cumulative_return": -77.39,
+      "cagr": -11.54,
+      "mdd": -97.65,
+      "sharpe": 0.08,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 93,
+      "profit_factor": 0.0,
+      "calmar": -0.12,
+      "avg_drawdown_days": 57.2
+    },
+    "trend_following_basket": {
+      "cumulative_return": -44.14,
+      "cagr": -4.69,
+      "mdd": -83.3,
+      "sharpe": 0.06,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": -0.06,
+      "avg_drawdown_days": 42.0,
+      "avg_active_names": 3.17
+    }
+  }
+}

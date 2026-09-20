@@ -1,0 +1,19 @@
+[h3] full_2019_2026: 순열검정 시작 (n_rolls=85, window=('2019-08-12', '2026-08-19'))
+[h3]   actual_delta=-0.0900, null 90% CI=[-0.1000,-0.0900], percentile=15.0
+[h3]   zero-payoff placebo sharpe=0.960 vs real_collar=1.050 vs unhedged=1.140
+[h3] gfc_2008: 순열검정 시작 (n_rolls=36, window=('2007-10-01', '2009-06-30'))
+[h3]   actual_delta=0.1900, null 90% CI=[-0.0700,0.2005], percentile=88.5
+[h3]   zero-payoff placebo sharpe=-0.580 vs real_collar=-0.180 vs unhedged=-0.370
+[h3] covid_2020: 순열검정 시작 (n_rolls=24, window=('2020-02-19', '2020-04-30'))
+[h3]   actual_delta=0.5800, null 90% CI=[-0.4805,0.4800], percentile=98.0
+[h3]   zero-payoff placebo sharpe=-0.100 vs real_collar=0.620 vs unhedged=0.040
+[h3] bear_2022: 순열검정 시작 (n_rolls=85, window=('2022-01-01', '2022-12-31'))
+[h3]   actual_delta=0.1100, null 90% CI=[-0.2705,0.0800], percentile=96.5
+[h3]   zero-payoff placebo sharpe=-0.040 vs real_collar=0.300 vs unhedged=0.190
+[h3] selloff_2018: 순열검정 시작 (n_rolls=25, window=('2018-09-01', '2019-01-15'))
+[h3]   actual_delta=0.3100, null 90% CI=[-0.2105,0.2205], percentile=97.5
+[h3]   zero-payoff placebo sharpe=-1.840 vs real_collar=-1.360 vs unhedged=-1.670
+[h3] correction_2015_2016: 순열검정 시작 (n_rolls=25, window=('2015-08-01', '2016-02-15'))
+[h3]   actual_delta=0.0200, null 90% CI=[-0.1800,0.0805], percentile=75.5
+[h3]   zero-payoff placebo sharpe=-1.930 vs real_collar=-1.730 vs unhedged=-1.750
+[h3] 저장 완료: h3_placebo_results.json (18.0s)

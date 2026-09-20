@@ -1,0 +1,341 @@
+{
+  "meta": {
+    "end_date": "2026-09-12",
+    "fee_bps_oneway": 5.0,
+    "round_trip_cost_pct": 0.1,
+    "entry_window": 20,
+    "stop_pct": 0.15,
+    "momentum_window_days": 126
+  },
+  "shipping": {
+    "tickers": [
+      "ZIM",
+      "SBLK",
+      "DAC",
+      "FRO",
+      "STNG"
+    ],
+    "representative": "ZIM",
+    "label": "해운 운임 슈퍼사이클 (2021 붐→버스트)",
+    "narrative": "코로나 공급망 병목으로 컨테이너/벌크/탱커 운임이 사상 최고치로 치솟은 2021년 상품 사이클 — 부채로 선박을 확장한다는 점에서 IREN류의 '부채로 짓는 캡엑스' 구조와 닮았지만 서사는 AI가 아니라 순수 해운 물동량/운임 사이클이다.",
+    "listing_dates": {
+      "ZIM": "2021-01-28",
+      "SBLK": "2007-12-03",
+      "DAC": "2006-10-16",
+      "FRO": "2005-01-03",
+      "STNG": "2010-03-31"
+    },
+    "common_start": "2021-07-29",
+    "end": "2026-09-12",
+    "top_n": 3,
+    "representative_buy_hold_full": {
+      "metrics": {
+        "cumulative_return": 157.01,
+        "cagr": 18.3,
+        "mdd": -92.56,
+        "sharpe": 0.59,
+        "win_rate": 100.0,
+        "avg_holding_days": 2052.0,
+        "trade_count": 1,
+        "profit_factor": 999.0,
+        "calmar": 0.2,
+        "avg_drawdown_days": 14.5
+      },
+      "start": "2021-01-28",
+      "end": "2026-09-12"
+    },
+    "representative_buy_hold_common_window": {
+      "cumulative_return": -25.14,
+      "cagr": -5.5,
+      "mdd": -92.56,
+      "sharpe": 0.24,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": -0.06,
+      "avg_drawdown_days": 15.5
+    },
+    "basket_static_buy_hold": {
+      "cumulative_return": 218.12,
+      "cagr": 25.36,
+      "mdd": -53.41,
+      "sharpe": 0.82,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.47,
+      "avg_drawdown_days": 39.3
+    },
+    "spy_buy_hold_common_window": {
+      "cumulative_return": 73.45,
+      "cagr": 11.36,
+      "mdd": -25.36,
+      "sharpe": 0.72,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.45,
+      "avg_drawdown_days": 20.5
+    },
+    "momentum_rotation": {
+      "cumulative_return": 305.22,
+      "cagr": 31.43,
+      "mdd": -28.26,
+      "sharpe": 1.0,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 1.11,
+      "avg_drawdown_days": 32.8
+    },
+    "trend_following_single": {
+      "cumulative_return": 49.79,
+      "cagr": 8.21,
+      "mdd": -62.14,
+      "sharpe": 0.4,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 23,
+      "profit_factor": 0.0,
+      "calmar": 0.13,
+      "avg_drawdown_days": 99.2
+    },
+    "trend_following_basket": {
+      "cumulative_return": 119.94,
+      "cagr": 16.64,
+      "mdd": -54.38,
+      "sharpe": 0.62,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.31,
+      "avg_drawdown_days": 89.0,
+      "avg_active_names": 3.27
+    }
+  },
+  "cannabis": {
+    "tickers": [
+      "TLRY",
+      "CGC",
+      "ACB",
+      "CRON"
+    ],
+    "representative": "TLRY",
+    "label": "대마초 합법화 테마 (구조적 장기 하락)",
+    "narrative": "2018~2019년 합법화 기대로 급등했다가 이후 공급과잉·규제 지연으로 다년간 구조적으로 무너진 테마 — IREN류와 정반대 방향(장기 우상향이 아니라 장기 우하향)의 고변동성 테마라, '추세추종+트레일링스탑' 규율이 상승장 특유의 효과인지 방향과 무관한 효과인지를 가른다.",
+    "listing_dates": {
+      "TLRY": "2018-07-19",
+      "CGC": "2014-04-07",
+      "ACB": "2014-07-15",
+      "CRON": "2018-02-27"
+    },
+    "common_start": "2019-01-18",
+    "end": "2026-09-12",
+    "top_n": 2,
+    "representative_buy_hold_full": {
+      "metrics": {
+        "cumulative_return": -98.21,
+        "cagr": -38.95,
+        "mdd": -99.83,
+        "sharpe": 0.08,
+        "win_rate": 0.0,
+        "avg_holding_days": 2976.0,
+        "trade_count": 1,
+        "profit_factor": 0.0,
+        "calmar": -0.39,
+        "avg_drawdown_days": 6.2
+      },
+      "start": "2018-07-19",
+      "end": "2026-09-12"
+    },
+    "representative_buy_hold_common_window": {
+      "cumulative_return": -99.48,
+      "cagr": -49.72,
+      "mdd": -99.57,
+      "sharpe": -0.16,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": -0.5,
+      "avg_drawdown_days": 6.0
+    },
+    "basket_static_buy_hold": {
+      "cumulative_return": -94.43,
+      "cagr": -31.45,
+      "mdd": -97.58,
+      "sharpe": -0.28,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": -0.32,
+      "avg_drawdown_days": 2.0
+    },
+    "spy_buy_hold_common_window": {
+      "cumulative_return": 186.83,
+      "cagr": 14.77,
+      "mdd": -34.1,
+      "sharpe": 0.81,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.43,
+      "avg_drawdown_days": 16.1
+    },
+    "momentum_rotation": {
+      "cumulative_return": -68.01,
+      "cagr": -13.85,
+      "mdd": -91.13,
+      "sharpe": -0.07,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": -0.15,
+      "avg_drawdown_days": 120.7
+    },
+    "trend_following_single": {
+      "cumulative_return": -83.89,
+      "cagr": -21.24,
+      "mdd": -94.45,
+      "sharpe": -0.1,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 37,
+      "profit_factor": 0.0,
+      "calmar": -0.22,
+      "avg_drawdown_days": 296.0
+    },
+    "trend_following_basket": {
+      "cumulative_return": -85.61,
+      "cagr": -22.4,
+      "mdd": -93.92,
+      "sharpe": -0.09,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": -0.24,
+      "avg_drawdown_days": 15.0,
+      "avg_active_names": 1.15
+    }
+  },
+  "solar": {
+    "tickers": [
+      "ENPH",
+      "SEDG",
+      "RUN",
+      "FSLR",
+      "PLUG"
+    ],
+    "representative": "ENPH",
+    "label": "태양광/클린에너지 ESG 테마 (2020-21 붐, 2022-23 버스트)",
+    "narrative": "2020-21년 ESG 자금유입·저금리로 급등했다가 2022년 금리인상과 함께 대부분 고점 대비 80~90% 폭락한 테마 — IREN류처럼 '붐→버스트 사이클'을 가졌지만 서사가 AI가 아니라 재생에너지/금리다.",
+    "listing_dates": {
+      "ENPH": "2012-03-30",
+      "SEDG": "2015-03-26",
+      "RUN": "2015-08-05",
+      "FSLR": "2006-11-17",
+      "PLUG": "2005-01-03"
+    },
+    "common_start": "2016-02-04",
+    "end": "2026-09-12",
+    "top_n": 3,
+    "representative_buy_hold_full": {
+      "metrics": {
+        "cumulative_return": 395.0,
+        "cagr": 11.7,
+        "mdd": -95.97,
+        "sharpe": 0.54,
+        "win_rate": 100.0,
+        "avg_holding_days": 5278.0,
+        "trade_count": 1,
+        "profit_factor": 999.0,
+        "calmar": 0.12,
+        "avg_drawdown_days": 77.7
+      },
+      "start": "2012-03-30",
+      "end": "2026-09-12"
+    },
+    "representative_buy_hold_common_window": {
+      "cumulative_return": 1473.59,
+      "cagr": 29.69,
+      "mdd": -92.23,
+      "sharpe": 0.72,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.32,
+      "avg_drawdown_days": 35.6
+    },
+    "basket_static_buy_hold": {
+      "cumulative_return": 346.1,
+      "cagr": 15.15,
+      "mdd": -89.27,
+      "sharpe": 0.54,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.17,
+      "avg_drawdown_days": 31.1
+    },
+    "spy_buy_hold_common_window": {
+      "cumulative_return": 298.9,
+      "cagr": 13.94,
+      "mdd": -34.1,
+      "sharpe": 0.83,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.41,
+      "avg_drawdown_days": 16.9
+    },
+    "momentum_rotation": {
+      "cumulative_return": 849.3,
+      "cagr": 23.65,
+      "mdd": -70.09,
+      "sharpe": 0.69,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.34,
+      "avg_drawdown_days": 29.5
+    },
+    "trend_following_single": {
+      "cumulative_return": 2554.64,
+      "cagr": 36.25,
+      "mdd": -80.17,
+      "sharpe": 0.84,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 57,
+      "profit_factor": 0.0,
+      "calmar": 0.45,
+      "avg_drawdown_days": 43.0
+    },
+    "trend_following_basket": {
+      "cumulative_return": 1073.0,
+      "cagr": 26.14,
+      "mdd": -83.78,
+      "sharpe": 0.7,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.31,
+      "avg_drawdown_days": 21.6,
+      "avg_active_names": 2.42
+    }
+  }
+}

@@ -1,0 +1,231 @@
+{
+  "episodes": {
+    "gfc_2008": [
+      "2007-01-01",
+      "2009-12-31",
+      "2007-10-01",
+      "2009-06-30"
+    ],
+    "correction_2015_2016": [
+      "2014-06-01",
+      "2016-06-30",
+      "2015-08-01",
+      "2016-02-15"
+    ],
+    "selloff_2018": [
+      "2017-06-01",
+      "2019-06-30",
+      "2018-09-01",
+      "2019-01-15"
+    ],
+    "bear_2022": [
+      "2019-08-12",
+      "2026-08-19",
+      "2022-01-01",
+      "2022-12-31"
+    ],
+    "covid_2020": [
+      "2019-01-01",
+      "2020-12-31",
+      "2020-02-19",
+      "2020-04-30"
+    ],
+    "full_2019_2026": [
+      "2019-08-12",
+      "2026-08-19",
+      "2019-08-12",
+      "2026-08-19"
+    ]
+  },
+  "episode_order": [
+    "full_2019_2026",
+    "gfc_2008",
+    "covid_2020",
+    "bear_2022",
+    "selloff_2018",
+    "correction_2015_2016"
+  ],
+  "full_window_groups": {
+    "gfc_2008": "gfc_2008",
+    "correction_2015_2016": "correction_2015_2016",
+    "selloff_2018": "selloff_2018",
+    "covid_2020": "covid_2020",
+    "bear_2022": "full_2019_2026_shared",
+    "full_2019_2026": "full_2019_2026_shared"
+  },
+  "group_computation_meta": {
+    "correction_2015_2016": {
+      "full_start": "2014-06-01",
+      "full_end": "2016-06-30",
+      "elapsed_sec": 232.6,
+      "n_days": 525,
+      "satellite_weight_applied": 0.15,
+      "core_metrics": {
+        "cumulative_return": -5.79,
+        "cagr": -2.83,
+        "mdd": -16.82,
+        "sharpe": -0.19,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": -0.17,
+        "avg_drawdown_days": 14.6
+      },
+      "satellite_tickers_ever_held": [
+        "AAPL",
+        "AET",
+        "AMZN",
+        "GILD",
+        "GOOG",
+        "GOOGL",
+        "INTC",
+        "NFLX",
+        "SLB",
+        "UNP"
+      ]
+    },
+    "covid_2020": {
+      "full_start": "2019-01-01",
+      "full_end": "2020-12-31",
+      "elapsed_sec": 224.1,
+      "n_days": 504,
+      "satellite_weight_applied": 0.15,
+      "core_metrics": {
+        "cumulative_return": 27.53,
+        "cagr": 12.98,
+        "mdd": -9.07,
+        "sharpe": 1.14,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 1.43,
+        "avg_drawdown_days": 15.3
+      },
+      "satellite_tickers_ever_held": [
+        "AAPL",
+        "AMT",
+        "APD",
+        "ECL",
+        "MKTX",
+        "MRK",
+        "MSFT",
+        "NEE",
+        "NVDA",
+        "PFE",
+        "PLD"
+      ]
+    },
+    "full_2019_2026_shared": {
+      "full_start": "2019-08-12",
+      "full_end": "2026-08-19",
+      "elapsed_sec": 779.2,
+      "n_days": 1764,
+      "satellite_weight_applied": 0.15,
+      "core_metrics": {
+        "cumulative_return": 139.19,
+        "cagr": 13.23,
+        "mdd": -17.74,
+        "sharpe": 1.03,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.75,
+        "avg_drawdown_days": 20.2
+      },
+      "satellite_tickers_ever_held": [
+        "AAPL",
+        "AVGO",
+        "CAT",
+        "COP",
+        "CVX",
+        "ETSY",
+        "GE",
+        "GEV",
+        "GOOGL",
+        "JNJ",
+        "LLY",
+        "META",
+        "MKTX",
+        "MSFT",
+        "NEM",
+        "NFLX",
+        "NVDA",
+        "PLD",
+        "SO",
+        "TSLA",
+        "UNH",
+        "XOM"
+      ]
+    },
+    "gfc_2008": {
+      "full_start": "2007-01-01",
+      "full_end": "2009-12-31",
+      "elapsed_sec": 325.5,
+      "n_days": 755,
+      "satellite_weight_applied": 0.15,
+      "core_metrics": {
+        "cumulative_return": 28.93,
+        "cagr": 8.87,
+        "mdd": -13.68,
+        "sharpe": 0.73,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.65,
+        "avg_drawdown_days": 25.2
+      },
+      "satellite_tickers_ever_held": [
+        "AAPL",
+        "AMZN",
+        "BBT",
+        "CME",
+        "CSCO",
+        "CSX",
+        "ESRX",
+        "FCX",
+        "MCD",
+        "NOV",
+        "PSA",
+        "SLB",
+        "T",
+        "WMT"
+      ]
+    },
+    "selloff_2018": {
+      "full_start": "2017-06-01",
+      "full_end": "2019-06-30",
+      "elapsed_sec": 221.5,
+      "n_days": 523,
+      "satellite_weight_applied": 0.15,
+      "core_metrics": {
+        "cumulative_return": 5.6,
+        "cagr": 2.66,
+        "mdd": -15.5,
+        "sharpe": 0.28,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.17,
+        "avg_drawdown_days": 6.1
+      },
+      "satellite_tickers_ever_held": [
+        "AAPL",
+        "AMZN",
+        "BA",
+        "BAC",
+        "ILMN",
+        "MRK",
+        "NEE",
+        "PFE",
+        "SHW"
+      ]
+    }
+  },
+  "satellite_weight": 0.15,
+  "total_elapsed_sec": 1782.9
+}

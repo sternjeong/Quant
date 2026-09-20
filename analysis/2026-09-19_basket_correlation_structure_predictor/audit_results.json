@@ -1,0 +1,183 @@
+{
+  "meta": {
+    "entry_window": 20,
+    "stop_pct": 0.15,
+    "n_permutations": 200,
+    "block_lengths": [
+      10,
+      20,
+      40
+    ],
+    "n_boot": 2000,
+    "seed": 20260919,
+    "end": "2026-09-18",
+    "methodology": "순열검정: core.backtest_engine._shuffle_daily_bars 재사용(작업32/작업77과 동일 방법). 블록부트스트랩: h33_block_bootstrap_sample_error.moving_block_bootstrap_sharpe 그대로 재사용(작업48/77과 동일 방법).",
+    "iren_reference": {
+      "note": "작업48(감사1) 결과(비교 기준선)",
+      "permutation_basket_percentile": 93.0,
+      "permutation_basket_p": 0.075,
+      "permutation_single_percentile": 100.0,
+      "permutation_single_p": 0.005
+    }
+  },
+  "ev_spac_bust": {
+    "common_start": "2021-11-15",
+    "representative": "LCID",
+    "permutation_basket": {
+      "actual_sharpe": -0.02,
+      "percentile": 53.0,
+      "p_value": 0.4726,
+      "permuted_mean": -0.0883,
+      "permuted_std": 0.4092
+    },
+    "permutation_single": {
+      "actual_sharpe": -0.13,
+      "percentile": 44.0,
+      "p_value": 0.5622,
+      "permuted_mean": -0.119,
+      "permuted_std": 0.3702
+    },
+    "bootstrap": {
+      "basket": {
+        "point_estimate_sharpe": -0.0153,
+        "n_obs": 1214,
+        "by_block_len": {
+          "10": {
+            "ci90": [
+              -0.7662572822905921,
+              0.6856887447859101
+            ],
+            "pct_le_zero": 0.5245,
+            "width": 1.4519460270765023
+          },
+          "20": {
+            "ci90": [
+              -0.7989051650126322,
+              0.7336442530785524
+            ],
+            "pct_le_zero": 0.531,
+            "width": 1.5325494180911847
+          },
+          "40": {
+            "ci90": [
+              -0.7498103290327559,
+              0.6633937776129522
+            ],
+            "pct_le_zero": 0.52,
+            "width": 1.4132041066457082
+          }
+        }
+      },
+      "single": {
+        "point_estimate_sharpe": -0.1317,
+        "n_obs": 1214,
+        "by_block_len": {
+          "10": {
+            "ci90": [
+              -0.8958096381086527,
+              0.4490662205074019
+            ],
+            "pct_le_zero": 0.663,
+            "width": 1.3448758586160545
+          },
+          "20": {
+            "ci90": [
+              -0.7566156472077051,
+              0.3575992575775923
+            ],
+            "pct_le_zero": 0.6655,
+            "width": 1.1142149047852974
+          },
+          "40": {
+            "ci90": [
+              -0.6920981392126477,
+              0.3173855333416133
+            ],
+            "pct_le_zero": 0.6845,
+            "width": 1.009483672554261
+          }
+        }
+      }
+    }
+  },
+  "biotech_catalyst": {
+    "common_start": "2014-08-01",
+    "representative": "SRPT",
+    "permutation_basket": {
+      "actual_sharpe": 0.06,
+      "percentile": 1.0,
+      "p_value": 0.99,
+      "permuted_mean": 0.5845,
+      "permuted_std": 0.2245
+    },
+    "permutation_single": {
+      "actual_sharpe": 0.08,
+      "percentile": 18.0,
+      "p_value": 0.8209,
+      "permuted_mean": 0.2843,
+      "permuted_std": 0.2283
+    },
+    "bootstrap": {
+      "basket": {
+        "point_estimate_sharpe": 0.0638,
+        "n_obs": 3050,
+        "by_block_len": {
+          "10": {
+            "ci90": [
+              -0.3933950192214168,
+              0.523640198114767
+            ],
+            "pct_le_zero": 0.3935,
+            "width": 0.9170352173361838
+          },
+          "20": {
+            "ci90": [
+              -0.39877782718532834,
+              0.5162900656450057
+            ],
+            "pct_le_zero": 0.3805,
+            "width": 0.915067892830334
+          },
+          "40": {
+            "ci90": [
+              -0.4016069020580487,
+              0.5275055001256854
+            ],
+            "pct_le_zero": 0.4015,
+            "width": 0.9291124021837341
+          }
+        }
+      },
+      "single": {
+        "point_estimate_sharpe": 0.0786,
+        "n_obs": 3050,
+        "by_block_len": {
+          "10": {
+            "ci90": [
+              -0.41397275372102416,
+              0.5445472439643738
+            ],
+            "pct_le_zero": 0.406,
+            "width": 0.958519997685398
+          },
+          "20": {
+            "ci90": [
+              -0.4298673301824665,
+              0.5342121047479783
+            ],
+            "pct_le_zero": 0.4045,
+            "width": 0.9640794349304448
+          },
+          "40": {
+            "ci90": [
+              -0.43006875848405696,
+              0.5589993083339285
+            ],
+            "pct_le_zero": 0.399,
+            "width": 0.9890680668179854
+          }
+        }
+      }
+    }
+  }
+}

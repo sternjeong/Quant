@@ -1,0 +1,50 @@
+[h_boot] 일별수익률 CSV 로드...
+[h_boot]   full_2019_2026: n_obs=1764
+[h_boot]   gfc_2008: n_obs=441
+[h_boot]   covid_2020: n_obs=51
+[h_boot]   bear_2022: n_obs=251
+[h_boot]   selloff_2018: n_obs=92
+[h_boot]   correction_2015_2016: n_obs=135
+[h_boot] 블록부트스트랩 (2,000회 x 3개 블록길이 x 5개구성 x 6개창)...
+[h_boot]   full_2019_2026/core_alone: point=1.033, L20 CI90=[0.5182665089429537, 1.5654288957180025]
+[h_boot]   full_2019_2026/core_plus_static_satellite: point=1.140, L20 CI90=[0.6231363785814821, 1.6931845945741348]
+[h_boot]   full_2019_2026/switch_spy: point=1.090, L20 CI90=[0.5694379889489399, 1.6255646131460515]
+[h_boot]   full_2019_2026/switch_holdings_corr: point=1.097, L20 CI90=[0.5835472139828202, 1.677731819660687]
+[h_boot]   full_2019_2026/switch_spy_or_holdings_corr: point=1.108, L20 CI90=[0.5899013310286556, 1.635108629462309]
+[h_boot]   gfc_2008/core_alone: point=0.286, L20 CI90=[-0.8358606985169157, 1.4742411458642775]
+[h_boot]   gfc_2008/core_plus_static_satellite: point=-0.162, L20 CI90=[-1.263427180596075, 1.074508301358267]
+[h_boot]   gfc_2008/switch_spy: point=0.299, L20 CI90=[-0.8721840398423037, 1.5245104254970248]
+[h_boot]   gfc_2008/switch_holdings_corr: point=-0.164, L20 CI90=[-1.2131751831418134, 0.8964959975149708]
+[h_boot]   gfc_2008/switch_spy_or_holdings_corr: point=-0.164, L20 CI90=[-1.1613965319024002, 0.9477228243516612]
+[h_boot]   covid_2020/core_alone: point=0.127, L20 CI90=[-2.83451032720491, 4.894367718708379]
+[h_boot]   covid_2020/core_plus_static_satellite: point=0.042, L20 CI90=[-2.841067776555711, 4.45476152699933]
+[h_boot]   covid_2020/switch_spy: point=-0.729, L20 CI90=[-4.1077399094616815, 4.714618437277379]
+[h_boot]   covid_2020/switch_holdings_corr: point=0.024, L20 CI90=[-3.089978991408524, 4.831154040738808]
+[h_boot]   covid_2020/switch_spy_or_holdings_corr: point=-0.534, L20 CI90=[-3.908292699305452, 4.680965648331496]
+[h_boot]   bear_2022/core_alone: point=0.239, L20 CI90=[-1.132423760645769, 1.735612440962854]
+[h_boot]   bear_2022/core_plus_static_satellite: point=0.187, L20 CI90=[-1.1357681471863514, 1.687476159615638]
+[h_boot]   bear_2022/switch_spy: point=0.221, L20 CI90=[-1.1153115192257037, 1.6333082798625604]
+[h_boot]   bear_2022/switch_holdings_corr: point=0.123, L20 CI90=[-1.227116395437604, 1.6261011386349455]
+[h_boot]   bear_2022/switch_spy_or_holdings_corr: point=0.151, L20 CI90=[-1.1725915497337944, 1.6897801581697722]
+[h_boot]   selloff_2018/core_alone: point=-1.882, L20 CI90=[-3.3347625535727956, -0.04681356005697024]
+[h_boot]   selloff_2018/core_plus_static_satellite: point=-1.656, L20 CI90=[-3.107296143082809, 0.028991525415004632]
+[h_boot]   selloff_2018/switch_spy: point=-2.145, L20 CI90=[-3.613427696039373, -0.2759753942715563]
+[h_boot]   selloff_2018/switch_holdings_corr: point=-1.559, L20 CI90=[-3.1045474260276236, 0.21584340385174658]
+[h_boot]   selloff_2018/switch_spy_or_holdings_corr: point=-1.627, L20 CI90=[-3.1195602132560376, 0.18916862963643033]
+[h_boot]   correction_2015_2016/core_alone: point=-1.890, L20 CI90=[-3.083914330742636, -0.5282246139795846]
+[h_boot]   correction_2015_2016/core_plus_static_satellite: point=-1.739, L20 CI90=[-2.998784210784568, -0.41692647738951116]
+[h_boot]   correction_2015_2016/switch_spy: point=-1.726, L20 CI90=[-2.9582893809404758, -0.3376833172560259]
+[h_boot]   correction_2015_2016/switch_holdings_corr: point=-1.871, L20 CI90=[-3.146888908637462, -0.4764397012648637]
+[h_boot]   correction_2015_2016/switch_spy_or_holdings_corr: point=-1.871, L20 CI90=[-3.1224729085561513, -0.44092711842917753]
+[h_boot] 순열검정(순환이동 플라시보, pool_corr/holdings_corr 신호, full_2019_2026 창)...
+Traceback (most recent call last):
+  File "/opt/quant/analysis/2026-09-14_satellite_correlation_crisis_signal/h_bootstrap_and_permutation.py", line 276, in <module>
+    main()
+  File "/opt/quant/analysis/2026-09-14_satellite_correlation_crisis_signal/h_bootstrap_and_permutation.py", line 240, in main
+    perm_result_pool = circular_shift_permutation_test(core_full, sat_full, bulls_full["pool_corr_bull"].astype(bool), w, n_perm=500)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/quant/analysis/2026-09-14_satellite_correlation_crisis_signal/h_bootstrap_and_permutation.py", line 161, in circular_shift_permutation_test
+    from h12_regime_switch import build_regime_switched_weight_series, blend_returns_time_varying
+  File "/opt/quant/analysis/2026-08-22_regime_conditional_satellite_switch/h12_regime_switch.py", line 44, in <module>
+    from champion_strategy import MARKET_FILTER_MA, compute_portfolio_returns
+ModuleNotFoundError: No module named 'champion_strategy'

@@ -1,0 +1,58 @@
+[h4] full_2019_2026: window=2019-08-12~2026-08-19, n_obs=1764
+[h4] gfc_2008: window=2007-10-01~2009-06-30, n_obs=441
+[h4] covid_2020: window=2020-02-19~2020-04-30, n_obs=51
+[h4] bear_2022: window=2022-01-01~2022-12-31, n_obs=251
+[h4] selloff_2018: window=2018-09-01~2019-01-15, n_obs=92
+[h4] correction_2015_2016: window=2015-08-01~2016-02-15, n_obs=135
+[h4]   full_2019_2026/unhedged_satellite: point=1.140 L20_CI90=[0.5914166100642267, 1.6746550919723737]
+[h4]   full_2019_2026/collar_baseline: point=1.047 L20_CI90=[0.5289615215098691, 1.5860316094319447]
+[h4]   full_2019_2026/collar_deep_otm_put: point=1.162 L20_CI90=[0.6416730238010244, 1.6980768444279999]
+[h4]   full_2019_2026/collar_wide_otm_call: point=1.035 L20_CI90=[0.5019317064872277, 1.5419747879915726]
+[h4]   full_2019_2026/collar_long_tenor: point=0.874 L20_CI90=[0.36466176182791543, 1.4185770011123573]
+[h4]   full_2019_2026/collar_zero_cost: point=0.993 L20_CI90=[0.5141942721544839, 1.5120159822240797]
+[h4]   gfc_2008/unhedged_satellite: point=-0.370 L20_CI90=[-1.3482413032078135, 0.6267388626447307]
+[h4]   gfc_2008/collar_baseline: point=-0.182 L20_CI90=[-1.141205759751941, 0.8362683677607763]
+[h4]   gfc_2008/collar_deep_otm_put: point=-0.274 L20_CI90=[-1.2757842240261332, 0.6977521684811973]
+[h4]   gfc_2008/collar_wide_otm_call: point=-0.203 L20_CI90=[-1.171667162950967, 0.7511607041805185]
+[h4]   gfc_2008/collar_long_tenor: point=0.264 L20_CI90=[-0.6989851272529859, 1.2925459870995584]
+[h4]   gfc_2008/collar_zero_cost: point=-0.123 L20_CI90=[-1.075345736643259, 0.8182361127122225]
+[h4]   covid_2020/unhedged_satellite: point=0.042 L20_CI90=[-3.0780212829342917, 4.338849951699191]
+[h4]   covid_2020/collar_baseline: point=0.610 L20_CI90=[-2.8502465742338323, 5.204284768547094]
+[h4]   covid_2020/collar_deep_otm_put: point=0.397 L20_CI90=[-2.913397338624256, 5.025240453159048]
+[h4]   covid_2020/collar_wide_otm_call: point=0.520 L20_CI90=[-2.9165007604347553, 5.102922542132141]
+[h4]   covid_2020/collar_long_tenor: point=0.645 L20_CI90=[-3.1682468380222697, 4.832733320223465]
+[h4]   covid_2020/collar_zero_cost: point=0.741 L20_CI90=[-2.5444888209518473, 5.740305553904734]
+[h4]   bear_2022/unhedged_satellite: point=0.187 L20_CI90=[-1.155556050574247, 1.6560946866852784]
+[h4]   bear_2022/collar_baseline: point=0.297 L20_CI90=[-0.9267382546172536, 1.6813530966364907]
+[h4]   bear_2022/collar_deep_otm_put: point=0.257 L20_CI90=[-1.1213730416409073, 1.6780489953275635]
+[h4]   bear_2022/collar_wide_otm_call: point=0.247 L20_CI90=[-1.0113815518060951, 1.6166171017101654]
+[h4]   bear_2022/collar_long_tenor: point=0.579 L20_CI90=[-0.676830816347357, 2.0815973154032585]
+[h4]   bear_2022/collar_zero_cost: point=0.307 L20_CI90=[-0.9358797674084294, 1.6281212734334454]
+[h4]   selloff_2018/unhedged_satellite: point=-1.656 L20_CI90=[-3.0542710776029187, 0.21714130386291916]
+[h4]   selloff_2018/collar_baseline: point=-1.345 L20_CI90=[-2.874459306681062, 0.38185528080234005]
+[h4]   selloff_2018/collar_deep_otm_put: point=-1.601 L20_CI90=[-3.037088807086157, 0.15548747357569523]
+[h4]   selloff_2018/collar_wide_otm_call: point=-1.391 L20_CI90=[-2.94422487362723, 0.318793596298803]
+[h4]   selloff_2018/collar_long_tenor: point=-1.310 L20_CI90=[-2.8332730782800506, 0.4428836207863835]
+[h4]   selloff_2018/collar_zero_cost: point=-1.232 L20_CI90=[-2.8304129786685315, 0.5241586249913041]
+[h4]   correction_2015_2016/unhedged_satellite: point=-1.739 L20_CI90=[-2.9441442858983926, -0.35642991350745623]
+[h4]   correction_2015_2016/collar_baseline: point=-1.716 L20_CI90=[-2.8831763546684033, -0.3938144521031534]
+[h4]   correction_2015_2016/collar_deep_otm_put: point=-1.735 L20_CI90=[-2.9166680972042447, -0.44305793247979564]
+[h4]   correction_2015_2016/collar_wide_otm_call: point=-1.714 L20_CI90=[-2.9104456495767583, -0.4397225388908321]
+[h4]   correction_2015_2016/collar_long_tenor: point=-1.628 L20_CI90=[-2.7985644311611764, -0.14912582080399375]
+[h4]   correction_2015_2016/collar_zero_cost: point=-1.618 L20_CI90=[-2.7852456839584625, -0.38103052586959735]
+[h4]   combined[base] collar_baseline vs unhedged_satellite: win_rate=0.529
+[h4]   combined[base] collar_deep_otm_put vs unhedged_satellite: win_rate=0.532
+[h4]   combined[base] collar_wide_otm_call vs unhedged_satellite: win_rate=0.508
+[h4]   combined[base] collar_long_tenor vs unhedged_satellite: win_rate=0.515
+[h4]   combined[base] collar_zero_cost vs unhedged_satellite: win_rate=0.543
+[h4]   combined[calm_heavy] collar_baseline vs unhedged_satellite: win_rate=0.507
+[h4]   combined[calm_heavy] collar_deep_otm_put vs unhedged_satellite: win_rate=0.517
+[h4]   combined[calm_heavy] collar_wide_otm_call vs unhedged_satellite: win_rate=0.470
+[h4]   combined[calm_heavy] collar_long_tenor vs unhedged_satellite: win_rate=0.428
+[h4]   combined[calm_heavy] collar_zero_cost vs unhedged_satellite: win_rate=0.489
+[h4]   combined[crisis_heavy] collar_baseline vs unhedged_satellite: win_rate=0.570
+[h4]   combined[crisis_heavy] collar_deep_otm_put vs unhedged_satellite: win_rate=0.535
+[h4]   combined[crisis_heavy] collar_wide_otm_call vs unhedged_satellite: win_rate=0.533
+[h4]   combined[crisis_heavy] collar_long_tenor vs unhedged_satellite: win_rate=0.588
+[h4]   combined[crisis_heavy] collar_zero_cost vs unhedged_satellite: win_rate=0.590
+[h4] 저장 완료: h4_bootstrap_results.json (22.6s)

@@ -1,0 +1,1885 @@
+{
+  "meta": {
+    "generated": "2026-09-15",
+    "episode_order": [
+      "full_2019_2026",
+      "gfc_2008",
+      "covid_2020",
+      "bear_2022",
+      "selloff_2018",
+      "correction_2015_2016"
+    ],
+    "episodes_raw": {
+      "gfc_2008": [
+        "2007-01-01",
+        "2009-12-31",
+        "2007-10-01",
+        "2009-06-30"
+      ],
+      "correction_2015_2016": [
+        "2014-06-01",
+        "2016-06-30",
+        "2015-08-01",
+        "2016-02-15"
+      ],
+      "selloff_2018": [
+        "2017-06-01",
+        "2019-06-30",
+        "2018-09-01",
+        "2019-01-15"
+      ],
+      "bear_2022": [
+        "2019-08-12",
+        "2026-08-19",
+        "2022-01-01",
+        "2022-12-31"
+      ],
+      "covid_2020": [
+        "2019-01-01",
+        "2020-12-31",
+        "2020-02-19",
+        "2020-04-30"
+      ],
+      "full_2019_2026": [
+        "2019-08-12",
+        "2026-08-19",
+        "2019-08-12",
+        "2026-08-19"
+      ]
+    },
+    "satellite_weight": 0.15,
+    "collar_baseline": {
+      "put_moneyness": 1.0,
+      "call_moneyness": 1.05,
+      "tenor_days": 21
+    },
+    "n_permutations": 200,
+    "bootstrap_n_boot": 2000,
+    "bootstrap_block_lengths": [
+      10,
+      20,
+      40
+    ],
+    "variants": {
+      "collar_baseline": {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.05,
+        "tenor_days": 21
+      },
+      "collar_deep_otm_put": {
+        "put_moneyness": 0.9,
+        "call_moneyness": 1.05,
+        "tenor_days": 21
+      },
+      "collar_wide_otm_call": {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.1,
+        "tenor_days": 21
+      },
+      "collar_long_tenor": {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.05,
+        "tenor_days": 63
+      },
+      "collar_zero_cost": {
+        "put_moneyness": 1.0,
+        "call_moneyness": null,
+        "tenor_days": 21,
+        "zero_cost": true
+      }
+    },
+    "base_rate_scenarios": {
+      "base": {
+        "full_2019_2026": 0.5,
+        "gfc_2008": 0.03,
+        "covid_2020": 0.04,
+        "bear_2022": 0.1,
+        "selloff_2018": 0.16,
+        "correction_2015_2016": 0.17
+      },
+      "calm_heavy": {
+        "full_2019_2026": 0.65,
+        "gfc_2008": 0.015,
+        "covid_2020": 0.02,
+        "bear_2022": 0.065,
+        "selloff_2018": 0.12,
+        "correction_2015_2016": 0.13
+      },
+      "crisis_heavy": {
+        "full_2019_2026": 0.35,
+        "gfc_2008": 0.06,
+        "covid_2020": 0.07,
+        "bear_2022": 0.14,
+        "selloff_2018": 0.19,
+        "correction_2015_2016": 0.19
+      }
+    }
+  },
+  "baseline_table": {
+    "full_2019_2026": {
+      "n_rolls": 85,
+      "cum_premium_pct": -123.798,
+      "cum_payoff_pct": 66.234,
+      "window_used": "full_period",
+      "core_alone": {
+        "cumulative_return": 139.19,
+        "cagr": 13.23,
+        "mdd": -17.74,
+        "sharpe": 1.03,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.75,
+        "avg_drawdown_days": 20.2
+      },
+      "unhedged_satellite": {
+        "cumulative_return": 191.31,
+        "cagr": 16.46,
+        "mdd": -18.45,
+        "sharpe": 1.14,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.89,
+        "avg_drawdown_days": 17.6
+      },
+      "collar_hedged": {
+        "cumulative_return": 166.96,
+        "cagr": 15.02,
+        "mdd": -17.23,
+        "sharpe": 1.05,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.87,
+        "avg_drawdown_days": 19.0
+      }
+    },
+    "gfc_2008": {
+      "n_rolls": 36,
+      "cum_premium_pct": -57.235,
+      "cum_payoff_pct": 73.893,
+      "window_used": "crisis_window",
+      "core_alone": {
+        "cumulative_return": 1.36,
+        "cagr": 0.78,
+        "mdd": -13.68,
+        "sharpe": 0.12,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.06,
+        "avg_drawdown_days": 11.7
+      },
+      "unhedged_satellite": {
+        "cumulative_return": -10.67,
+        "cagr": -6.25,
+        "mdd": -22.52,
+        "sharpe": -0.37,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": -0.28,
+        "avg_drawdown_days": 13.2
+      },
+      "collar_hedged": {
+        "cumulative_return": -6.46,
+        "cagr": -3.75,
+        "mdd": -20.52,
+        "sharpe": -0.18,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": -0.18,
+        "avg_drawdown_days": 13.1
+      }
+    },
+    "covid_2020": {
+      "n_rolls": 24,
+      "cum_premium_pct": -37.642,
+      "cum_payoff_pct": 7.032,
+      "window_used": "crisis_window",
+      "core_alone": {
+        "cumulative_return": 0.17,
+        "cagr": 0.86,
+        "mdd": -6.71,
+        "sharpe": 0.13,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.13,
+        "avg_drawdown_days": 31.0
+      },
+      "unhedged_satellite": {
+        "cumulative_return": -0.25,
+        "cagr": -1.29,
+        "mdd": -9.58,
+        "sharpe": 0.04,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": -0.13,
+        "avg_drawdown_days": 0.0
+      },
+      "collar_hedged": {
+        "cumulative_return": 2.19,
+        "cagr": 11.77,
+        "mdd": -9.36,
+        "sharpe": 0.62,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 1.26,
+        "avg_drawdown_days": 11.8
+      }
+    },
+    "bear_2022": {
+      "n_rolls": 85,
+      "cum_premium_pct": -123.798,
+      "cum_payoff_pct": 66.234,
+      "window_used": "crisis_window",
+      "core_alone": {
+        "cumulative_return": 2.19,
+        "cagr": 2.21,
+        "mdd": -11.05,
+        "sharpe": 0.24,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.2,
+        "avg_drawdown_days": 6.8
+      },
+      "unhedged_satellite": {
+        "cumulative_return": 1.6,
+        "cagr": 1.62,
+        "mdd": -12.54,
+        "sharpe": 0.19,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.13,
+        "avg_drawdown_days": 8.9
+      },
+      "collar_hedged": {
+        "cumulative_return": 3.15,
+        "cagr": 3.19,
+        "mdd": -11.41,
+        "sharpe": 0.3,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": 0.28,
+        "avg_drawdown_days": 11.7
+      }
+    },
+    "selloff_2018": {
+      "n_rolls": 25,
+      "cum_premium_pct": -31.732,
+      "cum_payoff_pct": 27.821,
+      "window_used": "crisis_window",
+      "core_alone": {
+        "cumulative_return": -9.71,
+        "cagr": -24.45,
+        "mdd": -14.6,
+        "sharpe": -1.9,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": -1.67,
+        "avg_drawdown_days": 6.7
+      },
+      "unhedged_satellite": {
+        "cumulative_return": -10.4,
+        "cagr": -26.03,
+        "mdd": -16.47,
+        "sharpe": -1.67,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": -1.58,
+        "avg_drawdown_days": 6.3
+      },
+      "collar_hedged": {
+        "cumulative_return": -8.94,
+        "cagr": -22.69,
+        "mdd": -15.82,
+        "sharpe": -1.36,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": -1.43,
+        "avg_drawdown_days": 6.3
+      }
+    },
+    "correction_2015_2016": {
+      "n_rolls": 25,
+      "cum_premium_pct": -36.193,
+      "cum_payoff_pct": 26.875,
+      "window_used": "crisis_window",
+      "core_alone": {
+        "cumulative_return": -14.58,
+        "cagr": -25.79,
+        "mdd": -15.09,
+        "sharpe": -1.9,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": -1.71,
+        "avg_drawdown_days": 1.0
+      },
+      "unhedged_satellite": {
+        "cumulative_return": -14.94,
+        "cagr": -26.37,
+        "mdd": -16.1,
+        "sharpe": -1.75,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": -1.64,
+        "avg_drawdown_days": 0.0
+      },
+      "collar_hedged": {
+        "cumulative_return": -14.48,
+        "cagr": -25.62,
+        "mdd": -15.48,
+        "sharpe": -1.73,
+        "win_rate": 0.0,
+        "avg_holding_days": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "calmar": -1.65,
+        "avg_drawdown_days": 0.0
+      }
+    }
+  },
+  "put_grid": {
+    "full_2019_2026": [
+      {
+        "param": 1.0,
+        "sharpe_collar": 1.05,
+        "sharpe_unhedged": 1.14,
+        "mdd_collar": -17.23,
+        "cagr_collar": 15.02
+      },
+      {
+        "param": 0.975,
+        "sharpe_collar": 1.09,
+        "sharpe_unhedged": 1.14,
+        "mdd_collar": -17.66,
+        "cagr_collar": 15.69
+      },
+      {
+        "param": 0.95,
+        "sharpe_collar": 1.12,
+        "sharpe_unhedged": 1.14,
+        "mdd_collar": -17.97,
+        "cagr_collar": 16.24
+      },
+      {
+        "param": 0.9,
+        "sharpe_collar": 1.16,
+        "sharpe_unhedged": 1.14,
+        "mdd_collar": -18.13,
+        "cagr_collar": 16.88
+      }
+    ],
+    "gfc_2008": [
+      {
+        "param": 1.0,
+        "sharpe_collar": -0.18,
+        "sharpe_unhedged": -0.37,
+        "mdd_collar": -20.52,
+        "cagr_collar": -3.75
+      },
+      {
+        "param": 0.975,
+        "sharpe_collar": -0.23,
+        "sharpe_unhedged": -0.37,
+        "mdd_collar": -20.57,
+        "cagr_collar": -4.29
+      },
+      {
+        "param": 0.95,
+        "sharpe_collar": -0.24,
+        "sharpe_unhedged": -0.37,
+        "mdd_collar": -20.63,
+        "cagr_collar": -4.41
+      },
+      {
+        "param": 0.9,
+        "sharpe_collar": -0.28,
+        "sharpe_unhedged": -0.37,
+        "mdd_collar": -21.07,
+        "cagr_collar": -4.95
+      }
+    ],
+    "covid_2020": [
+      {
+        "param": 1.0,
+        "sharpe_collar": 0.62,
+        "sharpe_unhedged": 0.04,
+        "mdd_collar": -9.36,
+        "cagr_collar": 11.77
+      },
+      {
+        "param": 0.975,
+        "sharpe_collar": 0.53,
+        "sharpe_unhedged": 0.04,
+        "mdd_collar": -9.54,
+        "cagr_collar": 9.6
+      },
+      {
+        "param": 0.95,
+        "sharpe_collar": 0.48,
+        "sharpe_unhedged": 0.04,
+        "mdd_collar": -9.55,
+        "cagr_collar": 8.38
+      },
+      {
+        "param": 0.9,
+        "sharpe_collar": 0.41,
+        "sharpe_unhedged": 0.04,
+        "mdd_collar": -9.41,
+        "cagr_collar": 6.62
+      }
+    ],
+    "bear_2022": [
+      {
+        "param": 1.0,
+        "sharpe_collar": 0.3,
+        "sharpe_unhedged": 0.19,
+        "mdd_collar": -11.41,
+        "cagr_collar": 3.19
+      },
+      {
+        "param": 0.975,
+        "sharpe_collar": 0.26,
+        "sharpe_unhedged": 0.19,
+        "mdd_collar": -11.82,
+        "cagr_collar": 2.71
+      },
+      {
+        "param": 0.95,
+        "sharpe_collar": 0.24,
+        "sharpe_unhedged": 0.19,
+        "mdd_collar": -12.03,
+        "cagr_collar": 2.39
+      },
+      {
+        "param": 0.9,
+        "sharpe_collar": 0.26,
+        "sharpe_unhedged": 0.19,
+        "mdd_collar": -12.15,
+        "cagr_collar": 2.59
+      }
+    ],
+    "selloff_2018": [
+      {
+        "param": 1.0,
+        "sharpe_collar": -1.36,
+        "sharpe_unhedged": -1.67,
+        "mdd_collar": -15.82,
+        "cagr_collar": -22.69
+      },
+      {
+        "param": 0.975,
+        "sharpe_collar": -1.38,
+        "sharpe_unhedged": -1.67,
+        "mdd_collar": -15.87,
+        "cagr_collar": -22.71
+      },
+      {
+        "param": 0.95,
+        "sharpe_collar": -1.45,
+        "sharpe_unhedged": -1.67,
+        "mdd_collar": -16.04,
+        "cagr_collar": -23.46
+      },
+      {
+        "param": 0.9,
+        "sharpe_collar": -1.62,
+        "sharpe_unhedged": -1.67,
+        "mdd_collar": -16.35,
+        "cagr_collar": -25.38
+      }
+    ],
+    "correction_2015_2016": [
+      {
+        "param": 1.0,
+        "sharpe_collar": -1.73,
+        "sharpe_unhedged": -1.75,
+        "mdd_collar": -15.48,
+        "cagr_collar": -25.62
+      },
+      {
+        "param": 0.975,
+        "sharpe_collar": -1.74,
+        "sharpe_unhedged": -1.75,
+        "mdd_collar": -15.75,
+        "cagr_collar": -25.87
+      },
+      {
+        "param": 0.95,
+        "sharpe_collar": -1.75,
+        "sharpe_unhedged": -1.75,
+        "mdd_collar": -15.97,
+        "cagr_collar": -26.15
+      },
+      {
+        "param": 0.9,
+        "sharpe_collar": -1.75,
+        "sharpe_unhedged": -1.75,
+        "mdd_collar": -16.03,
+        "cagr_collar": -26.24
+      }
+    ]
+  },
+  "call_grid": {
+    "full_2019_2026": [
+      {
+        "param": 1.025,
+        "sharpe_collar": 1.03,
+        "sharpe_unhedged": 1.14,
+        "mdd_collar": -17.45,
+        "cagr_collar": 14.7
+      },
+      {
+        "param": 1.05,
+        "sharpe_collar": 1.05,
+        "sharpe_unhedged": 1.14,
+        "mdd_collar": -17.23,
+        "cagr_collar": 15.02
+      },
+      {
+        "param": 1.075,
+        "sharpe_collar": 1.04,
+        "sharpe_unhedged": 1.14,
+        "mdd_collar": -17.2,
+        "cagr_collar": 14.91
+      },
+      {
+        "param": 1.1,
+        "sharpe_collar": 1.04,
+        "sharpe_unhedged": 1.14,
+        "mdd_collar": -17.35,
+        "cagr_collar": 14.79
+      }
+    ],
+    "gfc_2008": [
+      {
+        "param": 1.025,
+        "sharpe_collar": -0.15,
+        "sharpe_unhedged": -0.37,
+        "mdd_collar": -20.25,
+        "cagr_collar": -3.26
+      },
+      {
+        "param": 1.05,
+        "sharpe_collar": -0.18,
+        "sharpe_unhedged": -0.37,
+        "mdd_collar": -20.52,
+        "cagr_collar": -3.75
+      },
+      {
+        "param": 1.075,
+        "sharpe_collar": -0.19,
+        "sharpe_unhedged": -0.37,
+        "mdd_collar": -20.71,
+        "cagr_collar": -3.9
+      },
+      {
+        "param": 1.1,
+        "sharpe_collar": -0.2,
+        "sharpe_unhedged": -0.37,
+        "mdd_collar": -20.83,
+        "cagr_collar": -4.05
+      }
+    ],
+    "covid_2020": [
+      {
+        "param": 1.025,
+        "sharpe_collar": 0.68,
+        "sharpe_unhedged": 0.04,
+        "mdd_collar": -9.25,
+        "cagr_collar": 13.31
+      },
+      {
+        "param": 1.05,
+        "sharpe_collar": 0.62,
+        "sharpe_unhedged": 0.04,
+        "mdd_collar": -9.36,
+        "cagr_collar": 11.77
+      },
+      {
+        "param": 1.075,
+        "sharpe_collar": 0.57,
+        "sharpe_unhedged": 0.04,
+        "mdd_collar": -9.44,
+        "cagr_collar": 10.53
+      },
+      {
+        "param": 1.1,
+        "sharpe_collar": 0.53,
+        "sharpe_unhedged": 0.04,
+        "mdd_collar": -9.5,
+        "cagr_collar": 9.56
+      }
+    ],
+    "bear_2022": [
+      {
+        "param": 1.025,
+        "sharpe_collar": 0.28,
+        "sharpe_unhedged": 0.19,
+        "mdd_collar": -11.23,
+        "cagr_collar": 3.01
+      },
+      {
+        "param": 1.05,
+        "sharpe_collar": 0.3,
+        "sharpe_unhedged": 0.19,
+        "mdd_collar": -11.41,
+        "cagr_collar": 3.19
+      },
+      {
+        "param": 1.075,
+        "sharpe_collar": 0.29,
+        "sharpe_unhedged": 0.19,
+        "mdd_collar": -11.48,
+        "cagr_collar": 3.02
+      },
+      {
+        "param": 1.1,
+        "sharpe_collar": 0.25,
+        "sharpe_unhedged": 0.19,
+        "mdd_collar": -11.7,
+        "cagr_collar": 2.47
+      }
+    ],
+    "selloff_2018": [
+      {
+        "param": 1.025,
+        "sharpe_collar": -1.29,
+        "sharpe_unhedged": -1.67,
+        "mdd_collar": -15.66,
+        "cagr_collar": -21.8
+      },
+      {
+        "param": 1.05,
+        "sharpe_collar": -1.36,
+        "sharpe_unhedged": -1.67,
+        "mdd_collar": -15.82,
+        "cagr_collar": -22.69
+      },
+      {
+        "param": 1.075,
+        "sharpe_collar": -1.39,
+        "sharpe_unhedged": -1.67,
+        "mdd_collar": -15.89,
+        "cagr_collar": -23.11
+      },
+      {
+        "param": 1.1,
+        "sharpe_collar": -1.4,
+        "sharpe_unhedged": -1.67,
+        "mdd_collar": -15.93,
+        "cagr_collar": -23.3
+      }
+    ],
+    "correction_2015_2016": [
+      {
+        "param": 1.025,
+        "sharpe_collar": -1.7,
+        "sharpe_unhedged": -1.75,
+        "mdd_collar": -15.32,
+        "cagr_collar": -25.27
+      },
+      {
+        "param": 1.05,
+        "sharpe_collar": -1.73,
+        "sharpe_unhedged": -1.75,
+        "mdd_collar": -15.48,
+        "cagr_collar": -25.62
+      },
+      {
+        "param": 1.075,
+        "sharpe_collar": -1.72,
+        "sharpe_unhedged": -1.75,
+        "mdd_collar": -15.43,
+        "cagr_collar": -25.57
+      },
+      {
+        "param": 1.1,
+        "sharpe_collar": -1.73,
+        "sharpe_unhedged": -1.75,
+        "mdd_collar": -15.49,
+        "cagr_collar": -25.66
+      }
+    ]
+  },
+  "tenor_grid": {
+    "full_2019_2026": [
+      {
+        "param": 10,
+        "sharpe_collar": 1.08,
+        "sharpe_unhedged": 1.14,
+        "mdd_collar": -18.01,
+        "cagr_collar": 15.36
+      },
+      {
+        "param": 21,
+        "sharpe_collar": 1.05,
+        "sharpe_unhedged": 1.14,
+        "mdd_collar": -17.23,
+        "cagr_collar": 15.02
+      },
+      {
+        "param": 42,
+        "sharpe_collar": 0.98,
+        "sharpe_unhedged": 1.14,
+        "mdd_collar": -16.96,
+        "cagr_collar": 13.94
+      },
+      {
+        "param": 63,
+        "sharpe_collar": 0.87,
+        "sharpe_unhedged": 1.14,
+        "mdd_collar": -15.09,
+        "cagr_collar": 12.28
+      }
+    ],
+    "gfc_2008": [
+      {
+        "param": 10,
+        "sharpe_collar": -0.14,
+        "sharpe_unhedged": -0.37,
+        "mdd_collar": -18.71,
+        "cagr_collar": -2.97
+      },
+      {
+        "param": 21,
+        "sharpe_collar": -0.18,
+        "sharpe_unhedged": -0.37,
+        "mdd_collar": -20.52,
+        "cagr_collar": -3.75
+      },
+      {
+        "param": 42,
+        "sharpe_collar": 0.03,
+        "sharpe_unhedged": -0.37,
+        "mdd_collar": -19.79,
+        "cagr_collar": -0.8
+      },
+      {
+        "param": 63,
+        "sharpe_collar": 0.26,
+        "sharpe_unhedged": -0.37,
+        "mdd_collar": -18.54,
+        "cagr_collar": 3.02
+      }
+    ],
+    "covid_2020": [
+      {
+        "param": 10,
+        "sharpe_collar": 0.44,
+        "sharpe_unhedged": 0.04,
+        "mdd_collar": -8.48,
+        "cagr_collar": 7.14
+      },
+      {
+        "param": 21,
+        "sharpe_collar": 0.62,
+        "sharpe_unhedged": 0.04,
+        "mdd_collar": -9.36,
+        "cagr_collar": 11.77
+      },
+      {
+        "param": 42,
+        "sharpe_collar": 0.97,
+        "sharpe_unhedged": 0.04,
+        "mdd_collar": -9.34,
+        "cagr_collar": 22.03
+      },
+      {
+        "param": 63,
+        "sharpe_collar": 0.66,
+        "sharpe_unhedged": 0.04,
+        "mdd_collar": -9.83,
+        "cagr_collar": 13.44
+      }
+    ],
+    "bear_2022": [
+      {
+        "param": 10,
+        "sharpe_collar": 0.31,
+        "sharpe_unhedged": 0.19,
+        "mdd_collar": -11.77,
+        "cagr_collar": 3.24
+      },
+      {
+        "param": 21,
+        "sharpe_collar": 0.3,
+        "sharpe_unhedged": 0.19,
+        "mdd_collar": -11.41,
+        "cagr_collar": 3.19
+      },
+      {
+        "param": 42,
+        "sharpe_collar": 0.39,
+        "sharpe_unhedged": 0.19,
+        "mdd_collar": -10.65,
+        "cagr_collar": 4.46
+      },
+      {
+        "param": 63,
+        "sharpe_collar": 0.58,
+        "sharpe_unhedged": 0.19,
+        "mdd_collar": -9.74,
+        "cagr_collar": 7.04
+      }
+    ],
+    "selloff_2018": [
+      {
+        "param": 10,
+        "sharpe_collar": -1.44,
+        "sharpe_unhedged": -1.67,
+        "mdd_collar": -14.92,
+        "cagr_collar": -23.24
+      },
+      {
+        "param": 21,
+        "sharpe_collar": -1.36,
+        "sharpe_unhedged": -1.67,
+        "mdd_collar": -15.82,
+        "cagr_collar": -22.69
+      },
+      {
+        "param": 42,
+        "sharpe_collar": -1.34,
+        "sharpe_unhedged": -1.67,
+        "mdd_collar": -15.38,
+        "cagr_collar": -22.28
+      },
+      {
+        "param": 63,
+        "sharpe_collar": -1.32,
+        "sharpe_unhedged": -1.67,
+        "mdd_collar": -15.8,
+        "cagr_collar": -21.93
+      }
+    ],
+    "correction_2015_2016": [
+      {
+        "param": 10,
+        "sharpe_collar": -1.69,
+        "sharpe_unhedged": -1.75,
+        "mdd_collar": -15.74,
+        "cagr_collar": -25.99
+      },
+      {
+        "param": 21,
+        "sharpe_collar": -1.73,
+        "sharpe_unhedged": -1.75,
+        "mdd_collar": -15.48,
+        "cagr_collar": -25.62
+      },
+      {
+        "param": 42,
+        "sharpe_collar": -1.63,
+        "sharpe_unhedged": -1.75,
+        "mdd_collar": -15.01,
+        "cagr_collar": -24.9
+      },
+      {
+        "param": 63,
+        "sharpe_collar": -1.64,
+        "sharpe_unhedged": -1.75,
+        "mdd_collar": -15.32,
+        "cagr_collar": -25.44
+      }
+    ]
+  },
+  "zero_cost": {
+    "full_2019_2026": {
+      "sharpe_collar": 0.99,
+      "mdd_collar": -17.31,
+      "cagr_collar": 14.24,
+      "sharpe_unhedged": 1.14
+    },
+    "gfc_2008": {
+      "sharpe_collar": -0.12,
+      "mdd_collar": -20.04,
+      "cagr_collar": -2.93,
+      "sharpe_unhedged": -0.37
+    },
+    "covid_2020": {
+      "sharpe_collar": 0.76,
+      "mdd_collar": -9.11,
+      "cagr_collar": 15.12,
+      "sharpe_unhedged": 0.04
+    },
+    "bear_2022": {
+      "sharpe_collar": 0.31,
+      "mdd_collar": -10.92,
+      "cagr_collar": 3.37,
+      "sharpe_unhedged": 0.19
+    },
+    "selloff_2018": {
+      "sharpe_collar": -1.24,
+      "mdd_collar": -15.71,
+      "cagr_collar": -21.15,
+      "sharpe_unhedged": -1.67
+    },
+    "correction_2015_2016": {
+      "sharpe_collar": -1.63,
+      "mdd_collar": -14.91,
+      "cagr_collar": -24.4,
+      "sharpe_unhedged": -1.75
+    }
+  },
+  "neighborhood_grid": {
+    "full_2019_2026": [
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.05,
+        "tenor_days": 21,
+        "sharpe_collar": 1.12,
+        "sharpe_unhedged": 1.14,
+        "mdd_collar": -17.97
+      },
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.05,
+        "tenor_days": 42,
+        "sharpe_collar": 1.09,
+        "sharpe_unhedged": 1.14,
+        "mdd_collar": -17.17
+      },
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.1,
+        "tenor_days": 21,
+        "sharpe_collar": 1.11,
+        "sharpe_unhedged": 1.14,
+        "mdd_collar": -18.09
+      },
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.1,
+        "tenor_days": 42,
+        "sharpe_collar": 1.09,
+        "sharpe_unhedged": 1.14,
+        "mdd_collar": -17.98
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.05,
+        "tenor_days": 21,
+        "sharpe_collar": 1.05,
+        "sharpe_unhedged": 1.14,
+        "mdd_collar": -17.23
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.05,
+        "tenor_days": 42,
+        "sharpe_collar": 0.98,
+        "sharpe_unhedged": 1.14,
+        "mdd_collar": -16.96
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.1,
+        "tenor_days": 21,
+        "sharpe_collar": 1.04,
+        "sharpe_unhedged": 1.14,
+        "mdd_collar": -17.35
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.1,
+        "tenor_days": 42,
+        "sharpe_collar": 0.97,
+        "sharpe_unhedged": 1.14,
+        "mdd_collar": -17.77
+      }
+    ],
+    "gfc_2008": [
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.05,
+        "tenor_days": 21,
+        "sharpe_collar": -0.24,
+        "sharpe_unhedged": -0.37,
+        "mdd_collar": -20.63
+      },
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.05,
+        "tenor_days": 42,
+        "sharpe_collar": -0.03,
+        "sharpe_unhedged": -0.37,
+        "mdd_collar": -20.23
+      },
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.1,
+        "tenor_days": 21,
+        "sharpe_collar": -0.26,
+        "sharpe_unhedged": -0.37,
+        "mdd_collar": -21.08
+      },
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.1,
+        "tenor_days": 42,
+        "sharpe_collar": -0.12,
+        "sharpe_unhedged": -0.37,
+        "mdd_collar": -20.74
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.05,
+        "tenor_days": 21,
+        "sharpe_collar": -0.18,
+        "sharpe_unhedged": -0.37,
+        "mdd_collar": -20.52
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.05,
+        "tenor_days": 42,
+        "sharpe_collar": 0.03,
+        "sharpe_unhedged": -0.37,
+        "mdd_collar": -19.79
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.1,
+        "tenor_days": 21,
+        "sharpe_collar": -0.2,
+        "sharpe_unhedged": -0.37,
+        "mdd_collar": -20.83
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.1,
+        "tenor_days": 42,
+        "sharpe_collar": -0.06,
+        "sharpe_unhedged": -0.37,
+        "mdd_collar": -20.23
+      }
+    ],
+    "covid_2020": [
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.05,
+        "tenor_days": 21,
+        "sharpe_collar": 0.48,
+        "sharpe_unhedged": 0.04,
+        "mdd_collar": -9.55
+      },
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.05,
+        "tenor_days": 42,
+        "sharpe_collar": 0.69,
+        "sharpe_unhedged": 0.04,
+        "mdd_collar": -9.54
+      },
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.1,
+        "tenor_days": 21,
+        "sharpe_collar": 0.39,
+        "sharpe_unhedged": 0.04,
+        "mdd_collar": -9.7
+      },
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.1,
+        "tenor_days": 42,
+        "sharpe_collar": 0.59,
+        "sharpe_unhedged": 0.04,
+        "mdd_collar": -9.72
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.05,
+        "tenor_days": 21,
+        "sharpe_collar": 0.62,
+        "sharpe_unhedged": 0.04,
+        "mdd_collar": -9.36
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.05,
+        "tenor_days": 42,
+        "sharpe_collar": 0.97,
+        "sharpe_unhedged": 0.04,
+        "mdd_collar": -9.34
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.1,
+        "tenor_days": 21,
+        "sharpe_collar": 0.53,
+        "sharpe_unhedged": 0.04,
+        "mdd_collar": -9.5
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.1,
+        "tenor_days": 42,
+        "sharpe_collar": 0.87,
+        "sharpe_unhedged": 0.04,
+        "mdd_collar": -9.52
+      }
+    ],
+    "bear_2022": [
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.05,
+        "tenor_days": 21,
+        "sharpe_collar": 0.24,
+        "sharpe_unhedged": 0.19,
+        "mdd_collar": -12.03
+      },
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.05,
+        "tenor_days": 42,
+        "sharpe_collar": 0.36,
+        "sharpe_unhedged": 0.19,
+        "mdd_collar": -11.2
+      },
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.1,
+        "tenor_days": 21,
+        "sharpe_collar": 0.19,
+        "sharpe_unhedged": 0.19,
+        "mdd_collar": -12.32
+      },
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.1,
+        "tenor_days": 42,
+        "sharpe_collar": 0.26,
+        "sharpe_unhedged": 0.19,
+        "mdd_collar": -12.01
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.05,
+        "tenor_days": 21,
+        "sharpe_collar": 0.3,
+        "sharpe_unhedged": 0.19,
+        "mdd_collar": -11.41
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.05,
+        "tenor_days": 42,
+        "sharpe_collar": 0.39,
+        "sharpe_unhedged": 0.19,
+        "mdd_collar": -10.65
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.1,
+        "tenor_days": 21,
+        "sharpe_collar": 0.25,
+        "sharpe_unhedged": 0.19,
+        "mdd_collar": -11.7
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.1,
+        "tenor_days": 42,
+        "sharpe_collar": 0.29,
+        "sharpe_unhedged": 0.19,
+        "mdd_collar": -11.46
+      }
+    ],
+    "selloff_2018": [
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.05,
+        "tenor_days": 21,
+        "sharpe_collar": -1.45,
+        "sharpe_unhedged": -1.67,
+        "mdd_collar": -16.04
+      },
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.05,
+        "tenor_days": 42,
+        "sharpe_collar": -1.52,
+        "sharpe_unhedged": -1.67,
+        "mdd_collar": -16.19
+      },
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.1,
+        "tenor_days": 21,
+        "sharpe_collar": -1.5,
+        "sharpe_unhedged": -1.67,
+        "mdd_collar": -16.15
+      },
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.1,
+        "tenor_days": 42,
+        "sharpe_collar": -1.62,
+        "sharpe_unhedged": -1.67,
+        "mdd_collar": -16.39
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.05,
+        "tenor_days": 21,
+        "sharpe_collar": -1.36,
+        "sharpe_unhedged": -1.67,
+        "mdd_collar": -15.82
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.05,
+        "tenor_days": 42,
+        "sharpe_collar": -1.34,
+        "sharpe_unhedged": -1.67,
+        "mdd_collar": -15.38
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.1,
+        "tenor_days": 21,
+        "sharpe_collar": -1.4,
+        "sharpe_unhedged": -1.67,
+        "mdd_collar": -15.93
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.1,
+        "tenor_days": 42,
+        "sharpe_collar": -1.43,
+        "sharpe_unhedged": -1.67,
+        "mdd_collar": -15.59
+      }
+    ],
+    "correction_2015_2016": [
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.05,
+        "tenor_days": 21,
+        "sharpe_collar": -1.75,
+        "sharpe_unhedged": -1.75,
+        "mdd_collar": -15.97
+      },
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.05,
+        "tenor_days": 42,
+        "sharpe_collar": -1.74,
+        "sharpe_unhedged": -1.75,
+        "mdd_collar": -15.96
+      },
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.1,
+        "tenor_days": 21,
+        "sharpe_collar": -1.75,
+        "sharpe_unhedged": -1.75,
+        "mdd_collar": -15.98
+      },
+      {
+        "put_moneyness": 0.95,
+        "call_moneyness": 1.1,
+        "tenor_days": 42,
+        "sharpe_collar": -1.69,
+        "sharpe_unhedged": -1.75,
+        "mdd_collar": -15.62
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.05,
+        "tenor_days": 21,
+        "sharpe_collar": -1.73,
+        "sharpe_unhedged": -1.75,
+        "mdd_collar": -15.48
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.05,
+        "tenor_days": 42,
+        "sharpe_collar": -1.63,
+        "sharpe_unhedged": -1.75,
+        "mdd_collar": -15.01
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.1,
+        "tenor_days": 21,
+        "sharpe_collar": -1.73,
+        "sharpe_unhedged": -1.75,
+        "mdd_collar": -15.49
+      },
+      {
+        "put_moneyness": 1.0,
+        "call_moneyness": 1.1,
+        "tenor_days": 42,
+        "sharpe_collar": -1.58,
+        "sharpe_unhedged": -1.75,
+        "mdd_collar": -14.67
+      }
+    ]
+  },
+  "permutation": {
+    "full_2019_2026": {
+      "n_rolls": 85,
+      "actual_sharpe_delta": -0.08999999999999986,
+      "null_mean": -0.09139999999999987,
+      "null_std": 0.003746998799039042,
+      "null_p5": -0.09999999999999987,
+      "null_p95": -0.08999999999999986,
+      "actual_percentile_in_null": 15.0
+    },
+    "gfc_2008": {
+      "n_rolls": 36,
+      "actual_sharpe_delta": 0.19,
+      "null_mean": 0.0716,
+      "null_std": 0.08835406046130534,
+      "null_p5": -0.07,
+      "null_p95": 0.20049999999999982,
+      "actual_percentile_in_null": 88.5
+    },
+    "covid_2020": {
+      "n_rolls": 24,
+      "actual_sharpe_delta": 0.58,
+      "null_mean": -0.08535,
+      "null_std": 0.254540522314228,
+      "null_p5": -0.4805,
+      "null_p95": 0.48000000000000004,
+      "actual_percentile_in_null": 98.0
+    },
+    "bear_2022": {
+      "n_rolls": 85,
+      "actual_sharpe_delta": 0.10999999999999999,
+      "null_mean": -0.09914999999999999,
+      "null_std": 0.1097304766234067,
+      "null_p5": -0.2705,
+      "null_p95": 0.08000000000000002,
+      "actual_percentile_in_null": 96.5
+    },
+    "selloff_2018": {
+      "n_rolls": 25,
+      "actual_sharpe_delta": 0.30999999999999983,
+      "null_mean": -0.02370000000000009,
+      "null_std": 0.14519404257751073,
+      "null_p5": -0.21049999999999996,
+      "null_p95": 0.2204999999999998,
+      "actual_percentile_in_null": 97.5
+    },
+    "correction_2015_2016": {
+      "n_rolls": 25,
+      "actual_sharpe_delta": 0.020000000000000018,
+      "null_mean": -0.0558,
+      "null_std": 0.08523121493912897,
+      "null_p5": -0.17999999999999994,
+      "null_p95": 0.0804999999999999,
+      "actual_percentile_in_null": 75.5
+    }
+  },
+  "zero_payoff_placebo": {
+    "full_2019_2026": {
+      "unhedged_sharpe": 1.14,
+      "real_collar_sharpe": 1.05,
+      "zero_payoff_sharpe": 0.96,
+      "real_beats_placebo": true
+    },
+    "gfc_2008": {
+      "unhedged_sharpe": -0.37,
+      "real_collar_sharpe": -0.18,
+      "zero_payoff_sharpe": -0.58,
+      "real_beats_placebo": true
+    },
+    "covid_2020": {
+      "unhedged_sharpe": 0.04,
+      "real_collar_sharpe": 0.62,
+      "zero_payoff_sharpe": -0.1,
+      "real_beats_placebo": true
+    },
+    "bear_2022": {
+      "unhedged_sharpe": 0.19,
+      "real_collar_sharpe": 0.3,
+      "zero_payoff_sharpe": -0.04,
+      "real_beats_placebo": true
+    },
+    "selloff_2018": {
+      "unhedged_sharpe": -1.67,
+      "real_collar_sharpe": -1.36,
+      "zero_payoff_sharpe": -1.84,
+      "real_beats_placebo": true
+    },
+    "correction_2015_2016": {
+      "unhedged_sharpe": -1.75,
+      "real_collar_sharpe": -1.73,
+      "zero_payoff_sharpe": -1.93,
+      "real_beats_placebo": true
+    }
+  },
+  "real_beats_placebo_count": 6,
+  "bootstrap_ci": {
+    "full_2019_2026": {
+      "n_obs": 1764,
+      "window_used": [
+        "2019-08-12",
+        "2026-08-19"
+      ],
+      "by_config": {
+        "unhedged_satellite": {
+          "point_sharpe": 1.1403241866948337,
+          "ci90_L20": [
+            0.5914166100642267,
+            1.6746550919723737
+          ]
+        },
+        "collar_baseline": {
+          "point_sharpe": 1.0467620993128866,
+          "ci90_L20": [
+            0.5289615215098691,
+            1.5860316094319447
+          ]
+        },
+        "collar_deep_otm_put": {
+          "point_sharpe": 1.1619879518883265,
+          "ci90_L20": [
+            0.6416730238010244,
+            1.6980768444279999
+          ]
+        },
+        "collar_wide_otm_call": {
+          "point_sharpe": 1.0354477827989643,
+          "ci90_L20": [
+            0.5019317064872277,
+            1.5419747879915726
+          ]
+        },
+        "collar_long_tenor": {
+          "point_sharpe": 0.8739646814195527,
+          "ci90_L20": [
+            0.36466176182791543,
+            1.4185770011123573
+          ]
+        },
+        "collar_zero_cost": {
+          "point_sharpe": 0.9928303912222141,
+          "ci90_L20": [
+            0.5141942721544839,
+            1.5120159822240797
+          ]
+        }
+      }
+    },
+    "gfc_2008": {
+      "n_obs": 441,
+      "window_used": [
+        "2007-10-01",
+        "2009-06-30"
+      ],
+      "by_config": {
+        "unhedged_satellite": {
+          "point_sharpe": -0.3701167467416889,
+          "ci90_L20": [
+            -1.3482413032078135,
+            0.6267388626447307
+          ]
+        },
+        "collar_baseline": {
+          "point_sharpe": -0.1817223879666863,
+          "ci90_L20": [
+            -1.141205759751941,
+            0.8362683677607763
+          ]
+        },
+        "collar_deep_otm_put": {
+          "point_sharpe": -0.2742578341929585,
+          "ci90_L20": [
+            -1.2757842240261332,
+            0.6977521684811973
+          ]
+        },
+        "collar_wide_otm_call": {
+          "point_sharpe": -0.20287602074395758,
+          "ci90_L20": [
+            -1.171667162950967,
+            0.7511607041805185
+          ]
+        },
+        "collar_long_tenor": {
+          "point_sharpe": 0.2639456101248048,
+          "ci90_L20": [
+            -0.6989851272529859,
+            1.2925459870995584
+          ]
+        },
+        "collar_zero_cost": {
+          "point_sharpe": -0.12329672286189386,
+          "ci90_L20": [
+            -1.075345736643259,
+            0.8182361127122225
+          ]
+        }
+      }
+    },
+    "covid_2020": {
+      "n_obs": 51,
+      "window_used": [
+        "2020-02-19",
+        "2020-04-30"
+      ],
+      "by_config": {
+        "unhedged_satellite": {
+          "point_sharpe": 0.042114835981628074,
+          "ci90_L20": [
+            -3.0780212829342917,
+            4.338849951699191
+          ]
+        },
+        "collar_baseline": {
+          "point_sharpe": 0.6097834729101282,
+          "ci90_L20": [
+            -2.8502465742338323,
+            5.204284768547094
+          ]
+        },
+        "collar_deep_otm_put": {
+          "point_sharpe": 0.3971916858311501,
+          "ci90_L20": [
+            -2.913397338624256,
+            5.025240453159048
+          ]
+        },
+        "collar_wide_otm_call": {
+          "point_sharpe": 0.5195346534674757,
+          "ci90_L20": [
+            -2.9165007604347553,
+            5.102922542132141
+          ]
+        },
+        "collar_long_tenor": {
+          "point_sharpe": 0.6452522088016651,
+          "ci90_L20": [
+            -3.1682468380222697,
+            4.832733320223465
+          ]
+        },
+        "collar_zero_cost": {
+          "point_sharpe": 0.7411868150456007,
+          "ci90_L20": [
+            -2.5444888209518473,
+            5.740305553904734
+          ]
+        }
+      }
+    },
+    "bear_2022": {
+      "n_obs": 251,
+      "window_used": [
+        "2022-01-01",
+        "2022-12-31"
+      ],
+      "by_config": {
+        "unhedged_satellite": {
+          "point_sharpe": 0.18695540939634145,
+          "ci90_L20": [
+            -1.155556050574247,
+            1.6560946866852784
+          ]
+        },
+        "collar_baseline": {
+          "point_sharpe": 0.2972985839780868,
+          "ci90_L20": [
+            -0.9267382546172536,
+            1.6813530966364907
+          ]
+        },
+        "collar_deep_otm_put": {
+          "point_sharpe": 0.25708023891749143,
+          "ci90_L20": [
+            -1.1213730416409073,
+            1.6780489953275635
+          ]
+        },
+        "collar_wide_otm_call": {
+          "point_sharpe": 0.24687499019627168,
+          "ci90_L20": [
+            -1.0113815518060951,
+            1.6166171017101654
+          ]
+        },
+        "collar_long_tenor": {
+          "point_sharpe": 0.5791755677049253,
+          "ci90_L20": [
+            -0.676830816347357,
+            2.0815973154032585
+          ]
+        },
+        "collar_zero_cost": {
+          "point_sharpe": 0.30741048544908134,
+          "ci90_L20": [
+            -0.9358797674084294,
+            1.6281212734334454
+          ]
+        }
+      }
+    },
+    "selloff_2018": {
+      "n_obs": 92,
+      "window_used": [
+        "2018-09-01",
+        "2019-01-15"
+      ],
+      "by_config": {
+        "unhedged_satellite": {
+          "point_sharpe": -1.6555046409325522,
+          "ci90_L20": [
+            -3.0542710776029187,
+            0.21714130386291916
+          ]
+        },
+        "collar_baseline": {
+          "point_sharpe": -1.3447185757725502,
+          "ci90_L20": [
+            -2.874459306681062,
+            0.38185528080234005
+          ]
+        },
+        "collar_deep_otm_put": {
+          "point_sharpe": -1.601151900915049,
+          "ci90_L20": [
+            -3.037088807086157,
+            0.15548747357569523
+          ]
+        },
+        "collar_wide_otm_call": {
+          "point_sharpe": -1.3905624425400442,
+          "ci90_L20": [
+            -2.94422487362723,
+            0.318793596298803
+          ]
+        },
+        "collar_long_tenor": {
+          "point_sharpe": -1.3100842253634843,
+          "ci90_L20": [
+            -2.8332730782800506,
+            0.4428836207863835
+          ]
+        },
+        "collar_zero_cost": {
+          "point_sharpe": -1.2322840888852193,
+          "ci90_L20": [
+            -2.8304129786685315,
+            0.5241586249913041
+          ]
+        }
+      }
+    },
+    "correction_2015_2016": {
+      "n_obs": 135,
+      "window_used": [
+        "2015-08-01",
+        "2016-02-15"
+      ],
+      "by_config": {
+        "unhedged_satellite": {
+          "point_sharpe": -1.738928059104924,
+          "ci90_L20": [
+            -2.9441442858983926,
+            -0.35642991350745623
+          ]
+        },
+        "collar_baseline": {
+          "point_sharpe": -1.7157584752410124,
+          "ci90_L20": [
+            -2.8831763546684033,
+            -0.3938144521031534
+          ]
+        },
+        "collar_deep_otm_put": {
+          "point_sharpe": -1.7345595361612973,
+          "ci90_L20": [
+            -2.9166680972042447,
+            -0.44305793247979564
+          ]
+        },
+        "collar_wide_otm_call": {
+          "point_sharpe": -1.7141793661505522,
+          "ci90_L20": [
+            -2.9104456495767583,
+            -0.4397225388908321
+          ]
+        },
+        "collar_long_tenor": {
+          "point_sharpe": -1.6275349303138629,
+          "ci90_L20": [
+            -2.7985644311611764,
+            -0.14912582080399375
+          ]
+        },
+        "collar_zero_cost": {
+          "point_sharpe": -1.617610542642318,
+          "ci90_L20": [
+            -2.7852456839584625,
+            -0.38103052586959735
+          ]
+        }
+      }
+    }
+  },
+  "combined_dirichlet_x_bootstrap": {
+    "base": {
+      "collar_baseline_vs_unhedged_satellite": {
+        "mean_gap": 0.03755316274402151,
+        "ci90_gap": [
+          -0.7175973336633993,
+          0.7819517085042813
+        ],
+        "pct_draws_a_ahead": 0.5292
+      },
+      "collar_deep_otm_put_vs_unhedged_satellite": {
+        "mean_gap": 0.03415259067759867,
+        "ci90_gap": [
+          -0.6924744405425601,
+          0.7736696272158377
+        ],
+        "pct_draws_a_ahead": 0.5317
+      },
+      "collar_wide_otm_call_vs_unhedged_satellite": {
+        "mean_gap": 0.0025065049564713705,
+        "ci90_gap": [
+          -0.7344307927556288,
+          0.7239446129155127
+        ],
+        "pct_draws_a_ahead": 0.5077
+      },
+      "collar_long_tenor_vs_unhedged_satellite": {
+        "mean_gap": 0.012353995568573637,
+        "ci90_gap": [
+          -0.732712381977315,
+          0.7608592644998766
+        ],
+        "pct_draws_a_ahead": 0.515
+      },
+      "collar_zero_cost_vs_unhedged_satellite": {
+        "mean_gap": 0.05328168990350423,
+        "ci90_gap": [
+          -0.6779036745080015,
+          0.8060550893596323
+        ],
+        "pct_draws_a_ahead": 0.5429
+      }
+    },
+    "calm_heavy": {
+      "collar_baseline_vs_unhedged_satellite": {
+        "mean_gap": 0.01049271179234695,
+        "ci90_gap": [
+          -0.661995900702356,
+          0.6967246291257497
+        ],
+        "pct_draws_a_ahead": 0.5068
+      },
+      "collar_deep_otm_put_vs_unhedged_satellite": {
+        "mean_gap": 0.020811867993939984,
+        "ci90_gap": [
+          -0.6532197675236474,
+          0.7116015848443842
+        ],
+        "pct_draws_a_ahead": 0.5167
+      },
+      "collar_wide_otm_call_vs_unhedged_satellite": {
+        "mean_gap": -0.03294862823697931,
+        "ci90_gap": [
+          -0.71210084114787,
+          0.6579863510950038
+        ],
+        "pct_draws_a_ahead": 0.4705
+      },
+      "collar_long_tenor_vs_unhedged_satellite": {
+        "mean_gap": -0.07423672536326623,
+        "ci90_gap": [
+          -0.753530149497341,
+          0.6089459723375983
+        ],
+        "pct_draws_a_ahead": 0.4279
+      },
+      "collar_zero_cost_vs_unhedged_satellite": {
+        "mean_gap": -0.010851128546987422,
+        "ci90_gap": [
+          -0.6850630403932767,
+          0.6692260627558405
+        ],
+        "pct_draws_a_ahead": 0.4893
+      }
+    },
+    "crisis_heavy": {
+      "collar_baseline_vs_unhedged_satellite": {
+        "mean_gap": 0.09069639935296961,
+        "ci90_gap": [
+          -0.7529168809736294,
+          0.943944886808702
+        ],
+        "pct_draws_a_ahead": 0.5701
+      },
+      "collar_deep_otm_put_vs_unhedged_satellite": {
+        "mean_gap": 0.042676531576413754,
+        "ci90_gap": [
+          -0.8093588633989969,
+          0.8873858024653752
+        ],
+        "pct_draws_a_ahead": 0.5348
+      },
+      "collar_wide_otm_call_vs_unhedged_satellite": {
+        "mean_gap": 0.03975668506214427,
+        "ci90_gap": [
+          -0.7895721487553986,
+          0.8597923009124225
+        ],
+        "pct_draws_a_ahead": 0.5327
+      },
+      "collar_long_tenor_vs_unhedged_satellite": {
+        "mean_gap": 0.11717777798511338,
+        "ci90_gap": [
+          -0.7369159556903623,
+          0.9761906539581405
+        ],
+        "pct_draws_a_ahead": 0.5883
+      },
+      "collar_zero_cost_vs_unhedged_satellite": {
+        "mean_gap": 0.1226094038377649,
+        "ci90_gap": [
+          -0.7295550426698663,
+          0.9734288905136678
+        ],
+        "pct_draws_a_ahead": 0.59
+      }
+    }
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "meta": {
+    "method": "scipy 미설치 환경이라 스피어만/정확순열검정을 numpy로 직접 구현(표준 정의 그대로, 새 통계량 발명 없음)",
+    "n_baskets": 8
+  },
+  "per_basket": {
+    "iren": {
+      "avg_pairwise_corr": 0.5628,
+      "sharpe_gap": 0.43,
+      "reproduced": true,
+      "bh_sharpe": 0.88,
+      "rot_sharpe": 0.69,
+      "tf_basket_sharpe": 1.31
+    },
+    "shipping": {
+      "avg_pairwise_corr": 0.4222,
+      "sharpe_gap": -0.38,
+      "reproduced": false,
+      "bh_sharpe": 0.82,
+      "rot_sharpe": 1.0,
+      "tf_basket_sharpe": 0.62
+    },
+    "cannabis": {
+      "avg_pairwise_corr": 0.6251,
+      "sharpe_gap": -0.02,
+      "reproduced": false,
+      "bh_sharpe": -0.28,
+      "rot_sharpe": -0.07,
+      "tf_basket_sharpe": -0.09
+    },
+    "solar": {
+      "avg_pairwise_corr": 0.4691,
+      "sharpe_gap": 0.01,
+      "reproduced": true,
+      "bh_sharpe": 0.54,
+      "rot_sharpe": 0.69,
+      "tf_basket_sharpe": 0.7
+    },
+    "crypto_winter_2018": {
+      "avg_pairwise_corr": 0.6409,
+      "sharpe_gap": 0.27,
+      "reproduced": true,
+      "bh_sharpe": 0.97,
+      "rot_sharpe": 0.77,
+      "tf_basket_sharpe": 1.24
+    },
+    "dotcom_bubble_2000": {
+      "avg_pairwise_corr": 0.4178,
+      "sharpe_gap": -0.58,
+      "reproduced": false,
+      "bh_sharpe": 0.25,
+      "rot_sharpe": 0.88,
+      "tf_basket_sharpe": 0.3
+    },
+    "ev_spac_bust": {
+      "avg_pairwise_corr": 0.2795,
+      "sharpe_gap": 0.21,
+      "reproduced": true,
+      "bh_sharpe": -0.23,
+      "rot_sharpe": -0.51,
+      "tf_basket_sharpe": -0.02
+    },
+    "biotech_catalyst": {
+      "avg_pairwise_corr": 0.3562,
+      "sharpe_gap": -0.25,
+      "reproduced": false,
+      "bh_sharpe": 0.31,
+      "rot_sharpe": 0.26,
+      "tf_basket_sharpe": 0.06
+    }
+  },
+  "spearman_corr_vs_sharpe_gap_all8": 0.4286,
+  "spearman_corr_vs_sharpe_gap_orig6": 0.7143,
+  "exact_permutation_reproduced_grouping_all8": {
+    "observed_diff_mean_corr_A_minus_B": 0.0327,
+    "n_total_combinations": 70,
+    "exact_p_two_sided": 0.7714,
+    "percentile_of_observed": 62.86
+  },
+  "exact_permutation_reproduced_grouping_orig6": {
+    "observed_diff_mean_corr_A_minus_B": 0.0692,
+    "n_total_combinations": 20,
+    "exact_p_two_sided": 0.5,
+    "percentile_of_observed": 80.0
+  },
+  "preregistration_verdicts": {
+    "ev_spac_bust": {
+      "predicted_high_correlation": true,
+      "actual_avg_corr": 0.2795,
+      "actual_high_relative_to_existing6_median": false,
+      "correlation_mechanism_prediction_correct": false,
+      "predicted_reproduce": true,
+      "actual_reproduced": true,
+      "outcome_prediction_correct": true
+    },
+    "biotech_catalyst": {
+      "predicted_high_correlation": false,
+      "actual_avg_corr": 0.3562,
+      "actual_high_relative_to_existing6_median": false,
+      "correlation_mechanism_prediction_correct": true,
+      "predicted_reproduce": false,
+      "actual_reproduced": false,
+      "outcome_prediction_correct": true
+    }
+  }
+}

@@ -1,0 +1,191 @@
+{
+  "meta": {
+    "basket": [
+      "IREN",
+      "CIFR",
+      "CLSK",
+      "WULF",
+      "HUT",
+      "BTDR"
+    ],
+    "common_start": "2022-05-19",
+    "end": "2026-09-11",
+    "entry_window": 20,
+    "stop_pct": 0.15,
+    "put_moneyness": 1.0,
+    "call_moneyness": 1.05,
+    "tenor_days": 21
+  },
+  "full_period": {
+    "unhedged": {
+      "cumulative_return": 1626.32,
+      "cagr": 93.6,
+      "mdd": -71.0,
+      "sharpe": 1.22,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 1.32,
+      "avg_drawdown_days": 32.9
+    },
+    "protective_put": {
+      "cumulative_return": 1031.98,
+      "cagr": 75.55,
+      "mdd": -73.13,
+      "sharpe": 1.1,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 1.03,
+      "avg_drawdown_days": 36.3
+    },
+    "collar": {
+      "cumulative_return": 1212.31,
+      "cagr": 81.67,
+      "mdd": -72.43,
+      "sharpe": 1.14,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 1.13,
+      "avg_drawdown_days": 36.3
+    }
+  },
+  "drawdown_episode": {
+    "window": {
+      "peak_date": "2025-10-15",
+      "trough_date": "2026-03-31",
+      "recovery_date": "2026-09-10",
+      "drawdown_pct": -71.0
+    },
+    "unhedged": {
+      "cumulative_return": -60.11,
+      "cagr": -63.84,
+      "mdd": -69.03,
+      "sharpe": -1.07,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": -0.92,
+      "avg_drawdown_days": 0.0,
+      "n_obs": 227
+    },
+    "protective_put": {
+      "cumulative_return": -64.53,
+      "cagr": -68.24,
+      "mdd": -71.3,
+      "sharpe": -1.25,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": -0.96,
+      "avg_drawdown_days": 0.0,
+      "n_obs": 227
+    },
+    "collar": {
+      "cumulative_return": -64.45,
+      "cagr": -68.16,
+      "mdd": -70.56,
+      "sharpe": -1.24,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": -0.97,
+      "avg_drawdown_days": 0.0,
+      "n_obs": 227
+    }
+  },
+  "collar_roll_log_sample": [
+    {
+      "roll_date": "2022-05-19",
+      "expiry_date": "2022-06-21",
+      "S0": 389.46,
+      "S_T": 375.07,
+      "sigma": 0.2935,
+      "r": 0.0077,
+      "K_put": 389.46,
+      "K_call": 408.933,
+      "put_premium_pct": 0.03346,
+      "call_premium_pct": 0.0154,
+      "net_premium_pct_debit": -0.01806,
+      "payoff_pct_credit": 0.03695
+    },
+    {
+      "roll_date": "2022-06-01",
+      "expiry_date": "2022-07-01",
+      "S0": 409.59,
+      "S_T": 381.24,
+      "sigma": 0.2569,
+      "r": 0.0121,
+      "K_put": 409.59,
+      "K_call": 430.0695,
+      "put_premium_pct": 0.02906,
+      "call_premium_pct": 0.01191,
+      "net_premium_pct_debit": -0.01715,
+      "payoff_pct_credit": 0.06922
+    },
+    {
+      "roll_date": "2022-07-01",
+      "expiry_date": "2022-08-02",
+      "S0": 381.24,
+      "S_T": 408.06,
+      "sigma": 0.267,
+      "r": 0.0168,
+      "K_put": 381.24,
+      "K_call": 400.302,
+      "put_premium_pct": 0.03003,
+      "call_premium_pct": 0.01299,
+      "net_premium_pct_debit": -0.01704,
+      "payoff_pct_credit": -0.02035
+    },
+    {
+      "roll_date": "2022-08-01",
+      "expiry_date": "2022-08-30",
+      "S0": 410.77,
+      "S_T": 398.21,
+      "sigma": 0.2284,
+      "r": 0.0233,
+      "K_put": 410.77,
+      "K_call": 431.3085,
+      "put_premium_pct": 0.02531,
+      "call_premium_pct": 0.00947,
+      "net_premium_pct_debit": -0.01584,
+      "payoff_pct_credit": 0.03058
+    },
+    {
+      "roll_date": "2022-09-01",
+      "expiry_date": "2022-10-03",
+      "S0": 396.42,
+      "S_T": 366.61,
+      "sigma": 0.2556,
+      "r": 0.0256,
+      "K_put": 396.42,
+      "K_call": 416.241,
+      "put_premium_pct": 0.02834,
+      "call_premium_pct": 0.01208,
+      "net_premium_pct_debit": -0.01627,
+      "payoff_pct_credit": 0.0752
+    },
+    {
+      "roll_date": "2022-10-03",
+      "expiry_date": "2022-11-01",
+      "S0": 366.61,
+      "S_T": 384.52,
+      "sigma": 0.301,
+      "r": 0.0308,
+      "K_put": 366.61,
+      "K_call": 384.9405,
+      "put_premium_pct": 0.03334,
+      "call_premium_pct": 0.01672,
+      "net_premium_pct_debit": -0.01662,
+      "payoff_pct_credit": 0.0
+    }
+  ],
+  "n_rolls": 53
+}

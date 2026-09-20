@@ -1,0 +1,37 @@
+[h2] full_2019_2026: 베이스라인(put=1.00,call=1.05,tenor=21)
+[h2]   h2a put grid done
+[h2]   h2b call grid done
+[h2]   h2b zero-cost done
+[h2]   h2c tenor grid done
+[h2] full_2019_2026: 전체 그리드 완료 (7.7s 누적)
+[h2] gfc_2008: 베이스라인(put=1.00,call=1.05,tenor=21)
+[h2]   h2a put grid done
+[h2]   h2b call grid done
+[h2]   h2b zero-cost done
+[h2]   h2c tenor grid done
+[h2] gfc_2008: 전체 그리드 완료 (11.6s 누적)
+[h2] covid_2020: 베이스라인(put=1.00,call=1.05,tenor=21)
+[h2]   h2a put grid done
+[h2]   h2b call grid done
+[h2]   h2b zero-cost done
+[h2]   h2c tenor grid done
+[h2] covid_2020: 전체 그리드 완료 (15.7s 누적)
+[h2] bear_2022: 베이스라인(put=1.00,call=1.05,tenor=21)
+[h2]   h2a put grid done
+[h2]   h2b call grid done
+[h2]   h2b zero-cost done
+[h2]   h2c tenor grid done
+[h2] bear_2022: 전체 그리드 완료 (27.6s 누적)
+[h2] selloff_2018: 베이스라인(put=1.00,call=1.05,tenor=21)
+[h2]   h2a put grid done
+[h2]   h2b call grid done
+[h2]   h2b zero-cost done
+[h2]   h2c tenor grid done
+[h2] selloff_2018: 전체 그리드 완료 (31.7s 누적)
+[h2] correction_2015_2016: 베이스라인(put=1.00,call=1.05,tenor=21)
+[h2]   h2a put grid done
+[h2]   h2b call grid done
+[h2]   h2b zero-cost done
+[h2]   h2c tenor grid done
+[h2] correction_2015_2016: 전체 그리드 완료 (36.1s 누적)
+[h2] 저장 완료: h2_grid_results.json (총 36.2s)

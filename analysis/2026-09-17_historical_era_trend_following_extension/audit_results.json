@@ -1,0 +1,182 @@
+{
+  "meta": {
+    "entry_window": 20,
+    "stop_pct": 0.15,
+    "n_permutations": 200,
+    "block_lengths": [
+      10,
+      20,
+      40
+    ],
+    "n_boot": 2000,
+    "seed": 20260917,
+    "methodology": "순열검정: core.backtest_engine._shuffle_daily_bars 재사용(작업32/h3_permutation_test.py, 작업77/nonai_control_basket audit_stats.py와 동일 방법). 블록부트스트랩: h33_block_bootstrap_sample_error.moving_block_bootstrap_sharpe 그대로 재사용.",
+    "iren_reference": {
+      "note": "analysis/2026-08-30_track_c_bootstrap_confidence_audit 감사1 결과(비교 기준선)",
+      "permutation_basket_percentile": 93.0,
+      "permutation_basket_p": 0.075,
+      "permutation_single_percentile": 100.0,
+      "permutation_single_p": 0.005
+    }
+  },
+  "crypto_winter_2018": {
+    "common_start": "2017-07-05",
+    "representative": "RIOT",
+    "permutation_basket": {
+      "actual_sharpe": 1.24,
+      "percentile": 93.5,
+      "p_value": 0.0697,
+      "permuted_mean": 0.6045,
+      "permuted_std": 0.4015
+    },
+    "permutation_single": {
+      "actual_sharpe": 1.13,
+      "percentile": 97.0,
+      "p_value": 0.0348,
+      "permuted_mean": 0.4272,
+      "permuted_std": 0.3941
+    },
+    "bootstrap": {
+      "basket": {
+        "point_estimate_sharpe": 1.2391,
+        "n_obs": 1089,
+        "by_block_len": {
+          "10": {
+            "ci90": [
+              0.6009613746456648,
+              1.8335843184160103
+            ],
+            "pct_le_zero": 0.001,
+            "width": 1.2326229437703455
+          },
+          "20": {
+            "ci90": [
+              0.6424789649572982,
+              1.8246322757014743
+            ],
+            "pct_le_zero": 0.0,
+            "width": 1.1821533107441762
+          },
+          "40": {
+            "ci90": [
+              0.6201016407707647,
+              1.838092162494729
+            ],
+            "pct_le_zero": 0.0005,
+            "width": 1.2179905217239644
+          }
+        }
+      },
+      "single": {
+        "point_estimate_sharpe": 1.1309,
+        "n_obs": 1089,
+        "by_block_len": {
+          "10": {
+            "ci90": [
+              0.4141724649559743,
+              1.7858435090899334
+            ],
+            "pct_le_zero": 0.007,
+            "width": 1.371671044133959
+          },
+          "20": {
+            "ci90": [
+              0.34200376758504886,
+              1.807385420386456
+            ],
+            "pct_le_zero": 0.0115,
+            "width": 1.4653816528014072
+          },
+          "40": {
+            "ci90": [
+              0.2873153146904006,
+              1.8468402630630067
+            ],
+            "pct_le_zero": 0.0115,
+            "width": 1.5595249483726061
+          }
+        }
+      }
+    }
+  },
+  "dotcom_bubble_2000": {
+    "common_start": "1999-03-26",
+    "representative": "CSCO",
+    "permutation_basket": {
+      "actual_sharpe": 0.3,
+      "percentile": 12.5,
+      "p_value": 0.8756,
+      "permuted_mean": 0.7322,
+      "permuted_std": 0.4
+    },
+    "permutation_single": {
+      "actual_sharpe": -0.17,
+      "percentile": 13.0,
+      "p_value": 0.8706,
+      "permuted_mean": 0.2862,
+      "permuted_std": 0.4126
+    },
+    "bootstrap": {
+      "basket": {
+        "point_estimate_sharpe": 0.3003,
+        "n_obs": 946,
+        "by_block_len": {
+          "10": {
+            "ci90": [
+              -0.5202284568910324,
+              1.1301164830361636
+            ],
+            "pct_le_zero": 0.271,
+            "width": 1.650344939927196
+          },
+          "20": {
+            "ci90": [
+              -0.5259980856717213,
+              1.1503295818972408
+            ],
+            "pct_le_zero": 0.284,
+            "width": 1.676327667568962
+          },
+          "40": {
+            "ci90": [
+              -0.6138423375846507,
+              1.2899933962997778
+            ],
+            "pct_le_zero": 0.308,
+            "width": 1.9038357338844285
+          }
+        }
+      },
+      "single": {
+        "point_estimate_sharpe": -0.1684,
+        "n_obs": 946,
+        "by_block_len": {
+          "10": {
+            "ci90": [
+              -1.0223882225294219,
+              0.6468799081914289
+            ],
+            "pct_le_zero": 0.6105,
+            "width": 1.6692681307208508
+          },
+          "20": {
+            "ci90": [
+              -1.0789795947791028,
+              0.7079313837599502
+            ],
+            "pct_le_zero": 0.623,
+            "width": 1.7869109785390531
+          },
+          "40": {
+            "ci90": [
+              -1.1882044975012762,
+              0.7526432152669523
+            ],
+            "pct_le_zero": 0.6205,
+            "width": 1.9408477127682287
+          }
+        }
+      }
+    }
+  }
+}

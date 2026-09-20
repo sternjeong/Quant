@@ -1,0 +1,92 @@
+[audit] ===== 바스켓: shipping =====
+$ZIM: Data doesn't exist for startDate = 1104555600, endDate = 1611723600
+
+1 Failed download:
+['ZIM']: Data doesn't exist for startDate = 1104555600, endDate = 1611723600
+$SBLK: Data doesn't exist for startDate = 1104555600, endDate = 1196571600
+
+1 Failed download:
+['SBLK']: Data doesn't exist for startDate = 1104555600, endDate = 1196571600
+$DAC: Data doesn't exist for startDate = 1104555600, endDate = 1160884800
+
+1 Failed download:
+['DAC']: Data doesn't exist for startDate = 1104555600, endDate = 1160884800
+$FRO: possibly delisted; no price data found  (1d 2005-01-01 -> 2005-01-02)
+
+1 Failed download:
+['FRO']: possibly delisted; no price data found  (1d 2005-01-01 -> 2005-01-02)
+$STNG: Data doesn't exist for startDate = 1104555600, endDate = 1269921600
+
+1 Failed download:
+['STNG']: Data doesn't exist for startDate = 1104555600, endDate = 1269921600
+[audit]   실제 바스켓 샤프: 0.62, 실제 단일(ZIM) 샤프: 0.4
+[audit]   바스켓 순열검정 200회...
+[audit]       순열 50/200
+[audit]       순열 100/200
+[audit]       순열 150/200
+[audit]       순열 200/200
+[audit]   바스켓 순열검정: 백분위 76.0, p=0.2438
+[audit]   단일(ZIM) 순열검정 200회...
+[audit]       순열 50/200
+[audit]       순열 100/200
+[audit]       순열 150/200
+[audit]       순열 200/200
+[audit]   단일 순열검정: 백분위 53.0, p=0.4726
+[audit]   블록부트스트랩...
+[audit]   부트스트랩 완료 (L=20 폭: 바스켓 1.4687235062363888, 단일 1.4331734244066312)
+[audit] ===== 바스켓: cannabis =====
+$TLRY: Data doesn't exist for startDate = 1104555600, endDate = 1531886400
+
+1 Failed download:
+['TLRY']: Data doesn't exist for startDate = 1104555600, endDate = 1531886400
+$CGC: Data doesn't exist for startDate = 1104555600, endDate = 1396756800
+
+1 Failed download:
+['CGC']: Data doesn't exist for startDate = 1104555600, endDate = 1396756800
+$ACB: Data doesn't exist for startDate = 1104555600, endDate = 1405310400
+
+1 Failed download:
+['ACB']: Data doesn't exist for startDate = 1104555600, endDate = 1405310400
+$CRON: Data doesn't exist for startDate = 1104555600, endDate = 1519621200
+
+1 Failed download:
+['CRON']: Data doesn't exist for startDate = 1104555600, endDate = 1519621200
+[audit]   실제 바스켓 샤프: -0.09, 실제 단일(TLRY) 샤프: -0.1
+[audit]   바스켓 순열검정 200회...
+[audit]       순열 50/200
+[audit]       순열 100/200
+[audit]       순열 150/200
+[audit]       순열 200/200
+[audit]   바스켓 순열검정: 백분위 25.0, p=0.7512
+[audit]   단일(TLRY) 순열검정 200회...
+[audit]       순열 50/200
+[audit]       순열 100/200
+[audit]       순열 150/200
+[audit]       순열 200/200
+[audit]   단일 순열검정: 백분위 36.0, p=0.6418
+[audit]   블록부트스트랩...
+[audit]   부트스트랩 완료 (L=20 폭: 바스켓 1.0069569137103447, 단일 1.1791233334531075)
+[audit] ===== 바스켓: solar =====
+$ENPH: Data doesn't exist for startDate = 1104555600, endDate = 1332993600
+
+1 Failed download:
+['ENPH']: Data doesn't exist for startDate = 1104555600, endDate = 1332993600
+$SEDG: Data doesn't exist for startDate = 1104555600, endDate = 1427256000
+
+1 Failed download:
+['SEDG']: Data doesn't exist for startDate = 1104555600, endDate = 1427256000
+$RUN: Data doesn't exist for startDate = 1104555600, endDate = 1438660800
+
+1 Failed download:
+['RUN']: Data doesn't exist for startDate = 1104555600, endDate = 1438660800
+$FSLR: Data doesn't exist for startDate = 1104555600, endDate = 1163653200
+
+1 Failed download:
+['FSLR']: Data doesn't exist for startDate = 1104555600, endDate = 1163653200
+$PLUG: possibly delisted; no price data found  (1d 2005-01-01 -> 2005-01-02)
+
+1 Failed download:
+['PLUG']: possibly delisted; no price data found  (1d 2005-01-01 -> 2005-01-02)
+[audit]   실제 바스켓 샤프: 0.7, 실제 단일(ENPH) 샤프: 0.84
+[audit]   바스켓 순열검정 200회...
+[audit]       순열 50/200

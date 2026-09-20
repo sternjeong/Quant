@@ -1,0 +1,49 @@
+$FDXF: Data doesn't exist for startDate = 1755144000, endDate = 1779768000
+
+1 Failed download:
+['FDXF']: Data doesn't exist for startDate = 1755144000, endDate = 1779768000
+$HONA: Data doesn't exist for startDate = 1755144000, endDate = 1781409600
+
+1 Failed download:
+['HONA']: Data doesn't exist for startDate = 1755144000, endDate = 1781409600
+$Q: Data doesn't exist for startDate = 1755144000, endDate = 1761451200
+
+1 Failed download:
+['Q']: Data doesn't exist for startDate = 1755144000, endDate = 1761451200
+$FDXF: Data doesn't exist for startDate = 1755144000, endDate = 1779768000
+
+1 Failed download:
+['FDXF']: Data doesn't exist for startDate = 1755144000, endDate = 1779768000
+$HONA: Data doesn't exist for startDate = 1755144000, endDate = 1781409600
+
+1 Failed download:
+['HONA']: Data doesn't exist for startDate = 1755144000, endDate = 1781409600
+$Q: Data doesn't exist for startDate = 1755144000, endDate = 1761451200
+
+1 Failed download:
+['Q']: Data doesn't exist for startDate = 1755144000, endDate = 1761451200
+$FDXF: Data doesn't exist for startDate = 1755144000, endDate = 1779768000
+
+1 Failed download:
+['FDXF']: Data doesn't exist for startDate = 1755144000, endDate = 1779768000
+$HONA: Data doesn't exist for startDate = 1755144000, endDate = 1781409600
+
+1 Failed download:
+['HONA']: Data doesn't exist for startDate = 1755144000, endDate = 1781409600
+$Q: Data doesn't exist for startDate = 1755144000, endDate = 1761451200
+
+1 Failed download:
+['Q']: Data doesn't exist for startDate = 1755144000, endDate = 1761451200
+$Q: Data doesn't exist for startDate = 1755144000, endDate = 1761451200
+
+1 Failed download:
+['Q']: Data doesn't exist for startDate = 1755144000, endDate = 1761451200
+[discover] full universe, default weights ...
+  -> 50 rows in 152.3s
+[discover] full universe, momentum_heavy weights ...
+  -> 50 rows in 3.6s
+[discover] full universe, quality_heavy weights ...
+  -> 50 rows in 2.0s
+[discover] hot-sector filter (['Information Technology', 'Energy']), default weights ...
+  -> 30 rows in 0.4s
+[discover] saved discover_results.json, total 158.3s

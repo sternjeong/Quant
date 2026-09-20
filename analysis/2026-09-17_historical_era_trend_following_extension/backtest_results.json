@@ -1,0 +1,231 @@
+{
+  "meta": {
+    "fee_bps_oneway": 5.0,
+    "round_trip_cost_pct": 0.1,
+    "entry_window": 20,
+    "stop_pct": 0.15,
+    "momentum_window_days": 126
+  },
+  "crypto_winter_2018": {
+    "tickers": [
+      "MARA",
+      "RIOT"
+    ],
+    "representative": "RIOT",
+    "label": "크립토 채굴주 — AI 피벗 이전(2017 ICO붐~2021, 진짜 크립토윈터 포함)",
+    "narrative": "MARA(옛 Marathon Patent Group)·RIOT(옛 Bioptix Inc)는 2017년 하반기 비트코인 채굴로 사업을 전환한 뒤(RIOT는 2017-10, 거래량이 15만주대에서 1400만주대로 폭증하며 명확히 확인됨), 2017년 12월 ICO/크립토 마니아 정점(RIOT 종가 $28.4, MARA $16.68)을 찍고 2018년 한 해 동안 -90%대로 무너진 '진짜 크립토윈터'를 실제로 겪었다(RIOT 2018-12 $1.51, MARA 2019-01 $1.36 — 정점 대비 각각 -95%/-92%). 이후 2019년 횡보, 2020년 코로나 폭락/급반등, 2021년 두 번째 마니아 정점까지 포함한다. IREN은 이 기간에 존재하지도 않았다(2021-11 나스닥 상장) — 즉 같은 종목(MARA/RIOT)이지만 AI 서사가 전혀 없던, 지금까지 이 저장소가 한 번도 검증하지 않은 완전히 다른 시대의 표본이다.",
+    "load_start": "2017-01-01",
+    "listing_dates": {
+      "MARA": "2017-01-03",
+      "RIOT": "2017-01-03"
+    },
+    "common_start": "2017-07-05",
+    "end": "2021-10-29",
+    "top_n": 1,
+    "representative_buy_hold_full": {
+      "metrics": {
+        "cumulative_return": 620.63,
+        "cagr": 50.7,
+        "mdd": -98.32,
+        "sharpe": 0.93,
+        "win_rate": 100.0,
+        "avg_holding_days": 1759.0,
+        "trade_count": 1,
+        "profit_factor": 999.0,
+        "calmar": 0.52,
+        "avg_drawdown_days": 184.1
+      },
+      "start": "2017-01-03",
+      "end": "2021-10-29"
+    },
+    "representative_buy_hold_common_window": {
+      "cumulative_return": 602.55,
+      "cagr": 57.12,
+      "mdd": -98.32,
+      "sharpe": 0.97,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.58,
+      "avg_drawdown_days": 116.4
+    },
+    "basket_static_buy_hold": {
+      "cumulative_return": 714.42,
+      "cagr": 62.59,
+      "mdd": -98.31,
+      "sharpe": 0.97,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.64,
+      "avg_drawdown_days": 128.8
+    },
+    "spy_buy_hold_common_window": {
+      "cumulative_return": 88.79,
+      "cagr": 15.87,
+      "mdd": -34.1,
+      "sharpe": 0.84,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.47,
+      "avg_drawdown_days": 14.9
+    },
+    "momentum_rotation": {
+      "cumulative_return": 234.8,
+      "cagr": 32.32,
+      "mdd": -95.84,
+      "sharpe": 0.77,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.34,
+      "avg_drawdown_days": 157.6
+    },
+    "trend_following_single": {
+      "cumulative_return": 1472.53,
+      "cagr": 89.37,
+      "mdd": -72.1,
+      "sharpe": 1.13,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 25,
+      "profit_factor": 0.0,
+      "calmar": 1.24,
+      "avg_drawdown_days": 84.7
+    },
+    "trend_following_basket": {
+      "cumulative_return": 3771.28,
+      "cagr": 133.34,
+      "mdd": -76.96,
+      "sharpe": 1.24,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 1.73,
+      "avg_drawdown_days": 65.6,
+      "avg_active_names": 0.48
+    },
+    "representative_full_history_max_drawdown_pct": -98.3
+  },
+  "dotcom_bubble_2000": {
+    "tickers": [
+      "CSCO",
+      "QCOM",
+      "EBAY",
+      "GLW",
+      "CIEN",
+      "AMZN"
+    ],
+    "representative": "CSCO",
+    "label": "닷컴버블 인터넷/통신 바스켓 (1998~2002, 진짜 -80~95% 약세장 포함)",
+    "narrative": "1998~2000년 인터넷/통신 인프라 붐(닷컴버블) 당시 가장 뜨거웠던 종목군 중 현재까지도 동일 티커로 거래되는 생존 종목만 골랐다(JDSU·PMCS·Sun Microsystems·Nortel 등 다수는 상장폐지/합병으로 yfinance에 이력이 없어 제외 — 생존편향을 그대로 명시). CSCO(-88%), QCOM(-83%), CIEN(-97%), GLW(-99%), AMZN(-95%), EBAY(-85%) 전부 2000~2002년 사이 고점 대비 극단적 낙폭을 실제로 겪은 진짜 약세장 표본 — IREN·크립토와도 테마가 무관하고 (인터넷 인프라 vs 크립토채굴/AI), 시대도 20여 년 전이라 이 저장소가 가진 어떤 표본과도 겹치지 않는 독립적인 검증이다.",
+    "load_start": "1997-06-01",
+    "listing_dates": {
+      "CSCO": "1997-06-02",
+      "QCOM": "1997-06-02",
+      "EBAY": "1998-09-24",
+      "GLW": "1997-06-02",
+      "CIEN": "1997-06-02",
+      "AMZN": "1997-06-02"
+    },
+    "common_start": "1999-03-26",
+    "end": "2002-12-31",
+    "top_n": 3,
+    "representative_buy_hold_full": {
+      "metrics": {
+        "cumulative_return": 72.05,
+        "cagr": 10.22,
+        "mdd": -89.26,
+        "sharpe": 0.46,
+        "win_rate": 100.0,
+        "avg_holding_days": 2037.0,
+        "trade_count": 1,
+        "profit_factor": 999.0,
+        "calmar": 0.11,
+        "avg_drawdown_days": 12.9
+      },
+      "start": "1997-06-02",
+      "end": "2002-12-31"
+    },
+    "representative_buy_hold_common_window": {
+      "cumulative_return": -50.68,
+      "cagr": -17.12,
+      "mdd": -89.26,
+      "sharpe": 0.05,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": -0.19,
+      "avg_drawdown_days": 11.5
+    },
+    "basket_static_buy_hold": {
+      "cumulative_return": -18.28,
+      "cagr": -5.22,
+      "mdd": -87.49,
+      "sharpe": 0.25,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": -0.06,
+      "avg_drawdown_days": 17.5
+    },
+    "spy_buy_hold_common_window": {
+      "cumulative_return": -31.47,
+      "cagr": -9.55,
+      "mdd": -49.14,
+      "sharpe": -0.32,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": -0.19,
+      "avg_drawdown_days": 21.0
+    },
+    "momentum_rotation": {
+      "cumulative_return": 232.03,
+      "cagr": 37.54,
+      "mdd": -51.49,
+      "sharpe": 0.88,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.73,
+      "avg_drawdown_days": 24.8
+    },
+    "trend_following_single": {
+      "cumulative_return": -39.83,
+      "cagr": -12.62,
+      "mdd": -80.79,
+      "sharpe": -0.17,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 18,
+      "profit_factor": 0.0,
+      "calmar": -0.16,
+      "avg_drawdown_days": 15.3
+    },
+    "trend_following_basket": {
+      "cumulative_return": 7.27,
+      "cagr": 1.88,
+      "mdd": -81.61,
+      "sharpe": 0.3,
+      "win_rate": 0.0,
+      "avg_holding_days": 0.0,
+      "trade_count": 0,
+      "profit_factor": 0.0,
+      "calmar": 0.02,
+      "avg_drawdown_days": 11.5,
+      "avg_active_names": 2.62
+    },
+    "representative_full_history_max_drawdown_pct": -89.3
+  }
+}
