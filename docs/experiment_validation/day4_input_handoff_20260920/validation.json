@@ -1,0 +1,25 @@
+{
+  "verified_at_utc": "2026-09-20T09:51:58.357626+00:00",
+  "handoff_consistency": "PASS",
+  "diagnostic_member_keys_verified": 20156,
+  "raw_identifiers_preserved": 949,
+  "calendar_boundaries_verified": 40,
+  "prior_artifacts_verified": {
+    "day4/result_hashes.json": 268,
+    "day4_review_20260920/result_hashes.json": 20,
+    "day4_sector_sources_20260920/result_hashes.json": 18
+  },
+  "frozen_data_files_verified": 22,
+  "frozen_data_inventory_sha256": "a8132c4441f818e47309dee4cbb93bb3067b18edc40371bda00679862fb6e86d",
+  "documentation_sources_verified": 3,
+  "preexisting_files_preserved": 415,
+  "tests_passed": 24,
+  "day4_status": "BLOCKED",
+  "day4_complete": false,
+  "certified_rebalances": 0,
+  "certified_common_sessions": 0,
+  "comparisons_not_evaluable": 6,
+  "s6_backtest_executed": false,
+  "day3_backtest_repeated": false,
+  "new_strategy_interpretations": false
+}

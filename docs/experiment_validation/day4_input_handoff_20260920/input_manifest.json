@@ -1,0 +1,20 @@
+{
+  "scope": "Lossless query keys from the prior unverified diagnostic inventory; not a certified universe",
+  "source_files": {
+    "day4/member_coverage.csv.gz": "148d3b039847fa79c047b9767683ba1d873c1ce20e6c838be0bfe4d25f0ae425",
+    "day4/rebalance_boundaries.csv": "24922287688c2ea87c8005d8c01fad769db061f63588549dc9257187be925594",
+    "day4/RESUME_NOTE.md": "668310d77e2df08264b803ef48c36a5a36acd46b52481d3341796987073a4523",
+    "day4_resolutions.md": "6aeac410131a8e66a443a94235d5567b4d58c4d98dab95f4e0abbda2693c53cd",
+    "day2/XNYS_sessions.csv.gz": "94780f283f01ffe25ec3a05281a676fa5a0c34964f6e1e070b1c4b9ab60f85fa",
+    "data/sp500_historical_constituents.csv.gz": "a2d40878a6e8a6e6d48e11958ea0310715b3d245b9042d403298a88fc9953cb0"
+  },
+  "source_path_base": "docs/experiment_validation",
+  "member_boundary_requests": 20156,
+  "raw_identifiers": 949,
+  "semiannual_boundaries": 40,
+  "certified_rebalances": 0,
+  "day4_complete": false,
+  "s6_backtest_executed": false,
+  "authoritative_membership_reconciliation_required": true,
+  "lookup_hints_are_security_ids": false
+}

@@ -75,3 +75,13 @@ S&P500 전체 PIT 인증 자료가 아니므로 Day 4는 BLOCKED다. 완료 표�
 새 증거 없이 같은 공지·SEC·캐시·Day 3 백테스트를 반복하지 않고 Day 5로 넘어가지 않는다.
 신규/기존 Day 4 테스트 26개 통과, 원문/CSV 독립 감사 PASS, 완료 요구 종료 코드 2.
 게시 결과는 해당 폴더 `publication.json`에서 확인한다.
+
+
+## 2026-09-20 Day 4 전체 모집단 입력 인계
+
+Day 4는 BLOCKED다. 최신 재개 문서는
+`docs/experiment_validation/day4_input_handoff_20260920/RESUME_NOTE.md`, 필요한 전체
+입력/조회 키는 같은 폴더 `input_request.md`와 요청 CSV 3개다. 입력 인증 반기/공통 날짜
+0개이므로 완료 표식 금지, Day 5 미착수. 신규 PIT export/기존 데이터 경로가 있을 때
+계속하며 단일 회사/공지 조사와 완료된 백테스트를 반복하지 않는다. 24개 테스트와
+저장 요청/달력/기존 해시 검사는 통과했으나 실제 S6 재현 통과가 아니다.

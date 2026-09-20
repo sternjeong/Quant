@@ -5174,3 +5174,30 @@ S&P500 전체 과거 섹터로 편입하지 않았다. 전체 모집단 PIT/주�
 증권/단위/상장폐지 가격 입력부터 확보한다. 새 자료가 없으면 이번 공지나 이전 SEC/캐시/
 백테스트를 반복하지 않는다. 상세 명령은 해당 폴더 `RESUME_NOTE.md`, 게시 결과는
 `publication.json`. 연구 브랜치 `research/day4-sector-sources-20260920`.
+
+
+### 2026-09-20 — Day 4 전체 모집단 입력 인계 및 접근 경로 확인
+
+DAY_4_BLOCKED
+
+기존 진단표의 20,156개 종목/시점·949개 원본 식별자·40개 반기 경계를 손실 없이
+조회 요청 파일로 옮겼다. 구성/섹터/주식수/증권 단위/상장폐지 가격의 필요 필드와
+공식 공급 경로를 문서화했다. 공식 접근 문서 3개를 받았으나 실제 PIT 데이터는
+확보하지 못했다. 인증 반기/공통 날짜 0개, S1/S6 비교 6개 NOT_EVALUABLE 유지.
+S6 재현 미실행, 완료 표식 없음, Day 5 미착수. 반복 Day 3 백테스트 없음.
+
+산출물: `docs/experiment_validation/day4_input_handoff_20260920/`의 `input_request.md`,
+`requested_member_keys.csv.gz`, `requested_boundaries.csv`, `requested_identifiers.csv`,
+생성/독립 검증 코드·테스트·로그, 입력 manifest·출처 receipt·로컬 delta·검증 JSON,
+`review.md`, `RESUME_NOTE.md`, `result_hashes.json`. 개별 경로/해시 16개는 결과 목록에 있다.
+원문 3개·이전 파일 백업은 로컬만 보존한다. 신규 9+기존 15개 테스트 **24 passed**;
+20,156행 및 거래소 경계 독립 대조 PASS, 완료 요구 종료 코드 2(BLOCKED).
+기존 증거 268+20+18개, 동결 데이터 22개와 원천 1,548개 해시 유지; 기존 파일 415개 보존.
+동결 데이터 목록 SHA-256: `a8132c4441f818e47309dee4cbb93bb3067b18edc40371bda00679862fb6e86d`.
+요청 CSV 3개 목록 SHA-256: `7022f50842f1af8c3a1f44920bdcacd8f9e850fd9114ed76369e27b2b2589b0e` (PIT 전략 데이터 아님).
+결과 목록 파일 SHA-256: `ee8b83c8458fa3f62dc7b5b0910e4b014f64e77bd61d3fd20cda4bdae00d78cc`.
+
+후보·기준선·게이트·전략 해석 변경 없음. 다음 자동 감독은 Day 4에 머물러 실제 PIT
+export 또는 기존 데이터 경로부터 확인한다. 새 자료 없이는 이번 패키지/기존 단일 종목·공지
+수집을 반복하지 않는다. 입력 인증 후 S6 5/10/25bp 다음 시가 재현과 S1 공통 비교를 수행한다.
+연구 브랜치 `research/day4-input-handoff-20260920`; 실제 게시 결과는 `publication.json`.

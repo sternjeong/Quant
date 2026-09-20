@@ -1,0 +1,46 @@
+[
+  {
+    "requested_url": "https://www.spice-indices.com/",
+    "request_started_at_utc": "2026-09-20T09:47:44.977993+00:00",
+    "purpose": "data access documentation only; not strategy input",
+    "status": 200,
+    "final_url": "https://www.spice-indices.com/idp/",
+    "content_type": "text/html;charset=UTF-8",
+    "path": "spice_access.html",
+    "bytes": 7444,
+    "sha256": "554eedfe1859e7afca9bed6e2e2bd29f56a708627a87c61505d86c0055c9c1c3",
+    "request_finished_at_utc": "2026-09-20T09:47:46.187077+00:00"
+  },
+  {
+    "requested_url": "https://pages.marketintelligence.spglobal.com/SP-Dow-Jones-Indices-Constituent-Removal.html",
+    "request_started_at_utc": "2026-09-20T09:47:46.187244+00:00",
+    "purpose": "data access documentation only; not strategy input",
+    "status": 200,
+    "final_url": "https://pages.marketintelligence.spglobal.com/SP-Dow-Jones-Indices-Constituent-Removal.html",
+    "content_type": "text/html; charset=utf-8",
+    "path": "spdj_constituent_access.html",
+    "bytes": 90046,
+    "sha256": "a9776eeaa96bc3af6af4fa34187dea46cec8281de93b63e60eaf2de69c483b0c",
+    "request_finished_at_utc": "2026-09-20T09:47:47.536723+00:00"
+  },
+  {
+    "requested_url": "https://www.crsp.org/research__trashed/crsp-us-stock-databases/",
+    "request_started_at_utc": "2026-09-20T09:47:47.537151+00:00",
+    "purpose": "data access documentation only; not strategy input",
+    "status": 200,
+    "final_url": "https://www.crsp.org/research__trashed/crsp-us-stock-databases/",
+    "content_type": "text/html; charset=UTF-8",
+    "path": "crsp_stock_access.html",
+    "bytes": 256614,
+    "sha256": "aa42a5e2da358ed0f03c56480c1124f633df856cbeb8117edbf03aaf6c0de5a6",
+    "request_finished_at_utc": "2026-09-20T09:47:48.812285+00:00"
+  },
+  {
+    "requested_url": "https://www.spglobal.com/spdji/en/documents/index-policies/index-data-capabilities-brochure.pdf",
+    "request_started_at_utc": "2026-09-20T09:47:48.812719+00:00",
+    "purpose": "data access documentation only; not strategy input",
+    "status": 403,
+    "error_class": "HTTPError",
+    "request_finished_at_utc": "2026-09-20T09:47:48.864707+00:00"
+  }
+]

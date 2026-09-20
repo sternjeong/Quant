@@ -1,0 +1,43 @@
+{
+  "path_base": "docs/experiment_validation/day4_input_handoff_20260920",
+  "algorithm": "SHA-256",
+  "artifacts": {
+    "RESUME_NOTE.md": "cb590c340f5ae52b2e9ca298168cf20828649982304a9c91e61e19dcffec98a5",
+    "build_handoff.py": "6e37402cfda82c88ff5e6895830f7ad29982fbb87b4d00efe2e4384b128d0cb7",
+    "initial_workspace.json": "a6beccfa196e8080e14685933ab76e36471a66a7b30729153c69e9b85044fbfb",
+    "input_manifest.json": "b23a13dac99214d4af6cebbf3ffc7443e12f3665463ebd422e5cdce30d0ea7fd",
+    "input_request.md": "49b8f96ee9142ed4bf66cf05438118f7074941575458efefd123a8c5a289c33f",
+    "local_input_delta.json": "ffde8c0e456c6b6603b9337f04a0b54da5fbfe1fbad96b1f1a7bc69a60be5b82",
+    "requested_boundaries.csv": "40782e7685453b1f874aac6b33250362b5ac8632d8fbff2756d8bdddde6dec3a",
+    "requested_identifiers.csv": "6443a69c570e8559411ffcc5e70c7f9cde394a4aa88d055e26b22ebf69ab44d3",
+    "requested_member_keys.csv.gz": "3d4fbfbe6ab49ff11bf0d59039664907ca440d28d8c679a03385fb01e9762e35",
+    "review.md": "01e0d2389a4b6d7c8c6bed5224e19518ef5f3556531ef0a22182587d79071e4f",
+    "source_access.json": "2dcca1d781f62adfe06c3f6c66e8999aa4342862feda19d4661174eaa57847c7",
+    "test_handoff.py": "5d53f3455dbcc6422bee864915ac9c55276bb26763408cdf426bad473527d65d",
+    "tests.log": "be69523e632649b46a99764849d527b42d2be76e58a15baaeb20e111b7c0672c",
+    "validation.json": "1c2c6de21c180d7a73700c6340ce6173bf9f0a38a4d7836c8d313453d309f342",
+    "validation_errors.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verify_handoff.py": "9ee3419b9af5681c8f1ee3c6374cd0c85b8394e2452e562524cadc052c38ece8"
+  },
+  "local_only_source_files": {
+    "spice_access.html": "554eedfe1859e7afca9bed6e2e2bd29f56a708627a87c61505d86c0055c9c1c3",
+    "spdj_constituent_access.html": "a9776eeaa96bc3af6af4fa34187dea46cec8281de93b63e60eaf2de69c483b0c",
+    "crsp_stock_access.html": "aa42a5e2da358ed0f03c56480c1124f633df856cbeb8117edbf03aaf6c0de5a6"
+  },
+  "request_data_hashes": {
+    "requested_boundaries.csv": "40782e7685453b1f874aac6b33250362b5ac8632d8fbff2756d8bdddde6dec3a",
+    "requested_member_keys.csv.gz": "3d4fbfbe6ab49ff11bf0d59039664907ca440d28d8c679a03385fb01e9762e35",
+    "requested_identifiers.csv": "6443a69c570e8559411ffcc5e70c7f9cde394a4aa88d055e26b22ebf69ab44d3"
+  },
+  "request_inventory_sha256": "7022f50842f1af8c3a1f44920bdcacd8f9e850fd9114ed76369e27b2b2589b0e",
+  "documentation_source_inventory_sha256": "16b2419916af714b03769f407845d924e73e15ab5d3a237877cefed85c467449",
+  "frozen_data_inventory_sha256": "a8132c4441f818e47309dee4cbb93bb3067b18edc40371bda00679862fb6e86d",
+  "day4_status": "BLOCKED",
+  "exclusions": [
+    "this hash list",
+    "later publication/workspace receipts",
+    "local backups",
+    "local full source HTML",
+    "__pycache__"
+  ]
+}

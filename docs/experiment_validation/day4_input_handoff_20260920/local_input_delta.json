@@ -1,0 +1,9 @@
+{
+  "at_utc": "2026-09-20T09:51:58.012035+00:00",
+  "scope": "Previous source file hashes; PIT-related filenames under data/analysis/docs excluding experiment outputs and HTML. Bounded local search, not proof that external data does not exist.",
+  "cutoff_utc": "2026-09-20T05:32:17.519645+00:00",
+  "previous_sources": 1548,
+  "changed_sources": [],
+  "missing_sources": [],
+  "recent_pit_named_files": []
+}
