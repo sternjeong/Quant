@@ -68,42 +68,11 @@
   사용량 과금이 계속 발생한다 — 조건에 걸려 이번에 진행하지 않았다. 정말 원하면 다음에 명시적으로
   "결제 발생해도 진행"이라고 지시해야 한다.
 
-## 4. 관제 허브(hub/) 신규 배포 — nginx 기본 사이트 교체 + 서비스 등록 (`sudo` 필요)
+## 4. ~~관제 허브(hub/) 신규 배포~~ — 2026-09-20 완료
 
-- **배경**: 텔레그램 지시("여러 앱을 관리하는 최상위 감시 모듈, IP 치면 이게 뜨고 슬롯 누르면
-  해당 앱으로 이동")로 `hub/` 모듈(신규 의존성 없음, stdlib `http.server`만 사용)을 추가했다.
-  지금은 `/etc/nginx/sites-enabled/quant-streamlit`(저장소에 없던, 사람이 예전에 수동으로 만든
-  파일)이 80번 포트를 Streamlit(8501)에 직접 프록시하고 있다 — 이걸 새 허브(127.0.0.1:8000)로
-  바꿔야 IP만 쳤을 때 관제 센터가 뜬다. Streamlit 자체는 그대로 `:8501`에서 계속 서비스되고,
-  허브의 "퀀트 대시보드" 슬롯이 거기로 링크한다(경로 변경 없음, `--server.baseUrlPath` 등 건드릴
-  필요 없음).
-- **조치** (`138.2.11.196`에 `quant` 계정으로 로그인 후 sudo 비밀번호만 입력):
-  ```bash
-  cd /opt/quant   # git pull은 quant-auto-deploy.timer가 이미 자동으로 반영해둠
-  sudo cp deploy/quant-hub.service /etc/systemd/system/
-  sudo systemctl daemon-reload
-  sudo systemctl enable --now quant-hub.service
-  sudo systemctl status quant-hub --no-pager   # active (running) 확인
-
-  sudo rm -f /etc/nginx/sites-enabled/quant-streamlit
-  sudo cp deploy/nginx-quant.conf /etc/nginx/sites-available/quant-hub
-  sudo ln -sf /etc/nginx/sites-available/quant-hub /etc/nginx/sites-enabled/quant-hub
-  sudo nginx -t
-  sudo systemctl reload nginx
-  ```
-- **확인**: 브라우저에서 `http://138.2.11.196/` 접속 → "Quant VM 관제 센터" 카드 5개(퀀트
-  대시보드/스케줄러/실험 슈퍼바이저/Codex 텔레그램/VM 헬스체크)가 보이면 성공. "퀀트 대시보드"
-  카드를 누르면 기존처럼 `:8501` Streamlit 앱으로 이동해야 한다.
-- **참고**: 방화벽에서 80번 포트는 이미 열려 있음(기존 quant-streamlit nginx 사이트가 쓰던 포트를
-  그대로 재사용하므로 `ufw`/Oracle VCN 추가 조치 불필요, 8501도 그대로 유지).
-- **의도적으로 미룬 것**: `deploy/auto_deploy.sh`의 `SERVICES=(...)` 목록에는 아직 `quant-hub`를
-  넣지 않았다 — 그 스크립트는 `systemctl restart "${SERVICES[@]}"`를 한 줄로 실행하는데, 이 유닛이
-  VM에 설치되기 전에 그 줄이 먼저 배포되면(자동배포 타이머가 5분마다 pull하므로 실제로 그렇게 됨)
-  존재하지 않는 유닛 때문에 `set -e`로 스크립트 전체가 중단되어 `quant-streamlit`/`quant-scheduler`
-  재시작까지 함께 실패할 위험이 있었다. **위 설치를 끝낸 뒤**에만 별도로
-  `deploy/auto_deploy.sh`의 `SERVICES=(codex-telegram quant-streamlit quant-scheduler)`에
-  `quant-hub`를 추가하는 커밋을 하면, 이후 `hub/` 코드 변경도 자동배포로 재시작까지 반영된다
-  (그 전까지는 `hub/*.py`를 고쳐도 `sudo systemctl restart quant-hub`를 손으로 해줘야 반영됨).
+`quant-hub.service` 설치, nginx 사이트를 허브(127.0.0.1:8000)로 교체, `deploy/auto_deploy.sh`의
+`SERVICES`에 `quant-hub` 추가까지 전부 끝났다. `http://138.2.11.196/`에서 관제 센터가 뜨고
+`:8501` Streamlit도 그대로 동작함을 확인했다. 이후 `hub/*.py` 변경도 자동배포로 재시작까지 반영된다.
 
 ## 5. 브라우저 코드 스페이스(code-server) 외부 접속 허용 — `sudo` + Oracle 콘솔 필요
 

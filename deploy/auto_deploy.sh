@@ -25,7 +25,7 @@ set -euo pipefail
 
 APP_DIR="/opt/quant"
 SERVICE_USER="quant"
-SERVICES=(codex-telegram quant-streamlit quant-scheduler)
+SERVICES=(codex-telegram quant-streamlit quant-scheduler quant-hub)
 ALERT_SCRIPT="$APP_DIR/deploy/send_telegram_alert.sh"
 STATE_DIR="${AUTO_DEPLOY_STATE_DIR:-/opt/quant/.auto-deploy-state}"
 FAIL_ALERT_FILE="$STATE_DIR/pull_failure_last_alert"

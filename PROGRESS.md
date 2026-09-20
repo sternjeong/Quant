@@ -5629,3 +5629,20 @@ S&P500 전체 과거 섹터로 편입하지 않았다. 전체 모집단 PIT/주�
 증권/단위/상장폐지 가격 입력부터 확보한다. 새 자료가 없으면 이번 공지나 이전 SEC/캐시/
 백테스트를 반복하지 않는다. 상세 명령은 해당 폴더 `RESUME_NOTE.md`, 게시 결과는
 `publication.json`. 연구 브랜치 `research/day4-sector-sources-20260920`.
+
+
+### 작업 91 (2026-09-20, 텔레그램 지시 후속): 관제 허브 실제 VM 배포 완료
+
+작업77이 만든 `hub/` 모듈을 실제 VM(`138.2.11.196`)에 배포했다 — 작업77 자체는 코드만 만들고
+`quant` 계정(sudo 없음)이 nginx/systemd를 못 건드려서 `deploy/PENDING_MANUAL_LOGIN_ACTIONS.md`
+4번에 절차만 남겨뒀던 것을, 이번에 `ubuntu` 계정(sudo 가능)으로 직접 실행해 마무리함.
+
+- `quant-hub.service` 설치·기동, `active (running)` 확인.
+- 기존 `/etc/nginx/sites-enabled/quant-streamlit`(80번을 Streamlit에 직접 프록시하던, 저장소에
+  없던 수동 설정) 제거 후 `deploy/nginx-quant.conf`로 교체 — `nginx -t` 통과 확인 후 reload.
+  `http://138.2.11.196/`에서 관제 센터 카드 그리드 확인, `:8501` Streamlit 직접 접근도 그대로
+  동작함을 확인(둘 다 curl로 200 확인).
+- `deploy/auto_deploy.sh`의 `SERVICES`에 `quant-hub` 추가(그 전엔 설치 전 유닛이라 넣으면 자동배포
+  스크립트가 `set -e`로 죽을 위험이 있어 의도적으로 미뤄뒀던 것 — 이제 설치가 끝나 안전해짐).
+  이후 `hub/*.py` 변경도 자동배포 재시작에 포함된다.
+- `PENDING_MANUAL_LOGIN_ACTIONS.md` 4번 항목을 완료로 정리.
