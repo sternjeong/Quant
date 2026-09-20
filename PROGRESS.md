@@ -5666,3 +5666,22 @@ S&P500 전체 과거 섹터로 편입하지 않았다. 전체 모집단 PIT/주�
   8080 ufw/안내 문구를 결정에 맞게 정리하고, "ufw만으로는 이 VM에서 포트가 안 열린다"는 원인을 14번에 남겼다.
 - 미해결(이번 범위 밖): `setup_vm.sh`는 80/8501도 ufw로만 여는데, 새 Oracle 우분투 VM에서는 같은
   이유로 안 열릴 가능성이 높다 — 신규 VM 부트스트랩 시 iptables ACCEPT 삽입이 필요할 수 있음.
+
+
+### 작업 93 (2026-09-20): code-server를 HTTPS 주소로 공개 (작업 92 후속 — SSH 터널 → HTTPS)
+
+작업 92에서 SSH 터널로 결정했지만 "Codespace를 먼저 열어야 한다"는 불편이 커서, 사용자와 논의해 **무료
+DuckDNS 서브도메인 + Let's Encrypt**로 바꿨다.
+
+- `deploy/setup_code_server_https.sh`(신규): DNS가 VM을 가리키는지 확인 → certbot 설치·발급(webroot,
+  자동 갱신) → nginx 443 → `127.0.0.1:8080` 프록시(WebSocket 포함) → 443 허용. 실패 시 nginx 롤백.
+  `hessejeong.duckdns.org`로 실행해 성공했고, VM 내부(TLS 검증 통과, 302→/login, http→https 301)와
+  외부(Codespace에서 HTTPS 302→/login) 양쪽에서 동작을 확인했다. code-server는 계속 로컬 전용 바인딩.
+- **발견**: VM엔 `iptables-persistent`/`netfilter-persistent`가 제거돼(`rc`) 있어서 부팅 때 `rules.v4`가
+  복원되지 않는다 — 재부팅하면 수동 iptables 규칙이 사라지고 ufw가 방화벽이 된다. 그래서 443은
+  iptables(즉시)와 ufw(재부팅 후) 양쪽에 넣었고, 스크립트도 그렇게 고쳤다. 작업 92·안내 중
+  "netfilter-persistent save로 저장돼 있다"던 서술은 틀렸으므로 `DEPLOYMENT_ORACLE.md` 14번을 정정했다.
+- `hub/`: 작업 92의 `tunnel` 종류와 안내 페이지는 카드가 더 이상 안 쓰는 죽은 코드가 돼 제거하고,
+  `link` 종류(`url` 필드)로 대체 — code-server 카드가 HTTPS 주소를 새 탭으로 연다.
+- 남은 위험: 비밀번호 하나가 곧 VM 셸이다(강한 24자 유지). DuckDNS는 무료 서비스라 드물게 불안정할
+  수 있고 공인 IP가 바뀌면 DuckDNS에서 IP를 직접 고쳐야 한다(그때는 SSH 터널이 대안).

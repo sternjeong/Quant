@@ -364,9 +364,8 @@ VS Code 하단 **Ports 탭**에 8080이 자동으로 뜬다 — 그 행의 지�
 Codespaces 포트 포워딩은 기본이 비공개(GitHub 로그인한 본인만)라 별도 인증이 하나 더 붙는다.
 Codespace가 idle로 꺼지면 터널도 함께 끊기므로 다시 열어주면 된다.
 
-**허브 카드**: 허브의 "브라우저 코드 스페이스" 카드는 `kind="tunnel"`이라 포트로 직접 링크하지 않고
-`/tunnel/code-server` 안내 페이지(위 명령과 접속 순서)를 보여준다 — 공개되지 않은 포트로 링크하면
-타임아웃이 나기 때문이다.
+**허브 카드**: 허브의 "브라우저 코드 스페이스" 카드(`kind="link"`)는 아래 HTTPS 주소로 바로 연결된다
+(`hub/apps_registry.py`의 `url`). DuckDNS 장애나 공인 IP 변경으로 주소가 안 열릴 때는 위 SSH 터널이 대안이다.
 
 **HTTPS 주소로 공개하기 (2026-09-20 결정, 무료 DuckDNS + Let's Encrypt)**: SSH 터널은 Codespace를 먼저
 열어야 해서 불편하므로, 아무 기기 브라우저에서 URL + 비밀번호만으로 들어오게 한다. 8080을 그대로
@@ -376,18 +375,23 @@ TLS를 끝내고 `127.0.0.1:8080`으로 프록시**한다 — code-server 자체
 1. https://www.duckdns.org 에서 GitHub 등으로 로그인해 무료 서브도메인을 만들고, IP에 이 VM의 공인 IP를 넣는다.
 2. Oracle 콘솔 VCN Security List에 `TCP / 443 / 0.0.0.0/0` Ingress 규칙 추가 (80은 이미 열려 있음).
 3. VM에서: `sudo bash /opt/quant/deploy/setup_code_server_https.sh <이름>.duckdns.org [이메일]`
-   — DNS 확인 → certbot 설치·인증서 발급(자동 갱신) → nginx 사이트 설치 → iptables 443 허용·저장.
+   — DNS 확인 → certbot 설치·인증서 발급(자동 갱신) → nginx 사이트 설치 → 443 허용(iptables + ufw).
    실패하면 nginx 설정을 되돌리고 멈춘다. 여러 번 돌려도 안전하다.
 4. `https://<이름>.duckdns.org/` 접속 → code-server 로그인(비밀번호는 `~/.config/code-server/config.yaml`).
+   (현재 운영 중인 주소: `https://hessejeong.duckdns.org/`, 인증서는 certbot 타이머가 자동 갱신)
 
 이제 비밀번호가 평문으로 오가지는 않지만, 비밀번호 하나가 곧 VM 셸이다 — 강한 비밀번호(현재 24자)를
 유지하고 쉬운 것으로 바꾸지 말 것(code-server가 로그인 시도를 분당 몇 회로 제한하긴 한다).
 DuckDNS는 무료·후원 기반 서비스라 드물게 불안정할 수 있고, VM 공인 IP가 바뀌면(인스턴스 중지 후
 재시작 등 — 예약 IP가 아니라면) DuckDNS 화면에서 IP를 직접 고쳐야 한다. 그때는 위 SSH 터널이 대안이다.
 
-**알아둘 것 — 이 VM에서 `ufw allow`만으로는 포트가 열리지 않는다**: Oracle 우분투 이미지는
-`/etc/iptables/rules.v4`의 INPUT 체인에 기본 `REJECT`가 ufw 체인보다 **앞에** 있어서, ufw에만 허용
-규칙을 넣으면 패킷이 REJECT에서 끝나 ufw 체인에 도달하지 못한다(2026-09-20에 8080으로 확인 —
-Oracle VCN Security List는 통과하는데 VM 안에서 거절됨). 22/80/8501은 그 REJECT **앞에** 직접
-`iptables -I INPUT ... -j ACCEPT`로 넣고 `netfilter-persistent save`로 저장해둔 것이다. 새 포트를
-공개해야 하면 같은 방식으로 넣어야 한다.
+**알아둘 것 — 이 VM의 방화벽은 지금 상태와 재부팅 후 상태가 다르다** (2026-09-20 확인):
+- **지금(부팅 후 계속 켜져 있는 동안)**: `/etc/iptables/rules.v4`에서 온 Oracle 기본 `REJECT`가 INPUT 체인에서
+  ufw 체인보다 **앞에** 있어서, `ufw allow`만 하면 패킷이 REJECT에서 끝나 ufw 체인에 도달하지 못한다
+  (8080으로 확인 — Oracle VCN Security List는 통과하는데 VM 안에서 거절됨). 22/80/8501은 그 REJECT
+  **앞에** 직접 `iptables -I INPUT ... -j ACCEPT`로 넣어둔 것이라 통한다.
+- **재부팅 후**: `iptables-persistent`/`netfilter-persistent` 패키지가 **제거된 상태(dpkg `rc`)**라 부팅 때
+  `rules.v4`를 복원하는 장치가 없다. 그러면 수동으로 넣은 iptables ACCEPT와 REJECT가 모두 사라지고
+  **ufw 규칙이 방화벽 역할**을 한다(ufw는 부팅 시 자동 활성화). 즉 새 포트를 공개하려면 **iptables ACCEPT(즉시
+  적용) + `ufw allow`(재부팅 후 유지) 둘 다** 넣어야 한다 — `setup_code_server_https.sh`가 그렇게 한다.
+- 기존 22/80/8501의 iptables 규칙은 재부팅 후 사라지지만 ufw에도 같은 규칙이 있어 접속은 유지된다.

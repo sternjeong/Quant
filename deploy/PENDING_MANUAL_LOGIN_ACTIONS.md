@@ -74,10 +74,9 @@
 `SERVICES`에 `quant-hub` 추가까지 전부 끝났다. `http://138.2.11.196/`에서 관제 센터가 뜨고
 `:8501` Streamlit도 그대로 동작함을 확인했다. 이후 `hub/*.py` 변경도 자동배포로 재시작까지 반영된다.
 
-## 5. ~~브라우저 코드 스페이스(code-server) 외부 접속 허용~~ — 2026-09-20 공개하지 않기로 결정
+## 5. ~~브라우저 코드 스페이스(code-server) 외부 접속~~ — 2026-09-20 HTTPS 주소로 완료
 
-인터넷에 직접 여는 방식은 쓰지 않기로 했다(셸 권한을 통째로 주는 IDE를 평문 HTTP + 비밀번호로
-노출하는 건 위험). code-server는 `127.0.0.1:8080`에만 바인딩하고 SSH 터널(또는 Codespace의 Ports
-탭)로만 접속한다 — 방법은 `deploy/DEPLOYMENT_ORACLE.md` 14번, 허브의 "브라우저 코드 스페이스"
-카드(`/tunnel/code-server`)에도 안내가 뜬다. 남은 사람 작업은 없다. 다만 Oracle 콘솔의 VCN
-Security List에 예전에 추가한 `TCP / 8080 / 0.0.0.0/0` Ingress 규칙은 더 이상 필요 없으니 지워도 된다.
+`https://hessejeong.duckdns.org/`로 접속한다(무료 DuckDNS + Let's Encrypt, nginx 443 → 로컬 전용
+`127.0.0.1:8080`). 절차와 설정은 `deploy/DEPLOYMENT_ORACLE.md` 14번, 스크립트는
+`deploy/setup_code_server_https.sh`. 남은 사람 작업은 없다. Oracle 콘솔 VCN Security List에 예전에
+추가한 `TCP / 8080 / 0.0.0.0/0` Ingress 규칙은 더 이상 필요 없으니 지워도 된다(443 규칙은 유지).

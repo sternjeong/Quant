@@ -12,9 +12,9 @@
 #   - DNS가 이 VM을 가리키는지 확인 (아니면 Let's Encrypt 발급 한도만 낭비하므로 여기서 중단)
 #   - certbot 설치, Let's Encrypt 인증서 발급(webroot 방식, 80번 포트 사용) + 자동 갱신
 #   - nginx 사이트 설치: 80은 https로 리다이렉트, 443은 code-server로 프록시(WebSocket 포함)
-#   - iptables INPUT 체인의 REJECT **앞에** 443 ACCEPT 삽입 + netfilter-persistent 저장
-#     (이 VM의 Oracle 우분투 이미지는 REJECT가 ufw 체인보다 앞이라 ufw allow만으로는 안 열린다 —
-#      deploy/DEPLOYMENT_ORACLE.md 14번 참고)
+#   - 443 허용: iptables INPUT의 REJECT **앞에** ACCEPT 삽입(즉시 적용) + ufw allow(재부팅 후에도 유지)
+#     (이 VM의 Oracle 우분투 이미지는 REJECT가 ufw 체인보다 앞이라 ufw allow만으로는 지금 당장 안 열리고,
+#      iptables-persistent가 없어 iptables 규칙만으로는 재부팅 때 사라진다 — DEPLOYMENT_ORACLE.md 14번)
 #
 # 실패하면 nginx 설정을 직전 상태로 되돌리고 멈춘다. code-server 자체(127.0.0.1:8080)는 건드리지
 # 않는다 — 계속 로컬 전용이라, 프록시가 죽어도 외부에 직접 노출되는 일은 없다.
@@ -142,7 +142,8 @@ EOF
 if ! nginx -t; then rollback; exit 1; fi
 systemctl reload nginx
 
-echo "[6/6] 방화벽: iptables INPUT의 REJECT 앞에 443 허용 + 저장"
+echo "[6/6] 방화벽: 443 허용 (지금 즉시 + 재부팅 후에도)"
+# 지금 즉시: iptables INPUT의 REJECT 앞에 삽입 (이 VM은 REJECT가 ufw 체인보다 앞이라 ufw만으로는 안 열림)
 if ! iptables -C INPUT -p tcp -m tcp --dport 443 -m state --state NEW -j ACCEPT 2>/dev/null; then
   reject_line="$(iptables -L INPUT -n --line-numbers | awk '$2 == "REJECT" {print $1; exit}')"
   if [ -n "$reject_line" ]; then
@@ -151,10 +152,14 @@ if ! iptables -C INPUT -p tcp -m tcp --dport 443 -m state --state NEW -j ACCEPT 
     iptables -A INPUT -p tcp -m tcp --dport 443 -m state --state NEW -j ACCEPT
   fi
 fi
+# 재부팅 후: 이 VM은 iptables-persistent가 제거돼 있어 부팅 때 /etc/iptables/rules.v4가 복원되지 않고
+# ufw 규칙이 방화벽 역할을 한다 — 그래서 ufw에도 넣어둬야 재부팅 뒤에도 443이 유지된다.
+if command -v ufw >/dev/null 2>&1; then
+  ufw allow 443/tcp
+fi
+# iptables-persistent가 설치된 VM이면 즉시 적용분도 저장한다.
 if command -v netfilter-persistent >/dev/null 2>&1; then
   netfilter-persistent save
-else
-  echo "netfilter-persistent가 없어 재부팅 후에는 443 규칙이 사라집니다 — iptables-persistent를 설치하세요." >&2
 fi
 
 echo

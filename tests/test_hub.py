@@ -25,8 +25,10 @@ def test_slots_have_unique_non_empty_ids():
 
 def test_slots_kind_specific_fields():
     for slot in SLOTS:
-        if slot.kind in ("web", "tunnel"):
+        if slot.kind == "web":
             assert slot.port is not None
+        if slot.kind == "link":
+            assert slot.url and slot.url.startswith("https://")
         if slot.kind == "report":
             assert slot.report_glob is not None
 
@@ -70,32 +72,23 @@ def test_slot_href_web_points_to_own_port():
     assert href == f"http://203.0.113.10:{web_slot.port}/"
 
 
-def test_slot_href_tunnel_points_to_guide_page_not_a_public_port():
-    tunnel_slot = next(slot for slot in SLOTS if slot.kind == "tunnel")
-    href = server._slot_href(tunnel_slot, "203.0.113.10")
-    assert href == f"/tunnel/{tunnel_slot.id}"
-    assert "203.0.113.10" not in href  # 외부에 열지 않은 포트로 직접 링크하면 타임아웃이 난다
+def test_slot_href_link_uses_the_slots_own_https_url():
+    link_slot = next(slot for slot in SLOTS if slot.kind == "link")
+    assert server._slot_href(link_slot, "203.0.113.10") == link_slot.url
 
 
-def test_code_server_is_a_tunnel_slot_not_publicly_linked():
+def test_code_server_is_an_https_link_slot():
     slot = next(slot for slot in SLOTS if slot.id == "code-server")
-    assert slot.kind == "tunnel"
+    assert slot.kind == "link"
+    assert slot.url.startswith("https://")  # 평문 HTTP 포트로 직접 링크하면 안 된다
 
 
-def test_render_tunnel_page_shows_ssh_command_with_host_and_port():
-    tunnel_slot = next(slot for slot in SLOTS if slot.kind == "tunnel")
+def test_link_card_opens_in_a_new_tab():
     with _mock_active_status():
-        page = server.render_tunnel_page(tunnel_slot, "203.0.113.10")
-    assert f"ssh -L {tunnel_slot.port}:localhost:{tunnel_slot.port} ubuntu@203.0.113.10" in page
-    assert f"http://localhost:{tunnel_slot.port}/" in page
-    assert "Ports" in page
-
-
-def test_render_tunnel_page_escapes_host_header():
-    tunnel_slot = next(slot for slot in SLOTS if slot.kind == "tunnel")
-    with _mock_active_status():
-        page = server.render_tunnel_page(tunnel_slot, '"><script>alert(1)</script>')
-    assert "<script>alert(1)</script>" not in page
+        page = server.render_dashboard("203.0.113.10")
+    link_slot = next(slot for slot in SLOTS if slot.kind == "link")
+    card_start = page.index(f'href="{link_slot.url}"')
+    assert 'target="_blank"' in page[card_start:card_start + 80]
 
 
 def test_slot_href_report_points_to_reports_route():
