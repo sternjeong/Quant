@@ -1,0 +1,35 @@
+{
+  "at_utc": "2026-09-20T09:57:21.721056+00:00",
+  "initial_main_head": "02c0b23c0819e6e9ef2b265f0fac7c58c6215fdb",
+  "final_main_head": "7893c748094945965193dd2a1bb70e5ebbad1eac",
+  "main_head_unchanged": false,
+  "concurrent_main_commits": [
+    "7893c74 Add HTTPS setup script for code-server (nginx + Let's Encrypt)",
+    "ce9b6c9 Serve code-server via SSH tunnel only; hub card explains how"
+  ],
+  "concurrent_committed_paths": [
+    "PROGRESS.md",
+    "deploy/DEPLOYMENT_ORACLE.md",
+    "deploy/PENDING_MANUAL_LOGIN_ACTIONS.md",
+    "deploy/setup_code_server_https.sh",
+    "deploy/setup_vm.sh",
+    "hub/apps_registry.py",
+    "hub/server.py",
+    "tests/test_hub.py"
+  ],
+  "main_index_unchanged_empty": true,
+  "preexisting_files_preserved": 415,
+  "append_only_progress_resume": true,
+  "own_artifact_hashes_verified": 16,
+  "prior_artifacts_verified": {
+    "day4/result_hashes.json": 268,
+    "day4_review_20260920/result_hashes.json": 20,
+    "day4_sector_sources_20260920/result_hashes.json": 18
+  },
+  "frozen_data_inventory_sha256": "a8132c4441f818e47309dee4cbb93bb3067b18edc40371bda00679862fb6e86d",
+  "day4_status": "BLOCKED",
+  "day4_complete": false,
+  "s6_backtest_executed": false,
+  "telegram_report": "sent",
+  "note": "Two non-overlapping main commits appeared during this turn. This research used an isolated branch; main was neither restored nor pushed. All 415 protected preexisting files still pass preservation checks. No strategy ambiguity or content conflict was introduced."
+}
