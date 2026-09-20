@@ -1,0 +1,19 @@
+{
+  "checked_at_utc": "2026-09-20T15:02:37.677895+00:00",
+  "initial_existing_files_verified": 393,
+  "fully_unchanged_files": 389,
+  "append_only_files": [
+    "PROGRESS.md",
+    "RESUME_NOTE.md",
+    "docs/experiment_validation/PROGRESS.md",
+    "docs/experiment_validation/RESUME_NOTE.md"
+  ],
+  "main_head_unchanged": true,
+  "main_index_unchanged": true,
+  "tracked_changes_in_main": [
+    "PROGRESS.md"
+  ],
+  "changes_in_main": "Only this turn append; research artifact copies remain untracked on main as before",
+  "publication_worktree_validation": "PASS",
+  "day4_status": "BLOCKED"
+}
