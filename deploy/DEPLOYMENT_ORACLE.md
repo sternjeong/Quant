@@ -60,6 +60,8 @@ OS 방화벽(`setup_vm.sh`가 ufw로 처리)과는 별개로, Oracle 콘솔의 *
    Security List.
 2. **Add Ingress Rules**:
    - Source CIDR `0.0.0.0/0`, IP Protocol `TCP`, Destination Port `8501` (Streamlit)
+   - Source CIDR `0.0.0.0/0`, IP Protocol `TCP`, Destination Port `8080` (code-server 브라우저 코드
+     스페이스 — 14번 참고. 공개 노출이 부담스러우면 이 규칙은 생략하고 SSH 터널로만 접속해도 됨)
    - (SSH용 22번은 기본 이미지 생성 시 이미 열려 있음)
 
 ## 3. SSH 접속 + 리포 클론 + .env 준비
@@ -339,3 +341,30 @@ VM의 IP만 치면(`http://<PUBLIC_IP>/`) 이 VM에서 돌고 있는 앱/엔진 
 카드가 생긴다. 최초 설치(신규 VM은 `setup_vm.sh`가 자동으로 처리하지만, 이미 떠 있는 VM에
 `quant-hub.service`/nginx 사이트를 추가로 올리는 것은 `sudo`가 필요해 사람이 직접 해야 함)는
 [`PENDING_MANUAL_LOGIN_ACTIONS.md`](./PENDING_MANUAL_LOGIN_ACTIONS.md) 4번 참고.
+
+## 14. 브라우저 코드 스페이스 (code-server) — GitHub Codespaces 대체
+
+GitHub Codespaces는 idle이면 꺼져서 "이 VM에서 언제든 브라우저로 코딩"이 안 된다. 이 VM에는
+이미 `code-server`(브라우저에서 도는 VS Code)가 `ubuntu` 계정의 `code-server@ubuntu.service`로
+설치·기동돼 있다(패키지 기본 설정은 `127.0.0.1:8080`만 바인딩 — 외부 접속 불가, SSH 터널로만
+접속 가능한 상태).
+
+**지금 당장, 추가 조치 없이 쓰는 법 (가장 안전, 추천)**:
+
+```bash
+ssh -L 8080:localhost:8080 ubuntu@<PUBLIC_IP>
+```
+
+터널을 연 채로 로컬 브라우저에서 `http://localhost:8080` 접속 → code-server 로그인 화면(비밀번호는
+`ubuntu` 계정의 `~/.config/code-server/config.yaml`에 있음).
+
+**브라우저 주소만으로(터널 없이) 접속하고 싶다면**: `code-server`의 비밀번호 인증에 기대어 포트를
+직접 공개해야 한다(이 VM엔 도메인/TLS가 없어 nginx 서브패스 프록시 대신 Streamlit과 같은 방식으로
+포트를 그대로 여는 게 code-server의 상대경로 자산 문제를 피하는 가장 단순한 방법). `sudo`가 필요해
+사람이 직접 해야 하는 절차는 [`PENDING_MANUAL_LOGIN_ACTIONS.md`](./PENDING_MANUAL_LOGIN_ACTIONS.md)
+5번 참고. 완료하면 허브의 "브라우저 코드 스페이스" 카드가 `http://<PUBLIC_IP>:8080/`로 바로 연결된다
+(`hub/apps_registry.py`에 이미 슬롯 등록해둠).
+
+**주의**: TLS 없이 평문 HTTP로 비밀번호가 오가므로, 신뢰하지 않는 네트워크에서는 SSH 터널 방식을
+쓰는 편이 안전하다. 나중에 도메인을 붙이면 `certbot`으로 HTTPS를 얹고 그 서브도메인을 code-server에
+proxy_pass하는 방식으로 바꾸는 게 좋다(지금은 미착수).

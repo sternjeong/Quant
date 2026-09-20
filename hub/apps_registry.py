@@ -58,4 +58,12 @@ SLOTS: list[AppSlot] = [
         unit="quant-vm-health.service",
         kind="engine",
     ),
+    AppSlot(
+        id="code-server",
+        title="브라우저 코드 스페이스",
+        description="VS Code 기반 브라우저 IDE(code-server) — SSH 없이 브라우저에서 바로 VM 코드 편집·터미널 사용",
+        unit="code-server@ubuntu.service",
+        kind="web",
+        port=8080,
+    ),
 ]

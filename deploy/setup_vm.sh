@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Oracle Cloud "Always Free" ARM VM(Ubuntu) 부트스트랩 스크립트.
 # 로컬에서 손으로 하면 실수하기 쉬운 반복 작업(패키지 설치, venv, systemd 등록, 방화벽)만
-# 자동화한다. Oracle Cloud 콘솔의 VCN Security List/NSG에서 8501 포트를 여는 것은 이 스크립트가
-# 대신 할 수 없다 — deploy/DEPLOYMENT_ORACLE.md 4단계 참고.
+# 자동화한다. Oracle Cloud 콘솔의 VCN Security List/NSG에서 8501/8080 포트를 여는 것은 이
+# 스크립트가 대신 할 수 없다 — deploy/DEPLOYMENT_ORACLE.md 4단계 참고.
 #
 # 사용법 (VM에 SSH 접속한 뒤, 리포를 이미 /opt/quant 에 clone 해둔 상태에서):
 #   sudo bash deploy/setup_vm.sh
@@ -75,10 +75,11 @@ nginx -t
 systemctl enable --now nginx
 systemctl reload nginx
 
-echo "[6/6] 방화벽(OS 레벨)에서 80/8501 포트 허용"
+echo "[6/6] 방화벽(OS 레벨)에서 80/8501/8080 포트 허용"
 ufw allow 22/tcp || true
 ufw allow 80/tcp || true
 ufw allow 8501/tcp || true
+ufw allow 8080/tcp || true   # code-server 브라우저 코드 스페이스 (PENDING_MANUAL_LOGIN_ACTIONS.md 5번)
 ufw --force enable || true
 
 echo
@@ -92,5 +93,7 @@ echo
 echo "이제 http://<PUBLIC_IP>/ 로 접속하면 관제 허브가 뜨고, 슬롯을 누르면 각 앱/엔진으로 이동합니다"
 echo "(퀀트 대시보드 슬롯은 http://<PUBLIC_IP>:8501/ 로 직접 이동)."
 echo
-echo "주의: Oracle Cloud 콘솔의 VCN Security List(또는 NSG)에서도 80/8501 TCP Ingress 규칙을"
+echo "주의: Oracle Cloud 콘솔의 VCN Security List(또는 NSG)에서도 80/8501/8080 TCP Ingress 규칙을"
 echo "따로 추가해야 외부에서 접속됩니다 (OS 방화벽만 열어서는 부족함) — DEPLOYMENT_ORACLE.md 참고."
+echo "code-server(브라우저 코드 스페이스)는 이 스크립트가 설치하지 않습니다 — 별도 안내는"
+echo "DEPLOYMENT_ORACLE.md 14번, 남은 수동 조치는 PENDING_MANUAL_LOGIN_ACTIONS.md 5번 참고."
