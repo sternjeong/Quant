@@ -10,9 +10,20 @@
   "tests_passed": 15,
   "publication_artifact_hashes": "PASS",
   "result_hashes_sha256": "738936c67d5a1c8193e67b991d655801df902e5f0c1efbc14f9e38bebcff5a50",
-  "telegram_report": "failed",
+  "telegram_report": "sent",
   "telegram_process_exit_code": 0,
-  "telegram_configuration_source": "Existing supervisor Telegram keys read-only; no values printed or changed",
+  "telegram_configuration_source": "Existing supervisor TELEGRAM_EXPERIMENT_ENV_FILE, read-only; only two Telegram keys passed; values not printed or changed",
   "main_push": false,
-  "daily_html_committed": false
+  "daily_html_committed": false,
+  "telegram_reported_at_utc": "2026-09-20T10:52:40.676333+00:00",
+  "telegram_attempts": [
+    {
+      "status": "failed",
+      "reason": "Telegram keys absent from inherited/process environment; CLI returned 0 but reported failure"
+    },
+    {
+      "status": "sent",
+      "reason": "Used existing supervisor Telegram env file"
+    }
+  ]
 }
