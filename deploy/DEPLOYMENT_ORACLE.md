@@ -166,11 +166,11 @@ sudo systemctl restart quant-streamlit quant-scheduler
 `git pull`만 해두면 GitHub Actions 쪽 결과도 자동으로 리더보드에 반영된다 — 아무 설정도 추가로
 필요 없다.
 
-## 8. (선택) HTTPS/도메인
+## 8. HTTPS/도메인
 
-지금은 `http://<PUBLIC_IP>:8501`로 평문 접속이다. 본인만 쓰는 대시보드라면 이 상태로도 충분하지만,
-도메인을 붙이고 싶으면 nginx를 리버스 프록시로 두고 Let's Encrypt(`certbot`)로 인증서를 발급받는
-방식이 표준적이다 — 필요해지면 별도로 셋업해줄 수 있다.
+2026-09-20부터 무료 DuckDNS 도메인 + Let's Encrypt 인증서로 **HTTPS 게이트웨이**를 쓴다 — 기본 도메인이
+관제 허브, `app.`이 이 Streamlit 대시보드, `code.`이 브라우저 코드 스페이스다. 구성·설치는 14번 참고.
+(`http://<PUBLIC_IP>:8501` 평문 직접 접속은 게이트웨이 확인 뒤 닫는 것을 전제로 한다.)
 
 ## 9. 백업
 
@@ -330,6 +330,8 @@ VM의 IP만 치면(`http://<PUBLIC_IP>/`) 이 VM에서 돌고 있는 앱/엔진 
 
 - `kind="web"` (예: 퀀트 대시보드): 그 앱 자신의 포트(예: `:8501`)로 직접 이동 — nginx가 경로를
   다시 프록시하지 않으므로 Streamlit `--server.baseUrlPath` 같은 설정을 건드릴 필요가 없다.
+- `kind="link"` (예: 퀀트 대시보드, 브라우저 코드 스페이스): 슬롯의 `url`(HTTPS 하위 도메인)을 새 탭으로
+  연다 — 14번 게이트웨이 구성. 허브 자체도 이제 `https://<도메인>/`에서 로그인 뒤에 뜬다.
 - `kind="report"` (예: 실험 슈퍼바이저): `hub/server.py`가 `report_glob` 패턴에 맞는 파일 중
   가장 최근 것을 그대로 서빙한다(예: `.experiment-control/reports/*.html`).
 - `kind="engine"` (자체 웹 UI가 없는 백그라운드 서비스): `/status/<id>` 상태 페이지로 이동해
@@ -364,26 +366,55 @@ VS Code 하단 **Ports 탭**에 8080이 자동으로 뜬다 — 그 행의 지�
 Codespaces 포트 포워딩은 기본이 비공개(GitHub 로그인한 본인만)라 별도 인증이 하나 더 붙는다.
 Codespace가 idle로 꺼지면 터널도 함께 끊기므로 다시 열어주면 된다.
 
-**허브 카드**: 허브의 "브라우저 코드 스페이스" 카드(`kind="link"`)는 아래 HTTPS 주소로 바로 연결된다
-(`hub/apps_registry.py`의 `url`). DuckDNS 장애나 공인 IP 변경으로 주소가 안 열릴 때는 위 SSH 터널이 대안이다.
+**허브 카드**: 허브의 "브라우저 코드 스페이스" 카드(`kind="link"`)는 아래 게이트웨이의 `code.` 주소로 바로
+연결된다(`hub/apps_registry.py`의 `url`). DuckDNS 장애나 공인 IP 변경으로 주소가 안 열릴 때는 위 SSH 터널이 대안이다.
 
-**HTTPS 주소로 공개하기 (2026-09-20 결정, 무료 DuckDNS + Let's Encrypt)**: SSH 터널은 Codespace를 먼저
-열어야 해서 불편하므로, 아무 기기 브라우저에서 URL + 비밀번호만으로 들어오게 한다. 8080을 그대로
-여는 게 아니라(평문 HTTP + 비밀번호 하나로 `sudo` 가능한 셸을 노출하는 셈이라 안 함) **nginx가 443에서
-TLS를 끝내고 `127.0.0.1:8080`으로 프록시**한다 — code-server 자체는 계속 로컬 전용이다.
+### 도메인 게이트웨이 — 하나의 도메인 아래 허브 + 하위 앱 (2026-09-20 결정, 무료 DuckDNS + Let's Encrypt)
+
+SSH 터널은 Codespace를 먼저 열어야 해서 불편하므로, 아무 기기 브라우저에서 주소 + 로그인만으로 들어오게 한다.
+포트를 그대로 여는 게 아니라(평문 HTTP + 비밀번호 하나로 노출하는 셈이라 안 함) **nginx가 443에서 TLS를 끝내고
+각 앱을 `127.0.0.1`로 프록시**한다 — 앱들은 계속 로컬 전용이다. 현재 운영 중인 주소는 `hessejeong.duckdns.org`.
+
+| 주소 | 가는 곳 | 로그인 |
+| --- | --- | --- |
+| `https://hessejeong.duckdns.org/` | 관제 허브 (`127.0.0.1:8000`) | nginx 아이디/비밀번호 |
+| `https://code.hessejeong.duckdns.org/` | code-server (`127.0.0.1:8080`) | code-server 자체 비밀번호 |
+| `https://app.hessejeong.duckdns.org/` | Streamlit 대시보드 (`127.0.0.1:8501`) | nginx 아이디/비밀번호 |
+
+DuckDNS는 `code.`·`app.` 같은 하위 이름도 자동으로 같은 IP로 풀어주므로 따로 등록할 게 없다. 세 이름은 **인증서
+한 장**을 공유한다. 등록되지 않은 이름이나 IP로 들어온 HTTPS는 TLS 핸드셰이크 단계에서 거절하고(`ssl_reject_handshake`),
+`http://<IP>/`는 기본 도메인으로 301 리다이렉트한다(더 이상 로그인 없는 허브를 IP로 보여주지 않는다).
+새 하위 앱을 붙이려면 `deploy/setup_gateway.sh`에 server 블록 하나와 `hub/apps_registry.py`의 슬롯 하나를 추가하고
+인증서에 이름을 더한다(스크립트가 `--expand`로 처리).
+
+**처음 설치하는 순서**
 
 1. https://www.duckdns.org 에서 GitHub 등으로 로그인해 무료 서브도메인을 만들고, IP에 이 VM의 공인 IP를 넣는다.
 2. Oracle 콘솔 VCN Security List에 `TCP / 443 / 0.0.0.0/0` Ingress 규칙 추가 (80은 이미 열려 있음).
-3. VM에서: `sudo bash /opt/quant/deploy/setup_code_server_https.sh <이름>.duckdns.org [이메일]`
-   — DNS 확인 → certbot 설치·인증서 발급(자동 갱신) → nginx 사이트 설치 → 443 허용(iptables + ufw).
-   실패하면 nginx 설정을 되돌리고 멈춘다. 여러 번 돌려도 안전하다.
-4. `https://<이름>.duckdns.org/` 접속 → code-server 로그인(비밀번호는 `~/.config/code-server/config.yaml`).
-   (현재 운영 중인 주소: `https://hessejeong.duckdns.org/`, 인증서는 certbot 타이머가 자동 갱신)
+3. **허브/앱 로그인 비밀번호 파일을 사람이 직접 만든다** — 비밀번호가 대화나 로그에 남지 않도록 대화형으로 입력하며,
+   이 파일이 없으면 스크립트는 허브/앱을 로그인 없이 공개하지 않고 멈춘다. 로컬 터미널(VS Code 하단 Terminal 패널)에서:
+   ```bash
+   ssh -t quant-vm 'read -rp "로그인 아이디: " U; read -rsp "비밀번호: " P; echo; printf "%s:%s\n" "$U" "$(printf %s "$P" | openssl passwd -apr1 -stdin)" | sudo tee /etc/nginx/.htpasswd-quant >/dev/null && sudo chown root:www-data /etc/nginx/.htpasswd-quant && sudo chmod 640 /etc/nginx/.htpasswd-quant && echo 저장됨'
+   ```
+   비밀번호는 숫자 4자리 같은 쉬운 것 대신 단어 3~4개를 하이픈으로 이은 것을 권장한다(공백·`"`·`\`는 피할 것).
+   허브와 Streamlit(포트폴리오 데이터)을 지키는 비밀번호이고, 로그인 시도 제한(rate limit)은 없다.
+4. VM에서: `sudo bash /opt/quant/deploy/setup_gateway.sh <이름>.duckdns.org [이메일]`
+   — DNS 확인 → certbot 설치·인증서 발급(자동 갱신) → nginx 게이트웨이 설치 → 443 허용(iptables + ufw) → 확인.
+   nginx 단계에서 실패하면 건드린 사이트 파일을 되돌리고 멈춘다. 여러 번 돌려도 안전하다(인증서는 만료 임박 때만 재발급).
+5. `https://<이름>.duckdns.org/` 접속 → 아이디/비밀번호 → 허브. 카드에서 각 앱으로 이동한다.
 
-이제 비밀번호가 평문으로 오가지는 않지만, 비밀번호 하나가 곧 VM 셸이다 — 강한 비밀번호(현재 24자)를
-유지하고 쉬운 것으로 바꾸지 말 것(code-server가 로그인 시도를 분당 몇 회로 제한하긴 한다).
-DuckDNS는 무료·후원 기반 서비스라 드물게 불안정할 수 있고, VM 공인 IP가 바뀌면(인스턴스 중지 후
-재시작 등 — 예약 IP가 아니라면) DuckDNS 화면에서 IP를 직접 고쳐야 한다. 그때는 위 SSH 터널이 대안이다.
+**로그인 계정 바꾸기/추가**: 위 3번 명령을 다시 실행하면 파일이 통째로 새로 써진다(여러 계정을 두려면 `sudo tee -a`로
+줄을 덧붙인다). nginx 재시작은 필요 없다.
+
+**예전 직접 접속 경로 닫기 (`app.` 주소가 브라우저에서 잘 되는 걸 확인한 뒤)**: 평문 `http://<IP>:8501`은 로그인 없이
+Streamlit이 열리는 옛 경로다. 게이트웨이가 확인되면 iptables의 8501 ACCEPT 규칙(`sudo iptables -S INPUT | grep 8501`로
+확인해 같은 모양에 `-D`), `sudo ufw delete allow 8501/tcp`, Oracle Security List의 8501·8080 Ingress 규칙을 모두 없앤다.
+
+이제 비밀번호가 평문으로 오가지는 않지만, code-server 비밀번호 하나가 곧 VM 셸이다 — 강한 비밀번호(현재 24자)를
+유지하고 쉬운 것으로 바꾸지 말 것(code-server가 로그인 시도를 분당 몇 회로 제한하긴 한다). DuckDNS는 무료·후원 기반
+서비스라 드물게 불안정할 수 있고, VM 공인 IP가 바뀌면(인스턴스 중지 후 재시작 등 — 예약 IP가 아니라면) DuckDNS 화면에서
+IP를 직접 고쳐야 한다. 그때는 위 SSH 터널이 대안이다. 인증서는 certbot 타이머가 자동 갱신한다
+(`systemctl list-timers | grep certbot`).
 
 **알아둘 것 — 이 VM의 방화벽은 지금 상태와 재부팅 후 상태가 다르다** (2026-09-20 확인):
 - **지금(부팅 후 계속 켜져 있는 동안)**: `/etc/iptables/rules.v4`에서 온 Oracle 기본 `REJECT`가 INPUT 체인에서
@@ -393,5 +424,5 @@ DuckDNS는 무료·후원 기반 서비스라 드물게 불안정할 수 있고,
 - **재부팅 후**: `iptables-persistent`/`netfilter-persistent` 패키지가 **제거된 상태(dpkg `rc`)**라 부팅 때
   `rules.v4`를 복원하는 장치가 없다. 그러면 수동으로 넣은 iptables ACCEPT와 REJECT가 모두 사라지고
   **ufw 규칙이 방화벽 역할**을 한다(ufw는 부팅 시 자동 활성화). 즉 새 포트를 공개하려면 **iptables ACCEPT(즉시
-  적용) + `ufw allow`(재부팅 후 유지) 둘 다** 넣어야 한다 — `setup_code_server_https.sh`가 그렇게 한다.
+  적용) + `ufw allow`(재부팅 후 유지) 둘 다** 넣어야 한다 — `setup_gateway.sh`가 443에 대해 그렇게 한다.
 - 기존 22/80/8501의 iptables 규칙은 재부팅 후 사라지지만 ufw에도 같은 규칙이 있어 접속은 유지된다.

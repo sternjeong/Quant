@@ -5686,6 +5686,35 @@ DuckDNS 서브도메인 + Let's Encrypt**로 바꿨다.
 - 남은 위험: 비밀번호 하나가 곧 VM 셸이다(강한 24자 유지). DuckDNS는 무료 서비스라 드물게 불안정할
   수 있고 공인 IP가 바뀌면 DuckDNS에서 IP를 직접 고쳐야 한다(그때는 SSH 터널이 대안).
 
+### 작업 94 (2026-09-20): 도메인 게이트웨이 — 기본 도메인에 관제 허브, 하위 앱은 하위 도메인으로
+
+작업 93 뒤 사용자가 "`hessejeong.duckdns.org`로 들어가면 코드 스페이스만 나온다 — 컨트롤 타워를 여기에 두고
+나머지 하위 항목도 이런 식으로 DNS로 들어가고 싶다"고 요청해서 구조를 바꿨다.
+
+- `deploy/setup_gateway.sh`(신규, `setup_code_server_https.sh`를 대체·삭제): 인증서 한 장(`--cert-name`
+  기본 도메인, `-d` 세 이름, `--expand`)으로 nginx 서버 블록 세 개를 만든다 —
+  `https://<도메인>/`=관제 허브(127.0.0.1:8000, 아이디/비밀번호), `code.<도메인>`=code-server(8080, 자체 로그인),
+  `app.<도메인>`=Streamlit(8501, 아이디/비밀번호, WebSocket 헤더). 등록 안 된 이름/IP로 온 HTTPS는
+  `ssl_reject_handshake`로 거절, `http://<IP>/`는 기본 도메인으로 301. 방화벽 443(iptables REJECT 앞 삽입 +
+  ufw)까지 스크립트가 처리해 단독으로 돌 수 있다. 비밀번호 파일(`/etc/nginx/.htpasswd-quant`)이 없거나
+  비어 있으면 허브/앱을 로그인 없이 공개하지 않고 멈춘다 — 파일은 사람이 대화형으로 직접 만든다(비밀번호가
+  대화·로그에 남지 않음). 사이트별 백업 후 실패 시 롤백, 재실행 안전(인증서는 재발급 안 함).
+- 실 VM 적용 결과(외부 Codespace에서 확인): 기본 도메인 401(로그인 필요), `app.` 401, `code.` 302(→로그인),
+  IP로 HTTPS는 핸드셰이크 거절, `http://IP/`는 301 → 기본 도메인. 첫 실행 때 기본 도메인 확인만 `000`이 나왔는데
+  nginx reload 직후 경합이었고(재실행하면 정상), 확인 함수에 재시도를 넣었다. 기본 서버 listen에만 `http2`가
+  빠져 nginx가 "protocol options redefined" 경고를 내던 것도 맞췄다(경고 사라짐).
+- `hub/apps_registry.py`: 퀀트 대시보드 카드도 `kind="link"`(`https://app.<도메인>/`)로, code-server 카드는
+  `https://code.<도메인>/`로. `tests/test_hub.py`: `web` 종류를 합성 슬롯으로 독립 검증, Streamlit이 HTTPS link
+  슬롯이며 link 슬롯들의 주소가 서로 다름을 검증(전체 964 passed).
+- 문서: `DEPLOYMENT_ORACLE.md` 8·13·14번(게이트웨이 구조, 비밀번호 파일 명령, 계정 교체, 옛 경로 닫기)과
+  `PENDING_MANUAL_LOGIN_ACTIONS.md` 5번을 갱신.
+- **남은 것**: (1) 브라우저에서 `app.` 로그인 + Streamlit 화면이 실제로 뜨는지(WebSocket 포함) 사람이 확인한
+  뒤에 예전 `:8501` 직접 접속 경로를 닫는다(iptables + ufw + Oracle Security List) — 확인 전에 닫으면 되돌릴
+  길이 없어 그대로 뒀다. (2) nginx basic auth에는 로그인 시도 제한이 없다 — 그래서 비밀번호를 강하게 두는 게
+  유일한 방어다(필요하면 fail2ban이나 `limit_req` 추가 검토). (3) 아직 못 고친 구조 문제: VM 리서치 에이전트가
+  루트 `PROGRESS.md`에 미커밋으로 덧붙여서 이 파일이 upstream에서 바뀔 때마다 자동배포의 `git pull --ff-only`가
+  막힌다 — 이번에도 VM 쪽을 먼저 커밋·푸시한 뒤 이 항목을 올렸다(근본 해결은 별도 논의 필요).
+
 ### 2026-09-20 — Day 4 전체 모집단 입력 인계 및 접근 경로 확인
 
 DAY_4_BLOCKED

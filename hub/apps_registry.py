@@ -25,10 +25,10 @@ SLOTS: list[AppSlot] = [
     AppSlot(
         id="streamlit",
         title="퀀트 대시보드",
-        description="전략 백테스팅 · 스크리너 · 포트폴리오 등 메인 Streamlit 웹앱",
+        description="전략 백테스팅 · 스크리너 · 포트폴리오 등 메인 Streamlit 웹앱 — HTTPS 주소로 접속, 로그인 필요",
         unit="quant-streamlit.service",
-        kind="web",
-        port=8501,
+        kind="link",
+        url="https://app.hessejeong.duckdns.org/",
     ),
     AppSlot(
         id="scheduler",
@@ -65,6 +65,6 @@ SLOTS: list[AppSlot] = [
         description="VS Code 기반 브라우저 IDE(code-server) — HTTPS 주소로 접속, 로그인 비밀번호 필요",
         unit="code-server@ubuntu.service",
         kind="link",
-        url="https://hessejeong.duckdns.org/",
+        url="https://code.hessejeong.duckdns.org/",
     ),
 ]

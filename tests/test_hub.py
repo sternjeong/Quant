@@ -7,7 +7,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from hub import server
-from hub.apps_registry import SLOTS
+from hub.apps_registry import AppSlot, SLOTS
 from hub.status import get_unit_status
 
 
@@ -67,7 +67,11 @@ def test_render_dashboard_lists_every_slot_title():
 
 
 def test_slot_href_web_points_to_own_port():
-    web_slot = next(slot for slot in SLOTS if slot.kind == "web")
+    # 지금은 SLOTS 안에 "web" 종류가 없다(전부 HTTPS 하위 도메인 "link"로 전환) — 그래도 hub/server.py가
+    # 이 종류를 계속 지원하는지는 합성 슬롯으로 독립 검증한다(나중에 도메인 없는 슬롯이 다시 생길 수 있음).
+    web_slot = AppSlot(
+        id="synthetic-web", title="t", description="d", unit="u.service", kind="web", port=9999,
+    )
     href = server._slot_href(web_slot, "203.0.113.10")
     assert href == f"http://203.0.113.10:{web_slot.port}/"
 
@@ -81,6 +85,19 @@ def test_code_server_is_an_https_link_slot():
     slot = next(slot for slot in SLOTS if slot.id == "code-server")
     assert slot.kind == "link"
     assert slot.url.startswith("https://")  # 평문 HTTP 포트로 직접 링크하면 안 된다
+
+
+def test_streamlit_is_an_https_link_slot():
+    slot = next(slot for slot in SLOTS if slot.id == "streamlit")
+    assert slot.kind == "link"
+    assert slot.url.startswith("https://")
+
+
+def test_link_slots_each_point_to_their_own_subdomain():
+    # 컨트롤 타워 구조: 기본 도메인=허브, code.<도메인>=code-server, app.<도메인>=Streamlit.
+    # 게이트웨이 뒤에서 서로 다른 앱으로 갈라지려면 두 link 슬롯의 호스트명이 달라야 한다.
+    link_urls = {slot.id: slot.url for slot in SLOTS if slot.kind == "link"}
+    assert len(set(link_urls.values())) == len(link_urls)  # 전부 서로 다른 주소
 
 
 def test_link_card_opens_in_a_new_tab():
@@ -102,9 +119,9 @@ def test_slot_href_engine_points_to_status_route():
 
 
 def test_find_slot_by_id_and_kind():
-    web_slot = next(slot for slot in SLOTS if slot.kind == "web")
-    assert server.find_slot(web_slot.id) is web_slot
-    assert server.find_slot(web_slot.id, kind="report") is None
+    link_slot = next(slot for slot in SLOTS if slot.kind == "link")
+    assert server.find_slot(link_slot.id) is link_slot
+    assert server.find_slot(link_slot.id, kind="report") is None
     assert server.find_slot("no-such-id") is None
 
 

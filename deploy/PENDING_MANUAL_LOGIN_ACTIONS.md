@@ -74,9 +74,11 @@
 `SERVICES`에 `quant-hub` 추가까지 전부 끝났다. `http://138.2.11.196/`에서 관제 센터가 뜨고
 `:8501` Streamlit도 그대로 동작함을 확인했다. 이후 `hub/*.py` 변경도 자동배포로 재시작까지 반영된다.
 
-## 5. ~~브라우저 코드 스페이스(code-server) 외부 접속~~ — 2026-09-20 HTTPS 주소로 완료
+## 5. ~~브라우저 코드 스페이스(code-server) 외부 접속~~ — 2026-09-20 도메인 게이트웨이로 완료
 
-`https://hessejeong.duckdns.org/`로 접속한다(무료 DuckDNS + Let's Encrypt, nginx 443 → 로컬 전용
-`127.0.0.1:8080`). 절차와 설정은 `deploy/DEPLOYMENT_ORACLE.md` 14번, 스크립트는
-`deploy/setup_code_server_https.sh`. 남은 사람 작업은 없다. Oracle 콘솔 VCN Security List에 예전에
-추가한 `TCP / 8080 / 0.0.0.0/0` Ingress 규칙은 더 이상 필요 없으니 지워도 된다(443 규칙은 유지).
+`https://hessejeong.duckdns.org/`가 관제 허브(아이디/비밀번호), `https://code.hessejeong.duckdns.org/`가
+code-server, `https://app.hessejeong.duckdns.org/`가 Streamlit이다(무료 DuckDNS + Let's Encrypt, nginx 443 →
+로컬 전용 포트들). 절차와 설정은 `deploy/DEPLOYMENT_ORACLE.md` 14번, 스크립트는 `deploy/setup_gateway.sh`.
+남은 사람 작업: `app.` 주소가 브라우저에서 잘 되는 걸 확인한 뒤 예전 `:8501` 직접 접속 경로 닫기(iptables +
+ufw + Oracle Security List 8501 규칙). Oracle 콘솔에 예전에 추가한 `TCP / 8080` Ingress 규칙은 더 이상
+필요 없으니 지워도 된다(443 규칙은 유지).
