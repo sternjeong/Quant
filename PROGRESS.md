@@ -5201,3 +5201,26 @@ S6 재현 미실행, 완료 표식 없음, Day 5 미착수. 반복 Day 3 백테�
 export 또는 기존 데이터 경로부터 확인한다. 새 자료 없이는 이번 패키지/기존 단일 종목·공지
 수집을 반복하지 않는다. 입력 인증 후 S6 5/10/25bp 다음 시가 재현과 S1 공통 비교를 수행한다.
 연구 브랜치 `research/day4-input-handoff-20260920`; 실제 게시 결과는 `publication.json`.
+
+
+### 2026-09-20 10:47 UTC — Day 4 재개 입력 변화 확인
+
+DAY_4_BLOCKED
+
+신규 PIT 자료 유무를 로컬 데이터 파일 3,470개에서 확인했다. 직전 인계 뒤 갱신된
+SPY/VIX 가격 캐시 2개는 구성·섹터·공시시각 입력이 아니므로 실험에 편입하지 않았다.
+인증 반기/공통 거래일 0개, S1/S6 비교 6개 NOT_EVALUABLE 유지. S6 재현 미실행,
+완료 표식 없음, Day 5 미착수. 새 해석/코드 변경 및 반복 백테스트 없음.
+
+생성 파일: `docs/experiment_validation/day4_reentry_20260920T1047Z/`의 `review.md`,
+`RESUME_NOTE.md`, `local_scan.csv.gz`, `local_input_delta.json`, `initial_workspace.json`,
+`tests.log`, `validation.json`, `result_hashes.json`. 기존 원천 1,548개, 동결 22개,
+이전 증거 목록 268+20+18+16개 해시 일치. 기존 누수/체결/허위 완료 방지 테스트
+**15 passed**, 저장 비교 상태 가드 PASS; 실제 S6 실행 통과는 아니다.
+동결 데이터 목록 SHA-256: `a8132c4441f818e47309dee4cbb93bb3067b18edc40371bda00679862fb6e86d`.
+결과 목록 파일 SHA-256: `738936c67d5a1c8193e67b991d655801df902e5f0c1efbc14f9e38bebcff5a50` (개별 생성 파일 해시 포함).
+
+다음 감독은 실제 PIT 데이터 경로 또는 신규 export를 확보하고 입력 계약부터 인증한다.
+새 자료 없이는 동일 수집/요청 생성/백테스트를 반복하지 않는다. 상세 명령은 이번
+`RESUME_NOTE.md`, 게시 확인은 `publication.json`. 연구 브랜치
+`research/day4-reentry-20260920T1047Z`. 후보·기준선·게이트와 기존 작업은 보존했다.

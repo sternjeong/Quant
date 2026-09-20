@@ -1,0 +1,27 @@
+{
+  "verified_at_utc": "2026-09-20T10:47:56.767023+00:00",
+  "integrity": "PASS",
+  "prior_evidence_manifests_verified": {
+    "day4/result_hashes.json": 268,
+    "day4_review_20260920/result_hashes.json": 20,
+    "day4_sector_sources_20260920/result_hashes.json": 18,
+    "day4_input_handoff_20260920/result_hashes.json": 16
+  },
+  "prior_source_files_verified": 1548,
+  "source_inventory_sha256": "5b1b140be1a06dcbff5829bd82430fd5123baf8083ef4c5df6bebf4cd1e77123",
+  "frozen_data_files_verified": 22,
+  "frozen_data_inventory_sha256": "a8132c4441f818e47309dee4cbb93bb3067b18edc40371bda00679862fb6e86d",
+  "day4_status": "BLOCKED",
+  "day4_complete": false,
+  "certified_rebalances": 0,
+  "certified_common_sessions": 0,
+  "comparisons_not_evaluable": 6,
+  "s6_backtest_executed": false,
+  "day3_backtest_repeated": false,
+  "new_strategy_interpretations": false,
+  "new_pit_evidence_found": false,
+  "tests_passed": 15,
+  "tests_command": ".venv/bin/python -m pytest -q -p no:cacheprovider docs/experiment_validation/day4/test_satellite_audit.py",
+  "saved_blocked_comparison_guard": "PASS",
+  "validation_scope": "Source/evidence hashes plus existing offline leak/execution regression; not actual S6 execution certification"
+}

@@ -1,0 +1,97 @@
+{
+  "checked_at_utc": "2026-09-20T10:47:56.766672+00:00",
+  "cutoff_utc": "2026-09-20T09:51:58.012035+00:00",
+  "scope": "Bounded local metadata delta; mtimes/ctimes locate new local files and do not establish historical public availability. No claim about unsearched locations or external data.",
+  "roots": [
+    "data",
+    "analysis",
+    "analysis.root_backup_20260914",
+    "docs",
+    "research_agents"
+  ],
+  "discovery_command": [
+    "rg",
+    "--files",
+    "--hidden",
+    "--no-ignore",
+    "data",
+    "analysis",
+    "analysis.root_backup_20260914",
+    "docs",
+    "research_agents",
+    "-g",
+    "!**/.git/**",
+    "-g",
+    "!**/__pycache__/**",
+    "-g",
+    "!**/.env*",
+    "-g",
+    "!**/secrets*"
+  ],
+  "dataset_extensions": [
+    ".parquet",
+    ".csv",
+    ".csv.gz",
+    ".json",
+    ".json.gz",
+    ".zip",
+    ".xlsx",
+    ".feather",
+    ".arrow",
+    ".h5",
+    ".hdf5",
+    ".sqlite"
+  ],
+  "exclusions": [
+    "docs/experiment_validation/**",
+    "reports/**",
+    "report/**",
+    "symlinks",
+    "secret/env filenames"
+  ],
+  "inventory_path": "local_scan.csv.gz",
+  "inventory_sha256": "85ce3cf1185c51592e9c9b2e03184c6b74f12459c30edacdb1bb7a4e30b9341f",
+  "dataset_files_scanned": 3470,
+  "recent_files": [
+    {
+      "path": "data/cache/SPY_1d.parquet",
+      "bytes": 367098,
+      "mtime_ns": 1789897961449737733,
+      "ctime_ns": 1789897961449737733,
+      "sha256": "bc7d2767b9d833e6dedfaa6dd1e044878a4f09156520df91cb6322e85733d90b",
+      "rows": 7371,
+      "columns": [
+        "Adj Close",
+        "Close",
+        "High",
+        "Low",
+        "Open",
+        "Volume",
+        "Date"
+      ],
+      "classification": "price_cache_without_constituents_sectors_or_publication_times"
+    },
+    {
+      "path": "data/cache/^VIX_1d.parquet",
+      "bytes": 147894,
+      "mtime_ns": 1789897961558738209,
+      "ctime_ns": 1789897961558738209,
+      "sha256": "405ea51d6002203120870bd161edd079ea494ef359f866ea1a2cb88734d39dd7",
+      "rows": 4999,
+      "columns": [
+        "Adj Close",
+        "Close",
+        "High",
+        "Low",
+        "Open",
+        "Volume",
+        "Date"
+      ],
+      "classification": "price_cache_without_constituents_sectors_or_publication_times"
+    }
+  ],
+  "new_pit_evidence_found": false,
+  "prior_source_files_verified": 1548,
+  "changed_prior_sources": [],
+  "missing_prior_sources": []
+}

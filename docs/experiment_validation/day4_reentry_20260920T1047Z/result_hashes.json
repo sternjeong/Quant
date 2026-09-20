@@ -1,0 +1,21 @@
+{
+  "path_base": "docs/experiment_validation/day4_reentry_20260920T1047Z",
+  "algorithm": "sha256",
+  "artifacts": {
+    "RESUME_NOTE.md": "9cc1f4bf872240b85174d9a0fe51027671f2062f42f2de8d438d3052259e99ae",
+    "initial_workspace.json": "7fd0d552876c03c54946e087324394852fb125f3f23765c2544180e8739fc4a2",
+    "local_input_delta.json": "227f11641706fa530436b9cb2e46583e635c7f320349a5f43705ee8fd7c4e142",
+    "local_scan.csv.gz": "85ce3cf1185c51592e9c9b2e03184c6b74f12459c30edacdb1bb7a4e30b9341f",
+    "review.md": "5c3bc5600a925b3fd03455a6dcf35015aaf541b69be0b043514bf06ecfb3e055",
+    "tests.log": "08106afa14fe3a0a17aed781b0fe12ab4cb07508996485889514a03e1678bdc0",
+    "validation.json": "34e9ff31144a48bd45ce03063cf1694811343647be9c6369048c458f12d98b58"
+  },
+  "frozen_data_inventory_sha256": "a8132c4441f818e47309dee4cbb93bb3067b18edc40371bda00679862fb6e86d",
+  "source_inventory_sha256": "5b1b140be1a06dcbff5829bd82430fd5123baf8083ef4c5df6bebf4cd1e77123",
+  "day4_status": "BLOCKED",
+  "exclusions": [
+    "result_hashes.json (self)",
+    "publication.json and workspace_final.json (post-publication receipts)",
+    "append-only progress/resume pointers outside this run directory"
+  ]
+}
