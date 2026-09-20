@@ -64,3 +64,14 @@ Day 4의 실제 S6 재현·S1 공통 비교는 아직 미완료다. 다음 감�
 최신 다음 단계·명령: `docs/experiment_validation/day4_review_20260920/RESUME_NOTE.md`.
 새 입력 확보 전 같은 API/캐시 재수집이나 백테스트를 반복하지 않는다.
 검증·해시는 같은 폴더 `validation.json`, `result_hashes.json`, 게시 확인은 `publication.json`.
+
+
+## 2026-09-20 05:38 UTC — 최신 인계: Day 4 전체 PIT 입력 보류
+
+공식 과거 GICS 공지 원문 2개와 MSCI 미국 변경 코드 62행을 추가 확보했지만,
+S&P500 전체 PIT 인증 자료가 아니므로 Day 4는 BLOCKED다. 완료 표식 없음.
+다음 감독은 Day 4 전체 구성/섹터/증권/공개시각/상장폐지 입력부터 확보한다.
+최신 결과와 다음 명령: `docs/experiment_validation/day4_sector_sources_20260920/RESUME_NOTE.md`.
+새 증거 없이 같은 공지·SEC·캐시·Day 3 백테스트를 반복하지 않고 Day 5로 넘어가지 않는다.
+신규/기존 Day 4 테스트 26개 통과, 원문/CSV 독립 감사 PASS, 완료 요구 종료 코드 2.
+게시 결과는 해당 폴더 `publication.json`에서 확인한다.

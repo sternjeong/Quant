@@ -1,0 +1,38 @@
+{
+  "scope": "Day 4 source diagnostics only; no certified strategy input",
+  "captured_sources": [
+    {
+      "url": "https://app2.msci.com/webapp/index_ann/DocGet?format=html&lang=en&pub_key=9piYXWAaifg%3D",
+      "attempted_at_utc": "2026-09-20T05:30:54.826758+00:00",
+      "path": "msci_20230502_announcement.html",
+      "http_status": 200,
+      "final_url": "https://app2.msci.com/webapp/index_ann/DocGet?format=html&lang=en&pub_key=9piYXWAaifg%3D",
+      "bytes": 30837,
+      "sha256": "0ebe2cd7782872d0756c6f0de4ef8d20997e5e727f3896f29b9580c3e307e9a1",
+      "content_type": "text/html;charset=UTF-8"
+    },
+    {
+      "url": "https://www.msci.com/documents/1296102/29559863/GICS_Press_Release_31_March_2022.pdf/f0ac4118-d6c3-4456-3c7b-2b0174099e4e?t=1648760411652",
+      "attempted_at_utc": "2026-09-20T05:31:44.684548+00:00",
+      "path": "joint_20220331_announcement.pdf",
+      "http_status": 200,
+      "final_url": "https://www.msci.com/documents/1296102/29559863/GICS_Press_Release_31_March_2022.pdf/f0ac4118-d6c3-4456-3c7b-2b0174099e4e?t=1648760411652",
+      "bytes": 175724,
+      "sha256": "0a7e4ff12c20224397b409415ed070f4538b34728b66889d0122d985a9251295",
+      "content_type": "application/pdf"
+    }
+  ],
+  "failed_requests": [
+    {
+      "url": "https://www.spglobal.com/spdji/en/documents/indexnews/announcements/20220630-1453818/1453818_2023gicspressreleaseselectlistjune2022-final.pdf",
+      "attempted_at_utc": "2026-09-20T05:30:54.760471+00:00",
+      "path": "spdj_20220630_announcement.pdf",
+      "error_type": "HTTPError"
+    }
+  ],
+  "new_raw_inventory_sha256": "0572bac5ba5f54e7f741c587ad5811f808ff0321454adf524ace6e488059c02b",
+  "frozen_strategy_data_inventory_sha256": "a8132c4441f818e47309dee4cbb93bb3067b18edc40371bda00679862fb6e86d",
+  "raw_publication": "Original HTML/PDF remain local, not committed; factual code table and receipts are committed.",
+  "source_publication_vs_capture": "HTTP retrieval time is not historical available_at; announced time and index-specific effective dates are in source_diagnostics.json.",
+  "raw_capture_method": "Python urllib.request.urlopen GET, 25s timeout, User-Agent Quant-Strategy-Validation/1.0 (read-only research); no credentials, no cache refresh."
+}

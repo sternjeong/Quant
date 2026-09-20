@@ -1,0 +1,10 @@
+{
+  "url": "https://www.msci.com/documents/1296102/29559863/GICS_Press_Release_31_March_2022.pdf/f0ac4118-d6c3-4456-3c7b-2b0174099e4e?t=1648760411652",
+  "attempted_at_utc": "2026-09-20T05:31:44.684548+00:00",
+  "path": "joint_20220331_announcement.pdf",
+  "http_status": 200,
+  "final_url": "https://www.msci.com/documents/1296102/29559863/GICS_Press_Release_31_March_2022.pdf/f0ac4118-d6c3-4456-3c7b-2b0174099e4e?t=1648760411652",
+  "bytes": 175724,
+  "sha256": "0a7e4ff12c20224397b409415ed070f4538b34728b66889d0122d985a9251295",
+  "content_type": "application/pdf"
+}

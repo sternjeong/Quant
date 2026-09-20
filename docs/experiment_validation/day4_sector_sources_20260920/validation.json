@@ -1,0 +1,26 @@
+{
+  "checked_at_utc": "2026-09-20T05:36:52.213053+00:00",
+  "saved_source_consistency": "PASS",
+  "day4_status": "BLOCKED",
+  "day4_complete": false,
+  "tests_passed": 26,
+  "previous_artifacts_verified": {
+    "day4/result_hashes.json": 268,
+    "day4_review_20260920/result_hashes.json": 20
+  },
+  "frozen_data_files_verified": 22,
+  "frozen_data_inventory_sha256": "a8132c4441f818e47309dee4cbb93bb3067b18edc40371bda00679862fb6e86d",
+  "new_raw_sources_verified": 2,
+  "new_raw_inventory_sha256": "0572bac5ba5f54e7f741c587ad5811f808ff0321454adf524ace6e488059c02b",
+  "independently_reconciled_usa_rows": 62,
+  "sector_code_changes": 20,
+  "preexisting_files_preserved": 331,
+  "certified_s6_rebalances": 0,
+  "certified_s6_common_sessions": 0,
+  "s1_s6_comparison_rows_not_evaluable": 6,
+  "s6_backtest_executed": false,
+  "day3_backtest_repeated": false,
+  "previous_s1_order_check_repeated": false,
+  "candidate_baseline_gate_changes": false,
+  "completion_marker_written": false
+}

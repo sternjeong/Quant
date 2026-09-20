@@ -1,0 +1,14 @@
+{
+  "at_utc": "2026-09-20T05:39:03.842784+00:00",
+  "publication_worktree_tests_passed": 26,
+  "publication_worktree_test_command": "/opt/quant/.venv/bin/python -m pytest -q docs/experiment_validation/day4_sector_sources_20260920/test_sector_sources.py docs/experiment_validation/day4/test_satellite_audit.py",
+  "supplement_artifacts_compared": 18,
+  "same_bytes_as_reviewed": true,
+  "raw_sources_excluded_from_commit": [
+    "msci_20230502_announcement.html",
+    "joint_20220331_announcement.pdf"
+  ],
+  "branch_base": "05df0fe",
+  "main_index_untouched": true,
+  "day4_complete": false
+}

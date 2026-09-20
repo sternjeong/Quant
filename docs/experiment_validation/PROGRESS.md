@@ -291,3 +291,30 @@ CIK 정수/문자열 처리 결함은 체크포인트 `20260920T012004Z_day4-sec
 다음 자동 감독은 Day 4에 머물러 전체 선정 모집단의 과거 구성·섹터·증권/단위·공개시각 및
 상장폐지 가격 자료를 확보한다. 이미 받은 SEC 파일이나 완료된 백테스트는 반복하지 않는다.
 연구 브랜치 `research/day4-source-review-20260920`; 실제 게시 결과는 같은 폴더 `publication.json`.
+
+
+### 2026-09-20 — Day 4 재개: 공식 과거 섹터 공지 원천 감사
+
+DAY_4_BLOCKED
+
+MSCI/S&P 공동 공지 PDF와 MSCI 기업별 변경 공지 HTML을 새로 확보했다. 미국 구간 62행을
+독립 대조했고 섹터 코드 변경은 20행이다. MSCI 적용일과 S&P 적용일이 달라 이 목록을
+S&P500 전체 과거 섹터로 편입하지 않았다. 전체 모집단 PIT/주식수 단위/상장폐지 입력은
+여전히 미인증이다. S6 재현·S1 공통 비교 미완료, 완료 표식 없음, Day 5 미착수.
+
+산출물: `docs/experiment_validation/day4_sector_sources_20260920/`의 `review.md`,
+원문 2개(로컬만 보존), 조회 receipt 2개, `input_manifest.json`, `source_diagnostics.json`,
+`usa_announced_code_changes.csv`, 파서/검증 코드·테스트·로그, `local_input_delta.json`,
+`validation.json`, `result_hashes.json`, `RESUME_NOTE.md`. 전체 18개 경로/개별 해시는
+`result_hashes.json`에 기록했다. 신규 11+기존 Day 4 15개 테스트 통과(26 passed).
+신규 원문/CSV 독립 감사 PASS, 완료 요구 종료 코드 2(BLOCKED). 기존 증거 268+20개,
+동결 데이터 22개, 기존 로컬 원천 1,548개 해시 유지. 기존 백테스트 재실행 없음.
+동결 데이터 목록 SHA-256: `a8132c4441f818e47309dee4cbb93bb3067b18edc40371bda00679862fb6e86d`.
+신규 원문 2개 목록 SHA-256: `0572bac5ba5f54e7f741c587ad5811f808ff0321454adf524ace6e488059c02b`.
+결과 목록 파일 SHA-256: `b1b66242954f473d5858a8717686bde6a064f9c577387ca212d9cd6d7f75f6fa`.
+
+새 전략 해석/기존 버그 수정 없이 기존 PIT 계약에 따라 원천만 감사했다. 후보·기준선·게이트,
+기존 미커밋 작업은 보존했다. 다음 감독은 전체 S&P 구성/과거 섹터의 공개·유효시각과
+증권/단위/상장폐지 가격 입력부터 확보한다. 새 자료가 없으면 이번 공지나 이전 SEC/캐시/
+백테스트를 반복하지 않는다. 상세 명령은 해당 폴더 `RESUME_NOTE.md`, 게시 결과는
+`publication.json`. 연구 브랜치 `research/day4-sector-sources-20260920`.

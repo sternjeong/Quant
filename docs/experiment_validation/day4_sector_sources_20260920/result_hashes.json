@@ -1,0 +1,35 @@
+{
+  "path_base": "docs/experiment_validation/day4_sector_sources_20260920",
+  "algorithm": "sha256",
+  "artifacts": {
+    ".gitignore": "4764bd78cf2af4dfda39688d4c9b25bf512066b822298d28c27ddb3e0512458d",
+    "RESUME_NOTE.md": "ec1adf431ce38427c60f2b8e2892d4ce096488b5ed18415111eaa02c97ed6ed2",
+    "initial_workspace.json": "4b6bdac8793bf5c4781d78e441f55842cb5955cab1c8aa2f1a8f44dab690fcc6",
+    "input_manifest.json": "787f199046d2412384646a0e0cd6bfcb8eaebaab272696e30665863779d3ae94",
+    "inspect_sector_sources.py": "7f7e4197b045802f55995496d89e901bf4ce713f9ac7990eb15857badea2d84c",
+    "joint_20220331_announcement.pdf": "0a7e4ff12c20224397b409415ed070f4538b34728b66889d0122d985a9251295",
+    "joint_source_access.json": "0c87e1be0d4aea2c5c0aa0c2595569b1a7e906617cc1fd6b11aacccdd8fd8792",
+    "local_input_delta.json": "ff52278de546bbea64ee170a485483e73df3d0bd94a14d1d1d212baa37989cc5",
+    "msci_20230502_announcement.html": "0ebe2cd7782872d0756c6f0de4ef8d20997e5e727f3896f29b9580c3e307e9a1",
+    "review.md": "85449764f17938a9aa7e856928753f0a929e2317e3c9dedbe1ee3052d4c8abad",
+    "source_access.json": "32cc1ad77edc6daa6b8e6cae491dbf6b2c9ffcfd2f9df6840fc7518b1862eb37",
+    "source_diagnostics.json": "42e15405eb36f5bfec8baf299bd3cbbec15a6dd1d017db57afeb57fff7566768",
+    "test_sector_sources.py": "72798b53991bb959a1bd0498133eda0ba525428d54fb27b1c491b99f89d54bfb",
+    "tests.log": "ab8115160f22b4ef16b25b722894f586bfbf18607c59080e42e27b66093c0c41",
+    "usa_announced_code_changes.csv": "42ee4061cac17cff05896d714a9d61d9773a584d18bf6a170704de3dca51b21c",
+    "validate_saved.py": "eead86cdedc0c5f5ea2ceae9e2ac8bd4901a85e55ee01fa8df1a7c08c9175c54",
+    "validation.json": "7e26af555625455d87b1325e3f7a33bcd3434be57d94808601c739c6a9493732",
+    "validation_errors.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "local_only_source_files": [
+    "msci_20230502_announcement.html",
+    "joint_20220331_announcement.pdf"
+  ],
+  "new_raw_inventory_sha256": "0572bac5ba5f54e7f741c587ad5811f808ff0321454adf524ace6e488059c02b",
+  "exclusions": [
+    "*.before (local preservation backups)",
+    "__pycache__",
+    "result_hashes.json (self)",
+    "publication.json/publication_validation.json/workspace_final.json (post-publication receipts)"
+  ]
+}

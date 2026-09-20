@@ -1,0 +1,9 @@
+{
+  "at_utc": "2026-09-20T05:32:17.519645+00:00",
+  "scope": "Previous 1548 source hashes and rg inventory in data/analysis/docs outside experiment artifacts; PIT-related filenames changed after prior review; bounded search only.",
+  "previous_sources": 1548,
+  "changed_sources": [],
+  "missing_sources": [],
+  "recent_pit_named_files": [],
+  "cutoff_utc": "2026-09-20T01:19:37.127961+00:00"
+}

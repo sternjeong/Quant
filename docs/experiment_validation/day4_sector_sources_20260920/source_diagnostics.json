@@ -1,0 +1,28 @@
+{
+  "source_scope": "MSCI_GLOBAL_STANDARD_INDEXES",
+  "announced_at_utc": "2023-05-02T22:21:00+00:00",
+  "source_status": "ANNOUNCED_SUBJECT_TO_REVISION",
+  "msci_effective_date": "2023-06-01",
+  "msci_after_close_date": "2023-05-31",
+  "separately_referenced_gics_direct_spdji_after_close_date": "2023-03-17",
+  "effective_intraday_timestamp_certified": false,
+  "usa_declared_count": 62,
+  "usa_parsed_count": 62,
+  "usa_sector_code_changes": 20,
+  "sector_code_transition_counts": {
+    "25->30": 3,
+    "45->20": 7,
+    "45->40": 10
+  },
+  "certified_s6_members": 0,
+  "certified_s6_rebalances": 0,
+  "usable_as_s6_input": false,
+  "blocking_reasons": [
+    "different index universe",
+    "preliminary event list, not full sector history",
+    "no stable security identifiers",
+    "no S&P-specific final company classification chain",
+    "no shares, units, delisting or execution price inputs"
+  ],
+  "source_sha256": "0ebe2cd7782872d0756c6f0de4ef8d20997e5e727f3896f29b9580c3e307e9a1"
+}

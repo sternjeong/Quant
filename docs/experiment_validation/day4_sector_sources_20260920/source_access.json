@@ -1,0 +1,18 @@
+[
+  {
+    "url": "https://www.spglobal.com/spdji/en/documents/indexnews/announcements/20220630-1453818/1453818_2023gicspressreleaseselectlistjune2022-final.pdf",
+    "attempted_at_utc": "2026-09-20T05:30:54.760471+00:00",
+    "path": "spdj_20220630_announcement.pdf",
+    "error_type": "HTTPError"
+  },
+  {
+    "url": "https://app2.msci.com/webapp/index_ann/DocGet?format=html&lang=en&pub_key=9piYXWAaifg%3D",
+    "attempted_at_utc": "2026-09-20T05:30:54.826758+00:00",
+    "path": "msci_20230502_announcement.html",
+    "http_status": 200,
+    "final_url": "https://app2.msci.com/webapp/index_ann/DocGet?format=html&lang=en&pub_key=9piYXWAaifg%3D",
+    "bytes": 30837,
+    "sha256": "0ebe2cd7782872d0756c6f0de4ef8d20997e5e727f3896f29b9580c3e307e9a1",
+    "content_type": "text/html;charset=UTF-8"
+  }
+]
