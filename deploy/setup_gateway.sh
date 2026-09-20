@@ -288,5 +288,5 @@ check "$CODE_HOST" "302 (code-server 로그인으로)"
 echo
 echo "완료. 브라우저에서 https://${BASE}/ 를 열어 아이디/비밀번호를 입력하세요."
 echo "Oracle 콘솔 VCN Security List에 TCP 443 Ingress 규칙이 없으면 밖에서는 아직 안 열립니다."
-echo "이전 http://<IP>:8501 직접 접속 경로는 아직 열려 있습니다 — app 주소가 잘 되는 걸 확인한 뒤 닫으세요."
+echo "Streamlit(8501)은 외부에 열지 않는다 — 이 VM에 예전 'ufw allow 8501'/iptables 규칙이 남아 있다면 지우세요."
 echo "인증서 자동 갱신 확인: systemctl list-timers | grep certbot"

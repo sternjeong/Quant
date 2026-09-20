@@ -59,9 +59,9 @@ OS 방화벽(`setup_vm.sh`가 ufw로 처리)과는 별개로, Oracle 콘솔의 *
 1. 콘솔 → **Networking → Virtual Cloud Networks** → 해당 VCN → **Security Lists** → Default
    Security List.
 2. **Add Ingress Rules**:
-   - Source CIDR `0.0.0.0/0`, IP Protocol `TCP`, Destination Port `8501` (Streamlit)
-   - (code-server 8080은 여기서 **열지 않는다** — 셸 권한을 통째로 주는 IDE라 SSH 터널로만 접속한다,
-     14번 참고)
+   - Source CIDR `0.0.0.0/0`, IP Protocol `TCP`, Destination Port `80`, 그리고 `443` (HTTPS 게이트웨이 —
+     14번). Streamlit 8501과 code-server 8080은 여기서 **열지 않는다**: 둘 다 로컬 전용 포트이고, 게이트웨이의
+     로그인 뒤에서만 `app.`/`code.` 주소로 접속한다.
    - (SSH용 22번은 기본 이미지 생성 시 이미 열려 있음)
 
 ## 3. SSH 접속 + 리포 클론 + .env 준비
@@ -93,7 +93,7 @@ sudo bash deploy/setup_vm.sh
   임계값 초과 시 텔레그램 알림(11번 참고)
 - `deploy/quant-auto-deploy.service` + `.timer`를 등록해 GitHub main에 새 커밋이 올라오면 자동으로
   `git pull --ff-only` + 서비스 재시작(12번 참고)
-- OS 방화벽(ufw)에서 8501 허용
+- OS 방화벽(ufw)에서 22/80 허용 (8501은 열지 않는다 — 14번 게이트웨이 뒤에서만 접속)
 
 ## 5. 확인
 
@@ -103,7 +103,8 @@ sudo systemctl status quant-scheduler
 sudo journalctl -u quant-scheduler -f   # 스케줄러 실시간 로그(장 마감 스캔/야간 튜닝 등)
 ```
 
-브라우저에서 `http://<PUBLIC_IP>:8501` 접속되면 성공. `data/quant.db` 는 최초 접속 시
+VM 안에서 `curl -s http://127.0.0.1:8501/_stcore/health`가 `ok`이면 앱은 떠 있는 것이고, 밖에서는 14번 게이트웨이를
+설치한 뒤 `https://app.<도메인>/`(로그인 필요)으로 접속한다. `data/quant.db` 는 최초 접속 시
 `core.db.init_db()` 가 자동 생성한다.
 
 ## 5-1. 서비스 죽으면 텔레그램으로 자동 알림
@@ -170,7 +171,7 @@ sudo systemctl restart quant-streamlit quant-scheduler
 
 2026-09-20부터 무료 DuckDNS 도메인 + Let's Encrypt 인증서로 **HTTPS 게이트웨이**를 쓴다 — 기본 도메인이
 관제 허브, `app.`이 이 Streamlit 대시보드, `code.`이 브라우저 코드 스페이스다. 구성·설치는 14번 참고.
-(`http://<PUBLIC_IP>:8501` 평문 직접 접속은 게이트웨이 확인 뒤 닫는 것을 전제로 한다.)
+(`http://<PUBLIC_IP>:8501` 평문 직접 접속은 2026-09-20에 방화벽에서 닫았다.)
 
 ## 9. 백업
 
@@ -406,9 +407,21 @@ DuckDNS는 `code.`·`app.` 같은 하위 이름도 자동으로 같은 IP로 풀
 **로그인 계정 바꾸기/추가**: 위 3번 명령을 다시 실행하면 파일이 통째로 새로 써진다(여러 계정을 두려면 `sudo tee -a`로
 줄을 덧붙인다). nginx 재시작은 필요 없다.
 
-**예전 직접 접속 경로 닫기 (`app.` 주소가 브라우저에서 잘 되는 걸 확인한 뒤)**: 평문 `http://<IP>:8501`은 로그인 없이
-Streamlit이 열리는 옛 경로다. 게이트웨이가 확인되면 iptables의 8501 ACCEPT 규칙(`sudo iptables -S INPUT | grep 8501`로
-확인해 같은 모양에 `-D`), `sudo ufw delete allow 8501/tcp`, Oracle Security List의 8501·8080 Ingress 규칙을 모두 없앤다.
+**예전 직접 접속 경로 (닫힘, 2026-09-20)**: 평문 `http://<IP>:8501`은 로그인 없이 Streamlit이 열리는 옛 경로라 iptables의
+8501 ACCEPT 규칙과 `ufw allow 8501/tcp`를 지워 닫았다(밖에서 연결 안 됨 확인). 다시 열지 말 것 — 새로 앱을 붙일 때도
+포트를 직접 열지 말고 게이트웨이에 서버 블록을 추가한다. Oracle Security List에 남아 있는 8501·8080 Ingress 규칙은 이제
+아무 효과가 없으니(OS 방화벽이 막음) 콘솔에서 지워도 된다 — 지우면 방화벽 한 겹이 더 생기는 셈이다.
+
+**코드 스페이스 비밀번호를 외울 수 있는 것으로 바꾸기**: code-server 비밀번호는 처음에 자동 생성된 24자 랜덤 문자열이라
+외울 수 없다. 사람이 직접 아래를 실행하면(비밀번호는 화면에 안 보이게 두 번 입력, 명령줄·대화·로그에 남지 않음) 원하는
+것으로 바꾸고 재시작한 뒤 실제 로그인이 되는지 확인하며, 안 되면 예전 설정으로 되돌린다:
+```bash
+ssh -t quant-vm 'sudo bash /opt/quant/deploy/set_code_server_password.sh'
+```
+12자 이상, 영문/숫자/`.`/`_`/`-`만 받는다. 단어 3~4개를 하이픈으로 이은 것(예: `blue-moon-cat-42` 형태)이 외우기 쉽고
+충분히 길다 — 이 비밀번호 하나가 곧 VM 셸이라 4자리 숫자 같은 건 일부러 거절한다. 브라우저/휴대폰의 "비밀번호 저장"을
+누르면 다음부터는 아예 안 쳐도 된다. 허브(기본 도메인)와 `app.`은 nginx 아이디/비밀번호(위 3번 명령), `code.`는 code-server
+비밀번호로 서로 다른 로그인이고, 브라우저는 주소(호스트)마다 따로 기억한다.
 
 이제 비밀번호가 평문으로 오가지는 않지만, code-server 비밀번호 하나가 곧 VM 셸이다 — 강한 비밀번호(현재 24자)를
 유지하고 쉬운 것으로 바꾸지 말 것(code-server가 로그인 시도를 분당 몇 회로 제한하긴 한다). DuckDNS는 무료·후원 기반
@@ -419,10 +432,10 @@ IP를 직접 고쳐야 한다. 그때는 위 SSH 터널이 대안이다. 인증�
 **알아둘 것 — 이 VM의 방화벽은 지금 상태와 재부팅 후 상태가 다르다** (2026-09-20 확인):
 - **지금(부팅 후 계속 켜져 있는 동안)**: `/etc/iptables/rules.v4`에서 온 Oracle 기본 `REJECT`가 INPUT 체인에서
   ufw 체인보다 **앞에** 있어서, `ufw allow`만 하면 패킷이 REJECT에서 끝나 ufw 체인에 도달하지 못한다
-  (8080으로 확인 — Oracle VCN Security List는 통과하는데 VM 안에서 거절됨). 22/80/8501은 그 REJECT
+  (8080으로 확인 — Oracle VCN Security List는 통과하는데 VM 안에서 거절됨). 22/80/443은 그 REJECT
   **앞에** 직접 `iptables -I INPUT ... -j ACCEPT`로 넣어둔 것이라 통한다.
 - **재부팅 후**: `iptables-persistent`/`netfilter-persistent` 패키지가 **제거된 상태(dpkg `rc`)**라 부팅 때
   `rules.v4`를 복원하는 장치가 없다. 그러면 수동으로 넣은 iptables ACCEPT와 REJECT가 모두 사라지고
   **ufw 규칙이 방화벽 역할**을 한다(ufw는 부팅 시 자동 활성화). 즉 새 포트를 공개하려면 **iptables ACCEPT(즉시
   적용) + `ufw allow`(재부팅 후 유지) 둘 다** 넣어야 한다 — `setup_gateway.sh`가 443에 대해 그렇게 한다.
-- 기존 22/80/8501의 iptables 규칙은 재부팅 후 사라지지만 ufw에도 같은 규칙이 있어 접속은 유지된다.
+- 기존 22/80/443의 iptables 규칙은 재부팅 후 사라지지만 ufw에도 같은 규칙이 있어 접속은 유지된다.

@@ -79,6 +79,7 @@
 `https://hessejeong.duckdns.org/`가 관제 허브(아이디/비밀번호), `https://code.hessejeong.duckdns.org/`가
 code-server, `https://app.hessejeong.duckdns.org/`가 Streamlit이다(무료 DuckDNS + Let's Encrypt, nginx 443 →
 로컬 전용 포트들). 절차와 설정은 `deploy/DEPLOYMENT_ORACLE.md` 14번, 스크립트는 `deploy/setup_gateway.sh`.
-남은 사람 작업: `app.` 주소가 브라우저에서 잘 되는 걸 확인한 뒤 예전 `:8501` 직접 접속 경로 닫기(iptables +
-ufw + Oracle Security List 8501 규칙). Oracle 콘솔에 예전에 추가한 `TCP / 8080` Ingress 규칙은 더 이상
-필요 없으니 지워도 된다(443 규칙은 유지).
+예전 `:8501` 직접 접속 경로는 2026-09-20에 방화벽(iptables + ufw)에서 닫았다. 남은 사람 작업(선택):
+1. Oracle 콘솔 Security List의 `8501`·`8080` Ingress 규칙 삭제(OS 방화벽이 이미 막고 있어 효과는 없지만 한 겹 더 생김. 443 규칙은 유지).
+2. code-server 비밀번호가 외울 수 없는 24자 랜덤이면 `ssh -t quant-vm 'sudo bash /opt/quant/deploy/set_code_server_password.sh'`로
+   외울 수 있는 것으로 바꾼다(대화형, 12자 이상). 자세한 건 `DEPLOYMENT_ORACLE.md` 14번.
