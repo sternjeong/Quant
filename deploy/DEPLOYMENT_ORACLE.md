@@ -368,10 +368,22 @@ Codespace가 idle로 꺼지면 터널도 함께 끊기므로 다시 열어주면
 `/tunnel/code-server` 안내 페이지(위 명령과 접속 순서)를 보여준다 — 공개되지 않은 포트로 링크하면
 타임아웃이 나기 때문이다.
 
-**결정(2026-09-20): 8080을 인터넷에 직접 공개하지 않는다.** 이 IDE는 `sudo` 가능한 `ubuntu` 계정의
-셸을 그대로 주는데, 이 VM엔 도메인/TLS가 없어 평문 HTTP + 비밀번호 하나로만 보호되기 때문이다.
-나중에 도메인을 붙이면 Cloudflare Tunnel(+Access) 또는 `certbot` HTTPS 프록시로 안전하게 공개할 수
-있다(미착수).
+**HTTPS 주소로 공개하기 (2026-09-20 결정, 무료 DuckDNS + Let's Encrypt)**: SSH 터널은 Codespace를 먼저
+열어야 해서 불편하므로, 아무 기기 브라우저에서 URL + 비밀번호만으로 들어오게 한다. 8080을 그대로
+여는 게 아니라(평문 HTTP + 비밀번호 하나로 `sudo` 가능한 셸을 노출하는 셈이라 안 함) **nginx가 443에서
+TLS를 끝내고 `127.0.0.1:8080`으로 프록시**한다 — code-server 자체는 계속 로컬 전용이다.
+
+1. https://www.duckdns.org 에서 GitHub 등으로 로그인해 무료 서브도메인을 만들고, IP에 이 VM의 공인 IP를 넣는다.
+2. Oracle 콘솔 VCN Security List에 `TCP / 443 / 0.0.0.0/0` Ingress 규칙 추가 (80은 이미 열려 있음).
+3. VM에서: `sudo bash /opt/quant/deploy/setup_code_server_https.sh <이름>.duckdns.org [이메일]`
+   — DNS 확인 → certbot 설치·인증서 발급(자동 갱신) → nginx 사이트 설치 → iptables 443 허용·저장.
+   실패하면 nginx 설정을 되돌리고 멈춘다. 여러 번 돌려도 안전하다.
+4. `https://<이름>.duckdns.org/` 접속 → code-server 로그인(비밀번호는 `~/.config/code-server/config.yaml`).
+
+이제 비밀번호가 평문으로 오가지는 않지만, 비밀번호 하나가 곧 VM 셸이다 — 강한 비밀번호(현재 24자)를
+유지하고 쉬운 것으로 바꾸지 말 것(code-server가 로그인 시도를 분당 몇 회로 제한하긴 한다).
+DuckDNS는 무료·후원 기반 서비스라 드물게 불안정할 수 있고, VM 공인 IP가 바뀌면(인스턴스 중지 후
+재시작 등 — 예약 IP가 아니라면) DuckDNS 화면에서 IP를 직접 고쳐야 한다. 그때는 위 SSH 터널이 대안이다.
 
 **알아둘 것 — 이 VM에서 `ufw allow`만으로는 포트가 열리지 않는다**: Oracle 우분투 이미지는
 `/etc/iptables/rules.v4`의 INPUT 체인에 기본 `REJECT`가 ufw 체인보다 **앞에** 있어서, ufw에만 허용
