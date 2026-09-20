@@ -1,0 +1,15 @@
+{
+  "checked_at_utc": "2026-09-20T23:18:15.350496+00:00",
+  "initial_existing_files_verified": 496,
+  "fully_unchanged_files": 492,
+  "append_only_files": [
+    "PROGRESS.md",
+    "RESUME_NOTE.md",
+    "docs/experiment_validation/PROGRESS.md",
+    "docs/experiment_validation/RESUME_NOTE.md"
+  ],
+  "main_head_unchanged": true,
+  "main_index_unchanged": true,
+  "publication_artifact_hashes": "PASS",
+  "day4_status": "BLOCKED"
+}
