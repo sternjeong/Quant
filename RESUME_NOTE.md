@@ -95,3 +95,14 @@ Day 4는 BLOCKED다. 로컬 데이터 3,470개 중 새 변경은 SPY/VIX 가격 
 다음 단계/명령: `docs/experiment_validation/day4_reentry_20260920T1047Z/RESUME_NOTE.md`.
 실제 PIT export 또는 기존 데이터 경로를 확보했을 때 재개하고 같은 백테스트/원천 조사/
 요청 패키지는 반복하지 않는다. 게시 확인은 같은 디렉터리 `publication.json`.
+
+
+## 2026-09-20 14:56 UTC — 최신 인계: Day 4 신규 PIT 자료 없음
+
+Day 4는 BLOCKED다. 로컬 3,470개 중 새 파일은 없고 가격 캐시 20개의 메타데이터
+차이만 확인했다. 원천 1,548개·동결 22개·기존 증거 해시는 유지됐다. 저장 상태와
+신규 delta 검사는 PASS지만 실제 S6 재현·S1 비교는 미완료다. 이전 테스트/백테스트는
+반복하지 않았다. 다음 단계·명령은
+`docs/experiment_validation/day4_reentry_20260920T1456Z/RESUME_NOTE.md`를 따른다.
+실제 PIT export 또는 기존 데이터 경로를 확보해 인증한 뒤에 계속하며 Day 5로
+넘어가지 않는다. 원격 게시·알림 확인은 같은 디렉터리 `publication.json`에 있다.

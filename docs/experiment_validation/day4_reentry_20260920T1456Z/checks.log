@@ -1,0 +1,10 @@
+PASS prior evidence manifests: {'day4/result_hashes.json': 268, 'day4_review_20260920/result_hashes.json': 20, 'day4_sector_sources_20260920/result_hashes.json': 18, 'day4_input_handoff_20260920/result_hashes.json': 16, 'day4_reentry_20260920T1047Z/result_hashes.json': 7}
+PASS source bytes: 1548
+PASS frozen data: 22
+PASS changed-cache schemas: 20 price-only files
+PASS saved BLOCKED comparison and completion-marker guards
+SKIP pytest/backtests: unchanged verified code; previous 15 passed retained as historical evidence
+DAY_4_BLOCKED: certified rebalances=0, common sessions=0
+PASS independent saved-inventory delta reconciliation (3470 files, 20 metadata differences)
+PASS known prior AAPL/SPY/VIX content hashes; all unchanged
+PASS JSON parsing and report references

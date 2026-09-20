@@ -5224,3 +5224,28 @@ SPY/VIX 가격 캐시 2개는 구성·섹터·공시시각 입력이 아니므�
 새 자료 없이는 동일 수집/요청 생성/백테스트를 반복하지 않는다. 상세 명령은 이번
 `RESUME_NOTE.md`, 게시 확인은 `publication.json`. 연구 브랜치
 `research/day4-reentry-20260920T1047Z`. 후보·기준선·게이트와 기존 작업은 보존했다.
+
+
+### 2026-09-20 14:56 UTC — Day 4 재개: 신규 PIT 입력 없음
+
+DAY_4_BLOCKED
+
+로컬 데이터 3,470개를 직전 목록과 대조했다. 추가/삭제 0개, 메타데이터 차이 20개는
+모두 가격 캐시이며 PIT 누락을 해결하지 못했다. 이전 해시를 아는 AAPL/SPY/VIX는
+내용도 그대로다. 인증 반기/공통 거래일 0개, S1/S6 비교 6개 NOT_EVALUABLE 유지.
+S6 재현·S1 공통 비교 미완료이므로 완료 표식 없음, Day 5 미착수.
+
+생성 파일: `docs/experiment_validation/day4_reentry_20260920T1456Z/`의 `review.md`,
+`RESUME_NOTE.md`, `local_scan.csv.gz`, `local_input_delta.json`, `initial_workspace.json`,
+`checks.log`, `validation.json`, `result_hashes.json`. 기존 원천 1,548개·동결 데이터
+22개·이전 증거 목록 268+20+18+16+7개 항목의 해시 일치. 저장 비교/완료 표식 가드와
+신규 delta 독립 대조 PASS. 이전 15 passed 로그/코드 해시를 확인했으며 pytest와
+백테스트는 재실행하지 않았다. 이 검사는 실제 S6 실행 통과가 아니다.
+동결 데이터 목록 SHA-256: `a8132c4441f818e47309dee4cbb93bb3067b18edc40371bda00679862fb6e86d`.
+결과 목록 파일 SHA-256: `ba7978b3595a6f2a71aea94ea42aafb0c57c4f76673355de26daee2217e2b609` (개별 생성 파일 해시 포함).
+
+후보·기준선·게이트·사전등록 해석과 기존 미커밋 작업은 보존했다. 다음 감독은 실제
+PIT 자료 경로/export부터 확인하고 입력 인증 후 S6 다음 시가 재현·S1 공통 비교를
+수행한다. 새 증거 없이 기존 조사/요청/백테스트를 반복하지 않는다. 재개 명령은 이번
+`RESUME_NOTE.md`, 게시/Telegram 확인은 `publication.json`에 기록한다. 연구 브랜치
+`research/day4-reentry-20260920T1456Z`.
