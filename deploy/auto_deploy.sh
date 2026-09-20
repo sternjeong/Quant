@@ -7,7 +7,8 @@
 # "dubious ownership" 안전장치에 걸린다).
 #
 # ★ 안전 원칙 (반드시 지킬 것): 여기서 쓰는 git 조작은 `git fetch`와 `git pull --ff-only`,
-# 그리고 아래에서 설명하는 `data/cache/fred_*.csv` 전용 `git checkout --` 한 줄뿐이다.
+# 그리고 아래에서 설명하는 두 가지 좁은 예외뿐이다: `data/cache/fred_*.csv` 전용 `git checkout --` 한 줄과,
+# PROGRESS.md 하나에 한정한 "백업 → HEAD로 되돌림 → pull → union 병합으로 다시 얹기"(deploy/progress_reconcile.sh).
 # 그 외에 fast-forward가 안 되는 상황(히스토리 분기, 다른 파일의 로컬 수정이 막고 있음, 충돌
 # 등)이면 그 자리에서 즉시 포기하고 텔레그램으로 알린다 — `git reset --hard`, `git clean`,
 # 범용 `git checkout .`, 강제 push, stash/drop 같은 건 이 스크립트에 존재하지 않고 앞으로도
@@ -16,7 +17,10 @@
 # 순간 이 자동화 전체의 존재 이유가 사라진다. `fred_*.csv` 예외는 어떤 파일이든 지워도 되는
 # 게 아니라, .gitignore가 이미 "VM에서 다시 만들어져도 되는 캐시"로 명시적으로 선언해둔
 # 딱 그 패턴 하나만 대상으로 한다 — 새 예외를 추가하려면 같은 근거(외부에서 재요청 가능한
-# 멱등 캐시인지)를 먼저 확인해야 한다.
+# 멱등 캐시인지)를 먼저 확인해야 한다. PROGRESS.md 예외의 근거는 반대로 "버려도 되는 파일"이 아니라
+# "내용이 절대 버려지지 않는다"는 것이다: VM 에이전트가 미커밋으로 덧붙이는 진행 기록을 바이트 단위로 확인한
+# 백업으로 먼저 보존하고, pull 뒤 새 upstream 위에 그대로 다시 얹으며(실패하면 백업에서 복원, 병합이 실패해도
+# 백업이 남고 텔레그램으로 알린다), 다른 어떤 파일의 로컬 수정도 건드리지 않는다.
 #
 # 흔한 경우(타이머가 5분마다 실행 — 대부분 새 커밋 없음)는 `git fetch` + 해시 비교만 하고
 # 조용히(로그도 안 남기고) 끝난다. 새 커밋이 있을 때만 pull/서비스 재시작/텔레그램 발송처럼
@@ -50,6 +54,17 @@ clear_failure_state() {
 git_as_quant() {
   sudo -n -u "$SERVICE_USER" git -C "$APP_DIR" "$@"
 }
+
+# VM 에이전트가 PROGRESS.md에 미커밋으로 덧붙인 기록 때문에 --ff-only가 막히는 문제를 푸는 보조 함수들.
+# 파일이 없으면(부분 배포 등) 아무것도 안 하는 대체 함수로 두고 예전처럼 일반 pull만 한다.
+if [ -r "$APP_DIR/deploy/progress_reconcile.sh" ]; then
+  # shellcheck source=deploy/progress_reconcile.sh
+  source "$APP_DIR/deploy/progress_reconcile.sh"
+else
+  progress_prepare_for_pull() { return 0; }
+  progress_restore_after_failed_pull() { return 0; }
+  progress_reapply_after_pull() { return 0; }
+fi
 
 cd "$APP_DIR"
 mkdir -p "$STATE_DIR" 2>/dev/null || true
@@ -87,6 +102,12 @@ fi
 
 log "새 커밋 감지: ${local_head:0:7} -> ${remote_head:0:7}. git pull --ff-only 시도"
 
+# 로컬 PROGRESS.md 미커밋 추가분이 새 커밋과 겹치면 여기서 백업하고 그 파일만 HEAD로 되돌린다(아니면 아무것도 안 함).
+# 준비에 실패해도 워킹트리는 그대로이므로 일반 pull로 진행하고, 막히면 아래 기존 실패 알림으로 이어진다.
+if ! progress_prepare_for_pull "$local_head" "$remote_head"; then
+  log "PROGRESS.md 사전 처리에 실패 — 워킹트리는 그대로, 일반 pull로 진행"
+fi
+
 if pull_output="$(git_as_quant pull --ff-only 2>&1)"; then
   new_head="$(git_as_quant rev-parse HEAD)"
   commit_count="$(git_as_quant rev-list --count "${local_head}..${new_head}")"
@@ -99,6 +120,14 @@ if pull_output="$(git_as_quant pull --ff-only 2>&1)"; then
 
   log "pull 성공: ${local_head:0:7} -> ${new_head:0:7} ($commit_count 커밋)"
   log "$commit_summary"
+
+  if ! progress_reapply_after_pull "$new_head"; then
+    # 배포 자체는 계속한다 — 코드는 이미 최신이고, 잃은 것도 없다(로컬 기록은 백업 파일에 남아 있음).
+    "$ALERT_SCRIPT" "[자동배포] PROGRESS.md 병합 실패 — 배포는 계속함
+${local_head:0:7}..${new_head:0:7} ($commit_count 커밋)
+VM의 미커밋 PROGRESS.md 기록을 새 커밋 위에 다시 얹지 못했음. 기록은 $STATE_DIR/PROGRESS.local.* 백업에 그대로 있으니
+수동으로 합쳐주세요." || log "텔레그램 알림 전송도 실패"
+  fi
 
   deps_note=""
   if git_as_quant diff --name-only "${local_head}..${new_head}" | grep -qx 'requirements.txt'; then
@@ -195,6 +224,7 @@ $commit_summary_short"
   exit 0
 else
   pull_status=$?
+  progress_restore_after_failed_pull || true
   log "git pull --ff-only 실패 (exit $pull_status) — 워킹트리는 그대로 두고 서비스도 건드리지 않음. 수동 확인 필요"
   log "$pull_output"
 

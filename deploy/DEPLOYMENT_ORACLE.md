@@ -285,8 +285,8 @@ sudo systemctl start quant-vm-health.service     # 정상 범위로 "복구됨" 
 문구도 함께 붙는다. 테스트 게이트의 타임아웃은 기본 240초(`AUTO_DEPLOY_TEST_TIMEOUT_SECONDS`
 로 조절 가능)이며, 시간 초과도 실패로 취급해 서비스를 건드리지 않는다.
 
-**비파괴 원칙(★)**: 여기서 쓰는 git 명령은 `git fetch`와 `git pull --ff-only`, 그리고
-`data/cache/fred_*.csv` 하나만 대상으로 하는 `git checkout --` 뿐이다. 이 FRED 캐시 파일들은
+**비파괴 원칙(★)**: 여기서 쓰는 git 명령은 `git fetch`와 `git pull --ff-only`, 그리고 좁은 예외 두 가지 —
+`data/cache/fred_*.csv` 하나만 대상으로 하는 `git checkout --`, `PROGRESS.md` 하나에 한정한 "백업 → 되돌림 → pull → 다시 얹기"(아래) — 뿐이다. 이 FRED 캐시 파일들은
 `.gitignore`가 이미 "VM에서 다시 만들어져도 되는 캐시"로 명시적으로 추적 예외를 둔 파일이라,
 이 VM의 `quant-scheduler`가 로컬에서 독립적으로 새로고침해도 매번 `pull`을 다시 시도하기 전에
 안전하게 되돌린다(외부 API에서 그대로 재요청 가능한 멱등 데이터라 버려도 다음 스케줄러
@@ -299,6 +299,18 @@ sudo systemctl start quant-vm-health.service     # 정상 범위로 "복구됨" 
 `AUTO_DEPLOY_ALERT_COOLDOWN_SECONDS`(기본 21600초 = 6시간)마다 한 번만 다시 보낸다 — 매
 5분마다 재알림해서 스팸이 되는 걸 막기 위함이다(2026-09-18 실제로 `fred_*.csv` 충돌로
 178개가 쌓인 뒤 추가됨).
+
+**`PROGRESS.md` 충돌은 자동으로 푼다** (2026-09-20, `deploy/progress_reconcile.sh`): VM의 리서치 에이전트/실험 슈퍼바이저는
+루트 `PROGRESS.md` 끝에 진행 기록을 *미커밋으로* 덧붙이고, 개발 쪽 커밋도 같은 파일에 항목을 추가한다. 예전에는 원격이 이
+파일을 바꾸는 커밋을 올릴 때마다 `git pull --ff-only`가 "로컬 변경이 덮어써진다"며 막혀 자동배포가 통째로 멈췄고, 사람이 VM에서
+손으로 커밋·리베이스·푸시해야 했다. 이제는 **(a) VM의 `PROGRESS.md`가 미커밋으로 수정돼 있고 (b) 새 커밋도 이 파일을 바꿀 때만**
+① 로컬 파일을 바이트 단위로 확인한 백업(`.auto-deploy-state/PROGRESS.local.<시각>`, 최근 10개 보관)으로 저장하고 ② 이 파일 하나만
+HEAD로 되돌려 pull을 통과시킨 뒤 ③ 백업의 로컬 추가분을 새 upstream 위에 3-way *union* 병합(`git merge-file --union`)으로 다시
+얹는다 — 양쪽이 파일 끝에 덧붙여도 충돌 마커 없이 둘 다 남고, 같은 줄을 양쪽이 넣었으면 하나만 남는다. 결과적으로 VM 파일은 "새
+upstream + 아직 커밋 안 된 VM 기록"이 되어 에이전트가 계속 이어 쓸 수 있다. 로컬 내용은 어떤 경우에도 버려지지 않는다: pull이 다른
+이유로 실패하면 백업에서 원래 내용으로 복원하고, 병합 자체가 실패하면 배포는 계속하되 백업 위치와 함께 텔레그램으로 알린다.
+겹치지 않는 경우(원격이 이 파일을 안 바꾸거나 VM 쪽이 깨끗함)는 아무것도 하지 않는다. **다른 파일**의 로컬 수정이 pull을 막는
+경우는 여전히 위 원칙대로 즉시 포기하고 알린다. 참고: 이렇게 VM에만 있는 기록은 누군가 커밋·푸시하기 전까지 GitHub에는 없다.
 
 **확인**:
 ```bash
