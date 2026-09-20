@@ -5276,3 +5276,28 @@ DAY_4_BLOCKED
 조사/요청/백테스트를 반복하지 않으며 Day 5는 시작하지 않는다. 재개 명령은 이번
 `RESUME_NOTE.md`, 게시/Telegram 결과는 `publication.json`. 연구 브랜치
 `research/day4-reentry-20260920T1905Z`.
+
+
+### 2026-09-20 23:12 UTC — Day 4 재개: PIT 입력 변화 없음
+
+DAY_4_BLOCKED
+
+직전 19:05 UTC 목록과 로컬 데이터 3,482개를 대조했다. 추가·삭제·메타데이터
+변경 모두 0개이며 실험 디렉터리의 이후 파일도 이전 증거/게시 영수증/진행 문서뿐이다.
+새 PIT export는 찾지 못했다. 인증 반기/공통 거래일 0개, S1/S6 비교 6개는
+NOT_EVALUABLE 유지. 실제 S6 재현·공통 비교 미완료로 완료 표식 없음, Day 5 미착수.
+
+생성 파일: `docs/experiment_validation/day4_reentry_20260920T2312Z/`의 `review.md`,
+`RESUME_NOTE.md`, `local_scan.csv.gz`, `local_input_delta.json`, `initial_workspace.json`,
+`checks.log`, `validation.json`, `result_hashes.json`. 새 목록 독립 대조와 저장 비교/
+완료 표식 가드 PASS; 원천 1,548개·동결 데이터 22개·기존 증거 목록
+268+20+18+16+7+7+8개 항목 해시 일치. 이전 15 passed 로그/코드 해시를 검증했고
+pytest와 백테스트는 반복하지 않았다. 이 무결성 검사는 실제 S6 실행 통과가 아니다.
+동결 데이터 목록 SHA-256: `a8132c4441f818e47309dee4cbb93bb3067b18edc40371bda00679862fb6e86d`.
+이번 결과 목록 SHA-256: `d8fa53701adcd82d73ad733ef2cd2e80c49a0f4cf42e29a13d8120ffc230cb53` (개별 생성 파일 해시 포함).
+
+후보·기준선·게이트·사전등록 해석과 기존 미커밋 작업은 보존했다. 다음 자동 감독은
+실제 PIT export/기존 자료 경로 확보 후 입력 인증, S6 5/10/25bp 다음 시가 재현과
+S1 공통 비교를 수행한다. 새 증거 없이 같은 원천 조사/요청/백테스트를 반복하지 않는다.
+재개 명령은 이번 `RESUME_NOTE.md`, 원격 게시/Telegram 결과는 `publication.json`.
+연구 브랜치: `research/day4-reentry-20260920T2312Z`.

@@ -201,3 +201,13 @@ S1 공통 비교는 미완료다. 완료된 테스트·백테스트는 반복하
 다음 단계/명령: `docs/experiment_validation/day4_reentry_20260920T1905Z/RESUME_NOTE.md`.
 실제 PIT export/기존 자료 경로를 확보해 인증한 뒤 계속하며, Day 5로 넘어가지 않는다.
 게시/알림 결과는 같은 폴더 `publication.json`.
+
+
+## 2026-09-20 23:12 UTC — 최신 인계: Day 4 실제 PIT 입력 변화 없음
+
+Day 4는 BLOCKED다. 3,482개 데이터 파일의 추가·삭제·메타데이터 변경 0개이며
+새 PIT 입력을 확보하지 못했다. 원천 1,548개·동결 22개·기존 증거 해시/저장 상태
+검증 PASS지만 S6 재현·S1 공통 비교는 미완료다. 완료 표식 없음, Day 5 미착수.
+다음 단계·명령: `docs/experiment_validation/day4_reentry_20260920T2312Z/RESUME_NOTE.md`.
+실제 PIT export/기존 자료 경로를 확보해 인증한 뒤 계속하며 새 증거 없이 같은
+조사·요청 생성·백테스트를 반복하지 않는다. 게시/알림 결과는 같은 폴더 `publication.json`.

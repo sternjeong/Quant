@@ -1,0 +1,7 @@
+PASS: 3482 saved inventory rows independently reconciled; added/removed/changed = 0/0/0.
+PASS: prior evidence manifest item counts = [268, 20, 18, 16, 7, 7, 8].
+PASS: 1548 prior source hashes and 22 frozen data hashes verified.
+PASS: existing 6 comparisons remain NOT_EVALUABLE, blank performance; completion markers absent.
+PASS: validation-directory newer files are prior-run receipts/progress, no input export.
+Existing 15-passed test log/code hashes verified; pytest not rerun.
+Day 4 BLOCKED: S6 PIT replay and S1 common-date comparison not executed.
