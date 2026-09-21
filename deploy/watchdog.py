@@ -10,8 +10,13 @@ sqlite/파일만 읽는다. 문제가 없으면 조용히 끝난다(알림 없�
      스케줄러가 멈춘 것. (이력 추적이 시작되기 전이면 판정하지 않는다)
   2. 최근 26시간에 error/missed 로 기록된 잡이 있는가.
   3. 최신 daily_briefing_*.html 이 26시간 안에 만들어졌는가.
-  4. 백업 상태(core.backup_status와 같은 기준): 36시간 넘게 성공 없음 / 실패 / 비공개 원격 push 3일 넘게 실패.
-     (원격 미설정은 알리지 않는다 — 브리핑에 표시됨)
+  4. 백업 상태(core.backup_status와 같은 기준): 36시간 넘게 성공 없음 / 실패 / 비공개 원격 push 3일 넘게 실패 /
+     백업 검증 실패. (원격 미설정은 알리지 않는다 — 브리핑에 표시됨)
+  5. 재부팅 필요 표시(/var/run/reboot-required, 보통 커널 보안 업데이트)가 14일 넘게 방치됐는가 — 자동으로 재부팅하지는
+     않는다(부팅 실패 시 사람이 콘솔에서 복구해야 하므로). 사람이 잊지 않게 알리기만 한다.
+
+주 1회(한국시간 일요일)는 문제가 없어도 "생존 신호" 요약을 한 통 보낸다 — 워치독/텔레그램 자체가 죽으면 "이상 없음"과
+"알림이 안 옴"을 구분할 수 없기 때문이다. 일요일에 요약이 안 오면 그것이 이상 신호다.
 
 사용법: python3 deploy/watchdog.py [--dry-run]     (문제가 있으면 종료 코드 1)
 환경변수: QUANT_APP_DIR(기본 /opt/quant), QUANT_BACKUP_STATUS_PATH
@@ -31,6 +36,9 @@ from typing import Callable
 
 DEFAULT_APP_DIR = "/opt/quant"
 WINDOW_HOURS = 26  # 하루 한 번 도는 잡 + 여유
+REBOOT_NAG_DAYS = 14
+REBOOT_REQUIRED_PATH = Path(os.environ.get("QUANT_REBOOT_REQUIRED_PATH", "/var/run/reboot-required"))
+KST = timezone(timedelta(hours=9))
 
 APP_DIR = Path(os.environ.get("QUANT_APP_DIR", DEFAULT_APP_DIR))
 # core/backup_status.py는 stdlib만 쓰므로 venv 없이 가져올 수 있다(임계값을 한 곳에서만 관리하려고 공유).
@@ -59,11 +67,11 @@ def check_job_history(db_path: Path, now: datetime) -> list[str]:
             problems.append(f"스케줄러가 최근 {WINDOW_HOURS}시간 동안 어떤 작업도 기록하지 않음 — 스케줄러가 멈췄을 수 있음")
             return problems
         rows = conn.execute(
-            "SELECT job_id, status, COUNT(*) FROM scheduler_job_runs WHERE recorded_at >= ? AND status IN ('error','missed') "
+            "SELECT job_id, status, COUNT(*) FROM scheduler_job_runs WHERE recorded_at >= ? AND status IN ('error','failed','missed') "
             "GROUP BY job_id, status ORDER BY job_id", (cutoff,)
         ).fetchall()
         for job_id, status, count in rows:
-            problems.append(f"작업 {job_id}: 최근 {WINDOW_HOURS}시간 중 {'오류' if status == 'error' else '실행 놓침'} {count}회")
+            problems.append(f"작업 {job_id}: 최근 {WINDOW_HOURS}시간 중 {'실행 놓침' if status == 'missed' else '오류'} {count}회")
         return problems
     finally:
         conn.close()
@@ -89,6 +97,43 @@ def check_backup(now_epoch: float) -> list[str]:
     return [f"백업: {line}" for line in result["lines"]] if result["level"] == "bad" else []
 
 
+def check_reboot_required(now_epoch: float) -> list[str]:
+    try:
+        marked_at = REBOOT_REQUIRED_PATH.stat().st_mtime
+    except OSError:
+        return []  # 재부팅 필요 표시 없음
+    age_days = (now_epoch - marked_at) / 86400
+    if age_days < REBOOT_NAG_DAYS:
+        return []
+    return [f"재부팅이 필요한 상태가 {age_days:.0f}일째 방치됨(보통 커널 보안 업데이트) — 콘솔에 접근할 수 있을 때 재부팅하세요"]
+
+
+def weekly_summary(app_dir: Path, now: datetime) -> str:
+    """주 1회 생존 신호 — 문제 없이 돌고 있다는 사실과 핵심 수치 몇 개."""
+    lines = ["[워치독] 주간 생존 신호 — 이상 없음"]
+    db = app_dir / "data" / "quant.db"
+    try:
+        conn = sqlite3.connect(f"file:{db}?mode=ro", uri=True, timeout=10)
+        try:
+            cutoff = (now - timedelta(days=7)).replace(tzinfo=None).isoformat(sep=" ")
+            total, oks = conn.execute(
+                "SELECT COUNT(*), SUM(status='ok') FROM scheduler_job_runs WHERE recorded_at >= ?", (cutoff,)).fetchone()
+            lines.append(f"- 최근 7일 스케줄러 작업 기록 {total or 0}건 (정상 {oks or 0}건)")
+        finally:
+            conn.close()
+    except sqlite3.Error:
+        lines.append("- 스케줄러 작업 기록: 조회 불가")
+    try:
+        from core.backup_status import describe_backup, load_backup_status
+
+        result = describe_backup(load_backup_status(), now.timestamp())
+        lines.append(f"- 백업: {result['lines'][0]}" + (" / 비공개 원격 미설정" if result["level"] == "warn" else ""))
+    except Exception:  # noqa: BLE001
+        pass
+    lines.append("(이 메시지가 일요일에 오지 않으면 워치독/텔레그램 자체를 확인하세요)")
+    return "\n".join(lines)
+
+
 def default_alert(message: str) -> None:
     script = Path(__file__).resolve().parent / "send_telegram_alert.sh"
     if not script.is_file():
@@ -111,9 +156,13 @@ def run_watchdog(
     problems += check_job_history(app_dir / "data" / "quant.db", current)
     problems += check_briefing(app_dir / "data" / "cache" / "champion_reports", current.timestamp())
     problems += check_backup(current.timestamp())
-    if problems and not dry_run:
-        alert("[워치독] 밤사이 확인이 필요합니다\n" + "\n".join(f"- {p}" for p in problems)
-              + "\n\n(원인 확인: 허브 → 스케줄러, 또는 VM에서 journalctl -u quant-scheduler)")
+    problems += check_reboot_required(current.timestamp())
+    if not dry_run:
+        if problems:
+            alert("[워치독] 밤사이 확인이 필요합니다\n" + "\n".join(f"- {p}" for p in problems)
+                  + "\n\n(원인 확인: 허브 → 스케줄러, 또는 VM에서 journalctl -u quant-scheduler)")
+        elif current.astimezone(KST).weekday() == 6:  # 일요일 — 문제가 없을 때만 생존 신호(문제가 있으면 위 알림이 이미 감)
+            alert(weekly_summary(app_dir, current))
     return problems
 
 

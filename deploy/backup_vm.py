@@ -16,6 +16,10 @@
 **비공개** 저장소 URL이 있으면 거기로도 push한다(전용 배포 키 BACKUP_DIR/ssh/id_ed25519 사용). 이 저장소(Quant)는 공개라서
 백업을 여기 올리면 안 된다 — 반드시 별도의 비공개 저장소여야 한다.
 
+"써졌다"와 "복구된다"는 다르다 — 그래서 매 실행마다 (1) MANIFEST의 sha256로 저장본 전체를 다시 검증하고 DB 사본의 무결성을 확인하며,
+원격 push 뒤에는 원격의 HEAD가 로컬과 같은지 확인한다. 또 7일에 한 번은 **복구 리허설**을 한다: 백업 저장소(원격이 있으면 원격, 없으면
+로컬)를 임시 폴더에 새로 클론해 같은 검증을 통과하는지 본다(실제로 되살릴 수 있는 사본인지의 유일한 증거).
+
 상태는 BACKUP_DIR/status.json 에 기록되어 브리핑/워치독이 읽는다. 원격이 설정 안 됐으면 status의 offsite_configured=false.
 
 사용법: python3 deploy/backup_vm.py [--dry-run]
@@ -33,6 +37,7 @@ import shutil
 import sqlite3
 import subprocess
 import sys
+import tempfile
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -41,6 +46,7 @@ from typing import Callable
 DEFAULT_APP_DIR = "/opt/quant"
 DEFAULT_BACKUP_DIR = "/opt/quant-backup"
 DEFAULT_MAX_FILE_MB = 90  # GitHub은 100MB 넘는 파일 push를 거부한다
+RESTORE_DRILL_EVERY_DAYS = 7
 SECRET_SCAN_MAX_BYTES = 5 * 1024 * 1024
 
 # 허용 목록: git 상 "커밋 안 된" 파일 중 이 경로 아래(또는 정확히 이 파일)만 백업한다.
@@ -222,20 +228,104 @@ def commit_if_changed(repo: Path, message: str) -> bool:
     return True
 
 
-def push_offsite(backup_dir: Path, repo: Path) -> tuple[bool, str | None]:
-    """(설정됨, 오류). remote 파일이 없거나 비어 있으면 (False, None)."""
-    remote_file = backup_dir / "remote"
-    url = remote_file.read_text().strip() if remote_file.is_file() else ""
-    if not url:
-        return False, None
+def stored_path(repo: Path, key: str) -> Path:
+    """MANIFEST 키 → 백업 저장소 안의 실제 위치. DB는 db/, 나머지는 files/ 아래."""
+    return repo / key if key == "db/quant.db" else repo / "files" / key
+
+
+def verify_backup(repo: Path, *, check_git: bool = True) -> list[str]:
+    """저장된 백업이 MANIFEST와 바이트 단위로 일치하는지, DB 사본이 멀쩡한지 확인한다. 문제 목록(비어 있으면 정상)."""
+    problems: list[str] = []
+    try:
+        manifest = json.loads((repo / "MANIFEST.json").read_text())["files"]
+    except (OSError, ValueError, KeyError) as exc:
+        return [f"MANIFEST.json을 읽을 수 없음: {type(exc).__name__}"]
+    for key, meta in manifest.items():
+        path = stored_path(repo, key)
+        if not path.is_file():
+            problems.append(f"파일 없음: {key}")
+        elif path.stat().st_size != meta["size"] or sha256_of(path) != meta["sha256"]:
+            problems.append(f"내용 불일치: {key}")
+        if len(problems) >= 10:
+            problems.append("… (문제가 더 있음)")
+            break
+    db_copy = repo / "db" / "quant.db"
+    if db_copy.is_file():
+        try:
+            conn = sqlite3.connect(f"file:{db_copy}?mode=ro", uri=True)
+            try:
+                if conn.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+                    problems.append("DB 사본 무결성 검사 실패")
+                elif conn.execute("SELECT COUNT(*) FROM sqlite_master WHERE type='table'").fetchone()[0] == 0:
+                    problems.append("DB 사본에 테이블이 없음")
+            finally:
+                conn.close()
+        except sqlite3.Error as exc:
+            problems.append(f"DB 사본을 열 수 없음: {exc}")
+    if check_git:
+        dirty = run(["git", "status", "--porcelain"], cwd=repo)
+        if dirty.stdout.strip():
+            problems.append("커밋되지 않은 변경이 남아 있음")
+        fsck = run(["git", "fsck", "--connectivity-only", "--no-dangling"], cwd=repo, timeout=300)
+        if fsck.returncode != 0:
+            problems.append("git 저장소 무결성 검사(fsck) 실패")
+    return problems
+
+
+def offsite_env(backup_dir: Path) -> dict:
     env = dict(os.environ)
     key = backup_dir / "ssh" / "id_ed25519"
-    known_hosts = backup_dir / "ssh" / "known_hosts"
     if key.is_file():
         env["GIT_SSH_COMMAND"] = (
             f"ssh -i {key} -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes "
-            f"-o UserKnownHostsFile={known_hosts}"
+            f"-o UserKnownHostsFile={backup_dir / 'ssh' / 'known_hosts'}"
         )
+    return env
+
+
+def remote_url(backup_dir: Path) -> str:
+    remote_file = backup_dir / "remote"
+    return remote_file.read_text().strip() if remote_file.is_file() else ""
+
+
+def restore_drill(backup_dir: Path, repo: Path) -> tuple[bool, str, str | None]:
+    """복구 리허설: 백업을 임시 폴더에 새로 클론해 verify_backup을 통과하는지 본다. (성공 여부, 출처, 오류).
+
+    원격이 설정돼 있으면 원격에서(=디스크가 사라진 뒤 실제로 하게 될 경로), 아니면 로컬 백업 저장소에서 받는다.
+    """
+    url = remote_url(backup_dir)
+    source, src = ("offsite", url) if url else ("local", str(repo))
+    work = Path(tempfile.mkdtemp(prefix="restore-drill-", dir=backup_dir))
+    try:
+        clone = run(["git", "clone", "-q", "--no-local", "--", src, str(work / "restore")], env=offsite_env(backup_dir), timeout=1200)
+        if clone.returncode != 0:
+            return False, source, f"클론 실패: {(clone.stderr.strip().splitlines() or ['?'])[-1][:160]}"
+        problems = verify_backup(work / "restore", check_git=False)
+        if problems:
+            return False, source, f"복구본 검증 실패: {problems[0]}"
+        return True, source, None
+    except Exception as exc:  # noqa: BLE001
+        return False, source, f"{type(exc).__name__}: {exc}"[:200]
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+
+
+def remote_head_matches(backup_dir: Path, repo: Path) -> tuple[bool, str | None]:
+    """push 직후 원격 main의 HEAD가 로컬 HEAD와 같은지(=push가 실제로 반영됐는지)."""
+    local = run(["git", "rev-parse", "HEAD"], cwd=repo).stdout.strip()
+    remote = run(["git", "ls-remote", "origin", "refs/heads/main"], cwd=repo, env=offsite_env(backup_dir), timeout=120)
+    if remote.returncode != 0:
+        return False, "원격 HEAD를 확인하지 못함"
+    remote_sha = remote.stdout.split()[0] if remote.stdout.strip() else ""
+    return (local == remote_sha), (None if local == remote_sha else "push 뒤 원격 HEAD가 로컬과 다름")
+
+
+def push_offsite(backup_dir: Path, repo: Path) -> tuple[bool, str | None]:
+    """(설정됨, 오류). remote 파일이 없거나 비어 있으면 (False, None)."""
+    url = remote_url(backup_dir)
+    if not url:
+        return False, None
+    env = offsite_env(backup_dir)
     if run(["git", "remote", "get-url", "origin"], cwd=repo).returncode == 0:
         run(["git", "remote", "set-url", "origin", url], cwd=repo)
     else:
@@ -244,7 +334,8 @@ def push_offsite(backup_dir: Path, repo: Path) -> tuple[bool, str | None]:
     if result.returncode != 0:
         # 오류 문구에 URL/키 경로가 섞일 수 있어 앞부분만 짧게 남긴다.
         return True, (result.stderr.strip().splitlines() or ["push 실패"])[-1][:200]
-    return True, None
+    matches, mismatch_error = remote_head_matches(backup_dir, repo)
+    return True, (None if matches else mismatch_error)
 
 
 def read_status(path: Path) -> dict:
@@ -291,6 +382,11 @@ def run_backup(
         "last_success_epoch": previous.get("last_success_epoch"),
         "last_push_success_at": previous.get("last_push_success_at"),
         "last_push_success_epoch": previous.get("last_push_success_epoch"),
+        "last_restore_drill_at": previous.get("last_restore_drill_at"),
+        "last_restore_drill_epoch": previous.get("last_restore_drill_epoch"),
+        "restore_drill_ok": previous.get("restore_drill_ok"),
+        "restore_drill_source": previous.get("restore_drill_source"),
+        "restore_drill_error": previous.get("restore_drill_error"),
         "ok": False,
         "error": None,
         "push_error": None,
@@ -301,6 +397,7 @@ def run_backup(
         "quarantined": [],
         "committed": False,
     }
+    drill_ran = False
     try:
         wanted, skipped, quarantined = collect_files(app_dir, max_file_mb * 1024 * 1024)
         status["skipped"], status["quarantined"] = skipped, quarantined
@@ -322,6 +419,10 @@ def run_backup(
         status["files"] = len(manifest)
         status["bytes"] = sum(v["size"] for v in manifest.values())
         status["committed"] = commit_if_changed(repo, f"backup {started.strftime('%Y-%m-%d %H:%M UTC')}")
+        # 방금 쓴 백업이 MANIFEST와 일치하고 DB 사본이 멀쩡한지 확인한다 — 아니면 성공으로 치지 않고 밖으로 올리지도 않는다.
+        verify_problems = verify_backup(repo)
+        if verify_problems:
+            raise RuntimeError("백업 검증 실패: " + "; ".join(verify_problems[:3]))
         status["ok"] = True
         status["last_success_at"], status["last_success_epoch"] = started.isoformat(), started.timestamp()
 
@@ -329,6 +430,17 @@ def run_backup(
         status["offsite_configured"], status["push_error"] = configured, push_error
         if configured and push_error is None:
             status["last_push_success_at"], status["last_push_success_epoch"] = started.isoformat(), started.timestamp()
+
+        # 7일에 한 번 복구 리허설(push가 실패한 회차에는 원격이 최신이 아니므로 건너뛴다).
+        last_drill = previous.get("last_restore_drill_epoch")
+        drill_due = last_drill is None or (started.timestamp() - last_drill) >= RESTORE_DRILL_EVERY_DAYS * 86400
+        if drill_due and push_error is None:
+            drill_ok, drill_source, drill_error = restore_drill(backup_dir, repo)
+            status.update(
+                last_restore_drill_at=started.isoformat(), last_restore_drill_epoch=started.timestamp(),
+                restore_drill_ok=drill_ok, restore_drill_source=drill_source, restore_drill_error=drill_error,
+            )
+            drill_ran = True
     except Exception as exc:  # noqa: BLE001 — 어떤 실패든 status에 남기고 알린다
         status["error"] = f"{type(exc).__name__}: {exc}"[:300]
     finally:
@@ -340,6 +452,8 @@ def run_backup(
         problems.append(f"백업 실패: {status['error']}")
     if status["push_error"]:
         problems.append(f"비공개 저장소 push 실패(로컬 백업은 성공): {status['push_error']}")
+    if drill_ran and status["restore_drill_ok"] is False:
+        problems.append(f"복구 리허설 실패({status['restore_drill_source']}): {status['restore_drill_error']}")
     if status["quarantined"]:
         problems.append(f"비밀 의심으로 백업에서 제외된 파일 {len(status['quarantined'])}개(예: {status['quarantined'][0]['path']})")
     if status["skipped"]:
@@ -361,6 +475,7 @@ def main(argv: list[str] | None = None) -> int:
     summary = (
         f"백업 {'성공' if status['ok'] else '실패'}: 파일 {status['files']}개, {status['bytes'] / 1e6:.1f}MB, "
         f"커밋 {'있음' if status['committed'] else '없음(변경 없음)'}, "
+        f"복구 리허설 {'정상' if status['restore_drill_ok'] else ('실패' if status['restore_drill_ok'] is False else '아직 없음')}, "
         f"비공개 저장소 {'push 성공' if status['offsite_configured'] and not status['push_error'] else ('push 실패' if status['offsite_configured'] else '미설정')}, "
         f"{time.time() - started:.1f}초"
     )

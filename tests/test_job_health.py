@@ -214,3 +214,76 @@ def test_main_attaches_the_run_listener_for_all_three_event_kinds(monkeypatch):
     callback, mask = fake.listeners[0]
     assert callback is job_health.job_run_listener
     assert mask & EVENT_JOB_EXECUTED and mask & EVENT_JOB_ERROR and mask & EVENT_JOB_MISSED
+
+
+# ---- 소프트 실패: 예외를 삼키는 잡이 스스로 보고 -----------------------------------------------------------------
+
+def test_report_job_failure_writes_a_failed_row(health_session):
+    job_health.report_job_failure("daily_news_digest", "RuntimeError: news api down")
+    row = health_session.query(SchedulerJobRun).one()
+    assert (row.job_id, row.status, row.error) == ("daily_news_digest", "failed", "RuntimeError: news api down")
+
+
+def test_report_job_failure_never_raises(monkeypatch, capsys):
+    @contextmanager
+    def _broken():
+        raise RuntimeError("db down")
+        yield
+
+    monkeypatch.setattr(job_health, "get_session", _broken)
+    job_health.report_job_failure("daily_news_digest", "x")  # 잡 자체를 죽이면 안 된다
+    assert "소프트 실패 기록 실패" in capsys.readouterr().out
+
+
+def test_a_self_reported_failure_beats_the_ok_that_apscheduler_records_afterwards(health_session):
+    # 뉴스 잡은 예외를 삼키고 정상 반환한다 → 잡이 먼저 failed를 남기고, 곧이어 APScheduler가 ok를 남긴다.
+    _add_run(health_session, "daily_news_digest", "failed", datetime(2026, 9, 20, 22, 31, tzinfo=UTC), error="RuntimeError: down")
+    _add_run(health_session, "daily_news_digest", "ok", datetime(2026, 9, 20, 22, 31, 5, tzinfo=UTC))
+    health = job_health.compute_job_health(NOW)
+    assert _state(health, "daily_news_digest") == "error"
+    entry = next(p for p in health["problems"] if p["job_id"] == "daily_news_digest")
+    assert "RuntimeError: down" in job_health.describe_problem(entry)
+
+
+def test_a_failure_from_before_the_expected_window_does_not_haunt_todays_state(health_session):
+    _add_run(health_session, "daily_news_digest", "failed", datetime(2026, 9, 19, 22, 31, tzinfo=UTC))  # 어제 실패
+    _add_run(health_session, "daily_news_digest", "ok", datetime(2026, 9, 20, 22, 31, tzinfo=UTC))  # 오늘(예정 07:30 KST=22:30 UTC)은 정상
+    assert _state(job_health.compute_job_health(NOW), "daily_news_digest") == "ok"
+
+
+def test_fred_prewarm_reports_failure_only_when_nothing_was_refreshed(monkeypatch):
+    import pandas as pd
+    from scheduler import run_scheduler
+
+    reported = []
+    monkeypatch.setattr(run_scheduler, "is_enabled", lambda key: True)
+    monkeypatch.setattr(run_scheduler, "report_job_failure", lambda job_id, error: reported.append((job_id, str(error))))
+
+    monkeypatch.setattr("core.fred_data.get_series", lambda *a, **k: pd.Series(dtype=float))  # 전부 빈 결과
+    run_scheduler.fred_indicator_prewarm_job()
+    assert len(reported) == 1 and reported[0][0] == "fred_indicator_prewarm" and "하나도 갱신하지 못함" in reported[0][1]
+
+    reported.clear()
+    calls = {"n": 0}
+
+    def _mostly_fine(*a, **k):
+        calls["n"] += 1
+        return pd.Series([1.0, 2.0]) if calls["n"] > 1 else pd.Series(dtype=float)  # 첫 지표만 실패
+
+    monkeypatch.setattr("core.fred_data.get_series", _mostly_fine)
+    run_scheduler.fred_indicator_prewarm_job()
+    assert reported == []  # 일부만 실패하면 실패로 세지 않는다(나머지가 갱신됨)
+
+
+def test_news_digest_reports_the_swallowed_exception(monkeypatch):
+    from scheduler import run_scheduler
+
+    reported = []
+    monkeypatch.setattr(run_scheduler, "is_enabled", lambda key: True)
+    monkeypatch.setattr(run_scheduler, "has_headroom", lambda: True)
+    monkeypatch.setattr(run_scheduler, "run_news_pipeline", lambda: (_ for _ in ()).throw(ConnectionError("news api down")))
+    monkeypatch.setattr(run_scheduler, "report_job_failure", lambda job_id, error: reported.append((job_id, str(error))))
+
+    run_scheduler.daily_news_digest_job()  # 예외는 그대로 삼켜진다(다음 스케줄을 막지 않음)
+
+    assert reported == [("daily_news_digest", "ConnectionError: news api down")]

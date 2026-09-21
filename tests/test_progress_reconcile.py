@@ -227,3 +227,93 @@ def test_auto_deploy_wires_the_helpers_in_the_right_order():
 def test_scripts_have_valid_bash_syntax():
     for script in (LIB, AUTO_DEPLOY):
         subprocess.run(["bash", "-n", str(script)], check=True)
+
+
+# ---- 여러 기록 파일(PROGRESS.md + docs/reports/README.md) ----------------------------------------------------------
+
+REPORTS_BASE = "# reports\n\n## 색인\n- a.html\n\n## 끝\n"
+
+
+def _add_reports_readme(dev: Path, vm: Path):
+    """두 저장소 모두에 docs/reports/README.md를 커밋해 둔다(VM은 origin에서 다시 받는다)."""
+    (dev / "docs" / "reports").mkdir(parents=True, exist_ok=True)
+    (dev / "docs" / "reports" / "README.md").write_text(REPORTS_BASE)
+    _git(dev, "add", "-A")
+    _git(dev, "commit", "-q", "-m", "add reports readme")
+    _git(dev, "push", "-q", "origin", "main")
+    _git(vm, "pull", "-q", "--ff-only")
+
+
+def test_reports_readme_local_inserts_survive_an_upstream_edit_elsewhere_in_the_file(repos):
+    dev, vm, state = repos
+    _add_reports_readme(dev, vm)
+    local = REPORTS_BASE.replace("- a.html\n", "- a.html\n- vm_new.html — VM 에이전트가 끼워 넣은 색인\n")  # 중간 삽입(에이전트 방식)
+    (vm / "docs" / "reports" / "README.md").write_text(local)
+    (dev / "docs" / "reports" / "README.md").write_text(REPORTS_BASE + "- dev_added_at_end.html\n")
+    _git(dev, "add", "-A")
+    _git(dev, "commit", "-q", "-m", "dev edits reports readme")
+    _git(dev, "push", "-q", "origin", "main")
+
+    result = _flow(vm, state)
+
+    assert "PULL-OK" in result.stdout and "FAILED" not in result.stdout, result.stdout + result.stderr
+    merged = (vm / "docs" / "reports" / "README.md").read_text()
+    assert "vm_new.html" in merged and "dev_added_at_end.html" in merged and "<<<<<<<" not in merged
+    backups = sorted(state.glob("docs_reports_README.md.local.*"))
+    assert len(backups) == 1 and backups[0].read_text() == local
+
+
+def test_both_record_files_are_reconciled_in_one_pull(repos):
+    dev, vm, state = repos
+    _add_reports_readme(dev, vm)
+    (vm / "PROGRESS.md").write_text(BASE_PROGRESS + "\n### VM 기록\n진행 기록\n")
+    (vm / "docs" / "reports" / "README.md").write_text(REPORTS_BASE.replace("- a.html\n", "- a.html\n- vm.html\n"))
+    (dev / "PROGRESS.md").write_text(BASE_PROGRESS + "\n### 작업 3\n개발\n")
+    (dev / "docs" / "reports" / "README.md").write_text(REPORTS_BASE + "- dev.html\n")
+    _git(dev, "add", "-A")
+    _git(dev, "commit", "-q", "-m", "dev touches both")
+    _git(dev, "push", "-q", "origin", "main")
+
+    result = _flow(vm, state)
+
+    assert "PULL-OK" in result.stdout and "FAILED" not in result.stdout, result.stdout + result.stderr
+    progress = (vm / "PROGRESS.md").read_text()
+    readme = (vm / "docs" / "reports" / "README.md").read_text()
+    assert "진행 기록" in progress and "### 작업 3" in progress
+    assert "vm.html" in readme and "dev.html" in readme
+    assert len(_backups(state)) == 1 and len(sorted(state.glob("docs_reports_README.md.local.*"))) == 1
+    changed = sorted(line.strip() for line in _git(vm, "status", "--porcelain").splitlines())
+    assert changed == ["M PROGRESS.md", "M docs/reports/README.md"]  # VM 추가분은 계속 미커밋 상태로 남는다
+
+
+def test_failed_pull_restores_every_pending_record_file(repos):
+    dev, vm, state = repos
+    _add_reports_readme(dev, vm)
+    progress_local = BASE_PROGRESS + "\n### VM 기록\n복원 A\n"
+    readme_local = REPORTS_BASE.replace("- a.html\n", "- a.html\n- vm.html\n")
+    (vm / "PROGRESS.md").write_text(progress_local)
+    (vm / "docs" / "reports" / "README.md").write_text(readme_local)
+    (vm / "notes.txt").write_text("VM 쪽 로컬 수정\n")  # 목록에 없는 파일의 수정 — pull을 막아야 한다
+    (dev / "PROGRESS.md").write_text(BASE_PROGRESS + "\n### 작업 3\nX\n")
+    (dev / "docs" / "reports" / "README.md").write_text(REPORTS_BASE + "- dev.html\n")
+    (dev / "notes.txt").write_text("dev notes\n")
+    _git(dev, "add", "-A")
+    _git(dev, "commit", "-q", "-m", "dev touches all")
+    _git(dev, "push", "-q", "origin", "main")
+
+    result = _flow(vm, state)
+
+    assert "PULL-FAILED" in result.stdout and "RESTORE-FAILED" not in result.stdout
+    assert (vm / "PROGRESS.md").read_text() == progress_local
+    assert (vm / "docs" / "reports" / "README.md").read_text() == readme_local
+    assert (vm / "notes.txt").read_text() == "VM 쪽 로컬 수정\n"
+
+
+def test_unlisted_files_still_block_the_pull_untouched(repos):
+    dev, vm, state = repos
+    (vm / "notes.txt").write_text("로컬 수정\n")
+    _push_dev_commit(dev, notes="dev notes\n")
+    result = _flow(vm, state)
+    assert "PULL-FAILED" in result.stdout
+    assert (vm / "notes.txt").read_text() == "로컬 수정\n"
+    assert _backups(state) == []

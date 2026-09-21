@@ -30,6 +30,7 @@ def app(tmp_path, monkeypatch):
     root = tmp_path / "app"
     (root / "data" / "cache" / "champion_reports").mkdir(parents=True)
     monkeypatch.setattr(backup_status, "STATUS_PATH", tmp_path / "no-backup-status.json")  # 기본: 백업 미설치
+    monkeypatch.setattr(watchdog, "REBOOT_REQUIRED_PATH", tmp_path / "no-reboot-marker")  # 이 머신의 실제 표시 파일에 영향받지 않게
     return root
 
 
@@ -93,6 +94,12 @@ def test_error_and_missed_jobs_are_named(app):
     assert "old_job" not in joined
 
 
+def test_self_reported_failed_status_counts_as_an_error(app):
+    _make_db(app, [("daily_news_digest", "failed", NOW - timedelta(hours=1)), ("daily_briefing", "ok", NOW - timedelta(hours=8))])
+    problems, _ = _run(app)
+    assert any("daily_news_digest" in p and "오류" in p for p in problems)
+
+
 def test_missing_briefing_is_flagged_only_when_briefings_existed_before(app):
     _make_db(app, [("daily_briefing", "ok", NOW - timedelta(hours=8))])
     assert _run(app)[0] == []  # 브리핑 파일이 한 번도 없는 환경 — 판정 안 함
@@ -138,3 +145,69 @@ def test_main_exit_codes(app, monkeypatch, capsys):
     conn.commit()
     conn.close()
     assert watchdog.main(["--dry-run"]) == 1
+
+
+# ---- 재부팅 방치 알림 / 주간 생존 신호 -----------------------------------------------------------------------------
+
+def _healthy(app):
+    _make_db(app, [("daily_briefing", "ok", NOW - timedelta(hours=8))])
+    _briefing(app, age_hours=8)
+
+
+def test_reboot_required_is_nagged_only_after_two_weeks(app, tmp_path, monkeypatch):
+    _healthy(app)
+    marker = tmp_path / "reboot-required"
+    monkeypatch.setattr(watchdog, "REBOOT_REQUIRED_PATH", marker)
+    assert _run(app)[0] == []  # 표시 파일 없음
+
+    marker.write_text("*** System restart required ***")
+    stamp = (NOW - timedelta(days=3)).timestamp()
+    os.utime(marker, (stamp, stamp))
+    assert _run(app)[0] == []  # 3일 — 아직 알리지 않는다
+
+    stamp = (NOW - timedelta(days=20)).timestamp()
+    os.utime(marker, (stamp, stamp))
+    problems, alerts = _run(app)
+    assert any("재부팅이 필요한 상태가 20일째" in p for p in problems) and len(alerts) == 1
+
+
+SUNDAY_KST = datetime(2026, 9, 20, 0, 5, tzinfo=timezone.utc)  # 09:05 KST, 일요일
+
+
+def _run_at(app: Path, moment: datetime, **kwargs):
+    alerts: list[str] = []
+    problems = watchdog.run_watchdog(app, alert=alerts.append, now=lambda: moment, **kwargs)
+    return problems, alerts
+
+
+def test_sunday_sends_a_heartbeat_when_everything_is_fine(app, monkeypatch, tmp_path):
+    monkeypatch.setattr(watchdog, "REBOOT_REQUIRED_PATH", tmp_path / "none")
+    _make_db(app, [("daily_briefing", "ok", SUNDAY_KST - timedelta(hours=8)), ("champion_signal_alert", "ok", SUNDAY_KST - timedelta(hours=8))])
+    path = app / "data" / "cache" / "champion_reports" / "daily_briefing_2026-09-19.html"
+    path.write_text("<html></html>")
+    stamp = (SUNDAY_KST - timedelta(hours=8)).timestamp()
+    os.utime(path, (stamp, stamp))
+
+    problems, alerts = _run_at(app, SUNDAY_KST)
+
+    assert problems == []
+    assert len(alerts) == 1 and "주간 생존 신호" in alerts[0] and "정상 2건" in alerts[0]
+
+
+def test_weekdays_stay_silent_when_healthy(app, monkeypatch, tmp_path):
+    monkeypatch.setattr(watchdog, "REBOOT_REQUIRED_PATH", tmp_path / "none")
+    _healthy(app)
+    assert _run(app) == ([], [])  # NOW는 월요일 09:05 KST
+
+
+def test_sunday_with_a_problem_sends_only_the_problem_alert(app, monkeypatch, tmp_path):
+    monkeypatch.setattr(watchdog, "REBOOT_REQUIRED_PATH", tmp_path / "none")
+    _make_db(app, [("champion_signal_alert", "error", SUNDAY_KST - timedelta(hours=8))])
+    problems, alerts = _run_at(app, SUNDAY_KST)
+    assert problems and len(alerts) == 1 and "확인이 필요합니다" in alerts[0] and "생존 신호" not in alerts[0]
+
+
+def test_dry_run_never_sends_the_heartbeat(app, monkeypatch, tmp_path):
+    monkeypatch.setattr(watchdog, "REBOOT_REQUIRED_PATH", tmp_path / "none")
+    _make_db(app, [("daily_briefing", "ok", SUNDAY_KST - timedelta(hours=8))])
+    assert _run_at(app, SUNDAY_KST, dry_run=True)[1] == []

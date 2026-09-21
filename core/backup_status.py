@@ -7,6 +7,7 @@ None — 호출자가 "백업 상태 없음"으로 정직하게 표시한다.
   - 마지막 성공 백업이 36시간 넘게 지남 → bad (매일 도는 백업이 하루 이상 빠짐)
   - 마지막 실행이 실패 → bad
   - 비공개 원격이 설정돼 있는데 마지막 push 성공이 72시간 넘게 지남 / 지금 push가 실패 → bad
+  - 복구 리허설(백업을 새로 클론해 검증)이 실패 → bad / 원격이 있는데 10일 넘게 리허설 없음 → warn
   - 원격 미설정 → warn (같은 디스크에만 있어 디스크 소실을 못 막는다)
   - 비밀 의심으로 격리됐거나 너무 커서 건너뛴 파일 있음 → warn
 """
@@ -21,6 +22,7 @@ from pathlib import Path
 STATUS_PATH = Path(os.environ.get("QUANT_BACKUP_STATUS_PATH", "/opt/quant-backup/status.json"))
 STALE_BACKUP_HOURS = 36
 STALE_PUSH_HOURS = 72
+STALE_DRILL_DAYS = 10
 
 
 def load_backup_status(path: Path | None = None) -> dict | None:
@@ -73,6 +75,20 @@ def describe_backup(status: dict | None, now: float | None = None) -> dict:
             lines.append("비공개 저장소로 마지막 push 성공이 3일을 넘겼음")
         else:
             lines.append(f"비공개 저장소 push 정상 ({since_push:.0f}시간 전)")
+
+    drill_ok = status.get("restore_drill_ok")
+    since_drill = _hours_ago(status.get("last_restore_drill_epoch"), now)
+    if drill_ok is False:
+        raise_level("bad")
+        lines.append(f"복구 리허설 실패({status.get('restore_drill_source') or '?'}): {status.get('restore_drill_error') or '알 수 없음'}")
+    elif drill_ok:
+        lines.append(f"복구 리허설 정상 ({status.get('restore_drill_source')}, {since_drill / 24:.0f}일 전)")
+        if since_drill / 24 > STALE_DRILL_DAYS:
+            raise_level("warn")
+            lines.append(f"복구 리허설이 {since_drill / 24:.0f}일째 없음 — 백업이 실제로 복구되는지 확인 못 하는 중")
+    elif status.get("offsite_configured"):
+        raise_level("warn")
+        lines.append("복구 리허설을 아직 한 번도 못 했음")
 
     if status.get("quarantined"):
         raise_level("warn")

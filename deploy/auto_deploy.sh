@@ -8,7 +8,8 @@
 #
 # ★ 안전 원칙 (반드시 지킬 것): 여기서 쓰는 git 조작은 `git fetch`와 `git pull --ff-only`,
 # 그리고 아래에서 설명하는 두 가지 좁은 예외뿐이다: `data/cache/fred_*.csv` 전용 `git checkout --` 한 줄과,
-# PROGRESS.md 하나에 한정한 "백업 → HEAD로 되돌림 → pull → union 병합으로 다시 얹기"(deploy/progress_reconcile.sh).
+# VM 에이전트가 미커밋으로 덧붙이는 기록/색인 파일 몇 개(PROGRESS.md, docs/reports/README.md — deploy/progress_reconcile.sh의
+# RECONCILE_FILES)에 한정한 "백업 → 그 파일만 HEAD로 되돌림 → pull → union 병합으로 다시 얹기".
 # 그 외에 fast-forward가 안 되는 상황(히스토리 분기, 다른 파일의 로컬 수정이 막고 있음, 충돌
 # 등)이면 그 자리에서 즉시 포기하고 텔레그램으로 알린다 — `git reset --hard`, `git clean`,
 # 범용 `git checkout .`, 강제 push, stash/drop 같은 건 이 스크립트에 존재하지 않고 앞으로도
@@ -66,6 +67,15 @@ else
   progress_reapply_after_pull() { return 0; }
 fi
 
+# 재시작 뒤 서비스가 실제로 살아 있는지 확인하는 함수(deploy/post_deploy_check.sh). 없으면 예전처럼 확인 없이 진행한다.
+POST_DEPLOY_TIMEOUT_SECONDS="${AUTO_DEPLOY_POST_CHECK_TIMEOUT_SECONDS:-90}"
+if [ -r "$APP_DIR/deploy/post_deploy_check.sh" ]; then
+  # shellcheck source=deploy/post_deploy_check.sh
+  source "$APP_DIR/deploy/post_deploy_check.sh"
+else
+  verify_services_after_restart() { return 0; }
+fi
+
 cd "$APP_DIR"
 mkdir -p "$STATE_DIR" 2>/dev/null || true
 
@@ -102,10 +112,10 @@ fi
 
 log "새 커밋 감지: ${local_head:0:7} -> ${remote_head:0:7}. git pull --ff-only 시도"
 
-# 로컬 PROGRESS.md 미커밋 추가분이 새 커밋과 겹치면 여기서 백업하고 그 파일만 HEAD로 되돌린다(아니면 아무것도 안 함).
+# 기록 파일(PROGRESS.md 등)의 로컬 미커밋 추가분이 새 커밋과 겹치면 여기서 백업하고 그 파일만 HEAD로 되돌린다(아니면 아무것도 안 함).
 # 준비에 실패해도 워킹트리는 그대로이므로 일반 pull로 진행하고, 막히면 아래 기존 실패 알림으로 이어진다.
 if ! progress_prepare_for_pull "$local_head" "$remote_head"; then
-  log "PROGRESS.md 사전 처리에 실패 — 워킹트리는 그대로, 일반 pull로 진행"
+  log "기록 파일(PROGRESS.md 등) 사전 처리에 실패 — 해당 파일은 그대로, 일반 pull로 진행"
 fi
 
 if pull_output="$(git_as_quant pull --ff-only 2>&1)"; then
@@ -123,9 +133,9 @@ if pull_output="$(git_as_quant pull --ff-only 2>&1)"; then
 
   if ! progress_reapply_after_pull "$new_head"; then
     # 배포 자체는 계속한다 — 코드는 이미 최신이고, 잃은 것도 없다(로컬 기록은 백업 파일에 남아 있음).
-    "$ALERT_SCRIPT" "[자동배포] PROGRESS.md 병합 실패 — 배포는 계속함
+    "$ALERT_SCRIPT" "[자동배포] 기록 파일(PROGRESS.md 등) 병합 실패 — 배포는 계속함
 ${local_head:0:7}..${new_head:0:7} ($commit_count 커밋)
-VM의 미커밋 PROGRESS.md 기록을 새 커밋 위에 다시 얹지 못했음. 기록은 $STATE_DIR/PROGRESS.local.* 백업에 그대로 있으니
+VM의 미커밋 기록 파일(PROGRESS.md, docs/reports/README.md)을 새 커밋 위에 다시 얹지 못했음. 기록은 $STATE_DIR/*.local.* 백업에 그대로 있으니
 수동으로 합쳐주세요." || log "텔레그램 알림 전송도 실패"
   fi
 
@@ -198,6 +208,21 @@ $truncated_test_output"
 
   log "재시작 완료"
 
+  # 재시작 직후 "성공"을 알리기 전에, 서비스가 실제로 떠서 응답하고 곧바로 죽지 않는지 확인한다.
+  if unhealthy_services="$(verify_services_after_restart "$POST_DEPLOY_TIMEOUT_SECONDS" "${SERVICES[@]}")"; then
+    log "재시작 후 서비스 상태 확인: 모두 정상"
+  else
+    log "재시작 후 비정상 서비스: $(printf '%s' "$unhealthy_services" | tr '\n' ' ')"
+    message="[자동배포] 배포는 됐지만 재시작 후 서비스가 정상이 아님 — 확인 필요
+${local_head:0:7}..${new_head:0:7} ($commit_count 커밋)
+테스트는 통과했지만 아래 서비스가 제한 시간(${POST_DEPLOY_TIMEOUT_SECONDS}초) 안에 정상 상태가 되지 못했음:
+$unhealthy_services
+
+원인은 VM에서 journalctl -u <서비스> -n 50 으로 확인하고, 코드가 원인이면 되돌리는 커밋을 올리면 자동으로 다시 배포됨."
+    "$ALERT_SCRIPT" "$message" || log "텔레그램 알림 전송도 실패"
+    exit 1
+  fi
+
   # 직전까지 실패 알림/테스트 실패 상태였다면, 이번에 복구됐다는 걸 메시지에 덧붙이고 상태를 지운다.
   recovery_note=""
   if [ -f "$FAIL_ALERT_FILE" ]; then
@@ -213,7 +238,7 @@ $truncated_test_output"
 
   message="[자동배포] 성공
 ${recovery_note}${local_head:0:7}..${new_head:0:7} ($commit_count 커밋)
-${deps_note}재시작: ${SERVICES[*]}
+${deps_note}재시작: ${SERVICES[*]} (재시작 후 상태 확인 완료)
 
 $commit_summary_short"
   if ! "$ALERT_SCRIPT" "$message"; then

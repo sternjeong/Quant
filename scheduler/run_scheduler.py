@@ -161,7 +161,7 @@ from apscheduler.triggers.cron import CronTrigger
 
 from core.db import get_session, init_db
 from core.process_registry import is_enabled
-from core.job_health import attach_job_run_listener
+from core.job_health import attach_job_run_listener, report_job_failure
 from core.champion_strategy import (
     check_and_notify_benchmark_gap,
     check_and_notify_champion_alpha_decay,
@@ -480,6 +480,9 @@ def fred_indicator_prewarm_job() -> None:
         except Exception as e:  # noqa: BLE001 - 지표 하나 실패가 나머지를 막지 않게 함
             print(f"  - {series_id}: 갱신 실패: {e}")
     print(f"[{datetime.now()}] fred_indicator_prewarm_job 종료 ({refreshed}/{len(series_ids)}개 갱신)")
+    if refreshed == 0:
+        # 하나도 못 받았으면 API 키/네트워크 문제다 — 이 잡은 예외를 삼키므로 실행 이력에 실패로 직접 남긴다.
+        report_job_failure("fred_indicator_prewarm", f"FRED 지표 {len(series_ids)}개를 하나도 갱신하지 못함(API 키/네트워크 확인)")
 
 
 def data_integrity_check_job() -> None:
@@ -549,6 +552,7 @@ def daily_news_digest_job() -> None:
         print(f"  - 새 기사 {result['refresh']['added']}건, 새 요약 {len(digests)}개")
     except Exception as exc:  # noqa: BLE001 - 다음 날 스케줄을 막지 않도록 기록만 남긴다.
         print(f"  - 뉴스 일일 보고 실패: {type(exc).__name__}: {exc}")
+        report_job_failure("daily_news_digest", f"{type(exc).__name__}: {exc}")  # 예외를 삼키는 잡이라 이력에 직접 남긴다
     print(f"[{datetime.now()}] daily_news_digest_job 종료")
 
 

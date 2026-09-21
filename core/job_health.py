@@ -54,6 +54,19 @@ def record_job_run(job_id: str, status: str, *, error: str | None = None, schedu
         ))
 
 
+def report_job_failure(job_id: str, error: object) -> None:
+    """잡이 스스로 예외를 삼키고 끝내는 경로에서 부르는 "소프트 실패" 보고.
+
+    APScheduler는 잡 함수가 정상 반환하면 EXECUTED(=ok)로 보므로, 내부에서 예외를 잡아 print만 하는 잡(뉴스 다이제스트,
+    FRED 예열)은 실패해도 ok로 남는다. 그런 자리에서 이 함수를 부르면 status="failed" 행이 남고, compute_job_health는
+    그 잡의 이후 "ok"보다 이 실패를 우선한다. 기록 실패가 잡을 죽이면 안 되므로 어떤 예외도 삼킨다.
+    """
+    try:
+        record_job_run(job_id, "failed", error=str(error))
+    except Exception as exc:  # noqa: BLE001
+        print(f"[job_health] 소프트 실패 기록 실패(무시): {exc}")
+
+
 def job_run_listener(event) -> None:
     """APScheduler 리스너. 기록 실패가 스케줄러를 죽이면 안 되므로 어떤 예외도 삼키고 출력만 한다."""
     try:
@@ -130,14 +143,18 @@ def compute_job_health(now: datetime | None = None) -> dict:
                 jobs.append(entry)
                 continue
             expected_naive = _naive_utc(expected)
-            run = (session.query(SchedulerJobRun)
-                   .filter(SchedulerJobRun.job_id == job.job_id,
-                           SchedulerJobRun.recorded_at >= expected_naive - timedelta(minutes=1))
-                   .order_by(SchedulerJobRun.recorded_at.desc()).first())
+            window = (SchedulerJobRun.job_id == job.job_id,
+                      SchedulerJobRun.recorded_at >= expected_naive - timedelta(minutes=1))
+            # 잡이 스스로 보고한 실패("failed")는 이후에 APScheduler가 남기는 ok(정상 반환)보다 우선한다.
+            soft_failure = (session.query(SchedulerJobRun)
+                            .filter(*window, SchedulerJobRun.status == "failed")
+                            .order_by(SchedulerJobRun.recorded_at.desc()).first())
+            run = soft_failure or (session.query(SchedulerJobRun).filter(*window)
+                                   .order_by(SchedulerJobRun.recorded_at.desc()).first())
             if run is not None:
                 # 기록이 있으면 그게 증거다 — 추적 시작 시점과 상관없이 그대로 판정한다.
                 entry.update(last_status=run.status, last_recorded_at=run.recorded_at, error=run.error)
-                entry["state"] = {"ok": "ok", "error": "error", "missed": "missed"}.get(run.status, "error")
+                entry["state"] = {"ok": "ok", "error": "error", "failed": "error", "missed": "missed"}.get(run.status, "error")
             elif tracking_since is None or expected_naive < tracking_since:
                 entry["state"] = "no-history"  # 이력 추적을 시작하기 전의 예정 시각 — 안 돈 건지 알 수 없으니 오경보 금지
             elif now_naive <= expected_naive + GRACE_OVERRIDES.get(job.job_id, DEFAULT_GRACE):

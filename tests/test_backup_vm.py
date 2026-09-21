@@ -252,3 +252,109 @@ def test_dry_run_writes_nothing(app, tmp_path):
     assert status["ok"] and status["files"] > 0
     assert not (backup / "repo").exists() and not (backup / "status.json").exists()
     assert alerts == []
+
+
+# ---- 검증(verify) / 복구 리허설 / 원격 HEAD 확인 -------------------------------------------------------------------
+
+def _setup_remote(tmp_path: Path, backup: Path) -> Path:
+    remote = tmp_path / "remote.git"
+    subprocess.run(["git", "init", "-q", "--bare", "-b", "main", str(remote)], check=True)
+    backup.mkdir(exist_ok=True)
+    (backup / "remote").write_text(str(remote) + "\n")
+    return remote
+
+
+def test_verify_passes_on_a_fresh_backup_and_names_the_broken_file(app, tmp_path):
+    backup = tmp_path / "backup"
+    _run(app, backup)
+    repo = backup / "repo"
+    assert backup_vm.verify_backup(repo) == []
+
+    victim = repo / "files" / "analysis" / "2026-09-20_new" / "report.md"
+    victim.write_text("tampered")
+    problems = backup_vm.verify_backup(repo, check_git=False)
+    assert any("내용 불일치: analysis/2026-09-20_new/report.md" in p for p in problems)
+
+    victim.unlink()
+    assert any("파일 없음: analysis/2026-09-20_new/report.md" in p for p in backup_vm.verify_backup(repo, check_git=False))
+
+
+def test_verify_detects_a_corrupted_db_copy_and_a_missing_manifest(app, tmp_path):
+    backup = tmp_path / "backup"
+    _run(app, backup)
+    repo = backup / "repo"
+    (repo / "db" / "quant.db").write_bytes(b"not a database" * 100)
+    problems = backup_vm.verify_backup(repo, check_git=False)
+    assert any("DB" in p or "내용 불일치: db/quant.db" in p for p in problems)
+
+    (repo / "MANIFEST.json").unlink()
+    assert backup_vm.verify_backup(repo, check_git=False)[0].startswith("MANIFEST.json을 읽을 수 없음")
+
+
+def test_a_failed_verification_aborts_the_run_and_never_pushes(app, tmp_path, monkeypatch):
+    backup = tmp_path / "backup"
+    remote = _setup_remote(tmp_path, backup)
+    monkeypatch.setattr(backup_vm, "verify_backup", lambda repo, **kw: ["내용 불일치: db/quant.db"])
+
+    status, alerts = _run(app, backup)
+
+    assert status["ok"] is False and "백업 검증 실패" in status["error"]
+    assert status["last_success_epoch"] is None  # 검증 실패는 성공으로 치지 않는다
+    assert subprocess.run(["git", "-C", str(remote), "branch", "--list"], capture_output=True, text=True).stdout.strip() == ""  # 밖으로 안 올림
+    assert any("백업 실패" in a for a in alerts)
+
+
+def test_restore_drill_runs_on_the_first_run_from_the_local_repo_and_then_weekly(app, tmp_path):
+    backup = tmp_path / "backup"
+    t0 = datetime(2026, 9, 20, 21, 30, tzinfo=timezone.utc)
+
+    first, alerts = _run(app, backup, now=lambda: t0)
+    assert first["restore_drill_ok"] is True and first["restore_drill_source"] == "local"
+    assert first["last_restore_drill_epoch"] == t0.timestamp() and alerts == []
+    assert list(backup.glob("restore-drill-*")) == []  # 임시 클론은 지워진다
+
+    second, _ = _run(app, backup, now=lambda: t0 + timedelta(days=3))
+    assert second["last_restore_drill_epoch"] == t0.timestamp()  # 7일이 안 됐으니 다시 안 한다
+
+    third, _ = _run(app, backup, now=lambda: t0 + timedelta(days=8))
+    assert third["last_restore_drill_epoch"] == (t0 + timedelta(days=8)).timestamp()
+
+
+def test_restore_drill_uses_the_offsite_remote_when_configured(app, tmp_path):
+    backup = tmp_path / "backup"
+    _setup_remote(tmp_path, backup)
+    status, alerts = _run(app, backup)
+    assert status["restore_drill_ok"] is True and status["restore_drill_source"] == "offsite"
+    assert status["push_error"] is None and alerts == []
+
+
+def test_a_failing_restore_drill_is_recorded_and_alerted(app, tmp_path, monkeypatch):
+    backup = tmp_path / "backup"
+    monkeypatch.setattr(backup_vm, "restore_drill", lambda b, r: (False, "offsite", "복구본 검증 실패: 내용 불일치: db/quant.db"))
+    status, alerts = _run(app, backup)
+    assert status["ok"] is True  # 백업 자체는 성공
+    assert status["restore_drill_ok"] is False
+    assert any("복구 리허설 실패(offsite)" in a for a in alerts)
+
+
+def test_restore_drill_detects_a_backup_that_cannot_be_restored(app, tmp_path):
+    backup = tmp_path / "backup"
+    _run(app, backup)
+    repo = backup / "repo"
+    # 저장소 안의 DB 사본을 커밋까지 망가뜨린다 — 로컬 파일이 아니라 "받아온 복구본"에서 잡혀야 한다.
+    (repo / "db" / "quant.db").write_bytes(b"garbage" * 200)
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "corrupt")
+    ok, source, error = backup_vm.restore_drill(backup, repo)
+    assert ok is False and source == "local" and "복구본 검증 실패" in error
+
+
+def test_remote_head_mismatch_is_reported_as_a_push_error(app, tmp_path, monkeypatch):
+    backup = tmp_path / "backup"
+    _setup_remote(tmp_path, backup)
+    monkeypatch.setattr(backup_vm, "remote_head_matches", lambda b, r: (False, "push 뒤 원격 HEAD가 로컬과 다름"))
+    status, alerts = _run(app, backup)
+    assert status["push_error"] == "push 뒤 원격 HEAD가 로컬과 다름"
+    assert status["last_push_success_epoch"] is None
+    assert any("push 실패" in a for a in alerts)
+    assert status["restore_drill_ok"] is None  # push가 미확인이면 원격 리허설은 건너뛴다
