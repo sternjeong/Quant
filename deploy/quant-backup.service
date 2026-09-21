@@ -1,0 +1,15 @@
+[Unit]
+Description=Quant VM 백업 (DB + VM에만 있는 미커밋 산출물 → 로컬 버전 저장소 + 비공개 원격) — 1회 실행용
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=quant
+WorkingDirectory=/opt/quant
+# 실패 알림은 스크립트가 원인과 함께 직접 텔레그램으로 보낸다(OnFailure는 일반 문구뿐이라 중복이 됨).
+ExecStart=/usr/bin/python3 /opt/quant/deploy/backup_vm.py
+# 백업이 서비스(스트림릿/스케줄러)를 굶기지 않게 낮은 우선순위로.
+Nice=10
+IOSchedulingClass=idle
+TimeoutStartSec=1800

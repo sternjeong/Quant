@@ -550,3 +550,24 @@ class ChampionLedgerEntry(Base):
     realized_return_pct = Column(Float, nullable=False, default=0.0)  # 어제 비중으로 오늘 실현된 수익률(%)
     cumulative_equity = Column(Float, nullable=False, default=100.0)  # 100에서 시작하는 누적 자산가치
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class SchedulerJobRun(Base):
+    """스케줄러(APScheduler) 잡 실행 이력 — 밤사이 작업이 실제로 돌았는지/실패했는지 볼 수 있게 한다(2026-09-21 추가).
+
+    이 테이블이 없던 때는 야간 튜닝이 한 번도 안 돌았어도 아무 데서도 드러나지 않았다. scheduler.run_scheduler.main()이
+    APScheduler 이벤트 리스너(core.job_health.job_run_listener)를 달아 잡 하나가 끝날 때마다 한 줄씩 기록한다.
+
+    status: "ok"(예외 없이 끝남) | "error"(잡이 예외를 던짐) | "missed"(스케줄러가 켜져 있었는데 실행 시각을 놓침).
+    주의: 잡 함수가 내부에서 예외를 삼키고 print만 하는 경우엔 "ok"로 남는다 — 이 이력은 "돌았는가"를 보장할 뿐
+    "결과가 좋았는가"까지는 아니다(결과 신선도는 core.data_integrity가 따로 본다).
+    """
+
+    __tablename__ = "scheduler_job_runs"
+
+    id = Column(Integer, primary_key=True)
+    job_id = Column(String, nullable=False, index=True)
+    status = Column(String, nullable=False)
+    scheduled_at = Column(DateTime, nullable=True)  # 원래 실행 예정 시각(naive UTC)
+    error = Column(Text, nullable=True)
+    recorded_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)  # naive UTC

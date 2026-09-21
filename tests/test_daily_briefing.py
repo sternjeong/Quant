@@ -241,3 +241,91 @@ def test_send_daily_briefing_sends_document_when_not_dry_run(monkeypatch, tmp_pa
 
     assert result["sent"] is True
     assert captured["caption"] == "📋 오늘의 브리핑"
+
+
+# ---- 운영 상태(밤사이 작업 · 백업) 섹션 — 2026-09-21 추가 ------------------------------------------------------
+
+def _job_health(problems=(), tracking=True):
+    return {
+        "generated_at": None, "tracking_since": object() if tracking else None, "jobs": [],
+        "counts": {"ok": 10, "pending": 1, "disabled": 1, "no-history": 0, "problem": len(problems)},
+        "problems": list(problems),
+    }
+
+
+def _problem(job_id="champion_signal_alert", state="overdue"):
+    from datetime import datetime, timezone
+    return {"job_id": job_id, "label": "챔피언 전략 신호 변경 알림", "state": state,
+            "expected_at": datetime(2026, 9, 20, 15, 10, tzinfo=timezone.utc), "error": None}
+
+
+def _backup(level="ok", lines=("마지막 백업 5시간 전",)):
+    return {"level": level, "lines": list(lines)}
+
+
+def test_status_line_reports_ops_problems_between_anomalies_and_decay():
+    from core.daily_briefing import _RED, _status_line
+    text, color = _status_line(0, False, ops_problem_count=2)
+    assert "문제 2건" in text and color == _RED
+    assert "이상 1건" in _status_line(1, False, ops_problem_count=2)[0]  # 데이터 이상이 우선
+    assert _status_line(0, False)[0].startswith("특이사항 없음")  # 기존 호출 방식 그대로 동작
+
+
+def test_ops_section_lists_problems_and_backup_lines():
+    from core.daily_briefing import _ops_problems, _ops_section
+    health = _job_health([_problem()])
+    backup = _backup("bad", ["마지막 성공 백업이 40시간 전"])
+    problems = _ops_problems(health, backup)
+    assert len(problems) == 2 and problems[1].startswith("백업:")
+    html = _ops_section(health, backup, problems)
+    assert "챔피언 전략 신호 변경 알림" in html and "09-21 00:10 KST" in html
+    assert "40시간 전" in html and "문제 1" in html
+
+
+def test_ops_section_is_calm_when_everything_is_fine_and_says_when_tracking_just_started():
+    from core.daily_briefing import _ops_problems, _ops_section
+    health = _job_health([], tracking=False)
+    backup = _backup()
+    assert _ops_problems(health, backup) == []
+    html = _ops_section(health, backup, [])
+    assert "막 시작돼" in html and "마지막 백업 5시간 전" in html
+
+
+def test_warn_level_backup_is_shown_but_does_not_count_as_a_problem():
+    from core.daily_briefing import _ops_problems
+    assert _ops_problems(_job_health(), _backup("warn", ["비공개 저장소 미설정"])) == []
+
+
+def _stub_everything_but_ops(monkeypatch, briefing, job_health, backup):
+    monkeypatch.setattr(briefing, "run_integrity_checks", lambda: {"anomalies": []})
+    monkeypatch.setattr(briefing, "compute_champion_alpha_decay", lambda: None)
+    monkeypatch.setattr(briefing, "get_current_holdings", lambda: None)
+    monkeypatch.setattr(briefing, "list_champion_correlation_snapshots", lambda limit=1: [])
+    monkeypatch.setattr(briefing, "compute_live_collar_state", lambda: None)
+    monkeypatch.setattr(briefing, "compute_job_health", lambda: job_health)
+    monkeypatch.setattr(briefing, "load_backup_status", lambda: backup)
+
+
+def test_briefing_puts_ops_problems_first_and_healthy_ops_last(monkeypatch):
+    from core import daily_briefing as briefing
+    _stub_everything_but_ops(monkeypatch, briefing, _job_health([_problem()]), None)
+    with_problem = briefing.generate_daily_briefing_html()
+    assert "밤사이 작업/백업에 문제" in with_problem
+    assert with_problem.index("운영 상태") < with_problem.index("보유")  # 문제 있으면 맨 위
+
+    _stub_everything_but_ops(monkeypatch, briefing, _job_health([]), {
+        "ok": True, "offsite_configured": True, "push_error": None, "files": 1, "bytes": 1000,
+        "last_success_epoch": __import__("time").time() - 3600, "last_push_success_epoch": __import__("time").time() - 3600,
+        "skipped": [], "quarantined": [],
+    })
+    healthy = briefing.generate_daily_briefing_html()
+    assert "특이사항 없음" in healthy
+    assert healthy.index("운영 상태") > healthy.index("보유")  # 정상이면 맨 아래
+
+
+def test_briefing_survives_an_unreadable_job_history(monkeypatch):
+    from core import daily_briefing as briefing
+    _stub_everything_but_ops(monkeypatch, briefing, None, None)
+    monkeypatch.setattr(briefing, "compute_job_health", lambda: (_ for _ in ()).throw(RuntimeError("db gone")))
+    html = briefing.generate_daily_briefing_html()
+    assert "작업 실행 이력을 읽지 못했음" in html and "백업 상태 없음" in html

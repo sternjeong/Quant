@@ -1,0 +1,10 @@
+[Unit]
+Description=Quant 워치독 (밤사이 작업/브리핑/백업이 돌았는지 앱과 독립적으로 확인, 문제 있을 때만 텔레그램) — 1회 실행용
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=quant
+WorkingDirectory=/opt/quant
+ExecStart=/usr/bin/python3 /opt/quant/deploy/watchdog.py

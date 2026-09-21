@@ -27,7 +27,9 @@ from core.champion_strategy import (
     get_upcoming_earnings,
     list_champion_correlation_snapshots,
 )
+from core.backup_status import describe_backup, load_backup_status
 from core.data_integrity import run_integrity_checks
+from core.job_health import compute_job_health, describe_problem
 
 # core.theme._DARK 팔레트와 통일 (research-terminal 다크 톤)
 _BG = "#0d0e12"
@@ -51,10 +53,12 @@ def _section(title: str, body_html: str, *, accent: str | None = None) -> str:
 </div>'''
 
 
-def _status_line(anomaly_count: int, decay_flagged: bool) -> tuple[str, str]:
-    """(문구, 색상) — critical/warning 이상 또는 알파 감쇠 감지 시 red/yellow, 아니면 green."""
+def _status_line(anomaly_count: int, decay_flagged: bool, ops_problem_count: int = 0) -> tuple[str, str]:
+    """(문구, 색상) — critical/warning 이상, 운영(밤사이 작업/백업) 문제 또는 알파 감쇠 감지 시 red/yellow, 아니면 green."""
     if anomaly_count > 0:
         return (f"오늘 확인이 필요한 이상 {anomaly_count}건 감지됨", _RED)
+    if ops_problem_count > 0:
+        return (f"밤사이 작업/백업에 문제 {ops_problem_count}건 — 아래 '운영 상태' 확인", _RED)
     if decay_flagged:
         return ("데이터 이상은 없지만 알파 감쇠가 감지됨 — 확인 권장", _YELLOW)
     return ("특이사항 없음 — 정상 운영 중", _GREEN)
@@ -98,6 +102,36 @@ def _decay_section(decay: dict | None) -> str:
         f'({metric}: 전체 <code>{full_txt}</code> → 최근 <code>{recent_txt}</code>)</p>'
     )
     return _section("알파 감쇠 상태", body, accent=_RED if flagged else None)
+
+
+def _ops_problems(job_health: dict | None, backup: dict) -> list[str]:
+    """운영 문제 문장들 — 실패/놓친 잡, 기록 없는 잡, bad 수준 백업."""
+    problems = [describe_problem(p) for p in (job_health or {}).get("problems", [])]
+    if backup["level"] == "bad":
+        problems += [f"백업: {line}" for line in backup["lines"]]
+    return problems
+
+
+def _ops_section(job_health: dict | None, backup: dict, problems: list[str]) -> str:
+    """밤사이 스케줄러 작업과 VM 백업이 정상이었는지 — 문제가 있으면 목록으로, 없으면 한 줄로."""
+    parts = []
+    if job_health is None:
+        parts.append('<p class="muted">작업 실행 이력을 읽지 못했음</p>')
+    else:
+        counts = job_health["counts"]
+        summary = (f"정상 {counts['ok']} · 진행중 {counts['pending']} · 꺼짐 {counts['disabled']}"
+                   f" · 이력 없음 {counts['no-history']} · <b>문제 {counts['problem']}</b>")
+        parts.append(f"<p>스케줄러 작업: {summary}</p>")
+        if job_health["problems"]:
+            items = "".join(f"<li>{describe_problem(p)}</li>" for p in job_health["problems"])
+            parts.append(f'<ul class="anomaly-list">{items}</ul>')
+        elif job_health["tracking_since"] is None:
+            parts.append('<p class="muted">실행 이력 추적이 막 시작돼 아직 판정할 기록이 없음(오늘 밤부터 쌓임)</p>')
+    color = {"ok": _GREEN, "warn": _YELLOW, "bad": _RED, "none": _TEXT_MUTED}[backup["level"]]
+    backup_lines = "".join(f"<li>{line}</li>" for line in backup["lines"])
+    parts.append(f'<p style="color:{color};margin:.4rem 0 .1rem"><b>VM 백업</b></p><ul class="anomaly-list">{backup_lines}</ul>')
+    accent = _RED if problems else None
+    return _section("운영 상태 (밤사이 작업 · 백업)", "".join(parts), accent=accent)
 
 
 def _holdings_section(holdings: dict | None) -> str:
@@ -198,16 +232,26 @@ def generate_daily_briefing_html() -> str:
     except Exception:
         collar = None
 
-    status_text, status_color = _status_line(len(anomalies), bool(decay and decay.get("is_decayed")))
+    try:
+        job_health = compute_job_health()
+    except Exception:
+        job_health = None
+    backup = describe_backup(load_backup_status())
+    ops_problems = _ops_problems(job_health, backup)
+    ops_html = _ops_section(job_health, backup, ops_problems)
 
-    sections = "".join([
+    status_text, status_color = _status_line(len(anomalies), bool(decay and decay.get("is_decayed")), len(ops_problems))
+
+    body_sections = [
         _anomalies_section(anomalies),
         _decay_section(decay),
         _holdings_section(holdings),
         _correlation_section(corr_snapshots),
         _earnings_section(earnings),
         _collar_section(collar),
-    ])
+    ]
+    # 운영 문제가 있으면 맨 위(폰에서 바로 보이게), 없으면 맨 아래에 둔다.
+    sections = "".join([ops_html] + body_sections if ops_problems else body_sections + [ops_html])
 
     return f'''<!doctype html><html lang="ko"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">

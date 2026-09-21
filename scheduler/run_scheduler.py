@@ -161,6 +161,7 @@ from apscheduler.triggers.cron import CronTrigger
 
 from core.db import get_session, init_db
 from core.process_registry import is_enabled
+from core.job_health import attach_job_run_listener
 from core.champion_strategy import (
     check_and_notify_benchmark_gap,
     check_and_notify_champion_alpha_decay,
@@ -647,6 +648,8 @@ def main() -> None:
     init_db()
 
     scheduler = BlockingScheduler(timezone="America/New_York")
+    # 잡이 끝날 때마다(성공/오류/놓침) scheduler_job_runs에 한 줄 기록 — 브리핑과 워치독이 '밤사이 정말 돌았나'를 판단한다.
+    attach_job_run_listener(scheduler)
     scheduler.add_job(
         watchlist_scan_job,
         trigger=CronTrigger(day_of_week="mon-fri", hour=16, minute=30, timezone="America/New_York"),

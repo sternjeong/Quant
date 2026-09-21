@@ -394,6 +394,8 @@ SSH 터널은 Codespace를 먼저 열어야 해서 불편하므로, 아무 기�
 | `https://code.hessejeong.duckdns.org/` | code-server (`127.0.0.1:8080`) | code-server 자체 비밀번호 |
 | `https://app.hessejeong.duckdns.org/` | Streamlit 대시보드 (`127.0.0.1:8501`) | nginx 아이디/비밀번호 |
 
+(2026-09-21부터 Streamlit 유닛 자체도 `--server.address=127.0.0.1`로 떠서, 방화벽 규칙이 어떻게 되든 nginx 없이는 밖에서 닿지 않는다. 쓰지 않는 `rpcbind`(111번)도 꺼뒀다.)
+
 DuckDNS는 `code.`·`app.` 같은 하위 이름도 자동으로 같은 IP로 풀어주므로 따로 등록할 게 없다. 세 이름은 **인증서
 한 장**을 공유한다. 등록되지 않은 이름이나 IP로 들어온 HTTPS는 TLS 핸드셰이크 단계에서 거절하고(`ssl_reject_handshake`),
 `http://<IP>/`는 기본 도메인으로 301 리다이렉트한다(더 이상 로그인 없는 허브를 IP로 보여주지 않는다).
@@ -452,3 +454,67 @@ IP를 직접 고쳐야 한다. 그때는 위 SSH 터널이 대안이다. 인증�
   **ufw 규칙이 방화벽 역할**을 한다(ufw는 부팅 시 자동 활성화). 즉 새 포트를 공개하려면 **iptables ACCEPT(즉시
   적용) + `ufw allow`(재부팅 후 유지) 둘 다** 넣어야 한다 — `setup_gateway.sh`가 443에 대해 그렇게 한다.
 - 기존 22/80/443의 iptables 규칙은 재부팅 후 사라지지만 ufw에도 같은 규칙이 있어 접속은 유지된다.
+
+## 15. VM 백업 — 디스크 한 대에만 있는 것들을 밖으로 (2026-09-21)
+
+**왜**: `data/quant.db`(포트폴리오/관심종목/전략 결과), 리서치 에이전트가 만든 미커밋 산출물(`analysis/`, `docs/experiment_validation/` …), 에이전트가
+`PROGRESS.md`에 미커밋으로 덧붙인 기록은 이 VM 디스크에만 있다. 예전엔 백업이 전혀 없어서 디스크가 사라지면 전부 사라지는 구조였다.
+
+**구성**: `deploy/backup_vm.py`(stdlib만, `quant` 계정) + `quant-backup.timer`(매일 한국시간 06:30). 설치는 `sudo bash /opt/quant/deploy/setup_backup.sh`.
+- **무엇을**: (1) `data/quant.db`를 sqlite 온라인 백업 API로(쓰는 도중에도 일관된 사본 + 무결성 검사), (2) git 기준 *커밋 안 된* 파일(미추적+수정됨) 중
+  **허용 목록**(`analysis/`, `analysis.root_backup_*`, `docs/`, `deploy/research_agents/`, `.experiment-control/`, `PROGRESS.md`, `RESUME_NOTE.md`,
+  `data/process_toggles.json`) 아래의 것만. 이미 GitHub에 있는 파일은 복사하지 않는다.
+- **절대 안 들어가는 것**: 점(`.`) 폴더 전부(`.claude`, `.codex`, `.ssh`, `.codex-telegram-runtime`, `.config`, `.env` — 인증 정보가 든다)는 허용 목록에 없어서 구조적으로
+  제외된다. 허용 폴더 안이라도 비밀처럼 생긴 파일명(`.env*`, `*.pem`, `id_*`, `auth.json`, `credentials*`)이나 내용(개인 키, `ghp_`/`sk-ant-`/`AKIA` 등 토큰,
+  텔레그램 봇 토큰 모양)이 있으면 **격리**(백업 제외 + 텔레그램 알림). 90MB 넘는 파일(GitHub 한도)과 `.experiment-control/checkpoints/`(수백 MB tar.gz)는 건너뛴다.
+- **어디에**: `/opt/quant-backup/repo` — 로컬 git 저장소라 바뀐 것만 커밋되고 버전 이력이 남는다(델타 압축). 같은 디스크라 실수로 지움/손상은 막지만 **디스크 소실은
+  못 막는다** — 그래서 `/opt/quant-backup/remote`에 **비공개** 저장소 URL이 있으면 매일 거기로도 push한다(전용 배포 키 `/opt/quant-backup/ssh/id_ed25519`).
+  **이 Quant 저장소는 공개라서 백업을 여기 올리면 안 된다** — 반드시 별도의 비공개 저장소여야 한다.
+- **상태**: `/opt/quant-backup/status.json` → 오늘의 브리핑 "운영 상태"와 워치독이 읽는다. 백업 실패/36시간 넘게 성공 없음/원격 push 3일 넘게 실패/비밀 의심 격리는
+  텔레그램으로 알린다(원격 미설정은 알림 없이 브리핑에만 표시).
+
+**비공개 원격 연결 (사람이 한 번, GitHub 웹에서 약 2분)**:
+1. GitHub에서 **Private** 저장소를 만든다(예: `quant-vm-backup`, README 없이 빈 저장소).
+2. 그 저장소 Settings → Deploy keys → Add deploy key → 제목 `quant-vm`, 키는 VM에서 `cat /opt/quant-backup/ssh/id_ed25519.pub`(공개 키라 비밀 아님)를 붙여넣고
+   **Allow write access** 체크.
+3. VM에서: `echo 'git@github.com:<계정>/quant-vm-backup.git' | sudo -u quant tee /opt/quant-backup/remote`
+4. 바로 확인: `sudo -u quant python3 /opt/quant/deploy/backup_vm.py` → `비공개 저장소 push 성공`이 나오면 끝.
+
+**복구** (새 VM 또는 데이터 손상 시):
+```bash
+# 새 VM이면 먼저 setup_backup.sh로 배포 키를 만들고 그 공개 키를 백업 저장소 Deploy keys에 등록(읽기 권한이면 충분)
+git clone git@github.com:<계정>/quant-vm-backup.git /tmp/restore
+sudo systemctl stop quant-scheduler quant-streamlit
+sudo -u quant cp /tmp/restore/db/quant.db /opt/quant/data/quant.db          # DB (integrity_check 통과한 사본)
+sudo -u quant rsync -a --exclude PROGRESS.md /tmp/restore/files/ /opt/quant/  # 연구 산출물(미커밋이던 것들)
+# PROGRESS.md는 덮어쓰지 말고 차이만 옮긴다: diff /tmp/restore/files/PROGRESS.md /opt/quant/PROGRESS.md
+sudo systemctl start quant-scheduler quant-streamlit
+```
+이력이 필요하면 `git -C /tmp/restore log`, 특정 날짜 버전은 `git -C /tmp/restore show <커밋>:db/quant.db`. `MANIFEST.json`에 파일별 크기/sha256이 있다.
+**백업에 없는 것(수동 보관 필요)**: 비밀들 — `/etc/nginx/.htpasswd-quant`(로그인 계정), code-server 비밀번호(`~/.config/code-server/config.yaml`), `.env`(API 키), 텔레그램 봇
+토큰(`.codex-telegram-runtime/telegram.env`), Claude/Codex 로그인(`.claude`, `.codex`). 이건 일부러 밖으로 안 내보낸다 — 비밀번호 관리자 등에 따로 보관할 것.
+
+## 16. 밤사이 작업 관측과 워치독 — "조용한 실패"를 막는 장치 (2026-09-21)
+
+**왜**: 야간 전략 튜닝이 한 번도 안 돌았는데도 아무 데서도 드러나지 않았던 적이 있다. 사용자가 폰으로만 운영하므로, 저널을 뒤져야만 보이는 실패는 없는 것과 같다.
+
+- **실행 이력**(`scheduler_job_runs` 테이블): `scheduler/run_scheduler.py`가 APScheduler 이벤트 리스너(`core/job_health.py`)를 달아서, 잡 하나가 끝날 때마다
+  `ok`/`error`/`missed`를 한 줄씩 기록한다(90일 보관). 잡 함수는 하나도 안 고쳤다. `core/job_schedule.py`가 16개 잡의 스케줄 표이고, `tests/test_job_health.py`가
+  `main()`의 실제 등록과 표가 일치하는지 검증하므로 잡을 추가/변경하면 표도 같이 고쳐야 테스트가 통과한다(표가 조용히 낡을 수 없다).
+- **판정**(`compute_job_health`): 스케줄 표로 "지금쯤 마지막으로 돌았어야 할 시각"을 계산해 그 뒤의 기록과 맞춘다 → `ok` / `error` / `missed` / `overdue`(예정 45분 뒤에도
+  기록 없음) / `pending`(유예 중) / `disabled`(꺼진 잡은 문제 아님) / `no-history`(이력 추적 시작 전의 예정 시각 — 배포 직후 오경보 방지).
+- **오늘의 브리핑**(00:25 KST)에 "운영 상태" 섹션이 생겼다: 문제가 있으면 맨 위 + 상태 문구가 빨강, 없으면 맨 아래에 한 줄 요약 + VM 백업 상태.
+- **워치독**(`deploy/watchdog.py`, `quant-watchdog.timer`, 매일 한국시간 09:05): 스케줄러/앱과 **독립적으로**(stdlib, venv 불필요) 돈다 — 브리핑도 스케줄러 안의 잡이라 스케줄러가
+  죽으면 함께 안 오기 때문이다. 확인: 최근 26시간에 잡 기록이 있는가(있던 적이 있는데 없으면 스케줄러 정지) / error·missed 잡 / 최신 브리핑이 26시간 안인가 / 백업 상태.
+  **문제가 있을 때만** 텔레그램으로 알리고 조용히 끝난다. 수동 실행: `python3 /opt/quant/deploy/watchdog.py --dry-run`.
+- **한계**: "돌았는가"를 보장할 뿐 "결과가 좋았는가"는 아니다 — 잡이 내부에서 예외를 삼키면 `ok`로 남는다(결과 신선도는 `core/data_integrity.py`가 따로 본다).
+
+## 17. 외부 감시 (`.github/workflows/uptime.yml`) (2026-09-21)
+
+VM 안의 헬스체크(`quant-vm-health`)는 VM이 죽으면 함께 죽어서 알릴 수 없다. 이 워크플로가 **VM 밖(GitHub 서버)에서 30분마다** 확인한다: 세 주소가 DNS로 이 VM의 IP를
+가리키는지, 기대한 응답인지(허브/앱 401, 코드 스페이스 302), 인증서 남은 기간이 14일 이상인지, 그리고 **닫아둔 포트(8501/8080/8000)가 밖에서 응답하지 않는지**(보안 회귀).
+하나라도 어긋나면 워크플로가 실패로 표시되고 GitHub이 이메일/앱 알림을 보낸다. 텔레그램으로도 받으려면 저장소 시크릿에 `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`를 추가하면
+된다(없으면 그 단계는 건너뜀). 이 저장소는 공개라 Actions 분 제한이 없다. **공인 IP가 예약(Reserved) IP가 아니면** 인스턴스를 중지했다 켤 때 IP가 바뀌어 모든 주소가 깨진다 —
+Oracle 콘솔 Compute → Instance → Attached VNICs → IPv4 addresses에서 확인하고, Ephemeral이면 Reserved로 바꾸는 것을 권한다(무료, 붙어 있는 동안). IP를 바꾸면 워크플로의
+`EXPECTED_IP`도 같이 고쳐야 한다.
+

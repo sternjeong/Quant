@@ -5,11 +5,13 @@ Wants=network-online.target
 OnFailure=quant-alert@%n.service
 
 [Service]
+# 127.0.0.1 전용: 외부에서는 nginx 게이트웨이(https://app.<도메인>/, 로그인 필요)로만 접속한다.
+# 예전엔 0.0.0.0(모든 인터페이스)이라 방화벽 한 겹에만 의존했다 (2026-09-21 변경, DEPLOYMENT_ORACLE.md 14번).
 Type=simple
 User=quant
 WorkingDirectory=/opt/quant
 EnvironmentFile=/opt/quant/.env
-ExecStart=/opt/quant/.venv/bin/streamlit run app/Home.py --server.port=8501 --server.address=0.0.0.0 --server.headless=true
+ExecStart=/opt/quant/.venv/bin/streamlit run app/Home.py --server.port=8501 --server.address=127.0.0.1 --server.headless=true
 Restart=on-failure
 RestartSec=10
 

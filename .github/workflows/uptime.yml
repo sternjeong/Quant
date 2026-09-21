@@ -1,0 +1,89 @@
+name: Uptime Check
+
+# 30분마다 공개 주소를 밖(GitHub 서버)에서 확인한다. VM이나 nginx가 죽거나, 인증서가 곧 만료되거나, DNS가 다른 IP를
+# 가리키거나, 닫아둔 포트(8501/8080)가 다시 열려 있으면 이 워크플로가 실패로 표시되고 GitHub이 이메일/앱 알림을 보낸다.
+# VM 안의 헬스체크(quant-vm-health)는 VM이 죽으면 함께 죽어서 알릴 수 없으므로, 이건 VM 밖에서 도는 유일한 감시다.
+#
+# 이 저장소는 공개라 Actions 분(minute) 제한이 없다. 텔레그램으로도 받으려면 저장소 시크릿에
+# TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID를 추가하면 된다(없으면 텔레그램 단계는 건너뜀).
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: uptime-check
+  cancel-in-progress: true
+
+jobs:
+  uptime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      DOMAIN: hessejeong.duckdns.org
+      EXPECTED_IP: 138.2.11.196
+      MIN_CERT_DAYS: "14"
+    steps:
+      - name: Check public endpoints
+        run: |
+          problems=()
+
+          # 1) DNS가 이 VM의 공인 IP를 가리키는가 (IP가 바뀌면 여기서 먼저 잡힌다)
+          for host in "$DOMAIN" "app.$DOMAIN" "code.$DOMAIN"; do
+            ip="$(getent ahostsv4 "$host" | awk 'NR==1 {print $1}')"
+            [ "$ip" = "$EXPECTED_IP" ] || problems+=("DNS: $host -> ${ip:-조회 실패} (기대 $EXPECTED_IP)")
+          done
+
+          # 2) 각 주소가 기대한 응답을 주는가 (허브/앱은 로그인 필요라 401, code-server는 로그인 화면으로 302)
+          check() {
+            local url="$1" want="$2" code
+            code="$(curl -s -o /dev/null -m 15 --retry 2 --retry-delay 5 --retry-connrefused -w '%{http_code}' "$url" || true)"
+            [ "$code" = "$want" ] || problems+=("$url -> HTTP ${code:-000} (기대 $want)")
+          }
+          check "https://$DOMAIN/" 401
+          check "https://app.$DOMAIN/" 401
+          check "https://code.$DOMAIN/" 302
+
+          # 3) 인증서 남은 기간
+          end="$(echo | openssl s_client -servername "$DOMAIN" -connect "$DOMAIN:443" 2>/dev/null | openssl x509 -noout -enddate 2>/dev/null | cut -d= -f2)"
+          if [ -z "$end" ]; then
+            problems+=("TLS: 인증서를 읽지 못함")
+          else
+            days=$(( ( $(date -d "$end" +%s) - $(date +%s) ) / 86400 ))
+            [ "$days" -ge "$MIN_CERT_DAYS" ] || problems+=("TLS: 인증서 만료까지 ${days}일 (자동 갱신이 안 되고 있을 수 있음)")
+          fi
+
+          # 4) 보안 회귀: 로컬 전용이어야 하는 포트가 밖에서 열려 있으면 안 된다
+          for port in 8501 8080 8000; do
+            if curl -s -o /dev/null -m 8 "http://$EXPECTED_IP:$port/"; then
+              problems+=("보안: 포트 $port 이(가) 밖에서 응답함 (닫혀 있어야 함)")
+            fi
+          done
+
+          if [ "${#problems[@]}" -gt 0 ]; then
+            {
+              echo "## 공개 주소 점검 실패"
+              printf -- '- %s\n' "${problems[@]}"
+            } | tee -a "$GITHUB_STEP_SUMMARY"
+            printf '%s\n' "${problems[@]}" > problems.txt
+            exit 1
+          fi
+          echo "이상 없음"
+
+      - name: Telegram alert (optional)
+        if: failure()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_CHAT_ID" ]; then
+            echo "텔레그램 시크릿이 없어 건너뜀 (GitHub 이메일/앱 알림만 감)"
+            exit 0
+          fi
+          text="[외부 감시] 공개 주소 점검 실패"$'\n'"$(cat problems.txt 2>/dev/null | head -8)"
+          curl -s -m 20 "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" --data-urlencode "text=${text}" >/dev/null

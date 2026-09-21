@@ -1,0 +1,11 @@
+[Unit]
+Description=Quant 워치독 — 매일 한국시간 09:05 (야간 작업 00:xx, 백업 06:30, 뉴스 07:30이 모두 끝난 뒤)
+
+[Timer]
+# 00:05 UTC = 09:05 KST
+OnCalendar=*-*-* 00:05:00 UTC
+Persistent=true
+RandomizedDelaySec=120
+
+[Install]
+WantedBy=timers.target
