@@ -445,3 +445,28 @@ pytest와 백테스트는 반복하지 않았다. 이 무결성 검사는 실제
 S1 공통 비교를 수행한다. 새 증거 없이 같은 원천 조사/요청/백테스트를 반복하지 않는다.
 재개 명령은 이번 `RESUME_NOTE.md`, 원격 게시/Telegram 결과는 `publication.json`.
 연구 브랜치: `research/day4-reentry-20260920T2312Z`.
+
+
+### 2026-09-21 03:20 UTC — Day 4 재개: 변경 ETF 캐시와 PIT 입력 구분
+
+DAY_4_BLOCKED
+
+로컬 데이터 3,482개를 직전 목록과 대조했다. 추가/삭제 0개, 변경 18개는 ETF
+일별 OHLCV 캐시였다. 과거 구성/섹터/주식수 공개시각·상장폐지 인증 입력은 새로
+확보하지 못했다. 인증 반기/공통 거래일 0개, S1/S6 비교 6개 NOT_EVALUABLE.
+실제 S6 재현·공통 비교 미완료로 완료 표식 없음, Day 5 미착수.
+
+생성 파일: `docs/experiment_validation/day4_reentry_20260921T0320Z/`의 `review.md`, `RESUME_NOTE.md`, `local_scan.csv.gz`,
+`local_input_delta.json`, `changed_file_details.json`, `initial_workspace.json`,
+`checks.log`, `validation.json`, `result_hashes.json`. 저장 목록 독립 대조,
+원천 1,548개·동결 데이터 22개·기존 증거 268+20+18+16+7+7+8+7개 항목 해시와
+비교/완료 표식 가드 PASS. 이전 15 passed 로그/코드 해시를 확인했으며 코드·전략
+입력이 같아 pytest/백테스트는 반복하지 않았다. 실제 S6 실행 통과는 아니다.
+동결 데이터 목록 SHA-256: `a8132c4441f818e47309dee4cbb93bb3067b18edc40371bda00679862fb6e86d`.
+결과 목록 SHA-256: `1aab1f598be940edba0d70c85791ba4d5648d778fe4ede7ec401d7757d3d5f39` (파일별 해시 포함).
+
+후보·기준선·게이트·기존 해석과 미커밋 작업을 보존했다. 사용자에게 실제 PIT
+export/자료 경로를 요청했다. 다음 감독은 새 입력 인증 후 S6 5/10/25bp 다음 시가
+재현·S1 공통 비교를 수행한다. 새 증거 없이 같은 조사/요청/백테스트를 반복하지
+않는다. 재개 명령은 이번 `RESUME_NOTE.md`, 게시/Telegram 결과는 `publication.json`.
+연구 브랜치: `research/day4-reentry-20260921T0320Z`.

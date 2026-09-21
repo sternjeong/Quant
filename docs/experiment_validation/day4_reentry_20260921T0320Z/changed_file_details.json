@@ -1,0 +1,290 @@
+[
+  {
+    "path": "data/cache/DBC_1d.parquet",
+    "sha256": "3098528d7da46752244e1ede1080d3108c09a1b2aa472e8ba384edc872cc2121",
+    "rows": 5187,
+    "columns": [
+      "Adj Close",
+      "Close",
+      "High",
+      "Low",
+      "Open",
+      "Volume"
+    ],
+    "first_index": "2006-02-06 00:00:00",
+    "last_index": "2026-09-18 00:00:00",
+    "classification": "ETF daily OHLCV cache; not historical membership, sector, shares or delisting evidence"
+  },
+  {
+    "path": "data/cache/EFA_1d.parquet",
+    "sha256": "2725de324dffd90650767bffdc145d9e31ee4522a53adf906f6e5653b94e9eb4",
+    "rows": 5530,
+    "columns": [
+      "Adj Close",
+      "Close",
+      "High",
+      "Low",
+      "Open",
+      "Volume"
+    ],
+    "first_index": "2004-09-27 00:00:00",
+    "last_index": "2026-09-18 00:00:00",
+    "classification": "ETF daily OHLCV cache; not historical membership, sector, shares or delisting evidence"
+  },
+  {
+    "path": "data/cache/GLD_1d.parquet",
+    "sha256": "44e2b07688704bd065ec2c3759eb6f7f1a4efaf6e0c9047f8ea526ffadb8d028",
+    "rows": 5492,
+    "columns": [
+      "Adj Close",
+      "Close",
+      "High",
+      "Low",
+      "Open",
+      "Volume"
+    ],
+    "first_index": "2004-11-18 00:00:00",
+    "last_index": "2026-09-18 00:00:00",
+    "classification": "ETF daily OHLCV cache; not historical membership, sector, shares or delisting evidence"
+  },
+  {
+    "path": "data/cache/HYG_1d.parquet",
+    "sha256": "f5a9cf2dd77829196a8998a3ebe2a4b24d08ed52b9c29381fb76455eddc60260",
+    "rows": 4892,
+    "columns": [
+      "Adj Close",
+      "Close",
+      "High",
+      "Low",
+      "Open",
+      "Volume"
+    ],
+    "first_index": "2007-04-11 00:00:00",
+    "last_index": "2026-09-18 00:00:00",
+    "classification": "ETF daily OHLCV cache; not historical membership, sector, shares or delisting evidence"
+  },
+  {
+    "path": "data/cache/IEF_1d.parquet",
+    "sha256": "f38084bdad34cd240d3197dc156cb7e18c7e300cffc44bdc8d91493905fea822",
+    "rows": 5530,
+    "columns": [
+      "Adj Close",
+      "Close",
+      "High",
+      "Low",
+      "Open",
+      "Volume"
+    ],
+    "first_index": "2004-09-27 00:00:00",
+    "last_index": "2026-09-18 00:00:00",
+    "classification": "ETF daily OHLCV cache; not historical membership, sector, shares or delisting evidence"
+  },
+  {
+    "path": "data/cache/SPY_1d.parquet",
+    "sha256": "bc7d2767b9d833e6dedfaa6dd1e044878a4f09156520df91cb6322e85733d90b",
+    "rows": 7371,
+    "columns": [
+      "Adj Close",
+      "Close",
+      "High",
+      "Low",
+      "Open",
+      "Volume"
+    ],
+    "first_index": "1997-06-02 00:00:00",
+    "last_index": "2026-09-18 00:00:00",
+    "classification": "ETF daily OHLCV cache; not historical membership, sector, shares or delisting evidence"
+  },
+  {
+    "path": "data/cache/TLT_1d.parquet",
+    "sha256": "328cb76217d005a392999ddf923eef8a52c6c8475d6c32b14ee8286f8ecd7457",
+    "rows": 5530,
+    "columns": [
+      "Adj Close",
+      "Close",
+      "High",
+      "Low",
+      "Open",
+      "Volume"
+    ],
+    "first_index": "2004-09-27 00:00:00",
+    "last_index": "2026-09-18 00:00:00",
+    "classification": "ETF daily OHLCV cache; not historical membership, sector, shares or delisting evidence"
+  },
+  {
+    "path": "data/cache/XLB_1d.parquet",
+    "sha256": "e806979c13bb5cde8b723a734b43e9253e09eb9b6967e5f917da53ecbab7c7bc",
+    "rows": 5530,
+    "columns": [
+      "Adj Close",
+      "Close",
+      "High",
+      "Low",
+      "Open",
+      "Volume"
+    ],
+    "first_index": "2004-09-27 00:00:00",
+    "last_index": "2026-09-18 00:00:00",
+    "classification": "ETF daily OHLCV cache; not historical membership, sector, shares or delisting evidence"
+  },
+  {
+    "path": "data/cache/XLC_1d.parquet",
+    "sha256": "0a89a21302f8ca1afad01cd72d34718bf88393b665baea0fb3e983f32322c041",
+    "rows": 2074,
+    "columns": [
+      "Adj Close",
+      "Close",
+      "High",
+      "Low",
+      "Open",
+      "Volume"
+    ],
+    "first_index": "2018-06-19 00:00:00",
+    "last_index": "2026-09-18 00:00:00",
+    "classification": "ETF daily OHLCV cache; not historical membership, sector, shares or delisting evidence"
+  },
+  {
+    "path": "data/cache/XLE_1d.parquet",
+    "sha256": "484871ba6434b997dc8b45c3beba90551beef0c9cd8cf2773237cf58a9959d85",
+    "rows": 5530,
+    "columns": [
+      "Adj Close",
+      "Close",
+      "High",
+      "Low",
+      "Open",
+      "Volume"
+    ],
+    "first_index": "2004-09-27 00:00:00",
+    "last_index": "2026-09-18 00:00:00",
+    "classification": "ETF daily OHLCV cache; not historical membership, sector, shares or delisting evidence"
+  },
+  {
+    "path": "data/cache/XLF_1d.parquet",
+    "sha256": "9fa3f750638319a32034a045edf41bde4fcce3f535a360eb16998cdd0e2798c4",
+    "rows": 5530,
+    "columns": [
+      "Adj Close",
+      "Close",
+      "High",
+      "Low",
+      "Open",
+      "Volume"
+    ],
+    "first_index": "2004-09-27 00:00:00",
+    "last_index": "2026-09-18 00:00:00",
+    "classification": "ETF daily OHLCV cache; not historical membership, sector, shares or delisting evidence"
+  },
+  {
+    "path": "data/cache/XLI_1d.parquet",
+    "sha256": "7faebba0704ed12e507cd50bb15ef991a49af96919e326f1dbd43ed71b17c764",
+    "rows": 5530,
+    "columns": [
+      "Adj Close",
+      "Close",
+      "High",
+      "Low",
+      "Open",
+      "Volume"
+    ],
+    "first_index": "2004-09-27 00:00:00",
+    "last_index": "2026-09-18 00:00:00",
+    "classification": "ETF daily OHLCV cache; not historical membership, sector, shares or delisting evidence"
+  },
+  {
+    "path": "data/cache/XLK_1d.parquet",
+    "sha256": "8943d3e1a75adf057b2c9d4e2ce7cec5334abaae6c34c610aeb6d12c7cfe59b8",
+    "rows": 5530,
+    "columns": [
+      "Adj Close",
+      "Close",
+      "High",
+      "Low",
+      "Open",
+      "Volume"
+    ],
+    "first_index": "2004-09-27 00:00:00",
+    "last_index": "2026-09-18 00:00:00",
+    "classification": "ETF daily OHLCV cache; not historical membership, sector, shares or delisting evidence"
+  },
+  {
+    "path": "data/cache/XLP_1d.parquet",
+    "sha256": "8d126251ee210a1328e5fbff6bb317f05a54cc8036888eecc08755f38d3b6bd5",
+    "rows": 5530,
+    "columns": [
+      "Adj Close",
+      "Close",
+      "High",
+      "Low",
+      "Open",
+      "Volume"
+    ],
+    "first_index": "2004-09-27 00:00:00",
+    "last_index": "2026-09-18 00:00:00",
+    "classification": "ETF daily OHLCV cache; not historical membership, sector, shares or delisting evidence"
+  },
+  {
+    "path": "data/cache/XLRE_1d.parquet",
+    "sha256": "947580af93e54ad116dd77e788d83a7f94d4ee5dbdddce06681bb96967bc5de9",
+    "rows": 2752,
+    "columns": [
+      "Adj Close",
+      "Close",
+      "High",
+      "Low",
+      "Open",
+      "Volume"
+    ],
+    "first_index": "2015-10-08 00:00:00",
+    "last_index": "2026-09-18 00:00:00",
+    "classification": "ETF daily OHLCV cache; not historical membership, sector, shares or delisting evidence"
+  },
+  {
+    "path": "data/cache/XLU_1d.parquet",
+    "sha256": "15f0f36ab4293715911d54c0f5f6301dc677731775656a6d62e48fa28dc3f102",
+    "rows": 5530,
+    "columns": [
+      "Adj Close",
+      "Close",
+      "High",
+      "Low",
+      "Open",
+      "Volume"
+    ],
+    "first_index": "2004-09-27 00:00:00",
+    "last_index": "2026-09-18 00:00:00",
+    "classification": "ETF daily OHLCV cache; not historical membership, sector, shares or delisting evidence"
+  },
+  {
+    "path": "data/cache/XLV_1d.parquet",
+    "sha256": "a23901206526bf0227b82680b6f0c8d292f306e6cde24a38b2bbb7d14e6d16f6",
+    "rows": 5530,
+    "columns": [
+      "Adj Close",
+      "Close",
+      "High",
+      "Low",
+      "Open",
+      "Volume"
+    ],
+    "first_index": "2004-09-27 00:00:00",
+    "last_index": "2026-09-18 00:00:00",
+    "classification": "ETF daily OHLCV cache; not historical membership, sector, shares or delisting evidence"
+  },
+  {
+    "path": "data/cache/XLY_1d.parquet",
+    "sha256": "7f28143ac0f645227c8e01b37bfcac14de119edafc20c5a48da5172a4f7a9d45",
+    "rows": 5530,
+    "columns": [
+      "Adj Close",
+      "Close",
+      "High",
+      "Low",
+      "Open",
+      "Volume"
+    ],
+    "first_index": "2004-09-27 00:00:00",
+    "last_index": "2026-09-18 00:00:00",
+    "classification": "ETF daily OHLCV cache; not historical membership, sector, shares or delisting evidence"
+  }
+]
