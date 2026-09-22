@@ -100,4 +100,9 @@ def describe_backup(status: dict | None, now: float | None = None) -> dict:
 
     if status.get("secrets_backup_configured"):
         lines.append(f"암호화된 비밀 백업 포함 ({status.get('secrets_backup_files', 0)}개 파일)")
+        unreadable = status.get("secrets_backup_unreadable") or []
+        if unreadable:
+            raise_level("warn")
+            labels = ", ".join(u["label"] for u in unreadable)
+            lines.append(f"권한 문제로 못 읽은 비밀 파일: {labels}")
     return {"level": level, "lines": lines}

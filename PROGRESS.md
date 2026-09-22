@@ -5841,6 +5841,27 @@ DuckDNS 서브도메인 + Let's Encrypt**로 바꿨다.
 - **사람이 할 일**: `ssh -t quant-vm 'sudo bash /opt/quant/deploy/set_backup_passphrase.sh'`로 passphrase를 정하고(선택), 같은 값을 본인이
   따로 보관. 재부팅 시점 결정은 그대로 남음.
 
+### 작업 100 (2026-09-22): 긴급 수정 — 비밀 하나를 못 읽으면 전체 백업이 죽던 결함
+
+사용자가 `set_backup_passphrase.sh`로 passphrase를 정한 뒤 VM에서 확인차 백업을 직접 돌려봤는데 실패했다(`PermissionError:
+/etc/nginx/.htpasswd-quant`). 원인은 그 파일이 `root:www-data 640`인데 `quant` 계정이 `www-data` 그룹에 없어서였다.
+
+**더 중요한 문제(작업 99의 설계 결함)**: `backup_secrets()`가 한 파일을 못 읽는 예외를 그 라벨만 건너뛰지 않고 통째로 밖으로 던져서,
+매일 밤 도는 DB·연구 파일 백업까지 함께 실패시켰다. 다행히 실제 데이터 손실은 없었다 — 실패가 커밋 전 단계에서 멈춰서 기존에
+잘 저장된 백업(직전 커밋)은 그대로 남아 있었지만, 이 상태로 뒀으면 매일 밤 같은 이유로 계속 실패했을 것이다.
+
+- **즉시 조치**: VM에서 `usermod -aG www-data quant`로 읽기 권한을 줬다(nginx 비밀번호 교체 명령이 항상 `chown root:www-data`를
+  쓰므로 이 그룹 소속은 비밀번호를 바꿔도 계속 유지된다).
+- **코드 수정**: `backup_secrets()`에서 파일별 읽기를 `try/except OSError`로 감싸 "없음"(missing)과 "있는데 못 읽음"(unreadable,
+  이유 포함)을 구분하고, 둘 다 그 라벨 하나만 건너뛰는 비치명적 사정으로 바꿨다. 반면 암호화 자체(openssl 실행 실패, 왕복 복호화
+  불일치)는 환경이 근본적으로 잘못됐다는 뜻이라 여전히 전체 회차를 중단시킨다 — 이 구분을 유지했다. `core/backup_status.py`가
+  "권한 문제로 못 읽은 비밀 파일: …"을 브리핑에 경고(bad 아님)로 보여준다.
+- **테스트**: `tests/test_backup_vm.py`에 이번 사고를 그대로 재현하는 회귀 테스트 2개 — 파일 하나가 권한 0000이어도 DB·연구 파일
+  백업은 성공하고 나머지 5개 비밀은 정상 암호화되는지, OS 오류 메시지에 파일 내용이 안 새는지. `tests/test_backup_status.py` 1개.
+  전체 `pytest tests`(다른 세션의 미완성 `tests/test_candidate_ledger.py` 제외) 1,388건 통과.
+- **VM에서 최종 확인**: 그룹 추가 + 코드 배포 뒤 실제로 백업을 다시 돌려 6개 전부 정상 암호화됨을 확인(비밀번호 값은 읽지 않고
+  개수·상태만 확인).
+
 ### 2026-09-20 — Day 4 전체 모집단 입력 인계 및 접근 경로 확인
 
 DAY_4_BLOCKED

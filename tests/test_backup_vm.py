@@ -501,3 +501,37 @@ def test_empty_passphrase_file_is_treated_as_not_configured(app, secrets_env, tm
     backup_vm.passphrase_path(backup).touch()  # 빈 파일
     status, _ = _run(app, backup)
     assert status["secrets_backup_configured"] is False
+
+
+def test_an_unreadable_secret_does_not_abort_the_rest_of_the_backup(app, secrets_env, tmp_path):
+    """실제로 있었던 사고 재현: nginx 로그인 파일이 quant 권한 밖이라 전체 백업이 죽었었다."""
+    victim = secrets_env["nginx_htpasswd"]
+    victim.chmod(0o000)
+    try:
+        backup = tmp_path / "backup"
+        _write_passphrase(backup)
+        status, alerts = _run(app, backup)
+
+        assert status["ok"] is True, status.get("error")  # DB·연구 파일 백업은 그대로 성공
+        assert status["committed"] is True
+        assert status["secrets_backup_unreadable"] == [{"label": "nginx_htpasswd", "error": status["secrets_backup_unreadable"][0]["error"]}]
+        assert status["secrets_backup_missing"] == []
+        assert status["secrets_backup_files"] == 5  # 나머지 5개는 정상 백업됨
+        assert not (backup / "repo" / "secrets" / "nginx_htpasswd.enc").exists()
+        assert (backup / "repo" / "secrets" / "app_env.enc").exists()
+        assert any("권한 문제로 못 읽은 비밀 파일" in a and "nginx_htpasswd" in a for a in alerts)
+        assert not any("root" in a or "www-data" in a for a in alerts)  # OS 오류 메시지가 지나치게 상세히 새지 않는지
+    finally:
+        victim.chmod(0o600)  # 정리(다음 테스트에 영향 없게)
+
+
+def test_unreadable_secrets_do_not_leak_file_contents_into_the_alert(app, secrets_env, tmp_path):
+    secrets_env["code_server_config"].chmod(0o000)
+    try:
+        backup = tmp_path / "backup"
+        _write_passphrase(backup)
+        status, alerts = _run(app, backup)
+        assert status["ok"] is True
+        assert "SECRET-CODE-SERVER" not in " ".join(alerts)
+    finally:
+        secrets_env["code_server_config"].chmod(0o600)

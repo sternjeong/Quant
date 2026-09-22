@@ -105,3 +105,10 @@ def test_secrets_backup_line_shown_when_configured_but_not_alarming():
 def test_no_secrets_line_when_not_configured():
     result = describe_backup(_status(secrets_backup_configured=False), NOW)
     assert not any("비밀 백업" in line for line in result["lines"])
+
+
+def test_unreadable_secret_is_a_warning_not_an_error():
+    result = describe_backup(_status(secrets_backup_configured=True, secrets_backup_files=5,
+                                      secrets_backup_unreadable=[{"label": "nginx_htpasswd", "error": "PermissionError: [Errno 13]"}]), NOW)
+    assert result["level"] == "warn"
+    assert any("권한 문제로 못 읽은 비밀 파일: nginx_htpasswd" in line for line in result["lines"])

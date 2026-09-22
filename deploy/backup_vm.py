@@ -325,19 +325,29 @@ def backup_secrets(app_dir: Path, backup_dir: Path, repo: Path) -> dict:
     다르면 예외를 던진다(호출자가 이 회차 전체를 실패로 처리하고 밖으로 올리지 않는다). 더 이상 대상이 아니게 된
     라벨(파일이 사라졌거나 목록에서 빠짐)의 옛 암호문은 저장소에서도 지운다(본문 파일 백업과 같은 원칙).
 
-    반환: {"configured": bool, "included": [라벨,...], "missing": [라벨,...], "manifest": {"secrets/<라벨>.enc": {size, sha256}}}
+    파일이 없는 것(missing)과 있는데 권한 등으로 못 읽는 것(unreadable)은 둘 다 그 라벨 하나만 건너뛰는 비치명적 사정이다 —
+    passphrase를 정했다고 해서 매일 밤 도는 DB·연구 파일 백업까지 함께 위험해지면 안 된다(2026-09-22: 실제로 nginx 로그인
+    파일이 quant 계정 권한 밖이라 전체 백업이 죽은 사고가 있었다 — 그 뒤로 이 구분을 넣음). 반면 암호화 자체(openssl 실행,
+    왕복 복호화 불일치)의 실패는 환경이 근본적으로 잘못됐다는 뜻이라 여전히 전체 회차를 중단시킨다.
+
+    반환: {"configured": bool, "included": [라벨,...], "missing": [라벨,...], "unreadable": [{"label","error"},...],
+           "manifest": {"secrets/<라벨>.enc": {size, sha256}}}
     """
-    result: dict = {"configured": False, "included": [], "missing": [], "manifest": {}}
+    result: dict = {"configured": False, "included": [], "missing": [], "unreadable": [], "manifest": {}}
     pass_file = passphrase_path(backup_dir)
     if not pass_file.is_file() or pass_file.stat().st_size == 0:
         return result
     result["configured"] = True
     secrets_dir = repo / "secrets"
     for label, src in secret_bundle_paths(app_dir).items():
-        if not src.is_file():
-            result["missing"].append(label)
+        try:
+            if not src.is_file():
+                result["missing"].append(label)
+                continue
+            plaintext = src.read_bytes()
+        except OSError as exc:
+            result["unreadable"].append({"label": label, "error": f"{type(exc).__name__}: {exc.strerror or exc}"})
             continue
-        plaintext = src.read_bytes()
         ciphertext = encrypt_bytes(plaintext, pass_file)
         if decrypt_bytes(ciphertext, pass_file) != plaintext:
             raise RuntimeError(f"비밀 백업 왕복 검증 실패: {label}")
@@ -470,6 +480,7 @@ def run_backup(
         "secrets_backup_configured": False,
         "secrets_backup_files": 0,
         "secrets_backup_missing": [],
+        "secrets_backup_unreadable": [],
         "ok": False,
         "error": None,
         "push_error": None,
@@ -501,6 +512,7 @@ def run_backup(
         status["secrets_backup_configured"] = secrets_result["configured"]
         status["secrets_backup_files"] = len(secrets_result["included"])
         status["secrets_backup_missing"] = secrets_result["missing"]
+        status["secrets_backup_unreadable"] = secrets_result["unreadable"]
         (repo / "MANIFEST.json").write_text(json.dumps(
             {"files": manifest, "skipped": skipped, "quarantined": quarantined}, ensure_ascii=False, indent=1, sort_keys=True
         ))
@@ -542,6 +554,9 @@ def run_backup(
         problems.append(f"비공개 저장소 push 실패(로컬 백업은 성공): {status['push_error']}")
     if drill_ran and status["restore_drill_ok"] is False:
         problems.append(f"복구 리허설 실패({status['restore_drill_source']}): {status['restore_drill_error']}")
+    if status["secrets_backup_unreadable"]:
+        labels = ", ".join(u["label"] for u in status["secrets_backup_unreadable"])
+        problems.append(f"권한 문제로 못 읽은 비밀 파일: {labels}(파일 소유권/권한을 확인하세요)")
     if status["quarantined"]:
         problems.append(f"비밀 의심으로 백업에서 제외된 파일 {len(status['quarantined'])}개(예: {status['quarantined'][0]['path']})")
     if status["skipped"]:
