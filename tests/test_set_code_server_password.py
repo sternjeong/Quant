@@ -44,8 +44,19 @@ def test_valid_password_replaces_only_the_password_line(config):
     assert config.read_text() == (
         "bind-addr: 127.0.0.1:8080\nauth: password\n" f"password: '{GOOD_PASSWORD}'\n" "cert: false\n"
     )
-    assert stat.S_IMODE(config.stat().st_mode) == 0o600
+    # 640: quant 계정(암호화 백업)이 읽을 수 있어야 한다 — 2026-09-22, 예전 600이 이어져서 비밀 백업에서
+    # 이 파일 하나만 계속 빠졌던 사고 이후 매번 명시적으로 강제한다.
+    assert stat.S_IMODE(config.stat().st_mode) == 0o640
     assert _leftovers(config) == []  # 백업/임시 파일이 남지 않는다(옛 비밀번호가 든 백업 포함)
+
+
+def test_mode_is_forced_to_640_even_if_the_file_started_more_open_or_more_closed(config):
+    for start_mode in (0o600, 0o644, 0o400):
+        config.chmod(start_mode)
+        result = _run(config, f"{GOOD_PASSWORD}\n{GOOD_PASSWORD}\n")
+        assert result.returncode == 0, (start_mode, result.stderr)
+        assert stat.S_IMODE(config.stat().st_mode) == 0o640, start_mode
+        config.chmod(0o600)  # 다음 반복을 위해 원상 복구
 
 
 SYMBOL_PASSWORDS = [

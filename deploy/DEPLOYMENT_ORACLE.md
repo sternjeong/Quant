@@ -443,7 +443,8 @@ ssh -t quant-vm 'sudo bash /opt/quant/deploy/set_code_server_password.sh'
 어떤 *종류*의 글자가 문제인지만 알려주고 글자 자체는 출력하지 않는다; 한/영 키가 한글 상태로 영문을 치면 한글이 들어가 거절된다).
 단어 3~4개를 하이픈으로 이은 것(예: `blue-moon-cat-42` 형태)이 외우기 쉽고 충분히 길다 — 이 비밀번호 하나가 곧 VM 셸이라 4자리 숫자 같은 건 일부러 거절한다. 브라우저/휴대폰의 "비밀번호 저장"을
 누르면 다음부터는 아예 안 쳐도 된다. 허브(기본 도메인)와 `app.`은 nginx 아이디/비밀번호(위 3번 명령), `code.`는 code-server
-비밀번호로 서로 다른 로그인이고, 브라우저는 주소(호스트)마다 따로 기억한다.
+비밀번호로 서로 다른 로그인이고, 브라우저는 주소(호스트)마다 따로 기억한다. 이 스크립트는 설정 파일 권한을 항상 `640`으로
+맞춘다(`quant` 계정의 암호화 비밀 백업이 읽어야 해서 — 15번).
 
 이제 비밀번호가 평문으로 오가지는 않지만, code-server 비밀번호 하나가 곧 VM 셸이다 — 강한 비밀번호(현재 24자)를
 유지하고 쉬운 것으로 바꾸지 말 것(code-server가 로그인 시도를 분당 몇 회로 제한하긴 한다). DuckDNS는 무료·후원 기반
@@ -508,8 +509,12 @@ sudo systemctl start quant-scheduler quant-streamlit
 기본은 위 "절대 안 들어가는 것"대로 완전히 제외다. `/opt/quant-backup/secrets_passphrase` 파일(사람이 대화형으로 직접 만듦, 아래)이 있을 때만
 `deploy/backup_vm.py`가 매 실행마다 이 다섯 가지를 파일별로 `openssl enc -aes-256-cbc -pbkdf2 -iter 200000 -salt`로 암호화해 `repo/secrets/<라벨>.enc`로
 함께 백업한다(암호화 직후 그 자리에서 복호화해 원문과 일치하는지 확인 — 실패하면 그 회차 전체를 실패로 치고 밖으로 올리지 않는다). 이 VM에 없는 항목(예: Codex 로그인)은
-조용히 건너뛴다. `secrets_passphrase` 파일 자체는 `/opt/quant-backup`(백업 *대상*인 `/opt/quant` 밖)에만 있어서 수집 대상에 절대 섞이지 않고, 백업 저장소(비공개
-원격 포함)에도 절대 올라가지 않는다.
+조용히 건너뛴다. **있는데 못 읽는 것**(권한 문제)도 그 라벨만 건너뛴다 — 2026-09-22에 실제로 nginx 로그인 파일(`root:www-data 640`)과
+code-server 설정(`ubuntu:ubuntu 640`, `/home/ubuntu` 자체도 750)이 `quant` 계정 권한 밖이라 이 상황을 겪었다. `setup_backup.sh`가
+`quant`를 `www-data`·`ubuntu` 그룹에 넣어 이걸 해결하고(둘 다 idempotent), 이후 비밀번호를 바꿔도 nginx 쪽은 항상 같은 소유권으로
+다시 만들어지고 code-server 쪽은 `set_code_server_password.sh`가 매번 `640`을 강제해 계속 읽을 수 있다. 브리핑에 "권한 문제로
+못 읽은 비밀 파일"이 보이면 이 두 그룹 소속을 먼저 확인할 것. `secrets_passphrase` 파일 자체는 `/opt/quant-backup`(백업 *대상*인
+`/opt/quant` 밖)에만 있어서 수집 대상에 절대 섞이지 않고, 백업 저장소(비공개 원격 포함)에도 절대 올라가지 않는다.
 
 **여기서 지켜지는 것과 안 지켜지는 것을 정확히 알아야 한다**: passphrase가 VM에만 있으므로 "백업 저장소(비공개 원격)가 뚫려도 이 비밀들은 못 연다"는 지켜진다.
 하지만 "VM 디스크가 통째로 사라지는 경우"까지 막으려면 **같은 passphrase를 사람이 따로(비밀번호 관리자 등에) 보관해야 한다** — VM과 함께 이 파일도 사라지기

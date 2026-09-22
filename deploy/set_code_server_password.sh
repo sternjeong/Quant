@@ -14,7 +14,7 @@
 # 단어 3~4개를 하이픈으로 이으면 길이도 되고 외우기도 쉽다(blue-moon-cat-42 형태).
 # 거절될 때는 어떤 *종류*의 글자가 문제인지만 알려준다(글자 자체는 출력하지 않음 — 출력이 대화에 붙여넣어질 수 있다).
 #
-# 새 비밀번호로 실제 로그인이 되는지 확인해서 안 되면 예전 설정으로 되돌린다. 설정 파일의 소유자/권한은 유지한다.
+# 새 비밀번호로 실제 로그인이 되는지 확인해서 안 되면 예전 설정으로 되돌린다. 소유자는 그대로 유지하고, 권한은 항상 640으로 맞춘다.
 #
 # 테스트용 환경변수: CODE_SERVER_CONFIG(설정 파일 경로), CODE_SERVER_SERVICE(비우면 재시작/로그인 확인 생략).
 set -euo pipefail
@@ -78,7 +78,11 @@ trap cleanup EXIT
 # 비밀번호는 환경변수로만 awk에 전달한다(명령줄에 안 남음). 값은 홑따옴표로 감싸 숫자만 있어도 문자열로 읽히게 한다.
 PW="$pw1" awk 'BEGIN { pw = ENVIRON["PW"] } /^password:/ { print "password: \x27" pw "\x27"; next } { print }' "$CONFIG" > "$tmp"
 chown --reference="$CONFIG" "$tmp"
-chmod --reference="$CONFIG" "$tmp"
+# 640(소유자 rw, 그룹 r): 자동 암호화 백업(deploy/backup_vm.py)이 quant 계정으로 이 파일을 읽어야 한다
+# (quant는 setup_backup.sh가 ubuntu 그룹에 넣어둔다) — --reference로 예전 값을 그대로 베끼면 code-server가
+# 처음 만든 기본값(600, 그룹조차 못 읽음)이 계속 이어질 수 있어 매번 명시적으로 640을 강제한다
+# (2026-09-22: 실제로 이것 때문에 비밀 백업에서 이 파일만 빠졌던 적이 있음).
+chmod 640 "$tmp"
 mv "$tmp" "$CONFIG"
 
 rollback() {
