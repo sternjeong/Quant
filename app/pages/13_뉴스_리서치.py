@@ -20,6 +20,7 @@ from core.news_digest import (
     run_news_pipeline,
 )
 from core.theme import apply_theme
+from core.ui_status import render_status_header
 
 
 init_db()
@@ -29,6 +30,7 @@ apply_theme()
 job_manager.render_active_jobs_sidebar()
 
 st.title("📰 티커별 뉴스 리서치")
+render_status_header("news")
 st.caption(
     "Finnhub·FMP가 제공한 제목·짧은 설명·원문 링크만 수집해 티커별로 종합합니다. "
     "기사 전문을 스크래핑하지 않으며, 요약은 연구 보조 정보일 뿐 매매 권고가 아닙니다."

@@ -25,6 +25,7 @@ from core.db import init_db
 from core.screener import list_sectors, screen
 from core.stock_discovery import DEFAULT_WEIGHTS, discover_candidates
 from core.theme import apply_theme
+from core.ui_status import render_status_header
 from core.watchlist import MAX_WATCHLIST_SIZE, add_to_watchlist, get_watchlist_count
 
 init_db()
@@ -33,6 +34,7 @@ st.set_page_config(page_title="종목 스크리닝", page_icon="🔎", layout="w
 apply_theme()
 job_manager.render_active_jobs_sidebar()
 st.title("🔎 종목 스크리닝")
+render_status_header("screening")
 st.caption("절대 기준 필터(탭1)와 상대 순위 팩터 스코어(탭2), 두 가지 방식으로 종목을 스크리닝합니다.")
 
 tab_filter, tab_discovery = st.tabs(["🔎 필터 스크리닝", "🧭 팩터 발굴"])

@@ -19,6 +19,7 @@ import streamlit as st
 from core.db import init_db
 from core import job_manager
 from core.theme import apply_theme
+from core.ui_status import render_status_header
 from core.valuation import (
     compute_all_valuations,
     fetch_valuation_inputs,
@@ -73,6 +74,7 @@ st.set_page_config(page_title="밸류에이션 도구", page_icon="🧮", layout
 apply_theme()
 job_manager.render_active_jobs_sidebar()
 st.title("🧮 밸류에이션 도구")
+render_status_header("valuation")
 st.caption("여러 밸류에이션 방법론의 결과를 한 화면에서 비교합니다. 특정 기법이 정답은 아니니 참고용으로만 사용하세요.")
 
 ticker = st.text_input("종목 티커", placeholder="예: AAPL").strip().upper()

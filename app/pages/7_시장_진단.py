@@ -80,6 +80,7 @@ from core.theme import (
     add_regime_shading,
     apply_theme,
 )
+from core.ui_status import render_status_header
 
 # 앱 전역에서 이미 쓰는 상태색 3톤(core/theme.py의 Gemini/리더보드 배지와 동일) — 코스톨라니 섹션
 # 카드 배지에 재사용.
@@ -98,6 +99,7 @@ st.set_page_config(page_title="시장 진단", page_icon="🌐", layout="wide")
 apply_theme()
 job_manager.render_active_jobs_sidebar()
 st.title("🌐 시장 진단")
+render_status_header("market")
 st.caption("거시지표/경기사이클, 기술적 시장국면·섹터강도, 코스톨라니 심리국면, 섹터 리더·성장주 관계까지 — 여러 방법론으로 지금 시장을 진단합니다.")
 
 if not is_configured():

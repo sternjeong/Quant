@@ -57,6 +57,7 @@ from core.theme import (
     render_monthly_returns_heatmap,
     render_status_bar,
 )
+from core.ui_status import render_status_header
 
 init_db()
 
@@ -65,6 +66,7 @@ apply_theme()
 job_manager.render_active_jobs_sidebar()
 
 st.title("🏆 챔피언 전략")
+render_status_header("champion")
 
 meta = load_research_meta()
 st.caption(

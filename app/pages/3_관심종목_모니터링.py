@@ -37,6 +37,7 @@ from core.watchlist import (
     update_watchlist_item,
 )
 from core.theme import apply_theme
+from core.ui_status import render_status_header
 
 init_db()
 
@@ -44,6 +45,7 @@ st.set_page_config(page_title="관심종목 모니터링", page_icon="🔔", lay
 apply_theme()
 job_manager.render_active_jobs_sidebar()
 st.title("🔔 관심 티커 리스트 + 매일 타점 모니터링")
+render_status_header("watchlist")
 st.caption(
     "백테스팅에서 검증된 전략을 종목별로 연결해두면, 매일 미국 장마감 후 스케줄러가 "
     "자동으로 스캔해 타점 발생 시 알림을 보냅니다. 여기서는 등록/수정과 수동 스캔, 알림 이력을 관리합니다."

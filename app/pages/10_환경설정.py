@@ -1,62 +1,44 @@
-"""환경설정 페이지: 사이드바 페이지 노출 순서를 직접 편집한다.
-
-Streamlit 멀티페이지 앱은 app/pages/*.py 파일명 맨 앞 숫자로 사이드바 순서를 정하므로,
-이 페이지는 core.page_order 를 이용해 그 파일명을 실제로 바꿔서 순서를 재배치한다.
-"""
+"""앱 구조와 운영 상태를 설명하는 시스템 화면."""
 
 import sys
 from pathlib import Path
 
-# --- sys.path 부트스트랩: 프로젝트 루트를 추가해 core.* 임포트 가능하게 함 (app/pages/*.py 공통 규칙) ---
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 import streamlit as st
 
-from core.page_order import list_pages, move_page
+from core.app_navigation import NAVIGATION
 from core.theme import apply_theme
+from core.ui_status import render_status_header
 
 st.set_page_config(page_title="환경설정", page_icon="⚙️", layout="wide")
 apply_theme()
+
 st.title("⚙️ 환경설정")
-st.caption(
-    "왼쪽 사이드바에 페이지가 노출되는 순서를 여기서 직접 바꿀 수 있습니다. "
-    "버튼을 누르면 즉시 파일명이 바뀌고, 사이드바에는 다음 새로고침(F5) 때 반영됩니다."
-)
+render_status_header("settings")
+st.caption("앱의 업무공간 구성과 화면 상태 표기 원칙을 확인합니다.")
 
-PAGES_DIR = Path(__file__).resolve().parent
-THIS_FILE = Path(__file__).name
-
-entries = list_pages(PAGES_DIR)
-
-st.markdown("#### 페이지 순서")
-for i, entry in enumerate(entries):
-    is_first = i == 0
-    is_last = i == len(entries) - 1
-    is_self = entry.filename == THIS_FILE
-
-    col_order, col_label, col_top, col_up, col_down, col_bottom = st.columns([1, 4, 1, 1, 1, 1])
-    col_order.markdown(f"**{i + 1}**")
-    col_label.markdown(f"{'🔧 ' if is_self else ''}{entry.label}" + ("  ·  *(이 페이지)*" if is_self else ""))
-
-    if col_top.button("⏫", key=f"top_{entry.filename}", disabled=is_first, use_container_width=True, help="맨 위로"):
-        move_page(PAGES_DIR, entry.filename, "top")
-        st.rerun()
-    if col_up.button("▲", key=f"up_{entry.filename}", disabled=is_first, use_container_width=True, help="위로"):
-        move_page(PAGES_DIR, entry.filename, "up")
-        st.rerun()
-    if col_down.button("▼", key=f"down_{entry.filename}", disabled=is_last, use_container_width=True, help="아래로"):
-        move_page(PAGES_DIR, entry.filename, "down")
-        st.rerun()
-    if col_bottom.button(
-        "⏬", key=f"bottom_{entry.filename}", disabled=is_last, use_container_width=True, help="맨 아래로"
-    ):
-        move_page(PAGES_DIR, entry.filename, "bottom")
-        st.rerun()
+st.subheader("업무공간 내비게이션")
+st.caption("사이드바는 파일명 숫자가 아니라 아래 업무 흐름으로 고정됩니다. 구성 변경은 `core/app_navigation.py`에서 관리합니다.")
+for section, pages in NAVIGATION.items():
+    with st.expander(section, expanded=section in {"홈", "운용"}):
+        for page in pages:
+            if page.default:
+                st.markdown(f"**{page.icon} {page.title}** · 기본 화면")
+            else:
+                st.page_link(page.path, label=f"{page.icon} {page.title}", width="stretch")
 
 st.divider()
-st.caption(
-    "새 페이지 파일을 추가하면(README.md \"개발 컨벤션\" 참고) 이 목록에도 자동으로 나타납니다. "
-    "이 페이지(환경설정) 자체도 원하는 위치로 옮길 수 있습니다."
+st.subheader("상태 표기 원칙")
+st.markdown(
+    """
+    - **Fresh**: 저장된 기준 시각이 허용 범위 안에 있습니다.
+    - **Stale**: 저장된 데이터가 오래되어 재확인이 필요합니다.
+    - **Unknown**: 기준 시각을 신뢰할 수 있는 저장 상태가 없습니다.
+    - **PIT 미검증/혼합/부분 검증**: 과거 시점에 실제로 알 수 있었던 데이터만 사용했는지 아직 완전히 보증하지 않습니다.
+
+    `Unknown`은 약세나 매도 신호가 아니며, `PIT 미검증`은 성과가 나쁘다는 뜻이 아니라 검증 범위를 나타냅니다.
+    """
 )

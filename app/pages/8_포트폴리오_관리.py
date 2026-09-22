@@ -38,6 +38,7 @@ from core.portfolio import (
     update_holding,
 )
 from core.theme import apply_theme
+from core.ui_status import render_status_header
 
 init_db()
 
@@ -45,6 +46,7 @@ st.set_page_config(page_title="포트폴리오 관리", page_icon="💼", layout
 apply_theme()
 job_manager.render_active_jobs_sidebar()
 st.title("💼 포트폴리오 관리")
+render_status_header("portfolio")
 st.caption("실제 보유 종목을 등록하면 손익, 리스크(변동성/상관관계/섹터 집중도)를 분석하고 AI 코멘트를 생성합니다.")
 
 with st.expander("➕ 보유 종목 추가"):

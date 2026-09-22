@@ -92,6 +92,33 @@ def apply_theme() -> None:
             color: {c['text_muted']} !important;
         }}
 
+        .quant-status-chip {{
+            display:inline-flex; align-items:center; gap:.32rem; border:1px solid {c['border']};
+            border-radius:999px; padding:.22rem .56rem; margin:0 .32rem .32rem 0;
+            font-size:.78rem; color:{c['text_muted']}; background:{c['bg_secondary']};
+        }}
+        .quant-action-card {{
+            background:{c['bg_secondary']}; border:1px solid {c['border']}; border-left:3px solid {c['accent']};
+            border-radius:8px; padding:.8rem .95rem; margin-bottom:.55rem;
+        }}
+        .quant-action-card.warning {{ border-left-color:#f5a623; }}
+        .quant-action-card.ok {{ border-left-color:{c['green']}; }}
+        .quant-action-card h4 {{ margin:0 0 .2rem; font-size:.95rem; }}
+        .quant-action-card p {{ margin:0; color:{c['text_muted']} !important; font-size:.85rem; }}
+
+        .quant-trust-header {{
+            display:flex; flex-wrap:wrap; gap:.45rem; margin:.15rem 0 .9rem;
+        }}
+        .quant-trust-item {{
+            display:inline-flex; align-items:center; gap:.42rem; min-height:1.75rem;
+            border:1px solid {c['border']}; border-radius:6px; padding:.2rem .55rem;
+            background:{c['bg_secondary']}; font-family:{_MONO}; font-size:.76rem;
+        }}
+        .quant-trust-item small {{ color:{c['text_muted']} !important; font-family:{_FONT}; }}
+        .quant-trust-item.fresh {{ border-color:{c['green']}; }}
+        .quant-trust-item.stale, .quant-trust-item.warning {{ border-color:#f5a623; }}
+        .quant-trust-item.unknown {{ border-color:#6f737d; }}
+
         hr {{ border-color: {c['border']}; }}
         </style>
         """,

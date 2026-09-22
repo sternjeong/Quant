@@ -25,6 +25,7 @@ from core.indicators import compute_bollinger, compute_ichimoku, compute_ma_cros
 from core import job_manager
 from core.market_data import INTERVAL_MAX_LOOKBACK_DAYS, clamp_start_for_interval, get_price_history, resample_ohlcv
 from core.theme import TRADINGVIEW_CHART_CONFIG, apply_theme, inject_chart_interactions, style_chart_like_tradingview
+from core.ui_status import render_status_header
 from core.watchlist import add_to_watchlist, list_watchlist, remove_from_watchlist
 
 init_db()
@@ -33,6 +34,7 @@ st.set_page_config(page_title="차트 조회", page_icon="🕯️", layout="wide
 apply_theme()
 job_manager.render_active_jobs_sidebar()
 st.title("🕯️ 차트 조회")
+render_status_header("chart")
 st.caption("티커를 입력하고 봉 주기를 선택하면 TradingView 스타일 캔들차트를 바로 볼 수 있습니다 (백테스트 불필요).")
 
 INTERVAL_LABELS = {

@@ -94,6 +94,7 @@ from core.theme import (
     render_trade_pnl_histogram,
     render_verdict_panel,
 )
+from core.ui_status import render_status_header
 
 init_db()
 
@@ -101,6 +102,7 @@ st.set_page_config(page_title="전략 스튜디오", page_icon="📈", layout="w
 apply_theme()
 job_manager.render_active_jobs_sidebar()
 st.title("📈 전략 스튜디오")
+render_status_header("strategy_studio")
 st.caption("전략 생성/백테스트부터 다종목 미세튜닝·배치 생성·야간 튜닝 리더보드·관리까지, 전략의 일생을 한 페이지에서 다룹니다.")
 
 METRIC_LABELS = {

@@ -34,6 +34,7 @@ from core.threads_summary import (
     update_tickers,
 )
 from core.theme import apply_theme
+from core.ui_status import render_status_header
 
 init_db()
 
@@ -41,6 +42,7 @@ st.set_page_config(page_title="Threads 요약", page_icon="🧵", layout="wide")
 apply_theme()
 job_manager.render_active_jobs_sidebar()
 st.title("🧵 Threads 글 → 티커별 요약")
+render_status_header("threads")
 st.caption(
     "Threads 자동 크롤링은 막혀 있어, 원문을 직접 붙여넣으면 AI가 관련 티커를 자동 인식하고 요약합니다. "
     "GEMINI_API_KEY가 없으면 정규식 기반으로 티커 후보만 추출합니다 (요약은 원문 일부로 대체)."

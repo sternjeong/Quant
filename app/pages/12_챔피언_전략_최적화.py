@@ -32,6 +32,7 @@ from core import job_manager
 from core.champion_strategy import CHAMPION_TUNABLE_PARAMS, run_champion_param_sweep
 from core.db import init_db
 from core.theme import apply_theme
+from core.ui_status import render_status_header
 
 init_db()
 
@@ -40,6 +41,7 @@ apply_theme()
 job_manager.render_active_jobs_sidebar()
 
 st.title("🔬 챔피언 전략 최적화 — 파라미터 민감도/견고성 분석")
+render_status_header("champion_optimization")
 st.caption(
     "챔피언 전략(코어+새틀라이트)의 튜닝 가능한 파라미터를 값마다 바꿔가며 train/test 구간에서 "
     "각각 성과를 계산합니다. **단일 최고 설정을 추천하지 않습니다** — train 곡선이 완만한 고원인지 "

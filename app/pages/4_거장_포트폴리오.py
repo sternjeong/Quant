@@ -31,6 +31,7 @@ from core.guru_tracker import (
     sync_guru_holdings,
 )
 from core.theme import apply_theme
+from core.ui_status import render_status_header
 from core.watchlist import add_to_watchlist
 
 init_db()
@@ -39,6 +40,7 @@ st.set_page_config(page_title="거장 포트폴리오 추종", page_icon="🧠",
 apply_theme()
 job_manager.render_active_jobs_sidebar()
 st.title("🧠 거장 포트폴리오 추종")
+render_status_header("guru")
 st.caption(
     "SEC EDGAR 13F 공시(분기 지연 공시)를 기반으로 유명 펀드매니저의 보유 종목을 추적합니다. "
     "캐시 우드(ARK)는 13F 대신 매일 공개되는 보유내역 CSV를 사용해 더 정밀하게 추적합니다."
