@@ -83,13 +83,37 @@ def _collar():
     }
 
 
-def _patch_all(monkeypatch, *, anomalies=None, decay=None, holdings=None, corr=None, earnings=None, collar=None):
+def _patch_all(monkeypatch, *, anomalies=None, decay=None, holdings=None, corr=None, earnings=None, collar=None,
+                job_health=None, backup=None):
     monkeypatch.setattr(daily_briefing, "run_integrity_checks", lambda: anomalies if anomalies is not None else _empty_anomalies())
     monkeypatch.setattr(daily_briefing, "compute_champion_alpha_decay", lambda: decay)
     monkeypatch.setattr(daily_briefing, "get_current_holdings", lambda: holdings)
     monkeypatch.setattr(daily_briefing, "list_champion_correlation_snapshots", lambda limit=1: corr if corr is not None else [])
     monkeypatch.setattr(daily_briefing, "get_upcoming_earnings", lambda tickers, within_days=5: earnings if earnings is not None else [])
     monkeypatch.setattr(daily_briefing, "compute_live_collar_state", lambda: collar)
+    # 운영 상태(잡 이력/백업)도 반드시 목킹한다 — 안 그러면 실제 DB/파일시스템(/opt/quant-backup/status.json 등)의
+    # 상태가 새어 들어와 "정상 환경에서만 통과하는" 비결정적 테스트가 된다(2026-09-22: 이걸 놓쳐서 VM에서만
+    # 4개가 깨졌다 — 그때 VM의 실제 백업이 마침 실패 상태였을 뿐 코드 결함은 아니었음).
+    monkeypatch.setattr(daily_briefing, "compute_job_health", lambda: job_health if job_health is not None else _job_health([]))
+    monkeypatch.setattr(daily_briefing, "load_backup_status", lambda: backup)
+
+
+def test_patch_all_isolates_from_real_environment_state(monkeypatch, tmp_path):
+    """2026-09-22 VM 사고 재현 + 고정: VM의 실제 백업이 마침 실패 상태(ok=False)였을 때, _patch_all이
+    daily_briefing.load_backup_status를 목킹하지 않으면 그 실제 상태가 새어 들어와 '특이사항 없음'을
+    기대하는 옛 테스트들이 VM에서만 깨졌다(로컬은 그 파일이 없어 우연히 통과했음). 이 테스트는 실제
+    core.backup_status.load_backup_status가 '지저분한' 값을 돌려주도록 만들어두고도 _patch_all을 쓴
+    테스트는 영향을 안 받는지 확인한다."""
+    from core import backup_status
+
+    dirty = tmp_path / "status.json"
+    dirty.write_text('{"ok": false, "error": "PermissionError", "offsite_configured": true, '
+                      '"last_success_epoch": 0, "last_push_success_epoch": 0}')
+    monkeypatch.setattr(backup_status, "STATUS_PATH", dirty)
+
+    _patch_all(monkeypatch, holdings=_holdings(), decay=_decay(False))
+    html = daily_briefing.generate_daily_briefing_html()
+    assert "특이사항 없음" in html
 
 
 def test_full_data_render_includes_every_section(monkeypatch):
