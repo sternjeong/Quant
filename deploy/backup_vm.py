@@ -11,6 +11,13 @@
   - 점(.)으로 시작하는 런타임 폴더(.claude, .codex, .ssh, .codex-telegram-runtime, .config …)는 인증 정보가 들어 있어
     허용 목록에 없으므로 어떤 경우에도 제외된다. 허용 폴더 안이라도 비밀처럼 생긴 파일명/내용은 격리(quarantine)한다.
 
+**비밀(선택, opt-in)**: BACKUP_DIR/secrets_passphrase 파일이 있으면(`deploy/set_backup_passphrase.sh`로 사람이 대화형으로 만듦, 이 스크립트는
+절대 만들지 않음) nginx 로그인·code-server 비밀번호·`.env`·텔레그램 봇 토큰·Claude/Codex 로그인 세션을 파일별로 AES-256-CBC(PBKDF2)로
+암호화해 repo/secrets/에 넣는다. 이 passphrase 파일 자체는 BACKUP_DIR(=백업 대상인 APP_DIR 바깥)에만 있어서 수집 대상에 절대 섞이지
+않고, 백업 저장소(비공개 원격 포함)에도 올라가지 않는다 — "저장소가 뚫려도 안전"은 지켜지지만 "VM 디스크가 통째로 사라지는 경우"까지
+막으려면 같은 passphrase를 사람이 따로(비밀번호 관리자 등에) 보관해야 한다. 암호화 직후 그 자리에서 복호화해 원문과 바이트 단위로
+같은지 확인하고, 실패하면 그 회차 전체를 실패로 친다(밖으로 올리지 않음). passphrase가 없으면 이 단계는 조용히 건너뛴다.
+
 어디에 두나: BACKUP_DIR(기본 /opt/quant-backup)/repo — 로컬 git 저장소. 매일 바뀐 것만 커밋하므로 버전 이력이 남고(델타 압축),
 같은 디스크에 있는 사본이라 "실수로 지움/파일 손상"은 막아주지만 디스크 소실은 못 막는다. 그래서 BACKUP_DIR/remote 파일에
 **비공개** 저장소 URL이 있으면 거기로도 push한다(전용 배포 키 BACKUP_DIR/ssh/id_ed25519 사용). 이 저장소(Quant)는 공개라서
@@ -47,6 +54,9 @@ DEFAULT_APP_DIR = "/opt/quant"
 DEFAULT_BACKUP_DIR = "/opt/quant-backup"
 DEFAULT_MAX_FILE_MB = 90  # GitHub은 100MB 넘는 파일 push를 거부한다
 RESTORE_DRILL_EVERY_DAYS = 7
+SECRET_KDF_ITER = 200_000  # OWASP 권장 범위(100k~600k) 안. 늘리면 매 백업마다 암복호화 시간이 그만큼 늘어난다.
+NGINX_HTPASSWD_PATH_ENV = "QUANT_SECRET_NGINX_HTPASSWD"
+CODE_SERVER_CONFIG_PATH_ENV = "QUANT_SECRET_CODE_SERVER_CONFIG"
 SECRET_SCAN_MAX_BYTES = 5 * 1024 * 1024
 
 # 허용 목록: git 상 "커밋 안 된" 파일 중 이 경로 아래(또는 정확히 이 파일)만 백업한다.
@@ -229,8 +239,10 @@ def commit_if_changed(repo: Path, message: str) -> bool:
 
 
 def stored_path(repo: Path, key: str) -> Path:
-    """MANIFEST 키 → 백업 저장소 안의 실제 위치. DB는 db/, 나머지는 files/ 아래."""
-    return repo / key if key == "db/quant.db" else repo / "files" / key
+    """MANIFEST 키 → 백업 저장소 안의 실제 위치. db/·secrets/로 시작하면 그대로, 나머지는 files/ 아래."""
+    if key.startswith(("db/", "secrets/")):
+        return repo / key
+    return repo / "files" / key
 
 
 def verify_backup(repo: Path, *, check_git: bool = True) -> list[str]:
@@ -270,6 +282,74 @@ def verify_backup(repo: Path, *, check_git: bool = True) -> list[str]:
         if fsck.returncode != 0:
             problems.append("git 저장소 무결성 검사(fsck) 실패")
     return problems
+
+
+def passphrase_path(backup_dir: Path) -> Path:
+    return backup_dir / "secrets_passphrase"
+
+
+def secret_bundle_paths(app_dir: Path) -> dict[str, Path]:
+    """라벨 → 암호화 대상 절대경로. 두 개(nginx/code-server)는 APP_DIR 밖에 있어 환경변수로 위치를 바꿀 수 있다(테스트용).
+    존재하지 않는 파일은 backup_secrets()가 조용히 건너뛴다(예: 이 VM엔 Codex를 안 써서 .codex/auth.json이 없음)."""
+    return {
+        "nginx_htpasswd": Path(os.environ.get(NGINX_HTPASSWD_PATH_ENV, "/etc/nginx/.htpasswd-quant")),
+        "code_server_config": Path(os.environ.get(CODE_SERVER_CONFIG_PATH_ENV, "/home/ubuntu/.config/code-server/config.yaml")),
+        "app_env": app_dir / ".env",
+        "telegram_env": app_dir / ".codex-telegram-runtime" / "telegram.env",
+        "claude_credentials": app_dir / ".claude" / ".credentials.json",
+        "codex_auth": app_dir / ".codex" / "auth.json",
+    }
+
+
+def _openssl_enc(args: list[str], data: bytes, passphrase_file: Path, action: str) -> bytes:
+    result = subprocess.run(
+        ["openssl", "enc", *args, "-aes-256-cbc", "-pbkdf2", "-iter", str(SECRET_KDF_ITER), "-pass", f"file:{passphrase_file}"],
+        input=data, capture_output=True, timeout=30,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(f"{action} 실패: {result.stderr.decode(errors='replace').strip()[:200]}")
+    return result.stdout
+
+
+def encrypt_bytes(data: bytes, passphrase_file: Path) -> bytes:
+    return _openssl_enc(["-salt"], data, passphrase_file, "암호화")
+
+
+def decrypt_bytes(data: bytes, passphrase_file: Path) -> bytes:
+    return _openssl_enc(["-d"], data, passphrase_file, "복호화")
+
+
+def backup_secrets(app_dir: Path, backup_dir: Path, repo: Path) -> dict:
+    """passphrase_path()가 없으면 아무 것도 안 하고 바로 돌아온다(opt-in). 있으면 존재하는 비밀 파일을 하나씩
+    암호화해 repo/secrets/<라벨>.enc 로 쓰고, 그 자리에서 복호화해 원문과 바이트 단위로 같은지 확인한다 — 하나라도
+    다르면 예외를 던진다(호출자가 이 회차 전체를 실패로 처리하고 밖으로 올리지 않는다). 더 이상 대상이 아니게 된
+    라벨(파일이 사라졌거나 목록에서 빠짐)의 옛 암호문은 저장소에서도 지운다(본문 파일 백업과 같은 원칙).
+
+    반환: {"configured": bool, "included": [라벨,...], "missing": [라벨,...], "manifest": {"secrets/<라벨>.enc": {size, sha256}}}
+    """
+    result: dict = {"configured": False, "included": [], "missing": [], "manifest": {}}
+    pass_file = passphrase_path(backup_dir)
+    if not pass_file.is_file() or pass_file.stat().st_size == 0:
+        return result
+    result["configured"] = True
+    secrets_dir = repo / "secrets"
+    for label, src in secret_bundle_paths(app_dir).items():
+        if not src.is_file():
+            result["missing"].append(label)
+            continue
+        plaintext = src.read_bytes()
+        ciphertext = encrypt_bytes(plaintext, pass_file)
+        if decrypt_bytes(ciphertext, pass_file) != plaintext:
+            raise RuntimeError(f"비밀 백업 왕복 검증 실패: {label}")
+        secrets_dir.mkdir(parents=True, exist_ok=True)
+        (secrets_dir / f"{label}.enc").write_bytes(ciphertext)
+        result["included"].append(label)
+        result["manifest"][f"secrets/{label}.enc"] = {"size": len(ciphertext), "sha256": hashlib.sha256(ciphertext).hexdigest()}
+    if secrets_dir.is_dir():
+        for existing in sorted(secrets_dir.glob("*.enc")):
+            if existing.stem not in result["included"]:
+                existing.unlink()
+    return result
 
 
 def offsite_env(backup_dir: Path) -> dict:
@@ -387,6 +467,9 @@ def run_backup(
         "restore_drill_ok": previous.get("restore_drill_ok"),
         "restore_drill_source": previous.get("restore_drill_source"),
         "restore_drill_error": previous.get("restore_drill_error"),
+        "secrets_backup_configured": False,
+        "secrets_backup_files": 0,
+        "secrets_backup_missing": [],
         "ok": False,
         "error": None,
         "push_error": None,
@@ -413,6 +496,11 @@ def run_backup(
         db_entry = backup_database(app_dir, repo / "db" / "quant.db")
         if db_entry:
             manifest[db_entry["path"]] = {"size": db_entry["size"], "sha256": db_entry["sha256"]}
+        secrets_result = backup_secrets(app_dir, backup_dir, repo)  # opt-in — passphrase 없으면 아무 일도 안 함
+        manifest.update(secrets_result["manifest"])
+        status["secrets_backup_configured"] = secrets_result["configured"]
+        status["secrets_backup_files"] = len(secrets_result["included"])
+        status["secrets_backup_missing"] = secrets_result["missing"]
         (repo / "MANIFEST.json").write_text(json.dumps(
             {"files": manifest, "skipped": skipped, "quarantined": quarantined}, ensure_ascii=False, indent=1, sort_keys=True
         ))
@@ -476,6 +564,7 @@ def main(argv: list[str] | None = None) -> int:
         f"백업 {'성공' if status['ok'] else '실패'}: 파일 {status['files']}개, {status['bytes'] / 1e6:.1f}MB, "
         f"커밋 {'있음' if status['committed'] else '없음(변경 없음)'}, "
         f"복구 리허설 {'정상' if status['restore_drill_ok'] else ('실패' if status['restore_drill_ok'] is False else '아직 없음')}, "
+        f"비밀 백업 {(str(status['secrets_backup_files']) + '개') if status['secrets_backup_configured'] else '미설정'}, "
         f"비공개 저장소 {'push 성공' if status['offsite_configured'] and not status['push_error'] else ('push 실패' if status['offsite_configured'] else '미설정')}, "
         f"{time.time() - started:.1f}초"
     )

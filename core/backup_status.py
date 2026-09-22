@@ -10,6 +10,7 @@ None — 호출자가 "백업 상태 없음"으로 정직하게 표시한다.
   - 복구 리허설(백업을 새로 클론해 검증)이 실패 → bad / 원격이 있는데 10일 넘게 리허설 없음 → warn
   - 원격 미설정 → warn (같은 디스크에만 있어 디스크 소실을 못 막는다)
   - 비밀 의심으로 격리됐거나 너무 커서 건너뛴 파일 있음 → warn
+  - 비밀(암호화 백업)이 설정돼 있으면 몇 개 포함됐는지 안내만 한다(설정 자체는 선택이라 미설정은 경고 아님)
 """
 
 from __future__ import annotations
@@ -96,4 +97,7 @@ def describe_backup(status: dict | None, now: float | None = None) -> dict:
     if status.get("skipped"):
         raise_level("warn")
         lines.append(f"너무 커서 건너뛴 파일 {len(status['skipped'])}개")
+
+    if status.get("secrets_backup_configured"):
+        lines.append(f"암호화된 비밀 백업 포함 ({status.get('secrets_backup_files', 0)}개 파일)")
     return {"level": level, "lines": lines}

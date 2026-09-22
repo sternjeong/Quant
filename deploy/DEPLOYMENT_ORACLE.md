@@ -503,8 +503,31 @@ sudo -u quant rsync -a --exclude PROGRESS.md /tmp/restore/files/ /opt/quant/  # 
 sudo systemctl start quant-scheduler quant-streamlit
 ```
 이력이 필요하면 `git -C /tmp/restore log`, 특정 날짜 버전은 `git -C /tmp/restore show <커밋>:db/quant.db`. `MANIFEST.json`에 파일별 크기/sha256이 있다.
-**백업에 없는 것(수동 보관 필요)**: 비밀들 — `/etc/nginx/.htpasswd-quant`(로그인 계정), code-server 비밀번호(`~/.config/code-server/config.yaml`), `.env`(API 키), 텔레그램 봇
-토큰(`.codex-telegram-runtime/telegram.env`), Claude/Codex 로그인(`.claude`, `.codex`). 이건 일부러 밖으로 안 내보낸다 — 비밀번호 관리자 등에 따로 보관할 것.
+
+**비밀(nginx 로그인·code-server 비밀번호·`.env`·텔레그램 토큰·Claude/Codex 로그인) — 암호화 백업 (선택, opt-in, 2026-09-22)**:
+기본은 위 "절대 안 들어가는 것"대로 완전히 제외다. `/opt/quant-backup/secrets_passphrase` 파일(사람이 대화형으로 직접 만듦, 아래)이 있을 때만
+`deploy/backup_vm.py`가 매 실행마다 이 다섯 가지를 파일별로 `openssl enc -aes-256-cbc -pbkdf2 -iter 200000 -salt`로 암호화해 `repo/secrets/<라벨>.enc`로
+함께 백업한다(암호화 직후 그 자리에서 복호화해 원문과 일치하는지 확인 — 실패하면 그 회차 전체를 실패로 치고 밖으로 올리지 않는다). 이 VM에 없는 항목(예: Codex 로그인)은
+조용히 건너뛴다. `secrets_passphrase` 파일 자체는 `/opt/quant-backup`(백업 *대상*인 `/opt/quant` 밖)에만 있어서 수집 대상에 절대 섞이지 않고, 백업 저장소(비공개
+원격 포함)에도 절대 올라가지 않는다.
+
+**여기서 지켜지는 것과 안 지켜지는 것을 정확히 알아야 한다**: passphrase가 VM에만 있으므로 "백업 저장소(비공개 원격)가 뚫려도 이 비밀들은 못 연다"는 지켜진다.
+하지만 "VM 디스크가 통째로 사라지는 경우"까지 막으려면 **같은 passphrase를 사람이 따로(비밀번호 관리자 등에) 보관해야 한다** — VM과 함께 이 파일도 사라지기
+때문이다. **잊어버리면 그 뒤로는 아무도(나도) 복구할 수 없다.**
+
+설정 (사람이 한 번, VS Code Terminal 패널):
+```bash
+ssh -t quant-vm 'sudo bash /opt/quant/deploy/set_backup_passphrase.sh'
+```
+20자 이상이면 공백·한글 등 제한이 거의 없다(셸에 끼워 넣지 않고 파일로만 저장하므로). 단어 4~5개를 띄어 쓴 문장 형태를 권장. 저장 직후 그 passphrase로
+실제 암복호화 왕복까지 확인한 뒤에만 저장한다. 바로 확인: `sudo -u quant python3 /opt/quant/deploy/backup_vm.py` → 요약에 "비밀 백업 N개"가 뜬다.
+
+복구할 때(위 절차로 저장소를 받은 뒤):
+```bash
+openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass pass:'<passphrase>' -in /tmp/restore/secrets/app_env.enc -out .env
+```
+각 `<라벨>.enc`를 원래 위치(`nginx_htpasswd`→`/etc/nginx/.htpasswd-quant`, `code_server_config`→code-server의 `config.yaml`, `app_env`→`.env`,
+`telegram_env`→`.codex-telegram-runtime/telegram.env`, `claude_credentials`→`.claude/.credentials.json`, `codex_auth`→`.codex/auth.json`)에 같은 방식으로 복원한다.
 
 ## 16. 밤사이 작업 관측과 워치독 — "조용한 실패"를 막는 장치 (2026-09-21)
 

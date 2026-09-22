@@ -358,3 +358,146 @@ def test_remote_head_mismatch_is_reported_as_a_push_error(app, tmp_path, monkeyp
     assert status["last_push_success_epoch"] is None
     assert any("push 실패" in a for a in alerts)
     assert status["restore_drill_ok"] is None  # push가 미확인이면 원격 리허설은 건너뛴다
+
+
+# ---- 비밀(선택, opt-in) 암호화 백업 --------------------------------------------------------------------------------
+
+def _write_passphrase(backup: Path, value: str = "correct horse battery staple long") -> Path:
+    backup.mkdir(parents=True, exist_ok=True)
+    path = backup_vm.passphrase_path(backup)
+    path.write_text(value)
+    path.chmod(0o600)
+    return path
+
+
+@pytest.fixture
+def secrets_env(app, tmp_path, monkeypatch):
+    """app 픽스처는 이미 app_env/telegram_env/claude_credentials/codex_auth를 갖고 있다 — nginx/code-server만
+    APP_DIR 밖이라 환경변수로 위치를 만들어 겹치지 않게 한다."""
+    nginx = tmp_path / "etc-nginx" / ".htpasswd-quant"
+    code_server = tmp_path / "code-server-config" / "config.yaml"
+    nginx.parent.mkdir(parents=True)
+    code_server.parent.mkdir(parents=True)
+    nginx.write_text("sternjeong:$apr1$SECRET-HTPASSWD-HASH\n")
+    code_server.write_text("bind-addr: 127.0.0.1:8080\npassword: SECRET-CODE-SERVER\n")
+    monkeypatch.setenv(backup_vm.NGINX_HTPASSWD_PATH_ENV, str(nginx))
+    monkeypatch.setenv(backup_vm.CODE_SERVER_CONFIG_PATH_ENV, str(code_server))
+    return {"nginx_htpasswd": nginx, "code_server_config": code_server}
+
+
+ALL_SIX_LABELS = {"nginx_htpasswd", "code_server_config", "app_env", "telegram_env", "claude_credentials", "codex_auth"}
+
+
+def test_secrets_backup_is_skipped_entirely_without_a_passphrase_file(app, secrets_env, tmp_path):
+    backup = tmp_path / "backup"
+    status, alerts = _run(app, backup)
+    assert status["secrets_backup_configured"] is False
+    assert status["secrets_backup_files"] == 0
+    assert not (backup / "repo" / "secrets").exists()
+    assert alerts == []
+
+
+def test_secrets_backup_encrypts_all_six_and_round_trips(app, secrets_env, tmp_path):
+    backup = tmp_path / "backup"
+    _write_passphrase(backup)
+    status, alerts = _run(app, backup)
+
+    assert status["secrets_backup_configured"] is True
+    assert status["secrets_backup_files"] == 6 and status["secrets_backup_missing"] == []
+    assert alerts == []
+
+    pass_file = backup_vm.passphrase_path(backup)
+    plaintexts = {
+        "nginx_htpasswd": secrets_env["nginx_htpasswd"].read_bytes(),
+        "code_server_config": secrets_env["code_server_config"].read_bytes(),
+        "app_env": (app / ".env").read_bytes(),
+        "telegram_env": (app / ".codex-telegram-runtime" / "telegram.env").read_bytes(),
+        "claude_credentials": (app / ".claude" / ".credentials.json").read_bytes(),
+        "codex_auth": (app / ".codex" / "auth.json").read_bytes(),
+    }
+    for label, plaintext in plaintexts.items():
+        ciphertext = (backup / "repo" / "secrets" / f"{label}.enc").read_bytes()
+        assert ciphertext != plaintext  # 암호화됐다
+        assert backup_vm.decrypt_bytes(ciphertext, pass_file) == plaintext  # 그리고 되돌릴 수 있다
+
+    # passphrase 값 자체나 평문 비밀은 저장소 어디에도 그대로 나타나지 않는다(암호문 안에 섞여 있을 수 있는
+    # 순수 바이트 우연 일치까지 완전히 배제할 순 없지만, ASCII 원문 문자열이 그대로 보이면 안 된다).
+    everything = b"".join(p.read_bytes() for p in (backup / "repo").rglob("*") if p.is_file() and ".git" not in p.parts)
+    for secret_text in (b"SECRET-HTPASSWD-HASH", b"SECRET-CODE-SERVER", b"SECRET-FRED", b"SECRET-TELEGRAM", b"SECRET-CLAUDE", b"SECRET-CODEX"):
+        assert secret_text not in everything
+    assert b"correct horse battery staple long" not in everything  # passphrase 원문도 새지 않는다
+
+
+def test_missing_secret_files_are_skipped_without_error(app, secrets_env, tmp_path):
+    (app / ".codex" / "auth.json").unlink()  # 이 VM엔 Codex를 안 씀
+    backup = tmp_path / "backup"
+    _write_passphrase(backup)
+    status, alerts = _run(app, backup)
+
+    assert status["secrets_backup_missing"] == ["codex_auth"]
+    assert status["secrets_backup_files"] == 5
+    assert not (backup / "repo" / "secrets" / "codex_auth.enc").exists()
+    assert alerts == []
+
+
+def test_a_secret_that_disappears_has_its_old_ciphertext_removed(app, secrets_env, tmp_path):
+    backup = tmp_path / "backup"
+    _write_passphrase(backup)
+    _run(app, backup)
+    assert (backup / "repo" / "secrets" / "codex_auth.enc").exists()
+
+    (app / ".codex" / "auth.json").unlink()
+    _run(app, backup)
+    assert not (backup / "repo" / "secrets" / "codex_auth.enc").exists()
+
+
+def test_encrypted_secrets_never_enter_the_plaintext_files_tree(app, secrets_env, tmp_path):
+    backup = tmp_path / "backup"
+    _write_passphrase(backup)
+    _run(app, backup)
+    names = _repo_files(backup)
+    assert not any(n.startswith("files/") and n.split("/")[-1] in
+                   ("nginx_htpasswd", "config.yaml", ".env", "telegram.env", ".credentials.json", "auth.json") for n in names)
+
+
+def test_verify_backup_catches_tampering_in_an_encrypted_secret(app, secrets_env, tmp_path):
+    backup = tmp_path / "backup"
+    _write_passphrase(backup)
+    _run(app, backup)
+    victim = backup / "repo" / "secrets" / "app_env.enc"
+    victim.write_bytes(b"tampered" + victim.read_bytes())
+    assert any("내용 불일치: secrets/app_env.enc" in p for p in backup_vm.verify_backup(backup / "repo", check_git=False))
+
+
+def test_wrong_passphrase_cannot_decrypt(app, secrets_env, tmp_path):
+    backup = tmp_path / "backup"
+    _write_passphrase(backup, "correct horse battery staple long")
+    _run(app, backup)
+    ciphertext = (backup / "repo" / "secrets" / "app_env.enc").read_bytes()
+
+    wrong = tmp_path / "wrong_passphrase"
+    wrong.write_text("a completely different long passphrase")
+    with pytest.raises(RuntimeError, match="복호화 실패"):
+        backup_vm.decrypt_bytes(ciphertext, wrong)
+
+
+def test_secrets_round_trip_failure_aborts_the_whole_run_and_pushes_nothing(app, secrets_env, tmp_path, monkeypatch):
+    backup = tmp_path / "backup"
+    _write_passphrase(backup)
+    remote = _setup_remote(tmp_path, backup)
+    monkeypatch.setattr(backup_vm, "decrypt_bytes", lambda data, pass_file: b"not the same bytes")  # 왕복 실패를 강제
+
+    status, alerts = _run(app, backup)
+
+    assert status["ok"] is False and "왕복 검증 실패" in status["error"]
+    assert not (backup / "repo" / "secrets").exists() or list((backup / "repo" / "secrets").glob("*.enc")) == []
+    assert subprocess.run(["git", "-C", str(remote), "branch", "--list"], capture_output=True, text=True).stdout.strip() == ""
+    assert any("백업 실패" in a for a in alerts)
+
+
+def test_empty_passphrase_file_is_treated_as_not_configured(app, secrets_env, tmp_path):
+    backup = tmp_path / "backup"
+    backup.mkdir()
+    backup_vm.passphrase_path(backup).touch()  # 빈 파일
+    status, _ = _run(app, backup)
+    assert status["secrets_backup_configured"] is False

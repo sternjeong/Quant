@@ -94,3 +94,14 @@ def test_offsite_without_any_drill_yet_is_a_warning_but_local_only_is_not_double
     local_only = describe_backup(_status(offsite_configured=False, last_push_success_epoch=None,
                                          restore_drill_ok=None, last_restore_drill_epoch=None), NOW)
     assert not any("리허설" in line for line in local_only["lines"])  # 원격이 없으면 리허설 경고를 따로 내지 않는다(미설정 경고가 이미 있음)
+
+
+def test_secrets_backup_line_shown_when_configured_but_not_alarming():
+    result = describe_backup(_status(secrets_backup_configured=True, secrets_backup_files=6), NOW)
+    assert result["level"] == "ok"
+    assert any("암호화된 비밀 백업 포함 (6개 파일)" in line for line in result["lines"])
+
+
+def test_no_secrets_line_when_not_configured():
+    result = describe_backup(_status(secrets_backup_configured=False), NOW)
+    assert not any("비밀 백업" in line for line in result["lines"])

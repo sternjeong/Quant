@@ -5816,6 +5816,31 @@ DuckDNS 서브도메인 + Let's Encrypt**로 바꿨다.
   passphrase로 암호화해 비공개 저장소에 두는 방식을 검토할 수 있다. (b) 공인 IP가 Ephemeral이면 DuckDNS 자동 갱신 스크립트(토큰 필요). (c) 실험 재개 여부(PIT 데이터).
 - **사람이 할 일(변동 없음)**: 비공개 백업 저장소 + 배포 키 + `/opt/quant-backup/remote`(15번), Reserved IP 확인, 재부팅 시점 결정.
 
+### 작업 99 (2026-09-22): 선택형 암호화 비밀 백업 + Oracle 확인 마무리
+
+작업 98 뒤 사용자에게 남은 두 가지(비공개 백업 저장소 연결, 공인 IP Reserved 여부)를 확인했고, 세 번째 제안(비밀 암호화 백업)을 사용자
+동의로 구현했다.
+
+- **확인된 것**: 비공개 백업 저장소(`quant-vm-backup`) 연결 완료 — VM에서 원격 HEAD와 로컬 HEAD 일치 확인(사람이 직접 push 실행, "비공개
+  저장소 push 성공" 확인). 공인 IP는 **Ephemeral로 확인**됐고, 사용자가 "무료 티어라 VM을 Stop할 이유가 없다"며 **Reserved 전환을 보류**하기로
+  결정(재부팅은 Stop이 아니라서 이 결정과 무관 — 영향 없음). 재부팅 자체는 아직 미실행.
+- **비밀 암호화 백업**(`deploy/backup_vm.py`의 `backup_secrets()`, opt-in): `/opt/quant-backup/secrets_passphrase` 파일(사람이
+  `deploy/set_backup_passphrase.sh`로 대화형으로만 만듦 — 이 스크립트도 시스템도 절대 자동 생성하지 않음)이 있을 때만 nginx 로그인·code-server
+  비밀번호·`.env`·텔레그램 봇 토큰·Claude/Codex 로그인 세션을 파일별로 `openssl enc -aes-256-cbc -pbkdf2 -iter 200000 -salt`로 암호화해
+  `repo/secrets/<라벨>.enc`로 함께 백업한다. 암호화 직후 그 자리에서 복호화해 원문과 바이트 단위로 같은지 확인하고, 하나라도 실패하면 그 회차
+  전체를 실패로 치고 밖으로 올리지 않는다(기존 `verify_backup`/복구 리허설과 같은 원칙). 이 VM에 없는 항목(Codex 로그인 등)은 조용히 건너뛴다.
+- **passphrase의 정직한 한계**: `secrets_passphrase` 파일은 백업 *대상*(`/opt/quant`) 밖에 있어 수집 대상에 절대 섞이지 않고 백업 저장소에도
+  안 올라간다 — "저장소가 뚫려도 안전"은 지켜진다. 하지만 "VM 디스크가 통째로 사라지는 경우"까지 막으려면 같은 passphrase를 사람이 따로
+  보관해야 한다는 걸 사용자에게 명시했다(잊으면 아무도 복구 못 함). `set_backup_passphrase.sh`는 20자 이상만 요구하고 그 외 문자 제한이
+  없다(값이 셸에 끼워 넣어지지 않고 파일로만 저장돼 공백·한글도 안전) — 저장 직후 실제 암복호화 왕복까지 확인한 뒤에만 남긴다.
+- `stored_path()`를 `secrets/` 접두사까지 일반화해 기존 `verify_backup()`(MANIFEST sha256 대조)이 별도 코드 없이 비밀 백업의 변조도 그대로 잡는다.
+- 테스트: `tests/test_backup_vm.py`에 9개(6종 전부 암복호화 왕복, 없는 파일은 조용히 건너뜀, 사라진 비밀의 옛 암호문 정리, 평문 트리에 안 섞임,
+  변조 감지, 틀린 passphrase로 복호화 불가, 왕복 실패 시 전체 회차 중단+미push, 빈 passphrase 파일은 미설정으로 취급), `tests/test_set_backup_passphrase.py`
+  9개(성공/거부/공백·한글 허용/미출력/`backup_vm.py`와 openssl 파라미터 교차 호환 확인), `tests/test_backup_status.py` 2개(브리핑 표시 줄).
+  전체 `pytest tests`(다른 세션의 미완성 `tests/test_candidate_ledger.py` 제외) 1,382건 통과.
+- **사람이 할 일**: `ssh -t quant-vm 'sudo bash /opt/quant/deploy/set_backup_passphrase.sh'`로 passphrase를 정하고(선택), 같은 값을 본인이
+  따로 보관. 재부팅 시점 결정은 그대로 남음.
+
 ### 2026-09-20 — Day 4 전체 모집단 입력 인계 및 접근 경로 확인
 
 DAY_4_BLOCKED
