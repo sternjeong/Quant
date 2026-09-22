@@ -228,6 +228,11 @@ def test_generate_never_raises_when_every_source_throws(monkeypatch):
     monkeypatch.setattr(daily_briefing, "list_champion_correlation_snapshots", _boom)
     monkeypatch.setattr(daily_briefing, "get_upcoming_earnings", _boom)
     monkeypatch.setattr(daily_briefing, "compute_live_collar_state", _boom)
+    # generate_daily_briefing_html()은 compute_job_health()도 개별 try/except로 감싼다(core/daily_briefing.py 참고) —
+    # 이 테스트의 취지("소스가 전부 죽어도 안 죽는다")에 맞춰 이것도 함께 던지게 한다. load_backup_status는
+    # _patch_all과 같은 이유로 실제 환경 상태가 새지 않게 기본값(None)으로 고정한다.
+    monkeypatch.setattr(daily_briefing, "compute_job_health", _boom)
+    monkeypatch.setattr(daily_briefing, "load_backup_status", lambda: None)
 
     html = daily_briefing.generate_daily_briefing_html()
 
