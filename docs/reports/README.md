@@ -1,5 +1,7 @@
 # docs/reports/ — 완성된 HTML 리포트 모음
 
+> 2026-09 정리(D): analysis/ 원본과 바이트 동일했던 사본 40개는 삭제했다(`docs/prune/PRUNE_D.md`). 아래 항목 중 링크·경로가 `analysis/...`를 가리키는 것은 원본 직접 참조이며, 이 폴더에 남은 HTML은 종합 캡스톤(챔피언 전략 페이지가 안내)과 analysis/ 에 원본이 없는 리포트뿐이다.
+
 두 종류가 섞여 있다: (1) `analysis/` 파이프라인 산출물의 **읽기용 사본** — 원본은 각
 `analysis/<날짜>_<주제>/` 폴더에 있고 재생성은 그쪽 빌드 스크립트로 해야 한다. (2) claude.ai
 Artifact로만 존재하던 리포트/강의노트를 **로컬 저장소에 백업**한 것 — 이쪽은 애초에 이 저장소
@@ -11,7 +13,7 @@ Artifact로만 존재하던 리포트/강의노트를 **로컬 저장소에 백�
   리포트. 49개 작업·25개 이상 리포트를 하나로 묶어 "최종 권고 시스템이 뭐고, 각 구성요소를 얼마나
   믿어야 하는지"를 신뢰도 등급표 하나로 정리했다. 아래 개별 리포트를 전부 읽을 시간이 없다면
   이것부터 보는 게 가장 빠르다.
-- `methodology_meta_audit_2026-09-14.html` — **위 종합 캡스톤을 포함해 이 저장소 전체 연구
+- `analysis/2026-09-14_methodology_meta_audit/final_report.html` — **위 종합 캡스톤을 포함해 이 저장소 전체 연구
   프로그램(67개 작업, 30개 이상 라운드)이 지금까지 한 번도 하지 않았던 다중비교(multiple
   comparisons) 보정을 처음 적용한 메타 감사**(리서치 에이전트 G, R&D 섹터). 헤드라인 가설 수를
   80개(챔피언 전략 계보만, macro_event_study 55개+와 야간 종목별 튜닝 순열검정은 별도)로 실제
@@ -59,28 +61,28 @@ Artifact로만 존재하던 리포트/강의노트를 **로컬 저장소에 백�
 **트랙 C — 개별주 발굴** (독립, 트랙 B와 이어지지 않음 — 하향식 섹터 로테이션이 아니라 상향식 개별종목 발굴)
 - `tenbagger_stock_picking_research.html` — PER/PBR/PEG의 자본공학적 유도 + 이 저장소의 기존
   시장국면·섹터강도 엔진 실측 + 개별주 텐베거 발굴 방법론 종합
-- `iren_volatile_momentum_stocks_research.html` — 위 텐베거 리포트가 스스로 밝힌 한계(S&P500
+- `analysis/2026-08-16_iren_volatile_momentum_stocks/final_report.html` — 위 텐베거 리포트가 스스로 밝힌 한계(S&P500
   유니버스가 진짜 소형·테마 종목을 구조적으로 배제한다)를 정면으로 다룬 후속 리포트. IREN 같은
   비트코인 채굴→AI/HPC 피벗 테마주의 특징과 실전 매매법을 실측 백테스트로 검증
-- `iren_beta_alpha_hedging_research.html` — 위 리포트와 같은 바스켓으로, "변동성을 어떻게
+- `analysis/2026-08-19_iren_beta_alpha_hedging/final_report.html` — 위 리포트와 같은 바스켓으로, "변동성을 어떻게
   타느냐"가 아니라 "베타를 지키며 알파만 어떻게 골라내느냐"를 가설 4개로 쪼개 검증한 자매 리포트
-- `track_c_bootstrap_confidence_audit_research.html` — 트랙D가 개발한 몬테카를로+블록부트스트랩
+- `analysis/2026-08-30_track_c_bootstrap_confidence_audit/final_report.html` — 트랙D가 개발한 몬테카를로+블록부트스트랩
   방법론을 트랙C 자신의 두 핵심 결론(IREN 추세추종 챔피언, 베타/알파 헤징 H1/H3)에 처음으로
   적용해 신뢰도를 다시 매긴 감사 라운드
-- `iren_basket_collar_hedge_transplant_research.html` — 위 베타/알파 헤징 리포트가 "옵션 인프라가
+- `analysis/2026-09-14_iren_basket_collar_hedge_transplant/final_report.html` — 위 베타/알파 헤징 리포트가 "옵션 인프라가
   없어 정성 논의만 했다"고 남긴 H5를, 트랙D가 라이브로 구현한 합성 블랙숄즈 칼라로 처음 실측
   검증한 후속 리포트. SPY 콜라 헤지가 이 바스켓엔 어떤 노셔널로도 안 통한다는 걸 확인하고, 그
   이유(이 바스켓의 최악 낙폭이 SPY와 거의 무관한 idiosyncratic 사건)까지 구조적으로 규명
-- `options_collar_btc_instrument_transplant_research.html` — 위 리포트가 남긴 다음 질문(SPY가
+- `analysis/2026-09-15_options_collar_hedge_volatility_momentum_basket/final_report.html` — 위 리포트가 남긴 다음 질문(SPY가
   안 맞으면 실제 위험요인에 연동된 기초자산으로 바꿔보면?)을 BTC 표시 콜라로 실측. 낙폭구간에서
   BTC콜라가 SPY콜라·무헤지를 부트스트랩상 뚜렷이 이겨 부분채택 — 단 평시엔 프리미엄이 더 비싸
   "상시 유지"가 아니라 "위기 한정" 헤지로만 읽어야 함
-- `nonai_control_basket_volatility_momentum_research.html` — IREN류 연구가 스스로 남긴 빈틈("진짜
+- `analysis/2026-09-14_nonai_control_basket_volatility_momentum/final_report.html` — IREN류 연구가 스스로 남긴 빈틈("진짜
   비-AI 고변동성 대조군이 없다")을 해운/대마초/태양광 3개 독립 테마 바스켓으로 직접 메운 리포트.
   "돈치안20+15%트레일링스탑 추세추종이 매수후보유·로테이션을 이긴다"는 IREN 패턴이 3개 대조군
   중 어디서도 온전히 재현되지 않아, IREN의 성과가 규칙 자체의 일반 효과라기보다 그 바스켓·그
   표본기간(AI 인프라 슈퍼사이클과 겹침) 고유의 조합 효과일 가능성을 높였다
-- `historical_era_trend_following_extension_research.html` — "표본기간이 4.25년뿐이라 진짜
+- `analysis/2026-09-17_historical_era_trend_following_extension/final_report.html` — "표본기간이 4.25년뿐이라 진짜
   극단적 약세장/크립토윈터를 겪어본 적이 없다"는 반복 지적을 완전히 다른 두 시대로 정면 검증한
   후속 리포트. MARA·RIOT 자신의 AI 피벗 "이전" 역사(2017 ICO붐~2018 진짜 크립토윈터 -90%대
   낙폭~2021, IREN 상장 전 마감)와 1998~2002년 닷컴버블 생존종목 바스켓(-80~99% 낙폭)에 같은
@@ -88,13 +90,13 @@ Artifact로만 존재하던 리포트/강의노트를 **로컬 저장소에 백�
   두 번째로 유의)했지만 닷컴버블은 재현되지 않아(순열검정 백분위 13, 무작위보다 못함) 지금까지
   검증된 6개 독립 시대·바스켓 중 정확히 절반(3/6)만 재현. 표본기간이 짧아서가 아니라 바스켓의
   구조(종목 수·상관관계)가 재현 여부를 가른다는 가설로 재구성했다
-- `live_stock_discovery_snapshot_research.html` — 지금까지의 트랙C가 전부 과거 검증이었던 것과
+- `analysis/2026-09-17_live_tenbagger_screening_snapshot/final_report.html` — 지금까지의 트랙C가 전부 과거 검증이었던 것과
   달리, S&P500 전체를 오늘(2026-09-18) 시점으로 스캔한 순수 라이브 스냅샷(백테스트 아님).
   가중치 강건성·하향식 섹터강도 엔진과의 교차검증·고든모형 밸류에이션 적용가능성·시가총액 분포
   4가지를 감사한 결과, 오늘의 상위 종목은 대형 에너지/금융주 로테이션 후보에 가깝고 "10배 후보"는
   아니라는 걸 재확인 — 하향식이 꼽은 최강 테마(반도체 등 정보기술 계열)와 상향식 상위 종목(에너지
   중심)이 정면으로 어긋난다는 새 발견도 담았다
-- `basket_correlation_structure_predictor_research.html` — "IREN 패턴 재현은 바스켓 상관구조와
+- `analysis/2026-09-19_basket_correlation_structure_predictor/final_report.html` — "IREN 패턴 재현은 바스켓 상관구조와
   관련 있어 보인다"는 이전 라운드의 가설을 사후 패턴매칭이 아니라 상관구조를 먼저 예측한 뒤 결과를
   대조하는 사전등록 방식으로 검증. 결과(재현여부) 예측은 신규 2개 바스켓 모두 적중했지만, 그 결과를
   만든다고 지목한 메커니즘(상관관계 HIGH/LOW) 예측은 절반만 맞아(EV SPAC은 예측과 반대로 8개 중
@@ -102,102 +104,102 @@ Artifact로만 존재하던 리포트/강의노트를 **로컬 저장소에 백�
   통합 정확순열검정에서 가설 전체가 우연 수준(p=0.77)으로 약화됨을 확인
 
 **트랙 D — 종합 가설 검증** (트랙 B+C 통합, 독립 — 지금까지의 두 트랙 결론을 서로 교차검증한다)
-- `permutation_and_quality_momentum_research.html` — (1) 트랙 C의 추세추종 챔피언이 트랙 B에서 쓴
+- `analysis/2026-08-19_permutation_and_quality_momentum_research/final_report.html` — (1) 트랙 C의 추세추종 챔피언이 트랙 B에서 쓴
   순열검정을 통과하는지, (2) 트랙 C의 퀄리티 필터를 트랙 B의 모멘텀 로테이션 앞단에 걸면 나아지는지
   검증
-- `champion_beta_and_satellite_research.html` — (1) point-in-time 인프라로 편향을 걷어낸 소규모
+- `analysis/2026-08-19_champion_beta_and_satellite_research/final_report.html` — (1) point-in-time 인프라로 편향을 걷어낸 소규모
   개별주 새틀라이트를 트랙 B 챔피언에 얹으면 나아지는지, (2) 트랙 B 챔피언 자체의 초과수익이
   진짜 알파인지 위장된 베타인지 검증
-- `satellite_frontier_and_quality_blend_research.html` — 트랙 D의 "작게, 검증 가능하게 더하기"
+- `analysis/2026-08-20_satellite_frontier_and_quality_blend_research/final_report.html` — 트랙 D의 "작게, 검증 가능하게 더하기"
   메타 결론을 두 갈래로 더 파본 3라운드 후속: (1) 새틀라이트 비중의 최적점을 정밀 스윕, (2) 퀄리티
   경성 필터를 연성 블렌드로 바꾸면 폭 붕괴 없이도 통하는지
-- `quality_filter_and_satellite_placebo_research.html` — 3라운드가 남긴 의심 두 개를 무작위 구성
+- `analysis/2026-08-20_quality_filter_and_satellite_placebo_research/final_report.html` — 3라운드가 남긴 의심 두 개를 무작위 구성
   플라시보 검정으로 formal하게 확인한 4라운드: 퀄리티 필터·새틀라이트 모멘텀 선정이 각각 진짜
   신호인지, 아니면 구조/분산 효과를 신호로 착각한 것인지
-- `satellite_signal_upgrade_and_crisis_test_research.html` — 5라운드: 새틀라이트 선정 로직을 이
+- `analysis/2026-08-21_satellite_signal_upgrade_and_crisis_test/final_report.html` — 5라운드: 새틀라이트 선정 로직을 이
   저장소 전체에서 가장 강했던 신호(IREN 추세추종, p≈0.005)로 교체하면 나아지는지, 그리고
   코어-새틀라이트 구조 전체가 2008/2022 위기 구간에서도 버티는지 검증
-- `regime_conditional_satellite_switch_research.html` — 5라운드가 명시적으로 남긴 숙제(위기 때
+- `analysis/2026-08-22_regime_conditional_satellite_switch/final_report.html` — 5라운드가 명시적으로 남긴 숙제(위기 때
   새틀라이트를 꺼야 한다) 실제 구현: 챔피언의 기존 시장국면 필터로 새틀라이트를 켰다 껐다 하면
   강세장 이득은 지키면서 2008년 손실을 막을 수 있는지, 그 스위치의 회전율·반응 지연 같은 현실적
   비용까지 검증
-- `satellite_specific_crisis_signal_research.html` — 6라운드가 스스로 지목한 사각지대("SPY는
+- `analysis/2026-08-22_satellite_specific_crisis_signal_and_2021_case_study/final_report.html` — 6라운드가 스스로 지목한 사각지대("SPY는
   멀쩡한데 새틀라이트만 무너지는 국지적 위기") 검증 — 새틀라이트 전용 위험신호로 이걸 잡을 수
   있는지, 그리고 실제 2021년 말 성장주 언와인드 사례에서 진짜로 그런 사각지대가 있었는지 확인
-- `satellite_realtime_stop_and_reentry_research.html` — 7라운드가 확정한 구멍(2021년 사례에서
+- `analysis/2026-08-22_satellite_realtime_stop_and_reentry_research/final_report.html` — 7라운드가 확정한 구멍(2021년 사례에서
   스위치가 한 달 넘게 아무 반응도 못 함)을 직접 메우는 8라운드: 반기 정적보유 대신 보유종목에
   트레일링스탑을 실시간으로 적용하면 2021년 손실을 실제로 피할 수 있는지, 청산 후엔 즉시
   재진입할지 현금 대기할지
-- `crisis_sample_expansion_and_risk_frontier_research.html` — 8라운드의 "케이스A vs 케이스B"
+- `analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/final_report.html` — 8라운드의 "케이스A vs 케이스B"
   이분법을 위기 표본 5개(2008/2022 기존 + COVID/2018/2015-16 신규)로 검증 보강하고, 트레일링스탑
   폭을 스윕해 이분법을 실제 연속 스펙트럼 프론티어로 확장한 9라운드
-- `vix_fast_crash_signal_and_hybrid_switch_research.html` — 9라운드가 남긴 미해결 과제(급격한
+- `analysis/2026-08-23_vix_fast_crash_signal_and_hybrid_switch/final_report.html` — 9라운드가 남긴 미해결 과제(급격한
   단기 폭락 방어)를 잇는 10라운드: 느린 추세신호(돈치안/SPY200일선) 대신 VIX 급등 신호로
   COVID형 폭락에 더 빨리 반응할 수 있는지, 빠른 신호와 느린 신호를 병행하는 하이브리드 스위치가
   둘 다 잡을 수 있는지 검증
-- `expected_value_reframing_and_continuous_exposure_research.html` — "단일 정답은 없어도 확률로
+- `analysis/2026-08-23_expected_value_reframing_and_continuous_exposure/final_report.html` — "단일 정답은 없어도 확률로
   기댓값은 있다"는 문제의식으로 8~10라운드의 "창별 승패" 비교를 기저확률 가중 기댓값 계산으로
   재구성한 11라운드 — **놀랍게도 지금까지 쌓아온 스위치·청산 메커니즘 전부가 기댓값 기준으로는
   아무것도 안 하는 정적보유에 진다는 결론**
-- `system_vs_buyhold_and_lookback_robustness_research.html` — 13라운드에 걸쳐 한 번도 안 물어본
+- `analysis/2026-08-23_system_vs_buyhold_and_lookback_robustness/final_report.html` — 13라운드에 걸쳐 한 번도 안 물어본
   가장 근본적인 질문: 로테이션 챔피언+새틀라이트 전체 시스템이 기댓값 관점에서 그냥 SPY
   매수보유보다 나은가, 그리고 챔피언의 12개월 모멘텀 룩백기간 자체가 여전히 기댓값 최적인가
-- `vol_targeting_and_rebalance_frequency_expected_value_research.html` — 챔피언의 나머지 두 근본
+- `analysis/2026-08-23_vol_targeting_and_rebalance_frequency_expected_value/final_report.html` — 챔피언의 나머지 두 근본
   설계(변동성타겟팅 오버레이, 월간 리밸런싱 주기)를 같은 기댓값 렌즈로 재검증한 14라운드
-- `base_rate_monte_carlo_sensitivity_research.html` — 11~14라운드가 쓴 기저확률 3-시나리오 방식
+- `analysis/2026-08-23_base_rate_monte_carlo_sensitivity/final_report.html` — 11~14라운드가 쓴 기저확률 3-시나리오 방식
   자체가 충분히 엄밀한지, 진짜 불확실성 분포로 1만 회 몬테카를로 검증 — 지금까지의 "채택" 판정
   중 어디까지가 진짜 강건하고 어디부터 사실 근소한 우위였는지 등급을 매긴 라운드
-- `joint_parameter_interaction_grid_search_research.html` — 룩백기간·리밸런싱주기를 각각 따로
+- `analysis/2026-08-23_joint_parameter_interaction_grid_search/final_report.html` — 룩백기간·리밸런싱주기를 각각 따로
   순차 최적화해온 게 진짜 결합 최적점과 얼마나 가까운지, 2D 그리드서치로 직접 검증한 라운드
-- `champion_parameter_fine_resolution_and_satellite_joint_research.html` — 결합 그리드의 정밀
+- `analysis/2026-08-23_champion_parameter_fine_resolution_and_satellite_joint/final_report.html` — 결합 그리드의 정밀
   해상도 재검증(그 승자가 진짜 뾰족한 정점인지 완만한 고원인지) + 새틀라이트 비중까지 3차원으로
   확장한 후속 라운드
-- `block_bootstrap_sample_error_quantification_research.html` — 몬테카를로 민감도 검증이 못 다룬
+- `analysis/2026-08-23_block_bootstrap_sample_error_quantification/final_report.html` — 몬테카를로 민감도 검증이 못 다룬
   "원본 백테스트 숫자 자체의 표본오차"를 블록부트스트랩으로 정량화 — 가중치 불확실성과 표본오차
   중 뭐가 진짜 지배적인지 밝힌 라운드
-- `bootstrap_confidence_audit_remaining_verdicts_research.html` — 블록부트스트랩 신뢰도 감사를
+- `analysis/2026-08-24_bootstrap_confidence_audit_remaining_verdicts/final_report.html` — 블록부트스트랩 신뢰도 감사를
   나머지 주요 판정(시스템vsSPY, 변동성타겟팅, 리밸런싱주기)까지 전부 확장해 완성한 트랙D 전체
   최종 권고의 신뢰도 종합표
-- `cost_tax_audit_research.html` — 리서치 에이전트 F(비용/세금 감사관)의 첫 실행. 지금까지 한 번도
+- `analysis/2026-09-14_cost_tax_audit/final_report.html` — 리서치 에이전트 F(비용/세금 감사관)의 첫 실행. 지금까지 한 번도
   감사되지 않았던 왕복 0.1% 거래비용 가정을 현실화(왕복 0.5%)하고 한국 거주자 해외주식 양도소득세
   (22%, 250만원 공제)까지 반영 — 방향은 유지되지만 코어의 순열검정 p-value가 0.17~0.24로 관례적
   유의수준을 통과하지 못해 confidence를 WEAK로 하향
-- `satellite_weight_and_core_filter_expected_value_research.html` — 새틀라이트 비중(15%)과
+- `analysis/2026-08-23_satellite_weight_and_core_filter_expected_value/final_report.html` — 새틀라이트 비중(15%)과
   트랙B의 가장 근본적인 설계인 챔피언 코어 자체의 이진 시장필터를 처음으로 기댓값 렌즈로
   재검증 — 필터도 새틀라이트 스위치들과 같은 패턴으로 기댓값에서 진다는 걸 확인한 라운드
   (12라운드로 위임됐으나 세션 한도로 중단, 계산결과는 남아있어 오케스트레이터가 리포트만 완성)
-- `core_filter_bootstrap_and_satellite_weight_extension_research.html` — 코어 시장필터 판정에도
+- `analysis/2026-08-30_core_filter_bootstrap_and_satellite_weight_extension/final_report.html` — 코어 시장필터 판정에도
   블록부트스트랩 감사를 적용해 통합 신뢰도표 6개 판정을 완성하고, 새틀라이트 비중 스윕을 100%까지
   확장해 진짜 정점이 있는지 확인한 트랙D 최종 라운드
-- `risk_adjusted_momentum_ranking_research.html` — 20라운드로 일단락된 뒤 새로 시작한 독립
+- `analysis/2026-08-30_risk_adjusted_momentum_ranking/final_report.html` — 20라운드로 일단락된 뒤 새로 시작한 독립
   가설: 챔피언의 원시 가격 모멘텀 랭킹을 학술적 근거가 있는 위험조정(샤프식) 모멘텀으로 바꾸면
   나아지는지 검증
-- `synthetic_options_tail_hedge_research.html` — 추세신호(SPY/VIX 스위치)로는 구조적으로 못 풀었던
+- `analysis/2026-08-30_synthetic_options_tail_hedge/final_report.html` — 추세신호(SPY/VIX 스위치)로는 구조적으로 못 풀었던
   COVID형 급락 방어를, 감지가 필요 없는 합성 블랙숄즈 풋/칼라 옵션 헤지로 다르게 풀어본 독립 가설
-- `options_hedge_bootstrap_and_combined_system_research.html` — 위 옵션헤지가 남긴 두 과제(표본오차
+- `analysis/2026-09-05_options_hedge_bootstrap_and_combined_system/final_report.html` — 위 옵션헤지가 남긴 두 과제(표본오차
   감사·통합시스템 검증)를 마무리 — COVID 단일창의 극적 승리는 부트스트랩 신뢰구간 앞에서 흔들리지만,
   새틀라이트 비중(15%)으로 희석된 코어+새틀라이트+칼라 통합 시스템에서는 오히려 기댓값이 개선됨
-- `collar_hedge_parameter_sensitivity_research.html` — 작업57에서 라이브화된 합성 칼라(ATM풋/5%OTM콜/
+- `analysis/2026-09-14_collar_hedge_parameter_sensitivity/final_report.html` — 작업57에서 라이브화된 합성 칼라(ATM풋/5%OTM콜/
   21일 롤)의 정확한 숫자가 다른 합리적 선택보다 통계적으로 우월한지 처음 감사 — 24조합 완만성
   그리드는 고원(스파이크 아님)이라 과최적화 의심은 낮췄지만, 무작위 파라미터 200개 대조군 대비
   58.5번째 백분위로 "이 특정 숫자가 정밀 조정된 최적값"이라는 근거는 없음(근거부족). 롤 주기를
   42일(2개월물)로 늘리면 결합전파 승률이 5개 대표 구성 중 가장 높다는 단서는 남겼지만 이 역시
   90% 문턱에는 못 미침(다음 라운드 후보). "칼라가 무헤지보다 기댓값에서 낫다"는 기존 판정(약함)
   자체는 5개 파라미터 변형 전부에서 재확인돼 바뀌지 않음
-- `options_collar_moneyness_tenor_grid_and_placebo_research.html` — 위 감사의 2라운드 후속.
+- `analysis/2026-09-15_options_collar_parameter_sensitivity/final_report.html` — 위 감사의 2라운드 후속.
   풋/콜/테너를 각각 독립 스윕해 테너가 "짧을수록 평시 유리, 길수록 위기 유리"인 진짜 연속
   트레이드오프임을 확인하고, 순열검정(위기창 4개 모두 우연을 압도)+제로페이오프 플라시보(6개 창
   전부에서 실제 페이오프가 이김) 이중 감사로 "칼라가 착시가 아니라 진짜"라는 근거를 보강했지만,
   그럼에도 어느 특정 파라미터 조합이 통계적으로 우월하다는 근거는 여전히 없음 — 약함(weak) 등급
   유지, 근거만 정교해짐
-- `satellite_correlation_crisis_signal_research.html` — 7라운드(`satellite_specific_crisis_signal_
+- `analysis/2026-09-14_satellite_correlation_crisis_signal/final_report.html` — 7라운드(`satellite_specific_crisis_signal_
   research`)가 breadth·낙폭 두 신호로도 못 잡았던 2021년 국지적 위기 사각지대에, 세 번째 신호군
   (보유종목/후보풀 상관관계 급등)을 대입한 독립 후속 라운드. 2021년 사례 반응속도는 개선(SPY
   42거래일·구 breadth신호 61거래일 대비 보유상관 25거래일·풀상관 11거래일로 훨씬 빠름)됐지만,
   보유상관 신호 단독의 전체기간 순열검정은 3번째 백분위(무작위 타이밍보다 오히려 나쁨)로 우려스러움
   — SPY와 OR로 결합하면 3개 기저확률 시나리오 전부에서 SPY 단독보다 근소 우위(승률 54~57%)라는
   최소한의 완화책 정도만 확인. 약함(weak) 판정, 사각지대는 완전히 닫히지 않았다고 정직하게 기록
-- `fine_grid_joint_candidate_bootstrap_audit_research.html` — H32(17라운드)가 찾은 결합 정밀그리드
+- `analysis/2026-09-17_fine_grid_joint_candidate_bootstrap_audit/final_report.html` — H32(17라운드)가 찾은 결합 정밀그리드
   우승 구간(룩백 14~16개월+분기 리밸런싱)이 지금까지 한 번도 받지 못했던 첫 블록부트스트랩 감사.
   H34(18라운드)가 감사했던 "분기 vs 월간"은 룩백을 12개월로 고정한 좁은 질문이라 승률이 49.6%로
   무너졌던 반면, 룩백을 함께 14~16개월로 옮기는 진짜 결합 조합은 18개 비교(3개 후보×3개
@@ -324,7 +326,7 @@ CANSLIM·학계 품질팩터(QMJ)를 종합해 만든 스크리닝 규칙(핫섹
 `analysis/2026-08-16_tenbagger_stock_picking/final_report.html`(빌드: 같은 폴더의
 `build_report.py`, 데이터 수집: `gather_data.py`).
 
-### [iren_volatile_momentum_stocks_research.html](./iren_volatile_momentum_stocks_research.html)
+### [iren_volatile_momentum_stocks_research.html](../../analysis/2026-08-16_iren_volatile_momentum_stocks/final_report.html)
 *(analysis 사본, 트랙 C, No.2)* "IREN류 변동성 테마주 — 특징과 실전 매매법 실증 연구" — 위
 텐베거 리포트가 스스로 밝힌 한계(S&P500 유니버스가 진짜 소형·테마 종목을 구조적으로 배제한다,
 가장 뜨거운 섹터에서조차 시총상한 통과 종목이 0개였음)를 정면으로 다룬 후속 리포트. 사용자가
@@ -346,7 +348,7 @@ Ang·Hodrick·Xing·Zhang 2006/2009의 이디오싱크래틱 변동성 퍼즐)�
 `analysis/2026-08-16_iren_volatile_momentum_stocks/final_report.html`(빌드: 같은 폴더의
 `build_report.py`, 백테스트: `backtest.py`).
 
-### [iren_beta_alpha_hedging_research.html](./iren_beta_alpha_hedging_research.html)
+### [iren_beta_alpha_hedging_research.html](../../analysis/2026-08-19_iren_beta_alpha_hedging/final_report.html)
 *(analysis 사본, 트랙 C, No.3)* "베타는 지키고 알파는 쫓기 — IREN류 종목의 베타/알파 분리 전략
 4가설 검증" — 위 리포트와 같은 피벗 바스켓(IREN·CIFR·CLSK·WULF·HUT·CORZ·BTDR)을 쓰되 질문을
 바꿨다: "변동성을 어떻게 타느냐"가 아니라 "원치 않는 베타(시장·비트코인)는 걷어내고 종목 고유의
@@ -366,7 +368,7 @@ Ang·Hodrick·Xing·Zhang 2006/2009의 이디오싱크래틱 변동성 퍼즐)�
 `analysis/2026-08-19_iren_beta_alpha_hedging/final_report.html`(빌드: 같은 폴더의
 `build_report.py`, 가설별 검증: `h1_market_beta_hedge.py`~`h4_beta_weighted_sizing.py`).
 
-### [track_c_bootstrap_confidence_audit_research.html](./track_c_bootstrap_confidence_audit_research.html)
+### [track_c_bootstrap_confidence_audit_research.html](../../analysis/2026-08-30_track_c_bootstrap_confidence_audit/final_report.html)
 *(analysis 사본, 트랙 C, No.4)* "트랙 C 부트스트랩 신뢰도 감사" — 트랙D가 20라운드에 걸쳐 개발한
 엄밀함(디리클레 몬테카를로+블록부트스트랩)을 트랙C 자신의 두 핵심 결론에 처음으로 적용한 라운드
 (트랙D 완결 뒤 새로 시작한 독립 연구). **감사1(IREN 추세추종 챔피언)** — 순열검정으로는 IREN
@@ -386,7 +388,7 @@ H3의 "부분채택"은 완전 기각 쪽으로 더 약해짐(지배적인 AI피
 명시. 원본: `analysis/2026-08-30_track_c_bootstrap_confidence_audit/final_report.html`(빌드: 같은
 폴더의 `build_report.py`, 검증: `audit1_iren_trend_bootstrap.py`/`audit2_hedging_bootstrap_mc.py`).
 
-### [iren_basket_collar_hedge_transplant_research.html](./iren_basket_collar_hedge_transplant_research.html)
+### [iren_basket_collar_hedge_transplant_research.html](../../analysis/2026-09-14_iren_basket_collar_hedge_transplant/final_report.html)
 *(analysis 사본, 트랙 C, No.5)* "SPY 콜라 옵션 헤지를 IREN 바스켓에 이식하다 — 그리고 왜 안 통하는지
 확인하다" — `iren_beta_alpha_hedging_research`가 "옵션 백테스트 인프라가 없어 정성적 논의로만
 다뤘다"고 명시적으로 남긴 H5를, 트랙D(작업48/49)가 챔피언 새틀라이트 슬리브용으로 라이브 구현한
@@ -415,7 +417,7 @@ FRED 금리, ATM풋매수+5%OTM콜매도, 매월 첫거래일 롤)로 처음 실
 `build_report.py`, 가설별 검증: `h1_h2_collar_transplant.py`/`h3_beta_scaled_sizing_sweep.py`/
 `h4_crash_alignment_check.py`/`h5_bootstrap_audit.py`).
 
-### [options_collar_btc_instrument_transplant_research.html](./options_collar_btc_instrument_transplant_research.html)
+### [options_collar_btc_instrument_transplant_research.html](../../analysis/2026-09-15_options_collar_hedge_volatility_momentum_basket/final_report.html)
 *(analysis 사본, 트랙 C, 위 리포트의 직접 후속)* "SPY 콜라가 안 통하면 기초자산을 바꿔보면
 되지 않을까 — BTC 콜라로 재시도" — 바로 위 리포트가 "이 바스켓의 최악 낙폭은 SPY와 사실상
 무관한 idiosyncratic 사건이라 SPY 옵션이 애초에 트리거될 기회가 없다"고 구조적으로 규명하며
@@ -440,7 +442,7 @@ SPY콜라 대비 68~72%·무헤지 대비 64~67%로 낙폭구간에서만 뚜렷
 같은 폴더의 `build_report.py`, 가설별 검증: `h1_spy_collar.py`/`h2_beta_scaled_collar.py`/
 `h3_btc_collar.py`/`bootstrap_audit.py`).
 
-### [nonai_control_basket_volatility_momentum_research.html](./nonai_control_basket_volatility_momentum_research.html)
+### [nonai_control_basket_volatility_momentum_research.html](../../analysis/2026-09-14_nonai_control_basket_volatility_momentum/final_report.html)
 *(analysis 사본, 트랙 C, No.6)* "변동성 모멘텀 효과인가, AI 테마 효과인가 — 진짜 비-AI 대조군
 바스켓 3개로 분리한다" — `iren_volatile_momentum_stocks_research`(작업27~29)가 "순수 무피벗
 대조군을 찾으려 했으나 MARA·RIOT·Bitfarms까지 전부 AI로 피벗 중이라 대조군이 사실상 존재하지
@@ -470,7 +472,7 @@ IREN 연구가 채택한 돈치안20일 브레이크아웃+15%트레일링스탑
 물려받음). 원본: `analysis/2026-09-14_nonai_control_basket_volatility_momentum/final_report.html`
 (빌드: 같은 폴더의 `build_report.py`, 백테스트: `run_backtest.py`, 감사: `audit_stats.py`).
 
-### [historical_era_trend_following_extension_research.html](./historical_era_trend_following_extension_research.html)
+### [historical_era_trend_following_extension_research.html](../../analysis/2026-09-17_historical_era_trend_following_extension/final_report.html)
 *(analysis 사본, 트랙 C, No.7)* "표본구간을 넘어 — 진짜 크립토윈터와 닷컴버블로 추세추종 규칙을
 재검증하다" — 이 트랙C 라인이 반복 남긴 한계("표본기간이 4.25년뿐이라 진짜 극단적 약세장·크립토
 윈터를 겪어본 적이 없다")를 완전히 다른 두 시대의 독립 바스켓으로 정면 검증한 후속 리포트.
@@ -501,7 +503,7 @@ EBAY·GLW·CIEN·AMZN, JDSU 등 상장폐지 종목은 데이터 없어 제외 �
 `analysis/2026-09-17_historical_era_trend_following_extension/final_report.html`(빌드: 같은
 폴더의 `build_report.py`, 백테스트: `run_backtest.py`, 감사: `audit_stats.py`).
 
-### [live_stock_discovery_snapshot_research.html](./live_stock_discovery_snapshot_research.html)
+### [live_stock_discovery_snapshot_research.html](../../analysis/2026-09-17_live_tenbagger_screening_snapshot/final_report.html)
 *(analysis 사본, 트랙 C, No.8, 백테스트 아님 — 라이브 횡단면 스냅샷)* "오늘 이 순간의 종목 발굴 —
 S&P500 전체를 4팩터로 스캔하고 3가지 방법으로 감사한다" — 지금까지 트랙C 전부가 과거 검증이었던
 것과 달리, `core.stock_discovery.discover_candidates()`로 **2026-09-18 시점** S&P500 503종목
@@ -529,7 +531,7 @@ S&P500 전체를 4팩터로 스캔하고 3가지 방법으로 감사한다" — 
 `build_report.py`, 스캔: `discover_run.py`, 밸류에이션: `valuation_check.py`, 조립:
 `assemble_report_data.py`).
 
-### [basket_correlation_structure_predictor_research.html](./basket_correlation_structure_predictor_research.html)
+### [basket_correlation_structure_predictor_research.html](../../analysis/2026-09-19_basket_correlation_structure_predictor/final_report.html)
 *(analysis 사본, 트랙 C, No.9)* "상관구조가 IREN 패턴 재현을 예측하는가 — 2개 신규 바스켓으로
 사전등록 검증" — historical_era_trend_following_extension(작업88)이 가설로만 남긴 것("IREN 패턴
 재현은 종목수가 적고 상관관계가 높은 바스켓에서 일어난다 — 단 대마초가 반례라 확정하지 못함")을
@@ -558,7 +560,7 @@ S&P500 전체를 4팩터로 스캔하고 3가지 방법으로 감사한다" — 
 폴더의 `build_report.py`, 백테스트: `run_backtest.py`, 상관계산: `correlation_metrics.py`,
 가설검정: `structural_hypothesis_test.py`, 감사: `audit_stats.py`).
 
-### [permutation_and_quality_momentum_research.html](./permutation_and_quality_momentum_research.html)
+### [permutation_and_quality_momentum_research.html](../../analysis/2026-08-19_permutation_and_quality_momentum_research/final_report.html)
 *(analysis 사본, 트랙 D, No.1)* "순열검정으로 챔피언을 다시 심문하고, 퀄리티로 모멘텀을 걸러본다" —
 사용자가 "이전까지의 연구를 바탕으로 가설을 세우고 시장을 이기는 방법을 연구하라"고 요청해 두
 에이전트로 나눠 진행한 4가설 종합검증 중 절반(H3/H4). **H3 — IREN 추세추종 챔피언(작업27, 돈치안
@@ -576,7 +578,7 @@ S&P500 전체를 4팩터로 스캔하고 3가지 방법으로 감사한다" — 
 `analysis/2026-08-19_permutation_and_quality_momentum_research/final_report.html`(빌드: 같은
 폴더의 `build_report.py`, 가설별 검증: `h3_permutation_test.py`/`h4_quality_momentum_hybrid.py`).
 
-### [champion_beta_and_satellite_research.html](./champion_beta_and_satellite_research.html)
+### [champion_beta_and_satellite_research.html](../../analysis/2026-08-19_champion_beta_and_satellite_research/final_report.html)
 *(analysis 사본, 트랙 D, No.2)* "챔피언의 정체와 새틀라이트" — 같은 4가설 종합검증의 나머지
 절반(H1/H2). **H1 — 코어-새틀라이트는 채택** — No.09/10(작업24/25)이 개별주를 통째로 섞다가
 사후편향으로 기각됐던 실패를 뒤집어, `core.point_in_time_market_cap`으로 편향을 걷어낸 소규모
@@ -596,7 +598,7 @@ use_point_in_time_market_cap=True)`로 그 시점 실제 존재감 있던 종목
 원본: `analysis/2026-08-19_champion_beta_and_satellite_research/final_report.html`(빌드: 같은
 폴더의 `build_report.py`, 가설별 검증: `h1_core_satellite.py`/`h2_champion_beta_hedge.py`).
 
-### [satellite_frontier_and_quality_blend_research.html](./satellite_frontier_and_quality_blend_research.html)
+### [satellite_frontier_and_quality_blend_research.html](../../analysis/2026-08-20_satellite_frontier_and_quality_blend_research/final_report.html)
 *(analysis 사본, 트랙 D, No.3)* "새틀라이트 비중 프런티어와 퀄리티 연성 블렌드" — 트랙D의 메타
 결론("정적 규칙은 손해, 작게·검증가능하게 더하는 건 통한다")을 사용자가 다시 "새 가설을 세워
 1시간 정도 더 연구하라"고 요청해 진행한 3라운드 후속. **H5 — 새틀라이트 비중 프런티어는 채택** —
@@ -616,7 +618,7 @@ H1이 10%/20%만 봤던 새틀라이트 비중을 0~50%까지 정밀 스윕(같�
 `analysis/2026-08-20_satellite_frontier_and_quality_blend_research/final_report.html`(빌드: 같은
 폴더의 `build_report.py`, 가설별 검증: `h5_satellite_weight_sweep.py`/`h6_soft_quality_blend.py`).
 
-### [quality_filter_and_satellite_placebo_research.html](./quality_filter_and_satellite_placebo_research.html)
+### [quality_filter_and_satellite_placebo_research.html](../../analysis/2026-08-20_quality_filter_and_satellite_placebo_research/final_report.html)
 *(analysis 사본, 트랙 D, No.4)* "퀄리티 필터와 새틀라이트의 진짜 정체 — 랜덤 구성 플라시보 검정" —
 3라운드(H6)가 말로만 의심하고 실측하진 않았던 것("하드 필터가 통한 건 퀄리티 신호가 아니라 우연히
 좁혀진 부분집합 때문일 수 있다")을 사용자가 다시 "새 가설을 세워 1시간 더 연구하라"고 요청해 formal
@@ -638,7 +640,7 @@ H9의 모멘텀 새틀라이트)은 반복적으로 진짜 가치를 냈다는 �
 폴더의 `build_report.py`, 가설별 검증:
 `h8_quality_filter_placebo.py`/`h9_satellite_selection_placebo.py`).
 
-### [satellite_signal_upgrade_and_crisis_test_research.html](./satellite_signal_upgrade_and_crisis_test_research.html)
+### [satellite_signal_upgrade_and_crisis_test_research.html](../../analysis/2026-08-21_satellite_signal_upgrade_and_crisis_test/final_report.html)
 *(analysis 사본, 트랙 D, No.5)* "새틀라이트 신호 업그레이드와 위기 강건성 검증" — 4라운드까지
 쌓인 패턴("정적 필터는 착시, 동적 신호는 진짜")에서 오케스트레이터가 직접 다음 단계를 도출해 진행한
 5라운드. **H10 — 새틀라이트 선정을 모멘텀에서 추세추종으로 교체는 부분채택(더 강해짐)** — H9가
@@ -660,7 +662,7 @@ H9의 모멘텀 새틀라이트)은 반복적으로 진짜 가치를 냈다는 �
 폴더의 `build_report.py`, 가설별 검증:
 `h10_trend_following_satellite.py`/`h11_crisis_robustness_test.py`).
 
-### [regime_conditional_satellite_switch_research.html](./regime_conditional_satellite_switch_research.html)
+### [regime_conditional_satellite_switch_research.html](../../analysis/2026-08-22_regime_conditional_satellite_switch/final_report.html)
 *(analysis 사본, 트랙 D, No.6)* "국면조건부 새틀라이트 스위치 검증" — 5라운드가 명시적으로 남긴
 숙제(위기 때 새틀라이트를 꺼야 한다)를 실제로 구현·검증한 6라운드. **H12 — 국면조건부 스위치는
 부분채택(사실상 승리에 가까움)** — 새 국면 분류기를 만들지 않고 챔피언이 이미 쓰던 시장필터(SPY
@@ -682,7 +684,7 @@ vs 200일선)를 그대로 재사용해 새틀라이트를 15%/0%로 껐다 켰�
 `analysis/2026-08-22_regime_conditional_satellite_switch/final_report.html`(빌드: 같은 폴더의
 `build_report.py`, 가설별 검증: `h12_regime_switch.py`/`h13_switch_cost_and_lag.py`).
 
-### [satellite_specific_crisis_signal_research.html](./satellite_specific_crisis_signal_research.html)
+### [satellite_specific_crisis_signal_research.html](../../analysis/2026-08-22_satellite_specific_crisis_signal_and_2021_case_study/final_report.html)
 *(analysis 사본, 트랙 D, No.7)* "새틀라이트 전용 위기신호와 2021년 성장주 언와인드 검증" — 6라운드가
 스스로 지목한 사각지대(SPY는 멀쩡한데 새틀라이트 풀만 무너지는 국지적 위기)를 직접 검증한 7라운드.
 **H14 — 새틀라이트 전용 위기신호는 기각** — 새틀라이트 자체의 point-in-time 40종목 풀에서 자체
@@ -705,7 +707,7 @@ SPY 200일선 스위치를 그대로 유지하는 게 최선(새 신호가 하�
 같은 폴더의 `build_report.py`, 가설별 검증:
 `h14_satellite_specific_signal.py`/`h15_2021_growth_unwind_case_study.py`).
 
-### [satellite_realtime_stop_and_reentry_research.html](./satellite_realtime_stop_and_reentry_research.html)
+### [satellite_realtime_stop_and_reentry_research.html](../../analysis/2026-08-22_satellite_realtime_stop_and_reentry_research/final_report.html)
 *(analysis 사본, 트랙 D, No.8)* "새틀라이트 실시간 트레일링스탑 청산과 재진입 정책 검증" — 7라운드가
 확정한 구멍(2021년 사례에서 SPY 스위치가 한 달 넘게 아무 반응도 못 함)을 직접 메운 8라운드. 핵심
 단서: H10의 새틀라이트는 돈치안 브레이크아웃을 "선정"에만 쓰고 정작 트레일링스탑 "청산"은 반기
@@ -729,7 +731,7 @@ SPY 200일선 스위치를 그대로 유지하는 게 최선(새 신호가 하�
 폴더의 `build_report.py`, 가설별 검증:
 `h16_realtime_trailing_stop_exit.py`/`h17_reentry_policy.py`).
 
-### [crisis_sample_expansion_and_risk_frontier_research.html](./crisis_sample_expansion_and_risk_frontier_research.html)
+### [crisis_sample_expansion_and_risk_frontier_research.html](../../analysis/2026-08-23_crisis_sample_expansion_and_risk_frontier/final_report.html)
 *(analysis 사본, 트랙 D, No.9)* "위기 표본 확장과 실시간청산 리스크 프론티어 연구" — 8라운드가
 남긴 "단일 정답 없음"이라는 결론을 표본 2개(2008/2022)에만 기대고 있던 걸 보강한 9라운드.
 **H18 — 위기 표본 확장(n=2→n=5)은 부분채택** — COVID 폭락(2020)·2018년 12월 셀오프·2015-16년
@@ -751,7 +753,7 @@ SPY 200일선 스위치를 그대로 유지하는 게 최선(새 신호가 하�
 같은 폴더의 `build_report.py`, 가설별 검증:
 `h18_expanded_crisis_samples.py`/`h19_risk_return_frontier.py`).
 
-### [vix_fast_crash_signal_and_hybrid_switch_research.html](./vix_fast_crash_signal_and_hybrid_switch_research.html)
+### [vix_fast_crash_signal_and_hybrid_switch_research.html](../../analysis/2026-08-23_vix_fast_crash_signal_and_hybrid_switch/final_report.html)
 *(analysis 사본, 트랙 D, No.10)* "VIX 신속 위기신호와 이중속도 하이브리드 스위치 연구" — 9라운드가
 명시적으로 남긴 미해결 과제(급격한 단기 폭락 방어)를 잇는 10라운드. **H20 — VIX 급등 기반 신속
 위기신호는 부분채택** — `core.market_regime`가 이미 쓰던 "패닉" 밴드(VIX≥30) 또는 10일 급등률
@@ -773,7 +775,7 @@ COVID는 여전히 무대응(코어단독)보다 못하고(새틀라이트 자�
 `analysis/2026-08-23_vix_fast_crash_signal_and_hybrid_switch/final_report.html`(빌드: 같은 폴더의
 `build_report.py`, 가설별 검증: `h20_vix_fast_signal.py`/`h21_hybrid_switch.py`).
 
-### [expected_value_reframing_and_continuous_exposure_research.html](./expected_value_reframing_and_continuous_exposure_research.html)
+### [expected_value_reframing_and_continuous_exposure_research.html](../../analysis/2026-08-23_expected_value_reframing_and_continuous_exposure/final_report.html)
 *(analysis 사본, 트랙 D, No.11)* "기댓값 재구성과 연속 노출 사이징 연구" — 사용자가 "단일 정답은
 없어도 확률을 통해 기댓값을 올리는 것"이라고 방향을 재설정 — 8~10라운드가 "이 창에선 이기고 저
 창에선 진다"는 식으로만 비교했던 걸, 실제 기저확률로 가중한 기댓값 계산으로 정식화한 11라운드.
@@ -798,7 +800,7 @@ COVID는 여전히 무대응(코어단독)보다 못하고(새틀라이트 자�
 같은 폴더의 `build_report.py`, 가설별 검증:
 `h22_expected_value_reweighting.py`/`h23_continuous_exposure_sizing.py`).
 
-### [system_vs_buyhold_and_lookback_robustness_research.html](./system_vs_buyhold_and_lookback_robustness_research.html)
+### [system_vs_buyhold_and_lookback_robustness_research.html](../../analysis/2026-08-23_system_vs_buyhold_and_lookback_robustness/final_report.html)
 *(analysis 사본, 트랙 D, No.12)* "전체 시스템 vs 매수보유, 그리고 룩백기간 강건성" — 13라운드에
 걸쳐 한 번도 정면으로 안 물어본 두 질문을 던진 라운드. **H26 — 전체 시스템 vs SPY 매수보유는
 채택(시스템이 이긴다)** — 로테이션 챔피언 단독/챔피언+15% 새틀라이트(11라운드가 확정한 기댓값
@@ -816,7 +818,7 @@ SPY 대비 우위의 대부분은 로테이션+필터(챔피언 자체)에서 �
 폴더의 `build_report.py`, 가설별 검증:
 `h26_system_vs_spy_buyhold.py`/`h27_momentum_lookback_expected_value.py`).
 
-### [vol_targeting_and_rebalance_frequency_expected_value_research.html](./vol_targeting_and_rebalance_frequency_expected_value_research.html)
+### [vol_targeting_and_rebalance_frequency_expected_value_research.html](../../analysis/2026-08-23_vol_targeting_and_rebalance_frequency_expected_value/final_report.html)
 *(analysis 사본, 트랙 D, No.13)* "코어 변동성타겟팅과 리밸런싱 주기, 기댓값으로 다시 본다" —
 챔피언의 남은 두 근본 설계 선택을 재검증한 14라운드(12라운드 H24/H25와 병렬 진행). **H28 — 코어
 레벨 변동성타겟팅은 세 시나리오 전부에서 기각** — No.06이 밝힌 "샤프는 살짝 깎고 MDD는 줄인다"는
@@ -837,7 +839,7 @@ MDD 개선폭도 0.3%p뿐) — 17자산 분산+이진 시장필터가 이미 변
 같은 폴더의 `build_report.py`, 가설별 검증:
 `h28_vol_targeting_expected_value.py`/`h29_rebalance_frequency_expected_value.py`).
 
-### [base_rate_monte_carlo_sensitivity_research.html](./base_rate_monte_carlo_sensitivity_research.html)
+### [base_rate_monte_carlo_sensitivity_research.html](../../analysis/2026-08-23_base_rate_monte_carlo_sensitivity/final_report.html)
 *(analysis 사본, 트랙 D, No.14)* "기저확률 가정, 몬테카를로로 정직하게 흔들어본다" — 사용자가
 "가정을 더 세밀하게 세우고 엄밀히 검증하라"고 요청해 진행한 15라운드(12라운드 H24/H25, 16라운드
 H31과 병렬). H22 이후 4개 라운드가 전부 써온 "기본/평온중시/위기중시" 3-시나리오 방식은 점추정치
@@ -858,7 +860,7 @@ H26의 "시스템이 SPY매수보유를 이긴다"는 89.8%로 준강건. 반면
 명시. 원본: `analysis/2026-08-23_base_rate_monte_carlo_sensitivity/final_report.html`(빌드:
 같은 폴더의 `build_report.py`, 검증: `h30_monte_carlo_base_rate_sensitivity.py`).
 
-### [joint_parameter_interaction_grid_search_research.html](./joint_parameter_interaction_grid_search_research.html)
+### [joint_parameter_interaction_grid_search_research.html](../../analysis/2026-08-23_joint_parameter_interaction_grid_search/final_report.html)
 *(analysis 사본, 트랙 D, No.15)* "모멘텀 룩백 x 리밸런싱 주기, 결합 그리드로 다시 본다" —
 15라운드와 같은 문제의식("가정을 세밀하게, 엄밀히 검증")으로 병렬 진행한 16라운드. 지금까지 룩백
 기간(H27, 작업40)과 리밸런싱 주기(H29, 작업41)를 각각 다른 파라미터를 고정한 채 따로따로
@@ -879,7 +881,7 @@ H22와 같은 기댓값 가중을 적용 — **세 시나리오 전부에서 결
 `analysis/2026-08-23_joint_parameter_interaction_grid_search/final_report.html`(빌드: 같은
 폴더의 `build_report.py`, 검증: `h31_joint_parameter_grid.py`).
 
-### [champion_parameter_fine_resolution_and_satellite_joint_research.html](./champion_parameter_fine_resolution_and_satellite_joint_research.html)
+### [champion_parameter_fine_resolution_and_satellite_joint_research.html](../../analysis/2026-08-23_champion_parameter_fine_resolution_and_satellite_joint/final_report.html)
 *(analysis 사본, 트랙 D, No.16)* "파라미터 정밀 그리드 · 새틀라이트 결합 연구" — 16라운드(H31)가
 명시적으로 남긴 두 과제(정밀 해상도, 새틀라이트 3차원 결합)를 이어받은 17라운드. **1단계 정밀
 그리드(부분채택)** — 룩백 9~18개월(10개)×리밸런싱 4개 = 40칸(창당 240회 백테스트)으로 해상도를
@@ -898,7 +900,7 @@ H22와 같은 기댓값 가중을 적용 — **세 시나리오 전부에서 결
 `analysis/2026-08-23_champion_parameter_fine_resolution_and_satellite_joint/final_report.html`
 (빌드: 같은 폴더의 `build_report.py`, 검증: `h32_fine_grid_and_satellite_joint.py`).
 
-### [block_bootstrap_sample_error_quantification_research.html](./block_bootstrap_sample_error_quantification_research.html)
+### [block_bootstrap_sample_error_quantification_research.html](../../analysis/2026-08-23_block_bootstrap_sample_error_quantification/final_report.html)
 *(analysis 사본, 트랙 D, No.17)* "블록부트스트랩 표본오차 정량화" — 15라운드(H30)가 "가중치
 불확실성만 다뤘다"고 명시적으로 남긴 한계를 이어받아, 원본 샤프/CAGR 숫자 자체의 표본오차를
 정량화한 18라운드(17라운드와 병렬). H22의 핵심 비교(코어단독 vs 코어+정적새틀라이트)에 대해
@@ -916,7 +918,7 @@ H22와 같은 기댓값 가중을 적용 — **세 시나리오 전부에서 결
 (빌드: 같은 폴더의 `build_report.py`, 검증:
 `h33_block_bootstrap_sample_error.py`/`h33b_combined_propagation.py`).
 
-### [bootstrap_confidence_audit_remaining_verdicts_research.html](./bootstrap_confidence_audit_remaining_verdicts_research.html)
+### [bootstrap_confidence_audit_remaining_verdicts_research.html](../../analysis/2026-08-24_bootstrap_confidence_audit_remaining_verdicts/final_report.html)
 *(analysis 사본, 트랙 D, No.18)* "블록부트스트랩 신뢰도 감사 확장" — 18라운드(H33)가 H22 하나에만
 적용했던 신뢰도 감사를, 아직 손 안 댄 나머지 세 주요 판정(H26 시스템vsSPY, H28 변동성타겟팅,
 H32 리밸런싱주기)까지 전부 확장해 트랙D 전체의 최종 신뢰도 종합표를 완성한 19라운드. 사용자가
@@ -936,7 +938,7 @@ H28 변동성타겟팅없음 96.5%→49.7%(반전/미지지), H32 분기리밸�
 `analysis/2026-08-24_bootstrap_confidence_audit_remaining_verdicts/final_report.html`(빌드:
 같은 폴더의 `build_report.py`, 검증: `h34_bootstrap_audit_remaining_verdicts.py`).
 
-### [satellite_weight_and_core_filter_expected_value_research.html](./satellite_weight_and_core_filter_expected_value_research.html)
+### [satellite_weight_and_core_filter_expected_value_research.html](../../analysis/2026-08-23_satellite_weight_and_core_filter_expected_value/final_report.html)
 *(analysis 사본, 트랙 D, No.19)* "챔피언의 시장필터 자체도 기댓값에서 진다" — 12라운드로 가장
 먼저 위임됐지만 세션 한도로 완료 알림 없이 중단됐다가(계산 자체는 h24/h25_results.json에 전부
 남아있었음), 사용자 부재 중 자율 진행 과정에서 오케스트레이터가 데이터를 검증하고 리포트만
@@ -958,7 +960,7 @@ vs 0.75, 0.46 vs 0.30), COVID 위기창에서는 필터가 크게 짐(0.13 vs 0.
 같은 폴더의 `build_report.py`, 검증: `h24_satellite_weight_expected_value.py`/
 `h25_core_filter_expected_value.py`).
 
-### [core_filter_bootstrap_and_satellite_weight_extension_research.html](./core_filter_bootstrap_and_satellite_weight_extension_research.html)
+### [core_filter_bootstrap_and_satellite_weight_extension_research.html](../../analysis/2026-08-30_core_filter_bootstrap_and_satellite_weight_extension/final_report.html)
 *(analysis 사본, 트랙 D, No.20, 최종 라운드)* "이진 시장필터의 승리는 표본오차에 무너지고,
 새틀라이트 비중은 100%까지도 정점을 못 찾는다" — 19라운드(H24/H25)가 명시적으로 남긴 두 과제를
 마무리한 트랙D의 마지막 라운드. **H35 — 코어 시장필터 판정의 블록부트스트랩 감사(예상대로
@@ -985,7 +987,7 @@ vs 0.75, 0.46 vs 0.30), COVID 위기창에서는 필터가 크게 짐(0.13 vs 0.
 (빌드: 같은 폴더의 `build_report.py`, 검증:
 `h35_core_filter_bootstrap_audit.py`/`h36_satellite_weight_extended_sweep.py`).
 
-### [risk_adjusted_momentum_ranking_research.html](./risk_adjusted_momentum_ranking_research.html)
+### [risk_adjusted_momentum_ranking_research.html](../../analysis/2026-08-30_risk_adjusted_momentum_ranking/final_report.html)
 *(analysis 사본, 트랙 D 후속, 독립)* "위험조정 모멘텀 랭킹 검증" — 트랙D 20라운드가 일단락된 뒤
 사용자가 하위 에이전트 3개를 새로 분화해 시작한 독립 가설 중 하나. 챔피언이 지금까지 쓴 원시
 12개월 가격 모멘텀 랭킹을, 학술적 근거(Barroso & Santa-Clara 2015 위험관리 모멘텀, Daniel &
@@ -1004,7 +1006,7 @@ COVID형 반등을 놓친다는 메커니즘)으로 결과를 설명. 원본:
 `analysis/2026-08-30_risk_adjusted_momentum_ranking/final_report.html`(빌드: 같은 폴더의
 `build_report.py`, 검증: `h_risk_adjusted_momentum.py`).
 
-### [synthetic_options_tail_hedge_research.html](./synthetic_options_tail_hedge_research.html)
+### [synthetic_options_tail_hedge_research.html](../../analysis/2026-08-30_synthetic_options_tail_hedge/final_report.html)
 *(analysis 사본, 트랙 D 후속, 독립)* "합성 옵션 테일 리스크 헤지" — 같은 하위 에이전트 3개
 분화에서 시작한 또 다른 독립 가설. 작업34~38이 반복 확인한 미해결 문제("SPY/VIX 스위치·트레일링
 스탑 등 추세신호는 COVID형 수직급락을 구조적으로 못 잡는다")를, 추세 감지가 아예 필요 없는
@@ -1026,7 +1028,7 @@ vs S&P500 9.8%/0.66)와 방향이 일치. **최종 판정**: 가짜 승리가 �
 `analysis/2026-08-30_synthetic_options_tail_hedge/final_report.html`(빌드: 같은 폴더의
 `build_report.py`, 검증: `h_options_hedge.py`).
 
-### [options_hedge_bootstrap_and_combined_system_research.html](./options_hedge_bootstrap_and_combined_system_research.html)
+### [options_hedge_bootstrap_and_combined_system_research.html](../../analysis/2026-09-05_options_hedge_bootstrap_and_combined_system/final_report.html)
 *(analysis 사본, 트랙 D 후속, 독립)* "칼라 옵션 헤지, COVID 단일창의 극적 승리는 부트스트랩
 신뢰구간 앞에서 흔들리지만 — 새틀라이트 비중으로 희석된 통합 시스템에서는 되레 기댓값이 개선된다"
 — 위 옵션헤지 리포트가 명시적으로 남긴 두 과제(표본오차 감사·통합시스템 검증)를 마무리한 라운드.
@@ -1046,7 +1048,7 @@ H22와 동일한 기저확률 가중으로 코어단독/코어+새틀라이트(�
 `analysis/2026-09-05_options_hedge_bootstrap_and_combined_system/final_report.html`(빌드: 같은
 폴더의 `build_report.py`, 검증: `h_bootstrap_audit.py`/`h_combined_system_ev.py`).
 
-### [collar_hedge_parameter_sensitivity_research.html](./collar_hedge_parameter_sensitivity_research.html)
+### [collar_hedge_parameter_sensitivity_research.html](../../analysis/2026-09-14_collar_hedge_parameter_sensitivity/final_report.html)
 *(analysis 사본, 트랙D 이후 독립)* "칼라 옵션 헤지의 행사가·만기 숫자는 특별하지 않다" — 작업57이
 core/champion_strategy.py로 라이브화한 합성 칼라(ATM 풋 매수+5% OTM 콜 매도, 21거래일 월물 롤)의
 정확한 파라미터가 이 프로그램의 표준 감사(스윕+플라시보+블록부트스트랩+기저확률 기댓값)를 한 번도
@@ -1068,7 +1070,7 @@ core/champion_strategy.py로 라이브화한 합성 칼라(ATM 풋 매수+5% OTM
 `analysis/2026-09-14_collar_hedge_parameter_sensitivity/final_report.html`(빌드: 같은 폴더의
 `build_report.py`, 검증: `h_collar_sensitivity.py`).
 
-### [options_collar_moneyness_tenor_grid_and_placebo_research.html](./options_collar_moneyness_tenor_grid_and_placebo_research.html)
+### [options_collar_moneyness_tenor_grid_and_placebo_research.html](../../analysis/2026-09-15_options_collar_parameter_sensitivity/final_report.html)
 *(analysis 사본, 트랙D 이후 독립, 위 리포트의 2라운드 후속)* "칼라의 정확한 행사가·만기가
 특별하지 않다는 결론은 맞다 — 하지만 그 헤지 자체는 착시가 아니라 진짜다" — 바로 위 라운드가
 24조합 그리드+무작위 200개 플라시보 하나로 답했던 질문을, put_moneyness/call_moneyness/tenor를
@@ -1099,7 +1101,7 @@ H3b 제로페이오프 플라시보)로 다시 감사한 확장판. 리서치 �
 (빌드: 같은 폴더의 `build_report.py`, 검증: `h1_champion_returns_cache.py`/
 `h2_moneyness_tenor_grid.py`/`h3_placebo_and_permutation.py`/`h4_block_bootstrap_audit.py`).
 
-### [satellite_correlation_crisis_signal_research.html](./satellite_correlation_crisis_signal_research.html)
+### [satellite_correlation_crisis_signal_research.html](../../analysis/2026-09-14_satellite_correlation_crisis_signal/final_report.html)
 *(analysis 사본, 트랙D 7라운드의 독립 후속)* "새틀라이트 전용 위기신호 3번째 시도 — 상관관계
 급등" — 작업35(7라운드, `satellite_specific_crisis_signal_research`)가 자체 breadth(200일선
 상회비율)·트레일링 드로다운 두 신호 모두 SPY 200일선 스위치를 못 이기고 기각당했던 것과 달리,
@@ -1128,7 +1130,7 @@ SPY 단독 스위치는 3개 시나리오 전부에서 최하위(코어단독·�
 `analysis/2026-09-14_satellite_correlation_crisis_signal/final_report.html`(빌드: 같은 폴더의
 `build_report.py`, 검증: `h_signals_and_backtest.py`/`h_bootstrap_and_permutation.py`).
 
-### [fine_grid_joint_candidate_bootstrap_audit_research.html](./fine_grid_joint_candidate_bootstrap_audit_research.html)
+### [fine_grid_joint_candidate_bootstrap_audit_research.html](../../analysis/2026-09-17_fine_grid_joint_candidate_bootstrap_audit/final_report.html)
 *(analysis 사본, 트랙D 21라운드, 리서치 에이전트 B 무인 야간 실행)* "이번엔 동전던지기로 안
 무너졌다" — H32(작업44, 17라운드)가 룩백 9~18개월×리밸런싱 4주기 40칸 정밀그리드에서 찾은 결합
 우승 구간(14~16개월+분기, 샤프 격차 0.01~0.014의 "완만한 고원")이 지금까지 한 번도 블록부트스트랩
@@ -1156,7 +1158,7 @@ SPY 단독 스위치는 3개 시나리오 전부에서 최하위(코어단독·�
 원본: `analysis/2026-09-17_fine_grid_joint_candidate_bootstrap_audit/final_report.html`(빌드:
 같은 폴더의 `build_report.py`, 검증: `h_joint_candidate_bootstrap.py`/`build_report_data.py`).
 
-### [strategy_candidate_1_trade_frequency_research.html](./strategy_candidate_1_trade_frequency_research.html)
+### [strategy_candidate_1_trade_frequency_research.html](../../analysis/2026-09-14_strategy_candidate_1/final_report.html)
 *(analysis 사본, R&D 섹터 에이전트 D, 라운드 1, 독립)* "기존 챔피언 구조 중 어느 쪽이 '월 1~3회'
 제약에 맞는가" — 사용자가 실제로 원하는 매매빈도(월 1회, 많아야 3회)를 이 저장소가 처음으로
 직접 실측한 라운드. 새 전략을 발명하지 않고 `core/champion_strategy.py`의 라이브 기본값 두
@@ -1174,7 +1176,7 @@ SPY 매수보유 대비 참고: CAGR 14.64%, MDD -34.10%, 샤프 0.79). 순열�
 `analysis/2026-09-14_strategy_candidate_1/final_report.html`(빌드: 같은 폴더의
 `build_report.py`, 계산: `build_candidates.py`).
 
-### [cost_tax_audit_research.html](./cost_tax_audit_research.html)
+### [cost_tax_audit_research.html](../../analysis/2026-09-14_cost_tax_audit/final_report.html)
 *(analysis 사본, 리서치 에이전트 F 첫 실행, 독립)* "왕복 0.1% 비용가정, 이 저장소가 지금까지
 한 번도 감사하지 않은 숫자를 처음 열어본다" — R&D 섹터 에이전트 F(비용/세금/리스크 감사관)의
 첫 실행. 실행 시점에 에이전트 D의 새 후보(`analysis/LATEST_STRATEGY_CANDIDATE.md`)가 아직 없어,
@@ -1198,7 +1200,7 @@ SPY 매수보유 대비 참고: CAGR 14.64%, MDD -34.10%, 샤프 0.79). 순열�
 같은 폴더의 `build_report.py`, 검증: `step1_cost_scenarios.py`/`step2_permutation_bootstrap.py`/
 `step3_tax_simulation.py`).
 
-### [literature_benchmark_momentum_ranking_research.html](./literature_benchmark_momentum_ranking_research.html)
+### [literature_benchmark_momentum_ranking_research.html](../../analysis/2026-09-14_literature_benchmark/final_report.html)
 *(analysis 사본, 리서치 에이전트 H — 학술 문헌/외부 벤치마크 조사관, 첫 실행)* "모멘텀 랭킹
 문헌 대조" — 이 저장소 밖의 시각(학술 논문)을 처음으로 들여온 리포트. confidence_table의
 "모멘텀 랭킹 방식"(moderate)·"위험조정 모멘텀 랭킹"(reversed) 두 항목을 실제 웹검색으로 찾은
