@@ -7,4 +7,6 @@ Wants=network-online.target
 Type=oneshot
 User=quant
 WorkingDirectory=/opt/quant
+# /var/lib/quant-github-watch 를 quant 소유로 자동 생성·유지한다(재부팅 후에도 남는다).
+StateDirectory=quant-github-watch
 ExecStart=/usr/bin/python3 /opt/quant/deploy/github_watch.py
