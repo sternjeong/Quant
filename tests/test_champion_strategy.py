@@ -2110,3 +2110,59 @@ def test_check_and_notify_upcoming_rebalance_includes_collar_line_when_core_reba
     champion_strategy.check_and_notify_upcoming_rebalance(notify_fn=sent.append)
 
     assert "칼라" in sent[0]
+
+
+def test_core_recommendation_spy_missing_is_unknown_and_holds_new_orders(monkeypatch):
+    """ENG-03: SPY 데이터가 없으면 full exposure로 조용히 대체하지 않고 unknown + 신규 주문 보류."""
+    def _fake(ticker, start=None, end=None, use_cache=True, **kwargs):
+        if ticker == "SPY":
+            return pd.DataFrame()
+        return _flat_then_return_df(CORE_N, 8.0)
+
+    monkeypatch.setattr(champion_strategy, "get_price_history", _fake)
+    result = champion_strategy.compute_core_recommendation()
+
+    assert result["market_filter_status"] == "unknown"
+    assert result["above_200dma"] is None
+    assert result["new_orders_allowed"] is False
+    assert result["per_ticker_weights"] == {}
+    assert result["exposure_multiplier"] != 1.0
+    assert "SPY" in result["allocation_reason"]
+    assert result["data_coverage"]["market_filter_available"] is False
+
+
+def test_core_recommendation_snapshot_metadata(monkeypatch):
+    spy_df = _flat_then_return_df(SPY_N, total_return_pct=5.0)
+
+    def _fake(ticker, start=None, end=None, use_cache=True, **kwargs):
+        if ticker == "SPY":
+            return spy_df.copy()
+        if ticker == "XLU":
+            return pd.DataFrame()
+        return _flat_then_return_df(CORE_N, 8.0)
+
+    monkeypatch.setattr(champion_strategy, "get_price_history", _fake)
+    result = champion_strategy.compute_core_recommendation()
+
+    assert result["market_filter_status"] == "above"
+    assert result["new_orders_allowed"] is True
+    assert result["last_trading_date"] == spy_df.index[-1].strftime("%Y-%m-%d")
+    cov = result["data_coverage"]
+    assert cov["universe_total"] == len(champion_strategy.CORE_UNIVERSE)
+    assert cov["universe_available"] == len(champion_strategy.CORE_UNIVERSE) - 1
+    assert cov["missing_tickers"] == ["XLU"]
+    assert result["strategy_version"] == champion_strategy.CHAMPION_STRATEGY_VERSION
+    assert result["allocation_reason"]
+
+
+def test_ledger_entry_skipped_when_market_filter_unknown(patched_champion_session, monkeypatch):
+    monkeypatch.setattr(
+        champion_strategy, "compute_core_recommendation",
+        lambda: {"new_orders_allowed": False, "market_filter_status": "unknown", "per_ticker_weights": {},
+                 "allocation_reason": "SPY 없음"},
+    )
+    monkeypatch.setattr(champion_strategy, "compute_satellite_recommendation",
+                        lambda: {"per_ticker_weights": {}})
+    result = champion_strategy.record_daily_ledger_entry()
+    assert result.get("skipped") is True
+    assert result.get("reason")

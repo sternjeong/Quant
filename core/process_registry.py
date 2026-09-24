@@ -114,6 +114,19 @@ PROCESS_REGISTRY: dict[str, dict] = {
         "description": "티커별 뉴스 요약 HTML/텔레그램 보고 (매일 07:30 KST)",
         "category": "alert", "default_enabled": True,
     },
+    "candidate_ledger_record": {
+        "label": "후보 shadow 원장 기록 (RES-01)",
+        "description": (
+            "발굴/섹터리더/새틀라이트 후보 전체(채택+보류+거절)를 관측 전용으로 동결 기록 — 주문에는 "
+            "영향 없음, 성과·승률 개선을 아직 입증하지 않은 연구 인프라 (00:27 KST)"
+        ),
+        "category": "research", "default_enabled": True,
+    },
+    "candidate_ledger_outcome_update": {
+        "label": "후보 shadow 원장 성과 채움 (RES-01)",
+        "description": "이미 기록된 후보 판단의 만기 도래한 horizon 결과를 가격 캐시로 채움 (00:28 KST)",
+        "category": "research", "default_enabled": True,
+    },
 }
 
 

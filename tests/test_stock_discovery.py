@@ -204,3 +204,74 @@ def test_universe_n_limits_scanned_tickers(monkeypatch):
     result = sd_mod.discover_candidates(use_cache=False, top_n=10, universe_n=2)
     # universe_n=2 -> 유니버스 앞 2개(AAA, BBB)만 스캔되므로 나머지는 절대 포함될 수 없음
     assert set(result["ticker"]) <= {"AAA", "BBB"}
+
+
+# ---- ENG-07: 업종 내 percentile / 결측 플래그 / 기여도 / PIT 메타 ----
+
+def test_sector_percentile_ranks_within_sector_not_global():
+    vals = pd.Series([1.0, 2.0, 3.0, 100.0, 200.0, 300.0])
+    sectors = pd.Series(["A", "A", "A", "B", "B", "B"])
+    score, fb = sd_mod._sector_percentile(vals, sectors)
+    # 원시값이 훨씬 큰 B 업종이어도 업종 내 순위이므로 두 업종의 최고점은 동일
+    assert score.iloc[2] == score.iloc[5] == 100.0
+    assert score.iloc[0] == score.iloc[3]
+    assert not fb.any()
+
+
+def test_sector_percentile_small_sector_falls_back_and_flags():
+    vals = pd.Series([1.0, 2.0, 3.0, 4.0, np.nan])
+    sectors = pd.Series(["A", "A", "A", "B", "B"])
+    score, fb = sd_mod._sector_percentile(vals, sectors)
+    assert bool(fb.iloc[3]) is True  # B 는 유효 1개 -> 전체 대체 + 플래그
+    assert score.iloc[4] == 0.0 and not fb.iloc[4]  # 결측은 0점, 대체 대상 아님
+
+
+def test_result_has_missing_flags_and_contributions(monkeypatch):
+    _install_mocks(monkeypatch)
+    w = {"momentum": 0.3, "growth": 0.3, "value": 0.25, "quality": 0.15}
+    raw = sd_mod.discover_candidates(use_cache=False, top_n=10, weights=w)
+    for col in sd_mod.RESULT_COLUMNS:
+        assert col in raw.columns
+    res = raw.set_index("ticker")
+    assert set(res.loc["FFF", "missing_factors"]) == {"growth", "value", "quality"}
+    assert bool(res.loc["FFF", "growth_missing"]) and not bool(res.loc["AAA", "growth_missing"])
+    assert res.loc["AAA", "n_missing_factors"] == 0
+    for t in res.index:
+        contrib = sum(res.loc[t, f"{f}_contrib"] for f in sd_mod.FACTORS)
+        assert contrib == pytest.approx(res.loc[t, "composite_score"])
+
+
+def test_fallback_flags_explicit(monkeypatch):
+    _install_mocks(monkeypatch)
+    res = sd_mod.discover_candidates(use_cache=False, top_n=10).set_index("ticker")
+    # FFF: longName 없음 -> fundamentals 는 {} (v 가 all-None dict 이라 truthy) 이므로 name 대체가 flag 로 남는다
+    assert "name_is_ticker" in res.loc["FFF", "fallback_flags"] or "name_from_fundamentals" in res.loc["FFF", "fallback_flags"]
+    assert "value_loss_making" in res.loc["DDD", "fallback_flags"]
+    # 2종목 업종뿐인 합성 유니버스 -> 업종 내 표본 부족 대체가 명시됨
+    assert bool(res.loc["AAA", "sector_rank_fallback"])
+
+
+def test_data_errors_recorded_not_silent(monkeypatch):
+    _install_mocks(monkeypatch)
+
+    def boom(ticker, use_cache=True):
+        raise RuntimeError("x")
+
+    monkeypatch.setattr(sd_mod.valuation, "fetch_valuation_inputs", boom)
+    res = sd_mod.discover_candidates(use_cache=False, top_n=10)
+    assert all("valuation_inputs" in e for e in res["data_errors"])
+
+
+def test_pit_meta_marks_not_verified(monkeypatch):
+    _install_mocks(monkeypatch)
+    res = sd_mod.discover_candidates(use_cache=False, top_n=10)
+    assert res.attrs["meta"]["pit_verified"] is False
+    assert res.attrs["meta"]["as_of_filter_applied"] is False
+
+    import core.point_in_time_universe as pit
+
+    monkeypatch.setattr(pit, "get_constituents_as_of", lambda d: (_ for _ in ()).throw(ValueError("no data")))
+    res2 = sd_mod.discover_candidates(use_cache=False, top_n=10, as_of_date="2020-01-01")
+    assert res2.attrs["meta"]["pit_verified"] is False
+    assert "no data" in res2.attrs["meta"]["as_of_filter_error"]
+    assert not res2.empty

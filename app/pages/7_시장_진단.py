@@ -464,6 +464,8 @@ def _render_regime_strength() -> None:
                 st.success(f"🐂 **{regime}**  (종합 점수 {score:+.0f}점)")
             elif regime == "약세장":
                 st.error(f"🐻 **{regime}**  (종합 점수 {score:+.0f}점)")
+            elif regime == "unknown":
+                st.warning("❓ **판단 불가(unknown)** — 시장폭 데이터가 없어 국면을 확정하지 않았습니다.")
             else:
                 st.info(f"😐 **{regime}**  (종합 점수 {score:+.0f}점)")
 
@@ -490,13 +492,16 @@ def _render_regime_strength() -> None:
                 else:
                     st.metric("52주 고점 대비", "데이터 부족")
             with cols[3]:
-                st.metric(
-                    "시장폭(200일선 위 비율)", f"{br['pct_above_200sma']:.0f}%",
-                    help=(
-                        f"{br['n_above']}/{br['n_data_ok']}종목 (전체 {br['n_total']}종목 중 데이터 확보분). "
-                        "85~90% 이상은 과열 구간으로 조정이 임박했을 수 있습니다."
-                    ),
-                )
+                if br.get("pct_above_200sma") is None:
+                    st.metric("시장폭(200일선 위 비율)", "데이터 없음")
+                else:
+                    st.metric(
+                        "시장폭(200일선 위 비율)", f"{br['pct_above_200sma']:.0f}%",
+                        help=(
+                            f"{br['n_above']}/{br['n_data_ok']}종목 (전체 {br['n_total']}종목 중 데이터 확보분). "
+                            "85~90% 이상은 과열 구간으로 조정이 임박했을 수 있습니다."
+                        ),
+                    )
 
             st.markdown("#### 단기 국면 (참고용)")
             st.caption(

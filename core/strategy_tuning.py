@@ -40,6 +40,7 @@ from core.indicators import sma
 from core.macro_cycle import SECTOR_ROTATION
 from core.market_data import get_price_history
 from core.models import Strategy, StrategyTuningResult, StrategyTuningRun
+from core import tuning_ledger
 from core.strategy_engine import describe_condition, is_expression_config, is_kostolany_config, is_staged_config
 
 # ----------------------------------------------------------------------------
@@ -208,11 +209,55 @@ def _quality_signals(df: pd.DataFrame) -> tuple[Optional[float], Optional[float]
     return mdd, above_pct
 
 
+# 스타일 점수 계산 방식의 버전. 결측 처리 방식이 바뀌면 튜닝 결과의 기준선(스타일 분류 -> 그룹 구성)이
+# 달라지므로 저장 레코드에 이 값을 남겨 예전 결과를 새 방식으로 검증된 것처럼 재사용하지 않게 한다.
+#   1 = (기존/legacy) 결측을 na_option="bottom"으로 최상위 취급, growth 결측은 PER로 대체. 버전 정보 없는 행도 1로 간주.
+#   2 = 결측은 순위에서 제외하고 중립값(50), growth 결측은 PER 대체 없이 growth_data_missing 플래그.
+LEGACY_STYLE_SCORE_VERSION = 1
+STYLE_SCORE_VERSION = 2
+
+
+def score_version_status(version: Optional[int]) -> str:
+    """저장된 점수 버전이 현재 방식이면 "current", 없거나 다르면 "legacy"."""
+    return "current" if version == STYLE_SCORE_VERSION else "legacy"
+
+
+SCORE_VERSION_BADGES = {"current": "✅ v2 (현재)", "legacy": "⚠️ legacy"}
+LEGACY_SCORE_WARNING = (
+    "legacy 점수 버전(결측을 최상위로 취급하던 이전 방식, 또는 버전 미기록)으로 계산된 결과입니다. "
+    "현재 v2 결과와 직접 비교·순위 매김하지 마세요 — 스타일 분류(그룹 구성)의 기준선이 다릅니다."
+)
+
+
+def score_version_badge(status: str) -> str:
+    """UI용 배지 문구. "current" -> "✅ v2 (현재)", 그 밖(legacy/알 수 없음) -> "⚠️ legacy"."""
+    return SCORE_VERSION_BADGES.get(status, SCORE_VERSION_BADGES["legacy"])
+
+
+def result_score_status(record: dict) -> str:
+    """결과 dict 1건(get_top_tuning_results/get_tuning_run의 항목, 또는 JSON으로 저장된 사본)의 점수 버전 상태.
+
+    저장돼 있던 "score_version_status" 문자열을 믿지 않고 style_score_version으로 다시 판정한다 —
+    나중에 STYLE_SCORE_VERSION이 올라가도 예전 JSON의 "current"가 낡은 채로 남지 않게 하기 위함이다.
+    버전 필드가 없는 기록(버전 도입 이전에 커밋된 JSON 등)은 legacy다."""
+    return score_version_status(record.get("style_score_version"))
+
+
+def partition_by_score_version(results: list[dict]) -> tuple[list[dict], list[dict]]:
+    """결과 목록을 (현재 v2, legacy)로 나눈다. 어느 쪽도 삭제하지 않고 순서를 유지한다."""
+    current = [r for r in results if result_score_status(r) == "current"]
+    legacy = [r for r in results if result_score_status(r) != "current"]
+    return current, legacy
+
+
 def _percentile_score(series: pd.Series) -> pd.Series:
-    """배치 내 상대 순위를 0~100 백분위 점수로 변환한다. 값이 전부 결측이면 중립값(50)."""
-    if series.dropna().empty:
-        return pd.Series(50.0, index=series.index)
-    return series.rank(pct=True, na_option="bottom") * 100
+    """배치 내 상대 순위를 0~100 백분위 점수로 변환한다(값이 클수록 높은 점수).
+
+    결측은 순위에서 제외하고(na_option="keep") 중립값(50)을 준다. 예전 na_option="bottom"은
+    오름차순 rank에서 결측에 가장 큰 순위(=최고 점수)를 줘 "데이터 없음"이 최상위로 올라갔다
+    (core.sector_leaders._percentile_score와 동일한 수정). 값이 전부 결측이면 모두 50.
+    """
+    return series.rank(pct=True, na_option="keep").mul(100).fillna(50.0)
 
 
 def compute_style_scores(tickers_df: pd.DataFrame, start: str, end: str) -> pd.DataFrame:
@@ -263,12 +308,14 @@ def compute_style_scores(tickers_df: pd.DataFrame, start: str, end: str) -> pd.D
         df[col] = pd.to_numeric(df[col], errors="coerce")
 
     df["momentum_score"] = _percentile_score(df["momentum_raw"])
-    # earnings_growth가 없는 종목은 PER(밸류에이션 프리미엄)로 대체(성장주는 대체로 고PER).
-    df["growth_score"] = _percentile_score(df["earnings_growth"].fillna(df["per"]))
+    # earnings_growth 결측은 PER로 대체하지 않는다(대체하면 "데이터 없음"이 "고성장"으로 섞임).
+    # 결측은 중립점수(50) + growth_data_missing 플래그.
+    df["growth_data_missing"] = df["earnings_growth"].isna()
+    df["growth_score"] = _percentile_score(df["earnings_growth"])
     df["value_score"] = _percentile_score(-df[["per", "pbr"]].mean(axis=1, skipna=True))
     df["cyclical_score"] = df["is_cyclical"].map({True: 100.0, False: 0.0})
     df["defensive_score"] = df["is_defensive"].map({True: 100.0, False: 0.0})
-    df["quality_score"] = _percentile_score(-df["mdd_raw"].abs()) * 0.5 + df["above200_raw"].fillna(0.0) * 0.5
+    df["quality_score"] = _percentile_score(-df["mdd_raw"].abs()) * 0.5 + df["above200_raw"].fillna(50.0) * 0.5
 
     def _primary_type_and_scores(row: pd.Series) -> tuple[str, dict[str, float]]:
         scores = {_SCORE_TO_LABEL[c]: round(float(row[c]), 1) for c in _SCORE_COLUMNS}
@@ -279,7 +326,10 @@ def compute_style_scores(tickers_df: pd.DataFrame, start: str, end: str) -> pd.D
     df["style_type"] = primaries.apply(lambda x: x[0])
     df["style_scores"] = primaries.apply(lambda x: x[1])
 
-    return df[["ticker", "sector", "style_type", "style_scores", *_SCORE_COLUMNS]]
+    df["style_score_version"] = STYLE_SCORE_VERSION
+    return df[
+        ["ticker", "sector", "style_type", "style_scores", *_SCORE_COLUMNS, "growth_data_missing", "style_score_version"]
+    ]
 
 
 # ----------------------------------------------------------------------------
@@ -1550,6 +1600,13 @@ def compute_overfitting_curve(
     }
 
 
+def compute_overfitting_diagnostics(curve: dict) -> dict:
+    """compute_overfitting_curve 결과에서 "test 1위 변경"(is_overfit)과 "순위 불안정"을 분리해 보고한다 (ENG-04).
+    curve 자체는 변경하지 않는다(기존 필드 호환)."""
+    instab = tuning_ledger.compute_rank_instability(curve.get("points", []))
+    return {"top1_changed": curve.get("is_overfit", False), "rank_instability": instab}
+
+
 def _compute_tuning_significance(
     tickers: list[str],
     config: dict,
@@ -1661,9 +1718,12 @@ def tune_strategy_for_group(
         train_folds = _train_folds_for_regime(train_start, train_end, regime)
     insufficient_regime_data = regime is not None and not train_folds
 
+    ledger = tuning_ledger.SearchLedger()
+
     def _evaluate_on_test(config: dict) -> tuple[dict[str, dict], float, Optional[dict]]:
         """regime이 없으면(레거시) test 구간 전체로, 있으면 test 구간 중 같은 국면의 가장 긴 연속
         구간 하나로만 평가한다(SPEC 13.6절 2026-07-17 정정 — 국면 불일치 데이터로 검증 안 함)."""
+        ledger.record_test_view()
         if regime is None:
             per_ticker = _evaluate_group_config_on_test(tickers, config, test_start, test_end, max_holding_days)
             return per_ticker, _group_mean_excess_return(per_ticker), None
@@ -1680,6 +1740,7 @@ def tune_strategy_for_group(
             chosen, trail = _select_best_group_config_walkforward(tickers, candidates, train_folds, max_holding_days)
         else:
             chosen, trail = None, []
+        ledger.record_search(len(candidates), len(trail))
         # trail은 점수 내림차순이라 trail[0]이 이 backbone(config)이 train 워크포워드에서 낼 수
         # 있었던 최선의 점수 — 아래에서 backbone끼리(원본 vs 구조 변형) 비교할 때 test 성과가
         # 아니라 이 train 점수로만 비교하기 위해 반환한다.
@@ -1700,6 +1761,7 @@ def tune_strategy_for_group(
         except Exception:
             variants = []
         for variant_config in variants:
+            ledger.record_retry()
             try:
                 cand_config, cand_test, cand_excess, cand_trail, cand_matched, cand_train_score = (
                     _search_and_evaluate(variant_config)
@@ -1745,6 +1807,15 @@ def tune_strategy_for_group(
         tickers, best_config, per_ticker_test, test_start, test_end, regime_matched_test, max_holding_days
     )
 
+    # ENG-04 (additive): 탐색 장부·이웃 안정성·다중검정(Deflated Sharpe 근사). 진단 전용, 채택에 영향 없음.
+    search_ledger = ledger.to_dict()
+    neighbor_stability = tuning_ledger.check_neighbor_stability(tuning_trail)
+    try:
+        train_days = max(2, int((pd.Timestamp(train_end) - pd.Timestamp(train_start)).days * 252 / 365))
+        multiple_testing = tuning_ledger.deflate_trail_sharpe(tuning_trail, ledger.n_trials, train_days)
+    except Exception:
+        multiple_testing = None
+
     return {
         "style_type": style_type,
         "tickers": tickers,
@@ -1760,6 +1831,9 @@ def tune_strategy_for_group(
         "tuning_trail": tuning_trail,
         "insufficient_regime_data": insufficient_regime_data,
         "regime_matched_test": regime_matched_test,
+        "search_ledger": search_ledger,
+        "neighbor_stability": neighbor_stability,
+        "multiple_testing": multiple_testing,
     }
 
 
@@ -1871,6 +1945,8 @@ def run_batch_tuning(
                         "style_type": style_type,
                         "sector": styles_by_ticker.get(ticker, {}).get("sector"),
                         "style_scores": styles_by_ticker.get(ticker, {}).get("style_scores"),
+                        "growth_data_missing": bool(styles_by_ticker.get(ticker, {}).get("growth_data_missing", False)),
+                        "style_score_version": STYLE_SCORE_VERSION,
                         "tuned_config": group_result["group_config"],
                         "train_metrics": group_result["per_ticker_train_metrics"].get(ticker),
                         "test_comparison": test_comparison,
@@ -1884,6 +1960,9 @@ def run_batch_tuning(
                         "trained_regime": regime,
                         "insufficient_regime_data": group_result.get("insufficient_regime_data", False),
                         "regime_matched_test": group_result.get("regime_matched_test"),
+                        "search_ledger": group_result.get("search_ledger"),
+                        "neighbor_stability": group_result.get("neighbor_stability"),
+                        "multiple_testing": group_result.get("multiple_testing"),
                     }
                 )
     return results
@@ -1892,6 +1971,14 @@ def run_batch_tuning(
 # ----------------------------------------------------------------------------
 # 5. 영구 저장 (장기 이력 누적 — 6절 확정: 매 실행을 새 배치 레코드로 남김, 절대 덮어쓰지 않음)
 # ----------------------------------------------------------------------------
+
+
+def _dump_json_or_none(value: Any) -> Optional[str]:
+    return json.dumps(value, ensure_ascii=False) if value is not None else None
+
+
+def _load_json_or_none(text: Optional[str]) -> Any:
+    return json.loads(text) if text else None
 
 
 def save_tuning_run(
@@ -1916,6 +2003,7 @@ def save_tuning_run(
             start_date=date.fromisoformat(start),
             end_date=date.fromisoformat(end),
             max_holding_days=max_holding_days,
+            style_score_version=STYLE_SCORE_VERSION,
             completed_at=datetime.utcnow(),
         )
         session.add(run)
@@ -1951,6 +2039,10 @@ def save_tuning_run(
                     ),
                     significance_p_value=r.get("significance_p_value"),
                     skill_pct_of_total=r.get("skill_pct_of_total"),
+                    search_ledger=_dump_json_or_none(r.get("search_ledger")),
+                    neighbor_stability=_dump_json_or_none(r.get("neighbor_stability")),
+                    multiple_testing=_dump_json_or_none(r.get("multiple_testing")),
+                    style_score_version=STYLE_SCORE_VERSION,
                     error=r.get("error"),
                 )
             )
@@ -2013,6 +2105,8 @@ def list_tuning_runs() -> list[dict]:
                 "end_date": r.end_date,
                 "intensity": r.intensity,
                 "max_holding_days": r.max_holding_days,
+                "style_score_version": r.style_score_version,
+                "score_version_status": score_version_status(r.style_score_version),
                 "created_at": r.created_at,
                 "result_count": len(r.results),
             }
@@ -2042,6 +2136,10 @@ def get_tuning_run(run_id: int) -> Optional[dict]:
                 "trained_regime": res.trained_regime,
                 "insufficient_regime_data": bool(res.insufficient_regime_data),
                 "regime_matched_test": json.loads(res.regime_matched_test) if res.regime_matched_test else None,
+                "search_ledger": _load_json_or_none(res.search_ledger),
+                "neighbor_stability": _load_json_or_none(res.neighbor_stability),
+                "multiple_testing": _load_json_or_none(res.multiple_testing),
+                "style_score_version": res.style_score_version,
                 "error": res.error,
             }
             for res in run.results
@@ -2055,12 +2153,19 @@ def get_tuning_run(run_id: int) -> Optional[dict]:
             "train_ratio": run.train_ratio,
             "intensity": run.intensity,
             "max_holding_days": run.max_holding_days,
+            "style_score_version": run.style_score_version,
+            "score_version_status": score_version_status(run.style_score_version),
             "created_at": run.created_at,
             "results": results,
         }
 
 
-def get_top_tuning_results(base_strategy_id: int, limit: int = 10, require_significant: bool = True) -> list[dict]:
+def get_top_tuning_results(
+    base_strategy_id: int,
+    limit: int = 10,
+    require_significant: bool = True,
+    score_version: Optional[int] = None,
+) -> list[dict]:
     """base_strategy_id로 지금까지 쌓인 모든 StrategyTuningRun을 통틀어, test 구간 초과수익
     (excess_return)이 가장 높은 종목별 결과 상위 limit개를 반환한다 (2026-07-15, 야간 반복
     미세튜닝 리더보드용 — 매일 밤 여러 번 실행되며 계속 누적되는 실행 이력 전체에서 지금까지 발견된
@@ -2076,8 +2181,14 @@ def get_top_tuning_results(base_strategy_id: int, limit: int = 10, require_signi
     걸러진다 — False로 주면 검증 여부와 무관하게 예전처럼 excess_return 순으로만 보여준다(진단/
     비교 목적).
 
+    score_version(2026-09-21): 주면 그 스타일 점수 버전으로 계산된 실행의 결과만 남긴다(예:
+    STYLE_SCORE_VERSION). None(기본)이면 버전과 무관하게 모두 반환하되 각 결과에 style_score_version
+    /score_version_status("current"|"legacy")를 붙여 호출부가 구분·표시할 수 있게 한다. 버전 정보가
+    없는 예전 행은 legacy로 간주한다(삭제·덮어쓰지 않음).
+
     Returns:
         [{"ticker", "sector", "style_type", "trained_regime", "excess_return", "significance_p_value",
+          "style_score_version", "score_version_status",
           "skill_pct_of_total", "tuned_config", "test_comparison", "backbone_changed", "run_id",
           "run_intensity", "run_created_at", "run_start_date", "run_end_date", "train_ratio"}, ...]
         (excess_return 내림차순). run_start_date/run_end_date/train_ratio는 상세보기에서
@@ -2098,6 +2209,8 @@ def get_top_tuning_results(base_strategy_id: int, limit: int = 10, require_signi
                 StrategyTuningResult.skill_pct_of_total.isnot(None),
                 StrategyTuningResult.skill_pct_of_total > 0,
             )
+        if score_version is not None:
+            query = query.filter(StrategyTuningRun.style_score_version == score_version)
         rows = query.order_by(StrategyTuningResult.excess_return.desc()).limit(limit).all()
         return [
             {
@@ -2108,6 +2221,8 @@ def get_top_tuning_results(base_strategy_id: int, limit: int = 10, require_signi
                 "excess_return": res.excess_return,
                 "significance_p_value": res.significance_p_value,
                 "skill_pct_of_total": res.skill_pct_of_total,
+                "style_score_version": run.style_score_version,
+                "score_version_status": score_version_status(run.style_score_version),
                 "base_config": json.loads(run.base_config) if run.base_config else {},
                 "tuned_config": json.loads(res.tuned_config) if res.tuned_config else None,
                 "test_comparison": json.loads(res.test_comparison) if res.test_comparison else None,

@@ -9,6 +9,15 @@
 
 ## 파일 목록
 
+### [SESSION_HANDOFF.md](./SESSION_HANDOFF.md)
+세션 시작과 종료 때 읽는 결정 중심 인계 문서. 현재 목표, 수정 파일, 검증 결과, 다음 단계를 기록한다.
+
+### [ENGINE_UPGRADE_ROADMAP.md](./ENGINE_UPGRADE_ROADMAP.md)
+기존 백테스트·전략·종목 발굴·국면·포트폴리오·실행 엔진의 고도화 후보와 검증 계약을 정리한 살아있는 로드맵.
+
+### [INFORMATION_DECISION_ENGINE_RESEARCH.md](./INFORMATION_DECISION_ENGINE_RESEARCH.md)
+해외 연구·서비스 사례를 바탕으로 정보 수집과 자체 판단 엔진의 후보를 생성하고 반박한 결과. 모든 후보·보류를 추적하는 shadow 원장부터 기대 변화·공시 변화 실험, 확률 선택기 보류 조건까지 연구 제안 상태로 정리한다.
+
 ### [SPEC.md](./SPEC.md)
 프로젝트 전체의 확정 스펙 (v1.0). 개인용 미국 주식 도우미 대시보드의 목적, 기술 스택
 (Streamlit + SQLite + yfinance), 그리고 모듈 A~H(백테스팅, Threads 요약, 관심종목 모니터링,

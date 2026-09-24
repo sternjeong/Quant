@@ -342,8 +342,12 @@ with verdict_cols[0]:
         core_invested = core_result["exposure_multiplier"] * 0.85 * 100
         render_metric_card(
             "코어 실투입 비중", f"{core_invested:.1f}%",
-            sublabel=f"{'⚠️ 200일선 아래 — 축소' if core_result['above_200dma'] is False else '200일선 위'}",
-            tone="good" if core_result["above_200dma"] is not False else "neutral",
+            sublabel=(
+                "⚠️ SPY 데이터 없음 — 시장필터 판단불가, 신규 주문 보류"
+                if core_result["above_200dma"] is None
+                else "⚠️ 200일선 아래 — 축소" if core_result["above_200dma"] is False else "200일선 위"
+            ),
+            tone="good" if core_result["above_200dma"] else "neutral",
         )
 with verdict_cols[1]:
     if satellite_result is None:
@@ -359,6 +363,8 @@ with verdict_cols[2]:
     regime_ctx = load_market_regime_context()
     if regime_ctx is None:
         render_metric_card("시장 국면 (참고)", "스냅샷 없음")
+    elif regime_ctx["trading_regime"] is None:
+        render_metric_card("시장 국면 (참고)", "판단 불가(unknown)", sublabel="시장폭 데이터 없음", tone="neutral")
     else:
         render_metric_card(
             "시장 국면 (참고)", regime_ctx["trading_regime"],

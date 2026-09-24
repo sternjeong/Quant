@@ -24,6 +24,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import declarative_base, relationship
 
@@ -276,6 +277,9 @@ class StrategyTuningRun(Base):
     start_date = Column(Date, nullable=False)
     end_date = Column(Date, nullable=False)
     max_holding_days = Column(Integer, nullable=True)  # SPEC 15절 스윙 트레이딩 보유기간 상한(거래일). None=제약 없음
+    # 스타일 점수 계산 방식 버전(core.strategy_tuning.STYLE_SCORE_VERSION). NULL=버전 도입(2026-09-21) 이전
+    # 실행 = legacy(1)로 취급하며 삭제·덮어쓰지 않고 표시만 구분한다.
+    style_score_version = Column(Integer, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     completed_at = Column(DateTime, nullable=True)
 
@@ -328,6 +332,11 @@ class StrategyTuningResult(Base):
     # 종목만 계산하므로(이미 진 종목은 검증할 이유가 없음) 대부분 None일 수 있다.
     significance_p_value = Column(Float, nullable=True)  # 순열검정 p-value (작을수록 노이즈 아님)
     skill_pct_of_total = Column(Float, nullable=True)  # 총수익률 중 실력(타이밍) 기여 비중(%) — 음수면 추세만 탄 것
+    # ENG-04 (2026-09-21) — 탐색 장부/이웃 안정성/다중검정(DSR 근사) 진단, JSON 객체 문자열. 예전 행은 NULL.
+    search_ledger = Column(Text, nullable=True)
+    neighbor_stability = Column(Text, nullable=True)
+    multiple_testing = Column(Text, nullable=True)
+    style_score_version = Column(Integer, nullable=True)  # 행 단위 점수 버전(NULL=legacy)
     error = Column(Text, nullable=True)  # 이 종목만 실행 실패했을 때의 메시지 (배치 전체는 계속 진행)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
@@ -571,3 +580,115 @@ class SchedulerJobRun(Base):
     scheduled_at = Column(DateTime, nullable=True)  # 원래 실행 예정 시각(naive UTC)
     error = Column(Text, nullable=True)
     recorded_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)  # naive UTC
+
+
+class CandidateBatch(Base):
+    """RES-01 후보 shadow 원장 — 동결된 후보 집합 1건(2026-09-21 추가, 관측 전용).
+
+    core.candidate_ledger.record_candidate_set()이 한 번의 스캔/판단이 만든 후보 전체(채택·보류·거절·결측)를
+    한 묶음으로 저장한다. candidate_set_id 는 (정렬된 티커 집합, 전략 버전, 출처, 결정 시각)의 해시이며 unique 라
+    같은 집합을 다시 기록해도 행이 늘지 않는다(멱등, 한 번 동결하면 덮어쓰지 않는다).
+    주문 경로와 무관하다 — 이 테이블을 읽는 주문 로직은 없다.
+    """
+
+    __tablename__ = "candidate_batches"
+
+    id = Column(Integer, primary_key=True)
+    candidate_set_id = Column(String(64), nullable=False, unique=True, index=True)
+    source = Column(String(50), nullable=False, index=True)  # 예: stock_discovery / sector_leaders / champion_satellite
+    strategy_version = Column(String(200), nullable=False, index=True)
+    decision_cutoff = Column(DateTime, nullable=True)  # naive UTC. NULL 이면 결과 추적 불가(결측 사유로 기록)
+    n_candidates = Column(Integer, nullable=False, default=0)
+    decisions_fingerprint = Column(String(64), nullable=True)  # (티커, 판단, 사유) 해시: 같은 집합의 재기록 충돌 감지용
+    meta = Column(Text, nullable=True)  # JSON: 어댑터 메타(예: pit_verified=False 안내)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    decisions = relationship("CandidateDecision", back_populates="batch")
+
+
+class CandidateDecision(Base):
+    """RES-01 후보 판단 1건. 시간 계약 5개 필드는 없으면 NULL 이며 pit_certified=False 다(지어내지 않는다).
+
+    decision: selected(채택) | held(보류) | rejected(거절) | missing_data(데이터 결측으로 판단 불가).
+    시간 계약(모두 naive UTC): source_publication -> system_first_seen -> extraction_completed ->
+    decision_cutoff -> next_executable_fill. next_executable_fill 은 결과 추적이 진입 세션을 확정할 때 채워진다.
+    pit_certified 는 5개가 모두 있고 순서가 맞을 때만 True (core.candidate_ledger.compute_pit_status).
+    """
+
+    __tablename__ = "candidate_decisions"
+    __table_args__ = (UniqueConstraint("candidate_set_id", "ticker", name="uq_candidate_decisions_set_ticker"),)
+
+    id = Column(Integer, primary_key=True)
+    batch_id = Column(Integer, ForeignKey("candidate_batches.id"), nullable=False, index=True)
+    candidate_set_id = Column(String(64), nullable=False, index=True)
+    ticker = Column(String(20), nullable=False, index=True)
+    strategy_version = Column(String(200), nullable=False, index=True)
+    source = Column(String(50), nullable=False)
+    decision = Column(String(20), nullable=False, index=True)
+    decision_reason = Column(Text, nullable=True)
+    rank = Column(Integer, nullable=True)
+    scores = Column(Text, nullable=False, default="{}")  # JSON: 원전략 점수
+    order_proposal = Column(Text, nullable=True)  # JSON: 원전략이 냈을 주문안(없으면 NULL)
+    sector = Column(String(100), nullable=True)
+    sector_etf = Column(String(20), nullable=True)  # 섹터 잔차 계산용 ETF(자동 매핑 또는 어댑터 지정)
+
+    source_publication = Column(DateTime, nullable=True)
+    system_first_seen = Column(DateTime, nullable=True)
+    extraction_completed = Column(DateTime, nullable=True)
+    decision_cutoff = Column(DateTime, nullable=True)
+    next_executable_fill = Column(DateTime, nullable=True)
+    pit_certified = Column(Boolean, nullable=False, default=False)
+    pit_note = Column(Text, nullable=True)  # 인증 안 된 사유(누락 필드·순서 위반)
+
+    info_url = Column(Text, nullable=True)  # 정보 원문 참조(선택)
+    info_doc_id = Column(String(200), nullable=True)
+    info_content_hash = Column(String(128), nullable=True)
+    info_revision = Column(String(100), nullable=True)
+    event_id = Column(String(200), nullable=True, index=True)  # 동일 사건 ID(전재 기사를 독립 근거로 세지 않기 위함)
+    info_cost = Column(Text, nullable=True)  # JSON: API·LLM 비용, 라이선스 등급 등(선택)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    batch = relationship("CandidateBatch", back_populates="decisions")
+    outcomes = relationship("CandidateOutcome", back_populates="decision_row")
+
+
+class CandidateOutcome(Base):
+    """RES-01 후보 판단의 horizon 별 사후 결과(같은 진입·청산·비용 계약, 채택/보류/거절/결측 모두).
+
+    status: pending(아직 도래 전이거나 일시적 데이터 지연) | final(확정) | missing(결측 확정, 사유 기록).
+    final/missing 은 종결 상태라 다시 계산하지 않는다(멱등). 결측 사유가 있으면 수익 컬럼은 NULL 이다(0 아님).
+    role: primary(사전 고정 주 horizon, 20거래일) | diagnostic(진단 전용, 다중검정 대상).
+    진입=결정 시각 이후 첫 세션 시가, 청산=진입 세션 + horizon 거래일 세션 시가(core.candidate_ledger 문서 참고).
+    net_return_*bp 는 편도 5/10/25bp 시나리오(core.trade_ledger.COST_SCENARIOS_BPS)의 왕복 비용 차감 후 수익률이다.
+    """
+
+    __tablename__ = "candidate_outcomes"
+    __table_args__ = (UniqueConstraint("decision_id", "horizon_days", name="uq_candidate_outcomes_decision_horizon"),)
+
+    id = Column(Integer, primary_key=True)
+    decision_id = Column(Integer, ForeignKey("candidate_decisions.id"), nullable=False, index=True)
+    horizon_days = Column(Integer, nullable=False)
+    role = Column(String(12), nullable=False, default="diagnostic")
+    status = Column(String(12), nullable=False, default="pending", index=True)
+    status_reason = Column(Text, nullable=True)
+
+    entry_date = Column(Date, nullable=True)
+    entry_open = Column(Float, nullable=True)
+    exit_date = Column(Date, nullable=True)
+    exit_open = Column(Float, nullable=True)
+    gross_return = Column(Float, nullable=True)
+    net_return_5bp = Column(Float, nullable=True)
+    net_return_10bp = Column(Float, nullable=True)
+    net_return_25bp = Column(Float, nullable=True)
+    benchmark_ticker = Column(String(20), nullable=True)
+    benchmark_return = Column(Float, nullable=True)  # 같은 진입·청산 세션 시가 기준 총수익(비용 없음)
+    sector_etf_ticker = Column(String(20), nullable=True)
+    sector_etf_return = Column(Float, nullable=True)
+    price_basis = Column(String(200), nullable=True)
+    exit_rule = Column(String(100), nullable=True)
+    resolved_as_of = Column(Date, nullable=True)  # 이 행을 마지막으로 계산한 as_of
+    detail = Column(Text, nullable=True)  # JSON: 결측 상세(마지막 봉 날짜 등), 섹터 ETF 결측 메모
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    decision_row = relationship("CandidateDecision", back_populates="outcomes")

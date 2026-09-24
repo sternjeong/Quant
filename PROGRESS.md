@@ -1,5 +1,7 @@
 # 작업 진행 상황
 
+> 현재 세션 인계: [docs/SESSION_HANDOFF.md](docs/SESSION_HANDOFF.md) · 엔진 로드맵: [docs/ENGINE_UPGRADE_ROADMAP.md](docs/ENGINE_UPGRADE_ROADMAP.md)
+
 > 세션이 자주 끊기는 작업 환경이라, 새 Claude 세션을 시작하면 **이 파일을 가장 먼저 읽고**
 > "진행 중" 항목부터 이어서 작업할 것. 완료된 모듈은 `pytest` 로 회귀만 확인하고 건드리지 않는다.
 
@@ -5816,82 +5818,6 @@ DuckDNS 서브도메인 + Let's Encrypt**로 바꿨다.
   passphrase로 암호화해 비공개 저장소에 두는 방식을 검토할 수 있다. (b) 공인 IP가 Ephemeral이면 DuckDNS 자동 갱신 스크립트(토큰 필요). (c) 실험 재개 여부(PIT 데이터).
 - **사람이 할 일(변동 없음)**: 비공개 백업 저장소 + 배포 키 + `/opt/quant-backup/remote`(15번), Reserved IP 확인, 재부팅 시점 결정.
 
-### 작업 99 (2026-09-22): 선택형 암호화 비밀 백업 + Oracle 확인 마무리
-
-작업 98 뒤 사용자에게 남은 두 가지(비공개 백업 저장소 연결, 공인 IP Reserved 여부)를 확인했고, 세 번째 제안(비밀 암호화 백업)을 사용자
-동의로 구현했다.
-
-- **확인된 것**: 비공개 백업 저장소(`quant-vm-backup`) 연결 완료 — VM에서 원격 HEAD와 로컬 HEAD 일치 확인(사람이 직접 push 실행, "비공개
-  저장소 push 성공" 확인). 공인 IP는 **Ephemeral로 확인**됐고, 사용자가 "무료 티어라 VM을 Stop할 이유가 없다"며 **Reserved 전환을 보류**하기로
-  결정(재부팅은 Stop이 아니라서 이 결정과 무관 — 영향 없음). 재부팅 자체는 아직 미실행.
-- **비밀 암호화 백업**(`deploy/backup_vm.py`의 `backup_secrets()`, opt-in): `/opt/quant-backup/secrets_passphrase` 파일(사람이
-  `deploy/set_backup_passphrase.sh`로 대화형으로만 만듦 — 이 스크립트도 시스템도 절대 자동 생성하지 않음)이 있을 때만 nginx 로그인·code-server
-  비밀번호·`.env`·텔레그램 봇 토큰·Claude/Codex 로그인 세션을 파일별로 `openssl enc -aes-256-cbc -pbkdf2 -iter 200000 -salt`로 암호화해
-  `repo/secrets/<라벨>.enc`로 함께 백업한다. 암호화 직후 그 자리에서 복호화해 원문과 바이트 단위로 같은지 확인하고, 하나라도 실패하면 그 회차
-  전체를 실패로 치고 밖으로 올리지 않는다(기존 `verify_backup`/복구 리허설과 같은 원칙). 이 VM에 없는 항목(Codex 로그인 등)은 조용히 건너뛴다.
-- **passphrase의 정직한 한계**: `secrets_passphrase` 파일은 백업 *대상*(`/opt/quant`) 밖에 있어 수집 대상에 절대 섞이지 않고 백업 저장소에도
-  안 올라간다 — "저장소가 뚫려도 안전"은 지켜진다. 하지만 "VM 디스크가 통째로 사라지는 경우"까지 막으려면 같은 passphrase를 사람이 따로
-  보관해야 한다는 걸 사용자에게 명시했다(잊으면 아무도 복구 못 함). `set_backup_passphrase.sh`는 20자 이상만 요구하고 그 외 문자 제한이
-  없다(값이 셸에 끼워 넣어지지 않고 파일로만 저장돼 공백·한글도 안전) — 저장 직후 실제 암복호화 왕복까지 확인한 뒤에만 남긴다.
-- `stored_path()`를 `secrets/` 접두사까지 일반화해 기존 `verify_backup()`(MANIFEST sha256 대조)이 별도 코드 없이 비밀 백업의 변조도 그대로 잡는다.
-- 테스트: `tests/test_backup_vm.py`에 9개(6종 전부 암복호화 왕복, 없는 파일은 조용히 건너뜀, 사라진 비밀의 옛 암호문 정리, 평문 트리에 안 섞임,
-  변조 감지, 틀린 passphrase로 복호화 불가, 왕복 실패 시 전체 회차 중단+미push, 빈 passphrase 파일은 미설정으로 취급), `tests/test_set_backup_passphrase.py`
-  9개(성공/거부/공백·한글 허용/미출력/`backup_vm.py`와 openssl 파라미터 교차 호환 확인), `tests/test_backup_status.py` 2개(브리핑 표시 줄).
-  전체 `pytest tests`(다른 세션의 미완성 `tests/test_candidate_ledger.py` 제외) 1,382건 통과.
-- **사람이 할 일**: `ssh -t quant-vm 'sudo bash /opt/quant/deploy/set_backup_passphrase.sh'`로 passphrase를 정하고(선택), 같은 값을 본인이
-  따로 보관. 재부팅 시점 결정은 그대로 남음.
-
-### 작업 100 (2026-09-22): 긴급 수정 — 비밀 하나를 못 읽으면 전체 백업이 죽던 결함
-
-사용자가 `set_backup_passphrase.sh`로 passphrase를 정한 뒤 VM에서 확인차 백업을 직접 돌려봤는데 실패했다(`PermissionError:
-/etc/nginx/.htpasswd-quant`). 원인은 그 파일이 `root:www-data 640`인데 `quant` 계정이 `www-data` 그룹에 없어서였다.
-
-**더 중요한 문제(작업 99의 설계 결함)**: `backup_secrets()`가 한 파일을 못 읽는 예외를 그 라벨만 건너뛰지 않고 통째로 밖으로 던져서,
-매일 밤 도는 DB·연구 파일 백업까지 함께 실패시켰다. 다행히 실제 데이터 손실은 없었다 — 실패가 커밋 전 단계에서 멈춰서 기존에
-잘 저장된 백업(직전 커밋)은 그대로 남아 있었지만, 이 상태로 뒀으면 매일 밤 같은 이유로 계속 실패했을 것이다.
-
-- **즉시 조치**: VM에서 `usermod -aG www-data quant`로 읽기 권한을 줬다(nginx 비밀번호 교체 명령이 항상 `chown root:www-data`를
-  쓰므로 이 그룹 소속은 비밀번호를 바꿔도 계속 유지된다).
-- **코드 수정**: `backup_secrets()`에서 파일별 읽기를 `try/except OSError`로 감싸 "없음"(missing)과 "있는데 못 읽음"(unreadable,
-  이유 포함)을 구분하고, 둘 다 그 라벨 하나만 건너뛰는 비치명적 사정으로 바꿨다. 반면 암호화 자체(openssl 실행 실패, 왕복 복호화
-  불일치)는 환경이 근본적으로 잘못됐다는 뜻이라 여전히 전체 회차를 중단시킨다 — 이 구분을 유지했다. `core/backup_status.py`가
-  "권한 문제로 못 읽은 비밀 파일: …"을 브리핑에 경고(bad 아님)로 보여준다.
-- **테스트**: `tests/test_backup_vm.py`에 이번 사고를 그대로 재현하는 회귀 테스트 2개 — 파일 하나가 권한 0000이어도 DB·연구 파일
-  백업은 성공하고 나머지 5개 비밀은 정상 암호화되는지, OS 오류 메시지에 파일 내용이 안 새는지. `tests/test_backup_status.py` 1개.
-  전체 `pytest tests`(다른 세션의 미완성 `tests/test_candidate_ledger.py` 제외) 1,388건 통과.
-- **VM에서 최종 확인**: 그룹 추가 + 코드 배포 뒤 실제로 백업을 다시 돌려 6개 전부 정상 암호화됨을 확인(비밀번호 값은 읽지 않고
-  개수·상태만 확인).
-
-### 작업 101 (2026-09-22): 비밀 백업 결함 2건 — 전체 실패 방지 + 파일 권한 그룹 부여
-
-사용자가 passphrase를 실제로 설정한 뒤 확인차 백업을 VM에서 직접 돌려보며 발견됐다(값은 읽지 않고 성공/실패와 개수만 확인).
-
-1. **전체 백업이 죽던 결함(작업 99의 설계 결함)**: nginx 로그인 파일(`root:www-data 640`)이 `quant` 권한 밖이라
-   `PermissionError`가 났는데, `backup_secrets()`가 이 예외를 그 라벨 하나만 건너뛰지 않고 통째로 밖으로 던져서 DB·연구
-   파일 백업까지 함께 실패시켰다. 실제 데이터 손실은 없었다(실패가 커밋 전에 멈춰서 기존 백업은 그대로 남음)지만 이
-   상태로는 매일 밤 같은 이유로 계속 실패했을 것. `backup_secrets()`를 고쳐 "없음"(missing)과 "있는데 못 읽음"
-   (unreadable, 사유 포함)을 둘 다 그 라벨만 건너뛰는 비치명적 사정으로 바꿨다. 반면 암호화 자체(openssl 실행 실패,
-   왕복 불일치)는 여전히 전체 회차를 중단시킨다(환경이 근본적으로 잘못됐다는 뜻이라). `core/backup_status.py`가
-   "권한 문제로 못 읽은 비밀 파일: …"을 브리핑 경고(bad 아님)로 보여준다. 회귀 테스트 2개(실제 사고 그대로 재현: 권한
-   0000이어도 DB·연구 파일 백업은 성공하고 나머지 5개는 정상 암호화됨, OS 오류 메시지에 내용이 안 샘) + `backup_status`
-   테스트 1개.
-2. **테스트 격리 결함(전혀 다른 문제, 같은 배포에서 함께 발견)**: 이 수정을 올리는 과정에서 VM 자동배포 테스트 게이트가
-   `tests/test_daily_briefing.py`의 옛 테스트 4개+1개를 실패시켰다 — 로컬에선 통과했는데 VM에서만 깼다. 원인은 그
-   테스트들이 (1차 작업에서 추가된) `compute_job_health`/`load_backup_status`를 목킹하지 않아, VM의 **실제** 운영 상태
-   (마침 그 시점에 백업이 실패 상태였음)가 새어 들어가 "특이사항 없음"을 기대하는 assert가 깨진 것 — 코드 결함이 아니라
-   테스트 격리 결함이었다. `_patch_all` 헬퍼와 그걸 안 쓰는 예외 테스트 하나에 두 목킹을 추가해 고쳤고, 실제 `core.backup_status.STATUS_PATH`가
-   오염된 상태를 가리키게 만들어놓고도 파일 전체가 통과하는지 로컬에서 재현·검증한 뒤에야 푸시했다.
-3. **근본 원인 해결(권한 자체)**: VM에서 `usermod -aG www-data quant`(nginx 파일용), `usermod -aG ubuntu quant` +
-   `chmod 640`(code-server 설정용, `/home/ubuntu`가 750이라 그룹이 있어야 통과)으로 즉시 조치. 재발 방지로 코드에도 반영:
-   `deploy/setup_backup.sh`가 이 두 그룹 추가(+ 존재하면 code-server 설정 chmod)를 매 설치마다 idempotent하게 하고,
-   `deploy/set_code_server_password.sh`는 비밀번호를 바꿀 때마다 파일 권한을 (`--reference`로 예전 값을 베끼는 대신)
-   **항상 640으로 강제**한다.
-4. **최종 VM 확인**: 코드 배포(테스트 통과·재시작·재시작 후 상태 확인 모두 정상, 04:22 UTC) 후 실제 백업을 다시 돌려
-   `비밀 백업 4개`(이 VM에 없는 Codex 로그인 제외) 성공, offsite push·복구 리허설 모두 정상 확인. 이후 그룹 권한까지
-   맞춘 뒤 재실행해 `code_server_config`도 포함되는지 마지막으로 확인 예정.
-
-전체 `pytest tests`(다른 세션의 미완성 `tests/test_candidate_ledger.py` 제외) 1,390건 통과.
-
 ### 2026-09-20 — Day 4 전체 모집단 입력 인계 및 접근 경로 확인
 
 DAY_4_BLOCKED
@@ -5940,3 +5866,53 @@ SPY/VIX 가격 캐시 2개는 구성·섹터·공시시각 입력이 아니므�
 새 자료 없이는 동일 수집/요청 생성/백테스트를 반복하지 않는다. 상세 명령은 이번
 `RESUME_NOTE.md`, 게시 확인은 `publication.json`. 연구 브랜치
 `research/day4-reentry-20260920T1047Z`. 후보·기준선·게이트와 기존 작업은 보존했다.
+
+### 2026-09-21 — Astra 엔진 고도화 분석 반영
+
+Astra 분석을 [엔진 고도화 로드맵](docs/ENGINE_UPGRADE_ROADMAP.md)에 반영했다. 핵심 우선순위는 P0 공통 거래 원장·챔피언 unknown/스냅샷·튜닝 과적합 장부·국면 unknown·주문 멱등성, P1 ALFRED/ETF 합성·PIT 발굴·뉴스 이벤트·중복 노출·결측 분리, P2 PIT 밸류에이션이다.
+
+- 기존 기능 정정: 챔피언 실적 일정/reminder, data integrity stale/anomaly, 챔피언 inverse-vol/Kelly/live-only/상관감쇠 기능은 이미 존재한다. 제안은 연결·게이트·정보시점 보강이다.
+- 로드맵에 ENG-01~ENG-11 백로그를 추가하고 각 항목의 현재 상태·다음 읽을 파일·채택 기준을 기록했다. 기존 기각된 변동성 타기팅·위험조정 모멘텀·개별주 전면 확장·베타 헤지는 기본값으로 재도입하지 않는다.
+- `sector_leaders._percentile_score` 결측 rank 및 성장률 부재 시 고PER 대체 위험은 코드 읽기 발견으로 기록했다. 재현 테스트·수정은 실행하지 않았다.
+- 이번 세션은 문서만 변경했다. 기존 Day 4 PIT 입력 부족 BLOCKED/S1·S6 NOT_EVALUABLE 상태는 재실행하거나 변경하지 않았으며, PROGRESS의 해당 상태는 로그 기록일 뿐 VM 직접 상태 확인을 뜻하지 않는다.
+
+
+## 2026-09-21 엔진 고도화 구현 (미커밋)
+
+ENG-01·02·03·04·05·07·10을 병렬 에이전트로 구현하고 단위 테스트 1094건 통과를 확인했다. 배포·운영 적용·실제 paper API 검증은 하지 않았다. 상세와 결정 대기 항목은 [docs/SESSION_HANDOFF.md](docs/SESSION_HANDOFF.md) 참고.
+
+2차 통합: 주문 게이트·실행 회차 ID, 튜닝 점수 v2·DB 저장, 백테스트 옵트인 연결을 반영했다. 전체 pytest 1120건 통과. paper 검증·배포는 미완료.
+
+## 2026-09-21 정보 수집·판단 엔진 연구 제안
+
+해외 연구·서비스 사례를 조사한 생성 에이전트와 이를 반박한 Sol 에이전트가 직접 한 차례 조정해 [정보 수집·판단 엔진 연구](docs/INFORMATION_DECISION_ENGINE_RESEARCH.md)를 작성했다.
+
+- 연구 순서는 RES-01 전체 후보·보류 shadow 원장 → RES-02 정보 비용·중복 라우터와 RES-03 기존 thesis review의 사전 KPI·반증 강화 → RES-04 발행사 가이던스 기대 변화와 RES-05 SEC 공시 변화의 개별주 위성 shadow 실험이다.
+- RES-06 확률 선택기는 충분한 독립 OOS 사건 전까지, RES-07 기업관계 graph는 PIT 관계·중요도·라이선스 확보 전까지 보류한다.
+- 승률 단독이 아니라 비용 후 기대값, 선택률, 거절 기회비용, 수익분포를 평가한다. 거절 후보도 같은 exit로 추적하고 LLM confidence를 확률로 쓰지 않는다.
+- 신규 제안은 모두 연구 상태다. 수익 개선은 검증하지 않았고 코드·DB·화면·VM·배포를 변경하지 않았다. 이번 세션에서 pytest도 재실행하지 않았다. 기존 1120건 통과는 앞선 세션 기록이다.
+
+## 2026-09-22 Streamlit UI 1차 구현 — Today 명령 센터
+
+- **구현 완료:** `app/Home.py`를 장문 안내형 홈에서 `오늘` 명령 센터로 교체했다. 저장된 챔피언 신호·시장 국면·잡·백업·관심종목 알림을 상태 칩, 요약 지표, 조치 큐, 전략 상태, 업무공간 링크로 보여 준다.
+- **안전성:** 신규 `core/today_dashboard.py`는 읽기 전용 스냅샷을 안전하게 합성한다. 홈을 열어도 시장 재계산·주문 실행을 하지 않으며, 소스 하나의 실패가 전체 홈 실패가 되지 않는다. `unknown` 국면은 약세가 아니라 판단 보류로 표기한다.
+- **검증 완료:** `python -m pytest tests/test_today_dashboard.py tests/test_page_order.py -q`에서 11 passed, `python -m py_compile app/Home.py core/today_dashboard.py core/theme.py`, `git diff --check`, Streamlit `AppTest` 렌더링을 통과했다.
+- **미완료:** 커밋·배포·VM·paper API 검증은 하지 않았다. 실제 상세 페이지의 공통 신뢰 상태 헤더와 업무공간별 사이드바는 다음 UI 단계다.
+
+## 2026-09-22 엔진 고도화 3차 — 운영 안전성 완료 + RES-01 스케줄 연결 + RES-04/05 shadow 준비
+
+사용자 지시(운영 안전성 → shadow 원장 → 가이던스 실험 → 공시 veto → 확률 선택기는 나중) 순서로 진행했다. 세션 사용량 한도로 4개 병렬 에이전트가 한 번 중단됐다가 재개했고, 스케줄 연결 1건은 이 세션이 서브에이전트 없이 직접 구현했다.
+
+- **완료(구현+단위테스트):** 주문 회차 수동 종료 CLI(`scripts/paper_run_admin.py`), 위성 독립 보류 플래그, 튜닝 legacy/v2 리더보드·화면 분리, RES-01 후보 shadow 원장(`core/candidate_ledger.py`)과 그 스케줄 연결(`core/candidate_recorder.py`, 매일 00:27/00:28 KST), RES-04 가이던스·RES-05 공시 추출기(`core/earnings_events.py`, `core/filing_changes.py`).
+- **실제 EDGAR로 검증(사람 확인 대기):** 가이던스 12건, 공시 5개 기업 10-K — `docs/experiment_validation/earnings_guidance_extraction_sample.md`, `docs/experiment_validation/filing_change_extraction_check.md`.
+- **전체 pytest 1457건 통과**(이 세션이 직접 실행).
+- **미완료:** Alpaca paper 실계정 검증 0건(다음 최우선, `docs/PAPER_API_VERIFICATION_RUNBOOK.md` 참고), RES-04/05의 위성 신호 실연결, 커밋·푸시(사용자 승인 대기 중, 별도 브랜치 제안).
+- 상세, 확인 못한 항목, 설계 결정은 `docs/SESSION_HANDOFF.md`의 동일 날짜 절 참고.
+
+## 2026-09-22 Streamlit UI 2차 구현 — 업무공간 내비게이션·신뢰 상태 헤더
+
+- **구현 완료:** `Home.py`를 `st.navigation` 라우터로 바꾸고 사이드바를 홈/운용/탐색/리서치/시장/시스템으로 묶었다. 기존 Today 화면은 `app/views/today.py`로 이동했다.
+- **구현 완료:** 13개 상세 페이지에 `기준 시각 / 신선도(Fresh·Stale·Unknown) / PIT / 전략 버전` 공통 헤더를 적용했다. 챔피언·시장 화면은 저장 스냅샷을 읽고, 기준일 근거가 없는 화면은 임의로 Fresh 처리하지 않고 Unknown을 표시한다.
+- **정리:** 파일명 숫자를 바꾸던 환경설정은 고정형 업무공간 라우터에 영향을 주지 않으므로 실제 내비게이션 그룹과 상태 표기 원칙을 보여 주는 화면으로 바꿨다.
+- **검증 완료:** 전체 `python -m pytest tests -q` 1463 passed. 홈·환경설정·Threads 상세 화면의 Streamlit `AppTest`, 전 페이지 `py_compile`, `git diff --check`를 통과했다.
+- **미완료:** 커밋·VM 배포·실브라우저·모바일 확인은 하지 않았다. 스크리닝·뉴스·포트폴리오 등은 엔진 결과 메타데이터 저장이 없어 헤더가 Unknown이며, 다음 단계에서 실제 `as_of / strategy_version / pit_status` 저장값과 연결한다.

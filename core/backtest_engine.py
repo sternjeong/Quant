@@ -100,6 +100,7 @@ class BacktestRun:
     metrics: dict = field(default_factory=dict)
     stage_events: list = field(default_factory=list)  # 1:2:6 단계별 전략의 진입/청산 이벤트 로그 (일반 전략은 빈 리스트)
     contributed_capital: Optional[pd.Series] = None  # 월 적립 옵션 사용 시 그 시점까지 투입된 누적 원금(본전선)
+    execution_meta: dict = field(default_factory=dict)  # 옵트인 체결 모델/가격 기준/배당 반영 여부 메타(기본 빈 dict)
 
 
 def _slice_by_date(df: pd.DataFrame, start: Optional[str], end: Optional[str]) -> pd.DataFrame:
@@ -113,12 +114,55 @@ def _slice_by_date(df: pd.DataFrame, start: Optional[str], end: Optional[str]) -
     return out
 
 
+EXECUTION_CLOSE = "close"  # 기본: 종가->종가 수익률, 신호 다음날 포지션 반영 (기존 동작)
+EXECUTION_NEXT_OPEN = "next_open_ledger"  # 옵트인: 다음 거래일 시가 체결 원장 (core.trade_ledger)
+
+
+def compare_execution_models(
+    df: pd.DataFrame,
+    position: pd.Series,
+    initial_value: float = 100.0,
+    fee_bps: float = 0.0,
+    slippage_bps: float = 0.0,
+    tax_bps: float = 0.0,
+    cost_scenarios: bool = True,
+    price_basis: Optional[str] = None,
+) -> dict:
+    """같은 입력에서 기존 종가 경로와 시가 체결 원장 경로를 나란히 비교한다(검증용, 성과 주장 아님).
+
+    반환: baseline_equity(기존), ledger_equity(새), diff(ledger-baseline), final_diff_pct,
+    max_abs_diff, scenario_nav(비용 시나리오명 -> NAV Series, cost_scenarios=True 일 때), meta.
+    기존 경로는 tax_bps 를 지원하지 않으므로 baseline 에는 세금이 반영되지 않는다.
+    """
+    from core.trade_ledger import run_cost_scenarios, run_ledger_backtest
+
+    baseline = compute_equity_curve(df, position, initial_value, fee_bps, slippage_bps)
+    led = run_ledger_backtest(df, position, initial_cash=initial_value, fee_bps=fee_bps,
+                              slippage_bps=slippage_bps, tax_bps=tax_bps, price_basis=price_basis)
+    diff = led.nav - baseline
+    out = {
+        "baseline_equity": baseline,
+        "ledger_equity": led.nav,
+        "diff": diff,
+        "final_diff_pct": float(led.nav.iloc[-1] / baseline.iloc[-1] - 1.0) if len(baseline) else float("nan"),
+        "max_abs_diff": float(diff.abs().max()) if len(diff) else 0.0,
+        "ledger": led.ledger,
+        "meta": {**led.params, "baseline_tax_applied": False},
+    }
+    if cost_scenarios:
+        sc = run_cost_scenarios(df, position, initial_cash=initial_value, tax_bps=tax_bps, price_basis=price_basis)
+        out["scenario_nav"] = {k: v.nav for k, v in sc.items()}
+    return out
+
+
 def compute_equity_curve(
     df: pd.DataFrame,
     position: pd.Series,
     initial_value: float = 100.0,
     fee_bps: float = 0.0,
     slippage_bps: float = 0.0,
+    execution_model: Optional[str] = None,
+    tax_bps: float = 0.0,
 ) -> pd.Series:
     """포지션 시리즈로부터 자산가치 곡선을 계산한다.
 
@@ -130,6 +174,15 @@ def compute_equity_curve(
     (예: fee_bps=5, slippage_bps=10 → 왕복이 아닌 편도 비중변화당 0.15%). 0/1 전략은 진입/청산
     시점에, 1:2:6 단계별 전략은 단계가 바뀔 때마다 그 변화분만큼만 비용이 발생한다.
     """
+    if execution_model not in (None, EXECUTION_CLOSE):
+        if execution_model != EXECUTION_NEXT_OPEN:
+            raise ValueError(f"알 수 없는 execution_model: {execution_model!r}")
+        from core.trade_ledger import run_ledger_backtest  # 지연 import: 옵트인 경로 전용
+
+        return run_ledger_backtest(
+            df, position, initial_cash=initial_value, fee_bps=fee_bps,
+            slippage_bps=slippage_bps, tax_bps=tax_bps,
+        ).nav.copy()
     daily_return = df["Close"].pct_change().fillna(0.0)
     executed_position = position.shift(1).fillna(0).astype(float)
     cost_rate = (fee_bps + slippage_bps) / 10000.0
@@ -512,6 +565,9 @@ def run_backtest(
     monthly_contribution: float = 0.0,
     fee_bps: float = 0.0,
     slippage_bps: float = 0.0,
+    execution_model: Optional[str] = None,
+    tax_bps: float = 0.0,
+    adjust_prices: bool = False,
 ) -> BacktestRun:
     """지표 조합 전략을 특정 종목/기간에 대해 백테스팅한다.
 
@@ -530,7 +586,17 @@ def run_backtest(
 
     fee_bps/slippage_bps(선택, 기본 0=비용 없음)는 compute_equity_curve/simulate_contribution_equity에
     그대로 전달되어 매매 회전율만큼 비용을 차감한다.
+
+    execution_model(옵트인, 기본 None=기존 종가 기준): "next_open_ledger" 면 다음 거래일 시가 체결 원장
+    (core.trade_ledger)으로 수익곡선을 계산하며 tax_bps 도 적용된다(월 적립과는 함께 쓸 수 없다).
+    adjust_prices=True(옵트인)는 Adj Close/Close 비율로 OHLC 를 조정한다. 캐시 데이터의 Close 는 이미 분할 반영이므로 실제 효과는
+    배당 재투자 가정의 총수익 기준 전환이며, 지표(이동평균 등) 계산에도 조정가격이 쓰인다.
+    배당 현금 유입은 어느 경우에도 별도 반영하지 않으며 그 사실이 run.execution_meta 에 기록된다.
     """
+    if execution_model not in (None, EXECUTION_CLOSE, EXECUTION_NEXT_OPEN):
+        raise ValueError(f"알 수 없는 execution_model: {execution_model!r}")
+    if execution_model == EXECUTION_NEXT_OPEN and monthly_contribution > 0:
+        raise ValueError("next_open_ledger 는 월 적립(monthly_contribution)과 함께 쓸 수 없습니다")
     # 지표 warmup 기간(이동평균/일목균형표 등)을 위해 실제 조회는 시작일보다 앞서서 가져온 뒤 잘라낸다.
     fetch_start = (pd.Timestamp(start) - pd.DateOffset(days=400)).date().isoformat()
     raw = get_price_history(ticker, start=fetch_start, end=end, use_cache=True)
@@ -547,6 +613,10 @@ def run_backtest(
             metrics=calculate_metrics(pd.Series(dtype=float), [], start, end),
         )
 
+    if adjust_prices:
+        from core.trade_ledger import adjust_ohlc_by_adj_close
+
+        raw = adjust_ohlc_by_adj_close(raw)
     df = _slice_by_date(raw, start, end)
     position, trades, stage_events = _simulate_on_raw(raw, df, indicator_config, max_holding_days)
 
@@ -557,8 +627,20 @@ def run_backtest(
         )
         metrics = calculate_contribution_metrics(equity_curve, contributed_capital, trades, df.index[0], df.index[-1])
     else:
-        equity_curve = compute_equity_curve(df, position, fee_bps=fee_bps, slippage_bps=slippage_bps)
+        equity_curve = compute_equity_curve(df, position, fee_bps=fee_bps, slippage_bps=slippage_bps,
+                                            execution_model=execution_model, tax_bps=tax_bps)
         metrics = calculate_metrics(equity_curve, trades, df.index[0], df.index[-1])
+
+    execution_meta: dict = {}
+    if execution_model == EXECUTION_NEXT_OPEN or adjust_prices:
+        from core.trade_ledger import DIVIDEND_NOTE_ADJUSTED, DIVIDEND_NOTE_RAW
+
+        execution_meta = {
+            "execution_model": execution_model or EXECUTION_CLOSE,
+            "adjust_prices": adjust_prices,
+            "dividend_cash_flow_modeled": False,
+            "dividend_note": DIVIDEND_NOTE_ADJUSTED if adjust_prices else DIVIDEND_NOTE_RAW,
+        }
 
     return BacktestRun(
         label=label,
@@ -570,6 +652,7 @@ def run_backtest(
         metrics=metrics,
         stage_events=stage_events,
         contributed_capital=contributed_capital,
+        execution_meta=execution_meta,
     )
 
 

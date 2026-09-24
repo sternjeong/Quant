@@ -53,20 +53,62 @@ RESULT_COLUMNS = [
 ]
 
 
-def _percentile_score(series: pd.Series) -> pd.Series:
-    """0~100 percentile 점수로 변환(항상 "값이 클수록 좋음" 방향 — 뒤집기는 호출부에서 처리).
+# 업종 내 percentile 을 신뢰하려면 업종당 유효(비결측) 표본이 최소 이만큼은 있어야 한다.
+# 미달 업종은 전체 유니버스 percentile 로 대체하되 `sector_rank_fallback` 플래그로 명시한다.
+MIN_SECTOR_VALID = 3
 
-    값이 없는(NaN) 항목은 최하위(0점) 취급한다: 발굴 유니버스는 밸류에이션/펀더멘털 결측이 흔한데
-    결측을 중간값 등으로 채우면 정보가 없는 종목이 부당하게 좋은 점수를 받을 수 있어, 보수적으로
-    최하위 처리한다.
-    """
+FACTORS = ("momentum", "growth", "value", "quality")
+
+# RESULT_COLUMNS 는 기존 호환 필드. 아래 확장 컬럼은 그 뒤에 덧붙인다.
+EXTRA_COLUMNS = (
+    [f"{f}_missing" for f in FACTORS]
+    + [f"{f}_contrib" for f in FACTORS]
+    + ["missing_factors", "n_missing_factors", "sector_rank_fallback", "fallback_flags", "data_errors"]
+)
+
+PIT_META = {
+    "pit_verified": False,
+    "pit_note": (
+        "as_of_date 는 현재 S&P500 구성종목을 과거 구성원 목록으로 걸러낼 뿐, 재무값/가격/시가총액은 "
+        "현재 시점 스냅샷이다. 진정한 point-in-time(당시 공시 가능 데이터) 검증이 아니며 백테스트에 쓰면 "
+        "look-ahead·생존편향이 남는다."
+    ),
+}
+
+
+def _percentile_score(series: pd.Series) -> pd.Series:
+    """0~100 percentile 점수(값이 클수록 좋음). 결측은 최하위(0점) — 호출부에서 결측 플래그를 별도로 낸다."""
     s = pd.to_numeric(series, errors="coerce")
     if s.notna().sum() == 0:
         return pd.Series(0.0, index=series.index)
-    # na_option="top": 오름차순 순위에서 NaN을 맨 앞(최저 순위)으로 보내 최하위 percentile을
-    # 받게 한다("bottom"은 반대로 NaN에 최고 순위를 주므로 의도와 반대가 되어버림에 주의).
     ranked = s.rank(pct=True, na_option="top") * 100
     return ranked.fillna(0.0)
+
+
+def _sector_percentile(
+    values: pd.Series, sectors: pd.Series, min_valid: int = MIN_SECTOR_VALID
+) -> tuple[pd.Series, pd.Series]:
+    """지표별 업종 내 percentile(0~100, 유효값 사이 순위). 결측은 0점.
+
+    업종 내 유효 표본이 min_valid 미만이면 전체 유니버스 유효값 기준 percentile 로 대체하고,
+    대체된 행은 두번째 반환 Series(bool)에서 True 로 표시한다(결측 행은 대체 대상 아님).
+    """
+    v = pd.to_numeric(values, errors="coerce")
+    sec = sectors.fillna("__UNKNOWN__")
+    score = pd.Series(0.0, index=v.index)
+    fallback = pd.Series(False, index=v.index)
+    global_rank = v.rank(pct=True) * 100  # NaN 은 NaN 유지
+    for _, idx in sec.groupby(sec).groups.items():
+        grp = v.loc[idx]
+        valid = grp.dropna()
+        if valid.empty:
+            continue
+        if len(valid) >= min_valid:
+            score.loc[valid.index] = valid.rank(pct=True) * 100
+        else:
+            score.loc[valid.index] = global_rank.loc[valid.index]
+            fallback.loc[valid.index] = True
+    return score.fillna(0.0), fallback
 
 
 def _momentum_raw(price_df: pd.DataFrame) -> Optional[float]:
@@ -165,13 +207,16 @@ def discover_candidates(
         top_n: 반환할 상위 종목 수.
         use_cache: screener/valuation/market_data 캐시 사용 여부.
         as_of_date: (선택) core.point_in_time_universe 와 연동할 미래 확장 포인트("YYYY-MM-DD").
-            지정 시 point-in-time 유니버스로 필터링만 하고, 그 외 로직(가격 구간 등)은 현재 시점
-            기준 그대로 둔다 — 완전한 백테스트 가능 발굴은 향후 확장 과제.
+            지정 시 과거 구성원 목록으로 필터링만 한다. 재무/가격은 현재 스냅샷이므로 진정한 PIT 가
+            아니다 — 결과 `df.attrs["meta"]["pit_verified"]` 는 항상 False. 필터 실패 시
+            meta["as_of_filter_error"] 에 기록되고 현재 유니버스로 진행한다.
 
     Returns:
         columns: ticker, name, sector, composite_score, momentum_score, growth_score, value_score,
         quality_score, trailing_pe, price_to_book, earnings_growth, market_cap
-        (composite_score 내림차순 정렬, 상위 top_n행). 펀더멘털/가격 데이터가 전부 없는 종목은 제외.
+        + 확장: {factor}_missing, {factor}_contrib, missing_factors, n_missing_factors,
+        sector_rank_fallback, fallback_flags, data_errors. 점수는 지표별 업종 내 percentile 순위 합성.
+        메타는 df.attrs["meta"]. (composite_score 내림차순 정렬, 상위 top_n행). 펀더멘털/가격 데이터가 전부 없는 종목은 제외.
     """
     universe = screener.get_universe(use_cache=use_cache)
     if universe is None or universe.empty:
@@ -180,14 +225,17 @@ def discover_candidates(
     if sector_filter:
         universe = universe[universe["Sector"].isin(sector_filter)]
 
+    meta = dict(PIT_META)
+    meta.update({"as_of_date": as_of_date, "as_of_filter_applied": False, "as_of_filter_error": None})
     if as_of_date:
         try:
             from core.point_in_time_universe import get_constituents_as_of
 
             allowed = set(get_constituents_as_of(as_of_date))
             universe = universe[universe["Symbol"].isin(allowed)]
-        except Exception:
-            pass  # point-in-time 필터는 부가 기능 — 실패해도 기본(현재) 유니버스로 계속 진행
+            meta["as_of_filter_applied"] = True
+        except Exception as e:  # 조용히 넘기지 않고 메타에 기록(현재 유니버스로 진행했음을 명시)
+            meta["as_of_filter_error"] = f"{type(e).__name__}: {e}"
 
     if universe_n is not None:
         universe = universe.head(universe_n)
@@ -202,63 +250,121 @@ def discover_candidates(
         fundamentals: dict = {}
         val_inputs: dict = {}
         price_df = pd.DataFrame()
+        errors: list[str] = []
         try:
             fundamentals = screener.get_fundamentals(ticker, use_cache=use_cache) or {}
         except Exception:
             fundamentals = {}
+            errors.append("fundamentals")
         try:
             val_inputs = valuation.fetch_valuation_inputs(ticker, use_cache=use_cache) or {}
         except Exception:
             val_inputs = {}
+            errors.append("valuation_inputs")
         try:
             price_df = get_price_history(ticker, start=price_start, use_cache=use_cache)
         except Exception:
             price_df = pd.DataFrame()
+            errors.append("price_history")
 
         if not fundamentals and not val_inputs and (price_df is None or price_df.empty):
             continue  # 완전 데이터 실패 종목은 순위 계산에서 제외(다른 종목 처리는 계속)
 
-        name = val_inputs.get("longName") or fundamentals.get("name") or ticker
+        flags: list[str] = []
+        name = val_inputs.get("longName")
+        if not name:
+            name = fundamentals.get("name")
+            flags.append("name_from_fundamentals")
+            if not name:
+                name = ticker
+                flags.append("name_is_ticker")
         per = val_inputs.get("trailingPE")
         pbr = val_inputs.get("priceToBook")
         earnings_growth = val_inputs.get("earningsGrowth")
-        market_cap = val_inputs.get("marketCap") or fundamentals.get("market_cap")
+        market_cap = val_inputs.get("marketCap")
+        if not market_cap and fundamentals.get("market_cap"):
+            market_cap = fundamentals.get("market_cap")
+            flags.append("market_cap_from_fundamentals")
+        elif not market_cap:
+            market_cap = None
+        sec_val = val_inputs.get("sector")
+        if sec_val:
+            row_sector = sec_val
+        elif sector:
+            row_sector = sector
+            flags.append("sector_from_universe")
+        else:
+            row_sector = fundamentals.get("sector")
+            if row_sector:
+                flags.append("sector_from_fundamentals")
+        if per is not None and per <= 0:
+            flags.append("value_loss_making")  # 적자: value 는 결측이 아니라 의도된 최하위
+        n_roc = 0
+        if price_df is not None and not price_df.empty and "Close" in price_df.columns:
+            n_close = len(price_df["Close"].dropna())
+            n_roc = sum(1 for w, _ in ROC_WEIGHTS if n_close >= w + 1)
+            if 0 < n_roc < len(ROC_WEIGHTS):
+                flags.append("momentum_partial_window")
+        fcf = val_inputs.get("freeCashflow")
+        if (fcf is None) != (val_inputs.get("totalDebt") is None):
+            flags.append("quality_partial_signal")
 
         rows.append(
             {
                 "ticker": ticker,
                 "name": name,
-                "sector": val_inputs.get("sector") or sector or fundamentals.get("sector"),
+                "sector": row_sector,
                 "momentum_raw": _momentum_raw(price_df),
                 "growth_raw": earnings_growth,
                 "value_raw": _value_raw(per, pbr, earnings_growth),
-                "quality_raw": _quality_raw(
-                    val_inputs.get("freeCashflow"), market_cap, val_inputs.get("totalCash"), val_inputs.get("totalDebt")
-                ),
+                "quality_raw": _quality_raw(fcf, market_cap, val_inputs.get("totalCash"), val_inputs.get("totalDebt")),
                 "trailing_pe": per,
                 "price_to_book": pbr,
                 "earnings_growth": earnings_growth,
                 "market_cap": market_cap,
+                "_flags": flags,
+                "_errors": errors,
             }
         )
 
     if not rows:
-        return pd.DataFrame(columns=RESULT_COLUMNS)
+        empty = pd.DataFrame(columns=RESULT_COLUMNS + EXTRA_COLUMNS)
+        empty.attrs["meta"] = meta
+        return empty
 
     df = pd.DataFrame(rows)
 
-    df["momentum_score"] = _percentile_score(df["momentum_raw"])
-    df["growth_score"] = _percentile_score(df["growth_raw"])
-    df["value_score"] = _percentile_score(df["value_raw"])
-    df["quality_score"] = _percentile_score(df["quality_raw"])
+    fb_any = pd.Series(False, index=df.index)
+    for f in FACTORS:
+        raw = pd.to_numeric(df[f"{f}_raw"], errors="coerce")
+        df[f"{f}_missing"] = raw.isna()
+        df[f"{f}_score"], fb = _sector_percentile(raw, df["sector"])
+        df[f"{f}_sector_fb"] = fb
+        fb_any |= fb
 
     w = weights or DEFAULT_WEIGHTS
-    df["composite_score"] = (
-        df["momentum_score"] * w.get("momentum", 0.0)
-        + df["growth_score"] * w.get("growth", 0.0)
-        + df["value_score"] * w.get("value", 0.0)
-        + df["quality_score"] * w.get("quality", 0.0)
-    )
+    for f in FACTORS:
+        df[f"{f}_contrib"] = df[f"{f}_score"] * w.get(f, 0.0)
+    df["composite_score"] = sum(df[f"{f}_contrib"] for f in FACTORS)
+
+    df["missing_factors"] = df.apply(lambda r: [f for f in FACTORS if r[f"{f}_missing"]], axis=1)
+    df["n_missing_factors"] = df["missing_factors"].apply(len)
+    df["sector_rank_fallback"] = fb_any
+
+    def _all_flags(r):
+        fl = list(r["_flags"])
+        fl += [f"{f}_sector_rank_fallback" for f in FACTORS if r[f"{f}_sector_fb"]]
+        return fl
+
+    df["fallback_flags"] = df.apply(_all_flags, axis=1)
+    df["data_errors"] = df["_errors"]
+
+    meta["score_method"] = "sector_percentile_rank_weighted_sum"
+    meta["missing_policy"] = "결측 팩터는 0점(최하위) 처리하되 *_missing/missing_factors 로 명시"
+    meta["min_sector_valid"] = MIN_SECTOR_VALID
+    meta["n_scored"] = int(len(df))
 
     df = df.sort_values("composite_score", ascending=False).reset_index(drop=True)
-    return df[RESULT_COLUMNS].head(top_n).reset_index(drop=True)
+    out = df[RESULT_COLUMNS + EXTRA_COLUMNS].head(top_n).reset_index(drop=True)
+    out.attrs["meta"] = meta
+    return out

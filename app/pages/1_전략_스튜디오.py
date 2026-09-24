@@ -83,7 +83,14 @@ from core.strategy_library import (
     unarchive_strategy,
     update_strategy,
 )
-from core.strategy_tuning import get_top_tuning_results, list_tuning_runs
+from core.strategy_tuning import (
+    LEGACY_SCORE_WARNING,
+    get_top_tuning_results,
+    list_tuning_runs,
+    partition_by_score_version,
+    result_score_status,
+    score_version_badge,
+)
 from core.theme import (
     TRADINGVIEW_CHART_CONFIG,
     apply_theme,
@@ -474,6 +481,8 @@ def render_tuning_run_results(run_id: int, key_prefix: str) -> None:
     if run_data is None:
         st.warning("해당 실행 결과를 찾을 수 없습니다.")
         return
+    if run_data.get("score_version_status") != "current":
+        st.warning(f"{score_version_badge('legacy')} 실행 #{run_id}: {LEGACY_SCORE_WARNING}")
 
     ok_rows = [r for r in run_data["results"] if not r.get("error") and r.get("tuned_config")]
     error_rows = [r for r in run_data["results"] if r.get("error")]
@@ -2458,6 +2467,7 @@ with tab_tuning:
                             "id": h["id"], "종목수": h["universe_size"], "시작일": h["start_date"],
                             "종료일": h["end_date"], "탐색강도": h["intensity"],
                             "스윙모드": "🏄 예" if h.get("max_holding_days") else "-",
+                            "점수 버전": score_version_badge(h.get("score_version_status", "legacy")),
                             "생성일": h["created_at"],
                         }
                         for h in tuning_history
@@ -2465,6 +2475,12 @@ with tab_tuning:
                 ),
                 use_container_width=True, hide_index=True,
             )
+            _n_legacy_runs = sum(1 for h in tuning_history if h.get("score_version_status") != "current")
+            if _n_legacy_runs:
+                st.caption(
+                    f"⚠️ 이 이력 중 {_n_legacy_runs}건은 legacy 점수 버전 실행입니다(삭제되지 않음). "
+                    "현재 v2 실행과 결과를 직접 비교하지 마세요."
+                )
             pick_run_id = st.number_input(
                 "결과를 볼 실행 id", min_value=0, value=tuning_history[0]["id"], step=1, key="tuning_pick_run_id"
             )
@@ -2480,6 +2496,8 @@ with tab_tuning:
         if run_data is None:
             st.warning("해당 실행 결과를 찾을 수 없습니다.")
         else:
+            if run_data.get("score_version_status") != "current":
+                st.warning(f"{score_version_badge('legacy')} 실행 #{tuning_run_id}: {LEGACY_SCORE_WARNING}")
             ok_rows = [r for r in run_data["results"] if not r.get("error") and r.get("tuned_config")]
             error_rows = [r for r in run_data["results"] if r.get("error")]
             if error_rows:
@@ -3060,6 +3078,15 @@ def _render_nightly_leaderboard_tab() -> None:
         ),
     )
 
+    include_legacy = st.checkbox(
+        "⚠️ legacy 점수 버전 결과도 함께 보기 (진단용)", value=False, key="nightly_include_legacy",
+        help=(
+            "스타일 점수 계산 방식이 v2로 바뀌기 전(결측을 최상위로 취급하던 v1, 또는 버전 미기록)에 만들어진 "
+            "결과입니다. 삭제하지 않고 보존하지만, 현재 v2 결과와 한 순위표에서 직접 비교하면 안 되므로 기본은 "
+            "숨깁니다. 켜면 '점수 버전' 열의 배지로 구분해 함께 보여줍니다."
+        ),
+    )
+
     def _passes_significance(r: dict) -> bool:
         p = r.get("significance_p_value")
         skill = r.get("skill_pct_of_total")
@@ -3073,6 +3100,17 @@ def _render_nightly_leaderboard_tab() -> None:
         ci_results = [r for r in ci_results if _passes_significance(r)]
 
     combined = [r for r in (db_results + ci_results) if r.get("excess_return") is not None]
+    # 버전 필드가 없는 예전 CI JSON 기록도 legacy로 판정된다(result_score_status).
+    _current_combined, _legacy_combined = partition_by_score_version(combined)
+    if not include_legacy:
+        combined = _current_combined
+        if _legacy_combined:
+            st.caption(
+                f"⚠️ legacy 점수 버전 결과 {len(_legacy_combined)}건은 v2 순위와 섞이지 않도록 숨겼습니다"
+                "(삭제 아님 — 위 '⚠️ legacy 점수 버전 결과도 함께 보기'를 켜면 표시)."
+            )
+    elif _legacy_combined:
+        st.warning(f"{score_version_badge('legacy')} {len(_legacy_combined)}건 포함 중 — {LEGACY_SCORE_WARNING}")
     combined.sort(key=lambda r: r["excess_return"], reverse=True)
     seen: set[tuple] = set()
     deduped: list[dict] = []
@@ -3084,7 +3122,12 @@ def _render_nightly_leaderboard_tab() -> None:
         deduped.append(r)
 
     if not deduped:
-        if require_significant:
+        if _legacy_combined and not include_legacy:
+            st.info(
+                f"현재 점수 버전(v2) 결과가 아직 없습니다 — legacy 결과 {len(_legacy_combined)}건만 있어 숨겼습니다. "
+                "위 '⚠️ legacy 점수 버전 결과도 함께 보기'를 켜면 볼 수 있고, 다음 야간 튜닝이 새로 돌면 v2 결과가 쌓입니다."
+            )
+        elif require_significant:
             st.info(
                 "통계적으로 유의미한(순열검정 p<0.05 & 실력 기여 양수) 결과가 아직 없습니다 — 위 "
                 "체크박스를 해제하면 검증 여부와 무관하게 전체 결과를 볼 수 있습니다. 이 필터는 "
@@ -3249,6 +3292,7 @@ def _render_nightly_leaderboard_tab() -> None:
                 "실력비중(%)": r.get("skill_pct_of_total"),
                 "탐색 강도": r["run_intensity"],
                 "백본변경": "🧬 예" if r.get("backbone_changed") else "-",
+                "점수 버전": score_version_badge(result_score_status(r)),
                 "실행일시": r["run_created_at"].strftime("%Y-%m-%d %H:%M") if r.get("run_created_at") else "N/A",
                 "출처": "🖥️ 로컬" if r.get("_source") == "local_scheduler" else "☁️ GitHub Actions",
             }
@@ -3265,6 +3309,8 @@ def _render_nightly_leaderboard_tab() -> None:
     ]
     selected_idx = st.selectbox("종목 선택", range(len(top_results)), format_func=lambda i: ticker_options[i])
     selected = top_results[selected_idx]
+    if result_score_status(selected) != "current":
+        st.warning(f"{score_version_badge('legacy')} 선택한 결과 — {LEGACY_SCORE_WARNING}")
 
     save_key = f"nightly_saved_{selected.get('_source')}_{selected.get('run_id')}_{selected['ticker']}"
     def _save_nightly_result() -> None:

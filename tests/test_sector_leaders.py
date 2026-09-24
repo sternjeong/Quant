@@ -121,6 +121,40 @@ def test_compute_leader_and_growth_falls_back_to_per_when_earnings_growth_missin
     assert growth_tickers[0] == "B"  # PER 50이 가장 높음 -> 성장 점수 1위
 
 
+def test_percentile_score_missing_is_neutral_not_top():
+    scores = sector_leaders._percentile_score(pd.Series([10.0, None, 30.0, 20.0]))
+    assert scores.iloc[1] == 50.0
+    assert scores.iloc[2] == scores.max()  # 최대값이 최고 점수, 결측이 아님
+    assert scores.iloc[1] < scores.iloc[2]
+
+
+def test_growth_missing_is_not_promoted_over_real_growth_nor_replaced_by_per(monkeypatch):
+    monkeypatch.setattr(sector_leaders, "get_theme_candidate_tickers", lambda theme: ["L", "B1", "N", "G", "M", "X"])
+    fundamentals = {t: {"name": t, "market_cap": c} for t, c in
+                    {"L": 1000, "B1": 900, "N": 60, "G": 80, "M": 70, "X": 65}.items()}
+    valuations = {
+        "L": {"earningsGrowth": 0.1, "trailingPE": 20},
+        "B1": {"earningsGrowth": 0.1, "trailingPE": 20},
+        "N": {"earningsGrowth": None, "trailingPE": 500},  # 데이터 없음 + 초고PER
+        "G": {"earningsGrowth": 0.5, "trailingPE": 15},
+        "M": {"earningsGrowth": 0.05, "trailingPE": 12},
+        "X": {"earningsGrowth": -0.2, "trailingPE": 10},
+    }
+    monkeypatch.setattr(sector_leaders.screener, "get_fundamentals", lambda t, use_cache=True: fundamentals[t])
+    monkeypatch.setattr(sector_leaders.valuation, "fetch_valuation_inputs", lambda t: valuations[t])
+
+    result = sector_leaders.compute_leader_and_growth("기술", top_n_growth=4)
+    growth = result["growth_stocks"]
+    order = [g["ticker"] for g in growth]
+    assert order[0] == "G"
+    assert order.index("N") > order.index("X")  # 결측은 실데이터 종목 뒤
+    n = next(g for g in growth if g["ticker"] == "N")
+    assert n["growth_data_missing"] is True
+    assert n["growth_score"] == 50.0
+    assert n["earnings_growth"] is None
+    assert all(g["growth_data_missing"] is False for g in growth if g["ticker"] != "N")
+
+
 def test_compute_leader_and_growth_excludes_all_mega_caps_not_just_leader(monkeypatch):
     # 12개 후보 중 3개는 초대형주(2~3조 달러), 9개는 200억 달러 이하 중소형주. 대장주 한 종목만
     # 빼는 예전 방식이면 두 번째/세 번째로 큰 초대형주가 이익성장률만 높으면 "성장주"로 잡혔다 —

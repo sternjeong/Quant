@@ -57,6 +57,7 @@ CORE_WEIGHT = 0.85
 MARKET_FILTER_TICKER = "SPY"
 MARKET_FILTER_SMA_WINDOW = 200
 MARKET_FILTER_EXPOSURE_CUT = 0.5  # 200일선 하회 시 코어 비중에 곱하는 배수
+CHAMPION_STRATEGY_VERSION = "core-momentum-top4+spy200dma/2026-09"  # snapshot 추적용(로직 변경 시 갱신)
 
 # 2026-09-19 추가: 새틀라이트(SATELLITE_SIZING_METHODS)에는 이미 있던 "inverse_vol" 옵션을
 # 코어에도 동일한 원칙으로 제공한다 — 새 방법론 발명 없이 core.position_sizing의 기존 함수를
@@ -100,7 +101,9 @@ def compute_core_recommendation(sizing_method: str = "equal") -> dict:
 
     Returns:
         as_of, ranked(전체 17종목 momentum_pct/passes_absolute_momentum/in_top4 DataFrame),
-        top4(list[str]), above_200dma, exposure_multiplier, per_ticker_weight(하위호환용, 균등가중 값),
+        top4(list[str]), above_200dma(SPY 없으면 None), market_filter_status("above"/"below"/"unknown"),
+        new_orders_allowed(unknown이면 False, per_ticker_weights 비어 있음), last_trading_date,
+        data_coverage, strategy_version, allocation_reason, exposure_multiplier(unknown이면 0.0), per_ticker_weight(하위호환용, 균등가중 값),
         per_ticker_weights(dict[str,float], 실제 배분), cash_weight_from_filter
     """
     if sizing_method not in CORE_SIZING_METHODS:
@@ -136,12 +139,29 @@ def compute_core_recommendation(sizing_method: str = "equal") -> dict:
             spy_sma200 = float(sma200.iloc[-1])
             above_200dma = spy_price > spy_sma200
 
-    exposure_multiplier = 1.0 if (above_200dma is None or above_200dma) else MARKET_FILTER_EXPOSURE_CUT
+    # SPY 데이터가 없으면(above_200dma is None) full exposure로 조용히 대체하지 않는다 —
+    # "unknown" 상태로 분리하고 신규 주문을 보류한다(배분 비중 없음, 기존 보유는 호출부가 유지 판단).
+    if above_200dma is None:
+        market_filter_status = "unknown"
+        new_orders_allowed = False
+        exposure_multiplier = 0.0
+        allocation_reason = (
+            f"{MARKET_FILTER_TICKER} 가격/200일선 데이터를 확보하지 못해 시장필터 상태를 알 수 없음 — "
+            "full exposure로 대체하지 않고 신규 주문을 보류(기존 보유 유지)."
+        )
+    else:
+        market_filter_status = "above" if above_200dma else "below"
+        new_orders_allowed = True
+        exposure_multiplier = 1.0 if above_200dma else MARKET_FILTER_EXPOSURE_CUT
+        allocation_reason = (
+            f"{MARKET_FILTER_TICKER} 200일선 {'위' if above_200dma else '아래'} — 코어 비중 x{exposure_multiplier:g}; "
+            + (f"모멘텀 상위 {len(top4)}종목 {sizing_method} 배분." if top4 else "절대모멘텀 통과 종목이 없어 코어 전액 현금.")
+        )
     invested_core_weight = CORE_WEIGHT * exposure_multiplier
     per_ticker_weight = invested_core_weight / len(top4) if top4 else 0.0
 
-    per_ticker_weights: dict[str, float] = {t: per_ticker_weight for t in top4}
-    if sizing_method == "inverse_vol" and top4:
+    per_ticker_weights: dict[str, float] = {t: per_ticker_weight for t in top4} if new_orders_allowed else {}
+    if new_orders_allowed and sizing_method == "inverse_vol" and top4:
         vol_weights = _inverse_vol_weights(
             {t: histories[t] for t in top4 if t in histories}, top4, CORE_SIZING_VOL_LOOKBACK_DAYS,
             max_weight=CORE_SIZING_MAX_WEIGHT,
@@ -149,8 +169,25 @@ def compute_core_recommendation(sizing_method: str = "equal") -> dict:
         if vol_weights:
             per_ticker_weights = {t: invested_core_weight * w for t, w in vol_weights.items()}
 
+    last_dates = [df.index[-1] for df in histories.values()]
+    if spy is not None:
+        last_dates.append(spy.index[-1])
+    last_trading_date = pd.Timestamp(max(last_dates)).strftime("%Y-%m-%d") if last_dates else None
+    missing_tickers = sorted(t for t in CORE_UNIVERSE if t not in histories)
+
     return {
         "as_of": date.today().isoformat(),
+        "last_trading_date": last_trading_date,
+        "data_coverage": {
+            "universe_total": len(CORE_UNIVERSE),
+            "universe_available": len(histories),
+            "missing_tickers": missing_tickers,
+            "market_filter_available": above_200dma is not None,
+        },
+        "strategy_version": CHAMPION_STRATEGY_VERSION,
+        "allocation_reason": allocation_reason,
+        "market_filter_status": market_filter_status,  # "above" | "below" | "unknown"
+        "new_orders_allowed": new_orders_allowed,
         "ranked": ranked,
         "top4": top4,
         "above_200dma": above_200dma,
@@ -607,10 +644,12 @@ def _pick_satellite_at_date(
     histories = get_multiple_price_history(candidates, start=fetch_start, end=fetch_end, interval="1d")
 
     active_scores: dict[str, float] = {}
+    n_with_history = 0
     for t in candidates:
         df = histories.get(t)
         if df is None or df.empty:
             continue
+        n_with_history += 1
         close = df["Close"]
         close = close[close.index < rebal_date]  # 전일까지만(당일 미포함, 룩어헤드 방지)
         if len(close) < SATELLITE_DONCHIAN_WINDOW + 60:
@@ -637,6 +676,7 @@ def _pick_satellite_at_date(
 
     return {
         "date": as_of_str, "pool_size": len(candidates), "n_active_trend": len(active_scores),
+        "n_with_history": n_with_history,  # 가격 이력을 실제로 받은 후보 수(위성 데이터 부족 판단용)
         "picks": picks, "weights": pick_weights,
     }
 
@@ -750,7 +790,9 @@ def compute_satellite_recommendation_point_in_time(
         pool_size, n_active_trend, selected(list[str], 곧 picks), sizing_method,
         per_ticker_weight(하위호환용 균등가중 값), per_ticker_weights(dict, 포트폴리오 전체 비중
         기준 — compute_satellite_recommendation과 동일한 스케일), picks(DataFrame:
-        ticker/price_at_rebal/current_price/return_since_rebal_pct), unallocated_weight
+        ticker/price_at_rebal/current_price/return_since_rebal_pct), unallocated_weight,
+        new_orders_allowed(위성 전용 신규 주문 보류 플래그 — 코어와 독립. 후보 풀/가격 데이터를 못 받았거나 선정
+        종목 가격이 없으면 False이고 per_ticker_weights는 비어 있음), allocation_reason, data_coverage
     """
     if sizing_method not in SATELLITE_SIZING_METHODS:
         raise ValueError(f"알 수 없는 sizing_method: {sizing_method}")
@@ -811,18 +853,44 @@ def compute_satellite_recommendation_point_in_time(
             })
     picks_df = pd.DataFrame(picks_rows, columns=["ticker", "price_at_rebal", "current_price", "return_since_rebal_pct"])
 
+    # 위성 전용 신규 주문 보류 플래그 — 코어의 new_orders_allowed와 독립이며 같은 fail-closed 규칙.
+    # "데이터를 못 받아서 후보가 비었다"와 "추세 후보가 정말 없다"를 구분한다: 전자는 보류(기존 위성
+    # 보유를 청산으로 오인하지 않게), 후자는 위성 전액 현금이라는 정상 결정이다.
+    n_with_history = info.get("n_with_history")  # 없으면(구버전/목킹) 커버리지를 모르므로 이 항목으로는 막지 않는다
+    picks_missing_price = [r["ticker"] for r in picks_rows if r["current_price"] is None]
+    hold_reasons = []
+    if info["pool_size"] == 0:
+        hold_reasons.append("point-in-time 후보 풀이 비어 있음(유니버스 데이터 없음)")
+    if n_with_history == 0 and info["pool_size"] > 0:
+        hold_reasons.append(f"후보 {info['pool_size']}종목 모두 가격 이력을 받지 못함")
+    if picks_missing_price:
+        hold_reasons.append(f"선정 종목 {picks_missing_price}의 최근 가격 데이터 없음")
+    satellite_new_orders_allowed = not hold_reasons
+    if not satellite_new_orders_allowed:
+        per_ticker_weights, per_ticker_weight = {}, 0.0
+    allocation_reason = (
+        "위성 신규 주문 보류(기존 위성 보유 유지): " + "; ".join(hold_reasons) if hold_reasons
+        else (f"위성 {len(picks)}종목 {sizing_method} 배분." if picks else "활성 추세 종목이 없어 위성 전액 현금.")
+    )
+
     return {
         "as_of": as_of.date().isoformat(),
         "rebal_date": rebal_date.date().isoformat(),
         "trading_days_to_next_rebal": trading_days_to_next_rebal,
         "pool_size": info["pool_size"],
         "n_active_trend": info["n_active_trend"],
+        "new_orders_allowed": satellite_new_orders_allowed,
+        "allocation_reason": allocation_reason,
+        "data_coverage": {
+            "pool_size": info["pool_size"], "n_with_history": n_with_history,
+            "n_active_trend": info["n_active_trend"], "picks_missing_price": picks_missing_price,
+        },
         "selected": picks,
         "sizing_method": sizing_method,
         "per_ticker_weight": per_ticker_weight,
         "per_ticker_weights": per_ticker_weights,
         "picks": picks_df,
-        "unallocated_weight": SATELLITE_WEIGHT if not picks else 0.0,
+        "unallocated_weight": SATELLITE_WEIGHT if (not picks or not satellite_new_orders_allowed) else 0.0,
     }
 
 
@@ -1571,7 +1639,8 @@ def check_and_notify_signal_changes(include_satellite: bool = True, notify_fn=No
             if old_state.get("core_top4") != new_state["core_top4"]:
                 lines.append(f"코어 top4: {old_state.get('core_top4')} → {new_state['core_top4']}")
             if old_state.get("above_200dma") != new_state["above_200dma"]:
-                lines.append(f"시장필터: {'200일선 위' if new_state['above_200dma'] else '200일선 아래'}로 변경")
+                _mf = {True: "200일선 위", False: "200일선 아래", None: "판단불가(SPY 데이터 없음, 신규 주문 보류)"}
+                lines.append(f"시장필터: {_mf[new_state['above_200dma']]}로 변경")
             if satellite_changed:
                 lines.append(f"새틀라이트: {old_state.get('satellite_selected')} → {new_state.get('satellite_selected')}")
         message = "\n".join(lines)
@@ -1958,7 +2027,10 @@ def generate_weekly_report_html() -> str:
         f"({corr_history[0]['computed_at'].strftime('%Y-%m-%d')} 기준)"
         if corr_history else "아직 계산된 적 없음 — Streamlit 챔피언 전략 페이지에서 확인 가능"
     )
-    market_filter = "200일선 위 (정상 비중)" if core_result["above_200dma"] else "200일선 아래 (코어 비중 50% 축소)"
+    if core_result["above_200dma"] is None:
+        market_filter = "판단불가 (SPY 데이터 없음 — 신규 주문 보류)"
+    else:
+        market_filter = "200일선 위 (정상 비중)" if core_result["above_200dma"] else "200일선 아래 (코어 비중 50% 축소)"
     now = date.today().isoformat()
 
     return f'''<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>챔피언 전략 주간 보고</title>
@@ -2187,6 +2259,13 @@ def record_daily_ledger_entry() -> dict:
         new_equity = round(prev_equity * (1 + realized_return_pct / 100), 4)
 
         core_rec = compute_core_recommendation()
+        if core_rec.get("new_orders_allowed") is False:
+            # 시장필터 unknown — 잘못된 비중을 원장에 남기지 않고 오늘 항목을 건너뛴다(내일 재시도).
+            return {
+                "skipped": True, "as_of": today.isoformat(),
+                "reason": core_rec.get("allocation_reason") or "시장필터 unknown — 신규 배분 보류",
+                "realized_return_pct": None, "cumulative_equity": prev_equity,
+            }
         satellite_rec = compute_satellite_recommendation()
 
         entry = ChampionLedgerEntry(

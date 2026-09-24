@@ -172,13 +172,19 @@ def get_short_term_regimes(close: pd.Series) -> dict:
     }
 
 
-def score_breadth(pct_above_200sma: float) -> dict:
-    """S&P500 중 200일선 위 종목 비율(0~100)로 ±25점을 매긴다(50%=0점 기준, 30%/70%에서 클립)."""
+def score_breadth(pct_above_200sma: Optional[float]) -> dict:
+    """S&P500 중 200일선 위 종목 비율(0~100)로 ±25점을 매긴다(50%=0점 기준, 30%/70%에서 클립).
+
+    None(데이터 0개)은 0%(약세)가 아니라 unknown: score=None, status="unknown" (ENG-02).
+    """
+    if pct_above_200sma is None:
+        return {"score": None, "pct_above_200sma": None, "is_overheated": False, "status": "unknown"}
     score = _clip((pct_above_200sma - 50.0) * 1.25, -25.0, 25.0)
     return {
         "score": score,
         "pct_above_200sma": pct_above_200sma,
         "is_overheated": pct_above_200sma >= 85.0,
+        "status": "ok",
     }
 
 
@@ -455,9 +461,12 @@ def compute_market_breadth(
             continue
         if float(close.iloc[-1]) > float(sma200.iloc[-1]):
             n_above += 1
-    pct = (n_above / n_data_ok * 100) if n_data_ok else 0.0
+    # 데이터 0개는 0%(약세)가 아니라 unknown (ENG-02)
+    pct = (n_above / n_data_ok * 100) if n_data_ok else None
     return {
         "pct_above_200sma": pct,
+        "status": "ok" if n_data_ok else "unknown",
+        "coverage": (n_data_ok / len(tickers)) if tickers else 0.0,
         "n_total": len(tickers),
         "n_above": n_above,
         "n_data_ok": n_data_ok,
@@ -502,11 +511,15 @@ def get_market_regime_snapshot(
     short_term = get_short_term_regimes(close)
 
     total_score = sum(
-        part["score"] for part in (trend_position, ma_cross, drawdown, breadth) if part is not None
+        part["score"] for part in (trend_position, ma_cross, drawdown, breadth)
+        if part is not None and part.get("score") is not None
     )
+    # breadth 데이터가 하나도 없으면 4신호 합산이 성립하지 않으므로 국면을 unknown으로 둔다.
+    regime = classify_regime(total_score) if breadth["status"] == "ok" else "unknown"
 
     return {
-        "regime": classify_regime(total_score),
+        "regime": regime,
+        "regime_status": "ok" if regime != "unknown" else "unknown",
         "total_score": total_score,
         "trend_position": trend_position,
         "ma_cross": ma_cross,
@@ -607,6 +620,14 @@ def select_regime_for_trading(snapshot: Optional[dict] = None) -> dict:
 
     regime = snapshot["regime"]
     total_score = snapshot["total_score"]
+    if regime not in ("강세장", "약세장", "중립/혼조"):  # "unknown" 등 -> 판단 불가 (ENG-02)
+        return {
+            "trading_regime": None,
+            "is_ambiguous": True,
+            "total_score": total_score,
+            "snapshot": snapshot,
+            "reason": "시장 국면 unknown (시장폭 데이터 없음 등).",
+        }
     if regime == "중립/혼조":
         trading_regime = "강세장" if total_score >= 0 else "약세장"
         is_ambiguous = True

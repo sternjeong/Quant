@@ -173,10 +173,12 @@ def get_theme_candidate_tickers(theme: str) -> list[str]:
 
 
 def _percentile_score(series: pd.Series) -> pd.Series:
-    """배치 내 상대 순위를 0~100 백분위 점수로 변환한다. 값이 전부 결측이면 중립값(50)."""
-    if series.dropna().empty:
-        return pd.Series(50.0, index=series.index)
-    return series.rank(pct=True, na_option="bottom") * 100
+    """배치 내 상대 순위를 0~100 백분위 점수로 변환한다(값이 클수록 높은 점수).
+
+    결측은 순위에서 제외하고(na_option="keep") 중립값(50)을 준다 — 예전 na_option="bottom"은
+    오름차순 rank에서 결측에 가장 큰 순위(=최고 점수)를 줘 "데이터 없음"이 최상위로 올라갔다.
+    """
+    return series.rank(pct=True, na_option="keep").mul(100).fillna(50.0)
 
 
 def compute_leader_and_growth(theme: str, top_n_growth: int = 3, use_cache: bool = True) -> dict:
@@ -225,11 +227,16 @@ def compute_leader_and_growth(theme: str, top_n_growth: int = 3, use_cache: bool
         growth_pool = df.iloc[1:].copy()
     growth_pool["earnings_growth"] = pd.to_numeric(growth_pool["earnings_growth"], errors="coerce")
     growth_pool["per"] = pd.to_numeric(growth_pool["per"], errors="coerce")
-    # earnings_growth가 없는 종목은 PER로 대체(성장주는 대체로 고PER) — strategy_tuning.compute_style_scores
-    # 의 growth_score 공식과 동일(그 함수는 모멘텀/퀄리티까지 계산해 가격 히스토리 조회가 추가로 필요하므로
-    # 여기서는 성장 점수 계산에 필요한 부분만 얇게 재구현한다).
-    growth_pool["growth_score"] = _percentile_score(growth_pool["earnings_growth"].fillna(growth_pool["per"]))
-    growth_pool = growth_pool.sort_values("growth_score", ascending=False).head(top_n_growth)
+    # earnings_growth가 없는 종목을 PER(고PER=성장 기대)로 대체하면 "데이터 없음"이 "고성장"으로
+    # 섞이므로 대체하지 않는다. 결측은 중립점수(50)로 두고 growth_data_missing 플래그를 달며,
+    # 실제 성장률 데이터가 있는 종목을 항상 우선 정렬한다(동률은 시가총액 순, 안정 정렬).
+    growth_pool["growth_data_missing"] = growth_pool["earnings_growth"].isna()
+    growth_pool["growth_score"] = _percentile_score(growth_pool["earnings_growth"])
+    growth_pool = growth_pool.sort_values(
+        ["growth_data_missing", "growth_score", "market_cap"],
+        ascending=[True, False, False],
+        kind="stable",
+    ).head(top_n_growth)
 
     growth_stocks = [
         {
@@ -239,6 +246,7 @@ def compute_leader_and_growth(theme: str, top_n_growth: int = 3, use_cache: bool
             "earnings_growth": None if pd.isna(r["earnings_growth"]) else float(r["earnings_growth"]),
             "per": None if pd.isna(r["per"]) else float(r["per"]),
             "growth_score": float(r["growth_score"]),
+            "growth_data_missing": bool(r["growth_data_missing"]),
         }
         for _, r in growth_pool.iterrows()
     ]

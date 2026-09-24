@@ -556,6 +556,61 @@ def daily_news_digest_job() -> None:
     print(f"[{datetime.now()}] daily_news_digest_job 종료")
 
 
+def candidate_ledger_record_job() -> None:
+    """후보 shadow 원장 기록 (RES-01, 2026-09-22 추가, docs/CANDIDATE_LEDGER_SPEC.md).
+
+    core.candidate_recorder.record_daily_candidates()가 발굴(stock_discovery)/섹터리더
+    (sector_leaders)/챔피언 새틀라이트 세 소스의 오늘 후보 전체(채택+보류+거절)를 관측 전용으로
+    동결 기록한다. 페이지 렌더링이 아니라 이 잡에서만 기록해야 같은 날 표본이 중복되지 않는다
+    (core/candidate_recorder.py 모듈 docstring 참고). 주문 경로(core.paper_execution,
+    scripts/champion_paper_trade.py)는 호출하지 않으며 이 잡의 결과는 주문에 영향을 주지 않는다.
+    daily_news_digest_job(07:30) 이전, 00:22 data_integrity_check와 00:25 daily_briefing 다음
+    비어있는 슬롯.
+    """
+    if not is_enabled("candidate_ledger_record"):
+        print(f"[{datetime.now()}] candidate_ledger_record_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
+    from core.candidate_recorder import record_daily_candidates, summarize_recording
+
+    print(f"[{datetime.now()}] candidate_ledger_record_job 시작")
+    try:
+        result = record_daily_candidates()
+        print(f"  - {summarize_recording(result)}")
+        if not result["ok"]:
+            report_job_failure("candidate_ledger_record", "세 소스 모두 후보를 기록하지 못함")
+    except Exception as exc:  # noqa: BLE001 - 다음 날 스케줄을 막지 않도록 기록만 남긴다.
+        print(f"  - 후보 원장 기록 실패: {type(exc).__name__}: {exc}")
+        report_job_failure("candidate_ledger_record", f"{type(exc).__name__}: {exc}")
+    print(f"[{datetime.now()}] candidate_ledger_record_job 종료")
+
+
+def candidate_ledger_outcome_update_job() -> None:
+    """후보 shadow 원장의 만기 도래한 horizon 결과를 채운다 (RES-01, 2026-09-22 추가).
+
+    core.candidate_ledger.update_forward_outcomes()는 멱등이며(이미 final/missing인 (후보, horizon)은
+    다시 계산하지 않음), candidate_ledger_record_job(00:27)이 그날 후보를 기록한 직후 1분 뒤 실행해도
+    당일 기록분은 아직 진입 전이라 영향이 없다 — 그 이전에 기록된 후보들의 만기가 채워진다.
+    """
+    if not is_enabled("candidate_ledger_outcome_update"):
+        print(f"[{datetime.now()}] candidate_ledger_outcome_update_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
+    from core.candidate_ledger import update_forward_outcomes
+
+    print(f"[{datetime.now()}] candidate_ledger_outcome_update_job 시작")
+    try:
+        result = update_forward_outcomes()
+        print(
+            f"  - 확정 {result['finalized']}건, 결측 {result['missing']}건, 보류 {result['pending']}건 "
+            f"(검토 {result['n_decisions_examined']}건)"
+        )
+        if result.get("errors"):
+            print(f"  - 오류 {len(result['errors'])}건: {result['errors'][:3]}")
+    except Exception as exc:  # noqa: BLE001 - 다음 날 스케줄을 막지 않도록 기록만 남긴다.
+        print(f"  - 후보 원장 성과 채움 실패: {type(exc).__name__}: {exc}")
+        report_job_failure("candidate_ledger_outcome_update", f"{type(exc).__name__}: {exc}")
+    print(f"[{datetime.now()}] candidate_ledger_outcome_update_job 종료")
+
+
 # 사용자가 "매일 0시~4시 동안 #3 전략을 여러 차원에서 미세튜닝해서 최적의 전략을 찾아달라, 상위
 # 10개를 웹사이트에서 볼 수 있게 해달라"고 요청 (2026-07-15). #3 = 전략 라이브러리의 "볼린저 밴드
 # 하단 반전 1:2:6 전략". 배포된 Streamlit Community Cloud 사이트는 이 스케줄러가 아예 뜰 수 없는
@@ -779,6 +834,24 @@ def main() -> None:
         trigger=CronTrigger(hour=0, minute=25, timezone="Asia/Seoul"),
         id="daily_briefing",
         name="매일 한국시간 00:25 오늘의 브리핑 HTML Telegram 전송",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        candidate_ledger_record_job,
+        # daily_briefing_job(00:25)까지가 00:00~00:25 KST 야간 블록이라, 그 다음 빈 슬롯(00:27)에
+        # 둔다. 관측 전용이라 다른 잡의 순서에 영향받지 않는다.
+        trigger=CronTrigger(hour=0, minute=27, timezone="Asia/Seoul"),
+        id="candidate_ledger_record",
+        name="매일 한국시간 00:27 후보 shadow 원장 기록 (RES-01, 관측 전용)",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        candidate_ledger_outcome_update_job,
+        # candidate_ledger_record_job(00:27) 다음 슬롯 — 그날 막 기록한 후보는 아직 진입 전이라
+        # 멱등하게 영향 없이, 이전에 기록된 후보들의 만기 결과만 채운다.
+        trigger=CronTrigger(hour=0, minute=28, timezone="Asia/Seoul"),
+        id="candidate_ledger_outcome_update",
+        name="매일 한국시간 00:28 후보 shadow 원장 성과 채움 (RES-01)",
         replace_existing=True,
     )
     scheduler.add_job(

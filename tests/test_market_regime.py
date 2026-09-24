@@ -200,7 +200,7 @@ def test_get_market_regime_snapshot_empty_benchmark_data(monkeypatch):
     assert snapshot["trend_position"] is None
     assert snapshot["ma_cross"] is None
     assert snapshot["drawdown"] is None
-    assert snapshot["regime"] == "중립/혼조"
+    assert snapshot["regime"] == "unknown"  # breadth 0개 -> 0%(약세) 오해석 방지 (ENG-02)
     assert snapshot["short_term"] == {"1개월": None, "3개월": None}
 
 
@@ -641,3 +641,49 @@ def test_select_regime_for_trading_uses_latest_snapshot_when_not_given(monkeypat
     )
     result = market_regime.select_regime_for_trading()
     assert result["trading_regime"] == "강세장"
+
+
+# ----------------------------------------------------------------------------
+# ENG-02: breadth 데이터 0개 -> 0%(약세)가 아니라 unknown
+# ----------------------------------------------------------------------------
+
+
+def test_compute_market_breadth_no_data_is_unknown_not_zero_pct(monkeypatch):
+    monkeypatch.setattr(market_regime, "get_multiple_price_history", lambda tickers, **k: {})
+    result = market_regime.compute_market_breadth(["A", "B"])
+    assert result["n_data_ok"] == 0
+    assert result["pct_above_200sma"] is None
+    assert result["status"] == "unknown"
+    assert result["coverage"] == 0.0
+
+
+def test_compute_market_breadth_reports_coverage(monkeypatch):
+    histories = {"UP1": _uptrend_series().to_frame(name="Close"), "NODATA": pd.DataFrame()}
+    monkeypatch.setattr(market_regime, "get_multiple_price_history", lambda tickers, **k: histories)
+    result = market_regime.compute_market_breadth(["UP1", "NODATA"])
+    assert result["status"] == "ok"
+    assert result["coverage"] == pytest.approx(0.5)
+
+
+def test_score_breadth_none_returns_unknown_without_score():
+    result = market_regime.score_breadth(None)
+    assert result["score"] is None
+    assert result["status"] == "unknown"
+    assert result["is_overheated"] is False
+
+
+def test_snapshot_regime_unknown_when_breadth_missing(monkeypatch):
+    benchmark = _uptrend_series()
+    monkeypatch.setattr(market_regime, "get_price_history", lambda *a, **k: benchmark.to_frame(name="Close"))
+    monkeypatch.setattr(market_regime, "get_multiple_price_history", lambda tickers, **k: {})
+    snapshot = market_regime.get_market_regime_snapshot(["A"])
+    assert snapshot["regime"] == "unknown"
+    assert snapshot["breadth"]["status"] == "unknown"
+    assert snapshot["regime_status"] == "unknown"
+
+
+def test_select_regime_for_trading_unknown_snapshot_gives_no_trading_regime():
+    result = market_regime.select_regime_for_trading({"regime": "unknown", "total_score": 30.0})
+    assert result["trading_regime"] is None
+    assert result["is_ambiguous"] is True
+    assert result["snapshot"] is not None

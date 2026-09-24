@@ -28,11 +28,15 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from core.db import get_session, init_db  # noqa: E402
 from core.models import Strategy  # noqa: E402
-from core.strategy_tuning import get_top_tuning_results, run_and_save_tuning, sample_universe  # noqa: E402
+from core.strategy_tuning import (  # noqa: E402
+    STYLE_SCORE_VERSION, get_top_tuning_results, partition_by_score_version, run_and_save_tuning, sample_universe,
+)
 
 SEED_PATH = PROJECT_ROOT / "scripts" / "seed_five_active_strategies.json"
 REPORT_PATH = PROJECT_ROOT / "TUNING_BATCH_REPORT_2026-07-17.md"
 TOP10_JSON_PATH = PROJECT_ROOT / "data" / "five_strategy_batch_top10.json"
+# legacy(점수 v1/버전 미기록) 결과는 리더보드에서 빼되 삭제하지 않고 건수·상위 요약을 이 파일에 따로 남긴다.
+LEGACY_SUMMARY_JSON_PATH = PROJECT_ROOT / "data" / "five_strategy_batch_legacy_summary.json"
 LOG_PATH = PROJECT_ROOT / "five_strategy_batch_ci.log"
 
 TOTAL_BUDGET_MINUTES = 360  # GitHub Actions 호스티드 러너 잡 하드 리밋(6시간)
@@ -41,6 +45,8 @@ LOOKBACK_YEARS = 5
 INTENSITIES = ["빠름", "보통", "정밀"]
 TOP_N_TO_SAVE = 10
 MIN_PER_STRATEGY = 2
+ALL_VERSIONS_SCAN_LIMIT = 1000  # legacy 건수를 세려고 버전 무관하게 훑는 상한(넘으면 legacy_count_is_lower_bound)
+LEGACY_SUMMARY_TOP_N = 10
 
 
 def _log(msg: str) -> None:
@@ -108,11 +114,18 @@ def _select_and_export(strategy_ids: list[int]) -> None:
         with get_session() as session:
             strategy = session.get(Strategy, strategy_id)
             base_name = strategy.name
-        top_for_strategy = get_top_tuning_results(strategy_id, limit=50)
+        # 리더보드에는 현재 점수 버전(v2) 결과만 넣는다 — v1(legacy)과 v2는 직접 비교하지 않는다.
+        top_for_strategy = get_top_tuning_results(strategy_id, limit=50, score_version=STYLE_SCORE_VERSION)
+        # legacy는 삭제하지 않고 따로 센다(버전 무관 전체에서 legacy만 분리).
+        all_versions = get_top_tuning_results(strategy_id, limit=ALL_VERSIONS_SCAN_LIMIT)
+        _, legacy_rows = partition_by_score_version(all_versions)
         for r in top_for_strategy:
             r["_base_strategy_id"] = strategy_id
             r["_base_strategy_name"] = base_name
-        candidates.append({"strategy_id": strategy_id, "base_name": base_name, "results": top_for_strategy})
+        candidates.append({
+            "strategy_id": strategy_id, "base_name": base_name, "results": top_for_strategy,
+            "legacy_results": legacy_rows, "legacy_count_is_lower_bound": len(all_versions) >= ALL_VERSIONS_SCAN_LIMIT,
+        })
 
     selected: list[dict] = []
     selected_keys: set[tuple] = set()
@@ -160,12 +173,34 @@ def _select_and_export(strategy_ids: list[int]) -> None:
                 "ticker": r["ticker"],
                 "trained_regime": r["trained_regime"],
                 "excess_return": r["excess_return"],
+                "style_score_version": r.get("style_score_version"),
+                "score_version_status": r.get("score_version_status"),
             }
         )
 
     TOP10_JSON_PATH.parent.mkdir(parents=True, exist_ok=True)
     TOP10_JSON_PATH.write_text(json.dumps(export, ensure_ascii=False, indent=2), encoding="utf-8")
-    _log(f"상위 {len(export)}개 JSON 저장: {TOP10_JSON_PATH}")
+    _log(f"상위 {len(export)}개 JSON 저장(점수 v{STYLE_SCORE_VERSION} 결과만): {TOP10_JSON_PATH}")
+
+    legacy_summary = {
+        "style_score_version_in_leaderboard": STYLE_SCORE_VERSION,
+        "note": "legacy 결과는 리더보드(top10 JSON)에서 제외됐을 뿐 DB에서 삭제되지 않았다. 아래는 건수와 상위 요약이다.",
+        "per_strategy": [
+            {
+                "strategy_id": c["strategy_id"], "base_name": c["base_name"],
+                "current_count": len(c["results"]), "legacy_count": len(c["legacy_results"]),
+                "legacy_count_is_lower_bound": c["legacy_count_is_lower_bound"],
+                "legacy_top": [
+                    {k: r.get(k) for k in ("ticker", "trained_regime", "excess_return", "run_id", "style_score_version")}
+                    for r in c["legacy_results"][:LEGACY_SUMMARY_TOP_N]
+                ],
+            }
+            for c in candidates
+        ],
+    }
+    LEGACY_SUMMARY_JSON_PATH.write_text(json.dumps(legacy_summary, ensure_ascii=False, indent=2), encoding="utf-8")
+    total_legacy = sum(len(c["legacy_results"]) for c in candidates)
+    _log(f"legacy 결과 {total_legacy}건은 리더보드에서 제외(삭제 안 함) — 요약: {LEGACY_SUMMARY_JSON_PATH}")
 
     lines = [
         "# 6시간 GitHub Actions 배치 미세튜닝 결과 리포트 (2026-07-17)",
@@ -176,11 +211,15 @@ def _select_and_export(strategy_ids: list[int]) -> None:
         "",
         "## 전략별 누적 결과 건수",
         "",
-        "| 전략 | 결과 건수 |",
-        "|---|---|",
+        f"리더보드에는 점수 v{STYLE_SCORE_VERSION} 결과만 넣었다. legacy(점수 v1 또는 버전 미기록) 결과는 "
+        "삭제하지 않았고 아래 별도 열에 건수만 표시한다 — v1과 v2는 직접 비교하지 않는다.",
+        "",
+        f"| 전략 | v{STYLE_SCORE_VERSION} 결과 건수 | legacy 건수(리더보드 제외) |",
+        "|---|---|---|",
     ]
     for c in candidates:
-        lines.append(f"| #{c['strategy_id']} {c['base_name']} | {len(c['results'])}건 |")
+        legacy_n = f"{len(c['legacy_results'])}{'+' if c['legacy_count_is_lower_bound'] else ''}건"
+        lines.append(f"| #{c['strategy_id']} {c['base_name']} | {len(c['results'])}건 | {legacy_n} |")
 
     lines += [
         "",
