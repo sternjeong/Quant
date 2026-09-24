@@ -125,3 +125,39 @@ def test_main_exits_zero_even_when_the_api_is_down(monkeypatch, capsys, state_pa
     monkeypatch.setattr(github_watch, "fetch_runs", lambda repo, limit: (_ for _ in ()).throw(OSError("dns")))
     assert github_watch.main([]) == 0  # 타이머가 실패 상태로 남지 않게
     assert "건너뜀" in capsys.readouterr().err
+
+
+def test_unwritable_state_suppresses_alerts_instead_of_spamming_every_run(tmp_path):
+    """상태를 못 남기면 같은 실패를 15분마다 영원히 다시 알리게 된다 — 그럴 바엔 알리지 않는다.
+    (2026-09-24 VM 배포에서 실제로 root 소유 디렉터리라 PermissionError가 났다.)"""
+    blocked = tmp_path / "nodir" / "state.json"
+    blocked.parent.mkdir()
+    blocked.parent.chmod(0o500)  # 읽기·실행만 — 쓰기 불가
+    try:
+        alerts: list[str] = []
+        outcome = github_watch.run_watch(
+            "owner/repo", blocked, alert=alerts.append,
+            fetch=lambda repo, limit: [_run(1, "Nightly", "failure")],
+        )
+        assert outcome["error"] and "상태 파일" in outcome["error"]
+        assert alerts == []  # 알림 스팸을 만들지 않는다
+    finally:
+        blocked.parent.chmod(0o700)
+
+
+def test_state_write_failure_surfaces_in_the_exit_code(monkeypatch, capsys, tmp_path):
+    blocked = tmp_path / "nodir" / "state.json"
+    blocked.parent.mkdir()
+    blocked.parent.chmod(0o500)
+    try:
+        monkeypatch.setattr(github_watch, "STATE_PATH", blocked)
+        monkeypatch.setattr(github_watch, "fetch_runs", lambda repo, limit: [_run(1, "N", "success")])
+        assert github_watch.main([]) == 1  # systemctl --failed 에 드러나야 한다
+        assert "상태 파일" in capsys.readouterr().err
+    finally:
+        blocked.parent.chmod(0o700)
+
+
+def test_default_state_dir_is_the_systemd_one_not_the_root_owned_auto_deploy_dir():
+    assert "auto-deploy-state" not in github_watch.DEFAULT_STATE
+    assert github_watch.DEFAULT_STATE.startswith("/var/lib/quant-github-watch")

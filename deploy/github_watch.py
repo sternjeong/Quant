@@ -34,7 +34,10 @@ from pathlib import Path
 from typing import Callable
 
 DEFAULT_REPO = "sternjeong/Quant"
-DEFAULT_STATE = "/opt/quant/.auto-deploy-state/github_watch.json"
+# systemd가 StateDirectory=로 만들어 주는 quant 소유 디렉터리. auto-deploy의 상태 디렉터리는 root 소유라
+# 이 서비스(User=quant)가 쓸 수 없다 — 2026-09-24에 실제로 여기서 PermissionError로 죽었다.
+DEFAULT_STATE_DIR = os.environ.get("STATE_DIRECTORY", "/var/lib/quant-github-watch")
+DEFAULT_STATE = os.path.join(DEFAULT_STATE_DIR, "github_watch.json")
 API_TIMEOUT = 20
 FETCH_COUNT = 30  # 15분 간격이면 이 정도면 충분히 겹친다
 FAILURE_CONCLUSIONS = ("failure", "timed_out", "startup_failure")
@@ -161,13 +164,19 @@ def run_watch(
     new_failures, recovered, new_state = classify(runs, state)
     outcome["new_failures"], outcome["recovered"] = len(new_failures), len(recovered)
 
-    if new_failures or recovered:
-        message = build_message(new_failures, recovered)
-        outcome["message"] = message
-        if not dry_run:
-            alert(message)
+    # 상태를 **먼저** 저장하고, 성공했을 때만 알린다. 반대로 하면 상태 저장이 실패할 때 같은 실패를
+    # 15분마다 영원히 다시 알리게 된다(알림 스팸이 조용한 실패보다 나쁘다).
     if not dry_run:
-        save_state(path, new_state)
+        try:
+            save_state(path, new_state)
+        except OSError as exc:
+            outcome["error"] = f"상태 파일을 쓰지 못했습니다({path}): {type(exc).__name__}"
+            return outcome
+
+    if new_failures or recovered:
+        outcome["message"] = build_message(new_failures, recovered)
+        if not dry_run:
+            alert(outcome["message"])
     return outcome
 
 
@@ -179,6 +188,10 @@ def main(argv: list[str] | None = None) -> int:
 
     outcome = run_watch(dry_run=args.dry_run, limit=args.limit)
     if outcome["error"]:
+        if "상태 파일" in outcome["error"]:
+            # 설정 문제다 — 사람이 고쳐야 하므로 systemctl --failed 에 드러나게 종료 코드로 알린다.
+            print(outcome["error"], file=sys.stderr)
+            return 1
         print(f"GitHub API 조회 실패(이번 회차 건너뜀): {outcome['error']}", file=sys.stderr)
         return 0  # 일시 장애로 타이머가 실패 상태로 남지 않게 한다
     if outcome["first_run"]:
