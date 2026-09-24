@@ -12,7 +12,7 @@
 | `core/filing_changes.py` (fetcher·섹션 추출·diff·태깅·이벤트·veto 규칙) | 구현 (오프라인 단위 테스트 수준) | 실제 공시 대량 검증 없음. 아래 "구현 대응" 참조 |
 | `tests/test_filing_changes.py` | 구현 | 합성 fixture 기반 단위 테스트. 성과·정확도 증거가 아님 |
 | 실제 EDGAR 소규모 점검 | [별도 보고서](./experiment_validation/filing_change_extraction_check.md) | 표본 확인용. 정확도 주장 금지 |
-| 후보·보류 shadow 원장(RES-01) 연결 | 미착수 | 이 실험의 선행 조건 |
+| 후보·보류 shadow 원장(RES-01) 연결 | 위성 shadow veto 연결 완료(관측 전용, `core/filing_veto_shadow.py`) | 검증: 단위 테스트만(합성 데이터). 실제 표본 0건, 사람 검증 대기 |
 | 과거 재구성 검증·forward shadow | 미착수 | 표본·검정력 조건은 §9 |
 | paper·운영·주문 경로 연결 | **금지** | 본 실험 범위 밖. 사람 승인 별도 필요 |
 

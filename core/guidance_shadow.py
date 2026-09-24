@@ -30,10 +30,10 @@ core.earnings_events(가이던스 추출)를 "관측 전용"으로 잇는다.
       채우고 나머지는 비워 둔다 — core/candidate_recorder.py와 같은 관례이며, 그 결과
       core.candidate_ledger.compute_pit_status가 pit_certified=False를 매기고 decide_verdict가 그
       사실만으로 항상 '미입증'을 반환한다(원장 규칙을 우회하지 않는다).
-    - 실제 SEC 조회(티커->CIK 매핑, 8-K 수집)는 이 모듈이 직접 하지 않는다(느린 전체 스캔 금지 지시).
-      record_guidance_shadow()는 호출부가 미리 모은 core.earnings_events 결과(오프라인 fixture나 캐시)를
-      GuidanceObservation 목록으로 주입해야 한다. 주입하지 않으면 모든 후보가 basis_status='no_release'로
-      기록되고 실제 표본은 쌓이지 않는다 — 이번 세션이 확인한 현재 상태 그대로다.
+    - 실제 SEC 조회(티커->CIK 매핑, 8-K 수집)는 이 모듈이 직접 하지 않는다. core/guidance_event_provider.py가
+      그 배선을 담당하며, record_guidance_shadow(fetch_events=True)로 **옵트인**할 때만 호출된다.
+      기본값(fetch_events=False)에서는 events_by_ticker를 주지 않으면 여전히 모든 후보가
+      basis_status='no_release'로 기록된다(기존 동작 불변).
     - 스케줄 배선(scheduler/run_scheduler.py 등록)은 이번 작업 범위 밖이다. record_guidance_shadow(as_of,
       session=None)만 호출 가능한 형태로 제공한다.
 """
@@ -323,16 +323,21 @@ def record_guidance_shadow(
     base_strategy_version: Optional[str] = None,
     lookback_trading_days: int = PRIMARY_LOOKBACK_TRADING_DAYS,
     trading_days: Optional[Sequence[date]] = None,
+    fetch_events: bool = False,
+    max_tickers: int = 20,
+    event_fetcher=None,
 ) -> dict:
     """RES-04 개별주 위성 shadow 기록의 단일 진입점.
 
     - satellite_result를 주지 않으면 core.champion_strategy.compute_satellite_recommendation_point_in_time을
       직접 호출한다(느림 — point-in-time 유니버스 표본추출+가격조회가 필요하므로 실제 배선 시 job_manager로
       감싸야 한다. core/candidate_recorder.py의 champion_satellite 잡과 같은 주의사항).
-    - events_by_ticker를 주지 않으면 빈 dict로 취급한다 — 이 경우 모든 후보가 basis_status='no_release'로
-      기록된다. 실제 SEC 조회·티커->CIK 매핑은 이번 작업 범위 밖이며 이 함수는 느린 전체 스캔을 하지
-      않는다(지시 사항). 호출부가 core.earnings_events로 미리 모은 관측을 GuidanceObservation 목록으로
-      주입해야 실제 신호가 쌓인다.
+    - events_by_ticker를 주지 않으면 기본값(fetch_events=False)에서는 빈 dict로 취급한다 — 이 경우 모든
+      후보가 basis_status='no_release'로 기록된다(기존 동작 그대로). 실제 SEC 조회를 원하면
+      fetch_events=True로 옵트인한다: 그때만 core.guidance_event_provider.fetch_guidance_events가 후보
+      티커(최대 max_tickers개, 기본 20)에 대해 티커->CIK->8-K Item 2.02->가이던스 추출을 수행하고, 하루
+      단위 캐시·초당 5회 제한·티커별 실패 격리를 그 모듈이 담당한다. events_by_ticker를 직접 주면
+      fetch_events는 무시한다(주입값이 우선).
     - 스케줄러(scheduler/run_scheduler.py) 등록은 이 함수의 책임이 아니다 — 다음 세션이 별도로 배선한다.
     - 주문 경로(core.paper_execution, scripts/champion_paper_trade.py)는 import도 호출도 하지 않는다.
     - 같은 날 재실행은 멱등이다(candidate_set_id가 이미 있으면 record_candidate_set이 아무것도 바꾸지 않는다).
@@ -342,6 +347,8 @@ def record_guidance_shadow(
     """
     as_of_date = as_of or date.today()
     events = events_by_ticker or {}
+    fetch_meta: Optional[dict] = None
+    fetch_failures: dict = {}
     try:
         if satellite_result is None:
             from core.champion_strategy import compute_satellite_recommendation_point_in_time
@@ -349,6 +356,17 @@ def record_guidance_shadow(
             satellite_result = compute_satellite_recommendation_point_in_time(as_of_date=as_of_date.isoformat())
         sizing = satellite_result.get("sizing_method", "equal")
         base_version = base_strategy_version or f"champion_satellite/{sizing}"
+        if events_by_ticker is None and fetch_events:
+            # 옵트인 경로만 실제 SEC 를 조회한다(기본값에서는 provider 를 import 도 하지 않는다).
+            fetcher = event_fetcher
+            if fetcher is None:
+                from core.guidance_event_provider import fetch_guidance_events as fetcher  # noqa: N813
+            probe = champion_satellite_to_candidate_set(
+                satellite_result, strategy_version=base_version, decision_cutoff=_cutoff_for(as_of_date))
+            fetched = fetcher([r.ticker for r in probe.records], as_of=as_of_date, max_tickers=max_tickers)
+            events = fetched.events_by_ticker
+            fetch_meta = fetched.meta
+            fetch_failures = fetched.failures
         cset = build_guidance_shadow_candidate_set(
             satellite_result, base_strategy_version=base_version, decision_cutoff=_cutoff_for(as_of_date),
             events_by_ticker=events, lookback_trading_days=lookback_trading_days, trading_days=trading_days)
@@ -359,6 +377,11 @@ def record_guidance_shadow(
     result["as_of"] = as_of_date.isoformat()
     result["n_pool"] = len(cset.records)
     result["n_with_events_provided"] = len(_normalize_event_keys(events))
+    result["fetch_events"] = bool(fetch_events and events_by_ticker is None)
+    if fetch_meta is not None:
+        result["event_fetch_meta"] = fetch_meta
+        result["event_fetch_failures"] = fetch_failures
+        result["n_event_fetch_failures"] = len(fetch_failures)
     result["ok"] = True
     return result
 

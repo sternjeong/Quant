@@ -127,6 +127,38 @@ PROCESS_REGISTRY: dict[str, dict] = {
         "description": "이미 기록된 후보 판단의 만기 도래한 horizon 결과를 가격 캐시로 채움 (00:28 KST)",
         "category": "research", "default_enabled": True,
     },
+    "guidance_shadow_record": {
+        "label": "가이던스 shadow 기록 (RES-04)",
+        "description": (
+            "오늘 위성 후보에 실적 가이던스 신호 판정을 병행 기록 — 관측 전용이며 원전략의 채택/보류와 "
+            "실제 주문에는 영향 없음, 성과 미검증 연구 인프라 (00:30 KST)"
+        ),
+        "category": "research", "default_enabled": True,
+    },
+    "filing_veto_shadow_record": {
+        "label": "공시 변경 veto shadow 기록",
+        "description": (
+            "오늘 위성 채택 종목에 공시 변경 veto 판정을 병행 기록 — 관측 전용이며 veto 가 hold 로 나와도 "
+            "실제 주문은 바뀌지 않음, 스펙 미동결·성과 미검증 (00:32 KST)"
+        ),
+        "category": "research", "default_enabled": True,
+    },
+    "account_snapshot_sync": {
+        "label": "실계좌 스냅샷 + 목표 대비 이탈 감지",
+        "description": (
+            "Alpaca paper 계좌의 실제 보유 상태를 조회해 저장하고 챔피언 전략 목표 비중과의 괴리를 "
+            "계산 — 조회 전용이며 주문은 만들지도 내지도 않는다. API 키가 없으면 건너뛴다 (00:35 KST)"
+        ),
+        "category": "maintenance", "default_enabled": True,
+    },
+    "guru_holdings_sync": {
+        "label": "거장 포트폴리오 자동 동기화",
+        "description": (
+            "추적 중인 거장 전체의 보유 종목을 매일 자동 갱신 — ARK(캐시 우드)는 매일, 13F 거장은 "
+            "새 분기 공시가 있을 때만 파싱하고 신규 편입/전량 청산이 있으면 텔레그램 알림 (12:00 KST)"
+        ),
+        "category": "maintenance", "default_enabled": True,
+    },
 }
 
 

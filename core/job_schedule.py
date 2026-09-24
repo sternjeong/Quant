@@ -36,6 +36,10 @@ SCHEDULED_JOBS: tuple[ScheduledJob, ...] = (
     ScheduledJob('daily_news_digest', 'daily_news_digest', {'hour': 7, 'minute': 30, 'timezone': 'Asia/Seoul'}),
     ScheduledJob('candidate_ledger_record', 'candidate_ledger_record', {'hour': 0, 'minute': 27, 'timezone': 'Asia/Seoul'}),
     ScheduledJob('candidate_ledger_outcome_update', 'candidate_ledger_outcome_update', {'hour': 0, 'minute': 28, 'timezone': 'Asia/Seoul'}),
+    ScheduledJob('guidance_shadow_record', 'guidance_shadow_record', {'hour': 0, 'minute': 30, 'timezone': 'Asia/Seoul'}),
+    ScheduledJob('filing_veto_shadow_record', 'filing_veto_shadow_record', {'hour': 0, 'minute': 32, 'timezone': 'Asia/Seoul'}),
+    ScheduledJob('account_snapshot_sync', 'account_snapshot_sync', {'hour': 0, 'minute': 35, 'timezone': 'Asia/Seoul'}),
+    ScheduledJob('guru_holdings_sync', 'guru_holdings_sync', {'hour': 12, 'minute': 0, 'timezone': 'Asia/Seoul'}),
 )
 
 SCHEDULED_JOBS_BY_ID = {job.job_id: job for job in SCHEDULED_JOBS}

@@ -292,3 +292,161 @@ def test_record_then_evaluate_round_trips_through_db(db_session):
     assert out["n_held_by_veto"] == 1
     assert out["arm_b_simple_rule_veto"]["groups"]["selected"]["n"] == 0  # outcome 미확정이라 값이 없다
     assert out["arm_a_original_no_veto"]["groups"]["selected"]["n"] == 0
+
+
+# ---------------------------------------------------------------------------
+# (e) 독립 검증 보강 — 요구사항별 재확인 (2026-09-24)
+# ---------------------------------------------------------------------------
+def test_original_decision_is_copied_not_recomputed(db_session, monkeypatch):
+    """요구사항: 원전략 decision 을 재계산하지 않고 그대로 복사한다.
+
+    - satellite_result 를 주면 compute_satellite_recommendation_point_in_time 을 호출조차 하지 않는다
+      (호출하면 아래 스텁이 AssertionError 를 던진다 = 재계산 시도 탐지).
+    - 원전략이 채택한 종목 집합은 shadow 원장에 그대로 전부 남는다(veto hold 여도 빠지지 않는다).
+    - 모든 레코드의 scores.original_decision 은 원전략 결정('selected')이다.
+    """
+    import core.champion_strategy as cs
+
+    def _boom(*a, **k):  # pragma: no cover - 호출되면 실패해야 한다
+        raise AssertionError("원전략 결정을 재계산하면 안 된다")
+
+    monkeypatch.setattr(cs, "compute_satellite_recommendation_point_in_time", _boom, raising=True)
+
+    sat_result = _sat_result(["ZETA", "OMEGA", "GAMMA"])
+
+    def provider(ticker, decision_cutoff):
+        if ticker == "GAMMA":
+            return [_hold_worthy_event("GAMMA", "ACC-G-1", "2026-09-17T13:00:00Z")]
+        return [_clean_event(ticker, f"ACC-{ticker}-1", "2026-09-17T13:00:00Z")]
+
+    fvs.record_filing_veto_shadow(AS_OF, session=db_session, satellite_result=sat_result, event_provider=provider)
+
+    rows = db_session.query(CandidateDecision).filter_by(strategy_version=fvs.SHADOW_STRATEGY_VERSION).all()
+    assert {r.ticker for r in rows} == {"ZETA", "OMEGA", "GAMMA"}  # hold 된 종목도 빠지지 않는다
+    import json
+    for r in rows:
+        assert json.loads(r.scores)["original_decision"] == "selected"
+    assert {r.ticker for r in rows if r.decision == "held"} == {"GAMMA"}
+
+
+def test_statistics_are_delegated_to_candidate_ledger(monkeypatch):
+    """요구사항: 통계 판정을 자체 구현하지 않고 candidate_ledger.evaluate_selection/decide_verdict 에 위임한다.
+
+    evaluate_selection 을 센티넬로 갈아끼우면 3개 arm 의 판정 필드가 모두 그 반환값을 그대로 통과시켜야
+    한다(모듈이 자체 신뢰구간·p 값·판정을 계산하지 않는다는 증거).
+    """
+    sentinel = {
+        "n_decisions": {"selected": 7, "held": 3},
+        "groups": {"rest": {"mean": -0.10, "n": 3}, "random_baseline_expected": {"mean": 0.02}},
+        "incremental": {"selected_minus_random": {"estimate": 0.5, "ci_low": 0.4, "ci_high": 0.6}},
+        "random_baseline_mc": {"p_random_ge_selected": 0.01},
+        "verdict": "SENTINEL_VERDICT",
+        "verdict_reasons": ["SENTINEL_REASON"],
+        "requires_human_approval": True,
+    }
+    calls = []
+
+    def fake_eval(frame, **kwargs):
+        calls.append(frame["decision"].tolist())
+        return dict(sentinel)
+
+    monkeypatch.setattr(fvs, "evaluate_selection", fake_eval, raising=True)
+
+    rows = [(1, "A", "selected", "2026-06-01", 0.01), (2, "B", "held", "2026-06-01", -0.2)]
+    frame = _shadow_frame(rows)
+    out = fvs.evaluate_filing_veto_shadow_arms(frame=frame, exposed_decision_ids={1, 2}, exposed_only=True)
+
+    assert out["verdict"] == "SENTINEL_VERDICT"
+    assert out["verdict_reasons"] == ["SENTINEL_REASON"]
+    assert out["requires_human_approval"] is True
+    assert out["arm_c_random_hold_same_count"]["monte_carlo"] == sentinel["random_baseline_mc"]
+    assert out["arm_c_random_hold_same_count"]["incremental_vs_random"]["ci_low"] == 0.4
+    # Arm B 는 기록된 라벨 그대로, Arm A 는 전량 selected 로 재표시한 같은 프레임이어야 한다(라벨만 다름).
+    assert calls[0] == ["selected", "held"]
+    assert calls[1] == ["selected", "selected"]
+    # 호출자의 프레임은 변형되지 않는다.
+    assert frame["decision"].tolist() == ["selected", "held"]
+
+
+def test_no_local_statistics_implementation_in_source():
+    """소스 검사: 자체 통계 구현(부트스트랩·백분위수·p 값·검정 라이브러리)이 없어야 한다."""
+    src = Path(fvs.__file__).read_text(encoding="utf-8")
+    for bad in ("scipy", "statsmodels", "percentile", "bootstrap", "ttest", "p_value", "def decide_verdict"):
+        assert bad not in src, f"자체 통계 구현 흔적: {bad}"
+
+
+def test_held_candidates_opportunity_cost_is_included():
+    """요구사항: veto 로 보류된 종목의 기회비용이 포함된다.
+
+    candidate_ledger 의 groups.rest / missed_opportunity 가 보류 종목의 사후 수익률이고, ΔEV 점추정치가
+    스펙 §9 공식 −(보류수/노출수)×(보류 평균)과 일치해야 한다. 여기서는 보류군이 **플러스**(기회비용이
+    실재하는 경우)라 ΔEV 가 음수로 나와야 한다 — 보류를 공짜로 계산하지 않는다는 증거.
+    """
+    rows = [
+        (1, "A", "selected", "2026-06-01", 0.02),
+        (2, "B", "selected", "2026-06-01", 0.04),
+        (3, "C", "held", "2026-06-01", 0.10),
+        (4, "D", "held", "2026-06-02", 0.20),
+    ]
+    frame = _shadow_frame(rows)
+    out = fvs.evaluate_filing_veto_shadow_arms(
+        frame=frame, exposed_decision_ids={1, 2, 3, 4}, exposed_only=True,
+        n_boot=100, n_random_draws=50, seed=3, require_pit=False)
+    arm_b = out["arm_b_simple_rule_veto"]
+    assert arm_b["groups"]["rest"]["n"] == 2
+    assert arm_b["groups"]["rest"]["mean"] == pytest.approx(0.15)
+    assert arm_b["missed_opportunity"]["mean_excess"] == pytest.approx(0.15)
+    assert arm_b["warning_flags"]["rest_outperformed_selected"] is True
+    assert out["n_held_by_veto"] == 2 and out["n_exposed_eligible"] == 4
+    assert out["delta_ev_point_estimate_arm_b_minus_a"] == pytest.approx(-(2 / 4) * 0.15)
+    # Arm A(원전략, veto 없음)는 보류 종목까지 포함한 전량 채택 평균이다.
+    assert out["arm_a_original_no_veto"]["groups"]["selected"]["mean"] == pytest.approx(0.09)
+    assert out["arm_a_original_no_veto"]["groups"]["rest"]["n"] == 0
+    # 기회비용을 포함해도 verdict 는 여전히 candidate_ledger 게이트에 따라 '미입증'이다.
+    assert out["verdict"] == cl.VERDICT_UNPROVEN
+
+
+def test_module_never_imports_order_or_scheduler_paths():
+    """(d) 확장: 주문 경로·브로커·스케줄러 계열을 어느 것도 import 하지 않는다."""
+    tree = ast.parse(Path(fvs.__file__).read_text(encoding="utf-8"))
+    names = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            names += [a.name for a in node.names]
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            names.append(node.module)
+    forbidden = ("core.paper_execution", "scripts.champion_paper_trade", "alpaca", "scheduler",
+                 "core.job_schedule", "core.process_registry", "core.trade_ledger")
+    bad = [n for n in names for f in forbidden if n == f or n.startswith(f + ".")]
+    assert bad == [], f"관측 전용 모듈이 import 하면 안 되는 경로: {bad}"
+
+
+def test_exposed_only_without_ids_is_empty_and_unproven():
+    """exposed_only=True 인데 exposed_decision_ids 가 없으면 조용히 전량 통과시키지 않고 빈 표본 ->
+    '미입증' 이어야 한다(게이트 우회 금지)."""
+    rows = [(1, "A", "selected", "2026-06-01", 0.01), (2, "B", "held", "2026-06-01", -0.5)]
+    out = fvs.evaluate_filing_veto_shadow_arms(
+        frame=_shadow_frame(rows), exposed_only=True, n_boot=50, n_random_draws=20, seed=1, require_pit=False)
+    assert out["n_candidates_recorded"] == 2 and out["n_exposed_eligible"] == 0
+    assert out["verdict"] == cl.VERDICT_UNPROVEN
+    assert "no_selected_outcomes" in out["verdict_reasons"]
+    assert out["delta_ev_point_estimate_arm_b_minus_a"] is None
+
+
+def test_fetch_failure_is_counted_as_missing_sample_not_silent_pass(db_session):
+    """스펙 §3.3: 조회·비교 실패는 pass 로 묻지 않고 사유별로 센다(그리고 노출 표본에서 빠진다)."""
+    sat_result = _sat_result(["BOOM", "NOFILE"])
+
+    def provider(ticker, decision_cutoff):
+        if ticker == "BOOM":
+            raise RuntimeError("edgar down")
+        return []
+
+    out = fvs.record_filing_veto_shadow(AS_OF, session=db_session, satellite_result=sat_result,
+                                        event_provider=provider)
+    assert out["n_candidates"] == 2 and out["n_exposed"] == 0 and out["n_not_exposed"] == 2
+    assert out["n_held_by_veto"] == 0  # veto 판정 불가를 hold 로 잘못 읽지 않는다
+    counts = out["unusable_reason_counts"]
+    assert counts.get("event_fetch_error") == 1
+    assert counts.get("no_filing_found") == 1
+    assert out["per_ticker"]["BOOM"]["reason_codes"] == ["event_fetch_error"]

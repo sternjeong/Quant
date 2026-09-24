@@ -23,6 +23,10 @@ scheduler/run_scheduler.py의 data_integrity_check_job()이 그걸 모아 print/
     3. check_news_digest_anomalies(): 최근 24시간 내 생성된 NewsTickerDigest 행 중 summary가
        비어있거나 공백뿐이거나 source_links가 유효 JSON이 아닌 경우를 잡는다.
 
+(옵트인, 기본 꺼짐) 4. core.price_crosscheck의 Alpaca 2차 소스 교차검증 —
+    run_integrity_checks(enable_price_crosscheck=True)일 때만 추가로 실행된다. 키가 없거나
+    모듈에 문제가 있어도 위 세 체크의 동작/반환 필드는 변하지 않는다(additive).
+
 run_integrity_checks()가 위 세 체크를 모두 돌려 {"checks": [...], "anomalies": [...], "ok": bool}을
 반환한다 — anomalies는 severity가 "critical" 또는 "warning"인 finding만 모은 부분집합(체크가
 "이상 없음"으로 반환한 정상 finding은 checks에만 남고 anomalies에는 안 들어간다).
@@ -294,16 +298,45 @@ def check_news_digest_anomalies(
     return findings
 
 
+def run_price_crosscheck_checks(
+    tickers: Optional[list[str]] = None,
+    today: Optional[datetime] = None,
+    **kwargs: Any,
+) -> list[dict]:
+    """Alpaca 2차 소스 교차검증(옵트인). core.price_crosscheck를 지연 import 한다.
+
+    이 모듈을 임포트하는 것만으로 requests 호출이 일어나지 않게, 그리고 price_crosscheck 쪽
+    문제가 기존 세 체크를 절대 깨뜨리지 않게 import와 실행을 모두 감싼다.
+    """
+    try:
+        from core.price_crosscheck import check_price_crosscheck
+    except Exception as exc:  # noqa: BLE001
+        return [_finding("price_crosscheck_unavailable", "warning",
+                         f"교차검증 모듈을 불러오지 못했습니다: {type(exc).__name__}.")]
+    try:
+        return check_price_crosscheck(tickers=tickers, today=today, **kwargs)
+    except Exception as exc:  # noqa: BLE001
+        return [_finding("price_crosscheck_unavailable", "warning",
+                         f"교차검증 실행이 실패했습니다: {type(exc).__name__}.")]
+
+
 def run_integrity_checks(
     price_fetch_fn: Optional[Callable[[list[str], str], dict[str, pd.DataFrame]]] = None,
     price_tickers: Optional[list[str]] = None,
     fred_cache_dir: Optional[Path] = None,
     news_rows: Optional[list[dict]] = None,
     today: Optional[datetime] = None,
+    enable_price_crosscheck: bool = False,
+    crosscheck_kwargs: Optional[dict] = None,
 ) -> dict:
     """세 가지 체크(가격/FRED 캐시/뉴스 다이제스트)를 모두 실행한다.
 
     각 인자는 테스트 주입용(실제 스케줄러 호출 시에는 전부 생략해 기본 동작을 쓴다).
+
+    enable_price_crosscheck=True를 주면 네 번째 체크로 core.price_crosscheck의 Alpaca 교차검증을
+    **추가로** 돌린다(2026-09-24 추가, additive). 기본값 False인 이유: Alpaca 키가 없는 환경
+    (CI, 로컬)에서 기존 동작이 조금도 달라지면 안 되고, 네트워크 호출을 야간 잡에 기본으로
+    끼워 넣지 않기 위해서다. 키가 없으면 켜도 info finding 하나만 남고 anomalies는 늘지 않는다.
 
     Returns: {"checks": [...모든 finding], "anomalies": [...severity가 critical/warning인 finding만],
         "ok": bool(anomalies가 비어있으면 True)}
@@ -312,6 +345,10 @@ def run_integrity_checks(
     checks.extend(check_price_anomalies(tickers=price_tickers, fetch_fn=price_fetch_fn, today=today))
     checks.extend(check_fred_cache_anomalies(cache_dir=fred_cache_dir, today=today))
     checks.extend(check_news_digest_anomalies(rows=news_rows, today=today))
+    if enable_price_crosscheck:
+        checks.extend(run_price_crosscheck_checks(
+            tickers=price_tickers, today=today, **(crosscheck_kwargs or {})
+        ))
 
     anomalies = [c for c in checks if c["severity"] in ("critical", "warning")]
     return {"checks": checks, "anomalies": anomalies, "ok": len(anomalies) == 0}

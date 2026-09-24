@@ -20,6 +20,7 @@ import streamlit as st
 from core.db import init_db
 from core.etf_holdings import fetch_spdr_etf_holdings, parse_uploaded_holdings
 from core import job_manager
+from core.guru_schedule import get_auto_sync_status
 from core.guru_tracker import (
     add_custom_guru,
     get_all_gurus,
@@ -56,14 +57,39 @@ with tab_guru:
     last_sync = get_last_sync_info()
 
     st.markdown("### 추적 거장 목록")
-    st.caption("동기화 버튼을 누르면 SEC EDGAR(또는 ARK)에서 최신 보유 종목을 가져와 저장합니다. 13F는 분기마다 지연 공시됩니다.")
+    st.caption(
+        "매일 12:00(KST) 스케줄러가 자동으로 동기화합니다 — ARK(캐시 우드)는 매일, 13F 거장은 "
+        "새 분기 공시가 올라온 경우에만 다시 파싱합니다. 아래 버튼은 즉시 강제 동기화용입니다."
+    )
+
+    # 자동 동기화 현황: 사용자가 버튼을 누르지 않아도 최신 상태라는 걸 화면에서 확인할 수 있게 한다.
+    try:
+        auto_status = get_auto_sync_status()
+    except Exception:  # noqa: BLE001 - 상태 표시는 부가정보라 실패해도 페이지를 막지 않는다.
+        auto_status = None
+
+    if auto_status is not None:
+        _fmt = lambda m: m.strftime("%Y-%m-%d %H:%M") if m else "아직 없음"  # noqa: E731
+        auto_cols = st.columns(3)
+        auto_cols[0].metric("마지막 자동 동기화", _fmt(auto_status["last_run_at"]))
+        auto_cols[1].metric("다음 예정", _fmt(auto_status["next_run_at"]))
+        auto_cols[2].metric("자동 동기화", "켜짐" if auto_status["enabled"] else "꺼짐 ⚠️")
+        if not auto_status["enabled"]:
+            st.warning("자동 동기화가 꺼져 있습니다 (텔레그램 /processes 에서 다시 켤 수 있습니다).")
+        elif auto_status["last_run_at"] is None:
+            st.info("자동 동기화가 아직 한 번도 돌지 않았습니다. 다음 예정 시각에 스케줄러가 처음 실행합니다.")
 
     for guru_name, info in all_gurus.items():
         cols = st.columns([2.2, 3, 1.6, 1.2, 0.8])
         cols[0].markdown(f"**{guru_name}**" + (" 🆕" if is_custom_guru(guru_name) else ""))
         cols[1].caption(info["fund_name"] + (" (ARK 일별 CSV)" if info.get("source") == "ark_daily" else " (13F)"))
         sync_date = last_sync.get(guru_name)
-        cols[2].caption(f"최근 동기화: {sync_date}" if sync_date else "동기화 안 됨")
+        auto_entry = (auto_status or {}).get("gurus", {}).get(guru_name) if auto_status else None
+        auto_at = auto_entry.get("last_synced_at") if auto_entry else None
+        cols[2].caption(
+            (f"공시일: {sync_date}" if sync_date else "동기화 안 됨")
+            + (f" · 자동 {auto_at.strftime('%m-%d %H:%M')}" if auto_at else "")
+        )
 
         sync_slot = f"guru_sync_{guru_name}"
         if cols[3].button("🔄 동기화", key=f"sync_{guru_name}"):

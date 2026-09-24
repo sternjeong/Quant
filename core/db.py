@@ -82,6 +82,23 @@ def _add_missing_columns() -> None:
             ("sentiment", "VARCHAR(20)"),
             ("sentiment_score", "FLOAT"),
         ],
+        # 2026-09-24 실계좌 스냅샷(core/account_sync.py). 새로 만든 테이블이라 create_all()이
+        # 처리하지만, 이미 만들어진 DB에 나중에 컬럼을 덧붙일 때도 기존 행이 깨지지 않도록
+        # 전부 nullable 로 선언해 여기에 함께 적어둔다(있으면 조용히 건너뛴다).
+        "account_snapshots": [
+            ("drift_summary", "TEXT"),
+            ("note", "TEXT"),
+            ("long_market_value", "FLOAT"),
+            ("n_positions", "INTEGER"),
+        ],
+        "account_position_snapshots": [
+            ("target_weight_pct", "FLOAT"),
+            ("drift_pct_points", "FLOAT"),
+            ("drift_status", "VARCHAR(20)"),
+            ("drift_reason", "TEXT"),
+            ("sleeve", "VARCHAR(20)"),
+            ("current_price", "FLOAT"),
+        ],
     }
     inspector = inspect(engine)
     with engine.begin() as conn:

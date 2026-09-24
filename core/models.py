@@ -692,3 +692,63 @@ class CandidateOutcome(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     decision_row = relationship("CandidateDecision", back_populates="outcomes")
+
+
+class AccountSnapshot(Base):
+    """Alpaca paper 계좌의 조회 전용 상태 스냅샷 1건 (2026-09-24 추가, core/account_sync.py).
+
+    "추천 비중을 따랐다면"의 가상 원장(ChampionLedgerEntry)과 달리, 이 테이블은 브로커가 실제로
+    보고한 계좌 상태를 그대로 적는다. 조회 전용이다 — 주문을 만들지도, 이 테이블을 읽어 주문을
+    내는 코드도 없다. 계좌번호·API 키 등 민감값은 저장하지 않는다(source 는 "alpaca_paper" 같은
+    출처 라벨일 뿐이다).
+
+    드리프트(목표 대비 이탈) 요약은 drift_summary 에 JSON 으로 함께 남긴다. 목표 비중을 알 수 없는
+    슬리브(new_orders_allowed=False, 데이터 부족으로 보류)는 "목표 0%"가 아니라 unknown 으로
+    기록된다 — 보류를 전량 매도 필요로 번역하지 않기 위함이다.
+    """
+
+    __tablename__ = "account_snapshots"
+
+    id = Column(Integer, primary_key=True)
+    as_of = Column(Date, nullable=True, index=True)  # 조회 시각의 KST/로컬 날짜
+    fetched_at = Column(DateTime, nullable=True, index=True)  # naive UTC
+    source = Column(String(50), nullable=True, index=True)  # 예: alpaca_paper
+    equity = Column(Float, nullable=True)
+    cash = Column(Float, nullable=True)
+    buying_power = Column(Float, nullable=True)
+    long_market_value = Column(Float, nullable=True)
+    n_positions = Column(Integer, nullable=True)
+    drift_summary = Column(Text, nullable=True)  # JSON: compute_drift() 요약(슬리브 상태 포함)
+    note = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    positions = relationship("AccountPositionSnapshot", back_populates="snapshot")
+
+
+class AccountPositionSnapshot(Base):
+    """AccountSnapshot 1건에 속한 종목별 실제 보유 상태(조회 전용).
+
+    weight_pct 는 market_value / equity * 100 이며 equity 를 모르면 NULL 이다(0 아님).
+    target_weight_pct / drift_pct_points 는 목표를 알 수 없으면(unknown 슬리브) NULL 이고
+    그 사유는 drift_status/drift_reason 에 남는다.
+    """
+
+    __tablename__ = "account_position_snapshots"
+
+    id = Column(Integer, primary_key=True)
+    snapshot_id = Column(Integer, ForeignKey("account_snapshots.id"), nullable=False, index=True)
+    ticker = Column(String(20), nullable=False, index=True)
+    qty = Column(Float, nullable=True)
+    avg_entry_price = Column(Float, nullable=True)
+    current_price = Column(Float, nullable=True)
+    market_value = Column(Float, nullable=True)
+    unrealized_pl = Column(Float, nullable=True)
+    weight_pct = Column(Float, nullable=True)
+    target_weight_pct = Column(Float, nullable=True)
+    drift_pct_points = Column(Float, nullable=True)  # 실제 - 목표 (+ 면 과다보유)
+    drift_status = Column(String(20), nullable=True)  # comparable | unknown
+    drift_reason = Column(Text, nullable=True)
+    sleeve = Column(String(20), nullable=True)  # core | satellite | unassigned
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    snapshot = relationship("AccountSnapshot", back_populates="positions")

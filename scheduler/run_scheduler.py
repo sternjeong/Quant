@@ -611,6 +611,126 @@ def candidate_ledger_outcome_update_job() -> None:
     print(f"[{datetime.now()}] candidate_ledger_outcome_update_job 종료")
 
 
+def guidance_shadow_record_job() -> None:
+    """가이던스 shadow 기록 (RES-04, docs/EARNINGS_GUIDANCE_EXPERIMENT_SPEC.md).
+
+    core.guidance_shadow.record_guidance_shadow()가 오늘 위성 후보에 가이던스 신호 판정을 병행
+    기록한다. 관측 전용이다 — 원전략의 실제 채택/보류와 주문 경로(core.paper_execution,
+    scripts/champion_paper_trade.py)에는 아무 영향도 주지 않으며, 이 잡은 그 모듈을 import 도
+    호출도 하지 않는다. candidate_ledger_outcome_update_job(00:28) 다음 빈 슬롯(00:30).
+    """
+    if not is_enabled("guidance_shadow_record"):
+        print(f"[{datetime.now()}] guidance_shadow_record_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
+    from core.guidance_shadow import record_guidance_shadow
+
+    print(f"[{datetime.now()}] guidance_shadow_record_job 시작")
+    try:
+        result = record_guidance_shadow()
+        print(f"  - as_of={result.get('as_of')} 후보 {result.get('n_pool')}건, 삽입={result.get('inserted')}")
+        if not result.get("ok"):
+            report_job_failure("guidance_shadow_record", str(result.get("error") or "가이던스 shadow 기록 실패"))
+    except Exception as exc:  # noqa: BLE001 - 다음 날 스케줄을 막지 않도록 기록만 남긴다.
+        print(f"  - 가이던스 shadow 기록 실패: {type(exc).__name__}: {exc}")
+        report_job_failure("guidance_shadow_record", f"{type(exc).__name__}: {exc}")
+    print(f"[{datetime.now()}] guidance_shadow_record_job 종료")
+
+
+def filing_veto_shadow_record_job() -> None:
+    """공시 변경 veto shadow 기록 (docs/FILING_CHANGE_VETO_SPEC.md, 미동결·성과 미검증).
+
+    core.filing_veto_shadow.record_filing_veto_shadow()가 오늘 위성 채택 종목에 filing_veto 판정을
+    병행 기록한다. 관측 전용이다 — 판정이 hold 여도 실제 주문은 바뀌지 않으며, 이 잡은 주문 경로
+    (core.paper_execution, scripts/champion_paper_trade.py)를 import 도 호출도 하지 않는다.
+    guidance_shadow_record_job(00:30) 다음 빈 슬롯(00:32) — 두 shadow 가 같은 위성 원전략 계산을
+    각자 수행하므로 같은 분에 겹치지 않게 띄운다.
+    """
+    if not is_enabled("filing_veto_shadow_record"):
+        print(f"[{datetime.now()}] filing_veto_shadow_record_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
+    from core.filing_veto_shadow import record_filing_veto_shadow
+
+    print(f"[{datetime.now()}] filing_veto_shadow_record_job 시작")
+    try:
+        result = record_filing_veto_shadow()
+        print(
+            f"  - as_of={result.get('as_of')} 후보 {result.get('n_candidates')}건, "
+            f"veto_hold={result.get('n_held_by_veto')}, 노출={result.get('n_exposed')}"
+        )
+    except Exception as exc:  # noqa: BLE001 - 다음 날 스케줄을 막지 않도록 기록만 남긴다.
+        print(f"  - 공시 veto shadow 기록 실패: {type(exc).__name__}: {exc}")
+        report_job_failure("filing_veto_shadow_record", f"{type(exc).__name__}: {exc}")
+    print(f"[{datetime.now()}] filing_veto_shadow_record_job 종료")
+
+
+def account_snapshot_sync_job() -> None:
+    """실계좌 스냅샷 + 목표 대비 이탈 감지 (2026-09-24 추가, core/account_sync.py 모듈 docstring 참고).
+
+    core.account_sync.sync_paper_account()가 Alpaca paper 계좌의 /v2/account, /v2/positions 를 GET 으로만
+    조회해 스냅샷을 저장하고, 챔피언 전략의 목표 비중과 실제 비중의 괴리를 계산한다. 조회 전용이다 —
+    주문 경로(core.paper_execution, scripts/champion_paper_trade.py)를 import 도 호출도 하지 않으며
+    이탈이 크게 나와도 주문은 만들어지지 않는다(정보 제공까지만). 보류 중인 슬리브
+    (new_orders_allowed=False)는 "목표 0%"가 아니라 비교 불가(unknown)로 기록된다.
+
+    API 키(ALPACA_PAPER_API_KEY / ALPACA_PAPER_API_SECRET)가 없으면 조용히 건너뛰되 그 사유를 출력한다 —
+    키 값 자체는 어디에도 남기지 않는다.
+
+    시각(00:35 KST): 00:00~00:32 KST 야간 블록이 이미 가득 찼고(마지막이 00:32 filing_veto_shadow_record),
+    그 다음 빈 슬롯이다. 그날 밤 챔피언 전략 계산이 모두 끝난 뒤 돌아야 같은 날 목표 비중과 비교된다.
+    """
+    if not is_enabled("account_snapshot_sync"):
+        print(f"[{datetime.now()}] account_snapshot_sync_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
+    from core.account_sync import summarize_drift, sync_paper_account
+
+    print(f"[{datetime.now()}] account_snapshot_sync_job 시작")
+    try:
+        result = sync_paper_account()
+        if result.get("skipped"):
+            print(f"  - 건너뜀: {result.get('reason')}")
+        elif result.get("ok"):
+            print(f"  - {summarize_drift(result['drift'])} (저장={result.get('saved')})")
+            if result.get("errors"):
+                print(f"  - 부분 오류 {len(result['errors'])}건: {result['errors'][:3]}")
+        else:
+            print(f"  - 계좌 스냅샷 실패: {result.get('reason')}")
+            report_job_failure("account_snapshot_sync", str(result.get("reason") or "계좌 스냅샷 실패"))
+    except Exception as exc:  # noqa: BLE001 - 다음 날 스케줄을 막지 않도록 기록만 남긴다.
+        print(f"  - 계좌 스냅샷 실패: {type(exc).__name__}: {exc}")
+        report_job_failure("account_snapshot_sync", f"{type(exc).__name__}: {exc}")
+    print(f"[{datetime.now()}] account_snapshot_sync_job 종료")
+
+
+def guru_holdings_sync_job() -> None:
+    """거장 포트폴리오 자동 동기화 (2026-09-24 추가, core/guru_schedule.py 모듈 docstring 참고).
+
+    기존에는 Streamlit 페이지의 "🔄 동기화" 버튼을 사용자가 거장 1명씩 눌러야만 갱신됐다.
+    core.guru_schedule.sync_all_gurus()가 전체 거장을 순회하되 한 명이 실패해도 나머지를 계속
+    진행하며, ARK(캐시 우드)는 매일 CSV 를 갱신하고 13F 거장은 SEC submissions 의 최신 accession 을
+    먼저 비교해 새 분기 공시가 있을 때만 infoTable 을 파싱한다(멱등 — 같은 공시를 다시 파싱해도
+    GuruHolding 에 중복 행이 쌓이지 않는다). 조회/기록 전용이며 주문 경로와는 무관하다.
+
+    시각(12:00 KST): 00:00~00:32 KST 야간 블록이 이미 꽉 차 있는 데다, ARK 운용사가 일별 보유내역
+    CSV 를 미국 동부 저녁(대략 20~21시 ET)에 공개하므로 12:00 KST(= 전날 22~23시 ET)에 돌려야
+    가장 최근 거래일 파일을 받는다 — 00:3x KST 에 돌리면 한 거래일 더 오래된 파일을 받게 된다.
+    """
+    if not is_enabled("guru_holdings_sync"):
+        print(f"[{datetime.now()}] guru_holdings_sync_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
+    from core.guru_schedule import summarize_sync, sync_all_gurus
+
+    print(f"[{datetime.now()}] guru_holdings_sync_job 시작")
+    try:
+        result = sync_all_gurus()
+        print(f"  - {summarize_sync(result)}")
+        if result.get("n_failed") and not result.get("n_synced"):
+            report_job_failure("guru_holdings_sync", "모든 거장 동기화 실패")
+    except Exception as exc:  # noqa: BLE001 - 다음 날 스케줄을 막지 않도록 기록만 남긴다.
+        print(f"  - 거장 포트폴리오 동기화 실패: {type(exc).__name__}: {exc}")
+        report_job_failure("guru_holdings_sync", f"{type(exc).__name__}: {exc}")
+    print(f"[{datetime.now()}] guru_holdings_sync_job 종료")
+
+
 # 사용자가 "매일 0시~4시 동안 #3 전략을 여러 차원에서 미세튜닝해서 최적의 전략을 찾아달라, 상위
 # 10개를 웹사이트에서 볼 수 있게 해달라"고 요청 (2026-07-15). #3 = 전략 라이브러리의 "볼린저 밴드
 # 하단 반전 1:2:6 전략". 배포된 Streamlit Community Cloud 사이트는 이 스케줄러가 아예 뜰 수 없는
@@ -852,6 +972,42 @@ def main() -> None:
         trigger=CronTrigger(hour=0, minute=28, timezone="Asia/Seoul"),
         id="candidate_ledger_outcome_update",
         name="매일 한국시간 00:28 후보 shadow 원장 성과 채움 (RES-01)",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        guidance_shadow_record_job,
+        # candidate_ledger_outcome_update_job(00:28) 다음 빈 슬롯 — 관측 전용이라 다른 잡의 순서에
+        # 영향받지 않지만, 위성 원전략 계산을 다시 하므로 00:28 잡과 같은 분에 겹치지 않게 둔다.
+        trigger=CronTrigger(hour=0, minute=30, timezone="Asia/Seoul"),
+        id="guidance_shadow_record",
+        name="매일 한국시간 00:30 가이던스 shadow 기록 (RES-04, 관측 전용)",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        filing_veto_shadow_record_job,
+        # guidance_shadow_record_job(00:30) 다음 슬롯 — 두 shadow 가 각자 위성 원전략을 계산하므로
+        # 2분 띄운다. 판정이 hold 여도 실제 주문 경로에는 영향이 없다.
+        trigger=CronTrigger(hour=0, minute=32, timezone="Asia/Seoul"),
+        id="filing_veto_shadow_record",
+        name="매일 한국시간 00:32 공시 변경 veto shadow 기록 (관측 전용)",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        account_snapshot_sync_job,
+        # 00:00~00:32 KST 야간 블록의 마지막 잡(00:32 filing_veto_shadow_record) 다음 빈 슬롯 —
+        # 그날 밤 챔피언 전략 계산이 모두 끝난 뒤여야 같은 날 목표 비중과 실제 보유를 비교할 수 있다.
+        trigger=CronTrigger(hour=0, minute=35, timezone="Asia/Seoul"),
+        id="account_snapshot_sync",
+        name="매일 한국시간 00:35 실계좌 스냅샷 + 목표 대비 이탈 감지 (조회 전용)",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        guru_holdings_sync_job,
+        # 00:00~00:32 KST 야간 블록이 가득 찼고, ARK 일별 CSV 는 미국 동부 저녁(20~21시 ET)에
+        # 공개되므로 12:00 KST(= 전날 22~23시 ET)가 "가장 최근 거래일 파일"을 받는 가장 이른 시각.
+        trigger=CronTrigger(hour=12, minute=0, timezone="Asia/Seoul"),
+        id="guru_holdings_sync",
+        name="매일 한국시간 12:00 거장 포트폴리오 자동 동기화 (ARK 매일 / 13F 새 공시 시)",
         replace_existing=True,
     )
     scheduler.add_job(

@@ -196,12 +196,15 @@ def record_filing_veto_shadow(
     tickers = _extract_selected_tickers(satellite_result)
     records: list = []
     per_ticker: dict = {}
+    # 스펙 §3.3: 추출·비교 실패 건은 "pass" 로 묻지 않고 사유별로 센다(주 분석 분모에서 조용히 빼지 않는다).
+    unusable_reason_counts: dict = {}
 
     for t in tickers:
         try:
             events = list(provider(t, as_of_date))
         except Exception as exc:  # noqa: BLE001 - 한 종목의 조회 실패가 나머지 기록을 막지 않는다
             err = f"{type(exc).__name__}: {exc}"
+            unusable_reason_counts["event_fetch_error"] = unusable_reason_counts.get("event_fetch_error", 0) + 1
             per_ticker[t] = {"error": err, "veto_decision": "pass", "exposed": False, "reason_codes": ["event_fetch_error"]}
             records.append(CandidateRecord(
                 ticker=t, decision="selected", decision_reason="filing_event_fetch_error_defaulted_to_pass",
@@ -211,6 +214,11 @@ def record_filing_veto_shadow(
             continue
 
         veto = filing_veto(events, pol, as_of=cutoff_aware_utc)
+        for u in veto.unusable_events:
+            rc = str(u.get("reason") or "unknown")
+            unusable_reason_counts[rc] = unusable_reason_counts.get(rc, 0) + 1
+        if not events:
+            unusable_reason_counts["no_filing_found"] = unusable_reason_counts.get("no_filing_found", 0) + 1
         unusable_acc = {u.get("accession") for u in veto.unusable_events}
         usable_events = [e for e in events if e.accession not in unusable_acc]
         ages = [a for a in (_age_calendar_days(e.available_at, cutoff_aware_utc) for e in usable_events) if a is not None]
@@ -256,6 +264,9 @@ def record_filing_veto_shadow(
         "n_candidates": len(records),
         "n_exposed": sum(1 for v in per_ticker.values() if v.get("exposed")),
         "n_held_by_veto": sum(1 for r in records if r.decision == "held"),
+        "n_not_exposed": sum(1 for v in per_ticker.values() if not v.get("exposed")),
+        "unusable_reason_counts": dict(unusable_reason_counts),
+        "exposure_window_calendar_days": EXPOSURE_WINDOW_CALENDAR_DAYS,
         "per_ticker": per_ticker,
         "shadow_only": True,
         "order_path_connected": False,
