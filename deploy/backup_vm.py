@@ -61,6 +61,7 @@ SECRET_SCAN_MAX_BYTES = 5 * 1024 * 1024
 
 # 허용 목록: git 상 "커밋 안 된" 파일 중 이 경로 아래(또는 정확히 이 파일)만 백업한다.
 ALLOWED_PREFIXES = (
+    "notes/",  # 텔레그램 /note 로 저장한 개인 메모·첨부. 공개 저장소에선 .gitignore로 막혀 있고 여기(비공개)로만 간다.
     "analysis/",
     "analysis.root_backup_",
     "docs/",
