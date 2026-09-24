@@ -60,6 +60,9 @@
 튜닝 엔진 코드(`core/strategy_tuning.py`)를 건드리기 전에는 반드시 참고. 장기적으로 계속
 갱신되는 "살아있는" 문서이므로 최신 절(가장 큰 번호)이 현재 동작을 반영한다.
 
+### [prune/PRUNE_B.md](./prune/PRUNE_B.md)
+불필요 자산 정리(prune) B의 삭제·보류 목록과 복구 방법.
+
 ## [reports/](./reports/) — 완성된 HTML 리포트 모음
 
 두 종류가 섞여 있다: `analysis/` 아래 각 분석 파이프라인이 만들어내는 최종 HTML 리포트의 읽기용
