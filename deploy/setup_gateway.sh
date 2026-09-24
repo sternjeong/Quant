@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # 하나의 도메인 아래에 관제 허브와 하위 앱들을 HTTPS로 모아 공개하는 게이트웨이(nginx) 설정.
 #
-#   https://<도메인>/         → 관제 허브        (127.0.0.1:8000)  [아이디/비밀번호]
+#   https://<도메인>/         → 관제 허브        (127.0.0.1:8000)  [로그인 폼 → 쿠키; 검증은 htpasswd]
 #   https://code.<도메인>/    → code-server      (127.0.0.1:8080)  [code-server 자체 비밀번호]
-#   https://app.<도메인>/     → Streamlit 대시보드 (127.0.0.1:8501)  [아이디/비밀번호]
+#   https://app.<도메인>/     → Streamlit 대시보드 (127.0.0.1:8501)  [허브와 같은 로그인 쿠키]
 #   그 밖의 이름/IP로 오는 HTTPS 요청은 핸드셰이크를 거절하고, http://IP 는 위 도메인으로 리다이렉트한다.
 #
 # 사용법 (VM에서 root로): sudo bash deploy/setup_gateway.sh <기본 도메인> [인증서 알림 이메일]
@@ -131,7 +131,19 @@ fi
 if ! certbot "${certbot_args[@]}"; then rollback; exit 1; fi
 
 echo "[5/7] 최종 게이트웨이 사이트"
+# 로그인 폼(hub /login)이 성공하면 브라우저에 이 토큰 쿠키를 심는다. 토큰은 사이트 파일(누구나 읽음)이 아니라
+# root:www-data 640 파일에 두며, 이미 있으면 재사용한다(다시 만들면 모든 기기가 로그아웃된다).
+SESSION_CONF="/etc/nginx/quant-session.conf"
+if [ ! -s "$SESSION_CONF" ]; then
+  umask 027
+  printf 'map "" $qt_token { default "%s"; }\n' "$(openssl rand -hex 32)" > "$SESSION_CONF"
+  chown root:www-data "$SESSION_CONF"
+  chmod 640 "$SESSION_CONF"
+fi
+COOKIE_ATTRS="Domain=${BASE}; Path=/; HttpOnly; Secure; SameSite=Lax"
 cat > "${SITES_AVAILABLE}/${GATEWAY_SITE}" <<EOF
+include ${SESSION_CONF};
+
 map \$http_upgrade \$gateway_connection_upgrade {
     default upgrade;
     ''      close;
@@ -165,12 +177,45 @@ server {
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_session_cache shared:gateway_ssl:10m;
 
-    auth_basic "Quant control tower";
-    auth_basic_user_file ${HTPASSWD_FILE};
     add_header X-Content-Type-Options nosniff always;
     add_header Referrer-Policy no-referrer always;
 
+    # 로그인 폼(공개). 브라우저 기본 팝업 대신 이 페이지에서 아이디/비밀번호를 받는다.
+    location = /login {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host \$http_host;
+        proxy_set_header Authorization "";
+        add_header X-Content-Type-Options nosniff always;
+        add_header Referrer-Policy no-referrer always;
+        add_header Cache-Control "no-store" always;
+    }
+
+    # 폼이 Authorization 헤더로 호출한다. 자격 증명은 여전히 htpasswd 로 검증하고, 성공하면 세션 쿠키를 준다.
+    # (401 은 WWW-Authenticate 없이 내려보내 브라우저 팝업이 뜨지 않게 한다.)
+    location = /_login {
+        auth_basic "Quant control tower";
+        auth_basic_user_file ${HTPASSWD_FILE};
+        error_page 401 = @login_denied;
+        proxy_pass http://127.0.0.1:8000/healthz;
+        proxy_set_header Authorization "";
+        add_header Set-Cookie "qt_session=\$qt_token; ${COOKIE_ATTRS}; Max-Age=2592000" always;
+        add_header Cache-Control "no-store" always;
+    }
+    location @login_denied {
+        default_type text/plain;
+        return 401 "denied";
+    }
+    location = /_logout {
+        proxy_pass http://127.0.0.1:8000/healthz;
+        proxy_set_header Authorization "";
+        add_header Set-Cookie "qt_session=; ${COOKIE_ATTRS}; Max-Age=0" always;
+        add_header Cache-Control "no-store" always;
+    }
+
     location / {
+        if (\$cookie_qt_session != \$qt_token) {
+            return 302 https://${BASE}/login?next=\$scheme://\$host\$request_uri;
+        }
         proxy_pass http://127.0.0.1:8000;
         proxy_http_version 1.1;
         proxy_set_header Host \$http_host;
@@ -217,12 +262,14 @@ server {
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_session_cache shared:gateway_ssl:10m;
 
-    auth_basic "Quant control tower";
-    auth_basic_user_file ${HTPASSWD_FILE};
     add_header X-Content-Type-Options nosniff always;
     add_header Referrer-Policy no-referrer always;
 
+    # 로그인은 허브(https://${BASE}/login)에서 하고, 같은 도메인 쿠키를 공유한다.
     location / {
+        if (\$cookie_qt_session != \$qt_token) {
+            return 302 https://${BASE}/login?next=\$scheme://\$host\$request_uri;
+        }
         proxy_pass http://127.0.0.1:8501;
         proxy_http_version 1.1;
         proxy_set_header Host \$http_host;
@@ -281,8 +328,8 @@ check() {
   done
   printf '  https://%-32s -> %s (기대: %s)\n' "${host}/" "$code" "$want"
 }
-check "$BASE" "401 (로그인 필요)"
-check "$APP_HOST" "401 (로그인 필요)"
+check "$BASE" "302 (로그인 폼으로)"
+check "$APP_HOST" "302 (로그인 폼으로)"
 check "$CODE_HOST" "302 (code-server 로그인으로)"
 
 echo
