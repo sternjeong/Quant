@@ -160,12 +160,17 @@ def run_ledger_backtest(
     integer_shares: bool = False,
     price_basis: Optional[str] = None,
     corporate_actions=None,
+    buy_slippage_bps: Optional[float] = None,
+    sell_slippage_bps: Optional[float] = None,
 ) -> LedgerBacktestResult:
     """목표 비중(0~1) 시리즈를 다음 거래일 시가 체결 원장으로 시뮬레이션한다.
 
     corporate_actions: None(기본)이면 기업행동을 전혀 반영하지 않는다(종전과 동일).
     주어지면 core.corporate_actions.CorporateAction 또는 같은 필드의 dict 목록으로 보고,
     ex-date 당일 시가 체결 **전에** 배당 현금 입금·분할 수량/단가 조정을 적용한다.
+
+    buy_slippage_bps/sell_slippage_bps: None(기본)이면 slippage_bps 를 양쪽에 쓴다(종전과 동일).
+    주어지면 해당 방향만 이 값으로 덮어쓴다. 실측 교정용이라 음수(유리한 체결)도 허용하되 -10000bp 초과만 막는다.
 
     df: Open/Close 컬럼과 DatetimeIndex. position: 신호일(종가 기준) 목표 비중, df 와 같은 인덱스.
     integer_shares=True 면 매수/매도 수량을 정수로 내림한다(기본은 소수 주 허용).
@@ -176,7 +181,12 @@ def run_ledger_backtest(
     if min(fee_bps, slippage_bps, tax_bps) < 0:
         raise ValueError("비용 bps 는 음수일 수 없습니다")
     pos = position.reindex(df.index).fillna(0.0).astype(float).clip(0.0, 1.0)
+    for _v in (buy_slippage_bps, sell_slippage_bps):
+        if _v is not None and _v <= -1e4:
+            raise ValueError("방향별 슬리피지 bps 는 -10000 보다 커야 합니다")
     fee_r, slip_r, tax_r = fee_bps / 1e4, slippage_bps / 1e4, tax_bps / 1e4
+    slip_buy = slip_r if buy_slippage_bps is None else buy_slippage_bps / 1e4
+    slip_sell = slip_r if sell_slippage_bps is None else sell_slippage_bps / 1e4
 
     cash = float(initial_cash)
     shares = 0.0
@@ -233,7 +243,7 @@ def run_ledger_backtest(
             side = None
             qty = 0.0
             if delta > 1e-12:  # 매수
-                px = op * (1 + slip_r)
+                px = op * (1 + slip_buy)
                 qty = delta
                 max_qty = cash / (px * (1 + fee_r)) if px > 0 else 0.0
                 qty = min(qty, max_qty)
@@ -241,7 +251,7 @@ def run_ledger_backtest(
                     qty = math.floor(qty + 1e-9)
                 side = "BUY"
             elif delta < -1e-12:  # 매도
-                px = op * (1 - slip_r)
+                px = op * (1 - slip_sell)
                 qty = min(-delta, shares)
                 if integer_shares:
                     qty = math.floor(qty + 1e-9)
@@ -249,7 +259,7 @@ def run_ledger_backtest(
             if side and qty > 1e-12:
                 notional = qty * px
                 fee = notional * fee_r
-                slip_cost = qty * op * slip_r
+                slip_cost = qty * op * (slip_buy if side == "BUY" else slip_sell)
                 if side == "BUY":
                     tax = 0.0
                     cash -= notional + fee
@@ -309,13 +319,37 @@ def run_cost_scenarios(
     scenarios: Optional[dict] = None,
     price_basis: Optional[str] = None,
     corporate_actions=None,
+    measured_calibration: Optional[dict] = None,
 ) -> dict:
-    """비용 없음(0bp)과 5/10/25bp 시나리오를 한 번에 실행해 {이름: LedgerBacktestResult} 로 반환."""
+    """비용 없음(0bp)과 5/10/25bp 시나리오를 한 번에 실행해 {이름: LedgerBacktestResult} 로 반환.
+
+    measured_calibration(옵트인, 기본 None): core.cost_calibration 의 결과 dict. status=="ok" 이고
+    scenario 가 있을 때만 'measured' 시나리오를 추가한다(표본 부족·unavailable 이면 아무것도 추가하지
+    않으며 가정값으로 대체하지도 않는다). 추가된 결과의 params 에 표본 수·산출 시각·라벨을 남긴다.
+    """
     sc = {"0bp": {"fee_bps": 0.0, "slippage_bps": 0.0}}
     sc.update(scenarios or COST_SCENARIOS_BPS)
-    return {
+    out = {
         name: run_ledger_backtest(df, position, initial_cash, tax_bps=tax_bps,
                                   integer_shares=integer_shares, price_basis=price_basis,
                                   corporate_actions=corporate_actions, **kw)
         for name, kw in sc.items()
     }
+    cal = measured_calibration
+    if cal and cal.get("status") == "ok" and cal.get("scenario"):
+        m = cal["scenario"]
+        res = run_ledger_backtest(
+            df, position, initial_cash, tax_bps=tax_bps, integer_shares=integer_shares,
+            price_basis=price_basis, corporate_actions=corporate_actions,
+            fee_bps=float(m.get("fee_bps", 0.0)), slippage_bps=float(m["slippage_bps"]),
+            buy_slippage_bps=m.get("buy_slippage_bps"), sell_slippage_bps=m.get("sell_slippage_bps"))
+        res.params.update({
+            "scenario_label": "measured vs assumed",
+            "measured_sample_n": cal.get("n"),
+            "measured_generated_at": cal.get("generated_at"),
+            "measured_stale": bool(cal.get("stale", False)),
+            "measured_fee_note": m.get("fee_note"),
+            "measured_side_split": m.get("side_split"),
+        })
+        out["measured"] = res
+    return out
