@@ -268,7 +268,13 @@ class Service:
                 msg = update.get('message', {})
                 chat = msg.get('chat', {})
                 instruction = msg.get('text', '')
-                if str(chat.get('id')) == self.chat and chat.get('type') == 'private' and instruction:
+                mine = str(chat.get('id')) == self.chat and chat.get('type') == 'private'
+                # 사진·파일은 text가 없어서 예전에는 통째로 버려졌다. 이제 notes/ 에 저장한다(무지성 커밋의 한 갈래).
+                if mine and not instruction and (msg.get('photo') or msg.get('document')):
+                    self.queue_outbox(db, self.chat, self.store_message_media(msg))
+                    db.execute("INSERT INTO meta VALUES('offset',?) ON CONFLICT(key) DO UPDATE SET value=max(cast(value as integer),cast(excluded.value as integer))", (str(uid + 1),))
+                    continue
+                if mine and instruction:
                     selected = db.execute("SELECT value FROM meta WHERE key='backend'").fetchone()
                     backend = selected[0] if selected else 'codex'
                     # Accept a newline after the command as well as a space.
@@ -296,6 +302,10 @@ class Service:
                         reply = self.cancel_job(db, int(rest))
                     elif command == '/diff' and rest.isdigit():
                         reply = self.diff_job(db, int(rest))
+                    elif command == '/note':
+                        reply = self.save_note(rest)[0]
+                    elif command == '/progress':
+                        reply = self.append_progress(rest)
                     elif command == '/cat':
                         reply = self.cat_file(rest)
                     elif command == '/log':
@@ -355,6 +365,8 @@ class Service:
                                  '/cancel 작업ID: 대기 중인 작업 취소 또는 실행 중인 작업 중지 요청\n'
                                  '/diff 작업ID: 그 작업이 실제로 커밋한 내용 요약\n'
                                  '/usage: 최근 7일 사용량·한도 도달 횟수\n'
+                                 '/note 메모: 비공개 저장소에 바로 저장 (사진·파일도 보내면 저장됨)\n'
+                                 '/progress 내용: 공개 저장소 PROGRESS.md에 바로 커밋·푸시\n'
                                  '/cat 경로 [줄수]: 저장소 파일 끝부분 보기 (예: /cat PROGRESS.md 30)\n'
                                  '/log [개수]: 최근 커밋 요약\n'
                                  '/repo: VM 저장소 상태(HEAD·origin과의 차이·미커밋 파일)\n'
@@ -544,6 +556,172 @@ class Service:
                 pass
             return f'작업 {job_id} 중지를 요청했습니다. 곧 취소 처리됩니다.'
         return f'작업 {job_id}은 이미 {status} 상태라 취소할 수 없습니다.'
+
+    # ---- 무지성 커밋: /note(비공개), /progress(공개) — LLM을 부르지 않는다 ---------------------------
+    # docs/TELEGRAM_REPO_BRIDGE_SPEC.md 3-1 참고.
+    #  /note    → /opt/quant/notes/YYYY-MM/DD.md 에 append. 이 경로는 공개 저장소에서 .gitignore로 막혀 있고,
+    #             야간 백업(deploy/backup_vm.py)이 **비공개** 저장소로 가져간다. 폰에서 급히 친 메모의 안전한 기본값.
+    #  /progress → 공개 저장소의 PROGRESS.md 끝에 append 후 즉시 commit+push. 작업 디렉터리를 전혀 건드리지
+    #             않도록 git 배관(hash-object/read-tree/commit-tree)으로 origin/main 위에 커밋을 만든다 —
+    #             VM 워킹트리에는 리서치 에이전트의 미커밋 수정이 늘 있어서 checkout/rebase 류를 쓰면 위험하다.
+    # 비밀 패턴은 deploy/backup_vm.py의 것과 같은 의도의 축약본이다(러너는 stdlib만 쓰는 독립 프로세스라 공유하지 않는다).
+
+    NOTE_MAX_CHARS = 4000
+    ATTACHMENT_MAX_BYTES = 20 * 1024 * 1024  # 텔레그램 봇 다운로드 상한
+    SECRET_PATTERNS = (
+        r'-----BEGIN (?:RSA |EC |OPENSSH |DSA |ENCRYPTED )?PRIVATE KEY-----',
+        r'\bghp_[A-Za-z0-9]{30,}', r'\bgithub_pat_[A-Za-z0-9_]{30,}',
+        r'\bsk-ant-[A-Za-z0-9_-]{20,}', r'\bsk-[A-Za-z0-9]{32,}',
+        r'\bAKIA[0-9A-Z]{16}\b', r'\bxox[baprs]-[A-Za-z0-9-]{10,}',
+        r'\bAIza[0-9A-Za-z_-]{35}\b', r'\b\d{8,10}:[A-Za-z0-9_-]{35}\b',
+    )
+
+    def looks_secret(self, text):
+        """비밀처럼 보이면 그 사실만 알려준다(어떤 값인지는 절대 돌려주지 않는다)."""
+        return any(re.search(pattern, text) for pattern in self.SECRET_PATTERNS)
+
+    def notes_dir(self):
+        return self.quant_root() / 'notes'
+
+    def save_note(self, text, when=None):
+        """/note — 비공개 경로에 append. (응답문자열, 저장경로 또는 None)"""
+        text = (text or '').strip()
+        if not text:
+            return ('사용법: /note <메모>  — 사진이나 파일을 보내면서 캡션에 /note 를 써도 됩니다.', None)
+        if len(text) > self.NOTE_MAX_CHARS:
+            return (f'너무 깁니다({len(text):,}자). {self.NOTE_MAX_CHARS:,}자 이하로 나눠 보내주세요.', None)
+        if self.looks_secret(text):
+            return ('비밀(키·토큰)처럼 보이는 내용이 있어 저장하지 않았습니다. 값은 화면에 다시 띄우지 않습니다.', None)
+        stamp = when or time.localtime()
+        target = self.notes_dir() / time.strftime('%Y-%m', stamp) / (time.strftime('%d', stamp) + '.md')
+        target.parent.mkdir(parents=True, exist_ok=True)
+        entry = f"\n## {time.strftime('%H:%M', stamp)}\n{text}\n"
+        with target.open('a', encoding='utf-8') as handle:
+            handle.write(entry)
+        rel = target.relative_to(self.quant_root())
+        return (f'메모 저장: {rel}\n오늘 밤 백업이 비공개 저장소로 올립니다(공개 저장소에는 올라가지 않습니다).', target)
+
+    def save_attachment(self, file_id, filename, caption=''):
+        """텔레그램이 보낸 사진/파일을 notes/attachments/ 에 내려받는다. (응답문자열, 저장경로 또는 None)"""
+        try:
+            meta = self.api('getFile', {'file_id': file_id})
+        except Exception as exc:  # noqa: BLE001 — 네트워크/권한 등 어떤 실패든 사용자에게 알린다
+            return (f'첨부 정보를 가져오지 못했습니다: {type(exc).__name__}', None)
+        size = meta.get('file_size') or 0
+        if size > self.ATTACHMENT_MAX_BYTES:
+            return (f'파일이 너무 큽니다({size/1e6:.1f}MB). 20MB 이하만 저장합니다.', None)
+        remote_path = meta.get('file_path')
+        if not remote_path:
+            return ('첨부 경로를 확인하지 못했습니다.', None)
+        url = f'https://api.telegram.org/file/bot{self.token}/{remote_path}'
+        try:
+            with urllib.request.urlopen(url, timeout=120) as response:
+                blob = response.read(self.ATTACHMENT_MAX_BYTES + 1)
+        except Exception as exc:  # noqa: BLE001
+            return (f'첨부를 내려받지 못했습니다: {type(exc).__name__}', None)
+        if len(blob) > self.ATTACHMENT_MAX_BYTES:
+            return ('파일이 너무 큽니다(20MB 초과).', None)
+        suffix = Path(remote_path).suffix or Path(filename or '').suffix or '.bin'
+        stamp = time.localtime()
+        safe_stem = re.sub(r'[^A-Za-z0-9_.-]', '_', (filename or 'attachment').rsplit('.', 1)[0])[:40]
+        target = (self.notes_dir() / 'attachments' /
+                  f"{time.strftime('%Y%m%d-%H%M%S', stamp)}-{safe_stem}{suffix}")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(blob)
+        rel = target.relative_to(self.quant_root())
+        note_line = f"첨부: `{rel.name}`" + (f"\n{caption}" if caption else '')
+        self.save_note(note_line, stamp)
+        return (f'첨부 저장: {rel} ({len(blob)/1e6:.1f}MB)\n오늘 밤 백업이 비공개 저장소로 올립니다.', target)
+
+    def store_message_media(self, msg):
+        """사진/파일이 붙은 메시지를 notes/ 로 저장한다. 캡션은 메모 본문으로 같이 남긴다."""
+        caption = (msg.get('caption') or '').strip()
+        # 캡션이 /note 로 시작하면 그 뒤만 메모 본문으로 쓴다.
+        if caption.split(maxsplit=1)[:1] == ['/note']:
+            caption = caption.split(maxsplit=1)[1] if len(caption.split(maxsplit=1)) > 1 else ''
+        document = msg.get('document')
+        if document:
+            return self.save_attachment(document.get('file_id'), document.get('file_name', 'file'), caption)[0]
+        photos = msg.get('photo') or []
+        if photos:
+            largest = max(photos, key=lambda item: item.get('file_size') or 0)  # 텔레그램은 여러 해상도를 준다
+            return self.save_attachment(largest.get('file_id'), 'photo.jpg', caption)[0]
+        return '저장할 첨부를 찾지 못했습니다.'
+
+    def append_progress(self, text):
+        """/progress — 공개 저장소 PROGRESS.md 끝에 append하고 즉시 커밋·푸시. 워킹트리는 건드리지 않는다."""
+        text = (text or '').strip()
+        if not text:
+            return '사용법: /progress <기록할 내용>  — 공개 저장소의 PROGRESS.md에 바로 커밋됩니다.'
+        if len(text) > self.NOTE_MAX_CHARS:
+            return f'너무 깁니다({len(text):,}자). {self.NOTE_MAX_CHARS:,}자 이하로 줄여주세요.'
+        if self.looks_secret(text):
+            return '비밀(키·토큰)처럼 보이는 내용이 있어 커밋하지 않았습니다. 이 저장소는 공개입니다.'
+        last_error = ''
+        for attempt in range(2):  # 그 사이 origin이 움직이면 한 번 다시 만든다
+            ok, detail = self.push_progress_entry(text)
+            if ok:
+                return (f'PROGRESS.md에 커밋했습니다 ({detail}).\n'
+                        '공개 저장소이며, 5분 안에 자동배포가 VM으로 가져갑니다.')
+            last_error = detail
+        return f'커밋하지 못했습니다: {last_error}'
+
+    def push_progress_entry(self, text):
+        """git 배관으로 origin/main 위에 PROGRESS.md 한 건만 얹은 커밋을 만들어 push. (성공여부, 설명)"""
+        root = self.quant_root()
+
+        def git(*args, **kwargs):
+            return subprocess.run(['git', '-C', str(root), *args], text=True, capture_output=True,
+                                  timeout=kwargs.pop('timeout', 60), **kwargs)
+
+        if git('fetch', 'origin', 'main', '--quiet').returncode != 0:
+            return False, 'origin을 가져오지 못했습니다(네트워크/권한 확인).'
+        base = git('rev-parse', 'origin/main').stdout.strip()
+        if not base:
+            return False, 'origin/main을 찾지 못했습니다.'
+        current = git('show', f'{base}:PROGRESS.md')
+        if current.returncode != 0:
+            return False, 'PROGRESS.md를 읽지 못했습니다.'
+        stamp = time.strftime('%Y-%m-%d %H:%M KST', time.localtime())
+        updated = current.stdout.rstrip('\n') + f'\n\n### 메모 ({stamp}, 텔레그램)\n\n{text}\n'
+
+        blob = subprocess.run(['git', '-C', str(root), 'hash-object', '-w', '--stdin'],
+                              input=updated, text=True, capture_output=True, timeout=60)
+        if blob.returncode != 0:
+            return False, '내용을 저장소에 기록하지 못했습니다.'
+
+        # 임시 인덱스를 써서 VM 워킹트리의 인덱스를 전혀 건드리지 않는다.
+        index = self.state / f'progress-index-{os.getpid()}'
+        env = {**os.environ, 'GIT_INDEX_FILE': str(index)}
+        try:
+            if subprocess.run(['git', '-C', str(root), 'read-tree', base], env=env,
+                              capture_output=True, timeout=60).returncode != 0:
+                return False, '트리를 준비하지 못했습니다.'
+            if subprocess.run(['git', '-C', str(root), 'update-index', '--cacheinfo',
+                               f'100644,{blob.stdout.strip()},PROGRESS.md'], env=env,
+                              capture_output=True, timeout=60).returncode != 0:
+                return False, '변경을 인덱스에 넣지 못했습니다.'
+            tree = subprocess.run(['git', '-C', str(root), 'write-tree'], env=env,
+                                  text=True, capture_output=True, timeout=60)
+            if tree.returncode != 0:
+                return False, '트리를 만들지 못했습니다.'
+        finally:
+            index.unlink(missing_ok=True)
+
+        message = f'Add a PROGRESS note sent from Telegram ({stamp})'
+        commit = subprocess.run(
+            ['git', '-C', str(root), '-c', 'user.name=quant-telegram-bridge',
+             '-c', 'user.email=quant-telegram-bridge@localhost', '-c', 'commit.gpgsign=false',
+             'commit-tree', tree.stdout.strip(), '-p', base, '-m', message],
+            text=True, capture_output=True, timeout=60)
+        if commit.returncode != 0:
+            return False, '커밋을 만들지 못했습니다.'
+        new_sha = commit.stdout.strip()
+        push = git('push', 'origin', f'{new_sha}:main', timeout=180)
+        if push.returncode != 0:
+            tail = (push.stderr.strip().splitlines() or ['push 실패'])[-1]
+            return False, self.redact(tail[:160])
+        return True, f'{base[:7]}..{new_sha[:7]}'
 
     # ---- 저장소 읽기 명령 (LLM을 부르지 않는다 — 폰에서 즉시, 할당량 0) -------------------------------
     # 배경: 예전에는 "PROGRESS 마지막 항목이 뭐였지?" 같은 확인 하나에도 수 분짜리 Claude 작업을 띄워야 했다.
