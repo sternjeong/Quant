@@ -106,10 +106,14 @@ class Service:
         db.row_factory = sqlite3.Row
         return db
 
+    def quant_root(self):
+        """Quant 저장소의 실제 경로. 설정에 quant가 없으면 default_project, 그것도 없으면 /opt/quant."""
+        default_project = self.cfg.get('default_project', '')
+        return Path(self.cfg['projects'].get('quant', self.cfg['projects'].get(default_project, '/opt/quant'))).resolve()
+
     def experiment_paths(self):
         """Paths shared with the experiment supervisor, without storing secrets in SQLite."""
-        default_project = self.cfg.get('default_project', '')
-        root = Path(self.cfg['projects'].get('quant', self.cfg['projects'].get(default_project, '/opt/quant'))).resolve()
+        root = self.quant_root()
         control_dir = Path(self.cfg.get('experiment_control_dir', root / '.experiment-control'))
         return root, control_dir, control_dir / 'control.json', control_dir / 'state.json'
 
@@ -128,8 +132,7 @@ class Service:
     def process_toggles_path(self):
         """core.process_registry.TOGGLE_STATE_PATH와 동일한 파일 -- 같은 프로젝트 루트 산출
         방식(experiment_paths 참고)을 그대로 써서 두 프로세스가 항상 같은 파일을 본다."""
-        default_project = self.cfg.get('default_project', '')
-        root = Path(self.cfg['projects'].get('quant', self.cfg['projects'].get(default_project, '/opt/quant'))).resolve()
+        root = self.quant_root()
         return root / 'data' / 'process_toggles.json'
 
     def is_process_enabled(self, key, default):
@@ -186,8 +189,7 @@ class Service:
         ticker = requested_ticker.strip().upper()
         if ticker and not re.fullmatch(r'[A-Z][A-Z0-9.\-]{0,14}', ticker):
             return '사용법: /news 또는 /news XLK'
-        default_project = self.cfg.get('default_project', '')
-        root = Path(self.cfg['projects'].get('quant', self.cfg['projects'].get(default_project, '/opt/quant'))).resolve()
+        root = self.quant_root()
         db_path = root / 'data' / 'quant.db'
         if not db_path.is_file():
             return '뉴스 DB가 아직 만들어지지 않았습니다. 서버 배포 후 첫 일일 수집을 기다리거나 웹의 뉴스 리서치에서 실행하세요.'
@@ -294,6 +296,12 @@ class Service:
                         reply = self.cancel_job(db, int(rest))
                     elif command == '/diff' and rest.isdigit():
                         reply = self.diff_job(db, int(rest))
+                    elif command == '/cat':
+                        reply = self.cat_file(rest)
+                    elif command == '/log':
+                        reply = self.repo_log(rest)
+                    elif command == '/repo':
+                        reply = self.repo_state()
                     elif command == '/usage':
                         reply = self.usage_summary(db)
                     elif command == '/digest':
@@ -347,6 +355,9 @@ class Service:
                                  '/cancel 작업ID: 대기 중인 작업 취소 또는 실행 중인 작업 중지 요청\n'
                                  '/diff 작업ID: 그 작업이 실제로 커밋한 내용 요약\n'
                                  '/usage: 최근 7일 사용량·한도 도달 횟수\n'
+                                 '/cat 경로 [줄수]: 저장소 파일 끝부분 보기 (예: /cat PROGRESS.md 30)\n'
+                                 '/log [개수]: 최근 커밋 요약\n'
+                                 '/repo: VM 저장소 상태(HEAD·origin과의 차이·미커밋 파일)\n'
                                  '/digest: 마지막 확인 이후 끝난 작업 + 지금 대기/실행 중인 작업 한눈에 보기\n'
                                  '/news 또는 /news XLK: 최신 티커 뉴스 요약 (원문 링크는 일일 HTML/웹에서 확인)\n'
                                  '/idea 메모: Claude/Codex 호출 없이 아이디어만 저장\n'
@@ -533,6 +544,98 @@ class Service:
                 pass
             return f'작업 {job_id} 중지를 요청했습니다. 곧 취소 처리됩니다.'
         return f'작업 {job_id}은 이미 {status} 상태라 취소할 수 없습니다.'
+
+    # ---- 저장소 읽기 명령 (LLM을 부르지 않는다 — 폰에서 즉시, 할당량 0) -------------------------------
+    # 배경: 예전에는 "PROGRESS 마지막 항목이 뭐였지?" 같은 확인 하나에도 수 분짜리 Claude 작업을 띄워야 했다.
+    # docs/TELEGRAM_REPO_BRIDGE_SPEC.md 3-2 참고.
+
+    CAT_MAX_LINES = 80  # 텔레그램 한 메시지에 무리 없이 들어가는 선
+    CAT_MAX_CHARS = 3500
+    LOG_MAX_COMMITS = 20
+
+    def safe_repo_file(self, relpath):
+        """저장소 안의 파일 경로로만 해석한다. 벗어나거나 없으면 (None, 사유)."""
+        root = self.quant_root()
+        if not relpath or relpath.startswith('/') or '\x00' in relpath:
+            return None, '저장소 기준 상대경로를 주세요. 예: /cat PROGRESS.md'
+        try:
+            target = (root / relpath).resolve()
+        except (OSError, RuntimeError):
+            return None, '경로를 해석하지 못했습니다.'
+        if root != target and root not in target.parents:
+            return None, '저장소 밖의 경로는 읽을 수 없습니다.'
+        if not target.is_file():
+            return None, f'그런 파일이 없습니다: {relpath}'
+        return target, None
+
+    def cat_file(self, rest):
+        """/cat <경로> [줄수] — 파일 끝부분을 보여준다."""
+        parts = rest.split()
+        if not parts:
+            return '사용법: /cat <저장소 기준 경로> [줄수]  예: /cat PROGRESS.md 30'
+        relpath = parts[0]
+        lines_wanted = self.CAT_MAX_LINES
+        if len(parts) > 1 and parts[1].isdigit():
+            lines_wanted = max(1, min(int(parts[1]), self.CAT_MAX_LINES))
+        target, problem = self.safe_repo_file(relpath)
+        if problem:
+            return problem
+        try:
+            raw = target.read_bytes()
+        except OSError as exc:
+            return f'읽지 못했습니다: {type(exc).__name__}'
+        if b'\x00' in raw[:8000]:
+            return f'{relpath}: 바이너리 파일이라 표시하지 않습니다 ({len(raw):,} bytes).'
+        try:
+            text = raw.decode('utf-8')
+        except UnicodeDecodeError:
+            return f'{relpath}: UTF-8로 읽을 수 없는 파일입니다.'
+        all_lines = text.splitlines()
+        shown = all_lines[-lines_wanted:]
+        body = '\n'.join(shown)
+        if len(body) > self.CAT_MAX_CHARS:
+            body = body[-self.CAT_MAX_CHARS:]
+            body = body.split('\n', 1)[-1]  # 잘린 첫 줄은 버린다
+        head = f'{relpath} — 전체 {len(all_lines)}줄 중 마지막 {len(shown)}줄'
+        return f'{head}\n\n{self.redact(body)}'
+
+    def repo_log(self, rest):
+        """/log [개수] — 최근 커밋 요약."""
+        count = 5
+        if rest.strip().isdigit():
+            count = max(1, min(int(rest.strip()), self.LOG_MAX_COMMITS))
+        root = self.quant_root()
+        result = subprocess.run(['git', '-C', str(root), 'log', '--oneline', '--no-decorate', f'-{count}'],
+                                text=True, capture_output=True, timeout=15)
+        if result.returncode != 0:
+            return f'git log 실패: {result.stderr.strip()[:200]}'
+        return f'최근 커밋 {count}개\n\n' + (result.stdout.strip() or '(없음)')
+
+    def repo_state(self):
+        """/repo — VM 워킹트리의 git 상태 한눈에."""
+        root = self.quant_root()
+
+        def git(*args, timeout=20):
+            done = subprocess.run(['git', '-C', str(root), *args], text=True, capture_output=True, timeout=timeout)
+            return done.stdout.strip() if done.returncode == 0 else ''
+
+        head = git('log', '--oneline', '--no-decorate', '-1') or '(알 수 없음)'
+        subprocess.run(['git', '-C', str(root), 'fetch', 'origin', '--quiet'],
+                       capture_output=True, timeout=60)
+        behind = git('rev-list', '--count', 'HEAD..origin/main') or '?'
+        ahead = git('rev-list', '--count', 'origin/main..HEAD') or '?'
+        dirty = [line for line in git('status', '--porcelain', '--untracked-files=no').splitlines() if line]
+        lines = [f'VM 저장소: {root}',
+                 f'HEAD: {head}',
+                 f'origin/main 대비: {behind}개 뒤, {ahead}개 앞']
+        if dirty:
+            lines.append(f'미커밋 수정 {len(dirty)}개:')
+            lines += [f'  {item}' for item in dirty[:10]]
+            if len(dirty) > 10:
+                lines.append(f'  … 외 {len(dirty) - 10}개')
+        else:
+            lines.append('미커밋 수정: 없음')
+        return '\n'.join(lines)
 
     def diff_job(self, db, job_id):
         row = db.execute('SELECT project, commit_before, commit_after FROM jobs WHERE id=?', (job_id,)).fetchone()

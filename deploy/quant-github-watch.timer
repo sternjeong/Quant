@@ -1,0 +1,10 @@
+[Unit]
+Description=Quant GitHub 감시 — 15분마다 (비인증 API 한도 시간당 60회 대비 시간당 4회라 여유 있음)
+
+[Timer]
+OnBootSec=10min
+OnUnitActiveSec=15min
+RandomizedDelaySec=90
+
+[Install]
+WantedBy=timers.target
