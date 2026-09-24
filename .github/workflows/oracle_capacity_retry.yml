@@ -1,8 +1,12 @@
 name: Oracle capacity retry
 
+# 2026-09-24: 예약 실행(schedule)을 껐다. 이 워크플로는 Always Free VM 용량이 날 때까지 계속 생성을 재시도하려고
+# 만든 것인데, VM은 2026-08-23에 확보돼서(138.2.11.196, 지금 모든 서비스가 그 위에서 돈다) 목적이 끝났다.
+# 그런데도 10분마다 계속 돌면서 **최근 100회 연속 실패**(2026-09-09~09-24, 누적 1,023회 실행)하고 있었고,
+# GitHub에서 나는 실패가 텔레그램까지 오는 경로가 없어 15일간 아무도 몰랐다(docs/TELEGRAM_REPO_BRIDGE_SPEC.md).
+# 실패 이유는 저장된 OCI API 키가 만료/삭제돼 401이 나기 때문이라 어차피 성공할 수도 없다.
+# 다시 VM을 새로 받아야 하면 Actions 탭에서 "Run workflow"로 수동 실행하면 된다(그때 OCI 키부터 새로 등록해야 함).
 on:
-  schedule:
-    - cron: '*/10 * * * *'
   workflow_dispatch: {}
 
 concurrency:

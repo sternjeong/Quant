@@ -670,3 +670,91 @@ class PipelineTests(unittest.TestCase):
 
 
 if __name__ == '__main__': unittest.main()
+
+
+class RepoReadCommandTests(unittest.TestCase):
+    """/cat /log /repo — LLM 없이 폰에서 저장소를 읽는 명령 (docs/TELEGRAM_REPO_BRIDGE_SPEC.md 3-2)."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name) / 'repo'
+        self.root.mkdir()
+        self.s = Service({'state_dir': str(Path(self.tmp.name) / 'state'),
+                          'projects': {'quant': str(self.root)}, 'default_project': 'quant',
+                          'default_backend': 'codex', 'codex_bin': 'codex', 'retry_seconds': 1})
+
+    def git(self, *args):
+        subprocess.run(['git', '-C', str(self.root), '-c', 'user.name=t', '-c', 'user.email=t@e.com',
+                        '-c', 'commit.gpgsign=false', *args], check=True, capture_output=True)
+
+    def make_repo(self):
+        subprocess.run(['git', 'init', '-q', '-b', 'main', str(self.root)], check=True, capture_output=True)
+        (self.root / 'PROGRESS.md').write_text('# progress\n')
+        self.git('add', '-A')
+        self.git('commit', '-q', '-m', 'first commit')
+
+    # ---- /cat ----
+
+    def test_cat_shows_the_tail_and_reports_total_length(self):
+        (self.root / 'PROGRESS.md').write_text('\n'.join(f'line {i}' for i in range(1, 101)) + '\n')
+        reply = self.s.cat_file('PROGRESS.md 5')
+        self.assertIn('전체 100줄 중 마지막 5줄', reply)
+        self.assertIn('line 100', reply)
+        self.assertNotIn('line 95', reply)  # 5줄만
+
+    def test_cat_caps_the_line_count_and_defaults_sensibly(self):
+        (self.root / 'big.md').write_text('\n'.join(f'l{i}' for i in range(500)) + '\n')
+        capped = self.s.cat_file(f'big.md 9999')
+        self.assertIn(f'마지막 {Service.CAT_MAX_LINES}줄', capped)
+        self.assertIn(f'마지막 {Service.CAT_MAX_LINES}줄', self.s.cat_file('big.md'))  # 인자 없으면 기본 상한
+
+    def test_cat_refuses_to_escape_the_repository(self):
+        secret = Path(self.tmp.name) / 'outside.txt'
+        secret.write_text('TOP SECRET')
+        for attempt in ('../outside.txt', '/etc/passwd', '../../etc/passwd'):
+            reply = self.s.cat_file(attempt)
+            self.assertNotIn('TOP SECRET', reply, attempt)
+            self.assertNotIn('root:', reply, attempt)
+
+    def test_cat_refuses_binary_and_missing_files(self):
+        (self.root / 'x.bin').write_bytes(b'\x00\x01\x02' * 100)
+        self.assertIn('바이너리', self.s.cat_file('x.bin'))
+        self.assertIn('그런 파일이 없습니다', self.s.cat_file('nope.md'))
+        self.assertIn('사용법', self.s.cat_file(''))
+
+    def test_cat_truncates_very_long_output(self):
+        (self.root / 'long.md').write_text(('x' * 200 + '\n') * 60)
+        reply = self.s.cat_file('long.md 60')
+        self.assertLess(len(reply), Service.CAT_MAX_CHARS + 200)
+
+    def test_cat_redacts_secret_looking_content(self):
+        (self.root / 'oops.md').write_text('token: sk-abcdefghijklmnopqrstuvwxyz012345\n')
+        self.assertNotIn('sk-abcdefghijklmnopqrstuvwxyz012345', self.s.cat_file('oops.md'))
+
+    # ---- /log, /repo ----
+
+    def test_log_lists_recent_commits(self):
+        self.make_repo()
+        reply = self.s.repo_log('5')
+        self.assertIn('first commit', reply)
+
+    def test_log_count_is_bounded(self):
+        self.make_repo()
+        self.assertIn(f'최근 커밋 {Service.LOG_MAX_COMMITS}개', self.s.repo_log('9999'))
+
+    def test_repo_state_reports_head_and_uncommitted_files(self):
+        self.make_repo()
+        clean = self.s.repo_state()
+        self.assertIn('first commit', clean)
+        self.assertIn('미커밋 수정: 없음', clean)
+
+        (self.root / 'PROGRESS.md').write_text('# progress\n\nVM 에이전트가 덧붙인 줄\n')
+        dirty = self.s.repo_state()
+        self.assertIn('미커밋 수정 1개', dirty)
+        self.assertIn('PROGRESS.md', dirty)
+
+    def test_read_commands_never_crash_outside_a_git_repo(self):
+        for reply in (self.s.repo_log('3'), self.s.repo_state()):
+            self.assertIsInstance(reply, str)
+            self.assertTrue(reply)

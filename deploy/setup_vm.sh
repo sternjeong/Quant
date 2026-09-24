@@ -57,6 +57,8 @@ cp "$APP_DIR/deploy/quant-auto-deploy.timer" /etc/systemd/system/
 cp "$APP_DIR/deploy/quant-hub.service" /etc/systemd/system/
 cp "$APP_DIR/deploy/quant-watchdog.service" /etc/systemd/system/
 cp "$APP_DIR/deploy/quant-watchdog.timer" /etc/systemd/system/
+cp "$APP_DIR/deploy/quant-github-watch.service" /etc/systemd/system/
+cp "$APP_DIR/deploy/quant-github-watch.timer" /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable --now quant-streamlit.service
 systemctl enable --now quant-scheduler.service
@@ -64,6 +66,8 @@ systemctl enable --now quant-vm-health.timer
 systemctl enable --now quant-hub.service
 # 앱과 독립적으로 밤사이 작업/브리핑/백업이 돌았는지 확인하는 워치독(문제 있을 때만 텔레그램)
 systemctl enable --now quant-watchdog.timer
+# GitHub Actions가 조용히 실패하는 걸 폰으로 알리는 감시기(토큰 불필요 — 공개 저장소 API)
+systemctl enable --now quant-github-watch.timer
 # quant-auto-deploy.service는 oneshot이라 직접 enable하지 않고, 주기 실행을 맡는
 # 타이머만 enable --now 한다 (타이머가 활성화되면 필요할 때 서비스를 기동한다).
 systemctl enable --now quant-auto-deploy.timer

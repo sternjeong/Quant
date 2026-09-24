@@ -1,0 +1,10 @@
+[Unit]
+Description=Quant GitHub 감시 (Actions 워크플로가 새로 실패하면 텔레그램) — 1회 실행용
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=quant
+WorkingDirectory=/opt/quant
+ExecStart=/usr/bin/python3 /opt/quant/deploy/github_watch.py
