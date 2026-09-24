@@ -208,22 +208,6 @@ def test_turnover_and_cost_hand_calc_hold_band_avoids_flapping_swaps(book):
     assert "수익" in t["note"]  # 수익 비교가 아님을 명시
 
 
-def test_cost_calibration_is_optional_and_used_when_present(monkeypatch):
-    import sys
-    import types
-
-    fake = types.ModuleType("core.cost_calibration")
-    fake.calibrated_one_way_bps = lambda: 7.5
-    monkeypatch.setitem(sys.modules, "core.cost_calibration", fake)
-    import core
-    monkeypatch.setattr(core, "cost_calibration", fake, raising=False)
-    a = sv._cost_assumptions()
-    assert a["scenarios_one_way_bps"]["calibrated"] == 7.5 and "measured" in a["source"]
-    # 잘못된 값이면 가정값으로 복귀
-    fake.calibrated_one_way_bps = lambda: float("nan")
-    assert "calibrated" not in sv._cost_assumptions()["scenarios_one_way_bps"]
-
-
 # ---------------------------------------------------------------------------
 # 리포트: 미입증, 정직한 문구, 파일 생성
 # ---------------------------------------------------------------------------
@@ -269,3 +253,69 @@ def test_module_has_no_order_path_or_intraday_dependency():
     assert "paper_execution" not in src.replace("core.paper_execution, scripts", "")  # docstring 언급만 허용
     assert "import paper_execution" not in src and "from core.paper_execution" not in src
     assert "1m" not in src and "intraday" not in src.lower().replace("일봉 전용", "")
+
+
+# ---------------------------------------------------------------------------
+# 실측 비용 교정(core.cost_calibration)과의 실제 연결 — 예전에는 존재하지 않는 함수 이름을 추측해 조용히 가정값만 썼다
+# ---------------------------------------------------------------------------
+def _write_calibration(tmp_path, payload):
+    import json
+    from datetime import datetime, timezone
+
+    path = tmp_path / "cost_calibration.json"
+    payload.setdefault("generated_at", datetime.now(timezone.utc).isoformat())
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    return path
+
+
+def test_measured_cost_scenario_is_used_when_calibration_is_ok(tmp_path, monkeypatch):
+    """실제 cost_calibration.load_cost_calibration 이 저장 파일을 읽어 'measured' 시나리오가 나타나야 한다."""
+    from core import cost_calibration as cc
+    from core import strategy_variants as sv
+
+    path = _write_calibration(tmp_path, {
+        "status": "ok", "n": 42,
+        "scenario": {"fee_bps": 0.0, "slippage_bps": 7.5, "fee_note": "수수료는 측정 불가"},
+    })
+    real_load = cc.load_cost_calibration
+    monkeypatch.setattr(cc, "load_cost_calibration", lambda *a, **k: real_load(path))
+    out = sv._cost_assumptions()
+    assert out["scenarios_one_way_bps"]["measured"] == 7.5
+    assert out["measured"]["used"] is True and out["measured"]["n"] == 42
+    assert "measured" in out["source"]
+    assert {"5bp", "10bp", "25bp"} <= set(out["scenarios_one_way_bps"])  # 가정 시나리오는 그대로
+
+
+def test_measured_cost_scenario_is_not_used_when_sample_is_insufficient(monkeypatch):
+    from core import cost_calibration as cc
+    from core import strategy_variants as sv
+
+    monkeypatch.setattr(cc, "load_cost_calibration", lambda *a, **k: {
+        "status": "insufficient_sample", "reason": "insufficient_sample", "n": 12, "scenario": None})
+    out = sv._cost_assumptions()
+    assert "measured" not in out["scenarios_one_way_bps"]
+    assert out["measured"] == {"used": False, "reason": "insufficient_sample", "n": 12}
+    assert out["source"].startswith("assumed(")
+
+
+def test_measured_cost_scenario_falls_back_when_no_calibration_file(monkeypatch):
+    from core import cost_calibration as cc
+    from core import strategy_variants as sv
+
+    monkeypatch.setattr(cc, "load_cost_calibration", lambda *a, **k: None)
+    out = sv._cost_assumptions()
+    assert "measured" not in out["scenarios_one_way_bps"]
+    assert out["measured"] == {"used": False, "reason": "no_calibration_file"}
+
+
+def test_calibration_lookup_failure_never_breaks_turnover_comparison(monkeypatch):
+    from core import cost_calibration as cc
+    from core import strategy_variants as sv
+
+    def boom(*a, **k):
+        raise RuntimeError("disk error")
+
+    monkeypatch.setattr(cc, "load_cost_calibration", boom)
+    out = sv._cost_assumptions()
+    assert out["measured"]["used"] is False and "RuntimeError" in out["measured"]["reason"]
+    assert "10bp" in out["scenarios_one_way_bps"]

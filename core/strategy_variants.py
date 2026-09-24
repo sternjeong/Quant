@@ -228,27 +228,34 @@ def record_variant_shadow(as_of: Any = None, session=None) -> dict:
 # 회전율 · 거래 횟수 · 비용 영향
 # ---------------------------------------------------------------------------
 def _cost_assumptions() -> dict:
-    """편도 비용(bp) 시나리오. core.cost_calibration 이 실측을 제공하면 함께 쓰고, 없으면 가정 5/10/25bp 만 쓴다.
+    """편도 비용(bp) 시나리오. 저장된 실측 교정(core.cost_calibration)이 있으면 'measured' 를 함께 쓰고, 없으면 가정 5/10/25bp 만 쓴다.
 
-    cost_calibration 은 다른 작업에서 만들어지는 중이라 API 를 확정하지 못했다: 알려진 후보 함수명만 방어적으로 시도하고
-    실패하면 가정값으로 돌아간다(출처를 결과에 표시).
+    실측은 status=='ok'(체결 30건 이상)이고 scenario 가 있을 때만 쓴다. 표본 부족·파일 없음·손상은 조용히 가정값으로 돌아가되
+    그 사유를 결과에 남긴다(값을 지어내지 않는다). 오래된(stale) 실측은 쓰되 stale 표시를 붙인다.
+    편도 비용은 수수료+슬리피지이며, 실측은 슬리피지만 측정하므로 fee_bps(0.0, 측정 불가)를 더한 값이다.
     """
     scenarios = {n: sc["fee_bps"] + sc["slippage_bps"] for n, sc in COST_SCENARIOS_BPS.items()}
     source = "assumed(core.trade_ledger.COST_SCENARIOS_BPS)"
+    measured_meta: dict = {"used": False, "reason": "no_calibration_file"}
     try:
-        from core import cost_calibration as cc  # type: ignore
+        from core import cost_calibration as cc
 
-        for fn_name in ("calibrated_one_way_bps", "get_calibrated_one_way_bps"):
-            fn = getattr(cc, fn_name, None)
-            if callable(fn):
-                v = fn()
-                if isinstance(v, (int, float)) and v == v and v > 0:
-                    scenarios["calibrated"] = float(v)
-                    source = f"assumed + measured(core.cost_calibration.{fn_name})"
-                    break
-    except Exception:  # noqa: BLE001 - 선택적 의존성: 없거나 API 가 다르면 가정값만
-        pass
-    return {"scenarios_one_way_bps": scenarios, "source": source}
+        cal = cc.load_cost_calibration()
+        if cal is None:
+            measured_meta = {"used": False, "reason": "no_calibration_file"}
+        elif cal.get("status") != "ok" or not cal.get("scenario"):
+            measured_meta = {"used": False, "reason": cal.get("reason") or cal.get("status"), "n": cal.get("n")}
+        else:
+            sc = cal["scenario"]
+            one_way = float(sc.get("fee_bps", 0.0)) + float(sc["slippage_bps"])
+            scenarios["measured"] = one_way
+            source = "assumed + measured(core.cost_calibration)"
+            measured_meta = {"used": True, "n": cal.get("n"), "stale": bool(cal.get("stale")),
+                             "generated_at": cal.get("generated_at"), "one_way_bps": one_way,
+                             "fee_note": sc.get("fee_note")}
+    except Exception as exc:  # noqa: BLE001 - 실측 조회 실패가 회전율 비교를 막지 않는다
+        measured_meta = {"used": False, "reason": f"calibration_unavailable:{type(exc).__name__}"}
+    return {"scenarios_one_way_bps": scenarios, "source": source, "measured": measured_meta}
 
 
 def compare_turnover(state: Optional[dict] = None) -> dict:
