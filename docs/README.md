@@ -63,6 +63,9 @@
 ### [prune/PRUNE_B.md](./prune/PRUNE_B.md)
 불필요 자산 정리(prune) B의 삭제·보류 목록과 복구 방법.
 
+### [prune/PRUNE_D.md](./prune/PRUNE_D.md)
+docs/reports 중복 HTML 사본과 Kostolany 스크린샷·pkl 삭제 기록 및 복구 방법.
+
 ## [reports/](./reports/) — 완성된 HTML 리포트 모음
 
 두 종류가 섞여 있다: `analysis/` 아래 각 분석 파이프라인이 만들어내는 최종 HTML 리포트의 읽기용
