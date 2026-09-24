@@ -151,6 +151,30 @@ PROCESS_REGISTRY: dict[str, dict] = {
         ),
         "category": "maintenance", "default_enabled": True,
     },
+    "alpaca_verification_bootstrap": {
+        "label": "Alpaca paper 검증 자동 실행",
+        "description": (
+            "최근 7일 안에 전체 PASS 가 없으면 Alpaca paper 읽기 전용 검증 4개(멱등성 읽기 모드·기업행동·가격 "
+            "교차검증·계좌 스키마)를 돌리고 결과를 텔레그램 1건으로 알림 — 주문을 내지 않으며 키 값은 어디에도 "
+            "남기지 않는다. 키가 없으면 건너뜀 (00:40 KST)"
+        ),
+        "category": "maintenance", "default_enabled": True,
+    },
+    "cost_calibration_refresh": {
+        "label": "거래비용 보정 갱신 (관측 전용)",
+        "description": "실체결 기반 거래비용 가정 보정을 매일 갱신 — 관측 전용이며 주문 경로에는 연결되어 있지 않음 (00:42 KST)",
+        "category": "research", "default_enabled": True,
+    },
+    "variant_shadow_record": {
+        "label": "전략 변형 shadow 기록 (관측 전용)",
+        "description": "전략 변형들의 오늘 판정을 병행 기록 — 관측 전용이며 실제 주문에는 영향 없음, 성과 미검증 (00:44 KST)",
+        "category": "research", "default_enabled": True,
+    },
+    "strategy_research_report": {
+        "label": "전략 변형 연구 보고서 (관측 전용)",
+        "description": "shadow 기록을 모아 주간 연구 보고서를 작성 — 관측 전용이며 주문 경로 미연결 (일요일 00:50 KST)",
+        "category": "research", "default_enabled": True,
+    },
     "guru_holdings_sync": {
         "label": "거장 포트폴리오 자동 동기화",
         "description": (

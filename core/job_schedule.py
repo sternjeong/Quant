@@ -39,6 +39,10 @@ SCHEDULED_JOBS: tuple[ScheduledJob, ...] = (
     ScheduledJob('guidance_shadow_record', 'guidance_shadow_record', {'hour': 0, 'minute': 30, 'timezone': 'Asia/Seoul'}),
     ScheduledJob('filing_veto_shadow_record', 'filing_veto_shadow_record', {'hour': 0, 'minute': 32, 'timezone': 'Asia/Seoul'}),
     ScheduledJob('account_snapshot_sync', 'account_snapshot_sync', {'hour': 0, 'minute': 35, 'timezone': 'Asia/Seoul'}),
+    ScheduledJob('alpaca_verification_bootstrap', 'alpaca_verification_bootstrap', {'hour': 0, 'minute': 40, 'timezone': 'Asia/Seoul'}),
+    ScheduledJob('cost_calibration_refresh', 'cost_calibration_refresh', {'hour': 0, 'minute': 42, 'timezone': 'Asia/Seoul'}),
+    ScheduledJob('variant_shadow_record', 'variant_shadow_record', {'hour': 0, 'minute': 44, 'timezone': 'Asia/Seoul'}),
+    ScheduledJob('strategy_research_report', 'strategy_research_report', {'day_of_week': 'sun', 'hour': 0, 'minute': 50, 'timezone': 'Asia/Seoul'}),
     ScheduledJob('guru_holdings_sync', 'guru_holdings_sync', {'hour': 12, 'minute': 0, 'timezone': 'Asia/Seoul'}),
 )
 

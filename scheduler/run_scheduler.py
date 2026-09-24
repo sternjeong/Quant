@@ -731,6 +731,93 @@ def guru_holdings_sync_job() -> None:
     print(f"[{datetime.now()}] guru_holdings_sync_job 종료")
 
 
+def alpaca_verification_bootstrap_job() -> None:
+    """Alpaca paper API 가정 검증 자동 실행 (2026-09-24, core/alpaca_verification.py 모듈 docstring 참고).
+
+    사용자는 폰으로만 작업해 VM 에서 검증 스크립트를 직접 돌리기 어렵다. 배포 직후 사람이 아무것도 하지 않아도
+    첫 검증이 돌도록, 최근 7일 안에 전체 PASS 가 없을 때만 읽기 전용 검증 4개를 실행하고 요약을 텔레그램 1건으로
+    보낸다(자가 치유). 이미 PASS 가 있으면 조용히 건너뛴다. 같은 실패는 3일 안에 반복 알리지 않는다.
+    주문을 내는 --write 경로는 절대 실행하지 않는다. 키는 환경변수에서만 읽고 어디에도 값을 남기지 않는다.
+
+    시각(00:40 KST): 00:00~00:35 야간 블록(마지막이 00:35 account_snapshot_sync) 다음 빈 슬롯.
+    """
+    if not is_enabled("alpaca_verification_bootstrap"):
+        print(f"[{datetime.now()}] alpaca_verification_bootstrap_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
+    print(f"[{datetime.now()}] alpaca_verification_bootstrap_job 시작")
+    try:
+        from core.alpaca_verification import run_bootstrap_if_needed
+
+        outcome = run_bootstrap_if_needed()
+        print(f"  - {outcome}")
+    except Exception as exc:  # noqa: BLE001 - 다음 날 스케줄을 막지 않도록 기록만 남긴다.
+        print(f"  - Alpaca 검증 실패: {type(exc).__name__}: {exc}")
+        report_job_failure("alpaca_verification_bootstrap", f"{type(exc).__name__}: {exc}")
+    print(f"[{datetime.now()}] alpaca_verification_bootstrap_job 종료")
+
+
+def cost_calibration_refresh_job() -> None:
+    """거래비용 가정(5/10/25bp) 보정 갱신 — 관측 전용(주문 경로 미연결).
+
+    core.cost_calibration 은 다른 작업에서 만드는 중이라 없을 수 있어 잡 안에서 lazy import 하고
+    ImportError 도 다른 예외와 같이 report_job_failure 로 처리한다(스케줄러 기동·다른 잡에 영향 없음).
+    시각(00:42 KST): 00:40 검증 잡 다음 슬롯.
+    """
+    if not is_enabled("cost_calibration_refresh"):
+        print(f"[{datetime.now()}] cost_calibration_refresh_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
+    print(f"[{datetime.now()}] cost_calibration_refresh_job 시작")
+    try:
+        from core.cost_calibration import refresh_cost_calibration
+
+        print(f"  - {str(refresh_cost_calibration())[:300]}")
+    except Exception as exc:  # noqa: BLE001 - ImportError 포함, 다음 날 스케줄을 막지 않는다.
+        print(f"  - 비용 보정 갱신 실패: {type(exc).__name__}: {exc}")
+        report_job_failure("cost_calibration_refresh", f"{type(exc).__name__}: {exc}")
+    print(f"[{datetime.now()}] cost_calibration_refresh_job 종료")
+
+
+def variant_shadow_record_job() -> None:
+    """전략 변형 shadow 기록 — 관측 전용(주문 경로 미연결).
+
+    core.strategy_variants 는 다른 작업에서 만드는 중이라 없을 수 있어 lazy import + ImportError 격리.
+    시각(00:44 KST): 00:42 비용 보정 다음 슬롯.
+    """
+    if not is_enabled("variant_shadow_record"):
+        print(f"[{datetime.now()}] variant_shadow_record_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
+    print(f"[{datetime.now()}] variant_shadow_record_job 시작")
+    try:
+        from core.strategy_variants import record_variant_shadow
+
+        print(f"  - {str(record_variant_shadow())[:300]}")
+    except Exception as exc:  # noqa: BLE001
+        print(f"  - 변형 shadow 기록 실패: {type(exc).__name__}: {exc}")
+        report_job_failure("variant_shadow_record", f"{type(exc).__name__}: {exc}")
+    print(f"[{datetime.now()}] variant_shadow_record_job 종료")
+
+
+def strategy_research_report_job() -> None:
+    """전략 변형 연구 보고서 작성 — 관측 전용, 주 1회(일요일 00:50 KST).
+
+    매일 쓸 필요가 없다: shadow 표본은 하루 1건씩 천천히 쌓이고 판정에 주 단위 이상이 필요하다. 일요일 KST 은
+    금요일 미국 장마감 기록(토요일 00:44 shadow)이 반영된 뒤이고 사용자가 주말에 검토하기 좋다.
+    core.strategy_variants 는 lazy import + ImportError 격리.
+    """
+    if not is_enabled("strategy_research_report"):
+        print(f"[{datetime.now()}] strategy_research_report_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
+    print(f"[{datetime.now()}] strategy_research_report_job 시작")
+    try:
+        from core.strategy_variants import write_research_report
+
+        print(f"  - {str(write_research_report())[:300]}")
+    except Exception as exc:  # noqa: BLE001
+        print(f"  - 연구 보고서 작성 실패: {type(exc).__name__}: {exc}")
+        report_job_failure("strategy_research_report", f"{type(exc).__name__}: {exc}")
+    print(f"[{datetime.now()}] strategy_research_report_job 종료")
+
+
 # 사용자가 "매일 0시~4시 동안 #3 전략을 여러 차원에서 미세튜닝해서 최적의 전략을 찾아달라, 상위
 # 10개를 웹사이트에서 볼 수 있게 해달라"고 요청 (2026-07-15). #3 = 전략 라이브러리의 "볼린저 밴드
 # 하단 반전 1:2:6 전략". 배포된 Streamlit Community Cloud 사이트는 이 스케줄러가 아예 뜰 수 없는
@@ -1008,6 +1095,38 @@ def main() -> None:
         trigger=CronTrigger(hour=12, minute=0, timezone="Asia/Seoul"),
         id="guru_holdings_sync",
         name="매일 한국시간 12:00 거장 포트폴리오 자동 동기화 (ARK 매일 / 13F 새 공시 시)",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        alpaca_verification_bootstrap_job,
+        # 야간 블록 마지막 잡(00:35 account_snapshot_sync) 다음 빈 슬롯. 읽기 전용 검증만 하며 최근 7일 안에
+        # PASS 가 있으면 즉시 종료한다(자가 치유: 배포 직후 사람 개입 없이 첫 검증이 돈다).
+        trigger=CronTrigger(hour=0, minute=40, timezone="Asia/Seoul"),
+        id="alpaca_verification_bootstrap",
+        name="매일 한국시간 00:40 Alpaca paper 읽기 전용 검증 (7일 내 PASS 없을 때만)",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        cost_calibration_refresh_job,
+        trigger=CronTrigger(hour=0, minute=42, timezone="Asia/Seoul"),
+        id="cost_calibration_refresh",
+        name="매일 한국시간 00:42 거래비용 보정 갱신 (관측 전용)",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        variant_shadow_record_job,
+        trigger=CronTrigger(hour=0, minute=44, timezone="Asia/Seoul"),
+        id="variant_shadow_record",
+        name="매일 한국시간 00:44 전략 변형 shadow 기록 (관측 전용)",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        strategy_research_report_job,
+        # 주 1회면 충분: shadow 표본이 하루 1건씩 쌓여 판정에 주 단위가 필요하다. 일요일 KST 는 금요일 미국
+        # 장마감 기록이 반영된 뒤다.
+        trigger=CronTrigger(day_of_week="sun", hour=0, minute=50, timezone="Asia/Seoul"),
+        id="strategy_research_report",
+        name="매주 일요일 한국시간 00:50 전략 변형 연구 보고서 (관측 전용)",
         replace_existing=True,
     )
     scheduler.add_job(
