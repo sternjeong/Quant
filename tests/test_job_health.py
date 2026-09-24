@@ -28,7 +28,7 @@ def health_session(db_session, monkeypatch):
         db_session.commit()
 
     monkeypatch.setattr(job_health, "get_session", _fake_get_session)
-    monkeypatch.setattr(job_health, "is_enabled", lambda key: key != "strategy_nightly_tuning")
+    monkeypatch.setattr(job_health, "is_enabled", lambda key: key != "champion_benchmark_gap")
     return db_session
 
 
@@ -144,8 +144,8 @@ def test_no_record_after_the_grace_period_is_overdue_but_within_it_is_pending(he
 def test_disabled_jobs_are_never_problems(health_session):
     _add_run(health_session, "daily_market_snapshot", recorded_at=datetime(2026, 9, 20, 14, 0, tzinfo=UTC))
     health = job_health.compute_job_health(NOW)
-    assert _state(health, "nightly_strategy_tuning") == "disabled"  # fixture: 이 잡만 꺼짐
-    assert all(p["job_id"] != "nightly_strategy_tuning" for p in health["problems"])
+    assert _state(health, "champion_benchmark_gap") == "disabled"  # fixture: 이 잡만 꺼짐
+    assert all(p["job_id"] != "champion_benchmark_gap" for p in health["problems"])
 
 
 def test_expected_time_before_tracking_started_is_no_history(health_session):
@@ -155,12 +155,13 @@ def test_expected_time_before_tracking_started_is_no_history(health_session):
     assert health["counts"]["problem"] == 0
 
 
-def test_long_running_jobs_get_a_longer_grace(monkeypatch, health_session):
-    monkeypatch.setattr(job_health, "is_enabled", lambda key: True)  # 튜닝도 켬
+def test_grace_override_extends_the_wait_for_a_long_running_job(monkeypatch, health_session):
+    monkeypatch.setattr(job_health, "is_enabled", lambda key: True)
+    monkeypatch.setitem(job_health.GRACE_OVERRIDES, "champion_signal_alert", timedelta(hours=6))
     _add_run(health_session, "daily_market_snapshot", recorded_at=datetime(2026, 9, 20, 14, 0, tzinfo=UTC))
-    two_hours_after = datetime(2026, 9, 20, 17, 5, tzinfo=UTC)  # 예정 15:05 UTC + 2시간
-    assert _state(job_health.compute_job_health(two_hours_after), "nightly_strategy_tuning") == "pending"
-    assert _state(job_health.compute_job_health(two_hours_after), "champion_signal_alert") == "overdue"
+    two_hours_after = datetime(2026, 9, 20, 17, 5, tzinfo=UTC)
+    assert _state(job_health.compute_job_health(two_hours_after), "champion_signal_alert") == "pending"
+    assert _state(job_health.compute_job_health(two_hours_after), "champion_ledger_record") == "overdue"
 
 
 # ---- 스케줄 표 ↔ 실제 스케줄러 등록 일치 -------------------------------------------------------------------------

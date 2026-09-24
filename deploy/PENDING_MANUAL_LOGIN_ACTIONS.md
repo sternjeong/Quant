@@ -58,7 +58,7 @@
 
 - **배경**: Codespace 기반 리서치 에이전트 실행은 Codespace가 idle 타임아웃으로 꺼지면 멈춘다 —
   "매일 밤 자동 실행"이 필요하면 사용자가 매번 Codespace를 열어야 하는 한계가 있다.
-- **대안**: 기존 `.github/workflows/nightly_tuning.yml`과 같은 GitHub Actions 스케줄 워크플로
+- **대안**: 예전 `nightly_tuning.yml`(삭제됨)과 같은 GitHub Actions 스케줄 워크플로
   방식(VM/Codespace 상시 기동 불필요). 다만 Claude Pro 로그인 자격증명을 GitHub Secrets로
   안전하게 주입하는 작업이 아직 없다.
 - **조치**: GitHub 웹에 로그인 → 저장소 Settings → Secrets and variables → Actions에 자격증명

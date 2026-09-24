@@ -8,7 +8,7 @@ scheduler/run_scheduler.py::market_snapshot_job()과 계산 로직은 동일하�
   capacity 부족으로 대기 중) — 그동안은 Streamlit Community Cloud 배포본이 상시 프로세스 없이
   돌아가므로, 로컬 DB가 항상 비어 있어 사용자가 페이지를 열 때마다 무거운 실시간 계산(S&P500 전종목
   조회)이 매번 돌아 로딩이 느렸다.
-- 그래서 scripts/nightly_tuning_ci.py(야간 튜닝 리더보드)와 동일한 패턴으로, GitHub Actions
+- 그래서 (삭제된 야간 튜닝 리더보드 CI와 같은) 패턴으로, GitHub Actions
   러너에서 계산한 결과를 저장소에 커밋된 JSON(data/market_regime_snapshot_ci.json,
   data/theme_strength_snapshot_ci.json, data/kostolany_cycle_snapshot_ci.json)으로 남긴다.
   core.market_regime/core.sector_strength/core.kostolany_cycle의 get_latest_*_snapshot()이 로컬

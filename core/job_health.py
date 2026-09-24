@@ -28,7 +28,7 @@ from core.process_registry import PROCESS_REGISTRY, is_enabled
 
 # 실행 예정 시각에서 이만큼 지나도 기록이 없으면 overdue. 잡은 끝날 때 기록되므로 오래 도는 잡은 따로 늘려준다.
 DEFAULT_GRACE = timedelta(minutes=45)
-GRACE_OVERRIDES = {"nightly_strategy_tuning": timedelta(hours=6)}  # 00:05 시작, 최대 04:00까지 반복
+GRACE_OVERRIDES: dict[str, timedelta] = {}  # 오래 도는 잡이 생기면 job_id별로 여기에 유예 시간을 지정(야간 튜닝 삭제로 현재는 비어 있음)
 LOOKBACK_DAYS = 8  # 주간 잡(일요일)의 직전 예정 시각까지 찾을 수 있는 폭
 KEEP_DAYS = 90
 KST_OFFSET = timedelta(hours=9)

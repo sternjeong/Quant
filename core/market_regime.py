@@ -29,7 +29,7 @@ KST = ZoneInfo("Asia/Seoul")
 # scheduler/run_scheduler.py 상시 프로세스(Oracle VM 등)가 아직 없는 배포본(Streamlit Community
 # Cloud)에서는 로컬 DB가 계속 비어있어, 페이지 방문마다 무거운 실시간 계산이 도는 문제가 있었다
 # (2026-07-21, 오라클 무료 VM을 아직 확보 못한 상태 — capacity 부족으로 대기 중). 야간 튜닝
-# 리더보드(scripts/nightly_tuning_ci.py)와 동일한 패턴으로 해결한다.
+# (삭제된 야간 튜닝 리더보드 CI와 같은) 패턴으로 해결한다.
 _CI_SNAPSHOT_PATH = Path(__file__).resolve().parent.parent / "data" / "market_regime_snapshot_ci.json"
 
 BULLISH_THRESHOLD = 35

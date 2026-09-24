@@ -3,8 +3,8 @@
 배경: 이 저장소는 작은 Oracle Always-Free VM(여기서는 2 OCPU/12GB) 위에서 서로 독립적인 프로세스
 여러 개가 각자 알아서 스케줄을 돌린다 — Telegram 큐(deploy/codex_telegram/runner.py, 자체
 has_capacity()로 이미 리소스를 확인함), 2주 실험 감독기(deploy/experiment_supervisor.py, 4시간마다
-Codex 한 번), 그리고 이 스케줄러의 야간 미세튜닝(strategy_nightly_tuning_job, 00:05~04:00 반복
-백테스트). 서로 존재를 모르기 때문에, 우연히 같은 시간대에 다 같이 무거운 작업을 돌리면 VM이
+Codex 한 번), 그리고 이 스케줄러의 (당시) 야간 미세튜닝(strategy_nightly_tuning_job, 00:05~04:00 반복
+백테스트 — 2026-09-24 삭제됨). 서로 존재를 모르기 때문에, 우연히 같은 시간대에 다 같이 무거운 작업을 돌리면 VM이
 버티지 못할 수 있다. 이 모듈은 OS가 이미 알고 있는 전역 지표(부하 평균·여유 메모리)를 기준으로
 판단하므로, 프로세스 간 별도의 락 파일이나 IPC 없이도 자연스럽게 서로 양보하게 된다.
 

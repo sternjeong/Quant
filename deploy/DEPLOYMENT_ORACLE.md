@@ -156,16 +156,13 @@ sudo -u quant .venv/bin/pip install -r requirements.txt   # 의존성 바뀐 경
 sudo systemctl restart quant-streamlit quant-scheduler
 ```
 
-## 7. GitHub Actions 야간 튜닝과의 관계
+## 7. 야간 튜닝 (삭제됨, 2026-09-24)
 
-`.github/workflows/nightly_tuning.yml` (매일 00:05 KST)은 이 VM과 **완전히 독립적으로** 계속
-동작한다 — GitHub 서버에서 실행되고 결과를 `data/nightly_tuning_leaderboard.json`으로 리포에
-커밋한다. `scheduler/run_scheduler.py`의 `strategy_nightly_tuning_job()`은 이 VM의 로컬 SQLite
-(`StrategyTuningRun`/`StrategyTuningResult`)에 별도로 쌓인다 — 저장소가 다른 두 결과지만,
-`app/pages/13_야간_미세튜닝_리더보드.py`가 이미 **둘을 합쳐서** 보여주도록 짜여 있다(로컬 DB
-결과 + 커밋된 JSON을 함께 읽어 test 구간 초과수익 기준 상위 10개를 뽑음). 이 VM에서
-`git pull`만 해두면 GitHub Actions 쪽 결과도 자동으로 리더보드에 반영된다 — 아무 설정도 추가로
-필요 없다.
+야간 자동 튜닝(`.github/workflows/nightly_tuning.yml`, 스케줄러의 `strategy_nightly_tuning_job()`)은
+삭제됐다(사용자 결정 — 요청한 적 없는 기능, 매일 리더보드를 저장소에 커밋). 이미 쌓인
+`StrategyTuningRun`/`StrategyTuningResult`와 `data/nightly_tuning_leaderboard.json`은 전략 스튜디오의
+리더보드 탭이 저장된 결과로서 계속 보여 준다. 튜닝 엔진(`core/strategy_tuning.py`)은 반기 단위
+수동/상시 시스템으로 유지된다. 상세: `docs/prune/PRUNE_C.md`.
 
 ## 8. HTTPS/도메인
 
@@ -194,7 +191,7 @@ run_scheduler.py`의 상시 잡들 — 이건 전부 "이미 확정된 제품 �
 **알아둘 제약**: GitHub Codespace는 일정 시간 조작이 없으면 자동으로 정지되므로, "매일 밤
 정해진 시각에 자동 실행"은 안 되고 사용자가 Codespace를 열어 요청할 때만 돈다. 진짜 매일 밤
 무인 자동 실행이 필요해지면, VM이나 항상 켜진 Codespace가 아니라 **GitHub Actions 스케줄
-워크플로**(이 저장소가 이미 `.github/workflows/nightly_tuning.yml`로 쓰고 있는 방식과 동일 —
+워크플로**(이 저장소가 예전에 `.github/workflows/nightly_tuning.yml`(삭제됨)로 쓰던 방식과 동일 —
 VM/Codespace 없이 GitHub이 자체적으로 임시 실행 환경을 띄웠다 없앤다)가 이 프로젝트의 기존
 관례에 맞는 다음 후보지다(Claude Pro 로그인 자격증명을 GitHub Secrets로 안전하게 주입하는
 추가 작업 필요 — 아직 안 함).

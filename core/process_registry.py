@@ -1,6 +1,7 @@
 """백그라운드 프로세스/연구 잡을 사용자가 직관적으로 켜고 끌 수 있게 하는 중앙 레지스트리.
 
-배경(2026-09-19): scheduler/run_scheduler.py의 야간 전략 미세튜닝(strategy_nightly_tuning_job)이
+배경(2026-09-19): scheduler/run_scheduler.py의 야간 전략 미세튜닝(strategy_nightly_tuning_job, 2026-09-24에
+삭제됨 — docs/prune/PRUNE_C.md)이
 사용자가 요청한 적도, 알지도 못한 채로 계속 돌고 있었다 — 이전 세션이 자체적으로 만들어 넣은 기능을
 사용자가 나중에야 알게 된 것. 이 모듈은 그런 일이 다시 일어나지 않도록, 스케줄러의 모든 야간 잡을
 하나의 카탈로그(PROCESS_REGISTRY)로 모으고 각각의 on/off 상태를 사용자가 확인·변경할 수 있게 한다.
@@ -32,13 +33,6 @@ TOGGLE_STATE_PATH = PROJECT_ROOT / "data" / "process_toggles.json"
 #           "alert"(챔피언 전략 등 실사용 신호/알림 — 끄면 그 알림이 안 옴),
 #           "maintenance"(캐시 예열/데이터 위생 — 끄면 다른 잡이 대신 그 자리에서 재계산을 떠안을 수 있음)
 PROCESS_REGISTRY: dict[str, dict] = {
-    "strategy_nightly_tuning": {
-        "label": "야간 전략 미세튜닝",
-        "description": "전략 라이브러리 #3(볼린저 밴드 하단 반전 1:2:6 전략)을 백본으로 00:05~04:00 KST 반복 미세튜닝",
-        "category": "research",
-        # 2026-09-19: 사용자가 요청한 적 없는 기능이었다는 게 밝혀져 기본값을 꺼짐으로 전환.
-        "default_enabled": False,
-    },
     "champion_signal_alert": {
         "label": "챔피언 전략 신호 변경 알림",
         "description": "코어 top4/시장필터/새틀라이트 보유종목이 바뀌면 텔레그램으로 알림 (00:10 KST)",
