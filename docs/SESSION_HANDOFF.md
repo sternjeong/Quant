@@ -1,8 +1,13 @@
 # 세션 인계
 
-최종 갱신: 2026-09-22 (엔진 고도화 3차 + Streamlit UI 2차 반영)
+최종 갱신: 2026-09-24 (Alpaca paper 계정 활용 4종 + 거장 자동 추적 반영)
 
 ## 최신 상태 요약
+
+- **커밋 상태(2026-09-24 갱신):** 브랜치 `engine-upgrade-2026-09` 에 두 커밋으로 보존했다 — `9cf9e70`(엔진 정합성·주문 게이트·후보 shadow 원장), `874512d`(Alpaca 활용 4종·거장 자동 추적·가이던스 provider). **push 하지 않았다**(main 에 올리면 VM 이 5분 내 자동 배포하므로 사용자 승인 필요). 사용자 소유가 아닌 `COPY_ME.md`·`new/` 는 커밋에서 제외했다. 커밋 전 비밀값·이메일·live 엔드포인트 스캔 통과.
+- **VM 위험(해소 전):** VM 이 받아간 `origin/main` 의 `core/paper_execution.py`·`scripts/champion_paper_trade.py` 는 **구버전**이라 주문 게이트·회차 ID·멱등성이 없고, SPY 결측 시 목표비중 0 → 보유 전량 매도 계획을 만드는 청산 버그가 그대로 있다. 스케줄러가 주문 스크립트를 호출하지 않고 사람이 `--submit --confirm` 을 줘야만 주문이 나가므로 자동 사고 위험은 없으나, **푸시 전까지 그 스크립트를 `--submit` 으로 실행하면 안 된다.**
+- **Alpaca paper 키:** VM `/opt/quant/.env` 에 등록됨(이름·길이만 확인, 값 미확인). Codespace 에는 없다. **실제 API 호출은 아직 0회** — 아래 4개 모듈의 응답 스키마는 전부 문서 기반 가정이며 VM 검증 스크립트 실행 전까지 신뢰하면 안 된다.
+- 전체 `pytest tests` **1644 passed**(2026-09-24, 이 세션이 직접 실행).
 
 - ENG-01·02·03·04·05·07·10은 아래 2차 통합 표의 단계까지 구현됐다. 전체 pytest 1120건 통과는 사용자와 기존 세션이 직접 실행한 기록이며, 이번 연구 세션에서는 재실행하지 않았다.
 - **주문 게이트·회차 관리(3차, 아래 절 참고)는 구현·단위 테스트까지 완료했다. paper API 실계정 검증은 여전히 0건이다.** 야간 CI의 legacy/v2 분리, 전략 스튜디오 legacy 배지, 주문 회차 수동 종료 도구(`scripts/paper_run_admin.py`)는 이번에 구현했다.
@@ -13,6 +18,35 @@
 - **공유 Codespace 이력:** 엔진 고도화 3차 세션과 UI 재구성 세션이 동시에 작업했다. 엔진 세션은 UI 파일을 건드리지 않았고, UI 2차 세션은 최신 엔진 문서 변경을 보존한 채 인계 내용을 병합했다. 다음 에이전트도 먼저 `git status`로 동시 변경 여부를 확인한다.
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
+
+## 2026-09-24 Alpaca paper 계정 활용 4종 + 거장 자동 추적
+
+사용자 지시: "이 api key 를 활용한 서비스 혹은 이를 활용하여 핵심 엔진 고도화를 해", "거장 포트폴리오도 주기를 정해 트래킹해라(내가 누를 때 동기화되는 게 말이 되냐)". paper 키로 열리는 세 API(paper 거래, Market Data, Corporate Actions)가 모두 도달 가능함을 확인(401=인증 필요, 엔드포인트 존재)하고, 엔진의 **알려진 구멍**에 각각 대응시켰다.
+
+| 대상 | 기존 결함 | 구현 | 검증 |
+|---|---|---|---|
+| `core/corporate_actions.py` + `core/trade_ledger.py` | ENG-01 배당 현금 유입 **미구현**, `dividend_cash_flow_modeled` 가 항상 False 하드코딩 | Alpaca Corporate Actions 조회 + ex-date 배당 현금 입금·분할 수량/단가 조정(옵트인, 기본 None 이면 기존과 비트 동일) | 손계산 대조(100주×$0.5=+$50, 2:1 분할 NAV 불변, 역분할+배당 동시). 단위 테스트 26건. **실 API 미호출** |
+| `core/execution_reconciliation.py` | 거래비용 5/10/25bp 가 **가정값**, 백테스트 vs 실체결 대조 없음(로드맵 P0 reconciliation 미구현) | 실제 체결 조회 → `trade_ledger.LEDGER_COLUMNS` 동일 스키마 정규화 → client_order_id 매칭 → 실측 슬리피지 bp·체결률·지연 | 손계산(예상100.00/실제100.05 매수=+5bp 등). 21건. **n<30 이면 중앙값·분위수를 None 으로 강제**(표본 부족 시 대표값 주장 차단). DB 저장 안 함(브로커가 원본) |
+| `core/price_crosscheck.py` + `core/data_integrity.py` | 모든 가격이 yfinance **단일 소스**, 교차 대조 수단 없음 | Alpaca 일봉 vs yfinance 캐시 대조(match/minor/major/한쪽 결측/unavailable), 분할 의심·거래량 괴리 플래그 | 22건. IEX≠SIP 한계를 결과 메타에 명시하고 **어느 소스가 옳은지 판정하지 않음**. data_integrity 에 기본 꺼짐 옵트인(키 없으면 기존 동작 불변) |
+| `core/account_sync.py` | 챔피언은 "따랐다면"의 가상 수익만 기록, **실계좌 보유 vs 목표 괴리 미추적** | 계좌·포지션 스냅샷(DB 저장) + 종목/슬리브별 이탈(%p)·회전 필요량 | 20건. GET 전용·주문 경로 import 금지를 AST 테스트로 강제. 잡 `account_snapshot_sync` 00:35 KST |
+| `core/guru_schedule.py` | 거장 포트폴리오가 **사람이 버튼 누를 때만** 동기화 | 자동 잡 `guru_holdings_sync` 12:00 KST. ARK 매일, 13F 는 3일 간격 확인 + 새 accession 있을 때만 파싱. 신규편입/전량청산 텔레그램 요약 1건 | 18건. 기존 sync 가 delete-후-재삽입이라 **이미 멱등**이었음을 확인하고 테스트로 고정 |
+| `core/guidance_event_provider.py` | RES-04 가 events_by_ticker 없이는 전부 no_release | 티커→CIK→8-K Item 2.02→가이던스 변화 배선(옵트인 `fetch_events=True`, 기본 꺼짐), 하루 캐시·실패 격리·403 즉시 중단 | 10건 + **실제 SEC 3티커 점검 완료** |
+
+**12:00 KST 선택 근거(거장):** ARK 일별 CSV 가 미 동부 저녁(대략 20~21시 ET)에 공개되므로 12:00 KST(=전날 22~23시 ET)가 최신 거래일 파일을 받는 가장 이른 시각이다. 00:3x 에 돌리면 하루 묵은 파일을 받는다. 야간 블록(00:00~00:35)은 이미 포화이기도 하다.
+
+**실제 SEC 점검에서 나온 중요한 사실(우회하지 않고 기록):** NVDA 8-K 에서 가이던스 4건을 추출했으나 **전부 `change="unknown"`(`no_previous_in_retrieved_history`)** 이었다. 분기 가이던스는 매 분기 새 period_key(FY2027Q3 등)를 가리켜 같은 기간의 직전 가이던스가 없기 때문이다. 즉 현재 배선으로는 **분기 가이던스에서 raised/lowered 가 거의 나오지 않고 연간(FY) 가이던스를 주는 기업에서만 방향이 잡힌다.** RES-04 표본이 예상보다 훨씬 느리게 쌓인다는 뜻이며, 실험 설계(스펙 6절 최소 사건 수) 재검토가 필요하다.
+
+**RES-05 독립 검증 결과(별도 에이전트):** 요구사항 6개 중 5개 충족, 1개 부분 충족. 부분 충족은 무작위 비교군(Arm C)이 스펙 8절의 "같은 달·같은 form 층화 10,000회"가 아니라 candidate_ledger 기본값(결정일 배치 1,000회)을 쓴다는 점 — "새 통계 규칙 금지" 제약 때문에 의도한 타협이며 스펙 개정 또는 ledger 확장이 필요하다. 또한 후보가 top_k 선정 종목뿐이라 **스펙 10절 최소 표본(보류 100건)에 수년이 걸릴 수 있다**(브레이크아웃 풀 관측은 champion_strategy 확장 필요, 사람 결정 사항).
+
+**주문 게이트 변이 재검증(유실된 결과 재현):** 저장소 사본에서 5개 변이(게이트 무력화 / plan_targets 구버그 회귀 / run_id 대신 날짜 / 부분체결 재제출 / 위성 플래그 통합)를 하나씩 넣어 전부 테스트가 잡아내는 것을 확인했다. **다만 `test_incomplete_round_survives_midnight_with_same_ids` 가 이름과 달리 날짜 혼입 변이를 못 잡는 사각지대**를 발견(그 테스트의 mock 이 모든 조회를 ConnectionError 로 실패시켜 증상이 드러나기 전에 루프가 끊김). 이 세션이 `test_client_order_id_is_wall_clock_independent` 와 `test_resume_across_midnight_with_healthy_lookup_reuses_same_id_no_duplicate_post` 2건을 실제 트리에 추가하고, 변이를 일부러 넣어 두 테스트가 실패하는 것까지 확인한 뒤 원복했다.
+
+### 다음 단계 (우선순위)
+
+1. **사용자 승인 후 push** → VM 자동 배포 → 그때 비로소 새 주문 안전장치가 VM 에 들어간다(현재 VM 은 구버전+청산 버그).
+2. **VM 에서 검증 스크립트 4개 실행**(전부 읽기 전용, 키 값 미출력): `scripts/verify_alpaca_paper_idempotency.py`(멱등 가정 5개), `scripts/verify_alpaca_corporate_actions.py`(AAPL 2020 4:1 분할·배당 스키마), `scripts/verify_price_crosscheck.py`(IEX 대조·분할 조정 여부), `scripts/sync_paper_account.py --no-save`(계좌 스키마). **응답 스키마가 가정과 다르면 각 모듈의 파싱 지점만 고치면 되도록 한곳에 모아 두었다.**
+3. **사람 검증(G0):** `docs/experiment_validation/earnings_guidance_extraction_sample.md`·`filing_change_extraction_check.md` 의 '사람 확인' 열을 사용자가 10건 내외 채워야 RES-04/05 가 신호 실험 단계로 갈 수 있다.
+4. RES-04 분기 가이던스 비교 불가 문제에 대한 설계 결정(연간 가이던스만 쓸지, period 매칭 정책을 바꿀지).
+5. 실측 슬리피지가 30건 이상 쌓이면 `compare_with_cost_assumptions()` 로 5/10/25bp 가정 점검.
 
 ## 2026-09-22 엔진 고도화 3차: 운영 안전성 완료 + RES-01 스케줄 연결 + RES-04/05 shadow 준비
 

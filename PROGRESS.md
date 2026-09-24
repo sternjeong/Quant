@@ -5916,3 +5916,17 @@ ENG-01·02·03·04·05·07·10을 병렬 에이전트로 구현하고 단위 테
 - **정리:** 파일명 숫자를 바꾸던 환경설정은 고정형 업무공간 라우터에 영향을 주지 않으므로 실제 내비게이션 그룹과 상태 표기 원칙을 보여 주는 화면으로 바꿨다.
 - **검증 완료:** 전체 `python -m pytest tests -q` 1463 passed. 홈·환경설정·Threads 상세 화면의 Streamlit `AppTest`, 전 페이지 `py_compile`, `git diff --check`를 통과했다.
 - **미완료:** 커밋·VM 배포·실브라우저·모바일 확인은 하지 않았다. 스크리닝·뉴스·포트폴리오 등은 엔진 결과 메타데이터 저장이 없어 헤더가 Unknown이며, 다음 단계에서 실제 `as_of / strategy_version / pit_status` 저장값과 연결한다.
+
+## 2026-09-24 Alpaca paper 계정 활용 + 거장 포트폴리오 자동 추적
+
+paper 키를 주문 경로에만 쓰던 것을 **측정 수단**으로 확장해 엔진의 알려진 구멍에 각각 대응시켰다. 거장 포트폴리오는 수동 버튼 동기화를 자동 스케줄로 바꿨다.
+
+- **기업행동(ENG-01 결함 해소):** `core/corporate_actions.py` + `core/trade_ledger.py` 옵트인 — ex-date 배당 현금 입금·분할 수량/단가 조정. `dividend_cash_flow_modeled` 하드코딩 제거.
+- **체결 대조:** `core/execution_reconciliation.py` — 실제 체결을 기존 원장 스키마로 정규화해 실측 슬리피지 측정. 표본 30건 미만이면 대표값을 None 으로 강제.
+- **가격 교차검증:** `core/price_crosscheck.py` — yfinance 단일 소스 의존 해소. 어느 쪽이 옳은지 판정하지 않고 불일치만 분류.
+- **실계좌 이탈:** `core/account_sync.py` — 목표 대비 실제 보유 괴리 추적(잡 00:35 KST). 보류 슬리브는 목표 0%가 아니라 unknown.
+- **거장 자동 추적:** `core/guru_schedule.py` — 잡 12:00 KST(ARK CSV 공개 시각 기준). ARK 매일, 13F 는 새 공시 있을 때만.
+- **가이던스 SEC 배선:** `core/guidance_event_provider.py`(옵트인). 실제 SEC 점검에서 **분기 가이던스는 직전 비교 대상이 없어 방향 판정이 거의 불가**함을 확인 — RES-04 표본 설계 재검토 필요.
+- **검증:** 전체 pytest **1644 passed**. 주문 게이트 변이 5종 재검증 통과, 자정 관련 사각지대 1건 발견해 회귀 테스트 2건 추가.
+- **미완료:** Alpaca 실 API 호출 0회(응답 스키마 전부 가정, VM 검증 스크립트 4개 대기), push 미승인, 추출 표본 사람 검증 대기.
+- 브랜치 `engine-upgrade-2026-09` 커밋 `9cf9e70`·`874512d`. 상세는 [docs/SESSION_HANDOFF.md](docs/SESSION_HANDOFF.md) 2026-09-24 절.
