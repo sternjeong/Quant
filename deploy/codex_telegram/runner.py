@@ -23,7 +23,6 @@ CLAUDE_LIMIT = re.compile(r"usage limit|rate.?limit|hit your limit|out of extra 
 # 실제 on/off 상태는 core.process_registry와 같은 파일(data/process_toggles.json)을 공유한다.
 # 새 스케줄러 잡을 추가하면 core/process_registry.py의 PROCESS_REGISTRY와 이 목록을 함께 갱신한다.
 PROCESS_CATALOG = [
-    ('strategy_nightly_tuning', '야간 전략 미세튜닝 (#3 볼린저밴드)', False),
     ('champion_signal_alert', '챔피언 전략 신호 변경 알림', True),
     ('champion_correlation_snapshot', '챔피언 전략 상관관계 스냅샷', True),
     ('champion_ledger_record', '챔피언 전략 페이퍼 트레이딩 원장', True),

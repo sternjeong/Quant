@@ -9,8 +9,8 @@
 - 🧬 다종목 미세튜닝: 백본 전략을 S&P500 섹터 균등 표본에 적용해 종목 스타일별 파라미터를 자동
   탐색(train/test 분리 검증)하고 종목별 3-way 비교로 결과 확인 (core/strategy_tuning.py)
 - 🏭 배치 생성: 유튜브 스크립트 여러 개 → 백본 전략 다량 생성 (구 15_전략_배치_생성.py)
-- 🌙 야간 미세튜닝 리더보드: 로컬 스케줄러/GitHub Actions가 반복 튜닝한 결과를 국면×섹터로 필터링해
-  검토하고 라이브러리에 저장 (구 13_야간_미세튜닝_리더보드.py)
+- 🌙 야간 미세튜닝 리더보드: 과거 야간 튜닝이 저장해 둔 결과(더 이상 자동 갱신되지 않음)를 국면×섹터로
+  필터링해 검토하고 라이브러리에 저장 (구 13_야간_미세튜닝_리더보드.py)
 - 🗂️ 전략 관리: 저장된 전략의 이름/설명/조건 수정, 보관/삭제 (구 9_전략_관리.py)
 """
 
@@ -2995,19 +2995,16 @@ with tab_batch:
 # ============================================================================
 # 탭: 야간 미세튜닝 리더보드 (구 13_야간_미세튜닝_리더보드.py)
 #
-# 두 경로로 결과가 쌓인다:
-# 1. **로컬 스케줄러**: scheduler/run_scheduler.py의 strategy_nightly_tuning_job()이 로컬에서
-#    상시 실행 중이면 매일 한국시간 00:05~04:00에 로컬 DB(StrategyTuningRun/Result)에 쌓인다.
-# 2. **GitHub Actions**: `.github/workflows/nightly_tuning.yml`이 매일 15:05 UTC(≈00:05 KST)에
-#    `scripts/nightly_tuning_ci.py`를 실행해 결과를 저장소에 커밋된
-#    `data/nightly_tuning_leaderboard.json`으로 남긴다.
+# 2026-09-24: 야간 자동 튜닝(스케줄러 잡 + GitHub Actions 워크플로)은 삭제됐다(docs/prune/PRUNE_C.md).
+# 이 탭은 이미 저장된 결과만 보여 준다: 로컬 DB(StrategyTuningRun/Result)와, 과거 워크플로가 커밋해 둔
+# `data/nightly_tuning_leaderboard.json`. 새 결과는 '다종목 미세튜닝' 탭 등 수동/반기 실행으로만 쌓인다.
 # ============================================================================
 def _render_nightly_leaderboard_tab() -> None:
     _tuning_strategy_id = 3
     _ci_leaderboard_path = PROJECT_ROOT / "data" / "nightly_tuning_leaderboard.json"
 
     def _load_ci_leaderboard_json() -> list[dict]:
-        """GitHub Actions(scripts/nightly_tuning_ci.py)가 커밋해둔 결과 파일을 읽는다.
+        """과거 GitHub Actions 야간 워크플로가 커밋해둔 결과 파일을 읽는다(워크플로는 삭제됨).
 
         core.strategy_tuning.get_top_tuning_results()와 정확히 같은 dict 형태로 저장돼 있어(그
         함수의 반환값을 그대로 json.dumps한 것) 로컬 DB 결과와 같은 코드 경로로 렌더링할 수 있다.
@@ -3036,34 +3033,31 @@ def _render_nightly_leaderboard_tab() -> None:
     ci_results = _load_ci_leaderboard_json()
 
     st.caption(
-        f"'{strategy_name}'(#{_tuning_strategy_id}) 전략을 종목 표본(매 반복 다른 시드로 재추출)과 "
-        "탐색 강도(빠름/보통/정밀 순환)를 바꿔가며 반복 미세튜닝합니다. S&P500 기준 실제 약세장/강세장/ "
-        "횡보장 구간의 데이터로 각각 따로 학습한 세 설정을 매번 만들어(학습국면 컬럼 참고), 두 경로(①로컬 "
-        "`scheduler/run_scheduler.py` 상시 실행, ②GitHub Actions가 매일 커밋하는 "
-        "`data/nightly_tuning_leaderboard.json`)로 쌓인 모든 실행 결과를 합쳐 test 구간(out-of-sample) "
+        f"'{strategy_name}'(#{_tuning_strategy_id}) 전략을 종목 표본과 탐색 강도를 바꿔가며 미세튜닝해 "
+        "**이미 저장된** 결과를 보여 줍니다. S&P500 기준 실제 약세장/강세장/횡보장 구간의 데이터로 각각 "
+        "따로 학습한 세 설정(학습국면 컬럼 참고) 중, 로컬 DB와 저장소의 "
+        "`data/nightly_tuning_leaderboard.json`에 쌓인 모든 실행 결과를 합쳐 test 구간(out-of-sample) "
         "초과수익이 가장 높은 상위 10개를 보여줍니다.\n\n"
-        "①은 로컬에서 스케줄러 프로세스를 상시로 띄워둬야 결과가 쌓이고, ②는 이 저장소에 GitHub Actions "
-        "워크플로가 활성화돼 있어야 결과가 쌓입니다(Streamlit Community Cloud 배포본은 ①은 못 쓰지만 "
-        "②로 커밋된 파일은 저장소에 딸려오므로 그대로 볼 수 있습니다)."
+        "야간 자동 튜닝은 삭제돼(2026-09-24) 이 목록은 더 이상 매일 갱신되지 않습니다 — 새 결과는 "
+        "'다종목 미세튜닝' 탭 등으로 직접 실행할 때만 쌓입니다."
     )
 
     all_runs = [r for r in list_tuning_runs() if r["base_strategy_id"] == _tuning_strategy_id]
     if not all_runs and not ci_results:
         st.info(
-            "아직 쌓인 야간 미세튜닝 결과가 없습니다. `python scheduler/run_scheduler.py`를 로컬에서 "
-            "상시 실행해두거나, GitHub Actions 워크플로(`.github/workflows/nightly_tuning.yml`)가 "
-            "한 번 이상 실행되면 결과가 쌓이기 시작합니다."
+            "저장된 야간 미세튜닝 결과가 없습니다. 야간 자동 튜닝은 삭제돼(2026-09-24) 새로 쌓이지 않습니다 — "
+            "'다종목 미세튜닝' 탭에서 직접 실행하면 결과를 볼 수 있습니다."
         )
         return
 
     ncol1, ncol2, ncol3 = st.columns(3)
-    ncol1.metric("로컬 스케줄러 누적 실행 횟수", f"{len(all_runs)}회")
+    ncol1.metric("로컬 DB 누적 실행 횟수", f"{len(all_runs)}회")
     if all_runs:
         latest_run = max(all_runs, key=lambda r: r["created_at"])
         ncol2.metric("로컬 최근 실행 시각", latest_run["created_at"].strftime("%Y-%m-%d %H:%M"))
     else:
         ncol2.metric("로컬 최근 실행 시각", "기록 없음")
-    ncol3.metric("GitHub Actions 결과 파일 건수", f"{len(ci_results)}건" if ci_results else "없음")
+    ncol3.metric("저장소 결과 파일 건수", f"{len(ci_results)}건" if ci_results else "없음")
 
     require_significant = st.checkbox(
         "✅ 통계적으로 유의미한 결과만 보기 (순열검정 p<0.05 & 실력(타이밍) 기여 양수)",
@@ -3125,14 +3119,14 @@ def _render_nightly_leaderboard_tab() -> None:
         if _legacy_combined and not include_legacy:
             st.info(
                 f"현재 점수 버전(v2) 결과가 아직 없습니다 — legacy 결과 {len(_legacy_combined)}건만 있어 숨겼습니다. "
-                "위 '⚠️ legacy 점수 버전 결과도 함께 보기'를 켜면 볼 수 있고, 다음 야간 튜닝이 새로 돌면 v2 결과가 쌓입니다."
+                "위 '⚠️ legacy 점수 버전 결과도 함께 보기'를 켜면 볼 수 있고, 새 튜닝을 직접 실행하면 v2 결과가 쌓입니다."
             )
         elif require_significant:
             st.info(
                 "통계적으로 유의미한(순열검정 p<0.05 & 실력 기여 양수) 결과가 아직 없습니다 — 위 "
                 "체크박스를 해제하면 검증 여부와 무관하게 전체 결과를 볼 수 있습니다. 이 필터는 "
                 "2026-07-25에 추가돼 그 이전에 쌓인 결과에는 유의성 검증 값이 없어 전부 걸러집니다 — "
-                "다음 야간 튜닝이 새로 돌면 검증된 결과가 쌓이기 시작합니다."
+                "새 튜닝을 직접 실행하면 검증된 결과가 쌓입니다."
             )
         else:
             st.info("실행은 쌓였지만 유효한(성공한) 결과가 아직 없습니다.")

@@ -21,7 +21,6 @@ SCHEDULED_JOBS: tuple[ScheduledJob, ...] = (
     ScheduledJob('daily_watchlist_scan', 'watchlist_scan', {'day_of_week': 'mon-fri', 'hour': 16, 'minute': 30, 'timezone': 'America/New_York'}),
     ScheduledJob('weekly_threads_report', 'threads_weekly_report', {'day_of_week': 'sun', 'hour': 20, 'minute': 0, 'timezone': 'America/New_York'}),
     ScheduledJob('daily_market_snapshot', 'market_snapshot', {'hour': 0, 'minute': 0, 'timezone': 'Asia/Seoul'}),
-    ScheduledJob('nightly_strategy_tuning', 'strategy_nightly_tuning', {'hour': 0, 'minute': 5, 'timezone': 'Asia/Seoul'}),
     ScheduledJob('champion_signal_alert', 'champion_signal_alert', {'hour': 0, 'minute': 10, 'timezone': 'Asia/Seoul'}),
     ScheduledJob('champion_correlation_snapshot', 'champion_correlation_snapshot', {'hour': 0, 'minute': 11, 'timezone': 'Asia/Seoul'}),
     ScheduledJob('champion_ledger_record', 'champion_ledger_record', {'hour': 0, 'minute': 12, 'timezone': 'Asia/Seoul'}),

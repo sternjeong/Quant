@@ -45,15 +45,6 @@ Streamlit 앱과 완전히 별도의 프로세스로 실행된다 (브라우저�
       (2026-07-15), 이 스크립트가 아예 안 떠 있어도 한국시간 자정이 지난 뒤 첫 방문자가 그 자리에서
       자동으로 재계산을 트리거한다 — 다만 그 첫 방문자는 계산이 끝날 때까지 기다려야 한다는 차이가
       있다. 이 잡을 상시로 띄워두면 아무도 기다리지 않고 항상 최신 데이터를 바로 볼 수 있다.
-    - 매일 한국시간(Asia/Seoul) 00:05~04:00에 strategy_nightly_tuning_job() 을 실행한다
-      (2026-07-15 추가). 전략 라이브러리 #3("볼린저 밴드 하단 반전 1:2:6 전략")을 백본으로, 종목
-      표본(매 반복 다른 시드)과 탐색 강도(빠름/보통/정밀 순환)를 바꿔가며
-      core.strategy_tuning.run_and_save_tuning() 을 04:00까지 반복 실행하고 매번 새
-      StrategyTuningRun으로 영구 저장한다. app/pages/1_전략_스튜디오.py("🌙 야간 미세튜닝 리더보드" 탭) 가 지금까지
-      쌓인 모든 실행 결과 중 상위 10개(test 구간 초과수익 기준)를 보여준다. 이 잡은 (market_
-      snapshot_job과 달리) 페이지 쪽 폴백이 없다 — 결과를 보려면 이 스크립트가 실제로 밤마다
-      돌고 있어야 한다(그리고 리더보드 페이지는 이 스크립트와 같은 로컬 DB를 보는 로컬 앱에서만
-      의미가 있다 — Streamlit Community Cloud 배포본은 DB가 분리돼 있어 이 잡의 결과를 볼 수 없다).
     - 매일 한국시간(Asia/Seoul) 00:10에 champion_signal_alert_job() 을 실행한다(2026-09-14 추가).
       core.champion_strategy.check_and_notify_signal_changes() 가 코어 top4/시장필터/새틀라이트
       보유종목을 어제 저장된 상태(data/cache/champion_signal_state.json)와 비교해, 달라졌을 때만
@@ -145,12 +136,9 @@ Streamlit 앱과 완전히 별도의 프로세스로 실행된다 (브라우저�
       유일한 갱신 경로가 된다.
 """
 
-import json
 import sys
-import time as time_module  # `time`(아래)은 datetime.time 클래스라 모듈은 별칭으로 가져온다.
-from datetime import date, datetime, time, timedelta
+from datetime import datetime
 from pathlib import Path
-from zoneinfo import ZoneInfo
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
@@ -159,7 +147,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
 
-from core.db import get_session, init_db
+from core.db import init_db
 from core.process_registry import is_enabled
 from core.job_health import attach_job_run_listener, report_job_failure
 from core.champion_strategy import (
@@ -180,11 +168,9 @@ from core.kostolany_cycle import (
     save_kostolany_cycle_snapshot,
 )
 from core.market_regime import get_market_regime_snapshot, save_market_regime_snapshot
-from core.models import Strategy
 from core.notify import send_desktop_notification
 from core.screener import get_universe
 from core.sector_strength import compute_theme_strength, save_theme_strength_snapshot
-from core.strategy_tuning import _SWING_MAX_HOLDING_DAYS, run_and_save_tuning, sample_universe
 from core.threads_summary import generate_weekly_report, list_tracked_tickers, save_weekly_report
 from core.news_digest import render_daily_telegram_summary, run_news_pipeline, write_daily_html_report
 from core.telegram_notify import send_document, send_message
@@ -818,98 +804,6 @@ def strategy_research_report_job() -> None:
     print(f"[{datetime.now()}] strategy_research_report_job 종료")
 
 
-# 사용자가 "매일 0시~4시 동안 #3 전략을 여러 차원에서 미세튜닝해서 최적의 전략을 찾아달라, 상위
-# 10개를 웹사이트에서 볼 수 있게 해달라"고 요청 (2026-07-15). #3 = 전략 라이브러리의 "볼린저 밴드
-# 하단 반전 1:2:6 전략". 배포된 Streamlit Community Cloud 사이트는 이 스케줄러가 아예 뜰 수 없는
-# 환경(별도 프로세스 불가, 위 market_snapshot_job 설명 참고)이라 "웹사이트"는 이 스케줄러와 같은
-# 로컬 DB를 읽는 로컬 앱(`streamlit run app/Home.py`)으로 확정(AskUserQuestion으로 확인).
-# "여러 차원"은 종목 표본(매 반복 다른 시드로 재추출)과 탐색 강도(빠름/보통/정밀 순환)로 확정 —
-# 분석 기간/Train-Test 비율은 이번 범위에 포함하지 않음(고정).
-#
-# 2026-07-21 추가: 사용자가 스스로를 스윙 트레이더로 확정(SPEC 15.1절)하고 "백테스팅/미세튜닝/야간
-# 자동 미세튜닝에도 적용되는지" 물어 확인한 결과, 전략 스튜디오 페이지의 수동 튜닝에는 이미
-# max_holding_days(SPEC 15절, 보유기간 상한) 체크박스가 있었지만 이 야간 배치는 여태 반영이 안 돼
-# 있었다(SPEC 15.7절 "남은 후속 작업"). 이제 매 반복을 항상 스윙 제약(_SWING_MAX_HOLDING_DAYS=
-# 126거래일≈6개월) 하에서 탐색하도록 고정 — 장기 보유가 최적으로 뽑히는 파라미터를 걸러내고 실제로
-# 감당 가능한 보유기간 안에서 나온 결과만 리더보드에 쌓이게 한다. 기존에 쌓인(제약 없이 나온) 이력은
-# 그대로 남아있고 StrategyTuningResult.max_holding_days로 구분 가능(리더보드 "스윙모드" 컬럼).
-_NIGHTLY_TUNING_STRATEGY_ID = 3
-_NIGHTLY_TUNING_UNIVERSE_N = 100
-_NIGHTLY_TUNING_LOOKBACK_YEARS = 5
-_NIGHTLY_TUNING_INTENSITIES = ["빠름", "보통", "정밀"]
-# 2026-09-18 추가: 이 잡은 00:00~04:00 사이 몇 시간을 반복 백테스트로 채우는 이 VM에서 가장 무거운
-# 작업이다. 같은 VM에서 독립적으로 도는 Telegram 큐(deploy/codex_telegram/runner.py)나 2주 실험
-# 감독기(deploy/experiment_supervisor.py)도 아무 때나 Claude/Codex를 돌릴 수 있어서, 반복 시작
-# 직전마다 core.resource_guard.has_headroom()으로 여유를 확인한다 — 부족하면 이번 반복을 건너뛰지
-# 않고 그냥 잠시 기다렸다 재확인한다(반복 인덱스/시드가 흐트러지면 안 되므로).
-_NIGHTLY_TUNING_HEADROOM_BACKOFF_SECONDS = 120
-_NIGHTLY_TUNING_WINDOW_END_KST = time(4, 0)  # 이 시각이 지나면 새 반복을 시작하지 않음
-
-
-def strategy_nightly_tuning_job() -> None:
-    """매일 한국시간 00:00~04:00 사이, 서버가 허락하는 만큼 #3 전략을 반복적으로 미세튜닝한다.
-
-    반복마다 종목 표본(core.strategy_tuning.sample_universe를 매번 다른 시드로 호출)과 탐색 강도
-    (빠름/보통/정밀을 순환)를 바꿔가며 core.strategy_tuning.run_and_save_tuning()을 실행하고, 매
-    실행을 새 StrategyTuningRun으로 영구 저장한다(기존 "반년마다 재실행, 절대 덮어쓰지 않음" 설계
-    원칙 그대로 재사용 — 다만 이제 야간마다 자동으로 여러 번 누적된다). 04:00 KST가 지나면 다음
-    반복을 시작하지 않고 멈춘다(이미 시작된 반복은 끝까지 실행되므로 실제 종료 시각은 조금 넘어갈
-    수 있음). app/pages/1_전략_스튜디오.py("🌙 야간 미세튜닝 리더보드" 탭) 가 지금까지 쌓인 모든 실행 결과 중 test 구간
-    초과수익(excess_return) 상위 10개를 보여준다(core.strategy_tuning.get_top_tuning_results).
-    매 반복 max_holding_days=_SWING_MAX_HOLDING_DAYS를 항상 넘겨 스윙 트레이딩 보유기간 상한
-    (SPEC 15절) 하에서 탐색/검증한다(2026-07-21부터).
-
-    반복 하나가 실패해도(네트워크 오류 등) 그 반복만 건너뛰고 다음 반복을 계속 시도한다.
-    """
-    if not is_enabled("strategy_nightly_tuning"):
-        print(f"[{datetime.now()}] strategy_nightly_tuning_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
-        return
-    print(f"[{datetime.now()}] strategy_nightly_tuning_job 시작")
-
-    with get_session() as session:
-        strategy = session.get(Strategy, _NIGHTLY_TUNING_STRATEGY_ID)
-        if strategy is None:
-            print(f"  전략 id={_NIGHTLY_TUNING_STRATEGY_ID}를 찾을 수 없어 건너뜁니다.")
-            print(f"[{datetime.now()}] strategy_nightly_tuning_job 종료")
-            return
-        base_config = json.loads(strategy.indicator_config)
-        strategy_name = strategy.name
-
-    kst = ZoneInfo("Asia/Seoul")
-    end_date = date.today()
-    start_date = end_date - timedelta(days=365 * _NIGHTLY_TUNING_LOOKBACK_YEARS)
-    seed_base = int(datetime.now(kst).strftime("%Y%m%d")) * 100  # 오늘 밤 안에서는 반복마다 다르지만 재현 가능
-
-    iteration = 0
-    while datetime.now(kst).time() < _NIGHTLY_TUNING_WINDOW_END_KST:
-        if not has_headroom():
-            print(f"  - 여유 리소스 부족(다른 작업과 겹침으로 추정) — "
-                  f"{_NIGHTLY_TUNING_HEADROOM_BACKOFF_SECONDS}초 대기 후 재확인")
-            time_module.sleep(_NIGHTLY_TUNING_HEADROOM_BACKOFF_SECONDS)
-            continue
-        intensity = _NIGHTLY_TUNING_INTENSITIES[iteration % len(_NIGHTLY_TUNING_INTENSITIES)]
-        seed = seed_base + iteration
-        print(f"  - 반복 {iteration + 1}: 탐색 강도={intensity}, 종목 표본 시드={seed}")
-        try:
-            tickers_df = sample_universe(_NIGHTLY_TUNING_UNIVERSE_N, random_seed=seed)
-            run_id = run_and_save_tuning(
-                base_config, _NIGHTLY_TUNING_UNIVERSE_N, start_date.isoformat(), end_date.isoformat(),
-                intensity=intensity, base_strategy_id=_NIGHTLY_TUNING_STRATEGY_ID, tickers_df=tickers_df,
-                max_holding_days=_SWING_MAX_HOLDING_DAYS,
-            )
-            print(f"    -> run_id={run_id} 저장 완료")
-        except Exception as e:  # noqa: BLE001 - 반복 하나의 실패가 나머지 반복을 막지 않게 함
-            print(f"    -> 반복 {iteration + 1} 실패: {e}")
-        iteration += 1
-
-    send_desktop_notification(
-        "야간 미세튜닝 완료",
-        f"'{strategy_name}' 전략을 밤새 {iteration}회 반복 미세튜닝했습니다. "
-        "리더보드 페이지에서 상위 결과를 확인하세요.",
-    )
-    print(f"[{datetime.now()}] strategy_nightly_tuning_job 종료 (총 {iteration}회 반복)")
-
-
 def main() -> None:
     init_db()
 
@@ -938,18 +832,8 @@ def main() -> None:
         replace_existing=True,
     )
     scheduler.add_job(
-        strategy_nightly_tuning_job,
-        # market_snapshot_job과 정확히 같은 00:00에 동시 시작하지 않도록 5분 뒤로 offset.
-        trigger=CronTrigger(hour=0, minute=5, timezone="Asia/Seoul"),
-        id="nightly_strategy_tuning",
-        name="매일 한국시간 00:05~04:00 #3 전략 반복 미세튜닝",
-        replace_existing=True,
-    )
-    scheduler.add_job(
         champion_signal_alert_job,
-        # market_snapshot_job(00:00)과 겹치지 않도록 10분 뒤로 offset. 새틀라이트 스캔(수 분)이
-        # strategy_nightly_tuning_job(00:05~04:00)과 같은 시간대에 겹쳐도, 별도 스레드(APScheduler
-        # 기본 ThreadPoolExecutor)에서 동시 실행되므로 서로 막지 않는다.
+        # market_snapshot_job(00:00)과 겹치지 않도록 10분 뒤로 offset.
         trigger=CronTrigger(hour=0, minute=10, timezone="Asia/Seoul"),
         id="champion_signal_alert",
         name="매일 한국시간 00:10 챔피언 전략 신호 변경 텔레그램 알림",

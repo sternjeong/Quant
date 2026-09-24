@@ -621,17 +621,17 @@ class PipelineTests(unittest.TestCase):
         self.s.ingest([retry])
         self.assertEqual(self.row()['status'], 'retry')
 
-    def test_processes_command_lists_all_with_nightly_tuning_off_by_default(self):
+    def test_processes_command_lists_all_processes(self):
         update = self.update()
         update['message']['text'] = '/processes'
         self.s.ingest([update])
         with self.s.db() as db:
             reply = db.execute('SELECT text,markup FROM outbox ORDER BY id DESC LIMIT 1').fetchone()
-        self.assertIn('⏸ 야간 전략 미세튜닝', reply['text'])
+        self.assertNotIn('야간 전략 미세튜닝', reply['text'])  # 2026-09-24 삭제
         self.assertIn('✅ 챔피언 전략 신호 변경 알림', reply['text'])
         self.assertIn('2주 전략 검증 실험', reply['text'])
         markup = json.loads(reply['markup'])
-        self.assertEqual(len(markup['inline_keyboard']), 16)
+        self.assertEqual(len(markup['inline_keyboard']), 15)
 
     def test_processes_toggle_button_flips_state_and_confirms(self):
         update = self.update()
@@ -639,7 +639,7 @@ class PipelineTests(unittest.TestCase):
         self.s.ingest([update])
         with self.s.db() as db:
             markup = json.loads(db.execute('SELECT markup FROM outbox ORDER BY id DESC LIMIT 1').fetchone()['markup'])
-        tuning_data = markup['inline_keyboard'][0][0]['callback_data']  # strategy_nightly_tuning is index 0
+        tuning_data = markup['inline_keyboard'][0][0]['callback_data']  # champion_signal_alert is index 0
         self.assertTrue(tuning_data.startswith('p:0'))
 
         callback = {'update_id': 2, 'callback_query': {'id': 'cb-1', 'data': tuning_data,
@@ -647,18 +647,18 @@ class PipelineTests(unittest.TestCase):
         with patch.object(self.s, 'api', return_value=True):
             self.s.ingest([callback])
 
-        self.assertTrue(self.s.is_process_enabled('strategy_nightly_tuning', False))
+        self.assertFalse(self.s.is_process_enabled('champion_signal_alert', True))
         with self.s.db() as db:
             confirm = db.execute('SELECT text FROM outbox ORDER BY id DESC LIMIT 1').fetchone()['text']
-        self.assertIn('✅ 켬', confirm)
-        self.assertIn('야간 전략 미세튜닝', confirm)
+        self.assertIn('⏸ 끔', confirm)
+        self.assertIn('챔피언 전략 신호 변경 알림', confirm)
 
     def test_processes_toggle_twice_returns_to_original_state(self):
-        self.assertFalse(self.s.is_process_enabled('strategy_nightly_tuning', False))
-        self.s.set_process_enabled('strategy_nightly_tuning', True)
-        self.assertTrue(self.s.is_process_enabled('strategy_nightly_tuning', False))
-        self.s.set_process_enabled('strategy_nightly_tuning', False)
-        self.assertFalse(self.s.is_process_enabled('strategy_nightly_tuning', False))
+        self.assertTrue(self.s.is_process_enabled('champion_signal_alert', True))
+        self.s.set_process_enabled('champion_signal_alert', False)
+        self.assertFalse(self.s.is_process_enabled('champion_signal_alert', True))
+        self.s.set_process_enabled('champion_signal_alert', True)
+        self.assertTrue(self.s.is_process_enabled('champion_signal_alert', True))
 
     def test_processes_toggle_ignores_out_of_range_index(self):
         callback = {'update_id': 2, 'callback_query': {'id': 'cb-1', 'data': 'p:9999',
