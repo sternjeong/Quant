@@ -19,6 +19,12 @@
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
 
+## 2026-09-24 관제 센터 로그인 UI (구현·단위 확인, 배포 전)
+
+- 기존: nginx `auth_basic` 브라우저 기본 팝업(스타일 불가). 변경: 허브 `/login` 폼(`hub/server.py`) → `/_login` 이 htpasswd 로 검증 후 세션 쿠키(`qt_session`, 도메인 공유) 발급 → hub/app 은 쿠키 검사, 미로그인은 `/login?next=` 로 302. 401 은 `WWW-Authenticate` 없이 내려 팝업 방지. code-server 는 변경 없음.
+- 토큰은 `/etc/nginx/quant-session.conf`(root:www-data 640, 재실행 시 재사용; 지우면 전 기기 로그아웃). 단일 사용자용 정적 토큰이라 개별 세션 만료·폐기는 없음(로그아웃은 쿠키 삭제만).
+- 수정: `hub/server.py`, `deploy/setup_gateway.sh`. hub 테스트 33건 통과, `bash -n` 통과. **nginx 실적용·브라우저 확인은 미실시** — VM 에서 `sudo bash deploy/setup_gateway.sh hessejeong.duckdns.org` 재실행 필요(nginx -t 실패 시 자동 롤백). 푸시 전이며 미커밋.
+
 ## 2026-09-24 Alpaca paper 계정 활용 4종 + 거장 자동 추적
 
 사용자 지시: "이 api key 를 활용한 서비스 혹은 이를 활용하여 핵심 엔진 고도화를 해", "거장 포트폴리오도 주기를 정해 트래킹해라(내가 누를 때 동기화되는 게 말이 되냐)". paper 키로 열리는 세 API(paper 거래, Market Data, Corporate Actions)가 모두 도달 가능함을 확인(401=인증 필요, 엔드포인트 존재)하고, 엔진의 **알려진 구멍**에 각각 대응시켰다.
