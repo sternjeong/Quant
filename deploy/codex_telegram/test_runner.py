@@ -758,3 +758,157 @@ class RepoReadCommandTests(unittest.TestCase):
         for reply in (self.s.repo_log('3'), self.s.repo_state()):
             self.assertIsInstance(reply, str)
             self.assertTrue(reply)
+
+
+class MindlessCommitTests(unittest.TestCase):
+    """/note(비공개 경로) 와 /progress(공개 저장소 즉시 커밋) — docs/TELEGRAM_REPO_BRIDGE_SPEC.md 3-1."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.base = Path(self.tmp.name)
+        self.root = self.base / 'repo'
+        self.root.mkdir()
+        self.s = Service({'state_dir': str(self.base / 'state'),
+                          'projects': {'quant': str(self.root)}, 'default_project': 'quant',
+                          'default_backend': 'codex', 'codex_bin': 'codex', 'retry_seconds': 1})
+        self.s.chat = '123'
+        self.s.token = 'test-token'
+
+    # ---- /note ----
+
+    def test_note_is_written_under_a_dated_path(self):
+        reply, path = self.s.save_note('기억해둘 아이디어', time.strptime('2026-09-24 15:30', '%Y-%m-%d %H:%M'))
+        self.assertIn('메모 저장', reply)
+        self.assertEqual(path, self.root / 'notes' / '2026-09' / '24.md')
+        self.assertIn('기억해둘 아이디어', path.read_text())
+        self.assertIn('## 15:30', path.read_text())
+
+    def test_notes_append_rather_than_overwrite(self):
+        when = time.strptime('2026-09-24 10:00', '%Y-%m-%d %H:%M')
+        self.s.save_note('첫 번째', when)
+        _, path = self.s.save_note('두 번째', when)
+        body = path.read_text()
+        self.assertIn('첫 번째', body)
+        self.assertIn('두 번째', body)
+
+    def test_note_refuses_secrets_without_echoing_them(self):
+        leak = 'ghp_' + 'a' * 36
+        reply, path = self.s.save_note(f'토큰은 {leak} 이야')
+        self.assertIsNone(path)
+        self.assertNotIn(leak, reply)
+        self.assertFalse((self.root / 'notes').exists())
+
+    def test_note_rejects_empty_and_overlong_input(self):
+        self.assertIn('사용법', self.s.save_note('')[0])
+        self.assertIn('너무 깁니다', self.s.save_note('가' * (Service.NOTE_MAX_CHARS + 1))[0])
+
+    def test_notes_path_is_gitignored_in_the_public_repo(self):
+        """공개 저장소에 메모가 새어 나가면 안 된다 — .gitignore가 실제로 막는지 git에게 물어본다."""
+        repo_root = Path(__file__).resolve().parent.parent.parent
+        result = subprocess.run(['git', '-C', str(repo_root), 'check-ignore', 'notes/2026-09/24.md'],
+                                capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, 'notes/ 가 .gitignore에 없다')
+
+    # ---- 첨부 ----
+
+    def test_photo_message_without_text_is_saved_instead_of_dropped(self):
+        calls = {}
+
+        def fake_api(method, data):
+            calls['method'] = method
+            return {'file_path': 'photos/file_1.jpg', 'file_size': 1234}
+
+        self.s.api = fake_api
+        with patch('runner.urllib.request.urlopen') as opener:
+            opener.return_value.__enter__.return_value.read.return_value = b'\xff\xd8jpegbytes'
+            reply = self.s.store_message_media({'photo': [{'file_id': 'small', 'file_size': 100},
+                                                          {'file_id': 'big', 'file_size': 9000}],
+                                                'caption': '이 화면 기억해두기'})
+        self.assertEqual(calls['method'], 'getFile')
+        self.assertIn('첨부 저장', reply)
+        saved = list((self.root / 'notes' / 'attachments').glob('*.jpg'))
+        self.assertEqual(len(saved), 1)
+        self.assertEqual(saved[0].read_bytes(), b'\xff\xd8jpegbytes')
+        # 캡션은 그날 메모에도 남는다
+        note = next((self.root / 'notes').rglob('*.md'))
+        self.assertIn('이 화면 기억해두기', note.read_text())
+
+    def test_oversized_attachment_is_refused(self):
+        self.s.api = lambda method, data: {'file_path': 'x/huge.bin', 'file_size': Service.ATTACHMENT_MAX_BYTES + 1}
+        reply, path = self.s.save_attachment('id', 'huge.bin')
+        self.assertIn('너무 큽니다', reply)
+        self.assertIsNone(path)
+
+    def test_attachment_api_failure_is_reported_not_crashed(self):
+        def boom(method, data):
+            raise RuntimeError('telegram down')
+        self.s.api = boom
+        reply, path = self.s.save_attachment('id', 'x.jpg')
+        self.assertIn('가져오지 못했습니다', reply)
+        self.assertIsNone(path)
+
+    # ---- /progress ----
+
+    def git(self, *args, cwd=None):
+        subprocess.run(['git', '-C', str(cwd or self.root), '-c', 'user.name=t', '-c', 'user.email=t@e.com',
+                        '-c', 'commit.gpgsign=false', *args], check=True, capture_output=True)
+
+    def make_repo_with_origin(self):
+        origin = self.base / 'origin.git'
+        subprocess.run(['git', 'init', '-q', '--bare', '-b', 'main', str(origin)], check=True, capture_output=True)
+        subprocess.run(['git', 'init', '-q', '-b', 'main', str(self.root)], check=True, capture_output=True)
+        (self.root / 'PROGRESS.md').write_text('# PROGRESS\n\n### 작업 1\n첫 항목\n')
+        (self.root / 'code.py').write_text('print(1)\n')
+        self.git('add', '-A')
+        self.git('commit', '-q', '-m', 'init')
+        self.git('remote', 'add', 'origin', str(origin))
+        self.git('push', '-q', 'origin', 'main')
+        return origin
+
+    def origin_progress(self, origin):
+        return subprocess.run(['git', '-C', str(origin), 'show', 'main:PROGRESS.md'],
+                              text=True, capture_output=True).stdout
+
+    def test_progress_commits_and_pushes_to_origin(self):
+        origin = self.make_repo_with_origin()
+        reply = self.s.append_progress('텔레그램에서 남긴 기록')
+        self.assertIn('커밋했습니다', reply)
+        self.assertIn('텔레그램에서 남긴 기록', self.origin_progress(origin))
+        self.assertIn('첫 항목', self.origin_progress(origin))  # 기존 내용 보존
+
+    def test_progress_never_touches_the_dirty_working_tree(self):
+        """VM 워킹트리에는 리서치 에이전트의 미커밋 수정이 늘 있다 — 절대 건드리면 안 된다."""
+        origin = self.make_repo_with_origin()
+        (self.root / 'PROGRESS.md').write_text('# PROGRESS\n\n### 작업 1\n첫 항목\n\nVM 에이전트가 쓰던 미커밋 줄\n')
+        (self.root / 'code.py').write_text('print(2)  # 편집 중\n')
+        before_progress = (self.root / 'PROGRESS.md').read_text()
+        before_code = (self.root / 'code.py').read_text()
+        before_status = subprocess.run(['git', '-C', str(self.root), 'status', '--porcelain'],
+                                       text=True, capture_output=True).stdout
+
+        self.assertIn('커밋했습니다', self.s.append_progress('메모 추가'))
+
+        self.assertEqual((self.root / 'PROGRESS.md').read_text(), before_progress)  # 그대로
+        self.assertEqual((self.root / 'code.py').read_text(), before_code)
+        after_status = subprocess.run(['git', '-C', str(self.root), 'status', '--porcelain'],
+                                      text=True, capture_output=True).stdout
+        self.assertEqual(after_status, before_status)
+        self.assertIn('메모 추가', self.origin_progress(origin))  # 그래도 origin에는 올라갔다
+
+    def test_progress_refuses_secrets_because_the_repo_is_public(self):
+        origin = self.make_repo_with_origin()
+        leak = 'sk-ant-' + 'b' * 30
+        reply = self.s.append_progress(f'키는 {leak}')
+        self.assertIn('공개', reply)
+        self.assertNotIn(leak, reply)
+        self.assertNotIn(leak, self.origin_progress(origin))
+
+    def test_progress_reports_failure_instead_of_pretending(self):
+        self.make_repo_with_origin()
+        self.git('remote', 'set-url', 'origin', str(self.base / 'gone.git'))
+        reply = self.s.append_progress('어디에도 못 올라갈 메모')
+        self.assertIn('커밋하지 못했습니다', reply)
+
+    def test_progress_rejects_empty_input(self):
+        self.assertIn('사용법', self.s.append_progress('   '))
