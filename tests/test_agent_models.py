@@ -54,24 +54,35 @@ def test_hub_form_saves_only_changes_and_renders_selected():
     assert '<option value="opus">opus (기본)</option>' in html
 
 
-def test_hub_post_saves_and_redirects_and_blocks_foreign_origin():
+def _post(headers, body=b"writer=haiku"):
     from hub.server import HubRequestHandler
 
-    def call(origin):
-        body = b"writer=haiku"
-        h = HubRequestHandler.__new__(HubRequestHandler)
-        h.path = "/research/models"
-        h.headers = {"Host": "hub.example", "Content-Length": str(len(body)), **({"Origin": origin} if origin else {})}
-        h.rfile, h.wfile = io.BytesIO(body), io.BytesIO()
-        sent = []
-        h.send_response = lambda code: sent.append(code)
-        h.send_header = lambda *a: None
-        h.end_headers = lambda: None
-        h.do_POST()
-        return sent[0]
+    h = HubRequestHandler.__new__(HubRequestHandler)
+    h.path = "/research/models"
+    h.headers = {"Content-Length": str(len(body)), **headers}
+    h.rfile, h.wfile = io.BytesIO(body), io.BytesIO()
+    sent = []
+    h.send_response = lambda code: sent.append(code)
+    h.send_header = lambda *a: None
+    h.end_headers = lambda: None
+    h.do_POST()
+    return sent[0]
 
-    assert call("https://evil.example") == 403 and bud.effective("writer").model == "opus"
-    assert call("https://hub.example") == 303 and bud.effective("writer").model == "haiku"
+
+def test_hub_post_blocks_foreign_origin_and_cross_site():
+    assert _post({"Host": "hub.example", "Origin": "https://evil.example"}) == 403
+    assert _post({"Host": "hub.example", "Origin": "null", "Sec-Fetch-Site": "cross-site"}) == 403
+    assert _post({"Host": "hub.example", "Origin": "null", "Sec-Fetch-Site": "same-site"}) == 403  # app. 하위 도메인
+    assert bud.effective("writer").model == "opus"
+
+
+def test_hub_post_accepts_real_browser_same_origin_with_null_origin():
+    """VM 에서 실제로 난 '저장 → forbidden': Referrer-Policy: no-referrer 때문에 브라우저가 Origin: null 을 보낸다."""
+    assert _post({"Host": "hessejeong.duckdns.org", "Origin": "null", "Sec-Fetch-Site": "same-origin"}) == 303
+    assert bud.effective("writer").model == "haiku"
+    assert _post({"Host": "hessejeong.duckdns.org", "Origin": "https://hessejeong.duckdns.org",
+                  "Sec-Fetch-Site": "same-origin"}, b"writer=sonnet") == 303
+    assert bud.effective("writer").model == "sonnet"
 
 
 def test_telegram_runner_roles_match_core():

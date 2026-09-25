@@ -19,6 +19,11 @@
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
 
+## 2026-09-25 허브 모델 저장 forbidden 수정 (배포)
+
+- 증상: VM 허브 `/research` 에서 모델 바꾸고 저장 → `forbidden`. 원인: 허브 응답의 `Referrer-Policy: no-referrer` 때문에 브라우저가 폼 POST 의 `Origin` 을 `null` 로 보내 Host 비교가 실패. 수정: Origin 이 실제 주소일 때만 Host 와 비교하고, 그 외에는 `Sec-Fetch-Site`(cross-site·same-site 거부)로 판단(`hub/server.py::_same_origin_post`). 테스트 추가.
+- 사용자 확인(2026-09-25): 허브 카드·/research·텔레그램 /models·/processes 모두 보임. paper 자동 주문 켜기는 요청받았으나 이 세션은 VM 에 접근할 수 없어 사용자가 텔레그램에서 켜야 함.
+
 ## 2026-09-25 S6 승인 버튼·paper 편입 + 역할별 모델 UI (구현·단위 테스트, 배포 전)
 
 - **승인 버튼:** 승격 후보 텔레그램 알림에 [✅ paper 편입][🗑 종료]. 러너(`h:` 콜백)가 `scripts/hypothesis_admin.py` 를 venv 로 실행, id 정규식·채팅 id 검증.

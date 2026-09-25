@@ -311,6 +311,24 @@ def latest_report_path(slot: AppSlot) -> Path | None:
     return matches[0] if matches else None
 
 
+def _same_origin_post(headers) -> bool:
+    """같은 사이트에서 보낸 폼 POST 인지(CSRF 방어). 로그인 쿠키가 SameSite=Lax 라 다른 사이트 POST 에는 원래 쿠키가 안 실리고,
+    이 검사는 그 위의 한 겹이다.
+
+    허브 응답에는 Referrer-Policy: no-referrer 가 붙어 있어서 브라우저가 폼 POST 의 Origin 을 실제 주소 대신 'null' 로
+    보낸다(2026-09-25 VM 에서 '저장 → forbidden' 으로 드러남). 그래서 Origin 이 실제 주소일 때만 Host 와 비교하고,
+    그 밖에는 브라우저가 붙이는 Sec-Fetch-Site 로 판단한다(cross-site·same-site 는 거부 — app. 하위 도메인도 막는다).
+    """
+    fetch_site = (headers.get("Sec-Fetch-Site") or "").lower()
+    if fetch_site in ("cross-site", "same-site"):
+        return False
+    origin = (headers.get("Origin") or "").strip()
+    host = (headers.get("Host") or "").strip()
+    if origin and origin != "null" and host:
+        return urlparse(origin).netloc == host
+    return True
+
+
 class HubRequestHandler(BaseHTTPRequestHandler):
     server_version = "QuantHub/1.0"
 
@@ -330,10 +348,7 @@ class HubRequestHandler(BaseHTTPRequestHandler):
         if path != "/research/models":
             self._send_html("not found", 404)
             return
-        # 로그인 쿠키는 SameSite=Lax 라 다른 사이트의 POST 에는 실리지 않는다. 그래도 Origin 이 있으면 같은 호스트인지 본다.
-        origin = self.headers.get("Origin")
-        host = self.headers.get("Host") or ""
-        if origin and urlparse(origin).netloc != host:
+        if not _same_origin_post(self.headers):
             self._send_html("forbidden", 403)
             return
         length = min(int(self.headers.get("Content-Length") or 0), 4096)
