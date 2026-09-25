@@ -1,7 +1,7 @@
 # Oracle Cloud 무료 VM 배포 가이드
 
 Codespace를 꺼도 Streamlit 앱 + `scheduler/run_scheduler.py`(관심종목 스캔·주간 리포트·시장 스냅샷·
-야간 미세튜닝)가 계속 돌게 하기 위한 절차. DB는 별도 서버 없이 지금과 동일한 로컬 SQLite
+챔피언 전략 알림 등)가 계속 돌게 하기 위한 절차. DB는 별도 서버 없이 지금과 동일한 로컬 SQLite
 (`data/quant.db`)를 VM의 로컬 디스크에 그대로 둔다 — 이 규모(수백 종목 × 수년 일봉)에서는 관리형
 DB로 옮길 필요가 없다.
 
@@ -100,7 +100,7 @@ sudo bash deploy/setup_vm.sh
 ```bash
 sudo systemctl status quant-streamlit
 sudo systemctl status quant-scheduler
-sudo journalctl -u quant-scheduler -f   # 스케줄러 실시간 로그(장 마감 스캔/야간 튜닝 등)
+sudo journalctl -u quant-scheduler -f   # 스케줄러 실시간 로그(장 마감 스캔/야간 챔피언 잡 등)
 ```
 
 VM 안에서 `curl -s http://127.0.0.1:8501/_stcore/health`가 `ok`이면 앱은 떠 있는 것이고, 밖에서는 14번 게이트웨이를
@@ -172,9 +172,9 @@ sudo systemctl restart quant-streamlit quant-scheduler
 
 ## 9. 백업
 
-`data/quant.db` 하나가 전략/알림 이력/야간튜닝 결과의 전부다. 유실 방지를 위해 가끔
+`data/quant.db` 하나가 전략/알림 이력/(과거) 튜닝 결과의 전부다. 유실 방지를 위해 가끔
 `scp ubuntu@<PUBLIC_IP>:/opt/quant/data/quant.db ./backup/quant-$(date +%F).db` 로 로컬에 받아
-두는 것을 권장한다(자동화는 필요해지면 cron으로 추가 가능).
+둘 수 있다(자동 백업은 15번 참고).
 
 ## 10. (2026-09-14, 정정) 리서치 에이전트는 이 VM이 아니라 Codespace에서 돈다
 
@@ -340,16 +340,17 @@ sudo systemctl disable --now quant-auto-deploy.timer
 
 VM의 IP만 치면(`http://<PUBLIC_IP>/`) 이 VM에서 돌고 있는 앱/엔진 전체를 카드 목록으로 보여주는
 최상위 대시보드가 뜨도록 하는 모듈. `hub/server.py`가 stdlib `http.server`만으로 127.0.0.1:8000에서
-돌고(신규 pip 의존성 없음), nginx가 80번 포트(`default_server`)를 여기로 프록시한다
-(`deploy/nginx-quant.conf`). 슬롯 목록은 `hub/apps_registry.py`의 `SLOTS`에 선언돼 있고, 카드를
+돌고(신규 pip 의존성 없음), 처음에는 nginx가 80번 포트(`default_server`)를 여기로 프록시했다
+(`deploy/nginx-quant.conf`). 14번 게이트웨이를 설치한 뒤로는 `http://<PUBLIC_IP>/`가 도메인으로 301 리다이렉트되고,
+허브는 `https://<도메인>/`에서 로그인 뒤에 뜬다. 슬롯 목록은 `hub/apps_registry.py`의 `SLOTS`에 선언돼 있고, 카드를
 누르면:
 
-- `kind="web"` (예: 퀀트 대시보드): 그 앱 자신의 포트(예: `:8501`)로 직접 이동 — nginx가 경로를
+- `kind="web"` (현재 이 종류의 슬롯은 없음): 그 앱 자신의 포트(예: `:8501`)로 직접 이동 — nginx가 경로를
   다시 프록시하지 않으므로 Streamlit `--server.baseUrlPath` 같은 설정을 건드릴 필요가 없다.
 - `kind="link"` (예: 퀀트 대시보드, 브라우저 코드 스페이스): 슬롯의 `url`(HTTPS 하위 도메인)을 새 탭으로
   연다 — 14번 게이트웨이 구성. 허브 자체도 이제 `https://<도메인>/`에서 로그인 뒤에 뜬다.
-- `kind="report"` (예: 실험 슈퍼바이저): `hub/server.py`가 `report_glob` 패턴에 맞는 파일 중
-  가장 최근 것을 그대로 서빙한다(예: `.experiment-control/reports/*.html`).
+- `kind="report"` (현재 이 종류의 슬롯은 없음 — 예전 실험 슈퍼바이저 보고서 슬롯은 2026-09-25 감독기와 함께
+  삭제): `hub/server.py`가 `report_glob` 패턴에 맞는 파일 중 가장 최근 것을 그대로 서빙한다.
 - `kind="engine"` (자체 웹 UI가 없는 백그라운드 서비스): `/status/<id>` 상태 페이지로 이동해
   `systemctl show`로 조회한 ActiveState/SubState/가동 시각을 보여준다(참고: `quant` 계정은 sudo
   없이도 이 읽기 전용 조회는 가능하지만 `journalctl`은 `adm`/`systemd-journal` 그룹이 아니라 권한이
@@ -393,9 +394,9 @@ SSH 터널은 Codespace를 먼저 열어야 해서 불편하므로, 아무 기�
 
 | 주소 | 가는 곳 | 로그인 |
 | --- | --- | --- |
-| `https://hessejeong.duckdns.org/` | 관제 허브 (`127.0.0.1:8000`) | nginx 아이디/비밀번호 |
+| `https://hessejeong.duckdns.org/` | 관제 허브 (`127.0.0.1:8000`) | 허브 로그인 화면(`/login`) — 아이디/비밀번호는 nginx가 htpasswd로 검증하고, 성공하면 30일짜리 세션 쿠키 |
 | `https://code.hessejeong.duckdns.org/` | code-server (`127.0.0.1:8080`) | code-server 자체 비밀번호 |
-| `https://app.hessejeong.duckdns.org/` | Streamlit 대시보드 (`127.0.0.1:8501`) | nginx 아이디/비밀번호 |
+| `https://app.hessejeong.duckdns.org/` | Streamlit 대시보드 (`127.0.0.1:8501`) | 허브와 같은 로그인(같은 도메인 쿠키 공유 — 로그인 전이면 허브 로그인 화면으로 이동) |
 
 (2026-09-21부터 Streamlit 유닛 자체도 `--server.address=127.0.0.1`로 떠서, 방화벽 규칙이 어떻게 되든 nginx 없이는 밖에서 닿지 않는다. 쓰지 않는 `rpcbind`(111번)도 꺼뒀다.)
 
@@ -419,10 +420,11 @@ DuckDNS는 `code.`·`app.` 같은 하위 이름도 자동으로 같은 IP로 풀
 4. VM에서: `sudo bash /opt/quant/deploy/setup_gateway.sh <이름>.duckdns.org [이메일]`
    — DNS 확인 → certbot 설치·인증서 발급(자동 갱신) → nginx 게이트웨이 설치 → 443 허용(iptables + ufw) → 확인.
    nginx 단계에서 실패하면 건드린 사이트 파일을 되돌리고 멈춘다. 여러 번 돌려도 안전하다(인증서는 만료 임박 때만 재발급).
-5. `https://<이름>.duckdns.org/` 접속 → 아이디/비밀번호 → 허브. 카드에서 각 앱으로 이동한다.
+5. `https://<이름>.duckdns.org/` 접속 → 허브 로그인 화면에서 아이디/비밀번호 → 허브. 카드에서 각 앱으로 이동한다.
 
 **로그인 계정 바꾸기/추가**: 위 3번 명령을 다시 실행하면 파일이 통째로 새로 써진다(여러 계정을 두려면 `sudo tee -a`로
-줄을 덧붙인다). nginx 재시작은 필요 없다.
+줄을 덧붙인다). nginx 재시작은 필요 없다. 이미 로그인된 기기의 세션 쿠키는 비밀번호를 바꿔도 유지된다 — 모든 기기를
+로그아웃시키려면 `/etc/nginx/quant-session.conf`를 지우고 `setup_gateway.sh`를 다시 돌린다(토큰을 새로 만든다).
 
 **예전 직접 접속 경로 (닫힘, 2026-09-20)**: 평문 `http://<IP>:8501`은 로그인 없이 Streamlit이 열리는 옛 경로라 iptables의
 8501 ACCEPT 규칙과 `ufw allow 8501/tcp`를 지워 닫았다(밖에서 연결 안 됨 확인). 다시 열지 말 것 — 새로 앱을 붙일 때도
@@ -438,8 +440,8 @@ ssh -t quant-vm 'sudo bash /opt/quant/deploy/set_code_server_password.sh'
 12자 이상, 영문/숫자/기호(`!` `@` `#` 등)를 받는다 — 공백, 작은따옴표(`'`), 한글 같은 ASCII 아닌 글자는 안 된다(거절될 때는
 어떤 *종류*의 글자가 문제인지만 알려주고 글자 자체는 출력하지 않는다; 한/영 키가 한글 상태로 영문을 치면 한글이 들어가 거절된다).
 단어 3~4개를 하이픈으로 이은 것(예: `blue-moon-cat-42` 형태)이 외우기 쉽고 충분히 길다 — 이 비밀번호 하나가 곧 VM 셸이라 4자리 숫자 같은 건 일부러 거절한다. 브라우저/휴대폰의 "비밀번호 저장"을
-누르면 다음부터는 아예 안 쳐도 된다. 허브(기본 도메인)와 `app.`은 nginx 아이디/비밀번호(위 3번 명령), `code.`는 code-server
-비밀번호로 서로 다른 로그인이고, 브라우저는 주소(호스트)마다 따로 기억한다. 이 스크립트는 설정 파일 권한을 항상 `640`으로
+누르면 다음부터는 아예 안 쳐도 된다. 허브(기본 도메인)와 `app.`은 허브 로그인 화면 한 번(위 3번 명령의 계정, 같은 도메인 쿠키를 공유), `code.`는
+code-server 비밀번호로 서로 다른 로그인이다. 이 스크립트는 설정 파일 권한을 항상 `640`으로
 맞춘다(`quant` 계정의 암호화 비밀 백업이 읽어야 해서 — 15번).
 
 이제 비밀번호가 평문으로 오가지는 않지만, code-server 비밀번호 하나가 곧 VM 셸이다 — 강한 비밀번호(현재 24자)를
@@ -535,7 +537,7 @@ openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass pass:'<passphrase>' -in /
 **왜**: 야간 전략 튜닝이 한 번도 안 돌았는데도 아무 데서도 드러나지 않았던 적이 있다. 사용자가 폰으로만 운영하므로, 저널을 뒤져야만 보이는 실패는 없는 것과 같다.
 
 - **실행 이력**(`scheduler_job_runs` 테이블): `scheduler/run_scheduler.py`가 APScheduler 이벤트 리스너(`core/job_health.py`)를 달아서, 잡 하나가 끝날 때마다
-  `ok`/`error`/`missed`를 한 줄씩 기록한다(90일 보관). 잡 함수는 하나도 안 고쳤다. `core/job_schedule.py`가 16개 잡의 스케줄 표이고, `tests/test_job_health.py`가
+  `ok`/`error`/`missed`를 한 줄씩 기록한다(90일 보관). 잡 함수는 하나도 안 고쳤다. `core/job_schedule.py`가 스케줄러에 등록된 잡 전체의 스케줄 표이고, `tests/test_job_health.py`가
   `main()`의 실제 등록과 표가 일치하는지 검증하므로 잡을 추가/변경하면 표도 같이 고쳐야 테스트가 통과한다(표가 조용히 낡을 수 없다).
 - **판정**(`compute_job_health`): 스케줄 표로 "지금쯤 마지막으로 돌았어야 할 시각"을 계산해 그 뒤의 기록과 맞춘다 → `ok` / `error` / `missed` / `overdue`(예정 45분 뒤에도
   기록 없음) / `pending`(유예 중) / `disabled`(꺼진 잡은 문제 아님) / `no-history`(이력 추적 시작 전의 예정 시각 — 배포 직후 오경보 방지).
@@ -543,7 +545,7 @@ openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass pass:'<passphrase>' -in /
 - **워치독**(`deploy/watchdog.py`, `quant-watchdog.timer`, 매일 한국시간 09:05): 스케줄러/앱과 **독립적으로**(stdlib, venv 불필요) 돈다 — 브리핑도 스케줄러 안의 잡이라 스케줄러가
   죽으면 함께 안 오기 때문이다. 확인: 최근 26시간에 잡 기록이 있는가(있던 적이 있는데 없으면 스케줄러 정지) / error·missed 잡 / 최신 브리핑이 26시간 안인가 / 백업 상태.
   **문제가 있을 때만** 텔레그램으로 알리고 조용히 끝난다. 수동 실행: `python3 /opt/quant/deploy/watchdog.py --dry-run`.
-- **소프트 실패 보고** (2026-09-21): 잡 16개 중 예외를 내부에서 삼키고 정상 반환하는 것은 뉴스 다이제스트·FRED 예열·(꺼진) 야간 튜닝 셋이라, 실패해도 APScheduler에는 `ok`로 보인다. 앞의 둘은
+- **소프트 실패 보고** (2026-09-21): 도입 당시 잡 16개 중 예외를 내부에서 삼키고 정상 반환하던 것은 뉴스 다이제스트·FRED 예열·야간 튜닝(2026-09-24 삭제) 셋이라, 실패해도 APScheduler에는 `ok`로 보인다. 앞의 둘은
   실패 지점에서 `report_job_failure()`로 `status="failed"` 행을 직접 남기고(FRED는 지표를 하나도 못 받았을 때만), 판정은 그 잡의 이후 `ok`보다 이 실패를 우선한다. 워치독도 `failed`를 오류로 센다.
 - **재부팅 방치 알림** (2026-09-21): 워치독이 `/var/run/reboot-required`(보통 커널 보안 업데이트)가 **14일 넘게** 방치되면 텔레그램으로 알린다. 자동으로 재부팅하지는 않는다 — 부팅이 잘못되면
   사람이 Oracle 콘솔에서 되살려야 하기 때문이다. (도입 시점에 이미 28일째 방치 중이었음.)
