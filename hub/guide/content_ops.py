@@ -45,6 +45,18 @@ START_HERE: tuple[str, ...] = (
 # ---------------------------------------------------------------------------
 JOBS: tuple[JobGuide, ...] = (
     JobGuide(
+        job_id="agent_batch",
+        where_to_see="텔레그램(아침 배치 요약 1건: 실행한 역할, 동결·심판 결과, 예산 사용), 허브 /research",
+        if_alert="'usage limit'로 멈췄다면 구독 사용량 한도에 닿은 것이라 다음 날 밤 자동으로 이어집니다. 매일 실패하면 Claude CLI 로그인·설치 상태를 개발 요청으로 확인하세요. 원하지 않으면 '/processes off agent_batch'.",
+        verified="2026-09-25",
+    ),
+    JobGuide(
+        job_id="hypothesis_shadow_record",
+        where_to_see="허브 /research. 승격 후보가 생길 때만 [paper 편입][종료] 버튼이 달린 텔레그램이 옵니다.",
+        if_alert=_NOTHING,
+        verified="2026-09-25",
+    ),
+    JobGuide(
         job_id="paper_tracking_refresh",
         where_to_see="화면 없음. data/cache/paper_tracking.json 파일",
         if_alert="따로 할 일 없음. 구간이 20개 미만이면 추적오차를 계산하지 않는 것이 정상입니다.",
@@ -222,6 +234,22 @@ _KEYRUN = (
 )
 
 SCRIPTS: tuple[ScriptGuide, ...] = (
+    ScriptGuide(
+        path="scripts/agent_batch.py", name="AI 에이전트 배치 수동 확인",
+        when_to_run="오늘 밤 배치가 무엇부터 할지, 예산이 얼마나 남았는지 미리 볼 때. 배치 자체는 03:00 KST에 자동으로 돕니다.",
+        command="python scripts/agent_batch.py --dry-plan",
+        risk="읽기 전용",
+        what_it_prints="다음에 실행될 작업(역할·대상 가설)과 이번 주·오늘 밤 예산 사용량을 보여 줍니다. 03:00~05:30 KST 밖이면 다음 작업이 null 로 나오는 것이 정상입니다. --dry-plan 없이 실행하면 실제 배치가 돌아 에이전트를 호출합니다.",
+        verified="2026-09-25",
+    ),
+    ScriptGuide(
+        path="scripts/hypothesis_admin.py", name="가설 레지스트리 관리",
+        when_to_run="가설 목록을 보거나, 직접 쓴 가설을 넣거나, 텔레그램 버튼 대신 승격·종료할 때.",
+        command="python scripts/hypothesis_admin.py list  (show <id> · add <spec.json> <signal.py> · promote <id> · retire <id>)",
+        risk="파일/DB 쓰기",
+        what_it_prints="list 는 가설별 상태·시도 수·요지와 전체 퍼널을 보여 줍니다. add 는 등록→동결→심판까지 한 번에 하고 통과/탈락 사유를 출력합니다(사람이 넣은 가설도 시도 수에 똑같이 누적). promote 는 다음 자동 주문부터 paper research 슬리브에 편입합니다.",
+        verified="2026-09-25",
+    ),
     ScriptGuide(
         path="scripts/verify_alpaca_meta_news.py", name="Alpaca 거래 가능·캘린더·뉴스 응답 확인",
         when_to_run="Alpaca 뉴스와 거래 가능 여부 기능을 처음 쓰기 전에, 응답 형식이 가정과 맞는지 확인할 때(VM에서 한 번).",

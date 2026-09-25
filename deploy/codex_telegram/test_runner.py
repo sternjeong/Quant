@@ -627,6 +627,44 @@ class PipelineTests(unittest.TestCase):
         self.s.ingest([retry])
         self.assertEqual(self.row()['status'], 'retry')
 
+    def test_hypothesis_promote_button_runs_admin_and_clears_buttons(self):
+        callback = {'update_id': 3, 'callback_query': {'id': 'cb-h', 'data': 'h:promote:H-20261005-001',
+                    'message': {'chat': {'id': 123}, 'message_id': 77}}}
+        calls = []
+        with patch.object(self.s, 'run_hypothesis_admin', return_value=(True, 'ok')) as admin, \
+                patch.object(self.s, 'api', side_effect=lambda m, d: calls.append((m, d)) or True):
+            self.s.ingest([callback])
+        admin.assert_called_once_with('promote', 'H-20261005-001')
+        self.assertIn('editMessageReplyMarkup', [m for m, _ in calls])
+        with self.s.db() as db:
+            text = db.execute('SELECT text FROM outbox ORDER BY id DESC LIMIT 1').fetchone()['text']
+        self.assertIn('paper 편입 승인', text)
+
+    def test_models_command_and_cycle_button_write_shared_file(self):
+        update = self.update()
+        update['message']['text'] = '/models'
+        self.s.ingest([update])
+        with self.s.db() as db:
+            reply = db.execute('SELECT text,markup FROM outbox ORDER BY id DESC LIMIT 1').fetchone()
+        self.assertIn('Writer 가설 작성: opus (기본)', reply['text'])
+        data = json.loads(reply['markup'])['inline_keyboard'][1][0]['callback_data']  # writer
+        self.assertEqual(data, 'm:1')
+        with patch.object(self.s, 'api', return_value=True):
+            self.s.ingest([{'update_id': 9, 'callback_query': {'id': 'm', 'data': data, 'message': {'chat': {'id': 123}}}}])
+        saved = json.loads(self.s.agent_models_path().read_text())
+        self.assertEqual(saved['writer']['model'], 'haiku')        # opus → haiku (순환)
+        self.assertEqual(self.s.agent_model('writer', 'opus'), 'haiku')
+
+    def test_hypothesis_button_rejects_bad_id_and_foreign_chat(self):
+        with patch.object(self.s, 'run_hypothesis_admin') as admin, patch.object(self.s, 'api', return_value=True):
+            self.s.ingest([{'update_id': 4, 'callback_query': {'id': 'x', 'data': 'h:promote:; rm -rf /',
+                                                               'message': {'chat': {'id': 123}}}}])
+            self.s.ingest([{'update_id': 5, 'callback_query': {'id': 'y', 'data': 'h:promote:H-20261005-001',
+                                                               'message': {'chat': {'id': 999}}}}])
+            self.s.ingest([{'update_id': 6, 'callback_query': {'id': 'z', 'data': 'h:delete:H-20261005-001',
+                                                               'message': {'chat': {'id': 123}}}}])
+        admin.assert_not_called()
+
     # ---- /processes: 목록은 core/process_registry.py 에서 ast 로 읽는다(하드코딩 목록 없음) ----------------
 
     def outbox(self):

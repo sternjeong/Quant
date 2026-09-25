@@ -5935,6 +5935,10 @@ paper 키를 주문 경로에만 쓰던 것을 **측정 수단**으로 확장해
 - **구현:** P0 검증 5번째 검사(자산·캘린더·뉴스), P1 주문 전 거래가능 경고·paper 추적오차(00:46 KST), P2 PIT 뉴스 이벤트 스터디(비용 보정은 기존 구현 재사용), P3 paper 자동 주문(화~토 06:10 KST, **기본 꺼짐**, 조건 8개 fail-closed). 전체 pytest 1761 passed.
 - **미완료:** 실 API 호출 0회, 브랜치 `alpaca-roadmap-2026-09` 미푸시(승인 대기), 자동 주문 켜기는 P0 PASS 후 사용자 결정. 상세: `docs/ALPACA_ENGINE_ROADMAP.md`.
 
+## 2026-09-25 에이전트 결합형 퀀트 시스템 S1~S5 (검증용, 실거래 아님)
+- **구현:** 가설 레지스트리(누적 시도 카운터, 주간 동결 10·shadow 20), 결정론 심판(Deflated Sharpe·레짐 과반·상관·kill), shadow 전진검증(00:48 KST, 60거래일), 에이전트 야간 배치(03:00 KST, Scout/Writer/Implementer/Critic/Post-mortem, 하룻밤 $15·주간 $60 API 환산 상한), 허브 `/research`. 전체 pytest 1775 passed.
+- **미완료:** 실제 Claude CLI·VM 실행 미검증, 텔레그램 승인 버튼·paper 자동 편입 미구현, 미푸시. 상세: `docs/AGENTIC_QUANT_SYSTEM_DESIGN.md` 8절.
+
 ## 2026-09-25 관제 센터 사용 설명서 + 발견 결함 5건 수정
 
 - **설명서:** 관제 센터 `/guide`. 화면·잡·변경 내역은 코드에서 자동으로 읽고, 설명이 빠지면 테스트가 배포를 막는다.

@@ -64,6 +64,7 @@ def run_auto_round(
     credentials_fn: Optional[Callable[[], bool]] = None, recent_pass_fn: Optional[Callable[[], Any]] = None,
     trading_day_fn: Optional[Callable[[str], Optional[bool]]] = None,
     tradability_fn: Optional[Callable[[list], dict]] = None,
+    research_fn: Optional[Callable[[], Optional[dict]]] = None,
 ) -> dict:
     """조건을 확인하고 통과하면 1회차를 제출한다. 예외 대신 status 로 결과를 돌려준다(주입점은 테스트용)."""
     from core import paper_execution as pe
@@ -104,7 +105,13 @@ def run_auto_round(
 
     positions = broker.positions()
     equity = float(account["equity"])
-    plan = build_plan(core, satellite, positions, equity)
+    if research_fn is None:
+        from core.research_sleeve import compute_research_targets as research_fn
+    try:
+        research = research_fn()
+    except Exception as exc:  # noqa: BLE001 — research 슬리브 오류는 챔피언 주문을 막지 않고 research 만 보류한다
+        research = {"targets": {}, "new_orders_allowed": False, "hold_reason": f"research 계산 실패: {type(exc).__name__}"}
+    plan = build_plan(core, satellite, positions, equity, research)
     if not plan["orders"]:
         state[et_day] = {"status": "no_orders", "fingerprint": plan["fingerprint"]}
         _save_state(path, state)
@@ -132,13 +139,22 @@ def run_auto_round(
                      "states": states, "run_id": results[0].get("run_id") if results else None}
     _save_state(path, state)
     return {"status": "submitted", "et_day": et_day, "n_orders": len(plan["orders"]), "states": states,
-            "order_value": round(total, 2), "equity": equity}
+            "order_value": round(total, 2), "equity": equity,
+            "research": {"hypotheses": [h["id"] for h in (research or {}).get("hypotheses", [])],
+                         "held": (research or {}).get("new_orders_allowed") is False,
+                         "hold_reason": (research or {}).get("hold_reason", "")}}
 
 
 def format_summary(res: dict) -> str:
     if res["status"] == "submitted":
+        r = res.get("research") or {}
+        tail = ""
+        if r.get("hypotheses"):
+            tail = f"\nresearch 슬리브: {', '.join(r['hypotheses'])}"
+        if r.get("held"):
+            tail += f"\nresearch 슬리브 보류: {r.get('hold_reason')}"
         return (f"[paper 자동주문] {res['et_day']} 주문 {res['n_orders']}건 제출 (총 ${res['order_value']:,.0f} / 자산 "
-                f"${res['equity']:,.0f}), 상태 {res['states']}")
+                f"${res['equity']:,.0f}), 상태 {res['states']}" + tail)
     if res["status"] == "no_orders":
         return f"[paper 자동주문] {res['et_day']} 변경할 주문 없음"
     return f"[paper 자동주문] 건너뜀: {res['reason']}" + (f" {res['symbols']}" if res.get("symbols") else "")

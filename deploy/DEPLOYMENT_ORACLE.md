@@ -338,23 +338,25 @@ sudo systemctl disable --now quant-auto-deploy.timer
 
 ## 13. 관제 허브 (`hub/`) — 최상위 진입점
 
-VM의 IP만 치면(`http://<PUBLIC_IP>/`) 이 VM에서 돌고 있는 앱/엔진 전체를 카드 목록으로 보여주는
-최상위 대시보드가 뜨도록 하는 모듈. `hub/server.py`가 stdlib `http.server`만으로 127.0.0.1:8000에서
-돌고(신규 pip 의존성 없음), 처음에는 nginx가 80번 포트(`default_server`)를 여기로 프록시했다
-(`deploy/nginx-quant.conf`). 14번 게이트웨이를 설치한 뒤로는 `http://<PUBLIC_IP>/`가 도메인으로 301 리다이렉트되고,
-허브는 `https://<도메인>/`에서 로그인 뒤에 뜬다. 슬롯 목록은 `hub/apps_registry.py`의 `SLOTS`에 선언돼 있고, 카드를
-누르면:
+이 VM에서 돌고 있는 앱/엔진/리포트/운영 상태를 카드로 보여주는 최상위 대시보드. `hub/server.py`가 stdlib
+`http.server`만으로 127.0.0.1:8000에서 돌고(신규 pip 의존성 없음), 외부에는 14번의 HTTPS 게이트웨이
+(`deploy/setup_gateway.sh`)가 `https://<도메인>/`로 프록시한다. 도메인 없이 IP 80번으로 허브만 볼 때의 기본형은
+`deploy/nginx-quant.conf`인데 **운영 중인 VM 에서는 게이트웨이 스크립트가 이 파일을 IP→도메인 301 규칙으로 덮어쓴다.**
+슬롯 목록은 `hub/apps_registry.py`의 `SLOTS`에 선언돼 있고 `category`(앱/엔진/연구·검증/운영/리포트)별로 묶여 표시된다.
+페이지는 60초마다 자동 새로고침되고 "마지막 갱신" 시각이 아래에 찍힌다. 카드를 누르면:
 
-- `kind="web"` (현재 이 종류의 슬롯은 없음): 그 앱 자신의 포트(예: `:8501`)로 직접 이동 — nginx가 경로를
-  다시 프록시하지 않으므로 Streamlit `--server.baseUrlPath` 같은 설정을 건드릴 필요가 없다.
-- `kind="link"` (예: 퀀트 대시보드, 브라우저 코드 스페이스): 슬롯의 `url`(HTTPS 하위 도메인)을 새 탭으로
-  연다 — 14번 게이트웨이 구성. 허브 자체도 이제 `https://<도메인>/`에서 로그인 뒤에 뜬다.
-- `kind="report"` (현재 이 종류의 슬롯은 없음 — 예전 실험 슈퍼바이저 보고서 슬롯은 2026-09-25 감독기와 함께
-  삭제): `hub/server.py`가 `report_glob` 패턴에 맞는 파일 중 가장 최근 것을 그대로 서빙한다.
-- `kind="engine"` (자체 웹 UI가 없는 백그라운드 서비스): `/status/<id>` 상태 페이지로 이동해
-  `systemctl show`로 조회한 ActiveState/SubState/가동 시각을 보여준다(참고: `quant` 계정은 sudo
-  없이도 이 읽기 전용 조회는 가능하지만 `journalctl`은 `adm`/`systemd-journal` 그룹이 아니라 권한이
-  없어 로그는 보여주지 않는다).
+- `kind="link"` (퀀트 대시보드, 브라우저 코드 스페이스): 슬롯의 `url`(HTTPS 하위 도메인)을 새 탭으로 연다 — 14번.
+  로그인은 허브 로그인 폼(`/login`)의 세션 쿠키(허브·`app.` 공유)이고 code-server 는 자체 비밀번호다.
+- `kind="web"`: 같은 호스트의 `:포트`로 직접 이동한다. **8501 등은 방화벽으로 닫혀 있어 밖에서는 열리지 않으므로 새 슬롯에는 쓰지 않는다**(`link` 사용).
+- `kind="report"` (오늘의 브리핑·챔피언 주간 보고·뉴스 다이제스트): `report_glob` 패턴에 맞는 파일 중 가장 최근 것을
+  그대로 서빙한다. 카드 배지에 최신 파일 시각이 뜨고, 없으면 "아직 없음".
+- `kind="engine"` (웹 UI 없는 백그라운드 서비스): `/status/<id>`에서 `systemctl show` 상태를 보여준다. 스케줄러 카드에는
+  `core.job_health` 기반 "잡 이상 N개" 배지가 함께 붙는다(`quant` 계정은 `journalctl` 권한이 없어 로그는 안 보여준다).
+- `kind="alpaca"`: `/alpaca` — Alpaca paper 검증·추적오차·실측 비용·자동 주문 기록(결과 파일만 읽음).
+- `kind="ops"`: `/ops` 운영 상태 — 스케줄러 잡 건강(밤사이 안 돈 잡), 백업(`/opt/quant-backup/status.json`), 서버 자원
+  (가동·부하·디스크·메모리·재부팅 필요), 예약 타이머 상태. 어느 항목이 읽히지 않으면 그 항목만 "확인 불가"로 표시한다.
+- `kind="research"`: `/research` — AI 에이전트 가설 퍼널·누적 시도 수·승격 후보·에이전트 예산, 역할별 모델 선택 폼(POST).
+- 맨 앞의 📖 사용 설명서 카드(`/guide`)는 슬롯이 아니라 허브 자체 기능이라 항상 표시된다.
 
 새 서비스를 VM에 추가하면 `hub/apps_registry.py`에 `AppSlot` 하나만 추가하면 허브에 자동으로
 카드가 생긴다. 최초 설치(신규 VM은 `setup_vm.sh`가 자동으로 처리하지만, 이미 떠 있는 VM에

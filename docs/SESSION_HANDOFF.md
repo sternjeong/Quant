@@ -19,6 +19,32 @@
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
 
+## 2026-09-25 S6 승인 버튼·paper 편입 + 역할별 모델 UI (구현·단위 테스트, 배포 전)
+
+- **승인 버튼:** 승격 후보 텔레그램 알림에 [✅ paper 편입][🗑 종료]. 러너(`h:` 콜백)가 `scripts/hypothesis_admin.py` 를 venv 로 실행, id 정규식·채팅 id 검증.
+- **paper 편입:** `core/research_sleeve.py` + `paper_execution` research 슬리브 게이트(fail-closed) + `champion_paper_trade.build_plan(research=)` + `paper_auto_trade` 연결. 슬리브 10%/가설당 5%, 기록 5일 초과 시 슬리브 보류. research=None 이면 계획이 도입 전과 비트 동일(테스트로 고정).
+- **역할별 모델:** 허브 `/research` 드롭다운(POST, Origin 검사) + 텔레그램 `/models` 순환 버튼, 공유 파일 `data/agent_models.json`(gitignore·백업). 예산 추정은 모델 단가 비율(haiku 0.25·sonnet 1·opus 2.5)로 조정.
+- **함께 고친 기존 결함:** ① 텔레그램 `/processes` 목록에 레지스트리 잡 14개가 빠져 있었음(`paper_auto_trade` 포함 — 이전에 "/processes 로 켜라"고 안내한 버튼이 실제로 없었다) → 전부 추가 + 동기화 테스트. ② shadow 가 00:48 KST(미 장중)에 미완성 당일 봉을 쓸 수 있었음 → 16:15 ET 이전 당일 봉 제외. ③ 백업이 `.gitignore` 된 허용 파일(`data/process_toggles.json`)을 한 번도 백업하지 않았음 → 무시된 정확한 파일 항목을 직접 포함.
+- 검증: 신규·수정 테스트(research 슬리브 11, 모델 6, 러너 3, 백업 1). 실 텔레그램 버튼·VM 실행 미검증.
+
+## 2026-09-25 에이전트 결합형 퀀트 시스템 S1~S5 구현 (단위 테스트, 배포 전)
+
+- 사용자 결정: [AGENTIC_QUANT_SYSTEM_DESIGN.md](./AGENTIC_QUANT_SYSTEM_DESIGN.md) 추천안 채택, 에이전트 배치 **03:00 KST**, 토큰 예산 위임 → 하룻밤 $15·주간 $60(API 환산), 역할별 상한은 설계 문서 8절.
+- 구현: 가설 스펙·레지스트리(시도 카운터, 주간 동결 10·shadow 20), 백테스트 엔진·심판(DSR·레짐·상관·kill), shadow(00:48 잡, 60거래일 판정), 에이전트 배치(03:00 잡, 역할 5종 프롬프트, 권한 제한·git 가드·비밀값 제거), 허브 `/research`, `scripts/hypothesis_admin.py`.
+- 검증: 신규 테스트 24건(가짜 에이전트로 Scout→Writer→Implementer→Critic→동결→심판 한 밤 전체 흐름, 합성 데이터로 좋은 전략 통과·시장 복제 탈락, shadow 기록·z 판정). **실제 Claude CLI 호출·VM 실행·실 가격 심판은 미검증.**
+- 미구현: 텔레그램 승인 버튼, 승격 가설의 paper 자동 편입(현재 admin 스크립트로 상태만 전이).
+- 주의: `research/hypotheses/`·`research/scout/`·`research/failures.md`·`data/agent_usage.jsonl` 은 VM 에서 생기는 미추적 파일 — 저장소에 커밋하지 말 것(자동 배포 pull 충돌 방지). 백업 허용 목록에 추가함.
+- 다음: 푸시 → VM 첫 03:00 배치 결과(텔레그램·허브 `/research`) 확인 → CLI 플래그(`--allowedTools` 경로 규칙 등)가 VM 의 claude 버전과 맞는지 점검.
+
+## 2026-09-25 관제 센터 개선 (구현·단위 테스트, 배포 전)
+
+사용자 선택: 잡 건강 표시·운영 상태 페이지·카테고리/새로고침·리포트 슬롯·낡은 문서(1,4,5,6,7번). 로그인 횟수 제한 등 3번은 하지 않음.
+- `hub/ops_status.py`(신규)+`/ops`: 잡 건강(`core.job_health`), 백업 status.json, 서버 자원, 타이머 유닛. 항목별 실패 격리. 스케줄러 카드에 "잡 이상 N개" 배지.
+- 대시보드: `category` 필드로 앱/엔진/연구·검증/운영/리포트 묶음, 60초 자동 새로고침, 마지막 갱신 시각.
+- 리포트 슬롯 3개(오늘의 브리핑·챔피언 주간·뉴스 다이제스트) + 최신 파일 시각 배지.
+- 문서: DEPLOYMENT_ORACLE 13·14번, nginx-quant.conf(참고용 표시), PENDING 4번 갱신.
+- 검증: hub 테스트 24건, 로컬 렌더링 확인. 이 Codespace 에는 systemd·백업이 없어 타이머/백업은 "확인 불가"로만 확인 — **VM 실화면 미확인**. 백업 status.json 경로 기본값 `/opt/quant-backup/status.json`은 backup_vm.py 기본 디렉터리 기준 추정.
+
 ## 2026-09-25 관제 센터 사용 설명서 + 발견 결함 5건 수정
 
 관제 센터 `/guide`에 사용 설명서를 만들었다(`hub/guide/`). 화면·자동 잡 표·최근 변경·배포 버전은 코드에서 자동으로 읽고, 사람이 쓴 설명은 근거 파일과 확인일을 갖는다. 새 화면·잡·core 모듈·스크립트에 설명이 없으면 `tests/test_hub_guide.py`가 실패해 자동배포가 막힌다(`python -m hub.guide.check`로 목록 확인, 규칙은 `AGENTS.md`). 설명서를 쓰려고 코드를 대조하다 찾은 결함을 사용자 지시("전부 다 진행")로 고쳤다.

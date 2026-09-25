@@ -535,3 +535,16 @@ def test_unreadable_secrets_do_not_leak_file_contents_into_the_alert(app, secret
         assert "SECRET-CODE-SERVER" not in " ".join(alerts)
     finally:
         secrets_env["code_server_config"].chmod(0o600)
+
+
+def test_gitignored_allowlisted_state_files_are_backed_up(app, tmp_path):
+    """data/process_toggles.json·agent_models.json 은 .gitignore 대상이라 예전에는 허용 목록에 있어도 빠졌다."""
+    _write(app / ".gitignore", "data/process_toggles.json\ndata/agent_models.json\ndata/agent_usage.jsonl\nignored_other.txt\n")
+    _write(app / "data" / "process_toggles.json", '{"paper_auto_trade": {"enabled": true}}')
+    _write(app / "data" / "agent_models.json", '{"writer": {"model": "sonnet"}}')
+    _write(app / "data" / "agent_usage.jsonl", '{"role": "scout"}\n')
+    _write(app / "ignored_other.txt", "not allowlisted")
+    status, _ = _run(app, tmp_path / "backup")
+    files = _repo_files(tmp_path / "backup")
+    assert {"files/data/process_toggles.json", "files/data/agent_models.json", "files/data/agent_usage.jsonl"} <= files
+    assert "files/ignored_other.txt" not in files

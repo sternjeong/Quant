@@ -39,6 +39,7 @@ def validate_targets(targets: dict[str, float], limits: RiskLimits = RiskLimits(
 
 SLEEVE_CORE = "core"
 SLEEVE_SATELLITE = "satellite"
+SLEEVE_RESEARCH = "research"  # 승격된 가설(core.research_sleeve). 플래그가 없으면 다른 슬리브처럼 fail-closed
 
 
 def plan_targets(core: dict[str, Any], satellite: dict[str, Any]) -> dict[str, float]:
@@ -61,7 +62,8 @@ def _sleeve_flag_name(plan: dict[str, Any], symbol: str) -> str | None:
     """Plan flag governing ``symbol``: core (default for unlabelled symbols) or satellite.
     An unknown sleeve label has no flag -> never permitted."""
     sleeve = (plan.get("sleeve_of") or {}).get(symbol, SLEEVE_CORE)
-    return {SLEEVE_CORE: "new_orders_allowed", SLEEVE_SATELLITE: "satellite_new_orders_allowed"}.get(sleeve)
+    return {SLEEVE_CORE: "new_orders_allowed", SLEEVE_SATELLITE: "satellite_new_orders_allowed",
+            SLEEVE_RESEARCH: "research_new_orders_allowed"}.get(sleeve)
 
 
 def _sleeve_permitted(plan: dict[str, Any], symbol: str) -> bool:
@@ -76,6 +78,7 @@ def build_order_plan(
     sell_reasons: dict[str, str] | None = None, hold_reason: str = "",
     satellite_new_orders_allowed: bool = True, satellite_hold_reason: str = "",
     sleeve_of: dict[str, str] | None = None,
+    research_new_orders_allowed: bool | None = None, research_hold_reason: str = "",
 ) -> dict[str, Any]:
     """Return market/day paper orders (sells first); never submits them.
 
@@ -90,7 +93,8 @@ def build_order_plan(
         raise ValueError("equity must be positive")
     sell_reasons = dict(sell_reasons or {})
     sleeve_of = dict(sleeve_of or {})
-    sleeve_open = {SLEEVE_CORE: bool(new_orders_allowed), SLEEVE_SATELLITE: bool(satellite_new_orders_allowed)}
+    sleeve_open = {SLEEVE_CORE: bool(new_orders_allowed), SLEEVE_SATELLITE: bool(satellite_new_orders_allowed),
+                   SLEEVE_RESEARCH: research_new_orders_allowed is True}
 
     def _open(symbol: str) -> bool:
         return sleeve_open.get(sleeve_of.get(symbol, SLEEVE_CORE), False)
@@ -122,11 +126,18 @@ def build_order_plan(
     order_sleeves = {o["symbol"]: sleeve_of.get(o["symbol"], SLEEVE_CORE) for o in orders}
     payload = {"orders": orders, "new_orders_allowed": bool(new_orders_allowed), "sell_reasons": sell_reasons,
                "satellite_new_orders_allowed": bool(satellite_new_orders_allowed), "sleeve_of": order_sleeves}
+    # research 슬리브를 쓰지 않는 계획(None)은 payload·fingerprint 가 도입 전과 비트 단위로 같다.
+    if research_new_orders_allowed is not None:
+        payload["research_new_orders_allowed"] = research_new_orders_allowed is True
     fingerprint = hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()[:16]
-    return {"mode": "paper", "equity": equity, "orders": orders, "fingerprint": fingerprint,
+    plan = {"mode": "paper", "equity": equity, "orders": orders, "fingerprint": fingerprint,
             "new_orders_allowed": bool(new_orders_allowed), "sell_reasons": sell_reasons, "hold_reason": hold_reason,
             "satellite_new_orders_allowed": bool(satellite_new_orders_allowed),
             "satellite_hold_reason": satellite_hold_reason, "sleeve_of": order_sleeves}
+    if research_new_orders_allowed is not None:
+        plan["research_new_orders_allowed"] = research_new_orders_allowed is True
+        plan["research_hold_reason"] = research_hold_reason
+    return plan
 
 
 def enforce_order_gate(plan: dict[str, Any]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
@@ -406,6 +417,8 @@ class AlpacaPaperBroker:
             "satellite_new_orders_allowed": (plan.get("satellite_new_orders_allowed") is True
                                              and run["plan"].get("satellite_new_orders_allowed") is True),
             "sell_reasons": {**(run["plan"].get("sell_reasons") or {}), **(plan.get("sell_reasons") or {})},
+            "research_new_orders_allowed": (plan.get("research_new_orders_allowed") is True
+                                            and run["plan"].get("research_new_orders_allowed") is True),
         }
         # index in the ORIGINAL stored order list, so ids do not shift when orders are gated out
         indexed = list(enumerate(run["plan"]["orders"]))

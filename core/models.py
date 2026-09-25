@@ -752,3 +752,55 @@ class AccountPositionSnapshot(Base):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     snapshot = relationship("AccountSnapshot", back_populates="positions")
+
+
+class Hypothesis(Base):
+    """가설 레지스트리 1건 (2026-09-25, docs/AGENTIC_QUANT_SYSTEM_DESIGN.md, core/hypothesis_registry.py).
+
+    상태: draft → frozen → judged_pass | judged_fail → shadow → promotion_candidate → promoted_paper | retired.
+    동결(frozen) 시 스펙 JSON 과 신호 코드 원문을 이 행에 복사해 두므로, 이후 파일이 바뀌어도 심판·shadow 는
+    동결본만 쓴다. n_trials 는 이 가설이 소비한 시도 수(파라미터 조합 수)이며 누적 시도 수의 원천이다.
+    """
+
+    __tablename__ = "hypotheses"
+
+    id = Column(String(40), primary_key=True)
+    parent_id = Column(String(40), nullable=True, index=True)
+    source = Column(String(80), nullable=True)
+    status = Column(String(30), nullable=False, index=True)
+    spec_json = Column(Text, nullable=False)
+    spec_hash = Column(String(64), nullable=True)
+    signal_code = Column(Text, nullable=True)
+    n_trials = Column(Integer, nullable=False, default=1)
+    judge_json = Column(Text, nullable=True)
+    note = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    frozen_at = Column(DateTime, nullable=True, index=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class HypothesisEvent(Base):
+    """가설 상태 전이 기록(되돌리는 전이는 없다)."""
+
+    __tablename__ = "hypothesis_events"
+
+    id = Column(Integer, primary_key=True)
+    hypothesis_id = Column(String(40), ForeignKey("hypotheses.id"), nullable=False, index=True)
+    from_status = Column(String(30), nullable=True)
+    to_status = Column(String(30), nullable=False)
+    note = Column(Text, nullable=True)
+    at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class HypothesisShadowRecord(Base):
+    """shadow 단계 가설의 일별 기록 — 어제 정한 비중이 오늘 실현한 수익(주문 없음, 관측 전용)."""
+
+    __tablename__ = "hypothesis_shadow_records"
+    __table_args__ = (UniqueConstraint("hypothesis_id", "as_of", name="uq_hyp_shadow_day"),)
+
+    id = Column(Integer, primary_key=True)
+    hypothesis_id = Column(String(40), ForeignKey("hypotheses.id"), nullable=False, index=True)
+    as_of = Column(Date, nullable=False, index=True)
+    weights_json = Column(Text, nullable=False, default="{}")  # 다음 거래일부터 적용될 비중
+    realized_return = Column(Float, nullable=True)  # 직전 기록의 비중으로 as_of 까지 실현된 수익(비용 차감, 소수)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)

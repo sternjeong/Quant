@@ -182,6 +182,21 @@ PROCESS_REGISTRY: dict[str, dict] = {
         # 주문을 제출하는 잡 — 텔레그램 /processes 로 켤 때 확인 단계를 한 번 더 거친다(runner.py).
         "places_orders": True,
     },
+    "hypothesis_shadow_record": {
+        "label": "가설 shadow 기록 (관측 전용)",
+        "description": (
+            "심판을 통과한 가설의 오늘 판정·실현수익을 기록하고 60거래일 뒤 전진 검증 판정 — 주문 없음 (00:48 KST)"
+        ),
+        "category": "research", "default_enabled": True,
+    },
+    "agent_batch": {
+        "label": "AI 에이전트 야간 배치",
+        "description": (
+            "Scout·Writer·Implementer·Critic·Post-mortem 이 가설을 만들고 결정론 심판에 넘김 — 하룻밤 $15·주간 $60 "
+            "(API 환산) 상한, 05:30 이후 새 작업 없음, 주문 경로 없음 (03:00 KST)"
+        ),
+        "category": "research", "default_enabled": True,
+    },
     "strategy_research_report": {
         "label": "전략 변형 연구 보고서 (관측 전용)",
         "description": "shadow 기록을 모아 주간 연구 보고서를 작성 — 관측 전용이며 주문 경로 미연결 (일요일 00:50 KST)",
