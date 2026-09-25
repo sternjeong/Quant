@@ -82,7 +82,7 @@ Astra 분석을 아래 우선순위와 백로그에 반영했다. 아래 내용�
 | ID | 우선순위 | 후보 | 현재 상태 | 다음 읽을 파일 | 채택·기각 기준 |
 |---|---|---|---|---|---|
 | ENG-01 | P0 | PIT 데이터·체결·기업행동 공통 원장 | 구현·단위 테스트 완료(`core/trade_ledger.py`, 옵트인 연결·분할 조정 헬퍼), 배당 현금·전면 전환·배포 미완료 | `docs/SPEC.md`, `core/backtest_engine.py` | 데이터 기준시각과 비용을 재현하고 기준선보다 왜곡을 줄이는가 |
-| ENG-02 | P0 | 데이터 무결성·국면 unknown·주문 게이트 | 국면 unknown 구현·테스트 완료, 주문 게이트 연결·배포 미완료 | `core/data_integrity.py`, `core/market_regime.py` | stale/anomaly와 데이터 없음이 추천·주문에서 안전하게 처리되는가 |
+| ENG-02 | P0 | 데이터 무결성·국면 unknown·주문 게이트 | 국면 unknown 구현·테스트 완료, 부분 결측 정책(coverage 0.75·재정규화·partial) 구현·테스트 완료(2026-09-25), 주문 게이트 연결·배포 미완료 | `core/data_integrity.py`, `core/market_regime.py` | stale/anomaly와 데이터 없음이 추천·주문에서 안전하게 처리되는가 |
 | ENG-03 | P0 | 챔피언 snapshot·SPY unknown·실적 판단 | SPY unknown·snapshot 구현·테스트 완료, 제출 함수 게이트 강제·mock 통합 완료, paper 검증 미완료 | `core/champion_strategy.py` | 일정·coverage·버전·배분 이유와 정보시점을 보존하는가 |
 | ENG-04 | P0/P1 | 그룹 WF·탐색 장부·과적합 분리 | 장부·순위불안정·이웃안정성·DSR 근사 구현·테스트 완료, DB 저장 완료, 야간 CI·UI·배포 미완료 | `core/strategy_tuning.py` | 외부 기간·종목 및 이웃 파라미터에서 안정적인가 |
 | ENG-05 | P0 | 실행 브리핑 멱등 주문·재시작 대조 | 실행 회차 ID·멱등·게이트 mock 통합 완료, 수동 회차 종료 도구(`scripts/paper_run_admin.py`)와 검증 도구(`scripts/verify_alpaca_paper_idempotency.py`, mock만) 완료, **실제 paper API 검증 0건**·배포 미완료 | `core/paper_execution.py`, `core/daily_briefing.py`, `docs/PAPER_API_VERIFICATION_RUNBOOK.md` | 응답 유실·부분 체결 재현에서 중복 주문이 0인가(VM 실계정 실행 필요) |
