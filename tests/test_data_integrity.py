@@ -279,8 +279,11 @@ def test_format_anomaly_telegram_message_groups_by_severity():
 # ---------------------------------------------------------------------------
 
 def test_data_integrity_check_job_notifies_only_on_anomaly(monkeypatch):
+    """Alpaca 키가 없는 경로(교차 대조 꺼짐). 키가 있는 경로는 아래 테스트가 따로 본다 — 이 테스트가 예전에는
+    환경의 실제 키 유무에 따라 결과가 달라져 VM 에서만 실패했다(2026-09-25)."""
     import scheduler.run_scheduler as run_scheduler
 
+    monkeypatch.setattr("core.data_integrity.price_crosscheck_enabled", lambda env=None: False)
     sent = []
     monkeypatch.setattr(run_scheduler, "send_message", sent.append)
 
@@ -304,3 +307,53 @@ def test_data_integrity_check_job_notifies_only_on_anomaly(monkeypatch):
     run_scheduler.data_integrity_check_job()
     assert len(sent) == 1
     assert "AAA 이상" in sent[0]
+
+
+
+def test_data_integrity_check_job_with_alpaca_keys_runs_crosscheck_and_still_alerts_only_on_anomaly(monkeypatch):
+    """키가 있으면 교차 대조를 켜서 호출하고(대상 종목·상한 전달), 알림 규칙은 키 없을 때와 같다."""
+    import scheduler.run_scheduler as run_scheduler
+
+    monkeypatch.setenv("ALPACA_PAPER_API_KEY", "PKFAKE")
+    monkeypatch.setenv("ALPACA_PAPER_API_SECRET", "fake")
+    monkeypatch.setattr("core.data_integrity.crosscheck_priority_tickers", lambda *a, **k: ["SPY", "XLK"])
+    calls, sent = [], []
+    monkeypatch.setattr(run_scheduler, "send_message", sent.append)
+
+    def fake_checks(**kwargs):
+        calls.append(kwargs)
+        return {"checks": [{"check": "price_ok", "severity": "info", "detail": "ok", "ticker": None}],
+                "anomalies": [], "ok": True}
+
+    monkeypatch.setattr("core.data_integrity.run_integrity_checks", fake_checks)
+    run_scheduler.data_integrity_check_job()
+    assert sent == []
+    assert calls and calls[0]["enable_price_crosscheck"] is True
+    assert calls[0]["crosscheck_tickers"] == ["SPY", "XLK"]
+
+    def fake_checks_bad(**kwargs):
+        calls.append(kwargs)
+        return {"checks": [{"check": "price_zero_or_negative", "severity": "critical", "detail": "AAA 이상", "ticker": "AAA"}],
+                "anomalies": [{"check": "price_zero_or_negative", "severity": "critical", "detail": "AAA 이상", "ticker": "AAA"}],
+                "ok": False}
+
+    monkeypatch.setattr("core.data_integrity.run_integrity_checks", fake_checks_bad)
+    run_scheduler.data_integrity_check_job()
+    assert len(sent) == 1 and "AAA 이상" in sent[0]
+
+
+def test_test_suite_masks_real_service_credentials():
+    """conftest 가 실제 키를 가리는지 — 가리지 않으면 테스트가 VM 의 실제 계좌·텔레그램에 닿을 수 있다."""
+    import os
+
+    from core import account_sync, telegram_notify
+    from tests.conftest import EXTERNAL_SERVICE_CREDENTIAL_ENV
+
+    for name in EXTERNAL_SERVICE_CREDENTIAL_ENV:
+        assert os.environ.get(name) == ""
+    assert account_sync.credentials_available() is False
+    assert telegram_notify.is_configured() is False
+    from dotenv import load_dotenv
+
+    load_dotenv()  # 테스트 도중 누가 다시 불러도 되살아나지 않아야 한다
+    assert account_sync.credentials_available() is False
