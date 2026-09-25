@@ -22,6 +22,11 @@ core/guidance_shadow.py 의 record_guidance_shadow(events_by_ticker=...) 에 넣
         개인정보 없는 기본값) 를 그대로 쓰며, 값은 이 모듈이 절대 출력·기록·캐시하지 않는다.
     (e) max_tickers(기본 20)로 한 번에 조회할 티커 수를 제한한다. 초과분은 조회하지 않고
         'skipped_max_tickers' 로 남긴다 — 느린 전체 스캔을 하지 않는다.
+    (f) (2026-09-25 추가, 야간 잡 배선용) time_budget_seconds / max_network_requests 로 한 번 실행의 전체
+        소요 시간과 SEC 요청 수에 상한을 둔다. 둘 다 **티커와 티커 사이**에서 검사하는 소프트 상한이다 —
+        이미 시작한 티커 하나는 끝까지 처리하므로 최대 초과량은 티커 1개 분량(8-K 최대
+        max_filings_per_ticker 건 x 요청 2회 + submissions 1회, 재시도 포함)이다. 상한에 걸리면 남은
+        티커를 'skipped_budget' 으로 남기고 조회하지 않는다. 기본값(None)은 기존 동작(상한 없음) 그대로다.
 
 주문 경로(core.paper_execution, scripts/champion_paper_trade.py)·스케줄러·DB 는 import 도 호출도 하지 않는다.
 성과를 주장하지 않는 관측 전용 모듈이다.
@@ -35,6 +40,7 @@ from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
+import time
 from typing import Any, Callable, Optional, Sequence
 
 from core.earnings_events import (
@@ -67,6 +73,7 @@ STATUS_CACHED = "ok_cached"
 STATUS_FAILED = "failed"
 STATUS_SKIPPED = "skipped_max_tickers"
 STATUS_ABORTED = "aborted_sec_access_blocked"
+STATUS_SKIPPED_BUDGET = "skipped_budget"
 
 # 다시 조회해도 오늘 결과가 달라지지 않는 사유만 캐시한다(네트워크 오류·차단·속도제한은 캐시하지 않는다).
 _CACHEABLE_FAIL_REASONS = ("ticker_not_found", "no_earnings_filings")
@@ -82,7 +89,7 @@ class TickerFetchOutcome:
     """티커 1개 처리 결과. reason 에는 민감값(User-Agent 등)을 절대 담지 않는다."""
 
     ticker: str
-    status: str  # ok / ok_cached / failed / skipped_max_tickers / aborted_sec_access_blocked
+    status: str  # ok / ok_cached / failed / skipped_max_tickers / aborted_sec_access_blocked / skipped_budget
     n_observations: int = 0
     reason: Optional[str] = None
     n_filings_examined: int = 0
@@ -152,6 +159,7 @@ def _observation_to_record(obs: GuidanceObservation) -> dict:
         "ticker": obs.ticker,
         "available_at": obs.available_at.isoformat() if obs.available_at else None,
         "approximate": bool(obs.approximate),
+        "content_sha256": obs.content_sha256,
         "change": {
             "change": chg.change, "reason": chg.reason,
             "current": chg.current.to_record(),
@@ -175,7 +183,8 @@ def _observation_from_record(rec: dict) -> GuidanceObservation:
     )
     return GuidanceObservation(ticker=rec.get("ticker") or "", change=change,
                                available_at=_dt(rec.get("available_at")),
-                               approximate=bool(rec.get("approximate", True)))
+                               approximate=bool(rec.get("approximate", True)),
+                               content_sha256=rec.get("content_sha256") or None)
 
 
 # ---------------------------------------------------------------------------
@@ -263,21 +272,25 @@ def _observations_for_ticker(
     filings = list(filings)[-max_filings:]  # acceptance 오름차순 -> 최근 것만
 
     window_start = as_of - timedelta(days=window_days)
-    per_filing: list[tuple[EarningsFiling, list]] = []
+    per_filing: list[tuple[EarningsFiling, list, Optional[str]]] = []
     history: list[GuidanceItem] = []
     for filing in filings:
-        _release, extraction = extract_from_filing(sec_client, filing)
+        release, extraction = extract_from_filing(sec_client, filing)
         items = [it for it in extraction.items if not it.problems]
-        per_filing.append((filing, items))
+        # 보도자료 원문 해시(core.info_dedup.content_hash 와 같은 sha256 규칙) — 같은 8-K 가 여러 후보·여러 날에
+        # 중복 근거로 세어지지 않도록 CandidateRecord.info_hash 로 옮겨 담는 데 쓴다(RES-02).
+        sha = getattr(release, "content_sha256", None) if release is not None else None
+        per_filing.append((filing, items, sha))
         history.extend(items)
 
     observations: list[GuidanceObservation] = []
-    for filing, items in per_filing:
+    for filing, items, sha in per_filing:
         if filing.acceptance_utc.date() < window_start:
             continue  # 창 밖 발표는 history(비교 대상)로만 쓴다
         for change in compute_guidance_changes(items, history):
             observations.append(GuidanceObservation(
-                ticker=ticker, change=change, available_at=filing.acceptance_utc, approximate=True))
+                ticker=ticker, change=change, available_at=filing.acceptance_utc, approximate=True,
+                content_sha256=sha))
     return observations, len(per_filing)
 
 
@@ -304,8 +317,13 @@ def fetch_guidance_events(
     use_cache: bool = True,
     sec_client: Optional[SecEdgarClient] = None,
     ticker_client=None,
+    time_budget_seconds: Optional[float] = None,
+    max_network_requests: Optional[int] = None,
+    clock: Callable[[], float] = time.monotonic,
 ) -> GuidanceEventFetchResult:
     """티커 목록 -> {ticker: [GuidanceObservation, ...]}. 실패한 티커는 사유만 남기고 나머지는 계속 처리한다.
+
+    time_budget_seconds / max_network_requests 는 (f) 소프트 상한이다(티커 사이에서만 검사, None 이면 무제한).
 
     네트워크 클라이언트는 캐시 미스가 처음 생길 때만 만든다 — 캐시가 전부 맞으면 HTTP 세션조차 열지 않는다.
     sec_client/ticker_client 를 주입하면 오프라인 테스트가 가능하다(실제 네트워크 호출 없음).
@@ -331,7 +349,12 @@ def fetch_guidance_events(
     outcomes: list[TickerFetchOutcome] = []
     clients_created = False
     aborted = False
+    budget_stop: Optional[str] = None
     n_cache_hits = 0
+    started = clock()
+
+    def _requests_so_far() -> int:
+        return int(getattr(sec_client, "request_count", 0) or 0) if clients_created else 0
 
     def _clients():
         nonlocal sec_client, ticker_client, clients_created
@@ -350,6 +373,9 @@ def fetch_guidance_events(
         if aborted:
             outcomes.append(TickerFetchOutcome(tick, STATUS_ABORTED, reason="sec_access_blocked"))
             continue
+        if budget_stop:
+            outcomes.append(TickerFetchOutcome(tick, STATUS_SKIPPED_BUDGET, reason=budget_stop))
+            continue
         cached = cache.read(tick)
         if cached is not None:
             if cached.get("status") == STATUS_OK:
@@ -361,6 +387,14 @@ def fetch_guidance_events(
             else:
                 outcomes.append(TickerFetchOutcome(tick, STATUS_FAILED, reason=cached.get("reason") or "unknown"))
             n_cache_hits += 1
+            continue
+        # (f) 네트워크가 필요한 티커를 시작하기 직전에만 예산을 검사한다(캐시 적중은 예산을 쓰지 않는다).
+        if time_budget_seconds is not None and clock() - started >= time_budget_seconds:
+            budget_stop = "time_budget_exceeded"
+        elif max_network_requests is not None and _requests_so_far() >= max_network_requests:
+            budget_stop = "request_budget_exceeded"
+        if budget_stop:
+            outcomes.append(TickerFetchOutcome(tick, STATUS_SKIPPED_BUDGET, reason=budget_stop))
             continue
         try:
             sec, tk_client = _clients()
@@ -397,8 +431,13 @@ def fetch_guidance_events(
         "n_tickers_ok": sum(1 for o in outcomes if o.ok),
         "n_tickers_failed": sum(1 for o in outcomes if o.status in (STATUS_FAILED, STATUS_ABORTED)),
         "n_cache_hits": n_cache_hits,
-        "n_network_requests": int(getattr(sec_client, "request_count", 0) or 0) if clients_created else 0,
+        "n_tickers_skipped_budget": sum(1 for o in outcomes if o.status == STATUS_SKIPPED_BUDGET),
+        "n_network_requests": _requests_so_far(),
         "max_tickers": max_tickers,
+        "time_budget_seconds": time_budget_seconds,
+        "max_network_requests": max_network_requests,
+        "stopped_on_budget": budget_stop,
+        "elapsed_seconds": round(max(0.0, clock() - started), 3),
         "params": dict(params),
         "aborted_on_access_block": aborted,
         "note": "관측 전용. 주문 경로·DB·스케줄러와 연결되지 않는다. User-Agent 값은 기록하지 않는다.",

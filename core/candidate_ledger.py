@@ -2,8 +2,10 @@
 
 목적: 채택한 종목만이 아니라 보류·거절·결측 후보까지 같은 진입·청산·비용 계약으로 끝까지 추적해
 "채택이 보류/거절보다 비용 후 기대값을 실제로 높였는가"를 사후에 검증할 수 있는 반사실 원장을 쌓는다.
-이 모듈은 성과나 승률 개선을 주장하지 않는다. 주문 경로(core.paper_execution, scripts/champion_paper_trade.py)와
-스케줄러는 이 모듈을 호출하지 않는다(연결은 별도 단계). 설계 배경은 docs/CANDIDATE_LEDGER_SPEC.md 참고.
+이 모듈은 성과나 승률 개선을 주장하지 않는다. 주문 경로(core.paper_execution, scripts/champion_paper_trade.py)는
+이 모듈을 호출하지 않는다. 스케줄러는 관측 전용 야간 잡으로만 연결돼 있다 — candidate_ledger_record_job(00:27 KST,
+core.candidate_recorder 경유 기록), candidate_ledger_outcome_update_job(00:28, update_forward_outcomes),
+guidance_shadow_record_job(00:30, core.guidance_shadow 경유). 설계 배경은 docs/CANDIDATE_LEDGER_SPEC.md 참고.
 
 ## 사전 고정 계약 (코드 상수 = 사전 등록. 결과를 본 뒤 바꾸면 탐색 결과로만 취급한다)
 - 진입: decision_cutoff 이후 첫 미국 정규장 세션의 시가(Open). core.trade_ledger 의 "t 종가 이후 신호 -> t+1 시가 체결"

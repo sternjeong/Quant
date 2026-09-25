@@ -31,11 +31,17 @@ core.earnings_events(가이던스 추출)를 "관측 전용"으로 잇는다.
       core.candidate_ledger.compute_pit_status가 pit_certified=False를 매기고 decide_verdict가 그
       사실만으로 항상 '미입증'을 반환한다(원장 규칙을 우회하지 않는다).
     - 실제 SEC 조회(티커->CIK 매핑, 8-K 수집)는 이 모듈이 직접 하지 않는다. core/guidance_event_provider.py가
-      그 배선을 담당하며, record_guidance_shadow(fetch_events=True)로 **옵트인**할 때만 호출된다.
-      기본값(fetch_events=False)에서는 events_by_ticker를 주지 않으면 여전히 모든 후보가
-      basis_status='no_release'로 기록된다(기존 동작 불변).
-    - 스케줄 배선(scheduler/run_scheduler.py 등록)은 이번 작업 범위 밖이다. record_guidance_shadow(as_of,
-      session=None)만 호출 가능한 형태로 제공한다.
+      그 배선을 담당하며, record_guidance_shadow(fetch_events=True)일 때만 호출된다. 함수 기본값
+      (fetch_events=False)은 기존 동작 그대로(모든 후보 basis_status='no_release')이지만, **야간 잡
+      (scheduler/run_scheduler.py guidance_shadow_record_job, 00:30 KST)은 2026-09-25부터 fetch_events=True 로
+      NIGHTLY_* 상한(티커 수·소요 시간·SEC 요청 수)을 걸어 호출한다.**
+    - 분기(Q) 가이던스는 직전 같은 기간 가이던스가 조회 이력 안에 없으면 방향을 정할 수 없어 대부분
+      change='unknown'(no_previous_in_retrieved_history 등)으로 남는다. summarize_event_fetch()가 방향 판정
+      수와 unknown 수·unknown 사유를 따로 세어 결과에 드러낸다(숨기지 않는다).
+    - (2026-09-25) RES-02 연결: 가이던스 근거가 있는 후보 행에는 그 근거 8-K 의 event_id(core.info_dedup.
+      compute_event_id — accession 기준 결정적 ID)와 보도자료 content_hash 를 populate_info_fields 로 채운다.
+      같은 8-K 가 여러 날의 후보 행에 반복 등장해도 같은 event_id 라서 독립 근거로 중복 집계되지 않게 할 수 있다.
+    - 스케줄 배선: scheduler/run_scheduler.py 의 guidance_shadow_record_job(매일 00:30 KST)이 호출한다(관측 전용, 텔레그램 /processes 로 끌 수 있음).
 """
 
 from __future__ import annotations
@@ -62,6 +68,7 @@ from core.candidate_ledger import (
     record_candidate_set,
 )
 from core.earnings_events import GuidanceChange
+from core.info_dedup import compute_event_id, populate_info_fields
 
 # ---------------------------------------------------------------------------
 # 사전 고정 상수 (스펙 3·5절과 같은 값. 결과를 본 뒤 바꾸면 탐색 결과로만 취급한다)
@@ -86,6 +93,32 @@ COMPARISON_RAISED_ONLY = "raised_선호_단순규칙"
 COMPARISON_RANDOM_SAME_COUNT = "동일_채택수_무작위"
 COMPARISON_NAMES = (COMPARISON_ORIGINAL, COMPARISON_RAISED_ONLY, COMPARISON_RANDOM_SAME_COUNT)
 
+# 야간 잡(scheduler/run_scheduler.py guidance_shadow_record_job) 전용 SEC 조회 상한 (2026-09-25).
+#   - 티커 수: core.guidance_event_provider.DEFAULT_MAX_TICKERS(20)를 그대로 쓴다. 위성 채택 종목은 보통
+#     5개(SATELLITE_TOP_N)라 실제로는 5개 안팎만 조회된다.
+#   - SEC 요청 수: 티커 1개 콜드 캐시 = submissions 1 + 8-K 최대 6건 x (인덱스 + 보도자료) 2 = 13회.
+#     20티커 x 13 = 260 에 여유를 둔 300회. 8-K 문서는 영구 캐시, submissions 는 6시간 캐시라 캐시가
+#     데워진 뒤에는 티커당 하루 1~3회 수준이다. 티커 사이에서 검사하는 소프트 상한이다.
+#   - 소요 시간: 300초. 요청 간격 0.25초(초당 4회)면 300회도 약 75초라 정상 상황에선 닿지 않고,
+#     SEC 지연·재시도가 길어질 때 느린 전체 스캔으로 번지지 않게 끊는 용도다.
+NIGHTLY_MAX_TICKERS = 20
+NIGHTLY_MAX_SEC_REQUESTS = 300
+NIGHTLY_TIME_BUDGET_SECONDS = 300.0
+NIGHTLY_FETCH_KWARGS = {
+    "time_budget_seconds": NIGHTLY_TIME_BUDGET_SECONDS,
+    "max_network_requests": NIGHTLY_MAX_SEC_REQUESTS,
+}
+
+# 가이던스 방향이 정해진 변화 라벨(core.earnings_events.compare_guidance 의 unknown 이외 라벨).
+DIRECTIONAL_CHANGES = ("raised", "lowered", "maintained", "initiated", "withdrawn")
+# RES-02 event_id 입력(core.info_dedup.compute_event_id): 같은 8-K 는 항상 같은 4개 값으로 부른다.
+INFO_EVENT_SOURCE = "sec_edgar"
+GUIDANCE_EVENT_FORM = "8-K"
+KNOWN_UNKNOWN_LIMITATION = (
+    "분기(Q) 가이던스는 조회 이력 안에 직전 같은 기간 가이던스가 없으면 방향을 정할 수 없어 대부분 "
+    "unknown 으로 남는다(추측하지 않음). unknown 이 많은 것은 버그가 아니라 알려진 한계다."
+)
+
 
 # ---------------------------------------------------------------------------
 # 입력/출력 데이터 구조
@@ -106,6 +139,8 @@ class GuidanceObservation:
     change: GuidanceChange
     available_at: Optional[datetime]
     approximate: bool = True
+    # 이 관측이 나온 보도자료 원문 sha256(core.info_dedup.content_hash 규칙). 모르면 None(지어내지 않는다).
+    content_sha256: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -124,6 +159,10 @@ class GuidanceFeature:
     n_observations_in_window: int
     n_observations_total: int
     reason: str
+    # (2026-09-25, RES-02) latest 관측의 근거 문서 식별자. scores 에는 넣지 않고 CandidateRecord info_* 로만 쓴다.
+    latest_accession: Optional[str] = None
+    latest_source_url: Optional[str] = None
+    latest_content_sha256: Optional[str] = None
 
 
 def _lookback_start(
@@ -174,7 +213,7 @@ def compute_guidance_feature(
                                "decision_cutoff_missing")
 
     start = _lookback_start(cutoff, lookback_trading_days, trading_days)
-    in_window: list[tuple[datetime, GuidanceChange]] = []
+    in_window: list[tuple[datetime, GuidanceChange, GuidanceObservation]] = []
     for obs in observations:
         if str(obs.ticker).strip().upper() != tick:
             continue
@@ -185,32 +224,37 @@ def compute_guidance_feature(
         avail = normalize_time(obs.available_at)
         if avail is None or avail > cutoff or avail < start:
             continue
-        in_window.append((avail, change))
+        in_window.append((avail, change, obs))
     in_window.sort(key=lambda t: t[0])
 
     if not in_window:
         return GuidanceFeature(tick, cutoff, start, BASIS_NO_RELEASE, False, None, None, None, (), 0, n_total,
                                "no_guidance_release_in_window")
 
-    labels = [chg.change for _, chg in in_window]
-    metrics_seen = tuple(sorted({chg.current.metric for _, chg in in_window}))
+    labels = [chg.change for _, chg, _o in in_window]
+    metrics_seen = tuple(sorted({chg.current.metric for _, chg, _o in in_window}))
     has_lower = any(lbl in ("lowered", "withdrawn") for lbl in labels)
     has_raise = any(lbl == "raised" for lbl in labels)
     all_unknown = all(lbl == "unknown" for lbl in labels)
 
-    latest_avail, latest_change_obj = in_window[-1]
+    latest_avail, latest_change_obj, latest_obs = in_window[-1]
     latest_label = latest_change_obj.change
     mag = latest_change_obj.mid_change_pct
     latest_mag = None if mag is None else float(mag)
+    doc = {
+        "latest_accession": getattr(latest_change_obj.current, "accession", None) or None,
+        "latest_source_url": getattr(latest_change_obj.current, "source_url", None) or None,
+        "latest_content_sha256": latest_obs.content_sha256,
+    }
 
     if all_unknown:
         return GuidanceFeature(tick, cutoff, start, BASIS_UNKNOWN, False, latest_label, latest_mag, latest_avail,
-                               metrics_seen, len(in_window), n_total, "all_observations_unknown_in_window")
+                               metrics_seen, len(in_window), n_total, "all_observations_unknown_in_window", **doc)
 
     veto = bool(has_lower and not has_raise)
     reason = "lowered_or_withdrawn_without_raise" if veto else "no_veto_condition"
     return GuidanceFeature(tick, cutoff, start, BASIS_CLEAR, veto, latest_label, latest_mag, latest_avail,
-                           metrics_seen, len(in_window), n_total, reason)
+                           metrics_seen, len(in_window), n_total, reason, **doc)
 
 
 def guidance_feature_to_scores(feature: GuidanceFeature) -> dict:
@@ -277,7 +321,7 @@ def build_guidance_shadow_candidate_set(
         if feature.veto_flag:
             n_veto += 1
         scores = {**(r.scores or {}), **guidance_feature_to_scores(feature)}
-        records.append(CandidateRecord(
+        record_kwargs = dict(
             ticker=r.ticker,
             decision=r.decision,  # 원전략 결정 그대로 — 이 함수는 절대 바꾸지 않는다
             decision_reason=r.decision_reason,
@@ -287,7 +331,8 @@ def build_guidance_shadow_candidate_set(
             sector_etf=r.sector_etf,
             source_publication=feature.latest_available_at,  # 아는 값만(system_first_seen 등은 비움)
             decision_cutoff=cutoff,
-        ))
+        )
+        records.append(CandidateRecord(**guidance_info_kwargs(record_kwargs, r.ticker, feature)))
 
     meta = {
         "adapter": "guidance_shadow",
@@ -305,6 +350,93 @@ def build_guidance_shadow_candidate_set(
         ),
     }
     return FrozenCandidateSet(source, shadow_strategy_version, cutoff, records, meta)
+
+
+def guidance_info_kwargs(record_kwargs: dict, ticker: str, feature: GuidanceFeature) -> dict:
+    """RES-02(core.info_dedup) 연결: 가이던스 근거 8-K 가 있으면 event_id·content_hash·info_url·info_doc_id 를
+    CandidateRecord kwargs 에 채운다. 근거가 없으면(no_release, accession 모름) 아무것도 채우지 않는다 —
+    식별자를 지어내지 않는다. event_id 는 (sec_edgar, accession, ticker, 8-K) 로만 정해지므로 같은 8-K 는
+    어느 날·어느 후보 행에 기록되든 같은 값이다."""
+    accession = feature.latest_accession
+    if not accession:
+        return dict(record_kwargs)
+    return populate_info_fields(
+        record_kwargs,
+        event_id=compute_event_id(INFO_EVENT_SOURCE, accession, ticker, GUIDANCE_EVENT_FORM),
+        content_hash=feature.latest_content_sha256,
+        info_url=feature.latest_source_url,
+        info_doc_id=accession,
+    )
+
+
+def summarize_event_fetch(
+    fetch_meta: Optional[dict],
+    fetch_failures: Optional[Mapping[str, str]],
+    events_by_ticker: Optional[Mapping[str, Sequence[GuidanceObservation]]],
+    cset: Optional[FrozenCandidateSet] = None,
+) -> dict:
+    """야간 SEC 조회 결과를 사람이 읽을 요약으로 만든다(순수 함수). 방향 판정 수와 unknown 수를 따로 세고
+    unknown 사유별 개수를 남겨, '대부분 unknown' 이라는 알려진 한계가 결과에서 그대로 보이게 한다."""
+    meta = dict(fetch_meta or {})
+    all_obs = [o for obs in (events_by_ticker or {}).values() for o in (obs or ())]
+    n_directional = sum(1 for o in all_obs if o.change.change in DIRECTIONAL_CHANGES)
+    n_unknown = sum(1 for o in all_obs if o.change.change == "unknown")
+    unknown_reasons: dict = {}
+    by_change: dict = {}
+    for o in all_obs:
+        by_change[o.change.change] = by_change.get(o.change.change, 0) + 1
+        if o.change.change == "unknown":
+            key = str(o.change.reason or "unspecified").split(":", 1)[0]
+            unknown_reasons[key] = unknown_reasons.get(key, 0) + 1
+    basis_counts = {status: 0 for status in BASIS_STATUSES}
+    if cset is not None:
+        for r in cset.records:
+            status = (r.scores or {}).get("guidance_basis_status")
+            if status in basis_counts:
+                basis_counts[status] += 1
+    return {
+        "n_tickers_requested": meta.get("n_tickers_requested"),
+        "n_tickers_queried": meta.get("n_tickers_queried"),
+        "n_tickers_failed": meta.get("n_tickers_failed", len(fetch_failures or {})),
+        "n_tickers_skipped_budget": meta.get("n_tickers_skipped_budget", 0),
+        "n_cache_hits": meta.get("n_cache_hits"),
+        "n_observations": len(all_obs),
+        "n_observations_directional": n_directional,
+        "n_observations_unknown": n_unknown,
+        "observations_by_change": by_change,
+        "unknown_reason_counts": unknown_reasons,
+        "candidate_basis_counts": basis_counts,
+        "n_sec_requests": meta.get("n_network_requests", 0),
+        "sec_request_cap": meta.get("max_network_requests"),
+        "time_budget_seconds": meta.get("time_budget_seconds"),
+        "elapsed_seconds": meta.get("elapsed_seconds"),
+        "max_tickers": meta.get("max_tickers"),
+        "stopped_on_budget": meta.get("stopped_on_budget"),
+        "aborted_on_access_block": bool(meta.get("aborted_on_access_block")),
+        "fetch_error": meta.get("error"),
+        "known_limitation": KNOWN_UNKNOWN_LIMITATION,
+    }
+
+
+def format_event_fetch_summary(summary: Optional[dict]) -> str:
+    """summarize_event_fetch() 결과를 잡 로그 한 줄로. 민감값(User-Agent 등)은 담지 않는다."""
+    if not summary:
+        return "SEC 조회 요약 없음(조회하지 않음)"
+    line = ", ".join([
+        f"조회 티커 {summary.get('n_tickers_queried')}/{summary.get('n_tickers_requested')}",
+        f"실패 {summary.get('n_tickers_failed')}",
+        f"상한 초과로 건너뜀 {summary.get('n_tickers_skipped_budget')}",
+        f"관측 {summary.get('n_observations')}건(방향 판정 {summary.get('n_observations_directional')} / "
+        f"unknown {summary.get('n_observations_unknown')})",
+        f"SEC 요청 {summary.get('n_sec_requests')}/{summary.get('sec_request_cap')}회",
+    ])
+    if summary.get("aborted_on_access_block"):
+        line += " — SEC 접근 차단(403 등)으로 즉시 중단"
+    if summary.get("stopped_on_budget"):
+        line += f" — 상한 도달로 중단({summary.get('stopped_on_budget')})"
+    if summary.get("fetch_error"):
+        line += f" — 조회 오류({summary.get('fetch_error')})"
+    return line
 
 
 def _cutoff_for(as_of: date) -> datetime:
@@ -326,6 +458,7 @@ def record_guidance_shadow(
     fetch_events: bool = False,
     max_tickers: int = 20,
     event_fetcher=None,
+    fetch_kwargs: Optional[dict] = None,
 ) -> dict:
     """RES-04 개별주 위성 shadow 기록의 단일 진입점.
 
@@ -337,8 +470,11 @@ def record_guidance_shadow(
       fetch_events=True로 옵트인한다: 그때만 core.guidance_event_provider.fetch_guidance_events가 후보
       티커(최대 max_tickers개, 기본 20)에 대해 티커->CIK->8-K Item 2.02->가이던스 추출을 수행하고, 하루
       단위 캐시·초당 5회 제한·티커별 실패 격리를 그 모듈이 담당한다. events_by_ticker를 직접 주면
-      fetch_events는 무시한다(주입값이 우선).
-    - 스케줄러(scheduler/run_scheduler.py) 등록은 이 함수의 책임이 아니다 — 다음 세션이 별도로 배선한다.
+      fetch_events는 무시한다(주입값이 우선). fetch_kwargs 는 fetcher 에 그대로 넘긴다(야간 잡은
+      NIGHTLY_FETCH_KWARGS 로 소요 시간·SEC 요청 수 상한을 준다).
+    - SEC 조회 자체가 예외로 실패해도 기록은 계속한다 — 그 경우 모든 후보가 no_release 로 기록되고 사유는
+      event_fetch_summary.fetch_error 에 남는다(잡이 죽지 않는다).
+    - 야간 잡(scheduler/run_scheduler.py guidance_shadow_record_job)이 fetch_events=True 로 호출한다.
     - 주문 경로(core.paper_execution, scripts/champion_paper_trade.py)는 import도 호출도 하지 않는다.
     - 같은 날 재실행은 멱등이다(candidate_set_id가 이미 있으면 record_candidate_set이 아무것도 바꾸지 않는다).
 
@@ -363,10 +499,20 @@ def record_guidance_shadow(
                 from core.guidance_event_provider import fetch_guidance_events as fetcher  # noqa: N813
             probe = champion_satellite_to_candidate_set(
                 satellite_result, strategy_version=base_version, decision_cutoff=_cutoff_for(as_of_date))
-            fetched = fetcher([r.ticker for r in probe.records], as_of=as_of_date, max_tickers=max_tickers)
-            events = fetched.events_by_ticker
-            fetch_meta = fetched.meta
-            fetch_failures = fetched.failures
+            try:
+                fetched = fetcher([r.ticker for r in probe.records], as_of=as_of_date, max_tickers=max_tickers,
+                                  **(fetch_kwargs or {}))
+                events = fetched.events_by_ticker
+                fetch_meta = dict(fetched.meta)
+                fetch_failures = fetched.failures
+            except Exception as exc:  # noqa: BLE001 - 조회 실패가 기록 자체를 막지 않는다(no_release 로 기록)
+                events = {}
+                fetch_meta = {"error": f"{type(exc).__name__}: {exc}", "n_tickers_requested": len(probe.records),
+                              "n_tickers_queried": 0, "n_tickers_failed": len(probe.records),
+                              "n_network_requests": None, "max_tickers": max_tickers,
+                              **{k: v for k, v in (fetch_kwargs or {}).items()
+                                 if k in ("time_budget_seconds", "max_network_requests")}}
+                fetch_failures = {r.ticker: "fetch_error" for r in probe.records}
         cset = build_guidance_shadow_candidate_set(
             satellite_result, base_strategy_version=base_version, decision_cutoff=_cutoff_for(as_of_date),
             events_by_ticker=events, lookback_trading_days=lookback_trading_days, trading_days=trading_days)
@@ -382,6 +528,7 @@ def record_guidance_shadow(
         result["event_fetch_meta"] = fetch_meta
         result["event_fetch_failures"] = fetch_failures
         result["n_event_fetch_failures"] = len(fetch_failures)
+        result["event_fetch_summary"] = summarize_event_fetch(fetch_meta, fetch_failures, events, cset)
     result["ok"] = True
     return result
 

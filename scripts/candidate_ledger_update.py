@@ -3,7 +3,8 @@
 
 - core.candidate_ledger.update_forward_outcomes(as_of) 를 실행한다(가격은 core.market_data 캐시 정책 사용).
 - 이어서 채택 vs 보류/거절 요약(주 horizon 20거래일 1개 + 진단 horizon)을 출력한다. --no-report 로 생략.
-- 관측 전용이다. 주문 경로를 호출하지 않으며 스케줄러에도 등록돼 있지 않다(등록은 별도 결정).
+- 관측 전용이다. 주문 경로를 호출하지 않는다. 같은 update_forward_outcomes() 는 스케줄러의
+  candidate_ledger_outcome_update_job(매일 00:28 KST)이 매일 돌리므로, 이 스크립트는 수동 재실행·요약 확인용이다.
 - 출력 수치는 성과·승률 개선의 증거가 아니다. '미입증'이 기본 판정이다(자세한 규칙: docs/CANDIDATE_LEDGER_SPEC.md).
 
 사용 예:

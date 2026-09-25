@@ -1,6 +1,6 @@
 # 세션 인계
 
-최종 갱신: 2026-09-24 (Alpaca paper 계정 활용 4종 + 거장 자동 추적 반영)
+최종 갱신: 2026-09-25 (관제 센터 사용 설명서 + 설명서 작성 중 발견한 결함 5건 수정)
 
 ## 최신 상태 요약
 
@@ -44,6 +44,22 @@
 - 리포트 슬롯 3개(오늘의 브리핑·챔피언 주간·뉴스 다이제스트) + 최신 파일 시각 배지.
 - 문서: DEPLOYMENT_ORACLE 13·14번, nginx-quant.conf(참고용 표시), PENDING 4번 갱신.
 - 검증: hub 테스트 24건, 로컬 렌더링 확인. 이 Codespace 에는 systemd·백업이 없어 타이머/백업은 "확인 불가"로만 확인 — **VM 실화면 미확인**. 백업 status.json 경로 기본값 `/opt/quant-backup/status.json`은 backup_vm.py 기본 디렉터리 기준 추정.
+
+## 2026-09-25 관제 센터 사용 설명서 + 발견 결함 5건 수정
+
+관제 센터 `/guide`에 사용 설명서를 만들었다(`hub/guide/`). 화면·자동 잡 표·최근 변경·배포 버전은 코드에서 자동으로 읽고, 사람이 쓴 설명은 근거 파일과 확인일을 갖는다. 새 화면·잡·core 모듈·스크립트에 설명이 없으면 `tests/test_hub_guide.py`가 실패해 자동배포가 막힌다(`python -m hub.guide.check`로 목록 확인, 규칙은 `AGENTS.md`). 설명서를 쓰려고 코드를 대조하다 찾은 결함을 사용자 지시("전부 다 진행")로 고쳤다.
+
+| 결함 | 수정 | 검증 |
+|---|---|---|
+| 관심종목 자동 스캔·Threads 주간 알림이 데스크톱 알림뿐이라 폰으로 안 옴 | 충족 종목이 있으면 텔레그램 요약 1건(0건이면 안 보냄, 같은 종목·전략·기준일은 1회, 실패 시 다음 실행에 재시도). Threads 완료도 1건 | 단위 테스트. VM 실전송 미확인 |
+| 텔레그램 `/processes`가 27개 잡 중 15개만 제어 | runner가 `core/process_registry.py`를 ast로 읽어(import 없이) 전체 잡을 보여 줌. 목록 불일치는 `tests/test_telegram_process_catalog_sync.py`가 막음. `paper_auto_trade`는 켤 때 2단계 확인, 기본 꺼짐 유지. `/experiment`와 `deploy/checkpoint_notify.py` 삭제 | runner unittest·동기화 테스트. 실제 텔레그램 화면 미확인 |
+| 시장 국면이 일부 신호 결측을 0점으로 합산해 중립 쪽으로 쏠림 | 시장폭 필수 + 가중치 coverage 0.75 미만이면 unknown, 이상이면 재정규화하고 `partial`·`missing_signals` 표시. 모든 신호가 있을 때 판정은 이전과 동일(96개 조합 대조) | 단위 테스트. 과거 스냅샷은 새 필드 없음 |
+| 가이던스 야간 잡이 SEC 조회를 끈 채 돌아 데이터가 안 쌓임 / 가격 교차 대조를 켜는 곳이 없음 / info_dedup 호출처 없음 | 야간 잡 `fetch_events=True`(종목 20·요청 300·300초 상한, 403 즉시 중단). 무결성 점검이 Alpaca 키가 있을 때 최대 10종목 교차 대조, 큰 불일치·분할 의심만 같은 건 1회 알림. 가이던스·공시 shadow 행에 event_id·원문 해시 기록 | mock 테스트. 실제 SEC·Alpaca 호출 미확인 |
+| 삭제된 기능을 가리키는 화면 문구·주석 | 12개 파일 문구만 수정(동작 불변). 챔피언 화면 unknown 부제는 스냅샷의 실제 사유를 표시 | 전체 테스트·화면 띄워 확인 |
+
+- **의도적 미연결:** `core/alpaca_price_provider.py`는 후보 원장 가격으로 연결하지 않았다. 실행마다 가격 기준(yfinance/Alpaca IEX)이 섞이고 시가 차이를 검사하지 않기 때문이다. 교차 대조로 두 소스 차이를 먼저 관측한다.
+- **VM에서 새로 생기는 외부 요청:** SEC 하룻밤 최대 300회(보통 종목당 1~3회), Alpaca 시세 최대 10회. VM에 `SEC_EDGAR_USER_AGENT`가 없으면 SEC가 403으로 막을 수 있고, 그러면 가이던스 기록이 매일 '발표 없음'이 된다(잡 로그에 표시).
+- **검증:** 통합 결과 `pytest tests` 1917 passed, `deploy/codex_telegram` unittest OK, `hub.guide.check` 누락 없음. 운용 알림·시장 진단·챔피언 전략 화면과 설명서(폰 크기)를 실제로 띄워 오류 없음 확인.
 
 ## 2026-09-25 Alpaca 로드맵 P0~P3 구축 (구현·mock 테스트, 실 API 0회)
 
@@ -276,6 +292,15 @@
 - **ENG-02:** 부분 결측 coverage 임계값 정책, 과거 저장 스냅샷에 unknown 필드 없음.
 - **협업 방식:** 병렬 에이전트 두 곳이 `git stash`를 써 다른 작업이 잠시 되돌려졌다. 다음 병렬 작업은 미커밋 변경을 먼저 브랜치 또는 커밋으로 보존한 뒤 에이전트별 worktree와 통합 담당자를 쓴다. 전체 테스트 통과만으로 모든 변경의 복원을 증명할 수 없다.
 
+## 2026-09-25 ENG-02 후속: 시장 국면 부분 결측 정책 (브랜치 fix-regime-partial, 미병합·미배포)
+
+- **결정:** 결측 신호를 0점으로 합산하지 않는다. 가중치(각 신호 최대 절대점수 25, 4개 동일) 기준 coverage가 `MIN_REGIME_SIGNAL_COVERAGE=0.75` 미만이거나 시장폭이 없으면 `unknown`, 그 외 결측이 있으면 가용 점수 합/coverage로 재정규화해 판정하고 `partial=True`, `missing_signals`로 표시한다.
+- **근거:** 전체 데이터에서도 신호 1개(25점)로는 ±35를 못 넘는다(최소 2개 신호 합의 필요). 재정규화 후 이 불변식이 유지되려면 25/c<35, c>0.714 → 가능한 값 중 최소 0.75. 시장폭은 나머지 3개(모두 같은 벤치마크 종가에서 파생)와 독립된 유일한 데이터라 필수로 유지(기존 ENG-02 테스트 그대로).
+- **실제 영향:** 200일선·크로스는 같은 조건(이력 200거래일)으로 함께 빠지므로, 벤치마크 이력 부족 시 예전엔 낙폭+시장폭 합으로 '중립/혼조'가 나오던 것이 이제 `unknown`이다. 모든 신호가 있을 때 점수·국면은 불변(구 로직 재현 96개 조합 대조).
+- **변경:** `core/market_regime.py`(`combine_regime_signals`, `signal_status`/`coverage`/`raw_total_score`/`regime_reason` 저장, `select_regime_for_trading`은 partial이면 `is_ambiguous=True`, unknown 사유 전달), `app/pages/7_시장_진단.py`(unknown 사유·일부 신호 결측 경고만 추가), `hub/guide/content_pages_b.py`·`content_modules_b.py`·`content_ops.py`, `tests/test_market_regime.py`.
+- **검증:** 전체 pytest 통과, `python -m hub.guide.check` 빠진 설명 없음. Streamlit 렌더링·실데이터 스냅샷은 확인하지 않았다. 과거 저장 스냅샷은 수정하지 않았다(새 필드 없음, 읽는 쪽은 `.get()`).
+- **후속:** `app/pages/11_챔피언_전략.py`의 unknown 부제 '시장폭 데이터 없음'은 고정 문구라 새 사유(coverage 미달)와 다를 수 있다(당시 다른 세션 담당이라 미수정). 오늘 화면은 partial을 따로 표시하지 않는다.
+
 ## 연속성 한계
 
 이 문서 체계는 저장소를 이용하는 에이전트가 결정 중심 요약을 이어 읽도록 돕는다. 모든 대화 원문이나 외부 세션의 상태를 자동 보존한다는 보장은 없다.
@@ -311,5 +336,5 @@
 1. 사람: 비공개 백업 저장소 생성 + 배포 키 등록 + `/opt/quant-backup/remote` 설정(절차는 `DEPLOYMENT_ORACLE.md` 15번). 그 전까지 백업은 같은 디스크에만 있다.
 2. 사람: Oracle 콘솔 8501/8080 Ingress 규칙 삭제(사용자가 완료했다고 알림, 밖에서 확인 불가), 공인 IP가 Reserved인지 확인.
 3. 사람: 재부팅 시점 결정(커널 보안 업데이트가 2026-08-24부터 대기). 콘솔 접근이 가능할 때, 서비스·방화벽·주소 점검까지 같이.
-4. 사람: 2주 실험 재개 조건 결정 — PIT 구성종목/섹터 데이터를 구하거나, 가진 데이터 범위로 실험을 재정의(현재 paused, 재개는 텔레그램 `/experiment resume`).
+4. 사람: 2주 실험 재개 조건 결정 — PIT 구성종목/섹터 데이터를 구하거나, 가진 데이터 범위로 실험을 재정의(2026-09-25 감독기와 `/experiment` 명령을 삭제했다 — 재개하려면 `docs/prune/PRUNE_E.md`의 복구 절차부터).
 5. 제안(미구현): 비밀의 **암호화 백업**(사용자가 기억할 passphrase 필요), 공인 IP가 Ephemeral일 때 DuckDNS 자동 갱신.

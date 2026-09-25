@@ -676,17 +676,18 @@ def check_price_crosscheck(
             continue
 
         if summary.get(VERDICT_MAJOR):
-            worst = max(
-                (d for d in result.get("days", []) if d["verdict"] == VERDICT_MAJOR),
-                key=lambda d: abs(d.get("diff_bp") or 0.0),
-            )
-            findings.append(_crosscheck_finding(
+            major_days = [d for d in result.get("days", []) if d["verdict"] == VERDICT_MAJOR]
+            worst = max(major_days, key=lambda d: abs(d.get("diff_bp") or 0.0))
+            finding = _crosscheck_finding(
                 "price_crosscheck_major_diff", "warning",
                 (f"{symbol}: 종가 큰 불일치 {summary[VERDICT_MAJOR]}일 "
                  f"(최대 {worst['date']} {worst.get('diff_bp')}bp). 어느 소스가 옳은지는 미판정 — "
                  "IEX/SIP 피드 차이 가능성 포함."),
                 symbol,
-            ))
+            )
+            # (2026-09-25) 반복 알림 억제용 구조화 필드: 불일치 거래일 목록(core.data_integrity 가 (종목, 날짜)로 중복 판단).
+            finding["dates"] = sorted({str(d["date"]) for d in major_days if d.get("date")})
+            findings.append(finding)
         if summary.get(VERDICT_MISSING_YFINANCE):
             findings.append(_crosscheck_finding(
                 "price_crosscheck_missing_in_yfinance", "warning",
@@ -707,12 +708,14 @@ def check_price_crosscheck(
                 symbol,
             ))
         for suspect in result.get("split_suspects") or []:
-            findings.append(_crosscheck_finding(
+            finding = _crosscheck_finding(
                 "price_crosscheck_split_suspect", "warning",
                 (f"{symbol}: {suspect['date']} 분할 조정 의심 — {suspect['jump_side']} 쪽만 "
                  f"하루 {suspect['yfinance_return'] if suspect['jump_side'] == 'yfinance' else suspect['alpaca_return']:+.1%} 변동."),
                 symbol,
-            ))
+            )
+            finding["dates"] = [str(suspect["date"])]
+            findings.append(finding)
 
     if not findings:
         findings.append(_crosscheck_finding(

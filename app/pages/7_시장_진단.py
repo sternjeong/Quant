@@ -61,6 +61,7 @@ from core.macro_cycle import (
 )
 from core.market_data import get_price_history
 from core.market_regime import (
+    REGIME_SIGNAL_LABELS,
     get_advisory_risk_signals,
     get_latest_market_regime_snapshot,
     get_market_regime_snapshot,
@@ -465,9 +466,24 @@ def _render_regime_strength() -> None:
             elif regime == "약세장":
                 st.error(f"🐻 **{regime}**  (종합 점수 {score:+.0f}점)")
             elif regime == "unknown":
-                st.warning("❓ **판단 불가(unknown)** — 시장폭 데이터가 없어 국면을 확정하지 않았습니다.")
+                st.warning(
+                    "❓ **판단 불가(unknown)** — "
+                    + (
+                        f"국면을 확정하지 않았습니다. 사유: {snapshot['regime_reason']}"
+                        if snapshot.get("regime_reason")
+                        else "시장폭 데이터가 없어 국면을 확정하지 않았습니다."
+                    )
+                )
             else:
                 st.info(f"😐 **{regime}**  (종합 점수 {score:+.0f}점)")
+            if regime != "unknown" and snapshot.get("partial"):
+                missing_names = ", ".join(
+                    REGIME_SIGNAL_LABELS.get(n, n) for n in snapshot.get("missing_signals", [])
+                )
+                st.warning(
+                    f"⚠️ 일부 신호 결측: {missing_names} — 남은 신호로 판정했습니다 "
+                    f"(가용 가중치 {snapshot.get('coverage', 0):.0%}로 재정규화한 점수)."
+                )
 
             tp, mc, dd, br = (
                 snapshot["trend_position"], snapshot["ma_cross"], snapshot["drawdown"], snapshot["breadth"],

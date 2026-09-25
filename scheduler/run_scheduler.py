@@ -1,7 +1,6 @@
 """독립 실행 스케줄러: 매일 미국 장마감 후 관심 종목 50개를 스캔해 타점 알림을 보내고,
 매주 일요일 저녁에는 Threads 추적 티커별 주간 AI 인사이트 리포트를 생성하고,
 매일 한국시간 00:00에는 시장 국면/섹터 강도 스냅샷을 미리 계산해두고,
-00:05~04:00에는 #3 전략을 서버가 허락하는 만큼 반복 미세튜닝하며,
 00:10에는 챔피언 전략(코어/새틀라이트) 신호 변경을 텔레그램으로 알리고,
 00:11에는 챔피언 전략 보유종목 상관관계 스냅샷을 저장하고,
 00:12에는 챔피언 전략 페이퍼 트레이딩 원장에 오늘자 실현 수익률을 기록하고,
@@ -15,6 +14,11 @@
 데이터무결성)의 결과를 모아 "오늘의 브리핑" 한 장짜리 HTML로 텔레그램 전송하고(daily_briefing_job,
 core.daily_briefing 참고 — 다른 야간 잡들이 그날의 데이터를 다 갱신한 뒤 마지막에 요약하도록 배치),
 매주 일요일 20:20(America/New_York)에는 챔피언 전략 주간 HTML 보고를 텔레그램으로 전송한다.
+그 밖에 00:27~00:46 관측 전용 잡(후보 원장 기록/결과 갱신, 가이던스·공시 거부권 shadow, 계좌 스냅샷,
+Alpaca 검증, 비용 보정, 변형 shadow, paper 추적오차), 12:00 거장 보유종목 동기화, 07:30 뉴스 다이제스트,
+화~토 06:10 paper 자동 주문(기본 꺼짐), 일요일 00:50 전략 변형 연구 보고서가 있다. 등록된 잡 전체의 정확한
+표는 core/job_schedule.py 이다(tests/test_job_health.py 가 main()과 일치하는지 검증). 야간 전략 미세튜닝
+잡은 2026-09-24 에 삭제됐다.
 
 Streamlit 앱과 완전히 별도의 프로세스로 실행된다 (브라우저를 안 열어도 동작해야 하므로).
 
@@ -30,11 +34,15 @@ Streamlit 앱과 완전히 별도의 프로세스로 실행된다 (브라우저�
       충족 시 alerts_log 에 기록 + 데스크톱 알림을 보낸다.
       (Streamlit 페이지 app/pages/3_관심종목_모니터링.py 의 "지금 스캔 실행" 버튼도
        동일한 core.watchlist.scan_watchlist() 를 호출하므로 로직이 완전히 일치한다.)
+      서버에는 화면이 없어 데스크톱 알림은 콘솔 출력으로 대체되므로, 잡은 이어서
+      core.watchlist.send_triggered_summary_telegram() 으로 충족 종목을 텔레그램 요약 1건으로
+      보낸다(충족 0건이면 안 보냄, 같은 종목·전략·기준일은 한 번만).
     - 매주 일요일 20:00 (America/New_York, 월요일 개장 전)에 threads_weekly_report_job() 을
       실행한다. core.threads_summary.list_tracked_tickers() 로 추적 중인 모든 티커를 찾아
       각각 core.threads_summary.generate_weekly_report() (모듈 B 공용 로직, 최근 7일)를
       호출하고 결과를 저장한다. (Streamlit 페이지 app/pages/2_Threads_요약.py 의
       "🧠 리포트 생성" 버튼도 동일한 함수를 호출하므로 로직이 완전히 일치한다.)
+      완료 알림은 데스크톱 알림과 함께 텔레그램으로도 1건 보낸다.
     - 매일 한국시간(Asia/Seoul) 00:00에 market_snapshot_job() 을 실행한다.
       core.market_regime.get_market_regime_snapshot() (S&P500 전종목 순회) 과
       core.sector_strength.compute_theme_strength() (테마 프록시 ETF 다수 순회)는 둘 다 무거운
@@ -86,8 +94,8 @@ Streamlit 앱과 완전히 별도의 프로세스로 실행된다 (브라우저�
       조합에는 한 번만 알린다(dedupe, champion_rebalance_reminder_job과 동일 원칙).
     - 매주 일요일 20:20(America/New_York)에 champion_weekly_report_job() 을 실행한다(2026-09-18
       추가). core.champion_strategy.send_weekly_report() 가 코어/새틀라이트 현황과 최근 상관관계를
-      담은 HTML을 만들어 core.telegram_notify.send_document로 전송한다 — deploy/experiment_supervisor.py의
-      "정기 HTML 보고서" 패턴과 같은 발상이다. threads_weekly_report_job(같은 요일 20:00)과 겹치지
+      담은 HTML을 만들어 core.telegram_notify.send_document로 전송한다 — (2026-09-25 삭제된) 2주 실험 감독기
+      deploy/experiment_supervisor.py가 쓰던 "정기 HTML 보고서" 패턴과 같은 발상이다. threads_weekly_report_job(같은 요일 20:00)과 겹치지
       않도록 20분 뒤로 offset했다.
     - 매일 한국시간(Asia/Seoul) 00:18에 champion_alpha_decay_job() 을 실행한다(2026-09-19 추가).
       core.champion_strategy.check_and_notify_champion_alpha_decay() 가 챔피언 전략(코어+새틀라이트)
@@ -174,8 +182,8 @@ from core.screener import get_universe
 from core.sector_strength import compute_theme_strength, save_theme_strength_snapshot
 from core.threads_summary import generate_weekly_report, list_tracked_tickers, save_weekly_report
 from core.news_digest import render_daily_telegram_summary, run_news_pipeline, write_daily_html_report
-from core.telegram_notify import send_document, send_message
-from core.watchlist import scan_watchlist
+from core.telegram_notify import is_configured as is_telegram_configured, send_document, send_message
+from core.watchlist import scan_watchlist, send_triggered_summary_telegram
 
 
 def watchlist_scan_job() -> None:
@@ -195,6 +203,20 @@ def watchlist_scan_job() -> None:
     else:
         for r in results:
             print(f"  - {r.message}")
+
+    # 서버(VM)에는 화면이 없어 데스크톱 알림은 콘솔 출력으로만 대체된다 → 충족 종목은 텔레그램 요약 1건으로도 보낸다
+    # (충족 0건이면 보내지 않음, 같은 종목·전략·기준일은 한 번만). alerts_log 기록은 scan_watchlist 가 이미 끝냈다.
+    try:
+        tg = send_triggered_summary_telegram(results)
+    except Exception as exc:  # noqa: BLE001 — 알림은 부가 기능이라 잡을 죽이면 안 된다
+        tg = {"status": "failed", "count": 0}
+        print(f"  - 텔레그램 요약 준비 중 오류: {exc}")
+    if tg["status"] == "sent":
+        print(f"  - 텔레그램 요약 전송 ({tg['count']}건)")
+    elif tg["status"] == "not_configured":
+        print(f"  - 충족 {tg['count']}건이 있으나 텔레그램 설정이 없어 전송 생략")
+    elif tg["status"] == "failed":
+        report_job_failure("daily_watchlist_scan", f"관심종목 충족 {tg['count']}건 텔레그램 요약 전송 실패")
 
     print(f"[{datetime.now()}] watchlist_scan_job 종료")
 
@@ -228,10 +250,16 @@ def threads_weekly_report_job() -> None:
         generated += 1
         print(f"  - {ticker}: 글 {result['post_count']}건으로 리포트 생성")
 
-    send_desktop_notification(
-        "주간 Threads 인사이트 리포트 생성 완료",
-        f"추적 중인 {len(tickers)}개 티커 중 {generated}개에 대해 리포트를 생성했습니다.",
-    )
+    done_title = "주간 Threads 인사이트 리포트 생성 완료"
+    done_message = f"추적 중인 {len(tickers)}개 티커 중 {generated}개에 대해 리포트를 생성했습니다."
+    send_desktop_notification(done_title, done_message)
+    # 서버에는 화면이 없으므로 완료 알림을 텔레그램으로도 1건 보낸다(이 잡은 리포트 파일을 텔레그램으로 보내지 않아 중복 없음).
+    try:
+        sent = send_message(f"📝 {done_title}\n{done_message}\n내용은 화면 'Threads 요약'에서 확인하세요.")
+    except Exception:  # noqa: BLE001
+        sent = False
+    if not sent and is_telegram_configured():
+        report_job_failure("weekly_threads_report", "Threads 주간 리포트 완료 알림 텔레그램 전송 실패")
     print(f"[{datetime.now()}] threads_weekly_report_job 종료 (총 {generated}개 리포트 생성)")
 
 
@@ -484,15 +512,42 @@ def data_integrity_check_job() -> None:
     if not is_enabled("data_integrity_check"):
         print(f"[{datetime.now()}] data_integrity_check_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
         return
-    from core.data_integrity import format_anomaly_telegram_message, run_integrity_checks
+    from core.data_integrity import (
+        CROSSCHECK_NIGHTLY_MAX_SYMBOLS,
+        crosscheck_priority_tickers,
+        format_anomaly_telegram_message,
+        mark_crosscheck_alerted,
+        price_crosscheck_enabled,
+        route_crosscheck_anomalies,
+        run_integrity_checks,
+    )
 
     print(f"[{datetime.now()}] data_integrity_check_job 시작")
-    result = run_integrity_checks()
+    # 2026-09-25: Alpaca 키가 있을 때만 가격 교차 대조(core.price_crosscheck)를 켠다. 키가 없으면(Codespace)
+    # 예전과 똑같이 인자 없이 호출한다. 대상은 챔피언 코어·위성 보유+SPY 중 최대 N개.
+    if price_crosscheck_enabled():
+        cross_tickers = crosscheck_priority_tickers()
+        print(f"  - Alpaca 가격 교차 대조 켬: {len(cross_tickers)}개 종목(상한 {CROSSCHECK_NIGHTLY_MAX_SYMBOLS})")
+        result = run_integrity_checks(
+            enable_price_crosscheck=True, crosscheck_tickers=cross_tickers,
+            crosscheck_kwargs={"max_symbols": CROSSCHECK_NIGHTLY_MAX_SYMBOLS})
+    else:
+        result = run_integrity_checks()
     print(f"  - 체크 {len(result['checks'])}건, 이상 {len(result['anomalies'])}건")
-    if result["anomalies"]:
-        for a in result["anomalies"]:
-            print(f"    · [{a['severity']}] {a['check']}: {a['detail']}")
-        send_message(format_anomaly_telegram_message(result["anomalies"]))
+    for a in result["anomalies"]:
+        print(f"    · [{a['severity']}] {a['check']}: {a['detail']}")
+    # 교차 대조 finding 은 major 불일치·분할 의심만, 그것도 처음 보는 (종목, 날짜)만 텔레그램으로 보낸다.
+    # 나머지 교차 대조 경고(조회 불가 등)는 로그에만 남긴다. 기존 세 체크의 알림 규칙은 그대로다.
+    routed = route_crosscheck_anomalies(result["anomalies"])
+    if routed["crosscheck_suppressed"]:
+        print(f"  - 교차 대조: 이미 알린 불일치 {len(routed['crosscheck_suppressed'])}건은 다시 알리지 않음")
+    if routed["crosscheck_log_only"]:
+        print(f"  - 교차 대조: 알림 대상이 아닌 경고 {len(routed['crosscheck_log_only'])}건(로그만)")
+    to_send = routed["base"] + routed["crosscheck_new"]
+    if to_send:
+        sent = send_message(format_anomaly_telegram_message(to_send))
+        if sent and routed["crosscheck_new"]:
+            mark_crosscheck_alerted(routed["crosscheck_new"])
     else:
         print("  - 이상 없음 (알림 생략)")
     print(f"[{datetime.now()}] data_integrity_check_job 종료")
@@ -609,12 +664,27 @@ def guidance_shadow_record_job() -> None:
     if not is_enabled("guidance_shadow_record"):
         print(f"[{datetime.now()}] guidance_shadow_record_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
         return
-    from core.guidance_shadow import record_guidance_shadow
+    from core.guidance_shadow import (
+        NIGHTLY_FETCH_KWARGS,
+        NIGHTLY_MAX_TICKERS,
+        format_event_fetch_summary,
+        record_guidance_shadow,
+    )
 
+    # 2026-09-25: 실제 SEC 조회를 켠다(fetch_events=True). 상한 — 티커 NIGHTLY_MAX_TICKERS 개, 소요 시간·SEC
+    # 요청 수는 NIGHTLY_FETCH_KWARGS(티커 사이 소프트 상한). 하루 캐시 재사용·403 즉시 중단·티커별 실패 격리는
+    # core.guidance_event_provider 가 담당하며, 조회가 실패해도 기록은 no_release 로 계속된다(잡이 죽지 않음).
+    # User-Agent 는 SEC_EDGAR_USER_AGENT 환경변수(값은 출력하지 않는다).
     print(f"[{datetime.now()}] guidance_shadow_record_job 시작")
     try:
-        result = record_guidance_shadow()
+        result = record_guidance_shadow(
+            fetch_events=True, max_tickers=NIGHTLY_MAX_TICKERS, fetch_kwargs=dict(NIGHTLY_FETCH_KWARGS))
         print(f"  - as_of={result.get('as_of')} 후보 {result.get('n_pool')}건, 삽입={result.get('inserted')}")
+        summary = result.get("event_fetch_summary")
+        print(f"  - SEC 가이던스 조회: {format_event_fetch_summary(summary)}")
+        if summary and summary.get("n_observations_unknown"):
+            print(f"    · unknown 사유: {summary.get('unknown_reason_counts')} "
+                  f"(알려진 한계: {summary.get('known_limitation')})")
         if not result.get("ok"):
             report_job_failure("guidance_shadow_record", str(result.get("error") or "가이던스 shadow 기록 실패"))
     except Exception as exc:  # noqa: BLE001 - 다음 날 스케줄을 막지 않도록 기록만 남긴다.
@@ -1146,7 +1216,7 @@ def main() -> None:
     print("스케줄러 시작. 평일 16:30 에 관심 종목을 스캔하고, 매주 일요일 20:00 에 Threads 주간")
     print("인사이트 리포트를, 20:20 에 챔피언 전략 주간 보고를 생성합니다 (모두 America/New_York")
     print("기준). 매일 한국시간(Asia/Seoul) 00:00 에는 시장 국면/섹터 강도 스냅샷을 미리 계산해두고,")
-    print("00:05~04:00 에는 #3 전략을 서버가 허락하는 만큼 반복 미세튜닝하며, 00:10 에는 챔피언")
+    print("00:10 에는 챔피언")
     print("전략 신호 변경을, 00:11 에는 보유종목 상관관계 스냅샷을, 00:12 에는 페이퍼 트레이딩")
     print("원장 기록을, 00:13 에는 그 원장의 60/40 벤치마크 대비 격차를, 00:15 에는 리밸런싱")
     print("예정일(및 칼라 헤지 롤)을, 00:16 에는 새틀라이트 실적 발표 예정을, 00:18 에는 챔피언")
@@ -1154,6 +1224,8 @@ def main() -> None:
     print("에는 가격/FRED 캐시/뉴스 다이제스트 데이터 무결성을 체크해 이상 감지 시 텔레그램으로")
     print("알리며, 00:25 에는 그날 밤 결과를 모은 오늘의 브리핑 HTML을 텔레그램으로 전송합니다.")
     print("매일 한국시간 07:30에는 무료 뉴스 API 기반 티커별 HTML/Telegram 리포트를 보냅니다.")
+    print("그 밖에 00:27~00:46 관측 전용 잡, 12:00 거장 보유종목 동기화, 화~토 06:10 paper 자동 주문(기본")
+    print("꺼짐), 일요일 00:50 전략 변형 연구 보고서가 등록됩니다(전체 목록: core/job_schedule.py).")
     print("Ctrl+C 로 종료할 수 있습니다.")
 
     # 배포(=스케줄러 재시작) 직후 Alpaca 검증을 한 번 돌려, 00:40 을 기다리지 않고 관제 센터에서 결과를 보게 한다.

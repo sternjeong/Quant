@@ -1,17 +1,18 @@
 """VM의 실시간 CPU 부하·여유 메모리를 확인해, 지금 무거운 작업 하나를 더 시작해도 되는지 판단한다.
 
 배경: 이 저장소는 작은 Oracle Always-Free VM(여기서는 2 OCPU/12GB) 위에서 서로 독립적인 프로세스
-여러 개가 각자 알아서 스케줄을 돌린다 — Telegram 큐(deploy/codex_telegram/runner.py, 자체
-has_capacity()로 이미 리소스를 확인함), 2주 실험 감독기(deploy/experiment_supervisor.py, 4시간마다
-Codex 한 번), 그리고 이 스케줄러의 (당시) 야간 미세튜닝(strategy_nightly_tuning_job, 00:05~04:00 반복
-백테스트 — 2026-09-24 삭제됨). 서로 존재를 모르기 때문에, 우연히 같은 시간대에 다 같이 무거운 작업을 돌리면 VM이
+여러 개가 각자 알아서 스케줄을 돌린다 — 지금은 Telegram 큐(deploy/codex_telegram/runner.py, 자체
+has_capacity()로 이미 리소스를 확인함)와 스케줄러(scheduler/run_scheduler.py — 현재 이 모듈을 쓰는 곳은
+07:30 daily_news_digest_job)다. (이 모듈을 만들 당시에는 2주 실험 감독기 deploy/experiment_supervisor.py
+(2026-09-25 삭제)와 야간 미세튜닝 strategy_nightly_tuning_job(00:05~04:00 반복 백테스트, 2026-09-24
+삭제)도 함께 돌았다.) 서로 존재를 모르기 때문에, 우연히 같은 시간대에 다 같이 무거운 작업을 돌리면 VM이
 버티지 못할 수 있다. 이 모듈은 OS가 이미 알고 있는 전역 지표(부하 평균·여유 메모리)를 기준으로
 판단하므로, 프로세스 간 별도의 락 파일이나 IPC 없이도 자연스럽게 서로 양보하게 된다.
 
-deploy/codex_telegram/runner.py와 deploy/experiment_supervisor.py는 의도적으로 stdlib만 쓰는
-독립 스크립트라(시스템 python3로 실행, 이 저장소의 venv/의존성 없이 동작해야 함) core/를 임포트하지
-않는다 — 그래서 이 로직은 각자 자기 파일 안에 똑같이 작게 복제되어 있다(그 두 파일은 서로도 이미
-env-file 파서 등 작은 헬퍼를 이런 식으로 중복해서 갖고 있다). 이 모듈은 core/*를 이미 정상적으로
+deploy/codex_telegram/runner.py는 의도적으로 stdlib만 쓰는 독립 스크립트라(시스템 python3로 실행,
+이 저장소의 venv/의존성 없이 동작해야 함) core/를 임포트하지 않는다 — 그래서 이 로직은 그 파일 안에
+똑같이 작게 복제되어 있다(deploy/ 아래 다른 stdlib 전용 스크립트들도 env-file 파서 등 작은 헬퍼를 이런
+식으로 중복해서 갖고 있다). 이 모듈은 core/*를 이미 정상적으로
 임포트하는 scheduler/run_scheduler.py처럼, 프로젝트 venv 안에서 도는 코드 전용이다.
 """
 

@@ -9,6 +9,7 @@ import threading
 import time
 import unittest
 from unittest.mock import patch
+import runner
 from runner import Service, LIMIT
 
 
@@ -311,16 +312,21 @@ class PipelineTests(unittest.TestCase):
             text = db.execute('SELECT text FROM outbox ORDER BY id DESC LIMIT 1').fetchone()['text']
         self.assertIn('1 [codex] test - queued', text)
 
-    def test_experiment_codex_command_queues_quant_job(self):
+    def test_experiment_command_is_removed(self):
+        # 2주 실험 슈퍼바이저는 2026-09-25 삭제됐다(docs/prune/PRUNE_E.md) — /experiment 는 알 수 없는 명령이고
+        # 작업을 큐에 넣거나 .experiment-control 을 쓰지 않는다.
         update = self.update(1)
         update['message']['text'] = '/experiment codex Day 1의 데이터 감사를 해줘'
-        self.s.ingest([update])
+        help_update = self.update(2)
+        help_update['message']['text'] = '/help'
+        self.s.ingest([update, help_update])
         with self.s.db() as db:
-            job = db.execute('SELECT project,backend,instruction FROM jobs WHERE id=1').fetchone()
-            reply = db.execute('SELECT text FROM outbox ORDER BY id DESC LIMIT 1').fetchone()['text']
-        self.assertEqual((job['project'], job['backend']), ('quant', 'codex'))
-        self.assertIn('사전등록 규칙', job['instruction'])
-        self.assertIn('Quant 실험 지시', reply)
+            self.assertEqual(db.execute('SELECT count(*) FROM jobs').fetchone()[0], 0)
+            replies = [r['text'] for r in db.execute('SELECT text FROM outbox ORDER BY id')]
+        self.assertIn('알 수 없는 명령', replies[0])
+        self.assertNotIn('/experiment', replies[1])
+        self.assertFalse((self.root / '.experiment-control').exists())
+        self.assertFalse(hasattr(self.s, 'experiment_status'))
 
     def test_cancel_queued_job_removes_it(self):
         self.s.ingest([self.update(1)])
@@ -621,20 +627,6 @@ class PipelineTests(unittest.TestCase):
         self.s.ingest([retry])
         self.assertEqual(self.row()['status'], 'retry')
 
-    def test_processes_command_lists_all_processes(self):
-        update = self.update()
-        update['message']['text'] = '/processes'
-        self.s.ingest([update])
-        with self.s.db() as db:
-            reply = db.execute('SELECT text,markup FROM outbox ORDER BY id DESC LIMIT 1').fetchone()
-        self.assertNotIn('야간 전략 미세튜닝', reply['text'])  # 2026-09-24 삭제
-        self.assertIn('✅ 챔피언 전략 신호 변경 알림', reply['text'])
-        self.assertIn('2주 전략 검증 실험', reply['text'])
-        markup = json.loads(reply['markup'])
-        from runner import PROCESS_CATALOG
-        self.assertEqual(len(markup['inline_keyboard']), len(PROCESS_CATALOG))
-        self.assertIn('챔피언 paper 자동 주문', reply['text'])  # 2026-09-25: 켜고 끌 수 있어야 한다
-
     def test_hypothesis_promote_button_runs_admin_and_clears_buttons(self):
         callback = {'update_id': 3, 'callback_query': {'id': 'cb-h', 'data': 'h:promote:H-20261005-001',
                     'message': {'chat': {'id': 123}, 'message_id': 77}}}
@@ -673,40 +665,150 @@ class PipelineTests(unittest.TestCase):
                                                                'message': {'chat': {'id': 123}}}}])
         admin.assert_not_called()
 
-    def test_processes_toggle_button_flips_state_and_confirms(self):
-        update = self.update()
-        update['message']['text'] = '/processes'
+    # ---- /processes: 목록은 core/process_registry.py 에서 ast 로 읽는다(하드코딩 목록 없음) ----------------
+
+    def outbox(self):
+        with self.s.db() as db:
+            return [(r['text'], json.loads(r['markup']) if r['markup'] else None)
+                    for r in db.execute('SELECT text,markup FROM outbox ORDER BY id')]
+
+    def send(self, text, uid=1):
+        update = self.update(uid)
+        update['message']['text'] = text
         self.s.ingest([update])
-        with self.s.db() as db:
-            markup = json.loads(db.execute('SELECT markup FROM outbox ORDER BY id DESC LIMIT 1').fetchone()['markup'])
-        tuning_data = markup['inline_keyboard'][0][0]['callback_data']  # champion_signal_alert is index 0
-        self.assertTrue(tuning_data.startswith('p:0'))
 
-        callback = {'update_id': 2, 'callback_query': {'id': 'cb-1', 'data': tuning_data,
-                    'message': {'chat': {'id': 123}}}}
-        with patch.object(self.s, 'api', return_value=True):
+    def tap(self, data, uid=50):
+        callback = {'update_id': uid, 'callback_query': {'id': 'cb-1', 'data': data, 'message': {'chat': {'id': 123}}}}
+        with patch.object(self.s, 'api', return_value=True) as api:
             self.s.ingest([callback])
+        return api
 
-        self.assertFalse(self.s.is_process_enabled('champion_signal_alert', True))
+    def registry(self):
+        return runner.load_process_catalog()
+
+    def test_processes_command_lists_every_registry_job_grouped_by_category(self):
+        self.send('/processes')
+        messages = self.outbox()
+        text = '\n'.join(t for t, _ in messages)
+        buttons = [b for _, m in messages if m for row in m['inline_keyboard'] for b in row]
+        catalog = self.registry()
+        self.assertGreaterEqual(len(catalog), 27)
+        self.assertEqual([b['callback_data'] for b in buttons if b['callback_data'].startswith('p:')],
+                         [f'p:{e["key"]}' for c in ('alert', 'research', 'maintenance')
+                          for e in catalog if e['category'] == c])
+        for entry in catalog:
+            self.assertIn(entry['key'], text)
+            self.assertIn(entry['label'], text)
+        self.assertIn(f'자동 잡 {len(catalog)}개', messages[0][0])
+        self.assertIn('✅ 챔피언 전략 신호 변경 알림', text)
+        self.assertIn('⏸ 챔피언 paper 자동 주문', text)  # 레지스트리 기본값(꺼짐)을 따른다
+        for title in ('🔔 알림', '🔬 연구·기록', '🧰 유지보수'):
+            self.assertIn(title, text)
+        self.assertNotIn('2주 전략 검증 실험', text)
+        self.assertNotIn('/experiment', text)
+        self.assertNotIn('야간 전략 미세튜닝', text)  # 2026-09-24 삭제
+        self.assertTrue(all(len(t) <= runner.TELEGRAM_TEXT_LIMIT for t, _ in messages))
         with self.s.db() as db:
-            confirm = db.execute('SELECT text FROM outbox ORDER BY id DESC LIMIT 1').fetchone()['text']
-        self.assertIn('⏸ 끔', confirm)
-        self.assertIn('챔피언 전략 신호 변경 알림', confirm)
+            self.assertEqual(db.execute('SELECT count(*) FROM jobs').fetchone()[0], 0)
 
-    def test_processes_toggle_twice_returns_to_original_state(self):
-        self.assertTrue(self.s.is_process_enabled('champion_signal_alert', True))
-        self.s.set_process_enabled('champion_signal_alert', False)
+    def test_processes_button_toggles_by_key_and_keeps_toggle_file_format(self):
+        self.tap('p:champion_signal_alert')
         self.assertFalse(self.s.is_process_enabled('champion_signal_alert', True))
-        self.s.set_process_enabled('champion_signal_alert', True)
+        state = json.loads((self.root / 'data' / 'process_toggles.json').read_text())
+        self.assertEqual(set(state['champion_signal_alert']), {'enabled', 'updated_at', 'actor'})
+        self.assertIs(state['champion_signal_alert']['enabled'], False)
+        text, markup = self.outbox()[-1]
+        self.assertIn('⏸ 끔: 챔피언 전략 신호 변경 알림', text)
+        self.assertIn('🔔 알림', text)
+        self.assertIn({'text': '켜기 · 챔피언 전략 신호 변경 알림', 'callback_data': 'p:champion_signal_alert'},
+                      [b for row in markup['inline_keyboard'] for b in row])
+        self.tap('p:champion_signal_alert', uid=51)
         self.assertTrue(self.s.is_process_enabled('champion_signal_alert', True))
 
-    def test_processes_toggle_ignores_out_of_range_index(self):
-        callback = {'update_id': 2, 'callback_query': {'id': 'cb-1', 'data': 'p:9999',
-                    'message': {'chat': {'id': 123}}}}
-        with patch.object(self.s, 'api', return_value=True):
-            self.s.ingest([callback])  # 예외 없이 조용히 무시되어야 함
+    def test_processes_can_toggle_jobs_missing_from_the_old_hardcoded_list(self):
+        for uid, key in enumerate(('candidate_ledger_record', 'account_snapshot_sync', 'guru_holdings_sync',
+                                   'alpaca_verification_bootstrap'), start=50):
+            self.tap(f'p:{key}', uid=uid)
+            self.assertFalse(self.s.is_process_enabled(key, True), key)
+
+    def test_processes_text_on_off_commands(self):
+        self.send('/processes off guru_holdings_sync', uid=1)
+        self.assertFalse(self.s.is_process_enabled('guru_holdings_sync', True))
+        self.assertIn('⏸ 끔: 거장 포트폴리오 자동 동기화 (guru_holdings_sync)', self.outbox()[-1][0])
+        self.send('/processes on guru_holdings_sync', uid=2)
+        self.assertTrue(self.s.is_process_enabled('guru_holdings_sync', False))
+        self.send('/processes on no_such_job', uid=3)
+        self.assertIn('알 수 없는 잡: no_such_job', self.outbox()[-1][0])
+        self.send('/processes flip guru_holdings_sync', uid=4)
+        self.assertIn('사용법', self.outbox()[-1][0])
         with self.s.db() as db:
-            self.assertEqual(db.execute('SELECT COUNT(*) FROM outbox').fetchone()[0], 0)
+            self.assertEqual(db.execute('SELECT count(*) FROM jobs').fetchone()[0], 0)
+
+    def test_paper_auto_trade_needs_confirmation_to_turn_on_by_text(self):
+        self.assertFalse(self.s.is_process_enabled('paper_auto_trade', False))
+        self.send('/processes on paper_auto_trade', uid=1)
+        self.assertFalse(self.s.is_process_enabled('paper_auto_trade', False))
+        self.assertFalse((self.root / 'data' / 'process_toggles.json').exists())  # 아무것도 쓰지 않음
+        text, markup = self.outbox()[-1]
+        self.assertIn('정말 켜시겠습니까', text)
+        self.assertIn('/processes on paper_auto_trade confirm', text)
+        self.assertEqual(markup['inline_keyboard'][0][0]['callback_data'], 'pc:paper_auto_trade')
+        self.send('/processes on paper_auto_trade confirm', uid=2)
+        self.assertTrue(self.s.is_process_enabled('paper_auto_trade', False))
+        self.assertIn('✅ 켬: 챔피언 paper 자동 주문', self.outbox()[-1][0])
+        # 끄기는 확인 없이 즉시
+        self.send('/processes off paper_auto_trade', uid=3)
+        self.assertFalse(self.s.is_process_enabled('paper_auto_trade', True))
+
+    def test_paper_auto_trade_button_asks_then_confirm_button_enables(self):
+        self.tap('p:paper_auto_trade', uid=50)
+        self.assertFalse(self.s.is_process_enabled('paper_auto_trade', False))
+        text, markup = self.outbox()[-1]
+        self.assertIn('정말 켜시겠습니까', text)
+        self.tap(markup['inline_keyboard'][0][0]['callback_data'], uid=51)
+        self.assertTrue(self.s.is_process_enabled('paper_auto_trade', False))
+        self.tap('p:paper_auto_trade', uid=52)  # 켜진 상태에서 누르면 즉시 끔
+        self.assertFalse(self.s.is_process_enabled('paper_auto_trade', True))
+        self.assertIn('⏸ 끔: 챔피언 paper 자동 주문', self.outbox()[-1][0])
+
+    def test_processes_toggle_ignores_unknown_or_old_index_buttons(self):
+        for index, data in enumerate(('p:9999', 'p:0', 'pc:not_a_job')):
+            api = self.tap(data, uid=60 + index)
+            self.assertIn('목록이 바뀌었습니다', api.call_args[0][1]['text'])
+        self.assertEqual(self.outbox(), [])
+        self.assertFalse((self.root / 'data' / 'process_toggles.json').exists())
+
+    def test_processes_list_is_split_under_the_telegram_limit(self):
+        with patch.object(runner, 'TELEGRAM_TEXT_LIMIT', 120):
+            self.send('/processes')
+        messages = self.outbox()
+        self.assertTrue(all(len(t) <= 120 for t, _ in messages))
+        text = '\n'.join(t for t, _ in messages)
+        buttons = [b['callback_data'] for _, m in messages if m for row in m['inline_keyboard'] for b in row]
+        self.assertEqual(sorted(buttons), sorted(f'p:{e["key"]}' for e in self.registry()))
+        for entry in self.registry():
+            self.assertIn(entry['key'], text)
+        self.assertGreater(len(messages), 4)  # 머리말 + 카테고리 3개보다 많이 나뉨
+
+    def test_split_text_keeps_line_boundaries_and_hard_splits_long_lines(self):
+        self.assertEqual(runner.split_text('a\nb\nc', limit=3), ['a\nb', 'c'])
+        self.assertEqual(runner.split_text('abcdefg', limit=3), ['abc', 'def', 'g'])
+        self.assertEqual(runner.split_text('', limit=3), [''])
+
+    def test_help_shows_actual_job_count(self):
+        self.send('/help')
+        text = self.outbox()[-1][0]
+        self.assertIn(f'/processes: 자동 잡 {len(self.registry())}개', text)
+        self.assertNotIn('16개', text)
+
+    def test_unreadable_registry_reports_instead_of_crashing(self):
+        broken = self.root / 'broken_registry.py'
+        broken.write_text('PROCESS_REGISTRY = build()\n')
+        self.s.cfg['process_registry_path'] = str(broken)
+        self.send('/processes')
+        self.assertIn('잡 목록(core/process_registry.py)을 읽지 못했습니다', self.outbox()[-1][0])
+        self.send('/help', uid=2)
+        self.assertIn('(개수 확인 불가)', self.outbox()[-1][0])
 
 
 if __name__ == '__main__': unittest.main()

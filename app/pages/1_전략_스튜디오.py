@@ -682,7 +682,7 @@ with tab_backtest:
     if loaded_staged_config:
         st.info(
             "🧬 1:2:6 단계별(고급) 전략이 로드되어 있습니다. 아래 지표 토글 대신 이 전략 그대로 백테스트를 실행합니다. "
-            "세부 조건 수정은 '전략 관리' 페이지에서 할 수 있습니다."
+            "세부 조건 수정은 이 화면의 '🗂️ 전략 관리' 탭에서 할 수 있습니다."
         )
         with st.expander("로드된 전략 JSON 보기"):
             st.json(loaded_staged_config)
@@ -692,8 +692,8 @@ with tab_backtest:
     elif loaded_kostolany_config:
         st.info(
             "🥚 코스톨라니 국면 매매 전략이 로드되어 있습니다. 아래 지표 토글 대신 이 전략 그대로 백테스트를 "
-            "실행합니다(입력한 티커/기간에 국면 판정 로직을 그대로 적용). 세부 조건 수정은 '전략 관리' "
-            "페이지에서 할 수 있습니다."
+            "실행합니다(입력한 티커/기간에 국면 판정 로직을 그대로 적용). 세부 조건 수정은 이 화면의 "
+            "'🗂️ 전략 관리' 탭에서 할 수 있습니다."
         )
         with st.expander("로드된 전략 JSON 보기"):
             st.json(loaded_kostolany_config)
@@ -703,7 +703,7 @@ with tab_backtest:
     elif loaded_ensemble_config:
         st.info(
             "🧬 앙상블 스코어링 전략이 로드되어 있습니다. 아래 지표 토글 대신 이 전략 그대로 백테스트를 "
-            "실행합니다. 세부 조건 수정은 '전략 관리' 페이지에서 할 수 있습니다."
+            "실행합니다. 세부 조건 수정은 이 화면의 '🗂️ 전략 관리' 탭에서 할 수 있습니다."
         )
         with st.expander("로드된 전략 JSON 보기"):
             st.json(loaded_ensemble_config)
@@ -1740,7 +1740,7 @@ with tab_backtest:
                     st.info(f"📖 전략 설명: {explanation}")
 
     with st.expander("저장된 전략 목록"):
-        st.caption("전략 이름 수정/삭제는 좌측 메뉴의 '전략 관리' 페이지에서 할 수 있습니다.")
+        st.caption("전략 이름 수정/삭제는 이 화면 위쪽의 '🗂️ 전략 관리' 탭에서 할 수 있습니다.")
         with get_session() as session:
             rows = session.query(Strategy).filter(Strategy.is_archived.is_(False)).order_by(Strategy.created_at.desc()).all()
             if rows:
@@ -2868,8 +2868,8 @@ with tab_tuning:
 def _render_batch_generation_tab() -> None:
     st.markdown(
         "유튜브 등에서 본 매매 전략 스크립트를 **여러 개** 한 번에 붙여넣으면, 각각을 독립적으로 AI가 "
-        "해석해서 백본 전략 후보를 만듭니다. 야간 미세튜닝은 '이미 있는 백본 하나'의 숫자만 다듬는 "
-        "것이고, 이 탭은 그 미세튜닝의 **재료가 될 백본 자체를 다량으로 늘리는** 용도입니다.\n\n"
+        "해석해서 백본 전략 후보를 만듭니다. '🧬 다종목 미세튜닝' 탭은 '이미 있는 백본 하나'의 숫자만 "
+        "다듬는 것이고, 이 탭은 그 미세튜닝의 **재료가 될 백본 자체를 다량으로 늘리는** 용도입니다.\n\n"
         "각 스크립트는 줄 하나에 `---`만 있는 구분선으로 나눠서 붙여넣으세요(5-15개 기준 설계, 그 이상도 "
         "가능하지만 스크립트당 AI 호출 1-2회 + 표본 종목 5개 백테스트가 들어가 시간이 비례해서 늘어납니다)."
     )

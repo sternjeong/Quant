@@ -351,7 +351,7 @@ with verdict_cols[0]:
         )
 with verdict_cols[1]:
     if satellite_result is None:
-        render_metric_card("새틀라이트 상태", "미실행", sublabel="위 '스캔 실행' 버튼 필요")
+        render_metric_card("새틀라이트 상태", "미실행", sublabel="위 '📌 point-in-time 새틀라이트 계산' 또는 '🔍 새틀라이트 후보 스캔 실행' 버튼 필요")
     elif not satellite_result["selected"]:
         render_metric_card("새틀라이트 상태", "현금 (후보 없음)", tone="neutral")
     else:
@@ -364,7 +364,9 @@ with verdict_cols[2]:
     if regime_ctx is None:
         render_metric_card("시장 국면 (참고)", "스냅샷 없음")
     elif regime_ctx["trading_regime"] is None:
-        render_metric_card("시장 국면 (참고)", "판단 불가(unknown)", sublabel="시장폭 데이터 없음", tone="neutral")
+        # 판단 보류 사유는 시장폭 결측뿐 아니라 신호 coverage 미달 등도 있다(2026-09-25) — 스냅샷이 준 실제 사유를 보여준다.
+        _unknown_reason = (regime_ctx.get("snapshot") or {}).get("regime_reason") or "데이터 부족으로 판단 보류"
+        render_metric_card("시장 국면 (참고)", "판단 불가(unknown)", sublabel=_unknown_reason, tone="neutral")
     else:
         render_metric_card(
             "시장 국면 (참고)", regime_ctx["trading_regime"],

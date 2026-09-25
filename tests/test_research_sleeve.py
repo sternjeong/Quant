@@ -1,6 +1,5 @@
 """승격 가설의 paper 편입(research 슬리브)·승인 버튼·텔레그램 목록 동기화."""
 
-import importlib.util
 import json
 from datetime import date, datetime
 from pathlib import Path
@@ -121,15 +120,3 @@ def test_candidate_message_has_buttons():
     b = sh.approval_buttons("H-20261005-001")
     assert [x["callback_data"] for x in b[0]] == ["h:promote:H-20261005-001", "h:retire:H-20261005-001"]
     assert all(len(x["callback_data"].encode()) <= 64 for x in b[0])       # 텔레그램 제한
-
-
-# ---------------------------------------------------------------- 텔레그램 목록 동기화
-def test_telegram_process_catalog_matches_registry():
-    from core.process_registry import PROCESS_REGISTRY
-
-    spec = importlib.util.spec_from_file_location("runner_sync", ROOT / "deploy" / "codex_telegram" / "runner.py")
-    runner = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(runner)
-    catalog = {k: d for k, _, d in runner.PROCESS_CATALOG}
-    assert set(catalog) == set(PROCESS_REGISTRY), set(catalog) ^ set(PROCESS_REGISTRY)
-    assert all(catalog[k] == v["default_enabled"] for k, v in PROCESS_REGISTRY.items())

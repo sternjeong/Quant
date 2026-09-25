@@ -5938,3 +5938,10 @@ paper 키를 주문 경로에만 쓰던 것을 **측정 수단**으로 확장해
 ## 2026-09-25 에이전트 결합형 퀀트 시스템 S1~S5 (검증용, 실거래 아님)
 - **구현:** 가설 레지스트리(누적 시도 카운터, 주간 동결 10·shadow 20), 결정론 심판(Deflated Sharpe·레짐 과반·상관·kill), shadow 전진검증(00:48 KST, 60거래일), 에이전트 야간 배치(03:00 KST, Scout/Writer/Implementer/Critic/Post-mortem, 하룻밤 $15·주간 $60 API 환산 상한), 허브 `/research`. 전체 pytest 1775 passed.
 - **미완료:** 실제 Claude CLI·VM 실행 미검증, 텔레그램 승인 버튼·paper 자동 편입 미구현, 미푸시. 상세: `docs/AGENTIC_QUANT_SYSTEM_DESIGN.md` 8절.
+
+## 2026-09-25 관제 센터 사용 설명서 + 발견 결함 5건 수정
+
+- **설명서:** 관제 센터 `/guide`. 화면·잡·변경 내역은 코드에서 자동으로 읽고, 설명이 빠지면 테스트가 배포를 막는다.
+- **수정:** 관심종목·Threads 알림 텔레그램 전송, 텔레그램 `/processes` 전체 27개 잡 제어(자동 주문은 2단계 확인), 시장 국면 부분 결측 처리(coverage 0.75·시장폭 필수), 가이던스 야간 SEC 조회·가격 교차 대조·중복 ID 기록 연결, 낡은 문구 정리.
+- **검증:** pytest 1917 passed, runner unittest OK, 화면 실제 확인. VM 실전송·실제 SEC/Alpaca 호출은 미확인. 상세는 `docs/SESSION_HANDOFF.md` 같은 날짜 절.
+- 과거 로그의 `/experiment` 안내는 당시 기록이다. 명령은 2026-09-25에 삭제됐다.

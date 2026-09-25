@@ -1995,9 +1995,9 @@ def check_and_notify_upcoming_earnings(within_days: int = 5, notify_fn=None) -> 
 # ----------------------------------------------------------------------------
 # 주간 성과 HTML 보고 (2026-09-18 추가)
 #
-# deploy/experiment_supervisor.py가 이미 "상태를 HTML로 만들어 텔레그램 문서로 전송"하는 패턴을
-# 2주 실험 감독에 쓰고 있다 — 그 파일은 stdlib만 쓰는 별도 무인 서비스라 코드를 그대로 가져올 수는
-# 없지만, 같은 발상(새 인프라 없이 기존 데이터로 정기 보고서 조립)을 챔피언 전략에도 적용한다.
+# 당시 deploy/experiment_supervisor.py(2026-09-25 삭제)가 "상태를 HTML로 만들어 텔레그램 문서로 전송"하는
+# 패턴을 2주 실험 감독에 쓰고 있었다 — 그 파일은 stdlib만 쓰는 별도 무인 서비스라 코드를 그대로 가져올 수는
+# 없었지만, 같은 발상(새 인프라 없이 기존 데이터로 정기 보고서 조립)을 챔피언 전략에도 적용한다.
 # core.telegram_notify.send_document가 이미 있어 멀티파트 전송을 직접 구현할 필요가 없다.
 # ----------------------------------------------------------------------------
 
@@ -2053,7 +2053,7 @@ Streamlit 챔피언 전략 페이지에서 확인하세요.</p>
 def send_weekly_report(dry_run: bool = False) -> dict:
     """generate_weekly_report_html()을 파일로 저장하고 텔레그램 문서로 전송한다.
 
-    dry_run=True면 파일만 저장하고 전송은 생략한다(테스트/수동 미리보기용 — experiment_supervisor.py의
+    dry_run=True면 파일만 저장하고 전송은 생략한다(테스트/수동 미리보기용 — 삭제된 experiment_supervisor.py의
     --dry-run과 같은 용도).
 
     Returns: {"path": str, "sent": bool}

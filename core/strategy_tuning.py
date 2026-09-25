@@ -2817,7 +2817,8 @@ _CI_LEADERBOARD_PATH = Path(__file__).resolve().parent.parent / "data" / "nightl
 
 
 def get_ci_leaderboard_freshness() -> dict[str, Any]:
-    """`data/nightly_tuning_leaderboard.json`(GitHub Actions가 커밋)의 최신 실행 시각을 반환.
+    """`data/nightly_tuning_leaderboard.json`(예전 GitHub Actions 야간 튜닝이 커밋하던 파일 — 2026-09-24 삭제로
+    더 이상 자동 갱신되지 않음)의 최신 실행 시각을 반환.
 
     파일 전체를 파싱해야 하지만 상위 K(50)개로 캡핑돼 있어 수백 KB 수준(실측 파싱 <5ms)이라
     앱 전역 배지(core.theme.apply_theme, 모든 페이지에서 매 렌더마다 호출)에서 불러도 체감
