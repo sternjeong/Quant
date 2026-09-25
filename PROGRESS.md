@@ -5930,3 +5930,7 @@ paper 키를 주문 경로에만 쓰던 것을 **측정 수단**으로 확장해
 - **검증:** 전체 pytest **1644 passed**. 주문 게이트 변이 5종 재검증 통과, 자정 관련 사각지대 1건 발견해 회귀 테스트 2건 추가.
 - **미완료:** Alpaca 실 API 호출 0회(응답 스키마 전부 가정, VM 검증 스크립트 4개 대기), push 미승인, 추출 표본 사람 검증 대기.
 - 브랜치 `engine-upgrade-2026-09` 커밋 `9cf9e70`·`874512d`. 상세는 [docs/SESSION_HANDOFF.md](docs/SESSION_HANDOFF.md) 2026-09-24 절.
+
+## 2026-09-25 Alpaca 로드맵 P0~P3 구축 (검증용, 실거래 아님)
+- **구현:** P0 검증 5번째 검사(자산·캘린더·뉴스), P1 주문 전 거래가능 경고·paper 추적오차(00:46 KST), P2 PIT 뉴스 이벤트 스터디(비용 보정은 기존 구현 재사용), P3 paper 자동 주문(화~토 06:10 KST, **기본 꺼짐**, 조건 8개 fail-closed). 전체 pytest 1761 passed.
+- **미완료:** 실 API 호출 0회, 브랜치 `alpaca-roadmap-2026-09` 미푸시(승인 대기), 자동 주문 켜기는 P0 PASS 후 사용자 결정. 상세: `docs/ALPACA_ENGINE_ROADMAP.md`.

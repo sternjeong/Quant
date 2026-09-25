@@ -42,12 +42,27 @@ def build_plan(core, satellite, positions, equity):
     )
 
 
-def run(broker, core, satellite, submit=False, confirm=None, run_store=None):
+def tradability_warnings(plan, tradability_fn):
+    """Pre-order check (roadmap P1): buy symbols the broker reports as not tradable.  Informational --
+    the plan itself is unchanged; a lookup failure is reported separately, never as 'untradable'."""
+    buys = [o["symbol"] for o in plan["orders"] if o["side"] == "buy"]
+    if not buys or tradability_fn is None:
+        return {"checked": False, "untradable_buys": [], "lookup_failed": []}
+    report = tradability_fn(buys)
+    return {"checked": True, "report": report,
+            "untradable_buys": sorted(s for s, r in report.items() if r["verdict"] in ("not_tradable", "inactive", "not_found")),
+            "lookup_failed": sorted(s for s, r in report.items() if r["verdict"] == "lookup_failed")}
+
+
+def run(broker, core, satellite, submit=False, confirm=None, run_store=None, tradability_fn=None):
     account = broker.account()
     if account.get("trading_blocked") or account.get("account_blocked"):
         raise SystemExit("paper account is blocked")
     plan = build_plan(core, satellite, broker.positions(), float(account["equity"]))
-    output = {"core": core["top4"], "satellite": satellite.get("selected", []), "plan": plan}
+    output = {"core": core["top4"], "satellite": satellite.get("selected", []), "plan": plan,
+              "tradability": tradability_warnings(plan, tradability_fn)}
+    if output["tradability"]["untradable_buys"]:
+        print(f"WARNING: not tradable at broker: {output['tradability']['untradable_buys']}")
     if submit:
         if not confirm:
             raise SystemExit("--submit requires --confirm PLAN_FINGERPRINT")
@@ -62,8 +77,10 @@ def main():
     parser.add_argument("--submit", action="store_true", help="submit only to Alpaca paper endpoint")
     parser.add_argument("--confirm", help="required plan fingerprint for submission")
     args = parser.parse_args()
+    from core.alpaca_market_meta import check_tradability
+
     run(AlpacaPaperBroker.from_env(), compute_core_recommendation(), compute_satellite_recommendation_point_in_time(),
-        args.submit, args.confirm, RunStore())
+        args.submit, args.confirm, RunStore(), tradability_fn=check_tradability)
 
 
 if __name__ == "__main__":
