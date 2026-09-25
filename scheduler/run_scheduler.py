@@ -827,6 +827,53 @@ def paper_auto_trade_job() -> None:
     print(f"[{datetime.now()}] paper_auto_trade_job 종료")
 
 
+def hypothesis_shadow_record_job() -> None:
+    """가설 shadow 전진 검증 기록 (core/hypothesis_shadow.py, 설계 S3). 관측 전용 — 주문 경로 없음.
+
+    시각(00:48 KST): 00:46 paper 추적오차 다음 슬롯. 승격 후보가 생길 때만 텔레그램 1건.
+    """
+    if not is_enabled("hypothesis_shadow_record"):
+        print(f"[{datetime.now()}] hypothesis_shadow_record_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
+    print(f"[{datetime.now()}] hypothesis_shadow_record_job 시작")
+    try:
+        from core.hypothesis_shadow import run_daily
+        from core.telegram_notify import send_message
+
+        res = run_daily(notify=send_message)
+        print(f"  - {str(res)[:400]}")
+        if res.get("errors"):
+            report_job_failure("hypothesis_shadow_record", "; ".join(res["errors"])[:300])
+    except Exception as exc:  # noqa: BLE001
+        print(f"  - 가설 shadow 기록 실패: {type(exc).__name__}: {exc}")
+        report_job_failure("hypothesis_shadow_record", f"{type(exc).__name__}: {exc}")
+    print(f"[{datetime.now()}] hypothesis_shadow_record_job 종료")
+
+
+def agent_batch_job() -> None:
+    """AI 에이전트 야간 배치 (core/agent_batch.py, 설계 S4·S5). 스케줄러가 멈추지 않도록 서브프로세스로 돌린다.
+
+    시각(03:00 KST): 야간 잡 블록(00:00~00:48)이 끝나고 사용자가 자는 시간. 배치는 05:50 에 스스로 멈추며
+    이 잡은 06:00 을 넘기지 않도록 3시간 제한을 둔다(06:10 paper 자동 주문과 겹치지 않게).
+    """
+    if not is_enabled("agent_batch"):
+        print(f"[{datetime.now()}] agent_batch_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
+    import subprocess
+
+    print(f"[{datetime.now()}] agent_batch_job 시작")
+    try:
+        proc = subprocess.run([sys.executable, str(PROJECT_ROOT / "scripts" / "agent_batch.py")], cwd=PROJECT_ROOT,
+                              capture_output=True, text=True, timeout=3 * 3600)
+        print((proc.stdout or "")[-1500:])
+        if proc.returncode != 0:
+            report_job_failure("agent_batch", (proc.stderr or proc.stdout or "")[-300:])
+    except Exception as exc:  # noqa: BLE001
+        print(f"  - 에이전트 배치 실패: {type(exc).__name__}: {exc}")
+        report_job_failure("agent_batch", f"{type(exc).__name__}: {exc}")
+    print(f"[{datetime.now()}] agent_batch_job 종료")
+
+
 def strategy_research_report_job() -> None:
     """전략 변형 연구 보고서 작성 — 관측 전용, 주 1회(일요일 00:50 KST).
 
@@ -1062,6 +1109,22 @@ def main() -> None:
         id="paper_auto_trade",
         name="화~토 한국시간 06:10 챔피언 paper 자동 주문 (기본 꺼짐)",
         replace_existing=True,
+    )
+    scheduler.add_job(
+        hypothesis_shadow_record_job,
+        trigger=CronTrigger(hour=0, minute=48, timezone="Asia/Seoul"),
+        id="hypothesis_shadow_record",
+        name="매일 한국시간 00:48 가설 shadow 기록 (관측 전용)",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        agent_batch_job,
+        # 사용자 결정(2026-09-25): 에이전트 배치는 한국시간 새벽 3시. 배치가 05:50 에 스스로 멈춘다.
+        trigger=CronTrigger(hour=3, minute=0, timezone="Asia/Seoul"),
+        id="agent_batch",
+        name="매일 한국시간 03:00 AI 에이전트 야간 배치",
+        replace_existing=True,
+        misfire_grace_time=1800,
     )
     scheduler.add_job(
         strategy_research_report_job,

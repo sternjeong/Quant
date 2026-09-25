@@ -21,7 +21,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from hub.apps_registry import SLOTS, AppSlot  # noqa: E402
-from hub import alpaca_status, ops_status  # noqa: E402
+from hub import alpaca_status, ops_status, research_status  # noqa: E402
 from hub.status import UnitStatus, get_unit_status  # noqa: E402
 
 HOST = "127.0.0.1"  # nginx를 거치지 않는 외부 직접 접속은 차단(방화벽에 별도 포트 개방 불필요)
@@ -151,6 +151,8 @@ def _slot_href(slot: AppSlot, host: str) -> str:
         return "/alpaca"
     if slot.kind == "ops":
         return "/ops"
+    if slot.kind == "research":
+        return "/research"
     return f"/status/{slot.id}"
 
 
@@ -188,6 +190,8 @@ def render_dashboard(host: str) -> str:
             badge = _report_badge(slot)
         elif slot.kind == "ops":
             badge = ops_status.jobs_badge(jobs)
+        elif slot.kind == "research":
+            badge = research_status.card_badge(research_status.collect())
         else:
             badge = _badge_html(get_unit_status(slot.unit))
             if slot.id == "scheduler":
@@ -211,6 +215,18 @@ def render_dashboard(host: str) -> str:
         f'{sections}'
         f'<p class="stamp">마지막 갱신 {now} · {REFRESH_SECONDS}초마다 자동 새로고침</p>'
         '</body></html>'
+    )
+
+
+def render_research_page() -> str:
+    return (
+        '<!doctype html><html lang="ko"><head><meta charset="utf-8">'
+        '<meta name="viewport" content="width=device-width,initial-scale=1">'
+        f'<meta http-equiv="refresh" content="{REFRESH_SECONDS}">'
+        f'<title>AI 에이전트 연구</title>{PAGE_STYLE}</head><body>'
+        '<p><a class="back" href="/">&larr; 관제 센터로</a></p><h1>AI 에이전트 연구</h1>'
+        f'{research_status.render_body(research_status.collect())}'
+        f'<p class="stamp">마지막 갱신 {datetime.now():%Y-%m-%d %H:%M:%S}</p></body></html>'
     )
 
 
@@ -306,6 +322,8 @@ class HubRequestHandler(BaseHTTPRequestHandler):
             self._send_html(render_dashboard(host))
         elif path == "/login":
             self._send_html(LOGIN_PAGE)
+        elif path == "/research":
+            self._send_html(render_research_page())
         elif path == "/ops":
             self._send_html(render_ops_page())
         elif path == "/alpaca":

@@ -70,6 +70,11 @@ ALLOWED_PREFIXES = (
     "PROGRESS.md",
     "RESUME_NOTE.md",
     "data/process_toggles.json",
+    # 에이전트 작업 폴더(스펙·신호 코드·Critic 판정·씨앗·교훈). 동결본은 quant.db 에도 복사되지만 초안은 여기뿐이다.
+    "research/hypotheses/",
+    "research/scout/",
+    "research/failures.md",
+    "data/agent_usage.jsonl",
 )
 # 허용 폴더 안에서도 뺄 것: 대용량 체크포인트 tar.gz(수백 MB, 매번 새 blob), 락 파일
 EXCLUDED_PREFIXES = (

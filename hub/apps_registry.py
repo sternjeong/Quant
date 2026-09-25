@@ -15,7 +15,7 @@ class AppSlot:
     title: str
     description: str
     unit: str  # 상태 조회에 쓸 systemd 유닛 이름
-    kind: str  # "web" (같은 호스트의 다른 포트) | "link" (별도 주소, url) | "report" (최신 HTML 리포트 서빙) | "engine" (상태만 표시) | "alpaca" (Alpaca paper 결과 화면) | "ops" (운영 상태 화면)
+    kind: str  # "web" (같은 호스트의 다른 포트) | "link" (별도 주소, url) | "report" (최신 HTML 리포트 서빙) | "engine" (상태만 표시) | "alpaca" (Alpaca paper 결과 화면) | "ops" (운영 상태 화면) | "research" (에이전트 연구 화면)
     port: int | None = None  # kind == "web"일 때 슬롯이 직접 링크할 포트
     url: str | None = None  # kind == "link"일 때 슬롯이 링크할 전체 주소(예: nginx 뒤 HTTPS 도메인)
     report_glob: str | None = None  # kind == "report"일 때 최신 파일을 찾을 glob 패턴(저장소 루트 기준)
@@ -45,6 +45,14 @@ SLOTS: list[AppSlot] = [
         description="실 API 검증 · 추적오차 · 실측 비용 · 자동 주문 기록 (전략 검증용 모의 계좌, 실거래 없음)",
         unit="quant-scheduler.service",
         kind="alpaca",
+        category="연구·검증",
+    ),
+    AppSlot(
+        id="research",
+        title="AI 에이전트 연구",
+        description="가설 퍼널 · 누적 시도 수 · shadow/승격 후보 · 에이전트 예산 (매일 03:00 KST 배치)",
+        unit="quant-scheduler.service",
+        kind="research",
         category="연구·검증",
     ),
     AppSlot(
