@@ -19,6 +19,14 @@
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
 
+## 2026-09-25 후보 원장 사전 기록(forward_recorded) PIT 인증 (구현·단위 테스트, 브랜치 `eng-pit-forward-cert`, main 미병합·미배포)
+
+- 문제: 가격·재무 기반 후보는 decision_cutoff 만 채워 5필드 PIT 인증이 불가능 → `decide_verdict` 가 영원히 '미입증'.
+- 결정: `core/candidate_ledger.compute_pit_basis()` 로 행마다 `pit_basis ∈ {full_contract, forward_recorded, none}` 계산(DB 컬럼 추가 없음, `load_outcome_frame` 이 붙임). forward_recorded = `CandidateBatch.created_at <= next_executable_fill`(확정된 진입 시가, UTC) 이고 `decision_cutoff <= next_executable_fill`. full_contract 우선. 소급 기록(created_at > 진입)은 none.
+- PIT 게이트만 full_contract|forward_recorded 인정으로 바꿨고 표본·군집·블록·결측·진단 horizon·주 대상/비용 게이트는 그대로. 결과에 `pit_basis_counts`·`pit_basis_limitation`(원천 데이터 발표 시각·소급 수정은 보증 안 함) 포함. `pit_certified_fraction` 은 이제 인정 근거 비율.
+- 수정: `core/candidate_ledger.py`, `tests/test_candidate_ledger.py`(+15), `docs/CANDIDATE_LEDGER_SPEC.md`, `hub/guide/content_modules_a.py`, `hub/guide/content_ops.py`. models.py·db.py 미수정.
+- 다음: main 병합 여부는 사용자/상위 세션 결정. VM 실데이터에서 기존 행의 pit_basis 분포 확인은 아직 안 함.
+
 ## 2026-09-25 허브 모델 저장 forbidden 수정 (배포)
 
 - 증상: VM 허브 `/research` 에서 모델 바꾸고 저장 → `forbidden`. 원인: 허브 응답의 `Referrer-Policy: no-referrer` 때문에 브라우저가 폼 POST 의 `Origin` 을 `null` 로 보내 Host 비교가 실패. 수정: Origin 이 실제 주소일 때만 Host 와 비교하고, 그 외에는 `Sec-Fetch-Site`(cross-site·same-site 거부)로 판단(`hub/server.py::_same_origin_post`). 테스트 추가.

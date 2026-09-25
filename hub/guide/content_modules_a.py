@@ -177,8 +177,11 @@ MODULES: tuple[ModuleGuide, ...] = (
         where_to_see=
             '화면 없음(DB)',
         cautions=
-            '주문에 영향을 주지 않는 관측 전용이며 성과나 승률 개선을 입증하지 않았습니다. 표본이 충분히 쌓이기 전에는 결론을 내리면 안 됩니다. 파일 머리말은 스케줄러가 호출하지 않는다고 적혀 있으나 현재는 잡으로 연결돼 있습니다.',
-        sources=('scheduler/run_scheduler.py', 'scripts/candidate_ledger_update.py', 'docs/CANDIDATE_LEDGER_SPEC.md'),
+            '주문에 영향을 주지 않는 관측 전용이며 성과나 승률 개선을 입증하지 않았습니다. 표본이 충분히 쌓이기 전에는 결론을 내리면 안 됩니다. '
+            '판정은 PIT 근거가 있는 행만 인정합니다: 5개 시각이 모두 있는 행(full_contract) 또는 진입 시가보다 먼저 원장에 기록된 행(forward_recorded, 매일 밤 잡이 쌓는 후보). '
+            '과거 날짜로 나중에 소급 기록한 행은 인정되지 않아, 하나라도 섞이면 판정은 미입증입니다. 진입 전 기록은 원천 데이터의 발표 시각까지 보증하지 않습니다(공급자의 소급 수정 가능). '
+            '표본 수·결측률·신뢰구간 조건은 그대로입니다.',
+        sources=('scheduler/run_scheduler.py', 'scripts/candidate_ledger_update.py', 'docs/CANDIDATE_LEDGER_SPEC.md', 'core/candidate_ledger.py'),
         verified=V,
     ),
     ModuleGuide(
