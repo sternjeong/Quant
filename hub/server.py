@@ -23,45 +23,13 @@ if str(PROJECT_ROOT) not in sys.path:
 from hub.apps_registry import SLOTS, AppSlot  # noqa: E402
 from hub import alpaca_status, ops_status, research_status  # noqa: E402
 from hub.status import UnitStatus, get_unit_status  # noqa: E402
+from hub import ui  # noqa: E402
 
 HOST = "127.0.0.1"  # nginx를 거치지 않는 외부 직접 접속은 차단(방화벽에 별도 포트 개방 불필요)
 PORT = 8000
 
-PAGE_STYLE = """
-<style>
-  :root { color-scheme: dark; }
-  body { background:#0f1115; color:#e6e6e6; font-family:-apple-system,"Segoe UI",sans-serif;
-         margin:0; padding:2.5rem 1.5rem; }
-  h1 { font-size:1.6rem; margin-bottom:.25rem; }
-  p.subtitle { color:#9aa0a8; margin-top:0; margin-bottom:2rem; }
-  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
-          gap:1rem; max-width:1100px; }
-  .card { display:block; background:#181b21; border:1px solid #2a2e37; border-radius:12px;
-          padding:1.1rem 1.3rem; text-decoration:none; color:inherit;
-          transition:border-color .15s ease; }
-  .card:hover { border-color:#4c7dff; }
-  .card h2 { font-size:1.05rem; margin:0 0 .35rem; }
-  .card p { color:#9aa0a8; font-size:.85rem; margin:0 0 .7rem; line-height:1.4; }
-  .badge { display:inline-block; font-size:.72rem; padding:.15rem .55rem; border-radius:999px;
-           font-weight:600; }
-  .badge.active { background:#123d24; color:#4ade80; }
-  .badge.inactive { background:#3d1212; color:#f87171; }
-  .badge.unknown { background:#333844; color:#c9c9c9; }
-  .kind { color:#5b6472; font-size:.72rem; text-transform:uppercase; letter-spacing:.05em;
-          margin-left:.4rem; }
-  a.back { color:#4c7dff; font-size:.85rem; text-decoration:none; }
-  h2 { font-size:1.05rem; margin:1.6rem 0 .5rem; }
-  h3.cat { font-size:.78rem; text-transform:uppercase; letter-spacing:.08em; color:#5b6472;
-           margin:1.6rem 0 .6rem; max-width:1100px; }
-  .stamp { color:#5b6472; font-size:.75rem; margin-top:1.5rem; }
-  table { border-collapse:collapse; width:100%; max-width:760px; background:#181b21;
-          border:1px solid #2a2e37; border-radius:10px; overflow:hidden; }
-  th, td { text-align:left; padding:.55rem .8rem; border-bottom:1px solid #2a2e37; font-size:.85rem;
-           vertical-align:top; }
-  th { color:#9aa0a8; font-weight:500; width:38%; }
-  small { color:#9aa0a8; }
-</style>
-"""
+# 페이지 스타일은 hub/ui.py 의 공통 디자인 시스템이 담당한다(2026-09-25).
+
 
 LOGIN_PAGE = """<!doctype html><html lang="ko"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -130,24 +98,27 @@ LOGIN_PAGE = """<!doctype html><html lang="ko"><head><meta charset="utf-8">
 </script></body></html>"""
 
 
-# 사용 설명서 진입 카드 — 슬롯(systemd 유닛)이 아니라 허브 자체 기능이라 SLOTS 와 별개로 항상 맨 앞에 둔다.
-GUIDE_CARD = (
-    '<a class="card" href="/guide" style="border-color:#4c7dff">'
-    '<h2>📖 사용 설명서<span class="kind">guide</span></h2>'
-    '<p>대시보드를 어떻게 쓰는지, 각 화면과 엔진 모듈이 무엇인지, 자동 잡과 알림은 어떻게 읽는지 정리했습니다. '
-    '엔진이 업데이트되면 함께 갱신됩니다.</p>'
-    '<span class="badge active">항상 최신</span></a>'
-)
+# 슬롯별 아이콘(행 왼쪽). 새 슬롯은 kind 기본 아이콘을 쓴다.
+SLOT_ICONS = {
+    "streamlit": "📊", "code-server": "💻", "scheduler": "⏱", "alpaca": "🧪", "research": "🤖", "ops": "🛡",
+    "report-daily-briefing": "🗞", "report-champion-weekly": "🏆", "report-news-digest": "📰",
+    "codex-telegram": "💬", "vm-health": "🩺",
+}
+KIND_ICONS = {"link": "↗", "web": "🌐", "engine": "⚙", "report": "📄", "alpaca": "🧪", "ops": "🛡", "research": "🤖"}
+
+
+def _unit_pill(status: UnitStatus) -> tuple[str, str]:
+    """(알약 HTML, 톤). systemd 상태를 사람 말로 바꾼다."""
+    if not status.is_known:
+        return ui.pill("확인 불가", "muted"), "muted"
+    if status.is_active:
+        return ui.pill("실행 중", "ok"), "ok"
+    label = "실패" if status.active_state == "failed" else "멈춤"
+    return ui.pill(label, "bad"), "bad"
 
 
 def _badge_html(status: UnitStatus) -> str:
-    if not status.is_known:
-        css, label = "unknown", "상태 확인 불가"
-    elif status.is_active:
-        css, label = "active", f"{status.active_state}/{status.sub_state}"
-    else:
-        css, label = "inactive", f"{status.active_state}/{status.sub_state}"
-    return f'<span class="badge {css}">{html.escape(label)}</span>'
+    return _unit_pill(status)[0]
 
 
 def _slot_href(slot: AppSlot, host: str) -> str:
@@ -170,129 +141,169 @@ CATEGORY_ORDER = ["앱", "엔진", "연구·검증", "운영", "리포트"]
 REFRESH_SECONDS = 60
 
 
-def _card(slot: AppSlot, host: str, badge: str) -> str:
-    href = _slot_href(slot, host)
-    target = ' target="_blank" rel="noopener"' if slot.kind in ("web", "link") else ""
-    return (
-        f'<a class="card" href="{html.escape(href)}"{target}>'
-        f'<h2>{html.escape(slot.title)}<span class="kind">{html.escape(slot.kind)}</span></h2>'
-        f'<p>{html.escape(slot.description)}</p>'
-        f'{badge}'
-        f'</a>'
-    )
-
-
 def _report_badge(slot: AppSlot) -> str:
     path = latest_report_path(slot)
     if path is None:
-        return '<span class="badge unknown">아직 없음</span>'
+        return ui.pill("아직 없음", "muted")
     stamp = datetime.fromtimestamp(path.stat().st_mtime).strftime("%m-%d %H:%M")
-    return f'<span class="badge active">최신 {stamp}</span>'
+    return ui.pill(f"최신 {stamp}", "ok")
+
+
+def _alpaca_overall() -> str | None:
+    try:
+        v = alpaca_status._latest_verification(PROJECT_ROOT)
+    except Exception:  # noqa: BLE001
+        return None
+    if not v:
+        return None
+    return v.get("overall") or v.get("status")
+
+
+def _overview(jobs: dict, unit_tones: list[str]) -> tuple[str, str]:
+    """대시보드 맨 위 판정 배너와 지표 타일."""
+    known = [t for t in unit_tones if t != "muted"]
+    down = sum(1 for t in known if t == "bad")
+    counts = jobs.get("counts") or {}
+    job_err = counts.get("error", 0) + counts.get("missed", 0)
+    job_late = counts.get("overdue", 0)
+    try:
+        backup = ops_status.read_backup()
+    except Exception:  # noqa: BLE001
+        backup = None
+    backup_stale = bool(backup and backup.get("stale"))
+
+    if down or job_err:
+        parts = []
+        if down:
+            parts.append(f"서비스 {down}개가 멈춤")
+        if job_err:
+            parts.append(f"자동 작업 {job_err}개가 실패·누락")
+        tone, title, sub = "bad", "확인이 필요합니다", " · ".join(parts) + " — 아래 빨간 항목을 눌러 보세요."
+    elif job_late or backup_stale:
+        parts = []
+        if job_late:
+            parts.append(f"예정 시각이 지났는데 기록이 없는 작업 {job_late}개")
+        if backup_stale:
+            parts.append("백업이 오래됨")
+        tone, title, sub = "warn", "주의할 것이 있습니다", " · ".join(parts)
+    elif not known and not jobs.get("ok"):
+        tone, title, sub = "muted", "상태를 읽을 수 없습니다", "이 화면은 VM 에서 열었을 때 실제 서비스 상태를 보여줍니다."
+    else:
+        tone, title, sub = "ok", "모든 시스템 정상", "서비스와 오늘 예정된 자동 작업에 문제가 없습니다."
+
+    svc_value = f"{len(known) - down}/{len(known)}" if known else "—"
+    svc_tone = "bad" if down else ("ok" if known else "muted")
+    if jobs.get("ok"):
+        problems = counts.get("problem", 0)
+        job_value = f"{problems}개 문제" if problems else "정상"
+        job_tone = "bad" if job_err else ("warn" if problems else "ok")
+        checked = sum(v for k, v in counts.items() if k not in ("problem", "disabled"))
+        job_detail = f"확인한 작업 {checked}개"
+    else:
+        job_value, job_tone, job_detail = "—", "muted", "이력 확인 불가"
+    if backup:
+        b_value = ui.relative_age(backup.get("age_hours"))
+        b_tone = "warn" if backup_stale else ("ok" if backup.get("last_run_ok") else "bad")
+        b_detail = "원격 보관 켜짐" if backup.get("offsite") else "같은 디스크에만 보관"
+    else:
+        b_value, b_tone, b_detail = "—", "muted", "상태 파일 없음"
+    a = _alpaca_overall()
+    a_value, a_tone = (a, "ok" if a == "PASS" else "bad") if a else ("대기", "muted")
+
+    tiles = ui.stats([
+        ui.stat("서비스", svc_value, "실행 중 / 전체", svc_tone),
+        ui.stat("자동 작업", job_value, job_detail, job_tone),
+        ui.stat("마지막 백업", b_value, b_detail, b_tone),
+        ui.stat("Alpaca 검증", a_value, "읽기 전용 자동 검증", a_tone),
+    ])
+    return ui.verdict(tone, title, sub), tiles
 
 
 def render_dashboard(host: str) -> str:
     jobs = ops_status.job_health_summary()
     groups: dict[str, list[str]] = {}
+    unit_tones: list[str] = []
+    seen_units: set[str] = set()
     for slot in SLOTS:
         if slot.kind == "alpaca":
-            badge = alpaca_status.card_badge()
+            end = alpaca_status.card_badge()
         elif slot.kind == "report":
-            badge = _report_badge(slot)
+            end = _report_badge(slot)
         elif slot.kind == "ops":
-            badge = ops_status.jobs_badge(jobs)
+            end = ops_status.jobs_badge(jobs)
         elif slot.kind == "research":
-            badge = research_status.card_badge(research_status.collect())
+            end = research_status.card_badge(research_status.collect())
         else:
-            badge = _badge_html(get_unit_status(slot.unit))
+            end, tone = _unit_pill(get_unit_status(slot.unit))
+            if slot.unit not in seen_units:
+                seen_units.add(slot.unit)
+                unit_tones.append(tone)
             if slot.id == "scheduler":
-                badge += " " + ops_status.jobs_badge(jobs)
-        groups.setdefault(slot.category, []).append(_card(slot, host, badge))
+                end = ops_status.jobs_badge(jobs) + end
+        external = slot.kind in ("web", "link")
+        groups.setdefault(slot.category, []).append(ui.row(
+            slot.title, href=_slot_href(slot, host), icon=SLOT_ICONS.get(slot.id, KIND_ICONS.get(slot.kind, "•")),
+            desc=slot.description, end_html=end, external=external))
     ordered = [c for c in CATEGORY_ORDER if c in groups] + [c for c in groups if c not in CATEGORY_ORDER]
-    sections = "".join(
-        f'<h3 class="cat">{html.escape(cat)}</h3><div class="grid">{"".join(groups[cat])}</div>' for cat in ordered
-    )
+    banner, tiles = _overview(jobs, unit_tones)
+    guide = ui.row_list([ui.row(
+        "사용 설명서", href="/guide", icon="📖",
+        desc="처음이라면 여기부터 — 무엇을 어디서 보고, 알림이 오면 무엇을 하는지 정리했습니다.",
+        end_html=ui.pill("항상 최신", "info"))])
+    sections = "".join(ui.section(cat, ui.row_list(groups[cat]), cat_tag=True) for cat in ordered)
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    return (
-        '<!doctype html><html lang="ko"><head><meta charset="utf-8">'
-        '<meta name="viewport" content="width=device-width,initial-scale=1">'
-        f'<meta http-equiv="refresh" content="{REFRESH_SECONDS}">'
-        f'<title>Quant VM 관제 센터</title>{PAGE_STYLE}</head><body>'
-        '<a class="back" style="float:right" href="#" '
-        'onclick="fetch(\'/_logout\',{method:\'POST\'}).then(function(){location.href=\'/login\'});return false">'
-        '로그아웃</a><h1>Quant VM 관제 센터</h1>'
-        '<p class="subtitle">이 서버에서 돌고 있는 앱과 엔진들. 카드를 누르면 해당 웹 또는 '
-        '상태 화면으로 이동합니다.</p>'
-        f'<div class="grid">{GUIDE_CARD}</div>'
-        f'{sections}'
+    body = (
+        '<h1>Quant VM</h1><p class="lead">이 서버에서 돌고 있는 앱과 자동 작업의 현재 상태입니다.</p>'
+        f'{banner}{tiles}<div style="margin-top:14px">{guide}</div>{sections}'
         f'<p class="stamp">마지막 갱신 {now} · {REFRESH_SECONDS}초마다 자동 새로고침</p>'
-        '</body></html>'
     )
+    return ui.page("개요", body, active="/", refresh=REFRESH_SECONDS)
+
+
+def _stamp() -> str:
+    return f'<p class="stamp">마지막 갱신 {datetime.now():%Y-%m-%d %H:%M:%S}</p>'
 
 
 def render_research_page() -> str:
-    return (
-        '<!doctype html><html lang="ko"><head><meta charset="utf-8">'
-        '<meta name="viewport" content="width=device-width,initial-scale=1">'
-        f'<meta http-equiv="refresh" content="{REFRESH_SECONDS}">'
-        f'<title>AI 에이전트 연구</title>{PAGE_STYLE}</head><body>'
-        '<p><a class="back" href="/">&larr; 관제 센터로</a></p><h1>AI 에이전트 연구</h1>'
-        f'{research_status.render_body(research_status.collect())}'
-        f'<p class="stamp">마지막 갱신 {datetime.now():%Y-%m-%d %H:%M:%S}</p></body></html>'
-    )
+    body = f'<h1>AI 에이전트 연구</h1>{research_status.render_body(research_status.collect())}{_stamp()}'
+    return ui.page("AI 에이전트 연구", body, crumbs=(("/", "개요"), ("", "연구·검증")), refresh=REFRESH_SECONDS)
 
 
 def render_ops_page() -> str:
     body = ops_status.render_body(ops_status.job_health_summary(), ops_status.read_backup(),
                                   ops_status.system_info(), ops_status.collect_timers())
-    return (
-        '<!doctype html><html lang="ko"><head><meta charset="utf-8">'
-        '<meta name="viewport" content="width=device-width,initial-scale=1">'
-        f'<meta http-equiv="refresh" content="{REFRESH_SECONDS}">'
-        f'<title>운영 상태</title>{PAGE_STYLE}</head><body>'
-        '<p><a class="back" href="/">&larr; 관제 센터로</a></p><h1>운영 상태</h1>'
-        f'{body}<p class="stamp">마지막 갱신 {datetime.now():%Y-%m-%d %H:%M:%S}</p></body></html>'
-    )
+    return ui.page("운영 상태", f'<h1>운영 상태</h1>{body}{_stamp()}', active="/ops", refresh=REFRESH_SECONDS)
 
 
 def render_status_page(slot: AppSlot) -> str:
+    """엔진 상세 — 슬롯 전용 화면이 있으면 그것을, 없으면 공통 화면을 보여준다(hub/engine_pages.py)."""
+    try:
+        from hub import engine_pages
+    except ImportError:
+        engine_pages = None
+    custom = engine_pages.render(slot) if engine_pages is not None else None
+    if custom:
+        return custom
     status = get_unit_status(slot.unit)
-    since = html.escape(status.since) if status.since else "정보 없음"
-    return (
-        '<!doctype html><html lang="ko"><head><meta charset="utf-8">'
-        f'<title>{html.escape(slot.title)} 상태</title>{PAGE_STYLE}</head><body>'
-        '<p><a class="back" href="/">&larr; 관제 센터로</a></p>'
-        f'<h1>{html.escape(slot.title)}</h1>'
-        f'<p class="subtitle">{html.escape(slot.description)}</p>'
-        f'{_badge_html(status)}'
-        f'<p style="margin-top:1rem;color:#9aa0a8;font-size:.85rem">'
-        f'systemd unit: {html.escape(slot.unit)}<br>since: {since}</p>'
-        '<p style="margin-top:1rem;color:#5b6472;font-size:.78rem">'
-        '이 엔진은 별도 웹 UI 없이 백그라운드로 동작합니다(결과는 텔레그램 알림으로 발송됩니다).'
-        '</p></body></html>'
-    )
+    pill_html, tone = _unit_pill(status)
+    title = {"ok": "실행 중", "bad": "멈춰 있습니다", "muted": "상태를 읽을 수 없습니다"}[tone]
+    rows = [("systemd 유닛", f"<code>{html.escape(slot.unit)}</code>"), ("상태", pill_html),
+            ("시작 시각", html.escape(status.since) if status.since else "정보 없음")]
+    body = (f'<h1>{html.escape(slot.title)}</h1><p class="lead">{html.escape(slot.description)}</p>'
+            f'{ui.verdict(tone, title, "화면이 없는 백그라운드 서비스입니다. 결과는 텔레그램 알림으로 옵니다.")}'
+            f'{ui.kv_table(rows)}{_stamp()}')
+    return ui.page(slot.title, body, crumbs=(("/", "개요"), ("", slot.category)))
 
 
 def render_alpaca_page() -> str:
-    return (
-        '<!doctype html><html lang="ko"><head><meta charset="utf-8">'
-        '<meta name="viewport" content="width=device-width,initial-scale=1">'
-        f'<title>Alpaca paper 검증</title>{PAGE_STYLE}</head><body>'
-        '<p><a class="back" href="/">&larr; 관제 센터로</a></p>'
-        '<h1>Alpaca paper 검증</h1>'
-        f'{alpaca_status.render_body(alpaca_status.collect())}'
-        '</body></html>'
-    )
+    body = f'<h1>Alpaca paper 검증</h1>{alpaca_status.render_body(alpaca_status.collect())}{_stamp()}'
+    return ui.page("Alpaca paper 검증", body, crumbs=(("/", "개요"), ("", "연구·검증")), refresh=REFRESH_SECONDS)
 
 
 def render_no_report_page(slot: AppSlot) -> str:
-    return (
-        '<!doctype html><html lang="ko"><head><meta charset="utf-8">'
-        f'<title>{html.escape(slot.title)}</title>{PAGE_STYLE}</head><body>'
-        '<p><a class="back" href="/">&larr; 관제 센터로</a></p>'
-        f'<h1>{html.escape(slot.title)}</h1>'
-        '<p class="subtitle">아직 생성된 리포트가 없습니다.</p>'
-        '</body></html>'
-    )
+    body = (f'<h1>{html.escape(slot.title)}</h1>'
+            '<div class="empty">아직 생성된 리포트가 없습니다. 예정된 시각에 자동으로 만들어지면 여기에 나타납니다.</div>')
+    return ui.page(slot.title, body, crumbs=(("/", "개요"), ("", "리포트")))
 
 
 def find_slot(slot_id: str, *, kind: str | None = None) -> AppSlot | None:
