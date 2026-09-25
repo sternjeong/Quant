@@ -45,6 +45,18 @@ START_HERE: tuple[str, ...] = (
 # ---------------------------------------------------------------------------
 JOBS: tuple[JobGuide, ...] = (
     JobGuide(
+        job_id="paper_tracking_refresh",
+        where_to_see="화면 없음. data/cache/paper_tracking.json 파일",
+        if_alert="따로 할 일 없음. 구간이 20개 미만이면 추적오차를 계산하지 않는 것이 정상입니다.",
+        verified="2026-09-25",
+    ),
+    JobGuide(
+        job_id="paper_auto_trade",
+        where_to_see="텔레그램(제출 결과 1건). 기본값이 꺼짐이라 켜지 않았다면 아무 일도 일어나지 않습니다.",
+        if_alert="제출이 건너뛰어졌다면 텔레그램에 사유가 옵니다(검증 미통과, 휴장일, 거래 불가 종목, 주문 총액 초과 등). 사유를 확인하고, 반복되면 이 잡을 끄세요(/processes).",
+        verified="2026-09-25",
+    ),
+    JobGuide(
         "daily_watchlist_scan",
         "화면 '운용 알림'(관심 티커 리스트)의 알림 목록과 '읽지 않은 알림' 숫자, 화면 '오늘'. 데스크톱 알림 함수를 쓰므로 서버에서는 화면 알림이 뜨지 않고 텔레그램으로도 가지 않습니다(서버 로그에만 남음). "
         "관심종목이 하나도 없으면 아무것도 하지 않습니다. 화면의 '지금 스캔 실행' 버튼은 같은 함수를 수동으로 돌립니다.",
@@ -208,6 +220,22 @@ _KEYRUN = (
 )
 
 SCRIPTS: tuple[ScriptGuide, ...] = (
+    ScriptGuide(
+        path="scripts/verify_alpaca_meta_news.py", name="Alpaca 거래 가능·캘린더·뉴스 응답 확인",
+        when_to_run="Alpaca 뉴스와 거래 가능 여부 기능을 처음 쓰기 전에, 응답 형식이 가정과 맞는지 확인할 때(VM에서 한 번).",
+        command="python scripts/verify_alpaca_meta_news.py",
+        risk="읽기 전용",
+        what_it_prints="AAPL·SPY는 거래 가능, 존재하지 않는 종목은 not_found로 나오는지, 휴장 캘린더와 뉴스 응답이 기대한 형식인지 한 줄씩 보여줍니다. 키가 없으면 안내만 하고 종료하며 키 값은 출력하지 않습니다. 종료 코드가 0이 아니면 가정이 어긋난 것이므로 그 결과를 알려 주세요.",
+        verified="2026-09-25",
+    ),
+    ScriptGuide(
+        path="scripts/news_event_study.py", name="뉴스 이벤트 연구 실행",
+        when_to_run="특정 종목들의 뉴스 이후 수익률이 평소와 다른지 연구할 때(VM에서 한 번).",
+        command="python scripts/news_event_study.py AAPL MSFT --start 2024-01-01 --end 2024-12-31",
+        risk="파일/DB 쓰기",
+        what_it_prints="결과를 data/research/news_event_study_*.json 에 저장합니다. 이벤트가 30건 미만이면 평균과 초과수익 대신 표본 부족으로 나옵니다. 뉴스의 좋고 나쁨은 판단하지 않고 거래비용도 반영하지 않으므로, 결과를 매매 신호로 쓰지 마세요.",
+        verified="2026-09-25",
+    ),
     ScriptGuide(
         "scripts/champion_paper_trade.py",
         "챔피언 전략 paper 주문 계획 만들기 / 제출",

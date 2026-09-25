@@ -6,6 +6,22 @@ V = "2026-09-25"
 
 MODULES: tuple[ModuleGuide, ...] = (
     ModuleGuide(
+        module="core/alpaca_market_meta.py", name="Alpaca 거래 가능 여부·휴장 캘린더", group="데이터", status="도구",
+        what="Alpaca에 물어 종목이 실제로 거래 가능한지(상장폐지·거래정지·비활성 여부)와 그날이 미국 증시 개장일인지를 확인합니다. 읽기 전용입니다.",
+        how_to_use="자동 주문 실행기(paper_auto_trade)가 제출 직전에 이 점검을 씁니다. 직접 쓸 일은 없고, 응답 형식이 가정과 맞는지는 scripts/verify_alpaca_meta_news.py로 VM에서 확인합니다.",
+        where_to_see="화면 없음(자동 주문 실행기의 텔레그램 결과에 반영)",
+        cautions="Alpaca 응답 형식은 문서를 보고 가정한 것이며 실제 API로 아직 검증하지 않았습니다. 이 점검은 알림용이고 주문을 스스로 막지는 않습니다.",
+        verified="2026-09-25",
+    ),
+    ModuleGuide(
+        module="core/alpaca_news.py", name="Alpaca 뉴스 수집(당시 기준)", group="데이터", status="실험",
+        what="Alpaca 시장 데이터의 뉴스를 가져와, 기사가 처음 게시된 시각 기준으로 정리합니다. 나중에 수정된 시각은 별도로 보관해 과거 실험에 미래 정보가 섞이지 않게 합니다. 감성 점수는 만들지 않습니다.",
+        how_to_use="뉴스 이벤트 연구(news_event_study)의 입력으로만 쓰입니다. 직접 쓸 일은 없습니다.",
+        where_to_see="화면 없음. 연구 스크립트가 data/research/ 에 결과 파일을 남깁니다.",
+        cautions="과거 날짜 조회가 된다는 것은 문서 기준이며 아직 검증하지 않았습니다. 무료 뉴스 API의 한계를 우회하려는 실험용입니다.",
+        verified="2026-09-25",
+    ),
+    ModuleGuide(
         module='core/account_sync.py',
         name='실계좌 스냅샷·목표 이탈 감지',
         group='운용',

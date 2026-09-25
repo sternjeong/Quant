@@ -146,7 +146,8 @@ def render_guide(content: GuideContent) -> str:
         f"<title>Quant 사용 설명서</title>{GUIDE_STYLE}</head><body><div class=\"wrap\">",
         '<p><a href="/">&larr; 관제 센터로</a></p><h1>📖 Quant 사용 설명서</h1>',
         f'<p class="sub">이 서버에서 돌아가는 퀀트 대시보드와 엔진을 어떻게 쓰는지, 각 부분이 무엇인지 정리한 안내서입니다. '
-        f'화면·잡·최근 변경은 코드에서 자동으로 읽어 오므로 항상 현재 상태입니다. 배포 버전 <code>{E(ver_text)}</code></p>',
+        f'화면·잡·최근 변경은 코드에서 자동으로 읽어 오므로 항상 현재 상태입니다.</p>'
+        f'<p class="meta">배포 버전 <code style="white-space:nowrap">{E(ver_text)}</code></p>',
         '<nav class="toc">' + "".join(f'<a href="#{i}">{E(t)}</a>' for i, t in toc) + "</nav>",
         '<input id="q" class="q" type="search" placeholder="🔎 검색 (예: 챔피언, PIT, 백업, 텔레그램)" autocomplete="off">',
     ]
