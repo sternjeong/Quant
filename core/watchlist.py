@@ -12,18 +12,32 @@ app/pages/3_관심종목_모니터링.py (Streamlit UI) 와 scheduler/run_schedu
        (스케줄러는 notify_fn=core.notify.send_desktop_notification 을 넘겨서 쓰고,
         UI 페이지의 "지금 스캔 실행" 버튼도 동일한 함수를 그대로 재사용한다.)
     3. get_recent_alerts / mark_alert_read 등으로 알림 이력을 대시보드에 표시한다.
+    4. send_triggered_summary_telegram() 이 스캔 결과 중 충족 종목을 텔레그램 요약 1건으로 보낸다
+       (2026-09-25 추가 — 서버(VM)에는 화면이 없어 데스크톱 알림이 콘솔 출력으로만 대체되므로,
+       폰으로 보는 사용자가 충족을 알 수 있게 스케줄러 잡이 이것을 부른다). 충족 0건이면 보내지 않고,
+       같은 (종목, 전략, 기준일)은 작은 상태 파일로 한 번만 보낸다.
 """
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
+from datetime import date, timedelta
+from pathlib import Path
 from typing import Callable, Optional
 
+from core import telegram_notify
 from core.db import get_session
 from core.models import AlertLog, WatchlistItem
 from core.strategy_engine import evaluate
 
 MAX_WATCHLIST_SIZE = 50
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+# 텔레그램으로 이미 보낸 (종목, 전략, 기준일) 키. 재실행·재시작 시 같은 알림이 두 번 가지 않게 한다.
+TELEGRAM_SENT_STATE_PATH = PROJECT_ROOT / "data" / "cache" / "watchlist_telegram_sent.json"
+TELEGRAM_SUMMARY_MAX_ITEMS = 10
+_SENT_KEY_RETENTION_DAYS = 30
 
 
 @dataclass
@@ -183,6 +197,95 @@ def scan_watchlist(notify_fn: Optional[Callable[[str, str], None]] = None) -> li
                     )
 
     return results
+
+
+def _sent_key(result: ScanResult) -> str:
+    day = result.as_of or date.today().isoformat()
+    return f"{result.ticker}|{result.strategy_id}|{day}"
+
+
+def _load_sent_keys(path: Path) -> dict[str, str]:
+    try:
+        data = json.loads(Path(path).read_text(encoding="utf-8"))
+        sent = data.get("sent", {})
+        return dict(sent) if isinstance(sent, dict) else {}
+    except Exception:
+        return {}
+
+
+def _save_sent_keys(path: Path, sent: dict[str, str]) -> None:
+    cutoff = (date.today() - timedelta(days=_SENT_KEY_RETENTION_DAYS)).isoformat()
+    kept = {k: v for k, v in sent.items() if str(v) >= cutoff}
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps({"sent": kept}, ensure_ascii=False, indent=2), encoding="utf-8")
+    tmp.replace(path)
+
+
+def format_triggered_summary(triggered: list[ScanResult], max_items: int = TELEGRAM_SUMMARY_MAX_ITEMS) -> str:
+    """충족 종목 목록을 텔레그램 한 건 분량의 요약 문자열로 만든다(상위 max_items개 + '외 k건')."""
+    lines = [f"🔔 관심종목 타점 발생 {len(triggered)}건"]
+    for r in triggered[:max_items]:
+        detail = (r.message or "").strip().replace("\n", " ")
+        if len(detail) > 120:
+            detail = detail[:117] + "..."
+        lines.append(f"- {r.ticker} · {r.strategy_name or '전략?'} (기준일 {r.as_of or '-'})")
+        if detail:
+            lines.append(f"  {detail}")
+    extra = len(triggered) - max_items
+    if extra > 0:
+        lines.append(f"외 {extra}건")
+    lines.append("신호일 뿐 주문이 아닙니다. 자세한 내용은 화면 '운용 알림'에서 확인하세요.")
+    return "\n".join(lines)
+
+
+def send_triggered_summary_telegram(
+    results: list[ScanResult],
+    state_path: Optional[Path] = None,
+    max_items: int = TELEGRAM_SUMMARY_MAX_ITEMS,
+) -> dict:
+    """스캔 결과 중 신규 충족(triggered) 종목을 텔레그램 요약 1건으로 보낸다.
+
+    - 충족 0건(또는 전부 이미 보낸 것)이면 보내지 않는다 → status "nothing".
+    - 텔레그램 설정이 없으면 보내지 않는다 → status "not_configured" (예외 없음).
+    - 전송 실패 → status "failed" (예외 없음, 상태 파일도 갱신하지 않아 다음 실행에서 재시도).
+    - 성공 → status "sent", 보낸 키를 상태 파일에 기록해 같은 (종목, 전략, 기준일)을 다시 보내지 않는다.
+    """
+    path = Path(state_path) if state_path is not None else TELEGRAM_SENT_STATE_PATH
+    sent = _load_sent_keys(path)
+
+    pending: list[ScanResult] = []
+    seen: set[str] = set()
+    for r in results or []:
+        if not r.triggered:
+            continue
+        key = _sent_key(r)
+        if key in sent or key in seen:
+            continue
+        seen.add(key)
+        pending.append(r)
+
+    if not pending:
+        return {"status": "nothing", "count": 0}
+    if not telegram_notify.is_configured():
+        return {"status": "not_configured", "count": len(pending)}
+
+    text = format_triggered_summary(pending, max_items=max_items)
+    try:
+        ok = bool(telegram_notify.send_message(text))
+    except Exception:
+        ok = False
+    if not ok:
+        return {"status": "failed", "count": len(pending), "text": text}
+
+    for r in pending:
+        sent[_sent_key(r)] = r.as_of or date.today().isoformat()
+    try:
+        _save_sent_keys(path, sent)
+    except Exception as exc:  # 상태 저장 실패가 잡을 죽이면 안 된다(최악의 경우 다음 실행에서 한 번 더 감)
+        print(f"[watchlist] 텔레그램 전송 상태 저장 실패(무시): {exc}")
+    return {"status": "sent", "count": len(pending), "text": text}
 
 
 def get_recent_alerts(limit: int = 100, unread_only: bool = False) -> list[dict]:
