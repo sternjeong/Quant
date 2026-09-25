@@ -48,64 +48,17 @@
 `/usage`는 최근 7일간 백엔드별 작업 수·완료 수·사용량 한도(429 등) 도달 횟수를 보여준다.
 한도에 자주 걸리는 시간대/백엔드를 파악하는 용도다.
 
-## 2주 전략 실험 감독
+## 2주 전략 실험 감독 (종료됨)
 
-`quant-experiment-supervisor.service`는 `/opt/quant`에서 계속 실행된다. 한 번에 하나의 Codex
-감독만 실행하며, 4시간 간격으로 `docs/TWO_WEEK_STRATEGY_VALIDATION_PROTOCOL.md`의 아직 완료되지
-않은 단계를 진행한다. 각 단계가 완료됐다는 표식은 `docs/experiment_validation/PROGRESS.md`의
-`DAY_N_COMPLETE`뿐이다. 따라서 상태 파일이나 모델의 말만으로 단계를 건너뛰지 않는다. 기본 14단계가
-끝나면 결과와 사전등록 문서를 먼저 읽고, 기존 후보의 미세조정이 아닌 가설 하나를 새로 사전등록해
-첫 검증 단계만 진행한다. 이 서비스는 실계좌 주문과 인증정보 변경을 하지 않는다.
+2026-09-25에 `quant-experiment-supervisor.service`와 `deploy/experiment_supervisor.py`를 삭제했다.
+2주 실험은 Day 4가 PIT(당시 기준) 구성종목 데이터 부재로 반복 BLOCKED 되어 일시정지 상태였고,
+재개 계획이 없어 정리했다. VM에서는 `sudo systemctl disable --now quant-experiment-supervisor`로
+먼저 멈췄다(파일만 지우면 `Restart=always`로 30초마다 실패를 반복하기 때문).
 
-매 24시간마다 현재 상태, 완료 단계, git HEAD, 오류를 담은 HTML 파일을 같은 private Telegram chat에
-`sendDocument`로 보낸다. Telegram 명령은 다음과 같다.
-
-```text
-/experiment                         # 즉시 상태 확인
-/experiment pause                   # 다음 Codex 감독 실행부터 일시정지
-/experiment resume                  # 감독 재개
-/experiment stop                    # 실행 중인 Codex 감독에 SIGTERM을 보내고 이후 실행 중지
-/experiment claude Day 4를 검토해줘 # Claude에게 Quant 실험 지시
-/experiment codex 비용 가정을 확인해줘
-```
-
-`pause`는 현재의 원자적 Codex 작업을 끝까지 두고 다음 작업부터 막는다. 진행 중인 작업까지 즉시
-멈춰야 하면 `stop`을 사용한다. `resume`은 중지·일시정지 어느 상태에서도 재개하며, 한도 오류가
-발생했을 때는 `RESUME_NOTE.md`를 남긴 뒤 15분 후 자동 재개한다.
-
-이 감독기도 Telegram 큐·야간 미세튜닝 스케줄러와 같은 VM을 공유한다(2026-09-18 추가). 새 Codex
-감독 실행 시각이 됐어도 그 순간 CPU 부하·여유 메모리가 빠듯하면(`EXPERIMENT_MAX_LOAD_PER_CPU`
-기본 1.5, `EXPERIMENT_MIN_FREE_MEMORY_MB` 기본 1024MB) 바로 시작하지 않고 여유가 생길 때까지
-매 tick(약 1분)마다 다시 확인한다 — `/experiment`로 상태를 보면 "여유 리소스 부족으로 다음 감독
-실행 대기"로 표시된다.
-
-`/digest`는 마지막으로 `/digest`를 호출한 시점 이후 새로 끝난(`done`/`blocked`/`cancelled`)
-작업과, 지금 대기·실행·차단 중인 작업을 한 메시지로 압축해서 보여준다. 접속이 뜸한 상황에서
-알림 여러 개를 일일이 스크롤하는 대신 명령 하나로 따라잡는 용도 — 호출할 때마다 기준 시각이
-갱신되므로 다음 `/digest`는 그 이후 변화만 보여준다.
-
-`/idea 메모`는 Claude/Codex를 전혀 호출하지 않고 텍스트만 저장한다(비용 없음) — 짧은 자투리
-시간에 생각만 던져두고 싶을 때 쓴다. `/ideas`로 쌓인 목록을 확인하고, 실제로 처리하고 싶으면
-목록을 참고해 평소처럼 지시를 보내면 된다. `/ideas 비우기`로 전체 삭제한다.
-
-실행이 길어지는 작업(특히 `xhigh` 추론)은 `heartbeat_seconds`(기본 600초)마다 "아직 실행
-중입니다"라는 진행 알림을 보낸다. `0`이나 `null`로 설정하면 끈다.
-
-`job_timeout_seconds`(기본 7200초 = 2시간)를 넘겨도 응답이 없는 작업은 자동으로 중단하고
-재시도 큐에 넣은 뒤 Telegram으로 알린다 — 멈춰버린 작업이 동시 실행 슬롯(`max_concurrent_jobs`)
-하나를 무기한 차지한 채 아무 알림도 없이 방치되는 것을 막기 위함이다. `0`이나 `null`이면 끈다.
-두 CLI가 같은 프로젝트를 동시에 수정하지 않도록 프로젝트 단위로 순서를 맞춘 공유 큐를 쓴다.
-서로 다른 프로젝트(또는 서로 다른 저장소)의 작업은 동시에 실행되므로, 한 작업이 실행 중이어도
-다른 프로젝트로 보낸 다음 지시가 그 작업이 끝날 때까지 무작정 기다리지 않는다.
-
-동시에 몇 개까지 실행할지는 고정된 숫자가 아니라 **그 순간 VM이 버틸 수 있는 여유**로 정해진다.
-`max_concurrent_jobs`(기본 8)는 워커 스레드 개수의 상한선일 뿐이고, 실제로 새 작업을 하나 더
-시작할지는 매번 CPU 1분 평균 부하(`max_load_per_cpu`, 기본 1.5 — 코어당 이 배수를 넘으면 보류)와
-여유 메모리(`min_free_memory_mb`, 기본 1024MB 미만이면 보류)를 확인해서 결정한다. 단, 이미 실행
-중인 작업이 하나도 없을 땐 이 검사와 무관하게 무조건 허용한다 — VM의 다른 프로세스 때문에 여유가
-계속 부족해 보이는 상황이어도 파이프라인 전체가 영원히 멈추는 일은 없게 하기 위함이다(Oracle
-Always Free 인스턴스는 자원이 넉넉하지 않다). 여유가 없어 보류된 작업은 몇 초 뒤 다시 확인해서,
-자리가 나는 대로 자동으로 시작한다 — 별도 명령이 필요 없다.
+- 남긴 것: `docs/TWO_WEEK_STRATEGY_VALIDATION_PROTOCOL.md`, `docs/experiment_validation/`, `.experiment-control/`
+  (백업 대상이며 사람 검증 대기 표본이 들어 있다). 이 텔레그램 러너의 `.experiment-control` 참조도 그대로다.
+- 복구: `git show <삭제 직전 커밋>:deploy/experiment_supervisor.py` 등으로 파일을 되살리고
+  유닛을 다시 설치·활성화하면 된다(`docs/prune/PRUNE_E.md` 참고).
 
 ## GitHub 저장소 선택과 생성
 

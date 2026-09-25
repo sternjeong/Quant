@@ -108,8 +108,21 @@ def test_link_card_opens_in_a_new_tab():
     assert 'target="_blank"' in page[card_start:card_start + 80]
 
 
+# 2026-09-25: 2주 실험 슈퍼바이저 삭제로 등록된 report 슬롯이 없어졌다. 허브의 리포트 보기 기능(/reports)은 그대로
+# 남아 있으므로 그 기능은 테스트 전용 슬롯으로 계속 검증한다.
+REPORT_SLOT = AppSlot(
+    id="test-report", title="테스트 리포트", description="테스트 전용 report 슬롯", unit="test-report.service",
+    kind="report", report_glob=".experiment-control/reports/*.html",
+)
+
+
+def test_no_report_slot_is_registered_after_supervisor_removal():
+    assert [slot.id for slot in SLOTS if slot.kind == "report"] == []
+    assert all(slot.id != "experiment-supervisor" for slot in SLOTS)
+
+
 def test_slot_href_report_points_to_reports_route():
-    report_slot = next(slot for slot in SLOTS if slot.kind == "report")
+    report_slot = REPORT_SLOT
     assert server._slot_href(report_slot, "host") == f"/reports/{report_slot.id}"
 
 
@@ -126,7 +139,7 @@ def test_find_slot_by_id_and_kind():
 
 
 def test_latest_report_path_picks_newest_file(tmp_path, monkeypatch):
-    report_slot = next(slot for slot in SLOTS if slot.kind == "report")
+    report_slot = REPORT_SLOT
     report_dir = tmp_path / Path(report_slot.report_glob).parent
     report_dir.mkdir(parents=True)
     older = report_dir / "quant_experiment_20260101_000000.html"
@@ -142,7 +155,7 @@ def test_latest_report_path_picks_newest_file(tmp_path, monkeypatch):
 
 
 def test_latest_report_path_returns_none_when_no_reports(tmp_path, monkeypatch):
-    report_slot = next(slot for slot in SLOTS if slot.kind == "report")
+    report_slot = REPORT_SLOT
     monkeypatch.setattr(server, "PROJECT_ROOT", tmp_path)
     assert server.latest_report_path(report_slot) is None
 

@@ -269,9 +269,8 @@ sudo systemctl start quant-vm-health.service     # 정상 범위로 "복구됨" 
 성공하면 `requirements.txt`가 이번 범위에서 바뀌었는지 확인해 바뀌었을 때만 먼저
 `pip install -r requirements.txt`를 실행한다(실패하면 서비스는 재시작하지 않고 기존 버전을
 그대로 둔 채 텔레그램으로 알리고 종료). 그다음 **서비스를 재시작하기 전에 테스트 게이트를
-돈다** — `tests/`(프로젝트 venv, `pytest`) + `deploy/codex_telegram/test_runner.py` /
-`deploy/test_experiment_supervisor.py`(시스템 `python3` — 이 두 파일이 검증하는
-`runner.py`/`experiment_supervisor.py` 자체가 venv 없이 시스템 python으로 도는 stdlib-only
+돈다** — `tests/`(프로젝트 venv, `pytest`) + `deploy/codex_telegram/test_runner.py`(시스템 `python3` — 이 파일이 검증하는
+`runner.py` 자체가 venv 없이 시스템 python으로 도는 stdlib-only
 프로세스라서). 이 게이트가 실패하면 `codex-telegram`/`quant-streamlit`/`quant-scheduler`
 세 서비스를 **재시작하지 않고**(기존 버전이 계속 돎) 실패한 pytest 출력 뒷부분과 함께
 텔레그램으로 알린 뒤 종료한다 — 워킹트리 자체는 이미 새(깨진) 커밋으로 옮겨간 상태라, 다음

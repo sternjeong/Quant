@@ -33,17 +33,9 @@ SLOTS: list[AppSlot] = [
     AppSlot(
         id="scheduler",
         title="백그라운드 스케줄러",
-        description="장마감 후 관심종목 스캔, 주간 리포트, 나이틀리 튜닝 등 예약 작업",
+        description="장마감 후 관심종목 스캔, 주간 리포트, 챔피언 전략 · shadow 기록 등 예약 작업",
         unit="quant-scheduler.service",
         kind="engine",
-    ),
-    AppSlot(
-        id="experiment-supervisor",
-        title="2주 실험 슈퍼바이저",
-        description="전략 실험을 자동 진행하고 매일 텔레그램으로 HTML 리포트 발송",
-        unit="quant-experiment-supervisor.service",
-        kind="report",
-        report_glob=".experiment-control/reports/*.html",
     ),
     AppSlot(
         id="codex-telegram",
