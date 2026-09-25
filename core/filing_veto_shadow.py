@@ -12,7 +12,8 @@ core.filing_changes 가 계산한 current_doc_sha256)·info_doc_id(accession)를
 
 이 모듈이 하는 일 (그리고 하지 않는 일):
     1. record_filing_veto_shadow(): core.champion_strategy.compute_satellite_recommendation_point_in_time
-       (읽기 전용 호출, 수정하지 않는다)이 오늘 채택한 위성 후보 각각에 core.filing_changes.filing_veto 를
+       (읽기 전용 호출)이 오늘 낸 위성 후보 풀 — 돈치안 돌파가 활성인 후보 집합 C 전체(원전략 채택 selected +
+       top_k 밖 held, 2026-09-25부터; 그 전 v1 은 채택 종목만) — 각각에 core.filing_changes.filing_veto 를
        적용한 hold/pass 판정을, 원전략과 **다른** strategy_version/source(SHADOW_STRATEGY_VERSION/
        SHADOW_SOURCE)로 core.candidate_ledger 에 병행 기록한다. 원전략이 실제로 채택한 종목·주문·보유는
        이 함수가 절대 읽거나 바꾸지 않는다 — champion_strategy 의 반환값을 그대로 읽기만 하고, 기록은
@@ -50,12 +51,16 @@ scores 에 남긴다. 이 값은 evaluate_filing_veto_shadow_arms(exposed_only=T
 정책값)와는 별개 개념이다(둘을 하나로 합치지 않는다).
 
 알려진 한계(정직하게 남긴다):
-    - compute_satellite_recommendation_point_in_time 은 top_k 로 이미 선정된 종목(선정 시점의 사실상 유일한
-      외부 공개 후보 목록)만 돌려주고, 돈치안 브레이크아웃이 활성인 전체 풀(active_scores)은 반환하지 않는다.
-      champion_strategy.py 를 수정하지 않는 제약 때문에 이 모듈이 볼 수 있는 "후보"는 top_k 선정 종목뿐이다.
-      진짜 "선정 전 브레이크아웃 풀"에 대한 veto 실험은 champion_strategy 쪽에 pool 반환 기능이 추가되어야
-      가능하다(다음 연결 지점).
-    - 기본 이벤트 공급자(_default_event_provider)는 core.filing_changes.EdgarClient 로 "현재" 기준 최신
+    - (2026-09-25 갱신) 예전에는 compute_satellite_recommendation_point_in_time 이 top_k 채택 종목만 돌려줘 채택
+      집합만 관측했다(v1). 이제 그 결과의 관측 전용 필드 candidates(돌파 활성 후보 전체)를 써서 후보 집합 C 전체를
+      판정한다(v2). 원전략 결정은 scores.original_decision/in_adopted_set 에 복사되므로 채택 집합 A 만의 분석도
+      같은 행에서 가능하다. 돌파 비활성(rejected)·이력 부족(missing) 종목은 veto 가설의 후보가 아니어서 이
+      shadow 에는 기록하지 않는다(원전략 원장 core/candidate_recorder.py 에는 기록된다).
+    - 외부 조회 상한: 풀이 커져도 SEC 요청이 무한히 늘지 않게 티커 수(FILING_VETO_MAX_TICKERS)·SEC 요청 수
+      (FILING_VETO_MAX_SEC_REQUESTS)·소요 시간(FILING_VETO_TIME_BUDGET_SECONDS) 소프트 상한을 두고, 우선순위
+      (채택 > 모멘텀 순위) 뒤쪽부터 조회하지 않는다. 조회하지 않은 후보는 missing_data(fetch_status=skipped_*)로
+      남는다 — 상한이 자주 걸리면 표본이 모멘텀 상위 쪽으로 치우친다(건수는 반환값 n_skipped 로 확인).
+    - 기본 이벤트 공급자(_DefaultEventProvider)는 core.filing_changes.EdgarClient 로 "현재" 기준 최신
       10-K/10-Q를 가져온다. EDGAR 에는 "특정 과거 시점 기준 최신 공시" 조회가 없으므로 이 기본 공급자는
       forward(오늘 as_of) shadow 에만 적절하고, as_of 를 과거로 주면 point-in-time 이 아니다(어차피
       pit_certified 는 항상 False 이므로 성과를 주장하는 데 쓰이지 않는다). 과거 재구성이 필요하면
@@ -66,6 +71,7 @@ from __future__ import annotations
 
 import json
 import math
+import time
 from contextlib import contextmanager
 from dataclasses import asdict
 from datetime import date, datetime, timezone
@@ -73,6 +79,7 @@ from typing import Any, Callable, Iterable, Optional
 
 from core.candidate_ledger import (
     CandidateRecord,
+    champion_satellite_to_candidate_set,
     DISCLAIMER,
     FrozenCandidateSet,
     PRIMARY_COST_SCENARIO,
@@ -87,11 +94,30 @@ from core.filing_changes import FilingVetoPolicy, filing_veto
 from core.info_dedup import compute_event_id, populate_info_fields
 
 SHADOW_SOURCE = "champion_satellite_filing_veto_shadow"
-SHADOW_STRATEGY_VERSION = "champion_satellite/filing_veto_shadow_v1"
+# v2(2026-09-25): 관측 대상이 '채택 종목만'(v1)에서 '돌파 활성 후보 풀 전체'로 바뀌어 표본 모집단이 달라졌으므로
+# 버전을 올려 v1 기록과 섞이지 않게 한다(v1 행은 원장에 그대로 남는다).
+SHADOW_STRATEGY_VERSION = "champion_satellite/filing_veto_shadow_v2"
 
 # 스펙 §3 의 W=10 거래일을 달력일로 근사(candidate_ledger.py 의 block_days = horizon*7/5 관례와 동일 방식).
 EXPOSURE_WINDOW_TRADING_DAYS = 10
 EXPOSURE_WINDOW_CALENDAR_DAYS = int(math.ceil(EXPOSURE_WINDOW_TRADING_DAYS * 7 / 5))  # 14
+
+# 후보 집합 C = 원전략 결정이 selected(채택) 또는 held(돌파 활성이지만 top_k 밖·신규 주문 보류)인 후보(2026-09-25).
+CANDIDATE_POOL_DECISIONS = ("selected", "held")
+
+# 외부(SEC EDGAR) 조회 상한(2026-09-25, 후보 풀 전체로 넓히며 추가). 티커 사이에서만 검사하는 소프트 상한이다.
+#   - 티커 수: 가이던스 야간 조회(core.guidance_shadow.NIGHTLY_MAX_TICKERS)와 같은 20. 위성 풀 표본은 40종목이고
+#     돌파 활성 후보는 보통 그보다 적어 대개 닿지 않는다. 넘치면 우선순위(채택 > 모멘텀 상위) 뒤쪽이 skipped.
+#   - SEC 요청 수: 티커 1개 콜드 캐시 ≈ submissions 1 + 10-K/10-Q 각 원본·직전 원본 4 = 5회(티커 목록은 7일 캐시).
+#     20티커 x 5 = 100 에 여유를 둔 150회. 문서는 영구 캐시, submissions 는 6시간 캐시다.
+#   - 소요 시간: 300초(가이던스 야간 상한과 같은 값). SEC 지연·재시도가 길어질 때 끊는 용도다.
+FILING_VETO_MAX_TICKERS = 20
+FILING_VETO_MAX_SEC_REQUESTS = 150
+FILING_VETO_TIME_BUDGET_SECONDS = 300.0
+FETCH_STATUS_OK = "ok"
+FETCH_STATUS_ERROR = "error"
+FETCH_STATUS_SKIPPED_MAX_TICKERS = "skipped_max_tickers"
+FETCH_STATUS_SKIPPED_BUDGET = "skipped_budget"
 
 
 # ---------------------------------------------------------------------------
@@ -122,11 +148,8 @@ def _age_calendar_days(available_at_iso: Optional[str], cutoff_aware_utc: Option
 
 
 def _extract_selected_tickers(satellite_result: dict) -> list:
-    """compute_satellite_recommendation_point_in_time 결과의 'selected'(list[str]) 만 쓴다.
-
-    breakout 풀(active_scores) 은 그 함수가 외부로 반환하지 않아(모듈 docstring의 "알려진 한계" 참고)
-    top_k 선정 종목만 후보로 다룬다. 중복은 제거하되 순서는 보존한다.
-    """
+    """compute_satellite_recommendation_point_in_time 결과의 'selected'(list[str], 원전략 채택 종목).
+    중복은 제거하되 순서는 보존한다(우선순위 정렬에서 '채택' 여부를 가리는 데 쓴다)."""
     out: list = []
     seen: set = set()
     for t in satellite_result.get("selected") or []:
@@ -135,6 +158,29 @@ def _extract_selected_tickers(satellite_result: dict) -> list:
             seen.add(tu)
             out.append(tu)
     return out
+
+
+def _candidate_pool(satellite_result: dict, as_of_date: date) -> list:
+    """veto 를 판정할 후보 집합 C(스펙 §3 의 '위성 모멘텀 전략이 그 결정일에 낸 신규 진입 후보')를 원전략 결정과
+    함께 돌려준다. 원전략 결정은 core.candidate_ledger.champion_satellite_to_candidate_set(수정하지 않음)이
+    결과에서 옮긴 decision 을 그대로 복사한다(재계산하지 않는다).
+
+    - 결과에 candidates(돌파 활성 후보 전체, 2026-09-25 champion_strategy 확장)가 있으면 채택(selected)과
+      top_k 밖 돌파 후보(held)가 모두 들어간다. 신규 주문 보류(new_orders_allowed=False)면 채택 종목도 held 다.
+    - 돌파 비활성(rejected)·이력 부족(missing_data)은 C 가 아니므로 넣지 않는다(어댑터에 넘기지 않는다).
+    - 구버전 결과(candidates 없음)면 채택 종목만 나온다(기존 동작과 같은 종목).
+    반환 순서 = 외부 조회 우선순위: 원전략 채택 종목 먼저, 그다음 모멘텀 순위(rank) 순.
+    """
+    base = champion_satellite_to_candidate_set(
+        satellite_result, strategy_version="champion_satellite/filing_veto_shadow_base",
+        decision_cutoff=satellite_result.get("as_of") or as_of_date)
+    adopted = set(_extract_selected_tickers(satellite_result))
+    pool = [r for r in base.records if r.decision in CANDIDATE_POOL_DECISIONS]
+    order = {r.ticker: i for i, r in enumerate(pool)}
+    pool.sort(key=lambda r: (r.ticker not in adopted, r.rank if r.rank is not None else 10**9, order[r.ticker]))
+    return [{"ticker": r.ticker, "original_decision": r.decision, "original_decision_reason": r.decision_reason,
+             "original_rank": r.rank, "in_adopted_set": r.ticker in adopted,
+             "momentum_12m": (r.scores or {}).get("momentum_12m")} for r in pool]
 
 
 INFO_EVENT_SOURCE = "sec_edgar"
@@ -167,22 +213,38 @@ def filing_info_kwargs(record_kwargs: dict, ticker: str, events: list, usable_ev
     )
 
 
-def _default_event_provider(ticker: str, decision_cutoff: Any) -> list:
-    """운영 기본 공급자: core.filing_changes.EdgarClient(파일 캐시 재사용)로 10-K/10-Q 각각 최신 원본과
-    직전 원본을 내려받아 FilingChangeEvent 를 만든다. decision_cutoff 는 이 기본 공급자에서는 쓰이지
+class _DefaultEventProvider:
+    """운영 기본 공급자: core.filing_changes.EdgarClient(파일 캐시 재사용) 하나를 한 번의 기록 실행 동안 공유하며
+    10-K/10-Q 각각 최신 원본과 직전 원본을 내려받아 FilingChangeEvent 를 만든다. decision_cutoff 는 쓰이지
     않는다(모듈 docstring의 한계 참고 — forward shadow 전용). 공시가 없거나 조회에 실패하면 그 form 은
-    건너뛴다(느린 재시도로 전체 스캔을 막지 않는다 — max_retries 는 EdgarClient 기본값을 그대로 쓴다).
+    건너뛴다. request_count 는 이 실행에서 SEC 로 실제로 보낸 요청 수(캐시 적중 제외)이며 요청 상한 검사에 쓴다.
     """
-    from core.filing_changes import EdgarClient, EdgarFetchError, build_latest_filing_change_event
 
-    client = EdgarClient()
-    events = []
-    for form in ("10-K", "10-Q"):
-        try:
-            events.append(build_latest_filing_change_event(client, ticker=ticker, form=form, mode="retrospective"))
-        except EdgarFetchError:
-            continue
-    return events
+    def __init__(self):
+        self._client = None
+
+    @property
+    def request_count(self) -> int:
+        return int(getattr(self._client, "requests_made", 0) or 0) if self._client is not None else 0
+
+    def __call__(self, ticker: str, decision_cutoff: Any) -> list:
+        from core.filing_changes import EdgarClient, EdgarFetchError, build_latest_filing_change_event
+
+        if self._client is None:
+            self._client = EdgarClient()
+        events = []
+        for form in ("10-K", "10-Q"):
+            try:
+                events.append(build_latest_filing_change_event(self._client, ticker=ticker, form=form,
+                                                               mode="retrospective"))
+            except EdgarFetchError:
+                continue
+        return events
+
+
+def _default_event_provider(ticker: str, decision_cutoff: Any) -> list:
+    """하위호환용 단발 호출(티커마다 새 클라이언트). 기록 함수는 _DefaultEventProvider 를 쓴다."""
+    return _DefaultEventProvider()(ticker, decision_cutoff)
 
 
 # ---------------------------------------------------------------------------
@@ -198,8 +260,19 @@ def record_filing_veto_shadow(
     sizing_method: str = "equal",
     pool_n: Optional[int] = None,
     top_k: Optional[int] = None,
+    max_tickers: int = FILING_VETO_MAX_TICKERS,
+    max_sec_requests: Optional[int] = FILING_VETO_MAX_SEC_REQUESTS,
+    time_budget_seconds: Optional[float] = FILING_VETO_TIME_BUDGET_SECONDS,
+    clock: Callable[[], float] = time.monotonic,
 ) -> dict:
-    """오늘 위성 후보(compute_satellite_recommendation_point_in_time)에 filing_veto 판정을 병행 기록한다.
+    """오늘 위성 후보 풀(compute_satellite_recommendation_point_in_time)에 filing_veto 판정을 병행 기록한다.
+
+    후보 풀 전체(2026-09-25): 채택 종목만이 아니라 돌파 활성 후보 집합 C 전체(원전략 selected + held)를
+    판정한다(_candidate_pool). 원전략 결정은 scores.original_decision 등에 그대로 복사한다(재계산 없음).
+    외부 조회 상한: 우선순위(채택 > 모멘텀 순위) 순으로 max_tickers 개까지만 조회하고, 티커 사이에서
+    time_budget_seconds(clock 기준)·max_sec_requests(공급자의 request_count 가 있을 때만) 를 검사한다. 상한 때문에
+    조회하지 못한 후보는 지어내지 않고 decision='missing_data'(scores.fetch_status=skipped_*)로 남긴다 —
+    노출(exposed)=False 라 주 분석 분모에 들어가지 않으며, 건수는 반환값 n_skipped 로 드러난다.
 
     원전략 함수는 읽기만 한다(수정하지 않는다). 기록은 SHADOW_STRATEGY_VERSION/SHADOW_SOURCE 로만 남아
     원전략의 실제 채택/보류 결정(다른 strategy_version 으로 기록되는 RES-01 원장, core.paper_execution 의
@@ -226,27 +299,69 @@ def record_filing_veto_shadow(
         satellite_result = compute_satellite_recommendation_point_in_time(**kwargs)
 
     pol = policy or FilingVetoPolicy()
-    provider = event_provider or _default_event_provider
+    provider = event_provider or _DefaultEventProvider()
     cutoff_naive_utc = normalize_time(as_of_date)
     cutoff_aware_utc = cutoff_naive_utc.replace(tzinfo=timezone.utc) if cutoff_naive_utc is not None else None
 
-    tickers = _extract_selected_tickers(satellite_result)
+    pool = _candidate_pool(satellite_result, as_of_date)
     records: list = []
     per_ticker: dict = {}
+    skipped: dict = {}
     # 스펙 §3.3: 추출·비교 실패 건은 "pass" 로 묻지 않고 사유별로 센다(주 분석 분모에서 조용히 빼지 않는다).
     unusable_reason_counts: dict = {}
+    started = clock()
+    budget_stop: Optional[str] = None
+    n_queried = 0
 
-    for t in tickers:
+    def _requests_so_far() -> Optional[int]:
+        rc = getattr(provider, "request_count", None)
+        return int(rc) if rc is not None else None
+
+    for i, cand in enumerate(pool):
+        t = cand["ticker"]
+        original = {  # 원전략 결정 그대로(복사) — 이 함수는 원전략 결정을 계산하지 않는다
+            "original_decision": cand["original_decision"],
+            "original_decision_reason": cand["original_decision_reason"],
+            "original_rank": cand["original_rank"],
+            "in_adopted_set": cand["in_adopted_set"],
+            "momentum_12m": cand["momentum_12m"],
+        }
+        status = None
+        if i >= max_tickers:
+            status = FETCH_STATUS_SKIPPED_MAX_TICKERS
+        else:
+            if budget_stop is None:
+                n_req = _requests_so_far()
+                if time_budget_seconds is not None and clock() - started >= time_budget_seconds:
+                    budget_stop = "time_budget_exceeded"
+                elif max_sec_requests is not None and n_req is not None and n_req >= max_sec_requests:
+                    budget_stop = "request_budget_exceeded"
+            if budget_stop is not None:
+                status = FETCH_STATUS_SKIPPED_BUDGET
+        if status is not None:
+            skipped[t] = status
+            per_ticker[t] = {"veto_decision": None, "exposed": False, "fetch_status": status}
+            records.append(CandidateRecord(
+                ticker=t, decision="missing_data", decision_reason=f"filing_fetch_{status}",
+                scores={"veto_decision": None, "exposed": False, "fetch_status": status,
+                        "budget_stop": budget_stop, **original},
+                rank=cand["original_rank"], decision_cutoff=as_of_date,
+            ))
+            continue
+
+        n_queried += 1
         try:
             events = list(provider(t, as_of_date))
         except Exception as exc:  # noqa: BLE001 - 한 종목의 조회 실패가 나머지 기록을 막지 않는다
             err = f"{type(exc).__name__}: {exc}"
             unusable_reason_counts["event_fetch_error"] = unusable_reason_counts.get("event_fetch_error", 0) + 1
-            per_ticker[t] = {"error": err, "veto_decision": "pass", "exposed": False, "reason_codes": ["event_fetch_error"]}
+            per_ticker[t] = {"error": err, "veto_decision": "pass", "exposed": False, "reason_codes": ["event_fetch_error"],
+                             "fetch_status": FETCH_STATUS_ERROR}
             records.append(CandidateRecord(
                 ticker=t, decision="selected", decision_reason="filing_event_fetch_error_defaulted_to_pass",
-                scores={"veto_decision": "pass", "exposed": False, "error": err, "original_decision": "selected"},
-                decision_cutoff=as_of_date,
+                scores={"veto_decision": "pass", "exposed": False, "error": err, "fetch_status": FETCH_STATUS_ERROR,
+                        **original},
+                rank=cand["original_rank"], decision_cutoff=as_of_date,
             ))
             continue
 
@@ -262,6 +377,8 @@ def record_filing_veto_shadow(
         min_age = min(ages) if ages else None
         exposed = bool(usable_events) and min_age is not None and min_age <= EXPOSURE_WINDOW_CALENDAR_DAYS
 
+        # shadow 결정 = veto 결과(Arm B: pass=진입, hold=보류). 원전략이 top_k 밖이라 held 였던 후보도 스펙 §8 Arm A
+        # ("모든 노출 후보를 진입")와 같은 조건으로 판정한다. 원전략 결정은 scores.original_decision 에 복사돼 있다.
         decision = "held" if veto.decision == "hold" else "selected"
         reason = f"filing_veto_{pol.version}:{veto.decision}:{','.join(veto.reason_codes) or 'none'}"
         scores = {
@@ -275,14 +392,16 @@ def record_filing_veto_shadow(
             "n_usable_events": len(usable_events),
             "min_event_age_calendar_days": min_age,
             "unusable_events": veto.unusable_events,
-            "original_decision": "selected",  # 이 후보는 이미 원전략(위성)이 채택한 종목이다
+            "fetch_status": FETCH_STATUS_OK,
+            **original,
             # RES-02: 평가한 모든 공시의 결정적 event_id(같은 공시는 날짜·후보와 무관하게 같은 값).
-            "filing_event_ids": sorted({i for i in (_event_info_id(t, e) for e in events) if i}),
+            "filing_event_ids": sorted({eid for eid in (_event_info_id(t, e) for e in events) if eid}),
         }
         record_kwargs = dict(ticker=t, decision=decision, decision_reason=reason, scores=scores,
-                             decision_cutoff=as_of_date)
+                             rank=cand["original_rank"], decision_cutoff=as_of_date)
         records.append(CandidateRecord(**filing_info_kwargs(record_kwargs, t, events, usable_events)))
-        per_ticker[t] = {"veto_decision": veto.decision, "exposed": exposed, "reason_codes": list(veto.reason_codes)}
+        per_ticker[t] = {"veto_decision": veto.decision, "exposed": exposed, "reason_codes": list(veto.reason_codes),
+                         "fetch_status": FETCH_STATUS_OK}
 
     cset = FrozenCandidateSet(
         source=SHADOW_SOURCE, strategy_version=SHADOW_STRATEGY_VERSION, decision_cutoff=as_of_date, records=records,
@@ -291,6 +410,11 @@ def record_filing_veto_shadow(
             "base_satellite_as_of": satellite_result.get("as_of"),
             "base_satellite_rebal_date": satellite_result.get("rebal_date"),
             "base_satellite_sizing_method": satellite_result.get("sizing_method"),
+            "candidate_population": "breakout_pool_selected_and_held",
+            "n_pool": len(pool), "n_adopted": sum(1 for c in pool if c["in_adopted_set"]),
+            "n_queried": n_queried, "n_skipped": len(skipped), "budget_stop": budget_stop,
+            "max_tickers": max_tickers, "max_sec_requests": max_sec_requests,
+            "time_budget_seconds": time_budget_seconds,
             "note": ("관측 전용 shadow 기록이다. 원전략(champion_satellite)의 실제 채택/보류 결정과 주문 "
                      "경로에 영향을 주지 않는다. docs/FILING_CHANGE_VETO_SPEC.md 미동결, 성과 미검증."),
         },
@@ -301,9 +425,17 @@ def record_filing_veto_shadow(
         "strategy_version": SHADOW_STRATEGY_VERSION,
         "source": SHADOW_SOURCE,
         "n_candidates": len(records),
+        "n_adopted": sum(1 for c in pool if c["in_adopted_set"]),
+        "n_queried": n_queried,
+        "n_skipped": len(skipped),
+        "skipped_tickers": dict(skipped),
+        "budget_stop": budget_stop,
+        "n_sec_requests": _requests_so_far(),
+        "fetch_limits": {"max_tickers": max_tickers, "max_sec_requests": max_sec_requests,
+                         "time_budget_seconds": time_budget_seconds},
         "n_exposed": sum(1 for v in per_ticker.values() if v.get("exposed")),
         "n_held_by_veto": sum(1 for r in records if r.decision == "held"),
-        "n_not_exposed": sum(1 for v in per_ticker.values() if not v.get("exposed")),
+        "n_not_exposed": sum(1 for t, v in per_ticker.items() if not v.get("exposed") and t not in skipped),
         "unusable_reason_counts": dict(unusable_reason_counts),
         "exposure_window_calendar_days": EXPOSURE_WINDOW_CALENDAR_DAYS,
         "per_ticker": per_ticker,
