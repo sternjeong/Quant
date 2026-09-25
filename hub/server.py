@@ -186,8 +186,10 @@ def _overview(jobs: dict, unit_tones: list[str]) -> tuple[str, str]:
         if backup_stale:
             parts.append("백업이 오래됨")
         tone, title, sub = "warn", "주의할 것이 있습니다", " · ".join(parts)
-    elif not known and not jobs.get("ok"):
-        tone, title, sub = "muted", "상태를 읽을 수 없습니다", "이 화면은 VM 에서 열었을 때 실제 서비스 상태를 보여줍니다."
+    elif not known:
+        # 서비스 상태를 하나도 읽지 못했으면(systemd 없음 등) '정상'이라고 하지 않는다.
+        tone, title = "muted", "서비스 상태를 확인할 수 없습니다"
+        sub = ("자동 작업 기록은 정상입니다. " if jobs.get("ok") else "") + "VM 에서 열면 실제 서비스 상태가 보입니다."
     else:
         tone, title, sub = "ok", "모든 시스템 정상", "서비스와 오늘 예정된 자동 작업에 문제가 없습니다."
 

@@ -245,3 +245,13 @@ def test_ops_page_degrades_per_section_and_flags_problems(tmp_path, monkeypatch)
 def test_ops_route_renders():
     with _mock_active_status():
         assert "운영 상태" in server.render_ops_page()
+
+
+def test_overview_never_claims_all_ok_when_service_state_is_unknown(monkeypatch):
+    """systemd 상태를 하나도 못 읽으면(개발 환경 등) '모든 시스템 정상'이라고 하지 않는다(2026-09-25)."""
+    from hub.status import UnitStatus
+
+    monkeypatch.setattr(server, "get_unit_status", lambda unit: UnitStatus("unknown", "unknown", ""))
+    monkeypatch.setattr(server.ops_status, "job_health_summary", lambda: {"ok": True, "counts": {"ok": 3, "problem": 0}, "problems": [], "error": None})
+    page = server.render_dashboard("h")
+    assert "모든 시스템 정상" not in page and "서비스 상태를 확인할 수 없습니다" in page
