@@ -21,7 +21,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from hub.apps_registry import SLOTS, AppSlot  # noqa: E402
-from hub import alpaca_status, ops_status, research_status  # noqa: E402
+from hub import alpaca_status, engine_status, ops_status, research_status  # noqa: E402
 from hub.status import UnitStatus, get_unit_status  # noqa: E402
 
 HOST = "127.0.0.1"  # nginx를 거치지 않는 외부 직접 접속은 차단(방화벽에 별도 포트 개방 불필요)
@@ -266,9 +266,19 @@ def render_status_page(slot: AppSlot) -> str:
         f'{_badge_html(status)}'
         f'<p style="margin-top:1rem;color:#9aa0a8;font-size:.85rem">'
         f'systemd unit: {html.escape(slot.unit)}<br>since: {since}</p>'
-        '<p style="margin-top:1rem;color:#5b6472;font-size:.78rem">'
-        '이 엔진은 별도 웹 UI 없이 백그라운드로 동작합니다(결과는 텔레그램 알림으로 발송됩니다).'
-        '</p></body></html>'
+        f'<div style="margin-top:1.4rem">{engine_status.render_engine_body(slot.id)}</div>'
+        '</body></html>'
+    )
+
+
+def render_process_confirm_page(key: str) -> str:
+    return (
+        '<!doctype html><html lang="ko"><head><meta charset="utf-8">'
+        '<meta name="viewport" content="width=device-width,initial-scale=1">'
+        f'<title>자동 잡 켜기 확인</title>{PAGE_STYLE}</head><body>'
+        '<p><a class="back" href="/status/scheduler">&larr; 백그라운드 스케줄러로</a></p>'
+        f'{engine_status.render_confirm_body(key)}'
+        '</body></html>'
     )
 
 
@@ -345,7 +355,7 @@ class HubRequestHandler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:
         path = urlparse(self.path).path
-        if path != "/research/models":
+        if path not in ("/research/models", "/processes/toggle", "/processes/confirm"):
             self._send_html("not found", 404)
             return
         if not _same_origin_post(self.headers):
@@ -353,13 +363,33 @@ class HubRequestHandler(BaseHTTPRequestHandler):
             return
         length = min(int(self.headers.get("Content-Length") or 0), 4096)
         form = parse_qs(self.rfile.read(length).decode("utf-8", "replace"))
+
+        if path == "/processes/confirm":
+            # 주문을 내는 잡은 클릭 한 번으로 켜지 않는다 — 확인 화면을 한 번 거친다(텔레그램과 같은 규칙).
+            self._send_html(render_process_confirm_page((form.get("key") or [""])[0]))
+            return
+
+        if path == "/processes/toggle":
+            key = (form.get("key") or [""])[0]
+            enabled = (form.get("enabled") or ["0"])[0] == "1"
+            confirmed = (form.get("confirm") or ["0"])[0] == "1"
+            applied, _ = engine_status.apply_toggle(key, enabled, confirmed)
+            if not applied and enabled and not confirmed:
+                self._send_html(render_process_confirm_page(key))
+                return
+            self._redirect("/status/scheduler")
+            return
+
         try:
             research_status.apply_model_form(form)
         except Exception:  # noqa: BLE001
             self._send_html("save failed", 500)
             return
+        self._redirect("/research")
+
+    def _redirect(self, location: str) -> None:
         self.send_response(303)
-        self.send_header("Location", "/research")
+        self.send_header("Location", location)
         self.send_header("Content-Length", "0")
         self.end_headers()
 
