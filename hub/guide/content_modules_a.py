@@ -240,8 +240,8 @@ MODULES: tuple[ModuleGuide, ...] = (
         where_to_see=
             '화면 없음',
         cautions=
-            '연구용이며 주문·화면과 연결돼 있지 않습니다. 추출 정확도나 성과를 주장하지 않습니다. 가이던스 shadow 잡은 기본 설정에서 SEC 조회를 켜지 않기 때문에 이 모듈이 매일 밤 실제로 도는 것은 아닙니다.',
-        sources=('docs/EARNINGS_GUIDANCE_EXPERIMENT_SPEC.md', 'scripts/earnings_guidance_extraction_sample.py'),
+            "연구용이며 주문·화면과 연결돼 있지 않습니다. 추출 정확도나 성과를 주장하지 않습니다. 2026-09-25부터 가이던스 shadow 야간 잡(00:30 KST)이 SEC 조회를 켜므로 이 모듈이 매일 밤 위성 후보 종목(최대 20개)에 대해 실제로 돕니다. 분기 가이던스는 비교할 직전 같은 기간 가이던스가 없어 대부분 '판단 불가(unknown)'로 남는 것이 알려진 한계입니다.",
+        sources=('docs/EARNINGS_GUIDANCE_EXPERIMENT_SPEC.md', 'scripts/earnings_guidance_extraction_sample.py', 'core/guidance_event_provider.py'),
         verified=V,
     ),
     ModuleGuide(
@@ -380,11 +380,11 @@ MODULES: tuple[ModuleGuide, ...] = (
         what=
             '가이던스 shadow 실험용으로 티커에서 SEC 회사코드, 8-K 실적 발표, 가이던스 추출까지 이어서 실제 SEC 자료로 관측 목록을 만들어 주는 공급기입니다. 파싱 규칙은 새로 만들지 않고 기존 모듈을 호출합니다.',
         how_to_use=
-            '직접 쓸 일은 없습니다. 가이던스 shadow 기록에서 옵트인(fetch_events=True)할 때만 호출됩니다.',
+            '직접 쓸 일은 없습니다. 매일 밤 00:30(KST) 가이던스 shadow 잡이 호출합니다(fetch_events=True). 결과 요약(조회 종목 수, 실패 수, 관측 수, 방향 판정 수와 판단 불가 수, SEC 요청 수/상한)은 VM 의 스케줄러 로그에 한 줄로 남습니다.',
         where_to_see=
             '화면 없음',
         cautions=
-            "현재 야간 잡은 옵트인 없이 기록 함수를 호출하므로 이 공급기는 매일 밤 실행되지 않습니다. 그래서 야간 가이던스 기록의 후보는 대부분 '발표 없음'으로 남습니다. 성과 미검증입니다.",
+            "안전장치: 한 번에 최대 20종목, SEC 요청 약 300회·5분 상한(종목과 종목 사이에서 확인), 같은 날 다시 돌면 하루 캐시 재사용, SEC 가 403 으로 막으면 즉시 멈추고 잡은 실패로 죽지 않습니다. User-Agent 는 VM .env 의 SEC_EDGAR_USER_AGENT 이름으로 읽으며 값은 기록하지 않습니다. 이 이름이 없으면 SEC 가 막을 수 있습니다. 분기 가이던스는 대부분 '판단 불가(unknown)'로 나오며, 요약에 그 수와 사유가 따로 나옵니다. 성과 미검증입니다.",
         sources=('core/guidance_shadow.py', 'scheduler/run_scheduler.py'),
         verified=V,
     ),
@@ -400,7 +400,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         where_to_see=
             '화면 없음(DB)',
         cautions=
-            "관측 전용이며 원전략과 실제 주문에 영향이 없고 성과는 미검증입니다. 현재 야간 잡은 SEC 조회를 켜지 않은 기본값으로 호출해, 모든 후보가 '발표 없음'으로 기록될 수 있습니다.",
+            "관측 전용이며 원전략과 실제 주문에 영향이 없고 성과는 미검증입니다. 2026-09-25부터 야간 잡이 실제 SEC 조회를 켜서 호출합니다. 다만 최근 20거래일 안에 실적 발표가 없는 후보는 여전히 '발표 없음'이고, 발표가 있어도 분기 가이던스는 대부분 '판단 불가'로 기록됩니다. SEC 가 막히면 그날은 모든 후보가 '발표 없음'으로 기록됩니다.",
         sources=('scheduler/run_scheduler.py', 'docs/EARNINGS_GUIDANCE_EXPERIMENT_SPEC.md'),
         verified=V,
     ),
