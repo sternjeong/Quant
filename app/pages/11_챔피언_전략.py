@@ -351,7 +351,7 @@ with verdict_cols[0]:
         )
 with verdict_cols[1]:
     if satellite_result is None:
-        render_metric_card("새틀라이트 상태", "미실행", sublabel="위 '스캔 실행' 버튼 필요")
+        render_metric_card("새틀라이트 상태", "미실행", sublabel="위 '📌 point-in-time 새틀라이트 계산' 또는 '🔍 새틀라이트 후보 스캔 실행' 버튼 필요")
     elif not satellite_result["selected"]:
         render_metric_card("새틀라이트 상태", "현금 (후보 없음)", tone="neutral")
     else:
