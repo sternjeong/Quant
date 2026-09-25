@@ -48,6 +48,23 @@
 `/usage`는 최근 7일간 백엔드별 작업 수·완료 수·사용량 한도(429 등) 도달 횟수를 보여준다.
 한도에 자주 걸리는 시간대/백엔드를 파악하는 용도다.
 
+## 자동 잡 켜고 끄기 (`/processes`)
+
+`/processes`는 스케줄러 자동 잡 **전체**를 카테고리(알림·연구·기록·유지보수)별 메시지로 보여 주고, 버튼을
+누르면 켜고 끈다. 글자로는 `/processes on 키`, `/processes off 키`. 목록은 이 러너에 적혀 있지 않다 —
+러너가 `core/process_registry.py`의 `PROCESS_REGISTRY` 딕셔너리 리터럴을 `ast`로 읽는다(stdlib-only라 core를
+import 하지 않기 때문). 그래서 레지스트리에 잡을 추가하면 여기엔 손댈 것이 없고,
+`tests/test_telegram_process_catalog_sync.py`가 "텔레그램에 보이는 키 = 레지스트리 키 = `core/job_schedule.py`의
+process_key"를 검증한다. 레지스트리는 리터럴(함수 호출·변수 참조 없는 dict)로 유지해야 한다.
+
+- 상태는 스케줄러와 같은 `data/process_toggles.json`(`{"키": {"enabled", "updated_at", "actor"}}`)에 쓴다.
+  저장된 값이 없으면 레지스트리의 `default_enabled`를 따른다(`paper_auto_trade`는 기본 꺼짐).
+- 레지스트리에 `"places_orders": True`인 잡(현재 `paper_auto_trade`)은 켤 때 확인 단계를 거친다:
+  버튼이나 `/processes on paper_auto_trade`는 확인 요청만 보내고, 확인 버튼 또는
+  `/processes on paper_auto_trade confirm`이어야 켜진다. 끄기는 즉시.
+- 버튼은 순번이 아니라 키를 담는다(옛 메시지의 버튼이 다른 잡을 바꾸지 않음). 긴 목록은 4096자 한도
+  아래로 나눠 보낸다. `/help`의 잡 개수도 레지스트리에서 센다.
+
 ## 2주 전략 실험 감독 (종료됨)
 
 2026-09-25에 `quant-experiment-supervisor.service`와 `deploy/experiment_supervisor.py`를 삭제했다.
@@ -56,7 +73,9 @@
 먼저 멈췄다(파일만 지우면 `Restart=always`로 30초마다 실패를 반복하기 때문).
 
 - 남긴 것: `docs/TWO_WEEK_STRATEGY_VALIDATION_PROTOCOL.md`, `docs/experiment_validation/`, `.experiment-control/`
-  (백업 대상이며 사람 검증 대기 표본이 들어 있다). 이 텔레그램 러너의 `.experiment-control` 참조도 그대로다.
+  (백업 대상이며 사람 검증 대기 표본이 들어 있다).
+- 같은 날 이 러너의 `/experiment` 명령과 `/processes` 하단의 실험 줄, `deploy/checkpoint_notify.py`도
+  제거했다(모두 슈퍼바이저 전용이었다). 러너는 이제 `.experiment-control`을 읽지 않는다.
 - 복구: `git show <삭제 직전 커밋>:deploy/experiment_supervisor.py` 등으로 파일을 되살리고
   유닛을 다시 설치·활성화하면 된다(`docs/prune/PRUNE_E.md` 참고).
 
