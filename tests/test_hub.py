@@ -116,8 +116,9 @@ REPORT_SLOT = AppSlot(
 )
 
 
-def test_no_report_slot_is_registered_after_supervisor_removal():
-    assert [slot.id for slot in SLOTS if slot.kind == "report"] == []
+def test_report_slots_registered_and_supervisor_stays_removed():
+    ids = [slot.id for slot in SLOTS if slot.kind == "report"]
+    assert ids == ["report-daily-briefing", "report-champion-weekly", "report-news-digest"]
     assert all(slot.id != "experiment-supervisor" for slot in SLOTS)
 
 
@@ -196,3 +197,51 @@ def test_alpaca_slot_links_to_its_page():
     slot = next(s for s in SLOTS if s.id == "alpaca")
     assert _slot_href(slot, "x") == "/alpaca"
     assert "Alpaca paper 검증" in render_alpaca_page()
+
+
+def test_dashboard_groups_by_category_and_auto_refreshes():
+    with _mock_active_status():
+        page = server.render_dashboard("h")
+    assert 'http-equiv="refresh"' in page and "마지막 갱신" in page
+    cats = [c for c in ("앱", "엔진", "연구·검증", "운영", "리포트") if f'<h3 class="cat">{c}</h3>' in page]
+    assert cats == ["앱", "엔진", "연구·검증", "운영", "리포트"]
+    assert page.index('<h3 class="cat">앱</h3>') < page.index("퀀트 대시보드") < page.index('<h3 class="cat">엔진</h3>')
+
+
+def test_report_card_shows_latest_or_missing(tmp_path, monkeypatch):
+    slot = next(s for s in SLOTS if s.id == "report-news-digest")
+    monkeypatch.setattr(server, "PROJECT_ROOT", tmp_path)
+    assert "아직 없음" in server._report_badge(slot)
+    (tmp_path / ".news-digest" / "reports").mkdir(parents=True)
+    (tmp_path / ".news-digest" / "reports" / "news_1.html").write_text("<p>x</p>")
+    assert "최신" in server._report_badge(slot)
+
+
+def test_ops_page_degrades_per_section_and_flags_problems(tmp_path, monkeypatch):
+    import json, time
+
+    from hub import ops_status as ops
+
+    good = tmp_path / "status.json"
+    good.write_text(json.dumps({"last_success_epoch": time.time() - 3600, "last_success_at": "t", "ok": True,
+                                "offsite_configured": False, "restore_drill_ok": True, "files": 5}))
+    b = ops.read_backup(good)
+    assert b["stale"] is False and b["drill_ok"] is True
+    old = tmp_path / "old.json"
+    old.write_text(json.dumps({"last_success_epoch": time.time() - 100 * 3600, "ok": False, "error": "boom"}))
+    assert ops.read_backup(old)["stale"] is True
+    assert ops.read_backup(tmp_path / "missing.json") is None
+
+    jobs = {"ok": True, "error": None, "counts": {"ok": 3, "problem": 1},
+            "problems": [{"label": "L", "state": "error", "text": "L — 실행 중 오류 <b>"}]}
+    body = ops.render_body(jobs, ops.read_backup(old), ops.system_info(), [("u.timer", "백업", "inactive")])
+    assert "잡 이상 1개" in ops.jobs_badge(jobs) and "오류" in body and "&lt;b&gt;" in body
+    assert "오래됨" in body and "실패" in body and "inactive" in body
+    dead = {"ok": False, "counts": {}, "problems": [], "error": "OperationalError"}
+    assert "확인 불가" in ops.render_body(dead, None, ops.system_info(), []) and "status.json 없음" in ops.render_body(dead, None, ops.system_info(), [])
+    assert "잡 이력 확인 불가" in ops.jobs_badge(dead)
+
+
+def test_ops_route_renders():
+    with _mock_active_status():
+        assert "운영 상태" in server.render_ops_page()

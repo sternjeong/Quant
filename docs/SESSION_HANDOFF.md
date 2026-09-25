@@ -19,6 +19,15 @@
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
 
+## 2026-09-25 관제 센터 개선 (구현·단위 테스트, 배포 전)
+
+사용자 선택: 잡 건강 표시·운영 상태 페이지·카테고리/새로고침·리포트 슬롯·낡은 문서(1,4,5,6,7번). 로그인 횟수 제한 등 3번은 하지 않음.
+- `hub/ops_status.py`(신규)+`/ops`: 잡 건강(`core.job_health`), 백업 status.json, 서버 자원, 타이머 유닛. 항목별 실패 격리. 스케줄러 카드에 "잡 이상 N개" 배지.
+- 대시보드: `category` 필드로 앱/엔진/연구·검증/운영/리포트 묶음, 60초 자동 새로고침, 마지막 갱신 시각.
+- 리포트 슬롯 3개(오늘의 브리핑·챔피언 주간·뉴스 다이제스트) + 최신 파일 시각 배지.
+- 문서: DEPLOYMENT_ORACLE 13·14번, nginx-quant.conf(참고용 표시), PENDING 4번 갱신.
+- 검증: hub 테스트 24건, 로컬 렌더링 확인. 이 Codespace 에는 systemd·백업이 없어 타이머/백업은 "확인 불가"로만 확인 — **VM 실화면 미확인**. 백업 status.json 경로 기본값 `/opt/quant-backup/status.json`은 backup_vm.py 기본 디렉터리 기준 추정.
+
 ## 2026-09-25 Alpaca 로드맵 P0~P3 구축 (구현·mock 테스트, 실 API 0회)
 
 - 사용자 확인: 목적은 **전략 수립·검증용, 실거래 아님**. 로드맵 [ALPACA_ENGINE_ROADMAP.md](./ALPACA_ENGINE_ROADMAP.md) 맨 위에 명시.

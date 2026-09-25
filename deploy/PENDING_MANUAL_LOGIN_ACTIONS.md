@@ -76,7 +76,7 @@
 
 ## 5. ~~브라우저 코드 스페이스(code-server) 외부 접속~~ — 2026-09-20 도메인 게이트웨이로 완료
 
-`https://hessejeong.duckdns.org/`가 관제 허브(아이디/비밀번호), `https://code.hessejeong.duckdns.org/`가
+`https://hessejeong.duckdns.org/`가 관제 허브(로그인 폼; 2026-09-25 폼 방식 코드 반영, VM 적용은 `sudo bash deploy/setup_gateway.sh` 재실행 필요), `https://code.hessejeong.duckdns.org/`가
 code-server, `https://app.hessejeong.duckdns.org/`가 Streamlit이다(무료 DuckDNS + Let's Encrypt, nginx 443 →
 로컬 전용 포트들). 절차와 설정은 `deploy/DEPLOYMENT_ORACLE.md` 14번, 스크립트는 `deploy/setup_gateway.sh`.
 예전 `:8501` 직접 접속 경로는 2026-09-20에 방화벽(iptables + ufw)에서 닫았다. 남은 사람 작업(선택):

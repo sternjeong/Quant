@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import html
 import sys
+from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
@@ -20,7 +21,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from hub.apps_registry import SLOTS, AppSlot  # noqa: E402
-from hub import alpaca_status  # noqa: E402
+from hub import alpaca_status, ops_status  # noqa: E402
 from hub.status import UnitStatus, get_unit_status  # noqa: E402
 
 HOST = "127.0.0.1"  # nginx를 거치지 않는 외부 직접 접속은 차단(방화벽에 별도 포트 개방 불필요)
@@ -50,6 +51,9 @@ PAGE_STYLE = """
           margin-left:.4rem; }
   a.back { color:#4c7dff; font-size:.85rem; text-decoration:none; }
   h2 { font-size:1.05rem; margin:1.6rem 0 .5rem; }
+  h3.cat { font-size:.78rem; text-transform:uppercase; letter-spacing:.08em; color:#5b6472;
+           margin:1.6rem 0 .6rem; max-width:1100px; }
+  .stamp { color:#5b6472; font-size:.75rem; margin-top:1.5rem; }
   table { border-collapse:collapse; width:100%; max-width:760px; background:#181b21;
           border:1px solid #2a2e37; border-radius:10px; overflow:hidden; }
   th, td { text-align:left; padding:.55rem .8rem; border-bottom:1px solid #2a2e37; font-size:.85rem;
@@ -145,33 +149,81 @@ def _slot_href(slot: AppSlot, host: str) -> str:
         return f"/reports/{slot.id}"
     if slot.kind == "alpaca":
         return "/alpaca"
+    if slot.kind == "ops":
+        return "/ops"
     return f"/status/{slot.id}"
 
 
+CATEGORY_ORDER = ["앱", "엔진", "연구·검증", "운영", "리포트"]
+REFRESH_SECONDS = 60
+
+
+def _card(slot: AppSlot, host: str, badge: str) -> str:
+    href = _slot_href(slot, host)
+    target = ' target="_blank" rel="noopener"' if slot.kind in ("web", "link") else ""
+    return (
+        f'<a class="card" href="{html.escape(href)}"{target}>'
+        f'<h2>{html.escape(slot.title)}<span class="kind">{html.escape(slot.kind)}</span></h2>'
+        f'<p>{html.escape(slot.description)}</p>'
+        f'{badge}'
+        f'</a>'
+    )
+
+
+def _report_badge(slot: AppSlot) -> str:
+    path = latest_report_path(slot)
+    if path is None:
+        return '<span class="badge unknown">아직 없음</span>'
+    stamp = datetime.fromtimestamp(path.stat().st_mtime).strftime("%m-%d %H:%M")
+    return f'<span class="badge active">최신 {stamp}</span>'
+
+
 def render_dashboard(host: str) -> str:
-    cards = []
+    jobs = ops_status.job_health_summary()
+    groups: dict[str, list[str]] = {}
     for slot in SLOTS:
-        status = get_unit_status(slot.unit)
-        badge = alpaca_status.card_badge() if slot.kind == "alpaca" else _badge_html(status)
-        href = _slot_href(slot, host)
-        target = ' target="_blank" rel="noopener"' if slot.kind in ("web", "link") else ""
-        cards.append(
-            f'<a class="card" href="{html.escape(href)}"{target}>'
-            f'<h2>{html.escape(slot.title)}<span class="kind">{html.escape(slot.kind)}</span></h2>'
-            f'<p>{html.escape(slot.description)}</p>'
-            f'{badge}'
-            f'</a>'
-        )
+        if slot.kind == "alpaca":
+            badge = alpaca_status.card_badge()
+        elif slot.kind == "report":
+            badge = _report_badge(slot)
+        elif slot.kind == "ops":
+            badge = ops_status.jobs_badge(jobs)
+        else:
+            badge = _badge_html(get_unit_status(slot.unit))
+            if slot.id == "scheduler":
+                badge += " " + ops_status.jobs_badge(jobs)
+        groups.setdefault(slot.category, []).append(_card(slot, host, badge))
+    ordered = [c for c in CATEGORY_ORDER if c in groups] + [c for c in groups if c not in CATEGORY_ORDER]
+    sections = "".join(
+        f'<h3 class="cat">{html.escape(cat)}</h3><div class="grid">{"".join(groups[cat])}</div>' for cat in ordered
+    )
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     return (
         '<!doctype html><html lang="ko"><head><meta charset="utf-8">'
+        '<meta name="viewport" content="width=device-width,initial-scale=1">'
+        f'<meta http-equiv="refresh" content="{REFRESH_SECONDS}">'
         f'<title>Quant VM 관제 센터</title>{PAGE_STYLE}</head><body>'
         '<a class="back" style="float:right" href="#" '
         'onclick="fetch(\'/_logout\',{method:\'POST\'}).then(function(){location.href=\'/login\'});return false">'
         '로그아웃</a><h1>Quant VM 관제 센터</h1>'
-        '<p class="subtitle">이 서버에서 돌고 있는 앱과 엔진들. 슬롯을 누르면 해당 웹 또는 '
+        '<p class="subtitle">이 서버에서 돌고 있는 앱과 엔진들. 카드를 누르면 해당 웹 또는 '
         '상태 화면으로 이동합니다.</p>'
-        f'<div class="grid">{"".join(cards)}</div>'
+        f'{sections}'
+        f'<p class="stamp">마지막 갱신 {now} · {REFRESH_SECONDS}초마다 자동 새로고침</p>'
         '</body></html>'
+    )
+
+
+def render_ops_page() -> str:
+    body = ops_status.render_body(ops_status.job_health_summary(), ops_status.read_backup(),
+                                  ops_status.system_info(), ops_status.collect_timers())
+    return (
+        '<!doctype html><html lang="ko"><head><meta charset="utf-8">'
+        '<meta name="viewport" content="width=device-width,initial-scale=1">'
+        f'<meta http-equiv="refresh" content="{REFRESH_SECONDS}">'
+        f'<title>운영 상태</title>{PAGE_STYLE}</head><body>'
+        '<p><a class="back" href="/">&larr; 관제 센터로</a></p><h1>운영 상태</h1>'
+        f'{body}<p class="stamp">마지막 갱신 {datetime.now():%Y-%m-%d %H:%M:%S}</p></body></html>'
     )
 
 
@@ -254,6 +306,8 @@ class HubRequestHandler(BaseHTTPRequestHandler):
             self._send_html(render_dashboard(host))
         elif path == "/login":
             self._send_html(LOGIN_PAGE)
+        elif path == "/ops":
+            self._send_html(render_ops_page())
         elif path == "/alpaca":
             self._send_html(render_alpaca_page())
         elif path == "/healthz":

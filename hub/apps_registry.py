@@ -15,10 +15,11 @@ class AppSlot:
     title: str
     description: str
     unit: str  # 상태 조회에 쓸 systemd 유닛 이름
-    kind: str  # "web" (같은 호스트의 다른 포트) | "link" (별도 주소, url) | "report" (최신 HTML 리포트 서빙) | "engine" (상태만 표시) | "alpaca" (Alpaca paper 결과 화면)
+    kind: str  # "web" (같은 호스트의 다른 포트) | "link" (별도 주소, url) | "report" (최신 HTML 리포트 서빙) | "engine" (상태만 표시) | "alpaca" (Alpaca paper 결과 화면) | "ops" (운영 상태 화면)
     port: int | None = None  # kind == "web"일 때 슬롯이 직접 링크할 포트
     url: str | None = None  # kind == "link"일 때 슬롯이 링크할 전체 주소(예: nginx 뒤 HTTPS 도메인)
     report_glob: str | None = None  # kind == "report"일 때 최신 파일을 찾을 glob 패턴(저장소 루트 기준)
+    category: str = "엔진"  # 대시보드에서 카드를 묶는 제목
 
 
 SLOTS: list[AppSlot] = [
@@ -28,6 +29,7 @@ SLOTS: list[AppSlot] = [
         description="전략 백테스팅 · 스크리너 · 포트폴리오 등 메인 Streamlit 웹앱 — HTTPS 주소로 접속, 로그인 필요",
         unit="quant-streamlit.service",
         kind="link",
+        category="앱",
         url="https://app.hessejeong.duckdns.org/",
     ),
     AppSlot(
@@ -43,6 +45,42 @@ SLOTS: list[AppSlot] = [
         description="실 API 검증 · 추적오차 · 실측 비용 · 자동 주문 기록 (전략 검증용 모의 계좌, 실거래 없음)",
         unit="quant-scheduler.service",
         kind="alpaca",
+        category="연구·검증",
+    ),
+    AppSlot(
+        id="ops",
+        title="운영 상태",
+        description="스케줄러 잡 건강 · 백업 · 서버 자원 · 예약 타이머 (텔레그램 알림과 같은 원천)",
+        unit="quant-watchdog.timer",
+        kind="ops",
+        category="운영",
+    ),
+    AppSlot(
+        id="report-daily-briefing",
+        title="오늘의 브리핑",
+        description="밤사이 챔피언·시장·잡 결과를 모은 최신 브리핑 (텔레그램으로도 발송)",
+        unit="quant-scheduler.service",
+        kind="report",
+        category="리포트",
+        report_glob="data/cache/champion_reports/daily_briefing_*.html",
+    ),
+    AppSlot(
+        id="report-champion-weekly",
+        title="챔피언 전략 주간 보고",
+        description="일요일 20:20(ET)에 생성되는 챔피언 전략 주간 리포트의 최신본",
+        unit="quant-scheduler.service",
+        kind="report",
+        category="리포트",
+        report_glob="data/cache/champion_reports/champion_weekly_*.html",
+    ),
+    AppSlot(
+        id="report-news-digest",
+        title="티커별 뉴스 다이제스트",
+        description="매일 07:30(KST) 생성되는 관심 종목 뉴스 리포트의 최신본",
+        unit="quant-scheduler.service",
+        kind="report",
+        category="리포트",
+        report_glob=".news-digest/reports/news_*.html",
     ),
     AppSlot(
         id="codex-telegram",
@@ -64,6 +102,7 @@ SLOTS: list[AppSlot] = [
         description="VS Code 기반 브라우저 IDE(code-server) — HTTPS 주소로 접속, 로그인 비밀번호 필요",
         unit="code-server@ubuntu.service",
         kind="link",
+        category="앱",
         url="https://code.hessejeong.duckdns.org/",
     ),
 ]
