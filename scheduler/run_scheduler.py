@@ -136,6 +136,7 @@ Streamlit 앱과 완전히 별도의 프로세스로 실행된다 (브라우저�
       유일한 갱신 경로가 된다.
 """
 
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -783,6 +784,49 @@ def variant_shadow_record_job() -> None:
     print(f"[{datetime.now()}] variant_shadow_record_job 종료")
 
 
+def paper_tracking_refresh_job() -> None:
+    """paper 계좌 vs 챔피언 가상 원장 추적오차 (로드맵 P1, core/paper_tracking.py). 관측 전용.
+
+    시각(00:46 KST): 00:35 계좌 스냅샷·00:12 원장 기록이 끝난 뒤, 00:44 변형 shadow 다음 슬롯.
+    """
+    if not is_enabled("paper_tracking_refresh"):
+        print(f"[{datetime.now()}] paper_tracking_refresh_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
+    print(f"[{datetime.now()}] paper_tracking_refresh_job 시작")
+    try:
+        from core.paper_tracking import refresh_paper_tracking, summarize
+
+        print(f"  - {summarize(refresh_paper_tracking())}")
+    except Exception as exc:  # noqa: BLE001
+        print(f"  - 추적오차 계산 실패: {type(exc).__name__}: {exc}")
+        report_job_failure("paper_tracking_refresh", f"{type(exc).__name__}: {exc}")
+    print(f"[{datetime.now()}] paper_tracking_refresh_job 종료")
+
+
+def paper_auto_trade_job() -> None:
+    """챔피언 계획 paper 자동 제출 (로드맵 P3, core/paper_auto_trade.py). **기본 꺼짐**.
+
+    조건(최근 검증 PASS·개장일·중복 없음·계좌 정상·거래가능·총액 상한)을 모두 확인한 뒤에만 제출한다.
+    시각(06:10 KST 화~토 = 미 동부 전날 16:10/17:10): 장 마감 뒤라 market/day 주문이 다음 개장 시가에 체결된다.
+    """
+    if not is_enabled("paper_auto_trade"):
+        print(f"[{datetime.now()}] paper_auto_trade_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
+    print(f"[{datetime.now()}] paper_auto_trade_job 시작")
+    try:
+        from core.paper_auto_trade import format_summary, run_auto_round
+        from core.telegram_notify import send_message
+
+        res = run_auto_round()
+        print(f"  - {res}")
+        if res["status"] != "skipped" or res["reason"] not in ("market closed today", "already submitted today"):
+            send_message(format_summary(res))
+    except Exception as exc:  # noqa: BLE001
+        print(f"  - paper 자동 주문 실패: {type(exc).__name__}: {exc}")
+        report_job_failure("paper_auto_trade", f"{type(exc).__name__}: {exc}")
+    print(f"[{datetime.now()}] paper_auto_trade_job 종료")
+
+
 def strategy_research_report_job() -> None:
     """전략 변형 연구 보고서 작성 — 관측 전용, 주 1회(일요일 00:50 KST).
 
@@ -1005,6 +1049,21 @@ def main() -> None:
         replace_existing=True,
     )
     scheduler.add_job(
+        paper_tracking_refresh_job,
+        trigger=CronTrigger(hour=0, minute=46, timezone="Asia/Seoul"),
+        id="paper_tracking_refresh",
+        name="매일 한국시간 00:46 paper 계좌 추적오차 (관측 전용)",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        paper_auto_trade_job,
+        # 미 장 마감 뒤(화~토 KST = 월~금 ET). 기본 꺼짐 — /processes 로 켜야 제출한다.
+        trigger=CronTrigger(day_of_week="tue-sat", hour=6, minute=10, timezone="Asia/Seoul"),
+        id="paper_auto_trade",
+        name="화~토 한국시간 06:10 챔피언 paper 자동 주문 (기본 꺼짐)",
+        replace_existing=True,
+    )
+    scheduler.add_job(
         strategy_research_report_job,
         # 주 1회면 충분: shadow 표본이 하루 1건씩 쌓여 판정에 주 단위가 필요하다. 일요일 KST 는 금요일 미국
         # 장마감 기록이 반영된 뒤다.
@@ -1033,6 +1092,14 @@ def main() -> None:
     print("알리며, 00:25 에는 그날 밤 결과를 모은 오늘의 브리핑 HTML을 텔레그램으로 전송합니다.")
     print("매일 한국시간 07:30에는 무료 뉴스 API 기반 티커별 HTML/Telegram 리포트를 보냅니다.")
     print("Ctrl+C 로 종료할 수 있습니다.")
+
+    # 배포(=스케줄러 재시작) 직후 Alpaca 검증을 한 번 돌려, 00:40 을 기다리지 않고 관제 센터에서 결과를 보게 한다.
+    # 잡 자체가 최근 7일 PASS 가 있으면 즉시 건너뛰고 같은 실패 알림은 3일간 반복하지 않으므로 재시작마다 반복돼도 안전하다.
+    # 스케줄러 기동을 막지 않도록 백그라운드 스레드로 돌린다(테스트 중에는 돌리지 않음).
+    if not os.getenv("PYTEST_CURRENT_TEST"):
+        import threading
+
+        threading.Thread(target=alpaca_verification_bootstrap_job, name="startup-alpaca-verify", daemon=True).start()
 
     try:
         scheduler.start()

@@ -19,6 +19,17 @@
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
 
+## 2026-09-25 Alpaca 로드맵 P0~P3 구축 (구현·mock 테스트, 실 API 0회)
+
+- 사용자 확인: 목적은 **전략 수립·검증용, 실거래 아님**. 로드맵 [ALPACA_ENGINE_ROADMAP.md](./ALPACA_ENGINE_ROADMAP.md) 맨 위에 명시.
+- 기존 자산 재사용: P0 자동 검증(`alpaca_verification`, 00:40)·P2 비용 보정(`cost_calibration`, 00:42)은 다른 세션이 이미 구현 → 중복 구현하지 않고 P0 에 5번째 검사만 추가.
+- 신규: `core/alpaca_market_meta.py`, `core/alpaca_news.py`, `core/paper_tracking.py`(잡 00:46), `core/news_event_study.py`+`scripts/news_event_study.py`, `core/paper_auto_trade.py`(잡 화~토 06:10, **default_enabled=False**), `scripts/champion_paper_trade.py` 에 거래가능 경고, `scripts/verify_alpaca_meta_news.py`.
+- 검증: 신규 테스트 25건 포함 전체 pytest **1761 passed**. 실 API·VM 실행·텔레그램 발송은 미검증.
+- 브랜치 `alpaca-roadmap-2026-09`, 미푸시(main 푸시는 VM 자동 배포 → 사용자 승인 필요).
+- 관제 허브에 `Alpaca paper 검증` 카드와 `/alpaca` 화면 추가(`hub/alpaca_status.py`, 결과 파일만 읽음). 스케줄러 기동 시 검증 잡을 백그라운드로 1회 실행(최근 PASS 있으면 건너뜀) → 배포 직후 결과가 화면에 뜬다.
+- 2026-09-25 사용자 승인으로 main 병합·푸시(VM 자동 배포). 배포 성공·실제 검증 결과는 이 세션에서 확인 불가.
+- 다음: VM 검증 결과 확인(스키마 불일치 시 `_normalize_*` 만 수정) → PASS 후 자동 주문 켤지 사용자 결정.
+
 ## 2026-09-24 관제 센터 로그인 UI (구현·단위 확인, 배포 전)
 
 - 기존: nginx `auth_basic` 브라우저 기본 팝업(스타일 불가). 변경: 허브 `/login` 폼(`hub/server.py`) → `/_login` 이 htpasswd 로 검증 후 세션 쿠키(`qt_session`, 도메인 공유) 발급 → hub/app 은 쿠키 검사, 미로그인은 `/login?next=` 로 302. 401 은 `WWW-Authenticate` 없이 내려 팝업 방지. code-server 는 변경 없음.

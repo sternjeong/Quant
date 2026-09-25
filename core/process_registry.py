@@ -164,6 +164,22 @@ PROCESS_REGISTRY: dict[str, dict] = {
         "description": "전략 변형들의 오늘 판정을 병행 기록 — 관측 전용이며 실제 주문에는 영향 없음, 성과 미검증 (00:44 KST)",
         "category": "research", "default_enabled": True,
     },
+    "paper_tracking_refresh": {
+        "label": "paper 계좌 추적오차 (관측 전용)",
+        "description": (
+            "paper 계좌 실제 자산곡선과 챔피언 가상 원장의 괴리·추적오차를 매일 계산 — 관측 전용이며 주문과 무관. "
+            "구간 20개 미만이면 추적오차를 내지 않는다 (00:46 KST)"
+        ),
+        "category": "research", "default_enabled": True,
+    },
+    "paper_auto_trade": {
+        "label": "챔피언 paper 자동 주문 (기본 꺼짐)",
+        "description": (
+            "켜면 미 장 마감 뒤 챔피언 계획을 Alpaca paper 계좌에 자동 제출 — 최근 검증 PASS·개장일·거래가능·"
+            "주문총액 상한을 모두 확인한 뒤에만 제출하고 결과를 텔레그램으로 알림. live 계좌 경로 없음 (화~토 06:10 KST)"
+        ),
+        "category": "maintenance", "default_enabled": False,
+    },
     "strategy_research_report": {
         "label": "전략 변형 연구 보고서 (관측 전용)",
         "description": "shadow 기록을 모아 주간 연구 보고서를 작성 — 관측 전용이며 주문 경로 미연결 (일요일 00:50 KST)",

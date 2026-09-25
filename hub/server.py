@@ -20,6 +20,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from hub.apps_registry import SLOTS, AppSlot  # noqa: E402
+from hub import alpaca_status  # noqa: E402
 from hub.status import UnitStatus, get_unit_status  # noqa: E402
 
 HOST = "127.0.0.1"  # nginx를 거치지 않는 외부 직접 접속은 차단(방화벽에 별도 포트 개방 불필요)
@@ -48,6 +49,13 @@ PAGE_STYLE = """
   .kind { color:#5b6472; font-size:.72rem; text-transform:uppercase; letter-spacing:.05em;
           margin-left:.4rem; }
   a.back { color:#4c7dff; font-size:.85rem; text-decoration:none; }
+  h2 { font-size:1.05rem; margin:1.6rem 0 .5rem; }
+  table { border-collapse:collapse; width:100%; max-width:760px; background:#181b21;
+          border:1px solid #2a2e37; border-radius:10px; overflow:hidden; }
+  th, td { text-align:left; padding:.55rem .8rem; border-bottom:1px solid #2a2e37; font-size:.85rem;
+           vertical-align:top; }
+  th { color:#9aa0a8; font-weight:500; width:38%; }
+  small { color:#9aa0a8; }
 </style>
 """
 
@@ -135,6 +143,8 @@ def _slot_href(slot: AppSlot, host: str) -> str:
         return slot.url or "/"
     if slot.kind == "report":
         return f"/reports/{slot.id}"
+    if slot.kind == "alpaca":
+        return "/alpaca"
     return f"/status/{slot.id}"
 
 
@@ -142,13 +152,14 @@ def render_dashboard(host: str) -> str:
     cards = []
     for slot in SLOTS:
         status = get_unit_status(slot.unit)
+        badge = alpaca_status.card_badge() if slot.kind == "alpaca" else _badge_html(status)
         href = _slot_href(slot, host)
         target = ' target="_blank" rel="noopener"' if slot.kind in ("web", "link") else ""
         cards.append(
             f'<a class="card" href="{html.escape(href)}"{target}>'
             f'<h2>{html.escape(slot.title)}<span class="kind">{html.escape(slot.kind)}</span></h2>'
             f'<p>{html.escape(slot.description)}</p>'
-            f'{_badge_html(status)}'
+            f'{badge}'
             f'</a>'
         )
     return (
@@ -179,6 +190,18 @@ def render_status_page(slot: AppSlot) -> str:
         '<p style="margin-top:1rem;color:#5b6472;font-size:.78rem">'
         '이 엔진은 별도 웹 UI 없이 백그라운드로 동작합니다(결과는 텔레그램 알림으로 발송됩니다).'
         '</p></body></html>'
+    )
+
+
+def render_alpaca_page() -> str:
+    return (
+        '<!doctype html><html lang="ko"><head><meta charset="utf-8">'
+        '<meta name="viewport" content="width=device-width,initial-scale=1">'
+        f'<title>Alpaca paper 검증</title>{PAGE_STYLE}</head><body>'
+        '<p><a class="back" href="/">&larr; 관제 센터로</a></p>'
+        '<h1>Alpaca paper 검증</h1>'
+        f'{alpaca_status.render_body(alpaca_status.collect())}'
+        '</body></html>'
     )
 
 
@@ -231,6 +254,8 @@ class HubRequestHandler(BaseHTTPRequestHandler):
             self._send_html(render_dashboard(host))
         elif path == "/login":
             self._send_html(LOGIN_PAGE)
+        elif path == "/alpaca":
+            self._send_html(render_alpaca_page())
         elif path == "/healthz":
             self._send_html("ok")
         elif path.startswith("/status/"):

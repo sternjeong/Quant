@@ -73,8 +73,9 @@ def test_all_pass_is_saved_with_timestamped_name_and_loadable(creds, tmp_path):
     assert loaded["write_phase_executed"] is False and "읽기 전용" in loaded["verified_scope"]
 
 
-def test_default_check_set_is_the_four_read_only_checks():
-    assert list(av.DEFAULT_CHECKS) == ["idempotency_read_only", "corporate_actions", "price_crosscheck", "account_schema"]
+def test_default_check_set_is_the_five_read_only_checks():
+    assert list(av.DEFAULT_CHECKS) == ["idempotency_read_only", "corporate_actions", "price_crosscheck", "account_schema",
+                                       "market_meta_news"]
 
 
 @pytest.mark.parametrize("verdicts, expected", [

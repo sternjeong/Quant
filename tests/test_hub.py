@@ -166,3 +166,33 @@ def test_render_status_page_shows_unit_name():
         page = server.render_status_page(engine_slot)
     assert engine_slot.unit in page
     assert engine_slot.title in page
+
+
+def test_alpaca_page_renders_empty_and_with_results(tmp_path):
+    import json
+
+    from hub import alpaca_status
+
+    empty = alpaca_status.render_body(alpaca_status.collect(tmp_path))
+    assert "아직 실행 전" in empty and "비교 구간 없음" in empty and "P3 자동 주문" in empty
+
+    (tmp_path / "data" / "verification").mkdir(parents=True)
+    (tmp_path / "data" / "verification" / "alpaca_20261001_0040.json").write_text(json.dumps(
+        {"overall": "UNEXPECTED", "generated_at": "2026-10-01T00:40", "checks": {
+            "market_meta_news": {"verdict": "UNEXPECTED", "summary": "가정과 다름", "failing": ["news: 0건 <b>"]}}}))
+    (tmp_path / "data" / "cache").mkdir(parents=True)
+    (tmp_path / "data" / "cache" / "paper_tracking.json").write_text(json.dumps(
+        {"n_intervals": 3, "paper_cum_return_pct": 1.0, "champion_cum_return_pct": 0.5, "cum_gap_pct_points": 0.5,
+         "tracking_error_annual_pct": None, "context": {"following": False}}))
+    body = alpaca_status.render_body(alpaca_status.collect(tmp_path))
+    assert "UNEXPECTED" in body and "&lt;b&gt;" in body          # 실패 문구는 이스케이프
+    assert "+0.50%p" in body and "표본 부족" in body and "포지션 없음" in body
+    assert "검증 UNEXPECTED" in alpaca_status.card_badge(tmp_path)
+
+
+def test_alpaca_slot_links_to_its_page():
+    from hub.server import _slot_href, render_alpaca_page
+
+    slot = next(s for s in SLOTS if s.id == "alpaca")
+    assert _slot_href(slot, "x") == "/alpaca"
+    assert "Alpaca paper 검증" in render_alpaca_page()
