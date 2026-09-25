@@ -322,7 +322,7 @@ def _job_row(m: dict, data: dict) -> str:
         failure = _last_failure(runs)
         if failure:
             below += ui.note(failure, "bad")
-    return ui.row(m["label"], desc=format_when(job.cron), end_html=onoff + result, below_html=below)
+    return ui.row(m["label"], desc=format_when(job.cron), title_extra_html=onoff + result, below_html=below)
 
 
 def render_scheduler(slot) -> str:
@@ -352,9 +352,11 @@ def scheduler_body(slot, unit: UnitStatus, data: dict) -> str:
     if data["runs_error"]:
         runs_tile = ui.stat("최근 24시간", "—", "이력 확인 불가", "muted")
     else:
-        runs_tile = ui.stat("최근 24시간", f"{ok_n}회 성공", f"실패·놓침 {bad_n}회", "bad" if bad_n else "ok")
+        runs_tile = ui.stat("최근 24시간", f"{ok_n}회 성공", f"실패·놓침 {bad_n}회",
+                            "bad" if bad_n else ("ok" if ok_n else "muted"))
     if nxt:
-        next_tile = ui.stat("다음 실행", _kst(nxt[0]["at"]).strftime("%H:%M"), nxt[0]["label"])
+        next_tile = ui.stat("다음 실행", _kst(nxt[0]["at"]).strftime("%H:%M"),
+                            f"{_in_text(nxt[0]['at'] - now)} · {nxt[0]['label']}")
     else:
         next_tile = ui.stat("다음 실행", "—", "켜진 잡 없음", "muted")
     tracking = (health or {}).get("tracking_since")
@@ -386,8 +388,8 @@ def scheduler_body(slot, unit: UnitStatus, data: dict) -> str:
 
     if data["runs_error"]:
         parts.append(ui.callout(E(f"실행 이력을 읽지 못해 14일 막대를 그리지 못했습니다({data['runs_error']})."), icon="!", tone="warn"))
-    legend = ("막대 한 칸이 하루(KST)입니다. 초록=성공, 빨강=실패·놓침, 노랑=예정이었는데 기록 없음, 어두운 회색=예정 없음·꺼짐, "
-              "옅은 칸=이력 추적 이전 또는 아직 예정 시각 전.")
+    legend = ("막대 한 칸이 하루(KST)입니다. 초록=성공, 빨강=실패·놓침, 노랑=예정이었는데 기록 없음, 회색=그날 예정 없음·꺼짐, "
+              "가장 어두운 칸=이력 추적 이전 또는 아직 예정 시각 전.")
     parts.append(ui.section("잡 목록", f'<p class="muted" style="font-size:.84rem">{E(legend)}</p>'))
     for key, title in CATEGORIES:
         group = [m for m in jobs if m["category"] == key]
@@ -440,7 +442,7 @@ def telegram_commands(path: Path = RUNNER_PATH) -> list[tuple[str, str]]:
         return []
     out = []
     for line in text.split("\n"):
-        line = re.sub(r"\s{2,}", " ", line.replace("\x00", "")).strip()
+        line = re.sub(r"\s{2,}", " ", line.replace("\x00", "").replace("`", "")).strip()
         if not line:
             continue
         if line.startswith("/") and ": " in line:
@@ -555,8 +557,11 @@ def usage_tone(pct: Optional[float], threshold: int) -> str:
     return "ok"
 
 
-def vm_alerting(state_dir: Optional[Path] = None) -> dict[str, bool]:
+def vm_alerting(state_dir: Optional[Path] = None) -> dict[str, Optional[bool]]:
+    """조건별로 헬스체크가 지금 '알림 중'인지(상태 파일 존재). 상태 폴더가 없으면 None(확인 불가)."""
     d = state_dir or Path(os.environ.get("VM_HEALTH_STATE_DIR", "/opt/quant/.vm-health-state"))
+    if not d.is_dir():
+        return {"disk": None, "mem": None}
     return {k: (d / f"{k}.alerting").exists() for k in ("disk", "mem")}
 
 
@@ -623,7 +628,8 @@ def render_vm_health(slot) -> str:
         rows.append(ui.row("점검 시각", icon="🕒", desc=f"마지막 {_kst_text(last)} · 다음 {_kst_text(nxt)}"))
     alert_rows = [
         ui.row(label, desc=f"기준 {th[key]}% 이상이면 텔레그램 알림",
-               end_html=ui.pill("알림 중", "bad") if alerting[key] else ui.pill("알림 없음", "ok"))
+               end_html=(ui.pill("확인 불가", "muted") if alerting[key] is None
+                         else ui.pill("알림 중", "bad") if alerting[key] else ui.pill("알림 없음", "ok")))
         for key, label in (("disk", "디스크(/) 알림"), ("mem", "메모리 알림"))
     ]
     hours = th["cooldown"] // 3600
