@@ -20,8 +20,8 @@ core/candidate_ledger.py(RES-01, docs/CANDIDATE_LEDGER_SPEC.md)는 진입/청산
       pit_verified=False 가 그대로 후보 집합 meta 에 보존된다(어댑터가 이미 하는 일이며, 이 모듈은 그
       값을 바꾸지 않는다).
 
-배포 시 유의: 이 잡이 스케줄러에 등록되어 VM 에 배포되면, 매일 밤 CandidateBatch/CandidateDecision 행이
-실제 운영 DB(core.db)에 쓰이기 시작한다. Codespace 단위 테스트에서는 임시 SQLite 세션만 쓴다.
+배포 시 유의: 이 잡은 스케줄러의 candidate_ledger_record_job(매일 00:27 KST)으로 등록돼 있어, VM 에서는 매일 밤
+CandidateBatch/CandidateDecision 행이 실제 운영 DB(core.db)에 쓰인다. Codespace 단위 테스트에서는 임시 SQLite 세션만 쓴다.
 """
 
 from __future__ import annotations

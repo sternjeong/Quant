@@ -34,8 +34,8 @@ core.earnings_events(가이던스 추출)를 "관측 전용"으로 잇는다.
       그 배선을 담당하며, record_guidance_shadow(fetch_events=True)로 **옵트인**할 때만 호출된다.
       기본값(fetch_events=False)에서는 events_by_ticker를 주지 않으면 여전히 모든 후보가
       basis_status='no_release'로 기록된다(기존 동작 불변).
-    - 스케줄 배선(scheduler/run_scheduler.py 등록)은 이번 작업 범위 밖이다. record_guidance_shadow(as_of,
-      session=None)만 호출 가능한 형태로 제공한다.
+    - 스케줄 배선: scheduler/run_scheduler.py 의 guidance_shadow_record_job(매일 00:30 KST)이
+      record_guidance_shadow()를 호출한다(관측 전용, 텔레그램 /processes 로 끌 수 있음).
 """
 
 from __future__ import annotations

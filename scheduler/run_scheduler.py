@@ -1,7 +1,6 @@
 """독립 실행 스케줄러: 매일 미국 장마감 후 관심 종목 50개를 스캔해 타점 알림을 보내고,
 매주 일요일 저녁에는 Threads 추적 티커별 주간 AI 인사이트 리포트를 생성하고,
 매일 한국시간 00:00에는 시장 국면/섹터 강도 스냅샷을 미리 계산해두고,
-00:05~04:00에는 #3 전략을 서버가 허락하는 만큼 반복 미세튜닝하며,
 00:10에는 챔피언 전략(코어/새틀라이트) 신호 변경을 텔레그램으로 알리고,
 00:11에는 챔피언 전략 보유종목 상관관계 스냅샷을 저장하고,
 00:12에는 챔피언 전략 페이퍼 트레이딩 원장에 오늘자 실현 수익률을 기록하고,
@@ -15,6 +14,11 @@
 데이터무결성)의 결과를 모아 "오늘의 브리핑" 한 장짜리 HTML로 텔레그램 전송하고(daily_briefing_job,
 core.daily_briefing 참고 — 다른 야간 잡들이 그날의 데이터를 다 갱신한 뒤 마지막에 요약하도록 배치),
 매주 일요일 20:20(America/New_York)에는 챔피언 전략 주간 HTML 보고를 텔레그램으로 전송한다.
+그 밖에 00:27~00:46 관측 전용 잡(후보 원장 기록/결과 갱신, 가이던스·공시 거부권 shadow, 계좌 스냅샷,
+Alpaca 검증, 비용 보정, 변형 shadow, paper 추적오차), 12:00 거장 보유종목 동기화, 07:30 뉴스 다이제스트,
+화~토 06:10 paper 자동 주문(기본 꺼짐), 일요일 00:50 전략 변형 연구 보고서가 있다. 등록된 잡 전체의 정확한
+표는 core/job_schedule.py 이다(tests/test_job_health.py 가 main()과 일치하는지 검증). 야간 전략 미세튜닝
+잡은 2026-09-24 에 삭제됐다.
 
 Streamlit 앱과 완전히 별도의 프로세스로 실행된다 (브라우저를 안 열어도 동작해야 하므로).
 
@@ -86,8 +90,8 @@ Streamlit 앱과 완전히 별도의 프로세스로 실행된다 (브라우저�
       조합에는 한 번만 알린다(dedupe, champion_rebalance_reminder_job과 동일 원칙).
     - 매주 일요일 20:20(America/New_York)에 champion_weekly_report_job() 을 실행한다(2026-09-18
       추가). core.champion_strategy.send_weekly_report() 가 코어/새틀라이트 현황과 최근 상관관계를
-      담은 HTML을 만들어 core.telegram_notify.send_document로 전송한다 — deploy/experiment_supervisor.py의
-      "정기 HTML 보고서" 패턴과 같은 발상이다. threads_weekly_report_job(같은 요일 20:00)과 겹치지
+      담은 HTML을 만들어 core.telegram_notify.send_document로 전송한다 — (2026-09-25 삭제된) 2주 실험 감독기
+      deploy/experiment_supervisor.py가 쓰던 "정기 HTML 보고서" 패턴과 같은 발상이다. threads_weekly_report_job(같은 요일 20:00)과 겹치지
       않도록 20분 뒤로 offset했다.
     - 매일 한국시간(Asia/Seoul) 00:18에 champion_alpha_decay_job() 을 실행한다(2026-09-19 추가).
       core.champion_strategy.check_and_notify_champion_alpha_decay() 가 챔피언 전략(코어+새틀라이트)
@@ -1083,7 +1087,7 @@ def main() -> None:
     print("스케줄러 시작. 평일 16:30 에 관심 종목을 스캔하고, 매주 일요일 20:00 에 Threads 주간")
     print("인사이트 리포트를, 20:20 에 챔피언 전략 주간 보고를 생성합니다 (모두 America/New_York")
     print("기준). 매일 한국시간(Asia/Seoul) 00:00 에는 시장 국면/섹터 강도 스냅샷을 미리 계산해두고,")
-    print("00:05~04:00 에는 #3 전략을 서버가 허락하는 만큼 반복 미세튜닝하며, 00:10 에는 챔피언")
+    print("00:10 에는 챔피언")
     print("전략 신호 변경을, 00:11 에는 보유종목 상관관계 스냅샷을, 00:12 에는 페이퍼 트레이딩")
     print("원장 기록을, 00:13 에는 그 원장의 60/40 벤치마크 대비 격차를, 00:15 에는 리밸런싱")
     print("예정일(및 칼라 헤지 롤)을, 00:16 에는 새틀라이트 실적 발표 예정을, 00:18 에는 챔피언")
@@ -1091,6 +1095,8 @@ def main() -> None:
     print("에는 가격/FRED 캐시/뉴스 다이제스트 데이터 무결성을 체크해 이상 감지 시 텔레그램으로")
     print("알리며, 00:25 에는 그날 밤 결과를 모은 오늘의 브리핑 HTML을 텔레그램으로 전송합니다.")
     print("매일 한국시간 07:30에는 무료 뉴스 API 기반 티커별 HTML/Telegram 리포트를 보냅니다.")
+    print("그 밖에 00:27~00:46 관측 전용 잡, 12:00 거장 보유종목 동기화, 화~토 06:10 paper 자동 주문(기본")
+    print("꺼짐), 일요일 00:50 전략 변형 연구 보고서가 등록됩니다(전체 목록: core/job_schedule.py).")
     print("Ctrl+C 로 종료할 수 있습니다.")
 
     # 배포(=스케줄러 재시작) 직후 Alpaca 검증을 한 번 돌려, 00:40 을 기다리지 않고 관제 센터에서 결과를 보게 한다.

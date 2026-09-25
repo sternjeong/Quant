@@ -2,13 +2,15 @@
 """선조치 후보고(act-first-report-after) 자율 결정을 위한 체크포인트 + 텔레그램 알림 도구.
 
 2주 전략 검증 실험(docs/TWO_WEEK_STRATEGY_VALIDATION_PROTOCOL.md)의 감독 에이전트가 사전등록
-모호함(B1/B2/B3류)이나 명백한 코드 결함을 스스로 판단해 처리할 때 쓴다. 사용자가 매번 응답할 때까지
+모호함(B1/B2/B3류)이나 명백한 코드 결함을 스스로 판단해 처리할 때 쓰려고 만들었다(감독기
+deploy/experiment_supervisor.py 는 2026-09-25 삭제 — 지금은 이 스크립트를 자동으로 부르는 곳이 없고
+수동으로만 쓸 수 있다). 사용자가 매번 응답할 때까지
 멈추는 대신, (1) 손대기 전 스냅샷을 남기고 (2) 즉시 처리하고 (3) 텔레그램으로 "무엇을 왜 했는지 +
 되돌리는 방법"을 보고한다. 사용자가 그 판단에 불만이면 체크포인트 ID로 정확히 그 시점 상태로 되돌릴
 수 있다.
 
 이 파일 자체는 core/ 관례를 따르지 않는다(core는 Streamlit app 전용 로직) — deploy/의 다른 무인
-서비스(experiment_supervisor.py 등)와 동일하게 stdlib + core.telegram_notify만 사용하는 독립
+스크립트(예전 experiment_supervisor.py 등)와 같은 관례로 stdlib + core.telegram_notify만 사용하는 독립
 스크립트다.
 
 사용 예:
