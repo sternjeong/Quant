@@ -60,6 +60,7 @@
 - **의도적 미연결:** `core/alpaca_price_provider.py`는 후보 원장 가격으로 연결하지 않았다. 실행마다 가격 기준(yfinance/Alpaca IEX)이 섞이고 시가 차이를 검사하지 않기 때문이다. 교차 대조로 두 소스 차이를 먼저 관측한다.
 - **VM에서 새로 생기는 외부 요청:** SEC 하룻밤 최대 300회(보통 종목당 1~3회), Alpaca 시세 최대 10회. VM에 `SEC_EDGAR_USER_AGENT`가 없으면 SEC가 403으로 막을 수 있고, 그러면 가이던스 기록이 매일 '발표 없음'이 된다(잡 로그에 표시).
 - **검증:** 통합 결과 `pytest tests` 1917 passed, `deploy/codex_telegram` unittest OK, `hub.guide.check` 누락 없음. 운용 알림·시장 진단·챔피언 전략 화면과 설명서(폰 크기)를 실제로 띄워 오류 없음 확인.
+- **배포 후 발견·수정(3042eaf):** VM 에서만 자동배포 테스트 관문이 실패해 서비스가 이전 버전으로 남았다. VM `.env` 의 Alpaca 키를 모듈 import 시 `load_dotenv()` 가 읽어, 테스트 결과가 키 유무에 따라 달라졌기 때문이다. `tests/conftest.py` 가 모든 테스트에서 Alpaca·텔레그램 키를 빈 값으로 가리도록 고쳤다(테스트가 실제 계좌·텔레그램에 닿을 가능성도 제거). 가짜 키를 넣은 환경에서 전체 테스트를 돌려 VM 을 재현·확인했고, 사용자가 텔레그램 `/processes` 로 새 버전 배포를 확인했다.
 
 ## 2026-09-25 Alpaca 로드맵 P0~P3 구축 (구현·mock 테스트, 실 API 0회)
 
