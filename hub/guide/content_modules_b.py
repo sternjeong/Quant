@@ -51,8 +51,8 @@ MODULES: tuple[ModuleGuide, ...] = (
         what="S&P500 기준으로 지금이 강세장인지 약세장인지 규칙으로 점수 매깁니다. 200일선 위치, 골든/데드크로스, 200일선 위 종목 비율(시장폭), 52주 고점 대비 낙폭 등을 합산하고, VIX·신용스프레드 같은 참고 신호도 계산합니다.",
         how_to_use="시장 진단 화면에서 봅니다. 매일 한국시간 00:00 잡(daily_market_snapshot)이 미리 계산해 저장해 두므로 화면이 빨리 열립니다. 별도 조치는 필요 없습니다.",
         where_to_see="시장 진단 화면(시장 국면 카드·타임라인)",
-        cautions="투명한 규칙 기반 참고 지표이며 매매 신호가 아닙니다. 결과는 DB 에 스냅샷으로 쌓입니다. 주문 경로에는 직접 연결되지 않습니다.",
-        sources=("scheduler/run_scheduler.py", "app/pages/7_시장_진단.py"), verified=_V),
+        cautions="투명한 규칙 기반 참고 지표이며 매매 신호가 아닙니다. 결과는 DB 에 스냅샷으로 쌓입니다. 주문 경로에는 직접 연결되지 않습니다. 4개 신호는 각각 최대 25점(가중치 동일)이고, 스냅샷에 신호별 상태(signal_status: 계산됨/결측과 사유)와 계산된 비중(coverage)이 저장됩니다. 빠진 신호를 0점으로 합산하지 않습니다: 시장폭이 없거나 coverage 가 75% 미만이면 unknown(판단 보류), 75% 이상이면 남은 점수를 coverage 로 나눠 판정하고 partial=True·missing_signals 로 표시합니다. 75% 기준은 '신호 1개만으로는 ±35 기준을 넘지 못한다'는 원래 설계(25점 < 35점)가 재정규화 뒤에도 유지되는 최소 비중입니다(25/0.75=33.3). 2026-09-25 이전에 저장된 스냅샷에는 이 필드들이 없습니다.",
+        sources=("core/market_regime.py", "scheduler/run_scheduler.py", "app/pages/7_시장_진단.py"), verified=_V),
     ModuleGuide(
         module="core/news_digest.py", name="티커별 뉴스 요약", group="데이터", status="운영중",
         what="구독한 티커의 최근 뉴스 제목·짧은 설명·링크를 Finnhub/FMP 무료 API 로 모으고, 티커별 요약과 이벤트 분류를 만들어 DB 에 저장합니다. 기사 전문은 긁어오지 않습니다.",
