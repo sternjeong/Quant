@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Durable Telegram polling and concurrent Codex/Claude job supervisor (stdlib only)."""
 import argparse
+import ast
 import fcntl
 import json
 import os
@@ -17,28 +18,70 @@ HERE = Path(__file__).resolve().parent
 LIMIT = re.compile(r"usage_limit_(?:reached|exceeded)|usage limit|rate_limit_exceeded|rate limit|too many requests|\b429\b", re.I)
 CLAUDE_LIMIT = re.compile(r"usage limit|rate.?limit|hit your limit|out of extra usage|\b429\b", re.I)
 
-# core.process_registry.PROCESS_REGISTRY를 텔레그램(/processes)에서도 켜고 끌 수 있게 여기 그대로
-# 복제한다 -- 이 파일은 core/를 임포트하지 않는 stdlib-only 프로세스라서(위 docstring 참고,
-# core/resource_guard.py에 문서화된 이 저장소의 기존 관례) 라벨/기본값만 작게 중복해서 들고,
-# 실제 on/off 상태는 core.process_registry와 같은 파일(data/process_toggles.json)을 공유한다.
-# 새 스케줄러 잡을 추가하면 core/process_registry.py의 PROCESS_REGISTRY와 이 목록을 함께 갱신한다.
-PROCESS_CATALOG = [
-    ('champion_signal_alert', '챔피언 전략 신호 변경 알림', True),
-    ('champion_correlation_snapshot', '챔피언 전략 상관관계 스냅샷', True),
-    ('champion_ledger_record', '챔피언 전략 페이퍼 트레이딩 원장', True),
-    ('champion_benchmark_gap', '챔피언 전략 벤치마크 격차 알림', True),
-    ('champion_rebalance_reminder', '챔피언 전략 리밸런싱 예정 알림', True),
-    ('champion_earnings_reminder', '챔피언 전략 실적 발표 예정 알림', True),
-    ('champion_alpha_decay', '챔피언 전략 알파 감쇠 체크', True),
-    ('fred_indicator_prewarm', 'FRED 거시지표 캐시 예열', True),
-    ('data_integrity_check', '데이터 무결성 체크', True),
-    ('daily_briefing', '오늘의 브리핑', True),
-    ('champion_weekly_report', '챔피언 전략 주간 보고', True),
-    ('market_snapshot', '시장 국면/섹터 강도 스냅샷', True),
-    ('watchlist_scan', '관심종목 스캔', True),
-    ('threads_weekly_report', 'Threads 주간 인사이트', True),
-    ('daily_news_digest', '일일 뉴스 다이제스트', True),
-]
+# 텔레그램 /processes 가 보여 주고 켜고 끄는 잡 목록은 core/process_registry.py 의 PROCESS_REGISTRY 한 곳에서만
+# 정의한다. 이 파일은 core/를 임포트하지 않는 stdlib-only 프로세스(시스템 python3)라서 그 파일을 import 하지
+# 않고 ast 로 파싱해 딕셔너리 리터럴만 읽는다(load_process_catalog). 그래서 레지스트리에 잡을 추가하면 여기엔
+# 손대지 않아도 텔레그램 목록에 자동으로 나타난다. tests/test_telegram_process_catalog_sync.py 가
+# "러너가 보여 주는 키 == PROCESS_REGISTRY 키 == core.job_schedule 의 process_key" 를 검증하므로
+# 레지스트리를 리터럴이 아닌 형태로 바꾸는 등 러너가 못 읽게 되면 테스트가 실패한다.
+# 실제 on/off 상태는 core.process_registry와 같은 파일(data/process_toggles.json)을 같은 형식으로 공유한다.
+PROCESS_REGISTRY_PATH = HERE.parent.parent / 'core' / 'process_registry.py'
+PROCESS_CATEGORIES = (('alert', '🔔 알림'), ('research', '🔬 연구·기록'), ('maintenance', '🧰 유지보수'))
+# Telegram sendMessage 한도는 4096자다. 여유를 두고 이 길이로 나눈다(queue_outbox의 절단 길이와 같음).
+TELEGRAM_TEXT_LIMIT = 3900
+
+
+def load_process_catalog(path=None):
+    """core/process_registry.py 의 PROCESS_REGISTRY 를 import 없이 읽어 정의 순서대로 돌려준다.
+
+    Returns: [{'key','label','description','category','default_enabled','places_orders'}, ...]
+    Raises: OSError(파일 없음), SyntaxError/ValueError(리터럴이 아니거나 형식이 다름).
+    """
+    path = Path(path or PROCESS_REGISTRY_PATH)
+    tree = ast.parse(path.read_text(encoding='utf-8'), filename=str(path))
+    registry = None
+    for node in tree.body:
+        if isinstance(node, ast.AnnAssign):
+            targets = [node.target]
+        elif isinstance(node, ast.Assign):
+            targets = node.targets
+        else:
+            continue
+        if node.value is not None and any(isinstance(t, ast.Name) and t.id == 'PROCESS_REGISTRY' for t in targets):
+            registry = ast.literal_eval(node.value)
+    if not isinstance(registry, dict) or not registry:
+        raise ValueError('PROCESS_REGISTRY 딕셔너리 리터럴을 찾지 못했습니다')
+    catalog = []
+    for key, meta in registry.items():
+        if not isinstance(key, str) or not isinstance(meta, dict) or 'label' not in meta:
+            raise ValueError(f'PROCESS_REGISTRY 항목 형식이 다릅니다: {key!r}')
+        catalog.append({'key': key, 'label': str(meta['label']), 'description': str(meta.get('description', '')),
+                        'category': str(meta.get('category', '')),
+                        'default_enabled': bool(meta.get('default_enabled', True)),
+                        'places_orders': bool(meta.get('places_orders', False))})
+    return catalog
+
+
+def split_text(text, limit=None):
+    """text를 limit 이하 조각으로 나눈다. 가능한 한 줄 경계에서 자르고, 한 줄이 limit보다 길면 그 줄만 강제로 자른다."""
+    limit = limit or TELEGRAM_TEXT_LIMIT
+    chunks, current = [], ''
+    for line in text.split('\n'):
+        while len(line) > limit:
+            if current:
+                chunks.append(current)
+                current = ''
+            chunks.append(line[:limit])
+            line = line[limit:]
+        candidate = f'{current}\n{line}' if current else line
+        if current and len(candidate) > limit:
+            chunks.append(current)
+            current = line
+        else:
+            current = candidate
+    if current or not chunks:
+        chunks.append(current)
+    return chunks
 
 
 def env_file(path):
@@ -110,12 +153,6 @@ class Service:
         default_project = self.cfg.get('default_project', '')
         return Path(self.cfg['projects'].get('quant', self.cfg['projects'].get(default_project, '/opt/quant'))).resolve()
 
-    def experiment_paths(self):
-        """Paths shared with the experiment supervisor, without storing secrets in SQLite."""
-        root = self.quant_root()
-        control_dir = Path(self.cfg.get('experiment_control_dir', root / '.experiment-control'))
-        return root, control_dir, control_dir / 'control.json', control_dir / 'state.json'
-
     def read_json_file(self, path, default):
         try:
             return json.loads(path.read_text())
@@ -129,8 +166,8 @@ class Service:
         temporary.replace(path)
 
     def process_toggles_path(self):
-        """core.process_registry.TOGGLE_STATE_PATH와 동일한 파일 -- 같은 프로젝트 루트 산출
-        방식(experiment_paths 참고)을 그대로 써서 두 프로세스가 항상 같은 파일을 본다."""
+        """core.process_registry.TOGGLE_STATE_PATH와 동일한 파일 -- quant_root() 아래 data/ 를 써서
+        스케줄러(core.process_registry.is_enabled)와 항상 같은 파일을 본다."""
         root = self.quant_root()
         return root / 'data' / 'process_toggles.json'
 
@@ -145,39 +182,119 @@ class Service:
                       'actor': f'telegram:{self.chat}'}
         self.write_json_file(path, state)
 
-    def processes_status_text_and_markup(self):
-        lines = ['⚙️ 백그라운드 프로세스 (탭해서 켜고 끄기)', '']
-        rows = []
-        for index, (key, label, default) in enumerate(PROCESS_CATALOG):
-            enabled = self.is_process_enabled(key, default)
-            mark = '✅' if enabled else '⏸'
-            lines.append(f'{mark} {label}')
-            rows.append([{'text': f'{"끄기" if enabled else "켜기"} · {label}', 'callback_data': f'p:{index}'}])
-        experiment_control = self.read_json_file(self.experiment_paths()[2], {'mode': 'running'})
-        exp_mode = experiment_control.get('mode', 'running')
-        lines.append('')
-        lines.append(f'{"✅" if exp_mode == "running" else "⏸"} 2주 전략 검증 실험 (Claude 자동 연구) — {exp_mode}')
-        lines.append('(이건 /experiment pause 또는 /experiment resume 으로 켜고 끕니다)')
-        return '\n'.join(lines), {'inline_keyboard': rows}
+    def process_catalog(self):
+        """레지스트리 목록. 파싱에 실패하면 (None, 이유)를 돌려줘 텔레그램 폴링이 죽지 않게 한다."""
+        try:
+            return load_process_catalog(self.cfg.get('process_registry_path')), ''
+        except (OSError, SyntaxError, ValueError) as exc:
+            return None, f'{type(exc).__name__}: {str(exc)[:200]}'
 
-    def experiment_status(self):
-        _, _, control_path, state_path = self.experiment_paths()
-        control = self.read_json_file(control_path, {'mode': 'not-installed'})
-        state = self.read_json_file(state_path, {})
-        if control.get('mode') == 'not-installed' and not state:
-            return '실험 감독 서비스 상태 파일이 아직 없습니다. 배포 상태를 확인하세요.'
-        lines = [f"실험: {control.get('mode', 'running')}"]
-        lines.append(f"단계: {state.get('phase', 'starting')}")
-        lines.append(f"완료 프로토콜: {state.get('completed_days', 0)}/14일")
-        if state.get('current_activity'):
-            lines.append(f"현재: {state['current_activity']}")
-        if state.get('last_agent_at'):
-            lines.append(f"마지막 Claude 감독: {time.strftime('%Y-%m-%d %H:%M UTC', time.gmtime(state['last_agent_at']))}")
-        if state.get('last_report_path'):
-            lines.append('일일 HTML 보고서: 전송됨')
-        if state.get('last_error'):
-            lines.append(f"최근 오류: {state['last_error'][:300]}")
-        return '\n'.join(lines)
+    def process_count_text(self):
+        """/help 에 쓸 실제 잡 개수('27개'). 레지스트리를 못 읽으면 '(개수 확인 불가)'."""
+        catalog, _ = self.process_catalog()
+        return f'{len(catalog)}개' if catalog is not None else '(개수 확인 불가)'
+
+    def process_entry(self, key):
+        catalog, _ = self.process_catalog()
+        return next((entry for entry in catalog or () if entry['key'] == key), None)
+
+    def process_category_message(self, catalog, category, title):
+        """카테고리 하나의 목록 텍스트와 버튼. 항목이 없으면 None."""
+        entries = [entry for entry in catalog if entry['category'] == category]
+        if not entries:
+            return None
+        lines, rows = [], []
+        on = 0
+        for entry in entries:
+            enabled = self.is_process_enabled(entry['key'], entry['default_enabled'])
+            on += enabled
+            order_mark = ' 💸' if entry['places_orders'] else ''
+            lines.append(f'{"✅" if enabled else "⏸"} {entry["label"]}{order_mark}\n    {entry["key"]}')
+            action = '끄기' if enabled else ('켜기(확인 필요)' if entry['places_orders'] else '켜기')
+            rows.append([{'text': f'{action} · {entry["label"]}', 'callback_data': f'p:{entry["key"]}'}])
+        header = f'{title} — 켜짐 {on}/{len(entries)}'
+        return header + '\n' + '\n'.join(lines), {'inline_keyboard': rows}
+
+    def processes_messages(self, only_category=None):
+        """/processes 응답을 [(text, markup), ...]으로 만든다. 카테고리별 한 메시지, 길면 줄 경계로 나누고
+        버튼은 그 카테고리의 마지막 조각에 붙인다. 모든 조각은 TELEGRAM_TEXT_LIMIT 이하다."""
+        catalog, error = self.process_catalog()
+        if catalog is None:
+            return [(f'잡 목록(core/process_registry.py)을 읽지 못했습니다 — {error}\n'
+                     '토글 파일은 그대로입니다. 개발 요청으로 확인하세요.', None)]
+        known = {c for c, _ in PROCESS_CATEGORIES}
+        categories = list(PROCESS_CATEGORIES) + [(c, f'📦 {c or "기타"}') for c in
+                                                 dict.fromkeys(e['category'] for e in catalog) if c not in known]
+        messages = []
+        if only_category is None:
+            on = sum(self.is_process_enabled(e['key'], e['default_enabled']) for e in catalog)
+            messages.append((f'⚙️ 자동 잡 {len(catalog)}개 — 켜짐 {on} · 꺼짐 {len(catalog) - on}\n'
+                             '버튼을 누르면 켜고 끕니다. 글자로: /processes on 키 · /processes off 키\n'
+                             '💸 = 주문을 내는 잡(켤 때 한 번 더 확인)', None))
+        for category, title in categories:
+            if only_category is not None and category != only_category:
+                continue
+            built = self.process_category_message(catalog, category, title)
+            if not built:
+                continue
+            text, markup = built
+            chunks = split_text(text)
+            messages.extend((chunk, None) for chunk in chunks[:-1])
+            messages.append((chunks[-1], markup))
+        return messages
+
+    @staticmethod
+    def with_notice(notice, messages):
+        """결과 한 줄을 첫 메시지 앞에 붙인다. 붙이면 한도를 넘을 때만 별도 메시지로 앞에 둔다."""
+        first_text, first_markup = messages[0]
+        combined = notice + '\n\n' + first_text
+        if len(combined) <= TELEGRAM_TEXT_LIMIT:
+            return [(combined, first_markup)] + messages[1:]
+        return [(notice, None)] + messages
+
+    def confirm_process_message(self, entry):
+        text = (f'⚠️ 정말 켜시겠습니까? "{entry["label"]}"은(는) 자동으로 주문을 제출하는 잡입니다.\n'
+                f'설명: {entry["description"][:300]}\n'
+                f'켜려면 아래 버튼을 누르거나 /processes on {entry["key"]} confirm 을 보내세요. '
+                '(끄기는 확인 없이 바로 됩니다)')
+        markup = {'inline_keyboard': [[{'text': f'⚠️ 정말 켜기 · {entry["label"]}',
+                                        'callback_data': f'pc:{entry["key"]}'}]]}
+        return text, markup
+
+    def apply_process_toggle(self, key, enabled, confirmed=False):
+        """켜기/끄기를 적용하고 (레지스트리 항목, 확인요청 여부)를 돌려준다. 주문을 내는 잡을 켤 때 confirmed가
+        아니면 상태를 바꾸지 않는다. 알 수 없는 키면 (None, False)."""
+        entry = self.process_entry(key)
+        if entry is None:
+            return None, False
+        if enabled and entry['places_orders'] and not confirmed:
+            return entry, True
+        self.set_process_enabled(key, enabled)
+        return entry, False
+
+    def process_command(self, db, rest):
+        """/processes [on|off 키 [confirm]]. 목록은 여러 메시지일 수 있어 앞 조각은 바로 큐에 넣고
+        마지막 (text, markup)을 돌려준다."""
+        args = rest.split()
+        if not args:
+            messages = self.processes_messages()
+        else:
+            action = args[0].lower()
+            key = args[1] if len(args) > 1 else ''
+            confirmed = len(args) > 2 and args[2].lower() == 'confirm'
+            if action not in ('on', 'off') or not key or len(args) > 3 or (len(args) == 3 and not confirmed):
+                return ('사용법: /processes (목록) · /processes on 키 · /processes off 키\n'
+                        '주문을 내는 잡은 /processes on 키 confirm 으로 켭니다.'), None
+            entry, needs_confirm = self.apply_process_toggle(key, action == 'on', confirmed)
+            if entry is None:
+                return f'알 수 없는 잡: {key}\n/processes 로 키 목록을 확인하세요.', None
+            if needs_confirm:
+                return self.confirm_process_message(entry)
+            done = f'{"✅ 켬" if action == "on" else "⏸ 끔"}: {entry["label"]} ({key})'
+            messages = self.with_notice(done, self.processes_messages(entry['category']))
+        for text, markup in messages[:-1]:
+            self.queue_outbox(db, self.chat, text, markup=markup)
+        return messages[-1]
 
     def news_digest_status(self, requested_ticker=''):
         """Quant DB의 최신 뉴스 요약을 stdlib sqlite로 읽는다.
@@ -217,31 +334,6 @@ class Service:
             lines.append(f"• {row['ticker']} ({row['article_count']}건): {summary}")
         lines.append('전체 출처 링크는 매일 첨부되는 HTML 또는 웹의 뉴스 리서치 페이지에서 확인하세요.')
         return '\n'.join(lines)
-
-    def update_experiment_control(self, mode, interrupt=False):
-        _, _, control_path, state_path = self.experiment_paths()
-        control = self.read_json_file(control_path, {})
-        control.update({'mode': mode, 'requested_at': time.time()})
-        self.write_json_file(control_path, control)
-        if interrupt:
-            state = self.read_json_file(state_path, {})
-            pid = state.get('agent_pid')
-            if isinstance(pid, int) and pid > 1:
-                try:
-                    os.killpg(pid, signal.SIGTERM)
-                except ProcessLookupError:
-                    pass
-
-    def queue_experiment_agent(self, db, uid, backend, instruction):
-        project = 'quant'
-        full_instruction = (
-            '2주 전략 검증 실험에 대한 사용자의 명시적 지시입니다. '
-            'docs/TWO_WEEK_STRATEGY_VALIDATION_PROTOCOL.md와 docs/experiment_validation/PROGRESS.md, '
-            '.experiment-control/state.json을 먼저 읽고, 사전등록 규칙을 바꾸지 않는 범위에서 수행하세요. '
-            '실계좌 주문·API 키 변경은 금지합니다. 변경 사항, 검증, 재개 지점을 문서에 남기세요.\n\n'
-            + instruction)
-        db.execute('INSERT OR IGNORE INTO jobs(id,chat,project,instruction,backend,created_at) VALUES(?,?,?,?,?,?)',
-                   (uid, self.chat, project, full_instruction, backend, time.time()))
 
     def api(self, method, data):
         req = urllib.request.Request('https://api.telegram.org/bot' + self.token + '/' + method,
@@ -317,29 +409,8 @@ class Service:
                         reply = self.digest_summary(db)
                     elif command == '/news':
                         reply = self.news_digest_status(rest)
-                    elif command == '/experiment':
-                        subcommand, _, experiment_instruction = rest.strip().partition(' ')
-                        subcommand = subcommand.lower()
-                        if not subcommand or subcommand == 'status':
-                            reply = self.experiment_status()
-                        elif subcommand in ('pause', 'resume', 'stop') and not experiment_instruction:
-                            mode = {'pause': 'paused', 'resume': 'running', 'stop': 'stopped'}[subcommand]
-                            # stop is deliberately the immediate abort control. Pause retains the
-                            # current atomic Claude turn and blocks subsequent turns.
-                            self.update_experiment_control(mode, interrupt=subcommand == 'stop')
-                            reply = {'pause': '실험의 다음 감독 실행을 일시정지했습니다.',
-                                     'resume': '실험 감독을 재개했습니다.',
-                                     'stop': '실험 중지를 요청했고, 실행 중인 Claude 감독에도 종료 신호를 보냈습니다.'}[subcommand]
-                        elif subcommand in ('claude', 'codex') and experiment_instruction.strip():
-                            self.queue_experiment_agent(db, uid, subcommand, experiment_instruction.strip())
-                            reply = f'접수 {uid} [{subcommand}] Quant 실험 지시'
-                            reply_job_id = uid
-                        else:
-                            reply = ('/experiment: 상태\n/experiment pause: 다음 감독 실행 일시정지\n'
-                                     '/experiment resume: 재개\n/experiment stop: 실행 중인 감독까지 중지\n'
-                                     '/experiment claude 지시 또는 /experiment codex 지시: 실험 수정·질문')
                     elif command == '/processes':
-                        reply, reply_markup = self.processes_status_text_and_markup()
+                        reply, reply_markup = self.process_command(db, rest)
                     elif command == '/idea' and rest.strip():
                         db.execute('INSERT OR IGNORE INTO ideas(id,chat,text,created_at) VALUES(?,?,?,?)',
                                    (uid, self.chat, rest.strip(), time.time()))
@@ -374,13 +445,9 @@ class Service:
                                  '/idea 메모: Claude/Codex 호출 없이 아이디어만 저장\n'
                                  '/ideas: 저장된 아이디어 목록, /ideas 비우기: 전체 삭제\n'
                                  '/retry 작업ID: blocked 작업 재개\n'
-                                 '/experiment: 2주 전략 실험 상태 확인\n'
-                                 '/experiment pause: 다음 감독 실행부터 일시정지\n'
-                                 '/experiment resume: 중지·일시정지 해제\n'
-                                 '/experiment stop: 실행 중인 감독에도 종료 신호, 이후 중지\n'
-                                 '/experiment claude 지시 또는 /experiment codex 지시: 실험 문서·상태를 '
-                                 '먼저 읽도록 강제된 작업으로 큐잉\n'
-                                 '/processes: 야간 스케줄러 잡 16개 on/off 목록 (버튼 탭으로 켜고 끄기)\n'
+                                 f'/processes: 자동 잡 {self.process_count_text()} on/off 목록 (카테고리별, 버튼 탭으로 켜고 끄기)\n'
+                                 '/processes on 키 · /processes off 키: 글자로 켜고 끄기 '
+                                 '(주문을 내는 잡은 켤 때 확인 단계: /processes on 키 confirm)\n'
                                  '/project quant 다음 줄에 지시: 현재 Quant를 바로 선택\n'
                                  '완료/접수 메시지에 답장(reply)하면 같은 프로젝트로 이어서 지시할 수 있습니다.')
                     elif command.startswith('/') and command != '/project':
@@ -480,18 +547,31 @@ class Service:
         ]]})
 
     def handle_process_toggle_callback(self, db, chat, data, callback):
+        """p:키 = 켜짐↔꺼짐 전환(주문을 내는 잡을 켜는 경우엔 확인 버튼만 보냄), pc:키 = 확인 후 켜기.
+        버튼은 순번이 아니라 키를 담는다 — 레지스트리 순서가 바뀌어도 옛 메시지의 버튼이 엉뚱한 잡을
+        바꾸지 않는다(모르는 키·옛 숫자 버튼은 상태를 바꾸지 않고 무시)."""
+        kind, _, key = data.partition(':')
+        entry = self.process_entry(key)
+        if entry is None:
+            answer = '목록이 바뀌었습니다. /processes 로 다시 여세요.'
+        else:
+            if kind == 'pc':
+                enabled, needs_confirm = True, False
+                self.set_process_enabled(key, True)
+            else:
+                enabled = not self.is_process_enabled(key, entry['default_enabled'])
+                _, needs_confirm = self.apply_process_toggle(key, enabled)
+            if needs_confirm:
+                text, markup = self.confirm_process_message(entry)
+                self.queue_outbox(db, chat, text, markup)
+                answer = '확인이 필요합니다'
+            else:
+                notice = f'{"✅ 켬" if enabled else "⏸ 끔"}: {entry["label"]}'
+                for text, markup in self.with_notice(notice, self.processes_messages(entry['category'])):
+                    self.queue_outbox(db, chat, text, markup)
+                answer = f'{entry["label"]}: {"켜짐" if enabled else "꺼짐"}'
         try:
-            index = int(data.split(':', 1)[1])
-            key, label, default = PROCESS_CATALOG[index]
-        except (ValueError, IndexError):
-            return
-        new_enabled = not self.is_process_enabled(key, default)
-        self.set_process_enabled(key, new_enabled)
-        text, markup = self.processes_status_text_and_markup()
-        self.queue_outbox(db, chat, f'{"✅ 켬" if new_enabled else "⏸ 끔"}: {label}\n\n' + text, markup)
-        try:
-            self.api('answerCallbackQuery', {'callback_query_id': callback['id'],
-                                             'text': f'{label}: {"켜짐" if new_enabled else "꺼짐"}'})
+            self.api('answerCallbackQuery', {'callback_query_id': callback['id'], 'text': answer[:190]})
         except Exception:
             pass
 
@@ -500,7 +580,7 @@ class Service:
         if chat != self.chat:
             return
         data = callback.get('data', '')
-        if data.startswith('p:'):
+        if data.startswith(('p:', 'pc:')):
             # /processes 토글 버튼 -- request_id 기반 대화 상태가 필요 없는 단발성 액션이라
             # 아래 request_id 기반 콜백들과는 별도 경로로 먼저 처리한다.
             self.handle_process_toggle_callback(db, chat, data, callback)

@@ -179,6 +179,8 @@ PROCESS_REGISTRY: dict[str, dict] = {
             "주문총액 상한을 모두 확인한 뒤에만 제출하고 결과를 텔레그램으로 알림. live 계좌 경로 없음 (화~토 06:10 KST)"
         ),
         "category": "maintenance", "default_enabled": False,
+        # 주문을 제출하는 잡 — 텔레그램 /processes 로 켤 때 확인 단계를 한 번 더 거친다(runner.py).
+        "places_orders": True,
     },
     "strategy_research_report": {
         "label": "전략 변형 연구 보고서 (관측 전용)",

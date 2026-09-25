@@ -8,7 +8,7 @@
 
 | 방향 | 현재 상태 | 비용 / 지연 |
 |---|---|---|
-| 텔레그램 → VM | 명령 12개(`/status` `/queue` `/diff` `/processes` `/experiment` …) + 자유 지시 | 명령은 즉시 / 자유 지시는 수 분 + Claude 할당량 |
+| 텔레그램 → VM | 명령(`/status` `/queue` `/diff` `/processes` …) + 자유 지시 | 명령은 즉시 / 자유 지시는 수 분 + Claude 할당량 |
 | VM → 텔레그램 | 작업 결과, 배포 알림 6종, 매일 브리핑 HTML, 뉴스, 워치독, 백업 경고 | 즉시 |
 | VM → GitHub | 에이전트가 작업 끝에 commit + push (`RESUME_NOTE.md`는 push 성공 후에만 삭제) | 작업당 |
 | GitHub → VM | `quant-auto-deploy.timer` 5분 폴링 → 테스트 게이트 → 재시작 | ≤ 5분 |
