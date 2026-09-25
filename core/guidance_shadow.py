@@ -38,6 +38,9 @@ core.earnings_events(가이던스 추출)를 "관측 전용"으로 잇는다.
     - 분기(Q) 가이던스는 직전 같은 기간 가이던스가 조회 이력 안에 없으면 방향을 정할 수 없어 대부분
       change='unknown'(no_previous_in_retrieved_history 등)으로 남는다. summarize_event_fetch()가 방향 판정
       수와 unknown 수·unknown 사유를 따로 세어 결과에 드러낸다(숨기지 않는다).
+    - (2026-09-25) RES-02 연결: 가이던스 근거가 있는 후보 행에는 그 근거 8-K 의 event_id(core.info_dedup.
+      compute_event_id — accession 기준 결정적 ID)와 보도자료 content_hash 를 populate_info_fields 로 채운다.
+      같은 8-K 가 여러 날의 후보 행에 반복 등장해도 같은 event_id 라서 독립 근거로 중복 집계되지 않게 할 수 있다.
 """
 
 from __future__ import annotations
@@ -64,6 +67,7 @@ from core.candidate_ledger import (
     record_candidate_set,
 )
 from core.earnings_events import GuidanceChange
+from core.info_dedup import compute_event_id, populate_info_fields
 
 # ---------------------------------------------------------------------------
 # 사전 고정 상수 (스펙 3·5절과 같은 값. 결과를 본 뒤 바꾸면 탐색 결과로만 취급한다)
@@ -106,6 +110,9 @@ NIGHTLY_FETCH_KWARGS = {
 
 # 가이던스 방향이 정해진 변화 라벨(core.earnings_events.compare_guidance 의 unknown 이외 라벨).
 DIRECTIONAL_CHANGES = ("raised", "lowered", "maintained", "initiated", "withdrawn")
+# RES-02 event_id 입력(core.info_dedup.compute_event_id): 같은 8-K 는 항상 같은 4개 값으로 부른다.
+INFO_EVENT_SOURCE = "sec_edgar"
+GUIDANCE_EVENT_FORM = "8-K"
 KNOWN_UNKNOWN_LIMITATION = (
     "분기(Q) 가이던스는 조회 이력 안에 직전 같은 기간 가이던스가 없으면 방향을 정할 수 없어 대부분 "
     "unknown 으로 남는다(추측하지 않음). unknown 이 많은 것은 버그가 아니라 알려진 한계다."
@@ -151,6 +158,10 @@ class GuidanceFeature:
     n_observations_in_window: int
     n_observations_total: int
     reason: str
+    # (2026-09-25, RES-02) latest 관측의 근거 문서 식별자. scores 에는 넣지 않고 CandidateRecord info_* 로만 쓴다.
+    latest_accession: Optional[str] = None
+    latest_source_url: Optional[str] = None
+    latest_content_sha256: Optional[str] = None
 
 
 def _lookback_start(
@@ -201,7 +212,7 @@ def compute_guidance_feature(
                                "decision_cutoff_missing")
 
     start = _lookback_start(cutoff, lookback_trading_days, trading_days)
-    in_window: list[tuple[datetime, GuidanceChange]] = []
+    in_window: list[tuple[datetime, GuidanceChange, GuidanceObservation]] = []
     for obs in observations:
         if str(obs.ticker).strip().upper() != tick:
             continue
@@ -212,32 +223,37 @@ def compute_guidance_feature(
         avail = normalize_time(obs.available_at)
         if avail is None or avail > cutoff or avail < start:
             continue
-        in_window.append((avail, change))
+        in_window.append((avail, change, obs))
     in_window.sort(key=lambda t: t[0])
 
     if not in_window:
         return GuidanceFeature(tick, cutoff, start, BASIS_NO_RELEASE, False, None, None, None, (), 0, n_total,
                                "no_guidance_release_in_window")
 
-    labels = [chg.change for _, chg in in_window]
-    metrics_seen = tuple(sorted({chg.current.metric for _, chg in in_window}))
+    labels = [chg.change for _, chg, _o in in_window]
+    metrics_seen = tuple(sorted({chg.current.metric for _, chg, _o in in_window}))
     has_lower = any(lbl in ("lowered", "withdrawn") for lbl in labels)
     has_raise = any(lbl == "raised" for lbl in labels)
     all_unknown = all(lbl == "unknown" for lbl in labels)
 
-    latest_avail, latest_change_obj = in_window[-1]
+    latest_avail, latest_change_obj, latest_obs = in_window[-1]
     latest_label = latest_change_obj.change
     mag = latest_change_obj.mid_change_pct
     latest_mag = None if mag is None else float(mag)
+    doc = {
+        "latest_accession": getattr(latest_change_obj.current, "accession", None) or None,
+        "latest_source_url": getattr(latest_change_obj.current, "source_url", None) or None,
+        "latest_content_sha256": latest_obs.content_sha256,
+    }
 
     if all_unknown:
         return GuidanceFeature(tick, cutoff, start, BASIS_UNKNOWN, False, latest_label, latest_mag, latest_avail,
-                               metrics_seen, len(in_window), n_total, "all_observations_unknown_in_window")
+                               metrics_seen, len(in_window), n_total, "all_observations_unknown_in_window", **doc)
 
     veto = bool(has_lower and not has_raise)
     reason = "lowered_or_withdrawn_without_raise" if veto else "no_veto_condition"
     return GuidanceFeature(tick, cutoff, start, BASIS_CLEAR, veto, latest_label, latest_mag, latest_avail,
-                           metrics_seen, len(in_window), n_total, reason)
+                           metrics_seen, len(in_window), n_total, reason, **doc)
 
 
 def guidance_feature_to_scores(feature: GuidanceFeature) -> dict:
@@ -304,7 +320,7 @@ def build_guidance_shadow_candidate_set(
         if feature.veto_flag:
             n_veto += 1
         scores = {**(r.scores or {}), **guidance_feature_to_scores(feature)}
-        records.append(CandidateRecord(
+        record_kwargs = dict(
             ticker=r.ticker,
             decision=r.decision,  # 원전략 결정 그대로 — 이 함수는 절대 바꾸지 않는다
             decision_reason=r.decision_reason,
@@ -314,7 +330,8 @@ def build_guidance_shadow_candidate_set(
             sector_etf=r.sector_etf,
             source_publication=feature.latest_available_at,  # 아는 값만(system_first_seen 등은 비움)
             decision_cutoff=cutoff,
-        ))
+        )
+        records.append(CandidateRecord(**guidance_info_kwargs(record_kwargs, r.ticker, feature)))
 
     meta = {
         "adapter": "guidance_shadow",
@@ -332,6 +349,23 @@ def build_guidance_shadow_candidate_set(
         ),
     }
     return FrozenCandidateSet(source, shadow_strategy_version, cutoff, records, meta)
+
+
+def guidance_info_kwargs(record_kwargs: dict, ticker: str, feature: GuidanceFeature) -> dict:
+    """RES-02(core.info_dedup) 연결: 가이던스 근거 8-K 가 있으면 event_id·content_hash·info_url·info_doc_id 를
+    CandidateRecord kwargs 에 채운다. 근거가 없으면(no_release, accession 모름) 아무것도 채우지 않는다 —
+    식별자를 지어내지 않는다. event_id 는 (sec_edgar, accession, ticker, 8-K) 로만 정해지므로 같은 8-K 는
+    어느 날·어느 후보 행에 기록되든 같은 값이다."""
+    accession = feature.latest_accession
+    if not accession:
+        return dict(record_kwargs)
+    return populate_info_fields(
+        record_kwargs,
+        event_id=compute_event_id(INFO_EVENT_SOURCE, accession, ticker, GUIDANCE_EVENT_FORM),
+        content_hash=feature.latest_content_sha256,
+        info_url=feature.latest_source_url,
+        info_doc_id=accession,
+    )
 
 
 def summarize_event_fetch(

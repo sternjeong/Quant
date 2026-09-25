@@ -461,12 +461,12 @@ MODULES: tuple[ModuleGuide, ...] = (
         what=
             '같은 내용의 기사·공시를 여러 개의 독립 근거로 세지 않도록 원문 해시로 중복을 제거하고, 정보 수집 비용과 추출 품질을 집계하는 유틸입니다.',
         how_to_use=
-            '직접 쓸 일은 없습니다. 정보 기반 결정을 연구하는 단계의 준비물입니다.',
+            '직접 쓸 일은 없습니다. 2026-09-25부터 가이던스 shadow(00:30)와 공시 veto shadow(00:32) 야간 기록이 이 도구로 후보 행마다 근거 공시의 사건 ID(event_id, 공시 접수번호 기준)와 원문 해시를 채웁니다. 같은 8-K·10-K 가 여러 날·여러 후보 행에 반복돼도 같은 ID 라서 나중에 분석할 때 한 건의 근거로 묶을 수 있습니다.',
         where_to_see=
-            '화면 없음',
+            '화면 없음(후보 원장 DB 의 event_id·info_content_hash 열)',
         cautions=
-            '아직 어떤 화면·잡·스크립트도 호출하지 않는 독립 유틸리티이며 테스트만 있습니다(정리 목록에서도 보존 항목으로 표시). 결과를 보는 곳도 없습니다.',
-        sources=('docs/INFORMATION_DECISION_ENGINE_RESEARCH.md',),
+            '지금은 ID 와 해시를 기록만 합니다. 후보 원장의 판정 계산이 이 ID 로 중복을 자동으로 걸러 주지는 않습니다(그 계산 모듈은 바꾸지 않았음). 근거 공시가 없는 후보 행은 비워 두고 ID 를 지어내지 않습니다. 비용 집계·추출 품질 집계 함수는 아직 호출하는 곳이 없습니다.',
+        sources=('docs/INFORMATION_DECISION_ENGINE_RESEARCH.md', 'core/guidance_shadow.py', 'core/filing_veto_shadow.py'),
         verified=V,
     ),
     ModuleGuide(
