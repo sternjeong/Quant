@@ -30,11 +30,15 @@ Streamlit 앱과 완전히 별도의 프로세스로 실행된다 (브라우저�
       충족 시 alerts_log 에 기록 + 데스크톱 알림을 보낸다.
       (Streamlit 페이지 app/pages/3_관심종목_모니터링.py 의 "지금 스캔 실행" 버튼도
        동일한 core.watchlist.scan_watchlist() 를 호출하므로 로직이 완전히 일치한다.)
+      서버에는 화면이 없어 데스크톱 알림은 콘솔 출력으로 대체되므로, 잡은 이어서
+      core.watchlist.send_triggered_summary_telegram() 으로 충족 종목을 텔레그램 요약 1건으로
+      보낸다(충족 0건이면 안 보냄, 같은 종목·전략·기준일은 한 번만).
     - 매주 일요일 20:00 (America/New_York, 월요일 개장 전)에 threads_weekly_report_job() 을
       실행한다. core.threads_summary.list_tracked_tickers() 로 추적 중인 모든 티커를 찾아
       각각 core.threads_summary.generate_weekly_report() (모듈 B 공용 로직, 최근 7일)를
       호출하고 결과를 저장한다. (Streamlit 페이지 app/pages/2_Threads_요약.py 의
       "🧠 리포트 생성" 버튼도 동일한 함수를 호출하므로 로직이 완전히 일치한다.)
+      완료 알림은 데스크톱 알림과 함께 텔레그램으로도 1건 보낸다.
     - 매일 한국시간(Asia/Seoul) 00:00에 market_snapshot_job() 을 실행한다.
       core.market_regime.get_market_regime_snapshot() (S&P500 전종목 순회) 과
       core.sector_strength.compute_theme_strength() (테마 프록시 ETF 다수 순회)는 둘 다 무거운
@@ -174,8 +178,8 @@ from core.screener import get_universe
 from core.sector_strength import compute_theme_strength, save_theme_strength_snapshot
 from core.threads_summary import generate_weekly_report, list_tracked_tickers, save_weekly_report
 from core.news_digest import render_daily_telegram_summary, run_news_pipeline, write_daily_html_report
-from core.telegram_notify import send_document, send_message
-from core.watchlist import scan_watchlist
+from core.telegram_notify import is_configured as is_telegram_configured, send_document, send_message
+from core.watchlist import scan_watchlist, send_triggered_summary_telegram
 
 
 def watchlist_scan_job() -> None:
@@ -195,6 +199,20 @@ def watchlist_scan_job() -> None:
     else:
         for r in results:
             print(f"  - {r.message}")
+
+    # 서버(VM)에는 화면이 없어 데스크톱 알림은 콘솔 출력으로만 대체된다 → 충족 종목은 텔레그램 요약 1건으로도 보낸다
+    # (충족 0건이면 보내지 않음, 같은 종목·전략·기준일은 한 번만). alerts_log 기록은 scan_watchlist 가 이미 끝냈다.
+    try:
+        tg = send_triggered_summary_telegram(results)
+    except Exception as exc:  # noqa: BLE001 — 알림은 부가 기능이라 잡을 죽이면 안 된다
+        tg = {"status": "failed", "count": 0}
+        print(f"  - 텔레그램 요약 준비 중 오류: {exc}")
+    if tg["status"] == "sent":
+        print(f"  - 텔레그램 요약 전송 ({tg['count']}건)")
+    elif tg["status"] == "not_configured":
+        print(f"  - 충족 {tg['count']}건이 있으나 텔레그램 설정이 없어 전송 생략")
+    elif tg["status"] == "failed":
+        report_job_failure("daily_watchlist_scan", f"관심종목 충족 {tg['count']}건 텔레그램 요약 전송 실패")
 
     print(f"[{datetime.now()}] watchlist_scan_job 종료")
 
@@ -228,10 +246,16 @@ def threads_weekly_report_job() -> None:
         generated += 1
         print(f"  - {ticker}: 글 {result['post_count']}건으로 리포트 생성")
 
-    send_desktop_notification(
-        "주간 Threads 인사이트 리포트 생성 완료",
-        f"추적 중인 {len(tickers)}개 티커 중 {generated}개에 대해 리포트를 생성했습니다.",
-    )
+    done_title = "주간 Threads 인사이트 리포트 생성 완료"
+    done_message = f"추적 중인 {len(tickers)}개 티커 중 {generated}개에 대해 리포트를 생성했습니다."
+    send_desktop_notification(done_title, done_message)
+    # 서버에는 화면이 없으므로 완료 알림을 텔레그램으로도 1건 보낸다(이 잡은 리포트 파일을 텔레그램으로 보내지 않아 중복 없음).
+    try:
+        sent = send_message(f"📝 {done_title}\n{done_message}\n내용은 화면 'Threads 요약'에서 확인하세요.")
+    except Exception:  # noqa: BLE001
+        sent = False
+    if not sent and is_telegram_configured():
+        report_job_failure("weekly_threads_report", "Threads 주간 리포트 완료 알림 텔레그램 전송 실패")
     print(f"[{datetime.now()}] threads_weekly_report_job 종료 (총 {generated}개 리포트 생성)")
 
 

@@ -171,7 +171,12 @@ st.caption(
     "지금 바로 확인하고 싶다면 아래 버튼으로 수동 스캔할 수 있습니다 (스케줄러와 완전히 동일한 로직)."
 )
 
-notify_checked = st.checkbox("스캔 결과를 데스크톱 알림으로도 보내기", value=True)
+notify_checked = st.checkbox(
+    "수동 스캔 결과를 이 컴퓨터의 데스크톱 알림으로도 보내기",
+    value=True,
+    help="앱을 내 컴퓨터에서 직접 실행할 때만 화면 알림이 뜹니다(서버에는 화면이 없어 효과 없음). "
+    "평일 16:30(미국 동부) 자동 스캔은 조건 충족 종목이 있으면 텔레그램으로 요약 1건을 보냅니다.",
+)
 
 if st.button("🔍 지금 스캔 실행", type="primary", disabled=not items):
     job_manager.start(
