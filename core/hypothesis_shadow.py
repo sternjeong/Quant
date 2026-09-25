@@ -15,7 +15,8 @@ from __future__ import annotations
 
 import json
 import math
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
+from zoneinfo import ZoneInfo
 from typing import Any, Callable, Optional
 
 import pandas as pd
@@ -24,6 +25,7 @@ from core import hypothesis_engine as he
 from core import hypothesis_registry as reg
 from core.models import HypothesisShadowRecord
 
+ET = ZoneInfo("America/New_York")
 FORWARD_DAYS = 60
 Z_FLOOR = -1.96
 SHADOW_HISTORY_DAYS = 1100
@@ -104,17 +106,39 @@ def forward_verdict(hyp: dict, *, session) -> Optional[dict[str, Any]]:
             "verdict": "candidate" if z >= Z_FLOOR else "retire"}
 
 
-def latest_trading_day(price_provider=None, today: Optional[date] = None) -> Optional[date]:
-    today = today or date.today()
+US_CLOSE_SETTLED = (16, 15)  # 미 동부 16:15 이후에만 그날 일봉을 완성된 것으로 본다
+
+
+def latest_trading_day(price_provider=None, today: Optional[date] = None, now_et: Optional[datetime] = None) -> Optional[date]:
+    """완성된(장 마감된) 최신 거래일. 00:48 KST 는 미 장중이라 오늘 봉은 미완성이므로 제외한다."""
+    now_et = now_et or datetime.now(ET)
+    today = today or now_et.date()
     spy = he.load_prices(["SPY"], today - timedelta(days=10), today, price_provider).get("SPY")
     if spy is None:
         return None
     spy = spy.loc[:pd.Timestamp(today)]  # 공급자가 요청보다 긴 이력을 돌려줘도 today 이후는 보지 않는다
+    if today == now_et.date() and (now_et.hour, now_et.minute) < US_CLOSE_SETTLED:
+        spy = spy.loc[:pd.Timestamp(today - timedelta(days=1))]
     return spy.index.max().date() if not spy.empty else None
 
 
+def approval_buttons(hid: str) -> list[list[dict]]:
+    """텔레그램 인라인 버튼. 콜백은 deploy/codex_telegram/runner.py 의 'h:' 처리기가 받는다."""
+    return [[{"text": "✅ paper 편입", "callback_data": f"h:promote:{hid}"},
+             {"text": "🗑 종료", "callback_data": f"h:retire:{hid}"}]]
+
+
+def candidate_message(h: dict, v: dict) -> str:
+    from core.research_sleeve import PER_HYPOTHESIS_MAX, SLEEVE_FRACTION
+
+    return (f"[가설 승격 후보] {h['id']}\n{h['spec']['thesis'][:120]}\n"
+            f"전진 {v['n_days']}거래일 누적 {v['forward_cum']:+.2%} (백테스트 대비 z={v['z']:.2f})\n"
+            f"편입하면 paper 계좌 research 슬리브(전체 {SLEEVE_FRACTION:.0%}, 가설당 최대 {PER_HYPOTHESIS_MAX:.0%})에 "
+            f"다음 자동 주문부터 들어갑니다. 누르지 않으면 아무것도 바뀌지 않습니다.")
+
+
 def run_daily(*, session=None, price_provider=None, today: Optional[date] = None,
-              notify: Optional[Callable[[str], Any]] = None) -> dict[str, Any]:
+              notify: Optional[Callable[[str, list], Any]] = None) -> dict[str, Any]:
     out: dict[str, Any] = {"promoted_to_shadow": [], "recorded": [], "errors": [], "verdicts": []}
     for h in reg.list_by_status(reg.PASS, session=session):
         try:
@@ -127,19 +151,19 @@ def run_daily(*, session=None, price_provider=None, today: Optional[date] = None
         out["errors"].append("SPY 최신 거래일 확인 실패 — 오늘 기록 건너뜀")
         return out
     out["as_of"] = as_of.isoformat()
-    for h in reg.list_by_status(reg.SHADOW, session=session):
+    # 승격 후보·승격 가설도 계속 기록한다: 전진 성과 추적과 research 슬리브(paper 편입) 비중의 원천이다.
+    for h in reg.list_by_status(reg.SHADOW, reg.CANDIDATE, reg.PROMOTED, session=session):
         try:
             with reg._session(session) as db:
                 out["recorded"].append(record_day(h, as_of, session=db, price_provider=price_provider))
-                v = forward_verdict(h, session=db)
+                v = forward_verdict(h, session=db) if h["status"] == reg.SHADOW else None
             if v:
                 to = reg.CANDIDATE if v["verdict"] == "candidate" else reg.RETIRED
                 reg.transition(h["id"], to, f"전진 {v['n_days']}일 z={v['z']:.2f}", session=session,
                                judge={**(h["judge"] or {}), "forward": v})
                 out["verdicts"].append({"id": h["id"], **v})
                 if to == reg.CANDIDATE and notify:
-                    notify(f"[가설 승격 후보] {h['id']} — {h['spec']['thesis'][:80]}\n전진 {v['n_days']}일 누적 "
-                           f"{v['forward_cum']:+.2%}, z={v['z']:.2f}. 승인: python scripts/hypothesis_admin.py promote {h['id']}")
+                    notify(candidate_message(h, v), approval_buttons(h["id"]))
         except Exception as exc:  # noqa: BLE001 — 한 가설의 오류가 나머지를 막지 않는다
             out["errors"].append(f"{h['id']}: {type(exc).__name__}: {exc}"[:300])
     return out

@@ -146,9 +146,10 @@ S1~S3 는 에이전트 없이도 가치가 있다(사람이 가설을 넣어도 
 | S4 큐·러너 | `core/agent_batch.py`, `scripts/agent_batch.py`, 잡 `agent_batch` 03:00 KST | 구현. 큐 파일 대신 매 단계 상태에서 재계획(중단 후 자동 재개) |
 | S5 역할 5종 | `research/agent_prompts/*.md` | 구현(프롬프트). 실제 Claude 실행은 VM 첫 배치에서 처음 확인 |
 | 예산 | `core/agent_budget.py` | 하룻밤 $15·주간 $60(API 환산), 역할별 모델·턴·시간·주간 횟수 |
-| S6 허브·승인 | `hub/research_status.py`(`/research`), `scripts/hypothesis_admin.py` | 허브 구현. **텔레그램 승인 버튼·paper 자동 편입은 미구현**(승인은 admin 스크립트) |
+| S6 승인·paper 편입 | `core/hypothesis_shadow.approval_buttons`, `deploy/codex_telegram/runner.py`(`h:` 콜백), `core/research_sleeve.py`, `core/paper_execution.py`(research 슬리브 게이트) | 구현. 승격 후보 알림에 [✅ paper 편입][🗑 종료] 버튼 → 승인 시 research 슬리브(전체 10%, 가설당 최대 5%)로 다음 자동 주문부터 편입 |
+| 역할별 모델 변경 | 허브 `/research` 드롭다운, 텔레그램 `/models`, `data/agent_models.json` | 구현. 다음 배치부터 적용, 예산 추정도 모델 단가 비율로 조정 |
 
-### 토큰 예산 (사용자 위임으로 설정)
+### 토큰 예산 (사용자 위임으로 설정, 모델은 사용자가 수시로 변경 가능)
 | 역할 | 모델 | 최대 턴 | 시간 | 주간 횟수 | 요일 |
 |---|---|---|---|---|---|
 | Scout | haiku | 12 | 15분 | 7 | 매일 |
@@ -162,8 +163,16 @@ S1~S3 는 에이전트 없이도 가치가 있다(사람이 가설을 넣어도 
 에이전트 쓰기 권한은 자기 작업 폴더로 제한(`--allowedTools`), 실행 후 `research/` 밖 변경 자동 되돌림, 자식 환경에서
 브로커·텔레그램 비밀값 제거, 동결본(스펙+코드)은 DB 에 복사, 작업 폴더(`research/hypotheses/` 등)는 git 미추적·백업 대상.
 
+### research 슬리브 (paper 편입) 규칙
+- 목표 = 가설당 배분 × 그 가설의 최신 shadow 비중. 승격 후에도 shadow 는 매일 기록된다(편입 비중의 원천).
+- 챔피언 목표는 (1 − research 사용분)으로 축소. 승격 가설이 없으면 계획·fingerprint 가 도입 전과 동일.
+- 승격 가설 중 하나라도 기록이 5일보다 오래되면 research 슬리브 전체 보류(매수 없음, 보유 유지). 게이트는 fail-closed.
+- 챔피언과 겹치는 종목은 챔피언 슬리브 라벨(보류 플래그)을 따른다.
+- shadow 기록은 미 동부 16:15 이전의 당일 봉(미완성)을 쓰지 않는다.
+
 ## 9. 결정 필요(사람)
 1. 주간 가설 동결 상한(제안 10개)과 shadow 동시 상한(제안 20개).
 2. 다중검정 방식: DSR(제안) vs 더 단순한 Bonferroni.
 3. 에이전트 배치 시간대와 주간 토큰 예산 상한.
-4. ~~S1 부터 착수할지~~ — 착수·구현 완료. 남은 결정: 텔레그램 승인 버튼과 승격 가설의 paper 편입 자동화를 할지.
+4. ~~S1 부터 착수할지~~ — 구현 완료. ~~텔레그램 승인 버튼·paper 편입~~ — 구현 완료(2026-09-25).
+5. research 슬리브 크기(현재 10%/가설당 5%)와 승격 가설의 자동 종료 규칙(현재 없음, 사람이 [종료] 버튼)을 조정할지.

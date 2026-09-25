@@ -9,7 +9,7 @@ from core.champion_strategy import (
     compute_satellite_recommendation_point_in_time,
 )
 from core.paper_execution import (
-    SLEEVE_CORE, SLEEVE_SATELLITE, AlpacaPaperBroker, RunStore, build_order_plan, plan_targets,
+    SLEEVE_CORE, SLEEVE_RESEARCH, SLEEVE_SATELLITE, AlpacaPaperBroker, RunStore, build_order_plan, plan_targets,
 )
 
 
@@ -24,21 +24,41 @@ def _sleeve_of(core, satellite, positions):
     return labels
 
 
-def build_plan(core, satellite, positions, equity):
+def build_plan(core, satellite, positions, equity, research=None):
     """Each sleeve carries its OWN hold flag (fail-closed: missing/non-True flag = hold).
 
     Core on hold (unknown market filter) -> no core buys, core holdings kept.  Satellite on hold
     (no flag, or its data was unavailable) -> no satellite buys and satellite holdings kept -- they
     are not liquidated just because the satellite recommendation is missing.  One sleeve on hold
-    does not stop the other.  submit_plan re-applies both flags at the POST point."""
+    does not stop the other.  submit_plan re-applies both flags at the POST point.
+
+    ``research`` (core.research_sleeve.compute_research_targets) adds promoted hypotheses as a third
+    sleeve: champion targets are scaled by (1 - research weight) so the total stays <= 100%.  Symbols
+    already owned by core/satellite keep that label (their hold flags win).  research=None keeps the
+    plan byte-identical to the champion-only plan."""
     core_ok = core.get("new_orders_allowed") is True
     sat_ok = satellite.get("new_orders_allowed") is True
+    targets = plan_targets(core, satellite)
+    sleeve_of = _sleeve_of(core, satellite, positions)
+    extra = {}
+    if research is not None:
+        r_targets = research.get("targets") or {}
+        used = sum(r_targets.values())
+        if used > 0:
+            targets = {k: v * (1 - used) for k, v in targets.items()}
+            for sym, w in r_targets.items():
+                targets[sym] = targets.get(sym, 0.0) + w
+                if sym not in CORE_UNIVERSE and sym not in (core.get("per_ticker_weights") or {}) \
+                        and sym not in (satellite.get("per_ticker_weights") or {}):
+                    sleeve_of[sym] = SLEEVE_RESEARCH
+        extra = {"research_new_orders_allowed": research.get("new_orders_allowed") is True,
+                 "research_hold_reason": str(research.get("hold_reason") or "")}
     return build_order_plan(
-        plan_targets(core, satellite), positions, equity,
+        targets, positions, equity,
         new_orders_allowed=core_ok, hold_reason="" if core_ok else str(core.get("allocation_reason", "")),
         satellite_new_orders_allowed=sat_ok,
         satellite_hold_reason="" if sat_ok else str(satellite.get("allocation_reason") or "satellite new_orders_allowed flag missing/false"),
-        sleeve_of=_sleeve_of(core, satellite, positions),
+        sleeve_of=sleeve_of, **extra,
     )
 
 
@@ -54,12 +74,12 @@ def tradability_warnings(plan, tradability_fn):
             "lookup_failed": sorted(s for s, r in report.items() if r["verdict"] == "lookup_failed")}
 
 
-def run(broker, core, satellite, submit=False, confirm=None, run_store=None, tradability_fn=None):
+def run(broker, core, satellite, submit=False, confirm=None, run_store=None, tradability_fn=None, research=None):
     account = broker.account()
     if account.get("trading_blocked") or account.get("account_blocked"):
         raise SystemExit("paper account is blocked")
-    plan = build_plan(core, satellite, broker.positions(), float(account["equity"]))
-    output = {"core": core["top4"], "satellite": satellite.get("selected", []), "plan": plan,
+    plan = build_plan(core, satellite, broker.positions(), float(account["equity"]), research)
+    output = {"core": core["top4"], "satellite": satellite.get("selected", []), "plan": plan, "research": research,
               "tradability": tradability_warnings(plan, tradability_fn)}
     if output["tradability"]["untradable_buys"]:
         print(f"WARNING: not tradable at broker: {output['tradability']['untradable_buys']}")
@@ -78,9 +98,10 @@ def main():
     parser.add_argument("--confirm", help="required plan fingerprint for submission")
     args = parser.parse_args()
     from core.alpaca_market_meta import check_tradability
+    from core.research_sleeve import compute_research_targets
 
     run(AlpacaPaperBroker.from_env(), compute_core_recommendation(), compute_satellite_recommendation_point_in_time(),
-        args.submit, args.confirm, RunStore(), tradability_fn=check_tradability)
+        args.submit, args.confirm, RunStore(), tradability_fn=check_tradability, research=compute_research_targets())
 
 
 if __name__ == "__main__":

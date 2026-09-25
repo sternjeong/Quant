@@ -14,7 +14,7 @@ import sys
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
@@ -313,6 +313,29 @@ class HubRequestHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(payload)))
         self.end_headers()
         self.wfile.write(payload)
+
+    def do_POST(self) -> None:
+        path = urlparse(self.path).path
+        if path != "/research/models":
+            self._send_html("not found", 404)
+            return
+        # 로그인 쿠키는 SameSite=Lax 라 다른 사이트의 POST 에는 실리지 않는다. 그래도 Origin 이 있으면 같은 호스트인지 본다.
+        origin = self.headers.get("Origin")
+        host = self.headers.get("Host") or ""
+        if origin and urlparse(origin).netloc != host:
+            self._send_html("forbidden", 403)
+            return
+        length = min(int(self.headers.get("Content-Length") or 0), 4096)
+        form = parse_qs(self.rfile.read(length).decode("utf-8", "replace"))
+        try:
+            research_status.apply_model_form(form)
+        except Exception:  # noqa: BLE001
+            self._send_html("save failed", 500)
+            return
+        self.send_response(303)
+        self.send_header("Location", "/research")
+        self.send_header("Content-Length", "0")
+        self.end_headers()
 
     def do_GET(self) -> None:
         path = urlparse(self.path).path

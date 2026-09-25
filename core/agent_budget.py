@@ -48,6 +48,52 @@ ROLES: dict[str, RoleConfig] = {
 }
 
 
+# 역할별 모델은 사람이 수시로 바꿀 수 있다(허브 /research 드롭다운, 텔레그램 /models). 바꾼 값은 이 파일에 저장되고
+# 다음 에이전트 실행부터 적용된다. 파일이 없거나 값이 잘못되면 ROLES 의 기본 모델을 쓴다.
+MODEL_OVERRIDES = PROJECT_ROOT / "data" / "agent_models.json"
+MODEL_CHOICES = ("haiku", "sonnet", "opus")
+# 비용 추정용 상대 단가(sonnet=1). CLI 가 실제 금액을 보고하면 그 값을 쓴다.
+MODEL_COST_FACTOR = {"haiku": 0.25, "sonnet": 1.0, "opus": 2.5}
+
+
+def model_overrides() -> dict[str, str]:
+    try:
+        raw = json.loads(MODEL_OVERRIDES.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    out = {}
+    for role, v in (raw.items() if isinstance(raw, dict) else []):
+        m = v.get("model") if isinstance(v, dict) else v
+        if role in ROLES and m in MODEL_CHOICES:
+            out[role] = m
+    return out
+
+
+def set_model(role: str, model: str, actor: str = "hub") -> None:
+    if role not in ROLES or model not in MODEL_CHOICES:
+        raise ValueError(f"잘못된 역할/모델: {role}/{model}")
+    try:
+        raw = json.loads(MODEL_OVERRIDES.read_text(encoding="utf-8"))
+        raw = raw if isinstance(raw, dict) else {}
+    except (OSError, ValueError):
+        raw = {}
+    raw[role] = {"model": model, "updated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"), "actor": actor}
+    MODEL_OVERRIDES.parent.mkdir(parents=True, exist_ok=True)
+    tmp = MODEL_OVERRIDES.with_suffix(".tmp")
+    tmp.write_text(json.dumps(raw, ensure_ascii=False, indent=2), encoding="utf-8")
+    tmp.replace(MODEL_OVERRIDES)
+
+
+def effective(role: str) -> RoleConfig:
+    """사람이 고른 모델을 반영한 역할 설정. 추정 비용도 모델 단가 비율로 조정한다."""
+    base = ROLES[role]
+    model = model_overrides().get(role, base.model)
+    if model == base.model:
+        return base
+    est = base.est_cost_usd * MODEL_COST_FACTOR[model] / MODEL_COST_FACTOR.get(base.model, 1.0)
+    return RoleConfig(model, base.max_turns, base.timeout_sec, base.weekly_runs, round(est, 3), base.weekdays)
+
+
 def kst(now: Optional[datetime] = None) -> datetime:
     return (now or datetime.now(timezone.utc)).astimezone(KST)
 
@@ -87,7 +133,11 @@ def record(entry: dict, path: Optional[Path] = None) -> None:
 
 def _cost(e: dict) -> float:
     c = e.get("cost_usd")
-    return float(c) if isinstance(c, (int, float)) else ROLES.get(e.get("role"), ROLES["implementer"]).est_cost_usd
+    if isinstance(c, (int, float)):
+        return float(c)
+    base = ROLES.get(e.get("role"), ROLES["implementer"])
+    model = e.get("model") or base.model
+    return base.est_cost_usd * MODEL_COST_FACTOR.get(model, 1.0) / MODEL_COST_FACTOR.get(base.model, 1.0)
 
 
 def summary(now: Optional[datetime] = None, path: Optional[Path] = None) -> dict:
@@ -101,7 +151,7 @@ def summary(now: Optional[datetime] = None, path: Optional[Path] = None) -> dict
 
 
 def can_launch(role: str, now: Optional[datetime] = None, path: Optional[Path] = None) -> tuple[bool, str]:
-    cfg = ROLES[role]
+    cfg = effective(role)
     k = kst(now)
     if k.weekday() not in cfg.weekdays:
         return False, f"{role}: 오늘은 실행 요일 아님"

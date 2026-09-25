@@ -75,6 +75,7 @@ ALLOWED_PREFIXES = (
     "research/scout/",
     "research/failures.md",
     "data/agent_usage.jsonl",
+    "data/agent_models.json",
 )
 # 허용 폴더 안에서도 뺄 것: 대용량 체크포인트 tar.gz(수백 MB, 매번 새 blob), 락 파일
 EXCLUDED_PREFIXES = (
@@ -140,6 +141,11 @@ def collect_files(app_dir: Path, max_bytes: int) -> tuple[dict[str, Path], list[
     """(백업할 {상대경로: 원본}, 크기 초과로 건너뛴 목록, 비밀 의심으로 격리한 목록)."""
     candidates = set(git_lines(app_dir, "ls-files", "--others", "--exclude-standard"))
     candidates |= set(git_lines(app_dir, "ls-files", "--modified"))
+    # .gitignore 된 파일(예: data/process_toggles.json)은 위 목록에 안 나온다. 허용 목록의 '정확한 파일' 항목은
+    # 존재하면 직접 넣는다(2026-09-25 수정 — 그전에는 process_toggles.json 이 허용 목록에 있어도 백업되지 않았다).
+    exact = [rel for rel in ALLOWED_PREFIXES if not rel.endswith("/") and "." in Path(rel).name and (app_dir / rel).is_file()]
+    if exact:
+        candidates |= set(git_lines(app_dir, "ls-files", "--others", "--ignored", "--exclude-standard", *exact))
     wanted: dict[str, Path] = {}
     skipped: list[dict] = []
     quarantined: list[dict] = []

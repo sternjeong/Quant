@@ -838,9 +838,9 @@ def hypothesis_shadow_record_job() -> None:
     print(f"[{datetime.now()}] hypothesis_shadow_record_job 시작")
     try:
         from core.hypothesis_shadow import run_daily
-        from core.telegram_notify import send_message
+        from core.telegram_notify import send_message_with_buttons
 
-        res = run_daily(notify=send_message)
+        res = run_daily(notify=send_message_with_buttons)  # 승격 후보는 [paper 편입][종료] 버튼과 함께
         print(f"  - {str(res)[:400]}")
         if res.get("errors"):
             report_job_failure("hypothesis_shadow_record", "; ".join(res["errors"])[:300])

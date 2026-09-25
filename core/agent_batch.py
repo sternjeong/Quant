@@ -368,7 +368,7 @@ def run_batch(*, now_fn: Callable[[], datetime] = lambda: datetime.now(timezone.
             break
         role, hid, extra = task
         done.add((role, hid))
-        cfg = budget.ROLES[role]
+        cfg = budget.effective(role)  # 사람이 허브/텔레그램에서 고른 모델 반영
         if role in ("scout", "writer"):
             write_context(now)
         if role == "postmortem":

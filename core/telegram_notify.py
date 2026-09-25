@@ -10,6 +10,7 @@ core/ 관례: 설정(토큰/채팅ID)이 없거나 전송에 실패해도 예외
 
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 
@@ -61,6 +62,29 @@ def send_document(path: str | Path, caption: str = "") -> bool:
                 files={"document": (report_path.name, report, "text/html")},
                 timeout=_REQUEST_TIMEOUT_SECONDS,
             )
+        return resp.status_code == 200
+    except Exception:
+        return False
+
+
+def send_message_with_buttons(text: str, buttons: list | None = None) -> bool:
+    """인라인 버튼(reply_markup.inline_keyboard)을 붙여 보낸다. buttons 가 없으면 send_message 와 같다.
+
+    버튼을 누르면 텔레그램이 callback_query 를 보내고, 그것은 deploy/codex_telegram/runner.py 가 받는다
+    (같은 봇·같은 채팅이어야 한다). 설정이 없거나 실패하면 False(예외 없음).
+    """
+    if not buttons:
+        return send_message(text)
+    token = os.getenv("TELEGRAM_BOT_TOKEN")
+    chat_id = os.getenv("TELEGRAM_CHAT_ID")
+    if not token or not chat_id:
+        return False
+    try:
+        resp = requests.post(
+            f"{TELEGRAM_API_BASE}/bot{token}/sendMessage",
+            data={"chat_id": chat_id, "text": text, "reply_markup": json.dumps({"inline_keyboard": buttons})},
+            timeout=_REQUEST_TIMEOUT_SECONDS,
+        )
         return resp.status_code == 200
     except Exception:
         return False

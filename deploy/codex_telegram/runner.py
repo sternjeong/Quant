@@ -9,6 +9,7 @@ import re
 import signal
 import sqlite3
 import subprocess
+import sys
 import threading
 import time
 import urllib.request
@@ -38,7 +39,28 @@ PROCESS_CATALOG = [
     ('watchlist_scan', '관심종목 스캔', True),
     ('threads_weekly_report', 'Threads 주간 인사이트', True),
     ('daily_news_digest', '일일 뉴스 다이제스트', True),
+    # 2026-09-25: core.process_registry 와 동기화(빠져 있던 잡 추가). tests/test_runner_catalog_sync.py 가 어긋남을 잡는다.
+    ('candidate_ledger_record', '후보 shadow 원장 기록 (RES-01)', True),
+    ('candidate_ledger_outcome_update', '후보 shadow 원장 성과 채움 (RES-01)', True),
+    ('guidance_shadow_record', '가이던스 shadow 기록 (RES-04)', True),
+    ('filing_veto_shadow_record', '공시 변경 veto shadow 기록', True),
+    ('account_snapshot_sync', '실계좌 스냅샷 + 목표 대비 이탈', True),
+    ('alpaca_verification_bootstrap', 'Alpaca paper 검증 자동 실행', True),
+    ('cost_calibration_refresh', '거래비용 보정 갱신', True),
+    ('variant_shadow_record', '전략 변형 shadow 기록', True),
+    ('strategy_research_report', '전략 변형 연구 보고서', True),
+    ('paper_tracking_refresh', 'paper 계좌 추적오차', True),
+    ('hypothesis_shadow_record', '가설 shadow 기록', True),
+    ('agent_batch', 'AI 에이전트 야간 배치 (03:00)', True),
+    ('guru_holdings_sync', '거장 포트폴리오 자동 동기화', True),
+    ('paper_auto_trade', '챔피언 paper 자동 주문 (기본 꺼짐)', False),
 ]
+HYPOTHESIS_ID = re.compile(r'^H-\d{8}-\d{3}$')
+# core.agent_budget.ROLES / MODEL_CHOICES 와 같은 값(이 러너는 core/ 를 import 하지 않는다 — 동기화는 테스트가 잡는다).
+AGENT_ROLES = [('scout', 'Scout 아이디어 수집', 'haiku'), ('writer', 'Writer 가설 작성', 'opus'),
+               ('implementer', 'Implementer 코드 작성', 'sonnet'), ('critic', 'Critic 코드 검증', 'opus'),
+               ('postmortem', 'Post-mortem 실패 교훈', 'sonnet')]
+AGENT_MODEL_CHOICES = ('haiku', 'sonnet', 'opus')
 
 
 def env_file(path):
@@ -159,6 +181,44 @@ class Service:
         lines.append(f'{"✅" if exp_mode == "running" else "⏸"} 2주 전략 검증 실험 (Claude 자동 연구) — {exp_mode}')
         lines.append('(이건 /experiment pause 또는 /experiment resume 으로 켜고 끕니다)')
         return '\n'.join(lines), {'inline_keyboard': rows}
+
+    def agent_models_path(self):
+        return self.quant_root() / 'data' / 'agent_models.json'
+
+    def agent_model(self, role, default):
+        entry = self.read_json_file(self.agent_models_path(), {}).get(role)
+        model = entry.get('model') if isinstance(entry, dict) else entry
+        return model if model in AGENT_MODEL_CHOICES else default
+
+    def models_text_and_markup(self):
+        lines = ['🤖 에이전트 역할별 모델 (탭하면 haiku → sonnet → opus 순환, 다음 03:00 배치부터 적용)', '']
+        rows = []
+        for index, (role, label, default) in enumerate(AGENT_ROLES):
+            model = self.agent_model(role, default)
+            lines.append(f'• {label}: {model}' + (' (기본)' if model == default else ''))
+            rows.append([{'text': f'{label}: {model} → 바꾸기', 'callback_data': f'm:{index}'}])
+        lines.append('')
+        lines.append('비싼 모델일수록 예산(하룻밤 $15·주간 $60)이 빨리 찹니다. 허브 /research 에서도 바꿀 수 있습니다.')
+        return '\n'.join(lines), {'inline_keyboard': rows}
+
+    def handle_model_cycle_callback(self, db, chat, data, callback):
+        try:
+            role, label, default = AGENT_ROLES[int(data.split(':', 1)[1])]
+        except (ValueError, IndexError):
+            return
+        current = self.agent_model(role, default)
+        new = AGENT_MODEL_CHOICES[(AGENT_MODEL_CHOICES.index(current) + 1) % len(AGENT_MODEL_CHOICES)]
+        state = self.read_json_file(self.agent_models_path(), {})
+        state = state if isinstance(state, dict) else {}
+        state[role] = {'model': new, 'updated_at': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
+                       'actor': f'telegram:{self.chat}'}
+        self.write_json_file(self.agent_models_path(), state)
+        text, markup = self.models_text_and_markup()
+        self.queue_outbox(db, chat, f'🔁 {label}: {current} → {new}\n\n' + text, markup)
+        try:
+            self.api('answerCallbackQuery', {'callback_query_id': callback['id'], 'text': f'{label}: {new}'})
+        except Exception:
+            pass
 
     def experiment_status(self):
         _, _, control_path, state_path = self.experiment_paths()
@@ -340,6 +400,8 @@ class Service:
                                      '/experiment claude 지시 또는 /experiment codex 지시: 실험 수정·질문')
                     elif command == '/processes':
                         reply, reply_markup = self.processes_status_text_and_markup()
+                    elif command == '/models':
+                        reply, reply_markup = self.models_text_and_markup()
                     elif command == '/idea' and rest.strip():
                         db.execute('INSERT OR IGNORE INTO ideas(id,chat,text,created_at) VALUES(?,?,?,?)',
                                    (uid, self.chat, rest.strip(), time.time()))
@@ -380,7 +442,8 @@ class Service:
                                  '/experiment stop: 실행 중인 감독에도 종료 신호, 이후 중지\n'
                                  '/experiment claude 지시 또는 /experiment codex 지시: 실험 문서·상태를 '
                                  '먼저 읽도록 강제된 작업으로 큐잉\n'
-                                 '/processes: 야간 스케줄러 잡 16개 on/off 목록 (버튼 탭으로 켜고 끄기)\n'
+                                 '/processes: 야간 스케줄러 잡 on/off 목록 (버튼 탭으로 켜고 끄기)\n'
+                                 '/models: AI 에이전트 역할별 모델 바꾸기 (haiku/sonnet/opus)\n'
                                  '/project quant 다음 줄에 지시: 현재 Quant를 바로 선택\n'
                                  '완료/접수 메시지에 답장(reply)하면 같은 프로젝트로 이어서 지시할 수 있습니다.')
                     elif command.startswith('/') and command != '/project':
@@ -495,6 +558,42 @@ class Service:
         except Exception:
             pass
 
+    def run_hypothesis_admin(self, action, hid):
+        """scripts/hypothesis_admin.py 를 프로젝트 venv 로 실행한다(이 러너는 core/ 를 import 하지 않는 stdlib 전용)."""
+        root = self.quant_root()
+        python = root / '.venv' / 'bin' / 'python'
+        cmd = [str(python if python.exists() else sys.executable), str(root / 'scripts' / 'hypothesis_admin.py'), action, hid]
+        try:
+            proc = subprocess.run(cmd, cwd=root, capture_output=True, text=True, timeout=120)
+        except (OSError, subprocess.SubprocessError) as exc:
+            return False, f'{type(exc).__name__}'
+        return proc.returncode == 0, (proc.stdout + proc.stderr).strip()[-300:]
+
+    def handle_hypothesis_callback(self, db, chat, data, callback):
+        try:
+            _, action, hid = data.split(':', 2)
+        except ValueError:
+            return
+        if action not in ('promote', 'retire') or not HYPOTHESIS_ID.match(hid):
+            return
+        ok, detail = self.run_hypothesis_admin(action, hid)
+        if ok and action == 'promote':
+            text = (f'✅ {hid} paper 편입 승인. 다음 자동 주문(화~토 06:10 KST)부터 research 슬리브에 들어갑니다.\n'
+                    f'자동 주문이 꺼져 있으면 /processes 에서 "챔피언 paper 자동 주문"을 켜야 실제로 제출됩니다.')
+        elif ok:
+            text = f'🗑 {hid} 종료. paper 에 들어가 있었다면 다음 자동 주문에서 정리됩니다.'
+        else:
+            text = f'⚠️ {hid} {action} 실패: {detail}'
+        self.queue_outbox(db, chat, text)
+        try:
+            message = callback.get('message') or {}
+            if ok and message.get('message_id'):
+                self.api('editMessageReplyMarkup', {'chat_id': chat, 'message_id': message['message_id'],
+                                                    'reply_markup': {'inline_keyboard': []}})
+            self.api('answerCallbackQuery', {'callback_query_id': callback['id'], 'text': '처리됨' if ok else '실패'})
+        except Exception:
+            pass
+
     def handle_callback(self, db, callback):
         chat = str(callback.get('message', {}).get('chat', {}).get('id', ''))
         if chat != self.chat:
@@ -504,6 +603,14 @@ class Service:
             # /processes 토글 버튼 -- request_id 기반 대화 상태가 필요 없는 단발성 액션이라
             # 아래 request_id 기반 콜백들과는 별도 경로로 먼저 처리한다.
             self.handle_process_toggle_callback(db, chat, data, callback)
+            return
+        if data.startswith('m:'):
+            # /models 의 역할별 모델 순환 버튼
+            self.handle_model_cycle_callback(db, chat, data, callback)
+            return
+        if data.startswith('h:'):
+            # 가설 승격 후보 알림의 [paper 편입]/[종료] 버튼 (core.hypothesis_shadow.approval_buttons)
+            self.handle_hypothesis_callback(db, chat, data, callback)
             return
         try:
             kind, request_id, value = data.split(':', 2)

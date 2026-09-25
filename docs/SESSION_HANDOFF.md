@@ -19,6 +19,14 @@
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
 
+## 2026-09-25 S6 승인 버튼·paper 편입 + 역할별 모델 UI (구현·단위 테스트, 배포 전)
+
+- **승인 버튼:** 승격 후보 텔레그램 알림에 [✅ paper 편입][🗑 종료]. 러너(`h:` 콜백)가 `scripts/hypothesis_admin.py` 를 venv 로 실행, id 정규식·채팅 id 검증.
+- **paper 편입:** `core/research_sleeve.py` + `paper_execution` research 슬리브 게이트(fail-closed) + `champion_paper_trade.build_plan(research=)` + `paper_auto_trade` 연결. 슬리브 10%/가설당 5%, 기록 5일 초과 시 슬리브 보류. research=None 이면 계획이 도입 전과 비트 동일(테스트로 고정).
+- **역할별 모델:** 허브 `/research` 드롭다운(POST, Origin 검사) + 텔레그램 `/models` 순환 버튼, 공유 파일 `data/agent_models.json`(gitignore·백업). 예산 추정은 모델 단가 비율(haiku 0.25·sonnet 1·opus 2.5)로 조정.
+- **함께 고친 기존 결함:** ① 텔레그램 `/processes` 목록에 레지스트리 잡 14개가 빠져 있었음(`paper_auto_trade` 포함 — 이전에 "/processes 로 켜라"고 안내한 버튼이 실제로 없었다) → 전부 추가 + 동기화 테스트. ② shadow 가 00:48 KST(미 장중)에 미완성 당일 봉을 쓸 수 있었음 → 16:15 ET 이전 당일 봉 제외. ③ 백업이 `.gitignore` 된 허용 파일(`data/process_toggles.json`)을 한 번도 백업하지 않았음 → 무시된 정확한 파일 항목을 직접 포함.
+- 검증: 신규·수정 테스트(research 슬리브 11, 모델 6, 러너 3, 백업 1). 실 텔레그램 버튼·VM 실행 미검증.
+
 ## 2026-09-25 에이전트 결합형 퀀트 시스템 S1~S5 구현 (단위 테스트, 배포 전)
 
 - 사용자 결정: [AGENTIC_QUANT_SYSTEM_DESIGN.md](./AGENTIC_QUANT_SYSTEM_DESIGN.md) 추천안 채택, 에이전트 배치 **03:00 KST**, 토큰 예산 위임 → 하룻밤 $15·주간 $60(API 환산), 역할별 상한은 설계 문서 8절.

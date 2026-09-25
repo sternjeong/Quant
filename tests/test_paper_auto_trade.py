@@ -30,7 +30,8 @@ class FakeBroker:
 def _kw(tmp_path, **over):
     kw = dict(now=NOW, broker=FakeBroker(), core=CORE, satellite=SAT, run_store=object(),
               state_path=tmp_path / "s.json", credentials_fn=lambda: True, recent_pass_fn=lambda: {"overall": "PASS"},
-              trading_day_fn=lambda d: True, tradability_fn=lambda syms: {s: {"verdict": "tradable"} for s in syms})
+              trading_day_fn=lambda d: True, tradability_fn=lambda syms: {s: {"verdict": "tradable"} for s in syms},
+              research_fn=lambda: None)
     kw.update(over)
     return kw
 
