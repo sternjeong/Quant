@@ -23,9 +23,14 @@ scheduler/run_scheduler.py의 data_integrity_check_job()이 그걸 모아 print/
     3. check_news_digest_anomalies(): 최근 24시간 내 생성된 NewsTickerDigest 행 중 summary가
        비어있거나 공백뿐이거나 source_links가 유효 JSON이 아닌 경우를 잡는다.
 
-(옵트인, 기본 꺼짐) 4. core.price_crosscheck의 Alpaca 2차 소스 교차검증 —
+(옵트인) 4. core.price_crosscheck의 Alpaca 2차 소스 교차검증 —
     run_integrity_checks(enable_price_crosscheck=True)일 때만 추가로 실행된다. 키가 없거나
     모듈에 문제가 있어도 위 세 체크의 동작/반환 필드는 변하지 않는다(additive).
+    2026-09-25부터 야간 잡(scheduler/run_scheduler.py data_integrity_check_job)이 Alpaca 키가 있을 때만
+    (price_crosscheck_enabled()) 이를 켠다. 대상은 crosscheck_priority_tickers()(챔피언 코어 top4 ->
+    위성 채택 -> SPY 순, 최대 CROSSCHECK_NIGHTLY_MAX_SYMBOLS개). 텔레그램 알림은 major 불일치·분할 의심만,
+    그리고 처음 보는 (체크, 종목, 날짜)만 보낸다(route_crosscheck_anomalies / mark_crosscheck_alerted,
+    상태 파일 data/cache/price_crosscheck_alert_state.json). 어느 소스가 옳은지는 판정하지 않는다.
 
 run_integrity_checks()가 위 세 체크를 모두 돌려 {"checks": [...], "anomalies": [...], "ok": bool}을
 반환한다 — anomalies는 severity가 "critical" 또는 "warning"인 finding만 모은 부분집합(체크가
@@ -67,6 +72,17 @@ FRED_STALE_DAYS_QUARTERLY = 120
 FRED_STALE_DAYS_DEFAULT = 60  # 위 세 분류에 없는 미지의 fred_*.csv 파일용 기본값
 
 NEWS_DIGEST_LOOKBACK_HOURS = 24
+
+# --- 야간 Alpaca 가격 교차 대조 (2026-09-25) --------------------------------------------------
+# 대조 종목 상한: 챔피언 코어 top4 + 위성 최대 5 + SPY = 10. 종목당 Alpaca 일봉 요청 1회(6시간 캐시)라
+# 야간 요청은 많아야 10회 안팎(재시도 제외)이다.
+CROSSCHECK_NIGHTLY_MAX_SYMBOLS = 10
+# 텔레그램 알림 대상이 되는 교차 대조 finding(나머지 교차 대조 경고는 로그·결과에만 남긴다).
+CROSSCHECK_ALERT_CHECKS = ("price_crosscheck_major_diff", "price_crosscheck_split_suspect")
+CROSSCHECK_ALERT_STATE_PATH = PROJECT_ROOT / "data" / "cache" / "price_crosscheck_alert_state.json"
+# 상태 파일에서 (종목, 날짜) 키를 지우는 기준(그 거래일로부터 달력일). 교차 대조 조회 구간(30일)보다 길어야
+# 지운 날짜가 다시 조회 구간에 들어와 재알림되는 일이 없다.
+CROSSCHECK_ALERT_STATE_RETENTION_DAYS = 60
 
 
 def _finding(check: str, severity: str, detail: str, ticker: Optional[str] = None) -> dict:
@@ -328,6 +344,7 @@ def run_integrity_checks(
     today: Optional[datetime] = None,
     enable_price_crosscheck: bool = False,
     crosscheck_kwargs: Optional[dict] = None,
+    crosscheck_tickers: Optional[list[str]] = None,
 ) -> dict:
     """세 가지 체크(가격/FRED 캐시/뉴스 다이제스트)를 모두 실행한다.
 
@@ -337,6 +354,7 @@ def run_integrity_checks(
     **추가로** 돌린다(2026-09-24 추가, additive). 기본값 False인 이유: Alpaca 키가 없는 환경
     (CI, 로컬)에서 기존 동작이 조금도 달라지면 안 되고, 네트워크 호출을 야간 잡에 기본으로
     끼워 넣지 않기 위해서다. 키가 없으면 켜도 info finding 하나만 남고 anomalies는 늘지 않는다.
+    crosscheck_tickers를 주면 교차 대조 대상만 따로 정한다(없으면 price_tickers, 그것도 없으면 기본 목록).
 
     Returns: {"checks": [...모든 finding], "anomalies": [...severity가 critical/warning인 finding만],
         "ok": bool(anomalies가 비어있으면 True)}
@@ -347,11 +365,128 @@ def run_integrity_checks(
     checks.extend(check_news_digest_anomalies(rows=news_rows, today=today))
     if enable_price_crosscheck:
         checks.extend(run_price_crosscheck_checks(
-            tickers=price_tickers, today=today, **(crosscheck_kwargs or {})
+            tickers=crosscheck_tickers if crosscheck_tickers is not None else price_tickers,
+            today=today, **(crosscheck_kwargs or {})
         ))
 
     anomalies = [c for c in checks if c["severity"] in ("critical", "warning")]
     return {"checks": checks, "anomalies": anomalies, "ok": len(anomalies) == 0}
+
+
+def price_crosscheck_enabled(env: Optional[dict] = None) -> bool:
+    """야간 잡이 교차 대조를 켤지: Alpaca 키 두 개가 환경에 있을 때만 True(값은 보지 않는다).
+    모듈을 불러오지 못하면 False — 그 경우 야간 잡은 예전과 똑같이 동작한다."""
+    try:
+        from core.price_crosscheck import credentials_available
+    except Exception:  # noqa: BLE001
+        return False
+    try:
+        return bool(credentials_available(env))
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def crosscheck_priority_tickers(
+    max_symbols: int = CROSSCHECK_NIGHTLY_MAX_SYMBOLS,
+    holdings_fn: Optional[Callable[[], Optional[dict]]] = None,
+) -> list[str]:
+    """교차 대조 대상: 챔피언 코어 top4 -> 위성 채택 -> SPY(시장필터) 순으로 최대 max_symbols개.
+    보유 캐시가 없거나 읽기에 실패하면 SPY + CORE_UNIVERSE 앞쪽으로 채운다(전체 유니버스 스캔 금지)."""
+    try:
+        from core.champion_strategy import CORE_UNIVERSE, MARKET_FILTER_TICKER, get_current_holdings
+    except Exception:  # noqa: BLE001
+        return []
+    holdings = None
+    try:
+        holdings = (holdings_fn or get_current_holdings)()
+    except Exception:  # noqa: BLE001
+        holdings = None
+    ordered: list[str] = []
+    if holdings:
+        ordered.extend(holdings.get("core_top4") or [])
+        ordered.extend(holdings.get("satellite_selected") or [])
+        ordered.append(MARKET_FILTER_TICKER)
+    else:
+        ordered.append(MARKET_FILTER_TICKER)
+        ordered.extend(CORE_UNIVERSE)
+    out: list[str] = []
+    for t in ordered:
+        tick = str(t or "").strip().upper()
+        if tick and tick not in out:
+            out.append(tick)
+    return out[:max(0, int(max_symbols))]
+
+
+def _crosscheck_alert_keys(finding: dict) -> list[str]:
+    dates = finding.get("dates") or []
+    if not dates:
+        # 날짜가 없으면 detail 전체를 키로 쓴다(같은 문구면 같은 불일치로 본다).
+        return [f"{finding.get('check')}|{finding.get('ticker')}|{finding.get('detail')}"]
+    return [f"{finding.get('check')}|{finding.get('ticker')}|{d}" for d in dates]
+
+
+def _load_alert_state(path: Path) -> dict:
+    try:
+        data = json.loads(Path(path).read_text(encoding="utf-8"))
+        return data if isinstance(data, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def route_crosscheck_anomalies(
+    anomalies: list[dict],
+    *,
+    state_path: Optional[Path] = None,
+) -> dict:
+    """야간 잡의 알림 대상을 가른다.
+
+    Returns: {"base": 교차 대조 이외 anomalies(기존 알림 규칙 그대로),
+              "crosscheck_new": 처음 보는 (체크, 종목, 날짜)가 하나라도 있는 major·분할 의심 finding,
+              "crosscheck_suppressed": 이미 알린 major·분할 의심 finding,
+              "crosscheck_log_only": 알림 대상이 아닌 교차 대조 경고(조회 불가·yfinance 누락 등)}
+    교차 대조 finding 이 없으면 상태 파일을 읽지도 않는다.
+    """
+    base = [a for a in anomalies if not str(a.get("check", "")).startswith("price_crosscheck")]
+    cross = [a for a in anomalies if str(a.get("check", "")).startswith("price_crosscheck")]
+    alertable = [a for a in cross if a.get("check") in CROSSCHECK_ALERT_CHECKS]
+    log_only = [a for a in cross if a.get("check") not in CROSSCHECK_ALERT_CHECKS]
+    new: list[dict] = []
+    suppressed: list[dict] = []
+    if alertable:
+        seen = _load_alert_state(state_path or CROSSCHECK_ALERT_STATE_PATH)
+        for a in alertable:
+            (new if any(k not in seen for k in _crosscheck_alert_keys(a)) else suppressed).append(a)
+    return {"base": base, "crosscheck_new": new, "crosscheck_suppressed": suppressed, "crosscheck_log_only": log_only}
+
+
+def mark_crosscheck_alerted(
+    findings: list[dict],
+    *,
+    state_path: Optional[Path] = None,
+    today: Optional[datetime] = None,
+) -> None:
+    """알림을 보낸 finding 의 (체크, 종목, 날짜) 키를 상태 파일에 적는다. 오래된 키는 정리한다.
+    쓰기 실패는 조용히 넘긴다(다음 날 한 번 더 알릴 뿐, 점검 자체를 막지 않는다)."""
+    path = Path(state_path or CROSSCHECK_ALERT_STATE_PATH)
+    now = today or datetime.now()
+    state = _load_alert_state(path)
+    for f in findings:
+        for k in _crosscheck_alert_keys(f):
+            state.setdefault(k, now.strftime("%Y-%m-%d"))
+    cutoff = (now - timedelta(days=CROSSCHECK_ALERT_STATE_RETENTION_DAYS)).strftime("%Y-%m-%d")
+    kept = {}
+    for k, alerted_on in state.items():
+        key_date = k.rsplit("|", 1)[-1]
+        ref = key_date if len(key_date) == 10 and key_date[4] == "-" else str(alerted_on)
+        if ref >= cutoff:
+            kept[k] = alerted_on
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_suffix(".json.tmp")
+        tmp.write_text(json.dumps(kept, ensure_ascii=False, sort_keys=True), encoding="utf-8")
+        tmp.replace(path)
+    except OSError:
+        pass
 
 
 def format_anomaly_telegram_message(anomalies: list[dict]) -> str:
