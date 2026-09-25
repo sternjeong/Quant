@@ -146,6 +146,7 @@ Streamlit 앱과 완전히 별도의 프로세스로 실행된다 (브라우저�
 """
 
 import json
+import os
 import sys
 import time as time_module  # `time`(아래)은 datetime.time 클래스라 모듈은 별칭으로 가져온다.
 from datetime import date, datetime, time, timedelta
@@ -1207,6 +1208,14 @@ def main() -> None:
     print("알리며, 00:25 에는 그날 밤 결과를 모은 오늘의 브리핑 HTML을 텔레그램으로 전송합니다.")
     print("매일 한국시간 07:30에는 무료 뉴스 API 기반 티커별 HTML/Telegram 리포트를 보냅니다.")
     print("Ctrl+C 로 종료할 수 있습니다.")
+
+    # 배포(=스케줄러 재시작) 직후 Alpaca 검증을 한 번 돌려, 00:40 을 기다리지 않고 관제 센터에서 결과를 보게 한다.
+    # 잡 자체가 최근 7일 PASS 가 있으면 즉시 건너뛰고 같은 실패 알림은 3일간 반복하지 않으므로 재시작마다 반복돼도 안전하다.
+    # 스케줄러 기동을 막지 않도록 백그라운드 스레드로 돌린다(테스트 중에는 돌리지 않음).
+    if not os.getenv("PYTEST_CURRENT_TEST"):
+        import threading
+
+        threading.Thread(target=alpaca_verification_bootstrap_job, name="startup-alpaca-verify", daemon=True).start()
 
     try:
         scheduler.start()

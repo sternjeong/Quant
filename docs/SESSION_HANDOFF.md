@@ -26,7 +26,9 @@
 - 신규: `core/alpaca_market_meta.py`, `core/alpaca_news.py`, `core/paper_tracking.py`(잡 00:46), `core/news_event_study.py`+`scripts/news_event_study.py`, `core/paper_auto_trade.py`(잡 화~토 06:10, **default_enabled=False**), `scripts/champion_paper_trade.py` 에 거래가능 경고, `scripts/verify_alpaca_meta_news.py`.
 - 검증: 신규 테스트 25건 포함 전체 pytest **1761 passed**. 실 API·VM 실행·텔레그램 발송은 미검증.
 - 브랜치 `alpaca-roadmap-2026-09`, 미푸시(main 푸시는 VM 자동 배포 → 사용자 승인 필요).
-- 다음: 푸시 승인 → VM 00:40 검증 결과 확인(스키마 불일치 시 `_normalize_*` 만 수정) → PASS 후 자동 주문 켤지 사용자 결정.
+- 관제 허브에 `Alpaca paper 검증` 카드와 `/alpaca` 화면 추가(`hub/alpaca_status.py`, 결과 파일만 읽음). 스케줄러 기동 시 검증 잡을 백그라운드로 1회 실행(최근 PASS 있으면 건너뜀) → 배포 직후 결과가 화면에 뜬다.
+- 2026-09-25 사용자 승인으로 main 병합·푸시(VM 자동 배포). 배포 성공·실제 검증 결과는 이 세션에서 확인 불가.
+- 다음: VM 검증 결과 확인(스키마 불일치 시 `_normalize_*` 만 수정) → PASS 후 자동 주문 켤지 사용자 결정.
 
 ## 2026-09-24 관제 센터 로그인 UI (구현·단위 확인, 배포 전)
 
