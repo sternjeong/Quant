@@ -512,15 +512,42 @@ def data_integrity_check_job() -> None:
     if not is_enabled("data_integrity_check"):
         print(f"[{datetime.now()}] data_integrity_check_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
         return
-    from core.data_integrity import format_anomaly_telegram_message, run_integrity_checks
+    from core.data_integrity import (
+        CROSSCHECK_NIGHTLY_MAX_SYMBOLS,
+        crosscheck_priority_tickers,
+        format_anomaly_telegram_message,
+        mark_crosscheck_alerted,
+        price_crosscheck_enabled,
+        route_crosscheck_anomalies,
+        run_integrity_checks,
+    )
 
     print(f"[{datetime.now()}] data_integrity_check_job 시작")
-    result = run_integrity_checks()
+    # 2026-09-25: Alpaca 키가 있을 때만 가격 교차 대조(core.price_crosscheck)를 켠다. 키가 없으면(Codespace)
+    # 예전과 똑같이 인자 없이 호출한다. 대상은 챔피언 코어·위성 보유+SPY 중 최대 N개.
+    if price_crosscheck_enabled():
+        cross_tickers = crosscheck_priority_tickers()
+        print(f"  - Alpaca 가격 교차 대조 켬: {len(cross_tickers)}개 종목(상한 {CROSSCHECK_NIGHTLY_MAX_SYMBOLS})")
+        result = run_integrity_checks(
+            enable_price_crosscheck=True, crosscheck_tickers=cross_tickers,
+            crosscheck_kwargs={"max_symbols": CROSSCHECK_NIGHTLY_MAX_SYMBOLS})
+    else:
+        result = run_integrity_checks()
     print(f"  - 체크 {len(result['checks'])}건, 이상 {len(result['anomalies'])}건")
-    if result["anomalies"]:
-        for a in result["anomalies"]:
-            print(f"    · [{a['severity']}] {a['check']}: {a['detail']}")
-        send_message(format_anomaly_telegram_message(result["anomalies"]))
+    for a in result["anomalies"]:
+        print(f"    · [{a['severity']}] {a['check']}: {a['detail']}")
+    # 교차 대조 finding 은 major 불일치·분할 의심만, 그것도 처음 보는 (종목, 날짜)만 텔레그램으로 보낸다.
+    # 나머지 교차 대조 경고(조회 불가 등)는 로그에만 남긴다. 기존 세 체크의 알림 규칙은 그대로다.
+    routed = route_crosscheck_anomalies(result["anomalies"])
+    if routed["crosscheck_suppressed"]:
+        print(f"  - 교차 대조: 이미 알린 불일치 {len(routed['crosscheck_suppressed'])}건은 다시 알리지 않음")
+    if routed["crosscheck_log_only"]:
+        print(f"  - 교차 대조: 알림 대상이 아닌 경고 {len(routed['crosscheck_log_only'])}건(로그만)")
+    to_send = routed["base"] + routed["crosscheck_new"]
+    if to_send:
+        sent = send_message(format_anomaly_telegram_message(to_send))
+        if sent and routed["crosscheck_new"]:
+            mark_crosscheck_alerted(routed["crosscheck_new"])
     else:
         print("  - 이상 없음 (알림 생략)")
     print(f"[{datetime.now()}] data_integrity_check_job 종료")
@@ -637,12 +664,27 @@ def guidance_shadow_record_job() -> None:
     if not is_enabled("guidance_shadow_record"):
         print(f"[{datetime.now()}] guidance_shadow_record_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
         return
-    from core.guidance_shadow import record_guidance_shadow
+    from core.guidance_shadow import (
+        NIGHTLY_FETCH_KWARGS,
+        NIGHTLY_MAX_TICKERS,
+        format_event_fetch_summary,
+        record_guidance_shadow,
+    )
 
+    # 2026-09-25: 실제 SEC 조회를 켠다(fetch_events=True). 상한 — 티커 NIGHTLY_MAX_TICKERS 개, 소요 시간·SEC
+    # 요청 수는 NIGHTLY_FETCH_KWARGS(티커 사이 소프트 상한). 하루 캐시 재사용·403 즉시 중단·티커별 실패 격리는
+    # core.guidance_event_provider 가 담당하며, 조회가 실패해도 기록은 no_release 로 계속된다(잡이 죽지 않음).
+    # User-Agent 는 SEC_EDGAR_USER_AGENT 환경변수(값은 출력하지 않는다).
     print(f"[{datetime.now()}] guidance_shadow_record_job 시작")
     try:
-        result = record_guidance_shadow()
+        result = record_guidance_shadow(
+            fetch_events=True, max_tickers=NIGHTLY_MAX_TICKERS, fetch_kwargs=dict(NIGHTLY_FETCH_KWARGS))
         print(f"  - as_of={result.get('as_of')} 후보 {result.get('n_pool')}건, 삽입={result.get('inserted')}")
+        summary = result.get("event_fetch_summary")
+        print(f"  - SEC 가이던스 조회: {format_event_fetch_summary(summary)}")
+        if summary and summary.get("n_observations_unknown"):
+            print(f"    · unknown 사유: {summary.get('unknown_reason_counts')} "
+                  f"(알려진 한계: {summary.get('known_limitation')})")
         if not result.get("ok"):
             report_job_failure("guidance_shadow_record", str(result.get("error") or "가이던스 shadow 기록 실패"))
     except Exception as exc:  # noqa: BLE001 - 다음 날 스케줄을 막지 않도록 기록만 남긴다.

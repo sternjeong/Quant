@@ -4,6 +4,12 @@
 규칙 v0)을 core.filing_changes.filing_veto(정책 변경 없이 그대로) 와 core.candidate_ledger(RES-01 원장)에
 연결하는 얇은 어댑터다. 새 통계 규칙이나 새 veto 규칙을 만들지 않는다 — 두 기존 모듈을 그대로 호출할 뿐이다.
 
+RES-02 연결(2026-09-25): 각 후보 행에 대표 공시(쓸 수 있는 이벤트 중 가장 최근, 없으면 받은 이벤트 중 가장
+최근)의 event_id(core.info_dedup.compute_event_id — sec_edgar/accession/ticker/form)·content_hash(원문 sha256,
+core.filing_changes 가 계산한 current_doc_sha256)·info_doc_id(accession)를 populate_info_fields 로 채우고,
+평가한 모든 공시의 event_id 는 scores["filing_event_ids"] 에 남긴다. 같은 10-K/10-Q 가 여러 날의 후보 행에
+반복 등장해도 같은 event_id 라서 독립 근거로 중복 집계되지 않게 할 수 있다. veto 판정 자체는 바뀌지 않는다.
+
 이 모듈이 하는 일 (그리고 하지 않는 일):
     1. record_filing_veto_shadow(): core.champion_strategy.compute_satellite_recommendation_point_in_time
        (읽기 전용 호출, 수정하지 않는다)이 오늘 채택한 위성 후보 각각에 core.filing_changes.filing_veto 를
@@ -78,6 +84,7 @@ from core.candidate_ledger import (
     record_candidate_set,
 )
 from core.filing_changes import FilingVetoPolicy, filing_veto
+from core.info_dedup import compute_event_id, populate_info_fields
 
 SHADOW_SOURCE = "champion_satellite_filing_veto_shadow"
 SHADOW_STRATEGY_VERSION = "champion_satellite/filing_veto_shadow_v1"
@@ -128,6 +135,36 @@ def _extract_selected_tickers(satellite_result: dict) -> list:
             seen.add(tu)
             out.append(tu)
     return out
+
+
+INFO_EVENT_SOURCE = "sec_edgar"
+
+
+def _event_info_id(ticker: str, event: Any) -> Optional[str]:
+    accession = getattr(event, "accession", None)
+    if not accession:
+        return None
+    return compute_event_id(INFO_EVENT_SOURCE, accession, getattr(event, "ticker", None) or ticker,
+                            getattr(event, "form", None) or "")
+
+
+def filing_info_kwargs(record_kwargs: dict, ticker: str, events: list, usable_events: list) -> dict:
+    """대표 공시의 info_* 필드를 CandidateRecord kwargs 에 채운다(순수 함수). 대표 = 쓸 수 있는 이벤트 중
+    available_at 이 가장 늦은 것, 없으면 받은 이벤트 중 filing_date 가 가장 늦은 것. 이벤트가 없으면 그대로."""
+    pool = [e for e in usable_events if getattr(e, "accession", None)]
+    key = lambda e: (getattr(e, "available_at", None) or "", getattr(e, "filing_date", None) or "")  # noqa: E731
+    if not pool:
+        pool = [e for e in events if getattr(e, "accession", None)]
+        key = lambda e: (getattr(e, "filing_date", None) or "", getattr(e, "available_at", None) or "")  # noqa: E731
+    if not pool:
+        return dict(record_kwargs)
+    primary = max(pool, key=key)
+    return populate_info_fields(
+        record_kwargs,
+        event_id=_event_info_id(ticker, primary),
+        content_hash=getattr(primary, "current_doc_sha256", None) or None,
+        info_doc_id=primary.accession,
+    )
 
 
 def _default_event_provider(ticker: str, decision_cutoff: Any) -> list:
@@ -239,10 +276,12 @@ def record_filing_veto_shadow(
             "min_event_age_calendar_days": min_age,
             "unusable_events": veto.unusable_events,
             "original_decision": "selected",  # 이 후보는 이미 원전략(위성)이 채택한 종목이다
+            # RES-02: 평가한 모든 공시의 결정적 event_id(같은 공시는 날짜·후보와 무관하게 같은 값).
+            "filing_event_ids": sorted({i for i in (_event_info_id(t, e) for e in events) if i}),
         }
-        records.append(CandidateRecord(
-            ticker=t, decision=decision, decision_reason=reason, scores=scores, decision_cutoff=as_of_date,
-        ))
+        record_kwargs = dict(ticker=t, decision=decision, decision_reason=reason, scores=scores,
+                             decision_cutoff=as_of_date)
+        records.append(CandidateRecord(**filing_info_kwargs(record_kwargs, t, events, usable_events)))
         per_ticker[t] = {"veto_decision": veto.decision, "exposed": exposed, "reason_codes": list(veto.reason_codes)}
 
     cset = FrozenCandidateSet(

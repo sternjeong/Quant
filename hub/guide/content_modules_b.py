@@ -112,9 +112,9 @@ MODULES: tuple[ModuleGuide, ...] = (
     ModuleGuide(
         module="core/price_crosscheck.py", name="Alpaca 가격 교차검증", group="운영·안전", status="관측 전용",
         what="같은 종목·날짜의 yfinance 가격과 Alpaca 일봉 가격을 비교해 종가 불일치·누락된 거래일·분할 미반영 같은 의심 지점을 표시합니다. 조회 실패나 키 없음은 통과가 아니라 '확인 불가'로 드러냅니다.",
-        how_to_use="자동으로 돌지 않습니다(데이터 무결성 점검의 옵트인 기능이며 스케줄러가 켜는 곳은 확인되지 않았습니다). VM 에서 scripts/verify_price_crosscheck.py 를 사람이 돌려 결과를 읽습니다.",
-        where_to_see="화면 없음(스크립트 출력)",
-        cautions="판정이 아니라 플래그입니다. Alpaca 무료 시세(IEX)는 거래소 하나 기준이라 차이가 나도 yfinance 가 틀렸다는 뜻이 아닙니다. 전략·백테스트 가격은 여전히 yfinance 단독입니다.",
+        how_to_use="2026-09-25부터 매일 00:22(KST) 데이터 무결성 점검이 VM 에 Alpaca 키가 있을 때 자동으로 켭니다. 대상은 챔피언 코어·위성 보유 종목과 SPY 중 최대 10개(종목당 Alpaca 요청 약 1회, 6시간 캐시)입니다. 종가 큰 불일치·분할 의심은 텔레그램 '데이터 무결성 이상 감지'로 오고, 같은 종목·같은 날짜는 다시 알리지 않습니다. 더 자세히 보려면 VM 에서 scripts/verify_price_crosscheck.py 를 돌립니다.",
+        where_to_see="텔레그램(새 major 불일치·분할 의심일 때만), VM 스케줄러 로그, 스크립트 출력",
+        cautions="판정이 아니라 플래그입니다. Alpaca 무료 시세(IEX)는 거래소 하나 기준이라 차이가 나도 yfinance 가 틀렸다는 뜻이 아닙니다. 전략·백테스트 가격은 여전히 yfinance 단독입니다. 조회 불가·yfinance 누락 경고는 알림 없이 로그에만 남습니다. Alpaca 키가 없으면(Codespace) 돌지 않습니다.",
         sources=("scripts/verify_price_crosscheck.py", "core/data_integrity.py"), verified=_V),
     ModuleGuide(
         module="core/process_registry.py", name="자동 잡 켜기/끄기 목록", group="운영·안전", status="운영중",

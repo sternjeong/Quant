@@ -45,11 +45,12 @@ MODULES: tuple[ModuleGuide, ...] = (
         what=
             '후보 원장의 사후 성과를 채울 때 쓸 가격을 Alpaca 일봉으로 받되, 기존 yfinance 데이터와 대조해 깨끗할 때만 Alpaca 값을 쓰고 아니면 기존 데이터로 되돌리는 어댑터입니다.',
         how_to_use=
-            '직접 쓸 일은 없습니다. 아직 자동으로 연결되어 있지 않아 사용자에게 보이는 결과도 없습니다.',
+            '직접 쓸 일은 없습니다. 의도적으로 연결하지 않은 상태라 사용자에게 보이는 결과도 없습니다.',
         where_to_see=
             '화면 없음',
         cautions=
-            '현재 스케줄러 잡·화면·스크립트 어디서도 호출하지 않고 테스트만 있습니다(후보 원장 성과 채움 잡은 기본 가격 공급자를 씁니다). 연결 전 준비 단계의 독립 모듈입니다.',
+            "의도적으로 미연결입니다(2026-09-25 결정). 후보 원장의 진입가(시가)가 실행할 때마다 yfinance 또는 Alpaca(IEX) 중 어느 쪽에서 오느냐에 따라 달라지면 같은 원장 안에서 가격 기준이 섞이는데, 이 어댑터는 종가만 대조하고 시가 차이는 검사하지 않습니다. 그래서 먼저 데이터 무결성 점검의 가격 교차 대조(매일 00:22)로 두 소스의 차이를 관측하고, 그 기록을 본 뒤에 연결 여부를 정합니다. 지금 후보 원장 성과 채움 잡은 기본(yfinance) 가격 공급자를 씁니다.",
+        sources=('core/price_crosscheck.py', 'core/data_integrity.py'),
         verified=V,
     ),
     ModuleGuide(
@@ -220,12 +221,12 @@ MODULES: tuple[ModuleGuide, ...] = (
         what=
             "가격·FRED 거시 캐시·뉴스 캐시에 0원 종가, 하루 이상 낡은 값 같은 '에러 없이 조용히 이상한 값' 이 있는지 점검합니다. 읽기만 하고 데이터를 고치지는 않습니다.",
         how_to_use=
-            '매일 00:22(KST)에 자동으로 돌고, 이상이 발견될 때만 텔레그램 경고가 옵니다(이상 없으면 조용). 경고가 오면 어떤 데이터인지 읽고 해당 화면 값을 신뢰하지 않은 채 확인하세요.',
+            '매일 00:22(KST)에 자동으로 돌고, 이상이 발견될 때만 텔레그램 경고가 옵니다(이상 없으면 조용). 경고가 오면 어떤 데이터인지 읽고 해당 화면 값을 신뢰하지 않은 채 확인하세요. 2026-09-25부터 VM 에 Alpaca 키가 있으면 챔피언 코어·위성 보유 종목과 SPY(최대 10개)의 가격을 Alpaca 일봉과도 대조합니다.',
         where_to_see=
-            '텔레그램(이상 발견 시), 오늘의 브리핑',
+            '텔레그램(이상 발견 시), 오늘의 브리핑, VM 스케줄러 로그(교차 대조 전체 결과)',
         cautions=
-            '알림이 없다는 것이 데이터가 완벽하다는 뜻은 아닙니다. 정해진 몇 가지 검사만 합니다.',
-        sources=('scheduler/run_scheduler.py',),
+            "알림이 없다는 것이 데이터가 완벽하다는 뜻은 아닙니다. 정해진 몇 가지 검사만 합니다. 교차 대조는 종가 큰 불일치와 분할 의심만 텔레그램으로 알리고, 같은 종목·같은 날짜의 불일치는 한 번만 알립니다(조회 불가 같은 나머지는 로그에만). 어느 소스가 옳은지는 판정하지 않습니다. Alpaca 키가 없으면(Codespace) 교차 대조 없이 예전 그대로 동작합니다. 오늘의 브리핑의 데이터 이상 섹션에는 교차 대조가 들어가지 않습니다.",
+        sources=('scheduler/run_scheduler.py', 'core/price_crosscheck.py'),
         verified=V,
     ),
     ModuleGuide(
@@ -240,8 +241,8 @@ MODULES: tuple[ModuleGuide, ...] = (
         where_to_see=
             '화면 없음',
         cautions=
-            '연구용이며 주문·화면과 연결돼 있지 않습니다. 추출 정확도나 성과를 주장하지 않습니다. 가이던스 shadow 잡은 기본 설정에서 SEC 조회를 켜지 않기 때문에 이 모듈이 매일 밤 실제로 도는 것은 아닙니다.',
-        sources=('docs/EARNINGS_GUIDANCE_EXPERIMENT_SPEC.md', 'scripts/earnings_guidance_extraction_sample.py'),
+            "연구용이며 주문·화면과 연결돼 있지 않습니다. 추출 정확도나 성과를 주장하지 않습니다. 2026-09-25부터 가이던스 shadow 야간 잡(00:30 KST)이 SEC 조회를 켜므로 이 모듈이 매일 밤 위성 후보 종목(최대 20개)에 대해 실제로 돕니다. 분기 가이던스는 비교할 직전 같은 기간 가이던스가 없어 대부분 '판단 불가(unknown)'로 남는 것이 알려진 한계입니다.",
+        sources=('docs/EARNINGS_GUIDANCE_EXPERIMENT_SPEC.md', 'scripts/earnings_guidance_extraction_sample.py', 'core/guidance_event_provider.py'),
         verified=V,
     ),
     ModuleGuide(
@@ -380,11 +381,11 @@ MODULES: tuple[ModuleGuide, ...] = (
         what=
             '가이던스 shadow 실험용으로 티커에서 SEC 회사코드, 8-K 실적 발표, 가이던스 추출까지 이어서 실제 SEC 자료로 관측 목록을 만들어 주는 공급기입니다. 파싱 규칙은 새로 만들지 않고 기존 모듈을 호출합니다.',
         how_to_use=
-            '직접 쓸 일은 없습니다. 가이던스 shadow 기록에서 옵트인(fetch_events=True)할 때만 호출됩니다.',
+            '직접 쓸 일은 없습니다. 매일 밤 00:30(KST) 가이던스 shadow 잡이 호출합니다(fetch_events=True). 결과 요약(조회 종목 수, 실패 수, 관측 수, 방향 판정 수와 판단 불가 수, SEC 요청 수/상한)은 VM 의 스케줄러 로그에 한 줄로 남습니다.',
         where_to_see=
             '화면 없음',
         cautions=
-            "현재 야간 잡은 옵트인 없이 기록 함수를 호출하므로 이 공급기는 매일 밤 실행되지 않습니다. 그래서 야간 가이던스 기록의 후보는 대부분 '발표 없음'으로 남습니다. 성과 미검증입니다.",
+            "안전장치: 한 번에 최대 20종목, SEC 요청 약 300회·5분 상한(종목과 종목 사이에서 확인), 같은 날 다시 돌면 하루 캐시 재사용, SEC 가 403 으로 막으면 즉시 멈추고 잡은 실패로 죽지 않습니다. User-Agent 는 VM .env 의 SEC_EDGAR_USER_AGENT 이름으로 읽으며 값은 기록하지 않습니다. 이 이름이 없으면 SEC 가 막을 수 있습니다. 분기 가이던스는 대부분 '판단 불가(unknown)'로 나오며, 요약에 그 수와 사유가 따로 나옵니다. 성과 미검증입니다.",
         sources=('core/guidance_shadow.py', 'scheduler/run_scheduler.py'),
         verified=V,
     ),
@@ -400,7 +401,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         where_to_see=
             '화면 없음(DB)',
         cautions=
-            "관측 전용이며 원전략과 실제 주문에 영향이 없고 성과는 미검증입니다. 현재 야간 잡은 SEC 조회를 켜지 않은 기본값으로 호출해, 모든 후보가 '발표 없음'으로 기록될 수 있습니다.",
+            "관측 전용이며 원전략과 실제 주문에 영향이 없고 성과는 미검증입니다. 2026-09-25부터 야간 잡이 실제 SEC 조회를 켜서 호출합니다. 다만 최근 20거래일 안에 실적 발표가 없는 후보는 여전히 '발표 없음'이고, 발표가 있어도 분기 가이던스는 대부분 '판단 불가'로 기록됩니다. SEC 가 막히면 그날은 모든 후보가 '발표 없음'으로 기록됩니다.",
         sources=('scheduler/run_scheduler.py', 'docs/EARNINGS_GUIDANCE_EXPERIMENT_SPEC.md'),
         verified=V,
     ),
@@ -460,12 +461,12 @@ MODULES: tuple[ModuleGuide, ...] = (
         what=
             '같은 내용의 기사·공시를 여러 개의 독립 근거로 세지 않도록 원문 해시로 중복을 제거하고, 정보 수집 비용과 추출 품질을 집계하는 유틸입니다.',
         how_to_use=
-            '직접 쓸 일은 없습니다. 정보 기반 결정을 연구하는 단계의 준비물입니다.',
+            '직접 쓸 일은 없습니다. 2026-09-25부터 가이던스 shadow(00:30)와 공시 veto shadow(00:32) 야간 기록이 이 도구로 후보 행마다 근거 공시의 사건 ID(event_id, 공시 접수번호 기준)와 원문 해시를 채웁니다. 같은 8-K·10-K 가 여러 날·여러 후보 행에 반복돼도 같은 ID 라서 나중에 분석할 때 한 건의 근거로 묶을 수 있습니다.',
         where_to_see=
-            '화면 없음',
+            '화면 없음(후보 원장 DB 의 event_id·info_content_hash 열)',
         cautions=
-            '아직 어떤 화면·잡·스크립트도 호출하지 않는 독립 유틸리티이며 테스트만 있습니다(정리 목록에서도 보존 항목으로 표시). 결과를 보는 곳도 없습니다.',
-        sources=('docs/INFORMATION_DECISION_ENGINE_RESEARCH.md',),
+            '지금은 ID 와 해시를 기록만 합니다. 후보 원장의 판정 계산이 이 ID 로 중복을 자동으로 걸러 주지는 않습니다(그 계산 모듈은 바꾸지 않았음). 근거 공시가 없는 후보 행은 비워 두고 ID 를 지어내지 않습니다. 비용 집계·추출 품질 집계 함수는 아직 호출하는 곳이 없습니다.',
+        sources=('docs/INFORMATION_DECISION_ENGINE_RESEARCH.md', 'core/guidance_shadow.py', 'core/filing_veto_shadow.py'),
         verified=V,
     ),
     ModuleGuide(
