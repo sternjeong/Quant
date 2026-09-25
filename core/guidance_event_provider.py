@@ -6,7 +6,8 @@ core/guidance_shadow.py 의 record_guidance_shadow(events_by_ticker=...) 에 넣
     티커 -> core.filing_changes.EdgarClient.resolve_cik (SEC company_tickers.json)
          -> core.earnings_events.list_earnings_filings (8-K Item 2.02 목록, acceptance 시각)
          -> core.earnings_events.extract_from_filing (EX-99.1 보도자료 -> 규칙 기반 가이던스 추출)
-         -> core.earnings_events.compute_guidance_changes (직전 가이던스와 비교 -> raised/lowered/...)
+         -> core.earnings_events.compute_guidance_changes (직전 가이던스와 비교 -> raised/lowered/...;
+            방향은 연간 가이던스의 같은 회계연도 재발표끼리만, 분기는 unknown(quarterly_not_comparable))
          -> core.guidance_shadow.GuidanceObservation
 
 안전장치(이 모듈의 존재 이유):
@@ -44,6 +45,7 @@ import time
 from typing import Any, Callable, Optional, Sequence
 
 from core.earnings_events import (
+    COMPARISON_POLICY,
     MAX_REQUESTS_PER_SECOND,
     EarningsFiling,
     GuidanceChange,
@@ -64,8 +66,12 @@ DEFAULT_MAX_TICKERS = 20
 # 관측 창: guidance_shadow 의 주 룩백(20거래일 ~= 28일)에 여유를 둔 달력일. 창 안의 발표만 관측이 된다.
 DEFAULT_WINDOW_DAYS = 45
 # 직전 가이던스를 찾기 위한 과거 조회 범위(4분기 + 여유). 비교 대상이 없으면 change 가 unknown/initiated 가 된다.
+# 2026-09-25 점검(스펙 3·6절): 방향 판정은 연간 가이던스의 같은 회계연도 재발표끼리만 한다. 같은 FY 는 보통
+# 직전 분기 발표(약 90일 전)에서 이미 한 번 나오고, 한 FY 의 첫 발표~마지막 재발표 간격도 약 9~10개월이라
+# 400일·6건이면 충분하다(관측 창 45일 + 직전 발표 1~3건). 그래서 기본값을 바꾸지 않았다.
 DEFAULT_HISTORY_DAYS = 400
-# 티커당 내려받는 8-K Item 2.02 수 상한(1건당 요청 2회: 인덱스 + 보도자료).
+# 티커당 내려받는 8-K Item 2.02 수 상한(1건당 요청 2회: 인덱스 + 보도자료). 티커당 최대 요청 = 1(submissions)
+# + 2 x 6 = 13, 20티커면 260회로 야간 상한 300회 안이다(보도자료·인덱스는 영구 캐시라 평시엔 훨씬 적다).
 DEFAULT_MAX_FILINGS_PER_TICKER = 6
 
 STATUS_OK = "ok"
@@ -78,7 +84,8 @@ STATUS_SKIPPED_BUDGET = "skipped_budget"
 # 다시 조회해도 오늘 결과가 달라지지 않는 사유만 캐시한다(네트워크 오류·차단·속도제한은 캐시하지 않는다).
 _CACHEABLE_FAIL_REASONS = ("ticker_not_found", "no_earnings_filings")
 
-_CACHE_FORMAT = 1
+# 2: 비교 정책 annual_same_fy_v1 과 판정 근거 필드 추가(옛 정책으로 만든 같은 날 캐시를 재사용하지 않는다).
+_CACHE_FORMAT = 2
 
 
 # ---------------------------------------------------------------------------
@@ -167,6 +174,10 @@ def _observation_to_record(obs: GuidanceObservation) -> dict:
             "mid_change": _num(chg.mid_change), "mid_change_pct": _num(chg.mid_change_pct),
             "width_old": _num(chg.width_old), "width_new": _num(chg.width_new),
             "flags": list(chg.flags),
+            # 판정 근거(2026-09-25 추가). previous_* 는 previous 레코드에서 다시 계산되므로 읽을 때 쓰지 않는다.
+            "reason_detail": chg.reason_detail, "comparison_method": chg.comparison_method,
+            "period_type": chg.period_type, "policy": chg.policy,
+            "evidence": chg.evidence(),
         },
     }
 
@@ -180,6 +191,8 @@ def _observation_from_record(rec: dict) -> GuidanceObservation:
         mid_change=_dec(c.get("mid_change")), mid_change_pct=_dec(c.get("mid_change_pct")),
         width_old=_dec(c.get("width_old")), width_new=_dec(c.get("width_new")),
         flags=tuple(c.get("flags") or ()),
+        reason_detail=c.get("reason_detail"), comparison_method=c.get("comparison_method"),
+        period_type=c.get("period_type"), policy=c.get("policy"),
     )
     return GuidanceObservation(ticker=rec.get("ticker") or "", change=change,
                                available_at=_dt(rec.get("available_at")),
@@ -342,7 +355,8 @@ def fetch_guidance_events(
     if sec_client is not None:
         _check_rate_limit(sec_client)  # 주입된 클라이언트는 티커 루프 전에 검사한다(실패 격리에 삼켜지지 않게)
 
-    params = {"window_days": window_days, "history_days": history_days, "max_filings": max_filings_per_ticker}
+    params = {"window_days": window_days, "history_days": history_days, "max_filings": max_filings_per_ticker,
+              "comparison_policy": COMPARISON_POLICY}
     cache = _DayCache(cache_dir or DEFAULT_CACHE_DIR, as_of_date, params, enabled=use_cache)
 
     events: dict[str, list] = {}

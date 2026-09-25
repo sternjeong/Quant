@@ -13,6 +13,9 @@
    애매하면 추측하지 않고 건너뛴 이유를 남긴다.
 3. 변화 분류(순수 함수): 같은 기업·metric·basis·대상 기간의 직전 발행사 가이던스와 비교해
    raised/lowered/maintained/initiated/withdrawn/unknown 을 계산한다. 다른 기간끼리 비교는 거부한다.
+   방향(raised/lowered/maintained)은 **연간 가이던스의 같은 회계연도 재발표**끼리만 낸다(정책 annual_same_fy_v1).
+   분기·반기 가이던스는 방향을 내지 않고 unknown(quarterly_not_comparable 등)이다. 판정 근거(비교 방식, 직전
+   항목 accession·시각·period_key, 세분화 사유)는 GuidanceChange 의 추가 필드와 evidence() 에 남는다.
 4. 시각 처리(순수 함수): acceptance 시각을 뉴욕 장전/장중/장후로 분류하고 다음 실행가능 시가를 계산한다.
 
 컨센서스는 사용하지 않는다(PIT 확보 전 금지). 추출은 규칙 기반이며 LLM 사용 시 역할·제약은 스펙 9절을 따른다.
@@ -1394,11 +1397,65 @@ def extract_guidance(
 
 CHANGE_LABELS = ("raised", "lowered", "maintained", "initiated", "withdrawn", "unknown")
 
+# 비교 정책(스펙 3절 '비교 정책', 2026-09-25 사전 문서화 후 구현). 방향 판정(raised/lowered/maintained)은
+# **연간(회계연도) 가이던스를 같은 연도끼리** 비교할 때만 낸다. 분기·반기 가이던스는 매 발표가 새 기간을 가리키므로
+# 같은 기간의 직전 값이 없고, 다른 기간끼리(예: Q3 가이던스 vs Q2 가이던스)의 비교는 계절성·성장에 오염되므로
+# 방향을 만들지 않는다(unknown + quarterly_not_comparable). 이 정책은 수익 데이터를 보기 전에 고정했다.
+COMPARISON_POLICY = "annual_same_fy_v1"
+COMPARISON_ANNUAL_SAME_FY = "annual_same_fy"
+COMPARISON_ISSUER_STATEMENT = "issuer_statement"
+COMPARISON_COMPLETE_HISTORY = "complete_history"
+COMPARISON_NONE = "not_compared"
+
+PERIOD_ANNUAL = "annual"
+PERIOD_QUARTERLY = "quarterly"
+PERIOD_HALF = "half_year"
+PERIOD_OTHER = "other"
+
+_ANNUAL_KEY_RE = re.compile(r"^(?P<fam>FY|CY)(?P<yr>\d{4})$")
+_ANNUAL_YEND_RE = re.compile(r"^YEND:(?P<yr>\d{4})-\d{2}-\d{2}$")
+_QUARTER_KEY_RE = re.compile(r"^(?:(?:FY|CY)\d{4}Q[1-4]|QEND:\d{4}-\d{2}-\d{2})$")
+_HALF_KEY_RE = re.compile(r"^(?:FY|CY)\d{4}H[12]$")
+
+
+def period_type(period_key: Optional[str]) -> Optional[str]:
+    """정규화된 period_key 의 기간 종류. annual(FY2026·CY2026·YEND:2026-12-31) / quarterly(FY2026Q3·QEND:...) /
+    half_year(FY2026H2) / other(PEND 등). None 이면 기간 미확정."""
+    if not period_key:
+        return None
+    if _ANNUAL_KEY_RE.match(period_key) or _ANNUAL_YEND_RE.match(period_key):
+        return PERIOD_ANNUAL
+    if _QUARTER_KEY_RE.match(period_key):
+        return PERIOD_QUARTERLY
+    if _HALF_KEY_RE.match(period_key):
+        return PERIOD_HALF
+    return PERIOD_OTHER
+
+
+def _annual_year(period_key: Optional[str]) -> Optional[tuple[str, int]]:
+    """연간 period_key -> (표기 계열, 연도). 계열(FY/CY/YEND)이 다르면 서로 비교하지 않는다."""
+    if not period_key:
+        return None
+    m = _ANNUAL_KEY_RE.match(period_key)
+    if m:
+        return m.group("fam"), int(m.group("yr"))
+    m = _ANNUAL_YEND_RE.match(period_key)
+    if m:
+        return "YEND", int(m.group("yr"))
+    return None
+
+
+_NOT_COMPARABLE_REASON = {
+    PERIOD_QUARTERLY: "quarterly_not_comparable",
+    PERIOD_HALF: "half_year_not_comparable",
+    PERIOD_OTHER: "period_type_not_comparable",
+}
+
 
 @dataclass(frozen=True)
 class GuidanceChange:
     change: str  # CHANGE_LABELS 중 하나
-    reason: str  # 판정 근거/unknown 이유 코드
+    reason: str  # 판정 근거/unknown 이유 코드(기존 코드 유지 — guidance_shadow 가 그대로 쓴다)
     current: GuidanceItem
     previous: Optional[GuidanceItem] = None
     mid_change: Optional[Decimal] = None  # mid_new - mid_old (같은 단위)
@@ -1406,6 +1463,40 @@ class GuidanceChange:
     width_old: Optional[Decimal] = None
     width_new: Optional[Decimal] = None
     flags: tuple[str, ...] = ()
+    # --- 2026-09-25 추가(추가만, 기존 필드 의미 불변) ---
+    reason_detail: Optional[str] = None  # 세분화된 사유(no_prior_same_fy, quarterly_not_comparable, unit_mismatch ...)
+    comparison_method: Optional[str] = None  # annual_same_fy / issuer_statement / complete_history / not_compared
+    period_type: Optional[str] = None  # annual / quarterly / half_year / other / None(미확정)
+    policy: Optional[str] = None  # 판정에 쓴 비교 정책 버전(COMPARISON_POLICY)
+
+    # 판정 근거: 비교에 실제로 쓴 직전 항목. 비교하지 않았으면 None.
+    @property
+    def previous_accession(self) -> Optional[str]:
+        return self.previous.accession if self.previous is not None else None
+
+    @property
+    def previous_acceptance_utc(self) -> Optional[datetime]:
+        return self.previous.acceptance_utc if self.previous is not None else None
+
+    @property
+    def previous_period_key(self) -> Optional[str]:
+        return self.previous.period_key if self.previous is not None else None
+
+    def evidence(self) -> dict:
+        """판정 근거 요약(직렬화 가능한 dict). 원문 anchor 는 current/previous 레코드에 있다."""
+        prev_at = self.previous_acceptance_utc
+        return {
+            "policy": self.policy,
+            "comparison_method": self.comparison_method,
+            "period_type": self.period_type,
+            "reason": self.reason,
+            "reason_detail": self.reason_detail or self.reason,
+            "current_accession": self.current.accession,
+            "current_period_key": self.current.period_key,
+            "previous_accession": self.previous_accession,
+            "previous_acceptance_utc": prev_at.isoformat() if prev_at else None,
+            "previous_period_key": self.previous_period_key,
+        }
 
 
 def _basis_class(item: GuidanceItem) -> str:
@@ -1424,8 +1515,9 @@ def _width(item: GuidanceItem) -> Optional[Decimal]:
     return Decimal(0) if item.shape == "point" else None
 
 
-def _unknown(current, previous, reason, flags=()) -> GuidanceChange:
-    return GuidanceChange("unknown", reason, current, previous, flags=tuple(flags))
+def _unknown(current, previous, reason, flags=(), *, detail=None, ptype=None) -> GuidanceChange:
+    return GuidanceChange("unknown", reason, current, previous, flags=tuple(flags), reason_detail=detail or reason,
+                          comparison_method=COMPARISON_NONE, period_type=ptype, policy=COMPARISON_POLICY)
 
 
 def find_previous_guidance(current: GuidanceItem, history: Sequence[GuidanceItem]) -> Optional[GuidanceItem]:
@@ -1455,46 +1547,69 @@ def compare_guidance(
     *,
     history_complete: bool = False,
 ) -> GuidanceChange:
-    """현재 가이던스를 직전 발행사 가이던스와 비교해 change 를 분류한다.
+    """현재 가이던스를 직전 발행사 가이던스와 비교해 change 를 분류한다(정책 COMPARISON_POLICY).
 
-    previous 는 같은 기업·metric·basis·대상 기간이어야 한다. 다르면 unknown 이다. previous 가 None 이고
-    history_complete 가 False 면 '직전 가이던스가 없었음'을 확인할 수 없어 unknown 이다(발행사가 최초
-    가이던스임을 밝힌 경우 제외).
+    - 방향(raised/lowered/maintained)은 연간 가이던스를 같은 회계연도(period_key 동일)의 직전 발표와 비교할
+      때만 낸다(comparison_method='annual_same_fy').
+    - 분기·반기 등 연간이 아닌 기간은 직전 값이 있어도 방향을 내지 않는다(unknown, quarterly_not_comparable 등).
+    - previous 는 같은 기업·metric·basis·대상 기간이어야 한다. 다르면 unknown 이다. previous 가 None 이고
+      history_complete 가 False 면 '직전 가이던스가 없었음'을 확인할 수 없어 unknown 이다(발행사가 최초
+      가이던스임을 밝힌 경우 제외). 연간 항목의 이 경우 세부 사유는 no_prior_same_fy 다.
+    - 철회(withdrawn)는 비교가 아니라 발행사 진술이므로 기간 종류와 무관하게 withdrawn 이다.
     """
+    ptype = period_type(current.period_key)
     if current.shape == "withdrawn":
-        return GuidanceChange("withdrawn", "issuer_withdrew_guidance", current, previous)
+        return GuidanceChange("withdrawn", "issuer_withdrew_guidance", current, previous,
+                              reason_detail="issuer_withdrew_guidance", comparison_method=COMPARISON_ISSUER_STATEMENT,
+                              period_type=ptype, policy=COMPARISON_POLICY)
     if current.problems:
-        return _unknown(current, previous, "current_not_comparable:" + ",".join(current.problems))
+        return _unknown(current, previous, "current_not_comparable:" + ",".join(current.problems), ptype=ptype)
+    if ptype != PERIOD_ANNUAL:
+        code = _NOT_COMPARABLE_REASON.get(ptype, "period_type_not_comparable")
+        flags = ("same_period_previous_available",) if previous is not None else ()
+        # 비교에 쓰지 않은 직전 항목은 근거로 남기지 않는다(previous=None) — 쓰지 않은 값을 근거처럼 보이지 않게.
+        return _unknown(current, None, code, flags, ptype=ptype)
     if previous is None:
         if history_complete:
-            return GuidanceChange("initiated", "no_previous_guidance_in_complete_history", current)
+            return GuidanceChange("initiated", "no_previous_guidance_in_complete_history", current,
+                                  reason_detail="no_previous_guidance_in_complete_history",
+                                  comparison_method=COMPARISON_COMPLETE_HISTORY, period_type=ptype,
+                                  policy=COMPARISON_POLICY)
         if current.stated_action == "initiate":
-            return GuidanceChange("initiated", "issuer_stated_initial_guidance", current)
-        return _unknown(current, None, "no_previous_in_retrieved_history")
+            return GuidanceChange("initiated", "issuer_stated_initial_guidance", current,
+                                  reason_detail="issuer_stated_initial_guidance",
+                                  comparison_method=COMPARISON_ISSUER_STATEMENT, period_type=ptype,
+                                  policy=COMPARISON_POLICY)
+        return _unknown(current, None, "no_previous_in_retrieved_history", detail="no_prior_same_fy", ptype=ptype)
     if previous.shape == "withdrawn":
-        return GuidanceChange("initiated", "reinstated_after_withdrawal", current, previous)
+        return GuidanceChange("initiated", "reinstated_after_withdrawal", current, previous,
+                              reason_detail="reinstated_after_withdrawal",
+                              comparison_method=COMPARISON_ISSUER_STATEMENT, period_type=ptype,
+                              policy=COMPARISON_POLICY)
     if previous.problems:
-        return _unknown(current, previous, "previous_not_comparable:" + ",".join(previous.problems))
+        return _unknown(current, previous, "previous_not_comparable:" + ",".join(previous.problems), ptype=ptype)
     if previous.cik != current.cik:
-        return _unknown(current, previous, "different_company")
+        return _unknown(current, previous, "different_company", ptype=ptype)
     if previous.metric != current.metric:
-        return _unknown(current, previous, "different_metric")
+        return _unknown(current, previous, "different_metric", ptype=ptype)
     if _basis_class(previous) != _basis_class(current):
-        return _unknown(current, previous, "basis_mismatch")
+        return _unknown(current, previous, "basis_mismatch", ptype=ptype)
     if previous.period_key != current.period_key:
-        return _unknown(current, previous, "different_period")
-    if previous.unit != current.unit or previous.currency != current.currency:
-        return _unknown(current, previous, "unit_or_currency_mismatch")
+        return _unknown(current, previous, "different_period", ptype=ptype)
+    if previous.unit != current.unit:
+        return _unknown(current, previous, "unit_or_currency_mismatch", detail="unit_mismatch", ptype=ptype)
+    if previous.currency != current.currency:
+        return _unknown(current, previous, "unit_or_currency_mismatch", detail="currency_mismatch", ptype=ptype)
     if previous.acceptance_utc is None or current.acceptance_utc is None \
             or previous.acceptance_utc >= current.acceptance_utc:
-        return _unknown(current, previous, "previous_not_before_current")
+        return _unknown(current, previous, "previous_not_before_current", ptype=ptype)
     bounds = {"lower_bound", "upper_bound"}
     if (previous.shape in bounds or current.shape in bounds) and previous.shape != current.shape and \
             not ({previous.shape, current.shape} <= {"range", "point"}):
-        return _unknown(current, previous, "bound_type_mismatch")
+        return _unknown(current, previous, "bound_type_mismatch", ptype=ptype)
     mid_new, mid_old = _reference(current), _reference(previous)
     if mid_new is None or mid_old is None:
-        return _unknown(current, previous, "missing_values")
+        return _unknown(current, previous, "missing_values", ptype=ptype)
 
     flags: list[str] = []
     delta = mid_new - mid_old
@@ -1519,11 +1634,38 @@ def compare_guidance(
     if stated in {"raise", "lower", "maintain"}:
         expected = {"raise": "raised", "lower": "lowered", "maintain": "maintained"}[stated]
         if expected != label:
-            return GuidanceChange("unknown", f"issuer_wording_conflicts_with_computed:{stated}->{label}", current,
-                                  previous, delta, pct, _width(previous), _width(current),
-                                  tuple(flags) + ("stated_action_conflict",))
+            code = f"issuer_wording_conflicts_with_computed:{stated}->{label}"
+            return GuidanceChange("unknown", code, current, previous, delta, pct, _width(previous), _width(current),
+                                  tuple(flags) + ("stated_action_conflict",), reason_detail=code,
+                                  comparison_method=COMPARISON_ANNUAL_SAME_FY, period_type=ptype,
+                                  policy=COMPARISON_POLICY)
     return GuidanceChange(label, "midpoint_comparison", current, previous, delta, pct, _width(previous),
-                          _width(current), tuple(flags))
+                          _width(current), tuple(flags), reason_detail="midpoint_comparison",
+                          comparison_method=COMPARISON_ANNUAL_SAME_FY, period_type=ptype, policy=COMPARISON_POLICY)
+
+
+def _superseded_annual(current: GuidanceItem, release_items: Sequence[GuidanceItem]) -> Optional[GuidanceItem]:
+    """같은 발표 안에 같은 metric·basis 의 **바로 다음 연도** 연간 항목이 있으면 그 항목을 돌려준다.
+
+    회사는 진행 중인(또는 다음) 회계연도를 가이던스한다. 같은 보도자료에서 FY2027 가이던스와 FY2026 수치가 함께
+    나오면 FY2026 쪽은 끝난 연도의 실적·비교열일 가능성이 커서, 이를 직전 FY2026 가이던스와 비교하면 '실적 대
+    가이던스'가 방향으로 오염된다(실제 표본: CSCO 8월 발표의 FY2027 가이던스 표 안 FY2026 실적 행).
+    """
+    cur = _annual_year(current.period_key)
+    if cur is None:
+        return None
+    for other in release_items:
+        if other is current or other.problems or other.shape == "withdrawn":
+            continue
+        if other.cik != current.cik or other.metric != current.metric or _basis_class(other) != _basis_class(current):
+            continue
+        if other.accession != current.accession:
+            continue
+        oth = _annual_year(other.period_key)
+        # 바로 다음 연도(+1)만 본다. +2 이상은 장기 목표(예: CRM 의 FY2030 매출 목표)일 수 있어 근거로 쓰지 않는다.
+        if oth is not None and oth[0] == cur[0] and oth[1] == cur[1] + 1:
+            return other
+    return None
 
 
 def compute_guidance_changes(
@@ -1532,9 +1674,20 @@ def compute_guidance_changes(
     *,
     history_complete: bool = False,
 ) -> list[GuidanceChange]:
-    """현재 발표의 각 item 을 history 의 직전 가이던스와 비교한다."""
-    return [compare_guidance(c, find_previous_guidance(c, history), history_complete=history_complete)
-            for c in current_items]
+    """현재 발표의 각 item 을 history 의 직전 가이던스와 비교한다(정책 COMPARISON_POLICY).
+
+    같은 발표에 바로 다음 연도의 연간 항목이 함께 있는 연간 항목은 끝난 연도의 실적·비교열로 보고 비교하지 않는다
+    (unknown, annual_period_superseded_in_release).
+    """
+    out: list[GuidanceChange] = []
+    for c in current_items:
+        later = _superseded_annual(c, current_items) if c.shape != "withdrawn" and not c.problems else None
+        if later is not None:
+            out.append(_unknown(c, None, "annual_period_superseded_in_release",
+                                (f"later_fy_in_release:{later.period_key}",), ptype=PERIOD_ANNUAL))
+            continue
+        out.append(compare_guidance(c, find_previous_guidance(c, history), history_complete=history_complete))
+    return out
 
 
 def extract_from_filing(client: SecEdgarClient, filing: EarningsFiling) -> tuple[Optional[PressRelease], ExtractionResult]:
