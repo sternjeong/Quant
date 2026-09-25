@@ -27,6 +27,15 @@ guidance_shadow_record_job(00:30, core.guidance_shadow 경유). 설계 배경은
 결측 수·결측률을 따로 보고하며, 결측률이 높으면 판정을 '미입증'으로 내린다(생존편향 방지). 티커 데이터가 벤치마크보다
 MISSING_GRACE_SESSIONS 세션 넘게 뒤처질 때만 결측으로 확정하고 그 전에는 pending 이다.
 
+## PIT 인증 근거 (compute_pit_basis, 행마다 계산 — DB 컬럼 없음)
+- full_contract: 시간 계약 5필드 완비 + 순서 일치(compute_pit_status, DB 의 pit_certified). 우선한다.
+- forward_recorded: 후보 기록 시각(CandidateBatch.created_at, 서버 insert 시각) <= 확정된 진입 시가 시각
+  (next_executable_fill) 이고 decision_cutoff <= next_executable_fill. 진입 전에 동결 기록됐다는 사실 자체가
+  진입 이후 정보를 쓸 수 없었다는 근거다. 과거 날짜로 소급 기록한 행(created_at > 진입)은 none.
+  원천 데이터 자체의 발표 시각·소급 수정 여부는 보증하지 않는다(FORWARD_RECORDED_LIMITATION).
+- none: 그 밖(진입 미확정이면 reasons 에 pending 표시).
+판정의 PIT 게이트는 full_contract 또는 forward_recorded 를 인정하며, 다른 게이트는 그대로다.
+
 ## 판정 규칙 (자동 긍정/기각 금지)
 동일 선택률 무작위 보류 기준선 대비 비용 후 초과수익 증분의 종목·날짜 군집(pigeonhole) 부트스트랩 신뢰구간이 0을
 포함하면 verdict='미입증'(코드로 강제). 신뢰구간이 0을 배제해도 표본·PIT·결측 조건을 모두 통과해야 '양성_검토대상' 또는
@@ -99,6 +108,19 @@ DISCLAIMER = (
 
 TIME_CONTRACT_FIELDS = (
     "source_publication", "system_first_seen", "extraction_completed", "decision_cutoff", "next_executable_fill",
+)
+
+# PIT 인증 근거(행마다 계산, DB 컬럼 없음 — compute_pit_basis)
+PIT_BASIS_FULL = "full_contract"  # 시간 계약 5필드 완비 + 순서 일치
+PIT_BASIS_FORWARD = "forward_recorded"  # 원장 기록 시각(batch.created_at) <= 진입 시가 시각
+PIT_BASIS_NONE = "none"
+PIT_BASES = (PIT_BASIS_FULL, PIT_BASIS_FORWARD, PIT_BASIS_NONE)
+ACCEPTED_PIT_BASES = (PIT_BASIS_FULL, PIT_BASIS_FORWARD)
+FORWARD_RECORDED_LIMITATION = (
+    "forward_recorded 는 후보 기록 시각(서버가 insert 때 찍은 created_at)이 진입 시가보다 앞섰음만 보장한다. "
+    "기록 이후의 정보로 판단을 바꿀 수 없었다는 뜻일 뿐, 판단에 쓴 원천 데이터 자체의 발표 시각이나 정확성을 "
+    "보증하지 않는다(예: 재무·가격 공급자가 과거 값을 소급 수정했거나 현재 유니버스·스냅샷을 썼을 수 있음). "
+    "또 created_at 은 서버 시계에 의존하며 외부에서 독립적으로 검증된 타임스탬프가 아니다."
 )
 
 # GICS(core.screener) 및 yfinance sector 표기 -> SPDR 섹터 ETF (섹터 잔차 계산용)
@@ -238,6 +260,46 @@ def compute_pit_status(
         if v1 > v2:
             issues.append(f"order_violation:{n1}>{n2}")
     return (not issues), issues
+
+
+def compute_pit_basis(
+    source_publication: Any, system_first_seen: Any, extraction_completed: Any,
+    decision_cutoff: Any, next_executable_fill: Any, recorded_at: Any,
+) -> tuple[str, list[str]]:
+    """행의 PIT 인증 근거를 (basis, reasons) 로 계산한다. basis ∈ PIT_BASES.
+
+    1) full_contract: compute_pit_status 가 True(5필드 완비 + 순서 일치). 항상 우선한다.
+    2) forward_recorded: recorded_at(= CandidateBatch.created_at, 서버 insert 시각, naive UTC)이 있고,
+       next_executable_fill(진입 세션 개장 시각)이 확정됐고, recorded_at <= next_executable_fill 이며
+       decision_cutoff <= next_executable_fill 인 경우. 진입 전에 기록됐다면 기록 내용은 진입 이후 정보를
+       볼 수 없었다는 근거다. decision_cutoff <= recorded_at 은 요구하지 않는다(장 마감 후 결정 → 그 뒤·진입 전
+       기록이면 충분). 과거 날짜로 소급 기록한 행(recorded_at > 진입)은 해당하지 않는다.
+    3) none: 그 밖. next_executable_fill 미확정이면 reasons 에 'forward_recorded:pending:next_executable_fill' 이
+       남는다(아직 판정 불가 — 결과 추적이 진입 세션을 확정하면 다시 계산된다).
+    한계는 FORWARD_RECORDED_LIMITATION 참고(원천 데이터의 발표 시각은 보증하지 않는다).
+    """
+    full_ok, full_issues = compute_pit_status(
+        source_publication, system_first_seen, extraction_completed, decision_cutoff, next_executable_fill)
+    if full_ok:
+        return PIT_BASIS_FULL, []
+    reasons = [f"full_contract:{i}" for i in full_issues]
+    rec = normalize_time(recorded_at)
+    cut = normalize_time(decision_cutoff)
+    fill = normalize_time(next_executable_fill)
+    fwd: list[str] = []
+    if rec is None:
+        fwd.append("forward_recorded:missing:recorded_at")
+    if cut is None:
+        fwd.append("forward_recorded:missing:decision_cutoff")
+    if fill is None:
+        fwd.append("forward_recorded:pending:next_executable_fill")
+    if cut is not None and fill is not None and cut > fill:
+        fwd.append("forward_recorded:order_violation:decision_cutoff>next_executable_fill")
+    if rec is not None and fill is not None and rec > fill:
+        fwd.append("forward_recorded:recorded_after_entry(backfill)")
+    if not fwd:
+        return PIT_BASIS_FORWARD, reasons + ["forward_recorded:recorded_at<=next_executable_fill"]
+    return PIT_BASIS_NONE, reasons + fwd
 
 
 def sector_etf_for(sector: Optional[str]) -> Optional[str]:
@@ -682,7 +744,7 @@ def update_forward_outcomes(
 # ---------------------------------------------------------------------------
 FRAME_COLUMNS = [
     "decision_id", "candidate_set_id", "ticker", "strategy_version", "source", "decision", "decision_date", "sector",
-    "pit_certified", "horizon_days", "status", "status_reason", "entry_date", "exit_date", "gross_return",
+    "pit_certified", "pit_basis", "pit_basis_reason", "recorded_at", "horizon_days", "status", "status_reason", "entry_date", "exit_date", "gross_return",
     "net_return", "benchmark_return", "sector_etf_return", "net_excess_spy", "net_excess_sector",
 ]
 
@@ -699,34 +761,42 @@ def load_outcome_frame(
 
     net_return 은 cost_scenario(편도 bp) 차감 후, net_excess_spy = net_return - benchmark_return,
     net_excess_sector = net_return - sector_etf_return(섹터 ETF 없으면 NaN).
+    pit_basis/pit_basis_reason 은 compute_pit_basis 로 행마다 계산한다(recorded_at = CandidateBatch.created_at).
+    pit_certified 는 DB 컬럼 그대로(5필드 full_contract 여부)다.
     """
     from sqlalchemy import and_
 
-    from core.models import CandidateDecision, CandidateOutcome
+    from core.models import CandidateBatch, CandidateDecision, CandidateOutcome
 
     if cost_scenario not in COST_SCENARIOS_BPS:
         raise ValueError(f"알 수 없는 cost_scenario: {cost_scenario}")
     col = f"net_return_{cost_scenario}"
     rows = []
     with _session_scope(session) as s:
-        q = s.query(CandidateDecision, CandidateOutcome).outerjoin(
+        q = s.query(CandidateDecision, CandidateOutcome, CandidateBatch.created_at).outerjoin(
+            CandidateBatch, CandidateBatch.id == CandidateDecision.batch_id).outerjoin(
             CandidateOutcome,
             and_(CandidateOutcome.decision_id == CandidateDecision.id, CandidateOutcome.horizon_days == horizon))
         if strategy_version:
             q = q.filter(CandidateDecision.strategy_version == strategy_version)
         if source:
             q = q.filter(CandidateDecision.source == source)
-        for d, o in q.order_by(CandidateDecision.id).all():
+        for d, o, recorded_at in q.order_by(CandidateDecision.id).all():
             final = o is not None and o.status == "final"
             net = _nan(getattr(o, col)) if final else float("nan")
             bench = _nan(o.benchmark_return) if final else float("nan")
             sect = _nan(o.sector_etf_return) if final else float("nan")
             nd = _ny_date(d.decision_cutoff)
+            basis, basis_reasons = compute_pit_basis(
+                d.source_publication, d.system_first_seen, d.extraction_completed, d.decision_cutoff,
+                d.next_executable_fill, recorded_at)
             rows.append({
                 "decision_id": d.id, "candidate_set_id": d.candidate_set_id, "ticker": d.ticker,
                 "strategy_version": d.strategy_version, "source": d.source, "decision": d.decision,
                 "decision_date": pd.Timestamp(nd) if nd else pd.NaT, "sector": d.sector,
-                "pit_certified": bool(d.pit_certified), "horizon_days": horizon,
+                "pit_certified": bool(d.pit_certified), "pit_basis": basis,
+                "pit_basis_reason": "; ".join(basis_reasons) or None, "recorded_at": recorded_at,
+                "horizon_days": horizon,
                 "status": o.status if o is not None else "absent",
                 "status_reason": o.status_reason if o is not None else None,
                 "entry_date": o.entry_date if o is not None else None,
@@ -862,9 +932,13 @@ def _random_baseline_mc(vals, batch_ids, is_sel, n_draws: int, rng) -> Optional[
 def decide_verdict(
     ci_low: Optional[float], ci_high: Optional[float], *, horizon: int, target: str, cost_scenario: str,
     n_selected: int, n_ticker_clusters: int, n_date_blocks: int, pit_fraction: Optional[float],
-    missing_rate: Optional[float], require_pit: bool = True,
+    missing_rate: Optional[float], require_pit: bool = True, pit_basis_counts: Optional[dict] = None,
 ) -> tuple[str, list[str]]:
     """판정 규칙을 코드로 강제한다. 어느 결함이라도 있거나 신뢰구간이 0을 포함하면 '미입증'.
+
+    PIT 게이트: pit_fraction 은 인정 근거(ACCEPTED_PIT_BASES = full_contract 또는 forward_recorded)를 가진
+    행의 비율이며 1.0 이어야 한다. pit_basis_counts 를 주면 인정 근거가 아닌 행(none·알 수 없는 값)이
+    하나라도 있을 때도 실패한다(둘 중 더 엄격한 쪽). 다른 게이트는 PIT 근거와 무관하게 그대로 적용된다.
 
     신뢰구간이 0을 배제하고 모든 게이트를 통과해도 결과는 '검토 대상'일 뿐(자동 채택/폐기 아님)이다.
     기각 검토는 더 큰 표본(MIN_SELECTED_FOR_REJECTION, MIN_DATE_BLOCKS_FOR_REJECTION)을 추가로 요구한다.
@@ -886,7 +960,10 @@ def decide_verdict(
         reasons.append("ci_unavailable")
     elif ci_low <= 0 <= ci_high:
         reasons.append("ci_includes_zero")
-    if require_pit and (pit_fraction is None or pit_fraction < 1.0):
+    unaccepted = 0
+    if pit_basis_counts:
+        unaccepted = sum(int(n) for b, n in pit_basis_counts.items() if b not in ACCEPTED_PIT_BASES and int(n) > 0)
+    if require_pit and (pit_fraction is None or pit_fraction < 1.0 or unaccepted > 0):
         reasons.append("not_pit_certified")
     if missing_rate is not None and missing_rate > MAX_MISSING_OUTCOME_RATE:
         reasons.append("high_outcome_missing_rate")
@@ -909,6 +986,8 @@ def evaluate_selection(
 
     frame 은 load_outcome_frame 결과(또는 같은 컬럼을 가진 프레임): decision, ticker, candidate_set_id,
     decision_date, pit_certified, value_col. value_col 이 NaN 인 행은 결측으로 세고 평균에서 제외한다(0 처리 안 함).
+    pit_basis 컬럼(load_outcome_frame 이 계산)이 있으면 그것으로 PIT 게이트를 판단하고, 없으면(구버전 프레임)
+    pit_certified=True -> full_contract, 그 밖 -> none 으로 본다(forward_recorded 를 추정해 지어내지 않는다).
     """
     cost_scenario = cost_scenario or frame.attrs.get("cost_scenario", PRIMARY_COST_SCENARIO)
     df = frame.copy().reset_index(drop=True)
@@ -916,6 +995,9 @@ def evaluate_selection(
                          ("pit_certified", False)):
         if col not in df.columns:
             df[col] = default
+    if "pit_basis" not in df.columns:
+        df["pit_basis"] = np.where(df["pit_certified"].fillna(False).astype(bool), PIT_BASIS_FULL, PIT_BASIS_NONE)
+    df["pit_basis"] = df["pit_basis"].fillna(PIT_BASIS_NONE).astype(str)
     v = pd.to_numeric(df[value_col], errors="coerce")
     has = v.notna()
 
@@ -984,12 +1066,19 @@ def evaluate_selection(
 
     ci_low = inc["selected_minus_random"]["ci_low"] if inc["selected_minus_random"] else None
     ci_high = inc["selected_minus_random"]["ci_high"] if inc["selected_minus_random"] else None
-    pit_fraction = float(E["pit_certified"].astype(bool).mean()) if len(E) else None
+    # PIT 게이트 대상 = 판정에 쓰이는 행(E: 결과가 있는 적격 후보). 인정 근거 = full_contract | forward_recorded
+    pit_basis_counts = {b: int((E["pit_basis"] == b).sum()) for b in PIT_BASES}
+    other = int((~E["pit_basis"].isin(PIT_BASES)).sum())
+    if other:
+        pit_basis_counts["other"] = other
+    pit_basis_counts_all = {b: int((df["pit_basis"] == b).sum()) for b in PIT_BASES}
+    pit_fraction = float(E["pit_basis"].isin(ACCEPTED_PIT_BASES).mean()) if len(E) else None
+    full_fraction = float((E["pit_basis"] == PIT_BASIS_FULL).mean()) if len(E) else None
 
     verdict, reasons = decide_verdict(
         ci_low, ci_high, horizon=horizon, target=value_col, cost_scenario=cost_scenario, n_selected=n_sel,
         n_ticker_clusters=n_sel_tickers, n_date_blocks=n_sel_blocks, pit_fraction=pit_fraction,
-        missing_rate=missing_rate, require_pit=require_pit)
+        missing_rate=missing_rate, require_pit=require_pit, pit_basis_counts=pit_basis_counts)
 
     # 경고: 승률만 올라 선택률로 설명되는 경우
     warnings: list[str] = []
@@ -1012,7 +1101,10 @@ def evaluate_selection(
     if high_missing:
         warnings.append(f"결과 결측률 {missing_rate:.1%} — 상장폐지/데이터 결측이 결과를 왜곡할 수 있다.")
     if pit_fraction is not None and pit_fraction < 1.0:
-        warnings.append(f"PIT 인증 비율 {pit_fraction:.0%} — 시간 계약이 불완전해 판정은 '미입증'으로 제한된다.")
+        warnings.append(f"PIT 인증 비율 {pit_fraction:.0%} — 시간 계약 5필드도, 진입 전 기록(forward_recorded)도 "
+                        "아닌 행이 있어 판정은 '미입증'으로 제한된다.")
+    if pit_basis_counts.get(PIT_BASIS_FORWARD, 0) > 0:
+        warnings.append("일부/전체 행의 PIT 근거가 forward_recorded 다. " + FORWARD_RECORDED_LIMITATION)
 
     role = "primary" if horizon == PRIMARY_HORIZON_DAYS else "diagnostic"
     return {
@@ -1026,11 +1118,15 @@ def evaluate_selection(
             "random_baseline_expected": base_summary,
         },
         "missed_opportunity": missed, "incremental": inc, "random_baseline_mc": mc,
-        "pit_certified_fraction": pit_fraction,
+        "pit_certified_fraction": pit_fraction,  # 인정 근거(full_contract | forward_recorded) 비율 = 게이트 기준
+        "pit_full_contract_fraction": full_fraction,
+        "pit_basis_counts": pit_basis_counts, "pit_basis_counts_all_rows": pit_basis_counts_all,
+        "pit_accepted_bases": list(ACCEPTED_PIT_BASES),
+        "pit_basis_limitation": FORWARD_RECORDED_LIMITATION,
         "warnings": warnings,
         "warning_flags": {
             "win_rate_selectivity": win_rate_warning, "high_missing_rate": high_missing,
-            "not_pit_certified": bool(pit_fraction is None or pit_fraction < 1.0),
+            "not_pit_certified": "not_pit_certified" in reasons or bool(pit_fraction is None or pit_fraction < 1.0),
             "insufficient_sample": any(r.startswith("insufficient_sample") for r in reasons),
             "rest_outperformed_selected": rest_outperformed,
         },
