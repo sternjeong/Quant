@@ -19,6 +19,12 @@
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
 
+## 2026-09-25 Alpaca 활용 로드맵 + 모듈 2종 (구현·mock 테스트, 실 API 0회)
+
+- 로드맵: [ALPACA_ENGINE_ROADMAP.md](./ALPACA_ENGINE_ROADMAP.md)(P0 실 API 검증 → P1 주문 전 점검·추적오차 → P2 비용 환류·뉴스 → P3 자동 주문은 검증 후).
+- 신규: `core/alpaca_market_meta.py`(거래가능·휴장 캘린더), `core/alpaca_news.py`(PIT 뉴스), `scripts/verify_alpaca_meta_news.py`(VM 1회 실행). 테스트 9건, 전체 pytest 1745 통과. 스케줄러·주문 경로 미연결. 키가 Codespace 에 없어 검증 스크립트는 로컬에서 "키 없음"만 확인.
+- 브랜치 `alpaca-roadmap-2026-09`, 미푸시(main 푸시는 VM 자동 배포).
+
 ## 2026-09-24 관제 센터 로그인 UI (구현·단위 확인, 배포 전)
 
 - 기존: nginx `auth_basic` 브라우저 기본 팝업(스타일 불가). 변경: 허브 `/login` 폼(`hub/server.py`) → `/_login` 이 htpasswd 로 검증 후 세션 쿠키(`qt_session`, 도메인 공유) 발급 → hub/app 은 쿠키 검사, 미로그인은 `/login?next=` 로 302. 401 은 `WWW-Authenticate` 없이 내려 팝업 방지. code-server 는 변경 없음.
