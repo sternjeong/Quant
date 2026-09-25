@@ -797,6 +797,49 @@ def variant_shadow_record_job() -> None:
     print(f"[{datetime.now()}] variant_shadow_record_job 종료")
 
 
+def paper_tracking_refresh_job() -> None:
+    """paper 계좌 vs 챔피언 가상 원장 추적오차 (로드맵 P1, core/paper_tracking.py). 관측 전용.
+
+    시각(00:46 KST): 00:35 계좌 스냅샷·00:12 원장 기록이 끝난 뒤, 00:44 변형 shadow 다음 슬롯.
+    """
+    if not is_enabled("paper_tracking_refresh"):
+        print(f"[{datetime.now()}] paper_tracking_refresh_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
+    print(f"[{datetime.now()}] paper_tracking_refresh_job 시작")
+    try:
+        from core.paper_tracking import refresh_paper_tracking, summarize
+
+        print(f"  - {summarize(refresh_paper_tracking())}")
+    except Exception as exc:  # noqa: BLE001
+        print(f"  - 추적오차 계산 실패: {type(exc).__name__}: {exc}")
+        report_job_failure("paper_tracking_refresh", f"{type(exc).__name__}: {exc}")
+    print(f"[{datetime.now()}] paper_tracking_refresh_job 종료")
+
+
+def paper_auto_trade_job() -> None:
+    """챔피언 계획 paper 자동 제출 (로드맵 P3, core/paper_auto_trade.py). **기본 꺼짐**.
+
+    조건(최근 검증 PASS·개장일·중복 없음·계좌 정상·거래가능·총액 상한)을 모두 확인한 뒤에만 제출한다.
+    시각(06:10 KST 화~토 = 미 동부 전날 16:10/17:10): 장 마감 뒤라 market/day 주문이 다음 개장 시가에 체결된다.
+    """
+    if not is_enabled("paper_auto_trade"):
+        print(f"[{datetime.now()}] paper_auto_trade_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
+    print(f"[{datetime.now()}] paper_auto_trade_job 시작")
+    try:
+        from core.paper_auto_trade import format_summary, run_auto_round
+        from core.telegram_notify import send_message
+
+        res = run_auto_round()
+        print(f"  - {res}")
+        if res["status"] != "skipped" or res["reason"] not in ("market closed today", "already submitted today"):
+            send_message(format_summary(res))
+    except Exception as exc:  # noqa: BLE001
+        print(f"  - paper 자동 주문 실패: {type(exc).__name__}: {exc}")
+        report_job_failure("paper_auto_trade", f"{type(exc).__name__}: {exc}")
+    print(f"[{datetime.now()}] paper_auto_trade_job 종료")
+
+
 def strategy_research_report_job() -> None:
     """전략 변형 연구 보고서 작성 — 관측 전용, 주 1회(일요일 00:50 KST).
 
@@ -1118,6 +1161,21 @@ def main() -> None:
         trigger=CronTrigger(hour=0, minute=44, timezone="Asia/Seoul"),
         id="variant_shadow_record",
         name="매일 한국시간 00:44 전략 변형 shadow 기록 (관측 전용)",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        paper_tracking_refresh_job,
+        trigger=CronTrigger(hour=0, minute=46, timezone="Asia/Seoul"),
+        id="paper_tracking_refresh",
+        name="매일 한국시간 00:46 paper 계좌 추적오차 (관측 전용)",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        paper_auto_trade_job,
+        # 미 장 마감 뒤(화~토 KST = 월~금 ET). 기본 꺼짐 — /processes 로 켜야 제출한다.
+        trigger=CronTrigger(day_of_week="tue-sat", hour=6, minute=10, timezone="Asia/Seoul"),
+        id="paper_auto_trade",
+        name="화~토 한국시간 06:10 챔피언 paper 자동 주문 (기본 꺼짐)",
         replace_existing=True,
     )
     scheduler.add_job(

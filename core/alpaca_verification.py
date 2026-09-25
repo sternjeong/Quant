@@ -1,7 +1,7 @@
 """Alpaca paper API 가정 검증을 사람 손 없이 돌리는 오케스트레이터 (2026-09-24).
 
 배경: 사용자는 폰으로만 작업하고 VM 에 직접 접속해 검증 스크립트를 돌리기 어렵다. Alpaca paper 키는 VM
-/opt/quant/.env 에만 있고 지금까지 실제 API 호출은 0회였다. 이 모듈은 읽기 전용 검증 4개를 순서대로 돌리고
+/opt/quant/.env 에만 있고 지금까지 실제 API 호출은 0회였다. 이 모듈은 읽기 전용 검증 5개를 순서대로 돌리고
 PASS/FAIL/UNEXPECTED 를 JSON(data/verification/alpaca_YYYYMMDD_HHMM.json)으로 남긴다.
 
   1) idempotency_read_only : scripts/verify_alpaca_paper_idempotency.py 의 기본(읽기 전용) 모드 — write=False 고정
@@ -39,6 +39,7 @@ CHECK_LABELS = {
     "corporate_actions": "기업행동 API",
     "price_crosscheck": "가격 교차검증",
     "account_schema": "계좌 스키마",
+    "market_meta_news": "자산·캘린더·뉴스",
 }
 VERIFIED_SCOPE = (
     "읽기 전용 범위만 검증했다: 연결·인증·계정 필드·미존재 ID 404 등. 중복 POST 422, 주문 후 조회, 취소 의미는 "
@@ -151,11 +152,33 @@ def check_account_schema() -> dict:
     return _result("PASS", "계좌/포지션 스키마 파싱 성공")
 
 
+def check_market_meta_news() -> dict:
+    """자산 거래가능·휴장 캘린더·과거 뉴스 스키마(core.alpaca_market_meta, core.alpaca_news)."""
+    from core import alpaca_market_meta as meta, alpaca_news
+
+    failing = []
+    rep = meta.check_tradability(["AAPL", "ZZZZNOPE"])
+    if rep["AAPL"]["verdict"] != meta.TRADABLE:
+        failing.append(f"assets: AAPL={rep['AAPL']['verdict']}")
+    if rep["ZZZZNOPE"]["verdict"] != meta.NOT_FOUND:
+        failing.append(f"assets: ZZZZNOPE={rep['ZZZZNOPE']['verdict']} (기대 not_found)")
+    days = meta.fetch_trading_days("2025-11-24", "2025-11-30")
+    if any(d["date"] == "2025-11-27" for d in days) or not any(d["date"] == "2025-11-28" and d["early_close"] for d in days):
+        failing.append("calendar: 2025 추수감사절 휴장/다음날 조기폐장이 가정과 다름")
+    news = alpaca_news.fetch_news(["AAPL"], "2020-03-01", "2020-03-03")
+    if not news:
+        failing.append("news: 2020-03 과거 기사 0건")
+    if failing:
+        return _result("UNEXPECTED", "가정과 다름", failing, {"calendar": days, "n_news": len(news)})
+    return _result("PASS", f"자산·캘린더·뉴스 스키마 일치 (과거 기사 {len(news)}건)")
+
+
 DEFAULT_CHECKS: dict[str, Callable[[], dict]] = {
     "idempotency_read_only": check_idempotency_read_only,
     "corporate_actions": check_corporate_actions,
     "price_crosscheck": check_price_crosscheck,
     "account_schema": check_account_schema,
+    "market_meta_news": check_market_meta_news,
 }
 
 
@@ -169,7 +192,7 @@ def _now() -> datetime:
 
 def run_alpaca_verification(out_dir: Optional[Path | str] = None, *, checks: Optional[dict[str, Callable[[], dict]]] = None,
                             now: Optional[datetime] = None) -> dict:
-    """읽기 전용 검증 4개를 순서대로 실행하고 결과를 JSON 으로 저장해 dict 로 돌려준다(예외를 던지지 않는다).
+    """읽기 전용 검증 5개를 순서대로 실행하고 결과를 JSON 으로 저장해 dict 로 돌려준다(예외를 던지지 않는다).
 
     키가 없으면 status='no_credentials' (저장 안 함). checks 는 테스트용 주입점이다."""
     now = now or _now()
