@@ -103,6 +103,10 @@ a.row:hover{background:var(--surface-2)} a.row:active{background:var(--surface-3
 .row .dsc{color:var(--text-2);font-size:.84rem;margin-top:1px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .row .end{flex:0 0 auto;display:flex;align-items:center;gap:6px;max-width:48%;flex-wrap:wrap;justify-content:flex-end}
 .row .chev{color:var(--text-3);font-size:1.2rem;margin-left:2px}
+.row.stack{flex-direction:column;align-items:stretch;gap:2px}
+.row.stack > .top{display:flex;align-items:center;gap:12px;min-width:0}
+.row .note{font-size:.8rem;color:var(--text-2);overflow-wrap:anywhere;margin-top:2px}
+.row .note.bad{color:var(--bad)} .row .note.warn{color:var(--warn)}
 .row .ext{color:var(--text-3);font-size:.85rem}
 .pill,.badge{display:inline-flex;align-items:center;gap:6px;font-size:.74rem;font-weight:600;line-height:1;
   padding:.36rem .6rem;border-radius:999px;white-space:nowrap;background:var(--muted-soft);color:var(--text-2)}
@@ -173,8 +177,10 @@ def stats(items_html: Iterable[str]) -> str:
 
 
 def row(title: str, *, href: Optional[str] = None, icon: str = "", desc: str = "", end_html: str = "",
-        external: bool = False, title_extra_html: str = "") -> str:
-    """서비스·잡 한 줄. href 가 있으면 누를 수 있는 행이 된다. external 이면 새 탭(↗ 표시)."""
+        external: bool = False, title_extra_html: str = "", below_html: str = "") -> str:
+    """서비스·잡 한 줄. href 가 있으면 누를 수 있는 행이 된다. external 이면 새 탭(↗ 표시).
+
+    below_html 이 있으면 행 전체 폭을 쓰는 아래 줄(가동 막대·오류 한 줄 등, 이미 escape 된 HTML)을 붙인다."""
     ico = f'<div class="ico" aria-hidden="true">{E(icon)}</div>' if icon else ""
     dsc = f'<div class="dsc">{E(desc)}</div>' if desc else ""
     if external:
@@ -185,10 +191,13 @@ def row(title: str, *, href: Optional[str] = None, icon: str = "", desc: str = "
         tail = ""
     inner = (f'{ico}<div class="body"><div class="ttl">{E(title)}{title_extra_html}</div>{dsc}</div>'
              f'<div class="end">{end_html}{tail}</div>')
+    stack = ""
+    if below_html:
+        inner, stack = f'<div class="top">{inner}</div>{below_html}', " stack"
     if href:
         target = ' target="_blank" rel="noopener"' if external else ""
-        return f'<a class="row" href="{E(href)}"{target}>{inner}</a>'
-    return f'<div class="row">{inner}</div>'
+        return f'<a class="row{stack}" href="{E(href)}"{target}>{inner}</a>'
+    return f'<div class="row{stack}">{inner}</div>'
 
 
 def row_list(rows_html: Iterable[str]) -> str:
@@ -210,6 +219,12 @@ def strip(cells: Sequence[tuple[str, str]], left: str = "", right: str = "") -> 
     bars = "".join(f'<i class="{t if t in allowed else "none"}" title="{E(tip)}"></i>' for t, tip in cells)
     legend = f'<div class="strip-legend"><span>{E(left)}</span><span>{E(right)}</span></div>' if (left or right) else ""
     return f'<div class="strip" role="img" aria-label="{E(right or "실행 이력")}">{bars}</div>{legend}'
+
+
+def note(text: str, tone: str = "") -> str:
+    """행 아래 작은 한 줄(오류 요약 등). 텍스트는 escape 한다."""
+    tone_cls = f" {tone}" if tone in ("bad", "warn") else ""
+    return f'<div class="note{tone_cls}">{E(text)}</div>'
 
 
 def callout(text_html: str, *, icon: str = "💡", tone: str = "") -> str:
