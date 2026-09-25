@@ -118,6 +118,16 @@ LOGIN_PAGE = """<!doctype html><html lang="ko"><head><meta charset="utf-8">
 </script></body></html>"""
 
 
+# 사용 설명서 진입 카드 — 슬롯(systemd 유닛)이 아니라 허브 자체 기능이라 SLOTS 와 별개로 항상 맨 앞에 둔다.
+GUIDE_CARD = (
+    '<a class="card" href="/guide" style="border-color:#4c7dff">'
+    '<h2>📖 사용 설명서<span class="kind">guide</span></h2>'
+    '<p>대시보드를 어떻게 쓰는지, 각 화면과 엔진 모듈이 무엇인지, 자동 잡과 알림은 어떻게 읽는지 정리했습니다. '
+    '엔진이 업데이트되면 함께 갱신됩니다.</p>'
+    '<span class="badge active">항상 최신</span></a>'
+)
+
+
 def _badge_html(status: UnitStatus) -> str:
     if not status.is_known:
         css, label = "unknown", "상태 확인 불가"
@@ -159,7 +169,7 @@ def render_dashboard(host: str) -> str:
         '로그아웃</a><h1>Quant VM 관제 센터</h1>'
         '<p class="subtitle">이 서버에서 돌고 있는 앱과 엔진들. 슬롯을 누르면 해당 웹 또는 '
         '상태 화면으로 이동합니다.</p>'
-        f'<div class="grid">{"".join(cards)}</div>'
+        f'<div class="grid">{GUIDE_CARD}{"".join(cards)}</div>'
         '</body></html>'
     )
 
@@ -231,6 +241,10 @@ class HubRequestHandler(BaseHTTPRequestHandler):
             self._send_html(render_dashboard(host))
         elif path == "/login":
             self._send_html(LOGIN_PAGE)
+        elif path in ("/guide", "/guide/"):
+            from hub.guide import render_guide_page
+
+            self._send_html(render_guide_page())
         elif path == "/healthz":
             self._send_html("ok")
         elif path.startswith("/status/"):
