@@ -14,7 +14,7 @@ import sys
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
@@ -221,6 +221,23 @@ def _overview(jobs: dict, unit_tones: list[str]) -> tuple[str, str]:
     return ui.verdict(tone, title, sub), tiles
 
 
+def current_overview() -> tuple[str, str, dict]:
+    """(판정 배너 HTML, 지표 타일 HTML, 잡 건강 요약) — 개요와 같은 판정(_overview)을 다른 화면(설명서 첫 화면)에서 쓴다.
+
+    서비스 톤은 개요와 같은 규칙으로 모은다: 전용 화면·리포트가 아닌 슬롯의 systemd 유닛을 중복 없이 한 번씩.
+    """
+    jobs = ops_status.job_health_summary()
+    tones: list[str] = []
+    seen: set[str] = set()
+    for slot in SLOTS:
+        if slot.kind in ("alpaca", "report", "ops", "research") or slot.unit in seen:
+            continue
+        seen.add(slot.unit)
+        tones.append(_unit_pill(get_unit_status(slot.unit))[1])
+    banner, tiles = _overview(jobs, tones)
+    return banner, tiles, jobs
+
+
 def render_dashboard(host: str) -> str:
     jobs = ops_status.job_health_summary()
     groups: dict[str, list[str]] = {}
@@ -349,9 +366,12 @@ class HubRequestHandler(BaseHTTPRequestHandler):
         pass  # 접속 로그는 journalctl 대신 systemd 자체 stdout 캡처에 맡기지 않고 조용히 무시
 
     def _send_html(self, body: str, status: int = 200) -> None:
+        self._send_body(body, status, "text/html; charset=utf-8")
+
+    def _send_body(self, body: str, status: int, content_type: str) -> None:
         payload = body.encode("utf-8")
         self.send_response(status)
-        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(payload)))
         self.end_headers()
         self.wfile.write(payload)
@@ -388,10 +408,11 @@ class HubRequestHandler(BaseHTTPRequestHandler):
             self._send_html(render_research_page())
         elif path == "/ops":
             self._send_html(render_ops_page())
-        elif path in ("/guide", "/guide/"):
-            from hub.guide import render_guide_page
+        elif path == "/guide" or path.startswith("/guide/"):
+            from hub.guide import render_route
 
-            self._send_html(render_guide_page())
+            status, content_type, body = render_route(unquote(path), parse_qs(urlparse(self.path).query))
+            self._send_body(body, status, content_type)
         elif path == "/alpaca":
             self._send_html(render_alpaca_page())
         elif path == "/healthz":

@@ -48,6 +48,8 @@ PAGES: tuple[PageGuide, ...] = (
             "core/app_navigation.py",
         ),
         verified=_V,
+        plain_summary="매매 전략을 과거 데이터로 시험(백테스트)하고, 다듬고, 저장하는 작업대입니다. 탭 8개 중 첫 탭 '지표 조합 백테스트'가 기본 백테스트입니다.",
+        example="티커와 기간을 넣고 '지표 토글'에서 이동평균 교차를 켠 뒤 '🚀 백테스트 실행'을 누르면 전략 대 매수보유 곡선과 성과 지표가 나옵니다.",
     ),
     PageGuide(
         path="pages/12_챔피언_전략_최적화.py",

@@ -8,13 +8,18 @@
 
 from __future__ import annotations
 
+import html
+import json
 import re
+from urllib.parse import quote, unquote
 
 import pytest
 
-from hub.guide import build_content, live, render_guide_page
+from hub.guide import build_content, live
 from hub.guide.check import coverage_problems
-from hub.guide.render import render_guide
+from hub.guide.render import (
+    all_routes, app_base_url, render_guide, render_route, screen_slug, streamlit_url_path, term_slug,
+)
 from hub.guide.schema import (
     GuideContent, JobGuide, ModuleGuide, OpsSection, PageGuide, Routine, ScriptGuide, Term, validate_entries,
 )
@@ -51,36 +56,175 @@ def test_duplicate_keys_are_reported():
 # ---------------------------------------------------------------------------
 # 렌더링
 # ---------------------------------------------------------------------------
+def _route(path, content=CONTENT, query=None):
+    return render_route(path, query or {}, content)
+
+
 def test_guide_renders_with_live_sections():
-    page = render_guide_page()
-    assert "<title>Quant 사용 설명서</title>" in page
+    """자동 생성 부분(화면 목록·잡 이름·시각·켜짐/꺼짐)이 새 하위 페이지에 그대로 나온다."""
+    status, _, home = _route("/guide")
+    assert status == 200 and "<title>사용 설명서 · Quant 관제 센터</title>" in home
+    _, _, screens = _route("/guide/screens")
     for _, title, _ in (item for pages in live.navigation().values() for item in pages):
-        assert title in page
+        assert html.escape(title) in screens
+    _, _, jobs = _route("/guide/jobs")
     for job in live.job_rows():
-        assert job.label in page
-    assert 'name="viewport"' in page  # 폰에서 보는 화면이라 필수
+        assert html.escape(job.label) in jobs
+        assert html.escape(job.when_text) in jobs
+    assert "켜짐" in jobs
+    for path in ("/guide", "/guide/screens", "/guide/jobs"):
+        assert 'name="viewport"' in _route(path)[2]  # 폰에서 보는 화면이라 필수
+
+
+def test_every_guide_route_renders_with_viewport():
+    routes = all_routes(CONTENT)
+    assert len(routes) > 100
+    for path in routes:
+        status, ctype, page = _route(path)
+        assert status == 200, path
+        assert ctype.startswith("text/html"), path
+        assert 'name="viewport"' in page, path
+        assert 'href="/guide"' in page, path  # 설명서 첫 화면으로 돌아가는 길(경로·내비게이션)
+
+
+def test_route_counts_cover_every_item():
+    routes = set(all_routes(CONTENT))
+    assert {f"/guide/screens/{screen_slug(p)}" for p in live.navigation_paths()} <= routes
+    assert {f"/guide/jobs/{j}" for j in live.job_ids()} <= routes
+    assert len([r for r in routes if r.startswith("/guide/modules/")]) == len(CONTENT.modules)
+    assert len([r for r in routes if r.startswith("/guide/tools/")]) == len(CONTENT.scripts)
+    assert len([r for r in routes if r.startswith("/guide/tasks/")]) == len(CONTENT.routines)
+
+
+@pytest.mark.parametrize("path", [
+    "/guide/nope", "/guide/screens/없는화면", "/guide/jobs/no_such_job", "/guide/modules/no_such", "/guide/tools/no_such",
+    "/guide/ops/no_such", "/guide/tasks/no_such", "/guide/screens/today/extra",
+])
+def test_unknown_guide_items_are_404(path):
+    status, _, page = _route(path)
+    assert status == 404
+    assert 'name="viewport"' in page
+
+
+def test_task_screen_links_point_only_to_navigation_items():
+    nav = live.navigation_paths()
+    nav_slugs = {screen_slug(p) for p in nav}
+    app = app_base_url()
+    for r in CONTENT.routines:
+        _, _, page = _route(f"/guide/tasks/{r.id}")
+        for target in re.findall(r'data-screen="([^"]+)"', page):
+            assert html.unescape(target) in nav, (r.id, target)
+        for slug in re.findall(r'href="/guide/screens/([^"#]+)"', page):
+            assert unquote(slug) in nav_slugs, (r.id, slug)
+        if app:
+            for url in re.findall(r'href="(' + re.escape(app) + r'[^"]*)"', page):
+                tail = unquote(url[len(app):])
+                assert tail == "" or tail in nav_slugs, (r.id, url)
+    # 아침 루틴은 실제로 화면 링크를 단다(감지 규칙이 깨지면 여기서 드러난다)
+    assert "data-screen=" in _route("/guide/tasks/daily-5min")[2]
+
+
+def test_streamlit_url_paths_match_streamlit_rules():
+    source_util = pytest.importorskip("streamlit.source_util")
+    from pathlib import Path
+
+    for path in live.navigation_paths():
+        assert streamlit_url_path(path) == source_util.page_icon_and_name(Path(path))[1], path
+
+
+def test_search_index_contains_every_item():
+    status, ctype, body = _route("/guide/search.json")
+    assert status == 200 and ctype.startswith("application/json")
+    index = json.loads(body)
+    urls = {e["u"] for e in index}
+    for path in all_routes(CONTENT):
+        if path.count("/") == 3:  # 항목 상세(/guide/<구역>/<항목>)
+            assert quote(path, safe="/") in urls, path
+    for t in CONTENT.glossary:
+        assert any(e["k"] == "용어" and e["t"] == t.term for e in index), t.term
+    assert all(e["h"] == e["h"].lower() for e in index)
+
+
+def test_server_side_search_finds_items():
+    _, _, page = _route("/guide/search", query={"q": ["백업"]})
+    assert "검색 결과" in page and "/guide/ops/backup" in page
+    _, _, empty = _route("/guide/search", query={"q": ["zzzz없는낱말"]})
+    assert "찾는 항목이 없습니다" in empty
+
+
+def test_glossary_terms_link_on_first_use():
+    _, _, page = _route("/guide/tasks/read-research-infra")
+    assert 'class="term"' in page and "/guide/glossary#" in page
+    _, _, glossary = _route("/guide/glossary")
+    for t in CONTENT.glossary:
+        assert f'id="{term_slug(t.term)}"' in glossary
 
 
 def test_guide_text_is_html_escaped():
     evil = "<script>alert(1)</script>"
     content = GuideContent(
-        pages=(PageGuide(path="views/today.py", summary=evil, when_to_use=evil, steps=(evil,), cautions=(evil,), verified="2026-01-01"),),
-        modules=(ModuleGuide(module="core/db.py", name=evil, group="운용", status="운영중", what=evil, how_to_use=evil, where_to_see=evil, verified="2026-01-01"),),
-        glossary=(Term(evil, evil, evil),), routines=(Routine("r", evil, evil, (evil,), (evil,)),),
+        pages=(PageGuide(path="views/today.py", summary=evil, when_to_use=evil, steps=(evil,), cautions=(evil,),
+                         reading=(evil,), plain_summary=evil, example=evil, verified="2026-01-01"),),
+        modules=(ModuleGuide(module="core/db.py", name=evil, group="운용", status="운영중", what=evil, how_to_use=evil,
+                             where_to_see=evil, cautions=evil, verified="2026-01-01"),),
+        scripts=(ScriptGuide(path="scripts/agent_batch.py", name=evil, when_to_run=evil, command=evil, risk="읽기 전용",
+                             what_it_prints=evil, verified="2026-01-01"),),
+        jobs=(JobGuide(job_id=sorted(live.job_ids())[0], where_to_see=evil, if_alert=evil, verified="2026-01-01"),),
+        glossary=(Term(evil, evil, evil),),
+        routines=(Routine("r", evil, evil, (evil + " '오늘' " + evil,), (evil,), card_title=evil, icon=evil, plain_summary=evil),),
         ops=(OpsSection("o", evil, (evil,), ((evil, evil),), "2026-01-01"),), start_here=(evil,),
     )
-    page = render_guide(content)
-    assert "<script>alert(1)" not in page
-    assert "&lt;script&gt;alert(1)" in page
+    pages = [render_guide(content)] + [render_route(p, {}, content)[2] for p in all_routes(content)]
+    pages.append(render_route("/guide/search", {"q": ["script"]}, content)[2])
+    pages.append(render_route("/guide/search.json", {}, content)[2])
+    for page in pages:
+        assert "<script>alert(1)" not in page
+    joined = "".join(pages)
+    assert "&lt;script&gt;alert(1)" in joined
 
 
 def test_stale_marker_appears_when_source_changed_after_verified(monkeypatch):
     monkeypatch.setattr(live, "last_commit_date", lambda paths: "2026-09-20")
     content = GuideContent(pages=(PageGuide(path="views/today.py", summary="s", when_to_use="w", steps=("a",),
                                             sources=("core/db.py",), verified="2026-09-01"),))
-    assert "근거 코드가 수정됐습니다" in render_guide(content)
+    slug = screen_slug("views/today.py")
+    assert "근거 코드가 수정됐습니다" in render_route(f"/guide/screens/{slug}", {}, content)[2]
+    assert "코드 변경됨" in render_route("/guide/screens", {}, content)[2]  # 목록에도 표시
     monkeypatch.setattr(live, "last_commit_date", lambda paths: "2026-08-01")
-    assert "근거 코드가 수정됐습니다" not in render_guide(content)
+    assert "근거 코드가 수정됐습니다" not in render_route(f"/guide/screens/{slug}", {}, content)[2]
+    assert "코드 변경됨" not in render_route("/guide/screens", {}, content)[2]
+
+
+def test_guide_home_shows_status_tasks_and_version():
+    _, _, page = _route("/guide")
+    assert 'class="verdict' in page  # 관제 센터와 같은 판정
+    for r in CONTENT.routines:
+        assert f'href="/guide/tasks/{r.id}"' in page
+    assert 'id="gd-q"' in page and "/guide/search" in page
+    assert "배포 버전" in page
+
+
+def test_guide_http_routes():
+    import threading
+    from http.server import ThreadingHTTPServer
+    from urllib.request import urlopen
+    from urllib.error import HTTPError
+
+    from hub import server
+
+    httpd = ThreadingHTTPServer(("127.0.0.1", 0), server.HubRequestHandler)
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    base = f"http://127.0.0.1:{httpd.server_address[1]}"
+    try:
+        with urlopen(base + "/guide/screens/" + quote(screen_slug("pages/11_챔피언_전략.py"))) as r:
+            assert r.status == 200 and "챔피언" in r.read().decode()
+        with urlopen(base + "/guide/search.json") as r:
+            assert r.headers["Content-Type"].startswith("application/json")
+        with pytest.raises(HTTPError) as exc:
+            urlopen(base + "/guide/screens/nope")
+        assert exc.value.code == 404
+    finally:
+        httpd.shutdown()
 
 
 def test_stale_marker_is_silent_when_git_is_unavailable(monkeypatch):

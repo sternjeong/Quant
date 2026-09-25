@@ -37,6 +37,8 @@ class PageGuide:
     related_jobs: tuple[str, ...] = ()  # 이 화면의 데이터를 채우는 자동 잡 id(SCHEDULED_JOBS)
     sources: tuple[str, ...] = ()  # 근거 파일(저장소 루트 기준, 존재해야 함)
     verified: str = ""  # 이 설명을 코드와 대조한 날짜 YYYY-MM-DD
+    plain_summary: str = ""  # 선택: 처음 보는 사람용 쉬운 한 줄(상세 맨 위 '한눈에'). 코드·기존 설명에서 확인되는 사실만
+    example: str = ""  # 선택: 구체적인 사용 예 한 가지
 
 
 @dataclass(frozen=True)
@@ -94,6 +96,9 @@ class Routine:
     when: str
     steps: tuple[str, ...]
     tips: tuple[str, ...] = ()
+    card_title: str = ""  # 선택: 설명서 첫 화면 할 일 카드의 짧은 이름(사용자 말투, 예: '알림이 왔어요')
+    icon: str = ""  # 선택: 할 일 카드 아이콘(이모지 하나)
+    plain_summary: str = ""  # 선택: 이 과업을 쉬운 말 한 줄로
 
 
 @dataclass(frozen=True)

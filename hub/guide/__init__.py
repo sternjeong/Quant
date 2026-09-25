@@ -31,6 +31,14 @@ def build_content() -> GuideContent:
 
 
 def render_guide_page() -> str:
+    """설명서 첫 화면(HTML)."""
     from hub.guide.render import render_guide
 
     return render_guide(build_content())
+
+
+def render_route(path: str, query: dict | None = None) -> tuple[int, str, str]:
+    """/guide 아래 경로 하나 -> (HTTP 상태, Content-Type, 본문). hub/server.py 가 부른다."""
+    from hub.guide.render import render_route as _render
+
+    return _render(path, query)

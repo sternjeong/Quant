@@ -59,6 +59,13 @@ def navigation() -> dict[str, list[tuple[str, str, str]]]:
     return {ws: [(p.path, p.title, p.icon) for p in pages] for ws, pages in NAVIGATION.items()}
 
 
+def default_page_path() -> Optional[str]:
+    """Streamlit 기본 화면(주소가 앱 주소 그대로인 화면)의 path."""
+    from core.app_navigation import all_pages
+
+    return next((p.path for p in all_pages() if p.default), None)
+
+
 def navigation_paths() -> set[str]:
     return {path for pages in navigation().values() for path, _, _ in pages}
 

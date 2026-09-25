@@ -32,6 +32,8 @@ PAGES: tuple[PageGuide, ...] = (
         related_jobs=("champion_signal_alert", "daily_market_snapshot", "data_integrity_check"),
         sources=("app/views/today.py", "core/today_dashboard.py"),
         verified=_V,
+        plain_summary="아침에 가장 먼저 여는 화면입니다. 밤사이 저장된 결과를 모아 오늘 확인할 것만 카드로 보여 줍니다. 새로 계산하거나 주문하지 않습니다.",
+        example="'운영 경고' 숫자가 0이 아니면 '오늘 처리할 일' 카드의 '자세히 보기'를 눌러 해당 화면으로 갑니다.",
     ),
     PageGuide(
         path="pages/11_챔피언_전략.py",
@@ -75,6 +77,8 @@ PAGES: tuple[PageGuide, ...] = (
             "core/portfolio.py",
         ),
         verified=_V,
+        plain_summary="이번 달 무엇을 담을지(코어 4종목 + 새틀라이트) 계산해 보여 주는 추천 화면입니다. 주문 버튼은 없습니다.",
+        example="시장필터가 '200일선 아래'면 코어 비중이 절반으로 줄어 실투입 비중이 85%보다 낮게 나오고, 나머지는 현금으로 표시됩니다.",
     ),
     PageGuide(
         path="pages/8_포트폴리오_관리.py",
@@ -105,6 +109,8 @@ PAGES: tuple[PageGuide, ...] = (
         related_jobs=(),
         sources=("app/pages/8_포트폴리오_관리.py", "core/portfolio.py"),
         verified=_V,
+        plain_summary="내가 가진 종목을 직접 적어 두는 장부입니다. 증권사와 연결되어 있지 않아 사고팔 때마다 직접 고칩니다.",
+        example="종목을 산 뒤 '➕ 보유 종목 추가'에 티커·수량·매입 단가를 넣으면 손익 표와 '챔피언 전략' 화면의 내 포트폴리오 비교에 반영됩니다.",
     ),
     PageGuide(
         path="pages/3_관심종목_모니터링.py",
@@ -133,6 +139,8 @@ PAGES: tuple[PageGuide, ...] = (
         related_jobs=("daily_watchlist_scan",),
         sources=("app/pages/3_관심종목_모니터링.py", "core/watchlist.py", "core/notify.py", "core/telegram_notify.py"),
         verified=_V,
+        plain_summary="관심 종목에 전략을 붙여 두면, 진입 조건이 새로 맞은 날 알려 주는 화면입니다. 주문은 하지 않습니다.",
+        example="관심 티커에 전략을 연결해 두면 평일 미국 동부시간 16:30 자동 스캔이 돌고, 조건을 새로 만족한 종목이 있으면 텔레그램 요약 1건이 옵니다.",
     ),
     PageGuide(
         path="pages/5_종목_스크리닝.py",
@@ -161,6 +169,8 @@ PAGES: tuple[PageGuide, ...] = (
         related_jobs=(),
         sources=("app/pages/5_종목_스크리닝.py", "core/screener.py", "core/stock_discovery.py"),
         verified=_V,
+        plain_summary="S&P500 에서 조건에 맞는 종목을 걸러 후보 목록을 만드는 화면입니다. 결과는 추천이 아니라 후보입니다.",
+        example="빠르게 보려면 '티커 직접 지정'에 몇 개만 쉼표로 적습니다. 비워 두면 S&P500 전체를 스캔해 수 분 걸립니다.",
     ),
     PageGuide(
         path="pages/9_차트_조회.py",
