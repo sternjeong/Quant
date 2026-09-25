@@ -117,6 +117,36 @@ def _unit_pill(status: UnitStatus) -> tuple[str, str]:
     return ui.pill(label, "bad"), "bad"
 
 
+# 타이머가 주기적으로 한 번씩 실행하고 끝나는(oneshot) 서비스: 평소에 inactive 인 것이 정상이다.
+# 이런 슬롯은 서비스 대신 타이머가 살아 있는지와 서비스의 마지막 실행 결과로 판정한다(2026-09-25 — 전에는 개요에서
+# VM 헬스체크가 늘 "멈춤"으로 보이고 판정 배너의 '서비스 멈춤' 개수에도 들어가 거짓 경보가 났다).
+ONESHOT_TIMERS = {"quant-vm-health.service": "quant-vm-health.timer"}
+
+
+def _slot_unit_pill(unit: str) -> tuple[str, str]:
+    timer = ONESHOT_TIMERS.get(unit)
+    if timer is None:
+        return _unit_pill(get_unit_status(unit))
+    svc, tmr = get_unit_status(unit), get_unit_status(timer)
+    if not svc.is_known and not tmr.is_known:
+        return ui.pill("확인 불가", "muted"), "muted"
+    if svc.active_state == "failed" or _last_result(unit) not in ("", "success"):
+        return ui.pill("마지막 실행 실패", "bad"), "bad"
+    if tmr.is_known and not tmr.is_active:
+        return ui.pill("타이머 멈춤", "bad"), "bad"
+    if svc.is_active:
+        return ui.pill("실행 중", "ok"), "ok"
+    return ui.pill("대기(정상)", "ok"), "ok"
+
+
+def _last_result(unit: str) -> str:
+    try:
+        from hub.engine_pages import _systemctl_props
+    except ImportError:
+        return ""
+    return _systemctl_props(unit, "Result").get("Result", "")
+
+
 def _badge_html(status: UnitStatus) -> str:
     return _unit_pill(status)[0]
 
@@ -236,7 +266,7 @@ def render_dashboard(host: str) -> str:
         elif slot.kind == "research":
             end = research_status.card_badge(research_status.collect())
         else:
-            end, tone = _unit_pill(get_unit_status(slot.unit))
+            end, tone = _slot_unit_pill(slot.unit)
             if slot.unit not in seen_units:
                 seen_units.add(slot.unit)
                 unit_tones.append(tone)

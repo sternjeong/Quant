@@ -255,3 +255,27 @@ def test_overview_never_claims_all_ok_when_service_state_is_unknown(monkeypatch)
     monkeypatch.setattr(server.ops_status, "job_health_summary", lambda: {"ok": True, "counts": {"ok": 3, "problem": 0}, "problems": [], "error": None})
     page = server.render_dashboard("h")
     assert "모든 시스템 정상" not in page and "서비스 상태를 확인할 수 없습니다" in page
+
+
+def test_oneshot_vm_health_is_not_reported_as_stopped(monkeypatch):
+    """타이머가 돌리는 oneshot 서비스는 평소 inactive 가 정상 — 개요에서 '멈춤'이나 판정 배너 경보가 되면 안 된다."""
+    from hub.status import UnitStatus
+
+    def fake(unit):
+        if unit == "quant-vm-health.service":
+            return UnitStatus("inactive", "dead", "")
+        return UnitStatus("active", "running", "")
+
+    monkeypatch.setattr(server, "get_unit_status", fake)
+    monkeypatch.setattr(server, "_last_result", lambda unit: "success")
+    monkeypatch.setattr(server.ops_status, "job_health_summary", lambda: {"ok": True, "counts": {"ok": 3, "problem": 0}, "problems": [], "error": None})
+    page = server.render_dashboard("h")
+    assert "대기(정상)" in page and "서비스 1개가 멈춤" not in page and "모든 시스템 정상" in page
+    # 타이머가 멈추면 진짜 문제로 잡는다
+    monkeypatch.setattr(server, "get_unit_status", lambda u: UnitStatus("inactive", "dead", "") if u.endswith(("vm-health.service", "vm-health.timer")) else UnitStatus("active", "running", ""))
+    page = server.render_dashboard("h")
+    assert "타이머 멈춤" in page and "확인이 필요합니다" in page
+    # 마지막 실행이 실패했으면 문제
+    monkeypatch.setattr(server, "get_unit_status", fake)
+    monkeypatch.setattr(server, "_last_result", lambda unit: "exit-code")
+    assert "마지막 실행 실패" in server.render_dashboard("h")
