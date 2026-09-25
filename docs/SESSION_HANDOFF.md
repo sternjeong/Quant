@@ -250,6 +250,15 @@
 - **ENG-02:** 부분 결측 coverage 임계값 정책, 과거 저장 스냅샷에 unknown 필드 없음.
 - **협업 방식:** 병렬 에이전트 두 곳이 `git stash`를 써 다른 작업이 잠시 되돌려졌다. 다음 병렬 작업은 미커밋 변경을 먼저 브랜치 또는 커밋으로 보존한 뒤 에이전트별 worktree와 통합 담당자를 쓴다. 전체 테스트 통과만으로 모든 변경의 복원을 증명할 수 없다.
 
+## 2026-09-25 ENG-02 후속: 시장 국면 부분 결측 정책 (브랜치 fix-regime-partial, 미병합·미배포)
+
+- **결정:** 결측 신호를 0점으로 합산하지 않는다. 가중치(각 신호 최대 절대점수 25, 4개 동일) 기준 coverage가 `MIN_REGIME_SIGNAL_COVERAGE=0.75` 미만이거나 시장폭이 없으면 `unknown`, 그 외 결측이 있으면 가용 점수 합/coverage로 재정규화해 판정하고 `partial=True`, `missing_signals`로 표시한다.
+- **근거:** 전체 데이터에서도 신호 1개(25점)로는 ±35를 못 넘는다(최소 2개 신호 합의 필요). 재정규화 후 이 불변식이 유지되려면 25/c<35, c>0.714 → 가능한 값 중 최소 0.75. 시장폭은 나머지 3개(모두 같은 벤치마크 종가에서 파생)와 독립된 유일한 데이터라 필수로 유지(기존 ENG-02 테스트 그대로).
+- **실제 영향:** 200일선·크로스는 같은 조건(이력 200거래일)으로 함께 빠지므로, 벤치마크 이력 부족 시 예전엔 낙폭+시장폭 합으로 '중립/혼조'가 나오던 것이 이제 `unknown`이다. 모든 신호가 있을 때 점수·국면은 불변(구 로직 재현 96개 조합 대조).
+- **변경:** `core/market_regime.py`(`combine_regime_signals`, `signal_status`/`coverage`/`raw_total_score`/`regime_reason` 저장, `select_regime_for_trading`은 partial이면 `is_ambiguous=True`, unknown 사유 전달), `app/pages/7_시장_진단.py`(unknown 사유·일부 신호 결측 경고만 추가), `hub/guide/content_pages_b.py`·`content_modules_b.py`·`content_ops.py`, `tests/test_market_regime.py`.
+- **검증:** 전체 pytest 통과, `python -m hub.guide.check` 빠진 설명 없음. Streamlit 렌더링·실데이터 스냅샷은 확인하지 않았다. 과거 저장 스냅샷은 수정하지 않았다(새 필드 없음, 읽는 쪽은 `.get()`).
+- **후속:** `app/pages/11_챔피언_전략.py`의 unknown 부제 '시장폭 데이터 없음'은 고정 문구라 새 사유(coverage 미달)와 다를 수 있다(당시 다른 세션 담당이라 미수정). 오늘 화면은 partial을 따로 표시하지 않는다.
+
 ## 연속성 한계
 
 이 문서 체계는 저장소를 이용하는 에이전트가 결정 중심 요약을 이어 읽도록 돕는다. 모든 대화 원문이나 외부 세션의 상태를 자동 보존한다는 보장은 없다.

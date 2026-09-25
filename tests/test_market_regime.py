@@ -687,3 +687,209 @@ def test_select_regime_for_trading_unknown_snapshot_gives_no_trading_regime():
     assert result["trading_regime"] is None
     assert result["is_ambiguous"] is True
     assert result["snapshot"] is not None
+
+
+# ----------------------------------------------------------------------------
+# ENG-02 후속(2026-09-25): 신호별 coverage, 부분 결측 재정규화, 결측 임계값
+# ----------------------------------------------------------------------------
+
+
+def _legacy_regime(trend, cross, drawdown, breadth):
+    """변경 전 로직을 테스트 안에서 독립적으로 재현: 가용 점수 단순 합산, 시장폭 없으면 unknown."""
+    total = sum(s for s in (trend, cross, drawdown, breadth) if s is not None)
+    if breadth is None:
+        return "unknown", total
+    if total >= 35:
+        return "강세장", total
+    if total <= -35:
+        return "약세장", total
+    return "중립/혼조", total
+
+
+def _parts(trend=None, cross=None, drawdown=None, breadth=None):
+    def wrap(score):
+        return None if score is None else {"score": score}
+    return {
+        "trend_position": wrap(trend), "ma_cross": wrap(cross),
+        "drawdown": wrap(drawdown),
+        "breadth": {"score": breadth, "status": "ok" if breadth is not None else "unknown"},
+    }
+
+
+def test_min_coverage_threshold_is_fixed_and_justified_by_signal_weights():
+    assert market_regime.MIN_REGIME_SIGNAL_COVERAGE == 0.75
+    assert market_regime.REGIME_SIGNAL_WEIGHTS == {
+        "trend_position": 25.0, "ma_cross": 25.0, "drawdown": 25.0, "breadth": 25.0,
+    }
+    assert market_regime.REGIME_REQUIRED_SIGNALS == ("breadth",)
+    # 재정규화 후에도 신호 1개(25점)만으로 ±35를 넘지 못해야 한다: 25/0.75=33.3 < 35
+    assert 25.0 / market_regime.MIN_REGIME_SIGNAL_COVERAGE < market_regime.BULLISH_THRESHOLD
+    # 한 단계 낮은 coverage(0.5)면 신호 1개가 50점이 돼 단독 판정 -> 허용하면 안 됨
+    assert 25.0 / 0.5 >= market_regime.BULLISH_THRESHOLD
+
+
+@pytest.mark.parametrize("trend", [25.0, -25.0])
+@pytest.mark.parametrize("cross", [25.0, -25.0])
+@pytest.mark.parametrize("drawdown", [0.0, -5.0, -12.5, -25.0])
+@pytest.mark.parametrize("breadth", [-25.0, -10.0, 0.0, 10.0, 12.5, 25.0])
+def test_combine_all_signals_available_matches_legacy_logic(trend, cross, drawdown, breadth):
+    result = market_regime.combine_regime_signals(_parts(trend, cross, drawdown, breadth))
+    expected_regime, expected_total = _legacy_regime(trend, cross, drawdown, breadth)
+    assert result["regime"] == expected_regime
+    assert result["total_score"] == pytest.approx(expected_total)
+    assert result["raw_total_score"] == pytest.approx(expected_total)
+    assert result["coverage"] == 1.0
+    assert result["partial"] is False
+    assert result["missing_signals"] == []
+    assert result["signals_available"] == 4 and result["signals_total"] == 4
+    assert result["regime_reason"] is None
+
+
+def test_combine_below_threshold_is_unknown_even_if_breadth_present():
+    # 200일선·크로스 결측(coverage 0.5) -> 예전 로직은 25점 합산으로 '중립/혼조'를 냈다.
+    result = market_regime.combine_regime_signals(_parts(None, None, 0.0, 25.0))
+    assert _legacy_regime(None, None, 0.0, 25.0)[0] == "중립/혼조"
+    assert result["regime"] == "unknown"
+    assert result["regime_status"] == "unknown"
+    assert result["coverage"] == pytest.approx(0.5)
+    assert result["missing_signals"] == ["trend_position", "ma_cross"]
+    assert "50%" in result["regime_reason"]
+
+
+def test_combine_breadth_missing_is_unknown_even_at_075_coverage():
+    result = market_regime.combine_regime_signals(_parts(25.0, 25.0, 0.0, None))
+    assert result["coverage"] == pytest.approx(0.75)
+    assert result["regime"] == "unknown"
+    assert result["missing_signals"] == ["breadth"]
+    assert "시장폭" in result["regime_reason"]
+
+
+def test_combine_at_threshold_renormalizes_and_flags_partial():
+    # 손계산: (25 + 0 + 25) / 0.75 = 66.67 -> 강세장
+    result = market_regime.combine_regime_signals(
+        _parts(25.0, None, 0.0, 25.0), {"ma_cross": "테스트 사유"},
+    )
+    assert result["regime"] == "강세장"
+    assert result["total_score"] == pytest.approx(200.0 / 3)
+    assert result["raw_total_score"] == pytest.approx(50.0)
+    assert result["partial"] is True
+    assert result["missing_signals"] == ["ma_cross"]
+    assert result["signals_available"] == 3
+    assert result["signal_status"]["ma_cross"] == {
+        "status": "missing", "weight": 25.0, "score": None, "reason": "테스트 사유",
+    }
+    assert result["signal_status"]["trend_position"]["status"] == "ok"
+
+
+def test_combine_missing_signal_does_not_pull_toward_neutral():
+    # 강세 신호(200일선 +25, 시장폭 +5)와 낙폭 0, 크로스 결측.
+    # 0점 합산: 30 -> 중립/혼조. 재정규화: 30/0.75 = 40 -> 강세장.
+    legacy_regime, legacy_total = _legacy_regime(25.0, None, 0.0, 5.0)
+    assert (legacy_regime, legacy_total) == ("중립/혼조", 30.0)
+    result = market_regime.combine_regime_signals(_parts(25.0, None, 0.0, 5.0))
+    assert result["total_score"] == pytest.approx(40.0)
+    assert result["total_score"] > legacy_total
+    assert result["regime"] == "강세장"
+    # 약세 쪽도 대칭: (-25 - 5 + 0)/0.75 = -40 -> 약세장
+    bear = market_regime.combine_regime_signals(_parts(-25.0, None, 0.0, -5.0))
+    assert bear["total_score"] == pytest.approx(-40.0)
+    assert bear["regime"] == "약세장"
+
+
+def test_combine_partial_single_signal_still_cannot_decide_alone():
+    # 25/0.75 = 33.3 < 35 -> 중립/혼조 (신호 1개 단독 판정 금지 불변식)
+    result = market_regime.combine_regime_signals(_parts(25.0, None, 0.0, 0.0))
+    assert result["total_score"] == pytest.approx(100.0 / 3)
+    assert result["regime"] == "중립/혼조"
+    assert result["partial"] is True
+
+
+def test_snapshot_full_signals_reports_full_coverage(monkeypatch):
+    benchmark = _uptrend_series()
+    monkeypatch.setattr(market_regime, "get_price_history", lambda *a, **k: benchmark.to_frame(name="Close"))
+    monkeypatch.setattr(
+        market_regime, "get_multiple_price_history",
+        lambda tickers, **k: {t: _uptrend_series().to_frame(name="Close") for t in tickers},
+    )
+    snapshot = market_regime.get_market_regime_snapshot(["A", "B"])
+    # 손계산: 200일선 +25, 골든 +25, 신고가 낙폭 0, 시장폭 100% -> +25 = 75
+    assert snapshot["total_score"] == pytest.approx(75.0)
+    assert snapshot["regime"] == "강세장"
+    assert snapshot["coverage"] == 1.0
+    assert snapshot["partial"] is False
+    assert snapshot["missing_signals"] == []
+    assert all(s["status"] == "ok" for s in snapshot["signal_status"].values())
+
+
+def test_snapshot_short_benchmark_history_is_unknown_with_reasons(monkeypatch):
+    benchmark = _uptrend_series(n=100)  # 200일선 계산 불가, 낙폭만 가능
+    monkeypatch.setattr(market_regime, "get_price_history", lambda *a, **k: benchmark.to_frame(name="Close"))
+    monkeypatch.setattr(
+        market_regime, "get_multiple_price_history",
+        lambda tickers, **k: {t: _uptrend_series().to_frame(name="Close") for t in tickers},
+    )
+    snapshot = market_regime.get_market_regime_snapshot(["A"])
+    assert snapshot["regime"] == "unknown"
+    assert snapshot["coverage"] == pytest.approx(0.5)
+    assert snapshot["missing_signals"] == ["trend_position", "ma_cross"]
+    assert "100거래일 < 200" in snapshot["signal_status"]["trend_position"]["reason"]
+    assert snapshot["signal_status"]["drawdown"]["status"] == "ok"
+    assert snapshot["signal_status"]["breadth"]["status"] == "ok"
+
+
+def test_snapshot_breadth_missing_reason_recorded(monkeypatch):
+    benchmark = _uptrend_series()
+    monkeypatch.setattr(market_regime, "get_price_history", lambda *a, **k: benchmark.to_frame(name="Close"))
+    monkeypatch.setattr(market_regime, "get_multiple_price_history", lambda tickers, **k: {})
+    snapshot = market_regime.get_market_regime_snapshot(["A", "B"])
+    assert snapshot["regime"] == "unknown"
+    assert snapshot["signal_status"]["breadth"]["reason"] == "200일선 계산 가능 종목 0개(전체 2종목)"
+    assert snapshot["breadth"]["coverage"] == 0.0  # 시장폭 자체 coverage 필드는 유지
+
+
+def test_combine_result_is_json_serializable_for_storage():
+    import json
+
+    result = market_regime.combine_regime_signals(_parts(25.0, None, 0.0, 25.0))
+    assert json.loads(json.dumps(result, ensure_ascii=False))["missing_signals"] == ["ma_cross"]
+
+
+def test_select_regime_for_trading_partial_verdict_is_ambiguous():
+    snapshot = {"regime": "강세장", "total_score": 66.7, "partial": True, "missing_signals": ["ma_cross"]}
+    result = market_regime.select_regime_for_trading(snapshot)
+    assert result["trading_regime"] == "강세장"
+    assert result["is_ambiguous"] is True
+
+
+def test_select_regime_for_trading_old_snapshot_without_partial_field_unchanged():
+    result = market_regime.select_regime_for_trading({"regime": "약세장", "total_score": -60.0})
+    assert result["trading_regime"] == "약세장"
+    assert result["is_ambiguous"] is False
+
+
+def test_select_regime_for_trading_unknown_reports_snapshot_reason():
+    result = market_regime.select_regime_for_trading(
+        {"regime": "unknown", "total_score": 25.0, "regime_reason": "가용 신호 가중치 50% < 최소 75%"},
+    )
+    assert result["trading_regime"] is None
+    assert "50%" in result["reason"]
+
+
+def test_consumers_handle_unknown_snapshot(monkeypatch):
+    from core import champion_strategy
+    from core.today_dashboard import build_today_dashboard
+
+    snapshot = {"regime": "unknown", "total_score": 25.0, "partial": True, "missing_signals": ["trend_position", "ma_cross"]}
+    monkeypatch.setattr(market_regime, "get_latest_market_regime_snapshot", lambda: snapshot)
+    ctx = champion_strategy.load_market_regime_context()
+    assert ctx["trading_regime"] is None and ctx["is_ambiguous"] is True
+
+    dashboard = build_today_dashboard({
+        "holdings": lambda: {"as_of": "2026-09-25", "core_top4": []},
+        "market": lambda: snapshot,
+        "jobs": lambda: {"counts": {"problem": 0}},
+        "backup": lambda: {"level": "ok", "lines": []},
+        "unread_alerts": lambda: 0,
+        "watchlist_count": lambda: 0,
+    })
+    assert any(a["title"] == "시장 국면 판단 보류" for a in dashboard["actions"])

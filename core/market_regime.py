@@ -481,6 +481,118 @@ def classify_regime(total_score: float) -> str:
     return "중립/혼조"
 
 
+# ----------------------------------------------------------------------------
+# 신호별 가용성(coverage)과 부분 결측 정책 (ENG-02 후속, 2026-09-25)
+#
+# 예전에는 시장폭이 통째로 없을 때만 unknown이고, 나머지 신호가 빠지면 남은 점수만 더했다. 결측
+# 신호가 사실상 0점(중립)으로 합산돼 국면이 중립 쪽으로 끌려가거나, 신호 1~2개만으로 판정이 나왔다.
+#
+# 가중치: 각 신호가 낼 수 있는 최대 절대점수. 4신호 모두 25점 척도라(낙폭은 -25~0이지만 최대 절대값
+# 25) 가중치는 동일하게 25, 총 100이다.
+#
+# 정책 = (a) 가중치 coverage 임계값 + 재정규화, 단 시장폭은 필수(기존 ENG-02 결정 유지):
+# - 판정 점수 = (가용 신호 점수 합) / coverage. 결측을 0점으로 두지 않고 가용 가중치로 재정규화한다.
+#   모든 신호가 있으면 coverage=1이라 점수·국면이 예전과 똑같다.
+# - 임계값 0.75의 근거: 전체 데이터에서도 신호 1개(최대 25점)만으로는 ±35 임계값을 넘을 수 없어
+#   "최소 2개 신호가 같은 방향"이어야 강세/약세가 나오는 구조다. 재정규화하면 신호 1개가 25/c점이
+#   되므로, 이 불변식을 지키려면 25/c < 35, 즉 c > 25/35 ≈ 0.714 여야 한다. 신호 가중치가 모두 25라
+#   가능한 coverage는 0.25/0.5/0.75/1.0뿐이고, 이를 만족하는 최소값이 0.75(4개 중 3개)다.
+#   0.5(2개)면 신호 1개가 50점이 돼 단독으로 국면을 결정할 수 있으므로 unknown으로 둔다.
+# - 시장폭 필수: 200일선·크로스·낙폭 3개는 모두 같은 벤치마크 종가 한 줄에서 나오고, 시장폭만
+#   유일하게 독립된 데이터(유니버스 전종목)라 교차확인 역할을 한다. 그래서 시장폭이 없으면 coverage
+#   0.75여도 unknown이다(ENG-02 이전 결정·테스트 그대로).
+# 판정이 나와도 결측이 있으면 partial=True, missing_signals에 이름을 남겨 화면이 알 수 있게 한다.
+# ----------------------------------------------------------------------------
+
+REGIME_SIGNAL_WEIGHTS: dict[str, float] = {
+    "trend_position": 25.0,
+    "ma_cross": 25.0,
+    "drawdown": 25.0,
+    "breadth": 25.0,
+}
+REGIME_SIGNAL_LABELS: dict[str, str] = {
+    "trend_position": "200일선 대비 위치",
+    "ma_cross": "골든/데드크로스",
+    "drawdown": "52주 고점 대비 낙폭",
+    "breadth": "시장폭",
+}
+REGIME_REQUIRED_SIGNALS: tuple[str, ...] = ("breadth",)
+MIN_REGIME_SIGNAL_COVERAGE = 0.75
+
+
+def combine_regime_signals(parts: dict[str, Optional[dict]], missing_reasons: Optional[dict[str, str]] = None) -> dict:
+    """신호별 결과(dict 또는 None; score=None도 결측)를 합쳐 국면·coverage·결측 정보를 만든다.
+
+    Returns:
+        {"regime", "regime_status"("ok"|"unknown"), "regime_reason"(unknown일 때 사유, 아니면 None),
+         "total_score"(판정 점수: 재정규화 값, unknown이면 가용 신호 원합계), "raw_total_score",
+         "coverage"(가중치 기준 0~1), "signals_available", "signals_total", "partial",
+         "missing_signals"(list[str]), "signal_status"({name: {"status","weight","score","reason"}})}
+    """
+    missing_reasons = missing_reasons or {}
+    total_weight = sum(REGIME_SIGNAL_WEIGHTS.values())
+    signal_status: dict[str, dict] = {}
+    available_weight = 0.0
+    raw_total = 0.0
+    missing: list[str] = []
+    for name, weight in REGIME_SIGNAL_WEIGHTS.items():
+        part = parts.get(name)
+        score = None if part is None else part.get("score")
+        if score is None:
+            missing.append(name)
+            signal_status[name] = {
+                "status": "missing", "weight": weight, "score": None,
+                "reason": missing_reasons.get(name) or "계산 불가(데이터 부족)",
+            }
+        else:
+            available_weight += weight
+            raw_total += float(score)
+            signal_status[name] = {"status": "ok", "weight": weight, "score": float(score), "reason": None}
+
+    coverage = available_weight / total_weight if total_weight else 0.0
+    missing_required = [n for n in REGIME_REQUIRED_SIGNALS if n in missing]
+    reason: Optional[str] = None
+    if missing_required:
+        reason = "필수 신호 결측: " + ", ".join(
+            f"{REGIME_SIGNAL_LABELS[n]}({signal_status[n]['reason']})" for n in missing_required
+        )
+    elif coverage < MIN_REGIME_SIGNAL_COVERAGE:
+        reason = (
+            f"가용 신호 가중치 {coverage:.0%} < 최소 {MIN_REGIME_SIGNAL_COVERAGE:.0%} — 결측: "
+            + ", ".join(f"{REGIME_SIGNAL_LABELS[n]}({signal_status[n]['reason']})" for n in missing)
+        )
+
+    if reason is None:
+        total_score = raw_total / coverage
+        regime = classify_regime(total_score)
+    else:
+        total_score = raw_total
+        regime = "unknown"
+
+    return {
+        "regime": regime,
+        "regime_status": "unknown" if regime == "unknown" else "ok",
+        "regime_reason": reason,
+        "total_score": total_score,
+        "raw_total_score": raw_total,
+        "coverage": coverage,
+        "signals_available": len(REGIME_SIGNAL_WEIGHTS) - len(missing),
+        "signals_total": len(REGIME_SIGNAL_WEIGHTS),
+        "partial": bool(missing),
+        "missing_signals": missing,
+        "signal_status": signal_status,
+    }
+
+
+def _benchmark_missing_reason(close: pd.Series, benchmark_ticker: str, min_len: int) -> str:
+    n = len(close.dropna())
+    if n == 0:
+        return f"{benchmark_ticker} 가격 데이터 없음"
+    if n < min_len:
+        return f"{benchmark_ticker} 종가 이력 부족({n}거래일 < {min_len})"
+    return "계산 불가(데이터 부족)"
+
+
 def get_market_regime_snapshot(
     universe_tickers: list[str],
     benchmark_ticker: str = DEFAULT_BENCHMARK_TICKER,
@@ -489,11 +601,17 @@ def get_market_regime_snapshot(
 
     Returns:
         {
-            "regime": "강세장"|"중립/혼조"|"약세장", "total_score": float,
+            "regime": "강세장"|"중립/혼조"|"약세장"|"unknown", "total_score": float,
             "trend_position": dict|None, "ma_cross": dict|None,
             "drawdown": dict|None, "breadth": dict,
             "short_term": {"1개월": dict|None, "3개월": dict|None},
+            + combine_regime_signals()의 regime_status/regime_reason/raw_total_score/coverage/
+              signals_available/signals_total/partial/missing_signals/signal_status
         }
+
+    부분 결측이면 가용 가중치로 재정규화해 판정하고(partial=True), 가중치 coverage가
+    MIN_REGIME_SIGNAL_COVERAGE 미만이거나 시장폭이 없으면 unknown이다. 새 필드는 2026-09-25 이후
+    스냅샷에만 있으므로 읽는 쪽은 .get()으로 다룬다.
 
     "regime"/"total_score"는 위 4개 신호(200일선 등 중장기·1년 안팎 추세) 기준이고, "short_term"은
     별도로 최근 1개월/3개월 수익률(%) 부호만 보는 단기 참고 지표다 — 종합 점수 계산에는 섞이지 않는다
@@ -510,17 +628,20 @@ def get_market_regime_snapshot(
     breadth.update(breadth_raw)
     short_term = get_short_term_regimes(close)
 
-    total_score = sum(
-        part["score"] for part in (trend_position, ma_cross, drawdown, breadth)
-        if part is not None and part.get("score") is not None
+    # 결측 신호는 0점으로 합산하지 않는다 — 정책은 combine_regime_signals 위 주석 참고.
+    missing_reasons = {
+        "trend_position": _benchmark_missing_reason(close, benchmark_ticker, 200),
+        "ma_cross": _benchmark_missing_reason(close, benchmark_ticker, 200),
+        "drawdown": _benchmark_missing_reason(close, benchmark_ticker, 1),
+        "breadth": f"200일선 계산 가능 종목 0개(전체 {breadth_raw['n_total']}종목)",
+    }
+    combined = combine_regime_signals(
+        {"trend_position": trend_position, "ma_cross": ma_cross, "drawdown": drawdown, "breadth": breadth},
+        missing_reasons,
     )
-    # breadth 데이터가 하나도 없으면 4신호 합산이 성립하지 않으므로 국면을 unknown으로 둔다.
-    regime = classify_regime(total_score) if breadth["status"] == "ok" else "unknown"
 
     return {
-        "regime": regime,
-        "regime_status": "ok" if regime != "unknown" else "unknown",
-        "total_score": total_score,
+        **combined,
         "trend_position": trend_position,
         "ma_cross": ma_cross,
         "drawdown": drawdown,
@@ -601,7 +722,8 @@ def select_regime_for_trading(snapshot: Optional[dict] = None) -> dict:
 
     snapshot을 안 주면 get_latest_market_regime_snapshot()으로 가장 최근 저장된 스냅샷을 쓴다
     (market_snapshot_job이 매일 00:00 KST에 미리 계산해두는 것을 재사용 — 매번 무겁게 재계산하지
-    않음). 저장된 스냅샷이 하나도 없으면 판단 불가로 처리한다.
+    않음). 저장된 스냅샷이 하나도 없으면 판단 불가로 처리한다. 스냅샷이 unknown이면
+    trading_regime=None, 일부 신호 결측으로 재정규화된 판정(partial=True)이면 is_ambiguous=True다.
 
     Returns:
         {"trading_regime": "약세장"|"강세장"|None, "is_ambiguous": bool, "total_score": float|None,
@@ -626,14 +748,15 @@ def select_regime_for_trading(snapshot: Optional[dict] = None) -> dict:
             "is_ambiguous": True,
             "total_score": total_score,
             "snapshot": snapshot,
-            "reason": "시장 국면 unknown (시장폭 데이터 없음 등).",
+            "reason": "시장 국면 unknown: " + (snapshot.get("regime_reason") or "시장폭 데이터 없음 등"),
         }
     if regime == "중립/혼조":
         trading_regime = "강세장" if total_score >= 0 else "약세장"
         is_ambiguous = True
     else:
         trading_regime = regime
-        is_ambiguous = False
+        # 일부 신호 결측으로 재정규화된 판정이면 확정 판정으로 보지 않는다(2026-09-25).
+        is_ambiguous = bool(snapshot.get("partial"))
 
     return {
         "trading_regime": trading_regime,
