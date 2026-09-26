@@ -227,7 +227,16 @@ MODULES: tuple[ModuleGuide, ...] = (
         cautions=
             '이 모듈은 계산만 하며 주문은 별도 스크립트(scripts/champion_paper_trade.py)가 담당합니다. 확신도가 낮은 구성요소도 숨기지 않고 표시합니다. 과거 백테스트 기반이라 미래 수익을 보장하지 않습니다.',
         sources=('app/pages/11_챔피언_전략.py', 'scheduler/run_scheduler.py'),
-        verified=V,
+        verified="2026-09-26",
+    ),
+    ModuleGuide(
+        module="core/champion_performance.py", name="챔피언 성과 해부", group="운용", status="운영중",
+        what="챔피언 백테스트가 만든 코어·새틀라이트 비중 시계열을 그대로 풀어 거래(보유 구간) 목록·비중 조정 기록·달러 자산곡선·연도별 수익·종목별 손익 기여를 만들고, 같은 구간 SPY·60/40과 비교합니다. 새 전략 판단은 하지 않으며 거래 손익 합이 기존 백테스트 자산곡선과 맞는지 스스로 검산합니다. 따로, 2026-09-19부터 쌓인 '추천을 따랐다면' 원장과 paper 계좌 스냅샷으로 실제 시장 기록을 계산합니다(백테스트와 섞지 않음).",
+        how_to_use="챔피언 성과 화면에서 씁니다. 저장된 결과가 없으면 화면의 '📊 계산 시작' 버튼으로 백그라운드 계산을 시작합니다. 결과를 초기 금액 대비 배수로 저장해 두고 화면에서 곱하므로 초기 금액을 바꿔도 다시 계산하지 않습니다.",
+        where_to_see="챔피언 성과 화면. 계산 결과는 data/cache/champion_performance_<해시>.json",
+        cautions="백테스트 부분은 과거 가격에 규칙을 적용한 가상 결과이고 비용은 편도 고정 bp만, 새틀라이트 후보는 현재 S&P500 명단 기반이라 생존편향이 있습니다. 실시간 부분은 실제 주문 기록이 아닙니다. 주문 경로를 import 하지 않습니다. 캐시 키에는 기간·새틀라이트 비중·전략 버전·비용 가정이 들어가며, 전략 버전이 바뀌면 옛 결과는 쓰지 않습니다.",
+        sources=("core/champion_strategy.py", "app/pages/14_챔피언_성과.py"),
+        verified="2026-09-26",
     ),
     ModuleGuide(
         module='core/chart_rendering.py',
