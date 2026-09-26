@@ -182,6 +182,22 @@ MODULES: tuple[ModuleGuide, ...] = (
         verified=V,
     ),
     ModuleGuide(
+        module='core/exit_variants.py',
+        name='후보 원장 청산 규칙 비교',
+        group='리서치 인프라',
+        status='관측 전용',
+        what=
+            "후보 shadow 원장에 이미 기록된 후보를 같은 진입(다음 시가)에서 청산 규칙만 바꿔 다시 계산하고, 원장과 같은 판정 틀로 비교합니다. 변형은 사전에 고정한 4개입니다: 원장과 같은 20거래일 보유, 진입가 -8% 고정 손절, 최고 종가 -10% 추적 손절, 위성 전략의 최고 종가 -15% 트레일링 스탑(모두 20거래일 상한). 손절은 일봉 종가로 판단하고 다음 거래일 시가에 체결된다고 봅니다.",
+        how_to_use=
+            "자동 잡에 연결되어 있지 않습니다. 보고서가 필요하면 파이썬에서 core.exit_variants.write_exit_variants_report() 를 부르면 data/reports/exit_variants_날짜.md·.json 이 만들어집니다. 채택 그룹의 비용 후 기대값·승률·손익비·최대 손실과 놓친 기회를 변형별로, 기준선 대비 차이와 함께 봅니다.",
+        where_to_see=
+            '화면 없음(data/reports/exit_variants_날짜.md)',
+        cautions=
+            "기준선이 아닌 변형 3개는 여러 규칙을 동시에 본 탐색 결과라 신뢰구간을 3배 보수적으로 잡고 '탐색 결과'로만 표시합니다. 표본 부족·PIT 미인증이면 '미입증'입니다. 결과는 과거 관측이며 미래 성과를 보장하지 않고, 주문에 영향을 주지 않습니다.",
+        sources=('docs/EXIT_VARIANTS_SPEC.md',),
+        verified='2026-09-26',
+    ),
+    ModuleGuide(
         module='core/candidate_recorder.py',
         name='후보 원장 기록 잡',
         group='리서치 인프라',
