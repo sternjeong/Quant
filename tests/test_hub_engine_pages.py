@@ -197,7 +197,7 @@ def test_scheduler_page_survives_db_failure(monkeypatch):
     monkeypatch.setattr(ep, "get_unit_status", lambda unit: UnitStatus("unknown", "unknown", ""))
     html = ep.render(_slot())
     assert html is not None and "확인 불가" in html
-    assert "잡 목록" in html  # 이력이 없어도 잡 목록(이름·시각)은 그린다
+    assert "자동 잡" in html  # 이력이 없어도 잡 목록(이름·시각)은 그린다
 
 
 # ---- 텔레그램 에이전트 -------------------------------------------------------------------------------------
