@@ -309,6 +309,15 @@ def mentioned_screens(text: str) -> list[tuple[str, str, str]]:
     return [(p, t, i) for _, p, t, i in sorted(found)]
 
 
+GUIDE_SECTIONS = {"운영·알림": "ops", "자동 잡": "jobs", "운영 도구": "tools", "화면 안내": "screens", "용어집": "glossary"}
+
+
+def mentioned_sections(text: str) -> list[tuple[str, str]]:
+    """본문에 '운영·알림' 처럼 따옴표로, 또는 '운영·알림 절', '자동 잡 표' 처럼 나온 설명서 구역 [(이름, 주소)]."""
+    return [(name, href(sec)) for name, sec in GUIDE_SECTIONS.items()
+            if any(form in text for form in (f"'{name}'", f"{name} 절", f"{name} 표"))]
+
+
 def mentioned_tools(text: str, content: GuideContent) -> list[ScriptGuide]:
     return [s for s in content.scripts if Path(s.path).name in text]
 
@@ -452,7 +461,8 @@ def render_task(content: GuideContent, r: Routine) -> str:
         screens = mentioned_screens(s)
         used_screens += [sc for sc in screens if sc not in used_screens]
         acts = _screen_buttons(screens) + "".join(
-            f'<a class="btn" href="{E(href("tools", file_slug(t.path)))}">🧰 {E(t.name)}</a>' for t in mentioned_tools(s, content))
+            f'<a class="btn" href="{E(href("tools", file_slug(t.path)))}">🧰 {E(t.name)}</a>' for t in mentioned_tools(s, content)
+        ) + "".join(f'<a class="btn" href="{E(u)}">📖 {E(n)}</a>' for n, u in mentioned_sections(s))
         acts_html = f'<div class="gd-acts">{acts}</div>' if acts else ""
         steps.append(f'<li class="gd-step"><div class="n">{n}</div><div class="c"><p>{tx(s)}</p>{acts_html}</div></li>')
     related = ui.row_list(ui.row(t, href=href("screens", screen_slug(p)), icon=i, desc=_page_summary(content, p))
@@ -499,16 +509,15 @@ def render_screen(content: GuideContent, path: str, title: str, icon: str) -> st
     if g is None:
         return _page(title, f'<h1>{E(icon)} {E(title)}</h1>{btn}<div class="empty">이 화면의 설명은 준비 중입니다.</div>', crumbs)
     tx = TermLinker(content.glossary)
-    glance = ""
-    if g.plain_summary or g.example:
-        inner = (f"<p>{tx(g.plain_summary)}</p>" if g.plain_summary else "") + (
-            f'<p class="muted" style="margin-top:.5rem">예) {tx(g.example)}</p>' if g.example else "")
-        glance = _h2("한눈에") + f'<div class="panel">{inner}</div>'
+    # 쉬운 한 줄(plain_summary)이 있으면 그것을 먼저, 원래 요약은 그 아래 작은 글씨로. 예시는 따로 한 칸.
+    lead = (f'<p class="lead" style="margin-bottom:.3rem">{tx(g.plain_summary)}</p><p class="muted" style="margin:0 0 1rem;'
+            f'font-size:.88rem">{tx(g.summary)}</p>') if g.plain_summary else f'<p class="lead">{tx(g.summary)}</p>'
+    glance = ui.callout(f"<b>예시</b> · {tx(g.example)}", icon="👉") if g.example else ""
     jobs = {r.job_id: r for r in live.job_rows()}
     job_rows = [_job_row(jobs[j]) for j in g.related_jobs if j in jobs]
     tasks = [r for r in content.routines if any(p == path for p, _, _ in mentioned_screens(" ".join(r.steps)))]
     body = (
-        f'<h1>{E(icon)} {E(title)}</h1><p class="lead">{tx(g.summary)}</p>{btn}'
+        f'<h1>{E(icon)} {E(title)}</h1>{lead}{btn}'
         f'{_stale_notice(g.verified, g.sources)}{glance}'
         f'{_h2("언제 쓰나")}<p>{tx(g.when_to_use)}</p>'
         f'{_h2("사용 순서")}{_numbered(g.steps, tx)}'
@@ -558,6 +567,8 @@ def render_job(content: GuideContent, r: live.JobRow) -> str:
                if any(g.path == p and r.job_id in g.related_jobs for g in content.pages)]
     body = (f'<h1>{E(r.label)}</h1><p class="lead">{tx(r.description)}</p>{ui.kv_table(rows)}'
             + (_h2("결과 보는 곳") + f"<p>{tx(ex.where_to_see)}</p>" if ex else "")
+            + (f'<div class="gd-acts">{_screen_buttons(mentioned_screens(ex.where_to_see))}</div>'
+               if ex and mentioned_screens(ex.where_to_see) else "")
             + (_h2("알림이 오거나 실패하면") + ui.callout(tx(ex.if_alert), icon="🔔") if ex and ex.if_alert else "")
             + (_h2("이 잡이 채우는 화면") + ui.row_list(
                 ui.row(t, href=href("screens", screen_slug(p)), icon=i, desc=_page_summary(content, p)) for p, t, i in screens)
