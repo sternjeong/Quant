@@ -19,6 +19,14 @@
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
 
+## 2026-09-25 RES-04 가이던스 비교 정책 annual_same_fy_v1 (구현·단위 테스트, 브랜치 eng-guidance-annual, 배포 전)
+
+- **결정:** 방향(raised/lowered/maintained)은 연간 가이던스의 같은 회계연도 재발표끼리만 낸다. 분기·반기는 항상 unknown(`quarterly_not_comparable` 등). 분기끼리 억지 비교와 '실적/컨센서스 대비 가이던스'는 기각(스펙 3절). 같은 발표에 +1년 연간 항목이 있으면 그 해의 이전 연도 항목은 끝난 해의 실적으로 보고 비교하지 않는다(`annual_period_superseded_in_release`).
+- **근거:** 캐시+무작위 S&P 5개 = 19개 기업, 57개 발표 재계산에서 옛 규칙의 분기 방향 판정 13건이 전부 실적·배당 문장 오염이었다. 연간 방향 56건, 방향 있는 발표 13/57, V=1 형태 0/57. revenue·eps unknown 80%.
+- **구현:** `core/earnings_events.py`(`period_type`, `COMPARISON_POLICY`, GuidanceChange 추가 필드 `reason_detail`·`comparison_method`·`period_type`·`policy`, `previous_*` 속성, `evidence()`; 기존 `change`·`reason` 코드 유지), `core/guidance_event_provider.py`(캐시 형식 2, 새 필드 직렬화, params 에 정책). history_days 400·max_filings 6 은 유지(티커당 최대 13요청 × 20 = 260 ≤ 300).
+- **스펙:** `docs/EARNINGS_GUIDANCE_EXPERIMENT_SPEC.md` 3절 비교 정책, 6절 공급 조사·최소 사건 수 평가 — **veto 165건 도달은 현재 추출기·정책으로 비현실적**(상한 추정 연 10~20 episode), 실험은 `미입증` 유지가 정상.
+- **다음:** 사람 정답 대조(G0), 표 형식·YEND/FY 표기 추출 개선은 별도 작업. guidance_shadow 요약에서 `reason_detail` 을 쓰도록 바꾸는 것은 그 파일 담당 에이전트 몫.
+
 ## 2026-09-25 허브 모델 저장 forbidden 수정 (배포)
 
 - 증상: VM 허브 `/research` 에서 모델 바꾸고 저장 → `forbidden`. 원인: 허브 응답의 `Referrer-Policy: no-referrer` 때문에 브라우저가 폼 POST 의 `Origin` 을 `null` 로 보내 Host 비교가 실패. 수정: Origin 이 실제 주소일 때만 Host 와 비교하고, 그 외에는 `Sec-Fetch-Site`(cross-site·same-site 거부)로 판단(`hub/server.py::_same_origin_post`). 테스트 추가.

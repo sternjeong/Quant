@@ -305,9 +305,9 @@ MODULES: tuple[ModuleGuide, ...] = (
         where_to_see=
             '화면 없음',
         cautions=
-            "연구용이며 주문·화면과 연결돼 있지 않습니다. 추출 정확도나 성과를 주장하지 않습니다. 2026-09-25부터 가이던스 shadow 야간 잡(00:30 KST)이 SEC 조회를 켜므로 이 모듈이 매일 밤 위성 후보 종목(최대 20개)에 대해 실제로 돕니다. 분기 가이던스는 비교할 직전 같은 기간 가이던스가 없어 대부분 '판단 불가(unknown)'로 남는 것이 알려진 한계입니다.",
+            "연구용이며 주문·화면과 연결돼 있지 않습니다. 추출 정확도나 성과를 주장하지 않습니다. 2026-09-25부터 가이던스 shadow 야간 잡(00:30 KST)이 SEC 조회를 켜므로 이 모듈이 매일 밤 위성 후보 종목(최대 20개)에 대해 실제로 돕니다. 2026-09-25부터 상향·하향·유지 판정은 '연간 가이던스를 같은 회계연도끼리 다시 발표했을 때'만 냅니다. 분기 가이던스는 매번 새 분기를 가리켜 같은 기간끼리 비교할 수 없고, 다른 분기끼리 비교하면 계절성·성장이 섞이므로 항상 '판단 불가(unknown, quarterly_not_comparable)'입니다. 같은 발표에 다음 해 가이던스가 함께 있으면 끝난 해의 수치(실적일 가능성)는 비교하지 않습니다. 각 판정에는 비교 방식, 비교에 쓴 직전 발표 번호·시각·대상 기간, 세부 사유(no_prior_same_fy, unit_mismatch 등)가 남습니다. 분기 가이던스만 내거나 보도자료에 가이던스가 없는 기업은 방향이 나오지 않으며, 현재 추출기로는 revenue·eps 항목의 약 80%가 판단 불가입니다(스펙 6절 조사).",
         sources=('docs/EARNINGS_GUIDANCE_EXPERIMENT_SPEC.md', 'scripts/earnings_guidance_extraction_sample.py', 'core/guidance_event_provider.py'),
-        verified=V,
+        verified="2026-09-25",
     ),
     ModuleGuide(
         module='core/era_validation.py',
@@ -449,9 +449,9 @@ MODULES: tuple[ModuleGuide, ...] = (
         where_to_see=
             '화면 없음',
         cautions=
-            "안전장치: 한 번에 최대 20종목, SEC 요청 약 300회·5분 상한(종목과 종목 사이에서 확인), 같은 날 다시 돌면 하루 캐시 재사용, SEC 가 403 으로 막으면 즉시 멈추고 잡은 실패로 죽지 않습니다. User-Agent 는 VM .env 의 SEC_EDGAR_USER_AGENT 이름으로 읽으며 값은 기록하지 않습니다. 이 이름이 없으면 SEC 가 막을 수 있습니다. 분기 가이던스는 대부분 '판단 불가(unknown)'로 나오며, 요약에 그 수와 사유가 따로 나옵니다. 성과 미검증입니다.",
-        sources=('core/guidance_shadow.py', 'scheduler/run_scheduler.py'),
-        verified=V,
+            "안전장치: 한 번에 최대 20종목, SEC 요청 약 300회·5분 상한(종목과 종목 사이에서 확인), 같은 날 다시 돌면 하루 캐시 재사용, SEC 가 403 으로 막으면 즉시 멈추고 잡은 실패로 죽지 않습니다. User-Agent 는 VM .env 의 SEC_EDGAR_USER_AGENT 이름으로 읽으며 값은 기록하지 않습니다. 이 이름이 없으면 SEC 가 막을 수 있습니다. 방향 판정은 연간 가이던스의 같은 회계연도 재발표끼리만 나오고 분기 가이던스는 항상 '판단 불가(unknown)'입니다. 요약에 그 수와 사유가 따로 나옵니다. 같은 회계연도의 직전 값은 보통 바로 앞 분기 발표에 있어 과거 조회 범위(400일, 종목당 발표 6건)는 그대로 두었습니다. 최악의 경우 종목당 요청 13회 × 20종목 = 260회로 상한 안입니다. 2026-09-25 비교 정책 변경 때 캐시 형식을 올려, 예전 방식으로 만든 같은 날 캐시는 다시 쓰지 않습니다. 성과 미검증입니다.",
+        sources=('core/guidance_shadow.py', 'scheduler/run_scheduler.py', 'core/earnings_events.py'),
+        verified="2026-09-25",
     ),
     ModuleGuide(
         module='core/guidance_shadow.py',
