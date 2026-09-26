@@ -651,7 +651,7 @@ def build_live_record(
     spy_curve = sixty_curve = None
     try:
         hist = price_fn([BENCHMARK_TICKER, BOND_TICKER], start=out["start_date"],
-                        end=(pd.Timestamp(out["end_date"]) + pd.Timedelta(days=1)).date().isoformat(), interval="1d")
+                        end=(pd.Timestamp(out["end_date"]) + pd.DateOffset(days=1)).date().isoformat(), interval="1d")
         spy = hist.get(BENCHMARK_TICKER)
         tlt = hist.get(BOND_TICKER)
         if spy is not None and not spy.empty:

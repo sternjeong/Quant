@@ -128,6 +128,14 @@ def _plot(fig: go.Figure) -> None:
     st.plotly_chart(fig, use_container_width=True, config=_PLOT_CONFIG)
 
 
+def _link(path: str, label: str) -> None:
+    """st.page_link — 내비게이션 밖(AppTest 등)에서 실행되면 링크 대신 안내 문구만 남긴다."""
+    try:
+        st.page_link(path, label=label, width="stretch")
+    except Exception:  # noqa: BLE001 - 내비게이션 컨텍스트가 없을 때(KeyError/StreamlitAPIException)
+        st.caption(label)
+
+
 # ----------------------------------------------------------------------------
 st.title("📒 챔피언 성과")
 render_status_header("champion_performance")
@@ -460,7 +468,7 @@ if cached:
                 for r in cached["satellite_rebal_log"]
             ]), hide_index=True, use_container_width=True)
 
-st.page_link("pages/11_챔피언_전략.py", label="🏆 챔피언 전략(오늘의 추천·백테스트 설정)으로", width="stretch")
+_link("pages/11_챔피언_전략.py", "🏆 챔피언 전략(오늘의 추천·백테스트 설정)으로")
 
 # ============================================================================
 # B. 실제 시장 기록 (2026-09-19~) — 백테스트와 섞지 않는다
