@@ -51,3 +51,6 @@ deploy/codex_telegram/config.json
 # 이 저장소는 공개라 여기엔 절대 올리지 않는다 — 대신 야간 백업이 **비공개** 저장소로 가져간다
 # (deploy/backup_vm.py의 ALLOWED_PREFIXES에 notes/ 가 들어 있음, docs/TELEGRAM_REPO_BRIDGE_SPEC.md 3-1).
 notes/
+
+# 사용자가 분석용으로 받은 외부 릴스 영상(타인 저작물) — 커밋하지 않는다(2026-09-26).
+video/

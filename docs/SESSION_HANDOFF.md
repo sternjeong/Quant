@@ -1,6 +1,6 @@
 # 세션 인계
 
-최종 갱신: 2026-09-25 (관제 센터 사용 설명서 + 설명서 작성 중 발견한 결함 5건 수정)
+최종 갱신: 2026-09-26 (심판 강건성·OOS 분리·실패 방향 목록·Ken French·멈춘 피드 탐지)
 
 ## 최신 상태 요약
 
@@ -18,6 +18,23 @@
 - **공유 Codespace 이력:** 엔진 고도화 3차 세션과 UI 재구성 세션이 동시에 작업했다. 엔진 세션은 UI 파일을 건드리지 않았고, UI 2차 세션은 최신 엔진 문서 변경을 보존한 채 인계 내용을 병합했다. 다음 에이전트도 먼저 `git status`로 동시 변경 여부를 확인한다.
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
+
+## 2026-09-26 (후속) 심판 OOS 분리 + 멈춘 가격 피드 탐지 (구현·전체 테스트, 미커밋·미배포)
+
+- 계기: 사용자가 내려받은 FidetoLabs 릴스 9개(`video/`, 음성은 음악뿐 → 프레임 확대로 분석, 대부분 정적 UI 데모)에서 나온 제안 중 추천 1·2를 지시.
+- 1) `core/hypothesis_judge.py`: 마지막 `HOLDOUT_YEARS`(2)년 OOS 분리. 파라미터 선택·DSR 은 IS(≥3년)만, 고른 조합 OOS 연샤프 ≤ 0 이면 탈락. 짧으면 분리 없이 경고. 결과 JSON 에 `holdout{split,is_stats,oos_stats}`. **새 탈락 조건** — 이후 심판부터. 에이전트 계약(`_contract.md`)에 반영.
+- 2) `core/data_integrity.py`: `price_frozen`(warning) — 종가·거래량이 같은 봉 3거래일 연속, 거래량 없으면 종가 6거래일 연속. 실데이터(코어 17종+SPY·BIL·SHV·SGOV·대형주, 2025-09~2026-09)로 오탐 점검: 종가+거래량 최장 1, 종가만 최장 4(HYG) → 종가만 임계값을 5→6 으로 올림.
+- `video/` 는 타인 영상이라 `.gitignore` 에 추가.
+- 검증: 전체 `pytest tests` 2032 passed, `python -m hub.guide.check` 누락 없음. 다음 단계 후보(제안만): 허브 /research 가설별 단계 진행 화면, no-trade band shadow 실험.
+
+## 2026-09-26 가설 심판 강건성·실패 방향 목록·Ken French 시험대 (구현·전체 테스트, 미커밋·미배포)
+
+- 계기: 사용자가 FidetoLabs(인스타 @fidetolabs, 논문 재현 노트·qanat 백테스트 엔진)를 분석해 달라고 요청 → 제안 1·3·2 순서로 진행 지시. 인스타는 로그인 벽이라 웹사이트·GitHub·노트 원문으로 분석했다.
+- 1) 심판 강건성(`core/hypothesis_judge.py`, `hypothesis_engine.backtest` 에 total_turnover 추가): 손익분기 편도 bp ≥ 가정 비용×2, 상위 3개월 제외 샤프 ≥ 50%, 파라미터 ×0.5·×1.5 이웃 샤프 >0·중앙 ≥ 50%. **새 탈락 조건이다** — 이후 심판부터 적용, 과거 판정은 그대로. 이웃 백테스트만큼 심판 시간이 늘어난다(최대 6회).
+- 3) `research/agent_prompts/dead_ends.md`(단기 반전·월말 효과·Sell in May·모멘텀 크래시 필터·BAB·accruals) → Scout·Writer 시스템 프롬프트에만 붙인다(`agent_batch.system_prompt`). 근거는 FidetoLabs 노트이며 우리 엔진 재현은 아님(단기 반전 공개 전 수치는 아래 2)로 독립 재현됨).
+- 2) `core/french_factors.py` + `scripts/french_factor_report.py` → `research/factor_decay.md`. 심판에 FF5+모멘텀 회귀를 **보고 전용**으로 붙였다(`judge_frozen` 기본 on, `judge()` 는 factors_fn 줄 때만). 테스트는 conftest 에서 오프라인·임시 캐시로 막았다.
+- 검증: 실제 데이터로 단기 반전 1926-02~1990-12 월 +0.884%·t 6.35·샤프 0.90(779개월)이 FidetoLabs 수치와 일치. SPY 회귀 β 0.99·R² 0.991(알파 −1.6%/년은 배당 미포함 Close 때문). 전체 `pytest tests` 2027 passed, `python -m hub.guide.check` 누락 없음.
+- 미실행: 실제 에이전트 배치에서 새 프롬프트·심판 동작 확인, 커밋·push. 다음 단계 후보(제안만): qanat식 decay 블렌딩 shadow 실험, 읽기 전용 MCP 서버.
 
 ## 2026-09-26 관제 센터 'AI 대회' 섹션 (구현·단위 테스트, VM 1회 설정 필요)
 

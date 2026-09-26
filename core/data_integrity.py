@@ -13,7 +13,8 @@ scheduler/run_scheduler.py의 data_integrity_check_job()이 그걸 모아 print/
     1. check_price_anomalies(): 챔피언 전략 코어+새틀라이트(+시장필터 SPY) 최근 ~10거래일 가격을
        검사 — 종가<=0, |일간수익률|>50%(진짜 데이터 글리치만 잡기 위한 넉넉한 임계값 — 실제
        개별주 폭락/급등도 하루 50%를 넘는 경우는 극히 드물다, 상한가/서킷브레이커 없는 미국
-       시장에서도 드묾), 중복 인덱스, 5일 초과(주말 감안) stale 캐시.
+       시장에서도 드묾), 중복 인덱스, 멈춘 피드(종가·거래량이 같은 봉 3일 연속,
+       거래량 없으면 종가 6일 연속), 5일 초과(주말 감안) stale 캐시.
     2. check_fred_cache_anomalies(): data/cache/fred_*.csv 파일을 검사 — 비어있음/파싱 불가/
        발표 주기 대비 과도하게 오래된 최신 행. 시리즈마다 발표 주기가 달라(core.fred_data의
        DEFAULT_INDICATORS 참고) 임계값을 다르게 둔다: 일별 시리즈(T10Y2Y/DEXKOUS/BAMLH0A0HYM2/
@@ -57,6 +58,14 @@ PRICE_DAILY_RETURN_ABS_THRESHOLD = 0.50
 # 최근 캐시가 이보다 오래되면(주말 포함 달력일 기준) stale로 본다 — 주중 3일 연휴(금~월)에도
 # 오탐하지 않도록 5일로 넉넉하게 잡는다.
 PRICE_STALE_DAYS = 5
+
+# 멈춘 피드(stale feed): 데이터 소스가 새 값 대신 같은 봉을 날짜만 바꿔 되풀이하는 경우. 거래량까지 같은
+# 봉이 연속 PRICE_FROZEN_RUN_WITH_VOLUME 개면 사실상 복제다(유동성 있는 ETF/대형주에서 종가·거래량이 동시에 같을
+# 확률은 거의 0). 거래량이 없으면 종가만으로 PRICE_FROZEN_RUN_CLOSE_ONLY 개 연속을 본다 — 단기채 ETF 등은
+# 종가가 며칠 같을 수 있어 더 길게 잡는다. (FidetoLabs 수집 이상 탐지의 'dropout: 같은 값 12개 연속' 규칙을
+# 일봉에 맞게 줄인 것, 2026-09-26)
+PRICE_FROZEN_RUN_WITH_VOLUME = 3
+PRICE_FROZEN_RUN_CLOSE_ONLY = 6  # 실측(2025-09~2026-09): HYG 종가만 4일 연속이 정상적으로 나왔다
 
 # 가격 이상치 검사용 최근 조회 구간(거래일이 아니라 달력일 기준 lookback — 매일 밤 전체 이력을
 # 다시 받을 필요 없이 최근 며칠만 보면 충분하다).
@@ -108,12 +117,27 @@ def _champion_priority_tickers() -> list[str]:
     return sorted(set(tickers))
 
 
+def longest_frozen_run(df: pd.DataFrame) -> tuple[int, Optional[pd.Timestamp], bool]:
+    """같은 봉(종가, 거래량이 있으면 거래량까지)이 연속으로 이어진 최장 길이, 그 구간의 마지막 날짜, 거래량 사용 여부."""
+    cols = ["Close"] + (["Volume"] if "Volume" in df.columns and df["Volume"].notna().any() else [])
+    sub = df[cols].dropna()
+    if sub.empty:
+        return 0, None, len(cols) == 2
+    same = (sub == sub.shift(1)).all(axis=1)
+    best, best_end, run = 1, sub.index[0], 1
+    for i in range(1, len(sub)):
+        run = run + 1 if same.iloc[i] else 1
+        if run > best:
+            best, best_end = run, sub.index[i]
+    return best, best_end, len(cols) == 2
+
+
 def check_price_anomalies(
     tickers: Optional[list[str]] = None,
     fetch_fn: Optional[Callable[[list[str], str], dict[str, pd.DataFrame]]] = None,
     today: Optional[datetime] = None,
 ) -> list[dict]:
-    """가격 데이터 이상치 검사 (종가<=0, |일간수익률|>50%, 중복 인덱스, stale 캐시).
+    """가격 데이터 이상치 검사 (종가<=0, |일간수익률|>50%, 중복 인덱스, 멈춘 피드, stale 캐시).
 
     Args:
         tickers: 검사할 티커 목록. None이면 _champion_priority_tickers()로 결정.
@@ -166,6 +190,16 @@ def check_price_anomalies(
                         f"{ticker}: 하루 |수익률|>{PRICE_DAILY_RETURN_ABS_THRESHOLD:.0%} 급변 감지 {detail_pairs}.", ticker,
                     )
                 )
+
+        run, run_end, with_volume = longest_frozen_run(df)
+        if run >= (PRICE_FROZEN_RUN_WITH_VOLUME if with_volume else PRICE_FROZEN_RUN_CLOSE_ONLY):
+            what = "종가·거래량" if with_volume else "종가"
+            end_txt = run_end.date() if hasattr(run_end, "date") else run_end
+            findings.append(
+                _finding("price_frozen", "warning",
+                         f"{ticker}: {what}이 똑같은 봉이 {run}거래일 연속(~{end_txt}) — 데이터 소스가 멈춰 같은 값을 되풀이했을 수 있습니다.",
+                         ticker)
+            )
 
         if len(df.index) > 0:
             try:

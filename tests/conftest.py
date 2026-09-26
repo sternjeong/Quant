@@ -50,3 +50,15 @@ def db_session(tmp_path):
         yield session
     finally:
         session.close()
+
+
+@pytest.fixture(autouse=True)
+def _offline_french_factors(monkeypatch, tmp_path):
+    """Ken French 데이터는 테스트 중 받지 않고 실제 캐시도 읽지 않는다(심판 테스트가 네트워크·환경에 좌우되지 않게)."""
+    from core import french_factors
+
+    def _no_network(_name):
+        raise OSError("offline in tests")
+
+    monkeypatch.setattr(french_factors, "_fetch", _no_network)
+    monkeypatch.setattr(french_factors, "CACHE_DIR", tmp_path / "french_cache")

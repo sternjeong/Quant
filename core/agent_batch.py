@@ -147,8 +147,14 @@ def _child_env() -> dict:
     return env
 
 
+DEAD_END_ROLES = ("scout", "writer")  # 새 방향을 고르는 역할만 실패 목록을 받는다
+
+
 def system_prompt(role: str) -> str:
-    return (PROMPTS / f"{role}.md").read_text(encoding="utf-8") + "\n\n---\n\n" + (PROMPTS / "_contract.md").read_text(encoding="utf-8")
+    parts = [(PROMPTS / f"{role}.md").read_text(encoding="utf-8"), (PROMPTS / "_contract.md").read_text(encoding="utf-8")]
+    if role in DEAD_END_ROLES and (PROMPTS / "dead_ends.md").is_file():
+        parts.append((PROMPTS / "dead_ends.md").read_text(encoding="utf-8"))
+    return "\n\n---\n\n".join(parts)
 
 
 def claude_runner(role: str, prompt: str, tools: list[str], cfg: budget.RoleConfig, timeout: float) -> dict:
@@ -223,11 +229,13 @@ def write_context(now: datetime) -> None:
 def prompt_for(role: str, hid: str, now: datetime, extra: dict) -> str:
     today = budget.kst(now).strftime("%Y-%m-%d")
     if role == "scout":
-        return (f"오늘은 {today}. research/context.md(현재 가설·실패)와 research/failures.md 를 읽고, 무료로 얻을 수 있는 "
+        return (f"오늘은 {today}. research/context.md(현재 가설·실패), research/failures.md, research/factor_decay.md"
+                f"(고전 팩터 공개 전후 감쇠)를 읽고, 무료로 얻을 수 있는 "
                 f"일봉 데이터로 검증 가능한 새 전략 가설 씨앗 3~6개를 research/scout/{today}.md 에 써라.")
     if role == "writer":
         ids = ", ".join(extra["ids"])
-        return (f"오늘은 {today}. 최근 research/scout/*.md, research/context.md, research/failures.md 를 읽고 가설 스펙을 "
+        return (f"오늘은 {today}. 최근 research/scout/*.md, research/context.md, research/failures.md, "
+                f"research/factor_decay.md 를 읽고 가설 스펙을 "
                 f"최대 {len(extra['ids'])}개 작성하라. 반드시 이 id 만 쓴다: {ids}. 각 스펙은 "
                 f"research/hypotheses/<id>/spec.json 에 저장한다(다른 파일은 쓰지 않는다).")
     if role == "implementer":

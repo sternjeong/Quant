@@ -357,3 +357,37 @@ def test_test_suite_masks_real_service_credentials():
 
     load_dotenv()  # 테스트 도중 누가 다시 불러도 되살아나지 않아야 한다
     assert account_sync.credentials_available() is False
+
+
+# ---------------------------------------------------------------------------
+# 멈춘 피드 (2026-09-26)
+# ---------------------------------------------------------------------------
+
+def test_price_anomalies_frozen_feed_close_and_volume():
+    today = datetime(2026, 9, 19, 9, 0, 0)
+    dates = _recent_bdates(10, today)
+    df = _ohlcv(dates, list(np.linspace(100, 105, 10)))
+    df["Volume"] = np.arange(10) * 1000 + 5_000_000
+    df.iloc[6:9, df.columns.get_loc("Close")] = 104.0      # 마지막 앞 3일이 같은 봉
+    df.iloc[6:9, df.columns.get_loc("Volume")] = 7_777_000
+    findings = data_integrity.check_price_anomalies(tickers=["AAA"], fetch_fn=lambda t, s: {"AAA": df}, today=today)
+    frozen = [f for f in findings if f["check"] == "price_frozen"]
+    assert len(frozen) == 1 and "3거래일" in frozen[0]["detail"] and frozen[0]["severity"] == "warning"
+
+
+def test_price_anomalies_same_close_different_volume_is_not_frozen():
+    today = datetime(2026, 9, 19, 9, 0, 0)
+    dates = _recent_bdates(10, today)
+    df = _ohlcv(dates, [100.0] * 10)                         # 단기채 ETF 처럼 종가가 계속 같아도
+    df["Volume"] = np.arange(10) * 1000 + 5_000_000          # 거래량이 다르면 정상
+    findings = data_integrity.check_price_anomalies(tickers=["BIL"], fetch_fn=lambda t, s: {"BIL": df}, today=today)
+    assert [f["check"] for f in findings] == ["price_ok"]
+
+
+def test_longest_frozen_run_close_only_threshold():
+    idx = pd.bdate_range("2026-09-01", periods=10)
+    closes = [1, 2, 3, 3, 3, 3, 3, 3, 4, 5]
+    run, end, with_volume = data_integrity.longest_frozen_run(pd.DataFrame({"Close": closes}, index=idx))
+    assert (run, end, with_volume) == (6, idx[7], False)
+    assert run >= data_integrity.PRICE_FROZEN_RUN_CLOSE_ONLY
+    assert data_integrity.longest_frozen_run(pd.DataFrame({"Close": [1, 2, 3, 3, 3, 3, 3, 4]}, index=idx[:8]))[0] == 5

@@ -172,3 +172,117 @@ def test_judge_frozen_error_retries_then_fails(db):
         assert out["status"] == "error" and out["attempt"] == attempt
     assert hj.judge_frozen("H-20261001-001", session=db, champion_corr_fn=None)["status"] == "failed_after_errors"
     assert reg.get("H-20261001-001", session=db)["status"] == reg.FAIL
+
+
+# ---------------- judge 강건성 ----------------
+def test_breakeven_bps_hand_computed():
+    # 순수익 합 0.02, 총회전율 4, 가정 편도 25bp → 총수익 0.02 + 4×0.0025 = 0.03 → 0.03/4 = 75bp
+    net = pd.Series([0.01, 0.01])
+    assert hj.breakeven_bps(net, 4.0, 25.0) == pytest.approx(75.0)
+    assert hj.breakeven_bps(net, 0.0, 25.0) is None
+
+
+def test_drop_top_months_exposes_few_month_edge():
+    idx = pd.bdate_range("2018-01-01", "2021-12-31")
+    rng = np.random.default_rng(1)
+    r = pd.Series(rng.normal(0.0, 0.005, len(idx)), index=idx)
+    for m in ("2018-03", "2019-07", "2020-11"):
+        r[r.index.to_period("M") == pd.Period(m)] += 0.01  # 세 달에만 큰 초과수익
+    full = he.stats(r)["sharpe_annual"]
+    out = hj.drop_top_months(r)
+    assert out["applicable"] and {d["month"] for d in out["dropped"]} == {"2018-03", "2019-07", "2020-11"}
+    assert full > 0.5 and out["sharpe_annual"] < hj.ROBUST_KEEP * full
+    assert hj.drop_top_months(r.loc[:"2019-06"])["applicable"] is False  # 18개월 < 24
+
+
+def test_neighbor_params_scales_numbers_only():
+    got = hj.neighbor_params({"lookback": 60, "z": 1.0, "flag": True, "name": "x", "neg": -2})
+    assert {"lookback": 30, "z": 1.0, "flag": True, "name": "x", "neg": -2} in got
+    assert {"lookback": 90, "z": 1.0, "flag": True, "name": "x", "neg": -2} in got
+    assert {"lookback": 60, "z": 0.5, "flag": True, "name": "x", "neg": -2} in got
+    assert len(got) == 4
+    assert hj.neighbor_params({"n": 1}) == [{"n": 2}]  # 1×0.5 → 1(최소) 는 원래와 같아 뺀다
+    assert hj.neighbor_params({"top": 2, "a": 1, "b": 1, "c": 1}) == [{"top": 1, "a": 1, "b": 1, "c": 1},
+                                                                      {"top": 3, "a": 1, "b": 1, "c": 1},
+                                                                      {"top": 2, "a": 2, "b": 1, "c": 1},
+                                                                      {"top": 2, "a": 1, "b": 2, "c": 1}]  # 앞 3개 키만
+
+
+def _cliff_setup():
+    spy = _market(n=1300, seed=3)
+    n = len(spy)
+    rng = np.random.default_rng(4)
+    good = _px(list(100 * np.cumprod(1 + 0.0008 + rng.normal(0, 0.01, n))), "2019-01-01")
+    bad = _px(list(100 * np.cumprod(1 - 0.0008 + rng.normal(0, 0.01, n))), "2019-01-01")
+    data = {"SPY": spy, "GOOD": good, "BAD": bad}
+    return (lambda t, a, b: data[t]), data
+
+
+def test_judge_rejects_parameter_cliff():
+    provider, _ = _cliff_setup()
+    code = "def score(p, a, k):\n    return {'GOOD': 1.0} if k['lookback'] == 60 else {'BAD': 1.0}\n"
+    s = hs.validate(spec(universe={"type": "list", "tickers": ["GOOD", "BAD"]}, period={"start": "2019-06-01"},
+                         signal={"params_grid": [{"lookback": 60}]}))
+    res = hj.judge({"spec": s, "signal_code": code}, cumulative_trials=1, prior_srs=[], price_provider=provider,
+                   champion_corr_fn=None, cost=(0.0, "test"))
+    assert res["stats"]["sharpe_annual"] > 0
+    assert [x["params"]["lookback"] for x in res["param_neighbors"]] == [30, 90]
+    assert all(x["sharpe_annual"] < 0 for x in res["param_neighbors"])
+    assert any("파라미터 이웃" in x for x in res["reasons"])
+    assert res["n_trials_total"] == 1  # 이웃은 시도 수에 들어가지 않는다
+
+
+def test_judge_robust_signal_passes_neighbor_and_breakeven_checks():
+    provider, _ = _cliff_setup()
+    code = "def score(p, a, k):\n    return {'GOOD': 1.0}\n"
+    s = hs.validate(spec(universe={"type": "list", "tickers": ["GOOD", "BAD"]}, period={"start": "2019-06-01"},
+                         signal={"params_grid": [{"lookback": 60}]}))
+    res = hj.judge({"spec": s, "signal_code": code}, cumulative_trials=1, prior_srs=[], price_provider=provider,
+                   champion_corr_fn=None, cost=(25.0, "test"))
+    assert not any("파라미터 이웃" in x or "손익분기" in x for x in res["reasons"])
+    assert res["breakeven_one_way_bps"] > 2 * 25.0
+
+
+def test_judge_rejects_thin_cost_margin():
+    provider, _ = _cliff_setup()
+    # 매주 GOOD/BAD 를 번갈아 담는다 → 회전율이 커서 25bp 에서 손익분기 여유가 없다
+    code = ("def score(p, a, k):\n"
+            "    return {'GOOD': 1.0} if a.isocalendar()[1] % 2 == 0 else {'BAD': 1.0}\n")
+    s = hs.validate(spec(universe={"type": "list", "tickers": ["GOOD", "BAD"]}, period={"start": "2019-06-01"},
+                         signal={"params_grid": [{}]}, portfolio={"top_k": 1, "rebalance": "weekly", "max_weight": 0.25}))
+    res = hj.judge({"spec": s, "signal_code": code}, cumulative_trials=1, prior_srs=[], price_provider=provider,
+                   champion_corr_fn=None, cost=(25.0, "test"))
+    assert res["breakeven_one_way_bps"] is not None and res["breakeven_one_way_bps"] < 50.0
+    assert any("손익분기" in x for x in res["reasons"])
+
+
+# ---------------- judge OOS 분리 ----------------
+def test_holdout_split_needs_enough_is_and_oos():
+    long_idx = pd.bdate_range("2015-01-01", "2024-12-31")
+    split = hj.holdout_split(long_idx)
+    assert split == pd.Timestamp("2022-12-31")
+    assert hj.holdout_split(pd.bdate_range("2021-01-01", "2024-12-31")) is None  # IS 2년 < 3년
+    assert hj.holdout_split(pd.DatetimeIndex([])) is None
+
+
+def test_judge_selects_on_is_only_and_fails_on_oos():
+    n = 2100
+    idx = pd.bdate_range("2016-01-01", periods=n)
+    split = idx[-1] - pd.DateOffset(years=hj.HOLDOUT_YEARS)
+    rng = np.random.default_rng(7)
+    drift_a = np.where(idx < split, 0.0015, -0.0015)   # IS 에서 좋고 OOS 에서 나쁨
+    drift_b = np.where(idx < split, 0.0003, 0.0030)    # IS 에서 덜 좋고 OOS 에서 매우 좋음(전체 기간이면 B 가 이긴다)
+    a = _px(list(100 * np.cumprod(1 + drift_a + rng.normal(0, 0.01, n))), "2016-01-01")
+    b = _px(list(100 * np.cumprod(1 + drift_b + rng.normal(0, 0.01, n))), "2016-01-01")
+    spy = _px(list(100 * np.cumprod(1 + rng.normal(0.0003, 0.01, n))), "2016-01-01")
+    data = {"A": a, "B": b, "SPY": spy}
+    code = "def score(p, a, k):\n    return {'A': 1.0} if k['pick'] == 1 else {'B': 1.0}\n"
+    s = hs.validate(spec(universe={"type": "list", "tickers": ["A", "B"]}, period={"start": "2016-06-01"},
+                         signal={"params_grid": [{"pick": 1}, {"pick": 2}]}))
+    res = hj.judge({"spec": s, "signal_code": code}, cumulative_trials=2, prior_srs=[],
+                   price_provider=lambda t, x, y: data[t], champion_corr_fn=None, cost=(0.0, "test"))
+    assert res["best_params"] == {"pick": 1}                       # OOS 를 보지 않고 IS 로 골랐다
+    assert res["holdout"]["split"] is not None
+    assert res["holdout"]["oos_stats"]["sharpe_annual"] < 0
+    assert any(x.startswith("OOS(") for x in res["reasons"])
+    assert not any("OOS 분리 없음" in w for w in res["warnings"])

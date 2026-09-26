@@ -15,11 +15,11 @@ MODULES: tuple[ModuleGuide, ...] = (
     ),
     ModuleGuide(
         module="core/agent_batch.py", name="AI 에이전트 야간 배치", group="리서치 인프라", status="실험",
-        what="매일 03:00 KST에 AI 에이전트(Scout·Writer·Implementer·Critic·Post-mortem)를 차례로 돌려 새 전략 가설을 만들고, Critic이 승인한 가설을 동결해 자동 심판에 넘깁니다. 중간에 끊겨도 다음 날 밤 그 자리에서 이어집니다.",
+        what="매일 03:00 KST에 AI 에이전트(Scout·Writer·Implementer·Critic·Post-mortem)를 차례로 돌려 새 전략 가설을 만들고, Critic이 승인한 가설을 동결해 자동 심판에 넘깁니다. 중간에 끊겨도 다음 날 밤 그 자리에서 이어집니다. 아이디어를 고르는 Scout·Writer에게는 이미 재검증에서 실패한 방향 목록(research/agent_prompts/dead_ends.md)과 고전 팩터 감쇠표(research/factor_decay.md)를 함께 줘서 같은 실패를 되풀이하지 않게 합니다.",
         how_to_use="자동입니다. 결과는 아침 텔레그램 요약과 허브 'AI 에이전트 연구' 화면에서 봅니다. 역할별 모델은 그 화면이나 텔레그램 /models 에서 바꿉니다.",
         where_to_see="허브 /research, 텔레그램(배치 요약 1건)",
         cautions="에이전트는 자기 작업 폴더(research/)에만 쓸 수 있고, 그 밖의 파일을 바꾸면 자동으로 되돌립니다. 브로커·텔레그램 키는 에이전트에게 넘기지 않습니다. 주문 경로와 연결되어 있지 않습니다. 실제 Claude CLI로는 아직 한 번도 실행하지 않았습니다.",
-        verified="2026-09-25",
+        verified="2026-09-26",
     ),
     ModuleGuide(
         module="core/agent_budget.py", name="에이전트 토큰 예산", group="리서치 인프라", status="운영중",
@@ -55,11 +55,19 @@ MODULES: tuple[ModuleGuide, ...] = (
     ),
     ModuleGuide(
         module="core/hypothesis_judge.py", name="가설 자동 심판", group="분석·백테스트", status="운영중",
-        what="AI 없이 코드로만 가설을 통과/탈락 판정합니다. 누적 시도 수를 반영한 Deflated Sharpe 0.95 이상, 강세·약세·횡보장 과반에서 SPY보다 나음, SPY 상관 0.9 미만, 챔피언 상관 0.7 미만, 최대낙폭·리밸런싱 횟수 기준을 모두 만족해야 통과합니다.",
+        what="AI 없이 코드로만 가설을 통과/탈락 판정합니다. 누적 시도 수를 반영한 Deflated Sharpe 0.95 이상, 강세·약세·횡보장 과반에서 SPY보다 나음, SPY 상관 0.9 미만, 챔피언 상관 0.7 미만, 최대낙폭·리밸런싱 횟수 기준을 모두 만족해야 통과합니다. 여기에 강건성 검사 세 가지가 더 붙습니다: 수익이 0이 되는 비용(손익분기 bp)이 가정 비용의 2배 이상, 가장 좋았던 3개월을 빼도 샤프가 절반 이상 유지, 대표 파라미터를 절반·1.5배로 바꿔도 샤프가 양수이고 중앙값이 절반 이상. 또 마지막 2년은 떼어 두고(표본 밖) 파라미터는 그 앞 구간만 보고 고르며, 떼어 둔 2년의 샤프가 0 이하면 탈락합니다(기간이 짧으면 분리하지 않고 경고). Ken French 팩터 회귀(시장·규모·가치·수익성·투자·모멘텀)는 참고용으로만 기록합니다.",
         how_to_use="자동입니다. 탈락 사유는 허브 /research 의 '최근 상태 전이'에서 봅니다.",
         where_to_see="허브 /research",
         cautions="비용은 실측 교정이 있으면 그것을, 없으면 편도 25bp를 보수적으로 가정합니다. 데이터 오류가 3번 이어지면 탈락 처리합니다.",
-        verified="2026-09-25",
+        verified="2026-09-26",
+    ),
+    ModuleGuide(
+        module="core/french_factors.py", name="Ken French 팩터 데이터", group="리서치 인프라", status="관측 전용",
+        what="다트머스 Ken French 데이터 라이브러리(1926년부터, 상장폐지 종목까지 포함)를 받아 두 가지에 씁니다. 하나는 심판을 받는 가설의 수익이 이미 알려진 팩터(시장·규모·가치·수익성·투자·모멘텀)로 얼마나 설명되는지 보는 회귀, 다른 하나는 고전 팩터가 원 논문 공개 전후로 얼마나 약해졌는지 보는 감쇠표입니다.",
+        how_to_use="자동입니다. 심판 결과에 팩터 회귀가 붙고, 알파 t가 2 미만이면 '알려진 팩터로 대부분 설명됨' 경고가 뜹니다. 감쇠표는 scripts/french_factor_report.py 로 새로 만듭니다.",
+        where_to_see="허브 /research(심판 경고), research/factor_decay.md",
+        cautions="팩터 회귀는 통과/탈락에 쓰지 않습니다. 우리 가설은 매수만 하므로 시장 베타가 크게 나오는 것이 정상입니다. 원자료는 한두 달 늦게 갱신되고, 7일마다 다시 받으며 실패하면 저장해 둔 사본을 씁니다.",
+        verified="2026-09-26",
     ),
     ModuleGuide(
         module="core/hypothesis_shadow.py", name="가설 shadow 전진 검증", group="리서치 인프라", status="관측 전용",
@@ -291,7 +299,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         group='운영·안전',
         status='운영중',
         what=
-            "가격·FRED 거시 캐시·뉴스 캐시에 0원 종가, 하루 이상 낡은 값 같은 '에러 없이 조용히 이상한 값' 이 있는지 점검합니다. 읽기만 하고 데이터를 고치지는 않습니다.",
+            "가격·FRED 거시 캐시·뉴스 캐시에 0원 종가, 하루 이상 낡은 값 같은 '에러 없이 조용히 이상한 값' 이 있는지 점검합니다. 2026-09-26부터 데이터 소스가 멈춰 같은 봉을 날짜만 바꿔 되풀이하는 경우(종가·거래량이 같은 봉 3거래일 연속, 거래량이 없으면 종가 6거래일 연속)도 경고합니다. 읽기만 하고 데이터를 고치지는 않습니다.",
         how_to_use=
             '매일 00:22(KST)에 자동으로 돌고, 이상이 발견될 때만 텔레그램 경고가 옵니다(이상 없으면 조용). 경고가 오면 어떤 데이터인지 읽고 해당 화면 값을 신뢰하지 않은 채 확인하세요. 2026-09-25부터 VM 에 Alpaca 키가 있으면 챔피언 코어·위성 보유 종목과 SPY(최대 10개)의 가격을 Alpaca 일봉과도 대조합니다.',
         where_to_see=
@@ -299,7 +307,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         cautions=
             "알림이 없다는 것이 데이터가 완벽하다는 뜻은 아닙니다. 정해진 몇 가지 검사만 합니다. 교차 대조는 종가 큰 불일치와 분할 의심만 텔레그램으로 알리고, 같은 종목·같은 날짜의 불일치는 한 번만 알립니다(조회 불가 같은 나머지는 로그에만). 어느 소스가 옳은지는 판정하지 않습니다. Alpaca 키가 없으면(Codespace) 교차 대조 없이 예전 그대로 동작합니다. 오늘의 브리핑의 데이터 이상 섹션에는 교차 대조가 들어가지 않습니다.",
         sources=('scheduler/run_scheduler.py', 'core/price_crosscheck.py'),
-        verified=V,
+        verified="2026-09-26",
     ),
     ModuleGuide(
         module='core/earnings_events.py',

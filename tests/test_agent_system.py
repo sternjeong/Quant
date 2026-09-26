@@ -164,6 +164,13 @@ def test_child_env_drops_broker_and_telegram_secrets(monkeypatch):
     assert env["ANTHROPIC_API_KEY"] == "keep"
 
 
+def test_dead_ends_reach_only_direction_choosing_roles():
+    for role in ("scout", "writer"):
+        assert "이미 재검증에서 실패한 방향" in ab.system_prompt(role)
+    for role in ("implementer", "critic", "postmortem"):
+        assert "이미 재검증에서 실패한 방향" not in ab.system_prompt(role)
+
+
 def test_tools_are_scoped_per_role():
     assert "Write(research/hypotheses/H-1/**)" in ab.tools_for("implementer", "H-1")
     assert not any(t.startswith(("Write", "Edit")) and "critic.json" not in t for t in ab.tools_for("critic", "H-1"))

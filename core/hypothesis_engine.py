@@ -178,6 +178,7 @@ def backtest(spec: dict, params: dict, signal: Callable, prices: dict[str, pd.Da
             weights_log.append((d.date().isoformat(), pending))
     series = pd.Series(daily, index=days, name="net_return")
     return {"returns": series, "n_rebalances": n_rebal, "avg_turnover": (sum(turnovers) / len(turnovers)) if turnovers else 0.0,
+            "total_turnover": sum(turnovers),
             "missing_price_days": missing, "price_coverage": (n_priced / n_members) if n_members else None,
             "last_weights": weights_log[-1] if weights_log else None, "one_way_bps": one_way_bps}
 

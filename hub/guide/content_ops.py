@@ -249,6 +249,14 @@ SCRIPTS: tuple[ScriptGuide, ...] = (
         verified="2026-09-25",
     ),
     ScriptGuide(
+        path="scripts/french_factor_report.py", name="고전 팩터 감쇠표 갱신",
+        when_to_run="반년에 한 번쯤, 에이전트가 읽는 고전 팩터 감쇠표를 최신 자료로 다시 만들 때.",
+        command="python scripts/french_factor_report.py  (--stdout 이면 파일을 쓰지 않고 화면에만)",
+        risk="파일/DB 쓰기",
+        what_it_prints="규모·장기 반전·단기 반전·가치·모멘텀 팩터를 원 논문 공개 연도로 나눠 월평균 수익·t값·샤프를 비교한 표를 씁니다. 주문·DB와 무관합니다.",
+        verified="2026-09-26",
+    ),
+    ScriptGuide(
         path="scripts/hypothesis_admin.py", name="가설 레지스트리 관리",
         when_to_run="가설 목록을 보거나, 직접 쓴 가설을 넣거나, 텔레그램 버튼 대신 승격·종료할 때.",
         command="python scripts/hypothesis_admin.py list  (show <id> · add <spec.json> <signal.py> · promote <id> · retire <id>)",
