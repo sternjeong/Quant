@@ -19,6 +19,14 @@
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
 
+## 2026-09-26 후보 원장 국면별 판정 + 실측 비용 진단 칸 (구현·단위 테스트, 브랜치 eng-regime-eval, 미배포)
+
+- 결정: 원장 판정이 전체 기간을 섞던 문제(사용자 원칙 "같은 국면 안에서만 검증")와 실측 비용 미반영을 진단 레이어로 해결. 원장(`core/candidate_ledger.py`)·스케줄러는 수정하지 않음.
+- 신규 `core/regime_eval.py`: 결정 이전 최신 스냅샷만 사용(5거래일 초과 → unknown), 스냅샷 없으면 결정 시점 확정 봉으로 `classify_daily_regime` 재계산(캐시 전용), unknown 별도 칸, 다중비교 라벨, `measured` 비용 칸(진단용, 주 검정 10bp 불변).
+- `core/strategy_variants.py`: 주간 보고서에 '국면별 판정'·'실측 비용 반영 결과' 절 추가(실패해도 기존 절은 생성). 설명서 `hub/guide/content_modules_b.py` 갱신, `docs/CANDIDATE_LEDGER_SPEC.md`에 절 추가.
+- 검증: `tests/test_regime_eval.py` 16건, 전체 pytest 2007 passed(이 세션 직접 실행), `python -m hub.guide.check` 빠진 설명 없음. VM 실행·실데이터 보고서 미확인.
+- 한계·다음: 거래일 계산은 평일 기준(휴장일 미반영), 스냅샷 이력은 2026-07 이후만 존재, CI 폴백 JSON 스냅샷은 라벨에 쓰지 않음. `pit_certified_fraction` 의미가 원장 버전마다 다를 수 있어 regime_eval은 그 값을 해석·표시하지 않고 verdict_reasons만 옮긴다.
+
 ## 2026-09-25 허브 모델 저장 forbidden 수정 (배포)
 
 - 증상: VM 허브 `/research` 에서 모델 바꾸고 저장 → `forbidden`. 원인: 허브 응답의 `Referrer-Policy: no-referrer` 때문에 브라우저가 폼 POST 의 `Origin` 을 `null` 로 보내 Host 비교가 실패. 수정: Origin 이 실제 주소일 때만 Host 와 비교하고, 그 외에는 `Sec-Fetch-Site`(cross-site·same-site 거부)로 판단(`hub/server.py::_same_origin_post`). 테스트 추가.
