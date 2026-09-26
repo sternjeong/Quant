@@ -124,6 +124,13 @@ MODULES: tuple[ModuleGuide, ...] = (
         cautions="꺼도 잡 등록 자체는 남아 있고 실행만 건너뜁니다. 모든 잡이 이 목록으로 통제되는 것은 아니니 잡 표에서 확인하세요.",
         sources=("scheduler/run_scheduler.py", "deploy/codex_telegram/runner.py"), verified=_V),
     ModuleGuide(
+        module="core/regime_eval.py", name="국면별 판정과 실측 비용 칸", group="리서치 인프라", status="관측 전용",
+        what="후보 shadow 원장의 판정을 시장 국면(강세장·약세장·중립/혼조 등)별로 나눠 다시 봅니다. 각 결정에는 그 결정 시각 이전에 저장된 가장 최근 국면 스냅샷만 붙이고(이후 스냅샷은 쓰지 않음), 그 스냅샷이 5거래일 넘게 오래됐으면 unknown 으로 둡니다. 스냅샷이 아예 없으면 결정 시점까지 확정된 지수 일봉(로컬 캐시만)으로 국면을 다시 계산합니다. unknown 은 어느 국면에도 섞지 않습니다. Alpaca paper 실체결이 30건 이상 쌓여 실측 비용이 있으면 가정 비용(5/10/25bp) 옆에 실측 비용 칸을 나란히 붙입니다.",
+        how_to_use="직접 부르지 않습니다. 매주 일요일 00:50 KST 전략 연구 보고서의 '국면별 판정'과 '실측 비용 반영 결과' 절에 들어갑니다. 국면별 표와 '전체 섞음(참고)' 줄이 다르면 한 국면에서만 통하는 규칙일 수 있다는 신호로 읽으세요.",
+        where_to_see="화면 없음(주간 전략 연구 보고서 data/reports/strategy_research_*.md)",
+        cautions="판정 규칙은 후보 원장 것을 그대로 쓰며 새 통계 규칙이 없습니다. 국면 수만큼 비교가 늘어나지만 보정하지 않았다고 표시만 합니다(한 국면의 검토대상 판정도 우연일 수 있음). 국면별로 표본이 쪼개져 대부분 '미입증'이 정상입니다. 실측 비용 칸은 진단용이라 판정은 항상 '미입증'이고 주 검정 비용(10bp)은 바뀌지 않으며, 원장에 저장된 값도 바꾸지 않습니다. 실측이 오래됐으면 stale 로 표시하고 표본이 부족하면 쓰지 않습니다. 대체 계산 국면은 시장폭 신호가 빠진 다른 정의입니다. 성과 개선의 증거가 아닙니다.",
+        sources=("core/strategy_variants.py",), verified=_V),
+    ModuleGuide(
         module="core/resource_guard.py", name="VM 여유 확인", group="운영·안전", status="운영중",
         what="지금 VM 의 CPU 부하와 여유 메모리를 보고 무거운 작업을 하나 더 시작해도 되는지 판단합니다.",
         how_to_use="자동입니다. 스케줄러의 뉴스 요약 잡이 시작 전에 확인해 여유가 없으면 그 회차를 건너뜁니다. 사용자가 켜고 끌 것은 없습니다.",
@@ -189,10 +196,10 @@ MODULES: tuple[ModuleGuide, ...] = (
     ModuleGuide(
         module="core/strategy_variants.py", name="전략 변형 그림자 기록", group="리서치 인프라", status="관측 전용",
         what="챔피언 코어 전략을 절대 바꾸지 않은 채, 변형(hold-band: 6위 안이면 보유 유지 등)이 매일 어떤 종목을 골랐을지를 병행 기록합니다. 회전율과 비용이 실제로 줄었는지 나중에 검증하는 관측용 장부입니다.",
-        how_to_use="자동입니다. 매일 한국시간 00:44 기록 잡(variant_shadow_record)과 매주 일요일 00:50 연구 보고서 잡이 돕니다. 표본이 쌓이기 전에는 결론을 내릴 수 없으니 개입하지 말고 보고서를 기다리세요.",
+        how_to_use="자동입니다. 매일 한국시간 00:44 기록 잡(variant_shadow_record)과 매주 일요일 00:50 연구 보고서 잡이 돕니다. 보고서에는 변형별 판정·회전율·비용 영향과 함께 '국면별 판정'(국면마다 따로 본 판정, unknown 별도 칸)과 '실측 비용 반영 결과'(가정 5/10/25bp 옆에 실측 비용 칸) 절이 있습니다. 표본이 쌓이기 전에는 결론을 내릴 수 없으니 개입하지 말고 보고서를 기다리세요.",
         where_to_see="화면 없음(DB와 주간 연구 보고서)",
-        cautions="관측 전용이며 주문·원전략에 영향이 없습니다. 변형이 더 낫다는 증거가 아직 아니고, 비용은 가정치입니다.",
-        sources=("scheduler/run_scheduler.py",), verified=_V),
+        cautions="관측 전용이며 주문·원전략에 영향이 없습니다. 변형이 더 낫다는 증거가 아직 아니고, 비용은 가정치입니다(실측 비용 칸은 Alpaca paper 체결 30건 이상일 때만 진단용으로 붙고 판정 기준 비용은 바뀌지 않습니다). 국면별 판정은 비교 수가 늘고 표본이 작아 대부분 '미입증'입니다.",
+        sources=("scheduler/run_scheduler.py", "core/regime_eval.py"), verified=_V),
     ModuleGuide(
         module="core/telegram_notify.py", name="텔레그램 발송", group="운영·안전", status="운영중",
         what="서버에서 사용자 폰 텔레그램으로 메시지와 파일을 보냅니다. 토큰이나 채팅 ID 설정이 없거나 전송이 실패해도 예외 없이 조용히 넘어갑니다.",
