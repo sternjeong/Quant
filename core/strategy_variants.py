@@ -323,6 +323,18 @@ def _variant_ledger_summary(name: str, session) -> dict:
     }
 
 
+def _variant_regime_cost(name: str, session) -> dict:
+    """국면별 판정 + 실측 비용 진단 칸(core.regime_eval). 실패해도 보고서의 기존 절을 막지 않는다."""
+    from core import regime_eval
+
+    try:
+        with cl._session_scope(session) as s:
+            return regime_eval.build_regime_cost_evaluation(
+                s, strategy_version=VARIANTS[name]["strategy_version"], n_boot=500, n_random_draws=200)
+    except Exception as exc:  # noqa: BLE001
+        return {"error": f"{type(exc).__name__}: {exc}"[:300]}
+
+
 def _render_md(report: dict) -> str:
     L = [f"# 전략 연구 shadow book 리포트 ({report['as_of']})", "", report["disclaimer"], "",
          "## 변형별 기록·표본·판정", "",
@@ -350,10 +362,17 @@ def _render_md(report: dict) -> str:
         L.append("| hold_band − baseline | " + " | ".join(f"{d['cost_drag_bp_of_nav'][s]:.1f}" for s in scen) + " |")
     else:
         L += ["", "전환 수가 없거나 두 변형의 기록일이 달라 차이를 계산하지 않았다."]
+    if report.get("regime_cost"):
+        from core import regime_eval as re_
+
+        L += [""] + re_.render_regime_section(report["regime_cost"])
+        L += re_.render_cost_section(report["regime_cost"])
     L += ["", t["note"], "", "## 한계", "",
           "- 표본이 쌓이기 전에는 회전율 차이도 우연일 수 있다(전환 수를 함께 볼 것).",
           "- 후보가 17자산 코어 유니버스뿐이라 원장 표본이 느리게 쌓인다.",
-          "- 비용은 가정값(또는 실측 모듈이 있을 때 그 값)이며 수익 영향은 다루지 않는다."]
+          "- 비용은 가정값(또는 실측 모듈이 있을 때 그 값)이며 수익 영향은 다루지 않는다.",
+          "- 국면별 판정은 비교 수를 늘리며(다중비교, 보정 없음) 국면마다 표본이 더 작아 대부분 '미입증'이다.",
+          "- 실측 비용은 Alpaca paper 체결 기반 진단용 칸이며 주 검정 비용 시나리오를 바꾸지 않는다."]
     return "\n".join(L) + "\n"
 
 
@@ -371,6 +390,7 @@ def write_research_report(out_dir: Any = None, session=None, as_of: Any = None) 
         "turnover": compare_turnover(), "ledger_version": cl.LEDGER_VERSION,
         "rules": {"primary_horizon_days": cl.PRIMARY_HORIZON_DAYS, "primary_cost_scenario": cl.PRIMARY_COST_SCENARIO,
                   "primary_target": cl.PRIMARY_TARGET, "hold_band_rank": HOLD_BAND_RANK, "slots": CORE_SLOTS},
+        "regime_cost": {name: _variant_regime_cost(name, session) for name in VARIANTS},
     }
     stem = f"strategy_research_{as_of_date.isoformat()}"
     md_path, json_path = out / f"{stem}.md", out / f"{stem}.json"
