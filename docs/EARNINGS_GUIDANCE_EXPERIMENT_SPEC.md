@@ -13,6 +13,7 @@
 | 규칙 기반 추출기·변화 분류 (`core/earnings_events.py`) | 완료 | 구현됨(LLM 호출 없음) | 오프라인 fixture 테스트만. 실제 문서 정확도는 미검증 |
 | 실제 보도자료 추출 표본 (`docs/experiment_validation/earnings_guidance_extraction_sample.md`) | 완료 | 표본 문서 작성 | **사람 정답 대조 미수행.** 작성자=검증자 문제 때문에 정확도를 주장하지 않는다 |
 | shadow 원장 연결(RES-01), 후보별 veto 플래그 계산 | 완료(이 문서) | 위성 shadow 연결 완료(관측 전용, `core/guidance_shadow.py`, strategy_version=`champion_satellite/guidance_shadow_v1`) | 단위 테스트만(`tests/test_guidance_shadow.py`, 합성 데이터). 실제 표본 0건, 사람 검증 대기 |
+| 비교 정책 `annual_same_fy_v1`(3절 '비교 정책', 2026-09-25) | 완료(이 문서. 정의는 수익 데이터를 열기 전에 정했고 문서와 구현을 같은 변경에 넣음) | 구현됨(`compare_guidance`·`compute_guidance_changes`, 판정 근거 필드 추가) | 오프라인 fixture 테스트와 캐시된 실제 보도자료 19개 기업 재계산만(6절 '가이던스 공급 조사'). 사람 정답 대조 없음 |
 | 수익 실험(H1) | 제안 | 미구현 | 미검증. 검정력·표본 조건(6절) 미확인 |
 | forward shadow 수집 | 제안 | 미구현 | 미검증 |
 | RES-03 KPI 계약 필드(부록 A) | 제안 | 미구현 | 미검증 |
@@ -54,13 +55,35 @@
 | 출처 | 문서 accession, EDGAR acceptance 시각(UTC), 문서 URL, 원문 해시 |
 | 진단 | flags(예: 스케일·부호·기간 모호), 발행사 문구의 상향/하향/유지 단어(stated_action), 같은 문장에 적힌 직전 범위(prior_stated) |
 
-**변화(change) 분류.** 같은 발행사·같은 metric·같은 basis·같은 `period_key`의 **직전** 발행사 가이던스(acceptance 시각이 더 이른 것 중 가장 최근)와 비교한다.
+**변화(change) 분류.** 같은 발행사·같은 metric·같은 basis·같은 `period_key`의 **직전** 발행사 가이던스(acceptance 시각이 더 이른 것 중 가장 최근)와 비교한다. 방향을 내는 범위는 아래 '비교 정책'이 제한한다.
 
 - `raised`/`lowered`: 중간값이 커지거나 작아짐. 하한·상한이 서로 반대로 움직이면 `mixed_direction` 플래그를 함께 남긴다.
 - `maintained`: 하한·상한이 모두 같음(중간값이 같고 폭만 달라지면 유지로 두되 `width_changed`를 남긴다).
 - `initiated`: 해당 (metric, period)의 직전 가이던스가 없음이 확인된 경우. 수집한 이력이 완전하다고 표시됐거나 발행사가 "initial outlook"류 문구를 쓴 경우에만. 이력 부족은 `unknown`이다.
 - `withdrawn`: 발행사가 가이던스를 철회·중단한다고 밝힘.
 - `unknown` + 이유 코드: 기간·단위·통화·basis·부호가 모호하거나 다름, 직전 항목이 없거나 시간 순서가 맞지 않음, 같은 문장에 후보가 여럿이라 새 값을 특정할 수 없음, 발행사 문구와 계산 방향이 충돌함 등. **애매하면 추측하지 않고 `unknown`이다.**
+
+**비교 정책 `annual_same_fy_v1` (2026-09-25 추가. 정의는 수익 데이터를 전혀 열지 않은 상태에서 정했고, 이 절과 구현을 같은 변경에 넣었다. `annual_period_superseded_in_release` 규칙만은 추출 표본의 텍스트(CSCO 실적 행)를 보고 추가한 데이터 무결성 규칙이며 수익과는 무관하다).**
+
+문제: 분기 가이던스는 매 발표가 새 분기(예: `FY2027Q3`)를 가리키므로 같은 `period_key`의 직전 값이 원래 없다. 실제 점검에서 NVDA 4건·MSFT 2건이 전부 `unknown(no_previous_in_retrieved_history)`였다. 반대로 같은 분기 키가 두 발표에 나오는 경우는 대부분 **다음 발표의 실적표(실제치)가 가이던스처럼 추출된 것**이었다(아래 조사: 옛 규칙이 낸 분기 방향 판정 13건이 모두 실적·배당 문장).
+
+| 기간 종류(`period_key`) | 처리 | change / 사유 코드 |
+|---|---|---|
+| 연간: `FY2027`, `CY2026`, `YEND:2026-12-31` | 같은 키의 직전 발표와 중간값 비교(재확인·상향·하향). **방향 판정은 이 경우에만** | `raised`/`lowered`/`maintained`, `comparison_method=annual_same_fy` |
+| 연간인데 직전 같은 FY 항목이 수집 이력에 없음 | 추측하지 않음 | `unknown`, reason `no_previous_in_retrieved_history`(기존 코드 유지), 세부 `no_prior_same_fy` |
+| 같은 발표에 **바로 다음 연도**(+1) 연간 항목이 함께 있는 연간 항목 | 끝난 연도의 실적·비교열로 보고 비교하지 않음(예: 8월 발표의 FY2027 가이던스 표 안 FY2026 실적 행). +2년 이상은 장기 목표일 수 있어 근거로 쓰지 않음 | `unknown`, `annual_period_superseded_in_release` |
+| 분기: `FY2027Q3`, `QEND:...` | 방향 판정 안 함. 같은 분기의 직전 값이 있어도, 발행사가 'initiate'라고 써도 마찬가지 | `unknown`, `quarterly_not_comparable` |
+| 반기 `FY2026H2`, 기타(`PEND:` 등) | 방향 판정 안 함 | `unknown`, `half_year_not_comparable` / `period_type_not_comparable` |
+| 철회 | 비교가 아닌 발행사 진술이므로 기간 종류와 무관 | `withdrawn`, `comparison_method=issuer_statement` |
+
+**기각한 대안(명시).**
+- 분기끼리 비교(예: Q3 가이던스 중간값 vs 직전 Q2 가이던스 중간값)로 방향을 만들지 않는다. 두 값은 다른 기간이라 차이가 계절성·성장·일회성으로 오염되고, 그것을 '상향/하향'이라 부르면 정의 자체가 달라진다.
+- 분기 가이던스를 '실적 대비 가이던스'나 '컨센서스 대비 가이던스' feature로 바꾸지 않는다. 컨센서스는 PIT 확보 전 금지(9절)이고, 실적 대비 비교는 위 오염 문제와 같다.
+- `FY`와 `CY`, `FY2026`과 `YEND:2026-12-31`처럼 표기 계열이 다른 키를 같은 연도로 맞추지 않는다(회계연도 말 정보를 모르면 틀린 짝을 만들 수 있다). 이 경우 `no_prior_same_fy`로 남는다.
+
+**판정 근거 기록(하위 호환, 필드 추가만).** `GuidanceChange`에 `reason_detail`(세분화 사유: `no_prior_same_fy`, `quarterly_not_comparable`, `unit_mismatch`, `currency_mismatch`, `basis_mismatch`, `annual_period_superseded_in_release` 등), `comparison_method`(`annual_same_fy`/`issuer_statement`/`complete_history`/`not_compared`), `period_type`, `policy`를 더했고, 비교에 실제로 쓴 직전 항목의 `previous_accession`·`previous_acceptance_utc`·`previous_period_key`와 `evidence()` 요약을 남긴다. 비교에 쓰지 않은 직전 항목은 근거로 남기지 않는다(분기에서 같은 기간 값이 있었으면 `same_period_previous_available` 플래그만). 기존 `change`·`reason` 코드는 바꾸지 않았으므로 `core/guidance_shadow.py`의 feature 계산은 그대로 동작한다. 수집 캐시(`core/guidance_event_provider.py`)는 형식 2로 올려 옛 정책의 같은 날 캐시를 재사용하지 않는다.
+
+**이 정책이 H1에 주는 제약.** veto `V`는 사실상 **연간 가이던스를 8-K 보도자료에 내는 기업의 연간 revenue·eps 재발표**에서만 켜질 수 있다. 분기 가이던스만 주는 기업(NVDA·TXN·MU 등)과 보도자료에 가이던스가 없는 기업(AAPL·MSFT·NKE·BX 등)은 항상 `unknown` 또는 `no_release`이며 coverage 보고에 그대로 드러난다.
 
 **수치 feature(진단·이후 확장용).** 중간값 변화율 `(mid_new − mid_old)/|mid_old|`(EPS가 0에 가까우면 변화율 없이 절대 변화만), 범위 폭 `(high − low)/|mid|`와 폭 변화, 퍼센트 지표는 %p 변화. 한 발표를 하나의 긍정·부정 점수로 합치지 않고 item별로 저장한다.
 
@@ -132,6 +155,24 @@
 
 **표본 가용성 경고.** 위성 후보는 종목·날짜당 소수이고, 가이던스 하향은 드물다. 이 스펙의 forward shadow만으로 veto 165건을 모으려면 수 년 이상 걸릴 수 있으며 그 기간을 약속하지 않는다. 조건이 충족되기 전에는 결론을 내지 않고 `미입증`으로 둔다. 조건을 채우려고 정의(룩백, 가이던스 metric, 후보 집합)를 넓히는 것은 결과를 본 뒤 변경이므로 금지한다. 과거 소급 재현(2004년 이후 EDGAR 8-K 2.02는 존재)은 표본 규모 면에서는 가능하지만 3·4절의 PIT 한계와 규칙 고정 시점 제약 때문에 "탐색 → 확증 보류" 순서로만 쓴다.
 
+**가이던스 공급 조사(2026-09-25, 비교 정책 결정용. 수익은 보지 않았다).** 대상: (A) 기존 추출 표본 12개 기업 + 이미 캐시된 MSFT·NKE = 14개 기업(기술·비달력 회계연도 쪽으로 치우친 **비무작위** 표본), (B) 2026-09-01 S&P 500 구성 종목에서 시드 20260925로 무작위 추출한 5개 기업(EXR, ZBH, BX, SNPS, KMB; 이번에 SEC 요청 45회, 초당 4회 이하, 403 없음). 기업당 최근 8-K Item 2.02 4건, 첫 건은 이력으로만 쓰고 나머지 57개 발표를 현재 추출기 + 새 정책으로 다시 계산했다(스크립트는 저장소에 남기지 않은 일회성 점검).
+
+| 항목 | 값 |
+|---|---|
+| 추출 표본 문서(A의 최신 발표 12건) item 121개의 기간 종류 | 분기 45(37%), 연간 44(36%), 기간 미확정 32(26%) |
+| 같은 문서의 옛 규칙 change: 분기 45개 | 방향 3개(모두 CSCO 실적표 행), unknown 42 |
+| 같은 문서의 옛 규칙 change: 연간 44개 | raised 22, lowered 4, maintained 5, unknown 13 → 연간은 같은 FY 재발표 비교가 이미 대부분 가능했다 |
+| 57개 발표의 revenue·eps item 287개(새 정책) | 연간 방향 56(raised 41, lowered 11, maintained 4), 분기 `quarterly_not_comparable` 107, 기간 미확정·스케일 모호 등 89, 연간 `no_prior_same_fy` 27, 연간 `annual_period_superseded_in_release` 7, 발행사 문구 충돌 1 → **unknown 80%** |
+| 옛 규칙과 달라진 판정 | 16건(옛 방향 → 새 unknown). 13건은 분기 실적·배당 문장, 3건은 끝난 FY의 실적 행. 사람 확인 전이지만 anchor 문장상 모두 가이던스가 아니었다 |
+| 연간 revenue·eps 같은 FY 방향 판정이 1건 이상 나온 기업 | 19개 중 7개(A: BBY, CRM, DELL, CSCO, ADBE, SNOW 6/14; **B 무작위: ZBH 1/5**). SNPS·KMB·EXR는 연간 가이던스를 내지만 표 형식·metric(FFO)·기간 표기 때문에 현재 추출기로 비교 가능한 항목이 나오지 않았다 |
+| 방향 판정이 1건 이상 있는 발표 | 57개 중 13개(23%). B만 보면 15개 중 2개(13%) |
+| 그중 `V=1` 형태(lowered/withdrawn 있고 raised 없음) | **0/57**. 13개 중 4개는 같은 발표 안에 raised와 lowered가 섞였다(basis·열 추출 차이일 수 있음, 미검증) |
+| 같은 FY 직전 값까지의 거리 | 직전 분기 발표(약 90일 전)가 대부분. 한 FY의 첫 발표~마지막 재발표 간격 약 9~10개월 |
+
+**수집 범위와 요청량.** 같은 FY의 직전 값은 보통 바로 앞 발표에 있으므로 `history_days=400`, `max_filings_per_ticker=6`(관측 창 45일 + 직전 발표 1~3건에 여유)으로 충분하다고 판단해 **기본값을 바꾸지 않았다.** 요청량: 티커당 최대 1(submissions) + 2 × 6(filing 인덱스 + 보도자료) = 13회, 야간 상한 20티커면 260회로 300회 안이다. 초당 4회 간격만으로 65초, 응답 지연을 요청당 1초로 크게 잡아도 약 260초로 300초 안이다(재시도가 겹치면 넘을 수 있으나 예산은 티커 사이에서 검사하는 소프트 상한이라 최대 1티커분 13회만 초과한다). 보도자료·인덱스는 영구 캐시이므로 평시 야간 요청은 submissions 20회 + 새 발표분 정도다. CIK 매핑(`company_tickers.json`)은 별도 클라이언트의 캐시를 쓴다.
+
+**최소 사건 수 도달 가능성(정직한 평가).** 위 조사로 대략 계산하면(모두 가정): S&P 500 발표 약 2,000건/년 × 방향 판정 가능 발표 13~23% ≈ 260~460건/년. `V=1` 형태 비율은 관측 0/57이고 rule of three 95% 상한이 약 5%이므로 **universe 전체에서도 연 100건 이하**(점추정은 그보다 훨씬 작다). 여기에 '그 종목이 발표 후 20거래일 안에 위성 후보(돈치안 돌파 활성)'라는 조건이 붙는다. 하향 직후 돌파는 드물고, 후보 비율을 넉넉히 10~20%로 잡아도 **veto episode는 연 10~20건 이하가 상한**이다. 사전 고정 조건 165건을 forward shadow로 채우려면 상한 기준으로도 8~16년 이상이며, 실제로는 그보다 길 가능성이 크다. 또 새 정책에서도 revenue·eps item의 unknown이 80%로 6절 조건 3(unknown 30% 초과면 `미입증`)을 현재 추출기로는 통과하지 못한다. **결론: 현재 추출기·정책으로 최소 사건 수 도달은 비현실적이다.** 과거 소급(2004년 이후)은 규모 면에서 상한 수준에 닿을 수 있으나 PIT 한계로 탐색 전용이다. 조건을 채우려고 정의(분기 비교 허용, metric 확대, 룩백 연장)를 넓히는 것은 6절 경고대로 금지하며, 이 실험은 당분간 `미입증`으로 남는 것이 정상 결과다. 이 조사 표본(19개 기업, 57개 발표)은 작고 A는 비무작위라 위 비율의 오차가 크다.
+
 **기간 분할(제안).** 추출 규칙 개발·튜닝: 2004-01-01~2019-12-31(텍스트 추출 품질만 볼 수 있고 수익은 열지 않는다). 잠긴 최종 구간: 2020-01-01부터 스펙 동결일 직전까지. forward shadow는 동결일 이후 별도 확증. 잠긴 구간을 본 뒤 규칙·임계값·horizon·metric을 바꾸면 그 결과는 탐색으로만 남긴다.
 
 ## 7. 채택 / 기각 / 미입증 규칙
@@ -185,6 +226,7 @@ G0 표본 크기 근거: 표본 n건에서 오류 0건이라도 모집단 오류
 - 구현: `core/earnings_events.py`(fetcher, 8-K 2.02 목록, 보도자료 본문 추출, 규칙 기반 추출기, 변화 분류, 시각 처리 함수). 테스트: `tests/test_earnings_events.py`(오프라인 fixture). 표본: `docs/experiment_validation/earnings_guidance_extraction_sample.md`.
 - 규칙 기반 추출의 알려진 한계: 표 형식 다양성, 기간 표기 다양성(연도 없는 분기 표기는 `unknown`), 회사별 fiscal 연도 표기 차이, "낮은 두 자릿수 성장" 같은 정성 가이던스는 추출하지 않음, 원문이 HTML 표로만 있는 경우의 셀 병합 오류 가능성, 8-K 본문 외 IR 자료(컨퍼런스콜 발언)에만 있는 가이던스는 범위 밖.
 - 8-K/A와 원본, 통화가 다른 발표, 회계연도 변경은 자동으로 비교하지 않고 `unknown`이다.
+- 비교 정책 `annual_same_fy_v1`의 한계: (1) 발표가 FY 종료 직후 해당 FY 실적만 싣고 다음 연도 가이던스를 싣지 않으면, 그 실적 수치가 같은 FY 가이던스와 비교될 수 있다(`annual_period_superseded_in_release`는 다음 연도 항목이 같이 있을 때만 막는다). (2) 같은 발표에서 올해 가이던스와 내년 예비 전망(+1년)을 함께 내면 올해 항목이 보수적으로 `unknown`이 된다. (3) 표 형식에서 '직전 가이던스 열'과 '새 가이던스 열'이 서로 다른 basis로 추출되는 경우가 있다(ZBH 표본). 모두 사람 정답 대조(G0) 전에는 정확도를 주장하지 않는다.
 - 이 문서의 수치(σ, δ, q, deff, 20거래일, 15분 지연, 비용)는 시작 예시이며 최적값이나 성과 주장이 아니다.
 
 ## 부록 A. RES-03 사전 KPI 계약을 위한 `PortfolioThesisReview` 필드안 (제안 전용)
