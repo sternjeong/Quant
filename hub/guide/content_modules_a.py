@@ -193,9 +193,9 @@ MODULES: tuple[ModuleGuide, ...] = (
         where_to_see=
             '화면 없음(DB)',
         cautions=
-            '관측 전용이라 주문과 무관하고 성과는 미검증입니다. 화면을 열 때마다 기록하지 않고 스케줄 잡에서만 기록하도록 설계돼 있습니다.',
-        sources=('scheduler/run_scheduler.py', 'docs/CANDIDATE_LEDGER_SPEC.md'),
-        verified=V,
+            '관측 전용이라 주문과 무관하고 성과는 미검증입니다. 화면을 열 때마다 기록하지 않고 스케줄 잡에서만 기록하도록 설계돼 있습니다. 위성 후보는 2026-09-25부터 채택 종목만이 아니라 그 반기 풀 표본 전체를 기록합니다: 채택=selected, 돌파는 켜졌지만 상위 3위 밖=held, 돌파 없음=rejected, 가격 이력 부족=missing_data. 결정은 위성 전략 결과를 그대로 옮길 뿐 다시 계산하지 않습니다.',
+        sources=('scheduler/run_scheduler.py', 'docs/CANDIDATE_LEDGER_SPEC.md', 'core/candidate_recorder.py'),
+        verified='2026-09-26',
     ),
     ModuleGuide(
         module='core/champion_strategy.py',
@@ -209,9 +209,9 @@ MODULES: tuple[ModuleGuide, ...] = (
         where_to_see=
             '챔피언 전략, 챔피언 최적화, 오늘 화면 + 텔레그램 알림',
         cautions=
-            '이 모듈은 계산만 하며 주문은 별도 스크립트(scripts/champion_paper_trade.py)가 담당합니다. 확신도가 낮은 구성요소도 숨기지 않고 표시합니다. 과거 백테스트 기반이라 미래 수익을 보장하지 않습니다.',
-        sources=('app/pages/11_챔피언_전략.py', 'scheduler/run_scheduler.py'),
-        verified=V,
+            '이 모듈은 계산만 하며 주문은 별도 스크립트(scripts/champion_paper_trade.py)가 담당합니다. 확신도가 낮은 구성요소도 숨기지 않고 표시합니다. 과거 백테스트 기반이라 미래 수익을 보장하지 않습니다. 2026-09-25부터 반기 위성 결과에 관측 전용 필드(candidates=돌파가 켜진 후보 전체와 모멘텀 순위, rejected_tickers=돌파 없음, missing_tickers=이력 부족)가 더 붙습니다. 이 필드는 후보 원장·shadow 실험 기록에만 쓰이고, 고르는 종목·비중·주문은 전과 똑같습니다(변경 전 코드와 대조하는 테스트로 확인).',
+        sources=('app/pages/11_챔피언_전략.py', 'scheduler/run_scheduler.py', 'core/champion_strategy.py'),
+        verified='2026-09-26',
     ),
     ModuleGuide(
         module='core/chart_rendering.py',
@@ -395,15 +395,15 @@ MODULES: tuple[ModuleGuide, ...] = (
         group='리서치 인프라',
         status='관측 전용',
         what=
-            "오늘 챔피언 위성이 고른 종목에 '공시 변화 때문에 보류(veto)했다면?' 판정을 병행 기록합니다. 원래 채택 결정은 건드리지 않습니다.",
+            "챔피언 위성의 후보 풀(돌파가 켜진 후보 전체: 실제 채택 종목 + 상위 3위 밖 후보)에 '공시 변화 때문에 보류(veto)했다면?' 판정을 병행 기록합니다. 원래 채택 결정은 건드리지 않고 기록에 그대로 옮겨 적습니다(2026-09-25부터 채택 종목만이 아니라 풀 전체, 기록 버전 v2).",
         how_to_use=
             '매일 밤 00:32(KST) 자동으로 기록됩니다. 사용자가 할 일은 없습니다. 꺼두려면 텔레그램 /processes 를 씁니다.',
         where_to_see=
             '화면 없음(DB)',
         cautions=
-            "veto 가 hold 로 나와도 실제 주문은 바뀌지 않습니다. 스펙 미동결·성과 미검증이며, 종목별 SEC 조회에 실패하면 그 종목은 '통과'로 처리합니다.",
-        sources=('scheduler/run_scheduler.py', 'docs/FILING_CHANGE_VETO_SPEC.md'),
-        verified=V,
+            "veto 가 hold 로 나와도 실제 주문은 바뀌지 않습니다. 스펙 미동결·성과 미검증이며, 종목별 SEC 조회에 실패하면 그 종목은 '통과'로 처리합니다. SEC 조회 상한: 하루 최대 20종목, 요청 약 150회, 5분(종목 사이에서 확인). 넘치면 채택 종목 먼저, 그다음 모멘텀 순위 순으로 조회하고 나머지는 '조회 안 함(missing_data)'으로 남습니다. 풀을 넓혀 관측 종목은 약 3개에서 최대 20개로 늘었지만, 가정값으로 추정하면 최소 표본(보류 100건)까지 여전히 10년 이상 걸릴 수 있어 가까운 시일에 결론이 나지 않습니다(스펙 문서 §9).",
+        sources=('scheduler/run_scheduler.py', 'docs/FILING_CHANGE_VETO_SPEC.md', 'core/filing_veto_shadow.py'),
+        verified='2026-09-26',
     ),
     ModuleGuide(
         module='core/fred_data.py',
@@ -459,15 +459,15 @@ MODULES: tuple[ModuleGuide, ...] = (
         group='리서치 인프라',
         status='관측 전용',
         what=
-            "챔피언 위성 후보에 '발행사가 실적 전망을 올렸나/내렸나' 신호를 나란히 붙여 기록합니다. 원래 위성의 채택·보류 결정은 절대 바꾸지 않습니다.",
+            "챔피언 위성 후보 풀(돌파가 켜진 후보 전체: 채택 종목 + 상위 3위 밖 후보)에 '발행사가 실적 전망을 올렸나/내렸나' 신호를 나란히 붙여 기록합니다. 원래 위성의 채택·보류 결정은 그대로 옮겨 적을 뿐 절대 바꾸지 않습니다(2026-09-25부터 풀 전체, 기록 버전 v2).",
         how_to_use=
             '매일 밤 00:30(KST) 자동으로 기록됩니다. 사용자가 할 일은 없습니다. 꺼두려면 텔레그램 /processes 를 씁니다.',
         where_to_see=
             '화면 없음(DB)',
         cautions=
-            "관측 전용이며 원전략과 실제 주문에 영향이 없고 성과는 미검증입니다. 2026-09-25부터 야간 잡이 실제 SEC 조회를 켜서 호출합니다. 다만 최근 20거래일 안에 실적 발표가 없는 후보는 여전히 '발표 없음'이고, 발표가 있어도 분기 가이던스는 대부분 '판단 불가'로 기록됩니다. SEC 가 막히면 그날은 모든 후보가 '발표 없음'으로 기록됩니다.",
-        sources=('scheduler/run_scheduler.py', 'docs/EARNINGS_GUIDANCE_EXPERIMENT_SPEC.md'),
-        verified=V,
+            "관측 전용이며 원전략과 실제 주문에 영향이 없고 성과는 미검증입니다. 2026-09-25부터 야간 잡이 실제 SEC 조회를 켜서 호출합니다. 다만 최근 20거래일 안에 실적 발표가 없는 후보는 여전히 '발표 없음'이고, 발표가 있어도 분기 가이던스는 대부분 '판단 불가'로 기록됩니다. SEC 가 막히면 그날은 모든 후보가 '발표 없음'으로 기록됩니다. 후보가 20종목을 넘으면 채택 종목 먼저, 그다음 모멘텀 순위 순으로 조회하고 나머지는 건너뜁니다. 각 후보의 조회 결과(guidance_fetch_status)가 함께 남으니, '발표 없음' 중 실제로 조회하지 못한 후보를 구분할 수 있습니다.",
+        sources=('scheduler/run_scheduler.py', 'docs/EARNINGS_GUIDANCE_EXPERIMENT_SPEC.md', 'core/guidance_shadow.py'),
+        verified='2026-09-26',
     ),
     ModuleGuide(
         module='core/guru_schedule.py',
