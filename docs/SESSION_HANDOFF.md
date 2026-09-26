@@ -19,6 +19,14 @@
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
 
+## 2026-09-25 위성 후보 풀 전체 기록 (브랜치 eng-satellite-pool, 구현·단위 테스트, 배포 전)
+
+- 결정: 위성 원전략 결정은 그대로 두고 후보 풀을 **관측 전용 추가 필드**로만 노출(`candidates`/`rejected_tickers`/`missing_tickers`, `core/champion_strategy.py`). 후보 원장(`core/candidate_recorder.py`)은 풀 전체를 selected/held/rejected/missing_data 로, 두 shadow(`core/guidance_shadow.py`·`core/filing_veto_shadow.py`)는 돌파 활성 후보 집합 C(채택+상위 3위 밖)를 기록. 모집단이 바뀌어 shadow strategy_version 을 v2 로 올림(v1 행 보존).
+- 외부 조회 상한: 가이던스 기존 상한(20종목·300회·300초) 유지 + 조회 순서 채택 > 모멘텀 순위. 공시 veto 에 새 상한 20종목·150회·300초, 넘친 후보는 missing_data(fetch_status=skipped_*).
+- 원전략 불변 검증: 변경 전(031e9cc) `_pick_satellite_at_date` 본문을 테스트에 그대로 두고 무작위 입력으로 비트 단위 대조(`tests/test_satellite_candidate_pool.py`), 주문 계획 동일성 테스트. 전체 pytest 2016 passed(2026-09-26).
+- 표본 추정(저장된 실행 기록 기반, 가정): 돌파 활성 후보 반기당 16~39(평균 34), 채택 3. 상한 20이면 약 6.7배. 공시 veto 보류 100건까지 풀로도 약 13~42년, 가이던스 veto 165건은 약 40년 이상 → 여전히 forward shadow 만으로는 결론 불가. 자세한 표는 FILING_CHANGE_VETO_SPEC §9.
+- 다음 단계(제안): 상한 20이 대부분 반기에서 걸리므로 상한 상향 여부는 사람 결정. 과거 재구성으로 표본을 늘릴지 검토. VM 실행 검증 전.
+
 ## 2026-09-25 허브 모델 저장 forbidden 수정 (배포)
 
 - 증상: VM 허브 `/research` 에서 모델 바꾸고 저장 → `forbidden`. 원인: 허브 응답의 `Referrer-Policy: no-referrer` 때문에 브라우저가 폼 POST 의 `Origin` 을 `null` 로 보내 Host 비교가 실패. 수정: Origin 이 실제 주소일 때만 Host 와 비교하고, 그 외에는 `Sec-Fetch-Site`(cross-site·same-site 거부)로 판단(`hub/server.py::_same_origin_post`). 테스트 추가.
