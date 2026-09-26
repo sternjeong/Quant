@@ -8,7 +8,7 @@
 - 폰이 기본 화면이다(사용자는 폰으로만 본다). 가로 스크롤이 생기면 안 되고, 터치 영역은 44px 이상.
 - 색은 상태를 뜻할 때만 쓴다: 초록=정상, 노랑=주의, 빨강=문제, 회색=알 수 없음/꺼짐. 장식용 색은 파란 강조 하나.
 - 텍스트 인자는 escape 한다. 이미 escape 된 HTML 조각을 받는 인자는 이름이 *_html 이다.
-- 표준 라이브러리만 쓴다(허브는 stdlib 서버). 글꼴 CSS 하나만 CDN 에서 받고, 실패해도 시스템 글꼴로 보인다.
+- 표준 라이브러리만 쓰고 외부 CDN 을 쓰지 않는다(허브는 stdlib 서버). 글꼴은 기기의 시스템 글꼴.
 
 기존 페이지 본문(ops_status, alpaca_status, research_status 등)이 쓰는 기본 요소(table, h2, .badge, .subtitle, small)도
 여기서 새 모양으로 스타일한다 — 그래서 그 모듈들은 코드를 바꾸지 않아도 새 디자인을 입는다.
@@ -21,7 +21,7 @@ from typing import Iterable, Optional, Sequence
 
 E = html.escape
 
-FONT_CSS = "https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+# 외부 CDN 은 쓰지 않는다(허브는 stdlib 서버 · 외부 요청 없음 원칙). 기기에 Pretendard 가 있으면 쓰고, 없으면 시스템 글꼴.
 
 # 톤: ok(정상) warn(주의) bad(문제) muted(꺼짐/알 수 없음) info(정보/강조)
 TONES = ("ok", "warn", "bad", "muted", "info")
@@ -255,7 +255,6 @@ def page(title: str, body_html: str, *, active: str = "", crumbs: Sequence[tuple
         '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'
         '<meta name="robots" content="noindex"><meta name="theme-color" content="#08090a">'
         f'{refresh_meta}<title>{E(title)} · Quant 관제 센터</title>'
-        f'<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin><link rel="stylesheet" href="{FONT_CSS}">'
         f'<style>{CSS}</style>{head_extra}</head><body>'
         '<header class="topbar"><div class="topbar-in">'
         '<a class="brand" href="/"><span class="logo">Q</span><span>관제 센터</span></a>'

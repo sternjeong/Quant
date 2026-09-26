@@ -293,3 +293,23 @@ def test_pages_are_phone_safe(sid, monkeypatch, db_session):
     for m in re.finditer(r"(?<![\w-])(?:min-)?width\s*:\s*(\d+)px", re.sub(r"@media\([^)]*\)", "", html)):
         assert int(m.group(1)) <= 360, m.group(0)
     assert "<table" not in html or sid == "codex-telegram"  # 표는 명령 목록 하나(폭 100%)만
+
+
+def test_scheduler_rows_have_web_toggles_and_order_jobs_need_confirmation():
+    """잡 행마다 켜고 끄기 버튼이 있고, 주문을 내는 잡을 켤 때는 확인 화면(/processes/confirm)을 거친다."""
+    from hub import engine_pages
+
+    on = engine_pages._toggle_form({"process_key": "daily_briefing", "enabled": True, "places_orders": False})
+    assert 'action="/processes/toggle"' in on and 'name="enabled" value="0"' in on and "끄기" in on
+    off = engine_pages._toggle_form({"process_key": "daily_briefing", "enabled": False, "places_orders": False})
+    assert 'action="/processes/toggle"' in off and 'value="1"' in off
+    order = engine_pages._toggle_form({"process_key": "paper_auto_trade", "enabled": False, "places_orders": True})
+    assert 'action="/processes/confirm"' in order and "켜기…" in order
+
+
+def test_hub_pages_make_no_external_requests():
+    """허브는 외부 CDN 을 쓰지 않는다(stdlib 서버 · 외부 요청 없음 원칙)."""
+    from hub import ui
+
+    page = ui.page("t", "<p>x</p>")
+    assert "http://" not in page and "https://" not in page

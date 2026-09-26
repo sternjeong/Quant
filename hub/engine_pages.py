@@ -257,7 +257,8 @@ def collect_scheduler(now: Optional[datetime] = None) -> dict[str, Any]:
             except Exception:  # noqa: BLE001
                 enabled = True
         meta.append({"job": job, "label": reg.get("label", job.job_id), "category": reg.get("category", ""),
-                     "enabled": enabled, "health": entry,
+                     "enabled": enabled, "health": entry, "process_key": job.process_key,
+                     "places_orders": bool(reg.get("places_orders")),
                      "grace": job_health.GRACE_OVERRIDES.get(job.job_id, job_health.DEFAULT_GRACE)})
     data["jobs"] = meta
     return data
@@ -301,6 +302,21 @@ def _last_failure(runs: list) -> Optional[str]:
     return None
 
 
+def _toggle_form(m: dict) -> str:
+    """켜짐이면 끄기, 꺼짐이면 켜기. 주문을 내는 잡(places_orders)을 켤 때만 확인 화면(/processes/confirm)을 거친다.
+    전송 규칙은 hub/engine_status.py·hub/server.py 의 /processes/toggle 과 같다(텔레그램 /processes 와 같은 규칙)."""
+    key = E(m["process_key"])
+    if m["enabled"]:
+        action, value, label, cls = "/processes/toggle", "0", "끄기", "btn"
+    elif m["places_orders"]:
+        action, value, label, cls = "/processes/confirm", "1", "켜기…", "btn"
+    else:
+        action, value, label, cls = "/processes/toggle", "1", "켜기", "btn primary"
+    return (f'<form method="post" action="{action}" style="margin:0">'
+            f'<input type="hidden" name="key" value="{key}"><input type="hidden" name="enabled" value="{value}">'
+            f'<button type="submit" class="{cls}" style="min-height:34px;padding:0 12px;font-size:.8rem">{label}</button></form>')
+
+
 def _job_row(m: dict, data: dict) -> str:
     from hub.guide.live import format_when
 
@@ -322,7 +338,9 @@ def _job_row(m: dict, data: dict) -> str:
         failure = _last_failure(runs)
         if failure:
             below += ui.note(failure, "bad")
-    return ui.row(m["label"], desc=format_when(job.cron), title_extra_html=onoff + result, below_html=below)
+    order_mark = ui.pill("주문", "warn") if m.get("places_orders") else ""
+    return ui.row(m["label"], desc=format_when(job.cron), title_extra_html=onoff + result + order_mark,
+                  end_html=_toggle_form(m) if m.get("process_key") else "", below_html=below)
 
 
 def render_scheduler(slot) -> str:
@@ -390,7 +408,7 @@ def scheduler_body(slot, unit: UnitStatus, data: dict) -> str:
         parts.append(ui.callout(E(f"실행 이력을 읽지 못해 14일 막대를 그리지 못했습니다({data['runs_error']})."), icon="!", tone="warn"))
     legend = ("막대 한 칸이 하루(KST)입니다. 초록=성공, 빨강=실패·놓침, 노랑=예정이었는데 기록 없음, 회색=그날 예정 없음·꺼짐, "
               "가장 어두운 칸=이력 추적 이전 또는 아직 예정 시각 전.")
-    parts.append(ui.section("잡 목록", f'<p class="muted" style="font-size:.84rem">{E(legend)}</p>'))
+    parts.append(ui.section(f"자동 잡 {len(data['jobs'])}개", f'<p class="muted" style="font-size:.84rem">{E(legend)}</p>'))
     for key, title in CATEGORIES:
         group = [m for m in jobs if m["category"] == key]
         if group:
@@ -400,8 +418,8 @@ def scheduler_body(slot, unit: UnitStatus, data: dict) -> str:
         parts.append(ui.section("기타", ui.row_list(_job_row(m, data) for m in others), cat_tag=True))
 
     parts.append(ui.callout(
-        "잡을 켜고 끄려면 텔레그램에서 <code>/processes</code> 를 보내고 버튼을 누르세요. "
-        "꺼진 잡은 예정 시각에 건너뜁니다.", icon="💬"))
+        "각 잡 오른쪽 버튼으로 바로 켜고 끌 수 있습니다. 텔레그램에서 <code>/processes</code> 로도 같은 설정을 바꿉니다. "
+        "꺼진 잡은 예정 시각에 건너뜁니다. <b>주문</b> 표시가 붙은 잡은 켤 때 확인을 한 번 더 묻습니다.", icon="💡"))
     parts.append(_stamp(now))
     return "".join(parts)
 
