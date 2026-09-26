@@ -120,6 +120,11 @@ def _record_champion_satellite(as_of: date, session=None) -> dict:
     라이브 스캔(compute_satellite_recommendation)이 아니라 point-in-time 버전을 쓴다 — 백테스트가
     실제로 검증한 방법론과 같은 함수이고, new_orders_allowed=False(데이터 부족) 를 반환해 어댑터가
     채택을 조용히 청산 대신 held 로 기록하게 한다(ENG-03 규칙과 동일).
+
+    후보 풀 전체 기록(2026-09-25): 결과의 관측 전용 필드(candidates=돌파 활성 후보 전체, rejected_tickers=돌파
+    비활성, missing_tickers=이력 없음·부족)를 어댑터가 이미 지원하는 인자로 그대로 넘겨 풀 표본 전체를
+    selected(채택)/held(돌파 활성이지만 top_k 밖, 또는 신규 주문 보류)/rejected/missing_data 로 기록한다.
+    결정은 원전략 결과를 그대로 옮길 뿐 다시 계산하지 않는다. 구버전 결과(필드 없음)면 채택 종목만 기록된다.
     """
     from core.champion_strategy import compute_satellite_recommendation_point_in_time
 
@@ -127,9 +132,12 @@ def _record_champion_satellite(as_of: date, session=None) -> dict:
     strategy_version = f"{CHAMPION_SATELLITE_SOURCE_STRATEGY_PREFIX}/{result.get('sizing_method', 'equal')}"
     cset = champion_satellite_to_candidate_set(
         result, strategy_version=strategy_version, decision_cutoff=_cutoff_for(as_of),
+        missing_tickers=result.get("missing_tickers"), rejected_tickers=result.get("rejected_tickers"),
     )
     rec = record_candidate_set(cset, session=session)
     rec["n_pool"] = len(cset.records)
+    rec["n_by_decision"] = {d: sum(1 for r in cset.records if r.decision == d)
+                            for d in ("selected", "held", "rejected", "missing_data")}
     rec["new_orders_allowed"] = result.get("new_orders_allowed")
     return rec
 
