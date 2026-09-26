@@ -31,6 +31,23 @@
 - 어댑터는 시간 계약을 지어내지 않는다. 호출부가 실제 기록한 값을 `time_contract`로 넘겨야 한다. 넘기지 않으면 모든 후보가 PIT 미인증이며, 이 경우 판정은 항상 '미입증'이다.
 - `stock_discovery`의 `meta.pit_verified=False`(현재 재무·가격 스냅샷)는 집합 meta에 보존된다.
 
+### PIT 인증 근거 등급 `pit_basis` (2026-09-25 추가, 구현·단위 테스트 수준)
+
+가격·재무 기반 후보(stock_discovery, sector_leaders, champion_satellite, strategy_variants 등)는 원천 발표 시각을 알 수 없어 `decision_cutoff`만 채운다. 5필드 인증만 인정하면 이런 후보는 몇 년을 쌓아도 판정이 나올 수 없다. 그래서 행마다 `compute_pit_basis()`로 근거를 계산한다(DB 컬럼 추가 없음, `load_outcome_frame`이 `pit_basis`·`pit_basis_reason`·`recorded_at` 컬럼으로 붙임).
+
+| 등급 | 조건 | 비고 |
+|---|---|---|
+| `full_contract` | 5필드 완비 + 순서 일치(`compute_pit_status`, DB `pit_certified=True`) | 항상 우선 |
+| `forward_recorded` | (a) 후보 집합의 `CandidateBatch.created_at`(서버가 insert 때 찍는 naive UTC 시각)이 있고 (b) `next_executable_fill`(진입 세션 09:30 미 동부, DST 반영 → UTC)이 확정됐고 (c) `created_at <= next_executable_fill`(같은 시각 포함) (d) `decision_cutoff <= next_executable_fill` | `decision_cutoff <= created_at`은 요구하지 않는다. 결정 시각 전후 어느 때 기록했든 진입 전이면 된다 |
+| `none` | 그 밖. 진입 미확정이면 사유 `forward_recorded:pending:next_executable_fill`(아직 판정 불가), 소급 기록이면 `forward_recorded:recorded_after_entry(backfill)` | |
+
+- **근거**: 진입 시가보다 먼저 동결 기록된 후보는 진입 이후의 정보(가격 경로 등)를 볼 수 없었다. 기록 그 자체가 "그 시점까지 있던 정보만 썼다"는 증거다. 과거 날짜 cutoff로 나중에 기록한 백필은 `created_at`이 진입 뒤라 자동으로 `none`이다(테스트로 고정).
+- **기존 행**: 컬럼이 아니라 읽을 때 계산하므로, 이미 쌓인 행 중 조건을 만족하는 것은 별도 마이그레이션 없이 인정되고 소급 기록 행은 `none`으로 남는다. DB의 `pit_certified`는 계속 5필드 인증 여부만 뜻한다.
+- **판정 게이트**: `decide_verdict`의 PIT 게이트는 `full_contract` 또는 `forward_recorded`만 인정한다(`ACCEPTED_PIT_BASES`). 판정 대상 행 중 하나라도 `none`(또는 알 수 없는 값)이면 여전히 `미입증`. 표본 수·종목 군집·날짜 블록·결측률·진단 horizon·주 대상/비용 게이트는 바뀌지 않았다. 결과에 `pit_basis_counts`(게이트 대상 행), `pit_basis_counts_all_rows`, `pit_full_contract_fraction`, `pit_basis_limitation`이 남고, `pit_certified_fraction`은 이제 인정 근거 비율을 뜻한다.
+- `pit_basis` 컬럼이 없는 구버전 프레임은 `pit_certified=True → full_contract`, 그 밖은 `none`으로 본다(`forward_recorded`를 추정하지 않는다).
+
+**한계(정직하게)**: `forward_recorded`는 기록 시각이 진입 전이었음만 보장한다. 판단에 쓴 원천 데이터 자체의 발표 시각이나 정확성은 보증하지 않는다. 예: 재무·가격 공급자가 과거 값을 소급 수정했을 수 있고, `stock_discovery`는 현재 유니버스·재무 스냅샷을 쓰므로 생존편향이 섞일 수 있다(그래도 진입 이후 정보는 쓰지 않음). `created_at`은 서버 시계에 의존하며 외부에서 독립 검증된 타임스탬프가 아니다. 이 등급은 성과·승률 개선의 증거가 아니며, 판정이 나와도 사람이 검토할 후보일 뿐이다.
+
 ## 테이블 (`core/models.py`, `create_all`로 생성 — 기존 테이블·행에 영향 없음)
 
 - `candidate_batches`: 동결된 후보 집합 1건. `candidate_set_id`(정렬된 티커 집합 + 전략 버전 + 출처 + 정규화된 결정 시각의 해시, unique), `decisions_fingerprint`(같은 집합을 다른 판단으로 다시 기록하려는 충돌 감지).
@@ -54,7 +71,7 @@
 - 놓친 기회 비용 = 보류·거절 후보의 평균 초과수익(양수면 채택하지 않아 놓친 기회).
 - **동일 선택률 무작위 보류 기준선**: 각 후보 집합에서 채택 수와 같은 수를 무작위로 채택했을 때의 기대값·승률·손익비(해석적 기대값), 시드 고정 몬테카를로 분포(진단용).
 - **신뢰구간**: 채택 − 무작위 기준선 증분의 종목 × 날짜 블록 pigeonhole 부트스트랩(종목 군집과 `ceil(horizon×7/5)`일 날짜 블록을 각각 복원추출, 시드 고정, 95% 백분위). 겹치는 label 기간은 블록 길이로 완화할 뿐 purge/embargo와 열어보지 않는 최종 기간을 대체하지 않는다.
-- **판정 규칙을 코드로 강제**(`decide_verdict`): 신뢰구간이 0을 포함하면 `미입증`. 다음 중 하나라도 있으면 신뢰구간과 무관하게 `미입증`이다 — 진단 horizon, 주 대상·주 비용 시나리오가 아님, 채택 결과 없음, 표본 부족(채택 <30, 종목 군집 <20, 날짜 블록 <6), 신뢰구간 계산 불가, PIT 미인증 행 존재, 결과 결측률 >10%. 모두 통과하고 0을 배제하면 `양성_검토대상` 또는 `기각_검토대상`이며, 기각 검토는 더 큰 표본(채택 ≥100, 날짜 블록 ≥12)을 추가로 요구한다. 이 결과는 사람이 검토할 후보이며 자동 채택/폐기가 아니다(`auto_decision=False`). 게이트 수치는 제안값이며 실제 검정력 분석으로 대체해야 한다.
+- **판정 규칙을 코드로 강제**(`decide_verdict`): 신뢰구간이 0을 포함하면 `미입증`. 다음 중 하나라도 있으면 신뢰구간과 무관하게 `미입증`이다 — 진단 horizon, 주 대상·주 비용 시나리오가 아님, 채택 결과 없음, 표본 부족(채택 <30, 종목 군집 <20, 날짜 블록 <6), 신뢰구간 계산 불가, PIT 인정 근거(`full_contract`·`forward_recorded`)가 없는 행 존재, 결과 결측률 >10%. 모두 통과하고 0을 배제하면 `양성_검토대상` 또는 `기각_검토대상`이며, 기각 검토는 더 큰 표본(채택 ≥100, 날짜 블록 ≥12)을 추가로 요구한다. 이 결과는 사람이 검토할 후보이며 자동 채택/폐기가 아니다(`auto_decision=False`). 게이트 수치는 제안값이며 실제 검정력 분석으로 대체해야 한다.
 - **경고**: 승률이 무작위 기준선보다 높은데 선택률<1이고 기대값·손익비 개선이 신뢰구간으로 입증되지 않으면 `win_rate_selectivity`(승률만 올라 선택률로 설명될 수 있음). 그 밖에 결측률 과다, PIT 미인증, 보류·거절이 채택보다 높은 평균.
 
 ## 어댑터 (순수 함수, 기존 모듈 미수정)

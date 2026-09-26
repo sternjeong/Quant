@@ -26,6 +26,14 @@
 - 버그 수정(구현 중): 마감 D-1 대회에 D-7 알림을 고르던 단계 선택 오류.
 - **VM 미실행:** `/srv/contests` 가 없으면 화면에 설정 안내가 뜬다. 사용자가 code-server 터미널에서 `sudo bash /opt/quant/deploy/setup_contests.sh` 1회 실행 필요. 실제 gh 저장소 생성·code-server 폴더 열기는 미검증.
 
+## 2026-09-25 후보 원장 사전 기록(forward_recorded) PIT 인증 (구현·단위 테스트, 브랜치 `eng-pit-forward-cert`, main 미병합·미배포)
+
+- 문제: 가격·재무 기반 후보는 decision_cutoff 만 채워 5필드 PIT 인증이 불가능 → `decide_verdict` 가 영원히 '미입증'.
+- 결정: `core/candidate_ledger.compute_pit_basis()` 로 행마다 `pit_basis ∈ {full_contract, forward_recorded, none}` 계산(DB 컬럼 추가 없음, `load_outcome_frame` 이 붙임). forward_recorded = `CandidateBatch.created_at <= next_executable_fill`(확정된 진입 시가, UTC) 이고 `decision_cutoff <= next_executable_fill`. full_contract 우선. 소급 기록(created_at > 진입)은 none.
+- PIT 게이트만 full_contract|forward_recorded 인정으로 바꿨고 표본·군집·블록·결측·진단 horizon·주 대상/비용 게이트는 그대로. 결과에 `pit_basis_counts`·`pit_basis_limitation`(원천 데이터 발표 시각·소급 수정은 보증 안 함) 포함. `pit_certified_fraction` 은 이제 인정 근거 비율.
+- 수정: `core/candidate_ledger.py`, `tests/test_candidate_ledger.py`(+15), `docs/CANDIDATE_LEDGER_SPEC.md`, `hub/guide/content_modules_a.py`, `hub/guide/content_ops.py`. models.py·db.py 미수정.
+- 다음: main 병합 여부는 사용자/상위 세션 결정. VM 실데이터에서 기존 행의 pit_basis 분포 확인은 아직 안 함.
+
 ## 2026-09-25 허브 모델 저장 forbidden 수정 (배포)
 
 - 증상: VM 허브 `/research` 에서 모델 바꾸고 저장 → `forbidden`. 원인: 허브 응답의 `Referrer-Policy: no-referrer` 때문에 브라우저가 폼 POST 의 `Origin` 을 `null` 로 보내 Host 비교가 실패. 수정: Origin 이 실제 주소일 때만 Host 와 비교하고, 그 외에는 `Sec-Fetch-Site`(cross-site·same-site 거부)로 판단(`hub/server.py::_same_origin_post`). 테스트 추가.
