@@ -21,7 +21,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from hub.apps_registry import SLOTS, AppSlot  # noqa: E402
-from hub import alpaca_status, engine_status, ops_status, research_status  # noqa: E402
+from hub import alpaca_status, contests_page, engine_status, ops_status, research_status  # noqa: E402
 from hub.status import UnitStatus, get_unit_status  # noqa: E402
 
 HOST = "127.0.0.1"  # nginx를 거치지 않는 외부 직접 접속은 차단(방화벽에 별도 포트 개방 불필요)
@@ -161,12 +161,14 @@ def _slot_href(slot: AppSlot, host: str) -> str:
         return "/alpaca"
     if slot.kind == "ops":
         return "/ops"
+    if slot.kind == "contests":
+        return "/contests"
     if slot.kind == "research":
         return "/research"
     return f"/status/{slot.id}"
 
 
-CATEGORY_ORDER = ["앱", "엔진", "연구·검증", "운영", "리포트"]
+CATEGORY_ORDER = ["앱", "AI 대회", "엔진", "연구·검증", "운영", "리포트"]
 REFRESH_SECONDS = 60
 
 
@@ -200,6 +202,8 @@ def render_dashboard(host: str) -> str:
             badge = _report_badge(slot)
         elif slot.kind == "ops":
             badge = ops_status.jobs_badge(jobs)
+        elif slot.kind == "contests":
+            badge = contests_page.card_badge()
         elif slot.kind == "research":
             badge = research_status.card_badge(research_status.collect())
         else:
@@ -355,14 +359,26 @@ class HubRequestHandler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:
         path = urlparse(self.path).path
-        if path not in ("/research/models", "/processes/toggle", "/processes/confirm"):
+        is_contest = path.startswith("/contests/")
+        if path not in ("/research/models", "/processes/toggle", "/processes/confirm") and not is_contest:
             self._send_html("not found", 404)
             return
         if not _same_origin_post(self.headers):
             self._send_html("forbidden", 403)
             return
-        length = min(int(self.headers.get("Content-Length") or 0), 4096)
+        length = min(int(self.headers.get("Content-Length") or 0), 16384)
         form = parse_qs(self.rfile.read(length).decode("utf-8", "replace"))
+
+        if is_contest:
+            target, error = contests_page.handle_post(path, form)
+            if error is None:
+                self._redirect(target)
+            elif target == "/contests/new":
+                self._send_html(contests_page.render_new(PAGE_STYLE, error, {k: (v or [""])[0] for k, v in form.items()}), 400)
+            else:
+                page = contests_page.render_detail(target.rsplit("/", 1)[-1], PAGE_STYLE, error)
+                self._send_html(page or error, 400)
+            return
 
         if path == "/processes/confirm":
             # 주문을 내는 잡은 클릭 한 번으로 켜지 않는다 — 확인 화면을 한 번 거친다(텔레그램과 같은 규칙).
@@ -401,6 +417,13 @@ class HubRequestHandler(BaseHTTPRequestHandler):
             self._send_html(render_dashboard(host))
         elif path == "/login":
             self._send_html(LOGIN_PAGE)
+        elif path in ("/contests", "/contests/"):
+            self._send_html(contests_page.render_list(PAGE_STYLE))
+        elif path == "/contests/new":
+            self._send_html(contests_page.render_new(PAGE_STYLE))
+        elif path.startswith("/contests/"):
+            page = contests_page.render_detail(path.removeprefix("/contests/").strip("/"), PAGE_STYLE)
+            self._send_html(page) if page else self._send_html("not found", 404)
         elif path == "/research":
             self._send_html(render_research_page())
         elif path == "/ops":

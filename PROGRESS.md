@@ -5975,3 +5975,7 @@ paper 키를 주문 경로에만 쓰던 것을 **측정 수단**으로 확장해
 - **수정:** 관심종목·Threads 알림 텔레그램 전송, 텔레그램 `/processes` 전체 27개 잡 제어(자동 주문은 2단계 확인), 시장 국면 부분 결측 처리(coverage 0.75·시장폭 필수), 가이던스 야간 SEC 조회·가격 교차 대조·중복 ID 기록 연결, 낡은 문구 정리.
 - **검증:** pytest 1917 passed, runner unittest OK, 화면 실제 확인. VM 실전송·실제 SEC/Alpaca 호출은 미확인. 상세는 `docs/SESSION_HANDOFF.md` 같은 날짜 절.
 - 과거 로그의 `/experiment` 안내는 당시 기록이다. 명령은 2026-09-25에 삭제됐다.
+
+## 2026-09-26 관제 센터 'AI 대회' 섹션
+- **구현:** 대회 목록·생성·관리 화면(`/contests`), 대회별 `/srv/contests/<이름>` 폴더 + 뼈대 + GitHub private 저장소 자동 생성, code-server 로 폴더 열기, 마감 D-7·D-1·당일 텔레그램(09:00 KST). 설계 `docs/AI_CONTESTS.md`.
+- **미완료:** VM 1회 설정(`sudo bash deploy/setup_contests.sh`) 전이라 실제 생성 미검증. Kaggle/Dacon API 연동 없음.

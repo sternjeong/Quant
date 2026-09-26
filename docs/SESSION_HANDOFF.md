@@ -19,6 +19,13 @@
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
 
+## 2026-09-26 관제 센터 'AI 대회' 섹션 (구현·단위 테스트, VM 1회 설정 필요)
+
+- 사용자 결정: 브라우저 code-server 로 열기, 저장소 private 고정, 기본 정보·마감 알림, 기본 뼈대. 관리 항목 "Other" 는 내용이 비어 있어 확인 대기.
+- 구현: `core/contests.py`, `hub/contests_page.py`(+`hub/server.py` 라우트, `apps_registry` 카드·'AI 대회' 카테고리), 잡 `contest_deadline_alert` 09:00 KST, `deploy/setup_contests.sh`, 설명서 항목, `tests/test_contests.py`(15건, git 실제·gh 가짜). 설계: [AI_CONTESTS.md](./AI_CONTESTS.md).
+- 버그 수정(구현 중): 마감 D-1 대회에 D-7 알림을 고르던 단계 선택 오류.
+- **VM 미실행:** `/srv/contests` 가 없으면 화면에 설정 안내가 뜬다. 사용자가 code-server 터미널에서 `sudo bash /opt/quant/deploy/setup_contests.sh` 1회 실행 필요. 실제 gh 저장소 생성·code-server 폴더 열기는 미검증.
+
 ## 2026-09-25 허브 모델 저장 forbidden 수정 (배포)
 
 - 증상: VM 허브 `/research` 에서 모델 바꾸고 저장 → `forbidden`. 원인: 허브 응답의 `Referrer-Policy: no-referrer` 때문에 브라우저가 폼 POST 의 `Origin` 을 `null` 로 보내 Host 비교가 실패. 수정: Origin 이 실제 주소일 때만 Host 와 비교하고, 그 외에는 `Sec-Fetch-Site`(cross-site·same-site 거부)로 판단(`hub/server.py::_same_origin_post`). 테스트 추가.

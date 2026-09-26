@@ -197,6 +197,11 @@ PROCESS_REGISTRY: dict[str, dict] = {
         ),
         "category": "research", "default_enabled": True,
     },
+    "contest_deadline_alert": {
+        "label": "AI 대회 마감 알림",
+        "description": "관제 센터 'AI 대회'에 등록한 대회의 마감 7일 전·1일 전·당일에 텔레그램 1건씩 — 종료·제출 완료 대회는 제외 (09:00 KST)",
+        "category": "alert", "default_enabled": True,
+    },
     "strategy_research_report": {
         "label": "전략 변형 연구 보고서 (관측 전용)",
         "description": "shadow 기록을 모아 주간 연구 보고서를 작성 — 관측 전용이며 주문 경로 미연결 (일요일 00:50 KST)",

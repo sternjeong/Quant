@@ -45,6 +45,12 @@ START_HERE: tuple[str, ...] = (
 # ---------------------------------------------------------------------------
 JOBS: tuple[JobGuide, ...] = (
     JobGuide(
+        job_id="contest_deadline_alert",
+        where_to_see="텔레그램(대회마다 마감 7일 전·1일 전·당일 1건씩). 대회 상태를 '제출 완료'나 '종료'로 바꾸면 더 오지 않습니다.",
+        if_alert=_NOTHING,
+        verified="2026-09-26",
+    ),
+    JobGuide(
         job_id="agent_batch",
         where_to_see="텔레그램(아침 배치 요약 1건: 실행한 역할, 동결·심판 결과, 예산 사용), 허브 /research",
         if_alert="'usage limit'로 멈췄다면 구독 사용량 한도에 닿은 것이라 다음 날 밤 자동으로 이어집니다. 매일 실패하면 Claude CLI 로그인·설치 상태를 개발 요청으로 확인하세요. 원하지 않으면 '/processes off agent_batch'.",

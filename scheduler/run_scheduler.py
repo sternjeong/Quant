@@ -944,6 +944,26 @@ def agent_batch_job() -> None:
     print(f"[{datetime.now()}] agent_batch_job 종료")
 
 
+def contest_deadline_alert_job() -> None:
+    """AI 대회 마감 알림 (core/contests.py). 마감 7일·1일 전·당일에 대회마다 한 번씩 텔레그램.
+
+    시각(09:00 KST): 사용자가 아침에 확인하기 좋은 시각이고 야간 잡 블록·에이전트 배치(03:00~05:50)와 겹치지 않는다.
+    """
+    if not is_enabled("contest_deadline_alert"):
+        print(f"[{datetime.now()}] contest_deadline_alert_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
+    print(f"[{datetime.now()}] contest_deadline_alert_job 시작")
+    try:
+        from core.contests import run_deadline_alerts
+        from core.telegram_notify import send_message
+
+        print(f"  - {run_deadline_alerts(notify=send_message)}")
+    except Exception as exc:  # noqa: BLE001
+        print(f"  - 대회 마감 알림 실패: {type(exc).__name__}: {exc}")
+        report_job_failure("contest_deadline_alert", f"{type(exc).__name__}: {exc}")
+    print(f"[{datetime.now()}] contest_deadline_alert_job 종료")
+
+
 def strategy_research_report_job() -> None:
     """전략 변형 연구 보고서 작성 — 관측 전용, 주 1회(일요일 00:50 KST).
 
@@ -1195,6 +1215,13 @@ def main() -> None:
         name="매일 한국시간 03:00 AI 에이전트 야간 배치",
         replace_existing=True,
         misfire_grace_time=1800,
+    )
+    scheduler.add_job(
+        contest_deadline_alert_job,
+        trigger=CronTrigger(hour=9, minute=0, timezone="Asia/Seoul"),
+        id="contest_deadline_alert",
+        name="매일 한국시간 09:00 AI 대회 마감 알림",
+        replace_existing=True,
     )
     scheduler.add_job(
         strategy_research_report_job,

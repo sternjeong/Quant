@@ -76,6 +76,7 @@ ALLOWED_PREFIXES = (
     "research/failures.md",
     "data/agent_usage.jsonl",
     "data/agent_models.json",
+    "data/contest_alerts.json",
 )
 # 허용 폴더 안에서도 뺄 것: 대용량 체크포인트 tar.gz(수백 MB, 매번 새 blob), 락 파일
 EXCLUDED_PREFIXES = (

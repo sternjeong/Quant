@@ -6,6 +6,14 @@ V = "2026-09-25"
 
 MODULES: tuple[ModuleGuide, ...] = (
     ModuleGuide(
+        module="core/contests.py", name="AI 대회 관리", group="운영·안전", status="운영중",
+        what="관제 센터 'AI 대회' 섹션의 뒷단입니다. 대회마다 /srv/contests/<이름> 작업 폴더를 만들고 뼈대 파일(README·data/·notebooks/·src/·submissions/·.gitignore·requirements.txt)을 넣은 뒤 GitHub private 저장소(contest-<이름>)를 만들어 푸시합니다. 마감 알림도 여기서 계산합니다.",
+        how_to_use="관제 센터 → AI 대회 → '+ 새 대회'. 대회 화면의 'VS Code 에서 열기'를 누르면 브라우저 VS Code(code-server)가 그 폴더로 열립니다. 상태·마감·메모는 대회 화면에서 고칩니다.",
+        where_to_see="관제 센터 /contests, 텔레그램(마감 알림)",
+        cautions="처음 한 번은 code-server 터미널에서 'sudo bash /opt/quant/deploy/setup_contests.sh' 를 실행해야 폴더를 만들 수 있습니다. 저장소는 항상 private 입니다. data/·submissions/ 는 대회 규정·용량 때문에 커밋되지 않습니다. GitHub 단계가 실패해도 폴더는 남고 대회 화면에서 다시 시도할 수 있습니다.",
+        verified="2026-09-26",
+    ),
+    ModuleGuide(
         module="core/agent_batch.py", name="AI 에이전트 야간 배치", group="리서치 인프라", status="실험",
         what="매일 03:00 KST에 AI 에이전트(Scout·Writer·Implementer·Critic·Post-mortem)를 차례로 돌려 새 전략 가설을 만들고, Critic이 승인한 가설을 동결해 자동 심판에 넘깁니다. 중간에 끊겨도 다음 날 밤 그 자리에서 이어집니다.",
         how_to_use="자동입니다. 결과는 아침 텔레그램 요약과 허브 'AI 에이전트 연구' 화면에서 봅니다. 역할별 모델은 그 화면이나 텔레그램 /models 에서 바꿉니다.",
