@@ -21,7 +21,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from hub.apps_registry import SLOTS, AppSlot  # noqa: E402
-from hub import alpaca_status, ops_status, research_status  # noqa: E402
+from hub import alpaca_status, engine_status, ops_status, research_status  # noqa: E402
 from hub.status import UnitStatus, get_unit_status  # noqa: E402
 from hub import ui  # noqa: E402
 
@@ -321,10 +321,20 @@ def render_status_page(slot: AppSlot) -> str:
     title = {"ok": "실행 중", "bad": "멈춰 있습니다", "muted": "상태를 읽을 수 없습니다"}[tone]
     rows = [("systemd 유닛", f"<code>{html.escape(slot.unit)}</code>"), ("상태", pill_html),
             ("시작 시각", html.escape(status.since) if status.since else "정보 없음")]
+    try:
+        extra = engine_status.render_engine_body(slot.id)
+    except Exception:  # noqa: BLE001 - 보조 본문이 실패해도 상태 화면은 보여 준다
+        extra = ""
     body = (f'<h1>{html.escape(slot.title)}</h1><p class="lead">{html.escape(slot.description)}</p>'
             f'{ui.verdict(tone, title, "화면이 없는 백그라운드 서비스입니다. 결과는 텔레그램 알림으로 옵니다.")}'
-            f'{ui.kv_table(rows)}{_stamp()}')
+            f'{ui.kv_table(rows)}<div style="margin-top:18px">{extra}</div>{_stamp()}')
     return ui.page(slot.title, body, crumbs=(("/", "개요"), ("", slot.category)))
+
+
+def render_process_confirm_page(key: str) -> str:
+    body = engine_status.render_confirm_body(key)
+    return ui.page("자동 잡 켜기 확인", body,
+                   crumbs=(("/", "개요"), ("/status/scheduler", "백그라운드 스케줄러"), ("", "켜기 확인")))
 
 
 def render_alpaca_page() -> str:
@@ -388,7 +398,7 @@ class HubRequestHandler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:
         path = urlparse(self.path).path
-        if path != "/research/models":
+        if path not in ("/research/models", "/processes/toggle", "/processes/confirm"):
             self._send_html("not found", 404)
             return
         if not _same_origin_post(self.headers):
@@ -396,13 +406,33 @@ class HubRequestHandler(BaseHTTPRequestHandler):
             return
         length = min(int(self.headers.get("Content-Length") or 0), 4096)
         form = parse_qs(self.rfile.read(length).decode("utf-8", "replace"))
+
+        if path == "/processes/confirm":
+            # 주문을 내는 잡은 클릭 한 번으로 켜지 않는다 — 확인 화면을 한 번 거친다(텔레그램과 같은 규칙).
+            self._send_html(render_process_confirm_page((form.get("key") or [""])[0]))
+            return
+
+        if path == "/processes/toggle":
+            key = (form.get("key") or [""])[0]
+            enabled = (form.get("enabled") or ["0"])[0] == "1"
+            confirmed = (form.get("confirm") or ["0"])[0] == "1"
+            applied, _ = engine_status.apply_toggle(key, enabled, confirmed)
+            if not applied and enabled and not confirmed:
+                self._send_html(render_process_confirm_page(key))
+                return
+            self._redirect("/status/scheduler")
+            return
+
         try:
             research_status.apply_model_form(form)
         except Exception:  # noqa: BLE001
             self._send_html("save failed", 500)
             return
+        self._redirect("/research")
+
+    def _redirect(self, location: str) -> None:
         self.send_response(303)
-        self.send_header("Location", "/research")
+        self.send_header("Location", location)
         self.send_header("Content-Length", "0")
         self.end_headers()
 

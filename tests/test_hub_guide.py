@@ -8,13 +8,14 @@
 
 from __future__ import annotations
 
+import html
 import re
 
 import pytest
 
 from hub.guide import build_content, live, render_guide_page
 from hub.guide.check import coverage_problems
-from hub.guide.render import render_guide
+from hub.guide.render import SECTIONS, render_guide
 from hub.guide.schema import (
     GuideContent, JobGuide, ModuleGuide, OpsSection, PageGuide, Routine, ScriptGuide, Term, validate_entries,
 )
@@ -123,3 +124,89 @@ def test_coverage(category):
         f"[{category}] {len(items)}개: {items}\n"
         "→ hub/guide/content_*.py 를 고치세요. 목록 확인: python -m hub.guide.check"
     )
+
+
+# ---------------------------------------------------------------------------
+# UI/UX — 폰에서 찾기 쉬운 배치. 재배치는 해도 설명이 사라지면 안 된다.
+# ---------------------------------------------------------------------------
+def _content_texts(content):
+    """content_*.py 에 적힌 사람이 쓴 문구를 전부 모은다(화면에 남아 있어야 하는 것들)."""
+    out: list[str] = list(content.start_here)
+    for p in content.pages:
+        out += [p.summary, p.when_to_use, *p.steps, *p.reading, *p.cautions]
+    for m in content.modules:
+        out += [m.name, m.what, m.how_to_use, m.where_to_see] + ([m.cautions] if m.cautions else [])
+    for s in content.scripts:
+        out += [s.name, s.when_to_run, s.command, s.what_it_prints, s.risk]
+    for j in content.jobs:
+        out += [j.where_to_see] + ([j.if_alert] if j.if_alert else [])
+    for t in content.glossary:
+        out += [t.term, t.meaning] + ([t.why_it_matters] if t.why_it_matters else [])
+    for r in content.routines:
+        out += [r.title, r.when, *r.steps, *r.tips]
+    for o in content.ops:
+        out += [o.title, *o.body] + [x for pair in o.items for x in pair]
+    return [x for x in out if str(x).strip()]
+
+
+def test_no_content_disappears_from_the_page():
+    """UI 를 바꿔도 사람이 쓴 설명은 한 글자도 화면에서 빠지지 않아야 한다."""
+    page = render_guide_page()
+    missing = [t for t in _content_texts(CONTENT) if html.escape(t) not in page]
+    assert missing == [], f"렌더링에서 사라진 설명 {len(missing)}개: {missing[:5]}"
+
+
+def test_every_section_has_a_tab_and_a_body():
+    page = render_guide_page()
+    for ident, tab, title, lead in SECTIONS:
+        assert f'id="sec-{ident}"' in page, f"{ident} 섹션이 없습니다"
+        assert f'data-sec="{ident}"' in page, f"{ident} 탭이 없습니다"
+        assert html.escape(title) in page and html.escape(lead) in page
+        assert html.escape(tab) in page
+    assert page.count('<section class="sec"') == len(SECTIONS)
+
+
+def test_sections_are_one_at_a_time_but_readable_without_js():
+    """JS 가 돌면 한 섹션씩(폰), JS 가 없으면 전부 펼쳐진 한 장의 문서."""
+    page = render_guide_page()
+    assert 'document.documentElement.className="js"' in page
+    assert "html.js main > section.sec { display:none; }" in page
+    assert "html.js main > section.sec.on { display:block; }" in page
+    # JS 없이 섹션을 숨기는 규칙이 있으면 안 된다.
+    assert "\n  main > section.sec { display:none" not in page
+
+
+def test_tables_stack_on_narrow_phones():
+    page = render_guide_page()
+    assert "@media (max-width:620px)" in page
+    for table in re.findall(r"<table[^>]*>", page):
+        assert 'class="stack"' in table, f"폰용 표 클래스가 없습니다: {table}"
+    bare = [td for td in re.findall(r"<td(?![^>]*data-label)[^>]*>", page)]
+    assert bare == [], f"data-label 없는 셀 {len(bare)}개 (폰에서 무슨 값인지 안 보입니다)"
+
+
+def test_quick_entry_points_open_real_routines():
+    """'바로 가기' 버튼은 실제로 존재하는 상황별 사용법 카드를 연다."""
+    page = render_guide_page()
+    targets = set(re.findall(r'data-open="(routine-[^"]+)"', page))
+    assert targets, "과업 중심 진입점이 없습니다"
+    for r in CONTENT.routines:
+        assert f"routine-{r.id}" in targets
+        assert f'id="routine-{r.id}"' in page
+
+
+def test_search_box_covers_cards_and_table_rows():
+    page = render_guide_page()
+    assert 'id="q"' in page and 'id="qinfo"' in page
+    assert "details.entry" in page and "tr.row" in page  # 검색 JS 가 두 가지를 모두 훑는다
+    assert page.count('<details class="entry"') >= len(CONTENT.pages) + len(CONTENT.routines)
+    assert page.count('<tr class="row"') >= len(CONTENT.glossary)
+
+
+def test_no_external_assets_are_loaded():
+    """허브는 stdlib 서버다. 외부 CDN·프레임워크를 끌어오면 안 된다."""
+    page = render_guide_page()
+    assert "<script src" not in page and "<link" not in page
+    assert "@import" not in page
+    # 설명 문구 안의 주소는 괜찮다. 태그가 바깥에서 무언가를 불러오는 것만 막는다.
+    assert re.search(r'(src|href)="https?://', page) is None
