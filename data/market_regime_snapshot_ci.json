@@ -2,8 +2,8 @@
   "regime": "강세장",
   "regime_status": "ok",
   "regime_reason": null,
-  "total_score": 43.64553187031808,
-  "raw_total_score": 43.64553187031808,
+  "total_score": 44.49340983349549,
+  "raw_total_score": 44.49340983349549,
   "coverage": 1.0,
   "signals_available": 4,
   "signals_total": 4,
@@ -25,57 +25,57 @@
     "drawdown": {
       "status": "ok",
       "weight": 25.0,
-      "score": -0.9901966725960887,
+      "score": -0.8908217034306609,
       "reason": null
     },
     "breadth": {
       "status": "ok",
       "weight": 25.0,
-      "score": -5.364271457085827,
+      "score": -4.6157684630738505,
       "reason": null
     }
   },
   "trend_position": {
     "score": 25.0,
     "above_200sma": true,
-    "close": 7737.2099609375,
-    "sma200": 7205.1717578125,
-    "pct_vs_sma200": 7.384115479941422
+    "close": 7743.41015625,
+    "sma200": 7205.2027587890625,
+    "pct_vs_sma200": 7.469705093370482
   },
   "ma_cross": {
     "score": 25.0,
     "golden_cross": true,
-    "sma50": 7635.961796875,
-    "sma200": 7205.1717578125
+    "sma50": 7636.08580078125,
+    "sma200": 7205.2027587890625
   },
   "drawdown": {
-    "score": -0.9901966725960887,
-    "drawdown_pct": -0.7921573380768709,
+    "score": -0.8908217034306609,
+    "drawdown_pct": -0.7126573627445287,
     "is_bear_market_drawdown": false,
     "week52_high": 7798.990234375
   },
   "breadth": {
-    "score": -5.364271457085827,
-    "pct_above_200sma": 45.70858283433134,
+    "score": -4.6157684630738505,
+    "pct_above_200sma": 46.30738522954092,
     "is_overheated": false,
     "status": "ok",
     "coverage": 0.9960238568588469,
     "n_total": 503,
-    "n_above": 229,
+    "n_above": 232,
     "n_data_ok": 501
   },
   "short_term": {
     "1개월": {
       "regime": "중립/혼조",
-      "period_return_pct": 0.8013570626763666,
+      "period_return_pct": 0.8821339970892739,
       "window_days": 21
     },
     "3개월": {
       "regime": "강세장",
-      "period_return_pct": 5.210618687310498,
+      "period_return_pct": 5.29492897333137,
       "window_days": 63
     }
   },
   "benchmark_ticker": "^GSPC",
-  "computed_at": "2026-09-25T19:10:34.773049"
+  "computed_at": "2026-09-26T18:25:19.746458"
 }
