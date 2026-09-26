@@ -23,6 +23,7 @@ NAVIGATION: dict[str, tuple[PageSpec, ...]] = {
     ),
     "운용": (
         PageSpec("pages/11_챔피언_전략.py", "챔피언 전략", "🏆"),
+        PageSpec("pages/14_챔피언_성과.py", "챔피언 성과", "📒"),
         PageSpec("pages/8_포트폴리오_관리.py", "포트폴리오", "💼"),
         PageSpec("pages/3_관심종목_모니터링.py", "운용 알림", "🔔"),
     ),

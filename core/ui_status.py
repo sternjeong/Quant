@@ -22,6 +22,7 @@ _PAGE_META: dict[str, dict[str, str]] = {
     "settings": {"pit": "해당 없음", "version": "UI v2"},
     "champion": {"pit": "부분 검증", "version": "미버전"},
     "champion_optimization": {"pit": "부분 검증", "version": "미버전"},
+    "champion_performance": {"pit": "부분 검증", "version": "미버전"},
     "news": {"pit": "미검증", "version": "해당 없음"},
 }
 
@@ -149,6 +150,11 @@ def resolve_page_status(
 
             loaders[page_key] = champion_strategy.get_current_holdings
             meta["version"] = getattr(champion_strategy, "CHAMPION_STRATEGY_VERSION", "미버전")
+        elif page_key == "champion_performance":
+            # 저장된 성과 캐시 파일의 계산 시각만 읽는다(백테스트를 돌리지 않음).
+            from core.champion_performance import latest_snapshot_meta
+
+            loaders[page_key] = latest_snapshot_meta
         elif page_key == "market":
             from core.market_regime import get_latest_market_regime_snapshot
 
