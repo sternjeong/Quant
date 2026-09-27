@@ -197,6 +197,14 @@ PROCESS_REGISTRY: dict[str, dict] = {
         ),
         "category": "research", "default_enabled": True,
     },
+    "research_job_runner": {
+        "label": "검증 연구 작업 실행기",
+        "description": (
+            "research/jobs/ 에 등록된 사전 등록 검증 연구(결정론 스크립트)를 한가한 시간에 한 번에 하나씩, 낮은 우선순위로 "
+            "실행하고 결과를 텔레그램·관제 센터·저장소(research/results/)로 전달 — AI 호출·주문 없음 (01:00~02:50, 13:00~16:50 KST 20분마다)"
+        ),
+        "category": "research", "default_enabled": True,
+    },
     "contest_deadline_alert": {
         "label": "AI 대회 마감 알림",
         "description": "관제 센터 'AI 대회'에 등록한 대회의 마감 7일 전·1일 전·당일에 텔레그램 1건씩 — 종료·제출 완료 대회는 제외 (09:00 KST)",

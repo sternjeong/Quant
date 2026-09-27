@@ -944,6 +944,28 @@ def agent_batch_job() -> None:
     print(f"[{datetime.now()}] agent_batch_job 종료")
 
 
+def research_job_runner_job() -> None:
+    """검증 연구 작업 실행기 (core/research_jobs.py, 계약 docs/RESEARCH_JOBS.md). AI 호출·주문 경로 없음.
+
+    시각: 01:00~02:50(야간 잡 블록 뒤·03:00 에이전트 배치 전), 13:00~16:50 KST(등록된 잡이 없는 낮) 창 안에서 20분마다.
+    한 회차에 작업 하나를 nice 19 자식 프로세스로 돌리고 창 끝 2분 전까지 멈추게 한다. 연구 스크립트 자체의 실패는
+    텔레그램으로 따로 알리므로, 여기서는 실행기 자체의 예외만 잡 실패로 남긴다.
+    """
+    if not is_enabled("research_job_runner"):
+        print(f"[{datetime.now()}] research_job_runner_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
+    print(f"[{datetime.now()}] research_job_runner_job 시작")
+    try:
+        from core.research_jobs import run_tick
+        from core.telegram_notify import send_message
+
+        print(f"  - {str(run_tick(notify=send_message))[:400]}")
+    except Exception as exc:  # noqa: BLE001
+        print(f"  - 연구 작업 실행기 실패: {type(exc).__name__}: {exc}")
+        report_job_failure("research_job_runner", f"{type(exc).__name__}: {exc}")
+    print(f"[{datetime.now()}] research_job_runner_job 종료")
+
+
 def contest_deadline_alert_job() -> None:
     """AI 대회 마감 알림 (core/contests.py). 마감 7일·1일 전·당일에 대회마다 한 번씩 텔레그램.
 
@@ -1215,6 +1237,17 @@ def main() -> None:
         name="매일 한국시간 03:00 AI 에이전트 야간 배치",
         replace_existing=True,
         misfire_grace_time=1800,
+    )
+    scheduler.add_job(
+        research_job_runner_job,
+        # 한 회차가 창 끝까지 이어질 수 있으므로 겹치지 않게 max_instances=1, 밀린 회차는 하나로 합친다.
+        trigger=CronTrigger(hour="1,2,13,14,15,16", minute="0,20,40", timezone="Asia/Seoul"),
+        id="research_job_runner",
+        name="한국시간 01:00~02:50·13:00~16:50 20분마다 검증 연구 작업 실행기",
+        replace_existing=True,
+        max_instances=1,
+        coalesce=True,
+        misfire_grace_time=300,
     )
     scheduler.add_job(
         contest_deadline_alert_job,
