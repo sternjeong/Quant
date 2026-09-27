@@ -42,12 +42,22 @@ STATE_LABELS = {
 _WEEKDAY_KO = {"mon": "월", "tue": "화", "wed": "수", "thu": "목", "fri": "금", "sat": "토", "sun": "일"}
 
 
+def _clock(hour, minute) -> str:
+    """단일 시각이면 HH:MM, 여러 값(cron 목록, 예: '1,2,13')이면 '01·02·13시 00·20·40분'."""
+    try:
+        return f"{int(hour):02d}:{int(minute):02d}"
+    except (TypeError, ValueError):
+        def fmt(value):
+            return "·".join(f"{int(p):02d}" if p.strip().isdigit() else p.strip() for p in str(value).split(","))
+        return f"{fmt(hour)}시 {fmt(minute)}분"
+
+
 def describe_cron(cron: dict) -> str:
     """core.job_schedule의 cron 인자를 사람이 읽는 한 줄로. 시간대는 표기해 준다(KST/ET 혼재)."""
     timezone = str(cron.get("timezone", ""))
     zone = "KST" if "Seoul" in timezone else ("ET" if "New_York" in timezone else timezone)
     hour, minute = cron.get("hour"), cron.get("minute")
-    clock = f"{int(hour):02d}:{int(minute):02d}" if hour is not None and minute is not None else "?"
+    clock = _clock(hour, minute) if hour is not None and minute is not None else "?"
     day_of_week = cron.get("day_of_week")
     if not day_of_week:
         return f"매일 {clock} {zone}"

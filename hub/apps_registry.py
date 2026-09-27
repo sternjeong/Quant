@@ -99,6 +99,15 @@ SLOTS: list[AppSlot] = [
         report_glob=".news-digest/reports/news_*.html",
     ),
     AppSlot(
+        id="report-research-results",
+        title="검증 연구 결과",
+        description="VM 연구 실행기가 돌린 사전 등록 검증 연구의 상태·판정 요약·REPORT (01:00~02:50·13:00~16:50 KST 실행)",
+        unit="quant-scheduler.service",
+        kind="report",
+        category="연구·검증",
+        report_glob="data/research_results/index.html",
+    ),
+    AppSlot(
         id="codex-telegram",
         title="Codex/Claude 텔레그램 에이전트",
         description="텔레그램 지시를 받아 무인으로 코드를 작성 · 배포하는 상시 리스너",

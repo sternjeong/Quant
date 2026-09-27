@@ -1,0 +1,13 @@
+{
+  "id": "smoke-noop",
+  "title": "실행기 스모크(계산 없음)",
+  "entrypoint": "research/jobs/smoke-noop/run.py",
+  "args": ["--steps", "4", "--steps-per-run", "2"],
+  "timeout_seconds": 300,
+  "max_attempts": 2,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 900,
+  "revision": 1
+}

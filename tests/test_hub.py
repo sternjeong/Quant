@@ -118,7 +118,7 @@ REPORT_SLOT = AppSlot(
 
 def test_report_slots_registered_and_supervisor_stays_removed():
     ids = [slot.id for slot in SLOTS if slot.kind == "report"]
-    assert ids == ["report-daily-briefing", "report-champion-weekly", "report-news-digest"]
+    assert ids == ["report-daily-briefing", "report-champion-weekly", "report-news-digest", "report-research-results"]
     assert all(slot.id != "experiment-supervisor" for slot in SLOTS)
 
 
