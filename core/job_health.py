@@ -18,7 +18,12 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
-from apscheduler.events import EVENT_JOB_ERROR, EVENT_JOB_EXECUTED, EVENT_JOB_MISSED
+import json
+import os
+import threading
+from pathlib import Path
+
+from apscheduler.events import EVENT_JOB_ERROR, EVENT_JOB_EXECUTED, EVENT_JOB_MISSED, EVENT_JOB_SUBMITTED
 from apscheduler.triggers.cron import CronTrigger
 
 from core.db import get_session
@@ -39,6 +44,55 @@ KST_OFFSET = timedelta(hours=9)
 PROBLEM_STATES = ("error", "missed", "overdue")
 
 EVENT_MASK = EVENT_JOB_EXECUTED | EVENT_JOB_ERROR | EVENT_JOB_MISSED
+
+# "지금 실행 중인 잡" 표시(2026-09-27, 관제 센터 /live). 스케줄러는 잡을 내부 스레드로 돌려 밖에서 보이지 않으므로
+# 시작(SUBMITTED)에 기록하고 끝(EXECUTED/ERROR/MISSED)에 지운다. 스케줄러가 재시작되면 이전 기록은 무의미하므로 비운다.
+RUNNING_JOBS_PATH = Path(__file__).resolve().parent.parent / "data" / "running_jobs.json"
+_running_lock = threading.Lock()
+
+
+def _write_running(update) -> None:
+    with _running_lock:
+        try:
+            state = json.loads(RUNNING_JOBS_PATH.read_text(encoding="utf-8"))
+            state = state if isinstance(state, dict) else {}
+        except (OSError, ValueError):
+            state = {}
+        update(state)
+        RUNNING_JOBS_PATH.parent.mkdir(parents=True, exist_ok=True)
+        tmp = RUNNING_JOBS_PATH.with_suffix(".tmp")
+        tmp.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+        os.replace(tmp, RUNNING_JOBS_PATH)
+
+
+def mark_job_started(job_id: str) -> None:
+    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    _write_running(lambda st: st.__setitem__(job_id, {"started_at": now, "pid": os.getpid()}))
+
+
+def mark_job_finished(job_id: str) -> None:
+    _write_running(lambda st: st.pop(job_id, None))
+
+
+def read_running_jobs() -> dict:
+    """{job_id: {"started_at", "pid"}}. 기록한 스케줄러 프로세스가 이미 없으면 비어 있는 것으로 본다."""
+    try:
+        state = json.loads(RUNNING_JOBS_PATH.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    if not isinstance(state, dict):
+        return {}
+    return {k: v for k, v in state.items() if isinstance(v, dict) and _pid_alive(v.get("pid"))}
+
+
+def _pid_alive(pid) -> bool:
+    try:
+        os.kill(int(pid), 0)
+        return True
+    except PermissionError:
+        return True
+    except (OSError, TypeError, ValueError):
+        return False
 
 
 def _naive_utc(moment: datetime) -> datetime:
@@ -73,6 +127,13 @@ def report_job_failure(job_id: str, error: object) -> None:
 def job_run_listener(event) -> None:
     """APScheduler 리스너. 기록 실패가 스케줄러를 죽이면 안 되므로 어떤 예외도 삼키고 출력만 한다."""
     try:
+        if event.code == EVENT_JOB_SUBMITTED:
+            mark_job_started(event.job_id)
+            return
+        mark_job_finished(event.job_id)
+    except Exception as exc:  # noqa: BLE001
+        print(f"[job_health] 실행 중 표시 실패(무시): {exc}")
+    try:
         if event.code == EVENT_JOB_MISSED:
             status, error = "missed", None
         elif getattr(event, "exception", None):
@@ -91,7 +152,11 @@ def prune_old_runs(days: int = KEEP_DAYS) -> int:
 
 
 def attach_job_run_listener(scheduler) -> None:
-    scheduler.add_listener(job_run_listener, EVENT_MASK)
+    try:
+        _write_running(lambda st: st.clear())  # 재시작 전 기록은 무의미(그 스레드들은 이미 없다)
+    except Exception as exc:  # noqa: BLE001
+        print(f"[job_health] 실행 중 표시 초기화 실패(무시): {exc}")
+    scheduler.add_listener(job_run_listener, EVENT_MASK | EVENT_JOB_SUBMITTED)
     try:
         prune_old_runs()
     except Exception as exc:  # noqa: BLE001

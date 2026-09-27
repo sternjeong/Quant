@@ -43,6 +43,13 @@
 - 검증: 실제 데이터로 단기 반전 1926-02~1990-12 월 +0.884%·t 6.35·샤프 0.90(779개월)이 FidetoLabs 수치와 일치. SPY 회귀 β 0.99·R² 0.991(알파 −1.6%/년은 배당 미포함 Close 때문). 전체 `pytest tests` 2027 passed, `python -m hub.guide.check` 누락 없음.
 - 미실행: 실제 에이전트 배치에서 새 프롬프트·심판 동작 확인, 커밋·push. 다음 단계 후보(제안만): qanat식 decay 블렌딩 shadow 실험, 읽기 전용 MCP 서버.
 
+## 2026-09-27 관제 센터 '지금 돌고 있는 작업'(/live) (구현·단위 테스트, 배포)
+
+- 사용자 요청: VM 에서 백그라운드로 무엇이 돌고 있고 그 내용이 무엇인지 보는 UI.
+- 구현: `hub/live_status.py` + `/live` 라우트 + '운영' 카테고리 카드. 절: 실행 중 스케줄러 잡(경과 시간·설명), 텔레그램 작업 큐(running/queued/retry/blocked, 지시 요약), 서비스(상태·메모리·CPU 누적·재시작), 프로세스(quant·ubuntu 계정, 무엇인지 설명, 비밀값 가림, code-server 하위 묶음), 12시간 안에 돌 잡. 15초 새로고침, 읽기 전용.
+- `core/job_health.py`: APScheduler SUBMITTED 이벤트로 `data/running_jobs.json`(gitignore)에 시작 표시, 종료 시 제거, 스케줄러 재시작 시 초기화, 죽은 PID 기록은 무시. 설명서 항목 갱신.
+- 검증: `tests/test_live_status.py`(14건). VM 실화면 미확인 — Streamlit 내부 백그라운드 작업(job_manager)은 프로세스 메모리 안이라 이 화면에 안 나온다.
+
 ## 2026-09-26 관제 센터 'AI 대회' 섹션 (구현·단위 테스트, VM 1회 설정 필요)
 
 - 사용자 결정: 브라우저 code-server 로 열기, 저장소 private 고정, 기본 정보·마감 알림, 기본 뼈대. 관리 항목 "Other" 는 내용이 비어 있어 확인 대기.

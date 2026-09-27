@@ -166,20 +166,25 @@ def _state_pill(state: str | None) -> str:
 
 
 def _toggle_button(row: dict[str, Any]) -> str:
-    """켜짐이면 끄기 버튼, 꺼짐이면 켜기 버튼. 주문 잡을 켜는 경우에만 확인 화면을 거친다."""
+    """켜짐이면 Off 버튼, 꺼짐이면 On 버튼. 주문 잡을 켜는 경우에만 확인 화면을 거친다.
+
+    라벨이 영문 On/Off 인 이유: 폰 좁은 폭에서 버튼 칸이 눌리면 한글 두 글자가 "끄/기" 로 세로로 쪼개졌다
+    (2026-09-27 사용자 지적). nowrap·최소 너비로도 막지만 글자 자체가 짧은 편이 안전하다.
+    """
     key = html.escape(row["key"])
     if row["enabled"]:
-        label, color, action, extra = "끄기", "#3a1b1b", "/processes/toggle", ""
+        label, color, action = "Off", "#3a1b1b", "/processes/toggle"
     elif row["places_orders"]:
-        label, color, action, extra = "켜기…", "#2c3a52", "/processes/confirm", ""
+        label, color, action = "On\u2026", "#2c3a52", "/processes/confirm"
     else:
-        label, color, action, extra = "켜기", "#1d3a2a", "/processes/toggle", ""
+        label, color, action = "On", "#1d3a2a", "/processes/toggle"
     value = "0" if row["enabled"] else "1"
     return (f'<form method="post" action="{action}" style="margin:0">'
             f'<input type="hidden" name="key" value="{key}">'
-            f'<input type="hidden" name="enabled" value="{value}">{extra}'
+            f'<input type="hidden" name="enabled" value="{value}">'
             f'<button type="submit" style="background:{color};color:#e6e8ea;border:1px solid #333a44;'
-            f'border-radius:8px;padding:.3rem .7rem;font-size:.78rem;cursor:pointer">{label}</button></form>')
+            f'border-radius:8px;padding:.32rem .85rem;font-size:.8rem;cursor:pointer;'
+            f'white-space:nowrap;min-width:3.6rem">{label}</button></form>')
 
 
 def _process_row(row: dict[str, Any]) -> str:
@@ -190,7 +195,7 @@ def _process_row(row: dict[str, Any]) -> str:
         f'<div style="color:#7d848d;font-size:.74rem;margin-top:.15rem">{html.escape(row["description"])}</div></td>'
         f'<td style="padding:.5rem .4rem;color:#9aa0a8;font-size:.76rem;white-space:nowrap">{html.escape(row["schedule"])}</td>'
         f'<td style="padding:.5rem .4rem">{_state_pill(row["state"])}</td>'
-        f'<td style="padding:.5rem .4rem;text-align:right">{_toggle_button(row)}</td>'
+        f'<td style="padding:.5rem .4rem;text-align:right;width:1%;white-space:nowrap">{_toggle_button(row)}</td>'
         '</tr>'
     )
 

@@ -21,7 +21,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from hub.apps_registry import SLOTS, AppSlot  # noqa: E402
-from hub import alpaca_status, contests_page, engine_status, ops_status, research_status  # noqa: E402
+from hub import alpaca_status, contests_page, engine_status, live_status, ops_status, research_status  # noqa: E402
 from hub.status import UnitStatus, get_unit_status  # noqa: E402
 from hub import ui  # noqa: E402
 
@@ -167,6 +167,8 @@ def _slot_href(slot: AppSlot, host: str) -> str:
         return "/ops"
     if slot.kind == "contests":
         return "/contests"
+    if slot.kind == "live":
+        return "/live"
     if slot.kind == "research":
         return "/research"
     return f"/status/{slot.id}"
@@ -270,6 +272,8 @@ def render_dashboard(host: str) -> str:
             end = ops_status.jobs_badge(jobs)
         elif slot.kind == "contests":
             end = contests_page.card_badge()
+        elif slot.kind == "live":
+            end = live_status.card_badge()
         elif slot.kind == "research":
             end = research_status.card_badge(research_status.collect())
         else:
@@ -301,6 +305,18 @@ def render_dashboard(host: str) -> str:
 
 def _stamp() -> str:
     return f'<p class="stamp">마지막 갱신 {datetime.now():%Y-%m-%d %H:%M:%S}</p>'
+
+
+def render_live_page() -> str:
+    return (
+        '<!doctype html><html lang="ko"><head><meta charset="utf-8">'
+        '<meta name="viewport" content="width=device-width,initial-scale=1">'
+        '<meta http-equiv="refresh" content="15">'
+        f'<title>지금 돌고 있는 작업</title>{PAGE_STYLE}</head><body>'
+        '<p><a class="back" href="/">&larr; 관제 센터로</a></p><h1>지금 돌고 있는 작업</h1>'
+        f'{live_status.collect_and_render()}'
+        f'<p class="stamp">마지막 갱신 {datetime.now():%Y-%m-%d %H:%M:%S}</p></body></html>'
+    )
 
 
 def render_research_page() -> str:
@@ -463,6 +479,8 @@ class HubRequestHandler(BaseHTTPRequestHandler):
             self._send_html(render_dashboard(host))
         elif path == "/login":
             self._send_html(LOGIN_PAGE)
+        elif path == "/live":
+            self._send_html(render_live_page())
         elif path in ("/contests", "/contests/"):
             self._send_html(contests_page.render_list(PAGE_STYLE))
         elif path == "/contests/new":
