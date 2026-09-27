@@ -43,6 +43,30 @@
 - 버그 수정(구현 중): 마감 D-1 대회에 D-7 알림을 고르던 단계 선택 오류.
 - **VM 미실행:** `/srv/contests` 가 없으면 화면에 설정 안내가 뜬다. 사용자가 code-server 터미널에서 `sudo bash /opt/quant/deploy/setup_contests.sh` 1회 실행 필요. 실제 gh 저장소 생성·code-server 폴더 열기는 미검증.
 
+## 2026-09-25 후보 원장 사전 기록(forward_recorded) PIT 인증 (구현·단위 테스트, 브랜치 `eng-pit-forward-cert`, main 미병합·미배포)
+
+- 문제: 가격·재무 기반 후보는 decision_cutoff 만 채워 5필드 PIT 인증이 불가능 → `decide_verdict` 가 영원히 '미입증'.
+- 결정: `core/candidate_ledger.compute_pit_basis()` 로 행마다 `pit_basis ∈ {full_contract, forward_recorded, none}` 계산(DB 컬럼 추가 없음, `load_outcome_frame` 이 붙임). forward_recorded = `CandidateBatch.created_at <= next_executable_fill`(확정된 진입 시가, UTC) 이고 `decision_cutoff <= next_executable_fill`. full_contract 우선. 소급 기록(created_at > 진입)은 none.
+- PIT 게이트만 full_contract|forward_recorded 인정으로 바꿨고 표본·군집·블록·결측·진단 horizon·주 대상/비용 게이트는 그대로. 결과에 `pit_basis_counts`·`pit_basis_limitation`(원천 데이터 발표 시각·소급 수정은 보증 안 함) 포함. `pit_certified_fraction` 은 이제 인정 근거 비율.
+- 수정: `core/candidate_ledger.py`, `tests/test_candidate_ledger.py`(+15), `docs/CANDIDATE_LEDGER_SPEC.md`, `hub/guide/content_modules_a.py`, `hub/guide/content_ops.py`. models.py·db.py 미수정.
+- 다음: main 병합 여부는 사용자/상위 세션 결정. VM 실데이터에서 기존 행의 pit_basis 분포 확인은 아직 안 함.
+
+## 2026-09-25 위성 후보 풀 전체 기록 (브랜치 eng-satellite-pool, 구현·단위 테스트, 배포 전)
+
+- 결정: 위성 원전략 결정은 그대로 두고 후보 풀을 **관측 전용 추가 필드**로만 노출(`candidates`/`rejected_tickers`/`missing_tickers`, `core/champion_strategy.py`). 후보 원장(`core/candidate_recorder.py`)은 풀 전체를 selected/held/rejected/missing_data 로, 두 shadow(`core/guidance_shadow.py`·`core/filing_veto_shadow.py`)는 돌파 활성 후보 집합 C(채택+상위 3위 밖)를 기록. 모집단이 바뀌어 shadow strategy_version 을 v2 로 올림(v1 행 보존).
+- 외부 조회 상한: 가이던스 기존 상한(20종목·300회·300초) 유지 + 조회 순서 채택 > 모멘텀 순위. 공시 veto 에 새 상한 20종목·150회·300초, 넘친 후보는 missing_data(fetch_status=skipped_*).
+- 원전략 불변 검증: 변경 전(031e9cc) `_pick_satellite_at_date` 본문을 테스트에 그대로 두고 무작위 입력으로 비트 단위 대조(`tests/test_satellite_candidate_pool.py`), 주문 계획 동일성 테스트. 전체 pytest 2016 passed(2026-09-26).
+- 표본 추정(저장된 실행 기록 기반, 가정): 돌파 활성 후보 반기당 16~39(평균 34), 채택 3. 상한 20이면 약 6.7배. 공시 veto 보류 100건까지 풀로도 약 13~42년, 가이던스 veto 165건은 약 40년 이상 → 여전히 forward shadow 만으로는 결론 불가. 자세한 표는 FILING_CHANGE_VETO_SPEC §9.
+- 다음 단계(제안): 상한 20이 대부분 반기에서 걸리므로 상한 상향 여부는 사람 결정. 과거 재구성으로 표본을 늘릴지 검토. VM 실행 검증 전.
+
+## 2026-09-26 후보 원장 국면별 판정 + 실측 비용 진단 칸 (구현·단위 테스트, 브랜치 eng-regime-eval, 미배포)
+
+- 결정: 원장 판정이 전체 기간을 섞던 문제(사용자 원칙 "같은 국면 안에서만 검증")와 실측 비용 미반영을 진단 레이어로 해결. 원장(`core/candidate_ledger.py`)·스케줄러는 수정하지 않음.
+- 신규 `core/regime_eval.py`: 결정 이전 최신 스냅샷만 사용(5거래일 초과 → unknown), 스냅샷 없으면 결정 시점 확정 봉으로 `classify_daily_regime` 재계산(캐시 전용), unknown 별도 칸, 다중비교 라벨, `measured` 비용 칸(진단용, 주 검정 10bp 불변).
+- `core/strategy_variants.py`: 주간 보고서에 '국면별 판정'·'실측 비용 반영 결과' 절 추가(실패해도 기존 절은 생성). 설명서 `hub/guide/content_modules_b.py` 갱신, `docs/CANDIDATE_LEDGER_SPEC.md`에 절 추가.
+- 검증: `tests/test_regime_eval.py` 16건, 전체 pytest 2007 passed(이 세션 직접 실행), `python -m hub.guide.check` 빠진 설명 없음. VM 실행·실데이터 보고서 미확인.
+- 한계·다음: 거래일 계산은 평일 기준(휴장일 미반영), 스냅샷 이력은 2026-07 이후만 존재, CI 폴백 JSON 스냅샷은 라벨에 쓰지 않음. `pit_certified_fraction` 의미가 원장 버전마다 다를 수 있어 regime_eval은 그 값을 해석·표시하지 않고 verdict_reasons만 옮긴다.
+
 ## 2026-09-25 허브 모델 저장 forbidden 수정 (배포)
 
 - 증상: VM 허브 `/research` 에서 모델 바꾸고 저장 → `forbidden`. 원인: 허브 응답의 `Referrer-Policy: no-referrer` 때문에 브라우저가 폼 POST 의 `Origin` 을 `null` 로 보내 Host 비교가 실패. 수정: Origin 이 실제 주소일 때만 Host 와 비교하고, 그 외에는 `Sec-Fetch-Site`(cross-site·same-site 거부)로 판단(`hub/server.py::_same_origin_post`). 테스트 추가.

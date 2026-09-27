@@ -10,7 +10,7 @@
 """
 
 import json
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 import numpy as np
 import pandas as pd
@@ -861,3 +861,180 @@ def test_cli_updates_and_prints_summary_without_claiming_performance(db_session,
     payload = _json.loads(capsys.readouterr().out)
     assert rc == 0 and payload["report"] is None and payload["update"]["finalized"] == 0  # 재실행: 새 확정 없음
     assert db_session.query(CandidateOutcome).count() == n
+
+
+# ---------------------------------------------------------------------------
+# 사전 기록(forward_recorded) PIT 근거 — 2026-09-25
+# 요구사항: 기록 시각(batch.created_at) <= 진입 시가 시각(next_executable_fill) 이고
+# decision_cutoff <= next_executable_fill 이면 forward_recorded. decision_cutoff <= created_at 은 요구하지 않는다.
+# 5필드 완비는 full_contract 가 우선. 소급 기록(created_at > 진입)은 none.
+# 테스트는 기록 시각을 흉내 내려고 batch.created_at 을 직접 바꾼다(운영 코드는 insert 시각만 쓴다).
+# ---------------------------------------------------------------------------
+CUT = datetime(2026, 6, 1, 21, 0)  # 6/1 17:00 EDT 장 마감 후
+FILL = datetime(2026, 6, 2, 13, 30)  # 6/2 09:30 EDT 시가
+
+
+def _basis(recorded_at, cutoff=CUT, fill=FILL, sp=None, sfs=None, ec=None):
+    return cl.compute_pit_basis(sp, sfs, ec, cutoff, fill, recorded_at)
+
+
+def test_pit_basis_recorded_before_entry_is_forward_recorded():
+    basis, reasons = _basis(datetime(2026, 6, 1, 22, 0))
+    assert basis == cl.PIT_BASIS_FORWARD
+    assert "forward_recorded:recorded_at<=next_executable_fill" in reasons
+    # 결정 시각보다 먼저 기록돼도(잡이 날짜 cutoff 를 장중에 기록) 진입 전이면 인정
+    assert _basis(datetime(2026, 6, 1, 15, 27), cutoff=datetime(2026, 6, 2, 0, 0))[0] == cl.PIT_BASIS_FORWARD
+
+
+def test_pit_basis_recorded_after_entry_is_none():
+    basis, reasons = _basis(datetime(2026, 6, 2, 13, 31))
+    assert basis == cl.PIT_BASIS_NONE
+    assert "forward_recorded:recorded_after_entry(backfill)" in reasons
+
+
+def test_pit_basis_boundary_exact_entry_time_counts_as_before():
+    assert _basis(FILL)[0] == cl.PIT_BASIS_FORWARD  # created_at == next_executable_fill -> 인정(<=)
+    assert _basis(FILL + timedelta(seconds=1))[0] == cl.PIT_BASIS_NONE
+
+
+def test_pit_basis_pending_fill_is_not_yet_decidable():
+    basis, reasons = _basis(datetime(2026, 6, 1, 22, 0), fill=None)
+    assert basis == cl.PIT_BASIS_NONE
+    assert "forward_recorded:pending:next_executable_fill" in reasons
+
+
+def test_pit_basis_missing_recorded_at_or_order_violation_is_none():
+    assert _basis(None)[0] == cl.PIT_BASIS_NONE
+    basis, reasons = _basis(datetime(2026, 6, 1, 12, 0), cutoff=datetime(2026, 6, 3, 0, 0))  # cutoff > fill
+    assert basis == cl.PIT_BASIS_NONE
+    assert "forward_recorded:order_violation:decision_cutoff>next_executable_fill" in reasons
+    assert _basis(datetime(2026, 6, 1, 12, 0), cutoff=None)[0] == cl.PIT_BASIS_NONE
+
+
+def test_pit_basis_full_contract_takes_priority_even_if_recorded_late():
+    late = datetime(2026, 9, 1)
+    basis, reasons = cl.compute_pit_basis(*T, late)
+    assert basis == cl.PIT_BASIS_FULL and reasons == []
+    assert cl.compute_pit_basis(*T, datetime(2026, 6, 1, 22, 0))[0] == cl.PIT_BASIS_FULL
+
+
+def test_pit_basis_tz_aware_recorded_at_is_converted_to_utc():
+    from zoneinfo import ZoneInfo
+    kst = ZoneInfo("Asia/Seoul")
+    # 6/2 22:29 KST = 6/2 13:29 UTC -> 진입(13:30 UTC) 1분 전
+    assert _basis(datetime(2026, 6, 2, 22, 29, tzinfo=kst))[0] == cl.PIT_BASIS_FORWARD
+    assert _basis(datetime(2026, 6, 2, 22, 31, tzinfo=kst))[0] == cl.PIT_BASIS_NONE
+
+
+def test_session_open_utc_across_dst_boundaries():
+    assert cl.session_open_utc(date(2026, 3, 6)) == datetime(2026, 3, 6, 14, 30)  # EST
+    assert cl.session_open_utc(date(2026, 3, 9)) == datetime(2026, 3, 9, 13, 30)  # 3/8 DST 시작 후 EDT
+    assert cl.session_open_utc(date(2026, 10, 30)) == datetime(2026, 10, 30, 13, 30)  # EDT
+    assert cl.session_open_utc(date(2026, 11, 2)) == datetime(2026, 11, 2, 14, 30)  # 11/1 DST 종료 후 EST
+
+
+def _set_batch_created_at(db_session, when):
+    for b in db_session.query(CandidateBatch):
+        b.created_at = when
+    db_session.commit()
+
+
+def test_forward_recorded_flows_from_db_after_entry_is_known(db_session):
+    cl.record_candidate_set(_make_set(), session=db_session)  # cutoff 6/1(날짜) -> 6/2 03:59:59 UTC
+    _set_batch_created_at(db_session, datetime(2026, 6, 1, 15, 27))  # 결정 시각 전·진입 전 기록
+    f0 = cl.load_outcome_frame(db_session, horizon=20)
+    assert set(f0["pit_basis"]) == {cl.PIT_BASIS_NONE}  # 진입 미확정 -> 아직 판정 불가
+    assert all("pending:next_executable_fill" in r for r in f0["pit_basis_reason"])
+
+    cl.update_forward_outcomes(AS_OF, price_provider=provider_for(FRAMES), session=db_session)
+    f = cl.load_outcome_frame(db_session, horizon=20)
+    assert set(f["pit_basis"]) == {cl.PIT_BASIS_FORWARD}
+    assert not f["pit_certified"].any()  # DB 의 5필드 인증은 그대로 False
+    assert (f["recorded_at"] == pd.Timestamp(2026, 6, 1, 15, 27)).all()
+
+
+def test_backfilled_rows_never_certify(db_session):
+    # 과거 cutoff 를 지금(실제 insert 시각 = 진입 한참 뒤) 기록하는 백필
+    cl.record_candidate_set(_make_set(), session=db_session)
+    cl.update_forward_outcomes(AS_OF, price_provider=provider_for(FRAMES), session=db_session)
+    f = cl.load_outcome_frame(db_session, horizon=20)
+    assert set(f["pit_basis"]) == {cl.PIT_BASIS_NONE}
+    assert all("recorded_after_entry(backfill)" in r for r in f["pit_basis_reason"])
+    rep = cl.evaluate_selection(f, n_boot=50, n_random_draws=10, seed=1)
+    assert rep["verdict"] == cl.VERDICT_UNPROVEN and "not_pit_certified" in rep["verdict_reasons"]
+    assert rep["pit_basis_counts_all_rows"] == {"full_contract": 0, "forward_recorded": 0, "none": 4}
+    assert rep["pit_basis_counts"][cl.PIT_BASIS_NONE] == 3  # 게이트 대상 = 적격(AAA/BBB/CCC) 중 결과 있는 행
+
+
+def test_dst_entry_open_decides_forward_vs_backfill(db_session):
+    idx = pd.bdate_range("2026-03-02", periods=40)  # 3/6(금) 다음 세션 = 3/9(월), 3/8 DST 시작
+    frames = {"SPY": px([400.0] * 40, idx), "AAA": px([100.0] * 40, idx)}
+    cset = cl.FrozenCandidateSet("unit_test", "v-dst", "2026-03-06", [cl.CandidateRecord("AAA", "selected")])
+    cl.record_candidate_set(cset, session=db_session)
+    cl.update_forward_outcomes(idx[-1].date(), price_provider=provider_for(frames), session=db_session)
+    d = db_session.query(CandidateDecision).one()
+    assert d.next_executable_fill == datetime(2026, 3, 9, 13, 30)  # EDT 개장. EST 로 계산하면 14:30
+
+    _set_batch_created_at(db_session, datetime(2026, 3, 9, 13, 45))  # EST 가정이면 진입 전으로 오판될 시각
+    assert cl.load_outcome_frame(db_session, horizon=20)["pit_basis"].iloc[0] == cl.PIT_BASIS_NONE
+    _set_batch_created_at(db_session, datetime(2026, 3, 9, 13, 15))
+    assert cl.load_outcome_frame(db_session, horizon=20)["pit_basis"].iloc[0] == cl.PIT_BASIS_FORWARD
+
+
+def _with_basis(frame, basis):
+    frame = frame.copy()
+    frame["pit_certified"] = False
+    frame["pit_basis"] = basis
+    return frame
+
+
+def test_verdict_accepts_forward_recorded_but_other_gates_still_apply():
+    big = _with_basis(_big_frame(0.05), cl.PIT_BASIS_FORWARD)
+    rep = cl.evaluate_selection(big, n_boot=200, n_random_draws=50, seed=5)
+    assert rep["verdict"] == cl.VERDICT_POSITIVE_REVIEW  # PIT 게이트 통과(검토 대상일 뿐)
+    assert rep["auto_decision"] is False
+    assert rep["pit_basis_counts"] == {"full_contract": 0, "forward_recorded": 360, "none": 0}
+    assert rep["pit_certified_fraction"] == 1.0 and rep["pit_full_contract_fraction"] == 0.0
+    assert any("원천 데이터" in w for w in rep["warnings"])  # 한계가 결과에 남는다
+    assert "소급 수정" in rep["pit_basis_limitation"]
+
+    small = _with_basis(_win_rate_only_frame(), cl.PIT_BASIS_FORWARD)
+    rep_s = cl.evaluate_selection(small, n_boot=100, n_random_draws=20, seed=1)
+    assert rep_s["verdict"] == cl.VERDICT_UNPROVEN
+    assert any(r.startswith("insufficient_sample") for r in rep_s["verdict_reasons"])
+    assert "not_pit_certified" not in rep_s["verdict_reasons"]
+
+    rep5 = cl.evaluate_selection(big, horizon=5, n_boot=100, n_random_draws=20, seed=5)
+    assert rep5["verdict"] == cl.VERDICT_UNPROVEN  # 진단 horizon 게이트 유지
+
+
+def test_single_backfilled_row_blocks_verdict_among_forward_rows():
+    big = _with_basis(_big_frame(0.05), cl.PIT_BASIS_FORWARD)
+    big.loc[0, "pit_basis"] = cl.PIT_BASIS_NONE
+    rep = cl.evaluate_selection(big, n_boot=200, n_random_draws=50, seed=5)
+    assert rep["verdict"] == cl.VERDICT_UNPROVEN and "not_pit_certified" in rep["verdict_reasons"]
+    assert rep["pit_basis_counts"]["none"] == 1
+    # 알 수 없는 근거 문자열도 인정하지 않는다
+    big.loc[0, "pit_basis"] = "trust_me"
+    rep2 = cl.evaluate_selection(big, n_boot=200, n_random_draws=50, seed=5)
+    assert rep2["verdict"] == cl.VERDICT_UNPROVEN and rep2["pit_basis_counts"]["other"] == 1
+
+
+def test_decide_verdict_pit_basis_counts_gate():
+    kw = dict(horizon=20, target=cl.PRIMARY_TARGET, cost_scenario=cl.PRIMARY_COST_SCENARIO,
+              n_selected=150, n_ticker_clusters=60, n_date_blocks=15, pit_fraction=1.0, missing_rate=0.0)
+    ok = cl.decide_verdict(0.001, 0.02, **kw, pit_basis_counts={"forward_recorded": 150, "full_contract": 10})
+    assert ok[0] == cl.VERDICT_POSITIVE_REVIEW
+    # pit_fraction 과 모순되는 counts 가 오면 더 엄격한 쪽(미입증)
+    bad = cl.decide_verdict(0.001, 0.02, **kw, pit_basis_counts={"forward_recorded": 149, "none": 1})
+    assert bad == (cl.VERDICT_UNPROVEN, ["not_pit_certified"])
+    # forward_recorded 여도 표본 게이트는 약해지지 않는다
+    few = cl.decide_verdict(0.001, 0.02, **dict(kw, n_selected=10), pit_basis_counts={"forward_recorded": 10})
+    assert few[0] == cl.VERDICT_UNPROVEN
+
+
+def test_legacy_frame_without_pit_basis_never_infers_forward_recorded():
+    rep = cl.evaluate_selection(_big_frame(0.05, pit=False), n_boot=100, n_random_draws=20, seed=5)
+    assert rep["pit_basis_counts"]["forward_recorded"] == 0 and rep["pit_basis_counts"]["none"] == 360
+    rep_t = cl.evaluate_selection(_big_frame(0.05, pit=True), n_boot=100, n_random_draws=20, seed=5)
+    assert rep_t["pit_basis_counts"]["full_contract"] == 360

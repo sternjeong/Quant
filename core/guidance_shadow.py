@@ -8,7 +8,7 @@ core.earnings_events(가이던스 추출)를 "관측 전용"으로 잇는다.
     1. 원전략(위성)의 채택/보류 결정 자체는 절대 바꾸지 않는다. build_guidance_shadow_candidate_set()은
        core.candidate_ledger.champion_satellite_to_candidate_set()(수정하지 않음)이 이미 계산한 decision/
        decision_reason을 그대로 재사용하고, 가이던스 feature는 CandidateRecord.scores에 관측값으로만
-       추가한다. 별도 strategy_version("champion_satellite/guidance_shadow_v1")으로 원전략 기록
+       추가한다. 별도 strategy_version("champion_satellite/guidance_shadow_v2")으로 원전략 기록
        (core/candidate_recorder.py)과 분리해 동결 기록하므로 섞이지 않는다.
     2. 주문 경로(core.paper_execution, scripts/champion_paper_trade.py)는 이 모듈이 import도 호출도
        하지 않는다. record_candidate_set()이 쓰는 원장은 어떤 주문 로직도 읽지 않는다(RES-01과 동일 원칙).
@@ -18,13 +18,19 @@ core.earnings_events(가이던스 추출)를 "관측 전용"으로 잇는다.
        VERDICT_UNPROVEN("미입증")을 강제한다(우회 불가).
 
 알려진 한계(정직하게 남김, 다음 세션이 봐야 할 것):
-    - compute_satellite_recommendation_point_in_time()은 top-K 채택 종목(picks/selected)만 반환하고,
-      스펙 2절이 말하는 "후보 집합 C"(그날 돈치안 20일 돌파가 활성인 S&P500 종목 전체)는 반환하지
-      않는다. 그 전체 후보 풀은 비공개 함수 _pick_satellite_at_date 내부의 active_scores에만 있고,
-      이번 작업은 core/champion_strategy.py를 수정하지 않으므로 꺼낼 수 없다. 따라서 이 shadow는
-      스펙 2절의 "채택 집합 A"(원전략이 실제로 고른 종목)만 관측한다 — held/rejected 반사실은 아직
-      기록할 수 없다. 후보 풀 전체를 관측하려면 champion_strategy.py에 반환값을 추가하는 별도 작업이
-      필요하다(주문 로직 미변경, 반환값 확장만이면 안전할 수 있음 — 사람 결정 필요).
+    - (2026-09-25 갱신) 후보 풀 전체 관측: compute_satellite_recommendation_point_in_time()이 관측 전용 필드
+      candidates(그 반기 리밸런싱일 point-in-time 풀 표본에서 돈치안 돌파가 활성인 후보 전체, 모멘텀 순)를 함께
+      돌려주므로, 이 shadow 는 스펙 2절의 "후보 집합 C" 전체를 기록한다 — 원전략 결정(채택 selected / top_k 밖
+      held / 신규 주문 보류 held)은 어댑터 결과를 그대로 복사하고, scores.in_adopted_set 으로 "채택 집합 A"를
+      같은 행에서 가려낼 수 있다. 돌파 비활성(rejected)·이력 부족 종목은 C 가 아니므로 이 shadow 에 넣지 않는다
+      (원전략 원장 core/candidate_recorder.py 에는 기록된다). 모집단이 바뀌었으므로 strategy_version 을 v2 로
+      올렸다(v1 = 채택 집합 A 만 관측한 기록, 원장에 그대로 남는다). C 는 S&P500 전체가 아니라 위성 전략이 쓰는
+      point-in-time 풀 표본(기본 40종목) 안의 돌파 후보다.
+    - SEC 조회 우선순위: 후보가 야간 티커 상한(NIGHTLY_MAX_TICKERS)을 넘으면 채택 종목 먼저, 그다음 모멘텀
+      순위 순으로 조회하고 나머지는 core.guidance_event_provider 가 skipped 로 남긴다. 각 후보 행의
+      scores.guidance_fetch_status 에 조회 결과(ok/ok_cached/failed/skipped_max_tickers/skipped_budget/...)를
+      남긴다 — 조회하지 못한 후보의 basis_status='no_release' 는 "발표 없음"이 아니라 "보지 못함"일 수 있으므로
+      분석 시 이 필드로 구분해야 한다.
     - 가이던스 발표의 완전한 시간 계약(source_publication/system_first_seen/extraction_completed)은
       실제 수집 파이프라인이 없으면 채울 수 없다. 이 모듈은 아는 값(acceptance_utc)만 source_publication에
       채우고 나머지는 비워 둔다 — core/candidate_recorder.py와 같은 관례이며, 그 결과
@@ -73,7 +79,8 @@ from core.info_dedup import compute_event_id, populate_info_fields
 # ---------------------------------------------------------------------------
 # 사전 고정 상수 (스펙 3·5절과 같은 값. 결과를 본 뒤 바꾸면 탐색 결과로만 취급한다)
 # ---------------------------------------------------------------------------
-GUIDANCE_SHADOW_STRATEGY_VERSION = "champion_satellite/guidance_shadow_v1"
+# v2(2026-09-25): 관측 모집단이 채택 집합 A(v1)에서 돌파 후보 집합 C 전체로 바뀌어 버전을 올렸다.
+GUIDANCE_SHADOW_STRATEGY_VERSION = "champion_satellite/guidance_shadow_v2"
 GUIDANCE_SHADOW_SOURCE = "champion_satellite_guidance_shadow"
 
 # 스펙 3절: 주 가설의 veto 규칙은 revenue·eps item만 쓴다(나머지 metric은 진단·기록용).
@@ -94,8 +101,9 @@ COMPARISON_RANDOM_SAME_COUNT = "동일_채택수_무작위"
 COMPARISON_NAMES = (COMPARISON_ORIGINAL, COMPARISON_RAISED_ONLY, COMPARISON_RANDOM_SAME_COUNT)
 
 # 야간 잡(scheduler/run_scheduler.py guidance_shadow_record_job) 전용 SEC 조회 상한 (2026-09-25).
-#   - 티커 수: core.guidance_event_provider.DEFAULT_MAX_TICKERS(20)를 그대로 쓴다. 위성 채택 종목은 보통
-#     5개(SATELLITE_TOP_N)라 실제로는 5개 안팎만 조회된다.
+#   - 티커 수: core.guidance_event_provider.DEFAULT_MAX_TICKERS(20)를 그대로 쓴다. 2026-09-25부터 후보 집합 C
+#     전체(풀 표본 40종목 중 돌파 활성 후보)를 조회하므로 상한에 닿을 수 있다 — 그때는 채택 > 모멘텀 순위
+#     우선순위(_fetch_priority_tickers) 뒤쪽 티커가 skipped_max_tickers 로 남는다.
 #   - SEC 요청 수: 티커 1개 콜드 캐시 = submissions 1 + 8-K 최대 6건 x (인덱스 + 보도자료) 2 = 13회.
 #     20티커 x 13 = 260 에 여유를 둔 300회. 8-K 문서는 영구 캐시, submissions 는 6시간 캐시라 캐시가
 #     데워진 뒤에는 티커당 하루 1~3회 수준이다. 티커 사이에서 검사하는 소프트 상한이다.
@@ -282,6 +290,25 @@ def _normalize_event_keys(events_by_ticker: Optional[Mapping[str, Sequence[Guida
     return {str(k).strip().upper(): v for k, v in events_by_ticker.items()}
 
 
+def _ticker_upper_list(values: Any) -> list:
+    out: list = []
+    for t in values or []:
+        tu = str(t).strip().upper()
+        if tu and tu not in out:
+            out.append(tu)
+    return out
+
+
+def _fetch_priority_tickers(records: Sequence[CandidateRecord], satellite_result: dict) -> list:
+    """SEC 조회 순서(상한을 넘으면 뒤쪽이 skipped): 원전략 채택 종목 먼저, 그다음 모멘텀 순위(rank) 순.
+    rank 가 없으면 원래 순서를 유지한다. 결정은 바꾸지 않고 조회 순서만 정한다."""
+    adopted = set(_ticker_upper_list(satellite_result.get("selected")))
+    order = {r.ticker: i for i, r in enumerate(records)}
+    ranked = sorted(records, key=lambda r: (r.ticker not in adopted, r.rank if r.rank is not None else 10**9,
+                                            order[r.ticker]))
+    return [r.ticker for r in ranked]
+
+
 def build_guidance_shadow_candidate_set(
     satellite_result: dict,
     *,
@@ -292,6 +319,7 @@ def build_guidance_shadow_candidate_set(
     source: str = GUIDANCE_SHADOW_SOURCE,
     lookback_trading_days: int = PRIMARY_LOOKBACK_TRADING_DAYS,
     trading_days: Optional[Sequence[date]] = None,
+    fetch_status_by_ticker: Optional[Mapping[str, str]] = None,
 ) -> FrozenCandidateSet:
     """champion_satellite_to_candidate_set()(core.candidate_ledger, 수정하지 않음)이 계산한 원전략
     decision/decision_reason을 한 글자도 바꾸지 않고 재사용하며, 각 후보에 가이던스 feature만 scores에
@@ -300,14 +328,18 @@ def build_guidance_shadow_candidate_set(
     order_proposal은 shadow 행에 담지 않는다 — 이 원장은 주문을 제안하지 않는 관측 전용 병행 기록이며,
     스코어에 order_proposal이 있으면 이 shadow가 원전략에 영향을 주는 것처럼 오해될 수 있어 비워 둔다.
 
-    한계: compute_satellite_recommendation_point_in_time() 결과에는 후보 풀(candidates)이 없으므로
-    (모듈 docstring 참고) champion_satellite_to_candidate_set()도 selected/held(신규 주문 보류 시)만
-    반환한다 — 이 함수가 관측하는 것은 스펙 2절의 "채택 집합 A"이며 "후보 집합 C" 전체가 아니다.
+    후보 범위(2026-09-25): satellite_result 에 candidates(돌파 활성 후보 전체)가 있으면 어댑터가 채택(selected)과
+    top_k 밖 돌파 후보(held)를 모두 돌려주므로 스펙 2절의 "후보 집합 C" 전체가 기록된다. 어댑터에
+    rejected/missing 인자는 넘기지 않는다(C 가 아니므로). candidates 가 없는 구버전 결과면 채택 집합 A 만 나온다.
+    fetch_status_by_ticker(선택)를 주면 각 행 scores.guidance_fetch_status 에 SEC 조회 결과를 남긴다(없으면
+    'not_requested' — 주입된 events_by_ticker 만 쓴 경우).
     """
     base_set = champion_satellite_to_candidate_set(
         satellite_result, strategy_version=base_strategy_version, decision_cutoff=decision_cutoff)
     cutoff = base_set.decision_cutoff
     events = _normalize_event_keys(events_by_ticker)
+    fetch_status = {str(k).strip().upper(): v for k, v in (fetch_status_by_ticker or {}).items()}
+    adopted = set(_ticker_upper_list(satellite_result.get("selected")))
 
     records: list[CandidateRecord] = []
     n_with_release = 0
@@ -320,7 +352,9 @@ def build_guidance_shadow_candidate_set(
             n_with_release += 1
         if feature.veto_flag:
             n_veto += 1
-        scores = {**(r.scores or {}), **guidance_feature_to_scores(feature)}
+        scores = {**(r.scores or {}), **guidance_feature_to_scores(feature),
+                  "in_adopted_set": r.ticker in adopted,
+                  "guidance_fetch_status": fetch_status.get(r.ticker, "not_requested")}
         record_kwargs = dict(
             ticker=r.ticker,
             decision=r.decision,  # 원전략 결정 그대로 — 이 함수는 절대 바꾸지 않는다
@@ -342,11 +376,14 @@ def build_guidance_shadow_candidate_set(
         "n_candidates": len(records),
         "n_candidates_with_release_in_window": n_with_release,
         "n_candidates_veto_flagged": n_veto,
+        "n_adopted": sum(1 for r in records if (r.scores or {}).get("in_adopted_set")),
+        "candidate_population": ("breakout_pool_selected_and_held" if base_set.meta.get("pool_recorded")
+                                 else "adopted_only_legacy_result"),
         "base_meta": base_set.meta,
         "note": (
             "관측 전용 병행 기록. 원전략(위성) 채택/보류 결정을 바꾸지 않는다. 주문 경로와 연결되지 "
-            "않는다. compute_satellite_recommendation_point_in_time 은 채택 종목만 반환하므로 이 집합은 "
-            "스펙 2절의 채택 집합 A만 관측한다(후보 집합 C 전체 아님)."
+            "않는다. 결과에 candidates 가 있으면 스펙 2절의 후보 집합 C(돌파 활성 후보 전체, 위성 풀 표본 기준)를, "
+            "없으면 채택 집합 A 만 관측한다(candidate_population 참고)."
         ),
     }
     return FrozenCandidateSet(source, shadow_strategy_version, cutoff, records, meta)
@@ -468,7 +505,7 @@ def record_guidance_shadow(
     - events_by_ticker를 주지 않으면 기본값(fetch_events=False)에서는 빈 dict로 취급한다 — 이 경우 모든
       후보가 basis_status='no_release'로 기록된다(기존 동작 그대로). 실제 SEC 조회를 원하면
       fetch_events=True로 옵트인한다: 그때만 core.guidance_event_provider.fetch_guidance_events가 후보
-      티커(최대 max_tickers개, 기본 20)에 대해 티커->CIK->8-K Item 2.02->가이던스 추출을 수행하고, 하루
+      티커(최대 max_tickers개, 기본 20 — 넘치면 채택 > 모멘텀 순위 우선순위 뒤쪽이 skipped)에 대해 티커->CIK->8-K Item 2.02->가이던스 추출을 수행하고, 하루
       단위 캐시·초당 5회 제한·티커별 실패 격리를 그 모듈이 담당한다. events_by_ticker를 직접 주면
       fetch_events는 무시한다(주입값이 우선). fetch_kwargs 는 fetcher 에 그대로 넘긴다(야간 잡은
       NIGHTLY_FETCH_KWARGS 로 소요 시간·SEC 요청 수 상한을 준다).
@@ -485,6 +522,7 @@ def record_guidance_shadow(
     events = events_by_ticker or {}
     fetch_meta: Optional[dict] = None
     fetch_failures: dict = {}
+    fetch_status: dict = {}
     try:
         if satellite_result is None:
             from core.champion_strategy import compute_satellite_recommendation_point_in_time
@@ -500,11 +538,12 @@ def record_guidance_shadow(
             probe = champion_satellite_to_candidate_set(
                 satellite_result, strategy_version=base_version, decision_cutoff=_cutoff_for(as_of_date))
             try:
-                fetched = fetcher([r.ticker for r in probe.records], as_of=as_of_date, max_tickers=max_tickers,
-                                  **(fetch_kwargs or {}))
+                fetched = fetcher(_fetch_priority_tickers(probe.records, satellite_result), as_of=as_of_date,
+                                  max_tickers=max_tickers, **(fetch_kwargs or {}))
                 events = fetched.events_by_ticker
                 fetch_meta = dict(fetched.meta)
                 fetch_failures = fetched.failures
+                fetch_status = {o.ticker: o.status for o in (getattr(fetched, "outcomes", None) or ())}
             except Exception as exc:  # noqa: BLE001 - 조회 실패가 기록 자체를 막지 않는다(no_release 로 기록)
                 events = {}
                 fetch_meta = {"error": f"{type(exc).__name__}: {exc}", "n_tickers_requested": len(probe.records),
@@ -513,15 +552,19 @@ def record_guidance_shadow(
                               **{k: v for k, v in (fetch_kwargs or {}).items()
                                  if k in ("time_budget_seconds", "max_network_requests")}}
                 fetch_failures = {r.ticker: "fetch_error" for r in probe.records}
+                fetch_status = {r.ticker: "failed" for r in probe.records}
         cset = build_guidance_shadow_candidate_set(
             satellite_result, base_strategy_version=base_version, decision_cutoff=_cutoff_for(as_of_date),
-            events_by_ticker=events, lookback_trading_days=lookback_trading_days, trading_days=trading_days)
+            events_by_ticker=events, lookback_trading_days=lookback_trading_days, trading_days=trading_days,
+            fetch_status_by_ticker=fetch_status)
     except Exception as exc:  # noqa: BLE001 - 위성 원전략 실패 사유를 삼키지 않고 보고한다
         return {"as_of": as_of_date.isoformat(), "ok": False, "error": f"{type(exc).__name__}: {exc}"}
 
     result = record_candidate_set(cset, session=session)
     result["as_of"] = as_of_date.isoformat()
     result["n_pool"] = len(cset.records)
+    result["n_adopted"] = cset.meta.get("n_adopted")
+    result["candidate_population"] = cset.meta.get("candidate_population")
     result["n_with_events_provided"] = len(_normalize_event_keys(events))
     result["fetch_events"] = bool(fetch_events and events_by_ticker is None)
     if fetch_meta is not None:
@@ -571,7 +614,7 @@ def load_guidance_feature_frame(
     session=None, *, horizon: int = PRIMARY_HORIZON_DAYS, strategy_version: str = GUIDANCE_SHADOW_STRATEGY_VERSION,
     cost_scenario: str = PRIMARY_COST_SCENARIO,
 ) -> pd.DataFrame:
-    """가이던스 shadow 원장(기본 strategy_version=guidance_shadow_v1)에서 candidate_ledger.load_outcome_frame과
+    """가이던스 shadow 원장(기본 strategy_version=guidance_shadow_v2)에서 candidate_ledger.load_outcome_frame과
     같은 결과 프레임에 guidance_* feature 컬럼을 얹어 반환한다. 통계 로직은 추가하지 않는다 — 이 함수는
     scores(JSON)에 저장된 이미 계산된 feature를 컬럼으로 풀어내기만 한다."""
     base = load_outcome_frame(
