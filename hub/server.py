@@ -25,6 +25,9 @@ from hub import alpaca_status, contests_page, engine_status, ops_status, researc
 from hub.status import UnitStatus, get_unit_status  # noqa: E402
 from hub import ui  # noqa: E402
 
+# AI 대회 화면(hub/contests_page.py)이 <head>에 넣는 공용 스타일
+PAGE_STYLE = f"<style>{ui.CSS}</style>"
+
 HOST = "127.0.0.1"  # nginx를 거치지 않는 외부 직접 접속은 차단(방화벽에 별도 포트 개방 불필요)
 PORT = 8000
 

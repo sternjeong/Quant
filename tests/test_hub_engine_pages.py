@@ -179,7 +179,8 @@ def test_scheduler_page_ok_when_all_recent_runs_recorded(sched_db):
             _add(sched_db, e["job_id"], "ok", e["expected_at"] + timedelta(minutes=1))
     html = ep.scheduler_body(_slot(), ACTIVE, ep.collect_scheduler(NOW))
     assert 'class="verdict ok"' in html
-    assert "28/29" in html  # champion_benchmark_gap 만 꺼짐
+    n = len(health["jobs"])
+    assert f"{n - 1}/{n}" in html  # champion_benchmark_gap 만 꺼짐
 
 
 def test_scheduler_stopped_service_is_bad(sched_db):
