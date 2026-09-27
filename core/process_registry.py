@@ -202,6 +202,14 @@ PROCESS_REGISTRY: dict[str, dict] = {
         "description": "관제 센터 'AI 대회'에 등록한 대회의 마감 7일 전·1일 전·당일에 텔레그램 1건씩 — 종료·제출 완료 대회는 제외 (09:00 KST)",
         "category": "alert", "default_enabled": True,
     },
+    "champion_tracking_weekly": {
+        "label": "챔피언 전략 주간 추적 판정",
+        "description": (
+            "라이브 원장 누적수익이 같은 길이 백테스트 구간 분포의 몇 분위인지·SPY/60/40 대비·최대낙폭과 "
+            "실행/신호/데이터 점검을 판정해 문제가 없어도 텔레그램 요약 1건 — 관측 전용 (일요일 01:10 KST)"
+        ),
+        "category": "alert", "default_enabled": True,
+    },
     "strategy_research_report": {
         "label": "전략 변형 연구 보고서 (관측 전용)",
         "description": "shadow 기록을 모아 주간 연구 보고서를 작성 — 관측 전용이며 주문 경로 미연결 (일요일 00:50 KST)",

@@ -51,6 +51,12 @@ JOBS: tuple[JobGuide, ...] = (
         verified="2026-09-26",
     ),
     JobGuide(
+        job_id="champion_tracking_weekly",
+        where_to_see="텔레그램(일요일 01:10 KST 요약 1건, 문제가 없어도 옴), VM 의 data/reports/champion_tracking_날짜.json. 같은 날 다시 돌아도 두 번 보내지 않습니다.",
+        if_alert="'이탈 — 확인 필요'나 '조치: 필요'면 리포트 파일의 checks(실행·신호·데이터)에서 경고 항목을 먼저 보세요. 판정만으로 전략을 바꾸지 말고, 라이브 기간이 짧으면 판정력이 낮다는 점을 감안하세요. 일요일에 메시지가 오지 않으면 잡 실패입니다. " + _HISTORY,
+        verified="2026-09-26",
+    ),
+    JobGuide(
         job_id="agent_batch",
         where_to_see="텔레그램(아침 배치 요약 1건: 실행한 역할, 동결·심판 결과, 예산 사용), 허브 /research",
         if_alert="'usage limit'로 멈췄다면 구독 사용량 한도에 닿은 것이라 다음 날 밤 자동으로 이어집니다. 매일 실패하면 Claude CLI 로그인·설치 상태를 개발 요청으로 확인하세요. 원하지 않으면 '/processes off agent_batch'.",
@@ -516,6 +522,7 @@ OPS: tuple[OpsSection, ...] = (
             ("⏰ 챔피언 전략 리밸런싱 예정 알림", "champion_rebalance_reminder. 코어(매월 첫 거래일)·새틀라이트(1월·7월 첫 거래일) 리밸런싱 하루 전(칼라 롤 예정 포함, 달력 근사)."),
             ("📅 챔피언 전략 새틀라이트 실적 발표 예정", "champion_earnings_reminder. 5거래일 이내 실적 발표 예정 종목."),
             ("⚠️ 챔피언 전략 알파 감쇠 감지", "champion_alpha_decay. 최근 6개월 백테스트 성과가 전체기간보다 이탈. 전략을 믿어도 되는지 점검하라는 신호."),
+            ("✅/🟡/🔴/⏳ 챔피언 주간 검증", "champion_tracking_weekly. 일요일 01:10 KST, 문제가 없어도 매주 1건. 첫 줄 판정(백테스트 범위 안/범위 밖 — 주의/이탈 — 확인 필요/표본 부족), 라이브 누적수익의 백테스트 분위, SPY·60/40 대비, 최대낙폭 비교, 점검(실행·신호·데이터), 조치 필요 여부. 60/40 격차·알파 감쇠 알림은 다시 보내지 않고 '발동 중' 한 줄로만 표시. 분위는 겹치는 구간이라 독립 표본이 아님."),
             ("📉 챔피언 전략, 60/40 벤치마크 대비 부진", "champion_benchmark_gap. 가상 원장이 60/40 보다 5%p 이상 뒤처짐(원장 20영업일 이상일 때만)."),
             ("🔔 관심종목 타점 발생 N건", "daily_watchlist_scan. 관심종목의 연결 전략 신규 진입 조건이 충족된 종목 요약(상위 10개와 '외 k건'). 충족 0건이면 오지 않음. 신호일 뿐 주문이 아님."),
             ("📝 주간 Threads 인사이트 리포트 생성 완료", "weekly_threads_report. 일요일 20:00 ET. 몇 개 티커의 리포트를 만들었는지만 알림. 본문은 화면 'Threads 요약'."),
@@ -531,7 +538,7 @@ OPS: tuple[OpsSection, ...] = (
             ("⚠️ 서비스이름.service 실패/재시작됨", "systemd 가 서비스(streamlit·scheduler·codex-telegram) 실패를 감지하면 자동으로 보냅니다."),
             ("백업 관련 알림", "백업 실패, 36시간 넘게 성공 없음, 원격 push 3일 넘게 실패, 복구 리허설 실패, 비밀 의심 파일 격리."),
         ),
-        V,
+        "2026-09-26",
     ),
     OpsSection(
         "backup",
