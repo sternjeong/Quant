@@ -388,6 +388,7 @@ st.caption(
     "브레이크아웃이 활성인 종목을 스캔하므로 기간이 길수록(반기 수만큼) 오래 걸립니다 "
     "(실측 기준 1년≈2분 안팎 — 기간을 늘리면 비례해서 늘어납니다)."
 )
+st.page_link("pages/14_챔피언_성과.py", label="📒 언제 사고 팔아 얼마를 벌었나(거래 내역·SPY 비교) → 챔피언 성과", width="stretch")
 
 bt_col1, bt_col2, bt_col3 = st.columns(3)
 with bt_col1:
