@@ -726,3 +726,153 @@ def test_compute_guidance_changes_end_to_end_from_text():
                   "$4.80 to $4.90.").items
     changes = {c.current.metric: c.change for c in ee.compute_guidance_changes(new, old)}
     assert changes == {"revenue": "raised", "eps": "maintained"}
+
+
+# ---------------------------------------------------------------------------
+# 비교 정책 annual_same_fy_v1 (스펙 3절 '비교 정책', 2026-09-25)
+# 기대값은 정책 정의에서 직접 계산한다: 방향은 연간 같은 FY 재발표끼리만, 분기·반기는 방향 없음.
+# ---------------------------------------------------------------------------
+T_Q1 = datetime(2026, 2, 26, 21, 5, tzinfo=UTC)  # 같은 FY 첫 발표
+T_Q2 = datetime(2026, 5, 27, 20, 10, tzinfo=UTC)  # 같은 FY 재발표(직전)
+T_Q3 = datetime(2026, 8, 26, 20, 15, tzinfo=UTC)  # 현재 발표
+
+
+def test_period_type_classification():
+    assert ee.period_type("FY2027") == "annual"
+    assert ee.period_type("CY2026") == "annual"
+    assert ee.period_type("YEND:2026-12-31") == "annual"
+    assert ee.period_type("FY2027Q3") == "quarterly"
+    assert ee.period_type("QEND:2026-09-30") == "quarterly"
+    assert ee.period_type("FY2026H2") == "half_year"
+    assert ee.period_type("PEND:2026-09-30") == "other"
+    assert ee.period_type(None) is None
+
+
+def _fy_history():
+    first = item("40000", "41000", period="FY2027", accession="0000000001-26-000010", at=T_Q1)  # 중간값 40500
+    prior = item("41000", "42000", period="FY2027", accession="0000000001-26-000020", at=T_Q2)  # 중간값 41500
+    return first, prior
+
+
+def test_same_fy_restatement_raised_lowered_maintained_with_evidence():
+    first, prior = _fy_history()
+    cur_acc = "0000000001-26-000030"
+    cases = {("42000", "43000"): ("raised", D("1000")),  # 42500 - 41500
+             ("40000", "41000"): ("lowered", D("-1000")),  # 40500 - 41500
+             ("41000", "42000"): ("maintained", D("0"))}
+    for (low, high), (want, delta) in cases.items():
+        cur = item(low, high, period="FY2027", accession=cur_acc, at=T_Q3)
+        (res,) = ee.compute_guidance_changes([cur], [first, prior])
+        assert res.change == want and res.mid_change == delta
+        assert res.reason == "midpoint_comparison"
+        assert res.comparison_method == "annual_same_fy"
+        assert res.period_type == "annual"
+        assert res.policy == ee.COMPARISON_POLICY
+        # 근거: 가장 최근의 더 이른 같은 FY 항목(prior)이지 첫 발표(first)가 아니다
+        assert res.previous_accession == "0000000001-26-000020"
+        assert res.previous_acceptance_utc == T_Q2
+        assert res.previous_period_key == "FY2027"
+        ev = res.evidence()
+        assert ev["previous_accession"] == "0000000001-26-000020"
+        assert ev["previous_acceptance_utc"] == T_Q2.isoformat()
+        assert ev["current_accession"] == cur_acc and ev["comparison_method"] == "annual_same_fy"
+
+
+def test_calendar_year_end_key_is_annual_and_comparable():
+    prev = item("8.30", "8.45", metric="eps", unit="per_share", basis="non_gaap", period="YEND:2026-12-31",
+                accession="P", at=T_Q2)
+    cur = item("8.40", "8.55", metric="eps", unit="per_share", basis="non_gaap", period="YEND:2026-12-31",
+               accession="C", at=T_Q3)
+    (res,) = ee.compute_guidance_changes([cur], [prev])
+    assert res.change == "raised" and res.mid_change == D("0.10")  # 8.475 - 8.375
+
+
+def test_quarterly_guidance_never_gets_a_direction():
+    # 같은 분기의 직전 값이 있어도(예: 실적표의 실제치가 가이던스처럼 추출된 경우) 방향을 내지 않는다.
+    same_q_prev = item("15000", "15200", period="FY2026Q3", accession="P", at=T_Q2)
+    cur = item("15800", "15800", shape="point", period="FY2026Q3", accession="C", at=T_Q3)
+    (res,) = ee.compute_guidance_changes([cur], [same_q_prev])
+    assert res.change == "unknown"
+    assert res.reason == "quarterly_not_comparable" and res.reason_detail == "quarterly_not_comparable"
+    assert res.previous is None and res.previous_accession is None  # 쓰지 않은 값은 근거로 남기지 않는다
+    assert "same_period_previous_available" in res.flags
+    assert res.comparison_method == "not_compared" and res.period_type == "quarterly"
+    assert res.mid_change is None
+
+
+def test_quarter_is_not_compared_with_the_previous_quarter():
+    q2 = item("11000", "11100", period="FY2027Q2", accession="P", at=T_Q2)
+    q3 = item("11420", "11500", period="FY2027Q3", accession="C", at=T_Q3)
+    (res,) = ee.compute_guidance_changes([q3], [q2])
+    assert res.change == "unknown" and res.reason == "quarterly_not_comparable"
+    assert "same_period_previous_available" not in res.flags
+    # QEND 키와 반기도 같은 원칙
+    qend = item("1", "2", period="QEND:2026-09-30", accession="C", at=T_Q3)
+    assert ee.compare_guidance(qend, None).reason == "quarterly_not_comparable"
+    half = item("1", "2", period="FY2026H2", accession="C", at=T_Q3)
+    assert ee.compare_guidance(half, None).reason == "half_year_not_comparable"
+    # 분기는 '완전한 이력'이나 발행사 'initiate' 문구가 있어도 initiated 로 만들지 않는다
+    assert ee.compare_guidance(q3, None, history_complete=True).change == "unknown"
+    assert ee.compare_guidance(item("1", "2", period="FY2027Q3", stated="initiate"), None).change == "unknown"
+
+
+def test_quarterly_withdrawal_is_still_withdrawn():
+    w = item(None, None, shape="withdrawn", metric="all", unit=None, currency=None, period="FY2026Q3")
+    res = ee.compare_guidance(w, None)
+    assert res.change == "withdrawn" and res.comparison_method == "issuer_statement"
+
+
+def test_no_prior_same_fy_keeps_legacy_reason_and_adds_detail():
+    other_fy = item("40000", "41000", period="FY2026", accession="P", at=T_Q2)
+    cur = item("42000", "43000", period="FY2027", accession="C", at=T_Q3)
+    (res,) = ee.compute_guidance_changes([cur], [other_fy])
+    assert res.change == "unknown"
+    assert res.reason == "no_previous_in_retrieved_history"  # 기존 코드 유지(하위 호환)
+    assert res.reason_detail == "no_prior_same_fy"
+    # FY 와 CY 는 같은 연도 숫자여도 다른 기간이다
+    cy = item("40000", "41000", period="CY2027", accession="P2", at=T_Q2)
+    (res2,) = ee.compute_guidance_changes([cur], [cy])
+    assert res2.reason_detail == "no_prior_same_fy"
+
+
+def test_unit_currency_basis_mismatch_are_refused_with_detail():
+    prev = item("1200", "1250", accession="P", at=T_OLD)
+    unit = ee.compare_guidance(item("1250", "1300", unit="percent"), prev)
+    assert (unit.change, unit.reason, unit.reason_detail) == ("unknown", "unit_or_currency_mismatch", "unit_mismatch")
+    cur = ee.compare_guidance(item("1250", "1300", currency="EUR"), prev)
+    assert (cur.change, cur.reason, cur.reason_detail) == ("unknown", "unit_or_currency_mismatch",
+                                                           "currency_mismatch")
+    e_prev = item("1.2", "1.3", metric="eps", unit="per_share", basis="gaap", accession="P", at=T_OLD)
+    basis = ee.compare_guidance(item("1.3", "1.4", metric="eps", unit="per_share", basis="non_gaap"), e_prev)
+    assert (basis.change, basis.reason_detail) == ("unknown", "basis_mismatch")
+    # find_previous 는 basis 가 다른 항목을 직전 값으로 고르지 않는다 -> 비교 없이 no_prior_same_fy
+    (via_history,) = ee.compute_guidance_changes(
+        [item("1.3", "1.4", metric="eps", unit="per_share", basis="non_gaap")], [e_prev])
+    assert via_history.change == "unknown" and via_history.reason_detail == "no_prior_same_fy"
+
+
+def test_finished_year_next_to_next_year_guidance_is_not_compared():
+    # 같은 발표에 FY2027 가이던스와 FY2026 수치(끝난 연도 실적 열)가 함께 있으면 FY2026 은 비교하지 않는다.
+    prev_fy26 = item("60000", "61000", period="FY2026", accession="P", at=T_Q2)
+    acc = "0000000001-26-000040"
+    fy26_actual = item("63300", "63300", shape="point", period="FY2026", accession=acc, at=T_Q3)
+    fy27_guide = item("72200", "73400", period="FY2027", accession=acc, at=T_Q3)
+    fy30_target = item("90000", "90000", shape="point", period="FY2030", accession=acc, at=T_Q3)
+    res = {c.current.period_key: c for c in
+           ee.compute_guidance_changes([fy26_actual, fy27_guide, fy30_target], [prev_fy26])}
+    assert res["FY2026"].change == "unknown"
+    assert res["FY2026"].reason == "annual_period_superseded_in_release"
+    assert "later_fy_in_release:FY2027" in res["FY2026"].flags
+    # FY2030(+3년)은 장기 목표일 수 있어 FY2027 을 밀어내지 않는다 -> FY2027 은 직전 이력이 없어 no_prior_same_fy
+    assert res["FY2027"].reason_detail == "no_prior_same_fy"
+
+
+def test_legacy_fields_unchanged_for_directional_result():
+    prev = item("1200", "1250", accession="P", at=T_OLD)
+    res = ee.compare_guidance(item("1250", "1300"), prev)
+    assert (res.change, res.reason, res.previous) == ("raised", "midpoint_comparison", prev)
+    assert (res.width_old, res.width_new) == (D("50"), D("50"))
+    # 새 필드 없이 만든 GuidanceChange(기존 호출부)도 그대로 동작한다
+    bare = ee.GuidanceChange(change="raised", reason="midpoint_comparison", current=res.current)
+    assert bare.reason_detail is None and bare.previous_accession is None
+    assert bare.evidence()["reason_detail"] == "midpoint_comparison"
