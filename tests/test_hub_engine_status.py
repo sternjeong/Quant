@@ -252,3 +252,31 @@ def test_scheduler_status_page_is_served_with_the_job_list(live_hub):
 
 def test_unknown_post_path_is_404(live_hub):
     assert _post(live_hub, "/processes/nope", "key=x").status == 404
+
+
+# ---- 버튼 표시 (2026-09-27: 폰에서 "끄/기" 로 세로로 쪼개져 보인다는 지적) -------------------------
+
+@pytest.mark.parametrize("row, expected", [
+    ({"key": "k", "enabled": True, "places_orders": False}, "Off"),
+    ({"key": "k", "enabled": False, "places_orders": False}, "On"),
+    ({"key": "k", "enabled": False, "places_orders": True}, "On…"),
+])
+def test_toggle_labels_are_short_english(row, expected):
+    import re
+
+    button = engine_status._toggle_button(row)
+    assert re.search(r">([^<]+)</button>", button).group(1) == expected
+
+
+@pytest.mark.parametrize("enabled", [True, False])
+def test_button_text_cannot_wrap_onto_two_lines(enabled):
+    """좁은 폭에서도 글자가 쪼개지지 않게 nowrap + 최소 너비를 유지한다."""
+    button = engine_status._toggle_button({"key": "k", "enabled": enabled, "places_orders": False})
+    assert "white-space:nowrap" in button and "min-width" in button
+
+
+def test_action_cell_hugs_its_content_and_never_wraps():
+    row = {"key": "k", "label": "L", "description": "D", "schedule": "매일 00:10 KST",
+           "state": "ok", "enabled": True, "places_orders": False}
+    cell = engine_status._process_row(row)
+    assert "width:1%;white-space:nowrap" in cell  # 버튼 칸이 눌려서 줄바꿈되는 걸 막는다
