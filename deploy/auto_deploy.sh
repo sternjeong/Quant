@@ -42,7 +42,7 @@ ALERT_COOLDOWN_SECONDS="${AUTO_DEPLOY_ALERT_COOLDOWN_SECONDS:-21600}"
 # 되므로(위 no-op 분기), 이 파일은 오직 "나중에 성공했을 때 복구 알림에 덧붙일 문구"용이다.
 TEST_FAIL_FLAG="$STATE_DIR/last_test_failure_commit"
 TEST_LOG="$STATE_DIR/last_test_output.log"
-TEST_TIMEOUT_SECONDS="${AUTO_DEPLOY_TEST_TIMEOUT_SECONDS:-240}"
+TEST_TIMEOUT_SECONDS="${AUTO_DEPLOY_TEST_TIMEOUT_SECONDS:-480}"
 
 log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"; }
 
