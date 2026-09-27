@@ -124,6 +124,13 @@ MODULES: tuple[ModuleGuide, ...] = (
         cautions="꺼도 잡 등록 자체는 남아 있고 실행만 건너뜁니다. 모든 잡이 이 목록으로 통제되는 것은 아니니 잡 표에서 확인하세요.",
         sources=("scheduler/run_scheduler.py", "deploy/codex_telegram/runner.py"), verified=_V),
     ModuleGuide(
+        module="core/research_jobs.py", name="검증 연구 작업 실행기", group="리서치 인프라", status="운영중",
+        what="저장소의 research/jobs/<id>/job.json 으로 등록된 사전 등록 검증 연구(판정 규칙이 코드에 박힌 백테스트 스크립트)를 VM 의 한가한 시간에 한 번에 하나씩 돌립니다. 스크립트가 체크포인트를 남기면 여러 밤·낮에 걸쳐 이어서 계산합니다. AI 를 부르지 않고 주문 경로와도 연결되어 있지 않습니다.",
+        how_to_use="자동 잡 research_job_runner 가 01:00~02:50, 13:00~16:50 KST 에 20분마다 깨어나 대기 작업을 실행합니다. 새 연구는 에이전트가 docs/RESEARCH_JOBS.md 계약대로 만들어 main 에 병합하면 다음 창에서 돕니다. 상태·재시도·취소는 scripts/research_jobs_admin.py 로 합니다.",
+        where_to_see="관제 센터 '검증 연구 결과' 카드(작업별 상태·판정 요약·REPORT), 텔레그램 '[검증 연구 결과]' 알림, 저장소 research/results/<id>/",
+        cautions="실행 전 VM 여유(부하·메모리)와 디스크를 확인하고 여유가 없으면 다음 회차로 미룹니다. 자식 프로세스는 가장 낮은 우선순위(nice 19)로 돌고 창 끝 2분 전까지 멈춥니다. 자동 배포·재부팅으로 끊기면 다음 회차에 이어서 합니다. 결과가 나왔다는 것은 사전 등록 판정이 계산됐다는 뜻일 뿐, 전략 성과가 개선됐다는 뜻이 아닙니다. VM 에 push 권한이 없으면 저장소 반영은 건너뛰고 알림에 적습니다.",
+        sources=("core/research_jobs.py", "scheduler/run_scheduler.py", "docs/RESEARCH_JOBS.md"), verified="2026-09-26"),
+    ModuleGuide(
         module="core/resource_guard.py", name="VM 여유 확인", group="운영·안전", status="운영중",
         what="지금 VM 의 CPU 부하와 여유 메모리를 보고 무거운 작업을 하나 더 시작해도 되는지 판단합니다.",
         how_to_use="자동입니다. 스케줄러의 뉴스 요약 잡이 시작 전에 확인해 여유가 없으면 그 회차를 건너뜁니다. 사용자가 켜고 끌 것은 없습니다.",

@@ -45,6 +45,12 @@ START_HERE: tuple[str, ...] = (
 # ---------------------------------------------------------------------------
 JOBS: tuple[JobGuide, ...] = (
     JobGuide(
+        job_id="research_job_runner",
+        where_to_see="관제 센터 '검증 연구 결과' 카드, 텔레그램 '[검증 연구 결과]'(완료 1건·실패 사유), 저장소 research/results/<id>/",
+        if_alert="실패 알림이면 사유를 읽고, 스크립트 문제면 개발 요청으로 고친 뒤 'python scripts/research_jobs_admin.py retry <id>'. 정의 오류면 job.json 을 docs/RESEARCH_JOBS.md 계약대로 고칩니다. 원하지 않으면 '/processes off research_job_runner'.",
+        verified="2026-09-26",
+    ),
+    JobGuide(
         job_id="contest_deadline_alert",
         where_to_see="텔레그램(대회마다 마감 7일 전·1일 전·당일 1건씩). 대회 상태를 '제출 완료'나 '종료'로 바꾸면 더 오지 않습니다.",
         if_alert=_NOTHING,
@@ -247,6 +253,14 @@ SCRIPTS: tuple[ScriptGuide, ...] = (
         risk="읽기 전용",
         what_it_prints="다음에 실행될 작업(역할·대상 가설)과 이번 주·오늘 밤 예산 사용량을 보여 줍니다. 03:00~05:30 KST 밖이면 다음 작업이 null 로 나오는 것이 정상입니다. --dry-plan 없이 실행하면 실제 배치가 돌아 에이전트를 호출합니다.",
         verified="2026-09-25",
+    ),
+    ScriptGuide(
+        path="scripts/research_jobs_admin.py", name="검증 연구 작업 관리",
+        when_to_run="검증 연구 작업의 상태를 보거나, 실패·취소된 작업을 다시 돌리거나, 대기·실행 중인 작업을 멈출 때.",
+        command="python scripts/research_jobs_admin.py list  (retry <id> · retry <id> --fresh · cancel <id>)",
+        risk="파일/DB 쓰기",
+        what_it_prints="list 는 작업마다 상태(pending·running·in_progress·done·failed·cancelled·invalid)·실패 수·실행 수·마지막 종료·사유를 보여 줍니다. retry 는 대기로 되돌리고(재개 작업은 체크포인트에서, --fresh 는 처음부터) 다음 실행 창에서 돕니다. cancel 은 실행 중이면 몇 초 안에 멈춥니다. VM 에서는 quant 계정으로 실행합니다.",
+        verified="2026-09-26",
     ),
     ScriptGuide(
         path="scripts/french_factor_report.py", name="고전 팩터 감쇠표 갱신",
@@ -525,13 +539,14 @@ OPS: tuple[OpsSection, ...] = (
             ("📰 일일 티커 뉴스 리서치", "daily_news_digest. 07:30 KST 요약 + HTML 첨부. 매매 권고가 아님."),
             ("[Alpaca paper 검증] 전체 PASS 등", "alpaca_verification_bootstrap. 읽기 전용 검증 결과 1건. FAIL/UNEXPECTED 는 어떤 단계 가정이 달랐는지 한 줄씩."),
             ("거장 보유 변동 요약", "guru_holdings_sync. 신규 편입·전량 청산이 있을 때만."),
+            ("[검증 연구 결과] 제목 — 완료 / 실패", "research_job_runner. 완료면 사전 등록 판정 요약과 결과 위치(관제 센터 '검증 연구 결과' 카드, 저장소 research/results/). 실패면 사유 한 줄(같은 사유는 반복 알리지 않음). 판정 결과일 뿐 성과 개선 주장이 아니며 엔진 반영은 사용자 확인 뒤."),
             ("[자동배포] 성공/실패", "자동 배포 결과. 아래 '자동 배포' 절 참고."),
             ("[워치독] 밤사이 확인이 필요합니다 / 주간 생존 신호", "워치독. 아래 '워치독·헬스체크·업타임' 절 참고."),
             ("⚠️ [Quant VM] 디스크/메모리 사용률 초과, ✅ 복구됨", "VM 헬스체크. 기본 임계값 디스크 85%, 메모리 90%."),
             ("⚠️ 서비스이름.service 실패/재시작됨", "systemd 가 서비스(streamlit·scheduler·codex-telegram) 실패를 감지하면 자동으로 보냅니다."),
             ("백업 관련 알림", "백업 실패, 36시간 넘게 성공 없음, 원격 push 3일 넘게 실패, 복구 리허설 실패, 비밀 의심 파일 격리."),
         ),
-        V,
+        "2026-09-26",
     ),
     OpsSection(
         "backup",
