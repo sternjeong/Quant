@@ -19,6 +19,13 @@
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
 
+## 2026-09-27 VM 검증 연구 작업 실행기 (구현·전체 테스트, 미병합·미배포)
+
+- 결정: 실행 창은 01:00~02:50(야간 잡 뒤·03:00 에이전트 배치 전)과 13:00~16:50 KST(등록 잡이 없는 낮). 04:10~06:30 은 에이전트 배치(~05:50)·06:10 paper·06:30 백업과 겹쳐 제외. 창 목록은 `core/research_jobs.RUN_WINDOWS`/`CRON` 과 `core/job_schedule.py` 가 같아야 한다.
+- 구현 파일: core/research_jobs.py, scheduler/run_scheduler.py(잡), core/process_registry.py, core/job_schedule.py, core/job_health.py(유예 4시간), hub/apps_registry.py(report 슬롯), hub/engine_status.py·hub/guide/live.py(여러 값 cron 표시), scripts/research_jobs_admin.py, research/jobs/smoke-noop/, docs/RESEARCH_JOBS.md, AGENTS.md, 설명서 content_*, tests/test_research_jobs.py, tests/test_hub.py, .gitignore.
+- 검증: pytest 2080 passed, runner unittest OK. VM 실행·push 권한·ionice 존재는 미확인.
+- 다음: main 병합 → 첫 실행 창에서 smoke-noop 완료 텔레그램과 research/results/smoke-noop/ 커밋이 오는지 확인.
+
 ## 2026-09-26 (후속) 심판 OOS 분리 + 멈춘 가격 피드 탐지 (구현·전체 테스트, 미커밋·미배포)
 
 - 계기: 사용자가 내려받은 FidetoLabs 릴스 9개(`video/`, 음성은 음악뿐 → 프레임 확대로 분석, 대부분 정적 UI 데모)에서 나온 제안 중 추천 1·2를 지시.
