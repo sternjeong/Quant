@@ -67,6 +67,13 @@
 - 검증: `tests/test_regime_eval.py` 16건, 전체 pytest 2007 passed(이 세션 직접 실행), `python -m hub.guide.check` 빠진 설명 없음. VM 실행·실데이터 보고서 미확인.
 - 한계·다음: 거래일 계산은 평일 기준(휴장일 미반영), 스냅샷 이력은 2026-07 이후만 존재, CI 폴백 JSON 스냅샷은 라벨에 쓰지 않음. `pit_certified_fraction` 의미가 원장 버전마다 다를 수 있어 regime_eval은 그 값을 해석·표시하지 않고 verdict_reasons만 옮긴다.
 
+## 2026-09-26 후보 원장 청산 규칙 변형 비교 (구현·단위 테스트, 미배선)
+
+- 결정: 원장 후보에 청산 규칙 4개를 사전 고정해 비교([EXIT_VARIANTS_SPEC.md](./EXIT_VARIANTS_SPEC.md), 코드보다 먼저 커밋). `baseline_20d`(원장과 동일)·`fixed_stop_8`·`trailing_10`·`satellite_trailing_15`(champion 위성 `SATELLITE_DONCHIAN_STOP_PCT` 그대로), 모두 20거래일 상한. 손절은 일봉 종가 판단 → 다음 거래일 시가 체결, 갭은 그 시가.
+- 구현: `core/exit_variants.py`(새 테이블 없음, 원장·가격 캐시 읽기 전용), `write_exit_variants_report()` → `data/reports/exit_variants_날짜.{md,json}`. 판정은 `candidate_ledger.evaluate_selection` 재사용, 기준선 외 3개는 Bonferroni α=0.05/3 + '탐색 결과' 라벨. 결측·대기는 기준선과 같은 상태·사유.
+- 검증: `tests/test_exit_variants.py` 18건(기준선=원장 정확 일치 포함), `hub.guide.check` 누락 없음. 실제 원장 데이터로는 실행하지 않음.
+- 미배선: 스케줄러 연결 안 함(주간 잡에서 `update_forward_outcomes` 뒤 try/except 로 호출 제안). 브랜치 `eng-exit-variants`, main 병합은 조정자가 한다.
+
 ## 2026-09-25 허브 모델 저장 forbidden 수정 (배포)
 
 - 증상: VM 허브 `/research` 에서 모델 바꾸고 저장 → `forbidden`. 원인: 허브 응답의 `Referrer-Policy: no-referrer` 때문에 브라우저가 폼 POST 의 `Origin` 을 `null` 로 보내 Host 비교가 실패. 수정: Origin 이 실제 주소일 때만 Host 와 비교하고, 그 외에는 `Sec-Fetch-Site`(cross-site·same-site 거부)로 판단(`hub/server.py::_same_origin_post`). 테스트 추가.
