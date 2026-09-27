@@ -931,7 +931,8 @@ def apply_outcome(cfg: Config, job: JobDef, entry: dict, outcome: RunOutcome, bu
         if skipped:
             result = {**result, "detail": (result.get("detail") or "") + f" (제외: {', '.join(skipped)})"}
         if result.get("status") == "pushed":
-            runner["cooldown_until"] = (now + timedelta(seconds=POST_PUBLISH_COOLDOWN_SECONDS)).isoformat()
+            finished = now + timedelta(seconds=outcome.duration)  # 회차 시작이 아니라 실제로 push 한 시점 기준
+            runner["cooldown_until"] = (finished + timedelta(seconds=POST_PUBLISH_COOLDOWN_SECONDS)).isoformat()
         entry.update(status="done", summary=summary, publish=result, result_dir=str(result_dir),
                      last_reason=None, notified_signature=None)
         shutil.rmtree(cfg.work_dir(job.id), ignore_errors=True)
