@@ -15,7 +15,7 @@ class AppSlot:
     title: str
     description: str
     unit: str  # 상태 조회에 쓸 systemd 유닛 이름
-    kind: str  # "web" (같은 호스트의 다른 포트) | "link" (별도 주소, url) | "report" (최신 HTML 리포트 서빙) | "engine" (상태만 표시) | "alpaca" (Alpaca paper 결과 화면) | "ops" (운영 상태 화면) | "research" (에이전트 연구 화면) | "contests" (AI 대회 관리)
+    kind: str  # "web" (같은 호스트의 다른 포트) | "link" (별도 주소, url) | "report" (최신 HTML 리포트 서빙) | "engine" (상태만 표시) | "alpaca" (Alpaca paper 결과 화면) | "ops" (운영 상태 화면) | "research" (에이전트 연구 화면) | "contests" (AI 대회 관리) | "live" (지금 돌고 있는 작업)
     port: int | None = None  # kind == "web"일 때 슬롯이 직접 링크할 포트
     url: str | None = None  # kind == "link"일 때 슬롯이 링크할 전체 주소(예: nginx 뒤 HTTPS 도메인)
     report_glob: str | None = None  # kind == "report"일 때 최신 파일을 찾을 glob 패턴(저장소 루트 기준)
@@ -62,6 +62,14 @@ SLOTS: list[AppSlot] = [
         unit="quant-scheduler.service",
         kind="research",
         category="연구·검증",
+    ),
+    AppSlot(
+        id="live",
+        title="지금 돌고 있는 작업",
+        description="실행 중인 스케줄러 잡 · 텔레그램 작업 큐 · 서비스 · 프로세스(무엇인지 설명) · 곧 돌 잡",
+        unit="quant-scheduler.service",
+        kind="live",
+        category="운영",
     ),
     AppSlot(
         id="ops",

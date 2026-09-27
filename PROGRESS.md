@@ -5979,3 +5979,7 @@ paper 키를 주문 경로에만 쓰던 것을 **측정 수단**으로 확장해
 ## 2026-09-26 관제 센터 'AI 대회' 섹션
 - **구현:** 대회 목록·생성·관리 화면(`/contests`), 대회별 `/srv/contests/<이름>` 폴더 + 뼈대 + GitHub private 저장소 자동 생성, code-server 로 폴더 열기, 마감 D-7·D-1·당일 텔레그램(09:00 KST). 설계 `docs/AI_CONTESTS.md`.
 - **미완료:** VM 1회 설정(`sudo bash deploy/setup_contests.sh`) 전이라 실제 생성 미검증. Kaggle/Dacon API 연동 없음.
+
+## 2026-09-27 관제 센터 '지금 돌고 있는 작업'(/live)
+- **구현:** 실행 중 스케줄러 잡·텔레그램 작업 큐·서비스·프로세스(설명·비밀값 가림)·곧 돌 잡을 한 화면에. 스케줄러가 잡 시작/종료를 `data/running_jobs.json` 에 표시.
+- **미완료:** VM 실화면 확인 전.
