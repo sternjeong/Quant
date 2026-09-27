@@ -1,0 +1,13 @@
+{
+  "id": "universe-choice",
+  "title": "챔피언 코어 17자산 유니버스 선택 반증(순열검정)",
+  "entrypoint": "research/jobs/universe-choice/run.py",
+  "args": ["--draws", "500"],
+  "timeout_seconds": 3600,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 100,
+  "revision": 1
+}
