@@ -158,7 +158,7 @@ from apscheduler.triggers.cron import CronTrigger
 
 from core.db import init_db
 from core.process_registry import is_enabled
-from core.job_health import attach_job_run_listener, report_job_failure
+from core.job_health import attach_job_run_listener, record_registered_jobs, report_job_failure
 from core.champion_strategy import (
     check_and_notify_benchmark_gap,
     check_and_notify_champion_alpha_decay,
@@ -1327,6 +1327,10 @@ def main() -> None:
         import threading
 
         threading.Thread(target=alpaca_verification_bootstrap_job, name="startup-alpaca-verify", daemon=True).start()
+
+    # 등록이 모두 끝난 뒤에 "이 잡들을 안다"고 표시해 둔다 — 새로 추가된 잡의 등록 전 예정 시각이
+    # 거짓 경보(실행 기록 없음)가 되지 않게 한다.
+    record_registered_jobs([job.id for job in scheduler.get_jobs()])
 
     try:
         scheduler.start()

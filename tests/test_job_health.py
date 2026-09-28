@@ -133,6 +133,8 @@ def test_a_later_success_overrides_an_earlier_error_in_the_same_window(health_se
 
 def test_no_record_after_the_grace_period_is_overdue_but_within_it_is_pending(health_session):
     _add_run(health_session, "daily_market_snapshot", recorded_at=datetime(2026, 9, 20, 15, 1, tzinfo=UTC))  # 추적 시작점
+    # 스케줄러가 이 잡을 예정 시각 전부터 알고 있었다 — 그래야 "안 돌았다"고 말할 수 있다
+    _add_run(health_session, "champion_signal_alert", "registered", datetime(2026, 9, 10, 0, 0, tzinfo=UTC))
     health = job_health.compute_job_health(NOW)
     assert _state(health, "champion_signal_alert") == "overdue"  # 예정 15:10 UTC, 이미 12시간 지남
     assert health["counts"]["problem"] >= 1
@@ -159,6 +161,8 @@ def test_grace_override_extends_the_wait_for_a_long_running_job(monkeypatch, hea
     monkeypatch.setattr(job_health, "is_enabled", lambda key: True)
     monkeypatch.setitem(job_health.GRACE_OVERRIDES, "champion_signal_alert", timedelta(hours=6))
     _add_run(health_session, "daily_market_snapshot", recorded_at=datetime(2026, 9, 20, 14, 0, tzinfo=UTC))
+    for job_id in ("nightly_strategy_tuning", "champion_signal_alert", "champion_ledger_record"):
+        _add_run(health_session, job_id, "registered", datetime(2026, 9, 10, 0, 0, tzinfo=UTC))
     two_hours_after = datetime(2026, 9, 20, 17, 5, tzinfo=UTC)
     assert _state(job_health.compute_job_health(two_hours_after), "champion_signal_alert") == "pending"
     assert _state(job_health.compute_job_health(two_hours_after), "champion_ledger_record") == "overdue"
@@ -173,6 +177,13 @@ class _FakeScheduler:
 
     def add_job(self, func, trigger=None, id=None, **kwargs):
         self.jobs.append((func, trigger, id))
+
+    def get_jobs(self):
+        class _Job:
+            def __init__(self, job_id):
+                self.id = job_id
+
+        return [_Job(job_id) for _, _, job_id in self.jobs]
 
     def add_listener(self, callback, mask=None):
         self.listeners.append((callback, mask))
@@ -288,3 +299,77 @@ def test_news_digest_reports_the_swallowed_exception(monkeypatch):
     run_scheduler.daily_news_digest_job()  # 예외는 그대로 삼켜진다(다음 스케줄을 막지 않음)
 
     assert reported == [("daily_news_digest", "ConnectionError: news api down")]
+
+
+# ---- 새로 추가된 잡의 등록 전 예정 시각 (2026-09-28 거짓 경보 재현) -------------------------------
+
+def test_a_job_added_after_tracking_started_is_not_called_overdue(health_session):
+    """champion_tracking_weekly 사고: 커밋은 됐지만 배포 전이라 스케줄러가 그 잡을 몰랐는데,
+    판정이 '실행 기록 없음'으로 불러 거짓 경보가 됐다."""
+    # 다른 잡들은 한참 전부터 돌고 있었다(= 전체 추적은 이미 시작됨)
+    _add_run(health_session, "daily_market_snapshot", recorded_at=datetime(2026, 9, 18, 15, 0, tzinfo=UTC))
+    # 새 잡은 방금 등록됐다 — 그 전의 예정 시각은 "안 돈 것"이 아니다
+    _add_run(health_session, "champion_signal_alert", "registered", datetime(2026, 9, 21, 1, 0, tzinfo=UTC))
+
+    health = job_health.compute_job_health(NOW)  # NOW = 09-21 03:00 UTC, 예정은 09-20 15:10 UTC
+
+    assert _state(health, "champion_signal_alert") == "no-history"
+    # 이 잡이 문제 목록에 끼면 안 된다(다른 잡의 진짜 누락까지 덮는지는 따로 검증한다)
+    assert all(p["job_id"] != "champion_signal_alert" for p in health["problems"])
+
+
+def test_a_job_that_was_already_known_is_still_reported_when_it_does_not_run(health_session):
+    """위 완화가 진짜 누락까지 덮으면 안 된다."""
+    _add_run(health_session, "champion_signal_alert", "registered", datetime(2026, 9, 10, 0, 0, tzinfo=UTC))
+    _add_run(health_session, "daily_market_snapshot", recorded_at=datetime(2026, 9, 20, 15, 1, tzinfo=UTC))
+
+    health = job_health.compute_job_health(NOW)
+
+    assert _state(health, "champion_signal_alert") == "overdue"  # 알고 있던 잡이 안 돌았다
+    assert health["counts"]["problem"] >= 1
+
+
+def test_registration_markers_are_written_once_per_job(health_session):
+    job_health.record_registered_jobs(["daily_briefing", "champion_signal_alert"])
+    rows = health_session.query(SchedulerJobRun).all()
+    assert {r.job_id for r in rows} == {"daily_briefing", "champion_signal_alert"}
+    assert all(r.status == "registered" for r in rows)
+
+    job_health.record_registered_jobs(["daily_briefing", "champion_signal_alert"])
+    assert health_session.query(SchedulerJobRun).count() == 2  # 재시작해도 쌓이지 않는다
+
+
+def test_registration_marker_does_not_overwrite_a_real_run(health_session):
+    _add_run(health_session, "daily_briefing", "ok", datetime(2026, 9, 20, 15, 25, tzinfo=UTC))
+    job_health.record_registered_jobs(["daily_briefing"])
+    statuses = [r.status for r in health_session.query(SchedulerJobRun).all()]
+    assert statuses == ["ok"]  # 이미 아는 잡은 건드리지 않는다
+
+
+def test_registration_failure_never_stops_the_scheduler(monkeypatch, capsys):
+    from contextlib import contextmanager
+
+    @contextmanager
+    def _broken():
+        raise RuntimeError("db down")
+        yield
+
+    monkeypatch.setattr(job_health, "get_session", _broken)
+    job_health.record_registered_jobs(["x"])  # 예외가 새면 스케줄러가 못 뜬다
+    assert "등록 표식 기록 실패" in capsys.readouterr().out
+
+
+def test_scheduler_records_registration_after_every_job_is_added(monkeypatch):
+    """표식을 add_job 앞에서 부르면 빈 목록이 기록된다 — 순서를 테스트로 고정한다."""
+    from scheduler import run_scheduler
+
+    recorded: list[list[str]] = []
+    fake = _FakeScheduler()
+    monkeypatch.setattr(run_scheduler, "BlockingScheduler", lambda *a, **k: fake)
+    monkeypatch.setattr(run_scheduler, "init_db", lambda: None)
+    monkeypatch.setattr(job_health, "prune_old_runs", lambda: 0)
+    monkeypatch.setattr(run_scheduler, "record_registered_jobs", lambda ids: recorded.append(list(ids)))
+
+    run_scheduler.main()
+
+    assert recorded and set(recorded[0]) == set(SCHEDULED_JOBS_BY_ID)

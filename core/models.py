@@ -804,3 +804,45 @@ class HypothesisShadowRecord(Base):
     weights_json = Column(Text, nullable=False, default="{}")  # 다음 거래일부터 적용될 비중
     realized_return = Column(Float, nullable=True)  # 직전 기록의 비중으로 as_of 까지 실현된 수익(비용 차감, 소수)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class TrackedPortfolio(Base):
+    """나란히 비교하려고 이름 붙여 저장해 둔 포트폴리오 (2026-09-28 추가).
+
+    "내 실제 선택"과 "그냥 SPY를 샀다면" 같은 가정을 **같은 구조로** 담는다 — 후자도 결국 티커 한 개짜리
+    포트폴리오라 따로 개념을 만들지 않는다. 시간이 지난 뒤 어느 쪽이 나았는지 보는 것이 목적이다
+    (docs/PORTFOLIO_COMPARISON_SPEC.md).
+
+    실제 보유 1벌을 담는 PortfolioHolding과는 별개다: 저쪽은 "지금 내가 들고 있는 것", 이쪽은 "비교하려고
+    얼려둔 여러 선택지"다.
+    """
+
+    __tablename__ = "tracked_portfolios"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(80), nullable=False, unique=True)
+    kind = Column(String(20), nullable=False, default="actual")  # actual(내 선택) | benchmark(가정)
+    started_on = Column(Date, nullable=False)  # 이 포트폴리오를 시작한 것으로 보는 날
+    note = Column(Text, nullable=True)  # 왜 이렇게 담았는지
+    archived_at = Column(DateTime, nullable=True)  # 지우지 않고 목록에서만 내린다
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class TrackedPortfolioTrade(Base):
+    """위 포트폴리오의 매수·매도 한 줄. shares가 양수면 매수, 음수면 매도 (2026-09-28 추가).
+
+    고정 포트폴리오는 시작일 매수 행만 있는 상태이고, 나중에 사고판 것을 덧붙이면 같은 표에 행이 늘어난다.
+    그래서 "고정"과 "계속 굴리는 것"을 한 구조로 다룬다.
+    """
+
+    __tablename__ = "tracked_portfolio_trades"
+
+    id = Column(Integer, primary_key=True)
+    portfolio_id = Column(Integer, ForeignKey("tracked_portfolios.id"), nullable=False, index=True)
+    ticker = Column(String(20), nullable=False, index=True)
+    trade_date = Column(Date, nullable=False)
+    shares = Column(Float, nullable=False)  # + 매수 / − 매도
+    price_usd = Column(Float, nullable=False)  # 주당 체결가(달러)
+    fee_usd = Column(Float, nullable=False, default=0.0)
+    note = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
