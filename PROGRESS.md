@@ -5979,3 +5979,11 @@ paper 키를 주문 경로에만 쓰던 것을 **측정 수단**으로 확장해
 ## 2026-09-26 관제 센터 'AI 대회' 섹션
 - **구현:** 대회 목록·생성·관리 화면(`/contests`), 대회별 `/srv/contests/<이름>` 폴더 + 뼈대 + GitHub private 저장소 자동 생성, code-server 로 폴더 열기, 마감 D-7·D-1·당일 텔레그램(09:00 KST). 설계 `docs/AI_CONTESTS.md`.
 - **미완료:** VM 1회 설정(`sudo bash deploy/setup_contests.sh`) 전이라 실제 생성 미검증. Kaggle/Dacon API 연동 없음.
+
+## 2026-09-27 VM 검증 연구 작업 실행기 (구현·전체 테스트, 브랜치 vm-research-job-runner, 미병합·미배포)
+- **구현:** `core/research_jobs.py` + 스케줄러 잡 `research_job_runner`(01:00~02:50·13:00~16:50 KST 20분마다, 한 번에 하나, nice 19, has_headroom·디스크·메모리 점검). 계약 `docs/RESEARCH_JOBS.md`(job.json, `--out/--checkpoint`, 종료 코드 0/3/기타, 이어받기 절). 결과는 텔레그램 1건 + 관제 센터 '검증 연구 결과' + origin/main `research/results/<id>/`(git 배관, 작업트리 무수정). 관리 `scripts/research_jobs_admin.py`, 스모크 작업 `research/jobs/smoke-noop`. AGENTS.md 에 '검증 연구 실행 규칙' 추가.
+- **검증:** pytest 2080 passed, runner unittest 72 OK. VM 실제 실행·VM push 권한은 미확인(병합 후 첫 창에서 smoke-noop 이 돌아 확인됨).
+
+## 2026-09-27 관제 센터 '지금 돌고 있는 작업'(/live)
+- **구현:** 실행 중 스케줄러 잡·텔레그램 작업 큐·서비스·프로세스(설명·비밀값 가림)·곧 돌 잡을 한 화면에. 스케줄러가 잡 시작/종료를 `data/running_jobs.json` 에 표시.
+- **미완료:** VM 실화면 확인 전.

@@ -16,7 +16,7 @@ core.daily_briefing 참고 — 다른 야간 잡들이 그날의 데이터를 �
 매주 일요일 20:20(America/New_York)에는 챔피언 전략 주간 HTML 보고를 텔레그램으로 전송한다.
 그 밖에 00:27~00:46 관측 전용 잡(후보 원장 기록/결과 갱신, 가이던스·공시 거부권 shadow, 계좌 스냅샷,
 Alpaca 검증, 비용 보정, 변형 shadow, paper 추적오차), 12:00 거장 보유종목 동기화, 07:30 뉴스 다이제스트,
-화~토 06:10 paper 자동 주문(기본 꺼짐), 일요일 00:50 전략 변형 연구 보고서가 있다. 등록된 잡 전체의 정확한
+화~토 06:10 paper 자동 주문(기본 꺼짐), 일요일 00:50 전략 변형 연구 보고서, 일요일 01:10 챔피언 주간 추적 판정이 있다. 등록된 잡 전체의 정확한
 표는 core/job_schedule.py 이다(tests/test_job_health.py 가 main()과 일치하는지 검증). 야간 전략 미세튜닝
 잡은 2026-09-24 에 삭제됐다.
 
@@ -158,7 +158,7 @@ from apscheduler.triggers.cron import CronTrigger
 
 from core.db import init_db
 from core.process_registry import is_enabled
-from core.job_health import attach_job_run_listener, report_job_failure
+from core.job_health import attach_job_run_listener, record_registered_jobs, report_job_failure
 from core.champion_strategy import (
     check_and_notify_benchmark_gap,
     check_and_notify_champion_alpha_decay,
@@ -944,6 +944,28 @@ def agent_batch_job() -> None:
     print(f"[{datetime.now()}] agent_batch_job 종료")
 
 
+def research_job_runner_job() -> None:
+    """검증 연구 작업 실행기 (core/research_jobs.py, 계약 docs/RESEARCH_JOBS.md). AI 호출·주문 경로 없음.
+
+    시각: 01:00~02:50(야간 잡 블록 뒤·03:00 에이전트 배치 전), 13:00~16:50 KST(등록된 잡이 없는 낮) 창 안에서 20분마다.
+    한 회차에 작업 하나를 nice 19 자식 프로세스로 돌리고 창 끝 2분 전까지 멈추게 한다. 연구 스크립트 자체의 실패는
+    텔레그램으로 따로 알리므로, 여기서는 실행기 자체의 예외만 잡 실패로 남긴다.
+    """
+    if not is_enabled("research_job_runner"):
+        print(f"[{datetime.now()}] research_job_runner_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
+    print(f"[{datetime.now()}] research_job_runner_job 시작")
+    try:
+        from core.research_jobs import run_tick
+        from core.telegram_notify import send_message
+
+        print(f"  - {str(run_tick(notify=send_message))[:400]}")
+    except Exception as exc:  # noqa: BLE001
+        print(f"  - 연구 작업 실행기 실패: {type(exc).__name__}: {exc}")
+        report_job_failure("research_job_runner", f"{type(exc).__name__}: {exc}")
+    print(f"[{datetime.now()}] research_job_runner_job 종료")
+
+
 def contest_deadline_alert_job() -> None:
     """AI 대회 마감 알림 (core/contests.py). 마감 7일·1일 전·당일에 대회마다 한 번씩 텔레그램.
 
@@ -983,6 +1005,29 @@ def strategy_research_report_job() -> None:
         print(f"  - 연구 보고서 작성 실패: {type(exc).__name__}: {exc}")
         report_job_failure("strategy_research_report", f"{type(exc).__name__}: {exc}")
     print(f"[{datetime.now()}] strategy_research_report_job 종료")
+
+
+def champion_tracking_weekly_job() -> None:
+    """챔피언 전략이 실제 시장에서 백테스트대로 움직이는지 주간 판정 (core/champion_tracking.py). 관측 전용.
+
+    시각(일요일 01:10 KST = 토 12:10 ET): 금요일 장마감 봉이 완성됐고, 같은 날 00:12 원장·00:46 paper 추적·
+    00:50 연구 보고서가 끝난 뒤이며 03:00 에이전트 배치 전이다. 문제가 없어도 텔레그램 요약 1건(같은 날 재실행 시 재전송 없음).
+    기존 60/40 격차·알파 감쇠 알림은 다시 보내지 않고 상태만 읽는다.
+    """
+    if not is_enabled("champion_tracking_weekly"):
+        print(f"[{datetime.now()}] champion_tracking_weekly_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
+    print(f"[{datetime.now()}] champion_tracking_weekly_job 시작")
+    try:
+        from core.champion_tracking import run_weekly_tracking
+
+        res = run_weekly_tracking()
+        print(f"  - {res['verdict_label']} (라이브 {res['live']['n_sessions']}거래일, 조치 필요={res['action_needed']}, "
+              f"전송={res['notified_now']}) → {res['path']}")
+    except Exception as exc:  # noqa: BLE001
+        print(f"  - 주간 추적 판정 실패: {type(exc).__name__}: {exc}")
+        report_job_failure("champion_tracking_weekly", f"{type(exc).__name__}: {exc}")
+    print(f"[{datetime.now()}] champion_tracking_weekly_job 종료")
 
 
 def main() -> None:
@@ -1217,6 +1262,17 @@ def main() -> None:
         misfire_grace_time=1800,
     )
     scheduler.add_job(
+        research_job_runner_job,
+        # 한 회차가 창 끝까지 이어질 수 있으므로 겹치지 않게 max_instances=1, 밀린 회차는 하나로 합친다.
+        trigger=CronTrigger(hour="1,2,13,14,15,16", minute="0,20,40", timezone="Asia/Seoul"),
+        id="research_job_runner",
+        name="한국시간 01:00~02:50·13:00~16:50 20분마다 검증 연구 작업 실행기",
+        replace_existing=True,
+        max_instances=1,
+        coalesce=True,
+        misfire_grace_time=300,
+    )
+    scheduler.add_job(
         contest_deadline_alert_job,
         trigger=CronTrigger(hour=9, minute=0, timezone="Asia/Seoul"),
         id="contest_deadline_alert",
@@ -1230,6 +1286,14 @@ def main() -> None:
         trigger=CronTrigger(day_of_week="sun", hour=0, minute=50, timezone="Asia/Seoul"),
         id="strategy_research_report",
         name="매주 일요일 한국시간 00:50 전략 변형 연구 보고서 (관측 전용)",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        champion_tracking_weekly_job,
+        # 주 1회: 판정은 주 단위로 충분하고, 금요일 봉이 완성된 일요일 KST 새벽 빈 슬롯(00:50 연구 보고서 뒤, 03:00 배치 전).
+        trigger=CronTrigger(day_of_week="sun", hour=1, minute=10, timezone="Asia/Seoul"),
+        id="champion_tracking_weekly",
+        name="매주 일요일 한국시간 01:10 챔피언 전략 주간 추적 판정 (관측 전용)",
         replace_existing=True,
     )
     scheduler.add_job(
@@ -1252,7 +1316,8 @@ def main() -> None:
     print("알리며, 00:25 에는 그날 밤 결과를 모은 오늘의 브리핑 HTML을 텔레그램으로 전송합니다.")
     print("매일 한국시간 07:30에는 무료 뉴스 API 기반 티커별 HTML/Telegram 리포트를 보냅니다.")
     print("그 밖에 00:27~00:46 관측 전용 잡, 12:00 거장 보유종목 동기화, 화~토 06:10 paper 자동 주문(기본")
-    print("꺼짐), 일요일 00:50 전략 변형 연구 보고서가 등록됩니다(전체 목록: core/job_schedule.py).")
+    print("꺼짐), 일요일 00:50 전략 변형 연구 보고서, 01:10 챔피언 주간 추적 판정이 등록됩니다(전체 목록:")
+    print("core/job_schedule.py).")
     print("Ctrl+C 로 종료할 수 있습니다.")
 
     # 배포(=스케줄러 재시작) 직후 Alpaca 검증을 한 번 돌려, 00:40 을 기다리지 않고 관제 센터에서 결과를 보게 한다.
@@ -1262,6 +1327,10 @@ def main() -> None:
         import threading
 
         threading.Thread(target=alpaca_verification_bootstrap_job, name="startup-alpaca-verify", daemon=True).start()
+
+    # 등록이 모두 끝난 뒤에 "이 잡들을 안다"고 표시해 둔다 — 새로 추가된 잡의 등록 전 예정 시각이
+    # 거짓 경보(실행 기록 없음)가 되지 않게 한다.
+    record_registered_jobs([job.id for job in scheduler.get_jobs()])
 
     try:
         scheduler.start()

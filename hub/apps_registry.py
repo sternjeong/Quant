@@ -15,7 +15,7 @@ class AppSlot:
     title: str
     description: str
     unit: str  # 상태 조회에 쓸 systemd 유닛 이름
-    kind: str  # "web" (같은 호스트의 다른 포트) | "link" (별도 주소, url) | "report" (최신 HTML 리포트 서빙) | "engine" (상태만 표시) | "alpaca" (Alpaca paper 결과 화면) | "ops" (운영 상태 화면) | "research" (에이전트 연구 화면) | "contests" (AI 대회 관리)
+    kind: str  # "web" (같은 호스트의 다른 포트) | "link" (별도 주소, url) | "report" (최신 HTML 리포트 서빙) | "engine" (상태만 표시) | "alpaca" (Alpaca paper 결과 화면) | "ops" (운영 상태 화면) | "research" (에이전트 연구 화면) | "contests" (AI 대회 관리) | "live" (지금 돌고 있는 작업)
     port: int | None = None  # kind == "web"일 때 슬롯이 직접 링크할 포트
     url: str | None = None  # kind == "link"일 때 슬롯이 링크할 전체 주소(예: nginx 뒤 HTTPS 도메인)
     report_glob: str | None = None  # kind == "report"일 때 최신 파일을 찾을 glob 패턴(저장소 루트 기준)
@@ -64,6 +64,14 @@ SLOTS: list[AppSlot] = [
         category="연구·검증",
     ),
     AppSlot(
+        id="live",
+        title="지금 돌고 있는 작업",
+        description="실행 중인 스케줄러 잡 · 텔레그램 작업 큐 · 서비스 · 프로세스(무엇인지 설명) · 곧 돌 잡",
+        unit="quant-scheduler.service",
+        kind="live",
+        category="운영",
+    ),
+    AppSlot(
         id="ops",
         title="운영 상태",
         description="스케줄러 잡 건강 · 백업 · 서버 자원 · 예약 타이머 (텔레그램 알림과 같은 원천)",
@@ -97,6 +105,15 @@ SLOTS: list[AppSlot] = [
         kind="report",
         category="리포트",
         report_glob=".news-digest/reports/news_*.html",
+    ),
+    AppSlot(
+        id="report-research-results",
+        title="검증 연구 결과",
+        description="VM 연구 실행기가 돌린 사전 등록 검증 연구의 상태·판정 요약·REPORT (01:00~02:50·13:00~16:50 KST 실행)",
+        unit="quant-scheduler.service",
+        kind="report",
+        category="연구·검증",
+        report_glob="data/research_results/index.html",
     ),
     AppSlot(
         id="codex-telegram",

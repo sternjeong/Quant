@@ -197,9 +197,25 @@ PROCESS_REGISTRY: dict[str, dict] = {
         ),
         "category": "research", "default_enabled": True,
     },
+    "research_job_runner": {
+        "label": "검증 연구 작업 실행기",
+        "description": (
+            "research/jobs/ 에 등록된 사전 등록 검증 연구(결정론 스크립트)를 한가한 시간에 한 번에 하나씩, 낮은 우선순위로 "
+            "실행하고 결과를 텔레그램·관제 센터·저장소(research/results/)로 전달 — AI 호출·주문 없음 (01:00~02:50, 13:00~16:50 KST 20분마다)"
+        ),
+        "category": "research", "default_enabled": True,
+    },
     "contest_deadline_alert": {
         "label": "AI 대회 마감 알림",
         "description": "관제 센터 'AI 대회'에 등록한 대회의 마감 7일 전·1일 전·당일에 텔레그램 1건씩 — 종료·제출 완료 대회는 제외 (09:00 KST)",
+        "category": "alert", "default_enabled": True,
+    },
+    "champion_tracking_weekly": {
+        "label": "챔피언 전략 주간 추적 판정",
+        "description": (
+            "라이브 원장 누적수익이 같은 길이 백테스트 구간 분포의 몇 분위인지·SPY/60/40 대비·최대낙폭과 "
+            "실행/신호/데이터 점검을 판정해 문제가 없어도 텔레그램 요약 1건 — 관측 전용 (일요일 01:10 KST)"
+        ),
         "category": "alert", "default_enabled": True,
     },
     "strategy_research_report": {

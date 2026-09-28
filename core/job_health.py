@@ -18,8 +18,15 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
-from apscheduler.events import EVENT_JOB_ERROR, EVENT_JOB_EXECUTED, EVENT_JOB_MISSED
+import json
+import os
+import threading
+from pathlib import Path
+
+from apscheduler.events import EVENT_JOB_ERROR, EVENT_JOB_EXECUTED, EVENT_JOB_MISSED, EVENT_JOB_SUBMITTED
 from apscheduler.triggers.cron import CronTrigger
+
+from sqlalchemy import func
 
 from core.db import get_session
 from core.job_schedule import SCHEDULED_JOBS, ScheduledJob
@@ -28,14 +35,67 @@ from core.process_registry import PROCESS_REGISTRY, is_enabled
 
 # 실행 예정 시각에서 이만큼 지나도 기록이 없으면 overdue. 잡은 끝날 때 기록되므로 오래 도는 잡은 따로 늘려준다.
 DEFAULT_GRACE = timedelta(minutes=45)
-GRACE_OVERRIDES: dict[str, timedelta] = {}  # 오래 도는 잡이 생기면 job_id별로 여기에 유예 시간을 지정(야간 튜닝 삭제로 현재는 비어 있음)
+GRACE_OVERRIDES: dict[str, timedelta] = {
+    # 연구 실행기는 한 회차가 실행 창 끝까지(최대 약 3시간 50분) 붙잡고 있을 수 있고, 그동안 다음 회차는 건너뛴다.
+    "research_job_runner": timedelta(hours=4),
+}
 LOOKBACK_DAYS = 8  # 주간 잡(일요일)의 직전 예정 시각까지 찾을 수 있는 폭
 KEEP_DAYS = 90
 KST_OFFSET = timedelta(hours=9)
 
 PROBLEM_STATES = ("error", "missed", "overdue")
+REGISTERED = "registered"  # "이 잡을 안다"는 표식 — 실행 기록이 아니다(판정에서 제외)
 
 EVENT_MASK = EVENT_JOB_EXECUTED | EVENT_JOB_ERROR | EVENT_JOB_MISSED
+
+# "지금 실행 중인 잡" 표시(2026-09-27, 관제 센터 /live). 스케줄러는 잡을 내부 스레드로 돌려 밖에서 보이지 않으므로
+# 시작(SUBMITTED)에 기록하고 끝(EXECUTED/ERROR/MISSED)에 지운다. 스케줄러가 재시작되면 이전 기록은 무의미하므로 비운다.
+RUNNING_JOBS_PATH = Path(__file__).resolve().parent.parent / "data" / "running_jobs.json"
+_running_lock = threading.Lock()
+
+
+def _write_running(update) -> None:
+    with _running_lock:
+        try:
+            state = json.loads(RUNNING_JOBS_PATH.read_text(encoding="utf-8"))
+            state = state if isinstance(state, dict) else {}
+        except (OSError, ValueError):
+            state = {}
+        update(state)
+        RUNNING_JOBS_PATH.parent.mkdir(parents=True, exist_ok=True)
+        tmp = RUNNING_JOBS_PATH.with_suffix(".tmp")
+        tmp.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+        os.replace(tmp, RUNNING_JOBS_PATH)
+
+
+def mark_job_started(job_id: str) -> None:
+    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    _write_running(lambda st: st.__setitem__(job_id, {"started_at": now, "pid": os.getpid()}))
+
+
+def mark_job_finished(job_id: str) -> None:
+    _write_running(lambda st: st.pop(job_id, None))
+
+
+def read_running_jobs() -> dict:
+    """{job_id: {"started_at", "pid"}}. 기록한 스케줄러 프로세스가 이미 없으면 비어 있는 것으로 본다."""
+    try:
+        state = json.loads(RUNNING_JOBS_PATH.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    if not isinstance(state, dict):
+        return {}
+    return {k: v for k, v in state.items() if isinstance(v, dict) and _pid_alive(v.get("pid"))}
+
+
+def _pid_alive(pid) -> bool:
+    try:
+        os.kill(int(pid), 0)
+        return True
+    except PermissionError:
+        return True
+    except (OSError, TypeError, ValueError):
+        return False
 
 
 def _naive_utc(moment: datetime) -> datetime:
@@ -70,6 +130,13 @@ def report_job_failure(job_id: str, error: object) -> None:
 def job_run_listener(event) -> None:
     """APScheduler 리스너. 기록 실패가 스케줄러를 죽이면 안 되므로 어떤 예외도 삼키고 출력만 한다."""
     try:
+        if event.code == EVENT_JOB_SUBMITTED:
+            mark_job_started(event.job_id)
+            return
+        mark_job_finished(event.job_id)
+    except Exception as exc:  # noqa: BLE001
+        print(f"[job_health] 실행 중 표시 실패(무시): {exc}")
+    try:
         if event.code == EVENT_JOB_MISSED:
             status, error = "missed", None
         elif getattr(event, "exception", None):
@@ -87,8 +154,30 @@ def prune_old_runs(days: int = KEEP_DAYS) -> int:
         return session.query(SchedulerJobRun).filter(SchedulerJobRun.recorded_at < cutoff).delete()
 
 
+def record_registered_jobs(job_ids) -> None:
+    """스케줄러가 뜰 때 "이 잡들을 지금부터 알고 있다"를 한 줄씩 남긴다(status="registered").
+
+    왜 필요한가: 새 잡이 코드에 추가돼도 스케줄러가 재시작되기 전까지는 등록되지 않는다. 그 사이의 예정 시각을
+    "실행 기록 없음(overdue)"으로 부르면 거짓 경보가 된다 — 2026-09-28에 champion_tracking_weekly가 실제로 그랬다
+    (커밋 13:16 UTC, 예정 16:10 UTC, 그 사이 배포 없음). 이 표식이 있으면 "그 잡을 알기 전"과 "알았는데 안 돌았다"를
+    구분할 수 있다. 이미 기록이 있는 잡은 건너뛴다(매 재시작마다 행이 쌓이지 않게).
+    """
+    try:
+        with get_session() as session:
+            known = {row[0] for row in session.query(SchedulerJobRun.job_id).distinct()}
+            for job_id in job_ids:
+                if job_id not in known:
+                    session.add(SchedulerJobRun(job_id=job_id, status=REGISTERED))
+    except Exception as exc:  # noqa: BLE001 — 표식 실패가 스케줄러를 막으면 안 된다
+        print(f"[job_health] 잡 등록 표식 기록 실패(무시): {exc}")
+
+
 def attach_job_run_listener(scheduler) -> None:
-    scheduler.add_listener(job_run_listener, EVENT_MASK)
+    try:
+        _write_running(lambda st: st.clear())  # 재시작 전 기록은 무의미(그 스레드들은 이미 없다)
+    except Exception as exc:  # noqa: BLE001
+        print(f"[job_health] 실행 중 표시 초기화 실패(무시): {exc}")
+    scheduler.add_listener(job_run_listener, EVENT_MASK | EVENT_JOB_SUBMITTED)
     try:
         prune_old_runs()
     except Exception as exc:  # noqa: BLE001
@@ -123,11 +212,18 @@ def compute_job_health(now: datetime | None = None) -> dict:
     with get_session() as session:
         first = session.query(SchedulerJobRun.recorded_at).order_by(SchedulerJobRun.recorded_at.asc()).first()
         tracking_since = first[0] if first else None
+        # 잡별로 처음 본 시각(등록 표식 포함) — 그보다 앞선 예정은 "아직 없던 잡"이라 오경보로 세지 않는다.
+        known_since = {
+            job_id: earliest for job_id, earliest in
+            session.query(SchedulerJobRun.job_id, func.min(SchedulerJobRun.recorded_at))
+            .group_by(SchedulerJobRun.job_id).all()
+        }
         for job in SCHEDULED_JOBS:
             label = PROCESS_REGISTRY.get(job.process_key, {}).get("label", job.job_id)
             entry = {"job_id": job.job_id, "process_key": job.process_key, "label": label,
                      "expected_at": None, "last_status": None, "last_recorded_at": None, "error": None}
-            latest = (session.query(SchedulerJobRun).filter(SchedulerJobRun.job_id == job.job_id)
+            latest = (session.query(SchedulerJobRun)
+                      .filter(SchedulerJobRun.job_id == job.job_id, SchedulerJobRun.status != REGISTERED)
                       .order_by(SchedulerJobRun.recorded_at.desc()).first())
             if latest is not None:
                 entry.update(last_status=latest.status, last_recorded_at=latest.recorded_at, error=latest.error)
@@ -144,6 +240,7 @@ def compute_job_health(now: datetime | None = None) -> dict:
                 continue
             expected_naive = _naive_utc(expected)
             window = (SchedulerJobRun.job_id == job.job_id,
+                      SchedulerJobRun.status != REGISTERED,  # 등록 표식은 실행이 아니다
                       SchedulerJobRun.recorded_at >= expected_naive - timedelta(minutes=1))
             # 잡이 스스로 보고한 실패("failed")는 이후에 APScheduler가 남기는 ok(정상 반환)보다 우선한다.
             soft_failure = (session.query(SchedulerJobRun)
@@ -157,6 +254,9 @@ def compute_job_health(now: datetime | None = None) -> dict:
                 entry["state"] = {"ok": "ok", "error": "error", "failed": "error", "missed": "missed"}.get(run.status, "error")
             elif tracking_since is None or expected_naive < tracking_since:
                 entry["state"] = "no-history"  # 이력 추적을 시작하기 전의 예정 시각 — 안 돈 건지 알 수 없으니 오경보 금지
+            elif known_since.get(job.job_id) is None or expected_naive < known_since[job.job_id]:
+                # 이 잡을 스케줄러가 알기 전의 예정 시각 — 안 돈 게 아니라 아직 없던 잡이다.
+                entry["state"] = "no-history"
             elif now_naive <= expected_naive + GRACE_OVERRIDES.get(job.job_id, DEFAULT_GRACE):
                 entry["state"] = "pending"
             else:

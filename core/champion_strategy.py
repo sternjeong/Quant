@@ -645,17 +645,24 @@ def _pick_satellite_at_date(
 
     active_scores: dict[str, float] = {}
     n_with_history = 0
+    # (2026-09-25) 관측 전용 부산물: 선정 로직과 같은 루프에서 이미 내린 판정을 그대로 모아 둔다(재계산 없음).
+    # 선정(picks/weights)에는 전혀 쓰이지 않는다 — shadow 원장이 탈락 후보까지 기록하도록 밖으로 내보낼 뿐이다.
+    rejected_tickers: list[str] = []  # 이력은 충분하지만 돈치안 추세 신호가 비활성
+    missing_tickers: list[str] = []  # 가격 이력 없음/부족 또는 모멘텀 계산 불가
     for t in candidates:
         df = histories.get(t)
         if df is None or df.empty:
+            missing_tickers.append(t)
             continue
         n_with_history += 1
         close = df["Close"]
         close = close[close.index < rebal_date]  # 전일까지만(당일 미포함, 룩어헤드 방지)
         if len(close) < SATELLITE_DONCHIAN_WINDOW + 60:
+            missing_tickers.append(t)
             continue
         pos = donchian_trailing_stop_positions(close)
         if pos.iloc[-1] != 1:
+            rejected_tickers.append(t)
             continue  # 활성 추세 신호 없음 -> 후보 제외
         if len(close) >= SATELLITE_BACKTEST_MOMENTUM_WINDOW + 5:
             mom = close.iloc[-1] / close.iloc[-1 - SATELLITE_BACKTEST_MOMENTUM_WINDOW] - 1.0
@@ -663,6 +670,8 @@ def _pick_satellite_at_date(
             mom = close.iloc[-1] / close.iloc[0] - 1.0
         if pd.notna(mom):
             active_scores[t] = float(mom)
+        else:
+            missing_tickers.append(t)
 
     ranked = sorted(active_scores.items(), key=lambda kv: kv[1], reverse=True)
     picks = [t for t, _ in ranked[:top_k]]
@@ -678,6 +687,11 @@ def _pick_satellite_at_date(
         "date": as_of_str, "pool_size": len(candidates), "n_active_trend": len(active_scores),
         "n_with_history": n_with_history,  # 가격 이력을 실제로 받은 후보 수(위성 데이터 부족 판단용)
         "picks": picks, "weights": pick_weights,
+        # (2026-09-25, 관측 전용 — 선정에 쓰이지 않음) 돌파 활성 후보 전체(모멘텀 내림차순, picks 는 이 앞 top_k)와
+        # 풀 표본 중 돌파 비활성/데이터 결측 종목. shadow 후보 원장이 탈락 후보까지 기록하는 데만 쓴다.
+        "ranked_active": [(t, score) for t, score in ranked],
+        "rejected_tickers": rejected_tickers,
+        "missing_tickers": missing_tickers,
     }
 
 
@@ -792,7 +806,10 @@ def compute_satellite_recommendation_point_in_time(
         기준 — compute_satellite_recommendation과 동일한 스케일), picks(DataFrame:
         ticker/price_at_rebal/current_price/return_since_rebal_pct), unallocated_weight,
         new_orders_allowed(위성 전용 신규 주문 보류 플래그 — 코어와 독립. 후보 풀/가격 데이터를 못 받았거나 선정
-        종목 가격이 없으면 False이고 per_ticker_weights는 비어 있음), allocation_reason, data_coverage
+        종목 가격이 없으면 False이고 per_ticker_weights는 비어 있음), allocation_reason, data_coverage,
+        그리고 관측 전용 추가 필드(2026-09-25, _satellite_pool_fields 참고 — 선정·주문에 쓰이지 않음):
+        candidates(돌파 활성 후보 전체 DataFrame: ticker/momentum_12m/rank/donchian_breakout/selected),
+        rejected_tickers(돌파 비활성), missing_tickers(이력 없음·부족)
     """
     if sizing_method not in SATELLITE_SIZING_METHODS:
         raise ValueError(f"알 수 없는 sizing_method: {sizing_method}")
@@ -891,6 +908,33 @@ def compute_satellite_recommendation_point_in_time(
         "per_ticker_weights": per_ticker_weights,
         "picks": picks_df,
         "unallocated_weight": SATELLITE_WEIGHT if (not picks or not satellite_new_orders_allowed) else 0.0,
+        # (2026-09-25) 관측 전용 추가 필드 — 위 필드·주문 경로는 이 값을 읽지 않는다.
+        **_satellite_pool_fields(info, picks),
+    }
+
+
+SATELLITE_POOL_CANDIDATE_COLUMNS = ["ticker", "momentum_12m", "rank", "donchian_breakout", "selected"]
+
+
+def _satellite_pool_fields(info: dict, picks: list[str]) -> dict:
+    """_pick_satellite_at_date 가 선정 루프에서 이미 내린 판정을 결과 dict 의 추가 필드로 옮긴다(재계산 없음).
+
+    - candidates: 돈치안 돌파가 활성인 후보 전체(DataFrame, 모멘텀 내림차순 = 원전략 순위). selected 는 원전략
+      picks 포함 여부이며 picks 는 항상 이 표의 앞 top_k 행이다. core.candidate_ledger.
+      champion_satellite_to_candidate_set 이 top_k 밖을 held 로 기록하는 입력 형식과 같다.
+    - rejected_tickers: 풀 표본 중 이력은 충분하지만 돌파 비활성인 종목(모멘텀은 계산하지 않았으므로 없음).
+    - missing_tickers: 가격 이력 없음·부족(돈치안 창+60일 미만)·모멘텀 계산 불가.
+    구버전·목킹된 info(키 없음)면 빈 값을 돌려준다. 이 값들은 선정·비중·주문 판단에 쓰이지 않는다.
+    """
+    pick_set = set(picks)
+    rows = [
+        {"ticker": t, "momentum_12m": score, "rank": i, "donchian_breakout": True, "selected": t in pick_set}
+        for i, (t, score) in enumerate(info.get("ranked_active") or [], start=1)
+    ]
+    return {
+        "candidates": pd.DataFrame(rows, columns=SATELLITE_POOL_CANDIDATE_COLUMNS),
+        "rejected_tickers": list(info.get("rejected_tickers") or []),
+        "missing_tickers": list(info.get("missing_tickers") or []),
     }
 
 

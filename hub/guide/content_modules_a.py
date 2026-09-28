@@ -193,9 +193,28 @@ MODULES: tuple[ModuleGuide, ...] = (
         where_to_see=
             '화면 없음(DB)',
         cautions=
-            '주문에 영향을 주지 않는 관측 전용이며 성과나 승률 개선을 입증하지 않았습니다. 표본이 충분히 쌓이기 전에는 결론을 내리면 안 됩니다. 파일 머리말은 스케줄러가 호출하지 않는다고 적혀 있으나 현재는 잡으로 연결돼 있습니다.',
-        sources=('scheduler/run_scheduler.py', 'scripts/candidate_ledger_update.py', 'docs/CANDIDATE_LEDGER_SPEC.md'),
+            '주문에 영향을 주지 않는 관측 전용이며 성과나 승률 개선을 입증하지 않았습니다. 표본이 충분히 쌓이기 전에는 결론을 내리면 안 됩니다. '
+            '판정은 PIT 근거가 있는 행만 인정합니다: 5개 시각이 모두 있는 행(full_contract) 또는 진입 시가보다 먼저 원장에 기록된 행(forward_recorded, 매일 밤 잡이 쌓는 후보). '
+            '과거 날짜로 나중에 소급 기록한 행은 인정되지 않아, 하나라도 섞이면 판정은 미입증입니다. 진입 전 기록은 원천 데이터의 발표 시각까지 보증하지 않습니다(공급자의 소급 수정 가능). '
+            '표본 수·결측률·신뢰구간 조건은 그대로입니다.',
+        sources=('scheduler/run_scheduler.py', 'scripts/candidate_ledger_update.py', 'docs/CANDIDATE_LEDGER_SPEC.md', 'core/candidate_ledger.py'),
         verified=V,
+    ),
+    ModuleGuide(
+        module='core/exit_variants.py',
+        name='후보 원장 청산 규칙 비교',
+        group='리서치 인프라',
+        status='관측 전용',
+        what=
+            "후보 shadow 원장에 이미 기록된 후보를 같은 진입(다음 시가)에서 청산 규칙만 바꿔 다시 계산하고, 원장과 같은 판정 틀로 비교합니다. 변형은 사전에 고정한 4개입니다: 원장과 같은 20거래일 보유, 진입가 -8% 고정 손절, 최고 종가 -10% 추적 손절, 위성 전략의 최고 종가 -15% 트레일링 스탑(모두 20거래일 상한). 손절은 일봉 종가로 판단하고 다음 거래일 시가에 체결된다고 봅니다.",
+        how_to_use=
+            "자동 잡에 연결되어 있지 않습니다. 보고서가 필요하면 파이썬에서 core.exit_variants.write_exit_variants_report() 를 부르면 data/reports/exit_variants_날짜.md·.json 이 만들어집니다. 채택 그룹의 비용 후 기대값·승률·손익비·최대 손실과 놓친 기회를 변형별로, 기준선 대비 차이와 함께 봅니다.",
+        where_to_see=
+            '화면 없음(data/reports/exit_variants_날짜.md)',
+        cautions=
+            "기준선이 아닌 변형 3개는 여러 규칙을 동시에 본 탐색 결과라 신뢰구간을 3배 보수적으로 잡고 '탐색 결과'로만 표시합니다. 표본 부족·PIT 미인증이면 '미입증'입니다. 결과는 과거 관측이며 미래 성과를 보장하지 않고, 주문에 영향을 주지 않습니다.",
+        sources=('docs/EXIT_VARIANTS_SPEC.md',),
+        verified='2026-09-26',
     ),
     ModuleGuide(
         module='core/candidate_recorder.py',
@@ -209,9 +228,9 @@ MODULES: tuple[ModuleGuide, ...] = (
         where_to_see=
             '화면 없음(DB)',
         cautions=
-            '관측 전용이라 주문과 무관하고 성과는 미검증입니다. 화면을 열 때마다 기록하지 않고 스케줄 잡에서만 기록하도록 설계돼 있습니다.',
-        sources=('scheduler/run_scheduler.py', 'docs/CANDIDATE_LEDGER_SPEC.md'),
-        verified=V,
+            '관측 전용이라 주문과 무관하고 성과는 미검증입니다. 화면을 열 때마다 기록하지 않고 스케줄 잡에서만 기록하도록 설계돼 있습니다. 위성 후보는 2026-09-25부터 채택 종목만이 아니라 그 반기 풀 표본 전체를 기록합니다: 채택=selected, 돌파는 켜졌지만 상위 3위 밖=held, 돌파 없음=rejected, 가격 이력 부족=missing_data. 결정은 위성 전략 결과를 그대로 옮길 뿐 다시 계산하지 않습니다.',
+        sources=('scheduler/run_scheduler.py', 'docs/CANDIDATE_LEDGER_SPEC.md', 'core/candidate_recorder.py'),
+        verified='2026-09-26',
     ),
     ModuleGuide(
         module='core/champion_strategy.py',
@@ -225,9 +244,77 @@ MODULES: tuple[ModuleGuide, ...] = (
         where_to_see=
             '챔피언 전략, 챔피언 최적화, 오늘 화면 + 텔레그램 알림',
         cautions=
-            '이 모듈은 계산만 하며 주문은 별도 스크립트(scripts/champion_paper_trade.py)가 담당합니다. 확신도가 낮은 구성요소도 숨기지 않고 표시합니다. 과거 백테스트 기반이라 미래 수익을 보장하지 않습니다.',
-        sources=('app/pages/11_챔피언_전략.py', 'scheduler/run_scheduler.py'),
-        verified=V,
+            '이 모듈은 계산만 하며 주문은 별도 스크립트(scripts/champion_paper_trade.py)가 담당합니다. 확신도가 낮은 구성요소도 숨기지 않고 표시합니다. 과거 백테스트 기반이라 미래 수익을 보장하지 않습니다. 2026-09-25부터 반기 위성 결과에 관측 전용 필드(candidates=돌파가 켜진 후보 전체와 모멘텀 순위, rejected_tickers=돌파 없음, missing_tickers=이력 부족)가 더 붙습니다. 이 필드는 후보 원장·shadow 실험 기록에만 쓰이고, 고르는 종목·비중·주문은 전과 똑같습니다(변경 전 코드와 대조하는 테스트로 확인).',
+        sources=('app/pages/11_챔피언_전략.py', 'scheduler/run_scheduler.py', 'core/champion_strategy.py'),
+        verified='2026-09-26',
+    ),
+    ModuleGuide(
+        module="core/champion_tracking.py", name="챔피언 주간 추적 판정", group="운용", status="관측 전용",
+        what=(
+            "챔피언 전략이 실제 시장에서 백테스트대로 움직이는지 매주 판정합니다. 가상 원장(00:12 기록)에 적힌 추천 비중을 "
+            "장 마감 종가에 다시 적용해 라이브 N거래일 누적수익을 만들고, 라이브 시작 전 8년 백테스트에서 같은 길이 N거래일 "
+            "구간을 모두 모은 분포의 몇 분위인지 계산합니다. 규칙은 미리 고정돼 있습니다: 5~95분위면 '백테스트 범위 안(정상)', "
+            "그 밖이면 '범위 밖 — 주의', 1분위 아래·99분위 위이거나 라이브 최대낙폭이 백테스트 최악 낙폭보다 깊으면 "
+            "'이탈 — 확인 필요', 20거래일 미만이면 '판정하기엔 이름(표본 부족)'(수치만 표시). SPY·60/40 대비 초과수익 분위도 "
+            "같이 보여 주지만 한 줄 판정에는 쓰지 않습니다. 함께 점검하는 것: paper 계좌가 추천을 실제로 따르는지(추적오차 파일), "
+            "원장 비중이 그날 추천과 같은지, 원장·가격 결측."
+        ),
+        how_to_use=(
+            "자동입니다. 일요일 01:10 KST 텔레그램 '챔피언 주간 검증' 1건을 읽으세요. 첫 줄이 판정, 마지막에서 두 번째 줄이 "
+            "'조치: 필요 없음/필요'입니다. 문제가 없어도 매주 오므로, 일요일에 오지 않으면 잡이 멈춘 것입니다. "
+            "자세한 수치는 VM 의 data/reports/champion_tracking_날짜.json 에 있습니다."
+        ),
+        where_to_see="텔레그램(일요일 요약 1건), data/reports/champion_tracking_YYYY-MM-DD.json, 백테스트 캐시 data/cache/champion_backtest_daily.json",
+        cautions=(
+            "겹치는 구간으로 만든 분위라 독립 표본이 아니며 p-값처럼 읽으면 안 됩니다. 라이브 기간이 짧으면 기대 범위가 넓어 "
+            "거의 항상 '범위 안'이 나옵니다(판정력이 낮음). 백테스트 자체에 PIT 한계(새틀라이트 표본추출·생존편향, 배당 미포함)가 "
+            "있어 '범위 안'은 전략이 좋다는 증거가 아니라 '백테스트와 모순되지 않는다'는 뜻입니다. 원장은 매일 목표를 다시 계산하고 "
+            "백테스트 코어는 월초에만 바꾸므로 '백테스트 규칙과 코어 종목 다른 날'에는 이 구조 차이가 섞여 있습니다. "
+            "60/40 격차·알파 감쇠 알림은 다시 보내지 않고 '발동 중' 한 줄로만 알립니다. 주문과 연결되어 있지 않습니다."
+        ),
+        sources=("core/champion_strategy.py", "core/paper_tracking.py", "scheduler/run_scheduler.py"),
+        verified="2026-09-26",
+    ),
+    ModuleGuide(
+        module="core/champion_performance.py", name="챔피언 성과 해부", group="운용", status="운영중",
+        what="챔피언 백테스트가 만든 코어·새틀라이트 비중 시계열을 그대로 풀어 거래(보유 구간) 목록·비중 조정 기록·달러 자산곡선·연도별 수익·종목별 손익 기여를 만들고, 같은 구간 SPY·60/40과 비교합니다. 새 전략 판단은 하지 않으며 거래 손익 합이 기존 백테스트 자산곡선과 맞는지 스스로 검산합니다. 따로, 2026-09-19부터 쌓인 '추천을 따랐다면' 원장과 paper 계좌 스냅샷으로 실제 시장 기록을 계산합니다(백테스트와 섞지 않음).",
+        how_to_use="챔피언 성과 화면에서 씁니다. 저장된 결과가 없으면 화면의 '📊 계산 시작' 버튼으로 백그라운드 계산을 시작합니다. 결과를 초기 금액 대비 배수로 저장해 두고 화면에서 곱하므로 초기 금액을 바꿔도 다시 계산하지 않습니다.",
+        where_to_see="챔피언 성과 화면. 계산 결과는 data/cache/champion_performance_<해시>.json",
+        cautions="백테스트 부분은 과거 가격에 규칙을 적용한 가상 결과이고 비용은 편도 고정 bp만, 새틀라이트 후보는 현재 S&P500 명단 기반이라 생존편향이 있습니다. 실시간 부분은 실제 주문 기록이 아닙니다. 주문 경로를 import 하지 않습니다. 캐시 키에는 기간·새틀라이트 비중·전략 버전·비용 가정이 들어가며, 전략 버전이 바뀌면 옛 결과는 쓰지 않습니다.",
+        sources=("core/champion_strategy.py", "app/pages/14_챔피언_성과.py"),
+        verified="2026-09-26",
+    ),
+    ModuleGuide(
+        module="core/champion_recommendation.py", name="챔피언 지금 기준 재추천", group="운용", status="운영중",
+        what=(
+            "챔피언 전략 화면 맨 위의 '🔄 지금 기준으로 다시 추천' 버튼이 누르는 계산입니다. 새 전략을 만들지 않고 이미 "
+            "검증된 함수만 모아 네 칸을 채웁니다: ① 지금 들고 있어야 하는 것(코어 17자산 모멘텀 상위 4개와 SPY 200일선 "
+            "필터, 새틀라이트는 '오늘 기준으로 다시 뽑은 종목'이 주 추천이고 '직전 반기 리밸런싱일에 매수했다면 지금 들고 "
+            "있을 종목'은 접어서 참고로 보여 줍니다), ② 과거 같은 길이 구간에서 나온 범위(3개월·6개월 겹치는 구간의 중앙값·5~95백분위·최악 구간·구간 내 "
+            "최대낙폭·SPY 대비 초과수익·SPY 를 이긴 구간 비율, 주간 추적 판정이 쓰는 분위 계산과 같은 것), ③ 근거(각 결정의 "
+            "확신도 등급, 종목별 돌파 발생일·모멘텀 순위·트레일링스탑 여유·섹터, 기각된 아이디어, 진행 중인 검증 연구 판정), "
+            "④ 지금 바꿀 것이 있는지 한 줄 결론."
+        ),
+        how_to_use=(
+            "챔피언 전략 화면 맨 위 '0. 지금 기준 재추천'에서 버튼을 한 번 누릅니다. 계산은 백그라운드에서 돌아 수 분 걸릴 수 "
+            "있고 다른 화면으로 옮겨도 계속 진행됩니다. 결과는 저장되므로 다시 들어와도 그대로 보이며 '며칠 전 결과'인지 함께 "
+            "표시됩니다. 금액 칸을 바꿔도 다시 계산하지 않습니다(결과를 배수로 저장하기 때문)."
+        ),
+        where_to_see="챔피언 전략 화면 맨 위. 계산 결과는 data/cache/champion_recommendation_<해시>.json",
+        cautions=(
+            "'지금 해야 할 행동'은 신호 요약이고 주문이 아닙니다 — 이 모듈은 주문 경로를 import 하지 않습니다. 분포는 예상 "
+            "수익이 아니라 과거 같은 길이 구간의 실적 범위이고, 겹치는 구간이라 독립 표본이 아니므로 p-값처럼 읽으면 안 됩니다. "
+            "숫자가 나빠도 그대로 보여 줍니다. 선정 절차는 날짜 인자만 다른 같은 함수이므로 오늘 뽑는 것이 규칙을 벗어나는 "
+            "일은 아니지만, 백테스트가 실제로 측정한 것은 1·7월에 시작한 구간들이고 시작 날짜가 결과를 얼마나 흔드는지는 아직 "
+            "측정되지 않았습니다(화면에 같은 취지를 적어 두고 기다리라거나 지금 사라고 권하지 않습니다). 다음 재선정일은 "
+            "'매수일 + 6개월'로 계산한 값입니다. "
+            "트레일링스탑 여유는 표시값이고, 백테스트는 보유 6개월 사이 중도 청산을 검증하지 않았으므로 매도 신호가 아닙니다. "
+            "다음 리밸런싱일은 NYSE 휴장일 근사로 구한 예정일입니다. 분포는 주간 추적 잡이 만든 백테스트 캐시가 있어야 나오고, "
+            "새틀라이트 슬리브 단독 분포는 '챔피언 성과' 화면의 계산 결과가 저장돼 있을 때만 나옵니다."
+        ),
+        sources=("core/champion_strategy.py", "core/champion_tracking.py", "core/champion_performance.py",
+                 "app/pages/11_챔피언_전략.py"),
+        verified="2026-09-28",
     ),
     ModuleGuide(
         module='core/chart_rendering.py',
@@ -321,9 +408,9 @@ MODULES: tuple[ModuleGuide, ...] = (
         where_to_see=
             '화면 없음',
         cautions=
-            "연구용이며 주문·화면과 연결돼 있지 않습니다. 추출 정확도나 성과를 주장하지 않습니다. 2026-09-25부터 가이던스 shadow 야간 잡(00:30 KST)이 SEC 조회를 켜므로 이 모듈이 매일 밤 위성 후보 종목(최대 20개)에 대해 실제로 돕니다. 분기 가이던스는 비교할 직전 같은 기간 가이던스가 없어 대부분 '판단 불가(unknown)'로 남는 것이 알려진 한계입니다.",
+            "연구용이며 주문·화면과 연결돼 있지 않습니다. 추출 정확도나 성과를 주장하지 않습니다. 2026-09-25부터 가이던스 shadow 야간 잡(00:30 KST)이 SEC 조회를 켜므로 이 모듈이 매일 밤 위성 후보 종목(최대 20개)에 대해 실제로 돕니다. 2026-09-25부터 상향·하향·유지 판정은 '연간 가이던스를 같은 회계연도끼리 다시 발표했을 때'만 냅니다. 분기 가이던스는 매번 새 분기를 가리켜 같은 기간끼리 비교할 수 없고, 다른 분기끼리 비교하면 계절성·성장이 섞이므로 항상 '판단 불가(unknown, quarterly_not_comparable)'입니다. 같은 발표에 다음 해 가이던스가 함께 있으면 끝난 해의 수치(실적일 가능성)는 비교하지 않습니다. 각 판정에는 비교 방식, 비교에 쓴 직전 발표 번호·시각·대상 기간, 세부 사유(no_prior_same_fy, unit_mismatch 등)가 남습니다. 분기 가이던스만 내거나 보도자료에 가이던스가 없는 기업은 방향이 나오지 않으며, 현재 추출기로는 revenue·eps 항목의 약 80%가 판단 불가입니다(스펙 6절 조사).",
         sources=('docs/EARNINGS_GUIDANCE_EXPERIMENT_SPEC.md', 'scripts/earnings_guidance_extraction_sample.py', 'core/guidance_event_provider.py'),
-        verified=V,
+        verified="2026-09-25",
     ),
     ModuleGuide(
         module='core/era_validation.py',
@@ -411,15 +498,15 @@ MODULES: tuple[ModuleGuide, ...] = (
         group='리서치 인프라',
         status='관측 전용',
         what=
-            "오늘 챔피언 위성이 고른 종목에 '공시 변화 때문에 보류(veto)했다면?' 판정을 병행 기록합니다. 원래 채택 결정은 건드리지 않습니다.",
+            "챔피언 위성의 후보 풀(돌파가 켜진 후보 전체: 실제 채택 종목 + 상위 3위 밖 후보)에 '공시 변화 때문에 보류(veto)했다면?' 판정을 병행 기록합니다. 원래 채택 결정은 건드리지 않고 기록에 그대로 옮겨 적습니다(2026-09-25부터 채택 종목만이 아니라 풀 전체, 기록 버전 v2).",
         how_to_use=
             '매일 밤 00:32(KST) 자동으로 기록됩니다. 사용자가 할 일은 없습니다. 꺼두려면 텔레그램 /processes 를 씁니다.',
         where_to_see=
             '화면 없음(DB)',
         cautions=
-            "veto 가 hold 로 나와도 실제 주문은 바뀌지 않습니다. 스펙 미동결·성과 미검증이며, 종목별 SEC 조회에 실패하면 그 종목은 '통과'로 처리합니다.",
-        sources=('scheduler/run_scheduler.py', 'docs/FILING_CHANGE_VETO_SPEC.md'),
-        verified=V,
+            "veto 가 hold 로 나와도 실제 주문은 바뀌지 않습니다. 스펙 미동결·성과 미검증이며, 종목별 SEC 조회에 실패하면 그 종목은 '통과'로 처리합니다. SEC 조회 상한: 하루 최대 20종목, 요청 약 150회, 5분(종목 사이에서 확인). 넘치면 채택 종목 먼저, 그다음 모멘텀 순위 순으로 조회하고 나머지는 '조회 안 함(missing_data)'으로 남습니다. 풀을 넓혀 관측 종목은 약 3개에서 최대 20개로 늘었지만, 가정값으로 추정하면 최소 표본(보류 100건)까지 여전히 10년 이상 걸릴 수 있어 가까운 시일에 결론이 나지 않습니다(스펙 문서 §9).",
+        sources=('scheduler/run_scheduler.py', 'docs/FILING_CHANGE_VETO_SPEC.md', 'core/filing_veto_shadow.py'),
+        verified='2026-09-26',
     ),
     ModuleGuide(
         module='core/fred_data.py',
@@ -465,9 +552,9 @@ MODULES: tuple[ModuleGuide, ...] = (
         where_to_see=
             '화면 없음',
         cautions=
-            "안전장치: 한 번에 최대 20종목, SEC 요청 약 300회·5분 상한(종목과 종목 사이에서 확인), 같은 날 다시 돌면 하루 캐시 재사용, SEC 가 403 으로 막으면 즉시 멈추고 잡은 실패로 죽지 않습니다. User-Agent 는 VM .env 의 SEC_EDGAR_USER_AGENT 이름으로 읽으며 값은 기록하지 않습니다. 이 이름이 없으면 SEC 가 막을 수 있습니다. 분기 가이던스는 대부분 '판단 불가(unknown)'로 나오며, 요약에 그 수와 사유가 따로 나옵니다. 성과 미검증입니다.",
-        sources=('core/guidance_shadow.py', 'scheduler/run_scheduler.py'),
-        verified=V,
+            "안전장치: 한 번에 최대 20종목, SEC 요청 약 300회·5분 상한(종목과 종목 사이에서 확인), 같은 날 다시 돌면 하루 캐시 재사용, SEC 가 403 으로 막으면 즉시 멈추고 잡은 실패로 죽지 않습니다. User-Agent 는 VM .env 의 SEC_EDGAR_USER_AGENT 이름으로 읽으며 값은 기록하지 않습니다. 이 이름이 없으면 SEC 가 막을 수 있습니다. 방향 판정은 연간 가이던스의 같은 회계연도 재발표끼리만 나오고 분기 가이던스는 항상 '판단 불가(unknown)'입니다. 요약에 그 수와 사유가 따로 나옵니다. 같은 회계연도의 직전 값은 보통 바로 앞 분기 발표에 있어 과거 조회 범위(400일, 종목당 발표 6건)는 그대로 두었습니다. 최악의 경우 종목당 요청 13회 × 20종목 = 260회로 상한 안입니다. 2026-09-25 비교 정책 변경 때 캐시 형식을 올려, 예전 방식으로 만든 같은 날 캐시는 다시 쓰지 않습니다. 성과 미검증입니다.",
+        sources=('core/guidance_shadow.py', 'scheduler/run_scheduler.py', 'core/earnings_events.py'),
+        verified="2026-09-25",
     ),
     ModuleGuide(
         module='core/guidance_shadow.py',
@@ -475,15 +562,15 @@ MODULES: tuple[ModuleGuide, ...] = (
         group='리서치 인프라',
         status='관측 전용',
         what=
-            "챔피언 위성 후보에 '발행사가 실적 전망을 올렸나/내렸나' 신호를 나란히 붙여 기록합니다. 원래 위성의 채택·보류 결정은 절대 바꾸지 않습니다.",
+            "챔피언 위성 후보 풀(돌파가 켜진 후보 전체: 채택 종목 + 상위 3위 밖 후보)에 '발행사가 실적 전망을 올렸나/내렸나' 신호를 나란히 붙여 기록합니다. 원래 위성의 채택·보류 결정은 그대로 옮겨 적을 뿐 절대 바꾸지 않습니다(2026-09-25부터 풀 전체, 기록 버전 v2).",
         how_to_use=
             '매일 밤 00:30(KST) 자동으로 기록됩니다. 사용자가 할 일은 없습니다. 꺼두려면 텔레그램 /processes 를 씁니다.',
         where_to_see=
             '화면 없음(DB)',
         cautions=
-            "관측 전용이며 원전략과 실제 주문에 영향이 없고 성과는 미검증입니다. 2026-09-25부터 야간 잡이 실제 SEC 조회를 켜서 호출합니다. 다만 최근 20거래일 안에 실적 발표가 없는 후보는 여전히 '발표 없음'이고, 발표가 있어도 분기 가이던스는 대부분 '판단 불가'로 기록됩니다. SEC 가 막히면 그날은 모든 후보가 '발표 없음'으로 기록됩니다.",
-        sources=('scheduler/run_scheduler.py', 'docs/EARNINGS_GUIDANCE_EXPERIMENT_SPEC.md'),
-        verified=V,
+            "관측 전용이며 원전략과 실제 주문에 영향이 없고 성과는 미검증입니다. 2026-09-25부터 야간 잡이 실제 SEC 조회를 켜서 호출합니다. 다만 최근 20거래일 안에 실적 발표가 없는 후보는 여전히 '발표 없음'이고, 발표가 있어도 분기 가이던스는 대부분 '판단 불가'로 기록됩니다. SEC 가 막히면 그날은 모든 후보가 '발표 없음'으로 기록됩니다. 후보가 20종목을 넘으면 채택 종목 먼저, 그다음 모멘텀 순위 순으로 조회하고 나머지는 건너뜁니다. 각 후보의 조회 결과(guidance_fetch_status)가 함께 남으니, '발표 없음' 중 실제로 조회하지 못한 후보를 구분할 수 있습니다.",
+        sources=('scheduler/run_scheduler.py', 'docs/EARNINGS_GUIDANCE_EXPERIMENT_SPEC.md', 'core/guidance_shadow.py'),
+        verified='2026-09-26',
     ),
     ModuleGuide(
         module='core/guru_schedule.py',
@@ -555,15 +642,15 @@ MODULES: tuple[ModuleGuide, ...] = (
         group='운영·안전',
         status='운영중',
         what=
-            "자동 잡이 돌 때마다 성공·실패·누락을 DB 에 한 줄씩 기록하고, '지금쯤 돌았어야 할 잡이 실제로 돌았나' 를 판정합니다. 조용한 실패를 찾는 것이 목적입니다.",
+            "자동 잡이 돌 때마다 성공·실패·누락을 DB 에 한 줄씩 기록하고, '지금쯤 돌았어야 할 잡이 실제로 돌았나' 를 판정합니다. 조용한 실패를 찾는 것이 목적입니다. 잡이 시작되고 끝날 때 '지금 실행 중' 표시도 남겨, 관제 센터에서 실행 중인 잡을 볼 수 있게 합니다.",
         how_to_use=
-            '오늘 화면과 오늘의 브리핑에서 잡 상태로 자동 표시됩니다. 실패/누락 표시가 보이면 해당 잡의 로그를 확인하세요.',
+            '오늘 화면과 오늘의 브리핑에서 잡 상태로 자동 표시됩니다. 실패/누락 표시가 보이면 해당 잡의 로그를 확인하세요. 지금 돌고 있는 잡은 관제 센터 → 지금 돌고 있는 작업(/live)에서 봅니다.',
         where_to_see=
-            '오늘 화면, 오늘의 브리핑',
+            '오늘 화면, 오늘의 브리핑, 관제 센터 /live',
         cautions=
             '꺼둔 잡은 안 돈 것이 정상으로 취급합니다. 잡 함수가 스스로 예외를 삼키는 경우는 별도로 실패 보고를 남긴 잡만 잡아냅니다.',
         sources=('scheduler/run_scheduler.py', 'core/today_dashboard.py'),
-        verified=V,
+        verified="2026-09-27",
     ),
     ModuleGuide(
         module='core/job_manager.py',

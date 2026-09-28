@@ -96,6 +96,13 @@ MODULES: tuple[ModuleGuide, ...] = (
         cautions="외부 오픈 데이터(CSV)에 의존하며 티커 표기 변경·상장폐지 종목은 오차가 있을 수 있습니다. 가격이 없는 종목은 결과에서 빠질 수 있습니다.",
         verified=_V),
     ModuleGuide(
+        module="core/portfolio_compare.py", name="포트폴리오 비교 추적", group="운용", status="운영중",
+        what="이름 붙여 저장해 둔 여러 포트폴리오의 수익률 곡선을 계산합니다. 내 실제 매수와 '그냥 SPY를 샀다면' 같은 가정을 같은 방식으로 담아 나란히 비교합니다. 달러 기준과 원화 환산을 함께 내고, 나중에 돈을 더 넣은 경우를 위해 시간가중수익률도 계산합니다.",
+        how_to_use="'포트폴리오 비교' 화면에서 만들고 거래를 넣으면 이 모듈이 계산합니다. 일별 저장본을 두지 않고 거래와 과거 시세로 매번 다시 계산하므로 중간에 빠진 날이 생기지 않습니다.",
+        where_to_see="포트폴리오 비교 화면",
+        cautions="배당을 반영하지 않아 배당이 있는 종목은 실제보다 낮게 나옵니다. 수수료·세금은 입력한 값만 반영합니다. 시세를 받지 못한 종목이 있으면 그 포트폴리오는 계산하지 않고 이유를 표시합니다.",
+        sources=("app/pages/15_포트폴리오_비교.py", "core/portfolio_compare.py"), verified="2026-09-28"),
+    ModuleGuide(
         module="core/portfolio.py", name="내 포트폴리오 계산", group="운용", status="운영중",
         what="직접 입력한 보유 종목·수량·매입가·현금으로 손익과 위험(변동성, 종목 간 상관관계, 섹터 쏠림)을 계산하고, AI 코멘트를 붙입니다.",
         how_to_use="포트폴리오 화면에서 보유를 입력·수정하면 이 모듈이 계산합니다. 챔피언 전략 화면도 내 보유·현금을 읽어 비교에 씁니다. 실제 자산이 바뀌면 직접 수정해 주세요.",
@@ -123,6 +130,20 @@ MODULES: tuple[ModuleGuide, ...] = (
         where_to_see="텔레그램 /processes, 사용 설명서의 잡 표",
         cautions="꺼도 잡 등록 자체는 남아 있고 실행만 건너뜁니다. 모든 잡이 이 목록으로 통제되는 것은 아니니 잡 표에서 확인하세요.",
         sources=("scheduler/run_scheduler.py", "deploy/codex_telegram/runner.py"), verified=_V),
+    ModuleGuide(
+        module="core/regime_eval.py", name="국면별 판정과 실측 비용 칸", group="리서치 인프라", status="관측 전용",
+        what="후보 shadow 원장의 판정을 시장 국면(강세장·약세장·중립/혼조 등)별로 나눠 다시 봅니다. 각 결정에는 그 결정 시각 이전에 저장된 가장 최근 국면 스냅샷만 붙이고(이후 스냅샷은 쓰지 않음), 그 스냅샷이 5거래일 넘게 오래됐으면 unknown 으로 둡니다. 스냅샷이 아예 없으면 결정 시점까지 확정된 지수 일봉(로컬 캐시만)으로 국면을 다시 계산합니다. unknown 은 어느 국면에도 섞지 않습니다. Alpaca paper 실체결이 30건 이상 쌓여 실측 비용이 있으면 가정 비용(5/10/25bp) 옆에 실측 비용 칸을 나란히 붙입니다.",
+        how_to_use="직접 부르지 않습니다. 매주 일요일 00:50 KST 전략 연구 보고서의 '국면별 판정'과 '실측 비용 반영 결과' 절에 들어갑니다. 국면별 표와 '전체 섞음(참고)' 줄이 다르면 한 국면에서만 통하는 규칙일 수 있다는 신호로 읽으세요.",
+        where_to_see="화면 없음(주간 전략 연구 보고서 data/reports/strategy_research_*.md)",
+        cautions="판정 규칙은 후보 원장 것을 그대로 쓰며 새 통계 규칙이 없습니다. 국면 수만큼 비교가 늘어나지만 보정하지 않았다고 표시만 합니다(한 국면의 검토대상 판정도 우연일 수 있음). 국면별로 표본이 쪼개져 대부분 '미입증'이 정상입니다. 실측 비용 칸은 진단용이라 판정은 항상 '미입증'이고 주 검정 비용(10bp)은 바뀌지 않으며, 원장에 저장된 값도 바꾸지 않습니다. 실측이 오래됐으면 stale 로 표시하고 표본이 부족하면 쓰지 않습니다. 대체 계산 국면은 시장폭 신호가 빠진 다른 정의입니다. 성과 개선의 증거가 아닙니다.",
+        sources=("core/strategy_variants.py",), verified=_V),
+    ModuleGuide(
+        module="core/research_jobs.py", name="검증 연구 작업 실행기", group="리서치 인프라", status="운영중",
+        what="저장소의 research/jobs/<id>/job.json 으로 등록된 사전 등록 검증 연구(판정 규칙이 코드에 박힌 백테스트 스크립트)를 VM 의 한가한 시간에 한 번에 하나씩 돌립니다. 스크립트가 체크포인트를 남기면 여러 밤·낮에 걸쳐 이어서 계산합니다. AI 를 부르지 않고 주문 경로와도 연결되어 있지 않습니다.",
+        how_to_use="자동 잡 research_job_runner 가 01:00~02:50, 13:00~16:50 KST 에 20분마다 깨어나 대기 작업을 실행합니다. 새 연구는 에이전트가 docs/RESEARCH_JOBS.md 계약대로 만들어 main 에 병합하면 다음 창에서 돕니다. 상태·재시도·취소는 scripts/research_jobs_admin.py 로 합니다.",
+        where_to_see="관제 센터 '검증 연구 결과' 카드(작업별 상태·판정 요약·REPORT), 텔레그램 '[검증 연구 결과]' 알림, 저장소 research/results/<id>/",
+        cautions="실행 전 VM 여유(부하·메모리)와 디스크를 확인하고 여유가 없으면 다음 회차로 미룹니다. 자식 프로세스는 가장 낮은 우선순위(nice 19)로 돌고 창 끝 2분 전까지 멈춥니다. 자동 배포·재부팅으로 끊기면 다음 회차에 이어서 합니다. 결과가 나왔다는 것은 사전 등록 판정이 계산됐다는 뜻일 뿐, 전략 성과가 개선됐다는 뜻이 아닙니다. VM 에 push 권한이 없으면 저장소 반영은 건너뛰고 알림에 적습니다.",
+        sources=("core/research_jobs.py", "scheduler/run_scheduler.py", "docs/RESEARCH_JOBS.md"), verified="2026-09-26"),
     ModuleGuide(
         module="core/resource_guard.py", name="VM 여유 확인", group="운영·안전", status="운영중",
         what="지금 VM 의 CPU 부하와 여유 메모리를 보고 무거운 작업을 하나 더 시작해도 되는지 판단합니다.",
@@ -189,10 +210,10 @@ MODULES: tuple[ModuleGuide, ...] = (
     ModuleGuide(
         module="core/strategy_variants.py", name="전략 변형 그림자 기록", group="리서치 인프라", status="관측 전용",
         what="챔피언 코어 전략을 절대 바꾸지 않은 채, 변형(hold-band: 6위 안이면 보유 유지 등)이 매일 어떤 종목을 골랐을지를 병행 기록합니다. 회전율과 비용이 실제로 줄었는지 나중에 검증하는 관측용 장부입니다.",
-        how_to_use="자동입니다. 매일 한국시간 00:44 기록 잡(variant_shadow_record)과 매주 일요일 00:50 연구 보고서 잡이 돕니다. 표본이 쌓이기 전에는 결론을 내릴 수 없으니 개입하지 말고 보고서를 기다리세요.",
+        how_to_use="자동입니다. 매일 한국시간 00:44 기록 잡(variant_shadow_record)과 매주 일요일 00:50 연구 보고서 잡이 돕니다. 보고서에는 변형별 판정·회전율·비용 영향과 함께 '국면별 판정'(국면마다 따로 본 판정, unknown 별도 칸)과 '실측 비용 반영 결과'(가정 5/10/25bp 옆에 실측 비용 칸) 절이 있습니다. 표본이 쌓이기 전에는 결론을 내릴 수 없으니 개입하지 말고 보고서를 기다리세요.",
         where_to_see="화면 없음(DB와 주간 연구 보고서)",
-        cautions="관측 전용이며 주문·원전략에 영향이 없습니다. 변형이 더 낫다는 증거가 아직 아니고, 비용은 가정치입니다.",
-        sources=("scheduler/run_scheduler.py",), verified=_V),
+        cautions="관측 전용이며 주문·원전략에 영향이 없습니다. 변형이 더 낫다는 증거가 아직 아니고, 비용은 가정치입니다(실측 비용 칸은 Alpaca paper 체결 30건 이상일 때만 진단용으로 붙고 판정 기준 비용은 바뀌지 않습니다). 국면별 판정은 비교 수가 늘고 표본이 작아 대부분 '미입증'입니다.",
+        sources=("scheduler/run_scheduler.py", "core/regime_eval.py"), verified=_V),
     ModuleGuide(
         module="core/telegram_notify.py", name="텔레그램 발송", group="운영·안전", status="운영중",
         what="서버에서 사용자 폰 텔레그램으로 메시지와 파일을 보냅니다. 토큰이나 채팅 ID 설정이 없거나 전송이 실패해도 예외 없이 조용히 넘어갑니다.",
@@ -232,9 +253,9 @@ MODULES: tuple[ModuleGuide, ...] = (
         module="core/ui_status.py", name="화면 데이터 신뢰 헤더", group="화면 지원", status="운영중",
         what="여러 상세 화면 맨 위에 붙는 '이 데이터가 얼마나 최신인지' 상태 표시를 만듭니다. 데이터 신선도를 분류해 색으로 알려줍니다.",
         how_to_use="화면 상단의 상태 표시를 보고 데이터가 오래됐다는 표시면 그 값을 믿지 말고 관련 자동 잡이 정상인지 확인하세요.",
-        where_to_see="시장 진단·챔피언 전략·전략 스튜디오·포트폴리오 등 상세 화면 상단",
-        cautions="신선도만 알려주며 데이터 자체가 옳은지는 보증하지 않습니다.",
-        verified=_V),
+        where_to_see="시장 진단·챔피언 전략·챔피언 성과·전략 스튜디오·포트폴리오 등 상세 화면 상단",
+        cautions="신선도만 알려주며 데이터 자체가 옳은지는 보증하지 않습니다. 챔피언 성과 화면의 기준 시각은 저장된 성과 계산 결과의 계산 시각입니다.",
+        verified="2026-09-26"),
     ModuleGuide(
         module="core/valuation.py", name="밸류에이션 계산", group="분석·백테스트", status="도구",
         what="한 종목을 DCF, DDM, PER/PBR 상대가치, EV/EBITDA, PEG, 그레이엄 넘버 등 여러 방식으로 동시에 계산해 나란히 보여줍니다. 계산이 불가능한 방법은 값을 지어내지 않고 비웁니다.",

@@ -45,9 +45,21 @@ START_HERE: tuple[str, ...] = (
 # ---------------------------------------------------------------------------
 JOBS: tuple[JobGuide, ...] = (
     JobGuide(
+        job_id="research_job_runner",
+        where_to_see="관제 센터 '검증 연구 결과' 카드, 텔레그램 '[검증 연구 결과]'(완료 1건·실패 사유), 저장소 research/results/<id>/",
+        if_alert="실패 알림이면 사유를 읽고, 스크립트 문제면 개발 요청으로 고친 뒤 'python scripts/research_jobs_admin.py retry <id>'. 정의 오류면 job.json 을 docs/RESEARCH_JOBS.md 계약대로 고칩니다. 원하지 않으면 '/processes off research_job_runner'.",
+        verified="2026-09-26",
+    ),
+    JobGuide(
         job_id="contest_deadline_alert",
         where_to_see="텔레그램(대회마다 마감 7일 전·1일 전·당일 1건씩). 대회 상태를 '제출 완료'나 '종료'로 바꾸면 더 오지 않습니다.",
         if_alert=_NOTHING,
+        verified="2026-09-26",
+    ),
+    JobGuide(
+        job_id="champion_tracking_weekly",
+        where_to_see="텔레그램(일요일 01:10 KST 요약 1건, 문제가 없어도 옴), VM 의 data/reports/champion_tracking_날짜.json. 같은 날 다시 돌아도 두 번 보내지 않습니다.",
+        if_alert="'이탈 — 확인 필요'나 '조치: 필요'면 리포트 파일의 checks(실행·신호·데이터)에서 경고 항목을 먼저 보세요. 판정만으로 전략을 바꾸지 말고, 라이브 기간이 짧으면 판정력이 낮다는 점을 감안하세요. 일요일에 메시지가 오지 않으면 잡 실패입니다. " + _HISTORY,
         verified="2026-09-26",
     ),
     JobGuide(
@@ -249,6 +261,14 @@ SCRIPTS: tuple[ScriptGuide, ...] = (
         verified="2026-09-25",
     ),
     ScriptGuide(
+        path="scripts/research_jobs_admin.py", name="검증 연구 작업 관리",
+        when_to_run="검증 연구 작업의 상태를 보거나, 실패·취소된 작업을 다시 돌리거나, 대기·실행 중인 작업을 멈출 때.",
+        command="python scripts/research_jobs_admin.py list  (retry <id> · retry <id> --fresh · cancel <id>)",
+        risk="파일/DB 쓰기",
+        what_it_prints="list 는 작업마다 상태(pending·running·in_progress·done·failed·cancelled·invalid)·실패 수·실행 수·마지막 종료·사유를 보여 줍니다. retry 는 대기로 되돌리고(재개 작업은 체크포인트에서, --fresh 는 처음부터) 다음 실행 창에서 돕니다. cancel 은 실행 중이면 몇 초 안에 멈춥니다. VM 에서는 quant 계정으로 실행합니다.",
+        verified="2026-09-26",
+    ),
+    ScriptGuide(
         path="scripts/french_factor_report.py", name="고전 팩터 감쇠표 갱신",
         when_to_run="반년에 한 번쯤, 에이전트가 읽는 고전 팩터 감쇠표를 최신 자료로 다시 만들 때.",
         command="python scripts/french_factor_report.py  (--stdout 이면 파일을 쓰지 않고 화면에만)",
@@ -375,7 +395,7 @@ SCRIPTS: tuple[ScriptGuide, ...] = (
         "cd /opt/quant && sudo -u quant .venv/bin/python scripts/candidate_ledger_update.py --strategy-version stock_discovery/v2 --json",
         "파일/DB 쓰기",
         "만기 도래한 horizon 결과를 DB 에 채운(갱신) 뒤 채택 vs 보류/거절 요약을 출력합니다. 옵션: --as-of 날짜, --strategy-version, --horizons, --no-report(요약 생략), --n-boot, --json. "
-        "관측 전용이라 주문 경로를 호출하지 않으며, 출력 수치는 성과·승률 개선의 증거가 아닙니다. 판정 규칙상 표본 부족·PIT 미인증·결측 과다면 무조건 '미입증'이고 자동 채택·폐기는 없습니다(docs/CANDIDATE_LEDGER_SPEC.md).",
+        "관측 전용이라 주문 경로를 호출하지 않으며, 출력 수치는 성과·승률 개선의 증거가 아닙니다. 판정 규칙상 표본 부족·PIT 근거 없음(진입 전 기록도 5개 시각 완비도 아닌 행, 예: 과거 날짜 소급 기록)·결측 과다면 무조건 '미입증'이고 자동 채택·폐기는 없습니다(docs/CANDIDATE_LEDGER_SPEC.md).",
         V,
     ),
     ScriptGuide(
@@ -476,7 +496,7 @@ OPS: tuple[OpsSection, ...] = (
             "주문을 내는 잡(💸 표시, 현재 '챔피언 paper 자동 주문' 하나)은 켤 때 한 번 더 확인합니다. 버튼이나 '/processes on paper_auto_trade' 는 확인 요청만 보내고, "
             "확인 버튼을 누르거나 '/processes on paper_auto_trade confirm' 을 보내야 켜집니다. 끄기는 확인 없이 바로 됩니다.",
             "같은 목록을 화면에서도 볼 수 있습니다. 관제 센터에서 '백그라운드 스케줄러' 카드를 누르면 자동 잡 전체가 묶음별로 나오고, "
-            "잡마다 예정 시각(KST/ET 표기)·지금 상태(정상·오류·꺼짐 등)와 켜기/끄기 버튼이 함께 있습니다. "
+            "잡마다 예정 시각(KST/ET 표기)·지금 상태(정상·오류·꺼짐 등)와 On/Off 버튼이 함께 있습니다. "
             "주문을 내는 잡은 화면에서도 확인 화면을 한 번 거쳐야 켜집니다. 텔레그램과 화면은 같은 설정을 읽고 쓰므로 어느 쪽에서 바꿔도 같습니다.",
         ),
         (
@@ -516,6 +536,7 @@ OPS: tuple[OpsSection, ...] = (
             ("⏰ 챔피언 전략 리밸런싱 예정 알림", "champion_rebalance_reminder. 코어(매월 첫 거래일)·새틀라이트(1월·7월 첫 거래일) 리밸런싱 하루 전(칼라 롤 예정 포함, 달력 근사)."),
             ("📅 챔피언 전략 새틀라이트 실적 발표 예정", "champion_earnings_reminder. 5거래일 이내 실적 발표 예정 종목."),
             ("⚠️ 챔피언 전략 알파 감쇠 감지", "champion_alpha_decay. 최근 6개월 백테스트 성과가 전체기간보다 이탈. 전략을 믿어도 되는지 점검하라는 신호."),
+            ("✅/🟡/🔴/⏳ 챔피언 주간 검증", "champion_tracking_weekly. 일요일 01:10 KST, 문제가 없어도 매주 1건. 첫 줄 판정(백테스트 범위 안/범위 밖 — 주의/이탈 — 확인 필요/표본 부족), 라이브 누적수익의 백테스트 분위, SPY·60/40 대비, 최대낙폭 비교, 점검(실행·신호·데이터), 조치 필요 여부. 60/40 격차·알파 감쇠 알림은 다시 보내지 않고 '발동 중' 한 줄로만 표시. 분위는 겹치는 구간이라 독립 표본이 아님."),
             ("📉 챔피언 전략, 60/40 벤치마크 대비 부진", "champion_benchmark_gap. 가상 원장이 60/40 보다 5%p 이상 뒤처짐(원장 20영업일 이상일 때만)."),
             ("🔔 관심종목 타점 발생 N건", "daily_watchlist_scan. 관심종목의 연결 전략 신규 진입 조건이 충족된 종목 요약(상위 10개와 '외 k건'). 충족 0건이면 오지 않음. 신호일 뿐 주문이 아님."),
             ("📝 주간 Threads 인사이트 리포트 생성 완료", "weekly_threads_report. 일요일 20:00 ET. 몇 개 티커의 리포트를 만들었는지만 알림. 본문은 화면 'Threads 요약'."),
@@ -525,13 +546,14 @@ OPS: tuple[OpsSection, ...] = (
             ("📰 일일 티커 뉴스 리서치", "daily_news_digest. 07:30 KST 요약 + HTML 첨부. 매매 권고가 아님."),
             ("[Alpaca paper 검증] 전체 PASS 등", "alpaca_verification_bootstrap. 읽기 전용 검증 결과 1건. FAIL/UNEXPECTED 는 어떤 단계 가정이 달랐는지 한 줄씩."),
             ("거장 보유 변동 요약", "guru_holdings_sync. 신규 편입·전량 청산이 있을 때만."),
+            ("[검증 연구 결과] 제목 — 완료 / 실패", "research_job_runner. 완료면 사전 등록 판정 요약과 결과 위치(관제 센터 '검증 연구 결과' 카드, 저장소 research/results/). 실패면 사유 한 줄(같은 사유는 반복 알리지 않음). 판정 결과일 뿐 성과 개선 주장이 아니며 엔진 반영은 사용자 확인 뒤."),
             ("[자동배포] 성공/실패", "자동 배포 결과. 아래 '자동 배포' 절 참고."),
             ("[워치독] 밤사이 확인이 필요합니다 / 주간 생존 신호", "워치독. 아래 '워치독·헬스체크·업타임' 절 참고."),
             ("⚠️ [Quant VM] 디스크/메모리 사용률 초과, ✅ 복구됨", "VM 헬스체크. 기본 임계값 디스크 85%, 메모리 90%."),
             ("⚠️ 서비스이름.service 실패/재시작됨", "systemd 가 서비스(streamlit·scheduler·codex-telegram) 실패를 감지하면 자동으로 보냅니다."),
             ("백업 관련 알림", "백업 실패, 36시간 넘게 성공 없음, 원격 push 3일 넘게 실패, 복구 리허설 실패, 비밀 의심 파일 격리."),
         ),
-        V,
+        "2026-09-26",
     ),
     OpsSection(
         "backup",
@@ -578,6 +600,7 @@ OPS: tuple[OpsSection, ...] = (
             ("서비스 실패 알림", "streamlit/scheduler/codex-telegram 서비스가 실패하거나 재시작될 때 즉시."),
             ("GitHub Actions 실패 감시", "15분마다 새로 실패한 워크플로만 알림, 복구되면 '복구됨' 한 번."),
             ("외부 업타임", "GitHub 에서 30분마다 서버 밖 점검."),
+            ("관제 센터 > 백그라운드 스케줄러", "잡별 최근 14일 실행 기록(하루 한 칸: 성공·실패·예정인데 기록 없음), 앞으로 12시간 예정, 문제 잡 문장을 폰에서 봅니다. 텔레그램 에이전트·VM 헬스체크 칸을 누르면 가동 시간·명령 목록, 디스크·메모리와 알림 기준이 나옵니다."),
         ),
         V,
     ),
@@ -754,7 +777,7 @@ ROUTINES: tuple[Routine, ...] = (
         (
             "먼저 이것들이 '관측 전용'임을 기억합니다. 후보 원장(RES-01), 가이던스 shadow(RES-04), 공시 변경 veto shadow(RES-05), 전략 변형(hold-band) shadow, 비용 보정은 모두 주문 경로에 연결되어 있지 않고 원전략의 실제 결정을 바꾸지 않습니다.",
             "이들의 전용 화면은 없습니다. 후보 원장은 scripts/candidate_ledger_update.py 요약으로, 전략 변형은 서버 data/reports/strategy_research_날짜.md(일요일 자동 생성)로, 비용 보정은 data/cache/cost_calibration.json 으로, 계좌 이탈은 sync_paper_account.py --no-save 로 확인합니다.",
-            "판정 문구를 읽습니다. 후보 원장의 판정은 코드로 강제되어 있어, 표본 부족(채택 30건 미만 등)·PIT 미인증·결과 결측 과다·진단용 horizon 이면 신뢰구간과 무관하게 항상 '미입증'입니다. 양성/기각 '검토 대상'이 나와도 자동 채택·폐기는 없고 사람이 검토할 후보일 뿐입니다.",
+            "판정 문구를 읽습니다. 후보 원장의 판정은 코드로 강제되어 있어, 표본 부족(채택 30건 미만 등)·PIT 근거 없음(진입 전 기록도 5개 시각 완비도 아닌 행)·결과 결측 과다·진단용 horizon 이면 신뢰구간과 무관하게 항상 '미입증'입니다. 양성/기각 '검토 대상'이 나와도 자동 채택·폐기는 없고 사람이 검토할 후보일 뿐입니다.",
             "표본 크기를 봅니다. 예: 실측 슬리피지는 30건 미만이면 대표값을 만들지 않습니다(insufficient_sample). 후보 원장은 채택 30건·종목 군집 20개·날짜 블록 6개 미만이면 미입증입니다.",
             "추출 정확도(G0)와 예측력은 따로입니다. 가이던스·공시 추출은 사람이 원문과 대조(G0)하기 전까지 정확도를 주장하지 않으며, 추출이 정확해도 예측력이 입증된 것은 아닙니다.",
             "결론은 '지금은 증거가 없다'입니다. 미입증 상태의 숫자로 종목·비중을 바꾸지 마세요.",
@@ -770,11 +793,11 @@ ROUTINES: tuple[Routine, ...] = (
 # ---------------------------------------------------------------------------
 GLOSSARY: tuple[Term, ...] = (
     Term("PIT (point-in-time)", "그 날짜에 실제로 알 수 있던 데이터만으로 계산했다는 뜻. 나중에 정정·상장폐지·현재 구성종목을 되짚어 쓰면 PIT 가 아닙니다.",
-         "PIT 미인증이면 후보 원장의 판정이 항상 '미입증'이 됩니다. 종목 발굴(stock_discovery)은 현재 유니버스·재무를 쓰므로 진정한 PIT 검증이 아닙니다."),
+         "후보 원장은 행마다 PIT 근거를 셋 중 하나로 매깁니다: full_contract(발표·수신·추출·결정·진입 5개 시각이 모두 있고 순서가 맞음), forward_recorded(후보를 진입 시가보다 먼저 원장에 기록함 — 매일 밤 잡이 쌓는 가격·재무 기반 후보가 여기에 해당), none(그 밖, 과거 날짜로 나중에 소급 기록한 행 포함). 판정 대상 행 중 하나라도 none 이면 판정은 항상 '미입증'입니다. forward_recorded 는 기록이 진입 전이었다는 것만 보장할 뿐, 원천 데이터의 발표 시각은 보증하지 않습니다(공급자가 과거 재무·가격을 소급 수정했을 수 있고, 종목 발굴(stock_discovery)은 현재 유니버스·재무를 씁니다)."),
     Term("unknown (판단 보류)", "데이터가 부족해 판정할 수 없다는 상태. 약세나 0%가 아닙니다. 예: SPY 데이터가 없으면 시장필터가 unknown 이고 신규 주문을 보류합니다.",
          "unknown 을 약세로 번역하면 보유 전량을 파는 계획이 나오는 결함이 있었고(고침), 이제 보류로 다룹니다. 시장 국면은 시장폭이 없거나 4개 신호 중 계산된 비중이 75% 미만이면 unknown 입니다. 신호 1개만 빠졌으면 빠진 신호를 0점으로 치지 않고 남은 신호로 재정규화해 판정하되 '일부 신호 결측' 경고(partial)를 붙입니다."),
     Term("미입증", "성과가 좋아진다는 증거가 아직 충분하지 않다는 판정. '틀렸다(기각)'가 아닙니다.",
-         "이 시스템 연구 결과의 기본값입니다. 표본 부족·PIT 미인증·신뢰구간이 0 을 포함하는 경우 등이 모두 미입증입니다."),
+         "이 시스템 연구 결과의 기본값입니다. 표본 부족·PIT 근거 없음(none)·신뢰구간이 0 을 포함하는 경우 등이 모두 미입증입니다. 진입 전에 기록된(forward_recorded) 후보는 PIT 조건은 통과하지만, 표본·결측·신뢰구간 조건은 그대로라 표본이 쌓이기 전에는 여전히 미입증입니다."),
     Term("shadow (관측 전용 병행 기록)", "실제 판단·주문과 별개로 '이렇게 했다면'을 옆에서 기록만 하는 것.",
          "후보 원장·가이던스·공시 veto·전략 변형이 shadow 입니다. 주문에 영향이 없고 결과는 미입증이 기본입니다."),
     Term("후보 원장 (RES-01)", "채택된 후보만이 아니라 보류·거절된 후보와 결측까지 같은 진입·청산 규칙으로 추적하는 기록(candidate_ledger).",

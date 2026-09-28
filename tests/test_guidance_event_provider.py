@@ -333,3 +333,59 @@ def test_explicit_events_take_priority_over_fetch_events(db_session):
     assert out["ok"] is True
     assert spy.calls == []  # 주입값이 우선 -> provider 를 부르지 않는다
     assert out["fetch_events"] is False
+
+
+# ---------------------------------------------------------------------------
+# 비교 정책 annual_same_fy_v1: 판정 근거가 실제 파이프라인·캐시 왕복에 남는다(2026-09-25)
+# ---------------------------------------------------------------------------
+def test_pipeline_records_same_fy_evidence_and_survives_cache_roundtrip(tmp_path):
+    kwargs = dict(as_of=AS_OF, cache_dir=tmp_path / "guidance_cache",
+                  ticker_client=_FakeTickerClient({"AAA": CIK}))
+    first = gep.fetch_guidance_events(["AAA"], sec_client=_sec_client(tmp_path, _FakeSession()), **kwargs)
+    obs = first.events_by_ticker["AAA"][0]
+    chg = obs.change
+    assert (chg.comparison_method, chg.period_type, chg.policy) == ("annual_same_fy", "annual",
+                                                                    "annual_same_fy_v1")
+    assert chg.previous_accession == OLD_ACC
+    assert chg.previous_acceptance_utc == datetime(2026, 3, 2, 16, 5, tzinfo=timezone.utc)
+    assert chg.previous_period_key == "FY2026"
+    assert first.meta["params"]["comparison_policy"] == "annual_same_fy_v1"
+
+    # 두 번째 호출은 캐시에서 읽는다 -> 새 필드가 그대로 복원된다
+    second = gep.fetch_guidance_events(["AAA"], sec_client=_sec_client(tmp_path, _FakeSession()), **kwargs)
+    assert second.meta["n_cache_hits"] == 1
+    back = second.events_by_ticker["AAA"][0].change
+    assert (back.change, back.reason, back.reason_detail, back.comparison_method, back.period_type, back.policy) == \
+           (chg.change, chg.reason, chg.reason_detail, chg.comparison_method, chg.period_type, chg.policy)
+    assert back.evidence() == chg.evidence()
+
+
+def test_old_cache_record_without_new_fields_still_loads():
+    rec = {"ticker": "AAA", "available_at": "2026-06-01T16:05:00+00:00", "approximate": True,
+           "change": {"change": "unknown", "reason": "no_previous_in_retrieved_history",
+                      "current": {"metric": "revenue", "basis": "gaap", "period_key": "FY2026Q3",
+                                  "shape": "range", "low": "1", "high": "2", "anchor": "x"},
+                      "previous": None, "flags": []}}
+    obs = gep._observation_from_record(rec)
+    assert obs.change.reason == "no_previous_in_retrieved_history"
+    assert obs.change.reason_detail is None and obs.change.comparison_method is None
+
+
+def test_old_format_day_cache_is_not_reused(tmp_path):
+    cache_dir = tmp_path / "guidance_cache"
+    day = cache_dir / AS_OF.isoformat()
+    day.mkdir(parents=True)
+    # 옛 정책(format 1)으로 만든 같은 날 캐시 -> 재사용하지 않고 다시 계산한다
+    (day / "AAA.json").write_text(json.dumps({"format": 1, "params": {}, "ticker": "AAA", "status": "ok",
+                                              "observations": []}), encoding="utf-8")
+    res = gep.fetch_guidance_events(["AAA"], as_of=AS_OF, cache_dir=cache_dir,
+                                    sec_client=_sec_client(tmp_path, _FakeSession()),
+                                    ticker_client=_FakeTickerClient({"AAA": CIK}))
+    assert res.meta["n_cache_hits"] == 0
+    assert res.events_by_ticker["AAA"][0].change.comparison_method == "annual_same_fy"
+
+
+def test_default_request_budget_fits_nightly_caps():
+    # 스펙 6절 계산: 티커당 최대 1(submissions) + 2 x max_filings 요청, 20티커가 야간 상한 300회 안
+    per_ticker = 1 + 2 * gep.DEFAULT_MAX_FILINGS_PER_TICKER
+    assert per_ticker * gep.DEFAULT_MAX_TICKERS <= 300

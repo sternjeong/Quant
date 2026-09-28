@@ -79,6 +79,16 @@ class JobRow:
     enabled: Optional[bool]  # None 이면 레지스트리에 없음(테스트가 막는다)
 
 
+def _clock(hour, minute) -> str:
+    """단일 시각이면 HH:MM, 여러 값(cron 목록, 예: '1,2,13')이면 '01·02·13시 00·20·40분'."""
+    try:
+        return f"{int(hour):02d}:{int(minute):02d}"
+    except (TypeError, ValueError):
+        def fmt(value):
+            return "·".join(f"{int(p):02d}" if p.strip().isdigit() else p.strip() for p in str(value).split(","))
+        return f"{fmt(hour)}시 {fmt(minute)}분"
+
+
 def _kst_equivalent(cron: dict) -> str:
     """다른 시간대의 잡을 오늘 기준 KST 로 환산해 보여 준다(서머타임 반영). 실패하면 빈 문자열."""
     tz = cron.get("timezone")
@@ -103,7 +113,7 @@ def _kst_equivalent(cron: dict) -> str:
 
 
 def format_when(cron: dict) -> str:
-    hour, minute = int(cron.get("hour", 0)), int(cron.get("minute", 0))
+    hour, minute = cron.get("hour", 0), cron.get("minute", 0)
     tz = cron.get("timezone", "")
     dow = cron.get("day_of_week")
     if dow is None:
@@ -113,7 +123,7 @@ def format_when(cron: dict) -> str:
         day = f"{_DOW_KO.get(a, a)}~{_DOW_KO.get(b, b)}"
     else:
         day = _DOW_KO.get(str(dow), str(dow))
-    base = f"{day} {hour:02d}:{minute:02d} {'KST' if tz == 'Asia/Seoul' else tz}"
+    base = f"{day} {_clock(hour, minute)} {'KST' if tz == 'Asia/Seoul' else tz}"
     kst = _kst_equivalent(cron)
     return f"{base} (= {kst})" if kst else base
 

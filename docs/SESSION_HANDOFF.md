@@ -19,6 +19,13 @@
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
 
+## 2026-09-27 VM 검증 연구 작업 실행기 (구현·전체 테스트, 미병합·미배포)
+
+- 결정: 실행 창은 01:00~02:50(야간 잡 뒤·03:00 에이전트 배치 전)과 13:00~16:50 KST(등록 잡이 없는 낮). 04:10~06:30 은 에이전트 배치(~05:50)·06:10 paper·06:30 백업과 겹쳐 제외. 창 목록은 `core/research_jobs.RUN_WINDOWS`/`CRON` 과 `core/job_schedule.py` 가 같아야 한다.
+- 구현 파일: core/research_jobs.py, scheduler/run_scheduler.py(잡), core/process_registry.py, core/job_schedule.py, core/job_health.py(유예 4시간), hub/apps_registry.py(report 슬롯), hub/engine_status.py·hub/guide/live.py(여러 값 cron 표시), scripts/research_jobs_admin.py, research/jobs/smoke-noop/, docs/RESEARCH_JOBS.md, AGENTS.md, 설명서 content_*, tests/test_research_jobs.py, tests/test_hub.py, .gitignore.
+- 검증: pytest 2080 passed, runner unittest OK. VM 실행·push 권한·ionice 존재는 미확인.
+- 다음: main 병합 → 첫 실행 창에서 smoke-noop 완료 텔레그램과 research/results/smoke-noop/ 커밋이 오는지 확인.
+
 ## 2026-09-26 (후속) 심판 OOS 분리 + 멈춘 가격 피드 탐지 (구현·전체 테스트, 미커밋·미배포)
 
 - 계기: 사용자가 내려받은 FidetoLabs 릴스 9개(`video/`, 음성은 음악뿐 → 프레임 확대로 분석, 대부분 정적 UI 데모)에서 나온 제안 중 추천 1·2를 지시.
@@ -36,12 +43,58 @@
 - 검증: 실제 데이터로 단기 반전 1926-02~1990-12 월 +0.884%·t 6.35·샤프 0.90(779개월)이 FidetoLabs 수치와 일치. SPY 회귀 β 0.99·R² 0.991(알파 −1.6%/년은 배당 미포함 Close 때문). 전체 `pytest tests` 2027 passed, `python -m hub.guide.check` 누락 없음.
 - 미실행: 실제 에이전트 배치에서 새 프롬프트·심판 동작 확인, 커밋·push. 다음 단계 후보(제안만): qanat식 decay 블렌딩 shadow 실험, 읽기 전용 MCP 서버.
 
+## 2026-09-27 관제 센터 '지금 돌고 있는 작업'(/live) (구현·단위 테스트, 배포)
+
+- 사용자 요청: VM 에서 백그라운드로 무엇이 돌고 있고 그 내용이 무엇인지 보는 UI.
+- 구현: `hub/live_status.py` + `/live` 라우트 + '운영' 카테고리 카드. 절: 실행 중 스케줄러 잡(경과 시간·설명), 텔레그램 작업 큐(running/queued/retry/blocked, 지시 요약), 서비스(상태·메모리·CPU 누적·재시작), 프로세스(quant·ubuntu 계정, 무엇인지 설명, 비밀값 가림, code-server 하위 묶음), 12시간 안에 돌 잡. 15초 새로고침, 읽기 전용.
+- `core/job_health.py`: APScheduler SUBMITTED 이벤트로 `data/running_jobs.json`(gitignore)에 시작 표시, 종료 시 제거, 스케줄러 재시작 시 초기화, 죽은 PID 기록은 무시. 설명서 항목 갱신.
+- 검증: `tests/test_live_status.py`(14건). VM 실화면 미확인 — Streamlit 내부 백그라운드 작업(job_manager)은 프로세스 메모리 안이라 이 화면에 안 나온다.
+
 ## 2026-09-26 관제 센터 'AI 대회' 섹션 (구현·단위 테스트, VM 1회 설정 필요)
 
 - 사용자 결정: 브라우저 code-server 로 열기, 저장소 private 고정, 기본 정보·마감 알림, 기본 뼈대. 관리 항목 "Other" 는 내용이 비어 있어 확인 대기.
 - 구현: `core/contests.py`, `hub/contests_page.py`(+`hub/server.py` 라우트, `apps_registry` 카드·'AI 대회' 카테고리), 잡 `contest_deadline_alert` 09:00 KST, `deploy/setup_contests.sh`, 설명서 항목, `tests/test_contests.py`(15건, git 실제·gh 가짜). 설계: [AI_CONTESTS.md](./AI_CONTESTS.md).
 - 버그 수정(구현 중): 마감 D-1 대회에 D-7 알림을 고르던 단계 선택 오류.
 - **VM 미실행:** `/srv/contests` 가 없으면 화면에 설정 안내가 뜬다. 사용자가 code-server 터미널에서 `sudo bash /opt/quant/deploy/setup_contests.sh` 1회 실행 필요. 실제 gh 저장소 생성·code-server 폴더 열기는 미검증.
+
+## 2026-09-25 후보 원장 사전 기록(forward_recorded) PIT 인증 (구현·단위 테스트, 브랜치 `eng-pit-forward-cert`, main 미병합·미배포)
+
+- 문제: 가격·재무 기반 후보는 decision_cutoff 만 채워 5필드 PIT 인증이 불가능 → `decide_verdict` 가 영원히 '미입증'.
+- 결정: `core/candidate_ledger.compute_pit_basis()` 로 행마다 `pit_basis ∈ {full_contract, forward_recorded, none}` 계산(DB 컬럼 추가 없음, `load_outcome_frame` 이 붙임). forward_recorded = `CandidateBatch.created_at <= next_executable_fill`(확정된 진입 시가, UTC) 이고 `decision_cutoff <= next_executable_fill`. full_contract 우선. 소급 기록(created_at > 진입)은 none.
+- PIT 게이트만 full_contract|forward_recorded 인정으로 바꿨고 표본·군집·블록·결측·진단 horizon·주 대상/비용 게이트는 그대로. 결과에 `pit_basis_counts`·`pit_basis_limitation`(원천 데이터 발표 시각·소급 수정은 보증 안 함) 포함. `pit_certified_fraction` 은 이제 인정 근거 비율.
+- 수정: `core/candidate_ledger.py`, `tests/test_candidate_ledger.py`(+15), `docs/CANDIDATE_LEDGER_SPEC.md`, `hub/guide/content_modules_a.py`, `hub/guide/content_ops.py`. models.py·db.py 미수정.
+- 다음: main 병합 여부는 사용자/상위 세션 결정. VM 실데이터에서 기존 행의 pit_basis 분포 확인은 아직 안 함.
+
+## 2026-09-25 위성 후보 풀 전체 기록 (브랜치 eng-satellite-pool, 구현·단위 테스트, 배포 전)
+
+- 결정: 위성 원전략 결정은 그대로 두고 후보 풀을 **관측 전용 추가 필드**로만 노출(`candidates`/`rejected_tickers`/`missing_tickers`, `core/champion_strategy.py`). 후보 원장(`core/candidate_recorder.py`)은 풀 전체를 selected/held/rejected/missing_data 로, 두 shadow(`core/guidance_shadow.py`·`core/filing_veto_shadow.py`)는 돌파 활성 후보 집합 C(채택+상위 3위 밖)를 기록. 모집단이 바뀌어 shadow strategy_version 을 v2 로 올림(v1 행 보존).
+- 외부 조회 상한: 가이던스 기존 상한(20종목·300회·300초) 유지 + 조회 순서 채택 > 모멘텀 순위. 공시 veto 에 새 상한 20종목·150회·300초, 넘친 후보는 missing_data(fetch_status=skipped_*).
+- 원전략 불변 검증: 변경 전(031e9cc) `_pick_satellite_at_date` 본문을 테스트에 그대로 두고 무작위 입력으로 비트 단위 대조(`tests/test_satellite_candidate_pool.py`), 주문 계획 동일성 테스트. 전체 pytest 2016 passed(2026-09-26).
+- 표본 추정(저장된 실행 기록 기반, 가정): 돌파 활성 후보 반기당 16~39(평균 34), 채택 3. 상한 20이면 약 6.7배. 공시 veto 보류 100건까지 풀로도 약 13~42년, 가이던스 veto 165건은 약 40년 이상 → 여전히 forward shadow 만으로는 결론 불가. 자세한 표는 FILING_CHANGE_VETO_SPEC §9.
+- 다음 단계(제안): 상한 20이 대부분 반기에서 걸리므로 상한 상향 여부는 사람 결정. 과거 재구성으로 표본을 늘릴지 검토. VM 실행 검증 전.
+
+## 2026-09-26 후보 원장 국면별 판정 + 실측 비용 진단 칸 (구현·단위 테스트, 브랜치 eng-regime-eval, 미배포)
+
+- 결정: 원장 판정이 전체 기간을 섞던 문제(사용자 원칙 "같은 국면 안에서만 검증")와 실측 비용 미반영을 진단 레이어로 해결. 원장(`core/candidate_ledger.py`)·스케줄러는 수정하지 않음.
+- 신규 `core/regime_eval.py`: 결정 이전 최신 스냅샷만 사용(5거래일 초과 → unknown), 스냅샷 없으면 결정 시점 확정 봉으로 `classify_daily_regime` 재계산(캐시 전용), unknown 별도 칸, 다중비교 라벨, `measured` 비용 칸(진단용, 주 검정 10bp 불변).
+- `core/strategy_variants.py`: 주간 보고서에 '국면별 판정'·'실측 비용 반영 결과' 절 추가(실패해도 기존 절은 생성). 설명서 `hub/guide/content_modules_b.py` 갱신, `docs/CANDIDATE_LEDGER_SPEC.md`에 절 추가.
+- 검증: `tests/test_regime_eval.py` 16건, 전체 pytest 2007 passed(이 세션 직접 실행), `python -m hub.guide.check` 빠진 설명 없음. VM 실행·실데이터 보고서 미확인.
+- 한계·다음: 거래일 계산은 평일 기준(휴장일 미반영), 스냅샷 이력은 2026-07 이후만 존재, CI 폴백 JSON 스냅샷은 라벨에 쓰지 않음. `pit_certified_fraction` 의미가 원장 버전마다 다를 수 있어 regime_eval은 그 값을 해석·표시하지 않고 verdict_reasons만 옮긴다.
+
+## 2026-09-26 후보 원장 청산 규칙 변형 비교 (구현·단위 테스트, 미배선)
+
+- 결정: 원장 후보에 청산 규칙 4개를 사전 고정해 비교([EXIT_VARIANTS_SPEC.md](./EXIT_VARIANTS_SPEC.md), 코드보다 먼저 커밋). `baseline_20d`(원장과 동일)·`fixed_stop_8`·`trailing_10`·`satellite_trailing_15`(champion 위성 `SATELLITE_DONCHIAN_STOP_PCT` 그대로), 모두 20거래일 상한. 손절은 일봉 종가 판단 → 다음 거래일 시가 체결, 갭은 그 시가.
+- 구현: `core/exit_variants.py`(새 테이블 없음, 원장·가격 캐시 읽기 전용), `write_exit_variants_report()` → `data/reports/exit_variants_날짜.{md,json}`. 판정은 `candidate_ledger.evaluate_selection` 재사용, 기준선 외 3개는 Bonferroni α=0.05/3 + '탐색 결과' 라벨. 결측·대기는 기준선과 같은 상태·사유.
+- 검증: `tests/test_exit_variants.py` 18건(기준선=원장 정확 일치 포함), `hub.guide.check` 누락 없음. 실제 원장 데이터로는 실행하지 않음.
+- 미배선: 스케줄러 연결 안 함(주간 잡에서 `update_forward_outcomes` 뒤 try/except 로 호출 제안). 브랜치 `eng-exit-variants`, main 병합은 조정자가 한다.
+
+## 2026-09-25 RES-04 가이던스 비교 정책 annual_same_fy_v1 (구현·단위 테스트, 브랜치 eng-guidance-annual, 배포 전)
+
+- **결정:** 방향(raised/lowered/maintained)은 연간 가이던스의 같은 회계연도 재발표끼리만 낸다. 분기·반기는 항상 unknown(`quarterly_not_comparable` 등). 분기끼리 억지 비교와 '실적/컨센서스 대비 가이던스'는 기각(스펙 3절). 같은 발표에 +1년 연간 항목이 있으면 그 해의 이전 연도 항목은 끝난 해의 실적으로 보고 비교하지 않는다(`annual_period_superseded_in_release`).
+- **근거:** 캐시+무작위 S&P 5개 = 19개 기업, 57개 발표 재계산에서 옛 규칙의 분기 방향 판정 13건이 전부 실적·배당 문장 오염이었다. 연간 방향 56건, 방향 있는 발표 13/57, V=1 형태 0/57. revenue·eps unknown 80%.
+- **구현:** `core/earnings_events.py`(`period_type`, `COMPARISON_POLICY`, GuidanceChange 추가 필드 `reason_detail`·`comparison_method`·`period_type`·`policy`, `previous_*` 속성, `evidence()`; 기존 `change`·`reason` 코드 유지), `core/guidance_event_provider.py`(캐시 형식 2, 새 필드 직렬화, params 에 정책). history_days 400·max_filings 6 은 유지(티커당 최대 13요청 × 20 = 260 ≤ 300).
+- **스펙:** `docs/EARNINGS_GUIDANCE_EXPERIMENT_SPEC.md` 3절 비교 정책, 6절 공급 조사·최소 사건 수 평가 — **veto 165건 도달은 현재 추출기·정책으로 비현실적**(상한 추정 연 10~20 episode), 실험은 `미입증` 유지가 정상.
+- **다음:** 사람 정답 대조(G0), 표 형식·YEND/FY 표기 추출 개선은 별도 작업. guidance_shadow 요약에서 `reason_detail` 을 쓰도록 바꾸는 것은 그 파일 담당 에이전트 몫.
 
 ## 2026-09-25 허브 모델 저장 forbidden 수정 (배포)
 
