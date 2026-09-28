@@ -232,17 +232,44 @@ else:
             use_container_width=True, hide_index=True,
         )
 
-    _rule = _sat.get("rule") or {}
-    _today_sat = _sat.get("today_if_rebalance") or {}
-    st.markdown(f"**새틀라이트 {SATELLITE_WEIGHT * 100:.0f}%** — 아래 두 줄은 서로 다른 것입니다.")
+    _rule = _sat.get("rule") or _sat.get("if_bought_at_last_rebal") or {}
+    _today_sat = _sat.get("today") or {}
+    _next_resel = _sat.get("next_reselection_if_bought_today") or {}
+    st.markdown(f"**새틀라이트 {SATELLITE_WEIGHT * 100:.0f}%** — 오늘 기준으로 다시 뽑은 결과입니다.")
     with st.container(border=True):
-        st.markdown("**① 규칙대로 지금 보유해야 하는 종목 (이것이 규칙입니다)**")
+        st.markdown("**오늘 기준 재선정 — 지금 매수한다면 이 종목**")
         st.caption(
-            f"직전 반기 리밸런싱일 {_rule.get('rebal_date')} 에 뽑힌 종목 · 후보 풀 {_rule.get('pool_size')}종목 중 "
-            f"활성 추세 {_rule.get('n_active_trend')}개 · {_rule.get('allocation_reason')}"
+            f"기준일 {_today_sat.get('as_of')} · 후보 풀 {_today_sat.get('pool_size')}종목 중 "
+            f"활성 추세 {_today_sat.get('n_active_trend')}개"
+        )
+        if not _today_sat.get("picks"):
+            st.info("오늘 기준으로 조건을 만족하는 종목이 없습니다 — 새틀라이트 비중이 사실상 현금입니다.")
+        else:
+            _sleeve = _today_sat.get("sleeve_weights") or {}
+            st.dataframe(
+                pd.DataFrame([
+                    {"종목": t, "슬리브 내 비중": f"{_sleeve.get(t, 0.0) * 100:.1f}%",
+                     "전체 비중": f"{_sleeve.get(t, 0.0) * SATELLITE_WEIGHT * 100:.1f}%"}
+                    for t in (_today_sat.get("picks") or [])
+                ]),
+                use_container_width=True, hide_index=True,
+            )
+            if _next_resel.get("date"):
+                st.caption(
+                    f"오늘 매수하면 다음 재선정일은 **{_next_resel.get('date')}** 입니다"
+                    f"(매수일 + {_next_resel.get('months')}개월). 반기 주기는 그대로이고 시작점만 매수일에 맞춥니다."
+                )
+    st.caption(f"ℹ️ {_sat.get('diff_note')}")
+    st.caption(_sat.get("timing_note") or cr.TIMING_NOTE)
+
+    with st.expander(f"참고: {_rule.get('rebal_date') or '직전 반기 리밸런싱일'}에 매수했다면 지금 들고 있을 종목", expanded=False):
+        st.caption(
+            "그때 실제로 매수한 경우에만 의미가 있습니다. 같은 선정 함수에 날짜만 직전 반기 리밸런싱일로 "
+            f"바꿔 계산한 것입니다 · 후보 풀 {_rule.get('pool_size')}종목 중 활성 추세 "
+            f"{_rule.get('n_active_trend')}개 · {_rule.get('allocation_reason')}"
         )
         if not _rule.get("picks"):
-            st.info("규칙상 보유 종목이 없습니다 — 새틀라이트 비중이 사실상 현금입니다.")
+            st.info("그날 기준으로 뽑힌 종목이 없습니다.")
         else:
             st.dataframe(
                 pd.DataFrame([
@@ -254,18 +281,6 @@ else:
                 ]),
                 use_container_width=True, hide_index=True,
             )
-    with st.container(border=True):
-        st.markdown("**② 만약 오늘이 리밸런싱일이라면 뽑힐 종목 (참고용 — 규칙이 아닙니다)**")
-        st.caption(
-            f"같은 선정 함수(_pick_satellite_at_date)에 날짜만 오늘({_today_sat.get('as_of')})로 바꿔 계산했습니다 · "
-            f"후보 풀 {_today_sat.get('pool_size')}종목 중 활성 추세 {_today_sat.get('n_active_trend')}개"
-        )
-        st.markdown("· ".join(_today_sat.get("picks") or []) or "없음(현금)")
-    st.caption(f"⚠️ {_sat.get('diff_note')}")
-    st.caption(
-        "②를 보고 규칙을 깨지 마세요. 백테스트가 실제로 검증한 것은 ①(반기마다만 바꾸는 정적 보유)입니다 — "
-        "중간에 갈아타는 방식은 이 리서치 프로그램이 검증하지 않았습니다."
-    )
 
     # ---------------- (2) 기대 수익·변동 — 분포 ----------------
     st.markdown("### ② 과거 같은 길이 구간에서 나온 범위")

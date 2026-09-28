@@ -111,36 +111,66 @@ def _compute(tmp_path, **kw):
 
 
 # ============================================================================================
-# ① 규칙 보유 vs ② 오늘 리밸런싱이라면 — 서로 다른 날짜를 쓴다
+# 주 추천(오늘자 재선정) vs 참고(직전 반기일에 매수했다면) — 같은 함수, 날짜 인자만 다르다
 # ============================================================================================
 
-def test_rule_and_today_pick_use_different_as_of(tmp_path):
+def test_primary_recommendation_uses_today_and_reference_uses_last_rebal(tmp_path):
     calls = []
     res = _compute(tmp_path, calls=calls)
 
     kinds = [c[0] for c in calls]
-    assert kinds == ["rule", "today"], "① 규칙 보유와 ② 오늘 기준을 각각 한 번씩 계산해야 한다"
+    assert sorted(kinds) == ["rule", "today"], "오늘자(주)와 직전 반기일(참고)을 각각 한 번씩 계산한다"
     rule_arg = dict(calls)["rule"]
     today_arg = dict(calls)["today"]
-    assert rule_arg == "2026-09-28"  # ①: '지금' 을 주면 함수가 직전 반기 리밸런싱일을 찾아 쓴다
-    assert today_arg == pd.Timestamp("2026-09-28")  # ②: 같은 선정 함수에 날짜만 오늘로
+    assert today_arg == pd.Timestamp("2026-09-28")  # 주 추천: 같은 선정 함수에 날짜만 오늘로
+    assert rule_arg == "2026-09-28"  # 참고: '지금' 을 주면 함수가 직전 반기 리밸런싱일을 찾아 쓴다
     assert rule_arg != today_arg
 
     sat = res["satellite"]
-    assert sat["rule"]["picks"] == ["AAA", "BBB"]
-    assert sat["rule"]["rebal_date"] == "2026-07-01"
-    assert sat["today_if_rebalance"]["picks"] == ["CCC", "DDD"]
-    assert sat["today_if_rebalance"]["is_reference_only"] is True
+    # 주 추천은 오늘자이고 참고용 딱지가 붙지 않는다
+    assert sat["today"]["picks"] == ["CCC", "DDD"]
+    assert sat["today"]["is_primary"] is True
+    assert "is_reference_only" not in sat["today"]
+    # 참고 목록은 직전 반기일 기준
+    assert sat["if_bought_at_last_rebal"]["picks"] == ["AAA", "BBB"]
+    assert sat["if_bought_at_last_rebal"]["rebal_date"] == "2026-07-01"
     assert sat["same_picks"] is False
     note = sat["diff_note"]
-    assert "규칙은 AAA·BBB 보유" in note and "오늘 새로 뽑으면 CCC·DDD" in note
-    assert "참고용" in note and sat["next_rebalance"]["next_date"] in note
+    assert "오늘 다시 뽑으면 CCC·DDD" in note and "AAA·BBB" in note
+    assert "참고용" not in note, "오늘자 재선정은 참고용이 아니라 주 추천이다"
+    # 근거 표는 주 추천(오늘자) 종목 기준이어야 한다
+    assert [r["ticker"] for r in sat["evidence"]] == ["CCC", "DDD"]
+
+
+def test_next_reselection_is_six_months_after_purchase_not_the_calendar_january():
+    # 1·7월은 반기 주기의 위상일 뿐이므로, 오늘 매수하면 다음 재선정은 매수일 + 6개월이다.
+    got = cr.next_reselection_after_purchase(date(2026, 9, 28))
+    assert got["raw_date"] == "2027-03-28"
+    assert got["months"] == 6
+    assert not got["date"].startswith("2027-01"), "달력상 1월이 아니라 매수일 기준이어야 한다"
+
+
+@pytest.mark.parametrize("bought,raw", [
+    (date(2026, 8, 31), "2027-02-28"),  # 6개월 뒤 달에 31일이 없으면 말일로 클램프
+    (date(2027, 8, 31), "2028-02-29"),  # 윤년
+    (date(2026, 1, 15), "2026-07-15"),
+])
+def test_next_reselection_month_end_clamping(bought, raw):
+    assert cr.next_reselection_after_purchase(bought)["raw_date"] == raw
+
+
+def test_timing_note_states_both_sides_and_recommends_neither():
+    note = cr.TIMING_NOTE
+    assert "측정되지 않았습니다" in note  # 시작 날짜 민감도는 미측정
+    assert "1월까지 기다려라" in note and "현금" in note  # 기다리는 쪽의 비용도 밝힌다
+    assert "어느 쪽도 권하지 않습니다" in note
 
 
 def test_diff_note_when_rule_and_today_agree():
     nxt = cr.next_satellite_rebalance(date(2026, 9, 28))
     note = cr.satellite_diff_note(["AAA"], ["AAA"], nxt)
-    assert "같습니다" in note and "2027-01-04" in note
+    assert "같습니다" in note and "2026-07-01" in note  # 직전 반기일을 가리킨다
+    assert "참고용" not in note
 
 
 # ============================================================================================
@@ -360,21 +390,21 @@ def test_research_status_reads_repository_jobs():
 # ============================================================================================
 
 def _next():
-    return cr.next_satellite_rebalance(date(2026, 9, 28))
+    return cr.next_reselection_after_purchase(date(2026, 9, 28))
 
 
 def test_action_no_change_wording():
     prev = {"as_of": "2026-09-27", "core_top4": ["XLK", "GLD", "XLE", "TLT"], "satellite_selected": ["AAA", "BBB"]}
-    act = cr.action_summary(core=_core_result(), rule_picks=["AAA", "BBB"], next_rebal=_next(), previous=prev)
+    act = cr.action_summary(core=_core_result(), picks=["AAA", "BBB"], next_reselection=_next(), previous=prev)
     assert act["has_changes"] is False
     assert act["headline"].startswith(cr.ACTION_NO_CHANGE)
-    assert "2027-01-04" in act["headline"]
+    assert "2027-03-29" in act["headline"]  # 매수일 + 6개월(달력상 1월이 아니다)
     assert act["places_orders"] is False
 
 
 def test_action_core_swap_wording():
     prev = {"as_of": "2026-09-27", "core_top4": ["XLK", "GLD", "XLE", "XLV"], "satellite_selected": ["AAA", "BBB"]}
-    act = cr.action_summary(core=_core_result(), rule_picks=["AAA", "BBB"], next_rebal=_next(), previous=prev)
+    act = cr.action_summary(core=_core_result(), picks=["AAA", "BBB"], next_reselection=_next(), previous=prev)
     assert act["has_changes"] is True
     assert "코어 1개 교체 필요(XLV→TLT)" in act["headline"]
 
@@ -382,7 +412,7 @@ def test_action_core_swap_wording():
 def test_action_satellite_change_and_stop_note():
     prev = {"as_of": "2026-09-27", "core_top4": ["XLK", "GLD", "XLE", "TLT"], "satellite_selected": ["AAA"]}
     stop_rows = [{"ticker": "AAA", "trend_active": False}]
-    act = cr.action_summary(core=_core_result(), rule_picks=["AAA", "BBB"], next_rebal=_next(),
+    act = cr.action_summary(core=_core_result(), picks=["AAA", "BBB"], next_reselection=_next(),
                             previous=prev, stop_rows=stop_rows)
     assert "새틀라이트 1개 교체 필요(BBB 매수)" in act["headline"]
     note = " ".join(i["text"] for i in act["items"])
@@ -390,14 +420,14 @@ def test_action_satellite_change_and_stop_note():
 
 
 def test_action_without_baseline_does_not_claim_no_change():
-    act = cr.action_summary(core=_core_result(), rule_picks=["AAA"], next_rebal=_next(), previous=None)
+    act = cr.action_summary(core=_core_result(), picks=["AAA"], next_reselection=_next(), previous=None)
     assert act["has_changes"] is None
     assert act["headline"].startswith(cr.ACTION_NO_BASELINE)
     assert cr.ACTION_NO_CHANGE not in act["headline"]
 
 
 def test_action_holds_new_orders_when_market_filter_unknown():
-    act = cr.action_summary(core=_core_result(status="unknown"), rule_picks=[], next_rebal=_next(),
+    act = cr.action_summary(core=_core_result(status="unknown"), picks=[], next_reselection=_next(),
                             previous={"as_of": "2026-09-27", "core_top4": [], "satellite_selected": []})
     assert any(cr.ACTION_HOLD_ORDERS in i["text"] for i in act["items"])
 
@@ -422,9 +452,9 @@ def test_second_call_uses_cache_and_date_change_recomputes(tmp_path):
     assert first["from_cache"] is False
     second = _compute(tmp_path, calls=calls)
     assert second["from_cache"] is True
-    assert [c[0] for c in calls] == ["rule", "today"], "캐시가 있으면 다시 계산하지 않는다"
+    assert sorted(c[0] for c in calls) == ["rule", "today"], "캐시가 있으면 다시 계산하지 않는다"
     _compute(tmp_path, calls=calls, as_of=date(2026, 9, 29))
-    assert [c[0] for c in calls] == ["rule", "today", "rule", "today"]
+    assert sorted(c[0] for c in calls) == ["rule", "rule", "today", "today"]
 
 
 def test_old_cache_is_ignored_when_strategy_version_changes(tmp_path, monkeypatch):
@@ -517,9 +547,16 @@ def test_button_click_fills_four_blocks(page_env, monkeypatch, tmp_path):
     assert "③ 왜 이걸 믿어야 하나" in txt
     assert "④ 지금 해야 할 행동" in txt
     assert "SPY 를 이긴 구간 비율" in txt
-    assert "규칙은 AAA·BBB 보유" in txt and "참고용" in txt
+    # 주 추천은 오늘자 재선정이고, 직전 반기일 목록은 접힌 참고로 내려간다
+    assert "오늘 기준 재선정" in txt and "지금 매수한다면" in txt
+    assert "오늘 다시 뽑으면 CCC·DDD" in txt
+    # 직전 반기일 목록은 접힌 expander 안의 설명으로만 보인다(라벨은 AppTest 텍스트에 안 잡힌다)
+    assert "그때 실제로 매수한 경우에만 의미가 있습니다" in txt
+    assert "어느 쪽도 권하지 않습니다" in txt  # 시작 날짜에 대한 정직한 문구
     assert at.session_state["champion_rec_pending"] is False
-    assert at.session_state["champion_rec_result"]["satellite"]["rule"]["picks"] == ["AAA", "BBB"]
+    _sat_state = at.session_state["champion_rec_result"]["satellite"]
+    assert _sat_state["today"]["picks"] == ["CCC", "DDD"]
+    assert _sat_state["if_bought_at_last_rebal"]["picks"] == ["AAA", "BBB"]
     # 결과를 꺼낸 뒤에는 슬롯 추적이 남아 있지 않아야 한다(다음 rerun 에서 폴링 rerun 을 걸지 않음)
     assert "_job_slot::champion_recommendation" not in at.session_state
 

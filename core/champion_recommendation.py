@@ -6,10 +6,17 @@
 
 **새 계산 로직을 만들지 않는다.** 이미 감사·검증된 함수만 조합한다:
   - 코어 추천: champion_strategy.compute_core_recommendation
-  - 새틀라이트 ① 규칙상 지금 보유: champion_strategy.compute_satellite_recommendation_point_in_time
+  - 새틀라이트 **주 추천(오늘자 재선정)**: champion_strategy._pick_satellite_at_date(오늘)
+  - 새틀라이트 **참고(직전 반기일에 매수했다면 지금 보유 중일 종목)**:
+    champion_strategy.compute_satellite_recommendation_point_in_time
     (내부에서 _pick_satellite_at_date(직전 1·7월 첫 거래일)를 호출)
-  - 새틀라이트 ② 오늘이 리밸런싱일이라면: champion_strategy._pick_satellite_at_date(오늘)
-    — ①과 **같은 함수, 날짜 인자만 다르다**. ②는 참고용이며 규칙은 항상 ①이다.
+
+둘은 **같은 함수이고 날짜 인자만 다르다.** 규칙의 내용은 "1월·7월이라는 날짜에 사라"가 아니라 "이
+선정 절차로 뽑아서 6개월 보유하라"이고, 1월·7월은 반기 주기의 위상을 정하려고 고른 시작점일 뿐
+그 두 날짜가 특별하다고 이 리서치 프로그램이 밝힌 바 없다. 따라서 **아직 아무것도 보유하지 않은
+사람에게는 오늘자 재선정이 규칙을 벗어나는 일이 아니라 같은 규칙을 오늘 적용하는 것**이고, 직전
+반기일 목록은 그때 실제로 매수한 경우에만 의미가 있다. 그래서 오늘자를 주 추천으로 두고 직전
+반기일 목록은 참고로 내린다(2026-09-28 사용자 지적으로 순서를 바로잡았다).
   - 분포: champion_tracking 의 rolling_window_returns / rolling_window_excess / quantile /
     max_drawdown / expected_range (주간 추적 판정이 쓰는 그 계산 그대로, 같은 백테스트 캐시)
   - 자산곡선·슬리브 분해: champion_performance 의 캐시(curves)
@@ -65,7 +72,8 @@ LIMITATIONS = (
     "새틀라이트 후보 풀은 현재 S&P500 명단 기반이라 생존편향이 남아 있고, point-in-time 표본추출도 "
     "상장폐지 종목까지 되살리지는 못합니다.",
     "비용은 편도 고정 bp(코어 3bp·새틀라이트 8bp)만 반영하고 세금·슬리피지·배당은 넣지 않았습니다.",
-    "코어는 매달·새틀라이트는 반기(1·7월)마다만 바뀌므로, 오늘 계산한 값이 곧 오늘 매매 신호라는 뜻은 아닙니다.",
+    "코어는 매달 첫 거래일에 바뀌고, 새틀라이트는 뽑은 날부터 6개월 보유가 원칙입니다 — 오늘 계산한 값이 "
+    "곧 '지금 당장 사고팔아라'라는 뜻은 아닙니다.",
 )
 
 UNVERIFIED_NOTES = (
@@ -74,6 +82,8 @@ UNVERIFIED_NOTES = (
     "트레일링스탑 여유(%)는 선정 함수가 내부에서 쓰는 '고점 대비 15% 하락' 규칙을 다시 계산해 보여 주는 "
     "표시값입니다. 백테스트는 반기 사이 중도 청산을 하지 않으므로 이 값이 매도 신호는 아닙니다.",
     "다음 반기 리밸런싱일은 NYSE 휴장일 근사(core/filing_changes.nyse_holidays)로 구한 예정일입니다.",
+    "오늘 매수할 경우의 다음 재선정일은 '매수일 + 6개월'로 계산한 값입니다(반기 주기는 그대로이고 위상만 "
+    "매수일에 맞춥니다). 백테스트는 1월·7월 위상으로만 측정했으므로 이 위상 자체는 측정된 값이 아닙니다.",
 )
 
 
@@ -402,16 +412,52 @@ def research_status(jobs_dir: Optional[Path] = None, results_dir: Optional[Path]
 # 새틀라이트 ①/② 차이 문구 + 행동 결론
 # ============================================================================================
 
+def next_reselection_after_purchase(buy_date: date, months: int = 6) -> dict:
+    """보유 시작일 기준 다음 재선정일(= 매수일 + 6개월). 반기 주기는 그대로, 위상만 매수일에 맞춘다.
+
+    1월·7월 첫 거래일은 반기 주기의 위상을 정하려고 고른 시작점일 뿐이므로(모듈 docstring 참고),
+    오늘 매수하는 사람의 다음 재선정일은 달력상 1월이 아니라 '매수일 + 6개월'이다. 말일 매수는
+    pd.DateOffset 이 그 달 말일로 클램프한다(2026-08-31 → 2027-02-28, 2027-08-31 → 2028-02-29).
+    raw_date 는 그 달력 날짜, date 는 휴장일이면 다음 거래일로 민 날짜다.
+    """
+    raw = (pd.Timestamp(buy_date) + pd.DateOffset(months=months)).date()
+    adjusted = raw
+    for _ in range(10):
+        if _is_trading(adjusted):
+            break
+        adjusted += timedelta(days=1)
+    return {
+        "bought": buy_date.isoformat(),
+        "raw_date": raw.isoformat(),
+        "date": adjusted.isoformat(),
+        "months": months,
+        "basis": "보유 시작일 + 6개월(반기 주기 유지, 위상만 매수일 기준)",
+    }
+
+
+# 시작 날짜(위상)에 대한 정직한 표시 — 기다리라거나 지금 사라고 권하지 않는다.
+TIMING_NOTE = (
+    "이 백테스트가 실제로 측정한 것은 1월·7월에 시작한 구간들입니다. 시작 날짜를 언제로 잡느냐가 결과를 "
+    "얼마나 흔드는지는 아직 측정되지 않았습니다(시차 분할 검증 연구가 진행 중입니다). "
+    "다만 이것이 '1월까지 기다려라'의 근거는 아닙니다 — 1월 2일도 똑같이 측정되지 않은 시작 날짜 하나이고, "
+    "기다리는 동안 이 몫을 현금으로 비워두는 선택이 따라옵니다. "
+    "어느 쪽이 낫다는 증거가 없으므로 이 화면은 어느 쪽도 권하지 않습니다."
+)
+
+
 def satellite_diff_note(rule_picks: list[str], today_picks: list[str], next_rebal: dict) -> str:
-    """규칙상 보유(①)와 오늘 새로 뽑았을 때(②)의 차이를 한 줄로. ②는 참고용이라고 못박는다."""
-    nxt = next_rebal.get("next_date")
-    tail = (f"반기 규칙이라 다음 리밸런싱일 {nxt}(약 {next_rebal.get('trading_days_left')}거래일 뒤)까지 "
-            "바꾸지 않습니다. ②는 참고용입니다.")
+    """오늘자 재선정(주 추천)과 '직전 반기일에 매수했다면 지금 보유 중일 종목'의 차이를 한 줄로.
+
+    선정 절차는 날짜 인자만 다른 같은 함수이므로 오늘자가 규칙을 벗어난 것이 아니다(모듈 docstring
+    참고). 직전 반기일 목록은 그때 실제로 매수한 경우에만 의미가 있다고 문구에 명시한다.
+    """
+    prev = next_rebal.get("previous_date") or "직전 반기 리밸런싱일"
     rule_s = "·".join(rule_picks) if rule_picks else "없음(현금)"
     today_s = "·".join(today_picks) if today_picks else "없음(현금)"
     if list(rule_picks) == list(today_picks):
-        return f"규칙 보유와 오늘 새로 뽑은 결과가 같습니다({rule_s}). {tail}"
-    return f"규칙은 {rule_s} 보유, 오늘 새로 뽑으면 {today_s} — {tail}"
+        return f"오늘 다시 뽑은 결과는 {today_s} 이고, {prev}에 매수했다면 지금 들고 있을 종목과 같습니다."
+    return (f"오늘 다시 뽑으면 {today_s} 입니다. {prev}에 매수했다면 지금은 {rule_s} 을 들고 있을 것입니다"
+            "(그때 실제로 매수한 경우에만 의미가 있습니다).")
 
 
 ACTION_NO_CHANGE = "바꿀 것 없음"
@@ -435,11 +481,13 @@ def _swap_text(label: str, before: list[str], after: list[str]) -> Optional[str]
     return f"{label} {n}개 교체 필요({', '.join(parts)})"
 
 
-def action_summary(*, core: dict, rule_picks: list[str], next_rebal: dict,
+def action_summary(*, core: dict, picks: list[str], next_reselection: dict,
                    previous: Optional[dict] = None,
                    stop_rows: Optional[list[dict]] = None) -> dict:
     """'지금 실제로 바꿀 것이 있는가' 한 줄 + 항목. 주문하지 않는다(문구만 만든다).
 
+    picks: 주 추천(오늘자 재선정) 새틀라이트 종목 — 화면 맨 위와 같은 목록을 기준으로 비교한다.
+    next_reselection: next_reselection_after_purchase() 결과(매수일 + 6개월).
     previous: champion_strategy.get_current_holdings() 형식({"core_top4", "satellite_selected", "as_of"}).
         None 이면 비교 기준이 없다고 밝힌다(바꿀 것 없음이라고 단정하지 않는다).
     """
@@ -453,26 +501,27 @@ def action_summary(*, core: dict, rule_picks: list[str], next_rebal: dict,
         items.append({
             "kind": "note",
             "text": (f"참고: {', '.join(breached)} 은(는) 지금 트레일링스탑(고점 대비 "
-                     f"{cs.SATELLITE_DONCHIAN_STOP_PCT:.0%}) 아래입니다. 백테스트는 반기 사이 중도 청산을 "
+                     f"{cs.SATELLITE_DONCHIAN_STOP_PCT:.0%}) 아래입니다. 백테스트는 보유 6개월 사이 중도 청산을 "
                      "하지 않으므로 규칙상 매도 신호가 아니라 경고입니다."),
         })
 
     if previous is None:
         headline = (f"{ACTION_NO_BASELINE} — 어제 상태 캐시(champion_signal_state.json)가 없어 무엇이 바뀌는지 "
                     f"비교하지 못했습니다. 지금 추천: 코어 {', '.join(top4) or '없음'} / 새틀라이트 "
-                    f"{', '.join(rule_picks) or '없음(현금)'}")
+                    f"{', '.join(picks) or '없음(현금)'}")
         return {"headline": headline, "items": items, "has_changes": None, "places_orders": False,
                 "compared_with": None}
 
     core_text = _swap_text("코어", list(previous.get("core_top4") or []), top4)
-    sat_text = _swap_text("새틀라이트", list(previous.get("satellite_selected") or []), rule_picks)
+    sat_text = _swap_text("새틀라이트", list(previous.get("satellite_selected") or []), picks)
     changes = [t for t in (core_text, sat_text) if t]
     if changes:
         headline = " · ".join(changes)
         items = [{"kind": "change", "text": t} for t in changes] + items
     else:
-        headline = (f"{ACTION_NO_CHANGE} — 다음 새틀라이트 리밸런싱 {next_rebal.get('next_date')}"
-                    f"(약 {next_rebal.get('trading_days_left')}거래일 뒤). 코어는 매달 첫 거래일에 다시 봅니다.")
+        headline = (f"{ACTION_NO_CHANGE} — 오늘 매수했다면 다음 새틀라이트 재선정은 "
+                    f"{next_reselection.get('date')}(매수일 + {next_reselection.get('months')}개월)입니다. "
+                    "코어는 매달 첫 거래일에 다시 봅니다.")
     return {"headline": headline, "items": items, "has_changes": bool(changes), "places_orders": False,
             "compared_with": previous.get("as_of")}
 
@@ -625,15 +674,16 @@ def compute_recommendation(
     # --- (1) 지금 무엇을 들고 있어야 하나 -----------------------------------------------
     core = core_fn(sizing_method=sizing_method)
 
-    # ① 규칙대로 지금 보유해야 하는 종목: 직전 반기 리밸런싱일 기준(as_of 는 '지금')
-    rule = satellite_rule_fn(as_of_date=as_of.isoformat(), sizing_method=sizing_method)
-    rule_picks = list(rule.get("selected") or [])
-
-    # ② 오늘이 리밸런싱일이라면 뽑힐 종목 — ①과 같은 함수, 날짜 인자만 오늘로 바꾼다(참고용)
+    # 주 추천: 오늘자 재선정 — 아직 보유하지 않은 사람에게는 이것이 규칙의 정상 적용이다
     today_info = satellite_today_fn(pd.Timestamp(as_of), sizing_method=sizing_method)
     today_picks = list(today_info.get("picks") or [])
 
+    # 참고: 직전 반기일에 매수했다면 지금 보유 중일 종목 — 같은 함수, 날짜 인자만 직전 반기일
+    rule = satellite_rule_fn(as_of_date=as_of.isoformat(), sizing_method=sizing_method)
+    rule_picks = list(rule.get("selected") or [])
+
     next_rebal = next_satellite_rebalance(as_of)
+    next_reselection = next_reselection_after_purchase(as_of)
 
     rule_candidates = rule.get("candidates")
     rule_candidates = (rule_candidates.to_dict("records")
@@ -646,13 +696,14 @@ def compute_recommendation(
     rule_picks_table = (rule_picks_table.to_dict("records")
                         if isinstance(rule_picks_table, pd.DataFrame) else list(rule_picks_table or []))
 
+    # 근거는 주 추천(오늘자 재선정) 기준으로 계산한다 — 화면 맨 위에 붙는 표가 이것이다.
     evidence_rows = satellite_evidence(
-        rule_picks, rule.get("rebal_date") or as_of.isoformat(), as_of,
-        candidates=rule_candidates, price_fn=price_fn, sector_map=sector_map,
+        today_picks, as_of.isoformat(), as_of,
+        candidates=today_candidates, price_fn=price_fn, sector_map=sector_map,
     )
 
     satellite_block = {
-        "rule": {
+        "if_bought_at_last_rebal": {
             "picks": rule_picks,
             "rebal_date": rule.get("rebal_date"),
             "per_ticker_weights": rule.get("per_ticker_weights") or {},
@@ -664,18 +715,20 @@ def compute_recommendation(
             "picks_table": rule_picks_table,
             "candidates": rule_candidates,
         },
-        "today_if_rebalance": {
+        "today": {
             "as_of": as_of.isoformat(),
             "picks": today_picks,
             "sleeve_weights": today_info.get("weights") or {},
             "pool_size": today_info.get("pool_size"),
             "n_active_trend": today_info.get("n_active_trend"),
             "candidates": today_candidates,
-            "is_reference_only": True,
+            "is_primary": True,
         },
         "diff_note": satellite_diff_note(rule_picks, today_picks, next_rebal),
         "same_picks": list(rule_picks) == list(today_picks),
-        "next_rebalance": next_rebal,
+        "next_reselection_if_bought_today": next_reselection,
+        "next_rebalance": next_rebal,  # 1·7월 달력 기준(참고 목록 쪽에서만 쓴다)
+        "timing_note": TIMING_NOTE,
         "evidence": evidence_rows,
     }
 
@@ -732,7 +785,7 @@ def compute_recommendation(
         previous = holdings_fn()
     except Exception:  # noqa: BLE001
         previous = None
-    action = action_summary(core=core, rule_picks=rule_picks, next_rebal=next_rebal,
+    action = action_summary(core=core, picks=today_picks, next_reselection=next_reselection,
                             previous=previous, stop_rows=evidence_rows)
 
     result = {
