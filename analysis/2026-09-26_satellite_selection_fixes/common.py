@@ -207,9 +207,9 @@ def scan_pool(pick_date: pd.Timestamp, pool_n: int = SATELLITE_BACKTEST_POOL_N) 
     }
 
 
-def verify_baseline_picks(pick_date: pd.Timestamp, scan: dict) -> dict:
+def verify_baseline_picks(pick_date: pd.Timestamp, scan: dict, pool_n: int = SATELLITE_BACKTEST_POOL_N) -> dict:
     """기준 재현 관문 — 자체 스캔의 기준 선정이 라이브 엔진 `_pick_satellite_at_date` 와 같은지 확인."""
-    ref = _pick_satellite_at_date(pd.Timestamp(pick_date))
+    ref = _pick_satellite_at_date(pd.Timestamp(pick_date), pool_n=pool_n)
     mine, _ = picks_for_variant(scan, VARIANT_SPECS[BASELINE])
     return {
         "date": pd.Timestamp(pick_date).date().isoformat(),
