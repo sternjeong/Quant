@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Iterator
 
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session, sessionmaker
 
 load_dotenv()  # .env 파일이 있으면 환경변수로 로드
@@ -33,13 +33,36 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 DEFAULT_DB_PATH = DATA_DIR / "quant.db"
 DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DEFAULT_DB_PATH}")
 
-# SQLite + 멀티스레드(Streamlit, APScheduler)에서 사용하기 위해 check_same_thread=False
+# SQLite + 멀티스레드(Streamlit, APScheduler)에서 사용하기 위해 check_same_thread=False.
+# timeout: 쓰기 잠금이 풀릴 때까지 기다리는 시간(기본 5초). 야간 블록(00:00~01:00 KST)에 잡 수십 개가
+# APScheduler 스레드풀에서 겹쳐 돌아 5초로는 모자랐다 — 2026-09-28에 variant_shadow_record가
+# "database is locked"로 실패했다.
 engine = create_engine(
     DATABASE_URL,
-    connect_args={"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {},
+    connect_args={"check_same_thread": False, "timeout": 30} if DATABASE_URL.startswith("sqlite") else {},
     echo=False,
     future=True,
 )
+
+
+@event.listens_for(engine, "connect")
+def _sqlite_concurrency_pragmas(dbapi_connection, _record) -> None:
+    """SQLite 연결마다 동시성 설정을 건다 (다른 DB면 아무것도 하지 않는다).
+
+    - journal_mode=WAL: 읽는 쪽이 쓰는 쪽을 막지 않는다. 기본값(delete)에서는 잡 하나가 쓰는 동안
+      다른 잡의 읽기까지 막혀서 야간에 잠금 충돌이 났다. WAL은 DB 파일의 속성이라 한 번 켜면 유지된다.
+    - busy_timeout: 그래도 겹치면 30초까지 기다린다(즉시 예외 대신).
+    - synchronous=NORMAL: WAL에서 권장되는 값. 전원이 갑자기 나가도 DB는 깨지지 않고 마지막 트랜잭션만 잃을 수 있다.
+    """
+    if not DATABASE_URL.startswith("sqlite"):
+        return
+    cursor = dbapi_connection.cursor()
+    try:
+        cursor.execute("PRAGMA journal_mode=WAL")
+        cursor.execute("PRAGMA busy_timeout=30000")
+        cursor.execute("PRAGMA synchronous=NORMAL")
+    finally:
+        cursor.close()
 
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
 
