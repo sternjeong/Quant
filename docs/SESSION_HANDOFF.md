@@ -458,3 +458,11 @@
 - 검증: VM `~/repos/Quant`에서 `pytest tests` → 2327 통과, 4 건너뜀.
 - 사용자 대기: VM `ubuntu`에 GitHub 로그인 없음(push 불가). code-server 터미널에서 `gh auth login` → `gh auth setup-git` 필요.
 - 미완: `core/db.py` 잠금 원인 수정(`_add_missing_columns` 읽기 먼저·`init_db` 프로세스당 1회)은 여전히 적용 전.
+
+## 2026-10-01 (후속) core/db.py 잠금 원인 수정 (구현·전체 테스트, 배포 전)
+
+- 바로 위 절에서 미완으로 남긴 두 가지를 적용했다. `/opt/projects/sternjeong/Quant`(자동화 `quant` 계정 작업공간)에서 작업 — `ubuntu`의 `~/repos/Quant`는 이 세션에서 접근할 수 없다.
+- `init_db()`: 전역 `_initialized_engine`(engine 객체 동일성 비교)로 같은 engine에 대해서는 실제 초기화를 1회만 수행하고 이후 호출은 즉시 반환한다. engine이 교체되면(테스트의 monkeypatch 패턴) 다시 수행되므로 기존 테스트의 "engine 바꿔치기 후 init_db() 재호출" 관례는 그대로 유지된다.
+- `_add_missing_columns()`: `inspect(engine)`로 먼저 전부 읽기 전용 확인 후 추가할 컬럼 목록을 모으고, 하나도 없으면 `engine.begin()` 쓰기 트랜잭션을 열지 않는다(기존엔 매번 열었음 — 호출마다, 심지어 아무것도 추가할 게 없을 때도 쓰기 잠금을 시도해 야간 블록 동시 호출에서 불필요한 대기를 유발했다).
+- 검증: `tests/test_db.py`에 3건 추가(같은 engine 재호출 시 1회만 동작, engine 교체 시 재동작, 추가할 컬럼 없으면 `engine.begin()` 미호출). 전체 `pytest tests` **2330 passed, 4 skipped**(이 세션이 직접 실행, 기존 2327 대비 테스트 3건 증가). `python -m hub.guide.check` 통과.
+- 다음: 커밋·push → VM 자동배포 5분 내 반영. `ubuntu`의 `gh auth login`(push 권한)은 여전히 사용자 대기 — 이 세션은 그 계정에 접근할 수 없어 대신 처리할 수 없다.

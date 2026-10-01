@@ -15,6 +15,7 @@ app/ (Streamlit) 과 scheduler/ (독립 스케줄러) 양쪽에서 동일하게 
 """
 
 import os
+import threading
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator
@@ -66,16 +67,30 @@ def _sqlite_concurrency_pragmas(dbapi_connection, _record) -> None:
 
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
 
+# init_db()가 같은 engine에 대해 실제로는 한 번만 동작하도록 막는 상태. Streamlit/APScheduler
+# 스레드풀에서 요청·잡마다 init_db()를 다시 불러도(관례적 1회 호출 가정이 지켜지지 않는 호출부가
+# 많음) 두 번째 호출부터는 즉시 반환해, 이미 완료된 스키마 점검을 위해 또 DB 잠금을 시도하지 않는다.
+# engine 객체 자체(동일성)로 캐시하므로 테스트가 monkeypatch로 engine을 교체하면 다시 수행된다.
+_init_lock = threading.Lock()
+_initialized_engine = None
+
 
 def init_db() -> None:
     """models.py 에 정의된 모든 테이블을 생성한다 (이미 존재하면 아무 것도 하지 않음).
 
-    앱/스케줄러 진입점에서 한 번씩 호출해준다.
+    앱/스케줄러 진입점에서 한 번씩 호출해준다. 같은 engine에 대해서는 실제 작업이 1회만 수행된다.
     """
-    from core import models  # 지연 임포트로 순환참조 방지
+    global _initialized_engine
+    if _initialized_engine is engine:
+        return
+    with _init_lock:
+        if _initialized_engine is engine:
+            return
+        from core import models  # 지연 임포트로 순환참조 방지
 
-    models.Base.metadata.create_all(bind=engine)
-    _add_missing_columns()
+        models.Base.metadata.create_all(bind=engine)
+        _add_missing_columns()
+        _initialized_engine = engine
 
 
 def _add_missing_columns() -> None:
@@ -83,6 +98,10 @@ def _add_missing_columns() -> None:
     (SQLAlchemy 한계, 이 프로젝트엔 별도 마이그레이션 도구가 없음). 이미 배포된 SQLite 파일에도
     새 컬럼(예: SPEC 15절 max_holding_days)이 적용되도록 최소한의 ALTER TABLE ADD COLUMN을
     직접 실행한다 — 컬럼이 이미 있으면(OperationalError "duplicate column") 조용히 무시한다.
+
+    컬럼 존재 여부는 먼저 읽기 전용 inspect()로 전부 확인하고, 실제로 추가할 컬럼이 하나도 없으면
+    쓰기 트랜잭션(engine.begin())을 아예 열지 않는다 — 다른 프로세스가 쓰기 중이어도 이 흔한 경로
+    (대부분의 호출에서 추가할 컬럼은 없다)가 그 잠금이 풀리길 기다리지 않도록 하기 위함이다.
     """
     from sqlalchemy import inspect, text
 
@@ -124,15 +143,21 @@ def _add_missing_columns() -> None:
         ],
     }
     inspector = inspect(engine)
+    pending: list[tuple[str, str, str]] = []
+    for table, columns in additions.items():
+        if table not in inspector.get_table_names():
+            continue
+        existing = {c["name"] for c in inspector.get_columns(table)}
+        for col_name, col_type in columns:
+            if col_name not in existing:
+                pending.append((table, col_name, col_type))
+
+    if not pending:
+        return
+
     with engine.begin() as conn:
-        for table, columns in additions.items():
-            if table not in inspector.get_table_names():
-                continue
-            existing = {c["name"] for c in inspector.get_columns(table)}
-            for col_name, col_type in columns:
-                if col_name in existing:
-                    continue
-                conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {col_name} {col_type}"))
+        for table, col_name, col_type in pending:
+            conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {col_name} {col_type}"))
 
 
 def get_engine():

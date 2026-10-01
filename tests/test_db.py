@@ -3,6 +3,10 @@
 import json
 from datetime import date
 
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+import core.db as db
 from core.models import (
     AlertLog,
     BacktestResult,
@@ -98,3 +102,70 @@ def test_guru_holding_and_portfolio_and_alert(db_session):
     assert guru.id is not None
     assert holding.id is not None
     assert alert.is_read is False
+
+
+def _fresh_engine(tmp_path, name="init_db_test.db"):
+    return create_engine(f"sqlite:///{tmp_path / name}", connect_args={"check_same_thread": False})
+
+
+def test_init_db_runs_once_per_engine(monkeypatch, tmp_path):
+    """같은 engine에 두 번 init_db()를 불러도 실제 초기화(테이블 생성)는 한 번만 수행된다."""
+    engine = _fresh_engine(tmp_path)
+    monkeypatch.setattr(db, "engine", engine)
+    monkeypatch.setattr(db, "_initialized_engine", None)
+
+    calls = []
+    original_add_missing = db._add_missing_columns
+
+    def _counting_add_missing():
+        calls.append(1)
+        original_add_missing()
+
+    monkeypatch.setattr(db, "_add_missing_columns", _counting_add_missing)
+
+    db.init_db()
+    db.init_db()
+
+    assert len(calls) == 1
+
+
+def test_init_db_reinitializes_after_engine_swap(monkeypatch, tmp_path):
+    """engine이 교체되면(테스트의 monkeypatch 패턴) init_db()가 새 engine에도 다시 동작한다."""
+    monkeypatch.setattr(db, "_initialized_engine", None)
+
+    engine_a = _fresh_engine(tmp_path, "a.db")
+    monkeypatch.setattr(db, "engine", engine_a)
+    db.init_db()
+    session_a = sessionmaker(bind=engine_a)()
+    session_a.add(Strategy(name="a", indicator_config="{}", source="manual"))
+    session_a.commit()
+    session_a.close()
+
+    engine_b = _fresh_engine(tmp_path, "b.db")
+    monkeypatch.setattr(db, "engine", engine_b)
+    db.init_db()
+    session_b = sessionmaker(bind=engine_b)()
+    # engine_b가 방금 초기화됐다면 테이블이 비어 있어야 한다(engine_a의 데이터가 섞이지 않음).
+    assert session_b.query(Strategy).count() == 0
+    session_b.close()
+
+
+def test_add_missing_columns_skips_write_transaction_when_nothing_pending(monkeypatch, tmp_path):
+    """추가할 컬럼이 없으면 engine.begin() 쓰기 트랜잭션을 아예 열지 않는다."""
+    engine = _fresh_engine(tmp_path)
+    monkeypatch.setattr(db, "engine", engine)
+    monkeypatch.setattr(db, "_initialized_engine", None)
+    db.init_db()  # 최신 스키마로 생성 → 이후 _add_missing_columns 호출에서는 추가할 컬럼이 없어야 함
+
+    original_begin = engine.begin
+    begin_calls = []
+
+    def _tracking_begin(*args, **kwargs):
+        begin_calls.append(1)
+        return original_begin(*args, **kwargs)
+
+    monkeypatch.setattr(engine, "begin", _tracking_begin)
+
+    db._add_missing_columns()
+
+    assert begin_calls == []
