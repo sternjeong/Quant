@@ -449,3 +449,12 @@
 
 **다음 단계**: 배포 후 폰에서 `/guide`와 `/status/scheduler`를 눈으로 확인. 검색은 단순 부분문자열 일치라 초성·오타는 안 잡힌다.
 
+
+## 2026-10-01 — VM에서 직접 코딩하도록 저장소 이전 (구현·검증 완료, 푸시 인증은 사용자 대기)
+
+- 결정: Codespace 대신 VM(code-server, 사용자 `ubuntu`)에서 코딩한다. 개발용 사본은 `~/repos/<이름>`. **운영 트리 `/opt/quant`(사용자 `quant`)는 직접 고치지 않는다** — `~/repos/Quant`에서 고쳐 main에 push하면 자동배포가 `/opt/quant`로 가져간다.
+- 한 일: GitHub 저장소 8개(Quant, new_ugrp, phone_english, UGRP_2026, Adobe, Half_Film, dotfiles, intership-2025, 전부 공개) 클론. `ubuntu` git 이름/이메일을 Codespace와 같게 설정. `~/repos/Quant/.venv` 생성.
+- Codespace에만 있던 것은 `~/repos/_from_codespace/`(권한 700): UGRP_2026 미푸시 커밋(번들 → `~/repos/UGRP_2026`에 병합, origin보다 2개 앞섬, 아직 push 안 함), Quant 작업트리의 커밋 안 된 수정 4건(패치 파일, 헤더에 원 브랜치·기준 커밋), `new/` 사진, `COPY_ME.md`, awesome-design-md 클론. 그 밖의 로컬 브랜치는 전부 GitHub에 이미 있음(동기화용 병합 커밋 1개 제외).
+- 검증: VM `~/repos/Quant`에서 `pytest tests` → 2327 통과, 4 건너뜀.
+- 사용자 대기: VM `ubuntu`에 GitHub 로그인 없음(push 불가). code-server 터미널에서 `gh auth login` → `gh auth setup-git` 필요.
+- 미완: `core/db.py` 잠금 원인 수정(`_add_missing_columns` 읽기 먼저·`init_db` 프로세스당 1회)은 여전히 적용 전.
