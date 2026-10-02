@@ -363,16 +363,18 @@ def plan(now: datetime, done: set[tuple[str, str]]) -> Optional[tuple[str, str, 
             continue
         if crit.get("verdict") != "approve" and st.get("impl_rounds", 0) < MAX_IMPL_ROUNDS and ok("implementer", hid):
             return "implementer", hid, {"feedback": "Critic 반려:\n" + json.dumps(crit.get("issues", []), ensure_ascii=False)[:1500]}
-    f = reg.funnel(now=now.astimezone(timezone.utc).replace(tzinfo=None))
-    room = f["weekly_freeze_cap"] - f["frozen_this_week"] - f["counts"].get(reg.DRAFT, 0)
-    if room > 0 and ok("writer"):
-        return "writer", "", {"ids": _new_ids(min(room, MAX_SPECS_PER_WRITER), now)}
+    # 국제정세 의견(월 1회)과 새틀라이트 R&D 를 새 일반 가설 작성(Writer)보다 먼저 — 하룻밤 예산이 앞 작업에 다 쓰여
+    # 새틀라이트 차례가 오지 않는 일을 막는다(2026-10-02 사용자 우선순위).
     geo = geo_plan(now, done)
     if geo is not None:
         return geo
     sat = sat_plan(now, done)
     if sat is not None:
         return sat
+    f = reg.funnel(now=now.astimezone(timezone.utc).replace(tzinfo=None))
+    room = f["weekly_freeze_cap"] - f["frozen_this_week"] - f["counts"].get(reg.DRAFT, 0)
+    if room > 0 and ok("writer"):
+        return "writer", "", {"ids": _new_ids(min(room, MAX_SPECS_PER_WRITER), now)}
     if ok("postmortem"):
         return "postmortem", "", {}
     return None

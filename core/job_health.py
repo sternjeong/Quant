@@ -38,6 +38,8 @@ DEFAULT_GRACE = timedelta(minutes=45)
 GRACE_OVERRIDES: dict[str, timedelta] = {
     # 연구 실행기는 한 회차가 실행 창 끝까지(최대 약 3시간 50분) 붙잡고 있을 수 있고, 그동안 다음 회차는 건너뛴다.
     "research_job_runner": timedelta(hours=4),
+    # 아침 자동 재추천은 VM 여유를 최대 30분 기다린 뒤 수 분~수십 분 계산한다(가격 캐시가 비었으면 더 길다).
+    "champion_recommendation_daily": timedelta(hours=2),
 }
 LOOKBACK_DAYS = 8  # 주간 잡(일요일)의 직전 예정 시각까지 찾을 수 있는 폭
 KEEP_DAYS = 90

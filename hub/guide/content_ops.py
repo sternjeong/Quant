@@ -46,7 +46,7 @@ START_HERE: tuple[str, ...] = (
 JOBS: tuple[JobGuide, ...] = (
     JobGuide(
         job_id="research_job_runner",
-        where_to_see="관제 센터 '검증 연구 결과' 카드, 텔레그램 '[검증 연구 결과]'(완료 1건·실패 사유), 저장소 research/results/<id>/. 대기 연구가 없는 창에는 새틀라이트 R&D 센터 계산을 돌리고 그 결과는 '새틀라이트 R&D 센터' 화면과 텔레그램 '[새틀라이트 R&D]'로 옵니다.",
+        where_to_see="관제 센터 '검증 연구 결과' 카드, 텔레그램 '[검증 연구 결과]'(완료 1건·실패 사유), 저장소 research/results/<id>/. 대기 연구가 없는 창에는(그리고 하루 한 번은 대기 연구가 있어도) 새틀라이트 R&D 센터 계산을 돌리고 그 결과는 '새틀라이트 R&D 센터' 화면과 텔레그램 '[새틀라이트 R&D]'로 옵니다. 2주 R&D 스프린트(sprint-2w) 동안(~2026-10-16)은 07:50~08:50·10:40~11:50·17:00~23:50 KST 창이 더 열리고, 가족(F1~F4) 계산이 끝날 때마다 '[R&D 스프린트]' 한 줄이 옵니다.",
         if_alert="실패 알림이면 사유를 읽고, 스크립트 문제면 개발 요청으로 고친 뒤 'python scripts/research_jobs_admin.py retry <id>'. 정의 오류면 job.json 을 docs/RESEARCH_JOBS.md 계약대로 고칩니다. '[새틀라이트 R&D] 계산기 실패'는 같은 사유면 한 번만 옵니다 — 개발 요청으로 고치면 다음 창에서 이어집니다. 원하지 않으면 '/processes off research_job_runner'(새틀라이트 계산도 함께 멈춤).",
         verified="2026-10-02",
     ),
@@ -55,6 +55,20 @@ JOBS: tuple[JobGuide, ...] = (
         where_to_see="텔레그램(대회마다 마감 7일 전·1일 전·당일 1건씩). 대회 상태를 '제출 완료'나 '종료'로 바꾸면 더 오지 않습니다.",
         if_alert=_NOTHING,
         verified="2026-09-26",
+    ),
+    JobGuide(
+        job_id="champion_recommendation_daily",
+        where_to_see=(
+            "챔피언 전략 화면 맨 위 '✅ 지금 할 일' 카드(1단계가 '오늘 계산한 추천입니다'로 바뀌고 목표 포트폴리오가 채워짐), "
+            "텔레그램 '✅ 오늘의 지금 할 일 — 기준일 …' 1건(목표 비중: 코어·단기국채(BIL)·새틀라이트·현금, 시장필터, 직전 추천 대비 "
+            "바뀐 종목, 다음 확인일). 버튼과 같은 계산이며 주문은 나가지 않습니다 — 매도/매수 목록은 화면에서 내 보유와 비교해 봅니다."
+        ),
+        if_alert=(
+            "'⚠️ 오늘의 지금 할 일 — 아침 자동 재추천 실패'가 오면 화면에서 '🔄 지금 기준으로 다시 추천'을 직접 누르면 됩니다. "
+            "사유가 'VM 여유가 없어 건너뜀'이면 그 시각에 다른 무거운 작업이 돌던 것이고, 같은 오류가 매일 반복되면 개발 요청으로 "
+            "확인하세요. 원하지 않으면 '/processes off champion_recommendation_daily'(버튼은 그대로 쓸 수 있음). " + _HISTORY
+        ),
+        verified="2026-10-02",
     ),
     JobGuide(
         job_id="champion_tracking_weekly",
@@ -552,6 +566,7 @@ OPS: tuple[OpsSection, ...] = (
             ("📋 오늘의 브리핑 (HTML 파일)", "daily_briefing. 밤사이 결과를 한 장으로 모은 것. 맨 위 상태 줄과 붉은 '운영 상태'부터 읽기."),
             ("🏆 챔피언 전략 주간 보고 (HTML 파일)", "champion_weekly_report. 일요일 미국 저녁(20:20 ET)."),
             ("📰 일일 티커 뉴스 리서치", "daily_news_digest. 07:30 KST 요약 + HTML 첨부. 매매 권고가 아님."),
+            ("✅ 오늘의 지금 할 일 — 기준일 …", "champion_recommendation_daily. 매일 09:01 KST 시작, 수 분 뒤 1건. 챔피언 전략 화면 '🔄 지금 기준으로 다시 추천'과 같은 계산의 목표 비중(코어·단기국채·새틀라이트·현금)·시장필터·직전 추천 대비 바뀐 종목·다음 확인일. 주문이 아님 — 매도/매수 목록은 화면에서. 실패하면 '⚠️ … 아침 자동 재추천 실패' 1건."),
             ("[Alpaca paper 검증] 전체 PASS 등", "alpaca_verification_bootstrap. 읽기 전용 검증 결과 1건. FAIL/UNEXPECTED 는 어떤 단계 가정이 달랐는지 한 줄씩."),
             ("거장 보유 변동 요약", "guru_holdings_sync. 신규 편입·전량 청산이 있을 때만."),
             ("[검증 연구 결과] 제목 — 완료 / 실패", "research_job_runner. 완료면 사전 등록 판정 요약과 결과 위치(관제 센터 '검증 연구 결과' 카드, 저장소 research/results/). 실패면 사유 한 줄(같은 사유는 반복 알리지 않음). 판정 결과일 뿐 성과 개선 주장이 아니며 엔진 반영은 사용자 확인 뒤."),

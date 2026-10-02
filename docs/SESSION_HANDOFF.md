@@ -19,6 +19,19 @@
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
 
+## 2026-10-02 (후속4) 매매 실행 R&D + 2주 R&D 스프린트 + 아침 9시 자동 재추천 (구현·테스트, 배포 전)
+
+- 사용자 요청: "얼마에 사고팔아야 하나" 연구 → exec-rnd-v1(core/execution_lab.py, 사전 등록 26칸). 실데이터(매매 578건) 결과 26칸 전부 FAIL —
+  지정가 매수는 66~71% 싸게 체결되지만 놓칠 때 더 비싸게 사서 평균 손해(역선택), 익절은 앞 구간만 좋고 최근 2년 손해. 결과 research/results/exec-rnd-v1/.
+- 사용자 요청: "가설을 스스로 세워 2주 동안 매일 돌려 최적값" + "코어 매도 시점 정량화" → sprint-2w(core/sprint_lab.py, 사전 등록 sprint-judge/v1):
+  F1 새틀라이트 ~1,040개, F2 코어 선정 180개, F3 코어 보유 중 매도 22개, F4 매매 가격 ~200개. 승자 = IS 최선 → DSR ≥ 0.95(분산=실제 시도 분산) → CSCV PBO ≤ 25% → 떼어 둔 2년 한 번.
+  마감 2026-10-16 23:50 KST. 스모크(합성) 1분 40초로 끝까지 확인. 실데이터 계산은 VM 실행기에 맡김(로컬에서 돌리지 않음).
+- 실행 창: core/research_jobs.py SPRINT_UNTIL=2026-10-16, SPRINT_WINDOWS 07:50~08:50·10:40~11:50·17:00~23:50(잡 없는 틈), CRON 시각 확장(job_schedule·run_scheduler 동일).
+  새틀라이트 R&D 는 대기 연구가 있어도 20시간마다 한 번 차례(_satellite_lab_due). 야간 배치에서 국제정세·새틀라이트 트랙을 Writer 보다 먼저(plan 순서).
+- 아침 자동 재추천: champion_recommendation_daily(09:01 KST — 09:00 은 대회 알림 슬롯이라 1분 뒤, 서버 UTC 날짜도 맞음). 버튼과 같은 재추천을 매일 계산·캐시 + 텔레그램 요약 1건, 주문 없음. VM 여유 없으면 최대 30분 대기, job_health 유예 2시간. 버전 변경 뒤 첫 실행은 백테스트 캐시 재생성으로 15~20분. VM 실제 실행·전송 미확인.
+- 추가: info-rnd-v1(가설 카탈로그 1차, docs/HYPOTHESIS_CATALOG.md) 로컬 실데이터 — A 급락 필터 13개 전부 기각, B 코인은 BTC 18번째 자산이 떼어 둔 2년에서만 탈락(가장 유망), 코인 추세 5% 는 앞으로 기록으로 확인 필요. tech-rnd-v1(차트 규칙 3라운드)·sprint-2w 는 VM 실행기에 맡김. 샤프는 BIL 대비 초과수익으로(스모크에서 발견한 '매매 안 하는 규칙' 문제).
+- 테스트: test_research_jobs(창 테스트를 스프린트 전후로 분리 + 새 테스트 2), test_agent_system(위성·국제정세 트랙 격리), test_sprint_lab(10).
+
 ## 2026-10-02 (후속3) 총수익 순위 되돌림 + 배포 관문 실패 수정
 
 - 사용자가 "좋아진 게 아니지 않나" 지적 → 분해해 보니 나빠진 원인은 총수익 순위(C13). 사용자 결정으로 순위·절대모멘텀·SPY 200일선을 가격(Close)으로 되돌리고 남는 몫 BIL·수익 총수익 측정은 유지. 버전 "…/2026-10-bil", CORE_SIGNAL_FIELD="Close". run_core_backtest: 신호 Close, 수익 Adj Close. 2008~ CAGR 9.52%·MDD −19.8%·OOS 2년 샤프 1.37(= v2 C01).

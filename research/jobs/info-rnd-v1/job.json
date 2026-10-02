@@ -1,0 +1,13 @@
+{
+  "id": "info-rnd-v1",
+  "title": "가설 카탈로그 1차 — 빠른 급락 필터(VIX 기간구조 등)·코인(비트코인 18번째 자산·추세 슬리브)(사전 등록)",
+  "entrypoint": "research/jobs/info-rnd-v1/run.py",
+  "args": [],
+  "timeout_seconds": 3600,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 10,
+  "revision": 1
+}

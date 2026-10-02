@@ -58,6 +58,7 @@ class CoreConfig:
     cash: str = "zero"              # zero / bil
     tranches: int = 1               # 4 면 월 1·2·3·4주차에 하나씩 리밸런싱하는 4개 묶음의 평균
     signal_basis: str = "price"     # price: 가격(Close, 현 엔진) / total: 배당·분배금 포함 총수익(Adj Close)으로 순위·필터 계산
+    extra_assets: tuple[str, ...] = ()  # 순위 후보에 더할 자산(예: BTC-USD — info-rnd-v1 B1). closes 에 그 열이 있어야 한다
 
 
 def _first_trading_day_mask(index: pd.DatetimeIndex, offset_days: int = 0) -> pd.Series:
@@ -91,7 +92,7 @@ def _inverse_vol(window: pd.DataFrame) -> dict[str, float]:
 
 
 def _tranche_weights(closes: pd.DataFrame, extra: pd.DataFrame, cfg: CoreConfig, offset_days: int) -> pd.DataFrame:
-    assets = [c for c in closes.columns if c in CORE_UNIVERSE]
+    assets = [c for c in closes.columns if c in CORE_UNIVERSE or c in cfg.extra_assets]
     score = _rank_score(closes[assets], cfg.lookbacks)
     mom12 = closes[assets].pct_change(CORE_MOMENTUM_LOOKBACK_DAYS, fill_method=None)
     bil12 = extra[CASH_ETF].pct_change(CORE_MOMENTUM_LOOKBACK_DAYS, fill_method=None) if CASH_ETF in extra else None

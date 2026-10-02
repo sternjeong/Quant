@@ -1,0 +1,571 @@
+{
+ "id": "exec-rnd-v1",
+ "smoke": false,
+ "generated_at": "2026-10-02T10:22:13+00:00",
+ "period_start": "2010-01-01",
+ "split": "2024-10-01",
+ "n_trades": 578,
+ "n_core_trades": 435,
+ "n_satellite_trades": 143,
+ "verdicts": {
+  "core|buy|next_open": "FAIL",
+  "core|buy|limit1_5d": "FAIL",
+  "core|buy|limit2_5d": "FAIL",
+  "core|buy|limit3_10d": "FAIL",
+  "core|buy|split3": "FAIL",
+  "core|buy|pullback": "FAIL",
+  "core|sell|next_open": "FAIL",
+  "core|sell|limit1_5d": "FAIL",
+  "core|sell|limit2_5d": "FAIL",
+  "core|sell|limit3_10d": "FAIL",
+  "core|sell|split3": "FAIL",
+  "core|sell|pullback": "FAIL",
+  "satellite|buy|next_open": "FAIL",
+  "satellite|buy|limit1_5d": "FAIL",
+  "satellite|buy|limit2_5d": "FAIL",
+  "satellite|buy|limit3_10d": "FAIL",
+  "satellite|buy|split3": "FAIL",
+  "satellite|buy|pullback": "FAIL",
+  "satellite|sell|next_open": "FAIL",
+  "satellite|sell|limit1_5d": "FAIL",
+  "satellite|sell|limit2_5d": "FAIL",
+  "satellite|sell|limit3_10d": "FAIL",
+  "satellite|sell|split3": "FAIL",
+  "satellite|sell|pullback": "FAIL",
+  "satellite|hold|tp20": "FAIL",
+  "satellite|hold|tp40": "FAIL"
+ },
+ "judge_version": "exec-judge/v1",
+ "n_tests": 26,
+ "t_crit": 2.891,
+ "cells": {
+  "core|buy|next_open": {
+   "n_trades": 217,
+   "n_dates_is": 127,
+   "mean_is_bps": -0.812,
+   "t_is": -0.189,
+   "mean_oos_bps": -3.967,
+   "n_dates_oos": 18,
+   "thirds_bps": [
+    -9.741025347356683,
+    -5.287006320837227,
+    12.80354459957992
+   ],
+   "portfolio_bps_per_year": 4.892,
+   "hit_rate": 0.512,
+   "verdict": "FAIL",
+   "reasons": [
+    "IS 평균 -0.8bp, t -0.19 < 2.89",
+    "떼어 둔 2년 평균 -4.0bp ≤ 0",
+    "IS 3구간 중 개선 1개 < 2"
+   ]
+  },
+  "core|buy|limit1_5d": {
+   "n_trades": 217,
+   "n_dates_is": 127,
+   "mean_is_bps": -8.925,
+   "t_is": -0.628,
+   "mean_oos_bps": -29.844,
+   "n_dates_oos": 18,
+   "thirds_bps": [
+    -19.372121942309164,
+    -2.275155329779242,
+    -4.8784663067433955
+   ],
+   "portfolio_bps_per_year": -11.949,
+   "hit_rate": 0.664,
+   "verdict": "FAIL",
+   "reasons": [
+    "IS 평균 -8.9bp, t -0.63 < 2.89",
+    "떼어 둔 2년 평균 -29.8bp ≤ 0",
+    "IS 3구간 중 개선 0개 < 2"
+   ]
+  },
+  "core|buy|limit2_5d": {
+   "n_trades": 217,
+   "n_dates_is": 127,
+   "mean_is_bps": -12.225,
+   "t_is": -0.719,
+   "mean_oos_bps": -9.857,
+   "n_dates_oos": 18,
+   "thirds_bps": [
+    -38.18572920743525,
+    8.552912959258563,
+    -6.422758315879669
+   ],
+   "portfolio_bps_per_year": -22.341,
+   "hit_rate": 0.535,
+   "verdict": "FAIL",
+   "reasons": [
+    "IS 평균 -12.2bp, t -0.72 < 2.89",
+    "떼어 둔 2년 평균 -9.9bp ≤ 0",
+    "IS 3구간 중 개선 1개 < 2"
+   ]
+  },
+  "core|buy|limit3_10d": {
+   "n_trades": 217,
+   "n_dates_is": 127,
+   "mean_is_bps": -28.847,
+   "t_is": -1.293,
+   "mean_oos_bps": -116.773,
+   "n_dates_oos": 18,
+   "thirds_bps": [
+    -51.81926613586415,
+    -4.643634483598222,
+    -29.530931725588097
+   ],
+   "portfolio_bps_per_year": -86.038,
+   "hit_rate": 0.429,
+   "verdict": "FAIL",
+   "reasons": [
+    "IS 평균 -28.8bp, t -1.29 < 2.89",
+    "떼어 둔 2년 평균 -116.8bp ≤ 0",
+    "IS 3구간 중 개선 0개 < 2"
+   ]
+  },
+  "core|buy|split3": {
+   "n_trades": 217,
+   "n_dates_is": 127,
+   "mean_is_bps": -12.121,
+   "t_is": -0.875,
+   "mean_oos_bps": -78.731,
+   "n_dates_oos": 18,
+   "thirds_bps": [
+    -27.485771390955456,
+    2.9509610434590594,
+    -11.461712528464247
+   ],
+   "portfolio_bps_per_year": -41.294,
+   "hit_rate": 0.447,
+   "verdict": "FAIL",
+   "reasons": [
+    "IS 평균 -12.1bp, t -0.88 < 2.89",
+    "떼어 둔 2년 평균 -78.7bp ≤ 0",
+    "IS 3구간 중 개선 1개 < 2"
+   ]
+  },
+  "core|buy|pullback": {
+   "n_trades": 217,
+   "n_dates_is": 127,
+   "mean_is_bps": -11.203,
+   "t_is": -0.762,
+   "mean_oos_bps": -8.848,
+   "n_dates_oos": 18,
+   "thirds_bps": [
+    -6.403701932503815,
+    -10.269650411315409,
+    -17.050883776410018
+   ],
+   "portfolio_bps_per_year": -13.48,
+   "hit_rate": 0.604,
+   "verdict": "FAIL",
+   "reasons": [
+    "IS 평균 -11.2bp, t -0.76 < 2.89",
+    "떼어 둔 2년 평균 -8.8bp ≤ 0",
+    "IS 3구간 중 개선 0개 < 2"
+   ]
+  },
+  "core|sell|next_open": {
+   "n_trades": 216,
+   "n_dates_is": 127,
+   "mean_is_bps": 2.363,
+   "t_is": 0.46,
+   "mean_oos_bps": -5.045,
+   "n_dates_oos": 18,
+   "thirds_bps": [
+    -3.6487182115921697,
+    -3.4524097515502596,
+    14.333842627209222
+   ],
+   "portfolio_bps_per_year": 14.64,
+   "hit_rate": 0.565,
+   "verdict": "FAIL",
+   "reasons": [
+    "IS 평균 2.4bp, t 0.46 < 2.89",
+    "떼어 둔 2년 평균 -5.0bp ≤ 0",
+    "IS 3구간 중 개선 1개 < 2"
+   ]
+  },
+  "core|sell|limit1_5d": {
+   "n_trades": 216,
+   "n_dates_is": 127,
+   "mean_is_bps": 1.318,
+   "t_is": 0.069,
+   "mean_oos_bps": 14.794,
+   "n_dates_oos": 18,
+   "thirds_bps": [
+    -34.6645705973572,
+    -11.152282324725729,
+    50.62679130038555
+   ],
+   "portfolio_bps_per_year": 12.989,
+   "hit_rate": 0.736,
+   "verdict": "FAIL",
+   "reasons": [
+    "IS 평균 1.3bp, t 0.07 < 2.89",
+    "IS 3구간 중 개선 1개 < 2"
+   ]
+  },
+  "core|sell|limit2_5d": {
+   "n_trades": 216,
+   "n_dates_is": 127,
+   "mean_is_bps": 14.147,
+   "t_is": 0.662,
+   "mean_oos_bps": -36.238,
+   "n_dates_oos": 18,
+   "thirds_bps": [
+    -36.343621588377616,
+    9.603860515429238,
+    70.38201629963785
+   ],
+   "portfolio_bps_per_year": 35.87,
+   "hit_rate": 0.644,
+   "verdict": "FAIL",
+   "reasons": [
+    "IS 평균 14.1bp, t 0.66 < 2.89",
+    "떼어 둔 2년 평균 -36.2bp ≤ 0"
+   ]
+  },
+  "core|sell|limit3_10d": {
+   "n_trades": 216,
+   "n_dates_is": 127,
+   "mean_is_bps": 30.826,
+   "t_is": 1.227,
+   "mean_oos_bps": 70.518,
+   "n_dates_oos": 18,
+   "thirds_bps": [
+    -14.257054118589016,
+    56.6968411269724,
+    51.11113795479983
+   ],
+   "portfolio_bps_per_year": 118.545,
+   "hit_rate": 0.616,
+   "verdict": "FAIL",
+   "reasons": [
+    "IS 평균 30.8bp, t 1.23 < 2.89"
+   ]
+  },
+  "core|sell|split3": {
+   "n_trades": 216,
+   "n_dates_is": 127,
+   "mean_is_bps": 22.546,
+   "t_is": 1.294,
+   "mean_oos_bps": 12.473,
+   "n_dates_oos": 18,
+   "thirds_bps": [
+    -1.8170157395053719,
+    43.18099481438385,
+    26.854971688341827
+   ],
+   "portfolio_bps_per_year": 64.42,
+   "hit_rate": 0.588,
+   "verdict": "FAIL",
+   "reasons": [
+    "IS 평균 22.5bp, t 1.29 < 2.89"
+   ]
+  },
+  "core|sell|pullback": {
+   "n_trades": 216,
+   "n_dates_is": 127,
+   "mean_is_bps": 12.214,
+   "t_is": 0.776,
+   "mean_oos_bps": -1.085,
+   "n_dates_oos": 18,
+   "thirds_bps": [
+    -16.24230035309458,
+    3.6164381225577955,
+    49.9462775544389
+   ],
+   "portfolio_bps_per_year": 47.565,
+   "hit_rate": 0.639,
+   "verdict": "FAIL",
+   "reasons": [
+    "IS 평균 12.2bp, t 0.78 < 2.89",
+    "떼어 둔 2년 평균 -1.1bp ≤ 0"
+   ]
+  },
+  "satellite|buy|next_open": {
+   "n_trades": 73,
+   "n_dates_is": 29,
+   "mean_is_bps": 6.033,
+   "t_is": 0.435,
+   "mean_oos_bps": -52.357,
+   "n_dates_oos": 4,
+   "thirds_bps": [
+    -8.40429574951638,
+    -2.4112090864787366,
+    31.457421095978525
+   ],
+   "portfolio_bps_per_year": -0.036,
+   "hit_rate": 0.452,
+   "verdict": "FAIL",
+   "reasons": [
+    "IS 평균 6.0bp, t 0.43 < 2.89",
+    "떼어 둔 2년 평균 -52.4bp ≤ 0",
+    "IS 3구간 중 개선 1개 < 2"
+   ]
+  },
+  "satellite|buy|limit1_5d": {
+   "n_trades": 73,
+   "n_dates_is": 29,
+   "mean_is_bps": -9.182,
+   "t_is": -0.225,
+   "mean_oos_bps": -25.615,
+   "n_dates_oos": 4,
+   "thirds_bps": [
+    -18.629905354722,
+    -59.481129747498265,
+    57.204246175052525
+   ],
+   "portfolio_bps_per_year": -3.361,
+   "hit_rate": 0.712,
+   "verdict": "FAIL",
+   "reasons": [
+    "IS 평균 -9.2bp, t -0.22 < 2.89",
+    "떼어 둔 2년 평균 -25.6bp ≤ 0",
+    "IS 3구간 중 개선 1개 < 2"
+   ]
+  },
+  "satellite|buy|limit2_5d": {
+   "n_trades": 73,
+   "n_dates_is": 29,
+   "mean_is_bps": -46.665,
+   "t_is": -0.878,
+   "mean_oos_bps": -12.94,
+   "n_dates_oos": 4,
+   "thirds_bps": [
+    -3.2200698495010207,
+    -37.5727622002525,
+    -105.03828629944368
+   ],
+   "portfolio_bps_per_year": -9.144,
+   "hit_rate": 0.548,
+   "verdict": "FAIL",
+   "reasons": [
+    "IS 평균 -46.7bp, t -0.88 < 2.89",
+    "떼어 둔 2년 평균 -12.9bp ≤ 0",
+    "IS 3구간 중 개선 0개 < 2"
+   ]
+  },
+  "satellite|buy|limit3_10d": {
+   "n_trades": 73,
+   "n_dates_is": 29,
+   "mean_is_bps": -84.159,
+   "t_is": -1.28,
+   "mean_oos_bps": -207.489,
+   "n_dates_oos": 4,
+   "thirds_bps": [
+    49.68716208409739,
+    -148.53648445197933,
+    -161.34764781101686
+   ],
+   "portfolio_bps_per_year": -19.289,
+   "hit_rate": 0.534,
+   "verdict": "FAIL",
+   "reasons": [
+    "IS 평균 -84.2bp, t -1.28 < 2.89",
+    "떼어 둔 2년 평균 -207.5bp ≤ 0",
+    "IS 3구간 중 개선 1개 < 2"
+   ]
+  },
+  "satellite|buy|split3": {
+   "n_trades": 73,
+   "n_dates_is": 29,
+   "mean_is_bps": -100.59,
+   "t_is": -2.104,
+   "mean_oos_bps": -14.678,
+   "n_dates_oos": 4,
+   "thirds_bps": [
+    -34.71408650412438,
+    -75.88931402741024,
+    -201.23114577767322
+   ],
+   "portfolio_bps_per_year": -18.443,
+   "hit_rate": 0.342,
+   "verdict": "FAIL",
+   "reasons": [
+    "IS 평균 -100.6bp, t -2.10 < 2.89",
+    "떼어 둔 2년 평균 -14.7bp ≤ 0",
+    "IS 3구간 중 개선 0개 < 2"
+   ]
+  },
+  "satellite|buy|pullback": {
+   "n_trades": 73,
+   "n_dates_is": 29,
+   "mean_is_bps": -66.969,
+   "t_is": -1.373,
+   "mean_oos_bps": -54.798,
+   "n_dates_oos": 4,
+   "thirds_bps": [
+    -9.799335322373981,
+    -75.23503899393323,
+    -121.30577113463997
+   ],
+   "portfolio_bps_per_year": -14.468,
+   "hit_rate": 0.589,
+   "verdict": "FAIL",
+   "reasons": [
+    "IS 평균 -67.0bp, t -1.37 < 2.89",
+    "떼어 둔 2년 평균 -54.8bp ≤ 0",
+    "IS 3구간 중 개선 0개 < 2"
+   ]
+  },
+  "satellite|sell|next_open": {
+   "n_trades": 70,
+   "n_dates_is": 28,
+   "mean_is_bps": -10.51,
+   "t_is": -0.89,
+   "mean_oos_bps": 49.129,
+   "n_dates_oos": 4,
+   "thirds_bps": [
+    -8.191474843844825,
+    -10.048379878547538,
+    -13.549115320189165
+   ],
+   "portfolio_bps_per_year": -0.066,
+   "hit_rate": 0.486,
+   "verdict": "FAIL",
+   "reasons": [
+    "IS 평균 -10.5bp, t -0.89 < 2.89",
+    "IS 3구간 중 개선 0개 < 2"
+   ]
+  },
+  "satellite|sell|limit1_5d": {
+   "n_trades": 70,
+   "n_dates_is": 28,
+   "mean_is_bps": -3.055,
+   "t_is": -0.093,
+   "mean_oos_bps": 129.813,
+   "n_dates_oos": 4,
+   "thirds_bps": [
+    -21.68061750525133,
+    67.54897848910188,
+    -52.965052024607076
+   ],
+   "portfolio_bps_per_year": 1.908,
+   "hit_rate": 0.786,
+   "verdict": "FAIL",
+   "reasons": [
+    "IS 평균 -3.1bp, t -0.09 < 2.89",
+    "IS 3구간 중 개선 1개 < 2"
+   ]
+  },
+  "satellite|sell|limit2_5d": {
+   "n_trades": 70,
+   "n_dates_is": 28,
+   "mean_is_bps": -14.878,
+   "t_is": -0.235,
+   "mean_oos_bps": 161.981,
+   "n_dates_oos": 4,
+   "thirds_bps": [
+    33.22468373489662,
+    126.44903532492367,
+    -209.6512344702384
+   ],
+   "portfolio_bps_per_year": -2.344,
+   "hit_rate": 0.671,
+   "verdict": "FAIL",
+   "reasons": [
+    "IS 평균 -14.9bp, t -0.23 < 2.89"
+   ]
+  },
+  "satellite|sell|limit3_10d": {
+   "n_trades": 70,
+   "n_dates_is": 28,
+   "mean_is_bps": -45.373,
+   "t_is": -0.484,
+   "mean_oos_bps": 140.142,
+   "n_dates_oos": 4,
+   "thirds_bps": [
+    116.52194495425131,
+    67.8770280584434,
+    -338.50604260010715
+   ],
+   "portfolio_bps_per_year": -13.777,
+   "hit_rate": 0.614,
+   "verdict": "FAIL",
+   "reasons": [
+    "IS 평균 -45.4bp, t -0.48 < 2.89"
+   ]
+  },
+  "satellite|sell|split3": {
+   "n_trades": 70,
+   "n_dates_is": 28,
+   "mean_is_bps": 14.177,
+   "t_is": 0.232,
+   "mean_oos_bps": 56.042,
+   "n_dates_oos": 4,
+   "thirds_bps": [
+    97.00644250591267,
+    107.83595058126052,
+    -171.51563651461686
+   ],
+   "portfolio_bps_per_year": -1.966,
+   "hit_rate": 0.529,
+   "verdict": "FAIL",
+   "reasons": [
+    "IS 평균 14.2bp, t 0.23 < 2.89"
+   ]
+  },
+  "satellite|sell|pullback": {
+   "n_trades": 70,
+   "n_dates_is": 28,
+   "mean_is_bps": -82.952,
+   "t_is": -1.572,
+   "mean_oos_bps": 94.386,
+   "n_dates_oos": 4,
+   "thirds_bps": [
+    1.2080238184613707,
+    -19.339281077692963,
+    -240.07500137651203
+   ],
+   "portfolio_bps_per_year": -14.261,
+   "hit_rate": 0.571,
+   "verdict": "FAIL",
+   "reasons": [
+    "IS 평균 -83.0bp, t -1.57 < 2.89",
+    "IS 3구간 중 개선 1개 < 2"
+   ]
+  },
+  "satellite|hold|tp20": {
+   "n_trades": 73,
+   "n_dates_is": 29,
+   "mean_is_bps": 124.851,
+   "t_is": 0.918,
+   "mean_oos_bps": -84.47,
+   "n_dates_oos": 4,
+   "thirds_bps": [
+    32.16439079915608,
+    -173.01985865085666,
+    558.802890712866
+   ],
+   "portfolio_bps_per_year": 17.625,
+   "hit_rate": 0.192,
+   "verdict": "FAIL",
+   "reasons": [
+    "IS 평균 124.9bp, t 0.92 < 2.89",
+    "떼어 둔 2년 평균 -84.5bp ≤ 0"
+   ]
+  },
+  "satellite|hold|tp40": {
+   "n_trades": 73,
+   "n_dates_is": 29,
+   "mean_is_bps": 206.171,
+   "t_is": 1.284,
+   "mean_oos_bps": -83.256,
+   "n_dates_oos": 4,
+   "thirds_bps": [
+    9.809479996267134,
+    -47.90854664344835,
+    706.661316211313
+   ],
+   "portfolio_bps_per_year": 23.876,
+   "hit_rate": 0.082,
+   "verdict": "FAIL",
+   "reasons": [
+    "IS 평균 206.2bp, t 1.28 < 2.89",
+    "떼어 둔 2년 평균 -83.3bp ≤ 0"
+   ]
+  }
+ }
+}

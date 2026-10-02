@@ -38,6 +38,14 @@ def ws(tmp_path, monkeypatch):
                       "FAILURES": root / "failures.md", "CONTEXT": root / "context.md"}.items():
         monkeypatch.setattr(ab, name, val)
     monkeypatch.setattr(bud, "USAGE_LOG", tmp_path / "usage.jsonl")
+    # 새틀라이트 R&D·국제정세 트랙이 실제 VM 상태 파일을 읽지 않게 격리(2026-10-02)
+    from core import geo_shadow as gs
+    from core import satellite_lab as sl
+
+    monkeypatch.setattr(ab, "SAT_WS", root / "satellite_lab" / "variants")
+    monkeypatch.setattr(sl, "STATE_DIR", tmp_path / "satellite_state")
+    monkeypatch.setattr(gs, "LEDGER", tmp_path / "geo" / "ledger.jsonl")
+    monkeypatch.setattr(gs, "DRAFT_DIR", root / "geo_shadow")
     return root
 
 
@@ -88,7 +96,10 @@ def _fake_runner(ws, critic_verdict="approve", calls=None):
     return run
 
 
-def test_full_cycle_one_night_writer_to_judge(tmpdb, ws):
+def test_full_cycle_one_night_writer_to_judge(tmpdb, ws, monkeypatch):
+    # 이 테스트는 일반 가설 흐름만 본다 — 새틀라이트·국제정세 트랙은 각자 테스트(test_satellite_lab·test_geo_shadow)에서 본다
+    monkeypatch.setattr(ab, "sat_plan", lambda now, done: None)
+    monkeypatch.setattr(ab, "geo_plan", lambda now, done: None)
     calls, judged = [], []
 
     def fake_judge(hid):

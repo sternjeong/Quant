@@ -1,0 +1,15 @@
+{
+  "id": "tech-rnd-v1",
+  "title": "차트 매매 규칙(유튜브 대본 출신) R&D — 단독·한계 돌파·챔피언과의 시너지 3라운드(사전 등록)",
+  "entrypoint": "research/jobs/tech-rnd-v1/run.py",
+  "args": [],
+  "timeout_seconds": 10800,
+  "max_attempts": 5,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 15,
+  "revision": 1,
+  "max_memory_mb": 4096,
+  "max_runs": 200
+}

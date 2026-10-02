@@ -106,6 +106,8 @@ python <entrypoint> <args...> --out <출력 디렉터리> --checkpoint <체크�
 - 대기 작업이 하나도 없는 회차에는 새틀라이트 R&D 센터 계산기(`scripts/satellite_lab_worker.py`)를 같은 보호 장치로 돌린다
   (사전 등록 연구가 언제나 먼저, 설계는 [SATELLITE_LAB.md](./SATELLITE_LAB.md)). 상태는 `state.json` 의 `satellite_lab` 절.
   끄려면 스케줄러 환경에 `RESEARCH_SATELLITE_LAB=0`.
+- 2주 R&D 스프린트(`research/jobs/sprint-2w`, 2026-10-02~10-16): `core.research_jobs.SPRINT_UNTIL` 까지 07:50~08:50·10:40~11:50·17:00~23:50 KST 창을 더 연다
+  (잡이 없는 틈만). 대기 연구가 계속 있어도 새틀라이트 R&D 는 20시간에 한 번 차례를 받는다. 날짜가 지나면 자동으로 기본 창만 남는다.
 
 ## 4. 결과가 사용자에게 가는 길
 

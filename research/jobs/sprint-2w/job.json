@@ -1,0 +1,15 @@
+{
+  "id": "sprint-2w",
+  "title": "2주 R&D 스프린트 — 새틀라이트 선정·코어 선정·코어 매도 시점·매매 가격 최적값 탐색(사전 등록, 과적합 보정)",
+  "entrypoint": "research/jobs/sprint-2w/run.py",
+  "args": [],
+  "timeout_seconds": 10800,
+  "max_attempts": 5,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 20,
+  "revision": 1,
+  "max_memory_mb": 4096,
+  "max_runs": 400
+}

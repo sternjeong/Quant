@@ -16,7 +16,7 @@ core.daily_briefing 참고 — 다른 야간 잡들이 그날의 데이터를 �
 매주 일요일 20:20(America/New_York)에는 챔피언 전략 주간 HTML 보고를 텔레그램으로 전송한다.
 그 밖에 00:27~00:46 관측 전용 잡(후보 원장 기록/결과 갱신, 가이던스·공시 거부권 shadow, 계좌 스냅샷,
 Alpaca 검증, 비용 보정, 변형 shadow, paper 추적오차), 12:00 거장 보유종목 동기화, 07:30 뉴스 다이제스트,
-화~토 06:10 paper 자동 주문(기본 꺼짐), 일요일 00:50 전략 변형 연구 보고서, 일요일 01:10 챔피언 주간 추적 판정이 있다. 등록된 잡 전체의 정확한
+09:01 챔피언 '지금 할 일' 자동 재추천(+텔레그램 요약), 화~토 06:10 paper 자동 주문(기본 꺼짐), 일요일 00:50 전략 변형 연구 보고서, 일요일 01:10 챔피언 주간 추적 판정이 있다. 등록된 잡 전체의 정확한
 표는 core/job_schedule.py 이다(tests/test_job_health.py 가 main()과 일치하는지 검증). 야간 전략 미세튜닝
 잡은 2026-09-24 에 삭제됐다.
 
@@ -986,6 +986,68 @@ def contest_deadline_alert_job() -> None:
     print(f"[{datetime.now()}] contest_deadline_alert_job 종료")
 
 
+# 아침 자동 재추천이 VM 여유(core.resource_guard.has_headroom)를 기다리는 최대 시간과 확인 간격(초).
+CHAMPION_REC_HEADROOM_WAIT_S = 30 * 60
+CHAMPION_REC_HEADROOM_POLL_S = 5 * 60
+
+
+def _wait_for_headroom(max_wait_s: float, poll_s: float) -> bool:
+    """has_headroom() 이 True 가 될 때까지 poll_s 간격으로 최대 max_wait_s 기다린다. 끝내 없으면 False."""
+    import time
+
+    waited = 0.0
+    while not has_headroom():
+        if waited >= max_wait_s:
+            return False
+        time.sleep(poll_s)
+        waited += poll_s
+    return True
+
+
+def champion_recommendation_daily_job() -> None:
+    """챔피언 '✅ 지금 할 일' 아침 자동 재추천 (core/champion_recommendation.py run_daily_refresh). 주문 없음.
+
+    사용자 요청(2026-10-02): 화면 카드가 '아직 추천을 계산하지 않았습니다'로 비지 않도록, 매일 '🔄 지금 기준으로 다시
+    추천' 버튼과 같은 계산(compute_recommendation, 화면 기본 사이징 equal)을 돌려 캐시를 채우고 텔레그램 요약 1건을 보낸다.
+    시각(09:01 KST — 사용자 요청은 09:00 이나 그 슬롯은 contest_deadline_alert 자리라 1분 뒤, 슬롯 중복 금지 규칙
+    tests/test_guru_schedule.py): 미 장 마감(05:00~06:00 KST) 뒤라 전날 종가가 반영되고, 야간 블록·에이전트 배치(03:00~05:50)·
+    paper 자동 주문(06:10)·뉴스(07:30)·연구 실행 창과 겹치지 않는다. 서버 시계(UTC)의 날짜가 막 바뀐 뒤(00:01 UTC)라 화면의
+    date.today() 와 기준일이 같다(08:59 이전 KST 에 돌리면 서버 날짜가 아직 어제다). 수 분 걸리는 계산이라 VM 여유가
+    없으면 최대 30분 기다렸다가, 그래도 없으면 건너뛰고 실패로 기록·알린다. 계산 실패도 기록하고 텔레그램으로 짧게
+    알린다(스케줄러는 멈추지 않는다).
+    """
+    if not is_enabled("champion_recommendation_daily"):
+        print(f"[{datetime.now()}] champion_recommendation_daily_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
+    print(f"[{datetime.now()}] champion_recommendation_daily_job 시작")
+    from core import telegram_notify
+
+    reason = None
+    try:
+        from core import champion_recommendation as cr
+
+        if not _wait_for_headroom(CHAMPION_REC_HEADROOM_WAIT_S, CHAMPION_REC_HEADROOM_POLL_S):
+            reason = f"VM 여유(CPU·메모리)가 {CHAMPION_REC_HEADROOM_WAIT_S // 60}분 동안 없어 이번 회차를 건너뜀"
+        else:
+            res = cr.run_daily_refresh(notify=telegram_notify.send_message)
+            print(f"  - 기준일 {res['as_of']} 코어 {res['core_top4']} 새틀라이트 {res['satellite']} "
+                  f"(캐시 {res['from_cache']}, 직전 {res['compared_with']}, 텔레그램 {res['sent']})")
+            if not res["sent"] and telegram_notify.is_configured():
+                report_job_failure("champion_recommendation_daily", "재추천은 저장됐지만 텔레그램 요약 전송 실패")
+    except Exception as exc:  # noqa: BLE001 - 다음 날 스케줄을 막지 않도록 기록·알림만 한다
+        reason = f"{type(exc).__name__}: {exc}"
+    if reason:
+        print(f"  - 아침 자동 재추천 실패: {reason}")
+        report_job_failure("champion_recommendation_daily", reason)
+        try:
+            from core.champion_recommendation import daily_failure_message
+
+            telegram_notify.send_message(daily_failure_message(reason))
+        except Exception as exc:  # noqa: BLE001
+            print(f"  - 실패 알림 전송 실패(무시): {type(exc).__name__}: {exc}")
+    print(f"[{datetime.now()}] champion_recommendation_daily_job 종료")
+
+
 def strategy_research_report_job() -> None:
     """전략 변형 연구 보고서 작성 — 관측 전용, 주 1회(일요일 00:50 KST).
 
@@ -1264,7 +1326,7 @@ def main() -> None:
     scheduler.add_job(
         research_job_runner_job,
         # 한 회차가 창 끝까지 이어질 수 있으므로 겹치지 않게 max_instances=1, 밀린 회차는 하나로 합친다.
-        trigger=CronTrigger(hour="1,2,13,14,15,16", minute="0,20,40", timezone="Asia/Seoul"),
+        trigger=CronTrigger(hour="1,2,8,10,11,13,14,15,16,17,18,19,20,21,22,23", minute="0,20,40", timezone="Asia/Seoul"),  # 스프린트 창은 2026-10-16 까지(core.research_jobs.SPRINT_UNTIL)
         id="research_job_runner",
         name="한국시간 01:00~02:50·13:00~16:50 20분마다 검증 연구 작업 실행기",
         replace_existing=True,
@@ -1278,6 +1340,19 @@ def main() -> None:
         id="contest_deadline_alert",
         name="매일 한국시간 09:00 AI 대회 마감 알림",
         replace_existing=True,
+    )
+    scheduler.add_job(
+        champion_recommendation_daily_job,
+        # 사용자 요청(2026-10-02): 아침 9시에 '✅ 지금 할 일'이 오늘 추천으로 채워져 있게. 09:00 은 대회 마감 알림 자리라
+        # 1분 뒤(슬롯 중복 금지). 09:01 KST = 00:01 UTC(서버 날짜가 막 바뀐 뒤)라 화면의 date.today() 와 기준일이 같다.
+        # 수 분 걸리고 여유를 최대 30분 기다릴 수 있어 겹치지 않게 max_instances=1, 잠깐 밀리면 30분 안에는 그대로 돈다.
+        trigger=CronTrigger(hour=9, minute=1, timezone="Asia/Seoul"),
+        id="champion_recommendation_daily",
+        name="매일 한국시간 09:01 챔피언 지금 할 일 자동 재추천 + 텔레그램 요약",
+        replace_existing=True,
+        max_instances=1,
+        coalesce=True,
+        misfire_grace_time=1800,
     )
     scheduler.add_job(
         strategy_research_report_job,

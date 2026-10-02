@@ -1059,3 +1059,139 @@ def entry_chart_levels(close: pd.Series, sleeve: str, evidence_row: Optional[dic
             out["momentum_12m_pct"] = round((last / ref - 1) * 100, 2) if ref else None
             out["levels"].append({"key": "momentum_ref", "label": "12개월 전 가격", "price": round(ref, 2)})
     return out
+
+
+# ============================================================================================
+# 매일 아침 자동 재추천 (2026-10-02 추가) — 스케줄러 잡 champion_recommendation_daily(09:01 KST)
+#
+# 사용자 요청: '✅ 지금 할 일' 카드가 "아직 추천을 계산하지 않았습니다"로 비어 있지 않도록, 매일 아침 버튼과
+# 같은 계산(compute_recommendation, 화면 사이징 기본값 equal)을 미리 돌려 캐시를 채우고 텔레그램으로 목표
+# 포트폴리오 요약 1건을 보낸다. 새 신호를 만들지 않고 주문하지 않는다(버튼과 같은 함수를 부를 뿐이다).
+# ============================================================================================
+
+DAILY_SIZING_METHOD = "equal"  # 화면 사이징 라디오의 기본값과 같다
+DAILY_TITLE = "✅ 오늘의 지금 할 일"
+_DAILY_GROUPS = (  # (메시지 줄 이름, target_allocation 의 sleeve 값들)
+    ("코어", ("코어", "코어+새틀라이트")),
+    ("코어 남는 몫(단기국채)", (CASH_ETF_SLEEVE,)),
+    ("새틀라이트", ("새틀라이트",)),
+)
+_FILTER_LINES = {
+    "above": f"시장필터: SPY 200일선 위 — 코어 {cs.CORE_WEIGHT:.0%} 전부 투자",
+    "below": "시장필터: SPY 200일선 아래 — 코어 절반만 투자, 나머지는 단기국채(BIL)",
+    "unknown": "⚠️ 시장필터: SPY 데이터가 없어 판정하지 못했습니다 — 신규 주문 보류",
+}
+_FILTER_SHORT = {"above": "200일선 위", "below": "200일선 아래", "unknown": "판정 불가"}
+
+
+def latest_cached_before(as_of: date, cache_dir: Optional[Path] = None) -> Optional[dict]:
+    """as_of 보다 앞선 기준일의 가장 최근 재추천 결과(지금 전략 버전만). 매일 요약의 '직전 추천 대비'에 쓴다."""
+    for row in list_cached(cache_dir):
+        if str((row.get("params") or {}).get("as_of") or "") >= as_of.isoformat():
+            continue
+        try:
+            with open(row["path"], encoding="utf-8") as f:
+                return json.load(f)
+        except (OSError, ValueError):
+            continue
+    return None
+
+
+def _changed_text(label: str, before: list[str], after: list[str]) -> Optional[str]:
+    """'코어 XLV → XLU' 같은 문구. 바뀐 것이 없으면 None."""
+    removed = sorted(set(before) - set(after))
+    added = sorted(set(after) - set(before))
+    if not removed and not added:
+        return None
+    return f"{label} {', '.join(removed) or '없음'} → {', '.join(added) or '없음'}"
+
+
+def daily_todo_message(rec: dict, *, previous: Optional[dict] = None, today: Optional[date] = None,
+                       checkpoints: Optional[dict] = None) -> str:
+    """재추천 결과 → 텔레그램 요약 1건(일반 텍스트, 15줄 이하). 계산하지 않고 주문하지 않는다.
+
+    목표 포트폴리오(전체 기준 비중)·시장필터·추천 상태(freshness)·직전 추천 대비 변화·다음 확인일을 담는다.
+    previous: latest_cached_before() 결과(없으면 비교하지 않았다고 적는다).
+    """
+    today = today or date.today()
+    as_of = str(rec.get("as_of") or (rec.get("params") or {}).get("as_of") or today.isoformat())
+    rows = target_allocation(rec)
+    core = rec.get("core") or {}
+    sat_picks = list(((rec.get("satellite") or {}).get("today") or {}).get("picks") or [])
+
+    lines = [f"{DAILY_TITLE} — 기준일 {as_of}",
+             f"추천 상태: {freshness(rec, today)['reason']} 주문이 아닙니다 — 매매는 직접 합니다.",
+             "목표 포트폴리오(전체 기준):"]
+    for label, sleeves in _DAILY_GROUPS:
+        group = [r for r in rows if r["sleeve"] in sleeves]
+        if group:
+            lines.append(f"· {label}: " + ", ".join(f"{r['ticker']} {r['weight'] * 100:.1f}%" for r in group))
+        elif label == "새틀라이트":
+            lines.append("· 새틀라이트: 없음(그 몫은 현금)")
+    cash = sum(r["weight"] for r in rows if r["ticker"] == CASH_TICKER)
+    if cash > 0.0005:
+        lines.append(f"· 현금: {cash * 100:.1f}%")
+    filter_line = _FILTER_LINES.get(core.get("market_filter_status"))
+    if filter_line:
+        lines.append(filter_line)
+
+    if previous:
+        prev_as_of = str(previous.get("as_of") or (previous.get("params") or {}).get("as_of") or "?")
+        prev_core = list((previous.get("core") or {}).get("top4") or [])
+        prev_sat = list(((previous.get("satellite") or {}).get("today") or {}).get("picks") or [])
+        diffs = [t for t in (_changed_text("코어", prev_core, list(core.get("top4") or [])),
+                             _changed_text("새틀라이트", prev_sat, sat_picks)) if t]
+        prev_filter = (previous.get("core") or {}).get("market_filter_status")
+        if prev_filter and prev_filter != core.get("market_filter_status"):
+            now_filter = core.get("market_filter_status")
+            diffs.append(f"시장필터 {_FILTER_SHORT.get(prev_filter, prev_filter)} → "
+                         f"{_FILTER_SHORT.get(now_filter, now_filter)}")
+        lines.append(f"직전 추천({prev_as_of}) 대비: " + (" · ".join(diffs) if diffs else "종목 변화 없음"))
+    else:
+        lines.append("직전 추천 대비: 비교할 이전 결과 없음")
+    action = rec.get("action") or {}
+    if action.get("has_changes"):
+        lines.append(f"어젯밤 저장 신호 대비: {action.get('headline')}")
+
+    cp = checkpoints or next_checkpoints(today)
+    lines.append(f"다음 확인: 코어 {cp['core_next']}(매달 첫 거래일) · 새틀라이트는 오늘 사면 "
+                 f"{cp['satellite_next']}까지 보유")
+    lines.append("내 보유와 비교한 매도/매수 목록: 퀀트 대시보드 '챔피언 전략' → ✅ 지금 할 일")
+    return "\n".join(lines)
+
+
+def daily_failure_message(reason: str) -> str:
+    """아침 자동 재추천이 실패했을 때 보내는 짧은 안내(사유는 200자까지)."""
+    return ("⚠️ 오늘의 지금 할 일 — 아침 자동 재추천 실패\n"
+            f"사유: {str(reason)[:200]}\n"
+            "챔피언 전략 화면 '✅ 지금 할 일'에서 '🔄 지금 기준으로 다시 추천'을 누르면 직접 계산합니다.")
+
+
+def run_daily_refresh(as_of: Optional[date] = None, *, notify: Optional[Callable[[str], bool]] = None,
+                      sizing_method: str = DAILY_SIZING_METHOD, cache_dir: Optional[Path] = None,
+                      compute_fn: Optional[Callable] = None) -> dict:
+    """아침 잡이 부른다: 직전 추천을 기억해 두고 → 오늘자 추천 계산(캐시 저장, 버튼과 같은 함수) → 요약 1건 전송.
+
+    계산 실패는 예외로 올린다(잡이 실패로 기록하고 알린다). 알림 실패는 sent=False 로만 돌려준다. 주문하지 않는다.
+    as_of 기본값은 date.today() — 화면 버튼·freshness() 와 같은 서버 날짜를 써야 화면이 '오늘 계산한 추천'으로 읽는다.
+    """
+    as_of = as_of or date.today()
+    previous = latest_cached_before(as_of, cache_dir)
+    compute_fn = compute_fn or compute_recommendation
+    rec = compute_fn(as_of, sizing_method=sizing_method, cache_dir=cache_dir)
+    message = daily_todo_message(rec, previous=previous, today=as_of)
+    sent = False
+    if notify is not None:
+        try:
+            sent = bool(notify(message))
+        except Exception:  # noqa: BLE001 - 알림 실패가 저장된 추천을 무르지 않는다
+            sent = False
+    return {
+        "as_of": as_of.isoformat(),
+        "from_cache": bool(rec.get("from_cache")),
+        "core_top4": list((rec.get("core") or {}).get("top4") or []),
+        "satellite": list(((rec.get("satellite") or {}).get("today") or {}).get("picks") or []),
+        "compared_with": (previous or {}).get("as_of"),
+        "sent": sent,
+        "message": message,
+    }

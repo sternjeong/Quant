@@ -144,15 +144,37 @@ def test_invalid_job_is_notified_once(cfg):
 # ---- 창·예산·선택 ----------------------------------------------------------------------------------------------
 
 def test_windows_avoid_the_agent_batch_and_other_slots():
-    assert rj.window_end_for(kst(1, 30)) == kst(2, 50)
-    assert rj.window_end_for(kst(13, 0)) == kst(16, 50)
+    after = lambda h, m: datetime(2026, 10, 20, h, m, tzinfo=rj.KST)  # noqa: E731 - 스프린트가 끝난 뒤(기본 창만)
+    assert rj.window_end_for(after(1, 30)) == after(2, 50)
+    assert rj.window_end_for(after(13, 0)) == after(16, 50)
     for hour in (0, 3, 4, 5, 6, 7, 9, 12, 17, 23):
-        assert rj.window_end_for(kst(hour, 10)) is None, hour
-    assert rj.window_end_for(kst(2, 50)) is None
+        assert rj.window_end_for(after(hour, 10)) is None, hour
+    assert rj.window_end_for(after(2, 50)) is None
     job = SCHEDULED_JOBS_BY_ID["research_job_runner"]
     assert job.cron == rj.CRON and job.process_key == "research_job_runner"
     hours = {int(h) for h in str(job.cron["hour"]).split(",")}
     assert not hours & {0, 3, 4, 5, 6, 7, 9, 12}
+
+
+def test_sprint_windows_only_until_end_date_and_avoid_job_slots():
+    during = lambda h, m: datetime(2026, 10, 5, h, m, tzinfo=rj.KST)  # noqa: E731
+    assert rj.window_end_for(during(8, 0)) == during(8, 50)
+    assert rj.window_end_for(during(10, 40)) == during(11, 50)
+    assert rj.window_end_for(during(20, 0)) == during(23, 50)
+    for h, m in ((0, 10), (3, 0), (5, 30), (6, 10), (6, 30), (7, 30), (9, 0), (9, 5), (12, 0), (23, 50)):
+        assert rj.window_end_for(during(h, m)) is None, (h, m)
+    assert rj.window_end_for(datetime(2026, 10, 17, 20, 0, tzinfo=rj.KST)) is None  # 끝나면 자동으로 꺼진다
+    assert rj.longest_window_seconds() == 3 * 3600 + 50 * 60  # 재개 불가 작업 한도는 기본 창 기준 그대로
+
+
+def test_satellite_lab_gets_a_daily_turn_even_when_jobs_wait(monkeypatch):
+    from core import satellite_lab as sl
+
+    monkeypatch.setattr(sl, "has_work", lambda *a, **k: True)
+    now = datetime(2026, 10, 5, 20, 0, tzinfo=rj.KST)
+    assert rj._satellite_lab_due({}, now)
+    assert not rj._satellite_lab_due({"satellite_lab": {"last_started_at": (now - timedelta(hours=3)).isoformat()}}, now)
+    assert rj._satellite_lab_due({"satellite_lab": {"last_started_at": (now - timedelta(hours=21)).isoformat()}}, now)
 
 
 def test_registered_in_process_registry_as_research_default_on():

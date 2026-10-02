@@ -201,13 +201,23 @@ PROCESS_REGISTRY: dict[str, dict] = {
         "label": "검증 연구 작업 실행기",
         "description": (
             "research/jobs/ 에 등록된 사전 등록 검증 연구(결정론 스크립트)를 한가한 시간에 한 번에 하나씩, 낮은 우선순위로 "
-            "실행하고 결과를 텔레그램·관제 센터·저장소(research/results/)로 전달 — AI 호출·주문 없음 (01:00~02:50, 13:00~16:50 KST 20분마다)"
+            "실행하고 결과를 텔레그램·관제 센터·저장소(research/results/)로 전달 — AI 호출·주문 없음 (01:00~02:50, 13:00~16:50 KST 20분마다. "
+            "2주 스프린트 동안(~2026-10-16) 07:50~08:50·10:40~11:50·17:00~23:50 도 연다. 대기 연구가 없으면 새틀라이트 R&D 를 돌린다)"
         ),
         "category": "research", "default_enabled": True,
     },
     "contest_deadline_alert": {
         "label": "AI 대회 마감 알림",
         "description": "관제 센터 'AI 대회'에 등록한 대회의 마감 7일 전·1일 전·당일에 텔레그램 1건씩 — 종료·제출 완료 대회는 제외 (09:00 KST)",
+        "category": "alert", "default_enabled": True,
+    },
+    "champion_recommendation_daily": {
+        "label": "챔피언 지금 할 일 — 아침 자동 재추천",
+        "description": (
+            "챔피언 전략 화면의 '🔄 지금 기준으로 다시 추천'을 매일 아침 대신 눌러 '✅ 지금 할 일' 카드를 오늘 추천으로 "
+            "채우고, 목표 포트폴리오·다음 확인일 요약을 텔레그램 1건으로 보냄 — 계산·저장만 하며 주문 없음. 수 분 걸리고 "
+            "VM 여유가 없으면 최대 30분 기다린 뒤 건너뛰고 실패로 알림 (09:01 KST — 09:00 은 대회 마감 알림 자리)"
+        ),
         "category": "alert", "default_enabled": True,
     },
     "champion_tracking_weekly": {

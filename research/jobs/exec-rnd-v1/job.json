@@ -1,0 +1,13 @@
+{
+  "id": "exec-rnd-v1",
+  "title": "매매 실행 R&D v1 — 언제·얼마에 사고팔까(지정가·나눠 사기·눌림목·익절) vs 리밸런싱 날 종가(사전 등록)",
+  "entrypoint": "research/jobs/exec-rnd-v1/run.py",
+  "args": [],
+  "timeout_seconds": 7200,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 30,
+  "revision": 1
+}

@@ -30,7 +30,7 @@ import sys
 import tempfile
 import time as _time
 from dataclasses import dataclass, field
-from datetime import datetime, time, timedelta, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 from typing import Callable, Optional
 from zoneinfo import ZoneInfo
@@ -42,8 +42,14 @@ KST = ZoneInfo("Asia/Seoul")
 # 13:00~16:50: 한국 낮(=미국 밤) — 12:00 거장 동기화 뒤, 등록된 잡이 하나도 없고 사용자가 근무 중이라 화면을 거의 안 쓴다.
 # 03:00~05:50 에이전트 배치, 06:10 paper 주문, 06:30 백업, 07:30 뉴스, 09:00 대회·09:05 워치독은 피한다.
 RUN_WINDOWS: tuple[tuple[time, time], ...] = ((time(1, 0), time(2, 50)), (time(13, 0), time(16, 50)))
-# 스케줄러 cron(core/job_schedule.py 와 같아야 함): 위 창 안에서 20분마다.
-CRON = {"hour": "1,2,13,14,15,16", "minute": "0,20,40", "timezone": "Asia/Seoul"}
+# 2주 R&D 스프린트(사용자 지시 2026-10-02, research/jobs/sprint-2w): SPRINT_UNTIL(KST 날짜)까지만 잡이 없는 틈을 더 연다.
+# 07:30 뉴스 뒤·09:00 대회 알림/아침 재추천 전, 월요일 09~10시 주간 보고서 뒤·12:00 거장 동기화 전, 17:00~23:50(00:00 야간 블록 전).
+# 이 날짜가 지나면 아래 창은 자동으로 꺼지고(cron 은 그 시각에 깨어나도 '실행 창 밖'으로 바로 끝난다) 기본 창만 남는다.
+SPRINT_UNTIL = date(2026, 10, 16)
+SPRINT_WINDOWS: tuple[tuple[time, time], ...] = ((time(7, 50), time(8, 50)), (time(10, 40), time(11, 50)), (time(17, 0), time(23, 50)))
+# 스케줄러 cron(core/job_schedule.py 와 같아야 함): 기본·스프린트 창 안에서 20분마다.
+CRON = {"hour": "1,2,8,10,11,13,14,15,16,17,18,19,20,21,22,23", "minute": "0,20,40", "timezone": "Asia/Seoul"}
+SATELLITE_LAB_MIN_GAP_HOURS = 20  # 사전 등록 연구가 계속 대기 중이어도 새틀라이트 R&D 가 하루 한 번은 차례를 받는다
 
 END_MARGIN_SECONDS = 120  # 창 끝나기 이만큼 전에 자식이 끝나 있어야 한다
 MIN_BUDGET_SECONDS = 300  # 이보다 짧게 남으면 이번 회차는 시작하지 않는다
@@ -374,10 +380,16 @@ def longest_window_seconds() -> int:
     return max((datetime.combine(datetime.min, e) - datetime.combine(datetime.min, s)).seconds for s, e in RUN_WINDOWS)
 
 
+def active_windows(now: datetime) -> tuple[tuple[time, time], ...]:
+    """지금 유효한 실행 창 — 스프린트 기간(SPRINT_UNTIL 까지)에는 SPRINT_WINDOWS 를 더한다."""
+    local = now.astimezone(KST)
+    return RUN_WINDOWS + (SPRINT_WINDOWS if local.date() <= SPRINT_UNTIL else ())
+
+
 def window_end_for(now: datetime) -> Optional[datetime]:
     """now 가 실행 창 안이면 그 창의 끝(tz-aware), 아니면 None."""
     local = now.astimezone(KST)
-    for start, end in RUN_WINDOWS:
+    for start, end in active_windows(now):
         if start <= local.time() < end:
             return datetime.combine(local.date(), end, tzinfo=KST)
     return None
@@ -1005,6 +1017,10 @@ def run_tick(now: Optional[datetime] = None, *, notify: Optional[Callable[[str],
                     return _finish_tick({"action": "skipped", "reason": "결과 반영 직후 재배포 대기"})
         with edit_state(cfg) as state:
             job, budget, shortened = pick_job(state, jobs, now, window_end)
+            lab_due = job is not None and _satellite_lab_due(state, now)
+        if lab_due and cfg.satellite_lab and os.environ.get("RESEARCH_SATELLITE_LAB", "1") != "0":
+            # 긴 사전 등록 연구(예: 2주 스프린트)가 창을 계속 차지해도 새틀라이트 R&D 가 하루 한 번은 돈다
+            return _finish_tick(_satellite_lab_turn(cfg, now, window_end, notify, headroom, poll_interval))
         if job is None:
             if cfg.satellite_lab and os.environ.get("RESEARCH_SATELLITE_LAB", "1") != "0":
                 return _finish_tick(_satellite_lab_turn(cfg, now, window_end, notify, headroom, poll_interval))
@@ -1041,6 +1057,21 @@ SATELLITE_LAB_JOB = JobDef(
     priority=1000, max_memory_mb=4096, max_disk_mb=1024,
 )
 SATELLITE_LAB_BULK_NOTICE = 3  # 새 판정이 이보다 많으면 한 통으로 묶는다
+
+
+def _satellite_lab_due(state: dict, now: datetime) -> bool:
+    """대기 연구가 있어도 새틀라이트 R&D 차례를 줄 때인가: 마지막 시작이 SATELLITE_LAB_MIN_GAP_HOURS 보다 오래됐고 할 일이 있다."""
+    last = (state.get("satellite_lab") or {}).get("last_started_at")
+    if last:
+        with contextlib.suppress(ValueError):
+            if now - datetime.fromisoformat(last) < timedelta(hours=SATELLITE_LAB_MIN_GAP_HOURS):
+                return False
+    try:
+        from core import satellite_lab as sl
+
+        return sl.has_work()
+    except Exception:  # noqa: BLE001
+        return False
 
 
 def _satellite_lab_turn(cfg: Config, now: datetime, window_end: datetime, notify: Callable[[str], object],
