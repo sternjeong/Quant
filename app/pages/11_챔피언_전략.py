@@ -419,6 +419,37 @@ else:
             "확신도가 약한(weak) 구성요소가 있으며 미래 수익을 보장하지 않습니다(아래 '근거와 확신도')."
         )
 
+    # ---------------- AI 국제정세 의견 (기록만 — core/geo_shadow.py, 2026-10-02) ----------------
+    try:
+        from core import geo_shadow as _gs
+
+        _geo = _gs.latest()
+    except Exception:  # noqa: BLE001 - 의견 원장이 깨져도 화면은 뜬다
+        _geo = None
+    if _geo:
+        _geo_nz = {t: v for t, v in (_geo.get("assets") or {}).items() if v.get("view")}
+        _geo_top = {r["ticker"] for r in _targets}
+        _geo_hit = [t for t in _geo_nz if t in _geo_top and _geo_nz[t]["view"] < 0]
+        with st.expander(
+            f"🌐 AI 국제정세 의견 {_geo['month']} — 기록만, 배분에 반영 안 함"
+            + (f" · 지금 목표 중 주의 {', '.join(_geo_hit)}" if _geo_hit else ""),
+            expanded=False,
+        ):
+            st.caption(
+                "매달 리밸런싱 전에 AI 가 남긴 정세 의견입니다. 과거로 검증할 수 없어 24개월 동안 기록만 하고 그 뒤 미리 정한 규칙으로 "
+                "채점합니다(core/geo_shadow.py). 지금은 참고용이며 위 목표 포트폴리오에 반영되지 않았습니다."
+                f" 기록 시각 {_geo.get('recorded_at')}."
+            )
+            st.markdown(_geo.get("summary") or "")
+            if _geo_nz:
+                st.dataframe(
+                    pd.DataFrame([{"종목": t, "의견": "불리(−1)" if v["view"] < 0 else "유리(+1)",
+                                   "확신도": f"{v['confidence']:.0%}", "이유": v.get("reason")} for t, v in _geo_nz.items()]),
+                    use_container_width=True, hide_index=True,
+                )
+            else:
+                st.caption("이번 달은 모든 자산에 '근거 없음(0)' 의견입니다.")
+
     # ---------------- 추천 상세 (접힘) — 맨 위 카드의 근거 ----------------
     st.markdown("#### 추천 상세 — 근거가 궁금할 때만 보세요")
     _tab_pick, _tab_range, _tab_why = st.tabs([

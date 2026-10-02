@@ -154,6 +154,8 @@ DEAD_END_ROLES = ("scout", "writer", "sat_designer")  # 새 방향을 고르는 
 
 
 def system_prompt(role: str) -> str:
+    if role == "geo_analyst":  # 가설 계약과 무관한 역할 — 자기 지시문만
+        return (PROMPTS / "geo_analyst.md").read_text(encoding="utf-8")
     contract = "_sat_contract.md" if role.startswith("sat_") else "_contract.md"
     parts = [(PROMPTS / f"{role}.md").read_text(encoding="utf-8"), (PROMPTS / contract).read_text(encoding="utf-8")]
     if role in DEAD_END_ROLES and (PROMPTS / "dead_ends.md").is_file():
@@ -208,6 +210,8 @@ def tools_for(role: str, hid: str = "") -> list[str]:
     if role == "sat_critic":
         return ro + [f"Write(research/satellite_lab/variants/{hid}/critic.json)",
                      f"Edit(research/satellite_lab/variants/{hid}/critic.json)"]
+    if role == "geo_analyst":
+        return ["Read", "WebSearch", "WebFetch", f"Write(research/geo_shadow/{hid}.json)", f"Edit(research/geo_shadow/{hid}.json)"]
     raise ValueError(role)
 
 
@@ -268,6 +272,11 @@ def prompt_for(role: str, hid: str, now: datetime, extra: dict) -> str:
     if role == "sat_critic":
         return (f"새틀라이트 아이디어 {hid}: research/satellite_lab/variants/{hid}/ 의 spec.json, signal.py, test_signal.py 를 "
                 f"검토하고 research/satellite_lab/variants/{hid}/critic.json 에 판정을 써라.")
+    if role == "geo_analyst":
+        from core.champion_strategy import CORE_UNIVERSE
+
+        return (f"오늘은 {today}. {hid} 첫 거래일 코어 리밸런싱 전 국제정세 의견을 research/geo_shadow/{hid}.json 에 써라. "
+                f"대상 17자산: {', '.join(CORE_UNIVERSE)}. month 필드는 \"{hid}\".")
     raise ValueError(role)
 
 
@@ -358,6 +367,9 @@ def plan(now: datetime, done: set[tuple[str, str]]) -> Optional[tuple[str, str, 
     room = f["weekly_freeze_cap"] - f["frozen_this_week"] - f["counts"].get(reg.DRAFT, 0)
     if room > 0 and ok("writer"):
         return "writer", "", {"ids": _new_ids(min(room, MAX_SPECS_PER_WRITER), now)}
+    geo = geo_plan(now, done)
+    if geo is not None:
+        return geo
     sat = sat_plan(now, done)
     if sat is not None:
         return sat
@@ -459,6 +471,23 @@ def sat_plan(now: datetime, done: set[tuple[str, str]]) -> Optional[tuple[str, s
     return None
 
 
+# ---------------------------------------------------------------- AI 국제정세 의견 shadow (2026-10-02, core/geo_shadow.py)
+def geo_plan(now: datetime, done: set[tuple[str, str]]) -> Optional[tuple[str, str, dict]]:
+    """매달 25일 이후, 다음 달 의견이 원장에 없으면 geo_analyst 한 번. 초안이 이미 있으면 원장에 넣기만 한다."""
+    from core import geo_shadow as gs
+
+    month = gs.target_month(budget.kst(now).date())
+    if month is None or gs.has_month(month):
+        return None
+    if (gs.DRAFT_DIR / f"{month}.json").exists():
+        gs.ingest_draft(month, now=now)
+        if gs.has_month(month):
+            return None
+    if ("geo_analyst", month) not in done and budget.can_launch("geo_analyst", now)[0]:
+        return "geo_analyst", month, {}
+    return None
+
+
 def _sat_critic(sid: str) -> dict:
     try:
         return json.loads((SAT_WS / sid / "critic.json").read_text(encoding="utf-8"))
@@ -530,6 +559,11 @@ def run_batch(*, now_fn: Callable[[], datetime] = lambda: datetime.now(timezone.
             st = _state(hid)
             st["critic_hash"] = extra["hash"] if _sha(WS / hid / "signal.py") == extra["hash"] else None
             _save_state(hid, st)
+        if role == "geo_analyst":
+            from core import geo_shadow as gs
+
+            _ok, msg = gs.ingest_draft(hid, now=now_fn())
+            log.append(f"국제정세 의견: {msg}")
         if role in ("sat_designer", "sat_critic"):
             from core import satellite_lab as sl
 

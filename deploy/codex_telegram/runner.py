@@ -88,7 +88,7 @@ HYPOTHESIS_ID = re.compile(r'^H-\d{8}-\d{3}$')
 AGENT_ROLES = [('scout', 'Scout 아이디어 수집', 'haiku'), ('writer', 'Writer 가설 작성', 'opus'),
                ('implementer', 'Implementer 코드 작성', 'sonnet'), ('critic', 'Critic 코드 검증', 'opus'),
                ('postmortem', 'Post-mortem 실패 교훈', 'sonnet'), ('sat_designer', '새틀라이트 R&D 아이디어 설계', 'opus'),
-               ('sat_critic', '새틀라이트 R&D 코드 검증', 'opus')]
+               ('sat_critic', '새틀라이트 R&D 코드 검증', 'opus'), ('geo_analyst', 'AI 국제정세 의견(기록만)', 'sonnet')]
 AGENT_MODEL_CHOICES = ('haiku', 'sonnet', 'opus')
 
 

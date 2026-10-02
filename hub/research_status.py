@@ -47,7 +47,8 @@ def _e(v: Any) -> str:
 ROLE_LABELS = {"scout": "Scout — 아이디어 수집", "writer": "Writer — 가설 작성(월·수·금)",
                "implementer": "Implementer — 신호 코드 작성", "critic": "Critic — 코드 검증(수익률 안 봄)",
                "postmortem": "Post-mortem — 실패 교훈(일)",
-               "sat_designer": "새틀라이트 R&D — 아이디어 설계·재작업", "sat_critic": "새틀라이트 R&D — 코드 검증(수익률 안 봄)"}
+               "sat_designer": "새틀라이트 R&D — 아이디어 설계·재작업", "sat_critic": "새틀라이트 R&D — 코드 검증(수익률 안 봄)",
+               "geo_analyst": "AI 국제정세 의견 — 월 1회, 기록만(배분 미반영)"}
 
 
 def render_model_form(data: dict) -> str:

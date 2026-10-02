@@ -1,0 +1,2032 @@
+{
+ "id": "core-rnd-v2",
+ "return_basis": "total(Adj Close)",
+ "judge_version": "core-judge/v1",
+ "generated_at": "2026-10-02T05:32:37+00:00",
+ "smoke": false,
+ "period": [
+  "2008-01-02",
+  "2026-10-01"
+ ],
+ "split": "2024-10-01",
+ "n_trials": 13,
+ "verdicts": {
+  "C01_cash_bil": "FAIL",
+  "C02_tranches4": "FAIL",
+  "C03_multi_horizon": "FAIL",
+  "C04_dual_momentum": "FAIL",
+  "C05_corr_cap": "FAIL",
+  "C06_rank_buffer": "FAIL",
+  "C07_top3": "FAIL",
+  "C08_top5": "FAIL",
+  "C09_inverse_vol": "FAIL",
+  "C10_asset_trend": "FAIL",
+  "C11_credit_filter": "FAIL",
+  "C12_bundle": "FAIL",
+  "C13_total_return_signal": "FAIL"
+ },
+ "incumbent": {
+  "n_days": 4717,
+  "sharpe_daily": 0.049959836193761216,
+  "sharpe_annual": 0.7930878126612956,
+  "cagr": 0.09364081018253834,
+  "ann_vol": 0.12234057619093615,
+  "max_drawdown": -0.19691263953994564,
+  "skew": -0.47304962166858927,
+  "kurtosis": 6.223284253105739,
+  "total_return": 4.341542107736448
+ },
+ "replication": {
+  "days": 5219,
+  "max_abs_weight_diff": 0.0,
+  "ok": true
+ },
+ "variants": {
+  "C01_cash_bil": {
+   "judge_version": "core-judge/v1",
+   "verdict": "FAIL",
+   "reasons": [
+    "G1 IS 초과수익 DSR 0.12 < 0.95 (시도 13)"
+   ],
+   "gates": {
+    "G1_improves_corrected": {
+     "pass": false,
+     "dsr": 0.119,
+     "threshold": 0.95,
+     "n_trials": 13,
+     "active_sharpe_annual": 0.558,
+     "active_ann_return": 0.00135
+    },
+    "G2_holdout": {
+     "pass": true,
+     "split": "2024-10-01",
+     "oos_sharpe": 1.368,
+     "incumbent_oos_sharpe": 1.35
+    },
+    "G3_subperiods": {
+     "pass": true,
+     "active_sum_by_third": [
+      0.0075,
+      0.0028,
+      0.0122
+     ],
+     "periods": [
+      "2008-01-02~2013-07-31",
+      "2013-08-01~2019-03-01",
+      "2019-03-04~2024-09-30"
+     ]
+    },
+    "G4_neighbors": {
+     "pass": true,
+     "neighbor_active_sharpe": [],
+     "note": "이웃 설정 없음 — 생략"
+    },
+    "G5_drawdown": {
+     "pass": true,
+     "is_mdd": -0.198,
+     "incumbent_is_mdd": -0.197
+    }
+   },
+   "stats": {
+    "is": {
+     "n_days": 4215,
+     "sharpe_daily": 0.0465,
+     "sharpe_annual": 0.7374,
+     "cagr": 0.0862,
+     "ann_vol": 0.1223,
+     "max_drawdown": -0.1977,
+     "skew": -0.4764,
+     "kurtosis": 6.2742,
+     "total_return": 2.9851
+    },
+    "oos": {
+     "n_days": 502,
+     "sharpe_daily": 0.0862,
+     "sharpe_annual": 1.3684,
+     "cagr": 0.1742,
+     "ann_vol": 0.1229,
+     "max_drawdown": -0.0978,
+     "skew": -0.4406,
+     "kurtosis": 5.7847,
+     "total_return": 0.3769
+    },
+    "full": {
+     "n_days": 4717,
+     "sharpe_daily": 0.0507,
+     "sharpe_annual": 0.8049,
+     "cagr": 0.0952,
+     "ann_vol": 0.1223,
+     "max_drawdown": -0.1977,
+     "skew": -0.4725,
+     "kurtosis": 6.2234,
+     "total_return": 4.4872
+    }
+   },
+   "incumbent": {
+    "is": {
+     "n_days": 4215,
+     "sharpe_daily": 0.0458,
+     "sharpe_annual": 0.7263,
+     "cagr": 0.0847,
+     "ann_vol": 0.1223,
+     "max_drawdown": -0.1969,
+     "skew": -0.4772,
+     "kurtosis": 6.2739,
+     "total_return": 2.8963
+    },
+    "oos": {
+     "n_days": 502,
+     "sharpe_daily": 0.0851,
+     "sharpe_annual": 1.3504,
+     "cagr": 0.1716,
+     "ann_vol": 0.1229,
+     "max_drawdown": -0.0978,
+     "skew": -0.4393,
+     "kurtosis": 5.7868,
+     "total_return": 0.3709
+    },
+    "full": {
+     "n_days": 4717,
+     "sharpe_daily": 0.05,
+     "sharpe_annual": 0.7931,
+     "cagr": 0.0936,
+     "ann_vol": 0.1223,
+     "max_drawdown": -0.1969,
+     "skew": -0.473,
+     "kurtosis": 6.2233,
+     "total_return": 4.3415
+    }
+   },
+   "title": "놀고 있는 현금 → 단기국채(BIL)",
+   "idea": "시장필터 축소분·빈 슬롯이 수익 0 현금이라 버려진다",
+   "config": {
+    "lookbacks": [
+     252
+    ],
+    "abs_filter": "zero",
+    "top_n": 4,
+    "buffer_n": null,
+    "corr_cap": null,
+    "corr_window": 126,
+    "weighting": "equal",
+    "market_filter": "spy200",
+    "filter_window": 200,
+    "cash": "bil",
+    "tranches": 1,
+    "signal_basis": "price"
+   },
+   "neighbors": []
+  },
+  "C02_tranches4": {
+   "judge_version": "core-judge/v1",
+   "verdict": "FAIL",
+   "reasons": [
+    "G1 IS 초과수익 DSR 0.00 < 0.95 (시도 13)",
+    "G3 IS 3구간 중 초과수익 양수 1개 < 2",
+    "G4 이웃 설정 초과 샤프 [-0.034]"
+   ],
+   "gates": {
+    "G1_improves_corrected": {
+     "pass": false,
+     "dsr": 0.0,
+     "threshold": 0.95,
+     "n_trials": 13,
+     "active_sharpe_annual": -0.224,
+     "active_ann_return": -0.00804
+    },
+    "G2_holdout": {
+     "pass": true,
+     "split": "2024-10-01",
+     "oos_sharpe": 1.523,
+     "incumbent_oos_sharpe": 1.35
+    },
+    "G3_subperiods": {
+     "pass": false,
+     "active_sum_by_third": [
+      -0.0903,
+      0.074,
+      -0.1181
+     ],
+     "periods": [
+      "2008-01-02~2013-07-31",
+      "2013-08-01~2019-03-01",
+      "2019-03-04~2024-09-30"
+     ]
+    },
+    "G4_neighbors": {
+     "pass": false,
+     "neighbor_active_sharpe": [
+      -0.034
+     ],
+     "note": null
+    },
+    "G5_drawdown": {
+     "pass": true,
+     "is_mdd": -0.205,
+     "incumbent_is_mdd": -0.197
+    }
+   },
+   "stats": {
+    "is": {
+     "n_days": 4215,
+     "sharpe_daily": 0.0414,
+     "sharpe_annual": 0.6577,
+     "cagr": 0.0759,
+     "ann_vol": 0.1228,
+     "max_drawdown": -0.2051,
+     "skew": -0.7237,
+     "kurtosis": 8.2636,
+     "total_return": 2.4019
+    },
+    "oos": {
+     "n_days": 502,
+     "sharpe_daily": 0.0959,
+     "sharpe_annual": 1.523,
+     "cagr": 0.1933,
+     "ann_vol": 0.1209,
+     "max_drawdown": -0.0916,
+     "skew": -0.6204,
+     "kurtosis": 6.3809,
+     "total_return": 0.4219
+    },
+    "full": {
+     "n_days": 4717,
+     "sharpe_daily": 0.0471,
+     "sharpe_annual": 0.7484,
+     "cagr": 0.0879,
+     "ann_vol": 0.1226,
+     "max_drawdown": -0.2051,
+     "skew": -0.7136,
+     "kurtosis": 8.0785,
+     "total_return": 3.8373
+    }
+   },
+   "incumbent": {
+    "is": {
+     "n_days": 4215,
+     "sharpe_daily": 0.0458,
+     "sharpe_annual": 0.7263,
+     "cagr": 0.0847,
+     "ann_vol": 0.1223,
+     "max_drawdown": -0.1969,
+     "skew": -0.4772,
+     "kurtosis": 6.2739,
+     "total_return": 2.8963
+    },
+    "oos": {
+     "n_days": 502,
+     "sharpe_daily": 0.0851,
+     "sharpe_annual": 1.3504,
+     "cagr": 0.1716,
+     "ann_vol": 0.1229,
+     "max_drawdown": -0.0978,
+     "skew": -0.4393,
+     "kurtosis": 5.7868,
+     "total_return": 0.3709
+    },
+    "full": {
+     "n_days": 4717,
+     "sharpe_daily": 0.05,
+     "sharpe_annual": 0.7931,
+     "cagr": 0.0936,
+     "ann_vol": 0.1223,
+     "max_drawdown": -0.1969,
+     "skew": -0.473,
+     "kurtosis": 6.2233,
+     "total_return": 4.3415
+    }
+   },
+   "title": "4분할 시차 리밸런싱",
+   "idea": "월 첫 거래일 하루에 모두 바꾸는 날짜 운을 줄인다",
+   "config": {
+    "lookbacks": [
+     252
+    ],
+    "abs_filter": "zero",
+    "top_n": 4,
+    "buffer_n": null,
+    "corr_cap": null,
+    "corr_window": 126,
+    "weighting": "equal",
+    "market_filter": "spy200",
+    "filter_window": 200,
+    "cash": "zero",
+    "tranches": 4,
+    "signal_basis": "price"
+   },
+   "neighbors": [
+    {
+     "lookbacks": [
+      252
+     ],
+     "abs_filter": "zero",
+     "top_n": 4,
+     "buffer_n": null,
+     "corr_cap": null,
+     "corr_window": 126,
+     "weighting": "equal",
+     "market_filter": "spy200",
+     "filter_window": 200,
+     "cash": "zero",
+     "tranches": 2,
+     "signal_basis": "price"
+    }
+   ]
+  },
+  "C03_multi_horizon": {
+   "judge_version": "core-judge/v1",
+   "verdict": "FAIL",
+   "reasons": [
+    "G1 IS 초과수익 DSR 0.00 < 0.95 (시도 13)",
+    "G2 떼어 둔 2년 샤프 1.22 < 현 코어 1.35",
+    "G3 IS 3구간 중 초과수익 양수 1개 < 2",
+    "G4 이웃 설정 초과 샤프 [0.024, -0.065]"
+   ],
+   "gates": {
+    "G1_improves_corrected": {
+     "pass": false,
+     "dsr": 0.0002,
+     "threshold": 0.95,
+     "n_trials": 13,
+     "active_sharpe_annual": -0.023,
+     "active_ann_return": -0.00102
+    },
+    "G2_holdout": {
+     "pass": false,
+     "split": "2024-10-01",
+     "oos_sharpe": 1.221,
+     "incumbent_oos_sharpe": 1.35
+    },
+    "G3_subperiods": {
+     "pass": false,
+     "active_sum_by_third": [
+      -0.1531,
+      0.1908,
+      -0.0549
+     ],
+     "periods": [
+      "2008-01-02~2013-07-31",
+      "2013-08-01~2019-03-01",
+      "2019-03-04~2024-09-30"
+     ]
+    },
+    "G4_neighbors": {
+     "pass": false,
+     "neighbor_active_sharpe": [
+      0.024,
+      -0.065
+     ],
+     "note": null
+    },
+    "G5_drawdown": {
+     "pass": true,
+     "is_mdd": -0.154,
+     "incumbent_is_mdd": -0.197
+    }
+   },
+   "stats": {
+    "is": {
+     "n_days": 4215,
+     "sharpe_daily": 0.0455,
+     "sharpe_annual": 0.7217,
+     "cagr": 0.0837,
+     "ann_vol": 0.1216,
+     "max_drawdown": -0.1542,
+     "skew": -0.4729,
+     "kurtosis": 6.5766,
+     "total_return": 2.8352
+    },
+    "oos": {
+     "n_days": 502,
+     "sharpe_daily": 0.0769,
+     "sharpe_annual": 1.2211,
+     "cagr": 0.152,
+     "ann_vol": 0.122,
+     "max_drawdown": -0.0866,
+     "skew": -0.4288,
+     "kurtosis": 5.3605,
+     "total_return": 0.3257
+    },
+    "full": {
+     "n_days": 4717,
+     "sharpe_daily": 0.0488,
+     "sharpe_annual": 0.7751,
+     "cagr": 0.0908,
+     "ann_vol": 0.1217,
+     "max_drawdown": -0.1542,
+     "skew": -0.4682,
+     "kurtosis": 6.4483,
+     "total_return": 4.0842
+    }
+   },
+   "incumbent": {
+    "is": {
+     "n_days": 4215,
+     "sharpe_daily": 0.0458,
+     "sharpe_annual": 0.7263,
+     "cagr": 0.0847,
+     "ann_vol": 0.1223,
+     "max_drawdown": -0.1969,
+     "skew": -0.4772,
+     "kurtosis": 6.2739,
+     "total_return": 2.8963
+    },
+    "oos": {
+     "n_days": 502,
+     "sharpe_daily": 0.0851,
+     "sharpe_annual": 1.3504,
+     "cagr": 0.1716,
+     "ann_vol": 0.1229,
+     "max_drawdown": -0.0978,
+     "skew": -0.4393,
+     "kurtosis": 5.7868,
+     "total_return": 0.3709
+    },
+    "full": {
+     "n_days": 4717,
+     "sharpe_daily": 0.05,
+     "sharpe_annual": 0.7931,
+     "cagr": 0.0936,
+     "ann_vol": 0.1223,
+     "max_drawdown": -0.1969,
+     "skew": -0.473,
+     "kurtosis": 6.2233,
+     "total_return": 4.3415
+    }
+   },
+   "title": "3·6·9·12개월 모멘텀 순위 평균",
+   "idea": "12개월 한 기간에 거는 대신 기간을 분산한다",
+   "config": {
+    "lookbacks": [
+     63,
+     126,
+     189,
+     252
+    ],
+    "abs_filter": "zero",
+    "top_n": 4,
+    "buffer_n": null,
+    "corr_cap": null,
+    "corr_window": 126,
+    "weighting": "equal",
+    "market_filter": "spy200",
+    "filter_window": 200,
+    "cash": "zero",
+    "tranches": 1,
+    "signal_basis": "price"
+   },
+   "neighbors": [
+    {
+     "lookbacks": [
+      126,
+      189,
+      252
+     ],
+     "abs_filter": "zero",
+     "top_n": 4,
+     "buffer_n": null,
+     "corr_cap": null,
+     "corr_window": 126,
+     "weighting": "equal",
+     "market_filter": "spy200",
+     "filter_window": 200,
+     "cash": "zero",
+     "tranches": 1,
+     "signal_basis": "price"
+    },
+    {
+     "lookbacks": [
+      63,
+      126,
+      252
+     ],
+     "abs_filter": "zero",
+     "top_n": 4,
+     "buffer_n": null,
+     "corr_cap": null,
+     "corr_window": 126,
+     "weighting": "equal",
+     "market_filter": "spy200",
+     "filter_window": 200,
+     "cash": "zero",
+     "tranches": 1,
+     "signal_basis": "price"
+    }
+   ]
+  },
+  "C04_dual_momentum": {
+   "judge_version": "core-judge/v1",
+   "verdict": "FAIL",
+   "reasons": [
+    "G1 IS 초과수익 DSR 0.07 < 0.95 (시도 13)"
+   ],
+   "gates": {
+    "G1_improves_corrected": {
+     "pass": false,
+     "dsr": 0.0655,
+     "threshold": 0.95,
+     "n_trials": 13,
+     "active_sharpe_annual": 0.479,
+     "active_ann_return": 0.00154
+    },
+    "G2_holdout": {
+     "pass": true,
+     "split": "2024-10-01",
+     "oos_sharpe": 1.368,
+     "incumbent_oos_sharpe": 1.35
+    },
+    "G3_subperiods": {
+     "pass": true,
+     "active_sum_by_third": [
+      0.0107,
+      0.0028,
+      0.0122
+     ],
+     "periods": [
+      "2008-01-02~2013-07-31",
+      "2013-08-01~2019-03-01",
+      "2019-03-04~2024-09-30"
+     ]
+    },
+    "G4_neighbors": {
+     "pass": true,
+     "neighbor_active_sharpe": [],
+     "note": "이웃 설정 없음 — 생략"
+    },
+    "G5_drawdown": {
+     "pass": true,
+     "is_mdd": -0.198,
+     "incumbent_is_mdd": -0.197
+    }
+   },
+   "stats": {
+    "is": {
+     "n_days": 4215,
+     "sharpe_daily": 0.0465,
+     "sharpe_annual": 0.7387,
+     "cagr": 0.0864,
+     "ann_vol": 0.1223,
+     "max_drawdown": -0.1977,
+     "skew": -0.4759,
+     "kurtosis": 6.2664,
+     "total_return": 2.9976
+    },
+    "oos": {
+     "n_days": 502,
+     "sharpe_daily": 0.0862,
+     "sharpe_annual": 1.3684,
+     "cagr": 0.1742,
+     "ann_vol": 0.1229,
+     "max_drawdown": -0.0978,
+     "skew": -0.4406,
+     "kurtosis": 5.7847,
+     "total_return": 0.3769
+    },
+    "full": {
+     "n_days": 4717,
+     "sharpe_daily": 0.0508,
+     "sharpe_annual": 0.806,
+     "cagr": 0.0954,
+     "ann_vol": 0.1224,
+     "max_drawdown": -0.1977,
+     "skew": -0.472,
+     "kurtosis": 6.2164,
+     "total_return": 4.5044
+    }
+   },
+   "incumbent": {
+    "is": {
+     "n_days": 4215,
+     "sharpe_daily": 0.0458,
+     "sharpe_annual": 0.7263,
+     "cagr": 0.0847,
+     "ann_vol": 0.1223,
+     "max_drawdown": -0.1969,
+     "skew": -0.4772,
+     "kurtosis": 6.2739,
+     "total_return": 2.8963
+    },
+    "oos": {
+     "n_days": 502,
+     "sharpe_daily": 0.0851,
+     "sharpe_annual": 1.3504,
+     "cagr": 0.1716,
+     "ann_vol": 0.1229,
+     "max_drawdown": -0.0978,
+     "skew": -0.4393,
+     "kurtosis": 5.7868,
+     "total_return": 0.3709
+    },
+    "full": {
+     "n_days": 4717,
+     "sharpe_daily": 0.05,
+     "sharpe_annual": 0.7931,
+     "cagr": 0.0936,
+     "ann_vol": 0.1223,
+     "max_drawdown": -0.1969,
+     "skew": -0.473,
+     "kurtosis": 6.2233,
+     "total_return": 4.3415
+    }
+   },
+   "title": "현금보다 나을 때만 사기(+현금→BIL)",
+   "idea": "12개월 수익률이 단기국채보다 나은 자산만 후보(Antonacci)",
+   "config": {
+    "lookbacks": [
+     252
+    ],
+    "abs_filter": "bil",
+    "top_n": 4,
+    "buffer_n": null,
+    "corr_cap": null,
+    "corr_window": 126,
+    "weighting": "equal",
+    "market_filter": "spy200",
+    "filter_window": 200,
+    "cash": "bil",
+    "tranches": 1,
+    "signal_basis": "price"
+   },
+   "neighbors": []
+  },
+  "C05_corr_cap": {
+   "judge_version": "core-judge/v1",
+   "verdict": "FAIL",
+   "reasons": [
+    "G1 IS 초과수익 DSR 0.00 < 0.95 (시도 13)",
+    "G2 떼어 둔 2년 샤프 1.28 < 현 코어 1.35",
+    "G3 IS 3구간 중 초과수익 양수 1개 < 2",
+    "G4 이웃 설정 초과 샤프 [-0.559, -0.144]"
+   ],
+   "gates": {
+    "G1_improves_corrected": {
+     "pass": false,
+     "dsr": 0.0,
+     "threshold": 0.95,
+     "n_trials": 13,
+     "active_sharpe_annual": -0.324,
+     "active_ann_return": -0.01241
+    },
+    "G2_holdout": {
+     "pass": false,
+     "split": "2024-10-01",
+     "oos_sharpe": 1.278,
+     "incumbent_oos_sharpe": 1.35
+    },
+    "G3_subperiods": {
+     "pass": false,
+     "active_sum_by_third": [
+      -0.166,
+      0.0178,
+      -0.0595
+     ],
+     "periods": [
+      "2008-01-02~2013-07-31",
+      "2013-08-01~2019-03-01",
+      "2019-03-04~2024-09-30"
+     ]
+    },
+    "G4_neighbors": {
+     "pass": false,
+     "neighbor_active_sharpe": [
+      -0.559,
+      -0.144
+     ],
+     "note": null
+    },
+    "G5_drawdown": {
+     "pass": true,
+     "is_mdd": -0.169,
+     "incumbent_is_mdd": -0.197
+    }
+   },
+   "stats": {
+    "is": {
+     "n_days": 4215,
+     "sharpe_daily": 0.0427,
+     "sharpe_annual": 0.6783,
+     "cagr": 0.0725,
+     "ann_vol": 0.1126,
+     "max_drawdown": -0.1689,
+     "skew": -0.5569,
+     "kurtosis": 6.546,
+     "total_return": 2.2266
+    },
+    "oos": {
+     "n_days": 502,
+     "sharpe_daily": 0.0805,
+     "sharpe_annual": 1.2778,
+     "cagr": 0.16,
+     "ann_vol": 0.122,
+     "max_drawdown": -0.0978,
+     "skew": -0.4685,
+     "kurtosis": 5.882,
+     "total_return": 0.344
+    },
+    "full": {
+     "n_days": 4717,
+     "sharpe_daily": 0.047,
+     "sharpe_annual": 0.7466,
+     "cagr": 0.0815,
+     "ann_vol": 0.1137,
+     "max_drawdown": -0.1689,
+     "skew": -0.5438,
+     "kurtosis": 6.4716,
+     "total_return": 3.3364
+    }
+   },
+   "incumbent": {
+    "is": {
+     "n_days": 4215,
+     "sharpe_daily": 0.0458,
+     "sharpe_annual": 0.7263,
+     "cagr": 0.0847,
+     "ann_vol": 0.1223,
+     "max_drawdown": -0.1969,
+     "skew": -0.4772,
+     "kurtosis": 6.2739,
+     "total_return": 2.8963
+    },
+    "oos": {
+     "n_days": 502,
+     "sharpe_daily": 0.0851,
+     "sharpe_annual": 1.3504,
+     "cagr": 0.1716,
+     "ann_vol": 0.1229,
+     "max_drawdown": -0.0978,
+     "skew": -0.4393,
+     "kurtosis": 5.7868,
+     "total_return": 0.3709
+    },
+    "full": {
+     "n_days": 4717,
+     "sharpe_daily": 0.05,
+     "sharpe_annual": 0.7931,
+     "cagr": 0.0936,
+     "ann_vol": 0.1223,
+     "max_drawdown": -0.1969,
+     "skew": -0.473,
+     "kurtosis": 6.2233,
+     "total_return": 4.3415
+    }
+   },
+   "title": "상관 높은 자산 겹치지 않기(0.8)",
+   "idea": "DBC·XLE 처럼 사실상 같은 위험에 두 번 거는 것을 막는다",
+   "config": {
+    "lookbacks": [
+     252
+    ],
+    "abs_filter": "zero",
+    "top_n": 4,
+    "buffer_n": null,
+    "corr_cap": 0.8,
+    "corr_window": 126,
+    "weighting": "equal",
+    "market_filter": "spy200",
+    "filter_window": 200,
+    "cash": "zero",
+    "tranches": 1,
+    "signal_basis": "price"
+   },
+   "neighbors": [
+    {
+     "lookbacks": [
+      252
+     ],
+     "abs_filter": "zero",
+     "top_n": 4,
+     "buffer_n": null,
+     "corr_cap": 0.7,
+     "corr_window": 126,
+     "weighting": "equal",
+     "market_filter": "spy200",
+     "filter_window": 200,
+     "cash": "zero",
+     "tranches": 1,
+     "signal_basis": "price"
+    },
+    {
+     "lookbacks": [
+      252
+     ],
+     "abs_filter": "zero",
+     "top_n": 4,
+     "buffer_n": null,
+     "corr_cap": 0.9,
+     "corr_window": 126,
+     "weighting": "equal",
+     "market_filter": "spy200",
+     "filter_window": 200,
+     "cash": "zero",
+     "tranches": 1,
+     "signal_basis": "price"
+    }
+   ]
+  },
+  "C06_rank_buffer": {
+   "judge_version": "core-judge/v1",
+   "verdict": "FAIL",
+   "reasons": [
+    "G1 IS 초과수익 DSR 0.00 < 0.95 (시도 13)",
+    "G3 IS 3구간 중 초과수익 양수 1개 < 2",
+    "G4 이웃 설정 초과 샤프 [-0.396, -0.024]"
+   ],
+   "gates": {
+    "G1_improves_corrected": {
+     "pass": false,
+     "dsr": 0.0,
+     "threshold": 0.95,
+     "n_trials": 13,
+     "active_sharpe_annual": -0.247,
+     "active_ann_return": -0.0091
+    },
+    "G2_holdout": {
+     "pass": true,
+     "split": "2024-10-01",
+     "oos_sharpe": 1.381,
+     "incumbent_oos_sharpe": 1.35
+    },
+    "G3_subperiods": {
+     "pass": false,
+     "active_sum_by_third": [
+      -0.0671,
+      0.0663,
+      -0.1514
+     ],
+     "periods": [
+      "2008-01-02~2013-07-31",
+      "2013-08-01~2019-03-01",
+      "2019-03-04~2024-09-30"
+     ]
+    },
+    "G4_neighbors": {
+     "pass": false,
+     "neighbor_active_sharpe": [
+      -0.396,
+      -0.024
+     ],
+     "note": null
+    },
+    "G5_drawdown": {
+     "pass": true,
+     "is_mdd": -0.176,
+     "incumbent_is_mdd": -0.197
+    }
+   },
+   "stats": {
+    "is": {
+     "n_days": 4215,
+     "sharpe_daily": 0.0407,
+     "sharpe_annual": 0.6458,
+     "cagr": 0.0747,
+     "ann_vol": 0.1234,
+     "max_drawdown": -0.1757,
+     "skew": -0.5145,
+     "kurtosis": 6.811,
+     "total_return": 2.3381
+    },
+    "oos": {
+     "n_days": 502,
+     "sharpe_daily": 0.087,
+     "sharpe_annual": 1.3813,
+     "cagr": 0.1897,
+     "ann_vol": 0.1321,
+     "max_drawdown": -0.124,
+     "skew": -0.2704,
+     "kurtosis": 6.0728,
+     "total_return": 0.4133
+    },
+    "full": {
+     "n_days": 4717,
+     "sharpe_daily": 0.0459,
+     "sharpe_annual": 0.7287,
+     "cagr": 0.0864,
+     "ann_vol": 0.1244,
+     "max_drawdown": -0.1757,
+     "skew": -0.4816,
+     "kurtosis": 6.7293,
+     "total_return": 3.7179
+    }
+   },
+   "incumbent": {
+    "is": {
+     "n_days": 4215,
+     "sharpe_daily": 0.0458,
+     "sharpe_annual": 0.7263,
+     "cagr": 0.0847,
+     "ann_vol": 0.1223,
+     "max_drawdown": -0.1969,
+     "skew": -0.4772,
+     "kurtosis": 6.2739,
+     "total_return": 2.8963
+    },
+    "oos": {
+     "n_days": 502,
+     "sharpe_daily": 0.0851,
+     "sharpe_annual": 1.3504,
+     "cagr": 0.1716,
+     "ann_vol": 0.1229,
+     "max_drawdown": -0.0978,
+     "skew": -0.4393,
+     "kurtosis": 5.7868,
+     "total_return": 0.3709
+    },
+    "full": {
+     "n_days": 4717,
+     "sharpe_daily": 0.05,
+     "sharpe_annual": 0.7931,
+     "cagr": 0.0936,
+     "ann_vol": 0.1223,
+     "max_drawdown": -0.1969,
+     "skew": -0.473,
+     "kurtosis": 6.2233,
+     "total_return": 4.3415
+    }
+   },
+   "title": "순위 완충(6위까지 유지)",
+   "idea": "4·5위가 엎치락뒤치락할 때의 불필요한 매매를 줄인다",
+   "config": {
+    "lookbacks": [
+     252
+    ],
+    "abs_filter": "zero",
+    "top_n": 4,
+    "buffer_n": 6,
+    "corr_cap": null,
+    "corr_window": 126,
+    "weighting": "equal",
+    "market_filter": "spy200",
+    "filter_window": 200,
+    "cash": "zero",
+    "tranches": 1,
+    "signal_basis": "price"
+   },
+   "neighbors": [
+    {
+     "lookbacks": [
+      252
+     ],
+     "abs_filter": "zero",
+     "top_n": 4,
+     "buffer_n": 5,
+     "corr_cap": null,
+     "corr_window": 126,
+     "weighting": "equal",
+     "market_filter": "spy200",
+     "filter_window": 200,
+     "cash": "zero",
+     "tranches": 1,
+     "signal_basis": "price"
+    },
+    {
+     "lookbacks": [
+      252
+     ],
+     "abs_filter": "zero",
+     "top_n": 4,
+     "buffer_n": 7,
+     "corr_cap": null,
+     "corr_window": 126,
+     "weighting": "equal",
+     "market_filter": "spy200",
+     "filter_window": 200,
+     "cash": "zero",
+     "tranches": 1,
+     "signal_basis": "price"
+    }
+   ]
+  },
+  "C07_top3": {
+   "judge_version": "core-judge/v1",
+   "verdict": "FAIL",
+   "reasons": [
+    "G1 IS 초과수익 DSR 0.00 < 0.95 (시도 13)",
+    "G2 떼어 둔 2년 샤프 1.22 < 현 코어 1.35",
+    "G3 IS 3구간 중 초과수익 양수 1개 < 2"
+   ],
+   "gates": {
+    "G1_improves_corrected": {
+     "pass": false,
+     "dsr": 0.0001,
+     "threshold": 0.95,
+     "n_trials": 13,
+     "active_sharpe_annual": -0.035,
+     "active_ann_return": -0.00111
+    },
+    "G2_holdout": {
+     "pass": false,
+     "split": "2024-10-01",
+     "oos_sharpe": 1.222,
+     "incumbent_oos_sharpe": 1.35
+    },
+    "G3_subperiods": {
+     "pass": false,
+     "active_sum_by_third": [
+      -0.0294,
+      0.0495,
+      -0.0387
+     ],
+     "periods": [
+      "2008-01-02~2013-07-31",
+      "2013-08-01~2019-03-01",
+      "2019-03-04~2024-09-30"
+     ]
+    },
+    "G4_neighbors": {
+     "pass": true,
+     "neighbor_active_sharpe": [],
+     "note": "이웃 설정 없음 — 생략"
+    },
+    "G5_drawdown": {
+     "pass": true,
+     "is_mdd": -0.201,
+     "incumbent_is_mdd": -0.197
+    }
+   },
+   "stats": {
+    "is": {
+     "n_days": 4215,
+     "sharpe_daily": 0.0424,
+     "sharpe_annual": 0.6727,
+     "cagr": 0.0824,
+     "ann_vol": 0.1304,
+     "max_drawdown": -0.2006,
+     "skew": -0.4579,
+     "kurtosis": 5.9959,
+     "total_return": 2.7597
+    },
+    "oos": {
+     "n_days": 502,
+     "sharpe_daily": 0.077,
+     "sharpe_annual": 1.2216,
+     "cagr": 0.1715,
+     "ann_vol": 0.1373,
+     "max_drawdown": -0.1347,
+     "skew": -0.5664,
+     "kurtosis": 6.1586,
+     "total_return": 0.3707
+    },
+    "full": {
+     "n_days": 4717,
+     "sharpe_daily": 0.0462,
+     "sharpe_annual": 0.7338,
+     "cagr": 0.0915,
+     "ann_vol": 0.1311,
+     "max_drawdown": -0.2006,
+     "skew": -0.4703,
+     "kurtosis": 6.0225,
+     "total_return": 4.1534
+    }
+   },
+   "incumbent": {
+    "is": {
+     "n_days": 4215,
+     "sharpe_daily": 0.0458,
+     "sharpe_annual": 0.7263,
+     "cagr": 0.0847,
+     "ann_vol": 0.1223,
+     "max_drawdown": -0.1969,
+     "skew": -0.4772,
+     "kurtosis": 6.2739,
+     "total_return": 2.8963
+    },
+    "oos": {
+     "n_days": 502,
+     "sharpe_daily": 0.0851,
+     "sharpe_annual": 1.3504,
+     "cagr": 0.1716,
+     "ann_vol": 0.1229,
+     "max_drawdown": -0.0978,
+     "skew": -0.4393,
+     "kurtosis": 5.7868,
+     "total_return": 0.3709
+    },
+    "full": {
+     "n_days": 4717,
+     "sharpe_daily": 0.05,
+     "sharpe_annual": 0.7931,
+     "cagr": 0.0936,
+     "ann_vol": 0.1223,
+     "max_drawdown": -0.1969,
+     "skew": -0.473,
+     "kurtosis": 6.2233,
+     "total_return": 4.3415
+    }
+   },
+   "title": "3종목",
+   "idea": "더 강한 모멘텀에 집중",
+   "config": {
+    "lookbacks": [
+     252
+    ],
+    "abs_filter": "zero",
+    "top_n": 3,
+    "buffer_n": null,
+    "corr_cap": null,
+    "corr_window": 126,
+    "weighting": "equal",
+    "market_filter": "spy200",
+    "filter_window": 200,
+    "cash": "zero",
+    "tranches": 1,
+    "signal_basis": "price"
+   },
+   "neighbors": []
+  },
+  "C08_top5": {
+   "judge_version": "core-judge/v1",
+   "verdict": "FAIL",
+   "reasons": [
+    "G1 IS 초과수익 DSR 0.00 < 0.95 (시도 13)",
+    "G3 IS 3구간 중 초과수익 양수 1개 < 2"
+   ],
+   "gates": {
+    "G1_improves_corrected": {
+     "pass": false,
+     "dsr": 0.0,
+     "threshold": 0.95,
+     "n_trials": 13,
+     "active_sharpe_annual": -0.412,
+     "active_ann_return": -0.00947
+    },
+    "G2_holdout": {
+     "pass": true,
+     "split": "2024-10-01",
+     "oos_sharpe": 1.479,
+     "incumbent_oos_sharpe": 1.35
+    },
+    "G3_subperiods": {
+     "pass": false,
+     "active_sum_by_third": [
+      -0.0922,
+      0.0236,
+      -0.0897
+     ],
+     "periods": [
+      "2008-01-02~2013-07-31",
+      "2013-08-01~2019-03-01",
+      "2019-03-04~2024-09-30"
+     ]
+    },
+    "G4_neighbors": {
+     "pass": true,
+     "neighbor_active_sharpe": [],
+     "note": "이웃 설정 없음 — 생략"
+    },
+    "G5_drawdown": {
+     "pass": true,
+     "is_mdd": -0.154,
+     "incumbent_is_mdd": -0.197
+    }
+   },
+   "stats": {
+    "is": {
+     "n_days": 4215,
+     "sharpe_daily": 0.0425,
+     "sharpe_annual": 0.6747,
+     "cagr": 0.0751,
+     "ann_vol": 0.1176,
+     "max_drawdown": -0.1543,
+     "skew": -0.526,
+     "kurtosis": 6.9389,
+     "total_return": 2.3572
+    },
+    "oos": {
+     "n_days": 502,
+     "sharpe_daily": 0.0932,
+     "sharpe_annual": 1.4788,
+     "cagr": 0.1822,
+     "ann_vol": 0.1179,
+     "max_drawdown": -0.0868,
+     "skew": -0.475,
+     "kurtosis": 5.3075,
+     "total_return": 0.3957
+    },
+    "full": {
+     "n_days": 4717,
+     "sharpe_daily": 0.0479,
+     "sharpe_annual": 0.7605,
+     "cagr": 0.086,
+     "ann_vol": 0.1176,
+     "max_drawdown": -0.1543,
+     "skew": -0.5205,
+     "kurtosis": 6.7657,
+     "total_return": 3.6855
+    }
+   },
+   "incumbent": {
+    "is": {
+     "n_days": 4215,
+     "sharpe_daily": 0.0458,
+     "sharpe_annual": 0.7263,
+     "cagr": 0.0847,
+     "ann_vol": 0.1223,
+     "max_drawdown": -0.1969,
+     "skew": -0.4772,
+     "kurtosis": 6.2739,
+     "total_return": 2.8963
+    },
+    "oos": {
+     "n_days": 502,
+     "sharpe_daily": 0.0851,
+     "sharpe_annual": 1.3504,
+     "cagr": 0.1716,
+     "ann_vol": 0.1229,
+     "max_drawdown": -0.0978,
+     "skew": -0.4393,
+     "kurtosis": 5.7868,
+     "total_return": 0.3709
+    },
+    "full": {
+     "n_days": 4717,
+     "sharpe_daily": 0.05,
+     "sharpe_annual": 0.7931,
+     "cagr": 0.0936,
+     "ann_vol": 0.1223,
+     "max_drawdown": -0.1969,
+     "skew": -0.473,
+     "kurtosis": 6.2233,
+     "total_return": 4.3415
+    }
+   },
+   "title": "5종목",
+   "idea": "더 넓게 분산",
+   "config": {
+    "lookbacks": [
+     252
+    ],
+    "abs_filter": "zero",
+    "top_n": 5,
+    "buffer_n": null,
+    "corr_cap": null,
+    "corr_window": 126,
+    "weighting": "equal",
+    "market_filter": "spy200",
+    "filter_window": 200,
+    "cash": "zero",
+    "tranches": 1,
+    "signal_basis": "price"
+   },
+   "neighbors": []
+  },
+  "C09_inverse_vol": {
+   "judge_version": "core-judge/v1",
+   "verdict": "FAIL",
+   "reasons": [
+    "G1 IS 초과수익 DSR 0.00 < 0.95 (시도 13)",
+    "G3 IS 3구간 중 초과수익 양수 1개 < 2"
+   ],
+   "gates": {
+    "G1_improves_corrected": {
+     "pass": false,
+     "dsr": 0.0,
+     "threshold": 0.95,
+     "n_trials": 13,
+     "active_sharpe_annual": -0.147,
+     "active_ann_return": -0.00276
+    },
+    "G2_holdout": {
+     "pass": true,
+     "split": "2024-10-01",
+     "oos_sharpe": 1.455,
+     "incumbent_oos_sharpe": 1.35
+    },
+    "G3_subperiods": {
+     "pass": false,
+     "active_sum_by_third": [
+      0.1064,
+      -0.0189,
+      -0.1337
+     ],
+     "periods": [
+      "2008-01-02~2013-07-31",
+      "2013-08-01~2019-03-01",
+      "2019-03-04~2024-09-30"
+     ]
+    },
+    "G4_neighbors": {
+     "pass": true,
+     "neighbor_active_sharpe": [],
+     "note": "이웃 설정 없음 — 생략"
+    },
+    "G5_drawdown": {
+     "pass": true,
+     "is_mdd": -0.197,
+     "incumbent_is_mdd": -0.197
+    }
+   },
+   "stats": {
+    "is": {
+     "n_days": 4215,
+     "sharpe_daily": 0.0458,
+     "sharpe_annual": 0.7271,
+     "cagr": 0.0822,
+     "ann_vol": 0.1183,
+     "max_drawdown": -0.1974,
+     "skew": -0.4946,
+     "kurtosis": 6.4782,
+     "total_return": 2.7501
+    },
+    "oos": {
+     "n_days": 502,
+     "sharpe_daily": 0.0917,
+     "sharpe_annual": 1.4551,
+     "cagr": 0.1803,
+     "ann_vol": 0.1188,
+     "max_drawdown": -0.0952,
+     "skew": -0.3801,
+     "kurtosis": 5.4612,
+     "total_return": 0.3913
+    },
+    "full": {
+     "n_days": 4717,
+     "sharpe_daily": 0.0507,
+     "sharpe_annual": 0.8049,
+     "cagr": 0.0923,
+     "ann_vol": 0.1184,
+     "max_drawdown": -0.1974,
+     "skew": -0.4822,
+     "kurtosis": 6.3718,
+     "total_return": 4.2175
+    }
+   },
+   "incumbent": {
+    "is": {
+     "n_days": 4215,
+     "sharpe_daily": 0.0458,
+     "sharpe_annual": 0.7263,
+     "cagr": 0.0847,
+     "ann_vol": 0.1223,
+     "max_drawdown": -0.1969,
+     "skew": -0.4772,
+     "kurtosis": 6.2739,
+     "total_return": 2.8963
+    },
+    "oos": {
+     "n_days": 502,
+     "sharpe_daily": 0.0851,
+     "sharpe_annual": 1.3504,
+     "cagr": 0.1716,
+     "ann_vol": 0.1229,
+     "max_drawdown": -0.0978,
+     "skew": -0.4393,
+     "kurtosis": 5.7868,
+     "total_return": 0.3709
+    },
+    "full": {
+     "n_days": 4717,
+     "sharpe_daily": 0.05,
+     "sharpe_annual": 0.7931,
+     "cagr": 0.0936,
+     "ann_vol": 0.1223,
+     "max_drawdown": -0.1969,
+     "skew": -0.473,
+     "kurtosis": 6.2233,
+     "total_return": 4.3415
+    }
+   },
+   "title": "변동성 반비례 비중",
+   "idea": "같은 위험을 나눠 지도록 덜 흔들리는 자산에 더 싣는다",
+   "config": {
+    "lookbacks": [
+     252
+    ],
+    "abs_filter": "zero",
+    "top_n": 4,
+    "buffer_n": null,
+    "corr_cap": null,
+    "corr_window": 126,
+    "weighting": "inverse_vol",
+    "market_filter": "spy200",
+    "filter_window": 200,
+    "cash": "zero",
+    "tranches": 1,
+    "signal_basis": "price"
+   },
+   "neighbors": []
+  },
+  "C10_asset_trend": {
+   "judge_version": "core-judge/v1",
+   "verdict": "FAIL",
+   "reasons": [
+    "G1 IS 초과수익 DSR 0.00 < 0.95 (시도 13)",
+    "G2 떼어 둔 2년 샤프 1.24 < 현 코어 1.35",
+    "G3 IS 3구간 중 초과수익 양수 1개 < 2",
+    "G4 이웃 설정 초과 샤프 [-0.141, -0.056]"
+   ],
+   "gates": {
+    "G1_improves_corrected": {
+     "pass": false,
+     "dsr": 0.0,
+     "threshold": 0.95,
+     "n_trials": 13,
+     "active_sharpe_annual": -0.155,
+     "active_ann_return": -0.0057
+    },
+    "G2_holdout": {
+     "pass": false,
+     "split": "2024-10-01",
+     "oos_sharpe": 1.238,
+     "incumbent_oos_sharpe": 1.35
+    },
+    "G3_subperiods": {
+     "pass": false,
+     "active_sum_by_third": [
+      -0.1149,
+      0.0533,
+      -0.0336
+     ],
+     "periods": [
+      "2008-01-02~2013-07-31",
+      "2013-08-01~2019-03-01",
+      "2019-03-04~2024-09-30"
+     ]
+    },
+    "G4_neighbors": {
+     "pass": false,
+     "neighbor_active_sharpe": [
+      -0.141,
+      -0.056
+     ],
+     "note": null
+    },
+    "G5_drawdown": {
+     "pass": true,
+     "is_mdd": -0.189,
+     "incumbent_is_mdd": -0.197
+    }
+   },
+   "stats": {
+    "is": {
+     "n_days": 4215,
+     "sharpe_daily": 0.0405,
+     "sharpe_annual": 0.6434,
+     "cagr": 0.0776,
+     "ann_vol": 0.1292,
+     "max_drawdown": -0.189,
+     "skew": -0.5024,
+     "kurtosis": 6.3267,
+     "total_return": 2.4911
+    },
+    "oos": {
+     "n_days": 502,
+     "sharpe_daily": 0.078,
+     "sharpe_annual": 1.2385,
+     "cagr": 0.1705,
+     "ann_vol": 0.1344,
+     "max_drawdown": -0.1135,
+     "skew": -0.2265,
+     "kurtosis": 11.6108,
+     "total_return": 0.3683
+    },
+    "full": {
+     "n_days": 4717,
+     "sharpe_daily": 0.0447,
+     "sharpe_annual": 0.709,
+     "cagr": 0.0871,
+     "ann_vol": 0.1297,
+     "max_drawdown": -0.189,
+     "skew": -0.469,
+     "kurtosis": 6.9844,
+     "total_return": 3.7768
+    }
+   },
+   "incumbent": {
+    "is": {
+     "n_days": 4215,
+     "sharpe_daily": 0.0458,
+     "sharpe_annual": 0.7263,
+     "cagr": 0.0847,
+     "ann_vol": 0.1223,
+     "max_drawdown": -0.1969,
+     "skew": -0.4772,
+     "kurtosis": 6.2739,
+     "total_return": 2.8963
+    },
+    "oos": {
+     "n_days": 502,
+     "sharpe_daily": 0.0851,
+     "sharpe_annual": 1.3504,
+     "cagr": 0.1716,
+     "ann_vol": 0.1229,
+     "max_drawdown": -0.0978,
+     "skew": -0.4393,
+     "kurtosis": 5.7868,
+     "total_return": 0.3709
+    },
+    "full": {
+     "n_days": 4717,
+     "sharpe_daily": 0.05,
+     "sharpe_annual": 0.7931,
+     "cagr": 0.0936,
+     "ann_vol": 0.1223,
+     "max_drawdown": -0.1969,
+     "skew": -0.473,
+     "kurtosis": 6.2233,
+     "total_return": 4.3415
+    }
+   },
+   "title": "자산별 추세 필터(10개월 이동평균)",
+   "idea": "SPY 하나로 금·채권까지 줄이지 않고 하락 추세 자산만 뺀다(Faber)",
+   "config": {
+    "lookbacks": [
+     252
+    ],
+    "abs_filter": "zero",
+    "top_n": 4,
+    "buffer_n": null,
+    "corr_cap": null,
+    "corr_window": 126,
+    "weighting": "equal",
+    "market_filter": "asset_sma",
+    "filter_window": 210,
+    "cash": "zero",
+    "tranches": 1,
+    "signal_basis": "price"
+   },
+   "neighbors": [
+    {
+     "lookbacks": [
+      252
+     ],
+     "abs_filter": "zero",
+     "top_n": 4,
+     "buffer_n": null,
+     "corr_cap": null,
+     "corr_window": 126,
+     "weighting": "equal",
+     "market_filter": "asset_sma",
+     "filter_window": 168,
+     "cash": "zero",
+     "tranches": 1,
+     "signal_basis": "price"
+    },
+    {
+     "lookbacks": [
+      252
+     ],
+     "abs_filter": "zero",
+     "top_n": 4,
+     "buffer_n": null,
+     "corr_cap": null,
+     "corr_window": 126,
+     "weighting": "equal",
+     "market_filter": "asset_sma",
+     "filter_window": 252,
+     "cash": "zero",
+     "tranches": 1,
+     "signal_basis": "price"
+    }
+   ]
+  },
+  "C11_credit_filter": {
+   "judge_version": "core-judge/v1",
+   "verdict": "FAIL",
+   "reasons": [
+    "G1 IS 초과수익 DSR 0.00 < 0.95 (시도 13)",
+    "G3 IS 3구간 중 초과수익 양수 0개 < 2",
+    "G4 이웃 설정 초과 샤프 [-0.389, -0.292]"
+   ],
+   "gates": {
+    "G1_improves_corrected": {
+     "pass": false,
+     "dsr": 0.0,
+     "threshold": 0.95,
+     "n_trials": 13,
+     "active_sharpe_annual": -0.239,
+     "active_ann_return": -0.00922
+    },
+    "G2_holdout": {
+     "pass": true,
+     "split": "2024-10-01",
+     "oos_sharpe": 1.468,
+     "incumbent_oos_sharpe": 1.35
+    },
+    "G3_subperiods": {
+     "pass": false,
+     "active_sum_by_third": [
+      -0.0366,
+      -0.0051,
+      -0.1125
+     ],
+     "periods": [
+      "2008-01-02~2013-07-31",
+      "2013-08-01~2019-03-01",
+      "2019-03-04~2024-09-30"
+     ]
+    },
+    "G4_neighbors": {
+     "pass": false,
+     "neighbor_active_sharpe": [
+      -0.389,
+      -0.292
+     ],
+     "note": null
+    },
+    "G5_drawdown": {
+     "pass": true,
+     "is_mdd": -0.172,
+     "incumbent_is_mdd": -0.197
+    }
+   },
+   "stats": {
+    "is": {
+     "n_days": 4215,
+     "sharpe_daily": 0.0435,
+     "sharpe_annual": 0.6912,
+     "cagr": 0.0757,
+     "ann_vol": 0.1152,
+     "max_drawdown": -0.1723,
+     "skew": -0.5632,
+     "kurtosis": 7.7191,
+     "total_return": 2.3872
+    },
+    "oos": {
+     "n_days": 502,
+     "sharpe_daily": 0.0925,
+     "sharpe_annual": 1.468,
+     "cagr": 0.1687,
+     "ann_vol": 0.1104,
+     "max_drawdown": -0.0978,
+     "skew": -0.2611,
+     "kurtosis": 6.5067,
+     "total_return": 0.3641
+    },
+    "full": {
+     "n_days": 4717,
+     "sharpe_daily": 0.0485,
+     "sharpe_annual": 0.7707,
+     "cagr": 0.0852,
+     "ann_vol": 0.1147,
+     "max_drawdown": -0.1723,
+     "skew": -0.5357,
+     "kurtosis": 7.6203,
+     "total_return": 3.6206
+    }
+   },
+   "incumbent": {
+    "is": {
+     "n_days": 4215,
+     "sharpe_daily": 0.0458,
+     "sharpe_annual": 0.7263,
+     "cagr": 0.0847,
+     "ann_vol": 0.1223,
+     "max_drawdown": -0.1969,
+     "skew": -0.4772,
+     "kurtosis": 6.2739,
+     "total_return": 2.8963
+    },
+    "oos": {
+     "n_days": 502,
+     "sharpe_daily": 0.0851,
+     "sharpe_annual": 1.3504,
+     "cagr": 0.1716,
+     "ann_vol": 0.1229,
+     "max_drawdown": -0.0978,
+     "skew": -0.4393,
+     "kurtosis": 5.7868,
+     "total_return": 0.3709
+    },
+    "full": {
+     "n_days": 4717,
+     "sharpe_daily": 0.05,
+     "sharpe_annual": 0.7931,
+     "cagr": 0.0936,
+     "ann_vol": 0.1223,
+     "max_drawdown": -0.1969,
+     "skew": -0.473,
+     "kurtosis": 6.2233,
+     "total_return": 4.3415
+    }
+   },
+   "title": "신용 스트레스 필터(HYG/IEF)",
+   "idea": "하이일드가 국채보다 약해지는 신용 경색 신호로 SPY 200일선을 대신한다",
+   "config": {
+    "lookbacks": [
+     252
+    ],
+    "abs_filter": "zero",
+    "top_n": 4,
+    "buffer_n": null,
+    "corr_cap": null,
+    "corr_window": 126,
+    "weighting": "equal",
+    "market_filter": "credit",
+    "filter_window": 252,
+    "cash": "zero",
+    "tranches": 1,
+    "signal_basis": "price"
+   },
+   "neighbors": [
+    {
+     "lookbacks": [
+      252
+     ],
+     "abs_filter": "zero",
+     "top_n": 4,
+     "buffer_n": null,
+     "corr_cap": null,
+     "corr_window": 126,
+     "weighting": "equal",
+     "market_filter": "credit",
+     "filter_window": 126,
+     "cash": "zero",
+     "tranches": 1,
+     "signal_basis": "price"
+    },
+    {
+     "lookbacks": [
+      252
+     ],
+     "abs_filter": "zero",
+     "top_n": 4,
+     "buffer_n": null,
+     "corr_cap": null,
+     "corr_window": 126,
+     "weighting": "equal",
+     "market_filter": "credit",
+     "filter_window": 378,
+     "cash": "zero",
+     "tranches": 1,
+     "signal_basis": "price"
+    }
+   ]
+  },
+  "C12_bundle": {
+   "judge_version": "core-judge/v1",
+   "verdict": "FAIL",
+   "reasons": [
+    "G1 IS 초과수익 DSR 0.00 < 0.95 (시도 13)",
+    "G2 떼어 둔 2년 샤프 1.27 < 현 코어 1.35",
+    "G3 IS 3구간 중 초과수익 양수 1개 < 2"
+   ],
+   "gates": {
+    "G1_improves_corrected": {
+     "pass": false,
+     "dsr": 0.0,
+     "threshold": 0.95,
+     "n_trials": 13,
+     "active_sharpe_annual": -0.378,
+     "active_ann_return": -0.02103
+    },
+    "G2_holdout": {
+     "pass": false,
+     "split": "2024-10-01",
+     "oos_sharpe": 1.272,
+     "incumbent_oos_sharpe": 1.35
+    },
+    "G3_subperiods": {
+     "pass": false,
+     "active_sum_by_third": [
+      -0.2051,
+      0.1443,
+      -0.2909
+     ],
+     "periods": [
+      "2008-01-02~2013-07-31",
+      "2013-08-01~2019-03-01",
+      "2019-03-04~2024-09-30"
+     ]
+    },
+    "G4_neighbors": {
+     "pass": true,
+     "neighbor_active_sharpe": [],
+     "note": "이웃 설정 없음 — 생략"
+    },
+    "G5_drawdown": {
+     "pass": true,
+     "is_mdd": -0.203,
+     "incumbent_is_mdd": -0.197
+    }
+   },
+   "stats": {
+    "is": {
+     "n_days": 4215,
+     "sharpe_daily": 0.0379,
+     "sharpe_annual": 0.6015,
+     "cagr": 0.0633,
+     "ann_vol": 0.1127,
+     "max_drawdown": -0.2032,
+     "skew": -0.8774,
+     "kurtosis": 10.2759,
+     "total_return": 1.7929
+    },
+    "oos": {
+     "n_days": 502,
+     "sharpe_daily": 0.0801,
+     "sharpe_annual": 1.2719,
+     "cagr": 0.1515,
+     "ann_vol": 0.1163,
+     "max_drawdown": -0.0999,
+     "skew": -0.6943,
+     "kurtosis": 6.2731,
+     "total_return": 0.3244
+    },
+    "full": {
+     "n_days": 4717,
+     "sharpe_daily": 0.0425,
+     "sharpe_annual": 0.6749,
+     "cagr": 0.0724,
+     "ann_vol": 0.1131,
+     "max_drawdown": -0.2032,
+     "skew": -0.8556,
+     "kurtosis": 9.8077,
+     "total_return": 2.699
+    }
+   },
+   "incumbent": {
+    "is": {
+     "n_days": 4215,
+     "sharpe_daily": 0.0458,
+     "sharpe_annual": 0.7263,
+     "cagr": 0.0847,
+     "ann_vol": 0.1223,
+     "max_drawdown": -0.1969,
+     "skew": -0.4772,
+     "kurtosis": 6.2739,
+     "total_return": 2.8963
+    },
+    "oos": {
+     "n_days": 502,
+     "sharpe_daily": 0.0851,
+     "sharpe_annual": 1.3504,
+     "cagr": 0.1716,
+     "ann_vol": 0.1229,
+     "max_drawdown": -0.0978,
+     "skew": -0.4393,
+     "kurtosis": 5.7868,
+     "total_return": 0.3709
+    },
+    "full": {
+     "n_days": 4717,
+     "sharpe_daily": 0.05,
+     "sharpe_annual": 0.7931,
+     "cagr": 0.0936,
+     "ann_vol": 0.1223,
+     "max_drawdown": -0.1969,
+     "skew": -0.473,
+     "kurtosis": 6.2233,
+     "total_return": 4.3415
+    }
+   },
+   "title": "묶음: 현금→BIL + 4분할 + 기간 혼합 + 상관 제한",
+   "idea": "근거가 가장 탄탄한 넷을 미리 정해 함께 적용",
+   "config": {
+    "lookbacks": [
+     63,
+     126,
+     189,
+     252
+    ],
+    "abs_filter": "zero",
+    "top_n": 4,
+    "buffer_n": null,
+    "corr_cap": 0.8,
+    "corr_window": 126,
+    "weighting": "equal",
+    "market_filter": "spy200",
+    "filter_window": 200,
+    "cash": "bil",
+    "tranches": 4,
+    "signal_basis": "price"
+   },
+   "neighbors": []
+  },
+  "C13_total_return_signal": {
+   "judge_version": "core-judge/v1",
+   "verdict": "FAIL",
+   "reasons": [
+    "G1 IS 초과수익 DSR 0.00 < 0.95 (시도 13)",
+    "G3 IS 3구간 중 초과수익 양수 0개 < 2"
+   ],
+   "gates": {
+    "G1_improves_corrected": {
+     "pass": false,
+     "dsr": 0.0,
+     "threshold": 0.95,
+     "n_trials": 13,
+     "active_sharpe_annual": -0.236,
+     "active_ann_return": -0.00561
+    },
+    "G2_holdout": {
+     "pass": true,
+     "split": "2024-10-01",
+     "oos_sharpe": 1.478,
+     "incumbent_oos_sharpe": 1.35
+    },
+    "G3_subperiods": {
+     "pass": false,
+     "active_sum_by_third": [
+      -0.0678,
+      -0.0171,
+      -0.0088
+     ],
+     "periods": [
+      "2008-01-02~2013-07-31",
+      "2013-08-01~2019-03-01",
+      "2019-03-04~2024-09-30"
+     ]
+    },
+    "G4_neighbors": {
+     "pass": true,
+     "neighbor_active_sharpe": [],
+     "note": "이웃 설정 없음 — 생략"
+    },
+    "G5_drawdown": {
+     "pass": true,
+     "is_mdd": -0.217,
+     "incumbent_is_mdd": -0.197
+    }
+   },
+   "stats": {
+    "is": {
+     "n_days": 4215,
+     "sharpe_daily": 0.0425,
+     "sharpe_annual": 0.6746,
+     "cagr": 0.0785,
+     "ann_vol": 0.1233,
+     "max_drawdown": -0.2174,
+     "skew": -0.4441,
+     "kurtosis": 6.7416,
+     "total_return": 2.5398
+    },
+    "oos": {
+     "n_days": 502,
+     "sharpe_daily": 0.0931,
+     "sharpe_annual": 1.478,
+     "cagr": 0.1896,
+     "ann_vol": 0.1226,
+     "max_drawdown": -0.0932,
+     "skew": -0.4392,
+     "kurtosis": 5.908,
+     "total_return": 0.4132
+    },
+    "full": {
+     "n_days": 4717,
+     "sharpe_daily": 0.0479,
+     "sharpe_annual": 0.7596,
+     "cagr": 0.0898,
+     "ann_vol": 0.1233,
+     "max_drawdown": -0.2174,
+     "skew": -0.4437,
+     "kurtosis": 6.6561,
+     "total_return": 4.0025
+    }
+   },
+   "incumbent": {
+    "is": {
+     "n_days": 4215,
+     "sharpe_daily": 0.0458,
+     "sharpe_annual": 0.7263,
+     "cagr": 0.0847,
+     "ann_vol": 0.1223,
+     "max_drawdown": -0.1969,
+     "skew": -0.4772,
+     "kurtosis": 6.2739,
+     "total_return": 2.8963
+    },
+    "oos": {
+     "n_days": 502,
+     "sharpe_daily": 0.0851,
+     "sharpe_annual": 1.3504,
+     "cagr": 0.1716,
+     "ann_vol": 0.1229,
+     "max_drawdown": -0.0978,
+     "skew": -0.4393,
+     "kurtosis": 5.7868,
+     "total_return": 0.3709
+    },
+    "full": {
+     "n_days": 4717,
+     "sharpe_daily": 0.05,
+     "sharpe_annual": 0.7931,
+     "cagr": 0.0936,
+     "ann_vol": 0.1223,
+     "max_drawdown": -0.1969,
+     "skew": -0.473,
+     "kurtosis": 6.2233,
+     "total_return": 4.3415
+    }
+   },
+   "title": "순위·필터를 총수익 기준으로",
+   "idea": "가격만 보면 분배금이 큰 채권·하이일드·유틸리티가 순위에서 손해를 본다",
+   "config": {
+    "lookbacks": [
+     252
+    ],
+    "abs_filter": "zero",
+    "top_n": 4,
+    "buffer_n": null,
+    "corr_cap": null,
+    "corr_window": 126,
+    "weighting": "equal",
+    "market_filter": "spy200",
+    "filter_window": 200,
+    "cash": "zero",
+    "tranches": 1,
+    "signal_basis": "total"
+   },
+   "neighbors": []
+  }
+ }
+}

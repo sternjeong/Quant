@@ -1,6 +1,6 @@
 # 세션 인계
 
-최종 갱신: 2026-10-02 (새틀라이트 R&D 센터·종목 차트·'지금 할 일' 카드)
+최종 갱신: 2026-10-02 (코어 R&D·AI 정세 shadow·새틀라이트 R&D 실데이터·종목 차트·'지금 할 일' 카드)
 
 ## 최신 상태 요약
 
@@ -18,6 +18,17 @@
 - **공유 Codespace 이력:** 엔진 고도화 3차 세션과 UI 재구성 세션이 동시에 작업했다. 엔진 세션은 UI 파일을 건드리지 않았고, UI 2차 세션은 최신 엔진 문서 변경을 보존한 채 인계 내용을 병합했다. 다음 에이전트도 먼저 `git status`로 동시 변경 여부를 확인한다.
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
+
+## 2026-10-02 (후속) 코어 R&D v1·v2 + AI 국제정세 의견 shadow + 실데이터 실행 (구현·전체 테스트·로컬 실데이터 실행, 미배포)
+
+- 사용자 지시: "제안한 것 다 허락, 진행" — 코어 개선안 1~10 전부. main push 는 Claude Code 안전장치(실서비스 배포)에 막혀 사용자 확인 대기.
+- 코어 R&D: core/core_lab.py(현 코어를 라이브 엔진과 일별 비중까지 동일 재현 + 변형 옵션), research/jobs/core-rnd-v1·v2(사전 등록, core-judge/v1: DSR·OOS 2년·3구간·이웃·MDD). 스모크에서 '관측 분산' 방식이 극단값 하나로 모두의 기준을 올리는 것을 보고 실데이터 실행 전에 고정 가정 분산(연 0.5)으로 바꿈(run.py 에 기록).
+- **발견: 코어 엔진(라이브·백테스트)이 Close(가격)만 써서 배당·분배금이 빠져 있다.** 2022~23 BIL 가격 −0.04% vs 총수익 +6.42%, HYG −11.1% vs −0.7%. v1(가격 기준) 결과는 보존, 측정 기준만 총수익으로 바꾼 v2 를 새로 등록(C13 '순위도 총수익' 추가, N=13). final_config 문구는 '총수익률 랭킹'인데 코드는 가격 — 엔진 수정 여부는 사용자 결정.
+- 결과(로컬 실데이터, research/results/core-rnd-v1·v2/): v2 현 코어 총수익 CAGR 9.4%·샤프 0.79·MDD −19.7%(가격 기준 7.9%). **13개 변형 전부 FAIL.** C01 현금→BIL·C04 듀얼 모멘텀만 CAGR +0.1%p 로 G2~G5 통과, G1(DSR 0.12·0.07)만 탈락. C13 총수익 순위는 개선 없음.
+- AI 국제정세 의견 shadow: core/geo_shadow.py(geo-judge/v1, 24개월 뒤 판정), agent_batch geo_plan + 역할 geo_analyst(월 1회, WebSearch), research/agent_prompts/geo_analyst.md, 챔피언 화면 '🌐 AI 국제정세 의견'(배분 미반영). 실제 Claude CLI 실행은 아직 없음(첫 실행 10/25 이후 배치).
+- 새틀라이트 실데이터(로컬, data/satellite_lab/ — VM 서비스 등록부 아님): 현 규칙 무작위 대비 IS 93백분위(기존 리서치 93백분위와 일치), 풀 843종목 중 가격 636종목(상장폐지 결측). 판정 진행 중. 새틀라이트 랩도 Close 기준(배당 미포함) — 종목 간 배당 차이로 약한 편향, v2 후보.
+- 검증: 전체 pytest 2377 passed·4 skipped, codex_telegram unittest OK, hub.guide.check 누락 없음.
+- 다음: 사용자 승인 후 main 병합(VM 이 research/jobs 의 core-rnd-v1·v2 를 다시 돌려 공식 결과 커밋, 새틀라이트 랩·에이전트 트랙 시작). 엔진 총수익 전환·C01 반영은 사용자 확인 뒤 별도 작업.
 
 ## 2026-10-02 새틀라이트 R&D 센터 + 종목 차트 (구현·전체 테스트, 미커밋·미배포)
 

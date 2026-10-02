@@ -1,0 +1,13 @@
+{
+  "id": "core-rnd-v2",
+  "title": "코어 R&D v2 — 배당 포함 총수익 기준, 코어 선정 방식 13개 변형 vs 현 코어(사전 등록)",
+  "entrypoint": "research/jobs/core-rnd-v2/run.py",
+  "args": [],
+  "timeout_seconds": 3600,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 40,
+  "revision": 1
+}

@@ -124,6 +124,13 @@ MODULES: tuple[ModuleGuide, ...] = (
         cautions="판정이 아니라 플래그입니다. Alpaca 무료 시세(IEX)는 거래소 하나 기준이라 차이가 나도 yfinance 가 틀렸다는 뜻이 아닙니다. 전략·백테스트 가격은 여전히 yfinance 단독입니다. 조회 불가·yfinance 누락 경고는 알림 없이 로그에만 남습니다. Alpaca 키가 없으면(Codespace) 돌지 않습니다.",
         sources=("scripts/verify_price_crosscheck.py", "core/data_integrity.py"), verified=_V),
     ModuleGuide(
+        module="core/geo_shadow.py", name="AI 국제정세 의견(기록만)", group="리서치 인프라", status="관측 전용",
+        what="매달 코어 리밸런싱 전에 AI 가 17자산 각각에 대해 국제 정치·거시 사건이 다음 한 달 불리(−1)·유리(+1)·근거 없음(0)인지 의견과 근거 URL 을 남깁니다. AI 는 과거 사건의 결말을 알고 있어 과거 데이터로 검증할 수 없으므로, 결과를 모르는 시점에 시각을 찍어 원장(data/geo_shadow/ledger.jsonl, 달마다 한 번·수정 불가)에 쌓고 나중에 채점합니다.",
+        how_to_use="자동입니다. 매달 25일 이후 03:00 에이전트 배치가 다음 달 의견을 한 번 받습니다. 챔피언 전략 화면 '지금 할 일' 아래 '🌐 AI 국제정세 의견' 칸에서 최신 의견을 봅니다(목표 종목 중 불리 의견이 있으면 제목에 표시).",
+        where_to_see="챔피언 전략 화면 '🌐 AI 국제정세 의견', 아침 에이전트 배치 텔레그램 요약",
+        cautions="배분에 반영하지 않습니다. 판정(geo-judge/v1)은 24개월 쌓인 뒤에만 합니다: 현 코어 top4 중 AI 가 −1 을 준 자산을 단기국채로 바꾼 조정안이 월 평균으로 나았고(t ≥ 2) 0 아닌 의견 적중률 55% 이상·이항검정 p ≤ 0.05 일 때만 통과이며, 통과해도 '4종목 중 최대 1개 축소'를 사람이 검토할 후보일 뿐입니다. 그 전의 의견은 맞는다는 증거가 없습니다.",
+        sources=("core/geo_shadow.py", "core/agent_batch.py", "research/agent_prompts/geo_analyst.md"), verified="2026-10-02"),
+    ModuleGuide(
         module="core/process_registry.py", name="자동 잡 켜기/끄기 목록", group="운영·안전", status="운영중",
         what="스케줄러의 야간·연구 잡을 하나의 카탈로그로 모으고 각 잡이 켜져 있는지를 JSON 파일에 기록합니다. 사용자도 모르게 무언가 도는 일을 막으려는 장치입니다.",
         how_to_use="폰에서 텔레그램 /processes 명령으로 잡을 확인하고 켜고 끌 수 있습니다. 스케줄러는 잡 실행 전에 이 상태를 확인해 꺼져 있으면 건너뜁니다. 이 설명서의 잡 표 현재 상태도 여기서 읽습니다.",

@@ -15,7 +15,7 @@ MODULES: tuple[ModuleGuide, ...] = (
     ),
     ModuleGuide(
         module="core/agent_batch.py", name="AI 에이전트 야간 배치", group="리서치 인프라", status="실험",
-        what="매일 03:00 KST에 AI 에이전트(Scout·Writer·Implementer·Critic·Post-mortem)를 차례로 돌려 새 전략 가설을 만들고, Critic이 승인한 가설을 동결해 자동 심판에 넘깁니다. 새틀라이트 R&D 트랙도 함께 돕니다: sat_designer 가 새틀라이트 선정 규칙 아이디어 하나를 스펙·신호·테스트로 만들고, 결정론 검사(테스트 + 합성 데이터 실행 + 미래 비의존 확인)와 sat_critic 검토를 통과하면 VM 연구 창의 계산기가 동결·심판합니다(재작업 최대 3회, 동시에 2개까지). 중간에 끊겨도 다음 날 밤 그 자리에서 이어집니다. 아이디어를 고르는 Scout·Writer에게는 이미 재검증에서 실패한 방향 목록(research/agent_prompts/dead_ends.md)과 고전 팩터 감쇠표(research/factor_decay.md)를 함께 줘서 같은 실패를 되풀이하지 않게 합니다.",
+        what="매일 03:00 KST에 AI 에이전트(Scout·Writer·Implementer·Critic·Post-mortem)를 차례로 돌려 새 전략 가설을 만들고, Critic이 승인한 가설을 동결해 자동 심판에 넘깁니다. 매달 25일 이후 한 번은 geo_analyst 가 다음 달 코어 리밸런싱 전 국제정세 의견을 남깁니다(기록만, core/geo_shadow.py). 새틀라이트 R&D 트랙도 함께 돕니다: sat_designer 가 새틀라이트 선정 규칙 아이디어 하나를 스펙·신호·테스트로 만들고, 결정론 검사(테스트 + 합성 데이터 실행 + 미래 비의존 확인)와 sat_critic 검토를 통과하면 VM 연구 창의 계산기가 동결·심판합니다(재작업 최대 3회, 동시에 2개까지). 중간에 끊겨도 다음 날 밤 그 자리에서 이어집니다. 아이디어를 고르는 Scout·Writer에게는 이미 재검증에서 실패한 방향 목록(research/agent_prompts/dead_ends.md)과 고전 팩터 감쇠표(research/factor_decay.md)를 함께 줘서 같은 실패를 되풀이하지 않게 합니다.",
         how_to_use="자동입니다. 결과는 아침 텔레그램 요약과 허브 'AI 에이전트 연구' 화면에서 봅니다. 역할별 모델은 그 화면이나 텔레그램 /models 에서 바꿉니다.",
         where_to_see="허브 /research, 텔레그램(배치 요약 1건)",
         cautions="에이전트는 자기 작업 폴더(research/)에만 쓸 수 있고, 그 밖의 파일을 바꾸면 자동으로 되돌립니다. 새틀라이트 아이디어의 '준비 완료' 표시는 에이전트가 쓸 수 없는 data/satellite_lab/agent/ 에 배치가 기록합니다. 브로커·텔레그램 키는 에이전트에게 넘기지 않습니다. 주문 경로와 연결되어 있지 않습니다. 새틀라이트 트랙은 실제 Claude CLI로 아직 한 번도 실행하지 않았습니다.",
@@ -23,7 +23,7 @@ MODULES: tuple[ModuleGuide, ...] = (
     ),
     ModuleGuide(
         module="core/agent_budget.py", name="에이전트 토큰 예산", group="리서치 인프라", status="운영중",
-        what="에이전트 역할별 모델·최대 턴·시간·주간 실행 횟수와 하룻밤 $15·주간 $60(API 환산 금액) 상한을 정하고, 실행마다 사용량을 기록합니다. 사람이 고른 역할별 모델도 여기서 반영합니다. 새틀라이트 R&D 역할(sat_designer 주 8회, sat_critic 주 8회)도 같은 예산을 나눠 씁니다.",
+        what="에이전트 역할별 모델·최대 턴·시간·주간 실행 횟수와 하룻밤 $15·주간 $60(API 환산 금액) 상한을 정하고, 실행마다 사용량을 기록합니다. 사람이 고른 역할별 모델도 여기서 반영합니다. 새틀라이트 R&D 역할(sat_designer 주 8회, sat_critic 주 8회)과 국제정세 의견(geo_analyst 월 1회)도 같은 예산을 나눠 씁니다.",
         how_to_use="허브 /research 의 '역할별 모델' 표나 텔레그램 /models 에서 모델을 바꾸면 다음 배치부터 적용됩니다. 비싼 모델일수록 예산이 빨리 찹니다.",
         where_to_see="허브 /research 의 '에이전트 예산'·'역할별 모델'",
         cautions="금액은 Claude CLI가 보고하는 API 환산값으로, 구독 요금제에서는 실제 청구액이 아니라 사용량의 대리 지표입니다. 05:30 이후에는 새 작업을 시작하지 않고 05:50에 멈춥니다.",
@@ -318,6 +318,14 @@ MODULES: tuple[ModuleGuide, ...] = (
         sources=("core/champion_strategy.py", "core/champion_tracking.py", "core/champion_performance.py",
                  "app/pages/11_챔피언_전략.py"),
         verified="2026-10-02",
+    ),
+    ModuleGuide(
+        module="core/core_lab.py", name="코어 R&D 엔진", group="리서치 인프라", status="실험",
+        what="챔피언 코어(17자산 12개월 모멘텀 상위 4개, 월간, SPY 200일선 필터)의 선정 방식을 한 번에 하나씩 바꿔 현 코어와 같은 체결 모델로 비교합니다. 바꿔 볼 수 있는 것: 놀고 있는 현금을 단기국채(BIL)로, 4분할 시차 리밸런싱, 3·6·9·12개월 모멘텀 혼합, 현금보다 나을 때만 사기, 상관 높은 자산 겹치지 않기, 순위 완충, 종목 수, 변동성 반비례 비중, 자산별 추세 필터, 신용 스트레스(HYG/IEF) 필터, 순위를 배당 포함 총수익으로. 현 코어는 라이브 엔진과 일별 비중까지 같게 재현됩니다(테스트로 확인).",
+        how_to_use="직접 쓰지 않습니다. 사전 등록 검증 연구 research/jobs/core-rnd-v1·core-rnd-v2 가 이 엔진으로 계산하고, 결과는 관제 센터 '검증 연구 결과'와 저장소 research/results/<id>/REPORT.md 에서 봅니다. v2 가 기준입니다(배당·분배금 포함 총수익).",
+        where_to_see="관제 센터 '검증 연구 결과', research/results/core-rnd-v2/REPORT.md",
+        cautions="판정(core-judge/v1: 다중검정 보정 DSR·떼어 둔 2년·3구간 일관성·이웃 설정·최대낙폭)은 결과를 보기 전에 고정했습니다. 2026-10-02 실행에서 13개 변형 모두 탈락했습니다 — 현 코어보다 확실히 나은 것을 찾지 못했다는 뜻입니다. 현 엔진은 가격(Close)만 써서 배당·분배금이 빠져 있고(v1 이 이 기준), 총수익 기준이면 과거 CAGR 이 약 1.5%p 높게 나옵니다. 통과해도 챔피언에 자동 반영되지 않습니다.",
+        sources=("core/core_lab.py", "research/jobs/core-rnd-v1/run.py", "research/jobs/core-rnd-v2/run.py"), verified="2026-10-02",
     ),
     ModuleGuide(
         module='core/chart_rendering.py',
