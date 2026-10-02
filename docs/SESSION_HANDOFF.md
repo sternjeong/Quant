@@ -19,6 +19,14 @@
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
 
+## 2026-10-02 (후속2) 코어 엔진 총수익 순위 + 남는 몫 BIL 반영, main 배포 (사용자 결정)
+
+- 사용자 결정: (1) main 배포 허락 (2) 코어 순위를 총수익 기준으로 (3) 남는 몫 → 단기국채 반영. 사전 등록 판정은 통과하지 않은 조합임을 알렸고 그대로 진행(C13 FAIL, C01 은 G1 만 FAIL).
+- 구현: core/champion_strategy.py — CHAMPION_STRATEGY_VERSION "…/2026-10-tr-bil", CORE_PRICE_FIELD="Adj Close", CORE_CASH_ETF="BIL", _price_series. compute_core_recommendation(순위·SPY 200일선 총수익, 남는 몫 per_ticker_weights["BIL"], cash_etf_weight 필드), _build_core_weights(cash_ticker, 기본 None=기존 동작), run_core_backtest(총수익·BIL), _closes_from_histories(field). core/champion_performance.py 동일 기준. 화면 문구(현금→단기국채), target_allocation 의 BIL 구분 '코어 남는 몫(단기국채)'. paper 주문도 BIL 을 산다(plan_targets 가 per_ticker_weights 사용).
+- 백테스트(2008~, 총수익): 이전 CAGR 9.36%·MDD −19.7%·OOS 2년 샤프 1.35 → 반영 후 9.12%·−21.7%·1.50. 오늘(10/2) 코어 선택은 같음(DBC·XLE·XLK·XLV).
+- 새틀라이트는 여전히 Close(가격) 기준. 일별 라이브 원장(record_daily_ledger_entry)도 Close 기준 — 필요하면 후속.
+- 테스트 수정: test_champion_strategy 2건(필터 축소분이 BIL 로 가는 것, inverse_vol 합계)을 새 동작에 맞춤.
+
 ## 2026-10-02 (후속) 코어 R&D v1·v2 + AI 국제정세 의견 shadow + 실데이터 실행 (구현·전체 테스트·로컬 실데이터 실행, 미배포)
 
 - 사용자 지시: "제안한 것 다 허락, 진행" — 코어 개선안 1~10 전부. main push 는 Claude Code 안전장치(실서비스 배포)에 막혀 사용자 확인 대기.

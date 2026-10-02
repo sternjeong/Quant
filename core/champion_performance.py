@@ -307,10 +307,10 @@ def analyze_backtest(bt: dict, price_fn: Optional[PriceFn] = None) -> dict:
     idx = core_weights.index
 
     # --- 코어 가격: run_core_backtest 와 같은 호출(같은 캐시) ---
-    core_tickers = list(cs.CORE_UNIVERSE)
+    core_tickers = list(cs.CORE_UNIVERSE) + [cs.CORE_CASH_ETF]
     fetch_start = (pd.Timestamp(bt["start"]) - pd.DateOffset(days=cs.BACKTEST_WARMUP_DAYS)).date().isoformat()
     hist = price_fn(core_tickers + [cs.MARKET_FILTER_TICKER], start=fetch_start, end=end, interval="1d")
-    closes_all = cs._closes_from_histories(hist, core_tickers + [cs.MARKET_FILTER_TICKER])
+    closes_all = cs._closes_from_histories(hist, core_tickers + [cs.MARKET_FILTER_TICKER], field=cs.CORE_PRICE_FIELD)
     core_closes = closes_all.reindex(idx)[list(core_weights.columns)]
     spy_close = closes_all[cs.MARKET_FILTER_TICKER].reindex(idx).ffill()
 

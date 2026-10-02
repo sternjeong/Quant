@@ -333,8 +333,8 @@ else:
         # --- 2단계: 목표 포트폴리오 ---
         st.markdown(f"**2단계 — 목표 포트폴리오** · 기준일 {_rec.get('as_of')} (계산 {_rec_when} UTC)")
         _filter_line = {
-            "above": "SPY 가 200일선 위라 코어 85%를 전부 투자합니다.",
-            "below": "SPY 가 200일선 아래라 코어를 절반만 투자하고 나머지는 현금으로 둡니다.",
+            "above": "SPY 가 200일선 위라 코어 85%를 전부 투자합니다. 순위·200일선은 배당 포함 총수익 기준입니다.",
+            "below": "SPY 가 200일선 아래라 코어를 절반만 투자하고 나머지는 단기국채(BIL)에 둡니다.",
             "unknown": "SPY 데이터가 없어 시장필터를 판정하지 못했습니다 — 신규 주문을 보류하세요.",
         }.get(_core.get("market_filter_status"), "")
         if _core.get("market_filter_status") == "unknown":
@@ -461,16 +461,16 @@ else:
                 st.caption(f"⚠️ {_item['text']}")
         _filter_text = {
             "above": "SPY 200일선 위 — 코어 비중 그대로",
-            "below": "SPY 200일선 아래 — 코어 비중 절반으로 축소",
+            "below": "SPY 200일선 아래 — 코어 비중 절반으로 축소(나머지 단기국채 BIL)",
             "unknown": "SPY 데이터 없음 — 시장필터 판정불가, 신규 주문 보류",
         }.get(_core.get("market_filter_status"), "판정불가")
         st.markdown(
             f"**코어 {CORE_WEIGHT * 100:.0f}%** — 실투입 {_core.get('invested_weight_pct', 0):.1f}% "
-            f"(현금 {float(_core.get('cash_weight_from_filter') or 0) * 100:.1f}%) · {_filter_text}"
+            f"(남는 몫 {float(_core.get('cash_weight_from_filter') or 0) * 100:.1f}% → 단기국채 BIL) · {_filter_text}"
         )
         _core_rows = [r for r in (_core.get("evidence") or []) if r.get("in_top4")]
         if not _core_rows:
-            st.warning("절대모멘텀(>0)을 통과한 코어 자산이 없습니다 — 코어 비중이 사실상 전액 현금입니다.")
+            st.warning("절대모멘텀(>0)을 통과한 코어 자산이 없습니다 — 코어 비중이 전액 단기국채(BIL)로 갑니다.")
         else:
             st.dataframe(
                 pd.DataFrame([
@@ -716,7 +716,7 @@ else:
     with filter_cols[3]:
         render_metric_card(
             "코어 실투입 비중", f"{core_result['exposure_multiplier'] * 0.85 * 100:.1f}%",
-            sublabel=f"현금 {core_result['cash_weight_from_filter'] * 100:.1f}%" if core_result["cash_weight_from_filter"] > 0 else None,
+            sublabel=f"단기국채(BIL) {core_result['cash_weight_from_filter'] * 100:.1f}%" if core_result["cash_weight_from_filter"] > 0 else None,
         )
     st.caption(
         "⚠️ 이 시장필터(SPY 200일선 하회 시 코어 비중 50% 축소) 자체의 확신도는 **weak**입니다 — "

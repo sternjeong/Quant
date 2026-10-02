@@ -540,6 +540,7 @@ def action_summary(*, core: dict, picks: list[str], next_reselection: dict,
 # ============================================================================================
 
 CASH_TICKER = "CASH"
+CASH_ETF_SLEEVE = "코어 남는 몫(단기국채)"
 
 
 def target_allocation(rec: dict) -> list[dict]:
@@ -555,11 +556,11 @@ def target_allocation(rec: dict) -> list[dict]:
     sleeves: dict[str, str] = {}
     for t, w in (core.get("per_ticker_weights") or {}).items():
         weights[t] = weights.get(t, 0.0) + float(w)
-        sleeves[t] = "코어"
+        sleeves[t] = CASH_ETF_SLEEVE if t == cs.CORE_CASH_ETF else "코어"
     for t, w in (sat_today.get("sleeve_weights") or {}).items():
         weights[t] = weights.get(t, 0.0) + float(w) * sat_weight
         sleeves[t] = "코어+새틀라이트" if t in sleeves else "새틀라이트"
-    order = {"코어": 0, "코어+새틀라이트": 1, "새틀라이트": 2}
+    order = {"코어": 0, "코어+새틀라이트": 1, "새틀라이트": 2, CASH_ETF_SLEEVE: 3}
     rows = [{"ticker": t, "sleeve": sleeves[t], "weight": w}
             for t, w in sorted(weights.items(), key=lambda kv: (order[sleeves[kv[0]]], -kv[1], kv[0]))]
     cash = 1.0 - sum(weights.values())

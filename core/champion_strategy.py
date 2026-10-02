@@ -57,7 +57,12 @@ CORE_WEIGHT = 0.85
 MARKET_FILTER_TICKER = "SPY"
 MARKET_FILTER_SMA_WINDOW = 200
 MARKET_FILTER_EXPOSURE_CUT = 0.5  # 200일선 하회 시 코어 비중에 곱하는 배수
-CHAMPION_STRATEGY_VERSION = "core-momentum-top4+spy200dma/2026-09"  # snapshot 추적용(로직 변경 시 갱신)
+CHAMPION_STRATEGY_VERSION = "core-momentum-top4+spy200dma/2026-10-tr-bil"  # snapshot 추적용(로직 변경 시 갱신)
+# 2026-10-02 사용자 결정(코어 R&D v2 결과를 본 뒤): 코어 순위·절대모멘텀·SPY 200일선과 코어 백테스트 수익을 배당·분배금 포함
+# 총수익(Adj Close)으로 계산하고, 코어에서 남는 몫(시장필터 축소분·빈 슬롯)은 수익 0 현금 대신 단기국채 ETF(BIL)에 둔다.
+# 참고: 이 조합은 사전 등록 판정을 통과하지 않았다(C13 총수익 순위 FAIL, C01 현금→BIL 은 G1 만 탈락) — research/results/core-rnd-v2.
+CORE_PRICE_FIELD = "Adj Close"  # 없으면 Close 로 대체(_price_series)
+CORE_CASH_ETF = "BIL"
 
 # 2026-09-19 추가: 새틀라이트(SATELLITE_SIZING_METHODS)에는 이미 있던 "inverse_vol" 옵션을
 # 코어에도 동일한 원칙으로 제공한다 — 새 방법론 발명 없이 core.position_sizing의 기존 함수를
@@ -71,6 +76,13 @@ SATELLITE_WEIGHT = 0.15
 SATELLITE_DONCHIAN_WINDOW = 20
 SATELLITE_MOMENTUM_LOOKBACK_DAYS = 63  # 약 3개월 — 브레이크아웃 후보 간 순위 매길 때만 사용
 SATELLITE_TOP_N = 5
+
+
+def _price_series(df: pd.DataFrame, field: str = CORE_PRICE_FIELD) -> pd.Series:
+    """총수익 가격(Adj Close). 그 열이 없거나 비어 있으면 Close(가격) — 테스트용 합성 데이터·일부 소스 대비."""
+    if field in df.columns and df[field].notna().any():
+        return df[field]
+    return df["Close"]
 
 
 def _fetch_history_tail_length(ticker: str, lookback_days: int, buffer_days: int = 40) -> Optional[pd.DataFrame]:
@@ -116,9 +128,9 @@ def compute_core_recommendation(sizing_method: str = "equal") -> dict:
             rows.append({"ticker": ticker, "momentum_pct": None, "last_close": None})
             continue
         histories[ticker] = df
-        close = df["Close"]
-        momentum_pct = float(close.iloc[-1] / close.iloc[-1 - CORE_MOMENTUM_LOOKBACK_DAYS] - 1) * 100
-        rows.append({"ticker": ticker, "momentum_pct": round(momentum_pct, 2), "last_close": float(close.iloc[-1])})
+        tr = _price_series(df)  # 순위는 배당 포함 총수익 기준(2026-10-02)
+        momentum_pct = float(tr.iloc[-1] / tr.iloc[-1 - CORE_MOMENTUM_LOOKBACK_DAYS] - 1) * 100
+        rows.append({"ticker": ticker, "momentum_pct": round(momentum_pct, 2), "last_close": float(df["Close"].iloc[-1])})
 
     ranked = pd.DataFrame(rows)
     ranked["passes_absolute_momentum"] = ranked["momentum_pct"].apply(lambda v: pd.notna(v) and v > 0)
@@ -133,9 +145,10 @@ def compute_core_recommendation(sizing_method: str = "equal") -> dict:
     spy_price: Optional[float] = None
     spy_sma200: Optional[float] = None
     if spy is not None:
-        sma200 = sma(spy["Close"], MARKET_FILTER_SMA_WINDOW)
+        spy_tr = _price_series(spy)  # 총수익 기준 200일선(마지막 날 값은 실제 종가와 같다)
+        sma200 = sma(spy_tr, MARKET_FILTER_SMA_WINDOW)
         if pd.notna(sma200.iloc[-1]):
-            spy_price = float(spy["Close"].iloc[-1])
+            spy_price = float(spy_tr.iloc[-1])
             spy_sma200 = float(sma200.iloc[-1])
             above_200dma = spy_price > spy_sma200
 
@@ -155,7 +168,7 @@ def compute_core_recommendation(sizing_method: str = "equal") -> dict:
         exposure_multiplier = 1.0 if above_200dma else MARKET_FILTER_EXPOSURE_CUT
         allocation_reason = (
             f"{MARKET_FILTER_TICKER} 200일선 {'위' if above_200dma else '아래'} — 코어 비중 x{exposure_multiplier:g}; "
-            + (f"모멘텀 상위 {len(top4)}종목 {sizing_method} 배분." if top4 else "절대모멘텀 통과 종목이 없어 코어 전액 현금.")
+            + (f"모멘텀 상위 {len(top4)}종목 {sizing_method} 배분." if top4 else "절대모멘텀 통과 종목이 없어 코어 전액 단기국채(BIL).")
         )
     invested_core_weight = CORE_WEIGHT * exposure_multiplier
     per_ticker_weight = invested_core_weight / len(top4) if top4 else 0.0
@@ -168,6 +181,13 @@ def compute_core_recommendation(sizing_method: str = "equal") -> dict:
         )
         if vol_weights:
             per_ticker_weights = {t: invested_core_weight * w for t, w in vol_weights.items()}
+
+    # 남는 몫(시장필터 축소분·빈 슬롯)은 단기국채 ETF 로(2026-10-02). 신규 주문 보류(unknown)면 아무것도 담지 않는다.
+    cash_etf_weight = 0.0
+    if new_orders_allowed:
+        cash_etf_weight = max(0.0, CORE_WEIGHT - sum(per_ticker_weights.values()))
+        if cash_etf_weight > 1e-9:
+            per_ticker_weights[CORE_CASH_ETF] = cash_etf_weight
 
     last_dates = [df.index[-1] for df in histories.values()]
     if spy is not None:
@@ -198,6 +218,9 @@ def compute_core_recommendation(sizing_method: str = "equal") -> dict:
         "per_ticker_weight": per_ticker_weight,  # 하위호환용(균등가중 값) — 실제 배분은 per_ticker_weights 참고
         "per_ticker_weights": per_ticker_weights,
         "cash_weight_from_filter": CORE_WEIGHT - invested_core_weight,
+        "cash_etf": CORE_CASH_ETF,
+        "cash_etf_weight": cash_etf_weight,  # cash_weight_from_filter(+빈 슬롯) 중 BIL 에 담는 몫 — 실제 현금은 0
+        "price_basis": CORE_PRICE_FIELD,
     }
 
 
@@ -486,8 +509,10 @@ def donchian_trailing_stop_positions(close: pd.Series, entry_window: int = SATEL
     return position
 
 
-def _closes_from_histories(histories: dict[str, pd.DataFrame], tickers: list[str]) -> pd.DataFrame:
-    closes = pd.DataFrame({t: histories[t]["Close"] for t in tickers if t in histories and not histories[t].empty})
+def _closes_from_histories(histories: dict[str, pd.DataFrame], tickers: list[str], field: str = "Close") -> pd.DataFrame:
+    """field="Close"(가격, 새틀라이트 기본) 또는 CORE_PRICE_FIELD(총수익, 코어 — 없으면 Close)."""
+    closes = pd.DataFrame({t: (_price_series(histories[t], field) if field != "Close" else histories[t]["Close"])
+                           for t in tickers if t in histories and not histories[t].empty})
     return closes.ffill()
 
 
@@ -498,8 +523,12 @@ def _build_core_weights(
     top_n: int = CORE_TOP_N,
     exposure_cut: float = MARKET_FILTER_EXPOSURE_CUT,
     sizing_method: str = "equal",
+    cash_ticker: Optional[str] = None,
 ) -> pd.DataFrame:
     """월별 리밸런싱 목표 비중(리밸런싱일 이후 다음 리밸런싱일까지 ffill)을 계산한다.
+
+    cash_ticker(2026-10-02): 주면 그 열은 순위 후보에서 빼고, 남는 몫(시장필터 축소분·빈 슬롯)을 그 자산에 담는다
+    (그날 가격이 있을 때만). None 이면 기존 동작(남는 몫은 수익 0 현금).
 
     리밸런싱일에는 그 전일 종가 기준으로 신호를 계산해(lookahead 방지) 시장필터도 같은 날 평가한다.
 
@@ -517,6 +546,8 @@ def _build_core_weights(
     from core.position_sizing import portfolio_volatility_target_weights
 
     momentum = closes.pct_change(CORE_MOMENTUM_LOOKBACK_DAYS)
+    if cash_ticker is not None and cash_ticker in momentum.columns:
+        momentum = momentum.drop(columns=[cash_ticker])
     is_rebal = _first_trading_day_of_month_mask(closes.index)
     sma200 = market_close.rolling(MARKET_FILTER_SMA_WINDOW, min_periods=MARKET_FILTER_SMA_WINDOW).mean()
 
@@ -544,6 +575,8 @@ def _build_core_weights(
             if apply_market_filter and signal_date in sma200.index and not pd.isna(sma200.loc[signal_date]):
                 if market_close.loc[signal_date] < sma200.loc[signal_date]:
                     w = w * exposure_cut
+            if cash_ticker is not None and cash_ticker in w.index and pd.notna(closes.at[signal_date, cash_ticker]):
+                w[cash_ticker] = max(0.0, 1.0 - float(w.sum()))
             last_weights = w
         weights.iloc[i] = last_weights.values
     return weights
@@ -584,16 +617,17 @@ def run_core_backtest(
 
     sizing_method(2026-09-19 추가, 기본값 "equal"이면 기존 동작 그대로): _build_core_weights에
     그대로 전달 — "inverse_vol"은 미검증 opt-in 옵션(위 _build_core_weights 참고)."""
-    tickers = list(CORE_UNIVERSE)
+    tickers = list(CORE_UNIVERSE) + [CORE_CASH_ETF]
     fetch_start = (pd.Timestamp(start) - pd.DateOffset(days=BACKTEST_WARMUP_DAYS)).date().isoformat()
     histories = get_multiple_price_history(tickers + [MARKET_FILTER_TICKER], start=fetch_start, end=end, interval="1d")
-    closes_all = _closes_from_histories(histories, tickers + [MARKET_FILTER_TICKER])
+    # 2026-10-02: 총수익(Adj Close) 기준 + 남는 몫은 BIL. BIL 가격이 없으면(옛 캐시·테스트) 남는 몫은 현금 0.
+    closes_all = _closes_from_histories(histories, tickers + [MARKET_FILTER_TICKER], field=CORE_PRICE_FIELD)
     closes = closes_all[[t for t in tickers if t in closes_all.columns]]
     market_close = closes_all[MARKET_FILTER_TICKER]
 
     weights_full = _build_core_weights(
         closes, market_close, apply_market_filter=apply_market_filter, top_n=top_n, exposure_cut=exposure_cut,
-        sizing_method=sizing_method,
+        sizing_method=sizing_method, cash_ticker=CORE_CASH_ETF if CORE_CASH_ETF in closes.columns else None,
     )
 
     sliced_idx = closes.index[closes.index >= pd.Timestamp(start)]

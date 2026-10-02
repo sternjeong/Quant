@@ -596,11 +596,16 @@ def test_run_core_backtest_applies_market_filter_when_spy_downtrend(monkeypatch)
     monkeypatch.setattr(champion_strategy, "get_multiple_price_history", _fake_get_multiple_price_history_market_filter_down)
 
     result = champion_strategy.run_core_backtest(BT_START, BT_END, apply_market_filter=True)
-    rebal_weight_sums = result["weights"].sum(axis=1).round(6)
+    cash_etf = champion_strategy.CORE_CASH_ETF
+    risky = result["weights"].drop(columns=[cash_etf], errors="ignore")
+    rebal_weight_sums = risky.sum(axis=1).round(6)
     nonzero = rebal_weight_sums[rebal_weight_sums > 0]
     assert not nonzero.empty
     # SPY가 장기 하락 추세라 200일선 아래에 있을 시점이 많으므로, 절반(0.5)짜리 비중이 최소 한 번은 나와야 한다.
     assert (nonzero == 0.5).any()
+    # 2026-10-02: 축소된 절반은 수익 0 현금이 아니라 단기국채 ETF(BIL)에 담긴다.
+    halved = nonzero[nonzero == 0.5].index
+    assert (result["weights"].loc[halved, cash_etf].round(6) == 0.5).all()
 
     result_no_filter = champion_strategy.run_core_backtest(BT_START, BT_END, apply_market_filter=False)
     nonzero_no_filter = result_no_filter["weights"].sum(axis=1).round(6)
@@ -1657,7 +1662,10 @@ def test_compute_core_recommendation_inverse_vol_favors_lower_volatility(monkeyp
     assert set(result["top4"]) == {"LOWVOL", "HIGHVOL"}
     weights = result["per_ticker_weights"]
     assert weights["LOWVOL"] > weights["HIGHVOL"]
-    assert sum(weights.values()) == pytest.approx(result["exposure_multiplier"] * champion_strategy.CORE_WEIGHT, abs=1e-6)
+    risky = {t: w for t, w in weights.items() if t != champion_strategy.CORE_CASH_ETF}
+    assert sum(risky.values()) == pytest.approx(result["exposure_multiplier"] * champion_strategy.CORE_WEIGHT, abs=1e-6)
+    # 2026-10-02: 시장필터 축소분은 단기국채 ETF 로 — 코어 전체는 CORE_WEIGHT 를 채운다
+    assert sum(weights.values()) == pytest.approx(champion_strategy.CORE_WEIGHT, abs=1e-6)
     # 균등가중 하위호환 필드는 그대로 유지
     assert result["per_ticker_weight"] == pytest.approx(
         result["exposure_multiplier"] * champion_strategy.CORE_WEIGHT / 2
