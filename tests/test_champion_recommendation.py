@@ -498,6 +498,9 @@ def page_env(tmp_path, monkeypatch):
     cache_dir.mkdir()
     monkeypatch.setattr(cr, "CACHE_DIR", cache_dir)
     monkeypatch.setattr(cs, "compute_live_collar_state", lambda *a, **k: None)
+    # VM 에는 매일 밤 저장되는 신호 상태(data/cache/champion_signal_state.json)가 있어 상관관계·실적 칸이 가격을 받는다 —
+    # 화면 테스트가 그 환경에 흔들리지 않게 격리한다(2026-10-02 배포 관문 실패에서 발견).
+    monkeypatch.setattr(cs, "get_current_holdings", lambda: None)
     monkeypatch.setattr(socket.socket, "connect", lambda *a, **k: (_ for _ in ()).throw(OSError("blocked")))
     st.cache_data.clear()
     yield cache_dir

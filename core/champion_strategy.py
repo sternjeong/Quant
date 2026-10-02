@@ -57,11 +57,12 @@ CORE_WEIGHT = 0.85
 MARKET_FILTER_TICKER = "SPY"
 MARKET_FILTER_SMA_WINDOW = 200
 MARKET_FILTER_EXPOSURE_CUT = 0.5  # 200일선 하회 시 코어 비중에 곱하는 배수
-CHAMPION_STRATEGY_VERSION = "core-momentum-top4+spy200dma/2026-10-tr-bil"  # snapshot 추적용(로직 변경 시 갱신)
-# 2026-10-02 사용자 결정(코어 R&D v2 결과를 본 뒤): 코어 순위·절대모멘텀·SPY 200일선과 코어 백테스트 수익을 배당·분배금 포함
-# 총수익(Adj Close)으로 계산하고, 코어에서 남는 몫(시장필터 축소분·빈 슬롯)은 수익 0 현금 대신 단기국채 ETF(BIL)에 둔다.
-# 참고: 이 조합은 사전 등록 판정을 통과하지 않았다(C13 총수익 순위 FAIL, C01 현금→BIL 은 G1 만 탈락) — research/results/core-rnd-v2.
-CORE_PRICE_FIELD = "Adj Close"  # 없으면 Close 로 대체(_price_series)
+CHAMPION_STRATEGY_VERSION = "core-momentum-top4+spy200dma/2026-10-bil"  # snapshot 추적용(로직 변경 시 갱신)
+# 2026-10-02 사용자 결정(코어 R&D v2 결과를 본 뒤): 코어에서 남는 몫(시장필터 축소분·빈 슬롯)은 수익 0 현금 대신 단기국채 ETF(BIL)에
+# 둔다(C01 — G2~G5 통과, 효과가 작아 G1 만 탈락). 순위·절대모멘텀·SPY 200일선 신호는 예전처럼 가격(Close) 기준이다 — 총수익 순위(C13)는
+# 같은 날 반영했다가 18년 전체 성과가 나빠 사용자 결정으로 되돌렸다. 백테스트 '수익'만 배당·분배금 포함 총수익(Adj Close)으로 잰다.
+CORE_SIGNAL_FIELD = "Close"     # 순위·필터 신호(가격)
+CORE_PRICE_FIELD = "Adj Close"  # 백테스트 수익 측정(총수익). 없으면 Close 로 대체(_price_series)
 CORE_CASH_ETF = "BIL"
 
 # 2026-09-19 추가: 새틀라이트(SATELLITE_SIZING_METHODS)에는 이미 있던 "inverse_vol" 옵션을
@@ -128,8 +129,8 @@ def compute_core_recommendation(sizing_method: str = "equal") -> dict:
             rows.append({"ticker": ticker, "momentum_pct": None, "last_close": None})
             continue
         histories[ticker] = df
-        tr = _price_series(df)  # 순위는 배당 포함 총수익 기준(2026-10-02)
-        momentum_pct = float(tr.iloc[-1] / tr.iloc[-1 - CORE_MOMENTUM_LOOKBACK_DAYS] - 1) * 100
+        close = df[CORE_SIGNAL_FIELD]  # 순위는 가격 기준(총수익 순위는 2026-10-02 되돌림)
+        momentum_pct = float(close.iloc[-1] / close.iloc[-1 - CORE_MOMENTUM_LOOKBACK_DAYS] - 1) * 100
         rows.append({"ticker": ticker, "momentum_pct": round(momentum_pct, 2), "last_close": float(df["Close"].iloc[-1])})
 
     ranked = pd.DataFrame(rows)
@@ -145,10 +146,9 @@ def compute_core_recommendation(sizing_method: str = "equal") -> dict:
     spy_price: Optional[float] = None
     spy_sma200: Optional[float] = None
     if spy is not None:
-        spy_tr = _price_series(spy)  # 총수익 기준 200일선(마지막 날 값은 실제 종가와 같다)
-        sma200 = sma(spy_tr, MARKET_FILTER_SMA_WINDOW)
+        sma200 = sma(spy[CORE_SIGNAL_FIELD], MARKET_FILTER_SMA_WINDOW)
         if pd.notna(sma200.iloc[-1]):
-            spy_price = float(spy_tr.iloc[-1])
+            spy_price = float(spy[CORE_SIGNAL_FIELD].iloc[-1])
             spy_sma200 = float(sma200.iloc[-1])
             above_200dma = spy_price > spy_sma200
 
@@ -220,7 +220,7 @@ def compute_core_recommendation(sizing_method: str = "equal") -> dict:
         "cash_weight_from_filter": CORE_WEIGHT - invested_core_weight,
         "cash_etf": CORE_CASH_ETF,
         "cash_etf_weight": cash_etf_weight,  # cash_weight_from_filter(+빈 슬롯) 중 BIL 에 담는 몫 — 실제 현금은 0
-        "price_basis": CORE_PRICE_FIELD,
+        "signal_basis": CORE_SIGNAL_FIELD,
     }
 
 
@@ -620,10 +620,12 @@ def run_core_backtest(
     tickers = list(CORE_UNIVERSE) + [CORE_CASH_ETF]
     fetch_start = (pd.Timestamp(start) - pd.DateOffset(days=BACKTEST_WARMUP_DAYS)).date().isoformat()
     histories = get_multiple_price_history(tickers + [MARKET_FILTER_TICKER], start=fetch_start, end=end, interval="1d")
-    # 2026-10-02: 총수익(Adj Close) 기준 + 남는 몫은 BIL. BIL 가격이 없으면(옛 캐시·테스트) 남는 몫은 현금 0.
-    closes_all = _closes_from_histories(histories, tickers + [MARKET_FILTER_TICKER], field=CORE_PRICE_FIELD)
+    # 2026-10-02: 신호는 가격(Close), 수익은 배당 포함 총수익(Adj Close), 남는 몫은 BIL. BIL 가격이 없으면(옛 캐시·테스트) 현금 0.
+    closes_all = _closes_from_histories(histories, tickers + [MARKET_FILTER_TICKER])
     closes = closes_all[[t for t in tickers if t in closes_all.columns]]
     market_close = closes_all[MARKET_FILTER_TICKER]
+    returns_all = _closes_from_histories(histories, tickers + [MARKET_FILTER_TICKER], field=CORE_PRICE_FIELD)
+    closes_tr = returns_all[list(closes.columns)].reindex(closes.index)
 
     weights_full = _build_core_weights(
         closes, market_close, apply_market_filter=apply_market_filter, top_n=top_n, exposure_cut=exposure_cut,
@@ -633,7 +635,7 @@ def run_core_backtest(
     sliced_idx = closes.index[closes.index >= pd.Timestamp(start)]
     if end:
         sliced_idx = sliced_idx[sliced_idx <= pd.Timestamp(end)]
-    closes_sliced = closes.loc[sliced_idx]
+    closes_sliced = closes_tr.loc[sliced_idx]
     weights_sliced = weights_full.loc[sliced_idx]
 
     result = _compute_portfolio_returns(closes_sliced, weights_sliced, cost_bps_per_side=CORE_COST_BPS_PER_SIDE)

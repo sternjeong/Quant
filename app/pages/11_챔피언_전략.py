@@ -333,7 +333,7 @@ else:
         # --- 2단계: 목표 포트폴리오 ---
         st.markdown(f"**2단계 — 목표 포트폴리오** · 기준일 {_rec.get('as_of')} (계산 {_rec_when} UTC)")
         _filter_line = {
-            "above": "SPY 가 200일선 위라 코어 85%를 전부 투자합니다. 순위·200일선은 배당 포함 총수익 기준입니다.",
+            "above": "SPY 가 200일선 위라 코어 85%를 전부 투자합니다.",
             "below": "SPY 가 200일선 아래라 코어를 절반만 투자하고 나머지는 단기국채(BIL)에 둡니다.",
             "unknown": "SPY 데이터가 없어 시장필터를 판정하지 못했습니다 — 신규 주문을 보류하세요.",
         }.get(_core.get("market_filter_status"), "")

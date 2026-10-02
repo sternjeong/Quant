@@ -19,6 +19,12 @@
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
 
+## 2026-10-02 (후속3) 총수익 순위 되돌림 + 배포 관문 실패 수정
+
+- 사용자가 "좋아진 게 아니지 않나" 지적 → 분해해 보니 나빠진 원인은 총수익 순위(C13). 사용자 결정으로 순위·절대모멘텀·SPY 200일선을 가격(Close)으로 되돌리고 남는 몫 BIL·수익 총수익 측정은 유지. 버전 "…/2026-10-bil", CORE_SIGNAL_FIELD="Close". run_core_backtest: 신호 Close, 수익 Adj Close. 2008~ CAGR 9.52%·MDD −19.8%·OOS 2년 샤프 1.37(= v2 C01).
+- 첫 배포(275a255)는 VM 테스트 관문에서 test_page_ticker_chart_loads_only_on_click 1건 실패로 서비스 재시작이 막혔다(실서비스는 이전 버전 유지). 원인: VM 에만 있는 data/cache/champion_signal_state.json 때문에 상관관계 칸이 가격을 받음. page_env 에서 get_current_holdings 를 격리. 로컬에 같은 파일을 두고 재현·수정 확인.
+- 그 사이 VM 연구 실행기가 core-rnd-v2 를 실행해 결과를 main 에 커밋(bc28f24).
+
 ## 2026-10-02 (후속2) 코어 엔진 총수익 순위 + 남는 몫 BIL 반영, main 배포 (사용자 결정)
 
 - 사용자 결정: (1) main 배포 허락 (2) 코어 순위를 총수익 기준으로 (3) 남는 몫 → 단기국채 반영. 사전 등록 판정은 통과하지 않은 조합임을 알렸고 그대로 진행(C13 FAIL, C01 은 G1 만 FAIL).
