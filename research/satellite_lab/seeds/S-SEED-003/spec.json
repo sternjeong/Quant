@@ -1,0 +1,25 @@
+{
+  "id": "S-SEED-003",
+  "parent": "S-SEED-000",
+  "title": "현 규칙 + 보유 중 15% 손절",
+  "thesis": "반기 사이에도 고점 대비 15% 하락하면 팔고 현금으로 두면 2026-07 CAT·GEV 같은 급락 손실을 줄인다(과거 감사에선 MDD만 개선).",
+  "source": "작업34~38 트레일링스탑 라운드, 2026-07~10 실제 사례",
+  "pool": {
+    "type": "champion40"
+  },
+  "signal": {
+    "params_grid": [
+      {
+        "mom_window": 252
+      }
+    ]
+  },
+  "portfolio": {
+    "top_k": 3,
+    "hold_months": 6
+  },
+  "exit": {
+    "type": "trailing_stop",
+    "stop_pct": 0.15
+  }
+}

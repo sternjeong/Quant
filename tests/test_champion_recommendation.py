@@ -409,13 +409,16 @@ def test_action_core_swap_wording():
     assert "코어 1개 교체 필요(XLV→TLT)" in act["headline"]
 
 
-def test_action_satellite_change_and_stop_note():
+def test_action_does_not_compare_satellite_with_quick_scan_baseline_and_keeps_stop_note():
     prev = {"as_of": "2026-09-27", "core_top4": ["XLK", "GLD", "XLE", "TLT"], "satellite_selected": ["AAA"]}
     stop_rows = [{"ticker": "AAA", "trend_active": False}]
     act = cr.action_summary(core=_core_result(), picks=["AAA", "BBB"], next_reselection=_next(),
                             previous=prev, stop_rows=stop_rows)
-    assert "새틀라이트 1개 교체 필요(BBB 매수)" in act["headline"]
+    # 어제 밤 저장 새틀라이트는 다른 방법론(빠른 근사 스캔)이라 교체 필요로 단정하지 않는다
+    assert "교체 필요" not in act["headline"]
+    assert act["has_changes"] is False
     note = " ".join(i["text"] for i in act["items"])
+    assert "빠른 근사 스캔" in note
     assert "트레일링스탑" in note and "매도 신호가 아니라" in note
 
 
@@ -525,8 +528,8 @@ def test_page_shows_button_without_starting_any_job(page_env):
 
     at = _run_page(page_env)
     txt = _text(at)
-    assert "0. 지금 기준 재추천" in txt
-    assert "아직 재추천을 계산하지 않았습니다" in txt
+    assert "✅ 지금 할 일" in txt
+    assert "아직 추천을 계산하지 않았습니다" in txt
     assert at.button(key="champion_rec_button").label == "🔄 지금 기준으로 다시 추천"
     # 버튼을 누르지 않았으면 백그라운드 작업도, 슬롯 추적도 없다(다른 위젯 클릭을 먹지 않는 조건)
     assert not job_manager.list_running_jobs()
@@ -542,10 +545,13 @@ def test_button_click_fills_four_blocks(page_env, monkeypatch, tmp_path):
     at.button(key="champion_rec_button").click().run()
     assert not at.exception, [e.value for e in at.exception]
     txt = _text(at)
-    assert "① 지금 무엇을 들고 있어야 하나" in txt
-    assert "② 과거 같은 길이 구간에서 나온 범위" in txt
-    assert "③ 왜 이걸 믿어야 하나" in txt
-    assert "④ 지금 해야 할 행동" in txt
+    # 맨 위 카드: 목표 포트폴리오 → 주문 목록(보유 미등록이면 처음 매수) → 다음에 볼 날
+    assert "2단계 — 목표 포트폴리오" in txt
+    assert "3단계 — 주문 목록" in txt and "처음부터 매수" in txt
+    assert "4단계 — 다음에 다시 볼 날" in txt
+    # 근거·분포·확신도는 카드 아래 탭으로 내려가 있다
+    assert "추천 상세" in txt
+    assert "코어를 만든 결정" in txt
     assert "SPY 를 이긴 구간 비율" in txt
     # 주 추천은 오늘자 재선정이고, 직전 반기일 목록은 접힌 참고로 내려간다
     assert "오늘 기준 재선정" in txt and "지금 매수한다면" in txt
@@ -569,8 +575,10 @@ def test_cached_result_is_shown_on_revisit_with_age(page_env, tmp_path):
 
     at = _run_page(page_env)
     txt = _text(at)
-    assert "3일 전 결과입니다" in txt
-    assert "① 지금 무엇을 들고 있어야 하나" in txt
+    # 같은 달이면 'N일 전', 달이 바뀌었으면 '다시 계산하세요' — 둘 다 기준일을 밝힌다
+    assert res["params"]["as_of"] in txt
+    assert ("3일 전" in txt) or ("다시 계산하세요" in txt)
+    assert "2단계 — 목표 포트폴리오" in txt
 
 
 def test_other_button_click_still_works_without_rec_job(page_env, monkeypatch):
@@ -613,3 +621,209 @@ def test_module_does_not_import_order_path():
     assert "champion_paper_trade" in text  # 주문은 별도 스크립트라는 설명은 남긴다
     assert "import" not in text.split("champion_paper_trade")[0].split("\n")[-1]
     assert "alpaca" not in text.lower()
+
+
+# ============================================================================================
+# '지금 할 일' 카드
+# ============================================================================================
+
+def _rec_for_todo(as_of="2026-10-02", top4=("XLK", "GLD", "XLE", "TLT"), status="above", picks=("AAA", "BBB", "CCC")):
+    core = _core_result(top4=top4, status=status)
+    return {
+        "params": cr.cache_params(as_of),
+        "as_of": as_of,
+        "core": {"top4": list(top4), "per_ticker_weights": core["per_ticker_weights"],
+                 "market_filter_status": status},
+        "satellite": {"today": {"picks": list(picks), "sleeve_weights": {t: 1 / len(picks) for t in picks}}},
+    }
+
+
+def test_target_allocation_sums_to_one_with_satellite_scaled():
+    rows = cr.target_allocation(_rec_for_todo())
+    w = {r["ticker"]: r["weight"] for r in rows}
+    assert w["XLK"] == pytest.approx(cs.CORE_WEIGHT / 4)
+    assert w["AAA"] == pytest.approx(cs.SATELLITE_WEIGHT / 3)
+    assert cr.CASH_TICKER not in w
+    assert sum(w.values()) == pytest.approx(1.0)
+    assert [r["sleeve"] for r in rows][:4] == ["코어"] * 4
+
+
+def test_target_allocation_puts_filter_cut_into_cash():
+    rows = cr.target_allocation(_rec_for_todo(status="below"))
+    cash = [r for r in rows if r["ticker"] == cr.CASH_TICKER]
+    assert cash and cash[0]["weight"] == pytest.approx(cs.CORE_WEIGHT * 0.5)
+
+
+def test_order_plan_fresh_buys_everything_with_capital():
+    plan = cr.order_plan(cr.target_allocation(_rec_for_todo()), {}, 0.0, capital=10_000)
+    assert plan["basis"] == "fresh"
+    assert {r["action"] for r in plan["rows"]} == {"매수"}
+    assert sum(r["delta_value"] for r in plan["rows"]) == pytest.approx(10_000, abs=1)
+    assert plan["n_trades"] == 7
+
+
+def test_order_plan_with_holdings_sells_first_and_keeps_within_band():
+    targets = cr.target_allocation(_rec_for_todo())
+    total = 10_000.0
+    held = {"XLK": total * cs.CORE_WEIGHT / 4,  # 이미 목표 그대로
+            "ZZZ": 1_000.0}                    # 추천 밖 보유
+    cash = total - sum(held.values())
+    plan = cr.order_plan(targets, held, cash)
+    assert plan["basis"] == "holdings" and plan["total"] == pytest.approx(total)
+    acts = {r["ticker"]: r["action"] for r in plan["rows"]}
+    assert acts["XLK"] == "유지" and acts["ZZZ"] == "전량 매도" and acts["AAA"] == "매수"
+    assert plan["rows"][0]["ticker"] == "ZZZ"  # 매도가 먼저
+    assert plan["rows"][-1]["action"] == "유지"
+
+
+def test_freshness_flags_previous_month_and_core_mismatch():
+    rec = _rec_for_todo(as_of="2026-09-29")
+    f = cr.freshness(rec, today=date(2026, 10, 2))
+    assert f["ok"] is False and "이번 달" in f["reason"]
+    rec = _rec_for_todo(as_of="2026-10-01")
+    f = cr.freshness(rec, today=date(2026, 10, 2), live_core_top4=["XLK", "GLD", "XLE", "XLV"])
+    assert f["ok"] is False and "다릅니다" in f["reason"]
+    f = cr.freshness(rec, today=date(2026, 10, 2), live_core_top4=["TLT", "XLE", "GLD", "XLK"])
+    assert f["ok"] is True and f["level"] == "aging"
+    assert cr.freshness(None)["level"] == "missing"
+    assert cr.freshness(_rec_for_todo(as_of="2026-10-02"), today=date(2026, 10, 2))["level"] == "fresh"
+
+
+def test_next_checkpoints_dates():
+    cp = cr.next_checkpoints(date(2026, 10, 2))
+    assert cp["core_next"] == "2026-11-02"  # 11/1 은 일요일
+    assert cp["core_rebalance_this_month"] == "2026-10-01"
+    assert cp["core_rebalanced_recently"] is True
+    assert cp["satellite_next"] == "2027-04-02"
+    assert cr.next_checkpoints(date(2026, 12, 15))["core_next"] == "2027-01-04"
+
+
+# ============================================================================================
+# 종목 차트 — 누른 종목만 가격을 받아 그리고, '몇 주'는 금액 ÷ 현재가 내림
+# ============================================================================================
+
+def _ohlc(n=300, start=50.0, step=0.4, end_day=None):
+    idx = pd.bdate_range(end=pd.Timestamp(end_day or date.today()), periods=n)
+    close = pd.Series([start + step * i for i in range(n)], index=idx)
+    return pd.DataFrame({"Open": close - 0.2, "High": close + 0.5, "Low": close - 0.5,
+                         "Close": close, "Adj Close": close, "Volume": 1_000}, index=idx)
+
+
+def test_estimate_shares_rounds_down():
+    est = cr.estimate_shares(500, 271.95)
+    assert est == {"shares": 1, "cost": 271.95, "leftover": 228.05}
+    assert cr.estimate_shares(543.90, 271.95)["shares"] == 2  # 딱 나누어떨어지면 그 수 그대로
+    assert cr.estimate_shares(100, 271.95)["shares"] == 0
+    assert cr.estimate_shares(-750, 100.0)["shares"] == 7  # 매도 금액(음수 delta)도 절댓값으로
+    assert cr.estimate_shares(500, None)["shares"] is None
+    assert cr.estimate_shares(500, 0)["shares"] is None
+
+
+def test_chart_tickers_excludes_cash():
+    targets = cr.target_allocation(_rec_for_todo(status="below"))
+    tickers = cr.chart_tickers(targets)
+    assert cr.CASH_TICKER not in tickers
+    assert tickers == [r["ticker"] for r in targets if r["ticker"] != cr.CASH_TICKER]  # 표 순서 그대로
+    assert set(tickers) == {"XLK", "GLD", "XLE", "TLT", "AAA", "BBB", "CCC"}
+
+
+def test_entry_levels_satellite_uses_evidence_stop_and_raises_peak_after_as_of():
+    close = _ohlc(n=60, end_day=date(2026, 10, 1))["Close"]
+    last = float(close.iloc[-1])
+    ev = {"ticker": "CCC", "trailing_stop": 70.0}  # 추천 계산 시점 고점 70/0.85
+    lv = cr.entry_chart_levels(close, "새틀라이트", evidence_row=ev, evidence_as_of="2026-09-01")
+    assert lv["last_close"] == round(last, 2) and lv["last_date"] == "2026-10-01"
+    # 20일 돌파선 = 직전 20거래일(오늘 제외) 최고 종가
+    assert lv["breakout_level"] == round(float(close.iloc[-21:-1].max()), 2)
+    # 9/1 이후 종가가 더 올랐으므로 고점을 올려 스탑도 올라간다
+    expected_stop = max(70.0 / (1 - cs.SATELLITE_DONCHIAN_STOP_PCT), last) * (1 - cs.SATELLITE_DONCHIAN_STOP_PCT)
+    assert lv["trailing_stop"] == pytest.approx(round(expected_stop, 2))
+    assert lv["stop_headroom_pct"] == pytest.approx(round((last / expected_stop - 1) * 100, 2))
+    assert {l["key"] for l in lv["levels"]} == {"last", "breakout", "stop"}
+    assert lv["momentum_ref"] is None  # 새틀라이트 전용 종목엔 코어 기준선을 긋지 않는다
+
+
+def test_entry_levels_satellite_without_evidence_recomputes_with_rule_function():
+    close = _ohlc(n=60)["Close"]
+    lv = cr.entry_chart_levels(close, "새틀라이트")
+    # 계속 오르는 종가라 21번째 봉에서 돌파 → 진입 후 최고 종가는 마지막 종가
+    assert lv["trailing_stop"] == pytest.approx(round(float(close.iloc[-1]) * (1 - cs.SATELLITE_DONCHIAN_STOP_PCT), 2))
+
+
+def test_entry_levels_core_uses_12m_reference_price():
+    close = _ohlc(n=300)["Close"]
+    lv = cr.entry_chart_levels(close, "코어")
+    ref = float(close.iloc[-1 - cs.CORE_MOMENTUM_LOOKBACK_DAYS])
+    assert lv["momentum_ref"] == round(ref, 2)
+    assert lv["momentum_12m_pct"] == pytest.approx(round((float(close.iloc[-1]) / ref - 1) * 100, 2))
+    assert lv["breakout_level"] is None and lv["trailing_stop"] is None
+    assert cr.entry_chart_levels(close.iloc[:100], "코어")["momentum_ref"] is None  # 1년이 안 되면 긋지 않음
+
+
+def test_fetch_chart_history_returns_none_on_failure():
+    def boom(*a, **k):
+        raise OSError("offline")
+
+    assert cr.fetch_chart_history("XLK", price_fn=boom) is None
+    assert cr.fetch_chart_history("XLK", price_fn=lambda *a, **k: pd.DataFrame()) is None
+    df = cr.fetch_chart_history("XLK", today=date(2026, 10, 2), price_fn=lambda t, start=None: _ohlc())
+    assert df is not None and not df.empty
+
+
+def _run_page_with_rec(cache_dir, rec):
+    from streamlit.testing.v1 import AppTest
+
+    at = AppTest.from_file(str(PAGE), default_timeout=120)
+    at.session_state["champion_core_asof"] = date.today().isoformat()
+    at.session_state["champion_core_result"] = _core_result()
+    at.session_state["champion_rec_result"] = rec
+    at.run()
+    assert not at.exception, [e.value for e in at.exception]
+    return at
+
+
+def test_page_ticker_chart_loads_only_on_click(page_env, monkeypatch, tmp_path):
+    import core.market_data as md
+
+    calls = []
+
+    def fake_history(ticker, start=None, end=None, interval="1d", **_):
+        calls.append(ticker)
+        return _ohlc()
+
+    monkeypatch.setattr(md, "get_price_history", fake_history)
+    rec = _compute(tmp_path / "rec-cache")
+    at = _run_page_with_rec(page_env, rec)
+    pills = at.pills(key="champion_todo_chart_ticker")
+    assert "CCC" in pills.options and "XLK" in pills.options and "현금" not in pills.options
+    assert calls == [], "종목을 누르기 전에는 가격을 받지 않는다"
+    assert not at.get("plotly_chart") or all("champion_todo_chart" not in str(c.proto.id) for c in at.get("plotly_chart"))
+
+    pills.set_value("CCC").run()
+    assert not at.exception, [e.value for e in at.exception]
+    assert calls == ["CCC"]
+    txt = _text(at)
+    last = float(_ohlc()["Close"].iloc[-1])
+    shares = int((10_000 * cs.SATELLITE_WEIGHT * 0.5) / last)
+    assert f"약 {shares}주" in txt
+    assert f"현재가 ${last:,.2f}" in txt
+    assert "지정가·목표 매수가가 없습니다" in txt and "종가" in txt
+    assert "트레일링스탑 기준" in txt and "20일 돌파선" in txt
+    assert at.get("plotly_chart"), "차트가 그려져야 한다"
+
+    pills.set_value("XLK").run()
+    assert not at.exception, [e.value for e in at.exception]
+    assert "12개월 전 가격" in _text(at)
+
+
+def test_page_ticker_chart_offline_shows_message(page_env, monkeypatch, tmp_path):
+    import core.market_data as md
+
+    def offline(*a, **k):
+        raise OSError("network blocked")
+
+    monkeypatch.setattr(md, "get_price_history", offline)
+    at = _run_page_with_rec(page_env, _compute(tmp_path / "rec-cache"))
+    at.pills(key="champion_todo_chart_ticker").set_value("XLK").run()
+    assert not at.exception, [e.value for e in at.exception]
+    assert "가격 데이터를 불러오지 못했습니다" in _text(at)

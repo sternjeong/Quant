@@ -45,6 +45,9 @@ ROLES: dict[str, RoleConfig] = {
     "implementer": RoleConfig("sonnet", 40, 30 * 60, 12, 1.5),
     "critic": RoleConfig("opus", 15, 20 * 60, 14, 1.5),
     "postmortem": RoleConfig("sonnet", 15, 20 * 60, 1, 1.0, weekdays=(6,)),
+    # 새틀라이트 R&D 센터(2026-10-02): 선정 규칙 아이디어 설계·구현(재작업 포함) / 코드 검토
+    "sat_designer": RoleConfig("opus", 40, 30 * 60, 8, 3.0),
+    "sat_critic": RoleConfig("opus", 15, 20 * 60, 8, 1.5),
 }
 
 

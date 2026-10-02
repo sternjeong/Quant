@@ -46,9 +46,9 @@ START_HERE: tuple[str, ...] = (
 JOBS: tuple[JobGuide, ...] = (
     JobGuide(
         job_id="research_job_runner",
-        where_to_see="관제 센터 '검증 연구 결과' 카드, 텔레그램 '[검증 연구 결과]'(완료 1건·실패 사유), 저장소 research/results/<id>/",
-        if_alert="실패 알림이면 사유를 읽고, 스크립트 문제면 개발 요청으로 고친 뒤 'python scripts/research_jobs_admin.py retry <id>'. 정의 오류면 job.json 을 docs/RESEARCH_JOBS.md 계약대로 고칩니다. 원하지 않으면 '/processes off research_job_runner'.",
-        verified="2026-09-26",
+        where_to_see="관제 센터 '검증 연구 결과' 카드, 텔레그램 '[검증 연구 결과]'(완료 1건·실패 사유), 저장소 research/results/<id>/. 대기 연구가 없는 창에는 새틀라이트 R&D 센터 계산을 돌리고 그 결과는 '새틀라이트 R&D 센터' 화면과 텔레그램 '[새틀라이트 R&D]'로 옵니다.",
+        if_alert="실패 알림이면 사유를 읽고, 스크립트 문제면 개발 요청으로 고친 뒤 'python scripts/research_jobs_admin.py retry <id>'. 정의 오류면 job.json 을 docs/RESEARCH_JOBS.md 계약대로 고칩니다. '[새틀라이트 R&D] 계산기 실패'는 같은 사유면 한 번만 옵니다 — 개발 요청으로 고치면 다음 창에서 이어집니다. 원하지 않으면 '/processes off research_job_runner'(새틀라이트 계산도 함께 멈춤).",
+        verified="2026-10-02",
     ),
     JobGuide(
         job_id="contest_deadline_alert",
@@ -259,6 +259,14 @@ SCRIPTS: tuple[ScriptGuide, ...] = (
         risk="읽기 전용",
         what_it_prints="다음에 실행될 작업(역할·대상 가설)과 이번 주·오늘 밤 예산 사용량을 보여 줍니다. 03:00~05:30 KST 밖이면 다음 작업이 null 로 나오는 것이 정상입니다. --dry-plan 없이 실행하면 실제 배치가 돌아 에이전트를 호출합니다.",
         verified="2026-09-25",
+    ),
+    ScriptGuide(
+        path="scripts/satellite_lab_worker.py", name="새틀라이트 R&D 센터 계산기",
+        when_to_run="직접 돌릴 일은 거의 없습니다. VM 연구 실행기가 대기 연구가 없는 창에서 자동으로 돌립니다. 코드를 바꾼 뒤 끝까지 도는지만 확인할 때 --smoke 를 씁니다.",
+        command="python scripts/satellite_lab_worker.py --smoke --out /tmp/sl/out --checkpoint /tmp/sl/ckpt",
+        risk="파일/DB 쓰기",
+        what_it_prints="시작 목록·준비된 에이전트 아이디어 동결 → 현 규칙 기준선(무작위 대비 백분위) → 후보별 판정(통과/탈락과 사유)을 한 줄씩 찍고 --out 에 status.json 을 씁니다. --smoke 는 합성 가격과 임시 등록부만 쓰며 몇 십 초면 끝납니다. --smoke 없이 돌리면 실제 가격을 받고 data/satellite_lab/registry.json 을 바꾸며 오래 걸리므로 VM 연구 창에 맡기세요.",
+        verified="2026-10-02",
     ),
     ScriptGuide(
         path="scripts/research_jobs_admin.py", name="검증 연구 작업 관리",

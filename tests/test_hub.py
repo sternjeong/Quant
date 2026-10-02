@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import html
 import subprocess
 from pathlib import Path
 from unittest.mock import patch
@@ -63,7 +64,7 @@ def test_render_dashboard_lists_every_slot_title():
     with _mock_active_status():
         html_out = server.render_dashboard("203.0.113.10")
     for slot in SLOTS:
-        assert slot.title in html_out
+        assert html.escape(slot.title) in html_out  # 제목의 & 등은 HTML 로 이스케이프되어 나온다
 
 
 def test_slot_href_web_points_to_own_port():

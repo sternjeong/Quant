@@ -140,10 +140,18 @@ MODULES: tuple[ModuleGuide, ...] = (
     ModuleGuide(
         module="core/research_jobs.py", name="검증 연구 작업 실행기", group="리서치 인프라", status="운영중",
         what="저장소의 research/jobs/<id>/job.json 으로 등록된 사전 등록 검증 연구(판정 규칙이 코드에 박힌 백테스트 스크립트)를 VM 의 한가한 시간에 한 번에 하나씩 돌립니다. 스크립트가 체크포인트를 남기면 여러 밤·낮에 걸쳐 이어서 계산합니다. AI 를 부르지 않고 주문 경로와도 연결되어 있지 않습니다.",
-        how_to_use="자동 잡 research_job_runner 가 01:00~02:50, 13:00~16:50 KST 에 20분마다 깨어나 대기 작업을 실행합니다. 새 연구는 에이전트가 docs/RESEARCH_JOBS.md 계약대로 만들어 main 에 병합하면 다음 창에서 돕니다. 상태·재시도·취소는 scripts/research_jobs_admin.py 로 합니다.",
+        how_to_use="자동 잡 research_job_runner 가 01:00~02:50, 13:00~16:50 KST 에 20분마다 깨어나 대기 작업을 실행합니다. 대기 작업이 하나도 없는 회차에는 새틀라이트 R&D 센터 계산기(scripts/satellite_lab_worker.py)를 같은 보호 장치로 돌립니다(사전 등록 연구가 언제나 먼저). 새 연구는 에이전트가 docs/RESEARCH_JOBS.md 계약대로 만들어 main 에 병합하면 다음 창에서 돕니다. 상태·재시도·취소는 scripts/research_jobs_admin.py 로 합니다.",
         where_to_see="관제 센터 '검증 연구 결과' 카드(작업별 상태·판정 요약·REPORT), 텔레그램 '[검증 연구 결과]' 알림, 저장소 research/results/<id>/",
         cautions="실행 전 VM 여유(부하·메모리)와 디스크를 확인하고 여유가 없으면 다음 회차로 미룹니다. 자식 프로세스는 가장 낮은 우선순위(nice 19)로 돌고 창 끝 2분 전까지 멈춥니다. 자동 배포·재부팅으로 끊기면 다음 회차에 이어서 합니다. 결과가 나왔다는 것은 사전 등록 판정이 계산됐다는 뜻일 뿐, 전략 성과가 개선됐다는 뜻이 아닙니다. VM 에 push 권한이 없으면 저장소 반영은 건너뛰고 알림에 적습니다.",
-        sources=("core/research_jobs.py", "scheduler/run_scheduler.py", "docs/RESEARCH_JOBS.md"), verified="2026-09-26"),
+        sources=("core/research_jobs.py", "scheduler/run_scheduler.py", "docs/RESEARCH_JOBS.md"), verified="2026-10-02"),
+    ModuleGuide(
+        module="core/satellite_lab.py", name="새틀라이트 R&D 센터", group="리서치 인프라", status="실험",
+        what="새틀라이트(포트폴리오 15%) 종목을 고르는 규칙을 계속 시험하는 연구실입니다. 질문은 '이 규칙이 지금 챔피언 새틀라이트 규칙보다, 그리고 같은 후보 풀에서 무작위로 고른 것보다 종목을 더 잘 고르는가'입니다. 후보 규칙·현 규칙·무작위 선정(200번)이 같은 시뮬레이터, 같은 후보 풀(champion40 = 현 규칙의 섹터별 시총 상위 40종목, 또는 그 시점 S&P500 전체), 같은 편도 8bp 비용으로 2010년부터 돕니다. 바꿔 볼 수 있는 것은 고르는 신호, 종목 수(3~10), 보유 기간(1·3·6개월), 보유 중 손절(트레일링스탑)입니다. 아이디어는 저장소의 시작 목록(research/satellite_lab/seeds, 현 규칙 S-SEED-000 + 9개)과 매일 03:00 에이전트가 만드는 것입니다.",
+        how_to_use="자동입니다. 결과는 관제 센터 '새틀라이트 R&D 센터'에서 봅니다. 맨 위 '기준선'은 현 규칙이 무작위 선정보다 나은지(백분위, 50 이면 무작위와 같음)를 보여 주고, '후보 순위'는 후보마다 다섯 관문(G1 무작위 95백분위 이상, G2 현 규칙 대비 초과수익의 Deflated Sharpe 0.95 이상·누적 시도 반영, G3 떼어 둔 마지막 2년에서도 현 규칙보다 나음, G4 파라미터를 ×0.5·×1.5 로 바꿔도 유지, G5 최대낙폭이 현 규칙보다 10%p 넘게 나쁘지 않음)의 결과와 탈락 사유를 보여 줍니다. 새 판정은 텔레그램 '[새틀라이트 R&D]'로 옵니다.",
+        where_to_see="관제 센터 '새틀라이트 R&D 센터'(/satellite-lab), 텔레그램 '[새틀라이트 R&D]', VM data/satellite_lab/registry.json",
+        cautions="통과는 '사람 검토 대기'일 뿐 챔피언에 자동 반영되지 않습니다 — 반영은 사용자 확인 뒤 별도 작업입니다. 계속 시도하면 우연히 좋아 보이는 것이 반드시 나오므로 모든 시도(파라미터 조합)를 영구 누적해 G2 기준을 올리고, 에이전트 아이디어 동결은 주 6건으로 제한합니다. 판정 규칙(sat-judge/v1)은 결과를 보기 전에 고정했고 바꾸려면 새 버전으로 다시 등록해야 합니다. 무료 가격 소스에 없는 상장폐지 종목은 빠져 생존편향이 남고, 배당·세금·슬리피지는 넣지 않았으며, champion40 풀의 과거 시가총액은 근사치입니다. 실제 데이터 전체 계산은 아직 VM 에서 한 번도 돌지 않았습니다(합성 데이터 스모크만 확인). 주문 경로와 연결되어 있지 않습니다.",
+        sources=("core/satellite_lab.py", "scripts/satellite_lab_worker.py", "core/research_jobs.py", "core/agent_batch.py",
+                 "hub/satellite_lab_page.py"), verified="2026-10-02"),
     ModuleGuide(
         module="core/resource_guard.py", name="VM 여유 확인", group="운영·안전", status="운영중",
         what="지금 VM 의 CPU 부하와 여유 메모리를 보고 무거운 작업을 하나 더 시작해도 되는지 판단합니다.",

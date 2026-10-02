@@ -1,0 +1,24 @@
+{
+  "id": "S-SEED-004",
+  "parent": "S-SEED-000",
+  "title": "현 규칙 + 6종목 분산",
+  "thesis": "3종목은 한두 종목 급락에 크게 흔들린다. 같은 규칙으로 6종목을 담으면 종목 고유 위험이 줄어 위험 대비 수익이 낫다.",
+  "source": "집중도 문제(H36 확장 시 MDD 5배 악화)",
+  "pool": {
+    "type": "champion40"
+  },
+  "signal": {
+    "params_grid": [
+      {
+        "mom_window": 252
+      }
+    ]
+  },
+  "portfolio": {
+    "top_k": 6,
+    "hold_months": 6
+  },
+  "exit": {
+    "type": "none"
+  }
+}

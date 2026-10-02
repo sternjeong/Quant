@@ -1,6 +1,6 @@
 # 세션 인계
 
-최종 갱신: 2026-09-26 (심판 강건성·OOS 분리·실패 방향 목록·Ken French·멈춘 피드 탐지)
+최종 갱신: 2026-10-02 (새틀라이트 R&D 센터·종목 차트·'지금 할 일' 카드)
 
 ## 최신 상태 요약
 
@@ -18,6 +18,24 @@
 - **공유 Codespace 이력:** 엔진 고도화 3차 세션과 UI 재구성 세션이 동시에 작업했다. 엔진 세션은 UI 파일을 건드리지 않았고, UI 2차 세션은 최신 엔진 문서 변경을 보존한 채 인계 내용을 병합했다. 다음 에이전트도 먼저 `git status`로 동시 변경 여부를 확인한다.
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
+
+## 2026-10-02 새틀라이트 R&D 센터 + 종목 차트 (구현·전체 테스트, 미커밋·미배포)
+
+- 계기: 7/1 새틀라이트(CAT·GEV·JNJ) 3개월 약 −9%(같은 풀 평균 −5%, SPY +2%) → 사용자 "새틀라이트 종목 선정 R&D 센터를 만들어 계속 연구시켜라". 사용자 결정: 아이디어 = AI 에이전트 + 시작 목록, 범위 = 선정 규칙 + 보유기간·종목 수·청산.
+- 설계·사전 고정 판정 규칙: [SATELLITE_LAB.md](./SATELLITE_LAB.md) (sat-judge/v1, G1~G5). 후보·현 규칙·무작위 200회가 같은 시뮬레이터·풀·비용. 현 규칙 재현은 테스트로 확인(_pick_satellite_at_date 와 날짜별 동일 선정).
+- 구현: core/satellite_lab.py(엔진·심판·등록부 data/satellite_lab/), scripts/satellite_lab_worker.py(계산기, --smoke), research/satellite_lab/seeds/S-SEED-000~009, core/research_jobs.py(대기 연구 없는 창에서 계산기 실행·텔레그램 '[새틀라이트 R&D]'), core/agent_batch.py + core/agent_budget.py + deploy/codex_telegram/runner.py(sat_designer·sat_critic 역할), research/agent_prompts/_sat_contract.md·sat_designer.md·sat_critic.md, hub/satellite_lab_page.py + hub/server.py + hub/apps_registry.py(/satellite-lab 카드), 설명서 content_modules_a/b·content_ops, docs/RESEARCH_JOBS.md, .gitignore, tests/test_satellite_lab.py(18), tests/test_hub.py(제목 이스케이프).
+- 종목 차트(하위 에이전트): '지금 할 일' 카드에 티커 버튼(st.pills) → 1년 캔들 + 현재가·20일 돌파선·트레일링스탑(코어는 12개월 전 가격) + '매수 금액 ÷ 현재가 = 약 N주'. 목표 매수가는 만들지 않음(백테스트는 리밸런싱일 종가 매수). core/champion_recommendation.py 헬퍼 4개, app/pages/11_챔피언_전략.py, 테스트 8건.
+- 검증: 전체 pytest 2359 passed·4 skipped, codex_telegram unittest 72 OK, hub.guide.check 누락 없음, 계산기 스모크(합성 데이터) 10개 동결·9개 판정·종료 0(45초). **실데이터 전체 계산·실제 Claude CLI 로 새틀라이트 트랙 실행·실브라우저 확인은 안 함.**
+- 다음: main 병합(사용자 승인) → 첫 VM 연구 창에서 champion40 풀 캐시·가격 로딩 시간 확인(sp500_pit 는 첫 실행 때 가격 내려받기가 길 수 있음, 종료 코드 3 으로 이어감) → 기준선 '현 규칙 무작위 대비 백분위' 확인. PASS 가 나와도 챔피언 반영은 사용자 확인 뒤 별도 작업.
+
+## 2026-10-02 챔피언 화면 '✅ 지금 할 일' 카드 (구현·전체 테스트, 미커밋·미배포)
+
+- 계기: 사용자 "챔피언 전략 화면에서 당장 무엇을 해야 하는지 직관적으로 알 수 없다".
+- 원인: 새틀라이트 목록이 세 개(홈·어제 밤 저장=빠른 근사 스캔 5종목, 재추천=오늘자 PIT 3종목, 참고=직전 반기일 PIT)였고, '지금 해야 할 행동'이 다른 방법론인 어제 밤 목록과 비교해 매번 '새틀라이트 N개 교체 필요'를 띄웠다. 사용자 보유와는 비교하지 않았다.
+- 결정: 화면 맨 위 한 카드로 1단계 추천 최신 여부(지난달 결과·오늘 코어와 불일치 → 다시 계산) → 2단계 목표 비중표 → 3단계 내 보유('포트폴리오' 입력) 대비 매도→매수 목록(미등록이면 투자금 입력 후 '처음 매수') → 4단계 다음 확인일(코어 다음 달 첫 거래일, 새틀라이트 매수일+6개월). 근거·분포·확신도는 카드 아래 탭으로 내림. '오늘의 종합 판단'·'5. 내 포트폴리오와 비교' 절은 카드로 흡수해 삭제, 6→5 재번호. `action_summary`는 새틀라이트 비교를 하지 않음(코어만). 홈 '현재 전략 상태' 새틀라이트는 마지막 재추천의 오늘자 목록 우선, 없으면 빠른 근사 스캔을 '참고용'으로 표시.
+- 수정: core/champion_recommendation.py(target_allocation·order_plan·freshness·next_checkpoints, action_summary), app/pages/11_챔피언_전략.py, app/views/today.py, hub/guide/content_pages_a.py·content_modules_a.py(verified 2026-10-02), tests/test_champion_recommendation.py.
+- 검증: 전체 pytest 2333 passed·4 skipped, `python -m hub.guide.check` 누락 없음, 실제 VM 재추천 캐시(2026-09-29)로 헤드리스 렌더 확인(1단계 '다시 계산' 경고, $10,000 기준 코어 4×$2,125·새틀라이트 3×$500). 실브라우저 미확인.
+- 남은 것(제안): 야간 `check_and_notify_signal_changes`의 새틀라이트가 여전히 빠른 근사 스캔이라 텔레그램·상관관계·실적 알림 대상도 그 목록이다 — PIT 로 바꿀지는 사용자 결정. 커밋·main 병합(=자동 배포)은 사용자 승인 후.
 
 ## 2026-09-27 VM 검증 연구 작업 실행기 (구현·전체 테스트, 미병합·미배포)
 

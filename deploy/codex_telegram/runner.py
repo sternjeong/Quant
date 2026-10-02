@@ -87,7 +87,8 @@ HYPOTHESIS_ID = re.compile(r'^H-\d{8}-\d{3}$')
 # core.agent_budget.ROLES / MODEL_CHOICES 와 같은 값(이 러너는 core/ 를 import 하지 않는다 — 동기화는 테스트가 잡는다).
 AGENT_ROLES = [('scout', 'Scout 아이디어 수집', 'haiku'), ('writer', 'Writer 가설 작성', 'opus'),
                ('implementer', 'Implementer 코드 작성', 'sonnet'), ('critic', 'Critic 코드 검증', 'opus'),
-               ('postmortem', 'Post-mortem 실패 교훈', 'sonnet')]
+               ('postmortem', 'Post-mortem 실패 교훈', 'sonnet'), ('sat_designer', '새틀라이트 R&D 아이디어 설계', 'opus'),
+               ('sat_critic', '새틀라이트 R&D 코드 검증', 'opus')]
 AGENT_MODEL_CHOICES = ('haiku', 'sonnet', 'opus')
 
 

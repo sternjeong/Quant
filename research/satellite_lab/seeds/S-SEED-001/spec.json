@@ -1,0 +1,24 @@
+{
+  "id": "S-SEED-001",
+  "parent": "S-SEED-000",
+  "title": "현 규칙 + S&P500 전체 풀",
+  "thesis": "후보 풀을 섹터별 시총 상위 40종목 표본에서 그 시점 S&P500 전체로 넓히면 같은 규칙이 더 좋은 종목을 찾는다.",
+  "source": "사용자 지적(2026-10-02): 40종목 표본이 선택 폭을 좁힐 수 있음",
+  "pool": {
+    "type": "sp500_pit"
+  },
+  "signal": {
+    "params_grid": [
+      {
+        "mom_window": 252
+      }
+    ]
+  },
+  "portfolio": {
+    "top_k": 3,
+    "hold_months": 6
+  },
+  "exit": {
+    "type": "none"
+  }
+}

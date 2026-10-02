@@ -1,0 +1,24 @@
+{
+  "id": "S-SEED-009",
+  "parent": "S-SEED-000",
+  "title": "저변동 추세",
+  "thesis": "추세가 살아 있는 종목 중 가장 덜 흔들리는 종목은 저변동 이상현상과 추세를 함께 얻어 급락 손실이 작다.",
+  "source": "저변동 이상현상(Frazzini & Pedersen 2014 BAB는 dead_ends 참고 — 여기선 추세 조건부)",
+  "pool": {
+    "type": "champion40"
+  },
+  "signal": {
+    "params_grid": [
+      {
+        "vol_window": 63
+      }
+    ]
+  },
+  "portfolio": {
+    "top_k": 3,
+    "hold_months": 6
+  },
+  "exit": {
+    "type": "none"
+  }
+}

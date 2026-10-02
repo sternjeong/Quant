@@ -94,12 +94,13 @@ class Config:
     results_dir: Path = PROJECT_ROOT / "data" / "research_results"
     publish_prefix: str = "research/results"
     python: str = sys.executable
+    satellite_lab: bool = True  # 대기 작업이 없는 창을 새틀라이트 R&D 센터 심판에 쓴다(아래 _satellite_lab_turn)
 
     @classmethod
     def for_root(cls, root: Path) -> "Config":
         root = Path(root)
         return cls(repo_root=root, jobs_dir=root / "research" / "jobs", state_dir=root / "data" / "research_jobs",
-                   results_dir=root / "data" / "research_results")
+                   results_dir=root / "data" / "research_results", satellite_lab=False)
 
     @property
     def state_path(self) -> Path:
@@ -1005,6 +1006,8 @@ def run_tick(now: Optional[datetime] = None, *, notify: Optional[Callable[[str],
         with edit_state(cfg) as state:
             job, budget, shortened = pick_job(state, jobs, now, window_end)
         if job is None:
+            if cfg.satellite_lab and os.environ.get("RESEARCH_SATELLITE_LAB", "1") != "0":
+                return _finish_tick(_satellite_lab_turn(cfg, now, window_end, notify, headroom, poll_interval))
             return _finish_tick({"action": "idle", "reason": "실행할 작업 없음"})
         if not headroom():
             return _finish_tick({"action": "skipped", "reason": "VM 여유 없음(부하·메모리)"})
@@ -1027,6 +1030,85 @@ def run_tick(now: Optional[datetime] = None, *, notify: Optional[Callable[[str],
             result = apply_outcome(cfg, job, entry, outcome, shortened, notify, publish, now, state["runner"])
         return _finish_tick({"action": "ran", "job_id": job.id, "result": result, "exit_code": outcome.exit_code,
                              "budget": budget, "duration": round(outcome.duration, 1)})
+
+
+# ---------------------------------------------------------------------------
+# 새틀라이트 R&D 센터 (2026-10-02) — 사전 등록 연구가 하나도 대기하지 않는 창에서만 돈다
+# ---------------------------------------------------------------------------
+SATELLITE_LAB_JOB = JobDef(
+    id="satellite-lab", title="새틀라이트 R&D 센터 심판", entrypoint="scripts/satellite_lab_worker.py", args=(),
+    timeout_seconds=3 * 3600, max_attempts=3, resumable=True, outputs=("status.json",), summary_from=None,
+    priority=1000, max_memory_mb=4096, max_disk_mb=1024,
+)
+SATELLITE_LAB_BULK_NOTICE = 3  # 새 판정이 이보다 많으면 한 통으로 묶는다
+
+
+def _satellite_lab_turn(cfg: Config, now: datetime, window_end: datetime, notify: Callable[[str], object],
+                        headroom: Callable[[], bool], poll_interval: float) -> dict:
+    """빈 창 한 회차: 심판할 후보가 있으면 계산기(scripts/satellite_lab_worker.py)를 같은 보호 장치로 돌린다.
+
+    사전 등록 연구(research/jobs)가 언제나 먼저다 — 이 함수는 pick_job 이 아무것도 고르지 않았을 때만 불린다.
+    계산기는 결과를 data/satellite_lab/registry.json 에 직접 쓰고, 여기서는 새 판정을 텔레그램으로 알린다.
+    """
+    from core import satellite_lab as sl
+
+    job = SATELLITE_LAB_JOB
+    try:
+        if not sl.has_work():
+            return {"action": "idle", "reason": "실행할 작업 없음(새틀라이트 R&D 대기 없음)"}
+    except Exception as exc:  # noqa: BLE001 - 연구실 등록부 문제로 실행기 전체가 죽지 않게
+        return {"action": "idle", "reason": f"새틀라이트 R&D 상태 확인 실패: {type(exc).__name__}"}
+    budget, _ = budget_for(job, now, window_end)
+    if budget < MIN_BUDGET_SECONDS:
+        return {"action": "idle", "reason": "새틀라이트 R&D: 창에 남은 시간 부족"}
+    if not headroom():
+        return {"action": "skipped", "reason": "VM 여유 없음(부하·메모리)"}
+    free = free_disk_mb(cfg.state_dir)
+    if free is not None and free < MIN_FREE_DISK_MB:
+        return {"action": "skipped", "reason": f"여유 디스크 부족({int(free)}MB)"}
+    with edit_state(cfg) as state:
+        state.setdefault("satellite_lab", {})["last_started_at"] = _now_iso(now)
+    outcome = run_child(cfg, job, budget, poll_interval=poll_interval)
+    ok = outcome.exit_code in (0, 3) or (outcome.stopped_by == "budget")
+    with edit_state(cfg) as state:
+        lab = state.setdefault("satellite_lab", {})
+        lab.update(last_finished_at=_now_iso(), exit_code=outcome.exit_code, stopped_by=outcome.stopped_by,
+                   duration=round(outcome.duration, 1), log_tail=None if ok else outcome.log_tail[-800:])
+        signature = None if ok else f"{outcome.exit_code}|{outcome.stopped_by}|{_first_error_line(outcome.log_tail)}"
+        repeat = signature is not None and signature == lab.get("failure_signature")
+        lab["failure_signature"] = signature
+    if not ok and not repeat:
+        tail = _first_error_line(outcome.log_tail)
+        notify(redact(f"[새틀라이트 R&D] 계산기 실패 (종료 코드 {outcome.exit_code}, {outcome.stopped_by or '-'})"
+                      + (f"\n{tail}" if tail else ""))[:1000])
+    _notify_satellite_verdicts(notify)
+    return {"action": "ran", "job_id": job.id, "result": "ok" if ok else "failed", "exit_code": outcome.exit_code,
+            "budget": budget, "duration": round(outcome.duration, 1)}
+
+
+def _notify_satellite_verdicts(notify: Callable[[str], object], state_dir: Optional[Path] = None) -> int:
+    from core import satellite_lab as sl
+
+    fresh = []
+    with sl.edit_registry(state_dir) as reg:
+        for v in reg["variants"].values():
+            if v.get("status") in (sl.STATUS_PASS, sl.STATUS_FAIL, sl.STATUS_ERROR) and not v.get("notified"):
+                v["notified"] = True
+                fresh.append(json.loads(json.dumps(v, default=str)))
+    if not fresh:
+        return 0
+    passed = [v for v in fresh if v["status"] == sl.STATUS_PASS]
+    if len(fresh) > SATELLITE_LAB_BULK_NOTICE:
+        lines = [f"[새틀라이트 R&D] 새 판정 {len(fresh)}건 — 통과 {len(passed)}, 탈락·오류 {len(fresh) - len(passed)}"]
+        lines += [f"· {v['id']} {v['spec'].get('title')}: {v['status']}" for v in fresh[:12]]
+        lines.append("자세한 사유는 관제 센터 '새틀라이트 R&D 센터'에서 봅니다. 통과해도 챔피언에 자동 반영되지 않습니다.")
+        notify("\n".join(lines)[:1500])
+        for v in passed:
+            notify(sl.notification_text(v))
+    else:
+        for v in fresh:
+            notify(sl.notification_text(v))
+    return len(fresh)
 
 
 # ---------------------------------------------------------------------------

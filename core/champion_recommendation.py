@@ -513,8 +513,16 @@ def action_summary(*, core: dict, picks: list[str], next_reselection: dict,
                 "compared_with": None}
 
     core_text = _swap_text("코어", list(previous.get("core_top4") or []), top4)
-    sat_text = _swap_text("새틀라이트", list(previous.get("satellite_selected") or []), picks)
-    changes = [t for t in (core_text, sat_text) if t]
+    # 새틀라이트는 비교하지 않는다 — 어제 밤 저장 상태(champion_signal_state.json)의 새틀라이트는
+    # '빠른 근사 스캔'(compute_satellite_recommendation, 다른 방법론·5종목)이라 오늘자 point-in-time
+    # 재선정과 비교하면 매번 '교체 필요'가 뜬다(2026-10-02 사용자 지적). 실제 매매할 것은
+    # order_plan()이 내 보유와 비교해 보여 준다.
+    changes = [t for t in (core_text,) if t]
+    items.append({
+        "kind": "note",
+        "text": ("새틀라이트는 어제 밤 저장 목록(빠른 근사 스캔 — 다른 방법론)과 비교하지 않습니다. "
+                 "실제로 사고팔 것은 '지금 할 일'의 주문 목록(내 보유와 비교)을 보세요."),
+    })
     if changes:
         headline = " · ".join(changes)
         items = [{"kind": "change", "text": t} for t in changes] + items
@@ -524,6 +532,117 @@ def action_summary(*, core: dict, picks: list[str], next_reselection: dict,
                     "코어는 매달 첫 거래일에 다시 봅니다.")
     return {"headline": headline, "items": items, "has_changes": bool(changes), "places_orders": False,
             "compared_with": previous.get("as_of")}
+
+
+# ============================================================================================
+# '지금 할 일' 카드 (2026-10-02 추가) — 화면 맨 위 한 장으로 "무엇을 사고팔아 무엇을 들고 있어야
+# 하나"를 답한다. 재추천 결과와 '포트폴리오' 화면에 입력한 보유를 합치기만 하고 새 신호는 만들지 않는다.
+# ============================================================================================
+
+CASH_TICKER = "CASH"
+
+
+def target_allocation(rec: dict) -> list[dict]:
+    """재추천 결과 → 포트폴리오 전체 기준 목표 비중 행 [{ticker, sleeve, weight(0~1)}].
+
+    코어는 이미 전체 기준 비중(per_ticker_weights), 새틀라이트는 슬리브 안 비중이라 슬리브 비중을 곱한다.
+    남는 몫(시장필터 축소분·새틀라이트 미배정)은 현금 행 하나로 둔다.
+    """
+    core = rec.get("core") or {}
+    sat_today = (rec.get("satellite") or {}).get("today") or {}
+    sat_weight = float((rec.get("params") or {}).get("satellite_weight", cs.SATELLITE_WEIGHT))
+    weights: dict[str, float] = {}
+    sleeves: dict[str, str] = {}
+    for t, w in (core.get("per_ticker_weights") or {}).items():
+        weights[t] = weights.get(t, 0.0) + float(w)
+        sleeves[t] = "코어"
+    for t, w in (sat_today.get("sleeve_weights") or {}).items():
+        weights[t] = weights.get(t, 0.0) + float(w) * sat_weight
+        sleeves[t] = "코어+새틀라이트" if t in sleeves else "새틀라이트"
+    order = {"코어": 0, "코어+새틀라이트": 1, "새틀라이트": 2}
+    rows = [{"ticker": t, "sleeve": sleeves[t], "weight": w}
+            for t, w in sorted(weights.items(), key=lambda kv: (order[sleeves[kv[0]]], -kv[1], kv[0]))]
+    cash = 1.0 - sum(weights.values())
+    if cash > 1e-6:
+        rows.append({"ticker": CASH_TICKER, "sleeve": "현금", "weight": cash})
+    return rows
+
+
+def order_plan(targets: list[dict], holdings: Optional[dict[str, float]] = None, cash: float = 0.0,
+               capital: float = 10_000.0, band_pct: float = cs.REBALANCE_HOLD_BAND_PCT) -> dict:
+    """목표 비중과 내 보유(티커→평가금액, 현금)를 비교해 매도/매수/유지 목록을 만든다. 주문하지 않는다.
+
+    보유와 현금이 모두 비어 있으면 '처음 매수'로 보고 capital 을 총액으로 쓴다(basis="fresh").
+    비중 차이가 band_pct(%p) 미만이면 '유지'. 목표에 없는 보유는 '전량 매도'.
+    rows 는 매도 → 매수 → 유지 순(매도 대금으로 매수하는 순서)이며 현금 행은 넣지 않는다.
+    """
+    holdings = {t: float(v or 0.0) for t, v in (holdings or {}).items() if t != CASH_TICKER}
+    cash = float(cash or 0.0)
+    fresh = not any(v > 0 for v in holdings.values()) and cash <= 0
+    total = float(capital) if fresh else sum(holdings.values()) + cash
+    target_w = {r["ticker"]: r["weight"] for r in targets if r["ticker"] != CASH_TICKER}
+    sleeves = {r["ticker"]: r["sleeve"] for r in targets}
+    rows = []
+    for t in sorted(set(target_w) | set(holdings)):
+        cur = holdings.get(t, 0.0)
+        tgt = target_w.get(t, 0.0) * total
+        delta = tgt - cur
+        diff_pct = (delta / total * 100) if total > 0 else 0.0
+        if t not in target_w:
+            action = "전량 매도"
+        elif abs(diff_pct) < band_pct:
+            action = "유지"
+        else:
+            action = "매수" if delta > 0 else "매도"
+        rows.append({"ticker": t, "sleeve": sleeves.get(t, "추천 밖 보유"), "action": action,
+                     "current_value": round(cur, 2), "target_value": round(tgt, 2),
+                     "delta_value": round(delta, 2), "diff_pct": round(diff_pct, 2)})
+    rank = {"전량 매도": 0, "매도": 1, "매수": 2, "유지": 3}
+    rows.sort(key=lambda r: (rank[r["action"]], -abs(r["delta_value"])))
+    target_cash = sum(r["weight"] for r in targets if r["ticker"] == CASH_TICKER) * total
+    return {"basis": "fresh" if fresh else "holdings", "total": round(total, 2),
+            "target_cash": round(target_cash, 2), "rows": rows,
+            "n_trades": sum(1 for r in rows if r["action"] != "유지")}
+
+
+def freshness(rec: Optional[dict], today: Optional[date] = None,
+              live_core_top4: Optional[list[str]] = None) -> dict:
+    """재추천 결과를 지금 그대로 써도 되는지. 써도 되면 ok=True.
+
+    낡았다고 보는 경우: 결과가 없음 / 기준일이 지난달(그 사이 코어 월간 리밸런싱일이 지남) /
+    오늘 다시 계산한 코어 top4 가 결과와 다름. 하루이틀 지난 것만으로는 막지 않고 알려만 준다.
+    """
+    today = today or date.today()
+    if not rec:
+        return {"ok": False, "level": "missing", "reason": "아직 추천을 계산하지 않았습니다."}
+    n = days_ago(rec, today)
+    as_of = str((rec.get("params") or {}).get("as_of") or rec.get("as_of") or "")
+    rec_top4 = sorted((rec.get("core") or {}).get("top4") or [])
+    if as_of[:7] and as_of[:7] != today.isoformat()[:7]:
+        return {"ok": False, "level": "stale", "days": n,
+                "reason": (f"{as_of} 기준 추천이라 이번 달 코어 리밸런싱(매달 첫 거래일)이 반영되지 않았습니다. "
+                           "먼저 다시 계산하세요.")}
+    if live_core_top4 is not None and sorted(live_core_top4) != rec_top4:
+        return {"ok": False, "level": "stale", "days": n,
+                "reason": (f"오늘 다시 계산한 코어({', '.join(sorted(live_core_top4))})가 추천 결과"
+                           f"({', '.join(rec_top4)})와 다릅니다. 먼저 다시 계산하세요.")}
+    if n:
+        return {"ok": True, "level": "aging", "days": n,
+                "reason": f"{n}일 전({as_of}) 계산 결과입니다. 매수 직전이라면 다시 계산하는 편이 안전합니다."}
+    return {"ok": True, "level": "fresh", "days": 0, "reason": "오늘 계산한 추천입니다."}
+
+
+def next_checkpoints(today: Optional[date] = None, trading_days: Optional[frozenset] = None) -> dict:
+    """다음에 이 화면을 다시 볼 날: 코어(다음 달 첫 거래일)·새틀라이트(오늘 매수 시 + 6개월)."""
+    today = today or date.today()
+    this_month_first = first_trading_day_of_month(today.year, today.month, trading_days)
+    ny, nm = (today.year + 1, 1) if today.month == 12 else (today.year, today.month + 1)
+    return {
+        "core_next": first_trading_day_of_month(ny, nm, trading_days).isoformat(),
+        "core_rebalance_this_month": this_month_first.isoformat(),
+        "core_rebalanced_recently": 0 <= (today - this_month_first).days <= 7,
+        "satellite_next": next_reselection_after_purchase(today)["date"],
+    }
 
 
 # ============================================================================================
@@ -835,3 +954,107 @@ def fmt_range(stats: dict, digits: int = 1) -> str:
     """'중앙값 +4.2% (5~95백분위 -6.1% ~ +15.0%)'."""
     return (f"중앙값 {fmt_pct(stats.get('p50'), digits)} "
             f"(5~95백분위 {fmt_pct(stats.get('p5'), digits)} ~ {fmt_pct(stats.get('p95'), digits)})")
+
+
+# ============================================================================================
+# 종목 차트 보조 (2026-10-02 추가) — '지금 할 일' 카드에서 종목을 눌러 차트를 볼 때 쓴다.
+#
+# 이 전략에는 지정가·목표 매수가가 없다. 규칙은 리밸런싱일 종가(=그때의 시장가)에 사는 것이고,
+# 더 싼 가격을 기다렸다 사는 방식은 검증하지 않았다. 그래서 여기서는 '좋은 매수가'를 만들지 않고
+# 규칙이 실제로 쓰는 기준값(현재가, 새틀라이트의 20일 돌파선·트레일링스탑, 코어의 12개월 전 가격)과
+# 매수 금액 ÷ 현재가 = 대략 몇 주만 돌려준다. 지지·저항선 같은 새 신호는 계산하지 않는다.
+# ============================================================================================
+
+CHART_LOOKBACK_CALENDAR_DAYS = 420  # 12개월 모멘텀 기준가(252거래일 전)까지 담기도록 1년보다 넉넉히
+
+
+def chart_tickers(targets: list[dict]) -> list[str]:
+    """목표 포트폴리오 행 → 차트를 열 수 있는 종목 목록(현금 제외, 표의 순서 그대로)."""
+    return [r["ticker"] for r in targets if r.get("ticker") and r["ticker"] != CASH_TICKER]
+
+
+def fetch_chart_history(ticker: str, today: Optional[date] = None,
+                        price_fn: Optional[Callable] = None,
+                        lookback_days: int = CHART_LOOKBACK_CALENDAR_DAYS) -> Optional[pd.DataFrame]:
+    """종목 하나의 일봉(약 14개월). 받지 못하면(오프라인·빈 값·예외) None — 화면이 안내 문구를 띄운다."""
+    today = today or date.today()
+    if price_fn is None:
+        from core import market_data
+
+        price_fn = market_data.get_price_history
+    start = (today - timedelta(days=lookback_days)).isoformat()
+    try:
+        df = price_fn(ticker, start=start)
+    except Exception:  # noqa: BLE001 - 네트워크·데이터 오류는 화면에서 안내만 한다
+        return None
+    if df is None or df.empty or "Close" not in df.columns or df["Close"].dropna().empty:
+        return None
+    return df
+
+
+def estimate_shares(amount: float, price: Optional[float]) -> dict:
+    """금액 ÷ 현재가 → 정수 주(내림). 가격이 없거나 0 이하면 shares=None."""
+    amount = abs(float(amount or 0.0))
+    if price is None or not price > 0:
+        return {"shares": None, "cost": None, "leftover": None}
+    shares = max(int(amount / float(price) + 1e-9), 0)  # 양수라 int() 가 곧 내림
+    cost = round(shares * float(price), 2)
+    return {"shares": shares, "cost": cost, "leftover": round(amount - cost, 2)}
+
+
+def entry_chart_levels(close: pd.Series, sleeve: str, evidence_row: Optional[dict] = None,
+                       evidence_as_of: Optional[str] = None) -> dict:
+    """차트에 그을 기준선. 새 신호가 아니라 규칙이 이미 쓰는 값만 꺼낸다.
+
+    - 현재가: 마지막 종가와 그 날짜.
+    - 새틀라이트: 20일 돌파선(직전 20거래일 최고 종가 — cs.donchian_trailing_stop_positions 의 진입 기준)과
+      트레일링스탑 기준(진입 이후 최고 종가 × (1 − SATELLITE_DONCHIAN_STOP_PCT)). 트레일링스탑은 추천 결과의
+      근거 행(evidence_row)을 그대로 쓰고, 추천 계산일(evidence_as_of) 뒤로 종가가 더 올랐으면 그만큼만
+      고점을 올린다. 근거 행이 없으면 받은 종가로 같은 함수를 돌려 계산한다.
+    - 코어: 12개월 전 가격(CORE_MOMENTUM_LOOKBACK_DAYS 거래일 전 종가 — 모멘텀 순위가 비교하는 기준).
+    """
+    close = close.dropna()
+    out: dict = {"last_close": None, "last_date": None, "levels": [], "stop_headroom_pct": None,
+                 "trailing_stop": None, "breakout_level": None, "momentum_ref": None, "momentum_12m_pct": None}
+    if close.empty:
+        return out
+    last = float(close.iloc[-1])
+    out["last_close"] = round(last, 2)
+    out["last_date"] = pd.Timestamp(close.index[-1]).date().isoformat()
+    out["levels"].append({"key": "last", "label": "현재가", "price": round(last, 2)})
+
+    if "새틀라이트" in (sleeve or ""):
+        win = cs.SATELLITE_DONCHIAN_WINDOW
+        if len(close) > win:
+            breakout = float(close.iloc[-1 - win:-1].max())
+            out["breakout_level"] = round(breakout, 2)
+            out["levels"].append({"key": "breakout", "label": f"{win}일 돌파선", "price": round(breakout, 2)})
+        stop = None
+        ev_stop = (evidence_row or {}).get("trailing_stop")
+        if ev_stop:
+            peak = float(ev_stop) / (1 - cs.SATELLITE_DONCHIAN_STOP_PCT)
+            if evidence_as_of:
+                after = close[close.index > pd.Timestamp(evidence_as_of)]
+                if not after.empty:
+                    peak = max(peak, float(after.max()))
+            stop = peak * (1 - cs.SATELLITE_DONCHIAN_STOP_PCT)
+        elif len(close) > win:
+            pos = cs.donchian_trailing_stop_positions(close)
+            if int(pos.iloc[-1]) == 1:
+                i = len(pos) - 1
+                while i > 0 and pos.iloc[i - 1] == 1:
+                    i -= 1
+                stop = float(close.iloc[i:].max()) * (1 - cs.SATELLITE_DONCHIAN_STOP_PCT)
+        if stop:
+            out["trailing_stop"] = round(stop, 2)
+            out["stop_headroom_pct"] = round((last / stop - 1) * 100, 2)
+            out["levels"].append({"key": "stop", "label": "트레일링스탑 기준", "price": round(stop, 2)})
+
+    if "코어" in (sleeve or ""):
+        n = cs.CORE_MOMENTUM_LOOKBACK_DAYS
+        if len(close) > n:
+            ref = float(close.iloc[-1 - n])
+            out["momentum_ref"] = round(ref, 2)
+            out["momentum_12m_pct"] = round((last / ref - 1) * 100, 2) if ref else None
+            out["levels"].append({"key": "momentum_ref", "label": "12개월 전 가격", "price": round(ref, 2)})
+    return out

@@ -22,6 +22,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from hub.apps_registry import SLOTS, AppSlot  # noqa: E402
 from hub import alpaca_status, contests_page, engine_status, live_status, ops_status, research_status  # noqa: E402
+from hub import satellite_lab_page  # noqa: E402
 from hub.status import UnitStatus, get_unit_status  # noqa: E402
 from hub import ui  # noqa: E402
 
@@ -103,7 +104,7 @@ LOGIN_PAGE = """<!doctype html><html lang="ko"><head><meta charset="utf-8">
 
 # 슬롯별 아이콘(행 왼쪽). 새 슬롯은 kind 기본 아이콘을 쓴다.
 SLOT_ICONS = {
-    "streamlit": "📊", "code-server": "💻", "scheduler": "⏱", "alpaca": "🧪", "research": "🤖", "ops": "🛡",
+    "streamlit": "📊", "code-server": "💻", "scheduler": "⏱", "alpaca": "🧪", "research": "🤖", "satellite-lab": "🛰", "ops": "🛡",
     "report-daily-briefing": "🗞", "report-champion-weekly": "🏆", "report-news-digest": "📰",
     "codex-telegram": "💬", "vm-health": "🩺",
 }
@@ -171,6 +172,8 @@ def _slot_href(slot: AppSlot, host: str) -> str:
         return "/live"
     if slot.kind == "research":
         return "/research"
+    if slot.kind == "satellite_lab":
+        return "/satellite-lab"
     return f"/status/{slot.id}"
 
 
@@ -276,6 +279,8 @@ def render_dashboard(host: str) -> str:
             end = live_status.card_badge()
         elif slot.kind == "research":
             end = research_status.card_badge(research_status.collect())
+        elif slot.kind == "satellite_lab":
+            end = satellite_lab_page.card_badge(satellite_lab_page.collect())
         else:
             end, tone = _slot_unit_pill(slot.unit)
             if slot.unit not in seen_units:
@@ -322,6 +327,11 @@ def render_live_page() -> str:
 def render_research_page() -> str:
     body = f'<h1>AI 에이전트 연구</h1>{research_status.render_body(research_status.collect())}{_stamp()}'
     return ui.page("AI 에이전트 연구", body, crumbs=(("/", "개요"), ("", "연구·검증")), refresh=REFRESH_SECONDS)
+
+
+def render_satellite_lab_page() -> str:
+    body = f'<h1>새틀라이트 R&amp;D 센터</h1>{satellite_lab_page.render_body(satellite_lab_page.collect())}{_stamp()}'
+    return ui.page("새틀라이트 R&D 센터", body, crumbs=(("/", "개요"), ("", "연구·검증")), refresh=REFRESH_SECONDS)
 
 
 def render_ops_page() -> str:
@@ -490,6 +500,8 @@ class HubRequestHandler(BaseHTTPRequestHandler):
             self._send_html(page) if page else self._send_html("not found", 404)
         elif path == "/research":
             self._send_html(render_research_page())
+        elif path == "/satellite-lab":
+            self._send_html(render_satellite_lab_page())
         elif path == "/ops":
             self._send_html(render_ops_page())
         elif path in ("/guide", "/guide/"):

@@ -59,3 +59,7 @@ notes/
 
 # 사용자가 분석용으로 받은 외부 릴스 영상(타인 저작물) — 커밋하지 않는다(2026-09-26).
 video/
+# 새틀라이트 R&D 센터(core/satellite_lab.py): VM 등록부·기준선 캐시·에이전트 상태, 야간 에이전트 아이디어 폴더와 자동 생성 현황
+data/satellite_lab/
+research/satellite_lab/variants/
+research/satellite_lab/context.md

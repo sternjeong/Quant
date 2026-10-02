@@ -103,6 +103,10 @@ python <entrypoint> <args...> --out <출력 디렉터리> --checkpoint <체크�
 실패 수, 실행 수, 끊김 수, 마지막 시작·종료·소요, 종료 코드, 사유, 로그 꼬리(비밀 가림). 로그는 `data/research_jobs/logs/<id>/`(최근 5개),
 작업 폴더는 `data/research_jobs/work/<id>/{out,checkpoint}`(완료되면 지움).
 
+- 대기 작업이 하나도 없는 회차에는 새틀라이트 R&D 센터 계산기(`scripts/satellite_lab_worker.py`)를 같은 보호 장치로 돌린다
+  (사전 등록 연구가 언제나 먼저, 설계는 [SATELLITE_LAB.md](./SATELLITE_LAB.md)). 상태는 `state.json` 의 `satellite_lab` 절.
+  끄려면 스케줄러 환경에 `RESEARCH_SATELLITE_LAB=0`.
+
 ## 4. 결과가 사용자에게 가는 길
 
 1. **텔레그램 1건**: `[검증 연구 결과] <제목> — 완료` + `summary_from` 판정 요약(최대 8줄) + 결과 위치와 저장소 반영 여부.

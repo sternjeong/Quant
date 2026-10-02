@@ -15,7 +15,7 @@ class AppSlot:
     title: str
     description: str
     unit: str  # 상태 조회에 쓸 systemd 유닛 이름
-    kind: str  # "web" (같은 호스트의 다른 포트) | "link" (별도 주소, url) | "report" (최신 HTML 리포트 서빙) | "engine" (상태만 표시) | "alpaca" (Alpaca paper 결과 화면) | "ops" (운영 상태 화면) | "research" (에이전트 연구 화면) | "contests" (AI 대회 관리) | "live" (지금 돌고 있는 작업)
+    kind: str  # "web" (같은 호스트의 다른 포트) | "link" (별도 주소, url) | "report" (최신 HTML 리포트 서빙) | "engine" (상태만 표시) | "alpaca" (Alpaca paper 결과 화면) | "ops" (운영 상태 화면) | "research" (에이전트 연구 화면) | "satellite_lab" (새틀라이트 R&D 센터) | "contests" (AI 대회 관리) | "live" (지금 돌고 있는 작업)
     port: int | None = None  # kind == "web"일 때 슬롯이 직접 링크할 포트
     url: str | None = None  # kind == "link"일 때 슬롯이 링크할 전체 주소(예: nginx 뒤 HTTPS 도메인)
     report_glob: str | None = None  # kind == "report"일 때 최신 파일을 찾을 glob 패턴(저장소 루트 기준)
@@ -61,6 +61,14 @@ SLOTS: list[AppSlot] = [
         description="가설 퍼널 · 누적 시도 수 · shadow/승격 후보 · 에이전트 예산 (매일 03:00 KST 배치)",
         unit="quant-scheduler.service",
         kind="research",
+        category="연구·검증",
+    ),
+    AppSlot(
+        id="satellite-lab",
+        title="새틀라이트 R&D 센터",
+        description="새틀라이트 종목 선정 규칙 연구 · 현 규칙 vs 무작위 · 후보 순위와 관문별 결과 (VM 연구 창 빈 시간)",
+        unit="quant-scheduler.service",
+        kind="satellite_lab",
         category="연구·검증",
     ),
     AppSlot(

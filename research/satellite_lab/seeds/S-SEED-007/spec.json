@@ -1,0 +1,25 @@
+{
+  "id": "S-SEED-007",
+  "parent": "S-SEED-000",
+  "title": "변동성 조정 모멘텀",
+  "thesis": "같은 상승률이면 덜 흔들리며 오른 종목이 낫다. 수익률을 변동성으로 나눠 고르면 급락 위험이 큰 종목을 피한다.",
+  "source": "Barroso & Santa-Clara(2015), 위험조정 모멘텀",
+  "pool": {
+    "type": "champion40"
+  },
+  "signal": {
+    "params_grid": [
+      {
+        "lookback": 252,
+        "vol_window": 126
+      }
+    ]
+  },
+  "portfolio": {
+    "top_k": 3,
+    "hold_months": 6
+  },
+  "exit": {
+    "type": "none"
+  }
+}

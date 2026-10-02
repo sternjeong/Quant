@@ -1,0 +1,24 @@
+{
+  "id": "S-SEED-002",
+  "parent": "S-SEED-000",
+  "title": "현 규칙 + 3개월 보유",
+  "thesis": "모멘텀 신호는 수개월 안에 약해지므로 6개월 대신 3개월마다 다시 고르면 꺾인 종목을 더 빨리 바꾼다.",
+  "source": "Jegadeesh & Titman(1993) 보유기간별 모멘텀 감쇠",
+  "pool": {
+    "type": "champion40"
+  },
+  "signal": {
+    "params_grid": [
+      {
+        "mom_window": 252
+      }
+    ]
+  },
+  "portfolio": {
+    "top_k": 3,
+    "hold_months": 3
+  },
+  "exit": {
+    "type": "none"
+  }
+}

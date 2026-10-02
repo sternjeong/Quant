@@ -1,0 +1,24 @@
+{
+  "id": "S-SEED-008",
+  "parent": "S-SEED-000",
+  "title": "꾸준한 상승 모멘텀",
+  "thesis": "같은 모멘텀이라도 몇 번의 급등이 아니라 매일 조금씩 오른 종목은 투자자가 덜 주목해 추세가 더 오래간다.",
+  "source": "Da, Gurun & Warachka(2014) frog-in-the-pan",
+  "pool": {
+    "type": "champion40"
+  },
+  "signal": {
+    "params_grid": [
+      {
+        "lookback": 252
+      }
+    ]
+  },
+  "portfolio": {
+    "top_k": 3,
+    "hold_months": 6
+  },
+  "exit": {
+    "type": "none"
+  }
+}

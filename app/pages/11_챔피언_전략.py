@@ -28,11 +28,12 @@ from core.backtest_engine import compute_drawdown_series, compute_monthly_return
 from core.champion_strategy import (
     CORE_UNIVERSE,
     CORE_WEIGHT,
+    SATELLITE_DONCHIAN_STOP_PCT,
+    SATELLITE_DONCHIAN_WINDOW,
     SATELLITE_WEIGHT,
     compute_champion_correlation,
     compute_core_recommendation,
     compute_live_collar_state,
-    compute_rebalance_diff,
     compute_satellite_recommendation,
     compute_satellite_recommendation_point_in_time,
     get_current_holdings,
@@ -40,7 +41,6 @@ from core.champion_strategy import (
     list_champion_correlation_snapshots,
     load_confidence_table,
     load_final_config,
-    load_market_regime_context,
     load_rejected_ideas,
     load_research_meta,
     run_champion_backtest,
@@ -51,13 +51,14 @@ from core.champion_strategy import (
 from core.db import init_db
 from core.guru_tracker import find_gurus_holding_ticker, get_synced_guru_names
 from core.market_data import get_price_history
-from core.portfolio import get_portfolio_pnl
+from core.portfolio import get_cash_balance, get_portfolio_pnl
 from core.theme import (
     apply_theme,
     render_drawdown_chart,
     render_metric_card,
     render_monthly_returns_heatmap,
     render_status_bar,
+    style_chart_like_tradingview,
 )
 from core.ui_status import render_status_header
 
@@ -130,332 +131,99 @@ def _page_link(path: str, label: str) -> None:
 _C_STRATEGY = "#3987e5"
 _C_SPY = "#d95926"
 _C_SAT = "#d55181"
+_C_REF = "#9aa0a6"  # 참고선(12개월 전 가격) — 중립 회색
+
 
 # ----------------------------------------------------------------------------
-# 0. 지금 기준 재추천 (2026-09-28 추가)
-#
-# 버튼 한 번으로 "지금 무엇을 들고 있어야 하나 / 과거 같은 길이 구간에서 어떤 범위가 나왔나 /
-# 왜 이걸 믿어야 하나 / 지금 바꿀 것이 있나"를 한 화면에 채운다. 계산은 전부
-# core/champion_recommendation.py 가 기존 검증된 함수를 조합해서 하고, 이 절은 표시만 한다.
-#
-# job_manager.ensure()는 쓰지 않는다 — 매 rerun 마다 부르면 다른 위젯 클릭을 삼킨다(아래 코어 절
-# 주석 참고). 버튼으로만 start() 하고, 자체 세션 플래그(_REC_PENDING)가 켜져 있을 때만 render()를
-# 불러 폴링 rerun 이 다른 버튼 클릭을 먹지 않게 한다.
+# 종목 차트 (2026-10-02 추가) — '지금 할 일' 카드에서 종목을 누르면 그 종목만 가격을 받아 그린다.
+# 이 전략에는 지정가·목표 매수가가 없다. 규칙이 쓰는 기준값만 선으로 긋고 '몇 불에 사라'는 만들지 않는다.
 # ----------------------------------------------------------------------------
-_REC_SLOT = "champion_recommendation"
-_REC_PENDING = "champion_rec_pending"
-_REC_RESULT = "champion_rec_result"
+@st.cache_data(ttl=3600, show_spinner=False)
+def _chart_history(ticker: str, as_of: str) -> Optional[pd.DataFrame]:
+    """as_of 는 캐시 키용(날짜가 바뀌면 새로 받는다). 실패하면 None — 예외는 캐시되지 않는다."""
+    return cr.fetch_chart_history(ticker, today=date.fromisoformat(as_of))
 
-st.markdown("## 0. 지금 기준 재추천")
-st.caption(
-    "버튼을 누르면 지금 시장 데이터로 코어·새틀라이트를 다시 계산하고, 과거 같은 길이 구간에서 나온 "
-    "수익·변동 범위와 그 추천의 근거·확신도를 함께 보여줍니다. 계산은 백그라운드에서 돌고 결과는 "
-    "저장되므로 다시 들어와도 그대로 보입니다. 주문은 하지 않습니다."
-)
 
-_rec = st.session_state.get(_REC_RESULT)
-if _rec is None:
-    _rec = cr.load_latest_cached()
-    if _rec is not None:
-        st.session_state[_REC_RESULT] = _rec
+def _render_ticker_chart(ticker: str, *, sleeve: str, plan_row: Optional[dict],
+                         evidence_row: Optional[dict], evidence_as_of: Optional[str]) -> None:
+    with st.spinner(f"{ticker} 가격을 불러오는 중..."):
+        df = _chart_history(ticker, date.today().isoformat())
+    if df is None:
+        st.info(f"{ticker} 가격 데이터를 불러오지 못했습니다(네트워크·데이터 소스 문제일 수 있습니다). 잠시 뒤 다시 눌러 보세요.")
+        return
+    lv = cr.entry_chart_levels(df["Close"], sleeve, evidence_row=evidence_row, evidence_as_of=evidence_as_of)
+    view = df.tail(252)  # 약 1년만 그린다(기준값 계산은 받은 전체로)
 
-_rec_sizing = st.session_state.get("champion_satellite_sizing_method", "equal")
-if st.button("🔄 지금 기준으로 다시 추천", type="primary", key="champion_rec_button"):
-    st.session_state[_REC_PENDING] = True
-    job_manager.start(
-        _REC_SLOT, cr.compute_recommendation, date.today(),
-        sizing_method=_rec_sizing, label="지금 기준 재추천 계산",
+    fig = go.Figure()
+    fig.add_trace(go.Candlestick(
+        x=view.index, open=view["Open"], high=view["High"], low=view["Low"], close=view["Close"],
+        name=ticker, increasing_line_color="#26a69a", decreasing_line_color="#ef5350",
+        hovertemplate="%{x|%Y-%m-%d}<br>종가: $%{close:,.2f}<extra></extra>",
+    ))
+    _line_style = {
+        "last": (_C_STRATEGY, "solid"), "breakout": (_C_SAT, "dash"),
+        "stop": (_C_SPY, "dot"), "momentum_ref": (_C_REF, "dash"),
+    }
+    for level in lv["levels"]:
+        color, dash = _line_style.get(level["key"], (_C_REF, "dot"))
+        fig.add_hline(
+            y=level["price"], line=dict(color=color, width=1.4, dash=dash),
+            annotation_text=f"{level['label']} ${level['price']:,.2f}", annotation_position="top left",
+            annotation_font=dict(color=color, size=11),
+        )
+    fig.update_layout(
+        height=360, margin=dict(l=8, r=8, t=28, b=8), showlegend=False,
+        xaxis_rangeslider_visible=False, yaxis_title="가격($)",
+        title=dict(text=f"{ticker} 일봉(약 1년) · {sleeve}", font=dict(size=13)),
     )
+    style_chart_like_tradingview(fig)
+    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False},
+                    key=f"champion_todo_chart_{ticker}")
 
-if st.session_state.get(_REC_PENDING):
-    _rec_job = job_manager.render(
-        _REC_SLOT,
-        running_label=(
-            "재추천 계산 중 — 새틀라이트 point-in-time 스캔을 두 번(규칙 보유분 + 오늘 기준) 돌리고 "
-            "분포용 백테스트 캐시를 확인합니다. 수 분 걸릴 수 있고 다른 화면으로 이동해도 계속 진행됩니다"
-        ),
-    )
-    if _rec_job is not None:
-        st.session_state[_REC_PENDING] = False
-        if _rec_job.status == "error":
-            st.error(f"재추천 계산 중 오류가 발생했습니다: {_rec_job.error}")
+    lines = [f"**현재가 ${lv['last_close']:,.2f}** ({lv['last_date']} 종가)"]
+    if plan_row is not None and lv["last_close"]:
+        amt = abs(float(plan_row["delta_value"]))
+        est = cr.estimate_shares(amt, lv["last_close"])
+        if plan_row["action"] == "유지":
+            lines.append("주문 목록상 지금 사고팔 것 없음(목표와 1%p 이내).")
+        elif est["shares"] == 0:
+            lines.append(
+                f"{plan_row['action']} 금액 ${amt:,.0f} 가 1주 가격보다 적어 정수 주로는 살 수 없습니다 "
+                "(소수점 주문이 되는지는 증권사에서 확인하세요)."
+            )
         else:
-            st.session_state[_REC_RESULT] = _rec_job.result
-            _rec = _rec_job.result
-
-if _rec is None:
-    st.info("아직 재추천을 계산하지 않았습니다. 위 버튼을 누르면 계산을 시작합니다.")
-else:
-    _rec_days = cr.days_ago(_rec)
-    _rec_when = str(_rec.get("computed_at", ""))[:16].replace("T", " ")
+            lines.append(
+                f"{plan_row['action']} 금액 ${amt:,.0f} ÷ 현재가 ${lv['last_close']:,.2f} → **약 {est['shares']}주** "
+                f"(≈ ${est['cost']:,.0f}, 남는 돈 ${est['leftover']:,.0f})"
+            )
+    if lv["breakout_level"] is not None:
+        lines.append(
+            f"{SATELLITE_DONCHIAN_WINDOW}일 돌파선 ${lv['breakout_level']:,.2f} = 직전 "
+            f"{SATELLITE_DONCHIAN_WINDOW}거래일 최고 종가(새틀라이트 진입 조건이 넘었는지 보는 선)."
+        )
+    if lv["stop_headroom_pct"] is not None:
+        if lv["stop_headroom_pct"] >= 0:
+            lines.append(
+                f"현재가가 트레일링스탑 기준(${lv['trailing_stop']:,.2f}, 진입 후 최고 종가 × "
+                f"{1 - SATELLITE_DONCHIAN_STOP_PCT:.2f})보다 **{lv['stop_headroom_pct']:.1f}%** 위에 있습니다 — "
+                "매수 신호가 아니라, 이만큼 내려가면 규칙상 추세가 끝난 것으로 보는 위험 참고값입니다."
+            )
+        else:
+            lines.append(
+                f"⚠️ 현재가가 트레일링스탑 기준(${lv['trailing_stop']:,.2f}) 아래입니다 — 추천 계산 이후 추세가 "
+                "꺾였을 수 있으니 1단계(다시 추천)부터 확인하세요."
+            )
+    if lv["momentum_ref"] is not None:
+        lines.append(
+            f"12개월 전 가격 ${lv['momentum_ref']:,.2f} → 지금까지 {lv['momentum_12m_pct']:+.1f}% "
+            "(코어가 순위를 매기는 12개월 모멘텀의 기준점)."
+        )
+    st.markdown("\n".join(f"- {line}" for line in lines))
     st.caption(
-        f"기준일 {_rec.get('as_of')} · 계산 시각 {_rec_when} UTC · "
-        + ("오늘 계산한 결과입니다." if _rec_days == 0 else f"{_rec_days}일 전 결과입니다 — 다시 누르면 지금 기준으로 갱신합니다.")
-        + f" (사이징 {(_rec.get('params') or {}).get('sizing_method', 'equal')}, 전략 버전 {(_rec.get('params') or {}).get('strategy_version')})"
+        "몇 불에 사야 하나: 이 전략에는 지정가·목표 매수가가 없습니다. 백테스트는 리밸런싱일 **종가(그날 시장가)**에 "
+        "그대로 샀고, 더 싼 가격을 기다렸다 사는 방식은 검증하지 않았습니다. 차트의 선은 규칙이 쓰는 기준값일 뿐 "
+        "지지·저항선이나 '좋은 매수가'가 아닙니다. 주 수는 정수 내림이며 주문 직전 가격은 달라질 수 있습니다."
     )
-
-    _act = _rec.get("action") or {}
-    _core = _rec.get("core") or {}
-    _sat = _rec.get("satellite") or {}
-    _dist = _rec.get("distributions") or {}
-    _refs = _rec.get("references") or {}
-
-    # ---------------- (4)를 맨 위에도 한 줄로: 지금 해야 할 행동 ----------------
-    if _act.get("has_changes"):
-        st.warning(f"**지금 해야 할 행동:** {_act.get('headline')}")
-    elif _act.get("has_changes") is None:
-        st.info(f"**지금 해야 할 행동:** {_act.get('headline')}")
-    else:
-        st.success(f"**지금 해야 할 행동:** {_act.get('headline')}")
-
-    # ---------------- (1) 지금 무엇을 들고 있어야 하나 ----------------
-    st.markdown("### ① 지금 무엇을 들고 있어야 하나")
-    _filter_text = {
-        "above": "SPY 200일선 위 — 코어 비중 그대로",
-        "below": "SPY 200일선 아래 — 코어 비중 절반으로 축소",
-        "unknown": "SPY 데이터 없음 — 시장필터 판정불가, 신규 주문 보류",
-    }.get(_core.get("market_filter_status"), "판정불가")
-    st.markdown(
-        f"**코어 {CORE_WEIGHT * 100:.0f}%** — 실투입 {_core.get('invested_weight_pct', 0):.1f}% "
-        f"(현금 {float(_core.get('cash_weight_from_filter') or 0) * 100:.1f}%) · {_filter_text}"
-    )
-    _core_rows = [r for r in (_core.get("evidence") or []) if r.get("in_top4")]
-    if not _core_rows:
-        st.warning("절대모멘텀(>0)을 통과한 코어 자산이 없습니다 — 코어 비중이 사실상 전액 현금입니다.")
-    else:
-        st.dataframe(
-            pd.DataFrame([
-                {"종목": r["ticker"], "12개월 모멘텀": f"{r['momentum_12m_pct']:+.1f}%" if r["momentum_12m_pct"] is not None else "—",
-                 "순위": r["rank"], "비중": f"{r['weight_pct']:.1f}%"}
-                for r in _core_rows
-            ]),
-            use_container_width=True, hide_index=True,
-        )
-
-    _rule = _sat.get("rule") or _sat.get("if_bought_at_last_rebal") or {}
-    _today_sat = _sat.get("today") or {}
-    _next_resel = _sat.get("next_reselection_if_bought_today") or {}
-    st.markdown(f"**새틀라이트 {SATELLITE_WEIGHT * 100:.0f}%** — 오늘 기준으로 다시 뽑은 결과입니다.")
-    with st.container(border=True):
-        st.markdown("**오늘 기준 재선정 — 지금 매수한다면 이 종목**")
-        st.caption(
-            f"기준일 {_today_sat.get('as_of')} · 후보 풀 {_today_sat.get('pool_size')}종목 중 "
-            f"활성 추세 {_today_sat.get('n_active_trend')}개"
-        )
-        if not _today_sat.get("picks"):
-            st.info("오늘 기준으로 조건을 만족하는 종목이 없습니다 — 새틀라이트 비중이 사실상 현금입니다.")
-        else:
-            _sleeve = _today_sat.get("sleeve_weights") or {}
-            st.dataframe(
-                pd.DataFrame([
-                    {"종목": t, "슬리브 내 비중": f"{_sleeve.get(t, 0.0) * 100:.1f}%",
-                     "전체 비중": f"{_sleeve.get(t, 0.0) * SATELLITE_WEIGHT * 100:.1f}%"}
-                    for t in (_today_sat.get("picks") or [])
-                ]),
-                use_container_width=True, hide_index=True,
-            )
-            if _next_resel.get("date"):
-                st.caption(
-                    f"오늘 매수하면 다음 재선정일은 **{_next_resel.get('date')}** 입니다"
-                    f"(매수일 + {_next_resel.get('months')}개월). 반기 주기는 그대로이고 시작점만 매수일에 맞춥니다."
-                )
-    st.caption(f"ℹ️ {_sat.get('diff_note')}")
-    st.caption(_sat.get("timing_note") or cr.TIMING_NOTE)
-
-    with st.expander(f"참고: {_rule.get('rebal_date') or '직전 반기 리밸런싱일'}에 매수했다면 지금 들고 있을 종목", expanded=False):
-        st.caption(
-            "그때 실제로 매수한 경우에만 의미가 있습니다. 같은 선정 함수에 날짜만 직전 반기 리밸런싱일로 "
-            f"바꿔 계산한 것입니다 · 후보 풀 {_rule.get('pool_size')}종목 중 활성 추세 "
-            f"{_rule.get('n_active_trend')}개 · {_rule.get('allocation_reason')}"
-        )
-        if not _rule.get("picks"):
-            st.info("그날 기준으로 뽑힌 종목이 없습니다.")
-        else:
-            st.dataframe(
-                pd.DataFrame([
-                    {"종목": r["ticker"],
-                     "비중": f"{(_rule.get('per_ticker_weights') or {}).get(r['ticker'], 0.0) * 100:.1f}%",
-                     "리밸런싱 이후": (f"{r['return_since_rebal_pct']:+.1f}%"
-                                  if r.get("return_since_rebal_pct") is not None else "—")}
-                    for r in (_rule.get("picks_table") or [])
-                ]),
-                use_container_width=True, hide_index=True,
-            )
-
-    # ---------------- (2) 기대 수익·변동 — 분포 ----------------
-    st.markdown("### ② 과거 같은 길이 구간에서 나온 범위")
-    if not _dist.get("available"):
-        st.info(
-            "분포를 만들 백테스트 캐시가 없습니다"
-            + (f" ({_dist.get('error')})" if _dist.get("error") else "")
-            + ". 주간 추적 잡(champion_tracking_weekly)이 캐시를 만들면 여기에 표시됩니다."
-        )
-    else:
-        st.caption(
-            f"라이브 시작({_dist.get('live_start')}, {_dist.get('live_start_note')}) 이전 백테스트 "
-            f"{_dist.get('backtest_start')}~{_dist.get('backtest_end')} 구간에서 같은 길이 구간을 모두 겹쳐 모았습니다."
-        )
-        st.caption(f"⚠️ {_dist.get('warning')}")
-        for _h in ("63", "126"):
-            _hd = (_dist.get("by_horizon") or {}).get(_h)
-            if not _hd:
-                continue
-            with st.container(border=True):
-                st.markdown(f"**{_hd.get('label')}** — 겹치는 구간 {_hd.get('n_windows')}개")
-                if not _hd.get("enough_windows"):
-                    st.caption("⚠️ 구간 수가 적어(50개 미만) 범위를 넓게만 읽어야 합니다.")
-                _s = _hd.get("strategy") or {}
-                _x = _hd.get("excess_spy") or {}
-                _m = _hd.get("max_drawdown") or {}
-                _beat = _hd.get("beat_spy_share")
-                _ww = _hd.get("worst_window") or {}
-                _worst_txt = cr.fmt_pct(_s.get("worst"))
-                if _ww:
-                    _worst_txt += f" ({_ww.get('start')}~{_ww.get('end')})"
-                _beat_txt = f"{_beat * 100:.0f}%" if _beat is not None else "—"
-                st.markdown(
-                    f"- 전략 수익: {cr.fmt_range(_s)}\n"
-                    f"- 최악 구간: {_worst_txt}\n"
-                    f"- 구간 내 최대낙폭: {cr.fmt_range(_m)}\n"
-                    f"- SPY 대비 초과수익: {cr.fmt_range(_x)}\n"
-                    f"- **SPY 를 이긴 구간 비율: {_beat_txt}**"
-                )
-                _vals = _hd.get("excess_spy_values") or []
-                if _vals:
-                    _fig = go.Figure()
-                    _fig.add_trace(go.Histogram(
-                        x=[v * 100 for v in _vals], nbinsx=40, marker=dict(color=_C_STRATEGY),
-                        name="SPY 대비 초과수익", hovertemplate="%{x:.1f}%p: %{y}개 구간<extra></extra>",
-                    ))
-                    _fig.add_vline(x=0, line=dict(color=_C_SPY, width=2))
-                    _fig.update_layout(
-                        height=230, margin=dict(l=8, r=8, t=28, b=8), showlegend=False,
-                        xaxis_title="SPY 대비 초과수익(%p) — 0 선 왼쪽은 SPY 에 진 구간",
-                        yaxis_title="구간 수", bargap=0.04,
-                    )
-                    st.plotly_chart(_fig, use_container_width=True, config={"displayModeBar": False})
-
-        _curves = _dist.get("curves") or {}
-        if _curves.get("dates") and _curves.get("strategy"):
-            st.markdown("**과거 자산곡선 — 전략 vs S&P500**")
-            _rec_capital = st.number_input(
-                "초기 금액($) — 저장된 결과는 배수라서 금액을 바꿔도 다시 계산하지 않습니다",
-                min_value=100.0, max_value=100_000_000.0, value=10_000.0, step=1_000.0, format="%.0f",
-                key="champion_rec_capital",
-            )
-            _eq = go.Figure()
-            for _key, _name, _color in (("strategy", "챔피언(코어+새틀라이트)", _C_STRATEGY),
-                                        ("spy", "S&P500(SPY) 매수보유", _C_SPY),
-                                        ("satellite", "새틀라이트 단독", _C_SAT)):
-                _series = _curves.get(_key)
-                if not _series:
-                    continue
-                _eq.add_trace(go.Scatter(
-                    x=_curves["dates"], y=[None if v is None else v * _rec_capital for v in _series],
-                    name=_name, mode="lines", line=dict(width=2 if _key == "strategy" else 1.4, color=_color),
-                    hovertemplate=f"{_name}: $%{{y:,.0f}}<extra></extra>",
-                ))
-            _eq.update_layout(
-                height=280, margin=dict(l=8, r=8, t=30, b=8), yaxis_title="계좌 금액(가상, $)",
-                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0, font=dict(size=11)),
-            )
-            st.plotly_chart(_eq, use_container_width=True, config={"displayModeBar": False})
-            st.caption(f"자산곡선 출처: {_curves.get('source')} · 가상 결과이며 실제 주문 기록이 아닙니다.")
-
-        _sleeve = _dist.get("satellite_sleeve")
-        if _sleeve:
-            st.markdown("**새틀라이트 슬리브만의 SPY 대비 초과수익 분포**")
-            for _h, _row in (_sleeve.get("by_horizon") or {}).items():
-                _sb = _row.get("beat_spy_share")
-                st.markdown(
-                    f"- {_row.get('label')}: {cr.fmt_range(_row)} · SPY 를 이긴 구간 "
-                    + (f"{_sb * 100:.0f}%" if _sb is not None else "—")
-                    + f" (구간 {_row.get('n')}개)"
-                )
-            st.caption(
-                "새틀라이트 15%만 떼어 본 것이라 전체 포트폴리오 성과가 아닙니다. 숫자가 음수면 그 구간들에서 "
-                "이 슬리브가 SPY 에 뒤졌다는 뜻이며, 그대로 표시합니다."
-            )
-        else:
-            st.caption("새틀라이트 슬리브 단독 분포는 '챔피언 성과' 화면의 계산 결과가 저장돼 있을 때만 표시됩니다.")
-
-        for _line in _rec.get("limitations") or []:
-            st.caption(f"· {_line}")
-
-    # ---------------- (3) 왜 이걸 믿어야 하나 ----------------
-    st.markdown("### ③ 왜 이걸 믿어야 하나 — 근거와 확신도")
-    st.caption("아래 등급은 이 엔진이 스스로 매긴 것이 아니라 리서치 프로그램의 감사 결과입니다. 약한 것은 약하다고 그대로 표시합니다.")
-    for _title, _key in (("코어를 만든 결정", "core_confidence"), ("새틀라이트를 만든 결정", "satellite_confidence")):
-        _rows = _refs.get(_key) or []
-        if not _rows:
-            continue
-        st.markdown(f"**{_title}**")
-        for _row in _rows:
-            st.markdown(f"- {_GRADE_BADGE.get(_row['grade'], _row['grade'])} {_row['component']}")
-            st.caption(f"　{_row['note']} (근거: {_row['source']})")
-
-    _ev = _sat.get("evidence") or []
-    if _ev:
-        st.markdown("**새틀라이트 종목별 근거**")
-        st.dataframe(
-            pd.DataFrame([
-                {"종목": r["ticker"], "섹터": r.get("sector") or "—",
-                 "돌파 발생일": r.get("breakout_date") or "—",
-                 "12개월 모멘텀": f"{r['momentum_12m_pct']:+.1f}%" if r.get("momentum_12m_pct") is not None else "—",
-                 "후보 중 순위": r.get("rank_among_breakouts") or "—",
-                 "현재가": f"${r['current_price']:,.2f}" if r.get("current_price") is not None else "—",
-                 "트레일링스탑": f"${r['trailing_stop']:,.2f}" if r.get("trailing_stop") is not None else "—",
-                 "스탑까지 여유": f"{r['stop_headroom_pct']:+.1f}%" if r.get("stop_headroom_pct") is not None else "—",
-                 "추세 활성": "예" if r.get("trend_active") else "아니오"}
-                for r in _ev
-            ]),
-            use_container_width=True, hide_index=True,
-        )
-    with st.expander("코어 17자산 전체 모멘텀 순위 (이번 추천의 근거)"):
-        st.dataframe(
-            pd.DataFrame([
-                {"순위": r["rank"], "종목": r["ticker"],
-                 "12개월 모멘텀": f"{r['momentum_12m_pct']:+.1f}%" if r["momentum_12m_pct"] is not None else "—",
-                 "절대모멘텀 통과": "예" if r["passes_absolute_momentum"] else "아니오",
-                 "top4": "예" if r["in_top4"] else "아니오",
-                 "비중": f"{r['weight_pct']:.1f}%"}
-                for r in (_core.get("evidence") or [])
-            ]),
-            use_container_width=True, hide_index=True,
-        )
-
-    st.caption(f"📄 근거 문서: `{_refs.get('synthesis_report')}` (리서치 프로그램 전체 종합 리포트)")
-    _rejected = _refs.get("rejected_ideas") or []
-    if _rejected:
-        with st.expander(f"이미 검토했지만 채택하지 않은 아이디어 ({len(_rejected)}개)"):
-            for _row in _rejected:
-                st.markdown(f"- {_GRADE_BADGE.get(_row['grade'], _row['grade'])} {_row['component']}")
-                st.caption(f"　{_row['note']}")
-    st.markdown("**아직 검증 중인 것**")
-    st.caption(_refs.get("research_note"))
-    for _job in _refs.get("research_jobs") or []:
-        if _job.get("verdicts"):
-            _v = ", ".join(f"{k}={v}" for k, v in _job["verdicts"].items())
-            st.caption(f"· {_job['title']} — {_v} (결과 research/results/{_job['id']}/)")
-        else:
-            st.caption(f"· {_job['title']} — {_job.get('status')}")
-    for _line in _rec.get("unverified_notes") or []:
-        st.caption(f"· 검증 안 됨: {_line}")
-
-    # ---------------- (4) 지금 해야 할 행동 (자세히) ----------------
-    st.markdown("### ④ 지금 해야 할 행동")
-    st.markdown(f"**{_act.get('headline')}**")
-    for _item in _act.get("items") or []:
-        st.caption(f"· {_item.get('text')}")
-    st.caption(
-        "이 화면은 계산과 표시만 합니다 — 주문을 걸지 않습니다. 실제 주문은 사용자가 직접 하거나 "
-        "별도 스크립트(scripts/champion_paper_trade.py)로 합니다."
-    )
-    if _act.get("compared_with"):
-        st.caption(f"비교 기준: 어제 밤 저장된 상태({_act.get('compared_with')})")
-
-st.divider()
-
 
 # ----------------------------------------------------------------------------
 # 코어: 17자산 모멘텀 랭킹 + 시장필터 (17종목만 조회하므로 빠름 — 페이지 진입 시 자동 계산)
@@ -478,6 +246,422 @@ if st.session_state.get("champion_core_asof") != today_str:
             st.session_state["champion_core_asof"] = today_str
 
 core_result = st.session_state.get("champion_core_result")
+
+# ----------------------------------------------------------------------------
+# 0. 지금 기준 재추천 (2026-09-28 추가)
+#
+# 버튼 한 번으로 "지금 무엇을 들고 있어야 하나 / 과거 같은 길이 구간에서 어떤 범위가 나왔나 /
+# 왜 이걸 믿어야 하나 / 지금 바꿀 것이 있나"를 한 화면에 채운다. 계산은 전부
+# core/champion_recommendation.py 가 기존 검증된 함수를 조합해서 하고, 이 절은 표시만 한다.
+#
+# job_manager.ensure()는 쓰지 않는다 — 매 rerun 마다 부르면 다른 위젯 클릭을 삼킨다(아래 코어 절
+# 주석 참고). 버튼으로만 start() 하고, 자체 세션 플래그(_REC_PENDING)가 켜져 있을 때만 render()를
+# 불러 폴링 rerun 이 다른 버튼 클릭을 먹지 않게 한다.
+# ----------------------------------------------------------------------------
+_REC_SLOT = "champion_recommendation"
+_REC_PENDING = "champion_rec_pending"
+_REC_RESULT = "champion_rec_result"
+
+_rec = st.session_state.get(_REC_RESULT)
+if _rec is None:
+    _rec = cr.load_latest_cached()
+    if _rec is not None:
+        st.session_state[_REC_RESULT] = _rec
+
+# ----------------------------------------------------------------------------
+# ✅ 지금 할 일 (2026-10-02 추가) — "그래서 지금 뭘 하면 되나"를 화면 맨 위 한 장으로 답한다.
+#
+# ① 추천이 지금 써도 되는 상태인가(낡았으면 다시 계산 버튼) ② 목표 포트폴리오 한 표
+# ③ 내 보유와 비교한 매도/매수 목록(보유 미등록이면 '처음 매수') ④ 다음에 다시 볼 날.
+# 새 신호를 만들지 않는다 — 아래 재추천 결과(core/champion_recommendation.py)와 '포트폴리오'
+# 화면에 입력한 보유를 합치기만 한다. 근거·과거 범위·확신도는 그 아래 접힌 칸으로 내렸다.
+# ----------------------------------------------------------------------------
+_live_top4 = list(core_result["top4"]) if core_result else None
+_fresh = cr.freshness(_rec, live_core_top4=_live_top4)
+
+st.markdown("## ✅ 지금 할 일")
+with st.container(border=True):
+    # --- 1단계: 추천이 최신인가 ---
+    if _fresh["ok"]:
+        (st.success if _fresh["level"] == "fresh" else st.info)(f"**추천 상태:** {_fresh['reason']}")
+    else:
+        st.warning(f"**1단계 — 추천부터 다시 계산하세요.** {_fresh['reason']}")
+    _rec_sizing = st.session_state.get("champion_satellite_sizing_method", "equal")
+    if st.button("🔄 지금 기준으로 다시 추천", type="secondary" if _fresh["ok"] else "primary",
+                 key="champion_rec_button"):
+        st.session_state[_REC_PENDING] = True
+        job_manager.start(
+            _REC_SLOT, cr.compute_recommendation, date.today(),
+            sizing_method=_rec_sizing, label="지금 기준 재추천 계산",
+        )
+    st.caption("수 분 걸립니다. 백그라운드에서 돌고 다른 화면으로 옮겨도 계속됩니다. 주문은 하지 않습니다.")
+
+if st.session_state.get(_REC_PENDING):
+    _rec_job = job_manager.render(
+        _REC_SLOT,
+        running_label=(
+            "재추천 계산 중 — 새틀라이트 point-in-time 스캔을 두 번(규칙 보유분 + 오늘 기준) 돌리고 "
+            "분포용 백테스트 캐시를 확인합니다. 수 분 걸릴 수 있고 다른 화면으로 이동해도 계속 진행됩니다"
+        ),
+    )
+    if _rec_job is not None:
+        st.session_state[_REC_PENDING] = False
+        if _rec_job.status == "error":
+            st.error(f"재추천 계산 중 오류가 발생했습니다: {_rec_job.error}")
+        else:
+            st.session_state[_REC_RESULT] = _rec_job.result
+            st.rerun()  # 맨 위 카드를 새 결과로 다시 그린다
+
+if _rec is None:
+    st.info("아직 추천을 계산하지 않았습니다. 위 '🔄 지금 기준으로 다시 추천'을 누르면 계산을 시작합니다.")
+else:
+    _act = _rec.get("action") or {}
+    _core = _rec.get("core") or {}
+    _sat = _rec.get("satellite") or {}
+    _dist = _rec.get("distributions") or {}
+    _refs = _rec.get("references") or {}
+    _rec_when = str(_rec.get("computed_at", ""))[:16].replace("T", " ")
+
+    _targets = cr.target_allocation(_rec)
+    _holdings_pnl = get_portfolio_pnl()
+    _held = ({} if _holdings_pnl.empty else
+             {r["ticker"]: float(r["market_value"] or 0.0) for _, r in _holdings_pnl.iterrows()})
+    _cash_balance = get_cash_balance()
+    _has_holdings = any(v > 0 for v in _held.values()) or _cash_balance > 0
+
+    with st.container(border=True):
+        # --- 2단계: 목표 포트폴리오 ---
+        st.markdown(f"**2단계 — 목표 포트폴리오** · 기준일 {_rec.get('as_of')} (계산 {_rec_when} UTC)")
+        _filter_line = {
+            "above": "SPY 가 200일선 위라 코어 85%를 전부 투자합니다.",
+            "below": "SPY 가 200일선 아래라 코어를 절반만 투자하고 나머지는 현금으로 둡니다.",
+            "unknown": "SPY 데이터가 없어 시장필터를 판정하지 못했습니다 — 신규 주문을 보류하세요.",
+        }.get(_core.get("market_filter_status"), "")
+        if _core.get("market_filter_status") == "unknown":
+            st.error(_filter_line)
+        elif _filter_line:
+            st.caption(_filter_line)
+
+        _capital = 10_000.0
+        if not _has_holdings:
+            _capital = st.number_input(
+                "투자할 금액($)", min_value=100.0, max_value=100_000_000.0, value=10_000.0, step=1_000.0,
+                format="%.0f", key="champion_todo_capital",
+            )
+        _plan = cr.order_plan(_targets, _held, _cash_balance, _capital)
+        st.dataframe(
+            pd.DataFrame([
+                {"종목": "현금" if r["ticker"] == cr.CASH_TICKER else r["ticker"], "구분": r["sleeve"],
+                 "목표 비중": f"{r['weight'] * 100:.1f}%", "목표 금액": f"${r['weight'] * _plan['total']:,.0f}"}
+                for r in _targets
+            ]),
+            use_container_width=True, hide_index=True,
+        )
+
+        # --- 3단계: 주문 목록 ---
+        st.markdown("**3단계 — 주문 목록**")
+        if _plan["basis"] == "fresh":
+            st.caption(
+                "보유 종목이 등록돼 있지 않아 '처음부터 매수' 기준으로 계산했습니다. 이미 갖고 있는 종목이 있으면 "
+                "포트폴리오 화면에 입력하세요 — 그러면 실제로 사고팔 것만 남습니다."
+            )
+            _page_link("pages/8_포트폴리오_관리.py", "💼 포트폴리오에 보유 입력하기")
+        else:
+            st.caption(f"포트폴리오 화면에 입력한 보유 기준(현금 포함 총 ${_plan['total']:,.0f}). 입력이 낡으면 이 목록도 틀립니다.")
+        _trades = [r for r in _plan["rows"] if r["action"] != "유지"]
+        if not _trades:
+            st.success("지금 사고팔 것 없음 — 보유가 목표와 1%p 이내입니다.")
+        else:
+            st.dataframe(
+                pd.DataFrame([
+                    {"순서": i, "할 일": r["action"], "종목": r["ticker"], "금액": f"${abs(r['delta_value']):,.0f}",
+                     "현재 → 목표": f"${r['current_value']:,.0f} → ${r['target_value']:,.0f}"}
+                    for i, r in enumerate(_trades, start=1)
+                ]),
+                use_container_width=True, hide_index=True,
+            )
+            if any(r["action"] in ("매도", "전량 매도") for r in _trades):
+                st.caption("매도를 먼저 하고 그 돈으로 매수하는 순서입니다.")
+        _keep = [r["ticker"] for r in _plan["rows"] if r["action"] == "유지"]
+        if _keep:
+            st.caption(f"그대로 두면 되는 종목: {', '.join(_keep)}")
+        if _plan["target_cash"] > 0.5:
+            st.caption(f"현금으로 남겨 둘 금액: ${_plan['target_cash']:,.0f}")
+        if not _fresh["ok"]:
+            st.warning("⚠️ 추천이 낡아 이 주문 목록도 낡았을 수 있습니다 — 1단계(다시 추천)를 먼저 하세요.")
+
+        # --- 종목 차트: 누른 종목 하나만 가격을 받아 그린다(페이지 진입 시 전 종목을 조회하지 않음) ---
+        _chart_choices = cr.chart_tickers(_targets)
+        if _chart_choices:
+            _chart_pick = st.pills(
+                "📈 종목 차트 — 종목을 누르면 가격 차트와 '지금 사면 몇 주'가 열립니다",
+                options=_chart_choices, selection_mode="single", default=None, key="champion_todo_chart_ticker",
+            )
+            if _chart_pick:
+                _render_ticker_chart(
+                    _chart_pick,
+                    sleeve={r["ticker"]: r["sleeve"] for r in _targets}.get(_chart_pick, ""),
+                    plan_row=next((r for r in _plan["rows"] if r["ticker"] == _chart_pick), None),
+                    evidence_row=next((r for r in (_sat.get("evidence") or []) if r.get("ticker") == _chart_pick), None),
+                    evidence_as_of=str(_rec.get("as_of") or "") or None,
+                )
+
+        # --- 4단계: 다음에 다시 볼 날 ---
+        _cp = cr.next_checkpoints()
+        st.markdown("**4단계 — 다음에 다시 볼 날**")
+        st.markdown(
+            f"- **코어**: 매달 첫 거래일에 다시 봅니다 → 다음 **{_cp['core_next']}**\n"
+            f"- **새틀라이트**: 오늘 사면 **{_cp['satellite_next']}**(매수일 + 6개월)까지 그대로 둡니다. "
+            "그 사이에 목록이 바뀌어도 교체하지 않는 것이 이 전략의 규칙입니다."
+        )
+        st.caption(
+            "이 화면은 주문하지 않습니다 — 증권사에서 직접 주문하거나 paper 계좌는 scripts/champion_paper_trade.py 를 씁니다. "
+            "확신도가 약한(weak) 구성요소가 있으며 미래 수익을 보장하지 않습니다(아래 '근거와 확신도')."
+        )
+
+    # ---------------- 추천 상세 (접힘) — 맨 위 카드의 근거 ----------------
+    st.markdown("#### 추천 상세 — 근거가 궁금할 때만 보세요")
+    _tab_pick, _tab_range, _tab_why = st.tabs([
+        "🔎 왜 이 종목인가", "📊 과거 같은 길이 구간의 수익 범위", "🧪 근거와 확신도",
+    ])
+    with _tab_pick:
+        for _item in _act.get("items") or []:
+            if "트레일링스탑" in (_item.get("text") or ""):
+                st.caption(f"⚠️ {_item['text']}")
+        _filter_text = {
+            "above": "SPY 200일선 위 — 코어 비중 그대로",
+            "below": "SPY 200일선 아래 — 코어 비중 절반으로 축소",
+            "unknown": "SPY 데이터 없음 — 시장필터 판정불가, 신규 주문 보류",
+        }.get(_core.get("market_filter_status"), "판정불가")
+        st.markdown(
+            f"**코어 {CORE_WEIGHT * 100:.0f}%** — 실투입 {_core.get('invested_weight_pct', 0):.1f}% "
+            f"(현금 {float(_core.get('cash_weight_from_filter') or 0) * 100:.1f}%) · {_filter_text}"
+        )
+        _core_rows = [r for r in (_core.get("evidence") or []) if r.get("in_top4")]
+        if not _core_rows:
+            st.warning("절대모멘텀(>0)을 통과한 코어 자산이 없습니다 — 코어 비중이 사실상 전액 현금입니다.")
+        else:
+            st.dataframe(
+                pd.DataFrame([
+                    {"종목": r["ticker"], "12개월 모멘텀": f"{r['momentum_12m_pct']:+.1f}%" if r["momentum_12m_pct"] is not None else "—",
+                     "순위": r["rank"], "비중": f"{r['weight_pct']:.1f}%"}
+                    for r in _core_rows
+                ]),
+                use_container_width=True, hide_index=True,
+            )
+
+        _rule = _sat.get("rule") or _sat.get("if_bought_at_last_rebal") or {}
+        _today_sat = _sat.get("today") or {}
+        _next_resel = _sat.get("next_reselection_if_bought_today") or {}
+        st.markdown(f"**새틀라이트 {SATELLITE_WEIGHT * 100:.0f}%** — 오늘 기준으로 다시 뽑은 결과입니다.")
+        with st.container(border=True):
+            st.markdown("**오늘 기준 재선정 — 지금 매수한다면 이 종목**")
+            st.caption(
+                f"기준일 {_today_sat.get('as_of')} · 후보 풀 {_today_sat.get('pool_size')}종목 중 "
+                f"활성 추세 {_today_sat.get('n_active_trend')}개"
+            )
+            if not _today_sat.get("picks"):
+                st.info("오늘 기준으로 조건을 만족하는 종목이 없습니다 — 새틀라이트 비중이 사실상 현금입니다.")
+            else:
+                _sleeve = _today_sat.get("sleeve_weights") or {}
+                st.dataframe(
+                    pd.DataFrame([
+                        {"종목": t, "슬리브 내 비중": f"{_sleeve.get(t, 0.0) * 100:.1f}%",
+                         "전체 비중": f"{_sleeve.get(t, 0.0) * SATELLITE_WEIGHT * 100:.1f}%"}
+                        for t in (_today_sat.get("picks") or [])
+                    ]),
+                    use_container_width=True, hide_index=True,
+                )
+                if _next_resel.get("date"):
+                    st.caption(
+                        f"오늘 매수하면 다음 재선정일은 **{_next_resel.get('date')}** 입니다"
+                        f"(매수일 + {_next_resel.get('months')}개월). 반기 주기는 그대로이고 시작점만 매수일에 맞춥니다."
+                    )
+        st.caption(f"ℹ️ {_sat.get('diff_note')}")
+        st.caption(_sat.get("timing_note") or cr.TIMING_NOTE)
+
+        with st.expander(f"참고: {_rule.get('rebal_date') or '직전 반기 리밸런싱일'}에 매수했다면 지금 들고 있을 종목", expanded=False):
+            st.caption(
+                "그때 실제로 매수한 경우에만 의미가 있습니다. 같은 선정 함수에 날짜만 직전 반기 리밸런싱일로 "
+                f"바꿔 계산한 것입니다 · 후보 풀 {_rule.get('pool_size')}종목 중 활성 추세 "
+                f"{_rule.get('n_active_trend')}개 · {_rule.get('allocation_reason')}"
+            )
+            if not _rule.get("picks"):
+                st.info("그날 기준으로 뽑힌 종목이 없습니다.")
+            else:
+                st.dataframe(
+                    pd.DataFrame([
+                        {"종목": r["ticker"],
+                         "비중": f"{(_rule.get('per_ticker_weights') or {}).get(r['ticker'], 0.0) * 100:.1f}%",
+                         "리밸런싱 이후": (f"{r['return_since_rebal_pct']:+.1f}%"
+                                      if r.get("return_since_rebal_pct") is not None else "—")}
+                        for r in (_rule.get("picks_table") or [])
+                    ]),
+                    use_container_width=True, hide_index=True,
+                )
+
+    with _tab_range:
+        if not _dist.get("available"):
+            st.info(
+                "분포를 만들 백테스트 캐시가 없습니다"
+                + (f" ({_dist.get('error')})" if _dist.get("error") else "")
+                + ". 주간 추적 잡(champion_tracking_weekly)이 캐시를 만들면 여기에 표시됩니다."
+            )
+        else:
+            st.caption(
+                f"라이브 시작({_dist.get('live_start')}, {_dist.get('live_start_note')}) 이전 백테스트 "
+                f"{_dist.get('backtest_start')}~{_dist.get('backtest_end')} 구간에서 같은 길이 구간을 모두 겹쳐 모았습니다."
+            )
+            st.caption(f"⚠️ {_dist.get('warning')}")
+            for _h in ("63", "126"):
+                _hd = (_dist.get("by_horizon") or {}).get(_h)
+                if not _hd:
+                    continue
+                with st.container(border=True):
+                    st.markdown(f"**{_hd.get('label')}** — 겹치는 구간 {_hd.get('n_windows')}개")
+                    if not _hd.get("enough_windows"):
+                        st.caption("⚠️ 구간 수가 적어(50개 미만) 범위를 넓게만 읽어야 합니다.")
+                    _s = _hd.get("strategy") or {}
+                    _x = _hd.get("excess_spy") or {}
+                    _m = _hd.get("max_drawdown") or {}
+                    _beat = _hd.get("beat_spy_share")
+                    _ww = _hd.get("worst_window") or {}
+                    _worst_txt = cr.fmt_pct(_s.get("worst"))
+                    if _ww:
+                        _worst_txt += f" ({_ww.get('start')}~{_ww.get('end')})"
+                    _beat_txt = f"{_beat * 100:.0f}%" if _beat is not None else "—"
+                    st.markdown(
+                        f"- 전략 수익: {cr.fmt_range(_s)}\n"
+                        f"- 최악 구간: {_worst_txt}\n"
+                        f"- 구간 내 최대낙폭: {cr.fmt_range(_m)}\n"
+                        f"- SPY 대비 초과수익: {cr.fmt_range(_x)}\n"
+                        f"- **SPY 를 이긴 구간 비율: {_beat_txt}**"
+                    )
+                    _vals = _hd.get("excess_spy_values") or []
+                    if _vals:
+                        _fig = go.Figure()
+                        _fig.add_trace(go.Histogram(
+                            x=[v * 100 for v in _vals], nbinsx=40, marker=dict(color=_C_STRATEGY),
+                            name="SPY 대비 초과수익", hovertemplate="%{x:.1f}%p: %{y}개 구간<extra></extra>",
+                        ))
+                        _fig.add_vline(x=0, line=dict(color=_C_SPY, width=2))
+                        _fig.update_layout(
+                            height=230, margin=dict(l=8, r=8, t=28, b=8), showlegend=False,
+                            xaxis_title="SPY 대비 초과수익(%p) — 0 선 왼쪽은 SPY 에 진 구간",
+                            yaxis_title="구간 수", bargap=0.04,
+                        )
+                        st.plotly_chart(_fig, use_container_width=True, config={"displayModeBar": False})
+
+            _curves = _dist.get("curves") or {}
+            if _curves.get("dates") and _curves.get("strategy"):
+                st.markdown("**과거 자산곡선 — 전략 vs S&P500**")
+                _rec_capital = st.number_input(
+                    "초기 금액($) — 저장된 결과는 배수라서 금액을 바꿔도 다시 계산하지 않습니다",
+                    min_value=100.0, max_value=100_000_000.0, value=10_000.0, step=1_000.0, format="%.0f",
+                    key="champion_rec_capital",
+                )
+                _eq = go.Figure()
+                for _key, _name, _color in (("strategy", "챔피언(코어+새틀라이트)", _C_STRATEGY),
+                                            ("spy", "S&P500(SPY) 매수보유", _C_SPY),
+                                            ("satellite", "새틀라이트 단독", _C_SAT)):
+                    _series = _curves.get(_key)
+                    if not _series:
+                        continue
+                    _eq.add_trace(go.Scatter(
+                        x=_curves["dates"], y=[None if v is None else v * _rec_capital for v in _series],
+                        name=_name, mode="lines", line=dict(width=2 if _key == "strategy" else 1.4, color=_color),
+                        hovertemplate=f"{_name}: $%{{y:,.0f}}<extra></extra>",
+                    ))
+                _eq.update_layout(
+                    height=280, margin=dict(l=8, r=8, t=30, b=8), yaxis_title="계좌 금액(가상, $)",
+                    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0, font=dict(size=11)),
+                )
+                st.plotly_chart(_eq, use_container_width=True, config={"displayModeBar": False})
+                st.caption(f"자산곡선 출처: {_curves.get('source')} · 가상 결과이며 실제 주문 기록이 아닙니다.")
+
+            _sleeve = _dist.get("satellite_sleeve")
+            if _sleeve:
+                st.markdown("**새틀라이트 슬리브만의 SPY 대비 초과수익 분포**")
+                for _h, _row in (_sleeve.get("by_horizon") or {}).items():
+                    _sb = _row.get("beat_spy_share")
+                    st.markdown(
+                        f"- {_row.get('label')}: {cr.fmt_range(_row)} · SPY 를 이긴 구간 "
+                        + (f"{_sb * 100:.0f}%" if _sb is not None else "—")
+                        + f" (구간 {_row.get('n')}개)"
+                    )
+                st.caption(
+                    "새틀라이트 15%만 떼어 본 것이라 전체 포트폴리오 성과가 아닙니다. 숫자가 음수면 그 구간들에서 "
+                    "이 슬리브가 SPY 에 뒤졌다는 뜻이며, 그대로 표시합니다."
+                )
+            else:
+                st.caption("새틀라이트 슬리브 단독 분포는 '챔피언 성과' 화면의 계산 결과가 저장돼 있을 때만 표시됩니다.")
+
+            for _line in _rec.get("limitations") or []:
+                st.caption(f"· {_line}")
+
+    with _tab_why:
+        st.caption("아래 등급은 이 엔진이 스스로 매긴 것이 아니라 리서치 프로그램의 감사 결과입니다. 약한 것은 약하다고 그대로 표시합니다.")
+        for _title, _key in (("코어를 만든 결정", "core_confidence"), ("새틀라이트를 만든 결정", "satellite_confidence")):
+            _rows = _refs.get(_key) or []
+            if not _rows:
+                continue
+            st.markdown(f"**{_title}**")
+            for _row in _rows:
+                st.markdown(f"- {_GRADE_BADGE.get(_row['grade'], _row['grade'])} {_row['component']}")
+                st.caption(f"　{_row['note']} (근거: {_row['source']})")
+
+        _ev = _sat.get("evidence") or []
+        if _ev:
+            st.markdown("**새틀라이트 종목별 근거**")
+            st.dataframe(
+                pd.DataFrame([
+                    {"종목": r["ticker"], "섹터": r.get("sector") or "—",
+                     "돌파 발생일": r.get("breakout_date") or "—",
+                     "12개월 모멘텀": f"{r['momentum_12m_pct']:+.1f}%" if r.get("momentum_12m_pct") is not None else "—",
+                     "후보 중 순위": r.get("rank_among_breakouts") or "—",
+                     "현재가": f"${r['current_price']:,.2f}" if r.get("current_price") is not None else "—",
+                     "트레일링스탑": f"${r['trailing_stop']:,.2f}" if r.get("trailing_stop") is not None else "—",
+                     "스탑까지 여유": f"{r['stop_headroom_pct']:+.1f}%" if r.get("stop_headroom_pct") is not None else "—",
+                     "추세 활성": "예" if r.get("trend_active") else "아니오"}
+                    for r in _ev
+                ]),
+                use_container_width=True, hide_index=True,
+            )
+        with st.expander("코어 17자산 전체 모멘텀 순위 (이번 추천의 근거)"):
+            st.dataframe(
+                pd.DataFrame([
+                    {"순위": r["rank"], "종목": r["ticker"],
+                     "12개월 모멘텀": f"{r['momentum_12m_pct']:+.1f}%" if r["momentum_12m_pct"] is not None else "—",
+                     "절대모멘텀 통과": "예" if r["passes_absolute_momentum"] else "아니오",
+                     "top4": "예" if r["in_top4"] else "아니오",
+                     "비중": f"{r['weight_pct']:.1f}%"}
+                    for r in (_core.get("evidence") or [])
+                ]),
+                use_container_width=True, hide_index=True,
+            )
+
+        st.caption(f"📄 근거 문서: `{_refs.get('synthesis_report')}` (리서치 프로그램 전체 종합 리포트)")
+        _rejected = _refs.get("rejected_ideas") or []
+        if _rejected:
+            with st.expander(f"이미 검토했지만 채택하지 않은 아이디어 ({len(_rejected)}개)"):
+                for _row in _rejected:
+                    st.markdown(f"- {_GRADE_BADGE.get(_row['grade'], _row['grade'])} {_row['component']}")
+                    st.caption(f"　{_row['note']}")
+        st.markdown("**아직 검증 중인 것**")
+        st.caption(_refs.get("research_note"))
+        for _job in _refs.get("research_jobs") or []:
+            if _job.get("verdicts"):
+                _v = ", ".join(f"{k}={v}" for k, v in _job["verdicts"].items())
+                st.caption(f"· {_job['title']} — {_v} (결과 research/results/{_job['id']}/)")
+            else:
+                st.caption(f"· {_job['title']} — {_job.get('status')}")
+        for _line in _rec.get("unverified_notes") or []:
+            st.caption(f"· 검증 안 됨: {_line}")
+
+
+st.divider()
+st.markdown("### 아래는 세부 계산입니다")
+st.caption("위 '지금 할 일'만으로 충분합니다. 아래는 코어·새틀라이트를 따로 계산하거나 백테스트·헤지를 직접 확인할 때 씁니다.")
 
 st.markdown("## 1. 코어 — 섹터 로테이션 모멘텀 (85%)")
 st.caption("17자산(11개 GICS 섹터 ETF + 채권2 + 금 + 국제주식 + 하이일드 + 원자재) 중 12개월 모멘텀 상위 4개, 동일비중 · 월간 리밸런싱.")
@@ -664,62 +848,6 @@ with sat_tab_scan:
             with st.expander("브레이크아웃 후보 전체 보기"):
                 st.dataframe(satellite_result["candidates"], use_container_width=True, hide_index=True)
 
-# satellite_result는 아래 "오늘의 종합 판단"/"내 포트폴리오와 비교" 섹션에서 계속 쓰인다 —
-# point-in-time 결과(검증된 방법론)가 있으면 그쪽을 우선하고, 없으면 참고용 스캔 결과로 대체한다.
-satellite_result = st.session_state.get("champion_satellite_pit_result") or st.session_state.get("champion_satellite_result")
-
-# ----------------------------------------------------------------------------
-# 오늘의 종합 판단 — 코어/새틀라이트 상태를 한 곳에 모아 보여주는 요약 (2026-09-14 추가)
-#
-# 이 카드는 새 신호를 만들지 않는다 — 위에서 이미 계산한 코어/새틀라이트 결과를 요약할 뿐이다.
-# 시장 국면(맥락)은 참고 정보로만 덧붙인다 — 국면에 따라 배분을 바꾸는 동적 스위치는 이 리서치
-# 프로그램에서 기댓값 기준으로 반복 기각됐으므로(아래 확신도 표 참고), 이 카드가 그 판단을
-# 대신하거나 덮어쓰지 않는다.
-# ----------------------------------------------------------------------------
-st.markdown("## 오늘의 종합 판단")
-verdict_cols = st.columns(3)
-with verdict_cols[0]:
-    if core_result is None:
-        render_metric_card("코어 실투입 비중", "계산 중...")
-    else:
-        core_invested = core_result["exposure_multiplier"] * 0.85 * 100
-        render_metric_card(
-            "코어 실투입 비중", f"{core_invested:.1f}%",
-            sublabel=(
-                "⚠️ SPY 데이터 없음 — 시장필터 판단불가, 신규 주문 보류"
-                if core_result["above_200dma"] is None
-                else "⚠️ 200일선 아래 — 축소" if core_result["above_200dma"] is False else "200일선 위"
-            ),
-            tone="good" if core_result["above_200dma"] else "neutral",
-        )
-with verdict_cols[1]:
-    if satellite_result is None:
-        render_metric_card("새틀라이트 상태", "미실행", sublabel="위 '📌 point-in-time 새틀라이트 계산' 또는 '🔍 새틀라이트 후보 스캔 실행' 버튼 필요")
-    elif not satellite_result["selected"]:
-        render_metric_card("새틀라이트 상태", "현금 (후보 없음)", tone="neutral")
-    else:
-        render_metric_card(
-            "새틀라이트 상태", f"{len(satellite_result['selected'])}종목 보유",
-            sublabel=", ".join(satellite_result["selected"]),
-        )
-with verdict_cols[2]:
-    regime_ctx = load_market_regime_context()
-    if regime_ctx is None:
-        render_metric_card("시장 국면 (참고)", "스냅샷 없음")
-    elif regime_ctx["trading_regime"] is None:
-        # 판단 보류 사유는 시장폭 결측뿐 아니라 신호 coverage 미달 등도 있다(2026-09-25) — 스냅샷이 준 실제 사유를 보여준다.
-        _unknown_reason = (regime_ctx.get("snapshot") or {}).get("regime_reason") or "데이터 부족으로 판단 보류"
-        render_metric_card("시장 국면 (참고)", "판단 불가(unknown)", sublabel=_unknown_reason, tone="neutral")
-    else:
-        render_metric_card(
-            "시장 국면 (참고)", regime_ctx["trading_regime"],
-            sublabel="⚠️ 애매한 판정" if regime_ctx["is_ambiguous"] else "배분에는 반영 안 함",
-            tone="good" if regime_ctx["trading_regime"] == "강세장" else "bad",
-        )
-st.caption(
-    "⚠️ '시장 국면'은 참고용 맥락일 뿐입니다 — 이 엔진은 국면에 따라 코어/새틀라이트 비중을 "
-    "바꾸지 않습니다(국면조건부 동적 스위치는 확신도 감사에서 반복적으로 기각됨, 아래 확신도 표 참고)."
-)
 
 # ----------------------------------------------------------------------------
 # 백테스트 — "오늘 신호"가 아니라 "과거에 이 전략을 실제로 썼다면 어땠을지"
@@ -889,48 +1017,6 @@ if options_overlay:
         st.markdown(f"- **결론**: {options_overlay.get('verdict', 'N/A')}")
 
 # ----------------------------------------------------------------------------
-# 내 포트폴리오와 비교 — 리밸런싱 diff (2026-09-14 추가)
-#
-# 이 섹션은 새 신호를 만들지 않는다 — 위에서 이미 계산한 코어/새틀라이트 추천과
-# app/pages/8_포트폴리오_관리.py 에 직접 입력해둔 실제 보유 종목을 비교만 한다. 이 앱은 증권사
-# 자동연동이 없으므로, 아직 보유 종목을 등록하지 않았다면 8번 페이지에서 먼저 입력해야 한다.
-# ----------------------------------------------------------------------------
-st.markdown("## 5. 내 포트폴리오와 비교")
-holdings_pnl = get_portfolio_pnl()
-if holdings_pnl.empty:
-    st.info(
-        "아직 등록된 보유 종목이 없습니다 — [8_포트폴리오_관리] 페이지에서 실제 보유 종목(티커/수량/매입가)을 "
-        "먼저 입력하면 이 엔진의 추천과 실제 보유를 비교해 무엇을 사고팔아야 할지 보여줍니다."
-    )
-else:
-    if satellite_result is None:
-        st.caption(
-            "⚠️ 새틀라이트를 아직 스캔하지 않아 코어(85%) 부분만 비교합니다 — 위 '2. 새틀라이트' "
-            "섹션에서 스캔을 실행하면 전체(코어+새틀라이트) 비교로 확장됩니다."
-        )
-    st.caption(
-        "ℹ️ 총 계좌가치는 '보유 종목 시가총액 합계 + 현금 잔고'로 계산합니다 — 현금 잔고는 "
-        "[8_포트폴리오_관리] 페이지에서 최신 상태로 입력해두어야 정확합니다."
-    )
-    diff_df = compute_rebalance_diff(core_result, satellite_result=satellite_result, holdings_pnl=holdings_pnl)
-    if diff_df.empty:
-        st.info("비교할 데이터가 없습니다.")
-    else:
-        action_order = {"매수": 0, "매도": 1, "현금 보유": 2, "유지": 3}
-        diff_df = diff_df.iloc[diff_df["action"].map(action_order).argsort(kind="stable")]
-        st.dataframe(
-            diff_df.rename(
-                columns={
-                    "ticker": "티커", "source": "출처", "target_weight_pct": "목표비중(%)",
-                    "current_weight_pct": "현재비중(%)", "diff_pct": "차이(%p)",
-                    "current_value": "현재금액($)", "target_value": "목표금액($)",
-                    "delta_value": "매매금액($)", "action": "액션",
-                }
-            ),
-            use_container_width=True, hide_index=True,
-        )
-
-# ----------------------------------------------------------------------------
 # 보유종목 상관관계 + 새틀라이트 실적 발표 예정 (2026-09-18 추가)
 #
 # core.portfolio(내 실제 보유종목)/core.backtest_engine(전략 라이브러리 간)이 이미 하는 상관관계
@@ -938,7 +1024,7 @@ else:
 # 있는지는 이 엔진 자체에서는 아직 아무도 확인할 방법이 없었다. get_current_holdings()는 새로
 # 스캔하지 않고 스케줄러가 매일 00:10에 저장해둔 신호 캐시만 읽으므로 페이지 로드가 무겁지 않다.
 # ----------------------------------------------------------------------------
-st.markdown("## 6. 보유종목 상관관계 & 새틀라이트 실적 발표")
+st.markdown("## 5. 보유종목 상관관계 & 새틀라이트 실적 발표")
 
 _current_holdings = get_current_holdings()
 if _current_holdings is None:

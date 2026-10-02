@@ -4,6 +4,7 @@ from datetime import datetime
 
 import streamlit as st
 
+from core.champion_recommendation import load_latest_cached
 from core.theme import apply_theme
 from core.today_dashboard import build_today_dashboard
 
@@ -78,12 +79,20 @@ with right:
     else:
         st.caption("저장된 코어 추천이 없습니다.")
     st.markdown("**새틀라이트**")
-    if holdings.get("satellite_selected"):
+    # 챔피언 화면 '지금 할 일'과 같은 목록(마지막 재추천의 오늘자 point-in-time 재선정)을 우선 보인다.
+    # 어제 밤 저장 목록은 '빠른 근사 스캔'(다른 방법론)이라 그대로 보이면 두 화면이 서로 다른 종목을 말한다.
+    rec = load_latest_cached()
+    rec_picks = ((rec or {}).get("satellite") or {}).get("today", {}).get("picks") or []
+    if rec_picks:
+        st.code(" · ".join(rec_picks), language=None)
+        st.caption(f"마지막 재추천 기준일 {rec.get('as_of')} — 오래됐으면 챔피언 화면에서 다시 계산하세요.")
+    elif holdings.get("satellite_selected"):
         st.code(" · ".join(holdings["satellite_selected"]), language=None)
+        st.caption("빠른 근사 스캔 결과(참고용) — 실제 매수 목록은 챔피언 화면에서 재추천으로 확인하세요.")
     else:
         st.caption("저장된 새틀라이트 추천이 없습니다.")
     st.caption("추천은 전략 신호이며, 주문 가능 여부와 별도입니다.")
-    _link("pages/11_챔피언_전략.py", "챔피언 전략 열기")
+    _link("pages/11_챔피언_전략.py", "챔피언 전략 열기 — 지금 할 일")
 
 st.divider()
 st.subheader("작업공간")
