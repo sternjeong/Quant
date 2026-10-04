@@ -2,8 +2,8 @@
   "regime": "강세장",
   "regime_status": "ok",
   "regime_reason": null,
-  "total_score": 39.994470070133545,
-  "raw_total_score": 39.994470070133545,
+  "total_score": 39.1717773699941,
+  "raw_total_score": 39.1717773699941,
   "coverage": 1.0,
   "signals_available": 4,
   "signals_total": 4,
@@ -31,7 +31,7 @@
     "breadth": {
       "status": "ok",
       "weight": 25.0,
-      "score": -8.783095723014256,
+      "score": -9.605788423153694,
       "reason": null
     }
   },
@@ -55,14 +55,14 @@
     "week52_high": 7798.990234375
   },
   "breadth": {
-    "score": -8.783095723014256,
-    "pct_above_200sma": 42.973523421588595,
+    "score": -9.605788423153694,
+    "pct_above_200sma": 42.315369261477045,
     "is_overheated": false,
     "status": "ok",
-    "coverage": 0.9761431411530815,
+    "coverage": 0.9960238568588469,
     "n_total": 503,
-    "n_above": 211,
-    "n_data_ok": 491
+    "n_above": 212,
+    "n_data_ok": 501
   },
   "short_term": {
     "1개월": {
@@ -77,5 +77,5 @@
     }
   },
   "benchmark_ticker": "^GSPC",
-  "computed_at": "2026-10-03T18:35:11.779220"
+  "computed_at": "2026-10-04T18:34:08.246930"
 }
