@@ -24,6 +24,31 @@ STATUS_LABELS = {"pass": ("통과 — 사람 검토 대기", "active"), "fail": 
 def collect() -> dict[str, Any]:
     data: dict[str, Any] = {}
     try:
+        from core import rnd_topics
+
+        data["topics"] = rnd_topics.all_states()
+    except Exception as exc:  # noqa: BLE001
+        data["topics_error"] = type(exc).__name__
+    try:
+        from core import core_rnd
+
+        data["core_registry"] = core_rnd.load_registry()
+        from datetime import date as _d
+
+        q = core_rnd.quarter_of(_d.today())
+        data["core_quarter"] = q
+        data["core_agent"] = core_rnd.agent_state(q)
+    except Exception as exc:  # noqa: BLE001
+        data["core_error"] = type(exc).__name__
+    try:
+        from core import crypto_shadow, geo_shadow
+
+        rows = crypto_shadow.load_ledger()
+        data["crypto"] = {"records": len(rows), "last": rows[-1] if rows else None}
+        data["geo"] = {"months": [r["month"] for r in geo_shadow.load_ledger()]}
+    except Exception:  # noqa: BLE001
+        pass
+    try:
         from core import satellite_lab as sl
 
         reg = sl.load_registry()
@@ -80,10 +105,62 @@ def card_badge(data: dict) -> str:
     return f'<span class="badge unknown">판정 {len(rows) - queued} · 대기 {queued}</span>'
 
 
+def render_topics(data: dict) -> str:
+    """연구 주제 켜기/끄기 — 끄면 멈추고(아무것도 지우지 않음) 다시 켜면 이어진다."""
+    if "topics_error" in data:
+        return f'<h2>연구 주제</h2><p>확인 불가 {_e(data["topics_error"])}</p>'
+    rows = []
+    for key, t in (data.get("topics") or {}).items():
+        state = '<span class="badge active">켜짐</span>' if t["on"] else '<span class="badge failed">꺼짐</span>'
+        btn_label, btn_val = ("끄기", "0") if t["on"] else ("켜기", "1")
+        btn = (f'<form method="post" action="/rnd/topics" style="display:inline">'
+               f'<input type="hidden" name="key" value="{html.escape(key)}"><input type="hidden" name="on" value="{btn_val}">'
+               f'<button type="submit" style="background:{"#5a2a2a" if t["on"] else "#2a5a34"};color:#fff;border:0;border-radius:8px;'
+               f'padding:.35rem .9rem;cursor:pointer">{btn_label}</button></form>')
+        changed = f'<br><small>{_e(t["changed_at"])} · {_e(t["actor"])}</small>' if t.get("changed_at") else ""
+        rows.append(f'<tr><td><b>{_e(t["label"])}</b><br><small>{_e(t["what"])}</small></td><td>{state}{changed}</td>'
+                    f'<td><small>끄면 멈춤: {_e(t["pauses"])}</small></td><td>{btn}</td></tr>')
+    return ('<h2>연구 주제 켜기/끄기</h2><p class="subtitle">끄면 그 주제의 새 아이디어·재작업·판정이 멈춥니다. 이미 만든 아이디어·기록·누적 시도 수·대기열은 '
+            '그대로 남아 다시 켜면 그 자리에서 이어집니다. 바뀐 설정은 다음 03:00 배치·다음 연구 창부터 적용됩니다.</p>'
+            '<table><tr><th>주제</th><th>상태</th><th>꺼져 있는 동안</th><th></th></tr>' + "".join(rows) + '</table>')
+
+
+def render_core(data: dict) -> str:
+    if "core_error" in data:
+        return f'<h2>코어 분기 연구</h2><p>확인 불가 {_e(data["core_error"])}</p>'
+    reg = data.get("core_registry") or {}
+    ag = data.get("core_agent") or {}
+    rows = []
+    for v in (reg.get("ideas") or {}).values():
+        res = v.get("result") or {}
+        label, tone = STATUS_LABELS.get(v["status"], (v["status"], "unknown"))
+        rows.append(f'<tr><td><b>{_e(v["id"])}</b><br><small>{_e(v["idea"].get("title"))} · {_e(v["idea"].get("topic"))}</small></td>'
+                    f'<td><span class="badge {tone}">{html.escape(label)}</span></td>'
+                    f'<td><small>{_e(json.dumps(v["idea"].get("config"), ensure_ascii=False))} · 매도 {_e(v["idea"].get("exit_rule", {}).get("kind"))}</small></td>'
+                    f'<td><small>{"<br>".join(html.escape(x) for x in (res.get("reasons") or [])[:3]) or "—"}</small></td></tr>')
+    head = (f'<p class="subtitle">분기마다 AI 가 근거 있는 코어 아이디어(선정·보유 중 매도 시점)를 최대 3개 제안하고 같은 판정으로 시험합니다. '
+            f'누적 시도 수 <b>{_e(reg.get("cumulative_trials"))}</b>(이전 코어 연구 229개 포함). 이번 분기 {_e(data.get("core_quarter"))}: '
+            f'제안 {_e(ag.get("runs", 0))}회 · 등록 {_e(len(ag.get("frozen") or []))}개'
+            + (f' · 형식 오류 {_e(len(ag.get("errors") or {}))}개' if ag.get("errors") else "") + '</p>')
+    table = ('<table><tr><th>아이디어</th><th>상태</th><th>설정</th><th>사유</th></tr>' + "".join(rows) + '</table>') if rows else '<p>아직 등록된 아이디어가 없습니다.</p>'
+    return '<h2>코어 분기 연구</h2>' + head + table
+
+
+def render_shadows(data: dict) -> str:
+    c = data.get("crypto") or {}
+    g = data.get("geo") or {}
+    last = c.get("last") or {}
+    on = ", ".join(f'{t.split("-")[0]} {"보유" if v.get("on") else "현금"}' for t, v in (last.get("assets") or {}).items())
+    return ('<h2>앞으로 기록(배분 미반영)</h2><table>'
+            f'<tr><th>코인 추세 기록</th><td>{_e(c.get("records", 0))}일 · 최근 {_e(last.get("date"))} {html.escape(on)} · 12개월(252거래일) 뒤 판정</td></tr>'
+            f'<tr><th>AI 국제정세 의견</th><td>{_e(len(g.get("months") or []))}개월 · {_e(", ".join(g.get("months") or []) or "아직 없음")} · 24개월 뒤 판정</td></tr>'
+            '</table>')
+
+
 def render_body(data: dict) -> str:
-    parts = ['<p class="subtitle">새틀라이트(15%) 종목 선정 규칙을 계속 시험합니다. 아이디어는 시작 목록과 매일 03:00 에이전트가, '
-             '판정은 결과를 보기 전에 고정한 코드가 합니다. 계산은 VM 연구 창(01~03시·13~17시 KST)의 빈 시간에 돕니다. '
-             '통과해도 챔피언에 자동 반영되지 않습니다.</p>']
+    parts = ['<p class="subtitle">새틀라이트 종목 선정·진입 타이밍·매도 규칙과 코어 분기 연구를 계속 시험합니다. 아이디어는 시작 목록과 03:00 AI 에이전트가, '
+             '판정은 결과를 보기 전에 고정한 코드가 합니다. 계산은 VM 연구 창의 빈 시간에 돕니다. 통과해도 챔피언에 자동 반영되지 않습니다.</p>',
+             render_topics(data), render_core(data), render_shadows(data), '<h2>새틀라이트 R&amp;D</h2>']
     if "error" in data:
         return "".join(parts) + f'<h2>등록부</h2><p>확인 불가 {_e(data["error"])}</p>'
     reg = data["registry"]

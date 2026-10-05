@@ -287,6 +287,14 @@ SCRIPTS: tuple[ScriptGuide, ...] = (
         verified="2026-09-25",
     ),
     ScriptGuide(
+        path="scripts/core_lab_worker.py", name="코어 분기 연구 계산기",
+        when_to_run="직접 돌릴 일은 거의 없습니다. VM 연구 실행기가 새틀라이트 R&D 도 할 일이 없는 창에서 자동으로 돌립니다. 코드를 바꾼 뒤 끝까지 도는지만 볼 때 --smoke.",
+        command="python scripts/core_lab_worker.py --smoke --out /tmp/cl/out --checkpoint /tmp/cl/ckpt",
+        risk="파일/DB 쓰기",
+        what_it_prints="대기 중인 코어 아이디어마다 판정(PASS/FAIL)과 사유를 한 줄씩 찍습니다. --smoke 는 합성 가격·임시 등록부만 씁니다. 'R&D 센터'에서 '코어 분기 연구'가 꺼져 있으면 아무것도 하지 않습니다.",
+        verified="2026-10-05",
+    ),
+    ScriptGuide(
         path="scripts/engine_audit.py", name="엔진 점검 지금 돌리기",
         when_to_run="월요일 08:15 자동 점검을 기다리지 않고 지금 모든 엔진이 정상인지 보고 싶을 때(배포 직후, 이상한 알림을 받았을 때).",
         command="python scripts/engine_audit.py  (--notify 를 붙이면 텔레그램 전송 + data/engine_audit/ 저장)",

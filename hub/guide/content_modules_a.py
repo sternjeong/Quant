@@ -15,7 +15,7 @@ MODULES: tuple[ModuleGuide, ...] = (
     ),
     ModuleGuide(
         module="core/agent_batch.py", name="AI 에이전트 야간 배치", group="리서치 인프라", status="실험",
-        what="매일 03:00 KST에 AI 에이전트(Scout·Writer·Implementer·Critic·Post-mortem)를 차례로 돌려 새 전략 가설을 만들고, Critic이 승인한 가설을 동결해 자동 심판에 넘깁니다. 매달 25일 이후 한 번은 geo_analyst 가 다음 달 코어 리밸런싱 전 국제정세 의견을 남깁니다(기록만, core/geo_shadow.py). 새틀라이트 R&D 트랙도 함께 돕니다: sat_designer 가 새틀라이트 선정 규칙 아이디어 하나를 스펙·신호·테스트로 만들고, 결정론 검사(테스트 + 합성 데이터 실행 + 미래 비의존 확인)와 sat_critic 검토를 통과하면 VM 연구 창의 계산기가 동결·심판합니다(재작업 최대 3회, 동시에 2개까지). 중간에 끊겨도 다음 날 밤 그 자리에서 이어집니다. 아이디어를 고르는 Scout·Writer에게는 이미 재검증에서 실패한 방향 목록(research/agent_prompts/dead_ends.md)과 고전 팩터 감쇠표(research/factor_decay.md)를 함께 줘서 같은 실패를 되풀이하지 않게 합니다.",
+        what="매일 03:00 KST에 AI 에이전트(Scout·Writer·Implementer·Critic·Post-mortem)를 차례로 돌려 새 전략 가설을 만들고, Critic이 승인한 가설을 동결해 자동 심판에 넘깁니다. 매달 25일 이후 한 번은 geo_analyst 가 다음 달 코어 리밸런싱 전 국제정세 의견을 남깁니다(기록만, core/geo_shadow.py). 분기마다 core_designer 가 코어 아이디어를 최대 3개 제안합니다(core/core_rnd.py). 각 연구는 R&D 센터의 주제 스위치를 따릅니다(꺼진 주제는 건너뜀). 새틀라이트 R&D 트랙도 함께 돕니다: sat_designer 가 새틀라이트 선정 규칙 아이디어 하나를 스펙·신호·테스트로 만들고, 결정론 검사(테스트 + 합성 데이터 실행 + 미래 비의존 확인)와 sat_critic 검토를 통과하면 VM 연구 창의 계산기가 동결·심판합니다(재작업 최대 3회, 동시에 2개까지). 중간에 끊겨도 다음 날 밤 그 자리에서 이어집니다. 아이디어를 고르는 Scout·Writer에게는 이미 재검증에서 실패한 방향 목록(research/agent_prompts/dead_ends.md)과 고전 팩터 감쇠표(research/factor_decay.md)를 함께 줘서 같은 실패를 되풀이하지 않게 합니다.",
         how_to_use="자동입니다. 결과는 아침 텔레그램 요약과 허브 'AI 에이전트 연구' 화면에서 봅니다. 역할별 모델은 그 화면이나 텔레그램 /models 에서 바꿉니다.",
         where_to_see="허브 /research, 텔레그램(배치 요약 1건)",
         cautions="에이전트는 자기 작업 폴더(research/)에만 쓸 수 있고, 그 밖의 파일을 바꾸면 자동으로 되돌립니다. 새틀라이트 아이디어의 '준비 완료' 표시는 에이전트가 쓸 수 없는 data/satellite_lab/agent/ 에 배치가 기록합니다. 브로커·텔레그램 키는 에이전트에게 넘기지 않습니다. 주문 경로와 연결되어 있지 않습니다. 새틀라이트 트랙은 실제 Claude CLI로 아직 한 번도 실행하지 않았습니다.",
@@ -23,7 +23,7 @@ MODULES: tuple[ModuleGuide, ...] = (
     ),
     ModuleGuide(
         module="core/agent_budget.py", name="에이전트 토큰 예산", group="리서치 인프라", status="운영중",
-        what="에이전트 역할별 모델·최대 턴·시간·주간 실행 횟수와 하룻밤 $15·주간 $60(API 환산 금액) 상한을 정하고, 실행마다 사용량을 기록합니다. 사람이 고른 역할별 모델도 여기서 반영합니다. 새틀라이트 R&D 역할(sat_designer 주 8회, sat_critic 주 8회)과 국제정세 의견(geo_analyst 월 1회)도 같은 예산을 나눠 씁니다.",
+        what="에이전트 역할별 모델·최대 턴·시간·주간 실행 횟수와 하룻밤 $15·주간 $60(API 환산 금액) 상한을 정하고, 실행마다 사용량을 기록합니다. 사람이 고른 역할별 모델도 여기서 반영합니다. 새틀라이트 R&D 역할(sat_designer 주 8회, sat_critic 주 8회)·국제정세 의견(geo_analyst 월 1회)·코어 분기 제안(core_designer 분기 1~2회)도 같은 예산을 나눠 씁니다.",
         how_to_use="허브 /research 의 '역할별 모델' 표나 텔레그램 /models 에서 모델을 바꾸면 다음 배치부터 적용됩니다. 비싼 모델일수록 예산이 빨리 찹니다.",
         where_to_see="허브 /research 의 '에이전트 예산'·'역할별 모델'",
         cautions="금액은 Claude CLI가 보고하는 API 환산값으로, 구독 요금제에서는 실제 청구액이 아니라 사용량의 대리 지표입니다. 05:30 이후에는 새 작업을 시작하지 않고 05:50에 멈춥니다.",

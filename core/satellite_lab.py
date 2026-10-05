@@ -61,8 +61,14 @@ ID_RE = re.compile(r"^S-(SEED|\d{8})-\d{3}$")
 POOLS = ("champion40", "sp500_pit")
 HOLD_MONTHS = {1: (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), 3: (1, 4, 7, 10), 6: (1, 7)}
 TOP_K_RANGE = (3, 10)
-EXIT_TYPES = ("none", "trailing_stop")
+EXIT_TYPES = ("none", "trailing_stop", "take_profit", "time_stop", "trend_break")
 STOP_RANGE = (0.05, 0.40)
+ENTRY_TYPES = ("close", "delay", "pullback")
+TOPICS = ("selection", "entry", "exit")  # 아이디어가 주로 바꾸는 것 — R&D 센터 주제 켜기/끄기(core/rnd_topics.py)와 연결
+# 2026-10-05 확장(사용자 요청): 진입 타이밍·매도 규칙도 아이디어가 바꿀 수 있다. 범위(넘으면 계약 위반):
+ENTRY_RANGES = {"delay": {"days": (1, 20)}, "pullback": {"sma": (3, 50), "max_wait": (1, 40)}}
+EXIT_RANGES = {"trailing_stop": {"stop_pct": (0.05, 0.40)}, "take_profit": {"tp": (0.05, 2.0)},
+               "time_stop": {"days": (5, 120)}, "trend_break": {"sma": (10, 200)}}
 MAX_GRID = 4
 LAB_START = "2010-01-01"
 LOOKBACK_CALENDAR_DAYS = 730  # 신호에 넘기는 기간 — 현 규칙(SATELLITE_BACKTEST_WARMUP_DAYS)과 같은 리밸런싱일 전 730달력일
@@ -127,25 +133,52 @@ def validate_spec(spec: dict) -> dict:
         e.append(f"portfolio.top_k: {TOP_K_RANGE[0]}~{TOP_K_RANGE[1]} 정수")
     if pf.get("hold_months") not in HOLD_MONTHS:
         e.append(f"portfolio.hold_months: {tuple(HOLD_MONTHS)} 중 하나")
+    def _ranged(kind: str, cfg: dict, ranges: dict, label: str) -> dict:
+        out = {"type": kind}
+        for k2, (lo, hi) in ranges.get(kind, {}).items():
+            val = cfg.get(k2)
+            if not isinstance(val, (int, float)) or isinstance(val, bool) or not (lo <= val <= hi):
+                e.append(f"{label}.{k2}: {lo}~{hi}")
+            else:
+                out[k2] = val
+        return out
+
     ex = spec.get("exit") or {"type": "none"}
     if ex.get("type") not in EXIT_TYPES:
         e.append(f"exit.type: {EXIT_TYPES} 중 하나")
-    elif ex["type"] == "trailing_stop":
-        sp = ex.get("stop_pct")
-        if not isinstance(sp, (int, float)) or not (STOP_RANGE[0] <= sp <= STOP_RANGE[1]):
-            e.append(f"exit.stop_pct: {STOP_RANGE[0]}~{STOP_RANGE[1]}")
+        ex_clean = {"type": "none"}
+    else:
+        ex_clean = _ranged(ex["type"], ex, EXIT_RANGES, "exit")
+    en = spec.get("entry") or {"type": "close"}
+    if en.get("type") not in ENTRY_TYPES:
+        e.append(f"entry.type: {ENTRY_TYPES} 중 하나")
+        en_clean = {"type": "close"}
+    else:
+        en_clean = _ranged(en["type"], en, ENTRY_RANGES, "entry")
+    if spec.get("topic", "selection") not in TOPICS:
+        e.append(f"topic: {TOPICS} 중 하나")
     if e:
         raise LabSpecError("; ".join(e))
     out = json.loads(json.dumps(spec))
-    out["exit"] = {"type": ex["type"], **({"stop_pct": float(ex["stop_pct"])} if ex["type"] == "trailing_stop" else {})}
+    out["exit"] = ex_clean
+    out["entry"] = en_clean
+    out["topic"] = spec.get("topic", "selection")
     return out
 
 
 def structure_key(spec: dict) -> str:
-    """무작위 기준선을 공유하는 구조(풀·종목 수·보유기간·청산)."""
-    ex = spec.get("exit") or {"type": "none"}
-    stop = f"{ex.get('stop_pct'):.3f}" if ex.get("type") == "trailing_stop" else "none"
-    return f"{spec['pool']['type']}|k{spec['portfolio']['top_k']}|h{spec['portfolio']['hold_months']}|{stop}"
+    """무작위 기준선을 공유하는 구조(풀·종목 수·보유기간·진입·청산). 진입·청산이 기본값이면 예전 키와 같다."""
+    def part(cfg: Optional[dict], default: str) -> str:
+        cfg = cfg or {"type": default}
+        if cfg.get("type") == default:
+            return ""
+        if cfg.get("type") == "trailing_stop":
+            return f"{cfg['stop_pct']:.3f}"
+        return cfg["type"] + "(" + ",".join(f"{k}={cfg[k]}" for k in sorted(cfg) if k != "type") + ")"
+    ex = part(spec.get("exit"), "none") or "none"
+    en = part(spec.get("entry"), "close")
+    key = f"{spec['pool']['type']}|k{spec['portfolio']['top_k']}|h{spec['portfolio']['hold_months']}|{ex}"
+    return key + (f"|in:{en}" if en else "")
 
 
 def load_signal(code: str) -> Callable:
@@ -256,27 +289,76 @@ def build_data(pool_types: Iterable[str], *, start: str = LAB_START, end: Option
 # 시뮬레이터
 # =================================================================================================
 
-def _period_values(closes: pd.DataFrame, picks: list[str], stop_pct: Optional[float], bps: float) -> pd.DataFrame:
-    """한 보유 구간의 종목별 가치(진입=1). 스탑 발동일 종가에 팔고 이후 값 고정(편도 비용 차감)."""
-    sub = closes[picks].ffill()
-    vals = sub / sub.iloc[0]
-    if stop_pct is None:
-        return vals
-    arr = vals.to_numpy(copy=True)
-    for j in range(arr.shape[1]):
-        v = vals.iloc[:, j].to_numpy()
-        peak = np.maximum.accumulate(v)
-        hit = np.nonzero(v <= peak * (1 - stop_pct))[0]
-        hit = hit[hit > 0]
-        if len(hit):
-            i = hit[0]
-            arr[i:, j] = v[i] * (1 - bps / 1e4)
-    return pd.DataFrame(arr, index=vals.index, columns=vals.columns)
+def _sma(closes: pd.DataFrame, t: str, n: int, cache: Optional[dict]) -> pd.Series:
+    key = (t, n)
+    if cache is not None and key in cache:
+        return cache[key]
+    sma = closes[t].ffill().rolling(n, min_periods=n).mean()
+    if cache is not None:
+        cache[key] = sma
+    return sma
+
+
+def _period_values(closes: pd.DataFrame, window: pd.DataFrame, picks: list[str], bps: float,
+                   entry: Optional[dict] = None, exit_rule: Optional[dict] = None,
+                   cache: Optional[dict] = None) -> tuple[pd.DataFrame, set[str]]:
+    """한 보유 구간의 종목별 가치(시작=1). 진입 전에는 현금(가치 1 유지), 청산한 날 종가에 팔고 이후 값 고정(편도 비용).
+
+    entry: close(리밸런싱 날 종가) / delay(days 거래일 뒤 종가) / pullback(sma·max_wait — 그 안에 종가가 이동평균 아래로 오면 그날,
+           아니면 max_wait 째 종가). exit_rule: none / trailing_stop(stop_pct) / take_profit(tp) / time_stop(days) / trend_break(sma).
+    반환: (가치 표, 구간 끝에 아직 보유 중인 종목 집합)."""
+    entry = entry or {"type": "close"}
+    exit_rule = exit_rule or {"type": "none"}
+    sub = window[picks].ffill()
+    n = len(sub)
+    arr = np.ones((n, len(picks)))
+    holding = set()
+    for j, t in enumerate(picks):
+        c = sub[t].to_numpy(dtype=float)
+        k = 0
+        if entry["type"] == "delay":
+            k = min(int(entry["days"]), n - 1)
+        elif entry["type"] == "pullback":
+            sma = _sma(closes, t, int(entry["sma"]), cache).reindex(sub.index).to_numpy()
+            k = min(int(entry["max_wait"]), n - 1)
+            for i in range(1, k + 1):
+                if not np.isnan(sma[i]) and c[i] < sma[i]:
+                    k = i
+                    break
+        v = np.ones(n)
+        v[k:] = c[k:] / c[k]
+        hit = None
+        et = exit_rule["type"]
+        if et == "trailing_stop":
+            peak = np.maximum.accumulate(v[k:])
+            idx = np.nonzero(v[k:] <= peak * (1 - exit_rule["stop_pct"]))[0]
+            idx = idx[idx > 0]
+            hit = k + idx[0] if len(idx) else None
+        elif et == "take_profit":
+            idx = np.nonzero(v[k + 1:] >= 1 + exit_rule["tp"])[0]
+            hit = k + 1 + idx[0] if len(idx) else None
+        elif et == "time_stop":
+            hit = k + int(exit_rule["days"]) if k + int(exit_rule["days"]) < n else None
+        elif et == "trend_break":
+            sma = _sma(closes, t, int(exit_rule["sma"]), cache).reindex(sub.index).to_numpy()
+            idx = np.nonzero((c[k + 1:] < sma[k + 1:]) & ~np.isnan(sma[k + 1:]))[0]
+            hit = k + 1 + idx[0] if len(idx) else None
+        if hit is not None:
+            v[hit:] = v[hit] * (1 - bps / 1e4)
+        else:
+            holding.add(t)
+        arr[:, j] = v
+    return pd.DataFrame(arr, index=sub.index, columns=picks), holding
 
 
 def simulate(closes: pd.DataFrame, schedule: list[tuple[pd.Timestamp, list[str]]], end: pd.Timestamp,
-             stop_pct: Optional[float], bps: float) -> dict:
-    """[(리밸런싱일, 종목들)] → 일별 순수익(첫 리밸런싱 다음 날 ~ end). 비중은 동일가중 후 표류."""
+             stop_pct: Optional[float], bps: float, *, entry: Optional[dict] = None,
+             exit_rule: Optional[dict] = None, cache: Optional[dict] = None) -> dict:
+    """[(리밸런싱일, 종목들)] → 일별 순수익(첫 리밸런싱 다음 날 ~ end). 비중은 동일가중 후 표류.
+    stop_pct 는 하위호환(= exit_rule trailing_stop). 진입·청산 규칙은 _period_values."""
+    if exit_rule is None and stop_pct is not None:
+        exit_rule = {"type": "trailing_stop", "stop_pct": stop_pct}
+    cache = {} if cache is None else cache
     rets: list[pd.Series] = []
     prev_w: dict[str, float] = {}
     turnovers: list[float] = []
@@ -290,13 +372,12 @@ def simulate(closes: pd.DataFrame, schedule: list[tuple[pd.Timestamp, list[str]]
         turnover = sum(abs(new_w.get(t, 0.0) - prev_w.get(t, 0.0)) for t in set(new_w) | set(prev_w))
         turnovers.append(turnover)
         if picks:
-            vals = _period_values(window, picks, stop_pct, bps)
+            vals, holding = _period_values(closes, window, picks, bps, entry, exit_rule, cache)
             sleeve = vals.mean(axis=1)
             r = sleeve.pct_change().iloc[1:]
             last = vals.iloc[-1]
-            alive = {t for t in picks if stop_pct is None or not _stopped(window[t], stop_pct)}
             tot = float(last.sum())
-            prev_w = {t: float(last[t]) / tot for t in alive} if tot > 0 else {}
+            prev_w = {t: float(last[t]) / tot for t in holding} if tot > 0 else {}
         else:
             r = pd.Series(0.0, index=window.index[1:])
             prev_w = {}
@@ -308,13 +389,6 @@ def simulate(closes: pd.DataFrame, schedule: list[tuple[pd.Timestamp, list[str]]
     series = series[~series.index.duplicated(keep="first")]
     return {"returns": series, "n_periods": len(turnovers),
             "avg_turnover": float(np.mean(turnovers)) if turnovers else 0.0}
-
-
-def _stopped(close: pd.Series, stop_pct: float) -> bool:
-    v = close.ffill().to_numpy()
-    v = v / v[0]
-    peak = np.maximum.accumulate(v)
-    return bool(np.any((v <= peak * (1 - stop_pct))[1:]))
 
 
 def _prev_day(days: pd.DatetimeIndex, d: pd.Timestamp) -> Optional[pd.Timestamp]:
@@ -372,8 +446,8 @@ def run_variant(spec: dict, params: dict, signal: Callable, data: LabData, *,
         scores = signal({t: prices[t] for t in eligible}, cutoff, dict(params))
         schedule.append((d, pick_top(scores, k, eligible)))
     ex = spec.get("exit") or {}
-    stop = ex.get("stop_pct") if ex.get("type") == "trailing_stop" else None
-    out = simulate(data.closes, schedule, data.trading_days[-1], stop, bps)
+    out = simulate(data.closes, schedule, data.trading_days[-1], None, bps,
+                   entry=spec.get("entry"), exit_rule=spec.get("exit"), cache=data.__dict__.setdefault("_sma_cache", {}))
     out["schedule"] = [(d.date().isoformat(), p) for d, p in schedule]
     return out
 
@@ -389,7 +463,6 @@ def random_baseline(spec: dict, data: LabData, split: Optional[pd.Timestamp], *,
     bps = SATELLITE_COST_BPS_PER_SIDE if bps is None else bps
     pool_type, k = spec["pool"]["type"], spec["portfolio"]["top_k"]
     ex = spec.get("exit") or {}
-    stop = ex.get("stop_pct") if ex.get("type") == "trailing_stop" else None
     dates = rebalance_dates(data.trading_days, spec["portfolio"]["hold_months"])
     eligible_by_date = []
     for d in dates:
@@ -410,7 +483,8 @@ def random_baseline(spec: dict, data: LabData, split: Optional[pd.Timestamp], *,
         if deadline is not None and _t.time() > deadline:
             return None
         schedule = [(d, list(rng.choice(el, size=min(k, len(el)), replace=False)) if el else []) for d, el in eligible_by_date]
-        r = simulate(data.closes, schedule, data.trading_days[-1], stop, bps)["returns"]
+        r = simulate(data.closes, schedule, data.trading_days[-1], None, bps, entry=spec.get("entry"),
+                     exit_rule=spec.get("exit"), cache=data.__dict__.setdefault("_sma_cache", {}))["returns"]
         is_part = r[r.index < split] if split is not None else r
         is_srs.append(he.stats(is_part).get("sharpe_annual", 0.0))
         if split is not None:
@@ -683,9 +757,13 @@ def sync_dir(root: Path, origin: str, *, state_dir: Optional[Path] = None,
 
 
 def queue(reg: dict) -> list[dict]:
-    """심판 대기(현 규칙 기준선이 먼저 필요하므로 참조 규칙 제외)."""
+    """심판 대기(현 규칙 기준선이 먼저 필요하므로 참조 규칙 제외). R&D 센터에서 꺼진 주제의 아이디어는 기다린다(지우지 않음)."""
+    from core import rnd_topics
+
+    on = {t: rnd_topics.sat_topic_on(t) for t in TOPICS}
     return sorted((v for v in reg["variants"].values()
-                   if v["status"] == STATUS_QUEUED and not v.get("reference")), key=lambda v: (v["origin"] != "seed", v["frozen_at"], v["id"]))
+                   if v["status"] == STATUS_QUEUED and not v.get("reference") and on.get(v["spec"].get("topic", "selection"), True)),
+                  key=lambda v: (v["origin"] != "seed", v["frozen_at"], v["id"]))
 
 
 def has_work(state_dir: Optional[Path] = None, seeds_dir: Optional[Path] = None,

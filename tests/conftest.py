@@ -62,3 +62,12 @@ def _offline_french_factors(monkeypatch, tmp_path):
 
     monkeypatch.setattr(french_factors, "_fetch", _no_network)
     monkeypatch.setattr(french_factors, "CACHE_DIR", tmp_path / "french_cache")
+
+
+@pytest.fixture(autouse=True)
+def _isolate_rnd_topics(tmp_path_factory, monkeypatch):
+    """R&D 센터 주제 스위치(data/rnd_topics.json)를 테스트마다 임시 파일로 — VM 에서 사용자가 꺼 둔 주제가
+    배포 테스트 관문의 결과를 바꾸지 않게(2026-10-05 배포 테스트가 실서비스 상태를 오염시킨 교훈)."""
+    from core import rnd_topics
+
+    monkeypatch.setattr(rnd_topics, "STATE_PATH", tmp_path_factory.mktemp("rnd_topics") / "rnd_topics.json")

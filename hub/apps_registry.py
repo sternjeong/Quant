@@ -65,8 +65,8 @@ SLOTS: list[AppSlot] = [
     ),
     AppSlot(
         id="satellite-lab",
-        title="새틀라이트 R&D 센터",
-        description="새틀라이트 종목 선정 규칙 연구 · 현 규칙 vs 무작위 · 후보 순위와 관문별 결과 (VM 연구 창 빈 시간)",
+        title="R&D 센터",
+        description="연구 주제 켜기/끄기 · 새틀라이트 선정·진입·매도 연구 · 코어 분기 연구 · 코인·국제정세 기록 (VM 연구 창 빈 시간)",
         unit="quant-scheduler.service",
         kind="satellite_lab",
         category="연구·검증",

@@ -154,8 +154,11 @@ DEAD_END_ROLES = ("scout", "writer", "sat_designer")  # 새 방향을 고르는 
 
 
 def system_prompt(role: str) -> str:
-    if role == "geo_analyst":  # 가설 계약과 무관한 역할 — 자기 지시문만
-        return (PROMPTS / "geo_analyst.md").read_text(encoding="utf-8")
+    if role in ("geo_analyst", "core_designer"):  # 가설 계약과 무관한 역할 — 자기 지시문만(+실패 방향 목록)
+        parts = [(PROMPTS / f"{role}.md").read_text(encoding="utf-8")]
+        if role == "core_designer" and (PROMPTS / "dead_ends.md").is_file():
+            parts.append((PROMPTS / "dead_ends.md").read_text(encoding="utf-8"))
+        return "\n\n---\n\n".join(parts)
     contract = "_sat_contract.md" if role.startswith("sat_") else "_contract.md"
     parts = [(PROMPTS / f"{role}.md").read_text(encoding="utf-8"), (PROMPTS / contract).read_text(encoding="utf-8")]
     if role in DEAD_END_ROLES and (PROMPTS / "dead_ends.md").is_file():
@@ -212,6 +215,8 @@ def tools_for(role: str, hid: str = "") -> list[str]:
                      f"Edit(research/satellite_lab/variants/{hid}/critic.json)"]
     if role == "geo_analyst":
         return ["Read", "WebSearch", "WebFetch", f"Write(research/geo_shadow/{hid}.json)", f"Edit(research/geo_shadow/{hid}.json)"]
+    if role == "core_designer":
+        return ro + ["WebSearch", f"Write(research/core_lab/ideas/{hid}/**)", f"Edit(research/core_lab/ideas/{hid}/**)"]
     raise ValueError(role)
 
 
@@ -267,11 +272,21 @@ def prompt_for(role: str, hid: str, now: datetime, extra: dict) -> str:
         if fb:
             return (f"새틀라이트 아이디어 {hid}: research/satellite_lab/variants/{hid}/ 의 파일을 고쳐라(id 유지). "
                     f"`python -m pytest research/satellite_lab/variants/{hid}` 로 확인하라.\n피드백:\n{fb}")
-        return (f"오늘은 {today}. research/satellite_lab/context.md 와 seeds/ 를 읽고 새 새틀라이트 선정 규칙 아이디어 하나를 "
-                f"research/satellite_lab/variants/{hid}/ 에 spec.json(id={hid}), signal.py, test_signal.py 로 만들어라.")
+        topic = extra.get("topic", "selection")
+        focus = {"selection": "어떤 종목을 고를지(신호·후보 풀·종목 수)를 바꾸는 아이디어. entry 는 close, exit 는 none 이나 trailing_stop 그대로 둬도 된다.",
+                 "entry": "뽑힌 종목을 '언제 살지'(entry: delay 또는 pullback)를 바꾸는 아이디어. 종목 선정 신호는 현 규칙(S-SEED-000)을 그대로 쓴다.",
+                 "exit": "'언제 팔지'(exit: take_profit·time_stop·trend_break·trailing_stop, 또는 보유기간)를 바꾸는 아이디어. 종목 선정 신호는 현 규칙을 그대로 쓴다."}[topic]
+        return (f"오늘은 {today}. research/satellite_lab/context.md 와 seeds/ 를 읽고 새 새틀라이트 아이디어 하나를 "
+                f"research/satellite_lab/variants/{hid}/ 에 spec.json(id={hid}, topic=\"{topic}\"), signal.py, test_signal.py 로 만들어라. "
+                f"이번 주제: {focus}")
     if role == "sat_critic":
         return (f"새틀라이트 아이디어 {hid}: research/satellite_lab/variants/{hid}/ 의 spec.json, signal.py, test_signal.py 를 "
                 f"검토하고 research/satellite_lab/variants/{hid}/critic.json 에 판정을 써라.")
+    if role == "core_designer":
+        fb = extra.get("feedback")
+        return (f"오늘은 {today}. {hid} 분기 코어 아이디어를 최대 3개, research/core_lab/ideas/{hid}/Q-{hid}-01.json ~ -03.json 으로 써라. "
+                f"먼저 research/core_lab/context.md 와 research/results/ 의 코어 연구 보고서를 읽고 이미 탈락한 방향은 피한다."
+                + (f"\n{fb}" if fb else ""))
     if role == "geo_analyst":
         from core.champion_strategy import CORE_UNIVERSE
 
@@ -368,6 +383,9 @@ def plan(now: datetime, done: set[tuple[str, str]]) -> Optional[tuple[str, str, 
     geo = geo_plan(now, done)
     if geo is not None:
         return geo
+    core_task = core_plan(now, done)
+    if core_task is not None:
+        return core_task
     sat = sat_plan(now, done)
     if sat is not None:
         return sat
@@ -426,13 +444,21 @@ def sat_plan(now: datetime, done: set[tuple[str, str]]) -> Optional[tuple[str, s
     def ok(role: str, key: str = "") -> bool:
         return (role, key) not in done and budget.can_launch(role, now)[0]
 
+    from core import rnd_topics
+
     reg = sl.load_registry()
     in_flight = 0
+    topic_counts = {t: 0 for t in sl.TOPICS}
+    for d in sorted(p for p in SAT_WS.glob("S-*") if p.is_dir()):
+        st0 = sl.agent_state(d.name)
+        topic_counts[st0.get("topic", "selection")] = topic_counts.get(st0.get("topic", "selection"), 0) + 1
     for d in sorted(p for p in SAT_WS.glob("S-*") if p.is_dir()):
         sid = d.name
         st = sl.agent_state(sid)
         if sid in reg["variants"] or st.get("abandoned"):
             continue
+        if not rnd_topics.sat_topic_on(st.get("topic", "selection")):
+            continue  # R&D 센터에서 꺼진 주제 — 상태는 그대로 두고 다시 켜면 이어서
         cur = sl.variant_hash(d)
         if st.get("ready_hash") and st["ready_hash"] == cur:
             continue  # 준비 완료 — 계산기가 동결할 차례(주간 상한에 걸리면 다음 주)
@@ -468,8 +494,10 @@ def sat_plan(now: datetime, done: set[tuple[str, str]]) -> Optional[tuple[str, s
         if rounds >= SAT_MAX_ROUNDS:
             sl.save_agent_state(sid, {**st, "abandoned": f"Critic 반려 {SAT_MAX_ROUNDS}회"})
     room = sl.WEEKLY_AGENT_FREEZE_CAP - sl.frozen_this_week(reg, now)
-    if in_flight < SAT_MAX_IN_FLIGHT and room > 0 and ok("sat_designer", "new"):
-        return "sat_designer", _sat_new_id(now), {"new": True}
+    enabled = rnd_topics.enabled_sat_topics()
+    if enabled and in_flight < SAT_MAX_IN_FLIGHT and room > 0 and ok("sat_designer", "new"):
+        topic = min(enabled, key=lambda t: (topic_counts.get(t, 0), sl.TOPICS.index(t)))
+        return "sat_designer", _sat_new_id(now), {"new": True, "topic": topic}
     return None
 
 
@@ -478,6 +506,10 @@ def geo_plan(now: datetime, done: set[tuple[str, str]]) -> Optional[tuple[str, s
     """매달 25일 이후, 다음 달 의견이 원장에 없으면 geo_analyst 한 번. 초안이 이미 있으면 원장에 넣기만 한다."""
     from core import geo_shadow as gs
 
+    from core import rnd_topics
+
+    if not rnd_topics.is_on("geo_shadow"):
+        return None
     month = gs.target_month(budget.kst(now).date())
     if month is None or gs.has_month(month):
         return None
@@ -488,6 +520,42 @@ def geo_plan(now: datetime, done: set[tuple[str, str]]) -> Optional[tuple[str, s
     if ("geo_analyst", month) not in done and budget.can_launch("geo_analyst", now)[0]:
         return "geo_analyst", month, {}
     return None
+
+
+# ---------------------------------------------------------------- 코어 분기 연구 (2026-10-05, core/core_rnd.py)
+CORE_IDEAS_DIR = RESEARCH / "core_lab" / "ideas"
+
+
+def core_plan(now: datetime, done: set[tuple[str, str]]) -> Optional[tuple[str, str, dict]]:
+    """분기마다: 아이디어가 아직 없으면 core_designer 한 번, 모두 형식 오류였으면 그 분기에 한 번 더(재작업). 주제가 꺼져 있으면 없음."""
+    from core import core_rnd as crd
+    from core import rnd_topics
+
+    if not rnd_topics.is_on("core_quarterly"):
+        return None
+    quarter = crd.quarter_of(budget.kst(now).date())
+    st = crd.agent_state(quarter)
+    synced = crd.sync_ideas(quarter, ideas_dir=CORE_IDEAS_DIR)
+    if synced["frozen"] or synced["errors"]:
+        st.setdefault("frozen", []).extend(synced["frozen"])
+        st["errors"] = synced["errors"]
+        crd.save_agent_state(quarter, st)
+    runs = st.get("runs", 0)
+    if st.get("frozen") or runs >= 2:
+        return None
+    if ("core_designer", quarter) in done or not budget.can_launch("core_designer", now)[0]:
+        return None
+    feedback = ("이전 제출의 형식 오류:\n" + json.dumps(st.get("errors"), ensure_ascii=False)[:1500]) if st.get("errors") else None
+    return "core_designer", quarter, {"feedback": feedback}
+
+
+def _write_core_context() -> None:
+    from core import core_rnd as crd
+
+    try:
+        crd._atomic(RESEARCH / "core_lab" / "context.md", crd.context_markdown())
+    except OSError:
+        pass
 
 
 def _sat_critic(sid: str) -> dict:
@@ -545,6 +613,8 @@ def run_batch(*, now_fn: Callable[[], datetime] = lambda: datetime.now(timezone.
             write_context(now)
         if role == "sat_designer":
             _write_sat_context()
+        if role == "core_designer":
+            _write_core_context()
             if extra.get("new"):
                 done.add(("sat_designer", "new"))
         if role == "postmortem":
@@ -561,6 +631,16 @@ def run_batch(*, now_fn: Callable[[], datetime] = lambda: datetime.now(timezone.
             st = _state(hid)
             st["critic_hash"] = extra["hash"] if _sha(WS / hid / "signal.py") == extra["hash"] else None
             _save_state(hid, st)
+        if role == "core_designer":
+            from core import core_rnd as crd
+
+            cst = crd.agent_state(hid)
+            cst["runs"] = cst.get("runs", 0) + 1
+            synced = crd.sync_ideas(hid, ideas_dir=CORE_IDEAS_DIR)
+            cst.setdefault("frozen", []).extend(synced["frozen"])
+            cst["errors"] = synced["errors"]
+            crd.save_agent_state(hid, cst)
+            log.append(f"코어 분기 아이디어 {hid}: 등록 {synced['frozen']} 오류 {list(synced['errors'])}")
         if role == "geo_analyst":
             from core import geo_shadow as gs
 
@@ -572,6 +652,8 @@ def run_batch(*, now_fn: Callable[[], datetime] = lambda: datetime.now(timezone.
             st = sl.agent_state(hid)
             if role == "sat_designer":
                 st["rounds"] = st.get("rounds", 0) + 1
+                if extra.get("topic"):
+                    st.setdefault("topic", extra["topic"])
             else:
                 st["critic_hash"] = extra["hash"] if sl.variant_hash(SAT_WS / hid) == extra["hash"] else None
             sl.save_agent_state(hid, st)

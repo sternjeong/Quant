@@ -1079,6 +1079,12 @@ def crypto_shadow_record_job() -> None:
         return
     print(f"[{datetime.now()}] crypto_shadow_record_job 시작")
     try:
+        from core import rnd_topics
+
+        if not rnd_topics.is_on("crypto_shadow"):
+            print("  - R&D 센터에서 '코인 추세 기록' 주제가 꺼져 있어 건너뜀")
+            print(f"[{datetime.now()}] crypto_shadow_record_job 종료")
+            return
         from core.crypto_shadow import record
 
         res = record()

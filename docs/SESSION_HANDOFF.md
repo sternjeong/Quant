@@ -19,6 +19,18 @@
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
 
+## 2026-10-05 (후속3) R&D 센터 주제 켜기/끄기 + 새틀라이트 진입·매도 규칙 + 코어 분기 연구실
+
+- core/rnd_topics.py: 주제 6개(sat_selection·sat_entry·sat_exit·core_quarterly·geo_shadow·crypto_shadow), data/rnd_topics.json, 기본 켜짐.
+  끄면 새 아이디어·재작업·판정(기록)이 멈추고 상태·대기열·시도 수는 보존 → 다시 켜면 이어짐. 관제 센터 'R&D 센터'(/satellite-lab, /rnd) 맨 위 버튼(POST /rnd/topics, 같은 출처 확인).
+  tests/conftest.py 에서 모든 테스트가 임시 주제 파일을 쓰게 격리(VM 설정이 배포 관문을 흔들지 않게).
+- 새틀라이트: entry(close·delay·pullback)·exit(none·trailing_stop·take_profit·time_stop·trend_break)·topic 필드, 시뮬레이터 일반화(기본값은 이전과 같은 결과 — 기존 테스트 통과).
+  structure_key 에 진입·청산 포함(무작위 기준선이 같은 규칙으로 비교). 야간 배치는 켜진 주제 중 가장 적게 한 주제로 새 아이디어, 꺼진 주제의 진행 중 아이디어는 건너뜀.
+- 코어 분기 연구실: core/core_rnd.py(설정 조합만, 코드 없음, 시도 수 229 에서 시작), scripts/core_lab_worker.py, 역할 core_designer(분기 1회 + 형식 오류 시 1회 더),
+  research_jobs 빈 창에서 새틀라이트 다음 순서로 판정, 텔레그램 '[코어 분기 연구]'. 프롬프트 research/agent_prompts/core_designer.md.
+- 주의(이번 세션 실수): 날짜 일괄 치환(sed)이 관련 없는 테스트 2개의 날짜까지 바꿔 실패 → 되돌림. 일괄 치환은 대상 파일을 좁혀서.
+- 테스트: 전체 2440 passed·4 skipped.
+
 ## 2026-10-05 (후속2) 주문 목록에 현재가·약 몇 주 + 아침 텔레그램 주문 줄
 
 - 챔피언 '지금 할 일' 3단계 표에 현재가·약 몇 주(전량 매도는 보유 수 그대로, 매도는 보유 수 이하), 주문 방식 문구(장 마감 무렵 시장가, 지정가·목표가 없음).

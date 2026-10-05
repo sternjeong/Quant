@@ -1023,7 +1023,10 @@ def run_tick(now: Optional[datetime] = None, *, notify: Optional[Callable[[str],
             return _finish_tick(_satellite_lab_turn(cfg, now, window_end, notify, headroom, poll_interval))
         if job is None:
             if cfg.satellite_lab and os.environ.get("RESEARCH_SATELLITE_LAB", "1") != "0":
-                return _finish_tick(_satellite_lab_turn(cfg, now, window_end, notify, headroom, poll_interval))
+                res = _satellite_lab_turn(cfg, now, window_end, notify, headroom, poll_interval)
+                if res.get("action") == "idle":
+                    res = _core_lab_turn(cfg, now, window_end, notify, headroom, poll_interval) or res
+                return _finish_tick(res)
             return _finish_tick({"action": "idle", "reason": "실행할 작업 없음"})
         if not headroom():
             return _finish_tick({"action": "skipped", "reason": "VM 여유 없음(부하·메모리)"})
@@ -1115,6 +1118,41 @@ def _satellite_lab_turn(cfg: Config, now: datetime, window_end: datetime, notify
     _notify_satellite_verdicts(notify)
     return {"action": "ran", "job_id": job.id, "result": "ok" if ok else "failed", "exit_code": outcome.exit_code,
             "budget": budget, "duration": round(outcome.duration, 1)}
+
+
+CORE_LAB_JOB = JobDef(
+    id="core-lab", title="코어 분기 연구 심판", entrypoint="scripts/core_lab_worker.py", args=(),
+    timeout_seconds=3600, max_attempts=3, resumable=True, outputs=("status.json",), summary_from=None,
+    priority=1001, max_memory_mb=3072, max_disk_mb=512,
+)
+
+
+def _core_lab_turn(cfg: Config, now: datetime, window_end: datetime, notify: Callable[[str], object],
+                   headroom: Callable[[], bool], poll_interval: float) -> Optional[dict]:
+    """새틀라이트 R&D 도 할 일이 없을 때 코어 분기 연구 대기열을 판정한다(주제가 꺼져 있으면 None)."""
+    from core import core_rnd
+
+    try:
+        if not core_rnd.has_work():
+            return None
+    except Exception:  # noqa: BLE001
+        return None
+    budget, _ = budget_for(CORE_LAB_JOB, now, window_end)
+    if budget < MIN_BUDGET_SECONDS or not headroom():
+        return None
+    outcome = run_child(cfg, CORE_LAB_JOB, budget, poll_interval=poll_interval)
+    with edit_state(cfg) as state:
+        state.setdefault("core_lab", {}).update(last_finished_at=_now_iso(), exit_code=outcome.exit_code,
+                                                duration=round(outcome.duration, 1))
+    fresh = []
+    with core_rnd.edit_registry() as reg:
+        for v in reg["ideas"].values():
+            if v.get("status") in (core_rnd.STATUS_PASS, core_rnd.STATUS_FAIL, core_rnd.STATUS_ERROR) and not v.get("notified"):
+                v["notified"] = True
+                fresh.append(json.loads(json.dumps(v, default=str)))
+    for v in fresh[:5]:
+        notify(core_rnd.notification_text(v))
+    return {"action": "ran", "job_id": CORE_LAB_JOB.id, "exit_code": outcome.exit_code, "duration": round(outcome.duration, 1)}
 
 
 def _notify_satellite_verdicts(notify: Callable[[str], object], state_dir: Optional[Path] = None) -> int:

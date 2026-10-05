@@ -330,8 +330,8 @@ def render_research_page() -> str:
 
 
 def render_satellite_lab_page() -> str:
-    body = f'<h1>새틀라이트 R&amp;D 센터</h1>{satellite_lab_page.render_body(satellite_lab_page.collect())}{_stamp()}'
-    return ui.page("새틀라이트 R&D 센터", body, crumbs=(("/", "개요"), ("", "연구·검증")), refresh=REFRESH_SECONDS)
+    body = f'<h1>R&amp;D 센터</h1>{satellite_lab_page.render_body(satellite_lab_page.collect())}{_stamp()}'
+    return ui.page("R&D 센터", body, crumbs=(("/", "개요"), ("", "연구·검증")), refresh=REFRESH_SECONDS)
 
 
 def render_ops_page() -> str:
@@ -432,7 +432,7 @@ class HubRequestHandler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:
         path = urlparse(self.path).path
         is_contest = path.startswith("/contests/")
-        if path not in ("/research/models", "/processes/toggle", "/processes/confirm") and not is_contest:
+        if path not in ("/research/models", "/processes/toggle", "/processes/confirm", "/rnd/topics") and not is_contest:
             self._send_html("not found", 404)
             return
         if not _same_origin_post(self.headers):
@@ -450,6 +450,19 @@ class HubRequestHandler(BaseHTTPRequestHandler):
             else:
                 page = contests_page.render_detail(target.rsplit("/", 1)[-1], PAGE_STYLE, error)
                 self._send_html(page or error, 400)
+            return
+
+        if path == "/rnd/topics":
+            from core import rnd_topics
+
+            key = (form.get("key") or [""])[0]
+            on = (form.get("on") or ["1"])[0] == "1"
+            try:
+                rnd_topics.set_on(key, on, actor="hub")
+            except KeyError:
+                self._send_html("unknown topic", 400)
+                return
+            self._redirect("/satellite-lab")
             return
 
         if path == "/processes/confirm":
@@ -500,7 +513,7 @@ class HubRequestHandler(BaseHTTPRequestHandler):
             self._send_html(page) if page else self._send_html("not found", 404)
         elif path == "/research":
             self._send_html(render_research_page())
-        elif path == "/satellite-lab":
+        elif path in ("/satellite-lab", "/rnd"):
             self._send_html(render_satellite_lab_page())
         elif path == "/ops":
             self._send_html(render_ops_page())
