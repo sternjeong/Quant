@@ -19,6 +19,12 @@
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
 
+## 2026-10-05 주간 엔진 점검 잡 (사용자 요청, 구현·전체 테스트)
+
+- core/engine_audit.py + scripts/engine_audit.py + 잡 engine_weekly_audit(월 08:15 KST, 토글 기본 켜짐, 읽기 전용). 11개 항목(서비스·자동 잡·백업·배포 동기화·연구 실행기·
+  새틀라이트 R&D(설계 횟수 상한 초과 = 오염 탐지 포함)·야간 AI 에이전트·아침 재추천(버전 바뀐 뒤부터 셈)·신호/가격·국제정세·디스크), 텔레그램 1건 + data/engine_audit/.
+- 배포 전 실제 VM 데이터로 시험 실행: 11개 중 10개 정상, 아침 재추천 누락은 버전 변경 전 날짜 오탐 → 고침.
+
 ## 2026-10-05 상태 점검 (사용자 요청 "연구 에이전트·엔진 정상 작동?")
 
 - 정상: 서비스 4개 active. 연구 작업 전부 done(info·tech·sprint-2w 는 10/02 저녁 첫 실행에 끝까지 계산 — 스프린트 1,044+180+22+F4 완료, 결과 research/results/). 아침 재추천 10/03·04·05 09:01 실행·캐시 저장. 새틀라이트 R&D: 에이전트 아이디어 S-20261004-001(거래 과열 승자 제외)이 테스트·Critic 통과 → 10/05 13:20 심판 FAIL(91백분위). 새벽 배치 매일 실행(scout·sat_designer·sat_critic·postmortem).

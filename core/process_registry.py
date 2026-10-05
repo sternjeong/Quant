@@ -211,6 +211,14 @@ PROCESS_REGISTRY: dict[str, dict] = {
         "description": "관제 센터 'AI 대회'에 등록한 대회의 마감 7일 전·1일 전·당일에 텔레그램 1건씩 — 종료·제출 완료 대회는 제외 (09:00 KST)",
         "category": "alert", "default_enabled": True,
     },
+    "engine_weekly_audit": {
+        "label": "주간 엔진 점검",
+        "description": (
+            "서비스·자동 잡·백업·배포 동기화·연구 실행기·새틀라이트 R&D·야간 AI 에이전트·아침 재추천·신호/가격 데이터·국제정세 의견·디스크를 "
+            "한 번에 점검해 정상이어도 텔레그램 요약 1건 — 읽기 전용, 주문 없음 (월요일 08:15 KST)"
+        ),
+        "category": "alert", "default_enabled": True,
+    },
     "champion_recommendation_daily": {
         "label": "챔피언 지금 할 일 — 아침 자동 재추천",
         "description": (

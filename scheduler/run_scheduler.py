@@ -1069,6 +1069,28 @@ def strategy_research_report_job() -> None:
     print(f"[{datetime.now()}] strategy_research_report_job 종료")
 
 
+def engine_weekly_audit_job() -> None:
+    """주간 엔진 점검 (core/engine_audit.py) — 모든 엔진·연구 에이전트가 잘 굴러가는지 읽기 전용으로 확인하고 텔레그램 1건.
+
+    시각(월요일 08:15 KST): 주말 동안의 야간 배치·연구 창 결과가 다 쌓였고, 09:01 아침 재추천 전이며 다른 잡과 슬롯이 겹치지 않는다.
+    점검 하나가 실패해도 나머지는 계속하고(그 항목만 '문제'), 이 잡 자체의 예외만 잡 실패로 남긴다.
+    """
+    if not is_enabled("engine_weekly_audit"):
+        print(f"[{datetime.now()}] engine_weekly_audit_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
+    print(f"[{datetime.now()}] engine_weekly_audit_job 시작")
+    try:
+        from core.engine_audit import run_and_notify
+        from core.telegram_notify import send_message
+
+        report = run_and_notify(send_message)
+        print(f"  - {report['overall']} {report['counts']}")
+    except Exception as exc:  # noqa: BLE001
+        print(f"  - 주간 엔진 점검 실패: {type(exc).__name__}: {exc}")
+        report_job_failure("engine_weekly_audit", f"{type(exc).__name__}: {exc}")
+    print(f"[{datetime.now()}] engine_weekly_audit_job 종료")
+
+
 def champion_tracking_weekly_job() -> None:
     """챔피언 전략이 실제 시장에서 백테스트대로 움직이는지 주간 판정 (core/champion_tracking.py). 관측 전용.
 
@@ -1361,6 +1383,14 @@ def main() -> None:
         trigger=CronTrigger(day_of_week="sun", hour=0, minute=50, timezone="Asia/Seoul"),
         id="strategy_research_report",
         name="매주 일요일 한국시간 00:50 전략 변형 연구 보고서 (관측 전용)",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        engine_weekly_audit_job,
+        # 사용자 요청(2026-10-05): 주 1회 모든 엔진 점검. 주말 결과가 다 쌓인 월요일 아침, 09:01 재추천 전 빈 슬롯.
+        trigger=CronTrigger(day_of_week="mon", hour=8, minute=15, timezone="Asia/Seoul"),
+        id="engine_weekly_audit",
+        name="매주 월요일 한국시간 08:15 주간 엔진 점검 (읽기 전용)",
         replace_existing=True,
     )
     scheduler.add_job(

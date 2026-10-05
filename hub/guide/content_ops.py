@@ -45,6 +45,12 @@ START_HERE: tuple[str, ...] = (
 # ---------------------------------------------------------------------------
 JOBS: tuple[JobGuide, ...] = (
     JobGuide(
+        job_id="engine_weekly_audit",
+        where_to_see="텔레그램 '[주간 엔진 점검]' 1건(정상이어도 옴), VM data/engine_audit/latest.json(날짜별 사본도 남음)",
+        if_alert="❌(문제) 항목부터 봅니다. 서비스가 멈췄으면 관제 센터 '운영 상태', 자동 잡 문제면 그 잡 설명의 대처를 따릅니다. '설계 횟수가 상한을 넘은 기록'은 테스트·수동 조작이 실서비스 상태를 건드렸다는 뜻이라 개발 요청으로 원인을 찾습니다. 바로 다시 돌려 보려면 'python scripts/engine_audit.py'. 원하지 않으면 '/processes off engine_weekly_audit'.",
+        verified="2026-10-05",
+    ),
+    JobGuide(
         job_id="research_job_runner",
         where_to_see="관제 센터 '검증 연구 결과' 카드, 텔레그램 '[검증 연구 결과]'(완료 1건·실패 사유), 저장소 research/results/<id>/. 대기 연구가 없는 창에는(그리고 하루 한 번은 대기 연구가 있어도) 새틀라이트 R&D 센터 계산을 돌리고 그 결과는 '새틀라이트 R&D 센터' 화면과 텔레그램 '[새틀라이트 R&D]'로 옵니다. 2주 R&D 스프린트(sprint-2w) 동안(~2026-10-16)은 07:50~08:50·10:40~11:50·17:00~23:50 KST 창이 더 열리고, 가족(F1~F4) 계산이 끝날 때마다 '[R&D 스프린트]' 한 줄이 옵니다.",
         if_alert="실패 알림이면 사유를 읽고, 스크립트 문제면 개발 요청으로 고친 뒤 'python scripts/research_jobs_admin.py retry <id>'. 정의 오류면 job.json 을 docs/RESEARCH_JOBS.md 계약대로 고칩니다. '[새틀라이트 R&D] 계산기 실패'는 같은 사유면 한 번만 옵니다 — 개발 요청으로 고치면 다음 창에서 이어집니다. 원하지 않으면 '/processes off research_job_runner'(새틀라이트 계산도 함께 멈춤).",
@@ -273,6 +279,14 @@ SCRIPTS: tuple[ScriptGuide, ...] = (
         risk="읽기 전용",
         what_it_prints="다음에 실행될 작업(역할·대상 가설)과 이번 주·오늘 밤 예산 사용량을 보여 줍니다. 03:00~05:30 KST 밖이면 다음 작업이 null 로 나오는 것이 정상입니다. --dry-plan 없이 실행하면 실제 배치가 돌아 에이전트를 호출합니다.",
         verified="2026-09-25",
+    ),
+    ScriptGuide(
+        path="scripts/engine_audit.py", name="엔진 점검 지금 돌리기",
+        when_to_run="월요일 08:15 자동 점검을 기다리지 않고 지금 모든 엔진이 정상인지 보고 싶을 때(배포 직후, 이상한 알림을 받았을 때).",
+        command="python scripts/engine_audit.py  (--notify 를 붙이면 텔레그램 전송 + data/engine_audit/ 저장)",
+        risk="읽기 전용",
+        what_it_prints="항목 11개(서비스·자동 잡·백업·배포 동기화·연구 실행기·새틀라이트 R&D·야간 AI 에이전트·아침 재추천·신호/가격 데이터·국제정세 의견·디스크)를 ✅ 정상 · ⚠️ 주의 · ❌ 문제와 한 줄 설명으로 보여 줍니다. 문제가 있으면 종료 코드 1. VM 에서는 quant 계정으로 실행합니다.",
+        verified="2026-10-05",
     ),
     ScriptGuide(
         path="scripts/satellite_lab_worker.py", name="새틀라이트 R&D 센터 계산기",

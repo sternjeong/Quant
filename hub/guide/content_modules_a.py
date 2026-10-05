@@ -330,6 +330,14 @@ MODULES: tuple[ModuleGuide, ...] = (
         sources=("core/core_lab.py", "research/jobs/core-rnd-v1/run.py", "research/jobs/core-rnd-v2/run.py"), verified="2026-10-02",
     ),
     ModuleGuide(
+        module="core/engine_audit.py", name="주간 엔진 점검", group="운영·안전", status="운영중",
+        what="모든 주식 엔진과 연구 에이전트가 제대로 굴러가는지 한 번에 확인합니다: 서비스 4개 실행 여부, 등록된 자동 잡이 제때 돌았는지, 백업, 실행 중 코드가 main 과 같은지, 검증 연구 실행기가 깨어나고 실패한 작업이 없는지, 새틀라이트 R&D(기준선·계산 오류·준비됐는데 판정 안 된 아이디어·설계 횟수가 상한을 넘은 오염 기록), 지난 7일 야간 AI 에이전트 실행·실패·사용량, 아침 자동 재추천이 매일 저장됐는지, 야간 신호와 가격 캐시가 최신인지, 국제정세 의견이 제때 기록됐는지, 디스크 여유.",
+        how_to_use="자동입니다. 매주 월요일 08:15 KST 에 텔레그램 '[주간 엔진 점검]' 요약이 정상이어도 옵니다. 지금 바로 보려면 scripts/engine_audit.py 를 실행합니다.",
+        where_to_see="텔레그램 '[주간 엔진 점검]', VM data/engine_audit/latest.json",
+        cautions="읽기 전용이라 아무것도 고치지 않습니다. 점검 하나가 예외로 실패해도 그 항목만 ❌ 로 남기고 나머지는 계속합니다. 2026-10-05 사람이 손으로 한 점검을 옮긴 것이라 새 엔진이 생기면 항목을 같이 늘려야 합니다.",
+        sources=("core/engine_audit.py", "scripts/engine_audit.py", "scheduler/run_scheduler.py"), verified="2026-10-05",
+    ),
+    ModuleGuide(
         module='core/chart_rendering.py',
         name='전략 차트 그리기',
         group='화면 지원',
