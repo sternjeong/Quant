@@ -183,3 +183,15 @@ def test_tax_page_is_in_navigation():
     from core.app_navigation import all_pages
 
     assert any(p.path == "pages/16_세후_수익_계산.py" for p in all_pages())
+
+
+def test_champion_weights_blend_core_and_semiannual_satellite():
+    idx = pd.bdate_range("2024-01-02", periods=150)
+    core = pd.DataFrame({"XLK": 1.0}, index=idx)
+    log = [{"date": str(idx[5].date()), "weights": {"AAA": 0.5, "BBB": 0.5}},
+           {"date": str(idx[100].date()), "weights": {"CCC": 1.0}}]
+    w = tx.champion_weights(core, log, 0.15)
+    assert w.index[0] == idx[5]  # 첫 새틀라이트 선정일부터
+    assert w.sum(axis=1).round(9).eq(1.0).all()
+    assert w.loc[idx[50], "XLK"] == pytest.approx(0.85) and w.loc[idx[50], "AAA"] == pytest.approx(0.075)
+    assert w.loc[idx[120], "AAA"] == 0 and w.loc[idx[120], "CCC"] == pytest.approx(0.15)

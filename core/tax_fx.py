@@ -361,3 +361,58 @@ def run_core_vs_spy(start: str = "2010-01-01", cfg: AccountConfig = AccountConfi
     adj = pd.DataFrame({t: hist[t]["Adj Close"] for t in tick if t in hist}).ffill()
     return {"core": simulate(w, close, adj, fx, cfg),
             "spy": simulate(buy_and_hold_weights(w.index), close, adj, fx, cfg)}
+
+
+def champion_weights(core_w: pd.DataFrame, rebal_log: list[dict], satellite_weight: float = 0.15) -> pd.DataFrame:
+    """코어 일별 목표 비중 × (1 − sw) + 새틀라이트(반기 선정 로그를 다음 선정일까지 유지) × sw.
+    첫 새틀라이트 선정일부터만 돌려준다(그 전에는 새틀라이트가 없어 비교가 안 맞음). 슬리브 사이는 매일 맞추지 않고
+    어느 쪽이든 목표가 바뀌는 날에만 매매한다(실제 계좌처럼 그 사이 표류)."""
+    log = sorted(({"date": pd.Timestamp(r["date"]), "weights": r.get("weights") or {}} for r in rebal_log), key=lambda r: r["date"])
+    if not log:
+        raise ValueError("새틀라이트 선정 기록이 없습니다.")
+    idx = core_w.index[core_w.index >= log[0]["date"]]
+    sat_cols = sorted({t for r in log for t in r["weights"]})
+    sat = pd.DataFrame(np.nan, index=idx, columns=sat_cols)
+    for r in log:
+        if r["date"] in sat.index:
+            sat.loc[r["date"]] = [float(r["weights"].get(t, 0.0)) for t in sat_cols]
+    sat = sat.ffill().fillna(0.0)
+    out = core_w.reindex(idx).fillna(0.0) * (1 - satellite_weight)
+    for t in sat_cols:
+        out[t] = out.get(t, 0.0) + sat[t] * satellite_weight
+    return out
+
+
+def run_champion_vs_core(cfg: AccountConfig = AccountConfig(), backtest: Optional[dict] = None,
+                         satellite_weight: float = 0.15) -> dict[str, Any]:
+    """화면용: 코어 85% + 새틀라이트 15% 를 세후로. 새틀라이트 선정 기록은 새벽 미리 계산(dawn_precompute)의 '챔피언 전략
+    3. 백테스트(최근 3년)' 결과를 쓴다(없으면 ValueError — 그 화면에서 백테스트를 돌리거나 다음 날 새벽을 기다린다).
+    같은 기간의 코어만·SPY 그냥 보유를 나란히 계산한다."""
+    from core import champion_strategy as cs
+    from core.market_data import get_multiple_price_history
+
+    if backtest is None:
+        from core import dawn_precompute as dp
+
+        entry = dp.load_latest(dp.KIND_CHAMPION_BACKTEST)
+        if entry is None:
+            raise ValueError("새벽 미리 계산한 챔피언 백테스트(최근 3년)가 없습니다 — 챔피언 전략 화면 '3. 백테스트'를 먼저 돌리세요.")
+        backtest = entry["result"]
+    log = (backtest.get("satellite") or {}).get("rebal_log") or []
+    start = str(min(pd.Timestamp(r["date"]) for r in log).date()) if log else str(backtest.get("start"))
+    core_w = cs.run_core_backtest(start)["weights"]
+    champ_w = champion_weights(core_w, log, satellite_weight)
+    core_only = core_w.reindex(champ_w.index).fillna(0.0)
+    tick = list(dict.fromkeys(list(champ_w.columns) + ["SPY"]))
+    first = (pd.Timestamp(start) - pd.Timedelta(days=30)).date().isoformat()
+    hist = get_multiple_price_history(tick, start=first, end=None, interval="1d")
+    close = pd.DataFrame({t: hist[t]["Close"] for t in tick if t in hist and not hist[t].empty}).ffill()
+    adj = pd.DataFrame({t: hist[t]["Adj Close"] for t in tick if t in hist and not hist[t].empty}).ffill()
+    missing = [t for t in champ_w.columns if t not in close.columns and champ_w[t].abs().sum() > 0]
+    fx = usdkrw_series()
+    return {"champion": simulate(champ_w, close, adj, fx, cfg),
+            "core": simulate(core_only, close, adj, fx, cfg),
+            "spy": simulate(buy_and_hold_weights(champ_w.index), close, adj, fx, cfg),
+            "start": str(champ_w.index[0].date()), "end": str(champ_w.index[-1].date()),
+            "satellite_picks": [{"date": str(pd.Timestamp(r["date"]).date()), "picks": list((r.get("weights") or {}).keys())} for r in log],
+            "missing_prices": missing}

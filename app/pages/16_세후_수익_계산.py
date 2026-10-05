@@ -23,12 +23,20 @@ from core.theme import apply_theme
 st.set_page_config(page_title="세후 수익 계산", page_icon="🧾", layout="wide")
 apply_theme()
 st.title("🧾 세후 수익 계산")
-st.caption("챔피언 코어를 실제 계좌처럼 굴려 수수료·환전·양도소득세·배당 원천징수를 뺀 원화 금액을 봅니다. "
+st.caption("챔피언 전략을 실제 계좌처럼 굴려 수수료·환전·양도소득세·배당 원천징수를 뺀 원화 금액을 봅니다. "
            "같은 설정으로 'SPY 그냥 보유'도 나란히 계산합니다. 추정치이며 세금 신고용이 아닙니다.")
+
+TARGET_CORE = "코어만 (시작일부터)"
+TARGET_CHAMP = "코어 85% + 새틀라이트 15% (최근 약 3년)"
 
 @st.cache_data(ttl=6 * 3600, show_spinner="코어 백테스트와 계좌 시뮬레이션 중… (1분 안팎)")
 def _run(start_iso: str, cfg_items: tuple) -> dict:
     return tx.run_core_vs_spy(start_iso, tx.AccountConfig(**dict(cfg_items)))
+
+
+@st.cache_data(ttl=6 * 3600, show_spinner="새벽 계산의 새틀라이트 선정 기록으로 계좌 시뮬레이션 중…")
+def _run_champion(as_of: str, cfg_items: tuple) -> dict:
+    return tx.run_champion_vs_core(tx.AccountConfig(**dict(cfg_items)))
 
 
 def _simulation_tab() -> None:
@@ -38,12 +46,15 @@ def _simulation_tab() -> None:
             "- **확인 필요**: 원화 주문(자동환전)의 우대율(우대 없음이라는 후기가 있음), 카카오페이증권의 취득가액 계산 방식(선입선출/이동평균).\n"
             "- 양도소득세: 해외주식 연간 순이익(원화)에서 250만 원 공제 후 22%, 다음 해 5월 말 납부. 손실 이월 없음.\n"
             "- 배당: 미국 원천징수 15% 를 뗀 나머지를 받는 날 같은 종목으로 다시 삽니다. 금융소득 2,000만 원 초과 종합과세는 넣지 않았습니다.\n"
-            "- 코어 100% 기준입니다(새틀라이트 15% 미포함). 매매는 목표 비중이 바뀌는 날에만 합니다."
+            "- '코어만'은 코어 100%, '코어 85% + 새틀라이트 15%'는 새벽 미리 계산한 챔피언 백테스트(최근 3년)의 새틀라이트 선정 기록을 씁니다"
+            "(첫 반기 선정일부터). 매매는 목표 비중이 바뀌는 날에만 하고, 두 슬리브 사이를 매일 맞추지 않습니다."
         )
 
+    target = st.radio("대상", [TARGET_CORE, TARGET_CHAMP], index=0, horizontal=True)
     c1, c2, c3 = st.columns(3)
     initial = c1.number_input("투자금(원)", min_value=1_000_000, value=30_000_000, step=1_000_000)
-    start = c2.date_input("시작일", value=pd.Timestamp("2010-01-04").date())
+    start = c2.date_input("시작일", value=pd.Timestamp("2010-01-04").date(), disabled=target == TARGET_CHAMP,
+                          help="'코어 85% + 새틀라이트 15%'는 새벽 계산 기간(첫 반기 선정일~오늘)으로 고정됩니다.")
     fx_mode_label = c3.radio("환전 방식", ["달러로 바꿔 두고 달러로 매매", "매매할 때마다 원화↔달러"], index=0)
     c4, c5, c6 = st.columns(3)
     fee_pct = c4.number_input("매매 수수료(%)", min_value=0.0, max_value=1.0, value=tx.KAKAO_FEE * 100, step=0.01, format="%.3f")
@@ -68,15 +79,24 @@ def _simulation_tab() -> None:
 
 
     if st.button("▶ 계산", type="primary"):
-        st.session_state["taxfx_key"] = (start.isoformat(), tuple(sorted(cfg.__dict__.items())))
+        st.session_state["taxfx_key"] = (target, start.isoformat(), tuple(sorted(cfg.__dict__.items())))
 
     key = st.session_state.get("taxfx_key")
+    if key and len(key) != 3:  # 이전 형식
+        key = None
     if not key:
         st.info("설정을 고르고 '▶ 계산'을 누르세요.")
         return
 
     try:
-        res = _run(*key)
+        if key[0] == TARGET_CHAMP:
+            res = _run_champion(date.today().isoformat(), key[2])
+            st.caption(f"기간 {res['start']} ~ {res['end']} · 새틀라이트 선정: "
+                       + " / ".join(f"{p['date']} {', '.join(p['picks'])}" for p in res["satellite_picks"]))
+            if res["missing_prices"]:
+                st.warning(f"가격이 없어 빠진 종목: {', '.join(res['missing_prices'])}")
+        else:
+            res = _run(key[1], key[2])
     except Exception as exc:  # noqa: BLE001
         st.error(f"계산 실패: {type(exc).__name__}: {exc}")
         return
@@ -87,7 +107,10 @@ def _simulation_tab() -> None:
 
 
     rows = []
-    for name, r in (("챔피언 코어", res["core"]), ("SPY 그냥 보유", res["spy"])):
+    series = ([("코어 85% + 새틀라이트 15%", res["champion"])] if "champion" in res else []) + \
+        [("코어만", res["core"]), ("SPY 그냥 보유", res["spy"])]
+    main_name, main = series[0]
+    for name, r in series:
         t = r["totals"]
         rows.append({
             "": name, "세전 연수익": f"{r['cagr_pre']:.2%}", "세후·비용후 연수익": f"{r['cagr_after']:.2%}",
@@ -100,19 +123,22 @@ def _simulation_tab() -> None:
                "평가액과 이 값을 함께 봐야 공정합니다. 과거 결과이며 앞으로의 수익을 뜻하지 않습니다.")
 
     fig = go.Figure()
-    for name, r, color in (("코어 세후", res["core"]["values_krw"], "#2e7d32"), ("코어 세전", res["core"]["pre_cost_krw"], "#a5d6a7"),
-                           ("SPY 세후", res["spy"]["values_krw"], "#1565c0")):
+    lines = [(f"{main_name} 세후", main["values_krw"], "#2e7d32"), (f"{main_name} 세전", main["pre_cost_krw"], "#a5d6a7"),
+             ("SPY 세후", res["spy"]["values_krw"], "#1565c0")]
+    if "champion" in res:
+        lines.insert(2, ("코어만 세후", res["core"]["values_krw"], "#8d6e63"))
+    for name, r, color in lines:
         fig.add_trace(go.Scatter(x=r.index, y=r.values / 1e6, name=name, line=dict(color=color)))
     fig.update_layout(height=380, yaxis_title="백만 원", margin=dict(l=10, r=10, t=10, b=10))
     st.plotly_chart(fig, width="stretch")
 
-    st.subheader("연도별 양도차익과 세금 (챔피언 코어)")
-    years = pd.DataFrame(res["core"]["years"])
+    st.subheader(f"연도별 양도차익과 세금 ({main_name})")
+    years = pd.DataFrame(main["years"])
     if not years.empty:
         show = years.set_index("year")
         st.dataframe((show.select_dtypes("number") / 1e6).round(2).rename(columns=lambda c: c.replace("_krw", "(백만 원)")),
                      width="stretch")
-    pays = pd.DataFrame(res["core"]["tax_payments"])
+    pays = pd.DataFrame(main["tax_payments"])
     if not pays.empty:
         st.caption("양도세 납부(다음 해 5월 말, 현금이 모자라면 비중대로 팔아서 냄)")
         st.dataframe(pays, width="stretch", hide_index=True)

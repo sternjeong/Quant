@@ -1,0 +1,13 @@
+{
+  "id": "champion-aftertax-v1",
+  "title": "챔피언(코어 85% + 새틀라이트 15%) 2010년부터 세후·환전 후 원화 수익 측정(판정 없음)",
+  "entrypoint": "research/jobs/champion-aftertax-v1/run.py",
+  "args": [],
+  "timeout_seconds": 10800,
+  "max_attempts": 2,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "summary",
+  "priority": 35,
+  "revision": 1
+}
