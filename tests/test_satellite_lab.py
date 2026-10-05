@@ -304,3 +304,33 @@ def test_hub_page_renders(tmp_path, monkeypatch):
     html_out = page.render_body(data)
     assert "S-20261002-001" in html_out and "통과 — 사람 검토 대기" in html_out and "60백분위" in html_out
     assert "검토 대기 1" in page.card_badge(data)
+
+
+def test_migration_to_v2_requeues_everything_and_keeps_trials(tmp_path):
+    s1 = _spec(signal={"params_grid": [{"lookback": 126}, {"lookback": 252}]})
+    sl.freeze(s1, MOM, "agent", state_dir=tmp_path)
+    with sl.edit_registry(tmp_path) as reg:
+        reg["judge_version"] = "sat-judge/v1"
+        reg["incumbent"] = {"x": 1}
+        reg["variants"][s1["id"]].update(status="fail", result={"verdict": "fail"}, notified=True)
+    assert sl.has_work(tmp_path, tmp_path / "none", tmp_path / "none")
+    archived = sl.migrate_registry(tmp_path)
+    assert archived == "registry_sat-judge_v1.json" and (tmp_path / archived).exists()
+    reg = sl.load_registry(tmp_path)
+    v = reg["variants"][s1["id"]]
+    assert reg["judge_version"] == sl.JUDGE_VERSION and reg["incumbent"] is None
+    assert v["status"] == sl.STATUS_QUEUED and v["result"] is None and v["notified"] is False
+    assert reg["cumulative_trials"] == 2  # 시도 수는 그대로
+    assert sl.migrate_registry(tmp_path) is None  # 두 번째는 아무 일 없음
+
+
+def test_build_data_measures_returns_with_adjusted_close():
+    idx = pd.bdate_range("2019-01-01", periods=300)
+    close = pd.Series(100.0, index=idx)
+    adj = pd.Series(np.linspace(90, 100, len(idx)), index=idx)  # 배당이 반영돼 과거 값이 낮다
+    frames = {"AAA": pd.DataFrame({"Open": close, "High": close, "Low": close, "Close": close, "Adj Close": adj, "Volume": 1e6}),
+              "SPY": pd.DataFrame({"Open": close, "High": close, "Low": close, "Close": close, "Volume": 1e6})}
+    pp = lambda t, s, e: frames.get(t, pd.DataFrame()).loc[s:e]  # noqa: E731
+    data = sl.build_data({"champion40"}, start="2019-06-01", end="2020-02-28", pool_provider=lambda pt, d: ["AAA"], price_provider=pp)
+    assert data.closes["AAA"].iloc[-1] > data.closes["AAA"].iloc[0]  # 가격은 그대로지만 총수익은 오른다
+    assert (data.ohlcv["AAA"]["Close"] == 100.0).all()  # 신호용 가격은 그대로

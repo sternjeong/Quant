@@ -54,7 +54,9 @@ VARIANTS_DIR = LAB_DIR / "variants"    # 야간 에이전트가 쓰는 곳(VM �
 STATE_DIR = PROJECT_ROOT / "data" / "satellite_lab"
 INCUMBENT_ID = "S-SEED-000"
 
-JUDGE_VERSION = "sat-judge/v1"
+JUDGE_VERSION = "sat-judge/v2"
+# v2(2026-10-05): 판정 관문은 v1 과 같고 '측정'만 바뀌었다 — 수익을 배당 포함 조정 가격(Adj Close)으로 잰다(v1 은 Close, 배당 누락).
+# 등록부가 v1 이면 migrate_registry() 가 v1 결과를 보관하고 모든 아이디어를 v2 로 다시 심판한다(누적 시도 수는 이어서 센다).
 ID_RE = re.compile(r"^S-(SEED|\d{8})-\d{3}$")
 POOLS = ("champion40", "sp500_pit")
 HOLD_MONTHS = {1: (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), 3: (1, 4, 7, 10), 6: (1, 7)}
@@ -244,7 +246,9 @@ def build_data(pool_types: Iterable[str], *, start: str = LAB_START, end: Option
     log(f"풀 합집합 {len(tickers)}종목 가격 읽는 중")
     prices = he.load_prices(sorted(tickers), start_d - timedelta(days=800), end_d, price_provider)
     data.ohlcv = {t: df[df.index <= pd.Timestamp(end_d)] for t, df in prices.items()}
-    data.closes = pd.DataFrame({t: df["Close"] for t, df in data.ohlcv.items()}).reindex(days)
+    # 수익은 배당 포함 조정 가격(sat-judge/v2). 신호는 ohlcv 의 Close(가격)를 그대로 본다 — 현 규칙과 같은 선택을 하도록.
+    data.closes = pd.DataFrame({t: (df["Adj Close"] if "Adj Close" in df.columns and df["Adj Close"].notna().any() else df["Close"])
+                                for t, df in data.ohlcv.items()}).reindex(days)
     return data
 
 
@@ -577,6 +581,27 @@ def _atomic_write(path: Path, text: str) -> None:
     os.replace(tmp, path)
 
 
+def migrate_registry(state_dir: Optional[Path] = None) -> Optional[str]:
+    """등록부가 이전 판정 버전이면 사본을 남기고 모든 아이디어를 현재 버전으로 다시 심판 대기열에 넣는다.
+
+    아이디어·코드·누적 시도 수는 그대로 둔다(같은 아이디어를 다른 측정으로 다시 재는 것이지 새 시도가 아니다 —
+    그렇다고 시도 수를 줄이지도 않는다). 바꿨으면 보관 파일 이름, 아니면 None.
+    """
+    reg = load_registry(state_dir)
+    old = reg.get("judge_version") or ("sat-judge/v1" if reg.get("variants") else None)
+    if old is None or old == JUDGE_VERSION:
+        return None
+    archive = registry_path(state_dir).with_name(f"registry_{old.replace('/', '_')}.json")
+    _atomic_write(archive, json.dumps(reg, ensure_ascii=False, indent=1, default=str))
+    with edit_registry(state_dir) as r:
+        for v in r["variants"].values():
+            v.update(status=STATUS_QUEUED, result=None, attempts=0, error=None, notified=False)
+        r["incumbent"] = None
+        r["judge_version"] = JUDGE_VERSION
+        r["migrated_from"] = {"version": old, "archive": archive.name, "at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
+    return archive.name
+
+
 def registry_path(state_dir: Optional[Path] = None) -> Path:
     return Path(state_dir or STATE_DIR) / "registry.json"
 
@@ -598,6 +623,8 @@ def edit_registry(state_dir: Optional[Path] = None):
     with open(p.with_suffix(".lock"), "w") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
         reg = load_registry(state_dir)
+        if not reg.get("variants") and not reg.get("judge_version"):
+            reg["judge_version"] = JUDGE_VERSION
         yield reg
         reg["updated_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
         _atomic_write(p, json.dumps(reg, ensure_ascii=False, indent=1, default=str))
@@ -667,6 +694,8 @@ def has_work(state_dir: Optional[Path] = None, seeds_dir: Optional[Path] = None,
     reg = load_registry(state_dir)
     if queue(reg) or reg.get("incumbent") is None:
         return True
+    if reg.get("variants") and (reg.get("judge_version") or "sat-judge/v1") != JUDGE_VERSION:
+        return True  # 판정 버전이 바뀌어 재심판이 필요
     known = set(reg["variants"])
     for root in (seeds_dir or SEEDS_DIR, variants_dir or VARIANTS_DIR):
         for d in Path(root).glob("S-*"):

@@ -211,6 +211,14 @@ PROCESS_REGISTRY: dict[str, dict] = {
         "description": "관제 센터 'AI 대회'에 등록한 대회의 마감 7일 전·1일 전·당일에 텔레그램 1건씩 — 종료·제출 완료 대회는 제외 (09:00 KST)",
         "category": "alert", "default_enabled": True,
     },
+    "crypto_shadow_record": {
+        "label": "코인 추세 슬리브 앞으로 기록",
+        "description": (
+            "BTC·ETH 가 100일 지수이동평균 위인지(보유/현금)를 매일 밤 원장에 한 줄 기록 — 배분에 반영하지 않는 사전 등록 검증, "
+            "12개월 뒤 판정 (00:37 KST)"
+        ),
+        "category": "research", "default_enabled": True,
+    },
     "engine_weekly_audit": {
         "label": "주간 엔진 점검",
         "description": (

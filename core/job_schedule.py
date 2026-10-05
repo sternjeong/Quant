@@ -47,6 +47,7 @@ SCHEDULED_JOBS: tuple[ScheduledJob, ...] = (
     ScheduledJob('agent_batch', 'agent_batch', {'hour': 3, 'minute': 0, 'timezone': 'Asia/Seoul'}),
     ScheduledJob('research_job_runner', 'research_job_runner', {'hour': '1,2,8,10,11,13,14,15,16,17,18,19,20,21,22,23', 'minute': '0,20,40', 'timezone': 'Asia/Seoul'}),
     ScheduledJob('contest_deadline_alert', 'contest_deadline_alert', {'hour': 9, 'minute': 0, 'timezone': 'Asia/Seoul'}),
+    ScheduledJob('crypto_shadow_record', 'crypto_shadow_record', {'hour': 0, 'minute': 37, 'timezone': 'Asia/Seoul'}),
     ScheduledJob('engine_weekly_audit', 'engine_weekly_audit', {'day_of_week': 'mon', 'hour': 8, 'minute': 15, 'timezone': 'Asia/Seoul'}),
     ScheduledJob('champion_recommendation_daily', 'champion_recommendation_daily', {'hour': 9, 'minute': 1, 'timezone': 'Asia/Seoul'}),
     ScheduledJob('strategy_research_report', 'strategy_research_report', {'day_of_week': 'sun', 'hour': 0, 'minute': 50, 'timezone': 'Asia/Seoul'}),

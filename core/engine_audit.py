@@ -249,6 +249,24 @@ def check_geo_shadow(now: datetime) -> Check:
     return _c("AI 국제정세 의견", OK, f"기록 {len(rows)}개월 · 최근 {latest or '없음'} · 판정은 24개월 뒤")
 
 
+def check_crypto_shadow(now: datetime) -> Check:
+    from core import crypto_shadow as cx
+
+    rows = cx.load_ledger()
+    if now.date() >= cx.FORWARD_START and not rows:
+        return _c("코인 추세 기록", WARN, "기록이 하나도 없음 — 00:37 기록 잡 확인")
+    last = max((r["date"] for r in rows), default=None)
+    if last and (now.date() - date.fromisoformat(last)).days > 4:
+        return _c("코인 추세 기록", WARN, f"마지막 기록 {last} — 4일 넘게 멈춤")
+    try:
+        ev = cx.evaluate_live()
+        cum = ev.get("cumulative_active")
+        prog = f" · 현 챔피언 대비 누적 {cum * 100:+.2f}%p" if cum is not None else ""
+        return _c("코인 추세 기록", OK, f"{len(rows)}일 기록 · {ev['verdict']}{prog}")
+    except Exception as exc:  # noqa: BLE001 - 경과 계산 실패는 기록 자체와 구분
+        return _c("코인 추세 기록", OK, f"{len(rows)}일 기록(경과 계산 실패: {type(exc).__name__})")
+
+
 def check_disk(root: str = "/") -> Check:
     u = shutil.disk_usage(root)
     free_gb = u.free / 1024 ** 3
@@ -268,6 +286,7 @@ CHECKS: tuple[tuple[str, Callable[[datetime], Check]], ...] = (
     ("아침 자동 재추천", check_daily_recommendation),
     ("신호·가격 데이터", check_signal_and_prices),
     ("AI 국제정세 의견", check_geo_shadow),
+    ("코인 추세 기록", check_crypto_shadow),
     ("디스크", lambda now: check_disk()),
 )
 

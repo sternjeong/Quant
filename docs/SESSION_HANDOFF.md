@@ -19,6 +19,16 @@
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
 
+## 2026-10-05 (후속) 새틀라이트 배당 포함(sat-judge/v2) + 코인 추세 슬리브 앞으로 기록 (사용자 "진행시켜")
+
+- 새틀라이트 R&D: LabData.closes 를 Adj Close 로(신호는 ohlcv Close 그대로 — 현 규칙 선택 불변). JUDGE_VERSION sat-judge/v2, migrate_registry() 가
+  v1 등록부를 registry_sat-judge_v1.json 으로 보관하고 모든 아이디어를 재심판 대기열에(누적 시도 수 유지). has_work 가 버전 차이를 '할 일'로 봄.
+  기준선 캐시 이름에 버전 포함. sprint-2w F1·tech-rnd-v1 도 다음 실행부터 같은 데이터 경로라 총수익 기준.
+- core/crypto_shadow.py(crypto-forward/v1): BTC·ETH EMA100 위면 보유, 5% 코어에서, 2026-10-06 부터 매일 00:37 KST 원장 기록(잡 crypto_shadow_record).
+  252거래일 뒤 판정(초과 IR ≥ 0.5 & 누적 > 0). 평가는 기록된 상태만, 기록이 있는 날까지만(테스트에서 기록 뒤 날짜까지 늘려 평가하던 버그 발견·수정).
+  주간 엔진 점검에 '코인 추세 기록' 항목 추가(12개).
+- 테스트: 전체 2426 passed·4 skipped.
+
 ## 2026-10-05 주간 엔진 점검 잡 (사용자 요청, 구현·전체 테스트)
 
 - core/engine_audit.py + scripts/engine_audit.py + 잡 engine_weekly_audit(월 08:15 KST, 토글 기본 켜짐, 읽기 전용). 11개 항목(서비스·자동 잡·백업·배포 동기화·연구 실행기·

@@ -46,7 +46,7 @@ def ready_agent_variant(d: Path) -> bool:
 
 def baseline_for(spec: dict, data: sl.LabData, split, cache_dir: Path, n: int, deadline: float):
     end = str(data.trading_days[-1].date())
-    path = cache_dir / f"{sl.structure_key(spec).replace('|', '_')}__{end}__n{n}.json"
+    path = cache_dir / f"{sl.structure_key(spec).replace('|', '_')}__{end}__n{n}__{sl.JUDGE_VERSION.replace('/', '_')}.json"
     if path.exists():
         return json.loads(path.read_text(encoding="utf-8"))
     base = sl.random_baseline(spec, data, split, n=n, deadline=deadline)
@@ -69,6 +69,9 @@ def run(args) -> int:
         variants_dir, n_random, start, context_path = sl.VARIANTS_DIR, sl.N_RANDOM, sl.LAB_START, sl.LAB_DIR / "context.md"
     cache_dir = state_dir / "baselines"
 
+    migrated = sl.migrate_registry(state_dir)
+    if migrated:
+        log(f"판정 버전 {sl.JUDGE_VERSION} 로 전환 — 이전 결과는 {migrated} 에 보관, 모든 아이디어 재심판")
     frozen = sl.sync_dir(sl.SEEDS_DIR, "seed", state_dir=state_dir, log=log)
     frozen += sl.sync_dir(variants_dir, "agent", state_dir=state_dir, ready=ready_agent_variant, log=log)
     if frozen:

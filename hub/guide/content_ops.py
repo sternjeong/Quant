@@ -45,6 +45,12 @@ START_HERE: tuple[str, ...] = (
 # ---------------------------------------------------------------------------
 JOBS: tuple[JobGuide, ...] = (
     JobGuide(
+        job_id="crypto_shadow_record",
+        where_to_see="VM data/crypto_shadow/ledger.jsonl, 월요일 '[주간 엔진 점검]'의 '코인 추세 기록' 줄",
+        if_alert="실패 알림이면 가격 조회 문제일 가능성이 큽니다 — 다음 날 자동으로 다시 기록합니다(빠진 날은 그 전 상태가 이어진 것으로 평가). 4일 넘게 멈추면 주간 점검이 경고합니다. 원하지 않으면 '/processes off crypto_shadow_record'.",
+        verified="2026-10-05",
+    ),
+    JobGuide(
         job_id="engine_weekly_audit",
         where_to_see="텔레그램 '[주간 엔진 점검]' 1건(정상이어도 옴), VM data/engine_audit/latest.json(날짜별 사본도 남음)",
         if_alert="❌(문제) 항목부터 봅니다. 서비스가 멈췄으면 관제 센터 '운영 상태', 자동 잡 문제면 그 잡 설명의 대처를 따릅니다. '설계 횟수가 상한을 넘은 기록'은 테스트·수동 조작이 실서비스 상태를 건드렸다는 뜻이라 개발 요청으로 원인을 찾습니다. 바로 다시 돌려 보려면 'python scripts/engine_audit.py'. 원하지 않으면 '/processes off engine_weekly_audit'.",

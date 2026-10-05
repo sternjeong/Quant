@@ -1069,6 +1069,26 @@ def strategy_research_report_job() -> None:
     print(f"[{datetime.now()}] strategy_research_report_job 종료")
 
 
+def crypto_shadow_record_job() -> None:
+    """코인 추세 슬리브 앞으로 기록 (core/crypto_shadow.py). 배분 반영 없음, 주문 없음.
+
+    시각(00:37 KST): 미국 장 마감 뒤 야간 블록의 빈 슬롯. 코인은 24시간 거래라 그 시각의 최근 일봉 종가로 상태를 정한다.
+    """
+    if not is_enabled("crypto_shadow_record"):
+        print(f"[{datetime.now()}] crypto_shadow_record_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
+    print(f"[{datetime.now()}] crypto_shadow_record_job 시작")
+    try:
+        from core.crypto_shadow import record
+
+        res = record()
+        print(f"  - {res.get('date')} 기록={res.get('recorded')} ({res.get('reason', '')})")
+    except Exception as exc:  # noqa: BLE001
+        print(f"  - 코인 추세 기록 실패: {type(exc).__name__}: {exc}")
+        report_job_failure("crypto_shadow_record", f"{type(exc).__name__}: {exc}")
+    print(f"[{datetime.now()}] crypto_shadow_record_job 종료")
+
+
 def engine_weekly_audit_job() -> None:
     """주간 엔진 점검 (core/engine_audit.py) — 모든 엔진·연구 에이전트가 잘 굴러가는지 읽기 전용으로 확인하고 텔레그램 1건.
 
@@ -1383,6 +1403,14 @@ def main() -> None:
         trigger=CronTrigger(day_of_week="sun", hour=0, minute=50, timezone="Asia/Seoul"),
         id="strategy_research_report",
         name="매주 일요일 한국시간 00:50 전략 변형 연구 보고서 (관측 전용)",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        crypto_shadow_record_job,
+        # 사용자 결정(2026-10-05): 코인 추세 슬리브 5% 를 12개월 앞으로 기록해 판정. 야간 블록 빈 슬롯.
+        trigger=CronTrigger(hour=0, minute=37, timezone="Asia/Seoul"),
+        id="crypto_shadow_record",
+        name="매일 한국시간 00:37 코인 추세 슬리브 앞으로 기록 (배분 미반영)",
         replace_existing=True,
     )
     scheduler.add_job(
