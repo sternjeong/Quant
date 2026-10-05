@@ -75,6 +75,58 @@ def test_fifo_and_average_cost_basis_differ():
     assert pos_a.sell(1) == pytest.approx(150) and pos_f.sell(1) == pytest.approx(100)
 
 
+def test_frictionless_account_matches_pre_cost_baseline_for_rotating_weights():
+    idx, close, adj, fx = _market(n=500)
+    close["B"] = 100 * np.exp(np.cumsum(np.random.default_rng(3).normal(0.0002, 0.01, len(idx))))
+    adj = close.copy()
+    w = pd.DataFrame(0.0, index=idx, columns=["A", "B"])
+    w.loc[w.index.month % 2 == 0, "A"] = 1.0
+    w.loc[w.index.month % 2 == 1, "B"] = 1.0
+    cfg = tx.AccountConfig(fee_rate=0.0, fx_spread=0.0, apply_tax=False, apply_dividend_tax=False)
+    res = tx.simulate(w, close, adj, fx, cfg)
+    assert res["final_krw"] == pytest.approx(res["final_pre_cost_krw"], rel=1e-9)  # 기준선에 하루 앞선 비중 적용 없음
+
+
+def test_dividends_reinvested_same_day():
+    idx = pd.bdate_range("2022-01-03", periods=10)
+    close = pd.DataFrame({"A": [100.0] * 5 + [110.0] * 5}, index=idx)
+    adj = close.copy()
+    adj.iloc[:3] = 98.0  # 4번째 날 2% 배당
+    cfg = tx.AccountConfig(fee_rate=0.0, fx_spread=0.0, apply_dividend_tax=False, initial_krw=1_000_000)
+    on = tx.simulate(tx.buy_and_hold_weights(idx, "A"), close, adj, pd.Series(1000.0, index=idx), cfg)
+    off = tx.simulate(tx.buy_and_hold_weights(idx, "A"), close, adj, pd.Series(1000.0, index=idx),
+                      tx.AccountConfig(**{**cfg.__dict__, "reinvest_dividends": False}))
+    assert on["final_krw"] > off["final_krw"]  # 재투자한 배당분도 10% 올랐다
+
+
+def test_year_end_gain_harvest_uses_deduction_and_lowers_later_tax():
+    idx, close, adj, fx = _market(n=800, start="2021-01-04", growth=0.0015)
+    w = tx.buy_and_hold_weights(idx, "A")
+    cfg = tx.AccountConfig(fee_rate=0.0, fx_spread=0.0, initial_krw=50_000_000)
+    plain = tx.simulate(w, close, adj, fx, cfg)
+    harv = tx.simulate(w, close, adj, fx, tx.AccountConfig(**{**cfg.__dict__, "harvest_gains": True}))
+    y2021 = next(r for r in harv["years"] if r["year"] == 2021)
+    assert 2_000_000 < y2021["realized_gain_krw"] <= 2_500_000 and y2021["tax_krw"] == 0
+    assert harv["harvests"] and harv["harvests"][0]["date"].startswith("2021-12")
+    assert harv["final_after_liquidation_krw"] > plain["final_after_liquidation_krw"]
+
+
+def test_year_end_loss_harvest_offsets_realized_gain():
+    idx = pd.bdate_range("2021-01-04", "2022-06-30")
+    n = len(idx)
+    up = 100 * np.exp(np.linspace(0, 0.5, n))
+    down = 100 * np.exp(np.linspace(0, -0.4, n))
+    close = pd.DataFrame({"A": up, "B": down}, index=idx)
+    w = pd.DataFrame({"A": 0.5, "B": 0.5}, index=idx)
+    w.loc[w.index >= "2021-07-01", ["A", "B"]] = [0.0, 1.0]  # 7월에 A 이익 실현, B 는 손실 중
+    cfg = tx.AccountConfig(fee_rate=0.0, fx_spread=0.0, initial_krw=100_000_000)
+    plain = tx.simulate(w, close, close, pd.Series(1000.0, index=idx), cfg)
+    harv = tx.simulate(w, close, close, pd.Series(1000.0, index=idx), tx.AccountConfig(**{**cfg.__dict__, "harvest_losses": True}))
+    tax = lambda r: next(x for x in r["years"] if x["year"] == 2021)["tax_krw"]  # noqa: E731
+    assert tax(plain) > 0 and tax(harv) < tax(plain)
+    assert next(x for x in harv["years"] if x["year"] == 2021)["realized_gain_krw"] >= 2_500_000 - 1
+
+
 # ---------------------------------------------------------------- 토너먼트
 def _rows(days, weights_by_cid):
     return [{"date": str(d.date()), "weights": weights_by_cid} for d in days]

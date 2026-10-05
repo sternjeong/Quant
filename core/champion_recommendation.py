@@ -1279,6 +1279,14 @@ def run_daily_refresh(as_of: Optional[date] = None, *, notify: Optional[Callable
     except Exception:  # noqa: BLE001 - 주문 줄을 못 만들어도 요약은 보낸다
         order_lines = None
     message = daily_todo_message(rec, previous=previous, today=as_of, order_lines=order_lines)
+    try:
+        from core.tax_planner import year_end_reminder_line
+
+        tax_line = year_end_reminder_line(as_of)
+        if tax_line:
+            message += "\n" + tax_line
+    except Exception:  # noqa: BLE001 - 세금 줄이 요약을 막지 않게
+        pass
     sent = False
     if notify is not None:
         try:

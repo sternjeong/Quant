@@ -42,6 +42,10 @@ class AccountConfig:
     integer_shares: bool = False
     apply_tax: bool = True
     apply_dividend_tax: bool = True
+    reinvest_dividends: bool = True  # 받는 날 같은 종목을 다시 산다(끄면 다음 리밸런싱까지 현금)
+    harvest_gains: bool = False      # 연말 공제 채우기: 그해 실현 이익이 250만 원보다 적으면 이익 난 종목을 팔았다 바로 다시 사서 공제를 쓴다
+    harvest_losses: bool = False     # 연말 손실 확정: 그해 실현 이익이 250만 원을 넘으면 손실 난 종목을 팔았다 바로 다시 사서 상계한다
+    harvest_days_before_year_end: int = 3  # 12월 마지막 거래일에서 며칠(거래일) 앞에 하나 — 결제일이 해를 넘기지 않게
 
 
 @dataclass
@@ -158,6 +162,53 @@ def simulate(weights: pd.DataFrame, close: pd.DataFrame, adj: pd.DataFrame, usdk
             cash_krw -= need_krw
         pos[t].buy(q, (gross + fee) * rate / q, cfg.cost_basis)  # 수수료는 취득가액에 포함(필요경비)
 
+    # 해마다 12월 마지막 거래일에서 harvest_days_before_year_end 거래일 앞(그해 12월 거래일이 그보다 적으면 없음)
+    harvest_idx: set[int] = set()
+    dec = pd.Series(range(len(days)), index=days)[days.month == 12]
+    for _y, grp in dec.groupby(dec.index.year):
+        if len(grp) > cfg.harvest_days_before_year_end and int(grp.iloc[-1]) + 1 < len(days):  # 그해 12월이 끝까지 있어야
+            harvest_idx.add(int(grp.iloc[-1 - cfg.harvest_days_before_year_end]))
+    harvests: list[dict] = []
+
+    def unrealized_per_share(t: str, i: int) -> float:
+        p = pos[t]
+        if not p.shares:
+            return 0.0
+        avg = sum(q * c for q, c in p.lots) / p.shares
+        px = float(close.iat[i, tickers.index(t)])
+        return px * (1 - cfg.fee_rate) * float(fx.iat[i]) - (avg if cfg.cost_basis == "average" else p.lots[0][1])
+
+    def _harvest(i: int) -> dict:
+        y = days[i].year
+        done = {"date": str(days[i].date()), "gains_realized_krw": 0.0, "losses_realized_krw": 0.0}
+        cur = realized.get(y, 0.0)
+        for t in tickers:
+            px = float(close.iat[i, tickers.index(t)])
+            if not pos[t].shares or not px > 0:
+                continue
+            g = unrealized_per_share(t, i)
+            if cfg.harvest_gains and cur < ANNUAL_DEDUCTION_KRW and g > 0:
+                room = (ANNUAL_DEDUCTION_KRW - cur) * 0.97  # 수수료·반올림 여유
+                q = min(pos[t].shares, room / g)
+            elif cfg.harvest_losses and cur > ANNUAL_DEDUCTION_KRW and g < 0:
+                q = min(pos[t].shares, (cur - ANNUAL_DEDUCTION_KRW) / -g)
+            else:
+                continue
+            if cfg.integer_shares:
+                q = math.floor(q)
+            if q <= 0:
+                continue
+            before = realized.get(y, 0.0)
+            sell(t, q, i)
+            delta = realized.get(y, 0.0) - before
+            done["gains_realized_krw" if delta > 0 else "losses_realized_krw"] += delta
+            cur = realized.get(y, 0.0)
+            amount = q * px * (1 - cfg.fee_rate)
+            if cfg.fx_mode != "usd_hold":
+                amount *= (1 - cfg.fx_spread) / (1 + cfg.fx_spread)
+            buy(t, amount, i)
+        return done
+
     def value_usd(i: int) -> float:
         return cash_usd + sum(pos[t].shares * float(close.iat[i, j]) for j, t in enumerate(tickers) if pos[t].shares)
 
@@ -174,8 +225,14 @@ def simulate(weights: pd.DataFrame, close: pd.DataFrame, adj: pd.DataFrame, usdk
                 net = gross - tax
                 if cfg.fx_mode == "usd_hold":
                     cash_usd += net
+                    if cfg.reinvest_dividends:
+                        buy(t, net, i)
                 else:
                     cash_krw += net * rate * (1 - cfg.fx_spread)
+                    fx_cost_krw += net * rate * cfg.fx_spread
+                    yr(d.year)["fx_cost_krw"] += net * rate * cfg.fx_spread
+                    if cfg.reinvest_dividends:
+                        buy(t, net * (1 - cfg.fx_spread) / (1 + cfg.fx_spread), i)
         # 양도소득세 납부(다음 해 5월 마지막 거래일 무렵)
         if cfg.apply_tax and i + 1 < len(days) and d.month == TAX_PAY_MONTH and days[i + 1].month != TAX_PAY_MONTH:
             due_year = d.year - 1
@@ -219,6 +276,9 @@ def simulate(weights: pd.DataFrame, close: pd.DataFrame, adj: pd.DataFrame, usdk
                     else:
                         budget = min(budget, max(cash_krw, 0.0) / (rate * (1 + cfg.fx_spread)))
                     buy(t, budget, i)
+        # 연말 공제 채우기·손실 확정(팔았다 같은 날 다시 산다 — 보유는 그대로, 취득가만 바뀐다)
+        if (cfg.harvest_gains or cfg.harvest_losses) and i in harvest_idx:
+            harvests.append(_harvest(i))
         v_krw = value_usd(i) * rate + cash_krw if cfg.fx_mode == "krw_each_trade" else value_usd(i) * rate
         values.append(v_krw)
 
@@ -228,13 +288,14 @@ def simulate(weights: pd.DataFrame, close: pd.DataFrame, adj: pd.DataFrame, usdk
     w = weights.where(change).ffill().fillna(0.0)
     drift_w, base_vals, v = None, [], 1.0
     for i in range(len(days)):
-        if change.iat[i] or drift_w is None:
-            drift_w = w.iloc[i].to_numpy(dtype=float)
-        if i > 0:
+        # 그날 수익은 전날 종가까지 들고 있던 비중으로 — 목표가 바뀌는 날은 그날 종가에 매매하므로 새 비중은 다음 날부터
+        if i > 0 and drift_w is not None:
             g = drift_w * (1 + tr.iloc[i].to_numpy())
             port = g.sum() + (1 - drift_w.sum())
             v *= port
             drift_w = g / port if port > 0 else drift_w
+        if change.iat[i] or drift_w is None:
+            drift_w = w.iloc[i].to_numpy(dtype=float)
         base_vals.append(v)
     base = pd.Series(base_vals, index=days) * (cfg.initial_krw / float(fx.iloc[0])) * fx
     years = (days[-1] - days[0]).days / 365.25
@@ -259,7 +320,7 @@ def simulate(weights: pd.DataFrame, close: pd.DataFrame, adj: pd.DataFrame, usdk
                    "capital_gains_tax_krw": sum(tax_due.values())},
         "unpaid_tax_if_sold_now_krw": liquidation_tax,
         "final_after_liquidation_krw": float(series.iloc[-1]) - liquidation_tax,
-        "years": [year_rows[y] for y in sorted(year_rows)], "tax_payments": tax_paid_rows,
+        "years": [year_rows[y] for y in sorted(year_rows)], "tax_payments": tax_paid_rows, "harvests": harvests,
         "config": cfg.__dict__.copy(),
     }
 

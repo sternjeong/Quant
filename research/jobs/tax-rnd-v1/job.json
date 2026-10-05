@@ -1,0 +1,13 @@
+{
+  "id": "tax-rnd-v1",
+  "title": "세금 R&D v1 — 연말 공제 채우기·손실 확정·순위 완충이 세후 원화 수익을 늘리나(사전 등록)",
+  "entrypoint": "research/jobs/tax-rnd-v1/run.py",
+  "args": [],
+  "timeout_seconds": 2400,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 30,
+  "revision": 1
+}

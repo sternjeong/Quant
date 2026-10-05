@@ -397,6 +397,32 @@ else:
                            "(주식 소수점 매매가 되는 증권사라면 금액대로 살 수 있습니다).")
             if any(r["action"] in ("매도", "전량 매도") for r in _trades):
                 st.caption("매도를 먼저 하고 그 돈으로 매수하는 순서입니다.")
+                # 세금 미리보기: 켰을 때만 환율을 읽는다(페이지 진입 시 조회 최소화 원칙)
+                if _plan["basis"] != "fresh" and st.toggle("🧾 이 매도들의 세금 미리보기(원화·양도세 22%)", key="champion_tax_preview"):
+                    try:
+                        from core import portfolio as _pf
+                        from core import tax_planner as _tp
+
+                        _fx = _tp.load_fx()
+                        _pos = _tp.positions(_pf.list_holdings(), {r["ticker"]: r.get("price") for r in _trade_rows}, _fx)
+                        _sells = _tp.sell_estimates(_trade_rows, _pos)
+                        _year = date.today().year
+                        _ytd = _tp.load_realized(_year)
+                        _sum = _tp.year_summary(_ytd, sum(x["gain_krw"] or 0.0 for x in _sells), _year)
+                        st.dataframe(pd.DataFrame([
+                            {"종목": x["ticker"], "할 일": x["action"], "주식 수": x["shares"],
+                             "실현될 차익(원)": f"{x['gain_krw']:,.0f}" if x["known"] else "보유 입력·가격 없음"}
+                            for x in _sells]), width="stretch", hide_index=True)
+                        st.markdown(
+                            f"올해 이미 실현: **{'미입력' if _ytd is None else f'{_ytd:,.0f}원'}** + 이번 매도 **{_sum['planned_krw']:,.0f}원** "
+                            f"= {_sum['total_krw']:,.0f}원 · 공제 남음 {_sum['deduction_left_krw']:,.0f}원 · "
+                            f"**{_year + 1}년 5월 예상 양도세 {_sum['tax_krw']:,.0f}원**"
+                            + (f" (이번 매도로 +{_sum['tax_krw'] - _sum['tax_without_plan_krw']:,.0f}원)" if _sum['tax_krw'] > _sum['tax_without_plan_krw'] else ""))
+                        st.caption("매입일 환율로 원화 취득가를 만든 이동평균 근사입니다. 올해 실현 이익 입력과 연말 공제 채우기·손실 확정 제안은 "
+                                   "'세후 수익 계산' 화면에 있습니다. 세금 때문에 매도를 미루는 것은 검증되지 않은 규칙 변경입니다(연구 tax-rnd-v1).")
+                        _page_link("pages/16_세후_수익_계산.py", "🧾 세후 수익 계산 — 내 계좌 올해 세금")
+                    except Exception as _exc:  # noqa: BLE001
+                        st.warning(f"세금 미리보기를 계산하지 못했습니다: {type(_exc).__name__}: {_exc}")
         _keep = [r["ticker"] for r in _plan["rows"] if r["action"] == "유지"]
         if _keep:
             st.caption(f"그대로 두면 되는 종목: {', '.join(_keep)}")
