@@ -1,0 +1,790 @@
+{
+ "judge_version": "tax-judge/v1",
+ "smoke": false,
+ "generated_at": "2026-10-05T16:00:41+00:00",
+ "verdicts": {
+  "V1": "FAIL",
+  "V2": "FAIL",
+  "V3": "FAIL",
+  "V4": "FAIL",
+  "V5": "FAIL"
+ },
+ "details": {
+  "V1": {
+   "label": "연말 공제 채우기",
+   "delta_pp": {
+    "full": 0.051,
+    "first_half": -0.03,
+    "second_half": 0.171,
+    "full_100m": 0.105,
+    "ref_fifo": 0.05,
+    "ref_krw_each_trade": -0.51,
+    "ref_300m": 0.106
+   },
+   "checks": {
+    "full_gain_ge_0.15pp": false,
+    "both_halves_positive": false,
+    "positive_at_100m": true,
+    "mdd_ok": true
+   }
+  },
+  "V2": {
+   "label": "연말 손실 확정",
+   "delta_pp": {
+    "full": 0.034,
+    "first_half": 0.008,
+    "second_half": 0.04,
+    "full_100m": 0.035,
+    "ref_fifo": 0.041,
+    "ref_krw_each_trade": -0.129,
+    "ref_300m": 0.035
+   },
+   "checks": {
+    "full_gain_ge_0.15pp": false,
+    "both_halves_positive": true,
+    "positive_at_100m": true,
+    "mdd_ok": true
+   }
+  },
+  "V3": {
+   "label": "공제 채우기 + 손실 확정",
+   "delta_pp": {
+    "full": 0.058,
+    "first_half": -0.022,
+    "second_half": 0.193,
+    "full_100m": 0.112,
+    "ref_fifo": 0.085,
+    "ref_krw_each_trade": -0.637,
+    "ref_300m": 0.124
+   },
+   "checks": {
+    "full_gain_ge_0.15pp": false,
+    "both_halves_positive": false,
+    "positive_at_100m": true,
+    "mdd_ok": true
+   }
+  },
+  "V4": {
+   "label": "순위 완충 6",
+   "delta_pp": {
+    "full": -0.457,
+    "first_half": 0.778,
+    "second_half": -1.658,
+    "full_100m": -0.378,
+    "ref_fifo": -0.458,
+    "ref_krw_each_trade": 1.742,
+    "ref_300m": -0.405
+   },
+   "checks": {
+    "full_gain_ge_0.15pp": false,
+    "both_halves_positive": false,
+    "positive_at_100m": false,
+    "mdd_ok": true
+   }
+  },
+  "V5": {
+   "label": "공제 채우기 + 손실 확정 + 순위 완충 6",
+   "delta_pp": {
+    "full": -0.331,
+    "first_half": 0.803,
+    "second_half": -1.418,
+    "full_100m": -0.255,
+    "ref_fifo": -0.317,
+    "ref_krw_each_trade": 0.969,
+    "ref_300m": -0.229
+   },
+   "checks": {
+    "full_gain_ge_0.15pp": false,
+    "both_halves_positive": false,
+    "positive_at_100m": false,
+    "mdd_ok": true
+   }
+  }
+ },
+ "metrics": {
+  "V0": {
+   "full": {
+    "cagr_liq": 0.09005125854200235,
+    "cagr_after": 0.09307469658511214,
+    "cagr_pre": 0.11244747709721081,
+    "mdd_after": -0.2560086578440064,
+    "final_after_liquidation_krw": 127163825.3027451,
+    "totals": {
+     "fees_krw": 6626356.5917624775,
+     "fx_cost_krw": 6092.125886984609,
+     "dividend_tax_krw": 2318573.4857470794,
+     "capital_gains_tax_krw": 12184251.773969205
+    },
+    "harvests": 0,
+    "start": "2010-01-04",
+    "end": "2026-10-05"
+   },
+   "first_half": {
+    "cagr_liq": 0.05228919635830831,
+    "cagr_after": 0.05228919635830831,
+    "cagr_pre": 0.06572725309298222,
+    "mdd_after": -0.2560086578440064,
+    "final_after_liquidation_krw": 45064912.4607752,
+    "totals": {
+     "fees_krw": 1860803.612822941,
+     "fx_cost_krw": 850.5838933019331,
+     "dividend_tax_krw": 796310.7531606266,
+     "capital_gains_tax_krw": 1701167.7866038647
+    },
+    "harvests": 0,
+    "start": "2010-01-04",
+    "end": "2017-12-29"
+   },
+   "second_half": {
+    "cagr_liq": 0.12811501029294736,
+    "cagr_after": 0.1338248884163964,
+    "cagr_pre": 0.15695418634714486,
+    "mdd_after": -0.1988732996161373,
+    "final_after_liquidation_krw": 86200332.43147293,
+    "totals": {
+     "fees_krw": 3197122.2343392544,
+     "fx_cost_krw": 3060.195301251787,
+     "dividend_tax_krw": 1021646.9413202,
+     "capital_gains_tax_krw": 6120390.602503568
+    },
+    "harvests": 0,
+    "start": "2018-01-02",
+    "end": "2026-10-05"
+   },
+   "full_100m": {
+    "cagr_liq": 0.0857416671251976,
+    "cagr_after": 0.08895621612357907,
+    "cagr_pre": 0.11244747709721081,
+    "mdd_after": -0.26238842905247173,
+    "final_after_liquidation_krw": 396666085.77094394,
+    "totals": {
+     "fees_krw": 21221379.58721017,
+     "fx_cost_krw": 25387.81825366474,
+     "dividend_tax_krw": 7434144.399217161,
+     "capital_gains_tax_krw": 50775636.507329434
+    },
+    "harvests": 0,
+    "start": "2010-01-04",
+    "end": "2026-10-05"
+   },
+   "ref_fifo": {
+    "cagr_liq": 0.08951698994727897,
+    "cagr_after": 0.09243236680602984,
+    "cagr_pre": 0.11244747709721081,
+    "mdd_after": -0.2559975625683061,
+    "final_after_liquidation_krw": 126123857.10158758,
+    "totals": {
+     "fees_krw": 6608151.729641233,
+     "fx_cost_krw": 6487.352763500192,
+     "dividend_tax_krw": 2312948.6392851267,
+     "capital_gains_tax_krw": 12974705.527000371
+    },
+    "harvests": 0,
+    "start": "2010-01-04",
+    "end": "2026-10-05"
+   },
+   "ref_krw_each_trade": {
+    "cagr_liq": 0.023849320112663275,
+    "cagr_after": 0.026394928464124057,
+    "cagr_pre": 0.11244747709721081,
+    "mdd_after": -0.3721729306092185,
+    "final_after_liquidation_krw": 44522216.85465496,
+    "totals": {
+     "fees_krw": 3566420.4734530225,
+     "fx_cost_krw": 35737504.80555939,
+     "dividend_tax_krw": 1294671.8384291113,
+     "capital_gains_tax_krw": 4499196.650356994
+    },
+    "harvests": 0,
+    "start": "2010-01-04",
+    "end": "2026-10-05"
+   },
+   "ref_300m": {
+    "cagr_liq": 0.08425072378979426,
+    "cagr_after": 0.08752378388243343,
+    "cagr_pre": 0.11244747709721081,
+    "mdd_after": -0.26426394027480915,
+    "final_after_liquidation_krw": 1162920665.7707634,
+    "totals": {
+     "fees_krw": 62768951.97434965,
+     "fx_cost_krw": 81013.1534258888,
+     "dividend_tax_krw": 21998078.701104093,
+     "capital_gains_tax_krw": 162026306.85177743
+    },
+    "harvests": 0,
+    "start": "2010-01-04",
+    "end": "2026-10-05"
+   }
+  },
+  "V1": {
+   "full": {
+    "cagr_liq": 0.09055844959980885,
+    "cagr_after": 0.09350899082036657,
+    "cagr_pre": 0.11244747709721081,
+    "mdd_after": -0.25702287700015347,
+    "final_after_liquidation_krw": 128158542.36731116,
+    "totals": {
+     "fees_krw": 7005083.797064044,
+     "fx_cost_krw": 5455.357620510229,
+     "dividend_tax_krw": 2317133.105370265,
+     "capital_gains_tax_krw": 10910715.241020449
+    },
+    "harvests": 16,
+    "start": "2010-01-04",
+    "end": "2026-10-05"
+   },
+   "first_half": {
+    "cagr_liq": 0.05198555960876439,
+    "cagr_after": 0.05198555960876439,
+    "cagr_pre": 0.06572725309298222,
+    "mdd_after": -0.25702287700015347,
+    "final_after_liquidation_krw": 44961203.207674995,
+    "totals": {
+     "fees_krw": 2069475.3691965125,
+     "fx_cost_krw": 758.7801056083017,
+     "dividend_tax_krw": 794187.1711918772,
+     "capital_gains_tax_krw": 1517560.211216602
+    },
+    "harvests": 7,
+    "start": "2010-01-04",
+    "end": "2017-12-29"
+   },
+   "second_half": {
+    "cagr_liq": 0.1298211623294394,
+    "cagr_after": 0.13539929011683283,
+    "cagr_pre": 0.15695418634714486,
+    "mdd_after": -0.19887329961613764,
+    "final_after_liquidation_krw": 87348511.89499189,
+    "totals": {
+     "fees_krw": 3333460.123604118,
+     "fx_cost_krw": 2586.4156608238955,
+     "dividend_tax_krw": 1026218.4818799155,
+     "capital_gains_tax_krw": 5172831.321647787
+    },
+    "harvests": 8,
+    "start": "2018-01-02",
+    "end": "2026-10-05"
+   },
+   "full_100m": {
+    "cagr_liq": 0.086790712269043,
+    "cagr_after": 0.08993352593971937,
+    "cagr_pre": 0.11244747709721081,
+    "mdd_after": -0.26351522155713347,
+    "final_after_liquidation_krw": 403134824.72884583,
+    "totals": {
+     "fees_krw": 22261278.813025095,
+     "fx_cost_krw": 23824.87918959119,
+     "dividend_tax_krw": 7505377.211971245,
+     "capital_gains_tax_krw": 47649758.37918234
+    },
+    "harvests": 16,
+    "start": "2010-01-04",
+    "end": "2026-10-05"
+   },
+   "ref_fifo": {
+    "cagr_liq": 0.09001925035348579,
+    "cagr_after": 0.09290293471877598,
+    "cagr_pre": 0.11244747709721081,
+    "mdd_after": -0.25701163400075855,
+    "final_after_liquidation_krw": 127101294.12874673,
+    "totals": {
+     "fees_krw": 6986460.1466398975,
+     "fx_cost_krw": 5807.254388466768,
+     "dividend_tax_krw": 2311100.34937733,
+     "capital_gains_tax_krw": 11614508.776933527
+    },
+    "harvests": 16,
+    "start": "2010-01-04",
+    "end": "2026-10-05"
+   },
+   "ref_krw_each_trade": {
+    "cagr_liq": 0.018752380175754313,
+    "cagr_after": 0.021135720181047812,
+    "cagr_pre": 0.11244747709721081,
+    "mdd_after": -0.38870101837778515,
+    "final_after_liquidation_krw": 40951733.98061995,
+    "totals": {
+     "fees_krw": 3649931.295292368,
+     "fx_cost_krw": 36568067.00651991,
+     "dividend_tax_krw": 1214410.5021439234,
+     "capital_gains_tax_krw": 2917813.760850668
+    },
+    "harvests": 16,
+    "start": "2010-01-04",
+    "end": "2026-10-05"
+   },
+   "ref_300m": {
+    "cagr_liq": 0.08531565779860895,
+    "cagr_after": 0.08851619009925837,
+    "cagr_pre": 0.11244747709721081,
+    "mdd_after": -0.2653724781892671,
+    "final_after_liquidation_krw": 1182201450.8450632,
+    "totals": {
+     "fees_krw": 65463082.19761705,
+     "fx_cost_krw": 76790.68797143977,
+     "dividend_tax_krw": 22210438.600296177,
+     "capital_gains_tax_krw": 153581375.94287938
+    },
+    "harvests": 16,
+    "start": "2010-01-04",
+    "end": "2026-10-05"
+   }
+  },
+  "V2": {
+   "full": {
+    "cagr_liq": 0.09039378251675179,
+    "cagr_after": 0.09342055295063978,
+    "cagr_pre": 0.11244747709721081,
+    "mdd_after": -0.25556146846034,
+    "final_after_liquidation_krw": 127834793.45669551,
+    "totals": {
+     "fees_krw": 6947670.332662883,
+     "fx_cost_krw": 5841.726859237683,
+     "dividend_tax_krw": 2324724.7016375605,
+     "capital_gains_tax_krw": 11683453.718475357
+    },
+    "harvests": 16,
+    "start": "2010-01-04",
+    "end": "2026-10-05"
+   },
+   "first_half": {
+    "cagr_liq": 0.052368400387632796,
+    "cagr_after": 0.052368400387632796,
+    "cagr_pre": 0.06572725309298222,
+    "mdd_after": -0.25556146846034,
+    "final_after_liquidation_krw": 45091999.53731282,
+    "totals": {
+     "fees_krw": 1884899.556528392,
+     "fx_cost_krw": 825.1877187962355,
+     "dividend_tax_krw": 796437.9901661314,
+     "capital_gains_tax_krw": 1650375.4375924696
+    },
+    "harvests": 7,
+    "start": "2010-01-04",
+    "end": "2017-12-29"
+   },
+   "second_half": {
+    "cagr_liq": 0.1285122124957374,
+    "cagr_after": 0.13422839222254623,
+    "cagr_pre": 0.15695418634714486,
+    "mdd_after": -0.19968987947226546,
+    "final_after_liquidation_krw": 86466434.63962868,
+    "totals": {
+     "fees_krw": 3336888.191705128,
+     "fx_cost_krw": 2938.131166011671,
+     "dividend_tax_krw": 1023365.5106097424,
+     "capital_gains_tax_krw": 5876262.332023337
+    },
+    "harvests": 8,
+    "start": "2018-01-02",
+    "end": "2026-10-05"
+   },
+   "full_100m": {
+    "cagr_liq": 0.08608754432547738,
+    "cagr_after": 0.08930444210832733,
+    "cagr_pre": 0.11244747709721081,
+    "mdd_after": -0.2619454013088859,
+    "final_after_liquidation_krw": 398788008.71095634,
+    "totals": {
+     "fees_krw": 22351525.785142094,
+     "fx_cost_krw": 24687.31500236106,
+     "dividend_tax_krw": 7459869.662612425,
+     "capital_gains_tax_krw": 49374630.00472207
+    },
+    "harvests": 16,
+    "start": "2010-01-04",
+    "end": "2026-10-05"
+   },
+   "ref_fifo": {
+    "cagr_liq": 0.08992646926286763,
+    "cagr_after": 0.09284552245701527,
+    "cagr_pre": 0.11244747709721081,
+    "mdd_after": -0.25555037318464013,
+    "final_after_liquidation_krw": 126920200.39002009,
+    "totals": {
+     "fees_krw": 6969041.294731543,
+     "fx_cost_krw": 6177.70166337839,
+     "dividend_tax_krw": 2319356.0365559985,
+     "capital_gains_tax_krw": 12355403.32675677
+    },
+    "harvests": 16,
+    "start": "2010-01-04",
+    "end": "2026-10-05"
+   },
+   "ref_krw_each_trade": {
+    "cagr_liq": 0.02255897259241113,
+    "cagr_after": 0.025095851764150412,
+    "cagr_pre": 0.11244747709721081,
+    "mdd_after": -0.37487441599466853,
+    "final_after_liquidation_krw": 43591619.79969512,
+    "totals": {
+     "fees_krw": 3640673.816152973,
+     "fx_cost_krw": 36479655.350640796,
+     "dividend_tax_krw": 1288021.56476379,
+     "capital_gains_tax_krw": 4248415.599984902
+    },
+    "harvests": 16,
+    "start": "2010-01-04",
+    "end": "2026-10-05"
+   },
+   "ref_300m": {
+    "cagr_liq": 0.08460465680261398,
+    "cagr_after": 0.08787978165063781,
+    "cagr_pre": 0.11244747709721081,
+    "mdd_after": -0.2638181610001643,
+    "final_after_liquidation_krw": 1169295625.9136784,
+    "totals": {
+     "fees_krw": 66209051.08528626,
+     "fx_cost_krw": 78952.6238947144,
+     "dividend_tax_krw": 22077302.46932088,
+     "capital_gains_tax_krw": 157905247.78942865
+    },
+    "harvests": 16,
+    "start": "2010-01-04",
+    "end": "2026-10-05"
+   }
+  },
+  "V3": {
+   "full": {
+    "cagr_liq": 0.09063280711476263,
+    "cagr_after": 0.09358482675742419,
+    "cagr_pre": 0.11244747709721081,
+    "mdd_after": -0.2565763629492043,
+    "final_after_liquidation_krw": 128304987.83521701,
+    "totals": {
+     "fees_krw": 7233639.25023466,
+     "fx_cost_krw": 5432.318299032062,
+     "dividend_tax_krw": 2320918.1684325277,
+     "capital_gains_tax_krw": 10864636.598064113
+    },
+    "harvests": 16,
+    "start": "2010-01-04",
+    "end": "2026-10-05"
+   },
+   "first_half": {
+    "cagr_liq": 0.052064729134736254,
+    "cagr_after": 0.052064729134736254,
+    "cagr_pre": 0.06572725309298222,
+    "mdd_after": -0.2565763629492043,
+    "final_after_liquidation_krw": 44988223.9709776,
+    "totals": {
+     "fees_krw": 2093588.8661340897,
+     "fx_cost_krw": 733.4077882015581,
+     "dividend_tax_krw": 794314.1864264793,
+     "capital_gains_tax_krw": 1466815.576403115
+    },
+    "harvests": 7,
+    "start": "2010-01-04",
+    "end": "2017-12-29"
+   },
+   "second_half": {
+    "cagr_liq": 0.13004445901046258,
+    "cagr_after": 0.13562676427107112,
+    "cagr_pre": 0.15695418634714486,
+    "mdd_after": -0.19968987947226524,
+    "final_after_liquidation_krw": 87499780.63031326,
+    "totals": {
+     "fees_krw": 3464976.2876080708,
+     "fx_cost_krw": 2516.4516562544673,
+     "dividend_tax_krw": 1027677.8880033504,
+     "capital_gains_tax_krw": 5032903.3125089295
+    },
+    "harvests": 8,
+    "start": "2018-01-02",
+    "end": "2026-10-05"
+   },
+   "full_100m": {
+    "cagr_liq": 0.08686106825427364,
+    "cagr_after": 0.09002922305371164,
+    "cagr_pre": 0.11244747709721081,
+    "mdd_after": -0.26306870750618394,
+    "final_after_liquidation_krw": 403572191.8356425,
+    "totals": {
+     "fees_krw": 23093041.88703201,
+     "fx_cost_krw": 23683.90082098877,
+     "dividend_tax_krw": 7517650.9708911255,
+     "capital_gains_tax_krw": 47367801.64197749
+    },
+    "harvests": 16,
+    "start": "2010-01-04",
+    "end": "2026-10-05"
+   },
+   "ref_fifo": {
+    "cagr_liq": 0.090368207445094,
+    "cagr_after": 0.09325506027098074,
+    "cagr_pre": 0.11244747709721081,
+    "mdd_after": -0.25656511994980946,
+    "final_after_liquidation_krw": 127784579.82896776,
+    "totals": {
+     "fees_krw": 7297148.552195521,
+     "fx_cost_krw": 5542.684302822555,
+     "dividend_tax_krw": 2316451.4432451213,
+     "capital_gains_tax_krw": 11085368.6056451
+    },
+    "harvests": 16,
+    "start": "2010-01-04",
+    "end": "2026-10-05"
+   },
+   "ref_krw_each_trade": {
+    "cagr_liq": 0.017478659508031846,
+    "cagr_after": 0.019851510094723412,
+    "cagr_pre": 0.11244747709721081,
+    "mdd_after": -0.3913285934252364,
+    "final_after_liquidation_krw": 40102502.133972496,
+    "totals": {
+     "fees_krw": 3717553.2284681452,
+     "fx_cost_krw": 37243935.02674809,
+     "dividend_tax_krw": 1208308.2232637543,
+     "capital_gains_tax_krw": 2691316.8234734354
+    },
+    "harvests": 16,
+    "start": "2010-01-04",
+    "end": "2026-10-05"
+   },
+   "ref_300m": {
+    "cagr_liq": 0.08549295852928984,
+    "cagr_after": 0.08874470526171807,
+    "cagr_pre": 0.11244747709721081,
+    "mdd_after": -0.2649273537281909,
+    "final_after_liquidation_krw": 1185440548.203909,
+    "totals": {
+     "fees_krw": 68114823.44347705,
+     "fx_cost_krw": 75986.53955081776,
+     "dividend_tax_krw": 22280405.68762301,
+     "capital_gains_tax_krw": 151973079.1016354
+    },
+    "harvests": 16,
+    "start": "2010-01-04",
+    "end": "2026-10-05"
+   }
+  },
+  "V4": {
+   "full": {
+    "cagr_liq": 0.08548321590037089,
+    "cagr_after": 0.08829758897420947,
+    "cagr_pre": 0.10438045318540001,
+    "mdd_after": -0.19887329966843692,
+    "final_after_liquidation_krw": 118526234.41904752,
+    "totals": {
+     "fees_krw": 4191037.4460890307,
+     "fx_cost_krw": 5659.0764228597345,
+     "dividend_tax_krw": 2302124.589875513,
+     "capital_gains_tax_krw": 11318152.845719459
+    },
+    "harvests": 0,
+    "start": "2010-01-04",
+    "end": "2026-10-05"
+   },
+   "first_half": {
+    "cagr_liq": 0.06007227320753694,
+    "cagr_after": 0.06007227320753694,
+    "cagr_pre": 0.07067982375575288,
+    "mdd_after": -0.18817174968825023,
+    "final_after_liquidation_krw": 47795704.75484592,
+    "totals": {
+     "fees_krw": 1141452.469223218,
+     "fx_cost_krw": 757.3284331776221,
+     "dividend_tax_krw": 804742.3556519492,
+     "capital_gains_tax_krw": 1514656.8663552427
+    },
+    "harvests": 0,
+    "start": "2010-01-04",
+    "end": "2017-12-29"
+   },
+   "second_half": {
+    "cagr_liq": 0.1115366654018426,
+    "cagr_after": 0.11670135183775243,
+    "cagr_pre": 0.136344387104824,
+    "mdd_after": -0.19887329966843725,
+    "final_after_liquidation_krw": 75720551.21766657,
+    "totals": {
+     "fees_krw": 1953252.8273191797,
+     "fx_cost_krw": 2685.861261229958,
+     "dividend_tax_krw": 945120.117233208,
+     "capital_gains_tax_krw": 5371722.522459911
+    },
+    "harvests": 0,
+    "start": "2018-01-02",
+    "end": "2026-10-05"
+   },
+   "full_100m": {
+    "cagr_liq": 0.0819587862359723,
+    "cagr_after": 0.0849812899851432,
+    "cagr_pre": 0.10438045318540001,
+    "mdd_after": -0.19887329966843703,
+    "final_after_liquidation_krw": 374141067.3810812,
+    "totals": {
+     "fees_krw": 13549749.305000994,
+     "fx_cost_krw": 23142.008784482452,
+     "dividend_tax_krw": 7449937.2264525555,
+     "capital_gains_tax_krw": 46284017.56896487
+    },
+    "harvests": 0,
+    "start": "2010-01-04",
+    "end": "2026-10-05"
+   },
+   "ref_fifo": {
+    "cagr_liq": 0.08494153450824315,
+    "cagr_after": 0.08765445048651244,
+    "cagr_pre": 0.10438045318540001,
+    "mdd_after": -0.19887329966843692,
+    "final_after_liquidation_krw": 117539390.0638993,
+    "totals": {
+     "fees_krw": 4180525.4765507197,
+     "fx_cost_krw": 6011.14040930186,
+     "dividend_tax_krw": 2295978.9882204663,
+     "capital_gains_tax_krw": 12022280.81860371
+    },
+    "harvests": 0,
+    "start": "2010-01-04",
+    "end": "2026-10-05"
+   },
+   "ref_krw_each_trade": {
+    "cagr_liq": 0.041271793103355714,
+    "cagr_after": 0.043820819722197424,
+    "cagr_pre": 0.10438045318540001,
+    "mdd_after": -0.28813776511624545,
+    "final_after_liquidation_krw": 59064019.9535521,
+    "totals": {
+     "fees_krw": 2768383.0454582097,
+     "fx_cost_krw": 27772555.172862496,
+     "dividend_tax_krw": 1565306.6416542002,
+     "capital_gains_tax_krw": 5928274.081863592
+    },
+    "harvests": 0,
+    "start": "2010-01-04",
+    "end": "2026-10-05"
+   },
+   "ref_300m": {
+    "cagr_liq": 0.08019682062681222,
+    "cagr_after": 0.08328039275112964,
+    "cagr_pre": 0.10438045318540001,
+    "mdd_after": -0.19887329966843703,
+    "final_after_liquidation_krw": 1092195727.7623081,
+    "totals": {
+     "fees_krw": 39931872.62626473,
+     "fx_cost_krw": 74596.2581668404,
+     "dividend_tax_krw": 21963040.572878882,
+     "capital_gains_tax_krw": 149192516.3336807
+    },
+    "harvests": 0,
+    "start": "2010-01-04",
+    "end": "2026-10-05"
+   }
+  },
+  "V5": {
+   "full": {
+    "cagr_liq": 0.08674344112155685,
+    "cagr_after": 0.08955749073214037,
+    "cagr_pre": 0.10438045318540001,
+    "mdd_after": -0.19968987952452633,
+    "final_after_liquidation_krw": 120852364.37955521,
+    "totals": {
+     "fees_krw": 5033244.005848087,
+     "fx_cost_krw": 4398.48803078509,
+     "dividend_tax_krw": 2314305.6211542576,
+     "capital_gains_tax_krw": 8796976.061570171
+    },
+    "harvests": 16,
+    "start": "2010-01-04",
+    "end": "2026-10-05"
+   },
+   "first_half": {
+    "cagr_liq": 0.06032077722917362,
+    "cagr_after": 0.06032077722917362,
+    "cagr_pre": 0.07067982375575288,
+    "mdd_after": -0.1885885442051135,
+    "final_after_liquidation_krw": 47885228.78474472,
+    "totals": {
+     "fees_krw": 1353200.414135328,
+     "fx_cost_krw": 565.9911335612834,
+     "dividend_tax_krw": 803899.6412936491,
+     "capital_gains_tax_krw": 1131982.2671225658
+    },
+    "harvests": 7,
+    "start": "2010-01-04",
+    "end": "2017-12-29"
+   },
+   "second_half": {
+    "cagr_liq": 0.11393025748385632,
+    "cagr_after": 0.11910536880165257,
+    "cagr_pre": 0.136344387104824,
+    "mdd_after": -0.19968987952452644,
+    "final_after_liquidation_krw": 77160202.72443756,
+    "totals": {
+     "fees_krw": 2313955.1391901765,
+     "fx_cost_krw": 2001.603547103829,
+     "dividend_tax_krw": 952917.1988109403,
+     "capital_gains_tax_krw": 4003207.0942076547
+    },
+    "harvests": 8,
+    "start": "2018-01-02",
+    "end": "2026-10-05"
+   },
+   "full_100m": {
+    "cagr_liq": 0.08318901595481809,
+    "cagr_after": 0.08620752735653459,
+    "cagr_pre": 0.10438045318540001,
+    "mdd_after": -0.199689879524526,
+    "final_after_liquidation_krw": 381330973.90712726,
+    "totals": {
+     "fees_krw": 15771818.534175705,
+     "fx_cost_krw": 20298.091500058854,
+     "dividend_tax_krw": 7515776.31598403,
+     "capital_gains_tax_krw": 40596183.000117674
+    },
+    "harvests": 16,
+    "start": "2010-01-04",
+    "end": "2026-10-05"
+   },
+   "ref_fifo": {
+    "cagr_liq": 0.08635041017114409,
+    "cagr_after": 0.08910668584088599,
+    "cagr_pre": 0.10438045318540001,
+    "mdd_after": -0.2000848434576108,
+    "final_after_liquidation_krw": 120122339.52229178,
+    "totals": {
+     "fees_krw": 5020382.69915132,
+     "fx_cost_krw": 4644.117884040239,
+     "dividend_tax_krw": 2309529.2217675955,
+     "capital_gains_tax_krw": 9288235.76808047
+    },
+    "harvests": 16,
+    "start": "2010-01-04",
+    "end": "2026-10-05"
+   },
+   "ref_krw_each_trade": {
+    "cagr_liq": 0.03353938380948307,
+    "cagr_after": 0.03600471170259789,
+    "cagr_pre": 0.10438045318540001,
+    "mdd_after": -0.328974711769659,
+    "final_after_liquidation_krw": 52131649.36335629,
+    "totals": {
+     "fees_krw": 3086948.027783253,
+     "fx_cost_krw": 30951529.73461415,
+     "dividend_tax_krw": 1447807.5801275582,
+     "capital_gains_tax_krw": 3463041.0926725823
+    },
+    "harvests": 16,
+    "start": "2010-01-04",
+    "end": "2026-10-05"
+   },
+   "ref_300m": {
+    "cagr_liq": 0.08196135822808714,
+    "cagr_after": 0.0850431692404845,
+    "cagr_pre": 0.10438045318540001,
+    "mdd_after": -0.19968987952452633,
+    "final_after_liquidation_krw": 1122467895.4953113,
+    "totals": {
+     "fees_krw": 46050922.60618733,
+     "fx_cost_krw": 66378.92813507834,
+     "dividend_tax_krw": 22337173.637762956,
+     "capital_gains_tax_krw": 132757856.27015655
+    },
+    "harvests": 16,
+    "start": "2010-01-04",
+    "end": "2026-10-05"
+   }
+  }
+ }
+}
