@@ -830,3 +830,29 @@ def test_page_ticker_chart_offline_shows_message(page_env, monkeypatch, tmp_path
     at.pills(key="champion_todo_chart_ticker").set_value("XLK").run()
     assert not at.exception, [e.value for e in at.exception]
     assert "가격 데이터를 불러오지 못했습니다" in _text(at)
+
+
+def test_page_shows_dawn_backtest_with_ranked_active_lists(page_env):
+    """2026-10-06 배포 관문 실패 재현: 새벽 미리 계산(JSON)으로 읽은 새틀라이트 리밸런싱 로그의 ranked_active([종목, 점수] 목록)가
+    표 변환(Arrow)을 깨뜨려 화면 전체가 예외로 멈췄다."""
+    import numpy as np
+    import pandas as pd
+
+    from core import dawn_precompute as dp
+    from core.backtest_engine import calculate_metrics
+
+    idx = pd.bdate_range(date.today() - timedelta(days=400), periods=250)
+    eq = pd.Series(np.linspace(1.0, 1.2, len(idx)), index=idx)
+    ret = eq.pct_change().fillna(0.0)
+    m = calculate_metrics(eq, [], idx[0], idx[-1])
+    sleeve = {"start": str(idx[0].date()), "end": str(idx[-1].date()), "metrics": m, "ret_net": ret, "equity_net": eq}
+    bt = {"start": str(idx[0].date()), "end": str(idx[-1].date()), "satellite_weight_applied": 0.15, "metrics": m,
+          "equity_net": eq, "ret_net": ret, "core": dict(sleeve),
+          "satellite": {**sleeve, "tickers_ever_held": ["NVDA"],
+                        "rebal_log": [{"date": str(idx[10].date()), "picks": ["NVDA"], "weights": {"NVDA": 1.0},
+                                       "ranked_active": [["NVDA", 0.52], ["META", 0.31]], "rejected_tickers": []}]}}
+    as_of = dp.kst_today()
+    dp.save_result(dp.KIND_CHAMPION_BACKTEST, dp.result_params(dp.KIND_CHAMPION_BACKTEST, as_of, satellite_weight=0.15, collar=False), bt)
+    assert dp.load_latest(dp.KIND_CHAMPION_BACKTEST) is not None
+    at = _run_page(page_env)  # 예외가 없어야 한다
+    assert any("새벽 자동 계산" in c.value for c in at.caption)

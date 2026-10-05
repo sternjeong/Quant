@@ -1061,7 +1061,15 @@ else:
         st.warning("이 구간에는 새틀라이트가 한 번도 종목을 고르지 못해 코어 100%로 대체되었습니다 (기간을 늘려보세요).")
     else:
         with st.expander("새틀라이트 반기 리밸런싱 로그"):
-            st.dataframe(pd.DataFrame(backtest_result["satellite"]["rebal_log"]), use_container_width=True, hide_index=True)
+            # 목록·사전 열(ranked_active 의 [종목, 점수] 등)은 글자로 — 새벽 계산 결과(JSON)를 읽으면 표 변환이 깨진다
+            _log_df = pd.DataFrame(backtest_result["satellite"]["rebal_log"])
+            for _c in _log_df.columns:
+                if _log_df[_c].map(lambda v: isinstance(v, (list, tuple, dict))).any():
+                    _log_df[_c] = _log_df[_c].map(lambda v: ", ".join(
+                        f"{x[0]} {x[1]:.3f}" if isinstance(x, (list, tuple)) and len(x) == 2 and isinstance(x[1], (int, float))
+                        else str(x) for x in v) if isinstance(v, (list, tuple))
+                        else (", ".join(f"{k} {float(w):.0%}" for k, w in v.items()) if isinstance(v, dict) else v))
+            st.dataframe(_log_df, use_container_width=True, hide_index=True)
 
     st.caption(
         "⚠️ 이 백테스트는 왕복 0.1% 거래비용만 반영하며(세금/슬리피지 등은 미포함), 리서치가 실제로 검증한 "

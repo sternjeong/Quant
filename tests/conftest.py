@@ -71,3 +71,13 @@ def _isolate_rnd_topics(tmp_path_factory, monkeypatch):
     from core import rnd_topics
 
     monkeypatch.setattr(rnd_topics, "STATE_PATH", tmp_path_factory.mktemp("rnd_topics") / "rnd_topics.json")
+
+
+@pytest.fixture(autouse=True)
+def _isolate_dawn_and_tax_state(tmp_path_factory, monkeypatch):
+    """새벽 미리 계산 캐시(data/cache/dawn_*)와 올해 실현 이익 입력(data/tax_year.json)을 테스트마다 비운 임시 위치로 —
+    VM 에서 매일 새로 생기는 실제 결과가 화면 테스트를 흔들지 않게(2026-10-06 배포 관문 실패 원인)."""
+    from core import dawn_precompute, tax_planner
+
+    monkeypatch.setattr(dawn_precompute, "CACHE_DIR", tmp_path_factory.mktemp("dawn_cache"))
+    monkeypatch.setattr(tax_planner, "STATE_PATH", tmp_path_factory.mktemp("tax_year") / "tax_year.json")

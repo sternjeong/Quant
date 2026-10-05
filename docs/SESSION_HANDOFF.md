@@ -27,6 +27,11 @@
 - 연구 측정 champion-aftertax-v1(판정 없음, priority 35, 타임아웃 3시간): run_champion_backtest 2010~ 로 같은 계산 — VM 실행기가 돌림. 스모크만 실행(종료 0).
 - 테스트 시간: 4분 40초(부하 없을 때) vs 6분 47초(연구 실행기와 겹칠 때). 특정 테스트 문제 아님(최장 19초 satellite_lab 스모크).
 - 테스트: 전체 2465 passed·4 skipped.
+- **배포 관문 실패 2회(2eb5374·5df1be1, 서비스는 bf9ed0d 유지) → 고침:** 10/06 새벽 계산 결과가 VM 에 생기자 챔피언 전략 화면 '새틀라이트 반기 리밸런싱 로그' 표의
+  ranked_active([종목, 점수] 목록, JSON 으로 읽어 문자·숫자 혼합)가 Streamlit 1.63(VM)에서 표 변환 예외 → 화면 전체 멈춤(실서비스도 10/06 아침부터 같은 문제였을 것).
+  로컬 .venv 는 Streamlit 1.64 라 재현 안 됨. 수정: 목록·사전 열을 글자로 바꿔 표시, tests/conftest.py 가 새벽 캐시·tax_year.json 을 임시 위치로 격리,
+  회귀 테스트(test_page_shows_dawn_backtest_with_ranked_active_lists — VM venv 에서 수정 전 실패·후 통과 확인).
+  **교훈: 배포 전 전체 테스트를 /opt/quant/.venv/bin/python 으로도 돌린다(라이브러리 버전이 다름).** VM venv 전체 2466 passed.
 
 ## 2026-10-05 (후속5) 세금을 고려하는 엔진 (사용자 "이러한 세금들도 고려하도록 엔진을 구축해주라")
 
