@@ -19,6 +19,7 @@
   "exit": {"type": "none"}
 }
 ```
+- **글자 수 제한(넘으면 결정론 검사에서 바로 탈락):** title 1~80자, thesis 1~500자, source 1~300자. 긴 논증은 signal.py 주석에 쓴다.
 - pool: champion40 = 현 규칙과 같은 '섹터별 그 시점 시총 상위 40종목'(반기 갱신), sp500_pit = 그 시점 S&P500 전체.
 - top_k 3~10, hold_months 1·3·6(매월 / 1·4·7·10월 / 1·7월 첫 거래일에 다시 고름).
 - exit: {"type":"none"} 또는 {"type":"trailing_stop","stop_pct":0.05~0.40} (보유 중 고점 대비 하락 시 팔고 다음 리밸런싱까지 현금).

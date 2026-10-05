@@ -63,3 +63,7 @@ video/
 data/satellite_lab/
 research/satellite_lab/variants/
 research/satellite_lab/context.md
+# VM 의 Claude CLI(CLAUDE_CONFIG_DIR=/opt/quant/.claude)가 실행마다 남기는 백업·MCP 로그 — 에이전트 배치 안전장치(_guard)가
+# '허용 범위 밖 변경'으로 오인해 매번 지우고 경고하지 않도록 무시한다(2026-10-05).
+.claude/backups/
+.cache/claude-cli-nodejs/

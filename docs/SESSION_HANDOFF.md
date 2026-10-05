@@ -19,6 +19,14 @@
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
 
+## 2026-10-05 상태 점검 (사용자 요청 "연구 에이전트·엔진 정상 작동?")
+
+- 정상: 서비스 4개 active. 연구 작업 전부 done(info·tech·sprint-2w 는 10/02 저녁 첫 실행에 끝까지 계산 — 스프린트 1,044+180+22+F4 완료, 결과 research/results/). 아침 재추천 10/03·04·05 09:01 실행·캐시 저장. 새틀라이트 R&D: 에이전트 아이디어 S-20261004-001(거래 과열 승자 제외)이 테스트·Critic 통과 → 10/05 13:20 심판 FAIL(91백분위). 새벽 배치 매일 실행(scout·sat_designer·sat_critic·postmortem).
+- 이상 1(수정): 10/02 배포 관문의 test_agent_system(당시 격리 없음, 테스트 시각 2026-10-05 03:10)이 VM 실제 data/satellite_lab/agent/S-20261005-001.json 에 가짜 설계 횟수를 남겨, 10/05 새벽 진짜 아이디어가 1회 실패로 바로 폐기됨. 58e8361 에서 격리는 이미 고쳤고, 상태 파일을 rounds=1 로 수동 정정(note 필드).
+- 이상 2(수정, 미배포): sat_designer 가 thesis/source 글자 수(500/300) 제한을 몰라 형식 탈락 → _sat_contract.md 에 명시. Claude CLI 백업·MCP 로그(.claude/backups, .cache/claude-cli-nodejs)를 _guard 가 매번 지우며 경고 → .gitignore.
+- 참고: writer(일반 가설) 10/05 실패 1회, S-20261003-001 은 자기 테스트 실패로 오늘 밤 폐기 예정(정상 동작).
+- 결과 요약: sprint-2w 4가족 전부 KEEP_CURRENT(F1 승자 PBO 79%, F2 9개월·5종목이 앞 구간 최선이나 PBO 57%·최근 2년 패배, F3 보유 중 매도 규칙 전부 현 규칙보다 나쁨, F4 PBO 57~86%). tech-rnd-v1: 단독·결합 모두 KEEP_CURRENT(차트 규칙 최고 골든크로스 0.82 < 새틀라이트 0.85, 고변동 국면에서 −15~−27%).
+
 ## 2026-10-02 (후속4) 매매 실행 R&D + 2주 R&D 스프린트 + 아침 9시 자동 재추천 (구현·테스트, 배포 전)
 
 - 사용자 요청: "얼마에 사고팔아야 하나" 연구 → exec-rnd-v1(core/execution_lab.py, 사전 등록 26칸). 실데이터(매매 578건) 결과 26칸 전부 FAIL —
