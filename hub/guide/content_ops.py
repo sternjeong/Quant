@@ -51,6 +51,18 @@ JOBS: tuple[JobGuide, ...] = (
         verified="2026-10-05",
     ),
     JobGuide(
+        job_id="forward_tournament_record",
+        where_to_see="관제 센터 'R&D 센터'의 '앞으로 기록' 표, 월요일 '[주간 엔진 점검]'의 '앞으로 토너먼트' 줄, VM data/forward_tournament/ledger.jsonl",
+        if_alert="실패 알림이면 가격 조회 문제일 가능성이 큽니다 — 다음 날 자동으로 다시 기록합니다(빠진 날은 그 전 비중이 이어진 것으로 평가). 4일 넘게 멈추면 주간 점검이 경고합니다. 원하지 않으면 R&D 센터에서 주제를 끄거나 '/processes off forward_tournament_record'.",
+        verified="2026-10-05",
+    ),
+    JobGuide(
+        job_id="dawn_precompute",
+        where_to_see="챔피언 전략 화면(2. 새틀라이트 두 탭·3. 백테스트)과 챔피언 성과 화면(A. 최근 5년)에 '🌅 새벽 자동 계산 결과' 문구와 함께 바로 보임. 모두 정상이면 텔레그램은 오지 않습니다.",
+        if_alert="'새벽 미리 계산' 실패 알림은 실패한 단계만 적습니다. 그 화면에서 버튼을 눌러 직접 계산하면 되고, 같은 단계가 매일 실패하면 개발 요청으로 확인하세요. 'VM 여유가 없어 건너뜀'은 그 시각에 다른 무거운 작업이 돌던 것입니다. 원하지 않으면 '/processes off dawn_precompute'(버튼은 그대로 쓸 수 있음).",
+        verified="2026-10-05",
+    ),
+    JobGuide(
         job_id="engine_weekly_audit",
         where_to_see="텔레그램 '[주간 엔진 점검]' 1건(정상이어도 옴), VM data/engine_audit/latest.json(날짜별 사본도 남음)",
         if_alert="❌(문제) 항목부터 봅니다. 서비스가 멈췄으면 관제 센터 '운영 상태', 자동 잡 문제면 그 잡 설명의 대처를 따릅니다. '설계 횟수가 상한을 넘은 기록'은 테스트·수동 조작이 실서비스 상태를 건드렸다는 뜻이라 개발 요청으로 원인을 찾습니다. 바로 다시 돌려 보려면 'python scripts/engine_audit.py'. 원하지 않으면 '/processes off engine_weekly_audit'.",

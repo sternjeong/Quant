@@ -5,6 +5,7 @@
   B. 실제 시장 기록(2026-09-19~): ChampionLedgerEntry 원장('추천을 따랐다면')과 paper 계좌(모의투자).
 
 페이지 진입만으로 긴 계산을 시작하지 않는다 — 캐시가 있으면 즉시 표시, 없으면 버튼 + job_manager.
+기본 기간(최근 5년)은 매일 새벽 자동 잡 dawn_precompute(core/dawn_precompute.py)가 같은 캐시에 미리 계산해 둔다.
 job_manager.ensure()는 쓰지 않는다(매 rerun 호출 시 다른 위젯 클릭을 삼키는 문제, 11_챔피언_전략.py 주석 참고).
 """
 
@@ -40,6 +41,7 @@ from core.champion_performance import (
     to_dollars,
 )
 from core.champion_strategy import SATELLITE_WEIGHT
+from core.dawn_precompute import schedule_label as dawn_schedule_label
 from core.db import init_db
 from core.theme import apply_theme
 from core.ui_status import render_status_header
@@ -179,10 +181,17 @@ with pc2:
         st.caption(f"시작일 {bt_start} → 종료일 오늘({today.isoformat()})")
 
 cached = load_latest_cached(start=bt_start, satellite_weight=SATELLITE_WEIGHT)
-fresh_today = load_cached(cache_params(bt_start, today.isoformat(), SATELLITE_WEIGHT)) is not None
+# 새벽 미리 계산(자동 잡 dawn_precompute)은 한국 날짜를 종료일로 쓴다 — 09:00 KST 전에는 서버(UTC) 날짜보다 하루 뒤라,
+# 종료일이 오늘 이후인 결과도 '오늘 계산됨'으로 본다(그 결과에는 막 끝난 미국 장 종가까지 들어 있다).
+fresh_today = (load_cached(cache_params(bt_start, today.isoformat(), SATELLITE_WEIGHT)) is not None
+               or str((cached or {}).get("params", {}).get("end", "")) >= today.isoformat())
 
 n_half_years = max(1, (today.year - int(bt_start[:4])) * 2)
 btn_label = "📊 오늘 데이터로 다시 계산" if cached else "📊 계산 시작"
+st.caption(
+    f"🌅 기본 기간(최근 5년)은 매일 새벽 {dawn_schedule_label()} KST 에 자동으로 미리 계산해 둡니다(자동 잡 dawn_precompute) — "
+    "아침에 열면 기다리지 않고 바로 보입니다. 다른 기간은 버튼으로 계산합니다."
+)
 if st.button(btn_label, disabled=fresh_today, help="이미 오늘 날짜로 계산된 결과가 있으면 비활성화됩니다."):
     job_manager.start(
         "champion_performance", compute_backtest_performance, bt_start, today.isoformat(),

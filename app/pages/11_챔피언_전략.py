@@ -23,6 +23,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from core import champion_recommendation as cr
+from core import dawn_precompute as dawn
 from core import job_manager
 from core.backtest_engine import compute_drawdown_series, compute_monthly_returns
 from core.champion_strategy import (
@@ -817,6 +818,12 @@ with sat_tab_pit:
 
     satellite_pit_result = st.session_state.get("champion_satellite_pit_result")
     if satellite_pit_result is None:
+        # 버튼을 아직 안 눌렀으면 새벽 미리 계산(자동 잡 dawn_precompute, 같은 함수·같은 사이징)의 최근 결과를 바로 보여 준다.
+        _pit_dawn = dawn.load_latest(dawn.KIND_SATELLITE_PIT, sizing_method=satellite_sizing_method)
+        if _pit_dawn is not None:
+            satellite_pit_result = _pit_dawn["result"]
+            st.caption(dawn.loaded_caption(_pit_dawn))
+    if satellite_pit_result is None:
         st.caption("아직 계산하지 않았습니다.")
     else:
         pit_selected = satellite_pit_result["selected"]
@@ -868,6 +875,11 @@ with sat_tab_scan:
 
     satellite_result = st.session_state.get("champion_satellite_result")
     if satellite_result is None:
+        _scan_dawn = dawn.load_latest(dawn.KIND_SATELLITE_SCAN, sizing_method=satellite_sizing_method)
+        if _scan_dawn is not None:
+            satellite_result = _scan_dawn["result"]
+            st.caption(dawn.loaded_caption(_scan_dawn))
+    if satellite_result is None:
         st.caption("아직 스캔하지 않았습니다.")
     else:
         selected = satellite_result["selected"]
@@ -908,7 +920,7 @@ _page_link("pages/14_챔피언_성과.py", "📒 언제 사고 팔아 얼마를 
 
 bt_col1, bt_col2, bt_col3 = st.columns(3)
 with bt_col1:
-    bt_start = st.date_input("시작일", value=date.today().replace(year=date.today().year - 3))
+    bt_start = st.date_input("시작일", value=dawn.default_backtest_start(date.today()))
 with bt_col2:
     bt_end = st.date_input("종료일", value=date.today())
 with bt_col3:
@@ -949,11 +961,24 @@ if backtest_job is not None:
 
 backtest_result = st.session_state.get("champion_backtest_result")
 if backtest_result is None:
+    # 버튼을 아직 안 눌렀으면 새벽 미리 계산(기본 설정: 최근 3년·새틀라이트 15%·칼라 없음)의 최근 결과를 바로 보여 준다.
+    _bt_dawn = dawn.load_latest(dawn.KIND_CHAMPION_BACKTEST, sizing_method=bt_sizing_method)
+    if _bt_dawn is not None:
+        backtest_result = _bt_dawn["result"]
+        st.caption(dawn.loaded_caption(
+            _bt_dawn,
+            f"기간 {backtest_result['start']} ~ {backtest_result['end']} · 새틀라이트 비중 "
+            f"{float(_bt_dawn['params'].get('satellite_weight', SATELLITE_WEIGHT)):.0%} · 칼라 헤지 비교선 없음",
+        ))
+if backtest_result is None:
     st.caption("아직 백테스트를 실행하지 않았습니다.")
 else:
     equity = backtest_result["equity_net"]
-    spy_bench = get_price_history("SPY", start=backtest_result["start"], end=backtest_result["end"])
-    spy_equity = (spy_bench["Close"] / spy_bench["Close"].iloc[0] * 100.0) if not spy_bench.empty else None
+    if "spy_equity" in backtest_result:  # 새벽 미리 계산 결과는 SPY 비교선을 함께 저장해 둔다(화면을 열 때 가격 조회 없음)
+        spy_equity = backtest_result["spy_equity"]
+    else:
+        spy_bench = get_price_history("SPY", start=backtest_result["start"], end=backtest_result["end"])
+        spy_equity = (spy_bench["Close"] / spy_bench["Close"].iloc[0] * 100.0) if not spy_bench.empty else None
 
     eq_fig = go.Figure()
     eq_fig.add_trace(go.Scatter(x=equity.index, y=equity.values, name="챔피언(코어+새틀라이트)", line=dict(width=2, color="#5B8DEF")))

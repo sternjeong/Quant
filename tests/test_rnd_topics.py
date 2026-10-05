@@ -22,7 +22,7 @@ def topics(tmp_path, monkeypatch):
 
 # ---------------------------------------------------------------- 주제 스위치
 def test_topics_default_on_and_persist(topics):
-    assert all(v["on"] for v in rt.all_states().values()) and len(rt.TOPICS) == 6
+    assert all(v["on"] for v in rt.all_states().values()) and len(rt.TOPICS) == 7
     rt.set_on("sat_entry", False, actor="test")
     assert rt.is_on("sat_entry") is False and rt.is_on("sat_exit") is True
     assert rt.enabled_sat_topics() == ["selection", "exit"]
@@ -179,4 +179,4 @@ def test_hub_topics_section_has_toggle_forms(topics):
     from hub import satellite_lab_page as page
 
     html_out = page.render_topics({"topics": rt.all_states()})
-    assert html_out.count('action="/rnd/topics"') == 6 and "끄기" in html_out
+    assert html_out.count('action="/rnd/topics"') == len(rt.TOPICS) and "끄기" in html_out

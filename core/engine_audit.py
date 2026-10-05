@@ -209,6 +209,36 @@ def check_daily_recommendation(now: datetime, cache_dir: Optional[Path] = None) 
     return _c("아침 자동 재추천", OK, "지난 7일 매일 계산됨")
 
 
+def check_dawn_precompute(now: datetime, cache_dir: Optional[Path] = None) -> Check:
+    """새벽 미리 계산(06:40 KST, core/dawn_precompute.py)이 지난 7일 매일 돌았고 실패한 단계가 없는지 — 실행 기록만 읽는다."""
+    from core import dawn_precompute as dp
+
+    hist = dp.load_status(cache_dir).get("history") or []
+    if not hist:
+        return _c("새벽 미리 계산", WARN, f"실행 기록 없음 — 매일 {dp.schedule_label()} KST 잡이 아직 안 돌았거나 꺼짐")
+    k = now.astimezone(KST)
+    expected = [(k.date() - timedelta(days=i)).isoformat() for i in range(7)]
+    if (k.hour, k.minute) < (7, 30):  # 오늘 회차가 끝나기 전이면 오늘은 빼고 7일
+        expected = expected[1:] + [(k.date() - timedelta(days=7)).isoformat()]
+    first = min(str(h.get("as_of")) for h in hist)  # 잡이 생긴 뒤부터만 센다
+    expected = [d for d in expected if d >= first]
+    ran = {str(h.get("as_of")) for h in hist if h.get("status") in (dp.STATUS_OK, dp.STATUS_PARTIAL)}
+    missing = sorted(d for d in expected if d not in ran)
+    week = [h for h in hist if str(h.get("as_of")) in set(expected)]
+    failed = sorted({f for h in week for f in (h.get("failed") or [])})
+    skipped = sum(1 for h in week if h.get("status") == dp.STATUS_SKIPPED)
+    if len(missing) >= 3:
+        return _c("새벽 미리 계산", FAIL, f"지난 7일 중 {len(missing)}일 결과 없음: {', '.join(missing)}")
+    issues = []
+    if missing:
+        issues.append(f"빠진 날 {', '.join(missing)}" + (f"(VM 여유 없어 건너뜀 {skipped}회)" if skipped else ""))
+    if failed:
+        issues.append(f"실패한 단계 {', '.join(failed)}")
+    last = hist[-1]
+    note = f"최근 {last.get('as_of')} {float(last.get('seconds') or 0) / 60:.0f}분"
+    return _c("새벽 미리 계산", WARN if issues else OK, "; ".join(issues + [note]) if issues else f"지난 7일 매일 계산됨 · {note}")
+
+
 def check_signal_and_prices(now: datetime) -> Check:
     from core import champion_strategy as cs
     from core import market_data as md
@@ -267,6 +297,26 @@ def check_crypto_shadow(now: datetime) -> Check:
         return _c("코인 추세 기록", OK, f"{len(rows)}일 기록(경과 계산 실패: {type(exc).__name__})")
 
 
+def check_forward_tournament(now: datetime) -> Check:
+    from core import forward_tournament as ft
+
+    rows = ft.load_ledger()
+    if now.date() >= ft.START and not rows:
+        return _c("앞으로 토너먼트", WARN, "기록이 하나도 없음 — 00:39 기록 잡 확인")
+    last = max((r["date"] for r in rows), default=None)
+    if last and (now.date() - date.fromisoformat(last)).days > 4:
+        return _c("앞으로 토너먼트", WARN, f"마지막 기록 {last} — 4일 넘게 멈춤")
+    try:
+        ev = ft.evaluate_live()
+        cands = ev.get("candidates") or {}
+        best = max((c for k, c in cands.items() if k != "T0" and c.get("days")),
+                   key=lambda c: c.get("excess_vs_T0", 0), default=None)
+        lead = f" · T0 대비 선두 {best['label']} {best['excess_vs_T0'] * 100:+.2f}%p" if best else ""
+        return _c("앞으로 토너먼트", OK, f"{len(rows)}일 기록 · {ev.get('days', 0)}/{ft.MIN_DAYS}거래일{lead}")
+    except Exception as exc:  # noqa: BLE001 - 경과 계산 실패는 기록 자체와 구분
+        return _c("앞으로 토너먼트", OK, f"{len(rows)}일 기록(경과 계산 실패: {type(exc).__name__})")
+
+
 def check_disk(root: str = "/") -> Check:
     u = shutil.disk_usage(root)
     free_gb = u.free / 1024 ** 3
@@ -284,9 +334,11 @@ CHECKS: tuple[tuple[str, Callable[[datetime], Check]], ...] = (
     ("새틀라이트 R&D", check_satellite_lab),
     ("야간 AI 에이전트", check_agent_batch),
     ("아침 자동 재추천", check_daily_recommendation),
+    ("새벽 미리 계산", check_dawn_precompute),
     ("신호·가격 데이터", check_signal_and_prices),
     ("AI 국제정세 의견", check_geo_shadow),
     ("코인 추세 기록", check_crypto_shadow),
+    ("앞으로 토너먼트", check_forward_tournament),
     ("디스크", lambda now: check_disk()),
 )
 

@@ -49,6 +49,14 @@ def collect() -> dict[str, Any]:
     except Exception:  # noqa: BLE001
         pass
     try:
+        from core import forward_tournament as ft
+
+        rows = ft.load_ledger()
+        data["tournament"] = {"records": len(rows), "last": rows[-1].get("date") if rows else None,
+                              "labels": {k: v["label"] for k, v in ft.CANDIDATES.items()}}
+    except Exception:  # noqa: BLE001
+        pass
+    try:
         from core import satellite_lab as sl
 
         reg = sl.load_registry()
@@ -149,10 +157,13 @@ def render_core(data: dict) -> str:
 def render_shadows(data: dict) -> str:
     c = data.get("crypto") or {}
     g = data.get("geo") or {}
+    t = data.get("tournament") or {}
     last = c.get("last") or {}
     on = ", ".join(f'{t.split("-")[0]} {"보유" if v.get("on") else "현금"}' for t, v in (last.get("assets") or {}).items())
     return ('<h2>앞으로 기록(배분 미반영)</h2><table>'
             f'<tr><th>코인 추세 기록</th><td>{_e(c.get("records", 0))}일 · 최근 {_e(last.get("date"))} {html.escape(on)} · 12개월(252거래일) 뒤 판정</td></tr>'
+            f'<tr><th>앞으로 토너먼트</th><td>{_e(t.get("records", 0))}일 · 최근 {_e(t.get("last"))} · '
+            f'{html.escape(" · ".join(f"{k} {v}" for k, v in (t.get("labels") or {}).items()))} · 252거래일 뒤 판정(주간 엔진 점검에 경과)</td></tr>'
             f'<tr><th>AI 국제정세 의견</th><td>{_e(len(g.get("months") or []))}개월 · {_e(", ".join(g.get("months") or []) or "아직 없음")} · 24개월 뒤 판정</td></tr>'
             '</table>')
 

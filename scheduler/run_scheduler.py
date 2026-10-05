@@ -16,7 +16,8 @@ core.daily_briefing 참고 — 다른 야간 잡들이 그날의 데이터를 �
 매주 일요일 20:20(America/New_York)에는 챔피언 전략 주간 HTML 보고를 텔레그램으로 전송한다.
 그 밖에 00:27~00:46 관측 전용 잡(후보 원장 기록/결과 갱신, 가이던스·공시 거부권 shadow, 계좌 스냅샷,
 Alpaca 검증, 비용 보정, 변형 shadow, paper 추적오차), 12:00 거장 보유종목 동기화, 07:30 뉴스 다이제스트,
-09:01 챔피언 '지금 할 일' 자동 재추천(+텔레그램 요약), 화~토 06:10 paper 자동 주문(기본 꺼짐), 일요일 00:50 전략 변형 연구 보고서, 일요일 01:10 챔피언 주간 추적 판정이 있다. 등록된 잡 전체의 정확한
+09:01 챔피언 '지금 할 일' 자동 재추천(+텔레그램 요약), 06:40 새벽 미리 계산(챔피언 성과·전략 화면 버튼 계산을
+기본값으로 미리), 화~토 06:10 paper 자동 주문(기본 꺼짐), 일요일 00:50 전략 변형 연구 보고서, 일요일 01:10 챔피언 주간 추적 판정이 있다. 등록된 잡 전체의 정확한
 표는 core/job_schedule.py 이다(tests/test_job_health.py 가 main()과 일치하는지 검증). 야간 전략 미세튜닝
 잡은 2026-09-24 에 삭제됐다.
 
@@ -1048,6 +1049,47 @@ def champion_recommendation_daily_job() -> None:
     print(f"[{datetime.now()}] champion_recommendation_daily_job 종료")
 
 
+# 새벽 미리 계산이 VM 여유를 기다리는 최대 시간과 확인 간격(초). 07:50 연구 실행 창 전에 끝나도록 아침 재추천보다 짧게 잡는다.
+DAWN_PRECOMPUTE_HEADROOM_WAIT_S = 20 * 60
+DAWN_PRECOMPUTE_HEADROOM_POLL_S = 5 * 60
+
+
+def dawn_precompute_job() -> None:
+    """새벽 미리 계산 (core/dawn_precompute.py run_all) — 화면 버튼으로 기다리던 계산을 기본 설정으로 미리 돌려 둔다. 주문 없음.
+
+    사용자 요청(2026-10-05): "내가 당일 눌러서 확인할 수 있는거 미리 새벽 시간에 일단 돌려놔주라". 챔피언 성과 최근 5년 백테스트,
+    챔피언 전략의 point-in-time 새틀라이트·3. 백테스트(최근 3년)·새틀라이트 후보 스캔을 화면 기본값으로 계산해 화면이 읽는 캐시에 둔다.
+    시각(06:40 KST): 미국 장 마감(서머타임 05:00, 겨울 06:00 KST)과 마감 정산(16:15 ET) 뒤라 마지막 봉이 확정 값이고, 06:30 백업이
+    끝난 뒤이며, 03:00~05:50 에이전트 배치·06:10 paper 주문·07:30 뉴스·07:50 연구 실행 창(스프린트 기간)·09:01 아침 재추천과
+    겹치지 않는다(VM 은 2코어). 가격 캐시가 데워져 있으면 수 분, 처음이면 수십 분까지 걸릴 수 있다. VM 여유가 없으면 최대
+    20분 기다렸다가 그래도 없으면 건너뛰고 실패로 기록·알린다. 단계 하나의 실패는 그 단계만 실패로 남기고 나머지를 계속한다.
+    """
+    if not is_enabled("dawn_precompute"):
+        print(f"[{datetime.now()}] dawn_precompute_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
+    print(f"[{datetime.now()}] dawn_precompute_job 시작")
+    from core import telegram_notify
+
+    try:
+        from core import dawn_precompute as dp
+
+        if not _wait_for_headroom(DAWN_PRECOMPUTE_HEADROOM_WAIT_S, DAWN_PRECOMPUTE_HEADROOM_POLL_S):
+            reason = f"VM 여유(CPU·메모리)가 {DAWN_PRECOMPUTE_HEADROOM_WAIT_S // 60}분 동안 없음"
+            print(f"  - 새벽 미리 계산 건너뜀: {reason}")
+            dp.record_skip(reason)
+            report_job_failure("dawn_precompute", reason)
+            telegram_notify.send_message(dp.skip_message(reason))
+        else:
+            summary = dp.run_all(notify=telegram_notify.send_message)
+            print(f"  - 기준일 {summary['as_of']} {summary['status']} {summary['seconds']}s 실패 {summary['failed']}")
+            if summary["failed"]:
+                report_job_failure("dawn_precompute", "일부 단계 실패: " + ", ".join(summary["failed"]))
+    except Exception as exc:  # noqa: BLE001 - 다음 날 스케줄을 막지 않도록 기록만 한다
+        print(f"  - 새벽 미리 계산 실패: {type(exc).__name__}: {exc}")
+        report_job_failure("dawn_precompute", f"{type(exc).__name__}: {exc}")
+    print(f"[{datetime.now()}] dawn_precompute_job 종료")
+
+
 def strategy_research_report_job() -> None:
     """전략 변형 연구 보고서 작성 — 관측 전용, 주 1회(일요일 00:50 KST).
 
@@ -1093,6 +1135,32 @@ def crypto_shadow_record_job() -> None:
         print(f"  - 코인 추세 기록 실패: {type(exc).__name__}: {exc}")
         report_job_failure("crypto_shadow_record", f"{type(exc).__name__}: {exc}")
     print(f"[{datetime.now()}] crypto_shadow_record_job 종료")
+
+
+def forward_tournament_record_job() -> None:
+    """앞으로 토너먼트 기록 (core/forward_tournament.py). 배분 반영 없음, 주문 없음.
+
+    시각(00:39 KST): 미국 장 마감 뒤 야간 블록의 빈 슬롯(00:37 코인 기록 다음).
+    """
+    if not is_enabled("forward_tournament_record"):
+        print(f"[{datetime.now()}] forward_tournament_record_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
+    print(f"[{datetime.now()}] forward_tournament_record_job 시작")
+    try:
+        from core import rnd_topics
+
+        if not rnd_topics.is_on("forward_tournament"):
+            print("  - R&D 센터에서 '앞으로 토너먼트' 주제가 꺼져 있어 건너뜀")
+            print(f"[{datetime.now()}] forward_tournament_record_job 종료")
+            return
+        from core.forward_tournament import record
+
+        res = record()
+        print(f"  - {res.get('date')} 기록={res.get('recorded')} ({res.get('reason', '')})")
+    except Exception as exc:  # noqa: BLE001
+        print(f"  - 앞으로 토너먼트 기록 실패: {type(exc).__name__}: {exc}")
+        report_job_failure("forward_tournament_record", f"{type(exc).__name__}: {exc}")
+    print(f"[{datetime.now()}] forward_tournament_record_job 종료")
 
 
 def engine_weekly_audit_job() -> None:
@@ -1403,6 +1471,19 @@ def main() -> None:
         misfire_grace_time=1800,
     )
     scheduler.add_job(
+        dawn_precompute_job,
+        # 사용자 요청(2026-10-05): 화면 버튼으로 기다리던 계산을 새벽에 미리. 미국 장 마감·정산 뒤(겨울에도 16:40 ET),
+        # 06:30 백업 뒤, 07:30 뉴스·07:50 연구 창·09:01 재추천 전 빈 슬롯. 오래 걸릴 수 있어 겹치지 않게 max_instances=1,
+        # 스케줄러 재시작 등으로 잠깐 밀리면 30분 안에는 그대로 돈다.
+        trigger=CronTrigger(hour=6, minute=40, timezone="Asia/Seoul"),
+        id="dawn_precompute",
+        name="매일 한국시간 06:40 새벽 미리 계산 (챔피언 성과·전략 화면 기본값, 주문 없음)",
+        replace_existing=True,
+        max_instances=1,
+        coalesce=True,
+        misfire_grace_time=1800,
+    )
+    scheduler.add_job(
         strategy_research_report_job,
         # 주 1회면 충분: shadow 표본이 하루 1건씩 쌓여 판정에 주 단위가 필요하다. 일요일 KST 는 금요일 미국
         # 장마감 기록이 반영된 뒤다.
@@ -1417,6 +1498,14 @@ def main() -> None:
         trigger=CronTrigger(hour=0, minute=37, timezone="Asia/Seoul"),
         id="crypto_shadow_record",
         name="매일 한국시간 00:37 코인 추세 슬리브 앞으로 기록 (배분 미반영)",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        forward_tournament_record_job,
+        # 사용자 요청(2026-10-05): 과거 데이터 과적합을 벗어나 후보들을 앞으로 가상 운용. 00:37 코인 기록 다음 빈 슬롯.
+        trigger=CronTrigger(hour=0, minute=39, timezone="Asia/Seoul"),
+        id="forward_tournament_record",
+        name="매일 한국시간 00:39 앞으로 토너먼트 기록 (배분 미반영)",
         replace_existing=True,
     )
     scheduler.add_job(
@@ -1454,7 +1543,7 @@ def main() -> None:
     print("에는 가격/FRED 캐시/뉴스 다이제스트 데이터 무결성을 체크해 이상 감지 시 텔레그램으로")
     print("알리며, 00:25 에는 그날 밤 결과를 모은 오늘의 브리핑 HTML을 텔레그램으로 전송합니다.")
     print("매일 한국시간 07:30에는 무료 뉴스 API 기반 티커별 HTML/Telegram 리포트를 보냅니다.")
-    print("그 밖에 00:27~00:46 관측 전용 잡, 12:00 거장 보유종목 동기화, 화~토 06:10 paper 자동 주문(기본")
+    print("그 밖에 00:27~00:46 관측 전용 잡, 12:00 거장 보유종목 동기화, 06:40 새벽 미리 계산, 화~토 06:10 paper 자동 주문(기본")
     print("꺼짐), 일요일 00:50 전략 변형 연구 보고서, 01:10 챔피언 주간 추적 판정이 등록됩니다(전체 목록:")
     print("core/job_schedule.py).")
     print("Ctrl+C 로 종료할 수 있습니다.")

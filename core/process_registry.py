@@ -219,6 +219,14 @@ PROCESS_REGISTRY: dict[str, dict] = {
         ),
         "category": "research", "default_enabled": True,
     },
+    "forward_tournament_record": {
+        "label": "앞으로 토너먼트 기록",
+        "description": (
+            "현 코어(기준선)와 후보 5개(비트코인 18번째 자산·9개월 5종목·혼합 모멘텀·4분할·코인 추세 5%), SPY, 60/40 의 "
+            "목표 비중을 매일 밤 원장에 한 줄 기록 — 배분에 반영하지 않는 사전 등록 검증, 252거래일 뒤 판정 (00:39 KST)"
+        ),
+        "category": "research", "default_enabled": True,
+    },
     "engine_weekly_audit": {
         "label": "주간 엔진 점검",
         "description": (
@@ -235,6 +243,16 @@ PROCESS_REGISTRY: dict[str, dict] = {
             "VM 여유가 없으면 최대 30분 기다린 뒤 건너뛰고 실패로 알림 (09:01 KST — 09:00 은 대회 마감 알림 자리)"
         ),
         "category": "alert", "default_enabled": True,
+    },
+    "dawn_precompute": {
+        "label": "새벽 미리 계산 — 화면 버튼 계산 미리 돌려 두기",
+        "description": (
+            "낮에 버튼을 눌러 기다리던 계산을 기본 설정으로 미리 돌려 화면을 열면 바로 보이게 함: 가격 최신화, 챔피언 성과 "
+            "최근 5년 백테스트, 챔피언 전략의 point-in-time 새틀라이트·3. 백테스트(최근 3년)·새틀라이트 후보 스캔(S&P500). "
+            "계산·저장만 하며 주문 없음. 한 단계가 실패해도 나머지는 계속하고 실패가 있을 때만 텔레그램 1건, VM 여유가 없으면 "
+            "최대 20분 기다린 뒤 건너뜀. 끄면 화면 버튼을 눌러 직접 계산(06:40 KST — 미국 장 마감·06:30 백업 뒤, 09:01 재추천 전)"
+        ),
+        "category": "maintenance", "default_enabled": True,
     },
     "champion_tracking_weekly": {
         "label": "챔피언 전략 주간 추적 판정",
