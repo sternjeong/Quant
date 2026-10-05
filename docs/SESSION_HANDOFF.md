@@ -32,6 +32,7 @@
   로컬 .venv 는 Streamlit 1.64 라 재현 안 됨. 수정: 목록·사전 열을 글자로 바꿔 표시, tests/conftest.py 가 새벽 캐시·tax_year.json 을 임시 위치로 격리,
   회귀 테스트(test_page_shows_dawn_backtest_with_ranked_active_lists — VM venv 에서 수정 전 실패·후 통과 확인).
   **교훈: 배포 전 전체 테스트를 /opt/quant/.venv/bin/python 으로도 돌린다(라이브러리 버전이 다름).** VM venv 전체 2466 passed.
+  **배포 완료 3c95373**(관문 통과 23:50 UTC, 서비스 재시작) — 새틀라이트 포함 세후 화면·champion-aftertax-v1 작업도 이 배포로 반영.
 
 ## 2026-10-05 (후속5) 세금을 고려하는 엔진 (사용자 "이러한 세금들도 고려하도록 엔진을 구축해주라")
 
