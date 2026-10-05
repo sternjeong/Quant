@@ -1107,7 +1107,7 @@ def _changed_text(label: str, before: list[str], after: list[str]) -> Optional[s
 
 
 def daily_todo_message(rec: dict, *, previous: Optional[dict] = None, today: Optional[date] = None,
-                       checkpoints: Optional[dict] = None) -> str:
+                       checkpoints: Optional[dict] = None, order_lines: Optional[list[str]] = None) -> str:
     """재추천 결과 → 텔레그램 요약 1건(일반 텍스트, 15줄 이하). 계산하지 않고 주문하지 않는다.
 
     목표 포트폴리오(전체 기준 비중)·시장필터·추천 상태(freshness)·직전 추천 대비 변화·다음 확인일을 담는다.
@@ -1156,8 +1156,101 @@ def daily_todo_message(rec: dict, *, previous: Optional[dict] = None, today: Opt
     cp = checkpoints or next_checkpoints(today)
     lines.append(f"다음 확인: 코어 {cp['core_next']}(매달 첫 거래일) · 새틀라이트는 오늘 사면 "
                  f"{cp['satellite_next']}까지 보유")
-    lines.append("내 보유와 비교한 매도/매수 목록: 퀀트 대시보드 '챔피언 전략' → ✅ 지금 할 일")
+    if order_lines:
+        lines += order_lines  # 종목·약 몇 주·금액(2026-10-05) — 이 경우 메시지가 15줄을 넘을 수 있다
+        lines.append("화면: 퀀트 대시보드 '챔피언 전략' → ✅ 지금 할 일")
+    else:
+        lines.append("내 보유와 비교한 매도/매수 목록: 퀀트 대시보드 '챔피언 전략' → ✅ 지금 할 일")
     return "\n".join(lines)
+
+
+# ---------------------------------------------------------------- 주문 목록에 '현재가·몇 주' (2026-10-05 사용자 요청)
+ORDER_METHOD_NOTE = ("주문 방식: 리밸런싱 날 장 마감 무렵 시장가 — 지정가·목표가는 쓰지 않습니다"
+                     "(매매 실행 R&D 에서 지정가·눌림목·분할·익절 모두 손해). 주식 수는 현재가 기준 근사(소수점 버림).")
+DAILY_DEFAULT_CAPITAL = 10_000.0
+
+
+def reference_prices(rec: dict, tickers: list[str], fetch: Optional[Callable[[str], Optional[float]]] = None) -> dict[str, float]:
+    """주식 수 계산용 현재가. 재추천 결과의 근거 표(코어 last_close·새틀라이트 current_price)를 먼저 쓰고, 없으면(예: BIL) 조회."""
+    prices: dict[str, float] = {}
+    for r in (rec.get("core") or {}).get("evidence") or []:
+        if r.get("last_close"):
+            prices[r["ticker"]] = float(r["last_close"])
+    for r in (rec.get("satellite") or {}).get("evidence") or []:
+        if r.get("current_price"):
+            prices[r["ticker"]] = float(r["current_price"])
+
+    def _fetch(t: str) -> Optional[float]:
+        try:
+            from core.market_data import get_price_history
+
+            df = get_price_history(t, start=(date.today() - timedelta(days=20)).isoformat(), interval="1d")
+            return float(df["Close"].dropna().iloc[-1]) if df is not None and not df.empty else None
+        except Exception:  # noqa: BLE001 - 가격을 못 받으면 주식 수만 비운다
+            return None
+
+    fetch = fetch or _fetch
+    for t in tickers:
+        if t not in prices and t != CASH_TICKER:
+            px = fetch(t)
+            if px:
+                prices[t] = px
+    return prices
+
+
+def order_rows_with_shares(rows: list[dict], prices: dict[str, float],
+                           held_qty: Optional[dict[str, float]] = None) -> list[dict]:
+    """order_plan() 행에 price·shares 를 붙인다. 전량 매도는 보유 주식 수 그대로, 매도는 보유 수를 넘지 않게."""
+    held_qty = held_qty or {}
+    out = []
+    for r in rows:
+        px = prices.get(r["ticker"])
+        q = held_qty.get(r["ticker"])
+        shares = None
+        if r["action"] == "전량 매도" and q:
+            shares = int(q) if float(q).is_integer() else round(float(q), 4)
+        elif r["action"] in ("매수", "매도"):
+            shares = estimate_shares(r["delta_value"], px)["shares"]
+            if r["action"] == "매도" and q is not None and shares is not None:
+                shares = min(shares, int(q))
+        out.append({**r, "price": px, "shares": shares})
+    return out
+
+
+def share_text(r: dict) -> str:
+    """'약 N주' — 금액이 1주 값보다 작으면 그렇게 적는다(소액이면 새틀라이트 고가주는 1주도 못 살 수 있다)."""
+    if r.get("shares") is None:
+        return "주식 수 계산 불가"
+    if r["shares"] == 0 and r.get("price"):
+        return f"1주 미만(1주 ${r['price']:,.0f} > ${abs(r['delta_value']):,.0f})"
+    return f"약 {r['shares']}주"
+
+
+def daily_order_lines(rec: dict, holdings_pnl=None, cash_balance: float = 0.0,
+                      prices: Optional[dict[str, float]] = None, max_rows: int = 8) -> list[str]:
+    """아침 요약용 주문 줄. 보유가 있으면 그 기준, 없으면 1만 달러로 새로 시작하는 기준."""
+    held_val, held_qty = {}, {}
+    if holdings_pnl is not None and not getattr(holdings_pnl, "empty", True):
+        for _, r in holdings_pnl.iterrows():
+            held_val[r["ticker"]] = float(r.get("market_value") or 0.0)
+            held_qty[r["ticker"]] = float(r.get("quantity") or 0.0)
+    targets = target_allocation(rec)
+    plan = order_plan(targets, held_val, cash_balance, DAILY_DEFAULT_CAPITAL)
+    trades = [r for r in plan["rows"] if r["action"] != "유지"]
+    if prices is None:
+        prices = reference_prices(rec, [r["ticker"] for r in trades])
+    rows = order_rows_with_shares(trades, prices, held_qty)
+    head = ("주문(내 보유 기준, 장 마감 무렵 시장가):" if plan["basis"] == "holdings"
+            else f"주문(${DAILY_DEFAULT_CAPITAL:,.0f}로 새로 시작한다면, 장 마감 무렵 시장가):")
+    if not rows:
+        return [head + " 사고팔 것 없음"]
+    lines = [head]
+    for r in rows[:max_rows]:
+        sh = share_text(r)
+        lines.append(f"· {r['ticker']} {r['action']} {sh} (${abs(r['delta_value']):,.0f})")
+    if len(rows) > max_rows:
+        lines.append(f"· 외 {len(rows) - max_rows}건 — 화면에서 확인")
+    return lines
 
 
 def daily_failure_message(reason: str) -> str:
@@ -1179,7 +1272,13 @@ def run_daily_refresh(as_of: Optional[date] = None, *, notify: Optional[Callable
     previous = latest_cached_before(as_of, cache_dir)
     compute_fn = compute_fn or compute_recommendation
     rec = compute_fn(as_of, sizing_method=sizing_method, cache_dir=cache_dir)
-    message = daily_todo_message(rec, previous=previous, today=as_of)
+    try:
+        from core.portfolio import get_cash_balance, get_portfolio_pnl
+
+        order_lines = daily_order_lines(rec, get_portfolio_pnl(), get_cash_balance())
+    except Exception:  # noqa: BLE001 - 주문 줄을 못 만들어도 요약은 보낸다
+        order_lines = None
+    message = daily_todo_message(rec, previous=previous, today=as_of, order_lines=order_lines)
     sent = False
     if notify is not None:
         try:

@@ -372,14 +372,28 @@ else:
         if not _trades:
             st.success("지금 사고팔 것 없음 — 보유가 목표와 1%p 이내입니다.")
         else:
+            _held_qty = ({} if _holdings_pnl.empty else
+                         {r["ticker"]: float(r["quantity"] or 0.0) for _, r in _holdings_pnl.iterrows()})
+            # 현재가는 재추천 결과의 근거 표에서 꺼낸다(코어·새틀라이트). 페이지를 열 때 조회하는 것은 BIL 하나뿐 —
+            # 종목 가격 조회는 차트 버튼을 눌렀을 때만 한다는 원칙 유지.
+            _bil_only = (lambda t: (cr.reference_prices({}, [t]) or {}).get(t) if t == "BIL" else None)
+            _trade_rows = cr.order_rows_with_shares(
+                _trades, cr.reference_prices(_rec, [r["ticker"] for r in _trades], fetch=_bil_only), _held_qty)
             st.dataframe(
                 pd.DataFrame([
-                    {"순서": i, "할 일": r["action"], "종목": r["ticker"], "금액": f"${abs(r['delta_value']):,.0f}",
+                    {"순서": i, "할 일": r["action"], "종목": r["ticker"],
+                     "현재가": f"${r['price']:,.2f}" if r.get("price") else "—",
+                     "약 몇 주": cr.share_text(r) if r.get("shares") is not None else "—",
+                     "금액": f"${abs(r['delta_value']):,.0f}",
                      "현재 → 목표": f"${r['current_value']:,.0f} → ${r['target_value']:,.0f}"}
-                    for i, r in enumerate(_trades, start=1)
+                    for i, r in enumerate(_trade_rows, start=1)
                 ]),
                 use_container_width=True, hide_index=True,
             )
+            st.caption(cr.ORDER_METHOD_NOTE)
+            if any(r.get("shares") == 0 for r in _trade_rows):
+                st.caption("⚠️ '1주 미만' 종목은 그 금액으로 1주를 살 수 없습니다 — 투자금을 늘리거나, 그 몫은 현금으로 두게 됩니다"
+                           "(주식 소수점 매매가 되는 증권사라면 금액대로 살 수 있습니다).")
             if any(r["action"] in ("매도", "전량 매도") for r in _trades):
                 st.caption("매도를 먼저 하고 그 돈으로 매수하는 순서입니다.")
         _keep = [r["ticker"] for r in _plan["rows"] if r["action"] == "유지"]

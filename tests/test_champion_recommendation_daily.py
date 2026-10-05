@@ -301,3 +301,30 @@ def test_failure_message_is_short_and_points_to_the_button():
 
 def test_today_pick_helper_is_compatible():  # 위 통합 테스트가 기대는 합성 입력 형태가 바뀌면 여기서 먼저 깨진다
     assert _today_pick()["picks"] == ["CCC", "DDD"]
+
+
+def test_order_rows_with_shares_uses_held_quantity_for_full_sale():
+    rows = [{"ticker": "XLE", "action": "전량 매도", "delta_value": -1500.0},
+            {"ticker": "XLK", "action": "매수", "delta_value": 2125.0},
+            {"ticker": "DBC", "action": "매도", "delta_value": -900.0},
+            {"ticker": "XLV", "action": "유지", "delta_value": 10.0}]
+    out = cr.order_rows_with_shares(rows, {"XLE": 90.0, "XLK": 197.81, "DBC": 25.0, "XLV": 150.0}, {"XLE": 17, "DBC": 20})
+    by = {r["ticker"]: r["shares"] for r in out}
+    assert by == {"XLE": 17, "XLK": 10, "DBC": 20, "XLV": None}  # 전량=보유 수, 매수=내림, 매도는 보유 수 이하
+
+
+def test_daily_message_includes_shares_for_fresh_start():
+    import pandas as pd
+
+    rec = _rec()
+    tickers = [r["ticker"] for r in cr.target_allocation(rec) if r["ticker"] != cr.CASH_TICKER]
+    lines = cr.daily_order_lines(rec, pd.DataFrame(), 0.0, prices={t: 100.0 for t in tickers})
+    assert "새로 시작한다면" in lines[0] and "장 마감 무렵 시장가" in lines[0]
+    assert any("약 " in ln and "주" in ln for ln in lines[1:])
+    text = cr.daily_todo_message(rec, today=date(2026, 10, 2), order_lines=lines)
+    assert "약 " in text and "화면:" in text.splitlines()[-1]
+
+
+def test_share_text_marks_less_than_one_share():
+    assert cr.share_text({"shares": 0, "price": 820.0, "delta_value": 500.0}) == "1주 미만(1주 $820 > $500)"
+    assert cr.share_text({"shares": 6, "price": 80.0, "delta_value": 500.0}) == "약 6주"
