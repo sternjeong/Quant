@@ -10,8 +10,8 @@
 - 사전 등록·구현: research/jobs/champion-crypto-v2/{job.json,SPEC.md,run.py}. 2016~2026-10-02 고정, EMA100 코인 최대 5% 4개(혼합 코어 재원/BTC 단독/혼합 새틀라이트 재원/변동성 축소). 기존 코인 결과를 이미 봤으므로 탐색이며 최고 판정 CANDIDATE_FORWARD_ONLY. CAGR·양 구간·IR·MDD·25bp 비용 스트레스·20일 블록 2,000회 Holm α=.05 고정. 기존 252일 코인 shadow·forward 토너먼트 불변.
 - 구현: 동일 챔피언 기준선과 코어·새틀라이트 종목 기여의 일별 대조(1e-9), 입력·계약 해시 및 원자 체크포인트, 예산 부족 종료 3. 전체 챔피언 1회 계산 중 끊기면 해당 단계 재실행, 완료 입력은 재사용. hub/satellite_lab_page.py의 '사전 등록 VM 연구' 상태 표·결과 링크와 hub/guide/content_modules_b.py 설명 추가.
 - 검증: VM /opt/quant/.venv Python 사용. 합성 스모크 종료 0, 신규 5개 테스트(미래정보·현금 전환·판정·3→0 재개·화면 escape) 통과. 관련 회귀 64 passed. 전체 2471 passed·4 skipped(539.90초), 가이드 검사·diff check 통과. 마지막 가격 입력 ffill·엔진 소스 해시 보강 후 신규 5개 재검증 통과. 실제 전체 연구는 대화 세션에서 실행하지 않았다.
-- 배포: 이 기록 작성 시 커밋·main 반영 준비 중, VM 접수·계산 완료 미확인. 테스트 539초는 자동배포 기본 480초보다 길었으므로 실제 관문 결과 확인 필요. 운영 트리는 직접 수정하지 않는다.
-- 다음: main 반영·자동배포 관문 확인 → VM research_job_runner의 접수 상태 확인 → research/results/champion-crypto-v2/ 보고서·텔레그램 결과. 좋은 역사 결과여도 운용 반영은 사용자 확인 이후 별도 작업.
+- 배포 완료: f663da5 구현을 VM의 새 champion-aftertax-v1 결과 커밋과 병합해 **56d1943**으로 main 반영. 2026-10-06 04:43 UTC VM 자동배포 완료, 실제 관문 2471 passed·4 skipped(421.53초, 480초 이내), 러너 unittest 72 OK. 서비스 정상. 운영 트리 직접 수정 없음.
+- VM 접수 확인: champion-crypto-v2 status=pending, runs=0. 전체 계산 완료는 아직 아니다. 다음: VM 연구 창에서 실행 → research/results/champion-crypto-v2/ 보고서·텔레그램 결과. 좋은 역사 결과여도 운용 반영은 사용자 확인 이후 별도 작업.
 
 ## 최신 상태 요약
 
