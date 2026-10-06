@@ -106,11 +106,14 @@ def test_page_can_edit_table_before_price_lookup_finishes(patched_session, monke
     before_key = seen_keys[-1]
     # 최근 매입이 첫 행이다. 티커가 아닌 원래 기록 ID에 저장한다.
     at.session_state["holding_table_0"] = {
-        "edited_rows": {1: {"ticker": " aapl ", "quantity": 12.}}, "added_rows": [], "deleted_rows": []}
+        "edited_rows": {1: {"ticker": " aapl ", "quantity": 12., "purchase_price": 155.,
+                             "purchase_date": "2024-03-01"}}, "added_rows": [], "deleted_rows": []}
     next(b for b in at.button if b.label == "💾 표 수정 저장").click().run()
     assert not at.exception
     assert portfolio.get_holding(holding_id)["ticker"] == "AAPL"
     assert portfolio.get_holding(holding_id)["quantity"] == 12.
+    assert portfolio.get_holding(holding_id)["purchase_price"] == 155.
+    assert portfolio.get_holding(holding_id)["purchase_date"] == date(2024, 3, 1)
     assert portfolio.get_holding(holding_id)["thesis"] == "원래 근거"
     assert portfolio.get_holding(other_id)["ticker"] == "APPL"
     assert seen_keys[-1] != before_key
