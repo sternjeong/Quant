@@ -82,9 +82,16 @@ def collect() -> dict[str, Any]:
     except Exception as exc:  # noqa: BLE001
         data["error"] = type(exc).__name__
     try:
-        from core.research_jobs import Config, load_state
+        from core.research_jobs import Config, load_state, load_job_definitions
 
-        data["runner"] = load_state(Config()).get("satellite_lab") or {}
+        cfg = Config()
+        state = load_state(cfg)
+        data["runner"] = state.get("satellite_lab") or {}
+        jobs, invalid = load_job_definitions(cfg)
+        data["research_jobs"] = [{"id": j.id, "title": j.title,
+                                  "status": (state.get("jobs", {}).get(j.id) or {}).get("status", "pending")}
+                                 for j in sorted(jobs.values(), key=lambda j: (j.priority, j.id))]
+        data["invalid_jobs"] = invalid
     except Exception:  # noqa: BLE001
         data["runner"] = {}
     return data
@@ -171,7 +178,7 @@ def render_shadows(data: dict) -> str:
 def render_body(data: dict) -> str:
     parts = ['<p class="subtitle">새틀라이트 종목 선정·진입 타이밍·매도 규칙과 코어 분기 연구를 계속 시험합니다. 아이디어는 시작 목록과 03:00 AI 에이전트가, '
              '판정은 결과를 보기 전에 고정한 코드가 합니다. 계산은 VM 연구 창의 빈 시간에 돕니다. 통과해도 챔피언에 자동 반영되지 않습니다.</p>',
-             render_topics(data), render_core(data), render_shadows(data), '<h2>새틀라이트 R&amp;D</h2>']
+             render_topics(data), render_research_jobs(data), render_core(data), render_shadows(data), '<h2>새틀라이트 R&amp;D</h2>']
     if "error" in data:
         return "".join(parts) + f'<h2>등록부</h2><p>확인 불가 {_e(data["error"])}</p>'
     reg = data["registry"]
@@ -243,3 +250,16 @@ def render_body(data: dict) -> str:
     parts.append('<p class="subtitle">한계: 무료 가격 소스에 없는 상장폐지 종목은 빠짐(생존편향), 배당·세금·슬리피지 미반영, '
                  'champion40 풀의 과거 시총은 근사치입니다. 성과 개선을 보장하지 않습니다.</p>')
     return "".join(parts)
+
+
+def render_research_jobs(data: dict) -> str:
+    labels = {"pending": "대기", "running": "계산 중", "in_progress": "이어 계산 대기",
+              "done": "완료", "failed": "실패", "cancelled": "취소"}
+    rows = [f'<tr><td><b>{_e(j["title"])}</b><br><small>{_e(j["id"])}</small></td>'
+            f'<td>{_e(labels.get(j["status"], j["status"]))}</td></tr>' for j in data.get("research_jobs", [])]
+    rows += [f'<tr><td>{_e(k)}</td><td>정의 오류: {_e(v)}</td></tr>' for k, v in data.get("invalid_jobs", {}).items()]
+    return ('<h2>사전 등록 VM 연구</h2><p>코인 결합·연도별 패배 분해 등 고정한 연구를 VM 실행기가 계산합니다. '
+            '아래 작업은 위 주제 토글과 별도로 실행됩니다. 결과와 실패 사유는 '
+            '<a href="/reports/report-research-results">검증 연구 결과</a>에서 확인합니다. '
+            '좋은 결과도 자동으로 챔피언에 반영되지 않습니다.</p>'
+            '<table><tr><th>연구</th><th>상태</th></tr>' + ''.join(rows) + '</table>')

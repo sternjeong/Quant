@@ -1,0 +1,13 @@
+{
+  "id": "champion-crypto-v2",
+  "title": "챔피언 2023·2026 패배 분해 + 코인 4개 결합안 재검증",
+  "entrypoint": "research/jobs/champion-crypto-v2/run.py",
+  "args": [],
+  "timeout_seconds": 10800,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 36,
+  "revision": 1
+}

@@ -2,6 +2,12 @@
 
 > 현재 세션 인계: [docs/SESSION_HANDOFF.md](docs/SESSION_HANDOFF.md) · 엔진 로드맵: [docs/ENGINE_UPGRADE_ROADMAP.md](docs/ENGINE_UPGRADE_ROADMAP.md)
 
+## 2026-10-06 챔피언 부진 분석·코인 후속 연구
+
+2023·2026년은 절대 손실이 아니라 SPY 대비 부진이다. 저장 성과에서 2023년의 주원인은 코어(+2.50%), 2026년은 새틀라이트(+0.83%)이며 상세는 [분석 문서](docs/CHAMPION_2023_2026_CRYPTO_RESEARCH.md).
+champion-crypto-v2 사전 등록·구현 완료(코인 최대 5% 4안, 탐색 판정만). R&D 센터에 VM 등록 연구 상태 표·결과 링크 추가.
+VM Python 전체 2471 passed·4 skipped, 스모크·3→0 재개 검증·가이드 검사 통과. 전체 연구·운용 반영은 미수행, main·자동배포 접수 확인 대기. 인계 문서의 해당 절 참조.
+
 > 세션이 자주 끊기는 작업 환경이라, 새 Claude 세션을 시작하면 **이 파일을 가장 먼저 읽고**
 > "진행 중" 항목부터 이어서 작업할 것. 완료된 모듈은 `pytest` 로 회귀만 확인하고 건드리지 않는다.
 
