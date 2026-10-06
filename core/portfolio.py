@@ -105,6 +105,42 @@ def remove_holding(holding_id: int) -> None:
             session.delete(holding)
 
 
+def update_holdings(rows: list[dict]) -> None:
+    """표에서 바꾼 보유 기록을 한 트랜잭션으로 저장한다(하나라도 잘못되면 저장하지 않는다)."""
+    prepared = []
+    ids = set()
+    for row in rows:
+        raw_ticker = row.get("ticker")
+        ticker = raw_ticker.strip().upper() if isinstance(raw_ticker, str) else ""
+        if not ticker:
+            raise ValueError("티커를 입력해주세요.")
+        try:
+            quantity = float(row["quantity"])
+            price = float(row["purchase_price"])
+        except (TypeError, ValueError):
+            raise ValueError("수량과 매입 단가를 숫자로 입력해주세요.") from None
+        if not math.isfinite(quantity) or quantity <= 0:
+            raise ValueError("보유 수량은 0보다 커야 합니다.")
+        if not math.isfinite(price) or price <= 0:
+            raise ValueError("매입 단가는 0보다 커야 합니다.")
+        purchase_date = row.get("purchase_date")
+        if not isinstance(purchase_date, date) or pd.isna(purchase_date):
+            raise ValueError("매입일을 입력해주세요.")
+        if row["id"] in ids:
+            raise ValueError("같은 보유 기록이 중복되었습니다.")
+        ids.add(row["id"])
+        prepared.append((row["id"], ticker, quantity, price, purchase_date))
+    with get_session() as session:
+        holdings = {id_: session.get(PortfolioHolding, id_) for id_ in ids}
+        for id_, holding in holdings.items():
+            if holding is None:
+                raise ValueError(f"보유 종목(id={id_})을 찾을 수 없습니다. 새로고침 후 다시 수정해주세요.")
+        for id_, ticker, quantity, price, purchase_date in prepared:
+            holding = holdings[id_]
+            holding.ticker, holding.quantity, holding.purchase_price, holding.purchase_date = (
+                ticker, quantity, price, purchase_date)
+
+
 def get_holding(holding_id: int) -> Optional[dict]:
     with get_session() as session:
         holding = session.get(PortfolioHolding, holding_id)

@@ -36,6 +36,7 @@ from core.portfolio import (
     save_thesis_review,
     set_cash_balance,
     update_holding,
+    update_holdings,
 )
 from core.theme import apply_theme
 from core.ui_status import render_status_header
@@ -92,43 +93,59 @@ if not holdings:
     st.info("아직 등록된 보유 종목이 없습니다. 위에서 추가해주세요.")
     st.stop()
 
-with st.expander("✏️ 보유 종목 수정 / 삭제"):
-    holdings_by_id = {h["id"]: h for h in holdings}
+st.markdown("### 보유 종목")
+st.caption("표의 셀을 직접 고친 뒤 '💾 표 수정 저장'을 누르세요. 매매근거와 과거 검증 이력은 유지됩니다.")
+holdings_by_id = {h["id"]: h for h in holdings}
+table = pd.DataFrame(holdings).set_index("id")[["ticker", "quantity", "purchase_price", "purchase_date"]]
+table["cost_basis"] = table["quantity"] * table["purchase_price"]
+table_version = st.session_state.get("holding_table_version", 0)
+with st.form("holding_table_form"):
+    edited = st.data_editor(
+        table, use_container_width=True, hide_index=True, num_rows="fixed",
+        key=f"holding_table_{table_version}", disabled=["_index", "cost_basis"],
+        column_config={
+            "ticker": st.column_config.TextColumn("티커", required=True),
+            "quantity": st.column_config.NumberColumn("수량", required=True, min_value=0.0),
+            "purchase_price": st.column_config.NumberColumn("매입 단가($)", required=True, min_value=0.0),
+            "purchase_date": st.column_config.DateColumn("매입일", required=True, max_value=date.today()),
+            "cost_basis": st.column_config.NumberColumn("매입금액($)", format="%.2f"),
+        },
+    )
+    edit_submitted = st.form_submit_button("💾 표 수정 저장")
+if edit_submitted:
+    try:
+        changes = []
+        for id_, row in edited.iterrows():
+            original = holdings_by_id[id_]
+            record = {c: row[c] for c in ("ticker", "quantity", "purchase_price", "purchase_date")}
+            if any(record[c] != original[c] for c in record):
+                changes.append({"id": int(id_), **record})
+        if changes:
+            update_holdings(changes)
+            st.session_state.pop("portfolio_comment", None)
+            st.session_state.pop("_job_slot::portfolio_comment", None)
+            for row in changes:
+                st.session_state.pop(f"_job_slot::thesis_review_{row['id']}", None)
+            st.session_state["holding_table_version"] = table_version + 1
+            st.toast(f"{len(changes)}개 보유 기록을 수정했습니다.", icon="✅")
+            st.rerun()
+        else:
+            st.info("변경한 내용이 없습니다.")
+    except ValueError as e:
+        st.error(str(e))
+
+with st.expander("🗑️ 보유 기록 삭제"):
     selected_id = st.selectbox(
-        "수정할 보유 기록",
-        list(holdings_by_id),
+        "삭제할 보유 기록", list(holdings_by_id),
         format_func=lambda id_: (
             f"{holdings_by_id[id_]['ticker']} · 매입 {holdings_by_id[id_]['purchase_date']:%Y-%m-%d}"
             f" · {holdings_by_id[id_]['quantity']:g}주 · 기록 #{id_}"
         ),
-        key="holding_edit_target",
     )
-    selected = holdings_by_id[selected_id]
-    st.caption("잘못 입력한 티커·수량·매입 단가·매입일을 고칩니다. 매매근거와 과거 검증 이력은 유지됩니다.")
-    with st.form(f"edit_holding_form_{selected_id}"):
-        c1, c2, c3, c4 = st.columns(4)
-        edited_ticker = c1.text_input("티커 수정", value=selected["ticker"], key=f"holding_ticker_{selected_id}")
-        edited_qty = c2.number_input("수량 수정", min_value=0.0, value=float(selected["quantity"]), step=1.0,
-                                    key=f"holding_qty_{selected_id}")
-        edited_price = c3.number_input("매입 단가($) 수정", min_value=0.0, value=float(selected["purchase_price"]), step=1.0,
-                                      key=f"holding_price_{selected_id}")
-        edited_date = c4.date_input("매입일 수정", value=selected["purchase_date"],
-                                    max_value=max(date.today(), selected["purchase_date"]), key=f"holding_date_{selected_id}")
-        edit_submitted = st.form_submit_button("💾 수정 저장")
-    if edit_submitted:
-        try:
-            update_holding(selected_id, quantity=edited_qty, purchase_price=edited_price,
-                           purchase_date=edited_date, ticker=edited_ticker)
-            st.session_state.pop("portfolio_comment", None)
-            st.session_state.pop("_job_slot::portfolio_comment", None)
-            st.session_state.pop(f"_job_slot::thesis_review_{selected_id}", None)
-            st.toast("보유 기록을 수정했습니다.", icon="✅")
-            st.rerun()
-        except ValueError as e:
-            st.error(str(e))
     if st.button("🗑️ 선택한 종목 삭제"):
         remove_holding(selected_id)
-        st.toast(f"{selected['ticker']} 삭제 완료.", icon="🗑️")
+        st.session_state["holding_table_version"] = table_version + 1
+        st.toast("보유 기록을 삭제했습니다.", icon="🗑️")
         st.rerun()
 
 holdings_key = tuple(sorted((h["id"], h["ticker"], h["quantity"], h["purchase_price"], h["purchase_date"]) for h in holdings))

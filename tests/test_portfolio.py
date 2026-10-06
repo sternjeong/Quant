@@ -85,7 +85,7 @@ def test_invalid_holding_correction_keeps_original(patched_session, over):
     assert portfolio.get_holding(holding_id) == before
 
 
-def test_page_can_correct_duplicate_ticker_before_price_lookup_finishes(patched_session, monkeypatch):
+def test_page_can_edit_table_before_price_lookup_finishes(patched_session, monkeypatch):
     from pathlib import Path
     import streamlit as st
     from streamlit.testing.v1 import AppTest
@@ -102,19 +102,43 @@ def test_page_can_correct_duplicate_ticker_before_price_lookup_finishes(patched_
     monkeypatch.setattr(job_manager, "render", lambda *a, **kw: st.stop())
     page = Path(__file__).resolve().parents[1] / "app/pages/8_포트폴리오_관리.py"
     at = AppTest.from_file(str(page)).run()
-    at.selectbox(key="holding_edit_target").set_value(holding_id).run()
     assert not at.exception
-    assert at.text_input(key=f"holding_ticker_{holding_id}").value == "APPL"
     before_key = seen_keys[-1]
-    at.text_input(key=f"holding_ticker_{holding_id}").set_value(" aapl ")
-    at.number_input(key=f"holding_qty_{holding_id}").set_value(12.)
-    next(b for b in at.button if b.label == "💾 수정 저장").click().run()
+    # 최근 매입이 첫 행이다. 티커가 아닌 원래 기록 ID에 저장한다.
+    at.session_state["holding_table_0"] = {
+        "edited_rows": {1: {"ticker": " aapl ", "quantity": 12.}}, "added_rows": [], "deleted_rows": []}
+    next(b for b in at.button if b.label == "💾 표 수정 저장").click().run()
     assert not at.exception
     assert portfolio.get_holding(holding_id)["ticker"] == "AAPL"
     assert portfolio.get_holding(holding_id)["quantity"] == 12.
     assert portfolio.get_holding(holding_id)["thesis"] == "원래 근거"
     assert portfolio.get_holding(other_id)["ticker"] == "APPL"
     assert seen_keys[-1] != before_key
+    assert at.session_state["holding_table_version"] == 1
+
+
+@pytest.mark.parametrize("bad", ["invalid", "missing"])
+def test_table_save_rejects_whole_batch_when_later_row_is_invalid(patched_session, bad):
+    a = portfolio.add_holding("APPL", 10, 150., date(2024, 1, 1))
+    b = portfolio.add_holding("MSFT", 2, 200., date(2024, 2, 1))
+    original = portfolio.list_holdings()
+    rows = [dict(portfolio.get_holding(a), ticker="AAPL"), dict(portfolio.get_holding(b), quantity=3)]
+    if bad == "invalid":
+        rows[1]["quantity"] = 0
+    else:
+        rows[1]["id"] = 999999
+    with pytest.raises(ValueError):
+        portfolio.update_holdings(rows)
+    assert portfolio.list_holdings() == original
+
+
+def test_table_save_keeps_duplicate_tickers_as_separate_records(patched_session):
+    a = portfolio.add_holding("APPL", 10, 150., date(2024, 1, 1), thesis="유지")
+    b = portfolio.add_holding("APPL", 2, 200., date(2024, 2, 1))
+    portfolio.update_holdings([dict(portfolio.get_holding(a), ticker=" aapl "),
+                               dict(portfolio.get_holding(b), quantity=4)])
+    assert portfolio.get_holding(a)["ticker"] == "AAPL" and portfolio.get_holding(a)["thesis"] == "유지"
+    assert portfolio.get_holding(b)["ticker"] == "APPL" and portfolio.get_holding(b)["quantity"] == 4
 
 
 def test_remove_holding(patched_session):
