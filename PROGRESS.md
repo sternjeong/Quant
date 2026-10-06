@@ -2,6 +2,10 @@
 
 > 현재 세션 인계: [docs/SESSION_HANDOFF.md](docs/SESSION_HANDOFF.md) · 엔진 로드맵: [docs/ENGINE_UPGRADE_ROADMAP.md](docs/ENGINE_UPGRADE_ROADMAP.md)
 
+## 2026-10-06 포트폴리오 입력 수정
+
+화면 상단 '✏️ 보유 종목 수정 / 삭제'에서 티커·수량·매입 단가·매입일을 고치는 기능 구현. 같은 티커도 기록별 선택, 매매근거·검증 이력 보존, 수정 후 분석 재조회. 임시 DB·화면·가이드 검증 80 passed, 전체 2479 passed·4 skipped·러너 unittest 72 OK. VM 배포 확인 대기. 사용자의 실제 보유는 직접 바꾸지 않았다.
+
 ## 2026-10-06 챔피언 부진 분석·코인 후속 연구
 
 2023·2026년은 절대 손실이 아니라 SPY 대비 부진이다. 저장 성과에서 2023년의 주원인은 코어(+2.50%), 2026년은 새틀라이트(+0.83%)이며 상세는 [분석 문서](docs/CHAMPION_2023_2026_CRYPTO_RESEARCH.md).

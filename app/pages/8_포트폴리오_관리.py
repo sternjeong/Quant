@@ -92,7 +92,46 @@ if not holdings:
     st.info("아직 등록된 보유 종목이 없습니다. 위에서 추가해주세요.")
     st.stop()
 
-holdings_key = tuple(sorted(id_ for id_ in (h["id"] for h in holdings)))
+with st.expander("✏️ 보유 종목 수정 / 삭제"):
+    holdings_by_id = {h["id"]: h for h in holdings}
+    selected_id = st.selectbox(
+        "수정할 보유 기록",
+        list(holdings_by_id),
+        format_func=lambda id_: (
+            f"{holdings_by_id[id_]['ticker']} · 매입 {holdings_by_id[id_]['purchase_date']:%Y-%m-%d}"
+            f" · {holdings_by_id[id_]['quantity']:g}주 · 기록 #{id_}"
+        ),
+        key="holding_edit_target",
+    )
+    selected = holdings_by_id[selected_id]
+    st.caption("잘못 입력한 티커·수량·매입 단가·매입일을 고칩니다. 매매근거와 과거 검증 이력은 유지됩니다.")
+    with st.form(f"edit_holding_form_{selected_id}"):
+        c1, c2, c3, c4 = st.columns(4)
+        edited_ticker = c1.text_input("티커 수정", value=selected["ticker"], key=f"holding_ticker_{selected_id}")
+        edited_qty = c2.number_input("수량 수정", min_value=0.0, value=float(selected["quantity"]), step=1.0,
+                                    key=f"holding_qty_{selected_id}")
+        edited_price = c3.number_input("매입 단가($) 수정", min_value=0.0, value=float(selected["purchase_price"]), step=1.0,
+                                      key=f"holding_price_{selected_id}")
+        edited_date = c4.date_input("매입일 수정", value=selected["purchase_date"],
+                                    max_value=max(date.today(), selected["purchase_date"]), key=f"holding_date_{selected_id}")
+        edit_submitted = st.form_submit_button("💾 수정 저장")
+    if edit_submitted:
+        try:
+            update_holding(selected_id, quantity=edited_qty, purchase_price=edited_price,
+                           purchase_date=edited_date, ticker=edited_ticker)
+            st.session_state.pop("portfolio_comment", None)
+            st.session_state.pop("_job_slot::portfolio_comment", None)
+            st.session_state.pop(f"_job_slot::thesis_review_{selected_id}", None)
+            st.toast("보유 기록을 수정했습니다.", icon="✅")
+            st.rerun()
+        except ValueError as e:
+            st.error(str(e))
+    if st.button("🗑️ 선택한 종목 삭제"):
+        remove_holding(selected_id)
+        st.toast(f"{selected['ticker']} 삭제 완료.", icon="🗑️")
+        st.rerun()
+
+holdings_key = tuple(sorted((h["id"], h["ticker"], h["quantity"], h["purchase_price"], h["purchase_date"]) for h in holdings))
 job_manager.ensure("portfolio_pnl", holdings_key, get_portfolio_pnl, label="실시간 가격 조회")
 pnl_job = job_manager.render("portfolio_pnl", running_label="실시간 가격을 가져오는 중")
 pnl_df = pnl_job.result
@@ -130,13 +169,6 @@ display_df = pnl_df.rename(
     }
 )
 st.dataframe(display_df, use_container_width=True, hide_index=True)
-
-id_by_ticker = {h["ticker"]: h["id"] for h in holdings}
-delete_target = st.selectbox("삭제할 티커 선택", list(id_by_ticker.keys()))
-if st.button("🗑️ 선택한 종목 삭제"):
-    remove_holding(id_by_ticker[delete_target])
-    st.toast(f"{delete_target} 삭제 완료.", icon="🗑️")
-    st.rerun()
 
 # ============================================================================
 # 매매근거 & 사후 검증

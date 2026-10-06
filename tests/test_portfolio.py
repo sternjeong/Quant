@@ -58,6 +58,65 @@ def test_update_holding_raises_for_missing_id(patched_session):
         portfolio.update_holding(999, quantity=5)
 
 
+def test_correct_holding_preserves_identity_thesis_and_review(patched_session):
+    holding_id = portfolio.add_holding("APPL", 10, 150., date(2024, 1, 1), thesis="원래 근거")
+    other_id = portfolio.add_holding("APPL", 2, 200., date(2024, 2, 1))
+    review_id = portfolio.save_thesis_review(holding_id, "APPL", {
+        "thesis_snapshot": "원래 근거", "review_text": "과거 기록", "purchase_price": 150.,
+        "price_at_review": 160., "price_change_pct": 6.67, "elapsed_days": 30,
+    })
+    portfolio.update_holding(holding_id, ticker=" aapl ", quantity=12, purchase_price=155., purchase_date=date(2024, 1, 2))
+    h = portfolio.get_holding(holding_id)
+    assert (h["id"], h["ticker"], h["quantity"], h["purchase_price"], h["purchase_date"], h["thesis"]) == (
+        holding_id, "AAPL", 12, 155., date(2024, 1, 2), "원래 근거")
+    assert portfolio.get_holding(other_id)["ticker"] == "APPL"
+    review = portfolio.list_thesis_reviews(holding_id)[0]
+    assert review["id"] == review_id and review["ticker"] == "APPL" and review["purchase_price"] == 150.
+
+
+@pytest.mark.parametrize("over", [{"ticker": " "}, {"quantity": 0}, {"quantity": -1},
+                                  {"quantity": float("nan")}, {"purchase_price": 0},
+                                  {"purchase_price": float("inf")}])
+def test_invalid_holding_correction_keeps_original(patched_session, over):
+    holding_id = portfolio.add_holding("APPL", 10, 150., date(2024, 1, 1))
+    before = portfolio.get_holding(holding_id)
+    with pytest.raises(ValueError):
+        portfolio.update_holding(holding_id, **({"ticker": "AAPL", **over}))
+    assert portfolio.get_holding(holding_id) == before
+
+
+def test_page_can_correct_duplicate_ticker_before_price_lookup_finishes(patched_session, monkeypatch):
+    from pathlib import Path
+    import streamlit as st
+    from streamlit.testing.v1 import AppTest
+    from core import db, job_manager, ui_status
+
+    holding_id = portfolio.add_holding("APPL", 10, 150., date(2024, 1, 1), thesis="원래 근거")
+    other_id = portfolio.add_holding("APPL", 2, 200., date(2024, 2, 1))
+    monkeypatch.setattr(db, "init_db", lambda: None)
+    monkeypatch.setattr(ui_status, "render_status_header", lambda *_: None)
+    monkeypatch.setattr(job_manager, "render_active_jobs_sidebar", lambda: None)
+    seen_keys = []
+    monkeypatch.setattr(job_manager, "ensure", lambda slot, key, *a, **kw: seen_keys.append(key))
+    # 가격이 아직 없어서 뒤의 분석을 표시할 수 없어도 수정 양식은 동작해야 한다.
+    monkeypatch.setattr(job_manager, "render", lambda *a, **kw: st.stop())
+    page = Path(__file__).resolve().parents[1] / "app/pages/8_포트폴리오_관리.py"
+    at = AppTest.from_file(str(page)).run()
+    at.selectbox(key="holding_edit_target").set_value(holding_id).run()
+    assert not at.exception
+    assert at.text_input(key=f"holding_ticker_{holding_id}").value == "APPL"
+    before_key = seen_keys[-1]
+    at.text_input(key=f"holding_ticker_{holding_id}").set_value(" aapl ")
+    at.number_input(key=f"holding_qty_{holding_id}").set_value(12.)
+    next(b for b in at.button if b.label == "💾 수정 저장").click().run()
+    assert not at.exception
+    assert portfolio.get_holding(holding_id)["ticker"] == "AAPL"
+    assert portfolio.get_holding(holding_id)["quantity"] == 12.
+    assert portfolio.get_holding(holding_id)["thesis"] == "원래 근거"
+    assert portfolio.get_holding(other_id)["ticker"] == "APPL"
+    assert seen_keys[-1] != before_key
+
+
 def test_remove_holding(patched_session):
     holding_id = portfolio.add_holding("AAPL", 10, 150.0, date(2024, 1, 1))
     portfolio.remove_holding(holding_id)

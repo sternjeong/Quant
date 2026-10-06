@@ -11,6 +11,7 @@ yfinance 조회 로직을 중복 구현하지 않는다 (README 개발 컨벤션
 from __future__ import annotations
 
 import json
+import math
 from collections import defaultdict
 from datetime import date, datetime
 from typing import Any, Optional
@@ -69,12 +70,24 @@ def update_holding(
     purchase_price: Optional[float] = None,
     purchase_date: Optional[date] = None,
     thesis: Optional[str] = None,
+    *,
+    ticker: Optional[str] = None,
 ) -> None:
-    """thesis는 빈 문자열("")을 넘기면 명시적으로 지우는 것으로 취급하고, None이면 건드리지 않는다."""
+    """기존 보유 기록을 수정한다. None은 유지, thesis=""는 근거 삭제다."""
+    if ticker is not None:
+        ticker = ticker.strip().upper()
+        if not ticker:
+            raise ValueError("티커를 입력해주세요.")
+    if quantity is not None and (not math.isfinite(quantity) or quantity <= 0):
+        raise ValueError("보유 수량은 0보다 커야 합니다.")
+    if purchase_price is not None and (not math.isfinite(purchase_price) or purchase_price <= 0):
+        raise ValueError("매입 단가는 0보다 커야 합니다.")
     with get_session() as session:
         holding = session.get(PortfolioHolding, holding_id)
         if holding is None:
             raise ValueError(f"보유 종목(id={holding_id})을 찾을 수 없습니다.")
+        if ticker is not None:
+            holding.ticker = ticker
         if quantity is not None:
             holding.quantity = quantity
         if purchase_price is not None:
