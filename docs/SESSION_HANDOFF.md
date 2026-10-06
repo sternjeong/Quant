@@ -9,7 +9,7 @@
 - 구현: core.portfolio.update_holding에 keyword-only ticker 추가(기존 positional 호출 호환), 공백 제거·대문자 정규화, 빈 티커·0 이하/비유한 수량·단가 거절. 기존 ID·매매근거·과거 검증 스냅샷 유지. 손익/리스크 조회 키에 입력값 포함, 오래된 코멘트와 수정 전 진행 중 검증의 화면 추적 해제.
 - 수정 파일: core/portfolio.py, app/pages/8_포트폴리오_관리.py, hub/guide/content_pages_a.py·content_modules_b.py, docs/SPEC.md, tests/test_portfolio.py, 인계 문서.
 - 검증: VM venv 대상 포트폴리오·가이드 80 passed. 임시 DB로 기록·검증 이력 보존 및 잘못된 수정의 원본 보존, Streamlit AppTest로 가격 조회 완료 전 수정·중복 티커 구별·조회 키 갱신 확인. 가이드 검사·diff check 통과. 전체 **2479 passed·4 skipped(475.70초)**, 텔레그램 러너 unittest 72 OK. 커밋·배포 준비 완료, VM 관문은 아직.
-- 다음: 전체 테스트 통과 → main 반영·VM 자동배포 확인. 사용자 화면에서 기록을 선택해 직접 정정한다.
+- 배포 완료: **1afc91f** main 반영, 2026-10-06 10:54 UTC VM 자동배포 관문 2479 passed·4 skipped(368.40초)·러너 unittest 72 OK, 서비스 재시작 및 정상 상태 확인. 사용자가 페이지를 새로고침해 기록을 선택한 뒤 직접 정정하면 된다.
 - 별도 읽기 확인: 이전 champion-crypto-v2 연구는 VM에서 실패 3회 후 failed. 원인은 '코인 달력 일봉 누락'(ETH 캐시 최초 2017-11-09라 사전 등록 2016년 시작을 충족하지 못함, BTC 캐시에도 달력일 2개 부족). 기존 판정/기간을 사후 변경하지 않았다. 데이터 확보 또는 새 id 사전 등록이 필요하며 이번 포트폴리오 수정 범위에서는 연구 계약을 변경하지 않았다.
 
 ## 2026-10-06 챔피언 2023·2026 패배 분석 + 코인 VM 연구
