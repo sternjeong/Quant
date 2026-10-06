@@ -1,0 +1,1473 @@
+{
+ "kind": "measurement (판정 없음)",
+ "smoke": false,
+ "generated_at": "2026-10-06T04:32:01+00:00",
+ "start": "2010-01-04",
+ "end": "2026-10-05",
+ "summary": {
+  "champion": "세전 13.30% → 세후 11.13% (청산 후 10.82%), 원화 MDD -24.2%",
+  "core_only": "세전 11.24% → 세후 9.30% (청산 후 9.00%), 원화 MDD -25.6%",
+  "spy": "세전 15.43% → 세후 15.12% (청산 후 13.75%), 원화 MDD -29.7%"
+ },
+ "metrics": {
+  "base_30m": {
+   "champion": {
+    "cagr_pre": 0.1330025734147786,
+    "cagr_after": 0.11134605022215727,
+    "cagr_after_liquidation": 0.10818986094780247,
+    "mdd_after": -0.24247884334770853,
+    "final_krw": 175834887.7025411,
+    "final_after_liquidation_krw": 167654909.86858875,
+    "totals": {
+     "fees_krw": 7297052.758645394,
+     "fx_cost_krw": 9748.054129745327,
+     "dividend_tax_krw": 2563935.41917058,
+     "capital_gains_tax_krw": 19496108.259490635
+    },
+    "years": [
+     {
+      "year": 2009,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 0.0,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 0.0
+     },
+     {
+      "year": 2010,
+      "realized_gain_krw": -1113434.8522490603,
+      "tax_krw": 0.0,
+      "fees_krw": 167780.82863332552,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 45125.80890982098
+     },
+     {
+      "year": 2011,
+      "realized_gain_krw": 2813563.8220768617,
+      "tax_krw": 68984.04085691,
+      "fees_krw": 164288.4832503056,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 48675.48578604972
+     },
+     {
+      "year": 2012,
+      "realized_gain_krw": 395592.5509506605,
+      "tax_krw": 0.0,
+      "fees_krw": 240674.52111239097,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 91079.23162823025
+     },
+     {
+      "year": 2013,
+      "realized_gain_krw": 3271987.0125397383,
+      "tax_krw": 169837.14275874264,
+      "fees_krw": 104976.2101967047,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 115633.0022225927
+     },
+     {
+      "year": 2014,
+      "realized_gain_krw": 7965968.22984967,
+      "tax_krw": 1202513.0105669277,
+      "fees_krw": 213276.1622958435,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 112314.01266972997
+     },
+     {
+      "year": 2015,
+      "realized_gain_krw": 3805572.8002332333,
+      "tax_krw": 287226.016051311,
+      "fees_krw": 293092.59219758294,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 123340.0143418937
+     },
+     {
+      "year": 2016,
+      "realized_gain_krw": -3517414.931500303,
+      "tax_krw": 0.0,
+      "fees_krw": 418577.8489265824,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 115368.08999348369
+     },
+     {
+      "year": 2017,
+      "realized_gain_krw": -228240.7345860685,
+      "tax_krw": 0.0,
+      "fees_krw": 207061.72886680713,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 122930.97308193674
+     },
+     {
+      "year": 2018,
+      "realized_gain_krw": 2730943.9344286486,
+      "tax_krw": 50807.665574302475,
+      "fees_krw": 292974.3718671136,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 104239.30434467076
+     },
+     {
+      "year": 2019,
+      "realized_gain_krw": 5898849.214361887,
+      "tax_krw": 747746.8271596158,
+      "fees_krw": 406239.3462602226,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 154523.89463055247
+     },
+     {
+      "year": 2020,
+      "realized_gain_krw": 4024671.4972267994,
+      "tax_krw": 335427.72938989586,
+      "fees_krw": 395286.5746357697,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 77631.57139243578
+     },
+     {
+      "year": 2021,
+      "realized_gain_krw": 16379217.154107856,
+      "tax_krw": 3053427.7739037275,
+      "fees_krw": 365430.0876925815,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 156563.2851621343
+     },
+     {
+      "year": 2022,
+      "realized_gain_krw": 21671905.560540672,
+      "tax_krw": 4217819.223318948,
+      "fees_krw": 708394.6088267463,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 334579.4768430995
+     },
+     {
+      "year": 2023,
+      "realized_gain_krw": -511225.666821609,
+      "tax_krw": 0.0,
+      "fees_krw": 1009183.9689720329,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 247743.1806838839
+     },
+     {
+      "year": 2024,
+      "realized_gain_krw": 25616202.103574973,
+      "tax_krw": 5085564.462786493,
+      "fees_krw": 492201.456747823,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 215225.48133750624
+     },
+     {
+      "year": 2025,
+      "realized_gain_krw": 21939792.577835277,
+      "tax_krw": 4276754.367123762,
+      "fees_krw": 923394.0990448393,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 341852.63325565227
+     },
+     {
+      "year": 2026,
+      "realized_gain_krw": 32297863.607912075,
+      "tax_krw": 0.0,
+      "fees_krw": 894219.8691187114,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 157109.9728869201
+     }
+    ]
+   },
+   "core_only": {
+    "cagr_pre": 0.11241561611470785,
+    "cagr_after": 0.09304320699490076,
+    "cagr_after_liquidation": 0.09002560249256164,
+    "mdd_after": -0.2560086578440064,
+    "final_krw": 133138339.50740281,
+    "final_after_liquidation_krw": 127113701.36299354,
+    "totals": {
+     "fees_krw": 6626356.5917624775,
+     "fx_cost_krw": 6092.125886984609,
+     "dividend_tax_krw": 2318573.48574708,
+     "capital_gains_tax_krw": 12184251.773969205
+    },
+    "years": [
+     {
+      "year": 2009,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 0.0,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 0.0
+     },
+     {
+      "year": 2010,
+      "realized_gain_krw": -788019.0444014852,
+      "tax_krw": 0.0,
+      "fees_krw": 183265.23872812936,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 43832.67668834544
+     },
+     {
+      "year": 2011,
+      "realized_gain_krw": 2140029.613863993,
+      "tax_krw": 0.0,
+      "fees_krw": 171179.16443306036,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 53383.27747130486
+     },
+     {
+      "year": 2012,
+      "realized_gain_krw": -180891.45655597484,
+      "tax_krw": 0.0,
+      "fees_krw": 255843.48629325948,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 94700.11199405097
+     },
+     {
+      "year": 2013,
+      "realized_gain_krw": 1809855.60258496,
+      "tax_krw": 0.0,
+      "fees_krw": 96243.81186923108,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 121732.38987843455
+     },
+     {
+      "year": 2014,
+      "realized_gain_krw": 7309439.162721651,
+      "tax_krw": 1058076.6157987623,
+      "fees_krw": 205166.2238201121,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 121492.36735648625
+     },
+     {
+      "year": 2015,
+      "realized_gain_krw": 5423141.685477744,
+      "tax_krw": 643091.1708051024,
+      "fees_krw": 302465.000398186,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 125916.46755507123
+     },
+     {
+      "year": 2016,
+      "realized_gain_krw": -4756604.582497558,
+      "tax_krw": 0.0,
+      "fees_krw": 446359.81743515184,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 122510.22226706536
+     },
+     {
+      "year": 2017,
+      "realized_gain_krw": -723572.5374133599,
+      "tax_krw": 0.0,
+      "fees_krw": 200280.8698458067,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 112743.2399498683
+     },
+     {
+      "year": 2018,
+      "realized_gain_krw": 1782322.28595101,
+      "tax_krw": 0.0,
+      "fees_krw": 291771.2756693115,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 97884.19881625132
+     },
+     {
+      "year": 2019,
+      "realized_gain_krw": 3776333.694771115,
+      "tax_krw": 280793.41284964525,
+      "fees_krw": 390144.4182474041,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 132545.93282263295
+     },
+     {
+      "year": 2020,
+      "realized_gain_krw": 2017392.8400976926,
+      "tax_krw": 0.0,
+      "fees_krw": 373285.3956158035,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 65115.62506559091
+     },
+     {
+      "year": 2021,
+      "realized_gain_krw": 12174508.565462165,
+      "tax_krw": 2128391.884401675,
+      "fees_krw": 330274.9701250957,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 152927.942302856
+     },
+     {
+      "year": 2022,
+      "realized_gain_krw": 15469234.085288651,
+      "tax_krw": 2853231.4987635035,
+      "fees_krw": 615410.5742518457,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 277307.5619975645
+     },
+     {
+      "year": 2023,
+      "realized_gain_krw": -1863655.4133434342,
+      "tax_krw": 0.0,
+      "fees_krw": 916055.9950071735,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 202264.88467340288
+     },
+     {
+      "year": 2024,
+      "realized_gain_krw": 16802554.41698046,
+      "tax_krw": 3146561.971735702,
+      "fees_krw": 394161.3385423786,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 184832.66403172602
+     },
+     {
+      "year": 2025,
+      "realized_gain_krw": 11927750.998249158,
+      "tax_krw": 2074105.2196148152,
+      "fees_krw": 766838.4173088402,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 287891.9888074233
+     },
+     {
+      "year": 2026,
+      "realized_gain_krw": 18766745.57107144,
+      "tax_krw": 0.0,
+      "fees_krw": 687610.5941716789,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 121491.93406900748
+     }
+    ]
+   },
+   "spy": {
+    "cagr_pre": 0.1543250546081052,
+    "cagr_after": 0.15120779433145293,
+    "cagr_after_liquidation": 0.1375282702585312,
+    "mdd_after": -0.29678566480959234,
+    "final_krw": 317290122.1167809,
+    "final_after_liquidation_krw": 259715374.19905615,
+    "totals": {
+     "fees_krw": 53033.68880195736,
+     "fx_cost_krw": 0.0,
+     "dividend_tax_krw": 4076773.234324829,
+     "capital_gains_tax_krw": 0.0
+    },
+    "years": [
+     {
+      "year": 2009,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 0.0,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 0.0
+     },
+     {
+      "year": 2010,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 30473.544291025348,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 91590.05983490917
+     },
+     {
+      "year": 2011,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 580.6806782612081,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 102575.53393049457
+     },
+     {
+      "year": 2012,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 705.2870688888888,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 124586.88634549017
+     },
+     {
+      "year": 2013,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 764.717898221671,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 135085.1675505692
+     },
+     {
+      "year": 2014,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 860.6977863429131,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 152039.73249339804
+     },
+     {
+      "year": 2015,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 1021.7816215228027,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 180494.71820193983
+     },
+     {
+      "year": 2016,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 1150.1673900497974,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 203173.68660703176
+     },
+     {
+      "year": 2017,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 1196.1180172373354,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 211290.7297508069
+     },
+     {
+      "year": 2018,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 1264.6765001021067,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 223401.384106272
+     },
+     {
+      "year": 2019,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 1500.478821349919,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 265055.1706184592
+     },
+     {
+      "year": 2020,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 1538.4488347850026,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 271762.4618152565
+     },
+     {
+      "year": 2021,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 1549.7978172578248,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 273767.22618972044
+     },
+     {
+      "year": 2022,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 1963.0542220422503,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 346767.7546348749
+     },
+     {
+      "year": 2023,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 2075.680440378965,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 366662.8448504726
+     },
+     {
+      "year": 2024,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 2392.3622093097615,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 422603.74791513
+     },
+     {
+      "year": 2025,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 2590.302734357383,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 457569.3594867775
+     },
+     {
+      "year": 2026,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 1405.892470824126,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 248346.76999322642
+     }
+    ]
+   }
+  },
+  "krw_each_trade": {
+   "champion": {
+    "cagr_pre": 0.1330025734147786,
+    "cagr_after": 0.04703285899514498,
+    "cagr_after_liquidation": 0.04421053166028388,
+    "mdd_after": -0.3368026306643215,
+    "final_krw": 64782825.40799328,
+    "final_after_liquidation_krw": 61919098.81236016,
+    "totals": {
+     "fees_krw": 3977413.6889013033,
+     "fx_cost_krw": 39855693.31877677,
+     "dividend_tax_krw": 1441622.7113518778,
+     "capital_gains_tax_krw": 7888476.31351062
+    },
+    "years": [
+     {
+      "year": 2009,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 0.0,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 0.0
+     },
+     {
+      "year": 2010,
+      "realized_gain_krw": -1032281.1424932659,
+      "tax_krw": 0.0,
+      "fees_krw": 163166.6357666792,
+      "fx_cost_krw": 1634405.581793332,
+      "dividend_tax_krw": 43319.031240194236
+     },
+     {
+      "year": 2011,
+      "realized_gain_krw": 2649749.0586979487,
+      "tax_krw": 32944.79291354851,
+      "fees_krw": 150499.42854269975,
+      "fx_cost_krw": 1507523.8940162337,
+      "dividend_tax_krw": 44887.85606971676
+     },
+     {
+      "year": 2012,
+      "realized_gain_krw": 399830.46884420566,
+      "tax_krw": 0.0,
+      "fees_krw": 208512.6588171858,
+      "fx_cost_krw": 2089547.3746416434,
+      "dividend_tax_krw": 78346.8857857451
+     },
+     {
+      "year": 2013,
+      "realized_gain_krw": 2840220.0764033147,
+      "tax_krw": 74848.41680872954,
+      "fees_krw": 87328.86094283585,
+      "fx_cost_krw": 878683.6515155255,
+      "dividend_tax_krw": 95281.81604796603
+     },
+     {
+      "year": 2014,
+      "realized_gain_krw": 6457181.46795276,
+      "tax_krw": 870579.9229496074,
+      "fees_krw": 169153.2925881727,
+      "fx_cost_krw": 1696594.3883631665,
+      "dividend_tax_krw": 89572.81146645434
+     },
+     {
+      "year": 2015,
+      "realized_gain_krw": 3153734.309516527,
+      "tax_krw": 143821.54809363588,
+      "fees_krw": 222176.63433697273,
+      "fx_cost_krw": 2227052.658032932,
+      "dividend_tax_krw": 93779.97453180802
+     },
+     {
+      "year": 2016,
+      "realized_gain_krw": -2421518.982313415,
+      "tax_krw": 0.0,
+      "fees_krw": 297771.81080118363,
+      "fx_cost_krw": 2982256.6476907297,
+      "dividend_tax_krw": 80615.47004099414
+     },
+     {
+      "year": 2017,
+      "realized_gain_krw": -206262.49738593385,
+      "tax_krw": 0.0,
+      "fees_krw": 136662.2614268518,
+      "fx_cost_krw": 1371181.9279106928,
+      "dividend_tax_krw": 80643.92226717134
+     },
+     {
+      "year": 2018,
+      "realized_gain_krw": 1783350.7181752431,
+      "tax_krw": 0.0,
+      "fees_krw": 184599.5279439057,
+      "fx_cost_krw": 1849645.227096453,
+      "dividend_tax_krw": 64705.12026112492
+     },
+     {
+      "year": 2019,
+      "realized_gain_krw": 3590469.9894989245,
+      "tax_krw": 239903.3976897636,
+      "fees_krw": 239701.91653257512,
+      "fx_cost_krw": 2402103.7668000446,
+      "dividend_tax_krw": 90104.35795604206
+     },
+     {
+      "year": 2020,
+      "realized_gain_krw": 2114080.7677895795,
+      "tax_krw": 0.0,
+      "fees_krw": 216501.54847084297,
+      "fx_cost_krw": 2167370.3317604167,
+      "dividend_tax_krw": 41977.166447106305
+     },
+     {
+      "year": 2021,
+      "realized_gain_krw": 8545634.929896614,
+      "tax_krw": 1330039.6845772555,
+      "fees_krw": 188974.62257415886,
+      "fx_cost_krw": 1894322.1438892388,
+      "dividend_tax_krw": 81038.09922990177
+     },
+     {
+      "year": 2022,
+      "realized_gain_krw": 11228824.882826582,
+      "tax_krw": 1920341.4742218468,
+      "fees_krw": 347581.2667369376,
+      "fx_cost_krw": 3484920.805711241,
+      "dividend_tax_krw": 161481.4084639593
+     },
+     {
+      "year": 2023,
+      "realized_gain_krw": -153049.24368021125,
+      "tax_krw": 0.0,
+      "fees_krw": 456347.71902864374,
+      "fx_cost_krw": 4569706.754639378,
+      "dividend_tax_krw": 111048.27488527786
+     },
+     {
+      "year": 2024,
+      "realized_gain_krw": 10669898.585092707,
+      "tax_krw": 1797377.6887203958,
+      "fees_krw": 204691.98108156846,
+      "fx_cost_krw": 2051994.135790725,
+      "dividend_tax_krw": 89855.29475599188
+     },
+     {
+      "year": 2025,
+      "realized_gain_krw": 9220997.216071988,
+      "tax_krw": 1478619.3875358372,
+      "fees_krw": 367798.17041345703,
+      "fx_cost_krw": 3685612.989856404,
+      "dividend_tax_krw": 135566.6735087287
+     },
+     {
+      "year": 2026,
+      "realized_gain_krw": 12726050.675353674,
+      "tax_krw": 0.0,
+      "fees_krw": 335945.35289662227,
+      "fx_cost_krw": 3362771.0392684764,
+      "dividend_tax_krw": 59398.54839369824
+     }
+    ]
+   },
+   "core_only": {
+    "cagr_pre": 0.11241561611470785,
+    "cagr_after": 0.026363638014710977,
+    "cagr_after_liquidation": 0.02382394121770659,
+    "mdd_after": -0.3721729306092185,
+    "final_krw": 46389452.947648145,
+    "final_after_liquidation_krw": 44503734.89933308,
+    "totals": {
+     "fees_krw": 3566420.4734530225,
+     "fx_cost_krw": 35737504.80555939,
+     "dividend_tax_krw": 1294671.8384291113,
+     "capital_gains_tax_krw": 4499196.650356994
+    },
+    "years": [
+     {
+      "year": 2009,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 0.0,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 0.0
+     },
+     {
+      "year": 2010,
+      "realized_gain_krw": -750740.5147254034,
+      "tax_krw": 0.0,
+      "fees_krw": 176614.00358793506,
+      "fx_cost_krw": 1768810.9072513855,
+      "dividend_tax_krw": 42140.07676702963
+     },
+     {
+      "year": 2011,
+      "realized_gain_krw": 2021799.3134133671,
+      "tax_krw": 0.0,
+      "fees_krw": 155606.47612376165,
+      "fx_cost_krw": 1558827.7542821253,
+      "dividend_tax_krw": 49012.235766786405
+     },
+     {
+      "year": 2012,
+      "realized_gain_krw": -84780.8878633242,
+      "tax_krw": 0.0,
+      "fees_krw": 219305.43611242907,
+      "fx_cost_krw": 2197595.0349948597,
+      "dividend_tax_krw": 80475.57516501244
+     },
+     {
+      "year": 2013,
+      "realized_gain_krw": 1533826.3351268638,
+      "tax_krw": 0.0,
+      "fees_krw": 77564.38522024019,
+      "fx_cost_krw": 781215.642291257,
+      "dividend_tax_krw": 98378.87798902215
+     },
+     {
+      "year": 2014,
+      "realized_gain_krw": 6002544.382687874,
+      "tax_krw": 770559.7641913323,
+      "fees_krw": 161103.28115917344,
+      "fx_cost_krw": 1616432.4607694997,
+      "dividend_tax_krw": 95506.10334108697
+     },
+     {
+      "year": 2015,
+      "realized_gain_krw": 4240568.258931297,
+      "tax_krw": 382925.0169648849,
+      "fees_krw": 225332.89661942844,
+      "fx_cost_krw": 2258635.7801056826,
+      "dividend_tax_krw": 94129.85595240163
+     },
+     {
+      "year": 2016,
+      "realized_gain_krw": -3254283.3284017243,
+      "tax_krw": 0.0,
+      "fees_krw": 308481.2273426356,
+      "fx_cost_krw": 3089529.9560436364,
+      "dividend_tax_krw": 83836.61008311996
+     },
+     {
+      "year": 2017,
+      "realized_gain_krw": -452724.28529690683,
+      "tax_krw": 0.0,
+      "fees_krw": 127395.68859912509,
+      "fx_cost_krw": 1278018.4208040207,
+      "dividend_tax_krw": 71850.30770167973
+     },
+     {
+      "year": 2018,
+      "realized_gain_krw": 1183391.7773171451,
+      "tax_krw": 0.0,
+      "fees_krw": 177980.30401746338,
+      "fx_cost_krw": 1783129.9659704708,
+      "dividend_tax_krw": 58997.53596759968
+     },
+     {
+      "year": 2019,
+      "realized_gain_krw": 2138941.621590958,
+      "tax_krw": 0.0,
+      "fees_krw": 220603.63065805193,
+      "fx_cost_krw": 2210249.3834455744,
+      "dividend_tax_krw": 74702.68664038855
+     },
+     {
+      "year": 2020,
+      "realized_gain_krw": 1098169.878313961,
+      "tax_krw": 0.0,
+      "fees_krw": 195368.85417358644,
+      "fx_cost_krw": 1955590.7648846905,
+      "dividend_tax_krw": 33914.31060142733
+     },
+     {
+      "year": 2021,
+      "realized_gain_krw": 6201198.497981915,
+      "tax_krw": 814263.6695560213,
+      "fees_krw": 163123.28236028473,
+      "fx_cost_krw": 1635500.742893623,
+      "dividend_tax_krw": 75558.0689492038
+     },
+     {
+      "year": 2022,
+      "realized_gain_krw": 7495547.238813117,
+      "tax_krw": 1099020.392538885,
+      "fees_krw": 285711.26670188387,
+      "fx_cost_krw": 2864309.552405022,
+      "dividend_tax_krw": 127575.86350835838
+     },
+     {
+      "year": 2023,
+      "realized_gain_krw": -666258.7964272271,
+      "tax_krw": 0.0,
+      "fees_krw": 389479.09426494205,
+      "fx_cost_krw": 3899603.818444055,
+      "dividend_tax_krw": 85798.14587228252
+     },
+     {
+      "year": 2024,
+      "realized_gain_krw": 6810834.668391452,
+      "tax_krw": 948383.6270461193,
+      "fees_krw": 154650.31527765997,
+      "fx_cost_krw": 1550612.2853620902,
+      "dividend_tax_krw": 72742.2908532277
+     },
+     {
+      "year": 2025,
+      "realized_gain_krw": 4700200.818453417,
+      "tax_krw": 484044.1800597514,
+      "fees_krw": 286147.64675591275,
+      "fx_cost_krw": 2867482.802258278,
+      "dividend_tax_krw": 106611.4151715104
+     },
+     {
+      "year": 2026,
+      "realized_gain_krw": 7156521.788890821,
+      "tax_krw": 0.0,
+      "fees_krw": 241952.68447850208,
+      "fx_cost_krw": 2421959.5333530772,
+      "dividend_tax_krw": 43441.87809897357
+     }
+    ]
+   },
+   "spy": {
+    "cagr_pre": 0.1543250546081052,
+    "cagr_after": 0.1502207144274763,
+    "cagr_after_liquidation": 0.13653928699693663,
+    "mdd_after": -0.2968548612073192,
+    "final_krw": 312763811.5190617,
+    "final_after_liquidation_krw": 255958966.73688808,
+    "totals": {
+     "fees_krw": 52007.96363645421,
+     "fx_cost_krw": 748686.2949513275,
+     "dividend_tax_krw": 4025057.275595636,
+     "capital_gains_tax_krw": 0.0
+    },
+    "years": [
+     {
+      "year": 2009,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 0.0,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 0.0
+     },
+     {
+      "year": 2010,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 30176.67835439231,
+      "fx_cost_krw": 307209.1925807418,
+      "dividend_tax_krw": 90717.21623425605
+     },
+     {
+      "year": 2011,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 563.5708737563982,
+      "fx_cost_krw": 11396.655447073836,
+      "dividend_tax_krw": 101564.31177833439
+     },
+     {
+      "year": 2012,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 684.2624068836682,
+      "fx_cost_krw": 13837.306450314181,
+      "dividend_tax_krw": 123314.81924838813
+     },
+     {
+      "year": 2013,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 741.6535810690503,
+      "fx_cost_krw": 14997.883528285234,
+      "dividend_tax_krw": 133657.60909030662
+     },
+     {
+      "year": 2014,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 834.4607218391867,
+      "fx_cost_krw": 16874.65015274801,
+      "dividend_tax_krw": 150382.91165537178
+     },
+     {
+      "year": 2015,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 990.3096408562342,
+      "fx_cost_krw": 20026.261626203846,
+      "dividend_tax_krw": 178469.3315511696
+     },
+     {
+      "year": 2016,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 1114.347997055581,
+      "fx_cost_krw": 22534.59282934621,
+      "dividend_tax_krw": 200822.98903799703
+     },
+     {
+      "year": 2017,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 1158.4702891967195,
+      "fx_cost_krw": 23426.843625978065,
+      "dividend_tax_krw": 208774.51819621644
+     },
+     {
+      "year": 2018,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 1224.4846468013484,
+      "fx_cost_krw": 24761.80063531614,
+      "dividend_tax_krw": 220671.34095590553
+     },
+     {
+      "year": 2019,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 1452.3230629179259,
+      "fx_cost_krw": 29369.199716784722,
+      "dividend_tax_krw": 261731.39747605193
+     },
+     {
+      "year": 2020,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 1488.5980718795931,
+      "fx_cost_krw": 30102.761009120662,
+      "dividend_tax_krw": 268268.72311069287
+     },
+     {
+      "year": 2021,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 1499.1721123718926,
+      "fx_cost_krw": 30316.591605742706,
+      "dividend_tax_krw": 270174.3310747069
+     },
+     {
+      "year": 2022,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 1898.4833411976254,
+      "fx_cost_krw": 38391.55201088528,
+      "dividend_tax_krw": 342136.47821465426
+     },
+     {
+      "year": 2023,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 2006.8640006537676,
+      "fx_cost_krw": 40583.249790998394,
+      "dividend_tax_krw": 361668.37313742685
+     },
+     {
+      "year": 2024,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 2312.494335524055,
+      "fx_cost_krw": 46763.77434059751,
+      "dividend_tax_krw": 416747.753682384
+     },
+     {
+      "year": 2025,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 2503.3076784282352,
+      "fx_cost_krw": 50622.44416377096,
+      "dividend_tax_krw": 451135.31122419453
+     },
+     {
+      "year": 2026,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 1358.4825216305655,
+      "fx_cost_krw": 27471.535437418097,
+      "dividend_tax_krw": 244819.85992757895
+     }
+    ]
+   }
+  },
+  "base_100m": {
+   "champion": {
+    "cagr_pre": 0.1330025734147786,
+    "cagr_after": 0.10691852357285536,
+    "cagr_after_liquidation": 0.10361854771868928,
+    "mdd_after": -0.2485848165886212,
+    "final_krw": 548207247.2729908,
+    "final_after_liquidation_krw": 521465309.08936346,
+    "totals": {
+     "fees_krw": 23218240.177990053,
+     "fx_cost_krw": 37572.410505788204,
+     "dividend_tax_krw": 8167951.857772258,
+     "capital_gains_tax_krw": 75144821.01157635
+    },
+    "years": [
+     {
+      "year": 2009,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 0.0,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 0.0
+     },
+     {
+      "year": 2010,
+      "realized_gain_krw": -3711449.5074968236,
+      "tax_krw": 0.0,
+      "fees_krw": 559269.4287777521,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 150419.3630327365
+     },
+     {
+      "year": 2011,
+      "realized_gain_krw": 9378546.07358956,
+      "tax_krw": 1513280.1361897036,
+      "fees_krw": 547628.2775010183,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 162251.61928683246
+     },
+     {
+      "year": 2012,
+      "realized_gain_krw": 1399227.2960556846,
+      "tax_krw": 0.0,
+      "fees_krw": 799052.6744524593,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 301034.9018465901
+     },
+     {
+      "year": 2013,
+      "realized_gain_krw": 10785967.705190811,
+      "tax_krw": 1822912.895141978,
+      "fees_krw": 346052.05341923004,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 381181.96291500906
+     },
+     {
+      "year": 2014,
+      "realized_gain_krw": 26292563.814534992,
+      "tax_krw": 5234364.039197699,
+      "fees_krw": 699994.3821400519,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 367801.32763212756
+     },
+     {
+      "year": 2015,
+      "realized_gain_krw": 12517195.047727847,
+      "tax_krw": 2203782.910500128,
+      "fees_krw": 954116.076076727,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 401207.49919582816
+     },
+     {
+      "year": 2016,
+      "realized_gain_krw": -11312673.997772053,
+      "tax_krw": 0.0,
+      "fees_krw": 1353110.8693726428,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 371493.59553139313
+     },
+     {
+      "year": 2017,
+      "realized_gain_krw": -734365.907950799,
+      "tax_krw": 0.0,
+      "fees_krw": 666222.3314469462,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 395531.1294941019
+     },
+     {
+      "year": 2018,
+      "realized_gain_krw": 8786828.18405482,
+      "tax_krw": 1383102.2004920624,
+      "fees_krw": 942646.7660041007,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 335390.5753080335
+     },
+     {
+      "year": 2019,
+      "realized_gain_krw": 18944256.22881751,
+      "tax_krw": 3617736.370339852,
+      "fees_krw": 1302887.7817827945,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 495162.85557540064
+     },
+     {
+      "year": 2020,
+      "realized_gain_krw": 12903181.3725539,
+      "tax_krw": 2288699.901961857,
+      "fees_krw": 1260310.0445135676,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 246989.2487087867
+     },
+     {
+      "year": 2021,
+      "realized_gain_krw": 51971114.87738734,
+      "tax_krw": 10883645.273025215,
+      "fees_krw": 1158252.7904748537,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 494867.1362271601
+     },
+     {
+      "year": 2022,
+      "realized_gain_krw": 68497988.19771478,
+      "tax_krw": 14519557.40349723,
+      "fees_krw": 2235411.2714546053,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 1053167.0813778476
+     },
+     {
+      "year": 2023,
+      "realized_gain_krw": -1611366.5112512375,
+      "tax_krw": 0.0,
+      "fees_krw": 3169599.5533419997,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 777964.5971088002
+     },
+     {
+      "year": 2024,
+      "realized_gain_krw": 80244055.69906832,
+      "tax_krw": 17103692.253795035,
+      "fees_krw": 1541846.092235014,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 674204.7647365101
+     },
+     {
+      "year": 2025,
+      "realized_gain_krw": 68745671.03379817,
+      "tax_krw": 14574047.62743559,
+      "fees_krw": 2888850.413392764,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 1068817.7094942483
+     },
+     {
+      "year": 2026,
+      "realized_gain_krw": 101033272.23418547,
+      "tax_krw": 0.0,
+      "fees_krw": 2792989.3716035215,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 490466.4903008201
+     }
+    ]
+   },
+   "core_only": {
+    "cagr_pre": 0.11241561611470785,
+    "cagr_after": 0.08892484517966204,
+    "cagr_after_liquidation": 0.0857160325415427,
+    "mdd_after": -0.26238842905247173,
+    "final_krw": 416601924.0140427,
+    "final_after_liquidation_krw": 396509243.42322564,
+    "totals": {
+     "fees_krw": 21221379.58721017,
+     "fx_cost_krw": 25387.81825366474,
+     "dividend_tax_krw": 7434144.399217162,
+     "capital_gains_tax_krw": 50775636.507329434
+    },
+    "years": [
+     {
+      "year": 2009,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 0.0,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 0.0
+     },
+     {
+      "year": 2010,
+      "realized_gain_krw": -2626730.148004962,
+      "tax_krw": 0.0,
+      "fees_krw": 610884.1290937649,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 146108.92229448474
+     },
+     {
+      "year": 2011,
+      "realized_gain_krw": 7133432.046213269,
+      "tax_krw": 1019355.0501669196,
+      "fees_krw": 570597.2147768682,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 177944.2582376831
+     },
+     {
+      "year": 2012,
+      "realized_gain_krw": -543547.2803083509,
+      "tax_krw": 0.0,
+      "fees_krw": 849830.218611367,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 313465.3377665289
+     },
+     {
+      "year": 2013,
+      "realized_gain_krw": 5978226.520087061,
+      "tax_krw": 765209.8344191525,
+      "fees_krw": 317907.85280832835,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 402100.4772344394
+     },
+     {
+      "year": 2014,
+      "realized_gain_krw": 24170506.806797802,
+      "tax_krw": 4767511.49749552,
+      "fees_krw": 675628.7926208446,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 399616.1765096891
+     },
+     {
+      "year": 2015,
+      "realized_gain_krw": 17888670.38601968,
+      "tax_krw": 3385507.4849243322,
+      "fees_krw": 989358.424797256,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 411503.25531313673
+     },
+     {
+      "year": 2016,
+      "realized_gain_krw": -15403750.668885054,
+      "tax_krw": 0.0,
+      "fees_krw": 1449513.6929503065,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 396299.2460915494
+     },
+     {
+      "year": 2017,
+      "realized_gain_krw": -2338494.4049653728,
+      "tax_krw": 0.0,
+      "fees_krw": 647282.2962993061,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 364371.8109630656
+     },
+     {
+      "year": 2018,
+      "realized_gain_krw": 5760238.9228884885,
+      "tax_krw": 717252.5630354681,
+      "fees_krw": 942967.6506538498,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 316349.28003847785
+     },
+     {
+      "year": 2019,
+      "realized_gain_krw": 12184275.988733495,
+      "tax_krw": 2130540.717521371,
+      "fees_krw": 1258161.8635288405,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 427181.70216145663
+     },
+     {
+      "year": 2020,
+      "realized_gain_krw": 6554512.14721002,
+      "tax_krw": 891992.6723862054,
+      "fees_krw": 1197997.3312378237,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 208350.2904334719
+     },
+     {
+      "year": 2021,
+      "realized_gain_krw": 38892474.93906278,
+      "tax_krw": 8006344.486593818,
+      "fees_krw": 1053502.4458746451,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 486705.03855003946
+     },
+     {
+      "year": 2022,
+      "realized_gain_krw": 49249497.15121347,
+      "tax_krw": 10284889.373266969,
+      "fees_krw": 1955254.1462076025,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 878279.3406133227
+     },
+     {
+      "year": 2023,
+      "realized_gain_krw": -5891975.2400644,
+      "tax_krw": 0.0,
+      "fees_krw": 2893845.3048165827,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 638709.6462534462
+     },
+     {
+      "year": 2024,
+      "realized_gain_krw": 52911686.26388028,
+      "tax_krw": 11090570.978053663,
+      "fees_krw": 1241224.4332733909,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 582042.925649656
+     },
+     {
+      "year": 2025,
+      "realized_gain_krw": 37574826.588481896,
+      "tax_krw": 7716461.849466017,
+      "fees_krw": 2410481.828322895,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 904277.2413595608
+     },
+     {
+      "year": 2026,
+      "realized_gain_krw": 59041142.93687768,
+      "tax_krw": 0.0,
+      "fees_krw": 2156941.961336596,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 380839.4497471836
+     }
+    ]
+   },
+   "spy": {
+    "cagr_pre": 0.1543250546081052,
+    "cagr_after": 0.15120779433145293,
+    "cagr_after_liquidation": 0.13742752864886487,
+    "mdd_after": -0.29678566480959245,
+    "final_krw": 1057633740.3892676,
+    "final_after_liquidation_krw": 864434580.6635188,
+    "totals": {
+     "fees_krw": 176778.96267319098,
+     "fx_cost_krw": 0.0,
+     "dividend_tax_krw": 13589244.114416098,
+     "capital_gains_tax_krw": 0.0
+    },
+    "years": [
+     {
+      "year": 2009,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 0.0,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 0.0
+     },
+     {
+      "year": 2010,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 101578.48097008448,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 305300.1994496974
+     },
+     {
+      "year": 2011,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 1935.6022608706946,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 341918.446434982
+     },
+     {
+      "year": 2012,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 2350.956896296298,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 415289.62115163414
+     },
+     {
+      "year": 2013,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 2549.0596607389075,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 450283.8918352317
+     },
+     {
+      "year": 2014,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 2868.992621143049,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 506799.10831132776
+     },
+     {
+      "year": 2015,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 3405.93873840935,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 601649.0606731337
+     },
+     {
+      "year": 2016,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 3833.8913001659944,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 677245.6220234405
+     },
+     {
+      "year": 2017,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 3987.060057457787,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 704302.4325026901
+     },
+     {
+      "year": 2018,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 4215.588333673692,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 744671.2803542411
+     },
+     {
+      "year": 2019,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 5001.596071166408,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 883517.2353948654
+     },
+     {
+      "year": 2020,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 5128.162782616687,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 905874.8727175237
+     },
+     {
+      "year": 2021,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 5165.992724192757,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 912557.4206324026
+     },
+     {
+      "year": 2022,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 6543.514073474173,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 1155892.5154495845
+     },
+     {
+      "year": 2023,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 6918.934801263214,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 1222209.4828349082
+     },
+     {
+      "year": 2024,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 7974.540697699201,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 1408679.159717099
+     },
+     {
+      "year": 2025,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 8634.342447857935,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 1525231.1982892572
+     },
+     {
+      "year": 2026,
+      "realized_gain_krw": 0.0,
+      "tax_krw": 0.0,
+      "fees_krw": 4686.308236080412,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 827822.5666440866
+     }
+    ]
+   }
+  }
+ },
+ "satellite_rebalances": 34,
+ "backtest_metrics_usd": {
+  "cumulative_return": 548.28,
+  "cagr": 11.81,
+  "mdd": -18.57,
+  "sharpe": 0.89,
+  "win_rate": 0.0,
+  "avg_holding_days": 0.0,
+  "trade_count": 0,
+  "profit_factor": 0.0,
+  "calmar": 0.64,
+  "avg_drawdown_days": 26.2
+ }
+}
