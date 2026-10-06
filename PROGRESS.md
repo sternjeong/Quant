@@ -2,6 +2,15 @@
 
 > 현재 세션 인계: [docs/SESSION_HANDOFF.md](docs/SESSION_HANDOFF.md) · 엔진 로드맵: [docs/ENGINE_UPGRADE_ROADMAP.md](docs/ENGINE_UPGRADE_ROADMAP.md)
 
+## 2026-10-06 코인 R&D 상태 확인
+
+현재 채택 보류: 기존 info-rnd-v1 KEEP_CURRENT, 5% 추세 슬리브는 전진검증 후보. VM champion-crypto-v2는 과거 코인 가격 누락으로 failed(성과 판정 없음). 전진 원장 2줄·252거래일 판정 전. 현 챔피언 코어 85%·새틀라이트 15%에 코인 미편입. 읽기 전용 점검이며 연구·배포·배분 변경 없음.
+후속 상태 재확인: 관련 연구는 실제 수행됐고 전진 기록도 있으나, v2 전체 계산은 데이터 누락으로 중단돼 있다. 최근 전진 기록 10/06 확인, 재실행·코드 수정 없음.
+
+## 2026-10-06 코인 공통기간·BTC 규칙 후속 사전등록
+
+신규 `champion-crypto-v3`는 ETH 상장 후 공통 구간의 BTC·ETH 4안, `champion-crypto-v4`는 BTC 특성 및 12개 비중/EMA/변동성 매매 후보를 비교. 둘 다 고정 기간·판정·Holm 보정·비용 스트레스 포함, 최고 판정은 전진검증 후보. BTC 2019-12-31 결측은 Yahoo Finance 직접 재조회 값으로 스크립트가 보완하도록 구성(결측 지속 시 실패). 합성 스모크 및 작업 계약/가이드 통과, 전체 pytest 2482 passed·4 skipped, runner unittest 72 passed. 배포/VM 접수 확인 중.
+
 ## 2026-10-06 포트폴리오 표 직접 편집
 
 사용자 요청대로 별도 수정 폼을 표 셀 직접 편집으로 교체. '보유 종목' 표에서 티커·수량·매입 단가·매입일 수정 후 '💾 표 수정 저장'. 여러 행을 한 트랜잭션으로 저장하며 잘못된 행이 있으면 전체 거절. VM venv 대상 83 passed·가이드 검사 통과. **5df4da4 VM 배포 완료**(10/06 23:10 UTC, 전체 2482 passed·4 skipped·러너 72 OK·서비스 정상). 실제 보유 데이터는 직접 바꾸지 않았다.

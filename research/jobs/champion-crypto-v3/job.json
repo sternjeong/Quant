@@ -1,0 +1,13 @@
+{
+  "id": "champion-crypto-v3",
+  "title": "ETH 상장 이후 BTC·ETH 결합 연구 (공통 기간)",
+  "entrypoint": "research/jobs/champion-crypto-v3/run.py",
+  "args": [],
+  "timeout_seconds": 10800,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 34,
+  "revision": 1
+}

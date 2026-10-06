@@ -1,0 +1,13 @@
+{
+  "id": "champion-crypto-v4",
+  "title": "BTC 특성·비중·매수/매도 규칙 연구",
+  "entrypoint": "research/jobs/champion-crypto-v4/run.py",
+  "args": [],
+  "timeout_seconds": 10800,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 35,
+  "revision": 1
+}
