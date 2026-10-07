@@ -1,0 +1,474 @@
+{
+  "id": "core-universe-expansion-v1",
+  "smoke": false,
+  "generated_at": "2026-10-07T05:00:08+00:00",
+  "period": [
+    "2008-01-02",
+    "2026-10-06"
+  ],
+  "missing_tickers": [],
+  "candidate_count": 6,
+  "baseline": {
+    "n_days": 4720,
+    "sharpe_daily": 0.05016966724282936,
+    "sharpe_annual": 0.7964187773003402,
+    "cagr": 0.09406553308221488,
+    "ann_vol": 0.12231225494805556,
+    "max_drawdown": -0.1969123823006117,
+    "skew": -0.47364843401175666,
+    "kurtosis": 6.225547492845743,
+    "total_return": 4.386267137995361
+  },
+  "candidates": {
+    "add_iwm": {
+      "assets": [
+        "IWM"
+      ],
+      "category": "미국 소형주",
+      "verdict": "FAIL",
+      "reasons": [
+        "G1 IS 초과수익 DSR 0.00 < 0.95 (시도 6)",
+        "G3 IS 3구간 중 초과수익 양수 0개 < 2",
+        "편도 8bp 비용 스트레스 IS 초과 CAGR ≤ 0"
+      ],
+      "stats": {
+        "n_days": 4720,
+        "sharpe_daily": 0.05016966724282936,
+        "sharpe_annual": 0.7964187773003402,
+        "cagr": 0.09406553308221488,
+        "ann_vol": 0.12231225494805556,
+        "max_drawdown": -0.1969123823006117,
+        "skew": -0.47364843401175666,
+        "kurtosis": 6.225547492845743,
+        "total_return": 4.386267137995361
+      },
+      "gates": {
+        "G1_improves_corrected": {
+          "pass": false,
+          "dsr": 0.0039,
+          "threshold": 0.95,
+          "n_trials": 6,
+          "active_sharpe_annual": 0.0,
+          "active_ann_return": 0.0
+        },
+        "G2_holdout": {
+          "pass": true,
+          "split": "2024-10-06",
+          "oos_sharpe": 1.381,
+          "incumbent_oos_sharpe": 1.381
+        },
+        "G3_subperiods": {
+          "pass": false,
+          "active_sum_by_third": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "periods": [
+            "2008-01-02~2013-08-02",
+            "2013-08-05~2019-03-06",
+            "2019-03-07~2024-10-04"
+          ]
+        },
+        "G4_neighbors": {
+          "pass": true,
+          "neighbor_active_sharpe": [],
+          "note": "이웃 설정 없음 — 생략"
+        },
+        "G5_drawdown": {
+          "pass": true,
+          "is_mdd": -0.197,
+          "incumbent_is_mdd": -0.197
+        }
+      },
+      "cost_stress_8bp_is_active": {
+        "n_days": 4219,
+        "sharpe_daily": 0.0,
+        "sharpe_annual": 0.0,
+        "cagr": 0.0,
+        "ann_vol": 0.0,
+        "max_drawdown": 0.0,
+        "skew": 0.0,
+        "kurtosis": 0.0,
+        "total_return": 0.0
+      }
+    },
+    "add_tip": {
+      "assets": [
+        "TIP"
+      ],
+      "category": "물가연동국채",
+      "verdict": "FAIL",
+      "reasons": [
+        "G1 IS 초과수익 DSR 0.00 < 0.95 (시도 6)",
+        "G3 IS 3구간 중 초과수익 양수 0개 < 2",
+        "편도 8bp 비용 스트레스 IS 초과 CAGR ≤ 0"
+      ],
+      "stats": {
+        "n_days": 4720,
+        "sharpe_daily": 0.05016966724282936,
+        "sharpe_annual": 0.7964187773003402,
+        "cagr": 0.09406553308221488,
+        "ann_vol": 0.12231225494805556,
+        "max_drawdown": -0.1969123823006117,
+        "skew": -0.47364843401175666,
+        "kurtosis": 6.225547492845743,
+        "total_return": 4.386267137995361
+      },
+      "gates": {
+        "G1_improves_corrected": {
+          "pass": false,
+          "dsr": 0.0039,
+          "threshold": 0.95,
+          "n_trials": 6,
+          "active_sharpe_annual": 0.0,
+          "active_ann_return": 0.0
+        },
+        "G2_holdout": {
+          "pass": true,
+          "split": "2024-10-06",
+          "oos_sharpe": 1.381,
+          "incumbent_oos_sharpe": 1.381
+        },
+        "G3_subperiods": {
+          "pass": false,
+          "active_sum_by_third": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "periods": [
+            "2008-01-02~2013-08-02",
+            "2013-08-05~2019-03-06",
+            "2019-03-07~2024-10-04"
+          ]
+        },
+        "G4_neighbors": {
+          "pass": true,
+          "neighbor_active_sharpe": [],
+          "note": "이웃 설정 없음 — 생략"
+        },
+        "G5_drawdown": {
+          "pass": true,
+          "is_mdd": -0.197,
+          "incumbent_is_mdd": -0.197
+        }
+      },
+      "cost_stress_8bp_is_active": {
+        "n_days": 4219,
+        "sharpe_daily": 0.0,
+        "sharpe_annual": 0.0,
+        "cagr": 0.0,
+        "ann_vol": 0.0,
+        "max_drawdown": 0.0,
+        "skew": 0.0,
+        "kurtosis": 0.0,
+        "total_return": 0.0
+      }
+    },
+    "add_vnq": {
+      "assets": [
+        "VNQ"
+      ],
+      "category": "미국 리츠",
+      "verdict": "FAIL",
+      "reasons": [
+        "G1 IS 초과수익 DSR 0.00 < 0.95 (시도 6)",
+        "G3 IS 3구간 중 초과수익 양수 0개 < 2",
+        "편도 8bp 비용 스트레스 IS 초과 CAGR ≤ 0"
+      ],
+      "stats": {
+        "n_days": 4720,
+        "sharpe_daily": 0.05016966724282936,
+        "sharpe_annual": 0.7964187773003402,
+        "cagr": 0.09406553308221488,
+        "ann_vol": 0.12231225494805556,
+        "max_drawdown": -0.1969123823006117,
+        "skew": -0.47364843401175666,
+        "kurtosis": 6.225547492845743,
+        "total_return": 4.386267137995361
+      },
+      "gates": {
+        "G1_improves_corrected": {
+          "pass": false,
+          "dsr": 0.0039,
+          "threshold": 0.95,
+          "n_trials": 6,
+          "active_sharpe_annual": 0.0,
+          "active_ann_return": 0.0
+        },
+        "G2_holdout": {
+          "pass": true,
+          "split": "2024-10-06",
+          "oos_sharpe": 1.381,
+          "incumbent_oos_sharpe": 1.381
+        },
+        "G3_subperiods": {
+          "pass": false,
+          "active_sum_by_third": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "periods": [
+            "2008-01-02~2013-08-02",
+            "2013-08-05~2019-03-06",
+            "2019-03-07~2024-10-04"
+          ]
+        },
+        "G4_neighbors": {
+          "pass": true,
+          "neighbor_active_sharpe": [],
+          "note": "이웃 설정 없음 — 생략"
+        },
+        "G5_drawdown": {
+          "pass": true,
+          "is_mdd": -0.197,
+          "incumbent_is_mdd": -0.197
+        }
+      },
+      "cost_stress_8bp_is_active": {
+        "n_days": 4219,
+        "sharpe_daily": 0.0,
+        "sharpe_annual": 0.0,
+        "cagr": 0.0,
+        "ann_vol": 0.0,
+        "max_drawdown": 0.0,
+        "skew": 0.0,
+        "kurtosis": 0.0,
+        "total_return": 0.0
+      }
+    },
+    "add_vwo": {
+      "assets": [
+        "VWO"
+      ],
+      "category": "신흥국 주식",
+      "verdict": "FAIL",
+      "reasons": [
+        "G1 IS 초과수익 DSR 0.00 < 0.95 (시도 6)",
+        "G3 IS 3구간 중 초과수익 양수 0개 < 2",
+        "편도 8bp 비용 스트레스 IS 초과 CAGR ≤ 0"
+      ],
+      "stats": {
+        "n_days": 4720,
+        "sharpe_daily": 0.05016966724282936,
+        "sharpe_annual": 0.7964187773003402,
+        "cagr": 0.09406553308221488,
+        "ann_vol": 0.12231225494805556,
+        "max_drawdown": -0.1969123823006117,
+        "skew": -0.47364843401175666,
+        "kurtosis": 6.225547492845743,
+        "total_return": 4.386267137995361
+      },
+      "gates": {
+        "G1_improves_corrected": {
+          "pass": false,
+          "dsr": 0.0039,
+          "threshold": 0.95,
+          "n_trials": 6,
+          "active_sharpe_annual": 0.0,
+          "active_ann_return": 0.0
+        },
+        "G2_holdout": {
+          "pass": true,
+          "split": "2024-10-06",
+          "oos_sharpe": 1.381,
+          "incumbent_oos_sharpe": 1.381
+        },
+        "G3_subperiods": {
+          "pass": false,
+          "active_sum_by_third": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "periods": [
+            "2008-01-02~2013-08-02",
+            "2013-08-05~2019-03-06",
+            "2019-03-07~2024-10-04"
+          ]
+        },
+        "G4_neighbors": {
+          "pass": true,
+          "neighbor_active_sharpe": [],
+          "note": "이웃 설정 없음 — 생략"
+        },
+        "G5_drawdown": {
+          "pass": true,
+          "is_mdd": -0.197,
+          "incumbent_is_mdd": -0.197
+        }
+      },
+      "cost_stress_8bp_is_active": {
+        "n_days": 4219,
+        "sharpe_daily": 0.0,
+        "sharpe_annual": 0.0,
+        "cagr": 0.0,
+        "ann_vol": 0.0,
+        "max_drawdown": 0.0,
+        "skew": 0.0,
+        "kurtosis": 0.0,
+        "total_return": 0.0
+      }
+    },
+    "add_lqd": {
+      "assets": [
+        "LQD"
+      ],
+      "category": "투자등급 회사채",
+      "verdict": "FAIL",
+      "reasons": [
+        "G1 IS 초과수익 DSR 0.00 < 0.95 (시도 6)",
+        "G3 IS 3구간 중 초과수익 양수 0개 < 2",
+        "편도 8bp 비용 스트레스 IS 초과 CAGR ≤ 0"
+      ],
+      "stats": {
+        "n_days": 4720,
+        "sharpe_daily": 0.05016966724282936,
+        "sharpe_annual": 0.7964187773003402,
+        "cagr": 0.09406553308221488,
+        "ann_vol": 0.12231225494805556,
+        "max_drawdown": -0.1969123823006117,
+        "skew": -0.47364843401175666,
+        "kurtosis": 6.225547492845743,
+        "total_return": 4.386267137995361
+      },
+      "gates": {
+        "G1_improves_corrected": {
+          "pass": false,
+          "dsr": 0.0039,
+          "threshold": 0.95,
+          "n_trials": 6,
+          "active_sharpe_annual": 0.0,
+          "active_ann_return": 0.0
+        },
+        "G2_holdout": {
+          "pass": true,
+          "split": "2024-10-06",
+          "oos_sharpe": 1.381,
+          "incumbent_oos_sharpe": 1.381
+        },
+        "G3_subperiods": {
+          "pass": false,
+          "active_sum_by_third": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "periods": [
+            "2008-01-02~2013-08-02",
+            "2013-08-05~2019-03-06",
+            "2019-03-07~2024-10-04"
+          ]
+        },
+        "G4_neighbors": {
+          "pass": true,
+          "neighbor_active_sharpe": [],
+          "note": "이웃 설정 없음 — 생략"
+        },
+        "G5_drawdown": {
+          "pass": true,
+          "is_mdd": -0.197,
+          "incumbent_is_mdd": -0.197
+        }
+      },
+      "cost_stress_8bp_is_active": {
+        "n_days": 4219,
+        "sharpe_daily": 0.0,
+        "sharpe_annual": 0.0,
+        "cagr": 0.0,
+        "ann_vol": 0.0,
+        "max_drawdown": 0.0,
+        "skew": 0.0,
+        "kurtosis": 0.0,
+        "total_return": 0.0
+      }
+    },
+    "add_all_five": {
+      "assets": [
+        "IWM",
+        "TIP",
+        "VNQ",
+        "VWO",
+        "LQD"
+      ],
+      "category": "미국 소형주, 물가연동국채, 미국 리츠, 신흥국 주식, 투자등급 회사채",
+      "verdict": "FAIL",
+      "reasons": [
+        "G1 IS 초과수익 DSR 0.00 < 0.95 (시도 6)",
+        "G3 IS 3구간 중 초과수익 양수 0개 < 2",
+        "편도 8bp 비용 스트레스 IS 초과 CAGR ≤ 0"
+      ],
+      "stats": {
+        "n_days": 4720,
+        "sharpe_daily": 0.05016966724282936,
+        "sharpe_annual": 0.7964187773003402,
+        "cagr": 0.09406553308221488,
+        "ann_vol": 0.12231225494805556,
+        "max_drawdown": -0.1969123823006117,
+        "skew": -0.47364843401175666,
+        "kurtosis": 6.225547492845743,
+        "total_return": 4.386267137995361
+      },
+      "gates": {
+        "G1_improves_corrected": {
+          "pass": false,
+          "dsr": 0.0039,
+          "threshold": 0.95,
+          "n_trials": 6,
+          "active_sharpe_annual": 0.0,
+          "active_ann_return": 0.0
+        },
+        "G2_holdout": {
+          "pass": true,
+          "split": "2024-10-06",
+          "oos_sharpe": 1.381,
+          "incumbent_oos_sharpe": 1.381
+        },
+        "G3_subperiods": {
+          "pass": false,
+          "active_sum_by_third": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "periods": [
+            "2008-01-02~2013-08-02",
+            "2013-08-05~2019-03-06",
+            "2019-03-07~2024-10-04"
+          ]
+        },
+        "G4_neighbors": {
+          "pass": true,
+          "neighbor_active_sharpe": [],
+          "note": "이웃 설정 없음 — 생략"
+        },
+        "G5_drawdown": {
+          "pass": true,
+          "is_mdd": -0.197,
+          "incumbent_is_mdd": -0.197
+        }
+      },
+      "cost_stress_8bp_is_active": {
+        "n_days": 4219,
+        "sharpe_daily": 0.0,
+        "sharpe_annual": 0.0,
+        "cagr": 0.0,
+        "ann_vol": 0.0,
+        "max_drawdown": 0.0,
+        "skew": 0.0,
+        "kurtosis": 0.0,
+        "total_return": 0.0
+      }
+    }
+  },
+  "verdicts": {
+    "add_iwm": "FAIL",
+    "add_tip": "FAIL",
+    "add_vnq": "FAIL",
+    "add_vwo": "FAIL",
+    "add_lqd": "FAIL",
+    "add_all_five": "FAIL"
+  }
+}
