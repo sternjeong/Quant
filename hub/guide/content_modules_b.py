@@ -154,10 +154,10 @@ MODULES: tuple[ModuleGuide, ...] = (
     ModuleGuide(
         module="core/rnd_topics.py", name="R&D 센터 연구 주제 켜기/끄기", group="리서치 인프라", status="운영중",
         what="연구를 주제 6개로 나눠 켜고 끕니다: 새틀라이트 종목 선정, 새틀라이트 진입 타이밍, 새틀라이트 매도 규칙, 코어 분기 연구, AI 국제정세 의견, 코인 추세 기록. 끄면 그 주제의 새 아이디어·재작업·판정(또는 기록)이 멈추고, 이미 만든 아이디어·기록·누적 시도 수·대기열은 그대로 남아 다시 켜면 이어집니다.",
-        how_to_use="관제 센터 'R&D 센터'(/satellite-lab) 맨 위 '연구 주제 켜기/끄기' 표에서 주제마다 '끄기'/'켜기'를 누릅니다. 다음 03:00 야간 배치와 다음 연구 창부터 적용됩니다. 언제 누가 바꿨는지가 표에 남습니다.",
+        how_to_use="관제 센터 'R&D 센터'(/satellite-lab) 맨 위 연구 주제 표의 ON/OFF 버튼을 눌러 전환합니다. 다음 03:00 야간 배치와 다음 연구 창부터 적용됩니다. 언제 누가 바꿨는지가 표에 남습니다.",
         where_to_see="관제 센터 'R&D 센터', VM data/rnd_topics.json",
         cautions="아무것도 지우지 않습니다. 다만 '코인 추세 기록'과 'AI 국제정세 의견'은 꺼진 동안의 기록이 비므로(코인은 직전 상태가 이어진 것으로, 국제정세는 그달이 빠진 것으로 평가) 오래 끄지 않기를 권합니다. 주문 경로와 연결되어 있지 않습니다.",
-        sources=("core/rnd_topics.py", "hub/satellite_lab_page.py", "hub/server.py", "core/agent_batch.py"), verified="2026-10-05"),
+        sources=("core/rnd_topics.py", "hub/satellite_lab_page.py", "hub/server.py", "core/agent_batch.py"), verified="2026-10-07"),
     ModuleGuide(
         module="core/core_rnd.py", name="코어 분기 연구실", group="리서치 인프라", status="실험",
         what="분기마다 AI(core_designer)가 근거 있는 코어 아이디어를 최대 3개 제안하고, VM 연구 창의 빈 시간에 같은 판정 규칙(core-judge/v1)으로 시험합니다. 아이디어는 코드가 아니라 정해진 설정 범위 안의 조합입니다(기간·종목 수·필터·상관 제한·순위 완충·분할 리밸런싱·순위 기준 + 보유 중 매도 규칙: 트레일링스탑·이동평균 이탈·모멘텀 음전환·순위 이탈·SPY 200일선). 코어는 월 1회 결정이라 데이터가 좁아, 매일이 아니라 분기 단위로만 시도합니다.",

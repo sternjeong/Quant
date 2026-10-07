@@ -1,5 +1,14 @@
 # 세션 인계
 
+## 2026-10-07 R&D 센터 토글·후보 사유 가독성
+
+- 사용자 요청: 연구 주제의 끄기/켜기 동작을 칸 안에 잘 들어가는 ON/OFF로 표시하고, 새틀라이트 후보 순위의 탈락 사유가 길게 세로로 늘어지는 문제를 개선한다.
+- 구현: `hub/satellite_lab_page.py` 주제별 버튼을 고정 폭의 ON/OFF pill로 바꾸고 현재 상태 색상·접근성 라벨을 추가했다. 후보 표 탈락 사유를 `<br>` 강제 줄바꿈에서 구분점이 있는 인라인 문구로 바꾸고 셀 최소 폭·줄 간격을 지정했다.
+- 가이드: `hub/guide/content_modules_b.py` 사용법을 ON/OFF 버튼 기준으로 갱신하고 verified 날짜를 2026-10-07로 올렸다.
+- 테스트: `tests/test_rnd_topics.py`에 ON/OFF 버튼 및 탈락 사유 가독성 렌더 검증 추가. 대상 12 passed, `python -m hub.guide.check` 통과, `git diff --check` 통과.
+- 수정 파일: `hub/satellite_lab_page.py`, `hub/guide/content_modules_b.py`, `tests/test_rnd_topics.py`, `PROGRESS.md`, 이 문서.
+- 상태: 구현·검증 완료. 이 작업공간에는 VM 연결 설정이 없으며 현재 커밋·배포 전이다. 다음은 코드리뷰 후 저장소 main 반영 및 VM 자동배포 확인이다.
+
 최종 갱신: 2026-10-07 (자산군 확장·생존편향 연구 등록)
 
 ## 2026-10-07 자산군 확장·생존편향 연구 영역 추가

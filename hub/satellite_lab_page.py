@@ -121,23 +121,25 @@ def card_badge(data: dict) -> str:
 
 
 def render_topics(data: dict) -> str:
-    """연구 주제 켜기/끄기 — 끄면 멈추고(아무것도 지우지 않음) 다시 켜면 이어진다."""
+    """연구 주제를 ON/OFF로 전환한다 — 기록과 대기열은 보존한다."""
     if "topics_error" in data:
         return f'<h2>연구 주제</h2><p>확인 불가 {_e(data["topics_error"])}</p>'
     rows = []
     for key, t in (data.get("topics") or {}).items():
         state = '<span class="badge active">켜짐</span>' if t["on"] else '<span class="badge failed">꺼짐</span>'
-        btn_label, btn_val = ("끄기", "0") if t["on"] else ("켜기", "1")
+        btn_label, btn_val = ("ON", "0") if t["on"] else ("OFF", "1")
+        next_state = "OFF" if t["on"] else "ON"
         btn = (f'<form method="post" action="/rnd/topics" style="display:inline">'
                f'<input type="hidden" name="key" value="{html.escape(key)}"><input type="hidden" name="on" value="{btn_val}">'
-               f'<button type="submit" style="background:{"#5a2a2a" if t["on"] else "#2a5a34"};color:#fff;border:0;border-radius:8px;'
-               f'padding:.35rem .9rem;cursor:pointer">{btn_label}</button></form>')
+               f'<button type="submit" aria-label="{next_state}으로 전환" title="{next_state}으로 전환" '
+               f'style="background:{"#287a4b" if t["on"] else "#596273"};color:#fff;border:0;border-radius:999px;'
+               f'min-width:3.5rem;padding:.3rem .65rem;font-weight:700;cursor:pointer">{btn_label}</button></form>')
         changed = f'<br><small>{_e(t["changed_at"])} · {_e(t["actor"])}</small>' if t.get("changed_at") else ""
         rows.append(f'<tr><td><b>{_e(t["label"])}</b><br><small>{_e(t["what"])}</small></td><td>{state}{changed}</td>'
                     f'<td><small>끄면 멈춤: {_e(t["pauses"])}</small></td><td>{btn}</td></tr>')
     return ('<h2>연구 주제 켜기/끄기</h2><p class="subtitle">끄면 그 주제의 새 아이디어·재작업·판정이 멈춥니다. 이미 만든 아이디어·기록·누적 시도 수·대기열은 '
             '그대로 남아 다시 켜면 그 자리에서 이어집니다. 바뀐 설정은 다음 03:00 배치·다음 연구 창부터 적용됩니다.</p>'
-            '<table><tr><th>주제</th><th>상태</th><th>꺼져 있는 동안</th><th></th></tr>' + "".join(rows) + '</table>')
+            '<table><tr><th>주제</th><th>상태</th><th>꺼져 있는 동안</th><th>ON/OFF</th></tr>' + "".join(rows) + '</table>')
 
 
 def render_core(data: dict) -> str:
@@ -213,7 +215,8 @@ def render_body(data: dict) -> str:
         for r in lb:
             label, tone = STATUS_LABELS.get(r["status"], (r["status"], "unknown"))
             gates = f'{r["gates_passed"]}/{r["n_gates"]}' if r["n_gates"] else "—"
-            reasons = "<br>".join(html.escape(x) for x in (r["reasons"] or [])[:4])
+            reasons = " <span style=\"color:var(--muted,#8993a4)\">·</span> ".join(
+                f'<span style="display:inline">{html.escape(x)}</span>' for x in (r["reasons"] or [])[:4])
             picks = r.get("latest_picks") or {}
             trs.append(
                 f'<tr><td><b>{_e(r["id"])}</b><br><small>{_e(r["title"])} · {"시작 목록" if r["origin"] == "seed" else "에이전트"}</small></td>'
@@ -222,11 +225,11 @@ def render_body(data: dict) -> str:
                 f'<td>{_num(r["dsr"])}</td><td>{_num(r["is_sharpe"])} / {_num(r["oos_sharpe"])}</td>'
                 f'<td><small>{_e(r["structure"])}<br>{_e(json.dumps(r["best_params"], ensure_ascii=False) if r["best_params"] else None)}</small></td>'
                 f'<td><small>{_e(picks.get("date"))}: {_e(", ".join(picks.get("tickers") or []) or None)}</small></td>'
-                f'<td><small>{reasons or "—"}</small></td></tr>')
+                f'<td class="sat-fail-reasons" style="min-width:280px;white-space:normal;line-height:1.6"><small>{reasons or "—"}</small></td></tr>')
         parts.append(
             '<h2>후보 순위</h2><p class="subtitle">현 규칙 대비 초과 연샤프(IS) 순. 백분위는 같은 구조로 무작위로 고른 200번과 비교한 위치입니다. '
             '숫자가 좋아 보여도 관문을 모두 넘지 못하면 탈락입니다.</p>'
-            '<div style="overflow-x:auto"><table><tr><th>후보</th><th>상태</th><th>관문</th><th>현 규칙 대비<br>초과 샤프</th>'
+            '<div style="overflow-x:auto"><table class="sat-leaderboard"><tr><th>후보</th><th>상태</th><th>관문</th><th>현 규칙 대비<br>초과 샤프</th>'
             '<th>무작위 대비<br>백분위</th><th>DSR</th><th>샤프<br>IS / 2년</th><th>구조·파라미터</th><th>마지막 선정</th><th>탈락 사유</th></tr>'
             + "".join(trs) + '</table></div>')
         detail = []

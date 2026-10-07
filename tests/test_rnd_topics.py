@@ -179,4 +179,20 @@ def test_hub_topics_section_has_toggle_forms(topics):
     from hub import satellite_lab_page as page
 
     html_out = page.render_topics({"topics": rt.all_states()})
-    assert html_out.count('action="/rnd/topics"') == len(rt.TOPICS) and "끄기" in html_out
+    assert html_out.count('action="/rnd/topics"') == len(rt.TOPICS)
+    assert "ON" in html_out and "OFF" in html_out and "aria-label=" in html_out
+    assert ">끄기</button>" not in html_out and ">켜기</button>" not in html_out
+
+
+def test_hub_leaderboard_renders_fail_reasons_inline_and_readably():
+    from hub import satellite_lab_page as page
+
+    row = {"id": "S-1", "title": "후보", "origin": "seed", "status": "fail", "gates_passed": 1,
+           "n_gates": 5, "active_is_sharpe": 0.2, "random_pct": 0.4, "dsr": 0.3,
+           "is_sharpe": 1.1, "oos_sharpe": -0.2, "structure": "momentum", "best_params": {},
+           "latest_picks": {}, "reasons": ["무작위 관문 미달", "마지막 2년 초과 성과 없음", "파라미터 강건성 부족"]}
+    html_out = page.render_body({"rows": [row], "registry": {"variants": {}, "cumulative_trials": 1},
+                                 "judge_version": "test", "topics": {}, "research_jobs": []})
+    assert 'class="sat-fail-reasons" style="min-width:280px;white-space:normal' in html_out
+    assert "무작위 관문 미달" in html_out and "마지막 2년 초과 성과 없음" in html_out
+    assert "<br>마지막 2년" not in html_out and "sat-fail-reasons" in html_out
