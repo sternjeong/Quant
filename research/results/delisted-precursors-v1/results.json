@@ -1,0 +1,27 @@
+{
+  "id": "delisted-precursors-v1",
+  "verdicts": {
+    "study": "NOT_EVALUABLE_DATA"
+  },
+  "smoke": false,
+  "input_status": "CRSP_EXPORT_NOT_FOUND",
+  "expected_files": [
+    "data/research_inputs/crsp_delisted/daily.csv",
+    "data/research_inputs/crsp_delisted/delists.csv"
+  ],
+  "required_daily_columns": [
+    "date",
+    "permno",
+    "prc",
+    "ret",
+    "shrout",
+    "vol"
+  ],
+  "required_delist_columns": [
+    "date",
+    "dlret",
+    "dlstcd",
+    "permno"
+  ],
+  "generated_at": "2026-10-07T08:00:00+00:00"
+}
