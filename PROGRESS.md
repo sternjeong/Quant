@@ -8,7 +8,7 @@ R&D 센터에 독립 섹션을 구현하고 ETF 부족 자산군(IWM·TIP·VNQ·
 
 ## 2026-10-07 토큰 없는 연구 자원 상향
 
-등록 연구 실행기와 내부 R&D 계산기에 CPU 전체 사용률 80% pause / 70% resume, 작업 RSS 최대 80%·시스템 여유 RAM 20% 예약, nice 5 우선순위를 적용했다. 64개 관련 테스트, 전체 2489 passed·4 skipped, Telegram runner 72 passed, 가이드 검사가 통과했다. main 배포 대기. 상세는 [세션 인계](docs/SESSION_HANDOFF.md#2026-10-07-토큰-없는-vm-연구-자원-상향)에 기록한다.
+등록 연구 실행기와 내부 R&D 계산기에 CPU 전체 사용률 80% pause / 70% resume, 작업 RSS 최대 80%·시스템 여유 RAM 20% 예약, nice 5 우선순위를 적용했다. 64개 관련 테스트, 전체 2489 passed·4 skipped, Telegram runner 72 passed, 가이드 검사가 통과했다. `a3ab2dc`는 VM에서 게시된 BTC 연구 결과(`ef65127`, `05b5518`)와 병합한 `a804ec7`로 origin/main에 반영했다. VM 연구 실행기가 동작 중임은 확인됐지만 새 자원 정책의 적용 상태는 직접 확인하지 못했다. 상세는 [세션 인계](docs/SESSION_HANDOFF.md#2026-10-07-토큰-없는-vm-연구-자원-상향)에 기록한다.
 
 ## 2026-10-06 코인 R&D 상태 확인
 

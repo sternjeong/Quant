@@ -18,7 +18,7 @@
 - `core/research_jobs.py`: 연구 자식 우선순위를 nice 19→5로 올리고, Linux `/proc/stat` CPU 사용률이 80% 이상이면 해당 자식 프로세스 그룹을 정지, 70% 이하에서 재개하도록 추가했다(5초 폴링). 작업 RSS 상한은 `min(job.max_memory_mb, 총 RAM×80%)`; 기본 10,240MB, 시스템 가용 메모리 예약량은 `max(600MB, 총 RAM×20%)`다. 실행 전에도 예약량을 못 남기면 건너뛴다. 한 번에 한 작업·디스크/시간 예산·취소 보호는 유지한다.
 - `core/resource_guard.total_memory_mb()`는 Linux `MemTotal`만 읽는다. 가이드와 `docs/RESEARCH_JOBS.md` 갱신. VM의 실시간 RAM/서비스 부하는 이 작업 공간에서 직접 조회하지 않았다.
 - 검증: 연구 실행기·resource_guard·신규 연구 테스트 64 passed. CPU counter 산출과 80% pause/70% resume 신호, 12GB RAM 기준 9.6GB RSS 상한·2.4GB 예약량을 확인. 전체 pytest **2489 passed·4 skipped(422.57초)**, Telegram runner **72 passed**, 가이드 검사와 diff check 통과.
-- CPU 제한은 5초마다 측정하는 피드백 제어로 순간 초과가 가능하다. VM 실시간 사용률·배포 반영은 이 작업 공간에서 확인하지 못했다. main 반영 후 자동배포를 기다리며, 연구 대기열은 기존 우선순위 순서대로 진행한다.
+- CPU 제한은 5초마다 측정하는 피드백 제어로 순간 초과가 가능하다. 커밋 `a3ab2dc`를 신규 VM 결과 커밋 `05b5518`·`ef65127`과 병합한 `a804ec7`로 origin/main에 푸시했다. VM 실행기가 연구 결과를 게시한 사실은 확인했지만 방금 반영한 자원 정책의 VM 적용 여부는 이 작업 공간에서 직접 조회하지 못했다.
 
 ## 2026-10-06 코인 R&D 채택 상태 재확인 (읽기 전용 점검)
 
@@ -36,7 +36,8 @@
 - 두 작업은 각자 고정 SPEC/job.json/run.py, 원자 체크포인트, JSON/보고서 출력. hub 가이드 갱신. 합성 스모크 두 작업 통과(SMOKE_ONLY만 생성), 실행기 작업 정의 모두 유효, `python -m hub.guide.check` 통과.
 - 전체 VM venv 검증: `pytest tests -q` 2482 passed·4 skipped(303.74초), 텔레그램 runner unittest 72 passed. 두 연구 스모크 및 이어읽기 재호출, 작업 정의 검증, guide check 통과.
 - 배포 완료: **e9fee9b** origin/main 및 VM 반영. 자동 관문 `pytest tests` 통과, runner unittest 통과, codex-telegram/quant-streamlit/quant-scheduler/quant-hub 재시작 후 정상. VM 연구 실행기 목록에서 v3·v4 모두 `pending`, runs=0 확인. 연구창에 따라 순차 실행 예정(v3 priority34, v4 priority35); 실제 결과는 아직 없음.
-- 현재 결론: 전략·주문·기존 252일 원장 변경 없음. 새 작업은 전체 계산을 VM이 수행하며 결과는 `research/results/<id>/`와 관제 센터·텔레그램으로 받는다. 최종 확인 및 챔피언 반영은 결과 이후 별도 판단.
+- VM 결과 확인(2026-10-07): v3·v4 실행기가 계산을 끝내 `research/results/`에 보고서를 게시했다. 두 작업의 후보는 Holm 다중검정 보정 미통과로 모두 FAIL이며 일부는 IR도 미달한다. 코인 편입·챔피언 변경은 없다. 상세는 각 REPORT.md, 결과 커밋 `ef65127`·`05b5518`.
+- 현재 결론: 전략·주문·기존 252일 원장 변경 없음. 결과는 후보 탐색 판단이며 별도 확인 없이 운용에 넣지 않는다.
 
 ## 2026-10-06 포트폴리오 표 직접 편집 (사용자 UI 정정 요청)
 
