@@ -24,6 +24,69 @@ def patched_session(db_session, monkeypatch):
 # CRUD
 # ----------------------------------------------------------------------------
 
+def _review_rec(day="2026-10-07", selected=None):
+    return {"as_of": day, "params": {"as_of": day},
+            "core": {"market_filter_status": "above", "per_ticker_weights": {"XLK": 0.85}},
+            "satellite": {"today": {"pool_size": 40, "sleeve_weights": selected or {}}}}
+
+
+def test_review_actions_only_sell_mature_lots_and_never_unmanaged_positions():
+    lots = [{"id": 1, "ticker": "AAA", "quantity": 3.5, "purchase_date": date(2026, 4, 6), "strategy_role": "새틀라이트"},
+            {"id": 2, "ticker": "AAA", "quantity": 8, "purchase_date": date(2026, 10, 6), "strategy_role": "새틀라이트"},
+            {"id": 3, "ticker": "BBB", "quantity": 100, "purchase_date": date(2020, 1, 1), "strategy_role": "직접 관리"}]
+    actions = portfolio.holding_review_actions(lots, _review_rec(), date(2026, 10, 7))
+    assert len(actions) == 1
+    assert actions[0]["action"] == "매도 확인" and actions[0]["quantity"] == 3.5
+    assert actions[0]["holding_id"] == 1
+
+
+@pytest.mark.parametrize("rec", [None, _review_rec("2026-10-01"), _review_rec("2026-10-08"),
+                                {"as_of": "2026-10-07", "params": {"as_of": "2026-10-07"}, "satellite": {"today": {"sleeve_weights": {}}}}])
+def test_review_actions_need_fresh_complete_recommendation(rec):
+    lot = {"id": 1, "ticker": "AAA", "quantity": 3, "purchase_date": date(2026, 4, 6), "strategy_role": "새틀라이트"}
+    action = portfolio.holding_review_actions([lot], rec, date(2026, 10, 7))[0]
+    assert action["action"] == "재추천 필요"
+
+
+def test_review_confirmation_starts_new_cycle_without_changing_purchase(patched_session):
+    id_ = portfolio.add_holding("AAA", 3, 10, date(2026, 4, 6), strategy_role="새틀라이트")
+    h = portfolio.get_holding(id_)
+    actions = portfolio.holding_review_actions([h], _review_rec(selected={"AAA": 1.0}), date(2026, 10, 7))
+    assert actions[0]["action"] == "보유 재검토"
+    portfolio.update_holding(id_, review_date=date(2026, 10, 7))
+    h = portfolio.get_holding(id_)
+    assert h["purchase_date"] == date(2026, 4, 6) and h["review_date"] == date(2026, 10, 7)
+    assert portfolio.holding_review_actions([h], _review_rec(), date(2026, 10, 7)) == []
+
+
+def test_review_due_date_uses_calendar_months_and_next_market_day():
+    h = {"id": 1, "ticker": "AAA", "quantity": 3, "purchase_date": date(2026, 8, 31), "strategy_role": "새틀라이트"}
+    assert portfolio.holding_review_actions([h], None, date(2027, 2, 28)) == []
+    assert portfolio.holding_review_actions([h], None, date(2027, 3, 1))[0]["due_date"] == "2027-03-01"
+
+
+def test_core_review_needs_monthly_rebalance_after_purchase():
+    h = {"id": 1, "ticker": "XLE", "quantity": 3, "purchase_date": date(2026, 10, 6), "strategy_role": "코어"}
+    assert portfolio.holding_review_actions([h], _review_rec(), date(2026, 10, 7)) == []
+    action = portfolio.holding_review_actions([h], _review_rec("2026-11-02"), date(2026, 11, 2))[0]
+    assert action["action"] == "매도 확인" and action["quantity"] == 3
+
+
+def test_core_confirmation_suppresses_current_month_only(patched_session):
+    id_ = portfolio.add_holding("XLK", 4, 100, date(2026, 9, 15))
+    h = portfolio.get_holding(id_)
+    assert h["strategy_role"] == "코어"
+    assert portfolio.holding_review_actions([h], _review_rec(), date(2026, 10, 7))[0]["action"] == "보유 재검토"
+    portfolio.update_holding(id_, review_date=date(2026, 10, 7))
+    h = portfolio.get_holding(id_)
+    assert portfolio.holding_review_actions([h], _review_rec(), date(2026, 10, 7)) == []
+    assert portfolio.holding_review_actions([h], _review_rec("2026-11-02"), date(2026, 11, 2))[0]["action"] == "보유 재검토"
+
+
+def test_core_cannot_sell_using_previous_month_recommendation():
+    h = {"id": 1, "ticker": "XLE", "quantity": 3, "purchase_date": date(2026, 9, 15)}
+    assert portfolio.holding_review_actions([h], _review_rec("2026-09-30"), date(2026, 10, 1))[0]["action"] == "재추천 필요"
+
 
 def test_add_and_list_holding(patched_session):
     holding_id = portfolio.add_holding("aapl", 10, 150.0, date(2024, 1, 15))

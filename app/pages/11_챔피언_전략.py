@@ -25,6 +25,7 @@ import streamlit as st
 from core import champion_recommendation as cr
 from core import dawn_precompute as dawn
 from core import job_manager
+from core import portfolio as portfolio_module
 from core.backtest_engine import compute_drawdown_series, compute_monthly_returns
 from core.champion_strategy import (
     CORE_UNIVERSE,
@@ -326,7 +327,7 @@ else:
     _targets = cr.target_allocation(_rec)
     _holdings_pnl = get_portfolio_pnl()
     _held = ({} if _holdings_pnl.empty else
-             {r["ticker"]: float(r["market_value"] or 0.0) for _, r in _holdings_pnl.iterrows()})
+             _holdings_pnl.groupby("ticker")["market_value"].sum().to_dict())
     _cash_balance = get_cash_balance()
 
     with st.container(border=True):
@@ -376,6 +377,13 @@ else:
 
         # --- 3단계: 주문 목록 ---
         st.markdown("**3단계 — 주문 목록**")
+        _my_lots = portfolio_module.list_holdings()
+        _managed_sat = {h["ticker"] for h in _my_lots if h.get("strategy_role") == "새틀라이트"}
+        if hasattr(portfolio_module, "holding_review_actions"):
+            for _due in portfolio_module.holding_review_actions(_my_lots, _rec):
+                st.warning(f"{_due['title']} — {_due['detail']}")
+        if _managed_sat:
+            st.caption("등록된 새틀라이트는 위 매입일 기준 재선정·매도 확인 안내를 따릅니다. 오늘 처음 매수하는 후보로 기존 새틀라이트를 매일 교체하지 않도록 아래 비중 비교 매매에서는 새틀라이트를 제외합니다.")
         if _plan["basis"] == "fresh":
             st.caption(
                 "보유 종목이 등록돼 있지 않아 '처음부터 매수' 기준으로 계산했습니다. 이미 갖고 있는 종목이 있으면 "
@@ -384,12 +392,13 @@ else:
             _page_link("pages/8_포트폴리오_관리.py", "💼 포트폴리오에 보유 입력하기")
         else:
             st.caption(f"포트폴리오 화면에 입력한 보유 기준(현금 포함 총 ${_plan['total']:,.0f}). 입력이 낡으면 이 목록도 틀립니다.")
-        _trades = [r for r in _plan["rows"] if r["action"] != "유지"]
+        _trades = [r for r in _plan["rows"] if r["action"] != "유지" and not (
+            _managed_sat and (r["ticker"] in _managed_sat or "새틀라이트" in r["sleeve"]))]
         if not _trades:
-            st.success("지금 사고팔 것 없음 — 보유가 목표와 1%p 이내입니다.")
+            st.info("추가 비중 조정 목록이 없습니다. 매입일 기준 재선정 안내가 있으면 위 안내를 먼저 확인하세요.")
         else:
             _held_qty = ({} if _holdings_pnl.empty else
-                         {r["ticker"]: float(r["quantity"] or 0.0) for _, r in _holdings_pnl.iterrows()})
+                         _holdings_pnl.groupby("ticker")["quantity"].sum().to_dict())
             # 현재가는 재추천 결과의 근거 표에서 꺼낸다(코어·새틀라이트). 페이지를 열 때 조회하는 것은 BIL 하나뿐 —
             # 종목 가격 조회는 차트 버튼을 눌렀을 때만 한다는 원칙 유지.
             _trade_rows = cr.order_rows_with_shares(

@@ -33,6 +33,7 @@ def build_today_dashboard(
         from core.job_health import compute_job_health
         from core.market_regime import get_latest_market_regime_snapshot
         from core.watchlist import get_unread_alert_count, get_watchlist_count
+        from core import portfolio
 
         sources = {
             "holdings": get_current_holdings,
@@ -41,6 +42,7 @@ def build_today_dashboard(
             "backup": lambda: describe_backup(load_backup_status()),
             "unread_alerts": get_unread_alert_count,
             "watchlist_count": get_watchlist_count,
+            "portfolio_actions": lambda: portfolio.get_holding_review_actions((now or datetime.now(timezone.utc)).date()),
         }
 
     holdings = _safe(sources["holdings"], None)
@@ -50,7 +52,12 @@ def build_today_dashboard(
     unread_alerts = _safe(sources["unread_alerts"], 0)
     watchlist_count = _safe(sources["watchlist_count"], 0)
 
-    actions: list[dict[str, str]] = []
+    actions: list[dict[str, Any]] = []
+    portfolio_actions = _safe(sources.get("portfolio_actions", lambda: []), None)
+    if portfolio_actions is None:
+        actions.append({"level": "warning", "title": "보유 기간 알림 조회 실패", "detail": "포트폴리오 화면에서 매입 기록과 운용 구분을 확인하세요.", "destination": "pages/8_포트폴리오_관리.py"})
+    else:
+        actions.extend(portfolio_actions)
     if holdings is None:
         actions.append({"level": "info", "title": "챔피언 신호 스냅샷 없음", "detail": "저장된 추천 상태가 없어 오늘의 목표 배분을 표시할 수 없습니다.", "destination": "pages/11_챔피언_전략.py"})
     if market is None:

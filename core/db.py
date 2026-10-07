@@ -106,6 +106,7 @@ def _add_missing_columns() -> None:
     from sqlalchemy import inspect, text
 
     additions = {
+        "portfolio_holdings": [("strategy_role", "VARCHAR(20)"), ("review_date", "DATE")],
         "strategy_tuning_runs": [("max_holding_days", "INTEGER"), ("style_score_version", "INTEGER")],
         "strategy_tuning_results": [
             ("significance_p_value", "FLOAT"),

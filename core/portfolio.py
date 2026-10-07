@@ -39,9 +39,22 @@ SYSTEM_PROMPT = """\
 # 보유 종목 CRUD
 # ----------------------------------------------------------------------------
 
+STRATEGY_ROLES = ("직접 관리", "코어", "새틀라이트")
+
+
+def holding_strategy_role(ticker: str, role: Optional[str] = None) -> str:
+    if role is not None:
+        if role not in STRATEGY_ROLES:
+            raise ValueError("운용 구분을 직접 관리·코어·새틀라이트 중에서 선택해주세요.")
+        return role
+    from core.champion_strategy import CORE_UNIVERSE, CORE_CASH_ETF
+
+    return "코어" if ticker in set(CORE_UNIVERSE) | {CORE_CASH_ETF} else "직접 관리"
+
 
 def add_holding(
-    ticker: str, quantity: float, purchase_price: float, purchase_date: date, thesis: Optional[str] = None
+    ticker: str, quantity: float, purchase_price: float, purchase_date: date, thesis: Optional[str] = None,
+    *, strategy_role: Optional[str] = None,
 ) -> int:
     ticker = (ticker or "").strip().upper()
     if not ticker:
@@ -58,6 +71,7 @@ def add_holding(
             purchase_price=purchase_price,
             purchase_date=purchase_date,
             thesis=(thesis or "").strip() or None,
+            strategy_role=holding_strategy_role(ticker, strategy_role),
         )
         session.add(holding)
         session.flush()
@@ -72,6 +86,8 @@ def update_holding(
     thesis: Optional[str] = None,
     *,
     ticker: Optional[str] = None,
+    strategy_role: Optional[str] = None,
+    review_date: Optional[date] = None,
 ) -> None:
     """기존 보유 기록을 수정한다. None은 유지, thesis=""는 근거 삭제다."""
     if ticker is not None:
@@ -86,6 +102,12 @@ def update_holding(
         holding = session.get(PortfolioHolding, holding_id)
         if holding is None:
             raise ValueError(f"보유 종목(id={holding_id})을 찾을 수 없습니다.")
+        if strategy_role is not None:
+            holding.strategy_role = holding_strategy_role(ticker or holding.ticker, strategy_role)
+        if review_date is not None:
+            if not isinstance(review_date, date) or not (purchase_date or holding.purchase_date) <= review_date <= date.today():
+                raise ValueError("재선정 확인일은 매입일 이후부터 오늘 사이여야 합니다.")
+            holding.review_date = review_date
         if ticker is not None:
             holding.ticker = ticker
         if quantity is not None:
@@ -129,16 +151,74 @@ def update_holdings(rows: list[dict]) -> None:
         if row["id"] in ids:
             raise ValueError("같은 보유 기록이 중복되었습니다.")
         ids.add(row["id"])
-        prepared.append((row["id"], ticker, quantity, price, purchase_date))
+        role = holding_strategy_role(ticker, row["strategy_role"]) if "strategy_role" in row else None
+        prepared.append((row["id"], ticker, quantity, price, purchase_date, role))
     with get_session() as session:
         holdings = {id_: session.get(PortfolioHolding, id_) for id_ in ids}
         for id_, holding in holdings.items():
             if holding is None:
                 raise ValueError(f"보유 종목(id={id_})을 찾을 수 없습니다. 새로고침 후 다시 수정해주세요.")
-        for id_, ticker, quantity, price, purchase_date in prepared:
+        for id_, ticker, quantity, price, purchase_date, role in prepared:
             holding = holdings[id_]
             holding.ticker, holding.quantity, holding.purchase_price, holding.purchase_date = (
                 ticker, quantity, price, purchase_date)
+            if role is not None:
+                holding.strategy_role = role
+
+
+def holding_review_actions(holdings: list[dict], recommendation: Optional[dict],
+                           today: Optional[date] = None) -> list[dict]:
+    """실제 매입일·재선정 확인일로 기한을 계산한다. 최신 추천이 없으면 재계산을 요청한다."""
+    from core import champion_recommendation as cr
+
+    today = today or date.today()
+    rec = recommendation or {}
+    try:
+        rec_day = date.fromisoformat(str(rec.get("as_of") or (rec.get("params") or {}).get("as_of")))
+    except (TypeError, ValueError):
+        rec_day = None
+    fresh = bool(rec_day and 0 <= (today - rec_day).days <= 4 and cr.freshness(rec, today)["ok"])
+    actions = []
+    for h in holdings:
+        role = holding_strategy_role(h["ticker"], h.get("strategy_role"))
+        if role == "직접 관리":
+            continue
+        start = max(h["purchase_date"], h.get("review_date") or h["purchase_date"])
+        if role == "새틀라이트":
+            due = date.fromisoformat(cr.next_reselection_after_purchase(start)["date"])
+            section = (rec.get("satellite") or {}).get("today")
+            valid = fresh and isinstance(section, dict) and "sleeve_weights" in section and bool(section.get("pool_size"))
+            selected = (section or {}).get("sleeve_weights") or {}
+        else:
+            due = cr.first_trading_day_of_month(today.year, today.month)
+            if due <= start:
+                continue
+            section = rec.get("core") or {}
+            valid = fresh and section.get("market_filter_status") in ("above", "below") and bool(section.get("per_ticker_weights"))
+            selected = section.get("per_ticker_weights") or {}
+        if today < due:
+            continue
+        valid = valid and rec_day >= due
+        qty = float(h["quantity"])
+        action = "재추천 필요" if not valid else "보유 재검토" if float(selected.get(h["ticker"], 0)) > 0 else "매도 확인"
+        if action == "재추천 필요":
+            detail = f"{due} 재선정 시점 도달. 해당 매입 기록 {qty:g}주를 판단할 최신 추천이 없습니다. 챔피언 전략에서 다시 추천하세요."
+        elif action == "매도 확인":
+            detail = f"{due} 재선정 시점 도달. {rec_day} 추천에서 제외되어 해당 매입 기록 {qty:g}주 매도 확인이 필요합니다. 매도 후 보유 기록을 수정하세요."
+        else:
+            detail = f"{due} 재선정 시점 도달. {rec_day} 추천에 계속 포함되어 {qty:g}주 보유와 목표 비중을 재검토하세요. 보유 유지 확인 후 다음 주기를 시작할 수 있습니다."
+        actions.append({"level": "warning" if action != "보유 재검토" else "info",
+                        "title": f"{h['ticker']} {qty:g}주 · {action}", "detail": detail,
+                        "destination": "pages/11_챔피언_전략.py", "holding_id": h["id"],
+                        "action": action, "ticker": h["ticker"], "quantity": qty,
+                        "due_date": due.isoformat(), "strategy_role": role})
+    return actions
+
+
+def get_holding_review_actions(today: Optional[date] = None) -> list[dict]:
+    from core.champion_recommendation import load_latest_cached
+
+    return holding_review_actions(list_holdings(), load_latest_cached(), today)
 
 
 def get_holding(holding_id: int) -> Optional[dict]:
@@ -153,6 +233,8 @@ def get_holding(holding_id: int) -> Optional[dict]:
             "purchase_price": holding.purchase_price,
             "purchase_date": holding.purchase_date,
             "thesis": holding.thesis,
+            "strategy_role": holding_strategy_role(holding.ticker, holding.strategy_role),
+            "review_date": holding.review_date,
         }
 
 
@@ -167,6 +249,8 @@ def list_holdings() -> list[dict]:
                 "purchase_price": r.purchase_price,
                 "purchase_date": r.purchase_date,
                 "thesis": r.thesis,
+                "strategy_role": holding_strategy_role(r.ticker, r.strategy_role),
+                "review_date": r.review_date,
             }
             for r in rows
         ]

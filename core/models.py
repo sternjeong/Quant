@@ -184,6 +184,8 @@ class PortfolioHolding(Base):
     quantity = Column(Float, nullable=False)  # 보유 수량
     purchase_price = Column(Float, nullable=False)  # 매입 단가
     purchase_date = Column(Date, nullable=False)  # 매입일
+    strategy_role = Column(String(20), nullable=True)  # 직접 관리 / 코어 / 새틀라이트
+    review_date = Column(Date, nullable=True)  # 보유 유지 재선정을 확인한 날짜(매입일 보존)
     thesis = Column(Text, nullable=True)  # 매매근거: 왜 이 매매를 선택했는지 (나중에 검증용)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)

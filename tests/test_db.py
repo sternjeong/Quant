@@ -108,6 +108,20 @@ def _fresh_engine(tmp_path, name="init_db_test.db"):
     return create_engine(f"sqlite:///{tmp_path / name}", connect_args={"check_same_thread": False})
 
 
+def test_existing_portfolio_schema_adds_tracking_columns_without_changing_rows(monkeypatch, tmp_path):
+    from sqlalchemy import text, inspect
+
+    engine = _fresh_engine(tmp_path)
+    with engine.begin() as conn:
+        conn.execute(text("CREATE TABLE portfolio_holdings (id INTEGER PRIMARY KEY, ticker VARCHAR(20), quantity FLOAT)"))
+        conn.execute(text("INSERT INTO portfolio_holdings VALUES (1, 'XLK', 3)"))
+    monkeypatch.setattr(db, "engine", engine)
+    db._add_missing_columns()
+    assert {"strategy_role", "review_date"} <= {c["name"] for c in inspect(engine).get_columns("portfolio_holdings")}
+    with engine.connect() as conn:
+        assert conn.execute(text("SELECT ticker, quantity, strategy_role, review_date FROM portfolio_holdings")).one() == ("XLK", 3, None, None)
+
+
 def test_init_db_runs_once_per_engine(monkeypatch, tmp_path):
     """같은 engine에 두 번 init_db()를 불러도 실제 초기화(테이블 생성)는 한 번만 수행된다."""
     engine = _fresh_engine(tmp_path)

@@ -1,6 +1,7 @@
 """업무공간 내비게이션의 기본 화면: Today 명령 센터."""
 
 from datetime import datetime
+from html import escape
 
 import streamlit as st
 
@@ -65,8 +66,8 @@ with left:
     st.subheader("오늘 처리할 일")
     for action in dashboard["actions"]:
         st.markdown(
-            f'<div class="quant-action-card {action["level"]}"><h4>{action["title"]}</h4>'
-            f'<p>{action["detail"]}</p></div>',
+            f'<div class="quant-action-card {action["level"]}"><h4>{escape(action["title"])}</h4>'
+            f'<p>{escape(action["detail"])}</p></div>',
             unsafe_allow_html=True,
         )
         _link(action["destination"], "자세히 보기")

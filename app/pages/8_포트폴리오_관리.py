@@ -19,6 +19,7 @@ import streamlit as st
 
 from core.db import init_db
 from core import job_manager
+from core import portfolio as portfolio_module
 from core.portfolio import (
     add_holding,
     aggregate_pnl_by_ticker,
@@ -49,6 +50,11 @@ apply_theme()
 job_manager.render_active_jobs_sidebar()
 st.title("💼 포트폴리오 관리")
 render_status_header("portfolio")
+if not hasattr(portfolio_module, "get_holding_review_actions") or not hasattr(portfolio_module.PortfolioHolding, "strategy_role"):
+    st.info("포트폴리오 업데이트를 반영 중입니다. VM 배포 완료 후 새로고침해주세요.")
+    st.stop()
+get_holding_review_actions = portfolio_module.get_holding_review_actions
+STRATEGY_ROLES = portfolio_module.STRATEGY_ROLES
 st.caption("실제 보유 종목을 등록하면 손익, 리스크(변동성/상관관계/섹터 집중도)를 분석하고 AI 코멘트를 생성합니다.")
 
 with st.expander("➕ 보유 종목 추가"):
@@ -58,6 +64,8 @@ with st.expander("➕ 보유 종목 추가"):
         new_qty = c2.number_input("수량", min_value=0.0, step=1.0)
         new_price = c3.number_input("매입 단가($)", min_value=0.0, step=1.0)
         new_date = c4.date_input("매입일", value=date.today(), max_value=date.today())
+        new_role = st.selectbox("운용 구분", ["자동 분류", *STRATEGY_ROLES],
+                                help="자동 분류는 코어 ETF만 코어로 분류합니다. 새틀라이트 매입은 직접 새틀라이트를 선택하세요.")
         new_thesis = st.text_area(
             "매매근거 (선택)",
             placeholder="왜 이 매매를 선택했는지 적어두면, 나중에 '매매근거 검증'에서 논리가 실제로 맞았는지 되짚어볼 수 있습니다.",
@@ -67,7 +75,8 @@ with st.expander("➕ 보유 종목 추가"):
 
     if add_submitted:
         try:
-            add_holding(new_ticker, new_qty, new_price, new_date, thesis=new_thesis)
+            add_holding(new_ticker, new_qty, new_price, new_date, thesis=new_thesis,
+                        strategy_role=None if new_role == "자동 분류" else new_role)
             st.toast(f"{new_ticker.strip().upper()} 추가 완료.", icon="✅")
             st.rerun()
         except ValueError as e:
@@ -95,9 +104,10 @@ if not holdings:
     st.stop()
 
 st.markdown("### 보유 종목")
+st.caption("6개월 재선정 알림을 받으려면 해당 매입 기록의 운용 구분을 '새틀라이트'로 지정하세요. 일반 종목은 '직접 관리'로 유지합니다.")
 st.caption("표의 셀을 직접 고친 뒤 '💾 표 수정 저장'을 누르세요. 5개를 넘는 기록은 표 안에서 스크롤해 볼 수 있습니다. 매매근거와 과거 검증 이력은 유지됩니다.")
 holdings_by_id = {h["id"]: h for h in holdings}
-table = pd.DataFrame(holdings).set_index("id")[["ticker", "quantity", "purchase_price", "purchase_date"]]
+table = pd.DataFrame(holdings).set_index("id")[["ticker", "quantity", "purchase_price", "purchase_date", "strategy_role"]]
 table["cost_basis"] = table["quantity"] * table["purchase_price"]
 table_version = st.session_state.get("holding_table_version", 0)
 with st.form("holding_table_form"):
@@ -110,6 +120,7 @@ with st.form("holding_table_form"):
             "quantity": st.column_config.NumberColumn("수량", required=True, min_value=0.0),
             "purchase_price": st.column_config.NumberColumn("매입 단가($)", required=True, min_value=0.0),
             "purchase_date": st.column_config.DateColumn("매입일", required=True, max_value=date.today()),
+            "strategy_role": st.column_config.SelectboxColumn("운용 구분", options=list(STRATEGY_ROLES), required=True),
             "cost_basis": st.column_config.NumberColumn("매입금액($)", format="%.2f"),
         },
     )
@@ -119,7 +130,7 @@ if edit_submitted:
         changes = []
         for id_, row in edited.iterrows():
             original = holdings_by_id[id_]
-            record = {c: row[c] for c in ("ticker", "quantity", "purchase_price", "purchase_date")}
+            record = {c: row[c] for c in ("ticker", "quantity", "purchase_price", "purchase_date", "strategy_role")}
             if any(record[c] != original[c] for c in record):
                 changes.append({"id": int(id_), **record})
         if changes:
@@ -135,6 +146,18 @@ if edit_submitted:
             st.info("변경한 내용이 없습니다.")
     except ValueError as e:
         st.error(str(e))
+
+st.markdown("### ⏰ 매입일 기준 재선정·매도 확인")
+_due_actions = get_holding_review_actions()
+if not _due_actions:
+    st.caption("코어·새틀라이트로 지정한 매입 기록 중 현재 재선정 기한이 도래한 기록은 없습니다.")
+for _due in _due_actions:
+    st.warning(f"{_due['title']} — {_due['detail']}")
+    if _due["action"] == "보유 재검토":
+        if st.button("리밸런싱·보유 유지 확인", key=f"holding_review_{_due['holding_id']}"):
+            update_holding(_due["holding_id"], review_date=date.today())
+            st.rerun()
+st.caption("보유 유지 확인은 매입일을 바꾸지 않고 다음 재선정 주기만 시작합니다. 매도 체결 후에는 수량을 수정하거나 해당 매입 기록을 삭제하세요.")
 
 with st.expander("🗑️ 보유 기록 삭제"):
     selected_id = st.selectbox(
