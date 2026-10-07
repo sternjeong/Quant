@@ -4,7 +4,7 @@
 
 ## 2026-10-07 자산군 확장·생존편향 연구 등록
 
-R&D 센터에 독립 섹션을 구현하고 ETF 부족 자산군(IWM·TIP·VNQ·VWO·LQD) 5종의 개별/묶음 확장 연구와 CRSP 상폐 위험신호 연구를 사전등록했다. 코드·가이드·합성 스모크 및 집중 테스트는 통과했다(8 passed). 실제 성과 계산은 VM에서만 돈다. CRSP 입력은 저장소에 아직 없어 일별/상폐 CSV를 VM 계약 경로에 배치하기 전까지 `delisted-precursors-v1`은 `NOT_EVALUABLE_DATA`로 명시된다. 현재 구현 완료·배포 대기이며 챔피언/주문 변경은 없다. 상세 상태는 [세션 인계](docs/SESSION_HANDOFF.md#2026-10-07-자산군-확장생존편향-연구-영역-추가) 참조.
+R&D 센터에 독립 섹션을 구현하고 ETF 부족 자산군(IWM·TIP·VNQ·VWO·LQD) 5종의 개별/묶음 확장 연구와 CRSP 상폐 위험신호 연구를 사전등록했다. 코드·가이드·합성 스모크 및 집중 테스트(3 passed), 전체 테스트(2485 passed·4 skipped), Telegram runner(72 passed)를 통과했다. `513ffe6`을 `origin/main`에 푸시했다. 실제 성과 계산은 VM에서만 돈다. 이 작업 공간에 VM 접속 설정이 없어 자동배포·실행기 상태는 아직 직접 확인되지 않았다. CRSP 입력은 저장소에 아직 없어서 일별/상폐 CSV를 VM 계약 경로에 배치하기 전까지 `delisted-precursors-v1`은 `NOT_EVALUABLE_DATA`로 명시된다. 챔피언/주문 변경은 없다. 상세 상태는 [세션 인계](docs/SESSION_HANDOFF.md#2026-10-07-자산군-확장생존편향-연구-영역-추가) 참조.
 
 ## 2026-10-06 코인 R&D 상태 확인
 
