@@ -255,11 +255,22 @@ def render_body(data: dict) -> str:
 def render_research_jobs(data: dict) -> str:
     labels = {"pending": "대기", "running": "계산 중", "in_progress": "이어 계산 대기",
               "done": "완료", "failed": "실패", "cancelled": "취소"}
-    rows = [f'<tr><td><b>{_e(j["title"])}</b><br><small>{_e(j["id"])}</small></td>'
-            f'<td>{_e(labels.get(j["status"], j["status"]))}</td></tr>' for j in data.get("research_jobs", [])]
-    rows += [f'<tr><td>{_e(k)}</td><td>정의 오류: {_e(v)}</td></tr>' for k, v in data.get("invalid_jobs", {}).items()]
+    jobs = data.get("research_jobs", [])
+    def table(rows):
+        rendered = [f'<tr><td><b>{_e(j["title"])}</b><br><small>{_e(j["id"])}</small></td>'
+                    f'<td>{_e(labels.get(j["status"], j["status"]))}</td></tr>' for j in rows]
+        return '<table><tr><th>연구</th><th>상태</th></tr>' + ''.join(rendered) + '</table>'
+    asset_jobs = [j for j in jobs if j.get("id", "").startswith(("core-universe-expansion-", "delisted-precursors-"))]
+    general_jobs = [j for j in jobs if j not in asset_jobs]
+    errors = [f'<tr><td>{_e(k)}</td><td>정의 오류: {_e(v)}</td></tr>' for k, v in data.get("invalid_jobs", {}).items()]
+    general = table(general_jobs) if general_jobs else '<p>현재 일반 VM 연구가 없습니다.</p>'
+    if errors:
+        general += '<table>' + ''.join(errors) + '</table>'
+    asset = ('<h2>자산군 확장·생존편향 연구</h2><p>현재 코어에 없는 자산군 ETF를 소수 후보에 추가해 비교하고, CRSP 상장폐지 수익률을 포함해 사전 위험신호를 분석합니다. '
+             'S&amp;P 지수 편출은 상장폐지와 구별합니다. CRSP 입력이 없으면 데이터 대기/미평가로 보고하며, 후보군·챔피언 전략은 자동 변경하지 않습니다.</p>'
+             + (table(asset_jobs) if asset_jobs else '<p>등록된 자산군·생존편향 연구가 없습니다.</p>'))
     return ('<h2>사전 등록 VM 연구</h2><p>코인 결합·연도별 패배 분해 등 고정한 연구를 VM 실행기가 계산합니다. '
             '아래 작업은 위 주제 토글과 별도로 실행됩니다. 결과와 실패 사유는 '
             '<a href="/reports/report-research-results">검증 연구 결과</a>에서 확인합니다. '
             '좋은 결과도 자동으로 챔피언에 반영되지 않습니다.</p>'
-            '<table><tr><th>연구</th><th>상태</th></tr>' + ''.join(rows) + '</table>')
+            + general + asset)

@@ -64,7 +64,7 @@ class CoreConfig:
 def _first_trading_day_mask(index: pd.DatetimeIndex, offset_days: int = 0) -> pd.Series:
     """달마다 (1일 + offset_days) 이후 첫 거래일."""
     s = pd.Series(index, index=index)
-    target = s.apply(lambda d: d.replace(day=1) + pd.Timedelta(days=offset_days))
+    target = s.apply(lambda d: d.replace(day=1) + pd.Timedelta(int(offset_days), unit="D"))
     eligible = s >= target
     period = pd.Series(index.to_period("M"), index=index)
     first = eligible & ~(eligible.groupby(period).cumsum() > 1)

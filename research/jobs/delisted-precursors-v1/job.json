@@ -1,0 +1,13 @@
+{
+  "id": "delisted-precursors-v1",
+  "title": "상장폐지·급락 종목의 사전 위험신호 연구 (CRSP)",
+  "entrypoint": "research/jobs/delisted-precursors-v1/run.py",
+  "args": [],
+  "timeout_seconds": 10800,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 38,
+  "revision": 1
+}

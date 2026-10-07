@@ -2,6 +2,10 @@
 
 > 현재 세션 인계: [docs/SESSION_HANDOFF.md](docs/SESSION_HANDOFF.md) · 엔진 로드맵: [docs/ENGINE_UPGRADE_ROADMAP.md](docs/ENGINE_UPGRADE_ROADMAP.md)
 
+## 2026-10-07 자산군 확장·생존편향 연구 등록
+
+R&D 센터에 독립 섹션을 구현하고 ETF 부족 자산군(IWM·TIP·VNQ·VWO·LQD) 5종의 개별/묶음 확장 연구와 CRSP 상폐 위험신호 연구를 사전등록했다. 코드·가이드·합성 스모크 및 집중 테스트는 통과했다(8 passed). 실제 성과 계산은 VM에서만 돈다. CRSP 입력은 저장소에 아직 없어 일별/상폐 CSV를 VM 계약 경로에 배치하기 전까지 `delisted-precursors-v1`은 `NOT_EVALUABLE_DATA`로 명시된다. 현재 구현 완료·배포 대기이며 챔피언/주문 변경은 없다. 상세 상태는 [세션 인계](docs/SESSION_HANDOFF.md#2026-10-07-자산군-확장생존편향-연구-영역-추가) 참조.
+
 ## 2026-10-06 코인 R&D 상태 확인
 
 현재 채택 보류: 기존 info-rnd-v1 KEEP_CURRENT, 5% 추세 슬리브는 전진검증 후보. VM champion-crypto-v2는 과거 코인 가격 누락으로 failed(성과 판정 없음). 전진 원장 2줄·252거래일 판정 전. 현 챔피언 코어 85%·새틀라이트 15%에 코인 미편입. 읽기 전용 점검이며 연구·배포·배분 변경 없음.
@@ -9,7 +13,7 @@
 
 ## 2026-10-06 코인 공통기간·BTC 규칙 후속 사전등록
 
-신규 `champion-crypto-v3`는 ETH 상장 후 공통 구간의 BTC·ETH 4안, `champion-crypto-v4`는 BTC 특성 및 12개 비중/EMA/변동성 매매 후보를 비교. 둘 다 고정 기간·판정·Holm 보정·비용 스트레스 포함, 최고 판정은 전진검증 후보. BTC 2019-12-31 결측은 Yahoo Finance 직접 재조회 값으로 스크립트가 보완하도록 구성(결측 지속 시 실패). 합성 스모크 및 작업 계약/가이드 통과, 전체 pytest 2482 passed·4 skipped, runner unittest 72 passed. 배포/VM 접수 확인 중.
+신규 `champion-crypto-v3`는 ETH 상장 후 공통 구간의 BTC·ETH 4안, `champion-crypto-v4`는 BTC 특성 및 12개 비중/EMA/변동성 매매 후보를 비교. 둘 다 고정 기간·판정·Holm 보정·비용 스트레스 포함, 최고 판정은 전진검증 후보. BTC 2019-12-31 결측은 Yahoo Finance 직접 재조회 값으로 스크립트가 보완하도록 구성(결측 지속 시 실패). 합성 스모크·체크포인트 이어읽기 및 작업 계약/가이드 통과, 전체 pytest 2482 passed·4 skipped, runner unittest 72 passed. **e9fee9b 배포 완료**, VM에서 두 작업 pending·runs=0 접수 확인, priority 순으로 연구창에서 실행 대기.
 
 ## 2026-10-06 포트폴리오 표 직접 편집
 

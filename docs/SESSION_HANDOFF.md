@@ -1,6 +1,16 @@
 # 세션 인계
 
-최종 갱신: 2026-10-06 (포트폴리오 표 직접 편집)
+최종 갱신: 2026-10-07 (자산군 확장·생존편향 연구 등록)
+
+## 2026-10-07 자산군 확장·생존편향 연구 영역 추가
+
+- 사용자 요청: 현재 후보군에서 부족한 자산군을 소수 추가해 연구하고, 생존 종목만 분석하는 편향을 줄이도록 상장폐지·거의 붕괴한 종목의 사전 위험신호를 조사한다. 사용자는 CRSP/WRDS 등 정식 자료를 사용할 수 있다고 확인했다.
+- R&D 센터 `자산군 확장·생존편향 연구` 섹션을 별도로 추가. ETF 연구 후보 5개: 미국 소형주 IWM, TIPS TIP, 미국 리츠 VNQ, 신흥국 주식 VWO, 투자등급 회사채 LQD. 각 단독 추가와 5종 묶음을 현 17자산 코어 규칙과 비교한다. 후보군 실험이며 보유 개수·챔피언·주문은 자동 변경하지 않는다.
+- 사전 등록 `core-universe-expansion-v1`: 가격 Close·수익 Adj Close, 2008~현재 요청, 동일 기간 기준선 비교, core-judge/v1의 6회 시도 조정 DSR·최종 2년 홀드아웃·하위기간·낙폭 관문과 편도 8bp 스트레스 기준을 결과 확인 전에 고정했다. 부족한 공통 데이터는 NOT_EVALUABLE_DATA.
+- 사전 등록 `delisted-precursors-v1`: CRSP `permno`로 일별·상폐 테이블을 연결하고 기업별 첫 유효 `dlret≤-50%` 상폐를 사건으로, `dlret≤-80%`를 보조 통계로 둔다. CRSP 공식 정의의 -55/-66/-88/-99 결측 코드는 손실로 오인하지 않고 별도 센다. 상폐 126거래 관측치 전의 모멘텀·낙폭·변동성·가격·거래대금 신호를 같은 연도/SIC 2자리 산업 대조군과 비교하며 기업 군집 부트스트랩 구간을 낸다. S&P 지수 편출은 상폐로 취급하지 않는다.
+- CRSP 원자료는 현재 저장소에 반입되지 않았다. VM 입력 계약은 `data/research_inputs/crsp_delisted/daily.csv`(permno,date,prc,ret,vol,shrout; siccd 선택)와 `delists.csv`(permno,date,dlret,dlstcd)이며 데이터 행·원본은 결과/커밋에 포함하지 않고 입력 해시와 통계만 출력한다. 파일이 없으면 VM 연구는 NOT_EVALUABLE_DATA로 결과를 남긴다. WRDS 추출/파일 배치는 연구 전체 계산 전에 필요하다.
+- R&D 화면·가이드·스모크 테스트 구현. 합성 스모크는 ETF 6후보, CRSP 연구 SMOKE_ONLY와 사건/대조군·경고 신호 계산을 통과했다. 관련 테스트 8 passed, `hub.guide.check` 통과. 실제 가격·CRSP 전체 연구는 대화 세션에서 실행하지 않는다.
+- 상태: **구현·스모크 검증 완료, main 배포 및 VM 등록 대기**. 배포 후 연구 실행기 우선순위 37/38로 실행되며, CRSP 파일이 들어오기 전 상폐 위험신호 결과는 평가 불가다. 이후 데이터 접근·재시도 및 결과 검토가 다음 단계다.
 
 ## 2026-10-06 코인 R&D 채택 상태 재확인 (읽기 전용 점검)
 
@@ -16,8 +26,9 @@
 - `champion-crypto-v3`: ETH/BTC 공통 일봉 2017-11-09부터 EMA 워밍업, 평가기간 2018-03-01~2026-10-02, 기존 4개 BTC·ETH 후보와 고정 Holm 기준. VM 캐시에서 ETH 연속일봉, BTC 2019-12-31 누락을 확인했고 Yahoo Finance 직접 재조회로 해당 BTC Close를 받았다. 스크립트는 실행 때 누락 날짜만 제공자에 재요청, 여전히 비면 실패하며 합성/전방 채움은 하지 않는다.
 - `champion-crypto-v4`: BTC 특성(분포·변동성·낙폭/회복·주말·챔피언/코어/SPY 상관) + 1/2.5/5/10% 고정 목표 비중, EMA50/100/200 추세 매수·매도, EMA100+60일 변동성 조절 12안. 2014-09-17 워밍업, 2015-01-01~2026-10-02 평가, 3개 사전 고정 시대 구간·12가설 Holm·BTC 50bp 비용 스트레스. 통과해도 `CANDIDATE_FORWARD_ONLY`, 별도 전진검증 필요.
 - 두 작업은 각자 고정 SPEC/job.json/run.py, 원자 체크포인트, JSON/보고서 출력. hub 가이드 갱신. 합성 스모크 두 작업 통과(SMOKE_ONLY만 생성), 실행기 작업 정의 모두 유효, `python -m hub.guide.check` 통과.
-- 전체 VM venv 검증: `pytest tests -q` 2482 passed·4 skipped(303.74초), 텔레그램 runner unittest 72 passed. 배포 직전.
-- 다음 단계: 변경분을 origin/main에 올려 자동배포 테스트 관문을 통과시키고, VM R&D 상태에서 두 작업 pending 또는 실행 상태를 확인한다. 전체 실데이터 계산은 VM 실행기만 수행; 챔피언/주문/252일 기존 원장 변경 없음.
+- 전체 VM venv 검증: `pytest tests -q` 2482 passed·4 skipped(303.74초), 텔레그램 runner unittest 72 passed. 두 연구 스모크 및 이어읽기 재호출, 작업 정의 검증, guide check 통과.
+- 배포 완료: **e9fee9b** origin/main 및 VM 반영. 자동 관문 `pytest tests` 통과, runner unittest 통과, codex-telegram/quant-streamlit/quant-scheduler/quant-hub 재시작 후 정상. VM 연구 실행기 목록에서 v3·v4 모두 `pending`, runs=0 확인. 연구창에 따라 순차 실행 예정(v3 priority34, v4 priority35); 실제 결과는 아직 없음.
+- 현재 결론: 전략·주문·기존 252일 원장 변경 없음. 새 작업은 전체 계산을 VM이 수행하며 결과는 `research/results/<id>/`와 관제 센터·텔레그램으로 받는다. 최종 확인 및 챔피언 반영은 결과 이후 별도 판단.
 
 ## 2026-10-06 포트폴리오 표 직접 편집 (사용자 UI 정정 요청)
 
