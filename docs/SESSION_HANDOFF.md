@@ -6,7 +6,7 @@
 - 구현: `core/portfolio.py`의 `aggregate_pnl_by_ticker()`가 수량·매입금액을 합산하고 수량 가중평균 단가로 손익률·비중을 재계산한다. 화면의 손익 표시 표에만 적용하며 개별 매입 기록·표 편집·매매근거 검증은 기존 기록별로 유지한다. 가격 결측은 0으로 오인하지 않고 미확인으로 표시한다.
 - 수정 파일: `core/portfolio.py`, `app/pages/8_포트폴리오_관리.py`, `tests/test_portfolio.py`, `hub/guide/content_pages_a.py`, `hub/guide/content_modules_b.py`, 인계 문서·PROGRESS.
 - 검증: 포트폴리오 테스트 56 passed, 가이드 검사·diff check 통과. 서로 다른 단가의 중복 티커 합산·손익률·가중평균·총 매입금액 보존·가격 결측을 검증했다.
-- 상태: 구현·검증 완료. main 반영 대상으로 준비됐으며 VM 자동배포 완료는 직접 확인하지 못했다. 다음은 main 푸시와 VM 배포 확인.
+- 상태: 구현·검증 완료, `c34d32b` origin/main 푸시 완료. VM 자동배포 완료는 직접 확인하지 못했다. 다음은 배포 후 화면 확인.
 
 ## 2026-10-07 챔피언 전략 투자금 배분·주수 계산
 
