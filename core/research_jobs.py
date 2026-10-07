@@ -6,7 +6,8 @@
 
   - 작업 정의: research/jobs/<id>/job.json (저장소에 커밋) — load_job_definitions()/validate_job() 가 검증한다.
   - 실행: scheduler/run_scheduler.py 의 research_job_runner_job 이 창(RUN_WINDOWS) 안에서 20분마다 run_tick() 을 부른다.
-    한 번에 한 작업만(파일 락), 여유(has_headroom)·디스크 확인 뒤, 남은 창 시간으로 줄인 시간 예산을 주고 nice 19 로 돌린다.
+    한 번에 한 작업만(파일 락), 여유(has_headroom)·디스크 확인 뒤, 남은 창 시간으로 줄인 시간 예산을 준다.
+    자식은 nice 5 로 실행하며 전체 CPU 사용률이 80%를 넘으면 일시 중지하고 70% 이하에서 재개한다.
   - 상태: data/research_jobs/state.json (원자적 쓰기 + 짧은 락). 멈춘 running 은 다음 회차에 in_progress 로 복구한다.
   - 결과: data/research_results/<id>/ 보관 + data/research_results/index.html(관제 센터 '검증 연구 결과' 카드) + 텔레그램 1건
     + origin/main 의 research/results/<id>/ 에 작은 텍스트 파일만 커밋(작업트리를 건드리지 않는 git 배관, publish_files()).
@@ -56,8 +57,12 @@ MIN_BUDGET_SECONDS = 300  # 이보다 짧게 남으면 이번 회차는 시작�
 TERM_GRACE_SECONDS = 30  # SIGTERM 뒤 체크포인트 저장할 시간, 그 뒤 SIGKILL
 MIN_FREE_DISK_MB = 2048  # 시작 전 필요한 여유 디스크
 ABORT_FREE_DISK_MB = 1024  # 실행 중 이 아래로 떨어지면 양보(중단)
-ABORT_AVAILABLE_MEMORY_MB = 600  # 실행 중 시스템 여유 메모리가 이 아래면 양보(중단)
-DEFAULT_MAX_MEMORY_MB = 3072
+ABORT_AVAILABLE_MEMORY_MB = 600  # 실행 중 시스템 여유 메모리의 절대 하한
+SYSTEM_MEMORY_RESERVE_FRACTION = 0.20  # 시스템 전체 메모리의 20%는 연구가 점유하지 않게 남긴다
+MAX_JOB_MEMORY_FRACTION = 0.80
+DEFAULT_MAX_MEMORY_MB = 10240  # 실제 상한은 VM 총 메모리의 80% 와 이 값 중 작은 쪽
+RESEARCH_CPU_PAUSE_PERCENT = 80.0
+RESEARCH_CPU_RESUME_PERCENT = 70.0
 DEFAULT_MAX_DISK_MB = 2048
 DEFAULT_MAX_RUNS = 60  # 종료 코드 3(진행 중)을 이만큼 반복해도 안 끝나면 실패로 본다
 MAX_INTERRUPTIONS = 6  # 재부팅·재배포로 끊긴 횟수 상한
@@ -208,7 +213,7 @@ def validate_job(data: object, dir_name: str, repo_root: Path = PROJECT_ROOT) ->
         timeout = _int("timeout_seconds", 60, 3 * 3600)
         attempts = _int("max_attempts", 1, 10)
         priority = _int("priority", -1000, 1000)
-        max_memory = _int("max_memory_mb", 256, 6144) if "max_memory_mb" in data else DEFAULT_MAX_MEMORY_MB
+        max_memory = _int("max_memory_mb", 256, 10240) if "max_memory_mb" in data else DEFAULT_MAX_MEMORY_MB
         max_disk = _int("max_disk_mb", 16, 20480) if "max_disk_mb" in data else DEFAULT_MAX_DISK_MB
         max_runs = _int("max_runs", 1, 500) if "max_runs" in data else DEFAULT_MAX_RUNS
     except ValueError as exc:
@@ -463,6 +468,52 @@ def _system_available_mb() -> Optional[float]:
     return available_memory_mb()
 
 
+def _system_total_mb() -> Optional[float]:
+    from core.resource_guard import total_memory_mb
+
+    return total_memory_mb()
+
+
+def _memory_reserve_mb(total_mb: Optional[float] = None) -> float:
+    total_mb = _system_total_mb() if total_mb is None else total_mb
+    return max(ABORT_AVAILABLE_MEMORY_MB, total_mb * SYSTEM_MEMORY_RESERVE_FRACTION) if total_mb else ABORT_AVAILABLE_MEMORY_MB
+
+
+def _effective_job_memory_limit_mb(job: JobDef, total_mb: Optional[float] = None) -> int:
+    total_mb = _system_total_mb() if total_mb is None else total_mb
+    if total_mb is None:
+        return job.max_memory_mb
+    return min(job.max_memory_mb, max(256, int(total_mb * MAX_JOB_MEMORY_FRACTION)))
+
+
+def _read_cpu_counters() -> Optional[tuple[int, int]]:
+    """Aggregate CPU (total ticks, idle+iowait ticks) from /proc/stat."""
+    try:
+        line = Path("/proc/stat").read_text().splitlines()[0].split()
+        if line[0] != "cpu" or len(line) < 5:
+            return None
+        values = [int(v) for v in line[1:]]
+        return sum(values), values[3] + (values[4] if len(values) > 4 else 0)
+    except (OSError, ValueError, IndexError):
+        return None
+
+
+class _CpuUsageSampler:
+    def __init__(self):
+        self.previous = _read_cpu_counters()
+
+    def sample_percent(self) -> Optional[float]:
+        current = _read_cpu_counters()
+        previous, self.previous = self.previous, current
+        if current is None or previous is None:
+            return None
+        total_delta = current[0] - previous[0]
+        idle_delta = current[1] - previous[1]
+        if total_delta <= 0:
+            return None
+        return max(0.0, min(100.0, 100.0 * (total_delta - idle_delta) / total_delta))
+
+
 # ---------------------------------------------------------------------------
 # 자식 실행
 # ---------------------------------------------------------------------------
@@ -477,7 +528,7 @@ class RunOutcome:
 
 def _child_preexec() -> None:  # pragma: no cover - 자식 프로세스 안에서 돈다
     with contextlib.suppress(OSError):
-        os.nice(19)
+        os.nice(5)
 
 
 def build_command(cfg: Config, job: JobDef) -> list[str]:
@@ -503,6 +554,9 @@ def run_child(cfg: Config, job: JobDef, budget: int, *, poll_interval: float = 5
     log_dir.mkdir(parents=True, exist_ok=True)
     log_path = log_dir / f"{datetime.now(KST).strftime('%Y%m%d-%H%M%S')}.log"
     deadline = _time.time() + budget
+    cpu_sampler = _CpuUsageSampler()
+    memory_limit_mb = _effective_job_memory_limit_mb(job)
+    memory_reserve_mb = _memory_reserve_mb()
     env = {**os.environ, "PYTHONUNBUFFERED": "1", "RESEARCH_JOB_ID": job.id,
            "RESEARCH_JOB_DEADLINE_EPOCH": str(int(deadline)), "RESEARCH_JOB_TIME_BUDGET_SECONDS": str(int(budget))}
     env.pop("PYTEST_CURRENT_TEST", None)
@@ -512,6 +566,7 @@ def run_child(cfg: Config, job: JobDef, budget: int, *, poll_interval: float = 5
         proc = subprocess.Popen(build_command(cfg, job), cwd=str(cfg.repo_root), stdout=log, stderr=subprocess.STDOUT,
                                 stdin=subprocess.DEVNULL, env=env, start_new_session=True, preexec_fn=_child_preexec)
         last_disk_check = 0.0
+        cpu_paused = False
         term_sent_at: Optional[float] = None
         while True:
             try:
@@ -520,6 +575,7 @@ def run_child(cfg: Config, job: JobDef, budget: int, *, poll_interval: float = 5
             except subprocess.TimeoutExpired:
                 pass
             now = _time.time()
+            cpu_percent = cpu_sampler.sample_percent()
             if term_sent_at is not None:
                 if now - term_sent_at >= TERM_GRACE_SECONDS:
                     _kill_group(proc, signal.SIGKILL)
@@ -532,9 +588,9 @@ def run_child(cfg: Config, job: JobDef, budget: int, *, poll_interval: float = 5
             else:
                 rss = tree_rss_mb(proc.pid)
                 avail = system_memory()
-                if rss is not None and rss > job.max_memory_mb:
+                if rss is not None and rss > memory_limit_mb:
                     reason = "job_memory"
-                elif avail is not None and avail < ABORT_AVAILABLE_MEMORY_MB:
+                elif avail is not None and avail < memory_reserve_mb:
                     reason = "system_memory"
                 elif now - last_disk_check >= max(30.0, poll_interval):
                     last_disk_check = now
@@ -546,7 +602,17 @@ def run_child(cfg: Config, job: JobDef, budget: int, *, poll_interval: float = 5
             if reason:
                 stopped_by = reason
                 term_sent_at = now
+                if cpu_paused:
+                    _kill_group(proc, signal.SIGCONT)
+                    cpu_paused = False
                 _kill_group(proc, signal.SIGTERM)
+            else:
+                if cpu_paused and (cpu_percent is None or cpu_percent <= RESEARCH_CPU_RESUME_PERCENT):
+                    _kill_group(proc, signal.SIGCONT)
+                    cpu_paused = False
+                elif not cpu_paused and cpu_percent is not None and cpu_percent >= RESEARCH_CPU_PAUSE_PERCENT:
+                    _kill_group(proc, signal.SIGSTOP)
+                    cpu_paused = True
         _kill_group(proc, signal.SIGKILL)  # 자식이 남긴 손자 프로세스 정리
     duration = _time.time() - started
     try:
@@ -1030,6 +1096,10 @@ def run_tick(now: Optional[datetime] = None, *, notify: Optional[Callable[[str],
             return _finish_tick({"action": "idle", "reason": "실행할 작업 없음"})
         if not headroom():
             return _finish_tick({"action": "skipped", "reason": "VM 여유 없음(부하·메모리)"})
+        available = _system_available_mb()
+        reserve = _memory_reserve_mb()
+        if available is not None and available < reserve:
+            return _finish_tick({"action": "skipped", "reason": f"연구 메모리 여유 부족({int(available)}MB < 예약 {int(reserve)}MB)"})
         free = free_disk_mb(cfg.state_dir)
         if free is not None and free < MIN_FREE_DISK_MB:
             return _finish_tick({"action": "skipped", "reason": f"여유 디스크 부족({int(free)}MB)"})
@@ -1057,7 +1127,7 @@ def run_tick(now: Optional[datetime] = None, *, notify: Optional[Callable[[str],
 SATELLITE_LAB_JOB = JobDef(
     id="satellite-lab", title="새틀라이트 R&D 센터 심판", entrypoint="scripts/satellite_lab_worker.py", args=(),
     timeout_seconds=3 * 3600, max_attempts=3, resumable=True, outputs=("status.json",), summary_from=None,
-    priority=1000, max_memory_mb=4096, max_disk_mb=1024,
+    priority=1000, max_memory_mb=DEFAULT_MAX_MEMORY_MB, max_disk_mb=1024,
 )
 SATELLITE_LAB_BULK_NOTICE = 3  # 새 판정이 이보다 많으면 한 통으로 묶는다
 
@@ -1123,7 +1193,7 @@ def _satellite_lab_turn(cfg: Config, now: datetime, window_end: datetime, notify
 CORE_LAB_JOB = JobDef(
     id="core-lab", title="코어 분기 연구 심판", entrypoint="scripts/core_lab_worker.py", args=(),
     timeout_seconds=3600, max_attempts=3, resumable=True, outputs=("status.json",), summary_from=None,
-    priority=1001, max_memory_mb=3072, max_disk_mb=512,
+    priority=1001, max_memory_mb=DEFAULT_MAX_MEMORY_MB, max_disk_mb=512,
 )
 
 

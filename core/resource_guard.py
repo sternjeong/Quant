@@ -33,6 +33,18 @@ def available_memory_mb() -> Optional[float]:
     return None
 
 
+def total_memory_mb() -> Optional[float]:
+    """`/proc/meminfo`의 MemTotal 을 MB 로 반환한다."""
+    try:
+        with open('/proc/meminfo') as meminfo:
+            for line in meminfo:
+                if line.startswith('MemTotal:'):
+                    return int(line.split()[1]) / 1024
+    except (OSError, ValueError, IndexError):
+        return None
+    return None
+
+
 def has_headroom(max_load_per_cpu: float = 1.5, min_free_memory_mb: float = 1024) -> bool:
     """1분 부하 평균이 `코어 수 * max_load_per_cpu`를 넘지 않고, 여유 메모리가
     `min_free_memory_mb` 이상이면 True. 둘 중 하나라도 확인할 수 없으면(예: 리눅스가 아님) 그

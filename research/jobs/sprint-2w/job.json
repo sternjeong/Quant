@@ -10,6 +10,6 @@
   "summary_from": "verdicts",
   "priority": 20,
   "revision": 1,
-  "max_memory_mb": 4096,
+  "max_memory_mb": 10240,
   "max_runs": 400
 }

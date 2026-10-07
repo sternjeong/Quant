@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import signal
 import shutil
 import subprocess
 import sys
@@ -369,10 +370,51 @@ def test_cancel_request_stops_a_running_child_and_admin_cancel(cfg):
     assert rj.apply_outcome(cfg, job, entry, outcome, False, print, Recorder().publish, kst(1, 0), {}) == "cancelled"
 
 
-def test_child_runs_with_low_priority(cfg):
+def test_child_runs_with_research_priority(cfg):
     job = _job(cfg, "nice", "import os\nprint('NICE', os.nice(0))\n")
     outcome = rj.run_child(cfg, job, 30, poll_interval=0.1, system_memory=lambda: None)
-    assert "NICE 19" in outcome.log_tail
+    assert "NICE 5" in outcome.log_tail
+
+
+def test_memory_budget_uses_up_to_80_percent_of_vm_ram(cfg):
+    job = _job(cfg, "memory-budget", OK_SCRIPT)
+    assert rj._effective_job_memory_limit_mb(job, total_mb=12000) == 9600
+    assert rj._memory_reserve_mb(total_mb=12000) == 2400
+
+
+def test_cpu_sampler_calculates_busy_percent(monkeypatch):
+    samples = iter([(1000, 200), (1100, 220), (1200, 260)])
+    monkeypatch.setattr(rj, "_read_cpu_counters", lambda: next(samples))
+    sampler = rj._CpuUsageSampler()
+    assert sampler.sample_percent() == 80.0
+    assert sampler.sample_percent() == 60.0
+
+
+def test_high_system_cpu_pauses_then_resumes_research_child(cfg, monkeypatch):
+    values = iter([90.0, 90.0, 60.0, 60.0, 60.0])
+
+    class FakeSampler:
+        def sample_percent(self):
+            return next(values, 60.0)
+
+    monkeypatch.setattr(rj, "_CpuUsageSampler", FakeSampler)
+    monkeypatch.setattr(rj.shutil, "which", lambda _name: None)
+    forwarded = []
+    real_kill_group = rj._kill_group
+
+    def record_throttle(proc, sig):
+        forwarded.append(sig)
+        if sig not in (signal.SIGSTOP, signal.SIGCONT):
+            real_kill_group(proc, sig)
+
+    monkeypatch.setattr(rj, "_kill_group", record_throttle)
+    script = "import signal,sys,time\nsignal.signal(signal.SIGTERM, lambda *_: sys.exit(3))\nprint('READY', flush=True)\nwhile True: time.sleep(.02)\n"
+    job = _job(cfg, "cpu-throttle", script)
+    checks = iter([False, False, False, False, True])
+    outcome = rj.run_child(cfg, job, 30, poll_interval=0.05, cancel_check=lambda: next(checks, True), system_memory=lambda: None)
+    assert outcome.stopped_by == "cancel"
+    assert outcome.exit_code == 3
+    assert signal.SIGSTOP in forwarded and signal.SIGCONT in forwarded
 
 
 def test_child_gets_contract_arguments_and_budget_env(cfg):

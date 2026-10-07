@@ -21,6 +21,13 @@ def test_available_memory_mb_returns_none_when_unreadable(monkeypatch):
     assert resource_guard.available_memory_mb() is None
 
 
+def test_total_memory_mb_parses_memtotal(monkeypatch, tmp_path):
+    meminfo = tmp_path / "meminfo"
+    meminfo.write_text("MemTotal:       12206000 kB\nMemAvailable:   11365000 kB\n")
+    monkeypatch.setattr(resource_guard, "open", lambda *a, **k: meminfo.open(), raising=False)
+    assert resource_guard.total_memory_mb() == 12206000 / 1024
+
+
 def test_has_headroom_true_under_normal_conditions(monkeypatch):
     monkeypatch.setattr(resource_guard.os, "getloadavg", lambda: (0.2, 0.1, 0.05))
     monkeypatch.setattr(resource_guard.os, "cpu_count", lambda: 2)

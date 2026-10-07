@@ -48,7 +48,7 @@ PASS = '사람 검토 대기'. 챔피언(엔진) 반영은 사용자 확인 뒤 
 ## 5. 실행과 결과
 
 - VM 연구 실행기(research_job_runner, 01:00~02:50·13:00~16:50 KST)가 research/jobs 대기 작업이 하나도 없는 회차에만 계산기를 돌린다
-  (같은 nice 19·메모리·디스크 보호, 예산은 창 끝 2분 전까지). 시간이 모자라면 종료 코드 3 으로 남기고 다음 창에 이어간다.
+  (같은 nice 5·CPU 80% pause/70% resume·메모리 80%/시스템 예약 20%·디스크 보호, 예산은 창 끝 2분 전까지). 시간이 모자라면 종료 코드 3 으로 남기고 다음 창에 이어간다.
 - 결과: 관제 센터 '새틀라이트 R&D 센터'(/satellite-lab), 텔레그램 '[새틀라이트 R&D]'(새 판정 3건 초과면 한 통으로 묶음), VM `data/satellite_lab/registry.json`.
   등록부는 VM 로컬이며 저장소에 자동 커밋하지 않는다.
 - 끄기: `/processes off research_job_runner`(사전 등록 연구도 함께 멈춤) 또는 스케줄러 환경 `RESEARCH_SATELLITE_LAB=0`.

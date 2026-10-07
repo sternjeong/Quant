@@ -149,8 +149,8 @@ MODULES: tuple[ModuleGuide, ...] = (
         what="저장소의 research/jobs/<id>/job.json 으로 등록된 사전 등록 검증 연구(판정 규칙이 코드에 박힌 백테스트 스크립트)를 VM 의 한가한 시간에 한 번에 하나씩 돌립니다. 스크립트가 체크포인트를 남기면 여러 밤·낮에 걸쳐 이어서 계산합니다. AI 를 부르지 않고 주문 경로와도 연결되어 있지 않습니다.",
         how_to_use="자동 잡 research_job_runner 가 01:00~02:50, 13:00~16:50 KST 에 20분마다 깨어나 대기 작업을 실행합니다. 대기 작업이 하나도 없는 회차에는 새틀라이트 R&D 센터 계산기(scripts/satellite_lab_worker.py)를 같은 보호 장치로 돌립니다(사전 등록 연구가 언제나 먼저). 새 연구는 에이전트가 docs/RESEARCH_JOBS.md 계약대로 만들어 main 에 병합하면 다음 창에서 돕니다. 상태·재시도·취소는 scripts/research_jobs_admin.py 로 합니다.",
         where_to_see="관제 센터 '검증 연구 결과' 카드(작업별 상태·판정 요약·REPORT), 텔레그램 '[검증 연구 결과]' 알림, 저장소 research/results/<id>/",
-        cautions="실행 전 VM 여유(부하·메모리)와 디스크를 확인하고 여유가 없으면 다음 회차로 미룹니다. 자식 프로세스는 가장 낮은 우선순위(nice 19)로 돌고 창 끝 2분 전까지 멈춥니다. 자동 배포·재부팅으로 끊기면 다음 회차에 이어서 합니다. 결과가 나왔다는 것은 사전 등록 판정이 계산됐다는 뜻일 뿐, 전략 성과가 개선됐다는 뜻이 아닙니다. VM 에 push 권한이 없으면 저장소 반영은 건너뛰고 알림에 적습니다.",
-        sources=("core/research_jobs.py", "scheduler/run_scheduler.py", "docs/RESEARCH_JOBS.md"), verified="2026-10-02"),
+        cautions="AI/Claude 호출 없이 결정론적 연구 코드를 실행합니다. 실행 전 VM 부하·메모리·디스크 여유를 확인하고 CPU 사용률 80%에서 멈춰 70% 이하에서 재개합니다. 작업 RSS는 RAM의 최대 80%이며 총 RAM 20%를 시스템용으로 예약합니다. 자식은 nice 5와 낮은 디스크 우선순위로 돌고 창 끝 2분 전까지 멈춥니다. 자동 배포·재부팅으로 끊기면 다음 회차에 이어서 합니다. 결과는 판정 계산 완료를 뜻할 뿐 성과 개선을 보장하지 않습니다. VM 에 push 권한이 없으면 저장소 반영은 건너뛰고 알림에 적습니다.",
+        sources=("core/research_jobs.py", "core/resource_guard.py", "scheduler/run_scheduler.py", "docs/RESEARCH_JOBS.md"), verified="2026-10-07"),
     ModuleGuide(
         module="core/rnd_topics.py", name="R&D 센터 연구 주제 켜기/끄기", group="리서치 인프라", status="운영중",
         what="연구를 주제 6개로 나눠 켜고 끕니다: 새틀라이트 종목 선정, 새틀라이트 진입 타이밍, 새틀라이트 매도 규칙, 코어 분기 연구, AI 국제정세 의견, 코인 추세 기록. 끄면 그 주제의 새 아이디어·재작업·판정(또는 기록)이 멈추고, 이미 만든 아이디어·기록·누적 시도 수·대기열은 그대로 남아 다시 켜면 이어집니다.",
@@ -198,11 +198,11 @@ MODULES: tuple[ModuleGuide, ...] = (
                  "research/jobs/delisted-precursors-v1/SPEC.md"), verified="2026-10-07"),
     ModuleGuide(
         module="core/resource_guard.py", name="VM 여유 확인", group="운영·안전", status="운영중",
-        what="지금 VM 의 CPU 부하와 여유 메모리를 보고 무거운 작업을 하나 더 시작해도 되는지 판단합니다.",
-        how_to_use="자동입니다. 스케줄러의 뉴스 요약 잡이 시작 전에 확인해 여유가 없으면 그 회차를 건너뜁니다. 사용자가 켜고 끌 것은 없습니다.",
+        what="지금 VM 의 CPU 부하와 여유 메모리를 확인합니다. 연구 실행기는 총 메모리의 80% 작업 상한과 시스템에 남길 20% 예약량을 계산하는 데도 씁니다.",
+        how_to_use="자동입니다. 뉴스 잡은 시작 전에 여유를 확인합니다. 검증 연구는 CPU 전체 사용률 80%에 도달하면 잠시 멈춰 70% 이하에서 재개합니다. 사용자가 켜고 끌 것은 없습니다.",
         where_to_see="화면 없음(스케줄러 로그)",
         cautions="여유가 없으면 조용히 건너뛰므로 뉴스가 안 온 날은 로그의 건너뜀 메시지를 확인하세요. 사용처는 스케줄러 뉴스 잡과 배포·텔레그램 실행기입니다.",
-        sources=("scheduler/run_scheduler.py", "deploy/auto_deploy.sh"), verified=_V),
+        sources=("scheduler/run_scheduler.py", "core/research_jobs.py", "deploy/auto_deploy.sh"), verified="2026-10-07"),
     ModuleGuide(
         module="core/screener.py", name="퀀트 스크리너", group="리서치 인프라", status="운영중",
         what="S&P500 종목을 PER, PBR, 시가총액, 섹터, RSI, 200일선 위치 같은 조건으로 걸러냅니다. 종목 목록은 위키피디아에서 받아 캐시하고 실패하면 내장 최소 목록으로 대신합니다.",

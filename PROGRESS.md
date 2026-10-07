@@ -6,6 +6,10 @@
 
 R&D 센터에 독립 섹션을 구현하고 ETF 부족 자산군(IWM·TIP·VNQ·VWO·LQD) 5종의 개별/묶음 확장 연구와 CRSP 상폐 위험신호 연구를 사전등록했다. 코드·가이드·합성 스모크 및 집중 테스트(3 passed), 전체 테스트(2485 passed·4 skipped), Telegram runner(72 passed)를 통과했다. `513ffe6`을 `origin/main`에 푸시했다. 실제 성과 계산은 VM에서만 돈다. 이 작업 공간에 VM 접속 설정이 없어 자동배포·실행기 상태는 아직 직접 확인되지 않았다. CRSP 입력은 저장소에 아직 없어서 일별/상폐 CSV를 VM 계약 경로에 배치하기 전까지 `delisted-precursors-v1`은 `NOT_EVALUABLE_DATA`로 명시된다. 챔피언/주문 변경은 없다. 상세 상태는 [세션 인계](docs/SESSION_HANDOFF.md#2026-10-07-자산군-확장생존편향-연구-영역-추가) 참조.
 
+## 2026-10-07 토큰 없는 연구 자원 상향
+
+등록 연구 실행기와 내부 R&D 계산기에 CPU 전체 사용률 80% pause / 70% resume, 작업 RSS 최대 80%·시스템 여유 RAM 20% 예약, nice 5 우선순위를 적용했다. 64개 관련 테스트, 전체 2489 passed·4 skipped, Telegram runner 72 passed, 가이드 검사가 통과했다. main 배포 대기. 상세는 [세션 인계](docs/SESSION_HANDOFF.md#2026-10-07-토큰-없는-vm-연구-자원-상향)에 기록한다.
+
 ## 2026-10-06 코인 R&D 상태 확인
 
 현재 채택 보류: 기존 info-rnd-v1 KEEP_CURRENT, 5% 추세 슬리브는 전진검증 후보. VM champion-crypto-v2는 과거 코인 가격 누락으로 failed(성과 판정 없음). 전진 원장 2줄·252거래일 판정 전. 현 챔피언 코어 85%·새틀라이트 15%에 코인 미편입. 읽기 전용 점검이며 연구·배포·배분 변경 없음.
