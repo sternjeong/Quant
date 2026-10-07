@@ -137,6 +137,10 @@ def test_full_data_render_includes_every_section(monkeypatch):
     assert "days_remaining" not in html  # 내부 키명이 그대로 노출되지 않는지
     assert "12" in html  # collar days remaining somewhere
     assert "오늘 확인이 필요한 이상" in html
+    assert '<main class="briefing-grid">' in html
+    assert "grid-template-columns:repeat(2,minmax(0,1fr))" in html
+    assert "@media(max-width:620px)" in html
+    assert "class=\"section wide\"" in html
 
 
 def test_no_holdings_yet_renders_placeholder_not_crash(monkeypatch):

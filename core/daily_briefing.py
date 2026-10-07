@@ -45,12 +45,13 @@ _YELLOW = "#f5a623"
 EARNINGS_WITHIN_DAYS = 5
 
 
-def _section(title: str, body_html: str, *, accent: str | None = None) -> str:
+def _section(title: str, body_html: str, *, accent: str | None = None, wide: bool = False) -> str:
     border = f"border-left:3px solid {accent};" if accent else ""
-    return f'''<div class="section" style="{border}">
+    section_class = "section wide" if wide else "section"
+    return f'''<section class="{section_class}" style="{border}">
 <h2>{title}</h2>
 {body_html}
-</div>'''
+</section>'''
 
 
 def _status_line(anomaly_count: int, decay_flagged: bool, ops_problem_count: int = 0) -> tuple[str, str]:
@@ -78,6 +79,7 @@ def _anomalies_section(anomalies: list[dict]) -> str:
         f"🚨 데이터 이상 (critical {len(critical)} / warning {len(warning)})",
         f'<ul class="anomaly-list">{rows}</ul>',
         accent=_RED,
+        wide=True,
     )
 
 
@@ -131,7 +133,7 @@ def _ops_section(job_health: dict | None, backup: dict, problems: list[str]) -> 
     backup_lines = "".join(f"<li>{line}</li>" for line in backup["lines"])
     parts.append(f'<p style="color:{color};margin:.4rem 0 .1rem"><b>VM 백업</b></p><ul class="anomaly-list">{backup_lines}</ul>')
     accent = _RED if problems else None
-    return _section("운영 상태 (밤사이 작업 · 백업)", "".join(parts), accent=accent)
+    return _section("운영 상태 (밤사이 작업 · 백업)", "".join(parts), accent=accent, wide=True)
 
 
 def _holdings_section(holdings: dict | None) -> str:
@@ -257,7 +259,7 @@ def generate_daily_briefing_html() -> str:
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>오늘의 브리핑</title>
 <style>
-body{{font-family:-apple-system,system-ui,sans-serif;max-width:640px;margin:0 auto;padding:1.2rem;
+body{{font-family:-apple-system,system-ui,sans-serif;max-width:1080px;margin:0 auto;padding:clamp(.75rem,2vw,1.5rem);
   background:{_BG};color:{_TEXT};line-height:1.55}}
 h1{{font-size:1.3rem;margin:0 0 .2rem}}
 h2{{font-size:1rem;margin:0 0 .5rem;color:{_TEXT}}}
@@ -265,8 +267,10 @@ h2{{font-size:1rem;margin:0 0 .5rem;color:{_TEXT}}}
 .dateline{{color:{_TEXT_MUTED};font-size:.85em;margin-bottom:.6rem}}
 .status{{padding:.7rem .9rem;border-radius:6px;background:{_BG_SECONDARY};border:1px solid {_BORDER};
   margin-bottom:1rem;font-weight:600}}
+.briefing-grid{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem;align-items:start}}
 .section{{background:{_BG_SECONDARY};border:1px solid {_BORDER};border-radius:6px;padding:.8rem .9rem;
-  margin-bottom:.8rem}}
+  min-width:0;overflow-wrap:anywhere}}
+.section.wide{{grid-column:1/-1}}
 code{{font-family:"SFMono-Regular",Consolas,monospace;background:#1b1d24;padding:.1rem .35rem;
   border-radius:3px;margin-right:.3rem;display:inline-block;margin-bottom:.2rem}}
 table{{width:100%;border-collapse:collapse;font-size:.92em}}
@@ -274,6 +278,8 @@ td{{padding:.25rem .3rem;border-bottom:1px solid {_BORDER}}}
 td.num{{text-align:right;font-family:"SFMono-Regular",Consolas,monospace}}
 ul.anomaly-list{{padding-left:1.1rem;margin:.3rem 0}}
 ul.anomaly-list li{{margin-bottom:.4rem}}
+.briefing-grid p{{margin:.35rem 0 .55rem}}
+@media(max-width:620px){{.briefing-grid{{grid-template-columns:minmax(0,1fr)}}.section.wide{{grid-column:auto}}}}
 .tag{{font-size:.72em;font-weight:700;border-radius:3px;padding:.05rem .35rem;margin-right:.3rem;
   text-transform:uppercase}}
 .disclaimer{{color:{_TEXT_MUTED};font-size:.78em;margin-top:1rem}}
@@ -281,7 +287,7 @@ ul.anomaly-list li{{margin-bottom:.4rem}}
 <h1>📋 오늘의 브리핑</h1>
 <p class="dateline">{today}</p>
 <div class="status" style="color:{status_color}">{status_text}</div>
-{sections}
+<main class="briefing-grid">{sections}</main>
 <p class="disclaimer">참고용 요약이며 투자 조언이 아닙니다.</p>
 </body></html>'''
 

@@ -7,9 +7,18 @@
 - 가이드: `hub/guide/content_modules_b.py` 사용법을 ON/OFF 버튼 기준으로 갱신하고 verified 날짜를 2026-10-07로 올렸다.
 - 테스트: `tests/test_rnd_topics.py`에 ON/OFF 버튼 및 탈락 사유 가독성 렌더 검증 추가. 대상 12 passed, `python -m hub.guide.check` 통과, `git diff --check` 통과.
 - 수정 파일: `hub/satellite_lab_page.py`, `hub/guide/content_modules_b.py`, `tests/test_rnd_topics.py`, `PROGRESS.md`, 이 문서.
-- 상태: 구현·검증 완료. 이 작업공간에는 VM 연결 설정이 없으며 현재 커밋·배포 전이다. 다음은 코드리뷰 후 저장소 main 반영 및 VM 자동배포 확인이다.
+- 상태: 구현·검증 완료. 변경 커밋 `dae0b8f`를 VM 연구 결과 커밋과 병합한 `e4ddd8f`로 origin/main에 푸시했다. VM 연결 설정이 없어 실제 배포·재시작은 직접 확인하지 못했다.
 
 최종 갱신: 2026-10-07 (자산군 확장·생존편향 연구 등록)
+
+## 2026-10-07 오늘의 브리핑 가독성 개선
+
+- 사용자 요청: `📋 오늘의 브리핑`에서 문장이 길게 세로로 쌓여 읽기 힘든 문제 해결.
+- 구현: `core/daily_briefing.py` 본문 최대 폭을 1080px로 확대하고 카드 섹션을 데스크톱 2열, 620px 이하 화면 1열로 반응형 배치. 데이터 이상·운영 상태는 넓은 영역을 쓰고, 카드 안 긴 텍스트는 폭 안에서 자연 줄바꿈한다.
+- 가이드: `hub/guide/content_modules_a.py`와 `hub/guide/content_ops.py`에 새 레이아웃과 확인 순서를 반영했다.
+- 검증: `tests/test_daily_briefing.py` 20 passed, `python -m hub.guide.check` 및 `git diff --check` 통과.
+- 수정 파일: `core/daily_briefing.py`, `tests/test_daily_briefing.py`, `hub/guide/content_modules_a.py`, `hub/guide/content_ops.py`, `PROGRESS.md`, 이 문서.
+- 상태: 구현·검증 완료. main 반영 후 자동배포 확인 예정. 브리핑 HTML은 매일 00:25 KST 생성하므로 새 레이아웃은 다음 생성본부터 보인다. 이미 저장된 날짜별 HTML은 자동 재생성되지 않는다.
 
 ## 2026-10-07 자산군 확장·생존편향 연구 영역 추가
 

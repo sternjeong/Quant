@@ -2,6 +2,10 @@
 
 > 현재 세션 인계: [docs/SESSION_HANDOFF.md](docs/SESSION_HANDOFF.md) · 엔진 로드맵: [docs/ENGINE_UPGRADE_ROADMAP.md](docs/ENGINE_UPGRADE_ROADMAP.md)
 
+## 2026-10-07 오늘의 브리핑 레이아웃 개선
+
+브리핑 HTML을 넓은 화면 2열·휴대폰 1열의 반응형 카드 레이아웃으로 바꾸고, 운영 상태·데이터 이상 목록은 전체 폭을 사용하게 했다. 최대 너비를 넓히고 긴 내용의 줄바꿈을 보강했다. 가이드 갱신. `tests/test_daily_briefing.py` 20 passed, guide check 및 diff check 통과. 구현·검증 완료, 배포 반영 여부는 main 푸시 후 확인한다.
+
 ## 2026-10-07 R&D 센터 토글·후보 사유 가독성
 
 주제 제어 버튼을 작은 ON/OFF pill로 바꿔 표 셀에 들어가도록 했고, 후보 탈락 사유는 좁은 세로 나열 대신 280px 최소 폭의 줄바꿈 가능한 인라인 항목으로 표시한다. `/guide` 설명 갱신. `tests/test_rnd_topics.py` 12 passed, `python -m hub.guide.check` 및 `git diff --check` 통과. 현재 구현·검증 완료, 아직 커밋·배포 상태는 아니다.
