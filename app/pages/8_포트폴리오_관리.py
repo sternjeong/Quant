@@ -95,7 +95,7 @@ if not holdings:
     st.stop()
 
 st.markdown("### 보유 종목")
-st.caption("표의 셀을 직접 고친 뒤 '💾 표 수정 저장'을 누르세요. 매매근거와 과거 검증 이력은 유지됩니다.")
+st.caption("표의 셀을 직접 고친 뒤 '💾 표 수정 저장'을 누르세요. 5개를 넘는 기록은 표 안에서 스크롤해 볼 수 있습니다. 매매근거와 과거 검증 이력은 유지됩니다.")
 holdings_by_id = {h["id"]: h for h in holdings}
 table = pd.DataFrame(holdings).set_index("id")[["ticker", "quantity", "purchase_price", "purchase_date"]]
 table["cost_basis"] = table["quantity"] * table["purchase_price"]
@@ -103,6 +103,7 @@ table_version = st.session_state.get("holding_table_version", 0)
 with st.form("holding_table_form"):
     edited = st.data_editor(
         table, use_container_width=True, hide_index=True, num_rows="fixed",
+        height=38 + 35 * min(len(table), 5), row_height=35,
         key=f"holding_table_{table_version}", disabled=["_index", "cost_basis"],
         column_config={
             "ticker": st.column_config.TextColumn("티커", required=True),
