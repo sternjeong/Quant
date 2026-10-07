@@ -246,6 +246,20 @@ def compute_pnl(holdings: list[dict], current_prices: dict[str, Optional[float]]
     return df
 
 
+def aggregate_pnl_by_ticker(pnl: pd.DataFrame) -> pd.DataFrame:
+    """손익 표시용으로 매입 기록을 티커별 합산한다. 매입단가는 수량 가중평균이다."""
+    if pnl.empty:
+        return pnl.copy()
+    holdings, prices = [], {}
+    for ticker, group in pnl.groupby("ticker", sort=False):
+        quantity = float(group["quantity"].sum())
+        holdings.append({"ticker": ticker, "quantity": quantity,
+                         "purchase_price": float(group["cost_basis"].sum()) / quantity})
+        known_prices = group["current_price"].dropna()
+        prices[ticker] = float(known_prices.iloc[0]) if not known_prices.empty else None
+    return compute_pnl(holdings, prices)
+
+
 def get_portfolio_pnl() -> pd.DataFrame:
     """DB에 저장된 보유 종목의 실시간 손익 테이블을 계산한다."""
     holdings = list_holdings()

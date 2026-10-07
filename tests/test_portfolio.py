@@ -244,6 +244,26 @@ def test_compute_pnl_handles_missing_price():
     assert pd.isna(row["weight_pct"])
 
 
+def test_pnl_display_combines_lots_with_weighted_cost_and_preserves_missing_price():
+    lots = [{"ticker": "XLE", "quantity": 3, "purchase_price": 63.08},
+            {"ticker": "XLE", "quantity": 2, "purchase_price": 70.0},
+            {"ticker": "XLK", "quantity": 1, "purchase_price": 201.62}]
+    original = portfolio.compute_pnl(lots, {"XLE": 80.0, "XLK": None})
+    combined = portfolio.aggregate_pnl_by_ticker(original).set_index("ticker")
+    assert len(combined) == 2 and len(original) == 3
+    xle = combined.loc["XLE"]
+    assert xle["quantity"] == 5
+    assert xle["cost_basis"] == pytest.approx(329.24)
+    assert xle["purchase_price"] == pytest.approx(65.848)
+    assert xle["market_value"] == 400
+    assert xle["pnl"] == pytest.approx(70.76)
+    assert xle["pnl_pct"] == pytest.approx(70.76 / 329.24 * 100)
+    assert xle["weight_pct"] == 100
+    assert pd.isna(combined.loc["XLK", "market_value"])
+    assert pd.isna(combined.loc["XLK", "pnl"])
+    assert combined["cost_basis"].sum() == pytest.approx(original["cost_basis"].sum())
+
+
 def test_compute_pnl_empty_holdings():
     df = portfolio.compute_pnl([], {})
     assert df.empty

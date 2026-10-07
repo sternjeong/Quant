@@ -1,5 +1,9 @@
 # 작업 진행 상황
 
+## 2026-10-07 포트폴리오 손익 표 합산
+
+같은 티커의 매입 기록을 손익 표시에서 한 행으로 합산하고 가중평균 단가·합산 손익률·비중을 표시한다. 매입 기록 편집과 근거 검증은 개별 기록대로 유지한다. 포트폴리오 테스트 56 passed, 가이드·diff check 통과. 구현·검증 완료, VM 배포 확인은 남아 있다.
+
 > 현재 세션 인계: [docs/SESSION_HANDOFF.md](docs/SESSION_HANDOFF.md) · 엔진 로드맵: [docs/ENGINE_UPGRADE_ROADMAP.md](docs/ENGINE_UPGRADE_ROADMAP.md)
 
 ## 2026-10-07 챔피언 추천 금액·주수 계산

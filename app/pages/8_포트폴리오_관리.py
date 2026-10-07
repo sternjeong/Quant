@@ -21,6 +21,7 @@ from core.db import init_db
 from core import job_manager
 from core.portfolio import (
     add_holding,
+    aggregate_pnl_by_ticker,
     generate_portfolio_comment,
     generate_thesis_review,
     get_cash_balance,
@@ -172,7 +173,8 @@ m3.metric(
     delta=f"{total_pnl_pct:+.1f}%" if total_pnl_pct is not None else None,
 )
 
-display_df = pnl_df.rename(
+st.caption("같은 티커의 매입 기록을 합산합니다. 매입단가는 수량 가중평균입니다.")
+display_df = aggregate_pnl_by_ticker(pnl_df).rename(
     columns={
         "ticker": "티커",
         "quantity": "수량",
