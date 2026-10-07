@@ -1,0 +1,452 @@
+{
+ "id": "champion-crypto-v4",
+ "smoke": false,
+ "contract_sha256": "676deb564bd3fe0c5eb18e35e90d1378b2eb0fe746a3079054c4e3a3f3bb97dc",
+ "input_sha256": [
+  "07b63de848ac2c774317e1c3ed381500b1656c864661b4412c660ddcfd005d05",
+  "5ca314b59a457bdfcf048be0e178412b81cd6f08cedfee74751633a47d4a9cba",
+  "543b8c983a38718f38fa382aa32c8ee745ce6f5f8f1055bbf8db45c908dc79dd",
+  "74dc0762532a8b896537f489075138dc3effdad08e1b6c8987bcc3b89fdf6c65",
+  "a22570f191985096a4efa084c13e4a20bc72eeaa0c5c0883517095e380c1a002"
+ ],
+ "start": "2015-01-01",
+ "end": "2026-10-02",
+ "splits": [
+  [
+   "early",
+   "2015-01-01",
+   "2020-01-01"
+  ],
+  [
+   "middle",
+   "2020-01-01",
+   "2023-01-01"
+  ],
+  [
+   "late",
+   "2023-01-01",
+   "2026-10-03"
+  ]
+ ],
+ "crypto_data": {
+  "source": "Yahoo Finance via yfinance",
+  "data_start": "2014-09-17",
+  "end": "2026-10-02",
+  "calendar_days": 4399,
+  "repaired_dates": [
+   "2014-12-31",
+   "2019-12-31"
+  ]
+ },
+ "strategy_version": "core-momentum-top4+spy200dma/2026-10-bil",
+ "baseline": {
+  "cagr": 0.11173432066269373,
+  "volatility": 0.13544021003873918,
+  "mdd": -0.1856804910220755,
+  "max_underwater_days": 608,
+  "total": 2.4627141499915
+ },
+ "btc_characteristics": {
+  "BTC-USD": {
+   "cagr": 0.5420945899649936,
+   "volatility": 0.5491548686925579,
+   "mdd": -0.8339900882218972,
+   "max_underwater_days": 1079,
+   "total": 183.7603899686915,
+   "annualized_volatility_365d": 0.6609079867764363,
+   "skew": -0.092552870361117,
+   "excess_kurtosis": 8.0424175667027,
+   "worst_day": -0.37169538560117077,
+   "best_day": 0.2524716942763181,
+   "positive_day_fraction": 0.5234197362437472,
+   "max_drawdown_recovery_days": 1079,
+   "weekend_abs_return_share": 0.21765544282598906,
+   "mean_weekend_return": 0.001185395393877139,
+   "mean_weekday_return": 0.002031702562226769,
+   "rolling_30d_volatility_quantiles": {
+    "0.1": 0.2980467477607742,
+    "0.5": 0.5378414200658209,
+    "0.9": 0.9464885053388654
+   },
+   "rolling_90d_volatility_quantiles": {
+    "0.1": 0.37123632189600864,
+    "0.5": 0.5894189797756737,
+    "0.9": 0.9463780324543437
+   },
+   "correlation_on_us_trading_days": {
+    "champion": 0.19821350202647048,
+    "core": 0.1763400319595111,
+    "spy": 0.2419386590752728
+   },
+   "rolling_90d_correlation_with_champion": {
+    "mean": 0.19022152954887464,
+    "p10": -0.08628005415632581,
+    "p90": 0.47096704250285853
+   }
+  }
+ },
+ "candidates": {
+  "H1": {
+   "cagr": 0.11675567583130841,
+   "volatility": 0.1355577883868816,
+   "mdd": -0.17668014652845954,
+   "max_underwater_days": 591,
+   "total": 2.650619907741183,
+   "cagr_delta": 0.005021355168614683,
+   "mdd_delta": 0.009000344493615975,
+   "split_cagr_delta": {
+    "early": 0.006718498202142431,
+    "middle": 0.004259271268739706,
+    "late": 0.002956750452544732
+   },
+   "late_ir": 0.6166455223450317,
+   "p_raw": 0.12543728135932034,
+   "stress_cagr_delta": 0.004731468047008747,
+   "p_holm": 1.0,
+   "gates": {
+    "cagr": true,
+    "risk": true,
+    "early": true,
+    "middle": true,
+    "late": true,
+    "ir": true,
+    "stress": true,
+    "holm": false
+   },
+   "verdict": "FAIL"
+  },
+  "H2": {
+   "cagr": 0.124259138570052,
+   "volatility": 0.13621082759209888,
+   "mdd": -0.1741858369989271,
+   "max_underwater_days": 557,
+   "total": 2.9488387988146094,
+   "cagr_delta": 0.012524817907358266,
+   "mdd_delta": 0.01149465402314842,
+   "split_cagr_delta": {
+    "early": 0.016796314545296065,
+    "middle": 0.010585112015467635,
+    "late": 0.007369679302169585
+   },
+   "late_ir": 0.6167820696451731,
+   "p_raw": 0.12543728135932034,
+   "stress_cagr_delta": 0.011806450537233948,
+   "p_holm": 1.0,
+   "gates": {
+    "cagr": true,
+    "risk": true,
+    "early": true,
+    "middle": true,
+    "late": true,
+    "ir": true,
+    "stress": true,
+    "holm": false
+   },
+   "verdict": "FAIL"
+  },
+  "H3": {
+   "cagr": 0.13668534051536696,
+   "volatility": 0.13854601391863278,
+   "mdd": -0.18217738177246257,
+   "max_underwater_days": 523,
+   "total": 3.4920882116705423,
+   "cagr_delta": 0.02495101985267323,
+   "mdd_delta": 0.0035031092496129457,
+   "split_cagr_delta": {
+    "early": 0.03358813943319183,
+    "middle": 0.020955950335823204,
+    "late": 0.01466437372478202
+   },
+   "late_ir": 0.6170096203562495,
+   "p_raw": 0.12543728135932034,
+   "stress_cagr_delta": 0.02353616382501822,
+   "p_holm": 1.0,
+   "gates": {
+    "cagr": true,
+    "risk": true,
+    "early": true,
+    "middle": true,
+    "late": true,
+    "ir": true,
+    "stress": true,
+    "holm": false
+   },
+   "verdict": "FAIL"
+  },
+  "H4": {
+   "cagr": 0.16121645898977754,
+   "volatility": 0.14756366455882727,
+   "mdd": -0.19830996423337466,
+   "max_underwater_days": 451,
+   "total": 4.770113375965618,
+   "cagr_delta": 0.04948213832708381,
+   "mdd_delta": -0.012629473211299147,
+   "split_cagr_delta": {
+    "early": 0.06712240633887823,
+    "middle": 0.041024629951436076,
+    "late": 0.029021389380710527
+   },
+   "late_ir": 0.6174647171412164,
+   "p_raw": 0.12493753123438281,
+   "stress_cagr_delta": 0.04674525538520946,
+   "p_holm": 1.0,
+   "gates": {
+    "cagr": true,
+    "risk": true,
+    "early": true,
+    "middle": true,
+    "late": true,
+    "ir": true,
+    "stress": true,
+    "holm": false
+   },
+   "verdict": "FAIL"
+  },
+  "T1": {
+   "cagr": 0.12271307513173557,
+   "volatility": 0.13390512250244618,
+   "mdd": -0.16561248308631216,
+   "max_underwater_days": 583,
+   "total": 2.8856286695148974,
+   "cagr_delta": 0.01097875446904184,
+   "mdd_delta": 0.020068007935763355,
+   "split_cagr_delta": {
+    "early": 0.014053854837194901,
+    "middle": 0.008165375294608479,
+    "late": 0.008358347981979763
+   },
+   "late_ir": 0.8349807302633426,
+   "p_raw": 0.06996501749125437,
+   "stress_cagr_delta": 0.008559105850023618,
+   "p_holm": 0.8395802098950524,
+   "gates": {
+    "cagr": true,
+    "risk": true,
+    "early": true,
+    "middle": true,
+    "late": true,
+    "ir": true,
+    "stress": true,
+    "holm": false
+   },
+   "verdict": "FAIL"
+  },
+  "T2": {
+   "cagr": 0.13367080215911575,
+   "volatility": 0.1332380895566046,
+   "mdd": -0.16165229639833245,
+   "max_underwater_days": 546,
+   "total": 3.354361572543544,
+   "cagr_delta": 0.021936481496422022,
+   "mdd_delta": 0.02402819462374306,
+   "split_cagr_delta": {
+    "early": 0.028143628604811344,
+    "middle": 0.01624775403054013,
+    "late": 0.0166985729397624
+   },
+   "late_ir": 0.835159507479524,
+   "p_raw": 0.06996501749125437,
+   "stress_cagr_delta": 0.01707553779194959,
+   "p_holm": 0.8395802098950524,
+   "gates": {
+    "cagr": true,
+    "risk": true,
+    "early": true,
+    "middle": true,
+    "late": true,
+    "ir": true,
+    "stress": true,
+    "holm": false
+   },
+   "verdict": "FAIL"
+  },
+  "T3": {
+   "cagr": 0.12361230725753702,
+   "volatility": 0.13405687152629248,
+   "mdd": -0.1668019673762321,
+   "max_underwater_days": 559,
+   "total": 2.922279822563472,
+   "cagr_delta": 0.011877986594843293,
+   "mdd_delta": 0.018878523645843415,
+   "split_cagr_delta": {
+    "early": 0.01577582621351392,
+    "middle": 0.013587643541865813,
+    "late": 0.004437675885620829
+   },
+   "late_ir": 0.42048811881189974,
+   "p_raw": 0.20039980009995004,
+   "stress_cagr_delta": 0.010058385624927002,
+   "p_holm": 1.0,
+   "gates": {
+    "cagr": true,
+    "risk": true,
+    "early": true,
+    "middle": true,
+    "late": true,
+    "ir": false,
+    "stress": true,
+    "holm": false
+   },
+   "verdict": "FAIL"
+  },
+  "T4": {
+   "cagr": 0.13547528402296316,
+   "volatility": 0.13362507870435447,
+   "mdd": -0.15940762374822703,
+   "max_underwater_days": 673,
+   "total": 3.4363320867057485,
+   "cagr_delta": 0.02374096336026943,
+   "mdd_delta": 0.026272867273848477,
+   "split_cagr_delta": {
+    "early": 0.03161279965015518,
+    "middle": 0.027192482098334025,
+    "late": 0.008809794156118933
+   },
+   "late_ir": 0.42067714321537814,
+   "p_raw": 0.20039980009995004,
+   "stress_cagr_delta": 0.02008819064027012,
+   "p_holm": 1.0,
+   "gates": {
+    "cagr": true,
+    "risk": true,
+    "early": true,
+    "middle": true,
+    "late": true,
+    "ir": false,
+    "stress": true,
+    "holm": false
+   },
+   "verdict": "FAIL"
+  },
+  "T5": {
+   "cagr": 0.12243706321246406,
+   "volatility": 0.1342463847994577,
+   "mdd": -0.1648420063503444,
+   "max_underwater_days": 557,
+   "total": 2.874441898079293,
+   "cagr_delta": 0.010702742549770328,
+   "mdd_delta": 0.020838484671731106,
+   "split_cagr_delta": {
+    "early": 0.016715182531605643,
+    "middle": 0.009618039476833706,
+    "late": 0.0022344483565452933
+   },
+   "late_ir": 0.1998255688629646,
+   "p_raw": 0.3343328335832084,
+   "stress_cagr_delta": 0.009466432898577848,
+   "p_holm": 1.0,
+   "gates": {
+    "cagr": true,
+    "risk": true,
+    "early": true,
+    "middle": true,
+    "late": true,
+    "ir": false,
+    "stress": true,
+    "holm": false
+   },
+   "verdict": "FAIL"
+  },
+  "T6": {
+   "cagr": 0.13309610186678378,
+   "volatility": 0.13403987128506212,
+   "mdd": -0.15917674594610165,
+   "max_underwater_days": 529,
+   "total": 3.328547561864154,
+   "cagr_delta": 0.021361781204090047,
+   "mdd_delta": 0.02650374507597386,
+   "split_cagr_delta": {
+    "early": 0.033514044987891234,
+    "middle": 0.01917526451446494,
+    "late": 0.0043867150813412525
+   },
+   "late_ir": 0.20002026323006325,
+   "p_raw": 0.3343328335832084,
+   "stress_cagr_delta": 0.01889002054045985,
+   "p_holm": 1.0,
+   "gates": {
+    "cagr": true,
+    "risk": true,
+    "early": true,
+    "middle": true,
+    "late": true,
+    "ir": false,
+    "stress": true,
+    "holm": false
+   },
+   "verdict": "FAIL"
+  },
+  "V1": {
+   "cagr": 0.13547528402296316,
+   "volatility": 0.13362507870435447,
+   "mdd": -0.15940762374822703,
+   "max_underwater_days": 673,
+   "total": 3.4363320867057485,
+   "cagr_delta": 0.02374096336026943,
+   "mdd_delta": 0.026272867273848477,
+   "split_cagr_delta": {
+    "early": 0.03161279965015518,
+    "middle": 0.027192482098334025,
+    "late": 0.008809794156118933
+   },
+   "late_ir": 0.42067714321537814,
+   "p_raw": 0.20039980009995004,
+   "stress_cagr_delta": 0.02008819064027012,
+   "p_holm": 1.0,
+   "gates": {
+    "cagr": true,
+    "risk": true,
+    "early": true,
+    "middle": true,
+    "late": true,
+    "ir": false,
+    "stress": true,
+    "holm": false
+   },
+   "verdict": "FAIL"
+  },
+  "V2": {
+   "cagr": 0.13547528402296316,
+   "volatility": 0.13362507870435447,
+   "mdd": -0.15940762374822703,
+   "max_underwater_days": 673,
+   "total": 3.4363320867057485,
+   "cagr_delta": 0.02374096336026943,
+   "mdd_delta": 0.026272867273848477,
+   "split_cagr_delta": {
+    "early": 0.03161279965015518,
+    "middle": 0.027192482098334025,
+    "late": 0.008809794156118933
+   },
+   "late_ir": 0.42067714321537814,
+   "p_raw": 0.20039980009995004,
+   "stress_cagr_delta": 0.02008819064027012,
+   "p_holm": 1.0,
+   "gates": {
+    "cagr": true,
+    "risk": true,
+    "early": true,
+    "middle": true,
+    "late": true,
+    "ir": false,
+    "stress": true,
+    "holm": false
+   },
+   "verdict": "FAIL"
+  }
+ },
+ "verdicts": {
+  "H1": "FAIL",
+  "H2": "FAIL",
+  "H3": "FAIL",
+  "H4": "FAIL",
+  "T1": "FAIL",
+  "T2": "FAIL",
+  "T3": "FAIL",
+  "T4": "FAIL",
+  "T5": "FAIL",
+  "T6": "FAIL",
+  "V1": "FAIL",
+  "V2": "FAIL"
+ }
+}
