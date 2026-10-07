@@ -665,6 +665,36 @@ def test_order_plan_fresh_buys_everything_with_capital():
     assert plan["n_trades"] == 7
 
 
+@pytest.mark.parametrize(("capital", "expected_xle_shares", "expected_xlk_shares"), [
+    (1_000.0, 4, 0),
+    (5_000.0, 23, 4),
+])
+def test_investment_allocation_converts_budget_to_whole_share_targets(
+    capital, expected_xle_shares, expected_xlk_shares,
+):
+    targets = [
+        {"ticker": "XLE", "sleeve": "코어", "weight": 0.30},
+        {"ticker": "XLK", "sleeve": "코어", "weight": 0.20},
+        {"ticker": cr.CASH_TICKER, "sleeve": "현금", "weight": 0.50},
+    ]
+    result = cr.investment_allocation_with_shares(targets, capital, {"XLE": 63.08, "XLK": 201.62})
+    rows = {row["ticker"]: row for row in result["rows"]}
+    assert rows["XLE"]["allocation"] == pytest.approx(capital * 0.30)
+    assert rows["XLE"]["shares"] == expected_xle_shares
+    assert rows["XLE"]["purchase_amount"] == pytest.approx(expected_xle_shares * 63.08)
+    assert rows["XLK"]["shares"] == expected_xlk_shares
+    assert rows[cr.CASH_TICKER]["allocation"] == pytest.approx(capital * 0.50)
+    assert result["cash_left"] == pytest.approx(capital - result["purchase_total"])
+
+
+def test_investment_allocation_marks_missing_prices_and_rejects_invalid_budget():
+    target = [{"ticker": "XLE", "sleeve": "코어", "weight": 1.0}]
+    result = cr.investment_allocation_with_shares(target, 1000, {})
+    assert result["missing_prices"] == ["XLE"] and result["cash_left"] is None
+    with pytest.raises(ValueError, match="투자 가능 금액"):
+        cr.investment_allocation_with_shares(target, float("nan"), {"XLE": 60})
+
+
 def test_order_plan_with_holdings_sells_first_and_keeps_within_band():
     targets = cr.target_allocation(_rec_for_todo())
     total = 10_000.0

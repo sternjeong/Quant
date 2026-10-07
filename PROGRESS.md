@@ -2,6 +2,10 @@
 
 > 현재 세션 인계: [docs/SESSION_HANDOFF.md](docs/SESSION_HANDOFF.md) · 엔진 로드맵: [docs/ENGINE_UPGRADE_ROADMAP.md](docs/ENGINE_UPGRADE_ROADMAP.md)
 
+## 2026-10-07 챔피언 추천 금액·주수 계산
+
+챔피언 전략 '지금 할 일'에서 투자 가능 금액을 시나리오 입력하고 종목별 배분 금액·추천 기준가·정수 주 기준 예상 주수·매수액·현금 잔액을 보게 했다. 기존 보유가 있으면 실제 리밸런싱 주문은 별도로 현재 보유·현금에 따라 산출한다. 주문 제출은 하지 않는다. 관련 추천 테스트 60 passed, 가이드 검사·diff check 통과. 구현·검증 완료, 아직 미커밋·미배포.
+
 ## 2026-10-07 오늘의 브리핑 레이아웃 개선
 
 브리핑 HTML을 넓은 화면 2열·휴대폰 1열의 반응형 카드 레이아웃으로 바꾸고, 운영 상태·데이터 이상 목록은 전체 폭을 사용하게 했다. 최대 너비를 넓히고 긴 내용의 줄바꿈을 보강했다. 가이드 갱신. `tests/test_daily_briefing.py` 20 passed, guide check 및 diff check 통과. 구현·검증 완료, 배포 반영 여부는 main 푸시 후 확인한다.

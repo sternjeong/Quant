@@ -328,7 +328,6 @@ else:
     _held = ({} if _holdings_pnl.empty else
              {r["ticker"]: float(r["market_value"] or 0.0) for _, r in _holdings_pnl.iterrows()})
     _cash_balance = get_cash_balance()
-    _has_holdings = any(v > 0 for v in _held.values()) or _cash_balance > 0
 
     with st.container(border=True):
         # --- 2단계: 목표 포트폴리오 ---
@@ -343,21 +342,37 @@ else:
         elif _filter_line:
             st.caption(_filter_line)
 
-        _capital = 10_000.0
-        if not _has_holdings:
-            _capital = st.number_input(
-                "투자할 금액($)", min_value=100.0, max_value=100_000_000.0, value=10_000.0, step=1_000.0,
-                format="%.0f", key="champion_todo_capital",
-            )
+        _capital = st.number_input(
+            "투자 가능 금액 시뮬레이션($)", min_value=0.0, max_value=100_000_000.0,
+            value=10_000.0, step=100.0, format="%.2f", key="champion_todo_capital",
+            help="입력한 금액을 추천 비중대로 처음 배분한다고 가정해 종목별 금액과 정수 주 수를 계산합니다. 실제 보유·주문은 변경하지 않습니다.",
+        )
+        st.caption("이 금액으로 처음 구성할 때의 참고 계산입니다. 등록된 보유가 있으면 실제 매매 목록은 아래에서 보유·현금 잔액 기준으로 따로 계산합니다.")
+        st.caption(f"기준 가격은 추천 기준일({_rec.get('as_of')})의 저장된 종가를 우선 사용합니다.")
         _plan = cr.order_plan(_targets, _held, _cash_balance, _capital)
+        _bil_only = (lambda t: (cr.reference_prices({}, [t]) or {}).get(t) if t == "BIL" else None)
+        _allocation_prices = cr.reference_prices(
+            _rec, [r["ticker"] for r in _targets if r["ticker"] != cr.CASH_TICKER],
+            fetch=_bil_only,
+        )
+        _allocation = cr.investment_allocation_with_shares(_targets, _capital, _allocation_prices)
         st.dataframe(
             pd.DataFrame([
                 {"종목": "현금" if r["ticker"] == cr.CASH_TICKER else r["ticker"], "구분": r["sleeve"],
-                 "목표 비중": f"{r['weight'] * 100:.1f}%", "목표 금액": f"${r['weight'] * _plan['total']:,.0f}"}
-                for r in _targets
+                 "목표 비중": f"{r['weight'] * 100:.1f}%", "배분 금액": f"${r['allocation']:,.2f}",
+                 "기준가": f"${r['price']:,.2f}" if r["price"] else "—",
+                 "예상 주수": (f"약 {r['shares']}주" if r["shares"] is not None else
+                              "현금" if r["type"] == "현금" else "가격 확인 필요"),
+                 "예상 매수액": (f"${r['purchase_amount']:,.2f}" if r["purchase_amount"] is not None else "—")}
+                for r in _allocation["rows"]
             ]),
             use_container_width=True, hide_index=True,
         )
+        if _allocation["cash_left"] is not None:
+            st.caption(f"예상 매수 합계 ${_allocation['purchase_total']:,.2f} · 정수 주 매수 후 현금 잔액 ${_allocation['cash_left']:,.2f} (목표 현금 포함)")
+        elif _allocation["missing_prices"]:
+            st.warning(f"기준 가격을 확인하지 못한 종목이 있어 전체 예상 매수합계·잔액은 미계산입니다: {', '.join(_allocation['missing_prices'])}")
+        st.caption("주식 수는 종목별 목표 금액 ÷ 기준가를 정수로 내림한 근사치입니다. 수수료·세금·체결가 차이는 제외하며 주문을 제출하지 않습니다.")
 
         # --- 3단계: 주문 목록 ---
         st.markdown("**3단계 — 주문 목록**")
@@ -377,7 +392,6 @@ else:
                          {r["ticker"]: float(r["quantity"] or 0.0) for _, r in _holdings_pnl.iterrows()})
             # 현재가는 재추천 결과의 근거 표에서 꺼낸다(코어·새틀라이트). 페이지를 열 때 조회하는 것은 BIL 하나뿐 —
             # 종목 가격 조회는 차트 버튼을 눌렀을 때만 한다는 원칙 유지.
-            _bil_only = (lambda t: (cr.reference_prices({}, [t]) or {}).get(t) if t == "BIL" else None)
             _trade_rows = cr.order_rows_with_shares(
                 _trades, cr.reference_prices(_rec, [r["ticker"] for r in _trades], fetch=_bil_only), _held_qty)
             st.dataframe(

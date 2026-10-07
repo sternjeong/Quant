@@ -34,6 +34,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import os
 import tempfile
 from datetime import date, datetime, timedelta, timezone
@@ -1001,6 +1002,36 @@ def estimate_shares(amount: float, price: Optional[float]) -> dict:
     shares = max(int(amount / float(price) + 1e-9), 0)  # 양수라 int() 가 곧 내림
     cost = round(shares * float(price), 2)
     return {"shares": shares, "cost": cost, "leftover": round(amount - cost, 2)}
+
+
+def investment_allocation_with_shares(targets: list[dict], capital: float,
+                                     prices: dict[str, float]) -> dict:
+    """추천 비중을 입력 자금에 환산하고 정수 주 기준 매수액·잔액을 계산한다(주문 없음)."""
+    capital = float(capital)
+    if not math.isfinite(capital) or capital < 0:
+        raise ValueError("투자 가능 금액은 0 이상의 유한한 숫자여야 합니다.")
+    rows = []
+    missing = []
+    spent = 0.0
+    for target in targets:
+        ticker = target["ticker"]
+        allocation = round(capital * float(target["weight"]), 2)
+        if ticker == CASH_TICKER:
+            rows.append({**target, "allocation": allocation, "price": None, "shares": None,
+                         "purchase_amount": 0.0, "type": "현금"})
+            continue
+        price = prices.get(ticker)
+        estimate = estimate_shares(allocation, price)
+        if estimate["cost"] is None:
+            missing.append(ticker)
+        else:
+            spent += estimate["cost"]
+        rows.append({**target, "allocation": allocation, "price": price,
+                     "shares": estimate["shares"], "purchase_amount": estimate["cost"],
+                     "type": "매수"})
+    return {"capital": round(capital, 2), "rows": rows, "purchase_total": round(spent, 2),
+            "cash_left": round(capital - spent, 2) if not missing else None,
+            "missing_prices": missing}
 
 
 def entry_chart_levels(close: pd.Series, sleeve: str, evidence_row: Optional[dict] = None,
