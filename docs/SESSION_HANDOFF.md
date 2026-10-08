@@ -144,6 +144,14 @@
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
 
+## 2026-10-08 (후속5) 반등장 연구 등록 — 코어도 알파를 (사용자 의도)
+
+- 근거: docs/CHAMPION_2023_2026_CRYPTO_RESEARCH.md(2023 −20.4%p: XLE·DBC 유지, XLK 5월·XLC 6월 편입, 1월 코어 75% BIL).
+- core_lab.CoreConfig 옵션 추가(기본 꺼짐, 라이브 영향 없음): turnaround_lookback/months, cash="bil_spy", cool_exclude. 단위 테스트 3개.
+- research/jobs/rebound-rnd-v1(rebound-judge/v1, priority 15): H1 전환점 가속, H2 빈 슬롯 SPY, H3 H1+H2, H4 식은 승자 제외,
+  H5 국면 전환(월초 SPY ≥ 200일선이면 SPY 100%, 아래면 현 코어 — 사용자 "강세장엔 흐름 타고 고꾸라지면 방어"). 판정: 앞 구간 샤프 > V0 & DSR ≥ 0.95(시도 5),
+  가족 PBO ≤ 25%, 떼어 둔 2년 샤프 > V0, 세후 원화 > V0. SPY 대비 세후 차이·회귀 알파·반등/하락 해 격차는 보고. 스모크만 실행.
+
 ## 2026-10-08 (후속4) 테마 순환 연구 등록 (사용자 기준: 1 지금 불장인 시장 2 빨리 잡기 3 많이 안 갈아타도 SPY 압도)
 
 - research/jobs/theme-rotation-v1(theme-judge/v1, 사전 등록, priority 20): 테마 ETF 28개 고정(상장 252거래일 뒤부터 후보), '불장' = 200일선 위 & L일 수익률 > SPY,

@@ -1,0 +1,13 @@
+{
+  "id": "rebound-rnd-v1",
+  "title": "반등장 R&D v1 — 코어가 하락장 직후 반등을 빨리 잡아 SPY 대비 알파를 낼 수 있나(사전 등록)",
+  "entrypoint": "research/jobs/rebound-rnd-v1/run.py",
+  "args": [],
+  "timeout_seconds": 3600,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 15,
+  "revision": 1
+}

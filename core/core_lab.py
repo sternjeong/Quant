@@ -55,9 +55,13 @@ class CoreConfig:
     weighting: str = "equal"        # equal(슬롯당 1/top_n) / inverse_vol
     market_filter: str = "spy200"   # spy200 / none / asset_sma / credit
     filter_window: int = MARKET_FILTER_SMA_WINDOW  # asset_sma·credit 의 이동평균 길이(거래일)
-    cash: str = "zero"              # zero / bil
+    cash: str = "zero"              # zero / bil / bil_spy(빈 슬롯은 SPY 가 200일선 위면 SPY, 아니면 BIL — 필터 축소분은 BIL)
     tranches: int = 1               # 4 면 월 1·2·3·4주차에 하나씩 리밸런싱하는 4개 묶음의 평균
     signal_basis: str = "price"     # price: 가격(Close, 현 엔진) / total: 배당·분배금 포함 총수익(Adj Close)으로 순위·필터 계산
+    # rebound-rnd-v1(2026-10-08) — 기본값이면 이전과 같은 결과
+    turnaround_lookback: Optional[int] = None  # SPY 가 200일선 아래→위로 올라선 뒤 turnaround_months 동안 순위·자격을 이 기간(거래일) 수익률로
+    turnaround_months: int = 6
+    cool_exclude: Optional[float] = None       # 최근 63거래일 수익률이 SPY 보다 이만큼(예 0.10) 넘게 뒤진 자산은 그달 제외
     universe: Optional[tuple[str, ...]] = None  # None 이면 라이브 CORE_UNIVERSE. 앞으로 토너먼트는 등록 당시 17자산을 고정해서 넘긴다
     extra_assets: tuple[str, ...] = ()  # 순위 후보에 더할 자산(예: BTC-USD — info-rnd-v1 B1). closes 에 그 열이 있어야 한다
 
@@ -107,8 +111,17 @@ def _tranche_weights(closes: pd.DataFrame, extra: pd.DataFrame, cfg: CoreConfig,
         credit = (ratio, ratio.rolling(cfg.filter_window, min_periods=cfg.filter_window).mean())
     rets = closes[assets].pct_change(fill_method=None)
     is_rebal = _first_trading_day_mask(closes.index, offset_days)
+    turn_score = turn_start = None
+    if cfg.turnaround_lookback and spy_sma is not None:
+        turn_score = closes[assets].pct_change(cfg.turnaround_lookback, fill_method=None)
+        above = (spy > spy_sma) & spy_sma.notna()
+        cross = above & ~above.shift(1, fill_value=True)  # 아래→위로 올라선 날
+        turn_start = pd.Series(np.where(cross, closes.index, pd.NaT), index=closes.index).ffill().where(above)
+    cool_rel = None
+    if cfg.cool_exclude is not None and spy is not None:
+        cool_rel = closes[assets].pct_change(63, fill_method=None).sub(spy.pct_change(63, fill_method=None), axis=0)
 
-    cols = assets + ([CASH_ETF] if cfg.cash == "bil" else [])
+    cols = assets + ([CASH_ETF] if cfg.cash in ("bil", "bil_spy") else []) + ([MARKET_FILTER_TICKER] if cfg.cash == "bil_spy" else [])
     out = np.zeros((len(closes.index), len(cols)))
     last = np.zeros(len(cols))
     held: list[str] = []
@@ -119,7 +132,12 @@ def _tranche_weights(closes: pd.DataFrame, extra: pd.DataFrame, cfg: CoreConfig,
             hurdle = 0.0
             if cfg.abs_filter == "bil" and bil12 is not None and pd.notna(bil12.get(sd)):
                 hurdle = float(bil12.loc[sd])
+            ts = turn_start.get(sd) if turn_start is not None else None
+            if ts is not None and pd.notna(ts) and sd < pd.Timestamp(ts) + pd.DateOffset(months=cfg.turnaround_months):
+                sc = m12 = turn_score.loc[sd]  # 전환점 직후: 짧은 기간 수익률로 순위와 자격(> 0)
             eligible = [t for t in assets if pd.notna(sc.get(t)) and pd.notna(m12.get(t)) and m12[t] > hurdle]
+            if cool_rel is not None:
+                eligible = [t for t in eligible if not (pd.notna(cool_rel.at[sd, t]) and cool_rel.at[sd, t] < -cfg.cool_exclude)]
             ranked = sorted(eligible, key=lambda t: (-sc[t], t))
             picks: list[str] = []
             if cfg.buffer_n:
@@ -142,6 +160,8 @@ def _tranche_weights(closes: pd.DataFrame, extra: pd.DataFrame, cfg: CoreConfig,
                 if iv:
                     scale = len(picks) / cfg.top_n
                     w = {t: iv.get(t, 0.0) * scale for t in picks}
+            spy_bull = spy_sma is not None and pd.notna(spy_sma.get(sd)) and spy.loc[sd] >= spy_sma.loc[sd]
+            unfilled = max(0.0, 1.0 - sum(w.values()))
             if cfg.market_filter == "spy200" and spy_sma is not None and pd.notna(spy_sma.get(sd)) and spy.loc[sd] < spy_sma.loc[sd]:
                 w = {t: x * MARKET_FILTER_EXPOSURE_CUT for t, x in w.items()}
             elif cfg.market_filter == "asset_sma":
@@ -150,8 +170,10 @@ def _tranche_weights(closes: pd.DataFrame, extra: pd.DataFrame, cfg: CoreConfig,
                 r, sma = credit
                 if pd.notna(sma.get(sd)) and r.loc[sd] < sma.loc[sd]:
                     w = {t: x * MARKET_FILTER_EXPOSURE_CUT for t, x in w.items()}
+            if cfg.cash == "bil_spy" and spy_bull and unfilled > 0:
+                w[MARKET_FILTER_TICKER] = w.get(MARKET_FILTER_TICKER, 0.0) + unfilled
             row = np.array([w.get(c, 0.0) for c in cols])
-            if cfg.cash == "bil" and pd.notna(extra[CASH_ETF].get(sd)):
+            if cfg.cash in ("bil", "bil_spy") and pd.notna(extra[CASH_ETF].get(sd)):
                 row[cols.index(CASH_ETF)] = max(0.0, 1.0 - row.sum())
             last = row
             held = [t for t in picks if w.get(t, 0.0) > 0]

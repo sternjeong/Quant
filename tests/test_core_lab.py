@@ -119,3 +119,46 @@ def test_job_definition_is_valid():
     data = json.loads((ROOT / "research/jobs/core-rnd-v1/job.json").read_text(encoding="utf-8"))
     job, err = rj.validate_job(data, "core-rnd-v1", ROOT)
     assert job is not None, err
+
+
+# ---------------------------------------------------------------- rebound-rnd-v1 옵션 (2026-10-08)
+def _rebound_market():
+    """1년 하락 뒤 반등: SPY 가 200일선 아래로 갔다가 올라선다. 작년 승자 XLE 는 식고, XLK 는 반등 주도."""
+    idx = pd.bdate_range("2020-01-01", "2023-12-29")
+    n = len(idx)
+    t = np.arange(n)
+    crash = (idx >= "2022-01-01") & (idx < "2023-01-01")
+    spy = 100 * np.exp(np.cumsum(np.where(crash, -0.0012, np.where(idx >= "2023-01-01", 0.003, 0.0008))))
+    data = {a: 50 * np.exp(np.cumsum(np.full(n, -0.0006))) for a in cs.CORE_UNIVERSE}
+    data["XLE"] = 50 * np.exp(np.cumsum(np.where(idx < "2023-01-01", 0.0015, -0.0015)))
+    data["XLK"] = 50 * np.exp(np.cumsum(np.where(crash, -0.002, np.where(idx >= "2023-01-01", 0.004, 0.0005))))
+    closes = pd.DataFrame(data, index=idx)
+    extra = pd.DataFrame({"SPY": spy, "BIL": 90 + t * 0.001}, index=idx)
+    return closes, extra
+
+
+def test_bil_spy_fills_empty_slots_with_spy_only_in_bull_market():
+    closes, extra = _rebound_market()
+    w = cl.build_weights(closes, extra, cl.CoreConfig(cash="bil_spy"))
+    feb23 = w.loc["2023-06-01":].iloc[0]
+    assert feb23.get("SPY", 0) > 0 and feb23.sum() == pytest.approx(1.0)  # 빈 슬롯 → SPY
+    bear = w.loc["2022-09-01":].iloc[0]
+    assert bear.get("SPY", 0) == 0  # 200일선 아래면 SPY 로 채우지 않는다
+    base = cl.build_weights(closes, extra, cl.CoreConfig(cash="bil"))
+    assert "SPY" not in base.columns  # 기본은 그대로
+
+
+def test_turnaround_switches_to_short_lookback_after_spy_reclaims_200dma():
+    closes, extra = _rebound_market()
+    slow = cl.build_weights(closes, extra, cl.CoreConfig(cash="bil"))
+    fast = cl.build_weights(closes, extra, cl.CoreConfig(cash="bil", turnaround_lookback=63, turnaround_months=6))
+    first_xlk = lambda w: w.index[(w["XLK"] > 0) & (w.index >= "2023-01-01")][0]  # noqa: E731
+    assert first_xlk(fast) < first_xlk(slow)  # 전환점에서 반등 주도주를 더 빨리 잡는다
+
+
+def test_cool_exclude_drops_last_years_fading_winner():
+    closes, extra = _rebound_market()
+    base = cl.build_weights(closes, extra, cl.CoreConfig(cash="bil"))
+    cool = cl.build_weights(closes, extra, cl.CoreConfig(cash="bil", cool_exclude=0.10))
+    d = "2023-05-01"
+    assert base.loc[d:].iloc[0]["XLE"] > 0 and cool.loc[d:].iloc[0]["XLE"] == 0
