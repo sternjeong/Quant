@@ -144,6 +144,15 @@
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
 
+## 2026-10-08 (후속2) 코어에서 PTP(DBC) 제외 — 사용자 결정
+
+- 사용자: "PTP 종목은 판매 금액의 10% 를 내야 해(IRC 1446(f) 외국인 매도 원천징수). DBC 는 PTP." 측정(사전 등록 아님, 2010~ 배당 포함 코어 100%):
+  17자산 10.10%/MDD −19.8% → DBC 제외 9.49% → PDBC 교체 9.56%(2015~: 8.84 / 8.40 / 8.08). 사용자가 'DBC 빼기(16자산)' 선택.
+- champion_strategy.CORE_UNIVERSE 16자산, PTP_EXCLUDED=("DBC",), CORE_UNIVERSE_V2026_10(옛 17자산), 버전 core-momentum-top4+spy200dma/2026-10-bil-noptp
+  (예전 추천·새벽 캐시 자동 무효). core_lab.CoreConfig.universe 추가. **앞으로 토너먼트(forward-tournament/v1)는 등록 당시 17자산을 고정** — 라이브 T0 와 이제 다름.
+  geo_shadow·agent_batch 문구는 자산 수를 코드에서 읽음. 오늘 코어: XLE·XLK·XLV·XLB(DBC 자리 → XLB).
+- 미처리: 새틀라이트(S&P500 개별주) PTP 검사는 하지 않음(S&P500 에 PTP 가 거의 없음 — 필요하면 목록 추가). 사용자 계좌에 DBC 가 있다면 '추천 밖 보유'로 전량 매도 안내가 나온다(그때 10% 원천징수 발생 — 사용자 판단).
+
 ## 2026-10-08 (후속) 주문 목록을 '할 일 문장'으로 + 정수 주 주문 (사용자 "주문목록에서 뭘 말하고자 하는지 전혀 모르겠다")
 
 - 사용자가 잔고 맞추기를 썼으나 입력칸이 기존(틀렸을 수 있는) 합계로 미리 채워져 있어 같은 수량(XLK 2·XLE 6·XLV 1·FCX 2, 현금 0)이 다시 저장됨 → 표가 그대로.

@@ -195,3 +195,18 @@ def test_champion_weights_blend_core_and_semiannual_satellite():
     assert w.sum(axis=1).round(9).eq(1.0).all()
     assert w.loc[idx[50], "XLK"] == pytest.approx(0.85) and w.loc[idx[50], "AAA"] == pytest.approx(0.075)
     assert w.loc[idx[120], "AAA"] == 0 and w.loc[idx[120], "CCC"] == pytest.approx(0.15)
+
+
+
+def test_dbc_ptp_excluded_from_live_core_but_tournament_keeps_17():
+    from core import champion_strategy as cs
+    from core import core_lab as cl
+
+    assert "DBC" not in cs.CORE_UNIVERSE and "DBC" in cs.PTP_EXCLUDED and len(cs.CORE_UNIVERSE) == 16
+    assert len(cs.CORE_UNIVERSE_V2026_10) == 17 and "DBC" in cs.CORE_UNIVERSE_V2026_10
+    idx = pd.bdate_range("2023-01-02", periods=400)
+    closes = pd.DataFrame({t: 50 * np.exp(np.linspace(0, 0.1 if t != "DBC" else 1.0, len(idx))) for t in cs.CORE_UNIVERSE_V2026_10}, index=idx)
+    extra = pd.DataFrame({"SPY": np.linspace(100, 200, len(idx)), "BIL": 90.0}, index=idx)
+    live = cl.build_weights(closes, extra, cl.CoreConfig(cash="bil")).iloc[-1]
+    frozen = cl.build_weights(closes, extra, cl.CoreConfig(cash="bil", universe=tuple(cs.CORE_UNIVERSE_V2026_10))).iloc[-1]
+    assert live.get("DBC", 0.0) == 0 and frozen["DBC"] > 0  # 가장 강한 DBC 도 라이브는 안 고르고, 토너먼트는 그대로 고른다

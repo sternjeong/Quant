@@ -60,13 +60,13 @@ def test_corr_cap_skips_near_duplicate():
     base = rng.normal(0.001, 0.01, len(idx))
     data = {t: 50 * np.exp(np.cumsum(rng.normal(-0.0005, 0.01, len(idx)))) for t in cs.CORE_UNIVERSE}
     data["XLE"] = 50 * np.exp(np.cumsum(base))
-    data["DBC"] = 50 * np.exp(np.cumsum(base + rng.normal(0, 0.001, len(idx))))  # XLE 와 거의 같은 움직임
+    data["XLB"] = 50 * np.exp(np.cumsum(base + rng.normal(0, 0.001, len(idx))))  # XLE 와 거의 같은 움직임(2026-10-08 DBC 제외 후 XLB 로)
     closes = pd.DataFrame(data, index=idx)
     extra = pd.DataFrame({"SPY": np.linspace(100, 200, len(idx)), "BIL": 90.0}, index=idx)
     plain = cl.build_weights(closes, extra, cl.CoreConfig()).iloc[-1]
     capped = cl.build_weights(closes, extra, cl.CoreConfig(corr_cap=0.8)).iloc[-1]
-    assert plain["XLE"] > 0 and plain["DBC"] > 0
-    assert (capped["XLE"] > 0) != (capped["DBC"] > 0)
+    assert plain["XLE"] > 0 and plain["XLB"] > 0
+    assert (capped["XLE"] > 0) != (capped["XLB"] > 0)
 
 
 def test_rank_buffer_reduces_turnover(prices):

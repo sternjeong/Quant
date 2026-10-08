@@ -62,7 +62,7 @@ def validate(rec: dict, month: str) -> dict:
         e.append(f"month 는 {month} 이어야 함")
     views = rec.get("assets")
     if not isinstance(views, dict) or set(views) != set(CORE_UNIVERSE):
-        e.append(f"assets 는 코어 17자산 전부를 키로 가져야 함({', '.join(CORE_UNIVERSE)})")
+        e.append(f"assets 는 코어 {len(CORE_UNIVERSE)}자산 전부를 키로 가져야 함({', '.join(CORE_UNIVERSE)})")
     else:
         nonzero = 0
         for t, v in views.items():

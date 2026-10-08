@@ -33,7 +33,7 @@ def test_validate_rejects_bad_records():
         bad["sources"] = []
         gs.validate(bad, "2026-11")
     msg = str(e.value)
-    assert "17자산" in msg and "sources" in msg
+    assert f"{len(CORE_UNIVERSE)}자산" in msg and "sources" in msg
     with pytest.raises(gs.GeoRecordError, match="최대"):
         gs.validate(_rec(**{t: 1 for t in CORE_UNIVERSE[:7]}), "2026-11")
     with pytest.raises(gs.GeoRecordError, match="month"):

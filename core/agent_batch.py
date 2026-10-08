@@ -291,7 +291,7 @@ def prompt_for(role: str, hid: str, now: datetime, extra: dict) -> str:
         from core.champion_strategy import CORE_UNIVERSE
 
         return (f"오늘은 {today}. {hid} 첫 거래일 코어 리밸런싱 전 국제정세 의견을 research/geo_shadow/{hid}.json 에 써라. "
-                f"대상 17자산: {', '.join(CORE_UNIVERSE)}. month 필드는 \"{hid}\".")
+                f"대상 {len(CORE_UNIVERSE)}자산: {', '.join(CORE_UNIVERSE)}. month 필드는 \"{hid}\".")
     raise ValueError(role)
 
 

@@ -49,15 +49,20 @@ RESEARCH_SYNTHESIS_JSON = (
 # final_config.core (report_data.json) 그대로 — GICS 11개 섹터 ETF + 채권2 + 금 + 국제주식 + 하이일드 + 원자재
 CORE_UNIVERSE = [
     "XLC", "XLY", "XLP", "XLE", "XLF", "XLV", "XLI", "XLB", "XLRE", "XLK", "XLU",
-    "TLT", "IEF", "GLD", "EFA", "HYG", "DBC",
+    "TLT", "IEF", "GLD", "EFA", "HYG",
 ]
+# 사용자 결정(2026-10-08): PTP(미국 공개거래 파트너십) 종목은 외국인이 팔 때 매도 금액의 10% 를 원천징수(IRC 1446(f))하므로
+# 코어에서 뺀다. DBC 는 PTP. 실데이터(2010~, 배당 포함): 17자산 연 10.10% → DBC 제외 16자산 9.49%(PDBC 교체 9.56%,
+# 2015~ 은 DBC 제외 8.40% > PDBC 8.08%) — 사용자가 'DBC 빼기'를 골랐다. 사전 등록 판정을 거친 변경이 아니다.
+PTP_EXCLUDED = ("DBC",)
+CORE_UNIVERSE_V2026_10 = CORE_UNIVERSE + ["DBC"]  # 2026-10-08 이전 17자산(사전 등록된 앞으로 토너먼트 forward-tournament/v1 이 고정해서 씀)
 CORE_MOMENTUM_LOOKBACK_DAYS = 252  # 약 12개월(거래일 기준)
 CORE_TOP_N = 4
 CORE_WEIGHT = 0.85
 MARKET_FILTER_TICKER = "SPY"
 MARKET_FILTER_SMA_WINDOW = 200
 MARKET_FILTER_EXPOSURE_CUT = 0.5  # 200일선 하회 시 코어 비중에 곱하는 배수
-CHAMPION_STRATEGY_VERSION = "core-momentum-top4+spy200dma/2026-10-bil"  # snapshot 추적용(로직 변경 시 갱신)
+CHAMPION_STRATEGY_VERSION = "core-momentum-top4+spy200dma/2026-10-bil-noptp"  # snapshot 추적용(로직 변경 시 갱신)
 # 2026-10-02 사용자 결정(코어 R&D v2 결과를 본 뒤): 코어에서 남는 몫(시장필터 축소분·빈 슬롯)은 수익 0 현금 대신 단기국채 ETF(BIL)에
 # 둔다(C01 — G2~G5 통과, 효과가 작아 G1 만 탈락). 순위·절대모멘텀·SPY 200일선 신호는 예전처럼 가격(Close) 기준이다 — 총수익 순위(C13)는
 # 같은 날 반영했다가 18년 전체 성과가 나빠 사용자 결정으로 되돌렸다. 백테스트 '수익'만 배당·분배금 포함 총수익(Adj Close)으로 잰다.

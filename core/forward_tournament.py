@@ -55,7 +55,7 @@ def load_prices(price_fn: Optional[Callable] = None) -> tuple[pd.DataFrame, pd.D
     """(주식 거래일 기준 가격 closes, 배당 포함 total, 코인 가격 crypto). 코인은 주식 거래일에 맞춰 직전 값."""
     from core import champion_strategy as cs
 
-    tickers = list(cs.CORE_UNIVERSE) + [cs.MARKET_FILTER_TICKER, cs.CORE_CASH_ETF]
+    tickers = list(cs.CORE_UNIVERSE_V2026_10) + [cs.MARKET_FILTER_TICKER, cs.CORE_CASH_ETF]
     if price_fn is None:
         from core.market_data import get_multiple_price_history
 
@@ -76,7 +76,8 @@ def target_weights(price: pd.DataFrame, crypto: pd.DataFrame) -> dict[str, dict[
     from core import champion_strategy as cs
     from core import core_lab as cl
 
-    core_cols = [t for t in cs.CORE_UNIVERSE if t in price.columns]
+    # 사전 등록 당시(2026-10-05) 17자산으로 고정 — 2026-10-08 라이브 코어에서 DBC(PTP)가 빠졌어도 토너먼트는 바꾸지 않는다
+    core_cols = [t for t in cs.CORE_UNIVERSE_V2026_10 if t in price.columns]
     extra = price[[c for c in (cs.MARKET_FILTER_TICKER, cs.CORE_CASH_ETF) if c in price.columns]]
     out: dict[str, dict[str, float]] = {}
     for cid, c in CANDIDATES.items():
@@ -91,7 +92,7 @@ def target_weights(price: pd.DataFrame, crypto: pd.DataFrame) -> dict[str, dict[
                 if t in crypto.columns:
                     closes[t] = crypto[t]
             cfg_over["extra_assets"] = tuple(cfg_over["extra_assets"])
-        cfg = cl.with_changes(cl.CoreConfig(cash="bil"), **cfg_over)
+        cfg = cl.with_changes(cl.CoreConfig(cash="bil", universe=tuple(cs.CORE_UNIVERSE_V2026_10)), **cfg_over)
         w = cl.build_weights(closes, extra, cfg).iloc[-1]
         wd = {t: float(v) for t, v in w.items() if v > 1e-9}
         if c["kind"] == "core_crypto":
