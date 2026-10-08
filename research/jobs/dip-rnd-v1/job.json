@@ -1,0 +1,14 @@
+{
+  "id": "dip-rnd-v1",
+  "title": "초대형 우량주(빅테크 등) 눌림 매수 R&D — 그 시점 시총 상위만, 단독·챔피언 결합 3라운드(사전 등록)",
+  "entrypoint": "research/jobs/dip-rnd-v1/run.py",
+  "args": [],
+  "timeout_seconds": 10800,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 10,
+  "revision": 1,
+  "max_memory_mb": 4096
+}
