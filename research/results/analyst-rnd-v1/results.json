@@ -1,0 +1,77 @@
+{
+ "judge_version": "analyst-judge/v1",
+ "smoke": false,
+ "generated_at": "2026-10-08T08:01:15+00:00",
+ "verdicts": {
+  "V1": "FAIL",
+  "V2": "FAIL",
+  "V3": "FAIL",
+  "V4": "FAIL"
+ },
+ "details": {
+  "V1": {
+   "label": "목표가 하향 거부권(90일 하향 ≥ 2 & 하향 > 상향)",
+   "checks": {
+    "is_mean_positive_and_t": false,
+    "holdout_positive": false,
+    "changed_periods_ge_3": false
+   },
+   "is_periods": 24,
+   "is_mean_period_excess": 0.0005111457335717958,
+   "t": 0.7568119301401988,
+   "t_crit": 2.3978746851359682,
+   "holdout_cum_excess": 0.0,
+   "changed_periods_is": 2,
+   "full_annual_excess": -0.000529884315131679
+  },
+  "V2": {
+   "label": "등급 하향 거부권(30일 내 하향 1건)",
+   "checks": {
+    "is_mean_positive_and_t": false,
+    "holdout_positive": false,
+    "changed_periods_ge_3": true
+   },
+   "is_periods": 24,
+   "is_mean_period_excess": 0.004298690736380409,
+   "t": 0.6346618659956083,
+   "t_crit": 2.3978746851359682,
+   "holdout_cum_excess": -0.10934540650068514,
+   "changed_periods_is": 9,
+   "full_annual_excess": -0.009133640552132172
+  },
+  "V3": {
+   "label": "목표가 상향 가점(상위 6 중 90일 상향−하향 순)",
+   "checks": {
+    "is_mean_positive_and_t": false,
+    "holdout_positive": false,
+    "changed_periods_ge_3": true
+   },
+   "is_periods": 24,
+   "is_mean_period_excess": -0.003501700390968754,
+   "t": -0.19948878386721636,
+   "t_crit": 2.3978746851359682,
+   "holdout_cum_excess": -0.10292030352006976,
+   "changed_periods_is": 19,
+   "full_annual_excess": -0.02689992554179732
+  },
+  "V4": {
+   "label": "목표가 괴리 상위(상위 6 중 평균 목표가 ÷ 종가 순)",
+   "checks": {
+    "is_mean_positive_and_t": false,
+    "holdout_positive": false,
+    "changed_periods_ge_3": true
+   },
+   "is_periods": 24,
+   "is_mean_period_excess": -0.005271248628778156,
+   "t": -0.2772042583446443,
+   "t_crit": 2.3978746851359682,
+   "holdout_cum_excess": -0.10945037618871356,
+   "changed_periods_is": 22,
+   "full_annual_excess": -0.03106910116100514
+  }
+ },
+ "coverage": 1.0,
+ "n_tickers": 102,
+ "baseline_cagr": 0.23730551150507728,
+ "holdout_start": "2024-10-07"
+}
