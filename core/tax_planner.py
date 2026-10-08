@@ -105,7 +105,7 @@ def sell_estimates(order_rows: list[dict], pos: list[dict]) -> list[dict]:
         if r.get("action") not in ("매도", "전량 매도"):
             continue
         p = by.get(r["ticker"])
-        q = r.get("shares")
+        q = r.get("whole_shares", r.get("shares"))  # 2026-10-08 주문 목록은 정수 주 주문
         if r.get("action") == "전량 매도" and p:
             q = p["shares"]
         gain = None

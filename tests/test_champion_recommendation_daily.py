@@ -320,9 +320,9 @@ def test_daily_message_includes_shares_for_fresh_start():
     tickers = [r["ticker"] for r in cr.target_allocation(rec) if r["ticker"] != cr.CASH_TICKER]
     lines = cr.daily_order_lines(rec, pd.DataFrame(), 0.0, prices={t: 100.0 for t in tickers})
     assert "새로 시작한다면" in lines[0] and "장 마감 무렵 시장가" in lines[0]
-    assert any("약 " in ln and "주" in ln for ln in lines[1:])
+    assert any("주 매수" in ln for ln in lines[1:])  # 2026-10-08: '약 N주' 대신 실제 정수 주 주문
     text = cr.daily_todo_message(rec, today=date(2026, 10, 2), order_lines=lines)
-    assert "약 " in text and "화면:" in text.splitlines()[-1]
+    assert "주 매수" in text and "화면:" in text.splitlines()[-1]
 
 
 def test_share_text_marks_less_than_one_share():

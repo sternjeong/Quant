@@ -1257,6 +1257,87 @@ def share_text(r: dict) -> str:
     return f"약 {r['shares']}주"
 
 
+def whole_share_orders(rows: list[dict], cash: float = 0.0) -> dict:
+    """order_rows_with_shares() 행을 '실제로 넣을 정수 주 주문'으로 바꾼다(2026-10-08, 사용자 요청 — '1주 미만'만으로는 할 일을 모름).
+
+    매도: 금액 ÷ 현재가를 반올림(보유 수 이하, 전량 매도는 보유 전부). 매수: 반올림하되 매도 대금 + 현금을 넘으면
+    반올림으로 가장 많이 넘친 매수부터 1주씩 줄인다. 0주가 된 매수는 '건너뜀'이며 소수점 매수가 되면 금액만큼 산다.
+    돌려주는 rows 에 whole_shares·whole_amount·after_value, 요약에 남는 현금·목표 대비 최대 오차(%p).
+    """
+    out = [dict(r) for r in rows]
+    for r in out:
+        px = r.get("price")
+        r["whole_shares"] = None
+        if not px or not px > 0:
+            continue
+        exact = abs(float(r["delta_value"])) / float(px)
+        held = r.get("held_qty")
+        if r["action"] == "전량 매도":
+            q = float(held) if held else round(exact)
+        else:
+            q = int(math.floor(exact + 0.5))
+            if r["action"] == "매도" and held is not None:
+                q = min(q, int(held))
+        r["whole_shares"], r["exact_shares"] = q, exact
+    sells = sum(r["whole_shares"] * r["price"] for r in out if r.get("whole_shares") and r["action"] != "매수")
+    budget = float(cash or 0.0) + sells
+    buys = [r for r in out if r["action"] == "매수" and r.get("whole_shares")]
+    while buys and sum(r["whole_shares"] * r["price"] for r in buys) > budget + 1e-6:
+        worst = max(buys, key=lambda r: r["whole_shares"] - r["exact_shares"])
+        worst["whole_shares"] -= 1
+        buys = [r for r in buys if r["whole_shares"]]
+    spent = sum(r["whole_shares"] * r["price"] for r in out if r["action"] == "매수" and r.get("whole_shares"))
+    total = sum(float(r["target_value"]) for r in out) or 1.0
+    devs = []
+    for r in out:
+        q = r.get("whole_shares") or 0
+        amt = q * (r.get("price") or 0.0)
+        r["whole_amount"] = round(amt, 2)
+        r["after_value"] = round(float(r["current_value"]) + (amt if r["action"] == "매수" else -amt), 2)
+        devs.append(r["after_value"] - float(r["target_value"]))
+    return {"rows": out, "leftover_cash": round(budget - spent, 2),
+            "skipped": [r["ticker"] for r in out if r["action"] == "매수" and not r.get("whole_shares")]}
+
+
+def whole_share_text(r: dict) -> str:
+    """정수 주 주문 한 칸: '1주 매도' / '7주 매수' / '건너뜀 — 1주 $814 > $55(소수점이면 $55어치)'."""
+    q = r.get("whole_shares")
+    if q is None:
+        return "가격 없음"
+    verb = "매수" if r["action"] == "매수" else "매도"
+    if q == 0:
+        return (f"건너뜀 — 1주 ${r['price']:,.0f} > ${abs(r['delta_value']):,.0f}"
+                f" (소수점 매수가 되면 ${abs(r['delta_value']):,.0f}어치)" if verb == "매수"
+                else f"그대로 두기 — 0.5주 미만(${abs(r['delta_value']):,.0f})")
+    return f"{q:g}주 {verb}"
+
+
+def order_steps(ws: dict) -> dict:
+    """whole_share_orders() 결과를 사람이 그대로 따라 할 문장으로(2026-10-08 — 표만으로는 무엇을 하라는지 모르겠다는 사용자 의견).
+    {"sell": [...], "buy": [...], "skip": [...], "leftover_cash": x}"""
+    sell, buy, skip = [], [], []
+    for r in ws["rows"]:
+        q, px, t = r.get("whole_shares"), r.get("price"), r["ticker"]
+        held = r.get("held_qty")
+        if q is None:
+            skip.append(f"{t}: 현재가를 몰라 계산하지 못했습니다 — 화면에서 다시 추천을 눌러 주세요.")
+        elif r["action"] == "매수":
+            if q:
+                buy.append(f"{t} {q:g}주 사기 (약 ${q * px:,.0f})")
+            elif abs(r["delta_value"]) < px:
+                skip.append(f"{t}: 더 살 몫 ${abs(r['delta_value']):,.0f}가 1주 값 ${px:,.0f}보다 작아 이번엔 안 삽니다"
+                            + (" (소수점 매수가 되면 그 금액만큼 사도 됩니다)" if not r["current_value"] else " — 지금 보유 그대로 두기"))
+            else:
+                skip.append(f"{t}: 쓸 수 있는 돈이 모자라 이번엔 못 삽니다(${abs(r['delta_value']):,.0f}어치 목표)")
+        else:
+            if q:
+                left = f" — {held:g}주 → {held - q:g}주" if held is not None else ""
+                sell.append(f"{t} {q:g}주 팔기 (약 ${q * px:,.0f}){left}")
+            else:
+                skip.append(f"{t}: 줄일 몫 ${abs(r['delta_value']):,.0f}가 0.5주도 안 돼 그대로 둡니다")
+    return {"sell": sell, "buy": buy, "skip": skip, "leftover_cash": ws["leftover_cash"]}
+
+
 def daily_order_lines(rec: dict, holdings_pnl=None, cash_balance: float = 0.0,
                       prices: Optional[dict[str, float]] = None, max_rows: int = 8) -> list[str]:
     """아침 요약용 주문 줄. 보유가 있으면 그 기준, 없으면 1만 달러로 새로 시작하는 기준."""
@@ -1275,10 +1356,13 @@ def daily_order_lines(rec: dict, holdings_pnl=None, cash_balance: float = 0.0,
             else f"주문(${DAILY_DEFAULT_CAPITAL:,.0f}로 새로 시작한다면, 장 마감 무렵 시장가):")
     if not rows:
         return [head + " 사고팔 것 없음"]
+    for r in rows:
+        r["held_qty"] = held_qty.get(r["ticker"])
+    ws = whole_share_orders(rows, plan["total"] - sum(float(x["current_value"]) for x in plan["rows"]))
+    rows = ws["rows"]
     lines = [head]
     for r in rows[:max_rows]:
-        sh = share_text(r)
-        lines.append(f"· {r['ticker']} {r['action']} {sh} (${abs(r['delta_value']):,.0f})")
+        lines.append(f"· {r['ticker']} {whole_share_text(r)} (목표까지 ${abs(r['delta_value']):,.0f})")
     if len(rows) > max_rows:
         lines.append(f"· 외 {len(rows) - max_rows}건 — 화면에서 확인")
     return lines

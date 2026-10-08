@@ -886,3 +886,43 @@ def test_page_shows_dawn_backtest_with_ranked_active_lists(page_env):
     assert dp.load_latest(dp.KIND_CHAMPION_BACKTEST) is not None
     at = _run_page(page_env)  # 예외가 없어야 한다
     assert any("새벽 자동 계산" in c.value for c in at.caption)
+
+
+def test_whole_share_orders_matches_user_case_2026_10_08():
+    """사용자 사례: 총 $1,095, XLK 2주·XLE 6주·FCX 2주·XLV 1주, 현금 0 → '1주 미만' 대신 실제 정수 주 주문."""
+    rows = [
+        {"ticker": "XLK", "action": "매도", "price": 201.39, "delta_value": -170, "current_value": 403, "target_value": 233, "held_qty": 2},
+        {"ticker": "XLE", "action": "매도", "price": 63.36, "delta_value": -147, "current_value": 380, "target_value": 233, "held_qty": 6},
+        {"ticker": "FCX", "action": "매도", "price": 71.86, "delta_value": -89, "current_value": 144, "target_value": 55, "held_qty": 2},
+        {"ticker": "DBC", "action": "매수", "price": 32.51, "delta_value": 233, "current_value": 0, "target_value": 233},
+        {"ticker": "XLV", "action": "매수", "price": 168.81, "delta_value": 64, "current_value": 169, "target_value": 233},
+        {"ticker": "CAT", "action": "매수", "price": 813.83, "delta_value": 55, "current_value": 0, "target_value": 55},
+        {"ticker": "GEV", "action": "매수", "price": 997.09, "delta_value": 55, "current_value": 0, "target_value": 55},
+    ]
+    ws = cr.whole_share_orders(rows, cash=0.0)
+    q = {r["ticker"]: r["whole_shares"] for r in ws["rows"]}
+    assert q == {"XLK": 1, "XLE": 2, "FCX": 1, "DBC": 7, "XLV": 0, "CAT": 0, "GEV": 0}
+    assert set(ws["skipped"]) == {"XLV", "CAT", "GEV"} and ws["leftover_cash"] >= 0
+    texts = {r["ticker"]: cr.whole_share_text(r) for r in ws["rows"]}
+    assert texts["XLK"] == "1주 매도" and texts["DBC"] == "7주 매수" and texts["CAT"].startswith("건너뜀")
+
+
+def test_whole_share_buys_never_exceed_cash():
+    rows = [{"ticker": "A", "action": "매수", "price": 100.0, "delta_value": 260, "current_value": 0, "target_value": 260},
+            {"ticker": "B", "action": "매수", "price": 100.0, "delta_value": 160, "current_value": 0, "target_value": 160}]
+    ws = cr.whole_share_orders(rows, cash=420.0)  # 반올림이면 3 + 2 = 500 > 420
+    assert sum(r["whole_shares"] * 100 for r in ws["rows"]) <= 420 and ws["leftover_cash"] >= 0
+
+
+def test_order_steps_plain_sentences_for_user_case():
+    rows = [
+        {"ticker": "XLK", "action": "매도", "price": 201.39, "delta_value": -170, "current_value": 403, "target_value": 233, "held_qty": 2},
+        {"ticker": "DBC", "action": "매수", "price": 32.51, "delta_value": 233, "current_value": 0, "target_value": 233},
+        {"ticker": "XLV", "action": "매수", "price": 168.81, "delta_value": 64, "current_value": 169, "target_value": 233},
+        {"ticker": "CAT", "action": "매수", "price": 813.83, "delta_value": 55, "current_value": 0, "target_value": 55},
+    ]
+    st = cr.order_steps(cr.whole_share_orders(rows, cash=50.0))
+    assert st["sell"] == ["XLK 1주 팔기 (약 $201) — 2주 → 1주"]
+    assert st["buy"] == ["DBC 7주 사기 (약 $228)"]
+    assert any(x.startswith("XLV:") and "그대로" in x for x in st["skip"])
+    assert any(x.startswith("CAT:") and "소수점" in x for x in st["skip"])

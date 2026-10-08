@@ -403,21 +403,34 @@ else:
             # 종목 가격 조회는 차트 버튼을 눌렀을 때만 한다는 원칙 유지.
             _trade_rows = cr.order_rows_with_shares(
                 _trades, cr.reference_prices(_rec, [r["ticker"] for r in _trades], fetch=_bil_only), _held_qty)
-            st.dataframe(
-                pd.DataFrame([
-                    {"순서": i, "할 일": r["action"], "종목": r["ticker"],
-                     "현재가": f"${r['price']:,.2f}" if r.get("price") else "—",
-                     "약 몇 주": cr.share_text(r) if r.get("shares") is not None else "—",
-                     "금액": f"${abs(r['delta_value']):,.0f}",
-                     "현재 → 목표": f"${r['current_value']:,.0f} → ${r['target_value']:,.0f}"}
-                    for i, r in enumerate(_trade_rows, start=1)
-                ]),
-                use_container_width=True, hide_index=True,
-            )
-            st.caption(cr.ORDER_METHOD_NOTE)
-            if any(r.get("shares") == 0 for r in _trade_rows):
-                st.caption("⚠️ '1주 미만' 종목은 그 금액으로 1주를 살 수 없습니다 — 투자금을 늘리거나, 그 몫은 현금으로 두게 됩니다"
-                           "(주식 소수점 매매가 되는 증권사라면 금액대로 살 수 있습니다).")
+            for _r in _trade_rows:
+                _r["held_qty"] = _held_qty.get(_r["ticker"])
+            _cash_now = _plan["total"] - sum(float(r["current_value"]) for r in _plan["rows"])
+            _ws = cr.whole_share_orders(_trade_rows, _cash_now)
+            _trade_rows = _ws["rows"]
+            _steps = cr.order_steps(_ws)
+            _md = []
+            if _steps["sell"]:
+                _md.append("**① 먼저 팔기**\n" + "\n".join(f"- {x}" for x in _steps["sell"]))
+            if _steps["buy"]:
+                _md.append(("**② 판 돈으로 사기**" if _steps["sell"] else "**① 사기**") + "\n"
+                           + "\n".join(f"- {x}" for x in _steps["buy"]))
+            if _steps["skip"]:
+                _md.append("**이번엔 안 해도 되는 것**\n" + "\n".join(f"- {x}" for x in _steps["skip"]))
+            st.markdown("\n\n".join(_md) if _md else "지금 사고팔 것이 없습니다.")
+            st.caption(f"위대로 다 하면 현금 약 ${_steps['leftover_cash']:,.0f}가 남습니다. 주문은 장 마감 무렵 시장가로 합니다. "
+                       "각 종목의 목표 금액(계좌 총액 × 목표 비중)에 가장 가까운 주식 수로 맞춘 것입니다.")
+            with st.expander("계산 근거 표 보기 (종목별 지금 금액 → 주문 후 → 목표)"):
+                st.dataframe(
+                    pd.DataFrame([
+                        {"종목": r["ticker"], "주문": cr.whole_share_text(r),
+                         "현재가": f"${r['price']:,.2f}" if r.get("price") else "—",
+                         "지금 보유 금액": f"${r['current_value']:,.0f}", "주문 후": f"${r['after_value']:,.0f}",
+                         "목표 금액": f"${r['target_value']:,.0f}"}
+                        for r in _trade_rows
+                    ]),
+                    use_container_width=True, hide_index=True,
+                )
             if any(r["action"] in ("매도", "전량 매도") for r in _trades):
                 st.caption("매도를 먼저 하고 그 돈으로 매수하는 순서입니다.")
                 # 세금 미리보기: 켰을 때만 환율을 읽는다(페이지 진입 시 조회 최소화 원칙)
