@@ -345,3 +345,120 @@ def test_page_renders_cached_backtest_and_live_ledger(page_env, monkeypatch):
     assert "✅ 검산" in txt
     assert "아직 기간이 짧아 판단 불가" in txt
     assert len(at.dataframe) >= 2
+
+
+def _write_cached_backtest(page_env):
+    bt = cs.run_champion_backtest(BT_START, BT_END)
+    res = cp.analyze_backtest(bt)
+    params = cp.cache_params(cp.default_start(), (date.today() - timedelta(days=1)).isoformat(), cs.SATELLITE_WEIGHT)
+    res["params"], res["computed_at"] = params, "2026-09-26T00:00:00+00:00"
+    page_env.mkdir(parents=True, exist_ok=True)
+    cp.cache_path(params, page_env).write_text(json.dumps(res), encoding="utf-8")
+
+
+def _equity_chart_trace_names(at):
+    names = []
+    for el in at.get("plotly_chart"):
+        spec = json.loads(el.proto.spec)
+        names.append([t.get("name") for t in spec.get("data", [])])
+    return next(n for n in names if "챔피언 전략" in n)
+
+
+@pytest.mark.parametrize("fetch_ok", [True, False])
+def test_page_marks_ticker_with_normalized_price_line(page_env, monkeypatch, fetch_ok):
+    _write_cached_backtest(page_env)
+    fetched = []
+
+    def prices(tickers, start=None, end=None, interval="1d", use_cache=True):
+        fetched.append(list(tickers))
+        if set(tickers) <= {"SPY", "TLT"}:
+            return _live_prices(tickers, start=start, end=end)
+        if not fetch_ok:
+            raise RuntimeError("network")
+        return _fake_prices(tickers, start=start, end=end, interval=interval)
+
+    monkeypatch.setattr(cs, "get_multiple_price_history", prices)
+    at = _run_page()
+    assert all(set(f) <= {"SPY", "TLT"} for f in fetched)  # 진입만으로는 종목 가격을 받지 않는다
+    sb = next(s for s in at.selectbox if s.label == "매수·매도 지점 표시할 종목")
+    ticker = sb.options[1]
+    sb.select(ticker)
+    at.run()
+    assert not at.exception, [e.value for e in at.exception]
+    names = _equity_chart_trace_names(at)
+    assert f"{ticker} 매수" in names
+    if fetch_ok:
+        assert f"{ticker} 가격(정규화)" in names
+        assert [ticker] in fetched
+        assert "전략 곡선 값과 같도록 맞춘 선" in _text(at)
+    else:
+        assert f"{ticker} 가격(정규화)" not in names
+        assert "가격을 불러오지 못해 가격선은 생략" in _text(at)
+
+
+# ----------------------------------------------------------------------------
+# 종목 가격선(정규화) — 2026-10-08
+# ----------------------------------------------------------------------------
+
+def test_rebase_price_to_curve_matches_curve_at_chart_start():
+    curve = pd.Series([10_000.0, 10_100.0, 10_300.0, 10_200.0, 10_400.0, 10_500.0], index=IDX)
+    price = pd.Series([50.0, 55.0, 60.0, 45.0, 50.0, 100.0], index=IDX)
+    out = cp.rebase_price_to_curve(price, curve)
+    assert list(out.index) == list(IDX)
+    assert out.iloc[0] == pytest.approx(10_000.0)
+    # 가격 비율 그대로: 55/50 × 10,000 = 11,000, 100/50 × 10,000 = 20,000
+    assert out.iloc[1] == pytest.approx(11_000.0)
+    assert out.iloc[-1] == pytest.approx(20_000.0)
+
+
+def test_rebase_price_to_curve_ignores_prices_before_chart_window():
+    curve = pd.Series([200.0, 210.0, 220.0], index=IDX[3:])
+    price = pd.Series([1.0, 2.0, 3.0, 40.0, 44.0, 20.0], index=IDX)
+    out = cp.rebase_price_to_curve(price, curve)
+    assert out.index[0] == IDX[3]
+    assert list(out.values) == pytest.approx([200.0, 220.0, 100.0])
+
+
+def test_rebase_price_to_curve_ticker_listed_after_chart_start():
+    curve = pd.Series([1.0, 1.1, 1.2, 1.5, 1.4, 1.6], index=IDX) * 1000
+    price = pd.Series([30.0, 33.0, 27.0], index=IDX[2:5])  # 3번째 날 상장, 마지막 날 전에 끝
+    out = cp.rebase_price_to_curve(price, curve)
+    assert out.index[0] == IDX[2] and out.index[-1] == IDX[4]  # 가격 없는 뒤쪽으로 늘이지 않는다
+    assert out.iloc[0] == pytest.approx(1200.0)  # 상장일의 전략 곡선 값
+    assert list(out.values) == pytest.approx([1200.0, 1320.0, 1080.0])
+
+
+def test_rebase_price_to_curve_fills_gaps_and_handles_tz():
+    curve = pd.Series([100.0, 100.0, 100.0, 100.0], index=IDX[:4])
+    price = pd.Series([10.0, 20.0], index=pd.DatetimeIndex([IDX[0], IDX[3]]).tz_localize("America/New_York"))
+    out = cp.rebase_price_to_curve(price, curve)
+    assert list(out.values) == pytest.approx([100.0, 100.0, 100.0, 200.0])
+
+
+def test_rebase_price_to_curve_missing_data_returns_none():
+    curve = pd.Series([1.0, 1.1], index=IDX[:2])
+    assert cp.rebase_price_to_curve(None, curve) is None
+    assert cp.rebase_price_to_curve(pd.Series(dtype=float), curve) is None
+    assert cp.rebase_price_to_curve(pd.Series([5.0], index=IDX[:1]), None) is None
+    later = pd.Series([5.0, 6.0], index=pd.bdate_range("2030-01-01", periods=2))  # 차트 기간 밖
+    assert cp.rebase_price_to_curve(later, curve) is None
+    assert cp.rebase_price_to_curve(pd.Series([np.nan, 0.0], index=IDX[:2]), curve) is None  # NaN·0 뿐
+
+
+def test_ticker_price_series_uses_adj_close_and_handles_failure():
+    df = pd.DataFrame({"Close": [10.0, 11.0], "Adj Close": [9.0, 10.0]}, index=IDX[:2])
+    calls = []
+
+    def fake(tickers, start=None, end=None, interval="1d"):
+        calls.append(list(tickers))
+        return {"AAA": df}
+
+    s = cp.ticker_price_series("AAA", "2024-01-01", "2024-01-10", price_fn=fake)
+    assert calls == [["AAA"]]  # 고른 종목 하나만 조회
+    assert list(s.values) == [9.0, 10.0]
+    assert cp.ticker_price_series("BBB", "2024-01-01", "2024-01-10", price_fn=fake) is None
+
+    def boom(*a, **k):
+        raise RuntimeError("network")
+
+    assert cp.ticker_price_series("AAA", "2024-01-01", "2024-01-10", price_fn=boom) is None

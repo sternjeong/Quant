@@ -37,7 +37,9 @@ from core.champion_performance import (
     format_usd,
     load_cached,
     load_latest_cached,
+    rebase_price_to_curve,
     series_from_json,
+    ticker_price_series,
     to_dollars,
 )
 from core.champion_strategy import SATELLITE_WEIGHT
@@ -128,6 +130,15 @@ _PLOT_CONFIG = {"displayModeBar": False, "scrollZoom": False}
 
 def _plot(fig: go.Figure) -> None:
     st.plotly_chart(fig, use_container_width=True, config=_PLOT_CONFIG)
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def _ticker_price(ticker: str, start: str, end: str) -> pd.Series:
+    """고른 종목 하나의 가격만 받아 온다(SPY 곡선과 같은 Adj Close). 실패는 예외로 — 실패 결과는 캐시하지 않는다."""
+    s = ticker_price_series(ticker, start, end)
+    if s is None:
+        raise ValueError(f"{ticker} 가격 없음")
+    return s
 
 
 def _link(path: str, label: str) -> None:
@@ -270,8 +281,30 @@ if cached:
     if dd.get("peak_date") and dd.get("trough_date"):
         fig.add_vrect(x0=dd["peak_date"], x1=dd["trough_date"], fillcolor="rgba(137,135,129,0.16)", line_width=0,
                       layer="below")
+    price_note = None
     if mark_ticker != "(표시 안 함)" and not trades.empty:
         strat = curves["strategy"]
+        # 고른 종목의 가격선(정규화): 차트 시작일(나중에 상장했으면 첫 거래일)에 전략 곡선 값과 같게 맞춘 점선.
+        rebased = None
+        try:
+            px_end = (date.fromisoformat(str(s["end"])[:10]) + timedelta(days=1)).isoformat()
+            rebased = rebase_price_to_curve(_ticker_price(mark_ticker, s["start"], px_end), strat)
+        except Exception:
+            rebased = None
+        if rebased is None or rebased.empty:
+            price_note = f"{mark_ticker} 가격을 불러오지 못해 가격선은 생략했습니다(매수·매도 지점은 그대로 표시)."
+        else:
+            px_name = f"{mark_ticker} 가격(정규화)"
+            fig.add_trace(go.Scatter(
+                x=rebased.index, y=rebased.values, name=px_name, mode="lines",
+                line=dict(color=INK_MUTED, width=1.2, dash="dot"),
+                hovertemplate=f"{px_name}: $%{{y:,.0f}}<extra></extra>",
+            ))
+            anchor_day = rebased.index[0].date().isoformat()
+            price_note = (
+                f"점선 = {mark_ticker} 가격(배당 반영 종가)을 {anchor_day}에 전략 곡선 값과 같도록 맞춘 선입니다. "
+                "그날부터 이 종목만 들고 있었다면의 흐름으로, 비중·비용은 반영하지 않은 참고선입니다."
+            )
         tt = trades[trades["ticker"] == mark_ticker]
         buys = pd.to_datetime(tt["buy_date"])
         sells = pd.to_datetime(tt.loc[~tt["is_open"], "sell_date"])
@@ -292,6 +325,8 @@ if cached:
     _style(fig, 380, money=True)
     fig.update_layout(hovermode="x unified")
     _plot(fig)
+    if price_note:
+        st.caption(price_note)
 
     # --- 거래 타임라인 ---
     st.markdown("#### 언제 사고 언제 팔았나")

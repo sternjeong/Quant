@@ -560,6 +560,58 @@ def to_dollars(result: dict, capital: float) -> dict:
     }
 
 
+def ticker_price_series(ticker: str, start: str, end: str, price_fn: Optional[PriceFn] = None) -> Optional[pd.Series]:
+    """한 종목의 일별 가격(2026-10-08 추가 — 자산곡선 위 '종목 가격(정규화)' 선용).
+
+    SPY 곡선과 같은 원천·같은 필드(cs.CORE_PRICE_FIELD=Adj Close, 없으면 Close)를 쓴다. 실패·빈 값이면 None.
+    """
+    price_fn = price_fn or cs.get_multiple_price_history
+    try:
+        hist = price_fn([ticker], start=start, end=end, interval="1d")
+        df = (hist or {}).get(ticker)
+        if df is None or df.empty:
+            return None
+        s = cs._price_series(df, cs.CORE_PRICE_FIELD).astype(float)
+    except Exception:
+        return None
+    s = s[s.notna() & (s > 0)]
+    return s if not s.empty else None
+
+
+def rebase_price_to_curve(price: Optional[pd.Series], curve: Optional[pd.Series]) -> Optional[pd.Series]:
+    """종목 가격을 전략 곡선과 같은 눈금으로 옮긴다(2026-10-08 추가).
+
+    차트 기간(곡선의 첫날~마지막 날) 안에서 가격이 처음 있는 날(차트 시작일, 나중에 상장했으면 그 첫 거래일)에
+    그날 전략 곡선 값과 같아지도록 가격 전체에 같은 배수를 곱한다. 결과는 곡선 날짜 축(기준일~가격 마지막 날)에
+    맞춘다(빈 날은 직전 가격). 기간 안에 가격이 없거나 기준값을 못 정하면 None.
+    """
+    if price is None or curve is None or price.empty or curve.empty:
+        return None
+    p = price.astype(float).copy()
+    p.index = pd.DatetimeIndex(p.index)
+    if p.index.tz is not None:
+        p.index = p.index.tz_localize(None)
+    p.index = p.index.normalize()
+    p = p[~p.index.duplicated(keep="last")].sort_index()
+    p = p[p.notna() & (p > 0)]
+    c = curve.astype(float).dropna().sort_index()
+    if c.empty:
+        return None
+    p = p[(p.index >= c.index[0]) & (p.index <= c.index[-1])]
+    if p.empty:
+        return None
+    anchor = p.index[0]
+    anchor_curve = c.asof(anchor)
+    if anchor_curve is None or not np.isfinite(anchor_curve) or anchor_curve <= 0:
+        return None
+    target = c.index[(c.index >= anchor) & (c.index <= p.index[-1])]
+    if len(target) == 0:
+        return None
+    aligned = p.reindex(p.index.union(target)).ffill().reindex(target)
+    out = aligned / float(p.iloc[0]) * float(anchor_curve)
+    return out.dropna()
+
+
 # ----------------------------------------------------------------------------
 # 실시간(실제 시장 기록) — 백테스트와 섞지 않는다
 # ----------------------------------------------------------------------------
