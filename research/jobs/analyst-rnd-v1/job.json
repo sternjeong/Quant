@@ -1,0 +1,13 @@
+{
+  "id": "analyst-rnd-v1",
+  "title": "애널리스트 R&D v1 — 목표가·등급 변경을 새틀라이트 선정에 쓰면 나아지나(사전 등록)",
+  "entrypoint": "research/jobs/analyst-rnd-v1/run.py",
+  "args": [],
+  "timeout_seconds": 7200,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 25,
+  "revision": 1
+}
