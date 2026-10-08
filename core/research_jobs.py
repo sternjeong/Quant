@@ -5,7 +5,7 @@
 이 모듈은 그 '연구 작업 실행기'다. 작업 계약은 docs/RESEARCH_JOBS.md 에 있다(연구 에이전트는 그 문서대로 스크립트를 맞춘다).
 
   - 작업 정의: research/jobs/<id>/job.json (저장소에 커밋) — load_job_definitions()/validate_job() 가 검증한다.
-  - 실행: scheduler/run_scheduler.py 의 research_job_runner_job 이 창(RUN_WINDOWS) 안에서 20분마다 run_tick() 을 부른다.
+  - 실행: scheduler/run_scheduler.py 의 research_job_runner_job 이 창(RUN_WINDOWS) 안에서 10분마다 run_tick() 을 부른다.
     한 번에 한 작업만(파일 락), 여유(has_headroom)·디스크 확인 뒤, 남은 창 시간으로 줄인 시간 예산을 준다.
     자식은 nice 5 로 실행하며 전체 CPU 사용률이 80%를 넘으면 일시 중지하고 70% 이하에서 재개한다.
   - 상태: data/research_jobs/state.json (원자적 쓰기 + 짧은 락). 멈춘 running 은 다음 회차에 in_progress 로 복구한다.
@@ -39,17 +39,15 @@ from zoneinfo import ZoneInfo
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 KST = ZoneInfo("Asia/Seoul")
 
-# 실행 창(KST). 01:00~02:50: 00:00~00:50 야간 잡 블록 뒤, 03:00 AI 에이전트 배치 전.
-# 13:00~16:50: 한국 낮(=미국 밤) — 12:00 거장 동기화 뒤, 등록된 잡이 하나도 없고 사용자가 근무 중이라 화면을 거의 안 쓴다.
-# 03:00~05:50 에이전트 배치, 06:10 paper 주문, 06:30 백업, 07:30 뉴스, 09:00 대회·09:05 워치독은 피한다.
-RUN_WINDOWS: tuple[tuple[time, time], ...] = ((time(1, 0), time(2, 50)), (time(13, 0), time(16, 50)))
-# 2주 R&D 스프린트(사용자 지시 2026-10-02, research/jobs/sprint-2w): SPRINT_UNTIL(KST 날짜)까지만 잡이 없는 틈을 더 연다.
-# 07:30 뉴스 뒤·09:00 대회 알림/아침 재추천 전, 월요일 09~10시 주간 보고서 뒤·12:00 거장 동기화 전, 17:00~23:50(00:00 야간 블록 전).
-# 이 날짜가 지나면 아래 창은 자동으로 꺼지고(cron 은 그 시각에 깨어나도 '실행 창 밖'으로 바로 끝난다) 기본 창만 남는다.
-SPRINT_UNTIL = date(2026, 10, 16)
-SPRINT_WINDOWS: tuple[tuple[time, time], ...] = ((time(7, 50), time(8, 50)), (time(10, 40), time(11, 50)), (time(17, 0), time(23, 50)))
-# 스케줄러 cron(core/job_schedule.py 와 같아야 함): 기본·스프린트 창 안에서 20분마다.
-CRON = {"hour": "1,2,8,10,11,13,14,15,16,17,18,19,20,21,22,23", "minute": "0,20,40", "timezone": "Asia/Seoul"}
+# 실행 창(KST) — 2026-10-08 사용자 지시 "VM 에 부하가 걸리지 않는 이상 매시간 계속 돌려 빠르게 결과를 받도록": 하루 종일 열되
+# 정해진 시각에 도는 다른 잡 구간만 비운다(그 사이에는 has_headroom·CPU 감시가 부하를 막는다).
+#   비움: 00:00~01:00 야간 잡 블록(00:00~00:50), 02:50~09:30 (03:00~05:50 에이전트 배치, 06:10 paper 주문, 06:30 백업, 06:40 새벽 미리 계산,
+#         07:30 뉴스, 07:45 전까지), 08:55~09:30 (09:00 대회 알림·09:01 아침 재추천·09:05 워치독), 11:55~12:15 (12:00 거장 동기화).
+RUN_WINDOWS: tuple[tuple[time, time], ...] = (
+    (time(1, 0), time(2, 50)), (time(7, 45), time(8, 55)), (time(9, 30), time(11, 55)), (time(12, 15), time(23, 55)),
+)
+# 스케줄러 cron(core/job_schedule.py 와 같아야 함): 창 밖 회차는 '실행 창 밖'으로 바로 끝나므로 10분마다 깨워도 싸다.
+CRON = {"hour": "1,2,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23", "minute": "0,10,20,30,40,50", "timezone": "Asia/Seoul"}
 SATELLITE_LAB_MIN_GAP_HOURS = 20  # 사전 등록 연구가 계속 대기 중이어도 새틀라이트 R&D 가 하루 한 번은 차례를 받는다
 
 END_MARGIN_SECONDS = 120  # 창 끝나기 이만큼 전에 자식이 끝나 있어야 한다
@@ -386,9 +384,8 @@ def longest_window_seconds() -> int:
 
 
 def active_windows(now: datetime) -> tuple[tuple[time, time], ...]:
-    """지금 유효한 실행 창 — 스프린트 기간(SPRINT_UNTIL 까지)에는 SPRINT_WINDOWS 를 더한다."""
-    local = now.astimezone(KST)
-    return RUN_WINDOWS + (SPRINT_WINDOWS if local.date() <= SPRINT_UNTIL else ())
+    """지금 유효한 실행 창(2026-10-08 부터 스프린트 별도 창 없이 RUN_WINDOWS 하나)."""
+    return RUN_WINDOWS
 
 
 def window_end_for(now: datetime) -> Optional[datetime]:
@@ -815,7 +812,7 @@ def write_index(cfg: Config, state: dict, jobs: Optional[dict[str, JobDef]] = No
         '<!doctype html><html lang="ko"><head><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width,initial-scale=1"><title>검증 연구 결과</title>'
         f'{_INDEX_STYLE}</head><body><p><a href="/">&larr; 관제 센터로</a></p><h1>검증 연구 결과</h1>'
-        f'<p class="muted">실행 창(KST) {windows}, 20분마다 한 작업씩. 마지막 확인 {html.escape(str(runner.get("last_tick_at") or "-"))}'
+        f'<p class="muted">실행 창(KST) {windows}, 10분마다 한 작업씩. 마지막 확인 {html.escape(str(runner.get("last_tick_at") or "-"))}'
         f' — {html.escape(str(runner.get("last_tick_result") or "-"))}</p>'
         + ("".join(parts) or "<p>등록된 작업이 없습니다(research/jobs/&lt;id&gt;/job.json).</p>")
         + '<p class="muted">재시도·취소: python scripts/research_jobs_admin.py list / retry &lt;id&gt; / cancel &lt;id&gt;</p>'

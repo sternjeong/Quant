@@ -163,6 +163,15 @@
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
 
+## 2026-10-08 (후속12) 연구 실행기를 하루 종일·10분마다 (사용자 "VM 에 부하가 걸리지 않는 이상 매시간 계속 돌리게")
+
+- RUN_WINDOWS: 01:00~02:50 · 07:45~08:55 · 09:30~11:55 · 12:15~23:55(KST). 비운 곳 = 다른 잡 시각(00:00~01:00 야간 블록, 02:50~07:45 에이전트 배치·paper 주문·백업·새벽 미리 계산·뉴스,
+  08:55~09:30 대회 알림·아침 재추천·워치독, 11:55~12:15 거장 동기화). cron 10분마다(job_schedule·run_scheduler·CRON 동기), 창 밖 회차는 즉시 끝남.
+  2주 스프린트 별도 창(SPRINT_*) 제거 — 새 창이 포함. 가장 긴 창 11시간 40분(재개 불가 작업 상한은 job.json 의 3시간이 먼저).
+- 부하 보호는 기존 그대로(has_headroom: 부하 < 코어×1.5·여유 메모리, 실행 중 CPU 80% 일시 중지, nice 5). 추가: 자동 배포 테스트 관문(/opt/quant-deploy-staging 존재) 동안 이번 회차 건너뜀.
+- 테스트: test_windows_cover_the_day_but_avoid_other_jobs 등 갱신, VM venv 전체 2546 passed.
+- 주의: 배포 테스트 관문이 도는 동안과 다른 무거운 잡이 겹치면 VM 이 느려질 수 있음 — 부하 평균 모니터링 필요.
+
 ## 2026-10-08 (후속11) 자동 배포: 테스트 통과 뒤에만 운영 폴더 이동 (사용자 "에이전트 하나 켜서 해결해봐")
 
 - 증상: '챔피언 성과' ImportError(rebase_price_to_curve) — auto_deploy 가 /opt/quant 를 먼저 pull 하고 테스트(5~10분) 뒤 재시작해, 그 사이 새 페이지 + 옛 모듈.

@@ -117,7 +117,7 @@ SLOTS: list[AppSlot] = [
     AppSlot(
         id="report-research-results",
         title="검증 연구 결과",
-        description="VM 연구 실행기가 돌린 사전 등록 검증 연구의 상태·판정 요약·REPORT (01:00~02:50·13:00~16:50 KST 실행)",
+        description="VM 연구 실행기가 돌린 사전 등록 검증 연구의 상태·판정 요약·REPORT (하루 종일 10분마다, VM 여유가 있을 때 실행)",
         unit="quant-scheduler.service",
         kind="report",
         category="연구·검증",

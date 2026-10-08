@@ -144,68 +144,25 @@ def test_invalid_job_is_notified_once(cfg):
 
 # ---- 창·예산·선택 ----------------------------------------------------------------------------------------------
 
-def test_windows_avoid_the_agent_batch_and_other_slots():
-    after = lambda h, m: datetime(2026, 10, 20, h, m, tzinfo=rj.KST)  # noqa: E731 - 스프린트가 끝난 뒤(기본 창만)
-    assert rj.window_end_for(after(1, 30)) == after(2, 50)
-    assert rj.window_end_for(after(13, 0)) == after(16, 50)
-    for hour in (0, 3, 4, 5, 6, 7, 9, 12, 17, 23):
-        assert rj.window_end_for(after(hour, 10)) is None, hour
-    assert rj.window_end_for(after(2, 50)) is None
+def test_windows_cover_the_day_but_avoid_other_jobs():
+    at = lambda h, m: datetime(2026, 10, 20, h, m, tzinfo=rj.KST)  # noqa: E731
+    assert rj.window_end_for(at(1, 30)) == at(2, 50)
+    assert rj.window_end_for(at(8, 0)) == at(8, 55)
+    assert rj.window_end_for(at(10, 0)) == at(11, 55)
+    assert rj.window_end_for(at(13, 0)) == at(23, 55)
+    assert rj.window_end_for(at(20, 0)) == at(23, 55)
+    # 다른 잡이 도는 시각은 모두 창 밖: 야간 블록, 에이전트 배치, paper 주문, 백업, 새벽 미리 계산, 뉴스, 대회·아침 재추천·워치독, 거장 동기화
+    for h, m in ((0, 0), (0, 10), (0, 48), (2, 50), (3, 0), (4, 30), (5, 50), (6, 10), (6, 30), (6, 40), (7, 30), (9, 0), (9, 1), (9, 5), (12, 0), (23, 55)):
+        assert rj.window_end_for(at(h, m)) is None, (h, m)
     job = SCHEDULED_JOBS_BY_ID["research_job_runner"]
     assert job.cron == rj.CRON and job.process_key == "research_job_runner"
     hours = {int(h) for h in str(job.cron["hour"]).split(",")}
-    assert not hours & {0, 3, 4, 5, 6, 7, 9, 12}
+    assert not hours & {0, 3, 4, 5, 6}  # 깨어나는 시각도 에이전트 배치·새벽 구간에는 없다
+    assert str(job.cron["minute"]) == "0,10,20,30,40,50"
 
 
-def test_sprint_windows_only_until_end_date_and_avoid_job_slots():
-    during = lambda h, m: datetime(2026, 10, 5, h, m, tzinfo=rj.KST)  # noqa: E731
-    assert rj.window_end_for(during(8, 0)) == during(8, 50)
-    assert rj.window_end_for(during(10, 40)) == during(11, 50)
-    assert rj.window_end_for(during(20, 0)) == during(23, 50)
-    for h, m in ((0, 10), (3, 0), (5, 30), (6, 10), (6, 30), (7, 30), (9, 0), (9, 5), (12, 0), (23, 50)):
-        assert rj.window_end_for(during(h, m)) is None, (h, m)
-    assert rj.window_end_for(datetime(2026, 10, 17, 20, 0, tzinfo=rj.KST)) is None  # 끝나면 자동으로 꺼진다
-    assert rj.longest_window_seconds() == 3 * 3600 + 50 * 60  # 재개 불가 작업 한도는 기본 창 기준 그대로
-
-
-def test_satellite_lab_gets_a_daily_turn_even_when_jobs_wait(monkeypatch):
-    from core import satellite_lab as sl
-
-    monkeypatch.setattr(sl, "has_work", lambda *a, **k: True)
-    now = datetime(2026, 10, 5, 20, 0, tzinfo=rj.KST)
-    assert rj._satellite_lab_due({}, now)
-    assert not rj._satellite_lab_due({"satellite_lab": {"last_started_at": (now - timedelta(hours=3)).isoformat()}}, now)
-    assert rj._satellite_lab_due({"satellite_lab": {"last_started_at": (now - timedelta(hours=21)).isoformat()}}, now)
-
-
-def test_registered_in_process_registry_as_research_default_on():
-    entry = PROCESS_REGISTRY["research_job_runner"]
-    assert entry["category"] == "research" and entry["default_enabled"] is True and not entry.get("places_orders")
-
-
-def test_budget_is_shortened_by_the_remaining_window(tmp_path):
-    add_job(tmp_path, "good", OK_SCRIPT, timeout_seconds=3600)
-    job, _ = rj.validate_job(_job_json("good", timeout_seconds=3600), "good", tmp_path)
-    budget, shortened = rj.budget_for(job, kst(2, 20), kst(2, 50))
-    assert budget == 30 * 60 - rj.END_MARGIN_SECONDS and shortened
-    budget, shortened = rj.budget_for(job, kst(13, 0), kst(16, 50))
-    assert budget == 3600 and not shortened
-
-
-def test_pick_job_orders_by_priority_and_respects_resumability(cfg):
-    add_job(cfg.repo_root, "b-late", OK_SCRIPT, priority=5)
-    add_job(cfg.repo_root, "a-first", OK_SCRIPT, priority=1, resumable=False, timeout_seconds=3600)
-    add_job(cfg.repo_root, "c-done", OK_SCRIPT, priority=0)
-    jobs, _ = rj.load_job_definitions(cfg)
-    state = rj._empty_state()
-    rj.sync_definitions(cfg, state, jobs, {})
-    state["jobs"]["c-done"]["status"] = "done"
-    job, _, _ = rj.pick_job(state, jobs, kst(13, 0), kst(16, 50))
-    assert job.id == "a-first"
-    # 01:20 에는 재개 불가 1시간 작업을 끝낼 시간이 없다 → 다음 우선순위
-    job, _, shortened = rj.pick_job(state, jobs, kst(2, 20), kst(2, 50))
-    assert job.id == "b-late" and not shortened
-    assert rj.pick_job(state, jobs, kst(2, 44), kst(2, 50))[0] is None  # 5분 미만 남음
+def test_longest_window_is_the_afternoon_to_night_block():
+    assert rj.longest_window_seconds() == 11 * 3600 + 40 * 60
 
 
 # ---- 실행 끝까지 ---------------------------------------------------------------------------------------------

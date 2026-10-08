@@ -46,7 +46,7 @@ SCHEDULED_JOBS: tuple[ScheduledJob, ...] = (
     ScheduledJob('dawn_precompute', 'dawn_precompute', {'hour': 6, 'minute': 40, 'timezone': 'Asia/Seoul'}),
     ScheduledJob('hypothesis_shadow_record', 'hypothesis_shadow_record', {'hour': 0, 'minute': 48, 'timezone': 'Asia/Seoul'}),
     ScheduledJob('agent_batch', 'agent_batch', {'hour': 3, 'minute': 0, 'timezone': 'Asia/Seoul'}),
-    ScheduledJob('research_job_runner', 'research_job_runner', {'hour': '1,2,8,10,11,13,14,15,16,17,18,19,20,21,22,23', 'minute': '0,20,40', 'timezone': 'Asia/Seoul'}),
+    ScheduledJob('research_job_runner', 'research_job_runner', {'hour': '1,2,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23', 'minute': '0,10,20,30,40,50', 'timezone': 'Asia/Seoul'}),
     ScheduledJob('contest_deadline_alert', 'contest_deadline_alert', {'hour': 9, 'minute': 0, 'timezone': 'Asia/Seoul'}),
     ScheduledJob('crypto_shadow_record', 'crypto_shadow_record', {'hour': 0, 'minute': 37, 'timezone': 'Asia/Seoul'}),
     ScheduledJob('forward_tournament_record', 'forward_tournament_record', {'hour': 0, 'minute': 39, 'timezone': 'Asia/Seoul'}),

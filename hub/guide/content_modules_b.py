@@ -150,10 +150,10 @@ MODULES: tuple[ModuleGuide, ...] = (
     ModuleGuide(
         module="core/research_jobs.py", name="검증 연구 작업 실행기", group="리서치 인프라", status="운영중",
         what="저장소의 research/jobs/<id>/job.json 으로 등록된 사전 등록 검증 연구(판정 규칙이 코드에 박힌 백테스트 스크립트)를 VM 의 한가한 시간에 한 번에 하나씩 돌립니다. 스크립트가 체크포인트를 남기면 여러 밤·낮에 걸쳐 이어서 계산합니다. AI 를 부르지 않고 주문 경로와도 연결되어 있지 않습니다.",
-        how_to_use="자동 잡 research_job_runner 가 01:00~02:50, 13:00~16:50 KST 에 20분마다 깨어나 대기 작업을 실행합니다. 대기 작업이 하나도 없는 회차에는 새틀라이트 R&D 센터 계산기(scripts/satellite_lab_worker.py)를 같은 보호 장치로 돌립니다(사전 등록 연구가 언제나 먼저). 새 연구는 에이전트가 docs/RESEARCH_JOBS.md 계약대로 만들어 main 에 병합하면 다음 창에서 돕니다. 상태·재시도·취소는 scripts/research_jobs_admin.py 로 합니다.",
+        how_to_use="자동 잡 research_job_runner 가 하루 종일(다른 잡 시각 00:00~01:00·02:50~07:45·08:55~09:30·11:55~12:15 KST 제외) 10분마다 깨어나 VM 에 여유가 있을 때 대기 작업을 실행합니다(자동 배포 테스트 중에는 쉼). 대기 작업이 하나도 없는 회차에는 새틀라이트 R&D 센터 계산기(scripts/satellite_lab_worker.py)를 같은 보호 장치로 돌립니다(사전 등록 연구가 언제나 먼저). 새 연구는 에이전트가 docs/RESEARCH_JOBS.md 계약대로 만들어 main 에 병합하면 다음 창에서 돕니다. 상태·재시도·취소는 scripts/research_jobs_admin.py 로 합니다.",
         where_to_see="관제 센터 '검증 연구 결과' 카드(작업별 상태·판정 요약·REPORT), 텔레그램 '[검증 연구 결과]' 알림, 저장소 research/results/<id>/",
         cautions="AI/Claude 호출 없이 결정론적 연구 코드를 실행합니다. 실행 전 VM 부하·메모리·디스크 여유를 확인하고 CPU 사용률 80%에서 멈춰 70% 이하에서 재개합니다. 작업 RSS는 RAM의 최대 80%이며 총 RAM 20%를 시스템용으로 예약합니다. 자식은 nice 5와 낮은 디스크 우선순위로 돌고 창 끝 2분 전까지 멈춥니다. 자동 배포·재부팅으로 끊기면 다음 회차에 이어서 합니다. 결과는 판정 계산 완료를 뜻할 뿐 성과 개선을 보장하지 않습니다. VM 에 push 권한이 없으면 저장소 반영은 건너뛰고 알림에 적습니다.",
-        sources=("core/research_jobs.py", "core/resource_guard.py", "scheduler/run_scheduler.py", "docs/RESEARCH_JOBS.md"), verified="2026-10-07"),
+        sources=("core/research_jobs.py", "core/resource_guard.py", "scheduler/run_scheduler.py", "docs/RESEARCH_JOBS.md"), verified="2026-10-08"),
     ModuleGuide(
         module="core/rnd_topics.py", name="R&D 센터 연구 주제 켜기/끄기", group="리서치 인프라", status="운영중",
         what="연구를 주제 6개로 나눠 켜고 끕니다: 새틀라이트 종목 선정, 새틀라이트 진입 타이밍, 새틀라이트 매도 규칙, 코어 분기 연구, AI 국제정세 의견, 코인 추세 기록. 끄면 그 주제의 새 아이디어·재작업·판정(또는 기록)이 멈추고, 이미 만든 아이디어·기록·누적 시도 수·대기열은 그대로 남아 다시 켜면 이어집니다.",

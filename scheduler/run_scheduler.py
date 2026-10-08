@@ -948,7 +948,8 @@ def agent_batch_job() -> None:
 def research_job_runner_job() -> None:
     """검증 연구 작업 실행기 (core/research_jobs.py, 계약 docs/RESEARCH_JOBS.md). AI 호출·주문 경로 없음.
 
-    시각: 01:00~02:50(야간 잡 블록 뒤·03:00 에이전트 배치 전), 13:00~16:50 KST(등록된 잡이 없는 낮) 창 안에서 20분마다.
+    시각: 하루 종일 열되 다른 잡 구간(00:00~01:00, 02:50~07:45, 08:55~09:30, 11:55~12:15)은 비운 창(core.research_jobs.RUN_WINDOWS) 안에서 10분마다.
+    자동 배포의 테스트 관문(/opt/quant-deploy-staging 가 있는 동안)에는 쉰다.
     한 회차에 작업 하나를 nice 19 자식 프로세스로 돌리고 창 끝 2분 전까지 멈추게 한다. 연구 스크립트 자체의 실패는
     텔레그램으로 따로 알리므로, 여기서는 실행기 자체의 예외만 잡 실패로 남긴다.
     """
@@ -956,6 +957,10 @@ def research_job_runner_job() -> None:
         print(f"[{datetime.now()}] research_job_runner_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
         return
     print(f"[{datetime.now()}] research_job_runner_job 시작")
+    if os.path.exists("/opt/quant-deploy-staging"):  # 자동 배포가 테스트 중 — 시간 초과를 부르지 않도록 이번 회차는 쉰다
+        print("  - 자동 배포 테스트 관문이 도는 중이라 이번 회차는 건너뜀")
+        print(f"[{datetime.now()}] research_job_runner_job 종료")
+        return
     try:
         from core.research_jobs import run_tick
         from core.telegram_notify import send_message
@@ -1060,7 +1065,7 @@ def dawn_precompute_job() -> None:
     사용자 요청(2026-10-05): "내가 당일 눌러서 확인할 수 있는거 미리 새벽 시간에 일단 돌려놔주라". 챔피언 성과 최근 5년 백테스트,
     챔피언 전략의 point-in-time 새틀라이트·3. 백테스트(최근 3년)·새틀라이트 후보 스캔을 화면 기본값으로 계산해 화면이 읽는 캐시에 둔다.
     시각(06:40 KST): 미국 장 마감(서머타임 05:00, 겨울 06:00 KST)과 마감 정산(16:15 ET) 뒤라 마지막 봉이 확정 값이고, 06:30 백업이
-    끝난 뒤이며, 03:00~05:50 에이전트 배치·06:10 paper 주문·07:30 뉴스·07:50 연구 실행 창(스프린트 기간)·09:01 아침 재추천과
+    끝난 뒤이며, 03:00~05:50 에이전트 배치·06:10 paper 주문·07:30 뉴스·07:45 연구 실행 창·09:01 아침 재추천과
     겹치지 않는다(VM 은 2코어). 가격 캐시가 데워져 있으면 수 분, 처음이면 수십 분까지 걸릴 수 있다. VM 여유가 없으면 최대
     20분 기다렸다가 그래도 없으면 건너뛰고 실패로 기록·알린다. 단계 하나의 실패는 그 단계만 실패로 남기고 나머지를 계속한다.
     """
@@ -1442,9 +1447,9 @@ def main() -> None:
     scheduler.add_job(
         research_job_runner_job,
         # 한 회차가 창 끝까지 이어질 수 있으므로 겹치지 않게 max_instances=1, 밀린 회차는 하나로 합친다.
-        trigger=CronTrigger(hour="1,2,8,10,11,13,14,15,16,17,18,19,20,21,22,23", minute="0,20,40", timezone="Asia/Seoul"),  # 스프린트 창은 2026-10-16 까지(core.research_jobs.SPRINT_UNTIL)
+        trigger=CronTrigger(hour="1,2,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23", minute="0,10,20,30,40,50", timezone="Asia/Seoul"),  # 창은 core.research_jobs.RUN_WINDOWS
         id="research_job_runner",
-        name="한국시간 01:00~02:50·13:00~16:50 20분마다 검증 연구 작업 실행기",
+        name="한국시간 하루 종일(다른 잡 시각 제외) 10분마다 검증 연구 작업 실행기 — VM 여유가 있을 때만",
         replace_existing=True,
         max_instances=1,
         coalesce=True,
