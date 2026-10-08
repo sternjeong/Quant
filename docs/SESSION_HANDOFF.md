@@ -144,6 +144,14 @@
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
 
+## 2026-10-08 (후속10) 코어 비중 연구 등록 (사용자 "1:1:1 비도 어떻게 조종하면 될지 R&D")
+
+- core_lab.CoreConfig.weighting 에 rank(40·30·20·10, 빈 슬롯 몫은 BIL)·score(12개월 수익 비례)·erc(126일 공분산 위험 균등) 추가, vol_target(63일 공분산 예상 변동성 > 목표면 줄이고 BIL, 키우지는 않음). 기본은 그대로 equal. 테스트 2개.
+- research/jobs/core-weight-v1(core-weight-judge/v1, priority 14): W1 rank, W2 score, W3 ERC, W4 inverse_vol(참고, C09 재확인), W5 equal+변동성 목표 12% vs W0.
+  판정: 앞 구간 샤프 > W0 & DSR ≥ 0.95(시도 5) & 가족 PBO ≤ 25% & 떼어 둔 2년 샤프 > W0 & 세후 원화 > W0. rebound-rnd-v1 의 데이터 함수 재사용. 스모크만.
+- 배포: 1a4c0de 관문은 전체 통과했지만 508초로 480초 초과(VM 부하) → 서비스 미재시작(라이브 트리만 새 커밋). 부하 낮을 때 재배포.
+- 테스트: VM venv 전체 2539 passed(부하로 10분).
+
 ## 2026-10-08 (후속9) 거장 13F R&D 주제 + 새틀라이트 실패 원인 분석 + 한계 극복 연구 (사용자 요청 3건)
 
 - 결과 4건(rebound·regime·theme·analyst) 모두 FAIL — 사용자에게 보고. 진단: 세금(국면 연구 양도세 19.7~39.8백만), 오신호(국면 전환 28회), 쏠림(테마 100% MDD −44%),

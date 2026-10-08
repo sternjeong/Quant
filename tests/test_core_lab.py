@@ -162,3 +162,25 @@ def test_cool_exclude_drops_last_years_fading_winner():
     cool = cl.build_weights(closes, extra, cl.CoreConfig(cash="bil", cool_exclude=0.10))
     d = "2023-05-01"
     assert base.loc[d:].iloc[0]["XLE"] > 0 and cool.loc[d:].iloc[0]["XLE"] == 0
+
+
+# ---------------------------------------------------------------- core-weight-v1 비중 방식 (2026-10-08)
+def test_rank_score_erc_weights_sum_and_order(prices):
+    closes, extra = prices
+    for wt in ("rank", "score", "erc"):
+        w = cl.build_weights(closes, extra, cl.CoreConfig(cash="bil", weighting=wt))
+        row = w.iloc[-1]
+        assert row.sum() == pytest.approx(1.0) and (row >= -1e-12).all()
+    r = cl.build_weights(closes, extra, cl.CoreConfig(cash="bil", weighting="rank", market_filter="none")).iloc[-1]
+    held = sorted((x for x in r.drop("BIL").values if x > 0), reverse=True)
+    if len(held) == 4:
+        assert held == pytest.approx([0.4, 0.3, 0.2, 0.1])
+
+
+def test_vol_target_only_scales_down(prices):
+    closes, extra = prices
+    base = cl.build_weights(closes, extra, cl.CoreConfig(cash="bil"))
+    low = cl.build_weights(closes, extra, cl.CoreConfig(cash="bil", vol_target=0.01))
+    high = cl.build_weights(closes, extra, cl.CoreConfig(cash="bil", vol_target=5.0))
+    assert (low.drop(columns="BIL").sum(axis=1) <= base.drop(columns="BIL").sum(axis=1) + 1e-9).all()
+    pd.testing.assert_frame_equal(high, base)  # 목표가 충분히 크면 그대로

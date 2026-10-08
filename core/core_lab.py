@@ -52,7 +52,8 @@ class CoreConfig:
     buffer_n: Optional[int] = None  # 보유 중인 자산은 순위가 이 안이면 계속 보유
     corr_cap: Optional[float] = None  # 이미 고른 자산과 상관이 이보다 높으면 건너뜀
     corr_window: int = 126
-    weighting: str = "equal"        # equal(슬롯당 1/top_n) / inverse_vol
+    weighting: str = "equal"        # equal(슬롯당 1/top_n) / inverse_vol / rank(순위 가중 4:3:2:1) / score(모멘텀 크기 비례) / erc(위험 균등 기여)
+    vol_target: Optional[float] = None  # 코어 예상 변동성(63일 공분산)이 이보다 크면 비중을 줄이고 남는 몫은 BIL(키우지는 않음) — core-weight-v1
     market_filter: str = "spy200"   # spy200 / none / asset_sma / credit
     filter_window: int = MARKET_FILTER_SMA_WINDOW  # asset_sma·credit 의 이동평균 길이(거래일)
     cash: str = "zero"              # zero / bil / bil_spy(빈 슬롯은 SPY 가 200일선 위면 SPY, 아니면 BIL — 필터 축소분은 BIL)
@@ -94,6 +95,36 @@ def _inverse_vol(window: pd.DataFrame) -> dict[str, float]:
     if len(rets) < CORE_SIZING_VOL_LOOKBACK_DAYS:
         return {}
     return portfolio_volatility_target_weights(rets, max_weight=CORE_SIZING_MAX_WEIGHT)
+
+
+def _erc(window: pd.DataFrame, iters: int = 200) -> dict[str, float]:
+    """위험 균등 기여(Equal Risk Contribution) — 공분산으로 각 자산의 위험 기여가 같도록. 간단한 고정점 반복."""
+    rets = window.pct_change(fill_method=None).dropna()
+    if len(rets) < 60 or rets.shape[1] < 2:
+        return {}
+    cov = rets.cov().to_numpy() * 252
+    n = cov.shape[0]
+    w = np.full(n, 1.0 / n)
+    for _ in range(iters):
+        mrc = cov @ w
+        rc = w * mrc
+        target = rc.sum() / n
+        w = w * (target / np.maximum(rc, 1e-12)) ** 0.5
+        w = w / w.sum()
+    return {t: float(x) for t, x in zip(rets.columns, w)}
+
+
+def _scale_to_vol(w: dict[str, float], window: pd.DataFrame, target: float) -> dict[str, float]:
+    names = [t for t in w if w[t] > 0 and t in window.columns]
+    rets = window[names].pct_change(fill_method=None).dropna()
+    if len(rets) < 40 or not names:
+        return w
+    vec = np.array([w[t] for t in names])
+    vol = float(np.sqrt(vec @ (rets.cov().to_numpy() * 252) @ vec))
+    if vol <= target or vol <= 0:
+        return w
+    k = target / vol
+    return {t: x * k for t, x in w.items()}
 
 
 def _tranche_weights(closes: pd.DataFrame, extra: pd.DataFrame, cfg: CoreConfig, offset_days: int) -> pd.DataFrame:
@@ -160,6 +191,22 @@ def _tranche_weights(closes: pd.DataFrame, extra: pd.DataFrame, cfg: CoreConfig,
                 if iv:
                     scale = len(picks) / cfg.top_n
                     w = {t: iv.get(t, 0.0) * scale for t in picks}
+            elif cfg.weighting == "rank" and picks:
+                denom = cfg.top_n * (cfg.top_n + 1) / 2  # 4개면 4:3:2:1 / 10 — 빈 슬롯 몫은 남겨 둔다(BIL)
+                w = {t: (cfg.top_n - i) / denom for i, t in enumerate(picks)}
+            elif cfg.weighting == "score" and picks:
+                pos = {t: max(float(sc[t]), 0.0) for t in picks}
+                tot = sum(pos.values())
+                if tot > 0:
+                    scale = len(picks) / cfg.top_n
+                    w = {t: pos[t] / tot * scale for t in picks}
+            elif cfg.weighting == "erc" and len(picks) >= 2:
+                er = _erc(closes[picks].loc[:sd].tail(127))
+                if er:
+                    scale = len(picks) / cfg.top_n
+                    w = {t: er.get(t, 0.0) * scale for t in picks}
+            if cfg.vol_target is not None and w:
+                w = _scale_to_vol(w, closes[list(w)].loc[:sd].tail(64), cfg.vol_target)
             spy_bull = spy_sma is not None and pd.notna(spy_sma.get(sd)) and spy.loc[sd] >= spy_sma.loc[sd]
             unfilled = max(0.0, 1.0 - sum(w.values()))
             if cfg.market_filter == "spy200" and spy_sma is not None and pd.notna(spy_sma.get(sd)) and spy.loc[sd] < spy_sma.loc[sd]:

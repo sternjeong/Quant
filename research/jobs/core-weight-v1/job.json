@@ -1,0 +1,13 @@
+{
+  "id": "core-weight-v1",
+  "title": "코어 비중 R&D v1 — 4종목 1:1:1:1 대신 순위·모멘텀·위험 균등·변동성 목표로 나누면 나아지나(사전 등록)",
+  "entrypoint": "research/jobs/core-weight-v1/run.py",
+  "args": [],
+  "timeout_seconds": 3600,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 14,
+  "revision": 1
+}
