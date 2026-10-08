@@ -218,7 +218,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         how_to_use="자동입니다. 뉴스 잡은 시작 전에 여유를 확인합니다. 검증 연구는 CPU 전체 사용률 80%에 도달하면 잠시 멈춰 70% 이하에서 재개합니다. 사용자가 켜고 끌 것은 없습니다.",
         where_to_see="화면 없음(스케줄러 로그)",
         cautions="여유가 없으면 조용히 건너뛰므로 뉴스가 안 온 날은 로그의 건너뜀 메시지를 확인하세요. 사용처는 스케줄러 뉴스 잡과 배포·텔레그램 실행기입니다.",
-        sources=("scheduler/run_scheduler.py", "core/research_jobs.py", "deploy/auto_deploy.sh"), verified="2026-10-07"),
+        sources=("scheduler/run_scheduler.py", "core/research_jobs.py", "deploy/auto_deploy.sh"), verified="2026-10-08"),
     ModuleGuide(
         module="core/screener.py", name="퀀트 스크리너", group="리서치 인프라", status="운영중",
         what="S&P500 종목을 PER, PBR, 시가총액, 섹터, RSI, 200일선 위치 같은 조건으로 걸러냅니다. 종목 목록은 위키피디아에서 받아 캐시하고 실패하면 내장 최소 목록으로 대신합니다.",

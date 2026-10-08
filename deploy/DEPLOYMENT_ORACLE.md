@@ -264,24 +264,32 @@ sudo systemctl start quant-vm-health.service     # 정상 범위로 "복구됨" 
 `deploy/quant-auto-deploy.service`(oneshot, `deploy/auto_deploy.sh` 실행) +
 `deploy/quant-auto-deploy.timer`(부팅 2분 후 1회, 이후 5분마다)를 함께 설치·활성화한다.
 
-**동작**: 매번 `git fetch`로 `origin/main`만 조회하고, 로컬 `HEAD`와 같으면 아무 것도 안 하고
-조용히 끝난다(가장 흔한 경우). 다를 때만 `sudo -u quant git pull --ff-only`를 시도하고,
-성공하면 `requirements.txt`가 이번 범위에서 바뀌었는지 확인해 바뀌었을 때만 먼저
-`pip install -r requirements.txt`를 실행한다(실패하면 서비스는 재시작하지 않고 기존 버전을
-그대로 둔 채 텔레그램으로 알리고 종료). 그다음 **서비스를 재시작하기 전에 테스트 게이트를
-돈다** — `tests/`(프로젝트 venv, `pytest`) + `deploy/codex_telegram/test_runner.py`(시스템 `python3` — 이 파일이 검증하는
-`runner.py` 자체가 venv 없이 시스템 python으로 도는 stdlib-only
-프로세스라서). 이 게이트가 실패하면 `codex-telegram`/`quant-streamlit`/`quant-scheduler`
-세 서비스를 **재시작하지 않고**(기존 버전이 계속 돎) 실패한 pytest 출력 뒷부분과 함께
-텔레그램으로 알린 뒤 종료한다 — 워킹트리 자체는 이미 새(깨진) 커밋으로 옮겨간 상태라, 다음
-타이머 틱에서는 `local HEAD == origin/main`이라 조용히 no-op으로 끝난다(같은 커밋을 반복
-테스트하거나 반복 알림하지 않음). 그다음에 새 커밋이 푸시되면 그걸로 다시 테스트를 시도한다.
-테스트까지 통과하면 세 서비스를 모두 재시작하고 배포 결과(구→신 커밋, 커밋 개수, 재시작한
-서비스 목록)를 텔레그램으로 한 번 알린다 — 직전에 pull 실패/테스트 실패 상태였다면 "복구됨"
-문구도 함께 붙는다. 테스트 게이트의 타임아웃은 기본 480초(`AUTO_DEPLOY_TEST_TIMEOUT_SECONDS`
-로 조절 가능)이며, 시간 초과도 실패로 취급해 서비스를 건드리지 않는다.
+**동작** (2026-10-08부터 "테스트 먼저, 운영 폴더는 통과 후에만 이동"): 매번 `git fetch`로 `origin/main`만 조회하고,
+로컬 `HEAD`와 같으면 아무 것도 안 하고 조용히 끝난다(가장 흔한 경우). 다르면 운영 폴더(`/opt/quant`)는 그대로 둔 채 새 커밋을
+**별도 검증 폴더**(`/opt/quant-deploy-staging`, `sudo -u quant git worktree add --detach`로 만드는 일회용 작업트리,
+`AUTO_DEPLOY_STAGING_DIR`로 변경 가능)에 꺼낸다. `requirements.txt`가 이번 범위에서 바뀌었으면 먼저 그 커밋의 `requirements.txt`로
+공용 venv(`/opt/quant/.venv`)에 `pip install`을 실행한다(실패하면 반영·재시작 없이 알리고, 같은 커밋으로는 다시 시도하지 않음).
+그다음 **검증 폴더를 작업 디렉터리로 테스트 게이트를 돈다** — `tests/`(프로젝트 venv, `pytest`) + `deploy/codex_telegram/test_runner.py`
+(시스템 `python3` — 이 파일이 검증하는 `runner.py` 자체가 venv 없이 시스템 python으로 도는 stdlib-only 프로세스라서).
+검증 폴더에는 `.env`·운영 DB·미추적 데이터가 없으므로 테스트가 운영 데이터를 읽거나 바꾸지 않는다.
 
-**비파괴 원칙(★)**: 여기서 쓰는 git 명령은 `git fetch`와 `git pull --ff-only`, 그리고 좁은 예외 두 가지 —
+**게이트가 실패하면 운영 폴더는 옛 커밋 그대로**이고 서비스도 재시작하지 않는다 — 실행 중인 프로세스와 디스크 파일이 계속 같은
+버전이라, 예전처럼 "테스트 도중·실패 뒤 화면이 새 파일을 읽다 `ImportError`"가 나지 않는다. 실패한 pytest 출력 뒷부분과 함께
+"[자동배포] 테스트 실패 — 반영하지 않음"을 텔레그램으로 알리고, 실패한 커밋 해시를 `.auto-deploy-state/last_test_failure_commit`에 남겨
+`origin/main`이 그 커밋인 동안은 조용히 건너뛴다(같은 커밋을 반복 테스트·반복 알림하지 않음. 같은 커밋을 다시 시험하려면 이 파일을 지운다).
+새 커밋이 푸시되면 그걸로 다시 테스트한다.
+
+**게이트를 통과하면** 검증 폴더를 지우고, 운영 폴더를 *테스트한 그 커밋*으로 `git merge --ff-only <커밋>`(= fetch 없는 `pull --ff-only`)
+한 뒤 곧바로 네 서비스를 재시작·상태 확인하고 배포 결과(구→신 커밋, 커밋 개수, 재시작한 서비스 목록)를 텔레그램으로 한 번 알린다 —
+직전에 pull 실패/테스트 실패 상태였다면 "복구됨" 문구도 붙는다. 테스트 중에 main에 커밋이 더 올라와도 테스트하지 않은 커밋은
+반영하지 않고 다음 틱에 따로 테스트한다. 테스트는 통과했는데 운영 폴더 fast-forward가 막히면(아래 "수동 확인 필요") 그 커밋을
+`last_gate_pass_commit`에 적어 두고, 막힘이 풀릴 때까지 다음 틱부터는 테스트 없이 반영만 다시 시도한다. 히스토리가 갈라져
+fast-forward가 불가능하면 테스트를 돌리지 않고 바로 알린다. 검증 폴더는 성공·실패 모두에서 지우고, 이전 실행이 끊겨 남은 것은
+다음 실행 시작 때 지운다. 테스트 게이트의 타임아웃은 기본 480초(`AUTO_DEPLOY_TEST_TIMEOUT_SECONDS`로 조절 가능)이며, 시간 초과도
+실패로 취급해 운영 폴더·서비스를 건드리지 않는다. 흐름 전체는 `tests/test_auto_deploy_flow.py`가 가짜 저장소로 검증한다.
+
+**비파괴 원칙(★)**: 운영 폴더에 쓰는 git 명령은 `git fetch`와 fast-forward 전용 병합(`git merge --ff-only <테스트한 커밋>`),
+일회용 검증 폴더용 `git worktree add/remove/prune`, 그리고 좁은 예외 두 가지 —
 `data/cache/fred_*.csv` 하나만 대상으로 하는 `git checkout --`, `PROGRESS.md` 하나에 한정한 "백업 → 되돌림 → pull → 다시 얹기"(아래) — 뿐이다. 이 FRED 캐시 파일들은
 `.gitignore`가 이미 "VM에서 다시 만들어져도 되는 캐시"로 명시적으로 추적 예외를 둔 파일이라,
 이 VM의 `quant-scheduler`가 로컬에서 독립적으로 새로고침해도 매번 `pull`을 다시 시도하기 전에

@@ -215,7 +215,7 @@ def test_old_backups_are_pruned_but_the_newest_are_kept(repos):
 def test_auto_deploy_wires_the_helpers_in_the_right_order():
     text = AUTO_DEPLOY.read_text()
     prepare = text.index("progress_prepare_for_pull \"$local_head\" \"$remote_head\"")
-    pull = text.index("git_as_quant pull --ff-only")
+    pull = text.index('git_as_quant merge --ff-only "$remote_head"')  # 2026-10-08: 테스트한 커밋으로만 fast-forward(= pull 에서 fetch 뺀 것)
     reapply = text.index("progress_reapply_after_pull \"$new_head\"")
     fail_branch = text.index("pull_status=$?")
     restore = text.index("progress_restore_after_failed_pull", fail_branch)
