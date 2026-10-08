@@ -58,7 +58,7 @@ TEST_FAIL_FLAG="$STATE_DIR/last_test_failure_commit"
 # (막힘이 풀릴 때까지 5분마다 6분짜리 테스트를 반복하지 않게).
 GATE_PASS_FLAG="$STATE_DIR/last_gate_pass_commit"
 TEST_LOG="$STATE_DIR/last_test_output.log"
-TEST_TIMEOUT_SECONDS="${AUTO_DEPLOY_TEST_TIMEOUT_SECONDS:-480}"
+TEST_TIMEOUT_SECONDS="${AUTO_DEPLOY_TEST_TIMEOUT_SECONDS:-720}"  # 2026-10-08: 480 은 VM 부하 때 두 번 초과(508초·579초)
 
 log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"; }
 

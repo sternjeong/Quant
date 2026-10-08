@@ -153,6 +153,17 @@
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
 
+## 2026-10-08 (후속11) 자동 배포: 테스트 통과 뒤에만 운영 폴더 이동 (사용자 "에이전트 하나 켜서 해결해봐")
+
+- 증상: '챔피언 성과' ImportError(rebase_price_to_curve) — auto_deploy 가 /opt/quant 를 먼저 pull 하고 테스트(5~10분) 뒤 재시작해, 그 사이 새 페이지 + 옛 모듈.
+  관문이 실패(시간 초과 포함)하면 다음 커밋까지 어긋남이 남았다(오늘 1a4c0de 가 508초로 480초 초과).
+- 하위 에이전트(워크트리 3e1dc72 → main 체리픽): 새 커밋을 /opt/quant-deploy-staging 일회용 git worktree 에 꺼내 테스트, 통과하면 그 커밋으로 `git merge --ff-only` 후 즉시 재시작,
+  실패하면 운영 폴더·서비스 그대로(같은 커밋 재시도 없음). 정리 함수는 '/*staging*' 경로·운영 폴더 아님 확인 뒤에만 지움. tests/test_auto_deploy_flow.py 9개, DEPLOYMENT_ORACLE.md·가이드 갱신.
+- 내가 추가: 관문 제한 시간 기본 480 → 720초(부하 때 두 번 초과).
+- 미검증(VM 실환경): root 로 staging 생성·chown, quant 의 `git worktree add`, `env -C` 실행 — 이 커밋 자체는 옛 스크립트로 배포되고 새 흐름은 다음 커밋부터.
+  다음 배포 로그에서 "별도 검증 폴더에서 테스트" → "테스트 통과 — 운영 폴더 반영" → "재시작 완료" 순서를 확인할 것.
+- 남은 위험: requirements.txt 변경 시 pip 는 여전히 공용 venv 에 먼저 설치(기존과 같음).
+
 ## 2026-10-08 (후속10) 코어 비중 연구 등록 (사용자 "1:1:1 비도 어떻게 조종하면 될지 R&D")
 
 - core_lab.CoreConfig.weighting 에 rank(40·30·20·10, 빈 슬롯 몫은 BIL)·score(12개월 수익 비례)·erc(126일 공분산 위험 균등) 추가, vol_target(63일 공분산 예상 변동성 > 목표면 줄이고 BIL, 키우지는 않음). 기본은 그대로 equal. 테스트 2개.

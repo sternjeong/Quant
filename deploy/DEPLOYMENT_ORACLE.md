@@ -285,7 +285,7 @@ sudo systemctl start quant-vm-health.service     # 정상 범위로 "복구됨" 
 반영하지 않고 다음 틱에 따로 테스트한다. 테스트는 통과했는데 운영 폴더 fast-forward가 막히면(아래 "수동 확인 필요") 그 커밋을
 `last_gate_pass_commit`에 적어 두고, 막힘이 풀릴 때까지 다음 틱부터는 테스트 없이 반영만 다시 시도한다. 히스토리가 갈라져
 fast-forward가 불가능하면 테스트를 돌리지 않고 바로 알린다. 검증 폴더는 성공·실패 모두에서 지우고, 이전 실행이 끊겨 남은 것은
-다음 실행 시작 때 지운다. 테스트 게이트의 타임아웃은 기본 480초(`AUTO_DEPLOY_TEST_TIMEOUT_SECONDS`로 조절 가능)이며, 시간 초과도
+다음 실행 시작 때 지운다. 테스트 게이트의 타임아웃은 기본 720초(2026-10-08 480초에서 상향 — VM 부하 때 초과)(`AUTO_DEPLOY_TEST_TIMEOUT_SECONDS`로 조절 가능)이며, 시간 초과도
 실패로 취급해 운영 폴더·서비스를 건드리지 않는다. 흐름 전체는 `tests/test_auto_deploy_flow.py`가 가짜 저장소로 검증한다.
 
 **비파괴 원칙(★)**: 운영 폴더에 쓰는 git 명령은 `git fetch`와 fast-forward 전용 병합(`git merge --ff-only <테스트한 커밋>`),
