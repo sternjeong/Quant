@@ -1,0 +1,28 @@
+{
+  "id": "S-SEED-017",
+  "parent": "S-SEED-000",
+  "title": "섹터 분산 모멘텀 · 시점별 S&P500 풀",
+  "thesis": "현 규칙 순위대로 고르되 같은 업종(SIC 앞 두 자리)은 업종마다 첫 종목만 앞에 두고 나머지는 뒤로 미룬다 — 한 업종 몰림(2026 산업재) 위험을 줄인다. 생존편향 확인을 위해 그 시점 S&P500 구성 종목 전체에서 고른다.",
+  "source": "사용자 요청 2026-10-08 '새틀라이트 종목 선정 고도화' — 가격 밖 정보(SEC 재무·실적 발표)",
+  "pool": {
+    "type": "sp500_pit"
+  },
+  "data": [
+    "fundamentals"
+  ],
+  "topic": "selection",
+  "signal": {
+    "params_grid": [
+      {
+        "mom_window": 252
+      }
+    ]
+  },
+  "portfolio": {
+    "top_k": 3,
+    "hold_months": 6
+  },
+  "exit": {
+    "type": "none"
+  }
+}

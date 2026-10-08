@@ -42,6 +42,10 @@ def score(prices: dict[str, pd.DataFrame], as_of: pd.Timestamp, params: dict) ->
 - prices: 그 리밸런싱일의 후보 풀 종목별 일봉(Open/High/Low/Close/Volume), **리밸런싱일 전날(as_of) 종가까지**, 리밸런싱일 전 730달력일(약 2년, 현 규칙과 같은 창).
 - 반환: {종목: 점수}. 유한한 점수가 큰 순(동점은 티커순)으로 top_k 를 동일가중으로 산다. 담지 않을 종목은 빼거나 NaN.
   음수 점수도 후보가 된다(현 규칙과 같음) — 제외하려면 dict 에서 뺀다.
+- 재무·실적 정보(2026-10-08): spec.json 에 `"data": ["fundamentals"]` 를 넣으면 `score(prices, as_of, params, ctx)` 로 불린다.
+  `ctx.fundamentals(종목)` → as_of 까지 SEC 에 공시된 것만: sic(업종 코드), gp_assets(최근 연간 매출총이익/총자산), rev_yoy·rev_yoy_prev
+  (최근·직전 분기 매출 전년 대비 성장), ni_yoy(순이익), last_earnings(최근 실적 발표 8-K 날짜) — 모르면 None 또는 dict 자체가 None.
+  None 을 '나쁨'으로 취급해 빼지 말 것(상장폐지 회사가 데이터에서 빠져 결과가 부풀려진다). 시작 목록 S-SEED-010~017 이 예시.
 - 순수 함수: pandas, numpy, math 만. 전역 상태·파일·네트워크·시드 없는 난수 금지. 이력 부족 종목은 조용히 건너뛴다.
 - 같은 폴더에 test_signal.py: 합성 데이터로 (1) 모든 params 조합에서 dict[str,float] 반환 (2) 이력 부족 종목 건너뜀
   (3) as_of 이후 데이터를 바꿔도 결과가 같음. `python -m pytest research/satellite_lab/variants/<id>` 통과.

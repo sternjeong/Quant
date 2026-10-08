@@ -1,0 +1,28 @@
+{
+  "id": "S-SEED-014",
+  "parent": "S-SEED-000",
+  "title": "실적 발표 반응 모멘텀",
+  "thesis": "현 규칙 후보 중 최근 100일 안 실적 발표(8-K 2.02) 전후 3거래일 반응이 후보 전체 중앙값보다 좋은 종목만(발표가 없거나 모르면 유지) — 실적 후 상승 지속(PEAD).",
+  "source": "사용자 요청 2026-10-08 '새틀라이트 종목 선정 고도화' — 가격 밖 정보(SEC 재무·실적 발표)",
+  "pool": {
+    "type": "champion40"
+  },
+  "data": [
+    "fundamentals"
+  ],
+  "topic": "selection",
+  "signal": {
+    "params_grid": [
+      {
+        "mom_window": 252
+      }
+    ]
+  },
+  "portfolio": {
+    "top_k": 3,
+    "hold_months": 6
+  },
+  "exit": {
+    "type": "none"
+  }
+}

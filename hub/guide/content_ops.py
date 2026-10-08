@@ -320,8 +320,8 @@ SCRIPTS: tuple[ScriptGuide, ...] = (
         when_to_run="직접 돌릴 일은 거의 없습니다. VM 연구 실행기가 대기 연구가 없는 창에서 자동으로 돌립니다. 코드를 바꾼 뒤 끝까지 도는지만 확인할 때 --smoke 를 씁니다.",
         command="python scripts/satellite_lab_worker.py --smoke --out /tmp/sl/out --checkpoint /tmp/sl/ckpt",
         risk="파일/DB 쓰기",
-        what_it_prints="시작 목록·준비된 에이전트 아이디어 동결 → 현 규칙 기준선(무작위 대비 백분위) → 후보별 판정(통과/탈락과 사유)을 한 줄씩 찍고 --out 에 status.json 을 씁니다. --smoke 는 합성 가격과 임시 등록부만 쓰며 몇 십 초면 끝납니다. --smoke 없이 돌리면 실제 가격을 받고 data/satellite_lab/registry.json 을 바꾸며 오래 걸리므로 VM 연구 창에 맡기세요.",
-        verified="2026-10-02",
+        what_it_prints="시작 목록·준비된 에이전트 아이디어 동결 → 현 규칙 기준선(무작위 대비 백분위) → 후보별 판정(통과/탈락과 사유)을 한 줄씩 찍고 --out 에 status.json 을 씁니다. --smoke 는 합성 가격과 임시 등록부만 쓰며 몇 십 초면 끝납니다. --smoke 없이 돌리면 실제 가격을 받고 data/satellite_lab/registry.json 을 바꾸며 오래 걸리므로 VM 연구 창에 맡기세요. 재무를 쓰는 아이디어(S-SEED-010~017 등) 앞에서는 'SEC 재무 데이터 N종목 준비, 남음 M'을 찍고, 시간이 모자라면 그 아이디어는 다음 창으로 미룹니다.",
+        verified="2026-10-08",
     ),
     ScriptGuide(
         path="scripts/research_jobs_admin.py", name="검증 연구 작업 관리",

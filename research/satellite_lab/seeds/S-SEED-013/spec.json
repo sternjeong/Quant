@@ -1,0 +1,28 @@
+{
+  "id": "S-SEED-013",
+  "parent": "S-SEED-000",
+  "title": "이익 성장 가속 모멘텀 · 시점별 S&P500 풀",
+  "thesis": "현 규칙 후보 중 최근 분기 매출이 전년보다 늘었고 직전 분기보다 성장률이 낮아지지 않은 종목만(모르면 유지) — 실적이 받쳐 주는 상승만. 생존편향 확인을 위해 그 시점 S&P500 구성 종목 전체에서 고른다.",
+  "source": "사용자 요청 2026-10-08 '새틀라이트 종목 선정 고도화' — 가격 밖 정보(SEC 재무·실적 발표)",
+  "pool": {
+    "type": "sp500_pit"
+  },
+  "data": [
+    "fundamentals"
+  ],
+  "topic": "selection",
+  "signal": {
+    "params_grid": [
+      {
+        "mom_window": 252
+      }
+    ]
+  },
+  "portfolio": {
+    "top_k": 3,
+    "hold_months": 6
+  },
+  "exit": {
+    "type": "none"
+  }
+}

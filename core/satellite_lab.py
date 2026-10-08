@@ -64,7 +64,10 @@ TOP_K_RANGE = (3, 10)
 EXIT_TYPES = ("none", "trailing_stop", "take_profit", "time_stop", "trend_break")
 STOP_RANGE = (0.05, 0.40)
 ENTRY_TYPES = ("close", "delay", "pullback")
-TOPICS = ("selection", "entry", "exit")  # 아이디어가 주로 바꾸는 것 — R&D 센터 주제 켜기/끄기(core/rnd_topics.py)와 연결
+TOPICS = ("selection", "entry", "exit")
+# 2026-10-08: 가격 밖의 데이터. 스펙에 "data": ["fundamentals"] 가 있으면 신호는 score(prices, as_of, params, ctx) 로 불리고
+# ctx.fundamentals(티커) 가 as_of(리밸런싱 전날)까지 공시된 재무·실적 발표만 돌려준다(core/fundamentals_pit.py).
+DATA_SOURCES = ("fundamentals",)  # 아이디어가 주로 바꾸는 것 — R&D 센터 주제 켜기/끄기(core/rnd_topics.py)와 연결
 # 2026-10-05 확장(사용자 요청): 진입 타이밍·매도 규칙도 아이디어가 바꿀 수 있다. 범위(넘으면 계약 위반):
 ENTRY_RANGES = {"delay": {"days": (1, 20)}, "pullback": {"sma": (3, 50), "max_wait": (1, 40)}}
 EXIT_RANGES = {"trailing_stop": {"stop_pct": (0.05, 0.40)}, "take_profit": {"tp": (0.05, 2.0)},
@@ -157,12 +160,17 @@ def validate_spec(spec: dict) -> dict:
         en_clean = _ranged(en["type"], en, ENTRY_RANGES, "entry")
     if spec.get("topic", "selection") not in TOPICS:
         e.append(f"topic: {TOPICS} 중 하나")
+    data_src = spec.get("data", [])
+    if not isinstance(data_src, list) or any(x not in DATA_SOURCES for x in data_src):
+        e.append(f"data: {DATA_SOURCES} 의 부분 목록")
     if e:
         raise LabSpecError("; ".join(e))
     out = json.loads(json.dumps(spec))
     out["exit"] = ex_clean
     out["entry"] = en_clean
     out["topic"] = spec.get("topic", "selection")
+    if spec.get("data"):
+        out["data"] = sorted(set(spec["data"]))
     return out
 
 
@@ -250,6 +258,7 @@ class LabData:
     closes: pd.DataFrame                      # trading_days × 종목, 결측은 NaN(전방 채움 안 함)
     pools: dict[tuple[str, pd.Timestamp], list[str]] = field(default_factory=dict)
     pool_provider: Optional[PoolProvider] = None
+    fundamentals: Any = None                  # core.fundamentals_pit.Store — 'fundamentals' 를 쓰는 아이디어만 필요
 
     def pool(self, pool_type: str, d: pd.Timestamp) -> list[str]:
         key = (pool_type, d)
@@ -428,6 +437,17 @@ def pick_top(scores: dict, top_k: int, eligible: set[str]) -> list[str]:
     return [t for t, _ in rows[:top_k]]
 
 
+def _call_signal(signal: Callable, spec: dict, data: LabData, prices: dict, cutoff, params: dict):
+    """가격만 쓰는 아이디어는 예전처럼 3개 인자, 재무를 쓰는 아이디어는 시점 기준 ctx 를 4번째로."""
+    if "fundamentals" in (spec.get("data") or []):
+        if data.fundamentals is None:
+            raise LabSpecError("이 아이디어는 재무 데이터가 필요한데 준비되지 않음")
+        from core.fundamentals_pit import Context
+
+        return signal(prices, cutoff, dict(params), Context(data.fundamentals, cutoff))
+    return signal(prices, cutoff, dict(params))
+
+
 def run_variant(spec: dict, params: dict, signal: Callable, data: LabData, *,
                 bps: Optional[float] = None) -> dict:
     """신호로 매 리밸런싱일 종목을 골라 시뮬레이션한다."""
@@ -443,7 +463,7 @@ def run_variant(spec: dict, params: dict, signal: Callable, data: LabData, *,
         members = data.pool(pool_type, d)
         prices = _signal_prices(data, members, cutoff, d)
         eligible = {t for t in prices if t in data.closes.columns and pd.notna(data.closes.at[d, t])}
-        scores = signal({t: prices[t] for t in eligible}, cutoff, dict(params))
+        scores = _call_signal(signal, spec, data, {t: prices[t] for t in eligible}, cutoff, params)
         schedule.append((d, pick_top(scores, k, eligible)))
     ex = spec.get("exit") or {}
     out = simulate(data.closes, schedule, data.trading_days[-1], None, bps,
@@ -887,6 +907,10 @@ def smoke_check(spec: dict, code: str) -> str:
     price_provider, pool_provider = synthetic_providers(n_tickers=30, start="2019-01-01", end="2023-12-29")
     data = build_data({spec["pool"]["type"]}, start="2021-01-01", end="2023-12-29",
                       pool_provider=pool_provider, price_provider=price_provider)
+    if spec.get("data"):
+        from core.fundamentals_pit import SyntheticStore
+
+        data.fundamentals = SyntheticStore()
     picked = 0
     for params in spec["signal"]["params_grid"]:
         out = run_variant(spec, params, signal, data)
@@ -898,15 +922,16 @@ def smoke_check(spec: dict, code: str) -> str:
     cutoff = _prev_day(data.trading_days, d)
     prices = _signal_prices(data, data.pool(spec["pool"]["type"], d), cutoff, d)
     params = spec["signal"]["params_grid"][0]
-    a = signal({t: df.copy() for t, df in prices.items()}, cutoff, dict(params))
+    a = _call_signal(signal, spec, data, {t: df.copy() for t, df in prices.items()}, cutoff, params)
     tampered = {}
     for t, df in data.ohlcv.items():
         if t in prices:
             x = df.copy()
             x.loc[x.index > cutoff, ["Open", "High", "Low", "Close"]] *= 3.0
             tampered[t] = x
-    data2 = LabData(trading_days=data.trading_days, ohlcv=tampered, closes=data.closes, pools=data.pools)
-    b = signal(_signal_prices(data2, list(prices), cutoff, d), cutoff, dict(params))
+    data2 = LabData(trading_days=data.trading_days, ohlcv=tampered, closes=data.closes, pools=data.pools,
+                    fundamentals=data.fundamentals)
+    b = _call_signal(signal, spec, data2, _signal_prices(data2, list(prices), cutoff, d), cutoff, params)
     if pick_top(a, spec["portfolio"]["top_k"], set(prices)) != pick_top(b, spec["portfolio"]["top_k"], set(prices)):
         raise LabSpecError("리밸런싱일 이후 가격을 바꾸자 선정이 달라짐(미래 참조 의심)")
     return f"smoke ok (선정 {picked}회)"

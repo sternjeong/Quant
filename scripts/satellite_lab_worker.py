@@ -55,6 +55,27 @@ def baseline_for(spec: dict, data: sl.LabData, split, cache_dir: Path, n: int, d
     return base
 
 
+def _ensure_fundamentals(data: sl.LabData, spec: dict, deadline: float, smoke: bool) -> bool:
+    """재무를 쓰는 아이디어 전에 그 풀의 모든 리밸런싱일 종목 재무를 미리 받는다(SEC, 디스크 저장 — 끊겨도 이어 받음)."""
+    from core import fundamentals_pit as fp
+
+    if data.fundamentals is not None:
+        return True
+    if smoke:
+        data.fundamentals = fp.SyntheticStore()
+        return True
+    tickers = set()
+    for d in sl.rebalance_dates(data.trading_days, spec["portfolio"]["hold_months"]):
+        tickers.update(data.pool(spec["pool"]["type"], d))
+    store = fp.Store()
+    res = store.prefetch(tickers, deadline=deadline - 120, log=log)
+    log(f"재무 데이터 {res['done']}종목 준비, 남음 {res['left']}")
+    if not res["complete"]:
+        return False
+    data.fundamentals = store
+    return True
+
+
 def run(args) -> int:
     deadline = deadline_epoch()
     out_dir = Path(args.out)
@@ -110,6 +131,9 @@ def run(args) -> int:
         if time.time() > deadline:
             break
         spec = entry["spec"]
+        if "fundamentals" in (spec.get("data") or []) and not _ensure_fundamentals(data, spec, deadline, args.smoke):
+            log(f"{entry['id']}: 재무 데이터 받는 중 시간 예산 소진 — 다음 창에 이어서(받은 것은 저장됨)")
+            break
         log(f"심판 시작 {entry['id']} ({sl.structure_key(spec)})")
         try:
             vbase = baseline_for(spec, data, split, cache_dir, n_random, deadline)

@@ -144,6 +144,19 @@
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
 
+## 2026-10-08 (후속7) 새틀라이트 선정 고도화 — 가격 밖 정보(SEC 재무·실적 발표) (사용자 "이대로 일단 진행해봐")
+
+- 배경: 새틀라이트 R&D 가격 전용 아이디어 11개 전부 FAIL, 현 규칙은 같은 풀 무작위 3종목 대비 IS 85·OOS 72 백분위(무작위 중앙 샤프 0.74 vs 0.92).
+  최근 5년 새틀라이트 거래 26건 중 SPY 이긴 것 10건, 초과 중앙값 −2.1%p(평균 +14.2%p 는 NVDA·AVGO 몇 건).
+- core/fundamentals_pit.py(신규): SEC companyfacts(매출·매출총이익·원가·영업이익·순이익·총자산, 공시일)·submissions(SIC, 8-K Item 2.02 실적 발표일) →
+  data/satellite_lab/fundamentals/<티커>.json(약 100KB, 30일 갱신). view(티커, 기준일)은 기준일까지 공시된 것만(정정은 정정일 이후), 분기 200일·연간 550일 넘게 지난 값은 None.
+  SEC 요청은 서비스 .env 의 User-Agent 필요(대화 세션 기본 UA 는 403) — 서비스 계정 환경으로 AAPL·CAT·NVDA 실조회 확인.
+- satellite_lab: 스펙 "data": ["fundamentals"] → score(prices, as_of, params, ctx), ctx.fundamentals(t). 가격 전용 아이디어는 3인자 그대로(테스트).
+  worker 가 재무 아이디어 전에 풀 종목 재무를 prefetch(시간 예산 넘으면 다음 창). 에이전트 계약(_sat_contract.md)에 ctx 설명.
+- 시작 목록 S-SEED-010~017: 품질(GP/A 중앙 이상)·성장 가속(매출 YoY > 0 & 가속)·실적 반응(최근 100일 발표 3일 반응 ≥ 후보 중앙)·업종 분산(SIC 2자리) × champion40/sp500_pit.
+  '모름'은 제외하지 않음(생존편향 방향 방지). 판정 sat-judge/v2 그대로, 누적 시도 +8.
+- 테스트: VM venv 전체 2523 passed. 스모크(합성 재무)로 8개 모두 미래 비의존 검사 통과.
+
 ## 2026-10-08 (후속6) 국면 연구 등록 — 강세장엔 뜨는 테마, 고꾸라지면 방어 (사용자 "등록해")
 
 - research/jobs/regime-rnd-v1(regime-judge/v1, priority 18): 월초 SPY ≥ 200일선이면 강세 → R1 테마 상위 3(theme-rotation-v1 과 같은 28개·L63, 결과 보기 전 고정) 100%,
