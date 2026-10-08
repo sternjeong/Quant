@@ -27,6 +27,11 @@ def _link(path: str, label: str) -> None:
 dashboard = build_today_dashboard()
 generated = dashboard["generated_at"].strftime("%Y-%m-%d %H:%M UTC")
 holdings = dashboard["holdings"] or {}
+# 코어 목록은 챔피언 화면 '지금 할 일'과 같은 출처(마지막 재추천, 전략 버전이 같은 것만)를 우선 쓴다 — 밤 신호 상태는 전략이 바뀐 날
+# 다시 계산되기 전까지 옛 목록일 수 있다(2026-10-08 DBC(PTP) 제외 뒤 '오늘'에 DBC 가 남아 있던 문제).
+latest_rec = load_latest_cached()
+rec_core = list(((latest_rec or {}).get("core") or {}).get("top4") or [])
+core_list = rec_core or list(holdings.get("core_top4") or [])
 market = dashboard["market"] or {}
 jobs = dashboard["jobs"] or {}
 
@@ -51,8 +56,8 @@ with state_col:
     if regime == "unknown":
         st.caption("데이터 부족에 따른 보류 상태")
 with allocation_col:
-    core = ", ".join(holdings.get("core_top4", [])) or "신호 없음"
-    st.metric("코어 후보", str(len(holdings.get("core_top4", []))))
+    core = ", ".join(core_list) or "신호 없음"
+    st.metric("코어 후보", str(len(core_list)))
     st.caption(core)
 with risk_col:
     st.metric("운영 경고", str(jobs.get("counts", {}).get("problem", 0)))
@@ -75,14 +80,18 @@ with left:
 with right:
     st.subheader("현재 전략 상태")
     st.markdown("**코어**")
-    if holdings.get("core_top4"):
-        st.code(" · ".join(holdings["core_top4"]), language=None)
+    if core_list:
+        st.code(" · ".join(core_list), language=None)
+        if rec_core:
+            st.caption(f"마지막 재추천 기준일 {latest_rec.get('as_of')} — 챔피언 화면 '지금 할 일'과 같은 목록입니다.")
+        elif holdings.get("stale_version"):
+            st.caption("전략이 바뀐 뒤 밤 신호가 아직 다시 계산되지 않았습니다 — 지금 코어에 없는 자산은 뺐습니다. 챔피언 화면에서 다시 추천하세요.")
     else:
         st.caption("저장된 코어 추천이 없습니다.")
     st.markdown("**새틀라이트**")
     # 챔피언 화면 '지금 할 일'과 같은 목록(마지막 재추천의 오늘자 point-in-time 재선정)을 우선 보인다.
     # 어제 밤 저장 목록은 '빠른 근사 스캔'(다른 방법론)이라 그대로 보이면 두 화면이 서로 다른 종목을 말한다.
-    rec = load_latest_cached()
+    rec = latest_rec
     rec_picks = ((rec or {}).get("satellite") or {}).get("today", {}).get("picks") or []
     if rec_picks:
         st.code(" · ".join(rec_picks), language=None)

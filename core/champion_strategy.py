@@ -1674,6 +1674,7 @@ def _load_last_signal_state() -> Optional[dict]:
 
 
 def _save_signal_state(state: dict) -> None:
+    state.setdefault("strategy_version", CHAMPION_STRATEGY_VERSION)  # 2026-10-08: 버전이 바뀐 뒤 옛 상태를 알아보도록
     SIGNAL_STATE_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(SIGNAL_STATE_CACHE_PATH, "w", encoding="utf-8") as f:
         json.dump(state, f, ensure_ascii=False, indent=2)
@@ -1908,11 +1909,17 @@ def get_current_holdings() -> Optional[dict]:
         return None
     core_top4 = state.get("core_top4", [])
     satellite_selected = state.get("satellite_selected", [])
+    stale = state.get("strategy_version") != CHAMPION_STRATEGY_VERSION
+    if stale:
+        # 전략이 바뀐 뒤 아직 밤 신호가 다시 계산되지 않았다(예: 2026-10-08 DBC(PTP) 제외) — 지금 코어에 없는 자산은 빼고 보여 준다.
+        allowed = set(CORE_UNIVERSE) | {CORE_CASH_ETF}
+        core_top4 = [t for t in core_top4 if t in allowed]
     return {
         "as_of": state.get("as_of"),
         "core_top4": core_top4,
         "satellite_selected": satellite_selected,
         "tickers": sorted(set(core_top4) | set(satellite_selected)),
+        "stale_version": stale,
     }
 
 

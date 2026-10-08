@@ -144,6 +144,15 @@
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
 
+## 2026-10-08 (후속8) '오늘' 화면에 DBC 가 남던 문제 고침
+
+- 원인: '오늘' 코어 목록은 밤 신호 상태(data/cache/champion_signal_state.json, 00:10 KST)를 읽는데, 마지막 저장이 10/07(DBC 제외 전)이라 DBC·XLE·XLK·XLV.
+  챔피언 화면 재추천(10/08)은 XLE·XLK·XLV·XLB 로 맞았다. 밤 상태에 전략 버전이 없어 낡음을 알 수 없었다.
+- 수정: _save_signal_state 가 strategy_version 저장, get_current_holdings 는 버전이 다르면 지금 코어에 없는 자산을 빼고 stale_version=True
+  (상관관계·실적 알림·주간 보고 등 다른 사용처도 보호). '오늘' 코어 목록은 마지막 재추천(load_latest_cached, 버전 일치)을 우선 — 새틀라이트와 같은 출처.
+- 테스트 추가(test_stale_signal_state_drops_assets_removed_from_core). 오늘 밤 00:10 신호 잡이 새 버전으로 상태를 다시 저장한다.
+- 병렬: 하위 에이전트가 챔피언 성과 차트에 선택 종목의 정규화 가격선 추가 중(워크트리, 미병합).
+
 ## 2026-10-08 (후속7) 새틀라이트 선정 고도화 — 가격 밖 정보(SEC 재무·실적 발표) (사용자 "이대로 일단 진행해봐")
 
 - 배경: 새틀라이트 R&D 가격 전용 아이디어 11개 전부 FAIL, 현 규칙은 같은 풀 무작위 3종목 대비 IS 85·OOS 72 백분위(무작위 중앙 샤프 0.74 vs 0.92).

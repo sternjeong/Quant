@@ -2174,3 +2174,17 @@ def test_ledger_entry_skipped_when_market_filter_unknown(patched_champion_sessio
     result = champion_strategy.record_daily_ledger_entry()
     assert result.get("skipped") is True
     assert result.get("reason")
+
+
+def test_stale_signal_state_drops_assets_removed_from_core(tmp_path, monkeypatch):
+    """2026-10-08: DBC(PTP) 제외 뒤 밤 신호가 다시 계산되기 전, 옛 상태의 DBC 가 '오늘' 화면 등에 남던 문제."""
+    import json as _json
+
+    path = tmp_path / "champion_signal_state.json"
+    monkeypatch.setattr(champion_strategy, "SIGNAL_STATE_CACHE_PATH", path)
+    path.write_text(_json.dumps({"as_of": "2026-10-07", "core_top4": ["DBC", "XLE", "XLK", "XLV"], "satellite_selected": ["CAT"]}))
+    h = champion_strategy.get_current_holdings()
+    assert h["stale_version"] and h["core_top4"] == ["XLE", "XLK", "XLV"] and "DBC" not in h["tickers"]
+    champion_strategy._save_signal_state({"as_of": "2026-10-09", "core_top4": ["XLE", "XLB"], "satellite_selected": []})
+    h2 = champion_strategy.get_current_holdings()
+    assert not h2["stale_version"] and h2["core_top4"] == ["XLE", "XLB"]
