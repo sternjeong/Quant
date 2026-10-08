@@ -645,3 +645,36 @@ def test_save_and_list_thesis_reviews(patched_session, monkeypatch):
 def test_list_thesis_reviews_empty_for_no_history(patched_session):
     holding_id = portfolio.add_holding("AAPL", 10, 150.0, date(2024, 1, 1), thesis="근거")
     assert portfolio.list_thesis_reviews(holding_id) == []
+
+
+# ---------------------------------------------------------------- 잔고 한 번에 맞추기 (2026-10-08)
+def test_parse_balance_text_formats_and_duplicate_guard():
+    rows = portfolio.parse_balance_text("XLK 2 201.30\nxle, 6\n# 메모\n\nXLV\t1\t$167.91\nFCX 0")
+    assert [(r["ticker"], r["quantity"], r["avg_price"]) for r in rows] == [
+        ("XLK", 2.0, 201.30), ("XLE", 6.0, None), ("XLV", 1.0, 167.91)]  # 0주는 빼고(=삭제)
+    with pytest.raises(ValueError, match="두 번"):
+        portfolio.parse_balance_text("XLK 1\nXLK 1")
+    with pytest.raises(ValueError, match="형식"):
+        portfolio.parse_balance_text("XLK 두주")
+
+
+def test_sync_balance_merges_duplicates_deletes_missing_and_sets_cash(patched_session):
+    from datetime import date
+
+    portfolio.add_holding("XLK", 1, 201.62, date(2026, 10, 6), thesis="코어")
+    portfolio.add_holding("XLK", 1, 200.97, date(2026, 10, 7))
+    portfolio.add_holding("XLE", 3, 63.08, date(2026, 10, 6))
+    portfolio.add_holding("FCX", 2, 71.40, date(2026, 10, 7))
+    rows = portfolio.parse_balance_text("XLK 6\nXLE 2 63.5\nGEV 0.05 990")
+    with pytest.raises(ValueError):  # 새 종목 단가 없음
+        portfolio.sync_balance(portfolio.parse_balance_text("NEW 1"))
+    plan = {p["ticker"]: p["action"] for p in portfolio.sync_balance(rows, cash=42.5, today=date(2026, 10, 8))}
+    assert plan == {"FCX": "삭제", "GEV": "추가", "XLE": "수정", "XLK": "수정"}
+    by = {h["ticker"]: h for h in portfolio.list_holdings()}
+    assert set(by) == {"XLK", "XLE", "GEV"} and len(portfolio.list_holdings()) == 3  # 종목당 한 줄
+    assert by["XLK"]["quantity"] == 6 and by["XLK"]["purchase_price"] == pytest.approx((201.62 + 200.97) / 2)
+    assert by["XLK"]["purchase_date"] == date(2026, 10, 6) and by["XLK"]["thesis"] == "코어"
+    assert by["XLE"]["purchase_price"] == 63.5 and by["GEV"]["purchase_date"] == date(2026, 10, 8)
+    assert portfolio.get_cash_balance() == 42.5
+    # 같은 내용으로 다시 맞추면 바뀌는 것이 없다
+    assert all(p["action"] == "유지" for p in portfolio.plan_balance_sync(portfolio.parse_balance_text("XLK 6\nXLE 2\nGEV 0.05")))

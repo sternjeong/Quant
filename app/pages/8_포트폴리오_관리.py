@@ -57,6 +57,35 @@ get_holding_review_actions = portfolio_module.get_holding_review_actions
 STRATEGY_ROLES = portfolio_module.STRATEGY_ROLES
 st.caption("실제 보유 종목을 등록하면 손익, 리스크(변동성/상관관계/섹터 집중도)를 분석하고 AI 코멘트를 생성합니다.")
 
+with st.expander("📋 잔고 한 번에 맞추기 (증권사 앱 잔고 그대로 붙여넣기 — 추천)", expanded=not portfolio_module.list_holdings()):
+    st.caption("증권사 앱 잔고 화면의 종목·수량·평균단가와 달러 예수금을 그대로 적으면 보유 기록 전체를 그 상태로 바꿉니다. "
+               "적지 않은 종목은 삭제되고, 같은 종목이 여러 줄이면 한 줄로 합쳐집니다(중복 입력 방지). 평균단가는 생략하면 기존 기록을 씁니다.")
+    _cur = portfolio_module.list_holdings()
+    _qty: dict[str, float] = {}
+    for _h in _cur:
+        _qty[_h["ticker"]] = _qty.get(_h["ticker"], 0.0) + float(_h["quantity"])
+    _default = "\n".join(f"{t} {q:g}" for t, q in sorted(_qty.items()))
+    sync_text = st.text_area("종목 수량 [평균단가] — 한 줄에 한 종목", value=_default, height=160,
+                             placeholder="XLK 2 201.30\nXLE 6\nXLV 1 167.91")
+    sync_cash = st.number_input("달러 예수금(현금, $)", min_value=0.0, step=10.0, value=float(get_cash_balance()), key="sync_cash")
+    try:
+        _rows = portfolio_module.parse_balance_text(sync_text)
+        _plan = portfolio_module.plan_balance_sync(_rows, _cur)
+        _changes = [p for p in _plan if p["action"] != "유지"]
+        st.dataframe(pd.DataFrame([{"종목": p["ticker"], "할 일": p["action"],
+                                    "지금 기록": f"{p['quantity_before']:g}주 ({p['rows_before']}줄)" if p["rows_before"] else "—",
+                                    "바꿀 수량": f"{p['quantity_after']:g}주" if p["quantity_after"] else "—"} for p in _plan]),
+                     use_container_width=True, hide_index=True)
+        _dups = [p["ticker"] for p in _plan if p["rows_before"] > 1]
+        if _dups:
+            st.warning(f"같은 종목이 여러 줄로 입력돼 있습니다: {', '.join(_dups)} — 저장하면 한 줄로 합칩니다. 수량이 실제와 맞는지 확인하세요.")
+        if st.button("✅ 이대로 맞추기", type="primary", disabled=not _changes and abs(sync_cash - get_cash_balance()) < 0.005):
+            portfolio_module.sync_balance(_rows, sync_cash)
+            st.toast("보유와 현금 잔고를 맞췄습니다. 챔피언 전략 주문 목록도 이 기준으로 다시 계산됩니다.", icon="✅")
+            st.rerun()
+    except ValueError as _e:
+        st.error(str(_e))
+
 with st.expander("➕ 보유 종목 추가"):
     with st.form("add_holding_form", clear_on_submit=True):
         c1, c2, c3, c4 = st.columns(4)
@@ -74,6 +103,9 @@ with st.expander("➕ 보유 종목 추가"):
         add_submitted = st.form_submit_button("추가")
 
     if add_submitted:
+        if new_ticker.strip().upper() in {h["ticker"] for h in portfolio_module.list_holdings()}:
+            st.warning(f"{new_ticker.strip().upper()} 는 이미 보유 기록이 있어 수량이 합산됩니다. 같은 매수를 두 번 넣은 게 아니라면 괜찮고, "
+                       "헷갈리면 위 '📋 잔고 한 번에 맞추기'로 실제 잔고를 맞추세요.")
         try:
             add_holding(new_ticker, new_qty, new_price, new_date, thesis=new_thesis,
                         strategy_role=None if new_role == "자동 분류" else new_role)

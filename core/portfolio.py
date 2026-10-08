@@ -286,6 +286,110 @@ def set_cash_balance(amount: float) -> None:
 
 
 # ----------------------------------------------------------------------------
+# 잔고 한 번에 맞추기 (2026-10-08, 사용자 요청 "실제 내 포트폴리오에 맞게 싱크")
+#
+# 증권사 앱의 잔고 화면(종목·수량·평균단가)과 달러 예수금을 그대로 붙여 넣으면 보유 기록을 통째로 그 상태로 바꾼다.
+# 같은 종목을 두 번 '추가'해 수량이 두 배로 잡히던 혼선(2026-10-07 XLK·XLE 중복)을 원천적으로 막는다.
+# 종목마다 한 줄로 합친다(평균단가는 입력값, 없으면 기존 기록의 가중 평균). 매입일은 기존 기록 중 가장 이른 날,
+# 새 종목은 오늘. 매매근거·운용 구분은 그 종목의 기존 첫 기록에서 이어받는다. 주문과 연결되어 있지 않다.
+# ----------------------------------------------------------------------------
+
+def parse_balance_text(text: str) -> list[dict]:
+    """'XLK 6 201.5' / 'XLK, 6' / 'XLK\t6\t$201.50' 같은 줄들 → [{ticker, quantity, avg_price|None}].
+    빈 줄·'#' 주석은 건너뛴다. 같은 종목이 두 번 나오면 오류(중복 입력을 막는 것이 목적)."""
+    rows: list[dict] = []
+    seen: set[str] = set()
+    for n, raw in enumerate((text or "").splitlines(), start=1):
+        line = raw.split("#", 1)[0].replace(",", " ").replace("$", " ").replace("주", " ").strip()
+        if not line:
+            continue
+        parts = line.split()
+        ticker = parts[0].upper()
+        if not ticker.replace(".", "").replace("-", "").isalnum():
+            raise ValueError(f"{n}번째 줄: 티커를 읽지 못했습니다: {raw!r}")
+        try:
+            qty = float(parts[1])
+            price = float(parts[2]) if len(parts) > 2 else None
+        except (IndexError, ValueError):
+            raise ValueError(f"{n}번째 줄: '티커 수량 [평균단가]' 형식으로 적어주세요: {raw!r}") from None
+        if not math.isfinite(qty) or qty < 0:
+            raise ValueError(f"{n}번째 줄: 수량은 0 이상이어야 합니다.")
+        if price is not None and (not math.isfinite(price) or price <= 0):
+            raise ValueError(f"{n}번째 줄: 평균단가는 0보다 커야 합니다.")
+        if ticker in seen:
+            raise ValueError(f"{ticker} 가 두 번 적혀 있습니다 — 종목당 한 줄(합친 수량)로 적어주세요.")
+        seen.add(ticker)
+        if qty > 0:
+            rows.append({"ticker": ticker, "quantity": qty, "avg_price": price})
+    return rows
+
+
+def plan_balance_sync(new_rows: list[dict], current: Optional[list[dict]] = None) -> list[dict]:
+    """바뀌는 내용 미리보기: 종목별 지금 기록(줄 수·합계 수량) → 새 수량, 할 일(유지/수정/추가/삭제)."""
+    current = list_holdings() if current is None else current
+    by: dict[str, list[dict]] = defaultdict(list)
+    for h in current:
+        by[h["ticker"]].append(h)
+    new = {r["ticker"]: r for r in new_rows}
+    out = []
+    for t in sorted(set(by) | set(new)):
+        lots = by.get(t, [])
+        before = sum(float(h["quantity"]) for h in lots)
+        after = float(new[t]["quantity"]) if t in new else 0.0
+        if t not in new:
+            action = "삭제"
+        elif not lots:
+            action = "추가"
+        elif len(lots) == 1 and abs(before - after) < 1e-9 and new[t].get("avg_price") in (None, lots[0]["purchase_price"]):
+            action = "유지"
+        else:
+            action = "수정"
+        out.append({"ticker": t, "rows_before": len(lots), "quantity_before": before, "quantity_after": after,
+                    "avg_price": (new.get(t) or {}).get("avg_price"), "action": action})
+    return out
+
+
+def sync_balance(new_rows: list[dict], cash: Optional[float] = None, *, today: Optional[date] = None) -> list[dict]:
+    """보유 기록을 new_rows 상태로 통째로 바꾸고(한 트랜잭션), cash 가 있으면 현금 잔고도 바꾼다. 미리보기 행을 돌려준다."""
+    today = today or date.today()
+    if cash is not None and (not math.isfinite(cash) or cash < 0):
+        raise ValueError("현금 잔고는 0 이상이어야 합니다.")
+    current = list_holdings()
+    plan = plan_balance_sync(new_rows, current)
+    by: dict[str, list[dict]] = defaultdict(list)
+    for h in current:
+        by[h["ticker"]].append(h)
+    new = {r["ticker"]: r for r in new_rows}
+    for t, r in new.items():
+        if r.get("avg_price") is None and not by.get(t):
+            raise ValueError(f"{t} 는 새 종목이라 평균단가가 필요합니다('{t} {r['quantity']:g} 평균단가').")
+    with get_session() as session:
+        for p in plan:
+            if p["action"] == "유지":
+                continue
+            lots = by.get(p["ticker"], [])
+            for h in lots:
+                row = session.get(PortfolioHolding, h["id"])
+                if row is not None:
+                    session.delete(row)
+            if p["action"] == "삭제":
+                continue
+            r = new[p["ticker"]]
+            qty_before = sum(float(h["quantity"]) for h in lots)
+            price = r.get("avg_price") or (sum(float(h["quantity"]) * float(h["purchase_price"]) for h in lots) / qty_before)
+            first = min(lots, key=lambda h: h["purchase_date"]) if lots else None
+            session.add(PortfolioHolding(
+                ticker=p["ticker"], quantity=float(r["quantity"]), purchase_price=float(price),
+                purchase_date=first["purchase_date"] if first else today,
+                thesis=(first or {}).get("thesis"),
+                strategy_role=holding_strategy_role(p["ticker"], (first or {}).get("strategy_role")),
+            ))
+    if cash is not None:
+        set_cash_balance(float(cash))
+    return plan
+
+
+# ----------------------------------------------------------------------------
 # 손익 계산
 # ----------------------------------------------------------------------------
 
