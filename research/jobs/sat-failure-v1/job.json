@@ -1,0 +1,13 @@
+{
+  "id": "sat-failure-v1",
+  "title": "새틀라이트 실패 원인 분석 v1 — 고를 때 무엇이 달랐나(탐색, 앞 구간만)",
+  "entrypoint": "research/jobs/sat-failure-v1/run.py",
+  "args": [],
+  "timeout_seconds": 5400,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md", "picks.csv"],
+  "summary_from": "summary",
+  "priority": 10,
+  "revision": 1
+}

@@ -22,10 +22,10 @@ def topics(tmp_path, monkeypatch):
 
 # ---------------------------------------------------------------- 주제 스위치
 def test_topics_default_on_and_persist(topics):
-    assert all(v["on"] for v in rt.all_states().values()) and len(rt.TOPICS) == 7
+    assert all(v["on"] for v in rt.all_states().values()) and len(rt.TOPICS) == 8
     rt.set_on("sat_entry", False, actor="test")
     assert rt.is_on("sat_entry") is False and rt.is_on("sat_exit") is True
-    assert rt.enabled_sat_topics() == ["selection", "exit"]
+    assert rt.enabled_sat_topics() == ["selection", "exit", "guru"]
     assert rt.sat_topic_on("entry") is False and rt.sat_topic_on(None) is True
     rt.set_on("sat_entry", True)
     assert rt.is_on("sat_entry") and len(json.loads((topics / "rnd_topics.json").read_text())["log"]) == 2
@@ -151,6 +151,7 @@ def test_sat_plan_rotates_topics_and_pauses_off(topics, tmp_path, monkeypatch):
     res = ab.sat_plan(now, {("sat_designer", sid)})
     assert res[2]["topic"] == "exit"  # 켜진 주제만, 가장 적게 한 주제
     rt.set_on("sat_exit", False)
+    rt.set_on("sat_guru", False)
     assert ab.sat_plan(now, {("sat_designer", sid)}) is None  # 모두 꺼지면 새 아이디어 없음
     assert "언제 팔지" in ab.prompt_for("sat_designer", "S-20261007-001", now, {"new": True, "topic": "exit"})
 

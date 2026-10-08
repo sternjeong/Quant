@@ -1,0 +1,13 @@
+{
+  "id": "limits-rnd-v1",
+  "title": "한계 극복 R&D v1 — SPY 영구 보유(세금 이연) + 작은 전술 비중, 완충 구간 국면 전환(사전 등록)",
+  "entrypoint": "research/jobs/limits-rnd-v1/run.py",
+  "args": [],
+  "timeout_seconds": 3600,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 12,
+  "revision": 1
+}

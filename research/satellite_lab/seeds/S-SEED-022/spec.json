@@ -1,0 +1,28 @@
+{
+  "id": "S-SEED-022",
+  "parent": "S-SEED-000",
+  "title": "거장 신규 매수 우선",
+  "thesis": "현 규칙 후보 중 최근 13F 에서 거장이 새로 산 종목을 먼저 산다 — 새 매수는 새 정보를 담는다는 가설.",
+  "source": "사용자 요청 2026-10-08 '거장 포트폴리오를 참고해 새틀라이트·챔피언을' — 거장 13F 이력(SEC)",
+  "pool": {
+    "type": "champion40"
+  },
+  "data": [
+    "guru13f"
+  ],
+  "topic": "guru",
+  "signal": {
+    "params_grid": [
+      {
+        "mom_window": 252
+      }
+    ]
+  },
+  "portfolio": {
+    "top_k": 3,
+    "hold_months": 6
+  },
+  "exit": {
+    "type": "none"
+  }
+}

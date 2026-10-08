@@ -274,14 +274,19 @@ class Store:
 
 
 class Context:
-    """신호에 넘기는 4번째 인자. 리밸런싱 기준일(전날)까지 공시된 것만 보여 준다."""
+    """신호에 넘기는 4번째 인자. 리밸런싱 기준일(전날)까지 공시된 것만 보여 준다.
+    fundamentals(티커): SEC 재무·실적 발표(이 모듈). guru(티커): 거장 13F 보유(core/guru_history.py) — 해당 데이터를 쓰는 아이디어만."""
 
-    def __init__(self, store: Store, asof):
+    def __init__(self, store: Optional[Store], asof, guru_store=None):
         self._store = store
+        self._guru = guru_store
         self.asof = asof.date() if hasattr(asof, "date") else asof
 
     def fundamentals(self, ticker: str) -> Optional[dict]:
-        return self._store.view(ticker, self.asof)
+        return self._store.view(ticker, self.asof) if self._store is not None else None
+
+    def guru(self, ticker: str) -> dict:
+        return self._guru.view(ticker, self.asof) if self._guru is not None else {}
 
 
 class SyntheticStore(Store):

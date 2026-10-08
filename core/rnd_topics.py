@@ -34,11 +34,13 @@ TOPICS: dict[str, tuple[str, str, str, bool]] = {
                    "그달 의견 기록(꺼진 달은 비고, 판정 표본이 줄어듦)", True),
     "crypto_shadow": ("코인 추세 기록", "BTC·ETH 100일 평균 위 보유 5% 슬리브를 매일 기록(12개월 뒤 판정)",
                       "매일 기록(꺼진 날은 직전 상태로 이어 본 것으로 평가되므로 오래 끄지 않기를 권함)", True),
+    "sat_guru": ("거장 포트폴리오 참고", "버핏·애크먼 등 거장 13F(공시된 것만)로 새틀라이트·챔피언 종목을 고를 수 있는지(보유·확신·신규 매수·합의 복제)",
+                 "이 주제의 새 아이디어·재작업·판정", True),
     "forward_tournament": ("앞으로 토너먼트", "현 코어와 아깝게 떨어진 후보 5개·SPY·60/40 의 목표 비중을 매일 기록(252거래일 뒤 판정)",
                            "매일 기록(꺼진 날은 직전 비중이 이어진 것으로 평가되므로 오래 끄지 않기를 권함)", True),
 }
 # 새틀라이트 아이디어 spec.topic → 주제 키
-SAT_TOPIC_KEYS = {"selection": "sat_selection", "entry": "sat_entry", "exit": "sat_exit"}
+SAT_TOPIC_KEYS = {"selection": "sat_selection", "entry": "sat_entry", "exit": "sat_exit", "guru": "sat_guru"}
 
 
 def _load(path: Optional[Path] = None) -> dict:

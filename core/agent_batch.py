@@ -275,7 +275,8 @@ def prompt_for(role: str, hid: str, now: datetime, extra: dict) -> str:
         topic = extra.get("topic", "selection")
         focus = {"selection": "어떤 종목을 고를지(신호·후보 풀·종목 수)를 바꾸는 아이디어. entry 는 close, exit 는 none 이나 trailing_stop 그대로 둬도 된다.",
                  "entry": "뽑힌 종목을 '언제 살지'(entry: delay 또는 pullback)를 바꾸는 아이디어. 종목 선정 신호는 현 규칙(S-SEED-000)을 그대로 쓴다.",
-                 "exit": "'언제 팔지'(exit: take_profit·time_stop·trend_break·trailing_stop, 또는 보유기간)를 바꾸는 아이디어. 종목 선정 신호는 현 규칙을 그대로 쓴다."}[topic]
+                 "exit": "'언제 팔지'(exit: take_profit·time_stop·trend_break·trailing_stop, 또는 보유기간)를 바꾸는 아이디어. 종목 선정 신호는 현 규칙을 그대로 쓴다.",
+                 "guru": "거장 13F 보유(spec data: [\"guru13f\"], ctx.guru(종목))를 종목 선정에 쓰는 아이디어 — 보유·확신(상위 5)·신규 매수·여러 거장 합의 등. 시작 목록 S-SEED-018~025 와 겹치지 않게."}[topic]
         return (f"오늘은 {today}. research/satellite_lab/context.md 와 seeds/ 를 읽고 새 새틀라이트 아이디어 하나를 "
                 f"research/satellite_lab/variants/{hid}/ 에 spec.json(id={hid}, topic=\"{topic}\"), signal.py, test_signal.py 로 만들어라. "
                 f"이번 주제: {focus}")

@@ -1,0 +1,28 @@
+{
+  "id": "S-SEED-024",
+  "parent": "S-SEED-000",
+  "title": "거장 합의 복제",
+  "thesis": "가격 추세와 무관하게 풀 안에서 가장 많은 거장이 보유한 종목 3개(동점은 최대 비중) — 코어·챔피언을 거장 합의로 짤 수 있는지 보는 기준선.",
+  "source": "사용자 요청 2026-10-08 '거장 포트폴리오를 참고해 새틀라이트·챔피언을' — 거장 13F 이력(SEC)",
+  "pool": {
+    "type": "champion40"
+  },
+  "data": [
+    "guru13f"
+  ],
+  "topic": "guru",
+  "signal": {
+    "params_grid": [
+      {
+        "mom_window": 252
+      }
+    ]
+  },
+  "portfolio": {
+    "top_k": 3,
+    "hold_months": 6
+  },
+  "exit": {
+    "type": "none"
+  }
+}

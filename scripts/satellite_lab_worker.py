@@ -76,6 +76,24 @@ def _ensure_fundamentals(data: sl.LabData, spec: dict, deadline: float, smoke: b
     return True
 
 
+def _ensure_guru(data: sl.LabData, deadline: float, smoke: bool) -> bool:
+    """거장 13F 이력(core/guru_history.py)을 미리 받는다(SEC, 거장별 파일 — 끊겨도 이어 받음, 7일마다 새 공시 확인)."""
+    from core import guru_history as gh
+
+    if data.guru is not None:
+        return True
+    if smoke:
+        data.guru = gh.SyntheticStore()
+        return True
+    store = gh.Store()
+    res = store.prefetch(deadline=deadline - 120, log=log)
+    log(f"거장 13F {res['done']}명 준비, 남음 {res['left']}")
+    if not res["complete"]:
+        return False
+    data.guru = store
+    return True
+
+
 def run(args) -> int:
     deadline = deadline_epoch()
     out_dir = Path(args.out)
@@ -133,6 +151,9 @@ def run(args) -> int:
         spec = entry["spec"]
         if "fundamentals" in (spec.get("data") or []) and not _ensure_fundamentals(data, spec, deadline, args.smoke):
             log(f"{entry['id']}: 재무 데이터 받는 중 시간 예산 소진 — 다음 창에 이어서(받은 것은 저장됨)")
+            break
+        if "guru13f" in (spec.get("data") or []) and not _ensure_guru(data, deadline, args.smoke):
+            log(f"{entry['id']}: 거장 13F 받는 중 시간 예산 소진 — 다음 창에 이어서(받은 것은 저장됨)")
             break
         log(f"심판 시작 {entry['id']} ({sl.structure_key(spec)})")
         try:

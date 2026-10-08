@@ -144,6 +144,20 @@
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
 
+## 2026-10-08 (후속9) 거장 13F R&D 주제 + 새틀라이트 실패 원인 분석 + 한계 극복 연구 (사용자 요청 3건)
+
+- 결과 4건(rebound·regime·theme·analyst) 모두 FAIL — 사용자에게 보고. 진단: 세금(국면 연구 양도세 19.7~39.8백만), 오신호(국면 전환 28회), 쏠림(테마 100% MDD −44%),
+  테마 적중률 ~50%, 애널리스트 상향 따르기 −2.7~−3.1%p/년.
+- research/jobs/limits-rnd-v1(limits-judge/v1, priority 12): L1 SPY 80% 영구+코어 20%, L2 SPY 80%+R1 20%, L3 완충 국면(약세 진입 0.97×200일선, 복귀 1.00), L4 완충 R2, L5 SPY 50%+코어 50%.
+  판정: 세후 ≥ SPY+0.5%p, 떼어 둔 2년 ≥ SPY, 원화 MDD ≤ SPY 수준, DSR ≥ 0.95(시도 5), 가족 PBO ≤ 25%. 두 계좌 계산은 공제 이중 적용(작은 낙관 편향, 문서화). regime-rnd-v1 함수 재사용(importlib).
+- research/jobs/sat-failure-v1(탐색, 판정 없음, priority 10): 현 새틀라이트 선정의 앞 구간만으로 실패(SPY 대비 −10%p 미만) vs 나머지의 선정 시점 특징(모멘텀·과열·변동성·52주 고점 거리·
+  풀 내 순위·시장 폭·SPY 상태·같은 업종·재무) 비교, 순열검정 + 본페로니. 유의한 특징 → 다음 단계에서 새틀라이트 아이디어로 sat-judge 확인(이 작업은 판정 아님). picks.csv 도 출력.
+- 거장: core/guru_history.py(TRACKED_GURUS 7명 13F-HR 이력, 공시일 기준, 이름 → SEC 회사 목록 매칭 비중 기준 약 72~78%), satellite_lab DATA_SOURCES "guru13f"(ctx.guru),
+  worker 사전 수집, R&D 주제 'sat_guru'(rnd_topics 8개, 시험실 TOPICS 에 "guru"), 시작 목록 S-SEED-018~025(보유 우선·상위 5·신규 매수·합의 복제 × champion40/sp500_pit).
+  실조회: 버핏 53건(2013Q2~), 애크먼 52건, 버핏 AAPL 비중 21% 확인.
+- 배포 중 '챔피언 성과' ImportError: auto_deploy 가 라이브 트리를 먼저 pull 하고 테스트(5~7분) 뒤 재시작 → 그 사이 새 페이지 + 옛 모듈. 하위 에이전트가 '테스트 통과 뒤에만 라이브 트리 이동'으로 고치는 중(워크트리, 미병합).
+- 테스트: VM venv 전체 2537 passed.
+
 ## 2026-10-08 (후속8) '오늘' 화면에 DBC 가 남던 문제 고침
 
 - 원인: '오늘' 코어 목록은 밤 신호 상태(data/cache/champion_signal_state.json, 00:10 KST)를 읽는데, 마지막 저장이 10/07(DBC 제외 전)이라 DBC·XLE·XLK·XLV.

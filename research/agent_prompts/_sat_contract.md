@@ -22,7 +22,7 @@
 - **글자 수 제한(넘으면 결정론 검사에서 바로 탈락):** title 1~80자, thesis 1~500자, source 1~300자. 긴 논증은 signal.py 주석에 쓴다.
 - pool: champion40 = 현 규칙과 같은 '섹터별 그 시점 시총 상위 40종목'(반기 갱신), sp500_pit = 그 시점 S&P500 전체.
 - top_k 3~10, hold_months 1·3·6(매월 / 1·4·7·10월 / 1·7월 첫 거래일에 다시 고름).
-- topic: "selection"(무엇을 고르나) | "entry"(언제 사나) | "exit"(언제 파나) — 지시받은 주제를 그대로 쓴다. 사용자가 R&D 센터에서 주제별로 켜고 끈다.
+- topic: "selection"(무엇을 고르나) | "entry"(언제 사나) | "exit"(언제 파나) | "guru"(거장 13F 를 어떻게 쓰나 — data 에 "guru13f") — 지시받은 주제를 그대로 쓴다. 사용자가 R&D 센터에서 주제별로 켜고 끈다.
 - entry(언제 사나, 기본 {"type":"close"} = 리밸런싱 날 종가):
   {"type":"delay","days":1~20} — 그 거래일 수만큼 뒤 종가에 산다.
   {"type":"pullback","sma":3~50,"max_wait":1~40} — 그 안에 종가가 sma일 이동평균 아래로 내려온 날 사고, 안 오면 max_wait 째 종가에 산다.
@@ -45,6 +45,8 @@ def score(prices: dict[str, pd.DataFrame], as_of: pd.Timestamp, params: dict) ->
 - 재무·실적 정보(2026-10-08): spec.json 에 `"data": ["fundamentals"]` 를 넣으면 `score(prices, as_of, params, ctx)` 로 불린다.
   `ctx.fundamentals(종목)` → as_of 까지 SEC 에 공시된 것만: sic(업종 코드), gp_assets(최근 연간 매출총이익/총자산), rev_yoy·rev_yoy_prev
   (최근·직전 분기 매출 전년 대비 성장), ni_yoy(순이익), last_earnings(최근 실적 발표 8-K 날짜) — 모르면 None 또는 dict 자체가 None.
+  `"data": ["guru13f"]` 면 `ctx.guru(종목)` → as_of 까지 공시된 거장 13F(버핏·버리·애크먼·우드·드러켄밀러·테퍼·클라만, 2013년 2분기~):
+  n_holders(보유 거장 수), n_new(최근 공시에서 새로 산 거장 수), n_top5(상위 5 보유인 거장 수), max_weight(거장 포트폴리오 내 최대 비중). 데이터 없으면 {}.
   None 을 '나쁨'으로 취급해 빼지 말 것(상장폐지 회사가 데이터에서 빠져 결과가 부풀려진다). 시작 목록 S-SEED-010~017 이 예시.
 - 순수 함수: pandas, numpy, math 만. 전역 상태·파일·네트워크·시드 없는 난수 금지. 이력 부족 종목은 조용히 건너뛴다.
 - 같은 폴더에 test_signal.py: 합성 데이터로 (1) 모든 params 조합에서 dict[str,float] 반환 (2) 이력 부족 종목 건너뜀

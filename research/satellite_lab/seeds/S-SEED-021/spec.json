@@ -1,0 +1,28 @@
+{
+  "id": "S-SEED-021",
+  "parent": "S-SEED-000",
+  "title": "거장 확신 종목 우선 · 시점별 S&P500 풀",
+  "thesis": "현 규칙 후보 중 어느 거장의 상위 5 보유(확신 포지션)인 종목을 먼저 산다 — 펀드매니저의 '최고 아이디어'가 낫다는 연구(Cohen·Polk·Silli 2010). 그 시점 S&P500 구성 종목 전체에서 고른다.",
+  "source": "사용자 요청 2026-10-08 '거장 포트폴리오를 참고해 새틀라이트·챔피언을' — 거장 13F 이력(SEC)",
+  "pool": {
+    "type": "sp500_pit"
+  },
+  "data": [
+    "guru13f"
+  ],
+  "topic": "guru",
+  "signal": {
+    "params_grid": [
+      {
+        "mom_window": 252
+      }
+    ]
+  },
+  "portfolio": {
+    "top_k": 3,
+    "hold_months": 6
+  },
+  "exit": {
+    "type": "none"
+  }
+}

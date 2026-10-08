@@ -1,0 +1,28 @@
+{
+  "id": "S-SEED-018",
+  "parent": "S-SEED-000",
+  "title": "거장 보유 우선",
+  "thesis": "현 규칙 후보 중 거장 1명 이상이 보유한 종목을 먼저 산다 — 거장의 판단을 추세 신호의 확인 장치로.",
+  "source": "사용자 요청 2026-10-08 '거장 포트폴리오를 참고해 새틀라이트·챔피언을' — 거장 13F 이력(SEC)",
+  "pool": {
+    "type": "champion40"
+  },
+  "data": [
+    "guru13f"
+  ],
+  "topic": "guru",
+  "signal": {
+    "params_grid": [
+      {
+        "mom_window": 252
+      }
+    ]
+  },
+  "portfolio": {
+    "top_k": 3,
+    "hold_months": 6
+  },
+  "exit": {
+    "type": "none"
+  }
+}
