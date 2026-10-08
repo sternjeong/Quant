@@ -144,6 +144,13 @@
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
 
+## 2026-10-08 (후속6) 국면 연구 등록 — 강세장엔 뜨는 테마, 고꾸라지면 방어 (사용자 "등록해")
+
+- research/jobs/regime-rnd-v1(regime-judge/v1, priority 18): 월초 SPY ≥ 200일선이면 강세 → R1 테마 상위 3(theme-rotation-v1 과 같은 28개·L63, 결과 보기 전 고정) 100%,
+  R2 테마 50% + SPY 50%; 약세면 현 코어 비중. 참고: H5(강세 SPY), V0, SPY. 판정: 세후 원화 SPY +2.0%p 이상 & 떼어 둔 2년 SPY 초과 & DSR ≥ 0.95(시도 2) & 가족 PBO ≤ 25%
+  & 원화 MDD 가 SPY 보다 5%p 넘게 나쁘지 않음. 국면별 연율·전환 횟수·연도별 격차 보고. 스모크만 실행.
+- 사용자에게 설명: H5 는 강세장에서 SPY 100% 라 그 구간 수익이 SPY 와 같다(알파는 약세장 방어에서만).
+
 ## 2026-10-08 (후속5) 반등장 연구 등록 — 코어도 알파를 (사용자 의도)
 
 - 근거: docs/CHAMPION_2023_2026_CRYPTO_RESEARCH.md(2023 −20.4%p: XLE·DBC 유지, XLK 5월·XLC 6월 편입, 1월 코어 75% BIL).

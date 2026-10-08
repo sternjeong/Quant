@@ -1,0 +1,13 @@
+{
+  "id": "regime-rnd-v1",
+  "title": "국면 R&D v1 — 강세장엔 뜨는 테마, 고꾸라지면 방어: SPY 를 세후로 압도하나(사전 등록)",
+  "entrypoint": "research/jobs/regime-rnd-v1/run.py",
+  "args": [],
+  "timeout_seconds": 3600,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 18,
+  "revision": 1
+}
