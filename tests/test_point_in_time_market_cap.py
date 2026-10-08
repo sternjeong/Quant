@@ -134,6 +134,21 @@ def test_get_market_cap_asof_falls_back_to_earliest_shares_before_history_start(
     assert cap == pytest.approx(1000.0 * 10.0)
 
 
+def test_before_history_start_does_not_double_count_splits_before_history(monkeypatch):
+    # AAPL 사례(2026-10-08 버그): 이력은 2018 부터, 분할은 2017(7:1, 이력 시작 전)과 2020(4:1, 이력 시작 후).
+    # 2016 을 물으면 2018 값(1000, 이미 7:1 반영)에 이력 시작 후 분할(4)만 곱해야 한다 — 7 까지 곱하면 7배 과대.
+    splits = pd.Series([7.0, 4.0], index=pd.DatetimeIndex(["2017-06-09", "2020-08-31"]))
+    monkeypatch.setattr(pit_cap.yf, "Ticker", lambda t: _FakeTicker(_fake_shares_series(), splits=splits))
+
+    def _fake_price_history(ticker, start=None, end=None, interval="1d", use_cache=True):
+        return pd.DataFrame({"Close": [10.0]}, index=pd.DatetimeIndex(["2016-01-04"]))
+
+    monkeypatch.setattr(pit_cap, "get_price_history", _fake_price_history)
+
+    cap = pit_cap.get_market_cap_asof("AAPL", "2016-01-05")
+    assert cap == pytest.approx(1000.0 * 4.0 * 10.0)
+
+
 def test_get_market_cap_asof_none_when_no_shares_data(monkeypatch):
     monkeypatch.setattr(pit_cap.yf, "Ticker", lambda t: _FakeTicker(pd.Series(dtype="float64")))
 

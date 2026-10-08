@@ -1,5 +1,15 @@
 # 세션 인계
 
+## 2026-10-08 과거 시가총액 분할 이중 계산·이름 바뀐 종목 누락 수정(sat-judge/v3)
+
+- 요청: dip-rnd-v1 사전 점검에서 발견한 공유 모듈 문제 — 사용자가 "합리적인 쪽으로" 위임.
+- 결정: 고친다. ① `core/point_in_time_market_cap.get_market_cap_asof`: 발행주식수 이력(2015 말~) 전 날짜는 가장 이른 값 × '이력 시작일 이후' 분할만(전에는 as_of 이후 분할 전부 → 이력 전 분할 이중 계산). ② `core/point_in_time_universe.TICKER_ALIASES`(FB→META, ANTM→ELV, ABC→COR, WLTW→WTW, PKI→RVTY, FLT→CPAY, RE→EG, HFC→DINO — 옛 이름 가격 0행·새 이름 이력 있음을 확인한 것만, FISV·COG 제외), `hypothesis_engine.price_symbol` 도 같은 별칭. ③ 새틀라이트 R&D `sat-judge/v3`(관문 불변, 풀 측정만) + 풀 캐시 이름 `champion40_pit2_*` — 배포되면 migrate_registry 가 v2 보관 후 전 아이디어 재심판.
+- 영향 측정(VM 캐시 사본, 고치기 전/후 champion40 38개 기준일): 2008~2014 매 기준일 40개 중 5~9개 교체(나중에 분할한 MA·V·UNP·CF·NFLX·2009 AAPL 등이 과대 시총으로 들어가 있었고 JPM·C·WFC·MMM·DUK 등 실제 대형주가 빠져 있었음), 2015-01~2022-01 매 기준일 META 누락. 교체 슬롯 합계 119. **과거 새틀라이트 백테스트(챔피언 성과 화면의 과거 새틀라이트 선정, 새틀라이트 R&D, champion40 을 쓴 기존 연구)는 '나중에 분할할 승자' 쪽으로 유리하게 치우쳐 있었을 수 있다.** 오늘 날짜 새틀라이트 선정(이력 안쪽)은 영향 없음.
+- 미처리: 이미 끝난 연구 결과(tech-rnd-v1 등 champion40 사용)는 다시 돌리지 않았다 — 필요하면 새 id 로. dip-rnd-v1 은 자체 보정이라 풀은 무관하나, 비교 대상 챔피언의 새틀라이트가 배포 전 실행이면 옛 풀 기준.
+- 수정: `core/{point_in_time_market_cap,point_in_time_universe,hypothesis_engine,satellite_lab}.py`, 테스트 3개 파일(분할 회귀·별칭, 기존 FB 기대값 → META), `docs/SATELLITE_LAB.md`, 설명서 `content_modules_a/b`.
+- 검증: 전체 pytest 2541 passed·4 skipped, Telegram runner OK, hub.guide.check 누락 없음, 2014·2019 대형주 시총 실제값 ±12%.
+- 다음: 배포 후 새틀라이트 R&D 재심판 결과(텔레그램)·챔피언 성과 화면의 과거 수치 변화를 확인.
+
 ## 2026-10-08 초대형 우량주 눌림 매수 R&D(dip-rnd-v1) 사전 등록
 
 - 요청: "구글 같은 빅테크를 눌렸을 때 줍기만 해도 챔피언을 이기는 것 같다 — 이 전략을 극대화하는 R&D".

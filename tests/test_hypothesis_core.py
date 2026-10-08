@@ -128,6 +128,7 @@ def test_load_signal_requires_score():
 
 def test_price_symbol_mapping():
     assert he.price_symbol("BF.B") == "BF-B" and he.price_symbol("AAL-199702") == "AAL"
+    assert he.price_symbol("FB") == "META"  # 이름 바뀐 종목은 지금 이름(가격 소스에 옛 이름 이력 없음)
 
 
 # ---------------- judge ----------------

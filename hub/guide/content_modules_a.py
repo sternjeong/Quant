@@ -51,7 +51,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         how_to_use="자동 심판이 씁니다. 직접 쓸 일은 없습니다.",
         where_to_see="화면 없음(심판 결과로 반영)",
         cautions="과거 S&P500 구성종목 목록을 쓰지만 상장폐지 종목의 가격이 무료 소스에 없으면 빠지므로 생존편향이 남습니다(심판 결과에 가격 커버리지로 표시).",
-        verified="2026-09-25",
+        verified="2026-10-08",
     ),
     ModuleGuide(
         module="core/hypothesis_judge.py", name="가설 자동 심판", group="분석·백테스트", status="운영중",

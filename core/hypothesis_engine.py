@@ -52,8 +52,11 @@ def load_signal(code: str) -> Callable:
 
 
 def price_symbol(raw: str) -> str:
-    """구성종목 CSV 표기('BF.B', 'AAL-199702') → yfinance 표기('BF-B', 'AAL')."""
-    return _DELISTED.sub("", raw).replace(".", "-")
+    """구성종목 CSV 표기('BF.B', 'AAL-199702', 'FB') → yfinance 표기('BF-B', 'AAL', 'META' — 이름 바뀐 종목은 지금 이름)."""
+    from core.point_in_time_universe import TICKER_ALIASES
+
+    sym = _DELISTED.sub("", raw).replace(".", "-")
+    return TICKER_ALIASES.get(sym, sym)
 
 
 @lru_cache(maxsize=1)

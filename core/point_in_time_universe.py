@@ -30,6 +30,12 @@ DEFAULT_CSV_PATH = "data/sp500_historical_constituents.csv"
 
 _SUFFIX_RE = re.compile(r"-\d{6}$")
 
+# 구성종목 CSV 의 옛 티커 → 가격 소스(yfinance)가 과거 이력까지 지금 이름으로 주는 티커(2026-10-08).
+# 옛 이름으로는 가격이 없어(예: FB) 그 시기 후보에서 조용히 빠지던 문제를 막는다. 옛 이름 0행·새 이름 이력 있음을
+# 2014-01~02 가격으로 확인한 것만 넣었다(FISV 는 옛 이름에 이력이 있고 COG/CTRA 는 둘 다 없어 제외).
+TICKER_ALIASES = {"FB": "META", "ANTM": "ELV", "ABC": "COR", "WLTW": "WTW", "PKI": "RVTY", "FLT": "CPAY",
+                  "RE": "EG", "HFC": "DINO"}
+
 
 def _normalize_ticker(raw: str) -> str:
     """CSV의 원본 티커 표기를 yfinance 표기법으로 정규화한다.
@@ -40,7 +46,7 @@ def _normalize_ticker(raw: str) -> str:
     ticker = raw.strip()
     ticker = _SUFFIX_RE.sub("", ticker)
     ticker = ticker.replace(".", "-")
-    return ticker
+    return TICKER_ALIASES.get(ticker, ticker)
 
 
 @functools.lru_cache(maxsize=8)

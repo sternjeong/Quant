@@ -44,9 +44,9 @@ def test_point_in_time_behavior_differs_across_dates():
     assert early != later
 
     # 1996년 당시엔 없었지만 이후 S&P500에 편입된 종목이 later에는 있어야 한다
-    # (Facebook은 2012년 IPO, 2013년에 S&P500에 편입됨)
-    assert "FB" not in early
-    assert "FB" in later
+    # (Facebook은 2012년 IPO, 2013년에 S&P500에 편입됨 — 지금 이름 META 로 돌려준다, TICKER_ALIASES)
+    assert "META" not in early
+    assert "META" in later
 
     # Amazon도 1996년에는 상장 전(1997년 IPO)이라 없어야 하고, 2020년에는 있어야 한다
     assert "AMZN" not in early
@@ -69,3 +69,9 @@ def test_repeated_calls_use_cache_and_return_consistent_results():
     first = get_constituents_as_of("2015-01-01")
     second = get_constituents_as_of("2015-01-01")
     assert first == second
+
+
+def test_renamed_tickers_use_current_symbol():
+    # 가격 소스에 옛 이름(FB) 이력이 없어 2013~2022 Facebook 이 후보에서 빠지던 문제(2026-10-08).
+    members_2016 = get_constituents_as_of("2016-01-04")
+    assert "META" in members_2016 and "FB" not in members_2016

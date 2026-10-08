@@ -126,9 +126,13 @@ def get_market_cap_asof(ticker: str, as_of_date: str, use_cache: bool = True) ->
 
     as_of_ts = pd.Timestamp(as_of_date)
     prior = shares_hist[shares_hist.index <= as_of_ts]
-    # 모듈 docstring 한계 1번: 가장 이른 데이터보다 과거를 물으면 가장 이른 값으로 근사한다.
-    shares = float(prior.iloc[-1]) if not prior.empty else float(shares_hist.iloc[0])
-    shares *= _cumulative_split_factor_after(ticker, as_of_ts, use_cache=use_cache)
+    if prior.empty:
+        # 모듈 docstring 한계 1번: 가장 이른 데이터보다 과거를 물으면 가장 이른 값으로 근사한다. 그 값은 이미 이력 시작 전
+        # 분할이 반영된 주식수이므로 '이력 시작일 이후' 분할만 곱한다(2026-10-08 수정 — 전에는 as_of 이후 분할을 모두 곱해
+        # 이력 시작 전 분할을 두 번 셌다: 2014-01 AAPL 6.3배, GOOGL 2.0배 과대).
+        shares = float(shares_hist.iloc[0]) * _cumulative_split_factor_after(ticker, shares_hist.index[0], use_cache=use_cache)
+    else:
+        shares = float(prior.iloc[-1]) * _cumulative_split_factor_after(ticker, as_of_ts, use_cache=use_cache)
 
     fetch_start = (as_of_ts - pd.DateOffset(days=10)).date().isoformat()
     fetch_end = (as_of_ts + pd.DateOffset(days=1)).date().isoformat()

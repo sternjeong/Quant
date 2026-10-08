@@ -54,7 +54,11 @@ VARIANTS_DIR = LAB_DIR / "variants"    # 야간 에이전트가 쓰는 곳(VM �
 STATE_DIR = PROJECT_ROOT / "data" / "satellite_lab"
 INCUMBENT_ID = "S-SEED-000"
 
-JUDGE_VERSION = "sat-judge/v2"
+JUDGE_VERSION = "sat-judge/v3"
+# v3(2026-10-08): 관문은 그대로, champion40 후보 풀 '측정'만 바뀌었다 — core.point_in_time_market_cap 이 발행주식수 이력
+# 시작(2015 말) 전 날짜에서 분할을 두 번 세던 버그(2014 AAPL 6배·GOOGL 2배 과대)와, 이름이 바뀐 종목(FB→META 등)이
+# 가격이 없어 풀에서 빠지던 문제를 고쳤다. 풀 캐시 파일 이름도 바꿔(POOL_CACHE_TAG) 예전 풀을 다시 쓰지 않는다.
+POOL_CACHE_TAG = "pit2"
 # v2(2026-10-05): 판정 관문은 v1 과 같고 '측정'만 바뀌었다 — 수익을 배당 포함 조정 가격(Adj Close)으로 잰다(v1 은 Close, 배당 누락).
 # 등록부가 v1 이면 migrate_registry() 가 v1 결과를 보관하고 모든 아이디어를 v2 로 다시 심판한다(누적 시도 수는 이어서 센다).
 ID_RE = re.compile(r"^S-(SEED|\d{8})-\d{3}$")
@@ -236,7 +240,7 @@ def default_pool_provider(cache_dir: Optional[Path] = None) -> PoolProvider:
             raw = members[i] if i >= 0 else ()
             return sorted({he.price_symbol(t) for t in raw} - exclude)
         anchor = _anchor(d)
-        path = cache / f"champion40_{anchor.isoformat()}.json"
+        path = cache / f"champion40_{POOL_CACHE_TAG}_{anchor.isoformat()}.json"
         if path.exists():
             return json.loads(path.read_text(encoding="utf-8"))
         from core.strategy_tuning import sample_universe
