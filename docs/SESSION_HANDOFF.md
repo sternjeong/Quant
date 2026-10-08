@@ -144,6 +144,13 @@
 - **아직 커밋되지 않은 작업이 많다.** 이 세션의 엔진 변경(`core/candidate_ledger.py`, `core/candidate_recorder.py`, `core/earnings_events.py`, `core/filing_changes.py`, `core/trade_ledger.py`, `core/tuning_ledger.py` 등)과 이전 세션들의 ENG-01~10 변경이 모두 아직 로컬 작업트리에만 있다. 사용자는 별도 브랜치(`engine-upgrade-2026-09` 제안, 아직 승인 대기)로 커밋하는 방안을 논의 중이었다. **push는 사용자 승인 없이 하지 않았다.**
 - 이 최신 요약이 아래 과거 세션의 당시 상태보다 우선한다. 과거 기록은 의사결정 이력 보존을 위해 삭제하지 않았다.
 
+## 2026-10-08 (후속4) 테마 순환 연구 등록 (사용자 기준: 1 지금 불장인 시장 2 빨리 잡기 3 많이 안 갈아타도 SPY 압도)
+
+- research/jobs/theme-rotation-v1(theme-judge/v1, 사전 등록, priority 20): 테마 ETF 28개 고정(상장 252거래일 뒤부터 후보), '불장' = 200일선 위 & L일 수익률 > SPY,
+  규칙 18개(L 21/63/126 × 상위 1/2/3 × 보유 1/3개월, 남는 슬롯 SPY), 기준선 SPY 그냥 보유. 판정 A: 앞 구간 최선의 SPY 대비 DSR ≥ 0.95·PBO ≤ 25%·떼어 둔 2년 샤프 > SPY,
+  B: 세후·청산 후 원화 연수익이 SPY 보다 전체 +2.0%p 이상 & 떼어 둔 2년에서도 높음. 진단(판정 아님): 적중률·뜨거운 달 포착률·지연.
+  스모크만 실행(종료 0). 2007년부터라 2008 하락장 포함.
+
 ## 2026-10-08 (후속3) 애널리스트 R&D 등록 + R&D 결과 종합
 
 - VIX(공포지수)는 info-rnd-v1 A(13변형, KEEP_CURRENT, PBO 40%)·tech-rnd-v1(고변동 게이트) 에서 이미 기각 → 재시험 안 함.

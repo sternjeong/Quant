@@ -1,0 +1,13 @@
+{
+  "id": "theme-rotation-v1",
+  "title": "테마 순환 v1 — 지금 불장인 테마(반도체·로봇·바이오…)를 빨리 잡아 SPY 를 압도할 수 있나(사전 등록)",
+  "entrypoint": "research/jobs/theme-rotation-v1/run.py",
+  "args": [],
+  "timeout_seconds": 5400,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 20,
+  "revision": 1
+}
