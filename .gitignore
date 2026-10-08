@@ -67,3 +67,4 @@ research/satellite_lab/context.md
 # '허용 범위 밖 변경'으로 오인해 매번 지우고 경고하지 않도록 무시한다(2026-10-05).
 .claude/backups/
 .cache/claude-cli-nodejs/
+.claude/worktrees/
