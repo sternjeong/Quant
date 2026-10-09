@@ -1,0 +1,162 @@
+{
+ "judge_version": "core-weight-judge/v1",
+ "smoke": false,
+ "generated_at": "2026-10-09T01:32:58+00:00",
+ "verdicts": {
+  "W1": "FAIL",
+  "W2": "FAIL",
+  "W3": "FAIL",
+  "W4": "FAIL",
+  "W5": "FAIL"
+ },
+ "details": {
+  "W1": {
+   "label": "순위 가중 40·30·20·10",
+   "checks": {
+    "is_sharpe_gt_w0": false,
+    "dsr_ge_0.95": false,
+    "family_pbo_le_25pct": false,
+    "holdout_sharpe_gt_w0": true,
+    "after_tax_gt_w0": true
+   },
+   "dsr": 0.10144289579549381
+  },
+  "W2": {
+   "label": "모멘텀 크기 비례",
+   "checks": {
+    "is_sharpe_gt_w0": false,
+    "dsr_ge_0.95": false,
+    "family_pbo_le_25pct": false,
+    "holdout_sharpe_gt_w0": false,
+    "after_tax_gt_w0": true
+   },
+   "dsr": 0.13884377813118154
+  },
+  "W3": {
+   "label": "위험 균등 기여(ERC)",
+   "checks": {
+    "is_sharpe_gt_w0": true,
+    "dsr_ge_0.95": false,
+    "family_pbo_le_25pct": false,
+    "holdout_sharpe_gt_w0": true,
+    "after_tax_gt_w0": true
+   },
+   "dsr": 0.47170780917552163
+  },
+  "W4": {
+   "label": "변동성 역수(참고, 이미 탈락한 방식)",
+   "checks": {
+    "is_sharpe_gt_w0": false,
+    "dsr_ge_0.95": false,
+    "family_pbo_le_25pct": false,
+    "holdout_sharpe_gt_w0": true,
+    "after_tax_gt_w0": false
+   },
+   "dsr": 0.012429781287194908
+  },
+  "W5": {
+   "label": "같은 비중 + 변동성 목표 12%",
+   "checks": {
+    "is_sharpe_gt_w0": true,
+    "dsr_ge_0.95": false,
+    "family_pbo_le_25pct": false,
+    "holdout_sharpe_gt_w0": false,
+    "after_tax_gt_w0": false
+   },
+   "dsr": 0.008218538446602808
+  }
+ },
+ "family_pbo": {
+  "pbo": 0.2714285714285714,
+  "n_splits": 70,
+  "median_logit": 1.3862943611198908
+ },
+ "after_tax": {
+  "W0": {
+   "cagr_liq": 0.09296354661547035,
+   "mdd": -0.2526305217959449,
+   "tax_m": 15.911032294033749
+  },
+  "W1": {
+   "cagr_liq": 0.09301474425996048,
+   "mdd": -0.2559269392108625,
+   "tax_m": 17.45923849097814
+  },
+  "W2": {
+   "cagr_liq": 0.09432258266922378,
+   "mdd": -0.26072935865864033,
+   "tax_m": 16.731734622206798
+  },
+  "W3": {
+   "cagr_liq": 0.10064236030176055,
+   "mdd": -0.2700397066018658,
+   "tax_m": 22.14661196634514
+  },
+  "W4": {
+   "cagr_liq": 0.09005253269175117,
+   "mdd": -0.24954446544651177,
+   "tax_m": 15.45734136611775
+  },
+  "W5": {
+   "cagr_liq": 0.08662952393132062,
+   "mdd": -0.24128921794399505,
+   "tax_m": 13.048377910689643
+  },
+  "SPY": {
+   "cagr_liq": 0.12177886817382966,
+   "mdd": -0.29678566480959234,
+   "tax_m": 0.0
+  }
+ },
+ "report": {
+  "W0": {
+   "sharpe_is": 0.6070784531251008,
+   "sharpe_holdout": 1.2437091701505405,
+   "mdd": -0.19767027506372004,
+   "turnover_per_year": 6.043837357052097,
+   "avg_bil": 0.13900360016941973,
+   "after_tax_vs_spy_pp": -2.881532155835931
+  },
+  "W1": {
+   "sharpe_is": 0.5584874596787173,
+   "sharpe_holdout": 1.3024378433169725,
+   "mdd": -0.2165901904411014,
+   "turnover_per_year": 6.804320203303685,
+   "avg_bil": 0.12935196950444725,
+   "after_tax_vs_spy_pp": -2.8764123913869177
+  },
+  "W2": {
+   "sharpe_is": 0.5704466830773994,
+   "sharpe_holdout": 1.2429938803546785,
+   "mdd": -0.20944961514610994,
+   "turnover_per_year": 6.397610895704523,
+   "avg_bil": 0.13900360016941973,
+   "after_tax_vs_spy_pp": -2.745628550460588
+  },
+  "W3": {
+   "sharpe_is": 0.6685667618177292,
+   "sharpe_holdout": 1.4995262242219458,
+   "mdd": -0.2225937431590752,
+   "turnover_per_year": 7.359817961460653,
+   "avg_bil": 0.13900360016941973,
+   "after_tax_vs_spy_pp": -2.113650787206911
+  },
+  "W4": {
+   "sharpe_is": 0.579454669159534,
+   "sharpe_holdout": 1.3605621593364072,
+   "mdd": -0.19813449048707055,
+   "turnover_per_year": 7.587413405336722,
+   "avg_bil": 0.1390178790766624,
+   "after_tax_vs_spy_pp": -3.1726335482078483
+  },
+  "W5": {
+   "sharpe_is": 0.6162943561769281,
+   "sharpe_holdout": 1.2027010878779505,
+   "mdd": -0.18198962319789236,
+   "turnover_per_year": 6.259876676578993,
+   "avg_bil": 0.22857158416553383,
+   "after_tax_vs_spy_pp": -3.514934424250904
+  }
+ },
+ "holdout_start": "2024-10-08"
+}
