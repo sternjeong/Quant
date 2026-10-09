@@ -1,0 +1,106 @@
+{
+ "judge_version": "synthesis-judge/v1",
+ "smoke": false,
+ "generated_at": "2026-10-09T09:50:18+00:00",
+ "verdicts": {
+  "S1": "FAIL",
+  "S2": "FAIL",
+  "S3": "FAIL"
+ },
+ "details": {
+  "S1": {
+   "label": "SPY 70% 영구 + ERC 코어 30%",
+   "checks": {
+    "return_per_mdd_full_beats_both": true,
+    "return_per_mdd_holdout_beats_both": false,
+    "holdout_sharpe_beats_both": false,
+    "dsr_ge_0.95": false,
+    "family_pbo_le_25pct": false
+   },
+   "dsr": 0.9127185602138166,
+   "sharpe_holdout": 0.95329660879151
+  },
+  "S2": {
+   "label": "SPY 50% 영구 + ERC 코어 50%",
+   "checks": {
+    "return_per_mdd_full_beats_both": true,
+    "return_per_mdd_holdout_beats_both": false,
+    "holdout_sharpe_beats_both": true,
+    "dsr_ge_0.95": false,
+    "family_pbo_le_25pct": false
+   },
+   "dsr": 0.916759073000714,
+   "sharpe_holdout": 1.0121845454110114
+  },
+  "S3": {
+   "label": "SPY 30% 영구 + ERC 코어 70%",
+   "checks": {
+    "return_per_mdd_full_beats_both": true,
+    "return_per_mdd_holdout_beats_both": true,
+    "holdout_sharpe_beats_both": true,
+    "dsr_ge_0.95": false,
+    "family_pbo_le_25pct": false
+   },
+   "dsr": 0.9077300796085126,
+   "sharpe_holdout": 1.0793851208442655
+  }
+ },
+ "family_pbo": {
+  "pbo": 0.8857142857142857,
+  "n_splits": 70,
+  "median_logit": -1.0986122886681098
+ },
+ "stats": {
+  "S1": {
+   "label": "SPY 70% 영구 + ERC 코어 30%",
+   "cagr_liq": 0.11551302452975687,
+   "cagr_liq_holdout": 0.18222118419168054,
+   "mdd": -0.23064930053374932,
+   "mdd_holdout": -0.14667763069855444,
+   "tax_m": 2.508039953840714,
+   "return_per_mdd": 0.5008167129163031,
+   "return_per_mdd_holdout": 1.2423242952851732
+  },
+  "S2": {
+   "label": "SPY 50% 영구 + ERC 코어 50%",
+   "cagr_liq": 0.1096317326840841,
+   "cagr_liq_holdout": 0.19156157257489714,
+   "mdd": -0.19637378711984632,
+   "mdd_holdout": -0.1268842148861563,
+   "tax_m": 6.441940194569192,
+   "return_per_mdd": 0.5582808901942508,
+   "return_per_mdd_holdout": 1.5097352554592467
+  },
+  "S3": {
+   "label": "SPY 30% 영구 + ERC 코어 70%",
+   "cagr_liq": 0.10292985898559204,
+   "cagr_liq_holdout": 0.19965413294258272,
+   "mdd": -0.19898532873455188,
+   "mdd_holdout": -0.10553746494244509,
+   "tax_m": 10.51596582234893,
+   "return_per_mdd": 0.5172736082613475,
+   "return_per_mdd_holdout": 1.8917844298369701
+  },
+  "B1": {
+   "label": "SPY 그냥 보유",
+   "cagr_liq": 0.12177886817382966,
+   "cagr_liq_holdout": 0.1601894647383575,
+   "mdd": -0.29678566480959234,
+   "mdd_holdout": -0.1714386348406537,
+   "tax_m": 0.0,
+   "return_per_mdd": 0.41032597801500575,
+   "return_per_mdd_holdout": 0.9343836929595717
+  },
+  "B2": {
+   "label": "현 코어(같은 비중)",
+   "cagr_liq": 0.08743204106448177,
+   "cagr_liq_holdout": 0.17928763376770962,
+   "mdd": -0.2599472633545472,
+   "mdd_holdout": -0.11431248009678219,
+   "tax_m": 13.333259561951246,
+   "return_per_mdd": 0.33634530302875887,
+   "return_per_mdd_holdout": 1.5683994749822285
+  }
+ },
+ "holdout_start": "2024-10-08"
+}
