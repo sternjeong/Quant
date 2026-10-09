@@ -1,0 +1,13 @@
+{
+  "id": "synthesis-rnd-v1",
+  "title": "정반합 R&D v1 — 원수익 경쟁을 접고 위험조정 기준으로 ERC 코어 + SPY 영구보유 블렌드 재평가(사전 등록)",
+  "entrypoint": "research/jobs/synthesis-rnd-v1/run.py",
+  "args": [],
+  "timeout_seconds": 3600,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 11,
+  "revision": 1
+}
