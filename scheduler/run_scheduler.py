@@ -957,7 +957,9 @@ def research_job_runner_job() -> None:
         print(f"[{datetime.now()}] research_job_runner_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
         return
     print(f"[{datetime.now()}] research_job_runner_job 시작")
-    if os.path.exists("/opt/quant-deploy-staging"):  # 자동 배포가 테스트 중 — 시간 초과를 부르지 않도록 이번 회차는 쉰다
+    staging = "/opt/quant-deploy-staging"
+    # 자동 배포가 테스트 중 — 시간 초과를 부르지 않도록 이번 회차는 쉰다. 단 이 코드 자체가 그 검증 폴더에서 돌고 있으면(테스트 관문 안) 무시한다.
+    if os.path.exists(staging) and os.path.realpath(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) != os.path.realpath(staging):
         print("  - 자동 배포 테스트 관문이 도는 중이라 이번 회차는 건너뜀")
         print(f"[{datetime.now()}] research_job_runner_job 종료")
         return
