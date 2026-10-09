@@ -102,15 +102,19 @@ print("smoke ok")
 
 def check_signal(hid: str, timeout: int = 180) -> tuple[bool, str]:
     d = WS / hid
-    # --import-mode=importlib: 가설 폴더명(H-YYYYMMDD-NNN)에 하이픈이 있어 pytest 기본 모드가 패키지로
-    # 보려다 "attempted relative import with no known parent package"로 깨진다(2026-10-09 실측, 전 가설
-    # 4건이 이걸로 abandoned 됨 — Critic 반려가 아니라 이 import 오류였다). importlib 모드는 경로 기반으로
-    # 모듈을 로드해 하이픈 식별자 제약을 받지 않는다.
-    for cmd in ([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", "--import-mode=importlib",
-                 str(d / "test_signal.py")],
-                [sys.executable, "-c", SMOKE, str(PROJECT_ROOT), str(d / "spec.json"), str(d / "signal.py")]):
+    # 2026-10-09 실측(10개 draft 전부 이걸로 막혀 있었다, Critic 반려가 아니었다):
+    # 1) PROJECT_ROOT 기준 절대경로로 pytest를 돌리면 `pytest`를 import 하는 과정에서 표준 라이브러리
+    #    signal 모듈이 먼저 sys.modules 에 올라가, 에이전트가 흔히 쓰는 `from signal import score`(파일명이
+    #    signal.py 라서)가 로컬 파일이 아니라 그 표준 라이브러리 signal을 가리켜 깨진다. cwd 를 가설 폴더
+    #    자체로 두고 파일명만 넘기면(= 직접 그 폴더에서 돌리듯) 정상적으로 로컬 파일이 우선한다(재현 확인).
+    # 2) --import-mode=importlib: 가설 폴더명(H-YYYYMMDD-NNN)의 하이픈이 유효한 Python 식별자가 아니라
+    #    기본 모드는 상대 임포트(`from .signal import score`)를 패키지로 못 묶어 깨진다 — 경로 기반 로딩으로 우회.
+    for cmd, cwd in (([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", "--import-mode=importlib",
+                       "test_signal.py"], d),
+                      ([sys.executable, "-c", SMOKE, str(PROJECT_ROOT), str(d / "spec.json"), str(d / "signal.py")],
+                       PROJECT_ROOT)):
         try:
-            p = subprocess.run(cmd, cwd=PROJECT_ROOT, capture_output=True, text=True, timeout=timeout)
+            p = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=timeout)
         except subprocess.TimeoutExpired:
             return False, f"시간 초과({timeout}s): {' '.join(cmd[:4])}"
         if p.returncode != 0:
@@ -433,11 +437,13 @@ def sat_check(sid: str, timeout: int = 300) -> tuple[bool, str]:
     d = SAT_WS / sid
     if not (d / "test_signal.py").exists():
         return False, "test_signal.py 없음"
-    for cmd in ([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", "--import-mode=importlib",
-                 str(d / "test_signal.py")],
-                [sys.executable, "-c", SAT_SMOKE, str(PROJECT_ROOT), str(d)]):
+    # check_signal() 과 같은 이유로 cwd=d + 파일명만(절대경로 아님) — signal.py 가 표준 라이브러리 signal
+    # 모듈과 이름이 겹쳐도 로컬 파일이 우선하게 한다.
+    for cmd, cwd in (([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", "--import-mode=importlib",
+                       "test_signal.py"], d),
+                      ([sys.executable, "-c", SAT_SMOKE, str(PROJECT_ROOT), str(d)], PROJECT_ROOT)):
         try:
-            p = subprocess.run(cmd, cwd=PROJECT_ROOT, capture_output=True, text=True, timeout=timeout)
+            p = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=timeout)
         except subprocess.TimeoutExpired:
             return False, f"시간 초과({timeout}s)"
         if p.returncode != 0:
