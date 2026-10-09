@@ -1,0 +1,152 @@
+{
+ "kind": "탐색 분석(판정 없음)",
+ "smoke": false,
+ "generated_at": "2026-10-09T00:56:22+00:00",
+ "summary": {
+  "is_picks": 87,
+  "fail_rate": 0.2413793103448276,
+  "big_fail_rate": 0.08045977011494253,
+  "significant_features": "없음"
+ },
+ "features": {
+  "mom12": {
+   "n": 87,
+   "fail_median": 0.5284850977323292,
+   "other_median": 0.6383102787400886,
+   "effect": -0.09523809523809523,
+   "p": 0.5147426286856571,
+   "significant": false
+  },
+  "mom1": {
+   "n": 87,
+   "fail_median": 0.026297334781277604,
+   "other_median": 0.034171462666671815,
+   "effect": -0.015873015873015872,
+   "p": 0.9250374812593704,
+   "significant": false
+  },
+  "ext50": {
+   "n": 87,
+   "fail_median": 0.05011078685874493,
+   "other_median": 0.04830827219043432,
+   "effect": -0.02886002886002886,
+   "p": 0.8370814592703648,
+   "significant": false
+  },
+  "ext200": {
+   "n": 87,
+   "fail_median": 0.1555649500819265,
+   "other_median": 0.16613738503230358,
+   "effect": -0.08802308802308802,
+   "p": 0.5397301349325337,
+   "significant": false
+  },
+  "vol63": {
+   "n": 87,
+   "fail_median": 0.25467512291137145,
+   "other_median": 0.27583449785497205,
+   "effect": -0.031746031746031744,
+   "p": 0.8320839580209896,
+   "significant": false
+  },
+  "off_high": {
+   "n": 87,
+   "fail_median": -0.02926329598768307,
+   "other_median": -0.023795590875536954,
+   "effect": 0.015873015873015872,
+   "p": 0.9295352323838081,
+   "significant": false
+  },
+  "rank_pct": {
+   "n": 87,
+   "fail_median": 0.975,
+   "other_median": 0.975,
+   "effect": -0.017316017316017316,
+   "p": 0.9090454772613693,
+   "significant": false
+  },
+  "same_sector": {
+   "n": 87,
+   "fail_median": 0.0,
+   "other_median": 0.0,
+   "effect": 0.045454545454545456,
+   "p": 0.7581209395302348,
+   "significant": false
+  },
+  "gp_assets": {
+   "n": 60,
+   "fail_median": 0.30514538585175444,
+   "other_median": 0.3708612586198428,
+   "effect": -0.309328968903437,
+   "p": 0.09845077461269365,
+   "significant": false
+  },
+  "rev_yoy": {
+   "n": 80,
+   "fail_median": 0.10766722379772298,
+   "other_median": 0.1203314119221619,
+   "effect": -0.043010752688172046,
+   "p": 0.7901049475262368,
+   "significant": false
+  },
+  "breadth": {
+   "n": 87,
+   "fail_median": 0.925,
+   "other_median": 0.925,
+   "effect": -0.03896103896103896,
+   "p": 0.8095952023988006,
+   "significant": false
+  },
+  "spy_200": {
+   "n": 84,
+   "fail_median": 1.0,
+   "other_median": 1.0,
+   "effect": -0.07936507936507936,
+   "p": 0.504247876061969,
+   "significant": false
+  },
+  "spy_mom6": {
+   "n": 84,
+   "fail_median": 0.049713648896869245,
+   "other_median": 0.07778023834860393,
+   "effect": -0.10657596371882086,
+   "p": 0.47476261869065467,
+   "significant": false
+  },
+  "spy_vol63": {
+   "n": 87,
+   "fail_median": 0.1392849294394875,
+   "other_median": 0.12109016162248082,
+   "effect": 0.14285714285714285,
+   "p": 0.3363318340829585,
+   "significant": false
+  }
+ },
+ "period_features": {
+  "breadth": {
+   "bad_median": 0.875,
+   "other_median": 0.9493589743589743,
+   "effect": -0.3974358974358974,
+   "p": 0.28735632183908044
+  },
+  "spy_200": {
+   "bad_median": 1.0,
+   "other_median": 1.0,
+   "effect": -0.17333333333333334,
+   "p": 1.0
+  },
+  "spy_mom6": {
+   "bad_median": 0.049713648896869245,
+   "other_median": 0.07244529604913508,
+   "effect": -0.22666666666666666,
+   "p": 0.6046976511744128
+  },
+  "spy_vol63": {
+   "bad_median": 0.16266308186518885,
+   "other_median": 0.12109016162248082,
+   "effect": 0.46153846153846156,
+   "p": 0.2223888055972014
+  }
+ },
+ "holdout_start": "2024-10-08"
+}
