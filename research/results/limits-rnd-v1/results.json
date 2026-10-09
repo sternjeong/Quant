@@ -1,0 +1,124 @@
+{
+ "judge_version": "limits-judge/v1",
+ "smoke": false,
+ "generated_at": "2026-10-09T01:14:00+00:00",
+ "verdicts": {
+  "L1": "FAIL",
+  "L2": "FAIL",
+  "L3": "FAIL",
+  "L4": "FAIL",
+  "L5": "FAIL"
+ },
+ "details": {
+  "L1": {
+   "checks": {
+    "after_tax_ge_spy_plus_0.5pp": false,
+    "holdout_after_tax_ge_spy": true,
+    "mdd_not_worse_than_spy": true,
+    "dsr_ge_0.95": false,
+    "family_pbo_le_25pct": false
+   },
+   "dsr": 0.14561928847646866
+  },
+  "L2": {
+   "checks": {
+    "after_tax_ge_spy_plus_0.5pp": false,
+    "holdout_after_tax_ge_spy": true,
+    "mdd_not_worse_than_spy": true,
+    "dsr_ge_0.95": false,
+    "family_pbo_le_25pct": false
+   },
+   "dsr": 0.20627601767020654
+  },
+  "L3": {
+   "checks": {
+    "after_tax_ge_spy_plus_0.5pp": false,
+    "holdout_after_tax_ge_spy": false,
+    "mdd_not_worse_than_spy": true,
+    "dsr_ge_0.95": false,
+    "family_pbo_le_25pct": false
+   },
+   "dsr": 0.10819334933110675
+  },
+  "L4": {
+   "checks": {
+    "after_tax_ge_spy_plus_0.5pp": false,
+    "holdout_after_tax_ge_spy": true,
+    "mdd_not_worse_than_spy": false,
+    "dsr_ge_0.95": false,
+    "family_pbo_le_25pct": false
+   },
+   "dsr": 0.11553893444628605
+  },
+  "L5": {
+   "checks": {
+    "after_tax_ge_spy_plus_0.5pp": false,
+    "holdout_after_tax_ge_spy": true,
+    "mdd_not_worse_than_spy": true,
+    "dsr_ge_0.95": false,
+    "family_pbo_le_25pct": false
+   },
+   "dsr": 0.1339216107359814
+  }
+ },
+ "stats": {
+  "L1": {
+   "label": "SPY 80% 영구 + 현 코어 20%",
+   "cagr_liq": 0.1155859450634773,
+   "cagr_liq_holdout": 0.17034772624378314,
+   "mdd": -0.24860392410719812,
+   "tax_m": 1.3749815219247912,
+   "return_per_mdd": 0.46494014717819415
+  },
+  "L2": {
+   "label": "SPY 80% 영구 + R1 국면·테마 20%",
+   "cagr_liq": 0.11568402466531946,
+   "cagr_liq_holdout": 0.18087087583701678,
+   "mdd": -0.2621881627779957,
+   "tax_m": 5.993355136051942,
+   "return_per_mdd": 0.44122520040415913
+  },
+  "L3": {
+   "label": "완충 국면 전환(강세 SPY / 약세 코어)",
+   "cagr_liq": 0.09481742312034136,
+   "cagr_liq_holdout": 0.14392064834636065,
+   "mdd": -0.29678566480959234,
+   "tax_m": 25.272758776115115,
+   "return_per_mdd": 0.31948114199239713
+  },
+  "L4": {
+   "label": "완충 국면 전환(강세 테마 50%+SPY 50% / 약세 코어)",
+   "cagr_liq": 0.09245659936856776,
+   "cagr_liq_holdout": 0.19664962154316323,
+   "mdd": -0.3515058192997258,
+   "tax_m": 24.865948805597142,
+   "return_per_mdd": 0.26303006747586977
+  },
+  "L5": {
+   "label": "SPY 50% 영구 + 현 코어 50%",
+   "cagr_liq": 0.10920809842490797,
+   "cagr_liq_holdout": 0.17845307457453852,
+   "mdd": -0.17601614006837962,
+   "tax_m": 7.760980208043522,
+   "return_per_mdd": 0.6204436614874197
+  },
+  "SPY": {
+   "label": "SPY 그냥 보유",
+   "cagr_liq": 0.11816865837592161,
+   "cagr_liq_holdout": 0.1601894647383575,
+   "mdd": -0.29678566480959245,
+   "tax_m": 0.0,
+   "return_per_mdd": 0.39816161084375346
+  }
+ },
+ "family_pbo": {
+  "pbo": 0.9857142857142858,
+  "n_splits": 70,
+  "median_logit": -7.600901959541832
+ },
+ "switches": {
+  "L3": 20,
+  "L4": 20
+ },
+ "holdout_start": "2024-10-08"
+}
