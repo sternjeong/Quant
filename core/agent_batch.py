@@ -102,7 +102,12 @@ print("smoke ok")
 
 def check_signal(hid: str, timeout: int = 180) -> tuple[bool, str]:
     d = WS / hid
-    for cmd in ([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", str(d / "test_signal.py")],
+    # --import-mode=importlib: 가설 폴더명(H-YYYYMMDD-NNN)에 하이픈이 있어 pytest 기본 모드가 패키지로
+    # 보려다 "attempted relative import with no known parent package"로 깨진다(2026-10-09 실측, 전 가설
+    # 4건이 이걸로 abandoned 됨 — Critic 반려가 아니라 이 import 오류였다). importlib 모드는 경로 기반으로
+    # 모듈을 로드해 하이픈 식별자 제약을 받지 않는다.
+    for cmd in ([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", "--import-mode=importlib",
+                 str(d / "test_signal.py")],
                 [sys.executable, "-c", SMOKE, str(PROJECT_ROOT), str(d / "spec.json"), str(d / "signal.py")]):
         try:
             p = subprocess.run(cmd, cwd=PROJECT_ROOT, capture_output=True, text=True, timeout=timeout)
@@ -123,14 +128,26 @@ def _porcelain() -> set[str]:
     return {line for line in out.splitlines() if line.strip()}
 
 
+#  Claude CLI 자신이 실행되면서 남기는 부산물(세션 로그·설정 백업) — 에이전트의 실제 작업물이 아니라
+#  _guard 에 걸려도 조용히 지우기만 하고 "허용 범위 밖 변경"으로 보고하지 않는다(2026-10-09: 이걸
+#  위반으로 세면 매 실행마다 진짜 작업물까지 덩달아 의심받는 경고가 쌓였다).
+_BENIGN_SESSION_PREFIXES = (".cache/claude-cli-nodejs/", ".claude/backups/")
+
+
 def _guard(before: set[str]) -> list[str]:
-    """에이전트 실행 전에는 없던 research/ 밖 변경을 되돌린다. 되돌린 경로 목록."""
+    """에이전트 실행 전에는 없던 research/ 밖 변경을 되돌린다. 되돌린 경로 목록(세션 부산물 제외)."""
     reverted = []
     for line in _porcelain() - before:
         path = line[3:].strip().strip('"')
         if path.startswith("research/") and not path.startswith("research/agent_prompts/"):
             continue
         full = PROJECT_ROOT / path
+        if path.startswith(_BENIGN_SESSION_PREFIXES):
+            if line.startswith("??") and full.is_file():
+                full.unlink()
+            else:
+                subprocess.run(["git", "checkout", "--", path], cwd=PROJECT_ROOT, capture_output=True, timeout=30)
+            continue
         if line.startswith("??"):
             if full.is_file():
                 full.unlink()
@@ -416,7 +433,8 @@ def sat_check(sid: str, timeout: int = 300) -> tuple[bool, str]:
     d = SAT_WS / sid
     if not (d / "test_signal.py").exists():
         return False, "test_signal.py 없음"
-    for cmd in ([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", str(d / "test_signal.py")],
+    for cmd in ([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", "--import-mode=importlib",
+                 str(d / "test_signal.py")],
                 [sys.executable, "-c", SAT_SMOKE, str(PROJECT_ROOT), str(d)]):
         try:
             p = subprocess.run(cmd, cwd=PROJECT_ROOT, capture_output=True, text=True, timeout=timeout)

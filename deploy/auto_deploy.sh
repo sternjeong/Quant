@@ -148,6 +148,24 @@ fi
 cd "$APP_DIR"
 mkdir -p "$STATE_DIR" 2>/dev/null || true
 
+# 2026-10-09 사용자 결정: AI 에이전트 야간 배치(agent_batch, S4/S5 Scout·Writer·Implementer·Critic,
+# 03:00~05:50 KST)가 진행 중일 수 있는 창에는 반영(서비스 재시작 포함)을 통째로 보류한다.
+# 진단 근거: quant-scheduler 재시작 기록을 보면 최근 23일 중 20일이 바로 이 창(18:00~21:00 UTC)에
+# 몰려 있었고, agent_batch_job은 systemd가 quant-scheduler를 재시작할 때 같이 SIGTERM을 맞아
+# Scout→Writer→Implementer→Critic 사이클이 끝까지 돈 적이 거의 없었다(가설 10개가 영구히 draft
+# 상태로 멈춤). 창 밖에서는 평소처럼 5분마다 즉시 반영한다 — 이 창에서만 새 커밋 확인 자체를 건너뛰고
+# 다음 틱(5분 뒤)에 다시 본다.
+AGENT_BATCH_WINDOW_START="${AUTO_DEPLOY_AGENT_BATCH_WINDOW_START:-03:00}"
+AGENT_BATCH_WINDOW_END="${AUTO_DEPLOY_AGENT_BATCH_WINDOW_END:-05:55}"
+# AUTO_DEPLOY_NOW_KST_HM: tests/test_auto_deploy_flow.py 전용 재정의(실제 벽시계 시간에 따라 테스트가
+# 어쩌다 이 창 안에서 돌면 흔들리는 걸 막는다). systemd 유닛은 설정하지 않는다.
+now_kst_hm="${AUTO_DEPLOY_NOW_KST_HM:-$(TZ=Asia/Seoul date +%H:%M)}"
+if [[ "$now_kst_hm" > "$AGENT_BATCH_WINDOW_START" || "$now_kst_hm" == "$AGENT_BATCH_WINDOW_START" ]] \
+   && [[ "$now_kst_hm" < "$AGENT_BATCH_WINDOW_END" ]]; then
+  log "AI 에이전트 야간 배치 창(KST ${AGENT_BATCH_WINDOW_START}~${AGENT_BATCH_WINDOW_END}, 현재 ${now_kst_hm}) 안이라 이번 틱은 반영을 보류함 (서비스 재시작이 배치를 중간에 죽이는 문제 방지) — 다음 틱에 다시 확인"
+  exit 0
+fi
+
 if ! fetch_output="$(git_as_quant fetch origin --quiet 2>&1)"; then
   # 흔치 않은 경로지만(네트워크 일시 장애 등) 조용히 넘어가면 안 되니 저널에는 남긴다.
   # 5분마다 도는 스크립트라 매번 텔레그램까지 보내면 일시적 장애에도 스팸이 되므로,

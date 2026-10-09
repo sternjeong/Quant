@@ -122,6 +122,8 @@ def _run(env, **extra) -> subprocess.CompletedProcess:
         "AUTO_DEPLOY_STATE_DIR": str(env["state"]),
         "AUTO_DEPLOY_STAGING_DIR": str(env["staging"]),
         "AUTO_DEPLOY_POST_CHECK_TIMEOUT_SECONDS": "2",
+        # 에이전트 배치 창(03:00~05:55 KST) 보류 로직이 실제 벽시계 시간에 따라 테스트를 흔들지 않게 고정.
+        "AUTO_DEPLOY_NOW_KST_HM": "12:00",
         "VERIFY_POLL_SECONDS": "0.1",
         "VERIFY_SETTLE_SECONDS": "0",
         "FAKE_STATE": str(env["fake"]),
@@ -164,6 +166,25 @@ def test_no_new_commit_is_a_quiet_noop(env):
     result = _run(env)
     assert result.returncode == 0 and result.stdout == ""
     assert _gate_lines(env) == [] and _restarts(env) == []
+
+
+def test_defers_entirely_during_the_agent_batch_window(env):
+    """2026-10-09: 03:00~05:55 KST 에는 테스트/반영/재시작을 전부 보류한다 — quant-scheduler 재시작이
+    그 시간대의 AI 에이전트 야간 배치(agent_batch)를 매번 중간에 죽이던 문제 때문(진단: 최근 23일 중
+    20일이 이 창에서 재시작됨, 가설이 전부 draft 에 멈춤)."""
+    old = _git(env["app"], "rev-parse", "HEAD")
+    _push(env, gate="pass", app_text="v2")
+
+    result = _run(env, AUTO_DEPLOY_NOW_KST_HM="03:30")
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert _git(env["app"], "rev-parse", "HEAD") == old  # 운영 폴더는 그대로
+    assert _gate_lines(env) == [] and _restarts(env) == []  # 테스트도, 재시작도 없음
+    assert _read(env["fake"] / "alerts.log") == ""
+
+    result = _run(env, AUTO_DEPLOY_NOW_KST_HM="06:00")  # 창이 끝나면 평소처럼 바로 반영
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert _gate_lines(env) != [] and _restarts(env) != []
 
 
 def test_gate_runs_in_staging_before_the_live_tree_moves_then_restarts(env):
