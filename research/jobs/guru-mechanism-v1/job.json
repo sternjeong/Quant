@@ -1,0 +1,13 @@
+{
+  "id": "guru-mechanism-v1",
+  "title": "거장 보유 우선(S-SEED-019) 메커니즘 시험 — 거장의 안목인가, 대형주 쏠림인가(사전 등록, 앞 구간만)",
+  "entrypoint": "research/jobs/guru-mechanism-v1/run.py",
+  "args": [],
+  "timeout_seconds": 7200,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 9,
+  "revision": 1
+}
