@@ -317,6 +317,29 @@ def check_forward_tournament(now: datetime) -> Check:
         return _c("앞으로 토너먼트", OK, f"{len(rows)}일 기록(경과 계산 실패: {type(exc).__name__})")
 
 
+def check_forward_tournament_v2(now: datetime) -> Check:
+    """v2 는 매일 기록 뒤 계산해 둔 status.json 만 읽는다(네트워크 없음)."""
+    from core import forward_tournament_v2 as ft2
+
+    name = "앞으로 토너먼트 v2"
+    rows = ft2.load_ledger()
+    # 첫 기록일은 START 이후 첫 거래일 다음 밤 — 며칠 여유를 둔다
+    if (now.date() - ft2.START).days > 4 and not rows:
+        return _c(name, WARN, "기록이 하나도 없음 — 00:39 기록 잡(v1 다음) 확인")
+    if not rows:
+        return _c(name, OK, f"기록 대기({ft2.START} 이후 첫 거래일부터)")
+    last = rows[-1].get("date")
+    if last and (now.date() - date.fromisoformat(last)).days > 4:
+        return _c(name, WARN, f"마지막 기록 {last} — 4일 넘게 멈춤")
+    errs = rows[-1].get("errors") or {}
+    st = ft2.load_status()
+    rank = " > ".join(st.get("rank_core") or [])
+    msg = f"{len(rows)}일 기록 · {st.get('days', 0)}/{ft2.MIN_DAYS}거래일" + (f" · 중간 순위 {rank}" if rank else "")
+    if errs:
+        return _c(name, WARN, msg + f" · 최근 기록 오류 {', '.join(errs)}")
+    return _c(name, OK, msg)
+
+
 def check_disk(root: str = "/") -> Check:
     u = shutil.disk_usage(root)
     free_gb = u.free / 1024 ** 3
@@ -339,6 +362,7 @@ CHECKS: tuple[tuple[str, Callable[[datetime], Check]], ...] = (
     ("AI 국제정세 의견", check_geo_shadow),
     ("코인 추세 기록", check_crypto_shadow),
     ("앞으로 토너먼트", check_forward_tournament),
+    ("앞으로 토너먼트 v2", check_forward_tournament_v2),
     ("디스크", lambda now: check_disk()),
 )
 
