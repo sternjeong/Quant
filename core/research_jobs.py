@@ -68,6 +68,7 @@ DEFAULT_MAX_DISK_MB = 2048
 DEFAULT_MAX_RUNS = 60  # 종료 코드 3(진행 중)을 이만큼 반복해도 안 끝나면 실패로 본다
 MAX_INTERRUPTIONS = 6  # 재부팅·재배포로 끊긴 횟수 상한
 POST_PUBLISH_COOLDOWN_SECONDS = 12 * 60  # 결과 push → 자동배포가 스케줄러를 재시작할 때까지 새 작업을 시작하지 않는다
+PUBLISH_QUEUE_MAX_AGE_SECONDS = 12 * 3600  # 미룬 결과 반영이 이보다 오래 기다리면 다른 슬롯이 돌고 있어도 push(안전판)
 LOG_TAIL_CHARS = 2000
 KEEP_LOGS = 5
 
@@ -1214,6 +1215,7 @@ _PUBLISH_NOTE = {
     "no-credentials": "VM 에 push 권한이 없어 저장소 반영은 건너뜀(VM 과 관제 센터에만 있음)",
     "skipped": "저장소 반영 없음({detail})",
     "failed": "저장소 반영 실패: {detail}",
+    "queued": "저장소 반영은 다른 연구가 끝난 뒤 함께(한 번의 커밋으로 모아 push — 재배포가 도는 연구를 끊지 않게)",
 }
 
 
@@ -1339,6 +1341,101 @@ def _lab_enabled(cfg: Config) -> bool:
     return cfg.satellite_lab and os.environ.get("RESEARCH_SATELLITE_LAB", "1") != "0"
 
 
+# ---------------------------------------------------------------------------
+# 미룬 결과 반영(2026-10-10) — 결과 push 는 자동 배포 → 스케줄러 재시작 → 함께 돌던 연구 자식이 끊긴다.
+# 다른 슬롯이 돌고 있을 때 끝난 작업은 보관·색인·텔레그램은 바로 하고 push 만 state.runner.publish_queue 에 미룬다.
+# 다른 슬롯이 하나도 돌지 않는 회차(또는 가장 오래된 항목이 12시간을 넘은 회차)에 모아서 커밋 하나로 push 한다.
+# N=1 이면 다른 슬롯이 없으니 큐를 쓰지 않는다(예전과 같다).
+# ---------------------------------------------------------------------------
+def _queue_item(cfg: Config, job: JobDef, files: dict[str, bytes], now: datetime) -> dict:
+    prefix = f"{cfg.publish_prefix}/{job.id}/"
+    rels = sorted(path[len(prefix):] for path in files if path.startswith(prefix))
+    return {"job_id": job.id, "rels": rels, "queued_at": _now_iso(now)}
+
+
+def _queue_files(cfg: Config, items: list[dict]) -> dict[str, bytes]:
+    """큐 항목의 파일을 data/research_results/<id>/ 에서 다시 읽는다(보관본이 원본이다)."""
+    files: dict[str, bytes] = {}
+    for item in items:
+        for rel in item.get("rels") or []:
+            if not _safe_rel(rel):
+                continue
+            with contextlib.suppress(OSError):
+                data = (cfg.results_dir / item["job_id"] / rel).read_bytes()
+                if not looks_secret(data.decode("utf-8", "replace")):
+                    files[f"{cfg.publish_prefix}/{item['job_id']}/{rel}"] = data
+    return files
+
+
+def _queue_message(ids: list[str], now: datetime) -> str:
+    stamp = now.astimezone(KST).strftime("%Y-%m-%d %H:%M KST")
+    return f"Research job results: {', '.join(ids)} ({stamp})"
+
+
+def _flush_due(state: dict, busy: int, now: datetime) -> bool:
+    queue = (state.get("runner") or {}).get("publish_queue") or []
+    if not queue:
+        return False
+    if busy == 0:
+        return True
+    oldest = min((_parse_iso(i.get("queued_at")) for i in queue if _parse_iso(i.get("queued_at"))), default=None)
+    return oldest is not None and (now - oldest).total_seconds() >= PUBLISH_QUEUE_MAX_AGE_SECONDS
+
+
+def _apply_flush_result(cfg: Config, state: dict, items: list[dict], result: dict, now: datetime,
+                        messages: list[str], set_cooldown: bool) -> None:
+    """모아 push 한 결과를 상태에 반영한다(state.lock 안). 실패면 큐에 남겨 다음 회차에 다시(같은 사유는 한 번만 알림)."""
+    runner = state["runner"]
+    ids = [i["job_id"] for i in items]
+    status = result.get("status")
+    if status == "failed":
+        signature = hashlib.sha1(str(result.get("detail") or "").split(":")[0].encode()).hexdigest()[:12]
+        if runner.get("publish_queue_failure") != signature:
+            runner["publish_queue_failure"] = signature
+            messages.append(redact(f"[검증 연구 결과] 미뤄 둔 저장소 반영 실패({', '.join(ids)}): {result.get('detail') or ''}\n"
+                                   "다음 회차에 다시 시도합니다.")[:1000])
+        for item in items:
+            entry = state["jobs"].get(item["job_id"])
+            if entry is not None and (entry.get("publish") or {}).get("status") == "queued":
+                entry["publish"] = {**entry["publish"], "detail": f"반영 대기(마지막 시도 실패: {result.get('detail') or ''})"[:300]}
+        return
+    keys = {(i["job_id"], i.get("queued_at")) for i in items}
+    runner["publish_queue"] = [i for i in runner.get("publish_queue") or [] if (i.get("job_id"), i.get("queued_at")) not in keys]
+    runner.pop("publish_queue_failure", None)
+    for job_id in ids:
+        entry = state["jobs"].get(job_id)
+        if entry is not None and (entry.get("publish") or {}).get("status") == "queued":
+            entry["publish"] = {**result, "detail": f"{result.get('detail') or ''} (모아서 반영)".strip()}
+    if status == "pushed":
+        if set_cooldown:
+            runner["last_publish_at"] = now.isoformat()
+            runner["cooldown_until"] = (now + timedelta(seconds=POST_PUBLISH_COOLDOWN_SECONDS)).isoformat()
+        messages.append(f"[검증 연구 결과] 미뤄 둔 저장소 반영 완료: {', '.join(ids)} → {cfg.publish_prefix}/")
+    elif status == "no-credentials":
+        messages.append(f"[검증 연구 결과] VM 에 push 권한이 없어 미뤄 둔 저장소 반영을 건너뜀: {', '.join(ids)}")
+
+
+def flush_publish_queue(cfg: Config, publish: Callable[[dict[str, bytes], str], dict], now: datetime,
+                        notify: Callable[[str], object]) -> Optional[dict]:
+    """큐 전체를 커밋 하나로 push 한다. 큐가 비어 있으면 None."""
+    items = list((load_state(cfg)["runner"].get("publish_queue") or []))
+    if not items:
+        return None
+    started = _time.monotonic()
+    ids = list(dict.fromkeys(i["job_id"] for i in items))
+    try:
+        result = publish(_queue_files(cfg, items), _queue_message(ids, now))
+    except Exception as exc:  # noqa: BLE001
+        result = {"status": "failed", "detail": type(exc).__name__, "sha": None}
+    finished = now + timedelta(seconds=_time.monotonic() - started)
+    messages: list[str] = []
+    with edit_state(cfg) as state:
+        _apply_flush_result(cfg, state, items, result, finished, messages, set_cooldown=True)
+    for message in messages:
+        notify(message)
+    return result
+
+
 def run_tick(now: Optional[datetime] = None, *, notify: Optional[Callable[[str], object]] = None,
              publish: Optional[Callable[[dict[str, bytes], str], dict]] = None, cfg: Optional[Config] = None,
              headroom: Optional[Callable[[], bool]] = None, poll_interval: float = 5.0,
@@ -1375,8 +1472,12 @@ def run_tick(now: Optional[datetime] = None, *, notify: Optional[Callable[[str],
             runner["last_tick_at"] = _now_iso(now)
             runner["max_parallel"] = n
             cooldown = runner.get("cooldown_until")
+            flush_now = _flush_due(state, _busy_other_slots(cfg, state, slot), now)
         for job_id, reason in invalid_notes:
             notify(redact(f"[검증 연구 결과] 작업 정의 오류: {job_id}\n사유: {reason}\n(docs/RESEARCH_JOBS.md 계약 참고)")[:1000])
+        if flush_now:  # 다른 슬롯이 모두 쉬는 회차(또는 12시간 안전판) — 미룬 반영을 커밋 하나로
+            flush_publish_queue(cfg, publish, now, notify)
+            cooldown = load_state(cfg)["runner"].get("cooldown_until")
 
         def _finish_tick(result: dict) -> dict:
             with edit_state(cfg) as st:
@@ -1452,16 +1553,40 @@ def run_tick(now: Optional[datetime] = None, *, notify: Optional[Callable[[str],
             if entry.get("run_token") == token:
                 entry.update(child_pid=None, child_start=None)  # 자식은 끝났고 슬롯이 결과를 처리하는 중
             snapshot = json.loads(json.dumps(entry, default=str))
+            defer = _busy_other_slots(cfg, state, slot) > 0  # 다른 슬롯이 돌고 있으면 push 를 미룬다
+            queued = list(state["runner"].get("publish_queue") or [])
         # 결과 보관·저장소 반영(수 분 걸릴 수 있음)은 state.lock 밖에서 사본에 하고, 끝나면 락 안에서 한 번에 합친다 —
         # 그동안 다른 슬롯의 상태 기록·취소 확인이 막히지 않게. 알림은 합친 뒤에 보낸다.
         messages: list[str] = []
         runner_update: dict = {}
-        result = apply_outcome(cfg, job, snapshot, outcome, shortened, messages.append, publish, now, runner_update)
+        enqueue: list[dict] = []
+        flushed: list[dict] = []
+
+        def _job_publish(files: dict[str, bytes], message: str) -> dict:
+            if defer:
+                enqueue.append(_queue_item(cfg, job, files, now))
+                return {"status": "queued", "detail": "다른 연구가 끝난 뒤 함께", "sha": None}
+            if queued:  # 혼자 남았으면 미뤄 둔 결과까지 커밋 하나로
+                ids = list(dict.fromkeys([i["job_id"] for i in queued] + [job.id]))
+                result = publish({**_queue_files(cfg, queued), **files}, _queue_message(ids, now))
+                flushed.append(result)
+                if result.get("status") == "failed":  # 모은 push 가 실패하면 이 작업도 큐에 넣어 다음 회차에 함께 다시
+                    enqueue.append(_queue_item(cfg, job, files, now))
+                    return {"status": "queued", "detail": f"반영 실패 — 다음 회차에 다시: {result.get('detail') or ''}"[:300],
+                            "sha": None}
+                return result
+            return publish(files, message)
+
+        result = apply_outcome(cfg, job, snapshot, outcome, shortened, messages.append, _job_publish, now, runner_update)
         with edit_state(cfg) as state:
             current = state["jobs"].get(job.id)
             if current is not None and current.get("run_token") == token:
                 snapshot.update(slot=None, run_token=None, child_pid=None, child_start=None, pid=None)
                 state["jobs"][job.id] = snapshot
+            if enqueue:
+                state["runner"].setdefault("publish_queue", []).extend(enqueue)
+            if flushed:
+                _apply_flush_result(cfg, state, queued, flushed[0], now, messages, set_cooldown=False)
             for key, value in runner_update.items():
                 if key in ("cooldown_until", "last_publish_at"):
                     old = _parse_iso(state["runner"].get(key))
