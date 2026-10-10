@@ -1,11 +1,12 @@
 """Ken French 데이터 라이브러리 — 두 번째 시험대(무료, 1926~, CRSP 기반이라 생존편향 없음).
 
-두 가지 용도:
+용도(세 번째는 2026-10-10 추가 — 일별 산업 포트폴리오로 코어 규칙을 1927~2007 장기 자료에서 다시 보는 연구용):
 1. 팩터 노출 회귀(factor_exposure): 가설의 일별 수익을 시장·규모·가치·수익성·투자(FF5)+모멘텀에 회귀해
    "새 전략인가, 알려진 팩터의 재포장인가"를 본다. 심판(core.hypothesis_judge)은 이 결과를 보고만 하고
    통과/탈락에는 쓰지 않는다(경고만). 우리 가설은 롱온리라 시장 베타가 크게 잡히는 것이 정상이다.
 2. 공개 전후 감쇠표(decay_table): 고전 팩터를 원 논문 공개 연도로 나눠 월평균·Newey-West t·샤프를 비교한다.
    scripts/french_factor_report.py 가 research/factor_decay.md 로 써서 Scout·Writer 에이전트가 읽는다.
+3. 장기 산업 자료: load("ind12_daily"/"ind49_daily"/"ff3_daily") — research/jobs/core-longrun-v1 이 읽는다.
 
 데이터 형식: zip 안의 CSV 하나. 설명문 → ",열1,열2" 머리줄 → YYYYMMDD(일별) 또는 YYYYMM(월별) 행 → 빈 줄(월별
 파일은 뒤에 연간 표가 이어지지만 첫 표만 읽는다). 값은 퍼센트, 결측은 -99.99/-999.
@@ -35,6 +36,11 @@ DATASETS = {
     "mom_monthly": "F-F_Momentum_Factor_CSV.zip",
     "strev_monthly": "F-F_ST_Reversal_Factor_CSV.zip",
     "ltrev_monthly": "F-F_LT_Reversal_Factor_CSV.zip",
+    # 장기 검증용(core-longrun-v1·synthesis-rnd-v2, 2026-10-10): 일별 산업 포트폴리오(첫 표 = 시가총액 가중, 배당 포함)와
+    # FF3 일별(Mkt-RF·SMB·HML·RF). 49산업은 늦게 생긴 산업이 앞부분 -99.99(결측)다.
+    "ff3_daily": "F-F_Research_Data_Factors_daily_CSV.zip",
+    "ind12_daily": "12_Industry_Portfolios_daily_CSV.zip",
+    "ind49_daily": "49_Industry_Portfolios_daily_CSV.zip",
 }
 MAX_AGE_DAYS = 7
 DAILY_FACTORS = ["Mkt-RF", "SMB", "HML", "RMW", "CMA", "Mom"]

@@ -1,0 +1,14 @@
+{
+  "id": "synthesis-rnd-v2",
+  "title": "정반합 R&D v2 — 미리 고정한 시장 50% + ERC 코어 50%(매년 재조정) 블렌드를 아무도 보지 않은 1927~2007 자료로 판정(사전 등록)",
+  "entrypoint": "research/jobs/synthesis-rnd-v2/run.py",
+  "args": [],
+  "timeout_seconds": 3600,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 7,
+  "revision": 1,
+  "max_memory_mb": 3072
+}

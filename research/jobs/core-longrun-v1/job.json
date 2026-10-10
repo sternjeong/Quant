@@ -1,0 +1,14 @@
+{
+  "id": "core-longrun-v1",
+  "title": "코어 장기 검증 v1 — 저베타·양의 알파·위기 방어가 아무도 보지 않은 1927~2007 산업 자료(Ken French)에서도 성립하나(사전 등록)",
+  "entrypoint": "research/jobs/core-longrun-v1/run.py",
+  "args": [],
+  "timeout_seconds": 3600,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 6,
+  "revision": 1,
+  "max_memory_mb": 3072
+}
