@@ -545,6 +545,10 @@ def test_scheduler_job_respects_toggle_and_reports_exceptions(monkeypatch, tmp_p
     from scheduler import run_scheduler
 
     monkeypatch.setattr(process_registry, "TOGGLE_STATE_PATH", tmp_path / "toggles.json")
+    # 실제 자동 배포가 이 VM 에서 도는 중이면(/opt/quant-deploy-staging 존재) 잡이 일부러 쉬므로, 그 경로만 '없음'으로 고정한다.
+    real_exists = run_scheduler.os.path.exists
+    monkeypatch.setattr(run_scheduler.os.path, "exists",
+                        lambda p: False if str(p) == "/opt/quant-deploy-staging" else real_exists(p))
     calls, failures = [], []
     monkeypatch.setattr(rj, "run_tick", lambda **kw: calls.append(kw) or {"action": "idle"})
     monkeypatch.setattr(run_scheduler, "report_job_failure", lambda job_id, err: failures.append((job_id, err)))

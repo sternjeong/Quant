@@ -1,9 +1,22 @@
 # 세션 인계
 
-## 2026-10-10 전체 연구 결과 종합 → 다음 연구 제안(제안만, 미등록·미실행)
+## 2026-10-10 (후속) 제안 6건 전부 사전 등록 + 연구 실행기 병렬화 + 판정 체계 변경
+
+- 사용자: "제안한 것 모두 수용, 병렬로 진행". 하위 에이전트 7개(작업트리)로 동시 구현, 통합 브랜치 `research-parallel-2026-10`(통합 작업트리 /home/ubuntu/repos/Quant-integrate). 판정 기준은 결과 보기 전에 오케스트레이터가 프롬프트로 고정.
+- **판정 체계 변경(구현):** `core/research_power.py` — 검정력 사전 계산(power_report·power_line·classify_fail → FAIL_UNDERPOWERED), noop_guard(활성 수익 0 → NOT_EVALUABLE), 2024-10~ 떼어 둔 구간은 새 연구 최종 판정에 쓰지 않음(보고만), 채택은 전진 원장. RESEARCH_JOBS.md '판정 설계 규칙'.
+- **실행기 병렬화(구현):** `core/research_jobs.py` 슬롯 N(기본 3, `RESEARCH_JOBS_MAX_PARALLEL` 1..4), 슬롯별 락·상태 기록, stale 복구는 살아 있는 슬롯 보존, 연구당 RSS 상한 = RAM×80%÷N(12GB VM ≈ 3.2GB), CPU 80% 시 우선순위 낮은 자식부터 일시정지(cpu_guard.json), 게시 락, 다른 슬롯이 바쁘면 저장소 반영을 미뤄 마지막에 한 커밋(12시간 안전판) — 결과 push 가 자동 배포 재시작으로 다른 연구를 끊는 문제 대응. N=1 은 이전과 동일.
+- **거절된 변경:** `deploy/auto_deploy.sh` 에 "research/results 텍스트만 바뀐 커밋은 테스트·재시작 생략" 예외를 넣으려 했으나 권한 분류기가 CI 관문 우회로 거절 → 적용 안 함(사용자 결정 사항으로 보고).
+- **사전 등록 연구(스모크만, VM 실행 대기):** core-universe-expansion-v2(p5, v1 배관 버그 수정·v1 관문 그대로·선정 비율 진단), core-longrun-v1(p6, FF 12업종 1927-07~2007, H1 베타<0.6·H2 알파 NW t≥2·H3 −20% 국면 70% 방어·H4 4구간 중 3, 1952 전 토요일은 다음 평일로 복리 합산), synthesis-rnd-v2(p7, 시장 50+ERC 코어 50 연1회 재조정 단일 비율, Memmel p<.05 등 4조건), account-location-v1(p8, KRX 대용 ETF 매핑·연금저축/ISA/L12, 8개 경우 모두 +0.5%p 면 RECOMMEND_REVIEW; 세법 가정 다수 '확인 필요'), guru-mechanism-v1(p9, 2014-01~2024-10-08, 무작위 1,000회 95백분위·시총 위약·거장 1명씩 제외 6/7), satellite-value-v1(p10, champion40 pit2 기준 A(새틀 15) − B(SPY 15) 세후 +0.3%p·두 절반·부트스트랩 하한).
+- **전진 원장 v2(구현):** `core/forward_tournament_v2.py` — B0 SPY, B1 현 16자산 코어, C1 SPY50+ERC50(주), C2 30/70(사후 관찰 참고), S0 현 새틀라이트, S1 S-SEED-019. 첫 기록 2026-10-12 이후, 252거래일 뒤 판정. 직전 마감일 기준 기록(v1 은 00:39 KST 장중 봉을 쓸 수 있음 — 미래 정보는 아니나 장중 잡음, v1 은 고정이라 미수정·사용자 결정 사항).
+- 정정: champion-aftertax-v1 은 '현재 S&P500 명단'이 아니라 이미 시점별 구성 종목을 썼다(그 문서 설명이 틀림). 실제 편향은 분할 이중 계산·이름 바뀐 종목·상폐 종목 누락.
+- 위험: 거장·새틀라이트 연구는 VM 첫 실행 때 수백 종목 Yahoo 조회 필요(실패 시 체크포인트 재개 또는 NOT_EVALUABLE), 계좌 위치는 KRX 대용 ETF 이력 2~3년뿐·환헤지/보수 미확인, 연구 3.2GB 넘으면 job_memory 실패.
+- 다른 세션(quant-73) 동시 작업: sleeve-weight-v1·lev-trend-v1·sat-trend-v1 등록(main 반영). 새틀라이트 비중 연구는 satellite-value-v1 과 보완 관계.
+- 다음: 통합 브랜치 전체 테스트 → main → VM 자동 배포 → 실행기가 9개 대기 연구를 병렬 실행. 결과 오면 FAIL_UNDERPOWERED 구분해 보고, 엔진 반영은 사용자 확인 후.
+
+## 2026-10-10 전체 연구 결과 종합 → 다음 연구 제안(제안 단계 기록 — 위 후속 절에서 전부 등록됨)
 
 - 요청: "지금까지의 리포트·결과를 바탕으로 엔진 고도화 연구 제안". 결과 23건 + VM 새틀라이트 레지스트리(sat-judge/v3, 28개 전부 fail, 오늘 13:30 UTC 갱신) 읽기만 했다. 코드·연구 등록·배포 변경 없음.
-- **발견(버그, 미수정)**: `core-universe-expansion-v1` 의 FAIL 은 무효. `run.py` 가 추가 ETF 를 `extra`(px[extras]) 로만 넘기는데 `core_lab._tranche_weights` 는 `closes` 열에서만 순위 후보를 고른다 → IWM·TIP·VNQ·VWO·LQD 가 한 번도 후보가 아니었고 6개 후보 모두 활성 수익 정확히 0(기준선과 숫자 동일). forward_tournament 는 closes 에 넣어 정상. 새 id(v2)로 재등록 필요 + "활성 수익이 전부 0이면 FAIL 이 아니라 NOT_EVALUABLE" 공통 가드 제안.
+- **발견(버그, v1 결과 파일은 그대로 두고 v2 로 대체)**: `core-universe-expansion-v1` 의 FAIL 은 무효. `run.py` 가 추가 ETF 를 `extra`(px[extras]) 로만 넘기는데 `core_lab._tranche_weights` 는 `closes` 열에서만 순위 후보를 고른다 → IWM·TIP·VNQ·VWO·LQD 가 한 번도 후보가 아니었고 6개 후보 모두 활성 수익 정확히 0(기준선과 숫자 동일). forward_tournament 는 closes 에 넣어 정상. 새 id(v2)로 재등록 필요 + "활성 수익이 전부 0이면 FAIL 이 아니라 NOT_EVALUABLE" 공통 가드 제안.
 - 검정력 계산(단순화: 시도 간 분산 = 귀무 표본오차 가정): 앞 구간 16.7년에서 DSR ≥ 0.95 통과에 필요한 연 IR ≈ 0.40(시도 1)·0.69(5)·0.82(13)·0.90(27)·1.12(353). 참 IR 0.3 이면 시도 13개에서 통과 확률 약 2%. → 지금까지의 FAIL 대부분은 "효과 없음"이 아니라 "판별 불가"에 가깝다. 떼어 둔 2024-10~ 구간도 약 20개 연구가 재사용해 사실상 소진.
 - 가장 통과에 가까웠던 것: synthesis-rnd-v1 S3(SPY 30%+ERC 코어 70%) — DSR 0.91·가족 PBO 89% 만 미달(3개 혼합비 가족의 PBO 는 구조적으로 높음). 새틀라이트 S-SEED-019(거장 보유 우선·sp500_pit) — 무작위 99백분위·떼어 둔 2년 샤프 1.82 vs 0.73, DSR 0.20·이웃 관문 미달.
 - 제안 목록(사용자 결정 대기): ① 자산군 확장 v2(버그 수정 재실행) ② 코어 규칙 장기 검증(Ken French 산업 포트폴리오 1926~, 미사용 데이터) ③ 정반합 v2(단일 비율 사전 고정, 장기 데이터) ④ 계좌 위치(코어는 연금저축·ISA 국내 상장 대용 ETF, SPY 는 과세 계좌 영구보유) ⑤ S-SEED-019 메커니즘 검증(위약 대조·버핏 제외)+전진 원장 ⑥ 정직한 풀로 새틀라이트 존재 가치 재측정(champion-aftertax 는 현재 S&P500 명단 사용). 판정 체계 변경(검정력 사전 계산, 소진된 떼어 둔 구간 대신 전진 원장)은 사용자 확인 사항.

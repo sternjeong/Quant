@@ -1,8 +1,8 @@
 # 작업 진행 상황
 
-## 2026-10-10 연구 결과 종합·다음 연구 제안(제안만)
+## 2026-10-10 연구 제안 6건 등록·실행기 병렬화·판정 체계 변경
 
-- 결과 23건·새틀라이트 레지스트리(v3, 28개 전부 fail) 종합. core-universe-expansion-v1 은 추가 ETF 가 순위 후보에 안 들어가는 버그로 무효(미수정). 검정력 계산상 현 관문은 현실적 개선폭을 거의 못 잡음. 제안 6건은 사용자 결정 대기. 상세: docs/SESSION_HANDOFF.md.
+- 결과 23건 종합에서 나온 제안을 사용자가 전부 수용. 판정 체계 변경(core/research_power.py: 검정력 사전 계산·무효 실행 가드·소진된 떼어 둔 구간 대신 전진 원장), 연구 실행기 동시 3칸(게시 미루기 포함), 전진 원장 v2, 사전 등록 6건(core-universe-expansion-v2·core-longrun-v1·synthesis-rnd-v2·account-location-v1·guru-mechanism-v1·satellite-value-v1) 구현·스모크 통과. 자동 배포 스크립트 예외는 권한상 적용 안 함. 상세: docs/SESSION_HANDOFF.md.
 
 ## 2026-10-08 과거 시가총액·이름 바뀐 종목 수정
 
