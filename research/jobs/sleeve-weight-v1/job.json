@@ -1,0 +1,13 @@
+{
+  "id": "sleeve-weight-v1",
+  "title": "새틀라이트 비중 15% vs 25·35·50% — 세후 원화, 2010년부터(사전 등록)",
+  "entrypoint": "research/jobs/sleeve-weight-v1/run.py",
+  "args": [],
+  "timeout_seconds": 10800,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 30,
+  "revision": 1
+}
