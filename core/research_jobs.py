@@ -6,9 +6,12 @@
 
   - 작업 정의: research/jobs/<id>/job.json (저장소에 커밋) — load_job_definitions()/validate_job() 가 검증한다.
   - 실행: scheduler/run_scheduler.py 의 research_job_runner_job 이 창(RUN_WINDOWS) 안에서 10분마다 run_tick() 을 부른다.
-    한 번에 한 작업만(파일 락), 여유(has_headroom)·디스크 확인 뒤, 남은 창 시간으로 줄인 시간 예산을 준다.
-    자식은 nice 5 로 실행하며 전체 CPU 사용률이 80%를 넘으면 일시 중지하고 70% 이하에서 재개한다.
-  - 상태: data/research_jobs/state.json (원자적 쓰기 + 짧은 락). 멈춘 running 은 다음 회차에 in_progress 로 복구한다.
+    동시에 최대 N 작업(슬롯, RESEARCH_JOBS_MAX_PARALLEL 기본 3·1~4, 슬롯마다 파일 락; N=1 이면 예전처럼 한 번에 하나),
+    여유(has_headroom)·메모리(예약 20% + 슬롯별 상한)·디스크 확인 뒤, 남은 창 시간으로 줄인 시간 예산을 준다.
+    자식은 nice 5 로 실행하며 전체 CPU 사용률이 80%를 넘으면 우선순위가 가장 낮은 자식부터 하나씩 일시 중지하고
+    70% 이하에서 반대 순서로 재개한다(CpuGuard). 결과 push 는 publish.lock 으로 한 번에 하나.
+  - 상태: data/research_jobs/state.json (원자적 쓰기 + 짧은 락). 살아 있는 다른 슬롯이 돌리지 않는 running 은
+    다음 회차에 in_progress 로 복구한다(live_run_checker).
   - 결과: data/research_results/<id>/ 보관 + data/research_results/index.html(관제 센터 '검증 연구 결과' 카드) + 텔레그램 1건
     + origin/main 의 research/results/<id>/ 에 작은 텍스트 파일만 커밋(작업트리를 건드리지 않는 git 배관, publish_files()).
 
@@ -58,7 +61,7 @@ ABORT_FREE_DISK_MB = 1024  # 실행 중 이 아래로 떨어지면 양보(중단
 ABORT_AVAILABLE_MEMORY_MB = 600  # 실행 중 시스템 여유 메모리의 절대 하한
 SYSTEM_MEMORY_RESERVE_FRACTION = 0.20  # 시스템 전체 메모리의 20%는 연구가 점유하지 않게 남긴다
 MAX_JOB_MEMORY_FRACTION = 0.80
-DEFAULT_MAX_MEMORY_MB = 10240  # 실제 상한은 VM 총 메모리의 80% 와 이 값 중 작은 쪽
+DEFAULT_MAX_MEMORY_MB = 10240  # 실제 상한은 VM 총 메모리의 80% ÷ 슬롯 수 와 이 값 중 작은 쪽
 RESEARCH_CPU_PAUSE_PERCENT = 80.0
 RESEARCH_CPU_RESUME_PERCENT = 70.0
 DEFAULT_MAX_DISK_MB = 2048
@@ -67,6 +70,30 @@ MAX_INTERRUPTIONS = 6  # 재부팅·재배포로 끊긴 횟수 상한
 POST_PUBLISH_COOLDOWN_SECONDS = 12 * 60  # 결과 push → 자동배포가 스케줄러를 재시작할 때까지 새 작업을 시작하지 않는다
 LOG_TAIL_CHARS = 2000
 KEEP_LOGS = 5
+
+# 동시 실행(2026-10-10 사용자 지시 "새로 등록한 연구가 한 줄 대기열이 아니라 함께 진행되게"): 슬롯 N 개.
+# VM 은 2 vCPU·12GB·스왑 없음이고 다른 프로젝트와 함께 쓰므로 처리량이 아니라 '진행이 섞이게' 하는 것이 목적이다.
+# 보호 장치(여유 확인·메모리 예약·CPU 일시 중지·디스크)는 슬롯마다 그대로 걸린다. N=1 이면 예전(한 번에 한 작업)과 같다.
+DEFAULT_MAX_PARALLEL = 3
+MAX_PARALLEL_CAP = 4
+MAX_PARALLEL_ENV = "RESEARCH_JOBS_MAX_PARALLEL"
+CPU_GUARD_STALE_SECONDS = 60.0  # 이보다 오래 소식 없는 슬롯은 CPU 조정 명단에서 뺀다(최소값, 실제는 poll×6 과 큰 쪽)
+CPU_GUARD_LOCK_WAIT_SECONDS = 2.0  # 조정 파일 락을 이만큼 못 잡으면 그 회차는 자기 자식만 보고 판단한다(예전 방식)
+
+
+def max_parallel() -> int:
+    """동시에 돌릴 연구 작업 수 N(기본 3, 환경 변수 RESEARCH_JOBS_MAX_PARALLEL, 1~4 로 자름)."""
+    raw = os.environ.get(MAX_PARALLEL_ENV, "").strip()
+    try:
+        value = int(raw) if raw else DEFAULT_MAX_PARALLEL
+    except ValueError:
+        value = DEFAULT_MAX_PARALLEL
+    return max(1, min(MAX_PARALLEL_CAP, value))
+
+
+def slot_lock_path(cfg: "Config", slot: int) -> Path:
+    """슬롯 0 은 예전 이름(runner.lock)을 그대로 쓴다 — N=1 이면 동작·파일이 예전과 같다."""
+    return cfg.state_dir / ("runner.lock" if slot == 0 else f"runner-slot-{slot}.lock")
 
 PUBLISH_MAX_FILE_BYTES = 256 * 1024
 PUBLISH_MAX_TOTAL_BYTES = 1024 * 1024
@@ -338,6 +365,8 @@ def sync_definitions(cfg: Config, state: dict, jobs: dict[str, JobDef], invalid:
     to_notify = []
     for job_id, job in jobs.items():
         entry = state["jobs"].get(job_id)
+        if entry is not None and entry.get("status") == "running" and str(entry.get("revision")) != job.revision:
+            continue  # 다른 슬롯이 아직 돌리는 중 — 끝난 뒤(또는 멈춘 실행으로 복구된 뒤) 다음 회차에 새 revision 으로 바꾼다
         if entry is None or entry.get("status") == "invalid" or str(entry.get("revision")) != job.revision:
             if entry is not None and str(entry.get("revision")) != job.revision:
                 shutil.rmtree(cfg.work_dir(job_id), ignore_errors=True)  # 정의가 바뀌면 처음부터
@@ -357,23 +386,103 @@ def sync_definitions(cfg: Config, state: dict, jobs: dict[str, JobDef], invalid:
     return to_notify
 
 
-def recover_stale(state: dict, jobs: dict[str, JobDef]) -> list[str]:
-    """실행기 락을 잡은 상태에서 호출한다 — 락이 비어 있었다면 running 은 모두 죽은 실행이다."""
+def _proc_start_ticks(pid: int) -> Optional[int]:
+    """/proc/<pid>/stat 의 시작 시각(부팅 후 틱). pid 재사용을 가려낸다. 리눅스가 아니면 None."""
+    try:
+        raw = Path(f"/proc/{pid}/stat").read_text()
+        return int(raw[raw.rindex(")") + 2:].split()[19])
+    except (OSError, ValueError, IndexError):
+        return None
+
+
+def pid_alive(pid: object, start_ticks: object = None) -> bool:
+    if not isinstance(pid, int) or isinstance(pid, bool) or pid <= 0:
+        return False
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        pass
+    except OSError:
+        return False
+    if isinstance(start_ticks, int) and not isinstance(start_ticks, bool):
+        current = _proc_start_ticks(pid)
+        if current is not None and current != start_ticks:
+            return False  # 같은 번호를 다른 프로세스가 물려받았다
+    return True
+
+
+def slot_lock_held(cfg: Config, slot: int) -> bool:
+    """다른 회차가 그 슬롯 락을 잡고 있는가(잠깐 잡아 보고 바로 놓는다)."""
+    with _flock(slot_lock_path(cfg, slot), blocking=False) as got:
+        return not got
+
+
+def live_run_checker(cfg: Config, state: dict, my_slot: Optional[int]) -> Callable[[str, dict], bool]:
+    """running 항목이 다른 살아 있는 슬롯에서 정말 돌고 있는지 판단하는 함수를 만든다.
+
+    살아 있음 = 기록된 슬롯이 내 슬롯이 아니고, 그 슬롯의 점유 기록(state.runner.slots)이 같은 실행 토큰을 가리키며,
+    그 슬롯 락이 잡혀 있고, 자식 pid 가 기록돼 있다면 그 pid(시작 시각까지)가 살아 있다.
+    슬롯을 새로 잡은 회차는 점유 기록을 자기 토큰으로 덮으므로, 죽은 실행이 남긴 토큰은 다시 살아 보이지 않는다.
+    """
+    slots = (state.get("runner") or {}).get("slots") or {}
+
+    def _is_live(job_id: str, entry: dict) -> bool:
+        slot = entry.get("slot")
+        if not isinstance(slot, int) or isinstance(slot, bool) or slot == my_slot:
+            return False
+        record = slots.get(str(slot)) or {}
+        if not entry.get("run_token") or record.get("token") != entry.get("run_token") or record.get("job_id") != job_id:
+            return False
+        if not slot_lock_held(cfg, slot):
+            return False
+        child = entry.get("child_pid")
+        return child is None or pid_alive(child, entry.get("child_start"))
+    return _is_live
+
+
+def recover_stale(state: dict, jobs: dict[str, JobDef], is_live: Optional[Callable[[str, dict], bool]] = None) -> list[str]:
+    """슬롯 락을 잡은 상태에서 호출한다. is_live 가 없으면(예전 방식) running 은 모두 죽은 실행으로 본다.
+
+    동시 실행에서는 다른 살아 있는 슬롯이 돌리는 작업(is_live 가 True)은 건드리지 않는다.
+    연구 결과 push(자동 배포가 스케줄러를 재시작)로 끊긴 실행은 끊김 횟수 상한에 세지 않는다 — 동시 실행에서는
+    한 작업의 결과 반영이 다른 슬롯을 끊는 일이 정상적으로 생기기 때문이다(결과 push 는 작업마다 한 번뿐이라 유한하다).
+    """
     recovered = []
+    last_publish = _parse_iso((state.get("runner") or {}).get("last_publish_at"))
     for job_id, entry in state["jobs"].items():
         if entry.get("status") != "running":
             continue
-        entry["interruptions"] = int(entry.get("interruptions") or 0) + 1
-        entry["pid"] = None
+        if is_live is not None and is_live(job_id, entry):
+            continue
+        started = _parse_iso(entry.get("last_started_at"))
+        by_publish = last_publish is not None and started is not None and started <= last_publish
+        if by_publish:
+            entry["publish_interruptions"] = int(entry.get("publish_interruptions") or 0) + 1
+        else:
+            entry["interruptions"] = int(entry.get("interruptions") or 0) + 1
+        entry.update(pid=None, child_pid=None, child_start=None, slot=None, run_token=None)
         job = jobs.get(job_id)
-        if entry["interruptions"] > MAX_INTERRUPTIONS:
+        if entry.get("interruptions", 0) > MAX_INTERRUPTIONS:
             entry["status"] = "failed"
             entry["last_reason"] = f"실행 중 {entry['interruptions']}번 끊김(재부팅·재배포 반복)"
         else:
             entry["status"] = "in_progress" if (job is None or job.resumable) else "pending"
-            entry["last_reason"] = "이전 실행이 끊김(재부팅·재배포) — 이어서 실행 대기"
+            entry["last_reason"] = ("다른 연구의 결과 반영(재배포)으로 끊김 — 이어서 실행 대기" if by_publish
+                                    else "이전 실행이 끊김(재부팅·재배포) — 이어서 실행 대기")
         recovered.append(job_id)
     return recovered
+
+
+def _parse_iso(value: object) -> Optional[datetime]:
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(str(value))
+    except ValueError:
+        return None
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
 
 
 # ---------------------------------------------------------------------------
@@ -476,11 +585,28 @@ def _memory_reserve_mb(total_mb: Optional[float] = None) -> float:
     return max(ABORT_AVAILABLE_MEMORY_MB, total_mb * SYSTEM_MEMORY_RESERVE_FRACTION) if total_mb else ABORT_AVAILABLE_MEMORY_MB
 
 
-def _effective_job_memory_limit_mb(job: JobDef, total_mb: Optional[float] = None) -> int:
+def _effective_job_memory_limit_mb(job: JobDef, total_mb: Optional[float] = None, slots: Optional[int] = None) -> int:
+    """자식 트리 RSS 상한 = min(job.max_memory_mb, 총 메모리 80% / 슬롯 수 N). 슬롯 수로 나누므로 N 개가 동시에 돌아도
+    합이 총 메모리의 80%(= 20% 시스템 예약)를 넘지 않는다. 나중에 다른 슬롯이 시작해도 이미 도는 작업의 상한은 그대로다."""
     total_mb = _system_total_mb() if total_mb is None else total_mb
     if total_mb is None:
         return job.max_memory_mb
-    return min(job.max_memory_mb, max(256, int(total_mb * MAX_JOB_MEMORY_FRACTION)))
+    slots = max_parallel() if slots is None else max(1, int(slots))
+    return min(job.max_memory_mb, max(256, int(total_mb * MAX_JOB_MEMORY_FRACTION / slots)))
+
+
+def start_memory_ok(job: JobDef, available_mb: Optional[float], total_mb: Optional[float], others_running: int,
+                    slots: Optional[int] = None) -> tuple[bool, str]:
+    """새 슬롯을 시작해도 되는가. 혼자 돌 때는 예전처럼 '20% 예약'만, 다른 연구가 이미 돌고 있으면
+    '예약 + 이 작업의 메모리 상한'만큼 여유가 있어야 시작한다."""
+    if available_mb is None:
+        return True, ""
+    reserve = _memory_reserve_mb(total_mb)
+    need = reserve + (_effective_job_memory_limit_mb(job, total_mb, slots) if others_running > 0 else 0)
+    if available_mb < need:
+        what = f"예약 {int(reserve)}MB" + (f" + 작업 상한 {int(need - reserve)}MB" if need > reserve else "")
+        return False, f"연구 메모리 여유 부족({int(available_mb)}MB < {what})"
+    return True, ""
 
 
 def _read_cpu_counters() -> Optional[tuple[int, int]]:
@@ -509,6 +635,108 @@ class _CpuUsageSampler:
         if total_delta <= 0:
             return None
         return max(0.0, min(100.0, 100.0 * (total_delta - idle_delta) / total_delta))
+
+
+class CpuGuard:
+    """여러 슬롯의 CPU 일시 중지를 맞추는 작은 공유 파일(state_dir/cpu_guard.json, 락 cpu_guard.lock).
+
+    각 슬롯의 감시 루프는 자기 자식만 SIGSTOP/SIGCONT 한다. 전체 CPU 가 80% 이상이면 '멈추지 않은 자식 중 가장 낮은
+    우선순위(priority 숫자가 가장 큰 것, 같으면 가장 늦게 시작한 것)' 하나만 멈추고, 70% 이하면 멈춘 자식 중 가장 높은
+    우선순위부터(멈춘 순서의 반대) 하나씩 재개한다. 어느 슬롯이든 한 번 조치하면 poll 간격(×0.8) 동안은 아무도 추가로
+    조치하지 않아 '한 감시 주기에 하나씩'이 된다. 파일·락을 쓰지 못하면 decide() 가 None 을 돌려주고 호출자는 예전처럼
+    자기 자식만 보고 멈춘다(조정 실패가 보호를 약하게 만들지 않게).
+    """
+
+    def __init__(self, state_dir: Path, key: str, priority: int, started: float, poll_interval: float,
+                 clock: Callable[[], float] = _time.time):
+        self.path = Path(state_dir) / "cpu_guard.json"
+        self.lock = Path(state_dir) / "cpu_guard.lock"
+        self.key, self.priority, self.started = key, int(priority), float(started)
+        self.min_gap = max(0.0, poll_interval * 0.8)
+        self.stale = max(CPU_GUARD_STALE_SECONDS, poll_interval * 6)
+        self.clock = clock
+        self.pid: Optional[int] = None
+
+    @contextlib.contextmanager
+    def _locked(self):
+        deadline = _time.monotonic() + CPU_GUARD_LOCK_WAIT_SECONDS
+        while True:
+            with _flock(self.lock, blocking=False) as got:
+                if got:
+                    yield True
+                    return
+            if _time.monotonic() >= deadline:
+                yield False
+                return
+            _time.sleep(0.05)
+
+    def _load(self) -> dict:
+        try:
+            data = json.loads(self.path.read_text(encoding="utf-8"))
+            if isinstance(data, dict) and isinstance(data.get("children"), dict):
+                return data
+        except (OSError, ValueError):
+            pass
+        return {"children": {}, "last_action_at": 0.0}
+
+    def _save(self, data: dict) -> None:
+        fd, tmp = tempfile.mkstemp(prefix="cpu_guard.", suffix=".tmp", dir=str(self.path.parent))
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as handle:
+                json.dump(data, handle)
+            os.replace(tmp, self.path)
+        except BaseException:
+            with contextlib.suppress(OSError):
+                os.unlink(tmp)
+            raise
+
+    @staticmethod
+    def _order(item: tuple[str, dict]) -> tuple:
+        key, child = item
+        return int(child.get("priority") or 0), float(child.get("started") or 0.0), key
+
+    def decide(self, cpu_percent: Optional[float], paused: bool) -> Optional[str]:
+        """"pause" | "resume" | "hold" — 조정 파일을 못 쓰면 None(호출자가 예전 방식으로 판단)."""
+        try:
+            with self._locked() as got:
+                if not got:
+                    return None
+                now = self.clock()
+                data = self._load()
+                children = {k: v for k, v in data["children"].items()
+                            if isinstance(v, dict) and k != self.key and now - float(v.get("heartbeat") or 0) <= self.stale
+                            and pid_alive(v.get("pid"))}
+                me = {"pid": self.pid, "priority": self.priority, "started": self.started, "paused": bool(paused),
+                      "heartbeat": now}
+                children[self.key] = me
+                gap_ok = now - float(data.get("last_action_at") or 0.0) >= self.min_gap
+                action = "hold"
+                if cpu_percent is None:
+                    action = "resume" if paused else "hold"  # 판단할 수 없으면 멈춰 두지 않는다(예전과 같음)
+                elif cpu_percent >= RESEARCH_CPU_PAUSE_PERCENT and not paused and gap_ok:
+                    running = [(k, v) for k, v in children.items() if not v.get("paused")]
+                    if max(running, key=self._order)[0] == self.key:
+                        action = "pause"
+                elif cpu_percent <= RESEARCH_CPU_RESUME_PERCENT and paused and gap_ok:
+                    stopped = [(k, v) for k, v in children.items() if v.get("paused")]
+                    if min(stopped, key=self._order)[0] == self.key:
+                        action = "resume"
+                if action in ("pause", "resume"):
+                    me["paused"] = action == "pause"
+                    data["last_action_at"] = now
+                data["children"] = children
+                self._save(data)
+                return action
+        except Exception:  # noqa: BLE001 — 조정 실패는 예전 방식(자기 자식만)으로 떨어진다
+            return None
+
+    def leave(self) -> None:
+        with contextlib.suppress(Exception):
+            with self._locked() as got:
+                if got:
+                    data = self._load()
+                    if data["children"].pop(self.key, None) is not None:
+                        self._save(data)
 
 
 # ---------------------------------------------------------------------------
@@ -544,7 +772,13 @@ def _kill_group(proc: subprocess.Popen, sig: int) -> None:
 
 def run_child(cfg: Config, job: JobDef, budget: int, *, poll_interval: float = 5.0,
               cancel_check: Callable[[], bool] = lambda: False,
-              system_memory: Callable[[], Optional[float]] = _system_available_mb) -> RunOutcome:
+              system_memory: Callable[[], Optional[float]] = _system_available_mb,
+              on_start: Optional[Callable[[subprocess.Popen], None]] = None, guard_key: Optional[str] = None) -> RunOutcome:
+    """자식 하나를 돌리며 5초마다 예산·취소·메모리·디스크·CPU 를 감시한다.
+
+    guard_key 가 있으면 CPU 일시 중지를 다른 슬롯과 CpuGuard 로 맞춘다(없으면 혼자 판단 — 예전 방식).
+    on_start(proc) 는 자식이 뜬 직후 불린다(상태에 자식 pid 를 남기는 용도).
+    """
     cfg.out_dir(job.id).mkdir(parents=True, exist_ok=True)
     cfg.checkpoint_dir(job.id).mkdir(parents=True, exist_ok=True)
     log_dir = cfg.log_dir(job.id)
@@ -562,54 +796,18 @@ def run_child(cfg: Config, job: JobDef, budget: int, *, poll_interval: float = 5
     with open(log_path, "wb") as log:
         proc = subprocess.Popen(build_command(cfg, job), cwd=str(cfg.repo_root), stdout=log, stderr=subprocess.STDOUT,
                                 stdin=subprocess.DEVNULL, env=env, start_new_session=True, preexec_fn=_child_preexec)
-        last_disk_check = 0.0
-        cpu_paused = False
-        term_sent_at: Optional[float] = None
-        while True:
-            try:
-                proc.wait(timeout=poll_interval)
-                break
-            except subprocess.TimeoutExpired:
-                pass
-            now = _time.time()
-            cpu_percent = cpu_sampler.sample_percent()
-            if term_sent_at is not None:
-                if now - term_sent_at >= TERM_GRACE_SECONDS:
-                    _kill_group(proc, signal.SIGKILL)
-                continue
-            reason = None
-            if now >= deadline:
-                reason = "budget"
-            elif cancel_check():
-                reason = "cancel"
-            else:
-                rss = tree_rss_mb(proc.pid)
-                avail = system_memory()
-                if rss is not None and rss > memory_limit_mb:
-                    reason = "job_memory"
-                elif avail is not None and avail < memory_reserve_mb:
-                    reason = "system_memory"
-                elif now - last_disk_check >= max(30.0, poll_interval):
-                    last_disk_check = now
-                    free = free_disk_mb(cfg.state_dir)
-                    if dir_size_mb(cfg.work_dir(job.id)) > job.max_disk_mb:
-                        reason = "job_disk"
-                    elif free is not None and free < ABORT_FREE_DISK_MB:
-                        reason = "system_disk"
-            if reason:
-                stopped_by = reason
-                term_sent_at = now
-                if cpu_paused:
-                    _kill_group(proc, signal.SIGCONT)
-                    cpu_paused = False
-                _kill_group(proc, signal.SIGTERM)
-            else:
-                if cpu_paused and (cpu_percent is None or cpu_percent <= RESEARCH_CPU_RESUME_PERCENT):
-                    _kill_group(proc, signal.SIGCONT)
-                    cpu_paused = False
-                elif not cpu_paused and cpu_percent is not None and cpu_percent >= RESEARCH_CPU_PAUSE_PERCENT:
-                    _kill_group(proc, signal.SIGSTOP)
-                    cpu_paused = True
+        guard = CpuGuard(cfg.state_dir, guard_key, job.priority, started, poll_interval) if guard_key else None
+        if guard is not None:
+            guard.pid = proc.pid
+        if on_start is not None:
+            with contextlib.suppress(Exception):
+                on_start(proc)
+        try:
+            stopped_by, _ = _watch_child(cfg, job, proc, deadline, poll_interval, cancel_check, system_memory,
+                                                   cpu_sampler, guard, memory_limit_mb, memory_reserve_mb)
+        finally:
+            if guard is not None:
+                guard.leave()
         _kill_group(proc, signal.SIGKILL)  # 자식이 남긴 손자 프로세스 정리
     duration = _time.time() - started
     try:
@@ -618,6 +816,73 @@ def run_child(cfg: Config, job: JobDef, budget: int, *, poll_interval: float = 5
         raw = ""
     _prune_logs(log_dir)
     return RunOutcome(proc.returncode, stopped_by, duration, redact(raw[-LOG_TAIL_CHARS:]), log_path)
+
+
+def _watch_child(cfg: Config, job: JobDef, proc: subprocess.Popen, deadline: float, poll_interval: float,
+                 cancel_check: Callable[[], bool], system_memory: Callable[[], Optional[float]],
+                 cpu_sampler: "_CpuUsageSampler", guard: Optional[CpuGuard], memory_limit_mb: int,
+                 memory_reserve_mb: float) -> tuple[Optional[str], bool]:
+    stopped_by: Optional[str] = None
+    last_disk_check = 0.0
+    cpu_paused = False
+    term_sent_at: Optional[float] = None
+    while True:
+        try:
+            proc.wait(timeout=poll_interval)
+            break
+        except subprocess.TimeoutExpired:
+            pass
+        now = _time.time()
+        cpu_percent = cpu_sampler.sample_percent()
+        if term_sent_at is not None:
+            if now - term_sent_at >= TERM_GRACE_SECONDS:
+                _kill_group(proc, signal.SIGKILL)
+            continue
+        reason = None
+        if now >= deadline:
+            reason = "budget"
+        elif cancel_check():
+            reason = "cancel"
+        else:
+            rss = tree_rss_mb(proc.pid)
+            avail = system_memory()
+            if rss is not None and rss > memory_limit_mb:
+                reason = "job_memory"
+            elif avail is not None and avail < memory_reserve_mb:
+                reason = "system_memory"
+            elif now - last_disk_check >= max(30.0, poll_interval):
+                last_disk_check = now
+                free = free_disk_mb(cfg.state_dir)
+                if dir_size_mb(cfg.work_dir(job.id)) > job.max_disk_mb:
+                    reason = "job_disk"
+                elif free is not None and free < ABORT_FREE_DISK_MB:
+                    reason = "system_disk"
+        if reason:
+            stopped_by = reason
+            term_sent_at = now
+            if cpu_paused:
+                _kill_group(proc, signal.SIGCONT)
+                cpu_paused = False
+            if guard is not None:
+                guard.leave()  # 끝나는 중인 자식은 CPU 조정 명단에서 뺀다(다른 슬롯의 일시 중지 차례를 막지 않게)
+                guard = None
+            _kill_group(proc, signal.SIGTERM)
+        else:
+            action = guard.decide(cpu_percent, cpu_paused) if guard is not None else None
+            if action is None:  # 혼자이거나 조정 실패 — 자기 자식만 보고 판단(예전 방식)
+                if cpu_paused and (cpu_percent is None or cpu_percent <= RESEARCH_CPU_RESUME_PERCENT):
+                    action = "resume"
+                elif not cpu_paused and cpu_percent is not None and cpu_percent >= RESEARCH_CPU_PAUSE_PERCENT:
+                    action = "pause"
+            if action == "resume" and cpu_paused:
+                _kill_group(proc, signal.SIGCONT)
+                cpu_paused = False
+            elif action == "pause" and not cpu_paused:
+                _kill_group(proc, signal.SIGSTOP)
+                cpu_paused = True
+    if cpu_paused:
+        _kill_group(proc, signal.SIGCONT)
+    return stopped_by, cpu_paused
 
 
 def _prune_logs(log_dir: Path) -> None:
@@ -812,7 +1077,7 @@ def write_index(cfg: Config, state: dict, jobs: Optional[dict[str, JobDef]] = No
         '<!doctype html><html lang="ko"><head><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width,initial-scale=1"><title>검증 연구 결과</title>'
         f'{_INDEX_STYLE}</head><body><p><a href="/">&larr; 관제 센터로</a></p><h1>검증 연구 결과</h1>'
-        f'<p class="muted">실행 창(KST) {windows}, 10분마다 한 작업씩. 마지막 확인 {html.escape(str(runner.get("last_tick_at") or "-"))}'
+        f'<p class="muted">실행 창(KST) {windows}, 10분마다 빈 슬롯에 한 작업씩(동시 최대 {int(runner.get("max_parallel") or max_parallel())}개). 마지막 확인 {html.escape(str(runner.get("last_tick_at") or "-"))}'
         f' — {html.escape(str(runner.get("last_tick_result") or "-"))}</p>'
         + ("".join(parts) or "<p>등록된 작업이 없습니다(research/jobs/&lt;id&gt;/job.json).</p>")
         + '<p class="muted">재시도·취소: python scripts/research_jobs_admin.py list / retry &lt;id&gt; / cancel &lt;id&gt;</p>'
@@ -892,7 +1157,7 @@ def publish_files(repo_root: Path, files: dict[str, bytes], message: str, *, rem
         base = base_proc.stdout.decode().strip()
         if base_proc.returncode != 0 or not base:
             return {"status": "failed", "detail": f"{remote}/{branch} 를 찾지 못함", "sha": None}
-        index = index_dir / f"research-publish-index-{os.getpid()}"
+        index = index_dir / f"research-publish-index-{os.getpid()}-{os.urandom(4).hex()}"  # 슬롯이 겹쳐도 인덱스 파일을 나눠 쓰지 않게
         env = {"GIT_INDEX_FILE": str(index)}
         try:
             if _git(repo_root, "read-tree", base, env=env).returncode != 0:
@@ -1000,14 +1265,18 @@ def apply_outcome(cfg: Config, job: JobDef, entry: dict, outcome: RunOutcome, bu
         summary = extract_summary(job, result_dir)
         files, skipped = collect_publishable(cfg, job, result_dir)
         stamp = now.astimezone(KST).strftime("%Y-%m-%d %H:%M KST")
+        publish_started = _time.monotonic()
         try:
             result = publish(files, f"Research job results: {job.id} ({stamp})")
         except Exception as exc:  # noqa: BLE001 — 반영 실패가 결과 보관을 막으면 안 된다
             result = {"status": "failed", "detail": f"{type(exc).__name__}", "sha": None}
+        publish_seconds = _time.monotonic() - publish_started  # 다른 슬롯의 반영을 기다린 시간 포함
         if skipped:
             result = {**result, "detail": (result.get("detail") or "") + f" (제외: {', '.join(skipped)})"}
         if result.get("status") == "pushed":
-            finished = now + timedelta(seconds=outcome.duration)  # 회차 시작이 아니라 실제로 push 한 시점 기준
+            # 회차 시작이 아니라 실제로 push 한 시점 기준
+            finished = now + timedelta(seconds=outcome.duration + publish_seconds)
+            runner["last_publish_at"] = finished.isoformat()
             runner["cooldown_until"] = (finished + timedelta(seconds=POST_PUBLISH_COOLDOWN_SECONDS)).isoformat()
         entry.update(status="done", summary=summary, publish=result, result_dir=str(result_dir),
                      last_reason=None, notified_signature=None)
@@ -1037,15 +1306,52 @@ def apply_outcome(cfg: Config, job: JobDef, entry: dict, outcome: RunOutcome, bu
     return fail(f"종료 코드 {code}" + (f": {tail}" if tail else ""))
 
 
+@contextlib.contextmanager
+def claim_slot(cfg: Config, slots: int):
+    """빈 슬롯 하나를 잡는다(슬롯마다 비차단 파일 락). 모두 차 있으면 None 을 내준다."""
+    for slot in range(slots):
+        with _flock(slot_lock_path(cfg, slot), blocking=False) as got:
+            if got:
+                yield slot
+                return
+    yield None
+
+
+def serialized_publisher(cfg: Config, publish: Callable[[dict[str, bytes], str], dict]) -> Callable[[dict[str, bytes], str], dict]:
+    """결과 push 를 한 번에 하나로 묶는다(state_dir/publish.lock, 차단 대기). 두 슬롯이 동시에 끝나도 커밋이 서로 엇갈리지 않는다."""
+    def _publish(files: dict[str, bytes], message: str) -> dict:
+        with _flock(cfg.state_dir / "publish.lock"):
+            return publish(files, message)
+    return _publish
+
+
+def _busy_other_slots(cfg: Config, state: dict, my_slot: Optional[int]) -> int:
+    """지금 다른 슬롯에서 무언가(연구·새틀라이트·코어 계산)를 돌리고 있는 수."""
+    count = 0
+    for key, record in ((state.get("runner") or {}).get("slots") or {}).items():
+        with contextlib.suppress(ValueError, TypeError):
+            if int(key) != my_slot and (record or {}).get("job_id") and slot_lock_held(cfg, int(key)):
+                count += 1
+    return count
+
+
+def _lab_enabled(cfg: Config) -> bool:
+    return cfg.satellite_lab and os.environ.get("RESEARCH_SATELLITE_LAB", "1") != "0"
+
+
 def run_tick(now: Optional[datetime] = None, *, notify: Optional[Callable[[str], object]] = None,
              publish: Optional[Callable[[dict[str, bytes], str], dict]] = None, cfg: Optional[Config] = None,
              headroom: Optional[Callable[[], bool]] = None, poll_interval: float = 5.0,
-             ignore_window: bool = False) -> dict:
-    """한 회차: 창·락·자원 확인 → 대기 작업 하나 실행 → 결과 처리. 결과 요약 dict 를 돌려준다."""
+             ignore_window: bool = False, slots: Optional[int] = None) -> dict:
+    """한 회차: 창 확인 → 빈 슬롯 하나 잡기 → 자원 확인 → 대기 작업 하나 실행 → 결과 처리. 결과 요약 dict 를 돌려준다.
+
+    슬롯 수 N(max_parallel, 기본 3)만큼 회차가 겹쳐 돌 수 있다(스케줄러 max_instances=N). 작업 고르기와 running 표시는
+    state.lock 안에서 한 번에 하므로 두 슬롯이 같은 작업을 잡지 않는다. N=1 이면 예전과 같다(runner.lock 하나).
+    """
     cfg = cfg or Config()
     now = now or datetime.now(timezone.utc)
     notify = notify or (lambda text: None)
-    publish = publish or default_publisher(cfg)
+    publish = serialized_publisher(cfg, publish or default_publisher(cfg))
     if headroom is None:
         from core.resource_guard import has_headroom as headroom
     window_end = window_end_for(now)
@@ -1053,67 +1359,118 @@ def run_tick(now: Optional[datetime] = None, *, notify: Optional[Callable[[str],
         window_end = now + timedelta(seconds=longest_window_seconds())
     if window_end is None:
         return {"action": "skipped", "reason": "실행 창 밖"}
+    n = max_parallel() if slots is None else max(1, min(MAX_PARALLEL_CAP, int(slots)))
 
-    with _flock(cfg.state_dir / "runner.lock", blocking=False) as got:
-        if not got:
-            return {"action": "skipped", "reason": "다른 작업이 실행 중"}
+    with claim_slot(cfg, n) as slot:
+        if slot is None:
+            return {"action": "skipped", "reason": "다른 작업이 실행 중" if n == 1 else f"슬롯 {n}개가 모두 실행 중"}
+        token = os.urandom(8).hex()
         jobs, invalid = load_job_definitions(cfg)
         with edit_state(cfg) as state:
-            invalid_notes = sync_definitions(cfg, state, jobs, invalid)
-            recovered = recover_stale(state, jobs)
             runner = state["runner"]
+            runner.setdefault("slots", {})[str(slot)] = {"token": token, "job_id": None, "since": _now_iso(),
+                                                          "runner_pid": os.getpid()}
+            invalid_notes = sync_definitions(cfg, state, jobs, invalid)
+            recovered = recover_stale(state, jobs, live_run_checker(cfg, state, slot))
             runner["last_tick_at"] = _now_iso(now)
+            runner["max_parallel"] = n
+            cooldown = runner.get("cooldown_until")
         for job_id, reason in invalid_notes:
             notify(redact(f"[검증 연구 결과] 작업 정의 오류: {job_id}\n사유: {reason}\n(docs/RESEARCH_JOBS.md 계약 참고)")[:1000])
 
         def _finish_tick(result: dict) -> dict:
             with edit_state(cfg) as st:
-                st["runner"]["last_tick_result"] = result.get("reason") or result.get("action")
+                text = result.get("reason") or result.get("action")
+                st["runner"]["last_tick_result"] = text if n == 1 else f"슬롯 {slot}: {text}"
+                record = st["runner"].setdefault("slots", {}).get(str(slot))
+                if record and record.get("token") == token:
+                    record.update(job_id=None, until=_now_iso())
                 write_index(cfg, st, jobs)
             result["recovered"] = recovered
+            result["slot"] = slot
             return result
 
-        cooldown = runner.get("cooldown_until")
         if cooldown:
             with contextlib.suppress(ValueError):
                 if datetime.fromisoformat(cooldown) > now:
                     return _finish_tick({"action": "skipped", "reason": "결과 반영 직후 재배포 대기"})
-        with edit_state(cfg) as state:
-            job, budget, shortened = pick_job(state, jobs, now, window_end)
-            lab_due = job is not None and _satellite_lab_due(state, now)
-        if lab_due and cfg.satellite_lab and os.environ.get("RESEARCH_SATELLITE_LAB", "1") != "0":
-            # 긴 사전 등록 연구(예: 2주 스프린트)가 창을 계속 차지해도 새틀라이트 R&D 가 하루 한 번은 돈다
-            return _finish_tick(_satellite_lab_turn(cfg, now, window_end, notify, headroom, poll_interval))
+        state = load_state(cfg)
+        job, budget, shortened = pick_job(state, jobs, now, window_end)
+        lab_due = job is not None and _lab_enabled(cfg) and _satellite_lab_due(state, now)
+        if lab_due:
+            # 긴 사전 등록 연구가 창을 계속 차지해도 새틀라이트 R&D 가 하루 한 번은 돈다(다른 슬롯이 이미 돌리고 있으면 연구로)
+            res = _satellite_lab_turn(cfg, now, window_end, notify, headroom, poll_interval, slot=slot, token=token, slots=n)
+            if res is not None:
+                return _finish_tick(res)
         if job is None:
-            if cfg.satellite_lab and os.environ.get("RESEARCH_SATELLITE_LAB", "1") != "0":
-                res = _satellite_lab_turn(cfg, now, window_end, notify, headroom, poll_interval)
-                if res.get("action") == "idle":
-                    res = _core_lab_turn(cfg, now, window_end, notify, headroom, poll_interval) or res
+            if _lab_enabled(cfg):
+                res = _satellite_lab_turn(cfg, now, window_end, notify, headroom, poll_interval, slot=slot, token=token, slots=n)
+                if res is None:
+                    res = {"action": "idle", "reason": "새틀라이트 R&D 는 다른 슬롯에서 실행 중"}
+                elif res.get("action") == "idle":
+                    res = _core_lab_turn(cfg, now, window_end, notify, headroom, poll_interval, slot=slot, token=token,
+                                         slots=n) or res
                 return _finish_tick(res)
             return _finish_tick({"action": "idle", "reason": "실행할 작업 없음"})
         if not headroom():
             return _finish_tick({"action": "skipped", "reason": "VM 여유 없음(부하·메모리)"})
-        available = _system_available_mb()
-        reserve = _memory_reserve_mb()
-        if available is not None and available < reserve:
-            return _finish_tick({"action": "skipped", "reason": f"연구 메모리 여유 부족({int(available)}MB < 예약 {int(reserve)}MB)"})
         free = free_disk_mb(cfg.state_dir)
         if free is not None and free < MIN_FREE_DISK_MB:
             return _finish_tick({"action": "skipped", "reason": f"여유 디스크 부족({int(free)}MB)"})
 
-        with edit_state(cfg) as state:
-            entry = state["jobs"][job.id]
-            if not job.resumable:
-                shutil.rmtree(cfg.work_dir(job.id), ignore_errors=True)  # 재개 불가 작업은 매번 새로
-            entry.update(status="running", last_started_at=_now_iso(now), pid=os.getpid(), cancel_requested=False)
+        memory_note = ""
+        with edit_state(cfg) as state:  # 고르기 + running 표시를 한 락 안에서(두 슬롯이 같은 작업을 잡지 않게)
+            job, budget, shortened = pick_job(state, jobs, now, window_end)
+            if job is not None:
+                ok, memory_note = start_memory_ok(job, _system_available_mb(), _system_total_mb(),
+                                                  _busy_other_slots(cfg, state, slot), n)
+                if ok:
+                    entry = state["jobs"][job.id]
+                    if not job.resumable:
+                        shutil.rmtree(cfg.work_dir(job.id), ignore_errors=True)  # 재개 불가 작업은 매번 새로
+                    entry.update(status="running", last_started_at=_now_iso(now), pid=os.getpid(), cancel_requested=False,
+                                 slot=slot, run_token=token, child_pid=None, child_start=None)
+                    state["runner"]["slots"][str(slot)]["job_id"] = job.id
+        if job is None:
+            return _finish_tick({"action": "idle", "reason": "대기 작업을 다른 슬롯이 모두 가져감"})
+        if memory_note:
+            return _finish_tick({"action": "skipped", "reason": memory_note})
 
         def _cancel_requested() -> bool:
             return bool(load_state(cfg)["jobs"].get(job.id, {}).get("cancel_requested"))
 
-        outcome = run_child(cfg, job, budget, poll_interval=poll_interval, cancel_check=_cancel_requested)
+        def _record_child(proc: subprocess.Popen) -> None:
+            with edit_state(cfg) as st:
+                entry = st["jobs"].get(job.id) or {}
+                if entry.get("run_token") == token:
+                    entry.update(child_pid=proc.pid, child_start=_proc_start_ticks(proc.pid))
+
+        outcome = run_child(cfg, job, budget, poll_interval=poll_interval, cancel_check=_cancel_requested,
+                            on_start=_record_child, guard_key=f"slot-{slot}")
         with edit_state(cfg) as state:
-            entry = state["jobs"][job.id]
-            result = apply_outcome(cfg, job, entry, outcome, shortened, notify, publish, now, state["runner"])
+            entry = state["jobs"].get(job.id) or {}
+            if entry.get("run_token") == token:
+                entry.update(child_pid=None, child_start=None)  # 자식은 끝났고 슬롯이 결과를 처리하는 중
+            snapshot = json.loads(json.dumps(entry, default=str))
+        # 결과 보관·저장소 반영(수 분 걸릴 수 있음)은 state.lock 밖에서 사본에 하고, 끝나면 락 안에서 한 번에 합친다 —
+        # 그동안 다른 슬롯의 상태 기록·취소 확인이 막히지 않게. 알림은 합친 뒤에 보낸다.
+        messages: list[str] = []
+        runner_update: dict = {}
+        result = apply_outcome(cfg, job, snapshot, outcome, shortened, messages.append, publish, now, runner_update)
+        with edit_state(cfg) as state:
+            current = state["jobs"].get(job.id)
+            if current is not None and current.get("run_token") == token:
+                snapshot.update(slot=None, run_token=None, child_pid=None, child_start=None, pid=None)
+                state["jobs"][job.id] = snapshot
+            for key, value in runner_update.items():
+                if key in ("cooldown_until", "last_publish_at"):
+                    old = _parse_iso(state["runner"].get(key))
+                    if old is None or (_parse_iso(value) or old) > old:
+                        state["runner"][key] = value
+                else:
+                    state["runner"][key] = value
+        for message in messages:
+            notify(message)
         return _finish_tick({"action": "ran", "job_id": job.id, "result": result, "exit_code": outcome.exit_code,
                              "budget": budget, "duration": round(outcome.duration, 1)})
 
@@ -1145,12 +1502,23 @@ def _satellite_lab_due(state: dict, now: datetime) -> bool:
 
 
 def _satellite_lab_turn(cfg: Config, now: datetime, window_end: datetime, notify: Callable[[str], object],
-                        headroom: Callable[[], bool], poll_interval: float) -> dict:
+                        headroom: Callable[[], bool], poll_interval: float, *, slot: Optional[int] = None,
+                        token: Optional[str] = None, slots: int = 1) -> Optional[dict]:
     """빈 창 한 회차: 심판할 후보가 있으면 계산기(scripts/satellite_lab_worker.py)를 같은 보호 장치로 돌린다.
 
-    사전 등록 연구(research/jobs)가 언제나 먼저다 — 이 함수는 pick_job 이 아무것도 고르지 않았을 때만 불린다.
+    사전 등록 연구(research/jobs)가 언제나 먼저다 — 이 함수는 시작할 대기 연구가 없을 때(또는 20시간 공정 차례에)만 불린다.
     계산기는 결과를 data/satellite_lab/registry.json 에 직접 쓰고, 여기서는 새 판정을 텔레그램으로 알린다.
+    동시 실행에서도 새틀라이트 차례는 한 번에 하나(satellite-lab.lock) — 다른 슬롯이 돌리고 있으면 None.
     """
+    with _flock(cfg.state_dir / "satellite-lab.lock", blocking=False) as got:
+        if not got:
+            return None
+        return _satellite_lab_turn_locked(cfg, now, window_end, notify, headroom, poll_interval, slot, token, slots)
+
+
+def _satellite_lab_turn_locked(cfg: Config, now: datetime, window_end: datetime, notify: Callable[[str], object],
+                               headroom: Callable[[], bool], poll_interval: float, slot: Optional[int],
+                               token: Optional[str], slots: int) -> dict:
     from core import satellite_lab as sl
 
     job = SATELLITE_LAB_JOB
@@ -1168,8 +1536,17 @@ def _satellite_lab_turn(cfg: Config, now: datetime, window_end: datetime, notify
     if free is not None and free < MIN_FREE_DISK_MB:
         return {"action": "skipped", "reason": f"여유 디스크 부족({int(free)}MB)"}
     with edit_state(cfg) as state:
-        state.setdefault("satellite_lab", {})["last_started_at"] = _now_iso(now)
-    outcome = run_child(cfg, job, budget, poll_interval=poll_interval)
+        busy = _busy_other_slots(cfg, state, slot)  # 혼자 돌 때는 예전처럼 따로 막지 않는다(실행 중 감시가 양보시킨다)
+        ok, memory_note = start_memory_ok(job, _system_available_mb(), _system_total_mb(), busy, slots) if busy else (True, "")
+        if ok:
+            state.setdefault("satellite_lab", {})["last_started_at"] = _now_iso(now)
+            record = state["runner"].setdefault("slots", {}).get(str(slot))
+            if record and record.get("token") == token:
+                record["job_id"] = job.id
+    if not ok:
+        return {"action": "skipped", "reason": memory_note}
+    outcome = run_child(cfg, job, budget, poll_interval=poll_interval,
+                        guard_key=f"slot-{slot}" if slot is not None else None)
     ok = outcome.exit_code in (0, 3) or (outcome.stopped_by == "budget")
     with edit_state(cfg) as state:
         lab = state.setdefault("satellite_lab", {})
@@ -1195,8 +1572,18 @@ CORE_LAB_JOB = JobDef(
 
 
 def _core_lab_turn(cfg: Config, now: datetime, window_end: datetime, notify: Callable[[str], object],
-                   headroom: Callable[[], bool], poll_interval: float) -> Optional[dict]:
-    """새틀라이트 R&D 도 할 일이 없을 때 코어 분기 연구 대기열을 판정한다(주제가 꺼져 있으면 None)."""
+                   headroom: Callable[[], bool], poll_interval: float, *, slot: Optional[int] = None,
+                   token: Optional[str] = None, slots: int = 1) -> Optional[dict]:
+    """새틀라이트 R&D 도 할 일이 없을 때 코어 분기 연구 대기열을 판정한다(주제가 꺼져 있거나 다른 슬롯이 돌리는 중이면 None)."""
+    with _flock(cfg.state_dir / "core-lab.lock", blocking=False) as got:
+        if not got:
+            return None
+        return _core_lab_turn_locked(cfg, now, window_end, notify, headroom, poll_interval, slot, token, slots)
+
+
+def _core_lab_turn_locked(cfg: Config, now: datetime, window_end: datetime, notify: Callable[[str], object],
+                          headroom: Callable[[], bool], poll_interval: float, slot: Optional[int],
+                          token: Optional[str], slots: int) -> Optional[dict]:
     from core import core_rnd
 
     try:
@@ -1207,7 +1594,16 @@ def _core_lab_turn(cfg: Config, now: datetime, window_end: datetime, notify: Cal
     budget, _ = budget_for(CORE_LAB_JOB, now, window_end)
     if budget < MIN_BUDGET_SECONDS or not headroom():
         return None
-    outcome = run_child(cfg, CORE_LAB_JOB, budget, poll_interval=poll_interval)
+    with edit_state(cfg) as state:
+        busy = _busy_other_slots(cfg, state, slot)  # 혼자 돌 때는 예전처럼 따로 막지 않는다(실행 중 감시가 양보시킨다)
+        ok, _note = start_memory_ok(CORE_LAB_JOB, _system_available_mb(), _system_total_mb(), busy, slots) if busy else (True, "")
+        record = state["runner"].setdefault("slots", {}).get(str(slot))
+        if ok and record and record.get("token") == token:
+            record["job_id"] = CORE_LAB_JOB.id
+    if not ok:
+        return None
+    outcome = run_child(cfg, CORE_LAB_JOB, budget, poll_interval=poll_interval,
+                        guard_key=f"slot-{slot}" if slot is not None else None)
     with edit_state(cfg) as state:
         state.setdefault("core_lab", {}).update(last_finished_at=_now_iso(), exit_code=outcome.exit_code,
                                                 duration=round(outcome.duration, 1))
