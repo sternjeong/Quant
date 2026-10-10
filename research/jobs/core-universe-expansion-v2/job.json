@@ -1,0 +1,13 @@
+{
+  "id": "core-universe-expansion-v2",
+  "title": "코어 후보군 부족 자산군 ETF 5종 추가 연구 v2(v1 배관 버그 수정 재실행)",
+  "entrypoint": "research/jobs/core-universe-expansion-v2/run.py",
+  "args": [],
+  "timeout_seconds": 3600,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 5,
+  "revision": 1
+}
