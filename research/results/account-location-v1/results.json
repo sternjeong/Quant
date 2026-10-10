@@ -1,0 +1,3623 @@
+{
+ "judge_version": "location-judge/v1",
+ "kind": "measurement (통계 관문 없음)",
+ "smoke": false,
+ "generated_at": "2026-10-10T22:51:42+00:00",
+ "power": null,
+ "power_note": "통계 관문이 없는 측정 연구 — power_report 미사용(docs/RESEARCH_JOBS.md 판정 설계 규칙 1 해당 없음)",
+ "verdicts": {
+  "core.L1": "NO_CHANGE",
+  "core.L2": "NO_CHANGE",
+  "core.L12": "NO_CHANGE",
+  "blend.L1": "NO_CHANGE",
+  "blend.L2": "NO_CHANGE",
+  "blend.L12": "NO_CHANGE"
+ },
+ "stage1": {
+  "XLC": {
+   "name": "KODEX 미국S&P500커뮤니케이션",
+   "krx": "463690.KS",
+   "status_registered": "proxy",
+   "us_exp": 0.0008,
+   "proxy_exp": 0.0025,
+   "tracking": {
+    "n_days": 768,
+    "start": "2023-08-03",
+    "end": "2026-10-08",
+    "years": 3.18,
+    "te_daily_ann": 0.1471541646938975,
+    "te_monthly_ann": 0.03833347267789744,
+    "n_months": 38,
+    "measured_drag": 0.0072801488932832115
+   },
+   "status_used": "proxy",
+   "deduction": {
+    "expense_diff": 0.0017000000000000001,
+    "resid_raw": 0.005580148893283211,
+    "resid_used": 0.005580148893283211,
+    "source": "measured",
+    "deduction": 0.0072801488932832115
+   }
+  },
+  "XLY": {
+   "name": "KODEX 미국S&P500경기소비재",
+   "krx": "453660.KS",
+   "status_registered": "proxy",
+   "us_exp": 0.0008,
+   "proxy_exp": 0.0025,
+   "tracking": {
+    "n_days": 846,
+    "start": "2023-03-21",
+    "end": "2026-10-08",
+    "years": 3.55,
+    "te_daily_ann": 0.1378123528851789,
+    "te_monthly_ann": 0.03892763396245088,
+    "n_months": 43,
+    "measured_drag": 0.013405205458521086
+   },
+   "status_used": "proxy",
+   "deduction": {
+    "expense_diff": 0.0017000000000000001,
+    "resid_raw": 0.011705205458521085,
+    "resid_used": 0.011705205458521085,
+    "source": "measured",
+    "deduction": 0.013405205458521086
+   }
+  },
+  "XLP": {
+   "name": "KODEX 미국S&P500필수소비재",
+   "krx": "453630.KS",
+   "status_registered": "proxy",
+   "us_exp": 0.0008,
+   "proxy_exp": 0.0025,
+   "tracking": {
+    "n_days": 846,
+    "start": "2023-03-21",
+    "end": "2026-10-08",
+    "years": 3.55,
+    "te_daily_ann": 0.1357875072023978,
+    "te_monthly_ann": 0.03438678399593084,
+    "n_months": 43,
+    "measured_drag": 0.011984392084463558
+   },
+   "status_used": "proxy",
+   "deduction": {
+    "expense_diff": 0.0017000000000000001,
+    "resid_raw": 0.010284392084463558,
+    "resid_used": 0.010284392084463558,
+    "source": "measured",
+    "deduction": 0.011984392084463558
+   }
+  },
+  "XLE": {
+   "name": "KODEX 미국S&P에너지(합성)",
+   "krx": "218420.KS",
+   "status_registered": "proxy",
+   "us_exp": 0.0008,
+   "proxy_exp": 0.0025,
+   "tracking": {
+    "n_days": 2779,
+    "start": "2015-04-30",
+    "end": "2026-10-08",
+    "years": 11.44,
+    "te_daily_ann": 0.1846886117325201,
+    "te_monthly_ann": 0.03597093131665962,
+    "n_months": 138,
+    "measured_drag": 0.03318223633827433
+   },
+   "status_used": "proxy",
+   "deduction": {
+    "expense_diff": 0.0017000000000000001,
+    "resid_raw": 0.03148223633827433,
+    "resid_used": 0.03,
+    "source": "measured",
+    "deduction": 0.0317
+   }
+  },
+  "XLF": {
+   "name": "KODEX 미국S&P500금융",
+   "krx": "453650.KS",
+   "status_registered": "proxy",
+   "us_exp": 0.0008,
+   "proxy_exp": 0.0025,
+   "tracking": {
+    "n_days": 846,
+    "start": "2023-03-21",
+    "end": "2026-10-08",
+    "years": 3.55,
+    "te_daily_ann": 0.14121124213900837,
+    "te_monthly_ann": 0.03174653613807344,
+    "n_months": 43,
+    "measured_drag": 0.013912165933262832
+   },
+   "status_used": "proxy",
+   "deduction": {
+    "expense_diff": 0.0017000000000000001,
+    "resid_raw": 0.012212165933262832,
+    "resid_used": 0.012212165933262832,
+    "source": "measured",
+    "deduction": 0.013912165933262832
+   }
+  },
+  "XLV": {
+   "name": "KODEX 미국S&P500헬스케어",
+   "krx": "453640.KS",
+   "status_registered": "proxy",
+   "us_exp": 0.0008,
+   "proxy_exp": 0.0025,
+   "tracking": {
+    "n_days": 846,
+    "start": "2023-03-21",
+    "end": "2026-10-08",
+    "years": 3.55,
+    "te_daily_ann": 0.1367756176667196,
+    "te_monthly_ann": 0.037598340806166884,
+    "n_months": 43,
+    "measured_drag": 0.014583017189791714
+   },
+   "status_used": "proxy",
+   "deduction": {
+    "expense_diff": 0.0017000000000000001,
+    "resid_raw": 0.012883017189791714,
+    "resid_used": 0.012883017189791714,
+    "source": "measured",
+    "deduction": 0.014583017189791714
+   }
+  },
+  "XLI": {
+   "name": "KODEX 미국S&P산업재(합성)",
+   "krx": "200030.KS",
+   "status_registered": "proxy",
+   "us_exp": 0.0008,
+   "proxy_exp": 0.0025,
+   "tracking": {
+    "n_days": 2974,
+    "start": "2014-06-12",
+    "end": "2026-10-08",
+    "years": 12.32,
+    "te_daily_ann": 0.126553247545949,
+    "te_monthly_ann": 0.030847081421806356,
+    "n_months": 148,
+    "measured_drag": 0.02054461183248424
+   },
+   "status_used": "proxy",
+   "deduction": {
+    "expense_diff": 0.0017000000000000001,
+    "resid_raw": 0.01884461183248424,
+    "resid_used": 0.01884461183248424,
+    "source": "measured",
+    "deduction": 0.02054461183248424
+   }
+  },
+  "XLB": {
+   "name": "없음",
+   "krx": null,
+   "status_registered": "none",
+   "us_exp": 0.0008,
+   "proxy_exp": null,
+   "tracking": {
+    "n_days": 0
+   },
+   "status_used": "none"
+  },
+  "XLRE": {
+   "name": "TIGER 미국MSCI리츠(합성 H)",
+   "krx": "182480.KS",
+   "status_registered": "hedged_only",
+   "us_exp": 0.0008,
+   "proxy_exp": null,
+   "tracking": {
+    "n_days": 3148,
+    "start": "2013-10-10",
+    "end": "2026-10-08",
+    "years": 12.99,
+    "te_daily_ann": 0.15998525523708668,
+    "te_monthly_ann": 0.11662283063820941,
+    "n_months": 156,
+    "measured_drag": 0.014787151482293703
+   },
+   "status_used": "hedged_only"
+  },
+  "XLK": {
+   "name": "KODEX 미국S&P500테크놀로지",
+   "krx": "463680.KS",
+   "status_registered": "proxy",
+   "us_exp": 0.0008,
+   "proxy_exp": 0.0025,
+   "tracking": {
+    "n_days": 768,
+    "start": "2023-08-03",
+    "end": "2026-10-08",
+    "years": 3.18,
+    "te_daily_ann": 0.1767408586255386,
+    "te_monthly_ann": 0.04611443183401871,
+    "n_months": 38,
+    "measured_drag": 0.019073775845521723
+   },
+   "status_used": "proxy",
+   "deduction": {
+    "expense_diff": 0.0017000000000000001,
+    "resid_raw": 0.017373775845521723,
+    "resid_used": 0.017373775845521723,
+    "source": "measured",
+    "deduction": 0.019073775845521723
+   }
+  },
+  "XLU": {
+   "name": "KODEX 미국S&P500유틸리티",
+   "krx": "463640.KS",
+   "status_registered": "proxy",
+   "us_exp": 0.0008,
+   "proxy_exp": 0.0025,
+   "tracking": {
+    "n_days": 768,
+    "start": "2023-08-03",
+    "end": "2026-10-08",
+    "years": 3.18,
+    "te_daily_ann": 0.1376579742645495,
+    "te_monthly_ann": 0.031083638539487934,
+    "n_months": 38,
+    "measured_drag": 0.008204857783069675
+   },
+   "status_used": "proxy",
+   "deduction": {
+    "expense_diff": 0.0017000000000000001,
+    "resid_raw": 0.006504857783069674,
+    "resid_used": 0.006504857783069674,
+    "source": "measured",
+    "deduction": 0.008204857783069675
+   }
+  },
+  "TLT": {
+   "name": "ACE 미국30년국채액티브",
+   "krx": "476760.KS",
+   "status_registered": "proxy",
+   "us_exp": 0.0015,
+   "proxy_exp": 0.001,
+   "tracking": {
+    "n_days": 623,
+    "start": "2024-03-12",
+    "end": "2026-10-08",
+    "years": 2.57,
+    "te_daily_ann": 0.12990225684750714,
+    "te_monthly_ann": 0.03456807602367355,
+    "n_months": 31,
+    "measured_drag": 0.019685804241327598
+   },
+   "status_used": "proxy",
+   "deduction": {
+    "expense_diff": -0.0005,
+    "resid_raw": 0.0201858042413276,
+    "resid_used": 0.0201858042413276,
+    "source": "measured",
+    "deduction": 0.019685804241327598
+   }
+  },
+  "IEF": {
+   "name": "TIGER 미국채10년선물",
+   "krx": "305080.KS",
+   "status_registered": "proxy",
+   "us_exp": 0.0015,
+   "proxy_exp": 0.003,
+   "tracking": {
+    "n_days": 1960,
+    "start": "2018-08-30",
+    "end": "2026-10-08",
+    "years": 8.11,
+    "te_daily_ann": 0.12186322211869434,
+    "te_monthly_ann": 0.03029357313100499,
+    "n_months": 98,
+    "measured_drag": 0.013073460408562498
+   },
+   "status_used": "proxy",
+   "deduction": {
+    "expense_diff": 0.0015,
+    "resid_raw": 0.011573460408562499,
+    "resid_used": 0.011573460408562499,
+    "source": "measured",
+    "deduction": 0.013073460408562498
+   }
+  },
+  "GLD": {
+   "name": "ACE KRX금현물",
+   "krx": "411060.KS",
+   "status_registered": "proxy",
+   "us_exp": 0.004,
+   "proxy_exp": 0.005,
+   "tracking": {
+    "n_days": 1153,
+    "start": "2021-12-15",
+    "end": "2026-10-08",
+    "years": 4.81,
+    "te_daily_ann": 0.19524689202903714,
+    "te_monthly_ann": 0.09599454145386671,
+    "n_months": 58,
+    "measured_drag": 0.013741337891732264
+   },
+   "status_used": "mismatch_no_proxy"
+  },
+  "EFA": {
+   "name": "PLUS 선진국MSCI(합성 H)",
+   "krx": "195970.KS",
+   "status_registered": "hedged_only",
+   "us_exp": 0.0033,
+   "proxy_exp": null,
+   "tracking": {
+    "n_days": 3012,
+    "start": "2014-05-13",
+    "end": "2026-10-08",
+    "years": 12.41,
+    "te_daily_ann": 0.16106803964249014,
+    "te_monthly_ann": 0.10182165735703722,
+    "n_months": 149,
+    "measured_drag": 0.04474809783803213
+   },
+   "status_used": "hedged_only"
+  },
+  "HYG": {
+   "name": "KODEX iShares미국하이일드액티브",
+   "krx": "468380.KS",
+   "status_registered": "proxy",
+   "us_exp": 0.0049,
+   "proxy_exp": 0.003,
+   "tracking": {
+    "n_days": 719,
+    "start": "2023-10-19",
+    "end": "2026-10-08",
+    "years": 2.97,
+    "te_daily_ann": 0.11263769537247828,
+    "te_monthly_ann": 0.02818229914861496,
+    "n_months": 36,
+    "measured_drag": 0.007325011442159579
+   },
+   "status_used": "proxy",
+   "deduction": {
+    "expense_diff": -0.0018999999999999998,
+    "resid_raw": 0.009225011442159578,
+    "resid_used": 0.009225011442159578,
+    "source": "measured",
+    "deduction": 0.007325011442159578
+   }
+  },
+  "DBC": {
+   "name": "없음(현 코어에서 제외된 PTP)",
+   "krx": null,
+   "status_registered": "none",
+   "us_exp": 0.0085,
+   "proxy_exp": null,
+   "tracking": {
+    "n_days": 0
+   },
+   "status_used": "none"
+  },
+  "BIL": {
+   "name": "TIGER 미국달러단기채권액티브",
+   "krx": "329750.KS",
+   "status_registered": "proxy",
+   "us_exp": 0.0014,
+   "proxy_exp": 0.003,
+   "tracking": {
+    "n_days": 1743,
+    "start": "2019-07-24",
+    "end": "2026-10-08",
+    "years": 7.21,
+    "te_daily_ann": 0.11647342066148136,
+    "te_monthly_ann": 0.024462903647415674,
+    "n_months": 87,
+    "measured_drag": 0.004178691106268895
+   },
+   "status_used": "proxy",
+   "deduction": {
+    "expense_diff": 0.0016,
+    "resid_raw": 0.002578691106268895,
+    "resid_used": 0.002578691106268895,
+    "source": "measured",
+    "deduction": 0.004178691106268895
+   }
+  },
+  "SPY": {
+   "name": "TIGER 미국S&P500",
+   "krx": "360750.KS",
+   "status_registered": "reference",
+   "us_exp": 0.000945,
+   "proxy_exp": 0.0007,
+   "tracking": {
+    "n_days": 1487,
+    "start": "2020-08-07",
+    "end": "2026-10-08",
+    "years": 6.17,
+    "te_daily_ann": 0.13269788684999612,
+    "te_monthly_ann": 0.037622344837194954,
+    "n_months": 74,
+    "measured_drag": 0.009644896075806653
+   },
+   "status_used": "reference"
+  }
+ },
+ "proxied": [
+  "BIL",
+  "HYG",
+  "IEF",
+  "TLT",
+  "XLC",
+  "XLE",
+  "XLF",
+  "XLI",
+  "XLK",
+  "XLP",
+  "XLU",
+  "XLV",
+  "XLY"
+ ],
+ "reserve_share": 0.25,
+ "coverage": {
+  "core": 0.8396752015173068,
+  "blend": 0.8348833862061569
+ },
+ "periods": {
+  "full": [
+   "2010-01-04",
+   "2026-10-09"
+  ],
+  "H1": [
+   "2010-01-04",
+   "2018-05-22"
+  ],
+  "H2": [
+   "2018-05-23",
+   "2026-10-09"
+  ]
+ },
+ "sims": {
+  "core|30000000|full|L0": {
+   "scheme": "L0",
+   "capital": 30000000,
+   "years": 16.761122518822724,
+   "start": "2010-01-04",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 117358198.47185762,
+    "high": 117358198.47185762,
+    "lump": 117358198.47185762
+   },
+   "cagr_after": {
+    "low": 0.08478389341838555,
+    "high": 0.08478389341838555,
+    "lump": 0.08478389341838555
+   },
+   "mdd": -0.24995010966451447,
+   "totals": {
+    "overseas_cg_tax_krw": 16243530.158093413,
+    "overseas_fees_krw": 6294580.705768966,
+    "fx_cost_krw": 20005.314490423487,
+    "overseas_div_tax_krw": 2258129.7274090545,
+    "domestic_fees_krw": 0,
+    "domestic_tax_krw": 0,
+    "pension_withdrawal_tax_krw": {
+     "low": 0.0,
+     "high": 0.0,
+     "lump": 0.0
+    },
+    "pension_value_krw": 0.0,
+    "pension_principal_krw": 0.0
+   },
+   "migrations": [],
+   "isa_rollovers": []
+  },
+  "core|30000000|full|L1": {
+   "scheme": "L1",
+   "capital": 30000000,
+   "years": 16.761122518822724,
+   "start": "2010-01-04",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 110544191.64262256,
+    "high": 109048261.83461572,
+    "lump": 101568612.79458153
+   },
+   "cagr_after": {
+    "low": 0.08091952462806473,
+    "high": 0.08004122180883488,
+    "lump": 0.07547225795310042
+   },
+   "mdd": -0.24466836238677925,
+   "totals": {
+    "overseas_cg_tax_krw": 839420.4065622943,
+    "overseas_fees_krw": 1738963.2303496492,
+    "fx_cost_krw": 8744.675951368905,
+    "overseas_div_tax_krw": 395217.5072644356,
+    "domestic_fees_krw": 3056052.669617356,
+    "domestic_tax_krw": 0.0,
+    "pension_withdrawal_tax_krw": {
+     "low": 2243894.712010258,
+     "high": 3739824.520017096,
+     "lump": 11219473.560051288
+    },
+    "pension_value_krw": 90650409.9882819,
+    "pension_principal_krw": 22653600.533425618
+   },
+   "migrations": [
+    {
+     "date": "2010-01-04",
+     "pension": 18000000
+    },
+    {
+     "date": "2011-01-03",
+     "pension": 4414287
+    },
+    {
+     "date": "2012-01-03",
+     "pension": 239314
+    }
+   ],
+   "isa_rollovers": []
+  },
+  "core|30000000|full|L2": {
+   "scheme": "L2",
+   "capital": 30000000,
+   "years": 16.761122518822724,
+   "start": "2010-01-04",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 110731586.30235323,
+    "high": 109240738.29722534,
+    "lump": 101786498.27158594
+   },
+   "cagr_after": {
+    "low": 0.08102876059018627,
+    "high": 0.08015486304860175,
+    "lump": 0.07560976571934996
+   },
+   "mdd": -0.24469713416436945,
+   "totals": {
+    "overseas_cg_tax_krw": 845634.0678200978,
+    "overseas_fees_krw": 1726233.3145053629,
+    "fx_cost_krw": 6620.917768695688,
+    "overseas_div_tax_krw": 392625.35100067995,
+    "domestic_fees_krw": 3098396.030129128,
+    "domestic_tax_krw": 0.0,
+    "pension_withdrawal_tax_krw": {
+     "low": 2236272.0076918215,
+     "high": 3727120.0128197027,
+     "lump": 11181360.03845911
+    },
+    "pension_value_krw": 90776880.88907553,
+    "pension_principal_krw": 23011062.474171847
+   },
+   "migrations": [
+    {
+     "date": "2010-01-04",
+     "isa": 20000000
+    },
+    {
+     "date": "2011-01-03",
+     "isa": 2156052
+    },
+    {
+     "date": "2012-01-03",
+     "isa": 243946
+    }
+   ],
+   "isa_rollovers": [
+    {
+     "date": "2013-01-04",
+     "krw": 23011062
+    }
+   ]
+  },
+  "core|30000000|full|L12": {
+   "scheme": "L12",
+   "capital": 30000000,
+   "years": 16.761122518822724,
+   "start": "2010-01-04",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 110730431.2144628,
+    "high": 109209955.36943707,
+    "lump": 101607576.14430837
+   },
+   "cagr_after": {
+    "low": 0.08102808779978443,
+    "high": 0.0801367009609466,
+    "lump": 0.07549686811995882
+   },
+   "mdd": -0.24332345352730256,
+   "totals": {
+    "overseas_cg_tax_krw": 735601.6821093177,
+    "overseas_fees_krw": 1616020.829270607,
+    "fx_cost_krw": 4115.92677808531,
+    "overseas_div_tax_krw": 369241.95535567484,
+    "domestic_fees_krw": 3103521.128315549,
+    "domestic_tax_krw": 0.0,
+    "pension_withdrawal_tax_krw": {
+     "low": 2280713.767538608,
+     "high": 3801189.6125643463,
+     "lump": 11403568.83769304
+    },
+    "pension_value_krw": 91799903.4541431,
+    "pension_principal_krw": 22687365.04388227
+   },
+   "migrations": [
+    {
+     "date": "2010-01-04",
+     "pension": 18000000,
+     "isa": 4500000
+    }
+   ],
+   "isa_rollovers": [
+    {
+     "date": "2013-01-04",
+     "krw": 4687365
+    }
+   ]
+  },
+  "core|30000000|full|L3": {
+   "scheme": "L3",
+   "capital": 30000000,
+   "years": 16.761122518822724,
+   "start": "2010-01-04",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 89162115.3954557,
+    "high": 89162115.3954557,
+    "lump": 89162115.3954557
+   },
+   "cagr_after": {
+    "low": 0.06714539228039618,
+    "high": 0.06714539228039618,
+    "lump": 0.06714539228039618
+   },
+   "mdd": -0.25947658309709765,
+   "totals": {
+    "overseas_cg_tax_krw": 721105.141436888,
+    "overseas_fees_krw": 1637542.0645706195,
+    "fx_cost_krw": 4975.579082106022,
+    "overseas_div_tax_krw": 371260.8285113262,
+    "domestic_fees_krw": 2684216.2733440567,
+    "domestic_tax_krw": 13178760.583912598,
+    "pension_withdrawal_tax_krw": {
+     "low": 0.0,
+     "high": 0.0,
+     "lump": 0.0
+    },
+    "pension_value_krw": 0.0,
+    "pension_principal_krw": 0.0
+   },
+   "migrations": [
+    {
+     "date": "2010-01-04",
+     "taxable": 22500000
+    },
+    {
+     "date": "2026-01-02",
+     "taxable": 1732934
+    }
+   ],
+   "isa_rollovers": []
+  },
+  "core|30000000|H1|L0": {
+   "scheme": "L0",
+   "capital": 30000000,
+   "years": 8.37782340862423,
+   "start": "2010-01-04",
+   "end": "2018-05-22",
+   "final_krw": {
+    "low": 44624257.04798183,
+    "high": 44624257.04798183,
+    "lump": 44624257.04798183
+   },
+   "cagr_after": {
+    "low": 0.048537759756692056,
+    "high": 0.048537759756692056,
+    "lump": 0.048537759756692056
+   },
+   "mdd": -0.24995010966451447,
+   "totals": {
+    "overseas_cg_tax_krw": 1643678.7871809877,
+    "overseas_fees_krw": 1991655.7033073392,
+    "fx_cost_krw": 15778.564655948698,
+    "overseas_div_tax_krw": 807883.2147891009,
+    "domestic_fees_krw": 0,
+    "domestic_tax_krw": 0,
+    "pension_withdrawal_tax_krw": {
+     "low": 0.0,
+     "high": 0.0,
+     "lump": 0.0
+    },
+    "pension_value_krw": 0.0,
+    "pension_principal_krw": 0.0
+   },
+   "migrations": [],
+   "isa_rollovers": []
+  },
+  "core|30000000|H1|L1": {
+   "scheme": "L1",
+   "capital": 30000000,
+   "years": 8.37782340862423,
+   "start": "2010-01-04",
+   "end": "2018-05-22",
+   "final_krw": {
+    "low": 41749830.45386129,
+    "high": 41519556.91121151,
+    "lump": 40368189.19796265
+   },
+   "cagr_after": {
+    "low": 0.04023760100118512,
+    "high": 0.03955108956750952,
+    "lump": 0.03606739820988292
+   },
+   "mdd": -0.24466836238677925,
+   "totals": {
+    "overseas_cg_tax_krw": 0.0,
+    "overseas_fees_krw": 772784.6389520628,
+    "fx_cost_krw": 8324.965748087758,
+    "overseas_div_tax_krw": 183564.77393469782,
+    "domestic_fees_krw": 935763.0298054001,
+    "domestic_tax_krw": 0.0,
+    "pension_withdrawal_tax_krw": {
+     "low": 345410.31397465937,
+     "high": 575683.8566244323,
+     "lump": 1727051.5698732967
+    },
+    "pension_value_krw": 33120579.74477893,
+    "pension_principal_krw": 22653600.533425618
+   },
+   "migrations": [
+    {
+     "date": "2010-01-04",
+     "pension": 18000000
+    },
+    {
+     "date": "2011-01-03",
+     "pension": 4414287
+    },
+    {
+     "date": "2012-01-03",
+     "pension": 239314
+    }
+   ],
+   "isa_rollovers": []
+  },
+  "core|30000000|H1|L2": {
+   "scheme": "L2",
+   "capital": 30000000,
+   "years": 8.37782340862423,
+   "start": "2010-01-04",
+   "end": "2018-05-22",
+   "final_krw": {
+    "low": 41826717.78011864,
+    "high": 41603374.071012944,
+    "lump": 40486655.52548445
+   },
+   "cagr_after": {
+    "low": 0.040466081681302724,
+    "high": 0.039801359769149114,
+    "lump": 0.03642985141573618
+   },
+   "mdd": -0.24469713416436945,
+   "totals": {
+    "overseas_cg_tax_krw": 0.0,
+    "overseas_fees_krw": 757417.1098888534,
+    "fx_cost_krw": 6198.100734785639,
+    "overseas_div_tax_krw": 180427.84816275234,
+    "domestic_fees_krw": 974811.5350124822,
+    "domestic_tax_krw": 0.0,
+    "pension_withdrawal_tax_krw": {
+     "low": 335015.56365854765,
+     "high": 558359.2727642461,
+     "lump": 1675077.8182927384
+    },
+    "pension_value_krw": 33163049.251703594,
+    "pension_principal_krw": 23011062.474171847
+   },
+   "migrations": [
+    {
+     "date": "2010-01-04",
+     "isa": 20000000
+    },
+    {
+     "date": "2011-01-03",
+     "isa": 2156052
+    },
+    {
+     "date": "2012-01-03",
+     "isa": 243946
+    }
+   ],
+   "isa_rollovers": [
+    {
+     "date": "2013-01-04",
+     "krw": 23011062
+    }
+   ]
+  },
+  "core|30000000|H1|L12": {
+   "scheme": "L12",
+   "capital": 30000000,
+   "years": 8.37782340862423,
+   "start": "2010-01-04",
+   "end": "2018-05-22",
+   "final_krw": {
+    "low": 41911258.5648285,
+    "high": 41668457.2069739,
+    "lump": 40454450.4177009
+   },
+   "cagr_after": {
+    "low": 0.04071687907471255,
+    "high": 0.03999538586044893,
+    "lump": 0.03633141093471903
+   },
+   "mdd": -0.24332345352730256,
+   "totals": {
+    "overseas_cg_tax_krw": 0.0,
+    "overseas_fees_krw": 700227.6439976369,
+    "fx_cost_krw": 3748.1259370306507,
+    "overseas_div_tax_krw": 167064.59942722233,
+    "domestic_fees_krw": 972703.4923219634,
+    "domestic_tax_krw": 0.0,
+    "pension_withdrawal_tax_krw": {
+     "low": 364202.0367819003,
+     "high": 607003.3946365005,
+     "lump": 1821010.1839095014
+    },
+    "pension_value_krw": 33723790.40090955,
+    "pension_principal_krw": 22687365.04388227
+   },
+   "migrations": [
+    {
+     "date": "2010-01-04",
+     "pension": 18000000,
+     "isa": 4500000
+    }
+   ],
+   "isa_rollovers": [
+    {
+     "date": "2013-01-04",
+     "krw": 4687365
+    }
+   ]
+  },
+  "core|30000000|H1|L3": {
+   "scheme": "L3",
+   "capital": 30000000,
+   "years": 8.37782340862423,
+   "start": "2010-01-04",
+   "end": "2018-05-22",
+   "final_krw": {
+    "low": 38394761.5438412,
+    "high": 38394761.5438412,
+    "lump": 38394761.5438412
+   },
+   "cagr_after": {
+    "low": 0.02988754040105368,
+    "high": 0.02988754040105368,
+    "lump": 0.02988754040105368
+   },
+   "mdd": -0.25947658309709765,
+   "totals": {
+    "overseas_cg_tax_krw": 0.0,
+    "overseas_fees_krw": 700302.9889210989,
+    "fx_cost_krw": 3748.1259370306507,
+    "overseas_div_tax_krw": 167407.32989737758,
+    "domestic_fees_krw": 905240.8391386854,
+    "domestic_tax_krw": 3585613.8097859453,
+    "pension_withdrawal_tax_krw": {
+     "low": 0.0,
+     "high": 0.0,
+     "lump": 0.0
+    },
+    "pension_value_krw": 0.0,
+    "pension_principal_krw": 0.0
+   },
+   "migrations": [
+    {
+     "date": "2010-01-04",
+     "taxable": 22500000
+    }
+   ],
+   "isa_rollovers": []
+  },
+  "core|30000000|H2|L0": {
+   "scheme": "L0",
+   "capital": 30000000,
+   "years": 8.380561259411362,
+   "start": "2018-05-23",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 79864639.72857027,
+    "high": 79864639.72857027,
+    "lump": 79864639.72857027
+   },
+   "cagr_after": {
+    "low": 0.12393301869966544,
+    "high": 0.12393301869966544,
+    "lump": 0.12393301869966544
+   },
+   "mdd": -0.17940861205848335,
+   "totals": {
+    "overseas_cg_tax_krw": 8776649.486969868,
+    "overseas_fees_krw": 2955018.71867547,
+    "fx_cost_krw": 17363.79413397774,
+    "overseas_div_tax_krw": 975970.2919044663,
+    "domestic_fees_krw": 0,
+    "domestic_tax_krw": 0,
+    "pension_withdrawal_tax_krw": {
+     "low": 0.0,
+     "high": 0.0,
+     "lump": 0.0
+    },
+    "pension_value_krw": 0.0,
+    "pension_principal_krw": 0.0
+   },
+   "migrations": [],
+   "isa_rollovers": []
+  },
+  "core|30000000|H2|L1": {
+   "scheme": "L1",
+   "capital": 30000000,
+   "years": 8.380561259411362,
+   "start": "2018-05-23",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 79709455.03616817,
+    "high": 78820003.71175598,
+    "lump": 74372747.08969499
+   },
+   "cagr_after": {
+    "low": 0.1236722031064823,
+    "high": 0.12216863684633994,
+    "lump": 0.11441889777109493
+   },
+   "mdd": -0.17928085755561107,
+   "totals": {
+    "overseas_cg_tax_krw": 354109.7305470365,
+    "overseas_fees_krw": 810464.3424515306,
+    "fx_cost_krw": 8764.856537832231,
+    "overseas_div_tax_krw": 176649.82497540256,
+    "domestic_fees_krw": 1513680.9601741629,
+    "domestic_tax_krw": 0.0,
+    "pension_withdrawal_tax_krw": {
+     "low": 1334176.986618296,
+     "high": 2223628.311030493,
+     "lump": 6670884.93309148
+    },
+    "pension_value_krw": 63608615.20154293,
+    "pension_principal_krw": 23179009.546443053
+   },
+   "migrations": [
+    {
+     "date": "2018-05-23",
+     "pension": 18000000
+    },
+    {
+     "date": "2019-01-02",
+     "pension": 4141738
+    },
+    {
+     "date": "2020-01-02",
+     "pension": 694019
+    },
+    {
+     "date": "2021-01-04",
+     "pension": 258408
+    },
+    {
+     "date": "2026-01-02",
+     "pension": 84845
+    }
+   ],
+   "isa_rollovers": []
+  },
+  "core|30000000|H2|L2": {
+   "scheme": "L2",
+   "capital": 30000000,
+   "years": 8.380561259411362,
+   "start": "2018-05-23",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 78880978.31547599,
+    "high": 78164142.01675893,
+    "lump": 74579960.52317372
+   },
+   "cagr_after": {
+    "low": 0.12227218674171869,
+    "high": 0.12105033889571448,
+    "lump": 0.11478893654791666
+   },
+   "mdd": -0.17946280179642604,
+   "totals": {
+    "overseas_cg_tax_krw": 355739.74307980586,
+    "overseas_fees_krw": 801520.6947111966,
+    "fx_cost_krw": 6934.868688433533,
+    "overseas_div_tax_krw": 172911.19748350835,
+    "domestic_fees_krw": 1542788.276732333,
+    "domestic_tax_krw": 506189.627862658,
+    "pension_withdrawal_tax_krw": {
+     "low": 1075254.448075565,
+     "high": 1792090.7467926082,
+     "lump": 5376272.240377825
+    },
+    "pension_value_krw": 62363784.730422065,
+    "pension_principal_krw": 29780316.606920097
+   },
+   "migrations": [
+    {
+     "date": "2018-05-23",
+     "isa": 20000000
+    },
+    {
+     "date": "2019-01-02",
+     "isa": 2219863
+    },
+    {
+     "date": "2020-01-02",
+     "isa": 695350
+    },
+    {
+     "date": "2021-01-04",
+     "isa": 258267
+    },
+    {
+     "date": "2026-01-02",
+     "isa": 343756
+    }
+   ],
+   "isa_rollovers": [
+    {
+     "date": "2021-05-24",
+     "krw": 29780317
+    }
+   ]
+  },
+  "core|30000000|H2|L12": {
+   "scheme": "L12",
+   "capital": 30000000,
+   "years": 8.380561259411362,
+   "start": "2018-05-23",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 79645237.10983652,
+    "high": 78791322.81649649,
+    "lump": 74521751.34979631
+   },
+   "cagr_after": {
+    "low": 0.12356414257718584,
+    "high": 0.12211990522385108,
+    "lump": 0.11468507898341396
+   },
+   "mdd": -0.17928817647966777,
+   "totals": {
+    "overseas_cg_tax_krw": 352856.3237182266,
+    "overseas_fees_krw": 787405.2777998494,
+    "fx_cost_krw": 4340.803420315192,
+    "overseas_div_tax_krw": 167424.21428691424,
+    "domestic_fees_krw": 1535491.3851875346,
+    "domestic_tax_krw": 0.0,
+    "pension_withdrawal_tax_krw": {
+     "low": 1280871.4400100526,
+     "high": 2134785.733350088,
+     "lump": 6404357.200050264
+    },
+    "pension_value_krw": 63516546.44642715,
+    "pension_principal_krw": 24702260.385516465
+   },
+   "migrations": [
+    {
+     "date": "2018-05-23",
+     "pension": 18000000,
+     "isa": 4500000
+    },
+    {
+     "date": "2020-01-02",
+     "pension": 477706
+    },
+    {
+     "date": "2021-01-04",
+     "pension": 258055
+    },
+    {
+     "date": "2026-01-02",
+     "pension": 96322
+    }
+   ],
+   "isa_rollovers": [
+    {
+     "date": "2021-05-24",
+     "krw": 5870178
+    }
+   ]
+  },
+  "core|30000000|H2|L3": {
+   "scheme": "L3",
+   "capital": 30000000,
+   "years": 8.380561259411362,
+   "start": "2018-05-23",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 69696140.85232928,
+    "high": 69696140.85232928,
+    "lump": 69696140.85232928
+   },
+   "cagr_after": {
+    "low": 0.10581615599149985,
+    "high": 0.10581615599149985,
+    "lump": 0.10581615599149985
+   },
+   "mdd": -0.18238666107731283,
+   "totals": {
+    "overseas_cg_tax_krw": 306208.18755107967,
+    "overseas_fees_krw": 769019.403118449,
+    "fx_cost_krw": 5234.795990770977,
+    "overseas_div_tax_krw": 164278.0255219917,
+    "domestic_fees_krw": 1408670.4964541516,
+    "domestic_tax_krw": 7472036.583756999,
+    "pension_withdrawal_tax_krw": {
+     "low": 0.0,
+     "high": 0.0,
+     "lump": 0.0
+    },
+    "pension_value_krw": 0.0,
+    "pension_principal_krw": 0.0
+   },
+   "migrations": [
+    {
+     "date": "2018-05-23",
+     "taxable": 22500000
+    },
+    {
+     "date": "2020-01-02",
+     "taxable": 600142
+    },
+    {
+     "date": "2021-01-04",
+     "taxable": 347557
+    },
+    {
+     "date": "2026-01-02",
+     "taxable": 1718099
+    }
+   ],
+   "isa_rollovers": []
+  },
+  "core|100000000|full|L0": {
+   "scheme": "L0",
+   "capital": 100000000,
+   "years": 16.761122518822724,
+   "start": "2010-01-04",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 368936305.36184907,
+    "high": 368936305.36184907,
+    "lump": 368936305.36184907
+   },
+   "cagr_after": {
+    "low": 0.08099922683773175,
+    "high": 0.08099922683773175,
+    "lump": 0.08099922683773175
+   },
+   "mdd": -0.2567099370804925,
+   "totals": {
+    "overseas_cg_tax_krw": 63814814.36478894,
+    "overseas_fees_krw": 20339239.333196327,
+    "fx_cost_krw": 71446.7892267706,
+    "overseas_div_tax_krw": 7306612.573805027,
+    "domestic_fees_krw": 0,
+    "domestic_tax_krw": 0,
+    "pension_withdrawal_tax_krw": {
+     "low": 0.0,
+     "high": 0.0,
+     "lump": 0.0
+    },
+    "pension_value_krw": 0.0,
+    "pension_principal_krw": 0.0
+   },
+   "migrations": [],
+   "isa_rollovers": []
+  },
+  "core|100000000|full|L1": {
+   "scheme": "L1",
+   "capital": 100000000,
+   "years": 16.761122518822724,
+   "start": "2010-01-04",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 363719262.9942713,
+    "high": 358850738.8192142,
+    "lump": 334508117.94392914
+   },
+   "cagr_after": {
+    "low": 0.0800811064451985,
+    "high": 0.07921308057849541,
+    "lump": 0.07469959401127424
+   },
+   "mdd": -0.24594722229764276,
+   "totals": {
+    "overseas_cg_tax_krw": 9352199.290612217,
+    "overseas_fees_krw": 6688338.81537602,
+    "fx_cost_krw": 75396.41688279141,
+    "overseas_div_tax_krw": 1655698.9880601896,
+    "domestic_fees_krw": 9709252.75005029,
+    "domestic_tax_krw": 0.0,
+    "pension_withdrawal_tax_krw": {
+     "low": 7302786.262585532,
+     "high": 12171310.437642554,
+     "lump": 36513931.31292766
+    },
+    "pension_value_krw": 299840909.90645134,
+    "pension_principal_krw": 78544356.49476856
+   },
+   "migrations": [
+    {
+     "date": "2010-01-04",
+     "pension": 18000000
+    },
+    {
+     "date": "2011-01-03",
+     "pension": 18000000
+    },
+    {
+     "date": "2012-01-03",
+     "pension": 18000000
+    },
+    {
+     "date": "2013-01-02",
+     "pension": 18000000
+    },
+    {
+     "date": "2014-01-02",
+     "pension": 6544356
+    }
+   ],
+   "isa_rollovers": []
+  },
+  "core|100000000|full|L2": {
+   "scheme": "L2",
+   "capital": 100000000,
+   "years": 16.761122518822724,
+   "start": "2010-01-04",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 362737767.09547436,
+    "high": 357788379.50974935,
+    "lump": 333041441.58112437
+   },
+   "cagr_after": {
+    "low": 0.07990699509643706,
+    "high": 0.07902219772407526,
+    "lump": 0.07441787994635907
+   },
+   "mdd": -0.24499710351272008,
+   "totals": {
+    "overseas_cg_tax_krw": 8537046.689931195,
+    "overseas_fees_krw": 6413914.861970484,
+    "fx_cost_krw": 72746.3219508112,
+    "overseas_div_tax_krw": 1567243.3358469603,
+    "domestic_fees_krw": 9883262.604351737,
+    "domestic_tax_krw": 0.0,
+    "pension_withdrawal_tax_krw": {
+     "low": 7424081.378587498,
+     "high": 12373468.964312498,
+     "lump": 37120406.8929375
+    },
+    "pension_value_krw": 301363451.5893009,
+    "pension_principal_krw": 76391288.60180092
+   },
+   "migrations": [
+    {
+     "date": "2010-01-04",
+     "isa": 20000000
+    },
+    {
+     "date": "2011-01-03",
+     "isa": 20000000
+    },
+    {
+     "date": "2012-01-03",
+     "isa": 20000000
+    },
+    {
+     "date": "2013-01-02",
+     "isa": 18008655
+    }
+   ],
+   "isa_rollovers": [
+    {
+     "date": "2013-01-04",
+     "krw": 76391289
+    }
+   ]
+  },
+  "core|100000000|full|L12": {
+   "scheme": "L12",
+   "capital": 100000000,
+   "years": 16.761122518822724,
+   "start": "2010-01-04",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 358404264.5901662,
+    "high": 353512990.4928665,
+    "lump": 329056620.0063682
+   },
+   "cagr_after": {
+    "low": 0.0791329236933429,
+    "high": 0.07824857581116174,
+    "lump": 0.07364655745867132
+   },
+   "mdd": -0.24431069322265297,
+   "totals": {
+    "overseas_cg_tax_krw": 8224642.11946332,
+    "overseas_fees_krw": 5798654.619686302,
+    "fx_cost_krw": 54539.42620260327,
+    "overseas_div_tax_krw": 1322479.14012417,
+    "domestic_fees_krw": 10037020.403610967,
+    "domestic_tax_krw": 0.0,
+    "pension_withdrawal_tax_krw": {
+     "low": 7336911.145949498,
+     "high": 12228185.243249163,
+     "lump": 36684555.72974749
+    },
+    "pension_value_krw": 299298089.4898726,
+    "pension_principal_krw": 76967448.70352419
+   },
+   "migrations": [
+    {
+     "date": "2010-01-04",
+     "pension": 18000000,
+     "isa": 20000000
+    },
+    {
+     "date": "2011-01-03",
+     "pension": 18000000,
+     "isa": 20000000
+    },
+    {
+     "date": "2012-01-03",
+     "pension": 1855385
+    }
+   ],
+   "isa_rollovers": [
+    {
+     "date": "2013-01-04",
+     "krw": 39112064
+    }
+   ]
+  },
+  "core|100000000|full|L3": {
+   "scheme": "L3",
+   "capital": 100000000,
+   "years": 16.761122518822724,
+   "start": "2010-01-04",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 288876859.0367433,
+    "high": 288876859.0367433,
+    "lump": 288876859.0367433
+   },
+   "cagr_after": {
+    "low": 0.06533694142182056,
+    "high": 0.06533694142182056,
+    "lump": 0.06533694142182056
+   },
+   "mdd": -0.25912442340863673,
+   "totals": {
+    "overseas_cg_tax_krw": 7625165.058833156,
+    "overseas_fees_krw": 5308729.915063049,
+    "fx_cost_krw": 16040.620375326818,
+    "overseas_div_tax_krw": 1203918.6663916511,
+    "domestic_fees_krw": 8887756.746687928,
+    "domestic_tax_krw": 43642417.39114488,
+    "pension_withdrawal_tax_krw": {
+     "low": 0.0,
+     "high": 0.0,
+     "lump": 0.0
+    },
+    "pension_value_krw": 0.0,
+    "pension_principal_krw": 0.0
+   },
+   "migrations": [
+    {
+     "date": "2010-01-04",
+     "taxable": 75000000
+    },
+    {
+     "date": "2026-01-02",
+     "taxable": 565198
+    }
+   ],
+   "isa_rollovers": []
+  },
+  "core|100000000|H1|L0": {
+   "scheme": "L0",
+   "capital": 100000000,
+   "years": 8.37782340862423,
+   "start": "2010-01-04",
+   "end": "2018-05-22",
+   "final_krw": {
+    "low": 144195259.36401674,
+    "high": 144195259.36401674,
+    "lump": 144195259.36401674
+   },
+   "cagr_after": {
+    "low": 0.04465485171936967,
+    "high": 0.04465485171936967,
+    "lump": 0.04465485171936967
+   },
+   "mdd": -0.2567099370804925,
+   "totals": {
+    "overseas_cg_tax_krw": 10000539.98041528,
+    "overseas_fees_krw": 6575133.250920777,
+    "fx_cost_krw": 54237.40423750129,
+    "overseas_div_tax_krw": 2669421.385712329,
+    "domestic_fees_krw": 0,
+    "domestic_tax_krw": 0,
+    "pension_withdrawal_tax_krw": {
+     "low": 0.0,
+     "high": 0.0,
+     "lump": 0.0
+    },
+    "pension_value_krw": 0.0,
+    "pension_principal_krw": 0.0
+   },
+   "migrations": [],
+   "isa_rollovers": []
+  },
+  "core|100000000|H1|L1": {
+   "scheme": "L1",
+   "capital": 100000000,
+   "years": 8.37782340862423,
+   "start": "2010-01-04",
+   "end": "2018-05-22",
+   "final_krw": {
+    "low": 139695704.5612027,
+    "high": 139020203.8925943,
+    "lump": 135642700.54955238
+   },
+   "cagr_after": {
+    "low": 0.040709329112812664,
+    "high": 0.04010736931725711,
+    "lump": 0.03705837013280089
+   },
+   "mdd": -0.24594722229764276,
+   "totals": {
+    "overseas_cg_tax_krw": 1363032.6157378945,
+    "overseas_fees_krw": 3358720.3960384266,
+    "fx_cost_krw": 71948.34846108354,
+    "overseas_div_tax_krw": 931523.750366876,
+    "domestic_fees_krw": 2664384.6448818767,
+    "domestic_tax_krw": 0.0,
+    "pension_withdrawal_tax_krw": {
+     "low": 1013251.0029125782,
+     "high": 1688751.6715209635,
+     "lump": 5066255.014562891
+    },
+    "pension_value_krw": 109248932.34060426,
+    "pension_principal_krw": 78544356.49476856
+   },
+   "migrations": [
+    {
+     "date": "2010-01-04",
+     "pension": 18000000
+    },
+    {
+     "date": "2011-01-03",
+     "pension": 18000000
+    },
+    {
+     "date": "2012-01-03",
+     "pension": 18000000
+    },
+    {
+     "date": "2013-01-02",
+     "pension": 18000000
+    },
+    {
+     "date": "2014-01-02",
+     "pension": 6544356
+    }
+   ],
+   "isa_rollovers": []
+  },
+  "core|100000000|H1|L2": {
+   "scheme": "L2",
+   "capital": 100000000,
+   "years": 8.37782340862423,
+   "start": "2010-01-04",
+   "end": "2018-05-22",
+   "final_krw": {
+    "low": 139424929.7172979,
+    "high": 138681082.7123887,
+    "lump": 134961847.68784267
+   },
+   "cagr_after": {
+    "low": 0.04046834164359403,
+    "high": 0.03980419605015495,
+    "lump": 0.0364356532148542
+   },
+   "mdd": -0.24499710351272008,
+   "totals": {
+    "overseas_cg_tax_krw": 941158.6663276273,
+    "overseas_fees_krw": 3218668.448451163,
+    "fx_cost_krw": 69469.4260987983,
+    "overseas_div_tax_krw": 868089.013337085,
+    "domestic_fees_krw": 2838930.2946797796,
+    "domestic_tax_krw": 0.0,
+    "pension_withdrawal_tax_krw": {
+     "low": 1115770.5073638097,
+     "high": 1859617.5122730162,
+     "lump": 5578852.536819048
+    },
+    "pension_value_krw": 110202516.09767394,
+    "pension_principal_krw": 76391288.60180092
+   },
+   "migrations": [
+    {
+     "date": "2010-01-04",
+     "isa": 20000000
+    },
+    {
+     "date": "2011-01-03",
+     "isa": 20000000
+    },
+    {
+     "date": "2012-01-03",
+     "isa": 20000000
+    },
+    {
+     "date": "2013-01-02",
+     "isa": 18008655
+    }
+   ],
+   "isa_rollovers": [
+    {
+     "date": "2013-01-04",
+     "krw": 76391289
+    }
+   ]
+  },
+  "core|100000000|H1|L12": {
+   "scheme": "L12",
+   "capital": 100000000,
+   "years": 8.37782340862423,
+   "start": "2010-01-04",
+   "end": "2018-05-22",
+   "final_krw": {
+    "low": 137893592.14979032,
+    "high": 137172388.03861278,
+    "lump": 133566367.4827251
+   },
+   "cagr_after": {
+    "low": 0.039097655831370925,
+    "high": 0.03844746392864762,
+    "lump": 0.035150634552733484
+   },
+   "mdd": -0.24431069322265297,
+   "totals": {
+    "overseas_cg_tax_krw": 987508.1802170896,
+    "overseas_fees_krw": 2728099.148559856,
+    "fx_cost_krw": 51415.92321739792,
+    "overseas_div_tax_krw": 648044.6700703282,
+    "domestic_fees_krw": 3067825.0045486884,
+    "domestic_tax_krw": 0.0,
+    "pension_withdrawal_tax_krw": {
+     "low": 1081806.1667663,
+     "high": 1803010.2779438333,
+     "lump": 5409030.8338315
+    },
+    "pension_value_krw": 109749453.75704843,
+    "pension_principal_krw": 76967448.70352419
+   },
+   "migrations": [
+    {
+     "date": "2010-01-04",
+     "pension": 18000000,
+     "isa": 20000000
+    },
+    {
+     "date": "2011-01-03",
+     "pension": 18000000,
+     "isa": 20000000
+    },
+    {
+     "date": "2012-01-03",
+     "pension": 1855385
+    }
+   ],
+   "isa_rollovers": [
+    {
+     "date": "2013-01-04",
+     "krw": 39112064
+    }
+   ]
+  },
+  "core|100000000|H1|L3": {
+   "scheme": "L3",
+   "capital": 100000000,
+   "years": 8.37782340862423,
+   "start": "2010-01-04",
+   "end": "2018-05-22",
+   "final_krw": {
+    "low": 127365960.99736388,
+    "high": 127365960.99736388,
+    "lump": 127365960.99736388
+   },
+   "cagr_after": {
+    "low": 0.029294043267994896,
+    "high": 0.029294043267994896,
+    "lump": 0.029294043267994896
+   },
+   "mdd": -0.25912442340863673,
+   "totals": {
+    "overseas_cg_tax_krw": 629776.6156355253,
+    "overseas_fees_krw": 2307816.7013295153,
+    "fx_cost_krw": 12808.641431253885,
+    "overseas_div_tax_krw": 552839.4290084665,
+    "domestic_fees_krw": 3015527.212189097,
+    "domestic_tax_krw": 11942718.305072144,
+    "pension_withdrawal_tax_krw": {
+     "low": 0.0,
+     "high": 0.0,
+     "lump": 0.0
+    },
+    "pension_value_krw": 0.0,
+    "pension_principal_krw": 0.0
+   },
+   "migrations": [
+    {
+     "date": "2010-01-04",
+     "taxable": 75000000
+    }
+   ],
+   "isa_rollovers": []
+  },
+  "core|100000000|H2|L0": {
+   "scheme": "L0",
+   "capital": 100000000,
+   "years": 8.380561259411362,
+   "start": "2018-05-23",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 254997987.48660713,
+    "high": 254997987.48660713,
+    "lump": 254997987.48660713
+   },
+   "cagr_after": {
+    "low": 0.11817425822128125,
+    "high": 0.11817425822128125,
+    "lump": 0.11817425822128125
+   },
+   "mdd": -0.17940861205848324,
+   "totals": {
+    "overseas_cg_tax_krw": 36073272.67815976,
+    "overseas_fees_krw": 9667693.473318301,
+    "fx_cost_krw": 60894.22902669805,
+    "overseas_div_tax_krw": 3190500.1539218826,
+    "domestic_fees_krw": 0,
+    "domestic_tax_krw": 0,
+    "pension_withdrawal_tax_krw": {
+     "low": 0.0,
+     "high": 0.0,
+     "lump": 0.0
+    },
+    "pension_value_krw": 0.0,
+    "pension_principal_krw": 0.0
+   },
+   "migrations": [],
+   "isa_rollovers": []
+  },
+  "core|100000000|H2|L1": {
+   "scheme": "L1",
+   "capital": 100000000,
+   "years": 8.380561259411362,
+   "start": "2018-05-23",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 261876247.5117689,
+    "high": 259091362.0946229,
+    "lump": 245166935.00889298
+   },
+   "cagr_after": {
+    "low": 0.12173119019832801,
+    "high": 0.1203010802075255,
+    "lump": 0.11294077563826277
+   },
+   "mdd": -0.18027150500538347,
+   "totals": {
+    "overseas_cg_tax_krw": 7247178.177425355,
+    "overseas_fees_krw": 3606388.997437884,
+    "fx_cost_krw": 76300.35729845791,
+    "overseas_div_tax_krw": 867308.0813886031,
+    "domestic_fees_krw": 4481932.527593498,
+    "domestic_tax_krw": 0.0,
+    "pension_withdrawal_tax_krw": {
+     "low": 4177328.1257189796,
+     "high": 6962213.542864965,
+     "lump": 20886640.628594898
+    },
+    "pension_value_krw": 208879656.9145449,
+    "pension_principal_krw": 82293956.1351819
+   },
+   "migrations": [
+    {
+     "date": "2018-05-23",
+     "pension": 18000000
+    },
+    {
+     "date": "2019-01-02",
+     "pension": 18000000
+    },
+    {
+     "date": "2020-01-02",
+     "pension": 18000000
+    },
+    {
+     "date": "2021-01-04",
+     "pension": 18000000
+    },
+    {
+     "date": "2022-01-03",
+     "pension": 8063420
+    },
+    {
+     "date": "2026-01-02",
+     "pension": 2230536
+    }
+   ],
+   "isa_rollovers": []
+  },
+  "core|100000000|H2|L2": {
+   "scheme": "L2",
+   "capital": 100000000,
+   "years": 8.380561259411362,
+   "start": "2018-05-23",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 258324832.44725546,
+    "high": 255930992.76067024,
+    "lump": 243961794.32774404
+   },
+   "cagr_after": {
+    "low": 0.11990507204912904,
+    "high": 0.11866165769973658,
+    "lump": 0.11228656632318401
+   },
+   "mdd": -0.1791566558435269,
+   "totals": {
+    "overseas_cg_tax_krw": 5753470.791041655,
+    "overseas_fees_krw": 3279681.1146179507,
+    "fx_cost_krw": 72504.3205095189,
+    "overseas_div_tax_krw": 775868.237820988,
+    "domestic_fees_krw": 4691957.987363737,
+    "domestic_tax_krw": 1967329.3121083446,
+    "pension_withdrawal_tax_krw": {
+     "low": 3590759.529877859,
+     "high": 5984599.216463098,
+     "lump": 17953797.649389297
+    },
+    "pension_value_krw": 208645404.98447496,
+    "pension_principal_krw": 99834510.13969135
+   },
+   "migrations": [
+    {
+     "date": "2018-05-23",
+     "isa": 20000000
+    },
+    {
+     "date": "2019-01-02",
+     "isa": 20000000
+    },
+    {
+     "date": "2020-01-02",
+     "isa": 20000000
+    },
+    {
+     "date": "2021-01-04",
+     "isa": 19929826
+    }
+   ],
+   "isa_rollovers": [
+    {
+     "date": "2021-05-24",
+     "krw": 99834510
+    }
+   ]
+  },
+  "core|100000000|H2|L12": {
+   "scheme": "L12",
+   "capital": 100000000,
+   "years": 8.380561259411362,
+   "start": "2018-05-23",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 258642033.1255729,
+    "high": 255955791.65997654,
+    "lump": 242524584.33199483
+   },
+   "cagr_after": {
+    "low": 0.12006907110689835,
+    "high": 0.1186745912168552,
+    "lump": 0.1115026471184184
+   },
+   "mdd": -0.17910575470060153,
+   "totals": {
+    "overseas_cg_tax_krw": 5237997.077376268,
+    "overseas_fees_krw": 2751618.170841045,
+    "fx_cost_krw": 52334.741250604355,
+    "overseas_div_tax_krw": 617943.0696991918,
+    "domestic_fees_krw": 4989011.128571806,
+    "domestic_tax_krw": 1018622.5670750781,
+    "pension_withdrawal_tax_krw": {
+     "low": 4029362.1983945146,
+     "high": 6715603.663990858,
+     "lump": 20146810.991972573
+    },
+    "pension_value_krw": 209477631.91927096,
+    "pension_principal_krw": 87375747.11943719
+   },
+   "migrations": [
+    {
+     "date": "2018-05-23",
+     "pension": 18000000,
+     "isa": 20000000
+    },
+    {
+     "date": "2019-01-02",
+     "pension": 18000000,
+     "isa": 16946417
+    },
+    {
+     "date": "2020-01-02",
+     "pension": 2295953
+    },
+    {
+     "date": "2021-01-04",
+     "pension": 862883
+    }
+   ],
+   "isa_rollovers": [
+    {
+     "date": "2021-05-24",
+     "krw": 48216912
+    }
+   ]
+  },
+  "core|100000000|H2|L3": {
+   "scheme": "L3",
+   "capital": 100000000,
+   "years": 8.380561259411362,
+   "start": "2018-05-23",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 226875888.0213764,
+    "high": 226875888.0213764,
+    "lump": 226875888.0213764
+   },
+   "cagr_after": {
+    "low": 0.10269143013676696,
+    "high": 0.10269143013676696,
+    "lump": 0.10269143013676696
+   },
+   "mdd": -0.18209523083610535,
+   "totals": {
+    "overseas_cg_tax_krw": 5183903.577842998,
+    "overseas_fees_krw": 2523597.196108412,
+    "fx_cost_krw": 17319.21479280142,
+    "overseas_div_tax_krw": 537205.0594844254,
+    "domestic_fees_krw": 4670376.393895704,
+    "domestic_tax_krw": 24773063.12321274,
+    "pension_withdrawal_tax_krw": {
+     "low": 0.0,
+     "high": 0.0,
+     "lump": 0.0
+    },
+    "pension_value_krw": 0.0,
+    "pension_principal_krw": 0.0
+   },
+   "migrations": [
+    {
+     "date": "2018-05-23",
+     "taxable": 75000000
+    },
+    {
+     "date": "2020-01-02",
+     "taxable": 2000472
+    },
+    {
+     "date": "2021-01-04",
+     "taxable": 1158525
+    },
+    {
+     "date": "2026-01-02",
+     "taxable": 2089645
+    }
+   ],
+   "isa_rollovers": []
+  },
+  "blend|30000000|full|L0": {
+   "scheme": "L0",
+   "capital": 30000000,
+   "years": 16.761122518822724,
+   "start": "2010-01-04",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 192357293.10666475,
+    "high": 192357293.10666475,
+    "lump": 192357293.10666475
+   },
+   "cagr_after": {
+    "low": 0.11723975700420675,
+    "high": 0.11723975700420675,
+    "lump": 0.11723975700420675
+   },
+   "mdd": -0.20108741048668155,
+   "totals": {
+    "overseas_cg_tax_krw": 35212366.99620654,
+    "overseas_fees_krw": 4117440.0805718824,
+    "fx_cost_krw": 16897.251684736497,
+    "overseas_div_tax_krw": 3247798.656103653,
+    "domestic_fees_krw": 0,
+    "domestic_tax_krw": 0,
+    "pension_withdrawal_tax_krw": {
+     "low": 0.0,
+     "high": 0.0,
+     "lump": 0.0
+    },
+    "pension_value_krw": 0.0,
+    "pension_principal_krw": 0.0
+   },
+   "migrations": [],
+   "isa_rollovers": []
+  },
+  "blend|30000000|full|L1": {
+   "scheme": "L1",
+   "capital": 30000000,
+   "years": 16.761122518822724,
+   "start": "2010-01-04",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 184137419.84487915,
+    "high": 183473193.51492694,
+    "lump": 180152061.86516595
+   },
+   "cagr_after": {
+    "low": 0.11433250374544723,
+    "high": 0.11409227587305604,
+    "lump": 0.11287873181499664
+   },
+   "mdd": -0.20919285884076455,
+   "totals": {
+    "overseas_cg_tax_krw": 28720701.64538791,
+    "overseas_fees_krw": 1192927.0839477535,
+    "fx_cost_krw": 9924.745024192844,
+    "overseas_div_tax_krw": 2270307.426139361,
+    "domestic_fees_krw": 1661322.0885544627,
+    "domestic_tax_krw": 0.0,
+    "pension_withdrawal_tax_krw": {
+     "low": 996339.4949282984,
+     "high": 1660565.8248804973,
+     "lump": 4981697.474641492
+    },
+    "pension_value_krw": 42475517.62888796,
+    "pension_principal_krw": 12283411.72196983
+   },
+   "migrations": [
+    {
+     "date": "2010-01-04",
+     "pension": 11250000
+    },
+    {
+     "date": "2013-01-02",
+     "pension": 81
+    },
+    {
+     "date": "2026-01-02",
+     "pension": 1033331
+    }
+   ],
+   "isa_rollovers": []
+  },
+  "blend|30000000|full|L2": {
+   "scheme": "L2",
+   "capital": 30000000,
+   "years": 16.761122518822724,
+   "start": "2010-01-04",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 184075492.11867145,
+    "high": 183402614.0786456,
+    "lump": 180038223.87851632
+   },
+   "cagr_after": {
+    "low": 0.11431014108546234,
+    "high": 0.11406670166525856,
+    "lump": 0.11283676347675309
+   },
+   "mdd": -0.20924525388342918,
+   "totals": {
+    "overseas_cg_tax_krw": 28720694.785090666,
+    "overseas_fees_krw": 1192961.448235116,
+    "fx_cost_krw": 9930.027945366004,
+    "overseas_div_tax_krw": 2270294.385545394,
+    "domestic_fees_krw": 1673944.360730974,
+    "domestic_tax_krw": 0.0,
+    "pension_withdrawal_tax_krw": {
+     "low": 1009317.0600387834,
+     "high": 1682195.100064639,
+     "lump": 5046585.300193917
+    },
+    "pension_value_krw": 41259500.17659178,
+    "pension_principal_krw": 10674134.72087107
+   },
+   "migrations": [
+    {
+     "date": "2010-01-04",
+     "isa": 11250000
+    },
+    {
+     "date": "2013-01-02",
+     "isa": 81
+    },
+    {
+     "date": "2026-01-02",
+     "isa": 1043898
+    }
+   ],
+   "isa_rollovers": [
+    {
+     "date": "2013-01-04",
+     "krw": 10674135
+    }
+   ]
+  },
+  "blend|30000000|full|L12": {
+   "scheme": "L12",
+   "capital": 30000000,
+   "years": 16.761122518822724,
+   "start": "2010-01-04",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 184137419.84487915,
+    "high": 183473193.51492694,
+    "lump": 180152061.86516595
+   },
+   "cagr_after": {
+    "low": 0.11433250374544723,
+    "high": 0.11409227587305604,
+    "lump": 0.11287873181499664
+   },
+   "mdd": -0.20919285884076455,
+   "totals": {
+    "overseas_cg_tax_krw": 28720701.64538791,
+    "overseas_fees_krw": 1192927.0839477535,
+    "fx_cost_krw": 9924.745024192844,
+    "overseas_div_tax_krw": 2270307.426139361,
+    "domestic_fees_krw": 1661322.0885544627,
+    "domestic_tax_krw": 0.0,
+    "pension_withdrawal_tax_krw": {
+     "low": 996339.4949282984,
+     "high": 1660565.8248804973,
+     "lump": 4981697.474641492
+    },
+    "pension_value_krw": 42475517.62888796,
+    "pension_principal_krw": 12283411.72196983
+   },
+   "migrations": [
+    {
+     "date": "2010-01-04",
+     "pension": 11250000
+    },
+    {
+     "date": "2013-01-02",
+     "pension": 81
+    },
+    {
+     "date": "2026-01-02",
+     "pension": 1033331
+    }
+   ],
+   "isa_rollovers": []
+  },
+  "blend|30000000|full|L3": {
+   "scheme": "L3",
+   "capital": 30000000,
+   "years": 16.761122518822724,
+   "start": "2010-01-04",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 173269116.73474824,
+    "high": 173269116.73474824,
+    "lump": 173269116.73474824
+   },
+   "cagr_after": {
+    "low": 0.11029524168983085,
+    "high": 0.11029524168983085,
+    "lump": 0.11029524168983085
+   },
+   "mdd": -0.21690932892410997,
+   "totals": {
+    "overseas_cg_tax_krw": 28673847.151464205,
+    "overseas_fees_krw": 1134138.2229555924,
+    "fx_cost_krw": 10820.892560388678,
+    "overseas_div_tax_krw": 2259054.8351889905,
+    "domestic_fees_krw": 1438961.2780663392,
+    "domestic_tax_krw": 6447678.00770214,
+    "pension_withdrawal_tax_krw": {
+     "low": 0.0,
+     "high": 0.0,
+     "lump": 0.0
+    },
+    "pension_value_krw": 0.0,
+    "pension_principal_krw": 0.0
+   },
+   "migrations": [
+    {
+     "date": "2010-01-04",
+     "taxable": 11250000
+    },
+    {
+     "date": "2012-01-03",
+     "taxable": 31465
+    },
+    {
+     "date": "2013-01-02",
+     "taxable": 46732
+    },
+    {
+     "date": "2016-01-04",
+     "taxable": 111721
+    },
+    {
+     "date": "2020-01-02",
+     "taxable": 192311
+    },
+    {
+     "date": "2026-01-02",
+     "taxable": 2489413
+    }
+   ],
+   "isa_rollovers": []
+  },
+  "blend|30000000|H1|L0": {
+   "scheme": "L0",
+   "capital": 30000000,
+   "years": 8.37782340862423,
+   "start": "2010-01-04",
+   "end": "2018-05-22",
+   "final_krw": {
+    "low": 58844877.32878668,
+    "high": 58844877.32878668,
+    "lump": 58844877.32878668
+   },
+   "cagr_after": {
+    "low": 0.08373733730578858,
+    "high": 0.08373733730578858,
+    "lump": 0.08373733730578858
+   },
+   "mdd": -0.14896132222630543,
+   "totals": {
+    "overseas_cg_tax_krw": 4247524.307921532,
+    "overseas_fees_krw": 1401964.204804753,
+    "fx_cost_krw": 15168.76335170419,
+    "overseas_div_tax_krw": 1079709.9461011689,
+    "domestic_fees_krw": 0,
+    "domestic_tax_krw": 0,
+    "pension_withdrawal_tax_krw": {
+     "low": 0.0,
+     "high": 0.0,
+     "lump": 0.0
+    },
+    "pension_value_krw": 0.0,
+    "pension_principal_krw": 0.0
+   },
+   "migrations": [],
+   "isa_rollovers": []
+  },
+  "blend|30000000|H1|L1": {
+   "scheme": "L1",
+   "capital": 30000000,
+   "years": 8.37782340862423,
+   "start": "2010-01-04",
+   "end": "2018-05-22",
+   "final_krw": {
+    "low": 55731950.475708954,
+    "high": 55623132.28811029,
+    "lump": 55079041.350117
+   },
+   "cagr_after": {
+    "low": 0.07672934104689078,
+    "high": 0.07647818348037672,
+    "lump": 0.07521586741712105
+   },
+   "mdd": -0.1581120671251991,
+   "totals": {
+    "overseas_cg_tax_krw": 3895005.1007583532,
+    "overseas_fees_krw": 483722.40503109054,
+    "fx_cost_krw": 9370.355305482099,
+    "overseas_div_tax_krw": 724899.2104818888,
+    "domestic_fees_krw": 593323.8615315921,
+    "domestic_tax_krw": 0.0,
+    "pension_withdrawal_tax_krw": {
+     "low": 163227.2813979888,
+     "high": 272045.468996648,
+     "lump": 816136.4069899439
+    },
+    "pension_value_krw": 16196362.139832545,
+    "pension_principal_krw": 11250080.885348037
+   },
+   "migrations": [
+    {
+     "date": "2010-01-04",
+     "pension": 11250000
+    },
+    {
+     "date": "2013-01-02",
+     "pension": 81
+    }
+   ],
+   "isa_rollovers": []
+  },
+  "blend|30000000|H1|L2": {
+   "scheme": "L2",
+   "capital": 30000000,
+   "years": 8.37782340862423,
+   "start": "2010-01-04",
+   "end": "2018-05-22",
+   "final_krw": {
+    "low": 55693338.782953456,
+    "high": 55572291.167535484,
+    "lump": 54967053.0904456
+   },
+   "cagr_after": {
+    "low": 0.07664027288962805,
+    "high": 0.07636069141016577,
+    "lump": 0.07495468753724088
+   },
+   "mdd": -0.1581120671251991,
+   "totals": {
+    "overseas_cg_tax_krw": 3895005.1007583532,
+    "overseas_fees_krw": 483817.13686491153,
+    "fx_cost_krw": 9370.355305482099,
+    "overseas_div_tax_krw": 724893.4340924846,
+    "domestic_fees_krw": 606710.2722152828,
+    "domestic_tax_krw": 0.0,
+    "pension_withdrawal_tax_krw": {
+     "low": 181571.4231269649,
+     "high": 302619.03854494146,
+     "lump": 907857.1156348245
+    },
+    "pension_value_krw": 16176299.058051825,
+    "pension_principal_krw": 10674134.72087107
+   },
+   "migrations": [
+    {
+     "date": "2010-01-04",
+     "isa": 11250000
+    },
+    {
+     "date": "2013-01-02",
+     "isa": 81
+    }
+   ],
+   "isa_rollovers": [
+    {
+     "date": "2013-01-04",
+     "krw": 10674135
+    }
+   ]
+  },
+  "blend|30000000|H1|L12": {
+   "scheme": "L12",
+   "capital": 30000000,
+   "years": 8.37782340862423,
+   "start": "2010-01-04",
+   "end": "2018-05-22",
+   "final_krw": {
+    "low": 55731950.475708954,
+    "high": 55623132.28811029,
+    "lump": 55079041.350117
+   },
+   "cagr_after": {
+    "low": 0.07672934104689078,
+    "high": 0.07647818348037672,
+    "lump": 0.07521586741712105
+   },
+   "mdd": -0.1581120671251991,
+   "totals": {
+    "overseas_cg_tax_krw": 3895005.1007583532,
+    "overseas_fees_krw": 483722.40503109054,
+    "fx_cost_krw": 9370.355305482099,
+    "overseas_div_tax_krw": 724899.2104818888,
+    "domestic_fees_krw": 593323.8615315921,
+    "domestic_tax_krw": 0.0,
+    "pension_withdrawal_tax_krw": {
+     "low": 163227.2813979888,
+     "high": 272045.468996648,
+     "lump": 816136.4069899439
+    },
+    "pension_value_krw": 16196362.139832545,
+    "pension_principal_krw": 11250080.885348037
+   },
+   "migrations": [
+    {
+     "date": "2010-01-04",
+     "pension": 11250000
+    },
+    {
+     "date": "2013-01-02",
+     "pension": 81
+    }
+   ],
+   "isa_rollovers": []
+  },
+  "blend|30000000|H1|L3": {
+   "scheme": "L3",
+   "capital": 30000000,
+   "years": 8.37782340862423,
+   "start": "2010-01-04",
+   "end": "2018-05-22",
+   "final_krw": {
+    "low": 53882719.75793032,
+    "high": 53882719.75793032,
+    "lump": 53882719.75793032
+   },
+   "cagr_after": {
+    "low": 0.07240126738247632,
+    "high": 0.07240126738247632,
+    "lump": 0.07240126738247632
+   },
+   "mdd": -0.16009623454873334,
+   "totals": {
+    "overseas_cg_tax_krw": 3895005.1007583532,
+    "overseas_fees_krw": 472624.33788637276,
+    "fx_cost_krw": 9465.321591348995,
+    "overseas_div_tax_krw": 722716.6738620419,
+    "domestic_fees_krw": 556763.508038908,
+    "domestic_tax_krw": 1876298.020234237,
+    "pension_withdrawal_tax_krw": {
+     "low": 0.0,
+     "high": 0.0,
+     "lump": 0.0
+    },
+    "pension_value_krw": 0.0,
+    "pension_principal_krw": 0.0
+   },
+   "migrations": [
+    {
+     "date": "2010-01-04",
+     "taxable": 11250000
+    },
+    {
+     "date": "2012-01-03",
+     "taxable": 31465
+    },
+    {
+     "date": "2013-01-02",
+     "taxable": 46732
+    },
+    {
+     "date": "2016-01-04",
+     "taxable": 111721
+    }
+   ],
+   "isa_rollovers": []
+  },
+  "blend|30000000|H2|L0": {
+   "scheme": "L0",
+   "capital": 30000000,
+   "years": 8.380561259411362,
+   "start": "2018-05-23",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 92007736.81661342,
+    "high": 92007736.81661342,
+    "lump": 92007736.81661342
+   },
+   "cagr_after": {
+    "low": 0.14307634752449072,
+    "high": 0.14307634752449072,
+    "lump": 0.14307634752449072
+   },
+   "mdd": -0.19695110677576966,
+   "totals": {
+    "overseas_cg_tax_krw": 11731648.214297863,
+    "overseas_fees_krw": 1737101.123566529,
+    "fx_cost_krw": 15625.430971584454,
+    "overseas_div_tax_krw": 1016547.686916437,
+    "domestic_fees_krw": 0,
+    "domestic_tax_krw": 0,
+    "pension_withdrawal_tax_krw": {
+     "low": 0.0,
+     "high": 0.0,
+     "lump": 0.0
+    },
+    "pension_value_krw": 0.0,
+    "pension_principal_krw": 0.0
+   },
+   "migrations": [],
+   "isa_rollovers": []
+  },
+  "blend|30000000|H2|L1": {
+   "scheme": "L1",
+   "capital": 30000000,
+   "years": 8.380561259411362,
+   "start": "2018-05-23",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 90293176.43639329,
+    "high": 89905287.67974433,
+    "lump": 87965843.89649954
+   },
+   "cagr_after": {
+    "low": 0.14051350711562027,
+    "high": 0.13992777025403602,
+    "lump": 0.13696527120670665
+   },
+   "mdd": -0.19238438576481742,
+   "totals": {
+    "overseas_cg_tax_krw": 8903450.413031036,
+    "overseas_fees_krw": 514512.62753988756,
+    "fx_cost_krw": 10020.48391847541,
+    "overseas_div_tax_krw": 639101.2721913382,
+    "domestic_fees_krw": 766649.4588136415,
+    "domestic_tax_krw": 0.0,
+    "pension_withdrawal_tax_krw": {
+     "low": 581833.1349734373,
+     "high": 969721.8916223955,
+     "lump": 2909165.6748671867
+    },
+    "pension_value_krw": 30180995.103128854,
+    "pension_principal_krw": 12549687.982721664
+   },
+   "migrations": [
+    {
+     "date": "2018-05-23",
+     "pension": 11250000
+    },
+    {
+     "date": "2020-01-02",
+     "pension": 181503
+    },
+    {
+     "date": "2026-01-02",
+     "pension": 1118185
+    }
+   ],
+   "isa_rollovers": []
+  },
+  "blend|30000000|H2|L2": {
+   "scheme": "L2",
+   "capital": 30000000,
+   "years": 8.380561259411362,
+   "start": "2018-05-23",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 90032476.09628342,
+    "high": 89743616.2218541,
+    "lump": 88299316.84970748
+   },
+   "cagr_after": {
+    "low": 0.1401200777305096,
+    "high": 0.1396829786661007,
+    "lump": 0.13747871958514213
+   },
+   "mdd": -0.19238438576481742,
+   "totals": {
+    "overseas_cg_tax_krw": 8903450.413031036,
+    "overseas_fees_krw": 514559.4256660477,
+    "fx_cost_krw": 10068.483729662184,
+    "overseas_div_tax_krw": 639104.9187906053,
+    "domestic_fees_krw": 780824.5849222803,
+    "domestic_tax_krw": 212184.4857053004,
+    "pension_withdrawal_tax_krw": {
+     "low": 433289.81164398347,
+     "high": 722149.6860733058,
+     "lump": 2166449.0582199176
+    },
+    "pension_value_krw": 28492590.370565757,
+    "pension_principal_krw": 15362596.078323834
+   },
+   "migrations": [
+    {
+     "date": "2018-05-23",
+     "isa": 11250000
+    },
+    {
+     "date": "2020-01-02",
+     "isa": 181503
+    },
+    {
+     "date": "2026-01-02",
+     "isa": 1214137
+    }
+   ],
+   "isa_rollovers": [
+    {
+     "date": "2021-05-24",
+     "krw": 15362596
+    }
+   ]
+  },
+  "blend|30000000|H2|L12": {
+   "scheme": "L12",
+   "capital": 30000000,
+   "years": 8.380561259411362,
+   "start": "2018-05-23",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 90293176.43639329,
+    "high": 89905287.67974433,
+    "lump": 87965843.89649954
+   },
+   "cagr_after": {
+    "low": 0.14051350711562027,
+    "high": 0.13992777025403602,
+    "lump": 0.13696527120670665
+   },
+   "mdd": -0.19238438576481742,
+   "totals": {
+    "overseas_cg_tax_krw": 8903450.413031036,
+    "overseas_fees_krw": 514512.62753988756,
+    "fx_cost_krw": 10020.48391847541,
+    "overseas_div_tax_krw": 639101.2721913382,
+    "domestic_fees_krw": 766649.4588136415,
+    "domestic_tax_krw": 0.0,
+    "pension_withdrawal_tax_krw": {
+     "low": 581833.1349734373,
+     "high": 969721.8916223955,
+     "lump": 2909165.6748671867
+    },
+    "pension_value_krw": 30180995.103128854,
+    "pension_principal_krw": 12549687.982721664
+   },
+   "migrations": [
+    {
+     "date": "2018-05-23",
+     "pension": 11250000
+    },
+    {
+     "date": "2020-01-02",
+     "pension": 181503
+    },
+    {
+     "date": "2026-01-02",
+     "pension": 1118185
+    }
+   ],
+   "isa_rollovers": []
+  },
+  "blend|30000000|H2|L3": {
+   "scheme": "L3",
+   "capital": 30000000,
+   "years": 8.380561259411362,
+   "start": "2018-05-23",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 85521134.57860489,
+    "high": 85521134.57860489,
+    "lump": 85521134.57860489
+   },
+   "cagr_after": {
+    "low": 0.13314791145854898,
+    "high": 0.13314791145854898,
+    "lump": 0.13314791145854898
+   },
+   "mdd": -0.19301246969629826,
+   "totals": {
+    "overseas_cg_tax_krw": 8903450.413031036,
+    "overseas_fees_krw": 504523.27661789267,
+    "fx_cost_krw": 10476.474472379508,
+    "overseas_div_tax_krw": 637821.0719564412,
+    "domestic_fees_krw": 703380.5882956829,
+    "domestic_tax_krw": 3576434.841722324,
+    "pension_withdrawal_tax_krw": {
+     "low": 0.0,
+     "high": 0.0,
+     "lump": 0.0
+    },
+    "pension_value_krw": 0.0,
+    "pension_principal_krw": 0.0
+   },
+   "migrations": [
+    {
+     "date": "2018-05-23",
+     "taxable": 11250000
+    },
+    {
+     "date": "2020-01-02",
+     "taxable": 244263
+    },
+    {
+     "date": "2026-01-02",
+     "taxable": 1966950
+    }
+   ],
+   "isa_rollovers": []
+  },
+  "blend|100000000|full|L0": {
+   "scheme": "L0",
+   "capital": 100000000,
+   "years": 16.761122518822724,
+   "start": "2010-01-04",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 620843139.0815247,
+    "high": 620843139.0815247,
+    "lump": 620843139.0815247
+   },
+   "cagr_after": {
+    "low": 0.11509222147741349,
+    "high": 0.11509222147741349,
+    "lump": 0.11509222147741349
+   },
+   "mdd": -0.2036014469637043,
+   "totals": {
+    "overseas_cg_tax_krw": 127546968.16347784,
+    "overseas_fees_krw": 13105871.520285124,
+    "fx_cost_krw": 60573.79870703644,
+    "overseas_div_tax_krw": 10639954.664891468,
+    "domestic_fees_krw": 0,
+    "domestic_tax_krw": 0,
+    "pension_withdrawal_tax_krw": {
+     "low": 0.0,
+     "high": 0.0,
+     "lump": 0.0
+    },
+    "pension_value_krw": 0.0,
+    "pension_principal_krw": 0.0
+   },
+   "migrations": [],
+   "isa_rollovers": []
+  },
+  "blend|100000000|full|L1": {
+   "scheme": "L1",
+   "capital": 100000000,
+   "years": 16.761122518822724,
+   "start": "2010-01-04",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 612832832.4161601,
+    "high": 610589016.1611166,
+    "lump": 599369934.885899
+   },
+   "cagr_after": {
+    "low": 0.11422859969023347,
+    "high": 0.11398478199568252,
+    "lump": 0.1127529115954522
+   },
+   "mdd": -0.20798212559176898,
+   "totals": {
+    "overseas_cg_tax_krw": 100330626.5274567,
+    "overseas_fees_krw": 4274580.836679589,
+    "fx_cost_krw": 53343.717132320504,
+    "overseas_div_tax_krw": 7656789.302095397,
+    "domestic_fees_krw": 5531766.125572059,
+    "domestic_tax_krw": 0.0,
+    "pension_withdrawal_tax_krw": {
+     "low": 3365724.382565279,
+     "high": 5609540.637608798,
+     "lump": 16828621.912826393
+    },
+    "pension_value_krw": 142062227.45478258,
+    "pension_principal_krw": 40070579.49825898
+   },
+   "migrations": [
+    {
+     "date": "2010-01-04",
+     "pension": 18000000
+    },
+    {
+     "date": "2011-01-03",
+     "pension": 18000000
+    },
+    {
+     "date": "2012-01-03",
+     "pension": 2851256
+    },
+    {
+     "date": "2013-01-02",
+     "pension": 88135
+    },
+    {
+     "date": "2026-01-02",
+     "pension": 1131188
+    }
+   ],
+   "isa_rollovers": []
+  },
+  "blend|100000000|full|L2": {
+   "scheme": "L2",
+   "capital": 100000000,
+   "years": 16.761122518822724,
+   "start": "2010-01-04",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 611808317.0368961,
+    "high": 609525229.0833143,
+    "lump": 598109789.3154055
+   },
+   "cagr_after": {
+    "low": 0.11411737806026245,
+    "high": 0.11386889415119095,
+    "lump": 0.11261319400840164
+   },
+   "mdd": -0.2082788063732085,
+   "totals": {
+    "overseas_cg_tax_krw": 100307454.9890281,
+    "overseas_fees_krw": 4214331.840812966,
+    "fx_cost_krw": 51208.99756812276,
+    "overseas_div_tax_krw": 7638934.485871121,
+    "domestic_fees_krw": 5574175.707469022,
+    "domestic_tax_krw": 0.0,
+    "pension_withdrawal_tax_krw": {
+     "low": 3424631.9303726503,
+     "high": 5707719.883954417,
+     "lump": 17123159.65186325
+    },
+    "pension_value_krw": 139992079.92910606,
+    "pension_principal_krw": 36215354.766298465
+   },
+   "migrations": [
+    {
+     "date": "2010-01-04",
+     "isa": 20000000
+    },
+    {
+     "date": "2011-01-03",
+     "isa": 17923821
+    },
+    {
+     "date": "2012-01-03",
+     "isa": 637160
+    },
+    {
+     "date": "2013-01-02",
+     "isa": 90000
+    },
+    {
+     "date": "2026-01-02",
+     "isa": 1166870
+    }
+   ],
+   "isa_rollovers": [
+    {
+     "date": "2013-01-04",
+     "krw": 36215355
+    }
+   ]
+  },
+  "blend|100000000|full|L12": {
+   "scheme": "L12",
+   "capital": 100000000,
+   "years": 16.761122518822724,
+   "start": "2010-01-04",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 608820227.9270386,
+    "high": 606592406.6653413,
+    "lump": 595453300.3568552
+   },
+   "cagr_after": {
+    "low": 0.11379198723325779,
+    "high": 0.11354840782266007,
+    "lump": 0.11231774891284307
+   },
+   "mdd": -0.20922054482951613,
+   "totals": {
+    "overseas_cg_tax_krw": 100216595.09964864,
+    "overseas_fees_krw": 3977741.481737919,
+    "fx_cost_krw": 33090.77338505654,
+    "overseas_div_tax_krw": 7565985.1563797835,
+    "domestic_fees_krw": 5547144.307826051,
+    "domestic_tax_krw": 0.0,
+    "pension_withdrawal_tax_krw": {
+     "low": 3341731.8925458393,
+     "high": 5569553.154243065,
+     "lump": 16708659.462729197
+    },
+    "pension_value_krw": 138913645.54777426,
+    "pension_principal_krw": 37649042.74335489
+   },
+   "migrations": [
+    {
+     "date": "2010-01-04",
+     "pension": 18000000,
+     "isa": 19500000
+    },
+    {
+     "date": "2013-01-02",
+     "pension": 270
+    },
+    {
+     "date": "2026-01-02",
+     "pension": 1147080
+    }
+   ],
+   "isa_rollovers": [
+    {
+     "date": "2013-01-04",
+     "krw": 18501693
+    }
+   ]
+  },
+  "blend|100000000|full|L3": {
+   "scheme": "L3",
+   "capital": 100000000,
+   "years": 16.761122518822724,
+   "start": "2010-01-04",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 573036575.588831,
+    "high": 573036575.588831,
+    "lump": 573036575.588831
+   },
+   "cagr_after": {
+    "low": 0.10977408805563993,
+    "high": 0.10977408805563993,
+    "lump": 0.10977408805563993
+   },
+   "mdd": -0.21690932892411185,
+   "totals": {
+    "overseas_cg_tax_krw": 99842778.31685458,
+    "overseas_fees_krw": 3782171.1940074963,
+    "fx_cost_krw": 36070.6060503771,
+    "overseas_div_tax_krw": 7528757.609830732,
+    "domestic_fees_krw": 4785486.539399954,
+    "domestic_tax_krw": 21437435.558786944,
+    "pension_withdrawal_tax_krw": {
+     "low": 0.0,
+     "high": 0.0,
+     "lump": 0.0
+    },
+    "pension_value_krw": 0.0,
+    "pension_principal_krw": 0.0
+   },
+   "migrations": [
+    {
+     "date": "2010-01-04",
+     "taxable": 37500000
+    },
+    {
+     "date": "2012-01-03",
+     "taxable": 104885
+    },
+    {
+     "date": "2013-01-02",
+     "taxable": 155774
+    },
+    {
+     "date": "2016-01-04",
+     "taxable": 372403
+    },
+    {
+     "date": "2020-01-02",
+     "taxable": 641035
+    },
+    {
+     "date": "2026-01-02",
+     "taxable": 6101292
+    }
+   ],
+   "isa_rollovers": []
+  },
+  "blend|100000000|H1|L0": {
+   "scheme": "L0",
+   "capital": 100000000,
+   "years": 8.37782340862423,
+   "start": "2010-01-04",
+   "end": "2018-05-22",
+   "final_krw": {
+    "low": 191421683.22981924,
+    "high": 191421683.22981924,
+    "lump": 191421683.22981924
+   },
+   "cagr_after": {
+    "low": 0.08058574848804767,
+    "high": 0.08058574848804767,
+    "lump": 0.08058574848804767
+   },
+   "mdd": -0.14896132222630565,
+   "totals": {
+    "overseas_cg_tax_krw": 18815856.152593825,
+    "overseas_fees_krw": 4597554.802275217,
+    "fx_cost_krw": 52167.13920954774,
+    "overseas_div_tax_krw": 3573522.994447383,
+    "domestic_fees_krw": 0,
+    "domestic_tax_krw": 0,
+    "pension_withdrawal_tax_krw": {
+     "low": 0.0,
+     "high": 0.0,
+     "lump": 0.0
+    },
+    "pension_value_krw": 0.0,
+    "pension_principal_krw": 0.0
+   },
+   "migrations": [],
+   "isa_rollovers": []
+  },
+  "blend|100000000|H1|L1": {
+   "scheme": "L1",
+   "capital": 100000000,
+   "years": 8.37782340862423,
+   "start": "2010-01-04",
+   "end": "2018-05-22",
+   "final_krw": {
+    "low": 186069298.2080366,
+    "high": 185711657.23128462,
+    "lump": 183923452.34752473
+   },
+   "cagr_after": {
+    "low": 0.0769340656661488,
+    "high": 0.07668678036081467,
+    "lump": 0.07544402723744836
+   },
+   "mdd": -0.156674306082342,
+   "totals": {
+    "overseas_cg_tax_krw": 14266683.66919451,
+    "overseas_fees_krw": 1866057.2153244598,
+    "fx_cost_krw": 51454.44335136462,
+    "overseas_div_tax_krw": 2497386.8968987623,
+    "domestic_fees_krw": 1904338.0548521492,
+    "domestic_tax_krw": 0.0,
+    "pension_withdrawal_tax_krw": {
+     "low": 536461.4651279706,
+     "high": 894102.4418799508,
+     "lump": 2682307.325639853
+    },
+    "pension_value_krw": 55195799.31405883,
+    "pension_principal_krw": 38939391.27987791
+   },
+   "migrations": [
+    {
+     "date": "2010-01-04",
+     "pension": 18000000
+    },
+    {
+     "date": "2011-01-03",
+     "pension": 18000000
+    },
+    {
+     "date": "2012-01-03",
+     "pension": 2851256
+    },
+    {
+     "date": "2013-01-02",
+     "pension": 88135
+    }
+   ],
+   "isa_rollovers": []
+  },
+  "blend|100000000|H1|L2": {
+   "scheme": "L2",
+   "capital": 100000000,
+   "years": 8.37782340862423,
+   "start": "2010-01-04",
+   "end": "2018-05-22",
+   "final_krw": {
+    "low": 185602662.69571507,
+    "high": 185191971.10605714,
+    "lump": 183138513.1577676
+   },
+   "cagr_after": {
+    "low": 0.07661133439935441,
+    "high": 0.07632670295744348,
+    "lump": 0.07489515274868719
+   },
+   "mdd": -0.1575871304074571,
+   "totals": {
+    "overseas_cg_tax_krw": 14266683.66919451,
+    "overseas_fees_krw": 1814787.3533303675,
+    "fx_cost_krw": 49310.16576868505,
+    "overseas_div_tax_krw": 2481519.5908384486,
+    "domestic_fees_krw": 1965721.6365261737,
+    "domestic_tax_krw": 0.0,
+    "pension_withdrawal_tax_krw": {
+     "low": 616037.3844868655,
+     "high": 1026728.9741447758,
+     "lump": 3080186.922434327
+    },
+    "pension_value_krw": 54883154.29620348,
+    "pension_principal_krw": 36215354.766298465
+   },
+   "migrations": [
+    {
+     "date": "2010-01-04",
+     "isa": 20000000
+    },
+    {
+     "date": "2011-01-03",
+     "isa": 17923821
+    },
+    {
+     "date": "2012-01-03",
+     "isa": 637160
+    },
+    {
+     "date": "2013-01-02",
+     "isa": 90000
+    }
+   ],
+   "isa_rollovers": [
+    {
+     "date": "2013-01-04",
+     "krw": 36215355
+    }
+   ]
+  },
+  "blend|100000000|H1|L12": {
+   "scheme": "L12",
+   "capital": 100000000,
+   "years": 8.37782340862423,
+   "start": "2010-01-04",
+   "end": "2018-05-22",
+   "final_krw": {
+    "low": 184422324.303636,
+    "high": 184038392.19498423,
+    "lump": 182118731.6517254
+   },
+   "cagr_after": {
+    "low": 0.07579179592583518,
+    "high": 0.07552422654930946,
+    "lump": 0.07417896053319772
+   },
+   "mdd": -0.15811206712519899,
+   "totals": {
+    "overseas_cg_tax_krw": 14266683.66919451,
+    "overseas_fees_krw": 1612730.002873587,
+    "fx_cost_krw": 31234.517684941427,
+    "overseas_div_tax_krw": 2416307.2553048125,
+    "domestic_fees_krw": 2000957.653942848,
+    "domestic_tax_krw": 0.0,
+    "pension_withdrawal_tax_krw": {
+     "low": 575898.1629776475,
+     "high": 959830.2716294125,
+     "lump": 2879490.814888238
+    },
+    "pension_value_krw": 53953421.77366285,
+    "pension_principal_krw": 36501962.28949171
+   },
+   "migrations": [
+    {
+     "date": "2010-01-04",
+     "pension": 18000000,
+     "isa": 19500000
+    },
+    {
+     "date": "2013-01-02",
+     "pension": 270
+    }
+   ],
+   "isa_rollovers": [
+    {
+     "date": "2013-01-04",
+     "krw": 18501693
+    }
+   ]
+  },
+  "blend|100000000|H1|L3": {
+   "scheme": "L3",
+   "capital": 100000000,
+   "years": 8.37782340862423,
+   "start": "2010-01-04",
+   "end": "2018-05-22",
+   "final_krw": {
+    "low": 178325732.52643248,
+    "high": 178325732.52643248,
+    "lump": 178325732.52643248
+   },
+   "cagr_after": {
+    "low": 0.07148376399390255,
+    "high": 0.07148376399390255,
+    "lump": 0.07148376399390255
+   },
+   "mdd": -0.16009623454873323,
+   "totals": {
+    "overseas_cg_tax_krw": 14266683.66919451,
+    "overseas_fees_krw": 1575414.4596212546,
+    "fx_cost_krw": 31551.071971164245,
+    "overseas_div_tax_krw": 2409055.579540139,
+    "domestic_fees_krw": 1855878.3601296467,
+    "domestic_tax_krw": 6254326.734113982,
+    "pension_withdrawal_tax_krw": {
+     "low": 0.0,
+     "high": 0.0,
+     "lump": 0.0
+    },
+    "pension_value_krw": 0.0,
+    "pension_principal_krw": 0.0
+   },
+   "migrations": [
+    {
+     "date": "2010-01-04",
+     "taxable": 37500000
+    },
+    {
+     "date": "2012-01-03",
+     "taxable": 104885
+    },
+    {
+     "date": "2013-01-02",
+     "taxable": 155774
+    },
+    {
+     "date": "2016-01-04",
+     "taxable": 372403
+    }
+   ],
+   "isa_rollovers": []
+  },
+  "blend|100000000|H2|L0": {
+   "scheme": "L0",
+   "capital": 100000000,
+   "years": 8.380561259411362,
+   "start": "2018-05-23",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 295227151.5932213,
+    "high": 295227151.5932213,
+    "lump": 295227151.5932213
+   },
+   "cagr_after": {
+    "low": 0.1378913933359598,
+    "high": 0.1378913933359598,
+    "lump": 0.1378913933359598
+   },
+   "mdd": -0.19695110677576977,
+   "totals": {
+    "overseas_cg_tax_krw": 46927754.005853236,
+    "overseas_fees_krw": 5627221.654503989,
+    "fx_cost_krw": 54917.299936309835,
+    "overseas_div_tax_krw": 3339079.7686921097,
+    "domestic_fees_krw": 0,
+    "domestic_tax_krw": 0,
+    "pension_withdrawal_tax_krw": {
+     "low": 0.0,
+     "high": 0.0,
+     "lump": 0.0
+    },
+    "pension_value_krw": 0.0,
+    "pension_principal_krw": 0.0
+   },
+   "migrations": [],
+   "isa_rollovers": []
+  },
+  "blend|100000000|H2|L1": {
+   "scheme": "L1",
+   "capital": 100000000,
+   "years": 8.380561259411362,
+   "start": "2018-05-23",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 296221608.77502775,
+    "high": 294911581.3384575,
+    "lump": 288361444.1556064
+   },
+   "cagr_after": {
+    "low": 0.1383480756685438,
+    "high": 0.1377461915445619,
+    "lump": 0.13470098192944602
+   },
+   "mdd": -0.19733733163973033,
+   "totals": {
+    "overseas_cg_tax_krw": 33022394.7582143,
+    "overseas_fees_krw": 1815850.5293038306,
+    "fx_cost_krw": 51957.33818517074,
+    "overseas_div_tax_krw": 2172584.1354768774,
+    "domestic_fees_krw": 2446044.2252865257,
+    "domestic_tax_krw": 0.0,
+    "pension_withdrawal_tax_krw": {
+     "low": 1965041.154855347,
+     "high": 3275068.591425578,
+     "lump": 9825205.774276735
+    },
+    "pension_value_krw": 97921761.08002006,
+    "pension_principal_krw": 38375059.41773681
+   },
+   "migrations": [
+    {
+     "date": "2018-05-23",
+     "pension": 18000000
+    },
+    {
+     "date": "2019-01-02",
+     "pension": 17496739
+    },
+    {
+     "date": "2020-01-02",
+     "pension": 754765
+    },
+    {
+     "date": "2026-01-02",
+     "pension": 2123556
+    }
+   ],
+   "isa_rollovers": []
+  },
+  "blend|100000000|H2|L2": {
+   "scheme": "L2",
+   "capital": 100000000,
+   "years": 8.380561259411362,
+   "start": "2018-05-23",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 294350829.3316025,
+    "high": 293407596.0428552,
+    "lump": 288691429.59911853
+   },
+   "cagr_after": {
+    "low": 0.13748783754026017,
+    "high": 0.13705228442861372,
+    "lump": 0.13485584475443457
+   },
+   "mdd": -0.19738029755620767,
+   "totals": {
+    "overseas_cg_tax_krw": 33023802.06283916,
+    "overseas_fees_krw": 1803405.8699932625,
+    "fx_cost_krw": 50336.70862937525,
+    "overseas_div_tax_krw": 2168412.6950789387,
+    "domestic_fees_krw": 2484194.902055813,
+    "domestic_tax_krw": 1284116.2649510263,
+    "pension_withdrawal_tax_krw": {
+     "low": 1414849.9331209988,
+     "high": 2358083.221868331,
+     "lump": 7074249.665604994
+    },
+    "pension_value_krw": 93012835.82253729,
+    "pension_principal_krw": 50138595.424931265
+   },
+   "migrations": [
+    {
+     "date": "2018-05-23",
+     "isa": 20000000
+    },
+    {
+     "date": "2019-01-02",
+     "isa": 15694831
+    },
+    {
+     "date": "2020-01-02",
+     "isa": 757009
+    },
+    {
+     "date": "2026-01-02",
+     "isa": 2679320
+    }
+   ],
+   "isa_rollovers": [
+    {
+     "date": "2021-05-24",
+     "krw": 50138595
+    }
+   ]
+  },
+  "blend|100000000|H2|L12": {
+   "scheme": "L12",
+   "capital": 100000000,
+   "years": 8.380561259411362,
+   "start": "2018-05-23",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 296702720.44077724,
+    "high": 295579441.1440389,
+    "lump": 289963044.6603473
+   },
+   "cagr_after": {
+    "low": 0.13856853106297384,
+    "high": 0.13805332921553304,
+    "lump": 0.13545116207895447
+   },
+   "mdd": -0.19238438576481753,
+   "totals": {
+    "overseas_cg_tax_krw": 33057503.290188856,
+    "overseas_fees_krw": 1717177.7164938073,
+    "fx_cost_krw": 33512.30944931426,
+    "overseas_div_tax_krw": 2129450.4980320367,
+    "domestic_fees_krw": 2567124.0859879297,
+    "domestic_tax_krw": 501444.94202291727,
+    "pension_withdrawal_tax_krw": {
+     "low": 1684918.9451075012,
+     "high": 2808198.2418458355,
+     "lump": 8424594.725537507
+    },
+    "pension_value_krw": 98080020.24384835,
+    "pension_principal_krw": 47021870.39210589
+   },
+   "migrations": [
+    {
+     "date": "2018-05-23",
+     "pension": 18000000,
+     "isa": 19500000
+    },
+    {
+     "date": "2020-01-02",
+     "pension": 605010
+    },
+    {
+     "date": "2026-01-02",
+     "pension": 2353205
+    }
+   ],
+   "isa_rollovers": [
+    {
+     "date": "2021-05-24",
+     "krw": 26063655
+    }
+   ]
+  },
+  "blend|100000000|H2|L3": {
+   "scheme": "L3",
+   "capital": 100000000,
+   "years": 8.380561259411362,
+   "start": "2018-05-23",
+   "end": "2026-10-09",
+   "final_krw": {
+    "low": 281585035.2276938,
+    "high": 281585035.2276938,
+    "lump": 281585035.2276938
+   },
+   "cagr_after": {
+    "low": 0.13148577967372832,
+    "high": 0.13148577967372832,
+    "lump": 0.13148577967372832
+   },
+   "mdd": -0.19301246969629837,
+   "totals": {
+    "overseas_cg_tax_krw": 33005687.388275217,
+    "overseas_fees_krw": 1683372.601804566,
+    "fx_cost_krw": 34922.181521196195,
+    "overseas_div_tax_krw": 2125193.3208165583,
+    "domestic_fees_krw": 2337023.1551020825,
+    "domestic_tax_krw": 11883467.071390146,
+    "pension_withdrawal_tax_krw": {
+     "low": 0.0,
+     "high": 0.0,
+     "lump": 0.0
+    },
+    "pension_value_krw": 0.0,
+    "pension_principal_krw": 0.0
+   },
+   "migrations": [
+    {
+     "date": "2018-05-23",
+     "taxable": 37500000
+    },
+    {
+     "date": "2020-01-02",
+     "taxable": 814210
+    },
+    {
+     "date": "2026-01-02",
+     "taxable": 5004358
+    }
+   ],
+   "isa_rollovers": []
+  }
+ },
+ "details": {
+  "core.L1": {
+   "checks": {
+    "30m_H1_low_ge_0.5pp": false,
+    "30m_H1_high_ge_0.5pp": false,
+    "30m_H2_low_ge_0.5pp": false,
+    "30m_H2_high_ge_0.5pp": false,
+    "100m_H1_low_ge_0.5pp": false,
+    "100m_H1_high_ge_0.5pp": false,
+    "100m_H2_low_ge_0.5pp": false,
+    "100m_H2_high_ge_0.5pp": false
+   },
+   "diff_vs_L0": {
+    "30m_full_low": -0.0038643687903208157,
+    "30m_full_high": -0.004742671609550664,
+    "30m_full_lump": -0.009311635465285129,
+    "30m_H1_low": -0.008300158755506937,
+    "30m_H1_high": -0.008986670189182533,
+    "30m_H1_lump": -0.012470361546809139,
+    "30m_H2_low": -0.00026081559318313907,
+    "30m_H2_high": -0.001764381853325503,
+    "30m_H2_lump": -0.009514120928570513,
+    "100m_full_low": -0.0009181203925332504,
+    "100m_full_high": -0.001786146259236343,
+    "100m_full_lump": -0.006299632826457513,
+    "100m_H1_low": -0.003945522606557006,
+    "100m_H1_high": -0.004547482402112557,
+    "100m_H1_lump": -0.007596481586568782,
+    "100m_H2_low": 0.0035569319770467622,
+    "100m_H2_high": 0.002126821986244254,
+    "100m_H2_lump": -0.005233482583018478
+   },
+   "noop_guard": null,
+   "coverage": 0.8396752015173068
+  },
+  "core.L2": {
+   "checks": {
+    "30m_H1_low_ge_0.5pp": false,
+    "30m_H1_high_ge_0.5pp": false,
+    "30m_H2_low_ge_0.5pp": false,
+    "30m_H2_high_ge_0.5pp": false,
+    "100m_H1_low_ge_0.5pp": false,
+    "100m_H1_high_ge_0.5pp": false,
+    "100m_H2_low_ge_0.5pp": false,
+    "100m_H2_high_ge_0.5pp": false
+   },
+   "diff_vs_L0": {
+    "30m_full_low": -0.0037551328281992813,
+    "30m_full_high": -0.004629030369783793,
+    "30m_full_lump": -0.009174127699035584,
+    "30m_H1_low": -0.008071678075389332,
+    "30m_H1_high": -0.008736399987542942,
+    "30m_H1_lump": -0.012107908340955875,
+    "30m_H2_low": -0.0016608319579467512,
+    "30m_H2_high": -0.0028826798039509605,
+    "30m_H2_lump": -0.009144082151748778,
+    "100m_full_low": -0.0010922317412946914,
+    "100m_full_high": -0.001977029113656492,
+    "100m_full_lump": -0.006581346891372686,
+    "100m_H1_low": -0.00418651007577564,
+    "100m_H1_high": -0.004850655669214721,
+    "100m_H1_lump": -0.008219198504515468,
+    "100m_H2_low": 0.001730813827847788,
+    "100m_H2_high": 0.0004873994784553304,
+    "100m_H2_lump": -0.005887691898097236
+   },
+   "noop_guard": null,
+   "coverage": 0.8396752015173068
+  },
+  "core.L12": {
+   "checks": {
+    "30m_H1_low_ge_0.5pp": false,
+    "30m_H1_high_ge_0.5pp": false,
+    "30m_H2_low_ge_0.5pp": false,
+    "30m_H2_high_ge_0.5pp": false,
+    "100m_H1_low_ge_0.5pp": false,
+    "100m_H1_high_ge_0.5pp": false,
+    "100m_H2_low_ge_0.5pp": false,
+    "100m_H2_high_ge_0.5pp": false
+   },
+   "diff_vs_L0": {
+    "30m_full_low": -0.0037558056186011157,
+    "30m_full_high": -0.004647192457438942,
+    "30m_full_lump": -0.009287025298426732,
+    "30m_H1_low": -0.007820880681979503,
+    "30m_H1_high": -0.008542373896243127,
+    "30m_H1_lump": -0.012206348821973023,
+    "30m_H2_low": -0.0003688761224796,
+    "30m_H2_high": -0.0018131134758143652,
+    "30m_H2_lump": -0.009247939716251485,
+    "100m_full_low": -0.0018663031443888478,
+    "100m_full_high": -0.002750651026570017,
+    "100m_full_lump": -0.007352669379060428,
+    "100m_H1_low": -0.005557195887998745,
+    "100m_H1_high": -0.006207387790722052,
+    "100m_H1_lump": -0.009504217166636186,
+    "100m_H2_low": 0.0018948128856171031,
+    "100m_H2_high": 0.0005003329955739488,
+    "100m_H2_lump": -0.006671611102862851
+   },
+   "noop_guard": null,
+   "coverage": 0.8396752015173068
+  },
+  "blend.L1": {
+   "checks": {
+    "30m_H1_low_ge_0.5pp": false,
+    "30m_H1_high_ge_0.5pp": false,
+    "30m_H2_low_ge_0.5pp": false,
+    "30m_H2_high_ge_0.5pp": false,
+    "100m_H1_low_ge_0.5pp": false,
+    "100m_H1_high_ge_0.5pp": false,
+    "100m_H2_low_ge_0.5pp": false,
+    "100m_H2_high_ge_0.5pp": false
+   },
+   "diff_vs_L0": {
+    "30m_full_low": -0.0029072532587595123,
+    "30m_full_high": -0.003147481131150709,
+    "30m_full_lump": -0.00436102518921011,
+    "30m_H1_low": -0.007007996258897808,
+    "30m_H1_high": -0.007259153825411868,
+    "30m_H1_lump": -0.008521469888667532,
+    "30m_H2_low": -0.002562840408870448,
+    "30m_H2_high": -0.0031485772704547,
+    "30m_H2_lump": -0.00611107631778407,
+    "100m_full_low": -0.0008636217871800245,
+    "100m_full_high": -0.0011074394817309763,
+    "100m_full_lump": -0.0023393098819612934,
+    "100m_H1_low": -0.0036516828218988717,
+    "100m_H1_high": -0.0038989681272330046,
+    "100m_H1_lump": -0.005141721250599307,
+    "100m_H2_low": 0.0004566823325840019,
+    "100m_H2_high": -0.00014520179139787537,
+    "100m_H2_lump": -0.003190411406513771
+   },
+   "noop_guard": null,
+   "coverage": 0.8348833862061569
+  },
+  "blend.L2": {
+   "checks": {
+    "30m_H1_low_ge_0.5pp": false,
+    "30m_H1_high_ge_0.5pp": false,
+    "30m_H2_low_ge_0.5pp": false,
+    "30m_H2_high_ge_0.5pp": false,
+    "100m_H1_low_ge_0.5pp": false,
+    "100m_H1_high_ge_0.5pp": false,
+    "100m_H2_low_ge_0.5pp": false,
+    "100m_H2_high_ge_0.5pp": false
+   },
+   "diff_vs_L0": {
+    "30m_full_low": -0.0029296159187444104,
+    "30m_full_high": -0.003173055338948183,
+    "30m_full_lump": -0.004402993527453658,
+    "30m_H1_low": -0.007097064416160537,
+    "30m_H1_high": -0.007376645895622813,
+    "30m_H1_lump": -0.008782649768547701,
+    "30m_H2_low": -0.0029562697939811144,
+    "30m_H2_high": -0.0033933688583900334,
+    "30m_H2_lump": -0.005597627939348593,
+    "100m_full_low": -0.000974843417151039,
+    "100m_full_high": -0.0012233273262225453,
+    "100m_full_lump": -0.002479027469011852,
+    "100m_H1_low": -0.003974414088693257,
+    "100m_H1_high": -0.0042590455306041886,
+    "100m_H1_lump": -0.005690595739360482,
+    "100m_H2_low": -0.0004035557956996172,
+    "100m_H2_high": -0.0008391089073460645,
+    "100m_H2_lump": -0.003035548581525216
+   },
+   "noop_guard": null,
+   "coverage": 0.8348833862061569
+  },
+  "blend.L12": {
+   "checks": {
+    "30m_H1_low_ge_0.5pp": false,
+    "30m_H1_high_ge_0.5pp": false,
+    "30m_H2_low_ge_0.5pp": false,
+    "30m_H2_high_ge_0.5pp": false,
+    "100m_H1_low_ge_0.5pp": false,
+    "100m_H1_high_ge_0.5pp": false,
+    "100m_H2_low_ge_0.5pp": false,
+    "100m_H2_high_ge_0.5pp": false
+   },
+   "diff_vs_L0": {
+    "30m_full_low": -0.0029072532587595123,
+    "30m_full_high": -0.003147481131150709,
+    "30m_full_lump": -0.00436102518921011,
+    "30m_H1_low": -0.007007996258897808,
+    "30m_H1_high": -0.007259153825411868,
+    "30m_H1_lump": -0.008521469888667532,
+    "30m_H2_low": -0.002562840408870448,
+    "30m_H2_high": -0.0031485772704547,
+    "30m_H2_lump": -0.00611107631778407,
+    "100m_full_low": -0.0013002342441557069,
+    "100m_full_high": -0.0015438136547534231,
+    "100m_full_lump": -0.0027744725645704182,
+    "100m_H1_low": -0.004793952562212489,
+    "100m_H1_high": -0.0050615219387382115,
+    "100m_H1_lump": -0.006406787954849946,
+    "100m_H2_low": 0.0006771377270140544,
+    "100m_H2_high": 0.0001619358795732495,
+    "100m_H2_lump": -0.002440231257005321
+   },
+   "noop_guard": null,
+   "coverage": 0.8348833862061569
+  }
+ },
+ "reference_L3_diff_low": {
+  "core.L3": {
+   "30m_full": -0.01763850113798937,
+   "30m_H1": -0.018650219355638376,
+   "30m_H2": -0.018116862708165593,
+   "100m_full": -0.015662285415911192,
+   "100m_H1": -0.015360808451374774,
+   "100m_H2": -0.015482828084514288
+  },
+  "blend.L3": {
+   "30m_full": -0.006944515314375899,
+   "30m_H1": -0.011336069923312264,
+   "30m_H2": -0.009928436065941737,
+   "100m_full": -0.005318133421773563,
+   "100m_H1": -0.009101984494145121,
+   "100m_H2": -0.0064056136622314686
+  }
+ },
+ "engine_check": {
+  "tax_fx_cagr_after_liquidation": 0.08487118672680416,
+  "location_L0_cagr_after": 0.08478389341838555,
+  "note": "location 엔진은 청산 매도 수수료·환전 스프레드·미납 지난해 세금까지 빼므로 조금 낮을 수 있다"
+ }
+}
