@@ -67,6 +67,16 @@ def run_idea(cfg_over: dict, exit_rule: dict, price, total, start: str) -> pd.Se
     return cl.portfolio_returns(rc[keep], re[keep], w.reindex(rc.index).fillna(0.0)[keep])
 
 
+def load_satellite(smoke: bool, index: pd.DatetimeIndex) -> pd.Series:
+    """새틀라이트 슬리브 일간 순수익 — run_champion_backtest 와 같은 run_satellite_backtest 를 그대로 쓴다."""
+    if smoke:
+        rng = np.random.default_rng(11)
+        return pd.Series(rng.normal(0.0006, 0.018, len(index)), index=index)
+    from datetime import date
+
+    return cs.run_satellite_backtest(START, date.today().isoformat(), index)["ret_net"]
+
+
 def main(argv=None) -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--out", required=True)
@@ -81,6 +91,9 @@ def main(argv=None) -> int:
         cr.freeze({"id": "Q-2026q4-01", "title": "스모크", "thesis": "합성 데이터 확인", "source": "스모크",
                    "topic": "exit", "config": {"top_n": 5}, "exit_rule": {"kind": "trail", "p": 0.1, "freq": "weekly"},
                    "neighbors": [{"config": {"top_n": 4}}]}, "seed", state_dir)
+        cr.freeze({"id": "Q-2026q4-02", "title": "스모크 비중", "thesis": "합성 데이터 확인", "source": "스모크",
+                   "topic": "allocation", "config": {}, "satellite_weight": 0.3,
+                   "neighbors": [{"config": {"top_n": 5}}]}, "seed", state_dir)
     elif not rnd_topics.is_on("core_quarterly"):
         log("주제 '코어 분기 연구'가 꺼져 있음 — 아무것도 하지 않음")
         return 0
@@ -92,6 +105,7 @@ def main(argv=None) -> int:
     price, total = load(a.smoke)
     start = "2009-01-02" if a.smoke else START
     inc = run_idea({}, {"kind": "none"}, price, total, start)
+    sat = None  # satellite_weight 아이디어가 있을 때만 한 번 계산(느림)
     judged = 0
     for entry in todo:
         if time.time() > deadline:
@@ -101,7 +115,15 @@ def main(argv=None) -> int:
             r = run_idea(idea["config"], idea["exit_rule"], price, total, start)
             nbs = [run_idea({**idea["config"], **(nb.get("config") or {})}, nb.get("exit_rule") or idea["exit_rule"], price, total, start)
                    for nb in idea.get("neighbors") or []]
-            res = cl.judge({"returns": r}, inc, nbs, n_trials=int(cr.load_registry(state_dir)["cumulative_trials"]),
+            base = inc
+            sw = idea.get("satellite_weight")
+            if sw is not None:  # 전체 챔피언(코어+새틀라이트 sw) 대 현 챔피언(85/15)
+                if sat is None:
+                    sat = load_satellite(a.smoke, inc.index)
+                base = cr.blend_champion(inc, sat, cr.CURRENT_SATELLITE_WEIGHT)
+                r = cr.blend_champion(r, sat, sw)
+                nbs = [cr.blend_champion(x, sat, sw) for x in nbs]
+            res = cl.judge({"returns": r}, base, nbs, n_trials=int(cr.load_registry(state_dir)["cumulative_trials"]),
                            all_active_daily_srs=[])
             res["judged_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
             with cr.edit_registry(state_dir) as rg:

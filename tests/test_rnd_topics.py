@@ -106,6 +106,26 @@ def test_core_idea_validation_and_trials(tmp_path):
     assert cfg.top_n == 5 and cfg.lookbacks == (126, 252) and cfg.cash == "bil"
 
 
+def test_core_idea_satellite_weight():
+    plain = crd.validate_idea(_idea())
+    assert "satellite_weight" not in plain  # 없는 아이디어는 예전과 똑같은 모양
+    assert plain == crd.validate_idea(_idea(satellite_weight=None))
+    v = crd.validate_idea(_idea(config={}, topic="allocation", satellite_weight=0.3))
+    assert v["satellite_weight"] == 0.3 and v["config"] == {}
+    for bad in (0.05, 0.51, "0.3", True):
+        with pytest.raises(crd.CoreIdeaError, match="satellite_weight"):
+            crd.validate_idea(_idea(satellite_weight=bad))
+    with pytest.raises(crd.CoreIdeaError, match="달라야"):
+        crd.validate_idea(_idea(config={}, satellite_weight=0.15))
+    assert crd.validate_idea(_idea(satellite_weight=0.1))["satellite_weight"] == 0.1
+    assert crd.validate_idea(_idea(satellite_weight=0.5))["satellite_weight"] == 0.5
+    import pandas as pd
+
+    idx = pd.bdate_range("2020-01-01", periods=3)
+    b = crd.blend_champion(pd.Series([0.01, 0.0, -0.01], idx), pd.Series([0.03, 0.02], idx[1:]), 0.25)
+    assert list(b.index) == list(idx[1:]) and abs(b.iloc[0] - 0.0075) < 1e-12
+
+
 def test_core_sync_and_has_work_follows_topic(topics, tmp_path):
     d = tmp_path / "ideas" / "2026q4"
     d.mkdir(parents=True)
@@ -130,6 +150,7 @@ def test_core_worker_smoke(tmp_path):
     assert p.returncode == 0, p.stderr[-1500:]
     reg = crd.load_registry(tmp_path / "c" / "smoke_state")
     assert reg["ideas"]["Q-2026q4-01"]["status"] in ("pass", "fail")
+    assert reg["ideas"]["Q-2026q4-02"]["status"] in ("pass", "fail")
 
 
 # ---------------------------------------------------------------- 야간 배치

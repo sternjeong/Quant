@@ -19,7 +19,7 @@ core-rnd-v2·sprint-2w·info-rnd-v1 보고서, 아래 실패 방향 목록. **�
   "title": "80자 이내",
   "thesis": "500자 이내 — 왜 현 코어보다 나을지, 경제적 근거",
   "source": "300자 이내 — 논문·이전 결과",
-  "topic": "selection 또는 exit",
+  "topic": "selection, exit 또는 allocation",
   "config": {"top_n": 5},
   "exit_rule": {"kind": "none"},
   "neighbors": [{"config": {"top_n": 6}}]
@@ -30,6 +30,10 @@ buffer_n(null|3~10), corr_cap(null|0.5~0.95), corr_window(63~252), weighting(equ
 filter_window(50~400), tranches(1|2|4), signal_basis(price|total).
 보유 중 매도(exit_rule.kind): none | trail(p 0.03~0.30, freq daily|weekly — 진입 뒤 고점 대비 하락) | sma(n 10~250, freq — 종가가 이동평균 아래)
 | mom_neg(freq — 12개월 수익이 음수로) | rank(k 5~12, freq — 17자산 중 k위 밖으로) | spy(freq — SPY 200일선 아래로 가면 절반). 판 몫은 다음 달 첫 거래일까지 BIL.
-neighbors: 핵심 숫자를 조금 바꾼 설정 0~2개(강건성 확인 G4). config 나 exit_rule 중 하나는 현 코어와 달라야 한다.
+satellite_weight(선택, 0.10~0.50): 코어/새틀라이트 비중 축. 빼거나 null 이면 현재 0.15 이고 판정은 위 그대로 "현 코어 대비"다.
+값을 넣으면 (이 아이디어의 코어 + 새틀라이트 그 비중) 전체 챔피언을 **현 챔피언(코어 85% + 새틀라이트 15%) 대비**로 같은 기준으로 판정한다
+(이웃도 같은 비중). 비중만 바꿀 때는 config {}·exit_rule none·topic "allocation" 으로 쓴다. 새틀라이트는 수익이 크지만 변동·낙폭도 커서
+최대낙폭 조건(5%p)에 걸리기 쉽다 — 근거 없이 상한으로 밀지 않는다.
+neighbors: 핵심 숫자를 조금 바꾼 설정 0~2개(강건성 확인 G4). config·exit_rule·satellite_weight 중 하나는 현 챔피언과 달라야 한다.
 판정(코드가 한다, core-judge/v1): 현 코어 대비 초과수익의 DSR ≥ 0.95(누적 시도 반영), 떼어 둔 최근 2년 샤프 ≥ 현 코어, 3구간 중 2구간 이상 초과,
 이웃 설정도 초과, 최대낙폭이 5%p 넘게 나쁘지 않음. 통과해도 자동 반영되지 않는다. 아이디어가 없으면 억지로 3개를 채우지 않는다.

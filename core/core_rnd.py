@@ -58,6 +58,18 @@ EXIT_RULES: dict[str, dict[str, tuple]] = {
 }
 
 
+# 2026-10-10: 코어/새틀라이트 비중 축. 없거나 None 이면 현 챔피언 비중(0.15) — 기존과 동일하게 코어끼리 비교.
+# 값이 있으면 (코어 아이디어 + 새틀라이트 그 비중) 전체 챔피언을 현 챔피언(85/15)과 비교한다(scripts/core_lab_worker.py).
+SATELLITE_WEIGHT_RULE = ("float", 0.10, 0.50)
+CURRENT_SATELLITE_WEIGHT = 0.15
+
+
+def blend_champion(core_ret, sat_ret, satellite_weight: float):
+    """champion_strategy.run_champion_backtest 와 같은 선형 블렌드: (1-sw)*core + sw*satellite (공통 날짜만)."""
+    c, s = core_ret.align(sat_ret, join="inner")
+    return (1 - satellite_weight) * c + satellite_weight * s
+
+
 class CoreIdeaError(ValueError):
     pass
 
@@ -124,12 +136,15 @@ def validate_idea(idea: dict) -> dict:
         v = str(idea.get(key) or "").strip()
         if not v or len(v) > limit:
             e.append(f"{key}: 1~{limit}자")
-    if idea.get("topic", "selection") not in ("selection", "exit"):
-        e.append("topic: selection 또는 exit")
+    if idea.get("topic", "selection") not in ("selection", "exit", "allocation"):
+        e.append("topic: selection, exit 또는 allocation")
     cfg = _clean_config(idea.get("config") or {}, e, "config")
     ex = _clean_exit(idea.get("exit_rule"), e, "exit_rule")
-    if not cfg and ex["kind"] == "none":
-        e.append("config 나 exit_rule 중 하나는 현 코어와 달라야 함")
+    sw = idea.get("satellite_weight")
+    if sw is not None:
+        sw = _check("satellite_weight", sw, SATELLITE_WEIGHT_RULE, e)
+    if not cfg and ex["kind"] == "none" and (sw is None or sw == CURRENT_SATELLITE_WEIGHT):
+        e.append("config·exit_rule·satellite_weight 중 하나는 현 챔피언과 달라야 함")
     nbs = idea.get("neighbors") or []
     if not isinstance(nbs, list) or len(nbs) > 2:
         e.append("neighbors: 0~2개")
@@ -143,9 +158,12 @@ def validate_idea(idea: dict) -> dict:
                           "exit_rule": _clean_exit(nb.get("exit_rule"), e, f"neighbors[{i}].exit_rule") if nb.get("exit_rule") else None})
     if e:
         raise CoreIdeaError("; ".join(e))
-    return {"id": idea["id"], "title": str(idea["title"]).strip(), "thesis": str(idea["thesis"]).strip(),
-            "source": str(idea["source"]).strip(), "topic": idea.get("topic", "selection"),
-            "config": cfg, "exit_rule": ex, "neighbors": clean_nbs}
+    out = {"id": idea["id"], "title": str(idea["title"]).strip(), "thesis": str(idea["thesis"]).strip(),
+           "source": str(idea["source"]).strip(), "topic": idea.get("topic", "selection"),
+           "config": cfg, "exit_rule": ex, "neighbors": clean_nbs}
+    if sw is not None:
+        out["satellite_weight"] = float(sw)
+    return out
 
 
 def build_config(cfg_over: dict):
