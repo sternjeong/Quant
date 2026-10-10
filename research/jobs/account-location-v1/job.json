@@ -1,0 +1,13 @@
+{
+  "id": "account-location-v1",
+  "title": "계좌 위치 측정 v1 — 코어를 연금저축·ISA 안 KRX 대체 ETF 로, SPY 는 해외 계좌 영구 보유(세후 원화, 사전 등록)",
+  "entrypoint": "research/jobs/account-location-v1/run.py",
+  "args": [],
+  "timeout_seconds": 3600,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 8,
+  "revision": 1
+}
