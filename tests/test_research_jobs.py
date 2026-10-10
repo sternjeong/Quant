@@ -837,3 +837,113 @@ def test_scheduler_allows_n_overlapping_research_ticks(monkeypatch):
     run_scheduler.main()
     kw = dict(added)["research_job_runner"]
     assert kw["max_instances"] == 2 and kw["coalesce"] is True
+
+
+# ---- 미룬 결과 반영(재배포가 도는 연구를 끊지 않게) -----------------------------------------------------------------
+
+def _fake_done(cfg, job):
+    out = cfg.out_dir(job.id)
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "results.json").write_text(json.dumps({"verdicts": {job.id: "PASS"}}))
+    (out / "REPORT.md").write_text(f"# {job.id}")
+    return rj.RunOutcome(0, None, 1.0, "")
+
+
+def test_finish_while_other_slot_busy_is_queued_then_combined_into_one_push(cfg, monkeypatch):
+    add_job(cfg.repo_root, "long", OK_SCRIPT, priority=1)
+    add_job(cfg.repo_root, "short", OK_SCRIPT, priority=2)
+    rec = Recorder(status="pushed")
+    during = {}
+
+    def fake_child(cfg_, job, budget, **kw):
+        if job.id == "long":
+            inner = tick(cfg, rec, kst(13, 10), slots=2)
+            assert inner["job_id"] == "short" and inner["result"] == "done"
+            during["published"] = list(rec.published)
+            during["queue"] = rj.load_state(cfg)["runner"].get("publish_queue")
+            during["messages"] = list(rec.messages)
+        return _fake_done(cfg, job)
+
+    monkeypatch.setattr(rj, "run_child", fake_child)
+    assert tick(cfg, rec, kst(13, 0), slots=2)["result"] == "done"
+    # short 는 long 이 도는 동안 끝남 → 보관·알림은 바로, push 는 미룸
+    assert during["published"] == [] and [i["job_id"] for i in during["queue"]] == ["short"]
+    assert "저장소 반영은 다른 연구가 끝난 뒤 함께" in during["messages"][0]
+    assert (cfg.results_dir / "short" / "REPORT.md").is_file()
+    # long 이 끝날 때 다른 슬롯이 없으니 두 작업 결과를 커밋 하나로
+    assert len(rec.published) == 1
+    files, message = rec.published[0]
+    assert set(files) == {f"research/results/{j}/{f}" for j in ("short", "long") for f in ("results.json", "REPORT.md")}
+    assert "short" in message and "long" in message
+    state = rj.load_state(cfg)
+    assert state["runner"]["publish_queue"] == [] and state["jobs"]["short"]["publish"]["status"] == "pushed"
+    assert state["runner"].get("cooldown_until")
+
+
+def test_idle_tick_flushes_queue_in_one_push(cfg, monkeypatch):
+    add_job(cfg.repo_root, "a", OK_SCRIPT, priority=1)
+    add_job(cfg.repo_root, "b", OK_SCRIPT, priority=2)
+    add_job(cfg.repo_root, "c", OK_SCRIPT, priority=3)
+    rec = Recorder(status="pushed")
+
+    def fake_child(cfg_, job, budget, **kw):
+        if job.id == "a":
+            tick(cfg, rec, kst(13, 10), slots=2)  # b 끝남(a 가 돌고 있어 미룸)
+            tick(cfg, rec, kst(13, 15), slots=2)  # c 끝남(미룸)
+            return rj.RunOutcome(3, None, 1.0, "")  # a 는 진행 중(3)으로 끝 — 직접 push 할 것이 없다
+        return _fake_done(cfg, job)
+
+    monkeypatch.setattr(rj, "run_child", fake_child)
+    tick(cfg, rec, kst(13, 0), slots=2)
+    assert rec.published == [] and [i["job_id"] for i in rj.load_state(cfg)["runner"]["publish_queue"]] == ["b", "c"]
+    # 다른 슬롯이 모두 쉬는 다음 회차: 큐를 커밋 하나로 push 하고 재배포 대기
+    result = tick(cfg, rec, kst(13, 20), slots=2)
+    assert result["reason"] == "결과 반영 직후 재배포 대기"
+    assert len(rec.published) == 1 and {p.split("/")[2] for p in rec.published[0][0]} == {"b", "c"}
+    assert rj.load_state(cfg)["runner"]["publish_queue"] == []
+    assert any("미뤄 둔 저장소 반영 완료: b, c" in m for m in rec.messages)
+
+
+def _seed_queue(cfg, job_id, queued_at):
+    d = cfg.results_dir / job_id
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "results.json").write_text("{}")
+    with rj.edit_state(cfg) as state:
+        state["runner"]["publish_queue"] = [{"job_id": job_id, "rels": ["results.json"], "queued_at": rj._now_iso(queued_at)}]
+
+
+def test_queue_safety_valve_pushes_after_12_hours_even_if_another_slot_is_busy(cfg):
+    rec = Recorder(status="pushed")
+    with rj.edit_state(cfg) as state:
+        state["runner"]["slots"] = {"1": {"token": "t", "job_id": "other"}}
+    with rj._flock(rj.slot_lock_path(cfg, 1), blocking=False) as got:
+        assert got
+        _seed_queue(cfg, "old", kst(13, 0) - timedelta(hours=11))
+        tick(cfg, rec, kst(13, 0), slots=2)
+        assert rec.published == []  # 11시간: 다른 슬롯이 돌고 있으니 기다린다
+        _seed_queue(cfg, "old", kst(13, 0) - timedelta(hours=12, minutes=5))
+        assert tick(cfg, rec, kst(13, 0), slots=2)["reason"] == "결과 반영 직후 재배포 대기"
+    assert list(rec.published[0][0]) == ["research/results/old/results.json"]
+    assert rj.load_state(cfg)["runner"]["publish_queue"] == []
+
+
+def test_failed_flush_stays_queued_and_is_retried(cfg):
+    rec = Recorder(status="failed")
+    _seed_queue(cfg, "q", kst(13, 0))
+    tick(cfg, rec, kst(13, 0), slots=2)
+    tick(cfg, rec, kst(13, 10), slots=2)
+    assert len(rec.published) == 2 and len(rj.load_state(cfg)["runner"]["publish_queue"]) == 1
+    assert sum("미뤄 둔 저장소 반영 실패" in m for m in rec.messages) == 1  # 같은 사유는 한 번만 알린다
+    rec.status = "pushed"
+    tick(cfg, rec, kst(13, 20), slots=2)
+    assert len(rec.published) == 3 and rj.load_state(cfg)["runner"]["publish_queue"] == []
+
+
+def test_n1_never_queues_publishes(cfg, monkeypatch):
+    monkeypatch.setenv(rj.MAX_PARALLEL_ENV, "1")
+    add_job(cfg.repo_root, "solo", OK_SCRIPT)
+    rec = Recorder(status="pushed")
+    assert tick(cfg, rec, kst(13, 0))["result"] == "done"
+    assert len(rec.published) == 1 and rec.published[0][1].startswith("Research job results: solo")
+    assert not rj.load_state(cfg)["runner"].get("publish_queue")
+    assert "다른 연구가 끝난 뒤" not in rec.messages[0]
