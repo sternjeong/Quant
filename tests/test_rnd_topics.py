@@ -156,22 +156,43 @@ def test_sat_plan_rotates_topics_and_pauses_off(topics, tmp_path, monkeypatch):
     assert "언제 팔지" in ab.prompt_for("sat_designer", "S-20261007-001", now, {"new": True, "topic": "exit"})
 
 
-def test_core_plan_once_per_quarter(topics, tmp_path, monkeypatch):
+def test_core_plan_batch_waits_for_judge_then_moves_to_next_batch(topics, tmp_path, monkeypatch):
+    """2026-10-10 재설계: 분기당 1회 한도가 아니라 세대(배치 N개)가 전부 심판될 때마다 다음 배치를 쓴다."""
     from core import agent_batch as ab
     from core import agent_budget as budget
 
     monkeypatch.setattr(ab, "CORE_IDEAS_DIR", tmp_path / "ideas")
-    monkeypatch.setattr(crd, "STATE_DIR", tmp_path / "st")
+    monkeypatch.setattr(ab, "CORE_STATE_DIR", tmp_path / "st")
     monkeypatch.setattr(budget, "can_launch", lambda role, now=None, path=None: (True, "ok"))
     now = datetime(2026, 10, 6, 19, 0, tzinfo=timezone.utc)
-    assert ab.core_plan(now, set()) == ("core_designer", "2026q4", {"feedback": None})
+
+    task = ab.core_plan(now, set())
+    assert task[0] == "core_designer" and task[1] == "2026q4"
+    assert task[2]["new"] is True and task[2]["feedback"] is None
+    batch1 = task[2]["ids"]
+    assert batch1 == ["Q-2026q4-01", "Q-2026q4-02", "Q-2026q4-03"]
+    # run_batch 의 실행 후처리가 하는 일(배치 id 기록)을 여기선 직접 흉내낸다 — core_plan 자체는 계획만 한다.
+    crd.save_agent_state("2026q4", {"pending_ids": batch1, "batch_attempts": 0}, state_dir=ab.CORE_STATE_DIR)
+
     d = tmp_path / "ideas" / "2026q4"
     d.mkdir(parents=True)
-    (d / "Q-2026q4-01.json").write_text(json.dumps(_idea()), encoding="utf-8")
-    assert ab.core_plan(now, set()) is None  # 이번 분기 아이디어가 등록됐으면 끝
-    assert crd.agent_state("2026q4")["frozen"] == ["Q-2026q4-01"]
+    (d / f"{batch1[0]}.json").write_text(json.dumps(_idea(id=batch1[0])), encoding="utf-8")
+    # core_plan 이 호출될 때 이 파일을 동결(=심판 대기 큐에 등록)한다 — 아직 심판 전이라 다음 배치는 안 나온다.
+    assert ab.core_plan(now, set()) is None
+    st = crd.agent_state("2026q4", state_dir=ab.CORE_STATE_DIR)
+    assert st["pending_ids"] == batch1
+    reg_ = crd.load_registry(ab.CORE_STATE_DIR)
+    assert reg_["ideas"][batch1[0]]["status"] == crd.STATUS_QUEUED
+
+    # 심판이 끝났다고 가정(코드가 처리하는 부분, 여기선 registry 를 직접 갈아끼운다) — 다음 배치로 넘어가야 한다.
+    with crd.edit_registry(ab.CORE_STATE_DIR) as reg2:
+        reg2["ideas"][batch1[0]]["status"] = crd.STATUS_FAIL
+    task2 = ab.core_plan(now, set())
+    assert task2[2]["new"] is True
+    batch2 = task2[2]["ids"]
+    assert batch2 == ["Q-2026q4-04", "Q-2026q4-05", "Q-2026q4-06"]  # 직전 배치 id와 안 겹침
+
     rt.set_on("core_quarterly", False)
-    monkeypatch.setattr(ab, "CORE_IDEAS_DIR", tmp_path / "other")
     assert ab.core_plan(datetime(2027, 1, 5, 19, 0, tzinfo=timezone.utc), set()) is None
     assert "core_designer" in budget.ROLES and ab.tools_for("core_designer", "2026q4")[-1] == "Edit(research/core_lab/ideas/2026q4/**)"
 

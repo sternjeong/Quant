@@ -1,7 +1,10 @@
-"""코어 분기 연구실 (2026-10-05, 사용자 요청) — 분기마다 AI 가 근거 있는 코어 아이디어(선정·보유 중 매도 시점)를 제안하고
-같은 판정 규칙으로 계속 시험한다. R&D 센터 주제 'core_quarterly' 로 켜고 끈다(끄면 제안·판정이 멈추고 대기열은 남는다).
+"""코어 연구실 (2026-10-05, 사용자 요청; 2026-10-10 세대 단위로 재설계) — AI 가 근거 있는 코어 아이디어(선정·보유 중 매도 시점)를
+배치(세대)당 최대 BATCH_SIZE개 제안하고 같은 판정 규칙으로 계속 시험한다. 직전 세대가 전부 심판(통과/탈락)되면 그 결과·교훈을
+바탕으로 다음 세대를 바로 쓴다(core.agent_batch.core_plan 이 "심판 대기 큐가 비었는가"로 다음 세대 시점을 정한다 — 달력 기준
+아님). R&D 센터 주제 'core_quarterly' 로 켜고 끈다(끄면 제안·판정이 멈추고 대기열은 남는다).
 
-왜 분기인가: 코어는 17개 ETF·월 1회 결정이라 18년에 결정이 약 220번뿐이다. 매일 아이디어를 쏟아내면 우연히 맞는 규칙만 찾게 된다.
+왜 배치로 묶는가: 코어는 17개 ETF·월 1회 결정이라 18년에 결정이 약 220번뿐이라 매일 아이디어를 쏟아내면 우연히 맞는 규칙만
+찾게 된다 — 한 번에 하나씩 부르지 않고 N개씩 묶어 호출 수(토큰)를 아끼면서도, 세대마다 심판 결과를 반영해 계속 이어가게 한다.
 
 아이디어 형식(코드 없음 — 정해진 설정 범위 안의 조합만, 실수 여지를 줄인다): research/core_lab/ideas/<분기>/<id>.json
   {"id": "Q-2026q4-01", "title", "thesis", "source", "topic": "selection"|"exit",
@@ -29,7 +32,7 @@ IDEAS_DIR = PROJECT_ROOT / "research" / "core_lab" / "ideas"
 STATE_DIR = PROJECT_ROOT / "data" / "core_lab"
 PRIOR_CORE_TRIALS = 229
 ID_RE = re.compile(r"^Q-(\d{4}q[1-4])-(\d{2})$")
-MAX_IDEAS_PER_QUARTER = 3
+BATCH_SIZE = 3
 STATUS_QUEUED, STATUS_PASS, STATUS_FAIL, STATUS_ERROR = "queued", "pass", "fail", "error"
 
 CONFIG_RULES: dict[str, Any] = {
@@ -193,13 +196,32 @@ def freeze(idea: dict, origin: str = "agent", state_dir: Optional[Path] = None) 
         return entry
 
 
-def sync_ideas(quarter: str, ideas_dir: Optional[Path] = None, state_dir: Optional[Path] = None) -> dict:
-    """그 분기 폴더의 아이디어 파일을 검증·동결한다. {"frozen": [...], "errors": {id: 사유}}."""
+def next_batch_ids(quarter: str, n: int, known: Optional[set] = None, state_dir: Optional[Path] = None) -> list[str]:
+    """그 분기 안에서 아직 안 쓴 id n개(Q-<분기>-NN, 순차). known 은 추가로 피할 id(예: 심판 대기 중인 직전 배치)."""
+    taken = set(load_registry(state_dir)["ideas"]) | (known or set())
+    out, i = [], 1
+    while len(out) < n and i < 1000:
+        cid = f"Q-{quarter}-{i:02d}"
+        if cid not in taken:
+            out.append(cid)
+        i += 1
+    return out
+
+
+def sync_ideas(quarter: str, ids: Optional[list[str]] = None, ideas_dir: Optional[Path] = None,
+               state_dir: Optional[Path] = None) -> dict:
+    """지정된 id(한 세대/배치)의 아이디어 파일을 검증·동결한다. {"frozen": [...], "errors": {id: 사유}}.
+
+    `ids` 를 안 주면(이전 호환) 그 분기 폴더를 그대로 훑어 최대 BATCH_SIZE개까지 처리한다 — 다만 이 경로는
+    세대 추적이 없어 한 분기에 영원히 처음 BATCH_SIZE개만 본다(옛 동작). 세대별 반복 호출은 반드시 `ids`를 준다.
+    """
     d = Path(ideas_dir or IDEAS_DIR) / quarter
     out: dict[str, Any] = {"frozen": [], "errors": {}}
     known = load_registry(state_dir)["ideas"]
-    for f in sorted(d.glob("Q-*.json"))[:MAX_IDEAS_PER_QUARTER]:
-        if f.stem in known:
+    candidates = ([d / f"{i}.json" for i in ids] if ids is not None
+                  else sorted(d.glob("Q-*.json"))[:BATCH_SIZE])
+    for f in candidates:
+        if f.stem in known or not f.is_file():
             continue
         try:
             idea = json.loads(f.read_text(encoding="utf-8"))

@@ -306,8 +306,11 @@ def prompt_for(role: str, hid: str, now: datetime, extra: dict) -> str:
                 f"검토하고 research/satellite_lab/variants/{hid}/critic.json 에 판정을 써라.")
     if role == "core_designer":
         fb = extra.get("feedback")
-        return (f"오늘은 {today}. {hid} 분기 코어 아이디어를 최대 3개, research/core_lab/ideas/{hid}/Q-{hid}-01.json ~ -03.json 으로 써라. "
-                f"먼저 research/core_lab/context.md 와 research/results/ 의 코어 연구 보고서를 읽고 이미 탈락한 방향은 피한다."
+        ids = extra["ids"]
+        files = ", ".join(f"research/core_lab/ideas/{hid}/{i}.json" for i in ids)
+        return (f"오늘은 {today}. 코어 아이디어를 최대 {len(ids)}개 써라. 반드시 이 id만, 이 파일로: {files}. "
+                f"먼저 research/core_lab/context.md(직전 배치까지 전부의 판정 사유 포함)와 research/results/ 의 코어 연구 "
+                f"보고서를 읽고, 이미 탈락한 방향·직전 배치가 왜 떨어졌는지를 반영해 다음 방향을 정한다."
                 + (f"\n{fb}" if fb else ""))
     if role == "geo_analyst":
         from core.champion_strategy import CORE_UNIVERSE
@@ -549,36 +552,50 @@ def geo_plan(now: datetime, done: set[tuple[str, str]]) -> Optional[tuple[str, s
 
 # ---------------------------------------------------------------- 코어 분기 연구 (2026-10-05, core/core_rnd.py)
 CORE_IDEAS_DIR = RESEARCH / "core_lab" / "ideas"
+CORE_STATE_DIR = PROJECT_ROOT / "data" / "core_lab"  # core_rnd 의 기본 STATE_DIR 과 별개로 둬서 테스트에서 격리 가능하게
+
+
+CORE_BATCH_FORMAT_RETRIES = 1  # 배치 전부가 형식 오류였으면 같은 id로 한 번 더, 그래도 안 되면 다음 배치로 넘어간다
 
 
 def core_plan(now: datetime, done: set[tuple[str, str]]) -> Optional[tuple[str, str, dict]]:
-    """분기마다: 아이디어가 아직 없으면 core_designer 한 번, 모두 형식 오류였으면 그 분기에 한 번 더(재작업). 주제가 꺼져 있으면 없음."""
+    """세대(배치 N개) 단위 — 2026-10-10 사용자 결정: 분기당 1회 한도를 없애고, 직전 배치가 전부 심판(큐에서
+    빠짐)될 때마다 그 결과·교훈을 바탕으로 다음 N개를 바로 쓰게 한다(토큰 절약 = 한 번에 N개를 묶어서 호출).
+    주제가 꺼져 있으면 없음. 안전장치는 budget.can_launch 의 주간 횟수·예산 상한이 그대로 막는다."""
     from core import core_rnd as crd
     from core import rnd_topics
 
     if not rnd_topics.is_on("core_quarterly"):
         return None
     quarter = crd.quarter_of(budget.kst(now).date())
-    st = crd.agent_state(quarter)
-    synced = crd.sync_ideas(quarter, ideas_dir=CORE_IDEAS_DIR)
-    if synced["frozen"] or synced["errors"]:
-        st.setdefault("frozen", []).extend(synced["frozen"])
-        st["errors"] = synced["errors"]
-        crd.save_agent_state(quarter, st)
-    runs = st.get("runs", 0)
-    if st.get("frozen") or runs >= 2:
-        return None
+    st = crd.agent_state(quarter, state_dir=CORE_STATE_DIR)
+    pending = st.get("pending_ids") or []
+    # 직전 배치가 있었다면 먼저 혹시 아직 안 동기화된 파일을 정리한다(에이전트가 막 쓴 걸 바로 심판 대상으로).
+    synced = (crd.sync_ideas(quarter, ids=pending, ideas_dir=CORE_IDEAS_DIR, state_dir=CORE_STATE_DIR) if pending
+              else {"frozen": [], "errors": {}})
+    reg = crd.load_registry(CORE_STATE_DIR)  # sync_ideas 가 등록부를 바꿨을 수 있으니 다시 읽는다
+    if any(reg["ideas"].get(i, {}).get("status") == crd.STATUS_QUEUED for i in pending):
+        return None  # 직전 배치가 아직 심판 대기 중 — 결과가 다 나올 때까지 기다린다
+    resolved = sum(1 for i in pending if i in reg["ideas"])  # 실제로 동결(심판 대상)된 아이디어 수
+    attempts = st.get("batch_attempts", 0)
+    if pending and resolved == 0 and attempts <= CORE_BATCH_FORMAT_RETRIES:
+        # 배치 전부가 형식 오류(또는 아예 안 씀) — 같은 id로 재작업 기회를 한 번 더 준다.
+        if ("core_designer", quarter) in done or not budget.can_launch("core_designer", now)[0]:
+            return None
+        feedback = "이전 제출의 형식 오류:\n" + json.dumps(synced["errors"], ensure_ascii=False)[:1500]
+        return "core_designer", quarter, {"feedback": feedback, "ids": pending, "new": False}
+    # 새 세대: 다음 N개 id를 배정한다(직전 배치가 아예 없었으면 이번이 첫 세대).
+    new_ids = crd.next_batch_ids(quarter, crd.BATCH_SIZE, known=set(pending), state_dir=CORE_STATE_DIR)
     if ("core_designer", quarter) in done or not budget.can_launch("core_designer", now)[0]:
         return None
-    feedback = ("이전 제출의 형식 오류:\n" + json.dumps(st.get("errors"), ensure_ascii=False)[:1500]) if st.get("errors") else None
-    return "core_designer", quarter, {"feedback": feedback}
+    return "core_designer", quarter, {"feedback": None, "ids": new_ids, "new": True}
 
 
 def _write_core_context() -> None:
     from core import core_rnd as crd
 
     try:
-        crd._atomic(RESEARCH / "core_lab" / "context.md", crd.context_markdown())
+        crd._atomic(RESEARCH / "core_lab" / "context.md", crd.context_markdown(CORE_STATE_DIR))
     except OSError:
         pass
 
@@ -659,13 +676,18 @@ def run_batch(*, now_fn: Callable[[], datetime] = lambda: datetime.now(timezone.
         if role == "core_designer":
             from core import core_rnd as crd
 
-            cst = crd.agent_state(hid)
+            cst = crd.agent_state(hid, state_dir=CORE_STATE_DIR)
             cst["runs"] = cst.get("runs", 0) + 1
-            synced = crd.sync_ideas(hid, ideas_dir=CORE_IDEAS_DIR)
-            cst.setdefault("frozen", []).extend(synced["frozen"])
+            ids = extra["ids"]
+            synced = crd.sync_ideas(hid, ids=ids, ideas_dir=CORE_IDEAS_DIR, state_dir=CORE_STATE_DIR)
+            if extra.get("new"):
+                cst["pending_ids"] = ids
+                cst["batch_attempts"] = 0
+            cst["batch_attempts"] = 0 if synced["frozen"] else cst.get("batch_attempts", 0) + 1
+            cst.setdefault("frozen_total", []).extend(synced["frozen"])
             cst["errors"] = synced["errors"]
-            crd.save_agent_state(hid, cst)
-            log.append(f"코어 분기 아이디어 {hid}: 등록 {synced['frozen']} 오류 {list(synced['errors'])}")
+            crd.save_agent_state(hid, cst, state_dir=CORE_STATE_DIR)
+            log.append(f"코어 분기 아이디어 {hid}(배치 {ids}): 등록 {synced['frozen']} 오류 {list(synced['errors'])}")
         if role == "geo_analyst":
             from core import geo_shadow as gs
 

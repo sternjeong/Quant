@@ -11,6 +11,7 @@ from sqlalchemy.orm import sessionmaker
 
 from core import agent_batch as ab
 from core import agent_budget as bud
+from core import core_rnd as crd
 from core import hypothesis_judge as hj
 from core import hypothesis_registry as reg
 from core import hypothesis_shadow as sh
@@ -43,6 +44,9 @@ def ws(tmp_path, monkeypatch):
     from core import satellite_lab as sl
 
     monkeypatch.setattr(ab, "SAT_WS", root / "satellite_lab" / "variants")
+    # 코어 분기 연구실도 같은 이유로 격리(2026-10-10)
+    monkeypatch.setattr(ab, "CORE_IDEAS_DIR", root / "core_lab" / "ideas")
+    monkeypatch.setattr(ab, "CORE_STATE_DIR", tmp_path / "core_lab_state")
     monkeypatch.setattr(sl, "STATE_DIR", tmp_path / "satellite_state")
     monkeypatch.setattr(gs, "LEDGER", tmp_path / "geo" / "ledger.jsonl")
     monkeypatch.setattr(gs, "DRAFT_DIR", root / "geo_shadow")
@@ -97,9 +101,11 @@ def _fake_runner(ws, critic_verdict="approve", calls=None):
 
 
 def test_full_cycle_one_night_writer_to_judge(tmpdb, ws, monkeypatch):
-    # 이 테스트는 일반 가설 흐름만 본다 — 새틀라이트·국제정세 트랙은 각자 테스트(test_satellite_lab·test_geo_shadow)에서 본다
+    # 이 테스트는 일반 가설 흐름만 본다 — 새틀라이트·국제정세·코어 분기 트랙은 각자 테스트
+    # (test_satellite_lab·test_geo_shadow·core_plan 전용 테스트들)에서 본다
     monkeypatch.setattr(ab, "sat_plan", lambda now, done: None)
     monkeypatch.setattr(ab, "geo_plan", lambda now, done: None)
+    monkeypatch.setattr(ab, "core_plan", lambda now, done: None)
     calls, judged = [], []
 
     def fake_judge(hid):
@@ -186,6 +192,95 @@ def test_tools_are_scoped_per_role():
     assert "Write(research/hypotheses/H-1/**)" in ab.tools_for("implementer", "H-1")
     assert not any(t.startswith(("Write", "Edit")) and "critic.json" not in t for t in ab.tools_for("critic", "H-1"))
     assert not any("Bash" in t for t in ab.tools_for("writer"))
+
+
+# ---------------------------------------------------------------- 코어 분기 연구실 (세대/배치 단위, 2026-10-10)
+def _core_idea(idea_id: str, top_n: int = 5) -> dict:
+    return {"id": idea_id, "title": "t", "thesis": "th", "source": "s", "topic": "selection",
+            "config": {"top_n": top_n}, "exit_rule": {"kind": "none"}, "neighbors": []}
+
+
+def test_core_plan_first_call_assigns_a_fresh_batch(ws):
+    task = ab.core_plan(MON_0310, set())
+    assert task is not None
+    role, quarter, extra = task
+    assert role == "core_designer" and quarter == "2026q4"
+    assert extra["new"] is True and extra["feedback"] is None
+    assert extra["ids"] == ["Q-2026q4-01", "Q-2026q4-02", "Q-2026q4-03"]
+
+
+def test_core_plan_waits_while_batch_still_in_queue(ws):
+    for i in (1, 2, 3):
+        crd.freeze(_core_idea(f"Q-2026q4-{i:02d}"), state_dir=ab.CORE_STATE_DIR)
+    crd.save_agent_state("2026q4", {"pending_ids": [f"Q-2026q4-{i:02d}" for i in (1, 2, 3)], "batch_attempts": 0},
+                         state_dir=ab.CORE_STATE_DIR)
+    assert ab.core_plan(MON_0310, set()) is None  # 전부 queued — 심판 대기
+
+
+def test_core_plan_advances_to_a_new_batch_once_resolved(ws):
+    ids = [f"Q-2026q4-{i:02d}" for i in (1, 2, 3)]
+    for i in ids:
+        crd.freeze(_core_idea(i), state_dir=ab.CORE_STATE_DIR)
+    with crd.edit_registry(ab.CORE_STATE_DIR) as reg_:
+        reg_["ideas"][ids[0]]["status"] = crd.STATUS_PASS
+        reg_["ideas"][ids[1]]["status"] = crd.STATUS_FAIL
+        reg_["ideas"][ids[2]]["status"] = crd.STATUS_FAIL
+    crd.save_agent_state("2026q4", {"pending_ids": ids, "batch_attempts": 0}, state_dir=ab.CORE_STATE_DIR)
+
+    task = ab.core_plan(MON_0310, set())
+    assert task is not None
+    _, _, extra = task
+    assert extra["new"] is True
+    assert extra["ids"] == ["Q-2026q4-04", "Q-2026q4-05", "Q-2026q4-06"]  # 직전 배치와 안 겹침
+
+
+def test_core_plan_retries_same_ids_once_when_batch_is_all_format_errors(ws):
+    ids = [f"Q-2026q4-{i:02d}" for i in (1, 2, 3)]
+    crd.save_agent_state("2026q4", {"pending_ids": ids, "batch_attempts": 0}, state_dir=ab.CORE_STATE_DIR)
+    # 아무 파일도 안 써서(또는 전부 깨져서) 하나도 동결되지 않은 상황을 흉내낸다.
+
+    task = ab.core_plan(MON_0310, set())
+    assert task is not None
+    _, _, extra = task
+    assert extra["new"] is False and extra["ids"] == ids
+    assert "형식 오류" in extra["feedback"]
+
+    # 재시도 한도까지 다 쓰면 그 자리에 머물지 않고 다음 배치로 넘어간다.
+    crd.save_agent_state("2026q4", {"pending_ids": ids, "batch_attempts": 2}, state_dir=ab.CORE_STATE_DIR)
+    task2 = ab.core_plan(MON_0310, set())
+    assert task2 is not None
+    assert task2[2]["new"] is True and task2[2]["ids"] == ["Q-2026q4-04", "Q-2026q4-05", "Q-2026q4-06"]
+
+
+def test_core_plan_off_topic_returns_none(ws, monkeypatch):
+    from core import rnd_topics
+
+    monkeypatch.setattr(rnd_topics, "is_on", lambda key, path=None: False)
+    assert ab.core_plan(MON_0310, set()) is None
+
+
+def test_run_batch_core_designer_writes_pending_ids_and_syncs_what_agent_wrote(ws):
+    calls = []
+
+    def fake_runner(role, prompt, tools, cfg, timeout):
+        calls.append((role, prompt))
+        if role == "core_designer":
+            import re
+
+            ids = re.findall(r"Q-\d{4}q\d-\d{2}", prompt)
+            d = ab.CORE_IDEAS_DIR / "2026q4"
+            d.mkdir(parents=True, exist_ok=True)
+            idea = _core_idea(ids[0])
+            (d / f"{ids[0]}.json").write_text(json.dumps(idea))
+        return {"ok": True, "limited": False, "timed_out": False, "cost_usd": 0.1, "turns": 1, "summary": ""}
+
+    res = ab.run_batch(now_fn=lambda: MON_0310, runner=fake_runner, max_tasks=5)
+    assert any(r == "core_designer" for r, _ in calls)
+    st = crd.agent_state("2026q4", state_dir=ab.CORE_STATE_DIR)
+    assert st["pending_ids"] == ["Q-2026q4-01", "Q-2026q4-02", "Q-2026q4-03"]
+    reg_ = crd.load_registry(ab.CORE_STATE_DIR)
+    assert "Q-2026q4-01" in reg_["ideas"] and reg_["ideas"]["Q-2026q4-01"]["status"] == crd.STATUS_QUEUED
+    assert any(r["role"] == "core_designer" for r in res["ran"])
 
 
 # ---------------------------------------------------------------- 좋은 전략은 통과, shadow
