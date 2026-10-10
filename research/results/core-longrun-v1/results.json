@@ -1,0 +1,1715 @@
+{
+ "judge_version": "core-longrun-judge/v1",
+ "smoke": false,
+ "source": "Ken French data library (daily, weekday calendar)",
+ "generated_at": "2026-10-10T16:23:06+00:00",
+ "verdicts": {
+  "H1_low_beta": "PASS",
+  "H2_positive_alpha": "PASS",
+  "H3_crisis_defense": "PASS",
+  "H4_alpha_stability": "PASS",
+  "core_identity": "CORE_IDENTITY_CONFIRMED"
+ },
+ "power": {
+  "years": 80.5,
+  "n_trials": 1,
+  "confidence": 0.95,
+  "mde_ir": 0.183,
+  "power_at": {
+   "0.20": 0.559,
+   "0.30": 0.852,
+   "0.50": 0.998
+  },
+  "method": "expected-max-z(Bailey-LdP) + null SE, simplified"
+ },
+ "noop_guard": null,
+ "rule": {
+  "universe": "FF 12 industries (value-weighted)",
+  "lookback_rows": 252,
+  "calendar": "weekdays (weekend returns compounded into next weekday)",
+  "top_n": 4,
+  "weighting": "equal 1/4, empty slot = RF",
+  "market_filter": "market index < SMA200 → ×0.5",
+  "rebalance": "first trading day of month, signal = previous close, executed next day",
+  "cost_bps_one_way": 10.0,
+  "stress_bps": 30.0,
+  "main_window": [
+   "1927-07-01",
+   "2007-12-31"
+  ],
+  "subperiods": [
+   [
+    "1927-07-01",
+    "1946-12-31"
+   ],
+   [
+    "1947-01-01",
+    "1966-12-31"
+   ],
+   [
+    "1967-01-01",
+    "1986-12-31"
+   ],
+   [
+    "1987-01-01",
+    "2007-12-31"
+   ]
+  ],
+  "episode_threshold": 0.2
+ },
+ "thresholds": {
+  "H1_beta_max": 0.6,
+  "H2_t_min": 2.0,
+  "H3_min_share": 0.7,
+  "H4_min_positive": 3
+ },
+ "main": {
+  "window": [
+   "1927-07-01",
+   "2007-12-31"
+  ],
+  "capm": {
+   "beta_daily": 0.59611250467762,
+   "beta_monthly": 0.5521703306170919,
+   "alpha_annual": 0.05452901870355793,
+   "alpha_t_nw6": 4.495760227823601,
+   "appraisal_ir": 0.5400228736704017,
+   "months": 966
+  },
+  "episodes": [
+   {
+    "peak": "1929-09-03",
+    "trough": "1929-11-13",
+    "market_depth": -0.43704182319235985,
+    "strategy_dd": -0.42131747470371517,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": 0.22505898049508366,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1930-04-10",
+    "trough": "1930-12-16",
+    "market_depth": -0.4358953463001133,
+    "strategy_dd": -0.13079606197461058,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": 0.4343034132980875,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1931-02-24",
+    "trough": "1931-06-02",
+    "market_depth": -0.3192829949305862,
+    "strategy_dd": 0.0,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": 0.5870994631207075,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1931-06-26",
+    "trough": "1931-10-05",
+    "market_depth": -0.4116038561149258,
+    "strategy_dd": -0.006059479696687853,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": 0.07787958661353167,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1931-11-09",
+    "trough": "1932-07-08",
+    "market_depth": -0.5694449290716379,
+    "strategy_dd": 0.0,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -1.3854330480625852,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1932-09-07",
+    "trough": "1933-02-27",
+    "market_depth": -0.36367141933018066,
+    "strategy_dd": -0.11580088510478548,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.46713229468857964,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1933-07-18",
+    "trough": "1933-10-19",
+    "market_depth": -0.28355450891392464,
+    "strategy_dd": -0.2981568144913739,
+    "defended": false,
+    "ongoing": false,
+    "excess_12m_after_trough": 0.05602032292209236,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1934-02-05",
+    "trough": "1934-07-26",
+    "market_depth": -0.2540635597779105,
+    "strategy_dd": -0.23980827458395337,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.1564990062389866,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1937-03-10",
+    "trough": "1938-03-31",
+    "market_depth": -0.5103826189625673,
+    "strategy_dd": -0.22847198011787795,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.4359006714849146,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1938-11-09",
+    "trough": "1939-04-11",
+    "market_depth": -0.20401836225228676,
+    "strategy_dd": -0.15303177428874337,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.18743817202439583,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1940-04-08",
+    "trough": "1940-06-10",
+    "market_depth": -0.26102931684725306,
+    "strategy_dd": -0.267787686020441,
+    "defended": false,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.096372459706219,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1940-11-14",
+    "trough": "1942-04-28",
+    "market_depth": -0.2617306397016518,
+    "strategy_dd": -0.10980635459808241,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.212975395469849,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1946-05-29",
+    "trough": "1947-05-19",
+    "market_depth": -0.28235817059616386,
+    "strategy_dd": -0.21020989829739967,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.17533076429251904,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1957-07-15",
+    "trough": "1957-10-22",
+    "market_depth": -0.20651399827077332,
+    "strategy_dd": -0.13411773677181138,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.03592496183838434,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1961-12-12",
+    "trough": "1962-06-26",
+    "market_depth": -0.27704445895225727,
+    "strategy_dd": -0.17562330026159878,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.14755455807280016,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1966-02-09",
+    "trough": "1966-10-07",
+    "market_depth": -0.20261105326955797,
+    "strategy_dd": -0.15506437469043777,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.1668214985829659,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1968-11-29",
+    "trough": "1970-05-26",
+    "market_depth": -0.36819611766251736,
+    "strategy_dd": -0.18194633511816227,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.3062556583735465,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1973-01-11",
+    "trough": "1974-10-03",
+    "market_depth": -0.4815948240000788,
+    "strategy_dd": -0.1692995273550737,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.3733575075395579,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1981-08-11",
+    "trough": "1982-08-12",
+    "market_depth": -0.20167033701405923,
+    "strategy_dd": -0.08882782554866242,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.09510997305530666,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1987-08-25",
+    "trough": "1987-12-04",
+    "market_depth": -0.331142455526271,
+    "strategy_dd": -0.3584108097642833,
+    "defended": false,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.23228613021253341,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1990-07-16",
+    "trough": "1990-10-11",
+    "market_depth": -0.2079537754709595,
+    "strategy_dd": -0.15204117557114105,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.12828629409513437,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1998-07-17",
+    "trough": "1998-10-08",
+    "market_depth": -0.21919900622835475,
+    "strategy_dd": -0.1855606606017095,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.10005673681133631,
+    "after_window_complete": true
+   },
+   {
+    "peak": "2000-03-24",
+    "trough": "2001-04-04",
+    "market_depth": -0.3198843732440476,
+    "strategy_dd": -0.15457489742359176,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.012067657408195487,
+    "after_window_complete": true
+   },
+   {
+    "peak": "2001-05-21",
+    "trough": "2001-09-21",
+    "market_depth": -0.2681992927550856,
+    "strategy_dd": -0.09431101051555602,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": 0.13386730346915343,
+    "after_window_complete": true
+   },
+   {
+    "peak": "2002-03-19",
+    "trough": "2002-10-09",
+    "market_depth": -0.3222446174707123,
+    "strategy_dd": -0.10159032022268322,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.3632765286510764,
+    "after_window_complete": true
+   }
+  ],
+  "defended_share": 0.88,
+  "subperiods": [
+   {
+    "start": "1927-07-01",
+    "end": "1946-12-31",
+    "alpha_annual": 0.09154722773890986,
+    "alpha_t_nw6": 2.7506939636745824,
+    "beta_daily": 0.4822664962160366
+   },
+   {
+    "start": "1947-01-01",
+    "end": "1966-12-31",
+    "alpha_annual": 0.03165307479546927,
+    "alpha_t_nw6": 2.407823534206403,
+    "beta_daily": 0.822778479987524
+   },
+   {
+    "start": "1967-01-01",
+    "end": "1986-12-31",
+    "alpha_annual": 0.029584026718596418,
+    "alpha_t_nw6": 1.6091073794303552,
+    "beta_daily": 0.6555809418656139
+   },
+   {
+    "start": "1987-01-01",
+    "end": "2007-12-31",
+    "alpha_annual": 0.028835914170065858,
+    "alpha_t_nw6": 1.6126984341441468,
+    "beta_daily": 0.7223346256677052
+   }
+  ],
+  "insurance_premium_avg": -0.14255400986760922,
+  "checks": {
+   "H1_low_beta": true,
+   "H2_positive_alpha": true,
+   "H3_crisis_defense": true,
+   "H4_alpha_stability": true
+  },
+  "strategy": {
+   "cagr": 0.12902468643307818,
+   "mdd": -0.42131747470371483,
+   "sharpe_monthly": 0.6685776192331352,
+   "sharpe_daily": 0.7061070273601673
+  },
+  "market": {
+   "cagr": 0.09894260522165244,
+   "mdd": -0.8407399476860211,
+   "sharpe_monthly": 0.40740560705326256,
+   "sharpe_daily": 0.432611593936095
+  }
+ },
+ "stress_30bp": {
+  "window": [
+   "1927-07-01",
+   "2007-12-31"
+  ],
+  "capm": {
+   "beta_daily": 0.5957759170194274,
+   "beta_monthly": 0.5518306945358722,
+   "alpha_annual": 0.046835351509567025,
+   "alpha_t_nw6": 3.826194818703181,
+   "appraisal_ir": 0.4640769705565923,
+   "months": 966
+  },
+  "episodes": [
+   {
+    "peak": "1929-09-03",
+    "trough": "1929-11-13",
+    "market_depth": -0.43704182319235985,
+    "strategy_dd": -0.42131747470371483,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": 0.22220452942726376,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1930-04-10",
+    "trough": "1930-12-16",
+    "market_depth": -0.4358953463001133,
+    "strategy_dd": -0.13123865834048143,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": 0.43379909093460023,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1931-02-24",
+    "trough": "1931-06-02",
+    "market_depth": -0.3192829949305862,
+    "strategy_dd": 0.0,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": 0.5865933220158782,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1931-06-26",
+    "trough": "1931-10-05",
+    "market_depth": -0.4116038561149258,
+    "strategy_dd": -0.006059479696687964,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": 0.07738096106739323,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1931-11-09",
+    "trough": "1932-07-08",
+    "market_depth": -0.5694449290716379,
+    "strategy_dd": 0.0,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -1.3952873845362992,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1932-09-07",
+    "trough": "1933-02-27",
+    "market_depth": -0.36367141933018066,
+    "strategy_dd": -0.11580088510478603,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.4811987071827375,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1933-07-18",
+    "trough": "1933-10-19",
+    "market_depth": -0.28355450891392464,
+    "strategy_dd": -0.29953507731281037,
+    "defended": false,
+    "ongoing": false,
+    "excess_12m_after_trough": 0.04752426200843529,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1934-02-05",
+    "trough": "1934-07-26",
+    "market_depth": -0.2540635597779105,
+    "strategy_dd": -0.24283876274959804,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.165845072148203,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1937-03-10",
+    "trough": "1938-03-31",
+    "market_depth": -0.5103826189625673,
+    "strategy_dd": -0.2317513974501011,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.44140015898087215,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1938-11-09",
+    "trough": "1939-04-11",
+    "market_depth": -0.20401836225228676,
+    "strategy_dd": -0.15666472676950605,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.2000784470837702,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1940-04-08",
+    "trough": "1940-06-10",
+    "market_depth": -0.26102931684725306,
+    "strategy_dd": -0.26851634611645225,
+    "defended": false,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.10247105786801414,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1940-11-14",
+    "trough": "1942-04-28",
+    "market_depth": -0.2617306397016518,
+    "strategy_dd": -0.11425121981034225,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.22074611414186696,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1946-05-29",
+    "trough": "1947-05-19",
+    "market_depth": -0.28235817059616386,
+    "strategy_dd": -0.21417018448141978,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.1824225948548499,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1957-07-15",
+    "trough": "1957-10-22",
+    "market_depth": -0.20651399827077332,
+    "strategy_dd": -0.1354228901605885,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.039269094040617514,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1961-12-12",
+    "trough": "1962-06-26",
+    "market_depth": -0.27704445895225727,
+    "strategy_dd": -0.17933744053162637,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.15177880824756151,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1966-02-09",
+    "trough": "1966-10-07",
+    "market_depth": -0.20261105326955797,
+    "strategy_dd": -0.15633228330734406,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.18009747100089357,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1968-11-29",
+    "trough": "1970-05-26",
+    "market_depth": -0.36819611766251736,
+    "strategy_dd": -0.18683616138635195,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.3110574557642638,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1973-01-11",
+    "trough": "1974-10-03",
+    "market_depth": -0.4815948240000788,
+    "strategy_dd": -0.17571725734113985,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.3808996602839916,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1981-08-11",
+    "trough": "1982-08-12",
+    "market_depth": -0.20167033701405923,
+    "strategy_dd": -0.08973746271040361,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.10549545824508422,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1987-08-25",
+    "trough": "1987-12-04",
+    "market_depth": -0.331142455526271,
+    "strategy_dd": -0.35969165061021124,
+    "defended": false,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.24059272182907065,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1990-07-16",
+    "trough": "1990-10-11",
+    "market_depth": -0.2079537754709595,
+    "strategy_dd": -0.15289547758804523,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.13509469796617068,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1998-07-17",
+    "trough": "1998-10-08",
+    "market_depth": -0.21919900622835475,
+    "strategy_dd": -0.18640672146590775,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.1134921109228928,
+    "after_window_complete": true
+   },
+   {
+    "peak": "2000-03-24",
+    "trough": "2001-04-04",
+    "market_depth": -0.3198843732440476,
+    "strategy_dd": -0.16263546402562046,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.017841435919859983,
+    "after_window_complete": true
+   },
+   {
+    "peak": "2001-05-21",
+    "trough": "2001-09-21",
+    "market_depth": -0.2681992927550856,
+    "strategy_dd": -0.09566940800542623,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": 0.12652260407078997,
+    "after_window_complete": true
+   },
+   {
+    "peak": "2002-03-19",
+    "trough": "2002-10-09",
+    "market_depth": -0.3222446174707123,
+    "strategy_dd": -0.10405939719028123,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.3711838867629822,
+    "after_window_complete": true
+   }
+  ],
+  "defended_share": 0.88,
+  "subperiods": [
+   {
+    "start": "1927-07-01",
+    "end": "1946-12-31",
+    "alpha_annual": 0.08499448518655407,
+    "alpha_t_nw6": 2.541734953844187,
+    "beta_daily": 0.48202154658431584
+   },
+   {
+    "start": "1947-01-01",
+    "end": "1966-12-31",
+    "alpha_annual": 0.02439592514104373,
+    "alpha_t_nw6": 1.8370634669846657,
+    "beta_daily": 0.8221459347470215
+   },
+   {
+    "start": "1967-01-01",
+    "end": "1986-12-31",
+    "alpha_annual": 0.021492043363807285,
+    "alpha_t_nw6": 1.1559052173215698,
+    "beta_daily": 0.6551865132697153
+   },
+   {
+    "start": "1987-01-01",
+    "end": "2007-12-31",
+    "alpha_annual": 0.019866436472446604,
+    "alpha_t_nw6": 1.1011008075555337,
+    "beta_daily": 0.7219429874568289
+   }
+  ],
+  "insurance_premium_avg": -0.14968910273022565,
+  "checks": {
+   "H1_low_beta": true,
+   "H2_positive_alpha": true,
+   "H3_crisis_defense": true,
+   "H4_alpha_stability": true
+  },
+  "strategy": {
+   "cagr": 0.12043146415368033,
+   "mdd": -0.4274647141738792,
+   "sharpe_monthly": 0.6156977859135003,
+   "sharpe_daily": 0.6492452627308952
+  },
+  "market": {
+   "cagr": 0.09894260522165244,
+   "mdd": -0.8407399476860211,
+   "sharpe_monthly": 0.40740560705326256,
+   "sharpe_daily": 0.432611593936095
+  }
+ },
+ "compare_2008": {
+  "window": [
+   "2008-01-01",
+   null
+  ],
+  "capm": {
+   "beta_daily": 0.5409080239318247,
+   "beta_monthly": 0.5632285604967726,
+   "alpha_annual": 0.028487802254786344,
+   "alpha_t_nw6": 1.1978482206981962,
+   "appraisal_ir": 0.3108758880876288,
+   "months": 224
+  },
+  "episodes": [
+   {
+    "peak": "2008-01-02",
+    "trough": "2008-11-20",
+    "market_depth": -0.46979422687584227,
+    "strategy_dd": -0.10352345653833761,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.45534232637141736,
+    "after_window_complete": true
+   },
+   {
+    "peak": "2009-01-06",
+    "trough": "2009-03-09",
+    "market_depth": -0.2685052414149124,
+    "strategy_dd": 0.0,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.5733235659374678,
+    "after_window_complete": true
+   },
+   {
+    "peak": "2011-04-29",
+    "trough": "2011-10-03",
+    "market_depth": -0.2030834606934171,
+    "strategy_dd": -0.20217987323067954,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.09055915098425382,
+    "after_window_complete": true
+   },
+   {
+    "peak": "2018-09-20",
+    "trough": "2018-12-24",
+    "market_depth": -0.204461319522106,
+    "strategy_dd": -0.2173039185042055,
+    "defended": false,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.17135500153326366,
+    "after_window_complete": true
+   },
+   {
+    "peak": "2020-02-19",
+    "trough": "2020-03-23",
+    "market_depth": -0.3421628093489293,
+    "strategy_dd": -0.21460617729508857,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.17411433874731586,
+    "after_window_complete": true
+   },
+   {
+    "peak": "2021-11-08",
+    "trough": "2022-10-14",
+    "market_depth": -0.2555594287444408,
+    "strategy_dd": -0.11352599933112095,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.22981362397149085,
+    "after_window_complete": true
+   }
+  ],
+  "defended_share": 0.8333333333333334,
+  "subperiods": [],
+  "insurance_premium_avg": -0.28241800125753486,
+  "checks": {
+   "H1_low_beta": true,
+   "H2_positive_alpha": false,
+   "H3_crisis_defense": true,
+   "H4_alpha_stability": null
+  },
+  "strategy": {
+   "cagr": 0.099689017640608,
+   "mdd": -0.21730391850420516,
+   "sharpe_monthly": 0.6934218644972258,
+   "sharpe_daily": 0.6212379149838556
+  },
+  "market": {
+   "cagr": 0.11485129166286967,
+   "mdd": -0.5106672047312002,
+   "sharpe_monthly": 0.6698602542441384,
+   "sharpe_daily": 0.572449409667985
+  }
+ },
+ "yearly": [
+  {
+   "year": 1927,
+   "strategy": 0.2945024658839417,
+   "market": 0.20711582265230244,
+   "excess": 0.08738664323163925
+  },
+  {
+   "year": 1928,
+   "strategy": 0.5590377927520354,
+   "market": 0.39202634151602256,
+   "excess": 0.1670114512360128
+  },
+  {
+   "year": 1929,
+   "strategy": 0.013195236029640345,
+   "market": -0.15223816080705632,
+   "excess": 0.16543339683669667
+  },
+  {
+   "year": 1930,
+   "strategy": 0.0065738793334799706,
+   "market": -0.28662069003907453,
+   "excess": 0.2931945693725545
+  },
+  {
+   "year": 1931,
+   "strategy": 0.0073218062163564746,
+   "market": -0.44347141200010454,
+   "excess": 0.450793218216461
+  },
+  {
+   "year": 1932,
+   "strategy": -0.008707805730069684,
+   "market": -0.08931009678794088,
+   "excess": 0.0806022910578712
+  },
+  {
+   "year": 1933,
+   "strategy": 0.31137814465925007,
+   "market": 0.5461895832485018,
+   "excess": -0.2348114385892517
+  },
+  {
+   "year": 1934,
+   "strategy": -0.039228556848293517,
+   "market": 0.043152609342366643,
+   "excess": -0.08238116619066016
+  },
+  {
+   "year": 1935,
+   "strategy": 0.44032397153387715,
+   "market": 0.4494720913572996,
+   "excess": -0.009148119823422451
+  },
+  {
+   "year": 1936,
+   "strategy": 0.34605957891266015,
+   "market": 0.3196644706718237,
+   "excess": 0.026395108240836462
+  },
+  {
+   "year": 1937,
+   "strategy": -0.13855729014453355,
+   "market": -0.34810657894881325,
+   "excess": 0.2095492888042797
+  },
+  {
+   "year": 1938,
+   "strategy": 0.03461194509177923,
+   "market": 0.27676845921003745,
+   "excess": -0.24215651411825823
+  },
+  {
+   "year": 1939,
+   "strategy": -0.06825884333997678,
+   "market": 0.026964138224477407,
+   "excess": -0.09522298156445419
+  },
+  {
+   "year": 1940,
+   "strategy": -0.17814081854327268,
+   "market": -0.06844288816572819,
+   "excess": -0.1096979303775445
+  },
+  {
+   "year": 1941,
+   "strategy": 0.0046236769987342274,
+   "market": -0.10617561743813542,
+   "excess": 0.11079929443686964
+  },
+  {
+   "year": 1942,
+   "strategy": 0.09685340692071054,
+   "market": 0.16221128151834385,
+   "excess": -0.06535787459763331
+  },
+  {
+   "year": 1943,
+   "strategy": 0.29940010617955504,
+   "market": 0.2788296825361829,
+   "excess": 0.020570423643372138
+  },
+  {
+   "year": 1944,
+   "strategy": 0.25560049218639214,
+   "market": 0.20873498604755958,
+   "excess": 0.04686550613883256
+  },
+  {
+   "year": 1945,
+   "strategy": 0.44677192343616356,
+   "market": 0.3826910386888709,
+   "excess": 0.06408088474729268
+  },
+  {
+   "year": 1946,
+   "strategy": 0.026717121983878656,
+   "market": -0.06669670084256174,
+   "excess": 0.0934138228264404
+  },
+  {
+   "year": 1947,
+   "strategy": 0.03056002252797496,
+   "market": 0.029855841693484653,
+   "excess": 0.0007041808344903089
+  },
+  {
+   "year": 1948,
+   "strategy": -0.07507159885012515,
+   "market": 0.01071120017632965,
+   "excess": -0.0857827990264548
+  },
+  {
+   "year": 1949,
+   "strategy": 0.18516716579783332,
+   "market": 0.1908587972423108,
+   "excess": -0.005691631444477485
+  },
+  {
+   "year": 1950,
+   "strategy": 0.3244153559713998,
+   "market": 0.28500872126132504,
+   "excess": 0.03940663471007477
+  },
+  {
+   "year": 1951,
+   "strategy": 0.2199571096443762,
+   "market": 0.20758981142311383,
+   "excess": 0.012367298221262368
+  },
+  {
+   "year": 1952,
+   "strategy": 0.16605002547981296,
+   "market": 0.14122182461184574,
+   "excess": 0.02482820086796722
+  },
+  {
+   "year": 1953,
+   "strategy": -0.006491527182908685,
+   "market": 0.012647815105378823,
+   "excess": -0.01913934228828751
+  },
+  {
+   "year": 1954,
+   "strategy": 0.5177547625222945,
+   "market": 0.494472067328358,
+   "excess": 0.023282695193936442
+  },
+  {
+   "year": 1955,
+   "strategy": 0.29447756144901116,
+   "market": 0.2530142742833257,
+   "excess": 0.04146328716568548
+  },
+  {
+   "year": 1956,
+   "strategy": 0.04832124889091305,
+   "market": 0.08365887090624868,
+   "excess": -0.035337622015335635
+  },
+  {
+   "year": 1957,
+   "strategy": -0.011187068734297534,
+   "market": -0.10518914658169487,
+   "excess": 0.09400207784739734
+  },
+  {
+   "year": 1958,
+   "strategy": 0.4079883925247114,
+   "market": 0.4492828557065356,
+   "excess": -0.04129446318182417
+  },
+  {
+   "year": 1959,
+   "strategy": 0.20090546210419236,
+   "market": 0.12466616643855244,
+   "excess": 0.07623929566563992
+  },
+  {
+   "year": 1960,
+   "strategy": 0.023373524359891373,
+   "market": 0.01582099300720552,
+   "excess": 0.007552531352685854
+  },
+  {
+   "year": 1961,
+   "strategy": 0.3062435654997382,
+   "market": 0.2755795366948808,
+   "excess": 0.030664028804857413
+  },
+  {
+   "year": 1962,
+   "strategy": -0.06849368507238551,
+   "market": -0.10402691310945578,
+   "excess": 0.035533228037070264
+  },
+  {
+   "year": 1963,
+   "strategy": 0.20343115547484358,
+   "market": 0.20453090205447078,
+   "excess": -0.0010997465796271921
+  },
+  {
+   "year": 1964,
+   "strategy": 0.1918579055624905,
+   "market": 0.15283962861044587,
+   "excess": 0.03901827695204463
+  },
+  {
+   "year": 1965,
+   "strategy": 0.17275944099825757,
+   "market": 0.14486002092369588,
+   "excess": 0.027899420074561698
+  },
+  {
+   "year": 1966,
+   "strategy": -0.025310773148811472,
+   "market": -0.08353553856250451,
+   "excess": 0.058224765413693036
+  },
+  {
+   "year": 1967,
+   "strategy": 0.22889835294775374,
+   "market": 0.2930791099142709,
+   "excess": -0.06418075696651715
+  },
+  {
+   "year": 1968,
+   "strategy": 0.15361753281435098,
+   "market": 0.13637818494387588,
+   "excess": 0.017239347870475097
+  },
+  {
+   "year": 1969,
+   "strategy": -0.09043019530880048,
+   "market": -0.1083785812025233,
+   "excess": 0.01794838589372283
+  },
+  {
+   "year": 1970,
+   "strategy": 0.06289411329440386,
+   "market": 0.0028910604577956356,
+   "excess": 0.06000305283660823
+  },
+  {
+   "year": 1971,
+   "strategy": 0.10758776056324226,
+   "market": 0.16356098810767605,
+   "excess": -0.05597322754443379
+  },
+  {
+   "year": 1972,
+   "strategy": 0.17763148757452263,
+   "market": 0.1660573508483345,
+   "excess": 0.011574136726188122
+  },
+  {
+   "year": 1973,
+   "strategy": -0.13480758121591552,
+   "market": -0.1914175866309581,
+   "excess": 0.056610005415042575
+  },
+  {
+   "year": 1974,
+   "strategy": 0.049639392269197335,
+   "market": -0.27796241796995647,
+   "excess": 0.3276018102391538
+  },
+  {
+   "year": 1975,
+   "strategy": 0.13341242796501818,
+   "market": 0.38201121167098573,
+   "excess": -0.24859878370596755
+  },
+  {
+   "year": 1976,
+   "strategy": 0.29876140094958514,
+   "market": 0.27147005160131465,
+   "excess": 0.02729134934827049
+  },
+  {
+   "year": 1977,
+   "strategy": -0.02401842885928751,
+   "market": -0.031497736887269756,
+   "excess": 0.0074793080279822455
+  },
+  {
+   "year": 1978,
+   "strategy": 0.01981619589210526,
+   "market": 0.0772691873546063,
+   "excess": -0.057452991462501046
+  },
+  {
+   "year": 1979,
+   "strategy": 0.2227813494152735,
+   "market": 0.23788305031385937,
+   "excess": -0.015101700898585868
+  },
+  {
+   "year": 1980,
+   "strategy": 0.3298861620828961,
+   "market": 0.3337834125963566,
+   "excess": -0.0038972505134604596
+  },
+  {
+   "year": 1981,
+   "strategy": -0.03884542070214003,
+   "market": -0.033711802969282445,
+   "excess": -0.005133617732857587
+  },
+  {
+   "year": 1982,
+   "strategy": 0.339449927070119,
+   "market": 0.21172800804283964,
+   "excess": 0.12772191902727936
+  },
+  {
+   "year": 1983,
+   "strategy": 0.21750685853063545,
+   "market": 0.22561250652763465,
+   "excess": -0.008105647996999199
+  },
+  {
+   "year": 1984,
+   "strategy": 0.08978863478448851,
+   "market": 0.040851739616244886,
+   "excess": 0.04893689516824362
+  },
+  {
+   "year": 1985,
+   "strategy": 0.3665327107959828,
+   "market": 0.324989543179212,
+   "excess": 0.04154316761677079
+  },
+  {
+   "year": 1986,
+   "strategy": 0.18082986098463594,
+   "market": 0.16108995918084434,
+   "excess": 0.019739901803791593
+  },
+  {
+   "year": 1987,
+   "strategy": -0.07783063404260371,
+   "market": 0.01551348001351438,
+   "excess": -0.09334411405611809
+  },
+  {
+   "year": 1988,
+   "strategy": 0.046452545051071104,
+   "market": 0.18012081693958382,
+   "excess": -0.1336682718885127
+  },
+  {
+   "year": 1989,
+   "strategy": 0.36635185010181526,
+   "market": 0.28536941910462565,
+   "excess": 0.0809824309971896
+  },
+  {
+   "year": 1990,
+   "strategy": -0.08235010457598602,
+   "market": -0.06071856573060641,
+   "excess": -0.021631538845379605
+  },
+  {
+   "year": 1991,
+   "strategy": 0.3931638957434558,
+   "market": 0.3459794605376574,
+   "excess": 0.0471844352057984
+  },
+  {
+   "year": 1992,
+   "strategy": 0.07804057623111982,
+   "market": 0.09439159707991762,
+   "excess": -0.016351020848797804
+  },
+  {
+   "year": 1993,
+   "strategy": 0.2477635939412426,
+   "market": 0.10852754710798607,
+   "excess": 0.13923604683325652
+  },
+  {
+   "year": 1994,
+   "strategy": -0.010475618354172544,
+   "market": -0.004612531491077543,
+   "excess": -0.005863086863095002
+  },
+  {
+   "year": 1995,
+   "strategy": 0.42035919884029527,
+   "market": 0.36301260976185246,
+   "excess": 0.05734658907844281
+  },
+  {
+   "year": 1996,
+   "strategy": 0.16682098848409654,
+   "market": 0.21187619609366481,
+   "excess": -0.04505520760956827
+  },
+  {
+   "year": 1997,
+   "strategy": 0.20884205953461943,
+   "market": 0.3113531592637446,
+   "excess": -0.1025110997291252
+  },
+  {
+   "year": 1998,
+   "strategy": 0.344050585877385,
+   "market": 0.24513457222760593,
+   "excess": 0.09891601364977909
+  },
+  {
+   "year": 1999,
+   "strategy": 0.24823668069347415,
+   "market": 0.2599219070658121,
+   "excess": -0.011685226372337931
+  },
+  {
+   "year": 2000,
+   "strategy": -0.041753399737272545,
+   "market": -0.1168664479525161,
+   "excess": 0.07511304821524356
+  },
+  {
+   "year": 2001,
+   "strategy": -0.012556279736107734,
+   "market": -0.11307675057187394,
+   "excess": 0.1005204708357662
+  },
+  {
+   "year": 2002,
+   "strategy": -0.010973419806413087,
+   "market": -0.20379500462642464,
+   "excess": 0.19282158482001155
+  },
+  {
+   "year": 2003,
+   "strategy": 0.1313508141770916,
+   "market": 0.3037501762322963,
+   "excess": -0.17239936205520467
+  },
+  {
+   "year": 2004,
+   "strategy": 0.06594802186185578,
+   "market": 0.11746260981351364,
+   "excess": -0.051514587951657864
+  },
+  {
+   "year": 2005,
+   "strategy": 0.12819764145502233,
+   "market": 0.05841778062506653,
+   "excess": 0.0697798608299558
+  },
+  {
+   "year": 2006,
+   "strategy": 0.12692593621918502,
+   "market": 0.15759650879950526,
+   "excess": -0.030670572580320243
+  },
+  {
+   "year": 2007,
+   "strategy": 0.11418967371907573,
+   "market": 0.058183095368117055,
+   "excess": 0.05600657835095868
+  },
+  {
+   "year": 2008,
+   "strategy": -0.0760247665599465,
+   "market": -0.36455869086640136,
+   "excess": 0.28853392430645486
+  },
+  {
+   "year": 2009,
+   "strategy": 0.1098992590967316,
+   "market": 0.2843468180698068,
+   "excess": -0.17444755897307518
+  },
+  {
+   "year": 2010,
+   "strategy": 0.17193657885734126,
+   "market": 0.17338869303537474,
+   "excess": -0.0014521141780334812
+  },
+  {
+   "year": 2011,
+   "strategy": -0.018960866115927955,
+   "market": 0.005784043553892504,
+   "excess": -0.02474490966982046
+  },
+  {
+   "year": 2012,
+   "strategy": 0.16183772412148456,
+   "market": 0.16265567876685627,
+   "excess": -0.0008179546453717101
+  },
+  {
+   "year": 2013,
+   "strategy": 0.3397425270328225,
+   "market": 0.35039529911737133,
+   "excess": -0.010652772084548845
+  },
+  {
+   "year": 2014,
+   "strategy": 0.09366946976354895,
+   "market": 0.11727123508722914,
+   "excess": -0.02360176532368019
+  },
+  {
+   "year": 2015,
+   "strategy": -0.013916481562450511,
+   "market": 0.002405079598444493,
+   "excess": -0.016321561160895004
+  },
+  {
+   "year": 2016,
+   "strategy": -0.0007676098021294209,
+   "market": 0.1332386372323835,
+   "excess": -0.13400624703451292
+  },
+  {
+   "year": 2017,
+   "strategy": 0.20097014272135705,
+   "market": 0.21339152296985264,
+   "excess": -0.012421380248495595
+  },
+  {
+   "year": 2018,
+   "strategy": -0.07336346510647762,
+   "market": -0.04409643868593527,
+   "excess": -0.029267026420542352
+  },
+  {
+   "year": 2019,
+   "strategy": 0.14734043203032687,
+   "market": 0.3111043070779227,
+   "excess": -0.16376387504759582
+  },
+  {
+   "year": 2020,
+   "strategy": 0.4154766168779054,
+   "market": 0.24216791482646993,
+   "excess": 0.17330870205143545
+  },
+  {
+   "year": 2021,
+   "strategy": 0.19516833045138404,
+   "market": 0.23842754754814122,
+   "excess": -0.043259217096757174
+  },
+  {
+   "year": 2022,
+   "strategy": -0.053799660224374324,
+   "market": -0.19955554850414525,
+   "excess": 0.14575588827977093
+  },
+  {
+   "year": 2023,
+   "strategy": 0.03952372961372608,
+   "market": 0.26904298489812084,
+   "excess": -0.22951925528439476
+  },
+  {
+   "year": 2024,
+   "strategy": 0.20733569334496038,
+   "market": 0.2489290226918297,
+   "excess": -0.04159332934686932
+  },
+  {
+   "year": 2025,
+   "strategy": 0.06896874622378246,
+   "market": 0.1859282531404851,
+   "excess": -0.11695950691670265
+  },
+  {
+   "year": 2026,
+   "strategy": 0.086179386974375,
+   "market": 0.12584286635132913,
+   "excess": -0.039663479376954136
+  }
+ ],
+ "ind49": {
+  "window": [
+   "1927-07-01",
+   "2007-12-31"
+  ],
+  "capm": {
+   "beta_daily": 0.7568719365976747,
+   "beta_monthly": 0.7079555350217948,
+   "alpha_annual": 0.08340983190266808,
+   "alpha_t_nw6": 4.822055324837658,
+   "appraisal_ir": 0.5746028688040563,
+   "months": 966
+  },
+  "episodes": [
+   {
+    "peak": "1929-09-03",
+    "trough": "1929-11-13",
+    "market_depth": -0.43704182319235985,
+    "strategy_dd": -0.4456147208914324,
+    "defended": false,
+    "ongoing": false,
+    "excess_12m_after_trough": 0.19365852043521714,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1930-04-10",
+    "trough": "1930-12-16",
+    "market_depth": -0.4358953463001133,
+    "strategy_dd": -0.1212963141310025,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": 0.4376742603890754,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1931-02-24",
+    "trough": "1931-06-02",
+    "market_depth": -0.3192829949305862,
+    "strategy_dd": -0.052250771091276405,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": 0.5207948322972777,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1931-06-26",
+    "trough": "1931-10-05",
+    "market_depth": -0.4116038561149258,
+    "strategy_dd": -0.05309966841947367,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.06307280104848967,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1931-11-09",
+    "trough": "1932-07-08",
+    "market_depth": -0.5694449290716379,
+    "strategy_dd": -0.05932291554423941,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -1.4813155673471856,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1932-09-07",
+    "trough": "1933-02-27",
+    "market_depth": -0.36367141933018066,
+    "strategy_dd": -0.3853827982125234,
+    "defended": false,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.020035088867922823,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1933-07-18",
+    "trough": "1933-10-19",
+    "market_depth": -0.28355450891392464,
+    "strategy_dd": -0.3271103232810001,
+    "defended": false,
+    "ongoing": false,
+    "excess_12m_after_trough": 0.0877939587494867,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1934-02-05",
+    "trough": "1934-07-26",
+    "market_depth": -0.2540635597779105,
+    "strategy_dd": -0.24428518568616642,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.11326350796880558,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1937-03-10",
+    "trough": "1938-03-31",
+    "market_depth": -0.5103826189625673,
+    "strategy_dd": -0.3987273891596884,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.46953170979920766,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1938-11-09",
+    "trough": "1939-04-11",
+    "market_depth": -0.20401836225228676,
+    "strategy_dd": -0.2708576080621383,
+    "defended": false,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.06876795178364947,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1940-04-08",
+    "trough": "1940-06-10",
+    "market_depth": -0.26102931684725306,
+    "strategy_dd": -0.33187188990659755,
+    "defended": false,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.10337931900856767,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1940-11-14",
+    "trough": "1942-04-28",
+    "market_depth": -0.2617306397016518,
+    "strategy_dd": -0.13063593468576185,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": 0.23083521690001363,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1946-05-29",
+    "trough": "1947-05-19",
+    "market_depth": -0.28235817059616386,
+    "strategy_dd": -0.29230931936579396,
+    "defended": false,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.15279282368694114,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1957-07-15",
+    "trough": "1957-10-22",
+    "market_depth": -0.20651399827077332,
+    "strategy_dd": -0.18465759719062724,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.09088551905443154,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1961-12-12",
+    "trough": "1962-06-26",
+    "market_depth": -0.27704445895225727,
+    "strategy_dd": -0.2469850197487249,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.04056740348196275,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1966-02-09",
+    "trough": "1966-10-07",
+    "market_depth": -0.20261105326955797,
+    "strategy_dd": -0.25598551888193866,
+    "defended": false,
+    "ongoing": false,
+    "excess_12m_after_trough": 0.2643035249367067,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1968-11-29",
+    "trough": "1970-05-26",
+    "market_depth": -0.36819611766251736,
+    "strategy_dd": -0.2672366791013464,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.12712270392566616,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1973-01-11",
+    "trough": "1974-10-03",
+    "market_depth": -0.4815948240000788,
+    "strategy_dd": -0.18276722917352495,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.14793942249994707,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1981-08-11",
+    "trough": "1982-08-12",
+    "market_depth": -0.20167033701405923,
+    "strategy_dd": -0.15930727607669126,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.2891673638834169,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1987-08-25",
+    "trough": "1987-12-04",
+    "market_depth": -0.331142455526271,
+    "strategy_dd": -0.3729202509547458,
+    "defended": false,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.19241457597436873,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1990-07-16",
+    "trough": "1990-10-11",
+    "market_depth": -0.2079537754709595,
+    "strategy_dd": -0.1860299950030332,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.011848684858952074,
+    "after_window_complete": true
+   },
+   {
+    "peak": "1998-07-17",
+    "trough": "1998-10-08",
+    "market_depth": -0.21919900622835475,
+    "strategy_dd": -0.24910886613715588,
+    "defended": false,
+    "ongoing": false,
+    "excess_12m_after_trough": 0.056458417408101536,
+    "after_window_complete": true
+   },
+   {
+    "peak": "2000-03-24",
+    "trough": "2001-04-04",
+    "market_depth": -0.3198843732440476,
+    "strategy_dd": -0.24212945130992136,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": 0.0037016469579549405,
+    "after_window_complete": true
+   },
+   {
+    "peak": "2001-05-21",
+    "trough": "2001-09-21",
+    "market_depth": -0.2681992927550856,
+    "strategy_dd": -0.07167639165416018,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": 0.1585169611390166,
+    "after_window_complete": true
+   },
+   {
+    "peak": "2002-03-19",
+    "trough": "2002-10-09",
+    "market_depth": -0.3222446174707123,
+    "strategy_dd": -0.12722567389836248,
+    "defended": true,
+    "ongoing": false,
+    "excess_12m_after_trough": -0.17133373209351888,
+    "after_window_complete": true
+   }
+  ],
+  "defended_share": 0.64,
+  "subperiods": [
+   {
+    "start": "1927-07-01",
+    "end": "1946-12-31",
+    "alpha_annual": 0.12460871404672416,
+    "alpha_t_nw6": 2.6864027437055005,
+    "beta_daily": 0.6680313347277419
+   },
+   {
+    "start": "1947-01-01",
+    "end": "1966-12-31",
+    "alpha_annual": 0.041896745180391944,
+    "alpha_t_nw6": 1.9587224494085362,
+    "beta_daily": 0.9021522968198096
+   },
+   {
+    "start": "1967-01-01",
+    "end": "1986-12-31",
+    "alpha_annual": 0.06321778499799052,
+    "alpha_t_nw6": 2.131455158355678,
+    "beta_daily": 0.8526393094133285
+   },
+   {
+    "start": "1987-01-01",
+    "end": "2007-12-31",
+    "alpha_annual": 0.0763438474415895,
+    "alpha_t_nw6": 2.4653857045380785,
+    "beta_daily": 0.8390222178511544
+   }
+  ],
+  "insurance_premium_avg": -0.06358803344280733,
+  "checks": {
+   "H1_low_beta": false,
+   "H2_positive_alpha": true,
+   "H3_crisis_defense": false,
+   "H4_alpha_stability": true
+  },
+  "strategy": {
+   "cagr": 0.1652328270329888,
+   "mdd": -0.6192567534222602,
+   "sharpe_monthly": 0.6989123123485801,
+   "sharpe_daily": 0.7236402573453286
+  },
+  "market": {
+   "cagr": 0.09894260522165244,
+   "mdd": -0.8407399476860211,
+   "sharpe_monthly": 0.40740560705326256,
+   "sharpe_daily": 0.432611593936095
+  }
+ },
+ "data_end": "2026-08-31",
+ "avg_exposure_main": 0.7792091331882051
+}
