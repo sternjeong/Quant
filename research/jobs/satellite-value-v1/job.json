@@ -1,0 +1,13 @@
+{
+  "id": "satellite-value-v1",
+  "title": "새틀라이트 15% vs SPY 15% — 정직한 후보 풀(champion40 pit2)로 세후 원화 판정",
+  "entrypoint": "research/jobs/satellite-value-v1/run.py",
+  "args": [],
+  "timeout_seconds": 10800,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 10,
+  "revision": 1
+}
