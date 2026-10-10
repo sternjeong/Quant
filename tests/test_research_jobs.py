@@ -200,7 +200,8 @@ def test_smoke_job_finishes_over_two_checkpointed_runs(cfg):
     assert tick(cfg, rec, kst(1, 40))["action"] == "idle"
 
 
-def test_only_one_job_runs_per_tick_and_lock_blocks_a_second_runner(cfg):
+def test_only_one_job_runs_per_tick_and_lock_blocks_a_second_runner(cfg, monkeypatch):
+    monkeypatch.setenv(rj.MAX_PARALLEL_ENV, "1")  # N=1 은 예전(한 번에 한 작업, runner.lock 하나)과 같아야 한다
     add_job(cfg.repo_root, "one", OK_SCRIPT, priority=1)
     add_job(cfg.repo_root, "two", OK_SCRIPT, priority=2)
     rec = Recorder(status="skipped")
@@ -335,7 +336,7 @@ def test_child_runs_with_research_priority(cfg):
 
 def test_memory_budget_uses_up_to_80_percent_of_vm_ram(cfg):
     job = _job(cfg, "memory-budget", OK_SCRIPT)
-    assert rj._effective_job_memory_limit_mb(job, total_mb=12000) == 9600
+    assert rj._effective_job_memory_limit_mb(job, total_mb=12000, slots=1) == 9600
     assert rj._memory_reserve_mb(total_mb=12000) == 2400
 
 
@@ -570,3 +571,269 @@ def test_hub_report_slot_points_at_the_index(cfg):
     slot = next(s for s in SLOTS if s.id == "report-research-results")
     assert slot.kind == "report" and slot.report_glob == "data/research_results/index.html"
     assert "data/research_results/" in (ROOT / ".gitignore").read_text()
+
+
+# ---- 동시 실행(슬롯) — 2026-10-10 ------------------------------------------------------------------------------------
+
+@pytest.mark.parametrize("raw,expected", [(None, 3), ("1", 1), ("2", 2), ("0", 1), ("9", 4), ("x", 3)])
+def test_max_parallel_default_and_clamp(monkeypatch, raw, expected):
+    if raw is None:
+        monkeypatch.delenv(rj.MAX_PARALLEL_ENV, raising=False)
+    else:
+        monkeypatch.setenv(rj.MAX_PARALLEL_ENV, raw)
+    assert rj.max_parallel() == expected
+
+
+def test_two_slots_never_take_the_same_job(cfg, monkeypatch):
+    for job_id, prio in (("one", 1), ("two", 2), ("three", 3)):
+        add_job(cfg.repo_root, job_id, OK_SCRIPT, priority=prio)
+    rec = Recorder(status="skipped")
+    seen = []  # (job_id, 그 순간 running 인 작업 → 슬롯)
+
+    def fake_child(cfg_, job, budget, **kw):
+        state = rj.load_state(cfg)
+        running = {j: e.get("slot") for j, e in state["jobs"].items() if e.get("status") == "running"}
+        seen.append((job.id, running))
+        if job.id == "one":  # 슬롯 0 이 도는 동안 다음 회차가 겹쳐 들어온다
+            inner = tick(cfg, rec, kst(13, 10), slots=2)
+            assert inner["job_id"] == "two" and inner["slot"] == 1
+        if job.id == "two":  # 두 슬롯이 다 차 있으면 세 번째 회차는 건너뛴다
+            assert tick(cfg, rec, kst(13, 10), slots=2)["reason"] == "슬롯 2개가 모두 실행 중"
+        return rj.RunOutcome(3, None, 1.0, "")
+
+    monkeypatch.setattr(rj, "run_child", fake_child)
+    outer = tick(cfg, rec, kst(13, 0), slots=2)
+    assert outer["job_id"] == "one" and outer["slot"] == 0
+    assert seen[0] == ("one", {"one": 0})
+    assert seen[1] == ("two", {"one": 0, "two": 1})  # 두 번째 슬롯은 이미 running 인 작업을 고르지 않는다
+    state = rj.load_state(cfg)
+    assert state["jobs"]["one"]["status"] == state["jobs"]["two"]["status"] == "in_progress"
+    assert state["jobs"]["three"]["status"] == "pending"
+    assert state["jobs"]["one"]["run_token"] is None and state["jobs"]["one"]["interruptions"] == 0
+
+
+def test_n1_runs_jobs_one_at_a_time(cfg, monkeypatch):
+    monkeypatch.setenv(rj.MAX_PARALLEL_ENV, "1")
+    add_job(cfg.repo_root, "one", OK_SCRIPT, priority=1)
+    add_job(cfg.repo_root, "two", OK_SCRIPT, priority=2)
+    rec = Recorder(status="skipped")
+    inner_results = []
+
+    def fake_child(cfg_, job, budget, **kw):
+        inner_results.append(tick(cfg, rec, kst(13, 10)))
+        return rj.RunOutcome(3, None, 1.0, "")
+
+    monkeypatch.setattr(rj, "run_child", fake_child)
+    assert tick(cfg, rec, kst(13, 0))["job_id"] == "one"
+    assert [r["reason"] for r in inner_results] == ["다른 작업이 실행 중"]
+    assert rj.load_state(cfg)["jobs"]["two"]["status"] == "pending"
+
+
+def _running(state, job_id, slot, token, child_pid=None):
+    state["jobs"][job_id].update(status="running", slot=slot, run_token=token, child_pid=child_pid,
+                                 last_started_at=rj._now_iso(kst(13, 0)))
+    state["runner"].setdefault("slots", {})[str(slot)] = {"token": token, "job_id": job_id}
+
+
+def test_stale_recovery_skips_jobs_running_in_live_slots(cfg):
+    for job_id in ("live", "free-slot", "wrong-token", "dead-child", "mine"):
+        add_job(cfg.repo_root, job_id, OK_SCRIPT)
+    jobs, _ = rj.load_job_definitions(cfg)
+    dead = subprocess.Popen([sys.executable, "-c", "pass"])
+    dead.wait()
+    with rj.edit_state(cfg) as state:
+        rj.sync_definitions(cfg, state, jobs, {})
+        _running(state, "live", 1, "t-live", child_pid=os.getpid())
+        _running(state, "free-slot", 2, "t-free")
+        _running(state, "dead-child", 3, "t-dead", child_pid=dead.pid)
+        _running(state, "mine", 0, "t-mine")
+        state["jobs"]["wrong-token"].update(status="running", slot=1, run_token="old-run")
+    state = rj.load_state(cfg)
+    with rj._flock(rj.slot_lock_path(cfg, 1), blocking=False) as g1, \
+            rj._flock(rj.slot_lock_path(cfg, 3), blocking=False) as g3:
+        assert g1 and g3
+        recovered = rj.recover_stale(state, jobs, rj.live_run_checker(cfg, state, my_slot=0))
+    # 슬롯 1 은 살아 있다(락·토큰·자식 pid) → 그대로. 슬롯 2 는 락이 비었고, 슬롯 3 은 자식이 죽었고,
+    # 옛 토큰은 그 슬롯을 다른 실행이 쓰고 있고, 슬롯 0 은 지금 이 회차가 잡은 슬롯이다 → 모두 복구.
+    assert sorted(recovered) == ["dead-child", "free-slot", "mine", "wrong-token"]
+    assert state["jobs"]["live"]["status"] == "running" and state["jobs"]["live"].get("interruptions", 0) == 0
+    assert state["jobs"]["free-slot"]["status"] == "in_progress" and state["jobs"]["free-slot"]["run_token"] is None
+
+
+def test_interruption_caused_by_a_result_publish_is_not_counted(cfg):
+    add_job(cfg.repo_root, "victim", OK_SCRIPT)
+    jobs, _ = rj.load_job_definitions(cfg)
+    state = rj._empty_state()
+    rj.sync_definitions(cfg, state, jobs, {})
+    _running(state, "victim", 1, "t")
+    state["runner"]["last_publish_at"] = kst(13, 30).isoformat()  # 이 작업이 시작한 뒤 다른 작업이 결과를 push
+    assert rj.recover_stale(state, jobs) == ["victim"]
+    entry = state["jobs"]["victim"]
+    assert entry["interruptions"] == 0 and entry["publish_interruptions"] == 1 and entry["status"] == "in_progress"
+    _running(state, "victim", 1, "t2")
+    state["jobs"]["victim"]["last_started_at"] = rj._now_iso(kst(14, 0))  # push 뒤에 시작한 실행이 끊기면 센다
+    rj.recover_stale(state, jobs)
+    assert state["jobs"]["victim"]["interruptions"] == 1
+
+
+def test_memory_limit_is_divided_by_slots_and_start_gate(cfg):
+    job = _job(cfg, "mem-div", OK_SCRIPT)
+    assert rj._effective_job_memory_limit_mb(job, total_mb=12000, slots=3) == 3200
+    assert rj._effective_job_memory_limit_mb(job, total_mb=12000, slots=4) == 2400
+    small = rj.JobDef(**{**job.__dict__, "max_memory_mb": 1000})
+    assert rj._effective_job_memory_limit_mb(small, total_mb=12000, slots=3) == 1000
+    # 혼자면 예전처럼 20% 예약만, 다른 슬롯이 돌고 있으면 예약 + 이 작업 상한이 남아야 시작
+    assert rj.start_memory_ok(job, 3000, 12000, others_running=0, slots=3)[0] is True
+    ok, why = rj.start_memory_ok(job, 3000, 12000, others_running=1, slots=3)
+    assert ok is False and "2400MB" in why and "3200MB" in why
+    assert rj.start_memory_ok(job, 5700, 12000, others_running=2, slots=3)[0] is True
+    assert rj.start_memory_ok(job, 2000, 12000, others_running=0, slots=3)[0] is False
+
+
+def test_tick_does_not_start_a_second_slot_without_memory_for_it(cfg, monkeypatch):
+    add_job(cfg.repo_root, "one", OK_SCRIPT, priority=1)
+    add_job(cfg.repo_root, "two", OK_SCRIPT, priority=2)
+    monkeypatch.setattr(rj, "_system_total_mb", lambda: 12000.0)
+    monkeypatch.setattr(rj, "_system_available_mb", lambda: 4000.0)  # 예약 2400 은 되지만 + 3200 은 안 됨
+    rec = Recorder(status="skipped")
+    inner = []
+
+    def fake_child(cfg_, job, budget, **kw):
+        if job.id == "one":
+            inner.append(tick(cfg, rec, kst(13, 10), slots=3))
+        return rj.RunOutcome(3, None, 1.0, "")
+
+    monkeypatch.setattr(rj, "run_child", fake_child)
+    assert tick(cfg, rec, kst(13, 0), slots=3)["job_id"] == "one"
+    assert inner[0]["action"] == "skipped" and "연구 메모리 여유 부족" in inner[0]["reason"]
+    assert rj.load_state(cfg)["jobs"]["two"]["status"] == "pending"
+
+
+class FakeClock:
+    def __init__(self, t=1000.0):
+        self.t = t
+
+    def __call__(self):
+        return self.t
+
+
+def test_cpu_guard_pauses_lowest_priority_first_and_resumes_in_reverse(cfg):
+    clock = FakeClock()
+    guards = {name: rj.CpuGuard(cfg.state_dir, name, prio, started, poll_interval=5.0, clock=clock)
+              for name, prio, started in (("a", 10, 1.0), ("b", 50, 2.0), ("c", 50, 3.0))}
+    paused = {name: False for name in guards}
+    for g in guards.values():
+        g.pid = os.getpid()  # 살아 있는 pid 로 등록
+
+    def poll(cpu):
+        clock.t += 5.0
+        acted = []
+        for name, g in guards.items():
+            action = g.decide(cpu, paused[name])
+            if action in ("pause", "resume"):
+                paused[name] = action == "pause"
+                acted.append((action, name))
+        return acted
+
+    assert poll(75.0) == []  # 모두 등록(사이 구간은 그대로)
+    assert poll(90.0) == [("pause", "c")]  # 같은 우선순위면 늦게 시작한 쪽, 한 주기에 하나만
+    assert poll(90.0) == [("pause", "b")]
+    assert poll(75.0) == []
+    assert poll(90.0) == [("pause", "a")]
+    assert poll(60.0) == [("resume", "a")]  # 재개는 반대 순서: 우선순위가 높은 것부터
+    assert poll(60.0) == [("resume", "b")]
+    assert poll(60.0) == [("resume", "c")]
+    guards["c"].leave()
+    assert "c" not in json.loads((cfg.state_dir / "cpu_guard.json").read_text())["children"]
+
+
+def test_cpu_guard_drops_dead_slots_and_falls_back_when_it_cannot_coordinate(cfg, monkeypatch):
+    clock = FakeClock()
+    dead = subprocess.Popen([sys.executable, "-c", "pass"])
+    dead.wait()
+    ghost = rj.CpuGuard(cfg.state_dir, "ghost", 999, 9.0, 5.0, clock=clock)
+    ghost.pid = dead.pid
+    ghost.decide(75.0, False)
+    live = rj.CpuGuard(cfg.state_dir, "live", 1, 1.0, 5.0, clock=clock)
+    live.pid = os.getpid()
+    clock.t += 5
+    assert live.decide(90.0, False) == "pause"  # 죽은 슬롯이 '가장 낮은 우선순위'로 남아 차례를 막지 않는다
+    monkeypatch.setattr(rj, "CPU_GUARD_LOCK_WAIT_SECONDS", 0.1)
+    with rj._flock(cfg.state_dir / "cpu_guard.lock", blocking=False) as got:
+        assert got
+        assert live.decide(90.0, False) is None  # 조정 불가 → 호출자가 자기 자식만 보고 멈춘다
+
+
+def test_publish_lock_serializes_concurrent_publishes(cfg):
+    import threading
+    import time
+
+    active, peak, order = [0], [0], []
+    counter = threading.Lock()
+
+    def slow_publish(files, message):
+        with counter:
+            active[0] += 1
+            peak[0] = max(peak[0], active[0])
+        order.append(("start", message))
+        time.sleep(0.2)
+        order.append(("end", message))
+        with counter:
+            active[0] -= 1
+        return {"status": "pushed", "detail": "", "sha": "x"}
+
+    publisher = rj.serialized_publisher(cfg, slow_publish)
+    threads = [threading.Thread(target=publisher, args=({"a": b"1"}, f"m{i}")) for i in range(3)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join(10)
+    assert peak[0] == 1 and len(order) == 6
+    assert all(order[i][0] == "start" and order[i + 1] == ("end", order[i][1]) for i in range(0, 6, 2))
+
+
+def test_only_one_satellite_or_core_lab_turn_at_a_time(cfg):
+    for name, turn in (("satellite-lab", rj._satellite_lab_turn), ("core-lab", rj._core_lab_turn)):
+        with rj._flock(cfg.state_dir / f"{name}.lock", blocking=False) as got:
+            assert got
+            assert turn(cfg, kst(13, 0), kst(23, 55), print, lambda: True, 0.01, slot=1, token="t") is None
+
+
+def test_revision_change_waits_while_the_job_is_running(cfg):
+    add_job(cfg.repo_root, "rev", OK_SCRIPT)
+    jobs, _ = rj.load_job_definitions(cfg)
+    state = rj._empty_state()
+    rj.sync_definitions(cfg, state, jobs, {})
+    state["jobs"]["rev"]["status"] = "running"
+    cfg.out_dir("rev").mkdir(parents=True)
+    add_job(cfg.repo_root, "rev", OK_SCRIPT, revision=2)
+    rj.sync_definitions(cfg, state, *rj.load_job_definitions(cfg))
+    assert state["jobs"]["rev"]["status"] == "running" and cfg.out_dir("rev").is_dir()  # 다른 슬롯의 작업 폴더를 지우지 않는다
+
+
+def test_scheduler_allows_n_overlapping_research_ticks(monkeypatch):
+    from scheduler import run_scheduler
+
+    monkeypatch.setenv(rj.MAX_PARALLEL_ENV, "2")
+    added = []
+
+    class _Fake:
+        def add_job(self, func, trigger=None, **kw):
+            added.append((kw.get("id"), kw))
+
+        def get_jobs(self):
+            return []
+
+        def add_listener(self, *a, **k):
+            return None
+
+        def start(self):
+            return None
+
+    monkeypatch.setattr(run_scheduler, "BlockingScheduler", lambda *a, **k: _Fake())
+    monkeypatch.setattr(run_scheduler, "init_db", lambda: None)
+    monkeypatch.setattr(run_scheduler, "attach_job_run_listener", lambda scheduler: None)
+    monkeypatch.setattr(run_scheduler, "record_registered_jobs", lambda ids: None)
+    run_scheduler.main()
+    kw = dict(added)["research_job_runner"]
+    assert kw["max_instances"] == 2 and kw["coalesce"] is True

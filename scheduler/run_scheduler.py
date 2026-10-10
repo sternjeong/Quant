@@ -950,7 +950,8 @@ def research_job_runner_job() -> None:
 
     시각: 하루 종일 열되 다른 잡 구간(00:00~01:00, 02:50~07:45, 08:55~09:30, 11:55~12:15)은 비운 창(core.research_jobs.RUN_WINDOWS) 안에서 10분마다.
     자동 배포의 테스트 관문(/opt/quant-deploy-staging 가 있는 동안)에는 쉰다.
-    한 회차에 작업 하나를 nice 19 자식 프로세스로 돌리고 창 끝 2분 전까지 멈추게 한다. 연구 스크립트 자체의 실패는
+    한 회차가 빈 슬롯 하나를 잡아 작업 하나를 nice 5 자식 프로세스로 돌리고 창 끝 2분 전까지 멈추게 한다(슬롯 N 개까지
+    회차가 겹쳐 돈다 — RESEARCH_JOBS_MAX_PARALLEL, 기본 3). 연구 스크립트 자체의 실패는
     텔레그램으로 따로 알리므로, 여기서는 실행기 자체의 예외만 잡 실패로 남긴다.
     """
     if not is_enabled("research_job_runner"):
@@ -1446,14 +1447,17 @@ def main() -> None:
         replace_existing=True,
         misfire_grace_time=1800,
     )
+    from core.research_jobs import max_parallel as research_max_parallel
+
     scheduler.add_job(
         research_job_runner_job,
-        # 한 회차가 창 끝까지 이어질 수 있으므로 겹치지 않게 max_instances=1, 밀린 회차는 하나로 합친다.
+        # 한 회차가 창 끝까지 이어질 수 있다. 연구 슬롯 수 N(RESEARCH_JOBS_MAX_PARALLEL, 기본 3, 1~4)만큼만 겹쳐 돌게
+        # max_instances=N — 각 회차가 빈 슬롯 하나(슬롯별 파일 락)를 잡는다. 밀린 회차는 하나로 합친다.
         trigger=CronTrigger(hour="1,2,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23", minute="0,10,20,30,40,50", timezone="Asia/Seoul"),  # 창은 core.research_jobs.RUN_WINDOWS
         id="research_job_runner",
         name="한국시간 하루 종일(다른 잡 시각 제외) 10분마다 검증 연구 작업 실행기 — VM 여유가 있을 때만",
         replace_existing=True,
-        max_instances=1,
+        max_instances=research_max_parallel(),
         coalesce=True,
         misfire_grace_time=300,
     )
