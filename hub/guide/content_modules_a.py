@@ -347,11 +347,11 @@ MODULES: tuple[ModuleGuide, ...] = (
     ),
     ModuleGuide(
         module="core/engine_audit.py", name="주간 엔진 점검", group="운영·안전", status="운영중",
-        what="모든 주식 엔진과 연구 에이전트가 제대로 굴러가는지 한 번에 확인합니다: 서비스 4개 실행 여부, 등록된 자동 잡이 제때 돌았는지, 백업, 실행 중 코드가 main 과 같은지, 검증 연구 실행기가 깨어나고 실패한 작업이 없는지, 새틀라이트 R&D(기준선·계산 오류·준비됐는데 판정 안 된 아이디어·설계 횟수가 상한을 넘은 오염 기록), 지난 7일 야간 AI 에이전트 실행·실패·사용량, 아침 자동 재추천이 매일 저장됐는지, 새벽 미리 계산이 돌았는지, 코인 추세 기록·앞으로 토너먼트 원장이 매일 쌓이는지, 야간 신호와 가격 캐시가 최신인지, 국제정세 의견이 제때 기록됐는지, 디스크 여유.",
+        what="모든 주식 엔진과 연구 에이전트가 제대로 굴러가는지 한 번에 확인합니다: 서비스 4개 실행 여부, 등록된 자동 잡이 제때 돌았는지, 백업, 실행 중 코드가 main 과 같은지, 검증 연구 실행기가 깨어나고 실패한 작업이 없는지, 새틀라이트 R&D(기준선·계산 오류·준비됐는데 판정 안 된 아이디어·설계 횟수가 상한을 넘은 오염 기록), 지난 7일 야간 AI 에이전트 실행·실패·사용량, 아침 자동 재추천이 매일 저장됐는지, 새벽 미리 계산이 돌았는지, 코인 추세 기록·앞으로 토너먼트(v1·v2) 원장이 매일 쌓이는지(v2 는 최근 기록 오류도), 야간 신호와 가격 캐시가 최신인지, 국제정세 의견이 제때 기록됐는지, 디스크 여유.",
         how_to_use="자동입니다. 매주 월요일 08:15 KST 에 텔레그램 '[주간 엔진 점검]' 요약이 정상이어도 옵니다. 지금 바로 보려면 scripts/engine_audit.py 를 실행합니다.",
         where_to_see="텔레그램 '[주간 엔진 점검]', VM data/engine_audit/latest.json",
         cautions="읽기 전용이라 아무것도 고치지 않습니다. 점검 하나가 예외로 실패해도 그 항목만 ❌ 로 남기고 나머지는 계속합니다. 2026-10-05 사람이 손으로 한 점검을 옮긴 것이라 새 엔진이 생기면 항목을 같이 늘려야 합니다.",
-        sources=("core/engine_audit.py", "scripts/engine_audit.py", "scheduler/run_scheduler.py"), verified="2026-10-05",
+        sources=("core/engine_audit.py", "scripts/engine_audit.py", "scheduler/run_scheduler.py"), verified="2026-10-10",
     ),
     ModuleGuide(
         module="core/dawn_precompute.py", name="새벽 미리 계산", group="운영·안전", status="운영중",
@@ -384,11 +384,20 @@ MODULES: tuple[ModuleGuide, ...] = (
     ModuleGuide(
         module="core/forward_tournament.py", name="앞으로 토너먼트", group="리서치 인프라", status="관측 전용",
         what="과거 데이터를 여러 번 판정에 써서 생긴 과적합을 피하려고, 현 코어(T0)와 아깝게 떨어진 후보 5개(T1 비트코인 18번째 자산, T2 9개월 모멘텀 5종목, T3 3~12개월 혼합·상관 제한·순위 완충, T4 4분할 시차 리밸런싱, T5 코어 + 코인 추세 5%)와 비교선(B1 SPY, B2 60/40)의 목표 비중을 2026-10-06 부터 매일 원장(data/forward_tournament/ledger.jsonl)에 한 줄씩 기록합니다. 평가는 기록된 비중만 씁니다(나중에 다시 계산하지 않음).",
-        how_to_use="자동입니다(매일 00:39 KST, 자동 잡 forward_tournament_record). R&D 센터에서 '앞으로 토너먼트' 주제로 켜고 끕니다. 경과는 월요일 '[주간 엔진 점검]'에 나옵니다.",
-        where_to_see="관제 센터 'R&D 센터'의 '앞으로 기록', 텔레그램 '[주간 엔진 점검]', VM data/forward_tournament/ledger.jsonl",
-        cautions="252거래일(약 1년) 전에는 판정하지 않습니다. 판정 규칙(forward-tournament/v1: T0 대비 정보비율 0.5 이상·누적 초과 > 0·최대낙폭이 T0 보다 5%p 넘게 나쁘지 않음)은 기록 시작 전에 고정했고 바꾸려면 새 토너먼트로 다시 등록합니다. PASS 도 사람이 도입을 검토할 후보일 뿐이며 배분·주문과 연결되어 있지 않습니다.",
+        how_to_use="자동입니다(매일 00:39 KST, 자동 잡 forward_tournament_record). 같은 잡이 v1 을 먼저 기록하고 이어서 '앞으로 토너먼트 v2'를 기록합니다(v2 가 실패해도 v1 은 영향 없음). R&D 센터에서 '앞으로 토너먼트' 주제로 v1·v2 를 함께 켜고 끕니다. 경과는 월요일 '[주간 엔진 점검]'에 나옵니다.",
+        where_to_see="관제 센터 'R&D 센터'의 '앞으로 기록' 표의 '앞으로 토너먼트(v1)' 줄, 텔레그램 '[주간 엔진 점검]', VM data/forward_tournament/ledger.jsonl",
+        cautions="252거래일(약 1년) 전에는 판정하지 않습니다. 판정 규칙(forward-tournament/v1: T0 대비 정보비율 0.5 이상·누적 초과 > 0·최대낙폭이 T0 보다 5%p 넘게 나쁘지 않음)은 기록 시작 전에 고정했고 바꾸려면 새 토너먼트로 다시 등록합니다(그 뒤 나온 후보는 v2 에 따로 등록). PASS 도 사람이 도입을 검토할 후보일 뿐이며 배분·주문과 연결되어 있지 않습니다.",
         sources=("core/forward_tournament.py", "scheduler/run_scheduler.py", "core/engine_audit.py"),
-        verified="2026-10-05",
+        verified="2026-10-10",
+    ),
+    ModuleGuide(
+        module="core/forward_tournament_v2.py", name="앞으로 토너먼트 v2", group="리서치 인프라", status="관측 전용",
+        what="떼어 둔 최근 구간(2024-10 이후)을 여러 연구가 이미 써서, 도입 판단을 아직 오지 않은 데이터로 하기 위한 두 번째 전진 원장입니다(v1 은 후보·판정이 고정돼 그대로 둠). 후보: B0 SPY 그냥 보유, B1 현 코어, C1 SPY 50% + ERC(위험 균등 기여) 코어 50%(주 후보), C2 SPY 30% + ERC 코어 70%(synthesis-rnd-v1 에서 사후에 가장 좋아 보였던 비율 — 참고용), S0 현 새틀라이트 규칙, S1 거장 보유 우선 새틀라이트(S&P500 전체 풀). 블렌드의 SPY·코어 비율은 매년 첫 거래일에만 되돌리고 그 사이에는 수익에 따라 흘러가게 둡니다. 새틀라이트는 첫 기록일과 이후 6개월마다 3종목을 고르고 그 사이에는 그대로 들고 있습니다. 2026-10-12 이후 첫 거래일부터 주식 거래일마다 원장(data/forward_tournament_v2/ledger.jsonl)에 한 줄씩 기록합니다.",
+        how_to_use="자동입니다. 매일 00:39 KST 자동 잡 forward_tournament_record 가 v1 기록 바로 뒤에 v2 를 기록하고 경과(data/forward_tournament_v2/status.json)를 계산합니다. 켜고 끄기는 R&D 센터의 '앞으로 토너먼트' 주제(v1 과 함께)입니다. 사람이 할 일은 252거래일 뒤 판정을 보고 도입을 검토할지 정하는 것뿐입니다.",
+        where_to_see="관제 센터 'R&D 센터'의 '앞으로 기록' 표의 '앞으로 토너먼트 v2' 줄(상태·경과 거래일·중간 순위), 텔레그램 '[주간 엔진 점검]'의 '앞으로 토너먼트 v2' 줄, VM data/forward_tournament_v2/",
+        cautions="252거래일(약 1년) 전에는 판정하지 않고 중간 순위는 판정이 아닙니다. 판정 규칙(forward-tournament/v2)은 기록 시작 전에 고정했습니다 — 블렌드는 샤프가 SPY 보다 높고 최대낙폭이 SPY 보다 5%p 이상 얕고 수익/최대낙폭이 SPY·현 코어보다 높아야 하고, S1 은 S0 대비 정보비율 0.5 이상·누적 초과 > 0·최대낙폭이 S0 보다 5%p 넘게 나쁘지 않아야 합니다. 원수익이 SPY 보다 높을 것은 요구하지 않습니다. 바꾸려면 새 id 로 다시 등록합니다. 아직 끝나지 않은 미국 장의 봉은 쓰지 않아서 기록 날짜는 직전 완료 거래일입니다. 새틀라이트를 다시 고르는 날(6개월마다)은 후보 풀 가격을 읽느라 잡이 몇 분 더 걸릴 수 있고, 선정이 실패하면 직전 보유를 그대로 두고 다음 날 다시 고릅니다(실패는 별도 키 forward_tournament_v2_record 로 알림). PASS 도 사람이 도입을 검토할 후보일 뿐이며 배분·주문과 연결되어 있지 않습니다.",
+        sources=("core/forward_tournament_v2.py", "scheduler/run_scheduler.py", "core/engine_audit.py", "hub/satellite_lab_page.py"),
+        verified="2026-10-10",
     ),
     ModuleGuide(
         module='core/chart_rendering.py',

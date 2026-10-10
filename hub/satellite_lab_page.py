@@ -57,6 +57,15 @@ def collect() -> dict[str, Any]:
     except Exception:  # noqa: BLE001
         pass
     try:
+        from core import forward_tournament_v2 as ft2
+
+        rows2 = ft2.load_ledger()
+        data["tournament_v2"] = {"records": len(rows2), "last": rows2[-1].get("date") if rows2 else None,
+                                 "start": ft2.START.isoformat(), "min_days": ft2.MIN_DAYS, "status": ft2.load_status(),
+                                 "labels": {k: v["label"] for k, v in ft2.CANDIDATES.items()}}
+    except Exception as exc:  # noqa: BLE001
+        data["tournament_v2"] = {"error": type(exc).__name__}
+    try:
         from core import satellite_lab as sl
 
         reg = sl.load_registry()
@@ -171,10 +180,43 @@ def render_shadows(data: dict) -> str:
     on = ", ".join(f'{t.split("-")[0]} {"보유" if v.get("on") else "현금"}' for t, v in (last.get("assets") or {}).items())
     return ('<h2>앞으로 기록(배분 미반영)</h2><table>'
             f'<tr><th>코인 추세 기록</th><td>{_e(c.get("records", 0))}일 · 최근 {_e(last.get("date"))} {html.escape(on)} · 12개월(252거래일) 뒤 판정</td></tr>'
-            f'<tr><th>앞으로 토너먼트</th><td>{_e(t.get("records", 0))}일 · 최근 {_e(t.get("last"))} · '
+            f'<tr><th>앞으로 토너먼트(v1)</th><td>{_e(t.get("records", 0))}일 · 최근 {_e(t.get("last"))} · '
             f'{html.escape(" · ".join(f"{k} {v}" for k, v in (t.get("labels") or {}).items()))} · 252거래일 뒤 판정(주간 엔진 점검에 경과)</td></tr>'
+            + render_tournament_v2_row(data.get("tournament_v2") or {}) +
             f'<tr><th>AI 국제정세 의견</th><td>{_e(len(g.get("months") or []))}개월 · {_e(", ".join(g.get("months") or []) or "아직 없음")} · 24개월 뒤 판정</td></tr>'
             '</table>')
+
+
+def render_tournament_v2_row(t: dict) -> str:
+    """앞으로 토너먼트 v2 — 상태·경과·중간 순위(252거래일 전에는 판정 없음). 경과는 매일 기록 뒤 계산해 둔 status.json."""
+    if "error" in t:
+        return f'<tr><th>앞으로 토너먼트 v2</th><td>확인 불가 {_e(t["error"])}</td></tr>'
+    st = t.get("status") or {}
+    cands = st.get("candidates") or {}
+    if not t.get("records"):
+        state = f'기록 대기 — {_e(t.get("start"))} 이후 첫 거래일부터'
+    else:
+        state = (f'{_e(t.get("records"))}일 기록 · 최근 {_e(t.get("last"))} · 평가 {_e(st.get("days", 0))}/{_e(t.get("min_days"))}거래일'
+                 + (f' · 경과 계산 {_e(st.get("updated_at"))}' if st.get("updated_at") else ' · 경과 계산 전'))
+
+    def line(keys: list, metric: str, fmt) -> str:
+        return " &gt; ".join(f'{_e(k)}({fmt(cands.get(k, {}).get(metric))})' for k in keys)
+
+    extra = ""
+    if st.get("rank_core"):
+        extra += '<br>중간 순위(수익/|최대낙폭|, 판정 아님): ' + line(st["rank_core"], "return_per_mdd", _num)
+    if st.get("rank_satellite"):
+        extra += '<br>새틀라이트 중간 순위(누적 %, 판정 아님): ' + line(
+            st["rank_satellite"], "cumulative", lambda v: _num(None if v is None else float(v) * 100, 1))
+    verdicts = [f'{_e(k)} {_e(c.get("verdict"))}' for k, c in cands.items() if c.get("verdict") not in (None, "기준")]
+    if verdicts:
+        extra += '<br>판정: ' + " · ".join(verdicts)
+    errs = st.get("last_errors") or {}
+    if errs:
+        extra += '<br>최근 기록 오류: ' + html.escape(", ".join(errs))
+    labels = " · ".join(f"{k} {v}" for k, v in (t.get("labels") or {}).items())
+    return (f'<tr><th>앞으로 토너먼트 v2</th><td>{state} · {html.escape(labels)} · '
+            f'{_e(t.get("min_days"))}거래일 전에는 판정하지 않음{extra}</td></tr>')
 
 
 def render_body(data: dict) -> str:
