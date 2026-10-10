@@ -1,0 +1,13 @@
+{
+  "id": "sat-trend-v1",
+  "title": "추세 필터 새틀라이트 주력 v1 — 대형주 선정 + SPY 200일선 필터, 세후 SPY+3%p 관문(사전 등록)",
+  "entrypoint": "research/jobs/sat-trend-v1/run.py",
+  "args": [],
+  "timeout_seconds": 10800,
+  "max_attempts": 2,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 15,
+  "revision": 1
+}

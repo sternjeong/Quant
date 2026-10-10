@@ -1,0 +1,13 @@
+{
+  "id": "lev-trend-v1",
+  "title": "추세 필터 레버리지 SPY v1 — 200일선 위에서만 1.5~2배(비용 명시), 세후 SPY+3%p 관문(사전 등록)",
+  "entrypoint": "research/jobs/lev-trend-v1/run.py",
+  "args": [],
+  "timeout_seconds": 3600,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 14,
+  "revision": 1
+}
