@@ -1,5 +1,17 @@
 # 세션 인계
 
+## 2026-10-09~10 AI 연구 루프 복구 + 새틀라이트 비중·레버리지 추세 연구 사전 등록
+
+- **가설 루프(agent_batch) 복구 — 구현·배포·실데이터 확인:** 배포 이후 Implementer→Critic→Judge 를 한 번도 완주하지 못했다. 원인 ① 자동배포가 03:00~05:50 KST 배치 창에 quant-scheduler 를 거의 매일 재시작(최근 23일 중 20일) → `deploy/auto_deploy.sh` 가 이 창(03:00~05:55 KST)에는 반영 전체를 보류. ② `check_signal`/`sat_check` 가 PROJECT_ROOT 기준 절대경로로 pytest 를 돌려, 표준 라이브러리 `signal` 이 먼저 sys.modules 에 올라 `from signal import score` 가 매번 ImportError(10개 draft 전부, 기존 abandoned 4건 포함) → cwd=가설 폴더 + 파일명 + `--import-mode=importlib`. 수정 후 수동 실행에서 H-20261002-003 이 처음으로 Judge 까지 완주(judged_fail, 최대낙폭 -51.5%). Post-mortem 은 10/4 에 같은 원인을 스스로 진단해 failures.md 에 남겼었다(코드 수정 권한이 없어 고치지는 못함). 캐시된 옛 실패(tested_hash)는 10개 draft 에서 지웠다.
+- **코어 연구실 core_designer 재설계 — 구현·배포, 실제 호출 미확인:** 2026Q4 에 시도 2회가 소진됐는데 agent_usage 원장에 호출 기록이 0건이었고(원인 미확정, 테스트가 실제 data/core_lab 경로를 쓸 수 있던 격리 누락이 유력), "분기당 2회·하나라도 동결되면 그 분기 끝" 규칙 때문에 올해 안에 다시 돌 일이 없었다. 사용자 결정: 분기 한도를 없애고 **배치 3개 → 전부 심판되면 그 결과를 보고 다음 3개**(토큰 절약). `core_plan` 재작성, `sync_ideas(ids=...)`, `next_batch_ids`, `CORE_STATE_DIR` 분리(테스트 격리). 이어서 **`satellite_weight`(0.10~0.50) 아이디어 축** 추가 — 값이 있으면 현 챔피언(85/15) 전체와 비교 판정(`scripts/core_lab_worker.py`, `core_rnd.blend_champion`).
+- **에이전트 모델:** writer·critic·sat_designer·sat_critic·core_designer 를 opus → sonnet(`data/agent_models.json`, set_model). 에이전트는 API 키가 아니라 사용자 **Claude Pro 구독(OAuth)** 으로 돈다 — 원장의 cost_usd 는 API 환산 추정치이고, 실제로는 사용자 채팅과 같은 사용량 한도를 나눠 쓴다(10/7·10/8 scout 가 한도로 중단된 기록).
+- **사전 등록(결과 보기 전 판정 고정) — 배포, VM 실행 대기:** `sleeve-weight-v1`(sleeve-judge/v1: 새틀라이트 15% 대비 25/35/50%, 세후 원화 +1.0%p·MDD 3%p 이내·떼어 둔 2년 수익/MDD·PBO≤25%·DSR≥0.95·8bp 스트레스에서도 +1.0%p 유지), `lev-trend-v1`(SPY 200일선 위에서만 1.5~2배, 아래는 BIL)·`sat-trend-v1`(새틀라이트를 주력, SPY 200일선 아래면 BIL) — lever-judge/v1: 세후 SPY+3%p·MDD −29.2% 이내·떼어 둔 2년 SPY 초과·DSR·PBO. 설계한 에이전트도 둘 다 FAIL 을 예상. sat-trend-v1 은 오늘 기준 S&P500 후보라 생존편향 — PASS 해도 상폐 포함 데이터로 재확인 전엔 인정 안 함.
+- **주의(사용자에게 보여준 수치):** 대화에서 쓴 "새틀라이트 단독 2018~ 연 26%·2021~ +338%" 는 champion-crypto-v3(10/7 실행) 결과 — **sat-judge/v3 champion40 풀 수정(8319774, 위 10/8 절) 이전 실행이라 '나중에 분할한 승자' 쪽으로 부풀었을 수 있다.** sleeve-weight-v1 은 수정된 풀로 돌므로 그 결과를 기준으로 본다.
+- **기타 운영:** 같은 VM 의 llm4decompile-c6000 TI/qemu 파이프라인을 ubuntu crontab 으로 01:00~06:00 KST 에만 실행(Gemini 일일 쿼터 때문에 낮엔 교착), cron 패키지 설치. 10/10 04:00 KST 예약 재부팅이 그날 밤 agent_batch 를 중간에 끊음(1회성).
+- **수정 파일:** `deploy/auto_deploy.sh`, `core/agent_batch.py`, `core/core_rnd.py`, `scripts/core_lab_worker.py`, `research/agent_prompts/core_designer.md`, `research/jobs/{sleeve-weight-v1,lev-trend-v1,sat-trend-v1}/`, 테스트 `test_auto_deploy_flow.py`·`test_agent_system.py`·`test_rnd_topics.py`·`test_sleeve_weight_job.py`.
+- **검증:** 전체 pytest 2556 passed·4 skipped, hub.guide.check 누락 없음, VM 에서 새 연구 3개 정의 로드 확인, 자동배포 보류 로그 10/9 18:04~20:51 UTC 확인.
+- **다음:** ① 오늘 밤 03:00 KST 배치 — Writer 가 H-20261002-003 의 구체적 탈락 사유를 보고 후속 가설(parent)을 쓰는지, core_designer 첫 배치가 실제로 호출·동결되는지, sonnet 별칭이 어느 버전으로 잡히는지 확인. ② Critic `ok:false`(H-20261005-001/002, critic.json 미생성) 원인 미확인 — 반복되면 claude_runner 출력 로그를 남기도록. ③ `_guard` 가 `.cache/py-yfinance/*` 도 위반으로 기록 — 세션 부산물 예외에 추가 검토. ④ 다른 세션(quant-76)이 research-parallel-2026-10 에서 병렬 실행기·연구 6개 작업 중, main 위로 rebase 예정.
+
 ## 2026-10-09 정반합 R&D 등록 + 연구 실행기 상시화 사후 결과 3건 보고
 
 - 배경: 사용자 요청으로 연구 실행 창을 하루 종일(10분마다, VM 여유 있을 때)로 넓힌 뒤(d617179→da56b9a→cd3d702, 두 번 관문 탈락 후 배포: 첫 실패는 "배포 중 쉼" 로직이 검증 폴더 자체 테스트를 오염, 둘째는 913초로 720초 제한 초과 — 1500초로 상향 후 배포), 대기 중이던 sat-failure-v1·limits-rnd-v1·core-weight-v1 이 09:50~10:30 KST 사이에 연달아 완료.
