@@ -167,6 +167,7 @@ def main(argv=None) -> int:
               "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
               "verdicts": verdicts, "power": power, "effect_ir_equiv": effect, "noop_guard": noop,
               "rule": {"blend": f"market {BLEND_MARKET_SHARE:.0%} + ERC core {1 - BLEND_MARKET_SHARE:.0%}, annual rebalance (first trading day)",
+                       "calendar": "weekdays (weekend returns compounded into next weekday)",
                        "core": "FF12 momentum top4 (252 rows, >0), ERC 126-row cov × picks/4, market SMA200 filter ×0.5, RF cash, 10bp",
                        "main_window": [lab.MAIN_START, lab.MAIN_END], "subperiods": lab.SUBPERIODS,
                        "sharpe_basis": "monthly excess over RF, annualized ×√12", "p_max": P_MAX, "mdd_margin": MDD_MARGIN,

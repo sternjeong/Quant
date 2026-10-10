@@ -95,7 +95,7 @@ def main(argv=None) -> int:
     result = {"judge_version": JUDGE_VERSION, "smoke": a.smoke, "source": data["source"],
               "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
               "verdicts": verdicts, "power": power, "noop_guard": res["noop"],
-              "rule": {"universe": "FF 12 industries (value-weighted)", "lookback_rows": lab.LOOKBACK, "top_n": lab.TOP_N,
+              "rule": {"universe": "FF 12 industries (value-weighted)", "lookback_rows": lab.LOOKBACK, "calendar": "weekdays (weekend returns compounded into next weekday)", "top_n": lab.TOP_N,
                        "weighting": "equal 1/4, empty slot = RF", "market_filter": f"market index < SMA{lab.SMA_WINDOW} → ×{lab.FILTER_CUT}",
                        "rebalance": "first trading day of month, signal = previous close, executed next day",
                        "cost_bps_one_way": lab.COST_BPS, "stress_bps": lab.STRESS_BPS,
@@ -161,7 +161,7 @@ def render(r: dict, smoke: bool) -> str:
         tag = "" if y["year"] <= 2007 else " (비교)"
         L.append(f"| {y['year']}{tag} | {_f(y['strategy'])} | {_f(y['market'])} | {_f(y['excess'], sign=True)} |")
     L += ["", "판정 규칙은 결과를 보기 전에 SPEC.md·lab.py 에 고정했다. 한계: 산업 포트폴리오는 ETF 17개 후보(채권·금·해외 포함)와 다르다 — "
-          "이 연구는 '주식 산업 모멘텀 + 시장 필터'라는 메커니즘만 시험한다. 1952년 이전 토요일 거래 때문에 252행 ≈ 10개월. "
+          "이 연구는 '주식 산업 모멘텀 + 시장 필터'라는 메커니즘만 시험한다. 1952년 이전 토요일 수익은 다음 평일에 복리로 합쳐 평일 달력으로 계산(252행 ≈ 1년). "
           "산업 포트폴리오에는 거래비용·세금이 실제보다 적게 반영된다.",
           "PASS(CONFIRMED)도 엔진 자동 반영이 아니다 — 사람 확인 뒤 별도 작업."]
     return "\n".join(L) + "\n"

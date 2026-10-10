@@ -13,7 +13,9 @@ Ken French 일별 산업 포트폴리오(1926-07~, CRSP 기반 — 상장폐지 
   리밸런싱까지 일정하게 유지). 비용: 산업 비중 변화(회전율) × 편도 10bp(스트레스 30bp 보고).
 - 1926-07 부터 워밍업. 49 산업 자료의 결측(-99.99): 시작 전은 결측 그대로(후보 아님), 시작 뒤 드문 결측일은 수익 0.
 
-주의: 1952년 이전 자료에는 토요일 거래가 있어 252행 ≈ 10개월이다(행 수 기준으로 고정). 일별 연율화는 실제 연간 행 수로 한다.
+평일 달력(2026-10-10 결과 전 수정): 1952년 이전 자료에는 토요일 거래 행이 있다. 토요일(주말) 행의 수익은 다음 평일 수익에
+복리로 합치고(산업·시장·RF 모두, (1+r_토)(1+r_월)−1) 주말 행은 버린다. 그래서 252/200/126행 창은 전 기간에서 약 1년/200거래일/6개월이다.
+일별 연율화는 252.
 """
 
 from __future__ import annotations
@@ -32,6 +34,7 @@ MAIN_START, MAIN_END = "1927-07-01", "2007-12-31"
 COMPARE_START = "2008-01-01"
 SUBPERIODS = (("1927-07-01", "1946-12-31"), ("1947-01-01", "1966-12-31"),
               ("1967-01-01", "1986-12-31"), ("1987-01-01", "2007-12-31"))
+TRADING_DAYS = 252        # 평일 달력 기준 연율화
 LOOKBACK = 252
 TOP_N = 4
 SMA_WINDOW = 200
@@ -69,6 +72,30 @@ def clean_industry(rets: pd.DataFrame) -> pd.DataFrame:
     return rets.where(~(started & rets.isna()), 0.0)
 
 
+def to_weekdays(data: pd.DataFrame | pd.Series) -> pd.DataFrame | pd.Series:
+    """주말(토·일) 행의 수익을 다음 평일 행에 복리로 합치고 주말 행을 버린다. 뒤에 평일이 없는 주말은 앞 평일에 합친다.
+    누적 수익은 보존된다. 결측만 있는 묶음은 결측 그대로(min_count=1)."""
+    idx = pd.DatetimeIndex(data.index)
+    wk = idx.dayofweek < 5
+    if wk.all():
+        return data
+    days = pd.Series(idx.where(wk), index=idx)
+    key = days.bfill().fillna(days.ffill())
+    out = (1 + data).groupby(key.to_numpy()).prod(min_count=1) - 1
+    out.index = pd.DatetimeIndex(out.index)
+    return out
+
+
+def _normalize(rf: pd.Series, mkt: pd.Series, i12: pd.DataFrame, i49: Optional[pd.DataFrame]) -> dict[str, Any]:
+    """공통 날짜 → 평일 달력(주말 수익은 다음 평일에 복리) → 49 산업 결측 정리."""
+    idx = rf.index.intersection(i12.index).sort_values()
+    out = {"rf": to_weekdays(rf.reindex(idx).astype(float)), "mkt": to_weekdays(mkt.reindex(idx).astype(float)),
+           "ind12": clean_industry(to_weekdays(i12.reindex(idx).astype(float))), "ind49": None}
+    if i49 is not None:
+        out["ind49"] = clean_industry(to_weekdays(i49.reindex(idx).astype(float)))
+    return out
+
+
 def load_real() -> dict[str, Any]:
     """Ken French 일별 FF3·12 산업·49 산업. 12 산업이나 FF3 를 못 받으면 예외(실행기가 실패로 세고 다시 시도)."""
     from core import french_factors as ff
@@ -76,17 +103,16 @@ def load_real() -> dict[str, Any]:
     ff3, i12, i49 = ff.load("ff3_daily"), ff.load("ind12_daily"), ff.load("ind49_daily")
     if ff3 is None or i12 is None:
         raise RuntimeError("Ken French 일별 FF3/12 산업 자료를 받지 못함")
-    idx = ff3.index.intersection(i12.index).sort_values()
-    out = {"rf": ff3["RF"].reindex(idx).astype(float), "mkt": (ff3["Mkt-RF"] + ff3["RF"]).reindex(idx).astype(float),
-           "ind12": clean_industry(i12.reindex(idx).astype(float)), "ind49": None, "source": "Ken French data library (daily)"}
-    if i49 is not None:
-        out["ind49"] = clean_industry(i49.reindex(idx).astype(float))
+    out = _normalize(ff3["RF"], ff3["Mkt-RF"] + ff3["RF"], i12, i49)
+    out["source"] = "Ken French data library (daily, weekday calendar)"
     return out
 
 
 def synthetic_data(seed: int = 7, n12: int = 12, n49: int = 16, start: str = WARMUP_START, end: str = "2026-08-31") -> dict[str, Any]:
-    """스모크용 가짜 자료(네트워크 없음). 시장 폭락 구간을 몇 개 넣어 하락 국면 판정을 끝까지 태운다."""
-    idx = pd.bdate_range(start, end)
+    """스모크용 가짜 자료(네트워크 없음). 시장 폭락 구간을 몇 개 넣어 하락 국면 판정을 끝까지 태운다.
+    실제 자료처럼 1952-06 이전에는 토요일 행을 넣어 평일 달력 정리를 거친다."""
+    sats = pd.date_range(start, "1952-05-31", freq="W-SAT")
+    idx = pd.bdate_range(start, end).union(sats)
     n = len(idx)
     rng = np.random.default_rng(seed)
     drift = np.full(n, 0.0004)
@@ -112,8 +138,9 @@ def synthetic_data(seed: int = 7, n12: int = 12, n49: int = 16, start: str = WAR
             df.iloc[n // 2 + 10, 2] = np.nan
         return df
 
-    return {"rf": rf, "mkt": pd.Series(mkt_ex, index=idx) + rf, "ind12": inds(n12, seed + 1, False),
-            "ind49": clean_industry(inds(n49, seed + 2, True)), "source": "synthetic (smoke)"}
+    out = _normalize(rf, pd.Series(mkt_ex, index=idx) + rf, inds(n12, seed + 1, False), inds(n49, seed + 2, True))
+    out["source"] = "synthetic (smoke)"
+    return out
 
 
 # =================================================================================================
@@ -132,7 +159,7 @@ def erc_weights(window: pd.DataFrame, iters: int = 200) -> dict[str, float]:
     rets = window.dropna()
     if len(rets) < 60 or rets.shape[1] < 2:
         return {}
-    cov = rets.cov().to_numpy() * 252
+    cov = rets.cov().to_numpy() * TRADING_DAYS
     n = cov.shape[0]
     w = np.full(n, 1.0 / n)
     for _ in range(iters):
@@ -247,8 +274,7 @@ def sharpe_monthly(r: pd.Series, rf: pd.Series) -> float:
 def sharpe_daily(r: pd.Series, rf: pd.Series) -> float:
     ex = r - rf.reindex(r.index).fillna(0.0)
     sd = float(ex.std(ddof=1))
-    per_year = len(ex) / years_of(r) if years_of(r) > 0 else 252
-    return float(ex.mean()) / sd * math.sqrt(per_year) if len(ex) > 2 and sd > 0 else float("nan")
+    return float(ex.mean()) / sd * math.sqrt(TRADING_DAYS) if len(ex) > 2 and sd > 0 else float("nan")
 
 
 def capm(r: pd.Series, mkt: pd.Series, rf: pd.Series) -> dict[str, float]:

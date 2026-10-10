@@ -172,6 +172,24 @@ def test_clean_industry_and_french_datasets():
     assert lab.clean_industry(raw)["X"].tolist()[1:] == [0.01, 0.0, 0.02] and math.isnan(lab.clean_industry(raw)["X"][0])
 
 
+def test_weekday_calendar_compounds_saturdays():
+    idx = pd.DatetimeIndex(["1930-01-02", "1930-01-03", "1930-01-04", "1930-01-06", "1930-01-10", "1930-01-11"])  # 목금토월금토
+    assert (idx.dayofweek == 5).sum() == 2
+    rng = np.random.default_rng(4)
+    df = pd.DataFrame({"A": rng.normal(0, 0.02, 6), "B": [np.nan, np.nan, np.nan, 0.01, 0.02, -0.01]}, index=idx)
+    out = lab.to_weekdays(df)
+    assert (out.index.dayofweek < 5).all() and len(out) == 4
+    assert math.isclose((1 + out["A"]).prod(), (1 + df["A"]).prod())  # 누적 수익 보존
+    assert math.isclose(out.at[pd.Timestamp("1930-01-06"), "A"], (1 + df["A"].iloc[2]) * (1 + df["A"].iloc[3]) - 1)
+    assert math.isclose(out.at[pd.Timestamp("1930-01-10"), "A"], (1 + df["A"].iloc[4]) * (1 + df["A"].iloc[5]) - 1)  # 끝 토요일 → 앞 평일
+    assert math.isnan(out.at[pd.Timestamp("1930-01-02"), "B"])  # 시작 전 결측은 결측 그대로
+    s = lab.to_weekdays(df["A"])
+    assert isinstance(s, pd.Series) and np.allclose(s.to_numpy(), out["A"].to_numpy())
+    # 스모크 자료(토요일 행 포함 생성)도 정리 뒤 평일만 남는다
+    d = lab.synthetic_data()
+    assert all((x.index.dayofweek < 5).all() for x in (d["rf"], d["mkt"], d["ind12"], d["ind49"]))
+
+
 @pytest.mark.parametrize("job_id", ["core-longrun-v1", "synthesis-rnd-v2"])
 def test_job_definitions_valid(job_id):
     from core import research_jobs as rj
