@@ -71,6 +71,7 @@ POST_PUBLISH_COOLDOWN_SECONDS = 12 * 60  # 결과 push → 자동배포가 스�
 PUBLISH_QUEUE_MAX_AGE_SECONDS = 12 * 3600  # 미룬 결과 반영이 이보다 오래 기다리면 다른 슬롯이 돌고 있어도 push(안전판)
 LOG_TAIL_CHARS = 2000
 KEEP_LOGS = 5
+PEAK_HISTORY = 5  # 작업마다 남기는 최근 실행별 최대 메모리 기록 수
 
 # 동시 실행(2026-10-10 사용자 지시 "새로 등록한 연구가 한 줄 대기열이 아니라 함께 진행되게"): 슬롯 N 개.
 # VM 은 2 vCPU·12GB·스왑 없음이고 다른 프로젝트와 함께 쓰므로 처리량이 아니라 '진행이 섞이게' 하는 것이 목적이다.
@@ -102,6 +103,7 @@ PUBLISH_EXTENSIONS = (".json", ".md", ".csv", ".txt")
 REPORT_RENDER_MAX_CHARS = 200_000
 
 JOB_ID_RE = re.compile(r"^[a-z0-9][a-z0-9._-]{0,63}$")
+GROUP_RE = re.compile(r"^[a-z0-9][a-z0-9._-]{0,31}$")
 STATUSES = ("pending", "running", "in_progress", "done", "failed", "cancelled", "invalid")
 
 SECRET_PATTERNS = (
@@ -172,6 +174,7 @@ class JobDef:
     max_memory_mb: int = DEFAULT_MAX_MEMORY_MB
     max_disk_mb: int = DEFAULT_MAX_DISK_MB
     max_runs: int = DEFAULT_MAX_RUNS
+    exclusive_group: Optional[str] = None
 
 
 # ---------------------------------------------------------------------------
@@ -261,11 +264,14 @@ def validate_job(data: object, dir_name: str, repo_root: Path = PROJECT_ROOT) ->
     revision = data.get("revision", 1)
     if isinstance(revision, bool) or not isinstance(revision, (int, str)):
         return None, "revision 은 정수 또는 문자열이어야 합니다"
+    group = data.get("exclusive_group")
+    if group is not None and (not isinstance(group, str) or not GROUP_RE.match(group)):
+        return None, "exclusive_group 은 소문자·숫자·. _ - 로 된 32자 이하 문자열이어야 합니다"
     return JobDef(
         id=job_id, title=data["title"].strip(), entrypoint=entry, args=tuple(args), timeout_seconds=timeout,
         max_attempts=attempts, resumable=data["resumable"], outputs=tuple(outputs),
         summary_from=summary_from.strip() if summary_from else None, priority=priority, revision=str(revision),
-        max_memory_mb=max_memory, max_disk_mb=max_disk, max_runs=max_runs,
+        max_memory_mb=max_memory, max_disk_mb=max_disk, max_runs=max_runs, exclusive_group=group,
     ), ""
 
 
@@ -514,9 +520,32 @@ def budget_for(job: JobDef, now: datetime, window_end: datetime) -> tuple[int, b
     return max(budget, 0), budget < job.timeout_seconds
 
 
-def pick_job(state: dict, jobs: dict[str, JobDef], now: datetime, window_end: datetime) -> tuple[Optional[JobDef], int, bool]:
+def _live_running(state: dict, is_live: Optional[Callable[[str, dict], bool]]) -> list[tuple[str, dict]]:
+    """running 항목 중 정말 살아 있는 것(is_live 가 없으면 모두)."""
+    return [(jid, e) for jid, e in state["jobs"].items()
+            if e.get("status") == "running" and (is_live is None or is_live(jid, e))]
+
+
+def solo_running(state: dict, is_live: Optional[Callable[[str, dict], bool]] = None) -> bool:
+    """메모리 초과 뒤 단독 재시도 중인 작업이 살아 있는가(그동안 다른 연구·R&D 계산은 시작하지 않는다)."""
+    return any(e.get("solo_retry") for _jid, e in _live_running(state, is_live))
+
+
+def pick_job(state: dict, jobs: dict[str, JobDef], now: datetime, window_end: datetime, *,
+             is_live: Optional[Callable[[str, dict], bool]] = None, solo_allowed: bool = True) -> tuple[Optional[JobDef], int, bool]:
+    """다음에 돌릴 작업. 같은 exclusive_group 이 이미 실행 중이면 그 작업은 건너뛴다(실패·횟수 변화 없음).
+    solo_retry 작업은 solo_allowed(다른 등록 작업·R&D 계산이 하나도 안 도는 때)일 때만 고르고,
+    단독 재시도가 도는 동안은 아무것도 새로 고르지 않는다. is_live 로 죽은 슬롯의 running 항목은 그룹을 막지 않게 한다."""
+    live = _live_running(state, is_live)
+    if any(e.get("solo_retry") for _jid, e in live):
+        return None, 0, False
+    busy_groups = {jobs[jid].exclusive_group for jid, _e in live if jid in jobs and jobs[jid].exclusive_group}
     candidates = [j for j in jobs.values() if state["jobs"].get(j.id, {}).get("status") in ("pending", "in_progress")]
     for job in sorted(candidates, key=lambda j: (j.priority, j.id)):
+        if job.exclusive_group and job.exclusive_group in busy_groups:
+            continue
+        if not solo_allowed and state["jobs"][job.id].get("solo_retry"):
+            continue
         budget, shortened = budget_for(job, now, window_end)
         if budget < MIN_BUDGET_SECONDS:
             continue
@@ -750,6 +779,7 @@ class RunOutcome:
     duration: float
     log_tail: str
     log_path: Optional[Path] = None
+    peak_rss_mb: Optional[float] = None
 
 
 def _child_preexec() -> None:  # pragma: no cover - 자식 프로세스 안에서 돈다
@@ -774,7 +804,8 @@ def _kill_group(proc: subprocess.Popen, sig: int) -> None:
 def run_child(cfg: Config, job: JobDef, budget: int, *, poll_interval: float = 5.0,
               cancel_check: Callable[[], bool] = lambda: False,
               system_memory: Callable[[], Optional[float]] = _system_available_mb,
-              on_start: Optional[Callable[[subprocess.Popen], None]] = None, guard_key: Optional[str] = None) -> RunOutcome:
+              on_start: Optional[Callable[[subprocess.Popen], None]] = None, guard_key: Optional[str] = None,
+              memory_limit_mb: Optional[int] = None) -> RunOutcome:
     """자식 하나를 돌리며 5초마다 예산·취소·메모리·디스크·CPU 를 감시한다.
 
     guard_key 가 있으면 CPU 일시 중지를 다른 슬롯과 CpuGuard 로 맞춘다(없으면 혼자 판단 — 예전 방식).
@@ -787,7 +818,9 @@ def run_child(cfg: Config, job: JobDef, budget: int, *, poll_interval: float = 5
     log_path = log_dir / f"{datetime.now(KST).strftime('%Y%m%d-%H%M%S')}.log"
     deadline = _time.time() + budget
     cpu_sampler = _CpuUsageSampler()
-    memory_limit_mb = _effective_job_memory_limit_mb(job)
+    if memory_limit_mb is None:
+        memory_limit_mb = _effective_job_memory_limit_mb(job)
+    peak: dict = {}
     memory_reserve_mb = _memory_reserve_mb()
     env = {**os.environ, "PYTHONUNBUFFERED": "1", "RESEARCH_JOB_ID": job.id,
            "RESEARCH_JOB_DEADLINE_EPOCH": str(int(deadline)), "RESEARCH_JOB_TIME_BUDGET_SECONDS": str(int(budget))}
@@ -805,7 +838,7 @@ def run_child(cfg: Config, job: JobDef, budget: int, *, poll_interval: float = 5
                 on_start(proc)
         try:
             stopped_by, _ = _watch_child(cfg, job, proc, deadline, poll_interval, cancel_check, system_memory,
-                                                   cpu_sampler, guard, memory_limit_mb, memory_reserve_mb)
+                                                   cpu_sampler, guard, memory_limit_mb, memory_reserve_mb, peak)
         finally:
             if guard is not None:
                 guard.leave()
@@ -816,13 +849,13 @@ def run_child(cfg: Config, job: JobDef, budget: int, *, poll_interval: float = 5
     except OSError:
         raw = ""
     _prune_logs(log_dir)
-    return RunOutcome(proc.returncode, stopped_by, duration, redact(raw[-LOG_TAIL_CHARS:]), log_path)
+    return RunOutcome(proc.returncode, stopped_by, duration, redact(raw[-LOG_TAIL_CHARS:]), log_path, peak.get("mb"))
 
 
 def _watch_child(cfg: Config, job: JobDef, proc: subprocess.Popen, deadline: float, poll_interval: float,
                  cancel_check: Callable[[], bool], system_memory: Callable[[], Optional[float]],
                  cpu_sampler: "_CpuUsageSampler", guard: Optional[CpuGuard], memory_limit_mb: int,
-                 memory_reserve_mb: float) -> tuple[Optional[str], bool]:
+                 memory_reserve_mb: float, peak: Optional[dict] = None) -> tuple[Optional[str], bool]:
     stopped_by: Optional[str] = None
     last_disk_check = 0.0
     cpu_paused = False
@@ -846,6 +879,8 @@ def _watch_child(cfg: Config, job: JobDef, proc: subprocess.Popen, deadline: flo
             reason = "cancel"
         else:
             rss = tree_rss_mb(proc.pid)
+            if rss is not None and peak is not None and rss > peak.get("mb", 0.0):
+                peak["mb"] = round(rss, 1)
             avail = system_memory()
             if rss is not None and rss > memory_limit_mb:
                 reason = "job_memory"
@@ -1054,6 +1089,10 @@ def write_index(cfg: Config, state: dict, jobs: Optional[dict[str, JobDef]] = No
             meta.append(f"마지막 종료 {entry['last_finished_at']}")
         if entry.get("last_duration_seconds") is not None:
             meta.append(f"소요 {int(entry['last_duration_seconds'])}초")
+        if entry.get("peak_rss_mb"):
+            meta.append(f"최대 메모리 {int(round(entry['peak_rss_mb'])):,}MB")
+        if entry.get("solo_retry"):
+            meta.append("단독 재시도 모드")
         body = [f'<h2>{html.escape(entry.get("title") or job_id)}</h2>',
                 f'<p><span class="st {html.escape(status)}">{html.escape(_STATUS_LABEL.get(status, status))}</span>'
                 f' · <span class="muted">{html.escape(job_id)} · {html.escape(" · ".join(meta))}</span></p>']
@@ -1219,19 +1258,36 @@ _PUBLISH_NOTE = {
 }
 
 
-def _finish_message(cfg: Config, job: JobDef, summary: str, publish: dict) -> str:
+def _finish_message(cfg: Config, job: JobDef, summary: str, publish: dict, peak_mb: Optional[float] = None) -> str:
     lines = [f"[검증 연구 결과] {job.title} — 완료"]
     if summary:
         lines.append(summary)
     lines.append("결과: 관제 센터 '검증 연구 결과' 카드")
     note = _PUBLISH_NOTE.get(publish.get("status"), "저장소 반영: {detail}")
     lines.append(note.format(prefix=cfg.publish_prefix, id=job.id, detail=publish.get("detail") or ""))
+    if peak_mb:
+        lines.append(f"최대 메모리 {int(round(peak_mb)):,}MB")
     return redact("\n".join(lines))[:3500]
 
 
 _STOP_TEXT = {"budget": "시간 예산 초과", "cancel": "사용자 취소", "job_memory": "작업 메모리 상한 초과",
               "job_disk": "작업 디스크 상한 초과", "system_memory": "VM 여유 메모리 부족으로 양보",
               "system_disk": "VM 여유 디스크 부족으로 양보"}
+
+
+def _record_peak(entry: dict, outcome: "RunOutcome", now: datetime) -> None:
+    """이번 실행의 최대 RSS 를 기록한다: 전체 최대(peak_rss_mb·peak_rss_at), 이번 값(last_peak_rss_mb), 최근 5회 이력."""
+    peak = outcome.peak_rss_mb
+    if peak is None:
+        return
+    entry["last_peak_rss_mb"] = round(peak, 1)
+    if peak > float(entry.get("peak_rss_mb") or 0):
+        entry["peak_rss_mb"] = round(peak, 1)
+        entry["peak_rss_at"] = _now_iso(now)
+    history = list(entry.get("peak_rss_history") or [])
+    history.append({"run": entry.get("runs"), "peak_rss_mb": round(peak, 1), "exit": outcome.exit_code,
+                    "seconds": round(outcome.duration, 1)})
+    entry["peak_rss_history"] = history[-PEAK_HISTORY:]
 
 
 def _first_error_line(log_tail: str) -> str:
@@ -1247,6 +1303,7 @@ def apply_outcome(cfg: Config, job: JobDef, entry: dict, outcome: RunOutcome, bu
                  last_exit_code=outcome.exit_code, log_tail=outcome.log_tail)
     entry["runs"] = int(entry.get("runs") or 0) + 1
     code = outcome.exit_code
+    _record_peak(entry, outcome, now)
 
     def fail(reason: str) -> str:
         entry["failures"] = int(entry.get("failures") or 0) + 1
@@ -1281,9 +1338,9 @@ def apply_outcome(cfg: Config, job: JobDef, entry: dict, outcome: RunOutcome, bu
             runner["last_publish_at"] = finished.isoformat()
             runner["cooldown_until"] = (finished + timedelta(seconds=POST_PUBLISH_COOLDOWN_SECONDS)).isoformat()
         entry.update(status="done", summary=summary, publish=result, result_dir=str(result_dir),
-                     last_reason=None, notified_signature=None)
+                     last_reason=None, notified_signature=None, solo_retry=False)
         shutil.rmtree(cfg.work_dir(job.id), ignore_errors=True)
-        notify(_finish_message(cfg, job, summary, result))
+        notify(_finish_message(cfg, job, summary, result, entry.get("peak_rss_mb")))
         return "done"
     if code == 3:
         if entry["runs"] >= job.max_runs:
@@ -1294,6 +1351,14 @@ def apply_outcome(cfg: Config, job: JobDef, entry: dict, outcome: RunOutcome, bu
     if stop == "cancel":
         entry.update(status="cancelled", cancel_requested=False, last_reason="사용자 취소")
         return "cancelled"
+    if stop == "job_memory" and job.resumable and not entry.get("solo_retry"):
+        # 첫 초과: 스크립트에 물어볼 수 없으므로 체크포인트 그대로 두고 다른 작업 없이 상한을 올려 한 번 더(실패로 세지 않음)
+        entry.update(status="in_progress", solo_retry=True,
+                     last_reason="메모리 상한 초과 — 같은 작업이 단독으로 다시 시도됨")
+        peak = entry.get("last_peak_rss_mb")
+        notify(redact(f"[검증 연구 결과] {job.title} — 메모리 상한 초과, 다른 작업 없이 단독으로 다시 시도"
+                      + (f"\n최대 메모리 {int(round(peak)):,}MB" if peak else ""))[:1000])
+        return "solo_retry"
     if stop in ("system_memory", "system_disk"):
         entry.update(status="in_progress" if job.resumable else "pending", last_reason=_STOP_TEXT[stop])
         return "yielded"
@@ -1496,7 +1561,8 @@ def run_tick(now: Optional[datetime] = None, *, notify: Optional[Callable[[str],
                 if datetime.fromisoformat(cooldown) > now:
                     return _finish_tick({"action": "skipped", "reason": "결과 반영 직후 재배포 대기"})
         state = load_state(cfg)
-        job, budget, shortened = pick_job(state, jobs, now, window_end)
+        job, budget, shortened = pick_job(state, jobs, now, window_end, is_live=live_run_checker(cfg, state, slot),
+                                          solo_allowed=_busy_other_slots(cfg, state, slot) == 0)
         lab_due = job is not None and _lab_enabled(cfg) and _satellite_lab_due(state, now)
         if lab_due:
             # 긴 사전 등록 연구가 창을 계속 차지해도 새틀라이트 R&D 가 하루 한 번은 돈다(다른 슬롯이 이미 돌리고 있으면 연구로)
@@ -1521,8 +1587,11 @@ def run_tick(now: Optional[datetime] = None, *, notify: Optional[Callable[[str],
 
         memory_note = ""
         with edit_state(cfg) as state:  # 고르기 + running 표시를 한 락 안에서(두 슬롯이 같은 작업을 잡지 않게)
-            job, budget, shortened = pick_job(state, jobs, now, window_end)
+            job, budget, shortened = pick_job(state, jobs, now, window_end, is_live=live_run_checker(cfg, state, slot),
+                                              solo_allowed=_busy_other_slots(cfg, state, slot) == 0)
+            solo = False
             if job is not None:
+                solo = bool(state["jobs"][job.id].get("solo_retry"))
                 ok, memory_note = start_memory_ok(job, _system_available_mb(), _system_total_mb(),
                                                   _busy_other_slots(cfg, state, slot), n)
                 if ok:
@@ -1546,8 +1615,11 @@ def run_tick(now: Optional[datetime] = None, *, notify: Optional[Callable[[str],
                 if entry.get("run_token") == token:
                     entry.update(child_pid=proc.pid, child_start=_proc_start_ticks(proc.pid))
 
+        extra = {}
+        if solo:  # 메모리 초과 뒤 단독 재시도 — 나눈 몫이 아니라 혼자 쓸 수 있는 전체(총 메모리 80%)까지 허용
+            extra["memory_limit_mb"] = _effective_job_memory_limit_mb(job, slots=1)
         outcome = run_child(cfg, job, budget, poll_interval=poll_interval, cancel_check=_cancel_requested,
-                            on_start=_record_child, guard_key=f"slot-{slot}")
+                            on_start=_record_child, guard_key=f"slot-{slot}", **extra)
         with edit_state(cfg) as state:
             entry = state["jobs"].get(job.id) or {}
             if entry.get("run_token") == token:
@@ -1663,6 +1735,8 @@ def _satellite_lab_turn_locked(cfg: Config, now: datetime, window_end: datetime,
     with edit_state(cfg) as state:
         busy = _busy_other_slots(cfg, state, slot)  # 혼자 돌 때는 예전처럼 따로 막지 않는다(실행 중 감시가 양보시킨다)
         ok, memory_note = start_memory_ok(job, _system_available_mb(), _system_total_mb(), busy, slots) if busy else (True, "")
+        if ok and solo_running(state, live_run_checker(cfg, state, slot)):
+            ok, memory_note = False, "메모리 초과 연구가 단독 재시도 중"
         if ok:
             state.setdefault("satellite_lab", {})["last_started_at"] = _now_iso(now)
             record = state["runner"].setdefault("slots", {}).get(str(slot))
@@ -1722,6 +1796,8 @@ def _core_lab_turn_locked(cfg: Config, now: datetime, window_end: datetime, noti
     with edit_state(cfg) as state:
         busy = _busy_other_slots(cfg, state, slot)  # 혼자 돌 때는 예전처럼 따로 막지 않는다(실행 중 감시가 양보시킨다)
         ok, _note = start_memory_ok(CORE_LAB_JOB, _system_available_mb(), _system_total_mb(), busy, slots) if busy else (True, "")
+        if ok and solo_running(state, live_run_checker(cfg, state, slot)):
+            ok = False
         record = state["runner"].setdefault("slots", {}).get(str(slot))
         if ok and record and record.get("token") == token:
             record["job_id"] = CORE_LAB_JOB.id
@@ -1784,7 +1860,9 @@ def list_jobs(cfg: Optional[Config] = None) -> list[dict]:
         rows.append({"id": job_id, "status": status, "title": entry.get("title") or (jobs[job_id].title if job_id in jobs else job_id),
                      "priority": jobs[job_id].priority if job_id in jobs else None, "failures": entry.get("failures", 0),
                      "runs": entry.get("runs", 0), "last_finished_at": entry.get("last_finished_at"),
-                     "reason": invalid.get(job_id) or entry.get("last_reason"), "defined": job_id in jobs})
+                     "reason": invalid.get(job_id) or entry.get("last_reason"), "defined": job_id in jobs,
+                     "peak_rss_mb": entry.get("peak_rss_mb"), "peak_rss_at": entry.get("peak_rss_at"),
+                     "solo_retry": bool(entry.get("solo_retry"))})
     return rows
 
 

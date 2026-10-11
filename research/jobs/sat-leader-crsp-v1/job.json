@@ -14,5 +14,6 @@
   "priority": 15,
   "revision": 1,
   "max_memory_mb": 3000,
-  "max_runs": 60
+  "max_runs": 60,
+  "exclusive_group": "crsp"
 }
