@@ -1,0 +1,18 @@
+{
+  "id": "sat-pool-v1",
+  "title": "새틀라이트 선정 연구 1 — 후보 풀 확대(S&P500 시총 상위 70·100·150)",
+  "entrypoint": "research/jobs/sat-pool-v1/run.py",
+  "args": [],
+  "timeout_seconds": 10800,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": [
+    "results.json",
+    "REPORT.md"
+  ],
+  "summary_from": "verdicts",
+  "priority": 11,
+  "revision": 1,
+  "max_memory_mb": 3000,
+  "max_runs": 60
+}

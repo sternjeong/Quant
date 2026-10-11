@@ -1,0 +1,18 @@
+{
+  "id": "sat-follower-crsp-v1",
+  "title": "새틀라이트 선정 CRSP 3 — 안전한 추종주 따라잡기 + D1(1963~2007)",
+  "entrypoint": "research/jobs/sat-follower-crsp-v1/run.py",
+  "args": [],
+  "timeout_seconds": 10800,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": [
+    "results.json",
+    "REPORT.md"
+  ],
+  "summary_from": "verdicts",
+  "priority": 16,
+  "revision": 1,
+  "max_memory_mb": 3000,
+  "max_runs": 60
+}

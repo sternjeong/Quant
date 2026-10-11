@@ -1,0 +1,18 @@
+{
+  "id": "sat-follower-v1",
+  "title": "새틀라이트 선정 연구 3 — 안전한 추종주 따라잡기(S4) + 대장주-추종주 진단 D1",
+  "entrypoint": "research/jobs/sat-follower-v1/run.py",
+  "args": [],
+  "timeout_seconds": 10800,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": [
+    "results.json",
+    "REPORT.md"
+  ],
+  "summary_from": "verdicts",
+  "priority": 13,
+  "revision": 1,
+  "max_memory_mb": 3000,
+  "max_runs": 60
+}
