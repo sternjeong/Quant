@@ -71,8 +71,8 @@ JOBS: tuple[JobGuide, ...] = (
     JobGuide(
         job_id="research_job_runner",
         where_to_see="관제 센터 '검증 연구 결과' 카드, 텔레그램 '[검증 연구 결과]'(완료 1건·실패 사유), 저장소 research/results/<id>/. 대기 연구가 없는 창에는(그리고 하루 한 번은 대기 연구가 있어도) 새틀라이트 R&D 센터 계산을 돌리고 그 결과는 '새틀라이트 R&D 센터' 화면과 텔레그램 '[새틀라이트 R&D]'로 옵니다. 연구 실행 창은 하루 종일(다른 잡이 도는 00:00~01:00·02:50~07:45·08:55~09:30·11:55~12:15 KST 제외)이고 10분마다 깨어나, VM 부하가 높거나 자동 배포 테스트 중이면 쉬고 아니면 빈 슬롯에서 대기 연구를 하나 시작합니다(동시 최대 3개, 스케줄러 환경 RESEARCH_JOBS_MAX_PARALLEL 로 1~4). 다른 연구가 돌고 있을 때 끝난 결과는 저장소 반영을 미뤘다가 모두 쉬는 회차(최대 12시간 뒤)에 한 번에 올립니다 — 반영할 때 재배포가 도는 연구를 끊지 않게 하려는 것입니다. 2주 R&D 스프린트(sprint-2w) 가족(F1~F4) 계산이 끝날 때마다 '[R&D 스프린트]' 한 줄이 옵니다.",
-        if_alert="실패 알림이면 사유를 읽고, 스크립트 문제면 개발 요청으로 고친 뒤 'python scripts/research_jobs_admin.py retry <id>'. 정의 오류면 job.json 을 docs/RESEARCH_JOBS.md 계약대로 고칩니다. '[새틀라이트 R&D] 계산기 실패'는 같은 사유면 한 번만 옵니다 — 개발 요청으로 고치면 다음 창에서 이어집니다. 원하지 않으면 '/processes off research_job_runner'(새틀라이트 계산도 함께 멈춤).",
-        verified="2026-10-10",
+        if_alert="실패 알림이면 사유를 읽고, 스크립트 문제면 개발 요청으로 고친 뒤 'python scripts/research_jobs_admin.py retry <id>'. 정의 오류면 job.json 을 docs/RESEARCH_JOBS.md 계약대로 고칩니다. '[새틀라이트 R&D] 계산기 실패'는 같은 사유면 한 번만 옵니다 — 개발 요청으로 고치면 다음 창에서 이어집니다. '메모리 상한 초과 — 단독 재시도' 알림은 실패가 아니라 같은 작업을 다른 연구 없이 더 큰 상한으로 한 번 더 돌린다는 뜻이고, 그래도 넘으면 일반 실패로 옵니다(필요하면 job.json 의 max_memory_mb 를 검토). 원하지 않으면 '/processes off research_job_runner'(새틀라이트 계산도 함께 멈춤).",
+        verified="2026-10-11",
     ),
     JobGuide(
         job_id="contest_deadline_alert",
@@ -328,8 +328,8 @@ SCRIPTS: tuple[ScriptGuide, ...] = (
         when_to_run="검증 연구 작업의 상태를 보거나, 실패·취소된 작업을 다시 돌리거나, 대기·실행 중인 작업을 멈출 때.",
         command="python scripts/research_jobs_admin.py list  (retry <id> · retry <id> --fresh · cancel <id>)",
         risk="파일/DB 쓰기",
-        what_it_prints="list 는 작업마다 상태(pending·running·in_progress·done·failed·cancelled·invalid)·실패 수·실행 수·마지막 종료·사유를 보여 줍니다. retry 는 대기로 되돌리고(재개 작업은 체크포인트에서, --fresh 는 처음부터) 다음 실행 창에서 돕니다. cancel 은 실행 중이면 몇 초 안에 멈춥니다. VM 에서는 quant 계정으로 실행합니다.",
-        verified="2026-09-26",
+        what_it_prints="list 는 작업마다 상태(pending·running·in_progress·done·failed·cancelled·invalid)·실패 수·실행 수·마지막 종료·최대 메모리(기록이 있으면)·사유를 보여 줍니다. retry 는 대기로 되돌리고(재개 작업은 체크포인트에서, --fresh 는 처음부터) 다음 실행 창에서 돕니다. cancel 은 실행 중이면 몇 초 안에 멈춥니다. VM 에서는 quant 계정으로 실행합니다.",
+        verified="2026-10-11",
     ),
     ScriptGuide(
         path="scripts/french_factor_report.py", name="고전 팩터 감쇠표 갱신",

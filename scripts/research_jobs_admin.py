@@ -31,7 +31,9 @@ def main(argv=None, cfg: rj.Config | None = None) -> int:
                 print("등록된 작업이 없습니다 (research/jobs/<id>/job.json).")
             for row in rows:
                 print(f"{row['id']:<32} {row['status']:<12} 실패 {row['failures']} · 실행 {row['runs']} · "
-                      f"우선순위 {row['priority']} · 마지막 {row['last_finished_at'] or '-'}")
+                      f"우선순위 {row['priority']} · 마지막 {row['last_finished_at'] or '-'}"
+                      + (f" · 최대 메모리 {int(round(row['peak_rss_mb'])):,}MB" if row.get("peak_rss_mb") else "")
+                      + (" · 단독 재시도" if row.get("solo_retry") else ""))
                 if row["reason"]:
                     print(f"    사유: {rj.redact(row['reason'])[:200]}")
             return 0

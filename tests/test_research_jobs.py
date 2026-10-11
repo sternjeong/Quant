@@ -951,3 +951,190 @@ def test_n1_never_queues_publishes(cfg, monkeypatch):
     assert len(rec.published) == 1 and rec.published[0][1].startswith("Research job results: solo")
     assert not rj.load_state(cfg)["runner"].get("publish_queue")
     assert "다른 연구가 끝난 뒤" not in rec.messages[0]
+
+
+# ---- 배타 그룹 · 최대 메모리 기록 · 메모리 초과 단독 재시도 (2026-10-11) -----------------------------------------
+
+@pytest.mark.parametrize("group,ok", [("crsp", True), ("a.b_c-1", True), ("0x", True), ("a" * 32, True), (None, True),
+                                      ("a" * 33, False), ("Crsp", False), ("-x", False), ("", False), (5, False),
+                                      ("a b", False)])
+def test_exclusive_group_validation(tmp_path, group, ok):
+    add_job(tmp_path, "good", OK_SCRIPT)
+    data = _job_json("good")
+    if group is not None:
+        data["exclusive_group"] = group
+    job, reason = rj.validate_job(data, "good", tmp_path)
+    assert (job is not None) is ok
+    if ok:
+        assert job.exclusive_group == group
+    else:
+        assert "exclusive_group" in reason
+
+
+def test_crsp_jobs_share_one_exclusive_group_and_all_sat_jobs_load():
+    real = rj.Config.for_root(ROOT)
+    jobs, invalid = rj.load_job_definitions(real)
+    sat = [j for j in jobs if j.startswith("sat-")]
+    assert len(sat) >= 6 and not [j for j in invalid if j.startswith("sat-")]
+    crsp = sorted(j for j in sat if j.endswith("-crsp-v1"))
+    assert len(crsp) == 3 and {jobs[j].exclusive_group for j in crsp} == {"crsp"}
+    assert all(jobs[j].exclusive_group is None for j in sat if j not in crsp)
+
+
+def test_exclusive_group_blocks_second_job_but_lets_other_group_through(cfg, monkeypatch):
+    monkeypatch.setattr(rj, "_system_total_mb", lambda: 12000.0)
+    monkeypatch.setattr(rj, "_system_available_mb", lambda: 11000.0)
+    add_job(cfg.repo_root, "g-one", OK_SCRIPT, priority=1, exclusive_group="crsp")
+    add_job(cfg.repo_root, "g-two", OK_SCRIPT, priority=2, exclusive_group="crsp")
+    add_job(cfg.repo_root, "free", OK_SCRIPT, priority=3)
+    add_job(cfg.repo_root, "other-group", OK_SCRIPT, priority=4, exclusive_group="other")
+    rec = Recorder(status="skipped")
+    inner = []
+
+    def fake_child(cfg_, job, budget, **kw):
+        if job.id == "g-one":
+            inner.append(tick(cfg, rec, kst(13, 10), slots=3)["job_id"])  # g-two 는 건너뛰고 다음 우선순위
+        if job.id == "free":
+            inner.append(tick(cfg, rec, kst(13, 20), slots=3)["job_id"])
+        return rj.RunOutcome(3, None, 1.0, "")
+
+    monkeypatch.setattr(rj, "run_child", fake_child)
+    assert tick(cfg, rec, kst(13, 0), slots=3)["job_id"] == "g-one"
+    assert sorted(inner) == ["free", "other-group"]  # g-two 는 같은 그룹이라 막히고, 그룹 없는 작업·다른 그룹은 통과
+    state = rj.load_state(cfg)
+    skipped = state["jobs"]["g-two"]
+    assert skipped["status"] == "pending" and skipped["failures"] == 0 and skipped["runs"] == 0
+    assert skipped["interruptions"] == 0 and skipped["last_reason"] is None
+
+
+def test_exclusive_group_busy_check_ignores_dead_slots(cfg):
+    add_job(cfg.repo_root, "g-one", OK_SCRIPT, priority=1, exclusive_group="crsp")
+    add_job(cfg.repo_root, "g-two", OK_SCRIPT, priority=2, exclusive_group="crsp")
+    jobs, _ = rj.load_job_definitions(cfg)
+    with rj.edit_state(cfg) as state:
+        rj.sync_definitions(cfg, state, jobs, {})
+        _running(state, "g-one", 1, "t1", child_pid=os.getpid())
+    state = rj.load_state(cfg)
+    now, end = kst(13, 0), kst(23, 55)
+    # is_live 를 안 주면 running 은 모두 그룹을 막는다
+    assert rj.pick_job(state, jobs, now, end)[0] is None
+    # 슬롯 1 의 락이 비어 있으면(죽은 슬롯) 그룹을 막지 않는다
+    assert rj.pick_job(state, jobs, now, end, is_live=rj.live_run_checker(cfg, state, 0))[0].id == "g-two"
+    # 슬롯 1 이 살아 있으면(락·토큰·자식 pid) 막힌다
+    with rj._flock(rj.slot_lock_path(cfg, 1), blocking=False) as got:
+        assert got
+        assert rj.pick_job(state, jobs, now, end, is_live=rj.live_run_checker(cfg, state, 0))[0] is None
+
+
+def test_peak_rss_recorded_and_history_trimmed(cfg):
+    job = _job(cfg, "peaky", OK_SCRIPT)
+    entry = rj._new_entry(job)
+    for i, peak in enumerate((500.0, 1234.5, 700.0, 100.0, 90.0, 80.0, 70.0), start=1):
+        out = rj.RunOutcome(3, None, 10.0 + i, "", peak_rss_mb=peak)
+        assert rj.apply_outcome(cfg, job, entry, out, False, print, Recorder().publish, kst(13, i), {}) == "in_progress"
+    assert entry["peak_rss_mb"] == 1234.5 and entry["peak_rss_at"]
+    assert entry["last_peak_rss_mb"] == 70.0
+    hist = entry["peak_rss_history"]
+    assert len(hist) == 5 and [h["run"] for h in hist] == [3, 4, 5, 6, 7]
+    assert hist[0] == {"run": 3, "peak_rss_mb": 700.0, "exit": 3, "seconds": 13.0}
+    # 측정값이 없으면(리눅스 아님 등) 기록을 건드리지 않는다
+    rj.apply_outcome(cfg, job, entry, rj.RunOutcome(3, None, 1.0, ""), False, print, Recorder().publish, kst(14, 0), {})
+    assert len(entry["peak_rss_history"]) == 5 and entry["peak_rss_mb"] == 1234.5
+
+
+def test_run_child_measures_peak_rss(cfg, monkeypatch):
+    samples = iter([100.0, 321.7, 200.0])
+    monkeypatch.setattr(rj, "tree_rss_mb", lambda pid: next(samples, 50.0))
+    job = _job(cfg, "peak-run", SLEEP_SCRIPT)
+    outcome = rj.run_child(cfg, job, 1, poll_interval=0.1, system_memory=lambda: None)
+    assert outcome.peak_rss_mb == 321.7
+
+
+def test_completion_message_has_peak_suffix_and_index_and_admin_show_it(cfg, capsys):
+    job = _job(cfg, "done-peak", OK_SCRIPT)
+    entry = rj._new_entry(job)
+    out = rj.RunOutcome(0, None, 5.0, "", peak_rss_mb=1234.4)
+    out_dir = cfg.out_dir(job.id)
+    out_dir.mkdir(parents=True)
+    (out_dir / "results.json").write_text(json.dumps({"verdicts": {"H1": "PASS"}}))
+    (out_dir / "REPORT.md").write_text("# ok")
+    rec = Recorder()
+    assert rj.apply_outcome(cfg, job, entry, out, False, rec.notify, rec.publish, kst(13, 0), {}) == "done"
+    assert rec.messages[0].splitlines()[-1] == "최대 메모리 1,234MB"
+    page = rj.write_index(cfg, {"jobs": {job.id: entry}, "runner": {}}, {job.id: job}).read_text(encoding="utf-8")
+    assert "최대 메모리 1,234MB" in page
+    with rj.edit_state(cfg) as state:
+        state["jobs"][job.id] = entry
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("rja", ROOT / "scripts" / "research_jobs_admin.py")
+    admin = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(admin)
+    assert admin.main(["list"], cfg=cfg) == 0
+    assert "최대 메모리 1,234MB" in capsys.readouterr().out
+
+
+def test_memory_overrun_retries_solo_once_then_fails(cfg, monkeypatch):
+    monkeypatch.setattr(rj, "_system_total_mb", lambda: 12000.0)
+    monkeypatch.setattr(rj, "_system_available_mb", lambda: 11000.0)
+    add_job(cfg.repo_root, "hog", OK_SCRIPT, priority=1, max_memory_mb=10240, max_attempts=3)
+    add_job(cfg.repo_root, "bystander", OK_SCRIPT, priority=2)
+    rec = Recorder(status="skipped")
+    calls = []
+
+    def fake_child(cfg_, job, budget, **kw):
+        calls.append((job.id, kw.get("memory_limit_mb")))
+        if job.id == "hog":
+            return rj.RunOutcome(-15, "job_memory", 3.0, "", peak_rss_mb=3300.0)
+        return rj.RunOutcome(3, None, 1.0, "")
+
+    monkeypatch.setattr(rj, "run_child", fake_child)
+    assert tick(cfg, rec, kst(13, 0), slots=3)["result"] == "solo_retry"
+    entry = rj.load_state(cfg)["jobs"]["hog"]
+    assert entry["status"] == "in_progress" and entry["solo_retry"] is True and entry["failures"] == 0
+    assert entry["last_reason"] == "메모리 상한 초과 — 같은 작업이 단독으로 다시 시도됨"
+    assert len(rec.messages) == 1 and "3,300MB" in rec.messages[0]
+    assert calls[0] == ("hog", None)  # 첫 실행은 나눈 몫(총 80% / N)
+
+    # 다른 슬롯이 돌고 있으면 단독 재시도는 시작하지 않고, 다른 작업이 대신 간다
+    state = rj.load_state(cfg)
+    jobs, _ = rj.load_job_definitions(cfg)
+    now, end = kst(13, 10), kst(23, 55)
+    assert rj.pick_job(state, jobs, now, end, solo_allowed=False)[0].id == "bystander"
+    assert rj.pick_job(state, jobs, now, end, solo_allowed=True)[0].id == "hog"
+
+    # 단독 재시도: 이 작업이 도는 동안 다른 슬롯은 아무것도 시작하지 않고, 상한은 총 메모리 80% (9600MB)
+    def solo_child(cfg_, job, budget, **kw):
+        calls.append((job.id, kw.get("memory_limit_mb")))
+        inner = tick(cfg, rec, kst(13, 20), slots=3)
+        assert inner["action"] in ("idle", "skipped")
+        return rj.RunOutcome(-15, "job_memory", 3.0, "", peak_rss_mb=9700.0)
+
+    monkeypatch.setattr(rj, "run_child", solo_child)
+    assert tick(cfg, rec, kst(13, 10), slots=3)["job_id"] == "hog"
+    assert calls[-1] == ("hog", 9600)
+    entry = rj.load_state(cfg)["jobs"]["hog"]
+    assert entry["failures"] == 1 and entry["status"] == "in_progress"  # 두 번째 초과는 보통 실패로 센다
+    assert entry["last_reason"] == "작업 메모리 상한 초과"
+    assert rj.load_state(cfg)["jobs"]["bystander"]["status"] == "pending"
+    assert entry["peak_rss_mb"] == 9700.0
+
+
+def test_memory_overrun_of_non_resumable_job_is_a_plain_failure(cfg):
+    job = _job(cfg, "oneshot-hog", OK_SCRIPT, resumable=False, max_attempts=2)
+    entry = rj._new_entry(job)
+    out = rj.RunOutcome(-15, "job_memory", 3.0, "", peak_rss_mb=4000.0)
+    assert rj.apply_outcome(cfg, job, entry, out, False, print, Recorder().publish, kst(13, 0), {}) == "retry"
+    assert entry["failures"] == 1 and not entry.get("solo_retry") and entry["status"] == "pending"
+
+
+def test_n1_behaviour_unchanged_with_groups_and_peak(cfg, monkeypatch):
+    monkeypatch.setenv(rj.MAX_PARALLEL_ENV, "1")
+    add_job(cfg.repo_root, "one", OK_SCRIPT, priority=1, exclusive_group="crsp")
+    add_job(cfg.repo_root, "two", OK_SCRIPT, priority=2, exclusive_group="crsp")
+    rec = Recorder(status="skipped")
+    monkeypatch.setattr(rj, "run_child", lambda cfg_, job, budget, **kw: rj.RunOutcome(3, None, 1.0, "", peak_rss_mb=10.0))
+    assert tick(cfg, rec, kst(13, 0))["job_id"] == "one"  # 순차 실행에서는 그룹이 아무것도 막지 않는다(running 이 없다)
+    assert tick(cfg, rec, kst(13, 10))["job_id"] == "one"  # 우선순위 순서 그대로(in_progress 도 다시 고른다)
+    state = rj.load_state(cfg)
+    assert state["jobs"]["one"]["peak_rss_mb"] == 10.0 and state["jobs"]["two"]["status"] == "pending"
+    assert "solo_retry" not in state["jobs"]["one"]
