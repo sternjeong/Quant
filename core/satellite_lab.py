@@ -99,6 +99,9 @@ DEFAULT_ACTIVE_SR_ANNUAL_SD = 0.5
 TRADING_DAYS = 252
 
 STATUS_QUEUED, STATUS_PASS, STATUS_FAIL, STATUS_ERROR = "queued", "pass", "fail", "error"
+# 2026-10-11: 후보 수익이 현 규칙과 매일 같아 비교 자체가 안 되는 아이디어(research_power.noop_guard). 탈락이 아니다 —
+# 대기열에서 빠지고(재심판 안 함), 시도 분산 풀(prior_active_srs)에 들어가지 않는다. 동결 때 올라간 누적 시도 수는 줄이지 않는다.
+STATUS_NOT_EVALUABLE = "not_evaluable"
 MAX_JUDGE_ATTEMPTS = 3
 
 PoolProvider = Callable[[str, date], list[str]]
@@ -638,13 +641,25 @@ def judge_variant(spec: dict, signal_code: str, data: LabData, *, incumbent: dic
         reasons.append(f"G5 IS 리밸런싱 {is_periods}회 < {MIN_IS_PERIODS}")
 
     last = best["bt"]["schedule"][-1] if best["bt"]["schedule"] else (None, [])
+    # 2026-10-11 additive: 무효 실행 가드(통과·탈락 기준은 그대로) + 검정력 정보. docs/RESEARCH_JOBS.md '판정 설계 규칙'.
+    from core import research_power as rp
+
+    noop = rp.noop_guard(_active(r, inc_r).to_numpy())
+    verdict = STATUS_NOT_EVALUABLE if noop else (STATUS_PASS if not reasons else STATUS_FAIL)
+    extra = rp.power_fields(act_is.get("n_days"), n_total, act_is.get("sharpe_annual"), verdict == STATUS_FAIL)
+    if noop:
+        reasons = [f"NOT_EVALUABLE: {noop}"] + reasons
+        extra["not_evaluable_reason"] = noop
+        extra["trial_consumed"] = False
+        trial_active_srs = []  # 무효 실행의 샤프는 다른 후보의 시도 분산(prior_active_srs)에 넣지 않는다
     return {
         "judge_version": JUDGE_VERSION,
-        "verdict": STATUS_PASS if not reasons else STATUS_FAIL,
+        "verdict": verdict,
         "reasons": reasons,
         "gates": gates,
         "best_params": best["params"],
         "trial_active_srs": trial_active_srs,
+        **extra,
         "trials": [{"params": t["params"], "is_sharpe": round(t["is"].get("sharpe_annual", 0.0), 3),
                     "active_is_sharpe": round(t["active_is"].get("sharpe_annual", 0.0), 3)} for t in trials],
         "stats": {"is": _round(is_s), "oos": _round(oos_s), "incumbent_is": _round(inc_is), "incumbent_oos": _round(inc_oos)},
@@ -832,8 +847,9 @@ def leaderboard(reg: Optional[dict] = None) -> list[dict]:
             "gates_passed": sum(1 for x in g.values() if x.get("pass")), "n_gates": len(g),
             "reasons": res.get("reasons") or ([v.get("error")] if v.get("error") else []),
             "latest_picks": res.get("latest_picks"),
+            "fail_kind": res.get("fail_kind"), "power": res.get("power"),
         })
-    order = {STATUS_PASS: 0, STATUS_FAIL: 1, STATUS_QUEUED: 2, STATUS_ERROR: 3}
+    order = {STATUS_PASS: 0, STATUS_FAIL: 1, STATUS_NOT_EVALUABLE: 2, STATUS_QUEUED: 3, STATUS_ERROR: 4}
     rows.sort(key=lambda r: (order.get(r["status"], 9), -(r["active_is_sharpe"] if r["active_is_sharpe"] is not None else -9)))
     return rows
 
@@ -847,9 +863,13 @@ def context_markdown(reg: Optional[dict] = None) -> str:
              f"- 현 규칙(S-SEED-000) 무작위 대비 IS 백분위: {inc.get('random_percentile_is')}", "",
              "| id | 상태 | 구조 | 아이디어 | 탈락 사유 |", "|---|---|---|---|---|"]
     for r in leaderboard(reg):
+        kind = f"[{r['fail_kind']}] " if r.get("fail_kind") else ""
         lines.append(f"| {r['id']} | {r['status']} | {r['structure']} | {str(r['thesis'])[:90]} | "
-                     f"{'; '.join(r['reasons'])[:200]} |")
-    return "\n".join(lines) + "\n"
+                     f"{kind}{'; '.join(r['reasons'])[:200]} |")
+    from core import research_power as rp
+
+    years = max((date.today() - date.fromisoformat(LAB_START)).days / 365.25 - HOLDOUT_YEARS, 1.0)
+    return "\n".join(lines) + "\n" + rp.briefing_block(years, reg.get("cumulative_trials", 0))
 
 
 # =================================================================================================
@@ -952,15 +972,22 @@ def smoke_check(spec: dict, code: str) -> str:
 
 def notification_text(entry: dict) -> str:
     res = entry.get("result") or {}
-    head = "✅ 통과 — 사람 검토 대기" if entry["status"] == STATUS_PASS else (
-        "❌ 탈락" if entry["status"] == STATUS_FAIL else "⚠️ 계산 오류")
+    head = {STATUS_PASS: "✅ 통과 — 사람 검토 대기(전진 원장 후보, 채택 아님)", STATUS_FAIL: "❌ 탈락",
+            STATUS_NOT_EVALUABLE: "➖ 평가 불가(현 규칙과 매일 같음)"}.get(entry["status"], "⚠️ 계산 오류")
     lines = [f"[새틀라이트 R&D] {entry['id']} {entry['spec'].get('title')} — {head}"]
     if res.get("gates"):
         lines.append("관문: " + " ".join(f"{k.split('_')[0]}{'○' if g.get('pass') else '×'}" for k, g in res["gates"].items()))
     for r in (res.get("reasons") or [])[:3]:
         lines.append(f"· {r}")
     if entry["status"] == STATUS_PASS:
-        lines.append("챔피언에는 자동 반영되지 않습니다. 관제 센터 '새틀라이트 R&D 센터'에서 확인 후 결정하세요.")
+        lines.append("챔피언에는 자동 반영되지 않습니다. 관제 센터 '새틀라이트 R&D 센터'에서 확인 후 결정하세요. "
+                     "떼어 둔 2년은 20개 넘는 연구가 이미 봐서 독립 시험이 아니므로 채택은 전진 원장으로 판단합니다.")
+    elif entry["status"] == STATUS_FAIL:
+        from core import research_power as rp
+
+        sfx = rp.power_suffix(res)
+        if sfx:
+            lines.append(f"· {sfx}")
     if entry.get("error"):
         lines.append(f"· {entry['error'][:200]}")
     return "\n".join(lines)[:1500]

@@ -31,9 +31,13 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 IDEAS_DIR = PROJECT_ROOT / "research" / "core_lab" / "ideas"
 STATE_DIR = PROJECT_ROOT / "data" / "core_lab"
 PRIOR_CORE_TRIALS = 229
+CORE_LAB_START = "2008-01-01"  # scripts/core_lab_worker.py 의 START 와 같다(컨텍스트의 검정력 사실 계산용)
 ID_RE = re.compile(r"^Q-(\d{4}q[1-4])-(\d{2})$")
 BATCH_SIZE = 3
 STATUS_QUEUED, STATUS_PASS, STATUS_FAIL, STATUS_ERROR = "queued", "pass", "fail", "error"
+# 2026-10-11: 아이디어 수익이 현 코어와 매일 같아 비교가 안 됨(core_lab.judge 의 NOT_EVALUABLE). 탈락이 아니며 대기열에서 빠진다.
+# 동결 때 올라간 누적 시도 수는 줄이지 않는다(되돌리지 않는 규칙).
+STATUS_NOT_EVALUABLE = "not_evaluable"
 
 CONFIG_RULES: dict[str, Any] = {
     "lookbacks": ("list", 21, 378, 4),
@@ -282,16 +286,29 @@ def context_markdown(state_dir: Optional[Path] = None) -> str:
              "VIX·실현변동성 급락 필터(info A, 오신호로 전부 탈락)", "", "| id | 상태 | 아이디어 | 사유 |", "|---|---|---|---|"]
     for v in reg["ideas"].values():
         res = v.get("result") or {}
-        lines.append(f"| {v['id']} | {v['status']} | {v['idea']['title']} | {'; '.join(res.get('reasons') or [])[:200]} |")
-    return "\n".join(lines) + "\n"
+        kind = f"[{res['fail_kind']}] " if res.get("fail_kind") else ""
+        lines.append(f"| {v['id']} | {v['status']} | {v['idea']['title']} | {kind}{'; '.join(res.get('reasons') or [])[:200]} |")
+    from datetime import date as _date
+
+    from core import research_power as rp
+
+    years = max((_date.today() - _date.fromisoformat(CORE_LAB_START)).days / 365.25 - 2, 1.0)
+    return "\n".join(lines) + "\n" + rp.briefing_block(years, reg.get("cumulative_trials", PRIOR_CORE_TRIALS))
 
 
 def notification_text(entry: dict) -> str:
     res = entry.get("result") or {}
-    head = {"pass": "✅ 통과 — 사람 검토 대기", "fail": "❌ 탈락", "error": "⚠️ 계산 오류"}.get(entry["status"], entry["status"])
+    head = {"pass": "✅ 통과 — 사람 검토 대기(전진 원장 후보, 채택 아님)", "fail": "❌ 탈락", "error": "⚠️ 계산 오류",
+            "not_evaluable": "➖ 평가 불가(현 코어와 매일 같음)"}.get(entry["status"], entry["status"])
     lines = [f"[코어 분기 연구] {entry['id']} {entry['idea']['title']} — {head}"]
     for r in (res.get("reasons") or [])[:3]:
         lines.append(f"· {r}")
     if entry["status"] == STATUS_PASS:
-        lines.append("챔피언에는 자동 반영되지 않습니다.")
+        lines.append("챔피언에는 자동 반영되지 않습니다. 떼어 둔 2년은 20개 넘는 연구가 이미 봐서 독립 시험이 아니므로 채택은 전진 원장으로 판단합니다.")
+    elif entry["status"] == STATUS_FAIL:
+        from core import research_power as rp
+
+        sfx = rp.power_suffix(res)
+        if sfx:
+            lines.append(f"· {sfx}")
     return "\n".join(lines)[:1200]

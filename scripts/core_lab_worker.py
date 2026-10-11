@@ -128,7 +128,7 @@ def main(argv=None) -> int:
             res["judged_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
             with cr.edit_registry(state_dir) as rg:
                 v = rg["ideas"][entry["id"]]
-                v.update(status=cr.STATUS_PASS if res["verdict"] == "PASS" else cr.STATUS_FAIL, result=res,
+                v.update(status={"PASS": cr.STATUS_PASS, "NOT_EVALUABLE": cr.STATUS_NOT_EVALUABLE}.get(res["verdict"], cr.STATUS_FAIL), result=res,
                          attempts=v.get("attempts", 0) + 1)
             log(f"판정 {entry['id']}: {res['verdict']} {'; '.join(res['reasons'])[:200]}")
         except Exception as exc:  # noqa: BLE001

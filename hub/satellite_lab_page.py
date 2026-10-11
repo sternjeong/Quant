@@ -17,8 +17,22 @@ GATE_LABELS = {
     "G4_param_robust": "G4 파라미터 강건",
     "G5_risk": "G5 위험·표본",
 }
-STATUS_LABELS = {"pass": ("통과 — 사람 검토 대기", "active"), "fail": ("탈락", "failed"),
+STATUS_LABELS = {"pass": ("통과 — 사람 검토 대기(전진 원장 후보)", "active"), "fail": ("탈락", "failed"),
+                 "not_evaluable": ("평가 불가(기준선과 매일 같음)", "unknown"),
                  "queued": ("심판 대기", "unknown"), "error": ("계산 오류", "failed"), "reference": ("기준선", "unknown")}
+PASS_NOTE = ("통과 = 전진 원장에 올릴 후보·사람 검토 대기이지 채택이 아닙니다. 떼어 둔 마지막 2년은 20개 넘는 연구가 이미 들여다봐서 "
+             "더 이상 독립 시험이 아니므로, 채택 판단은 앞으로 쌓이는 전진 기록으로 합니다.")
+
+
+def power_line(res: dict) -> str:
+    """판정 결과의 fail_kind·검정력 한 줄(작은 글씨). 옛 저장 결과(키 없음)는 빈 문자열."""
+    from core import research_power as rp
+
+    sfx = rp.power_suffix(res)
+    if not sfx:
+        return ""
+    kind = res.get("fail_kind")
+    return f'<br><small>{html.escape((kind + " · ") if kind else "")}{html.escape(sfx)}</small>'
 
 
 def collect() -> dict[str, Any]:
@@ -163,11 +177,11 @@ def render_core(data: dict) -> str:
         rows.append(f'<tr><td><b>{_e(v["id"])}</b><br><small>{_e(v["idea"].get("title"))} · {_e(v["idea"].get("topic"))}</small></td>'
                     f'<td><span class="badge {tone}">{html.escape(label)}</span></td>'
                     f'<td><small>{_e(json.dumps(v["idea"].get("config"), ensure_ascii=False))} · 매도 {_e(v["idea"].get("exit_rule", {}).get("kind"))}</small></td>'
-                    f'<td><small>{"<br>".join(html.escape(x) for x in (res.get("reasons") or [])[:3]) or "—"}</small></td></tr>')
+                    f'<td><small>{"<br>".join(html.escape(x) for x in (res.get("reasons") or [])[:3]) or "—"}</small>{power_line(res)}</td></tr>')
     head = (f'<p class="subtitle">분기마다 AI 가 근거 있는 코어 아이디어(선정·보유 중 매도 시점)를 최대 3개 제안하고 같은 판정으로 시험합니다. '
             f'누적 시도 수 <b>{_e(reg.get("cumulative_trials"))}</b>(이전 코어 연구 229개 포함). 이번 분기 {_e(data.get("core_quarter"))}: '
             f'제안 {_e(ag.get("runs", 0))}회 · 등록 {_e(len(ag.get("frozen") or []))}개'
-            + (f' · 형식 오류 {_e(len(ag.get("errors") or {}))}개' if ag.get("errors") else "") + '</p>')
+            + (f' · 형식 오류 {_e(len(ag.get("errors") or {}))}개' if ag.get("errors") else "") + f'<br>{html.escape(PASS_NOTE)}</p>')
     table = ('<table><tr><th>아이디어</th><th>상태</th><th>설정</th><th>사유</th></tr>' + "".join(rows) + '</table>') if rows else '<p>아직 등록된 아이디어가 없습니다.</p>'
     return '<h2>코어 분기 연구</h2>' + head + table
 
@@ -267,10 +281,10 @@ def render_body(data: dict) -> str:
                 f'<td>{_num(r["dsr"])}</td><td>{_num(r["is_sharpe"])} / {_num(r["oos_sharpe"])}</td>'
                 f'<td><small>{_e(r["structure"])}<br>{_e(json.dumps(r["best_params"], ensure_ascii=False) if r["best_params"] else None)}</small></td>'
                 f'<td><small>{_e(picks.get("date"))}: {_e(", ".join(picks.get("tickers") or []) or None)}</small></td>'
-                f'<td class="sat-fail-reasons" style="min-width:280px;white-space:normal;line-height:1.6"><small>{reasons or "—"}</small></td></tr>')
+                f'<td class="sat-fail-reasons" style="min-width:280px;white-space:normal;line-height:1.6"><small>{reasons or "—"}</small>{power_line(r)}</td></tr>')
         parts.append(
             '<h2>후보 순위</h2><p class="subtitle">현 규칙 대비 초과 연샤프(IS) 순. 백분위는 같은 구조로 무작위로 고른 200번과 비교한 위치입니다. '
-            '숫자가 좋아 보여도 관문을 모두 넘지 못하면 탈락입니다.</p>'
+            '숫자가 좋아 보여도 관문을 모두 넘지 못하면 탈락입니다. ' + PASS_NOTE + '</p>'
             '<div style="overflow-x:auto"><table class="sat-leaderboard"><tr><th>후보</th><th>상태</th><th>관문</th><th>현 규칙 대비<br>초과 샤프</th>'
             '<th>무작위 대비<br>백분위</th><th>DSR</th><th>샤프<br>IS / 2년</th><th>구조·파라미터</th><th>마지막 선정</th><th>탈락 사유</th></tr>'
             + "".join(trs) + '</table></div>')

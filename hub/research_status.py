@@ -8,6 +8,10 @@ from __future__ import annotations
 import html
 from typing import Any
 
+from core import research_power as rp
+
+PASS_NOTE = ("심판 통과·승격 후보 = 전진 원장에 올릴 후보·사람 검토 대기이지 채택이 아닙니다. 떼어 둔 마지막 2년은 20개 넘는 연구가 "
+             "이미 들여다봐서 독립 시험이 아니므로, 채택 판단은 전진 기록으로 합니다.")
 STAGES = [("draft", "초안"), ("frozen", "동결(심판 대기)"), ("judged_pass", "심판 통과"), ("shadow", "shadow 전진검증"),
           ("promotion_candidate", "승격 후보"), ("promoted_paper", "paper 승격"), ("judged_fail", "심판 탈락"),
           ("retired", "종료"), ("abandoned", "구현 포기")]
@@ -21,6 +25,7 @@ def collect() -> dict[str, Any]:
         data["funnel"] = reg.funnel()
         data["events"] = reg.recent_events(15)
         data["candidates"] = reg.list_by_status(reg.PROMOTED, reg.CANDIDATE, reg.SHADOW)
+        data["recent_fails"] = reg.list_by_status(reg.FAIL)[-8:]
     except Exception as exc:  # noqa: BLE001
         data["registry_error"] = type(exc).__name__
     try:
@@ -108,6 +113,15 @@ def render_body(data: dict) -> str:
             extra = f" — 전진 {fwd['n_days']}일 누적 {fwd['forward_cum']:+.2%}" if fwd else ""
             rows.append(_row(h["id"], _e(h["status"]) + " · " + _e(h["spec"]["thesis"][:90]) + _e(extra)))
         parts.append(f'<h2>paper 편입 · 승격 후보 · shadow</h2><table>{"".join(rows) or _row("없음", "")}</table>')
+        parts.append(f'<p class="subtitle">{_e(PASS_NOTE)}</p>')
+        rows = []
+        for h in data.get("recent_fails") or []:
+            j = h.get("judge") or {}
+            sfx = rp.power_suffix(j)
+            if j.get("fail_kind") or sfx:
+                rows.append(_row(h["id"], f"<b>{_e(j.get('fail_kind') or j.get('verdict'))}</b> <small>{_e(sfx)}</small>"))
+        if rows:
+            parts.append(f'<h2>최근 탈락의 성격 <small>(검정력)</small></h2><table>{"".join(rows)}</table>')
         rows = [_row(f"{e['at']:%m-%d %H:%M}" if e["at"] else "—",
                      f"{_e(e['id'])} {_e(e['from'])} → <b>{_e(e['to'])}</b> <small>{_e((e['note'] or '')[:140])}</small>")
                 for e in data["events"]]

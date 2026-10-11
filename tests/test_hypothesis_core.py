@@ -287,3 +287,74 @@ def test_judge_selects_on_is_only_and_fails_on_oos():
     assert res["holdout"]["oos_stats"]["sharpe_annual"] < 0
     assert any(x.startswith("OOS(") for x in res["reasons"])
     assert not any("OOS 분리 없음" in w for w in res["warnings"])
+
+
+# ---------------- 2026-10-11: 검정력 정보·무효 실행 가드·문구 (통과/탈락 기준은 그대로) ----------------
+def test_judge_adds_power_and_fail_kind_additively():
+    from core import research_power as rp
+
+    provider, _ = _cliff_setup()
+    code = "def score(p, a, k):\n    return {'GOOD': 1.0} if k['lookback'] == 60 else {'BAD': 1.0}\n"
+    s = hs.validate(spec(universe={"type": "list", "tickers": ["GOOD", "BAD"]}, period={"start": "2019-06-01"},
+                         signal={"params_grid": [{"lookback": 60}]}))
+    res = hj.judge({"spec": s, "signal_code": code}, cumulative_trials=40, prior_srs=[], price_provider=provider,
+                   champion_corr_fn=None, cost=(0.0, "test"))
+    assert res["verdict"] == "fail" and res["n_trials_total"] == 40  # 기존 판정 그대로
+    rep = res["power"]
+    assert rep["n_trials"] == 40
+    n_days = res["holdout"]["is_stats"]["n_days"] if res["holdout"]["is_stats"] else res["stats"]["n_days"]
+    assert rep["years"] == pytest.approx(n_days / 252, abs=0.01)
+    assert rep["mde_ir"] == pytest.approx(rp.mde_ir(rep["years"], 40), abs=0.002)
+    assert res["fail_kind"] == rp.classify_fail(
+        (res["holdout"]["is_stats"] or res["stats"]).get("sharpe_annual"), rep)
+    json.dumps(res, default=str)
+
+
+def test_judge_power_handles_missing_inputs():
+    from core import research_power as rp
+
+    assert rp.power_fields(None, 5, 0.3, True) == {}
+    assert rp.power_fields(float("nan"), 5, 0.3, True) == {}
+    assert rp.power_fields(1000, 0, 0.3, True) == {}
+    out = rp.power_fields(1000, 5, float("nan"), True)
+    assert out["fail_kind"] == "FAIL" and "power" in out  # 관측 IR 을 모르면 보수적으로 FAIL
+    assert "fail_kind" not in rp.power_fields(1000, 5, 0.3, False)
+    assert rp.power_suffix(None) == "" and rp.power_suffix({"verdict": "fail"}) == ""  # 옛 저장 결과
+
+
+def test_noop_hypothesis_is_not_evaluable_and_closes_without_polluting_pool(db, monkeypatch):
+    spy = _market(n=900, seed=0)
+    provider = lambda t, a, b: spy  # noqa: E731
+    ret = spy["Close"].pct_change().fillna(0.0)
+
+    def fake_backtest(spec_, params, signal, prices, members_at, bps):
+        return {"returns": ret, "n_rebalances": 30, "avg_turnover": 0.1, "total_turnover": 1.0,
+                "price_coverage": 1.0, "missing_price_days": 0}
+
+    monkeypatch.setattr(he, "backtest", fake_backtest)
+    reg.register_draft(spec(universe={"type": "list", "tickers": ["SPYCLONE"]}, period={"start": "2019-06-01"},
+                            signal={"params_grid": [{}]}), session=db)
+    reg.freeze("H-20261001-001", "def score(p,a,k):\n    return {t: 1.0 for t in p}\n", session=db)
+    out = hj.judge_frozen("H-20261001-001", session=db, price_provider=provider, champion_corr_fn=None, factors_fn=None)
+    assert out["status"] == "not_evaluable"
+    h = reg.get("H-20261001-001", session=db)
+    assert h["status"] == reg.FAIL  # 통과로 읽히지 않고, frozen 에 남아 매일 재심판되지도 않는다
+    assert h["judge"]["verdict"] == "not_evaluable" and h["judge"]["trial_consumed"] is False
+    assert h["judge"]["trial_srs"] == [] and "fail_kind" not in h["judge"]
+    assert h["judge"]["reasons"][0].startswith("NOT_EVALUABLE")
+    assert hj.prior_trial_srs(db) == []
+    # 일일 로그 꼬리는 not_evaluable 에서 깨지지 않는다
+    from core import agent_batch as ab
+
+    assert ab._power_tail(h["judge"]) == ""
+
+
+def test_batch_power_tail_and_wording():
+    from core import agent_batch as ab
+    from core import hypothesis_shadow as hsh
+
+    tail = ab._power_tail({"verdict": "fail", "fail_kind": "FAIL_UNDERPOWERED", "power": {"mde_ir": 0.9}})
+    assert "FAIL_UNDERPOWERED" in tail and "0.90" in tail
+    assert ab._power_tail({"verdict": "fail"}) == "" and ab._power_tail(None) == ""
+    msg = hsh.candidate_message({"id": "H-1", "spec": {"thesis": "t"}}, {"n_days": 60, "forward_cum": 0.01, "z": 0.2})
+    assert "전진 원장" in msg and "채택" in msg and "독립 시험이 아니" in msg
