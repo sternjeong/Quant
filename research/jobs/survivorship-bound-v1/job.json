@@ -1,0 +1,14 @@
+{
+  "id": "survivorship-bound-v1",
+  "title": "생존편향 한계 측정 — champion40 새틀라이트 결론이 그럴듯한 편향 아래서도 버티는가",
+  "entrypoint": "research/jobs/survivorship-bound-v1/run.py",
+  "args": [],
+  "timeout_seconds": 10800,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 17,
+  "max_memory_mb": 3000,
+  "revision": 1
+}
