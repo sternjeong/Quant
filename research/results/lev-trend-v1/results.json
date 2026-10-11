@@ -1,0 +1,123 @@
+{
+ "judge_version": "lever-judge/v1",
+ "smoke": false,
+ "generated_at": "2026-10-11T00:30:05+00:00",
+ "verdicts": {
+  "G1": "FAIL",
+  "G2": "FAIL",
+  "G3": "FAIL",
+  "G4": "FAIL"
+ },
+ "details": {
+  "G1": {
+   "checks": {
+    "after_tax_ge_spy_plus_3pp": false,
+    "krw_mdd_ge_-29.2pct": false,
+    "holdout_after_tax_gt_spy": false,
+    "dsr_ge_0.95": false,
+    "family_pbo_le_25pct": false,
+    "stress_after_tax_ge_spy_plus_1pp": false
+   },
+   "dsr": 0.2139510139319335
+  },
+  "G2": {
+   "checks": {
+    "after_tax_ge_spy_plus_3pp": false,
+    "krw_mdd_ge_-29.2pct": false,
+    "holdout_after_tax_gt_spy": false,
+    "dsr_ge_0.95": false,
+    "family_pbo_le_25pct": false,
+    "stress_after_tax_ge_spy_plus_1pp": false
+   },
+   "dsr": 0.4759466927085797
+  },
+  "G3": {
+   "checks": {
+    "after_tax_ge_spy_plus_3pp": false,
+    "krw_mdd_ge_-29.2pct": false,
+    "holdout_after_tax_gt_spy": false,
+    "dsr_ge_0.95": false,
+    "family_pbo_le_25pct": false,
+    "stress_after_tax_ge_spy_plus_1pp": false
+   },
+   "dsr": 0.2871021855532261
+  },
+  "G4": {
+   "checks": {
+    "after_tax_ge_spy_plus_3pp": false,
+    "krw_mdd_ge_-29.2pct": true,
+    "holdout_after_tax_gt_spy": false,
+    "dsr_ge_0.95": false,
+    "family_pbo_le_25pct": false,
+    "stress_after_tax_ge_spy_plus_1pp": false
+   },
+   "dsr": 0.1594381925071917
+  }
+ },
+ "stats": {
+  "SPY": {
+   "label": "SPY 그냥 보유",
+   "cagr_liq": 0.12210025809201563,
+   "cagr_liq_holdout": 0.1598953802526628,
+   "mdd": -0.29678566480959234,
+   "tax_m": 0.0,
+   "trades": 0
+  },
+  "G1": {
+   "label": "G1 1.5배, 매일 신호",
+   "cagr_liq": 0.11128793315941832,
+   "cagr_liq_holdout": 0.1122146502890482,
+   "mdd": -0.30988462219333757,
+   "tax_m": 33.11709702409928,
+   "trades": 107,
+   "cagr_liq_stress": 0.1030539560110646
+  },
+  "G2": {
+   "label": "G2 2배, 매일 신호",
+   "cagr_liq": 0.13634078861248544,
+   "cagr_liq_holdout": 0.1266027130814127,
+   "mdd": -0.3989245466173833,
+   "tax_m": 55.187019020367806,
+   "trades": 107,
+   "cagr_liq_stress": 0.12018525637316424
+  },
+  "G3": {
+   "label": "G3 1.5배, 월초 신호",
+   "cagr_liq": 0.11746699345620071,
+   "cagr_liq_holdout": 0.09507747642438846,
+   "mdd": -0.3379882577667417,
+   "tax_m": 44.305586105077985,
+   "trades": 27,
+   "cagr_liq_stress": 0.1093595208907876
+  },
+  "G4": {
+   "label": "G4 변동성 목표 15%(최대 2배), 월초",
+   "cagr_liq": 0.10415483861428232,
+   "cagr_liq_holdout": 0.11266255439961248,
+   "mdd": -0.24442436043926286,
+   "tax_m": 30.353465551723378,
+   "trades": 176,
+   "cagr_liq_stress": 0.09391503812362711
+  }
+ },
+ "family_pbo": {
+  "pbo": 0.9714285714285714,
+  "n_splits": 70,
+  "median_logit": -13.815509557963773
+ },
+ "period": [
+  "2008-01-02",
+  "2026-10-09"
+ ],
+ "holdout_start": "2024-10-09",
+ "costs": {
+  "base": {
+   "spread": 0.01,
+   "fee": 0.009
+  },
+  "stress": {
+   "spread": 0.03,
+   "fee": 0.01
+  }
+ }
+}
