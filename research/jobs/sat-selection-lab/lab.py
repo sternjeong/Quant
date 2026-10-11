@@ -115,6 +115,75 @@ CANDIDATES = [s for s, v in STRATEGIES.items() if v["candidate"]]
 # 시도 수 = (판정 대상 전략 × 보유기간) 세 연구 합계. 통제(S4c)·기준선은 판정하지 않으므로 세지 않는다.
 N_TRIALS_TOTAL = len(CANDIDATES) * len(HOLDS)
 
+# ---- leader-follower-robust-v1 (2026-10-11 사전 등록) 추가 전략 — 모두 candidate: False 여서 위 CANDIDATES·N_TRIALS_TOTAL
+# (sat-pool/leader/follower 세 연구의 공유 시도 수)에 영향이 없다. 이 연구의 시도 수·판정은 그 작업의 run.py 가 따로 계산한다.
+# F(전체) = 모든 섹터의 대장주(상위 L)+추종주(상관 ≥ rho). C1=대장주만, C2=추종주만(대장주 제외), C4=상관 대신 다음 시총 순위.
+LF_RHOS = (0.5, 0.6, 0.7, 0.8)
+LF_LS = (1, 2, 3)
+LF_CTRL_RHO, LF_CTRL_L = 0.6, 1
+
+
+def lf_sid(rho: float, leaders: int, variant: str = "F") -> str:
+    return f"{variant}_r{int(round(rho * 100))}_L{leaders}"
+
+
+for _rho in LF_RHOS:
+    for _L in LF_LS:
+        STRATEGIES[lf_sid(_rho, _L, "F")] = {
+            "kind": "lf", "rho": _rho, "L": _L, "variant": "F", "candidate": False,
+            "title": f"LF F ρ≥{_rho} L={_L}: 모든 섹터의 대장주(상위{_L})+추종주(상관≥{_rho}), 현 규칙",
+        }
+for _variant, _desc in (("C1", "대장주만(추종주 제외)"), ("C2", "추종주만(대장주 제외)"), ("C4", "대장주 + 다음 시총 순위(상관 대신 크기)")):
+    STRATEGIES[lf_sid(LF_CTRL_RHO, LF_CTRL_L, _variant)] = {
+        "kind": "lf", "rho": LF_CTRL_RHO, "L": LF_CTRL_L, "variant": _variant, "candidate": False,
+        "title": f"LF {_variant} 통제(ρ≥{LF_CTRL_RHO} L={LF_CTRL_L}): {_desc}, 현 규칙",
+    }
+del _rho, _L, _variant, _desc
+
+
+def lf_pool_members(env: "Env", d: pd.Timestamp, sectors: list[str], rho: float, leaders: int
+                    ) -> tuple[set[str], set[str], dict[str, int]]:
+    """(모든 대장주 집합, 모든 추종주 집합, {섹터: 추종주 수}). 추종주는 그 섹터의 '시총 1위(L1)'와의 상관만 본다
+    (SPEC 의 '더 간단한 쪽' 선택 — 섹터당 L>1 이어도 L2·L3 와는 상관을 보지 않는다)."""
+    leaders_all: set[str] = set()
+    followers_all: set[str] = set()
+    counts: dict[str, int] = {}
+    for s in sectors:
+        ls = env.leaders_n(d, s, leaders)
+        if not ls:
+            continue
+        leaders_all.update(ls)
+        l1 = ls[0]
+        fl = env.followers(d, s, l1, rho)
+        fl = {f: c for f, c in fl.items() if f not in ls}  # L>1 인 다른 대장주가 l1 보다 작은 시총이면 추종주로 겹치지 않게 뺀다
+        followers_all.update(fl)
+        counts[s] = len(fl)
+    return leaders_all, followers_all, counts
+
+
+def lf_pool_variant(env: "Env", d: pd.Timestamp, sectors: list[str], rho: float, leaders: int, variant: str
+                    ) -> list[str]:
+    leaders_all, followers_all, counts = lf_pool_members(env, d, sectors, rho, leaders)
+    if variant == "F":
+        pool = leaders_all | followers_all
+    elif variant == "C1":
+        pool = set(leaders_all)
+    elif variant == "C2":
+        pool = set(followers_all)
+    elif variant == "C4":
+        pool = set(leaders_all)
+        for s in sectors:
+            ls = env.leaders_n(d, s, leaders)
+            k = counts.get(s, 0)
+            if ls and k:
+                cand = [t for t in env.sector_members(d, s) if t not in ls]
+                cand.sort(key=lambda t: (-env.cap(d, t), t))
+                pool.update(cand[:k])
+    else:
+        raise ValueError(variant)
+    return sorted(pool)
+
+
 PASS, FAIL, FAIL_UNDERPOWERED, NOT_EVALUABLE = "PASS_FORWARD_CANDIDATE", "FAIL", "FAIL_UNDERPOWERED", "NOT_EVALUABLE"
 
 
@@ -329,6 +398,12 @@ class Env:
     def sector_members(self, d: pd.Timestamp, sector: str) -> list[str]:
         return [t for t in self.members(d) if self.sector(t, d) == sector]
 
+    def leaders_n(self, d: pd.Timestamp, sector: str, n: int) -> list[str]:
+        """그 섹터 구성원 중 시총 상위 n (동률은 티커순, 내림차순 시총). 비어 있으면 [].
+        (leader-follower-robust-v1 사전 등록 — 섹터당 대장주 L 명)"""
+        ms = sorted(self.sector_members(d, sector), key=lambda t: (-self.cap(d, t), t))
+        return ms[:n]
+
     # -- 상관·수익률·변동성 (모두 d '이전' 행만)
     def corr_table(self, d: pd.Timestamp, leader: str, cands: list[str]) -> dict[str, float]:
         key = (d, leader)
@@ -414,7 +489,10 @@ def plan_at(env: Env, sid: str, d: pd.Timestamp) -> dict:
     spec = STRATEGIES[sid]
     kind = spec["kind"]
     rec: dict[str, Any] = {"fallback": False, "held": [], "leaders": {}, "cands": {}, "pairs": {}}
-    if kind == "champion":
+    if kind == "lf":
+        pool = lf_pool_variant(env, d, list(env.all_sectors), spec["rho"], spec["L"], spec["variant"])
+        rec.update(pool=pool, picks=env.inc_pick(d, pool))
+    elif kind == "champion":
         pool, picks = env.b0(d)
         rec.update(pool=pool, picks=picks)
     elif kind == "topn":
