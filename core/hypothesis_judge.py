@@ -277,8 +277,25 @@ def judge(hyp: dict, *, cumulative_trials: int, prior_srs: list[float], price_pr
     cov = best_bt["price_coverage"]
     if cov is not None and cov < 0.8:
         warnings.append(f"가격 커버리지 {cov:.0%} — 폐지 종목 누락으로 생존편향 가능")
+    # 2026-10-11 additive (통과·탈락 기준은 그대로): 검정력 정보 + 무효 실행 가드.
+    # 관측 IR 은 이 심판이 쓰는 선택 통계(IS 연샤프)다 — 이 심판은 SPY 대비 초과 샤프를 따로 만들지 않는다.
+    from core import research_power as rp
+
+    noop = None
+    if bench is not None:
+        b_ret = bench["Close"].pct_change(fill_method=None)
+        noop = rp.noop_guard((r - b_ret.reindex(r.index)).dropna().to_numpy()) if r.notna().any() else None
+        if noop and "데이터 없음" in noop:
+            noop = None  # 겹치는 날이 없는 것은 무효 실행이 아니라 데이터 문제 — 기존 판정에 맡긴다
+    verdict = "not_evaluable" if noop else ("fail" if reasons else "pass")
+    extra = rp.power_fields(sel_stats.get("n_days"), n_total, sel_stats.get("sharpe_annual"), verdict == "fail")
+    if noop:
+        reasons = [f"NOT_EVALUABLE: {noop}"] + reasons
+        extra["not_evaluable_reason"] = noop
+        extra["trial_consumed"] = False
+        trial_srs = []  # 무효 실행의 샤프는 다른 가설의 시도 분산(prior_trial_srs)에 넣지 않는다
     return {
-        "verdict": "fail" if reasons else "pass", "reasons": reasons, "warnings": warnings,
+        "verdict": verdict, "reasons": reasons, "warnings": warnings, **extra,
         "best_params": best_params, "stats": best_stats, "trial_srs": trial_srs,
         "holdout": {"split": split.date().isoformat() if split is not None else None,
                     "is_stats": sel_stats if split is not None else None, "oos_stats": oos_stats},
@@ -324,6 +341,9 @@ def judge_frozen(hyp_id: str, *, session=None, price_provider=None, champion_cor
                            judge={"verdict": "fail", "reasons": [f"error: {err}"], "trial_srs": []})
             return {"status": "failed_after_errors", "error": err}
         return {"status": "error", "error": err, "attempt": n}
+    # not_evaluable 도 judged_fail 로 닫는다(결정론이라 재시도해도 같고, frozen 에 남으면 매일 다시 심판된다).
+    # 판정 JSON 의 verdict 가 "not_evaluable" 이라 통과로 읽히지 않고, trial_srs 가 비어 시도 분산 풀에도 안 들어간다.
+    # 동결 때 올라간 n_trials 는 줄이지 않는다(되돌리지 않는 규칙).
     reg.transition(hyp_id, reg.PASS if res["verdict"] == "pass" else reg.FAIL,
                    "; ".join(res["reasons"]) or "all checks passed", session=session, judge=res)
     return {"status": res["verdict"], "judge": res}

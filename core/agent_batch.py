@@ -263,6 +263,11 @@ def write_context(now: datetime) -> None:
     for h in reg.list_by_status():
         reasons = "; ".join((h.get("judge") or {}).get("reasons") or [])[:160]
         lines.append(f"| {h['id']} | {h['status']} | {h['spec']['thesis'][:80]} | {reasons} |")
+    from core import research_power as rp
+
+    # 판정 해석 블록: 앞 구간 연수는 2008 년 이후 일봉에서 떼어 둔 2년을 뺀 근사(스펙 기간은 가설마다 다르다).
+    years = max((now.date() - datetime(2008, 1, 1).date()).days / 365.25 - 2, 1.0)
+    lines.append(rp.briefing_block(years, f["cumulative_trials"]))
     CONTEXT.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
@@ -330,6 +335,16 @@ def _dead_end(st: dict, cur: Optional[str], crit: dict) -> bool:
     return st.get("critic_hash") == cur and crit.get("verdict") != "approve"
 
 
+def _power_tail(judge: Optional[dict]) -> str:
+    """텔레그램 요약용 짧은 꼬리(탈락일 때만): 검정력 부족이면 '판별 불가'임을 알린다."""
+    from core import research_power as rp
+
+    if not judge or judge.get("verdict") != "fail":
+        return ""
+    sfx = rp.power_suffix(judge)
+    return f" [{judge.get('fail_kind', '')}: {sfx}]" if sfx else ""
+
+
 def housekeeping(now: datetime, judged: set[str], log: list[str], judge_fn=None) -> None:
     from core import hypothesis_judge as hj
 
@@ -369,7 +384,8 @@ def housekeeping(now: datetime, judged: set[str], log: list[str], judge_fn=None)
         judged.add(h["id"])
         out = judge_fn(h["id"])
         log.append(f"심판 {h['id']}: {out.get('status')}" + (f" ({'; '.join(out['judge']['reasons'])[:150]})"
-                                                               if out.get("judge") and out["judge"]["reasons"] else ""))
+                                                               if out.get("judge") and out["judge"]["reasons"] else "")
+                   + _power_tail(out.get("judge")))
 
 
 # ---------------------------------------------------------------- 계획

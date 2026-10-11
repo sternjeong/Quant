@@ -100,7 +100,8 @@ def test_judge_structure(prices):
     assert res["verdict"] in ("PASS", "FAIL")
     json.dumps(res)
     same = cl.judge({"returns": inc}, inc, [], n_trials=12, all_active_daily_srs=[])
-    assert same["verdict"] == "FAIL"  # 현 코어 자신은 개선이 아니다
+    # 2026-10-11: 현 코어 자신은 개선이 아니다 — 예전엔 FAIL, 이제는 기준선과 매일 같아 NOT_EVALUABLE(통과·탈락 기준은 그대로).
+    assert same["verdict"] == "NOT_EVALUABLE" and same["verdict"] != "PASS"
 
 
 def test_research_job_smoke(tmp_path):
@@ -184,3 +185,64 @@ def test_vol_target_only_scales_down(prices):
     high = cl.build_weights(closes, extra, cl.CoreConfig(cash="bil", vol_target=5.0))
     assert (low.drop(columns="BIL").sum(axis=1) <= base.drop(columns="BIL").sum(axis=1) + 1e-9).all()
     pd.testing.assert_frame_equal(high, base)  # 목표가 충분히 크면 그대로
+
+
+def test_judge_adds_power_and_fail_kind_and_noop_guard(prices):
+    from core import research_power as rp
+
+    closes, extra = prices
+    inc = cl.run(closes, extra, cl.CoreConfig(), "2011-06-01")
+    var = cl.run(closes, extra, cl.CoreConfig(cash="bil"), "2011-06-01")
+    res = cl.judge({"returns": var}, inc, [], n_trials=240, all_active_daily_srs=[])
+    assert cl.JUDGE_VERSION == "core-judge/v1" and res["judge_version"] == "core-judge/v1"
+    rep = res["power"]
+    both = pd.concat([var.rename("v"), inc.rename("b")], axis=1).fillna(0.0)
+    n_is = int((both.index < cl.holdout_split(both.index)).sum())
+    assert rep["n_trials"] == 240 and rep["years"] == pytest.approx(n_is / 252, abs=0.01)
+    assert rep["mde_ir"] == pytest.approx(rp.mde_ir(n_is / 252, 240), abs=0.002)
+    if res["verdict"] == "FAIL":
+        assert res["fail_kind"] == rp.classify_fail(res["gates"]["G1_improves_corrected"]["active_sharpe_annual"], rep)
+    else:
+        assert "fail_kind" not in res
+    same = cl.judge({"returns": inc}, inc, [], n_trials=240, all_active_daily_srs=[])
+    assert same["trial_consumed"] is False and "fail_kind" not in same and same["reasons"][0].startswith("NOT_EVALUABLE")
+    json.dumps(same)
+
+
+def test_not_evaluable_flows_through_core_registry_and_hub(tmp_path):
+    from core import core_rnd as cr
+    from hub import satellite_lab_page as page
+
+    idea = {"id": "Q-2026q4-01", "title": "무효", "thesis": "t", "source": "s", "topic": "exit", "config": {"top_n": 5}}
+    cr.freeze(idea, "agent", tmp_path)
+    cr.freeze({**idea, "id": "Q-2026q4-02", "title": "옛 결과"}, "agent", tmp_path)
+    with cr.edit_registry(tmp_path) as reg:
+        reg["ideas"]["Q-2026q4-01"].update(status=cr.STATUS_NOT_EVALUABLE, attempts=1, result={
+            "verdict": "NOT_EVALUABLE", "reasons": ["NOT_EVALUABLE: x"], "gates": {}, "trial_consumed": False})
+        reg["ideas"]["Q-2026q4-02"].update(status=cr.STATUS_FAIL, attempts=1, result={  # power 키 없는 옛 저장 결과
+            "verdict": "FAIL", "reasons": ["G1 x"], "gates": {}})
+    reg = cr.load_registry(tmp_path)
+    assert cr.queue(reg) == [] and not cr.has_work(tmp_path)
+    assert "평가 불가" in cr.notification_text(reg["ideas"]["Q-2026q4-01"])
+    assert "통과" not in cr.notification_text(reg["ideas"]["Q-2026q4-01"])
+    assert cr.notification_text(reg["ideas"]["Q-2026q4-02"]).startswith("[코어 분기 연구]")
+    ctx = cr.context_markdown(tmp_path)
+    assert "not_evaluable" in ctx and "## 판정 해석" in ctx and "20개 넘는 연구" in ctx
+    html_out = page.render_core({"core_registry": reg, "core_agent": {}, "core_quarter": "2026q4"})
+    assert "평가 불가" in html_out and "독립 시험이 아니" in html_out
+
+
+def test_core_fail_notification_suffix_and_pass_wording():
+    from core import core_rnd as cr
+
+    entry = {"id": "Q-1", "idea": {"title": "t"}, "status": "fail",
+             "result": {"reasons": ["G1 x"], "fail_kind": "FAIL_UNDERPOWERED", "power": {"mde_ir": 0.88}}}
+    assert "검정력 부족" in cr.notification_text(entry)
+    ok = cr.notification_text({"id": "Q-1", "idea": {"title": "t"}, "status": "pass", "result": {"reasons": []}})
+    assert "전진 원장" in ok and "채택 아님" in ok and "독립 시험이 아니" in ok
+
+
+def test_agent_prompts_state_pass_meaning_and_holdout_reuse():
+    for name in ("_contract.md", "_sat_contract.md", "core_designer.md"):
+        text = (ROOT / "research" / "agent_prompts" / name).read_text(encoding="utf-8")
+        assert "전진 원장" in text and "20개 넘는 연구" in text and "FAIL_UNDERPOWERED" in text, name

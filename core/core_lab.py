@@ -292,7 +292,9 @@ def _r(d: dict, n: int = 4) -> dict:
 
 def judge(variant: dict[str, pd.Series], incumbent: pd.Series, neighbors: list[pd.Series], *,
           n_trials: int, all_active_daily_srs: list[float]) -> dict:
-    """core-judge/v1. variant: {"returns": Series}. 모든 관문을 넘어야 PASS(= 사람 검토 대기)."""
+    """core-judge/v1. variant: {"returns": Series}. 모든 관문을 넘어야 PASS(= 전진 원장 후보·사람 검토 대기, 채택 아님).
+
+    verdict: PASS | FAIL | NOT_EVALUABLE(후보가 현 코어와 매일 같음 — 2026-10-11, 시도로 세지 않음). power·fail_kind 는 보고용 추가 키."""
     from core.hypothesis_judge import deflated_sharpe
 
     r = variant["returns"]
@@ -351,9 +353,19 @@ def judge(variant: dict[str, pd.Series], incumbent: pd.Series, neighbors: list[p
         reasons.append(f"G5 IS 최대낙폭 {v_is.get('max_drawdown', 0.0):.1%} (현 코어 {b_is.get('max_drawdown', 0.0):.1%})")
 
     full_v, full_b = stats(both["v"]), stats(both["b"])
-    return {"judge_version": JUDGE_VERSION, "verdict": "PASS" if not reasons else "FAIL", "reasons": reasons, "gates": gates,
+    # 2026-10-11 additive: 무효 실행 가드(통과·탈락 기준은 그대로) + 검정력 정보. docs/RESEARCH_JOBS.md '판정 설계 규칙'.
+    from core import research_power as rp
+
+    noop = rp.noop_guard(active.to_numpy())
+    verdict = "NOT_EVALUABLE" if noop else ("PASS" if not reasons else "FAIL")
+    extra = rp.power_fields(a_is.get("n_days"), n_trials, a_is.get("sharpe_annual"), verdict == "FAIL")
+    if noop:
+        reasons = [f"NOT_EVALUABLE: {noop}"] + reasons
+        extra["not_evaluable_reason"] = noop
+        extra["trial_consumed"] = False
+    return {"judge_version": JUDGE_VERSION, "verdict": verdict, "reasons": reasons, "gates": gates,
             "stats": {"is": _r(v_is), "oos": _r(v_oos), "full": _r(full_v)},
-            "incumbent": {"is": _r(b_is), "oos": _r(b_oos), "full": _r(full_b)}}
+            "incumbent": {"is": _r(b_is), "oos": _r(b_oos), "full": _r(full_b)}, **extra}
 
 
 def config_dict(cfg: CoreConfig) -> dict:

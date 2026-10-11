@@ -334,3 +334,96 @@ def test_build_data_measures_returns_with_adjusted_close():
     data = sl.build_data({"champion40"}, start="2019-06-01", end="2020-02-28", pool_provider=lambda pt, d: ["AAA"], price_provider=pp)
     assert data.closes["AAA"].iloc[-1] > data.closes["AAA"].iloc[0]  # 가격은 그대로지만 총수익은 오른다
     assert (data.ohlcv["AAA"]["Close"] == 100.0).all()  # 신호용 가격은 그대로
+
+
+# ---------------------------------------------------------------- 2026-10-11 검정력·무효 실행 가드·문구 (판정 기준은 그대로)
+def _inc(synth):
+    inc_spec, inc_code = sl.read_variant_dir(sl.SEEDS_DIR / sl.INCUMBENT_ID)
+    return inc_spec, inc_code, sl.run_variant(inc_spec, inc_spec["signal"]["params_grid"][0], sl.load_signal(inc_code), synth)
+
+
+def test_judge_adds_power_and_fail_kind_without_changing_verdict(synth):
+    from core import research_power as rp
+
+    spec = sl.validate_spec(_spec())
+    _, _, inc = _inc(synth)
+    split = sl.holdout_split(inc["returns"].index)
+    base = sl.random_baseline(spec, synth, split, n=15)
+    res = sl.judge_variant(spec, MOM, synth, incumbent=inc, baseline=base, cumulative_trials=5, prior_active_srs=[])
+    assert sl.JUDGE_VERSION == "sat-judge/v3" and res["judge_version"] == "sat-judge/v3"
+    rep = res["power"]
+    assert rep["n_trials"] == res["gates"]["G2_beats_incumbent_deflated"]["cumulative_trials"] == 5
+    assert abs(rep["mde_ir"] - rp.power_report(rep["years"], 5)["mde_ir"]) < 0.01
+    assert abs(rep["years"] - int((inc["returns"].index < split).sum()) / 252) < 0.05
+    if res["verdict"] == sl.STATUS_FAIL:
+        assert res["fail_kind"] in ("FAIL", "FAIL_UNDERPOWERED")
+    else:
+        assert "fail_kind" not in res
+    json.dumps(res)
+
+
+def test_noop_candidate_is_not_evaluable_and_flows_through_registry(synth, tmp_path, monkeypatch):
+    from hub import satellite_lab_page as page
+
+    inc_spec, inc_code, inc = _inc(synth)
+    spec = sl.validate_spec({**inc_spec, "id": "S-20261002-002", "parent": sl.INCUMBENT_ID})
+    base = sl.random_baseline(spec, synth, sl.holdout_split(inc["returns"].index), n=15)
+    res = sl.judge_variant(spec, inc_code, synth, incumbent=inc, baseline=base, cumulative_trials=7, prior_active_srs=[])
+    assert res["verdict"] == sl.STATUS_NOT_EVALUABLE == "not_evaluable"
+    assert res["trial_consumed"] is False and res["trial_active_srs"] == [] and "fail_kind" not in res
+    assert res["reasons"][0].startswith("NOT_EVALUABLE")
+    json.dumps(res)
+    # 등록부 -> 순위표·컨텍스트·알림·허브 화면이 깨지지 않고, 통과로 읽히지 않으며, 대기열에 다시 들어가지 않는다.
+    monkeypatch.setattr(sl, "STATE_DIR", tmp_path)
+    monkeypatch.setattr(sl, "VARIANTS_DIR", tmp_path / "none")
+    sl.freeze(_spec(id=sl.INCUMBENT_ID), MOM, "seed", state_dir=tmp_path)
+    sl.freeze(_spec(id="S-20261002-002"), MOM, "agent", state_dir=tmp_path)
+    with sl.edit_registry(tmp_path) as reg:
+        reg["incumbent"] = {"stats": {"is": {"sharpe_annual": 0.8}}}
+        reg["variants"]["S-20261002-002"].update(status=res["verdict"], result=res, attempts=1, error=None)
+    reg = sl.load_registry(tmp_path)
+    assert sl.queue(reg) == []
+    rows = [r for r in sl.leaderboard(reg) if r["id"] == "S-20261002-002"]
+    assert rows[0]["status"] == "not_evaluable"
+    text = sl.notification_text(reg["variants"]["S-20261002-002"])
+    assert "평가 불가" in text and "통과" not in text
+    assert "not_evaluable" in sl.context_markdown(reg)
+    data = page.collect()
+    html_out = page.render_body(data)
+    assert "평가 불가" in html_out and "S-20261002-002" in html_out
+    assert "검토 대기" not in page.card_badge(data)
+    assert not sl.has_work(tmp_path, tmp_path / "none", tmp_path / "none")
+
+
+def test_old_stored_results_without_power_keys_still_render(tmp_path, monkeypatch):
+    from hub import satellite_lab_page as page
+
+    monkeypatch.setattr(sl, "STATE_DIR", tmp_path)
+    monkeypatch.setattr(sl, "VARIANTS_DIR", tmp_path / "none")
+    sl.freeze(_spec(id=sl.INCUMBENT_ID), MOM, "seed", state_dir=tmp_path)
+    sl.freeze(_spec(), MOM, "agent", state_dir=tmp_path)
+    with sl.edit_registry(tmp_path) as reg:
+        reg["incumbent"] = {"stats": {"is": {"sharpe_annual": 0.8}}}
+        reg["variants"]["S-20261002-001"].update(status="fail", result={"gates": {}, "reasons": ["G1 x"], "verdict": "fail"})
+    reg = sl.load_registry(tmp_path)
+    assert sl.leaderboard(reg)[0]["fail_kind"] is None
+    assert "탈락" in sl.notification_text(reg["variants"]["S-20261002-001"])
+    assert "S-20261002-001" in page.render_body(page.collect())
+
+
+def test_fail_notification_has_short_power_suffix_and_pass_wording():
+    entry = {"id": "S-1", "spec": {"title": "t"}, "status": "fail",
+             "result": {"gates": {}, "reasons": ["G2 x"], "fail_kind": "FAIL_UNDERPOWERED", "power": {"mde_ir": 0.85}}}
+    assert "검정력 부족" in sl.notification_text(entry) and "0.85" in sl.notification_text(entry)
+    ok = sl.notification_text({"id": "S-1", "spec": {"title": "t"}, "status": "pass", "result": {"gates": {}, "reasons": []}})
+    assert "전진 원장" in ok and "채택 아님" in ok and "독립 시험이 아니" in ok
+
+
+def test_context_markdown_has_power_briefing_generated_from_research_power():
+    from core import research_power as rp
+
+    text = sl.context_markdown({"variants": {}, "cumulative_trials": 60, "incumbent": None})
+    assert "## 판정 해석" in text and "전진 원장" in text and "20개 넘는 연구" in text
+    assert "FAIL_UNDERPOWERED" in text and "NOT_EVALUABLE" in text
+    years = max((date.today() - date.fromisoformat(sl.LAB_START)).days / 365.25 - sl.HOLDOUT_YEARS, 1.0)
+    assert f"{rp.mde_ir(years, 60):.2f}" in text

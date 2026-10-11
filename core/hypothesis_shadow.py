@@ -134,7 +134,9 @@ def candidate_message(h: dict, v: dict) -> str:
     return (f"[가설 승격 후보] {h['id']}\n{h['spec']['thesis'][:120]}\n"
             f"전진 {v['n_days']}거래일 누적 {v['forward_cum']:+.2%} (백테스트 대비 z={v['z']:.2f})\n"
             f"편입하면 paper 계좌 research 슬리브(전체 {SLEEVE_FRACTION:.0%}, 가설당 최대 {PER_HYPOTHESIS_MAX:.0%})에 "
-            f"다음 자동 주문부터 들어갑니다. 누르지 않으면 아무것도 바뀌지 않습니다.")
+            f"다음 자동 주문부터 들어갑니다. 누르지 않으면 아무것도 바뀌지 않습니다.\n"
+            f"승격 후보는 '전진 원장에 올려 더 볼 후보'이지 채택·검증 완료가 아닙니다. 백테스트의 떼어 둔 마지막 2년은 "
+            f"20개 넘는 연구가 이미 봐서 독립 시험이 아니므로, 판단 근거는 앞으로 쌓이는 전진 기록입니다.")
 
 
 def run_daily(*, session=None, price_provider=None, today: Optional[date] = None,
