@@ -13,7 +13,7 @@
   "summary_from": "verdicts",
   "priority": 14,
   "revision": 1,
-  "max_memory_mb": 3000,
+  "max_memory_mb": 6000,
   "max_runs": 60,
   "exclusive_group": "crsp"
 }

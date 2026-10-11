@@ -279,7 +279,9 @@ def test_job_json_contract(job_id, priority):
     data = json.loads((ROOT / "research/jobs" / job_id / "job.json").read_text(encoding="utf-8"))
     job, reason = rj.validate_job(data, job_id, ROOT)
     assert job is not None, reason
-    assert data["priority"] == priority and data["resumable"] is True and data["max_memory_mb"] <= 3000
+    # CRSP 작업은 단독 재시도(메모리 상한 초과 시 혼자 다시 돎)가 의미 있도록 6000MB까지 허용한다(2026-10-11 사용자 승인).
+    mem_cap = 6000 if job_id.endswith("-crsp-v1") else 3000
+    assert data["priority"] == priority and data["resumable"] is True and data["max_memory_mb"] <= mem_cap
     assert data["outputs"] == ["results.json", "REPORT.md"] and data["summary_from"] == "verdicts"
     assert (ROOT / "research/jobs" / job_id / "SPEC.md").is_file()
 
