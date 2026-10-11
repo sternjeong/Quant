@@ -1,0 +1,380 @@
+{
+ "id": "sleeve-weight-v1",
+ "judge_version": "sleeve-judge/v1",
+ "smoke": false,
+ "contract_sha256": "dc3ad399f2a46aa089b9e63d2ff396d4ad87b153962e3669504349b9d69c121e",
+ "generated_at": "2026-10-11T04:50:38+00:00",
+ "start": "2010-01-04",
+ "end": "2026-10-09",
+ "holdout_start": "2024-10-09",
+ "reproduction": {
+  "blend_max_gap": 0.0,
+  "satellite_weight_applied": 0.15,
+  "strategy_version": "core-momentum-top4+spy200dma/2026-10-bil-noptp",
+  "engine_usd_metrics": {
+   "cagr": 10.96
+  }
+ },
+ "satellite_rebalances": 34,
+ "verdicts": {
+  "W25": "FAIL",
+  "W35": "FAIL",
+  "W50": "FAIL"
+ },
+ "details": {
+  "W25": {
+   "checks": {
+    "1_is_after_tax_cagr_edge_ge_1pp": true,
+    "2_is_mdd_not_worse_than_3pp": true,
+    "3_holdout_return_per_mdd_ge_base": false,
+    "4_family_pbo_le_25pct_and_dsr_ge_0.95": false,
+    "5_edge_survives_8bp_stress": true
+   },
+   "is_cagr_edge": 0.011564240681943394,
+   "is_cagr_edge_stress": 0.011842283514490237,
+   "dsr": 0.9907919721335826,
+   "holdout_return_per_mdd": 3.1033144339118515,
+   "base_holdout_return_per_mdd": 3.4531960508416293
+  },
+  "W35": {
+   "checks": {
+    "1_is_after_tax_cagr_edge_ge_1pp": true,
+    "2_is_mdd_not_worse_than_3pp": true,
+    "3_holdout_return_per_mdd_ge_base": false,
+    "4_family_pbo_le_25pct_and_dsr_ge_0.95": false,
+    "5_edge_survives_8bp_stress": true
+   },
+   "is_cagr_edge": 0.022884534391433675,
+   "is_cagr_edge_stress": 0.023398083726148267,
+   "dsr": 0.9908361515272244,
+   "holdout_return_per_mdd": 2.805278435523707,
+   "base_holdout_return_per_mdd": 3.4531960508416293
+  },
+  "W50": {
+   "checks": {
+    "1_is_after_tax_cagr_edge_ge_1pp": true,
+    "2_is_mdd_not_worse_than_3pp": true,
+    "3_holdout_return_per_mdd_ge_base": false,
+    "4_family_pbo_le_25pct_and_dsr_ge_0.95": false,
+    "5_edge_survives_8bp_stress": true
+   },
+   "is_cagr_edge": 0.03926646336780193,
+   "is_cagr_edge_stress": 0.0401374605519591,
+   "dsr": 0.990736395075068,
+   "holdout_return_per_mdd": 2.329965717976495,
+   "base_holdout_return_per_mdd": 3.4531960508416293
+  }
+ },
+ "family_pbo": {
+  "pbo": 0.4142857142857143,
+  "n_splits": 70,
+  "median_logit": 0.6931471805599452
+ },
+ "stats": {
+  "W15": {
+   "full": {
+    "cagr_pre": 0.12532296192856096,
+    "cagr_after": 0.10467918113664987,
+    "cagr_after_liq": 0.10128323827021046,
+    "total_after_liq": 4.038192561900727,
+    "mdd": -0.22137929140210655,
+    "totals": {
+     "fees_krw": 6596845.248825735,
+     "fx_cost_krw": 8041.744734100763,
+     "dividend_tax_krw": 2434791.9302283674,
+     "capital_gains_tax_krw": 16083489.46820151
+    },
+    "start": "2010-01-04",
+    "end": "2026-10-09"
+   },
+   "is": {
+    "cagr_pre": 0.11280432465276058,
+    "cagr_after": 0.09508078592270808,
+    "cagr_after_liq": 0.0908471693496502,
+    "total_after_liq": 2.6089926017040526,
+    "mdd": -0.22137929140210655,
+    "totals": {
+     "fees_krw": 4949649.74740578,
+     "fx_cost_krw": 3939.746227158099,
+     "dividend_tax_krw": 1905740.619405834,
+     "capital_gains_tax_krw": 7879492.454316191
+    },
+    "start": "2010-01-04",
+    "end": "2024-10-08"
+   },
+   "holdout": {
+    "cagr_pre": 0.22237166797472585,
+    "cagr_after": 0.21004295484496294,
+    "cagr_after_liq": 0.18819202608779273,
+    "total_after_liq": 0.4114670779734908,
+    "mdd": -0.11915543511443727,
+    "totals": {
+     "fees_krw": 470955.4363117723,
+     "fx_cost_krw": 75.60767781128402,
+     "dividend_tax_krw": 141946.9733641074,
+     "capital_gains_tax_krw": 151215.3556225679
+    },
+    "start": "2024-10-09",
+    "end": "2026-10-09"
+   },
+   "is_stress": {
+    "cagr_pre": 0.11280432465276058,
+    "cagr_after": 0.0902031918531101,
+    "cagr_after_liq": 0.08604900434296714,
+    "total_after_liq": 2.381649811780392,
+    "mdd": -0.2284943070849742,
+    "totals": {
+     "fees_krw": 8550667.129788367,
+     "fx_cost_krw": 3533.6953579047176,
+     "dividend_tax_krw": 1832403.0171978849,
+     "capital_gains_tax_krw": 7067390.715809429
+    },
+    "start": "2010-01-04",
+    "end": "2024-10-08"
+   },
+   "turnover_per_year": 2.9435677678863117,
+   "tax_cost_drag": 0.020643780791911093
+  },
+  "W25": {
+   "full": {
+    "cagr_pre": 0.13713021326063357,
+    "cagr_after": 0.11510080525839683,
+    "cagr_after_liq": 0.11172713463556638,
+    "total_after_liq": 4.901760272525615,
+    "mdd": -0.2020909670756671,
+    "totals": {
+     "fees_krw": 6861820.408557999,
+     "fx_cost_krw": 10603.6915121789,
+     "dividend_tax_krw": 2551905.6223482843,
+     "capital_gains_tax_krw": 21207383.02435778
+    },
+    "start": "2010-01-04",
+    "end": "2026-10-09"
+   },
+   "is": {
+    "cagr_pre": 0.12601330440921976,
+    "cagr_after": 0.10732179238196848,
+    "cagr_after_liq": 0.1024114100315936,
+    "total_after_liq": 3.2167958111784456,
+    "mdd": -0.2020909670756671,
+    "totals": {
+     "fees_krw": 5021611.936869391,
+     "fx_cost_krw": 4966.048825251189,
+     "dividend_tax_krw": 1972881.7255422587,
+     "capital_gains_tax_krw": 9932097.650502367
+    },
+    "start": "2010-01-04",
+    "end": "2024-10-08"
+   },
+   "holdout": {
+    "cagr_pre": 0.22221016958108764,
+    "cagr_after": 0.20950386132806376,
+    "cagr_after_liq": 0.18833063918270176,
+    "total_after_liq": 0.41179619193943706,
+    "mdd": -0.13269560681298787,
+    "totals": {
+     "fees_krw": 448950.2829902988,
+     "fx_cost_krw": 115.00868392957676,
+     "dividend_tax_krw": 132118.38795983058,
+     "capital_gains_tax_krw": 230017.3678591533
+    },
+    "start": "2024-10-09",
+    "end": "2026-10-09"
+   },
+   "is_stress": {
+    "cagr_pre": 0.12601330440921976,
+    "cagr_after": 0.10272620070390892,
+    "cagr_after_liq": 0.09789128785745738,
+    "total_after_liq": 2.9686778463247028,
+    "mdd": -0.2088328271149753,
+    "totals": {
+     "fees_krw": 8691585.105419368,
+     "fx_cost_krw": 4489.690070878558,
+     "dividend_tax_krw": 1900417.4556203396,
+     "capital_gains_tax_krw": 8979380.141757108
+    },
+    "start": "2010-01-04",
+    "end": "2024-10-08"
+   },
+   "turnover_per_year": 2.768062418327344,
+   "tax_cost_drag": 0.02202940800223674
+  },
+  "W35": {
+   "full": {
+    "cagr_pre": 0.14861134406520504,
+    "cagr_after": 0.12522646810591165,
+    "cagr_after_liq": 0.12187868457818984,
+    "total_after_liq": 5.873046662153751,
+    "mdd": -0.18248731369333915,
+    "totals": {
+     "fees_krw": 7105377.104178768,
+     "fx_cost_krw": 13582.75485708014,
+     "dividend_tax_krw": 2663627.9554820815,
+     "capital_gains_tax_krw": 27165509.714160256
+    },
+    "start": "2010-01-04",
+    "end": "2026-10-09"
+   },
+   "is": {
+    "cagr_pre": 0.13899908936316718,
+    "cagr_after": 0.11928958630150288,
+    "cagr_after_liq": 0.11373170374108388,
+    "total_after_liq": 3.903090072856182,
+    "mdd": -0.18248731369333915,
+    "totals": {
+     "fees_krw": 5071965.755905461,
+     "fx_cost_krw": 6125.274308658893,
+     "dividend_tax_krw": 2037721.0465002467,
+     "capital_gains_tax_krw": 12250548.617317775
+    },
+    "start": "2010-01-04",
+    "end": "2024-10-08"
+   },
+   "holdout": {
+    "cagr_pre": 0.22097892263712904,
+    "cagr_after": 0.20816759195631884,
+    "cagr_after_liq": 0.18768419926281577,
+    "total_after_liq": 0.4102616543390549,
+    "mdd": -0.14624632234142732,
+    "totals": {
+     "fees_krw": 425585.4740606131,
+     "fx_cost_krw": 147.97963141877895,
+     "dividend_tax_krw": 122045.51510391086,
+     "capital_gains_tax_krw": 295959.26283755765
+    },
+    "start": "2024-10-09",
+    "end": "2026-10-09"
+   },
+   "is_stress": {
+    "cagr_pre": 0.13899908936316718,
+    "cagr_after": 0.11493269125352845,
+    "cagr_after_liq": 0.1094470880691154,
+    "total_after_liq": 3.6319325012099295,
+    "mdd": -0.18883595266830322,
+    "totals": {
+     "fees_krw": 8795716.26209128,
+     "fx_cost_krw": 5604.210764732615,
+     "dividend_tax_krw": 1966617.9007398414,
+     "capital_gains_tax_krw": 11208421.529465219
+    },
+    "start": "2010-01-04",
+    "end": "2024-10-08"
+   },
+   "turnover_per_year": 2.5925570687683765,
+   "tax_cost_drag": 0.023384875959293394
+  },
+  "W50": {
+   "full": {
+    "cagr_pre": 0.16521227586357856,
+    "cagr_after": 0.13971303184109263,
+    "cagr_after_liq": 0.1364022518917294,
+    "total_after_liq": 7.526682488400004,
+    "mdd": -0.18671371648223267,
+    "totals": {
+     "fees_krw": 7398072.111724313,
+     "fx_cost_krw": 18920.998137555507,
+     "dividend_tax_krw": 2810638.066875579,
+     "capital_gains_tax_krw": 37841996.27511098
+    },
+    "start": "2010-01-04",
+    "end": "2026-10-09"
+   },
+   "is": {
+    "cagr_pre": 0.15804698441710197,
+    "cagr_after": 0.13659732472568775,
+    "cagr_after_liq": 0.13011363271745213,
+    "total_after_liq": 5.082320649348829,
+    "mdd": -0.18671371648223267,
+    "totals": {
+     "fees_krw": 5093617.138314293,
+     "fx_cost_krw": 8182.845254018852,
+     "dividend_tax_krw": 2126654.632005516,
+     "capital_gains_tax_krw": 16365690.508037688
+    },
+    "start": "2010-01-04",
+    "end": "2024-10-08"
+   },
+   "holdout": {
+    "cagr_pre": 0.21719291106021799,
+    "cagr_after": 0.2045342310573246,
+    "cagr_after_liq": 0.18509590273514331,
+    "total_after_liq": 0.40412583520693635,
+    "mdd": -0.1734471164485233,
+    "totals": {
+     "fees_krw": 387859.63490872865,
+     "fx_cost_krw": 183.3207223061542,
+     "dividend_tax_krw": 106483.2639963962,
+     "capital_gains_tax_krw": 366641.4446123081
+    },
+    "start": "2024-10-09",
+    "end": "2026-10-09"
+   },
+   "is_stress": {
+    "cagr_pre": 0.15804698441710197,
+    "cagr_after": 0.13259712014857872,
+    "cagr_after_liq": 0.12618646489492624,
+    "total_after_liq": 4.777704975556167,
+    "mdd": -0.1872263724676193,
+    "totals": {
+     "fees_krw": 8850349.111855892,
+     "fx_cost_krw": 7529.0804475720915,
+     "dividend_tax_krw": 2056299.1926558702,
+     "capital_gains_tax_krw": 15058160.89514417
+    },
+    "start": "2010-01-04",
+    "end": "2024-10-08"
+   },
+   "turnover_per_year": 2.329299044429925,
+   "tax_cost_drag": 0.025499244022485934
+  },
+  "SPY": {
+   "full": {
+    "cagr_pre": 0.1545484563022299,
+    "cagr_after": 0.151432627130484,
+    "cagr_after_liq": 0.13774396237881104,
+    "total_after_liq": 7.6969984683788795,
+    "mdd": -0.29678566480959234,
+    "totals": {
+     "fees_krw": 53033.68880195736,
+     "fx_cost_krw": 0.0,
+     "dividend_tax_krw": 4076773.234324829,
+     "capital_gains_tax_krw": 0.0
+    },
+    "start": "2010-01-04",
+    "end": "2026-10-09"
+   },
+   "is": {
+    "cagr_pre": 0.14913742309819256,
+    "cagr_after": 0.1458533263638062,
+    "cagr_after_liq": 0.13148016996368228,
+    "total_after_liq": 5.191782880509394,
+    "mdd": -0.29678566480959234,
+    "totals": {
+     "fees_krw": 48329.26426037841,
+     "fx_cost_krw": 0.0,
+     "dividend_tax_krw": 3245750.47559767,
+     "capital_gains_tax_krw": 0.0
+    },
+    "start": "2010-01-04",
+    "end": "2024-10-08"
+   },
+   "holdout": {
+    "cagr_pre": 0.19161818435754707,
+    "cagr_after": 0.18890696010470953,
+    "cagr_after_liq": 0.1598953802526628,
+    "total_after_liq": 0.345084142775566,
+    "mdd": -0.1714386348406538,
+    "totals": {
+     "fees_krw": 30580.61802331037,
+     "fx_cost_krw": 0.0,
+     "dividend_tax_krw": 110504.31972031824,
+     "capital_gains_tax_krw": 0.0
+    },
+    "start": "2024-10-09",
+    "end": "2026-10-09"
+   },
+   "turnover_per_year": 0.0,
+   "tax_cost_drag": 0.0031158291717459097
+  }
+ }
+}

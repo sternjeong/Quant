@@ -1,0 +1,69 @@
+{
+ "judge_version": "lever-judge/v1",
+ "smoke": false,
+ "generated_at": "2026-10-11T04:50:19+00:00",
+ "verdicts": {
+  "T1": "FAIL",
+  "T2": "FAIL"
+ },
+ "details": {
+  "T1": {
+   "checks": {
+    "after_tax_ge_spy_plus_3pp": false,
+    "krw_mdd_ge_-29.2pct": true,
+    "holdout_after_tax_gt_spy": false,
+    "dsr_ge_0.95": false,
+    "family_pbo_le_25pct": false
+   },
+   "dsr": 0.7034917292572269
+  },
+  "T2": {
+   "checks": {
+    "after_tax_ge_spy_plus_3pp": false,
+    "krw_mdd_ge_-29.2pct": true,
+    "holdout_after_tax_gt_spy": false,
+    "dsr_ge_0.95": false,
+    "family_pbo_le_25pct": false
+   },
+   "dsr": 0.6741043999893906
+  }
+ },
+ "stats": {
+  "SPY": {
+   "label": "SPY 그냥 보유",
+   "cagr_liq": 0.13774396237881104,
+   "cagr_liq_holdout": 0.1598953802526628,
+   "mdd": -0.29678566480959234,
+   "tax_m": 0.0,
+   "trades": 0
+  },
+  "T1": {
+   "label": "T1 새틀라이트 100% + 200일선 필터",
+   "cagr_liq": 0.14699383431355972,
+   "cagr_liq_holdout": 0.043327173994437196,
+   "mdd": -0.276936535606744,
+   "tax_m": 54.183399224235316,
+   "trades": 52
+  },
+  "T2": {
+   "label": "T2 SPY 50% 영구 + 새틀라이트 50% + 필터",
+   "cagr_liq": 0.14451031661161173,
+   "cagr_liq_holdout": 0.11034885072468903,
+   "mdd": -0.2065542834732229,
+   "tax_m": 25.79527336645323,
+   "trades": 52
+  }
+ },
+ "family_pbo": {
+  "pbo": 0.6285714285714286,
+  "n_splits": 70,
+  "median_logit": 0.0
+ },
+ "filter_switches": 26,
+ "satellite_rebalances": 34,
+ "period": [
+  "2010-01-04",
+  "2026-10-09"
+ ],
+ "holdout_start": "2024-10-09"
+}

@@ -1,0 +1,51 @@
+{
+  "id": "sat-follower-crsp-v1",
+  "verdicts": {
+    "study": "NOT_EVALUABLE_DATA"
+  },
+  "smoke": false,
+  "input_status": "CRSP_EXPORT_NOT_FOUND",
+  "problems": [
+    "daily.csv 없음",
+    "names.csv 없음",
+    "delists.csv 없음",
+    "sp500.csv 없음"
+  ],
+  "expected_dir": "data/research_inputs/crsp_sp500",
+  "expected_files": [
+    "daily.csv",
+    "delists.csv",
+    "names.csv",
+    "sp500.csv"
+  ],
+  "required_columns": {
+    "daily.csv": [
+      "permno",
+      "date",
+      "prc",
+      "ret",
+      "vol",
+      "shrout"
+    ],
+    "names.csv": [
+      "permno",
+      "namedt",
+      "nameendt",
+      "siccd",
+      "exchcd",
+      "shrcd"
+    ],
+    "delists.csv": [
+      "permno",
+      "date",
+      "dlret",
+      "dlstcd"
+    ],
+    "sp500.csv": [
+      "permno",
+      "start",
+      "ending"
+    ]
+  },
+  "generated_at": "2026-10-11T04:30:00+00:00"
+}
