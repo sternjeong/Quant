@@ -1,0 +1,187 @@
+{
+ "id": "survivorship-bound-v1",
+ "rules_version": "survivorship-bound-v1/2026-10-11",
+ "smoke": false,
+ "generated_at": "2026-10-11T17:36:55+00:00",
+ "power": null,
+ "power_reason": "가설검정이 아니라 사전 고정 스트레스 격자라 검정력 사전 계산을 쓰지 않는다.",
+ "segments": {
+  "decision": [
+   "2010-01-04",
+   "2024-09-30"
+  ],
+  "h1": [
+   "2010-01-04",
+   "2017-05-18"
+  ],
+  "h2": [
+   "2017-05-18",
+   "2024-09-30"
+  ],
+  "whole": [
+   "2010-01-04",
+   "2026-10-09"
+  ],
+  "post_2024_10": [
+   "2024-09-30",
+   "2026-10-09"
+  ]
+ },
+ "f_top40": {
+  "upper": 0.14154106654321666,
+  "central": 0.07077053327160833,
+  "method_upper": "f_all 그대로(상한) — 상위 40 만 떼어 봐도 결측 종목 시총을 모름",
+  "method_central": "가정: 결측 종목이 상위 40 자격에 들 확률은 평균 편입 종목의 절반(f_all/2). 실측 아님.",
+  "method_ii_derivable": false,
+  "method_ii_reason": "결측 종목은 가격이 전혀 없어 point_in_time_market_cap 도 그 종목의 과거 시총을 계산할 수 없다(시총 = 발행주식수 x 그 시점 종가, 가격이 없으면 계산 불가) — 결측 종목 쪽으로 가중한 상한 보정은 이 데이터로는 끌어낼 수 없다."
+ },
+ "cells": {
+  "('upper', 1, 0.0)": {
+   "ab_decision_diff": 0.009284062427332707,
+   "sleeve_decision_gain": 0.02610807567875173
+  },
+  "('upper', 1, 5.0)": {
+   "ab_decision_diff": 0.008578062535032682,
+   "sleeve_decision_gain": 0.02495814629446902
+  },
+  "('upper', 1, 10.0)": {
+   "ab_decision_diff": 0.008328312140749139,
+   "sleeve_decision_gain": 0.024156043230617374
+  },
+  "('upper', 1, 20.0)": {
+   "ab_decision_diff": 0.009282990612488495,
+   "sleeve_decision_gain": 0.023457994449994857
+  },
+  "('upper', 1, 40.0)": {
+   "ab_decision_diff": 0.017880770786429023,
+   "sleeve_decision_gain": 0.025324671112475494
+  },
+  "('upper', 2, 0.0)": {
+   "ab_decision_diff": 0.009284062427332707,
+   "sleeve_decision_gain": 0.026108075678751952
+  },
+  "('upper', 2, 5.0)": {
+   "ab_decision_diff": 0.008328312140749139,
+   "sleeve_decision_gain": 0.024156043230617374
+  },
+  "('upper', 2, 10.0)": {
+   "ab_decision_diff": 0.009282990612488495,
+   "sleeve_decision_gain": 0.02345799444999508
+  },
+  "('upper', 2, 20.0)": {
+   "ab_decision_diff": 0.017880770786429023,
+   "sleeve_decision_gain": 0.025324671112475494
+  },
+  "('upper', 2, 40.0)": {
+   "ab_decision_diff": 0.06989680699820466,
+   "sleeve_decision_gain": 0.036591500581765635
+  },
+  "('central', 1, 0.0)": {
+   "ab_decision_diff": 0.009284062427332707,
+   "sleeve_decision_gain": 0.02610807567875173
+  },
+  "('central', 1, 5.0)": {
+   "ab_decision_diff": 0.008875704618508173,
+   "sleeve_decision_gain": 0.025489507933777578
+  },
+  "('central', 1, 10.0)": {
+   "ab_decision_diff": 0.008578062535032682,
+   "sleeve_decision_gain": 0.02495814629446902
+  },
+  "('central', 1, 20.0)": {
+   "ab_decision_diff": 0.008328312140749139,
+   "sleeve_decision_gain": 0.024156043230617374
+  },
+  "('central', 1, 40.0)": {
+   "ab_decision_diff": 0.009282990612488495,
+   "sleeve_decision_gain": 0.02345799444999508
+  },
+  "('central', 2, 0.0)": {
+   "ab_decision_diff": 0.009284062427332707,
+   "sleeve_decision_gain": 0.02610807567875173
+  },
+  "('central', 2, 5.0)": {
+   "ab_decision_diff": 0.008578062535032682,
+   "sleeve_decision_gain": 0.02495814629446902
+  },
+  "('central', 2, 10.0)": {
+   "ab_decision_diff": 0.008328312140749139,
+   "sleeve_decision_gain": 0.024156043230617374
+  },
+  "('central', 2, 20.0)": {
+   "ab_decision_diff": 0.009282990612488495,
+   "sleeve_decision_gain": 0.023457994449994857
+  },
+  "('central', 2, 40.0)": {
+   "ab_decision_diff": 0.017880770786429023,
+   "sleeve_decision_gain": 0.025324671112475494
+  }
+ },
+ "distress_cells": {
+  "('upper', 1, 0.02)": {
+   "ab_decision_diff": 0.00804192945212745,
+   "sleeve_decision_gain": 0.024271210189655168
+  },
+  "('upper', 1, 0.05)": {
+   "ab_decision_diff": 0.007087111641238764,
+   "sleeve_decision_gain": 0.02311323368050444
+  },
+  "('upper', 2, 0.02)": {
+   "ab_decision_diff": 0.008067827185341159,
+   "sleeve_decision_gain": 0.023501901415564408
+  },
+  "('upper', 2, 0.05)": {
+   "ab_decision_diff": 0.005368503224189025,
+   "sleeve_decision_gain": 0.020486203892285948
+  },
+  "('central', 1, 0.02)": {
+   "ab_decision_diff": 0.00851276255287936,
+   "sleeve_decision_gain": 0.025069664816746107
+  },
+  "('central', 1, 0.05)": {
+   "ab_decision_diff": 0.008140870507031828,
+   "sleeve_decision_gain": 0.024574456821860213
+  },
+  "('central', 2, 0.02)": {
+   "ab_decision_diff": 0.00804192945212745,
+   "sleeve_decision_gain": 0.024271210189655168
+  },
+  "('central', 2, 0.05)": {
+   "ab_decision_diff": 0.007087111641238764,
+   "sleeve_decision_gain": 0.02311323368050444
+  }
+ },
+ "break_even_d_pp_ab": {
+  "('upper', 1)": null,
+  "('upper', 2)": null,
+  "('central', 1)": null,
+  "('central', 2)": null
+ },
+ "break_even_d_pp_sleeve": {
+  "('upper', 1)": null,
+  "('upper', 2)": null,
+  "('central', 1)": null,
+  "('central', 2)": null
+ },
+ "verdicts": {
+  "satellite_vs_spy15": "ROBUST_TO_SURVIVORSHIP",
+  "sleeve_35_vs_15": "ROBUST_TO_SURVIVORSHIP"
+ },
+ "noop_ab": null,
+ "noop_sleeve": null,
+ "reproduction": {
+  "available": true,
+  "old_A_decision": 0.09312924204589978,
+  "old_B_decision": 0.08531178779482285,
+  "new_A_decision_no_ghost": 0.09312924204589978,
+  "new_B_decision": 0.08531178779482285,
+  "gap_A_pp": 0.0,
+  "gap_B_pp": 0.0,
+  "reproduced_within_0.05pp": true
+ },
+ "no_ghost_decision": {
+  "A15": 0.09312924204589978,
+  "A35": 0.11636024596241556,
+  "B15": 0.08531178779482285
+ }
+}
