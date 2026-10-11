@@ -58,6 +58,14 @@ sys.exit(0)
 FAIL_SCRIPT = "import sys\nprint('ValueError: 데이터 없음')\nsys.exit(1)\n"
 
 
+@pytest.fixture(autouse=True)
+def _fixed_system_memory(monkeypatch):
+    """슬롯 시작 문이 VM 의 실제 여유 메모리를 보므로, 전체 테스트가 도는 중이거나 연구가 같이 도는 VM 에서는 흔들린다 — 고정한다.
+    메모리 문을 직접 시험하는 테스트는 아래에서 다시 덮어쓴다."""
+    monkeypatch.setattr(rj, "_system_total_mb", lambda: 12000.0)
+    monkeypatch.setattr(rj, "_system_available_mb", lambda: 11000.0)
+
+
 @pytest.fixture()
 def cfg(tmp_path):
     return rj.Config.for_root(tmp_path)
