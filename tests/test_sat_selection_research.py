@@ -416,3 +416,21 @@ def test_crsp_synthetic_files_roundtrip(tmp_path):
     data, b = crsp.build_bundle(tmp_path, start="1963-07-01")
     assert b["meta"]["n_permnos"] == 24 and len(b["caps"]) > 40
     assert all(isinstance(t, str) for t in data.closes.columns)
+
+
+def test_ff12_sic_ranges_match_the_official_french_file_for_every_sic():
+    """Ken French Siccodes12.txt(2026-10-11 에 받은 사본)와 SIC 0~9999 전부 대조 — 기억으로 쓴 범위의 오류를 막는다."""
+    import re
+    names = set(crsp.FF12_NAMES)
+    off, cur = {}, None
+    for line in (Path(__file__).parent / "fixtures" / "ff12_siccodes12.txt").read_text(encoding="latin-1").splitlines():
+        m = re.match(r"\s*(\d+)\s+(\w+)\s", line)
+        if m and m.group(2) in names:
+            cur = m.group(2)
+            continue
+        m = re.match(r"\s*(\d{4})-(\d{4})", line)
+        if m and cur:
+            for s in range(int(m.group(1)), int(m.group(2)) + 1):
+                off[s] = cur
+    bad = [s for s in range(10000) if off.get(s, "Other") != crsp.ff12_from_sic(s)]
+    assert bad == []
