@@ -1,0 +1,575 @@
+{
+ "judge_version": "drawdown-cheap-judge/v1",
+ "rules_version": "drawdown-cheap/v1",
+ "smoke": false,
+ "generated_at": "2026-10-12T01:30:41+00:00",
+ "verdicts": {
+  "B1_100": "FAIL",
+  "B1_200": "FAIL",
+  "B2_10": "FAIL",
+  "B2_12": "FAIL",
+  "B3_85": "FAIL",
+  "B3_70": "FAIL",
+  "B4": "FAIL"
+ },
+ "details": {
+  "B1_100": {
+   "verdict": "FAIL",
+   "checks": {
+    "i_judged_return_within_1.0pp": false,
+    "ii_h1_within_1.5pp": false,
+    "ii_h2_within_1.5pp": false,
+    "iii_krw_mdd_le_70pct_of_spy": true,
+    "iv_long_cagr_within_1.0pp": false,
+    "iv_long_mdd_le_70pct": true
+   },
+   "long_run": "APPLIED",
+   "etf": {
+    "cagr": 0.06705173599387493,
+    "spy_cagr": 0.13005350364027146,
+    "h1": 0.046170627386196816,
+    "spy_h1": 0.10640947021637226,
+    "h2": 0.09005455148368968,
+    "spy_h2": 0.1434604933889405,
+    "mdd": -0.20580684416509754,
+    "spy_mdd": -0.29678566480959234
+   },
+   "long": {
+    "cagr": 0.07997739677110549,
+    "mkt_cagr": 0.09894260522165199,
+    "mdd": -0.5867049052595543,
+    "mkt_mdd": -0.8407399476860209
+   },
+   "observed_ir_etf": -0.5928650965655289,
+   "observed_ir_long": -0.2052348402282222,
+   "long_fail_kind": "FAIL"
+  },
+  "B1_200": {
+   "verdict": "FAIL",
+   "checks": {
+    "i_judged_return_within_1.0pp": false,
+    "ii_h1_within_1.5pp": false,
+    "ii_h2_within_1.5pp": false,
+    "iii_krw_mdd_le_70pct_of_spy": false,
+    "iv_long_cagr_within_1.0pp": true,
+    "iv_long_mdd_le_70pct": true
+   },
+   "long_run": "APPLIED",
+   "etf": {
+    "cagr": 0.08198445076780092,
+    "spy_cagr": 0.13005350364027146,
+    "h1": 0.06439432774139409,
+    "spy_h1": 0.10640947021637226,
+    "h2": 0.10246374430983352,
+    "spy_h2": 0.1434604933889405,
+    "mdd": -0.21041029068376937,
+    "spy_mdd": -0.29678566480959234
+   },
+   "long": {
+    "cagr": 0.09530611072058415,
+    "mkt_cagr": 0.09894260522165199,
+    "mdd": -0.4855056963063833,
+    "mkt_mdd": -0.8407399476860209
+   },
+   "observed_ir_etf": -0.4972932584587639,
+   "observed_ir_long": -0.08692031769301677,
+   "long_fail_kind": "FAIL"
+  },
+  "B2_10": {
+   "verdict": "FAIL",
+   "checks": {
+    "i_judged_return_within_1.0pp": false,
+    "ii_h1_within_1.5pp": false,
+    "ii_h2_within_1.5pp": false,
+    "iii_krw_mdd_le_70pct_of_spy": true,
+    "iv_long_cagr_within_1.0pp": false,
+    "iv_long_mdd_le_70pct": true
+   },
+   "long_run": "APPLIED",
+   "etf": {
+    "cagr": 0.08457546242865788,
+    "spy_cagr": 0.13005350364027146,
+    "h1": 0.07216059152483667,
+    "spy_h1": 0.10640947021637226,
+    "h2": 0.0986376823297559,
+    "spy_h2": 0.1434604933889405,
+    "mdd": -0.2006997913753662,
+    "spy_mdd": -0.29678566480959234
+   },
+   "long": {
+    "cagr": 0.08806658193972017,
+    "mkt_cagr": 0.09894260522165199,
+    "mdd": -0.4797951122475752,
+    "mkt_mdd": -0.8407399476860209
+   },
+   "observed_ir_etf": -0.7558277836808139,
+   "observed_ir_long": -0.21148255165998397,
+   "long_fail_kind": "FAIL"
+  },
+  "B2_12": {
+   "verdict": "FAIL",
+   "checks": {
+    "i_judged_return_within_1.0pp": false,
+    "ii_h1_within_1.5pp": false,
+    "ii_h2_within_1.5pp": false,
+    "iii_krw_mdd_le_70pct_of_spy": false,
+    "iv_long_cagr_within_1.0pp": true,
+    "iv_long_mdd_le_70pct": true
+   },
+   "long_run": "APPLIED",
+   "etf": {
+    "cagr": 0.0947174948989844,
+    "spy_cagr": 0.13005350364027146,
+    "h1": 0.0805530364499576,
+    "spy_h1": 0.10640947021637226,
+    "h2": 0.10918127081591344,
+    "spy_h2": 0.1434604933889405,
+    "mdd": -0.22792002323080163,
+    "spy_mdd": -0.29678566480959234
+   },
+   "long": {
+    "cagr": 0.09155273698026778,
+    "mkt_cagr": 0.09894260522165199,
+    "mdd": -0.5508828178243491,
+    "mkt_mdd": -0.8407399476860209
+   },
+   "observed_ir_etf": -0.7200593017577526,
+   "observed_ir_long": -0.1797308082005187,
+   "long_fail_kind": "FAIL"
+  },
+  "B3_85": {
+   "verdict": "FAIL",
+   "checks": {
+    "i_judged_return_within_1.0pp": true,
+    "ii_h1_within_1.5pp": true,
+    "ii_h2_within_1.5pp": true,
+    "iii_krw_mdd_le_70pct_of_spy": false
+   },
+   "long_run": "NOT_APPLICABLE",
+   "etf": {
+    "cagr": 0.12241017455803926,
+    "spy_cagr": 0.13005350364027146,
+    "h1": 0.09973925237278225,
+    "spy_h1": 0.10640947021637226,
+    "h2": 0.1366495845947846,
+    "spy_h2": 0.1434604933889405,
+    "mdd": -0.2520639950989415,
+    "spy_mdd": -0.29678566480959234
+   },
+   "long": null,
+   "observed_ir_etf": -0.538787376396297
+  },
+  "B3_70": {
+   "verdict": "FAIL",
+   "checks": {
+    "i_judged_return_within_1.0pp": false,
+    "ii_h1_within_1.5pp": true,
+    "ii_h2_within_1.5pp": true,
+    "iii_krw_mdd_le_70pct_of_spy": true
+   },
+   "long_run": "NOT_APPLICABLE",
+   "etf": {
+    "cagr": 0.11370418604436394,
+    "spy_cagr": 0.13005350364027146,
+    "h1": 0.09295942748207908,
+    "spy_h1": 0.10640947021637226,
+    "h2": 0.12955299781020724,
+    "spy_h2": 0.1434604933889405,
+    "mdd": -0.2075747780813637,
+    "spy_mdd": -0.29678566480959234
+   },
+   "long": null,
+   "observed_ir_etf": -0.5618039896030109
+  },
+  "B4": {
+   "verdict": "FAIL",
+   "checks": {
+    "i_judged_return_within_1.0pp": false,
+    "ii_h1_within_1.5pp": true,
+    "ii_h2_within_1.5pp": true,
+    "iii_krw_mdd_le_70pct_of_spy": false
+   },
+   "long_run": "NOT_APPLICABLE",
+   "etf": {
+    "cagr": 0.11601550996473287,
+    "spy_cagr": 0.13005350364027146,
+    "h1": 0.09549262985979445,
+    "spy_h1": 0.10640947021637226,
+    "h2": 0.1287529236231928,
+    "spy_h2": 0.1434604933889405,
+    "mdd": -0.22094578923771424,
+    "spy_mdd": -0.29678566480959234
+   },
+   "long": null,
+   "observed_ir_etf": -0.3989750469947233
+  }
+ },
+ "stats": {
+  "SPY": {
+   "label": "SPY 그냥 보유",
+   "after_tax_judged": 0.13005350364027146,
+   "after_tax_mtm_judged": 0.1443227451047866,
+   "pre_tax_judged": 0.14760735847910111,
+   "mdd_krw_judged": -0.29678566480959234,
+   "mdd_pre_judged": -0.2961656337676647,
+   "mdd_2008_2009": -0.2837953043570699,
+   "mdd_2020": -0.29678566480959234,
+   "mdd_2022": -0.1702329600347653,
+   "turnover_per_year": 0.019172997911028663,
+   "trades_per_year": 0.06785249860672488,
+   "tax_paid_krw": 0.0,
+   "dividend_tax_krw": 3245746.138129112,
+   "fees_krw": 48329.23970594435,
+   "unpaid_tax_if_sold_krw": 36937774.52482533,
+   "h1_after_tax": 0.10640947021637226,
+   "h2_after_tax": 0.1434604933889405,
+   "after_tax_2008_2009_report": -0.0037523147608344853,
+   "after_tax_post_2024_10_report": 0.17304870882597978,
+   "after_tax_judged_100m_report": 0.12989099815255312,
+   "mdd_krw_judged_100m_report": -0.29678566480959245
+  },
+  "B1_100": {
+   "label": "B1 SPY 100일선 위만 보유(아래면 BIL)",
+   "after_tax_judged": 0.06705173599387493,
+   "after_tax_mtm_judged": 0.06985805972889603,
+   "pre_tax_judged": 0.08350760579674343,
+   "mdd_krw_judged": -0.20580684416509754,
+   "mdd_pre_judged": -0.19942057351169307,
+   "mdd_2008_2009": -0.20518300776043696,
+   "mdd_2020": -0.15802600599125727,
+   "mdd_2022": -0.18238860212475905,
+   "turnover_per_year": 2.811050182542286,
+   "trades_per_year": 2.9176574400891697,
+   "tax_paid_krw": 3583771.6135051786,
+   "dividend_tax_krw": 1725100.6699312897,
+   "fees_krw": 3857174.8376553897,
+   "unpaid_tax_if_sold_krw": 3081508.213282591,
+   "h1_after_tax": 0.046170627386196816,
+   "h2_after_tax": 0.09005455148368968,
+   "after_tax_2008_2009_report": 0.1808154710662595,
+   "after_tax_post_2024_10_report": 0.10734627188191515,
+   "after_tax_judged_100m_report": 0.06220386733228156,
+   "mdd_krw_judged_100m_report": -0.20665104762311048
+  },
+  "B1_200": {
+   "label": "B1 SPY 200일선 위만 보유(아래면 BIL)",
+   "after_tax_judged": 0.08198445076780092,
+   "after_tax_mtm_judged": 0.08492670340125286,
+   "pre_tax_judged": 0.10254763554594981,
+   "mdd_krw_judged": -0.21041029068376937,
+   "mdd_pre_judged": -0.1994205735116924,
+   "mdd_2008_2009": -0.23094557052341746,
+   "mdd_2020": -0.12710527742244027,
+   "mdd_2022": -0.1871277897084379,
+   "turnover_per_year": 1.6415638198343034,
+   "trades_per_year": 1.560607467954672,
+   "tax_paid_krw": 9630901.513533525,
+   "dividend_tax_krw": 1987486.3469421016,
+   "fees_krw": 2638438.55977351,
+   "unpaid_tax_if_sold_krw": 3912808.10374001,
+   "h1_after_tax": 0.06439432774139409,
+   "h2_after_tax": 0.10246374430983352,
+   "after_tax_2008_2009_report": 0.19958811709124524,
+   "after_tax_post_2024_10_report": 0.10734627188191515,
+   "after_tax_judged_100m_report": 0.07944247115258385,
+   "mdd_krw_judged_100m_report": -0.21342190921478077
+  },
+  "B2_10": {
+   "label": "B2 변동성 목표 10%",
+   "after_tax_judged": 0.08457546242865788,
+   "after_tax_mtm_judged": 0.08856606506072073,
+   "pre_tax_judged": 0.09833191485325576,
+   "mdd_krw_judged": -0.2006997913753662,
+   "mdd_pre_judged": -0.19465362818895315,
+   "mdd_2008_2009": -0.16212989878321538,
+   "mdd_2020": -0.2006997913753662,
+   "mdd_2022": -0.11561760707965552,
+   "turnover_per_year": 1.0064721493271749,
+   "trades_per_year": 10.58498978264908,
+   "tax_paid_krw": 4296235.626817,
+   "dividend_tax_krw": 1934117.1733278378,
+   "fees_krw": 1604923.327112667,
+   "unpaid_tax_if_sold_krw": 5520726.5913519785,
+   "h1_after_tax": 0.07216059152483667,
+   "h2_after_tax": 0.0986376823297559,
+   "after_tax_2008_2009_report": 0.09031023024012352,
+   "after_tax_post_2024_10_report": 0.12815836795968671,
+   "after_tax_judged_100m_report": 0.08054471263196783,
+   "mdd_krw_judged_100m_report": -0.20577127056097588
+  },
+  "B2_12": {
+   "label": "B2 변동성 목표 12%",
+   "after_tax_judged": 0.0947174948989844,
+   "after_tax_mtm_judged": 0.09982853412313797,
+   "pre_tax_judged": 0.11086753957310203,
+   "mdd_krw_judged": -0.22792002323080163,
+   "mdd_pre_judged": -0.2269591436868833,
+   "mdd_2008_2009": -0.16137603099234854,
+   "mdd_2020": -0.22792002323080163,
+   "mdd_2022": -0.11663275491188219,
+   "turnover_per_year": 0.792512483438607,
+   "trades_per_year": 8.21015233141371,
+   "tax_paid_krw": 6093860.14336008,
+   "dividend_tax_krw": 2137443.622810644,
+   "fees_krw": 1372211.226400154,
+   "unpaid_tax_if_sold_krw": 8090411.99698005,
+   "h1_after_tax": 0.0805530364499576,
+   "h2_after_tax": 0.10918127081591344,
+   "after_tax_2008_2009_report": 0.0861154362804657,
+   "after_tax_post_2024_10_report": 0.13467089309922176,
+   "after_tax_judged_100m_report": 0.09145094625641637,
+   "mdd_krw_judged_100m_report": -0.2279200232308014
+  },
+  "B3_85": {
+   "label": "B3 SPY 85% + ERC 코어 15%(매년 재조정)",
+   "after_tax_judged": 0.12241017455803926,
+   "after_tax_mtm_judged": 0.13492768502059915,
+   "pre_tax_judged": 0.13977609110856348,
+   "mdd_krw_judged": -0.2520639950989415,
+   "mdd_pre_judged": -0.2512554964841104,
+   "mdd_2008_2009": -0.1915814516510812,
+   "mdd_2020": -0.2520639950989415,
+   "mdd_2022": -0.15299127281529223,
+   "turnover_per_year": 0.6287217182819773,
+   "trades_per_year": 12.009892253390303,
+   "tax_paid_krw": 368659.9350858185,
+   "dividend_tax_krw": 3021527.885659314,
+   "fees_krw": 1469715.3993349639,
+   "unpaid_tax_if_sold_krw": 29215575.940382544,
+   "h1_after_tax": 0.09973925237278225,
+   "h2_after_tax": 0.1366495845947846,
+   "after_tax_2008_2009_report": 0.02787201779312376,
+   "after_tax_post_2024_10_report": 0.17938414505235567,
+   "after_tax_judged_100m_report": 0.12112705465350437,
+   "mdd_krw_judged_100m_report": -0.2520639950989414
+  },
+  "B3_70": {
+   "label": "B3 SPY 70% + ERC 코어 30%(매년 재조정)",
+   "after_tax_judged": 0.11370418604436394,
+   "after_tax_mtm_judged": 0.12447571258278467,
+   "pre_tax_judged": 0.13170317646974472,
+   "mdd_krw_judged": -0.2075747780813637,
+   "mdd_pre_judged": -0.2066070904861722,
+   "mdd_2008_2009": -0.17226754901971963,
+   "mdd_2020": -0.2075747780813637,
+   "mdd_2022": -0.1399465278983889,
+   "turnover_per_year": 1.2422960808922134,
+   "trades_per_year": 12.009892253390303,
+   "tax_paid_krw": 1948823.1878201016,
+   "dividend_tax_krw": 2801581.12426456,
+   "fees_krw": 2682447.822356703,
+   "unpaid_tax_if_sold_krw": 22357641.679286703,
+   "h1_after_tax": 0.09295942748207908,
+   "h2_after_tax": 0.12955299781020724,
+   "after_tax_2008_2009_report": 0.057046273255705104,
+   "after_tax_post_2024_10_report": 0.18566595048397305,
+   "after_tax_judged_100m_report": 0.11117926504083808,
+   "mdd_krw_judged_100m_report": -0.2075747780813637
+  },
+  "B4": {
+   "label": "B4 SPY 80% + TLT 10% + GLD 10%(매년 재조정)",
+   "after_tax_judged": 0.11601550996473287,
+   "after_tax_mtm_judged": 0.12824344061247928,
+   "pre_tax_judged": 0.13166958624195169,
+   "mdd_krw_judged": -0.22094578923771424,
+   "mdd_pre_judged": -0.22040443262305698,
+   "mdd_2008_2009": -0.18538035529963848,
+   "mdd_2020": -0.22094578923771424,
+   "mdd_2022": -0.1418874382188714,
+   "turnover_per_year": 0.04256937519578703,
+   "trades_per_year": 1.0177874791008732,
+   "tax_paid_krw": 514949.82326585794,
+   "dividend_tax_krw": 2764227.687218761,
+   "fees_krw": 95386.78229637851,
+   "unpaid_tax_if_sold_krw": 26349183.39072454,
+   "h1_after_tax": 0.09549262985979445,
+   "h2_after_tax": 0.1287529236231928,
+   "after_tax_2008_2009_report": 0.05091655350545565,
+   "after_tax_post_2024_10_report": 0.16046301069744806,
+   "after_tax_judged_100m_report": 0.11543612706025175,
+   "mdd_krw_judged_100m_report": -0.22094578923771435
+  }
+ },
+ "long_run": {
+  "MARKET": {
+   "cagr": 0.09894260522165199,
+   "mdd": -0.8407399476860209,
+   "cagr_2008_plus": 0.11485129166286923,
+   "mdd_2008_plus": -0.5106672047311998,
+   "years": 80.50102669404518
+  },
+  "B1_100": {
+   "cagr": 0.07997739677110549,
+   "mdd": -0.5867049052595543,
+   "years": 80.50102669404518,
+   "cagr_2008_plus": 0.08275231767354185,
+   "mdd_2008_plus": -0.23638815188230544,
+   "switches_per_year": 2.596240179573513,
+   "mean_exposure": 0.6733623589946567,
+   "active_ir": -0.2052348402282222,
+   "noop": null
+  },
+  "B1_200": {
+   "cagr": 0.09530611072058415,
+   "mdd": -0.4855056963063833,
+   "years": 80.50102669404518,
+   "cagr_2008_plus": 0.0905663883181278,
+   "mdd_2008_plus": -0.22417067490337805,
+   "switches_per_year": 1.4161310070400979,
+   "mean_exposure": 0.7078962992281813,
+   "active_ir": -0.08692031769301677,
+   "noop": null
+  },
+  "B2_10": {
+   "cagr": 0.08806658193972017,
+   "mdd": -0.4797951122475752,
+   "years": 80.50102669404518,
+   "cagr_2008_plus": 0.0763056685948651,
+   "mdd_2008_plus": -0.25165731789551427,
+   "switches_per_year": 8.608585858585858,
+   "mean_exposure": 0.7804505259152639,
+   "active_ir": -0.21148255165998397,
+   "noop": null
+  },
+  "B2_12": {
+   "cagr": 0.09155273698026778,
+   "mdd": -0.5508828178243491,
+   "years": 80.50102669404518,
+   "cagr_2008_plus": 0.08664534351231001,
+   "mdd_2008_plus": -0.282315455825344,
+   "switches_per_year": 6.360167329864299,
+   "mean_exposure": 0.8503582764134238,
+   "active_ir": -0.1797308082005187,
+   "noop": null
+  }
+ },
+ "efficiency_etf": {
+  "B1_100": {
+   "giveup_pp": 6.300176764639653,
+   "removed_pp": 9.09788206444948,
+   "pp_per_pp": 0.6924882868352373
+  },
+  "B1_200": {
+   "giveup_pp": 4.806905287247054,
+   "removed_pp": 8.637537412582297,
+   "pp_per_pp": 0.5565133970065168
+  },
+  "B2_10": {
+   "giveup_pp": 4.5478041211613585,
+   "removed_pp": 9.608587343422615,
+   "pp_per_pp": 0.4733062164725469
+  },
+  "B2_12": {
+   "giveup_pp": 3.533600874128706,
+   "removed_pp": 6.8865641578790715,
+   "pp_per_pp": 0.5131152187242508
+  },
+  "B3_85": {
+   "giveup_pp": 0.7643329082232198,
+   "removed_pp": 4.472166971065084,
+   "pp_per_pp": 0.17090884870096598
+  },
+  "B3_70": {
+   "giveup_pp": 1.634931759590752,
+   "removed_pp": 8.921088672822863,
+   "pp_per_pp": 0.183265946517424
+  },
+  "B4": {
+   "giveup_pp": 1.4037993675538596,
+   "removed_pp": 7.58398755718781,
+   "pp_per_pp": 0.18510043126631884
+  }
+ },
+ "efficiency_long": {
+  "B1_100": {
+   "giveup_pp": 1.89652084505465,
+   "removed_pp": 25.403504242646658,
+   "pp_per_pp": 0.07465587530521976
+  },
+  "B1_200": {
+   "giveup_pp": 0.3636494501067844,
+   "removed_pp": 35.52342513796376,
+   "pp_per_pp": 0.010236891535499866
+  },
+  "B2_10": {
+   "giveup_pp": 1.0876023281931824,
+   "removed_pp": 36.09448354384457,
+   "pp_per_pp": 0.030132092813353425
+  },
+  "B2_12": {
+   "giveup_pp": 0.7389868241384212,
+   "removed_pp": 28.98571298616718,
+   "pp_per_pp": 0.025494864469647067
+  },
+  "B3_85": {
+   "giveup_pp": null,
+   "removed_pp": null,
+   "pp_per_pp": null,
+   "note": "NOT_APPLICABLE"
+  },
+  "B3_70": {
+   "giveup_pp": null,
+   "removed_pp": null,
+   "pp_per_pp": null,
+   "note": "NOT_APPLICABLE"
+  },
+  "B4": {
+   "giveup_pp": null,
+   "removed_pp": null,
+   "pp_per_pp": null,
+   "note": "NOT_APPLICABLE"
+  }
+ },
+ "power": {
+  "etf_era": {
+   "years": 14.74,
+   "n_trials": 7,
+   "confidence": 0.95,
+   "mde_ir": 0.79,
+   "power_at": {
+    "0.20": 0.012,
+    "0.30": 0.03,
+    "0.50": 0.133
+   },
+   "method": "expected-max-z(Bailey-LdP) + null SE, simplified"
+  },
+  "long_run": {
+   "years": 80.5,
+   "n_trials": 7,
+   "confidence": 0.95,
+   "mde_ir": 0.338,
+   "power_at": {
+    "0.20": 0.108,
+    "0.30": 0.367,
+    "0.50": 0.927
+   },
+   "method": "expected-max-z(Bailey-LdP) + null SE, simplified"
+  }
+ },
+ "windows": {
+  "judged": [
+   "2010-01-04",
+   "2024-09-30"
+  ],
+  "h1": [
+   "2010-01-04",
+   "2017-05-31"
+  ],
+  "h2": [
+   "2017-06-01",
+   "2024-09-30"
+  ],
+  "crisis": [
+   "2008-01-02",
+   "2009-12-31"
+  ],
+  "post": [
+   "2024-10-01",
+   null
+  ]
+ },
+ "long_window": [
+  "1927-07-01",
+  "2007-12-31"
+ ]
+}
