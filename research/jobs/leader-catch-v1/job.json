@@ -1,0 +1,14 @@
+{
+  "id": "leader-catch-v1",
+  "title": "주도주 사전 식별 검증 — 다음 리더를 그 시점 정보만으로 가려낼 수 있었나(French 12·49 산업·25 포트폴리오 1927~2007, 사전 등록)",
+  "entrypoint": "research/jobs/leader-catch-v1/run.py",
+  "args": [],
+  "timeout_seconds": 7200,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 22,
+  "revision": 1,
+  "max_memory_mb": 1500
+}
