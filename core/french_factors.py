@@ -7,6 +7,7 @@
 2. 공개 전후 감쇠표(decay_table): 고전 팩터를 원 논문 공개 연도로 나눠 월평균·Newey-West t·샤프를 비교한다.
    scripts/french_factor_report.py 가 research/factor_decay.md 로 써서 Scout·Writer 에이전트가 읽는다.
 3. 장기 산업 자료: load("ind12_daily"/"ind49_daily"/"ff3_daily") — research/jobs/core-longrun-v1 이 읽는다.
+   load("ports25_daily")(규모×B/M 25개)는 research/jobs/leader-catch-v1 이 읽는다.
 
 데이터 형식: zip 안의 CSV 하나. 설명문 → ",열1,열2" 머리줄 → YYYYMMDD(일별) 또는 YYYYMM(월별) 행 → 빈 줄(월별
 파일은 뒤에 연간 표가 이어지지만 첫 표만 읽는다). 값은 퍼센트, 결측은 -99.99/-999.
@@ -41,6 +42,8 @@ DATASETS = {
     "ff3_daily": "F-F_Research_Data_Factors_daily_CSV.zip",
     "ind12_daily": "12_Industry_Portfolios_daily_CSV.zip",
     "ind49_daily": "49_Industry_Portfolios_daily_CSV.zip",
+    # leader-catch-v1(2026-10-12): 규모×장부가치 비율 5×5 25개 포트폴리오 일별(첫 표 = 시가총액 가중). 1926-07~.
+    "ports25_daily": "25_Portfolios_5x5_Daily_CSV.zip",
 }
 MAX_AGE_DAYS = 7
 DAILY_FACTORS = ["Mkt-RF", "SMB", "HML", "RMW", "CMA", "Mom"]
