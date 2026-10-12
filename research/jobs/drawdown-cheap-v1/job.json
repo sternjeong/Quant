@@ -1,0 +1,14 @@
+{
+  "id": "drawdown-cheap-v1",
+  "title": "낙폭을 싸게 줄이는 방법 v1 — SPY 대비 수익을 최소로 내주고 낙폭 30% 이상 줄이는 7개 후보(추세·변동성 목표·ERC 코어 블렌드·채권/금 혼합) 사전 등록",
+  "entrypoint": "research/jobs/drawdown-cheap-v1/run.py",
+  "args": [],
+  "timeout_seconds": 7200,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 21,
+  "revision": 1,
+  "max_memory_mb": 2000
+}
