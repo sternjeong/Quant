@@ -2,7 +2,7 @@
 
 계산은 core/champion_performance.py, 이 파일은 화면만 담당한다. 두 절을 절대 섞지 않는다.
   A. 백테스트(가상·과거): run_champion_backtest 의 비중 시계열을 그대로 풀어 거래 목록·자산곡선을 보여 준다.
-  B. 실제 시장 기록(2026-09-19~): ChampionLedgerEntry 원장('추천을 따랐다면')과 paper 계좌(모의투자).
+  B. 2026-10-01부터 현 챔피언을 따랐다면. 과거 원장과 독립된 가상 재구성.
 
 페이지 진입만으로 긴 계산을 시작하지 않는다 — 캐시가 있으면 즉시 표시, 없으면 버튼 + job_manager.
 기본 기간(최근 5년)은 매일 새벽 자동 잡 dawn_precompute(core/dawn_precompute.py)가 같은 캐시에 미리 계산해 둔다.
@@ -24,12 +24,11 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from core import job_manager
+from core import champion_follow as follow
 from core.champion_performance import (
     DEFAULT_INITIAL_CAPITAL,
-    LIVE_MIN_DAYS,
     SLEEVE_CORE,
     SLEEVE_SATELLITE,
-    build_live_record,
     cache_params,
     compute_backtest_performance,
     default_start,
@@ -159,8 +158,8 @@ st.caption(
 _band(
     "⚠️ <b>A. 백테스트</b>는 과거 데이터에 규칙을 적용한 <b>가상 결과</b>입니다 — 비용은 편도 코어 3bp·새틀라이트 "
     "8bp만 가정(세금·슬리피지 추가 없음), 새틀라이트 후보는 현재 S&P500 명단 기반이라 생존편향이 남아 있고, "
-    "미래 수익을 보장하지 않습니다. <b>B. 실제 시장 기록</b>은 실제 주문이 아니라 '추천을 따랐다면'의 계산이며, "
-    "paper 계좌 수치는 모의투자입니다.",
+    "미래 수익을 보장하지 않습니다. <b>B. 10월 1일부터 따랐다면</b>은 현 규칙의 가상 재구성이며, "
+    "실제 주문 기록이 아닙니다.",
     "warn",
 )
 
@@ -515,76 +514,70 @@ if cached:
 _link("views/11_챔피언_전략.py", "🏆 챔피언 전략(오늘의 추천·백테스트 설정)으로")
 
 # ============================================================================
-# B. 실제 시장 기록 (2026-09-19~) — 백테스트와 섞지 않는다
+# B. 고정 시작일의 현 챔피언 추종 결과
 # ============================================================================
 st.divider()
-st.markdown("## B. 실제 시장 기록(2026-09-19~)")
-_band('<span class="perf-tag live">실제 시장</span>매일 밤 그날의 추천 비중을 기록하고, 다음 날 실제 종가로 '
-      "'따랐다면' 수익을 계산한 원장입니다. 주문 기록이 아니며, 위 백테스트와 다른 기간·다른 계산입니다.", "live")
+st.markdown("## B. 10월 1일부터 챔피언 전략을 따랐다면")
+st.caption("시작일 2026-10-01 고정 · 종료일 오늘 · 완료된 미국 거래일 종가까지 평가합니다. 매일 새벽 자동 갱신합니다.")
+_band("10월 1일 당시 정보로 종목을 고르고, 코어는 매월 첫 거래일에 교체하며 새틀라이트는 "
+      "매수일부터 6개월 보유합니다. 현재 규칙으로 재구성한 가상 결과입니다.", "virtual")
+st.caption("선정일 종가에 진입해 다음 거래일부터 수익을 반영합니다. 비용은 편도 코어 3bp·새틀라이트 8bp, "
+           "SPY 비교는 비용 없는 매수보유입니다. 세금·추가 슬리피지는 제외합니다.")
+follow_end = follow.today_kst().isoformat()
+follow_result = follow.load_cached(follow_end)
+if st.button("📒 10월 1일부터 오늘까지 계산", key="follow_october_compute"):
+    job_manager.start("champion_follow_october", follow.compute_follow_performance, follow_end,
+                      label="10월 1일부터 챔피언 추종 성과")
+follow_job = job_manager.render("champion_follow_october", running_label="10월 1일 기준 종목 선정과 추종 성과 계산 중")
+if follow_job is not None:
+    if follow_job.status == "error":
+        st.error(f"추종 성과를 계산하지 못했습니다: {follow_job.error}")
+    elif follow_job.result.get("params") == follow.params(follow_end):
+        follow_result = follow_job.result
+        st.success("10월 1일부터의 추종 성과 계산을 마쳤습니다.")
 
-
-@st.cache_data(ttl=1800, show_spinner=False)
-def _live_record() -> dict:
-    return build_live_record()
-
-
-try:
-    live = _live_record()
-except Exception as exc:  # noqa: BLE001
-    live = {"available": False, "enough": False, "reason": f"원장을 읽지 못했습니다({type(exc).__name__}).",
-            "paper": {"available": False}}
-
-if not live.get("available"):
-    st.info(f"기록 없음 — {live.get('reason', '')} 판단할 수 있는 실제 기록이 아직 없습니다.")
+if not follow_result:
+    st.info("아직 이 구간의 계산 결과가 없습니다. 위 버튼을 누르면 저장하며 다른 화면으로 이동해도 계산은 계속됩니다.")
 else:
-    n = live["n_entries"]
-    if not live.get("enough"):
-        st.warning(f"아직 기간이 짧아 판단 불가 — 기록 {n}일(비교에 최소 {LIVE_MIN_DAYS}일 필요). 아래 숫자는 참고용입니다.")
-    lg = live["ledger_total_return_pct"]
+    fs = follow_result["summary"]
+    fd = to_dollars(follow_result, capital)
+    st.caption(f"진입일 {fs['start']} → 가격 기준일 {fs['end']} · 계산 {follow_result['computed_at'][:16]} UTC")
     _kpis([
-        ("따랐다면(원장)", format_pct(lg, 2), f"{live['start_date']} ~ {live['end_date']} · {n}일"),
-        ("같은 기간 SPY", format_pct(live.get("spy_total_return_pct"), 2), ""),
-        ("같은 기간 60/40", format_pct(live.get("sixty_forty_total_return_pct"), 2), "SPY/TLT 매수보유"),
-        (f"{format_usd(capital)}였다면", format_usd(capital * (1 + lg / 100)), "원장 수익률 적용(가상)"),
+        ("현재 가상 자산", format_usd(fd["final_usd"]), f"{format_usd(capital)}로 시작"),
+        ("손익", format_usd(fd["pnl_usd"], signed=True), format_pct(fs["total_return_pct"], 2)),
+        ("같은 기간 SPY", format_usd(fd["spy_final_usd"]), format_pct(fs["spy_total_return_pct"], 2)),
+        ("SPY 대비", format_pct(fs["total_return_pct"] - fs["spy_total_return_pct"], 2), "%p"),
+        ("최대낙폭", format_pct(fs["drawdown"]["mdd_pct"], 2), "이 구간의 고점 대비"),
     ])
-    lfig = go.Figure()
-    for key, name, color, width in (("ledger_curve", "따랐다면(원장)", C_STRATEGY, 2.4),
-                                    ("spy_curve", "S&P500(SPY)", C_SPY, 1.8),
-                                    ("sixty_forty_curve", "60/40", C_6040, 1.4)):
-        sr = series_from_json(live.get(key))
-        if sr.empty:
-            continue
-        lfig.add_trace(go.Scatter(x=sr.index, y=(sr - 1) * 100, name=name, mode="lines+markers",
-                                  line=dict(color=color, width=width), marker=dict(size=6),
-                                  hovertemplate=f"{name}: %{{y:+.2f}}%<extra></extra>"))
-    st.caption("원장 시작일 대비 누적 수익률(%). 실제 가격으로 계산했지만 실제 주문은 아닙니다.")
-    _style(lfig, 300, y_title="누적 %")
-    lfig.update_layout(hovermode="x unified")
-    lfig.update_yaxes(ticksuffix="%", zeroline=True, zerolinecolor=AXIS)
-    _plot(lfig)
+    fg = go.Figure()
+    for key, label, color in (("strategy", "10월 1일부터 챔피언", C_STRATEGY), ("spy", "SPY 매수보유", C_SPY)):
+        curve = fd["curves"][key]
+        fg.add_trace(go.Scatter(x=curve.index, y=curve.values, name=label, mode="lines+markers",
+                               line=dict(color=color), hovertemplate="%{x|%Y-%m-%d} $%{y:,.2f}<extra>%{fullData.name}</extra>"))
+    st.markdown("#### 10월 1일부터의 가상 자산 변화")
+    _plot(_style(fg, 300, money=True))
+    for key, title in (("initial_allocation", "10월 1일 시작 배분"), ("latest_allocation", "마지막 기록의 목표 배분")):
+        st.markdown(f"#### {title}")
+        allocation_capital = capital if key == "initial_allocation" else fd["final_usd"]
+        st.dataframe(pd.DataFrame([{"슬리브": r["sleeve"], "티커": r["ticker"],
+                                   "비중%": round(r["weight"] * 100, 2),
+                                   "가상 배분금액($)": round(r["weight"] * allocation_capital, 2)}
+                                  for r in follow_result[key]]), hide_index=True, use_container_width=True)
+    st.caption(f"새틀라이트 다음 재선정 예정: {follow_result['next_satellite_reselection']} "
+               "(휴장일이면 다음 거래일). 마지막 표는 목표 비중이며 실제 계좌 보유가 아닙니다.")
+    st.markdown("#### 이 구간의 매수·매도 및 비중 변경")
+    if fd["events"].empty:
+        st.caption("아직 수익이 반영된 거래가 없습니다.")
+    else:
+        events = fd["events"]
+        fields = ["date", "sleeve", "ticker", "action", "price", "notional_usd", "shares"]
+        st.dataframe(events[fields].rename(columns={"date": "날짜", "sleeve": "슬리브", "ticker": "티커",
+                     "action": "구분", "price": "가격($)", "notional_usd": "가상 거래금액($)", "shares": "가상 수량"}),
+                     hide_index=True, use_container_width=True)
+        st.download_button("거래 기록 CSV", events.to_csv(index=False).encode("utf-8-sig"),
+                           file_name="champion_from_2026-10-01.csv", mime="text/csv")
+    st.caption("✅ 검산: 거래별 손익 합과 자산곡선 총손익이 일치합니다. 종목 선정은 현재 챔피언과 같은 함수입니다. "
+               "코어는 배당 반영 가격, 새틀라이트는 기존 엔진의 가격 수익을 사용합니다. 후보군의 생존편향은 남아 있습니다.")
 
-    cw = live.get("current_weights") or {}
-    rows = [{"슬리브": SLEEVE_CORE, "티커": t, "비중%": round(w * 100, 2)} for t, w in (cw.get("core") or {}).items() if w]
-    rows += [{"슬리브": SLEEVE_SATELLITE, "티커": t, "비중%": round(w * 100, 2)} for t, w in (cw.get("satellite") or {}).items() if w]
-    if rows:
-        st.caption(f"{live['end_date']} 기록 기준, 다음 거래일부터 따를 비중")
-        st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
-    if live.get("weight_changes"):
-        with st.expander("원장 비중 변화(편입·비중 변경·제외)"):
-            st.dataframe(pd.DataFrame(live["weight_changes"]).rename(columns={
-                "date": "날짜", "ticker": "티커", "sleeve": "슬리브", "action": "구분",
-                "weight_before_pct": "비중 전%", "weight_after_pct": "비중 후%"}),
-                hide_index=True, use_container_width=True)
-
-paper = live.get("paper") or {}
-st.markdown("#### paper 계좌(모의투자)")
-if not paper.get("available"):
-    st.caption("paper 계좌 스냅샷이 없습니다(Alpaca paper 키가 없거나 동기화 잡이 아직 기록하지 않음). 원장 수치만 있습니다.")
-else:
-    pc = series_from_json(paper.get("curve"))
-    _kpis([
-        ("paper 계좌 자산(모의)", format_usd(paper.get("last_equity")), f"{paper['last_date']} 스냅샷"),
-        ("첫 스냅샷 대비", format_pct((float(pc.iloc[-1]) - 1) * 100 if not pc.empty else None, 2),
-         f"{paper['first_date']}부터 · {paper['n_snapshots']}건"),
-    ])
-    st.caption("모의투자 계좌가 브로커에 보고한 실제 자산입니다. 입출금은 반영하지 않으며, 원장과의 차이는 체결·시차·추종 여부 때문일 수 있습니다.")
+st.caption("9월 19일부터 쌓인 구형 3개월 상위5 원장은 현 챔피언과 다른 규칙이어서 이 성과에서 제외했습니다. "
+           "기존 데이터는 보존됩니다. 실제 모의계좌 자산은 'Alpaca paper 검증'에서 확인하세요.")

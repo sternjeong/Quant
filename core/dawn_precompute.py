@@ -8,12 +8,13 @@
                         값으로 다시 받는다. 밤 00:10 신호 잡 같은 야간 잡은 미국 장중(한국 자정 = 미 동부 오전)에 돌아
                         마지막 봉이 장중 값으로 저장될 수 있고, 명시적 end 로 읽는 백테스트는 그 봉을 다시 받지 않으므로
                         여기서 먼저 고친다(core.market_data.get_price_history, cache_ttl=0).
-  2. performance        '챔피언 성과' A. 백테스트 기본 기간(최근 5년) — core.champion_performance 캐시. 화면이 이미 자동으로
+  2. champion_follow    2026-10-01부터 오늘까지 챔피언 추종 성과 — 현 규칙의 고정 시작일 가상 재구성.
+  3. performance        '챔피언 성과' A. 백테스트 기본 기간(최근 5년) — core.champion_performance 캐시. 화면이 이미 자동으로
                         읽는 곳이라 화면을 고치지 않아도 바로 보인다. 오래된 기본 기간 캐시는 정리한다(화면이 캐시 목록을
                         매번 전부 읽기 때문).
-  3. satellite_pit      '챔피언 전략' 2. 새틀라이트 '📌 point-in-time 새틀라이트 계산'(균등가중) — 이 모듈 캐시.
-  4. champion_backtest  '챔피언 전략' 3. 백테스트 기본(오늘 - 3년 ~ 오늘, 새틀라이트 15%, 균등가중, 칼라 헤지 없음) — 이 모듈 캐시.
-  5. satellite_scan     '챔피언 전략' 2. 새틀라이트 '🔍 새틀라이트 후보 스캔'(S&P500 전체 순차 조회, 참고용 근사) — 이 모듈 캐시.
+  4. satellite_pit      '챔피언 전략' 2. 새틀라이트 '📌 point-in-time 새틀라이트 계산'(균등가중) — 이 모듈 캐시.
+  5. champion_backtest  '챔피언 전략' 3. 백테스트 기본(오늘 - 3년 ~ 오늘, 새틀라이트 15%, 균등가중, 칼라 헤지 없음) — 이 모듈 캐시.
+  6. satellite_scan     '챔피언 전략' 2. 새틀라이트 '🔍 새틀라이트 후보 스캔'(S&P500 전체 순차 조회, 참고용 근사) — 이 모듈 캐시.
                         네트워크를 가장 많이 쓰고 느려 맨 뒤에 둔다.
 
 기준일(as_of)은 한국 날짜다. 06:40 KST 는 서버(UTC) 날짜로 아직 전날이라 date.today() 를 쓰면, 가격 조회의 end 가
@@ -289,6 +290,16 @@ def refresh_tickers() -> list[str]:
         tickers += list((sat.get("if_bought_at_last_rebal") or {}).get("picks") or [])
     except Exception:  # noqa: BLE001
         pass
+    # 고정 시작일 추종의 보유 종목도 장중 봉이 아닌 장 마감 값으로 갱신한다.
+    try:
+        from core import champion_follow as cf
+        for age in range(1, 4):
+            result = cf.load_cached((kst_today() - timedelta(days=age)).isoformat())
+            if result:
+                tickers += [r["ticker"] for r in result.get("latest_allocation", []) if r["ticker"] != "CASH"]
+                break
+    except Exception:  # noqa: BLE001 - 새 캐시가 없어도 기존 가격 갱신은 계속
+        pass
     out: list[str] = []
     for t in tickers:
         if t and t not in out:
@@ -342,6 +353,13 @@ def prune_performance_caches(as_of: date, keep_days: int = PERF_KEEP_DAYS) -> in
             except OSError:
                 pass
     return removed
+
+
+def step_champion_follow(as_of: date, cache_dir: Optional[Path] = None) -> str:
+    from core import champion_follow as cf
+
+    result = cf.compute_follow_performance(as_of.isoformat(), cache_dir=cache_dir)
+    return f"{cf.FOLLOW_START}부터 {result['summary']['end']}까지 추종 성과 저장"
 
 
 def step_performance(as_of: date, cache_dir: Optional[Path] = None) -> str:
@@ -414,6 +432,7 @@ def step_satellite_scan(as_of: date, cache_dir: Optional[Path] = None) -> str:
 
 STEPS: tuple[tuple[str, str, StepFn], ...] = (
     ("prices", "가격 최신화", step_prices),
+    ("champion_follow", "10월 1일부터 챔피언 추종 성과", step_champion_follow),
     ("performance", "챔피언 성과 — 최근 5년 백테스트", step_performance),
     ("satellite_pit", "챔피언 전략 — point-in-time 새틀라이트", step_satellite_pit),
     ("champion_backtest", "챔피언 전략 — 3. 백테스트(최근 3년)", step_champion_backtest),

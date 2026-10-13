@@ -59,3 +59,16 @@ def test_saved_result_is_loaded_with_frames_and_age(tmp_path):
     # 다른 사이징이나 너무 오래된 결과는 보여 주지 않는다
     assert dp.load_latest(dp.KIND_CHAMPION_BACKTEST, sizing_method="inverse_vol", today=date(2026, 10, 5), cache_dir=tmp_path) is None
     assert dp.load_latest(dp.KIND_CHAMPION_BACKTEST, today=date(2026, 10, 30), cache_dir=tmp_path) is None
+
+
+def test_follow_step_uses_fixed_start_and_requested_as_of(monkeypatch, tmp_path):
+    from core import champion_follow as cf
+    calls = []
+    def compute(end, **kwargs):
+        calls.append((end, kwargs))
+        return {"summary": {"end": "2026-10-12"}}
+    monkeypatch.setattr(cf, "compute_follow_performance", compute)
+    message = dp.step_champion_follow(date(2026, 10, 13), tmp_path)
+    assert calls == [("2026-10-13", {"cache_dir": tmp_path})]
+    assert "2026-10-01부터 2026-10-12" in message
+    assert dp.STEPS[1][0] == "champion_follow"

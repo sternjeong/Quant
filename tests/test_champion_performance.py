@@ -313,9 +313,9 @@ def test_page_renders_without_cache_and_does_not_start_job(page_env, monkeypatch
     monkeypatch.setattr(socket.socket, "connect", lambda *a, **k: (_ for _ in ()).throw(OSError("blocked")))
     at = _run_page()
     txt = _text(at)
-    assert "A. 백테스트" in txt and "B. 실제 시장 기록(2026-09-19~)" in txt
+    assert "A. 백테스트" in txt and "B. 10월 1일부터 챔피언 전략을 따랐다면" in txt
     assert "아직 이 기간의 계산 결과가 없습니다" in txt
-    assert "기록 없음" in txt
+    assert "아직 이 구간의 계산 결과가 없습니다" in txt
     assert not job_manager.list_running_jobs()
 
 
@@ -343,7 +343,8 @@ def test_page_renders_cached_backtest_and_live_ledger(page_env, monkeypatch):
     txt = _text(at)
     assert "최종 금액(가상)" in txt
     assert "✅ 검산" in txt
-    assert "아직 기간이 짧아 판단 불가" in txt
+    assert "따랐다면(원장)" not in txt
+    assert "10월 1일부터" in txt
     assert len(at.dataframe) >= 2
 
 
