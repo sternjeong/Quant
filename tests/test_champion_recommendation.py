@@ -1,4 +1,4 @@
-"""core/champion_recommendation.py + app/pages/11_챔피언_전략.py '지금 기준 재추천' 테스트.
+"""core/champion_recommendation.py + app/views/11_챔피언_전략.py '지금 기준 재추천' 테스트.
 
 네트워크 없음: 가격·유니버스·백테스트 캐시를 합성 데이터로 바꿔 끼운다. 분위·초과수익·최대낙폭은
 손으로 계산한 값과 대조한다(겹치는 창을 쓰는 champion_tracking 의 계산을 그대로 재사용하는지 확인).
@@ -16,7 +16,7 @@ import core.champion_strategy as cs
 from core import champion_recommendation as cr
 from core import champion_tracking as ct
 
-PAGE = pathlib.Path(__file__).resolve().parents[1] / "app" / "pages" / "11_챔피언_전략.py"
+PAGE = pathlib.Path(__file__).resolve().parents[1] / "app" / "views" / "11_챔피언_전략.py"
 MODULE = pathlib.Path(__file__).resolve().parents[1] / "core" / "champion_recommendation.py"
 
 

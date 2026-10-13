@@ -1,6 +1,6 @@
 """챔피언 전략 파라미터 최적화 슬롯 (신규, 2026-09-13).
 
-`app/pages/11_챔피언_전략.py`가 "오늘 기준" 라이브 신호 + 과거 백테스트를 보여주는 페이지라면, 이
+`app/views/11_챔피언_전략.py`가 "오늘 기준" 라이브 신호 + 과거 백테스트를 보여주는 페이지라면, 이
 페이지는 그 백테스트가 쓰는 튜닝 가능한 파라미터(새틀라이트 비중/코어 상위 N종목/시장필터 축소
 배수/새틀라이트 top_k/새틀라이트 후보 풀 크기)를 train/test로 나눠 스윕하고, 그 결과가 "견고한지
 (완만한 고원)" 아니면 "우연인지(뾰족한 피크, train에서만 좋고 test에서 갈라짐)"를 보여준다.
@@ -19,7 +19,7 @@ import sys
 from datetime import date, timedelta
 from pathlib import Path
 
-# --- sys.path 부트스트랩: 프로젝트 루트를 추가해 core.* 임포트 가능하게 함 (app/pages/*.py 공통 규칙) ---
+# --- sys.path 부트스트랩: 프로젝트 루트를 추가해 core.* 임포트 가능하게 함 (app/views/*.py 공통 규칙) ---
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))

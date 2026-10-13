@@ -217,7 +217,7 @@ def test_run_daily_refresh_fills_the_cache_the_page_reads_and_compares_with_prev
     assert "직전 추천(2026-10-01) 대비: 코어 TLT → XLV" in second["message"]
     assert len(sent) == 2
 
-    latest = cr.load_latest_cached(tmp_path)  # 화면(app/pages/11_챔피언_전략.py)이 읽는 함수
+    latest = cr.load_latest_cached(tmp_path)  # 화면(app/views/11_챔피언_전략.py)이 읽는 함수
     assert latest["as_of"] == "2026-10-02"
     assert cr.freshness(latest, today=date(2026, 10, 2))["level"] == "fresh"
 

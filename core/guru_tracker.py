@@ -12,7 +12,7 @@
        누적은 스펙 범위 밖이라 생략, 필요해지면 filing_date 기준으로 append 하도록 바꾸면 됨).
     5. get_common_holdings() 로 여러 거장이 공통으로 보유한 종목(교집합)을 계산한다.
 
-app/pages/4_거장_포트폴리오.py (Streamlit UI) 에서 이 모듈의 함수를 그대로 사용한다.
+app/views/4_거장_포트폴리오.py (Streamlit UI) 에서 이 모듈의 함수를 그대로 사용한다.
 """
 
 from __future__ import annotations

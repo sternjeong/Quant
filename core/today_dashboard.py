@@ -55,24 +55,24 @@ def build_today_dashboard(
     actions: list[dict[str, Any]] = []
     portfolio_actions = _safe(sources.get("portfolio_actions", lambda: []), None)
     if portfolio_actions is None:
-        actions.append({"level": "warning", "title": "보유 기간 알림 조회 실패", "detail": "포트폴리오 화면에서 매입 기록과 운용 구분을 확인하세요.", "destination": "pages/8_포트폴리오_관리.py"})
+        actions.append({"level": "warning", "title": "보유 기간 알림 조회 실패", "detail": "포트폴리오 화면에서 매입 기록과 운용 구분을 확인하세요.", "destination": "views/8_포트폴리오_관리.py"})
     else:
         actions.extend(portfolio_actions)
     if holdings is None:
-        actions.append({"level": "info", "title": "챔피언 신호 스냅샷 없음", "detail": "저장된 추천 상태가 없어 오늘의 목표 배분을 표시할 수 없습니다.", "destination": "pages/11_챔피언_전략.py"})
+        actions.append({"level": "info", "title": "챔피언 신호 스냅샷 없음", "detail": "저장된 추천 상태가 없어 오늘의 목표 배분을 표시할 수 없습니다.", "destination": "views/11_챔피언_전략.py"})
     if market is None:
-        actions.append({"level": "info", "title": "시장 국면 스냅샷 없음", "detail": "저장된 시장 국면이 없어 국면 기반 참고 정보를 표시할 수 없습니다.", "destination": "pages/7_시장_진단.py"})
+        actions.append({"level": "info", "title": "시장 국면 스냅샷 없음", "detail": "저장된 시장 국면이 없어 국면 기반 참고 정보를 표시할 수 없습니다.", "destination": "views/7_시장_진단.py"})
     elif market.get("regime") == "unknown":
-        actions.append({"level": "warning", "title": "시장 국면 판단 보류", "detail": "시장폭 또는 필수 데이터가 부족합니다. 약세 신호와 같은 뜻이 아닙니다.", "destination": "pages/7_시장_진단.py"})
+        actions.append({"level": "warning", "title": "시장 국면 판단 보류", "detail": "시장폭 또는 필수 데이터가 부족합니다. 약세 신호와 같은 뜻이 아닙니다.", "destination": "views/7_시장_진단.py"})
     if jobs and jobs.get("counts", {}).get("problem", 0):
-        actions.append({"level": "warning", "title": f"운영 작업 문제 {jobs['counts']['problem']}건", "detail": "데이터·알림·브리핑의 최신 상태를 확인하세요.", "destination": "pages/10_환경설정.py"})
+        actions.append({"level": "warning", "title": f"운영 작업 문제 {jobs['counts']['problem']}건", "detail": "데이터·알림·브리핑의 최신 상태를 확인하세요.", "destination": "views/10_환경설정.py"})
     status = _backup_status(backup)
     if status in {"stale", "blocked"}:
-        actions.append({"level": "warning", "title": "백업 상태 확인 필요", "detail": (backup.get("lines") or ["백업 상태를 읽지 못했습니다."])[0], "destination": "pages/10_환경설정.py"})
+        actions.append({"level": "warning", "title": "백업 상태 확인 필요", "detail": (backup.get("lines") or ["백업 상태를 읽지 못했습니다."])[0], "destination": "views/10_환경설정.py"})
     if unread_alerts:
-        actions.append({"level": "info", "title": f"읽지 않은 관심종목 알림 {unread_alerts}건", "detail": "신호의 기준일과 적용 전략을 확인하세요.", "destination": "pages/3_관심종목_모니터링.py"})
+        actions.append({"level": "info", "title": f"읽지 않은 관심종목 알림 {unread_alerts}건", "detail": "신호의 기준일과 적용 전략을 확인하세요.", "destination": "views/3_관심종목_모니터링.py"})
     if not actions:
-        actions.append({"level": "ok", "title": "현재 확인할 새 조치 없음", "detail": "저장된 상태에서 차단·경고·읽지 않은 알림을 찾지 못했습니다.", "destination": "pages/11_챔피언_전략.py"})
+        actions.append({"level": "ok", "title": "현재 확인할 새 조치 없음", "detail": "저장된 상태에서 차단·경고·읽지 않은 알림을 찾지 못했습니다.", "destination": "views/11_챔피언_전략.py"})
 
     return {
         "generated_at": now or datetime.now(timezone.utc),

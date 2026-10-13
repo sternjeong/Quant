@@ -52,14 +52,14 @@ MODULES: tuple[ModuleGuide, ...] = (
         how_to_use="시장 진단 화면에서 봅니다. 매일 한국시간 00:00 잡(daily_market_snapshot)이 미리 계산해 저장해 두므로 화면이 빨리 열립니다. 별도 조치는 필요 없습니다.",
         where_to_see="시장 진단 화면(시장 국면 카드·타임라인)",
         cautions="투명한 규칙 기반 참고 지표이며 매매 신호가 아닙니다. 결과는 DB 에 스냅샷으로 쌓입니다. 주문 경로에는 직접 연결되지 않습니다. 4개 신호는 각각 최대 25점(가중치 동일)이고, 스냅샷에 신호별 상태(signal_status: 계산됨/결측과 사유)와 계산된 비중(coverage)이 저장됩니다. 빠진 신호를 0점으로 합산하지 않습니다: 시장폭이 없거나 coverage 가 75% 미만이면 unknown(판단 보류), 75% 이상이면 남은 점수를 coverage 로 나눠 판정하고 partial=True·missing_signals 로 표시합니다. 75% 기준은 '신호 1개만으로는 ±35 기준을 넘지 못한다'는 원래 설계(25점 < 35점)가 재정규화 뒤에도 유지되는 최소 비중입니다(25/0.75=33.3). 2026-09-25 이전에 저장된 스냅샷에는 이 필드들이 없습니다.",
-        sources=("core/market_regime.py", "scheduler/run_scheduler.py", "app/pages/7_시장_진단.py"), verified=_V),
+        sources=("core/market_regime.py", "scheduler/run_scheduler.py", "app/views/7_시장_진단.py"), verified=_V),
     ModuleGuide(
         module="core/news_digest.py", name="티커별 뉴스 요약", group="데이터", status="운영중",
         what="구독한 티커의 최근 뉴스 제목·짧은 설명·링크를 Finnhub/FMP 무료 API 로 모으고, 티커별 요약과 이벤트 분류를 만들어 DB 에 저장합니다. 기사 전문은 긁어오지 않습니다.",
         how_to_use="매일 한국시간 07:30 에 자동으로 돌아 텔레그램 요약과 HTML 보고서를 보냅니다(뉴스 잡이 꺼져 있거나 VM 이 바쁘면 건너뜀). 구독 티커는 뉴스 리서치 화면에서 바꿉니다.",
         where_to_see="뉴스 리서치 화면, 텔레그램 아침 요약",
         cautions="무료 API 메타데이터(제목·짧은 설명)만 쓰므로 요약이 얕을 수 있습니다. 요약은 AI 가 만들기 때문에 원문 링크로 확인하세요. 매매 판단 근거로 검증된 것이 아닙니다.",
-        sources=("scheduler/run_scheduler.py", "app/pages/13_뉴스_리서치.py"), verified=_V),
+        sources=("scheduler/run_scheduler.py", "app/views/13_뉴스_리서치.py"), verified=_V),
     ModuleGuide(
         module="core/nl_strategy.py", name="자연어 전략 해석", group="리서치 인프라", status="도구",
         what="유튜브 스크립트 같은 글로 된 전략 설명을 시스템이 이해하는 지표 조합(JSON)으로 바꿉니다. Gemini 키가 있으면 AI 를 쓰고, 없거나 실패하면 단순 키워드 규칙으로 대신합니다.",
@@ -104,14 +104,14 @@ MODULES: tuple[ModuleGuide, ...] = (
         how_to_use="'포트폴리오 비교' 화면에서 만들고 거래를 넣으면 이 모듈이 계산합니다. 일별 저장본을 두지 않고 거래와 과거 시세로 매번 다시 계산하므로 중간에 빠진 날이 생기지 않습니다.",
         where_to_see="포트폴리오 비교 화면",
         cautions="배당을 반영하지 않아 배당이 있는 종목은 실제보다 낮게 나옵니다. 수수료·세금은 입력한 값만 반영합니다. 시세를 받지 못한 종목이 있으면 그 포트폴리오는 계산하지 않고 이유를 표시합니다.",
-        sources=("app/pages/15_포트폴리오_비교.py", "core/portfolio_compare.py"), verified="2026-09-28"),
+        sources=("app/views/15_포트폴리오_비교.py", "core/portfolio_compare.py"), verified="2026-09-28"),
     ModuleGuide(
         module="core/portfolio.py", name="내 포트폴리오 계산", group="운용", status="운영중",
         what="증권사 잔고를 붙여 넣어 보유 기록 전체를 그 상태로 바꾸는 '잔고 한 번에 맞추기'(종목당 한 줄로 합침·중복 방지)도 여기 있습니다. 직접 입력한 보유 종목·수량·매입가·현금으로 손익과 위험을 계산합니다. 손익 표에서는 티커별로 합산하며 개별 매입 기록은 유지합니다. 운용 구분이 코어·새틀라이트인 기록은 매입일·보유 유지 확인일 기준 재선정 기한과 최신 저장 추천을 대조해 매도 확인 주수·보유 재검토·재추천 필요 안내를 만듭니다.",
         how_to_use="포트폴리오 화면의 '보유 종목' 표에서 티커·수량·매입 단가·매입일 셀을 직접 고치고 '💾 표 수정 저장'을 누릅니다. 여러 행을 한 번에 저장하며 하나라도 잘못되면 전체를 저장하지 않습니다. 기존 기록을 수정하므로 매매근거와 과거 검증 이력은 유지되며, 수정 후 손익·리스크를 다시 조회합니다. 챔피언 전략 화면도 내 보유·현금을 읽어 비교에 씁니다. 실제 자산이 바뀌면 직접 수정해 주세요.",
         where_to_see="포트폴리오 화면, 챔피언 전략 화면",
         cautions="입력한 숫자가 기준이라 실제 계좌와 자동으로 맞춰지지 않습니다. AI 코멘트는 참고용입니다.",
-        sources=("core/portfolio.py", "app/pages/8_포트폴리오_관리.py", "app/pages/11_챔피언_전략.py"), verified="2026-10-08"),
+        sources=("core/portfolio.py", "app/views/8_포트폴리오_관리.py", "app/views/11_챔피언_전략.py"), verified="2026-10-08"),
     ModuleGuide(
         module="core/position_sizing.py", name="포지션 크기 계산기", group="분석·백테스트", status="도구",
         what="얼마나 살지 계산하는 순수 계산 도구입니다. 고정 비율 리스크, 동일 비중, 켈리(하프켈리 상한), 변동성 목표 비중 네 가지를 제공합니다.",
@@ -228,35 +228,35 @@ MODULES: tuple[ModuleGuide, ...] = (
         how_to_use="종목 스크리닝 화면에서 조건을 넣고 실행하고, 마음에 드는 종목은 관심 종목으로 바로 추가합니다. 밸류에이션·시장 진단·스케줄러는 종목 목록을 얻는 데 이 모듈을 씁니다.",
         where_to_see="종목 스크리닝 화면",
         cautions="재무값은 yfinance 의 현재 시점 값이라 과거 시점 기준이 아닙니다(PIT 아님). 결과가 좋은 종목이라는 검증은 없습니다.",
-        sources=("app/pages/5_종목_스크리닝.py", "scheduler/run_scheduler.py"), verified=_V),
+        sources=("app/views/5_종목_스크리닝.py", "scheduler/run_scheduler.py"), verified=_V),
     ModuleGuide(
         module="core/sector_leaders.py", name="섹터 대장주·성장주 분석", group="분석·백테스트", status="관측 전용",
         what="테마별 대표 ETF, 시가총액 1위 대장주, 이익성장률 상위 성장주를 자동으로 고르고 종목과 ETF 사이 베타·상관·상대강도 추세를 계산합니다.",
         how_to_use="시장 진단 화면의 테마 관계 분석에서 봅니다. 매일 후보 기록 잡(candidate_ledger_record)이 이 모듈의 후보를 관측용으로 함께 기록합니다. 사용자가 개입할 일은 없습니다.",
         where_to_see="시장 진단 화면",
         cautions="관측·참고용입니다. 후보 기록은 원전략 채택이나 주문에 영향을 주지 않습니다. 시가총액 1위 선정 등은 현재 시점 데이터라 과거 재현(PIT)이 아닙니다.",
-        sources=("core/candidate_recorder.py", "app/pages/7_시장_진단.py"), verified=_V),
+        sources=("core/candidate_recorder.py", "app/views/7_시장_진단.py"), verified=_V),
     ModuleGuide(
         module="core/sector_strength.py", name="섹터·테마 강도", group="분석·백테스트", status="관측 전용",
         what="GICS 11개 섹터 ETF와 반도체·우주 같은 세부 테마의 대표 ETF 로 IBD 스타일 상대강도(0~100 점수)를 계산합니다. 최근 3개월에 가중치를 더 줍니다.",
         how_to_use="시장 진단 화면에서 강한 테마 순위로 봅니다. 매일 한국시간 00:00 잡(daily_market_snapshot)이 스냅샷을 미리 저장합니다. 자동이라 개입할 일은 없습니다.",
         where_to_see="시장 진단 화면",
         cautions="가격 모멘텀 순위일 뿐 매수 추천이 아닙니다. 점수는 테마 집합 안의 상대 순위라 시장 전체가 약해도 높게 나올 수 있습니다.",
-        sources=("scheduler/run_scheduler.py", "app/pages/7_시장_진단.py", "scripts/nightly_market_snapshot_ci.py"), verified=_V),
+        sources=("scheduler/run_scheduler.py", "app/views/7_시장_진단.py", "scripts/nightly_market_snapshot_ci.py"), verified=_V),
     ModuleGuide(
         module="core/stock_discovery.py", name="종목 발굴", group="리서치 인프라", status="실험",
         what="현재 유니버스에서 모멘텀·성장·가치·퀄리티 네 팩터의 백분위 점수를 합쳐 상위 종목 후보를 뽑는 독립 스크리닝 도구입니다. 전략 튜닝 파이프라인과는 별개입니다.",
         how_to_use="종목 스크리닝 화면의 발굴 기능에서 봅니다. 매일 후보 기록 잡이 이 후보도 관측용으로 저장합니다. 후보는 참고로만 보고, 사고 싶으면 직접 판단하세요.",
         where_to_see="종목 스크리닝 화면",
         cautions="현재 시점 재무·가격 스냅샷이라 과거 재현(PIT)이 아니며 성과가 검증되지 않았습니다. 후보 기록은 관측 전용이고 주문에 연결되지 않습니다.",
-        sources=("app/pages/5_종목_스크리닝.py", "core/candidate_recorder.py"), verified=_V),
+        sources=("app/views/5_종목_스크리닝.py", "core/candidate_recorder.py"), verified=_V),
     ModuleGuide(
         module="core/strategy_engine.py", name="전략 신호 엔진", group="분석·백테스트", status="운영중",
         what="이동평균 교차, RSI, 볼린저 등 지표를 AND/OR 로 조합한 전략(JSON)을 평가해 매수·보유 구간을 계산하는 핵심 엔진입니다. 1:2:6 단계 전략, 코스톨라니, 앙상블, 직접 수식형도 지원합니다.",
         how_to_use="전략 스튜디오의 백테스트와 관심종목 매일 스캔(평일 16:30 ET)이 이 엔진으로 신호를 계산합니다. 사용자는 화면에서 전략을 고르기만 하면 됩니다.",
         where_to_see="전략 스튜디오 화면, 운용 알림 화면",
         cautions="신호 계산 도구일 뿐 성과 보장이 아닙니다. 새 전략은 백테스트만으로 믿지 말고 별도 검증을 거치세요.",
-        sources=("app/pages/1_전략_스튜디오.py", "scheduler/run_scheduler.py"), verified=_V),
+        sources=("app/views/1_전략_스튜디오.py", "scheduler/run_scheduler.py"), verified=_V),
     ModuleGuide(
         module="core/strategy_explainer.py", name="전략 설명문 생성", group="화면 지원", status="도구",
         what="지표 조합 전략을 사람이 읽는 한국어 설명으로 바꿉니다. 조건 문구는 엔진이 정확히 만들고, AI 는 그 문구를 자연스럽게 다듬기만 하도록 되어 있습니다.",
@@ -277,7 +277,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         how_to_use="전략 스튜디오(튜닝 결과)와 챔피언 최적화 화면에서 봅니다. 결과에는 점수 버전 배지가 붙습니다. v2(현재) 결과만 서로 비교하고, legacy 배지는 이전 방식이라 v2 와 나란히 순위 매기지 마세요.",
         where_to_see="전략 스튜디오 화면, 챔피언 최적화 화면",
         cautions="야간 자동 미세튜닝은 2026-09-24 삭제되어 지금은 스케줄러에서 돌지 않습니다(화면에서 필요할 때 실행). 튜닝 결과가 좋다고 실전 성과가 검증된 것은 아닙니다. 검증은 같은 시장 국면 안에서 해야 합니다.",
-        sources=("app/pages/1_전략_스튜디오.py", "app/pages/12_챔피언_전략_최적화.py"), verified=_V),
+        sources=("app/views/1_전략_스튜디오.py", "app/views/12_챔피언_전략_최적화.py"), verified=_V),
     ModuleGuide(
         module="core/strategy_variants.py", name="전략 변형 그림자 기록", group="리서치 인프라", status="관측 전용",
         what="챔피언 코어 전략을 절대 바꾸지 않은 채, 변형(hold-band: 6위 안이면 보유 유지 등)이 매일 어떤 종목을 골랐을지를 병행 기록합니다. 회전율과 비용이 실제로 줄었는지 나중에 검증하는 관측용 장부입니다.",
@@ -298,7 +298,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         how_to_use="Threads 요약 화면에 글을 붙여넣어 저장합니다. 주간 리포트는 매주 일요일 20:00(ET)에 추적 중인 티커별로 자동 생성되고, 화면에서 볼 수 있습니다.",
         where_to_see="Threads 요약 화면",
         cautions="자동 수집이 아니라 붙여넣기 방식입니다. AI 요약·회고는 오류가 있을 수 있는 참고 자료입니다.",
-        sources=("app/pages/2_Threads_요약.py", "scheduler/run_scheduler.py"), verified=_V),
+        sources=("app/views/2_Threads_요약.py", "scheduler/run_scheduler.py"), verified=_V),
     ModuleGuide(
         module="core/today_dashboard.py", name="오늘 화면 데이터", group="화면 지원", status="운영중",
         what="'오늘' 홈 화면에 저장된 스냅샷·운영 기록과 실제 매입 기록의 재선정 기한 안내를 모읍니다. 오늘 처리할 일에 기한이 지난 매입 기록의 티커·주수·추천 확인 상태를 표시합니다. 화면 진입은 시장 스캔이나 주문을 실행하지 않습니다.",
@@ -340,7 +340,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         how_to_use="운용 알림 화면에서 관심 종목과 전략을 등록하고 읽지 않은 알림을 확인합니다. 스캔은 평일 16:30(ET)에 자동으로 돌며 화면의 지금 스캔 버튼으로도 실행됩니다. 자동 스캔에서 충족 종목이 있으면 텔레그램 요약 1건이 옵니다(0건이면 안 옴, 같은 종목·전략·기준일은 한 번만).",
         where_to_see="운용 알림 화면, 텔레그램(충족 시)",
         cautions="신호는 참고용이며 자동 주문으로 이어지지 않습니다. 등록한 전략의 품질에 전적으로 의존합니다.",
-        sources=("scheduler/run_scheduler.py", "app/pages/3_관심종목_모니터링.py"), verified=_V),
+        sources=("scheduler/run_scheduler.py", "app/views/3_관심종목_모니터링.py"), verified=_V),
 )
 
 INTERNAL: dict = {

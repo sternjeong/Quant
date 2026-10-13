@@ -102,17 +102,17 @@ with right:
     else:
         st.caption("저장된 새틀라이트 추천이 없습니다.")
     st.caption("추천은 전략 신호이며, 주문 가능 여부와 별도입니다.")
-    _link("pages/11_챔피언_전략.py", "챔피언 전략 열기 — 지금 할 일")
+    _link("views/11_챔피언_전략.py", "챔피언 전략 열기 — 지금 할 일")
 
 st.divider()
 st.subheader("작업공간")
 workspace_links = (
-    ("운용 알림", "pages/3_관심종목_모니터링.py"),
-    ("운용", "pages/8_포트폴리오_관리.py"),
-    ("탐색", "pages/5_종목_스크리닝.py"),
-    ("리서치 랩", "pages/1_전략_스튜디오.py"),
-    ("시장 정보", "pages/7_시장_진단.py"),
-    ("시스템", "pages/10_환경설정.py"),
+    ("운용 알림", "views/3_관심종목_모니터링.py"),
+    ("운용", "views/8_포트폴리오_관리.py"),
+    ("탐색", "views/5_종목_스크리닝.py"),
+    ("리서치 랩", "views/1_전략_스튜디오.py"),
+    ("시장 정보", "views/7_시장_진단.py"),
+    ("시스템", "views/10_환경설정.py"),
 )
 for column, (label, path) in zip(st.columns(len(workspace_links)), workspace_links):
     with column:

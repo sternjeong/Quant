@@ -182,7 +182,7 @@ def test_tournament_record_job_registered_and_topic_switch():
 def test_tax_page_is_in_navigation():
     from core.app_navigation import all_pages
 
-    assert any(p.path == "pages/16_세후_수익_계산.py" for p in all_pages())
+    assert any(p.path == "views/16_세후_수익_계산.py" for p in all_pages())
 
 
 def test_champion_weights_blend_core_and_semiannual_satellite():

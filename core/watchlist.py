@@ -1,6 +1,6 @@
 """모듈 C: 관심 티커 리스트(최대 50개) + 매일 타점 모니터링 공용 로직.
 
-app/pages/3_관심종목_모니터링.py (Streamlit UI) 와 scheduler/run_scheduler.py
+app/views/3_관심종목_모니터링.py (Streamlit UI) 와 scheduler/run_scheduler.py
 (독립 스케줄러) 양쪽에서 동일한 함수를 재사용한다.
 
 핵심 흐름:

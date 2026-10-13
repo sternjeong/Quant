@@ -16,7 +16,7 @@ import core.db as db
 from core.models import Strategy, StrategyTuningResult, StrategyTuningRun
 from core.strategy_tuning import LEGACY_SCORE_WARNING
 
-PAGE = pathlib.Path(__file__).resolve().parents[1] / "app" / "pages" / "1_전략_스튜디오.py"
+PAGE = pathlib.Path(__file__).resolve().parents[1] / "app" / "views" / "1_전략_스튜디오.py"
 LEGACY_BADGE, CURRENT_BADGE = "⚠️ legacy", "✅ v2 (현재)"
 
 

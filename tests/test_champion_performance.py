@@ -1,4 +1,4 @@
-"""core/champion_performance.py + app/pages/14_챔피언_성과.py 테스트.
+"""core/champion_performance.py + app/views/14_챔피언_성과.py 테스트.
 
 네트워크 없음: 가격 공급자·유니버스 표본을 합성 데이터로 바꿔 끼운다. 기대값은 손으로 계산했다
 (체결 관례: 신호일 종가 매수, weights.shift(1) 로 다음 날 수익부터 반영, 비중 변화분 × 편도 비용).
@@ -16,7 +16,7 @@ import pytest
 import core.champion_strategy as cs
 from core import champion_performance as cp
 
-PAGE = pathlib.Path(__file__).resolve().parents[1] / "app" / "pages" / "14_챔피언_성과.py"
+PAGE = pathlib.Path(__file__).resolve().parents[1] / "app" / "views" / "14_챔피언_성과.py"
 
 
 # ----------------------------------------------------------------------------

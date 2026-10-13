@@ -33,7 +33,7 @@ def test_entries_are_well_formed():
 
 def test_validate_catches_bad_entries():
     bad = GuideContent(
-        pages=(PageGuide(path="pages/없는_화면.py", summary="", when_to_use="x", steps=(), sources=("no/such/file.py",), verified="2026-13-45"),),
+        pages=(PageGuide(path="views/없는_화면.py", summary="", when_to_use="x", steps=(), sources=("no/such/file.py",), verified="2026-13-45"),),
         modules=(ModuleGuide(module="core/none.py", name="n", group="엉뚱", status="엉뚱", what="w", how_to_use="h", where_to_see="s", verified="2999-01-01"),),
         scripts=(ScriptGuide(path="scripts/none.py", name="n", when_to_run="w", command="c", risk="엉뚱", what_it_prints="p", verified="2026-01-01"),),
         jobs=(JobGuide(job_id="j", where_to_see="", verified="2026-01-01"),),

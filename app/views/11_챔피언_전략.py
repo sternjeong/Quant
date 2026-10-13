@@ -13,7 +13,7 @@ from datetime import date
 from pathlib import Path
 from typing import Optional
 
-# --- sys.path 부트스트랩: 프로젝트 루트를 추가해 core.* 임포트 가능하게 함 (app/pages/*.py 공통 규칙) ---
+# --- sys.path 부트스트랩: 프로젝트 루트를 추가해 core.* 임포트 가능하게 함 (app/views/*.py 공통 규칙) ---
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
@@ -122,14 +122,14 @@ _GRADE_BADGE = {"robust": "🟢 robust", "moderate": "🔵 moderate", "weak": "�
 
 def _page_link(path: str, label: str) -> None:
     """st.page_link — 내비게이션 밖(AppTest 등)에서 실행되면 링크 대신 안내 문구만 남긴다
-    (app/pages/14_챔피언_성과.py 의 같은 헬퍼와 동일)."""
+    (app/views/14_챔피언_성과.py 의 같은 헬퍼와 동일)."""
     try:
         st.page_link(path, label=label, width="stretch")
     except Exception:  # noqa: BLE001 - 내비게이션 컨텍스트가 없을 때(KeyError/StreamlitAPIException)
         st.caption(label)
 
 
-# 차트 색 — app/pages/14_챔피언_성과.py 와 같은 팔레트(다크 표면용 범주 팔레트)를 그대로 쓴다.
+# 차트 색 — app/views/14_챔피언_성과.py 와 같은 팔레트(다크 표면용 범주 팔레트)를 그대로 쓴다.
 _C_STRATEGY = "#3987e5"
 _C_SPY = "#d95926"
 _C_SAT = "#d55181"
@@ -389,7 +389,7 @@ else:
                 "보유 종목이 등록돼 있지 않아 '처음부터 매수' 기준으로 계산했습니다. 이미 갖고 있는 종목이 있으면 "
                 "포트폴리오 화면에 입력하세요 — 그러면 실제로 사고팔 것만 남습니다."
             )
-            _page_link("pages/8_포트폴리오_관리.py", "💼 포트폴리오에 보유 입력하기")
+            _page_link("views/8_포트폴리오_관리.py", "💼 포트폴리오에 보유 입력하기")
         else:
             st.caption(f"포트폴리오 화면에 입력한 보유 기준(현금 포함 총 ${_plan['total']:,.0f}). 입력이 낡으면 이 목록도 틀립니다.")
         _trades = [r for r in _plan["rows"] if r["action"] != "유지" and not (
@@ -456,7 +456,7 @@ else:
                             + (f" (이번 매도로 +{_sum['tax_krw'] - _sum['tax_without_plan_krw']:,.0f}원)" if _sum['tax_krw'] > _sum['tax_without_plan_krw'] else ""))
                         st.caption("매입일 환율로 원화 취득가를 만든 이동평균 근사입니다. 올해 실현 이익 입력과 연말 공제 채우기·손실 확정 제안은 "
                                    "'세후 수익 계산' 화면에 있습니다. 세금 때문에 매도를 미루는 것은 검증되지 않은 규칙 변경입니다(연구 tax-rnd-v1).")
-                        _page_link("pages/16_세후_수익_계산.py", "🧾 세후 수익 계산 — 내 계좌 올해 세금")
+                        _page_link("views/16_세후_수익_계산.py", "🧾 세후 수익 계산 — 내 계좌 올해 세금")
                     except Exception as _exc:  # noqa: BLE001
                         st.warning(f"세금 미리보기를 계산하지 못했습니다: {type(_exc).__name__}: {_exc}")
         _keep = [r["ticker"] for r in _plan["rows"] if r["action"] == "유지"]
@@ -978,7 +978,7 @@ st.caption(
     "브레이크아웃이 활성인 종목을 스캔하므로 기간이 길수록(반기 수만큼) 오래 걸립니다 "
     "(실측 기준 1년≈2분 안팎 — 기간을 늘리면 비례해서 늘어납니다)."
 )
-_page_link("pages/14_챔피언_성과.py", "📒 언제 사고 팔아 얼마를 벌었나(거래 내역·SPY 비교) → 챔피언 성과")
+_page_link("views/14_챔피언_성과.py", "📒 언제 사고 팔아 얼마를 벌었나(거래 내역·SPY 비교) → 챔피언 성과")
 
 bt_col1, bt_col2, bt_col3 = st.columns(3)
 with bt_col1:

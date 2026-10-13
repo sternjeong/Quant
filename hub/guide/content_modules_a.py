@@ -170,7 +170,7 @@ MODULES: tuple[ModuleGuide, ...] = (
             '전략 스튜디오, 챔피언 전략, 시장 진단 화면',
         cautions=
             '과거 데이터로 계산한 결과이며 미래 성과를 보장하지 않습니다. 비용 가정을 바꾸면 결과가 크게 달라질 수 있습니다.',
-        sources=('app/pages/1_전략_스튜디오.py',),
+        sources=('app/views/1_전략_스튜디오.py',),
         verified=V,
     ),
     ModuleGuide(
@@ -253,7 +253,7 @@ MODULES: tuple[ModuleGuide, ...] = (
             '챔피언 전략, 챔피언 최적화, 오늘 화면 + 텔레그램 알림',
         cautions=
             '이 모듈은 계산만 하며 주문은 별도 스크립트(scripts/champion_paper_trade.py)가 담당합니다. 확신도가 낮은 구성요소도 숨기지 않고 표시합니다. 과거 백테스트 기반이라 미래 수익을 보장하지 않습니다. 2026-09-25부터 반기 위성 결과에 관측 전용 필드(candidates=돌파가 켜진 후보 전체와 모멘텀 순위, rejected_tickers=돌파 없음, missing_tickers=이력 부족)가 더 붙습니다. 이 필드는 후보 원장·shadow 실험 기록에만 쓰이고, 고르는 종목·비중·주문은 전과 똑같습니다(변경 전 코드와 대조하는 테스트로 확인). 2026-10-02 사용자 결정으로 코어에서 남는 몫(시장필터 축소분·빈 슬롯)은 수익 0 현금 대신 단기국채 ETF(BIL)에 담습니다(paper 주문도 BIL 을 삽니다). 고르는 종목(순위·절대모멘텀·SPY 200일선)은 예전처럼 가격 기준이고, 백테스트 수익만 배당·분배금 포함 총수익(Adj Close)으로 잽니다. 이 변경은 코어 R&D v2 의 C01 로, G2~G5 는 통과했지만 효과가 작아 G1 은 넘지 못했습니다(2008년~ 총수익 기준 CAGR 9.36%→9.52%, 최대낙폭 −19.7%→−19.8%). 같은 날 순위를 총수익 기준으로도 바꿨다가 18년 전체 성과가 나빠(CAGR 9.12%, 최대낙폭 −21.7%) 되돌렸습니다. 새틀라이트는 가격(Close) 기준입니다. 전략 버전이 바뀌어 예전 재추천 결과는 다시 계산해야 합니다.',
-        sources=('app/pages/11_챔피언_전략.py', 'scheduler/run_scheduler.py', 'core/champion_strategy.py'),
+        sources=('app/views/11_챔피언_전략.py', 'scheduler/run_scheduler.py', 'core/champion_strategy.py'),
         verified='2026-10-02',
     ),
     ModuleGuide(
@@ -289,7 +289,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         how_to_use="챔피언 성과 화면에서 씁니다. 저장된 결과가 없으면 화면의 '📊 계산 시작' 버튼으로 백그라운드 계산을 시작합니다. 결과를 초기 금액 대비 배수로 저장해 두고 화면에서 곱하므로 초기 금액을 바꿔도 다시 계산하지 않습니다.",
         where_to_see="챔피언 성과 화면. 계산 결과는 data/cache/champion_performance_<해시>.json",
         cautions="백테스트 부분은 과거 가격에 규칙을 적용한 가상 결과이고 비용은 편도 고정 bp만, 새틀라이트 후보는 현재 S&P500 명단 기반이라 생존편향이 있습니다. 실시간 부분은 실제 주문 기록이 아닙니다. 주문 경로를 import 하지 않습니다. 캐시 키에는 기간·새틀라이트 비중·전략 버전·비용 가정이 들어가며, 전략 버전이 바뀌면 옛 결과는 쓰지 않습니다.",
-        sources=("core/champion_strategy.py", "app/pages/14_챔피언_성과.py"),
+        sources=("core/champion_strategy.py", "app/views/14_챔피언_성과.py"),
         verified="2026-09-26",
     ),
     ModuleGuide(
@@ -326,7 +326,7 @@ MODULES: tuple[ModuleGuide, ...] = (
             "새틀라이트 슬리브 단독 분포는 '챔피언 성과' 화면의 계산 결과가 저장돼 있을 때만 나옵니다."
         ),
         sources=("core/champion_strategy.py", "core/champion_tracking.py", "core/champion_performance.py",
-                 "app/pages/11_챔피언_전략.py"),
+                 "app/views/11_챔피언_전략.py"),
         verified="2026-10-02",
     ),
     ModuleGuide(
@@ -359,7 +359,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         how_to_use="자동입니다(매일 06:40 KST, 자동 잡 dawn_precompute). 챔피언 전략·챔피언 성과 화면을 열면 '🌅 새벽 자동 계산 결과' 문구와 함께 바로 보입니다. 다른 설정이나 지금 데이터로 보려면 화면 버튼을 누르면 됩니다.",
         where_to_see="챔피언 전략·챔피언 성과 화면, 실패 시 텔레그램 1건, VM data/cache/dawn_precompute_status.json(최근 실행 기록)",
         cautions="전체 20분 안팎 걸립니다. 한 단계가 실패해도 나머지는 계속합니다. VM 여유가 없으면 최대 20분 기다린 뒤 건너뜁니다. 7일보다 오래된 결과나 다른 사이징·전략 버전의 결과는 화면에 보여 주지 않습니다. 주문 경로와 연결되어 있지 않습니다.",
-        sources=("core/dawn_precompute.py", "scheduler/run_scheduler.py", "app/pages/11_챔피언_전략.py", "app/pages/14_챔피언_성과.py"),
+        sources=("core/dawn_precompute.py", "scheduler/run_scheduler.py", "app/views/11_챔피언_전략.py", "app/views/14_챔피언_성과.py"),
         verified="2026-10-05",
     ),
     ModuleGuide(
@@ -368,7 +368,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         how_to_use="'세후 수익 계산' 화면 '📈 전략을 세후로' 탭에서 설정을 고르고 '▶ 계산'을 누릅니다. 세금을 줄이는 매매 규칙 변형의 판정은 연구 작업 tax-rnd-v1 이 이 모듈로 합니다.",
         where_to_see="'세후 수익 계산' 화면",
         cautions="추정치이며 세금 신고용이 아닙니다. 카카오페이증권 수수료·환전 우대는 2026-10 조사값이고, 자동환전 우대율과 취득가액 방식은 확인되지 않았습니다. 금융소득 종합과세는 넣지 않았습니다.",
-        sources=("core/tax_fx.py", "app/pages/16_세후_수익_계산.py", "research/jobs/tax-rnd-v1/run.py",
+        sources=("core/tax_fx.py", "app/views/16_세후_수익_계산.py", "research/jobs/tax-rnd-v1/run.py",
                  "research/jobs/champion-aftertax-v1/run.py"),
         verified="2026-10-05",
     ),
@@ -378,7 +378,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         how_to_use="'세후 수익 계산' 화면 '📒 내 계좌 올해 세금' 탭에서 올해 이미 실현한 이익(증권사 앱의 양도세 예상 금액)을 넣고 저장한 뒤 '📒 내 보유로 올해 세금 계산'을 누릅니다. 챔피언 전략 화면 3단계의 '🧾 이 매도들의 세금 미리보기'를 켜면 이번 매도의 세금이 나옵니다. 11/15~12/26 에는 아침 '지금 할 일' 텔레그램에 연말 점검 한 줄이 붙습니다.",
         where_to_see="'세후 수익 계산' 화면, 챔피언 전략 화면 3단계, 아침 텔레그램(11/15~12/26), VM data/tax_year.json(입력한 올해 실현 이익)",
         cautions="추정치이며 신고용이 아닙니다. 포트폴리오 화면의 매입 단가가 수수료를 뺀 값이면 실제보다 이익이 약간 크게 나옵니다. 올해 이미 판 것은 알 수 없어 사용자가 입력한 값만 씁니다. 팔았다 바로 다시 사기를 막는 규정이 한국 해외주식에 없다는 점과 연말 결제일 마감은 증권사 공지로 확인해야 합니다.",
-        sources=("core/tax_planner.py", "app/pages/16_세후_수익_계산.py", "app/pages/11_챔피언_전략.py", "core/champion_recommendation.py"),
+        sources=("core/tax_planner.py", "app/views/16_세후_수익_계산.py", "app/views/11_챔피언_전략.py", "core/champion_recommendation.py"),
         verified="2026-10-05",
     ),
     ModuleGuide(
@@ -412,7 +412,7 @@ MODULES: tuple[ModuleGuide, ...] = (
             '전략 스튜디오 화면',
         cautions=
             '표시 전용이며 계산 결과를 바꾸지 않습니다.',
-        sources=('app/pages/1_전략_스튜디오.py',),
+        sources=('app/views/1_전략_스튜디오.py',),
         verified=V,
     ),
     ModuleGuide(
@@ -508,7 +508,7 @@ MODULES: tuple[ModuleGuide, ...] = (
             '전략 스튜디오 화면',
         cautions=
             '과거 시대 구간에 대한 백테스트일 뿐이라 통과했다고 앞으로도 통한다는 뜻은 아닙니다.',
-        sources=('app/pages/1_전략_스튜디오.py',),
+        sources=('app/views/1_전략_스튜디오.py',),
         verified=V,
     ),
     ModuleGuide(
@@ -524,7 +524,7 @@ MODULES: tuple[ModuleGuide, ...] = (
             '거장 포트폴리오 화면',
         cautions=
             '자동 조회는 SPDR 계열만 됩니다. 나머지는 직접 파일을 올려야 합니다.',
-        sources=('app/pages/4_거장_포트폴리오.py',),
+        sources=('app/views/4_거장_포트폴리오.py',),
         verified=V,
     ),
     ModuleGuide(
@@ -556,7 +556,7 @@ MODULES: tuple[ModuleGuide, ...] = (
             '전략 스튜디오 화면',
         cautions=
             '조건이 맞아 보여도 성과가 좋다는 뜻은 아닙니다. 허용되지 않은 함수는 쓸 수 없습니다.',
-        sources=('app/pages/1_전략_스튜디오.py',),
+        sources=('app/views/1_전략_스튜디오.py',),
         verified=V,
     ),
     ModuleGuide(
@@ -604,7 +604,7 @@ MODULES: tuple[ModuleGuide, ...] = (
             '시장 진단 화면',
         cautions=
             'FRED_API_KEY 가 없으면 화면에 지표가 비어 있을 수 있습니다. 발표 지연이나 나중 수정된 값이 그대로 반영될 수 있어 발표 당시 값(PIT)이 아닙니다.',
-        sources=('app/pages/7_시장_진단.py', 'scheduler/run_scheduler.py'),
+        sources=('app/views/7_시장_진단.py', 'scheduler/run_scheduler.py'),
         verified=V,
     ),
     ModuleGuide(
@@ -668,7 +668,7 @@ MODULES: tuple[ModuleGuide, ...] = (
             '거장 포트폴리오 화면 + 텔레그램 알림',
         cautions=
             '13F 는 분기 공시라 최대 수개월 전 보유 내역입니다(ARK 만 매일). 실시간 매매가 아닙니다.',
-        sources=('app/pages/4_거장_포트폴리오.py', 'scheduler/run_scheduler.py'),
+        sources=('app/views/4_거장_포트폴리오.py', 'scheduler/run_scheduler.py'),
         verified=V,
     ),
     ModuleGuide(
@@ -684,7 +684,7 @@ MODULES: tuple[ModuleGuide, ...] = (
             '거장 포트폴리오 화면, 챔피언 전략 화면 일부',
         cautions=
             '13F 는 분기 후 최대 45일 뒤에 공개되고 공매도·비미국 자산은 나오지 않습니다. 종목명으로 티커를 추정하므로 드물게 틀릴 수 있습니다.',
-        sources=('app/pages/4_거장_포트폴리오.py', 'core/guru_schedule.py'),
+        sources=('app/views/4_거장_포트폴리오.py', 'core/guru_schedule.py'),
         verified=V,
     ),
     ModuleGuide(
@@ -700,7 +700,7 @@ MODULES: tuple[ModuleGuide, ...] = (
             '차트 조회, 전략 스튜디오 화면',
         cautions=
             '지표 값은 과거 가격에서 계산한 것이라 미래를 예측하지 않습니다.',
-        sources=('app/pages/9_차트_조회.py', 'core/strategy_engine.py'),
+        sources=('app/views/9_차트_조회.py', 'core/strategy_engine.py'),
         verified=V,
     ),
     ModuleGuide(
@@ -748,7 +748,7 @@ MODULES: tuple[ModuleGuide, ...] = (
             '각 화면(사이드바의 실행 중 작업)',
         cautions=
             '서버(앱)를 재시작하면 실행 중이던 작업은 사라집니다. 1인 사용 전제의 단순한 구조입니다.',
-        sources=('app/pages/11_챔피언_전략.py',),
+        sources=('app/views/11_챔피언_전략.py',),
         verified=V,
     ),
     ModuleGuide(
@@ -764,7 +764,7 @@ MODULES: tuple[ModuleGuide, ...] = (
             '시장 진단 화면',
         cautions=
             '투자자 심리 데이터가 없어 가격·거래량으로 근사한 것이라 원래 이론과 다릅니다. 국면 판정이 매매 신호가 되는 것은 아닙니다.',
-        sources=('app/pages/7_시장_진단.py', 'scheduler/run_scheduler.py'),
+        sources=('app/views/7_시장_진단.py', 'scheduler/run_scheduler.py'),
         verified=V,
     ),
     ModuleGuide(
@@ -780,7 +780,7 @@ MODULES: tuple[ModuleGuide, ...] = (
             '시장 진단 화면',
         cautions=
             '과거 백테스트이며 성과를 보장하지 않습니다. 국면 근사 자체의 한계도 그대로 이어받습니다.',
-        sources=('app/pages/7_시장_진단.py',),
+        sources=('app/views/7_시장_진단.py',),
         verified=V,
     ),
 )

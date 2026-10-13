@@ -33,7 +33,7 @@ Streamlit 앱과 완전히 별도의 프로세스로 실행된다 (브라우저�
       호출한다. 이 함수가 watchlist 테이블의 각 (ticker, strategy_id) 조합에 대해
       core.strategy_engine.evaluate() 로 전략 조건(신규 진입 신호) 충족 여부를 계산하고,
       충족 시 alerts_log 에 기록 + 데스크톱 알림을 보낸다.
-      (Streamlit 페이지 app/pages/3_관심종목_모니터링.py 의 "지금 스캔 실행" 버튼도
+      (Streamlit 페이지 app/views/3_관심종목_모니터링.py 의 "지금 스캔 실행" 버튼도
        동일한 core.watchlist.scan_watchlist() 를 호출하므로 로직이 완전히 일치한다.)
       서버에는 화면이 없어 데스크톱 알림은 콘솔 출력으로 대체되므로, 잡은 이어서
       core.watchlist.send_triggered_summary_telegram() 으로 충족 종목을 텔레그램 요약 1건으로
@@ -41,14 +41,14 @@ Streamlit 앱과 완전히 별도의 프로세스로 실행된다 (브라우저�
     - 매주 일요일 20:00 (America/New_York, 월요일 개장 전)에 threads_weekly_report_job() 을
       실행한다. core.threads_summary.list_tracked_tickers() 로 추적 중인 모든 티커를 찾아
       각각 core.threads_summary.generate_weekly_report() (모듈 B 공용 로직, 최근 7일)를
-      호출하고 결과를 저장한다. (Streamlit 페이지 app/pages/2_Threads_요약.py 의
+      호출하고 결과를 저장한다. (Streamlit 페이지 app/views/2_Threads_요약.py 의
       "🧠 리포트 생성" 버튼도 동일한 함수를 호출하므로 로직이 완전히 일치한다.)
       완료 알림은 데스크톱 알림과 함께 텔레그램으로도 1건 보낸다.
     - 매일 한국시간(Asia/Seoul) 00:00에 market_snapshot_job() 을 실행한다.
       core.market_regime.get_market_regime_snapshot() (S&P500 전종목 순회) 과
       core.sector_strength.compute_theme_strength() (테마 프록시 ETF 다수 순회)는 둘 다 무거운
       계산이라, 이 잡이 하루 한 번 미리 계산해 DB(MarketRegimeSnapshot/SectorStrengthSnapshot)에
-      저장해두면 app/pages/7_시장_진단.py 의 "시장 국면/섹터 강도" 탭이 매번 다시 계산하지
+      저장해두면 app/views/7_시장_진단.py 의 "시장 국면/섹터 강도" 탭이 매번 다시 계산하지
       않고 저장된 최신 스냅샷을 즉시 읽기만 한다. 이 잡은 **선택 사항(proactive 최적화)**이다 —
       페이지 쪽에도 core.market_regime.is_snapshot_stale_for_today_kst() 기반의 자체 폴백이 있어서
       (2026-07-15), 이 스크립트가 아예 안 떠 있어도 한국시간 자정이 지난 뒤 첫 방문자가 그 자리에서
@@ -77,7 +77,7 @@ Streamlit 앱과 완전히 별도의 프로세스로 실행된다 (브라우저�
       core.champion_strategy.compute_champion_correlation() 으로 보유종목 간 상관관계를 계산하고
       save_champion_correlation_snapshot() 으로 이력에 저장한다 — 새로 스캔하지 않고 캐시만 읽으므로
       가볍다. core.portfolio/core.backtest_engine이 이미 쓰는 "매번 새 스냅샷을 쌓아 추이를 보라"는
-      원칙을 챔피언 전략 보유종목에도 적용한다(app/pages/11_챔피언_전략.py 상관관계 섹션에서 확인).
+      원칙을 챔피언 전략 보유종목에도 적용한다(app/views/11_챔피언_전략.py 상관관계 섹션에서 확인).
     - 매일 한국시간(Asia/Seoul) 00:12에 champion_ledger_record_job() 을 실행한다(2026-09-19 추가).
       core.champion_strategy.record_daily_ledger_entry() 가 "어제 저장해둔 추천 비중으로 오늘
       실제 실현됐을 수익률"을 계산해 champion_ledger_entries 테이블에 누적 기록하고, 오늘 기준
@@ -110,7 +110,7 @@ Streamlit 앱과 완전히 별도의 프로세스로 실행된다 (브라우저�
     - 매일 한국시간(Asia/Seoul) 00:20에 fred_indicator_prewarm_job() 을 실행한다(2026-09-14 추가).
       core.fred_data.get_series() 는 파일 캐시(TTL 24시간)가 만료되면 그날 처음 방문한 사용자가
       실시간 FRED API 호출을 그 자리에서 떠안는 구조라(원/달러 환율 DEXKOUS 포함),
-      app/pages/7_시장_진단.py 의 경제지표/경기 사이클 섹션과 core.market_regime.
+      app/views/7_시장_진단.py 의 경제지표/경기 사이클 섹션과 core.market_regime.
       get_advisory_risk_signals() 가 쓰는 지표(core.fred_data.DEFAULT_INDICATORS 8종 +
       BAMLH0A0HYM2/T10Y3M)를 이 잡이 cache_ttl=0으로 강제로 미리 새로 받아 캐시를 데워둔다 —
       새 계산 로직은 없고 기존 get_series()를 그대로 재사용. 지표 하나가 실패해도(FRED_API_KEY
@@ -270,7 +270,7 @@ def market_snapshot_job() -> None:
     두 계산 모두 유니버스 전종목/테마 프록시 ETF 다수를 yfinance로 순회하는 무거운 작업이라
     (core.market_regime.get_market_regime_snapshot, core.sector_strength.compute_theme_strength),
     Streamlit 페이지 로드마다 실시간으로 돌리는 대신 하루 한 번 여기서 미리 계산해 저장해두고
-    app/pages/7_시장_진단.py 는 저장된 최신 스냅샷을 읽기만 한다.
+    app/views/7_시장_진단.py 는 저장된 최신 스냅샷을 읽기만 한다.
     """
     if not is_enabled("market_snapshot"):
         print(f"[{datetime.now()}] market_snapshot_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
@@ -306,7 +306,7 @@ def market_snapshot_job() -> None:
 
 
 def champion_signal_alert_job() -> None:
-    """챔피언 전략(app/pages/11_챔피언_전략.py)의 코어 top4/시장필터/새틀라이트 보유종목이
+    """챔피언 전략(app/views/11_챔피언_전략.py)의 코어 top4/시장필터/새틀라이트 보유종목이
     어제 저장된 상태와 달라졌으면 텔레그램으로 알린다 (2026-09-14 추가).
 
     core.champion_strategy.check_and_notify_signal_changes()가 실제 계산/비교/알림/저장을 전부
@@ -466,7 +466,7 @@ def fred_indicator_prewarm_job() -> None:
 
     배경: `core.fred_data.get_series()`는 파일 캐시(TTL 24시간)를 쓰는데, 캐시가 만료된 뒤 그날
     처음 이 지표를 보는 사용자가 실시간 FRED API 호출(+실패 시 재시도)을 그 자리에서 그대로
-    떠안는 구조였다 — `app/pages/7_시장_진단.py`의 "경제지표"/"경기 사이클" 섹션(원/달러 환율
+    떠안는 구조였다 — `app/views/7_시장_진단.py`의 "경제지표"/"경기 사이클" 섹션(원/달러 환율
     DEXKOUS 포함)과 `core.market_regime.get_advisory_risk_signals()`가 전부 이 방식이라, 새벽에
     아무도 안 미리 데워두면 사용자가 접속할 때마다 느려질 수 있다. 새 계산 로직을 만들지 않고
     이미 있는 `get_series()`를 그대로 재사용하되, `cache_ttl=0`을 줘서 "캐시가 있어도 무조건

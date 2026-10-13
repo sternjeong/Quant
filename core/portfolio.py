@@ -209,7 +209,7 @@ def holding_review_actions(holdings: list[dict], recommendation: Optional[dict],
             detail = f"{due} 재선정 시점 도달. {rec_day} 추천에 계속 포함되어 {qty:g}주 보유와 목표 비중을 재검토하세요. 보유 유지 확인 후 다음 주기를 시작할 수 있습니다."
         actions.append({"level": "warning" if action != "보유 재검토" else "info",
                         "title": f"{h['ticker']} {qty:g}주 · {action}", "detail": detail,
-                        "destination": "pages/11_챔피언_전략.py", "holding_id": h["id"],
+                        "destination": "views/11_챔피언_전략.py", "holding_id": h["id"],
                         "action": action, "ticker": h["ticker"], "quantity": qty,
                         "due_date": due.isoformat(), "strategy_role": role})
     return actions

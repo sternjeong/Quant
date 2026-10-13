@@ -34,7 +34,7 @@ PAGES: tuple[PageGuide, ...] = (
         verified="2026-10-07",
     ),
     PageGuide(
-        path="pages/11_챔피언_전략.py",
+        path="views/11_챔피언_전략.py",
         summary="리서치 결과로 정한 '코어 85% + 새틀라이트 15%' 배분을 오늘 시장 데이터로 계산해 보여 주는 화면입니다.",
         when_to_use="지금 무엇을 사고팔아야 하는지 알고 싶을 때. 맨 위 '✅ 지금 할 일' 카드만 위에서 아래로 따라가면 됩니다. 월초(코어 리밸런싱) 전후에 특히 씁니다.",
         steps=(
@@ -85,7 +85,7 @@ PAGES: tuple[PageGuide, ...] = (
             "champion_weekly_report",
         ),
         sources=(
-            "app/pages/11_챔피언_전략.py",
+            "app/views/11_챔피언_전략.py",
             "core/champion_strategy.py",
             "core/champion_recommendation.py",
             "core/portfolio.py",
@@ -95,7 +95,7 @@ PAGES: tuple[PageGuide, ...] = (
         verified="2026-10-08",
     ),
     PageGuide(
-        path="pages/14_챔피언_성과.py",
+        path="views/14_챔피언_성과.py",
         summary="챔피언 전략을 썼다면 언제 무엇을 사고 팔아 얼마를 벌거나 잃었는지를 S&P500(SPY)과 나란히 보여 주는 화면입니다. 위는 과거 백테스트(가상), 아래는 2026-09-19부터 쌓인 실제 시장 기록입니다.",
         when_to_use="이 전략을 믿고 따라도 될지 납득하고 싶을 때, 특정 종목을 언제 샀다 팔았는지와 그때 SPY보다 나았는지 확인할 때.",
         steps=(
@@ -127,7 +127,7 @@ PAGES: tuple[PageGuide, ...] = (
         ),
         related_jobs=("champion_ledger_record", "dawn_precompute"),
         sources=(
-            "app/pages/14_챔피언_성과.py",
+            "app/views/14_챔피언_성과.py",
             "core/champion_performance.py",
             "core/champion_strategy.py",
             "core/dawn_precompute.py",
@@ -135,7 +135,7 @@ PAGES: tuple[PageGuide, ...] = (
         verified="2026-10-08",
     ),
     PageGuide(
-        path="pages/15_포트폴리오_비교.py",
+        path="views/15_포트폴리오_비교.py",
         summary="여러 선택지를 이름 붙여 저장해 두고, 시간이 지난 뒤 어느 쪽이 나았는지 나란히 보는 화면입니다.",
         when_to_use="'내 선택을 고집했으면 지금 얼마일까', '그냥 SPY를 샀으면 어땠을까'를 나중에 확인하려고 지금 기록해 둘 때.",
         steps=(
@@ -159,11 +159,11 @@ PAGES: tuple[PageGuide, ...] = (
             "기존 '포트폴리오' 화면과 다른 화면입니다. 저쪽은 지금 들고 있는 것 한 벌, 여기는 비교하려고 얼려둔 여러 선택지입니다.",
         ),
         related_jobs=(),
-        sources=("app/pages/15_포트폴리오_비교.py", "core/portfolio_compare.py"),
+        sources=("app/views/15_포트폴리오_비교.py", "core/portfolio_compare.py"),
         verified="2026-09-28",
     ),
     PageGuide(
-        path="pages/16_세후_수익_계산.py",
+        path="views/16_세후_수익_계산.py",
         summary="두 탭입니다. '📈 전략을 세후로'는 챔피언 코어를 실제 계좌처럼 굴려 수수료·환전·양도세·배당세를 뺀 원화 금액을 'SPY 그냥 보유'와 나란히 보여 주고, '📒 내 계좌 올해 세금'은 내 보유로 올해 낼 양도세와 연말 공제 채우기·손실 확정을 계산합니다.",
         when_to_use="백테스트 수익률이 실제 통장에서는 얼마가 되는지, 환전을 어떻게 해야 덜 잃는지 알고 싶을 때. 올해 세금이 얼마 나올지, 연말(11월 중순~12월 넷째 주)에 공제를 채우거나 손실을 확정할지 정할 때.",
         steps=(
@@ -192,11 +192,11 @@ PAGES: tuple[PageGuide, ...] = (
             "과거 결과이며 앞으로의 수익을 뜻하지 않습니다. 이 화면은 주문을 내지 않습니다.",
         ),
         related_jobs=(),
-        sources=("app/pages/16_세후_수익_계산.py", "core/tax_fx.py", "core/tax_planner.py"),
+        sources=("app/views/16_세후_수익_계산.py", "core/tax_fx.py", "core/tax_planner.py"),
         verified="2026-10-05",
     ),
     PageGuide(
-        path="pages/8_포트폴리오_관리.py",
+        path="views/8_포트폴리오_관리.py",
         summary="내가 실제로 가진 종목을 직접 입력해 두고 손익·리스크·추천 비중을 보는 화면입니다.",
         when_to_use="종목을 사거나 판 뒤 기록을 고칠 때, 또는 내 보유가 한쪽으로 쏠렸는지 점검할 때.",
         steps=(
@@ -226,11 +226,11 @@ PAGES: tuple[PageGuide, ...] = (
             "AI 코멘트는 GEMINI 키가 없거나 호출이 실패하면 규칙 기반 대체 문구로 나옵니다.",
         ),
         related_jobs=(),
-        sources=("app/pages/8_포트폴리오_관리.py", "core/portfolio.py"),
+        sources=("app/views/8_포트폴리오_관리.py", "core/portfolio.py"),
         verified="2026-10-08",
     ),
     PageGuide(
-        path="pages/3_관심종목_모니터링.py",
+        path="views/3_관심종목_모니터링.py",
         summary="관심 티커마다 전략을 연결해 두고, 타점(신규 진입 신호)이 났는지 보는 알림 화면입니다.",
         when_to_use="새 관심 종목을 등록할 때, 또는 미국 장 마감 뒤 타점 알림이 왔는지 확인할 때.",
         steps=(
@@ -254,11 +254,11 @@ PAGES: tuple[PageGuide, ...] = (
             "전략이 과거에 검증됐어도 앞으로의 성과를 보장하지 않습니다. 기준일을 꼭 확인합니다.",
         ),
         related_jobs=("daily_watchlist_scan",),
-        sources=("app/pages/3_관심종목_모니터링.py", "core/watchlist.py", "core/notify.py", "core/telegram_notify.py"),
+        sources=("app/views/3_관심종목_모니터링.py", "core/watchlist.py", "core/notify.py", "core/telegram_notify.py"),
         verified="2026-10-07",
     ),
     PageGuide(
-        path="pages/5_종목_스크리닝.py",
+        path="views/5_종목_스크리닝.py",
         summary="S&P500 종목을 조건으로 거르거나(탭1) 팩터 점수로 순위를 매겨(탭2) 후보를 찾는 화면입니다.",
         when_to_use="새로 살펴볼 종목 후보가 필요할 때.",
         steps=(
@@ -282,11 +282,11 @@ PAGES: tuple[PageGuide, ...] = (
             "팩터 발굴은 기본으로 앞에서부터 100종목만 스캔합니다. 전체를 보려면 스캔 종목 수를 올립니다.",
         ),
         related_jobs=(),
-        sources=("app/pages/5_종목_스크리닝.py", "core/screener.py", "core/stock_discovery.py"),
+        sources=("app/views/5_종목_스크리닝.py", "core/screener.py", "core/stock_discovery.py"),
         verified=_V,
     ),
     PageGuide(
-        path="pages/9_차트_조회.py",
+        path="views/9_차트_조회.py",
         summary="티커를 넣으면 캔들차트와 기술 지표를 바로 보여 주는 화면입니다. 백테스트는 하지 않습니다.",
         when_to_use="어떤 종목의 가격 흐름을 눈으로 확인하고 싶을 때.",
         steps=(
@@ -311,11 +311,11 @@ PAGES: tuple[PageGuide, ...] = (
             "데이터를 못 받으면 티커 표기(접미사)나 기간을 확인하라는 오류가 뜹니다.",
         ),
         related_jobs=(),
-        sources=("app/pages/9_차트_조회.py", "core/market_data.py", "core/indicators.py"),
+        sources=("app/views/9_차트_조회.py", "core/market_data.py", "core/indicators.py"),
         verified=_V,
     ),
     PageGuide(
-        path="pages/6_밸류에이션.py",
+        path="views/6_밸류에이션.py",
         summary="한 종목의 적정 주가를 여러 방법으로 추정해 현재가와 나란히 비교하는 화면입니다.",
         when_to_use="특정 종목이 비싼지 싼지 대략 가늠하고 싶을 때.",
         steps=(
@@ -339,11 +339,11 @@ PAGES: tuple[PageGuide, ...] = (
             "이 화면의 값은 매수·매도 추천이 아니고 성과 검증도 되어 있지 않습니다.",
         ),
         related_jobs=(),
-        sources=("app/pages/6_밸류에이션.py", "core/valuation.py"),
+        sources=("app/views/6_밸류에이션.py", "core/valuation.py"),
         verified=_V,
     ),
     PageGuide(
-        path="pages/4_거장_포트폴리오.py",
+        path="views/4_거장_포트폴리오.py",
         summary="유명 투자자의 보유 종목(SEC 13F 공시, ARK는 일별 CSV)과 ETF 구성종목을 보는 화면입니다.",
         when_to_use="거장들이 무엇을 들고 있는지, 겹치는 종목이 있는지 궁금할 때.",
         steps=(
@@ -368,7 +368,7 @@ PAGES: tuple[PageGuide, ...] = (
             "자동 동기화가 꺼져 있으면(⚠️ 표시) 텔레그램 /processes 에서 다시 켤 수 있습니다.",
         ),
         related_jobs=("guru_holdings_sync",),
-        sources=("app/pages/4_거장_포트폴리오.py", "core/guru_tracker.py", "core/etf_holdings.py"),
+        sources=("app/views/4_거장_포트폴리오.py", "core/guru_tracker.py", "core/etf_holdings.py"),
         verified=_V,
     ),
 )

@@ -1,5 +1,14 @@
 # 작업 진행 상황
 
+## 2026-10-13 대시보드 사이드바 구형 메뉴 복귀 방지
+
+- 결정·근거: 새 `st.navigation`과 구형 자동 탐색용 `app/pages`가 공존했다. Streamlit은 프로세스 시작 뒤 첫 navigation 호출 전에는 pages 폴더를 탐색하며, 상세 URL로 첫 접속하면 Home 라우터 없이 상세 파일을 실행할 수 있다. 자동배포 재시작 뒤 재접속과 맞물리는 경로를 제거한다. 사용자 관측 당시 브라우저 로그는 없으므로 모든 과거 발생 건의 원인까지 확정하지는 않는다.
+- 구현 완료: 16개 상세 화면을 `app/views`로 이동하고 NAVIGATION·화면 간 링크·오늘 조치 링크·테스트·설명서 근거 경로를 갱신. Home은 DB 초기화보다 메뉴를 먼저 등록. 파일명·메뉴 제목을 유지해 기존 URL을 유지한다. 전략/주문 로직 변경 없음.
+- 검증: 메뉴/홈/설명서 37 passed, 화면·메뉴 93 passed. 전체 첫 검사 2767 passed·4 skipped에서 옛 화면 경로를 먼저 수집한 15개 실패/오류는 경로 수정 후 `--lf` 15 passed로 확인. 설명서 check 통과, 배포 runner unittest 72 OK, diff check 통과. 운영 Streamlit 1.63 메뉴 테스트 5 passed.
+- 수정 파일: `app/Home.py`, `app/pages`→`app/views` 16개 및 .gitkeep, `core/app_navigation.py`, `core/today_dashboard.py`, 화면/모듈 경로 참조, `hub/guide/content_{pages,modules}_{a,b}.py`, 관련 테스트, 인계 문서. 최신 origin/main의 별도 작업 폴더 `/tmp/quant-sidebar-fix`, 브랜치 `fix/sidebar-navigation-20261013`에서 통합. 공유 체크아웃의 기존 GPU/연구/문서 작업은 보존.
+- 배포: 아직 미완료. 다음: main 게시 → 기존 자동배포 전체 테스트 관문 → 운영 버전/프로세스/HTTP 응답/옛 pages 폴더 제거 확인. 실브라우저 육안 확인은 별도.
+
+
 ## 2026-10-10 연구 제안 6건 등록·실행기 병렬화·판정 체계 변경
 
 - 결과 23건 종합에서 나온 제안을 사용자가 전부 수용. 판정 체계 변경(core/research_power.py: 검정력 사전 계산·무효 실행 가드·소진된 떼어 둔 구간 대신 전진 원장), 연구 실행기 동시 3칸(게시 미루기 포함), 전진 원장 v2, 사전 등록 6건(core-universe-expansion-v2·core-longrun-v1·synthesis-rnd-v2·account-location-v1·guru-mechanism-v1·satellite-value-v1) 구현·스모크 통과. 자동 배포 스크립트 예외는 권한상 적용 안 함. 상세: docs/SESSION_HANDOFF.md.

@@ -13,8 +13,6 @@ import streamlit as st
 from core.app_navigation import NAVIGATION
 from core.db import init_db
 
-init_db()
-
 pages = {
     section: [
         st.Page(spec.path, title=spec.title, icon=spec.icon, default=spec.default)
@@ -22,4 +20,7 @@ pages = {
     ]
     for section, specs in NAVIGATION.items()
 }
-st.navigation(pages, position="sidebar", expanded=True).run()
+# DB 초기화가 지연되거나 실패해도 업무공간 메뉴를 먼저 등록한다.
+page = st.navigation(pages, position="sidebar", expanded=True)
+init_db()
+page.run()

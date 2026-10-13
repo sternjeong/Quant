@@ -8,7 +8,7 @@ PER·PBR 상대가치/EV·EBITDA/PEG/그레이엄 넘버)을 한 화면에서 �
 import sys
 from pathlib import Path
 
-# --- sys.path 부트스트랩: 프로젝트 루트를 추가해 core.* 임포트 가능하게 함 (app/pages/*.py 공통 규칙) ---
+# --- sys.path 부트스트랩: 프로젝트 루트를 추가해 core.* 임포트 가능하게 함 (app/views/*.py 공통 규칙) ---
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))

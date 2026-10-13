@@ -163,7 +163,7 @@ def test_page_can_edit_table_before_price_lookup_finishes(patched_session, monke
     monkeypatch.setattr(job_manager, "ensure", lambda slot, key, *a, **kw: seen_keys.append(key))
     # 가격이 아직 없어서 뒤의 분석을 표시할 수 없어도 수정 양식은 동작해야 한다.
     monkeypatch.setattr(job_manager, "render", lambda *a, **kw: st.stop())
-    page = Path(__file__).resolve().parents[1] / "app/pages/8_포트폴리오_관리.py"
+    page = Path(__file__).resolve().parents[1] / "app/views/8_포트폴리오_관리.py"
     at = AppTest.from_file(str(page)).run()
     assert not at.exception
     before_key = seen_keys[-1]

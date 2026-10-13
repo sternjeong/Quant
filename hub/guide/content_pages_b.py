@@ -9,7 +9,7 @@ _V = "2026-09-25"
 
 PAGES: tuple[PageGuide, ...] = (
     PageGuide(
-        path="pages/1_전략_스튜디오.py",
+        path="views/1_전략_스튜디오.py",
         summary="매매 전략을 만들고, 백테스트하고, 튜닝하고, 저장·관리하는 8개 탭짜리 작업대.",
         when_to_use="새 전략 아이디어를 과거 데이터로 시험해 보고 싶을 때, 저장해 둔 전략을 고치거나 정리하고 싶을 때.",
         steps=(
@@ -42,7 +42,7 @@ PAGES: tuple[PageGuide, ...] = (
         ),
         related_jobs=(),
         sources=(
-            "app/pages/1_전략_스튜디오.py",
+            "app/views/1_전략_스튜디오.py",
             "core/strategy_tuning.py",
             "core/strategy_explainer.py",
             "core/app_navigation.py",
@@ -50,7 +50,7 @@ PAGES: tuple[PageGuide, ...] = (
         verified=_V,
     ),
     PageGuide(
-        path="pages/12_챔피언_전략_최적화.py",
+        path="views/12_챔피언_전략_최적화.py",
         summary="챔피언 전략의 설정값 하나를 바꿔 가며 train/test 성과를 비교해, 그 값이 견고한지 우연인지 보는 화면.",
         when_to_use="챔피언 전략의 어떤 설정(예: 새틀라이트 비중)이 과거 데이터에서 안정적인지 확인하고 싶을 때.",
         steps=(
@@ -73,14 +73,14 @@ PAGES: tuple[PageGuide, ...] = (
         ),
         related_jobs=(),
         sources=(
-            "app/pages/12_챔피언_전략_최적화.py",
+            "app/views/12_챔피언_전략_최적화.py",
             "core/champion_strategy.py",
             "core/ui_status.py",
         ),
         verified=_V,
     ),
     PageGuide(
-        path="pages/13_뉴스_리서치.py",
+        path="views/13_뉴스_리서치.py",
         summary="지정한 티커의 뉴스 제목·짧은 설명·원문 링크를 모아 티커별로 요약해 보여 주는 화면.",
         when_to_use="관심 ETF·종목에 최근 어떤 뉴스가 있었는지 빠르게 훑고 싶을 때.",
         steps=(
@@ -104,7 +104,7 @@ PAGES: tuple[PageGuide, ...] = (
         ),
         related_jobs=("daily_news_digest",),
         sources=(
-            "app/pages/13_뉴스_리서치.py",
+            "app/views/13_뉴스_리서치.py",
             "core/news_digest.py",
             "core/ui_status.py",
             "core/job_schedule.py",
@@ -112,7 +112,7 @@ PAGES: tuple[PageGuide, ...] = (
         verified=_V,
     ),
     PageGuide(
-        path="pages/2_Threads_요약.py",
+        path="views/2_Threads_요약.py",
         summary="Threads 글을 직접 붙여넣으면 AI가 관련 티커를 찾아 요약하고, 저장해 티커별·주간 리포트로 모아 보는 화면.",
         when_to_use="Threads에서 읽은 종목 관련 글을 기록해 두고 나중에 티커별로 다시 보고 싶을 때.",
         steps=(
@@ -134,14 +134,14 @@ PAGES: tuple[PageGuide, ...] = (
         ),
         related_jobs=("weekly_threads_report",),
         sources=(
-            "app/pages/2_Threads_요약.py",
+            "app/views/2_Threads_요약.py",
             "core/threads_summary.py",
             "core/job_schedule.py",
         ),
         verified=_V,
     ),
     PageGuide(
-        path="pages/7_시장_진단.py",
+        path="views/7_시장_진단.py",
         summary="거시지표, 경기 사이클, 시장 국면·섹터 강도, 코스톨라니 국면, 섹터 리더·성장주를 한 곳에서 보는 시장 상태 화면.",
         when_to_use="지금 시장이 강세인지 약세인지, 어느 섹터가 강한지 참고용으로 확인하고 싶을 때.",
         steps=(
@@ -168,7 +168,7 @@ PAGES: tuple[PageGuide, ...] = (
         ),
         related_jobs=("daily_market_snapshot", "fred_indicator_prewarm"),
         sources=(
-            "app/pages/7_시장_진단.py",
+            "app/views/7_시장_진단.py",
             "core/market_regime.py",
             "core/sector_strength.py",
             "core/ui_status.py",
@@ -177,7 +177,7 @@ PAGES: tuple[PageGuide, ...] = (
         verified=_V,
     ),
     PageGuide(
-        path="pages/10_환경설정.py",
+        path="views/10_환경설정.py",
         summary="화면 구성(사이드바 메뉴)과 데이터 상태 표기의 뜻을 읽어 보는 안내 화면.",
         when_to_use="Fresh, Stale, Unknown, PIT 같은 상태 표기가 무슨 뜻인지 헷갈리거나 전체 화면 목록을 한눈에 보고 싶을 때.",
         steps=(
@@ -186,6 +186,7 @@ PAGES: tuple[PageGuide, ...] = (
             "'상태 표기 원칙'에서 Fresh, Stale, Unknown, PIT 표기의 뜻을 읽는다.",
         ),
         reading=(
+            "작업 실행 중 자동 새로고침이나 서버 재시작 뒤 재접속에도 사이드바는 업무공간 구성을 사용한다. 상세 화면 주소로 바로 접속해도 같은 메뉴가 나온다.",
             "Fresh는 저장된 기준 시각이 허용 범위 안이라는 뜻, Stale은 오래돼서 재확인이 필요하다는 뜻이다.",
             "Unknown은 기준 시각을 믿을 만한 저장 상태가 없다는 뜻이다. 약세나 매도 신호가 아니다.",
             "'PIT 미검증/혼합/부분 검증'은 과거 시점에 실제로 알 수 있던 데이터만 썼는지 아직 완전히 보증하지 못한다는 뜻이다. 성과가 나쁘다는 뜻이 아니라 검증 범위를 나타낸다.",
@@ -195,10 +196,11 @@ PAGES: tuple[PageGuide, ...] = (
         ),
         related_jobs=(),
         sources=(
-            "app/pages/10_환경설정.py",
+            "app/views/10_환경설정.py",
+            "app/Home.py",
             "core/app_navigation.py",
             "core/ui_status.py",
         ),
-        verified=_V,
+        verified="2026-10-13",
     ),
 )

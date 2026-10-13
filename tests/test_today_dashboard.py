@@ -55,6 +55,6 @@ def test_today_dashboard_handles_unavailable_sources():
 
 def test_today_dashboard_prioritizes_purchase_date_based_actions():
     action = {"title": "AAA 3주 · 매도 확인", "detail": "6개월 경과", "level": "warning",
-              "destination": "pages/11_챔피언_전략.py"}
+              "destination": "views/11_챔피언_전략.py"}
     dashboard = build_today_dashboard(_sources(portfolio_actions=[action]))
     assert dashboard["actions"][0] == action
