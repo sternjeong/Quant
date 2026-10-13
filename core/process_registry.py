@@ -190,10 +190,10 @@ PROCESS_REGISTRY: dict[str, dict] = {
         "category": "research", "default_enabled": True,
     },
     "agent_batch": {
-        "label": "AI 에이전트 야간 배치",
+        "label": "AI 연구 배치·이어받기",
         "description": (
             "Scout·Writer·Implementer·Critic·Post-mortem 이 가설을 만들고 결정론 심판에 넘김 — 하룻밤 $15·주간 $60 "
-            "(API 환산) 상한, 05:30 이후 새 작업 없음, 주문 경로 없음 (03:00 KST)"
+            "(API 환산) 상한, 03:00 전체 배치·12:30/21:30 진행 중 새틀라이트 검토 이어받기, 주문 경로 없음"
         ),
         "category": "research", "default_enabled": True,
     },

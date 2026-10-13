@@ -332,7 +332,7 @@ def _dead_end(st: dict, cur: Optional[str], crit: dict) -> bool:
         return True
     if st.get("tested_hash") == cur and not st.get("test_ok"):
         return True
-    return st.get("critic_hash") == cur and crit.get("verdict") != "approve"
+    return st.get("critic_hash") == cur and crit.get("verdict") == "reject"
 
 
 def _power_tail(judge: Optional[dict]) -> str:
@@ -413,7 +413,7 @@ def plan(now: datetime, done: set[tuple[str, str]]) -> Optional[tuple[str, str, 
                 return "implementer", hid, {"feedback": f"결정론 검사 실패:\n{st.get('test_msg')}"}
             continue
         crit = _critic(hid)
-        if st.get("critic_hash") != cur:
+        if st.get("critic_hash") != cur or crit.get("verdict") not in ("approve", "reject"):
             if ok("critic", hid):
                 return "critic", hid, {"hash": cur}
             continue
@@ -481,7 +481,7 @@ def _sat_new_id(now: datetime) -> str:
     return f"S-{day}-{i:03d}"
 
 
-def sat_plan(now: datetime, done: set[tuple[str, str]]) -> Optional[tuple[str, str, dict]]:
+def sat_plan(now: datetime, done: set[tuple[str, str]], *, allow_new: bool = True) -> Optional[tuple[str, str, dict]]:
     """새틀라이트 트랙의 다음 작업 하나(없으면 None). 파일·상태에서 매번 새로 계산한다."""
     from core import satellite_lab as sl
 
@@ -524,11 +524,13 @@ def sat_plan(now: datetime, done: set[tuple[str, str]]) -> Optional[tuple[str, s
             if rounds >= SAT_MAX_ROUNDS:
                 sl.save_agent_state(sid, {**st, "abandoned": f"검사 실패 {SAT_MAX_ROUNDS}회"})
             continue
-        if st.get("critic_hash") != cur:
+        crit = _sat_critic(sid)
+        # A prior Critic call can exit without writing a verdict. Its recorded hash
+        # must not turn a missing review into a rejection and consume a design round.
+        if st.get("critic_hash") != cur or crit.get("verdict") not in ("approve", "reject"):
             if ok("sat_critic", sid):
                 return "sat_critic", sid, {"hash": cur}
             continue
-        crit = _sat_critic(sid)
         if crit.get("verdict") == "approve":
             sl.save_agent_state(sid, {**st, "ready_hash": cur, "ready_at": now.isoformat()})
             in_flight -= 1
@@ -539,7 +541,7 @@ def sat_plan(now: datetime, done: set[tuple[str, str]]) -> Optional[tuple[str, s
             sl.save_agent_state(sid, {**st, "abandoned": f"Critic 반려 {SAT_MAX_ROUNDS}회"})
     room = sl.WEEKLY_AGENT_FREEZE_CAP - sl.frozen_this_week(reg, now)
     enabled = rnd_topics.enabled_sat_topics()
-    if enabled and in_flight < SAT_MAX_IN_FLIGHT and room > 0 and ok("sat_designer", "new"):
+    if allow_new and enabled and in_flight < SAT_MAX_IN_FLIGHT and room > 0 and ok("sat_designer", "new"):
         topic = min(enabled, key=lambda t: (topic_counts.get(t, 0), sl.TOPICS.index(t)))
         return "sat_designer", _sat_new_id(now), {"new": True, "topic": topic}
     return None
@@ -645,7 +647,7 @@ def _postmortem_input(now: datetime) -> None:
 # ---------------------------------------------------------------- 실행
 def run_batch(*, now_fn: Callable[[], datetime] = lambda: datetime.now(timezone.utc),
               runner: Optional[AgentRunner] = None, notify: Optional[Callable[[str], Any]] = None,
-              judge_fn=None, max_tasks: int = 40) -> dict:
+              judge_fn=None, max_tasks: int = 40, catch_up: bool = False) -> dict:
     runner = runner or claude_runner
     WS.mkdir(parents=True, exist_ok=True)
     SCOUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -657,11 +659,12 @@ def run_batch(*, now_fn: Callable[[], datetime] = lambda: datetime.now(timezone.
     stop_reason = "no more tasks"
     for _ in range(max_tasks):
         now = now_fn()
-        housekeeping(now, judged, log, judge_fn)
+        if not catch_up:
+            housekeeping(now, judged, log, judge_fn)
         if budget.seconds_until_hard_stop(now) <= 60:
             stop_reason = "hard stop time"
             break
-        task = plan(now, done)
+        task = sat_plan(now, done, allow_new=False) if catch_up else plan(now, done)
         if task is None:
             break
         role, hid, extra = task
@@ -687,7 +690,8 @@ def run_batch(*, now_fn: Callable[[], datetime] = lambda: datetime.now(timezone.
             _save_state(hid, st)
         if role == "critic":
             st = _state(hid)
-            st["critic_hash"] = extra["hash"] if _sha(WS / hid / "signal.py") == extra["hash"] else None
+            valid = _critic(hid).get("verdict") in ("approve", "reject")
+            st["critic_hash"] = extra["hash"] if valid and _sha(WS / hid / "signal.py") == extra["hash"] else None
             _save_state(hid, st)
         if role == "core_designer":
             from core import core_rnd as crd
@@ -718,7 +722,8 @@ def run_batch(*, now_fn: Callable[[], datetime] = lambda: datetime.now(timezone.
                 if extra.get("topic"):
                     st.setdefault("topic", extra["topic"])
             else:
-                st["critic_hash"] = extra["hash"] if sl.variant_hash(SAT_WS / hid) == extra["hash"] else None
+                valid = _sat_critic(hid).get("verdict") in ("approve", "reject")
+                st["critic_hash"] = extra["hash"] if valid and sl.variant_hash(SAT_WS / hid) == extra["hash"] else None
             sl.save_agent_state(hid, st)
         entry = {"at": budget.kst(now).isoformat(), "role": role, "target": hid, "model": cfg.model,
                  "ok": res.get("ok"), "limited": res.get("limited"), "timed_out": res.get("timed_out"),
@@ -731,7 +736,8 @@ def run_batch(*, now_fn: Callable[[], datetime] = lambda: datetime.now(timezone.
         if res.get("limited"):
             stop_reason = "usage limit"
             break
-    housekeeping(now_fn(), judged, log, judge_fn)
+    if not catch_up:
+        housekeeping(now_fn(), judged, log, judge_fn)
     result = {"ran": ran, "log": log, "stop_reason": stop_reason, "budget": budget.summary(now_fn())}
     if notify and (ran or log):
         notify(format_summary(result))

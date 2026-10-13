@@ -40,7 +40,7 @@ def test_running_jobs_have_label_and_elapsed(running_path):
     started = datetime.now(timezone.utc) - timedelta(minutes=12)
     running_path.write_text(json.dumps({"agent_batch": {"started_at": started.isoformat(), "pid": os.getpid()}}))
     rows = ls.running_scheduler_jobs()
-    assert rows[0]["label"] == "AI 에이전트 야간 배치" and 700 < rows[0]["elapsed"] < 740
+    assert rows[0]["label"] == "AI 연구 배치·이어받기" and 700 < rows[0]["elapsed"] < 740
 
 
 def test_telegram_queue_reads_active_jobs_and_redacts(tmp_path):

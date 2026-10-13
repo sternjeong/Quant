@@ -945,6 +945,24 @@ def agent_batch_job() -> None:
     print(f"[{datetime.now()}] agent_batch_job 종료")
 
 
+def agent_batch_catchup_job() -> None:
+    """낮·저녁에는 진행 중인 새틀라이트 초안의 검사·Critic 검토만 이어받는다."""
+    if not is_enabled("agent_batch") or not has_headroom():
+        return
+    import subprocess
+
+    print(f"[{datetime.now()}] agent_batch_catchup_job 시작")
+    try:
+        proc = subprocess.run([sys.executable, str(PROJECT_ROOT / "scripts" / "agent_batch.py"), "--catch-up"],
+                              cwd=PROJECT_ROOT, capture_output=True, text=True, timeout=45 * 60)
+        print((proc.stdout or "")[-1500:])
+        if proc.returncode != 0:
+            report_job_failure("agent_batch", (proc.stderr or proc.stdout or "")[-300:])
+    except Exception as exc:  # noqa: BLE001
+        report_job_failure("agent_batch", f"{type(exc).__name__}: {exc}")
+    print(f"[{datetime.now()}] agent_batch_catchup_job 종료")
+
+
 def research_job_runner_job() -> None:
     """검증 연구 작업 실행기 (core/research_jobs.py, 계약 docs/RESEARCH_JOBS.md). AI 호출·주문 경로 없음.
 
@@ -1467,6 +1485,14 @@ def main() -> None:
         name="매일 한국시간 03:00 AI 에이전트 야간 배치",
         replace_existing=True,
         misfire_grace_time=1800,
+    )
+    scheduler.add_job(
+        agent_batch_catchup_job,
+        trigger=CronTrigger(hour="12,21", minute=30, timezone="Asia/Seoul"),
+        id="agent_batch_catchup",
+        name="매일 한국시간 12:30·21:30 진행 중 새틀라이트 연구 이어받기",
+        replace_existing=True,
+        misfire_grace_time=300,
     )
     from core.research_jobs import max_parallel as research_max_parallel
 

@@ -27,6 +27,7 @@ from core import agent_batch, agent_budget  # noqa: E402
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-plan", action="store_true")
+    ap.add_argument("--catch-up", action="store_true", help="진행 중 새틀라이트 초안만 이어서 검사·검토")
     a = ap.parse_args(argv)
     now = datetime.now(timezone.utc)
     if a.dry_plan:
@@ -39,7 +40,8 @@ def main(argv=None) -> int:
         return 0
     from core.telegram_notify import send_message
 
-    res = agent_batch.run_batch(notify=send_message)
+    res = agent_batch.run_batch(notify=send_message, catch_up=a.catch_up,
+                                max_tasks=4 if a.catch_up else 40)
     print(agent_batch.format_summary(res))
     return 0
 

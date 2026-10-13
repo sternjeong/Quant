@@ -266,6 +266,7 @@ def test_sat_plan_flow(tmp_path, monkeypatch):
     monkeypatch.setattr(budget, "can_launch", lambda role, now=None, path=None: (True, "ok"))
     monkeypatch.setattr(ab, "sat_check", lambda sid, timeout=300: (True, "ok"))
     now = datetime(2026, 10, 2, 19, 0, tzinfo=timezone.utc)
+    assert ab.sat_plan(now, set(), allow_new=False) is None
     role, sid, extra = ab.sat_plan(now, set())
     assert role == "sat_designer" and extra.get("new") and sid.startswith("S-20261003-")
     d = ab.SAT_WS / sid
@@ -276,6 +277,10 @@ def test_sat_plan_flow(tmp_path, monkeypatch):
     role, sid2, extra = ab.sat_plan(now, {("sat_designer", "new")})
     assert (role, sid2) == ("sat_critic", sid)
     sl.save_agent_state(sid, {**sl.agent_state(sid), "critic_hash": extra["hash"]})
+    # A Critic invocation without critic.json is still awaiting review, not a rejection.
+    role, sid2, extra = ab.sat_plan(now, {("sat_designer", "new")})
+    assert (role, sid2) == ("sat_critic", sid)
+    assert ab.sat_plan(now, {("sat_designer", "new"), ("sat_critic", sid)}) is None
     (d / "critic.json").write_text(json.dumps({"verdict": "reject", "issues": [{"what": "x"}]}), encoding="utf-8")
     role, _, extra = ab.sat_plan(now, {("sat_designer", "new")})
     assert role == "sat_designer" and "Critic 반려" in extra["feedback"]

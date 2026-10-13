@@ -7,7 +7,9 @@
 - 주간 $60 ≈ Writer 3회×$4 + Critic 14회×$1.5 + Implementer 12회×$1.5 + Scout 7회×$0.2 + Post-mortem 1회×$1 ≈ $53 + 여유.
 - 하룻밤 $15: Writer 가 도는 밤(월·수·금)에 전체 사이클(Writer→Implementer→Critic)을 한 번 돌 수 있는 크기.
 - 비싼 모델(Opus)은 가설 작성(Writer)과 코드 검증(Critic)에만. 코드 작성은 Sonnet, 수집은 Haiku.
-- 03:00 KST 시작, 05:30 이후 새 작업 금지, 05:50 강제 종료 — 06:10 paper 자동 주문·사용자 아침 사용과 겹치지 않게.
+- 03:00 KST 전체 배치 시작, 05:30 이후 새 작업 금지, 05:50 강제 종료.
+- 12:30·21:30 KST 진행 중 새틀라이트 초안 이어받기 창(각 40분 새 작업 가능, 45분 강제 종료).
+  같은 03:00~다음03:00 일일 예산과 주간 예산을 공유한다.
 """
 
 from __future__ import annotations
@@ -27,6 +29,9 @@ WEEKLY_CAP_USD = 60.0
 BATCH_START = time(3, 0)
 LAST_LAUNCH = time(5, 30)
 HARD_STOP = time(5, 50)
+# Short daytime catch-up windows only finish satellite drafts already in progress.
+CATCH_UP_WINDOWS = ((time(12, 30), time(13, 10), time(13, 15)),
+                    (time(21, 30), time(22, 10), time(22, 15)))
 
 
 @dataclass(frozen=True)
@@ -47,7 +52,7 @@ ROLES: dict[str, RoleConfig] = {
     "postmortem": RoleConfig("sonnet", 15, 20 * 60, 1, 1.0, weekdays=(6,)),
     # 새틀라이트 R&D 센터(2026-10-02): 선정 규칙 아이디어 설계·구현(재작업 포함) / 코드 검토
     "sat_designer": RoleConfig("opus", 40, 30 * 60, 8, 3.0),
-    "sat_critic": RoleConfig("opus", 15, 20 * 60, 8, 1.5),
+    "sat_critic": RoleConfig("opus", 30, 20 * 60, 8, 1.5),
     # AI 국제정세 의견 shadow(2026-10-02): 매달 25일 이후 한 번, 다음 달 코어 리밸런싱 전 의견(배분 미반영)
     "geo_analyst": RoleConfig("sonnet", 30, 20 * 60, 2, 1.5),
     # 코어 분기 연구(2026-10-05): 분기마다 아이디어 최대 3개(형식 오류면 그 분기에 한 번 더)
@@ -162,8 +167,9 @@ def can_launch(role: str, now: Optional[datetime] = None, path: Optional[Path] =
     k = kst(now)
     if k.weekday() not in cfg.weekdays:
         return False, f"{role}: 오늘은 실행 요일 아님"
-    if not (BATCH_START <= k.time() < LAST_LAUNCH):
-        return False, "새 작업 시작 가능 시간(03:00~05:30 KST) 밖"
+    if not (BATCH_START <= k.time() < LAST_LAUNCH or
+            any(start <= k.time() < last for start, last, _ in CATCH_UP_WINDOWS)):
+        return False, "새 작업 시작 가능 시간(03:00~05:30·12:30~13:10·21:30~22:10 KST) 밖"
     s = summary(now, path)
     if s["week_runs"][role] >= cfg.weekly_runs:
         return False, f"{role}: 주간 {cfg.weekly_runs}회 소진"
@@ -176,5 +182,10 @@ def can_launch(role: str, now: Optional[datetime] = None, path: Optional[Path] =
 
 def seconds_until_hard_stop(now: Optional[datetime] = None) -> float:
     k = kst(now)
-    stop = k.replace(hour=HARD_STOP.hour, minute=HARD_STOP.minute, second=0, microsecond=0)
+    stop_time = HARD_STOP
+    for start, _, hard_stop in CATCH_UP_WINDOWS:
+        if start <= k.time() < hard_stop:
+            stop_time = hard_stop
+            break
+    stop = k.replace(hour=stop_time.hour, minute=stop_time.minute, second=0, microsecond=0)
     return (stop - k).total_seconds()

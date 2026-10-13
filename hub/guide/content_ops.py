@@ -104,8 +104,14 @@ JOBS: tuple[JobGuide, ...] = (
     JobGuide(
         job_id="agent_batch",
         where_to_see="텔레그램(아침 배치 요약 1건: 실행한 역할, 동결·심판 결과, 예산 사용), 허브 /research",
-        if_alert="'usage limit'로 멈췄다면 구독 사용량 한도에 닿은 것이라 다음 날 밤 자동으로 이어집니다. 매일 실패하면 Claude CLI 로그인·설치 상태를 개발 요청으로 확인하세요. 원하지 않으면 '/processes off agent_batch'.",
-        verified="2026-09-25",
+        if_alert="'usage limit'로 멈췄다면 구독 사용량 한도에 닿은 것이라 다음 허용 실행 창에 자동으로 이어집니다. 매일 실패하면 Claude CLI 로그인·설치 상태를 개발 요청으로 확인하세요. 원하지 않으면 '/processes off agent_batch'.",
+        verified="2026-10-13",
+    ),
+    JobGuide(
+        job_id="agent_batch_catchup",
+        where_to_see="텔레그램(실행한 단계가 있으면 요약), 허브 /research 와 /satellite-lab",
+        if_alert="12:30·21:30 KST에 진행 중 새틀라이트 초안의 검사·Critic 검토만 이어받습니다. VM 여유가 없거나 일·주간 예산에 걸리면 다음 창으로 넘어갑니다. 야간 전체 배치와 같은 '/processes off agent_batch'로 함께 끕니다.",
+        verified="2026-10-13",
     ),
     JobGuide(
         job_id="hypothesis_shadow_record",
@@ -293,11 +299,11 @@ _KEYRUN = (
 SCRIPTS: tuple[ScriptGuide, ...] = (
     ScriptGuide(
         path="scripts/agent_batch.py", name="AI 에이전트 배치 수동 확인",
-        when_to_run="오늘 밤 배치가 무엇부터 할지, 예산이 얼마나 남았는지 미리 볼 때. 배치 자체는 03:00 KST에 자동으로 돕니다.",
+        when_to_run="03:00 전체 배치가 무엇부터 할지, 예산이 얼마나 남았는지 미리 볼 때. 전체 배치는 03:00 KST, 진행 중 초안 이어받기는 12:30·21:30 KST에 자동으로 돕니다.",
         command="python scripts/agent_batch.py --dry-plan",
         risk="읽기 전용",
-        what_it_prints="다음에 실행될 작업(역할·대상 가설)과 이번 주·오늘 밤 예산 사용량을 보여 줍니다. 03:00~05:30 KST 밖이면 다음 작업이 null 로 나오는 것이 정상입니다. --dry-plan 없이 실행하면 실제 배치가 돌아 에이전트를 호출합니다.",
-        verified="2026-09-25",
+        what_it_prints="다음에 실행될 작업(역할·대상 가설)과 이번 주·오늘 밤 예산 사용량을 보여 줍니다. 전체 배치 시간(03:00~05:30 KST) 밖이면 다음 작업이 null 로 나올 수 있습니다. 낮·저녁 이어받기는 기존 초안만 따로 계획합니다. --dry-plan 없이 실행하면 실제 배치가 돌아 에이전트를 호출합니다.",
+        verified="2026-10-13",
     ),
     ScriptGuide(
         path="scripts/core_lab_worker.py", name="코어 분기 연구 계산기",

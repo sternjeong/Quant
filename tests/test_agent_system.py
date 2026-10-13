@@ -56,6 +56,9 @@ def ws(tmp_path, monkeypatch):
 # ---------------------------------------------------------------- 예산
 def test_budget_window_weekday_and_caps(ws):
     assert bud.can_launch("scout", MON_0310)[0]
+    assert bud.can_launch("sat_critic", MON_0310 + timedelta(hours=9, minutes=20))[0]  # 12:30 KST
+    assert bud.can_launch("sat_critic", MON_0310 + timedelta(hours=18, minutes=20))[0]  # 21:30 KST
+    assert 0 < bud.seconds_until_hard_stop(MON_0310 + timedelta(hours=9, minutes=20)) <= 45 * 60
     assert bud.can_launch("writer", MON_0310)[0]                                  # 월요일
     assert not bud.can_launch("writer", MON_0310 + timedelta(days=1))[0]          # 화요일
     assert "시간" in bud.can_launch("scout", MON_0310 + timedelta(hours=3))[1]    # 06:10 KST
