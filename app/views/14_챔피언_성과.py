@@ -25,6 +25,7 @@ import streamlit as st
 
 from core import job_manager
 from core import champion_follow as follow
+from core import personal_performance
 from core.champion_performance import (
     DEFAULT_INITIAL_CAPITAL,
     SLEEVE_CORE,
@@ -44,6 +45,7 @@ from core.champion_performance import (
 from core.champion_strategy import SATELLITE_WEIGHT
 from core.dawn_precompute import schedule_label as dawn_schedule_label
 from core.db import init_db
+from core.portfolio import list_holdings
 from core.theme import apply_theme
 from core.ui_status import render_status_header
 
@@ -62,6 +64,7 @@ C_SPY = "#d95926"  # 슬롯2 주황
 C_6040 = "#199e70"  # 슬롯3 청록
 C_CORE = "#c98500"  # 슬롯4 노랑
 C_SAT = "#d55181"  # 슬롯5 자홍
+C_PERSONAL = "#ae82e5"  # 내 현재 보유분 보라
 C_GAIN = "#3987e5"
 C_LOSS = "#e66767"
 INK = "#d7d8db"
@@ -549,13 +552,48 @@ else:
         ("SPY 대비", format_pct(fs["total_return_pct"] - fs["spy_total_return_pct"], 2), "%p"),
         ("최대낙폭", format_pct(fs["drawdown"]["mdd_pct"], 2), "이 구간의 고점 대비"),
     ])
+    personal = None
+    try:
+        personal = personal_performance.current_holdings_curve(list_holdings(), fd["curves"]["strategy"].index)
+    except ValueError as exc:
+        st.warning(f"내 보유분 비교선을 그리지 못했습니다: {exc}")
+    has_personal = bool(personal and personal["available"])
+    compare_mode = (st.radio("수익률 그래프 기준", ("10월 1일부터", "내 첫 매입일부터 같은 기간"),
+                             horizontal=True, key="follow_return_basis") if has_personal else "10월 1일부터")
     fg = go.Figure()
-    for key, label, color in (("strategy", "10월 1일부터 챔피언", C_STRATEGY), ("spy", "SPY 매수보유", C_SPY)):
-        curve = fd["curves"][key]
-        fg.add_trace(go.Scatter(x=curve.index, y=curve.values, name=label, mode="lines+markers",
-                               line=dict(color=color), hovertemplate="%{x|%Y-%m-%d} $%{y:,.2f}<extra>%{fullData.name}</extra>"))
-    st.markdown("#### 10월 1일부터의 가상 자산 변화")
-    _plot(_style(fg, 300, money=True))
+    curves_pct = personal_performance.normalized_return_curves(
+        fd["curves"]["strategy"], fd["curves"]["spy"], personal["curve"] if has_personal else None,
+        same_period=compare_mode == "내 첫 매입일부터 같은 기간")
+    for key, label, color in (("strategy", "챔피언", C_STRATEGY), ("spy", "SPY 매수보유", C_SPY)):
+        returns = curves_pct[key]
+        fg.add_trace(go.Scatter(x=returns.index, y=returns.values, name=label, mode="lines+markers",
+                                line=dict(color=color),
+                                hovertemplate="%{x|%Y-%m-%d} %{y:+.2f}%<extra>%{fullData.name}</extra>"))
+    if has_personal:
+        returns = curves_pct["personal"]
+        fg.add_trace(go.Scatter(x=returns.index, y=returns.values, name="내 현재 보유분 (추정)",
+                                mode="lines+markers", line=dict(color=C_PERSONAL, dash="dash"),
+                                hovertemplate="%{x|%Y-%m-%d} %{y:+.2f}%<extra>%{fullData.name}</extra>"))
+    st.markdown("#### 10월 1일부터의 수익률 변화" if compare_mode == "10월 1일부터"
+                else f"#### {personal['first_date']}부터의 수익률 변화")
+    fg = _style(fg, 300, y_title="수익률 %")
+    fg.update_yaxes(ticksuffix="%", zeroline=True, zerolinecolor=AXIS)
+    _plot(fg)
+    if has_personal:
+        first = pd.Timestamp(personal["first_date"])
+        comparable = {key: (float(curve.iloc[-1]) / float(curve.loc[first]) - 1) * 100
+                      for key, curve in fd["curves"].items() if key in ("strategy", "spy")}
+        st.caption(f"같은 기간 {personal['first_date']}~{personal['last_date']}: "
+                   f"내 현재 보유분 추정 {format_pct(personal['twr_pct'], 2)}, "
+                   f"챔피언 {format_pct(comparable['strategy'], 2)}, SPY {format_pct(comparable['spy'], 2)}. "
+                   "'10월 1일부터' 보기에서는 내 선만 첫 기록일에 0%로 시작합니다.")
+        st.caption(f"보라색 점선: 현재 등록된 보유 {personal['n_holdings']}건을 기록된 매입일부터 보유했다고 가정한 "
+                   "추정 시간가중 수익률입니다. "
+                   f"종가 {personal['last_date']} 기준 현재 보유분의 매입원금 ${personal['cost_usd']:,.2f}, "
+                   f"평가액 ${personal['last_value_usd']:,.2f}, 미실현손익 ${personal['unrealized_pnl_usd']:+,.2f}입니다. "
+                   "과거 매도·수량 변경·현금 입출금 이력이 없어 실제 계좌 전체 수익률은 아닙니다.")
+    elif personal:
+        st.info(personal["reason"] + " 포트폴리오 관리에서 보유 종목을 입력하면 이 그래프에 표시됩니다.")
     for key, title in (("initial_allocation", "10월 1일 시작 배분"), ("latest_allocation", "마지막 기록의 목표 배분")):
         st.markdown(f"#### {title}")
         allocation_capital = capital if key == "initial_allocation" else fd["final_usd"]

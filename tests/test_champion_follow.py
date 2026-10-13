@@ -87,6 +87,7 @@ def test_cache_does_not_reuse_other_strategy_version(tmp_path, monkeypatch):
 def test_page_displays_follow_result_without_using_legacy_ledger(monkeypatch, tmp_path):
     from pathlib import Path
     from core import job_manager
+    from core import personal_performance
     kwargs, _ = inputs()
     result = cf.compute_follow_performance("2026-10-13", use_cache=False, **kwargs)
     monkeypatch.setattr(cf, "load_cached", lambda *a: result)
@@ -96,10 +97,22 @@ def test_page_displays_follow_result_without_using_legacy_ledger(monkeypatch, tm
     monkeypatch.setattr(job_manager, "render", lambda *a, **kw: None)
     monkeypatch.setattr(job_manager, "render_active_jobs_sidebar", lambda: None)
     monkeypatch.setattr(cs, "get_current_holdings", lambda: None)
+    monkeypatch.setattr("core.portfolio.list_holdings", lambda: [{"ticker": "SATA"}])
+    monkeypatch.setattr(personal_performance, "current_holdings_curve", lambda *a, **kw: {
+        "available": True, "curve": pd.Series([1.0, 1.02], index=pd.to_datetime(["2026-10-09", "2026-10-12"])),
+        "first_date": "2026-10-09", "last_date": "2026-10-12", "n_holdings": 1,
+        "cost_usd": 100, "last_value_usd": 102, "unrealized_pnl_usd": 2, "twr_pct": 2,
+    })
     page = Path(__file__).resolve().parents[1] / "app/views/14_챔피언_성과.py"
     at = AppTest.from_file(page).run(timeout=20)
     assert not at.exception
     assert any("10월 1일부터 챔피언 전략을 따랐다면" in m.value for m in at.markdown)
     assert any("현재 가상 자산" in m.value for m in at.markdown)
+    assert any("10월 1일부터의 수익률 변화" in m.value for m in at.markdown)
+    assert any("실제 계좌 전체 수익률은 아닙니다" in m.value for m in at.caption)
+    assert any("같은 기간 2026-10-09~2026-10-12" in m.value for m in at.caption)
+    at.radio[0].set_value("내 첫 매입일부터 같은 기간").run(timeout=20)
+    assert not at.exception
+    assert any("2026-10-09부터의 수익률 변화" in m.value for m in at.markdown)
     assert any("SATA" in df.value.to_string() for df in at.dataframe)
     assert not any("따랐다면(원장)" in m.value for m in at.markdown)
