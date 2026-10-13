@@ -1,0 +1,14 @@
+[Unit]
+Description=사용량 한도로 멈춘 Claude/Codex 세션을 초기화 뒤 자동으로 이어서 진행(1회 확인, 실제 재개는 systemd-run 임시 유닛)
+After=network-online.target
+Wants=network-online.target
+OnFailure=quant-alert@%n.service
+
+[Service]
+Type=oneshot
+# root: VM의 모든 로컬 계정 세션 기록을 읽고, 재개는 그 세션 주인 계정으로 systemd-run --uid 실행한다.
+User=root
+WorkingDirectory=/opt/quant
+ExecStart=/usr/bin/python3 /opt/quant/deploy/session_resume/resumer.py
+TimeoutStartSec=180
+Nice=10

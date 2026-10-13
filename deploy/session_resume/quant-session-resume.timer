@@ -1,0 +1,11 @@
+[Unit]
+Description=세션 자동 재개 확인 주기 실행(부팅 3분 후 시작, 이후 5분마다)
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=5min
+Persistent=true
+Unit=quant-session-resume.service
+
+[Install]
+WantedBy=timers.target

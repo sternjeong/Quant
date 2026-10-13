@@ -1,0 +1,14 @@
+{
+  "id": "sat-exit-accuracy-v1",
+  "title": "새틀라이트 매도 신호 정확도 — 현행 반기 보유보다 손실을 앞서 피하는가(4개 고정 신호 사전 등록)",
+  "entrypoint": "research/jobs/sat-exit-accuracy-v1/run.py",
+  "args": [],
+  "timeout_seconds": 10800,
+  "max_attempts": 2,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 9,
+  "revision": 1,
+  "max_memory_mb": 3000
+}

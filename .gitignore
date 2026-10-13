@@ -23,6 +23,7 @@ data/agent_usage.jsonl
 data/contest_alerts.json
 # 검증 연구 실행기(core/research_jobs.py)의 VM 상태·체크포인트·로그와 보관 결과 — 작은 텍스트 결과만 실행기가 research/results/ 로 따로 커밋한다.
 data/research_jobs/
+data/session_resume/
 data/research_results/
 
 data/running_jobs.json

@@ -1,0 +1,14 @@
+{
+  "id": "leader-catch-single-stock-v1",
+  "title": "주도주 신호의 개별 종목 전이 검증 — PIT S&P 500에서 F2/F3/F5/C 고정 평가",
+  "entrypoint": "research/jobs/leader-catch-single-stock-v1/run.py",
+  "args": [],
+  "timeout_seconds": 10800,
+  "max_attempts": 2,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 11,
+  "revision": 1,
+  "max_memory_mb": 3000
+}

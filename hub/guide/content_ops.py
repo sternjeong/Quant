@@ -540,6 +540,17 @@ SCRIPTS: tuple[ScriptGuide, ...] = (
         "중요: passphrase 는 VM 에만 저장되므로 VM 디스크가 사라지는 경우까지 대비하려면 같은 값을 사람이 따로(비밀번호 관리자 등에) 보관해야 하며, 잊으면 아무도 복구할 수 없습니다.",
         V,
     ),
+    ScriptGuide(
+        "deploy/session_resume/resumer.py",
+        "세션 자동 재개기(한도로 멈춘 Claude/Codex 세션 이어서 진행)",
+        "직접 실행할 일은 거의 없습니다 — quant-session-resume.timer 가 5분마다 root 로 돌립니다. 지금 무엇이 멈춰 있고 언제 재개될지 "
+        "미리 보고 싶을 때만 --dry-run 으로 실행합니다(실행·저장·알림 없음). 처음 한 번은 deploy/session_resume/install.sh 로 타이머를 설치해야 합니다.",
+        "sudo python3 /opt/quant/deploy/session_resume/resumer.py --dry-run",
+        "파일/DB 쓰기",
+        "세션마다 상태(waiting 초기화 대기 · resuming 이어서 진행 중 · off 꺼짐 · expired 오래됨 · gave_up 포기)와 멈춘 시각·초기화 시각·재개 예정 시각을 JSON 으로 보여 줍니다. "
+        "평소 확인은 관제 센터 '세션 자동 재개'(/session-resume) 화면에서 합니다.",
+        "2026-10-13",
+    ),
 )
 
 INTERNAL_SCRIPTS: dict = {
@@ -731,6 +742,28 @@ OPS: tuple[OpsSection, ...] = (
             ("로그인 값", "아이디·비밀번호는 문서에 기록하지 않습니다. 브라우저의 비밀번호 저장을 쓰면 다음부터 안 쳐도 됩니다."),
         ),
         V,
+    ),
+    OpsSection(
+        "session-resume",
+        "한도로 멈춘 Claude/Codex 세션 자동 재개",
+        (
+            "VM의 모든 로컬 사용자 계정에서 VS Code(code-server)·터미널로 쓰던 Claude Code 나 Codex 대화가 사용량 한도('You've hit your session limit · resets …')로 멈추면, "
+            "VM 이 5분마다 확인해 한도가 초기화된 뒤 같은 세션을 '이어서 진행' 시킵니다. 한도 문구의 초기화 시각(Codex 는 기록된 resets_at)을 지나 3분 뒤에 시작하고, "
+            "시각을 못 읽으면 멈춘 지 30분 뒤에 시도합니다. 시작·완료·다시 한도·실패는 텔레그램 '[세션 자동 재개]' 로 옵니다.",
+            "확인과 켜기/끄기는 관제 센터 '세션 자동 재개'(/session-resume)에서 합니다. 맨 위 '전체 자동 재개' 스위치와 세션마다 '끄기/켜기' 버튼이 있고, 처음에는 모두 켜져 있습니다. "
+            "끄면 그 세션만 건너뛰고 아무것도 지우지 않으며, 다시 켜면 다음 확인(5분 안)부터 적용됩니다.",
+            "이어서 진행된 내용은 같은 세션 기록에 이어 쓰입니다. VS Code 에서 그 대화를 열어 둔 채였다면 화면이 바로 바뀌지 않으니, 대화 목록(과거 세션)에서 그 세션을 다시 열어 보세요. "
+            "원래 세션의 권한 모드를 그대로 쓰고 넓히지 않습니다(사람 승인이 필요한 동작은 거절된 채 진행). "
+            "같은 멈춤에서 4번 시도해도 안 되면 '포기', 초기화 뒤 36시간이 지나도록 못 이은 오래된 세션은 '너무 오래됨'으로 표시만 하고 깨우지 않습니다. "
+            "텔레그램 봇 작업과 야간 AI 에이전트는 세션 기록을 남기지 않고 자체 재시도가 있으므로 대상이 아닙니다.",
+        ),
+        (
+            ("화면", "관제 센터 → 운영 → '세션 자동 재개'. 세션 제목·계정·폴더·상태·시도 횟수·멈춤/초기화/재개 예정 시각(KST)."),
+            ("실행 기록", "재개는 systemd 임시 유닛(session-resume-…)으로 돕니다. 화면에 적힌 'journalctl -u 유닛이름' 으로 출력을 봅니다."),
+            ("설치(처음 한 번)", "sudo bash /opt/quant/deploy/session_resume/install.sh — 자동배포는 타이머를 새로 설치하지 않습니다."),
+            ("완전히 멈추기", "화면의 '전체 자동 재개 → 끄기' 또는 sudo systemctl disable --now quant-session-resume.timer."),
+        ),
+        "2026-10-13",
     ),
     OpsSection(
         "troubleshooting",
