@@ -1,0 +1,14 @@
+{
+  "id": "satellite-trailing-reentry-v1",
+  "title": "새틀라이트 최고 종가 10% 추적손절 후 재선정 — 챔피언·SPY 세후 비교",
+  "entrypoint": "research/jobs/satellite-trailing-reentry-v1/run.py",
+  "args": [],
+  "timeout_seconds": 10800,
+  "max_attempts": 2,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 8,
+  "revision": 1,
+  "max_memory_mb": 3000
+}
