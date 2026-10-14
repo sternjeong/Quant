@@ -1,6 +1,6 @@
 # 세션 인계
 
-## 2026-10-14 R&D 상시 진행 복구 후속 — 배포 수정 필요
+## 2026-10-14 R&D 상시 진행 복구 후속 — 코드 배포 완료, 연구 실행 대기
 
 사용자가 R&D가 계속 진행되길 원해 운영 VM을 확인했다. `356888a`의 Critic 재시도·이어받기 일정 조정은 이미 운영에 배포됐고, 그 뒤 `122cc0a` 배포로 사전 등록 연구 `leader-catch-single-stock-v1`, `sat-exit-accuracy-v1`가 추가됐다. 해당 배포 관문은 전체 pytest 2,819 passed·4 skipped, 배포 유닛 테스트 72 OK로 통과했다.
 
@@ -12,12 +12,12 @@
 **상태 (구현·검증·배포 구분)**
 - 구현: 두 연구의 날짜 변환, 이어받기 슬롯 가드 수정, 회귀 테스트, 설명서 문구 및 검증 날짜 갱신.
 - 검증: 두 연구 `--smoke` 종료 코드 0(합성 데이터만; 실측 판정 아님), `tests/test_run_scheduler_toggles.py` 6 passed, `hub.guide.check`, `py_compile` 통과.
-- 배포: 이 후속 수정은 아직 push·운영 배포 전이며 자동배포 전체 테스트 관문에서 확인해야 한다.
-- 다음 실행: 배포 후 `research_jobs_admin.py retry <id> --fresh`로 두 실패 작업을 대기 상태로 되돌려 VM 실행기에 맡긴다. 전체 계산은 대화 세션에서 돌리지 않는다.
+- 배포: `4deaf49` main 반영 및 운영 배포 완료. 자동배포 전체 pytest 2,821 passed·4 skipped, 배포 유닛 테스트 72 OK. 운영 HEAD `4deaf49`, `quant-scheduler.service` active.
+- 연구 대기열: 두 실패 작업을 운영에서 `retry <id> --fresh`로 재등록해 현재 pending(실패 0·실행 0). 10/14 22:20 KST 회차에는 남은 실행 창이 95분이라 비재개형 작업의 고정 timeout 3시간을 채울 수 없어 실행하지 않았다. 다음 충분한 창은 10/15 12:20 KST 실행기 회차다. 전체 계산은 대화 세션에서 돌리지 않는다.
 
 **수정 파일**: `research/jobs/{leader-catch-single-stock-v1,sat-exit-accuracy-v1}/run.py`, `scheduler/run_scheduler.py`, `tests/test_run_scheduler_toggles.py`, `hub/guide/content_modules_a.py`, `hub/guide/content_ops.py`, `PROGRESS.md`, 이 문서.
 
-**다음 단계**: 수정 커밋을 main 자동배포 경로에 반영 → 배포 테스트·운영 HEAD 확인 → 두 실패 작업 fresh retry → VM 실행 상태 확인. AI 배치 복구는 사용자의 quant 계정 Claude 로그인 후 다음 배치 창에서 확인한다. 전략·주문 규칙 반영은 이 범위에 포함되지 않는다.
+**다음 단계**: 10/15 12:20 KST 이후 두 연구가 running 상태로 바뀌는지 확인한다. AI 배치 복구는 사용자의 quant 계정 Claude 로그인 후 다음 배치 창에서 확인한다. 전략·주문 규칙 반영은 이 범위에 포함되지 않는다.
 
 ## 2026-10-14 R&D 자동 이어받기 운영 확인 — 후속 보완 배포 대기
 
