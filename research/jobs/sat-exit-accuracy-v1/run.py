@@ -6,7 +6,7 @@ import argparse
 import json
 import math
 import sys
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 import numpy as np
@@ -55,7 +55,7 @@ def _load_data(smoke: bool):
         from core import hypothesis_engine as he
 
         end = data.trading_days[-1].date().isoformat()
-        spy_map = he.load_prices(["SPY"], "2008-01-01", end)
+        spy_map = he.load_prices(["SPY"], date.fromisoformat("2008-01-01"), date.fromisoformat(end))
         spy_frame = spy_map.get("SPY")
     if spy_frame is None or spy_frame.empty:
         raise RuntimeError("SPY 가격 이력을 읽지 못함")

@@ -953,7 +953,7 @@ def agent_batch_catchup_job() -> None:
     from core.research_jobs import Config, max_parallel, slot_lock_held
 
     cfg = Config()
-    if any(not slot_lock_held(cfg, slot) for slot in range(max_parallel(cfg))):
+    if any(slot_lock_held(cfg, slot) for slot in range(max_parallel())):
         print(f"[{datetime.now()}] agent_batch_catchup_job 건너뜀 (검증 연구 슬롯 사용 중)")
         return
 

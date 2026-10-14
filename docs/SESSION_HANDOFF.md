@@ -1,5 +1,24 @@
 # 세션 인계
 
+## 2026-10-14 R&D 상시 진행 복구 후속 — 배포 수정 필요
+
+사용자가 R&D가 계속 진행되길 원해 운영 VM을 확인했다. `356888a`의 Critic 재시도·이어받기 일정 조정은 이미 운영에 배포됐고, 그 뒤 `122cc0a` 배포로 사전 등록 연구 `leader-catch-single-stock-v1`, `sat-exit-accuracy-v1`가 추가됐다. 해당 배포 관문은 전체 pytest 2,819 passed·4 skipped, 배포 유닛 테스트 72 OK로 통과했다.
+
+**운영에서 확인한 원인과 결정**
+- 두 새 연구는 10월 14일 VM에서 각각 2회 실행 후 실패했다. 공통 원인은 `hypothesis_engine.load_prices()`가 `datetime.date`를 받는데 스크립트가 문자열을 전달한 것이다. 호출 인자를 날짜로 바꾸되 사전 등록 연구 정의와 판정 기준은 바꾸지 않는다.
+- 12:13 KST 새틀라이트 이어받기 잡은 `max_parallel(cfg)` 인자 오류로 예외가 났다. 슬롯 조건도 반대로 되어 유휴 슬롯이 있으면 건너뛰고, 점유 슬롯에서는 실행할 수 있었다. `max_parallel()` 호출과 “슬롯 하나라도 점유 중이면 건너뛰기”를 바로잡고 회귀 테스트를 추가한다.
+- `quant` 서비스 계정의 Claude CLI 인증은 `loggedIn=false`다. 결정론 연구 실행기에는 Claude 인증이 필요 없지만 AI 에이전트 배치와 Critic 이어받기는 서비스 계정 로그인 뒤 재개된다. 사용자가 VM에서 `sudo -u quant /usr/local/bin/claude auth login`을 실행해 브라우저 인증을 마쳐야 한다. 자격 증명은 복사하거나 문서화하지 않는다.
+
+**상태 (구현·검증·배포 구분)**
+- 구현: 두 연구의 날짜 변환, 이어받기 슬롯 가드 수정, 회귀 테스트, 설명서 문구 및 검증 날짜 갱신.
+- 검증: 두 연구 `--smoke` 종료 코드 0(합성 데이터만; 실측 판정 아님), `tests/test_run_scheduler_toggles.py` 6 passed, `hub.guide.check`, `py_compile` 통과.
+- 배포: 이 후속 수정은 아직 push·운영 배포 전이며 자동배포 전체 테스트 관문에서 확인해야 한다.
+- 다음 실행: 배포 후 `research_jobs_admin.py retry <id> --fresh`로 두 실패 작업을 대기 상태로 되돌려 VM 실행기에 맡긴다. 전체 계산은 대화 세션에서 돌리지 않는다.
+
+**수정 파일**: `research/jobs/{leader-catch-single-stock-v1,sat-exit-accuracy-v1}/run.py`, `scheduler/run_scheduler.py`, `tests/test_run_scheduler_toggles.py`, `hub/guide/content_modules_a.py`, `hub/guide/content_ops.py`, `PROGRESS.md`, 이 문서.
+
+**다음 단계**: 수정 커밋을 main 자동배포 경로에 반영 → 배포 테스트·운영 HEAD 확인 → 두 실패 작업 fresh retry → VM 실행 상태 확인. AI 배치 복구는 사용자의 quant 계정 Claude 로그인 후 다음 배치 창에서 확인한다. 전략·주문 규칙 반영은 이 범위에 포함되지 않는다.
+
 ## 2026-10-14 R&D 자동 이어받기 운영 확인 — 후속 보완 배포 대기
 
 - 1차 변경 `2a84e80`은 origin/main·운영 VM에 배포되어 `agent_batch_catchup`이 12:30 KST 실제 실행됐다. 기존 두 초안의 Critic을 다시 호출했으나 모두 즉시 실패(1~2초, 비용 0, 판정 파일 없음). `sudo -u quant claude auth status` 결과 운영 서비스 계정은 `loggedIn: false`; 개발 사용자 계정은 로그인되어 있지만 서비스에 다른 계정 인증을 복사하지 않았다. AI 호출은 서비스 계정이 다시 인증될 때까지 정체 상태다.

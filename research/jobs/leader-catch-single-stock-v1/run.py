@@ -1,7 +1,7 @@
 """leader-catch 신호의 PIT S&P500 개별주 전이 연구. 신호·판정은 SPEC.md 고정."""
 from __future__ import annotations
 import argparse, json, math, sys
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -30,7 +30,7 @@ def _load(smoke):
         return data, spy
     data = sl.build_data({"sp500_pit"}, start=DATA_START, end=DATA_END)
     from core import hypothesis_engine as he
-    prices = he.load_prices(["SPY"], "1997-01-01", DATA_END)
+    prices = he.load_prices(["SPY"], date.fromisoformat("1997-01-01"), date.fromisoformat(DATA_END))
     if "SPY" not in prices or prices["SPY"].empty:
         raise RuntimeError("SPY 워밍업 가격을 불러오지 못함")
     df = prices["SPY"]

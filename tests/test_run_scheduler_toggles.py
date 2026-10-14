@@ -64,3 +64,37 @@ def test_all_registered_job_keys_have_a_corresponding_scheduler_job():
     source = inspect.getsource(run_scheduler)
     for key in process_registry.PROCESS_REGISTRY:
         assert f'is_enabled("{key}")' in source, f"{key}에 대응하는 가드가 scheduler/run_scheduler.py에 없습니다"
+
+
+def test_agent_batch_catchup_skips_when_any_research_slot_is_busy(monkeypatch):
+    import core.research_jobs as research_jobs
+
+    monkeypatch.setattr(run_scheduler, "is_enabled", lambda _key: True)
+    monkeypatch.setattr(run_scheduler, "has_headroom", lambda: True)
+    monkeypatch.setattr(research_jobs, "Config", lambda: object())
+    monkeypatch.setattr(research_jobs, "max_parallel", lambda: 3)
+    monkeypatch.setattr(research_jobs, "slot_lock_held", lambda _cfg, slot: slot == 1)
+    called = []
+    monkeypatch.setattr("subprocess.run", lambda *a, **kw: called.append((a, kw)))
+
+    run_scheduler.agent_batch_catchup_job()
+
+    assert called == []
+
+
+def test_agent_batch_catchup_runs_when_research_slots_are_idle(monkeypatch):
+    import subprocess
+    import core.research_jobs as research_jobs
+
+    monkeypatch.setattr(run_scheduler, "is_enabled", lambda _key: True)
+    monkeypatch.setattr(run_scheduler, "has_headroom", lambda: True)
+    monkeypatch.setattr(research_jobs, "Config", lambda: object())
+    monkeypatch.setattr(research_jobs, "max_parallel", lambda: 3)
+    monkeypatch.setattr(research_jobs, "slot_lock_held", lambda _cfg, _slot: False)
+    calls = []
+    monkeypatch.setattr(subprocess, "run", lambda args, **kw: calls.append((args, kw)) or type("Proc", (), {"returncode": 0, "stdout": "", "stderr": ""})())
+    monkeypatch.setattr(run_scheduler, "report_job_failure", lambda *a: None)
+
+    run_scheduler.agent_batch_catchup_job()
+
+    assert calls and calls[0][0][-1] == "--catch-up"
