@@ -1,11 +1,18 @@
 # 세션 인계
 
+## 2026-10-14 R&D 자동 이어받기 운영 확인 — 후속 보완 배포 대기
+
+- 1차 변경 `2a84e80`은 origin/main·운영 VM에 배포되어 `agent_batch_catchup`이 12:30 KST 실제 실행됐다. 기존 두 초안의 Critic을 다시 호출했으나 모두 즉시 실패(1~2초, 비용 0, 판정 파일 없음). `sudo -u quant claude auth status` 결과 운영 서비스 계정은 `loggedIn: false`; 개발 사용자 계정은 로그인되어 있지만 서비스에 다른 계정 인증을 복사하지 않았다. AI 호출은 서비스 계정이 다시 인증될 때까지 정체 상태다.
+- 운영 로그에서 이어받기와 12:30 연구 실행기 틱이 동시에 시작되어 둘 다 `.cache/py-yfinance` 임시 파일을 되돌렸다는 경고가 있었다. 후속 수정은 이어받기를 12:13·21:13 KST, 최대 6분으로 옮기고, 시작 시 검증 연구 슬롯이 하나라도 사용 중이면 건너뛴다. 다음 12:20·21:20 연구기 틱 전에 실행이 끝나도록 일일 예산 창도 제한한다.
+- 후속 수정 변경: `core/agent_budget.py`, `core/job_schedule.py`, `core/process_registry.py`, `scheduler/run_scheduler.py`, 가이드·연구 설명서·테스트·인계 문서. 정적 컴파일 및 `hub.guide.check` 통과. 전체 테스트는 아직 후속 패치 기준으로 재실행하지 않았고, 자동배포 전체 테스트 관문이 검증한다.
+- 다음: 후속 패치 배포 후 scheduler가 새 시각으로 등록됐는지 확인. 자동 R&D 재개를 위해 사용자는 VM에서 `sudo -u quant /usr/local/bin/claude auth login`으로 서비스 계정을 인증해야 한다. 토큰은 문서·로그에 복사하지 않는다. 인증 후 다음 전체 배치/이어받기 창에서 Critic 판정 파일과 후보 심판 상태를 확인한다.
+
 ## 2026-10-13 R&D 연구 파이프라인 정체 해소 — 구현·검증 완료, 배포 대기
 
 - 원인: 연구 주제 소진이 아니라 사전 등록 전체 연구 큐가 비어 있었고, 새틀라이트 초안 2건은 Critic 호출이 각각 실패해 `critic.json`을 쓰지 못했다. 그런데 `core/agent_batch.py`가 파일 유무와 무관하게 `critic_hash`를 남겨 미검토를 반려로 오인했다. 10/13 03:00 배치는 Scout·설계 2건 후 03:08 종료됐으며 당시 일·주간 예산은 남아 있었다. 두 후보가 동시 진행 상한 2건을 차지해 새 후보 생성도 멈췄다.
-- 결정·구현: Critic 판정 파일이 없거나 올바른 verdict가 아니면 검토 대기로 간주하고 같은 Critic을 재시도한다. 일반 가설과 새틀라이트 양쪽에 적용, 잘못된 반려로 재작업 횟수를 낭비하지 않는다. 새틀라이트 Critic 최대 턴을 15→30으로 높인다. 기존 전체 배치 03:00 외 12:30·21:30 KST에 진행 중 새틀라이트 초안만 최대 4단계 이어받는 짧은 창을 추가한다. 하루 $15·주간 $60(API 환산) 및 역할별 주간 횟수·VM 부하 보호 유지. 새로운 아이디어 생성은 03:00 전체 배치에서만 한다. Critic 승인 뒤 기존 VM 계산기가 동결·실데이터 심판하며 엔진·주문 자동 변경은 없다.
+- 결정·구현: Critic 판정 파일이 없거나 올바른 verdict가 아니면 검토 대기로 간주하고 같은 Critic을 재시도한다. 일반 가설과 새틀라이트 양쪽에 적용, 잘못된 반려로 재작업 횟수를 낭비하지 않는다. 새틀라이트 Critic 최대 턴을 15→30으로 높인다. 기존 전체 배치 03:00 외 12:13·21:13 KST에 빈 검증 연구 슬롯일 때 진행 중 새틀라이트 초안만 최대 6분 이어받는 창을 추가한다. 하루 $15·주간 $60(API 환산) 및 역할별 주간 횟수·VM 부하 보호 유지. 새로운 아이디어 생성은 03:00 전체 배치에서만 한다. Critic 승인 뒤 기존 VM 계산기가 동결·실데이터 심판하며 엔진·주문 자동 변경은 없다.
 - 수정: `core/agent_batch.py`, `core/agent_budget.py`, `core/job_schedule.py`, `core/process_registry.py`, `scheduler/run_scheduler.py`, `scripts/agent_batch.py`, `hub/guide/content_modules_a.py`, `hub/guide/content_ops.py`, `docs/SATELLITE_LAB.md`, `docs/AGENTIC_QUANT_SYSTEM_DESIGN.md`, `hub/guide/content_modules_b.py`, `tests/test_agent_system.py`, `tests/test_satellite_lab.py`, `tests/test_live_status.py`. 격리 작업 폴더 `/tmp/quant-rnd-continuity` 사용, 공유 체크아웃의 별도 수정 보존.
-- 검증 상태: 전체 pytest 2794건 통과·4건 건너뜀·표시명 기대값 1건 실패를 수정 후 관련 114건 통과, 텔레그램 runner unittest 72건 통과, `hub.guide.check`·`git diff --check` 통과. VM 전체 실험 계산은 실행하지 않았다. 배포 상태는 아래 후속 기록에서 갱신한다.
+- 검증 상태: 10/13 전체 pytest 2794건 통과·4건 건너뜀·표시명 기대값 1건 실패 수정 후 관련 114건 통과, 텔레그램 runner unittest 72건. 10/14 일정 겹침 회피 보완 후 집중 테스트 대기. VM 전체 실험 계산은 실행하지 않았다.
 - 다음: 전체 테스트·배포 관문 확인, VM 반영 뒤 다음 이어받기 창에서 Critic 파일 및 후보 동결·심판 여부를 확인한다. 사전 등록 전체 연구 큐 0건은 별도 연구 제안 등록이 필요하며 완료한 실험을 반복 실행해 연구가 진행 중인 것처럼 보이게 하지 않는다.
 
 

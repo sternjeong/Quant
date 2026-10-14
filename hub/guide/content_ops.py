@@ -110,7 +110,7 @@ JOBS: tuple[JobGuide, ...] = (
     JobGuide(
         job_id="agent_batch_catchup",
         where_to_see="텔레그램(실행한 단계가 있으면 요약), 허브 /research 와 /satellite-lab",
-        if_alert="12:30·21:30 KST에 진행 중 새틀라이트 초안의 검사·Critic 검토만 이어받습니다. VM 여유가 없거나 일·주간 예산에 걸리면 다음 창으로 넘어갑니다. 야간 전체 배치와 같은 '/processes off agent_batch'로 함께 끕니다.",
+        if_alert="12:13·21:13 KST에 진행 중 새틀라이트 초안의 검사·Critic 검토만 이어받습니다. VM 여유가 없거나 연구 실행 슬롯을 사용 중이거나 일·주간 예산에 걸리면 다음 창으로 넘어갑니다. 야간 전체 배치와 같은 '/processes off agent_batch'로 함께 끕니다.",
         verified="2026-10-13",
     ),
     JobGuide(

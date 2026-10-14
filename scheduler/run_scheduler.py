@@ -950,11 +950,17 @@ def agent_batch_catchup_job() -> None:
     if not is_enabled("agent_batch") or not has_headroom():
         return
     import subprocess
+    from core.research_jobs import Config, max_parallel, slot_lock_held
+
+    cfg = Config()
+    if any(not slot_lock_held(cfg, slot) for slot in range(max_parallel(cfg))):
+        print(f"[{datetime.now()}] agent_batch_catchup_job 건너뜀 (검증 연구 슬롯 사용 중)")
+        return
 
     print(f"[{datetime.now()}] agent_batch_catchup_job 시작")
     try:
         proc = subprocess.run([sys.executable, str(PROJECT_ROOT / "scripts" / "agent_batch.py"), "--catch-up"],
-                              cwd=PROJECT_ROOT, capture_output=True, text=True, timeout=45 * 60)
+                              cwd=PROJECT_ROOT, capture_output=True, text=True, timeout=6 * 60)
         print((proc.stdout or "")[-1500:])
         if proc.returncode != 0:
             report_job_failure("agent_batch", (proc.stderr or proc.stdout or "")[-300:])
@@ -1488,9 +1494,9 @@ def main() -> None:
     )
     scheduler.add_job(
         agent_batch_catchup_job,
-        trigger=CronTrigger(hour="12,21", minute=30, timezone="Asia/Seoul"),
+        trigger=CronTrigger(hour="12,21", minute=13, timezone="Asia/Seoul"),
         id="agent_batch_catchup",
-        name="매일 한국시간 12:30·21:30 진행 중 새틀라이트 연구 이어받기",
+        name="매일 한국시간 12:13·21:13 진행 중 새틀라이트 연구 이어받기",
         replace_existing=True,
         misfire_grace_time=300,
     )

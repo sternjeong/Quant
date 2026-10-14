@@ -30,8 +30,8 @@ BATCH_START = time(3, 0)
 LAST_LAUNCH = time(5, 30)
 HARD_STOP = time(5, 50)
 # Short daytime catch-up windows only finish satellite drafts already in progress.
-CATCH_UP_WINDOWS = ((time(12, 30), time(13, 10), time(13, 15)),
-                    (time(21, 30), time(22, 10), time(22, 15)))
+CATCH_UP_WINDOWS = ((time(12, 13), time(12, 19), time(12, 20)),
+                    (time(21, 13), time(21, 19), time(21, 20)))
 
 
 @dataclass(frozen=True)
@@ -169,7 +169,7 @@ def can_launch(role: str, now: Optional[datetime] = None, path: Optional[Path] =
         return False, f"{role}: 오늘은 실행 요일 아님"
     if not (BATCH_START <= k.time() < LAST_LAUNCH or
             any(start <= k.time() < last for start, last, _ in CATCH_UP_WINDOWS)):
-        return False, "새 작업 시작 가능 시간(03:00~05:30·12:30~13:10·21:30~22:10 KST) 밖"
+        return False, "새 작업 시작 가능 시간(03:00~05:30·12:13~12:19·21:13~21:19 KST) 밖"
     s = summary(now, path)
     if s["week_runs"][role] >= cfg.weekly_runs:
         return False, f"{role}: 주간 {cfg.weekly_runs}회 소진"
