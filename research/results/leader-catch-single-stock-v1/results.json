@@ -1,0 +1,176 @@
+{
+  "id": "leader-catch-single-stock-v1",
+  "judge_version": "leader-catch-single-stock-judge/v1",
+  "generated_at": "2026-10-15T03:44:37+00:00",
+  "smoke": false,
+  "data_start": "2000-01-03",
+  "data_end": "2024-09-30",
+  "decision_start": "2013-01-01",
+  "decision_end": "2024-09-30",
+  "signals": {
+    "F2": "6개월 모멘텀",
+    "F3": "252일 고점 근접도",
+    "F5": "12개월 SPY 상대강도",
+    "C": "F2·F3·F5 순위 평균"
+  },
+  "power": {
+    "years": 11.67,
+    "n_trials": 4,
+    "confidence": 0.95,
+    "mde_ir": 0.79,
+    "power_at": {
+      "0.20": 0.022,
+      "0.30": 0.047,
+      "0.50": 0.161
+    },
+    "method": "expected-max-z(Bailey-LdP) + null SE, simplified"
+  },
+  "coverage": {
+    "months": 295,
+    "eligible_members": 102996,
+    "missing_start_or_end": 44252,
+    "months_with_10_scores": 295
+  },
+  "verdicts": {
+    "F2": "FAIL_UNDERPOWERED",
+    "F3": "FAIL",
+    "F5": "FAIL",
+    "C": "FAIL_UNDERPOWERED"
+  },
+  "results": {
+    "F2": {
+      "verdict": "FAIL_UNDERPOWERED",
+      "reasons": [
+        "적중률 보정 하한=33.9% (기준 >33.3%)",
+        "월 초과수익=+1.8bp, NW(6)t=0.06 (기준 양수·t≥2)",
+        "하위 구간 평균 초과수익=2013-16:+51.4bp, 2017-20:-6.0bp, 2021-24-09:-43.8bp"
+      ],
+      "n_months": 140,
+      "n_selected": 1400,
+      "precision": 0.37,
+      "precision_family_lower": 0.3385625,
+      "mean_monthly_active": 0.00017762204244318498,
+      "nw6_t": 0.05853691557270484,
+      "annualized_active_ir": 0.01397327356344642,
+      "power": {
+        "years": 11.67,
+        "n_trials": 4,
+        "confidence": 0.95,
+        "mde_ir": 0.79,
+        "power_at": {
+          "0.20": 0.022,
+          "0.30": 0.047,
+          "0.50": 0.161
+        },
+        "method": "expected-max-z(Bailey-LdP) + null SE, simplified"
+      },
+      "subperiod_mean_active": {
+        "2013-16": 0.0051361326647481375,
+        "2017-20": -0.0006015893214421407,
+        "2021-24-09": -0.004381613512196408
+      }
+    },
+    "F3": {
+      "verdict": "FAIL",
+      "reasons": [
+        "적중률 보정 하한=27.2% (기준 >33.3%)",
+        "월 초과수익=-21.1bp, NW(6)t=-1.00 (기준 양수·t≥2)",
+        "하위 구간 평균 초과수익=2013-16:-35.5bp, 2017-20:-15.7bp, 2021-24-09:-11.3bp"
+      ],
+      "n_months": 140,
+      "n_selected": 1400,
+      "precision": 0.305,
+      "precision_family_lower": 0.27214285714285713,
+      "mean_monthly_active": -0.0021103084039038583,
+      "nw6_t": -0.9972743324284057,
+      "annualized_active_ir": -0.21876030705570262,
+      "power": {
+        "years": 11.67,
+        "n_trials": 4,
+        "confidence": 0.95,
+        "mde_ir": 0.79,
+        "power_at": {
+          "0.20": 0.022,
+          "0.30": 0.047,
+          "0.50": 0.161
+        },
+        "method": "expected-max-z(Bailey-LdP) + null SE, simplified"
+      },
+      "subperiod_mean_active": {
+        "2013-16": -0.0035481287884079143,
+        "2017-20": -0.001574467088073063,
+        "2021-24-09": -0.0011263312380784846
+      }
+    },
+    "F5": {
+      "verdict": "FAIL",
+      "reasons": [
+        "적중률 보정 하한=33.6% (기준 >33.3%)",
+        "월 초과수익=-4.9bp, NW(6)t=-0.15 (기준 양수·t≥2)",
+        "하위 구간 평균 초과수익=2013-16:-2.2bp, 2017-20:-3.0bp, 2021-24-09:-9.8bp"
+      ],
+      "n_months": 140,
+      "n_selected": 1400,
+      "precision": 0.37285714285714283,
+      "precision_family_lower": 0.3357142857142857,
+      "mean_monthly_active": -0.0004896296687570378,
+      "nw6_t": -0.1480920686837965,
+      "annualized_active_ir": -0.03707799015792266,
+      "power": {
+        "years": 11.67,
+        "n_trials": 4,
+        "confidence": 0.95,
+        "mde_ir": 0.79,
+        "power_at": {
+          "0.20": 0.022,
+          "0.30": 0.047,
+          "0.50": 0.161
+        },
+        "method": "expected-max-z(Bailey-LdP) + null SE, simplified"
+      },
+      "subperiod_mean_active": {
+        "2013-16": -0.0002234385041975503,
+        "2017-20": -0.00030296907114937474,
+        "2021-24-09": -0.0009836497729393831
+      }
+    },
+    "C": {
+      "verdict": "FAIL_UNDERPOWERED",
+      "reasons": [
+        "적중률 보정 하한=30.6% (기준 >33.3%)",
+        "월 초과수익=+4.3bp, NW(6)t=0.19 (기준 양수·t≥2)",
+        "하위 구간 평균 초과수익=2013-16:+42.0bp, 2017-20:-29.5bp, 2021-24-09:+0.2bp"
+      ],
+      "n_months": 140,
+      "n_selected": 1400,
+      "precision": 0.34,
+      "precision_family_lower": 0.3057053571428571,
+      "mean_monthly_active": 0.00043416680250536944,
+      "nw6_t": 0.1870530008769062,
+      "annualized_active_ir": 0.04374660160746083,
+      "power": {
+        "years": 11.67,
+        "n_trials": 4,
+        "confidence": 0.95,
+        "mde_ir": 0.79,
+        "power_at": {
+          "0.20": 0.022,
+          "0.30": 0.047,
+          "0.50": 0.161
+        },
+        "method": "expected-max-z(Bailey-LdP) + null SE, simplified"
+      },
+      "subperiod_mean_active": {
+        "2013-16": 0.0041962045072829746,
+        "2017-20": -0.0029520152708861318,
+        "2021-24-09": 2.4142477356890087e-05
+      }
+    }
+  },
+  "caveats": [
+    "PIT membership list begins in 1996",
+    "Yahoo may omit delisted security prices",
+    "gross signal study: no tax, FX, or transaction costs",
+    "not a forward or independent validation"
+  ]
+}
