@@ -1,0 +1,14 @@
+{
+  "id": "sat-exit-ladder-v1",
+  "title": "새틀라이트 매도 사다리 — 변동성·섹터별 손절/추적 익절·부분 매도·나머지 규칙(+진입부터 적용 4종), 현 챔피언·SPY 대비 세후 원화 판정",
+  "entrypoint": "research/jobs/sat-exit-ladder-v1/run.py",
+  "args": [],
+  "timeout_seconds": 10800,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 8,
+  "revision": 1,
+  "max_memory_mb": 2500
+}
