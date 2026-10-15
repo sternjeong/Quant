@@ -1,0 +1,14 @@
+{
+  "id": "sat-stop-v1",
+  "title": "새틀라이트 손절 — 손절 방식 4종(고정 %·σ 배수, 진입가·추적) × 손절 뒤 행동 3종(현금·재진입·교체), 현 챔피언 대비 세후 원화 판정",
+  "entrypoint": "research/jobs/sat-stop-v1/run.py",
+  "args": [],
+  "timeout_seconds": 10800,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 8,
+  "revision": 1,
+  "max_memory_mb": 2500
+}
