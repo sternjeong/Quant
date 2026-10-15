@@ -1,0 +1,14 @@
+{
+  "id": "guru-champion-v1",
+  "title": "거장 보유 우선 새틀라이트(S-SEED-019)를 챔피언·SPY 챔피언에 넣으면 세후 원화로 나은가(사전 등록, 이미 본 구간 — 전진 원장 수준)",
+  "entrypoint": "research/jobs/guru-champion-v1/run.py",
+  "args": [],
+  "timeout_seconds": 10800,
+  "max_attempts": 3,
+  "resumable": true,
+  "max_memory_mb": 3000,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 7,
+  "revision": 1
+}
