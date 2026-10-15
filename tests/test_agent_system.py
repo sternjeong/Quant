@@ -70,6 +70,17 @@ def test_budget_window_weekday_and_caps(ws):
     assert "하룻밤" in bud.can_launch("critic", MON_0310)[1]                      # 14 + 1.5 > 15
 
 
+def test_satellite_critic_headroom_covers_two_deferred_reviews(ws):
+    at = MON_0310 + timedelta(hours=9, minutes=3)  # 12:13 KST catch-up window
+    for _ in range(8):
+        bud.record({"at": bud.kst(at).isoformat(), "role": "sat_critic", "cost_usd": 0.0})
+    assert bud.can_launch("sat_critic", at)[0]
+    for _ in range(2):
+        bud.record({"at": bud.kst(at).isoformat(), "role": "sat_critic", "cost_usd": 0.0})
+    allowed, reason = bud.can_launch("sat_critic", at)
+    assert not allowed and "주간 10회" in reason
+
+
 # ---------------------------------------------------------------- 배치 전체 흐름(가짜 에이전트)
 SIGNAL = "def score(prices, as_of, params):\n    return {t: 1.0 for t in prices}\n"
 TEST = ("from pathlib import Path\nimport importlib.util\n"

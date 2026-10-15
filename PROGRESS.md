@@ -1,5 +1,12 @@
 # 작업 진행 상황
 
+## 2026-10-15 Claude 로그인 후 R&D 결과 및 이어받기 재개 준비
+
+- **인증·운영:** `quant` Claude CLI `loggedIn=true`; scheduler active. 운영 에이전트 dry plan은 sat_critic 주간 8/8 소진으로 새 작업 없음.
+- **완료 연구:** `sat-exit-accuracy-v1` 4개 신호 모두 FAIL, `leader-catch-single-stock-v1`은 2개 FAIL_UNDERPOWERED·2개 FAIL, `satellite-trailing-reentry-v1` FAIL. 세 실데이터 결과 모두 VM에서 완료됐고 챔피언·주문 엔진에는 반영하지 않았다.
+- **결정·수정:** 남은 두 검토 대기 초안(S-20261012-001/002)을 이어가도록 sat_critic 한도만 주 8→10회. 전역 API 환산 상한(야간 $15·주간 $60)과 모델·턴·시간 가드는 유지. 코드·설명서·회귀 테스트 수정.
+- **검증:** `tests/test_agent_system.py` 19 passed, `hub.guide.check` 누락 없음, diff check 통과. main 배포 관문 및 운영 반영 후 21:13 KST 이어받기 결과를 확인한다. 승인 판정은 아직 미완료.
+
 ## 2026-10-14 새틀라이트 10% 추적 손절·재선정 비교 연구 (구현·스모크 완료, 게시 전)
 
 - 사용자 확정: 최고 종가 $30 기준 손절선은 $27(최고 종가 대비 10% 하락). 연구 가정은 현 선정 기준 유지, 반기 중 손절 시 다음 거래일 종가 매도 및 기준을 만족하는 다음 미보유 후보로 같은 슬롯 재진입.

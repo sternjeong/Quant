@@ -52,7 +52,8 @@ ROLES: dict[str, RoleConfig] = {
     "postmortem": RoleConfig("sonnet", 15, 20 * 60, 1, 1.0, weekdays=(6,)),
     # 새틀라이트 R&D 센터(2026-10-02): 선정 규칙 아이디어 설계·구현(재작업 포함) / 코드 검토
     "sat_designer": RoleConfig("opus", 40, 30 * 60, 8, 3.0),
-    "sat_critic": RoleConfig("opus", 30, 20 * 60, 8, 1.5),
+    # 주간 10회: 로그인 누락으로 대기 중이던 기존 초안 2건의 검토 여유를 포함한다.
+    "sat_critic": RoleConfig("opus", 30, 20 * 60, 10, 1.5),
     # AI 국제정세 의견 shadow(2026-10-02): 매달 25일 이후 한 번, 다음 달 코어 리밸런싱 전 의견(배분 미반영)
     "geo_analyst": RoleConfig("sonnet", 30, 20 * 60, 2, 1.5),
     # 코어 분기 연구(2026-10-05): 분기마다 아이디어 최대 3개(형식 오류면 그 분기에 한 번 더)
