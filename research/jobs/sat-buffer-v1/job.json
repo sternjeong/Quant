@@ -1,0 +1,14 @@
+{
+  "id": "sat-buffer-v1",
+  "title": "새틀라이트 순위 버퍼 — 재선정일에 보유 종목이 추세 활성·상위 K(6/10)면 유지, 1·7월/1월만 4종, 현행 대비 세후 원화 판정",
+  "entrypoint": "research/jobs/sat-buffer-v1/run.py",
+  "args": [],
+  "timeout_seconds": 10800,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 6,
+  "revision": 1,
+  "max_memory_mb": 2500
+}
