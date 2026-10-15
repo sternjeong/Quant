@@ -1,0 +1,155 @@
+{
+  "kind": "pre-registered verdict",
+  "id": "satellite-trailing-reentry-v1",
+  "smoke": false,
+  "generated_at": "2026-10-15T10:50:43+00:00",
+  "periods": {
+    "decision": [
+      "2010-01-04",
+      "2024-09-30"
+    ],
+    "post_2024_10_report_only": [
+      "2024-10-01",
+      "2026-10-14"
+    ],
+    "first_half_end": "2017-05-18",
+    "trading_days": 3710
+  },
+  "rules": {
+    "stop_pct": 0.1,
+    "trigger": "unadjusted daily close <= highest close since entry * 0.90",
+    "execution": "next trading day close",
+    "replacement": "same PIT champion40 + Donchian20/252d momentum ranking using signal-date close; exclude held and stopped names until semiannual reset; keep replaced slot weight; otherwise cash",
+    "comparisons": [
+      "trail10_reentry_vs_champion",
+      "trail10_reentry_vs_spy"
+    ],
+    "min_cagr_diff": 0.003,
+    "block_days": 126,
+    "bootstraps": 5000,
+    "seed": 20261014,
+    "family_alpha": 0.05,
+    "post_2024_10": "report only"
+  },
+  "variants": {
+    "champion": {
+      "label": "현 챔피언(코어 85%+새틀라이트 15%)",
+      "cagr_after_tax_decision": 0.09314038109919331,
+      "cagr_after_tax_post_2024_10_report_only": 0.18878558550952196,
+      "mdd_after_tax_decision": -0.22141757610352597,
+      "final_krw": 158527428.17737666,
+      "tax_krw": 16090402.190734107,
+      "fees_krw": 6596672.339045719,
+      "fx_cost_krw": 8045.20109536706,
+      "dividend_tax_krw": 2434979.452629685,
+      "period_end": "2026-10-14"
+    },
+    "trail10_reentry": {
+      "label": "최고 종가 10% 추적손절·재선정 챔피언",
+      "cagr_after_tax_decision": 0.08880402422695255,
+      "cagr_after_tax_post_2024_10_report_only": 0.150658740760528,
+      "mdd_after_tax_decision": -0.21707368062539456,
+      "final_krw": 139902798.42786938,
+      "tax_krw": 12739151.885193879,
+      "fees_krw": 7846462.689493682,
+      "fx_cost_krw": 6369.5759425969445,
+      "dividend_tax_krw": 2448404.1601180783,
+      "period_end": "2026-10-14"
+    },
+    "spy": {
+      "label": "SPY 100% 보유",
+      "cagr_after_tax_decision": 0.1443227451047866,
+      "cagr_after_tax_post_2024_10_report_only": 0.19624205538096162,
+      "mdd_after_tax_decision": -0.29678566480959234,
+      "final_krw": 315148438.81741303,
+      "tax_krw": 0.0,
+      "fees_krw": 53033.68880195736,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 4076773.234324829,
+      "period_end": "2026-10-14"
+    }
+  },
+  "comparisons": {
+    "trail10_reentry_vs_champion": {
+      "decision_cagr_diff": -0.004336356872240765,
+      "first_half_cagr_diff": 0.009436568624858088,
+      "second_half_cagr_diff": -0.019237003968982203,
+      "daily_active_ir": -0.17453377491604194,
+      "noop_reason": null,
+      "bootstrap_lower_family": -0.017635055548045273,
+      "bootstrap_median": -0.0042644045345188175,
+      "bootstrap_upper_family": 0.00830081905108943
+    },
+    "trail10_reentry_vs_spy": {
+      "decision_cagr_diff": -0.05551872087783405,
+      "first_half_cagr_diff": -0.0681153093697755,
+      "second_half_cagr_diff": -0.04219448285237637,
+      "daily_active_ir": -0.49179870094301414,
+      "noop_reason": null,
+      "bootstrap_lower_family": -0.10601897364348102,
+      "bootstrap_median": -0.05548627005701379,
+      "bootstrap_upper_family": -0.00833969143733571
+    }
+  },
+  "power": {
+    "years": 14.74,
+    "n_trials": 2,
+    "confidence": 0.95,
+    "mde_ir": 0.564,
+    "power_at": {
+      "0.20": 0.081,
+      "0.30": 0.156,
+      "0.50": 0.403
+    },
+    "method": "expected-max-z(Bailey-LdP) + null SE, simplified"
+  },
+  "power_line": "검정력(사전 계산): 14.74년·시도 2개에서 통과에 필요한 연 IR ≈ 0.56 (참 효과별 통과 확률 IR 0.20→8%, IR 0.30→16%, IR 0.50→40%). FAIL 이어도 관측 IR 이 이보다 작으면 '판별 불가'에 가깝다.",
+  "price_coverage_decision": {
+    "champion": 0.9999620781190747,
+    "trail10_reentry": 1.0,
+    "spy": 1.0
+  },
+  "power_class": "FAIL",
+  "verdict_raw": "FAIL",
+  "verdicts": {
+    "trail10_vs_champion": "FAIL",
+    "observed_cagr_winner": "spy"
+  },
+  "events": {
+    "scheduled_rebalances": 34,
+    "stop_signals": 176,
+    "stop_fills": 176,
+    "replacement_buys": 173,
+    "unfilled_slots": 3,
+    "daily_pick_calls": 159
+  },
+  "data_meta": {
+    "synthetic": false,
+    "core_universe": [
+      "XLC",
+      "XLY",
+      "XLP",
+      "XLE",
+      "XLF",
+      "XLV",
+      "XLI",
+      "XLB",
+      "XLRE",
+      "XLK",
+      "XLU",
+      "TLT",
+      "IEF",
+      "GLD",
+      "EFA",
+      "HYG",
+      "BIL"
+    ],
+    "pool_cache_tag": "pit2",
+    "satellite_judge_version": "sat-judge/v3"
+  },
+  "limitations": [
+    "무료 자료 생존편향·상폐가격 누락",
+    "갭 하락은 다음 거래일 종가 체결이라 10% 손실 제한 보장 아님",
+    "추정 세금·환전, 슬리피지·시장충격 제외"
+  ]
+}
