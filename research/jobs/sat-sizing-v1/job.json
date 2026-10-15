@@ -1,0 +1,17 @@
+{
+  "id": "sat-sizing-v1",
+  "title": "새틀라이트 3종목 사이징 — 균등 vs 변동성 역가중(라이브 20일/63일, 상한 40%) vs 하프 켈리(시점 기준), 세후 원화 판정",
+  "entrypoint": "research/jobs/sat-sizing-v1/run.py",
+  "args": [],
+  "timeout_seconds": 10800,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": [
+    "results.json",
+    "REPORT.md"
+  ],
+  "summary_from": "verdicts",
+  "priority": 9,
+  "revision": 1,
+  "max_memory_mb": 2500
+}
