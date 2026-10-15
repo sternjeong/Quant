@@ -6131,3 +6131,4 @@ paper 키를 주문 경로에만 쓰던 것을 **측정 수단**으로 확장해
 - **구현:** `init_db()`를 engine 동일성 기준으로 프로세스당(엔진당) 1회만 실제 동작하도록 캐시. `_add_missing_columns()`는 읽기 전용 inspect로 먼저 추가할 컬럼을 확인하고, 없으면 `engine.begin()` 쓰기 트랜잭션을 열지 않음 — 야간 블록에 잡 여러 개가 겹칠 때 불필요한 쓰기 잠금 대기를 줄인다.
 - **검증:** `tests/test_db.py` 3건 추가, 전체 pytest 2330 passed·4 skipped, `hub.guide.check` 통과.
 - 상세: `docs/SESSION_HANDOFF.md` 2026-10-01(후속) 절.
+- **배포 게이트 상태(2026-10-15 11:06 UTC):** ac0c5c9의 VM 전체 테스트가 백업 암호 오입력 테스트 1건 실패(2945 passed, 4 skipped)하여 배포 차단. 수정 커밋 519aba0 전체 테스트를 자동 배포가 재실행 중이며 아직 배포 완료 아님. 변경 무관 백업 테스트는 건드리지 않음. 이어서 게이트 최종 결과와 `/opt/quant` commit을 확인하고 21:13 KST AI catch-up 결과 추적.

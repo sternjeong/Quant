@@ -1039,3 +1039,4 @@
 - `_add_missing_columns()`: `inspect(engine)`로 먼저 전부 읽기 전용 확인 후 추가할 컬럼 목록을 모으고, 하나도 없으면 `engine.begin()` 쓰기 트랜잭션을 열지 않는다(기존엔 매번 열었음 — 호출마다, 심지어 아무것도 추가할 게 없을 때도 쓰기 잠금을 시도해 야간 블록 동시 호출에서 불필요한 대기를 유발했다).
 - 검증: `tests/test_db.py`에 3건 추가(같은 engine 재호출 시 1회만 동작, engine 교체 시 재동작, 추가할 컬럼 없으면 `engine.begin()` 미호출). 전체 `pytest tests` **2330 passed, 4 skipped**(이 세션이 직접 실행, 기존 2327 대비 테스트 3건 증가). `python -m hub.guide.check` 통과.
 - 다음: 커밋·push → VM 자동배포 5분 내 반영. `ubuntu`의 `gh auth login`(push 권한)은 여전히 사용자 대기 — 이 세션은 그 계정에 접근할 수 없어 대신 처리할 수 없다.
+- **최종 배포 게이트 결과(11:06 UTC):** 이전 아티팩트 결과 커밋 `ac0c5c9` 테스트에서 `tests/test_backup_vm.py::test_wrong_passphrase_cannot_decrypt` 1건이 실패(2945 passed, 4 skipped)해 반영되지 않았다. 자동 배포는 새 `519aba0`를 별도로 다시 검사 중이며, 현 시점에는 완료/운영 반영되지 않았다. 이 백업 테스트는 이번 변경 파일과 무관하므로 수정하지 않았다. 다음 세션은 게이트 완료·재시도 여부와 운영 commit 확인 후 다음 `agent_batch_catchup` (21:13 KST)을 확인한다.
