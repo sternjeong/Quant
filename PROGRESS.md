@@ -5,7 +5,8 @@
 - **인증·운영:** `quant` Claude CLI `loggedIn=true`; scheduler active. 운영 에이전트 dry plan은 sat_critic 주간 8/8 소진으로 새 작업 없음.
 - **완료 연구:** `sat-exit-accuracy-v1` 4개 신호 모두 FAIL, `leader-catch-single-stock-v1`은 2개 FAIL_UNDERPOWERED·2개 FAIL, `satellite-trailing-reentry-v1` FAIL. 세 실데이터 결과 모두 VM에서 완료됐고 챔피언·주문 엔진에는 반영하지 않았다.
 - **결정·수정:** 남은 두 검토 대기 초안(S-20261012-001/002)을 이어가도록 sat_critic 한도만 주 8→10회. 전역 API 환산 상한(야간 $15·주간 $60)과 모델·턴·시간 가드는 유지. 코드·설명서·회귀 테스트 수정.
-- **검증·배포:** `tests/test_agent_system.py` 19 passed, `hub.guide.check` 누락 없음. VM 전체 pytest 2,947 passed·4 skipped, deploy unittest 72 OK 후 운영 `/opt/quant`에 `519aba0` 반영. scheduler·hub·streamlit·telegram 모두 active. 배포 차단된 ac0c5c9 실패는 변경 무관 백업 암호 테스트였다. 이어서 21:13 KST 이어받기 결과를 확인한다. Critic 판정은 아직 미완료. 인계 문서만 담은 후속 커밋은 별도 배포 테스트 중.
+- **검증·배포:** `tests/test_agent_system.py` 19 passed, `hub.guide.check` 누락 없음. VM 전체 pytest 2,947 passed·4 skipped, deploy unittest 72 OK 후 운영 `/opt/quant`에 `519aba0` 반영. scheduler·hub·streamlit·telegram 모두 active. 배포 차단된 ac0c5c9 실패는 변경 무관 백업 암호 테스트였다. 문서 인계 후속 커밋은 자동 게이트에서 검증 중.
+- **추가 진단:** 현재 dry-plan `next:null`은 03:00~05:30 KST 배치 창 밖이라 정상. quant Claude CLI는 정상 배치 수준인 최대턴 15에서 인증·응답 성공. 진단 호출은 usage 원장에 기록하지 않았다. 기존 10/13~15 usage에는 여러 1~3초 즉시 실패가 있어 다음 배치에서 오류·critic 파일 생성을 반드시 확인한다. 두 Critic 판정은 미완료.
 
 ## 2026-10-14 새틀라이트 10% 추적 손절·재선정 비교 연구 (구현·스모크 완료, 게시 전)
 
