@@ -1,0 +1,14 @@
+{
+  "id": "spy-champion-v1",
+  "title": "SPY 바탕 + 새틀라이트(+작은 코어) 5개 후보 — 현 챔피언·SPY 그냥 보유 대비 세후 원화 판정",
+  "entrypoint": "research/jobs/spy-champion-v1/run.py",
+  "args": [],
+  "timeout_seconds": 10800,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 5,
+  "revision": 1,
+  "max_memory_mb": 2500
+}
