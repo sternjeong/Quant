@@ -1,0 +1,14 @@
+{
+  "id": "sat-earnings-v1",
+  "title": "새틀라이트 실적 발표 직전 매수 피하기 — 8-K 2.02 기준 예상일 7거래일 안이면 미루기(E1)·다음 순위로 바꾸기(E2), 현행 대비 세후 원화 판정",
+  "entrypoint": "research/jobs/sat-earnings-v1/run.py",
+  "args": [],
+  "timeout_seconds": 10800,
+  "max_attempts": 4,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 11,
+  "revision": 1,
+  "max_memory_mb": 2500
+}
