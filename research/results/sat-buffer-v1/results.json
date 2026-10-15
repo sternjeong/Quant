@@ -1,0 +1,2067 @@
+{
+ "kind": "pre-registered verdict",
+ "id": "sat-buffer-v1",
+ "rules_version": "sat-buffer-v1/2026-10-15",
+ "smoke": false,
+ "generated_at": "2026-10-15T09:40:55+00:00",
+ "start": "2010-01-04",
+ "segments": {
+  "judged": [
+   null,
+   "2024-09-30"
+  ],
+  "h1": [
+   null,
+   "2017-05-31"
+  ],
+  "h2": [
+   "2017-05-31",
+   "2024-09-30"
+  ],
+  "post": [
+   "2024-09-30",
+   "2026-10-14"
+  ]
+ },
+ "verdicts": {
+  "K6_H6": "PASS_FORWARD_CANDIDATE",
+  "K10_H6": "FAIL",
+  "K6_H12": "FAIL_UNDERPOWERED",
+  "K10_H12": "FAIL_UNDERPOWERED"
+ },
+ "verdicts_raw": {
+  "K6_H6": "PASS_FORWARD_CANDIDATE",
+  "K10_H6": "FAIL",
+  "K6_H12": "FAIL_UNDERPOWERED",
+  "K10_H12": "FAIL_UNDERPOWERED"
+ },
+ "pairs": {
+  "base_30m": {
+   "champ": {
+    "K6_H6": {
+     "judged_diff": 0.0032386172344782693,
+     "h1_diff": 0.0029506233238241197,
+     "h2_diff": 0.0035498563369809055,
+     "post_diff": -0.01890842925237557,
+     "daily_diff_ir": 0.26803385153983733,
+     "noop_reason": null,
+     "judged_years": 14.737850787132102,
+     "boot_ci90_low": -0.0008141405669689572,
+     "boot_ci90_high": 0.007494482077048057,
+     "boot_share_positive": 0.907
+    },
+    "K10_H6": {
+     "judged_diff": -0.0007730910826551085,
+     "h1_diff": 0.00019144489636335749,
+     "h2_diff": -0.0018360899999523284,
+     "post_diff": -0.004245306609197863,
+     "daily_diff_ir": -0.05919457874472469,
+     "noop_reason": null,
+     "judged_years": 14.737850787132102,
+     "boot_ci90_low": -0.005218671349351023,
+     "boot_ci90_high": 0.003802222222006122,
+     "boot_share_positive": 0.385
+    },
+    "K6_H12": {
+     "judged_diff": 0.002684326436728224,
+     "h1_diff": 0.008240535403028826,
+     "h2_diff": -0.0034257577581149334,
+     "post_diff": 0.01875428731903006,
+     "daily_diff_ir": 0.1280379550878664,
+     "noop_reason": null,
+     "judged_years": 14.737850787132102,
+     "boot_ci90_low": -0.004522890864633455,
+     "boot_ci90_high": 0.010244660589693666,
+     "boot_share_positive": 0.737
+    },
+    "K10_H12": {
+     "judged_diff": 0.00475172178375316,
+     "h1_diff": 0.011479952451966646,
+     "h2_diff": -0.0026409672998797262,
+     "post_diff": 0.004023293819337637,
+     "daily_diff_ir": 0.2069867344422507,
+     "noop_reason": null,
+     "judged_years": 14.737850787132102,
+     "boot_ci90_low": -0.002671976244777152,
+     "boot_ci90_high": 0.011994429030761753,
+     "boot_share_positive": 0.864
+    }
+   },
+   "sleeve": {
+    "K6_H6": {
+     "judged_diff": 0.021451476826942928,
+     "h1_diff": 0.022149553051887372,
+     "h2_diff": 0.02019601358492218,
+     "post_diff": -0.11598732921466781,
+     "daily_diff_ir": 0.25249631225577895,
+     "noop_reason": null,
+     "judged_years": 14.737850787132102
+    },
+    "K10_H6": {
+     "judged_diff": -0.007678065826201674,
+     "h1_diff": 0.0021301639939250716,
+     "h2_diff": -0.02010052854728217,
+     "post_diff": -0.01939114664101793,
+     "daily_diff_ir": -0.09125688625525616,
+     "noop_reason": null,
+     "judged_years": 14.737850787132102
+    },
+    "K6_H12": {
+     "judged_diff": 0.02429353761944064,
+     "h1_diff": 0.055513156326932434,
+     "h2_diff": -0.015035193678640368,
+     "post_diff": 0.10687822959826976,
+     "daily_diff_ir": 0.15770269327714548,
+     "noop_reason": null,
+     "judged_years": 14.737850787132102
+    },
+    "K10_H12": {
+     "judged_diff": 0.03539843193026715,
+     "h1_diff": 0.0759223245980718,
+     "h2_diff": -0.015187889620661199,
+     "post_diff": 0.039414077076749265,
+     "daily_diff_ir": 0.20129416613946624,
+     "noop_reason": null,
+     "judged_years": 14.737850787132102
+    }
+   }
+  },
+  "base_100m": {
+   "champ": {
+    "K6_H6": {
+     "judged_diff": 0.003153339764088381,
+     "h1_diff": 0.003110915455533547,
+     "h2_diff": 0.003193481462371528,
+     "post_diff": -0.01881972836668222,
+     "daily_diff_ir": 0.26155048274625015,
+     "noop_reason": null,
+     "judged_years": 14.737850787132102
+    },
+    "K10_H6": {
+     "judged_diff": -0.0007883818148923805,
+     "h1_diff": 0.0003260227565167195,
+     "h2_diff": -0.0020162921498996234,
+     "post_diff": -0.004293224182821742,
+     "daily_diff_ir": -0.06036659908812271,
+     "noop_reason": null,
+     "judged_years": 14.737850787132102
+    },
+    "K6_H12": {
+     "judged_diff": 0.0028311609309437102,
+     "h1_diff": 0.00886400869302939,
+     "h2_diff": -0.0037979616212961975,
+     "post_diff": 0.018830407338700672,
+     "daily_diff_ir": 0.13546116535619873,
+     "noop_reason": null,
+     "judged_years": 14.737850787132102
+    },
+    "K10_H12": {
+     "judged_diff": 0.004712701809787889,
+     "h1_diff": 0.01169298485956638,
+     "h2_diff": -0.002952478920897006,
+     "post_diff": 0.004148513409568455,
+     "daily_diff_ir": 0.20559901307176576,
+     "noop_reason": null,
+     "judged_years": 14.737850787132102
+    }
+   }
+  }
+ },
+ "metrics": {
+  "base_30m": {
+   "champ": {
+    "B0": {
+     "cagr_judged": 0.09312924201301986,
+     "mdd_judged": -0.2213792941323801,
+     "cagr_post": 0.1888982046528287,
+     "final_judged_krw": 111443881.69890283,
+     "totals": {
+      "fees_krw": 6596845.327101496,
+      "fx_cost_krw": 8041.7448019183275,
+      "dividend_tax_krw": 2434791.9328758037,
+      "capital_gains_tax_krw": 16083489.60383664
+     },
+     "cg_tax_judged_years_krw": 7879492.370783734,
+     "turnover_annual_judged": 3.012808917525163
+    },
+    "K6_H6": {
+     "cagr_judged": 0.09636785924749813,
+     "mdd_judged": -0.21493225117829073,
+     "cagr_post": 0.16998977540045312,
+     "final_judged_krw": 116410237.33489881,
+     "totals": {
+      "fees_krw": 6642443.958747568,
+      "fx_cost_krw": 8568.148089389351,
+      "dividend_tax_krw": 2457165.101188612,
+      "capital_gains_tax_krw": 17136296.178778686
+     },
+     "cg_tax_judged_years_krw": 7968863.284559684,
+     "turnover_annual_judged": 2.965200349508086
+    },
+    "K10_H6": {
+     "cagr_judged": 0.09235615093036476,
+     "mdd_judged": -0.2180294271190919,
+     "cagr_post": 0.18465289804363083,
+     "final_judged_krw": 110287926.52497986,
+     "totals": {
+      "fees_krw": 6373432.027855481,
+      "fx_cost_krw": 7853.264148366072,
+      "dividend_tax_krw": 2383944.336851515,
+      "capital_gains_tax_krw": 15706528.296732131
+     },
+     "cg_tax_judged_years_krw": 7434969.001835724,
+     "turnover_annual_judged": 2.9489691395639452
+    },
+    "K6_H12": {
+     "cagr_judged": 0.09581356844974809,
+     "mdd_judged": -0.2079446622932769,
+     "cagr_post": 0.20765249197185875,
+     "final_judged_krw": 115545868.42487766,
+     "totals": {
+      "fees_krw": 6670074.918436009,
+      "fx_cost_krw": 8398.550598698708,
+      "dividend_tax_krw": 2572224.958952442,
+      "capital_gains_tax_krw": 16797101.1973974
+     },
+     "cg_tax_judged_years_krw": 8618759.680452637,
+     "turnover_annual_judged": 2.907528202671656
+    },
+    "K10_H12": {
+     "cagr_judged": 0.09788096379677302,
+     "mdd_judged": -0.2094381685791301,
+     "cagr_post": 0.19292149847216633,
+     "final_judged_krw": 118800577.01513028,
+     "totals": {
+      "fees_krw": 6727757.309043763,
+      "fx_cost_krw": 7956.006762586244,
+      "dividend_tax_krw": 2616174.819212005,
+      "capital_gains_tax_krw": 15912013.525172474
+     },
+     "cg_tax_judged_years_krw": 8047618.176698082,
+     "turnover_annual_judged": 2.8913461336718234
+    }
+   },
+   "sleeve": {
+    "B0": {
+     "cagr_judged": 0.18350762109725527,
+     "mdd_judged": -0.26436865113163,
+     "cagr_post": 0.16666509951397646,
+     "final_judged_krw": 359339866.7149475,
+     "totals": {
+      "fees_krw": 6366306.7509929715,
+      "fx_cost_krw": 41858.752124289655,
+      "dividend_tax_krw": 3031429.679547477,
+      "capital_gains_tax_krw": 83717504.24857923
+     },
+     "cg_tax_judged_years_krw": 35227718.58327469,
+     "turnover_annual_judged": 1.5228274482910593
+    },
+    "K6_H6": {
+     "cagr_judged": 0.2049590979241982,
+     "mdd_judged": -0.26436865113163044,
+     "cagr_post": 0.050677770299308644,
+     "final_judged_krw": 468251314.90521306,
+     "totals": {
+      "fees_krw": 6480854.562629732,
+      "fx_cost_krw": 57781.391308706705,
+      "dividend_tax_krw": 3167018.0775920735,
+      "capital_gains_tax_krw": 115562782.61741331
+     },
+     "cg_tax_judged_years_krw": 36766881.37415294,
+     "turnover_annual_judged": 1.214772241056633
+    },
+    "K10_H6": {
+     "cagr_judged": 0.1758295552710536,
+     "mdd_judged": -0.27088852506322736,
+     "cagr_post": 0.14727395287295852,
+     "final_judged_krw": 326472133.25446993,
+     "totals": {
+      "fees_krw": 4071672.661733682,
+      "fx_cost_krw": 36875.362380152976,
+      "dividend_tax_krw": 2395834.297896224,
+      "capital_gains_tax_krw": 73750724.7603059
+     },
+     "cg_tax_judged_years_krw": 26809113.647837657,
+     "turnover_annual_judged": 1.1078308285463383
+    },
+    "K6_H12": {
+     "cagr_judged": 0.2078011587166959,
+     "mdd_judged": -0.33074135279432215,
+     "cagr_post": 0.2735433291122462,
+     "final_judged_krw": 484794677.28167146,
+     "totals": {
+      "fees_krw": 5083769.334726854,
+      "fx_cost_krw": 41011.725237913815,
+      "dividend_tax_krw": 4688199.403258955,
+      "capital_gains_tax_krw": 82023450.47582756
+     },
+     "cg_tax_judged_years_krw": 46133674.290944636,
+     "turnover_annual_judged": 0.8155251217345142
+    },
+    "K10_H12": {
+     "cagr_judged": 0.21890605302752242,
+     "mdd_judged": -0.3307393883064026,
+     "cagr_post": 0.20607917659072572,
+     "final_judged_krw": 554801634.2258419,
+     "totals": {
+      "fees_krw": 4819603.366075918,
+      "fx_cost_krw": 40593.78847077831,
+      "dividend_tax_krw": 5202126.846094991,
+      "capital_gains_tax_krw": 81187576.94155654
+     },
+     "cg_tax_judged_years_krw": 46521799.53124042,
+     "turnover_annual_judged": 0.7046725433294805
+    }
+   }
+  },
+  "base_100m": {
+   "champ": {
+    "B0": {
+     "cagr_judged": 0.08903835315040531,
+     "mdd_judged": -0.22819400451574345,
+     "cagr_post": 0.18574787312109775,
+     "final_judged_krw": 351509269.7524141,
+     "totals": {
+      "fees_krw": 21164470.352810115,
+      "fx_cost_krw": 31683.122045159886,
+      "dividend_tax_krw": 7821017.599037036,
+      "capital_gains_tax_krw": 63366244.09031972
+     },
+     "cg_tax_judged_years_krw": 35116119.21187293,
+     "turnover_annual_judged": 3.012808917525163
+    },
+    "K6_H6": {
+     "cagr_judged": 0.0921916929144937,
+     "mdd_judged": -0.22173345100141517,
+     "cagr_post": 0.16692814475441553,
+     "final_judged_krw": 366811562.5119034,
+     "totals": {
+      "fees_krw": 21295013.40800041,
+      "fx_cost_krw": 33466.699184067314,
+      "dividend_tax_krw": 7888097.475139465,
+      "capital_gains_tax_krw": 66933398.36813457
+     },
+     "cg_tax_judged_years_krw": 35682557.08128564,
+     "turnover_annual_judged": 2.965200349508086
+    },
+    "K10_H6": {
+     "cagr_judged": 0.08824997133551293,
+     "mdd_judged": -0.22485578626851854,
+     "cagr_post": 0.181454648938276,
+     "final_judged_krw": 347777575.406884,
+     "totals": {
+      "fees_krw": 20455680.921505917,
+      "fx_cost_krw": 31068.88644358392,
+      "dividend_tax_krw": 7662633.596214274,
+      "capital_gains_tax_krw": 62137772.88716778
+     },
+     "cg_tax_judged_years_krw": 33678933.899072915,
+     "turnover_annual_judged": 2.9489691395639452
+    },
+    "K6_H12": {
+     "cagr_judged": 0.09186951408134902,
+     "mdd_judged": -0.2145601458673433,
+     "cagr_post": 0.20457828045979842,
+     "final_judged_krw": 365220103.1943638,
+     "totals": {
+      "fees_krw": 21446691.13493171,
+      "fx_cost_krw": 33002.013791334866,
+      "dividend_tax_krw": 8280676.1026681,
+      "capital_gains_tax_krw": 66004027.58266967
+     },
+     "cg_tax_judged_years_krw": 37767839.19808231,
+     "turnover_annual_judged": 2.907528202671656
+    },
+    "K10_H12": {
+     "cagr_judged": 0.0937510549601932,
+     "mdd_judged": -0.21589889443654042,
+     "cagr_post": 0.1898963865306662,
+     "final_judged_krw": 374606081.5402908,
+     "totals": {
+      "fees_krw": 21585089.941054042,
+      "fx_cost_krw": 31795.17042254222,
+      "dividend_tax_krw": 8403183.230812645,
+      "capital_gains_tax_krw": 63590340.845084384
+     },
+     "cg_tax_judged_years_krw": 36414342.47629772,
+     "turnover_annual_judged": 2.8913461336718234
+    }
+   }
+  }
+ },
+ "schedule_stats": {
+  "B0": {
+   "n_reselections": 30,
+   "mean_kept_per_reselection": 0.6896551724137931,
+   "kept_per_reselection": [
+    0,
+    1,
+    1,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    0,
+    0,
+    2,
+    0,
+    1,
+    1,
+    2,
+    0,
+    0,
+    0,
+    1,
+    2,
+    2,
+    0,
+    0,
+    1,
+    0,
+    1,
+    1
+   ],
+   "mean_new_per_reselection": 2.310344827586207,
+   "mean_holding_days": 230.7,
+   "mean_holding_days_closed": 231.52238805970148,
+   "n_holding_spells": 70
+  },
+  "K6_H6": {
+   "n_reselections": 30,
+   "mean_kept_per_reselection": 1.1724137931034482,
+   "kept_per_reselection": [
+    0,
+    1,
+    1,
+    2,
+    0,
+    2,
+    0,
+    2,
+    0,
+    1,
+    1,
+    2,
+    1,
+    3,
+    0,
+    1,
+    1,
+    2,
+    1,
+    1,
+    0,
+    2,
+    2,
+    2,
+    0,
+    0,
+    1,
+    1,
+    2,
+    2
+   ],
+   "mean_new_per_reselection": 1.8275862068965518,
+   "mean_holding_days": 288.375,
+   "mean_holding_days_closed": 289.2641509433962,
+   "n_holding_spells": 56
+  },
+  "K10_H6": {
+   "n_reselections": 30,
+   "mean_kept_per_reselection": 1.3448275862068966,
+   "kept_per_reselection": [
+    0,
+    1,
+    1,
+    2,
+    0,
+    3,
+    0,
+    2,
+    1,
+    2,
+    0,
+    1,
+    2,
+    2,
+    0,
+    2,
+    0,
+    2,
+    1,
+    1,
+    1,
+    1,
+    3,
+    1,
+    0,
+    1,
+    2,
+    1,
+    3,
+    3
+   ],
+   "mean_new_per_reselection": 1.6551724137931034,
+   "mean_holding_days": 316.6470588235294,
+   "mean_holding_days_closed": 300.3541666666667,
+   "n_holding_spells": 51
+  },
+  "K6_H12": {
+   "n_reselections": 15,
+   "mean_kept_per_reselection": 0.42857142857142855,
+   "kept_per_reselection": [
+    0,
+    3,
+    0,
+    0,
+    1,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0
+   ],
+   "mean_new_per_reselection": 2.5714285714285716,
+   "mean_holding_days": 414.0769230769231,
+   "mean_holding_days_closed": 425.9166666666667,
+   "n_holding_spells": 39
+  },
+  "K10_H12": {
+   "n_reselections": 15,
+   "mean_kept_per_reselection": 0.7857142857142857,
+   "kept_per_reselection": [
+    0,
+    3,
+    1,
+    0,
+    2,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    2,
+    1,
+    0,
+    1
+   ],
+   "mean_new_per_reselection": 2.2142857142857144,
+   "mean_holding_days": 474.97058823529414,
+   "mean_holding_days_closed": 482.8709677419355,
+   "n_holding_spells": 34
+  }
+ },
+ "schedules": {
+  "B0": [
+   {
+    "date": "2010-01-04",
+    "picks": [
+     "FCX",
+     "AMZN",
+     "AAPL"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2010-07-01",
+    "picks": [
+     "AAPL",
+     "VNO",
+     "SPG"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2011-01-03",
+    "picks": [
+     "CAT",
+     "AAPL",
+     "NOV"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2011-07-01",
+    "picks": [
+     "NOV",
+     "AMZN",
+     "FCX"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2012-01-03",
+    "picks": [
+     "PRGO",
+     "PM",
+     "BMY"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2012-07-02",
+    "picks": [
+     "AAPL",
+     "PRGO",
+     "SPG"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2013-01-02",
+    "picks": [
+     "BAC",
+     "LYB",
+     "AMZN"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2013-07-01",
+    "picks": [
+     "C",
+     "LYB",
+     "GOOGL"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2014-01-02",
+    "picks": [
+     "GILD",
+     "BA",
+     "VFC"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2014-07-01",
+    "picks": [
+     "SLB",
+     "AAPL",
+     "GILD"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2015-01-02",
+    "picks": [
+     "META",
+     "UNP",
+     "INTC"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2015-07-01",
+    "picks": [
+     "GILD",
+     "NKE",
+     "HD"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2016-01-04",
+    "picks": [
+     "AMZN",
+     "GOOGL",
+     "GOOG"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2016-07-01",
+    "picks": [
+     "AMZN",
+     "PSA",
+     "GOOG"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2017-01-03",
+    "picks": [
+     "UNH",
+     "BAC",
+     "CVX"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2017-07-03",
+    "picks": [
+     "BAC",
+     "AAL",
+     "BA"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2018-01-02",
+    "picks": [
+     "BA",
+     "DXC",
+     "AMZN"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2018-07-02",
+    "picks": [
+     "AMZN",
+     "BA",
+     "NKE"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2019-01-02",
+    "picks": [
+     "MRK",
+     "PFE",
+     "NEE"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2019-07-01",
+    "picks": [
+     "APD",
+     "ECL",
+     "AMT"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2020-01-02",
+    "picks": [
+     "AAPL",
+     "META",
+     "MSFT"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2020-07-01",
+    "picks": [
+     "NVDA",
+     "AAPL",
+     "MKTX"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2021-01-04",
+    "picks": [
+     "TSLA",
+     "NVDA",
+     "AAPL"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2021-07-01",
+    "picks": [
+     "TSLA",
+     "NVDA",
+     "ETSY"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2022-01-03",
+    "picks": [
+     "COP",
+     "PLD",
+     "GOOGL"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2022-07-01",
+    "picks": [
+     "LLY",
+     "UNH",
+     "SO"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2023-01-03",
+    "picks": [
+     "XOM",
+     "CVX",
+     "LLY"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2023-07-03",
+    "picks": [
+     "NVDA",
+     "NFLX",
+     "AVGO"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2024-01-02",
+    "picks": [
+     "NVDA",
+     "META",
+     "TSLA"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2024-07-01",
+    "picks": [
+     "NVDA",
+     "LLY",
+     "AVGO"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2025-01-02",
+    "picks": [
+     "NVDA",
+     "AVGO",
+     "NFLX"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2025-07-01",
+    "picks": [
+     "NFLX",
+     "AVGO",
+     "GE"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2026-01-02",
+    "picks": [
+     "WBD",
+     "NEM",
+     "GE"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2026-07-01",
+    "picks": [
+     "CAT",
+     "WBD",
+     "GEV"
+    ],
+    "kept": []
+   }
+  ],
+  "K6_H6": [
+   {
+    "date": "2010-01-04",
+    "picks": [
+     "FCX",
+     "AMZN",
+     "AAPL"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2010-07-01",
+    "picks": [
+     "AAPL",
+     "VNO",
+     "SPG"
+    ],
+    "kept": [
+     "AAPL"
+    ]
+   },
+   {
+    "date": "2011-01-03",
+    "picks": [
+     "AAPL",
+     "CAT",
+     "NOV"
+    ],
+    "kept": [
+     "AAPL"
+    ]
+   },
+   {
+    "date": "2011-07-01",
+    "picks": [
+     "NOV",
+     "CAT",
+     "AMZN"
+    ],
+    "kept": [
+     "NOV",
+     "CAT"
+    ]
+   },
+   {
+    "date": "2012-01-03",
+    "picks": [
+     "PRGO",
+     "PM",
+     "BMY"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2012-07-02",
+    "picks": [
+     "PRGO",
+     "PM",
+     "AAPL"
+    ],
+    "kept": [
+     "PRGO",
+     "PM"
+    ]
+   },
+   {
+    "date": "2013-01-02",
+    "picks": [
+     "BAC",
+     "LYB",
+     "AMZN"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2013-07-01",
+    "picks": [
+     "BAC",
+     "LYB",
+     "C"
+    ],
+    "kept": [
+     "BAC",
+     "LYB"
+    ]
+   },
+   {
+    "date": "2014-01-02",
+    "picks": [
+     "GILD",
+     "BA",
+     "VFC"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2014-07-01",
+    "picks": [
+     "GILD",
+     "SLB",
+     "AAPL"
+    ],
+    "kept": [
+     "GILD"
+    ]
+   },
+   {
+    "date": "2015-01-02",
+    "picks": [
+     "AAPL",
+     "META",
+     "UNP"
+    ],
+    "kept": [
+     "AAPL"
+    ]
+   },
+   {
+    "date": "2015-07-01",
+    "picks": [
+     "AAPL",
+     "META",
+     "GILD"
+    ],
+    "kept": [
+     "AAPL",
+     "META"
+    ]
+   },
+   {
+    "date": "2016-01-04",
+    "picks": [
+     "META",
+     "AMZN",
+     "GOOGL"
+    ],
+    "kept": [
+     "META"
+    ]
+   },
+   {
+    "date": "2016-07-01",
+    "picks": [
+     "AMZN",
+     "META",
+     "GOOGL"
+    ],
+    "kept": [
+     "AMZN",
+     "META",
+     "GOOGL"
+    ]
+   },
+   {
+    "date": "2017-01-03",
+    "picks": [
+     "UNH",
+     "BAC",
+     "CVX"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2017-07-03",
+    "picks": [
+     "BAC",
+     "AAL",
+     "BA"
+    ],
+    "kept": [
+     "BAC"
+    ]
+   },
+   {
+    "date": "2018-01-02",
+    "picks": [
+     "BA",
+     "DXC",
+     "AMZN"
+    ],
+    "kept": [
+     "BA"
+    ]
+   },
+   {
+    "date": "2018-07-02",
+    "picks": [
+     "AMZN",
+     "BA",
+     "NKE"
+    ],
+    "kept": [
+     "AMZN",
+     "BA"
+    ]
+   },
+   {
+    "date": "2019-01-02",
+    "picks": [
+     "NKE",
+     "MRK",
+     "PFE"
+    ],
+    "kept": [
+     "NKE"
+    ]
+   },
+   {
+    "date": "2019-07-01",
+    "picks": [
+     "MRK",
+     "APD",
+     "ECL"
+    ],
+    "kept": [
+     "MRK"
+    ]
+   },
+   {
+    "date": "2020-01-02",
+    "picks": [
+     "AAPL",
+     "META",
+     "MSFT"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2020-07-01",
+    "picks": [
+     "AAPL",
+     "MSFT",
+     "NVDA"
+    ],
+    "kept": [
+     "AAPL",
+     "MSFT"
+    ]
+   },
+   {
+    "date": "2021-01-04",
+    "picks": [
+     "NVDA",
+     "AAPL",
+     "TSLA"
+    ],
+    "kept": [
+     "NVDA",
+     "AAPL"
+    ]
+   },
+   {
+    "date": "2021-07-01",
+    "picks": [
+     "TSLA",
+     "NVDA",
+     "ETSY"
+    ],
+    "kept": [
+     "TSLA",
+     "NVDA"
+    ]
+   },
+   {
+    "date": "2022-01-03",
+    "picks": [
+     "COP",
+     "PLD",
+     "GOOGL"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2022-07-01",
+    "picks": [
+     "LLY",
+     "UNH",
+     "SO"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2023-01-03",
+    "picks": [
+     "LLY",
+     "XOM",
+     "CVX"
+    ],
+    "kept": [
+     "LLY"
+    ]
+   },
+   {
+    "date": "2023-07-03",
+    "picks": [
+     "LLY",
+     "NVDA",
+     "NFLX"
+    ],
+    "kept": [
+     "LLY"
+    ]
+   },
+   {
+    "date": "2024-01-02",
+    "picks": [
+     "NVDA",
+     "NFLX",
+     "META"
+    ],
+    "kept": [
+     "NVDA",
+     "NFLX"
+    ]
+   },
+   {
+    "date": "2024-07-01",
+    "picks": [
+     "NVDA",
+     "META",
+     "LLY"
+    ],
+    "kept": [
+     "NVDA",
+     "META"
+    ]
+   },
+   {
+    "date": "2025-01-02",
+    "picks": [
+     "NVDA",
+     "META",
+     "AVGO"
+    ],
+    "kept": [
+     "NVDA",
+     "META"
+    ]
+   },
+   {
+    "date": "2025-07-01",
+    "picks": [
+     "AVGO",
+     "NFLX",
+     "GE"
+    ],
+    "kept": [
+     "AVGO"
+    ]
+   },
+   {
+    "date": "2026-01-02",
+    "picks": [
+     "GE",
+     "WBD",
+     "NEM"
+    ],
+    "kept": [
+     "GE"
+    ]
+   },
+   {
+    "date": "2026-07-01",
+    "picks": [
+     "WBD",
+     "CAT",
+     "GEV"
+    ],
+    "kept": [
+     "WBD"
+    ]
+   }
+  ],
+  "K10_H6": [
+   {
+    "date": "2010-01-04",
+    "picks": [
+     "FCX",
+     "AMZN",
+     "AAPL"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2010-07-01",
+    "picks": [
+     "AAPL",
+     "VNO",
+     "SPG"
+    ],
+    "kept": [
+     "AAPL"
+    ]
+   },
+   {
+    "date": "2011-01-03",
+    "picks": [
+     "AAPL",
+     "CAT",
+     "NOV"
+    ],
+    "kept": [
+     "AAPL"
+    ]
+   },
+   {
+    "date": "2011-07-01",
+    "picks": [
+     "NOV",
+     "CAT",
+     "AMZN"
+    ],
+    "kept": [
+     "NOV",
+     "CAT"
+    ]
+   },
+   {
+    "date": "2012-01-03",
+    "picks": [
+     "PRGO",
+     "PM",
+     "BMY"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2012-07-02",
+    "picks": [
+     "PRGO",
+     "PM",
+     "BMY"
+    ],
+    "kept": [
+     "PRGO",
+     "PM",
+     "BMY"
+    ]
+   },
+   {
+    "date": "2013-01-02",
+    "picks": [
+     "BAC",
+     "LYB",
+     "AMZN"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2013-07-01",
+    "picks": [
+     "BAC",
+     "LYB",
+     "C"
+    ],
+    "kept": [
+     "BAC",
+     "LYB"
+    ]
+   },
+   {
+    "date": "2014-01-02",
+    "picks": [
+     "LYB",
+     "GILD",
+     "BA"
+    ],
+    "kept": [
+     "LYB"
+    ]
+   },
+   {
+    "date": "2014-07-01",
+    "picks": [
+     "GILD",
+     "LYB",
+     "SLB"
+    ],
+    "kept": [
+     "GILD",
+     "LYB"
+    ]
+   },
+   {
+    "date": "2015-01-02",
+    "picks": [
+     "META",
+     "UNP",
+     "INTC"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2015-07-01",
+    "picks": [
+     "META",
+     "GILD",
+     "NKE"
+    ],
+    "kept": [
+     "META"
+    ]
+   },
+   {
+    "date": "2016-01-04",
+    "picks": [
+     "META",
+     "NKE",
+     "AMZN"
+    ],
+    "kept": [
+     "META",
+     "NKE"
+    ]
+   },
+   {
+    "date": "2016-07-01",
+    "picks": [
+     "AMZN",
+     "META",
+     "PSA"
+    ],
+    "kept": [
+     "AMZN",
+     "META"
+    ]
+   },
+   {
+    "date": "2017-01-03",
+    "picks": [
+     "UNH",
+     "BAC",
+     "CVX"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2017-07-03",
+    "picks": [
+     "BAC",
+     "UNH",
+     "AAL"
+    ],
+    "kept": [
+     "BAC",
+     "UNH"
+    ]
+   },
+   {
+    "date": "2018-01-02",
+    "picks": [
+     "BA",
+     "DXC",
+     "AMZN"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2018-07-02",
+    "picks": [
+     "AMZN",
+     "BA",
+     "NKE"
+    ],
+    "kept": [
+     "AMZN",
+     "BA"
+    ]
+   },
+   {
+    "date": "2019-01-02",
+    "picks": [
+     "NKE",
+     "MRK",
+     "PFE"
+    ],
+    "kept": [
+     "NKE"
+    ]
+   },
+   {
+    "date": "2019-07-01",
+    "picks": [
+     "MRK",
+     "APD",
+     "ECL"
+    ],
+    "kept": [
+     "MRK"
+    ]
+   },
+   {
+    "date": "2020-01-02",
+    "picks": [
+     "APD",
+     "AAPL",
+     "META"
+    ],
+    "kept": [
+     "APD"
+    ]
+   },
+   {
+    "date": "2020-07-01",
+    "picks": [
+     "AAPL",
+     "NVDA",
+     "MKTX"
+    ],
+    "kept": [
+     "AAPL"
+    ]
+   },
+   {
+    "date": "2021-01-04",
+    "picks": [
+     "NVDA",
+     "AAPL",
+     "MKTX"
+    ],
+    "kept": [
+     "NVDA",
+     "AAPL",
+     "MKTX"
+    ]
+   },
+   {
+    "date": "2021-07-01",
+    "picks": [
+     "NVDA",
+     "TSLA",
+     "ETSY"
+    ],
+    "kept": [
+     "NVDA"
+    ]
+   },
+   {
+    "date": "2022-01-03",
+    "picks": [
+     "COP",
+     "PLD",
+     "GOOGL"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2022-07-01",
+    "picks": [
+     "GOOGL",
+     "LLY",
+     "UNH"
+    ],
+    "kept": [
+     "GOOGL"
+    ]
+   },
+   {
+    "date": "2023-01-03",
+    "picks": [
+     "LLY",
+     "UNH",
+     "XOM"
+    ],
+    "kept": [
+     "LLY",
+     "UNH"
+    ]
+   },
+   {
+    "date": "2023-07-03",
+    "picks": [
+     "LLY",
+     "NVDA",
+     "NFLX"
+    ],
+    "kept": [
+     "LLY"
+    ]
+   },
+   {
+    "date": "2024-01-02",
+    "picks": [
+     "NVDA",
+     "NFLX",
+     "LLY"
+    ],
+    "kept": [
+     "NVDA",
+     "NFLX",
+     "LLY"
+    ]
+   },
+   {
+    "date": "2024-07-01",
+    "picks": [
+     "NVDA",
+     "LLY",
+     "NFLX"
+    ],
+    "kept": [
+     "NVDA",
+     "LLY",
+     "NFLX"
+    ]
+   },
+   {
+    "date": "2025-01-02",
+    "picks": [
+     "NVDA",
+     "NFLX",
+     "AVGO"
+    ],
+    "kept": [
+     "NVDA",
+     "NFLX"
+    ]
+   },
+   {
+    "date": "2025-07-01",
+    "picks": [
+     "NFLX",
+     "AVGO",
+     "GE"
+    ],
+    "kept": [
+     "NFLX",
+     "AVGO"
+    ]
+   },
+   {
+    "date": "2026-01-02",
+    "picks": [
+     "GE",
+     "WBD",
+     "NEM"
+    ],
+    "kept": [
+     "GE"
+    ]
+   },
+   {
+    "date": "2026-07-01",
+    "picks": [
+     "WBD",
+     "GE",
+     "CAT"
+    ],
+    "kept": [
+     "WBD",
+     "GE"
+    ]
+   }
+  ],
+  "K6_H12": [
+   {
+    "date": "2010-01-04",
+    "picks": [
+     "FCX",
+     "AMZN",
+     "AAPL"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2011-01-03",
+    "picks": [
+     "AAPL",
+     "FCX",
+     "AMZN"
+    ],
+    "kept": [
+     "AAPL",
+     "FCX",
+     "AMZN"
+    ]
+   },
+   {
+    "date": "2012-01-03",
+    "picks": [
+     "PRGO",
+     "PM",
+     "BMY"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2013-01-02",
+    "picks": [
+     "BAC",
+     "LYB",
+     "AMZN"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2014-01-02",
+    "picks": [
+     "AMZN",
+     "GILD",
+     "BA"
+    ],
+    "kept": [
+     "AMZN"
+    ]
+   },
+   {
+    "date": "2015-01-02",
+    "picks": [
+     "META",
+     "UNP",
+     "INTC"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2016-01-04",
+    "picks": [
+     "META",
+     "AMZN",
+     "GOOGL"
+    ],
+    "kept": [
+     "META"
+    ]
+   },
+   {
+    "date": "2017-01-03",
+    "picks": [
+     "UNH",
+     "BAC",
+     "CVX"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2018-01-02",
+    "picks": [
+     "BA",
+     "DXC",
+     "AMZN"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2019-01-02",
+    "picks": [
+     "MRK",
+     "PFE",
+     "NEE"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2020-01-02",
+    "picks": [
+     "AAPL",
+     "META",
+     "MSFT"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2021-01-04",
+    "picks": [
+     "AAPL",
+     "TSLA",
+     "NVDA"
+    ],
+    "kept": [
+     "AAPL"
+    ]
+   },
+   {
+    "date": "2022-01-03",
+    "picks": [
+     "COP",
+     "PLD",
+     "GOOGL"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2023-01-03",
+    "picks": [
+     "XOM",
+     "CVX",
+     "LLY"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2024-01-02",
+    "picks": [
+     "NVDA",
+     "META",
+     "TSLA"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2025-01-02",
+    "picks": [
+     "NVDA",
+     "META",
+     "AVGO"
+    ],
+    "kept": [
+     "NVDA",
+     "META"
+    ]
+   },
+   {
+    "date": "2026-01-02",
+    "picks": [
+     "WBD",
+     "NEM",
+     "GE"
+    ],
+    "kept": []
+   }
+  ],
+  "K10_H12": [
+   {
+    "date": "2010-01-04",
+    "picks": [
+     "FCX",
+     "AMZN",
+     "AAPL"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2011-01-03",
+    "picks": [
+     "AAPL",
+     "FCX",
+     "AMZN"
+    ],
+    "kept": [
+     "AAPL",
+     "FCX",
+     "AMZN"
+    ]
+   },
+   {
+    "date": "2012-01-03",
+    "picks": [
+     "AAPL",
+     "PRGO",
+     "PM"
+    ],
+    "kept": [
+     "AAPL"
+    ]
+   },
+   {
+    "date": "2013-01-02",
+    "picks": [
+     "BAC",
+     "LYB",
+     "AMZN"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2014-01-02",
+    "picks": [
+     "AMZN",
+     "LYB",
+     "GILD"
+    ],
+    "kept": [
+     "AMZN",
+     "LYB"
+    ]
+   },
+   {
+    "date": "2015-01-02",
+    "picks": [
+     "META",
+     "UNP",
+     "INTC"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2016-01-04",
+    "picks": [
+     "META",
+     "AMZN",
+     "GOOGL"
+    ],
+    "kept": [
+     "META"
+    ]
+   },
+   {
+    "date": "2017-01-03",
+    "picks": [
+     "UNH",
+     "BAC",
+     "CVX"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2018-01-02",
+    "picks": [
+     "BA",
+     "DXC",
+     "AMZN"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2019-01-02",
+    "picks": [
+     "MRK",
+     "PFE",
+     "NEE"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2020-01-02",
+    "picks": [
+     "AAPL",
+     "META",
+     "MSFT"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2021-01-04",
+    "picks": [
+     "AAPL",
+     "MSFT",
+     "TSLA"
+    ],
+    "kept": [
+     "AAPL",
+     "MSFT"
+    ]
+   },
+   {
+    "date": "2022-01-03",
+    "picks": [
+     "MSFT",
+     "COP",
+     "PLD"
+    ],
+    "kept": [
+     "MSFT"
+    ]
+   },
+   {
+    "date": "2023-01-03",
+    "picks": [
+     "XOM",
+     "CVX",
+     "LLY"
+    ],
+    "kept": []
+   },
+   {
+    "date": "2024-01-02",
+    "picks": [
+     "LLY",
+     "NVDA",
+     "META"
+    ],
+    "kept": [
+     "LLY"
+    ]
+   },
+   {
+    "date": "2025-01-02",
+    "picks": [
+     "NVDA",
+     "META",
+     "AVGO"
+    ],
+    "kept": [
+     "NVDA",
+     "META"
+    ]
+   },
+   {
+    "date": "2026-01-02",
+    "picks": [
+     "WBD",
+     "NEM",
+     "GE"
+    ],
+    "kept": []
+   }
+  ]
+ },
+ "pool_sizes": {
+  "2010-01-04": 36,
+  "2010-07-01": 21,
+  "2011-01-03": 40,
+  "2011-07-01": 37,
+  "2012-01-03": 34,
+  "2012-07-02": 35,
+  "2013-01-02": 35,
+  "2013-07-01": 36,
+  "2014-01-02": 40,
+  "2014-07-01": 40,
+  "2015-01-02": 32,
+  "2015-07-01": 36,
+  "2016-01-04": 38,
+  "2016-07-01": 38,
+  "2017-01-03": 40,
+  "2017-07-03": 39,
+  "2018-01-02": 39,
+  "2018-07-02": 37,
+  "2019-01-02": 18,
+  "2019-07-01": 37,
+  "2020-01-02": 39,
+  "2020-07-01": 30,
+  "2021-01-04": 38,
+  "2021-07-01": 39,
+  "2022-01-03": 36,
+  "2022-07-01": 15,
+  "2023-01-03": 33,
+  "2023-07-03": 38,
+  "2024-01-02": 39,
+  "2024-07-01": 35,
+  "2025-01-02": 28,
+  "2025-07-01": 38,
+  "2026-01-02": 33,
+  "2026-07-01": 25
+ },
+ "power": {
+  "years": 14.7,
+  "n_trials": 4,
+  "confidence": 0.95,
+  "mde_ir": 0.703,
+  "power_at": {
+   "0.20": 0.027,
+   "0.30": 0.061,
+   "0.50": 0.218
+  },
+  "method": "expected-max-z(Bailey-LdP) + null SE, simplified"
+ },
+ "power_line": "검정력(사전 계산): 14.7년·시도 4개에서 통과에 필요한 연 IR ≈ 0.70 (참 효과별 통과 확률 IR 0.20→3%, IR 0.30→6%, IR 0.50→22%). FAIL 이어도 관측 IR 이 이보다 작으면 '판별 불가'에 가깝다.",
+ "variants": {
+  "B0": "현행 S-SEED-000(1·7월 상위 3 전부 교체)",
+  "K6_H6": "1·7월, 보유 종목이 추세 활성·상위 6 안이면 유지",
+  "K10_H6": "1·7월, 보유 종목이 추세 활성·상위 10 안이면 유지",
+  "K6_H12": "1월만, 보유 종목이 추세 활성·상위 6 안이면 유지",
+  "K10_H12": "1월만, 보유 종목이 추세 활성·상위 10 안이면 유지"
+ },
+ "inputs_meta": {
+  "live_satellite_weight": 0.15,
+  "strategy_version": "core-momentum-top4+spy200dma/2026-10-bil-noptp",
+  "judge_version": "sat-judge/v3",
+  "pool_cache_tag": "pit2",
+  "core_universe": [
+   "XLC",
+   "XLY",
+   "XLP",
+   "XLE",
+   "XLF",
+   "XLV",
+   "XLI",
+   "XLB",
+   "XLRE",
+   "XLK",
+   "XLU",
+   "TLT",
+   "IEF",
+   "GLD",
+   "EFA",
+   "HYG",
+   "BIL"
+  ]
+ },
+ "rules": {
+  "top_n": 3,
+  "sat_weight": 0.15,
+  "n_boot": 1000,
+  "block_days": 126,
+  "boot_seed": 20261017,
+  "ci_low_floor": -0.005,
+  "mdd_tol": 0.02,
+  "decision_end": "2024-09-30",
+  "half_split": "2017-05-31",
+  "power_years": 14.7,
+  "n_trials": 4,
+  "reset_eps": 1e-07
+ }
+}
