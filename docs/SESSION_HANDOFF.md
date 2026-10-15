@@ -13,9 +13,9 @@
 **에이전트 이어받기와 예산 결정**
 - `S-20261012-001`, `S-20261012-002`는 테스트는 통과했으나 Critic 해시와 ready 해시가 없어 아직 동결·계산 대기다. 로그인 후 `agent_batch.py --dry-plan --catch-up`을 확인했을 때 `sat_critic` 주간 8회 한도 소진으로 다음 작업이 없었다. 이번 주 사용액은 $8.47(API 환산)로 전역 주간 $60·야간 $15 상한에는 여유가 있다.
 - 사용자가 밝힌 상시 연구 선호에 맞춰 `sat_critic` 역할 한도만 주 8→10회로 늘린다. 이는 누락된 기존 초안 2건을 검토하기 위한 여유다. 전역 $60 주간/$15 야간 상한, 모델·최대 턴·시간 제한은 그대로 유지한다. 관련 가이드와 한도 회귀 테스트를 함께 수정한다.
-- 수정·검증: `core/agent_budget.py`, `hub/guide/content_modules_a.py`, `tests/test_agent_system.py`; 전체 연구 결과·로그인 및 이 결정을 `PROGRESS.md`에도 기록한다. 관련 테스트와 가이드 검사 통과 후 main 배포 관문을 실행한다.
+- 수정·검증: `core/agent_budget.py`, `hub/guide/content_modules_a.py`, `tests/test_agent_system.py`; 전체 연구 결과·로그인 및 이 결정을 `PROGRESS.md`에도 기록한다. 관련 테스트와 가이드 검사 통과 후 main 배포 관문을 실행했다. VM 전체 pytest 2,947 passed·4 skipped, deploy unittest 72 OK. 운영 `/opt/quant`은 519aba0으로 반영됐고 네 서비스가 active다. 인계 문서 상태 커밋 a369470은 별도 테스트 중이며 배포 대기다.
 
-**다음 단계**: 변경 배포 후 21:13 KST `agent_batch_catchup` 회차에서 두 초안의 Critic 실행·결정 파일 생성을 확인한다. 이어받기는 기존 예산/부하 가드를 그대로 적용한다. 통과하더라도 VM 결정론 심판 전까지 연구 결과로 간주하지 않고, 엔진 반영은 사용자 확인 뒤 별도 작업이다.
+**다음 단계**: 21:13 KST `agent_batch_catchup` 회차에서 두 초안의 Critic 실행·결정 파일 생성을 확인한다. 이어받기는 기존 예산/부하 가드를 그대로 적용한다. 통과하더라도 VM 결정론 심판 전까지 연구 결과로 간주하지 않고, 엔진 반영은 사용자 확인 뒤 별도 작업이다.
 
 ## 2026-10-14 새틀라이트 10% 추적 손절·재선정 연구 — 사전등록 구현·스모크 완료, 게시 전
 
@@ -1039,4 +1039,4 @@
 - `_add_missing_columns()`: `inspect(engine)`로 먼저 전부 읽기 전용 확인 후 추가할 컬럼 목록을 모으고, 하나도 없으면 `engine.begin()` 쓰기 트랜잭션을 열지 않는다(기존엔 매번 열었음 — 호출마다, 심지어 아무것도 추가할 게 없을 때도 쓰기 잠금을 시도해 야간 블록 동시 호출에서 불필요한 대기를 유발했다).
 - 검증: `tests/test_db.py`에 3건 추가(같은 engine 재호출 시 1회만 동작, engine 교체 시 재동작, 추가할 컬럼 없으면 `engine.begin()` 미호출). 전체 `pytest tests` **2330 passed, 4 skipped**(이 세션이 직접 실행, 기존 2327 대비 테스트 3건 증가). `python -m hub.guide.check` 통과.
 - 다음: 커밋·push → VM 자동배포 5분 내 반영. `ubuntu`의 `gh auth login`(push 권한)은 여전히 사용자 대기 — 이 세션은 그 계정에 접근할 수 없어 대신 처리할 수 없다.
-- **최종 배포 게이트 결과(11:06 UTC):** 이전 아티팩트 결과 커밋 `ac0c5c9` 테스트에서 `tests/test_backup_vm.py::test_wrong_passphrase_cannot_decrypt` 1건이 실패(2945 passed, 4 skipped)해 반영되지 않았다. 자동 배포는 새 `519aba0`를 별도로 다시 검사 중이며, 현 시점에는 완료/운영 반영되지 않았다. 이 백업 테스트는 이번 변경 파일과 무관하므로 수정하지 않았다. 다음 세션은 게이트 완료·재시도 여부와 운영 commit 확인 후 다음 `agent_batch_catchup` (21:13 KST)을 확인한다.
+- **배포 게이트·운영 반영 완료(2026-10-15 11:19 UTC):** 앞서 아티팩트 결과 커밋 `ac0c5c9`의 `tests/test_backup_vm.py::test_wrong_passphrase_cannot_decrypt`가 실패해 해당 커밋은 차단됐다. 변경 커밋 `519aba0` 기준으로 전체 pytest **2,947 passed, 4 skipped**, deploy unittest **72 OK**를 통과해 운영 `/opt/quant`에 반영했다. `quant-scheduler`, `quant-hub`, `quant-streamlit`, `codex-telegram` 모두 active. 상태 인계 커밋 `a369470`은 문서만 포함하며 별도 전체 테스트 중이다; 연구 코드와 무관하나 그 게이트 종료 여부는 다음 확인 대상. 21:13 KST catch-up에서 Critic 결과 파일과 다음 계산 등록을 확인한다. 배치 보호 시간(KST 03:00~05:55)이므로 이 시간에는 자동 배포/재시작이 유예될 수 있다.
