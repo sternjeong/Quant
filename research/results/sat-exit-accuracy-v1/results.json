@@ -1,0 +1,239 @@
+{
+  "id": "sat-exit-accuracy-v1",
+  "judge_version": "sat-exit-accuracy-judge/v1",
+  "generated_at": "2026-10-15T03:20:30+00:00",
+  "smoke": false,
+  "data_start": "2010-01-04",
+  "data_end": "2026-10-14",
+  "decision_start": "2010-01-01",
+  "decision_end": "2024-09-30",
+  "split": "2017-06-01",
+  "n_cohorts": 28,
+  "n_report_only_cohorts": 4,
+  "coverage": {
+    "scheduled_slots": 84,
+    "usable_slots": 84,
+    "censored_slots": 0,
+    "coverage": 1.0,
+    "all_period_scheduled_slots": 96,
+    "all_period_usable_slots": 96,
+    "all_period_censored_slots": 0,
+    "smoke": false
+  },
+  "power": {
+    "years": 14.0,
+    "n_trials": 4,
+    "confidence": 0.95,
+    "mde_ir": 0.721,
+    "power_at": {
+      "0.20": 0.026,
+      "0.30": 0.058,
+      "0.50": 0.204
+    },
+    "method": "expected-max-z(Bailey-LdP) + null SE, simplified"
+  },
+  "verdicts": {
+    "trail10": "FAIL",
+    "mom6_nonpositive": "FAIL",
+    "rs12_nonpositive": "FAIL",
+    "mom6_and_rs12_nonpositive": "FAIL"
+  },
+  "results": {
+    "trail10": {
+      "verdict": "FAIL",
+      "reasons": [
+        "정확도 보정 하한 13.9% (기준 >50%)",
+        "반기당 평균 순 개선 -663.8bp; 보정 하한 -1086.9bp",
+        "구간 A/B 개선 -0.02312 / -0.10963"
+      ],
+      "n_exit_events": 70,
+      "n_exit_cohorts": 27,
+      "precision": 0.2857142857142857,
+      "precision_family_lower": 0.1386698717948718,
+      "mean_cohort_delta": -0.0663756473856947,
+      "delta_family_lower": -0.10868588104601001,
+      "annualized_active_ir": -0.9358895040502927,
+      "power": {
+        "years": 14.0,
+        "n_trials": 4,
+        "confidence": 0.95,
+        "mde_ir": 0.721,
+        "power_at": {
+          "0.20": 0.026,
+          "0.30": 0.058,
+          "0.50": 0.204
+        },
+        "method": "expected-max-z(Bailey-LdP) + null SE, simplified"
+      },
+      "false_exit_count": 50,
+      "mean_false_exit_upside": 0.1360424314039944,
+      "losing_hold_slots": 24,
+      "loss_recall": 1.0,
+      "early_losses": 24,
+      "period_mean_delta": {
+        "A": -0.02311880850569594,
+        "B": -0.10963248626569344
+      },
+      "bootstrap": {
+        "replicates": 5000,
+        "seed": 20261012,
+        "family_alpha": 0.0125,
+        "cluster": "semiannual rebalance cohort"
+      }
+    },
+    "mom6_nonpositive": {
+      "verdict": "FAIL",
+      "reasons": [
+        "정확도 보정 하한 12.5% (기준 >50%)",
+        "반기당 평균 순 개선 -476.8bp; 보정 하한 -881.9bp",
+        "구간 A/B 개선 -0.02056 / -0.07480"
+      ],
+      "n_exit_events": 48,
+      "n_exit_cohorts": 26,
+      "precision": 0.2708333333333333,
+      "precision_family_lower": 0.125,
+      "mean_cohort_delta": -0.04767767653790839,
+      "delta_family_lower": -0.08818987958345308,
+      "annualized_active_ir": -0.7135966122386064,
+      "power": {
+        "years": 14.0,
+        "n_trials": 4,
+        "confidence": 0.95,
+        "mde_ir": 0.721,
+        "power_at": {
+          "0.20": 0.026,
+          "0.30": 0.058,
+          "0.50": 0.204
+        },
+        "method": "expected-max-z(Bailey-LdP) + null SE, simplified"
+      },
+      "false_exit_count": 35,
+      "mean_false_exit_upside": 0.15493071436848393,
+      "losing_hold_slots": 24,
+      "loss_recall": 0.9583333333333334,
+      "early_losses": 23,
+      "period_mean_delta": {
+        "A": -0.02055974957412885,
+        "B": -0.07479560350168792
+      },
+      "bootstrap": {
+        "replicates": 5000,
+        "seed": 20261012,
+        "family_alpha": 0.0125,
+        "cluster": "semiannual rebalance cohort"
+      }
+    },
+    "rs12_nonpositive": {
+      "verdict": "FAIL",
+      "reasons": [
+        "정확도 보정 하한 14.8% (기준 >50%)",
+        "반기당 평균 순 개선 -138.6bp; 보정 하한 -277.2bp",
+        "구간 A/B 개선 -0.00703 / -0.02070"
+      ],
+      "n_exit_events": 28,
+      "n_exit_cohorts": 19,
+      "precision": 0.35714285714285715,
+      "precision_family_lower": 0.14814814814814814,
+      "mean_cohort_delta": -0.013862200186606916,
+      "delta_family_lower": -0.02772023146420844,
+      "annualized_active_ir": -0.6255462831477772,
+      "power": {
+        "years": 14.0,
+        "n_trials": 4,
+        "confidence": 0.95,
+        "mde_ir": 0.721,
+        "power_at": {
+          "0.20": 0.026,
+          "0.30": 0.058,
+          "0.50": 0.204
+        },
+        "method": "expected-max-z(Bailey-LdP) + null SE, simplified"
+      },
+      "false_exit_count": 18,
+      "mean_false_exit_upside": 0.09958270142308784,
+      "losing_hold_slots": 24,
+      "loss_recall": 0.4583333333333333,
+      "early_losses": 11,
+      "period_mean_delta": {
+        "A": -0.007028226317261361,
+        "B": -0.020696174055952477
+      },
+      "bootstrap": {
+        "replicates": 5000,
+        "seed": 20261012,
+        "family_alpha": 0.0125,
+        "cluster": "semiannual rebalance cohort"
+      }
+    },
+    "mom6_and_rs12_nonpositive": {
+      "verdict": "FAIL",
+      "reasons": [
+        "정확도 보정 하한 17.6% (기준 >50%)",
+        "반기당 평균 순 개선 -96.4bp; 보정 하한 -199.2bp",
+        "구간 A/B 개선 +0.00003 / -0.01931"
+      ],
+      "n_exit_events": 22,
+      "n_exit_cohorts": 16,
+      "precision": 0.4090909090909091,
+      "precision_family_lower": 0.17647058823529413,
+      "mean_cohort_delta": -0.009635970448057096,
+      "delta_family_lower": -0.01992132205198213,
+      "annualized_active_ir": -0.5986481775473023,
+      "power": {
+        "years": 14.0,
+        "n_trials": 4,
+        "confidence": 0.95,
+        "mde_ir": 0.721,
+        "power_at": {
+          "0.20": 0.026,
+          "0.30": 0.058,
+          "0.50": 0.204
+        },
+        "method": "expected-max-z(Bailey-LdP) + null SE, simplified"
+      },
+      "false_exit_count": 13,
+      "mean_false_exit_upside": 0.09834429924523443,
+      "losing_hold_slots": 24,
+      "loss_recall": 0.4166666666666667,
+      "early_losses": 10,
+      "period_mean_delta": {
+        "A": 3.4587551141456494e-05,
+        "B": -0.019306528447255646
+      },
+      "bootstrap": {
+        "replicates": 5000,
+        "seed": 20261012,
+        "family_alpha": 0.0125,
+        "cluster": "semiannual rebalance cohort"
+      }
+    }
+  },
+  "report_only_2024_10_plus": {
+    "trail10": {
+      "n_cohorts": 4,
+      "mean_cohort_delta": -0.1080685625585626,
+      "n_exit_events": 11
+    },
+    "mom6_nonpositive": {
+      "n_cohorts": 4,
+      "mean_cohort_delta": -0.11860363201333934,
+      "n_exit_events": 9
+    },
+    "rs12_nonpositive": {
+      "n_cohorts": 4,
+      "mean_cohort_delta": -0.02243257559489657,
+      "n_exit_events": 4
+    },
+    "mom6_and_rs12_nonpositive": {
+      "n_cohorts": 4,
+      "mean_cohort_delta": -0.02401905930603468,
+      "n_exit_events": 3
+    }
+  },
+  "caveats": [
+    "Yahoo 가격의 상장폐지 종목 누락 가능성",
+    "현금수익 0 가정",
+    "세금·환율 미반영",
+    "각 반기 코호트 독립 모델이며 연속 계좌의 잔류 종목·실제 체결은 재현하지 않음"
+  ]
+}
