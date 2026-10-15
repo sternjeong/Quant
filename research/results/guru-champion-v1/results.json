@@ -1,0 +1,1478 @@
+{
+ "kind": "pre-registered verdict",
+ "id": "guru-champion-v1",
+ "rules_version": "guru-champion-v1/2026-10-15",
+ "smoke": false,
+ "generated_at": "2026-10-15T10:03:59+00:00",
+ "start": "2014-01-02",
+ "end": "2026-10-14",
+ "segments": {
+  "decision": [
+   "2014-01-02",
+   "2024-09-30"
+  ],
+  "h1": [
+   "2014-01-02",
+   "2019-05-31"
+  ],
+  "h2": [
+   "2019-05-31",
+   "2024-09-30"
+  ],
+  "whole": [
+   "2014-01-02",
+   "2026-10-14"
+  ],
+  "post_2024_10": [
+   "2024-09-30",
+   "2026-10-14"
+  ]
+ },
+ "rules": {
+  "decision_setup": "base_30m",
+  "decision_end": "2024-09-30",
+  "h1_end": "2019-05-31",
+  "mdd_tol": 0.03,
+  "ci_low_floor": -0.005,
+  "n_boot": 1000,
+  "block_days": 126,
+  "boot_seed": 20261018,
+  "ci_percentiles": [
+   5.0,
+   95.0
+  ],
+  "satellite_weight": 0.15,
+  "spy_weight": 0.85,
+  "judged": {
+   "C1_vs_C0": [
+    "C1",
+    "C0"
+   ],
+   "D1_vs_D0": [
+    "D1",
+    "D0"
+   ]
+  },
+  "reported": {
+   "C1_vs_C1p": [
+    "C1",
+    "C1p"
+   ],
+   "C1p_vs_C0": [
+    "C1p",
+    "C0"
+   ],
+   "D1_vs_C0": [
+    "D1",
+    "C0"
+   ]
+  },
+  "post_2024_10": "report only",
+  "data_status": "already-seen data → forward-ledger-level finding only"
+ },
+ "variants": {
+  "C0": "코어 85% + S0 15%(현 챔피언, champion40)",
+  "C1": "코어 85% + S1 15%(거장 우선, sp500_pit)",
+  "C1p": "코어 85% + S0p 15%(현 규칙, sp500_pit — 풀 대조군)",
+  "D0": "SPY 85% + S0 15%",
+  "D1": "SPY 85% + S1 15%"
+ },
+ "sleeve_of": {
+  "C0": "S0",
+  "C1": "S1",
+  "C1p": "S0p",
+  "D0": "S0",
+  "D1": "S1"
+ },
+ "metrics": {
+  "base_30m": {
+   "C0": {
+    "cagr_pre": 0.13492886843005758,
+    "cagr_after": 0.11402591556552832,
+    "mdd_after": -0.21390467768155963,
+    "final_krw": 119249507.05726488,
+    "final_after_liquidation_krw": 113475137.82471603,
+    "totals": {
+     "fees_krw": 4434868.754684141,
+     "fx_cost_krw": 5079.289606500382,
+     "dividend_tax_krw": 1574649.8999896725,
+     "capital_gains_tax_krw": 10158579.213000756
+    },
+    "mdd_decision": -0.21390467768155963,
+    "target_turnover_per_year": 3.0877630944730075,
+    "segments_after_tax": {
+     "decision": 0.10010227873334654,
+     "h1": 0.04363896949352797,
+     "h2": 0.16043575446058855,
+     "whole": 0.11402591556552832,
+     "post_2024_10": 0.19043078787475265
+    }
+   },
+   "C1": {
+    "cagr_pre": 0.1677300621554958,
+    "cagr_after": 0.14518987205064549,
+    "mdd_after": -0.2094189712274135,
+    "final_krw": 169665136.7249175,
+    "final_after_liquidation_krw": 155395135.27052644,
+    "totals": {
+     "fees_krw": 4974946.9829418445,
+     "fx_cost_krw": 6379.108758011921,
+     "dividend_tax_krw": 1646182.894254144,
+     "capital_gains_tax_krw": 12758217.516023831
+    },
+    "mdd_decision": -0.2094189712274135,
+    "target_turnover_per_year": 3.0955876446015425,
+    "segments_after_tax": {
+     "decision": 0.10831145189392433,
+     "h1": 0.055665817906473514,
+     "h2": 0.16433816025447867,
+     "whole": 0.14518987205064549,
+     "post_2024_10": 0.3609862408268103
+    }
+   },
+   "C1p": {
+    "cagr_pre": 0.15062505218775546,
+    "cagr_after": 0.13199301961313092,
+    "mdd_after": -0.18007723701880973,
+    "final_krw": 146305227.27053118,
+    "final_after_liquidation_krw": 133487760.71687561,
+    "totals": {
+     "fees_krw": 4493666.249782255,
+     "fx_cost_krw": 4049.5967715143033,
+     "dividend_tax_krw": 1469122.3359903214,
+     "capital_gains_tax_krw": 8099193.5430286005
+    },
+    "mdd_decision": -0.18007723701880973,
+    "target_turnover_per_year": 3.1034121947300766,
+    "segments_after_tax": {
+     "decision": 0.0913269558331069,
+     "h1": 0.04871547107165841,
+     "h2": 0.13627339389645265,
+     "whole": 0.13199301961313092,
+     "post_2024_10": 0.372918336074598
+    }
+   },
+   "D0": {
+    "cagr_pre": 0.17886521351359908,
+    "cagr_after": 0.17262966330218643,
+    "mdd_after": -0.28935484252581534,
+    "final_krw": 229623923.28626886,
+    "final_after_liquidation_krw": 197139389.4383188,
+    "totals": {
+     "fees_krw": 581178.7614450261,
+     "fx_cost_krw": 2492.8767105019506,
+     "dividend_tax_krw": 2320026.6413249266,
+     "capital_gains_tax_krw": 4985753.421003897
+    },
+    "mdd_decision": -0.28935484252581534,
+    "target_turnover_per_year": 0.2342032652029536,
+    "segments_after_tax": {
+     "decision": 0.1683418153140941,
+     "h1": 0.12236444670208568,
+     "h2": 0.21685418347067942,
+     "whole": 0.17262966330218643,
+     "post_2024_10": 0.19550634014888502
+    }
+   },
+   "D1": {
+    "cagr_pre": 0.21794798199715149,
+    "cagr_after": 0.20982014220595469,
+    "mdd_after": -0.29430542829341655,
+    "final_krw": 342229148.29136324,
+    "final_after_liquidation_krw": 288190100.0161746,
+    "totals": {
+     "fees_krw": 821125.0190209623,
+     "fx_cost_krw": 4182.80532078465,
+     "dividend_tax_krw": 2396564.028499039,
+     "capital_gains_tax_krw": 8365610.641569292
+    },
+    "mdd_decision": -0.29430542829341655,
+    "target_turnover_per_year": 0.27834154837530956,
+    "segments_after_tax": {
+     "decision": 0.1777775720736583,
+     "h1": 0.136838397738553,
+     "h2": 0.22076703086242588,
+     "whole": 0.20982014220595469,
+     "post_2024_10": 0.39381419913457005
+    }
+   }
+  },
+  "base_100m": {
+   "C0": {
+    "cagr_pre": 0.13492886843005758,
+    "cagr_after": 0.10973399129205852,
+    "mdd_after": -0.21954853848917089,
+    "final_krw": 378364513.30028874,
+    "final_after_liquidation_krw": 358773447.1027674,
+    "totals": {
+     "fees_krw": 14386818.4451105,
+     "fx_cost_krw": 20826.261221338467,
+     "dividend_tax_krw": 5107342.948401668,
+     "capital_gains_tax_krw": 41652522.442676894
+    },
+    "mdd_decision": -0.21954853848917089,
+    "target_turnover_per_year": 3.0877630944730075,
+    "segments_after_tax": {
+     "decision": 0.09579999985678689,
+     "h1": 0.041157004700003164,
+     "h2": 0.15409808310387474,
+     "whole": 0.10973399129205852,
+     "post_2024_10": 0.18620981917657042
+    }
+   },
+   "C1": {
+    "cagr_pre": 0.16773006215549602,
+    "cagr_after": 0.13993758966472414,
+    "mdd_after": -0.21827194114382142,
+    "final_krw": 533281463.6679356,
+    "final_after_liquidation_krw": 487139364.77926236,
+    "totals": {
+     "fees_krw": 15962622.443418149,
+     "fx_cost_krw": 25580.342143434867,
+     "dividend_tax_krw": 5282396.981528134,
+     "capital_gains_tax_krw": 51160684.28686969
+    },
+    "mdd_decision": -0.21827194114382142,
+    "target_turnover_per_year": 3.0955876446015425,
+    "segments_after_tax": {
+     "decision": 0.10287066683665858,
+     "h1": 0.050540427204150085,
+     "h2": 0.15855868554256558,
+     "whole": 0.13993758966472414,
+     "post_2024_10": 0.35706289518378753
+    }
+   },
+   "C1p": {
+    "cagr_pre": 0.15062505218775568,
+    "cagr_after": 0.126921946447337,
+    "mdd_after": -0.1870712004759828,
+    "final_krw": 460487824.1529409,
+    "final_after_liquidation_krw": 418848377.45117134,
+    "totals": {
+     "fees_krw": 14487557.383584922,
+     "fx_cost_krw": 17868.781083103895,
+     "dividend_tax_krw": 4737244.201854981,
+     "capital_gains_tax_krw": 35737562.16620776
+    },
+    "mdd_decision": -0.1870712004759828,
+    "target_turnover_per_year": 3.1034121947300766,
+    "segments_after_tax": {
+     "decision": 0.08621454136029483,
+     "h1": 0.04465381356377951,
+     "h2": 0.13001668609901462,
+     "whole": 0.126921946447337,
+     "post_2024_10": 0.36825197572791923
+    }
+   },
+   "D0": {
+    "cagr_pre": 0.17886521351359908,
+    "cagr_after": 0.17031287498803538,
+    "mdd_after": -0.289354842525815,
+    "final_krw": 746309510.7148973,
+    "final_after_liquidation_krw": 639281491.9600333,
+    "totals": {
+     "fees_krw": 1921719.7774124076,
+     "fx_cost_krw": 12853.915062949738,
+     "dividend_tax_krw": 7643959.001263469,
+     "capital_gains_tax_krw": 25707830.125899456
+    },
+    "mdd_decision": -0.289354842525815,
+    "target_turnover_per_year": 0.2342032652029536,
+    "segments_after_tax": {
+     "decision": 0.16605311002037526,
+     "h1": 0.12233506517472614,
+     "h2": 0.21209182540077975,
+     "whole": 0.17031287498803538,
+     "post_2024_10": 0.19303852011228795
+    }
+   },
+   "D1": {
+    "cagr_pre": 0.21794798199715149,
+    "cagr_after": 0.2071950607769497,
+    "mdd_after": -0.29430542820246786,
+    "final_krw": 1109530686.6053047,
+    "final_after_liquidation_krw": 932867106.536694,
+    "totals": {
+     "fees_krw": 2697488.493459935,
+     "fx_cost_krw": 18760.83871768832,
+     "dividend_tax_krw": 7866515.561027217,
+     "capital_gains_tax_krw": 37521677.43537661
+    },
+    "mdd_decision": -0.29430542820246786,
+    "target_turnover_per_year": 0.27834154837530956,
+    "segments_after_tax": {
+     "decision": 0.1751021490465421,
+     "h1": 0.1348877492101468,
+     "h2": 0.2173068691228106,
+     "whole": 0.2071950607769497,
+     "post_2024_10": 0.39153829542742935
+    }
+   }
+  }
+ },
+ "pairs": {
+  "base_30m": {
+   "C1_vs_C0": {
+    "decision_diff": 0.008209173160577787,
+    "h1_diff": 0.012026848412945546,
+    "h2_diff": 0.003902405793890118,
+    "whole_diff": 0.03116395648511716,
+    "post_2024_10_diff": 0.17055545295205765,
+    "daily_diff_ir": 0.2505701895229726,
+    "noop_reason": null,
+    "mdd_a": -0.2094189712274135,
+    "mdd_b": -0.21390467768155963,
+    "decision_years": 10.743326488706366,
+    "boot_ci90_low": -0.007806679237573188,
+    "boot_ci90_high": 0.024188604438598157,
+    "boot_median": 0.00783028077012915,
+    "boot_share_positive": 0.794
+   },
+   "D1_vs_D0": {
+    "decision_diff": 0.009435756759564207,
+    "h1_diff": 0.014473951036467314,
+    "h2_diff": 0.003912847391746466,
+    "whole_diff": 0.037190478903768254,
+    "post_2024_10_diff": 0.19830785898568504,
+    "daily_diff_ir": 0.24229319093440108,
+    "noop_reason": null,
+    "mdd_a": -0.29430542829341655,
+    "mdd_b": -0.28935484252581534,
+    "decision_years": 10.743326488706366,
+    "boot_ci90_low": -0.009151486927076236,
+    "boot_ci90_high": 0.0271169705932916,
+    "boot_median": 0.009092836101385338,
+    "boot_share_positive": 0.788
+   },
+   "C1_vs_C1p": {
+    "decision_diff": 0.016984496060817422,
+    "h1_diff": 0.006950346834815102,
+    "h2_diff": 0.028064766358026016,
+    "whole_diff": 0.013196852437514561,
+    "post_2024_10_diff": -0.01193209524778771,
+    "daily_diff_ir": 0.4380143217791535,
+    "noop_reason": null,
+    "mdd_a": -0.2094189712274135,
+    "mdd_b": -0.18007723701880973,
+    "decision_years": 10.743326488706366,
+    "boot_ci90_low": -0.0031980577965188828,
+    "boot_ci90_high": 0.040666476314203885,
+    "boot_median": 0.01642020615601636,
+    "boot_share_positive": 0.91
+   },
+   "C1p_vs_C0": {
+    "decision_diff": -0.008775322900239635,
+    "h1_diff": 0.0050765015781304434,
+    "h2_diff": -0.0241623605641359,
+    "whole_diff": 0.0179671040476026,
+    "post_2024_10_diff": 0.18248754819984536,
+    "daily_diff_ir": -0.20798305850456422,
+    "noop_reason": null,
+    "mdd_a": -0.18007723701880973,
+    "mdd_b": -0.21390467768155963,
+    "decision_years": 10.743326488706366,
+    "boot_ci90_low": -0.028533641525387465,
+    "boot_ci90_high": 0.009498496452827356,
+    "boot_median": -0.009364014829324918,
+    "boot_share_positive": 0.211
+   },
+   "D1_vs_C0": {
+    "decision_diff": 0.07767529334031176,
+    "h1_diff": 0.09319942824502503,
+    "h2_diff": 0.06033127640183733,
+    "whole_diff": 0.09579422664042636,
+    "post_2024_10_diff": 0.2033834112598174,
+    "daily_diff_ir": 0.6791346257449508,
+    "noop_reason": null,
+    "mdd_a": -0.29430542829341655,
+    "mdd_b": -0.21390467768155963,
+    "decision_years": 10.743326488706366,
+    "boot_ci90_low": 0.03338063193721502,
+    "boot_ci90_high": 0.1187658497002617,
+    "boot_median": 0.07596721020728459,
+    "boot_share_positive": 0.998
+   }
+  },
+  "base_100m": {
+   "C1_vs_C0": {
+    "decision_diff": 0.007070666979871687,
+    "h1_diff": 0.009383422504146921,
+    "h2_diff": 0.004460602438690842,
+    "whole_diff": 0.03020359837266562,
+    "post_2024_10_diff": 0.1708530760072171,
+    "daily_diff_ir": 0.21722810182012833,
+    "noop_reason": null,
+    "mdd_a": -0.21827194114382142,
+    "mdd_b": -0.21954853848917089,
+    "decision_years": 10.743326488706366
+   },
+   "D1_vs_D0": {
+    "decision_diff": 0.009049039026166827,
+    "h1_diff": 0.012552684035420647,
+    "h2_diff": 0.005215043722030854,
+    "whole_diff": 0.036882185788914335,
+    "post_2024_10_diff": 0.1984997753151414,
+    "daily_diff_ir": 0.2315223026102,
+    "noop_reason": null,
+    "mdd_a": -0.29430542820246786,
+    "mdd_b": -0.289354842525815,
+    "decision_years": 10.743326488706366
+   },
+   "C1_vs_C1p": {
+    "decision_diff": 0.016656125476363748,
+    "h1_diff": 0.005886613640370575,
+    "h2_diff": 0.02854199944355096,
+    "whole_diff": 0.01301564321738713,
+    "post_2024_10_diff": -0.011189080544131702,
+    "daily_diff_ir": 0.43149765315374117,
+    "noop_reason": null,
+    "mdd_a": -0.21827194114382142,
+    "mdd_b": -0.1870712004759828,
+    "decision_years": 10.743326488706366
+   },
+   "C1p_vs_C0": {
+    "decision_diff": -0.00958545849649206,
+    "h1_diff": 0.003496808863776346,
+    "h2_diff": -0.024081397004860117,
+    "whole_diff": 0.01718795515527849,
+    "post_2024_10_diff": 0.1820421565513488,
+    "daily_diff_ir": -0.2287493352049754,
+    "noop_reason": null,
+    "mdd_a": -0.1870712004759828,
+    "mdd_b": -0.21954853848917089,
+    "decision_years": 10.743326488706366
+   },
+   "D1_vs_C0": {
+    "decision_diff": 0.0793021491897552,
+    "h1_diff": 0.09373074451014363,
+    "h2_diff": 0.06320878601893587,
+    "whole_diff": 0.0974610694848912,
+    "post_2024_10_diff": 0.20532847625085893,
+    "daily_diff_ir": 0.6921874106205578,
+    "noop_reason": null,
+    "mdd_a": -0.29430542820246786,
+    "mdd_b": -0.21954853848917089,
+    "decision_years": 10.743326488706366
+   }
+  }
+ },
+ "power": {
+  "years": 10.75,
+  "n_trials": 2,
+  "confidence": 0.95,
+  "mde_ir": 0.66,
+  "power_at": {
+   "0.20": 0.066,
+   "0.30": 0.119,
+   "0.50": 0.3
+  },
+  "method": "expected-max-z(Bailey-LdP) + null SE, simplified"
+ },
+ "power_line": "검정력(사전 계산): 10.75년·시도 2개에서 통과에 필요한 연 IR ≈ 0.66 (참 효과별 통과 확률 IR 0.20→7%, IR 0.30→12%, IR 0.50→30%). FAIL 이어도 관측 IR 이 이보다 작으면 '판별 불가'에 가깝다.",
+ "decisions": {
+  "C1_vs_C0": {
+   "verdict": "FAIL",
+   "failed": [
+    "d_boot_ci_low"
+   ],
+   "reason": null,
+   "power_class": "FAIL_UNDERPOWERED"
+  },
+  "D1_vs_D0": {
+   "verdict": "FAIL",
+   "failed": [
+    "d_boot_ci_low"
+   ],
+   "reason": null,
+   "power_class": "FAIL_UNDERPOWERED"
+  }
+ },
+ "verdicts": {
+  "C1_vs_C0": "FAIL",
+  "D1_vs_D0": "FAIL"
+ },
+ "guru_coverage": {
+  "first_rebalance_guru_known": true,
+  "share_s1_picks_guru_held": 1.0,
+  "name_match_coverage_note": "13F 종목명→티커 매칭은 보유 평가액의 약 72~78%"
+ },
+ "inputs_meta": {
+  "strategy_version": "core-momentum-top4+spy200dma/2026-10-bil-noptp",
+  "judge_version": "sat-judge/v3",
+  "pool_cache_tag": "pit2",
+  "live_satellite_weight": 0.15
+ },
+ "missing_prices": [],
+ "satellite_schedule": {
+  "S0": [
+   {
+    "date": "2014-01-02",
+    "picks": [
+     "BA",
+     "GILD",
+     "VFC"
+    ]
+   },
+   {
+    "date": "2014-07-01",
+    "picks": [
+     "AAPL",
+     "GILD",
+     "SLB"
+    ]
+   },
+   {
+    "date": "2015-01-02",
+    "picks": [
+     "INTC",
+     "META",
+     "UNP"
+    ]
+   },
+   {
+    "date": "2015-07-01",
+    "picks": [
+     "GILD",
+     "HD",
+     "NKE"
+    ]
+   },
+   {
+    "date": "2016-01-04",
+    "picks": [
+     "AMZN",
+     "GOOG",
+     "GOOGL"
+    ]
+   },
+   {
+    "date": "2016-07-01",
+    "picks": [
+     "AMZN",
+     "GOOG",
+     "PSA"
+    ]
+   },
+   {
+    "date": "2017-01-03",
+    "picks": [
+     "BAC",
+     "CVX",
+     "UNH"
+    ]
+   },
+   {
+    "date": "2017-07-03",
+    "picks": [
+     "AAL",
+     "BA",
+     "BAC"
+    ]
+   },
+   {
+    "date": "2018-01-02",
+    "picks": [
+     "AMZN",
+     "BA",
+     "DXC"
+    ]
+   },
+   {
+    "date": "2018-07-02",
+    "picks": [
+     "AMZN",
+     "BA",
+     "NKE"
+    ]
+   },
+   {
+    "date": "2019-01-02",
+    "picks": [
+     "MRK",
+     "NEE",
+     "PFE"
+    ]
+   },
+   {
+    "date": "2019-07-01",
+    "picks": [
+     "AMT",
+     "APD",
+     "ECL"
+    ]
+   },
+   {
+    "date": "2020-01-02",
+    "picks": [
+     "AAPL",
+     "META",
+     "MSFT"
+    ]
+   },
+   {
+    "date": "2020-07-01",
+    "picks": [
+     "AAPL",
+     "MKTX",
+     "NVDA"
+    ]
+   },
+   {
+    "date": "2021-01-04",
+    "picks": [
+     "AAPL",
+     "NVDA",
+     "TSLA"
+    ]
+   },
+   {
+    "date": "2021-07-01",
+    "picks": [
+     "ETSY",
+     "NVDA",
+     "TSLA"
+    ]
+   },
+   {
+    "date": "2022-01-03",
+    "picks": [
+     "COP",
+     "GOOGL",
+     "PLD"
+    ]
+   },
+   {
+    "date": "2022-07-01",
+    "picks": [
+     "LLY",
+     "SO",
+     "UNH"
+    ]
+   },
+   {
+    "date": "2023-01-03",
+    "picks": [
+     "CVX",
+     "LLY",
+     "XOM"
+    ]
+   },
+   {
+    "date": "2023-07-03",
+    "picks": [
+     "AVGO",
+     "NFLX",
+     "NVDA"
+    ]
+   },
+   {
+    "date": "2024-01-02",
+    "picks": [
+     "META",
+     "NVDA",
+     "TSLA"
+    ]
+   },
+   {
+    "date": "2024-07-01",
+    "picks": [
+     "AVGO",
+     "LLY",
+     "NVDA"
+    ]
+   },
+   {
+    "date": "2025-01-02",
+    "picks": [
+     "AVGO",
+     "NFLX",
+     "NVDA"
+    ]
+   },
+   {
+    "date": "2025-07-01",
+    "picks": [
+     "AVGO",
+     "GE",
+     "NFLX"
+    ]
+   },
+   {
+    "date": "2026-01-02",
+    "picks": [
+     "GE",
+     "NEM",
+     "WBD"
+    ]
+   },
+   {
+    "date": "2026-07-01",
+    "picks": [
+     "CAT",
+     "GEV",
+     "WBD"
+    ]
+   }
+  ],
+  "S0p": [
+   {
+    "date": "2014-01-02",
+    "picks": [
+     "BBY",
+     "MU",
+     "NFLX"
+    ]
+   },
+   {
+    "date": "2014-07-01",
+    "picks": [
+     "META",
+     "MU",
+     "NFLX"
+    ]
+   },
+   {
+    "date": "2015-01-02",
+    "picks": [
+     "AVGO",
+     "EW",
+     "LUV"
+    ]
+   },
+   {
+    "date": "2015-07-01",
+    "picks": [
+     "AVGO",
+     "MNST",
+     "SWKS"
+    ]
+   },
+   {
+    "date": "2016-01-04",
+    "picks": [
+     "AMZN",
+     "NFLX",
+     "NVDA"
+    ]
+   },
+   {
+    "date": "2016-07-01",
+    "picks": [
+     "AWK",
+     "NEM",
+     "NVDA"
+    ]
+   },
+   {
+    "date": "2017-01-03",
+    "picks": [
+     "NEM",
+     "NVDA",
+     "OKE"
+    ]
+   },
+   {
+    "date": "2017-07-03",
+    "picks": [
+     "AMD",
+     "MU",
+     "NVDA"
+    ]
+   },
+   {
+    "date": "2018-01-02",
+    "picks": [
+     "NRG",
+     "VRTX",
+     "WYNN"
+    ]
+   },
+   {
+    "date": "2018-07-02",
+    "picks": [
+     "ALGN",
+     "NFLX",
+     "NTAP"
+    ]
+   },
+   {
+    "date": "2019-01-02",
+    "picks": [
+     "KEYS",
+     "MKC",
+     "ORLY"
+    ]
+   },
+   {
+    "date": "2019-07-01",
+    "picks": [
+     "AMD",
+     "CDNS",
+     "SBUX"
+    ]
+   },
+   {
+    "date": "2020-01-02",
+    "picks": [
+     "AMD",
+     "KLAC",
+     "LRCX"
+    ]
+   },
+   {
+    "date": "2020-07-01",
+    "picks": [
+     "DXCM",
+     "NVDA",
+     "REGN"
+    ]
+   },
+   {
+    "date": "2021-01-04",
+    "picks": [
+     "CARR",
+     "ETSY",
+     "TSLA"
+    ]
+   },
+   {
+    "date": "2021-07-01",
+    "picks": [
+     "ENPH",
+     "GNRC",
+     "TSLA"
+    ]
+   },
+   {
+    "date": "2022-01-03",
+    "picks": [
+     "BBWI",
+     "F",
+     "FTNT"
+    ]
+   },
+   {
+    "date": "2022-07-01",
+    "picks": [
+     "AZO",
+     "LLY",
+     "MCK"
+    ]
+   },
+   {
+    "date": "2023-01-03",
+    "picks": [
+     "CEG",
+     "SLB",
+     "XOM"
+    ]
+   },
+   {
+    "date": "2023-07-03",
+    "picks": [
+     "NFLX",
+     "NVDA",
+     "RCL"
+    ]
+   },
+   {
+    "date": "2024-01-02",
+    "picks": [
+     "META",
+     "NVDA",
+     "RCL"
+    ]
+   },
+   {
+    "date": "2024-07-01",
+    "picks": [
+     "CRWD",
+     "NVDA",
+     "SMCI"
+    ]
+   },
+   {
+    "date": "2025-01-02",
+    "picks": [
+     "GEV",
+     "NVDA",
+     "PLTR"
+    ]
+   },
+   {
+    "date": "2025-07-01",
+    "picks": [
+     "AXON",
+     "GEV",
+     "PLTR"
+    ]
+   },
+   {
+    "date": "2026-01-02",
+    "picks": [
+     "MU",
+     "SNDK",
+     "WDC"
+    ]
+   },
+   {
+    "date": "2026-07-01",
+    "picks": [
+     "INTC",
+     "MU",
+     "SNDK"
+    ]
+   }
+  ],
+  "S1": [
+   {
+    "date": "2014-01-02",
+    "picks": [
+     "DAL",
+     "GILD",
+     "MU"
+    ]
+   },
+   {
+    "date": "2014-07-01",
+    "picks": [
+     "GHC",
+     "MCO",
+     "MU"
+    ]
+   },
+   {
+    "date": "2015-01-02",
+    "picks": [
+     "AMGN",
+     "MU",
+     "ZTS"
+    ]
+   },
+   {
+    "date": "2015-07-01",
+    "picks": [
+     "BIIB",
+     "EXPE",
+     "V"
+    ]
+   },
+   {
+    "date": "2016-01-04",
+    "picks": [
+     "AMZN",
+     "EXPE",
+     "VRSN"
+    ]
+   },
+   {
+    "date": "2016-07-01",
+    "picks": [
+     "AMZN",
+     "ED",
+     "WEC"
+    ]
+   },
+   {
+    "date": "2017-01-03",
+    "picks": [
+     "MU",
+     "NUE",
+     "NVDA"
+    ]
+   },
+   {
+    "date": "2017-07-03",
+    "picks": [
+     "ALGN",
+     "MU",
+     "NVDA"
+    ]
+   },
+   {
+    "date": "2018-01-02",
+    "picks": [
+     "CNC",
+     "NRG",
+     "PYPL"
+    ]
+   },
+   {
+    "date": "2018-07-02",
+    "picks": [
+     "ALGN",
+     "NFLX",
+     "NRG"
+    ]
+   },
+   {
+    "date": "2019-01-02",
+    "picks": [
+     "ABT",
+     "MDT",
+     "PYPL"
+    ]
+   },
+   {
+    "date": "2019-07-01",
+    "picks": [
+     "AMD",
+     "CMG",
+     "SBUX"
+    ]
+   },
+   {
+    "date": "2020-01-02",
+    "picks": [
+     "AMD",
+     "CMG",
+     "QRVO"
+    ]
+   },
+   {
+    "date": "2020-07-01",
+    "picks": [
+     "AAPL",
+     "NVDA",
+     "REGN"
+    ]
+   },
+   {
+    "date": "2021-01-04",
+    "picks": [
+     "NVDA",
+     "PYPL",
+     "TSLA"
+    ]
+   },
+   {
+    "date": "2021-07-01",
+    "picks": [
+     "ALGN",
+     "SYF",
+     "TSLA"
+    ]
+   },
+   {
+    "date": "2022-01-03",
+    "picks": [
+     "APA",
+     "CF",
+     "MOS"
+    ]
+   },
+   {
+    "date": "2022-07-01",
+    "picks": [
+     "KO",
+     "MCK",
+     "UNH"
+    ]
+   },
+   {
+    "date": "2023-01-03",
+    "picks": [
+     "CEG",
+     "CVX",
+     "MCK"
+    ]
+   },
+   {
+    "date": "2023-07-03",
+    "picks": [
+     "GE",
+     "META",
+     "NVDA"
+    ]
+   },
+   {
+    "date": "2024-01-02",
+    "picks": [
+     "BLDR",
+     "META",
+     "NVDA"
+    ]
+   },
+   {
+    "date": "2024-07-01",
+    "picks": [
+     "ANET",
+     "CRWD",
+     "NVDA"
+    ]
+   },
+   {
+    "date": "2025-01-02",
+    "picks": [
+     "GEV",
+     "NVDA",
+     "PLTR"
+    ]
+   },
+   {
+    "date": "2025-07-01",
+    "picks": [
+     "NRG",
+     "PLTR",
+     "VST"
+    ]
+   },
+   {
+    "date": "2026-01-02",
+    "picks": [
+     "LRCX",
+     "MU",
+     "SNDK"
+    ]
+   },
+   {
+    "date": "2026-07-01",
+    "picks": [
+     "INTC",
+     "MU",
+     "SNDK"
+    ]
+   }
+  ]
+ },
+ "s1_guru_held": [
+  {
+   "date": "2014-01-02",
+   "picks": [
+    "MU",
+    "DAL",
+    "GILD"
+   ],
+   "guru_held": [
+    "MU",
+    "DAL",
+    "GILD"
+   ]
+  },
+  {
+   "date": "2014-07-01",
+   "picks": [
+    "MU",
+    "GHC",
+    "MCO"
+   ],
+   "guru_held": [
+    "MU",
+    "GHC",
+    "MCO"
+   ]
+  },
+  {
+   "date": "2015-01-02",
+   "picks": [
+    "MU",
+    "AMGN",
+    "ZTS"
+   ],
+   "guru_held": [
+    "MU",
+    "AMGN",
+    "ZTS"
+   ]
+  },
+  {
+   "date": "2015-07-01",
+   "picks": [
+    "EXPE",
+    "BIIB",
+    "V"
+   ],
+   "guru_held": [
+    "EXPE",
+    "BIIB",
+    "V"
+   ]
+  },
+  {
+   "date": "2016-01-04",
+   "picks": [
+    "AMZN",
+    "VRSN",
+    "EXPE"
+   ],
+   "guru_held": [
+    "AMZN",
+    "VRSN",
+    "EXPE"
+   ]
+  },
+  {
+   "date": "2016-07-01",
+   "picks": [
+    "AMZN",
+    "WEC",
+    "ED"
+   ],
+   "guru_held": [
+    "AMZN",
+    "WEC",
+    "ED"
+   ]
+  },
+  {
+   "date": "2017-01-03",
+   "picks": [
+    "NVDA",
+    "MU",
+    "NUE"
+   ],
+   "guru_held": [
+    "NVDA",
+    "MU",
+    "NUE"
+   ]
+  },
+  {
+   "date": "2017-07-03",
+   "picks": [
+    "NVDA",
+    "MU",
+    "ALGN"
+   ],
+   "guru_held": [
+    "NVDA",
+    "MU",
+    "ALGN"
+   ]
+  },
+  {
+   "date": "2018-01-02",
+   "picks": [
+    "NRG",
+    "PYPL",
+    "CNC"
+   ],
+   "guru_held": [
+    "NRG",
+    "PYPL",
+    "CNC"
+   ]
+  },
+  {
+   "date": "2018-07-02",
+   "picks": [
+    "NFLX",
+    "ALGN",
+    "NRG"
+   ],
+   "guru_held": [
+    "NFLX",
+    "ALGN",
+    "NRG"
+   ]
+  },
+  {
+   "date": "2019-01-02",
+   "picks": [
+    "ABT",
+    "PYPL",
+    "MDT"
+   ],
+   "guru_held": [
+    "ABT",
+    "PYPL",
+    "MDT"
+   ]
+  },
+  {
+   "date": "2019-07-01",
+   "picks": [
+    "AMD",
+    "SBUX",
+    "CMG"
+   ],
+   "guru_held": [
+    "AMD",
+    "SBUX",
+    "CMG"
+   ]
+  },
+  {
+   "date": "2020-01-02",
+   "picks": [
+    "AMD",
+    "CMG",
+    "QRVO"
+   ],
+   "guru_held": [
+    "AMD",
+    "CMG",
+    "QRVO"
+   ]
+  },
+  {
+   "date": "2020-07-01",
+   "picks": [
+    "NVDA",
+    "REGN",
+    "AAPL"
+   ],
+   "guru_held": [
+    "NVDA",
+    "REGN",
+    "AAPL"
+   ]
+  },
+  {
+   "date": "2021-01-04",
+   "picks": [
+    "TSLA",
+    "NVDA",
+    "PYPL"
+   ],
+   "guru_held": [
+    "TSLA",
+    "NVDA",
+    "PYPL"
+   ]
+  },
+  {
+   "date": "2021-07-01",
+   "picks": [
+    "TSLA",
+    "ALGN",
+    "SYF"
+   ],
+   "guru_held": [
+    "TSLA",
+    "ALGN",
+    "SYF"
+   ]
+  },
+  {
+   "date": "2022-01-03",
+   "picks": [
+    "APA",
+    "CF",
+    "MOS"
+   ],
+   "guru_held": [
+    "APA",
+    "CF",
+    "MOS"
+   ]
+  },
+  {
+   "date": "2022-07-01",
+   "picks": [
+    "MCK",
+    "UNH",
+    "KO"
+   ],
+   "guru_held": [
+    "MCK",
+    "UNH",
+    "KO"
+   ]
+  },
+  {
+   "date": "2023-01-03",
+   "picks": [
+    "CEG",
+    "CVX",
+    "MCK"
+   ],
+   "guru_held": [
+    "CEG",
+    "CVX",
+    "MCK"
+   ]
+  },
+  {
+   "date": "2023-07-03",
+   "picks": [
+    "NVDA",
+    "GE",
+    "META"
+   ],
+   "guru_held": [
+    "NVDA",
+    "GE",
+    "META"
+   ]
+  },
+  {
+   "date": "2024-01-02",
+   "picks": [
+    "NVDA",
+    "META",
+    "BLDR"
+   ],
+   "guru_held": [
+    "NVDA",
+    "META",
+    "BLDR"
+   ]
+  },
+  {
+   "date": "2024-07-01",
+   "picks": [
+    "NVDA",
+    "CRWD",
+    "ANET"
+   ],
+   "guru_held": [
+    "NVDA",
+    "CRWD",
+    "ANET"
+   ]
+  },
+  {
+   "date": "2025-01-02",
+   "picks": [
+    "PLTR",
+    "NVDA",
+    "GEV"
+   ],
+   "guru_held": [
+    "PLTR",
+    "NVDA",
+    "GEV"
+   ]
+  },
+  {
+   "date": "2025-07-01",
+   "picks": [
+    "PLTR",
+    "VST",
+    "NRG"
+   ],
+   "guru_held": [
+    "PLTR",
+    "VST",
+    "NRG"
+   ]
+  },
+  {
+   "date": "2026-01-02",
+   "picks": [
+    "SNDK",
+    "MU",
+    "LRCX"
+   ],
+   "guru_held": [
+    "SNDK",
+    "MU",
+    "LRCX"
+   ]
+  },
+  {
+   "date": "2026-07-01",
+   "picks": [
+    "SNDK",
+    "MU",
+    "INTC"
+   ],
+   "guru_held": [
+    "SNDK",
+    "MU",
+    "INTC"
+   ]
+  }
+ ]
+}
