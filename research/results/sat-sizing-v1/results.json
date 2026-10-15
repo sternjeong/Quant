@@ -1,0 +1,1808 @@
+{
+ "kind": "pre-registered verdict",
+ "id": "sat-sizing-v1",
+ "rules_version": "sat-sizing-v1/2026-10-15",
+ "smoke": false,
+ "generated_at": "2026-10-15T11:54:19+00:00",
+ "start": "2010-01-04",
+ "segments": {
+  "judged": [
+   null,
+   "2024-09-30"
+  ],
+  "h1": [
+   null,
+   "2017-05-31"
+  ],
+  "h2": [
+   "2017-05-31",
+   "2024-09-30"
+  ],
+  "post": [
+   "2024-09-30",
+   "2026-10-14"
+  ]
+ },
+ "verdicts": {
+  "Z1": "PASS_FORWARD_CANDIDATE",
+  "Z2": "PASS_FORWARD_CANDIDATE",
+  "Z3": "FAIL"
+ },
+ "verdicts_raw": {
+  "Z1": "PASS_FORWARD_CANDIDATE",
+  "Z2": "PASS_FORWARD_CANDIDATE",
+  "Z3": "FAIL"
+ },
+ "pairs": {
+  "base_30m": {
+   "champ": {
+    "Z1": {
+     "judged_diff": 0.001096469720907045,
+     "h1_diff": 0.00039825085055333886,
+     "h2_diff": 0.001865927768261777,
+     "post_diff": -0.005079953507338475,
+     "daily_diff_ir": 0.20013158869839626,
+     "noop_reason": null,
+     "boot_ci90_low": -0.0007913579259563597,
+     "boot_ci90_high": 0.00316438903239461,
+     "boot_share_positive": 0.842
+    },
+    "Z2": {
+     "judged_diff": 0.000820039291726804,
+     "h1_diff": 1.3419557957972117e-05,
+     "h2_diff": 0.0017100287377984635,
+     "post_diff": 0.001054128983488889,
+     "daily_diff_ir": 0.18085111261426878,
+     "noop_reason": null,
+     "boot_ci90_low": -0.0010475501084518557,
+     "boot_ci90_high": 0.0029109296389659423,
+     "boot_share_positive": 0.746
+    },
+    "Z3": {
+     "judged_diff": -0.022146636744248438,
+     "h1_diff": -0.008435229356708707,
+     "h2_diff": -0.037073177390219536,
+     "post_diff": -0.01502035409128788,
+     "daily_diff_ir": -0.6852855782338885,
+     "noop_reason": null,
+     "boot_ci90_low": -0.036983240115293914,
+     "boot_ci90_high": -0.009978809139203917,
+     "boot_share_positive": 0.003
+    }
+   },
+   "sleeve": {
+    "Z1": {
+     "judged_diff": 0.00692148440298701,
+     "h1_diff": 0.0024390501879278936,
+     "h2_diff": 0.012601977257959307,
+     "post_diff": -0.022835468352574217,
+     "daily_diff_ir": 0.14879695332554554,
+     "noop_reason": null
+    },
+    "Z2": {
+     "judged_diff": 0.003976562430991093,
+     "h1_diff": -0.0007545581835959325,
+     "h2_diff": 0.010034085868715792,
+     "post_diff": 0.01484628410845601,
+     "daily_diff_ir": 0.09507262635855931,
+     "noop_reason": null
+    },
+    "Z3": {
+     "judged_diff": -0.13855283104176475,
+     "h1_diff": -0.046402858952491854,
+     "h2_diff": -0.24753139952582015,
+     "post_diff": -0.08840618116397492,
+     "daily_diff_ir": -0.6853702567060893,
+     "noop_reason": null
+    },
+    "SPY": {
+     "judged_diff": -0.039184876622272435,
+     "h1_diff": 0.07483749533968997,
+     "h2_diff": -0.17175266223527386,
+     "post_diff": 0.02957696824628897,
+     "daily_diff_ir": -0.2959190299196463,
+     "noop_reason": null
+    }
+   }
+  },
+  "base_100m": {
+   "champ": {
+    "Z1": {
+     "judged_diff": 0.0010695062488605966,
+     "h1_diff": 0.000410319785317137,
+     "h2_diff": 0.0017956808489107967,
+     "post_diff": -0.0050669164893384355,
+     "daily_diff_ir": 0.19549834735159277,
+     "noop_reason": null
+    },
+    "Z2": {
+     "judged_diff": 0.0007394760279031409,
+     "h1_diff": -4.165943260181493e-05,
+     "h2_diff": 0.0016012422904532198,
+     "post_diff": 0.0010608753957899175,
+     "daily_diff_ir": 0.1624435588960102,
+     "noop_reason": null
+    },
+    "Z3": {
+     "judged_diff": -0.021661349826287202,
+     "h1_diff": -0.007858291284199126,
+     "h2_diff": -0.03668292760577829,
+     "post_diff": -0.01619917645471558,
+     "daily_diff_ir": -0.6743515490080016,
+     "noop_reason": null
+    }
+   }
+  }
+ },
+ "metrics": {
+  "base_30m": {
+   "champ": {
+    "Z0": {
+     "cagr_judged": 0.09312924204589978,
+     "mdd_judged": -0.22137929140210655,
+     "cagr_post": 0.18889820496507115,
+     "sharpe_pretax_judged": 0.6671517729905079,
+     "totals": {
+      "fees_krw": 6596845.248825735,
+      "fx_cost_krw": 8041.744734100763,
+      "dividend_tax_krw": 2434791.9302283693,
+      "capital_gains_tax_krw": 16083489.46820151
+     }
+    },
+    "Z1": {
+     "cagr_judged": 0.09422571176680683,
+     "mdd_judged": -0.22301070591915162,
+     "cagr_post": 0.18381825145773267,
+     "sharpe_pretax_judged": 0.6776074555784007,
+     "totals": {
+      "fees_krw": 6663276.075179891,
+      "fx_cost_krw": 8118.8737834078875,
+      "dividend_tax_krw": 2445545.9635858135,
+      "capital_gains_tax_krw": 16237747.56681576
+     }
+    },
+    "Z2": {
+     "cagr_judged": 0.09394928133762659,
+     "mdd_judged": -0.2200051794562804,
+     "cagr_post": 0.18995233394856004,
+     "sharpe_pretax_judged": 0.673264066181954,
+     "totals": {
+      "fees_krw": 6634932.295584744,
+      "fx_cost_krw": 8094.804610324047,
+      "dividend_tax_krw": 2441740.478762146,
+      "capital_gains_tax_krw": 16189609.220648078
+     }
+    },
+    "Z3": {
+     "cagr_judged": 0.07098260530165135,
+     "mdd_judged": -0.22232593143201806,
+     "cagr_post": 0.17387785087378327,
+     "sharpe_pretax_judged": 0.5839775839404576,
+     "totals": {
+      "fees_krw": 5111538.806862942,
+      "fx_cost_krw": 4259.662617211766,
+      "dividend_tax_krw": 2206550.003253812,
+      "capital_gains_tax_krw": 8519325.234423524
+     }
+    }
+   },
+   "sleeve": {
+    "Z0": {
+     "cagr_judged": 0.18350762172705903,
+     "mdd_judged": -0.26436865113163033,
+     "cagr_post": 0.16666508713467265,
+     "sharpe_pretax_judged": 0.7747733135829167,
+     "totals": {
+      "fees_krw": 6366306.7494623745,
+      "fx_cost_krw": 41858.752710287685,
+      "dividend_tax_krw": 3031429.729243327,
+      "capital_gains_tax_krw": 83717505.42057529
+     }
+    },
+    "Z1": {
+     "cagr_judged": 0.19042910613004604,
+     "mdd_judged": -0.26130908958999977,
+     "cagr_post": 0.14382961878209843,
+     "sharpe_pretax_judged": 0.8098090104011413,
+     "totals": {
+      "fees_krw": 7074831.672964223,
+      "fx_cost_krw": 46567.30312753105,
+      "dividend_tax_krw": 3025089.9981620214,
+      "capital_gains_tax_krw": 93134606.25506201
+     }
+    },
+    "Z2": {
+     "cagr_judged": 0.18748418415805013,
+     "mdd_judged": -0.2619811335038894,
+     "cagr_post": 0.18151137124312866,
+     "sharpe_pretax_judged": 0.7971204645250688,
+     "totals": {
+      "fees_krw": 6745703.749275325,
+      "fx_cost_krw": 45219.50972448161,
+      "dividend_tax_krw": 2997452.42877366,
+      "capital_gains_tax_krw": 90439019.44896315
+     }
+    },
+    "Z3": {
+     "cagr_judged": 0.04495479068529429,
+     "mdd_judged": -0.1625910706261725,
+     "cagr_post": 0.07825890597069773,
+     "sharpe_pretax_judged": 0.6987924869229751,
+     "totals": {
+      "fees_krw": 345057.73004397977,
+      "fx_cost_krw": 405.90211172366935,
+      "dividend_tax_krw": 1768031.5344629427,
+      "capital_gains_tax_krw": 811804.2234473379
+     }
+    },
+    "SPY": {
+     "cagr_judged": 0.1443227451047866,
+     "mdd_judged": -0.29678566480959234,
+     "cagr_post": 0.19624205538096162,
+     "sharpe_pretax_judged": 0.7796897988299727,
+     "totals": {
+      "fees_krw": 53033.68880195736,
+      "fx_cost_krw": 0.0,
+      "dividend_tax_krw": 4076773.234324829,
+      "capital_gains_tax_krw": 0.0
+     }
+    }
+   }
+  },
+  "base_100m": {
+   "champ": {
+    "Z0": {
+     "cagr_judged": 0.08903835323447717,
+     "mdd_judged": -0.22819400181979765,
+     "cagr_post": 0.18574787343813126,
+     "sharpe_pretax_judged": 0.6671517729905079,
+     "totals": {
+      "fees_krw": 21164470.10981076,
+      "fx_cost_krw": 31683.1217856665,
+      "dividend_tax_krw": 7821017.59276554,
+      "capital_gains_tax_krw": 63366243.57133295
+     }
+    },
+    "Z1": {
+     "cagr_judged": 0.09010785948333777,
+     "mdd_judged": -0.22978879899482674,
+     "cagr_post": 0.18068095694879283,
+     "sharpe_pretax_judged": 0.6776074555784007,
+     "totals": {
+      "fees_krw": 21371526.90420535,
+      "fx_cost_krw": 31975.730129639956,
+      "dividend_tax_krw": 7854296.4957723105,
+      "capital_gains_tax_krw": 63951460.259279855
+     }
+    },
+    "Z2": {
+     "cagr_judged": 0.08977782926238032,
+     "mdd_judged": -0.22681214111143233,
+     "cagr_post": 0.18680874883392118,
+     "sharpe_pretax_judged": 0.673264066181954,
+     "totals": {
+      "fees_krw": 21268888.476916865,
+      "fx_cost_krw": 31900.213954289935,
+      "dividend_tax_krw": 7837531.894722744,
+      "capital_gains_tax_krw": 63800427.90857981
+     }
+    },
+    "Z3": {
+     "cagr_judged": 0.06737700340818997,
+     "mdd_judged": -0.22958649233149664,
+     "cagr_post": 0.16954869698341568,
+     "sharpe_pretax_judged": 0.5839775839404576,
+     "totals": {
+      "fees_krw": 16515615.334071642,
+      "fx_cost_krw": 18964.756681404033,
+      "dividend_tax_krw": 7116352.775988118,
+      "capital_gains_tax_krw": 37929513.362808034
+     }
+    }
+   }
+  }
+ },
+ "weight_dispersion": {
+  "Z0": {
+   "n_rebalances": 30,
+   "mean_spread": 0.0,
+   "max_spread": 0.0,
+   "mean_max_weight": 0.3333333333333334,
+   "max_weight_seen": 0.3333333333333333,
+   "n_over_cap": 0,
+   "n_fallback": 0,
+   "mean_stock_exposure": 1.0
+  },
+  "Z1": {
+   "n_rebalances": 30,
+   "mean_spread": 0.1344,
+   "max_spread": 0.36630000000000007,
+   "mean_max_weight": 0.4013333333333334,
+   "max_weight_seen": 0.5652,
+   "n_over_cap": 15,
+   "n_fallback": 0,
+   "mean_stock_exposure": 0.9999933333333334
+  },
+  "Z2": {
+   "n_rebalances": 30,
+   "mean_spread": 0.12615333333333334,
+   "max_spread": 0.2091,
+   "mean_max_weight": 0.39493000000000006,
+   "max_weight_seen": 0.4438,
+   "n_over_cap": 15,
+   "n_fallback": 0,
+   "mean_stock_exposure": 1.0
+  },
+  "Z3": {
+   "n_rebalances": 30,
+   "mean_spread": 0.0,
+   "max_spread": 0.0,
+   "mean_max_weight": 0.04687222222222222,
+   "max_weight_seen": 0.07183333333333333,
+   "n_over_cap": 0,
+   "n_fallback": 0,
+   "mean_stock_exposure": 0.1406166666666667
+  }
+ },
+ "kelly_summary": {
+  "n_rebalances": 30,
+  "n_not_applied": 0,
+  "mean_exposure": 0.1406166666666667,
+  "min_exposure": 0.0468,
+  "mean_trade_count": 733.3
+ },
+ "kelly_by_date": {
+  "2010-01-04": {
+   "trade_count": 783,
+   "recommended_fraction": 0.0834,
+   "applied": true,
+   "full_kelly": 0.1667,
+   "win_rate": 0.4061,
+   "n_sampled": 80
+  },
+  "2010-07-01": {
+   "trade_count": 822,
+   "recommended_fraction": 0.0536,
+   "applied": true,
+   "full_kelly": 0.1073,
+   "win_rate": 0.382,
+   "n_sampled": 82
+  },
+  "2011-01-03": {
+   "trade_count": 844,
+   "recommended_fraction": 0.07,
+   "applied": true,
+   "full_kelly": 0.14,
+   "win_rate": 0.4064,
+   "n_sampled": 81
+  },
+  "2011-07-01": {
+   "trade_count": 820,
+   "recommended_fraction": 0.0872,
+   "applied": true,
+   "full_kelly": 0.1744,
+   "win_rate": 0.4183,
+   "n_sampled": 83
+  },
+  "2012-01-03": {
+   "trade_count": 919,
+   "recommended_fraction": 0.0468,
+   "applied": true,
+   "full_kelly": 0.0936,
+   "win_rate": 0.3754,
+   "n_sampled": 84
+  },
+  "2012-07-02": {
+   "trade_count": 905,
+   "recommended_fraction": 0.0599,
+   "applied": true,
+   "full_kelly": 0.1199,
+   "win_rate": 0.4,
+   "n_sampled": 84
+  },
+  "2013-01-02": {
+   "trade_count": 854,
+   "recommended_fraction": 0.0855,
+   "applied": true,
+   "full_kelly": 0.1709,
+   "win_rate": 0.4286,
+   "n_sampled": 86
+  },
+  "2013-07-01": {
+   "trade_count": 786,
+   "recommended_fraction": 0.1195,
+   "applied": true,
+   "full_kelly": 0.239,
+   "win_rate": 0.4427,
+   "n_sampled": 88
+  },
+  "2014-01-02": {
+   "trade_count": 629,
+   "recommended_fraction": 0.2003,
+   "applied": true,
+   "full_kelly": 0.4007,
+   "win_rate": 0.5405,
+   "n_sampled": 87
+  },
+  "2014-07-01": {
+   "trade_count": 547,
+   "recommended_fraction": 0.212,
+   "applied": true,
+   "full_kelly": 0.4239,
+   "win_rate": 0.5539,
+   "n_sampled": 89
+  },
+  "2015-01-02": {
+   "trade_count": 523,
+   "recommended_fraction": 0.2051,
+   "applied": true,
+   "full_kelly": 0.4101,
+   "win_rate": 0.543,
+   "n_sampled": 89
+  },
+  "2015-07-01": {
+   "trade_count": 483,
+   "recommended_fraction": 0.2155,
+   "applied": true,
+   "full_kelly": 0.4311,
+   "win_rate": 0.5569,
+   "n_sampled": 91
+  },
+  "2016-01-04": {
+   "trade_count": 518,
+   "recommended_fraction": 0.1555,
+   "applied": true,
+   "full_kelly": 0.3111,
+   "win_rate": 0.4653,
+   "n_sampled": 91
+  },
+  "2016-07-01": {
+   "trade_count": 530,
+   "recommended_fraction": 0.1883,
+   "applied": true,
+   "full_kelly": 0.3766,
+   "win_rate": 0.5132,
+   "n_sampled": 97
+  },
+  "2017-01-03": {
+   "trade_count": 534,
+   "recommended_fraction": 0.1857,
+   "applied": true,
+   "full_kelly": 0.3715,
+   "win_rate": 0.5094,
+   "n_sampled": 99
+  },
+  "2017-07-03": {
+   "trade_count": 524,
+   "recommended_fraction": 0.2048,
+   "applied": true,
+   "full_kelly": 0.4096,
+   "win_rate": 0.5363,
+   "n_sampled": 100
+  },
+  "2018-01-02": {
+   "trade_count": 529,
+   "recommended_fraction": 0.2055,
+   "applied": true,
+   "full_kelly": 0.4111,
+   "win_rate": 0.5369,
+   "n_sampled": 102
+  },
+  "2018-07-02": {
+   "trade_count": 562,
+   "recommended_fraction": 0.1726,
+   "applied": true,
+   "full_kelly": 0.3451,
+   "win_rate": 0.5,
+   "n_sampled": 102
+  },
+  "2019-01-02": {
+   "trade_count": 579,
+   "recommended_fraction": 0.1337,
+   "applied": true,
+   "full_kelly": 0.2674,
+   "win_rate": 0.4404,
+   "n_sampled": 103
+  },
+  "2019-07-01": {
+   "trade_count": 649,
+   "recommended_fraction": 0.1444,
+   "applied": true,
+   "full_kelly": 0.2889,
+   "win_rate": 0.4607,
+   "n_sampled": 103
+  },
+  "2020-01-02": {
+   "trade_count": 679,
+   "recommended_fraction": 0.1489,
+   "applied": true,
+   "full_kelly": 0.2978,
+   "win_rate": 0.4683,
+   "n_sampled": 107
+  },
+  "2020-07-01": {
+   "trade_count": 748,
+   "recommended_fraction": 0.1391,
+   "applied": true,
+   "full_kelly": 0.2781,
+   "win_rate": 0.4599,
+   "n_sampled": 108
+  },
+  "2021-01-04": {
+   "trade_count": 723,
+   "recommended_fraction": 0.1943,
+   "applied": true,
+   "full_kelly": 0.3886,
+   "win_rate": 0.5297,
+   "n_sampled": 108
+  },
+  "2021-07-01": {
+   "trade_count": 739,
+   "recommended_fraction": 0.1914,
+   "applied": true,
+   "full_kelly": 0.3828,
+   "win_rate": 0.5345,
+   "n_sampled": 109
+  },
+  "2022-01-03": {
+   "trade_count": 773,
+   "recommended_fraction": 0.1876,
+   "applied": true,
+   "full_kelly": 0.3753,
+   "win_rate": 0.5265,
+   "n_sampled": 109
+  },
+  "2022-07-01": {
+   "trade_count": 871,
+   "recommended_fraction": 0.1131,
+   "applied": true,
+   "full_kelly": 0.2261,
+   "win_rate": 0.4409,
+   "n_sampled": 112
+  },
+  "2023-01-03": {
+   "trade_count": 988,
+   "recommended_fraction": 0.0925,
+   "applied": true,
+   "full_kelly": 0.185,
+   "win_rate": 0.4271,
+   "n_sampled": 114
+  },
+  "2023-07-03": {
+   "trade_count": 1060,
+   "recommended_fraction": 0.0856,
+   "applied": true,
+   "full_kelly": 0.1713,
+   "win_rate": 0.4208,
+   "n_sampled": 114
+  },
+  "2024-01-02": {
+   "trade_count": 1039,
+   "recommended_fraction": 0.1237,
+   "applied": true,
+   "full_kelly": 0.2474,
+   "win_rate": 0.4649,
+   "n_sampled": 115
+  },
+  "2024-07-01": {
+   "trade_count": 1039,
+   "recommended_fraction": 0.113,
+   "applied": true,
+   "full_kelly": 0.2259,
+   "win_rate": 0.4408,
+   "n_sampled": 117
+  },
+  "2025-01-02": {
+   "trade_count": 1022,
+   "recommended_fraction": 0.1051,
+   "applied": true,
+   "full_kelly": 0.2103,
+   "win_rate": 0.4266,
+   "n_sampled": 116
+  },
+  "2025-07-01": {
+   "trade_count": 1006,
+   "recommended_fraction": 0.1045,
+   "applied": true,
+   "full_kelly": 0.2091,
+   "win_rate": 0.4463,
+   "n_sampled": 116
+  },
+  "2026-01-02": {
+   "trade_count": 1040,
+   "recommended_fraction": 0.09,
+   "applied": true,
+   "full_kelly": 0.1799,
+   "win_rate": 0.4337,
+   "n_sampled": 118
+  },
+  "2026-07-01": {
+   "trade_count": 1135,
+   "recommended_fraction": 0.0762,
+   "applied": true,
+   "full_kelly": 0.1525,
+   "win_rate": 0.4026,
+   "n_sampled": 119
+  }
+ },
+ "weights_by_rebalance": {
+  "Z0": [
+   {
+    "date": "2010-01-04",
+    "w": {
+     "FCX": 0.3333,
+     "AMZN": 0.3333,
+     "AAPL": 0.3333
+    }
+   },
+   {
+    "date": "2010-07-01",
+    "w": {
+     "AAPL": 0.3333,
+     "VNO": 0.3333,
+     "SPG": 0.3333
+    }
+   },
+   {
+    "date": "2011-01-03",
+    "w": {
+     "CAT": 0.3333,
+     "AAPL": 0.3333,
+     "NOV": 0.3333
+    }
+   },
+   {
+    "date": "2011-07-01",
+    "w": {
+     "NOV": 0.3333,
+     "AMZN": 0.3333,
+     "FCX": 0.3333
+    }
+   },
+   {
+    "date": "2012-01-03",
+    "w": {
+     "PRGO": 0.3333,
+     "PM": 0.3333,
+     "BMY": 0.3333
+    }
+   },
+   {
+    "date": "2012-07-02",
+    "w": {
+     "AAPL": 0.3333,
+     "PRGO": 0.3333,
+     "SPG": 0.3333
+    }
+   },
+   {
+    "date": "2013-01-02",
+    "w": {
+     "BAC": 0.3333,
+     "LYB": 0.3333,
+     "AMZN": 0.3333
+    }
+   },
+   {
+    "date": "2013-07-01",
+    "w": {
+     "C": 0.3333,
+     "LYB": 0.3333,
+     "GOOGL": 0.3333
+    }
+   },
+   {
+    "date": "2014-01-02",
+    "w": {
+     "GILD": 0.3333,
+     "BA": 0.3333,
+     "VFC": 0.3333
+    }
+   },
+   {
+    "date": "2014-07-01",
+    "w": {
+     "SLB": 0.3333,
+     "AAPL": 0.3333,
+     "GILD": 0.3333
+    }
+   },
+   {
+    "date": "2015-01-02",
+    "w": {
+     "META": 0.3333,
+     "UNP": 0.3333,
+     "INTC": 0.3333
+    }
+   },
+   {
+    "date": "2015-07-01",
+    "w": {
+     "GILD": 0.3333,
+     "NKE": 0.3333,
+     "HD": 0.3333
+    }
+   },
+   {
+    "date": "2016-01-04",
+    "w": {
+     "AMZN": 0.3333,
+     "GOOGL": 0.3333,
+     "GOOG": 0.3333
+    }
+   },
+   {
+    "date": "2016-07-01",
+    "w": {
+     "AMZN": 0.3333,
+     "PSA": 0.3333,
+     "GOOG": 0.3333
+    }
+   },
+   {
+    "date": "2017-01-03",
+    "w": {
+     "UNH": 0.3333,
+     "BAC": 0.3333,
+     "CVX": 0.3333
+    }
+   },
+   {
+    "date": "2017-07-03",
+    "w": {
+     "BAC": 0.3333,
+     "AAL": 0.3333,
+     "BA": 0.3333
+    }
+   },
+   {
+    "date": "2018-01-02",
+    "w": {
+     "BA": 0.3333,
+     "DXC": 0.3333,
+     "AMZN": 0.3333
+    }
+   },
+   {
+    "date": "2018-07-02",
+    "w": {
+     "AMZN": 0.3333,
+     "BA": 0.3333,
+     "NKE": 0.3333
+    }
+   },
+   {
+    "date": "2019-01-02",
+    "w": {
+     "MRK": 0.3333,
+     "PFE": 0.3333,
+     "NEE": 0.3333
+    }
+   },
+   {
+    "date": "2019-07-01",
+    "w": {
+     "APD": 0.3333,
+     "ECL": 0.3333,
+     "AMT": 0.3333
+    }
+   },
+   {
+    "date": "2020-01-02",
+    "w": {
+     "AAPL": 0.3333,
+     "META": 0.3333,
+     "MSFT": 0.3333
+    }
+   },
+   {
+    "date": "2020-07-01",
+    "w": {
+     "NVDA": 0.3333,
+     "AAPL": 0.3333,
+     "MKTX": 0.3333
+    }
+   },
+   {
+    "date": "2021-01-04",
+    "w": {
+     "TSLA": 0.3333,
+     "NVDA": 0.3333,
+     "AAPL": 0.3333
+    }
+   },
+   {
+    "date": "2021-07-01",
+    "w": {
+     "TSLA": 0.3333,
+     "NVDA": 0.3333,
+     "ETSY": 0.3333
+    }
+   },
+   {
+    "date": "2022-01-03",
+    "w": {
+     "COP": 0.3333,
+     "PLD": 0.3333,
+     "GOOGL": 0.3333
+    }
+   },
+   {
+    "date": "2022-07-01",
+    "w": {
+     "LLY": 0.3333,
+     "UNH": 0.3333,
+     "SO": 0.3333
+    }
+   },
+   {
+    "date": "2023-01-03",
+    "w": {
+     "XOM": 0.3333,
+     "CVX": 0.3333,
+     "LLY": 0.3333
+    }
+   },
+   {
+    "date": "2023-07-03",
+    "w": {
+     "NVDA": 0.3333,
+     "NFLX": 0.3333,
+     "AVGO": 0.3333
+    }
+   },
+   {
+    "date": "2024-01-02",
+    "w": {
+     "NVDA": 0.3333,
+     "META": 0.3333,
+     "TSLA": 0.3333
+    }
+   },
+   {
+    "date": "2024-07-01",
+    "w": {
+     "NVDA": 0.3333,
+     "LLY": 0.3333,
+     "AVGO": 0.3333
+    }
+   },
+   {
+    "date": "2025-01-02",
+    "w": {
+     "NVDA": 0.3333,
+     "AVGO": 0.3333,
+     "NFLX": 0.3333
+    }
+   },
+   {
+    "date": "2025-07-01",
+    "w": {
+     "NFLX": 0.3333,
+     "AVGO": 0.3333,
+     "GE": 0.3333
+    }
+   },
+   {
+    "date": "2026-01-02",
+    "w": {
+     "WBD": 0.3333,
+     "NEM": 0.3333,
+     "GE": 0.3333
+    }
+   },
+   {
+    "date": "2026-07-01",
+    "w": {
+     "CAT": 0.3333,
+     "WBD": 0.3333,
+     "GEV": 0.3333
+    }
+   }
+  ],
+  "Z1": [
+   {
+    "date": "2010-01-04",
+    "w": {
+     "FCX": 0.2903,
+     "AMZN": 0.3317,
+     "AAPL": 0.378
+    }
+   },
+   {
+    "date": "2010-07-01",
+    "w": {
+     "AAPL": 0.3807,
+     "VNO": 0.3055,
+     "SPG": 0.3138
+    }
+   },
+   {
+    "date": "2011-01-03",
+    "w": {
+     "CAT": 0.3486,
+     "AAPL": 0.4453,
+     "NOV": 0.2061
+    }
+   },
+   {
+    "date": "2011-07-01",
+    "w": {
+     "NOV": 0.2864,
+     "AMZN": 0.3705,
+     "FCX": 0.3431
+    }
+   },
+   {
+    "date": "2012-01-03",
+    "w": {
+     "PRGO": 0.2072,
+     "PM": 0.4023,
+     "BMY": 0.3905
+    }
+   },
+   {
+    "date": "2012-07-02",
+    "w": {
+     "AAPL": 0.333,
+     "PRGO": 0.3274,
+     "SPG": 0.3396
+    }
+   },
+   {
+    "date": "2013-01-02",
+    "w": {
+     "BAC": 0.2865,
+     "LYB": 0.3442,
+     "AMZN": 0.3692
+    }
+   },
+   {
+    "date": "2013-07-01",
+    "w": {
+     "C": 0.2629,
+     "LYB": 0.3002,
+     "GOOGL": 0.4369
+    }
+   },
+   {
+    "date": "2014-01-02",
+    "w": {
+     "GILD": 0.2066,
+     "BA": 0.4148,
+     "VFC": 0.3785
+    }
+   },
+   {
+    "date": "2014-07-01",
+    "w": {
+     "SLB": 0.2474,
+     "AAPL": 0.4183,
+     "GILD": 0.3343
+    }
+   },
+   {
+    "date": "2015-01-02",
+    "w": {
+     "META": 0.3115,
+     "UNP": 0.3081,
+     "INTC": 0.3804
+    }
+   },
+   {
+    "date": "2015-07-01",
+    "w": {
+     "GILD": 0.2833,
+     "NKE": 0.3052,
+     "HD": 0.4115
+    }
+   },
+   {
+    "date": "2016-01-04",
+    "w": {
+     "AMZN": 0.278,
+     "GOOGL": 0.3597,
+     "GOOG": 0.3624
+    }
+   },
+   {
+    "date": "2016-07-01",
+    "w": {
+     "AMZN": 0.3583,
+     "PSA": 0.3139,
+     "GOOG": 0.3278
+    }
+   },
+   {
+    "date": "2017-01-03",
+    "w": {
+     "UNH": 0.3531,
+     "BAC": 0.2228,
+     "CVX": 0.4241
+    }
+   },
+   {
+    "date": "2017-07-03",
+    "w": {
+     "BAC": 0.2862,
+     "AAL": 0.2898,
+     "BA": 0.424
+    }
+   },
+   {
+    "date": "2018-01-02",
+    "w": {
+     "BA": 0.3,
+     "DXC": 0.3373,
+     "AMZN": 0.3627
+    }
+   },
+   {
+    "date": "2018-07-02",
+    "w": {
+     "AMZN": 0.4091,
+     "BA": 0.3811,
+     "NKE": 0.2097
+    }
+   },
+   {
+    "date": "2019-01-02",
+    "w": {
+     "MRK": 0.3042,
+     "PFE": 0.3061,
+     "NEE": 0.3898
+    }
+   },
+   {
+    "date": "2019-07-01",
+    "w": {
+     "APD": 0.3923,
+     "ECL": 0.2446,
+     "AMT": 0.3631
+    }
+   },
+   {
+    "date": "2020-01-02",
+    "w": {
+     "AAPL": 0.3032,
+     "META": 0.2585,
+     "MSFT": 0.4383
+    }
+   },
+   {
+    "date": "2020-07-01",
+    "w": {
+     "NVDA": 0.307,
+     "AAPL": 0.3676,
+     "MKTX": 0.3254
+    }
+   },
+   {
+    "date": "2021-01-04",
+    "w": {
+     "TSLA": 0.1779,
+     "NVDA": 0.4389,
+     "AAPL": 0.3832
+    }
+   },
+   {
+    "date": "2021-07-01",
+    "w": {
+     "TSLA": 0.3079,
+     "NVDA": 0.4017,
+     "ETSY": 0.2904
+    }
+   },
+   {
+    "date": "2022-01-03",
+    "w": {
+     "COP": 0.2389,
+     "PLD": 0.4024,
+     "GOOGL": 0.3586
+    }
+   },
+   {
+    "date": "2022-07-01",
+    "w": {
+     "LLY": 0.3033,
+     "UNH": 0.3212,
+     "SO": 0.3755
+    }
+   },
+   {
+    "date": "2023-01-03",
+    "w": {
+     "XOM": 0.3167,
+     "CVX": 0.2977,
+     "LLY": 0.3856
+    }
+   },
+   {
+    "date": "2023-07-03",
+    "w": {
+     "NVDA": 0.2857,
+     "NFLX": 0.4003,
+     "AVGO": 0.3141
+    }
+   },
+   {
+    "date": "2024-01-02",
+    "w": {
+     "NVDA": 0.3331,
+     "META": 0.3943,
+     "TSLA": 0.2726
+    }
+   },
+   {
+    "date": "2024-07-01",
+    "w": {
+     "NVDA": 0.2358,
+     "LLY": 0.5652,
+     "AVGO": 0.1989
+    }
+   },
+   {
+    "date": "2025-01-02",
+    "w": {
+     "NVDA": 0.4133,
+     "AVGO": 0.1312,
+     "NFLX": 0.4555
+    }
+   },
+   {
+    "date": "2025-07-01",
+    "w": {
+     "NFLX": 0.4179,
+     "AVGO": 0.2432,
+     "GE": 0.3389
+    }
+   },
+   {
+    "date": "2026-01-02",
+    "w": {
+     "WBD": 0.3,
+     "NEM": 0.2898,
+     "GE": 0.4102
+    }
+   },
+   {
+    "date": "2026-07-01",
+    "w": {
+     "CAT": 0.2775,
+     "WBD": 0.4876,
+     "GEV": 0.2348
+    }
+   }
+  ],
+  "Z2": [
+   {
+    "date": "2010-01-04",
+    "w": {
+     "FCX": 0.3465,
+     "AMZN": 0.2222,
+     "AAPL": 0.4313
+    }
+   },
+   {
+    "date": "2010-07-01",
+    "w": {
+     "AAPL": 0.3725,
+     "VNO": 0.3017,
+     "SPG": 0.3258
+    }
+   },
+   {
+    "date": "2011-01-03",
+    "w": {
+     "CAT": 0.3785,
+     "AAPL": 0.3849,
+     "NOV": 0.2366
+    }
+   },
+   {
+    "date": "2011-07-01",
+    "w": {
+     "NOV": 0.313,
+     "AMZN": 0.3724,
+     "FCX": 0.3146
+    }
+   },
+   {
+    "date": "2012-01-03",
+    "w": {
+     "PRGO": 0.2196,
+     "PM": 0.3786,
+     "BMY": 0.4019
+    }
+   },
+   {
+    "date": "2012-07-02",
+    "w": {
+     "AAPL": 0.2272,
+     "PRGO": 0.3853,
+     "SPG": 0.3875
+    }
+   },
+   {
+    "date": "2013-01-02",
+    "w": {
+     "BAC": 0.3197,
+     "LYB": 0.3089,
+     "AMZN": 0.3714
+    }
+   },
+   {
+    "date": "2013-07-01",
+    "w": {
+     "C": 0.3222,
+     "LYB": 0.2671,
+     "GOOGL": 0.4107
+    }
+   },
+   {
+    "date": "2014-01-02",
+    "w": {
+     "GILD": 0.2435,
+     "BA": 0.352,
+     "VFC": 0.4045
+    }
+   },
+   {
+    "date": "2014-07-01",
+    "w": {
+     "SLB": 0.4004,
+     "AAPL": 0.3277,
+     "GILD": 0.2719
+    }
+   },
+   {
+    "date": "2015-01-02",
+    "w": {
+     "META": 0.3432,
+     "UNP": 0.3142,
+     "INTC": 0.3426
+    }
+   },
+   {
+    "date": "2015-07-01",
+    "w": {
+     "GILD": 0.2507,
+     "NKE": 0.3828,
+     "HD": 0.3665
+    }
+   },
+   {
+    "date": "2016-01-04",
+    "w": {
+     "AMZN": 0.3024,
+     "GOOGL": 0.3661,
+     "GOOG": 0.3315
+    }
+   },
+   {
+    "date": "2016-07-01",
+    "w": {
+     "AMZN": 0.2737,
+     "PSA": 0.3445,
+     "GOOG": 0.3818
+    }
+   },
+   {
+    "date": "2017-01-03",
+    "w": {
+     "UNH": 0.3103,
+     "BAC": 0.2707,
+     "CVX": 0.419
+    }
+   },
+   {
+    "date": "2017-07-03",
+    "w": {
+     "BAC": 0.32,
+     "AAL": 0.248,
+     "BA": 0.432
+    }
+   },
+   {
+    "date": "2018-01-02",
+    "w": {
+     "BA": 0.411,
+     "DXC": 0.3595,
+     "AMZN": 0.2295
+    }
+   },
+   {
+    "date": "2018-07-02",
+    "w": {
+     "AMZN": 0.3773,
+     "BA": 0.3217,
+     "NKE": 0.301
+    }
+   },
+   {
+    "date": "2019-01-02",
+    "w": {
+     "MRK": 0.3271,
+     "PFE": 0.287,
+     "NEE": 0.3859
+    }
+   },
+   {
+    "date": "2019-07-01",
+    "w": {
+     "APD": 0.3303,
+     "ECL": 0.3191,
+     "AMT": 0.3505
+    }
+   },
+   {
+    "date": "2020-01-02",
+    "w": {
+     "AAPL": 0.3172,
+     "META": 0.2787,
+     "MSFT": 0.404
+    }
+   },
+   {
+    "date": "2020-07-01",
+    "w": {
+     "NVDA": 0.285,
+     "AAPL": 0.4064,
+     "MKTX": 0.3086
+    }
+   },
+   {
+    "date": "2021-01-04",
+    "w": {
+     "TSLA": 0.239,
+     "NVDA": 0.362,
+     "AAPL": 0.399
+    }
+   },
+   {
+    "date": "2021-07-01",
+    "w": {
+     "TSLA": 0.325,
+     "NVDA": 0.4011,
+     "ETSY": 0.2739
+    }
+   },
+   {
+    "date": "2022-01-03",
+    "w": {
+     "COP": 0.2588,
+     "PLD": 0.4093,
+     "GOOGL": 0.332
+    }
+   },
+   {
+    "date": "2022-07-01",
+    "w": {
+     "LLY": 0.2797,
+     "UNH": 0.3239,
+     "SO": 0.3964
+    }
+   },
+   {
+    "date": "2023-01-03",
+    "w": {
+     "XOM": 0.3028,
+     "CVX": 0.3041,
+     "LLY": 0.3931
+    }
+   },
+   {
+    "date": "2023-07-03",
+    "w": {
+     "NVDA": 0.2289,
+     "NFLX": 0.4014,
+     "AVGO": 0.3697
+    }
+   },
+   {
+    "date": "2024-01-02",
+    "w": {
+     "NVDA": 0.3412,
+     "META": 0.4063,
+     "TSLA": 0.2525
+    }
+   },
+   {
+    "date": "2024-07-01",
+    "w": {
+     "NVDA": 0.256,
+     "LLY": 0.4438,
+     "AVGO": 0.3002
+    }
+   },
+   {
+    "date": "2025-01-02",
+    "w": {
+     "NVDA": 0.3805,
+     "AVGO": 0.2088,
+     "NFLX": 0.4107
+    }
+   },
+   {
+    "date": "2025-07-01",
+    "w": {
+     "NFLX": 0.4104,
+     "AVGO": 0.2451,
+     "GE": 0.3445
+    }
+   },
+   {
+    "date": "2026-01-02",
+    "w": {
+     "WBD": 0.3149,
+     "NEM": 0.2514,
+     "GE": 0.4337
+    }
+   },
+   {
+    "date": "2026-07-01",
+    "w": {
+     "CAT": 0.2582,
+     "WBD": 0.5272,
+     "GEV": 0.2147
+    }
+   }
+  ],
+  "Z3": [
+   {
+    "date": "2010-01-04",
+    "w": {
+     "FCX": 0.0278,
+     "AMZN": 0.0278,
+     "AAPL": 0.0278,
+     "BIL": 0.9166
+    }
+   },
+   {
+    "date": "2010-07-01",
+    "w": {
+     "AAPL": 0.0179,
+     "VNO": 0.0179,
+     "SPG": 0.0179,
+     "BIL": 0.9464
+    }
+   },
+   {
+    "date": "2011-01-03",
+    "w": {
+     "CAT": 0.0233,
+     "AAPL": 0.0233,
+     "NOV": 0.0233,
+     "BIL": 0.93
+    }
+   },
+   {
+    "date": "2011-07-01",
+    "w": {
+     "NOV": 0.0291,
+     "AMZN": 0.0291,
+     "FCX": 0.0291,
+     "BIL": 0.9128
+    }
+   },
+   {
+    "date": "2012-01-03",
+    "w": {
+     "PRGO": 0.0156,
+     "PM": 0.0156,
+     "BMY": 0.0156,
+     "BIL": 0.9532
+    }
+   },
+   {
+    "date": "2012-07-02",
+    "w": {
+     "AAPL": 0.02,
+     "PRGO": 0.02,
+     "SPG": 0.02,
+     "BIL": 0.9401
+    }
+   },
+   {
+    "date": "2013-01-02",
+    "w": {
+     "BAC": 0.0285,
+     "LYB": 0.0285,
+     "AMZN": 0.0285,
+     "BIL": 0.9145
+    }
+   },
+   {
+    "date": "2013-07-01",
+    "w": {
+     "C": 0.0398,
+     "LYB": 0.0398,
+     "GOOGL": 0.0398,
+     "BIL": 0.8805
+    }
+   },
+   {
+    "date": "2014-01-02",
+    "w": {
+     "GILD": 0.0668,
+     "BA": 0.0668,
+     "VFC": 0.0668,
+     "BIL": 0.7997
+    }
+   },
+   {
+    "date": "2014-07-01",
+    "w": {
+     "SLB": 0.0707,
+     "AAPL": 0.0707,
+     "GILD": 0.0707,
+     "BIL": 0.788
+    }
+   },
+   {
+    "date": "2015-01-02",
+    "w": {
+     "META": 0.0684,
+     "UNP": 0.0684,
+     "INTC": 0.0684,
+     "BIL": 0.7949
+    }
+   },
+   {
+    "date": "2015-07-01",
+    "w": {
+     "GILD": 0.0718,
+     "NKE": 0.0718,
+     "HD": 0.0718,
+     "BIL": 0.7845
+    }
+   },
+   {
+    "date": "2016-01-04",
+    "w": {
+     "AMZN": 0.0518,
+     "GOOGL": 0.0518,
+     "GOOG": 0.0518,
+     "BIL": 0.8445
+    }
+   },
+   {
+    "date": "2016-07-01",
+    "w": {
+     "AMZN": 0.0628,
+     "PSA": 0.0628,
+     "GOOG": 0.0628,
+     "BIL": 0.8117
+    }
+   },
+   {
+    "date": "2017-01-03",
+    "w": {
+     "UNH": 0.0619,
+     "BAC": 0.0619,
+     "CVX": 0.0619,
+     "BIL": 0.8143
+    }
+   },
+   {
+    "date": "2017-07-03",
+    "w": {
+     "BAC": 0.0683,
+     "AAL": 0.0683,
+     "BA": 0.0683,
+     "BIL": 0.7952
+    }
+   },
+   {
+    "date": "2018-01-02",
+    "w": {
+     "BA": 0.0685,
+     "DXC": 0.0685,
+     "AMZN": 0.0685,
+     "BIL": 0.7945
+    }
+   },
+   {
+    "date": "2018-07-02",
+    "w": {
+     "AMZN": 0.0575,
+     "BA": 0.0575,
+     "NKE": 0.0575,
+     "BIL": 0.8274
+    }
+   },
+   {
+    "date": "2019-01-02",
+    "w": {
+     "MRK": 0.0446,
+     "PFE": 0.0446,
+     "NEE": 0.0446,
+     "BIL": 0.8663
+    }
+   },
+   {
+    "date": "2019-07-01",
+    "w": {
+     "APD": 0.0481,
+     "ECL": 0.0481,
+     "AMT": 0.0481,
+     "BIL": 0.8556
+    }
+   },
+   {
+    "date": "2020-01-02",
+    "w": {
+     "AAPL": 0.0496,
+     "META": 0.0496,
+     "MSFT": 0.0496,
+     "BIL": 0.8511
+    }
+   },
+   {
+    "date": "2020-07-01",
+    "w": {
+     "NVDA": 0.0464,
+     "AAPL": 0.0464,
+     "MKTX": 0.0464,
+     "BIL": 0.8609
+    }
+   },
+   {
+    "date": "2021-01-04",
+    "w": {
+     "TSLA": 0.0648,
+     "NVDA": 0.0648,
+     "AAPL": 0.0648,
+     "BIL": 0.8057
+    }
+   },
+   {
+    "date": "2021-07-01",
+    "w": {
+     "TSLA": 0.0638,
+     "NVDA": 0.0638,
+     "ETSY": 0.0638,
+     "BIL": 0.8086
+    }
+   },
+   {
+    "date": "2022-01-03",
+    "w": {
+     "COP": 0.0625,
+     "PLD": 0.0625,
+     "GOOGL": 0.0625,
+     "BIL": 0.8124
+    }
+   },
+   {
+    "date": "2022-07-01",
+    "w": {
+     "LLY": 0.0377,
+     "UNH": 0.0377,
+     "SO": 0.0377,
+     "BIL": 0.8869
+    }
+   },
+   {
+    "date": "2023-01-03",
+    "w": {
+     "XOM": 0.0308,
+     "CVX": 0.0308,
+     "LLY": 0.0308,
+     "BIL": 0.9075
+    }
+   },
+   {
+    "date": "2023-07-03",
+    "w": {
+     "NVDA": 0.0285,
+     "NFLX": 0.0285,
+     "AVGO": 0.0285,
+     "BIL": 0.9144
+    }
+   },
+   {
+    "date": "2024-01-02",
+    "w": {
+     "NVDA": 0.0412,
+     "META": 0.0412,
+     "TSLA": 0.0412,
+     "BIL": 0.8763
+    }
+   },
+   {
+    "date": "2024-07-01",
+    "w": {
+     "NVDA": 0.0377,
+     "LLY": 0.0377,
+     "AVGO": 0.0377,
+     "BIL": 0.887
+    }
+   },
+   {
+    "date": "2025-01-02",
+    "w": {
+     "NVDA": 0.035,
+     "AVGO": 0.035,
+     "NFLX": 0.035,
+     "BIL": 0.8949
+    }
+   },
+   {
+    "date": "2025-07-01",
+    "w": {
+     "NFLX": 0.0348,
+     "AVGO": 0.0348,
+     "GE": 0.0348,
+     "BIL": 0.8955
+    }
+   },
+   {
+    "date": "2026-01-02",
+    "w": {
+     "WBD": 0.03,
+     "NEM": 0.03,
+     "GE": 0.03,
+     "BIL": 0.91
+    }
+   },
+   {
+    "date": "2026-07-01",
+    "w": {
+     "CAT": 0.0254,
+     "WBD": 0.0254,
+     "GEV": 0.0254,
+     "BIL": 0.9238
+    }
+   }
+  ]
+ },
+ "power": {
+  "years": 14.7,
+  "n_trials": 3,
+  "confidence": 0.95,
+  "mde_ir": 0.651,
+  "power_at": {
+   "0.20": 0.042,
+   "0.30": 0.089,
+   "0.50": 0.281
+  },
+  "method": "expected-max-z(Bailey-LdP) + null SE, simplified"
+ },
+ "power_line": "검정력(사전 계산): 14.7년·시도 3개에서 통과에 필요한 연 IR ≈ 0.65 (참 효과별 통과 확률 IR 0.20→4%, IR 0.30→9%, IR 0.50→28%). FAIL 이어도 관측 IR 이 이보다 작으면 '판별 불가'에 가깝다.",
+ "variants": {
+  "Z0": "균등가중(라이브 기본, S-SEED-000)",
+  "Z1": "변동성 역가중 — 라이브 _inverse_vol_weights, 20일, 상한 40%",
+  "Z2": "변동성 역가중 — 같은 함수, 63일, 상한 40%",
+  "Z3": "하프 켈리 슬리브 익스포저(시점 기준), 남는 비중은 BIL"
+ },
+ "inputs_meta": {
+  "live_satellite_weight": 0.15,
+  "strategy_version": "core-momentum-top4+spy200dma/2026-10-bil-noptp",
+  "judge_version": "sat-judge/v3",
+  "pool_cache_tag": "pit2"
+ },
+ "rules": {
+  "sat_weight": 0.15,
+  "cap": 0.4,
+  "vol_lookbacks": {
+   "Z1": 20,
+   "Z2": 63
+  },
+  "kelly": {
+   "lookback_years": 5,
+   "sample_size": 120,
+   "min_trades": 20,
+   "safety": 0.5
+  },
+  "n_boot": 1000,
+  "block_days": 126,
+  "boot_seed": 20261020,
+  "ci_low_floor": -0.005,
+  "mdd_tol": 0.02,
+  "decision_end": "2024-09-30",
+  "half_split": "2017-05-31",
+  "power_years": 14.7,
+  "n_trials": 3
+ }
+}
