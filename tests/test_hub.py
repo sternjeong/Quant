@@ -254,6 +254,8 @@ def test_overview_never_claims_all_ok_when_service_state_is_unknown(monkeypatch)
 
     monkeypatch.setattr(server, "get_unit_status", lambda unit: UnitStatus("unknown", "unknown", ""))
     monkeypatch.setattr(server.ops_status, "job_health_summary", lambda: {"ok": True, "counts": {"ok": 3, "problem": 0}, "problems": [], "error": None})
+    # 실제 VM 백업 기록(서비스 계정만 읽음)이 오래되면 배너가 '주의'로 바뀌어 배포 관문에서만 흔들린다 — 고정(2026-10-15).
+    monkeypatch.setattr(server.ops_status, "read_backup", lambda *a, **k: None)
     page = server.render_dashboard("h")
     assert "모든 시스템 정상" not in page and "서비스 상태를 확인할 수 없습니다" in page
 
@@ -270,6 +272,7 @@ def test_oneshot_vm_health_is_not_reported_as_stopped(monkeypatch):
     monkeypatch.setattr(server, "get_unit_status", fake)
     monkeypatch.setattr(server, "_last_result", lambda unit: "success")
     monkeypatch.setattr(server.ops_status, "job_health_summary", lambda: {"ok": True, "counts": {"ok": 3, "problem": 0}, "problems": [], "error": None})
+    monkeypatch.setattr(server.ops_status, "read_backup", lambda *a, **k: None)  # 실제 백업 상태와 무관하게(위 테스트와 같은 이유)
     page = server.render_dashboard("h")
     assert "대기(정상)" in page and "서비스 1개가 멈춤" not in page and "모든 시스템 정상" in page
     # 타이머가 멈추면 진짜 문제로 잡는다
