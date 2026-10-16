@@ -1,0 +1,14 @@
+{
+  "id": "mom-proxy-v1",
+  "title": "모멘텀 대리 지표 v1 — Ken French 대형주 모멘텀 승자(생존편향 없음)로 새틀라이트 자료 보정 + 시장/모멘텀 비중 1927~1966 에서 고르고 1967~2007 에서 확인(사전 등록)",
+  "entrypoint": "research/jobs/mom-proxy-v1/run.py",
+  "args": [],
+  "timeout_seconds": 5400,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 16,
+  "revision": 1,
+  "max_memory_mb": 2000
+}
