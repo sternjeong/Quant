@@ -1,0 +1,14 @@
+{
+  "id": "sector-concentrate-v1",
+  "title": "섹터 집중 v1 — 주도 산업 상위 1~2개에 주식 100%(시장 필터 없음)가 1927~2007 에서 시장을 이기고 안정성도 지키나(사전 등록)",
+  "entrypoint": "research/jobs/sector-concentrate-v1/run.py",
+  "args": [],
+  "timeout_seconds": 3600,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 12,
+  "revision": 1,
+  "max_memory_mb": 1500
+}
