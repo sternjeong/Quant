@@ -1,0 +1,14 @@
+{
+  "id": "lev-base-v1",
+  "title": "SPY 바탕 + 작은 2배 다리(10/15/25%, 다리에만 ±2% 완충 200일선 월초 필터) — 장기 1927~2007 + 세후 원화 ETF 시대(사전 등록)",
+  "entrypoint": "research/jobs/lev-base-v1/run.py",
+  "args": [],
+  "timeout_seconds": 7200,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 15,
+  "revision": 1,
+  "max_memory_mb": 2000
+}
