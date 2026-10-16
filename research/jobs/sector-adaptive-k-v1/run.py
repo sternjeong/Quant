@@ -12,6 +12,10 @@ sc=importlib.util.module_from_spec(sp); sys.modules[sp.name]=sc; sp.loader.exec_
 ID="sector-adaptive-k-v1"; POLICIES=("top1","top2","adaptive_gap")
 INITIAL=30_000_000; FX=1300.; COST=.001
 
+def choose_k(gap, past_gaps):
+    """최근 60개 완성 월만 기준으로 사용한다. 부족한 이력은 top2."""
+    return 1 if gap is not None and len(past_gaps)>=60 and gap>float(np.median(past_gaps[-60:])) else 2
+
 def schedules(data):
     inds,mkt=data["ind12"],data["mkt"]
     scores=sc.raw_signals(inds,mkt)["RS12"]
@@ -26,7 +30,7 @@ def schedules(data):
         else:
             picks1=[int(order[0])]; picks2=[int(order[0]),int(order[1])]
             g=float(row[order[0]]-row[order[1]])
-        adaptive=(picks1 if (g is not None and len(hist)>=60 and g>float(np.median(hist[-60:]))) else picks2)
+        adaptive=picks1 if choose_k(g,hist)==1 else picks2
         for name,picks in (("top1",picks1),("top2",picks2),("adaptive_gap",adaptive)):
             rows[name].append((int(d),picks))
         threshold=float(np.median(hist[-60:])) if len(hist)>=60 else None
