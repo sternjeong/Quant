@@ -80,6 +80,17 @@ def collect() -> dict[str, Any]:
     except Exception as exc:  # noqa: BLE001
         data["tournament_v2"] = {"error": type(exc).__name__}
     try:
+        from core import forward_tournament_v3 as ft3
+
+        rows3 = ft3.load_ledger()
+        data["tournament_v3"] = {"records": len(rows3), "last": rows3[-1].get("date") if rows3 else None,
+                                 "start": rows3[0].get("date") if rows3 else None,
+                                 "armed": ft3.load_armed().get("start_not_before"), "registered": ft3.REGISTERED.isoformat(),
+                                 "min_days": ft3.MIN_DAYS, "status": ft3.load_status(),
+                                 "labels": {k: v["label"] for k, v in ft3.CANDIDATES.items()}}
+    except Exception as exc:  # noqa: BLE001
+        data["tournament_v3"] = {"error": type(exc).__name__}
+    try:
         from core import satellite_lab as sl
 
         reg = sl.load_registry()
@@ -196,7 +207,8 @@ def render_shadows(data: dict) -> str:
             f'<tr><th>코인 추세 기록</th><td>{_e(c.get("records", 0))}일 · 최근 {_e(last.get("date"))} {html.escape(on)} · 12개월(252거래일) 뒤 판정</td></tr>'
             f'<tr><th>앞으로 토너먼트(v1)</th><td>{_e(t.get("records", 0))}일 · 최근 {_e(t.get("last"))} · '
             f'{html.escape(" · ".join(f"{k} {v}" for k, v in (t.get("labels") or {}).items()))} · 252거래일 뒤 판정(주간 엔진 점검에 경과)</td></tr>'
-            + render_tournament_v2_row(data.get("tournament_v2") or {}) +
+            + render_tournament_v2_row(data.get("tournament_v2") or {})
+            + render_tournament_v3_row(data.get("tournament_v3") or {}) +
             f'<tr><th>AI 국제정세 의견</th><td>{_e(len(g.get("months") or []))}개월 · {_e(", ".join(g.get("months") or []) or "아직 없음")} · 24개월 뒤 판정</td></tr>'
             '</table>')
 
@@ -231,6 +243,42 @@ def render_tournament_v2_row(t: dict) -> str:
     labels = " · ".join(f"{k} {v}" for k, v in (t.get("labels") or {}).items())
     return (f'<tr><th>앞으로 토너먼트 v2</th><td>{state} · {html.escape(labels)} · '
             f'{_e(t.get("min_days"))}거래일 전에는 판정하지 않음{extra}</td></tr>')
+
+
+def render_tournament_v3_row(t: dict) -> str:
+    """앞으로 토너먼트 v3 — 상태·경과·중간 순위(연환산 수익, 판정 아님)·B1 대비. 252거래일 전에는 판정 없음."""
+    name = "앞으로 토너먼트 v3"
+    if "error" in t:
+        return f'<tr><th>{name}</th><td>확인 불가 {_e(t["error"])}</td></tr>'
+    st = t.get("status") or {}
+    cands = st.get("candidates") or {}
+    if not t.get("records"):
+        state = f'기록 대기 — {_e(t.get("armed") or t.get("registered"))} 이후 첫 완료 거래일부터(배포 뒤 첫 기록 시도 기준)'
+    else:
+        state = (f'시작 {_e(t.get("start"))} · {_e(t.get("records"))}일 기록 · 최근 {_e(t.get("last"))} · '
+                 f'평가 {_e(st.get("days", 0))}/{_e(t.get("min_days"))}거래일'
+                 + (f' · 경과 계산 {_e(st.get("updated_at"))}' if st.get("updated_at") else ' · 경과 계산 전'))
+
+    def pct(v: Any, signed: bool = False) -> str:
+        return "—" if v is None else (f"{float(v) * 100:+.1f}" if signed else f"{float(v) * 100:.1f}")
+
+    extra = ""
+    if st.get("rank"):
+        extra += '<br>중간 순위(연환산 수익 %, 판정 아님): ' + " &gt; ".join(
+            f'{_e(k)}({pct(cands.get(k, {}).get("cagr"))})' for k in st["rank"])
+        vs = [f'{_e(k)} {pct(c.get("cagr_vs_B1"), True)}%p·IR {_num(c.get("ir_vs_B1"))}'
+              for k, c in cands.items() if k != "B1" and c.get("cagr_vs_B1") is not None]
+        if vs:
+            extra += '<br>B1(현 챔피언) 대비 연환산 차이(판정 아님): ' + " · ".join(vs)
+    verdicts = [f'{_e(k)} {_e(c.get("verdict"))}' for k, c in cands.items() if c.get("verdict") not in (None, "기준")]
+    if verdicts:
+        extra += '<br>판정: ' + " · ".join(verdicts)
+    errs = st.get("last_errors") or {}
+    if errs:
+        extra += '<br>최근 기록 오류: ' + html.escape(", ".join(errs))
+    labels = " · ".join(f"{k} {v}" for k, v in (t.get("labels") or {}).items())
+    return (f'<tr><th>{name}</th><td>{state} · {html.escape(labels)} · {_e(t.get("min_days"))}거래일 전에는 판정하지 않음 '
+            f'(PASS = 연환산 수익 ≥ SPY + 1.0%p 이고 최대낙폭이 SPY 보다 3%p 넘게 나쁘지 않음 — 사람이 검토할 후보일 뿐 배분·주문과 무관){extra}</td></tr>')
 
 
 def render_body(data: dict) -> str:

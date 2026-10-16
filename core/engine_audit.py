@@ -340,6 +340,30 @@ def check_forward_tournament_v2(now: datetime) -> Check:
     return _c(name, OK, msg)
 
 
+def check_forward_tournament_v3(now: datetime) -> Check:
+    """v3 도 매일 기록 뒤 계산해 둔 status.json 만 읽는다(네트워크 없음). 시작일은 배포 뒤 첫 기록 시도(armed.json)로 정해진다."""
+    from core import forward_tournament_v3 as ft3
+
+    name = "앞으로 토너먼트 v3"
+    rows = ft3.load_ledger()
+    if not rows:
+        armed = ft3.load_armed().get("start_not_before")
+        ref = date.fromisoformat(armed) if armed else ft3.REGISTERED
+        if (now.date() - ref).days > 7:
+            return _c(name, WARN, "기록이 하나도 없음 — 00:39 기록 잡(v1·v2 다음) 확인" + ("" if armed else "(아직 한 번도 불리지 않음)"))
+        return _c(name, OK, f"기록 대기({armed or ft3.REGISTERED} 이후 첫 완료 거래일부터)")
+    last = rows[-1].get("date")
+    if last and (now.date() - date.fromisoformat(last)).days > 4:
+        return _c(name, WARN, f"마지막 기록 {last} — 4일 넘게 멈춤")
+    errs = rows[-1].get("errors") or {}
+    st = ft3.load_status()
+    rank = " > ".join(st.get("rank") or [])
+    msg = f"{len(rows)}일 기록 · {st.get('days', 0)}/{ft3.MIN_DAYS}거래일" + (f" · 중간 순위(판정 아님) {rank}" if rank else "")
+    if errs:
+        return _c(name, WARN, msg + f" · 최근 기록 오류 {', '.join(errs)}")
+    return _c(name, OK, msg)
+
+
 def check_disk(root: str = "/") -> Check:
     u = shutil.disk_usage(root)
     free_gb = u.free / 1024 ** 3
@@ -363,6 +387,7 @@ CHECKS: tuple[tuple[str, Callable[[datetime], Check]], ...] = (
     ("코인 추세 기록", check_crypto_shadow),
     ("앞으로 토너먼트", check_forward_tournament),
     ("앞으로 토너먼트 v2", check_forward_tournament_v2),
+    ("앞으로 토너먼트 v3", check_forward_tournament_v3),
     ("디스크", lambda now: check_disk()),
 )
 

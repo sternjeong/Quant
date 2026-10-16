@@ -48,6 +48,8 @@ DEFAULT_ACTIVE_SR_ANNUAL_SD = 0.5
 class CoreConfig:
     lookbacks: tuple[int, ...] = (CORE_MOMENTUM_LOOKBACK_DAYS,)  # 2개 이상이면 기간별 순위의 평균으로 줄 세운다
     abs_filter: str = "zero"        # zero: 12개월 수익률 > 0 / bil: 12개월 수익률 > 같은 기간 BIL 수익률
+    #                                 spy: 12개월 수익률 > 같은 기간 SPY 수익률(signal-swap-v1 KRS, 2026-10-16 앞으로 토너먼트 v3 용 —
+    #                                      SPY 수익률이 없으면 아무도 자격 없음 → 전액 BIL)
     top_n: int = CORE_TOP_N
     buffer_n: Optional[int] = None  # 보유 중인 자산은 순위가 이 안이면 계속 보유
     corr_cap: Optional[float] = None  # 이미 고른 자산과 상관이 이보다 높으면 건너뜀
@@ -133,6 +135,8 @@ def _tranche_weights(closes: pd.DataFrame, extra: pd.DataFrame, cfg: CoreConfig,
     score = _rank_score(closes[assets], cfg.lookbacks)
     mom12 = closes[assets].pct_change(CORE_MOMENTUM_LOOKBACK_DAYS, fill_method=None)
     bil12 = extra[CASH_ETF].pct_change(CORE_MOMENTUM_LOOKBACK_DAYS, fill_method=None) if CASH_ETF in extra else None
+    spy12 = (extra[MARKET_FILTER_TICKER].pct_change(CORE_MOMENTUM_LOOKBACK_DAYS, fill_method=None)
+             if cfg.abs_filter == "spy" and MARKET_FILTER_TICKER in extra else None)
     spy = extra.get(MARKET_FILTER_TICKER)
     spy_sma = spy.rolling(MARKET_FILTER_SMA_WINDOW, min_periods=MARKET_FILTER_SMA_WINDOW).mean() if spy is not None else None
     asset_sma = closes[assets].rolling(cfg.filter_window, min_periods=cfg.filter_window).mean()
@@ -163,6 +167,9 @@ def _tranche_weights(closes: pd.DataFrame, extra: pd.DataFrame, cfg: CoreConfig,
             hurdle = 0.0
             if cfg.abs_filter == "bil" and bil12 is not None and pd.notna(bil12.get(sd)):
                 hurdle = float(bil12.loc[sd])
+            elif cfg.abs_filter == "spy":
+                h = spy12.get(sd) if spy12 is not None else None
+                hurdle = float(h) if h is not None and pd.notna(h) else math.inf
             ts = turn_start.get(sd) if turn_start is not None else None
             if ts is not None and pd.notna(ts) and sd < pd.Timestamp(ts) + pd.DateOffset(months=cfg.turnaround_months):
                 sc = m12 = turn_score.loc[sd]  # 전환점 직후: 짧은 기간 수익률로 순위와 자격(> 0)
