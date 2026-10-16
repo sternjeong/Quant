@@ -8,6 +8,7 @@
    scripts/french_factor_report.py 가 research/factor_decay.md 로 써서 Scout·Writer 에이전트가 읽는다.
 3. 장기 산업 자료: load("ind12_daily"/"ind49_daily"/"ff3_daily") — research/jobs/core-longrun-v1 이 읽는다.
    load("ports25_daily")(규모×B/M 25개)는 research/jobs/leader-catch-v1 이 읽는다.
+   load("mom6_daily"/"mom25_daily")(규모×과거 12-2 수익 6·25개)는 research/jobs/mom-proxy-v1 이 읽는다.
 
 데이터 형식: zip 안의 CSV 하나. 설명문 → ",열1,열2" 머리줄 → YYYYMMDD(일별) 또는 YYYYMM(월별) 행 → 빈 줄(월별
 파일은 뒤에 연간 표가 이어지지만 첫 표만 읽는다). 값은 퍼센트, 결측은 -99.99/-999.
@@ -44,6 +45,10 @@ DATASETS = {
     "ind49_daily": "49_Industry_Portfolios_daily_CSV.zip",
     # leader-catch-v1(2026-10-12): 규모×장부가치 비율 5×5 25개 포트폴리오 일별(첫 표 = 시가총액 가중). 1926-07~.
     "ports25_daily": "25_Portfolios_5x5_Daily_CSV.zip",
+    # mom-proxy-v1(2026-10-16): 규모×과거 수익(12-2, 파일 설명은 −250~−21거래일) 일별 포트폴리오(첫 표 = 시가총액 가중, 1926-11~).
+    # 6개 = 2 규모 × 3 모멘텀(열 'BIG HiPRIOR' = 대형 승자), 25개 = 5×5(열 'BIG HiPRIOR' = ME5 PRIOR5). 파일 설명상 매일 다시 구성.
+    "mom6_daily": "6_Portfolios_ME_Prior_12_2_Daily_CSV.zip",
+    "mom25_daily": "25_Portfolios_ME_Prior_12_2_Daily_CSV.zip",
 }
 MAX_AGE_DAYS = 7
 DAILY_FACTORS = ["Mkt-RF", "SMB", "HML", "RMW", "CMA", "Mom"]
