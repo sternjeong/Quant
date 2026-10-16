@@ -17,6 +17,9 @@
 - 검증 완료: 네 작업 모두 synthetic smoke 종료 0, 관련 테스트 47 passed, 전체 pytest 3,065 passed·4 skipped, deploy unittest 72 OK, guide check 누락 없음, loader 네 id 모두 valid. 스모크는 사전등록 경로만 검증하며 실측 결과가 아니다.
 - 다음: 통합 commit을 origin/main에 반영하고 VM 자동배포 테스트 게이트 결과 및 네 작업의 상태를 확인한다. 레버리지 후속은 부모 조합 결과가 나온 뒤 별도 등록한다.
 - **게이트 후속:** main `12a3443` VM 전체 테스트에서 적응 집중 보조 테스트 2건이 실패했다. 테스트가 호출하는 `choose_k` 변경을 통합 커밋에 stage하지 않은 누락이었다. 운영은 `4e119cd`에 그대로 유지돼 코드 배포되지 않았다. 구현을 포함한 `6a3882c`를 새 커밋으로 main에 push했고 해당 두 테스트는 2 passed. 다음 자동배포 전체 테스트를 확인한 뒤 작업 상태를 확정한다.
+- **최종 배포 확인(2026-10-16 11:27 UTC):** `859574b` 전체 VM 배포 게이트 통과 후 운영 `/opt/quant` HEAD가 `859574b`; scheduler·streamlit active. `mom-proxy-v1`, `mom-volscale-v1`, `mom-lowturn-v1`은 실행기에서 `pending`, 실패 0·실행 0으로 확인했다. `sector-adaptive-k-v1`은 `done`, 실패 0·실행 1이며 결과는 main의 `research/results/sector-adaptive-k-v1/`에 게시됐다. 결과의 선택 칸은 top2이며 판정 `PASS_FORWARD_CANDIDATE` — 전진 원장 후보라는 뜻이지 엔진 반영이 아니다.
+- 최종 검증: 합성 스모크 4건 종료코드 0, 전용 테스트 47 passed, 전체 로컬 pytest 3,065 passed·4 skipped, deploy unittest 72 OK, guide 검사 누락 없음, loader 네 id valid. VM 배포 관문은 859574b에서 통과. 첫 통합 커밋에서 스크립트 수정이 누락되어 게이트가 두 테스트 실패했으나, 운영 폴더를 바꾸지 않은 채 수정 후 새 커밋으로 재검증해 통과시켰다.
+- 다음 단계: 세 pending 작업의 VM 실행 및 결과 게시를 확인한다. `mom-lowturn-v1`의 해외주식 손실 매도 후 재매수 처리 가정은 문서에서 “확인 필요”로 남겨두었다. 레버리지 후속 연구는 부모 결과가 확정되기 전 등록하지 않는다.
 
 ## 2026-10-15 로그인 복구 후 R&D 결과 및 Critic 대기 해소
 
