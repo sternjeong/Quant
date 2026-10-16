@@ -16,6 +16,7 @@
 - 다음: 전체 pytest와 deploy unittest, job loader를 확인하고 main 반영 후 VM 자동배포 관문/실행기 목록을 확인한다. 레버리지 후속은 부모 조합 결정 전에는 만들지 않는다.
 - 검증 완료: 네 작업 모두 synthetic smoke 종료 0, 관련 테스트 47 passed, 전체 pytest 3,065 passed·4 skipped, deploy unittest 72 OK, guide check 누락 없음, loader 네 id 모두 valid. 스모크는 사전등록 경로만 검증하며 실측 결과가 아니다.
 - 다음: 통합 commit을 origin/main에 반영하고 VM 자동배포 테스트 게이트 결과 및 네 작업의 상태를 확인한다. 레버리지 후속은 부모 조합 결과가 나온 뒤 별도 등록한다.
+- **게이트 후속:** main `12a3443` VM 전체 테스트에서 적응 집중 보조 테스트 2건이 실패했다. 테스트가 호출하는 `choose_k` 변경을 통합 커밋에 stage하지 않은 누락이었다. 운영은 `4e119cd`에 그대로 유지돼 코드 배포되지 않았다. 구현을 포함한 `6a3882c`를 새 커밋으로 main에 push했고 해당 두 테스트는 2 passed. 다음 자동배포 전체 테스트를 확인한 뒤 작업 상태를 확정한다.
 
 ## 2026-10-15 로그인 복구 후 R&D 결과 및 Critic 대기 해소
 

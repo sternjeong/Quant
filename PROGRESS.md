@@ -15,6 +15,12 @@
 - **검증 완료:** 네 작업 합성 스모크 종료코드 0, loader 모두 valid, guide 검사 누락 없음. 전체 pytest **3,065 passed·4 skipped**, `deploy/codex_telegram` unittest **72 OK**. 실측 연구 계산은 실행하지 않았다.
 - **상태:** 검증 완료, 후속 통합 커밋 작성·main 반영 대기. 첫 적응 집중 작업만 운영에 이미 배포되어 pending이다.
 
+## 2026-10-16 연구 추가 배포 게이트 실패 수정 — 재검증 대기
+
+- **관측:** 원격 `main`에 올린 통합본은 VM 자동배포에서 `tests/test_sector_adaptive_k.py` 두 건이 실패했다. 원인은 테스트가 사용하는 `choose_k` 구현 변경을 직전 커밋에 stage하지 않아 발생했다. 연구 데이터나 판정 결과 문제는 아니다.
+- **수정:** 누락된 `research/jobs/sector-adaptive-k-v1/run.py` 변경을 커밋 `6a3882c`에 포함해 main에 다시 push했다. 같은 테스트 2건 통과.
+- **상태:** 운영은 안전하게 `4e119cd`에 남아 있고 실패 커밋 `12a3443`는 배포 차단됨. 자동배포 타이머가 새 커밋을 감지한 뒤 전체 테스트 재실행 예정이다. `mom-proxy-v1`, `mom-volscale-v1`, `mom-lowturn-v1`이 VM에 올라갔다고 아직 간주하지 않는다.
+
 ## 2026-10-15 Claude 로그인 후 R&D 결과 및 이어받기 재개 준비
 
 - **인증·운영:** `quant` Claude CLI `loggedIn=true`; scheduler active. 운영 에이전트 dry plan은 sat_critic 주간 8/8 소진으로 새 작업 없음.
