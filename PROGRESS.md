@@ -7,6 +7,14 @@
 - **검증:** VM venv에서 스크립트 컴파일과 합성 `--smoke` 종료 코드 0, job loader 유효, `git diff --check` 통과. 전체 pytest, 원격 게시 및 VM main 등록은 아직 안 됨.
 - **다음:** 전체 pytest 통과 뒤 브랜치를 게시한다. 동시에 준비된 다른 연구 브랜치는 각자 스모크·테스트 후 main 병합해야 VM 실행기에 보인다. 연구 결과가 나오기 전 엔진에는 반영하지 않는다.
 
+## 2026-10-16 모멘텀 후속 3개 작업 통합 — 두 번째 배포 검증 대기
+
+- **통합:** `mom-proxy-v1`, `mom-volscale-v1`, `mom-lowturn-v1`을 적응 집중 작업과 함께 별도 브랜치에 통합했다. 저회전 작업은 개발 작업 트리에서 미커밋 상태였으므로 파일만 복사해 격리 검증했다. 각 작업 스모크 종료 코드 0, 관련 테스트 47 passed.
+- **선행 배포:** `sector-adaptive-k-v1`은 main `4187e7f` 및 운영 `/opt/quant`에 반영됐고 VM 실행기에서 `pending`, invalid 아님을 확인했다. VM 자동배포 전체 테스트·배포 유닛 테스트 모두 통과, scheduler·streamlit active.
+- **다음:** 세 모멘텀 작업의 전체 테스트 후 새 커밋을 main에 반영하고 자동배포 관문을 확인한다. 그 후 실행기 목록이 `pending` 인지 확인한다. 실험 본 계산은 VM에서만 실행한다.
+- **검증 완료:** 네 작업 합성 스모크 종료코드 0, loader 모두 valid, guide 검사 누락 없음. 전체 pytest **3,065 passed·4 skipped**, `deploy/codex_telegram` unittest **72 OK**. 실측 연구 계산은 실행하지 않았다.
+- **상태:** 검증 완료, 후속 통합 커밋 작성·main 반영 대기. 첫 적응 집중 작업만 운영에 이미 배포되어 pending이다.
+
 ## 2026-10-15 Claude 로그인 후 R&D 결과 및 이어받기 재개 준비
 
 - **인증·운영:** `quant` Claude CLI `loggedIn=true`; scheduler active. 운영 에이전트 dry plan은 sat_critic 주간 8/8 소진으로 새 작업 없음.

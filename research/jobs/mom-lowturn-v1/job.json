@@ -1,0 +1,14 @@
+{
+  "id": "mom-lowturn-v1",
+  "title": "저회전 모멘텀 v1 — 12 산업 상위 2개를 순위 완충·덜 잦은 리밸런싱·연말 손실 확정으로 덜 사고팔면 한국 세금 근사 뒤 더 남나(1927~2007, 사전 등록)",
+  "entrypoint": "research/jobs/mom-lowturn-v1/run.py",
+  "args": [],
+  "timeout_seconds": 3600,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 18,
+  "revision": 1,
+  "max_memory_mb": 1500
+}

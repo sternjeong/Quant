@@ -8,6 +8,15 @@
 - 검증: VM venv 컴파일 및 합성 `--smoke` 성공, `load_job_definitions(Config.for_root(...))` valid, diff check 통과. 스모크는 실데이터 성과 판정이 아니다. 전체 pytest·브랜치 게시·main 병합·VM 대기열 확인은 미완료.
 - 다음: 전체 pytest 후 게시·main 병합한다. 다른 준비 브랜치는 원 소유 작업트리에서 검증해 별도 게시·병합이 필요하다. main 반영 전까지 VM은 새 작업을 볼 수 없다.
 
+### 2026-10-16 후속 모멘텀 작업 3종 통합
+
+- 기존 브랜치의 `mom-proxy-v1`(French 대형주 모멘텀 대리와 시장 혼합), `mom-volscale-v1`(산업·대형 모멘텀 32칸 변동성/시장필터), 개발 작업 트리의 `mom-lowturn-v1`(완충·재조정 주기·손실확정 세후 비교)를 적응 집중 연구와 같은 후속 브랜치에 통합했다. `mom-lowturn-v1`은 원 작업 트리의 파일을 복사했으며 원 트리는 수정하지 않았다.
+- 세 작업 모두 합성 스모크 성공. 3개 작업 관련 테스트 + 적응 집중 테스트 47 passed. 실측 연구는 실행하지 않았다.
+- 별도 배포 완료된 `sector-adaptive-k-v1`은 운영에서 `pending`, 실패 0·실행 0이며 scheduler·streamlit active. 후속 3개 통합분은 아직 전체 테스트·main 반영·VM 배포 전.
+- 다음: 전체 pytest와 deploy unittest, job loader를 확인하고 main 반영 후 VM 자동배포 관문/실행기 목록을 확인한다. 레버리지 후속은 부모 조합 결정 전에는 만들지 않는다.
+- 검증 완료: 네 작업 모두 synthetic smoke 종료 0, 관련 테스트 47 passed, 전체 pytest 3,065 passed·4 skipped, deploy unittest 72 OK, guide check 누락 없음, loader 네 id 모두 valid. 스모크는 사전등록 경로만 검증하며 실측 결과가 아니다.
+- 다음: 통합 commit을 origin/main에 반영하고 VM 자동배포 테스트 게이트 결과 및 네 작업의 상태를 확인한다. 레버리지 후속은 부모 조합 결과가 나온 뒤 별도 등록한다.
+
 ## 2026-10-15 로그인 복구 후 R&D 결과 및 Critic 대기 해소
 
 사용자가 `quant` 서비스 계정 Claude 로그인을 완료했다(`auth status`: `loggedIn=true`). 토큰·계정 식별값은 기록하지 않는다. 운영 `quant-scheduler.service`는 active이며, 사전 등록 결정론 연구는 VM에서 실행됐다.
