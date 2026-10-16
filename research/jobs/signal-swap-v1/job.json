@@ -1,0 +1,14 @@
+{
+  "id": "signal-swap-v1",
+  "title": "순위 신호 바꾸기 — 코어 6개월(K6)·상대강도 자격(KRS), 새틀라이트 6개월(S6) 6개 후보, 기준 칸 대비 세후 원화 + 1927~2007 장기 관문",
+  "entrypoint": "research/jobs/signal-swap-v1/run.py",
+  "args": [],
+  "timeout_seconds": 10800,
+  "max_attempts": 4,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 13,
+  "revision": 1,
+  "max_memory_mb": 2500
+}
