@@ -1,0 +1,14 @@
+{
+  "id": "sat-frontier-v1",
+  "title": "SPY + 새틀라이트 비중(15~50%) × 안정화(현행/하위 슬리브 3개+순위 버퍼) — 앞 절반에서 안정성 한도 안 수익 최대 칸을 고르고 뒤 절반에서 SPY 대비 확인, 생존편향 헤어컷",
+  "entrypoint": "research/jobs/sat-frontier-v1/run.py",
+  "args": [],
+  "timeout_seconds": 10800,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 14,
+  "revision": 1,
+  "max_memory_mb": 2500
+}
