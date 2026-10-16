@@ -348,8 +348,9 @@ def test_cancel_request_stops_a_running_child_and_admin_cancel(cfg):
 
 def test_child_runs_with_research_priority(cfg):
     job = _job(cfg, "nice", "import os\nprint('NICE', os.nice(0))\n")
+    parent_nice = os.nice(0)
     outcome = rj.run_child(cfg, job, 30, poll_interval=0.1, system_memory=lambda: None)
-    assert "NICE 5" in outcome.log_tail
+    assert f"NICE {min(19, parent_nice + 5)}" in outcome.log_tail
 
 
 def test_memory_budget_uses_up_to_80_percent_of_vm_ram(cfg):
