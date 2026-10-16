@@ -1,5 +1,13 @@
 # 세션 인계
 
+## 2026-10-16 수익 우선 후속 실험 등록 — VM 반영 전
+
+- 사용자가 앞서 제안한 수익 우선 연구를 VM 실행기에 올리도록 요청했다. 기존 작업을 확인한 결과 `mom-proxy-v1`(French 대형주 승자 대리), `mom-volscale-v1`(산업/대형 모멘텀의 변동성 조절·시장 필터), `mom-lowturn-v1`(완충·재조정 주기·연말 손실 확정), `sector-concentrate-v1`, `lev-base-v1`이 각각 작업 브랜치 또는 결과로 존재한다. 필터/변동성 실험을 중복 생성하지 않는다.
+- 새로 사전등록한 `sector-adaptive-k-v1`: 월별 RS12 1·2위 격차가 과거 60개월 격차 중앙값 초과 시 top1, 아니면 top2. 선택 1927~1966, 확인 1967~2007, MDD·worst-12m·세후 CAGR 문턱을 SPEC에 고정한다. 2008 이후는 참고만 하며 엔진 반영 없음.
+- 수정 파일: `research/jobs/sector-adaptive-k-v1/{job.json,SPEC.md,run.py}`, `PROGRESS.md`, 이 인계 문서.
+- 검증: VM venv 컴파일 및 합성 `--smoke` 성공, `load_job_definitions(Config.for_root(...))` valid, diff check 통과. 스모크는 실데이터 성과 판정이 아니다. 전체 pytest·브랜치 게시·main 병합·VM 대기열 확인은 미완료.
+- 다음: 전체 pytest 후 게시·main 병합한다. 다른 준비 브랜치는 원 소유 작업트리에서 검증해 별도 게시·병합이 필요하다. main 반영 전까지 VM은 새 작업을 볼 수 없다.
+
 ## 2026-10-15 로그인 복구 후 R&D 결과 및 Critic 대기 해소
 
 사용자가 `quant` 서비스 계정 Claude 로그인을 완료했다(`auth status`: `loggedIn=true`). 토큰·계정 식별값은 기록하지 않는다. 운영 `quant-scheduler.service`는 active이며, 사전 등록 결정론 연구는 VM에서 실행됐다.
