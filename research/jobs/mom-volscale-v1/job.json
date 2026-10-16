@@ -1,0 +1,14 @@
+{
+  "id": "mom-volscale-v1",
+  "title": "모멘텀 변동성 맞춤 v1 — 산업 집중·대형 고모멘텀의 노출을 최근 변동성으로 줄이면 1927~2007 수익-낙폭 경계가 나아지나(사전 등록)",
+  "entrypoint": "research/jobs/mom-volscale-v1/run.py",
+  "args": [],
+  "timeout_seconds": 3600,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 17,
+  "revision": 1,
+  "max_memory_mb": 1500
+}
