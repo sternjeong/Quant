@@ -1,0 +1,3401 @@
+{
+ "judge_version": "mom-lowturn-v1/2026-10-16",
+ "smoke": false,
+ "source": "Ken French data library (daily, weekday calendar)",
+ "data_end": "2026-08-31",
+ "generated_at": "2026-10-16T12:11:36+00:00",
+ "verdicts": {
+  "overall": "FAIL",
+  "chosen_cell": "Bnone_monthly_harvest",
+  "reason": "미달 관문: vs_M0",
+  "etf_support": "NOT_SUPPORTING",
+  "confirmation_after_tax": "Bnone_monthly_harvest 13.25% · M0 13.37% · 시장 10.19%"
+ },
+ "power": {
+  "years": 41.0,
+  "n_trials": 17,
+  "confidence": 0.95,
+  "mde_ir": 0.542,
+  "power_at": {
+   "0.20": 0.014,
+   "0.30": 0.06,
+   "0.50": 0.393
+  },
+  "method": "expected-max-z(Bailey-LdP) + null SE, simplified"
+ },
+ "decision": {
+  "chosen": "Bnone_monthly_harvest",
+  "eligible_in_selection": [
+   "M0",
+   "Bnone_monthly_harvest",
+   "Bnone_quarterly_noharvest",
+   "Bnone_quarterly_harvest",
+   "Bnone_annual_noharvest",
+   "Bnone_annual_harvest",
+   "B3_monthly_noharvest",
+   "B3_monthly_harvest",
+   "B3_quarterly_noharvest",
+   "B3_quarterly_harvest",
+   "B3_annual_noharvest",
+   "B3_annual_harvest",
+   "B4_monthly_noharvest",
+   "B4_monthly_harvest",
+   "B4_quarterly_noharvest",
+   "B4_quarterly_harvest",
+   "B4_annual_noharvest",
+   "B4_annual_harvest"
+  ],
+  "selection_stability": {
+   "M0": {
+    "A_mdd": true,
+    "B_worst252": true
+   },
+   "Bnone_monthly_harvest": {
+    "A_mdd": true,
+    "B_worst252": true
+   },
+   "Bnone_quarterly_noharvest": {
+    "A_mdd": true,
+    "B_worst252": true
+   },
+   "Bnone_quarterly_harvest": {
+    "A_mdd": true,
+    "B_worst252": true
+   },
+   "Bnone_annual_noharvest": {
+    "A_mdd": true,
+    "B_worst252": true
+   },
+   "Bnone_annual_harvest": {
+    "A_mdd": true,
+    "B_worst252": true
+   },
+   "B3_monthly_noharvest": {
+    "A_mdd": true,
+    "B_worst252": true
+   },
+   "B3_monthly_harvest": {
+    "A_mdd": true,
+    "B_worst252": true
+   },
+   "B3_quarterly_noharvest": {
+    "A_mdd": true,
+    "B_worst252": true
+   },
+   "B3_quarterly_harvest": {
+    "A_mdd": true,
+    "B_worst252": true
+   },
+   "B3_annual_noharvest": {
+    "A_mdd": true,
+    "B_worst252": true
+   },
+   "B3_annual_harvest": {
+    "A_mdd": true,
+    "B_worst252": true
+   },
+   "B4_monthly_noharvest": {
+    "A_mdd": true,
+    "B_worst252": true
+   },
+   "B4_monthly_harvest": {
+    "A_mdd": true,
+    "B_worst252": true
+   },
+   "B4_quarterly_noharvest": {
+    "A_mdd": true,
+    "B_worst252": true
+   },
+   "B4_quarterly_harvest": {
+    "A_mdd": true,
+    "B_worst252": true
+   },
+   "B4_annual_noharvest": {
+    "A_mdd": true,
+    "B_worst252": true
+   },
+   "B4_annual_harvest": {
+    "A_mdd": true,
+    "B_worst252": true
+   }
+  },
+  "confirmation_checks": {
+   "vs_M0": false,
+   "vs_market": true,
+   "A_mdd": true,
+   "B_worst252": true,
+   "subperiods_both": true
+  },
+  "noop": null,
+  "observed_ir_after_tax_vs_M0": -0.09248,
+  "verdict": "FAIL",
+  "reason": "미달 관문: vs_M0",
+  "noop_vs_M0_confirmation": {
+   "Bnone_monthly_harvest": null,
+   "Bnone_quarterly_noharvest": null,
+   "Bnone_quarterly_harvest": null,
+   "Bnone_annual_noharvest": null,
+   "Bnone_annual_harvest": null,
+   "B3_monthly_noharvest": null,
+   "B3_monthly_harvest": null,
+   "B3_quarterly_noharvest": null,
+   "B3_quarterly_harvest": null,
+   "B3_annual_noharvest": null,
+   "B3_annual_harvest": null,
+   "B4_monthly_noharvest": null,
+   "B4_monthly_harvest": null,
+   "B4_quarterly_noharvest": null,
+   "B4_quarterly_harvest": null,
+   "B4_annual_noharvest": null,
+   "B4_annual_harvest": null
+  }
+ },
+ "rule": {
+  "universe": "Ken French 12 industries daily value-weighted (weekday calendar)",
+  "market": "Mkt-RF + RF",
+  "signal": "252-row return − market (rank = 252-row return rank)",
+  "k": 2,
+  "cells": {
+   "M0": {
+    "id": "M0",
+    "buffer": null,
+    "freq": "monthly",
+    "harvest": false,
+    "reset": "always"
+   },
+   "Bnone_monthly_harvest": {
+    "id": "Bnone_monthly_harvest",
+    "buffer": null,
+    "freq": "monthly",
+    "harvest": true,
+    "reset": "on_change"
+   },
+   "Bnone_quarterly_noharvest": {
+    "id": "Bnone_quarterly_noharvest",
+    "buffer": null,
+    "freq": "quarterly",
+    "harvest": false,
+    "reset": "on_change"
+   },
+   "Bnone_quarterly_harvest": {
+    "id": "Bnone_quarterly_harvest",
+    "buffer": null,
+    "freq": "quarterly",
+    "harvest": true,
+    "reset": "on_change"
+   },
+   "Bnone_annual_noharvest": {
+    "id": "Bnone_annual_noharvest",
+    "buffer": null,
+    "freq": "annual",
+    "harvest": false,
+    "reset": "on_change"
+   },
+   "Bnone_annual_harvest": {
+    "id": "Bnone_annual_harvest",
+    "buffer": null,
+    "freq": "annual",
+    "harvest": true,
+    "reset": "on_change"
+   },
+   "B3_monthly_noharvest": {
+    "id": "B3_monthly_noharvest",
+    "buffer": 3,
+    "freq": "monthly",
+    "harvest": false,
+    "reset": "on_change"
+   },
+   "B3_monthly_harvest": {
+    "id": "B3_monthly_harvest",
+    "buffer": 3,
+    "freq": "monthly",
+    "harvest": true,
+    "reset": "on_change"
+   },
+   "B3_quarterly_noharvest": {
+    "id": "B3_quarterly_noharvest",
+    "buffer": 3,
+    "freq": "quarterly",
+    "harvest": false,
+    "reset": "on_change"
+   },
+   "B3_quarterly_harvest": {
+    "id": "B3_quarterly_harvest",
+    "buffer": 3,
+    "freq": "quarterly",
+    "harvest": true,
+    "reset": "on_change"
+   },
+   "B3_annual_noharvest": {
+    "id": "B3_annual_noharvest",
+    "buffer": 3,
+    "freq": "annual",
+    "harvest": false,
+    "reset": "on_change"
+   },
+   "B3_annual_harvest": {
+    "id": "B3_annual_harvest",
+    "buffer": 3,
+    "freq": "annual",
+    "harvest": true,
+    "reset": "on_change"
+   },
+   "B4_monthly_noharvest": {
+    "id": "B4_monthly_noharvest",
+    "buffer": 4,
+    "freq": "monthly",
+    "harvest": false,
+    "reset": "on_change"
+   },
+   "B4_monthly_harvest": {
+    "id": "B4_monthly_harvest",
+    "buffer": 4,
+    "freq": "monthly",
+    "harvest": true,
+    "reset": "on_change"
+   },
+   "B4_quarterly_noharvest": {
+    "id": "B4_quarterly_noharvest",
+    "buffer": 4,
+    "freq": "quarterly",
+    "harvest": false,
+    "reset": "on_change"
+   },
+   "B4_quarterly_harvest": {
+    "id": "B4_quarterly_harvest",
+    "buffer": 4,
+    "freq": "quarterly",
+    "harvest": true,
+    "reset": "on_change"
+   },
+   "B4_annual_noharvest": {
+    "id": "B4_annual_noharvest",
+    "buffer": 4,
+    "freq": "annual",
+    "harvest": false,
+    "reset": "on_change"
+   },
+   "B4_annual_harvest": {
+    "id": "B4_annual_harvest",
+    "buffer": 4,
+    "freq": "annual",
+    "harvest": true,
+    "reset": "on_change"
+   }
+  },
+  "n_trials": 17,
+  "M0": "sector-concentrate-v1 RS12_k2: top-2 equal weight, reset every month",
+  "variants": "equal-weight reset only when a name changes; buffer keeps held names ranked within top K",
+  "harvest": "last trading day of December: sell held industries with unrealized KRW loss at close, buy back at next trading day's close (cash 0% for one day)",
+  "timing": "signal = close before decision day d; trade at close of d; each window is a fresh account",
+  "cost_bps_one_way": 10.0,
+  "windows": {
+   "selection": [
+    "1927-07-01",
+    "1966-12-31"
+   ],
+   "confirmation": [
+    "1967-01-01",
+    "2007-12-31"
+   ],
+   "conf_1967_1986": [
+    "1967-01-01",
+    "1986-12-31"
+   ],
+   "conf_1987_2007": [
+    "1987-01-01",
+    "2007-12-31"
+   ],
+   "post2008": [
+    "2008-01-01",
+    null
+   ]
+  }
+ },
+ "thresholds": {
+  "A": "after-tax KRW MDD >= market's",
+  "B": "worst 252-row after-tax return >= market's - 0.05",
+  "vs_M0_pp": 0.005,
+  "vs_market_pp": 0.01,
+  "subperiods": "after-tax CAGR > market in 1967-1986 and 1987-2007 (fresh accounts)",
+  "etf": {
+   "vs_spy_pp": 0.005,
+   "and": ">= M0 after-tax",
+   "window": [
+    "2000-01-01",
+    "2024-09-30"
+   ]
+  }
+ },
+ "tax_approx": "approximation: tax_fx.simulate on industry total-return index levels as prices, 30,000,000 KRW, fixed 1 USD = 1,300 KRW, 22% on realized gains above 2.5M KRW/yr, no loss carry-forward, fee 10bp, no FX cost/dividend tax, liquidation-adjusted at window end",
+ "cells": {
+  "M0": {
+   "selection": {
+    "first": "1927-07-01",
+    "last": "1966-12-30",
+    "pre_tax_cagr": 0.14451,
+    "after_tax_cagr": 0.11468,
+    "tax_paid_krw": 587504387.12008,
+    "liquidation_tax_krw": 43141607.55288,
+    "turnover_per_year": 2.71826,
+    "mdd_after_tax": -0.80544,
+    "worst252_after_tax": -0.58944,
+    "mdd_pre_tax": -0.78858,
+    "worst252_pre_tax": -0.58941,
+    "avg_holding_years": 0.37263,
+    "n_spells": 212,
+    "n_harvests": 0,
+    "n_trades": 474,
+    "final_picks": [
+     "BusEq",
+     "Other"
+    ],
+    "harvest_sample": []
+   },
+   "confirmation": {
+    "first": "1967-01-03",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.16217,
+    "after_tax_cagr": 0.13368,
+    "tax_paid_krw": 1303054349.41413,
+    "liquidation_tax_krw": 192732562.21946,
+    "turnover_per_year": 2.70017,
+    "mdd_after_tax": -0.3965,
+    "worst252_after_tax": -0.34313,
+    "mdd_pre_tax": -0.38578,
+    "worst252_pre_tax": -0.34319,
+    "avg_holding_years": 0.37607,
+    "n_spells": 218,
+    "n_harvests": 0,
+    "n_trades": 492,
+    "final_picks": [
+     "Enrgy",
+     "Chems"
+    ],
+    "harvest_sample": []
+   },
+   "conf_1967_1986": {
+    "first": "1967-01-03",
+    "last": "1986-12-31",
+    "pre_tax_cagr": 0.15239,
+    "after_tax_cagr": 0.12729,
+    "tax_paid_krw": 55477004.94433,
+    "liquidation_tax_krw": 21749664.27176,
+    "turnover_per_year": 2.6834,
+    "mdd_after_tax": -0.3965,
+    "worst252_after_tax": -0.34313,
+    "mdd_pre_tax": -0.38578,
+    "worst252_pre_tax": -0.34319,
+    "avg_holding_years": 0.37368,
+    "n_spells": 107,
+    "n_harvests": 0,
+    "n_trades": 240,
+    "final_picks": [
+     "NoDur",
+     "Chems"
+    ],
+    "harvest_sample": []
+   },
+   "conf_1987_2007": {
+    "first": "1987-01-02",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.17052,
+    "after_tax_cagr": 0.14289,
+    "tax_paid_krw": 107981605.53055,
+    "liquidation_tax_krw": 18052190.29372,
+    "turnover_per_year": 2.71676,
+    "mdd_after_tax": -0.37769,
+    "worst252_after_tax": -0.2683,
+    "mdd_pre_tax": -0.37768,
+    "worst252_pre_tax": -0.25073,
+    "avg_holding_years": 0.37157,
+    "n_spells": 113,
+    "n_harvests": 0,
+    "n_trades": 252,
+    "final_picks": [
+     "Enrgy",
+     "Chems"
+    ],
+    "harvest_sample": []
+   },
+   "post2008": {
+    "first": "2008-01-02",
+    "last": "2026-08-31",
+    "pre_tax_cagr": 0.12271,
+    "after_tax_cagr": 0.10395,
+    "tax_paid_krw": 34596886.57713,
+    "liquidation_tax_krw": 6942374.35536,
+    "turnover_per_year": 3.18721,
+    "mdd_after_tax": -0.5055,
+    "worst252_after_tax": -0.44884,
+    "mdd_pre_tax": -0.50544,
+    "worst252_pre_tax": -0.44877,
+    "avg_holding_years": 0.31629,
+    "n_spells": 118,
+    "n_harvests": 0,
+    "n_trades": 224,
+    "final_picks": [
+     "Manuf",
+     "Enrgy"
+    ],
+    "harvest_sample": []
+   }
+  },
+  "Bnone_monthly_harvest": {
+   "selection": {
+    "first": "1927-07-01",
+    "last": "1966-12-30",
+    "pre_tax_cagr": 0.14737,
+    "after_tax_cagr": 0.1171,
+    "tax_paid_krw": 642923055.11105,
+    "liquidation_tax_krw": 48753311.18821,
+    "turnover_per_year": 2.74452,
+    "mdd_after_tax": -0.78764,
+    "worst252_after_tax": -0.56226,
+    "mdd_pre_tax": -0.77604,
+    "worst252_pre_tax": -0.56226,
+    "avg_holding_years": 0.37263,
+    "n_spells": 212,
+    "n_harvests": 7,
+    "n_trades": 215,
+    "final_picks": [
+     "BusEq",
+     "Other"
+    ],
+    "harvest_sample": [
+     {
+      "date": "1940-12-31",
+      "names": [
+       "Durbl"
+      ]
+     },
+     {
+      "date": "1951-12-31",
+      "names": [
+       "Hlth"
+      ]
+     },
+     {
+      "date": "1957-12-31",
+      "names": [
+       "BusEq"
+      ]
+     }
+    ]
+   },
+   "confirmation": {
+    "first": "1967-01-03",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.1609,
+    "after_tax_cagr": 0.13247,
+    "tax_paid_krw": 1213459136.09395,
+    "liquidation_tax_krw": 216216025.48663,
+    "turnover_per_year": 2.73995,
+    "mdd_after_tax": -0.3927,
+    "worst252_after_tax": -0.33846,
+    "mdd_pre_tax": -0.38199,
+    "worst252_pre_tax": -0.33858,
+    "avg_holding_years": 0.37607,
+    "n_spells": 218,
+    "n_harvests": 11,
+    "n_trades": 225,
+    "final_picks": [
+     "Enrgy",
+     "Chems"
+    ],
+    "harvest_sample": [
+     {
+      "date": "1990-12-31",
+      "names": [
+       "Enrgy"
+      ]
+     },
+     {
+      "date": "2002-12-31",
+      "names": [
+       "NoDur"
+      ]
+     },
+     {
+      "date": "2006-12-29",
+      "names": [
+       "Enrgy"
+      ]
+     }
+    ]
+   },
+   "conf_1967_1986": {
+    "first": "1967-01-03",
+    "last": "1986-12-31",
+    "pre_tax_cagr": 0.15163,
+    "after_tax_cagr": 0.12597,
+    "tax_paid_krw": 55226888.69807,
+    "liquidation_tax_krw": 21361400.09561,
+    "turnover_per_year": 2.70733,
+    "mdd_after_tax": -0.3927,
+    "worst252_after_tax": -0.33846,
+    "mdd_pre_tax": -0.38199,
+    "worst252_pre_tax": -0.33858,
+    "avg_holding_years": 0.37368,
+    "n_spells": 107,
+    "n_harvests": 5,
+    "n_trades": 109,
+    "final_picks": [
+     "NoDur",
+     "Chems"
+    ],
+    "harvest_sample": [
+     {
+      "date": "1974-12-31",
+      "names": [
+       "Telcm",
+       "Chems"
+      ]
+     },
+     {
+      "date": "1977-12-30",
+      "names": [
+       "Money"
+      ]
+     },
+     {
+      "date": "1984-12-31",
+      "names": [
+       "Enrgy"
+      ]
+     }
+    ]
+   },
+   "conf_1987_2007": {
+    "first": "1987-01-02",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.16935,
+    "after_tax_cagr": 0.14151,
+    "tax_paid_krw": 102223852.0442,
+    "liquidation_tax_krw": 20689718.56317,
+    "turnover_per_year": 2.74795,
+    "mdd_after_tax": -0.37769,
+    "worst252_after_tax": -0.27946,
+    "mdd_pre_tax": -0.37768,
+    "worst252_pre_tax": -0.27941,
+    "avg_holding_years": 0.37157,
+    "n_spells": 113,
+    "n_harvests": 5,
+    "n_trades": 115,
+    "final_picks": [
+     "Enrgy",
+     "Chems"
+    ],
+    "harvest_sample": [
+     {
+      "date": "1990-12-31",
+      "names": [
+       "Enrgy"
+      ]
+     },
+     {
+      "date": "2002-12-31",
+      "names": [
+       "NoDur"
+      ]
+     },
+     {
+      "date": "2006-12-29",
+      "names": [
+       "Enrgy"
+      ]
+     }
+    ]
+   },
+   "post2008": {
+    "first": "2008-01-02",
+    "last": "2026-08-31",
+    "pre_tax_cagr": 0.12181,
+    "after_tax_cagr": 0.10244,
+    "tax_paid_krw": 34479701.31155,
+    "liquidation_tax_krw": 7216013.14706,
+    "turnover_per_year": 3.17624,
+    "mdd_after_tax": -0.50958,
+    "worst252_after_tax": -0.45352,
+    "mdd_pre_tax": -0.50953,
+    "worst252_pre_tax": -0.45347,
+    "avg_holding_years": 0.31629,
+    "n_spells": 118,
+    "n_harvests": 5,
+    "n_trades": 112,
+    "final_picks": [
+     "Manuf",
+     "Enrgy"
+    ],
+    "harvest_sample": [
+     {
+      "date": "2016-12-30",
+      "names": [
+       "Manuf"
+      ]
+     },
+     {
+      "date": "2018-12-31",
+      "names": [
+       "Shops",
+       "Hlth"
+      ]
+     },
+     {
+      "date": "2024-12-31",
+      "names": [
+       "Utils"
+      ]
+     }
+    ]
+   }
+  },
+  "Bnone_quarterly_noharvest": {
+   "selection": {
+    "first": "1927-07-01",
+    "last": "1966-12-30",
+    "pre_tax_cagr": 0.12502,
+    "after_tax_cagr": 0.09888,
+    "tax_paid_krw": 302365357.80757,
+    "liquidation_tax_krw": 40875576.25982,
+    "turnover_per_year": 1.48702,
+    "mdd_after_tax": -0.80444,
+    "worst252_after_tax": -0.58801,
+    "mdd_pre_tax": -0.78884,
+    "worst252_pre_tax": -0.58804,
+    "avg_holding_years": 0.66385,
+    "n_spells": 119,
+    "n_harvests": 0,
+    "n_trades": 103,
+    "final_picks": [
+     "BusEq",
+     "Other"
+    ],
+    "harvest_sample": []
+   },
+   "confirmation": {
+    "first": "1967-01-03",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.1437,
+    "after_tax_cagr": 0.11723,
+    "tax_paid_krw": 775845945.28166,
+    "liquidation_tax_krw": 114359319.62589,
+    "turnover_per_year": 1.60093,
+    "mdd_after_tax": -0.54355,
+    "worst252_after_tax": -0.45838,
+    "mdd_pre_tax": -0.50444,
+    "worst252_pre_tax": -0.45073,
+    "avg_holding_years": 0.61641,
+    "n_spells": 133,
+    "n_harvests": 0,
+    "n_trades": 113,
+    "final_picks": [
+     "Manuf",
+     "Enrgy"
+    ],
+    "harvest_sample": []
+   },
+   "conf_1967_1986": {
+    "first": "1967-01-03",
+    "last": "1986-12-31",
+    "pre_tax_cagr": 0.1467,
+    "after_tax_cagr": 0.12196,
+    "tax_paid_krw": 46961398.60102,
+    "liquidation_tax_krw": 22315507.44815,
+    "turnover_per_year": 1.5276,
+    "mdd_after_tax": -0.39932,
+    "worst252_after_tax": -0.36851,
+    "mdd_pre_tax": -0.39285,
+    "worst252_pre_tax": -0.36172,
+    "avg_holding_years": 0.63466,
+    "n_spells": 63,
+    "n_harvests": 0,
+    "n_trades": 56,
+    "final_picks": [
+     "NoDur",
+     "Utils"
+    ],
+    "harvest_sample": []
+   },
+   "conf_1987_2007": {
+    "first": "1987-01-02",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.13986,
+    "after_tax_cagr": 0.11629,
+    "tax_paid_krw": 65434407.57505,
+    "liquidation_tax_krw": 11710654.92794,
+    "turnover_per_year": 1.64735,
+    "mdd_after_tax": -0.54141,
+    "worst252_after_tax": -0.45731,
+    "mdd_pre_tax": -0.50444,
+    "worst252_pre_tax": -0.45073,
+    "avg_holding_years": 0.59138,
+    "n_spells": 71,
+    "n_harvests": 0,
+    "n_trades": 57,
+    "final_picks": [
+     "Manuf",
+     "Enrgy"
+    ],
+    "harvest_sample": []
+   },
+   "post2008": {
+    "first": "2008-01-02",
+    "last": "2026-08-31",
+    "pre_tax_cagr": 0.09595,
+    "after_tax_cagr": 0.0815,
+    "tax_paid_krw": 20648058.8957,
+    "liquidation_tax_krw": 2223342.92667,
+    "turnover_per_year": 1.85443,
+    "mdd_after_tax": -0.50941,
+    "worst252_after_tax": -0.45321,
+    "mdd_pre_tax": -0.5094,
+    "worst252_pre_tax": -0.4532,
+    "avg_holding_years": 0.52567,
+    "n_spells": 71,
+    "n_harvests": 0,
+    "n_trades": 58,
+    "final_picks": [
+     "Manuf",
+     "BusEq"
+    ],
+    "harvest_sample": []
+   }
+  },
+  "Bnone_quarterly_harvest": {
+   "selection": {
+    "first": "1927-07-01",
+    "last": "1966-12-30",
+    "pre_tax_cagr": 0.12577,
+    "after_tax_cagr": 0.10005,
+    "tax_paid_krw": 318222267.16918,
+    "liquidation_tax_krw": 42644023.68875,
+    "turnover_per_year": 1.5747,
+    "mdd_after_tax": -0.7852,
+    "worst252_after_tax": -0.56184,
+    "mdd_pre_tax": -0.77646,
+    "worst252_pre_tax": -0.56189,
+    "avg_holding_years": 0.66385,
+    "n_spells": 119,
+    "n_harvests": 10,
+    "n_trades": 116,
+    "final_picks": [
+     "BusEq",
+     "Other"
+    ],
+    "harvest_sample": [
+     {
+      "date": "1946-12-31",
+      "names": [
+       "Shops"
+      ]
+     },
+     {
+      "date": "1951-12-31",
+      "names": [
+       "Hlth"
+      ]
+     },
+     {
+      "date": "1957-12-31",
+      "names": [
+       "BusEq"
+      ]
+     }
+    ]
+   },
+   "confirmation": {
+    "first": "1967-01-03",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.14224,
+    "after_tax_cagr": 0.11705,
+    "tax_paid_krw": 751810935.96471,
+    "liquidation_tax_krw": 113617358.14266,
+    "turnover_per_year": 1.62491,
+    "mdd_after_tax": -0.54391,
+    "worst252_after_tax": -0.45862,
+    "mdd_pre_tax": -0.50456,
+    "worst252_pre_tax": -0.45073,
+    "avg_holding_years": 0.61641,
+    "n_spells": 133,
+    "n_harvests": 9,
+    "n_trades": 122,
+    "final_picks": [
+     "Manuf",
+     "Enrgy"
+    ],
+    "harvest_sample": [
+     {
+      "date": "1990-12-31",
+      "names": [
+       "Enrgy"
+      ]
+     },
+     {
+      "date": "1997-12-31",
+      "names": [
+       "BusEq"
+      ]
+     },
+     {
+      "date": "2002-12-31",
+      "names": [
+       "Chems"
+      ]
+     }
+    ]
+   },
+   "conf_1967_1986": {
+    "first": "1967-01-03",
+    "last": "1986-12-31",
+    "pre_tax_cagr": 0.14551,
+    "after_tax_cagr": 0.12126,
+    "tax_paid_krw": 46101199.72468,
+    "liquidation_tax_krw": 22031428.83282,
+    "turnover_per_year": 1.55205,
+    "mdd_after_tax": -0.39521,
+    "worst252_after_tax": -0.36433,
+    "mdd_pre_tax": -0.39328,
+    "worst252_pre_tax": -0.36217,
+    "avg_holding_years": 0.63466,
+    "n_spells": 63,
+    "n_harvests": 5,
+    "n_trades": 61,
+    "final_picks": [
+     "NoDur",
+     "Utils"
+    ],
+    "harvest_sample": [
+     {
+      "date": "1973-12-31",
+      "names": [
+       "Chems"
+      ]
+     },
+     {
+      "date": "1974-12-31",
+      "names": [
+       "Telcm"
+      ]
+     },
+     {
+      "date": "1975-12-31",
+      "names": [
+       "Enrgy"
+      ]
+     }
+    ]
+   },
+   "conf_1987_2007": {
+    "first": "1987-01-02",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.13815,
+    "after_tax_cagr": 0.11602,
+    "tax_paid_krw": 63089894.4347,
+    "liquidation_tax_krw": 11649140.14041,
+    "turnover_per_year": 1.6709,
+    "mdd_after_tax": -0.54176,
+    "worst252_after_tax": -0.45755,
+    "mdd_pre_tax": -0.50456,
+    "worst252_pre_tax": -0.45073,
+    "avg_holding_years": 0.59138,
+    "n_spells": 71,
+    "n_harvests": 4,
+    "n_trades": 61,
+    "final_picks": [
+     "Manuf",
+     "Enrgy"
+    ],
+    "harvest_sample": [
+     {
+      "date": "1990-12-31",
+      "names": [
+       "Enrgy"
+      ]
+     },
+     {
+      "date": "1997-12-31",
+      "names": [
+       "BusEq"
+      ]
+     },
+     {
+      "date": "2002-12-31",
+      "names": [
+       "Chems"
+      ]
+     }
+    ]
+   },
+   "post2008": {
+    "first": "2008-01-02",
+    "last": "2026-08-31",
+    "pre_tax_cagr": 0.09197,
+    "after_tax_cagr": 0.07847,
+    "tax_paid_krw": 18745803.50735,
+    "liquidation_tax_krw": 2084043.70769,
+    "turnover_per_year": 1.90793,
+    "mdd_after_tax": -0.52056,
+    "worst252_after_tax": -0.46565,
+    "mdd_pre_tax": -0.52056,
+    "worst252_pre_tax": -0.46564,
+    "avg_holding_years": 0.52567,
+    "n_spells": 71,
+    "n_harvests": 6,
+    "n_trades": 64,
+    "final_picks": [
+     "Manuf",
+     "BusEq"
+    ],
+    "harvest_sample": [
+     {
+      "date": "2018-12-31",
+      "names": [
+       "BusEq",
+       "Shops"
+      ]
+     },
+     {
+      "date": "2023-12-29",
+      "names": [
+       "Enrgy"
+      ]
+     },
+     {
+      "date": "2024-12-31",
+      "names": [
+       "Utils"
+      ]
+     }
+    ]
+   }
+  },
+  "Bnone_annual_noharvest": {
+   "selection": {
+    "first": "1927-07-01",
+    "last": "1966-12-30",
+    "pre_tax_cagr": 0.10628,
+    "after_tax_cagr": 0.08322,
+    "tax_paid_krw": 202337057.64513,
+    "liquidation_tax_krw": 13519228.73127,
+    "turnover_per_year": 0.82281,
+    "mdd_after_tax": -0.82268,
+    "worst252_after_tax": -0.63239,
+    "mdd_pre_tax": -0.81055,
+    "worst252_pre_tax": -0.63241,
+    "avg_holding_years": 1.17907,
+    "n_spells": 67,
+    "n_harvests": 0,
+    "n_trades": 40,
+    "final_picks": [
+     "BusEq",
+     "Other"
+    ],
+    "harvest_sample": []
+   },
+   "confirmation": {
+    "first": "1967-01-03",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.127,
+    "after_tax_cagr": 0.10652,
+    "tax_paid_krw": 390360819.50201,
+    "liquidation_tax_krw": 204593069.46303,
+    "turnover_per_year": 0.70747,
+    "mdd_after_tax": -0.6828,
+    "worst252_after_tax": -0.58126,
+    "mdd_pre_tax": -0.66095,
+    "worst252_pre_tax": -0.56353,
+    "avg_holding_years": 1.36637,
+    "n_spells": 60,
+    "n_harvests": 0,
+    "n_trades": 38,
+    "final_picks": [
+     "Enrgy",
+     "Telcm"
+    ],
+    "harvest_sample": []
+   },
+   "conf_1967_1986": {
+    "first": "1967-01-03",
+    "last": "1986-12-31",
+    "pre_tax_cagr": 0.11303,
+    "after_tax_cagr": 0.09605,
+    "tax_paid_krw": 21061988.90894,
+    "liquidation_tax_krw": 17580678.50701,
+    "turnover_per_year": 0.75031,
+    "mdd_after_tax": -0.47066,
+    "worst252_after_tax": -0.41331,
+    "mdd_pre_tax": -0.4376,
+    "worst252_pre_tax": -0.4053,
+    "avg_holding_years": 1.24949,
+    "n_spells": 32,
+    "n_harvests": 0,
+    "n_trades": 19,
+    "final_picks": [
+     "NoDur",
+     "Money"
+    ],
+    "harvest_sample": []
+   },
+   "conf_1987_2007": {
+    "first": "1987-01-02",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.13951,
+    "after_tax_cagr": 0.11806,
+    "tax_paid_krw": 49427816.48219,
+    "liquidation_tax_krw": 33090296.22905,
+    "turnover_per_year": 0.64305,
+    "mdd_after_tax": -0.68079,
+    "worst252_after_tax": -0.58059,
+    "mdd_pre_tax": -0.66095,
+    "worst252_pre_tax": -0.56353,
+    "avg_holding_years": 1.44785,
+    "n_spells": 29,
+    "n_harvests": 0,
+    "n_trades": 19,
+    "final_picks": [
+     "Enrgy",
+     "Telcm"
+    ],
+    "harvest_sample": []
+   },
+   "post2008": {
+    "first": "2008-01-02",
+    "last": "2026-08-31",
+    "pre_tax_cagr": 0.10474,
+    "after_tax_cagr": 0.0879,
+    "tax_paid_krw": 11862919.01425,
+    "liquidation_tax_krw": 16859032.73945,
+    "turnover_per_year": 0.75022,
+    "mdd_after_tax": -0.46346,
+    "worst252_after_tax": -0.40199,
+    "mdd_pre_tax": -0.46345,
+    "worst252_pre_tax": -0.402,
+    "avg_holding_years": 1.24408,
+    "n_spells": 30,
+    "n_harvests": 0,
+    "n_trades": 18,
+    "final_picks": [
+     "BusEq",
+     "Manuf"
+    ],
+    "harvest_sample": []
+   }
+  },
+  "Bnone_annual_harvest": {
+   "selection": {
+    "first": "1927-07-01",
+    "last": "1966-12-30",
+    "pre_tax_cagr": 0.10649,
+    "after_tax_cagr": 0.08692,
+    "tax_paid_krw": 198329327.96458,
+    "liquidation_tax_krw": 15548961.52874,
+    "turnover_per_year": 0.8354,
+    "mdd_after_tax": -0.81466,
+    "worst252_after_tax": -0.61138,
+    "mdd_pre_tax": -0.80305,
+    "worst252_pre_tax": -0.61138,
+    "avg_holding_years": 1.17907,
+    "n_spells": 67,
+    "n_harvests": 14,
+    "n_trades": 54,
+    "final_picks": [
+     "BusEq",
+     "Other"
+    ],
+    "harvest_sample": [
+     {
+      "date": "1953-12-31",
+      "names": [
+       "Durbl"
+      ]
+     },
+     {
+      "date": "1957-12-31",
+      "names": [
+       "Enrgy"
+      ]
+     },
+     {
+      "date": "1962-12-31",
+      "names": [
+       "Shops",
+       "Money"
+      ]
+     }
+    ]
+   },
+   "confirmation": {
+    "first": "1967-01-03",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.12558,
+    "after_tax_cagr": 0.10661,
+    "tax_paid_krw": 366943956.75626,
+    "liquidation_tax_krw": 205264489.1082,
+    "turnover_per_year": 0.71958,
+    "mdd_after_tax": -0.68613,
+    "worst252_after_tax": -0.58126,
+    "mdd_pre_tax": -0.67092,
+    "worst252_pre_tax": -0.56353,
+    "avg_holding_years": 1.36637,
+    "n_spells": 60,
+    "n_harvests": 9,
+    "n_trades": 47,
+    "final_picks": [
+     "Enrgy",
+     "Telcm"
+    ],
+    "harvest_sample": [
+     {
+      "date": "1990-12-31",
+      "names": [
+       "Telcm"
+      ]
+     },
+     {
+      "date": "2001-12-31",
+      "names": [
+       "Utils",
+       "Hlth"
+      ]
+     },
+     {
+      "date": "2002-12-31",
+      "names": [
+       "Durbl",
+       "Shops"
+      ]
+     }
+    ]
+   },
+   "conf_1967_1986": {
+    "first": "1967-01-03",
+    "last": "1986-12-31",
+    "pre_tax_cagr": 0.11211,
+    "after_tax_cagr": 0.09639,
+    "tax_paid_krw": 20495539.70236,
+    "liquidation_tax_krw": 17693012.89184,
+    "turnover_per_year": 0.77521,
+    "mdd_after_tax": -0.45365,
+    "worst252_after_tax": -0.41605,
+    "mdd_pre_tax": -0.43651,
+    "worst252_pre_tax": -0.4081,
+    "avg_holding_years": 1.24949,
+    "n_spells": 32,
+    "n_harvests": 6,
+    "n_trades": 25,
+    "final_picks": [
+     "NoDur",
+     "Money"
+    ],
+    "harvest_sample": [
+     {
+      "date": "1974-12-31",
+      "names": [
+       "Enrgy",
+       "Telcm"
+      ]
+     },
+     {
+      "date": "1977-12-30",
+      "names": [
+       "Enrgy"
+      ]
+     },
+     {
+      "date": "1978-12-29",
+      "names": [
+       "Utils"
+      ]
+     }
+    ]
+   },
+   "conf_1987_2007": {
+    "first": "1987-01-02",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.1376,
+    "after_tax_cagr": 0.11787,
+    "tax_paid_krw": 45687645.9865,
+    "liquidation_tax_krw": 32971095.99346,
+    "turnover_per_year": 0.64297,
+    "mdd_after_tax": -0.68477,
+    "worst252_after_tax": -0.58061,
+    "mdd_pre_tax": -0.67092,
+    "worst252_pre_tax": -0.56353,
+    "avg_holding_years": 1.44785,
+    "n_spells": 29,
+    "n_harvests": 3,
+    "n_trades": 22,
+    "final_picks": [
+     "Enrgy",
+     "Telcm"
+    ],
+    "harvest_sample": [
+     {
+      "date": "1990-12-31",
+      "names": [
+       "Telcm"
+      ]
+     },
+     {
+      "date": "2001-12-31",
+      "names": [
+       "Utils",
+       "Hlth"
+      ]
+     },
+     {
+      "date": "2002-12-31",
+      "names": [
+       "Durbl",
+       "Shops"
+      ]
+     }
+    ]
+   },
+   "post2008": {
+    "first": "2008-01-02",
+    "last": "2026-08-31",
+    "pre_tax_cagr": 0.10189,
+    "after_tax_cagr": 0.08739,
+    "tax_paid_krw": 9473989.84333,
+    "liquidation_tax_krw": 16706302.40728,
+    "turnover_per_year": 0.75011,
+    "mdd_after_tax": -0.48118,
+    "worst252_after_tax": -0.42175,
+    "mdd_pre_tax": -0.48118,
+    "worst252_pre_tax": -0.42175,
+    "avg_holding_years": 1.24408,
+    "n_spells": 30,
+    "n_harvests": 7,
+    "n_trades": 25,
+    "final_picks": [
+     "BusEq",
+     "Manuf"
+    ],
+    "harvest_sample": [
+     {
+      "date": "2018-12-31",
+      "names": [
+       "BusEq",
+       "Manuf"
+      ]
+     },
+     {
+      "date": "2022-12-30",
+      "names": [
+       "Durbl"
+      ]
+     },
+     {
+      "date": "2023-12-29",
+      "names": [
+       "Utils"
+      ]
+     }
+    ]
+   }
+  },
+  "B3_monthly_noharvest": {
+   "selection": {
+    "first": "1927-07-01",
+    "last": "1966-12-30",
+    "pre_tax_cagr": 0.1394,
+    "after_tax_cagr": 0.11252,
+    "tax_paid_krw": 504725028.30732,
+    "liquidation_tax_krw": 56935705.88817,
+    "turnover_per_year": 1.7402,
+    "mdd_after_tax": -0.79792,
+    "worst252_after_tax": -0.59195,
+    "mdd_pre_tax": -0.79205,
+    "worst252_pre_tax": -0.59196,
+    "avg_holding_years": 0.56833,
+    "n_spells": 139,
+    "n_harvests": 0,
+    "n_trades": 134,
+    "final_picks": [
+     "BusEq",
+     "Other"
+    ],
+    "harvest_sample": []
+   },
+   "confirmation": {
+    "first": "1967-01-03",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.15807,
+    "after_tax_cagr": 0.13191,
+    "tax_paid_krw": 1114193925.93911,
+    "liquidation_tax_krw": 240258242.33613,
+    "turnover_per_year": 1.68997,
+    "mdd_after_tax": -0.41689,
+    "worst252_after_tax": -0.38056,
+    "mdd_pre_tax": -0.4117,
+    "worst252_pre_tax": -0.38067,
+    "avg_holding_years": 0.58559,
+    "n_spells": 140,
+    "n_harvests": 0,
+    "n_trades": 135,
+    "final_picks": [
+     "Enrgy",
+     "Manuf"
+    ],
+    "harvest_sample": []
+   },
+   "conf_1967_1986": {
+    "first": "1967-01-03",
+    "last": "1986-12-31",
+    "pre_tax_cagr": 0.14255,
+    "after_tax_cagr": 0.1206,
+    "tax_paid_krw": 46412010.60581,
+    "liquidation_tax_krw": 19422547.38471,
+    "turnover_per_year": 1.75564,
+    "mdd_after_tax": -0.41689,
+    "worst252_after_tax": -0.38056,
+    "mdd_pre_tax": -0.4117,
+    "worst252_pre_tax": -0.38067,
+    "avg_holding_years": 0.55533,
+    "n_spells": 72,
+    "n_harvests": 0,
+    "n_trades": 71,
+    "final_picks": [
+     "NoDur",
+     "Utils"
+    ],
+    "harvest_sample": []
+   },
+   "conf_1987_2007": {
+    "first": "1987-01-02",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.17203,
+    "after_tax_cagr": 0.14473,
+    "tax_paid_krw": 102508957.69741,
+    "liquidation_tax_krw": 25006739.40548,
+    "turnover_per_year": 1.60405,
+    "mdd_after_tax": -0.35704,
+    "worst252_after_tax": -0.24533,
+    "mdd_pre_tax": -0.35285,
+    "worst252_pre_tax": -0.2403,
+    "avg_holding_years": 0.60852,
+    "n_spells": 69,
+    "n_harvests": 0,
+    "n_trades": 64,
+    "final_picks": [
+     "Enrgy",
+     "Manuf"
+    ],
+    "harvest_sample": []
+   },
+   "post2008": {
+    "first": "2008-01-02",
+    "last": "2026-08-31",
+    "pre_tax_cagr": 0.13467,
+    "after_tax_cagr": 0.11311,
+    "tax_paid_krw": 41155584.70055,
+    "liquidation_tax_krw": 8218704.94602,
+    "turnover_per_year": 2.02244,
+    "mdd_after_tax": -0.463,
+    "worst252_after_tax": -0.40557,
+    "mdd_pre_tax": -0.46298,
+    "worst252_pre_tax": -0.40555,
+    "avg_holding_years": 0.48471,
+    "n_spells": 77,
+    "n_harvests": 0,
+    "n_trades": 73,
+    "final_picks": [
+     "Manuf",
+     "Enrgy"
+    ],
+    "harvest_sample": []
+   }
+  },
+  "B3_monthly_harvest": {
+   "selection": {
+    "first": "1927-07-01",
+    "last": "1966-12-30",
+    "pre_tax_cagr": 0.14102,
+    "after_tax_cagr": 0.11397,
+    "tax_paid_krw": 534446330.89683,
+    "liquidation_tax_krw": 59957950.23546,
+    "turnover_per_year": 1.87724,
+    "mdd_after_tax": -0.78527,
+    "worst252_after_tax": -0.56495,
+    "mdd_pre_tax": -0.77963,
+    "worst252_pre_tax": -0.56497,
+    "avg_holding_years": 0.56833,
+    "n_spells": 139,
+    "n_harvests": 11,
+    "n_trades": 151,
+    "final_picks": [
+     "BusEq",
+     "Other"
+    ],
+    "harvest_sample": [
+     {
+      "date": "1946-12-31",
+      "names": [
+       "Hlth",
+       "Shops"
+      ]
+     },
+     {
+      "date": "1951-12-31",
+      "names": [
+       "Hlth"
+      ]
+     },
+     {
+      "date": "1957-12-31",
+      "names": [
+       "BusEq"
+      ]
+     }
+    ]
+   },
+   "confirmation": {
+    "first": "1967-01-03",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.15682,
+    "after_tax_cagr": 0.13047,
+    "tax_paid_krw": 1050353864.68783,
+    "liquidation_tax_krw": 228067726.8046,
+    "turnover_per_year": 1.78608,
+    "mdd_after_tax": -0.41461,
+    "worst252_after_tax": -0.37816,
+    "mdd_pre_tax": -0.40943,
+    "worst252_pre_tax": -0.37829,
+    "avg_holding_years": 0.58559,
+    "n_spells": 140,
+    "n_harvests": 8,
+    "n_trades": 148,
+    "final_picks": [
+     "Enrgy",
+     "Manuf"
+    ],
+    "harvest_sample": [
+     {
+      "date": "1987-12-31",
+      "names": [
+       "Telcm"
+      ]
+     },
+     {
+      "date": "1988-12-30",
+      "names": [
+       "Shops"
+      ]
+     },
+     {
+      "date": "2002-12-31",
+      "names": [
+       "Chems",
+       "NoDur"
+      ]
+     }
+    ]
+   },
+   "conf_1967_1986": {
+    "first": "1967-01-03",
+    "last": "1986-12-31",
+    "pre_tax_cagr": 0.14192,
+    "after_tax_cagr": 0.11897,
+    "tax_paid_krw": 46221966.38384,
+    "liquidation_tax_krw": 18848734.83026,
+    "turnover_per_year": 1.85327,
+    "mdd_after_tax": -0.41461,
+    "worst252_after_tax": -0.37816,
+    "mdd_pre_tax": -0.40943,
+    "worst252_pre_tax": -0.37829,
+    "avg_holding_years": 0.55533,
+    "n_spells": 72,
+    "n_harvests": 5,
+    "n_trades": 79,
+    "final_picks": [
+     "NoDur",
+     "Utils"
+    ],
+    "harvest_sample": [
+     {
+      "date": "1974-12-31",
+      "names": [
+       "Telcm",
+       "Chems"
+      ]
+     },
+     {
+      "date": "1977-12-30",
+      "names": [
+       "Money"
+      ]
+     },
+     {
+      "date": "1982-12-31",
+      "names": [
+       "Shops"
+      ]
+     }
+    ]
+   },
+   "conf_1987_2007": {
+    "first": "1987-01-02",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.17018,
+    "after_tax_cagr": 0.14339,
+    "tax_paid_krw": 98399967.33521,
+    "liquidation_tax_krw": 24381765.94069,
+    "turnover_per_year": 1.69875,
+    "mdd_after_tax": -0.36659,
+    "worst252_after_tax": -0.24865,
+    "mdd_pre_tax": -0.35285,
+    "worst252_pre_tax": -0.24863,
+    "avg_holding_years": 0.60852,
+    "n_spells": 69,
+    "n_harvests": 3,
+    "n_trades": 69,
+    "final_picks": [
+     "Enrgy",
+     "Manuf"
+    ],
+    "harvest_sample": [
+     {
+      "date": "1987-12-31",
+      "names": [
+       "Telcm"
+      ]
+     },
+     {
+      "date": "1988-12-30",
+      "names": [
+       "Shops"
+      ]
+     },
+     {
+      "date": "2002-12-31",
+      "names": [
+       "Chems",
+       "NoDur"
+      ]
+     }
+    ]
+   },
+   "post2008": {
+    "first": "2008-01-02",
+    "last": "2026-08-31",
+    "pre_tax_cagr": 0.13297,
+    "after_tax_cagr": 0.11162,
+    "tax_paid_krw": 38661149.55469,
+    "liquidation_tax_krw": 8002280.05524,
+    "turnover_per_year": 2.15634,
+    "mdd_after_tax": -0.46879,
+    "worst252_after_tax": -0.41198,
+    "mdd_pre_tax": -0.46878,
+    "worst252_pre_tax": -0.41197,
+    "avg_holding_years": 0.48471,
+    "n_spells": 77,
+    "n_harvests": 6,
+    "n_trades": 82,
+    "final_picks": [
+     "Manuf",
+     "Enrgy"
+    ],
+    "harvest_sample": [
+     {
+      "date": "2016-12-30",
+      "names": [
+       "Manuf"
+      ]
+     },
+     {
+      "date": "2018-12-31",
+      "names": [
+       "Shops",
+       "Hlth"
+      ]
+     },
+     {
+      "date": "2024-12-31",
+      "names": [
+       "Utils"
+      ]
+     }
+    ]
+   }
+  },
+  "B3_quarterly_noharvest": {
+   "selection": {
+    "first": "1927-07-01",
+    "last": "1966-12-30",
+    "pre_tax_cagr": 0.12612,
+    "after_tax_cagr": 0.10006,
+    "tax_paid_krw": 327595665.14837,
+    "liquidation_tax_krw": 43189314.21358,
+    "turnover_per_year": 1.23294,
+    "mdd_after_tax": -0.81133,
+    "worst252_after_tax": -0.59042,
+    "mdd_pre_tax": -0.80139,
+    "worst252_pre_tax": -0.59036,
+    "avg_holding_years": 0.79796,
+    "n_spells": 99,
+    "n_harvests": 0,
+    "n_trades": 84,
+    "final_picks": [
+     "BusEq",
+     "Other"
+    ],
+    "harvest_sample": []
+   },
+   "confirmation": {
+    "first": "1967-01-03",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.14677,
+    "after_tax_cagr": 0.12226,
+    "tax_paid_krw": 840777984.2151,
+    "liquidation_tax_krw": 134385545.01277,
+    "turnover_per_year": 1.17337,
+    "mdd_after_tax": -0.4954,
+    "worst252_after_tax": -0.42821,
+    "mdd_pre_tax": -0.45293,
+    "worst252_pre_tax": -0.42015,
+    "avg_holding_years": 0.83655,
+    "n_spells": 98,
+    "n_harvests": 0,
+    "n_trades": 87,
+    "final_picks": [
+     "Manuf",
+     "Enrgy"
+    ],
+    "harvest_sample": []
+   },
+   "conf_1967_1986": {
+    "first": "1967-01-03",
+    "last": "1986-12-31",
+    "pre_tax_cagr": 0.1392,
+    "after_tax_cagr": 0.11775,
+    "tax_paid_krw": 38943478.74726,
+    "liquidation_tax_krw": 22298707.05829,
+    "turnover_per_year": 1.17866,
+    "mdd_after_tax": -0.37,
+    "worst252_after_tax": -0.33917,
+    "mdd_pre_tax": -0.35627,
+    "worst252_pre_tax": -0.31939,
+    "avg_holding_years": 0.81599,
+    "n_spells": 49,
+    "n_harvests": 0,
+    "n_trades": 42,
+    "final_picks": [
+     "NoDur",
+     "Chems"
+    ],
+    "harvest_sample": []
+   },
+   "conf_1987_2007": {
+    "first": "1987-01-02",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.15298,
+    "after_tax_cagr": 0.12869,
+    "tax_paid_krw": 78012579.18615,
+    "liquidation_tax_krw": 14563241.58611,
+    "turnover_per_year": 1.16864,
+    "mdd_after_tax": -0.49334,
+    "worst252_after_tax": -0.4272,
+    "mdd_pre_tax": -0.45293,
+    "worst252_pre_tax": -0.42015,
+    "avg_holding_years": 0.82329,
+    "n_spells": 51,
+    "n_harvests": 0,
+    "n_trades": 46,
+    "final_picks": [
+     "Manuf",
+     "Enrgy"
+    ],
+    "harvest_sample": []
+   },
+   "post2008": {
+    "first": "2008-01-02",
+    "last": "2026-08-31",
+    "pre_tax_cagr": 0.10453,
+    "after_tax_cagr": 0.08801,
+    "tax_paid_krw": 22559380.10647,
+    "liquidation_tax_krw": 5877004.8124,
+    "turnover_per_year": 1.39348,
+    "mdd_after_tax": -0.47147,
+    "worst252_after_tax": -0.41495,
+    "mdd_pre_tax": -0.47145,
+    "worst252_pre_tax": -0.41493,
+    "avg_holding_years": 0.69116,
+    "n_spells": 54,
+    "n_harvests": 0,
+    "n_trades": 40,
+    "final_picks": [
+     "Manuf",
+     "BusEq"
+    ],
+    "harvest_sample": []
+   }
+  },
+  "B3_quarterly_harvest": {
+   "selection": {
+    "first": "1927-07-01",
+    "last": "1966-12-30",
+    "pre_tax_cagr": 0.12719,
+    "after_tax_cagr": 0.10295,
+    "tax_paid_krw": 361191075.82293,
+    "liquidation_tax_krw": 47969868.33671,
+    "turnover_per_year": 1.34533,
+    "mdd_after_tax": -0.79642,
+    "worst252_after_tax": -0.56335,
+    "mdd_pre_tax": -0.79042,
+    "worst252_pre_tax": -0.56327,
+    "avg_holding_years": 0.79796,
+    "n_spells": 99,
+    "n_harvests": 11,
+    "n_trades": 100,
+    "final_picks": [
+     "BusEq",
+     "Other"
+    ],
+    "harvest_sample": [
+     {
+      "date": "1946-12-31",
+      "names": [
+       "Shops"
+      ]
+     },
+     {
+      "date": "1951-12-31",
+      "names": [
+       "Hlth"
+      ]
+     },
+     {
+      "date": "1957-12-31",
+      "names": [
+       "BusEq"
+      ]
+     }
+    ]
+   },
+   "confirmation": {
+    "first": "1967-01-03",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.14482,
+    "after_tax_cagr": 0.12057,
+    "tax_paid_krw": 792533239.79763,
+    "liquidation_tax_krw": 126316349.64881,
+    "turnover_per_year": 1.24527,
+    "mdd_after_tax": -0.50404,
+    "worst252_after_tax": -0.42845,
+    "mdd_pre_tax": -0.46206,
+    "worst252_pre_tax": -0.42015,
+    "avg_holding_years": 0.83655,
+    "n_spells": 98,
+    "n_harvests": 11,
+    "n_trades": 102,
+    "final_picks": [
+     "Manuf",
+     "Enrgy"
+    ],
+    "harvest_sample": [
+     {
+      "date": "1997-12-31",
+      "names": [
+       "BusEq"
+      ]
+     },
+     {
+      "date": "2001-12-31",
+      "names": [
+       "Utils"
+      ]
+     },
+     {
+      "date": "2002-12-31",
+      "names": [
+       "Chems"
+      ]
+     }
+    ]
+   },
+   "conf_1967_1986": {
+    "first": "1967-01-03",
+    "last": "1986-12-31",
+    "pre_tax_cagr": 0.1377,
+    "after_tax_cagr": 0.11535,
+    "tax_paid_krw": 38442968.15485,
+    "liquidation_tax_krw": 21374899.71832,
+    "turnover_per_year": 1.30044,
+    "mdd_after_tax": -0.37273,
+    "worst252_after_tax": -0.34202,
+    "mdd_pre_tax": -0.35627,
+    "worst252_pre_tax": -0.32064,
+    "avg_holding_years": 0.81599,
+    "n_spells": 49,
+    "n_harvests": 7,
+    "n_trades": 52,
+    "final_picks": [
+     "NoDur",
+     "Chems"
+    ],
+    "harvest_sample": [
+     {
+      "date": "1977-12-30",
+      "names": [
+       "Telcm"
+      ]
+     },
+     {
+      "date": "1978-12-29",
+      "names": [
+       "Other"
+      ]
+     },
+     {
+      "date": "1984-12-31",
+      "names": [
+       "Enrgy"
+      ]
+     }
+    ]
+   },
+   "conf_1987_2007": {
+    "first": "1987-01-02",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.15061,
+    "after_tax_cagr": 0.12748,
+    "tax_paid_krw": 75900795.23643,
+    "liquidation_tax_krw": 14226223.77164,
+    "turnover_per_year": 1.19306,
+    "mdd_after_tax": -0.50201,
+    "worst252_after_tax": -0.42743,
+    "mdd_pre_tax": -0.46206,
+    "worst252_pre_tax": -0.42015,
+    "avg_holding_years": 0.82329,
+    "n_spells": 51,
+    "n_harvests": 4,
+    "n_trades": 51,
+    "final_picks": [
+     "Manuf",
+     "Enrgy"
+    ],
+    "harvest_sample": [
+     {
+      "date": "1997-12-31",
+      "names": [
+       "BusEq"
+      ]
+     },
+     {
+      "date": "2001-12-31",
+      "names": [
+       "Utils"
+      ]
+     },
+     {
+      "date": "2002-12-31",
+      "names": [
+       "Chems"
+      ]
+     }
+    ]
+   },
+   "post2008": {
+    "first": "2008-01-02",
+    "last": "2026-08-31",
+    "pre_tax_cagr": 0.10072,
+    "after_tax_cagr": 0.085,
+    "tax_paid_krw": 20694423.2673,
+    "liquidation_tax_krw": 5549971.41524,
+    "turnover_per_year": 1.44713,
+    "mdd_after_tax": -0.48401,
+    "worst252_after_tax": -0.42883,
+    "mdd_pre_tax": -0.48399,
+    "worst252_pre_tax": -0.42881,
+    "avg_holding_years": 0.69116,
+    "n_spells": 54,
+    "n_harvests": 4,
+    "n_trades": 44,
+    "final_picks": [
+     "Manuf",
+     "BusEq"
+    ],
+    "harvest_sample": [
+     {
+      "date": "2012-12-31",
+      "names": [
+       "Telcm",
+       "Hlth"
+      ]
+     },
+     {
+      "date": "2016-12-30",
+      "names": [
+       "Chems"
+      ]
+     },
+     {
+      "date": "2018-12-31",
+      "names": [
+       "BusEq",
+       "Enrgy"
+      ]
+     }
+    ]
+   }
+  },
+  "B3_annual_noharvest": {
+   "selection": {
+    "first": "1927-07-01",
+    "last": "1966-12-30",
+    "pre_tax_cagr": 0.09573,
+    "after_tax_cagr": 0.07694,
+    "tax_paid_krw": 124820928.2045,
+    "liquidation_tax_krw": 35674256.21239,
+    "turnover_per_year": 0.68356,
+    "mdd_after_tax": -0.83436,
+    "worst252_after_tax": -0.60075,
+    "mdd_pre_tax": -0.82453,
+    "worst252_pre_tax": -0.60078,
+    "avg_holding_years": 1.41068,
+    "n_spells": 56,
+    "n_harvests": 0,
+    "n_trades": 39,
+    "final_picks": [
+     "Other",
+     "BusEq"
+    ],
+    "harvest_sample": []
+   },
+   "confirmation": {
+    "first": "1967-01-03",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.13133,
+    "after_tax_cagr": 0.11119,
+    "tax_paid_krw": 460890079.9383,
+    "liquidation_tax_krw": 243297382.30123,
+    "turnover_per_year": 0.63428,
+    "mdd_after_tax": -0.68022,
+    "worst252_after_tax": -0.57824,
+    "mdd_pre_tax": -0.66095,
+    "worst252_pre_tax": -0.56353,
+    "avg_holding_years": 1.51819,
+    "n_spells": 54,
+    "n_harvests": 0,
+    "n_trades": 37,
+    "final_picks": [
+     "Enrgy",
+     "Telcm"
+    ],
+    "harvest_sample": []
+   },
+   "conf_1967_1986": {
+    "first": "1967-01-03",
+    "last": "1986-12-31",
+    "pre_tax_cagr": 0.1173,
+    "after_tax_cagr": 0.09993,
+    "tax_paid_krw": 22742882.58298,
+    "liquidation_tax_krw": 19068406.5675,
+    "turnover_per_year": 0.70029,
+    "mdd_after_tax": -0.41042,
+    "worst252_after_tax": -0.37457,
+    "mdd_pre_tax": -0.40843,
+    "worst252_pre_tax": -0.37247,
+    "avg_holding_years": 1.33279,
+    "n_spells": 30,
+    "n_harvests": 0,
+    "n_trades": 18,
+    "final_picks": [
+     "NoDur",
+     "Money"
+    ],
+    "harvest_sample": []
+   },
+   "conf_1987_2007": {
+    "first": "1987-01-02",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.14388,
+    "after_tax_cagr": 0.12356,
+    "tax_paid_krw": 55125173.3774,
+    "liquidation_tax_krw": 36749079.35597,
+    "turnover_per_year": 0.54778,
+    "mdd_after_tax": -0.67837,
+    "worst252_after_tax": -0.57763,
+    "mdd_pre_tax": -0.66095,
+    "worst252_pre_tax": -0.56353,
+    "avg_holding_years": 1.67951,
+    "n_spells": 25,
+    "n_harvests": 0,
+    "n_trades": 19,
+    "final_picks": [
+     "Enrgy",
+     "Telcm"
+    ],
+    "harvest_sample": []
+   },
+   "post2008": {
+    "first": "2008-01-02",
+    "last": "2026-08-31",
+    "pre_tax_cagr": 0.06749,
+    "after_tax_cagr": 0.05583,
+    "tax_paid_krw": 4915652.4888,
+    "liquidation_tax_krw": 9382278.31615,
+    "turnover_per_year": 0.72343,
+    "mdd_after_tax": -0.54298,
+    "worst252_after_tax": -0.48609,
+    "mdd_pre_tax": -0.54313,
+    "worst252_pre_tax": -0.48632,
+    "avg_holding_years": 1.28698,
+    "n_spells": 29,
+    "n_harvests": 0,
+    "n_trades": 17,
+    "final_picks": [
+     "BusEq",
+     "Manuf"
+    ],
+    "harvest_sample": []
+   }
+  },
+  "B3_annual_harvest": {
+   "selection": {
+    "first": "1927-07-01",
+    "last": "1966-12-30",
+    "pre_tax_cagr": 0.09562,
+    "after_tax_cagr": 0.07853,
+    "tax_paid_krw": 116877084.56963,
+    "liquidation_tax_krw": 37852283.12864,
+    "turnover_per_year": 0.72152,
+    "mdd_after_tax": -0.82761,
+    "worst252_after_tax": -0.57837,
+    "mdd_pre_tax": -0.81882,
+    "worst252_pre_tax": -0.57837,
+    "avg_holding_years": 1.41068,
+    "n_spells": 56,
+    "n_harvests": 13,
+    "n_trades": 52,
+    "final_picks": [
+     "Other",
+     "BusEq"
+    ],
+    "harvest_sample": [
+     {
+      "date": "1953-12-31",
+      "names": [
+       "Durbl"
+      ]
+     },
+     {
+      "date": "1957-12-31",
+      "names": [
+       "Enrgy"
+      ]
+     },
+     {
+      "date": "1962-12-31",
+      "names": [
+       "Shops",
+       "Money"
+      ]
+     }
+    ]
+   },
+   "confirmation": {
+    "first": "1967-01-03",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.12957,
+    "after_tax_cagr": 0.11045,
+    "tax_paid_krw": 426998050.20346,
+    "liquidation_tax_krw": 236715061.514,
+    "turnover_per_year": 0.6464,
+    "mdd_after_tax": -0.68356,
+    "worst252_after_tax": -0.57824,
+    "mdd_pre_tax": -0.67092,
+    "worst252_pre_tax": -0.56353,
+    "avg_holding_years": 1.51819,
+    "n_spells": 54,
+    "n_harvests": 8,
+    "n_trades": 45,
+    "final_picks": [
+     "Enrgy",
+     "Telcm"
+    ],
+    "harvest_sample": [
+     {
+      "date": "1978-12-29",
+      "names": [
+       "Utils"
+      ]
+     },
+     {
+      "date": "2001-12-31",
+      "names": [
+       "Utils",
+       "Hlth"
+      ]
+     },
+     {
+      "date": "2002-12-31",
+      "names": [
+       "Durbl",
+       "Shops"
+      ]
+     }
+    ]
+   },
+   "conf_1967_1986": {
+    "first": "1967-01-03",
+    "last": "1986-12-31",
+    "pre_tax_cagr": 0.11599,
+    "after_tax_cagr": 0.09956,
+    "tax_paid_krw": 22177404.9221,
+    "liquidation_tax_krw": 18937544.58857,
+    "turnover_per_year": 0.72513,
+    "mdd_after_tax": -0.40893,
+    "worst252_after_tax": -0.37684,
+    "mdd_pre_tax": -0.40889,
+    "worst252_pre_tax": -0.37297,
+    "avg_holding_years": 1.33279,
+    "n_spells": 30,
+    "n_harvests": 6,
+    "n_trades": 24,
+    "final_picks": [
+     "NoDur",
+     "Money"
+    ],
+    "harvest_sample": [
+     {
+      "date": "1974-12-31",
+      "names": [
+       "Enrgy",
+       "Telcm"
+      ]
+     },
+     {
+      "date": "1977-12-30",
+      "names": [
+       "Enrgy"
+      ]
+     },
+     {
+      "date": "1978-12-29",
+      "names": [
+       "Utils"
+      ]
+     }
+    ]
+   },
+   "conf_1987_2007": {
+    "first": "1987-01-02",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.1417,
+    "after_tax_cagr": 0.12236,
+    "tax_paid_krw": 50844891.09607,
+    "liquidation_tax_krw": 35922830.29767,
+    "turnover_per_year": 0.54778,
+    "mdd_after_tax": -0.68227,
+    "worst252_after_tax": -0.57763,
+    "mdd_pre_tax": -0.67092,
+    "worst252_pre_tax": -0.56353,
+    "avg_holding_years": 1.67951,
+    "n_spells": 25,
+    "n_harvests": 2,
+    "n_trades": 21,
+    "final_picks": [
+     "Enrgy",
+     "Telcm"
+    ],
+    "harvest_sample": [
+     {
+      "date": "2001-12-31",
+      "names": [
+       "Utils",
+       "Hlth"
+      ]
+     },
+     {
+      "date": "2002-12-31",
+      "names": [
+       "Durbl",
+       "Shops"
+      ]
+     }
+    ]
+   },
+   "post2008": {
+    "first": "2008-01-02",
+    "last": "2026-08-31",
+    "pre_tax_cagr": 0.06553,
+    "after_tax_cagr": 0.0546,
+    "tax_paid_krw": 4235429.55056,
+    "liquidation_tax_krw": 9166569.91341,
+    "turnover_per_year": 0.72345,
+    "mdd_after_tax": -0.53282,
+    "worst252_after_tax": -0.47222,
+    "mdd_pre_tax": -0.53298,
+    "worst252_pre_tax": -0.47243,
+    "avg_holding_years": 1.28698,
+    "n_spells": 29,
+    "n_harvests": 7,
+    "n_trades": 24,
+    "final_picks": [
+     "BusEq",
+     "Manuf"
+    ],
+    "harvest_sample": [
+     {
+      "date": "2018-12-31",
+      "names": [
+       "BusEq",
+       "Manuf"
+      ]
+     },
+     {
+      "date": "2022-12-30",
+      "names": [
+       "Durbl"
+      ]
+     },
+     {
+      "date": "2023-12-29",
+      "names": [
+       "Utils"
+      ]
+     }
+    ]
+   }
+  },
+  "B4_monthly_noharvest": {
+   "selection": {
+    "first": "1927-07-01",
+    "last": "1966-12-30",
+    "pre_tax_cagr": 0.13238,
+    "after_tax_cagr": 0.10516,
+    "tax_paid_krw": 378776823.99113,
+    "liquidation_tax_krw": 54795024.64285,
+    "turnover_per_year": 1.23141,
+    "mdd_after_tax": -0.82068,
+    "worst252_after_tax": -0.60444,
+    "mdd_pre_tax": -0.81534,
+    "worst252_pre_tax": -0.60443,
+    "avg_holding_years": 0.79796,
+    "n_spells": 99,
+    "n_harvests": 0,
+    "n_trades": 96,
+    "final_picks": [
+     "BusEq",
+     "Hlth"
+    ],
+    "harvest_sample": []
+   },
+   "confirmation": {
+    "first": "1967-01-03",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.14719,
+    "after_tax_cagr": 0.12238,
+    "tax_paid_krw": 847186521.26124,
+    "liquidation_tax_krw": 146750759.79416,
+    "turnover_per_year": 1.28487,
+    "mdd_after_tax": -0.49065,
+    "worst252_after_tax": -0.36348,
+    "mdd_pre_tax": -0.45252,
+    "worst252_pre_tax": -0.35537,
+    "avg_holding_years": 0.76619,
+    "n_spells": 107,
+    "n_harvests": 0,
+    "n_trades": 103,
+    "final_picks": [
+     "Enrgy",
+     "Manuf"
+    ],
+    "harvest_sample": []
+   },
+   "conf_1967_1986": {
+    "first": "1967-01-03",
+    "last": "1986-12-31",
+    "pre_tax_cagr": 0.14961,
+    "after_tax_cagr": 0.1264,
+    "tax_paid_krw": 46266229.38316,
+    "liquidation_tax_krw": 28823992.29384,
+    "turnover_per_year": 1.20575,
+    "mdd_after_tax": -0.39685,
+    "worst252_after_tax": -0.36348,
+    "mdd_pre_tax": -0.38521,
+    "worst252_pre_tax": -0.35537,
+    "avg_holding_years": 0.79967,
+    "n_spells": 50,
+    "n_harvests": 0,
+    "n_trades": 48,
+    "final_picks": [
+     "NoDur",
+     "Utils"
+    ],
+    "harvest_sample": []
+   },
+   "conf_1987_2007": {
+    "first": "1987-01-02",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.14516,
+    "after_tax_cagr": 0.12195,
+    "tax_paid_krw": 67563560.89688,
+    "liquidation_tax_krw": 13925641.32659,
+    "turnover_per_year": 1.33673,
+    "mdd_after_tax": -0.48827,
+    "worst252_after_tax": -0.34791,
+    "mdd_pre_tax": -0.45252,
+    "worst252_pre_tax": -0.34155,
+    "avg_holding_years": 0.72393,
+    "n_spells": 58,
+    "n_harvests": 0,
+    "n_trades": 55,
+    "final_picks": [
+     "Enrgy",
+     "Manuf"
+    ],
+    "harvest_sample": []
+   },
+   "post2008": {
+    "first": "2008-01-02",
+    "last": "2026-08-31",
+    "pre_tax_cagr": 0.11884,
+    "after_tax_cagr": 0.10049,
+    "tax_paid_krw": 28585931.49444,
+    "liquidation_tax_krw": 5578211.95522,
+    "turnover_per_year": 1.42755,
+    "mdd_after_tax": -0.463,
+    "worst252_after_tax": -0.40557,
+    "mdd_pre_tax": -0.46298,
+    "worst252_pre_tax": -0.40555,
+    "avg_holding_years": 0.67859,
+    "n_spells": 55,
+    "n_harvests": 0,
+    "n_trades": 50,
+    "final_picks": [
+     "Manuf",
+     "Enrgy"
+    ],
+    "harvest_sample": []
+   }
+  },
+  "B4_monthly_harvest": {
+   "selection": {
+    "first": "1927-07-01",
+    "last": "1966-12-30",
+    "pre_tax_cagr": 0.1339,
+    "after_tax_cagr": 0.10746,
+    "tax_paid_krw": 407650380.76501,
+    "liquidation_tax_krw": 59526026.32811,
+    "turnover_per_year": 1.40722,
+    "mdd_after_tax": -0.81145,
+    "worst252_after_tax": -0.57826,
+    "mdd_pre_tax": -0.8067,
+    "worst252_pre_tax": -0.57827,
+    "avg_holding_years": 0.79796,
+    "n_spells": 99,
+    "n_harvests": 11,
+    "n_trades": 117,
+    "final_picks": [
+     "BusEq",
+     "Hlth"
+    ],
+    "harvest_sample": [
+     {
+      "date": "1948-12-31",
+      "names": [
+       "BusEq"
+      ]
+     },
+     {
+      "date": "1956-12-31",
+      "names": [
+       "Enrgy"
+      ]
+     },
+     {
+      "date": "1957-12-31",
+      "names": [
+       "BusEq"
+      ]
+     }
+    ]
+   },
+   "confirmation": {
+    "first": "1967-01-03",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.14619,
+    "after_tax_cagr": 0.12144,
+    "tax_paid_krw": 822022348.95595,
+    "liquidation_tax_krw": 141745537.75173,
+    "turnover_per_year": 1.40528,
+    "mdd_after_tax": -0.4956,
+    "worst252_after_tax": -0.35572,
+    "mdd_pre_tax": -0.45785,
+    "worst252_pre_tax": -0.35583,
+    "avg_holding_years": 0.76619,
+    "n_spells": 107,
+    "n_harvests": 10,
+    "n_trades": 121,
+    "final_picks": [
+     "Enrgy",
+     "Manuf"
+    ],
+    "harvest_sample": [
+     {
+      "date": "1990-12-31",
+      "names": [
+       "Enrgy"
+      ]
+     },
+     {
+      "date": "1994-12-30",
+      "names": [
+       "Chems"
+      ]
+     },
+     {
+      "date": "2002-12-31",
+      "names": [
+       "NoDur"
+      ]
+     }
+    ]
+   },
+   "conf_1967_1986": {
+    "first": "1967-01-03",
+    "last": "1986-12-31",
+    "pre_tax_cagr": 0.1485,
+    "after_tax_cagr": 0.12493,
+    "tax_paid_krw": 45877818.68958,
+    "liquidation_tax_krw": 28067702.55275,
+    "turnover_per_year": 1.3309,
+    "mdd_after_tax": -0.38949,
+    "worst252_after_tax": -0.35572,
+    "mdd_pre_tax": -0.38565,
+    "worst252_pre_tax": -0.35583,
+    "avg_holding_years": 0.79967,
+    "n_spells": 50,
+    "n_harvests": 5,
+    "n_trades": 57,
+    "final_picks": [
+     "NoDur",
+     "Utils"
+    ],
+    "harvest_sample": [
+     {
+      "date": "1975-12-31",
+      "names": [
+       "Durbl"
+      ]
+     },
+     {
+      "date": "1977-12-30",
+      "names": [
+       "Money"
+      ]
+     },
+     {
+      "date": "1982-12-31",
+      "names": [
+       "Shops"
+      ]
+     }
+    ]
+   },
+   "conf_1987_2007": {
+    "first": "1987-01-02",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.14426,
+    "after_tax_cagr": 0.12132,
+    "tax_paid_krw": 67049670.96248,
+    "liquidation_tax_krw": 13756784.83333,
+    "turnover_per_year": 1.45265,
+    "mdd_after_tax": -0.49324,
+    "worst252_after_tax": -0.34791,
+    "mdd_pre_tax": -0.45785,
+    "worst252_pre_tax": -0.34155,
+    "avg_holding_years": 0.72393,
+    "n_spells": 58,
+    "n_harvests": 5,
+    "n_trades": 64,
+    "final_picks": [
+     "Enrgy",
+     "Manuf"
+    ],
+    "harvest_sample": [
+     {
+      "date": "1990-12-31",
+      "names": [
+       "Enrgy"
+      ]
+     },
+     {
+      "date": "1994-12-30",
+      "names": [
+       "Chems"
+      ]
+     },
+     {
+      "date": "2002-12-31",
+      "names": [
+       "NoDur"
+      ]
+     }
+    ]
+   },
+   "post2008": {
+    "first": "2008-01-02",
+    "last": "2026-08-31",
+    "pre_tax_cagr": 0.11578,
+    "after_tax_cagr": 0.09799,
+    "tax_paid_krw": 26822530.49688,
+    "liquidation_tax_krw": 5321511.9864,
+    "turnover_per_year": 1.58792,
+    "mdd_after_tax": -0.46879,
+    "worst252_after_tax": -0.41198,
+    "mdd_pre_tax": -0.46878,
+    "worst252_pre_tax": -0.41197,
+    "avg_holding_years": 0.67859,
+    "n_spells": 55,
+    "n_harvests": 6,
+    "n_trades": 60,
+    "final_picks": [
+     "Manuf",
+     "Enrgy"
+    ],
+    "harvest_sample": [
+     {
+      "date": "2016-12-30",
+      "names": [
+       "Manuf"
+      ]
+     },
+     {
+      "date": "2018-12-31",
+      "names": [
+       "Shops",
+       "BusEq"
+      ]
+     },
+     {
+      "date": "2021-12-31",
+      "names": [
+       "Enrgy"
+      ]
+     }
+    ]
+   }
+  },
+  "B4_quarterly_noharvest": {
+   "selection": {
+    "first": "1927-07-01",
+    "last": "1966-12-30",
+    "pre_tax_cagr": 0.13467,
+    "after_tax_cagr": 0.10997,
+    "tax_paid_krw": 445331035.14034,
+    "liquidation_tax_krw": 60673533.43864,
+    "turnover_per_year": 0.97727,
+    "mdd_after_tax": -0.79543,
+    "worst252_after_tax": -0.56466,
+    "mdd_pre_tax": -0.78393,
+    "worst252_pre_tax": -0.5647,
+    "avg_holding_years": 0.99997,
+    "n_spells": 79,
+    "n_harvests": 0,
+    "n_trades": 73,
+    "final_picks": [
+     "BusEq",
+     "Hlth"
+    ],
+    "harvest_sample": []
+   },
+   "confirmation": {
+    "first": "1967-01-03",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.13151,
+    "after_tax_cagr": 0.10813,
+    "tax_paid_krw": 520159519.27996,
+    "liquidation_tax_krw": 80102407.66809,
+    "turnover_per_year": 1.00181,
+    "mdd_after_tax": -0.49653,
+    "worst252_after_tax": -0.43203,
+    "mdd_pre_tax": -0.45282,
+    "worst252_pre_tax": -0.42001,
+    "avg_holding_years": 0.97598,
+    "n_spells": 84,
+    "n_harvests": 0,
+    "n_trades": 76,
+    "final_picks": [
+     "Manuf",
+     "Enrgy"
+    ],
+    "harvest_sample": []
+   },
+   "conf_1967_1986": {
+    "first": "1967-01-03",
+    "last": "1986-12-31",
+    "pre_tax_cagr": 0.12358,
+    "after_tax_cagr": 0.10503,
+    "tax_paid_krw": 23917322.66555,
+    "liquidation_tax_krw": 21619565.86789,
+    "turnover_per_year": 0.95212,
+    "mdd_after_tax": -0.4044,
+    "worst252_after_tax": -0.36818,
+    "mdd_pre_tax": -0.39893,
+    "worst252_pre_tax": -0.36478,
+    "avg_holding_years": 0.99959,
+    "n_spells": 40,
+    "n_harvests": 0,
+    "n_trades": 36,
+    "final_picks": [
+     "NoDur",
+     "Utils"
+    ],
+    "harvest_sample": []
+   },
+   "conf_1987_2007": {
+    "first": "1987-01-02",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.14296,
+    "after_tax_cagr": 0.11977,
+    "tax_paid_krw": 65439134.94469,
+    "liquidation_tax_krw": 12299780.29866,
+    "turnover_per_year": 1.02557,
+    "mdd_after_tax": -0.49404,
+    "worst252_after_tax": -0.43081,
+    "mdd_pre_tax": -0.45282,
+    "worst252_pre_tax": -0.42001,
+    "avg_holding_years": 0.93306,
+    "n_spells": 45,
+    "n_harvests": 0,
+    "n_trades": 40,
+    "final_picks": [
+     "Manuf",
+     "Enrgy"
+    ],
+    "harvest_sample": []
+   },
+   "post2008": {
+    "first": "2008-01-02",
+    "last": "2026-08-31",
+    "pre_tax_cagr": 0.13975,
+    "after_tax_cagr": 0.11853,
+    "tax_paid_krw": 36391956.56452,
+    "liquidation_tax_krw": 17100920.73603,
+    "turnover_per_year": 0.9383,
+    "mdd_after_tax": -0.47147,
+    "worst252_after_tax": -0.41495,
+    "mdd_pre_tax": -0.47145,
+    "worst252_pre_tax": -0.41493,
+    "avg_holding_years": 1.00871,
+    "n_spells": 37,
+    "n_harvests": 0,
+    "n_trades": 29,
+    "final_picks": [
+     "Manuf",
+     "BusEq"
+    ],
+    "harvest_sample": []
+   }
+  },
+  "B4_quarterly_harvest": {
+   "selection": {
+    "first": "1927-07-01",
+    "last": "1966-12-30",
+    "pre_tax_cagr": 0.13598,
+    "after_tax_cagr": 0.11219,
+    "tax_paid_krw": 480340172.64913,
+    "liquidation_tax_krw": 65697098.82056,
+    "turnover_per_year": 1.12753,
+    "mdd_after_tax": -0.7813,
+    "worst252_after_tax": -0.55617,
+    "mdd_pre_tax": -0.77417,
+    "worst252_pre_tax": -0.53852,
+    "avg_holding_years": 0.99997,
+    "n_spells": 79,
+    "n_harvests": 9,
+    "n_trades": 89,
+    "final_picks": [
+     "BusEq",
+     "Hlth"
+    ],
+    "harvest_sample": [
+     {
+      "date": "1941-12-31",
+      "names": [
+       "Enrgy",
+       "Other"
+      ]
+     },
+     {
+      "date": "1943-12-31",
+      "names": [
+       "Utils"
+      ]
+     },
+     {
+      "date": "1957-12-31",
+      "names": [
+       "BusEq"
+      ]
+     }
+    ]
+   },
+   "confirmation": {
+    "first": "1967-01-03",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.12991,
+    "after_tax_cagr": 0.10817,
+    "tax_paid_krw": 493338485.73708,
+    "liquidation_tax_krw": 80217884.41648,
+    "turnover_per_year": 1.12251,
+    "mdd_after_tax": -0.48445,
+    "worst252_after_tax": -0.41579,
+    "mdd_pre_tax": -0.44637,
+    "worst252_pre_tax": -0.4032,
+    "avg_holding_years": 0.97598,
+    "n_spells": 84,
+    "n_harvests": 16,
+    "n_trades": 100,
+    "final_picks": [
+     "Manuf",
+     "Enrgy"
+    ],
+    "harvest_sample": [
+     {
+      "date": "2000-12-29",
+      "names": [
+       "BusEq"
+      ]
+     },
+     {
+      "date": "2001-12-31",
+      "names": [
+       "Utils"
+      ]
+     },
+     {
+      "date": "2002-12-31",
+      "names": [
+       "Chems"
+      ]
+     }
+    ]
+   },
+   "conf_1967_1986": {
+    "first": "1967-01-03",
+    "last": "1986-12-31",
+    "pre_tax_cagr": 0.12197,
+    "after_tax_cagr": 0.10286,
+    "tax_paid_krw": 23953416.9662,
+    "liquidation_tax_krw": 20814392.68431,
+    "turnover_per_year": 1.10023,
+    "mdd_after_tax": -0.40163,
+    "worst252_after_tax": -0.36512,
+    "mdd_pre_tax": -0.39935,
+    "worst252_pre_tax": -0.36523,
+    "avg_holding_years": 0.99959,
+    "n_spells": 40,
+    "n_harvests": 10,
+    "n_trades": 51,
+    "final_picks": [
+     "NoDur",
+     "Utils"
+    ],
+    "harvest_sample": [
+     {
+      "date": "1981-12-31",
+      "names": [
+       "Shops"
+      ]
+     },
+     {
+      "date": "1983-12-30",
+      "names": [
+       "BusEq"
+      ]
+     },
+     {
+      "date": "1984-12-31",
+      "names": [
+       "Enrgy"
+      ]
+     }
+    ]
+   },
+   "conf_1987_2007": {
+    "first": "1987-01-02",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.14213,
+    "after_tax_cagr": 0.12034,
+    "tax_paid_krw": 63648627.15133,
+    "liquidation_tax_krw": 12438659.25887,
+    "turnover_per_year": 1.09531,
+    "mdd_after_tax": -0.48194,
+    "worst252_after_tax": -0.41452,
+    "mdd_pre_tax": -0.44637,
+    "worst252_pre_tax": -0.4032,
+    "avg_holding_years": 0.93306,
+    "n_spells": 45,
+    "n_harvests": 6,
+    "n_trades": 49,
+    "final_picks": [
+     "Manuf",
+     "Enrgy"
+    ],
+    "harvest_sample": [
+     {
+      "date": "2000-12-29",
+      "names": [
+       "BusEq"
+      ]
+     },
+     {
+      "date": "2001-12-31",
+      "names": [
+       "Utils"
+      ]
+     },
+     {
+      "date": "2002-12-31",
+      "names": [
+       "Chems"
+      ]
+     }
+    ]
+   },
+   "post2008": {
+    "first": "2008-01-02",
+    "last": "2026-08-31",
+    "pre_tax_cagr": 0.13565,
+    "after_tax_cagr": 0.11558,
+    "tax_paid_krw": 33952565.12746,
+    "liquidation_tax_krw": 16263799.61657,
+    "turnover_per_year": 1.09788,
+    "mdd_after_tax": -0.48401,
+    "worst252_after_tax": -0.42883,
+    "mdd_pre_tax": -0.48399,
+    "worst252_pre_tax": -0.42881,
+    "avg_holding_years": 1.00871,
+    "n_spells": 37,
+    "n_harvests": 5,
+    "n_trades": 37,
+    "final_picks": [
+     "Manuf",
+     "BusEq"
+    ],
+    "harvest_sample": [
+     {
+      "date": "2016-12-30",
+      "names": [
+       "Chems"
+      ]
+     },
+     {
+      "date": "2018-12-31",
+      "names": [
+       "BusEq",
+       "Shops"
+      ]
+     },
+     {
+      "date": "2024-12-31",
+      "names": [
+       "Utils"
+      ]
+     }
+    ]
+   }
+  },
+  "B4_annual_noharvest": {
+   "selection": {
+    "first": "1927-07-01",
+    "last": "1966-12-30",
+    "pre_tax_cagr": 0.09197,
+    "after_tax_cagr": 0.07557,
+    "tax_paid_krw": 83004612.94954,
+    "liquidation_tax_krw": 60019207.89444,
+    "turnover_per_year": 0.58247,
+    "mdd_after_tax": -0.78933,
+    "worst252_after_tax": -0.56556,
+    "mdd_pre_tax": -0.77779,
+    "worst252_pre_tax": -0.5477,
+    "avg_holding_years": 1.64579,
+    "n_spells": 48,
+    "n_harvests": 0,
+    "n_trades": 34,
+    "final_picks": [
+     "BusEq",
+     "Other"
+    ],
+    "harvest_sample": []
+   },
+   "confirmation": {
+    "first": "1967-01-03",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.12412,
+    "after_tax_cagr": 0.10569,
+    "tax_paid_krw": 342892124.9323,
+    "liquidation_tax_krw": 221405737.01015,
+    "turnover_per_year": 0.58549,
+    "mdd_after_tax": -0.68011,
+    "worst252_after_tax": -0.57821,
+    "mdd_pre_tax": -0.66095,
+    "worst252_pre_tax": -0.56353,
+    "avg_holding_years": 1.63964,
+    "n_spells": 50,
+    "n_harvests": 0,
+    "n_trades": 35,
+    "final_picks": [
+     "Enrgy",
+     "Utils"
+    ],
+    "harvest_sample": []
+   },
+   "conf_1967_1986": {
+    "first": "1967-01-03",
+    "last": "1986-12-31",
+    "pre_tax_cagr": 0.10291,
+    "after_tax_cagr": 0.08839,
+    "tax_paid_krw": 16364308.16853,
+    "liquidation_tax_krw": 15013880.81203,
+    "turnover_per_year": 0.65027,
+    "mdd_after_tax": -0.49225,
+    "worst252_after_tax": -0.46417,
+    "mdd_pre_tax": -0.49064,
+    "worst252_pre_tax": -0.46248,
+    "avg_holding_years": 1.42798,
+    "n_spells": 28,
+    "n_harvests": 0,
+    "n_trades": 19,
+    "final_picks": [
+     "NoDur",
+     "Money"
+    ],
+    "harvest_sample": []
+   },
+   "conf_1987_2007": {
+    "first": "1987-01-02",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.14373,
+    "after_tax_cagr": 0.12325,
+    "tax_paid_krw": 50588087.46325,
+    "liquidation_tax_krw": 40834397.03402,
+    "turnover_per_year": 0.50015,
+    "mdd_after_tax": -0.67819,
+    "worst252_after_tax": -0.57757,
+    "mdd_pre_tax": -0.66095,
+    "worst252_pre_tax": -0.56353,
+    "avg_holding_years": 1.82555,
+    "n_spells": 23,
+    "n_harvests": 0,
+    "n_trades": 16,
+    "final_picks": [
+     "Enrgy",
+     "Utils"
+    ],
+    "harvest_sample": []
+   },
+   "post2008": {
+    "first": "2008-01-02",
+    "last": "2026-08-31",
+    "pre_tax_cagr": 0.07316,
+    "after_tax_cagr": 0.06179,
+    "tax_paid_krw": 4209544.20721,
+    "liquidation_tax_krw": 10489542.27314,
+    "turnover_per_year": 0.64305,
+    "mdd_after_tax": -0.54396,
+    "worst252_after_tax": -0.48718,
+    "mdd_pre_tax": -0.54313,
+    "worst252_pre_tax": -0.48632,
+    "avg_holding_years": 1.43548,
+    "n_spells": 26,
+    "n_harvests": 0,
+    "n_trades": 17,
+    "final_picks": [
+     "BusEq",
+     "Manuf"
+    ],
+    "harvest_sample": []
+   }
+  },
+  "B4_annual_harvest": {
+   "selection": {
+    "first": "1927-07-01",
+    "last": "1966-12-30",
+    "pre_tax_cagr": 0.09217,
+    "after_tax_cagr": 0.07862,
+    "tax_paid_krw": 82037655.40834,
+    "liquidation_tax_krw": 67197186.38371,
+    "turnover_per_year": 0.63321,
+    "mdd_after_tax": -0.76753,
+    "worst252_after_tax": -0.52281,
+    "mdd_pre_tax": -0.76742,
+    "worst252_pre_tax": -0.52281,
+    "avg_holding_years": 1.64579,
+    "n_spells": 48,
+    "n_harvests": 11,
+    "n_trades": 46,
+    "final_picks": [
+     "BusEq",
+     "Other"
+    ],
+    "harvest_sample": [
+     {
+      "date": "1953-12-31",
+      "names": [
+       "Durbl"
+      ]
+     },
+     {
+      "date": "1957-12-31",
+      "names": [
+       "Enrgy"
+      ]
+     },
+     {
+      "date": "1962-12-31",
+      "names": [
+       "Shops"
+      ]
+     }
+    ]
+   },
+   "confirmation": {
+    "first": "1967-01-03",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.12252,
+    "after_tax_cagr": 0.10487,
+    "tax_paid_krw": 316603710.14842,
+    "liquidation_tax_krw": 214801617.10329,
+    "turnover_per_year": 0.59761,
+    "mdd_after_tax": -0.68346,
+    "worst252_after_tax": -0.57821,
+    "mdd_pre_tax": -0.67092,
+    "worst252_pre_tax": -0.56353,
+    "avg_holding_years": 1.63964,
+    "n_spells": 50,
+    "n_harvests": 8,
+    "n_trades": 43,
+    "final_picks": [
+     "Enrgy",
+     "Utils"
+    ],
+    "harvest_sample": [
+     {
+      "date": "1978-12-29",
+      "names": [
+       "Utils"
+      ]
+     },
+     {
+      "date": "2001-12-31",
+      "names": [
+       "Utils",
+       "Hlth"
+      ]
+     },
+     {
+      "date": "2002-12-31",
+      "names": [
+       "Durbl",
+       "Shops"
+      ]
+     }
+    ]
+   },
+   "conf_1967_1986": {
+    "first": "1967-01-03",
+    "last": "1986-12-31",
+    "pre_tax_cagr": 0.10191,
+    "after_tax_cagr": 0.08787,
+    "tax_paid_krw": 16168619.04407,
+    "liquidation_tax_krw": 14864722.89735,
+    "turnover_per_year": 0.67511,
+    "mdd_after_tax": -0.49104,
+    "worst252_after_tax": -0.46289,
+    "mdd_pre_tax": -0.49105,
+    "worst252_pre_tax": -0.46291,
+    "avg_holding_years": 1.42798,
+    "n_spells": 28,
+    "n_harvests": 6,
+    "n_trades": 25,
+    "final_picks": [
+     "NoDur",
+     "Money"
+    ],
+    "harvest_sample": [
+     {
+      "date": "1974-12-31",
+      "names": [
+       "Hlth",
+       "Enrgy"
+      ]
+     },
+     {
+      "date": "1977-12-30",
+      "names": [
+       "Enrgy"
+      ]
+     },
+     {
+      "date": "1978-12-29",
+      "names": [
+       "Utils"
+      ]
+     }
+    ]
+   },
+   "conf_1987_2007": {
+    "first": "1987-01-02",
+    "last": "2007-12-31",
+    "pre_tax_cagr": 0.14155,
+    "after_tax_cagr": 0.12204,
+    "tax_paid_krw": 46682375.59725,
+    "liquidation_tax_krw": 39909679.44315,
+    "turnover_per_year": 0.50015,
+    "mdd_after_tax": -0.68216,
+    "worst252_after_tax": -0.57757,
+    "mdd_pre_tax": -0.67092,
+    "worst252_pre_tax": -0.56353,
+    "avg_holding_years": 1.82555,
+    "n_spells": 23,
+    "n_harvests": 2,
+    "n_trades": 18,
+    "final_picks": [
+     "Enrgy",
+     "Utils"
+    ],
+    "harvest_sample": [
+     {
+      "date": "2001-12-31",
+      "names": [
+       "Utils",
+       "Hlth"
+      ]
+     },
+     {
+      "date": "2002-12-31",
+      "names": [
+       "Durbl",
+       "Shops"
+      ]
+     }
+    ]
+   },
+   "post2008": {
+    "first": "2008-01-02",
+    "last": "2026-08-31",
+    "pre_tax_cagr": 0.07113,
+    "after_tax_cagr": 0.0586,
+    "tax_paid_krw": 5305701.87853,
+    "liquidation_tax_krw": 9881796.78789,
+    "turnover_per_year": 0.66986,
+    "mdd_after_tax": -0.53374,
+    "worst252_after_tax": -0.47326,
+    "mdd_pre_tax": -0.53298,
+    "worst252_pre_tax": -0.47243,
+    "avg_holding_years": 1.43548,
+    "n_spells": 26,
+    "n_harvests": 7,
+    "n_trades": 24,
+    "final_picks": [
+     "BusEq",
+     "Manuf"
+    ],
+    "harvest_sample": [
+     {
+      "date": "2018-12-31",
+      "names": [
+       "BusEq",
+       "Manuf"
+      ]
+     },
+     {
+      "date": "2022-12-30",
+      "names": [
+       "Durbl"
+      ]
+     },
+     {
+      "date": "2023-12-29",
+      "names": [
+       "Utils"
+      ]
+     }
+    ]
+   }
+  }
+ },
+ "market": {
+  "selection": {
+   "first": "1927-07-01",
+   "last": "1966-12-30",
+   "pre_tax_cagr": 0.08895,
+   "after_tax_cagr": 0.08241,
+   "tax_paid_krw": 0.0,
+   "liquidation_tax_krw": 183969503.17211,
+   "turnover_per_year": 0.0,
+   "mdd_after_tax": -0.84074,
+   "worst252_after_tax": -0.66809,
+   "mdd_pre_tax": -0.84074,
+   "worst252_pre_tax": -0.66809,
+   "avg_holding_years": 39.49897,
+   "n_spells": 1,
+   "n_harvests": 0,
+   "n_trades": 1
+  },
+  "confirmation": {
+   "first": "1967-01-03",
+   "last": "2007-12-31",
+   "pre_tax_cagr": 0.10843,
+   "after_tax_cagr": 0.10185,
+   "tax_paid_krw": 0.0,
+   "liquidation_tax_krw": 441754706.73273,
+   "turnover_per_year": 0.0,
+   "mdd_after_tax": -0.49226,
+   "worst252_after_tax": -0.42839,
+   "mdd_pre_tax": -0.49226,
+   "worst252_pre_tax": -0.42839,
+   "avg_holding_years": 40.9911,
+   "n_spells": 1,
+   "n_harvests": 0,
+   "n_trades": 1
+  },
+  "conf_1967_1986": {
+   "first": "1967-01-03",
+   "last": "1986-12-31",
+   "pre_tax_cagr": 0.10398,
+   "after_tax_cagr": 0.0926,
+   "tax_paid_krw": 0.0,
+   "liquidation_tax_krw": 40535998.4077,
+   "turnover_per_year": 0.0,
+   "mdd_after_tax": -0.48159,
+   "worst252_after_tax": -0.42839,
+   "mdd_pre_tax": -0.48159,
+   "worst252_pre_tax": -0.42839,
+   "avg_holding_years": 19.99179,
+   "n_spells": 1,
+   "n_harvests": 0,
+   "n_trades": 1
+  },
+  "conf_1987_2007": {
+   "first": "1987-01-02",
+   "last": "2007-12-31",
+   "pre_tax_cagr": 0.11171,
+   "after_tax_cagr": 0.10033,
+   "tax_paid_krw": 0.0,
+   "liquidation_tax_krw": 53815297.81172,
+   "turnover_per_year": 0.0,
+   "mdd_after_tax": -0.49226,
+   "worst252_after_tax": -0.35531,
+   "mdd_pre_tax": -0.49226,
+   "worst252_pre_tax": -0.35531,
+   "avg_holding_years": 20.99384,
+   "n_spells": 1,
+   "n_harvests": 0,
+   "n_trades": 1
+  },
+  "post2008": {
+   "first": "2008-01-02",
+   "last": "2026-08-31",
+   "pre_tax_cagr": 0.11566,
+   "after_tax_cagr": 0.1032,
+   "tax_paid_krw": 0.0,
+   "liquidation_tax_krw": 43733571.76474,
+   "turnover_per_year": 0.0,
+   "mdd_after_tax": -0.51116,
+   "worst252_after_tax": -0.46712,
+   "mdd_pre_tax": -0.51116,
+   "worst252_pre_tax": -0.46712,
+   "avg_holding_years": 18.66119,
+   "n_spells": 1,
+   "n_harvests": 0,
+   "n_trades": 1
+  }
+ },
+ "etf": {
+  "sims": {
+   "M0": {
+    "first": "2000-01-03",
+    "last": "2024-09-30",
+    "pre_tax_cagr": 0.07114,
+    "after_tax_cagr": 0.06661,
+    "tax_paid_krw": 12887635.48241,
+    "liquidation_tax_krw": 8064859.17426,
+    "turnover_per_year": 3.18826,
+    "mdd_after_tax": -0.39254,
+    "worst252_after_tax": -0.37548,
+    "mdd_pre_tax": -0.47731,
+    "worst252_pre_tax": -0.39959,
+    "avg_holding_years": 0.31518,
+    "n_spells": 157,
+    "n_harvests": 0,
+    "n_trades": 297,
+    "final_picks": [
+     "XLF",
+     "XLC"
+    ],
+    "harvest_sample": []
+   },
+   "Bnone_monthly_harvest": {
+    "first": "2000-01-03",
+    "last": "2024-09-30",
+    "pre_tax_cagr": 0.07052,
+    "after_tax_cagr": 0.06583,
+    "tax_paid_krw": 12876804.96491,
+    "liquidation_tax_krw": 8041516.37141,
+    "turnover_per_year": 3.28104,
+    "mdd_after_tax": -0.41188,
+    "worst252_after_tax": -0.39538,
+    "mdd_pre_tax": -0.48183,
+    "worst252_pre_tax": -0.40453,
+    "avg_holding_years": 0.31518,
+    "n_spells": 157,
+    "n_harvests": 11,
+    "n_trades": 160,
+    "final_picks": [
+     "XLF",
+     "XLC"
+    ],
+    "harvest_sample": [
+     {
+      "date": "2017-12-29",
+      "names": [
+       "XLU"
+      ]
+     },
+     {
+      "date": "2018-12-31",
+      "names": [
+       "XLY",
+       "XLV"
+      ]
+     },
+     {
+      "date": "2022-12-30",
+      "names": [
+       "XLP"
+      ]
+     }
+    ]
+   },
+   "SPY": {
+    "first": "2000-01-03",
+    "last": "2024-09-30",
+    "pre_tax_cagr": 0.07627,
+    "after_tax_cagr": 0.07234,
+    "tax_paid_krw": 0.0,
+    "liquidation_tax_krw": 32624903.64041,
+    "turnover_per_year": 0.0,
+    "mdd_after_tax": -0.45565,
+    "worst252_after_tax": -0.41075,
+    "mdd_pre_tax": -0.55189,
+    "worst252_pre_tax": -0.47354,
+    "avg_holding_years": 24.74196,
+    "n_spells": 1,
+    "n_harvests": 0,
+    "n_trades": 1
+   }
+  },
+  "chosen": "Bnone_monthly_harvest",
+  "verdict": "NOT_SUPPORTING",
+  "source": "yfinance (Close / Adj Close), USDKRW via tax_fx.usdkrw_series",
+  "missing": []
+ }
+}
