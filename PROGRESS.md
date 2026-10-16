@@ -1,5 +1,13 @@
 # 작업 진행 상황
 
+## 2026-10-16 수익 우선 후속 실험 4건 — VM 완료·결과 검토
+
+- **운영 상태:** `sector-adaptive-k-v1`, `mom-proxy-v1`, `mom-volscale-v1`, `mom-lowturn-v1`이 VM에서 각각 1회 실행 후 `done`(실패 0). 네 결과가 origin/main `research/results/<id>/`에 자동 게시됐다. `/opt/quant` HEAD `6a73dd1`, scheduler·streamlit active.
+- **판정:** `mom-volscale-v1`은 선택 칸 `I2/VT20/none`, `PASS_FORWARD_CANDIDATE`, 보조 `VOLSCALE_HELPS`(4/4). 프랑스 12산업 자료의 확인 구간 세전 CAGR 16.0%, MDD -38.6%, 시장은 10.8%, -49.2%. 실제 투자 상품·비용/세금 성과가 아니므로 전진 원장에 바로 편입할 수 없다.
+- **나머지:** `mom-proxy-v1` `FAIL_UNDERPOWERED`(선택 w100, 확인구간 알파 t 관문 미달); `mom-lowturn-v1` `FAIL`(선택 Bnone_monthly_harvest가 M0 대비 +0.5%p 미달, ETF 보조 `NOT_SUPPORTING`); `sector-adaptive-k-v1` `PASS_FORWARD_CANDIDATE`로 top2가 선택됨. adaptive_gap과 top2 결과가 동일하여 적응 규칙의 추가 개선은 입증되지 않았다.
+- **결정·한계:** 1927~2007 구간은 관련 연구가 반복 사용한 과거자료이지 독립 표본외가 아니다. 보고된 PASS는 사람 검토·실제 상품 검증 전진 후보 의미다. 챔피언·주문 엔진 및 고정된 forward-tournament/v2 후보군은 수정하지 않았다. `mom-lowturn-v1`의 해외 손실 매도 후 즉시 재매수 세금 가정은 확인 필요로 남긴다.
+- **다음:** 성과 개선 가능성이 있는 `I2/VT20/none`을 실제 섹터 ETF로 옮기는 세후 검증을 별도 사전등록하기 전까지 엔진에는 아무것도 반영하지 않는다. 원장 후보군을 바꿔야 하면 v2를 수정하지 않고 새 버전을 만든다.
+
 ## 2026-10-16 수익 우선 후속 실험 추가 — VM 등록 전
 
 - **제안과 기존 작업 대조:** mom-proxy-v1, mom-volscale-v1, mom-lowturn-v1 및 sector-concentrate-v1/lev-base-v1은 각각 다른 작업 브랜치에서 사전등록 준비 또는 결과가 있다. 시장 필터·변동성 조절은 mom-volscale-v1과 중복이므로 새로 복제하지 않는다.

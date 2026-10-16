@@ -1,5 +1,14 @@
 # 세션 인계
 
+## 2026-10-16 수익 우선 연구 4건 — VM 실행·결과 게시 완료
+
+- 사용자의 “이어서 진행”에 따라 VM 상태와 결과를 확인했다. `sector-adaptive-k-v1`, `mom-proxy-v1`, `mom-volscale-v1`, `mom-lowturn-v1`은 각각 실행 1·실패 0·`done`, 결과는 `research/results/<id>/`에 게시됐다. `/opt/quant` HEAD `6a73dd1`; `quant-scheduler.service`와 `quant-streamlit.service` active.
+- 판정 요약: `mom-volscale-v1`은 `I2/VT20/none`, `PASS_FORWARD_CANDIDATE`, `VOLSCALE_HELPS` 4/4. 확인 구간(1967~2007) French 12산업 세전 CAGR 16.0%/MDD -38.6%, 시장 10.8%/-49.2%. 이 자료는 투자 가능한 ETF 백테스트가 아니고 거래 상품의 세금·비용 성과로 해석할 수 없다.
+- `mom-proxy-v1`: `FAIL_UNDERPOWERED`, 선택 w100, 알파 t 관문 미달. `mom-lowturn-v1`: `FAIL`, 선택 Bnone_monthly_harvest가 M0 대비 요구 +0.5%p 미달, ETF 보조 `NOT_SUPPORTING`(6.6% vs SPY 7.2%). 워시세일 유사 규정이 없다는 세금 가정은 확인 필요. `sector-adaptive-k-v1`: `PASS_FORWARD_CANDIDATE`지만 선택은 top2이며 adaptive_gap과 동일한 경로라 적응 규칙의 이득 증거는 없다.
+- 연구 기준·결과: 각 `research/jobs/<id>/SPEC.md`, 결과 `research/results/<id>/REPORT.md` 및 `results.json`. 과거 장기 표본은 독립 표본외가 아니다. 이 판정들은 후보에 대한 과거 자료 필터다.
+- 다음 결정: `mom-volscale` 승자를 실제 섹터 ETF 및 세후 원화 기준으로 평가하는 새 사전등록을 만들어야 실현 가능성을 판단할 수 있다. 기존 `forward-tournament/v2` 후보는 고정되어 있으므로 수정하지 않는다. 새 버전/원장에 올리는 작업은 별도 연구로 수행하고, 챔피언·주문 엔진은 사용자 확인 전 바꾸지 않는다.
+- 수정 기록 파일: `PROGRESS.md`, 이 인계 문서. 이번 이어받기에서는 엔진·전진 원장·운영 설정을 변경하지 않았다.
+
 ## 2026-10-16 수익 우선 후속 실험 등록 — VM 반영 전
 
 - 사용자가 앞서 제안한 수익 우선 연구를 VM 실행기에 올리도록 요청했다. 기존 작업을 확인한 결과 `mom-proxy-v1`(French 대형주 승자 대리), `mom-volscale-v1`(산업/대형 모멘텀의 변동성 조절·시장 필터), `mom-lowturn-v1`(완충·재조정 주기·연말 손실 확정), `sector-concentrate-v1`, `lev-base-v1`이 각각 작업 브랜치 또는 결과로 존재한다. 필터/변동성 실험을 중복 생성하지 않는다.
