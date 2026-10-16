@@ -1,5 +1,13 @@
 # 작업 진행 상황
 
+### 2026-10-16 VM 배포 관문 중 CPU 부하 테스트 결정성 보완
+
+- `spy-edge-six-v1` 병합본은 로컬 전체 pytest 3,081 passed·4 skipped를 병합 전후 각각 통과했고 배포 unittest 72 OK, guide 검사 누락 없음. origin/main `c1511be`로 게시했다.
+- VM 자동배포가 `c1511be`를 검증하던 중 `tests/test_research_jobs.py::test_revision_change_restarts_the_job`의 합성 하위 작업이 실제 VM 고부하 때문에 CPU 가드로 SIGSTOP 상태에 머물렀다. 연구 코드 오류나 판정 결과가 아니다. 테스트는 원래 메모리만 고정하고 CPU 표본은 실제 VM 값을 사용했다.
+- 테스트의 실제 CPU 의존을 제거하는 autouse fixture를 `tests/test_research_jobs.py`에 추가했다. CPU 표본 계산 자체를 검사하는 테스트는 실제 메서드를 쓰고, 고부하 가드 동작 시험은 자체 가짜 표본을 그대로 사용한다. 전용 `tests/test_research_jobs.py` 92 passed, diff check 통과. 이 보완은 연구 기준·엔진에 영향 없음.
+- 상태: 보완 커밋의 main 게시·새 VM 배포 게이트·실제 연구 실행기 pending 확인 전. 기존 게이트가 종료되는 대로 새 커밋을 게시하고 배포 결과를 추적한다.
+
+
 ## 2026-10-16 SPY 초과수익 신규 가설 6종 — 설계·계약 구현·스모크 완료
 
 - 사용자 요청: 기존 실험 결과와 중복을 검토하고 SPY 초과수익 전략을 위한 새 실험 n개 설계. 등록된 결과들의 기계 판정 및 관련 보고서/로드맵을 대조해 6개 가설(각 2칸)을 고정했다.
