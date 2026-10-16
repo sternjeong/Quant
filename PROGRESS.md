@@ -1,5 +1,12 @@
 # 작업 진행 상황
 
+## 2026-10-16 수익 우선 후속 실험 추가 — VM 등록 전
+
+- **제안과 기존 작업 대조:** mom-proxy-v1, mom-volscale-v1, mom-lowturn-v1 및 sector-concentrate-v1/lev-base-v1은 각각 다른 작업 브랜치에서 사전등록 준비 또는 결과가 있다. 시장 필터·변동성 조절은 mom-volscale-v1과 중복이므로 새로 복제하지 않는다.
+- **추가 등록:** `research/jobs/sector-adaptive-k-v1/{job.json,SPEC.md,run.py}`. 상위 업종 RS12 격차가 직전 60개월 격차 중앙값을 넘을 때만 top1, 그 외 top2를 보유한다. 과거 구간 선택 규칙, 확인 구간 +1%p 및 위험 한도, 세금·비용 가정을 결과 전 고정했다.
+- **검증:** VM venv에서 스크립트 컴파일과 합성 `--smoke` 종료 코드 0, job loader 유효, `git diff --check` 통과. 전체 pytest, 원격 게시 및 VM main 등록은 아직 안 됨.
+- **다음:** 전체 pytest 통과 뒤 브랜치를 게시한다. 동시에 준비된 다른 연구 브랜치는 각자 스모크·테스트 후 main 병합해야 VM 실행기에 보인다. 연구 결과가 나오기 전 엔진에는 반영하지 않는다.
+
 ## 2026-10-15 Claude 로그인 후 R&D 결과 및 이어받기 재개 준비
 
 - **인증·운영:** `quant` Claude CLI `loggedIn=true`; scheduler active. 운영 에이전트 dry plan은 sat_critic 주간 8/8 소진으로 새 작업 없음.

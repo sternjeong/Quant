@@ -1,0 +1,14 @@
+{
+  "id": "sector-adaptive-k-v1",
+  "title": "업종 모멘텀 적응 집중 — 60개월 과거 1·2위 격차 기준 top1/top2를 월별 선택(사전 등록)",
+  "entrypoint": "research/jobs/sector-adaptive-k-v1/run.py",
+  "args": [],
+  "timeout_seconds": 3600,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 18,
+  "revision": 1,
+  "max_memory_mb": 1500
+}
