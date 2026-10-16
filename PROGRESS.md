@@ -1,5 +1,15 @@
 # 작업 진행 상황
 
+## 2026-10-16 SPY 초과수익 신규 가설 6종 — 설계·계약 구현·스모크 완료
+
+- 사용자 요청: 기존 실험 결과와 중복을 검토하고 SPY 초과수익 전략을 위한 새 실험 n개 설계. 등록된 결과들의 기계 판정 및 관련 보고서/로드맵을 대조해 6개 가설(각 2칸)을 고정했다.
+- **설계:** beta(시장 민감도 보정), skip(최근 21/42일 제외), smooth(상승 경로 효율성), correlation(상위 업종 중 상관 제약), gap(실제 수익률 격차에 따른 top1/top2), agreement(단·장기 1위 일치 시 집중). 모두 실제 원래 9개 섹터 ETF, 동일 VT20 공통 규칙. 기존 core의 상관/다기간 실패와 연결되는 제한된 후속임을 SPEC에 명시. gap은 과거 순위 격차 연구를 바꾼 것이 아닌 새 가설이다.
+- **사전등록:** `research/jobs/spy-edge-six-v1/{job.json,SPEC.md,run.py}`. 12칸 모두 2012~2024-09 세후 원화 SPY +1%p, B20 +0.5%p, MDD 3%p·worst252 5%p 한도, 두 절반 우위, 25bp 비용 스트레스, 63일 블록 검정·Bonferroni 12회 관문. 2024-10 이후는 보고만. 과거 전 구간이 재사용되어 독립 표본외가 아님. PASS는 전진 후보까지만.
+- **검증:** 합성 `--smoke` 종료 0, 12칸 모두 SMOKE_ONLY. 전용 테스트 16 passed(미래 정보 차단·gap 분기·데이터 부족·무효 가드·검정 방향). loader valid, deadline 종료 3 확인, guide 검사 누락 없음, diff check 통과. 실제 ETF 성과·전체 pytest·배포 테스트는 실행하지 않았다.
+- **작업 위치:** `/tmp/quant-return-first`, 브랜치 `research/spy-edge-six-v1`. main 반영 및 VM 운영 배포는 미완료. 엔진·챔피언·기존 전진 원장은 수정하지 않았다.
+- **다음:** 게시 브랜치를 `docs/RESEARCH_JOBS.md` 이어받기 절차로 전체 pytest·배포 유닛 테스트 후 main 병합하고 VM 실행기 등록/실행 상태 확인. 본 계산은 VM 실행기만 수행. 결과를 본 뒤 문턱·유니버스·기간을 바꾸려면 새 id 필요.
+
+
 ## 2026-10-16 수익 우선 후속 실험 4건 — VM 완료·결과 검토
 
 - **운영 상태:** `sector-adaptive-k-v1`, `mom-proxy-v1`, `mom-volscale-v1`, `mom-lowturn-v1`이 VM에서 각각 1회 실행 후 `done`(실패 0). 네 결과가 origin/main `research/results/<id>/`에 자동 게시됐다. `/opt/quant` HEAD `6a73dd1`, scheduler·streamlit active.
