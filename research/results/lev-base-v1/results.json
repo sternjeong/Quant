@@ -1,0 +1,1163 @@
+{
+ "job_id": "lev-base-v1",
+ "judge_version": "lev-base-judge/v1",
+ "rules_version": "lev-base-v1/2026-10-16",
+ "smoke": false,
+ "generated_at": "2026-10-16T05:40:36+00:00",
+ "verdicts": {
+  "L10F": "FAIL_UNDERPOWERED",
+  "L15F": "FAIL_UNDERPOWERED",
+  "L25F": "FAIL_UNDERPOWERED"
+ },
+ "details": {
+  "L10F": {
+   "checks": {
+    "a_long_cagr_ge_mkt_plus_1pp": false,
+    "b_long_mdd_not_worse": true,
+    "c_long_worst12m_ge_mkt_minus_5pp": true,
+    "d_long_beats_mkt_in_3of4_subperiods": true,
+    "e_etf_after_tax_ge_spy_plus_0.5pp": false,
+    "f_etf_both_halves_gt_spy": true,
+    "g_etf_krw_mdd_within_3pp_of_spy": true,
+    "h_boot_ci90_low_gt_minus_0.5pp": true
+   },
+   "long": {
+    "cagr": 0.10397742580320868,
+    "mkt_cagr": 0.09894260522165199,
+    "mdd": -0.8135980457566622,
+    "mkt_mdd": -0.8407399476860209,
+    "worst12": -0.6077753258461882,
+    "mkt_worst12": -0.6607037092960989,
+    "sub_beats": 4
+   },
+   "etf": {
+    "cagr": 0.13499449691855836,
+    "spy_cagr": 0.13005350364027146,
+    "h1": 0.10802062109595045,
+    "spy_h1": 0.10640947021637226,
+    "h2": 0.15287990655517825,
+    "spy_h2": 0.1434604933889405,
+    "mdd": -0.27829521663337586,
+    "spy_mdd": -0.29678566480959234,
+    "ci_low": -0.0024476757236745585
+   },
+   "pair_vs_spy": {
+    "daily_diff_ir": 0.20910900115004036,
+    "noop_reason": null,
+    "boot_ci90_low": -0.0024476757236745585,
+    "boot_ci90_high": 0.010025473110665628,
+    "boot_share_positive": 0.831
+   },
+   "observed_ir_long": 0.27626525477922115,
+   "fail_kind": "FAIL_UNDERPOWERED",
+   "noop": null
+  },
+  "L15F": {
+   "checks": {
+    "a_long_cagr_ge_mkt_plus_1pp": false,
+    "b_long_mdd_not_worse": true,
+    "c_long_worst12m_ge_mkt_minus_5pp": true,
+    "d_long_beats_mkt_in_3of4_subperiods": true,
+    "e_etf_after_tax_ge_spy_plus_0.5pp": true,
+    "f_etf_both_halves_gt_spy": true,
+    "g_etf_krw_mdd_within_3pp_of_spy": true,
+    "h_boot_ci90_low_gt_minus_0.5pp": true
+   },
+   "long": {
+    "cagr": 0.10636034104407166,
+    "mkt_cagr": 0.09894260522165199,
+    "mdd": -0.7993016929501736,
+    "mkt_mdd": -0.8407399476860209,
+    "worst12": -0.5800832955691078,
+    "mkt_worst12": -0.6607037092960989,
+    "sub_beats": 4
+   },
+   "etf": {
+    "cagr": 0.13661892571254652,
+    "spy_cagr": 0.13005350364027146,
+    "h1": 0.10805407555829394,
+    "spy_h1": 0.10640947021637226,
+    "h2": 0.15687024920792303,
+    "spy_h2": 0.1434604933889405,
+    "mdd": -0.2690930888483082,
+    "spy_mdd": -0.29678566480959234,
+    "ci_low": -0.004900013681220427
+   },
+   "pair_vs_spy": {
+    "daily_diff_ir": 0.18573873254540374,
+    "noop_reason": null,
+    "boot_ci90_low": -0.004900013681220427,
+    "boot_ci90_high": 0.014456111813115244,
+    "boot_share_positive": 0.792
+   },
+   "observed_ir_long": 0.2775487260354138,
+   "fail_kind": "FAIL_UNDERPOWERED",
+   "noop": null
+  },
+  "L25F": {
+   "checks": {
+    "a_long_cagr_ge_mkt_plus_1pp": true,
+    "b_long_mdd_not_worse": true,
+    "c_long_worst12m_ge_mkt_minus_5pp": true,
+    "d_long_beats_mkt_in_3of4_subperiods": true,
+    "e_etf_after_tax_ge_spy_plus_0.5pp": true,
+    "f_etf_both_halves_gt_spy": true,
+    "g_etf_krw_mdd_within_3pp_of_spy": true,
+    "h_boot_ci90_low_gt_minus_0.5pp": false
+   },
+   "long": {
+    "cagr": 0.11077755306841985,
+    "mkt_cagr": 0.09894260522165199,
+    "mdd": -0.7751311791920932,
+    "mkt_mdd": -0.8407399476860209,
+    "worst12": -0.5222750397385862,
+    "mkt_worst12": -0.6607037092960989,
+    "sub_beats": 4
+   },
+   "etf": {
+    "cagr": 0.13942653896296564,
+    "spy_cagr": 0.13005350364027146,
+    "h1": 0.10785393546171385,
+    "spy_h1": 0.10640947021637226,
+    "h2": 0.16470189742315,
+    "spy_h2": 0.1434604933889405,
+    "mdd": -0.25077434987127734,
+    "spy_mdd": -0.29678566480959234,
+    "ci_low": -0.010232182814690438
+   },
+   "pair_vs_spy": {
+    "daily_diff_ir": 0.16584634733191728,
+    "noop_reason": null,
+    "boot_ci90_low": -0.010232182814690438,
+    "boot_ci90_high": 0.022772701489732372,
+    "boot_share_positive": 0.761
+   },
+   "observed_ir_long": 0.27776081715667983,
+   "fail_kind": "FAIL_UNDERPOWERED",
+   "noop": null
+  }
+ },
+ "etf_stats": {
+  "L10F|judged|30M": {
+   "cagr_after_liq": 0.13499449691855836,
+   "cagr_after": 0.1481843798347633,
+   "cagr_pre": 0.15244986450560605,
+   "mdd_after": -0.27829521663337586,
+   "final_after_liquidation_krw": 193914829.37299222,
+   "totals": {
+    "fees_krw": 240536.82074299816,
+    "fx_cost_krw": 850.6612765848154,
+    "dividend_tax_krw": 3013212.476263801,
+    "capital_gains_tax_krw": 1701322.5531696293
+   },
+   "unpaid_tax_if_sold_now_krw": 35998296.954968855,
+   "turnover": 0.08442449550985895,
+   "calendar_mdd": {
+    "2020": -0.27829521663337586,
+    "2022": -0.17347600987122325
+   },
+   "calendar_return": {
+    "2020": 0.12095259816215398,
+    "2022": -0.14083109135647665
+   },
+   "start": "2010-01-04",
+   "end": "2024-09-30",
+   "financing_fee_drag_annual_approx": 0.002272237734777854,
+   "switches_per_year": 0.8142299832806985,
+   "time_on": 0.8029649595687331
+  },
+  "L15F|judged|30M": {
+   "cagr_after_liq": 0.13661892571254652,
+   "cagr_after": 0.14932057517857444,
+   "cagr_pre": 0.15479590602353666,
+   "mdd_after": -0.2690930888483082,
+   "final_after_liquidation_krw": 198045557.20272508,
+   "totals": {
+    "fees_krw": 336519.23355218774,
+    "fx_cost_krw": 1691.1742535849323,
+    "dividend_tax_krw": 2877964.4885163684,
+    "capital_gains_tax_krw": 3382348.5071698613
+   },
+   "unpaid_tax_if_sold_now_krw": 35243500.79664148,
+   "turnover": 0.12628181784562276,
+   "calendar_mdd": {
+    "2020": -0.2690930888483082,
+    "2022": -0.17509774138070733
+   },
+   "calendar_return": {
+    "2020": 0.12682811148267192,
+    "2022": -0.14397784507817646
+   },
+   "start": "2010-01-04",
+   "end": "2024-09-30",
+   "financing_fee_drag_annual_approx": 0.0034133490630898445,
+   "switches_per_year": 0.8142299832806985,
+   "time_on": 0.8029649595687331
+  },
+  "L25F|judged|30M": {
+   "cagr_after_liq": 0.13942653896296564,
+   "cagr_after": 0.15125912261452656,
+   "cagr_pre": 0.15933878231322995,
+   "mdd_after": -0.25077434987127734,
+   "final_after_liquidation_krw": 205378953.6670811,
+   "totals": {
+    "fees_krw": 526071.8402117942,
+    "fx_cost_krw": 3507.243922718114,
+    "dividend_tax_krw": 2601972.73717258,
+    "capital_gains_tax_krw": 7014487.845436222
+   },
+   "unpaid_tax_if_sold_now_krw": 33776917.72537768,
+   "turnover": 0.20935306140408302,
+   "calendar_mdd": {
+    "2020": -0.25077434987127734,
+    "2022": -0.17834132748491982
+   },
+   "calendar_return": {
+    "2020": 0.1385978597167854,
+    "2022": -0.15029207284801616
+   },
+   "start": "2010-01-04",
+   "end": "2024-09-30",
+   "financing_fee_drag_annual_approx": 0.00570579905610263,
+   "switches_per_year": 0.8142299832806985,
+   "time_on": 0.8029649595687331
+  },
+  "L25|judged|30M": {
+   "cagr_after_liq": 0.15290802977304696,
+   "cagr_after": 0.16703377352000048,
+   "cagr_pre": 0.170641507228799,
+   "mdd_after": -0.3647068663301837,
+   "final_after_liquidation_krw": 244254060.23506296,
+   "totals": {
+    "fees_krw": 137277.603758196,
+    "fx_cost_krw": 1380.0287404523115,
+    "dividend_tax_krw": 2911555.507138323,
+    "capital_gains_tax_krw": 2760057.4809046206
+   },
+   "unpaid_tax_if_sold_now_krw": 48017633.25559266,
+   "turnover": 0.024775003069691107,
+   "calendar_mdd": {
+    "2020": -0.3647068663301837,
+    "2022": -0.2239464411523968
+   },
+   "calendar_return": {
+    "2020": 0.11855695605102312,
+    "2022": -0.18863328939206336
+   },
+   "start": "2010-01-04",
+   "end": "2024-09-30",
+   "financing_fee_drag_annual_approx": 0.007226790128852036
+  },
+  "SPY|judged|30M": {
+   "cagr_after_liq": 0.13005350364027146,
+   "cagr_after": 0.1443227451047866,
+   "cagr_pre": 0.14760735847910111,
+   "mdd_after": -0.29678566480959234,
+   "final_after_liquidation_krw": 181838769.5336674,
+   "totals": {
+    "fees_krw": 48329.23970594435,
+    "fx_cost_krw": 0.0,
+    "dividend_tax_krw": 3245746.138129112,
+    "capital_gains_tax_krw": 0.0
+   },
+   "unpaid_tax_if_sold_now_krw": 36937774.52482533,
+   "turnover": 0.0,
+   "calendar_mdd": {
+    "2020": -0.29678566480959234,
+    "2022": -0.1702329600347653
+   },
+   "calendar_return": {
+    "2020": 0.10921968966428364,
+    "2022": -0.13455971389931298
+   },
+   "start": "2010-01-04",
+   "end": "2024-09-30"
+  },
+  "L10F|h1|30M": {
+   "cagr_after_liq": 0.10802062109595045,
+   "cagr_after": 0.12268056399008431,
+   "cagr_pre": 0.1265143967371405,
+   "mdd_after": -0.20109793670622556,
+   "final_after_liquidation_krw": 64108490.80659924,
+   "totals": {
+    "fees_krw": 86926.98025906784,
+    "fx_cost_krw": 83.81913447654303,
+    "dividend_tax_krw": 922622.3013357178,
+    "capital_gains_tax_krw": 167638.2689530859
+   },
+   "unpaid_tax_if_sold_now_krw": 6551796.418125278,
+   "turnover": 0.08462593006661301,
+   "calendar_mdd": {
+    "2020": null,
+    "2022": null
+   },
+   "calendar_return": {
+    "2020": null,
+    "2022": null
+   },
+   "start": "2010-01-04",
+   "end": "2017-05-31",
+   "financing_fee_drag_annual_approx": 0.001516548988817849,
+   "switches_per_year": 0.810465976331361,
+   "time_on": 0.8091152815013405
+  },
+  "L15F|h1|30M": {
+   "cagr_after_liq": 0.10805407555829394,
+   "cagr_after": 0.12211440198158119,
+   "cagr_pre": 0.12673925502189043,
+   "mdd_after": -0.2084599348721129,
+   "final_after_liquidation_krw": 64122821.92911596,
+   "totals": {
+    "fees_krw": 111856.3201416689,
+    "fx_cost_krw": 261.8375024695155,
+    "dividend_tax_krw": 866240.0349815227,
+    "capital_gains_tax_krw": 523675.00493903056
+   },
+   "unpaid_tax_if_sold_now_krw": 6274089.860265084,
+   "turnover": 0.1265673866403386,
+   "calendar_mdd": {
+    "2020": null,
+    "2022": null
+   },
+   "calendar_return": {
+    "2020": null,
+    "2022": null
+   },
+   "start": "2010-01-04",
+   "end": "2017-05-31",
+   "financing_fee_drag_annual_approx": 0.0022765378504086948,
+   "switches_per_year": 0.810465976331361,
+   "time_on": 0.8091152815013405
+  },
+  "L25F|h1|30M": {
+   "cagr_after_liq": 0.10785393546171385,
+   "cagr_after": 0.12079198161480598,
+   "cagr_pre": 0.12702255193495104,
+   "mdd_after": -0.223082477000208,
+   "final_after_liquidation_krw": 64037127.79301304,
+   "totals": {
+    "fees_krw": 159892.32506762605,
+    "fx_cost_krw": 614.370178646979,
+    "dividend_tax_krw": 754945.4825269104,
+    "capital_gains_tax_krw": 1228740.357293957
+   },
+   "unpaid_tax_if_sold_now_krw": 5747906.863423546,
+   "turnover": 0.20975349432515847,
+   "calendar_mdd": {
+    "2020": null,
+    "2022": null
+   },
+   "calendar_return": {
+    "2020": null,
+    "2022": null
+   },
+   "start": "2010-01-04",
+   "end": "2017-05-31",
+   "financing_fee_drag_annual_approx": 0.0038000385579764744,
+   "switches_per_year": 0.810465976331361,
+   "time_on": 0.8091152815013405
+  },
+  "L25|h1|30M": {
+   "cagr_after_liq": 0.1287930737254135,
+   "cagr_after": 0.14736229902191966,
+   "cagr_pre": 0.15015338307846937,
+   "mdd_after": -0.22309141371163643,
+   "final_after_liquidation_krw": 73558522.65077725,
+   "totals": {
+    "fees_krw": 49723.152999604936,
+    "fx_cost_krw": 0.0,
+    "dividend_tax_krw": 839830.9078661556,
+    "capital_gains_tax_krw": 0.0
+   },
+   "unpaid_tax_if_sold_now_krw": 9444418.476555044,
+   "turnover": 0.018599182537876794,
+   "calendar_mdd": {
+    "2020": null,
+    "2022": null
+   },
+   "calendar_return": {
+    "2020": null,
+    "2022": null
+   },
+   "start": "2010-01-04",
+   "end": "2017-05-31",
+   "financing_fee_drag_annual_approx": 0.004719996107036712
+  },
+  "SPY|h1|30M": {
+   "cagr_after_liq": 0.10640947021637226,
+   "cagr_after": 0.12232134000224959,
+   "cagr_pre": 0.12589789361774972,
+   "mdd_after": -0.18627145613026574,
+   "final_after_liquidation_krw": 63421581.841014765,
+   "totals": {
+    "fees_krw": 35814.09393336076,
+    "fx_cost_krw": 0.0,
+    "dividend_tax_krw": 1034982.4466545029,
+    "capital_gains_tax_krw": 0.0
+   },
+   "unpaid_tax_if_sold_now_krw": 7071497.742331497,
+   "turnover": 0.0,
+   "calendar_mdd": {
+    "2020": null,
+    "2022": null
+   },
+   "calendar_return": {
+    "2020": null,
+    "2022": null
+   },
+   "start": "2010-01-04",
+   "end": "2017-05-31"
+  },
+  "L10F|h2|30M": {
+   "cagr_after_liq": 0.15287990655517825,
+   "cagr_after": 0.17394221947738098,
+   "cagr_pre": 0.1776198805465119,
+   "mdd_after": -0.27829521551156566,
+   "final_after_liquidation_krw": 85137296.79243618,
+   "totals": {
+    "fees_krw": 93665.13043699035,
+    "fx_cost_krw": 102.00984532708011,
+    "dividend_tax_krw": 880915.2646218282,
+    "capital_gains_tax_krw": 204019.69065416005
+   },
+   "unpaid_tax_if_sold_now_krw": 12085596.238660818,
+   "turnover": 0.08329689337366389,
+   "calendar_mdd": {
+    "2020": -0.27829521551156566,
+    "2022": -0.17347600987122325
+   },
+   "calendar_return": {
+    "2020": 0.12095284385454019,
+    "2022": -0.1408310913564771
+   },
+   "start": "2017-06-01",
+   "end": "2024-09-30",
+   "financing_fee_drag_annual_approx": 0.0030310370357304376,
+   "switches_per_year": 0.8183345780433159,
+   "time_on": 0.7967479674796748
+  },
+  "L15F|h2|30M": {
+   "cagr_after_liq": 0.15687024920792303,
+   "cagr_after": 0.17754693228822505,
+   "cagr_pre": 0.18210036731945944,
+   "mdd_after": -0.2690930865646344,
+   "final_after_liquidation_krw": 87321678.54843311,
+   "totals": {
+    "fees_krw": 123817.94551707349,
+    "fx_cost_krw": 293.5288616156322,
+    "dividend_tax_krw": 853811.6429852785,
+    "capital_gains_tax_krw": 587057.7232312639
+   },
+   "unpaid_tax_if_sold_now_krw": 12111443.756503593,
+   "turnover": 0.12470519764813577,
+   "calendar_mdd": {
+    "2020": -0.2690930865646344,
+    "2022": -0.17509774136632295
+   },
+   "calendar_return": {
+    "2020": 0.12682874198510663,
+    "2022": -0.14397783741851766
+   },
+   "start": "2017-06-01",
+   "end": "2024-09-30",
+   "financing_fee_drag_annual_approx": 0.0045548616431513676,
+   "switches_per_year": 0.8183345780433159,
+   "time_on": 0.7967479674796748
+  },
+  "L25F|h2|30M": {
+   "cagr_after_liq": 0.16470189742315,
+   "cagr_after": 0.18469481115405073,
+   "cagr_pre": 0.19097305200090453,
+   "mdd_after": -0.2507743466447818,
+   "final_after_liquidation_krw": 91749918.43409988,
+   "totals": {
+    "fees_krw": 185436.922596717,
+    "fx_cost_krw": 682.4219554758298,
+    "dividend_tax_krw": 797452.4896520934,
+    "capital_gains_tax_krw": 1364843.9109516584
+   },
+   "unpaid_tax_if_sold_now_krw": 12194552.342823524,
+   "turnover": 0.2071158399464241,
+   "calendar_mdd": {
+    "2020": -0.2507743466447818,
+    "2022": -0.17834132722040918
+   },
+   "calendar_return": {
+    "2020": 0.13859937839032788,
+    "2022": -0.15029193555256748
+   },
+   "start": "2017-06-01",
+   "end": "2024-09-30",
+   "financing_fee_drag_annual_approx": 0.00761951522228721,
+   "switches_per_year": 0.8183345780433159,
+   "time_on": 0.7967479674796748
+  },
+  "L25|h2|30M": {
+   "cagr_after_liq": 0.16418307693412615,
+   "cagr_after": 0.18716483258392502,
+   "cagr_pre": 0.18976916677209443,
+   "mdd_after": -0.36470686565395194,
+   "final_after_liquidation_krw": 91450680.98823361,
+   "totals": {
+    "fees_krw": 59380.77799003891,
+    "fx_cost_krw": 9.993676875074534,
+    "dividend_tax_krw": 742399.5630264604,
+    "capital_gains_tax_krw": 19987.35375014905
+   },
+   "unpaid_tax_if_sold_now_krw": 14093288.387217924,
+   "turnover": 0.029108955121193426,
+   "calendar_mdd": {
+    "2020": -0.36470686565395194,
+    "2022": -0.22394644015334808
+   },
+   "calendar_return": {
+    "2020": 0.1185569558319215,
+    "2022": -0.18863315167630113
+   },
+   "start": "2017-06-01",
+   "end": "2024-09-30",
+   "financing_fee_drag_annual_approx": 0.009748055085703727
+  },
+  "SPY|h2|30M": {
+   "cagr_after_liq": 0.1434604933889405,
+   "cagr_after": 0.1653554718967647,
+   "cagr_pre": 0.16856854834004986,
+   "mdd_after": -0.2967856648095921,
+   "final_after_liquidation_krw": 80167208.1144238,
+   "totals": {
+    "fees_krw": 35225.25342630609,
+    "fx_cost_krw": 0.0,
+    "dividend_tax_krw": 930965.502967165,
+    "capital_gains_tax_krw": 0.0
+   },
+   "unpaid_tax_if_sold_now_krw": 11960872.40465655,
+   "turnover": 0.0,
+   "calendar_mdd": {
+    "2020": -0.2967856648095921,
+    "2022": -0.17023296003476474
+   },
+   "calendar_return": {
+    "2020": 0.10921968966428297,
+    "2022": -0.13455971389931276
+   },
+   "start": "2017-06-01",
+   "end": "2024-09-30"
+  },
+  "L10F|post|30M": {
+   "cagr_after_liq": 0.17109739115445843,
+   "cagr_after": 0.20337666100690965,
+   "cagr_pre": 0.20616873282182957,
+   "mdd_after": -0.1721728008878347,
+   "final_after_liquidation_krw": 41384960.69918592,
+   "totals": {
+    "fees_krw": 42720.36609696302,
+    "fx_cost_krw": 0.0,
+    "dividend_tax_krw": 105795.3464728693,
+    "capital_gains_tax_krw": 0.0
+   },
+   "unpaid_tax_if_sold_now_krw": 2356788.3909250735,
+   "turnover": 0.09163119206708192,
+   "calendar_mdd": {
+    "2020": null,
+    "2022": null
+   },
+   "calendar_return": {
+    "2020": null,
+    "2022": null
+   },
+   "start": "2024-10-01",
+   "end": "2026-10-15",
+   "financing_fee_drag_annual_approx": 0.005182380040546792,
+   "switches_per_year": 0.9818548387096774,
+   "time_on": 0.91796875
+  },
+  "L15F|post|30M": {
+   "cagr_after_liq": 0.17293906879900245,
+   "cagr_after": 0.20586799713849113,
+   "cagr_pre": 0.20871712782730767,
+   "mdd_after": -0.17253755277251615,
+   "final_after_liquidation_krw": 41517638.97918007,
+   "totals": {
+    "fees_krw": 48783.064466651434,
+    "fx_cost_krw": 0.0,
+    "dividend_tax_krw": 101665.23143470108,
+    "capital_gains_tax_krw": 0.0
+   },
+   "unpaid_tax_if_sold_now_krw": 2408771.2599570723,
+   "turnover": 0.1379488465659812,
+   "calendar_mdd": {
+    "2020": null,
+    "2022": null
+   },
+   "calendar_return": {
+    "2020": null,
+    "2022": null
+   },
+   "start": "2024-10-01",
+   "end": "2026-10-15",
+   "financing_fee_drag_annual_approx": 0.007785611152443113,
+   "switches_per_year": 0.9818548387096774,
+   "time_on": 0.91796875
+  },
+  "L25F|post|30M": {
+   "cagr_after_liq": 0.1766135275157772,
+   "cagr_after": 0.21083880084751128,
+   "cagr_pre": 0.21380545430681197,
+   "mdd_after": -0.1732624251496795,
+   "final_after_liquidation_krw": 41783000.61323268,
+   "totals": {
+    "fees_krw": 60914.101741412975,
+    "fx_cost_krw": 0.0,
+    "dividend_tax_krw": 93396.21925075362,
+    "capital_gains_tax_krw": 0.0
+   },
+   "unpaid_tax_if_sold_now_krw": 2513035.640153591,
+   "turnover": 0.23161243213889504,
+   "calendar_mdd": {
+    "2020": null,
+    "2022": null
+   },
+   "calendar_return": {
+    "2020": null,
+    "2022": null
+   },
+   "start": "2024-10-01",
+   "end": "2026-10-15",
+   "financing_fee_drag_annual_approx": 0.013016784230956683,
+   "switches_per_year": 0.9818548387096774,
+   "time_on": 0.91796875
+  },
+  "L25|post|30M": {
+   "cagr_after_liq": 0.1861058961423554,
+   "cagr_after": 0.22222809690833834,
+   "cagr_pre": 0.22450101308450754,
+   "mdd_after": -0.21129988428659086,
+   "final_after_liquidation_krw": 42472503.48200448,
+   "totals": {
+    "fees_krw": 31718.172160640068,
+    "fx_cost_krw": 0.0,
+    "dividend_tax_krw": 86223.49317393855,
+    "capital_gains_tax_krw": 0.0
+   },
+   "unpaid_tax_if_sold_now_krw": 2676379.9799095793,
+   "turnover": 0.007652299389311987,
+   "calendar_mdd": {
+    "2020": null,
+    "2022": null
+   },
+   "calendar_return": {
+    "2020": null,
+    "2022": null
+   },
+   "start": "2024-10-01",
+   "end": "2026-10-15",
+   "financing_fee_drag_annual_approx": 0.014605726139439177
+  },
+  "SPY|post|30M": {
+   "cagr_after_liq": 0.1674051626610651,
+   "cagr_after": 0.1983821049817034,
+   "cagr_pre": 0.20106338537387103,
+   "mdd_after": -0.17143863484065403,
+   "final_after_liquidation_krw": 41119616.04889236,
+   "totals": {
+    "fees_krw": 30600.67154304391,
+    "fx_cost_krw": 0.0,
+    "dividend_tax_krw": 114046.71500030841,
+    "capital_gains_tax_krw": 0.0
+   },
+   "unpaid_tax_if_sold_now_krw": 2253122.61993231,
+   "turnover": 0.0,
+   "calendar_mdd": {
+    "2020": null,
+    "2022": null
+   },
+   "calendar_return": {
+    "2020": null,
+    "2022": null
+   },
+   "start": "2024-10-01",
+   "end": "2026-10-15"
+  },
+  "L10F|judged|100M": {
+   "cagr_after_liq": 0.13368583408777757,
+   "cagr_after": 0.1470203166619264,
+   "cagr_pre": 0.15244986450560605,
+   "mdd_after": -0.27829521811883806,
+   "final_after_liquidation_krw": 635485397.9125388,
+   "totals": {
+    "fees_krw": 801489.5615098999,
+    "fx_cost_krw": 5243.652305582313,
+    "dividend_tax_krw": 9962796.18934528,
+    "capital_gains_tax_krw": 10487304.611164616
+   },
+   "unpaid_tax_if_sold_now_krw": 119520139.39548075,
+   "turnover": 0.08442449550985895,
+   "calendar_mdd": {
+    "2020": -0.27829521811883806,
+    "2022": -0.17347600998275792
+   },
+   "calendar_return": {
+    "2020": 0.12095227282499366,
+    "2022": -0.14083116476727042
+   },
+   "start": "2010-01-04",
+   "end": "2024-09-30",
+   "financing_fee_drag_annual_approx": 0.002272237734777854,
+   "switches_per_year": 0.8142299832806985,
+   "time_on": 0.8029649595687331
+  },
+  "L15F|judged|100M": {
+   "cagr_after_liq": 0.1351686485508694,
+   "cagr_after": 0.1480166631555051,
+   "cagr_pre": 0.15479590602353666,
+   "mdd_after": -0.2690930901054648,
+   "final_after_liquidation_krw": 647846004.3614225,
+   "totals": {
+    "fees_krw": 1119455.934646583,
+    "fx_cost_krw": 8466.155727292757,
+    "dividend_tax_krw": 9509611.585029375,
+    "capital_gains_tax_krw": 16932311.454585496
+   },
+   "unpaid_tax_if_sold_now_krw": 116882899.79499376,
+   "turnover": 0.12628181784562276,
+   "calendar_mdd": {
+    "2020": -0.2690930901054648,
+    "2022": -0.17509774162745184
+   },
+   "calendar_return": {
+    "2020": 0.12682776439290455,
+    "2022": -0.14397797646707222
+   },
+   "start": "2010-01-04",
+   "end": "2024-09-30",
+   "financing_fee_drag_annual_approx": 0.0034133490630898445,
+   "switches_per_year": 0.8142299832806985,
+   "time_on": 0.8029649595687331
+  },
+  "L25F|judged|100M": {
+   "cagr_after_liq": 0.13784664535033908,
+   "cagr_after": 0.14982617697279177,
+   "cagr_pre": 0.15933878231322995,
+   "mdd_after": -0.25077435070541365,
+   "final_after_liquidation_krw": 670739210.051207,
+   "totals": {
+    "fees_krw": 1745661.839373095,
+    "fx_cost_krw": 14787.783660891802,
+    "dividend_tax_krw": 8589878.38391666,
+    "capital_gains_tax_krw": 29575567.321783576
+   },
+   "unpaid_tax_if_sold_now_krw": 111947919.6084923,
+   "turnover": 0.20935306140408302,
+   "calendar_mdd": {
+    "2020": -0.25077435070541365,
+    "2022": -0.17839576184142258
+   },
+   "calendar_return": {
+    "2020": 0.13840942306021264,
+    "2022": -0.15034852242181485
+   },
+   "start": "2010-01-04",
+   "end": "2024-09-30",
+   "financing_fee_drag_annual_approx": 0.00570579905610263,
+   "switches_per_year": 0.8142299832806985,
+   "time_on": 0.8029649595687331
+  },
+  "L25|judged|100M": {
+   "cagr_after_liq": 0.15172199072737746,
+   "cagr_after": 0.16598043768046122,
+   "cagr_pre": 0.170641507228799,
+   "mdd_after": -0.36470686698710597,
+   "final_after_liquidation_krw": 801922960.0009868,
+   "totals": {
+    "fees_krw": 461454.21552886977,
+    "fx_cost_krw": 7732.166288203985,
+    "dividend_tax_krw": 9644689.815601435,
+    "capital_gains_tax_krw": 15464332.576407956
+   },
+   "unpaid_tax_if_sold_now_krw": 159436709.3228964,
+   "turnover": 0.024775003069691107,
+   "calendar_mdd": {
+    "2020": -0.36470686698710597,
+    "2022": -0.22401473867724675
+   },
+   "calendar_return": {
+    "2020": 0.11800769884188056,
+    "2022": -0.18870483938493798
+   },
+   "start": "2010-01-04",
+   "end": "2024-09-30",
+   "financing_fee_drag_annual_approx": 0.007226790128852036
+  },
+  "SPY|judged|100M": {
+   "cagr_after_liq": 0.12989099815255312,
+   "cagr_after": 0.1443227451047866,
+   "cagr_pre": 0.14760735847910111,
+   "mdd_after": -0.29678566480959245,
+   "final_after_liquidation_krw": 604845898.4455577,
+   "totals": {
+    "fees_krw": 161097.46568648086,
+    "fx_cost_krw": 0.0,
+    "dividend_tax_krw": 10819153.793763727,
+    "capital_gains_tax_krw": 0.0
+   },
+   "unpaid_tax_if_sold_now_krw": 124409248.41608441,
+   "turnover": 0.0,
+   "calendar_mdd": {
+    "2020": -0.29678566480959245,
+    "2022": -0.17023296003476474
+   },
+   "calendar_return": {
+    "2020": 0.10921968966428275,
+    "2022": -0.13455971389931332
+   },
+   "start": "2010-01-04",
+   "end": "2024-09-30"
+  },
+  "L10F+SAT|judged|30M": {
+   "cagr_after_liq": 0.14414462021526386,
+   "cagr_after": 0.1557517314200696,
+   "cagr_pre": 0.1632203051719716,
+   "mdd_after": -0.2709716806761583,
+   "final_after_liquidation_krw": 218275187.5061073,
+   "totals": {
+    "fees_krw": 885544.1061462878,
+    "fx_cost_krw": 3544.2453696357034,
+    "dividend_tax_krw": 2881389.000387538,
+    "capital_gains_tax_krw": 7088490.7392714005
+   },
+   "unpaid_tax_if_sold_now_krw": 35009918.4679172,
+   "turnover": 0.3214929511693433,
+   "calendar_mdd": {
+    "2020": -0.2709716806761583,
+    "2022": -0.161553818055016
+   },
+   "calendar_return": {
+    "2020": 0.17337136516561724,
+    "2022": -0.11473645755714135
+   },
+   "start": "2010-01-04",
+   "end": "2024-09-30",
+   "financing_fee_drag_annual_approx": 0.002319496013376804,
+   "switches_per_year": 0.8142299832806985,
+   "time_on": 0.8029649595687331
+  },
+  "L15F+SAT|judged|30M": {
+   "cagr_after_liq": 0.1454570450685888,
+   "cagr_after": 0.1567296039465984,
+   "cagr_pre": 0.1654884639123806,
+   "mdd_after": -0.26189994278051365,
+   "final_after_liquidation_krw": 221994452.510854,
+   "totals": {
+    "fees_krw": 978982.6992613367,
+    "fx_cost_krw": 4459.269497052309,
+    "dividend_tax_krw": 2746112.180546769,
+    "capital_gains_tax_krw": 8918538.994104607
+   },
+   "unpaid_tax_if_sold_now_krw": 34467434.19114448,
+   "turnover": 0.3616281775220031,
+   "calendar_mdd": {
+    "2020": -0.26189994278051365,
+    "2022": -0.1614386271535282
+   },
+   "calendar_return": {
+    "2020": 0.1788149935082468,
+    "2022": -0.11803600034011574
+   },
+   "start": "2010-01-04",
+   "end": "2024-09-30",
+   "financing_fee_drag_annual_approx": 0.003479973666411944,
+   "switches_per_year": 0.8142299832806985,
+   "time_on": 0.8029649595687331
+  },
+  "L25F+SAT|judged|30M": {
+   "cagr_after_liq": 0.14788850151162203,
+   "cagr_after": 0.1585544941659045,
+   "cagr_pre": 0.16987795580779674,
+   "mdd_after": -0.24402231690174547,
+   "final_after_liquidation_krw": 229041498.94417387,
+   "totals": {
+    "fees_krw": 1163199.0251967027,
+    "fx_cost_krw": 6226.2208154584605,
+    "dividend_tax_krw": 2472935.2223635437,
+    "capital_gains_tax_krw": 12452441.630916908
+   },
+   "unpaid_tax_if_sold_now_krw": 33448400.717769757,
+   "turnover": 0.4417464837598454,
+   "calendar_mdd": {
+    "2020": -0.24402231690174547,
+    "2022": -0.16114669108198176
+   },
+   "calendar_return": {
+    "2020": 0.18990728852125693,
+    "2022": -0.12458454432484323
+   },
+   "start": "2010-01-04",
+   "end": "2024-09-30",
+   "financing_fee_drag_annual_approx": 0.0058027373476927605,
+   "switches_per_year": 0.8142299832806985,
+   "time_on": 0.8029649595687331
+  }
+ },
+ "long_run": {
+  "MARKET": {
+   "cagr": 0.09894260522165199,
+   "mdd": -0.8407399476860209,
+   "worst_12m": -0.6607037092960989,
+   "years": 80.50102669404518,
+   "sub": {
+    "1927-46": 0.050668149084085234,
+    "1947-66": 0.128088925590778,
+    "1967-86": 0.10408730296075608,
+    "1987-07": 0.11271331788741601
+   },
+   "calendar": {
+    "1929": -0.1522381608070562,
+    "1930": -0.286620690039075,
+    "1931": -0.443471412000105,
+    "1932": -0.08931009678794033,
+    "1973": -0.1914175866309581,
+    "1974": -0.27796241796995613,
+    "2000": -0.11686644795251633,
+    "2001": -0.11307675057187372,
+    "2002": -0.20379500462642453
+   }
+  },
+  "L10F": {
+   "cagr": 0.10397742580320868,
+   "mdd": -0.8135980457566622,
+   "worst_12m": -0.6077753258461882,
+   "years": 80.50102669404518,
+   "sub": {
+    "1927-46": 0.05643245927067242,
+    "1947-66": 0.1351556013961006,
+    "1967-86": 0.10898955385387277,
+    "1987-07": 0.11525294932996011
+   },
+   "calendar": {
+    "1929": -0.16373945010546953,
+    "1930": -0.25583671700028254,
+    "1931": -0.3979573055685178,
+    "1932": -0.11193754015780288,
+    "1973": -0.18349781485498573,
+    "1974": -0.24203105055987306,
+    "2000": -0.13785734186045984,
+    "2001": -0.09913622727892457,
+    "2002": -0.19902028562937946
+   },
+   "switches_per_year": 0.9192429343944495,
+   "time_on": 0.7304571541658421,
+   "cost_total": 3.4821355651662906,
+   "financing_fee_drag_annual": 0.004067042332649127,
+   "active_ir": 0.27626525477922115,
+   "noop": null,
+   "sub_beats": 4
+  },
+  "L15F": {
+   "cagr": 0.10636034104407166,
+   "mdd": -0.7993016929501736,
+   "worst_12m": -0.5800832955691078,
+   "years": 80.50102669404518,
+   "sub": {
+    "1927-46": 0.059068649444699695,
+    "1947-66": 0.13858646841881406,
+    "1967-86": 0.11134449996952678,
+    "1987-07": 0.11643450314792037
+   },
+   "calendar": {
+    "1929": -0.16953442721338496,
+    "1930": -0.24041789136549696,
+    "1931": -0.37527779152750806,
+    "1932": -0.12408587301014729,
+    "1973": -0.17953941548307828,
+    "1974": -0.2240708419374442,
+    "2000": -0.14833084250869477,
+    "2001": -0.09209334733614394,
+    "2002": -0.19663219951717759
+   },
+   "switches_per_year": 0.9192429343944495,
+   "time_on": 0.7304571541658421,
+   "cost_total": 6.023199512933556,
+   "financing_fee_drag_annual": 0.006089655399560448,
+   "active_ir": 0.2775487260354138,
+   "noop": null,
+   "sub_beats": 4
+  },
+  "L25F": {
+   "cagr": 0.11077755306841985,
+   "mdd": -0.7751311791920932,
+   "worst_12m": -0.5222750397385862,
+   "years": 80.50102669404518,
+   "sub": {
+    "1927-46": 0.06352557243047197,
+    "1947-66": 0.14524706333010906,
+    "1967-86": 0.1158676616147134,
+    "1987-07": 0.11862005181450153
+   },
+   "calendar": {
+    "1929": -0.18120756210575928,
+    "1930": -0.20952411241074975,
+    "1931": -0.33005777403836256,
+    "1932": -0.14975483790365807,
+    "1973": -0.17162567857597688,
+    "1974": -0.18816089970695504,
+    "2000": -0.1692356475779524,
+    "2001": -0.07785339319564155,
+    "2002": -0.1918548121479603
+   },
+   "switches_per_year": 0.9192429343944495,
+   "time_on": 0.7304571541658421,
+   "cost_total": 13.026248032179272,
+   "financing_fee_drag_annual": 0.010114684098292736,
+   "active_ir": 0.27776081715667983,
+   "noop": null,
+   "sub_beats": 4
+  },
+  "L25": {
+   "cagr": 0.10620480151368117,
+   "mdd": -0.9011041792819798,
+   "worst_12m": -0.7334146442862268,
+   "years": 80.50102669404518,
+   "sub": {
+    "1927-46": 0.04891594102137509,
+    "1947-66": 0.1511858799794843,
+    "1967-86": 0.10519901598501735,
+    "1987-07": 0.12002357511822015
+   },
+   "calendar": {
+    "1929": -0.2144476473516307,
+    "1930": -0.3504940901247081,
+    "1931": -0.51591638311113,
+    "1932": -0.15154427678743543,
+    "1973": -0.24673973105043823,
+    "1974": -0.34527528937948837,
+    "2000": -0.1680503794006576,
+    "2001": -0.15736925799125734,
+    "2002": -0.2604763685630802
+   },
+   "switches_per_year": 0.0,
+   "time_on": 1.0,
+   "cost_total": 1.7543025715724168,
+   "financing_fee_drag_annual": 0.013714494435882858,
+   "active_ir": 0.35077454134445896,
+   "noop": null,
+   "sub_beats": 3
+  }
+ },
+ "satellite_secondary": {
+  "L10F": {
+   "after_tax_liq": 0.14414462021526386,
+   "mdd_krw": -0.2709716806761583,
+   "diff_vs_spy": 0.014091116574992402,
+   "diff_vs_cell": 0.009150123296705504,
+   "tax_paid_krw": 7088490.7392714005
+  },
+  "L15F": {
+   "after_tax_liq": 0.1454570450685888,
+   "mdd_krw": -0.26189994278051365,
+   "diff_vs_spy": 0.015403541428317347,
+   "diff_vs_cell": 0.008838119356042284,
+   "tax_paid_krw": 8918538.994104607
+  },
+  "L25F": {
+   "after_tax_liq": 0.14788850151162203,
+   "mdd_krw": -0.24402231690174547,
+   "diff_vs_spy": 0.017834997871350566,
+   "diff_vs_cell": 0.008461962548656388,
+   "tax_paid_krw": 12452441.630916908
+  }
+ },
+ "sso_tracking": {
+  "available": true,
+  "start": "2006-07-03",
+  "end": "2026-10-15",
+  "synthetic_cagr": 0.1547419384617097,
+  "sso_cagr": 0.15608214854494573,
+  "tracking_error_annual": 0.03714851516511891,
+  "corr": 0.9954735635100169
+ },
+ "power": {
+  "etf_era": {
+   "years": 14.74,
+   "n_trials": 3,
+   "confidence": 0.95,
+   "mde_ir": 0.651,
+   "power_at": {
+    "0.20": 0.042,
+    "0.30": 0.089,
+    "0.50": 0.282
+   },
+   "method": "expected-max-z(Bailey-LdP) + null SE, simplified"
+  },
+  "long_run": {
+   "years": 80.5,
+   "n_trials": 3,
+   "confidence": 0.95,
+   "mde_ir": 0.278,
+   "power_at": {
+    "0.20": 0.241,
+    "0.30": 0.577,
+    "0.50": 0.977
+   },
+   "method": "expected-max-z(Bailey-LdP) + null SE, simplified"
+  }
+ },
+ "windows": {
+  "judged": [
+   "2010-01-04",
+   "2024-09-30"
+  ],
+  "h1": [
+   "2010-01-04",
+   "2017-05-31"
+  ],
+  "h2": [
+   "2017-06-01",
+   "2024-09-30"
+  ],
+  "post": [
+   "2024-10-01",
+   null
+  ]
+ },
+ "long_window": [
+  "1927-07-01",
+  "2007-12-31"
+ ],
+ "sub_periods": {
+  "1927-46": [
+   "1927-07-01",
+   "1946-12-31"
+  ],
+  "1947-66": [
+   "1947-01-01",
+   "1966-12-31"
+  ],
+  "1967-86": [
+   "1967-01-01",
+   "1986-12-31"
+  ],
+  "1987-07": [
+   "1987-01-01",
+   "2007-12-31"
+  ]
+ },
+ "rules": {
+  "lev_mult": 2.0,
+  "fin_spread": 0.01,
+  "fee": 0.009,
+  "band": [
+   0.98,
+   1.02
+  ],
+  "sma": 200,
+  "long_cost_bps": 10.0,
+  "n_boot": 1000,
+  "block_days": 126,
+  "boot_seed": 20261024
+ },
+ "meta": {
+  "live_satellite_weight": 0.15,
+  "strategy_version": "core-momentum-top4+spy200dma/2026-10-bil-noptp",
+  "pool_cache_tag": "pit2"
+ }
+}
