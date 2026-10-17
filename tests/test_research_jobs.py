@@ -66,6 +66,16 @@ def _fixed_system_memory(monkeypatch):
     monkeypatch.setattr(rj, "_system_available_mb", lambda: 11000.0)
 
 
+@pytest.fixture(autouse=True)
+def _fixed_system_cpu(monkeypatch, request):
+    """실제 VM 부하가 기능 테스트의 자식 프로세스를 멈추지 않게 한다.
+
+    CPU 샘플러 자체와 고부하 일시 중지 동작을 검사하는 테스트는 각자의 입력을 쓴다.
+    """
+    if request.node.name != "test_cpu_sampler_calculates_busy_percent":
+        monkeypatch.setattr(rj._CpuUsageSampler, "sample_percent", lambda self: 0.0)
+
+
 @pytest.fixture()
 def cfg(tmp_path):
     return rj.Config.for_root(tmp_path)
@@ -338,8 +348,9 @@ def test_cancel_request_stops_a_running_child_and_admin_cancel(cfg):
 
 def test_child_runs_with_research_priority(cfg):
     job = _job(cfg, "nice", "import os\nprint('NICE', os.nice(0))\n")
+    parent_nice = os.nice(0)
     outcome = rj.run_child(cfg, job, 30, poll_interval=0.1, system_memory=lambda: None)
-    assert "NICE 5" in outcome.log_tail
+    assert f"NICE {min(19, parent_nice + 5)}" in outcome.log_tail
 
 
 def test_memory_budget_uses_up_to_80_percent_of_vm_ram(cfg):
