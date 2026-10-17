@@ -409,16 +409,60 @@ def test_sc2vt20_vol_scaling_math_cap_and_bil_remainder():
     assert ft3.vt_inner({"XLK": 0.5, "XLE": 0.5}, 1.0) == {"XLK": 0.5, "XLE": 0.5}
 
 
-def test_sc2vt20_prior_only_window_in_ledger(tmp_path, monkeypatch):
+def _vol_prices(sd=0.03):
+    idx = pd.bdate_range("2025-01-01", "2026-11-03")
+    rng = np.random.default_rng(9)
+    n = len(idx)
+    df = {t: 100 * np.exp(np.cumsum(rng.normal(0.0, 0.002, n))) for t in ft3.SECTORS + ("SPY",)}
+    df["XLK"] = 100 * np.exp(np.cumsum(rng.normal(0.004, sd, n)))
+    df["XLE"] = 100 * np.exp(np.cumsum(rng.normal(0.003, sd, n)))
+    return pd.DataFrame(df, index=idx)
+
+
+def test_sc2vt20_backfill_uses_prior_data_and_matches_hand_reconstruction():
+    total = _vol_prices().loc[:"2026-11-02"]  # 마지막 날 = 11월 결정일
+    win = ft3.sc2_backfill_window(total)
+    # 손 계산: 매달 첫 거래일 p 에 p−1 종가 252행 수익 상위 2(신호 없으면 SPY), p+1 부터 수익, 달 안 표류
+    prior = total.iloc[:-1]
+    r = prior.pct_change()
+    per = prior.index.to_period("M")
+    out, w = [], None
+    for i in range(1, len(prior)):
+        if w is not None:
+            rr = {k: r.iloc[i][k] for k in w}
+            out.append(sum(v * rr[k] for k, v in w.items()))
+            g = 1 + out[-1]
+            w = {k: v * (1 + rr[k]) / g for k, v in w.items()}
+        if per[i] != per[i - 1]:
+            p = i
+            sig = p - 1
+            if sig >= 252:
+                sc = {t: prior[t].iloc[sig] / prior[t].iloc[sig - 252] - 1 for t in ft3.SECTORS}
+                top = sorted(sc, key=lambda t: -sc[t])[:2]
+                w = {t: 0.5 for t in top}
+            else:
+                w = {"SPY": 1.0}
+    assert win == pytest.approx(out[-126:]) and len(win) == 126
+    # 결정일 당일·그 뒤 가격을 바꿔도 창은 같다(이전 자료만)
+    alt = total.copy()
+    alt.iloc[-1] *= 3
+    assert ft3.sc2_backfill_window(alt) == pytest.approx(win)
+    e, vol = ft3.vol_exposure(win)
+    assert vol > 0.20 and e == pytest.approx(0.20 / vol) and e < 1  # 높은 변동성 → 노출 < 1, 남는 몫 BIL
+    lowe, _ = ft3.vol_exposure(ft3.sc2_backfill_window(_vol_prices(0.002).loc[:"2026-11-02"]))
+    assert lowe == 1.0
+
+
+def test_sc2vt20_in_ledger_scaled_from_first_record(tmp_path, monkeypatch):
     led = tmp_path / "l.jsonl"
-    seen = []
-    orig = ft3.vol_exposure
-    monkeypatch.setattr(ft3, "vol_exposure", lambda d: seen.append(list(d)) or orig(d))
+    monkeypatch.setattr(ft3, "VT_TARGET", 0.01)  # 합성 섹터 변동성보다 낮은 목표 → 첫 기록부터 줄어야 함(원장 이력 없이)
     for end in ("2026-10-16", "2026-10-30", "2026-11-02"):
         _rec(led, end)
     r0, r1, r2 = ft3.load_ledger(led)
-    assert r0["weights"]["SC2VT20"] == pytest.approx(r0["weights"]["SC2"])  # 기록 부족 → 노출 1
-    assert len(seen) == 2 and seen[0] == []  # 시작일, 11-02 결정일에만 계산
-    assert [d for d, _ in r2["sc2_rets"]] == ["2026-11-02"]
-    assert len(seen[1]) == len(r1["sc2_rets"])  # 결정일 당일 수익은 빠짐
+    e0 = r0["components"]["sc2vt"]["exposure"]
+    assert e0 < 1 and r0["components"]["sc2vt"]["n"] == 126
+    assert r0["weights"]["SC2VT20"]["BIL"] == pytest.approx(1 - e0)
+    assert r1["components"]["sc2vt"] == r0["components"]["sc2vt"]  # 달 안에서는 그대로
     assert r2["components"]["sc2vt"]["month"] == "2026-11" and r2["trades"]["SC2VT20"] == ["sleeve:secvt"]
+    assert [d for d, _ in r2["sc2_rets"]] == ["2026-11-02"]  # 확인용 기록은 남김
+
