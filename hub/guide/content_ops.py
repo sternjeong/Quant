@@ -52,9 +52,9 @@ JOBS: tuple[JobGuide, ...] = (
     ),
     JobGuide(
         job_id="forward_tournament_record",
-        where_to_see="관제 센터 'R&D 센터'의 '앞으로 기록' 표(v1·v2 줄), 월요일 '[주간 엔진 점검]'의 '앞으로 토너먼트'·'앞으로 토너먼트 v2' 줄, VM data/forward_tournament/ledger.jsonl·data/forward_tournament_v2/ledger.jsonl",
-        if_alert="이 잡은 v1 을 기록한 뒤 v2 를 기록합니다. 'forward_tournament_record' 실패 알림은 v1, 'forward_tournament_v2_record' 실패 알림은 v2(새틀라이트 종목 선정 실패 포함)이며 서로 영향을 주지 않습니다. 대개 가격 조회 문제라 다음 날 자동으로 다시 기록합니다(빠진 날은 그 전 비중이 이어진 것으로 평가, v2 새틀라이트는 다음 날 다시 고름). 4일 넘게 멈추면 주간 점검이 경고합니다. 원하지 않으면 R&D 센터에서 주제를 끄거나 '/processes off forward_tournament_record'(v1·v2 함께 멈춤).",
-        verified="2026-10-10",
+        where_to_see="관제 센터 'R&D 센터'의 '앞으로 기록' 표(v1·v2·v3 줄), 월요일 '[주간 엔진 점검]'의 '앞으로 토너먼트'·'앞으로 토너먼트 v2'·'앞으로 토너먼트 v3' 줄, VM data/forward_tournament/·data/forward_tournament_v2/·data/forward_tournament_v3/ 의 ledger.jsonl",
+        if_alert="이 잡은 v1 → v2 → v3 순서로 기록합니다. 'forward_tournament_record' 실패 알림은 v1, 'forward_tournament_v2_record' 는 v2, 'forward_tournament_v3_record' 는 v3(새틀라이트 종목 선정 실패 포함)이며 셋은 서로 영향을 주지 않습니다. 대개 가격 조회 문제라 다음 날 자동으로 다시 기록합니다(빠진 날은 그 전 비중이 이어진 것으로 평가, 새틀라이트는 다음 날 다시 고름). v3 는 새틀라이트를 다시 고르는 달(1·3·5·7·9·11월 첫 거래일 무렵)에 후보 풀 가격을 읽느라 몇 분 더 걸릴 수 있습니다. 4일 넘게 멈추면 주간 점검이 경고합니다. 원하지 않으면 R&D 센터에서 주제를 끄거나 '/processes off forward_tournament_record'(v1·v2·v3 함께 멈춤).",
+        verified="2026-10-16",
     ),
     JobGuide(
         job_id="dawn_precompute",

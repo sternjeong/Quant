@@ -1170,7 +1170,8 @@ def crypto_shadow_record_job() -> None:
 
 
 def forward_tournament_record_job() -> None:
-    """앞으로 토너먼트 기록 (v1 core/forward_tournament.py, 이어서 v2 core/forward_tournament_v2.py). 배분 반영 없음, 주문 없음.
+    """앞으로 토너먼트 기록 (v1 core/forward_tournament.py, 이어서 v2 core/forward_tournament_v2.py, v3 core/forward_tournament_v3.py).
+    배분 반영 없음, 주문 없음. 셋은 각자 try 로 감싸 하나가 실패해도 나머지는 기록된다.
 
     시각(00:39 KST): 미국 장 마감 뒤 야간 블록의 빈 슬롯(00:37 코인 기록 다음).
     """
@@ -1193,6 +1194,7 @@ def forward_tournament_record_job() -> None:
         print(f"  - 앞으로 토너먼트 기록 실패: {type(exc).__name__}: {exc}")
         report_job_failure("forward_tournament_record", f"{type(exc).__name__}: {exc}")
     _forward_tournament_v2_record()
+    _forward_tournament_v3_record()
     print(f"[{datetime.now()}] forward_tournament_record_job 종료")
 
 
@@ -1214,6 +1216,27 @@ def _forward_tournament_v2_record() -> None:
     except Exception as exc:  # noqa: BLE001
         print(f"  - 앞으로 토너먼트 v2 기록 실패: {type(exc).__name__}: {exc}")
         report_job_failure("forward_tournament_v2_record", f"{type(exc).__name__}: {exc}")
+
+
+def _forward_tournament_v3_record() -> None:
+    """앞으로 토너먼트 v3 (core/forward_tournament_v3.py) — v2 기록 뒤. 어떤 실패도 v1·v2 기록에 영향을 주지 않고,
+    실패는 별도 키(forward_tournament_v3_record)로 남긴다. 새틀라이트 재선정일(1·3·5·7·9·11월 첫 거래일 무렵)에는
+    후보 풀 가격을 읽느라 몇 분 걸릴 수 있다."""
+    try:
+        from core import rnd_topics
+
+        if not rnd_topics.is_on("forward_tournament"):
+            return
+        from core import forward_tournament_v3 as ft3
+
+        res = ft3.record()
+        print(f"  - v3 {res.get('date')} 기록={res.get('recorded')} ({res.get('reason', '')})")
+        if res.get("errors"):
+            report_job_failure("forward_tournament_v3_record", "; ".join(f"{k} {v}" for k, v in res["errors"].items()))
+        ft3.refresh_status()
+    except Exception as exc:  # noqa: BLE001
+        print(f"  - 앞으로 토너먼트 v3 기록 실패: {type(exc).__name__}: {exc}")
+        report_job_failure("forward_tournament_v3_record", f"{type(exc).__name__}: {exc}")
 
 
 def engine_weekly_audit_job() -> None:

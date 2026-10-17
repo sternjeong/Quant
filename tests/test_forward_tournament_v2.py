@@ -247,6 +247,7 @@ def test_v2_failure_does_not_affect_v1_record(tmp_path, monkeypatch):
     v1, failures = [], []
     monkeypatch.setattr(ft, "record", lambda *a, **k: v1.append(1) or {"recorded": True, "date": "2026-10-12"})
     monkeypatch.setattr(run_scheduler, "report_job_failure", lambda job, msg: failures.append((job, msg)))
+    monkeypatch.setattr(run_scheduler, "_forward_tournament_v3_record", lambda: None)  # v3 는 tests/test_forward_tournament_v3.py
 
     def boom(*a, **k):
         raise ValueError("v2 broke")
