@@ -292,7 +292,7 @@ def _eval_rets(n, seed=3):
 def test_evaluate_waits_then_judges_from_ledger():
     idx, rets = _eval_rets(300)
     weights = {"B0": {"SPY": 1.0}, "B1": {"CH": 1.0}, "P1": {"UP": 1.0}, "P4": {"SPY": 1.0}, "P1ST": {"LOW": 1.0},
-               "KRS": {"DEEP": 1.0}, "SC2": {"UP": 0.5, "SPY": 0.5}}
+               "KRS": {"DEEP": 1.0}, "SC2": {"UP": 0.5, "SPY": 0.5}, "SC2VT20": {"SPY": 0.5, "BIL": 0.5}}
     rows = _rows(idx, weights)
     early = ft3.evaluate(rows[:60], rets)
     assert early["candidates"]["P1"]["verdict"].startswith("판정 전") and early["candidates"]["B0"]["verdict"] == "기준"
@@ -306,7 +306,7 @@ def test_evaluate_waits_then_judges_from_ledger():
     assert c["KRS"]["verdict"] == "FAIL" and c["KRS"]["cagr_vs_B0"] >= 0.01 and c["KRS"]["mdd_vs_B0"] < -0.03
     assert c["B1"]["verdict"] == "기준"
     assert c["P1"]["ir_vs_B1"] is not None and c["P1"]["cagr_vs_B1"] == pytest.approx(c["P1"]["cagr"] - c["B1"]["cagr"])
-    assert full["rank"][0] in ("KRS", "P1") and set(full["rank"]) == set(ft3.CANDIDATES)
+    assert [c[k]["cagr"] for k in full["rank"]] == sorted((c[k]["cagr"] for k in full["rank"]), reverse=True) and set(full["rank"]) == set(ft3.CANDIDATES)
     s = ft3.series_from_ledger(rows, "B0", rets)
     assert s.iloc[0] == pytest.approx(rets["SPY"].iloc[1] - ft3.COST_BPS / 1e4)  # 첫날 진입 비용만
     s = ft3.series_from_ledger(rows[:2], "P1", rets.assign(UP=0.0))
@@ -394,3 +394,31 @@ def test_v3_failure_isolated_from_v1_v2(tmp_path, monkeypatch):
     monkeypatch.setattr(ft3, "record", lambda *a, **k: {"recorded": True, "errors": {"ST_C": "RuntimeError: x"}})
     run_scheduler.forward_tournament_record_job()
     assert failures == [("forward_tournament_v3_record", "ST_C RuntimeError: x")]
+
+
+def test_sc2vt20_vol_scaling_math_cap_and_bil_remainder():
+    assert ft3.vol_exposure([0.01] * 125) == (1.0, None)  # 126일 전에는 1
+    rng = np.random.default_rng(1)
+    hi = list(rng.normal(0, 0.02, 200))  # 연 약 32% → 노출 < 1
+    e, vol = ft3.vol_exposure(hi)
+    exp_vol = float(pd.Series(hi[-126:]).std(ddof=1)) * np.sqrt(252)  # 마지막 126개만
+    assert vol == pytest.approx(exp_vol) and e == pytest.approx(0.20 / exp_vol) and e < 1
+    lo = list(rng.normal(0, 0.003, 130))
+    assert ft3.vol_exposure(lo)[0] == 1.0  # 상한 1
+    assert ft3.vt_inner({"XLK": 0.5, "XLE": 0.5}, 0.6) == pytest.approx({"XLK": 0.3, "XLE": 0.3, "BIL": 0.4})
+    assert ft3.vt_inner({"XLK": 0.5, "XLE": 0.5}, 1.0) == {"XLK": 0.5, "XLE": 0.5}
+
+
+def test_sc2vt20_prior_only_window_in_ledger(tmp_path, monkeypatch):
+    led = tmp_path / "l.jsonl"
+    seen = []
+    orig = ft3.vol_exposure
+    monkeypatch.setattr(ft3, "vol_exposure", lambda d: seen.append(list(d)) or orig(d))
+    for end in ("2026-10-16", "2026-10-30", "2026-11-02"):
+        _rec(led, end)
+    r0, r1, r2 = ft3.load_ledger(led)
+    assert r0["weights"]["SC2VT20"] == pytest.approx(r0["weights"]["SC2"])  # 기록 부족 → 노출 1
+    assert len(seen) == 2 and seen[0] == []  # 시작일, 11-02 결정일에만 계산
+    assert [d for d, _ in r2["sc2_rets"]] == ["2026-11-02"]
+    assert len(seen[1]) == len(r1["sc2_rets"])  # 결정일 당일 수익은 빠짐
+    assert r2["components"]["sc2vt"]["month"] == "2026-11" and r2["trades"]["SC2VT20"] == ["sleeve:secvt"]
