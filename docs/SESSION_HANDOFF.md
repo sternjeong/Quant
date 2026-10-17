@@ -1,5 +1,24 @@
 # 세션 인계
 
+## 2026-10-17 SPY 6가설 연구 입력 수정 revision 2 — 전체 검증 완료, VM 재실행 대기
+
+- revision 1 VM 실행은 실제 원자료의 2004년 전 ETF 공급 공백과 단 하루의 세 ETF 동시 quote 누락 때문에 사전 데이터 검증에서 3회 실패했다. 성과 계산·통과 판정은 발생하지 않았다. FX는 2026-09-18까지만 있어 최근 보고 구간을 그 날짜까지 제한했다.
+- revision 2에서는 바스켓 공통 가격 시작일 이전을 제외하고, 참고 2000~2011은 실제 공통 시작일(운영 자료에서 XLE/XLK/XLV는 2004-07-26)부터 보고한다. 동일 일자 3개 이상 ETF의 동시 누락은 해당 날짜를 모든 자산에서 제거(최대 2일), 개별 결측/긴 누락/판정기간 결측은 실패한다. 미래 가격으로 보충하지 않는다. 이 변경은 데이터 적격성/보고 범위이며 신호·판정 기간·통과 기준은 변경하지 않았다. job revision을 2로 올려 실패 상태/체크포인트를 새로 시작하도록 했다.
+- 수정 파일: `research/jobs/spy-edge-six-v1/{job.json,SPEC.md,run.py}`, `tests/test_spy_edge_six.py`, 이 문서와 `PROGRESS.md`.
+- 검증: 12칸 합성 스모크 종료 0, 모두 `SMOKE_ONLY`; 신규 전용 테스트 17 passed; 전체 pytest **3,082 passed·4 skipped**, deploy unittest **72 OK**, loader valid, guide 검사 누락 없음, diff check 통과.
+- 배포 현황: 이 변경 전 VM main `/opt/quant` `58607b8`에 `d11acae`가 배포됐고 scheduler/streamlit active였다. 작업은 `failed`(revision 1, runs3/failures3). revision2 커밋을 main에 push한 뒤 자동 배포 게이트와 새 상태 `pending`/`running`/`done`을 확인한다. 본 백테스트는 VM 연구 실행기에서만 계산한다.
+- 결과가 게시되면 12칸의 기계 판정과 세후 성과를 검토한다. 통과가 있더라도 전진 후보 검토까지만이며 챔피언·주문엔진·고정 원장에는 반영하지 않는다.
+
+
+### 2026-10-17 `spy-edge-six-v1` 입력 커버리지 수정 — revision 2 검증 중
+
+- revision 1은 VM 배포 후 연구 실행기 3회 실행·실패 3회로 `failed`가 됐다(23:10 UTC). 원인은 결과 파일/판정 이전 단계의 `validate_data`: SPY의 모든 거래일에 섹터 ETF 9개 가격이 다 존재해야 한다고 잘못 요구했다.
+- 실제 체크포인트를 read-only로 확인: XLE·XLK·XLV 가격 이력은 2004-07-26부터 제공됨; 그 전 결측은 미상장 구간이라기보다 수집 자료 미포함으로 표시했다. 이 세 ETF가 동시에 빠진 내부 날짜 1개가 있다. 환율 원자료는 2026-09-18까지라 최근 참고 창을 그 날짜로 자른다. 2012-01~2024-09 판정 구간 가격·환율은 완전하다.
+- `research/jobs/spy-edge-six-v1/job.json` revision 2와 `run.py`/`SPEC.md` 입력 처리를 보완했다. 공통 ETF 최초 가격일 전 구간은 제외하고 참고 2000~2011 표를 실제 공통 시작일부터 보고한다. 동시에 누락된 quote day(최대 2일)는 모든 자산에서 제거하고 인접 조정가로 구간 누적 수익을 보존한다. 단독 티커 결측·비양수·긴 누락·판정 구간 결측은 계속 실패한다. 미래 가격 대입 없음. PASS 문턱·신호·판정 날짜·비교 대상은 그대로다. 세후 최근 참고값은 최종 FX 날짜까지만 계산한다.
+- 검증: 합성 스모크 12칸 모두 SMOKE_ONLY, 전용 테스트 17 passed, loader valid, guide 검사 누락 없음, `git diff --check` 통과. 실제 VM 결과는 없음.
+- VM 배포/상태: main `d11acae` 운영 `/opt/quant`에 배포됐으나 연구 상태 `failed`, 실행 3·실패 3. revision 2를 게시하면 실행기가 정의 변경을 감지해 재설정한다. 변경 파일을 전체 pytest 후 게시하고 VM 상태 `pending`→`done` 및 결과를 확인한다. 배포 게이트 동안 두 번의 환경/테스트 운영 문제(한 번은 nice 전제 테스트 실패)가 있었으나 운영 코드는 변경 없이 보호됐다.
+
+
 ### 2026-10-16 재검증 보완 — 자식 nice 테스트의 부모 우선순위 전제 제거
 
 - 새 VM 게이트 `26f4527`은 CPU 부하로 느려져 테스트 프로세스를 임시로 nice -5로 우선했다. 이로 인해 `test_child_runs_with_research_priority`가 절대값 `NICE 5` 전제와 충돌해 한 건 실패했다. 우선순위는 nice 0으로 되돌렸다. 이는 연구 전략/실데이터 판정 실패가 아니라 검증 작업 운영 실수다.

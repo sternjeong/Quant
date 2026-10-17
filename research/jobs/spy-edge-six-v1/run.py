@@ -30,6 +30,7 @@ PERIODS = {'early': ('2000-01-01', '2011-12-31'),
            'half2': ('2018-01-01', '2024-09-30'),
            'recent': ('2024-10-01', '2026-10-15')}
 N_TRIALS = 12
+MAX_INTERIOR_GAP_DAYS = 2
 
 
 def load_data(smoke):
@@ -55,19 +56,55 @@ def load_data(smoke):
 
 
 def validate_data(d):
+    required = SECTORS + ['SPY']
+    complete_start = None
+    raw_common_start = None
+    common_removed = 0
     for key in ('close', 'adj'):
         f = d[key]
         if not f.index.is_monotonic_increasing or not f.index.is_unique:
             raise ValueError('unordered or duplicate dates')
-        active = f.loc['1999-01-01':]
-        if active.isna().any().any() or (active <= 0).any().any():
-            raise ValueError(f'{key}: missing/nonpositive active prices; do not fill future prices')
-    if d['adj'].index.min() > pd.Timestamp('1999-01-05') or d['adj'].index.max() < pd.Timestamp('2024-09-30'):
+        if set(required) - set(f.columns):
+            raise ValueError(f'{key}: required ticker missing')
+        f = f[required]
+        if f['SPY'].loc['2012-01-01':'2024-09-30'].isna().any() or (f['SPY'].dropna() <= 0).any():
+            raise ValueError(f'{key}: SPY benchmark has missing/nonpositive prices')
+        first = {t: f[t].first_valid_index() for t in SECTORS}
+        if any(v is None for v in first.values()):
+            raise ValueError(f'{key}: a required sector has no prices')
+        start = max(first.values())
+        if start > pd.Timestamp('2011-01-01'):
+            raise ValueError(f'{key}: common ETF history starts too late: {start.date()}')
+        if raw_common_start is not None and raw_common_start != start:
+            raise ValueError('Close/Adj Close common start dates differ')
+        raw_common_start = start
+        active = f.loc[start:]
+        missing = active[required].isna()
+        isolated = missing.sum(axis=1).between(1, 2)
+        if isolated.any() or (active[required].notna() & (active[required] <= 0)).any().any():
+            raise ValueError(f'{key}: isolated/nonpositive active quote; refusing to impute prices')
+        bad = missing.any(axis=1)
+        gap_days = int(bad.sum())
+        if gap_days > MAX_INTERIOR_GAP_DAYS:
+            raise ValueError(f'{key}: {gap_days} incomplete shared price dates after common inception')
+        # Drop a rare incomplete quote date for every asset; adjacent adjusted closes retain its
+        # compounded return. Never backfill from a future quote or invent an ETF price.
+        active = active.loc[~bad, required]
+        complete_start = active.index[0]
+        if active.loc['2012-01-01':'2024-09-30'].isna().any().any():
+            raise ValueError(f'{key}: incomplete judgement-window prices')
+        d[key] = active
+        common_removed = max(common_removed, gap_days)
+    if d['adj'].index.min() > pd.Timestamp('2011-01-01') or d['adj'].index.max() < pd.Timestamp('2024-09-30'):
         raise ValueError('insufficient history for fixed windows')
-    fx = d['fx'].sort_index().reindex(d['adj'].index, method='ffill')
-    if fx.loc['2000-01-01':].isna().any() or (fx.dropna() <= 0).any():
-        raise ValueError('missing FX; no backward filling')
-    d['fx'] = fx
+    raw_fx = d['fx'].sort_index().dropna()
+    if raw_fx.empty or (raw_fx <= 0).any() or raw_fx.index.max() < pd.Timestamp('2024-09-30'):
+        raise ValueError('missing FX through the judged period; no backward filling')
+    d['fx'] = raw_fx.reindex(d['adj'].index, method='ffill')
+    if d['fx'].loc['2012-01-01':'2024-09-30'].isna().any():
+        raise ValueError('missing FX through the judged period')
+    return {'common_start': str(complete_start.date()), 'common_end': str(d['adj'].index.max().date()),
+            'incomplete_dates_dropped': common_removed, 'fx_last_valid': str(raw_fx.index.max().date())}
 
 
 def make_weights(adj, family='control', param=0):
@@ -200,7 +237,7 @@ def main():
         return state['stages'][name]
     try:
         d = stage('data', lambda: load_data(a.smoke))
-        validate_data(d)
+        coverage = validate_data(d)
         candidates = [(f'{f}_{v}', f, v) for f, vals in CELLS.items() for v in vals]
         methods = [('SPY', 'SPY', 0), ('control', 'control', 0)] + candidates
         all_results = {}
@@ -208,6 +245,8 @@ def main():
             w = stage('weights_'+name, lambda family=family, param=param:
                       tx.buy_and_hold_weights(d['adj'].index) if family == 'SPY' else make_weights(d['adj'], family, param))
             for period, bounds in PERIODS.items():
+                if period == 'recent' and pd.Timestamp(coverage['fx_last_valid']) < pd.Timestamp(bounds[1]):
+                    bounds = (bounds[0], coverage['fx_last_valid'])
                 fees = (.001, .0025) if period == 'judge' else (.001,)
                 for fee in fees:
                     k = f'{name}|{period}|{fee}'
@@ -225,7 +264,7 @@ def main():
     result = {'id': 'spy-edge-six-v1', 'smoke': a.smoke, 'power': power,
               'verdicts': {k: v['verdict'] for k, v in judgments.items()}, 'judgments': judgments,
               'metrics': {k: v['metrics'] for k, v in all_results.items()},
-              'source': d['source'], 'code_hash': key,
+              'source': d['source'], 'coverage': coverage, 'code_hash': key,
               'data_hash': hashlib.sha256(pd.util.hash_pandas_object(d['adj']).values.tobytes()).hexdigest(),
               'limits': ['Retrospective reused periods, not independent OOS.',
                          'Tax and dividend reconstruction approximations; no legal verification.',
