@@ -1,0 +1,15 @@
+{
+  "id": "spy-sector-blend-v1",
+  "title": "SPY + 섹터 모멘텀·변동성 맞춤 소매 섞기 — 장기(1927~2007) 선택·확인과 ETF 세후 원화 판정(사전 등록)",
+  "entrypoint": "research/jobs/spy-sector-blend-v1/run.py",
+  "args": [],
+  "timeout_seconds": 3600,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 20,
+  "revision": 1,
+  "max_memory_mb": 1500,
+  "max_runs": 60
+}
