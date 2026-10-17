@@ -20,6 +20,11 @@
       core_lab abs_filter="spy"). 라이브 방식(B1 과 같음).
   SC2 Select Sector SPDR 11개(XLB XLC XLE XLF XLI XLK XLP XLRE XLU XLV XLY) 중 252거래일 총수익 상위 2, 균등, 월 1회(그달 첫 거래일 결정,
       신호는 그 전 거래일 종가까지), 언제나 100% 투자(신호가 있는 섹터가 4개 미만이면 SPY — sector-concentrate-v1 과 같음). 그 사이 표류.
+  SC2VT20 (2026-10-17 사용자 추가, 기록 전) SC2 와 같은 선정에 변동성 맞춤(mom-volscale-v1 I2/VT20/none): 노출 = min(0.20 / 실현 변동성, 1.0),
+      실현 변동성 = 결정일 전 거래일까지 126거래일의 '맞추지 않은 SC2' 일별 수익 표준편차 × √252. 이 수익은 원장이 아니라 과거 배당 포함
+      가격으로 같은 SC2 규칙(매월 첫 거래일·전 거래일 종가 신호·상위 2 균등·달 안 표류)을 다시 돌려 만든다(2026-10-17 결정 — 첫 6개월도
+      SC2 와 같아지지 않게). 결정일 전 거래일 종가까지의 자료만 쓴다. 126일이 안 되면 노출 1.0. 남는 몫은 BIL, 노출은 월 리밸런싱 때만 바꾼다.
+      시장 필터 없음. 원장의 sc2_rets(기록된 SC2 비중의 수익)는 확인용으로만 남긴다.
   라이브 코어 = core_lab 기본(12개월 가격 모멘텀 상위 4·SPY 200일선·남는 몫 BIL), 유니버스는 등록 당시 라이브 16자산(CORE_UNIVERSE_V3) 고정.
 
 새틀라이트 일정(정확히): 새틀라이트 상태는 넷 — SAT(1·7월, 버퍼 없음; B1·P1·P4·KRS 가 함께 씀), ST_A(1·7월)·ST_B(3·9월)·ST_C(5·11월, K6 버퍼).
@@ -34,7 +39,7 @@
 평가: 기록된 비중을 다음 거래일 배당 포함 수익에 곱한다. 기록이 빠진 날은 직전 비중이 표류한 것으로 본다. 새 기록 비중으로 옮겨 가는 만큼
   (표류한 비중과의 차이) 편도 비용 — ETF 3bp, 개별 종목 8bp(v2 와 같은 값).
 판정 forward-tournament/v3 (2026-10-16 고정, 첫 기록 뒤 252거래일 전에는 판정하지 않는다 — 경과·중간 순위만, 중간 순위는 '판정 아님'):
-  후보(P1·P4·P1ST·KRS·SC2) PASS = 연환산 수익 ≥ B0 연환산 수익 + 1.0%p 이고 최대낙폭이 B0 보다 3%p 넘게 나쁘지 않음.
+  후보(P1·P4·P1ST·KRS·SC2·SC2VT20) PASS = 연환산 수익 ≥ B0 연환산 수익 + 1.0%p 이고 최대낙폭이 B0 보다 3%p 넘게 나쁘지 않음.
   B1 대비 연환산 수익 차이와 일별 초과의 정보비율도 함께 보고한다(판정에 쓰지 않음). 후보가 B0 와 매일 같으면 NOT_EVALUABLE.
   PASS 도 '사람이 도입을 검토할 후보'일 뿐이다. 주문·배분 경로와 연결되어 있지 않다.
 """
@@ -70,6 +75,8 @@ SAT_TOP_K = 3
 BUFFER_K = 6
 SC2_TOP = 2
 SC2_LOOKBACK = 252
+VT_TARGET = 0.20
+VT_WINDOW = 126
 SC2_MIN_VALID = 2 * SC2_TOP         # 신호가 있는 섹터가 이보다 적으면 SPY 100%
 SPY, BIL = ft2.SPY, ft2.BIL
 SAT_SEED = "S-SEED-000"
@@ -98,9 +105,10 @@ CANDIDATES: dict[str, dict[str, Any]] = {
              "sleeves": {"spy": 0.85, "ST_A": 0.05, "ST_B": 0.05, "ST_C": 0.05}},
     "KRS": {"label": "상대강도 코어(SPY 를 이긴 자산만) 85% + 새틀라이트 15%", "mode": "live", "sleeves": {"krs": 0.85, "SAT": 0.15}},
     "SC2": {"label": "섹터 SPDR 12개월 상위 2(월 1회, 100% 투자)", "mode": "january", "sleeves": {"sec": 1.0}},
+    "SC2VT20": {"label": "SC2 + 변동성 맞춤(목표 20%, 노출 상한 1, 남는 몫 BIL)", "mode": "january", "sleeves": {"secvt": 1.0}},
 }
 BASELINES = ("B0", "B1")
-JUDGED = ("P1", "P4", "P1ST", "KRS", "SC2")
+JUDGED = ("P1", "P4", "P1ST", "KRS", "SC2", "SC2VT20")
 CASH_KEY = "_cash"
 
 PriceFn = Callable[[list[str]], dict[str, pd.DataFrame]]
@@ -157,6 +165,7 @@ def sc2_target(total: pd.DataFrame) -> dict[str, Any]:
     p = next(i for i in range(len(idx)) if per[i] == per[-1])   # 이 달 첫 거래일(결정일)
     sig = p - 1                                                  # 신호 = 그 전 거래일 종가
     month = str(per[-1])
+    dec = str(idx[p].date())
     scores: dict[str, float] = {}
     if sig >= SC2_LOOKBACK:
         for t in SECTORS:
@@ -168,10 +177,60 @@ def sc2_target(total: pd.DataFrame) -> dict[str, Any]:
                 if math.isfinite(v):
                     scores[t] = v
     if len(scores) < SC2_MIN_VALID:
-        return {"month": month, "picks": [], "weights": {SPY: 1.0}, "signal_date": str(idx[sig].date()) if sig >= 0 else None}
+        return {"month": month, "decision_date": dec, "picks": [], "weights": {SPY: 1.0}, "signal_date": str(idx[sig].date()) if sig >= 0 else None}
     order = sorted(scores, key=lambda t: (-scores[t], SECTORS.index(t)))[:SC2_TOP]
-    return {"month": month, "picks": order, "weights": {t: 1.0 / SC2_TOP for t in order},
+    return {"month": month, "decision_date": dec, "picks": order, "weights": {t: 1.0 / SC2_TOP for t in order},
             "signal_date": str(idx[sig].date()), "scores": {t: round(v, 6) for t, v in scores.items()}}
+
+
+def vol_exposure(daily: list[float]) -> tuple[float, Optional[float]]:
+    """(노출, 실현 변동성). daily = 결정일 전까지의 맞추지 않은 SC2 일별 수익(오래된 것부터). 126개 미만이면 노출 1."""
+    if len(daily) < VT_WINDOW:
+        return 1.0, None
+    x = pd.Series(daily[-VT_WINDOW:], dtype=float)
+    vol = float(x.std(ddof=1)) * math.sqrt(252)
+    return (min(VT_TARGET / vol, 1.0) if vol > 0 else 1.0), vol
+
+
+def sc2_unscaled_returns(total: pd.DataFrame) -> pd.Series:
+    """주어진 가격(배당 포함)만으로 맞추지 않은 SC2 일별 수익을 다시 만든다. 각 달 첫 거래일 p 에 sc2_target(p−1 종가 신호)으로
+    종가 체결, 수익은 p+1 부터, 달 안에서는 표류. 첫 결정 전 날은 수익 없음."""
+    rets = total.pct_change(fill_method=None)
+    per = total.index.to_period("M")
+    out, w = {}, None
+    for i in range(1, len(total.index)):
+        if w is not None:
+            r = {k: _rr(rets.iloc[i].to_dict(), k) for k in w}
+            out[total.index[i]] = sum(v * r[k] for k, v in w.items())
+            w = ft2.drift(w, r)
+        if per[i] != per[i - 1]:
+            w = dict(sc2_target(total.iloc[: i + 1])["weights"])
+    return pd.Series(out, dtype=float)
+
+
+def sc2_backfill_window(total: pd.DataFrame) -> list[float]:
+    """마지막 날(결정일)의 노출용 창 — 결정일 전 거래일까지의 자료만으로 만든 맞추지 않은 SC2 수익의 마지막 126개."""
+    prior = total.iloc[:-1]
+    return sc2_unscaled_returns(prior).tolist()[-VT_WINDOW:]
+
+
+def vt_inner(sc2_weights: dict[str, float], exposure: float) -> dict[str, float]:
+    out = {t: w * exposure for t, w in sc2_weights.items()}
+    if exposure < 1.0:
+        out[BIL] = out.get(BIL, 0.0) + (1.0 - exposure)
+    return out
+
+
+def sc2_daily(prev_w: Optional[dict], gap: pd.DataFrame) -> list[list]:
+    """직전 기록의 SC2 비중(표류)으로 gap 각 날의 맞추지 않은 SC2 수익 — [[날짜, 수익], …]."""
+    if not prev_w:
+        return []
+    out, w = [], dict(prev_w)
+    for t, row in gap.iterrows():
+        r = {k: _rr(row.to_dict(), k) for k in w}
+        out.append([str(t.date()), sum(v * r[k] for k, v in w.items())])
+        w = ft2.drift(w, r)
+    return out
 
 
 # ---------------------------------------------------------------- 새틀라이트
@@ -396,7 +455,18 @@ def record(*, path: Optional[Path] = None, price_fn: Optional[PriceFn] = None, p
             changed.add(k)
         satellite[k] = st
 
-    inner: dict[str, dict[str, float]] = {"spy": {SPY: 1.0}, "core": core, "krs": krs, "sec": sc2["weights"]}
+    sc2_rets = sc2_daily(((prev or {}).get("weights") or {}).get("SC2"), gap)
+    pvt = pc.get("sc2vt") or {}
+    if "sec" in changed or "exposure" not in pvt:
+        win = sc2_backfill_window(total.loc[:pd.Timestamp(sc2["decision_date"])])   # 결정일 전 종가까지만
+        expo, vol = vol_exposure(win)
+        sc2vt = {"month": sc2["month"], "exposure": expo, "vol": vol, "n": len(win)}
+    else:
+        sc2vt = dict(pvt)
+    if "sec" in changed:
+        changed.add("secvt")
+    inner: dict[str, dict[str, float]] = {"spy": {SPY: 1.0}, "core": core, "krs": krs, "sec": sc2["weights"],
+                                          "secvt": vt_inner(sc2["weights"], sc2vt["exposure"])}
     for k in SAT_STATES:
         inner[k] = {t: 1.0 / SAT_TOP_K for t in (satellite[k].get("picks") or [])}
     new_year = prev is not None and pd.Timestamp(prev["date"]).year != day.year
@@ -411,7 +481,8 @@ def record(*, path: Optional[Path] = None, price_fn: Optional[PriceFn] = None, p
 
     row = {"date": dstr, "recorded_at": now.isoformat(timespec="seconds"), "judge_version": JUDGE_VERSION,
            "start": rows[0]["date"] if rows else dstr, "weights": weights, "books": books, "trades": trades,
-           "components": {"core": core, "krs": krs, "sc2": sc2}, "satellite": satellite}
+           "components": {"core": core, "krs": krs, "sc2": sc2, "sc2vt": sc2vt}, "satellite": satellite,
+           "sc2_rets": sc2_rets}
     if errors:
         row["errors"] = errors
     p.parent.mkdir(parents=True, exist_ok=True)
