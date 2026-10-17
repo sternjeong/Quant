@@ -1,14 +1,12 @@
 # 세션 인계
 
-## 2026-10-17 SPY 6가설 연구 입력 수정 revision 2 — 전체 검증 완료, VM 재실행 대기
+## 2026-10-17 SPY 6가설 연구 — VM 실행·결과 게시 완료
 
-- revision 1 VM 실행은 실제 원자료의 2004년 전 ETF 공급 공백과 단 하루의 세 ETF 동시 quote 누락 때문에 사전 데이터 검증에서 3회 실패했다. 성과 계산·통과 판정은 발생하지 않았다. FX는 2026-09-18까지만 있어 최근 보고 구간을 그 날짜까지 제한했다.
-- revision 2에서는 바스켓 공통 가격 시작일 이전을 제외하고, 참고 2000~2011은 실제 공통 시작일(운영 자료에서 XLE/XLK/XLV는 2004-07-26)부터 보고한다. 동일 일자 3개 이상 ETF의 동시 누락은 해당 날짜를 모든 자산에서 제거(최대 2일), 개별 결측/긴 누락/판정기간 결측은 실패한다. 미래 가격으로 보충하지 않는다. 이 변경은 데이터 적격성/보고 범위이며 신호·판정 기간·통과 기준은 변경하지 않았다. job revision을 2로 올려 실패 상태/체크포인트를 새로 시작하도록 했다.
-- 수정 파일: `research/jobs/spy-edge-six-v1/{job.json,SPEC.md,run.py}`, `tests/test_spy_edge_six.py`, 이 문서와 `PROGRESS.md`.
-- 검증: 12칸 합성 스모크 종료 0, 모두 `SMOKE_ONLY`; 신규 전용 테스트 17 passed; 전체 pytest **3,082 passed·4 skipped**, deploy unittest **72 OK**, loader valid, guide 검사 누락 없음, diff check 통과.
-- 배포 현황: 이 변경 전 VM main `/opt/quant` `58607b8`에 `d11acae`가 배포됐고 scheduler/streamlit active였다. 작업은 `failed`(revision 1, runs3/failures3). revision2 커밋을 main에 push한 뒤 자동 배포 게이트와 새 상태 `pending`/`running`/`done`을 확인한다. 본 백테스트는 VM 연구 실행기에서만 계산한다.
-- 결과가 게시되면 12칸의 기계 판정과 세후 성과를 검토한다. 통과가 있더라도 전진 후보 검토까지만이며 챔피언·주문엔진·고정 원장에는 반영하지 않는다.
-
+- `spy-edge-six-v1` revision 2는 VM 실행기에서 `done`(실행 1, 실패 0, 종료코드 0)으로 끝났고 결과가 origin/main `6eb9232`의 `research/results/spy-edge-six-v1/`에 자동 게시됐다. 운영 배포와 연구 결과 게시를 완료했다.
+- 사전 등록된 12개 후보는 전부 `FAIL`. 세후 CAGR은 7.85~11.87%, SPY 대비 연환산 차이는 -6.05~-2.04%p, 대조군 B20 대비 -2.09~+1.93%p, MDD는 -23.26~-29.22%였다. 네 후보(`skip_42`, 두 `correlation`, 두 `gap`)는 대조군 대비 +0.5%p 조건을 충족했지만 SPY +1%p, 두 절반 모두 우위, 25bp 비용 스트레스, Bonferroni 판정을 통과하지 못했다. 모든 후보의 active IR은 음수이며 보정 p=1.0.
+- 공통 가격 기간은 2004-07-26~2026-10-15, 하루의 동시 quote 결측을 제외했다. 판정 구간 2012~2024-09. 테스트는 재사용 과거 ETF 자료 기반으로 독립 표본외 증거가 아니다. 사전 검정력은 12.75년·12회 가설에서 MDE IR≈0.93, IR 0.5 효과도 통과 확률 6% 수준으로 낮아, FAIL은 작은 효과 부재를 증명하지 않는다. 세금·배당은 근사, USD 현금 이자 0, Bonferroni는 이번 12칸에만 적용.
+- 수정 파일(결과 게시 커밋 외): `research/jobs/spy-edge-six-v1/{job.json,SPEC.md,run.py}`, `tests/test_spy_edge_six.py`, `docs/SESSION_HANDOFF.md`, `PROGRESS.md`. 결과 상세는 `research/results/spy-edge-six-v1/REPORT.md`와 `results.json`.
+- 전략 엔진·챔피언·전진 원장은 변경하지 않았다. 다음 단계는 이번 판정에서 유망 후보를 임의로 승격하지 않는 것. 다른 기간/기준으로 재시험하려면 새 id로 사전 등록하고, 실전 후보로 평가하려면 별도의 전진 검증을 설계한다.
 
 ### 2026-10-17 `spy-edge-six-v1` 입력 커버리지 수정 — revision 2 검증 중
 
