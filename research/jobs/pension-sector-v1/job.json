@@ -1,0 +1,14 @@
+{
+  "id": "pension-sector-v1",
+  "title": "연금저축 섹터 v1 — 섹터 모멘텀(SC2·SC2VT20)을 연금저축 안 KRX 대체 ETF 로 굴리면 세후로 SPY·해외 계좌를 이기나(모형, 사전 등록)",
+  "entrypoint": "research/jobs/pension-sector-v1/run.py",
+  "args": [],
+  "timeout_seconds": 7200,
+  "max_attempts": 4,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 21,
+  "revision": 1,
+  "max_memory_mb": 1500
+}
