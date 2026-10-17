@@ -1,0 +1,1238 @@
+{
+  "id": "spy-edge-six-v1",
+  "smoke": false,
+  "power": {
+    "years": 12.75,
+    "n_trials": 12,
+    "confidence": 0.95,
+    "mde_ir": 0.927,
+    "power_at": {
+      "0.20": 0.005,
+      "0.30": 0.013,
+      "0.50": 0.064
+    },
+    "method": "expected-max-z(Bailey-LdP) + null SE, simplified"
+  },
+  "verdicts": {
+    "beta_126": "FAIL",
+    "beta_252": "FAIL",
+    "skip_21": "FAIL",
+    "skip_42": "FAIL",
+    "smooth_126": "FAIL",
+    "smooth_252": "FAIL",
+    "correlation_0.65": "FAIL",
+    "correlation_0.8": "FAIL",
+    "gap_0.1": "FAIL",
+    "gap_0.2": "FAIL",
+    "agreement_63": "FAIL",
+    "agreement_126": "FAIL"
+  },
+  "judgments": {
+    "beta_126": {
+      "verdict": "FAIL",
+      "checks": {
+        "spy_plus_1pp": false,
+        "control_plus_half_pp": false,
+        "mdd_slack_3pp": true,
+        "worst252_slack_5pp": true,
+        "both_halves": false,
+        "cost_stress_positive": false,
+        "family_bonferroni": false
+      },
+      "active_ir": -0.5018146974832501,
+      "p_raw": 0.9741709715047492,
+      "p_adjusted": 1.0
+    },
+    "beta_252": {
+      "verdict": "FAIL",
+      "checks": {
+        "spy_plus_1pp": false,
+        "control_plus_half_pp": false,
+        "mdd_slack_3pp": true,
+        "worst252_slack_5pp": true,
+        "both_halves": false,
+        "cost_stress_positive": false,
+        "family_bonferroni": false
+      },
+      "active_ir": -0.3547545319694181,
+      "p_raw": 0.9085152474587569,
+      "p_adjusted": 1.0
+    },
+    "skip_21": {
+      "verdict": "FAIL",
+      "checks": {
+        "spy_plus_1pp": false,
+        "control_plus_half_pp": false,
+        "mdd_slack_3pp": true,
+        "worst252_slack_5pp": true,
+        "both_halves": false,
+        "cost_stress_positive": false,
+        "family_bonferroni": false
+      },
+      "active_ir": -0.4145770744992377,
+      "p_raw": 0.9475087485419097,
+      "p_adjusted": 1.0
+    },
+    "skip_42": {
+      "verdict": "FAIL",
+      "checks": {
+        "spy_plus_1pp": false,
+        "control_plus_half_pp": true,
+        "mdd_slack_3pp": true,
+        "worst252_slack_5pp": true,
+        "both_halves": false,
+        "cost_stress_positive": false,
+        "family_bonferroni": false
+      },
+      "active_ir": -0.17389019731403066,
+      "p_raw": 0.7383769371771371,
+      "p_adjusted": 1.0
+    },
+    "smooth_126": {
+      "verdict": "FAIL",
+      "checks": {
+        "spy_plus_1pp": false,
+        "control_plus_half_pp": false,
+        "mdd_slack_3pp": true,
+        "worst252_slack_5pp": true,
+        "both_halves": false,
+        "cost_stress_positive": false,
+        "family_bonferroni": false
+      },
+      "active_ir": -0.539031574759676,
+      "p_raw": 0.9876687218796867,
+      "p_adjusted": 1.0
+    },
+    "smooth_252": {
+      "verdict": "FAIL",
+      "checks": {
+        "spy_plus_1pp": false,
+        "control_plus_half_pp": false,
+        "mdd_slack_3pp": true,
+        "worst252_slack_5pp": true,
+        "both_halves": false,
+        "cost_stress_positive": false,
+        "family_bonferroni": false
+      },
+      "active_ir": -0.46705224163219017,
+      "p_raw": 0.9650058323612731,
+      "p_adjusted": 1.0
+    },
+    "correlation_0.65": {
+      "verdict": "FAIL",
+      "checks": {
+        "spy_plus_1pp": false,
+        "control_plus_half_pp": true,
+        "mdd_slack_3pp": true,
+        "worst252_slack_5pp": true,
+        "both_halves": false,
+        "cost_stress_positive": false,
+        "family_bonferroni": false
+      },
+      "active_ir": -0.25533004567323586,
+      "p_raw": 0.825362439593401,
+      "p_adjusted": 1.0
+    },
+    "correlation_0.8": {
+      "verdict": "FAIL",
+      "checks": {
+        "spy_plus_1pp": false,
+        "control_plus_half_pp": false,
+        "mdd_slack_3pp": true,
+        "worst252_slack_5pp": true,
+        "both_halves": false,
+        "cost_stress_positive": false,
+        "family_bonferroni": false
+      },
+      "active_ir": -0.31105699649222773,
+      "p_raw": 0.8745209131811365,
+      "p_adjusted": 1.0
+    },
+    "gap_0.1": {
+      "verdict": "FAIL",
+      "checks": {
+        "spy_plus_1pp": false,
+        "control_plus_half_pp": true,
+        "mdd_slack_3pp": true,
+        "worst252_slack_5pp": true,
+        "both_halves": false,
+        "cost_stress_positive": false,
+        "family_bonferroni": false
+      },
+      "active_ir": -0.21010825567775035,
+      "p_raw": 0.7497083819363439,
+      "p_adjusted": 1.0
+    },
+    "gap_0.2": {
+      "verdict": "FAIL",
+      "checks": {
+        "spy_plus_1pp": false,
+        "control_plus_half_pp": true,
+        "mdd_slack_3pp": true,
+        "worst252_slack_5pp": true,
+        "both_halves": false,
+        "cost_stress_positive": false,
+        "family_bonferroni": false
+      },
+      "active_ir": -0.1865093086055671,
+      "p_raw": 0.7317113814364272,
+      "p_adjusted": 1.0
+    },
+    "agreement_63": {
+      "verdict": "FAIL",
+      "checks": {
+        "spy_plus_1pp": false,
+        "control_plus_half_pp": false,
+        "mdd_slack_3pp": true,
+        "worst252_slack_5pp": true,
+        "both_halves": false,
+        "cost_stress_positive": false,
+        "family_bonferroni": false
+      },
+      "active_ir": -0.36533124457350563,
+      "p_raw": 0.9158473587735377,
+      "p_adjusted": 1.0
+    },
+    "agreement_126": {
+      "verdict": "FAIL",
+      "checks": {
+        "spy_plus_1pp": false,
+        "control_plus_half_pp": false,
+        "mdd_slack_3pp": true,
+        "worst252_slack_5pp": true,
+        "both_halves": false,
+        "cost_stress_positive": false,
+        "family_bonferroni": false
+      },
+      "active_ir": -0.26952866102551376,
+      "p_raw": 0.8276953841026495,
+      "p_adjusted": 1.0
+    }
+  },
+  "metrics": {
+    "SPY|early|0.001": {
+      "cagr": 0.03488661671221638,
+      "mdd": -0.28379530435706946,
+      "worst252": -0.23628337049099402,
+      "years": 7.427789185489391,
+      "totals": {
+        "fees_krw": 34233.906852555905,
+        "fx_cost_krw": 0.0,
+        "dividend_tax_krw": 755847.0464393938,
+        "capital_gains_tax_krw": 0.0
+      }
+    },
+    "SPY|judge|0.001": {
+      "cagr": 0.13909518426420475,
+      "mdd": -0.29678566480959234,
+      "worst252": -0.1457567182643652,
+      "years": 12.7419575633128,
+      "totals": {
+        "fees_krw": 44862.77691761963,
+        "fx_cost_krw": 0.0,
+        "dividend_tax_krw": 2633405.682050367,
+        "capital_gains_tax_krw": 0.0
+      }
+    },
+    "SPY|judge|0.0025": {
+      "cagr": 0.13894245845041664,
+      "mdd": -0.29679089336542464,
+      "worst252": -0.14577417460582265,
+      "years": 12.7419575633128,
+      "totals": {
+        "fees_krw": 111926.5736243648,
+        "fx_cost_krw": 0.0,
+        "dividend_tax_krw": 2628979.151844421,
+        "capital_gains_tax_krw": 0.0
+      }
+    },
+    "SPY|half1|0.001": {
+      "cagr": 0.1191686090561741,
+      "mdd": -0.11269785978863767,
+      "worst252": -0.03045128948338871,
+      "years": 5.987679671457905,
+      "totals": {
+        "fees_krw": 34872.88752963207,
+        "fx_cost_krw": 0.0,
+        "dividend_tax_krw": 868721.1036899477,
+        "capital_gains_tax_krw": 0.0
+      }
+    },
+    "SPY|half2|0.001": {
+      "cagr": 0.14810222610819035,
+      "mdd": -0.29678566480959223,
+      "worst252": -0.14575671826436498,
+      "years": 6.743326488706366,
+      "totals": {
+        "fees_krw": 34566.247507320644,
+        "fx_cost_krw": 0.0,
+        "dividend_tax_krw": 814554.0456310844,
+        "capital_gains_tax_krw": 0.0
+      }
+    },
+    "SPY|recent|0.001": {
+      "cagr": 0.16777202378831002,
+      "mdd": -0.17143863484065403,
+      "worst252": 0.11843698459745022,
+      "years": 1.9630390143737166,
+      "totals": {
+        "fees_krw": 30600.671543043904,
+        "fx_cost_krw": 0.0,
+        "dividend_tax_krw": 114046.71500030649,
+        "capital_gains_tax_krw": 0.0
+      }
+    },
+    "control|early|0.001": {
+      "cagr": 0.00703768326851173,
+      "mdd": -0.23082114024710743,
+      "worst252": -0.2141609722544583,
+      "years": 7.427789185489391,
+      "totals": {
+        "fees_krw": 1062454.2472326665,
+        "fx_cost_krw": 0.0,
+        "dividend_tax_krw": 528737.5464878787,
+        "capital_gains_tax_krw": 0.0
+      }
+    },
+    "control|judge|0.001": {
+      "cagr": 0.09944314697023748,
+      "mdd": -0.29222826211998276,
+      "worst252": -0.14770157236613102,
+      "years": 12.7419575633128,
+      "totals": {
+        "fees_krw": 4469265.666945148,
+        "fx_cost_krw": 3618.743876693669,
+        "dividend_tax_krw": 2028555.2854979413,
+        "capital_gains_tax_krw": 7237487.753387332
+      }
+    },
+    "control|judge|0.0025": {
+      "cagr": 0.08985528472021476,
+      "mdd": -0.2922559254753314,
+      "worst252": -0.15529972202539655,
+      "years": 12.7419575633128,
+      "totals": {
+        "fees_krw": 10411444.342635047,
+        "fx_cost_krw": 2874.14125670595,
+        "dividend_tax_krw": 1884817.2155218637,
+        "capital_gains_tax_krw": 5748282.513411895
+      }
+    },
+    "control|half1|0.001": {
+      "cagr": 0.0794988410840296,
+      "mdd": -0.1334222485696569,
+      "worst252": -0.07759413662912451,
+      "years": 5.987679671457905,
+      "totals": {
+        "fees_krw": 1734686.0734307922,
+        "fx_cost_krw": 657.8494028327891,
+        "dividend_tax_krw": 711043.0974199331,
+        "capital_gains_tax_krw": 1315698.805665577
+      }
+    },
+    "control|half2|0.001": {
+      "cagr": 0.12105509842640205,
+      "mdd": -0.29222826211998276,
+      "worst252": -0.14633669430987073,
+      "years": 6.743326488706366,
+      "totals": {
+        "fees_krw": 1745905.1858303272,
+        "fx_cost_krw": 1559.4649303820775,
+        "dividend_tax_krw": 841080.1614001506,
+        "capital_gains_tax_krw": 3118929.8607641524
+      }
+    },
+    "control|recent|0.001": {
+      "cagr": 0.1532929463840924,
+      "mdd": -0.13553385050906586,
+      "worst252": -0.02624879737312602,
+      "years": 1.9630390143737166,
+      "totals": {
+        "fees_krw": 542847.1137636704,
+        "fx_cost_krw": 0.0,
+        "dividend_tax_krw": 141579.75833076736,
+        "capital_gains_tax_krw": 0.0
+      }
+    },
+    "beta_126|early|0.001": {
+      "cagr": 0.02019638833898818,
+      "mdd": -0.2056618386982959,
+      "worst252": -0.16852844847570558,
+      "years": 7.427789185489391,
+      "totals": {
+        "fees_krw": 1577492.0235728864,
+        "fx_cost_krw": 0.0,
+        "dividend_tax_krw": 553080.7200403875,
+        "capital_gains_tax_krw": 0.0
+      }
+    },
+    "beta_126|judge|0.001": {
+      "cagr": 0.07854612322781351,
+      "mdd": -0.2515012151262229,
+      "worst252": -0.1245392325797905,
+      "years": 12.7419575633128,
+      "totals": {
+        "fees_krw": 5331043.61517758,
+        "fx_cost_krw": 1949.6607584297035,
+        "dividend_tax_krw": 1885022.3127034863,
+        "capital_gains_tax_krw": 3899321.516859404
+      }
+    },
+    "beta_126|judge|0.0025": {
+      "cagr": 0.06591885906846118,
+      "mdd": -0.2526286166050953,
+      "worst252": -0.13237640154947794,
+      "years": 12.7419575633128,
+      "totals": {
+        "fees_krw": 12127406.816353742,
+        "fx_cost_krw": 1210.2918442321588,
+        "dividend_tax_krw": 1709609.091376534,
+        "capital_gains_tax_krw": 2420583.6884643156
+      }
+    },
+    "beta_126|half1|0.001": {
+      "cagr": 0.04302274016183927,
+      "mdd": -0.12922279744858922,
+      "worst252": -0.09578852414486705,
+      "years": 5.987679671457905,
+      "totals": {
+        "fees_krw": 2012488.8721570647,
+        "fx_cost_krw": 126.73706614209625,
+        "dividend_tax_krw": 696133.7033135388,
+        "capital_gains_tax_krw": 253474.13228419228
+      }
+    },
+    "beta_126|half2|0.001": {
+      "cagr": 0.11546891588728281,
+      "mdd": -0.2515012151262228,
+      "worst252": -0.12258801448654666,
+      "years": 6.743326488706366,
+      "totals": {
+        "fees_krw": 2593483.6763202865,
+        "fx_cost_krw": 1147.5987077331276,
+        "dividend_tax_krw": 940479.3556773851,
+        "capital_gains_tax_krw": 2295197.415466253
+      }
+    },
+    "beta_126|recent|0.001": {
+      "cagr": 0.04808628404796367,
+      "mdd": -0.21095174036139364,
+      "worst252": -0.052848957665156404,
+      "years": 1.9630390143737166,
+      "totals": {
+        "fees_krw": 443545.14407660294,
+        "fx_cost_krw": 0.0,
+        "dividend_tax_krw": 166591.0909941253,
+        "capital_gains_tax_krw": 0.0
+      }
+    },
+    "beta_252|early|0.001": {
+      "cagr": -0.0002498160362505164,
+      "mdd": -0.2338521955205799,
+      "worst252": -0.20122238407230553,
+      "years": 7.427789185489391,
+      "totals": {
+        "fees_krw": 1134251.1341356894,
+        "fx_cost_krw": 0.0,
+        "dividend_tax_krw": 466290.2863682164,
+        "capital_gains_tax_krw": 0.0
+      }
+    },
+    "beta_252|judge|0.001": {
+      "cagr": 0.09670566210172415,
+      "mdd": -0.292215127413576,
+      "worst252": -0.11542010334728714,
+      "years": 12.7419575633128,
+      "totals": {
+        "fees_krw": 4561492.187464996,
+        "fx_cost_krw": 3466.6779074990272,
+        "dividend_tax_krw": 2124456.095897567,
+        "capital_gains_tax_krw": 6933355.814998049
+      }
+    },
+    "beta_252|judge|0.0025": {
+      "cagr": 0.08678435762471182,
+      "mdd": -0.2922180480275167,
+      "worst252": -0.12613326069747588,
+      "years": 12.7419575633128,
+      "totals": {
+        "fees_krw": 10601076.991035162,
+        "fx_cost_krw": 2734.4017131185883,
+        "dividend_tax_krw": 1975215.4479874265,
+        "capital_gains_tax_krw": 5468803.4262371715
+      }
+    },
+    "beta_252|half1|0.001": {
+      "cagr": 0.057401637542792594,
+      "mdd": -0.15396598854460064,
+      "worst252": -0.09968048312650202,
+      "years": 5.987679671457905,
+      "totals": {
+        "fees_krw": 1743344.523758934,
+        "fx_cost_krw": 530.0220313571666,
+        "dividend_tax_krw": 803844.6254301473,
+        "capital_gains_tax_krw": 1060044.0627143322
+      }
+    },
+    "beta_252|half2|0.001": {
+      "cagr": 0.13571197305233018,
+      "mdd": -0.2922151274135758,
+      "worst252": -0.09992354668378634,
+      "years": 6.743326488706366,
+      "totals": {
+        "fees_krw": 2033342.3457340428,
+        "fx_cost_krw": 1878.1402903958015,
+        "dividend_tax_krw": 953481.2713275313,
+        "capital_gains_tax_krw": 3756280.5807915996
+      }
+    },
+    "beta_252|recent|0.001": {
+      "cagr": 0.11035640282304504,
+      "mdd": -0.1384616982660415,
+      "worst252": 0.037448093507747915,
+      "years": 1.9630390143737166,
+      "totals": {
+        "fees_krw": 291152.42828252824,
+        "fx_cost_krw": 0.0,
+        "dividend_tax_krw": 201516.06747120386,
+        "capital_gains_tax_krw": 0.0
+      }
+    },
+    "skip_21|early|0.001": {
+      "cagr": 0.02591925957435315,
+      "mdd": -0.22465020634079336,
+      "worst252": -0.18924197441408197,
+      "years": 7.427789185489391,
+      "totals": {
+        "fees_krw": 1115510.8364820695,
+        "fx_cost_krw": 0.0,
+        "dividend_tax_krw": 530281.0145741836,
+        "capital_gains_tax_krw": 0.0
+      }
+    },
+    "skip_21|judge|0.001": {
+      "cagr": 0.09030791153780049,
+      "mdd": -0.29222826211998276,
+      "worst252": -0.17583211484915529,
+      "years": 12.7419575633128,
+      "totals": {
+        "fees_krw": 3890606.607527978,
+        "fx_cost_krw": 3326.924296690017,
+        "dividend_tax_krw": 1991637.7226766937,
+        "capital_gains_tax_krw": 6653848.593380028
+      }
+    },
+    "skip_21|judge|0.0025": {
+      "cagr": 0.08159911918090867,
+      "mdd": -0.2922559254753312,
+      "worst252": -0.18438710783184764,
+      "years": 12.7419575633128,
+      "totals": {
+        "fees_krw": 9129897.852158615,
+        "fx_cost_krw": 2671.690364511245,
+        "dividend_tax_krw": 1856062.8802424092,
+        "capital_gains_tax_krw": 5343380.729022485
+      }
+    },
+    "skip_21|half1|0.001": {
+      "cagr": 0.08427460672113862,
+      "mdd": -0.1405716038606698,
+      "worst252": -0.08698709027332496,
+      "years": 5.987679671457905,
+      "totals": {
+        "fees_krw": 1761784.9931969885,
+        "fx_cost_krw": 780.8883167620506,
+        "dividend_tax_krw": 730199.9394385256,
+        "capital_gains_tax_krw": 1561776.6335240998
+      }
+    },
+    "skip_21|half2|0.001": {
+      "cagr": 0.10088196641458702,
+      "mdd": -0.29222826211998265,
+      "worst252": -0.17583211484915506,
+      "years": 6.743326488706366,
+      "totals": {
+        "fees_krw": 1332587.9758529386,
+        "fx_cost_krw": 1100.568463009182,
+        "dividend_tax_krw": 790966.5670267998,
+        "capital_gains_tax_krw": 2201136.926018362
+      }
+    },
+    "skip_21|recent|0.001": {
+      "cagr": 0.1819759499637339,
+      "mdd": -0.13063236479228624,
+      "worst252": -0.015927666774372184,
+      "years": 1.9630390143737166,
+      "totals": {
+        "fees_krw": 396663.73974466586,
+        "fx_cost_krw": 302.87062450350174,
+        "dividend_tax_krw": 158778.42810564986,
+        "capital_gains_tax_krw": 605741.2490070029
+      }
+    },
+    "skip_42|early|0.001": {
+      "cagr": 0.03471929088495229,
+      "mdd": -0.2439641622772719,
+      "worst252": -0.1910380829405839,
+      "years": 7.427789185489391,
+      "totals": {
+        "fees_krw": 1382260.508421186,
+        "fx_cost_krw": 0.0,
+        "dividend_tax_krw": 600500.2935979748,
+        "capital_gains_tax_krw": 0.0
+      }
+    },
+    "skip_42|judge|0.001": {
+      "cagr": 0.11871903867655043,
+      "mdd": -0.2325856048307362,
+      "worst252": -0.16220209693012544,
+      "years": 12.7419575633128,
+      "totals": {
+        "fees_krw": 5719371.47078653,
+        "fx_cost_krw": 6235.711307148089,
+        "dividend_tax_krw": 2311674.791831445,
+        "capital_gains_tax_krw": 12471422.614296166
+      }
+    },
+    "skip_42|judge|0.0025": {
+      "cagr": 0.10883160009127946,
+      "mdd": -0.23261259339843754,
+      "worst252": -0.17082165300005425,
+      "years": 12.7419575633128,
+      "totals": {
+        "fees_krw": 13285230.411165686,
+        "fx_cost_krw": 5101.430575095839,
+        "dividend_tax_krw": 2150793.0752397613,
+        "capital_gains_tax_krw": 10202861.150191668
+      }
+    },
+    "skip_42|half1|0.001": {
+      "cagr": 0.11026532829087765,
+      "mdd": -0.15365276903703562,
+      "worst252": -0.12137717162407868,
+      "years": 5.987679671457905,
+      "totals": {
+        "fees_krw": 1891541.486171693,
+        "fx_cost_krw": 1348.2143921672039,
+        "dividend_tax_krw": 794949.9253946665,
+        "capital_gains_tax_krw": 2696428.7843344053
+      }
+    },
+    "skip_42|half2|0.001": {
+      "cagr": 0.13015042612670036,
+      "mdd": -0.2325856048307362,
+      "worst252": -0.11452379316739303,
+      "years": 6.743326488706366,
+      "totals": {
+        "fees_krw": 2060139.041003808,
+        "fx_cost_krw": 2091.286177111465,
+        "dividend_tax_krw": 816348.1305311868,
+        "capital_gains_tax_krw": 4182572.354222926
+      }
+    },
+    "skip_42|recent|0.001": {
+      "cagr": 0.1905304128773111,
+      "mdd": -0.14180979995752796,
+      "worst252": 0.04806924052063177,
+      "years": 1.9630390143737166,
+      "totals": {
+        "fees_krw": 611865.186703458,
+        "fx_cost_krw": 403.22559163185895,
+        "dividend_tax_krw": 161811.43992067664,
+        "capital_gains_tax_krw": 806451.1832637172
+      }
+    },
+    "smooth_126|early|0.001": {
+      "cagr": 0.019985294859764524,
+      "mdd": -0.2400488957143191,
+      "worst252": -0.21596031596339604,
+      "years": 7.427789185489391,
+      "totals": {
+        "fees_krw": 1379851.6758661189,
+        "fx_cost_krw": 78.31249391672091,
+        "dividend_tax_krw": 530253.5943169707,
+        "capital_gains_tax_krw": 156624.98783344167
+      }
+    },
+    "smooth_126|judge|0.001": {
+      "cagr": 0.07916467483285938,
+      "mdd": -0.2922282621199831,
+      "worst252": -0.13723686596366658,
+      "years": 12.7419575633128,
+      "totals": {
+        "fees_krw": 5036829.273648747,
+        "fx_cost_krw": 2167.913365602841,
+        "dividend_tax_krw": 1761724.770054892,
+        "capital_gains_tax_krw": 4335826.731205679
+      }
+    },
+    "smooth_126|judge|0.0025": {
+      "cagr": 0.06766872607234475,
+      "mdd": -0.2922559254753313,
+      "worst252": -0.14305829189724562,
+      "years": 12.7419575633128,
+      "totals": {
+        "fees_krw": 11593795.269918311,
+        "fx_cost_krw": 1534.1288121804905,
+        "dividend_tax_krw": 1616053.4133456599,
+        "capital_gains_tax_krw": 3068257.6243609786
+      }
+    },
+    "smooth_126|half1|0.001": {
+      "cagr": 0.07242610075866707,
+      "mdd": -0.11104604984854205,
+      "worst252": -0.05543143938536288,
+      "years": 5.987679671457905,
+      "totals": {
+        "fees_krw": 2050171.6759902535,
+        "fx_cost_krw": 559.1236074084426,
+        "dividend_tax_krw": 651295.852781501,
+        "capital_gains_tax_krw": 1118247.2148168841
+      }
+    },
+    "smooth_126|half2|0.001": {
+      "cagr": 0.09071037602482757,
+      "mdd": -0.2922282621199829,
+      "worst252": -0.13264913583143323,
+      "years": 6.743326488706366,
+      "totals": {
+        "fees_krw": 2003418.6360081367,
+        "fx_cost_krw": 523.7185100674795,
+        "dividend_tax_krw": 745769.4500788705,
+        "capital_gains_tax_krw": 1047437.0201349581
+      }
+    },
+    "smooth_126|recent|0.001": {
+      "cagr": 0.11343785126317973,
+      "mdd": -0.1355338505090663,
+      "worst252": -0.005061139743410048,
+      "years": 1.9630390143737166,
+      "totals": {
+        "fees_krw": 564325.6953282821,
+        "fx_cost_krw": 0.0,
+        "dividend_tax_krw": 151434.48111635318,
+        "capital_gains_tax_krw": 0.0
+      }
+    },
+    "smooth_252|early|0.001": {
+      "cagr": -0.009876459897684264,
+      "mdd": -0.2631304730084706,
+      "worst252": -0.1890525717336553,
+      "years": 7.427789185489391,
+      "totals": {
+        "fees_krw": 1296594.7166790778,
+        "fx_cost_krw": 0.0,
+        "dividend_tax_krw": 496490.6023133141,
+        "capital_gains_tax_krw": 0.0
+      }
+    },
+    "smooth_252|judge|0.001": {
+      "cagr": 0.08552623132095039,
+      "mdd": -0.292228262119983,
+      "worst252": -0.16557734615733533,
+      "years": 12.7419575633128,
+      "totals": {
+        "fees_krw": 4830168.867283053,
+        "fx_cost_krw": 2721.306915022344,
+        "dividend_tax_krw": 1843900.013647672,
+        "capital_gains_tax_krw": 5442613.830044684
+      }
+    },
+    "smooth_252|judge|0.0025": {
+      "cagr": 0.0747004695756277,
+      "mdd": -0.2922559254753313,
+      "worst252": -0.17681621689829463,
+      "years": 12.7419575633128,
+      "totals": {
+        "fees_krw": 11158108.050402606,
+        "fx_cost_krw": 2082.755876915648,
+        "dividend_tax_krw": 1699816.8425061267,
+        "capital_gains_tax_krw": 4165511.753831292
+      }
+    },
+    "smooth_252|half1|0.001": {
+      "cagr": 0.0723768256922801,
+      "mdd": -0.13514092984871484,
+      "worst252": -0.08414440482855956,
+      "years": 5.987679671457905,
+      "totals": {
+        "fees_krw": 2000333.8657729041,
+        "fx_cost_krw": 760.6621463285642,
+        "dividend_tax_krw": 705250.4407597446,
+        "capital_gains_tax_krw": 1521324.2926571267
+      }
+    },
+    "smooth_252|half2|0.001": {
+      "cagr": 0.10066449405225941,
+      "mdd": -0.29222826211998265,
+      "worst252": -0.16557734615733555,
+      "years": 6.743326488706366,
+      "totals": {
+        "fees_krw": 1876836.7921003315,
+        "fx_cost_krw": 1017.3832328121182,
+        "dividend_tax_krw": 755351.1583523116,
+        "capital_gains_tax_krw": 2034766.4656242346
+      }
+    },
+    "smooth_252|recent|0.001": {
+      "cagr": 0.11197484333561358,
+      "mdd": -0.17841359497938514,
+      "worst252": -0.002919780247320647,
+      "years": 1.9630390143737166,
+      "totals": {
+        "fees_krw": 551989.3133548195,
+        "fx_cost_krw": 103.11035609998385,
+        "dividend_tax_krw": 158350.76202749103,
+        "capital_gains_tax_krw": 206220.7121999675
+      }
+    },
+    "correlation_0.65|early|0.001": {
+      "cagr": 0.004808864802893664,
+      "mdd": -0.20817381878460084,
+      "worst252": -0.18455579942014677,
+      "years": 7.427789185489391,
+      "totals": {
+        "fees_krw": 1252476.4035113102,
+        "fx_cost_krw": 0.0,
+        "dividend_tax_krw": 528353.2078708408,
+        "capital_gains_tax_krw": 0.0
+      }
+    },
+    "correlation_0.65|judge|0.001": {
+      "cagr": 0.11035977063632796,
+      "mdd": -0.29222826211998276,
+      "worst252": -0.1463366943098312,
+      "years": 12.7419575633128,
+      "totals": {
+        "fees_krw": 4689220.762924448,
+        "fx_cost_krw": 4143.004906581367,
+        "dividend_tax_krw": 2264530.610152475,
+        "capital_gains_tax_krw": 8286009.813162727
+      }
+    },
+    "correlation_0.65|judge|0.0025": {
+      "cagr": 0.10075814058084975,
+      "mdd": -0.2922559254753312,
+      "worst252": -0.15529972202478493,
+      "years": 12.7419575633128,
+      "totals": {
+        "fees_krw": 10930646.338249562,
+        "fx_cost_krw": 3309.833541029351,
+        "dividend_tax_krw": 2105483.031576018,
+        "capital_gains_tax_krw": 6619667.082058696
+      }
+    },
+    "correlation_0.65|half1|0.001": {
+      "cagr": 0.09446354257115974,
+      "mdd": -0.12765648884971736,
+      "worst252": -0.07410284231282149,
+      "years": 5.987679671457905,
+      "totals": {
+        "fees_krw": 1674785.9346288175,
+        "fx_cost_krw": 821.9557590701381,
+        "dividend_tax_krw": 765745.3780078695,
+        "capital_gains_tax_krw": 1643911.5181402748
+      }
+    },
+    "correlation_0.65|half2|0.001": {
+      "cagr": 0.12833595899624428,
+      "mdd": -0.29222826211998276,
+      "worst252": -0.1463366943098312,
+      "years": 6.743326488706366,
+      "totals": {
+        "fees_krw": 1769416.8132763894,
+        "fx_cost_krw": 1600.994133089846,
+        "dividend_tax_krw": 880255.3804807641,
+        "capital_gains_tax_krw": 3201988.266179689
+      }
+    },
+    "correlation_0.65|recent|0.001": {
+      "cagr": 0.1713178614694275,
+      "mdd": -0.1355338505090664,
+      "worst252": -0.002440415353151759,
+      "years": 1.9630390143737166,
+      "totals": {
+        "fees_krw": 437570.74961273285,
+        "fx_cost_krw": 0.0,
+        "dividend_tax_krw": 167089.9557141586,
+        "capital_gains_tax_krw": 0.0
+      }
+    },
+    "correlation_0.8|early|0.001": {
+      "cagr": -0.00489032854533189,
+      "mdd": -0.24656906369589693,
+      "worst252": -0.20929057713394816,
+      "years": 7.427789185489391,
+      "totals": {
+        "fees_krw": 1180651.0508394153,
+        "fx_cost_krw": 0.0,
+        "dividend_tax_krw": 543612.4225775206,
+        "capital_gains_tax_krw": 0.0
+      }
+    },
+    "correlation_0.8|judge|0.001": {
+      "cagr": 0.10263314183036099,
+      "mdd": -0.29222826211998276,
+      "worst252": -0.15222066177877303,
+      "years": 12.7419575633128,
+      "totals": {
+        "fees_krw": 4965769.758182,
+        "fx_cost_krw": 4062.1597372820697,
+        "dividend_tax_krw": 2179519.2901969883,
+        "capital_gains_tax_krw": 8124319.474564132
+      }
+    },
+    "correlation_0.8|judge|0.0025": {
+      "cagr": 0.09262668228283033,
+      "mdd": -0.2922559254753314,
+      "worst252": -0.1585709480406523,
+      "years": 12.7419575633128,
+      "totals": {
+        "fees_krw": 11540461.715293912,
+        "fx_cost_krw": 3211.424213562718,
+        "dividend_tax_krw": 2021921.8975052466,
+        "capital_gains_tax_krw": 6422848.42712543
+      }
+    },
+    "correlation_0.8|half1|0.001": {
+      "cagr": 0.09118445569992972,
+      "mdd": -0.12384283107006533,
+      "worst252": -0.06879546066849729,
+      "years": 5.987679671457905,
+      "totals": {
+        "fees_krw": 1853927.406716032,
+        "fx_cost_krw": 883.3624396577302,
+        "dividend_tax_krw": 770525.3537350593,
+        "capital_gains_tax_krw": 1766724.8793154587
+      }
+    },
+    "correlation_0.8|half2|0.001": {
+      "cagr": 0.11765106951664239,
+      "mdd": -0.29222826211998276,
+      "worst252": -0.1463366943098594,
+      "years": 6.743326488706366,
+      "totals": {
+        "fees_krw": 1870899.0607292168,
+        "fx_cost_krw": 1461.6350983216796,
+        "dividend_tax_krw": 847434.0675403636,
+        "capital_gains_tax_krw": 2923270.1966433562
+      }
+    },
+    "correlation_0.8|recent|0.001": {
+      "cagr": 0.16331659011705701,
+      "mdd": -0.13553385050906586,
+      "worst252": -0.00933129156349144,
+      "years": 1.9630390143737166,
+      "totals": {
+        "fees_krw": 465030.78905269975,
+        "fx_cost_krw": 0.0,
+        "dividend_tax_krw": 157249.8592648244,
+        "capital_gains_tax_krw": 0.0
+      }
+    },
+    "gap_0.1|early|0.001": {
+      "cagr": 0.003950405733701645,
+      "mdd": -0.24191395485842182,
+      "worst252": -0.15733285855149948,
+      "years": 7.427789185489391,
+      "totals": {
+        "fees_krw": 1200260.310829116,
+        "fx_cost_krw": 0.0,
+        "dividend_tax_krw": 486158.59430715913,
+        "capital_gains_tax_krw": 0.0
+      }
+    },
+    "gap_0.1|judge|0.001": {
+      "cagr": 0.10974906865175749,
+      "mdd": -0.273807442632801,
+      "worst252": -0.15629684496884289,
+      "years": 12.7419575633128,
+      "totals": {
+        "fees_krw": 4329772.7970525,
+        "fx_cost_krw": 5093.159005365115,
+        "dividend_tax_krw": 1917244.79990505,
+        "capital_gains_tax_krw": 10186318.01073022
+      }
+    },
+    "gap_0.1|judge|0.0025": {
+      "cagr": 0.09996039951203173,
+      "mdd": -0.2738074441511871,
+      "worst252": -0.1622724233428755,
+      "years": 12.7419575633128,
+      "totals": {
+        "fees_krw": 10082135.883939285,
+        "fx_cost_krw": 4186.326222779318,
+        "dividend_tax_krw": 1774288.8848225803,
+        "capital_gains_tax_krw": 8372652.445558629
+      }
+    },
+    "gap_0.1|half1|0.001": {
+      "cagr": 0.0680596292665816,
+      "mdd": -0.18953755677446693,
+      "worst252": -0.1377970548027413,
+      "years": 5.987679671457905,
+      "totals": {
+        "fees_krw": 1924005.4986464211,
+        "fx_cost_krw": 817.7821589672438,
+        "dividend_tax_krw": 678212.6160032451,
+        "capital_gains_tax_krw": 1635564.317934486
+      }
+    },
+    "gap_0.1|half2|0.001": {
+      "cagr": 0.14977925322171037,
+      "mdd": -0.2738074426328011,
+      "worst252": -0.1537202695667671,
+      "years": 6.743326488706366,
+      "totals": {
+        "fees_krw": 1620497.4098920545,
+        "fx_cost_krw": 2547.729113455179,
+        "dividend_tax_krw": 834688.0530285788,
+        "capital_gains_tax_krw": 5095458.226910353
+      }
+    },
+    "gap_0.1|recent|0.001": {
+      "cagr": 0.12850874750494912,
+      "mdd": -0.1636441411021311,
+      "worst252": -0.02624879737312602,
+      "years": 1.9630390143737166,
+      "totals": {
+        "fees_krw": 598142.320319393,
+        "fx_cost_krw": 0.0,
+        "dividend_tax_krw": 122315.21576431862,
+        "capital_gains_tax_krw": 0.0
+      }
+    },
+    "gap_0.2|early|0.001": {
+      "cagr": 0.006318506460601281,
+      "mdd": -0.2184717276533431,
+      "worst252": -0.2015440753352814,
+      "years": 7.427789185489391,
+      "totals": {
+        "fees_krw": 1148206.672720608,
+        "fx_cost_krw": 0.0,
+        "dividend_tax_krw": 510827.71851446544,
+        "capital_gains_tax_krw": 0.0
+      }
+    },
+    "gap_0.2|judge|0.001": {
+      "cagr": 0.11425268117337128,
+      "mdd": -0.29222826211998276,
+      "worst252": -0.14770157236613102,
+      "years": 12.7419575633128,
+      "totals": {
+        "fees_krw": 4471881.79362529,
+        "fx_cost_krw": 5696.8772252963,
+        "dividend_tax_krw": 2057460.2029312593,
+        "capital_gains_tax_krw": 11393754.450592589
+      }
+    },
+    "gap_0.2|judge|0.0025": {
+      "cagr": 0.1047557364488303,
+      "mdd": -0.2922559254753314,
+      "worst252": -0.15529972202539655,
+      "years": 12.7419575633128,
+      "totals": {
+        "fees_krw": 10421390.865462707,
+        "fx_cost_krw": 4801.203812708674,
+        "dividend_tax_krw": 1912232.8929487763,
+        "capital_gains_tax_krw": 9602407.62541734
+      }
+    },
+    "gap_0.2|half1|0.001": {
+      "cagr": 0.0794988410840296,
+      "mdd": -0.1334222485696569,
+      "worst252": -0.07759413662912451,
+      "years": 5.987679671457905,
+      "totals": {
+        "fees_krw": 1734686.0734307922,
+        "fx_cost_krw": 657.8494028327891,
+        "dividend_tax_krw": 711043.0974199331,
+        "capital_gains_tax_krw": 1315698.805665577
+      }
+    },
+    "gap_0.2|half2|0.001": {
+      "cagr": 0.14941097385179347,
+      "mdd": -0.29222826211998276,
+      "worst252": -0.14633669430987073,
+      "years": 6.743326488706366,
+      "totals": {
+        "fees_krw": 1747909.134263798,
+        "fx_cost_krw": 2884.03104769738,
+        "dividend_tax_krw": 859347.5547249884,
+        "capital_gains_tax_krw": 5768062.095394756
+      }
+    },
+    "gap_0.2|recent|0.001": {
+      "cagr": 0.12850874750494912,
+      "mdd": -0.1636441411021311,
+      "worst252": -0.02624879737312602,
+      "years": 1.9630390143737166,
+      "totals": {
+        "fees_krw": 598142.320319393,
+        "fx_cost_krw": 0.0,
+        "dividend_tax_krw": 122315.21576431862,
+        "capital_gains_tax_krw": 0.0
+      }
+    },
+    "agreement_63|early|0.001": {
+      "cagr": 0.0035310200865894537,
+      "mdd": -0.23852684513837863,
+      "worst252": -0.18452776065327103,
+      "years": 7.427789185489391,
+      "totals": {
+        "fees_krw": 1395388.9868655559,
+        "fx_cost_krw": 0.0,
+        "dividend_tax_krw": 503459.9421110909,
+        "capital_gains_tax_krw": 0.0
+      }
+    },
+    "agreement_63|judge|0.001": {
+      "cagr": 0.08858042264907917,
+      "mdd": -0.27380744934723034,
+      "worst252": -0.14661247262301624,
+      "years": 12.7419575633128,
+      "totals": {
+        "fees_krw": 5141666.605623194,
+        "fx_cost_krw": 4352.938347201587,
+        "dividend_tax_krw": 1868221.1633167344,
+        "capital_gains_tax_krw": 8705876.694403166
+      }
+    },
+    "agreement_63|judge|0.0025": {
+      "cagr": 0.0766080601929271,
+      "mdd": -0.2738074507436553,
+      "worst252": -0.15876940358209413,
+      "years": 12.7419575633128,
+      "totals": {
+        "fees_krw": 11776611.487656431,
+        "fx_cost_krw": 3513.9588422506486,
+        "dividend_tax_krw": 1703395.9364391658,
+        "capital_gains_tax_krw": 7027917.684501291
+      }
+    },
+    "agreement_63|half1|0.001": {
+      "cagr": 0.05990867100049102,
+      "mdd": -0.14346028212453188,
+      "worst252": -0.10639664258636616,
+      "years": 5.987679671457905,
+      "totals": {
+        "fees_krw": 2253229.7259829845,
+        "fx_cost_krw": 770.4551951810918,
+        "dividend_tax_krw": 701588.4536094295,
+        "capital_gains_tax_krw": 1540910.3903621822
+      }
+    },
+    "agreement_63|half2|0.001": {
+      "cagr": 0.11741670077562127,
+      "mdd": -0.27380744934723045,
+      "worst252": -0.1466124726230159,
+      "years": 6.743326488706366,
+      "totals": {
+        "fees_krw": 2054984.7306760405,
+        "fx_cost_krw": 2301.494175614315,
+        "dividend_tax_krw": 829321.6589220335,
+        "capital_gains_tax_krw": 4602988.3512286255
+      }
+    },
+    "agreement_63|recent|0.001": {
+      "cagr": 0.051879165034248054,
+      "mdd": -0.17220805166957642,
+      "worst252": -0.0572957955753548,
+      "years": 1.9630390143737166,
+      "totals": {
+        "fees_krw": 645046.6971075053,
+        "fx_cost_krw": 0.0,
+        "dividend_tax_krw": 114597.46941027754,
+        "capital_gains_tax_krw": 0.0
+      }
+    },
+    "agreement_126|early|0.001": {
+      "cagr": 0.0014804751897217194,
+      "mdd": -0.25394478784868824,
+      "worst252": -0.2030170377521352,
+      "years": 7.427789185489391,
+      "totals": {
+        "fees_krw": 1385575.9778178209,
+        "fx_cost_krw": 0.0,
+        "dividend_tax_krw": 462241.6118502197,
+        "capital_gains_tax_krw": 0.0
+      }
+    },
+    "agreement_126|judge|0.001": {
+      "cagr": 0.09922816467590145,
+      "mdd": -0.273807442632801,
+      "worst252": -0.1482483179605717,
+      "years": 12.7419575633128,
+      "totals": {
+        "fees_krw": 4941715.817493017,
+        "fx_cost_krw": 5405.16251333274,
+        "dividend_tax_krw": 1856227.4614279873,
+        "capital_gains_tax_krw": 10810325.02666547
+      }
+    },
+    "agreement_126|judge|0.0025": {
+      "cagr": 0.08730376407114693,
+      "mdd": -0.2738074441511872,
+      "worst252": -0.16335411760641605,
+      "years": 12.7419575633128,
+      "totals": {
+        "fees_krw": 11325976.576303842,
+        "fx_cost_krw": 4452.598423032292,
+        "dividend_tax_krw": 1685166.5878215656,
+        "capital_gains_tax_krw": 8905196.846064575
+      }
+    },
+    "agreement_126|half1|0.001": {
+      "cagr": 0.05293815736080254,
+      "mdd": -0.16819018175764422,
+      "worst252": -0.1482483179605717,
+      "years": 5.987679671457905,
+      "totals": {
+        "fees_krw": 2311615.450074454,
+        "fx_cost_krw": 609.9204356026812,
+        "dividend_tax_krw": 660886.6825119836,
+        "capital_gains_tax_krw": 1219840.8712053616
+      }
+    },
+    "agreement_126|half2|0.001": {
+      "cagr": 0.1444618931570234,
+      "mdd": -0.2738074426328011,
+      "worst252": -0.12353923422694224,
+      "years": 6.743326488706366,
+      "totals": {
+        "fees_krw": 1946731.9304691546,
+        "fx_cost_krw": 3323.8969821499018,
+        "dividend_tax_krw": 883583.7961825884,
+        "capital_gains_tax_krw": 6647793.964299798
+      }
+    },
+    "agreement_126|recent|0.001": {
+      "cagr": 0.056919737229143896,
+      "mdd": -0.17220805166957642,
+      "worst252": -0.05062127027949981,
+      "years": 1.9630390143737166,
+      "totals": {
+        "fees_krw": 616133.4933156756,
+        "fx_cost_krw": 0.0,
+        "dividend_tax_krw": 101572.14138818537,
+        "capital_gains_tax_krw": 0.0
+      }
+    }
+  },
+  "source": "actual ETF Close/Adj Close; tax_fx USDKRW; original 9 sector menu",
+  "coverage": {
+    "common_start": "2004-07-26",
+    "common_end": "2026-10-15",
+    "incomplete_dates_dropped": 1,
+    "fx_last_valid": "2026-09-18"
+  },
+  "code_hash": "d10eed2952c3eb49e33ed85682a3696000ebf5bf15fa3ea362770761553d3ebcFalse",
+  "data_hash": "0212d7e66e958fb04c27982eed0da5ed25cb1de55f2e0c5fc17c71e9bc1339da",
+  "limits": [
+    "Retrospective reused periods, not independent OOS.",
+    "Tax and dividend reconstruction approximations; no legal verification.",
+    "USD cash earns zero; current ETF data may contain historical revisions.",
+    "Bonferroni covers these 12 cells only, not all prior research.",
+    "No engine or frozen forward ledger changes."
+  ]
+}
