@@ -1,0 +1,1213 @@
+{
+ "judge_version": "spy-sector-blend-v1/2026-10-17",
+ "smoke": false,
+ "source": "Ken French data library (daily, weekday calendar; 12 industries VW)",
+ "generated_at": "2026-10-17T08:10:37+00:00",
+ "verdicts": {
+  "overall": "LONGRUN_ONLY",
+  "part_L": "PASS_LONGRUN",
+  "part_E": "FAIL",
+  "chosen_w": "w100",
+  "L_checks": "cagr_margin=Y, A_mdd=Y, B_worst252=Y, both_halves=Y, alpha_t=Y",
+  "E_checks": "after_tax_margin=N, both_halves=N, mdd_within_3pp=Y, boot_low=N"
+ },
+ "power": {
+  "part_L": {
+   "years": 41.0,
+   "n_trials": 5,
+   "confidence": 0.95,
+   "mde_ir": 0.443,
+   "power_at": {
+    "0.20": 0.06,
+    "0.30": 0.18,
+    "0.50": 0.642
+   },
+   "method": "expected-max-z(Bailey-LdP) + null SE, simplified"
+  },
+  "part_E": {
+   "years": 24.7,
+   "n_trials": 1,
+   "confidence": 0.95,
+   "mde_ir": 0.331,
+   "power_at": {
+    "0.20": 0.258,
+    "0.30": 0.439,
+    "0.50": 0.8
+   },
+   "method": "expected-max-z(Bailey-LdP) + null SE, simplified"
+  }
+ },
+ "rule": {
+  "part_L": {
+   "market": "Mkt-RF+RF",
+   "sleeve": "mom-volscale-v1 I2/VT20/none (FF12 top-2 by 252-row return, vol target 20% on the sleeve's own prior 126 rows, cap 1.0, rest RF, monthly, 10bp)",
+   "w": [
+    15,
+    30,
+    50,
+    70,
+    100
+   ],
+   "rebalance": "first trading day of each January to target, one-way 10bp on turnover",
+   "windows": {
+    "selection": [
+     "1927-07-01",
+     "1966-12-31"
+    ],
+    "confirmation": [
+     "1967-01-01",
+     "2007-12-31"
+    ],
+    "h1": [
+     "1967-01-01",
+     "1986-12-31"
+    ],
+    "h2": [
+     "1987-01-01",
+     "2007-12-31"
+    ],
+    "recent": [
+     "2008-01-01",
+     null
+    ]
+   },
+   "n_trials": 5
+  },
+  "part_E": {
+   "sleeve": "SC2VT20 as core/forward_tournament_v3.py (Select Sector SPDRs, top-2 by 252-day total return from prior close, equal weight, monthly, vol 20% on backfilled unscaled-SC2 prior 126 days, remainder BIL; USD cash before BIL exists)",
+   "reset": "January only",
+   "account": "tax_fx.AccountConfig defaults (Kakao), 30M KRW judged / 100M reported",
+   "windows": {
+    "judged": [
+     "2000-01-03",
+     "2024-09-30"
+    ],
+    "h1": [
+     "2000-01-03",
+     "2012-06-30"
+    ],
+    "h2": [
+     "2012-07-02",
+     "2024-09-30"
+    ],
+    "post": [
+     "2024-10-01",
+     null
+    ]
+   },
+   "bootstrap": [
+    1000,
+    126,
+    20261030
+   ]
+  }
+ },
+ "thresholds": {
+  "L": {
+   "cagr_margin": 0.01,
+   "A": "mdd >= market mdd",
+   "B_slack_252row": 0.05,
+   "alpha_t_min": 2.0
+  },
+  "E": {
+   "after_tax_margin": 0.005,
+   "mdd_tol": 0.03,
+   "boot_floor": -0.005
+  }
+ },
+ "part_L": {
+  "selection": {
+   "chosen": "w100",
+   "eligible_on_selection": [
+    "w15",
+    "w30",
+    "w50",
+    "w70",
+    "w100"
+   ],
+   "checks": {
+    "cagr_margin": true,
+    "A_mdd": true,
+    "B_worst252": true,
+    "both_halves": true,
+    "alpha_t": true
+   },
+   "halves": [
+    {
+     "start": "1967-01-01",
+     "end": "1986-12-31",
+     "cagr": 0.1493,
+     "market_cagr": 0.1041
+    },
+    {
+     "start": "1987-01-01",
+     "end": "2007-12-31",
+     "cagr": 0.1694,
+     "market_cagr": 0.1127
+    }
+   ],
+   "noop": null,
+   "observed_ir": 0.6214,
+   "verdict": "PASS_LONGRUN"
+  },
+  "market": {
+   "selection": {
+    "cagr": 0.0892,
+    "mdd": -0.8407,
+    "worst_252": -0.6681,
+    "sharpe": 0.4413,
+    "calmar": 0.106,
+    "avg_exposure": 1.0,
+    "turnover_per_year": 0.0
+   },
+   "confirmation": {
+    "cagr": 0.1085,
+    "mdd": -0.4923,
+    "worst_252": -0.4284,
+    "sharpe": 0.3748,
+    "calmar": 0.2204,
+    "avg_exposure": 1.0,
+    "turnover_per_year": 0.0
+   },
+   "h1": {
+    "cagr": 0.1041,
+    "mdd": -0.4816,
+    "worst_252": -0.4284,
+    "sharpe": 0.2532,
+    "calmar": 0.2161,
+    "avg_exposure": 1.0,
+    "turnover_per_year": 0.0
+   },
+   "h2": {
+    "cagr": 0.1127,
+    "mdd": -0.4923,
+    "worst_252": -0.3553,
+    "sharpe": 0.4998,
+    "calmar": 0.229,
+    "avg_exposure": 1.0,
+    "turnover_per_year": 0.0
+   },
+   "recent": {
+    "cagr": 0.1149,
+    "mdd": -0.5178,
+    "worst_252": -0.4671,
+    "sharpe": 0.6699,
+    "calmar": 0.2218,
+    "avg_exposure": 1.0,
+    "turnover_per_year": 0.0
+   }
+  },
+  "sleeve_alone": {
+   "selection": {
+    "cagr": 0.145,
+    "mdd": -0.6593,
+    "avg_exposure": 0.9213,
+    "turnover_per_year": 5.0701
+   },
+   "confirmation": {
+    "cagr": 0.1596,
+    "mdd": -0.3858,
+    "avg_exposure": 0.976,
+    "turnover_per_year": 5.3199
+   },
+   "h1": {
+    "cagr": 0.1493,
+    "mdd": -0.3858,
+    "avg_exposure": 0.9959,
+    "turnover_per_year": 5.3745
+   },
+   "h2": {
+    "cagr": 0.1694,
+    "mdd": -0.3664,
+    "avg_exposure": 0.9572,
+    "turnover_per_year": 5.2693
+   },
+   "recent": {
+    "cagr": 0.0868,
+    "mdd": -0.3866,
+    "avg_exposure": 0.8878,
+    "turnover_per_year": 5.9227
+   }
+  },
+  "cells": {
+   "w15": {
+    "windows": {
+     "selection": {
+      "cagr": 0.0982,
+      "mdd": -0.818,
+      "worst_252": -0.6292,
+      "sharpe": 0.4922,
+      "calmar": 0.12,
+      "alpha_annual": 0.0108,
+      "alpha_t_nw6": 4.3252,
+      "appraisal_ir": 0.7084,
+      "beta_daily": 0.9579
+     },
+     "confirmation": {
+      "cagr": 0.1165,
+      "mdd": -0.4677,
+      "worst_252": -0.4158,
+      "sharpe": 0.4235,
+      "calmar": 0.2492,
+      "alpha_annual": 0.0077,
+      "alpha_t_nw6": 4.1109,
+      "appraisal_ir": 0.6061,
+      "beta_daily": 0.9859
+     },
+     "h1": {
+      "cagr": 0.1112,
+      "mdd": -0.4677,
+      "worst_252": -0.4158,
+      "sharpe": 0.2932,
+      "calmar": 0.2377,
+      "alpha_annual": 0.0066,
+      "alpha_t_nw6": 2.6528,
+      "appraisal_ir": 0.5692,
+      "beta_daily": 0.9978
+     },
+     "h2": {
+      "cagr": 0.1217,
+      "mdd": -0.4545,
+      "worst_252": -0.3293,
+      "sharpe": 0.5593,
+      "calmar": 0.2678,
+      "alpha_annual": 0.0091,
+      "alpha_t_nw6": 3.1601,
+      "appraisal_ir": 0.6618,
+      "beta_daily": 0.9788
+     },
+     "recent": {
+      "cagr": 0.1115,
+      "mdd": -0.493,
+      "worst_252": -0.4456,
+      "sharpe": 0.667,
+      "calmar": 0.2262,
+      "alpha_annual": 0.0001,
+      "alpha_t_nw6": 0.0206,
+      "appraisal_ir": 0.0053,
+      "beta_daily": 0.9617
+     }
+    },
+    "rebalance_turnover_per_year": {
+     "selection": 0.0203,
+     "confirmation": 0.0176,
+     "h1": 0.0152,
+     "h2": 0.0198,
+     "recent": 0.0219
+    },
+    "noop_vs_market": null
+   },
+   "w30": {
+    "windows": {
+     "selection": {
+      "cagr": 0.1069,
+      "mdd": -0.7938,
+      "worst_252": -0.5888,
+      "sharpe": 0.5443,
+      "calmar": 0.1347,
+      "alpha_annual": 0.0216,
+      "alpha_t_nw6": 4.3651,
+      "appraisal_ir": 0.7144,
+      "beta_daily": 0.9163
+     },
+     "confirmation": {
+      "cagr": 0.1245,
+      "mdd": -0.4537,
+      "worst_252": -0.4031,
+      "sharpe": 0.4696,
+      "calmar": 0.2743,
+      "alpha_annual": 0.0155,
+      "alpha_t_nw6": 4.1305,
+      "appraisal_ir": 0.6093,
+      "beta_daily": 0.972
+     },
+     "h1": {
+      "cagr": 0.1181,
+      "mdd": -0.4537,
+      "worst_252": -0.4031,
+      "sharpe": 0.3317,
+      "calmar": 0.2604,
+      "alpha_annual": 0.0131,
+      "alpha_t_nw6": 2.6667,
+      "appraisal_ir": 0.5725,
+      "beta_daily": 0.9955
+     },
+     "h2": {
+      "cagr": 0.1306,
+      "mdd": -0.4153,
+      "worst_252": -0.3028,
+      "sharpe": 0.6147,
+      "calmar": 0.3144,
+      "alpha_annual": 0.0182,
+      "alpha_t_nw6": 3.1712,
+      "appraisal_ir": 0.6647,
+      "beta_daily": 0.9582
+     },
+     "recent": {
+      "cagr": 0.1079,
+      "mdd": -0.4682,
+      "worst_252": -0.4238,
+      "sharpe": 0.6561,
+      "calmar": 0.2304,
+      "alpha_annual": 0.0001,
+      "alpha_t_nw6": 0.0122,
+      "appraisal_ir": 0.0031,
+      "beta_daily": 0.9244
+     }
+    },
+    "rebalance_turnover_per_year": {
+     "selection": 0.0328,
+     "confirmation": 0.0285,
+     "h1": 0.0247,
+     "h2": 0.0321,
+     "recent": 0.036
+    },
+    "noop_vs_market": null
+   },
+   "w50": {
+    "windows": {
+     "selection": {
+      "cagr": 0.1182,
+      "mdd": -0.7592,
+      "worst_252": -0.5325,
+      "sharpe": 0.6138,
+      "calmar": 0.1557,
+      "alpha_annual": 0.036,
+      "alpha_t_nw6": 4.4148,
+      "appraisal_ir": 0.7219,
+      "beta_daily": 0.8615
+     },
+     "confirmation": {
+      "cagr": 0.1348,
+      "mdd": -0.4347,
+      "worst_252": -0.3861,
+      "sharpe": 0.5257,
+      "calmar": 0.3101,
+      "alpha_annual": 0.0257,
+      "alpha_t_nw6": 4.1549,
+      "appraisal_ir": 0.6132,
+      "beta_daily": 0.9539
+     },
+     "h1": {
+      "cagr": 0.1273,
+      "mdd": -0.4347,
+      "worst_252": -0.3861,
+      "sharpe": 0.3798,
+      "calmar": 0.2928,
+      "alpha_annual": 0.0219,
+      "alpha_t_nw6": 2.6848,
+      "appraisal_ir": 0.5767,
+      "beta_daily": 0.9924
+     },
+     "h2": {
+      "cagr": 0.142,
+      "mdd": -0.3607,
+      "worst_252": -0.2669,
+      "sharpe": 0.6798,
+      "calmar": 0.3938,
+      "alpha_annual": 0.0303,
+      "alpha_t_nw6": 3.1844,
+      "appraisal_ir": 0.6681,
+      "beta_daily": 0.9313
+     },
+     "recent": {
+      "cagr": 0.1025,
+      "mdd": -0.442,
+      "worst_252": -0.3946,
+      "sharpe": 0.6286,
+      "calmar": 0.2319,
+      "alpha_annual": 0.0,
+      "alpha_t_nw6": 0.0021,
+      "appraisal_ir": 0.0005,
+      "beta_daily": 0.8764
+     }
+    },
+    "rebalance_turnover_per_year": {
+     "selection": 0.0381,
+     "confirmation": 0.0333,
+     "h1": 0.0289,
+     "h2": 0.0374,
+     "recent": 0.0428
+    },
+    "noop_vs_market": null
+   },
+   "w70": {
+    "windows": {
+     "selection": {
+      "cagr": 0.1292,
+      "mdd": -0.7216,
+      "worst_252": -0.4737,
+      "sharpe": 0.6804,
+      "calmar": 0.179,
+      "alpha_annual": 0.0503,
+      "alpha_t_nw6": 4.4612,
+      "appraisal_ir": 0.7289,
+      "beta_daily": 0.8072
+     },
+     "confirmation": {
+      "cagr": 0.1449,
+      "mdd": -0.4153,
+      "worst_252": -0.369,
+      "sharpe": 0.5744,
+      "calmar": 0.3488,
+      "alpha_annual": 0.036,
+      "alpha_t_nw6": 4.1776,
+      "appraisal_ir": 0.6167,
+      "beta_daily": 0.9363
+     },
+     "h1": {
+      "cagr": 0.1362,
+      "mdd": -0.4153,
+      "worst_252": -0.369,
+      "sharpe": 0.4237,
+      "calmar": 0.3279,
+      "alpha_annual": 0.0307,
+      "alpha_t_nw6": 2.7022,
+      "appraisal_ir": 0.5808,
+      "beta_daily": 0.9892
+     },
+     "h2": {
+      "cagr": 0.1532,
+      "mdd": -0.3526,
+      "worst_252": -0.2387,
+      "sharpe": 0.7332,
+      "calmar": 0.4345,
+      "alpha_annual": 0.0423,
+      "alpha_t_nw6": 3.1961,
+      "appraisal_ir": 0.671,
+      "beta_daily": 0.905
+     },
+     "recent": {
+      "cagr": 0.0966,
+      "mdd": -0.4158,
+      "worst_252": -0.365,
+      "sharpe": 0.5872,
+      "calmar": 0.2324,
+      "alpha_annual": -0.0001,
+      "alpha_t_nw6": -0.0067,
+      "appraisal_ir": -0.0017,
+      "beta_daily": 0.8298
+     }
+    },
+    "rebalance_turnover_per_year": {
+     "selection": 0.0313,
+     "confirmation": 0.0275,
+     "h1": 0.0239,
+     "h2": 0.0308,
+     "recent": 0.036
+    },
+    "noop_vs_market": null
+   },
+   "w100": {
+    "windows": {
+     "selection": {
+      "cagr": 0.145,
+      "mdd": -0.6593,
+      "worst_252": -0.4105,
+      "sharpe": 0.7672,
+      "calmar": 0.2199,
+      "alpha_annual": 0.0718,
+      "alpha_t_nw6": 4.5253,
+      "appraisal_ir": 0.7387,
+      "beta_daily": 0.726
+     },
+     "confirmation": {
+      "cagr": 0.1596,
+      "mdd": -0.3858,
+      "worst_252": -0.3432,
+      "sharpe": 0.633,
+      "calmar": 0.4136,
+      "alpha_annual": 0.0513,
+      "alpha_t_nw6": 4.2089,
+      "appraisal_ir": 0.6214,
+      "beta_daily": 0.9105
+     },
+     "h1": {
+      "cagr": 0.1493,
+      "mdd": -0.3858,
+      "worst_252": -0.3432,
+      "sharpe": 0.4807,
+      "calmar": 0.3871,
+      "alpha_annual": 0.0438,
+      "alpha_t_nw6": 2.7272,
+      "appraisal_ir": 0.5864,
+      "beta_daily": 0.9843
+     },
+     "h2": {
+      "cagr": 0.1694,
+      "mdd": -0.3664,
+      "worst_252": -0.2587,
+      "sharpe": 0.791,
+      "calmar": 0.4624,
+      "alpha_annual": 0.0601,
+      "alpha_t_nw6": 3.2109,
+      "appraisal_ir": 0.6747,
+      "beta_daily": 0.8669
+     },
+     "recent": {
+      "cagr": 0.0868,
+      "mdd": -0.3866,
+      "worst_252": -0.3202,
+      "sharpe": 0.5075,
+      "calmar": 0.2246,
+      "alpha_annual": -0.0005,
+      "alpha_t_nw6": -0.0177,
+      "appraisal_ir": -0.0046,
+      "beta_daily": 0.7624
+     }
+    },
+    "rebalance_turnover_per_year": {
+     "selection": 0.0,
+     "confirmation": 0.0,
+     "h1": 0.0,
+     "h2": 0.0,
+     "recent": 0.0
+    },
+    "noop_vs_market": null
+   }
+  },
+  "yearly_2008": {
+   "w15": {
+    "2008": -0.353,
+    "2009": 0.2846,
+    "2010": 0.179,
+    "2011": -0.0048,
+    "2012": 0.1565,
+    "2013": 0.3523,
+    "2014": 0.1192,
+    "2015": -0.0017,
+    "2016": 0.1224,
+    "2017": 0.2071,
+    "2018": -0.0449,
+    "2019": 0.2845,
+    "2020": 0.2192,
+    "2021": 0.2504,
+    "2022": -0.1484,
+    "2023": 0.2307,
+    "2024": 0.2315,
+    "2025": 0.1641,
+    "2026": 0.1085
+   },
+   "w30": {
+    "2008": -0.3413,
+    "2009": 0.2849,
+    "2010": 0.1847,
+    "2011": -0.0153,
+    "2012": 0.1504,
+    "2013": 0.3542,
+    "2014": 0.1211,
+    "2015": -0.0058,
+    "2016": 0.1115,
+    "2017": 0.2009,
+    "2018": -0.0458,
+    "2019": 0.258,
+    "2020": 0.1962,
+    "2021": 0.2624,
+    "2022": -0.0967,
+    "2023": 0.1928,
+    "2024": 0.2141,
+    "2025": 0.1423,
+    "2026": 0.0911
+   },
+   "w50": {
+    "2008": -0.3258,
+    "2009": 0.2854,
+    "2010": 0.1922,
+    "2011": -0.0294,
+    "2012": 0.1421,
+    "2013": 0.3568,
+    "2014": 0.1237,
+    "2015": -0.0113,
+    "2016": 0.097,
+    "2017": 0.1926,
+    "2018": -0.0469,
+    "2019": 0.2227,
+    "2020": 0.1656,
+    "2021": 0.2788,
+    "2022": -0.0268,
+    "2023": 0.1429,
+    "2024": 0.1908,
+    "2025": 0.1132,
+    "2026": 0.068
+   },
+   "w70": {
+    "2008": -0.3103,
+    "2009": 0.2862,
+    "2010": 0.1997,
+    "2011": -0.0434,
+    "2012": 0.1338,
+    "2013": 0.3594,
+    "2014": 0.1263,
+    "2015": -0.0168,
+    "2016": 0.0825,
+    "2017": 0.1842,
+    "2018": -0.048,
+    "2019": 0.1874,
+    "2020": 0.135,
+    "2021": 0.2954,
+    "2022": 0.0442,
+    "2023": 0.0936,
+    "2024": 0.1675,
+    "2025": 0.0842,
+    "2026": 0.0448
+   },
+   "w100": {
+    "2008": -0.2869,
+    "2009": 0.2875,
+    "2010": 0.2111,
+    "2011": -0.0645,
+    "2012": 0.1211,
+    "2013": 0.3633,
+    "2014": 0.1301,
+    "2015": -0.0251,
+    "2016": 0.0609,
+    "2017": 0.1717,
+    "2018": -0.0497,
+    "2019": 0.1345,
+    "2020": 0.0892,
+    "2021": 0.3209,
+    "2022": 0.1526,
+    "2023": 0.0203,
+    "2024": 0.1325,
+    "2025": 0.0406,
+    "2026": 0.0101
+   },
+   "market": {
+    "2008": -0.3646,
+    "2009": 0.2843,
+    "2010": 0.1734,
+    "2011": 0.0058,
+    "2012": 0.1627,
+    "2013": 0.3504,
+    "2014": 0.1173,
+    "2015": 0.0024,
+    "2016": 0.1332,
+    "2017": 0.2134,
+    "2018": -0.0441,
+    "2019": 0.3111,
+    "2020": 0.2422,
+    "2021": 0.2384,
+    "2022": -0.1996,
+    "2023": 0.269,
+    "2024": 0.2489,
+    "2025": 0.1859,
+    "2026": 0.1258
+   }
+  },
+  "data_end": "2026-08-31"
+ },
+ "part_E": {
+  "judge": {
+   "chosen": "w100",
+   "checks": {
+    "after_tax_margin": false,
+    "both_halves": false,
+    "mdd_within_3pp": true,
+    "boot_low": false
+   },
+   "halves_cand": [
+    0.0224,
+    0.1052
+   ],
+   "halves_spy": [
+    0.0109,
+    0.1383
+   ],
+   "boot": {
+    "ci90_low": -0.053,
+    "ci90_high": 0.0229,
+    "median": -0.0169,
+    "share_positive": 0.256,
+    "n_boot": 1000,
+    "block_days": 126,
+    "seed": 20261030
+   },
+   "observed_ir": -0.1302,
+   "noop": null,
+   "verdict": "FAIL"
+  },
+  "sims": {
+   "w0|judged": {
+    "cagr_after_liq": 0.0723,
+    "cagr_after": 0.08,
+    "cagr_pre": 0.083,
+    "mdd": -0.4557,
+    "worst_12m": -0.317,
+    "tax_paid_krw": 0.0,
+    "fees_krw": 50660.4159,
+    "first": "2000-01-03",
+    "last": "2024-09-30",
+    "unpaid_tax_if_sold_now_krw": 32624903.6404,
+    "fx_cost_krw": 0.0,
+    "final_after_liquidation_krw": 168881189.251,
+    "sleeve_turnover_per_year": 0.0
+   },
+   "w0|h1": {
+    "cagr_after_liq": 0.0109,
+    "cagr_after": 0.0109,
+    "cagr_pre": 0.0137,
+    "mdd": -0.4557,
+    "worst_12m": -0.317,
+    "tax_paid_krw": 0.0,
+    "fees_krw": 35029.5374,
+    "first": "2000-01-03",
+    "last": "2012-06-29",
+    "unpaid_tax_if_sold_now_krw": 0.0,
+    "fx_cost_krw": 0.0,
+    "final_after_liquidation_krw": 34330091.5356,
+    "sleeve_turnover_per_year": 0.0
+   },
+   "w0|h2": {
+    "cagr_after_liq": 0.1383,
+    "cagr_after": 0.1549,
+    "cagr_pre": 0.1582,
+    "mdd": -0.2968,
+    "worst_12m": -0.1346,
+    "tax_paid_krw": 0.0,
+    "fees_krw": 43526.4435,
+    "first": "2012-07-02",
+    "last": "2024-09-30",
+    "unpaid_tax_if_sold_now_krw": 28354954.788,
+    "fx_cost_krw": 0.0,
+    "final_after_liquidation_krw": 146601173.3001,
+    "sleeve_turnover_per_year": 0.0
+   },
+   "w0|post": {
+    "cagr_after_liq": 0.1619,
+    "cagr_after": 0.1916,
+    "cagr_pre": 0.1942,
+    "mdd": -0.1714,
+    "worst_12m": 0.095,
+    "tax_paid_krw": 0.0,
+    "fees_krw": 30600.6715,
+    "first": "2024-10-01",
+    "last": "2026-10-16",
+    "unpaid_tax_if_sold_now_krw": 2147538.8548,
+    "fx_cost_krw": 0.0,
+    "final_after_liquidation_krw": 40745273.609,
+    "sleeve_turnover_per_year": 0.0
+   },
+   "w0|judged100m": {
+    "cagr_after_liq": 0.0722,
+    "cagr_after": 0.08,
+    "cagr_pre": 0.083,
+    "mdd": -0.4557,
+    "worst_12m": -0.317,
+    "tax_paid_krw": 0.0,
+    "fees_krw": 168868.0531,
+    "first": "2000-01-03",
+    "last": "2024-09-30",
+    "unpaid_tax_if_sold_now_krw": 110033012.1347,
+    "fx_cost_krw": 0.0,
+    "final_after_liquidation_krw": 561653964.1699,
+    "sleeve_turnover_per_year": 0.0
+   },
+   "w15|judged": {
+    "cagr_after_liq": 0.0723,
+    "cagr_after": 0.079,
+    "cagr_pre": 0.0833,
+    "mdd": -0.4294,
+    "worst_12m": -0.3139,
+    "tax_paid_krw": 869745.5707,
+    "fees_krw": 1384003.3606,
+    "first": "2000-01-03",
+    "last": "2024-09-30",
+    "unpaid_tax_if_sold_now_krw": 28287552.4536,
+    "fx_cost_krw": 434.8728,
+    "final_after_liquidation_krw": 168609069.7937,
+    "sleeve_turnover_per_year": 0.9489
+   },
+   "w15|h1": {
+    "cagr_after_liq": 0.0133,
+    "cagr_after": 0.0133,
+    "cagr_pre": 0.0171,
+    "mdd": -0.4294,
+    "worst_12m": -0.3139,
+    "tax_paid_krw": 0.0,
+    "fees_krw": 358817.1276,
+    "first": "2000-01-03",
+    "last": "2012-06-29",
+    "unpaid_tax_if_sold_now_krw": 0.0,
+    "fx_cost_krw": 0.0,
+    "final_after_liquidation_krw": 35376121.0628,
+    "sleeve_turnover_per_year": 0.9205
+   },
+   "w15|h2": {
+    "cagr_after_liq": 0.1357,
+    "cagr_after": 0.1501,
+    "cagr_pre": 0.1549,
+    "mdd": -0.2961,
+    "worst_12m": -0.0835,
+    "tax_paid_krw": 451272.4785,
+    "fees_krw": 890914.7561,
+    "first": "2012-07-02",
+    "last": "2024-09-30",
+    "unpaid_tax_if_sold_now_krw": 23794127.2781,
+    "fx_cost_krw": 225.6362,
+    "final_after_liquidation_krw": 142477330.5459,
+    "sleeve_turnover_per_year": 0.9711
+   },
+   "w15|post": {
+    "cagr_after_liq": 0.1723,
+    "cagr_after": 0.2019,
+    "cagr_pre": 0.2057,
+    "mdd": -0.164,
+    "worst_12m": 0.1175,
+    "tax_paid_krw": 0.0,
+    "fees_krw": 93709.3424,
+    "first": "2024-10-01",
+    "last": "2026-10-16",
+    "unpaid_tax_if_sold_now_krw": 2169794.4044,
+    "fx_cost_krw": 0.0,
+    "final_after_liquidation_krw": 41486104.8125,
+    "sleeve_turnover_per_year": 0.857
+   },
+   "w15|judged100m": {
+    "cagr_after_liq": 0.0717,
+    "cagr_after": 0.0785,
+    "cagr_pre": 0.0833,
+    "mdd": -0.4294,
+    "worst_12m": -0.3139,
+    "tax_paid_krw": 7525761.9878,
+    "fees_krw": 4605298.7924,
+    "first": "2000-01-03",
+    "last": "2024-09-30",
+    "unpaid_tax_if_sold_now_krw": 94743728.2606,
+    "fx_cost_krw": 3762.881,
+    "final_after_liquidation_krw": 554459853.751,
+    "sleeve_turnover_per_year": 0.9489
+   },
+   "w30|judged": {
+    "cagr_after_liq": 0.0714,
+    "cagr_after": 0.0773,
+    "cagr_pre": 0.0833,
+    "mdd": -0.4027,
+    "worst_12m": -0.3109,
+    "tax_paid_krw": 3088845.4532,
+    "fees_krw": 2708495.1024,
+    "first": "2000-01-03",
+    "last": "2024-09-30",
+    "unpaid_tax_if_sold_now_krw": 23950444.1694,
+    "fx_cost_krw": 1544.4227,
+    "final_after_liquidation_krw": 165377104.0873,
+    "sleeve_turnover_per_year": 1.8973
+   },
+   "w30|h1": {
+    "cagr_after_liq": 0.0155,
+    "cagr_after": 0.0155,
+    "cagr_pre": 0.0203,
+    "mdd": -0.4027,
+    "worst_12m": -0.3109,
+    "tax_paid_krw": 0.0,
+    "fees_krw": 705359.4999,
+    "first": "2000-01-03",
+    "last": "2012-06-29",
+    "unpaid_tax_if_sold_now_krw": 0.0,
+    "fx_cost_krw": 0.0,
+    "final_after_liquidation_krw": 36362800.4725,
+    "sleeve_turnover_per_year": 1.8398
+   },
+   "w30|h2": {
+    "cagr_after_liq": 0.1314,
+    "cagr_after": 0.1439,
+    "cagr_pre": 0.1512,
+    "mdd": -0.2954,
+    "worst_12m": -0.036,
+    "tax_paid_krw": 2209996.3251,
+    "fees_krw": 1666119.3318,
+    "first": "2012-07-02",
+    "last": "2024-09-30",
+    "unpaid_tax_if_sold_now_krw": 19528424.0831,
+    "fx_cost_krw": 1104.9982,
+    "final_after_liquidation_krw": 136085646.2416,
+    "sleeve_turnover_per_year": 1.941
+   },
+   "w30|post": {
+    "cagr_after_liq": 0.1824,
+    "cagr_after": 0.2121,
+    "cagr_pre": 0.217,
+    "mdd": -0.1567,
+    "worst_12m": 0.1328,
+    "tax_paid_krw": 0.0,
+    "fees_krw": 156492.3968,
+    "first": "2024-10-01",
+    "last": "2026-10-16",
+    "unpaid_tax_if_sold_now_krw": 2190492.8276,
+    "fx_cost_krw": 0.0,
+    "final_after_liquidation_krw": 42219555.0191,
+    "sleeve_turnover_per_year": 1.7105
+   },
+   "w30|judged100m": {
+    "cagr_after_liq": 0.0701,
+    "cagr_after": 0.0761,
+    "cagr_pre": 0.0833,
+    "mdd": -0.404,
+    "worst_12m": -0.3124,
+    "tax_paid_krw": 17517375.7597,
+    "fees_krw": 8906207.6799,
+    "first": "2000-01-03",
+    "last": "2024-09-30",
+    "unpaid_tax_if_sold_now_krw": 78989441.3077,
+    "fx_cost_krw": 8758.6879,
+    "final_after_liquidation_krw": 534277435.8496,
+    "sleeve_turnover_per_year": 1.8973
+   },
+   "w50|judged": {
+    "cagr_after_liq": 0.0696,
+    "cagr_after": 0.0744,
+    "cagr_pre": 0.0829,
+    "mdd": -0.3838,
+    "worst_12m": -0.3106,
+    "tax_paid_krw": 5774230.8854,
+    "fees_krw": 4425318.8273,
+    "first": "2000-01-03",
+    "last": "2024-09-30",
+    "unpaid_tax_if_sold_now_krw": 18452272.5595,
+    "fx_cost_krw": 2887.1154,
+    "final_after_liquidation_krw": 158462770.806,
+    "sleeve_turnover_per_year": 3.1628
+   },
+   "w50|h1": {
+    "cagr_after_liq": 0.0182,
+    "cagr_after": 0.0182,
+    "cagr_pre": 0.0243,
+    "mdd": -0.3838,
+    "worst_12m": -0.3106,
+    "tax_paid_krw": 0.0,
+    "fees_krw": 1203731.6762,
+    "first": "2000-01-03",
+    "last": "2012-06-29",
+    "unpaid_tax_if_sold_now_krw": 0.0,
+    "fx_cost_krw": 0.0,
+    "final_after_liquidation_krw": 37579806.0717,
+    "sleeve_turnover_per_year": 3.0648
+   },
+   "w50|h2": {
+    "cagr_after_liq": 0.125,
+    "cagr_after": 0.135,
+    "cagr_pre": 0.1457,
+    "mdd": -0.2945,
+    "worst_12m": -0.046,
+    "tax_paid_krw": 4023545.2758,
+    "fees_krw": 2584936.4814,
+    "first": "2012-07-02",
+    "last": "2024-09-30",
+    "unpaid_tax_if_sold_now_krw": 14567319.1844,
+    "fx_cost_krw": 2011.7726,
+    "final_after_liquidation_krw": 126911904.6828,
+    "sleeve_turnover_per_year": 3.2346
+   },
+   "w50|post": {
+    "cagr_after_liq": 0.1956,
+    "cagr_after": 0.2252,
+    "cagr_pre": 0.2318,
+    "mdd": -0.1491,
+    "worst_12m": 0.119,
+    "tax_paid_krw": 0.0,
+    "fees_krw": 239700.0846,
+    "first": "2024-10-01",
+    "last": "2026-10-16",
+    "unpaid_tax_if_sold_now_krw": 2215687.2542,
+    "fx_cost_krw": 0.0,
+    "final_after_liquidation_krw": 43186086.4288,
+    "sleeve_turnover_per_year": 2.8433
+   },
+   "w50|judged100m": {
+    "cagr_after_liq": 0.0673,
+    "cagr_after": 0.0722,
+    "cagr_pre": 0.0829,
+    "mdd": -0.3883,
+    "worst_12m": -0.3156,
+    "tax_paid_krw": 28985954.8253,
+    "fees_krw": 14348217.3291,
+    "first": "2000-01-03",
+    "last": "2024-09-30",
+    "unpaid_tax_if_sold_now_krw": 59879232.4577,
+    "fx_cost_krw": 14492.9774,
+    "final_after_liquidation_krw": 501420783.8058,
+    "sleeve_turnover_per_year": 3.1628
+   },
+   "w70|judged": {
+    "cagr_after_liq": 0.0671,
+    "cagr_after": 0.0708,
+    "cagr_pre": 0.082,
+    "mdd": -0.3781,
+    "worst_12m": -0.3137,
+    "tax_paid_krw": 8107446.5948,
+    "fees_krw": 6068308.9067,
+    "first": "2000-01-03",
+    "last": "2024-09-30",
+    "unpaid_tax_if_sold_now_krw": 13467787.8603,
+    "fx_cost_krw": 4053.7233,
+    "final_after_liquidation_krw": 149451577.2729,
+    "sleeve_turnover_per_year": 4.4329
+   },
+   "w70|h1": {
+    "cagr_after_liq": 0.0205,
+    "cagr_after": 0.0205,
+    "cagr_pre": 0.0279,
+    "mdd": -0.3781,
+    "worst_12m": -0.3137,
+    "tax_paid_krw": 27568.2489,
+    "fees_krw": 1744447.4042,
+    "first": "2000-01-03",
+    "last": "2012-06-29",
+    "unpaid_tax_if_sold_now_krw": 0.0,
+    "fx_cost_krw": 13.7841,
+    "final_after_liquidation_krw": 38646694.0378,
+    "sleeve_turnover_per_year": 4.2899
+   },
+   "w70|h2": {
+    "cagr_after_liq": 0.1175,
+    "cagr_after": 0.1253,
+    "cagr_pre": 0.1396,
+    "mdd": -0.2936,
+    "worst_12m": -0.0882,
+    "tax_paid_krw": 5458904.2817,
+    "fees_krw": 3371953.972,
+    "first": "2012-07-02",
+    "last": "2024-09-30",
+    "unpaid_tax_if_sold_now_krw": 10340432.5107,
+    "fx_cost_krw": 2729.4521,
+    "final_after_liquidation_krw": 116967374.7109,
+    "sleeve_turnover_per_year": 4.534
+   },
+   "w70|post": {
+    "cagr_after_liq": 0.2084,
+    "cagr_after": 0.2381,
+    "cagr_pre": 0.2462,
+    "mdd": -0.1426,
+    "worst_12m": 0.1054,
+    "tax_paid_krw": 0.0,
+    "fees_krw": 322337.086,
+    "first": "2024-10-01",
+    "last": "2026-10-16",
+    "unpaid_tax_if_sold_now_krw": 2238157.8894,
+    "fx_cost_krw": 0.0,
+    "final_after_liquidation_krw": 44139683.6143,
+    "sleeve_turnover_per_year": 3.9702
+   },
+   "w70|judged100m": {
+    "cagr_after_liq": 0.0642,
+    "cagr_after": 0.068,
+    "cagr_pre": 0.082,
+    "mdd": -0.3853,
+    "worst_12m": -0.3217,
+    "tax_paid_krw": 37889006.1404,
+    "fees_krw": 19485183.0515,
+    "first": "2000-01-03",
+    "last": "2024-09-30",
+    "unpaid_tax_if_sold_now_krw": 43422645.7903,
+    "fx_cost_krw": 18944.5031,
+    "final_after_liquidation_krw": 466368426.5988,
+    "sleeve_turnover_per_year": 4.4329
+   },
+   "w100|judged": {
+    "cagr_after_liq": 0.062,
+    "cagr_after": 0.0643,
+    "cagr_pre": 0.0798,
+    "mdd": -0.3732,
+    "worst_12m": -0.3218,
+    "tax_paid_krw": 10814086.8624,
+    "fees_krw": 8328322.0872,
+    "first": "2000-01-03",
+    "last": "2024-09-30",
+    "unpaid_tax_if_sold_now_krw": 7122094.8411,
+    "fx_cost_krw": 5407.0434,
+    "final_after_liquidation_krw": 133034489.2552,
+    "sleeve_turnover_per_year": 6.3559
+   },
+   "w100|h1": {
+    "cagr_after_liq": 0.0224,
+    "cagr_after": 0.0224,
+    "cagr_pre": 0.0328,
+    "mdd": -0.3732,
+    "worst_12m": -0.3218,
+    "tax_paid_krw": 487899.1057,
+    "fees_krw": 2626092.3923,
+    "first": "2000-01-03",
+    "last": "2012-06-29",
+    "unpaid_tax_if_sold_now_krw": 0.0,
+    "fx_cost_krw": 243.9496,
+    "final_after_liquidation_krw": 39553430.3227,
+    "sleeve_turnover_per_year": 6.1385
+   },
+   "w100|h2": {
+    "cagr_after_liq": 0.1052,
+    "cagr_after": 0.1098,
+    "cagr_pre": 0.1293,
+    "mdd": -0.2922,
+    "worst_12m": -0.1507,
+    "tax_paid_krw": 6877194.6845,
+    "fees_krw": 4338982.7356,
+    "first": "2012-07-02",
+    "last": "2024-09-30",
+    "unpaid_tax_if_sold_now_krw": 5323150.6393,
+    "fx_cost_krw": 3438.5973,
+    "final_after_liquidation_krw": 102113753.7848,
+    "sleeve_turnover_per_year": 6.5001
+   },
+   "w100|post": {
+    "cagr_after_liq": 0.2245,
+    "cagr_after": 0.2541,
+    "cagr_pre": 0.2673,
+    "mdd": -0.1329,
+    "worst_12m": 0.0854,
+    "tax_paid_krw": 199500.0163,
+    "fees_krw": 445595.4079,
+    "first": "2024-10-01",
+    "last": "2026-10-16",
+    "unpaid_tax_if_sold_now_krw": 2266516.063,
+    "fx_cost_krw": 99.75,
+    "final_after_liquidation_krw": 45344752.1384,
+    "sleeve_turnover_per_year": 5.6531
+   },
+   "w100|judged100m": {
+    "cagr_after_liq": 0.0587,
+    "cagr_after": 0.0611,
+    "cagr_pre": 0.0798,
+    "mdd": -0.3807,
+    "worst_12m": -0.3299,
+    "tax_paid_krw": 47471685.1678,
+    "fees_krw": 26578732.4645,
+    "first": "2000-01-03",
+    "last": "2024-09-30",
+    "unpaid_tax_if_sold_now_krw": 23271418.4682,
+    "fx_cost_krw": 23735.8426,
+    "final_after_liquidation_krw": 410613395.479,
+    "sleeve_turnover_per_year": 6.3559
+   }
+  },
+  "recent_sleeve_decisions": [
+   {
+    "date": "2026-08-03",
+    "picks": [
+     "XLE",
+     "XLK"
+    ],
+    "exposure": 1.0,
+    "vol": 0.166
+   },
+   {
+    "date": "2026-09-01",
+    "picks": [
+     "XLE",
+     "XLK"
+    ],
+    "exposure": 1.0,
+    "vol": 0.16
+   },
+   {
+    "date": "2026-10-01",
+    "picks": [
+     "XLK",
+     "XLE"
+    ],
+    "exposure": 1.0,
+    "vol": 0.1577
+   }
+  ],
+  "source": "yfinance (Close / Adj Close), USDKRW via tax_fx.usdkrw_series",
+  "missing": []
+ }
+}
