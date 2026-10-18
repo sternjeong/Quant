@@ -1,0 +1,14 @@
+{
+  "id": "contrib-reval-champion-v1",
+  "title": "처음 목돈 + 매달 적립으로 다시 본 챔피언·후보 8개 — 매달 시작하는 5년 구간에서 SPY 를 세후로 이기나",
+  "entrypoint": "research/jobs/contrib-reval-champion-v1/run.py",
+  "args": [],
+  "timeout_seconds": 10800,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 22,
+  "revision": 1,
+  "max_memory_mb": 2500
+}
