@@ -11,6 +11,11 @@
     다음 해 5월 말에 낸다(현금이 모자라면 비중대로 팔아서 — 그 매도도 그해 양도차익에 들어간다). 취득가액: fifo(선입선출) 또는 average(이동평균) — 증권사마다 다르다.
   - 배당: 조정가(Adj Close)와 종가 차이로 배당을 복원, 미국 원천징수 15% 뗀 85% 를 달러 현금으로(다음 리밸런싱에 재투자).
     금융소득 2,000만 원 초과 종합과세는 넣지 않았다(배당이 그 규모가 되면 따로 봐야 한다).
+월 적립(2026-10-17, 사용자 요청 — 처음 목돈 + 매달 적립으로 영원히 굴린다): monthly_contribution_krw > 0 이면 시작일 다음 달부터
+  매달 첫 거래일에 원화가 들어온다(usd_hold 는 같은 스프레드로 바로 달러로, krw_each_trade 는 원화로 두었다가 살 때 환전).
+  그날 종가에 산다 — underweight_first: 목표보다 모자란 종목만 모자란 만큼에 비례해 산다(팔지 않음), pro_rata: 목표 비중대로 산다.
+  그날이 목표가 바뀌는 날이기도 하면 돈을 먼저 넣고 평소 리밸런싱을 한다(덜 판다). 세전 기준선도 같은 돈을 같은 방식으로 받는다.
+  돈이 중간에 들어오므로 cagr_after·cagr_pre(최종/처음)는 의미가 없고 irr_after_liquidation(XIRR)·twr_index 를 본다.
 결과는 원화 기준. 같은 목표 비중을 비용·세금·환전 없이 굴린 '세전 기준선'과 나란히 보여 준다. 주문 경로와 연결되어 있지 않다.
 세금 계산은 추정이며 신고용이 아니다(신고는 증권사 양도소득세 대행·세무사 확인).
 """
@@ -46,6 +51,90 @@ class AccountConfig:
     harvest_gains: bool = False      # 연말 공제 채우기: 그해 실현 이익이 250만 원보다 적으면 이익 난 종목을 팔았다 바로 다시 사서 공제를 쓴다
     harvest_losses: bool = False     # 연말 손실 확정: 그해 실현 이익이 250만 원을 넘으면 손실 난 종목을 팔았다 바로 다시 사서 상계한다
     harvest_days_before_year_end: int = 3  # 12월 마지막 거래일에서 며칠(거래일) 앞에 하나 — 결제일이 해를 넘기지 않게
+    monthly_contribution_krw: float = 0.0  # 시작일 다음 달부터 매달 첫 거래일에 넣는 원화(0 이면 예전과 똑같다)
+    contribution_policy: str = "underweight_first"  # underweight_first | pro_rata
+
+
+CONTRIBUTION_POLICIES = ("underweight_first", "pro_rata")
+
+
+def allocate_contribution(policy: str, w: np.ndarray, cur: np.ndarray, tot: float, avail: float,
+                          new_cash: float) -> np.ndarray:
+    """새로 들어온 현금 new_cash(달러) 를 종목별 매수 금액으로 나눈다(파는 것은 없다).
+    w: 목표 비중(합 ≤ 1, 나머지는 현금 목표 — 살 수 없는 종목은 0 으로 넘긴다), cur: 지금 평가액,
+    tot: 새 현금을 넣은 뒤 총평가액, avail: 지금 쓸 수 있는 현금(새 현금 포함).
+      underweight_first: 쓸 돈 = min(new_cash, avail − 현금 목표). 목표보다 모자란 종목에 모자란 금액(목표 − 지금)에 비례해 나눈다.
+                         쓸 돈이 모자란 금액 합보다 크면 남는 돈은 목표 비중대로 나눈다.
+      pro_rata: new_cash × Σw 를 목표 비중대로(현금 목표 비율만큼은 현금으로 남긴다)."""
+    w = np.clip(np.nan_to_num(np.asarray(w, dtype=float)), 0.0, None)
+    cur = np.nan_to_num(np.asarray(cur, dtype=float))
+    out = np.zeros_like(w)
+    sw = float(w.sum())
+    if new_cash <= 0 or sw <= 0:
+        return out
+    if policy == "pro_rata":
+        deploy = min(new_cash * min(sw, 1.0), max(avail, 0.0))
+        return deploy * w / sw
+    if policy != "underweight_first":
+        raise ValueError(f"contribution_policy 는 {CONTRIBUTION_POLICIES} 중 하나: {policy!r}")
+    deploy = min(new_cash, max(0.0, avail - max(0.0, 1.0 - sw) * tot))
+    if deploy <= 0:
+        return out
+    short = np.where(w > 0, np.clip(w * tot - cur, 0.0, None), 0.0)
+    s_tot = float(short.sum())
+    if s_tot >= deploy and s_tot > 0:
+        return deploy * short / s_tot
+    return short + (deploy - s_tot) * w / sw
+
+
+def xirr(flows: list) -> float:
+    """연 환산 내부수익률(XIRR, 1년 = 365일). flows: [(날짜, 금액)] — 넣은 돈은 음수, 마지막 평가액은 양수.
+    부호가 한쪽뿐이거나 −99% ~ +1000% 안에 해가 없으면 nan. 이분법으로 푼다."""
+    if not flows:
+        return float("nan")
+    t0 = min(pd.Timestamp(d) for d, _ in flows)
+    ts = np.array([(pd.Timestamp(d) - t0).days / 365.0 for d, _ in flows])
+    cf = np.array([float(a) for _, a in flows])
+    if not (cf > 0).any() or not (cf < 0).any():
+        return float("nan")
+
+    def npv(r: float) -> float:
+        with np.errstate(over="ignore", under="ignore", divide="ignore", invalid="ignore"):
+            return float(np.sum(cf / (1.0 + r) ** ts))
+
+    lo, hi = -0.99, 10.0
+    f_lo, f_hi = npv(lo), npv(hi)
+    if not (math.isfinite(f_lo) and math.isfinite(f_hi)) or f_lo * f_hi > 0:
+        return float("nan")
+    for _ in range(300):
+        mid = (lo + hi) / 2
+        f_mid = npv(mid)
+        if f_mid == 0 or hi - lo < 1e-14:
+            return mid
+        if (f_mid > 0) == (f_lo > 0):
+            lo, f_lo = mid, f_mid
+        else:
+            hi = mid
+    return (lo + hi) / 2
+
+
+def contribution_days(days: pd.DatetimeIndex) -> np.ndarray:
+    """적립일 표시: 시작일 다음부터 달이 바뀐 첫 거래일(시작일 자체는 아니다)."""
+    m = np.asarray(days.year * 12 + days.month)
+    out = np.zeros(len(days), dtype=bool)
+    out[1:] = m[1:] != m[:-1]
+    return out
+
+
+def _twr(values: pd.Series, flows: pd.Series) -> pd.Series:
+    """시간가중 지수(1 에서 시작): 그날 수익 = 오늘 평가액 / (전날 평가액 + 오늘 들어온 돈) − 1."""
+    v = values.to_numpy(dtype=float)
+    f = flows.to_numpy(dtype=float)
+    out = np.ones(len(v))
+    for i in range(1, len(v)):
+        den = v[i - 1] + f[i]
+        out[i] = out[i - 1] * (v[i] / den if den > 0 else 1.0)
+    return pd.Series(out, index=values.index)
 
 
 @dataclass
@@ -98,6 +187,12 @@ def simulate(weights: pd.DataFrame, close: pd.DataFrame, adj: pd.DataFrame, usdk
     divs = _dividends_per_share(close, adj)
     change = weights.diff().abs().sum(axis=1) > 1e-9
     change.iloc[0] = True
+
+    if cfg.contribution_policy not in CONTRIBUTION_POLICIES:
+        raise ValueError(f"contribution_policy 는 {CONTRIBUTION_POLICIES} 중 하나: {cfg.contribution_policy!r}")
+    contrib = float(cfg.monthly_contribution_krw or 0.0)
+    contrib_day = contribution_days(days) if contrib > 0 else np.zeros(len(days), dtype=bool)
+    contrib_vals = np.where(contrib_day, contrib, 0.0)
 
     pos = {t: _Pos() for t in tickers}
     rate0 = float(fx.iloc[0])
@@ -212,6 +307,31 @@ def simulate(weights: pd.DataFrame, close: pd.DataFrame, adj: pd.DataFrame, usdk
     def value_usd(i: int) -> float:
         return cash_usd + sum(pos[t].shares * float(close.iat[i, j]) for j, t in enumerate(tickers) if pos[t].shares)
 
+    def _contribute(i: int) -> None:
+        """적립금을 넣는다(리밸런싱 날이 아니면 정책대로 바로 산다 — 파는 것은 없다)."""
+        nonlocal cash_usd, cash_krw, fx_cost_krw
+        rate, y = float(fx.iat[i]), days[i].year
+        if cfg.fx_mode == "usd_hold":
+            cash_usd += contrib / (rate * (1 + cfg.fx_spread))
+            fx_cost_krw += contrib * cfg.fx_spread / (1 + cfg.fx_spread)
+            yr(y)["fx_cost_krw"] += contrib * cfg.fx_spread / (1 + cfg.fx_spread)
+        else:
+            cash_krw += contrib
+        if change.iat[i]:
+            return  # 이어서 평소 리밸런싱이 이 돈까지 맞춘다
+        px = close.iloc[i].to_numpy(dtype=float)
+        ok = np.isfinite(px) & (px > 0)
+        sh = np.array([pos[t].shares for t in tickers])
+        cur = np.where(ok, sh * np.nan_to_num(px), 0.0)
+        tot = value_usd(i) + (cash_krw / rate if cfg.fx_mode == "krw_each_trade" else 0.0)
+        w = np.where(ok, weights.iloc[i].reindex(tickers).fillna(0.0).to_numpy(dtype=float), 0.0)
+        avail = cash_usd if cfg.fx_mode == "usd_hold" else cash_krw / (rate * (1 + cfg.fx_spread))
+        alloc = allocate_contribution(cfg.contribution_policy, w, cur, tot, avail, contrib / (rate * (1 + cfg.fx_spread)))
+        for j, t in enumerate(tickers):
+            if alloc[j] > 1e-9:
+                room = cash_usd if cfg.fx_mode == "usd_hold" else cash_krw / (rate * (1 + cfg.fx_spread))
+                buy(t, min(float(alloc[j]), max(room, 0.0)), i)
+
     for i, d in enumerate(days):
         rate = float(fx.iat[i])
         # 배당(원천징수 15% 뗀 뒤 달러 현금)
@@ -257,6 +377,9 @@ def simulate(weights: pd.DataFrame, close: pd.DataFrame, adj: pd.DataFrame, usdk
                     else:
                         cash_krw -= tax
                     tax_paid_rows.append({"date": str(d.date()), "for_year": due_year, "tax_krw": tax})
+        # 월 적립(리밸런싱 날이면 돈만 넣고 아래 리밸런싱이 맞춘다)
+        if contrib_day[i]:
+            _contribute(i)
         # 리밸런싱
         if change.iat[i]:
             tot = value_usd(i) + (cash_krw / rate if cfg.fx_mode == "krw_each_trade" else 0.0)
@@ -287,7 +410,7 @@ def simulate(weights: pd.DataFrame, close: pd.DataFrame, adj: pd.DataFrame, usdk
     tr = adj.pct_change(fill_method=None).fillna(0.0)
     w = weights.where(change).ffill().fillna(0.0)
     drift_w, base_vals, v = None, [], 1.0
-    for i in range(len(days)):
+    for i in range(len(days) if contrib <= 0 else 0):  # 적립금이 있으면 아래 _pre_cost_with_contributions
         # 그날 수익은 전날 종가까지 들고 있던 비중으로 — 목표가 바뀌는 날은 그날 종가에 매매하므로 새 비중은 다음 날부터
         if i > 0 and drift_w is not None:
             g = drift_w * (1 + tr.iloc[i].to_numpy())
@@ -297,7 +420,11 @@ def simulate(weights: pd.DataFrame, close: pd.DataFrame, adj: pd.DataFrame, usdk
         if change.iat[i] or drift_w is None:
             drift_w = w.iloc[i].to_numpy(dtype=float)
         base_vals.append(v)
-    base = pd.Series(base_vals, index=days) * (cfg.initial_krw / float(fx.iloc[0])) * fx
+    if contrib <= 0:
+        base = pd.Series(base_vals, index=days) * (cfg.initial_krw / float(fx.iloc[0])) * fx
+    else:
+        base = _pre_cost_with_contributions(weights.reindex(columns=tickers).fillna(0.0), change, tr, fx,
+                                            cfg.initial_krw, contrib_vals, cfg.contribution_policy)
     years = (days[-1] - days[0]).days / 365.25
 
     def cagr(s: pd.Series) -> float:
@@ -320,8 +447,57 @@ def simulate(weights: pd.DataFrame, close: pd.DataFrame, adj: pd.DataFrame, usdk
                    "capital_gains_tax_krw": sum(tax_due.values())},
         "unpaid_tax_if_sold_now_krw": liquidation_tax,
         "final_after_liquidation_krw": float(series.iloc[-1]) - liquidation_tax,
+        **_contribution_outputs(days, cfg.initial_krw, contrib_vals, series, base,
+                                float(series.iloc[-1]) - liquidation_tax),
         "years": [year_rows[y] for y in sorted(year_rows)], "tax_payments": tax_paid_rows, "harvests": harvests,
         "config": cfg.__dict__.copy(),
+    }
+
+
+def _pre_cost_with_contributions(weights: pd.DataFrame, change: pd.Series, tr: pd.DataFrame, fx: pd.Series,
+                                 initial_krw: float, contrib_vals: np.ndarray, policy: str) -> pd.Series:
+    """세전 기준선(적립금 있음): 비용·세금·환전 없이 종목별 달러 평가액을 표류시키고, 같은 날 같은 정책으로 적립금을 넣는다.
+    적립금이 0 이면 기존 기준선과 같은 값(수치 오차 수준)이다."""
+    W = weights.to_numpy(dtype=float)
+    R = tr.reindex(columns=weights.columns).fillna(0.0).to_numpy(dtype=float)
+    ch = change.to_numpy()
+    fxv = fx.to_numpy(dtype=float)
+    h = np.zeros(W.shape[1])
+    cash = initial_krw / fxv[0]
+    out = np.empty(len(fxv))
+    for i in range(len(fxv)):
+        if i > 0:
+            h = h * (1 + R[i])
+        if contrib_vals[i] > 0:
+            c = contrib_vals[i] / fxv[i]
+            cash += c
+            if not ch[i]:
+                a = allocate_contribution(policy, W[i], h, h.sum() + cash, cash, c)
+                h = h + a
+                cash -= a.sum()
+        if ch[i]:
+            tot = h.sum() + cash
+            h = W[i] * tot
+            cash = tot - h.sum()
+        out[i] = (h.sum() + cash) * fxv[i]
+    return pd.Series(out, index=weights.index)
+
+
+def _contribution_outputs(days: pd.DatetimeIndex, initial_krw: float, contrib_vals: np.ndarray, series: pd.Series,
+                          base: pd.Series, terminal_after_liq: float) -> dict[str, Any]:
+    """적립 관련 출력(적립금 0 이어도 낸다 — 그때 IRR 은 1년 = 365일 기준 청산 후 연수익률)."""
+    flows = pd.Series(contrib_vals, index=days)
+    cum = initial_krw + flows.cumsum()
+    cf = [(days[0], -initial_krw)] + [(d, -float(a)) for d, a in flows[flows > 0].items()]
+    return {
+        "contributions_krw": flows,                 # 그날 넣은 적립금(처음 목돈 제외)
+        "cumulative_contributed_krw": cum,          # 처음 목돈 + 그날까지 적립금 합
+        "total_contributed_krw": float(cum.iloc[-1]),
+        "terminal_after_liquidation_krw": float(terminal_after_liq),  # = final_after_liquidation_krw
+        "irr_after_liquidation": xirr(cf + [(days[-1], float(terminal_after_liq))]),
+        "irr_pre_cost": xirr(cf + [(days[-1], float(base.iloc[-1]))]),
+        "twr_index": _twr(series, flows),           # 세후(청산 전) 계좌의 시간가중 지수
+        "twr_pre_index": _twr(base, flows),
     }
 
 
