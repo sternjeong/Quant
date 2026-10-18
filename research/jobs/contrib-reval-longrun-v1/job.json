@@ -1,0 +1,15 @@
+{
+  "id": "contrib-reval-longrun-v1",
+  "title": "목돈 + 월 적립 장기 재평가 v1 — 1927~2007 매달 시작 10·20년 구간에서 근사 세후로 시장을 이기나(사전 등록)",
+  "entrypoint": "research/jobs/contrib-reval-longrun-v1/run.py",
+  "args": [],
+  "timeout_seconds": 3600,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 24,
+  "revision": 1,
+  "max_memory_mb": 2500,
+  "max_runs": 60
+}
