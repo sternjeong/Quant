@@ -140,8 +140,8 @@
       "phase": "A2",
       "label": "A2 · 상승",
       "zone": "고점권",
-      "position_pct": 82.2481060588,
-      "roc_pct": 0.1227088675,
+      "position_pct": 82.2697824012,
+      "roc_pct": 0.1323587185,
       "volume_ratio": 0.8581930004,
       "trend_up": true,
       "is_steep": false,
@@ -275,8 +275,8 @@
       "phase": "B2",
       "label": "B2 · 하락",
       "zone": "중간",
-      "position_pct": 30.9813567105,
-      "roc_pct": -7.0706831476,
+      "position_pct": 30.9497019067,
+      "roc_pct": -7.0762692853,
       "volume_ratio": 0.9942712531,
       "trend_up": false,
       "is_steep": false,
@@ -305,8 +305,8 @@
       "phase": "B2",
       "label": "B2 · 하락",
       "zone": "중간",
-      "position_pct": 60.1549960768,
-      "roc_pct": -6.6123242725,
+      "position_pct": 60.1490701079,
+      "roc_pct": -6.6146579646,
       "volume_ratio": 0.9119433812,
       "trend_up": false,
       "is_steep": false,
@@ -330,5 +330,5 @@
       "guidance": "관망 구간."
     }
   ],
-  "computed_at": "2026-10-17T17:48:09.995123"
+  "computed_at": "2026-10-18T17:53:45.918495"
 }
