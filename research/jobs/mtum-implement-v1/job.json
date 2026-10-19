@@ -1,0 +1,15 @@
+{
+  "id": "mtum-implement-v1",
+  "title": "대형주 모멘텀 실전 이전 — SPY+MTUM 50/50 대 SPY 적립식 세후 검증",
+  "entrypoint": "research/jobs/mtum-implement-v1/run.py",
+  "args": [],
+  "timeout_seconds": 3600,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 24,
+  "revision": 1,
+  "max_memory_mb": 1200,
+  "max_runs": 20
+}
