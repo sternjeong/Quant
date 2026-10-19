@@ -1,0 +1,36 @@
+{
+  "id": "earnings-confirm-momentum-v1",
+  "version": "2026-10-19/2",
+  "smoke": false,
+  "verdicts": {
+    "primary": "NOT_EVALUABLE_DATA"
+  },
+  "missing_inputs": [
+    "daily.csv: 없음",
+    "names.csv: 없음",
+    "delists.csv: 없음",
+    "sp500.csv: 없음",
+    "eps_pit.csv: 없음"
+  ],
+  "power": {
+    "years": 14.7,
+    "n_trials": 6,
+    "confidence": 0.95,
+    "mde_ir": 0.768,
+    "power_at": {
+      "0.20": 0.015,
+      "0.30": 0.036,
+      "0.50": 0.152
+    },
+    "method": "expected-max-z(Bailey-LdP) + null SE, simplified"
+  },
+  "preregistered_signal": {
+    "signal": "(quarter EPS - year-earlier same-quarter EPS) / sd(previous 8 YoY EPS changes); published before signal date",
+    "control": "price momentum on identical PIT universe",
+    "control_median_irr_gap_min": 0.005,
+    "price_rank_pool": 10,
+    "n_positions": 3,
+    "satellite_weight": 0.15
+  },
+  "status": "data and point-in-time eligibility audit; no performance calculation"
+}
