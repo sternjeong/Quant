@@ -4,11 +4,13 @@
 
 판정 구간은 2012~2024-09이며 공통 ETF 데이터는 2004-07-26부터다. 과거 ETF 이력 재사용·세금/배당 근사·무이자 달러 현금이며 독립 표본외 증거가 아니다. 검정력도 낮아 작은 효과를 배제하지 않는다(MDE IR≈0.93; IR 0.5 효과 통과 확률 6%). 결과: `research/results/spy-edge-six-v1/REPORT.md`, `results.json`. 전략 엔진·챔피언·전진 원장에는 반영하지 않았다. 재시험이 필요하면 결과 확인 후 새 기준을 사전 등록한다.
 
-## 2026-10-19 대형주 모멘텀 MTUM 이전 연구 — 구현·검증 완료, 게시 전
+## 2026-10-19 대형주 모멘텀 MTUM 이전 연구 — VM 실행·게시 완료
 
 장기 French 데이터에서 대형주 승자 혼합(BH50)이 적립식 판정을 통과한 점과 실제 섹터 ETF 이전의 실패를 참고해, 50/50 SPY+MTUM을 단일 후보로 등록했다. 1월 연 1회 재조정, 원화 1,000만 원 초기+월 15만 원, 실제 MTUM 가격 상장 후 252거래일 워밍업, 월별 시작 5년 계좌, 2024-09까지 종료된 구간, 한국 세금·배당·환전·비용·최종 청산 반영. 통과 문턱: SPY 대비 세후 승률 70%, IRR 중앙 +0.5%p/10분위 -1.5%p, 중앙 MDD 악화 5%p 이내, 126일 paired bootstrap 90% 하한 -0.5%p 초과. 기준·비교군은 `research/jobs/mtum-implement-v1/SPEC.md`와 실행 코드에 고정했다.
 
-검증: 합성 smoke는 `SMOKE_ONLY`, 신규 테스트 5 passed, `pytest tests` **3,187 passed·4 skipped**, deploy Telegram runner 72 OK, job loader valid, guide 검사 누락 없음, diff check 통과. 실데이터 계산은 아직 없으며 VM 실행기에서 수행해야 한다. 코드/명세/스모크 검증 완료, main 게시·VM 배포·실행 대기. 전략·챔피언·원장 미변경.
+결과: VM에서 1회 실행·실패 0·20.6초·RSS 160MB, main `0baf784` 결과 자동 게시. 65개의 5년 시작 구간 중 SPY 승리 50.8%, 세후 IRR 차이 중앙 +0.45%p·10분위 -2.08%p, MDD 중앙 -29.85% vs SPY -29.69%. paired bootstrap 90% CAGR 차이는 -2.14~+2.77%p, 관측 IR .093/MDE .511. MDD 외의 주요 통과조건이 미달해 `FAIL_UNDERPOWERED`; 겹치는 창의 유효 비중첩 수 약 2.1개라 약한 결론이다. 연속 적립 계좌(끝 2024-09-03) 청산 자산은 후보 77,270,779원·SPY 77,444,411원, IRR 13.85%·13.88%. 상세는 `research/results/mtum-implement-v1/REPORT.md`와 `results.json`.
+
+배포 검증: 합성 smoke `SMOKE_ONLY`, 신규 테스트 5 passed, 로컬·VM `pytest tests` 각각 **3,187 passed·4 skipped**, Telegram runner 72 OK, loader valid, guide 검사·diff check 통과. commit `26794e1` VM 운영 반영 후 scheduler·Streamlit active. 연구만 등록·계산했으며 엔진·챔피언·원장은 미변경. 낮은 검정력과 짧은 역사 때문에 SPY 우위가 없다고 증명한 결과는 아니다.
 
 # 작업 진행 상황
 

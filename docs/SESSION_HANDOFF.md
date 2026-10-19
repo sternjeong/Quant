@@ -1,12 +1,14 @@
 # 세션 인계
 
-## 2026-10-19 대형주 모멘텀 실제 ETF 이전 실험 — 구현·전체 테스트 완료, VM 등록 전
+## 2026-10-19 대형주 모멘텀 실제 ETF 이전 실험 — VM 실행·결과 게시 완료
 
 - 최근 결과를 대조했다: 장기 French 시나리오에서 SPY 50%+대형 승자 50%(BH50)는 `contrib-reval-longrun-v1`에서 5/7 통과했지만, 매매 가능한 ETF 대조(`spy-sector-blend-v1`, `contrib-reval-sector-v1`)는 세후 실패했다. BH50을 구현가능한 상품으로 옮긴 직접 확인은 빠져 있어 MTUM으로 모멘텀 다리를 고정 대체한다.
 - 신규 사전등록 `mtum-implement-v1`: SPY 50%+MTUM 50%, 1월 연 1회 재조정, 1,000만 원+월 15만 원, tax_fx 한국 세금·배당·환전·수수료 및 종료 청산. MTUM의 실제 상장 자료에서 252거래일 워밍업 후 월별 시작 5년 계좌를 평가하고 2024-09-30까지 끝난 구간만 판정한다. 승률≥70%, 세후 IRR 차이 중앙값≥+0.5%p·10분위≥−1.5%p, 중앙 MDD 악화≤5%p, paired 126일 bootstrap 90% 하한>−0.5%p. 한 후보이며 기존 탐색 전체의 다중검정 보정은 아니다. 표본이 짧고 겹쳐 전진 후보를 넘는 증거로 보지 않는다.
+- 결과: VM `done`(실행 1·실패 0·exit 0, 20.6초·최대 RSS 160MB), origin/main `0baf784`에 자동 게시. 2014-05-01~2024-09-03 월별 시작 5년 창 65개 중 SPY를 이긴 비율 50.8%, 세후 IRR 차이 중앙값 +0.45%p·10분위 −2.08%p. MDD 중앙값은 후보 −29.85%, SPY −29.69%(허용 범위 통과). 나머지 승률·IRR·bootstrap 기준은 미달해 기계 판정 `FAIL_UNDERPOWERED`. paired bootstrap 90% CAGR 차이 −2.14~+2.77%p, 관측 IR 0.093 대 MDE IR 0.511. 겹치는 구간 65개지만 실질 비중첩 창은 약 2.1개라 강한 결론이 아니다. 연속 적립 계좌(2014-05~2024-09-03)는 청산 후 후보 77,270,779원·IRR 13.85%, SPY 77,444,411원·IRR 13.88%.
+- 해석: 실제 MTUM 혼합에서 SPY 우위를 확인하지 못했고 이 연구만으로 전진 후보에 올릴 근거도 부족하다. 낮은 검정력과 짧은/중첩 표본 때문에 우위 부재를 입증한 결과도 아니다. MTUM은 French 대형주 prior-return 구성과 다른 지수를 추종한다.
 - 수정 파일: `research/jobs/mtum-implement-v1/{job.json,SPEC.md,run.py}`, `tests/test_mtum_implement_v1.py`, 본 문서, `PROGRESS.md`. 엔진·챔피언·고정 원장·운영 설정은 변경하지 않았다.
-- 검증 완료: 합성 `--smoke` 0 종료·`SMOKE_ONLY`; 신규 테스트 5 passed; 프로젝트 관문 `pytest tests` **3,187 passed·4 skipped**; Telegram runner unittest **72 OK**; job loader와 `hub.guide.check` 유효/누락 없음, `git diff --check` 통과. 기본 `pytest -q`는 이번 변경과 무관한 `analysis/` 구형 두 스크립트가 모듈 경로를 못 찾아 수집 오류로 멈췄다. 공식 `pytest tests` 관문은 모두 통과했다.
-- 상태 구분: 제안은 사전등록 구현으로 전환됐고 코드·합성 스모크·테스트 검증 완료. origin/main 게시/VM 자동 배포/실제 가격 전체 계산은 아직 안 됐다. main 게시 뒤 VM `research_job_runner`에서만 실데이터를 계산한다. 결과 수신 전 후보 선정·기준 변경·엔진 반영은 하지 않는다.
+- 검증·배포 완료: 합성 `--smoke` 0 종료·`SMOKE_ONLY`; 신규 테스트 5 passed; 로컬 `pytest tests` 및 VM 배포 게이트 각각 **3,187 passed·4 skipped**; Telegram runner unittest **72 OK**; job loader valid, `hub.guide.check` 누락 없음, `git diff --check` 통과. 기본 `pytest -q`는 무관한 구형 `analysis/` 스크립트 두 개의 import 오류가 있었지만 프로젝트 공식 `pytest tests` 관문은 통과했다. 자동배포 commit `26794e1`, scheduler·Streamlit active. 결과는 `research/results/mtum-implement-v1/{REPORT.md,results.json}`.
+- 상태 구분: 설계·구현·검증·배포·VM 실데이터 실행·결과 게시 완료. 연구는 `FAIL_UNDERPOWERED`; 새 임계값으로 재판정하지 않는다. 전략 엔진·챔피언 반영 없음. 후속은 실제 전진 자료를 모으거나 완전히 다른 가설을 새 ID로 사전 등록한다.
 
 ## 2026-10-17 SPY 6가설 연구 — VM 실행·결과 게시 완료
 
