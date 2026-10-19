@@ -1,5 +1,11 @@
 # 세션 인계
 
+### 2026-10-19 수익 연구 6개 운영 VM 배포 확인
+
+- main `1b05222`를 VM 자동배포가 별도 테스트 관문 통과 후 `/opt/quant`에 반영했다. VM 관문 `pytest tests` 3,190 passed·4 skipped, Telegram 실행기 72 OK, quant-scheduler·quant-streamlit active, 배포 완료 로그 확인.
+- 여섯 신규 job ID가 VM `research_jobs_admin.py list`에서 모두 `pending`·실패0·실행0으로 등록됐다(2026-10-19 10:20 UTC 확인). 이는 **배포·등록 완료, 실제 계산·결과 미완료** 상태다. 1·2·3·6번은 다음 연구 실행 창에서 계산하고, 4·5번은 VM 입력 CRSP/FF3/PIT EPS가 없어 `NOT_EVALUABLE_DATA` 예상. 실제 판정은 결과 게시 후 확인한다.
+- 챔피언·원장 변경 없음. 후속: 스케줄러 실행 상태와 `research/results/<id>/` 결과를 확인하고, 4·5번 자료/로더를 확보할 때는 새 revision으로 구현·검증한다.
+
 ### 2026-10-19 실제 SSO 금융위기 진단 보완 (revision 2)
 
 - 설계에서 요구한 실제 SSO의 2007~2009 위기 구간 별도 확인을 `research/return_upgrade/runner.py`에 추가했다. SPY85+SSO15 기존 필터와 동일한 규칙을 2007~2009 실제 상품 가격으로 세후 적립 계좌에서 계산하며, 그 시기는 2010~2024 주 판정에 넣지 않는다. `sso-contrib-confirm-v1` revision 2로 올렸다.
