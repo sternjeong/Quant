@@ -1,0 +1,18 @@
+{
+  "id": "sleeve-local-execution-v1",
+  "title": "묶음별 독립 매매의 세후 순효과",
+  "entrypoint": "research/jobs/sleeve-local-execution-v1/run.py",
+  "args": [],
+  "timeout_seconds": 10800,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": [
+    "results.json",
+    "REPORT.md"
+  ],
+  "summary_from": "verdicts",
+  "priority": 25,
+  "revision": 1,
+  "max_memory_mb": 2500,
+  "max_runs": 30
+}

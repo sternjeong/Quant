@@ -1,0 +1,18 @@
+{
+  "id": "stagger-sso-combine-v1",
+  "title": "분산 새틀라이트와 실제 SSO 결합",
+  "entrypoint": "research/jobs/stagger-sso-combine-v1/run.py",
+  "args": [],
+  "timeout_seconds": 10800,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": [
+    "results.json",
+    "REPORT.md"
+  ],
+  "summary_from": "verdicts",
+  "priority": 27,
+  "revision": 1,
+  "max_memory_mb": 2500,
+  "max_runs": 30
+}

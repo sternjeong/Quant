@@ -1,16 +1,10 @@
-## 2026-10-17 SPY 초과수익 6가설 — VM 완료
+## 2026-10-19 후속 수익 연구 6개 VM 등록 — 구현·검증 진행
 
-`spy-edge-six-v1` revision 2가 VM 연구 실행기에서 완료(실행 1·실패 0·exit 0)됐고 결과가 main `6eb9232`에 자동 게시됐다. 12개 후보 모두 사전 등록 기준 FAIL이다. 세후 CAGR 7.85~11.87%, SPY 대비 -6.05~-2.04%p, B20 대비 -2.09~+1.93%p, MDD -23.26~-29.22%; 네 칸은 B20 대비 기준만 충족했으나 SPY 초과, 두 기간 절반, 비용 스트레스, 다중검정 기준은 미달했다. active IR 전부 음수, Bonferroni p=1.0.
-
-판정 구간은 2012~2024-09이며 공통 ETF 데이터는 2004-07-26부터다. 과거 ETF 이력 재사용·세금/배당 근사·무이자 달러 현금이며 독립 표본외 증거가 아니다. 검정력도 낮아 작은 효과를 배제하지 않는다(MDE IR≈0.93; IR 0.5 효과 통과 확률 6%). 결과: `research/results/spy-edge-six-v1/REPORT.md`, `results.json`. 전략 엔진·챔피언·전진 원장에는 반영하지 않았다. 재시험이 필요하면 결과 확인 후 새 기준을 사전 등록한다.
-
-## 2026-10-19 대형주 모멘텀 MTUM 이전 연구 — VM 실행·게시 완료
-
-장기 French 데이터에서 대형주 승자 혼합(BH50)이 적립식 판정을 통과한 점과 실제 섹터 ETF 이전의 실패를 참고해, 50/50 SPY+MTUM을 단일 후보로 등록했다. 1월 연 1회 재조정, 원화 1,000만 원 초기+월 15만 원, 실제 MTUM 가격 상장 후 252거래일 워밍업, 월별 시작 5년 계좌, 2024-09까지 종료된 구간, 한국 세금·배당·환전·비용·최종 청산 반영. 통과 문턱: SPY 대비 세후 승률 70%, IRR 중앙 +0.5%p/10분위 -1.5%p, 중앙 MDD 악화 5%p 이내, 126일 paired bootstrap 90% 하한 -0.5%p 초과. 기준·비교군은 `research/jobs/mtum-implement-v1/SPEC.md`와 실행 코드에 고정했다.
-
-결과: VM에서 1회 실행·실패 0·20.6초·RSS 160MB, main `0baf784` 결과 자동 게시. 65개의 5년 시작 구간 중 SPY 승리 50.8%, 세후 IRR 차이 중앙 +0.45%p·10분위 -2.08%p, MDD 중앙 -29.85% vs SPY -29.69%. paired bootstrap 90% CAGR 차이는 -2.14~+2.77%p, 관측 IR .093/MDE .511. MDD 외의 주요 통과조건이 미달해 `FAIL_UNDERPOWERED`; 겹치는 창의 유효 비중첩 수 약 2.1개라 약한 결론이다. 연속 적립 계좌(끝 2024-09-03) 청산 자산은 후보 77,270,779원·SPY 77,444,411원, IRR 13.85%·13.88%. 상세는 `research/results/mtum-implement-v1/REPORT.md`와 `results.json`.
-
-배포 검증: 합성 smoke `SMOKE_ONLY`, 신규 테스트 5 passed, 로컬·VM `pytest tests` 각각 **3,187 passed·4 skipped**, Telegram runner 72 OK, loader valid, guide 검사·diff check 통과. commit `26794e1` VM 운영 반영 후 scheduler·Streamlit active. 연구만 등록·계산했으며 엔진·챔피언·원장은 미변경. 낮은 검정력과 짧은 역사 때문에 SPY 우위가 없다고 증명한 결과는 아니다.
+- 설계 문서의 6개 ID에 `job.json`·`SPEC.md`·진입 스크립트를 만들고 공통 실행기 `research/return_upgrade/runner.py`를 구현했다. 1·2·3·6번은 실제 전략 계산/계좌 판정, 4·5번은 상장폐지 포함 CRSP·FF3 또는 접수시각 EPS의 적격성 감사로 등록했다. 현재 입력 파일이 없어 4·5번의 정직한 결과는 `NOT_EVALUABLE_DATA`이며 수익률을 계산하지 않는다. 자료·시점별 결합 로더를 확보하면 별도 revision이 필요하다.
+- `core/tax_fx.py`에 연구용 `trade_allowed` 날짜×종목 매매 허용 표를 선택 인자로 추가했다. 1번의 비선정 묶음을 리밸런싱 때 거래하지 않기 위한 기능이다. 인자가 없으면 기존 경로 그대로이며, `hub/guide/content_modules_a.py` 설명·검증일을 갱신했다.
+- 6개 합성 스모크 종료0(1·2·3·6번 `SMOKE_ONLY`, 4·5번 `SMOKE_ONLY(NOT_EVALUABLE_DATA)`), 신규·기존 세후 및 guide 관련 테스트 31 passed, guide 검사 통과. 전체 `pytest tests -q` 3,190 passed·4 skipped, Telegram unittest 72 OK, VM 배포 상태는 게시 뒤 확인한다. 합성 숫자를 실데이터 판정으로 사용하지 않는다.
+- 입력 캐시 지문, 중단 후 코드3/체크포인트, 2024-09까지 판정, 비용 추가25bp, 낙폭·최악252일, 매월 적립 세후 IRR, 블록 부트스트랩 활성 일수익을 구현했다. 여섯 작업의 Holm 보정은 결과가 모인 뒤 집계가 필요하며 세후 IRR p값이 아니다.
+- 수정 파일: `research/jobs/{sleeve-local-execution-v1,sso-contrib-confirm-v1,stagger-sso-combine-v1,stock-residual-momentum-v1,earnings-confirm-momentum-v1,momentum-rebound-switch-v1}/`, `research/return_upgrade/runner.py`, `core/tax_fx.py`, `tests/test_return_upgrade_runner.py`, `hub/guide/content_modules_a.py`, `docs/RETURN_UPGRADE_RESEARCH_DESIGN_20261019.md`, 본 문서, `PROGRESS.md`.
 
 # 작업 진행 상황
 

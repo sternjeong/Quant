@@ -1,8 +1,16 @@
 # 세션 인계
 
+## 2026-10-19 후속 수익 연구 6개 VM 등록 — 구현·검증 진행
+
+- 설계 문서의 6개 ID에 `job.json`·`SPEC.md`·진입 스크립트를 만들고 공통 실행기 `research/return_upgrade/runner.py`를 구현했다. 1·2·3·6번은 실제 전략 계산/계좌 판정, 4·5번은 상장폐지 포함 CRSP·FF3 또는 접수시각 EPS의 적격성 감사로 등록했다. 현재 입력 파일이 없어 4·5번의 정직한 결과는 `NOT_EVALUABLE_DATA`이며 수익률을 계산하지 않는다. 자료·시점별 결합 로더를 확보하면 별도 revision이 필요하다.
+- `core/tax_fx.py`에 연구용 `trade_allowed` 날짜×종목 매매 허용 표를 선택 인자로 추가했다. 1번의 비선정 묶음을 리밸런싱 때 거래하지 않기 위한 기능이다. 인자가 없으면 기존 경로 그대로이며, `hub/guide/content_modules_a.py` 설명·검증일을 갱신했다.
+- 6개 합성 스모크 종료0(1·2·3·6번 `SMOKE_ONLY`, 4·5번 `SMOKE_ONLY(NOT_EVALUABLE_DATA)`), 신규·기존 세후 및 guide 관련 테스트 31 passed, guide 검사 통과. 전체 `pytest tests -q` 3,190 passed·4 skipped, Telegram unittest 72 OK, VM 배포 상태는 게시 뒤 확인한다. 합성 숫자를 실데이터 판정으로 사용하지 않는다.
+- 입력 캐시 지문, 중단 후 코드3/체크포인트, 2024-09까지 판정, 비용 추가25bp, 낙폭·최악252일, 매월 적립 세후 IRR, 블록 부트스트랩 활성 일수익을 구현했다. 여섯 작업의 Holm 보정은 결과가 모인 뒤 집계가 필요하며 세후 IRR p값이 아니다.
+- 수정 파일: `research/jobs/{sleeve-local-execution-v1,sso-contrib-confirm-v1,stagger-sso-combine-v1,stock-residual-momentum-v1,earnings-confirm-momentum-v1,momentum-rebound-switch-v1}/`, `research/return_upgrade/runner.py`, `core/tax_fx.py`, `tests/test_return_upgrade_runner.py`, `hub/guide/content_modules_a.py`, `docs/RETURN_UPGRADE_RESEARCH_DESIGN_20261019.md`, 본 문서, `PROGRESS.md`.
+
 ## 2026-10-19 대형주 모멘텀 실제 ETF 이전 실험 — VM 실행·결과 게시 완료
 
-- 최근 결과를 대조했다: 장기 French 시나리오에서 SPY 50%+대형 승자 50%(BH50)는 `contrib-reval-longrun-v1`에서 5/7 통과했지만, 매매 가능한 ETF 대조(`spy-sector-blend-v1`, `contrib-reval-sector-v1`)는 세후 실패했다. BH50을 구현가능한 상품으로 옮긴 직접 확인은 빠져 있어 MTUM으로 모멘텀 다리를 고정 대체한다.
+- 최근 결과를 대조했다: 장기 French 시나리오의 `contrib-reval-longrun-v1`에서는 7개 전략 중 BH50(시장 50%+대형 승자 50%)을 포함한 5개가 통과했지만, 매매 가능한 ETF 대조(`spy-sector-blend-v1`, `contrib-reval-sector-v1`)는 세후 실패했다. BH50을 구현가능한 상품으로 옮긴 직접 확인은 빠져 있어 MTUM으로 모멘텀 다리를 고정 대체한다.
 - 신규 사전등록 `mtum-implement-v1`: SPY 50%+MTUM 50%, 1월 연 1회 재조정, 1,000만 원+월 15만 원, tax_fx 한국 세금·배당·환전·수수료 및 종료 청산. MTUM의 실제 상장 자료에서 252거래일 워밍업 후 월별 시작 5년 계좌를 평가하고 2024-09-30까지 끝난 구간만 판정한다. 승률≥70%, 세후 IRR 차이 중앙값≥+0.5%p·10분위≥−1.5%p, 중앙 MDD 악화≤5%p, paired 126일 bootstrap 90% 하한>−0.5%p. 한 후보이며 기존 탐색 전체의 다중검정 보정은 아니다. 표본이 짧고 겹쳐 전진 후보를 넘는 증거로 보지 않는다.
 - 결과: VM `done`(실행 1·실패 0·exit 0, 20.6초·최대 RSS 160MB), origin/main `0baf784`에 자동 게시. 2014-05-01~2024-09-03 월별 시작 5년 창 65개 중 SPY를 이긴 비율 50.8%, 세후 IRR 차이 중앙값 +0.45%p·10분위 −2.08%p. MDD 중앙값은 후보 −29.85%, SPY −29.69%(허용 범위 통과). 나머지 승률·IRR·bootstrap 기준은 미달해 기계 판정 `FAIL_UNDERPOWERED`. paired bootstrap 90% CAGR 차이 −2.14~+2.77%p, 관측 IR 0.093 대 MDE IR 0.511. 겹치는 구간 65개지만 실질 비중첩 창은 약 2.1개라 강한 결론이 아니다. 연속 적립 계좌(2014-05~2024-09-03)는 청산 후 후보 77,270,779원·IRR 13.85%, SPY 77,444,411원·IRR 13.88%.
 - 해석: 실제 MTUM 혼합에서 SPY 우위를 확인하지 못했고 이 연구만으로 전진 후보에 올릴 근거도 부족하다. 낮은 검정력과 짧은/중첩 표본 때문에 우위 부재를 입증한 결과도 아니다. MTUM은 French 대형주 prior-return 구성과 다른 지수를 추종한다.
@@ -13,7 +21,7 @@
 ## 2026-10-17 SPY 6가설 연구 — VM 실행·결과 게시 완료
 
 - `spy-edge-six-v1` revision 2는 VM 실행기에서 `done`(실행 1, 실패 0, 종료코드 0)으로 끝났고 결과가 origin/main `6eb9232`의 `research/results/spy-edge-six-v1/`에 자동 게시됐다. 운영 배포와 연구 결과 게시를 완료했다.
-- 사전 등록된 12개 후보는 전부 `FAIL`. 세후 CAGR은 7.85~11.87%, SPY 대비 연환산 차이는 -6.05~-2.04%p, 대조군 B20 대비 -2.09~+1.93%p, MDD는 -23.26~-29.22%였다. 네 후보(`skip_42`, 두 `correlation`, 두 `gap`)는 대조군 대비 +0.5%p 조건을 충족했지만 SPY +1%p, 두 절반 모두 우위, 25bp 비용 스트레스, Bonferroni 판정을 통과하지 못했다. 모든 후보의 active IR은 음수이며 보정 p=1.0.
+- 사전 등록된 12개 후보는 전부 `FAIL`. 세후 CAGR은 7.85~11.87%, SPY 대비 연환산 차이는 -6.05~-2.04%p, 대조군 B20 대비 -2.09~+1.93%p, MDD는 -23.26~-29.22%였다. 네 후보(`skip_42`, `correlation_0.65`, `gap_0.1`, `gap_0.2`)는 대조군 대비 +0.5%p 조건을 충족했지만 SPY +1%p, 두 절반 모두 우위, 25bp 비용 스트레스, Bonferroni 판정을 통과하지 못했다. 모든 후보의 active IR은 음수이며 보정 p=1.0.
 - 공통 가격 기간은 2004-07-26~2026-10-15, 하루의 동시 quote 결측을 제외했다. 판정 구간 2012~2024-09. 테스트는 재사용 과거 ETF 자료 기반으로 독립 표본외 증거가 아니다. 사전 검정력은 12.75년·12회 가설에서 MDE IR≈0.93, IR 0.5 효과도 통과 확률 6% 수준으로 낮아, FAIL은 작은 효과 부재를 증명하지 않는다. 세금·배당은 근사, USD 현금 이자 0, Bonferroni는 이번 12칸에만 적용.
 - 수정 파일(결과 게시 커밋 외): `research/jobs/spy-edge-six-v1/{job.json,SPEC.md,run.py}`, `tests/test_spy_edge_six.py`, `docs/SESSION_HANDOFF.md`, `PROGRESS.md`. 결과 상세는 `research/results/spy-edge-six-v1/REPORT.md`와 `results.json`.
 - 전략 엔진·챔피언·전진 원장은 변경하지 않았다. 다음 단계는 이번 판정에서 유망 후보를 임의로 승격하지 않는 것. 다른 기간/기준으로 재시험하려면 새 id로 사전 등록하고, 실전 후보로 평가하려면 별도의 전진 검증을 설계한다.

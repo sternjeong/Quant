@@ -176,9 +176,10 @@ def _dividends_per_share(close: pd.DataFrame, adj: pd.DataFrame) -> pd.DataFrame
 
 
 def simulate(weights: pd.DataFrame, close: pd.DataFrame, adj: pd.DataFrame, usdkrw: pd.Series,
-             cfg: AccountConfig = AccountConfig()) -> dict[str, Any]:
+             cfg: AccountConfig = AccountConfig(), trade_allowed: Optional[pd.DataFrame] = None) -> dict[str, Any]:
     """weights: 날짜 × 종목 목표 비중(합 ≤ 1, 나머지는 현금). 목표가 바뀌는 날 그날 종가로 매매.
-    close: 원래 종가(세금 계산용), adj: 배당 포함 조정가, usdkrw: 원/달러(그날 값, 결측은 전날 값)."""
+    close: 원래 종가(세금 계산용), adj: 배당 포함 조정가, usdkrw: 원/달러(그날 값, 결측은 전날 값).
+    trade_allowed: 연구용 날짜×종목 매매 허용 표. 첫날은 모두 허용하며, 적립금 매수는 별도 처리한다."""
     days = weights.index
     tickers = list(weights.columns)
     close = close.reindex(index=days, columns=tickers).ffill()
@@ -187,6 +188,12 @@ def simulate(weights: pd.DataFrame, close: pd.DataFrame, adj: pd.DataFrame, usdk
     divs = _dividends_per_share(close, adj)
     change = weights.diff().abs().sum(axis=1) > 1e-9
     change.iloc[0] = True
+    if trade_allowed is not None:
+        if not trade_allowed.index.equals(days) or set(trade_allowed.columns) != set(tickers):
+            raise ValueError("trade_allowed 날짜·종목은 weights 와 같아야 합니다")
+        trade_allowed = trade_allowed.reindex(columns=tickers).fillna(False).astype(bool)
+        if not trade_allowed.iloc[0].all():
+            raise ValueError("trade_allowed 첫날은 모든 종목을 허용해야 합니다")
 
     if cfg.contribution_policy not in CONTRIBUTION_POLICIES:
         raise ValueError(f"contribution_policy 는 {CONTRIBUTION_POLICIES} 중 하나: {cfg.contribution_policy!r}")
@@ -317,7 +324,7 @@ def simulate(weights: pd.DataFrame, close: pd.DataFrame, adj: pd.DataFrame, usdk
             yr(y)["fx_cost_krw"] += contrib * cfg.fx_spread / (1 + cfg.fx_spread)
         else:
             cash_krw += contrib
-        if change.iat[i]:
+        if change.iat[i] and trade_allowed is None:
             return  # 이어서 평소 리밸런싱이 이 돈까지 맞춘다
         px = close.iloc[i].to_numpy(dtype=float)
         ok = np.isfinite(px) & (px > 0)
@@ -386,11 +393,15 @@ def simulate(weights: pd.DataFrame, close: pd.DataFrame, adj: pd.DataFrame, usdk
             target = weights.iloc[i]
             cur = {t: pos[t].shares * float(close.iat[i, j]) for j, t in enumerate(tickers)}
             for t in tickers:  # 매도 먼저
+                if trade_allowed is not None and not bool(trade_allowed.at[d, t]):
+                    continue
                 px = float(close.iat[i, tickers.index(t)])
                 want = float(target.get(t, 0.0)) * tot
                 if cur[t] > want + 1e-6 and px > 0:
                     sell(t, min(pos[t].shares, (cur[t] - want) / px), i)
             for t in tickers:
+                if trade_allowed is not None and not bool(trade_allowed.at[d, t]):
+                    continue
                 want = float(target.get(t, 0.0)) * tot
                 if want > cur[t] + 1e-6:
                     budget = want - cur[t]
