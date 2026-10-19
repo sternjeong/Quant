@@ -26,7 +26,7 @@ IDS = (
     'sleeve-local-execution-v1', 'sso-contrib-confirm-v1', 'stagger-sso-combine-v1',
     'stock-residual-momentum-v1', 'earnings-confirm-momentum-v1', 'momentum-rebound-switch-v1',
 )
-VERSION = '2026-10-19/1'
+VERSION = '2026-10-19/2'
 DECISION_END = pd.Timestamp('2024-09-30')
 START = pd.Timestamp('2010-01-01')
 CFG = tx.AccountConfig(initial_krw=10_000_000, monthly_contribution_krw=150_000,
@@ -181,6 +181,17 @@ def make_prep(job_id, smoke):
                     adj[t] = adj[t + '_duplicate']; adj = adj.drop(columns=t + '_duplicate')
         lb = module('return_upgrade_lev', 'research/jobs/lev-base-v1/run.py')
         state = lb.buffered_state(state_source)
+        crisis = None
+        if mode == 1:
+            ci = close.index[(close.index >= pd.Timestamp('2007-01-03')) &
+                             (close.index <= pd.Timestamp('2009-12-31'))]
+            if len(ci) > 500:
+                cs = state.reindex(ci).ffill().fillna(False).astype(float)
+                ca = pd.DataFrame({'SSO':cs, 'BIL':1.0-cs}, index=ci)
+                cw, _ = lb.SC.sleeve_weights(ci, adj.reindex(ci), [
+                    ('spy', .85, pd.DataFrame({'SPY':1.0},index=ci)), ('lev', .15, ca)])
+                crisis = {'weights':cw, 'panels':{'close':close.reindex(ci), 'adj':adj.reindex(ci),
+                                                 'fx':fx.reindex(ci).ffill(limit=3)}}
         if mode == 1:
             calendar = calendar[calendar >= pd.Timestamp('2010-01-01')]
         else:
@@ -261,7 +272,8 @@ def make_prep(job_id, smoke):
         raise RuntimeError('판정 구간 종목 가격 공백')
     return {'weights':w, 'controls':controls, 'panels':{'close':close, 'adj':adj, 'fx':fx},
             'calendar':calendar, 'schedules':base.get('schedules') if base else None,
-            'triggers':triggers if mode == 5 else [], 'mode':mode}
+            'triggers':triggers if mode == 5 else [], 'mode':mode,
+            'crisis':crisis if mode == 1 else None}
 
 
 def local_trade_mask(prep, start, end):
@@ -426,6 +438,17 @@ def run(job_id, out:Path, checkpoint:Path, smoke=False):
               'statistical_support':active_bootstrap(full_sims['CAND'],full_sims['SPY']),
               'limitations':['historical reuse; no independent holdout','overlapping rolling windows',
                              'P1ST equity universe may exclude delisted stocks']}
+    if prep.get('crisis') is not None:
+        crisis = prep['crisis']
+        cw = crisis['weights']
+        cc = crisis['panels']
+        if cc['fx'].notna().all() and cc['close'][['SPY','BIL','SSO']].notna().all().all():
+            result['crisis_2007_2009'] = {
+                'candidate':ret_stats(tx.simulate(cw, cc['close'], cc['adj'], cc['fx'], CFG)),
+                'spy':ret_stats(tx.simulate(tx.buy_and_hold_weights(cw.index,'SPY'),
+                                             cc['close'],cc['adj'],cc['fx'],CFG))}
+        else:
+            result['crisis_2007_2009'] = {'status':'NOT_EVALUABLE_DATA'}
     report = f'# {job_id}\n\n판정 **{verdict}**. {len(rows)}개 중첩 평가창(비중첩 환산 {result["metrics"]["effective_independent_windows"]:.1f}개).\n\n'
     report += f'SPY 대비 IRR 차이 중앙 {np.median(diffs)*100:+.2f}%p, 10분위 {np.percentile(diffs,10)*100:+.2f}%p, 승리 {np.mean(np.array(diffs)>0):.1%}.\n\n'
     report += '| 관문 | 통과 |\n|---|---|\n' + ''.join(f'| {k} | {v} |\n' for k,v in checks.items())
@@ -435,6 +458,8 @@ def run(job_id, out:Path, checkpoint:Path, smoke=False):
     report += (rp.power_line(power) + '\n\n중첩 구간은 독립 표본이 아니며 2010~2024 이력은 반복 사용됐다. '
                'P1ST가 포함된 작업은 상장폐지 종목 누락 가능성이 있다. '
                '2024-10 이후는 판정에 사용하지 않았다. 엔진 반영은 별도 결정이다.\n')
+    if 'crisis_2007_2009' in result:
+        report += '\n2007~2009 위기 구간(보고만): ' + json.dumps(result['crisis_2007_2009'], ensure_ascii=False) + '\n'
     write_outputs(out,result,report)
     return 0
 
