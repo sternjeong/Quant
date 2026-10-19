@@ -1,0 +1,111 @@
+{
+  "id": "mtum-implement-v1",
+  "version": "mtum-implement-v1/2026-10-19",
+  "smoke": false,
+  "verdicts": {
+    "spy_50_mtum_50": "FAIL_UNDERPOWERED"
+  },
+  "judgments": {
+    "spy_50_mtum_50": {
+      "verdict": "FAIL_UNDERPOWERED",
+      "checks": {
+        "win_share_ge_70pct": false,
+        "median_irr_diff_ge_0.5pp": false,
+        "p10_irr_diff_ge_minus_1.5pp": false,
+        "median_mdd_within_5pp": true,
+        "paired_bootstrap_low90_gt_minus_0.5pp": false
+      },
+      "observed_ir": 0.09316777130333445,
+      "noop_guard": null,
+      "p_raw_not_applicable": null
+    }
+  },
+  "summary": {
+    "n_windows": 65,
+    "share_terminal_win": 0.5076923076923077,
+    "median_diff_irr": 0.004475455545470464,
+    "mean_diff_irr": 0.00017042400906928676,
+    "p10_diff_irr": -0.020835894925417014,
+    "p90_diff_irr": 0.017644746539340003,
+    "median_terminal_ratio": 1.0160543904137787,
+    "min_terminal_ratio": 0.9122203396059538,
+    "median_strategy_irr": 0.13080379134811937,
+    "median_benchmark_irr": 0.13083839306332046,
+    "median_strategy_mdd_tw": -0.2985041529850335,
+    "median_benchmark_mdd_tw": -0.2969043897885727,
+    "worst_window": {
+      "start": "2018-06-01",
+      "end": "2023-06-01",
+      "diff_irr": -0.025296942054762073,
+      "terminal_ratio": 0.9122203396059538,
+      "strategy_irr": 0.10554145100855838,
+      "benchmark_irr": 0.13083839306332046
+    },
+    "best_window": {
+      "start": "2015-09-01",
+      "end": "2020-09-01",
+      "diff_irr": 0.020018326926225405,
+      "terminal_ratio": 1.0746073600658388,
+      "strategy_irr": 0.1537603868288689,
+      "benchmark_irr": 0.13374205990264348
+    },
+    "horizon_years": 5.0,
+    "span_years": 10.343600273785079,
+    "effective_independent_windows": 2.0687200547570157,
+    "overlap_caveat": "65 windows overlap heavily; only about 2.1 non-overlapping 5-year windows fit in 10.3 years, so the win share is far less certain than 65 independent trials would suggest."
+  },
+  "bootstrap": {
+    "low90": -0.021435527318077862,
+    "median": 0.0035110076241490207,
+    "high90": 0.027657466609042752,
+    "n": 2000,
+    "block_days": 126,
+    "seed": 20261019
+  },
+  "power": {
+    "years": 10.34,
+    "n_trials": 1,
+    "confidence": 0.95,
+    "mde_ir": 0.511,
+    "power_at": {
+      "0.20": 0.158,
+      "0.30": 0.248,
+      "0.50": 0.485
+    },
+    "method": "expected-max-z(Bailey-LdP) + null SE, simplified"
+  },
+  "period": {
+    "start": "2014-05-01",
+    "end": "2024-09-03",
+    "judged_end": "2024-09-30",
+    "horizon_years": 5,
+    "windows": 65,
+    "source": "yfinance Close/Adj Close (SPY, MTUM), USDKRW via tax_fx.usdkrw_series()"
+  },
+  "full_period": {
+    "candidate_terminal_after_liquidation_krw": 77270778.96657604,
+    "spy_terminal_after_liquidation_krw": 77444410.86627573,
+    "candidate_irr_after_liquidation": 0.13849980503049442,
+    "spy_irr_after_liquidation": 0.138808216361391,
+    "candidate_mdd_twr": -0.29847337344250147,
+    "spy_mdd_twr": -0.29685633955657453,
+    "candidate_totals": {
+      "fees_krw": 40257.26775351938,
+      "fx_cost_krw": 9295.352323838088,
+      "dividend_tax_krw": 829355.4120326545,
+      "capital_gains_tax_krw": 0.0
+    },
+    "spy_totals": {
+      "fees_krw": 33808.21814143829,
+      "fx_cost_krw": 9295.352323838088,
+      "dividend_tax_krw": 927585.7434975577,
+      "capital_gains_tax_krw": 0.0
+    }
+  },
+  "limits": [
+    "MTUM history is short; 5-year windows overlap heavily.",
+    "One fixed ETF candidate; no correction for previous research families.",
+    "Adjusted prices and Korean taxes are approximations; not tax advice.",
+    "A pass is forward-ledger review only; no engine or champion change."
+  ]
+}
