@@ -324,7 +324,7 @@ def simulate(weights: pd.DataFrame, close: pd.DataFrame, adj: pd.DataFrame, usdk
             yr(y)["fx_cost_krw"] += contrib * cfg.fx_spread / (1 + cfg.fx_spread)
         else:
             cash_krw += contrib
-        if change.iat[i] and trade_allowed is None:
+        if change.iat[i] and (trade_allowed is None or bool(trade_allowed.iloc[i].all())):
             return  # 이어서 평소 리밸런싱이 이 돈까지 맞춘다
         px = close.iloc[i].to_numpy(dtype=float)
         ok = np.isfinite(px) & (px > 0)
