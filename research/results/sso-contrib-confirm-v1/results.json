@@ -1,0 +1,144 @@
+{
+  "id": "sso-contrib-confirm-v1",
+  "version": "2026-10-19/2",
+  "smoke": false,
+  "verdicts": {
+    "primary": "PASS_FORWARD_CANDIDATE"
+  },
+  "checks": {
+    "win_share": true,
+    "median_irr_plus_1pp": true,
+    "p10_irr_ge_minus_1_5pp": true,
+    "full_mdd_within_5pp": true,
+    "full_worst252_within_5pp": true,
+    "absolute_mdd_within_40pct": true,
+    "cost_stress_positive": true
+  },
+  "metrics": {
+    "windows": 117,
+    "effective_independent_windows": 2.932785763175907,
+    "win_share": 1.0,
+    "median_irr_gap": 0.011083405930288864,
+    "p10_irr_gap": 0.005133351150546761,
+    "nonoverlap_5y": [
+      {
+        "start": "2010-01-04",
+        "end": "2015-01-02",
+        "irr_gap": 0.005135070419495291
+      },
+      {
+        "start": "2015-01-02",
+        "end": "2020-01-02",
+        "irr_gap": 0.006953712330726142
+      }
+    ]
+  },
+  "full_account": {
+    "CAND": {
+      "irr": 0.14191285036049767,
+      "terminal_krw": 151211585.38804084,
+      "twr_cagr": 0.14940821723575048,
+      "mdd": -0.26922409033313033,
+      "worst252": -0.1542088326126363,
+      "fees_krw": 238851.03367215325,
+      "tax_krw": 1705092.5413512453
+    },
+    "SPY": {
+      "irr": 0.13273546112635498,
+      "terminal_krw": 137406673.550026,
+      "twr_cagr": 0.14329272447022978,
+      "mdd": -0.29682194880791035,
+      "worst252": -0.14583819903231032,
+      "fees_krw": 47991.17379523651,
+      "tax_krw": 0.0
+    },
+    "SYNTH": {
+      "irr": 0.14136189347280004,
+      "terminal_krw": 150344203.91095874,
+      "twr_cagr": 0.14882072999617413,
+      "mdd": -0.26919194274394387,
+      "worst252": -0.15429576227129782,
+      "fees_krw": 237247.47894573992,
+      "tax_krw": 1680282.0896364173
+    },
+    "NO_FILTER": {
+      "irr": 0.1472732945418197,
+      "terminal_krw": 159921164.28976512,
+      "twr_cagr": 0.15802752082824134,
+      "mdd": -0.33893520629720275,
+      "worst252": -0.18108714591617026,
+      "fees_krw": 80873.92649499208,
+      "tax_krw": 236120.32936507522
+    }
+  },
+  "cost_stress": {
+    "CAND": {
+      "irr": 0.1409787401738538,
+      "terminal_krw": 149743989.07971144,
+      "twr_cagr": 0.14851737234821893,
+      "mdd": -0.26991483527079685,
+      "worst252": -0.15496917431435853,
+      "fees_krw": 828168.8487431722,
+      "tax_krw": 1652095.9921014952
+    },
+    "SPY": {
+      "irr": 0.13247078953730024,
+      "terminal_krw": 137028241.77135807,
+      "twr_cagr": 0.14308880975150307,
+      "mdd": -0.2968345014484489,
+      "worst252": -0.1459024561928911,
+      "fees_krw": 167436.86252901153,
+      "tax_krw": 0.0
+    }
+  },
+  "events": [],
+  "power": {
+    "years": 14.66,
+    "n_trials": 6,
+    "confidence": 0.95,
+    "mde_ir": 0.769,
+    "power_at": {
+      "0.20": 0.015,
+      "0.30": 0.036,
+      "0.50": 0.151
+    },
+    "method": "expected-max-z(Bailey-LdP) + null SE, simplified"
+  },
+  "statistical_support": {
+    "active_ir": 0.22365233411065585,
+    "one_sided_p": 0.14085914085914086,
+    "ci90_mean_annual": [
+      -0.002960563922854414,
+      0.014255900537724025
+    ],
+    "block_days": 126,
+    "replicates": 1000,
+    "seed": 20261019,
+    "comparison": "candidate minus SPY cashflow-adjusted daily TWR; p tests mean active return, not after-tax IRR"
+  },
+  "limitations": [
+    "historical reuse; no independent holdout",
+    "overlapping rolling windows",
+    "P1ST equity universe may exclude delisted stocks"
+  ],
+  "crisis_2007_2009": {
+    "candidate": {
+      "irr": 0.03567985377957503,
+      "terminal_krw": 15825123.19494449,
+      "twr_cagr": 0.02657611195389742,
+      "mdd": -0.19609448189992307,
+      "worst252": -0.17574397793524754,
+      "fees_krw": 20208.814442641735,
+      "tax_krw": 0.0
+    },
+    "spy": {
+      "irr": -0.008530892867054576,
+      "terminal_krw": 14377732.35761954,
+      "twr_cagr": -0.01762374334477468,
+      "mdd": -0.28345580373577717,
+      "worst252": -0.23625157491699278,
+      "fees_krw": 15227.392061345026,
+      "tax_krw": 0.0
+    }
+  }
+}
