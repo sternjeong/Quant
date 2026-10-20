@@ -1,0 +1,117 @@
+{
+  "id": "sleeve-local-execution-v1",
+  "version": "2026-10-19/2",
+  "smoke": false,
+  "verdicts": {
+    "primary": "FAIL"
+  },
+  "checks": {
+    "win_share": true,
+    "median_irr_plus_1pp": true,
+    "p10_irr_ge_minus_1_5pp": true,
+    "full_mdd_within_5pp": true,
+    "full_worst252_within_5pp": true,
+    "absolute_mdd_within_40pct": true,
+    "cost_stress_positive": true,
+    "p1st_median_plus_0_3pp": false,
+    "fee_reduction_20pct": false
+  },
+  "metrics": {
+    "windows": 117,
+    "effective_independent_windows": 2.932785763175907,
+    "win_share": 0.7350427350427351,
+    "median_irr_gap": 0.010893091008500166,
+    "p10_irr_gap": -0.0023005709536847775,
+    "nonoverlap_5y": [
+      {
+        "start": "2010-01-04",
+        "end": "2015-01-02",
+        "irr_gap": -0.0041559695876219604
+      },
+      {
+        "start": "2015-01-02",
+        "end": "2020-01-02",
+        "irr_gap": 0.011632688655792894
+      }
+    ]
+  },
+  "full_account": {
+    "CAND": {
+      "irr": 0.14932800833219717,
+      "terminal_krw": 163393299.70175418,
+      "twr_cagr": 0.15625271175686728,
+      "mdd": -0.2908910851116533,
+      "worst252": -0.11322933927640244,
+      "fees_krw": 366903.2332854638,
+      "tax_krw": 1097555.3640932895
+    },
+    "SPY": {
+      "irr": 0.13273546112635498,
+      "terminal_krw": 137406673.550026,
+      "twr_cagr": 0.14329272447022978,
+      "mdd": -0.29682194880791035,
+      "worst252": -0.14583819903231032,
+      "fees_krw": 47991.17379523651,
+      "tax_krw": 0.0
+    },
+    "P1ST": {
+      "irr": 0.1502658845816256,
+      "terminal_krw": 165003489.80323988,
+      "twr_cagr": 0.1573052883896473,
+      "mdd": -0.2913031071361778,
+      "worst252": -0.11357223426694618,
+      "fees_krw": 376504.98075072083,
+      "tax_krw": 1150856.2069406093
+    }
+  },
+  "cost_stress": {
+    "CAND": {
+      "irr": 0.14805920961400765,
+      "terminal_krw": 161240302.15771118,
+      "twr_cagr": 0.1550397893638349,
+      "mdd": -0.29104572504690607,
+      "worst252": -0.11412245299590706,
+      "fees_krw": 1269465.9775274831,
+      "tax_krw": 1032606.8341558948
+    },
+    "SPY": {
+      "irr": 0.13247078953730024,
+      "terminal_krw": 137028241.77135807,
+      "twr_cagr": 0.14308880975150307,
+      "mdd": -0.2968345014484489,
+      "worst252": -0.1459024561928911,
+      "fees_krw": 167436.86252901153,
+      "tax_krw": 0.0
+    }
+  },
+  "events": [],
+  "power": {
+    "years": 14.66,
+    "n_trials": 6,
+    "confidence": 0.95,
+    "mde_ir": 0.769,
+    "power_at": {
+      "0.20": 0.015,
+      "0.30": 0.036,
+      "0.50": 0.151
+    },
+    "method": "expected-max-z(Bailey-LdP) + null SE, simplified"
+  },
+  "statistical_support": {
+    "active_ir": 0.4881537339891143,
+    "one_sided_p": 0.04995004995004995,
+    "ci90_mean_annual": [
+      0.0025283323376278644,
+      0.02367079684590854
+    ],
+    "block_days": 126,
+    "replicates": 1000,
+    "seed": 20261019,
+    "comparison": "candidate minus SPY cashflow-adjusted daily TWR; p tests mean active return, not after-tax IRR"
+  },
+  "limitations": [
+    "historical reuse; no independent holdout",
+    "overlapping rolling windows",
+    "P1ST equity universe may exclude delisted stocks"
+  ]
+}

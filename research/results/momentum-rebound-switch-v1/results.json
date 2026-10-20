@@ -1,0 +1,123 @@
+{
+  "id": "momentum-rebound-switch-v1",
+  "version": "2026-10-19/2",
+  "smoke": false,
+  "verdicts": {
+    "primary": "FAIL"
+  },
+  "checks": {
+    "win_share": true,
+    "median_irr_plus_1pp": true,
+    "p10_irr_ge_minus_1_5pp": true,
+    "full_mdd_within_5pp": true,
+    "full_worst252_within_5pp": true,
+    "absolute_mdd_within_40pct": true,
+    "cost_stress_positive": true,
+    "p1st_median_plus_0_3pp": false,
+    "three_events": true
+  },
+  "metrics": {
+    "windows": 117,
+    "effective_independent_windows": 2.932785763175907,
+    "win_share": 0.811965811965812,
+    "median_irr_gap": 0.012547935064131654,
+    "p10_irr_gap": -0.00109849683957825,
+    "nonoverlap_5y": [
+      {
+        "start": "2010-01-04",
+        "end": "2015-01-02",
+        "irr_gap": -0.002463742237222233
+      },
+      {
+        "start": "2015-01-02",
+        "end": "2020-01-02",
+        "irr_gap": 0.015308706691743917
+      }
+    ]
+  },
+  "full_account": {
+    "CAND": {
+      "irr": 0.14794807441594948,
+      "terminal_krw": 161053096.058309,
+      "twr_cagr": 0.15297223106833058,
+      "mdd": -0.2913028735624924,
+      "worst252": -0.1333455672721091,
+      "fees_krw": 581000.1075777429,
+      "tax_krw": 5630307.949738282
+    },
+    "SPY": {
+      "irr": 0.13273546112635498,
+      "terminal_krw": 137406673.550026,
+      "twr_cagr": 0.14329272447022978,
+      "mdd": -0.29682194880791035,
+      "worst252": -0.14583819903231032,
+      "fees_krw": 47991.17379523651,
+      "tax_krw": 0.0
+    },
+    "P1ST": {
+      "irr": 0.1502658845816256,
+      "terminal_krw": 165003489.80323988,
+      "twr_cagr": 0.1573052883896473,
+      "mdd": -0.2913031071361778,
+      "worst252": -0.11357223426694618,
+      "fees_krw": 376504.98075072083,
+      "tax_krw": 1150856.2069406093
+    }
+  },
+  "cost_stress": {
+    "CAND": {
+      "irr": 0.14625682357863978,
+      "terminal_krw": 158231284.31936747,
+      "twr_cagr": 0.1513750543732859,
+      "mdd": -0.29143314278394294,
+      "worst252": -0.13637520264781144,
+      "fees_krw": 2001241.4026942076,
+      "tax_krw": 5333731.894183984
+    },
+    "SPY": {
+      "irr": 0.13247078953730024,
+      "terminal_krw": 137028241.77135807,
+      "twr_cagr": 0.14308880975150307,
+      "mdd": -0.2968345014484489,
+      "worst252": -0.1459024561928911,
+      "fees_krw": 167436.86252901153,
+      "tax_krw": 0.0
+    }
+  },
+  "events": [
+    "2019-01-22",
+    "2020-04-13",
+    "2022-07-20",
+    "2022-10-26",
+    "2023-01-27"
+  ],
+  "power": {
+    "years": 14.66,
+    "n_trials": 6,
+    "confidence": 0.95,
+    "mde_ir": 0.769,
+    "power_at": {
+      "0.20": 0.015,
+      "0.30": 0.036,
+      "0.50": 0.151
+    },
+    "method": "expected-max-z(Bailey-LdP) + null SE, simplified"
+  },
+  "statistical_support": {
+    "active_ir": 0.38145903809869536,
+    "one_sided_p": 0.0919080919080919,
+    "ci90_mean_annual": [
+      -0.0002487728982982389,
+      0.020602212187051536
+    ],
+    "block_days": 126,
+    "replicates": 1000,
+    "seed": 20261019,
+    "comparison": "candidate minus SPY cashflow-adjusted daily TWR; p tests mean active return, not after-tax IRR"
+  },
+  "limitations": [
+    "historical reuse; no independent holdout",
+    "overlapping rolling windows",
+    "P1ST equity universe may exclude delisted stocks"
+  ]
+}
