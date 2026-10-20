@@ -1,3 +1,13 @@
+## 2026-10-20 — 실제 SSO 후속 3가설 및 기존 입력 검사 복구
+
+- 근거: `sso-contrib-confirm-v1`은 117개 중첩 5년 창에서 SPY 대비 세후 IRR 중앙 +1.11%p·승률 100%였으나 일별 TWR p≈0.141로 불확실하다. 개별주 후속 3개는 미상장 전 가격까지 요구하는 입력 검사에서 실패했고, PIT 기반 2개는 필요 자료 부족으로 `NOT_EVALUABLE_DATA`였다. 기존 ETF 섹터·MTUM 이식은 SPY 우위를 확인하지 못했다.
+- 결정·설계: `research/jobs/sso-policy-factorial-v1`을 새 ID로 사전등록했다. 실제 SPY/SSO/BIL 가격과 같은 세후 적립 계좌로 하락 신호 때 SPY 유지(FLOOR15), 63일 역분산 SSO 5~30% 비중(VOL30), 두 요소 결합(VOL_FLOOR)을 검증한다. 기존 연간 리셋 전략과 월간15% 대조군을 함께 둬 재조정 효과를 분리한다. 2010~2024-09의 중첩 5년 창, SPY/기존 대비 경제 관문, 비용 +25bp, 낙폭, 기존 대비 126일 블록 검정 3가설 Holm p≤0.10을 결과 전에 고정했다. 2007~2009 및 시대별 분석은 보고만. 근거와 한계는 `SPEC.md`.
+- 구현: 신규 job.json·run.py·SPEC.md와 테스트. 동일 날짜 미래 가격이 신호에 들어가지 않도록 전일 200일선·전일 63일 변동성을 쓴다. 원자 체크포인트/중단 코드3, 합성 smoke, 검정력·무효 실행 분류를 갖췄다. SSO 이전 SPY 이력으로 위기 구간 200일선 워밍업.
+- 기존 작업 복구: `research/return_upgrade/runner.py`의 가격 검사에서 미상장 전 가격을 면제하고, 실제 보유·매도일의 원종가·조정가 공백은 계속 실패시킨다. `sleeve-local-execution-v1` revision3, `stagger-sso-combine-v1` revision2, `momentum-rebound-switch-v1` revision2로 초기화한다. 기존 신호·기간·판정 기준은 변경하지 않았다. 전용 회귀 테스트 추가.
+- 상태: 구현·합성 스모크 4개·로컬 전체 테스트 완료(3,196 passed·4 skipped). Telegram 배포 도구 unittest 72 OK, guide 검사 통과. VM 배포·실데이터 결과는 아직 확인 전. 운영 엔진·챔피언 반영은 별도 결정.
+- 수정 파일: `research/jobs/sso-policy-factorial-v1/{job.json,SPEC.md,run.py}`, `research/return_upgrade/runner.py`, 앞의 기존 3개 job.json·SPEC.md, `tests/test_sso_policy_factorial.py`, `tests/test_return_upgrade_runner.py`, 본 문서와 `PROGRESS.md`.
+- 다음: main 게시/VM 자동배포 관문 확인 → 연구 상태와 결과 확인. 입력 검사 복구 3개도 결과 게시 전에는 성과를 주장하지 않는다.
+
 ### 2026-10-19 수익 연구 6개 운영 VM 배포 확인
 
 - main `1b05222`를 VM 자동배포가 별도 테스트 관문 통과 후 `/opt/quant`에 반영했다. VM 관문 `pytest tests` 3,190 passed·4 skipped, Telegram 실행기 72 OK, quant-scheduler·quant-streamlit active, 배포 완료 로그 확인.

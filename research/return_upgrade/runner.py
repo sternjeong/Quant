@@ -116,6 +116,24 @@ def synthetic_prices(index, spy_close, spy_adj, bil_close, bil_adj):
         {'SPY': spy_adj, 'BIL': bil_adj, 'SSO': sso}, index=index)
 
 
+def validate_held_prices(close, adj, frames, decision_end=DECISION_END):
+    """Require a usable quote when a portfolio holds or exits a name, not before listing."""
+    calendar = next(iter(frames.values())).index
+    required = pd.DataFrame(False, index=calendar, columns=close.columns)
+    for weights in frames.values():
+        held = weights.reindex(index=calendar, columns=close.columns).fillna(0).abs() > 1e-12
+        # A sale needs today's quote even though today's target weight is zero.
+        required |= held | held.shift(1, fill_value=False)
+    required = required.loc[calendar <= decision_end]
+    for label, panel in [('close', close), ('adj', adj)]:
+        prices = panel.reindex(index=required.index, columns=required.columns)
+        invalid = required & (~np.isfinite(prices) | (prices <= 0))
+        if invalid.any().any():
+            ticker = invalid.any(axis=0).idxmax()
+            day = invalid.index[invalid[ticker]][0]
+            raise RuntimeError(f'{label} 보유/매도일 가격 공백: {ticker} {day.date()}')
+
+
 def real_sso_panel():
     hist = md.get_multiple_price_history(['SPY', 'BIL', 'SSO'], start='2005-01-01', end=None, interval='1d')
     raw, adj = {}, {}
@@ -267,9 +285,7 @@ def make_prep(job_id, smoke):
     fx = fx.reindex(calendar).ffill(limit=3)
     if fx.loc[calendar[calendar <= DECISION_END]].isna().any():
         raise RuntimeError('판정 구간 환율 공백')
-    used = set(w.columns) | set().union(*(set(x.columns) for x in controls.values()))
-    if close.reindex(columns=list(used)).loc[calendar[calendar <= DECISION_END]].isna().any().any():
-        raise RuntimeError('판정 구간 종목 가격 공백')
+    validate_held_prices(close, adj, {'CAND':w, **controls})
     return {'weights':w, 'controls':controls, 'panels':{'close':close, 'adj':adj, 'fx':fx},
             'calendar':calendar, 'schedules':base.get('schedules') if base else None,
             'triggers':triggers if mode == 5 else [], 'mode':mode,

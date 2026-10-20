@@ -12,7 +12,7 @@
   ],
   "summary_from": "verdicts",
   "priority": 27,
-  "revision": 1,
+  "revision": 2,
   "max_memory_mb": 2500,
   "max_runs": 30
 }

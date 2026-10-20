@@ -49,3 +49,19 @@ def test_no_trade_restriction_matches_all_allowed():
     old=tx.simulate(w,prices,prices,fx,cfg)
     new=tx.simulate(w,prices,prices,fx,cfg,trade_allowed=pd.DataFrame(True,index=idx,columns=w.columns))
     assert new['terminal_after_liquidation_krw'] == pytest.approx(old['terminal_after_liquidation_krw'])
+
+
+def test_prelisting_gap_is_allowed_but_holding_and_exit_gaps_are_rejected():
+    idx = pd.bdate_range('2020-01-02', periods=6)
+    prices = pd.DataFrame({'SPY':100.,'NEW':[np.nan,np.nan,10.,11.,12.,13.]},index=idx)
+    weights = pd.DataFrame({'SPY':[1.,1.,.5,.5,1.,1.],
+                            'NEW':[0.,0.,.5,.5,0.,0.]},index=idx)
+    r.validate_held_prices(prices,prices,{'CAND':weights},decision_end=idx[-1])
+    broken=prices.copy()
+    broken.loc[idx[3],'NEW']=np.nan
+    with pytest.raises(RuntimeError,match='보유/매도일'):
+        r.validate_held_prices(broken,broken,{'CAND':weights},decision_end=idx[-1])
+    broken=prices.copy()
+    broken.loc[idx[4],'NEW']=np.nan
+    with pytest.raises(RuntimeError,match='보유/매도일'):
+        r.validate_held_prices(broken,broken,{'CAND':weights},decision_end=idx[-1])
