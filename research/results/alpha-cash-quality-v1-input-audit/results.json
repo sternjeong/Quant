@@ -1,0 +1,65 @@
+{
+  "id": "alpha-cash-quality-v1-input-audit",
+  "target_experiment": "alpha-cash-quality-v1",
+  "phase": "source_eligibility_only",
+  "smoke": false,
+  "verdicts": {
+    "primary": "NOT_EVALUABLE_DATA"
+  },
+  "performance_calculated": false,
+  "required_source": "당시 공개된 총이익·자산·영업현금흐름·순이익의 회계기간/접수시각 및 TTM 구성",
+  "file_checks": [
+    {
+      "file": "daily.csv",
+      "status": "MISSING"
+    },
+    {
+      "file": "names.csv",
+      "status": "MISSING"
+    },
+    {
+      "file": "delists.csv",
+      "status": "MISSING"
+    },
+    {
+      "file": "sp500.csv",
+      "status": "MISSING"
+    },
+    {
+      "file": "security_map.csv",
+      "status": "MISSING"
+    },
+    {
+      "file": "ff5_umd_monthly.csv",
+      "status": "MISSING"
+    },
+    {
+      "file": "fx_daily.csv",
+      "status": "MISSING"
+    },
+    {
+      "file": "companyfacts_pit.csv",
+      "status": "MISSING"
+    }
+  ],
+  "legacy_cache_evidence": {
+    "legacy_cache_files": 596,
+    "readable_files": 596,
+    "filings_or_facts": 618912,
+    "records_with_required_raw_fields": 0
+  },
+  "power": {
+    "years": 14.75,
+    "n_trials": 4,
+    "confidence": 0.95,
+    "mde_ir": 0.702,
+    "power_at": {
+      "0.20": 0.027,
+      "0.30": 0.061,
+      "0.50": 0.219
+    },
+    "method": "expected-max-z(Bailey-LdP) + null SE, simplified"
+  },
+  "power_basis": "planned 2010-01 through 2024-09 horizon; zero eligible observations certified",
+  "next_gate": "Verify complete point-in-time rows, delisting returns and security identity, then implement the frozen return test under the target experiment ID."
+}
