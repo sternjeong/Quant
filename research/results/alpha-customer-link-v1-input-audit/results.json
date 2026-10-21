@@ -1,0 +1,62 @@
+{
+  "id": "alpha-customer-link-v1-input-audit",
+  "target_experiment": "alpha-customer-link-v1",
+  "phase": "source_eligibility_only",
+  "smoke": false,
+  "verdicts": {
+    "primary": "NOT_EVALUABLE_DATA"
+  },
+  "performance_calculated": false,
+  "required_source": "과거 10-K에 공개된 고객 실명·매출비중·접수시각과 양사 증권 매핑",
+  "file_checks": [
+    {
+      "file": "daily.csv",
+      "status": "MISSING"
+    },
+    {
+      "file": "names.csv",
+      "status": "MISSING"
+    },
+    {
+      "file": "delists.csv",
+      "status": "MISSING"
+    },
+    {
+      "file": "sp500.csv",
+      "status": "MISSING"
+    },
+    {
+      "file": "security_map.csv",
+      "status": "MISSING"
+    },
+    {
+      "file": "ff5_umd_monthly.csv",
+      "status": "MISSING"
+    },
+    {
+      "file": "fx_daily.csv",
+      "status": "MISSING"
+    },
+    {
+      "file": "customer_links_pit.csv",
+      "status": "MISSING"
+    }
+  ],
+  "legacy_cache_evidence": {
+    "legacy_cache": "no validated source cache"
+  },
+  "power": {
+    "years": 14.75,
+    "n_trials": 4,
+    "confidence": 0.95,
+    "mde_ir": 0.702,
+    "power_at": {
+      "0.20": 0.027,
+      "0.30": 0.061,
+      "0.50": 0.219
+    },
+    "method": "expected-max-z(Bailey-LdP) + null SE, simplified"
+  },
+  "power_basis": "planned 2010-01 through 2024-09 horizon; zero eligible observations certified",
+  "next_gate": "Verify complete point-in-time rows, delisting returns and security identity, then implement the frozen return test under the target experiment ID."
+}
