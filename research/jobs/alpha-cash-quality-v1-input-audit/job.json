@@ -1,0 +1,17 @@
+{
+  "id": "alpha-cash-quality-v1-input-audit",
+  "title": "현금전환·수익성 개선 신호 원자료 적격성 검사",
+  "entrypoint": "research/jobs/alpha-cash-quality-v1-input-audit/run.py",
+  "args": [],
+  "timeout_seconds": 300,
+  "max_attempts": 2,
+  "resumable": false,
+  "outputs": [
+    "results.json",
+    "REPORT.md"
+  ],
+  "summary_from": "verdicts",
+  "priority": 23,
+  "revision": 1,
+  "max_memory_mb": 512
+}

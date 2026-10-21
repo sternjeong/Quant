@@ -1,0 +1,17 @@
+{
+  "id": "alpha-filing-drift-v1-input-audit",
+  "title": "실적 공시 후 잔차 반응 신호 원자료 적격성 검사",
+  "entrypoint": "research/jobs/alpha-filing-drift-v1-input-audit/run.py",
+  "args": [],
+  "timeout_seconds": 300,
+  "max_attempts": 2,
+  "resumable": false,
+  "outputs": [
+    "results.json",
+    "REPORT.md"
+  ],
+  "summary_from": "verdicts",
+  "priority": 24,
+  "revision": 1,
+  "max_memory_mb": 512
+}

@@ -1,3 +1,12 @@
+## 2026-10-21 SPY 알파 4가설 선행 원자료 검사 — 구현·로컬 검증 완료, VM 실행 확인 전
+
+- 요청: 13F 증액·현금전환 개선·8-K 공시 후 반응·고객→공급사 신호 4가설을 구현하고 VM에 등록·실행.
+- 결정: `docs/ALPHA_DISCOVERY_DESIGN_20261021.md`의 성과 관문은 제안으로 보존한다. VM에는 본 실험 ID가 아닌 `-input-audit` 선행 작업 4건을 등록한다. 자료 누락을 수익률 0이나 전략 실패로 바꾸지 않는다.
+- 근거: 운영 캐시의 13F는 holdings 주식 수가 없고 매핑률 약72~78%; 재무 캐시에는 영업현금흐름이 없다. 8-K 접수시각과 역사 고객 연결 원장도 없으며, 공통 상장폐지 수익을 포함한 CRSP형 주식 패널이 없다. 엄격한 세후·알파 판정 불가.
+- 수정: `research/alpha_discovery/input_audit.py`, `research/jobs/alpha-{13f-conviction,cash-quality,filing-drift,customer-link}-v1-input-audit/{job.json,run.py}`, `tests/test_alpha_discovery_input_audit.py`, 설계 문서, 이 인계 문서·PROGRESS.
+- 검증: 4건 합성 `--smoke` 종료 0, 작업 정의 모두 valid, `hub.guide.check` 통과. 전체 pytest 3198 passed·4 skipped(1095.75초), Telegram runner unittest 72 OK. VM 등록/실행은 아래 상태를 확인한 뒤 갱신한다. 스모크는 원자료/성과 계산이 아니다.
+- 상태: 원자료 적격성 작업 구현·로컬 검증 완료, 본 4가설의 백테스트 미구현·미실행, 챔피언 엔진 변경 없음. 다음: 전체 테스트 → main 반영 → VM 스케줄러의 4건 완료 및 결과 확인. 사용자에게 과거 상장폐지 포함 가격/구성 접근 가능 여부를 질문 중; 자료를 받으면 PIT 로더와 본 실험을 새 작업으로 구현한다.
+
 ## 2026-10-21 SPY 초과수익 후속 알파 설계 — 제안 완료, 실행 미등록
 
 - 요청 범위: 지금까지 결과를 참고한 새 실험 설계. 최신 origin/main은 10/20 연구 결과 이후 야간 스냅샷만 추가됐다.

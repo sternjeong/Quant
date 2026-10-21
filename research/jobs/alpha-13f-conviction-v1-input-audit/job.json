@@ -1,0 +1,17 @@
+{
+  "id": "alpha-13f-conviction-v1-input-audit",
+  "title": "13F 신규·증액 신호 원자료 적격성 검사",
+  "entrypoint": "research/jobs/alpha-13f-conviction-v1-input-audit/run.py",
+  "args": [],
+  "timeout_seconds": 300,
+  "max_attempts": 2,
+  "resumable": false,
+  "outputs": [
+    "results.json",
+    "REPORT.md"
+  ],
+  "summary_from": "verdicts",
+  "priority": 22,
+  "revision": 1,
+  "max_memory_mb": 512
+}

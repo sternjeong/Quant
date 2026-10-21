@@ -1,0 +1,17 @@
+{
+  "id": "alpha-customer-link-v1-input-audit",
+  "title": "고객→공급사 정보 전달 신호 원자료 적격성 검사",
+  "entrypoint": "research/jobs/alpha-customer-link-v1-input-audit/run.py",
+  "args": [],
+  "timeout_seconds": 300,
+  "max_attempts": 2,
+  "resumable": false,
+  "outputs": [
+    "results.json",
+    "REPORT.md"
+  ],
+  "summary_from": "verdicts",
+  "priority": 25,
+  "revision": 1,
+  "max_memory_mb": 512
+}
