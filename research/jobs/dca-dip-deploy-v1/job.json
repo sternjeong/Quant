@@ -1,0 +1,15 @@
+{
+  "id": "dca-dip-deploy-v1",
+  "title": "팔지 않는 적립 — 바닥 신호까지 기다렸다 넣기 대 바로 넣기 + 바닥 신호 진단, 1927~2024 미국 시장(사전 등록)",
+  "entrypoint": "research/jobs/dca-dip-deploy-v1/run.py",
+  "args": [],
+  "timeout_seconds": 3600,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 26,
+  "revision": 1,
+  "max_memory_mb": 1500,
+  "max_runs": 30
+}

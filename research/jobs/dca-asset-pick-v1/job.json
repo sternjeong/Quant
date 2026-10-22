@@ -1,0 +1,15 @@
+{
+  "id": "dca-asset-pick-v1",
+  "title": "팔지 않는 적립 — 새 돈을 어느 산업·가치주에 넣을까 대 시장, 1927~2024(사전 등록)",
+  "entrypoint": "research/jobs/dca-asset-pick-v1/run.py",
+  "args": [],
+  "timeout_seconds": 3600,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 27,
+  "revision": 1,
+  "max_memory_mb": 1500,
+  "max_runs": 30
+}
