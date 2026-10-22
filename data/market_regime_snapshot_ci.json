@@ -2,8 +2,8 @@
   "regime": "강세장",
   "regime_status": "ok",
   "regime_reason": null,
-  "total_score": 52.705705909929506,
-  "raw_total_score": 52.705705909929506,
+  "total_score": 54.93935240113933,
+  "raw_total_score": 54.93935240113933,
   "coverage": 1.0,
   "signals_available": 4,
   "signals_total": 4,
@@ -25,57 +25,57 @@
     "drawdown": {
       "status": "ok",
       "weight": 25.0,
-      "score": -1.294294090070494,
+      "score": -2.810647598860669,
       "reason": null
     },
     "breadth": {
       "status": "ok",
       "weight": 25.0,
-      "score": 4.0000000000000036,
+      "score": 7.7500000000000036,
       "reason": null
     }
   },
   "trend_position": {
     "score": 25.0,
     "above_200sma": true,
-    "close": 7737.97021484375,
-    "sma200": 7284.112062988282,
-    "pct_vs_sma200": 6.230795846230763
+    "close": 7643.1201171875,
+    "sma200": 7287.699562988281,
+    "pct_vs_sma200": 4.876992405179226
   },
   "ma_cross": {
     "score": 25.0,
     "golden_cross": true,
-    "sma50": 7704.462626953125,
-    "sma200": 7284.112062988282
+    "sma50": 7702.7390234375,
+    "sma200": 7287.699562988281
   },
   "drawdown": {
-    "score": -1.294294090070494,
-    "drawdown_pct": -1.0354352720563953,
+    "score": -2.810647598860669,
+    "drawdown_pct": -2.248518079088535,
     "is_bear_market_drawdown": false,
     "week52_high": 7818.93017578125
   },
   "breadth": {
-    "score": 4.0000000000000036,
-    "pct_above_200sma": 53.2,
+    "score": 7.7500000000000036,
+    "pct_above_200sma": 56.2,
     "is_overheated": false,
     "status": "ok",
     "coverage": 0.9940357852882704,
     "n_total": 503,
-    "n_above": 266,
+    "n_above": 281,
     "n_data_ok": 500
   },
   "short_term": {
     "1개월": {
       "regime": "중립/혼조",
-      "period_return_pct": -0.34347917489284674,
+      "period_return_pct": -0.8163693850486986,
       "window_days": 21
     },
     "3개월": {
       "regime": "중립/혼조",
-      "period_return_pct": 4.450014427705207,
+      "period_return_pct": 3.1184668243549707,
       "window_days": 63
     }
   },
   "benchmark_ticker": "^GSPC",
-  "computed_at": "2026-10-21T19:10:10.794165"
+  "computed_at": "2026-10-22T19:05:28.697348"
 }
