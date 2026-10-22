@@ -169,3 +169,15 @@ def test_portfolio_volatility_target_weights_sums_to_one_and_favors_low_vol():
 
 def test_portfolio_volatility_target_weights_empty_input_returns_empty_dict():
     assert position_sizing.portfolio_volatility_target_weights(pd.DataFrame()) == {}
+
+
+def test_portfolio_cap_remains_binding_after_redistribution():
+    rng = np.random.default_rng(12)
+    returns = pd.DataFrame({"LOW": rng.normal(0, 0.001, 100),
+                            "HIGH1": rng.normal(0, 0.02, 100),
+                            "HIGH2": rng.normal(0, 0.03, 100)})
+    weights = position_sizing.portfolio_volatility_target_weights(returns, max_weight=0.4)
+    assert max(weights.values()) <= 0.4 + 1e-12
+    assert sum(weights.values()) == pytest.approx(1.0)
+    sparse = position_sizing.portfolio_volatility_target_weights(returns[["LOW", "HIGH1"]], max_weight=0.4)
+    assert sum(sparse.values()) == pytest.approx(0.8)

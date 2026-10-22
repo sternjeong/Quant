@@ -1,4 +1,4 @@
-"""core/tax_fx.py 월 적립(2026-10-17): 적립금 0 이면 예전 출력 그대로, 적립 정책·같은 날 리밸런싱·XIRR·취득가."""
+"""core/tax_fx.py 월 적립: 적립금 0의 운용 경로 보존, 청산 회계, 적립 정책·XIRR·취득가."""
 
 from __future__ import annotations
 
@@ -33,15 +33,25 @@ def _close(a, b, tol=1e-12):
 
 
 @pytest.mark.parametrize("name", list(g.CASES))
-def test_zero_contribution_reproduces_pre_change_outputs(name):
+def test_zero_contribution_preserves_account_path_with_corrected_exit(name):
     gold = json.loads(GOLDEN.read_text())[name]
     idx, close, adj, fx = g.market()
     kind, over = g.CASES[name]
     res = tx.simulate(g.weights(idx, kind), close, adj, fx, tx.AccountConfig(**over))
-    _close(g.summarize(res), gold)
+    summary = g.summarize(res)
+    # 2026-10-22에 종료 청산 회계만 수정했다. 과거 golden은 운용 중 경로의 회귀 기준이다.
+    for key in ("unpaid_tax_if_sold_now_krw", "final_after_liquidation_krw"):
+        summary.pop(key)
+        gold.pop(key)
+    _close(summary, gold)
     assert res["total_contributed_krw"] == res["config"]["initial_krw"]
     assert float(res["contributions_krw"].sum()) == 0.0
     assert res["terminal_after_liquidation_krw"] == res["final_after_liquidation_krw"]
+    assert res["unpaid_tax_if_sold_now_krw"] == pytest.approx(
+        res["unpaid_prior_year_tax_krw"] + res["liquidation_current_year_tax_krw"])
+    assert res["final_after_liquidation_krw"] == pytest.approx(
+        res["final_krw"] - res["unpaid_tax_if_sold_now_krw"]
+        - res["liquidation_trade_fees_krw"] - res["liquidation_fx_cost_krw"])
 
 
 def _cfg(**kw):

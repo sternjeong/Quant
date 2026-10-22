@@ -498,7 +498,7 @@ def _bps(t: str) -> float:
 
 def series_from_ledger(rows: list[dict], cid: str, returns: pd.DataFrame) -> pd.Series:
     """기록일 d 의 비중을 d 다음 거래일 수익부터 적용. 기록이 없는 날은 표류. 새 기록으로 옮기는 만큼 비용(종목별 편도 bp)."""
-    recs = sorted(((pd.Timestamp(r["date"]), r["weights"][cid]) for r in rows if cid in (r.get("weights") or {})),
+    recs = sorted(((ft2.effective_close(r, returns.index), r["weights"][cid]) for r in rows if cid in (r.get("weights") or {})),
                   key=lambda x: x[0])
     if not recs:
         return pd.Series(dtype=float)
@@ -519,6 +519,9 @@ def series_from_ledger(rows: list[dict], cid: str, returns: pd.DataFrame) -> pd.
             cost = sum(abs(target.get(n, 0.0) - held.get(n, 0.0)) * _bps(n) for n in names)
             held = dict(target)
         r = returns.loc[t]
+        missing = [n for n, weight in held.items() if weight > 1e-12 and (n not in r.index or pd.isna(r[n]))]
+        if missing:
+            raise ValueError(f"{t.date()} 보유 종목 수익률 결측: {', '.join(sorted(missing))}")
         rr = {n: (float(r[n]) if n in r.index and pd.notna(r[n]) else 0.0) for n in held}
         out.append(sum(v * rr[n] for n, v in held.items()) - cost)
         held = ft2.drift(held, rr)
@@ -577,11 +580,16 @@ def evaluate(rows: list[dict], returns: pd.DataFrame) -> dict[str, Any]:
     return out
 
 
-def evaluate_live(path: Optional[Path] = None, price_fn: Optional[PriceFn] = None) -> dict[str, Any]:
+def evaluate_live(path: Optional[Path] = None, price_fn: Optional[PriceFn] = None,
+                  now: Optional[datetime] = None) -> dict[str, Any]:
     rows = load_ledger(path)
     if not rows:
         return {"judge_version": JUDGE_VERSION, "days": 0, "min_days": MIN_DAYS, "candidates": {}, "records": 0}
-    out = evaluate(rows, ft2.ledger_returns(rows, price_fn))
+    try:
+        out = evaluate(rows, ft2.ledger_returns(rows, price_fn, now))
+    except ValueError as exc:
+        out = {"judge_version": JUDGE_VERSION, "days": 0, "min_days": MIN_DAYS,
+               "candidates": {}, "data_error": str(exc), "verdict": "NOT_EVALUABLE_DATA"}
     out["records"] = len(rows)
     return out
 
@@ -589,7 +597,7 @@ def evaluate_live(path: Optional[Path] = None, price_fn: Optional[PriceFn] = Non
 def refresh_status(path: Optional[Path] = None, status_path: Optional[Path] = None,
                    price_fn: Optional[PriceFn] = None, now: Optional[datetime] = None) -> dict:
     """경과를 계산해 status.json 에 원자적으로 쓴다(관제 센터·주간 점검이 네트워크 없이 읽음)."""
-    ev = evaluate_live(path, price_fn)
+    ev = evaluate_live(path, price_fn, now)
     rows = load_ledger(path)
     ev["updated_at"] = (now or datetime.now(timezone.utc)).isoformat(timespec="seconds")
     ev["last_errors"] = (rows[-1].get("errors") if rows else None) or {}

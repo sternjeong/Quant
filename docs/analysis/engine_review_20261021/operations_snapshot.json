@@ -1,0 +1,20 @@
+{
+  "checked_date_utc": "2026-10-21",
+  "deployed_commit": "a6bdf681fc8d3d17e5b0be2ecf2890118300688a",
+  "runner_last_tick_utc": "2026-10-21T14:00:00+00:00",
+  "registered_jobs": 77,
+  "execution_status": {"done": 76, "failed": 1},
+  "failed_job": {"id": "champion-crypto-v2", "reason": "코인 달력 일봉 누락", "runs": 3},
+  "max_parallel": 3,
+  "assigned_registered_jobs": 0,
+  "publish_queue_length": 0,
+  "satellite_registry_status": {"reference": 1, "fail": 32},
+  "hypothesis_status": {"abandoned": 10, "draft": 3, "judged_fail": 3, "shadow": 1},
+  "agent_usage_date_filter": "2026-10-14 <= recorded local date < 2026-10-22 (observed through 2026-10-21)",
+  "agent_calls": {"total": 34, "ok": 18, "failed": 16, "limited": 2, "timed_out": 0},
+  "forward_v1": {"rows": 12, "first_date": "2026-10-05", "last_date": "2026-10-20", "last_recorded_at_utc": "2026-10-20T15:39:17+00:00"},
+  "forward_v2": {"rows": 6, "evaluation_days": 6, "first_date": "2026-10-12", "last_date": "2026-10-19", "last_recorded_at_utc": "2026-10-20T15:39:18+00:00", "min_days": 252, "last_errors": {}},
+  "forward_v3": {"rows": 1, "evaluation_days": 1, "first_date": "2026-10-19", "last_date": "2026-10-19", "last_recorded_at_utc": "2026-10-20T15:39:30+00:00", "min_days": 252, "last_errors": {}},
+  "local_only_job_definitions": ["markowitz-michaud-v1", "satellite-rule-compare-v1"],
+  "note": "Read-only counts and timestamps; no account holdings, credentials or raw operational identifiers copied. done is execution completion, not scientific acceptance."
+}

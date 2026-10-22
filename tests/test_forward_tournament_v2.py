@@ -13,7 +13,6 @@ import pytest
 from core import forward_tournament_v2 as ft2
 from core import guru_history as gh
 
-NOW = datetime(2027, 12, 31, tzinfo=timezone.utc)  # 모든 합성 날짜보다 뒤 — 미완료 봉 가드가 끼어들지 않게
 FULL_IDX = pd.bdate_range("2025-01-01", "2027-06-30")
 POOL = [f"P{i:02d}" for i in range(12)]
 
@@ -43,8 +42,10 @@ def _env(end: str):
         calls.append(str(day))
         return {t: _ohlc(t, idx) for t in tickers}
 
+    d = pd.Timestamp(end)
+    after_close = datetime(d.year, d.month, d.day, 23, 0, tzinfo=timezone.utc)
     return dict(price_fn=price_fn, pool_fn=lambda pool, d: list(POOL), sat_price_fn=sat_price_fn,
-                guru_store=gh.SyntheticStore(), now=NOW), calls
+                guru_store=gh.SyntheticStore(), now=after_close), calls
 
 
 def test_record_idempotent_and_waits_for_start(tmp_path):
@@ -204,6 +205,33 @@ def test_missing_record_days_drift_without_cost():
     assert s.to_numpy() == pytest.approx(np.array(expect))
 
 
+def test_record_timestamp_delays_first_full_daily_return_and_missing_price_fails():
+    idx = pd.bdate_range("2026-10-19", periods=4)
+    rets = pd.DataFrame({"SPY": [0.0, 0.1, 0.2, 0.3]}, index=idx)
+    intraday = [{"date": "2026-10-19", "recorded_at": "2026-10-20T15:39:00+00:00",
+                 "weights": {"B0": {"SPY": 1.0}}}]
+    s = ft2.series_from_ledger(intraday, "B0", rets)
+    assert list(s.index) == [idx[2]] and s.iloc[0] == pytest.approx(0.2 - ft2.COST_BPS / 1e4)
+    after_close = [{**intraday[0], "recorded_at": "2026-10-20T23:00:00+00:00"}]
+    s = ft2.series_from_ledger(after_close, "B0", rets)
+    assert list(s.index) == [idx[3]]
+    bad = rets.copy()
+    bad.loc[idx[3], "SPY"] = np.nan
+    with pytest.raises(ValueError, match="수익률 결측"):
+        ft2.series_from_ledger(after_close, "B0", bad)
+    assert ft2._mdd(pd.Series([-0.1, 0.01])) == pytest.approx(-0.1)
+
+
+def test_live_returns_exclude_partial_us_session():
+    idx = pd.bdate_range("2026-10-19", periods=2)
+    def price_fn(tickers):
+        return {t: pd.DataFrame({"Close": [100.0, 110.0], "Adj Close": [100.0, 110.0]}, index=idx)
+                for t in tickers}
+    rows = [{"date": "2026-10-19", "weights": {"B0": {"SPY": 1.0}}}]
+    now = datetime(2026, 10, 20, 15, 39, tzinfo=timezone.utc)
+    assert list(ft2.ledger_returns(rows, price_fn, now).index) == [idx[0]]
+
+
 def test_judge_thresholds():
     b0 = {"sharpe": 0.8, "mdd": -0.30, "return_per_mdd": 0.40}
     b1 = {"sharpe": 0.7, "mdd": -0.25, "return_per_mdd": 0.45}
@@ -229,11 +257,11 @@ def test_status_snapshot_and_hub_row(tmp_path):
         env, _ = _env(end)
         ft2.record(path=led, **env)
     env, _ = _env("2026-10-15")
-    st = ft2.refresh_status(path=led, status_path=stp, price_fn=env["price_fn"])
-    assert st["days"] == 3 and st["records"] == 3 and ft2.load_status(stp)["rank_core"]
+    st = ft2.refresh_status(path=led, status_path=stp, price_fn=env["price_fn"], now=env["now"])
+    assert st["days"] == 2 and st["records"] == 3 and ft2.load_status(stp)["rank_core"]
     html = page.render_tournament_v2_row({"records": 3, "last": "2026-10-14", "start": "2026-10-12", "min_days": 252,
                                           "status": ft2.load_status(stp), "labels": {"C1": "x"}})
-    assert "앞으로 토너먼트 v2" in html and "3/252" in html and "판정 전" in html and "중간 순위" in html
+    assert "앞으로 토너먼트 v2" in html and "2/252" in html and "판정 전" in html and "중간 순위" in html
     assert "기록 대기" in page.render_tournament_v2_row({"records": 0, "start": "2026-10-12", "min_days": 252})
 
 

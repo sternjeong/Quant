@@ -1,0 +1,1371 @@
+{
+  "checked_at_utc": "2026-10-21T14:02:58.059365+00:00",
+  "repo_commit": "a6bdf681fc8d3d17e5b0be2ecf2890118300688a",
+  "report_count": 76,
+  "results": [
+    {
+      "id": "account-location-v1",
+      "title": "계좌 위치 측정 v1 — 코어를 연금저축·ISA 안 KRX 대체 ETF 로, SPY 는 해외 계좌 영구 보유(세후 원화, 사전 등록)",
+      "revision": 1,
+      "verdicts": {
+        "core.L1": "NO_CHANGE",
+        "core.L2": "NO_CHANGE",
+        "core.L12": "NO_CHANGE",
+        "blend.L1": "NO_CHANGE",
+        "blend.L2": "NO_CHANGE",
+        "blend.L12": "NO_CHANGE"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "location-judge/v1",
+      "report_path": "/opt/quant/research/results/account-location-v1/REPORT.md",
+      "report_sha256": "51f6f822d1c01bd2d557a64a5346af595b6f326b1ba90b7b49fbb04ae769ac73",
+      "result_sha256": "87e235f06cb311e3c3f3f480429bfeb03b96378e9ac54a4d3c6a03c306566311"
+    },
+    {
+      "id": "analyst-rnd-v1",
+      "title": "애널리스트 R&D v1 — 목표가·등급 변경을 새틀라이트 선정에 쓰면 나아지나(사전 등록)",
+      "revision": 1,
+      "verdicts": {
+        "V1": "FAIL",
+        "V2": "FAIL",
+        "V3": "FAIL",
+        "V4": "FAIL"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "analyst-judge/v1",
+      "report_path": "/opt/quant/research/results/analyst-rnd-v1/REPORT.md",
+      "report_sha256": "fcc587e14dd67084bf1bbdd3de7bdaa33a16358e785574f94571d60bb8b0784a",
+      "result_sha256": "77cc7a1e6d329ae6444ef645e21bf406f85a710e3031f0c9a4e407e0834b9307"
+    },
+    {
+      "id": "champion-aftertax-v1",
+      "title": "챔피언(코어 85% + 새틀라이트 15%) 2010년부터 세후·환전 후 원화 수익 측정(판정 없음)",
+      "revision": 1,
+      "verdicts": {},
+      "summary": {
+        "champion": "세전 13.30% → 세후 11.13% (청산 후 10.82%), 원화 MDD -24.2%",
+        "core_only": "세전 11.24% → 세후 9.30% (청산 후 9.00%), 원화 MDD -25.6%",
+        "spy": "세전 15.43% → 세후 15.12% (청산 후 13.75%), 원화 MDD -29.7%"
+      },
+      "smoke": false,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/champion-aftertax-v1/REPORT.md",
+      "report_sha256": "c7f223566a80f909d3bf815dbcc731f5f7784f1dd0c67964edf3b033163e9b8e",
+      "result_sha256": "6b0d7fa4d95e127f18875354b05d5d96e796ae23a334b8e5c36043dbbfc30e6f"
+    },
+    {
+      "id": "champion-crypto-v3",
+      "title": "ETH 상장 이후 BTC·ETH 결합 연구 (공통 기간)",
+      "revision": 1,
+      "verdicts": {
+        "C1": "FAIL",
+        "C2": "FAIL",
+        "C3": "FAIL",
+        "C4": "FAIL"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/champion-crypto-v3/REPORT.md",
+      "report_sha256": "6606568949c2dc269c6e7245bb468973659d9cfdd3c09be6abcaf844aa2cfbda",
+      "result_sha256": "844592c43fb6d7ae6c52171d8e44b26c6a142944e17917b9d15a76f42ad3cf24"
+    },
+    {
+      "id": "champion-crypto-v4",
+      "title": "BTC 특성·비중·매수/매도 규칙 연구",
+      "revision": 1,
+      "verdicts": {
+        "H1": "FAIL",
+        "H2": "FAIL",
+        "H3": "FAIL",
+        "H4": "FAIL",
+        "T1": "FAIL",
+        "T2": "FAIL",
+        "T3": "FAIL",
+        "T4": "FAIL",
+        "T5": "FAIL",
+        "T6": "FAIL",
+        "V1": "FAIL",
+        "V2": "FAIL"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/champion-crypto-v4/REPORT.md",
+      "report_sha256": "fe0ecf13a5b431b3dee84ea1e0fb1494005607b05b3eb4542d49a46f92359393",
+      "result_sha256": "5843f69333f5aff4041b465abd6b224cdb51f6960e895c0cf258491b1d6d1256"
+    },
+    {
+      "id": "contrib-reval-champion-v1",
+      "title": "처음 목돈 + 매달 적립으로 다시 본 챔피언·후보 8개 — 매달 시작하는 5년 구간에서 SPY 를 세후로 이기나",
+      "revision": 1,
+      "verdicts": {
+        "CHAMP": "FAIL",
+        "P1": "FAIL_UNDERPOWERED",
+        "P3": "FAIL_UNDERPOWERED",
+        "P4": "FAIL",
+        "P1ST": "CONTRIB_BEATS_SPY",
+        "KRS": "FAIL",
+        "CHAMP_K6": "FAIL",
+        "L15F": "CONTRIB_BEATS_SPY"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/contrib-reval-champion-v1/REPORT.md",
+      "report_sha256": "5e95ea54091f7e131c5b8abeebd408b9d5a0970d6ff350ee062f8fded796f675",
+      "result_sha256": "d1ef5cb415b39d99c8a520117fa768c453026b217ab1a4a260e9f24b2738b752"
+    },
+    {
+      "id": "contrib-reval-longrun-v1",
+      "title": "목돈 + 월 적립 장기 재평가 v1 — 1927~2007 매달 시작 10·20년 구간에서 근사 세후로 시장을 이기나(사전 등록)",
+      "revision": 1,
+      "verdicts": {
+        "CORE": "FAIL_UNDERPOWERED",
+        "I2": "CONTRIB_BEATS_MARKET",
+        "I2VT20": "CONTRIB_BEATS_MARKET",
+        "MB30": "CONTRIB_BEATS_MARKET",
+        "MB50": "CONTRIB_BEATS_MARKET",
+        "BH50": "CONTRIB_BEATS_MARKET",
+        "L15F": "FAIL_UNDERPOWERED",
+        "overall": "5/7 CONTRIB_BEATS_MARKET"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "contrib-reval-longrun-v1/2026-10-17",
+      "report_path": "/opt/quant/research/results/contrib-reval-longrun-v1/REPORT.md",
+      "report_sha256": "fa8929fb9e1d8b7c53151e41fc9ed4c0299e531a453ea237d9f3f6951ebbce97",
+      "result_sha256": "8c9d99024598033be06e300a3b3c491a010700c964de818a3446722251ee8218"
+    },
+    {
+      "id": "contrib-reval-sector-v1",
+      "title": "적립식 세후 재평가 — SC2·SC2VT20·SPY 섞기 대 SPY, 2000-01 부터 매달 시작하는 10년 구간(사전 등록)",
+      "revision": 1,
+      "verdicts": {
+        "SC2": "FAIL",
+        "SC2VT20": "FAIL",
+        "BL30": "FAIL",
+        "BL50": "FAIL",
+        "passed": "0/4",
+        "scenario": "B: 10,000,000 KRW + 150,000/month, 10y windows",
+        "A_same_rule": "SC2=FAIL, SC2VT20=FAIL, BL30=FAIL, BL50=FAIL",
+        "checks": "SC2: win_share=N, median_irr=N, p10_irr=N, mdd_tw=Y; SC2VT20: win_share=N, median_irr=N, p10_irr=N, mdd_tw=Y; BL30: win_share=N, median_irr=N, p10_irr=N, mdd_tw=Y; BL50: win_share=N, median_irr=N, p10_irr=N, mdd_tw=Y"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "contrib-reval-sector-v1/2026-10-17",
+      "report_path": "/opt/quant/research/results/contrib-reval-sector-v1/REPORT.md",
+      "report_sha256": "b784260eabe9118744e0c6300309d5556cd9b2cdb0c26476dac37b10003a0ef6",
+      "result_sha256": "8aefc34f10b6f40ad79ad8b0f02987cd14e06a90a77de404fbef3a64886b4653"
+    },
+    {
+      "id": "core-longrun-v1",
+      "title": "코어 장기 검증 v1 — 저베타·양의 알파·위기 방어가 아무도 보지 않은 1927~2007 산업 자료(Ken French)에서도 성립하나(사전 등록)",
+      "revision": 1,
+      "verdicts": {
+        "H1_low_beta": "PASS",
+        "H2_positive_alpha": "PASS",
+        "H3_crisis_defense": "PASS",
+        "H4_alpha_stability": "PASS",
+        "core_identity": "CORE_IDENTITY_CONFIRMED"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "core-longrun-judge/v1",
+      "report_path": "/opt/quant/research/results/core-longrun-v1/REPORT.md",
+      "report_sha256": "196661130caf2469c829ae44c9e2db3aa96ca84c7a6d19171282627140cdedd3",
+      "result_sha256": "79ba4149f7a401e2166cfbcd1b8a0c7188079fef0f48c6c5f76b3a40fbb54589"
+    },
+    {
+      "id": "core-rnd-v1",
+      "title": "코어 R&D v1 — 코어 선정 방식 12개 변형 vs 현 코어(사전 등록)",
+      "revision": 1,
+      "verdicts": {
+        "C01_cash_bil": "FAIL",
+        "C02_tranches4": "FAIL",
+        "C03_multi_horizon": "FAIL",
+        "C04_dual_momentum": "FAIL",
+        "C05_corr_cap": "FAIL",
+        "C06_rank_buffer": "FAIL",
+        "C07_top3": "FAIL",
+        "C08_top5": "FAIL",
+        "C09_inverse_vol": "FAIL",
+        "C10_asset_trend": "FAIL",
+        "C11_credit_filter": "FAIL",
+        "C12_bundle": "FAIL"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "core-judge/v1",
+      "report_path": "/opt/quant/research/results/core-rnd-v1/REPORT.md",
+      "report_sha256": "be01633d318a1ece85b3731b47b3840fa3e92220eedec8903f4a9f9e0b208390",
+      "result_sha256": "a034d48c34bdb024cf333bdaa10969e891fc7e061704266c5ff5d3831978fd5b"
+    },
+    {
+      "id": "core-rnd-v2",
+      "title": "코어 R&D v2 — 배당 포함 총수익 기준, 코어 선정 방식 13개 변형 vs 현 코어(사전 등록)",
+      "revision": 1,
+      "verdicts": {
+        "C01_cash_bil": "FAIL",
+        "C02_tranches4": "FAIL",
+        "C03_multi_horizon": "FAIL",
+        "C04_dual_momentum": "FAIL",
+        "C05_corr_cap": "FAIL",
+        "C06_rank_buffer": "FAIL",
+        "C07_top3": "FAIL",
+        "C08_top5": "FAIL",
+        "C09_inverse_vol": "FAIL",
+        "C10_asset_trend": "FAIL",
+        "C11_credit_filter": "FAIL",
+        "C12_bundle": "FAIL",
+        "C13_total_return_signal": "FAIL"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "core-judge/v1",
+      "report_path": "/opt/quant/research/results/core-rnd-v2/REPORT.md",
+      "report_sha256": "f6ec3d2d3f959271c067bcbc6394744b2674d31f0edc3ce11cdbfb3c236e0c12",
+      "result_sha256": "84014418716ed83e45a471054ee0cc95ab394f0603c67e37c623587584ecb232"
+    },
+    {
+      "id": "core-universe-expansion-v1",
+      "title": "코어 후보군의 부족 자산군 ETF 5종 추가 연구",
+      "revision": 1,
+      "verdicts": {
+        "add_iwm": "FAIL",
+        "add_tip": "FAIL",
+        "add_vnq": "FAIL",
+        "add_vwo": "FAIL",
+        "add_lqd": "FAIL",
+        "add_all_five": "FAIL"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/core-universe-expansion-v1/REPORT.md",
+      "report_sha256": "e0a233f64f86f33daeb9d03860ae555651843ff2fcf761369881b3adf66d1869",
+      "result_sha256": "73f7be17a930541a353361ae5f32a421c3aaabc2acb47c3384b3c21fb2aaba13"
+    },
+    {
+      "id": "core-universe-expansion-v2",
+      "title": "코어 후보군 부족 자산군 ETF 5종 추가 연구 v2(v1 배관 버그 수정 재실행)",
+      "revision": 1,
+      "verdicts": {
+        "add_iwm": "FAIL",
+        "add_tip": "FAIL",
+        "add_vnq": "FAIL",
+        "add_vwo": "FAIL",
+        "add_lqd": "FAIL",
+        "add_all_five": "FAIL"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "core-judge/v1",
+      "report_path": "/opt/quant/research/results/core-universe-expansion-v2/REPORT.md",
+      "report_sha256": "407267d3e1a05aaddd00677ca3ea749a965ad5578749d242278ae3ba99e7b566",
+      "result_sha256": "0837fba57a89704bea7eb1b6e0c802ddd6ce9fc1793cc83c053e5840276aaf4f"
+    },
+    {
+      "id": "core-weight-v1",
+      "title": "코어 비중 R&D v1 — 4종목 1:1:1:1 대신 순위·모멘텀·위험 균등·변동성 목표로 나누면 나아지나(사전 등록)",
+      "revision": 1,
+      "verdicts": {
+        "W1": "FAIL",
+        "W2": "FAIL",
+        "W3": "FAIL",
+        "W4": "FAIL",
+        "W5": "FAIL"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "core-weight-judge/v1",
+      "report_path": "/opt/quant/research/results/core-weight-v1/REPORT.md",
+      "report_sha256": "611c831b7ae7a3ce81fed69ab9287b985c867e97b57477e4511fdec88d231279",
+      "result_sha256": "55c72da0fc43d15e8c309bbdbfc9a97241ec1b77c845d107cf6f96baedaaee4f"
+    },
+    {
+      "id": "delisted-precursors-v1",
+      "title": "상장폐지·급락 종목의 사전 위험신호 연구 (CRSP)",
+      "revision": 1,
+      "verdicts": {
+        "study": "NOT_EVALUABLE_DATA"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/delisted-precursors-v1/REPORT.md",
+      "report_sha256": "2fa2b480dafed4329f9600968c7fab152acc91a6bae1cdcdb57fa9774584474e",
+      "result_sha256": "c499e22d385300bfc369982d72fd4d4d83274cd9deb6405ae994b623bb44150c"
+    },
+    {
+      "id": "dip-rnd-v1",
+      "title": "초대형 우량주(빅테크 등) 눌림 매수 R&D — 그 시점 시총 상위만, 단독·챔피언 결합 3라운드(사전 등록)",
+      "revision": 1,
+      "verdicts": {
+        "standalone": "KEEP_CURRENT",
+        "synergy": "KEEP_CURRENT"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "dip-judge/v1",
+      "report_path": "/opt/quant/research/results/dip-rnd-v1/REPORT.md",
+      "report_sha256": "680a3578d9cce5c332e0a95458295ee29391dfee55f63dc2489ecb2022312aa8",
+      "result_sha256": "bdfda03aaaf5c9cb494911abb3ff3e689bb3c4cf8460d40e251392146deb8e63"
+    },
+    {
+      "id": "drawdown-cheap-v1",
+      "title": "낙폭을 싸게 줄이는 방법 v1 — SPY 대비 수익을 최소로 내주고 낙폭 30% 이상 줄이는 7개 후보(추세·변동성 목표·ERC 코어 블렌드·채권/금 혼합) 사전 등록",
+      "revision": 1,
+      "verdicts": {
+        "B1_100": "FAIL",
+        "B1_200": "FAIL",
+        "B2_10": "FAIL",
+        "B2_12": "FAIL",
+        "B3_85": "FAIL",
+        "B3_70": "FAIL",
+        "B4": "FAIL"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "drawdown-cheap-judge/v1",
+      "report_path": "/opt/quant/research/results/drawdown-cheap-v1/REPORT.md",
+      "report_sha256": "961ccfd3d546fc653991d3e689facc7d1f4642c18144c3792df11684670e1b15",
+      "result_sha256": "b551b122ba0f361a639ca7056a7abc255b1f8641e82bae2b9fd5bec3275c4fc8"
+    },
+    {
+      "id": "earnings-confirm-momentum-v1",
+      "title": "상폐 포함 개별주 실적 모멘텀 자료 적격성",
+      "revision": 1,
+      "verdicts": {
+        "primary": "NOT_EVALUABLE_DATA"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "2026-10-19/2",
+      "report_path": "/opt/quant/research/results/earnings-confirm-momentum-v1/REPORT.md",
+      "report_sha256": "594b907b4a3f8e3f3c91165abdd56abec48d2e8df1eea165699433c40860e54d",
+      "result_sha256": "8e77301b750040d0427f5c6f851029c4299405a3d73b1908bda6fff68c2628a3"
+    },
+    {
+      "id": "exec-rnd-v1",
+      "title": "매매 실행 R&D v1 — 언제·얼마에 사고팔까(지정가·나눠 사기·눌림목·익절) vs 리밸런싱 날 종가(사전 등록)",
+      "revision": 1,
+      "verdicts": {
+        "core|buy|next_open": "FAIL",
+        "core|buy|limit1_5d": "FAIL",
+        "core|buy|limit2_5d": "FAIL",
+        "core|buy|limit3_10d": "FAIL",
+        "core|buy|split3": "FAIL",
+        "core|buy|pullback": "FAIL",
+        "core|sell|next_open": "FAIL",
+        "core|sell|limit1_5d": "FAIL",
+        "core|sell|limit2_5d": "FAIL",
+        "core|sell|limit3_10d": "FAIL",
+        "core|sell|split3": "FAIL",
+        "core|sell|pullback": "FAIL",
+        "satellite|buy|next_open": "FAIL",
+        "satellite|buy|limit1_5d": "FAIL",
+        "satellite|buy|limit2_5d": "FAIL",
+        "satellite|buy|limit3_10d": "FAIL",
+        "satellite|buy|split3": "FAIL",
+        "satellite|buy|pullback": "FAIL",
+        "satellite|sell|next_open": "FAIL",
+        "satellite|sell|limit1_5d": "FAIL",
+        "satellite|sell|limit2_5d": "FAIL",
+        "satellite|sell|limit3_10d": "FAIL",
+        "satellite|sell|split3": "FAIL",
+        "satellite|sell|pullback": "FAIL",
+        "satellite|hold|tp20": "FAIL",
+        "satellite|hold|tp40": "FAIL"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "exec-judge/v1",
+      "report_path": "/opt/quant/research/results/exec-rnd-v1/REPORT.md",
+      "report_sha256": "fa4e0a75eee3b5c1a35cb778ffcd1e7f2c2d1bf4fe015ef47024ae7ac6aa07c5",
+      "result_sha256": "c8ae29b3461cbf99df685fd4420bf16edaa2fd9c82fa2655677d03f2e052b018"
+    },
+    {
+      "id": "guru-champion-v1",
+      "title": "거장 보유 우선 새틀라이트(S-SEED-019)를 챔피언·SPY 챔피언에 넣으면 세후 원화로 나은가(사전 등록, 이미 본 구간 — 전진 원장 수준)",
+      "revision": 1,
+      "verdicts": {
+        "C1_vs_C0": "FAIL",
+        "D1_vs_D0": "FAIL"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/guru-champion-v1/REPORT.md",
+      "report_sha256": "581aef635851ded786f728b36c41aa5e34ccd56bd23d2b1811fdd848230f4a9a",
+      "result_sha256": "6d83382989d4f6bba799d0cf75a7aecbdbf632eb5cdc9aff8bd9ccbebe36ed4c"
+    },
+    {
+      "id": "guru-mechanism-v1",
+      "title": "거장 보유 우선(S-SEED-019) 메커니즘 시험 — 거장의 안목인가, 대형주 쏠림인가(사전 등록, 앞 구간만)",
+      "revision": 1,
+      "verdicts": {
+        "guru_mechanism": "GURU_MECHANISM_SUPPORTED",
+        "a_random_placebo": "PASS — G1 0.50, P2 백분위 100.0",
+        "b_mcap_placebo": "PASS — G1 0.50 vs P1 0.14",
+        "c_leave_one_out": "PASS — 7/7 양수",
+        "replication": "OK — IS 샤프 1.000 (등록부 1.000)",
+        "forward_ledger": "S-SEED-019 는 판정과 무관하게 전진 원장에 오른다"
+      },
+      "summary": null,
+      "smoke": null,
+      "judge_version": "guru-mechanism/v1",
+      "report_path": "/opt/quant/research/results/guru-mechanism-v1/REPORT.md",
+      "report_sha256": "9e59d991e6ce0ab9c5ba1dc95d39d38b27c16ddd3828ea126eb4d873a2e5012c",
+      "result_sha256": "f0c53a5dd0a15bc441e1d078a5606ce8ee49cc91128785d23e5d88822a670859"
+    },
+    {
+      "id": "info-rnd-v1",
+      "title": "가설 카탈로그 1차 — 빠른 급락 필터(VIX 기간구조 등)·코인(비트코인 18번째 자산·추세 슬리브)(사전 등록)",
+      "revision": 1,
+      "verdicts": {
+        "A_crash_filters": "KEEP_CURRENT",
+        "B_crypto": "KEEP_CURRENT"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/info-rnd-v1/REPORT.md",
+      "report_sha256": "da9aaac185d06dfb765a2807941592396de1a774e67e26c707d7fcc7fc4b3416",
+      "result_sha256": "94fe3320441da024ad3c5c39b1c89981f16ae1bb46af70cc89caecf5b1a577e5"
+    },
+    {
+      "id": "leader-catch-single-stock-v1",
+      "title": "주도주 신호의 개별 종목 전이 검증 — PIT S&P 500에서 F2/F3/F5/C 고정 평가",
+      "revision": 1,
+      "verdicts": {
+        "F2": "FAIL_UNDERPOWERED",
+        "F3": "FAIL",
+        "F5": "FAIL",
+        "C": "FAIL_UNDERPOWERED"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "leader-catch-single-stock-judge/v1",
+      "report_path": "/opt/quant/research/results/leader-catch-single-stock-v1/REPORT.md",
+      "report_sha256": "f819ee5461e169404fce6c800d59a4e30b1e93d96c3e30d2a0b14fad0ec83381",
+      "result_sha256": "a89552276b6c23d94d526b2c81fc7119a1f0e94b01e79bbdbf5722cd33b4b7e8"
+    },
+    {
+      "id": "leader-catch-v1",
+      "title": "주도주 사전 식별 검증 — 다음 리더를 그 시점 정보만으로 가려낼 수 있었나(French 12·49 산업·25 포트폴리오 1927~2007, 사전 등록)",
+      "revision": 1,
+      "verdicts": {
+        "overall": "LEADER_SIGNAL_ROBUST",
+        "controls": "DISCRIMINATING",
+        "robust_signals": "F2,F3,F5,C",
+        "confirmed_cells": "12/27",
+        "F1_signal": "NOT_ROBUST",
+        "F2_signal": "ROBUST",
+        "F3_signal": "ROBUST",
+        "F4_signal": "NOT_ROBUST",
+        "F5_signal": "ROBUST",
+        "F6_signal": "NOT_ROBUST",
+        "F7_control": "NOT_ROBUST",
+        "F8_control": "NOT_ROBUST",
+        "C_signal": "ROBUST"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "leader-catch-judge/v1",
+      "report_path": "/opt/quant/research/results/leader-catch-v1/REPORT.md",
+      "report_sha256": "9fb506226a2b7066ff4b5dcebbe02c517068f0a7181e52c27223c7b4d1706f69",
+      "result_sha256": "7a35024dd1618e99cdbfa016fb06e96d52c3bba9ea15691b4ade9e58a196d1f6"
+    },
+    {
+      "id": "leader-follower-robust-v1",
+      "title": "새틀라이트 선정 견고성 — 섹터 대장주+추종주(사후 발견 S3p) 재검정, ETF 시대",
+      "revision": 1,
+      "verdicts": {
+        "study": "NOT_ROBUST"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/leader-follower-robust-v1/REPORT.md",
+      "report_sha256": "94093639f56af670a011ed734b296cd5289196b83befdf0cb82594476fe6d0e6",
+      "result_sha256": "bcc85b8b82eda3577bcaace81ebe17f5ecd5bf7479fe0930db2a08f95cdfb1f8"
+    },
+    {
+      "id": "lev-base-v1",
+      "title": "SPY 바탕 + 작은 2배 다리(10/15/25%, 다리에만 ±2% 완충 200일선 월초 필터) — 장기 1927~2007 + 세후 원화 ETF 시대(사전 등록)",
+      "revision": 1,
+      "verdicts": {
+        "L10F": "FAIL_UNDERPOWERED",
+        "L15F": "FAIL_UNDERPOWERED",
+        "L25F": "FAIL_UNDERPOWERED"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "lev-base-judge/v1",
+      "report_path": "/opt/quant/research/results/lev-base-v1/REPORT.md",
+      "report_sha256": "fb7c7bea827271b3fabe9d47a26644785f35759471e5c98308574799e827346a",
+      "result_sha256": "e55b0c0ed790461c043117caebfd6e879a96a09b7d705cab4ca5ac1814e50ac4"
+    },
+    {
+      "id": "lev-trend-v1",
+      "title": "추세 필터 레버리지 SPY v1 — 200일선 위에서만 1.5~2배(비용 명시), 세후 SPY+3%p 관문(사전 등록)",
+      "revision": 1,
+      "verdicts": {
+        "G1": "FAIL",
+        "G2": "FAIL",
+        "G3": "FAIL",
+        "G4": "FAIL"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "lever-judge/v1",
+      "report_path": "/opt/quant/research/results/lev-trend-v1/REPORT.md",
+      "report_sha256": "9470e06e9c42868041dcef7b553bcb40da8b352cb7a23759d4dbcc4ce2716633",
+      "result_sha256": "c47dfcfb2d528dc196ba8a93cb687be0b44440bfe7fa18b3e891bde67e6d9401"
+    },
+    {
+      "id": "limits-rnd-v1",
+      "title": "한계 극복 R&D v1 — SPY 영구 보유(세금 이연) + 작은 전술 비중, 완충 구간 국면 전환(사전 등록)",
+      "revision": 1,
+      "verdicts": {
+        "L1": "FAIL",
+        "L2": "FAIL",
+        "L3": "FAIL",
+        "L4": "FAIL",
+        "L5": "FAIL"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "limits-judge/v1",
+      "report_path": "/opt/quant/research/results/limits-rnd-v1/REPORT.md",
+      "report_sha256": "90e683e0bb43b2fa5ddd09e3f812747f81f2317c23b34f28fa945ffdea685b65",
+      "result_sha256": "d609223b0b71574cdae1e12af3c74972dca5fc50547bf222ea023fa16dbad7b1"
+    },
+    {
+      "id": "mom-lowturn-v1",
+      "title": "저회전 모멘텀 v1 — 12 산업 상위 2개를 순위 완충·덜 잦은 리밸런싱·연말 손실 확정으로 덜 사고팔면 한국 세금 근사 뒤 더 남나(1927~2007, 사전 등록)",
+      "revision": 1,
+      "verdicts": {
+        "overall": "FAIL",
+        "chosen_cell": "Bnone_monthly_harvest",
+        "reason": "미달 관문: vs_M0",
+        "etf_support": "NOT_SUPPORTING",
+        "confirmation_after_tax": "Bnone_monthly_harvest 13.25% · M0 13.37% · 시장 10.19%"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "mom-lowturn-v1/2026-10-16",
+      "report_path": "/opt/quant/research/results/mom-lowturn-v1/REPORT.md",
+      "report_sha256": "a7c7977e1050446628931c0ec7a5648e06c09c7e0e49d143ed6eb3e445154684",
+      "result_sha256": "2a65be8a040afd6ec52aa74edc924d9bb7e4ea574be7f36b369a01f2e8f7f6b7"
+    },
+    {
+      "id": "mom-proxy-v1",
+      "title": "모멘텀 대리 지표 v1 — Ken French 대형주 모멘텀 승자(생존편향 없음)로 새틀라이트 자료 보정 + 시장/모멘텀 비중 1927~1966 에서 고르고 1967~2007 에서 확인(사전 등록)",
+      "revision": 1,
+      "verdicts": {
+        "chosen_cell": "w100",
+        "verdict": "FAIL_UNDERPOWERED"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/mom-proxy-v1/REPORT.md",
+      "report_sha256": "fd705d3b9fffed672668dfd6457f56f82d30413f9972551f590a754f8994bc5a",
+      "result_sha256": "2401ff3225cd4009d0b43b8f5df7debfdaa153200c0fea8604cd30cb44861e36"
+    },
+    {
+      "id": "mom-volscale-v1",
+      "title": "모멘텀 변동성 맞춤 v1 — 산업 집중·대형 고모멘텀의 노출을 최근 변동성으로 줄이면 1927~2007 수익-낙폭 경계가 나아지나(사전 등록)",
+      "revision": 1,
+      "verdicts": {
+        "primary": "PASS_FORWARD_CANDIDATE",
+        "chosen_cell": "I2/VT20/none",
+        "volscale": "VOLSCALE_HELPS",
+        "volscale_sleeves_improved": "4/4",
+        "confirmation_checks": "cagr_margin=Y, A_mdd=Y, B_worst252=Y, both_halves=Y, alpha_t=Y"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "mom-volscale-v1/2026-10-16",
+      "report_path": "/opt/quant/research/results/mom-volscale-v1/REPORT.md",
+      "report_sha256": "4c0923dbb2f8c9096b7b210d3e6cafb9ab5461d2758e776cd0ec31b984e362b0",
+      "result_sha256": "e08e6baf5daac2551b074e6217b8e5e017d965d5a238294b069d0120282ab40f"
+    },
+    {
+      "id": "momentum-rebound-switch-v1",
+      "title": "시장 급락 후 반등 시 새틀라이트 교체",
+      "revision": 2,
+      "verdicts": {
+        "primary": "FAIL"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "2026-10-19/2",
+      "report_path": "/opt/quant/research/results/momentum-rebound-switch-v1/REPORT.md",
+      "report_sha256": "6be84782af75370e770d8d15be4576b0c24c21cbfa9c6bcebffa51e570f9ff4a",
+      "result_sha256": "fd3087618d3a7bab0cf7b32f646df91be7485cfa6829d102f30095a9526b26d9"
+    },
+    {
+      "id": "mtum-implement-v1",
+      "title": "대형주 모멘텀 실전 이전 — SPY+MTUM 50/50 대 SPY 적립식 세후 검증",
+      "revision": 1,
+      "verdicts": {
+        "spy_50_mtum_50": "FAIL_UNDERPOWERED"
+      },
+      "summary": {
+        "n_windows": 65,
+        "share_terminal_win": 0.5076923076923077,
+        "median_diff_irr": 0.004475455545470464,
+        "mean_diff_irr": 0.00017042400906928676,
+        "p10_diff_irr": -0.020835894925417014,
+        "p90_diff_irr": 0.017644746539340003,
+        "median_terminal_ratio": 1.0160543904137787,
+        "min_terminal_ratio": 0.9122203396059538,
+        "median_strategy_irr": 0.13080379134811937,
+        "median_benchmark_irr": 0.13083839306332046,
+        "median_strategy_mdd_tw": -0.2985041529850335,
+        "median_benchmark_mdd_tw": -0.2969043897885727,
+        "worst_window": {
+          "start": "2018-06-01",
+          "end": "2023-06-01",
+          "diff_irr": -0.025296942054762073,
+          "terminal_ratio": 0.9122203396059538,
+          "strategy_irr": 0.10554145100855838,
+          "benchmark_irr": 0.13083839306332046
+        },
+        "best_window": {
+          "start": "2015-09-01",
+          "end": "2020-09-01",
+          "diff_irr": 0.020018326926225405,
+          "terminal_ratio": 1.0746073600658388,
+          "strategy_irr": 0.1537603868288689,
+          "benchmark_irr": 0.13374205990264348
+        },
+        "horizon_years": 5.0,
+        "span_years": 10.343600273785079,
+        "effective_independent_windows": 2.0687200547570157,
+        "overlap_caveat": "65 windows overlap heavily; only about 2.1 non-overlapping 5-year windows fit in 10.3 years, so the win share is far less certain than 65 independent trials would suggest."
+      },
+      "smoke": false,
+      "judge_version": "mtum-implement-v1/2026-10-19",
+      "report_path": "/opt/quant/research/results/mtum-implement-v1/REPORT.md",
+      "report_sha256": "41e6143e6c72a6ebb117920122ec1647ccd27b1bfb070b0322592ac2996c79ec",
+      "result_sha256": "0428aad9c6df70eb5726e9f07108cab328d3a7cc642fb672241be24f65383f3f"
+    },
+    {
+      "id": "pension-sector-v1",
+      "title": "연금저축 섹터 v1 — 섹터 모멘텀(SC2·SC2VT20)을 연금저축 안 KRX 대체 ETF 로 굴리면 세후로 SPY·해외 계좌를 이기나(모형, 사전 등록)",
+      "revision": 1,
+      "verdicts": {
+        "SC2": "NO_CHANGE",
+        "SC2VT20": "NO_CHANGE"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "pension-sector-v1/2026-10-17",
+      "report_path": "/opt/quant/research/results/pension-sector-v1/REPORT.md",
+      "report_sha256": "516c3c3b6ba2252e3ecfef4cc991b0f1d17c634455ac0f6f409ea1fb5f874179",
+      "result_sha256": "f46502a43d9a2e3f39523a0794501ed9e70ab55134d46a1c457fd7f5236087a4"
+    },
+    {
+      "id": "rebound-rnd-v1",
+      "title": "반등장 R&D v1 — 코어가 하락장 직후 반등을 빨리 잡아 SPY 대비 알파를 낼 수 있나(사전 등록)",
+      "revision": 1,
+      "verdicts": {
+        "H1": "FAIL",
+        "H2": "FAIL",
+        "H3": "FAIL",
+        "H4": "FAIL",
+        "H5": "FAIL"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "rebound-judge/v1",
+      "report_path": "/opt/quant/research/results/rebound-rnd-v1/REPORT.md",
+      "report_sha256": "8cefdeb5e299b1ff7d5413a4074c44782919da19c2ea6e8cee4bdcfa0c9f33d7",
+      "result_sha256": "bb0c9656659c5c864ccc63d3d0d59496e03e30239a073cfba08076a82184ae5c"
+    },
+    {
+      "id": "regime-rnd-v1",
+      "title": "국면 R&D v1 — 강세장엔 뜨는 테마, 고꾸라지면 방어: SPY 를 세후로 압도하나(사전 등록)",
+      "revision": 1,
+      "verdicts": {
+        "R1": "FAIL",
+        "R2": "FAIL"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "regime-judge/v1",
+      "report_path": "/opt/quant/research/results/regime-rnd-v1/REPORT.md",
+      "report_sha256": "7d187b374f314c2d7872131f8737f110abd0ae5545d9aacd04e93abf24a60731",
+      "result_sha256": "4d442eda6afacc68eb8b09169118ab24aafb20cda8dbbea265d0bdf5e99efa5d"
+    },
+    {
+      "id": "sat-buffer-v1",
+      "title": "새틀라이트 순위 버퍼 — 재선정일에 보유 종목이 추세 활성·상위 K(6/10)면 유지, 1·7월/1월만 4종, 현행 대비 세후 원화 판정",
+      "revision": 1,
+      "verdicts": {
+        "K6_H6": "PASS_FORWARD_CANDIDATE",
+        "K10_H6": "FAIL",
+        "K6_H12": "FAIL_UNDERPOWERED",
+        "K10_H12": "FAIL_UNDERPOWERED"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/sat-buffer-v1/REPORT.md",
+      "report_sha256": "197a78d88b892229a32a3289316d22293140fca0211f10bfea12dfcf1782c90e",
+      "result_sha256": "03cfa5c02c107af196c069576a33c36d8f2abf13ca013a9e88c7ee9d3d16a9fc"
+    },
+    {
+      "id": "sat-earnings-v1",
+      "title": "새틀라이트 실적 발표 직전 매수 피하기 — 8-K 2.02 기준 예상일 7거래일 안이면 미루기(E1)·다음 순위로 바꾸기(E2), 현행 대비 세후 원화 판정",
+      "revision": 1,
+      "verdicts": {
+        "E1": "FAIL",
+        "E2": "FAIL_UNDERPOWERED"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/sat-earnings-v1/REPORT.md",
+      "report_sha256": "0fc76f0d9562a0bbf909ec3c8d39559e85ada44832d7ee76f8ee49c614607727",
+      "result_sha256": "3471cc9c210a14de3da3b4c96298ebc82d99338d373734af84b88fc9e0c0ba52"
+    },
+    {
+      "id": "sat-exit-accuracy-v1",
+      "title": "새틀라이트 매도 신호 정확도 — 현행 반기 보유보다 손실을 앞서 피하는가(4개 고정 신호 사전 등록)",
+      "revision": 1,
+      "verdicts": {
+        "trail10": "FAIL",
+        "mom6_nonpositive": "FAIL",
+        "rs12_nonpositive": "FAIL",
+        "mom6_and_rs12_nonpositive": "FAIL"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "sat-exit-accuracy-judge/v1",
+      "report_path": "/opt/quant/research/results/sat-exit-accuracy-v1/REPORT.md",
+      "report_sha256": "72a18c8f0ab6ef548dbb239494c2174819dd7552bca16c54833fa12051bd41fa",
+      "result_sha256": "411912286f8847ebeed675171710406bdfeb7fe288ca394c5aee2f48789011f6"
+    },
+    {
+      "id": "sat-exit-ladder-v1",
+      "title": "새틀라이트 매도 사다리 — 변동성·섹터별 손절/추적 익절·부분 매도·나머지 규칙(+진입부터 적용 4종), 현 챔피언·SPY 대비 세후 원화 판정",
+      "revision": 1,
+      "verdicts": {
+        "V_U": "FAIL",
+        "V_G": "FAIL",
+        "V_C": "FAIL",
+        "V_E1": "FAIL",
+        "V_E2": "FAIL",
+        "V_E3a": "FAIL",
+        "V_E3b": "FAIL"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/sat-exit-ladder-v1/REPORT.md",
+      "report_sha256": "627e42da3381662ed3b95824761503a70f7fe218cccf56f8f07b54f9598c5114",
+      "result_sha256": "16feb47ae312bdbcdc2ec5b49dbf741923233273889f7bf80147d5c27b020312"
+    },
+    {
+      "id": "sat-failure-v1",
+      "title": "새틀라이트 실패 원인 분석 v1 — 고를 때 무엇이 달랐나(탐색, 앞 구간만)",
+      "revision": 1,
+      "verdicts": {},
+      "summary": {
+        "is_picks": 87,
+        "fail_rate": 0.2413793103448276,
+        "big_fail_rate": 0.08045977011494253,
+        "significant_features": "없음"
+      },
+      "smoke": false,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/sat-failure-v1/REPORT.md",
+      "report_sha256": "c7fe5bf38617829effd79edf4784d6b0d925f38b6f86aef18135774a846e572e",
+      "result_sha256": "b258510bbd6d6eb5e44d38bb48917f6cea4cf7046f98f8b68be433780b63afd4"
+    },
+    {
+      "id": "sat-follower-crsp-v1",
+      "title": "새틀라이트 선정 CRSP 3 — 안전한 추종주 따라잡기 + D1(1963~2007)",
+      "revision": 1,
+      "verdicts": {
+        "study": "NOT_EVALUABLE_DATA"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/sat-follower-crsp-v1/REPORT.md",
+      "report_sha256": "8dfafd75621be55a9d6289cbe3a16c8459ddc3b03cb5f4036cfeb21909bcdf46",
+      "result_sha256": "f40e95b19755f2765e823b149ad518f025b6628fe7977b098215f66f91f62d54"
+    },
+    {
+      "id": "sat-follower-v1",
+      "title": "새틀라이트 선정 연구 3 — 안전한 추종주 따라잡기(S4) + 대장주-추종주 진단 D1",
+      "revision": 1,
+      "verdicts": {
+        "S4": "FAIL"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/sat-follower-v1/REPORT.md",
+      "report_sha256": "f430f763ef31c85479d4d21c9176b98401f7b9e8ebc91ccd5d59e9f5c6b57d56",
+      "result_sha256": "a15822f1d0d2b3682a19276bfecd1342d59dbc2c0a1b0d8eae7aea2c959758c1"
+    },
+    {
+      "id": "sat-frontier-v1",
+      "title": "SPY + 새틀라이트 비중(15~50%) × 안정화(현행/하위 슬리브 3개+순위 버퍼) — 앞 절반에서 안정성 한도 안 수익 최대 칸을 고르고 뒤 절반에서 SPY 대비 확인, 생존편향 헤어컷",
+      "revision": 1,
+      "verdicts": {
+        "chosen_cell": "NO_ELIGIBLE_CELL",
+        "verdict": "NO_ELIGIBLE_CELL",
+        "haircut": "NOT_APPLICABLE"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/sat-frontier-v1/REPORT.md",
+      "report_sha256": "75a98e0104973429211a94036fea12eb4f3a8e87755903fa9520a57dbaf8dc93",
+      "result_sha256": "f894ab222885bd411ab07b702385606fedd49fb860fc5d2af0e05da1e7296c78"
+    },
+    {
+      "id": "sat-leader-crsp-v1",
+      "title": "새틀라이트 선정 CRSP 2 — 업종 코어와 연결된 대장주·추종주(1963~2007)",
+      "revision": 1,
+      "verdicts": {
+        "study": "NOT_EVALUABLE_DATA"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/sat-leader-crsp-v1/REPORT.md",
+      "report_sha256": "d6de8b0bfd9609d1bc6721889dbf14e0c93560b4a19ed1d5bc378f98f5038892",
+      "result_sha256": "ee296c46c27b0bf4bbc981a38c28ce20cf99125016dcf33e2b2d1527a9d84c3f"
+    },
+    {
+      "id": "sat-leader-v1",
+      "title": "새틀라이트 선정 연구 2 — 코어와 연결된 섹터 대장주·추종주(S2·S3, 위약 S2p·S3p)",
+      "revision": 1,
+      "verdicts": {
+        "S2": "FAIL",
+        "S2p": "FAIL",
+        "S3": "FAIL",
+        "S3p": "FAIL_UNDERPOWERED"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/sat-leader-v1/REPORT.md",
+      "report_sha256": "2906f0b9633c48c4f66c6d9d0ac061fe7fea565aff69aa609c3314ec6aaa897d",
+      "result_sha256": "20458644e0381cb04fef84dd78325a063caa42754c20e1ce0c651c8c01aef381"
+    },
+    {
+      "id": "sat-pool-crsp-v1",
+      "title": "새틀라이트 선정 CRSP 1 — 후보 풀 확대(1963~2007, 상장폐지 포함)",
+      "revision": 1,
+      "verdicts": {
+        "study": "NOT_EVALUABLE_DATA"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/sat-pool-crsp-v1/REPORT.md",
+      "report_sha256": "190f6f0832b40c493b4bece65262c8077cdacfe8fd55b9a7bf58ce7d660d292a",
+      "result_sha256": "4ee8c8550fff94a44bcc8655ade11c4edcb8adc4ea28b8b1f90ccc2a91c17031"
+    },
+    {
+      "id": "sat-pool-v1",
+      "title": "새틀라이트 선정 연구 1 — 후보 풀 확대(S&P500 시총 상위 70·100·150)",
+      "revision": 1,
+      "verdicts": {
+        "S1_70": "FAIL",
+        "S1_100": "FAIL",
+        "S1_150": "FAIL"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/sat-pool-v1/REPORT.md",
+      "report_sha256": "13116ef1fe70c289ebff2d9b96de406447be422d47d40ce327c3f20d27a8ac52",
+      "result_sha256": "5f5e5ca47de76d1454ba66c8cc391c66c6f71b754665768f5284ae17b1ea66f6"
+    },
+    {
+      "id": "sat-sizing-v1",
+      "title": "새틀라이트 3종목 사이징 — 균등 vs 변동성 역가중(라이브 20일/63일, 상한 40%) vs 하프 켈리(시점 기준), 세후 원화 판정",
+      "revision": 1,
+      "verdicts": {
+        "Z1": "PASS_FORWARD_CANDIDATE",
+        "Z2": "PASS_FORWARD_CANDIDATE",
+        "Z3": "FAIL"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/sat-sizing-v1/REPORT.md",
+      "report_sha256": "8f68787d2b400a21e2cc3f9d89eebe0eae35a0a63116aaf5bfcfd0f9744d382a",
+      "result_sha256": "759577e89a0dc2a220795c9110284d8f25abc168619627cb2cb0959c11f64ae3"
+    },
+    {
+      "id": "sat-stagger-v1",
+      "title": "새틀라이트 엇갈린 재선정 — 15%를 1·7/4·10월(2개) 또는 1·7/3·9/5·11월(3개) 하위 슬리브로 나누면 타이밍 운이 주는가, 현행 대비 세후 원화 판정",
+      "revision": 1,
+      "verdicts": {
+        "G2": "FAIL",
+        "G3": "FAIL_UNDERPOWERED"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/sat-stagger-v1/REPORT.md",
+      "report_sha256": "42d4741e6e70f36d8a86f88bc68fc1a3ab60e06475317eac020cf16fbe4f2218",
+      "result_sha256": "3720b289774c2b12f48af7b5205fbdc8d7a0c3c332f374d393b54b3d4ae705ce"
+    },
+    {
+      "id": "sat-stop-v1",
+      "title": "새틀라이트 손절 — 손절 방식 4종(고정 %·σ 배수, 진입가·추적) × 손절 뒤 행동 3종(현금·재진입·교체), 현 챔피언 대비 세후 원화 판정",
+      "revision": 1,
+      "verdicts": {
+        "T1_A1": "FAIL",
+        "T1_A2": "FAIL",
+        "T1_A3": "FAIL",
+        "T2_A1": "FAIL",
+        "T2_A2": "FAIL",
+        "T2_A3": "FAIL",
+        "T3_A1": "FAIL",
+        "T3_A2": "FAIL",
+        "T3_A3": "FAIL",
+        "T4_A1": "FAIL",
+        "T4_A2": "FAIL",
+        "T4_A3": "FAIL"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/sat-stop-v1/REPORT.md",
+      "report_sha256": "9f03ae84d935ae967d43cc138f81245f643ee0abefdb62145dc972fa97a8df94",
+      "result_sha256": "22ca02cb9cc6907e1ec2d9e31a38aa79d2e16f6317e311b375a3f4569cc01585"
+    },
+    {
+      "id": "sat-trend-v1",
+      "title": "추세 필터 새틀라이트 주력 v1 — 대형주 선정 + SPY 200일선 필터, 세후 SPY+3%p 관문(사전 등록)",
+      "revision": 1,
+      "verdicts": {
+        "T1": "FAIL",
+        "T2": "FAIL"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "lever-judge/v1",
+      "report_path": "/opt/quant/research/results/sat-trend-v1/REPORT.md",
+      "report_sha256": "a844e9274e5060f8a72b10560a744316a0ebb4c240926f3a402d91987b1b9577",
+      "result_sha256": "67899a6e6ad92f0ecd44681f10eed351b44fc16f6d8e95f9b43529f9bc96aa0d"
+    },
+    {
+      "id": "satellite-trailing-reentry-v1",
+      "title": "새틀라이트 최고 종가 10% 추적손절 후 재선정 — 챔피언·SPY 세후 비교",
+      "revision": 1,
+      "verdicts": {
+        "trail10_vs_champion": "FAIL",
+        "observed_cagr_winner": "spy"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/satellite-trailing-reentry-v1/REPORT.md",
+      "report_sha256": "04966c9b65eff1966bdfecc1073314c4beb8483a631490003287ab0c2368070f",
+      "result_sha256": "b96929554c5175c56e8808c78ee6e523bc9a4261318b3c330866d101f434f884"
+    },
+    {
+      "id": "satellite-value-v1",
+      "title": "새틀라이트 15% vs SPY 15% — 정직한 후보 풀(champion40 pit2)로 세후 원화 판정",
+      "revision": 1,
+      "verdicts": {
+        "satellite_vs_spy15": "INCONCLUSIVE"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/satellite-value-v1/REPORT.md",
+      "report_sha256": "c88f6dc8cf491769561efc1528c269b2ac0ba0d3dd46cb3082e49c7047bc1f2f",
+      "result_sha256": "81a761c773fe4290475cffadb5e8e1819c22598a8a49d776495ae9423bb6967b"
+    },
+    {
+      "id": "sector-adaptive-k-v1",
+      "title": "업종 모멘텀 적응 집중 — 60개월 과거 1·2위 격차 기준 top1/top2를 월별 선택(사전 등록)",
+      "revision": 1,
+      "verdicts": {
+        "adaptive_k": "PASS_FORWARD_CANDIDATE"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/sector-adaptive-k-v1/REPORT.md",
+      "report_sha256": "340909680ec7e3db9be27c68de217139bcf418aa95aa067ad37ca96729b38556",
+      "result_sha256": "3425232e04301db513630fbe2ef8fcca1eba1b0ebfdc05450c88ef5c0326a864"
+    },
+    {
+      "id": "sector-concentrate-v1",
+      "title": "섹터 집중 v1 — 주도 산업 상위 1~2개에 주식 100%(시장 필터 없음)가 1927~2007 에서 시장을 이기고 안정성도 지키나(사전 등록)",
+      "revision": 1,
+      "verdicts": {
+        "M6_k1": "FAIL_UNDERPOWERED",
+        "M6_k2": "FAIL",
+        "RS12_k1": "PASS_FORWARD_CANDIDATE",
+        "RS12_k2": "PASS_FORWARD_CANDIDATE",
+        "C_k1": "FAIL",
+        "C_k2": "FAIL",
+        "overall": "PASS_FORWARD_CANDIDATE (2/6)",
+        "etf_supporting": "0/6"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "sector-concentrate-v1/2026-10-16",
+      "report_path": "/opt/quant/research/results/sector-concentrate-v1/REPORT.md",
+      "report_sha256": "6a2f5e69668687b91f67aa0436f96f20babc36a87af51b18d3eb2e5f98b49f07",
+      "result_sha256": "a8d223486ed99cb60994c499b2641a70df7cd6b79bff9753126fd8a9f6a7b779"
+    },
+    {
+      "id": "signal-swap-v1",
+      "title": "순위 신호 바꾸기 — 코어 6개월(K6)·상대강도 자격(KRS), 새틀라이트 6개월(S6) 6개 후보, 기준 칸 대비 세후 원화 + 1927~2007 장기 관문",
+      "revision": 1,
+      "verdicts": {
+        "A_K6_S12": "FAIL",
+        "A_KRS_S12": "PASS_FORWARD_CANDIDATE",
+        "A_K12_S6": "FAIL",
+        "A_K6_S6": "FAIL",
+        "A_KRS_S6": "FAIL",
+        "B_S6": "FAIL"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/signal-swap-v1/REPORT.md",
+      "report_sha256": "43b0e7de6a3df796f39b3881d39d5abfd126964e616b0f00aaa201585f7fe26e",
+      "result_sha256": "dd1f383a4efe6d323e3f8de25fabd51a8e312aef2534796ce0911da51a823a97"
+    },
+    {
+      "id": "sleeve-local-execution-v1",
+      "title": "묶음별 독립 매매의 세후 순효과",
+      "revision": 3,
+      "verdicts": {
+        "primary": "FAIL"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "2026-10-19/2",
+      "report_path": "/opt/quant/research/results/sleeve-local-execution-v1/REPORT.md",
+      "report_sha256": "7b60f78b41117f174bccc69ef7211f4089b524fbe904d566567bab640af98952",
+      "result_sha256": "aab4122feafad0506192de6994268d7b794dae1227eb8468307ec60eafb17b63"
+    },
+    {
+      "id": "sleeve-weight-v1",
+      "title": "새틀라이트 비중 15% vs 25·35·50% — 세후 원화, 2010년부터(사전 등록)",
+      "revision": 1,
+      "verdicts": {
+        "W25": "FAIL",
+        "W35": "FAIL",
+        "W50": "FAIL"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "sleeve-judge/v1",
+      "report_path": "/opt/quant/research/results/sleeve-weight-v1/REPORT.md",
+      "report_sha256": "0a2daf7e7a3df167b9fe8c4403412287283b2ab8a47d806561b59d9e0ec32e03",
+      "result_sha256": "6434017ccbcbba086aa2b020f0f33de3a51321711f941f119cad9aa997e2ef3a"
+    },
+    {
+      "id": "smoke-noop",
+      "title": "실행기 스모크(계산 없음)",
+      "revision": 1,
+      "verdicts": {
+        "runner_contract": "PASS"
+      },
+      "summary": null,
+      "smoke": null,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/smoke-noop/REPORT.md",
+      "report_sha256": "41aa502de93e40c5ab08558b7fe8f41fbdfec443169943204f67b27eed20af68",
+      "result_sha256": "22887d8367655ad07b3360b0f2ef21fdb07e3cce92d26137a7a90322dcc78fe3"
+    },
+    {
+      "id": "sprint-2w",
+      "title": "2주 R&D 스프린트 — 새틀라이트 선정·코어 선정·코어 매도 시점·매매 가격 최적값 탐색(사전 등록, 과적합 보정)",
+      "revision": 1,
+      "verdicts": {
+        "F2_core_select": "KEEP_CURRENT",
+        "F3_core_exit": "KEEP_CURRENT",
+        "F4_execution:core|buy": "KEEP_CURRENT",
+        "F4_execution:core|sell": "KEEP_CURRENT",
+        "F4_execution:satellite|buy": "KEEP_CURRENT",
+        "F4_execution:satellite|hold_take_profit": "KEEP_CURRENT",
+        "F4_execution:satellite|sell": "KEEP_CURRENT",
+        "F1_satellite": "KEEP_CURRENT"
+      },
+      "summary": null,
+      "smoke": null,
+      "judge_version": "sprint-judge/v1",
+      "report_path": "/opt/quant/research/results/sprint-2w/REPORT.md",
+      "report_sha256": "e649a4a2bf1587cb798ee226ba014f6421b6cc689d9e6ee82aa864871e9a8dcc",
+      "result_sha256": "c4d0757e2eed8797546aff39e9fc70ca97cdc1a8c1ef262f099cf9707304f99f"
+    },
+    {
+      "id": "spy-champion-v1",
+      "title": "SPY 바탕 + 새틀라이트(+작은 코어) 5개 후보 — 현 챔피언·SPY 그냥 보유 대비 세후 원화 판정",
+      "revision": 1,
+      "verdicts": {
+        "P1": "PASS_FORWARD_CANDIDATE",
+        "P2": "PASS_FORWARD_CANDIDATE",
+        "P3": "PASS_FORWARD_CANDIDATE",
+        "P4": "PASS_FORWARD_CANDIDATE",
+        "P5": "PASS_FORWARD_CANDIDATE"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/spy-champion-v1/REPORT.md",
+      "report_sha256": "a10f4c7eb61657cd0365ea546d1f698b714a846fbfe96af834c82d70a87065f2",
+      "result_sha256": "8de6163ca92f4dfac3dfcf3ecfca5b308d13aeea6b36028a658fecf482355727"
+    },
+    {
+      "id": "spy-edge-six-v1",
+      "title": "SPY 초과수익 신규 가설 6종 — 실제 섹터 ETF·세후 원화, 12칸 사전등록",
+      "revision": 2,
+      "verdicts": {
+        "beta_126": "FAIL",
+        "beta_252": "FAIL",
+        "skip_21": "FAIL",
+        "skip_42": "FAIL",
+        "smooth_126": "FAIL",
+        "smooth_252": "FAIL",
+        "correlation_0.65": "FAIL",
+        "correlation_0.8": "FAIL",
+        "gap_0.1": "FAIL",
+        "gap_0.2": "FAIL",
+        "agreement_63": "FAIL",
+        "agreement_126": "FAIL"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/spy-edge-six-v1/REPORT.md",
+      "report_sha256": "0e20e5ac667077d2a757556476065f47b49dbff017c818e8bb47b86cad4a98a5",
+      "result_sha256": "4b3b79c53a3aeab4f9e336f9d4dca0569e4ba9bd5690babcd4830b9b1437753f"
+    },
+    {
+      "id": "spy-sector-blend-v1",
+      "title": "SPY + 섹터 모멘텀·변동성 맞춤 소매 섞기 — 장기(1927~2007) 선택·확인과 ETF 세후 원화 판정(사전 등록)",
+      "revision": 1,
+      "verdicts": {
+        "overall": "LONGRUN_ONLY",
+        "part_L": "PASS_LONGRUN",
+        "part_E": "FAIL",
+        "chosen_w": "w100",
+        "L_checks": "cagr_margin=Y, A_mdd=Y, B_worst252=Y, both_halves=Y, alpha_t=Y",
+        "E_checks": "after_tax_margin=N, both_halves=N, mdd_within_3pp=Y, boot_low=N"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "spy-sector-blend-v1/2026-10-17",
+      "report_path": "/opt/quant/research/results/spy-sector-blend-v1/REPORT.md",
+      "report_sha256": "e474bf17aa202ea403e4f2039936c4b4e74e5b745b214b82898fca4c1a95c72d",
+      "result_sha256": "ccc49e607d47738fd0f9ea764fea0dcc28c52e24aa305d5ef04b901d46ce0203"
+    },
+    {
+      "id": "sso-contrib-confirm-v1",
+      "title": "실제 SSO를 통한 적립식 레버리지 검증",
+      "revision": 2,
+      "verdicts": {
+        "primary": "PASS_FORWARD_CANDIDATE"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "2026-10-19/2",
+      "report_path": "/opt/quant/research/results/sso-contrib-confirm-v1/REPORT.md",
+      "report_sha256": "3e673189bd9b9ca8de91ca6718e99bbcdd94ad21b3196b4fe4387e871e0f079c",
+      "result_sha256": "904538cf00685aafe54f7c1379e67123218e7534ccfc705ecf0b2f395d06e6e1"
+    },
+    {
+      "id": "sso-policy-factorial-v1",
+      "title": "SSO 수익 고도화: 시장 유지 × 역분산 비중 3가설",
+      "revision": 1,
+      "verdicts": {
+        "FLOOR15": "FAIL_UNDERPOWERED",
+        "VOL30": "FAIL",
+        "VOL_FLOOR": "FAIL_UNDERPOWERED"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "2026-10-20/1",
+      "report_path": "/opt/quant/research/results/sso-policy-factorial-v1/REPORT.md",
+      "report_sha256": "8e5719d028edc6399bd74e6edc031d2214ffa9ad99100f314aa6f0a593be15b8",
+      "result_sha256": "b937570e68e3bdcc46dd9493d80fd19c611e58b1be92a15d5585c57390947569"
+    },
+    {
+      "id": "stagger-sso-combine-v1",
+      "title": "분산 새틀라이트와 실제 SSO 결합",
+      "revision": 2,
+      "verdicts": {
+        "primary": "PASS_FORWARD_CANDIDATE"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "2026-10-19/2",
+      "report_path": "/opt/quant/research/results/stagger-sso-combine-v1/REPORT.md",
+      "report_sha256": "b5156011fa3b838e7869bd62c4645389771f230a88cb8509a83e27ed1053deaa",
+      "result_sha256": "ca21f7d77327aa07753b34a32f4ddd4a7ca3a5677c5130028a1349d49bb18faa"
+    },
+    {
+      "id": "stock-residual-momentum-v1",
+      "title": "상폐 포함 개별주 잔차 모멘텀 자료 적격성",
+      "revision": 1,
+      "verdicts": {
+        "primary": "NOT_EVALUABLE_DATA"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "2026-10-19/2",
+      "report_path": "/opt/quant/research/results/stock-residual-momentum-v1/REPORT.md",
+      "report_sha256": "91b2edff85b596e4f87cb8faa8b886a8c9479ac77ba5a6587ccbe237bbcdd219",
+      "result_sha256": "5a9edab2e49f53f5391c3f9fad8756d71070da47ca5fc7d04d100e6160eac44a"
+    },
+    {
+      "id": "survivorship-bound-v1",
+      "title": "생존편향 한계 측정 — champion40 새틀라이트 결론이 그럴듯한 편향 아래서도 버티는가",
+      "revision": 1,
+      "verdicts": {
+        "satellite_vs_spy15": "ROBUST_TO_SURVIVORSHIP",
+        "sleeve_35_vs_15": "ROBUST_TO_SURVIVORSHIP"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/survivorship-bound-v1/REPORT.md",
+      "report_sha256": "2c28059fa3c17ec021a09ba204bb2e5104cd994d1bdf0e5395c74ae3d7794dab",
+      "result_sha256": "e6a6d42549ec9b472a61d43d4e0879ebbdf51858077dcbd19b2602fe1a92b917"
+    },
+    {
+      "id": "synthesis-rnd-v1",
+      "title": "정반합 R&D v1 — 원수익 경쟁을 접고 위험조정 기준으로 ERC 코어 + SPY 영구보유 블렌드 재평가(사전 등록)",
+      "revision": 1,
+      "verdicts": {
+        "S1": "FAIL",
+        "S2": "FAIL",
+        "S3": "FAIL"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "synthesis-judge/v1",
+      "report_path": "/opt/quant/research/results/synthesis-rnd-v1/REPORT.md",
+      "report_sha256": "3584b362e9f8f4eeeffc7550d38f8973b55ede6377c256e8dcd1aa2ee1b39fad",
+      "result_sha256": "b0a53ea660103ace9dc1711445a26abdef6abd716a819abf1238f7a69188c62a"
+    },
+    {
+      "id": "synthesis-rnd-v2",
+      "title": "정반합 R&D v2 — 미리 고정한 시장 50% + ERC 코어 50%(매년 재조정) 블렌드를 아무도 보지 않은 1927~2007 자료로 판정(사전 등록)",
+      "revision": 1,
+      "verdicts": {
+        "a_sharpe_memmel": "PASS",
+        "b_return_per_mdd": "PASS",
+        "c_mdd_5pp": "PASS",
+        "d_subperiod_sharpe": "PASS",
+        "blend_50_50": "PASS"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "synthesis-judge/v2",
+      "report_path": "/opt/quant/research/results/synthesis-rnd-v2/REPORT.md",
+      "report_sha256": "eff9feab8d06fb046523936923c5e7c9261306d2d4706b5eb9affdfe1aadf6c1",
+      "result_sha256": "5d2eb814e1e75474051d99240fc26269fabbecde8d904810ad411b4bdb81de26"
+    },
+    {
+      "id": "tax-rnd-v1",
+      "title": "세금 R&D v1 — 연말 공제 채우기·손실 확정·순위 완충이 세후 원화 수익을 늘리나(사전 등록)",
+      "revision": 1,
+      "verdicts": {
+        "V1": "FAIL",
+        "V2": "FAIL",
+        "V3": "FAIL",
+        "V4": "FAIL",
+        "V5": "FAIL"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "tax-judge/v1",
+      "report_path": "/opt/quant/research/results/tax-rnd-v1/REPORT.md",
+      "report_sha256": "ae30b8f7a836c5223849652662f581433bb5fc00a8d5c7c89577cd0f225a86d9",
+      "result_sha256": "59a793855b5c38f52e723ac0afc0f4057186dcbe858ee0b861dd9ff3e4275edf"
+    },
+    {
+      "id": "tech-rnd-v1",
+      "title": "차트 매매 규칙(유튜브 대본 출신) R&D — 단독·한계 돌파·챔피언과의 시너지 3라운드(사전 등록)",
+      "revision": 1,
+      "verdicts": {
+        "standalone": "KEEP_CURRENT",
+        "synergy": "KEEP_CURRENT"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/tech-rnd-v1/REPORT.md",
+      "report_sha256": "bf0bc7fe936cf3771db9d581a4b1fba95c1dd9ba7d5c06eda246301594535c3f",
+      "result_sha256": "ae891e7ad7aea03edf8be2fdfa32718ff97c87ac40aabb46c97c82495bcefdc9"
+    },
+    {
+      "id": "theme-rotation-v1",
+      "title": "테마 순환 v1 — 지금 불장인 테마(반도체·로봇·바이오…)를 빨리 잡아 SPY 를 압도할 수 있나(사전 등록)",
+      "revision": 1,
+      "verdicts": {
+        "theme_rotation": "FAIL"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "theme-judge/v1",
+      "report_path": "/opt/quant/research/results/theme-rotation-v1/REPORT.md",
+      "report_sha256": "6722de8d4545e8290d8a15890cdf84f553de9ef4867de26afe65a4b204c11ddd",
+      "result_sha256": "178e19b6bc9f740b0f2e683ce6d7623eb6b15eed4a55facfc5721af2d2ecd5b4"
+    },
+    {
+      "id": "universe-choice",
+      "title": "챔피언 코어 17자산 유니버스 선택 반증(순열검정)",
+      "revision": 1,
+      "verdicts": {
+        "H_A_broad_random": "PASS",
+        "H_B_composition_held": "PASS"
+      },
+      "summary": null,
+      "smoke": null,
+      "judge_version": null,
+      "report_path": "/opt/quant/research/results/universe-choice/REPORT.md",
+      "report_sha256": "1da32e8d516cac2cf4b17e1dbb55721732a2961388d3d68d6afa79c9edce5d7f",
+      "result_sha256": "187e1c0bdfea7e2d99368b8974ab0c83ef236bb31e18780746508592df918764"
+    },
+    {
+      "id": "weekly-ma-rsi-v1",
+      "title": "주봉 20주선·RSI 과매도 매매 — 적립식 세후 대 SPY (곁가지 QQQ), 2000-01 부터 매달 시작하는 10년 구간(사전 등록)",
+      "revision": 1,
+      "verdicts": {
+        "SPY_MA20": "FAIL",
+        "SPY_RSI": "FAIL",
+        "SPY_MA20RSI": "FAIL",
+        "QQQ_MA20": "FAIL",
+        "QQQ_RSI": "FAIL",
+        "QQQ_MA20RSI": "FAIL",
+        "passed": "0/6",
+        "scenario": "B: 10,000,000 KRW + 150,000/month, 10y windows vs SPY buy-and-hold",
+        "qqq_vs_qqq_bh_same_rule": "QQQ_MA20=not met, QQQ_RSI=not met, QQQ_MA20RSI=not met"
+      },
+      "summary": null,
+      "smoke": false,
+      "judge_version": "weekly-ma-rsi-v1/2026-10-18",
+      "report_path": "/opt/quant/research/results/weekly-ma-rsi-v1/REPORT.md",
+      "report_sha256": "ccef863bce306ffec8a94f0369f96d5fd4fd0ca4e8afeee16e3fcec6328ad66f",
+      "result_sha256": "4b9efe9a7d4c7847625920329dbb005c40b0ae8bcce1edf602cac187f2393fd8"
+    }
+  ]
+}

@@ -308,13 +308,17 @@ def check_forward_tournament(now: datetime) -> Check:
         return _c("앞으로 토너먼트", WARN, f"마지막 기록 {last} — 4일 넘게 멈춤")
     try:
         ev = ft.evaluate_live()
+        if ev.get("data_error") or ev.get("verdict") == "NOT_EVALUABLE_DATA":
+            return _c("앞으로 토너먼트", WARN, f"{len(rows)}일 기록 · 성과 평가 불가: {ev.get('data_error') or '완료된 신호 없음'}")
         cands = ev.get("candidates") or {}
         best = max((c for k, c in cands.items() if k != "T0" and c.get("days")),
                    key=lambda c: c.get("excess_vs_T0", 0), default=None)
         lead = f" · T0 대비 선두 {best['label']} {best['excess_vs_T0'] * 100:+.2f}%p" if best else ""
-        return _c("앞으로 토너먼트", OK, f"{len(rows)}일 기록 · {ev.get('days', 0)}/{ft.MIN_DAYS}거래일{lead}")
+        excluded = ev.get("excluded_incomplete_signal_records") or 0
+        note = f" · 과거 장중 신호 {excluded}개 제외" if excluded else ""
+        return _c("앞으로 토너먼트", OK, f"{len(rows)}일 기록 · {ev.get('days', 0)}/{ft.MIN_DAYS}거래일{lead}{note}")
     except Exception as exc:  # noqa: BLE001 - 경과 계산 실패는 기록 자체와 구분
-        return _c("앞으로 토너먼트", OK, f"{len(rows)}일 기록(경과 계산 실패: {type(exc).__name__})")
+        return _c("앞으로 토너먼트", WARN, f"{len(rows)}일 기록(경과 계산 실패: {type(exc).__name__})")
 
 
 def check_forward_tournament_v2(now: datetime) -> Check:
@@ -333,6 +337,10 @@ def check_forward_tournament_v2(now: datetime) -> Check:
         return _c(name, WARN, f"마지막 기록 {last} — 4일 넘게 멈춤")
     errs = rows[-1].get("errors") or {}
     st = ft2.load_status()
+    if not st:
+        return _c(name, WARN, f"{len(rows)}일 기록 · 평가 상태 파일 없음")
+    if st.get("data_error"):
+        return _c(name, WARN, f"{len(rows)}일 기록 · 성과 평가 불가: {st['data_error']}")
     rank = " > ".join(st.get("rank_core") or [])
     msg = f"{len(rows)}일 기록 · {st.get('days', 0)}/{ft2.MIN_DAYS}거래일" + (f" · 중간 순위 {rank}" if rank else "")
     if errs:
@@ -357,6 +365,10 @@ def check_forward_tournament_v3(now: datetime) -> Check:
         return _c(name, WARN, f"마지막 기록 {last} — 4일 넘게 멈춤")
     errs = rows[-1].get("errors") or {}
     st = ft3.load_status()
+    if not st:
+        return _c(name, WARN, f"{len(rows)}일 기록 · 평가 상태 파일 없음")
+    if st.get("data_error"):
+        return _c(name, WARN, f"{len(rows)}일 기록 · 성과 평가 불가: {st['data_error']}")
     rank = " > ".join(st.get("rank") or [])
     msg = f"{len(rows)}일 기록 · {st.get('days', 0)}/{ft3.MIN_DAYS}거래일" + (f" · 중간 순위(판정 아님) {rank}" if rank else "")
     if errs:

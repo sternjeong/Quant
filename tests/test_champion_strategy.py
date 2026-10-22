@@ -220,7 +220,8 @@ def test_inverse_vol_weights_favor_lower_volatility_ticker():
         "LOWVOL": _noisy_breakout_df(SATELLITE_N, daily_noise_std=0.002, seed=1),
         "HIGHVOL": _noisy_breakout_df(SATELLITE_N, daily_noise_std=0.05, seed=2),
     }
-    weights = champion_strategy._inverse_vol_weights(histories, ["LOWVOL", "HIGHVOL"], lookback_days=60)
+    weights = champion_strategy._inverse_vol_weights(histories, ["LOWVOL", "HIGHVOL"], lookback_days=60,
+                                                      max_weight=0.7)
 
     assert weights["LOWVOL"] > weights["HIGHVOL"]
     assert sum(weights.values()) == pytest.approx(1.0, abs=1e-6)
@@ -249,8 +250,10 @@ def test_compute_satellite_recommendation_inverse_vol_sums_to_satellite_weight(m
     assert result["sizing_method"] == "inverse_vol"
     assert set(result["selected"]) == {"LOWVOL", "HIGHVOL"}
     weights = result["per_ticker_weights"]
-    assert sum(weights.values()) == pytest.approx(champion_strategy.SATELLITE_WEIGHT, abs=1e-6)
-    assert weights["LOWVOL"] > weights["HIGHVOL"]
+    assert sum(weights.values()) == pytest.approx(champion_strategy.SATELLITE_WEIGHT * 0.8, abs=1e-6)
+    assert all(w <= champion_strategy.SATELLITE_WEIGHT * champion_strategy.SATELLITE_SIZING_MAX_WEIGHT + 1e-12
+               for w in weights.values())
+    assert result["unallocated_weight"] == pytest.approx(champion_strategy.SATELLITE_WEIGHT * 0.2)
     # 균등가중 하위호환 필드는 그대로 유지
     assert result["per_ticker_weight"] == pytest.approx(champion_strategy.SATELLITE_WEIGHT / 2)
 
@@ -292,11 +295,14 @@ def test_run_satellite_backtest_inverse_vol_weights_sum_to_one_per_rebalance(mon
     rebal_with_picks = [r for r in result["rebal_log"] if r["picks"]]
     assert rebal_with_picks, "적어도 한 번은 브레이크아웃 종목이 선정되어야 검증 가능"
     for r in rebal_with_picks:
-        assert sum(r["weights"].values()) == pytest.approx(1.0, abs=1e-6)
-    # 변동성이 다른 두 종목이 함께 뽑힌 리밸런싱에서는 저변동성 쪽이 더 큰 비중을 받아야 한다
+        expected = min(1.0, len(r["picks"]) * champion_strategy.SATELLITE_SIZING_MAX_WEIGHT) if len(r["picks"]) >= 2 else 1.0
+        assert sum(r["weights"].values()) == pytest.approx(expected, abs=1e-6)
+        if len(r["picks"]) >= 2:
+            assert max(r["weights"].values()) <= champion_strategy.SATELLITE_SIZING_MAX_WEIGHT + 1e-12
+    # 상한이 구속하지 않는 경우에는 저변동성 쪽이 더 큰 비중을 받는다.
     both_picked = [r for r in rebal_with_picks if set(r["picks"]) >= {"LOWVOL", "HIGHVOL"}]
     for r in both_picked:
-        assert r["weights"]["LOWVOL"] > r["weights"]["HIGHVOL"]
+        assert r["weights"]["LOWVOL"] >= r["weights"]["HIGHVOL"]
 
 
 def test_champion_tunable_params_metadata_shape():
@@ -1661,7 +1667,7 @@ def test_compute_core_recommendation_inverse_vol_favors_lower_volatility(monkeyp
 
     assert set(result["top4"]) == {"LOWVOL", "HIGHVOL"}
     weights = result["per_ticker_weights"]
-    assert weights["LOWVOL"] > weights["HIGHVOL"]
+    assert weights["LOWVOL"] == pytest.approx(weights["HIGHVOL"])  # 2종목 × 50% 상한이면 둘 다 상한
     risky = {t: w for t, w in weights.items() if t != champion_strategy.CORE_CASH_ETF}
     assert sum(risky.values()) == pytest.approx(result["exposure_multiplier"] * champion_strategy.CORE_WEIGHT, abs=1e-6)
     # 2026-10-02: 시장필터 축소분은 단기국채 ETF 로 — 코어 전체는 CORE_WEIGHT 를 채운다

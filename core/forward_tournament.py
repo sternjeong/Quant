@@ -129,8 +129,14 @@ def load_ledger(path: Optional[Path] = None) -> list[dict]:
 
 
 def record(*, path: Optional[Path] = None, price_fn: Optional[Callable] = None, now: Optional[datetime] = None) -> dict:
-    """오늘(마지막 주식 거래일)의 후보별 목표 비중을 한 줄 추가. 같은 날짜는 다시 쓰지 않는다."""
+    """마지막 완료된 주식 거래일의 비중을 기록한다."""
+    from core.forward_tournament_v2 import _completed
+
     price, _total, crypto = load_prices(price_fn)
+    days = _completed(price.index, now or datetime.now(timezone.utc))
+    if not len(days):
+        return {"recorded": False, "date": None, "reason": "완료된 거래일 없음"}
+    price, crypto = price.loc[:days[-1]], crypto.loc[:days[-1]]
     day = str(price.index[-1].date())
     rows = load_ledger(path)
     if any(r.get("date") == day for r in rows):
@@ -148,21 +154,29 @@ def record(*, path: Optional[Path] = None, price_fn: Optional[Callable] = None, 
 # ---------------------------------------------------------------- 평가
 def _series_from_ledger(rows: list[dict], cid: str, returns: pd.DataFrame) -> pd.Series:
     """기록된 비중(날짜 d 종가 결정)을 d 다음 거래일 수익부터 적용. 비중 변화만큼 비용."""
-    recs = [(pd.Timestamp(r["date"]), r["weights"].get(cid) or {}) for r in rows if cid in (r.get("weights") or {})]
+    from core.forward_tournament_v2 import effective_close
+
+    recs = sorted([(effective_close(r, returns.index), r["weights"].get(cid) or {})
+                   for r in rows if cid in (r.get("weights") or {})], key=lambda x: x[0])
     if not recs:
         return pd.Series(dtype=float)
     first, last = recs[0][0], recs[-1][0]
     after_last = returns.index[returns.index > last][:1]
     idx = returns.index[(returns.index > first) & ((returns.index <= last) | returns.index.isin(after_last))]
-    cols = sorted({t for _, w in recs for t in w})
-    wdf = pd.DataFrame([{t: w.get(t, 0.0) for t in cols} for _, w in recs], index=[d for d, _ in recs])
+    cols = sorted({t for _, weights in recs for t in weights})
+    wdf = pd.DataFrame([{t: weights.get(t, 0.0) for t in cols} for _, weights in recs],
+                       index=[day for day, _ in recs]).groupby(level=0).last()
     held = wdf.reindex(wdf.index.union(idx)).ffill().shift(1).reindex(idx).fillna(0.0)
-    r = returns.reindex(index=idx, columns=cols).fillna(0.0)
+    observed = returns.reindex(index=idx, columns=cols)
+    missing = observed.isna() & held.gt(1e-12)
+    if missing.to_numpy().any():
+        day, ticker = next((day, ticker) for day, row in missing.iterrows() for ticker in cols if row[ticker])
+        raise ValueError(f"{day.date()} 보유 종목 수익률 결측: {ticker}")
     diff = held.diff()
     if len(diff):
         diff.iloc[0] = held.iloc[0]
     cost = sum(diff[t].abs() * (CRYPTO_COST_BPS if t in CRYPTO else COST_BPS) / 1e4 for t in cols)
-    return (held * r).sum(axis=1) - cost
+    return (held * observed.fillna(0.0)).sum(axis=1) - cost
 
 
 def evaluate(rows: list[dict], returns: pd.DataFrame) -> dict[str, Any]:
@@ -175,7 +189,7 @@ def evaluate(rows: list[dict], returns: pd.DataFrame) -> dict[str, Any]:
     def mdd(s: pd.Series) -> float:
         if s.empty:
             return 0.0
-        eq = (1 + s).cumprod()
+        eq = pd.concat([pd.Series([1.0]), (1 + s).cumprod().reset_index(drop=True)], ignore_index=True)
         return float((eq / eq.cummax() - 1).min())
 
     for cid, s in series.items():
@@ -199,14 +213,39 @@ def evaluate(rows: list[dict], returns: pd.DataFrame) -> dict[str, Any]:
     return out
 
 
-def evaluate_live(path: Optional[Path] = None) -> dict[str, Any]:
+def evaluate_live(path: Optional[Path] = None, now: Optional[datetime] = None) -> dict[str, Any]:
     rows = load_ledger(path)
     if not rows:
         return {"judge_version": JUDGE_VERSION, "days": 0, "candidates": {}, "records": 0}
+    from zoneinfo import ZoneInfo
+
+    def complete_signal(row: dict) -> bool:
+        stamp = row.get("recorded_at")
+        if not stamp:
+            return True  # 저장 시각이 없는 구 원장은 별도 확인이 필요하다.
+        at = pd.Timestamp(stamp)
+        if at.tzinfo is None:
+            return False
+        ny = at.tz_convert(ZoneInfo("America/New_York"))
+        return ny.date() > pd.Timestamp(row["date"]).date() or (ny.hour, ny.minute) >= (16, 15)
+
+    eligible = [r for r in rows if complete_signal(r)]
+    excluded = len(rows) - len(eligible)
+    if not eligible:
+        return {"judge_version": JUDGE_VERSION, "days": 0, "candidates": {}, "records": len(rows),
+                "excluded_incomplete_signal_records": excluded, "verdict": "NOT_EVALUABLE_DATA"}
     price, total, crypto = load_prices()
+    from core.forward_tournament_v2 import _completed
+
+    total = total.loc[_completed(total.index, now or datetime.now(timezone.utc))]
     rets = total.pct_change(fill_method=None)
     for t in crypto.columns:
-        rets[t] = crypto[t].pct_change(fill_method=None)
-    out = evaluate(rows, rets)
+        rets[t] = crypto[t].pct_change(fill_method=None).reindex(rets.index)
+    try:
+        out = evaluate(eligible, rets)
+    except ValueError as exc:
+        out = {"judge_version": JUDGE_VERSION, "days": 0, "candidates": {},
+               "data_error": str(exc), "verdict": "NOT_EVALUABLE_DATA"}
     out["records"] = len(rows)
+    out["excluded_incomplete_signal_records"] = excluded
     return out

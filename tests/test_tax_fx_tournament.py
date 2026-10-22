@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 
 import numpy as np
 import pandas as pd
@@ -29,6 +30,23 @@ def test_buy_and_hold_no_tax_until_sold_and_matches_pre_cost_without_costs():
     assert res["final_krw"] == pytest.approx(res["final_pre_cost_krw"], rel=1e-6)
     gain = res["final_krw"] - 10_000_000
     assert res["unpaid_tax_if_sold_now_krw"] == pytest.approx(max(0, gain - 2_500_000) * 0.22, rel=1e-6)
+
+
+def test_liquidation_includes_unpaid_prior_year_tax_and_exit_costs():
+    idx = pd.DatetimeIndex(["2025-01-02", "2025-12-31", "2026-01-02"])
+    close = pd.DataFrame({"A": [100.0, 200.0, 200.0]}, index=idx)
+    weights = pd.DataFrame({"A": [1.0, 0.0, 0.0]}, index=idx)
+    fx = pd.Series(1000.0, index=idx)
+    cfg = tx.AccountConfig(initial_krw=10_000_000, fee_rate=0.0, fx_spread=0.0)
+    res = tx.simulate(weights, close, close, fx, cfg)
+    assert res["unpaid_prior_year_tax_krw"] == pytest.approx((10_000_000 - 2_500_000) * 0.22)
+    assert res["final_after_liquidation_krw"] == pytest.approx(res["final_krw"] - res["unpaid_prior_year_tax_krw"])
+
+    held = tx.simulate(tx.buy_and_hold_weights(idx, "A"), close, close, fx,
+                       tx.AccountConfig(initial_krw=10_000_000, fee_rate=0.001, fx_spread=0.002, apply_tax=False))
+    assert held["liquidation_trade_fees_krw"] > 0
+    assert held["liquidation_fx_cost_krw"] > 0
+    assert held["final_after_liquidation_krw"] < held["final_krw"]
 
 
 def test_annual_tax_on_realized_gains_with_deduction():
@@ -167,6 +185,21 @@ def test_tournament_record_append_only(tmp_path, monkeypatch):
     row = ft.load_ledger(led)[0]
     assert set(row["weights"]) == set(ft.CANDIDATES)
     assert all(abs(sum(w.values()) - 1.0) < 1e-6 for w in row["weights"].values())
+
+
+def test_v1_record_skips_partial_close_and_live_excludes_old_partial_signal(tmp_path, monkeypatch):
+    idx = pd.DatetimeIndex(["2026-10-19", "2026-10-20"])
+    price = pd.DataFrame({"SPY": [100.0, 110.0]}, index=idx)
+    monkeypatch.setattr(ft, "load_prices", lambda *a, **k: (price, price, pd.DataFrame(index=idx)))
+    monkeypatch.setattr(ft, "target_weights", lambda p, c: {cid: {"SPY": 1.0} for cid in ft.CANDIDATES})
+    at = datetime(2026, 10, 20, 15, 39, tzinfo=timezone.utc)
+    ledger = tmp_path / "ledger.jsonl"
+    assert ft.record(path=ledger, now=at)["date"] == "2026-10-19"
+    with ledger.open("a", encoding="utf-8") as stream:
+        stream.write(json.dumps({"date": "2026-10-20", "recorded_at": at.isoformat(),
+                                 "weights": {"T0": {"SPY": 1.0}}}) + "\n")
+    status = ft.evaluate_live(ledger, now=at)
+    assert status["excluded_incomplete_signal_records"] == 1
 
 
 def test_tournament_record_job_registered_and_topic_switch():

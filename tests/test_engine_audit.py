@@ -39,6 +39,25 @@ def test_research_runner(tmp_path):
     assert ea.check_research_runner(NOW, p)["status"] == ea.OK
 
 
+def test_forward_audit_warns_when_recorded_returns_are_not_evaluable(monkeypatch):
+    from core import forward_tournament as ft
+    from core import forward_tournament_v2 as ft2
+    from core import forward_tournament_v3 as ft3
+
+    now = datetime(2026, 10, 22, tzinfo=timezone.utc)
+    monkeypatch.setattr(ft, "load_ledger", lambda: [{"date": "2026-10-21"}])
+    monkeypatch.setattr(ft, "evaluate_live", lambda: {"verdict": "NOT_EVALUABLE_DATA", "records": 1,
+                                                       "excluded_incomplete_signal_records": 1})
+    assert ea.check_forward_tournament(now)["status"] == ea.WARN
+    for module, check in ((ft2, ea.check_forward_tournament_v2), (ft3, ea.check_forward_tournament_v3)):
+        monkeypatch.setattr(module, "load_ledger", lambda: [{"date": "2026-10-21", "errors": {}}])
+        monkeypatch.setattr(module, "load_status", lambda: {"data_error": "보유 종목 수익률 결측", "days": 0})
+        result = check(now)
+        assert result["status"] == ea.WARN and "성과 평가 불가" in result["detail"]
+        monkeypatch.setattr(module, "load_status", lambda: {})
+        assert "평가 상태 파일 없음" in check(now)["detail"]
+
+
 def test_satellite_lab_flags_polluted_rounds(tmp_path):
     from core import satellite_lab as sl
 

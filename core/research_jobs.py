@@ -1065,6 +1065,46 @@ def markdown_to_html(md: str) -> str:
 _STATUS_LABEL = {"pending": "대기", "running": "실행 중", "in_progress": "진행 중(이어서 실행)", "done": "완료",
                  "failed": "실패", "cancelled": "취소", "invalid": "정의 오류"}
 
+_HOLM_FAMILY_20261019 = (
+    "stagger-sso-combine-v1", "sleeve-local-execution-v1", "momentum-rebound-switch-v1",
+    "sso-contrib-confirm-v1", "stock-residual-momentum-v1", "earnings-confirm-momentum-v1",
+)
+
+
+def _research_interpretation(cfg: Config) -> dict[str, str]:
+    """원 보고서를 수정하지 않고 결과 카드에 붙이는 사후 해석. 판정 자체는 유지한다."""
+    notes = {
+        "core-universe-expansion-v1": "추가 자산이 실제 비중에 들어가지 않은 무효 비교입니다. v2가 이 구현 오류를 확인했습니다. 원래 FAIL을 효과 부재의 증거로 쓰지 마세요.",
+        "sat-sizing-v1": "당시 역변동성 비중 상한 계산에 오류가 확인됐습니다. 40% 제한을 넘은 실행의 성과는 수정 회계와 함께 재검증해야 합니다.",
+        "contrib-reval-champion-v1": "원 보고서의 검정력 부족 분류는 연 IR이 아닌 중앙 IRR 차이를 넣었습니다. FAIL/PASS 경제 관문은 별도로 보고, 검정력 분류는 근거 부족으로 취급합니다.",
+        "spy-champion-v1": "PASS_FORWARD_CANDIDATE는 현 챔피언 대비 경제 관문입니다. SPY 초과를 뜻하지 않으며 원 보고서의 SPY 우위 조건은 별도입니다.",
+    }
+    values = []
+    for job_id in _HOLM_FAMILY_20261019:
+        path = cfg.repo_root / "research" / "results" / job_id / "results.json"
+        if not path.is_file():
+            return notes
+        try:
+            result = json.loads(path.read_text(encoding="utf-8"))
+            p = (result.get("statistical_support") or {}).get("one_sided_p", 1.0)
+            p = float(p)
+            if not 0.0 <= p <= 1.0:
+                return notes
+            values.append((job_id, p))
+        except (OSError, ValueError, TypeError):
+            return notes
+    ordered = sorted(values, key=lambda item: item[1])
+    adjusted = {}
+    running = 0.0
+    for rank, (job_id, p) in enumerate(ordered):
+        running = max(running, min(1.0, p * (len(ordered) - rank)))
+        adjusted[job_id] = running
+    for job_id, raw in values:
+        notes[job_id] = (f"6개 사전 등록 가족의 Holm 보정 p={adjusted[job_id]:.3f} "
+                         f"(개별 p={raw:.3f}; 기준 0.05). 검정은 SPY 대비 일별 TWR 평균 차이이며 세후 IRR 검정이 아닙니다. "
+                         "기존 경제·전진 후보 판정은 유지됩니다.")
+    return notes
+
 _INDEX_STYLE = """<style>
 :root{--bg:#f7f7f5;--fg:#1d1d1b;--muted:#6b6b66;--card:#fff;--line:#e3e2dc;--ok:#1f7a3a;--bad:#b3261e;--run:#8a5a00}
 @media (prefers-color-scheme: dark){:root{--bg:#161615;--fg:#ecebe6;--muted:#a3a29b;--card:#20201e;--line:#34332f;--ok:#6fcf8a;--bad:#f28b82;--run:#f2c46d}}
@@ -1079,6 +1119,7 @@ summary{cursor:pointer;font-weight:600}
 
 def write_index(cfg: Config, state: dict, jobs: Optional[dict[str, JobDef]] = None) -> Path:
     """관제 센터 '검증 연구 결과' 카드가 보여 줄 index.html 을 다시 만든다."""
+    interpretations = _research_interpretation(cfg)
     parts = []
     entries = sorted(state.get("jobs", {}).items(), key=lambda kv: (kv[1].get("status") != "running",
                                                                      kv[1].get("priority") or 0, kv[0]))
@@ -1100,6 +1141,9 @@ def write_index(cfg: Config, state: dict, jobs: Optional[dict[str, JobDef]] = No
             body.append(f'<p class="muted">{html.escape(redact(entry["last_reason"]))}</p>')
         if entry.get("summary"):
             body.append(f"<pre>{html.escape(entry['summary'])}</pre>")
+        if job_id in interpretations:
+            body.append(f'<p class="muted"><strong>2026-10-21 결과 해석:</strong> '
+                        f'{html.escape(interpretations[job_id])}</p>')
         publish = entry.get("publish") or {}
         if publish.get("status"):
             body.append(f'<p class="muted">저장소 반영: {html.escape(publish["status"])} {html.escape(publish.get("detail") or "")}</p>')

@@ -1157,3 +1157,13 @@ def test_n1_behaviour_unchanged_with_groups_and_peak(cfg, monkeypatch):
     state = rj.load_state(cfg)
     assert state["jobs"]["one"]["peak_rss_mb"] == 10.0 and state["jobs"]["two"]["status"] == "pending"
     assert "solo_retry" not in state["jobs"]["one"]
+
+
+def test_existing_six_study_holm_interpretation_is_visible_without_changing_verdict():
+    from core import research_jobs as rj
+
+    cfg = rj.Config.for_root(ROOT)
+    notes = rj._research_interpretation(cfg)
+    assert "0.162" in notes["stagger-sso-combine-v1"]
+    assert "세후 IRR 검정이 아닙니다" in notes["stagger-sso-combine-v1"]
+    assert "무효 비교" in notes["core-universe-expansion-v1"]

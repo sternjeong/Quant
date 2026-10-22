@@ -1,3 +1,13 @@
+## 2026-10-22 주식·리서치 엔진 종합 점검 후속 — 구현·검증 진행
+
+- 요청: 이전 종합 분석에서 계좌 연결을 제외한 결함·판정 해석·운영 개선을 실제 실행. 기준 `origin/main e62b650`에서 격리 브랜치 `fix/engine-review-20261021`을 만들고 최신 `origin/main f09f934`의 13F 원본 수집 작업까지 보존해 재배치했다. `/opt/quant` 작업트리는 직접 수정하지 않았다.
+- 결정: `core/tax_fx.py`의 청산 후 금액에 전년도 미납세와 최종 매도·환전 비용을 반영한다. `core/forward_tournament.py`·v2·v3는 완료 봉·실제 기록 시각 이후 첫 온전한 일간 수익·보유 가격 결측·초기 MDD를 확인한다. `core/position_sizing.py`의 비중 상한은 재분배 후에도 지키며 불가능한 전액 투자분은 현금으로 둔다.
+- 연구 해석: 기존 `research/results`와 사전 등록 `contrib-reval-champion-v1` 실행 코드는 보존한다. `core/research_power.py`에 통과확률 50% 문턱과 80% 검정력 효과 크기를 분리했고 `core/research_jobs.py` 결과 카드에 6가설 Holm 보정, 무효 구현, 단위 오류 주석을 추가했다. 역사 결과를 새로 PASS/FAIL로 바꾸지 않았다.
+- 새 연구: `liquidation-accounting-impact-v1`을 측정 전용 새 ID로 사전 등록했다. 현 챔피언·SPY의 동일 5년 적립 창에서 구·신 청산 공식 차이를 VM에서 재계산한다. 합성 `--smoke` 종료0, 체크포인트 중단3→재개0, 작업 정의 valid. 합성 숫자는 실데이터 결론이 아니다.
+- 검증: 관련 세후·원장·사이징·검정력·실행기 테스트 84+121 passed, 새 연구·주간 점검·v1 장중 신호·상한 사례의 단위 테스트 통과. 전체 `pytest tests`는 3,198 passed·4 skipped, 청산 공식의 옛 golden 값 6건만 실패했다. 옛 golden은 운용 중 경로 기준으로 유지하고 종료 청산 필드의 식을 따로 검증하도록 고쳤다. 최신 main 재배치 뒤 13F 신규 테스트까지 포함한 관련 **319 passed**. 전체 재검증은 VM 자동배포 관문이 맡는다. `hub.guide.check`, `git diff --check` 통과. 배포·VM 연구 결과는 아직 기록하지 않는다.
+- 수정 파일: `core/{tax_fx,forward_tournament,forward_tournament_v2,forward_tournament_v3,engine_audit,position_sizing,research_power,research_jobs}.py`, `hub/satellite_lab_page.py`, `hub/guide/content_modules_{a,b}.py`, 관련 테스트, `research/jobs/liquidation-accounting-impact-v1/`, `docs/analysis/engine_review_20261021/`, 이 문서와 `PROGRESS.md`.
+- 다음: 최신 main 위에 병합 → VM 자동배포 전체 테스트 통과와 서비스 확인 → 새 연구 실행기의 실제 결과 확인. 계좌 연결·챔피언 전략 채택은 범위 밖이며 사용자 별도 결정을 요한다.
+
 ## 2026-10-22 SPY 알파 원자료 검사 완료·13F 공개 원본 수집 등록 준비
 
 - VM 확인: `alpha-{13f-conviction,cash-quality,filing-drift,customer-link}-v1-input-audit` 4건은 2026-10-21 14:30~16:50 UTC 각 1회 실행·실패0·결과 보관 및 origin/main 반영. 모두 `NOT_EVALUABLE_DATA`. 13F 7캐시/324신고 중 필수 원본 주식 수 0건, 재무 596캐시 중 영업현금흐름 0건. 공통 CRSP형 일별 주식/상장폐지/시점별 식별 자료 부재. 이는 가설 실패가 아니다.

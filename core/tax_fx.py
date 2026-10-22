@@ -444,22 +444,39 @@ def simulate(weights: pd.DataFrame, close: pd.DataFrame, adj: pd.DataFrame, usdk
     def mdd(s: pd.Series) -> float:
         return float((s / s.cummax() - 1).min())
 
-    # 지금 다 팔면 낼 세금(미실현 이익) — 보유 중 평가와 비교용
+    # 마지막 종가에 전량 매도하고 달러 잔액도 원화로 바꾼 가상 청산.
+    # 기납부 세금은 위 현금 흐름에 이미 반영되어 있으므로, 아직 납부하지 않은 연도만 뺀다.
     last = len(days) - 1
-    unreal = sum(pos[t].shares * float(close.iat[last, j]) * float(fx.iat[last]) - sum(q * p for q, p in pos[t].lots)
-                 for j, t in enumerate(tickers) if pos[t].shares)
-    this_year = realized.get(days[-1].year, 0.0)
-    liquidation_tax = max(0.0, this_year + unreal - ANNUAL_DEDUCTION_KRW) * TAX_RATE if cfg.apply_tax else 0.0
+    last_year, last_rate = days[-1].year, float(fx.iat[last])
+    sale_gross_usd = sum(pos[t].shares * float(close.iat[last, j]) for j, t in enumerate(tickers))
+    sale_fee_krw = sale_gross_usd * cfg.fee_rate * last_rate
+    sale_net_usd = sale_gross_usd * (1 - cfg.fee_rate)
+    sale_gain_krw = sale_net_usd * last_rate - sum(
+        sum(q * basis for q, basis in pos[t].lots) for t in tickers
+    )
+    unpaid_prior_tax = sum(
+        max(0.0, gain - ANNUAL_DEDUCTION_KRW) * TAX_RATE
+        for year, gain in realized.items() if year < last_year and year not in tax_due
+    ) if cfg.apply_tax else 0.0
+    liquidation_tax = max(0.0, realized.get(last_year, 0.0) + sale_gain_krw - ANNUAL_DEDUCTION_KRW) * TAX_RATE if cfg.apply_tax else 0.0
+    conversion_usd = cash_usd + sale_net_usd
+    conversion_cost_krw = abs(conversion_usd) * last_rate * cfg.fx_spread
+    terminal_krw = cash_krw + conversion_usd * last_rate - conversion_cost_krw - unpaid_prior_tax - liquidation_tax
     return {
         "values_krw": series, "pre_cost_krw": base,
         "final_krw": float(series.iloc[-1]), "final_pre_cost_krw": float(base.iloc[-1]),
         "cagr_after": cagr(series), "cagr_pre": cagr(base), "mdd_after": mdd(series), "mdd_pre": mdd(base),
         "totals": {"fees_krw": fee_krw, "fx_cost_krw": fx_cost_krw, "dividend_tax_krw": div_tax_krw,
                    "capital_gains_tax_krw": sum(tax_due.values())},
-        "unpaid_tax_if_sold_now_krw": liquidation_tax,
-        "final_after_liquidation_krw": float(series.iloc[-1]) - liquidation_tax,
+        "unpaid_tax_if_sold_now_krw": unpaid_prior_tax + liquidation_tax,
+        "unpaid_prior_year_tax_krw": unpaid_prior_tax,
+        "liquidation_current_year_tax_krw": liquidation_tax,
+        "liquidation_sale_gain_krw": sale_gain_krw,
+        "liquidation_trade_fees_krw": sale_fee_krw,
+        "liquidation_fx_cost_krw": conversion_cost_krw,
+        "final_after_liquidation_krw": terminal_krw,
         **_contribution_outputs(days, cfg.initial_krw, contrib_vals, series, base,
-                                float(series.iloc[-1]) - liquidation_tax),
+                                terminal_krw),
         "years": [year_rows[y] for y in sorted(year_rows)], "tax_payments": tax_paid_rows, "harvests": harvests,
         "config": cfg.__dict__.copy(),
     }

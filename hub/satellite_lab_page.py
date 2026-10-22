@@ -229,6 +229,8 @@ def render_tournament_v2_row(t: dict) -> str:
         return " &gt; ".join(f'{_e(k)}({fmt(cands.get(k, {}).get(metric))})' for k in keys)
 
     extra = ""
+    if st.get("data_error"):
+        extra += '<br>성과 평가 불가(가격 자료): ' + _e(st["data_error"])
     if st.get("rank_core"):
         extra += '<br>중간 순위(수익/|최대낙폭|, 판정 아님): ' + line(st["rank_core"], "return_per_mdd", _num)
     if st.get("rank_satellite"):
@@ -263,6 +265,8 @@ def render_tournament_v3_row(t: dict) -> str:
         return "—" if v is None else (f"{float(v) * 100:+.1f}" if signed else f"{float(v) * 100:.1f}")
 
     extra = ""
+    if st.get("data_error"):
+        extra += '<br>성과 평가 불가(가격 자료): ' + _e(st["data_error"])
     if st.get("rank"):
         extra += '<br>중간 순위(연환산 수익 %, 판정 아님): ' + " &gt; ".join(
             f'{_e(k)}({pct(cands.get(k, {}).get("cagr"))})' for k in st["rank"])

@@ -1,0 +1,81 @@
+{
+  "repo_commit": "a6bdf681fc8d3d17e5b0be2ecf2890118300688a",
+  "source_hashes": {
+    "core/tax_fx.py": "dbcea8ac4c00a3bf936905ce584c82e86297237688ed064d7268a774117ad955",
+    "core/forward_tournament_v2.py": "e02d8772d9c01f4d5bda7e4d859b06dbcb1154a28b52993b8e6d86e20e478dad",
+    "core/forward_tournament_v3.py": "0772f81564511692c68c3e5b145084d47bfc39285f3ac3e77ddfccf446b7e98c",
+    "core/research_power.py": "83abee1a83a33b30a34d4d5cfe6fd66e96825165481cc78f60c4a6c606fe1af9",
+    "research/return_upgrade/runner.py": "a5df67cdc89f5887d7266c2905dcd2423e453a676733284f391937dec3677c30"
+  },
+  "prior_year_unpaid_tax": {
+    "reported_terminal": 60000000.0,
+    "expected_terminal_under_same_tax_model": 53950000.0,
+    "missing_liability": 6050000.0,
+    "reported_unpaid_tax": 0.0,
+    "reproduced": true
+  },
+  "terminal_sale_costs": {
+    "reported_mark_to_market": 29955052.443808064,
+    "reported_liquidated": 29955052.443808064,
+    "expected_liquidated_with_sale_and_fx": 29910134.842668574,
+    "missing_cost": 44917.60113948956,
+    "reproduced": true
+  },
+  "evaluation_accepts_uncompleted_bar": {
+    "assumed_now_utc": "2026-10-20T15:40:00+00:00",
+    "completed_dates_at_assumed_now": [
+      "2026-10-19"
+    ],
+    "evaluated_dates": [
+      "2026-10-20"
+    ],
+    "reproduced": true
+  },
+  "initial_drawdown_omitted": {
+    "daily_returns": [
+      -0.1
+    ],
+    "reported_mdd": 0.0,
+    "expected_mdd": -0.1,
+    "reproduced": true
+  },
+  "held_missing_return_becomes_zero": {
+    "reported_return_including_entry_cost": -0.0003,
+    "reproduced": true
+  },
+  "inverse_vol_cap_violated": {
+    "declared_cap": 0.4,
+    "weights": {
+      "A": 0.7541,
+      "B": 0.1639,
+      "C": 0.082
+    },
+    "reproduced": true
+  },
+  "mde_label_means_50pct_power_threshold": {
+    "reported_mde_ir": 0.7691614160777072,
+    "power_at_reported_mde": 0.5,
+    "interpretation": "Not an MDE defined at 80% or 90% target power."
+  },
+  "six_job_holm_existing_results": {
+    "raw_p": {
+      "sleeve-local-execution-v1": 0.04995004995004995,
+      "sso-contrib-confirm-v1": 0.14085914085914086,
+      "stagger-sso-combine-v1": 0.026973026973026972,
+      "stock-residual-momentum-v1": 1.0,
+      "earnings-confirm-momentum-v1": 1.0,
+      "momentum-rebound-switch-v1": 0.0919080919080919
+    },
+    "holm_p": {
+      "stagger-sso-combine-v1": 0.16183816183816183,
+      "sleeve-local-execution-v1": 0.24975024975024976,
+      "momentum-rebound-switch-v1": 0.3676323676323676,
+      "sso-contrib-confirm-v1": 0.4225774225774226,
+      "stock-residual-momentum-v1": 1.0,
+      "earnings-confirm-momentum-v1": 1.0
+    },
+    "alpha": 0.05,
+    "passes": [],
+    "scope": "Daily TWR mean only; no strategy rerun and no original verdict change."
+  }
+}

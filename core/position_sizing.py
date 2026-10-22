@@ -176,19 +176,31 @@ def portfolio_volatility_target_weights(
         (컬럼=티커, 값=일간수익률, 공통 거래일만 정렬됨).
     max_weight: 종목 하나가 가질 수 있는 최대 비중 (기본 1.0=제한 없음, 집중도 제한에 사용 가능).
 
-    Returns: {ticker: 비중(0~1)} — 전체 합이 1이 되도록 정규화된다. daily_returns가 비어있거나
-        전 종목의 변동성이 0이면 빈 dict.
+    Returns: {ticker: 비중(0~1)} — 상한 내에서 가능한 만큼 투자한다. 종목 수 × 상한이
+        1보다 작으면 남는 비중은 현금이다. 데이터가 없거나 전 종목 변동성이 0이면 빈 dict.
     """
+    if not 0 < max_weight <= 1:
+        raise ValueError("max_weight는 0 초과 1 이하여야 합니다.")
     if daily_returns.empty:
         return {}
 
     ann_vol = daily_returns.std(ddof=0) * math.sqrt(TRADING_DAYS_PER_YEAR)
-    ann_vol = ann_vol[ann_vol > 0]
+    ann_vol = ann_vol[(ann_vol > 0) & ann_vol.notna()]
     if ann_vol.empty:
         return {}
 
     inv_vol = 1.0 / ann_vol
-    raw_weights = inv_vol / inv_vol.sum()
-    capped = raw_weights.clip(upper=max_weight)
-    normalized = capped / capped.sum()
-    return {str(k): round(float(v), 4) for k, v in normalized.items()}
+    target = min(1.0, len(inv_vol) * max_weight)
+    remaining = set(inv_vol.index)
+    weights = pd.Series(0.0, index=inv_vol.index)
+    left = target
+    while remaining and left > 1e-12:
+        proposed = inv_vol.loc[list(remaining)] / inv_vol.loc[list(remaining)].sum() * left
+        capped = proposed[proposed > max_weight + 1e-12]
+        if capped.empty:
+            weights.loc[proposed.index] = proposed
+            break
+        weights.loc[capped.index] = max_weight
+        remaining.difference_update(capped.index)
+        left = target - float(weights.sum())
+    return {str(k): min(max_weight, float(v)) for k, v in weights.items()}

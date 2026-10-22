@@ -327,12 +327,12 @@ def test_status_snapshot_and_hub_row(tmp_path):
     for end in ("2026-10-16", "2026-10-19", "2026-10-20"):
         _rec(led, end)
     env, _ = _env("2026-10-21")
-    st = ft3.refresh_status(path=led, status_path=stp, price_fn=env["price_fn"])
-    assert st["days"] == 3 and st["records"] == 3 and ft3.load_status(stp)["rank"]
+    st = ft3.refresh_status(path=led, status_path=stp, price_fn=env["price_fn"], now=env["now"])
+    assert st["days"] == 2 and st["records"] == 3 and ft3.load_status(stp)["rank"]
     assert st["judge_version"] == "forward-tournament/v3" and st["last_errors"] == {}
     html = page.render_tournament_v3_row({"records": 3, "last": "2026-10-20", "start": "2026-10-16", "min_days": 252,
                                           "status": ft3.load_status(stp), "labels": {"P1": "x"}})
-    assert "앞으로 토너먼트 v3" in html and "3/252" in html and "판정 전" in html and "판정 아님" in html and "B1(현 챔피언) 대비" in html
+    assert "앞으로 토너먼트 v3" in html and "2/252" in html and "판정 전" in html and "판정 아님" in html and "B1(현 챔피언) 대비" in html
     assert "기록 대기" in page.render_tournament_v3_row({"records": 0, "registered": "2026-10-16", "min_days": 252})
     assert "확인 불가" in page.render_tournament_v3_row({"error": "OSError"})
     shadows = page.render_shadows({"tournament_v3": {"records": 0, "registered": "2026-10-16", "min_days": 252}})
@@ -350,7 +350,7 @@ def test_engine_audit_v3_check(tmp_path, monkeypatch):
     assert ea.check_forward_tournament_v3(datetime(2026, 11, 30, tzinfo=timezone.utc))["status"] == ea.WARN
     _rec(led, "2026-10-16")
     chk = ea.check_forward_tournament_v3(now)
-    assert chk["status"] == ea.OK and "1일 기록" in chk["detail"]
+    assert chk["status"] == ea.WARN and "평가 상태 파일 없음" in chk["detail"]
     assert ea.check_forward_tournament_v3(datetime(2026, 10, 30, tzinfo=timezone.utc))["status"] == ea.WARN
     assert any(name == "앞으로 토너먼트 v3" for name, _ in ea.CHECKS)
 

@@ -1,4 +1,5 @@
 import math
+import pytest
 
 from core import research_power as rp
 
@@ -19,6 +20,8 @@ def test_power_is_monotone_and_low_for_realistic_effects():
 def test_power_report_and_classification():
     rep = rp.power_report(16.7, 13)
     assert rep["n_trials"] == 13 and "0.30" in rep["power_at"]
+    assert rep["detectable_ir_80pct_power"] > rep["pass_threshold_ir_50pct_power"]
+    assert rp.power(rp.detectable_ir(16.7, 13), 16.7, 13) == pytest.approx(0.8)
     assert "통과에 필요한 연 IR" in rp.power_line(rep)
     assert rp.classify_fail(0.3, rep) == "FAIL_UNDERPOWERED"
     assert rp.classify_fail(1.0, rep) == "FAIL"

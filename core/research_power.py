@@ -5,8 +5,8 @@
 또 같은 떼어 둔 2년(2024-10~)을 20개 넘는 연구가 들여다봐서 그 구간은 더 이상 정직한 시험대가 아니다.
 
 새 규칙(docs/RESEARCH_JOBS.md '판정 설계 규칙'):
-1. 새 연구는 결과를 보기 전에 power_report() 로 최소 검출 효과(MDE)를 계산해 results.json 의 "power" 에 넣고
-   REPORT.md 에 한 줄로 적는다. 판정이 FAIL 이고 관측 효과가 MDE 보다 작으면 "판별 불가(검정력 부족)"로 함께 적는다.
+1. 새 연구는 결과를 보기 전에 power_report() 로 관측 통과 문턱(50% 통과 확률)과
+   80% 검정력에서 검출 가능한 연 IR을 따로 계산한다. 관측 효과 하나만으로 검정력 부족을 확정하지 않는다.
 2. 후보 수익이 기준선과 전부 같으면(활성 수익이 0) FAIL 이 아니라 NOT_EVALUABLE — noop_guard() 로 막는다
    (core-universe-expansion-v1 이 이 경우였다: 추가 자산이 순위 후보에 들어가지 않았다).
 3. 2024-10 이후 구간은 새 연구의 최종 판정 근거로 쓰지 않는다(보고만). 채택 판단은 전진 원장(앞으로 쌓이는 데이터)으로 한다.
@@ -34,7 +34,7 @@ def expected_max_z(n_trials: int) -> float:
 
 
 def mde_ir(years: float, n_trials: int = 1, confidence: float = 0.95) -> float:
-    """이 기간·시도 수에서 DSR ≥ confidence 를 넘으려면 필요한 연 정보비율(최소 검출 효과)."""
+    """기존 호환 이름: 통과 확률이 50%인 연 IR. 80% 검정력 MDE는 detectable_ir()."""
     if years <= 0:
         return float("inf")
     return (expected_max_z(n_trials) + _N.inv_cdf(confidence)) / math.sqrt(years)
@@ -47,6 +47,16 @@ def power(true_ir: float, years: float, n_trials: int = 1, confidence: float = 0
     return 1 - _N.cdf((mde_ir(years, n_trials, confidence) - true_ir) * math.sqrt(years))
 
 
+def detectable_ir(years: float, n_trials: int = 1, *, confidence: float = 0.95,
+                  target_power: float = 0.8) -> float:
+    """정해진 검정력으로 관문을 통과할 수 있는 최소 참 연 IR(근사)."""
+    if not 0 < target_power < 1:
+        raise ValueError("target_power는 0과 1 사이여야 합니다")
+    if years <= 0:
+        return float("inf")
+    return mde_ir(years, n_trials, confidence) + _N.inv_cdf(target_power) / math.sqrt(years)
+
+
 def power_report(years: float, n_trials: int, *, confidence: float = 0.95,
                  plausible_irs: Sequence[float] = (0.2, 0.3, 0.5)) -> dict:
     """results.json 의 "power" 에 그대로 넣을 사전 계산."""
@@ -55,6 +65,8 @@ def power_report(years: float, n_trials: int, *, confidence: float = 0.95,
         "n_trials": int(n_trials),
         "confidence": confidence,
         "mde_ir": round(mde_ir(years, n_trials, confidence), 3),
+        "pass_threshold_ir_50pct_power": round(mde_ir(years, n_trials, confidence), 3),
+        "detectable_ir_80pct_power": round(detectable_ir(years, n_trials, confidence=confidence), 3),
         "power_at": {f"{ir:.2f}": round(power(ir, years, n_trials, confidence), 3) for ir in plausible_irs},
         "method": "expected-max-z(Bailey-LdP) + null SE, simplified",
     }
@@ -64,11 +76,12 @@ def power_line(rep: dict) -> str:
     """REPORT.md 용 한 줄."""
     pw = ", ".join(f"IR {k}→{v:.0%}" for k, v in rep["power_at"].items())
     return (f"검정력(사전 계산): {rep['years']}년·시도 {rep['n_trials']}개에서 통과에 필요한 연 IR ≈ {rep['mde_ir']:.2f} "
-            f"(참 효과별 통과 확률 {pw}). FAIL 이어도 관측 IR 이 이보다 작으면 '판별 불가'에 가깝다.")
+            f"(통과 확률 50%; 검정력 80%의 최소 참 IR ≈ {rep.get('detectable_ir_80pct_power', float('nan')):.2f}; "
+            f"참 효과별 통과 확률 {pw}). 관측 IR만으로 효과 부재나 검정력 부족을 확정하지 않는다.")
 
 
 def classify_fail(observed_ir: Optional[float], rep: dict) -> str:
-    """FAIL 의 성격: 관측 IR 이 MDE 이상인데 다른 관문에서 떨어졌으면 'FAIL', 아니면 'FAIL_UNDERPOWERED'."""
+    """같은 단위의 관측 연 활성 IR로 붙이는 휴리스틱 해석. 확정 검정력 판정은 아니다."""
     if observed_ir is None or not math.isfinite(observed_ir):
         return "FAIL"
     return "FAIL" if observed_ir >= rep["mde_ir"] or observed_ir <= 0 else "FAIL_UNDERPOWERED"
