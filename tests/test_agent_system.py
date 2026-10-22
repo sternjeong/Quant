@@ -335,6 +335,33 @@ def test_genuinely_good_strategy_passes_judge_and_shadows(tmpdb):
     assert sh.run_daily(price_provider=provider, today=last)["recorded"][0]["status"] == "already_recorded"
 
 
+def test_run_daily_retries_database_locked(tmpdb, monkeypatch):
+    from sqlalchemy.exc import OperationalError
+
+    world = _world()
+    provider = lambda t, a, b: world[t]  # noqa: E731
+    reg.register_draft(GOOD_SPEC)
+    reg.freeze(GOOD_SPEC["id"], SIGNAL)
+    hj.judge_frozen(GOOD_SPEC["id"], price_provider=provider, champion_corr_fn=None)
+    monkeypatch.setattr(sh, "LOCK_RETRY_DELAY_SECONDS", 0.0)
+    last = world["SPY"].index[-1].date()
+    real, calls = sh.record_day, {"n": 0}
+
+    def flaky(*a, **k):
+        calls["n"] += 1
+        if calls["n"] <= 2:
+            raise OperationalError("INSERT", {}, Exception("database is locked"))
+        return real(*a, **k)
+
+    monkeypatch.setattr(sh, "record_day", flaky)
+    out = sh.run_daily(price_provider=provider, today=last)
+    assert out["errors"] == [] and out["recorded"][0]["status"] == "recorded" and calls["n"] == 3
+
+    calls["n"] = -99  # 계속 잠겨 있으면 마지막 오류가 errors 로 남는다
+    out = sh.run_daily(price_provider=provider, today=last)
+    assert out["errors"] and "locked" in out["errors"][0]
+
+
 def test_forward_verdict_z_rule(tmpdb):
     from core.db import get_session
     from core.models import HypothesisShadowRecord

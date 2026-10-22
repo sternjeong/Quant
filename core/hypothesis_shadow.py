@@ -20,10 +20,12 @@ from zoneinfo import ZoneInfo
 from typing import Any, Callable, Optional
 
 import pandas as pd
+from sqlalchemy.exc import OperationalError
 
 from core import hypothesis_engine as he
 from core import hypothesis_registry as reg
 from core.models import HypothesisShadowRecord
+from core.retry import retry_with_backoff
 
 ET = ZoneInfo("America/New_York")
 FORWARD_DAYS = 60
@@ -106,6 +108,11 @@ def forward_verdict(hyp: dict, *, session) -> Optional[dict[str, Any]]:
             "verdict": "candidate" if z >= Z_FLOOR else "retire"}
 
 
+# 야간 블록(00:00~01:00 KST)에 다른 잡이 쓰기 잠금을 30초 넘게 쥐면 core.db 의 busy_timeout 이 끝나도
+# "database is locked" 가 난다(2026-10-22 00:48 실패). 잠금 충돌만 잠시 뒤 다시 시도한다.
+LOCK_RETRY_ATTEMPTS = 4
+LOCK_RETRY_DELAY_SECONDS = 20.0
+
 US_CLOSE_SETTLED = (16, 15)  # 미 동부 16:15 이후에만 그날 일봉을 완성된 것으로 본다
 
 
@@ -156,9 +163,16 @@ def run_daily(*, session=None, price_provider=None, today: Optional[date] = None
     # 승격 후보·승격 가설도 계속 기록한다: 전진 성과 추적과 research 슬리브(paper 편입) 비중의 원천이다.
     for h in reg.list_by_status(reg.SHADOW, reg.CANDIDATE, reg.PROMOTED, session=session):
         try:
-            with reg._session(session) as db:
-                out["recorded"].append(record_day(h, as_of, session=db, price_provider=price_provider))
-                v = forward_verdict(h, session=db) if h["status"] == reg.SHADOW else None
+            def _record_one(h=h):
+                # 새 세션으로 통째로 다시 한다 — record_day 는 이미 기록된 날을 건너뛰어 재시도가 안전하다.
+                with reg._session(session) as db:
+                    rec = record_day(h, as_of, session=db, price_provider=price_provider)
+                    return rec, (forward_verdict(h, session=db) if h["status"] == reg.SHADOW else None)
+
+            rec, v = retry_with_backoff(_record_one, max_attempts=LOCK_RETRY_ATTEMPTS,
+                                        base_delay_seconds=LOCK_RETRY_DELAY_SECONDS,
+                                        exceptions=(OperationalError,))
+            out["recorded"].append(rec)
             if v:
                 to = reg.CANDIDATE if v["verdict"] == "candidate" else reg.RETIRED
                 reg.transition(h["id"], to, f"전진 {v['n_days']}일 z={v['z']:.2f}", session=session,
