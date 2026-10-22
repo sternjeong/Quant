@@ -1,0 +1,16 @@
+{
+  "id": "alpha-13f-source-v1",
+  "title": "13F 원본 신고 주식 수·접수시각 수집",
+  "entrypoint": "research/alpha_discovery/sec_13f_source.py",
+  "args": [],
+  "timeout_seconds": 10800,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md", "13f_raw_shares.csv"],
+  "summary_from": "verdicts",
+  "priority": 26,
+  "revision": 1,
+  "max_memory_mb": 512,
+  "max_disk_mb": 2048,
+  "max_runs": 30
+}

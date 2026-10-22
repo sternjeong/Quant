@@ -1,3 +1,10 @@
+## 2026-10-22 SPY 알파 원자료 검사 완료·13F 공개 원본 수집 등록 준비
+
+- VM 확인: `alpha-{13f-conviction,cash-quality,filing-drift,customer-link}-v1-input-audit` 4건은 2026-10-21 14:30~16:50 UTC 각 1회 실행·실패0·결과 보관 및 origin/main 반영. 모두 `NOT_EVALUABLE_DATA`. 13F 7캐시/324신고 중 필수 원본 주식 수 0건, 재무 596캐시 중 영업현금흐름 0건. 공통 CRSP형 일별 주식/상장폐지/시점별 식별 자료 부재. 이는 가설 실패가 아니다.
+- 결정: 공개 SEC 원본으로 해결 가능한 13F 주식 수·접수시각을 별도 수집. `alpha-13f-source-v1`는 7개 고정 CIK의 2010-01~2024-09 13F-HR/HRA를 읽고, SH만 CUSIP별 합산해 원본 CSV로 낸다. 원본 XML 없는 신고·접근 차단·2013 이전 텍스트 한계를 별도 표시한다. 성과·알파 계산 없음.
+- 수정: `research/alpha_discovery/sec_13f_source.py`, `research/jobs/alpha-13f-source-v1/job.json`, `tests/test_alpha_13f_source.py`, 설계 문서·인계·PROGRESS. SEC 요청은 기존 RateLimiter/재시도 클라이언트 사용, 신고별 원자 체크포인트, VM 실행기 예산에서 종료3 후 이어받기.
+- 검증: 합성 smoke 종료0, 집중 테스트·작업 정의·가이드 검사 통과. 전체 pytest 3202 passed·4 skipped(1616.05초), Telegram runner unittest 72 OK; 배포/VM 실행은 결과 확인 뒤 갱신. 본 4가설 백테스트는 여전히 미구현·미실행. 다음: 전체 테스트 → main 반영 → VM SEC 원본 수집 결과 확인 → CRSP형 원장 및 PIT 연결 접근 여부 결정.
+
 ## 2026-10-21 SPY 알파 4가설 선행 원자료 검사 — 구현·로컬 검증 완료, VM 실행 확인 전
 
 - 요청: 13F 증액·현금전환 개선·8-K 공시 후 반응·고객→공급사 신호 4가설을 구현하고 VM에 등록·실행.
