@@ -607,6 +607,32 @@ def order_plan(targets: list[dict], holdings: Optional[dict[str, float]] = None,
             "n_trades": sum(1 for r in rows if r["action"] != "유지")}
 
 
+def managed_holding_values(lots: list[dict], pnl: pd.DataFrame) -> dict:
+    """수동 관리 보유는 엔진 주문 대상에서 빼고, 관리 보유의 가격 결측은 명시한다."""
+    price_rows = {} if pnl is None or pnl.empty else {
+        str(row["ticker"]): row["current_price"] for _, row in pnl.iterrows()}
+    values: dict[str, float] = {}
+    quantities: dict[str, float] = {}
+    prices: dict[str, float] = {}
+    missing: set[str] = set()
+    excluded: set[str] = set()
+    for lot in lots:
+        ticker = str(lot["ticker"])
+        if lot.get("strategy_role") == "직접 관리":
+            excluded.add(ticker)
+            continue
+        quantity = float(lot["quantity"])
+        price = price_rows.get(ticker)
+        quantities[ticker] = quantities.get(ticker, 0.0) + quantity
+        if price is None or not math.isfinite(float(price)) or float(price) <= 0:
+            missing.add(ticker)
+            continue
+        prices[ticker] = float(price)
+        values[ticker] = values.get(ticker, 0.0) + quantity * float(price)
+    return {"values": values, "quantities": quantities, "prices": prices,
+            "missing": sorted(missing), "excluded": sorted(excluded)}
+
+
 def freshness(rec: Optional[dict], today: Optional[date] = None,
               live_core_top4: Optional[list[str]] = None) -> dict:
     """재추천 결과를 지금 그대로 써도 되는지. 써도 되면 ok=True.

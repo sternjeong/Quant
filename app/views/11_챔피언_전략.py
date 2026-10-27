@@ -326,8 +326,9 @@ else:
 
     _targets = cr.target_allocation(_rec)
     _holdings_pnl = get_portfolio_pnl()
-    _held = ({} if _holdings_pnl.empty else
-             _holdings_pnl.groupby("ticker")["market_value"].sum().to_dict())
+    _my_lots = portfolio_module.list_holdings()
+    _managed = cr.managed_holding_values(_my_lots, _holdings_pnl)
+    _held = _managed["values"]
     _cash_balance = get_cash_balance()
 
     with st.container(border=True):
@@ -342,82 +343,92 @@ else:
         elif _filter_line:
             st.caption(_filter_line)
 
-        _fresh_account = not any(float(v) > 0 for v in _held.values()) and _cash_balance <= 0
+        _fresh_account = not _my_lots and _cash_balance <= 0
         _capital = (st.number_input(
             "처음 시작할 투자금($)", min_value=0.0, max_value=100_000_000.0,
             value=10_000.0, step=100.0, format="%.2f", key="champion_todo_capital",
             help="아직 등록된 보유·현금이 없을 때만 이 금액으로 처음 매수할 주수를 계산합니다. 주문은 하지 않습니다.",
         ) if _fresh_account else 10_000.0)
-        _plan = cr.order_plan(_targets, _held, _cash_balance, _capital)
+        _plan = cr.order_plan(_targets, _held, _cash_balance, _capital if _fresh_account else 0.0)
         _bil_only = (lambda t: (cr.reference_prices({}, [t]) or {}).get(t) if t == "BIL" else None)
         if not _fresh["ok"] or _core.get("market_filter_status") == "unknown":
             st.warning("먼저 추천과 시장필터를 확인하세요. 아래 수량은 참고용이며 새 주문을 보류합니다.")
-        elif _plan["basis"] == "fresh":
+        elif _fresh_account:
             st.info("① 보유·현금이 없다면 아래 '처음 매수'를 따라갑니다. 이미 보유 중이면 먼저 보유를 등록하세요.")
+        elif not _managed["quantities"] and _cash_balance <= 0:
+            st.info("챔피언 운용에 쓸 현금이나 보유가 없습니다. 증권사 잔고를 포트폴리오에 등록한 뒤 확인하세요.")
         else:
             st.success("① 등록된 보유와 현금을 기준으로 아래 매도·매수 순서를 확인하세요.")
 
         # 행동을 먼저, 목표 비중과 근거는 아래 접힌 칸에 둔다.
         st.markdown("**지금 실행 순서**")
-        _my_lots = portfolio_module.list_holdings()
         _managed_sat = {h["ticker"] for h in _my_lots if h.get("strategy_role") == "새틀라이트"}
         if hasattr(portfolio_module, "holding_review_actions"):
             for _due in portfolio_module.holding_review_actions(_my_lots, _rec):
                 st.warning(f"{_due['title']} — {_due['detail']}")
         if _managed_sat:
-            st.caption("등록된 새틀라이트는 위 매입일 기준 재선정·매도 확인 안내를 따릅니다. 오늘 처음 매수하는 후보로 기존 새틀라이트를 매일 교체하지 않도록 아래 비중 비교 매매에서는 새틀라이트를 제외합니다.")
-        if _plan["basis"] == "fresh":
+            st.caption("보유 중인 새틀라이트는 매입일로부터 6개월이 될 때 위 안내에 따라 확인합니다.")
+        if _fresh_account:
             st.caption(
                 "보유 종목이 등록돼 있지 않아 '처음부터 매수' 기준으로 계산했습니다. 이미 갖고 있는 종목이 있으면 "
                 "포트폴리오 화면에 입력하세요 — 그러면 실제로 사고팔 것만 남습니다."
             )
             _page_link("views/8_포트폴리오_관리.py", "💼 포트폴리오에 보유 입력하기")
-        else:
-            st.caption(f"포트폴리오 화면에 입력한 보유 기준(현금 포함 총 ${_plan['total']:,.0f}). 입력이 낡으면 이 목록도 틀립니다.")
+        elif _plan["basis"] == "holdings":
+            st.caption(f"등록한 챔피언 보유와 현금 기준 ${_plan['total']:,.0f} · 증권사 잔고와 다르면 포트폴리오에서 고쳐 주세요.")
+        if _managed["excluded"]:
+            st.caption(f"직접 관리 종목은 주문 대상에서 제외: {', '.join(_managed['excluded'])}")
         _trades = [r for r in _plan["rows"] if r["action"] != "유지" and not (
             _managed_sat and (r["ticker"] in _managed_sat or "새틀라이트" in r["sleeve"]))]
         _can_act = _fresh["ok"] and _core.get("market_filter_status") != "unknown"
         if not _can_act:
             st.info("추천이 갱신되고 시장필터가 확인되면 여기서 매도·매수 수량을 보여 드립니다.")
+        elif _managed["missing"]:
+            st.warning(f"보유 종목 {', '.join(_managed['missing'])}의 현재가가 없어 주문 수량을 계산할 수 없습니다. 가격을 갱신한 뒤 다시 확인하세요.")
         elif not _trades:
             st.info("추가 비중 조정 목록이 없습니다. 매입일 기준 재선정 안내가 있으면 위 안내를 먼저 확인하세요.")
         else:
-            _held_qty = ({} if _holdings_pnl.empty else
-                         _holdings_pnl.groupby("ticker")["quantity"].sum().to_dict())
+            _held_qty = _managed["quantities"]
             # 현재가는 재추천 결과의 근거 표에서 꺼낸다(코어·새틀라이트). 페이지를 열 때 조회하는 것은 BIL 하나뿐 —
             # 종목 가격 조회는 차트 버튼을 눌렀을 때만 한다는 원칙 유지.
-            _trade_rows = cr.order_rows_with_shares(
-                _trades, cr.reference_prices(_rec, [r["ticker"] for r in _trades], fetch=_bil_only), _held_qty)
+            _prices = cr.reference_prices(_rec, [r["ticker"] for r in _trades], fetch=_bil_only)
+            _prices.update(_managed["prices"])
+            _trade_rows = cr.order_rows_with_shares(_trades, _prices, _held_qty)
             for _r in _trade_rows:
                 _r["held_qty"] = _held_qty.get(_r["ticker"])
             _cash_now = _plan["total"] - sum(float(r["current_value"]) for r in _plan["rows"])
             _ws = cr.whole_share_orders(_trade_rows, _cash_now)
             _trade_rows = _ws["rows"]
             _steps = cr.order_steps(_ws)
+            _unpriced = [r["ticker"] for r in _trade_rows if r.get("price") is None]
             _md = []
-            if _steps["sell"]:
-                _md.append("**① 먼저 팔기**\n" + "\n".join(f"- {x}" for x in _steps["sell"]))
-            if _steps["buy"]:
-                _md.append(("**② 판 돈으로 사기**" if _steps["sell"] else "**① 사기**") + "\n"
-                           + "\n".join(f"- {x}" for x in _steps["buy"]))
-            if _steps["skip"]:
-                _md.append("**이번엔 안 해도 되는 것**\n" + "\n".join(f"- {x}" for x in _steps["skip"]))
-            st.markdown("\n\n".join(_md) if _md else "지금 사고팔 것이 없습니다.")
-            st.caption(f"위대로 다 하면 현금 약 ${_steps['leftover_cash']:,.0f}가 남습니다. 주문은 장 마감 무렵 시장가로 합니다. "
-                       "각 종목의 목표 금액(계좌 총액 × 목표 비중)에 가장 가까운 주식 수로 맞춘 것입니다.")
-            with st.expander("계산 근거 표 보기 (종목별 지금 금액 → 주문 후 → 목표)"):
-                st.dataframe(
-                    pd.DataFrame([
-                        {"종목": r["ticker"], "주문": cr.whole_share_text(r),
-                         "현재가": f"${r['price']:,.2f}" if r.get("price") else "—",
-                         "지금 보유 금액": f"${r['current_value']:,.0f}", "주문 후": f"${r['after_value']:,.0f}",
-                         "목표 금액": f"${r['target_value']:,.0f}"}
-                        for r in _trade_rows
-                    ]),
-                    use_container_width=True, hide_index=True,
-                )
-            if any(r["action"] in ("매도", "전량 매도") for r in _trades):
-                st.caption("매도를 먼저 하고 그 돈으로 매수하는 순서입니다.")
+            if _unpriced:
+                st.warning(f"{', '.join(_unpriced)} 기준가가 없어 주문 목록이 불완전합니다. 가격이 갱신될 때까지 거래를 보류하세요.")
+            else:
+                if _steps["sell"]:
+                    _md.append("**1. 먼저 팔기**\n" + "\n".join(f"- {x}" for x in _steps["sell"]))
+                if _steps["buy"]:
+                    _md.append(("**2. 판 돈으로 사기**" if _steps["sell"] else "**1. 사기**") + "\n"
+                               + "\n".join(f"- {x}" for x in _steps["buy"]))
+                st.markdown("\n\n".join(_md) if _md else "오늘 조정할 종목은 없습니다.")
+                st.caption(f"매도 후 매수 · 예상 잔여 현금 ${_steps['leftover_cash']:,.0f} · 장 마감 무렵 시장가 기준. 실제 주문은 증권사에서 직접 합니다.")
+                if _steps["skip"]:
+                    with st.expander(f"이번에 거래하지 않는 종목 {len(_steps['skip'])}개"):
+                        for _line in _steps["skip"]:
+                            st.write(_line)
+            if not _unpriced:
+                with st.expander("계산 근거 표 보기"):
+                    st.dataframe(
+                        pd.DataFrame([
+                            {"종목": r["ticker"], "주문": cr.whole_share_text(r),
+                             "현재가": f"${r['price']:,.2f}" if r.get("price") else "—",
+                             "지금 보유 금액": f"${r['current_value']:,.0f}", "주문 후": f"${r['after_value']:,.0f}",
+                             "목표 금액": f"${r['target_value']:,.0f}"}
+                            for r in _trade_rows
+                        ]),
+                        use_container_width=True, hide_index=True,
+                    )
+            if not _unpriced and any(r["action"] in ("매도", "전량 매도") for r in _trades):
                 # 세금 미리보기: 켰을 때만 환율을 읽는다(페이지 진입 시 조회 최소화 원칙)
                 if _plan["basis"] != "fresh" and st.toggle("🧾 이 매도들의 세금 미리보기(원화·양도세 22%)", key="champion_tax_preview"):
                     try:
@@ -444,41 +455,27 @@ else:
                         _page_link("views/16_세후_수익_계산.py", "🧾 세후 수익 계산 — 내 계좌 올해 세금")
                     except Exception as _exc:  # noqa: BLE001
                         st.warning(f"세금 미리보기를 계산하지 못했습니다: {type(_exc).__name__}: {_exc}")
-        _keep = [r["ticker"] for r in _plan["rows"] if r["action"] == "유지"]
-        if _can_act and _keep:
-            st.caption(f"그대로 두면 되는 종목: {', '.join(_keep)}")
-        if _can_act and _plan["target_cash"] > 0.5:
-            st.caption(f"현금으로 남겨 둘 금액: ${_plan['target_cash']:,.0f}")
-
         # --- 종목 차트: 누른 종목 하나만 가격을 받아 그린다(페이지 진입 시 전 종목을 조회하지 않음) ---
         _chart_choices = cr.chart_tickers(_targets)
         if _chart_choices:
-            _chart_pick = st.pills(
-                "📈 종목 차트 — 종목을 누르면 가격 차트와 '지금 사면 몇 주'가 열립니다",
-                options=_chart_choices, selection_mode="single", default=None, key="champion_todo_chart_ticker",
-            )
-            if _chart_pick:
-                _render_ticker_chart(
-                    _chart_pick,
-                    sleeve={r["ticker"]: r["sleeve"] for r in _targets}.get(_chart_pick, ""),
-                    plan_row=(next((r for r in _plan["rows"] if r["ticker"] == _chart_pick), None)
-                              if _can_act else None),
-                    evidence_row=next((r for r in (_sat.get("evidence") or []) if r.get("ticker") == _chart_pick), None),
-                    evidence_as_of=str(_rec.get("as_of") or "") or None,
+            with st.expander("종목 차트 보기"):
+                _chart_pick = st.pills(
+                    "종목 선택", options=_chart_choices, selection_mode="single", default=None,
+                    key="champion_todo_chart_ticker",
                 )
+                if _chart_pick:
+                    _render_ticker_chart(
+                        _chart_pick,
+                        sleeve={r["ticker"]: r["sleeve"] for r in _targets}.get(_chart_pick, ""),
+                        plan_row=(next((r for r in _plan["rows"] if r["ticker"] == _chart_pick), None)
+                                  if _can_act and not _managed["missing"] else None),
+                        evidence_row=next((r for r in (_sat.get("evidence") or []) if r.get("ticker") == _chart_pick), None),
+                        evidence_as_of=str(_rec.get("as_of") or "") or None,
+                    )
 
         # --- 4단계: 다음에 다시 볼 날 ---
         _cp = cr.next_checkpoints()
-        st.markdown("**다음 확인일**")
-        st.markdown(
-            f"- **코어**: 매달 첫 거래일에 다시 봅니다 → 다음 **{_cp['core_next']}**\n"
-            f"- **새틀라이트**: 오늘 사면 **{_cp['satellite_next']}**(매수일 + 6개월)까지 그대로 둡니다. "
-            "그 사이에 목록이 바뀌어도 교체하지 않는 것이 이 전략의 규칙입니다."
-        )
-        st.caption(
-            "이 화면은 주문하지 않습니다 — 증권사에서 직접 주문하거나 paper 계좌는 scripts/champion_paper_trade.py 를 씁니다. "
-            "확신도가 약한(weak) 구성요소가 있으며 미래 수익을 보장하지 않습니다(아래 '근거와 확신도')."
-        )
+        st.caption(f"다음 확인 · 코어 {_cp['core_next']} · 오늘 산 새틀라이트 {_cp['satellite_next']} (매수일부터 6개월 보유)")
 
         with st.expander("목표 비중과 처음 매수 계산 자세히 보기"):
             st.caption(f"추천 기준일 {_rec.get('as_of')} · 계산 {_rec_when} UTC. 보유가 등록돼 있으면 위 주문 순서는 등록 보유·현금으로 계산했습니다.")

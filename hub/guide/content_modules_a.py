@@ -320,7 +320,7 @@ MODULES: tuple[ModuleGuide, ...] = (
             "최대낙폭·SPY 대비 초과수익·SPY 를 이긴 구간 비율, 주간 추적 판정이 쓰는 분위 계산과 같은 것), ③ 근거(각 결정의 "
             "확신도 등급, 종목별 돌파 발생일·모멘텀 순위·트레일링스탑 여유·섹터, 기각된 아이디어, 진행 중인 검증 연구 판정), "
             "④ 지금 할 일 — 목표 비중표(target_allocation), '포트폴리오' 화면에 입력한 보유와 비교한 매도/매수 목록(order_plan, "
-            "보유가 없으면 '처음 매수'), 추천이 낡았는지(freshness: 지난달 결과이거나 오늘 계산한 코어와 다르면 다시 계산 요청), "
+            "보유가 없으면 '처음 매수'; 직접 관리 보유는 제외하고 챔피언 보유의 가격이 빠지면 주문 수량 보류), 추천이 낡았는지(freshness: 지난달 결과이거나 오늘 계산한 코어와 다르면 다시 계산 요청), "
             "다음에 다시 볼 날(next_checkpoints). 어제 밤 저장 상태와의 비교는 코어만 합니다 — 그 저장 상태의 새틀라이트는 "
             "빠른 근사 스캔(다른 방법론)이라 비교하면 매번 '교체 필요'가 뜨기 때문입니다."
         ),
@@ -345,7 +345,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         ),
         sources=("core/champion_strategy.py", "core/champion_tracking.py", "core/champion_performance.py",
                  "app/views/11_챔피언_전략.py"),
-        verified="2026-10-02",
+        verified="2026-10-27",
     ),
     ModuleGuide(
         module="core/core_lab.py", name="코어 R&D 엔진", group="리서치 인프라", status="실험",

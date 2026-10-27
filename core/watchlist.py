@@ -280,7 +280,8 @@ def send_triggered_summary_telegram(
         return {"status": "failed", "count": len(pending), "text": text}
 
     for r in pending:
-        sent[_sent_key(r)] = r.as_of or date.today().isoformat()
+        # 신호일은 키에 남기되, 보관 기간은 실제 발송일부터 센다.
+        sent[_sent_key(r)] = date.today().isoformat()
     try:
         _save_sent_keys(path, sent)
     except Exception as exc:  # 상태 저장 실패가 잡을 죽이면 안 된다(최악의 경우 다음 실행에서 한 번 더 감)

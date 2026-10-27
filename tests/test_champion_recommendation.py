@@ -552,7 +552,7 @@ def test_button_click_fills_four_blocks(page_env, monkeypatch, tmp_path):
     assert "오늘의 행동" in txt
     assert "지금 실행 순서" in txt and "처음부터 매수" in txt
     assert any("목표 비중과 처음 매수 계산" in e.label for e in at.expander)
-    assert "다음 확인일" in txt
+    assert "다음 확인 · 코어" in txt
     # 근거·분포·확신도는 카드 아래 탭으로 내려가 있다
     assert "추천 상세" in txt
     assert "코어를 만든 결정" in txt
@@ -658,6 +658,25 @@ def test_target_allocation_puts_filter_cut_into_cash():
     rows = cr.target_allocation(_rec_for_todo(status="below"))
     cash = [r for r in rows if r["ticker"] == cr.CASH_TICKER]
     assert cash and cash[0]["weight"] == pytest.approx(cs.CORE_WEIGHT * 0.5)
+
+
+def test_managed_holding_values_excludes_direct_lots_and_flags_missing_prices():
+    lots = [
+        {"ticker": "XLE", "quantity": 2, "strategy_role": "코어"},
+        {"ticker": "NVDA", "quantity": 3, "strategy_role": "직접 관리"},
+        {"ticker": "XLK", "quantity": 1, "strategy_role": "코어"},
+    ]
+    pnl = pd.DataFrame([
+        {"ticker": "XLE", "current_price": 70.0},
+        {"ticker": "NVDA", "current_price": 500.0},
+        {"ticker": "XLK", "current_price": float("nan")},
+    ])
+    result = cr.managed_holding_values(lots, pnl)
+    assert result["values"] == {"XLE": 140.0}
+    assert result["quantities"] == {"XLE": 2.0, "XLK": 1.0}
+    assert result["prices"] == {"XLE": 70.0}
+    assert result["missing"] == ["XLK"]
+    assert result["excluded"] == ["NVDA"]
 
 
 def test_order_plan_fresh_buys_everything_with_capital():
