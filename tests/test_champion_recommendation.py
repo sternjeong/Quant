@@ -540,6 +540,25 @@ def test_page_shows_button_without_starting_any_job(page_env):
     assert "_job_slot::champion_recommendation" not in at.session_state
 
 
+def test_existing_core_is_not_rebalanced_before_next_month(page_env, monkeypatch, tmp_path):
+    from core import portfolio
+
+    rec = _compute(tmp_path / "rec-cache")
+    rec["as_of"] = date.today().isoformat()
+    rec["params"]["as_of"] = rec["as_of"]
+    lots = [{"ticker": "XLE", "quantity": 6, "strategy_role": "코어"}]
+    monkeypatch.setattr(portfolio, "list_holdings", lambda: lots)
+    monkeypatch.setattr(portfolio, "get_portfolio_pnl", lambda: pd.DataFrame([
+        {"ticker": "XLE", "quantity": 6, "current_price": 70.0, "market_value": 420.0}]))
+    monkeypatch.setattr(portfolio, "get_cash_balance", lambda: 0.0)
+    monkeypatch.setattr(portfolio, "holding_review_actions", lambda *a, **k: [])
+
+    at = _run_page_with_rec(page_env, rec)
+    txt = _text(at)
+    assert "코어는 이번 달 교체 대상이 아닙니다" in txt
+    assert "먼저 팔기" not in txt
+
+
 def test_button_click_fills_four_blocks(page_env, monkeypatch, tmp_path):
     result = _compute(tmp_path / "rec-cache")
     monkeypatch.setattr(cr, "compute_recommendation", lambda *a, **k: result)

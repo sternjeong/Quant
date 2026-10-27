@@ -325,6 +325,7 @@ else:
     _rec_when = str(_rec.get("computed_at", ""))[:16].replace("T", " ")
 
     _targets = cr.target_allocation(_rec)
+    _cp = cr.next_checkpoints()
     _holdings_pnl = get_portfolio_pnl()
     _my_lots = portfolio_module.list_holdings()
     _managed = cr.managed_holding_values(_my_lots, _holdings_pnl)
@@ -363,9 +364,14 @@ else:
         # 행동을 먼저, 목표 비중과 근거는 아래 접힌 칸에 둔다.
         st.markdown("**지금 실행 순서**")
         _managed_sat = {h["ticker"] for h in _my_lots if h.get("strategy_role") == "새틀라이트"}
+        _managed_core = {h["ticker"] for h in _my_lots if h.get("strategy_role") == "코어"}
+        _review_actions = []
         if hasattr(portfolio_module, "holding_review_actions"):
-            for _due in portfolio_module.holding_review_actions(_my_lots, _rec):
+            _review_actions = portfolio_module.holding_review_actions(_my_lots, _rec)
+            for _due in _review_actions:
                 st.warning(f"{_due['title']} — {_due['detail']}")
+        _core_locked = bool(_managed_core) and not any(
+            a.get("strategy_role") == "코어" for a in _review_actions)
         if _managed_sat:
             st.caption("보유 중인 새틀라이트는 매입일로부터 6개월이 될 때 위 안내에 따라 확인합니다.")
         if _fresh_account:
@@ -378,15 +384,21 @@ else:
             st.caption(f"등록한 챔피언 보유와 현금 기준 ${_plan['total']:,.0f} · 증권사 잔고와 다르면 포트폴리오에서 고쳐 주세요.")
         if _managed["excluded"]:
             st.caption(f"직접 관리 종목은 주문 대상에서 제외: {', '.join(_managed['excluded'])}")
+        if _core_locked:
+            st.caption(f"코어는 이번 달 교체 대상이 아닙니다. 다음 확인일 {_cp['core_next']}.")
         _trades = [r for r in _plan["rows"] if r["action"] != "유지" and not (
-            _managed_sat and (r["ticker"] in _managed_sat or "새틀라이트" in r["sleeve"]))]
+            _managed_sat and (r["ticker"] in _managed_sat or "새틀라이트" in r["sleeve"]))
+            and not (_core_locked and (r["ticker"] in _managed_core or r["sleeve"].startswith("코어")))]
         _can_act = _fresh["ok"] and _core.get("market_filter_status") != "unknown"
         if not _can_act:
             st.info("추천이 갱신되고 시장필터가 확인되면 여기서 매도·매수 수량을 보여 드립니다.")
         elif _managed["missing"]:
             st.warning(f"보유 종목 {', '.join(_managed['missing'])}의 현재가가 없어 주문 수량을 계산할 수 없습니다. 가격을 갱신한 뒤 다시 확인하세요.")
         elif not _trades:
-            st.info("추가 비중 조정 목록이 없습니다. 매입일 기준 재선정 안내가 있으면 위 안내를 먼저 확인하세요.")
+            if _core_locked:
+                st.info(f"오늘은 코어 교체일이 아닙니다. 등록한 코어 보유는 그대로 두고 {_cp['core_next']}에 다시 확인하세요.")
+            else:
+                st.info("오늘 조정할 종목이 없습니다. 매입일 기준 재선정 안내가 있으면 위 안내를 먼저 확인하세요.")
         else:
             _held_qty = _managed["quantities"]
             # 현재가는 재추천 결과의 근거 표에서 꺼낸다(코어·새틀라이트). 페이지를 열 때 조회하는 것은 BIL 하나뿐 —
@@ -474,7 +486,6 @@ else:
                     )
 
         # --- 4단계: 다음에 다시 볼 날 ---
-        _cp = cr.next_checkpoints()
         st.caption(f"다음 확인 · 코어 {_cp['core_next']} · 오늘 산 새틀라이트 {_cp['satellite_next']} (매수일부터 6개월 보유)")
 
         with st.expander("목표 비중과 처음 매수 계산 자세히 보기"):
