@@ -10,8 +10,11 @@ nginx가 80번 포트(`/`)를 이 서버(기본 127.0.0.1:8000)로 프록시한�
 from __future__ import annotations
 
 import html
+import os
 import re
+import subprocess
 import sys
+import time
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -106,7 +109,7 @@ LOGIN_PAGE = """<!doctype html><html lang="ko"><head><meta charset="utf-8">
 
 # 슬롯별 아이콘(행 왼쪽). 새 슬롯은 kind 기본 아이콘을 쓴다.
 SLOT_ICONS = {
-    "streamlit": "📊", "code-server": "💻", "scheduler": "⏱", "alpaca": "🧪", "research": "🤖", "satellite-lab": "🛰", "ops": "🛡",
+    "streamlit": "📊", "google-otp": "🔐", "code-server": "💻", "scheduler": "⏱", "alpaca": "🧪", "research": "🤖", "satellite-lab": "🛰", "ops": "🛡",
     "report-daily-briefing": "🗞", "report-champion-weekly": "🏆", "report-news-digest": "📰",
     "codex-telegram": "💬", "vm-health": "🩺", "session-resume": "🔁",
 }
@@ -178,6 +181,8 @@ def _slot_href(slot: AppSlot, host: str) -> str:
         return "/satellite-lab"
     if slot.kind == "session_resume":
         return "/session-resume"
+    if slot.kind == "otp":
+        return "/otp"
     return f"/status/{slot.id}"
 
 
@@ -316,6 +321,76 @@ def render_dashboard(host: str) -> str:
     return ui.page("개요", body, active="/", refresh=REFRESH_SECONDS)
 
 
+def render_otp_page(*, code: str = "", error: str = "", seconds_left: int = 0) -> str:
+    """Hub login 뒤 GPG 암호로 잠금 해제한 뒤에만 Google TOTP 코드를 보여준다."""
+    message = f'<p class="note bad" role="alert">{html.escape(error)}</p>' if error else ""
+    result = ""
+    if code:
+        result = (
+            '<section class="panel otp-result" aria-live="polite">'
+            '<p class="meta">현재 인증 코드</p>'
+            f'<output class="otp-code">{html.escape(code)}</output>'
+            f'<p id="otp-expiry" class="meta">약 {int(seconds_left)}초 뒤 만료</p>'
+            '</section>'
+        )
+    body = (
+        '<h1>Google OTP</h1>'
+        '<p class="lead">VM에 암호화해 저장한 설정으로 현재 6자리 코드를 생성합니다.</p>'
+        '<div class="callout"><div class="ico" aria-hidden="true">🔒</div>'
+        '<div>코드를 만들 때마다 OTP 저장에 사용한 GPG 암호가 필요합니다. 설정 키 자체는 화면에 표시하지 않습니다.</div></div>'
+        f'{message}{result}'
+        '<form method="post" action="/otp/code" class="panel" autocomplete="off">'
+        '<label for="otp-passphrase">GPG 암호</label>'
+        '<input id="otp-passphrase" name="passphrase" type="password" autocomplete="off" '
+        'autocapitalize="none" spellcheck="false" required>'
+        '<p><button class="btn primary" type="submit">인증 코드 보기</button></p>'
+        '</form>'
+    )
+    head_extra = (
+        '<style>.otp-result{margin:12px 0}.otp-code{display:block;margin:.4rem 0;font-family:var(--mono);'
+        'font-size:clamp(2.2rem,10vw,3.4rem);font-weight:750;letter-spacing:.18em;color:var(--text);'
+        'font-variant-numeric:tabular-nums}.panel label{display:block;color:var(--text-2);font-size:.86rem;margin-bottom:.4rem}'
+        '.panel input{width:100%;min-height:48px;padding:.65rem .8rem;border:1px solid var(--border-2);'
+        'border-radius:10px;background:var(--surface-2)}.panel button{min-height:48px}</style>'
+    )
+    if code:
+        head_extra += (
+            f'<script>document.addEventListener("DOMContentLoaded",function(){{let left={max(0, int(seconds_left))};'
+            'let el=document.getElementById("otp-expiry"),code=document.querySelector(".otp-code");'
+            'let timer=setInterval(function(){left-=1;if(left<=0){clearInterval(timer);code.textContent="만료됨";'
+            'el.textContent="새 코드를 생성하세요.";return;}el.textContent="약 "+left+"초 뒤 만료";},1000);});</script>'
+        )
+    return ui.page("Google OTP", body, crumbs=(("/", "개요"), ("", "앱")), head_extra=head_extra)
+
+
+def _generate_google_otp(passphrase: str) -> tuple[str, int] | None:
+    """Decrypt only in memory and pass the secret to oathtool over stdin, never argv or logs."""
+    secret_file = Path(os.environ.get("QUANT_GOOGLE_OTP_FILE", "/var/lib/quant-hub/google-otp.gpg"))
+    if not secret_file.is_file():
+        return None
+    try:
+        decrypted = subprocess.run(
+            ["gpg", "--batch", "--pinentry-mode", "loopback", "--passphrase-fd", "0",
+             "--decrypt", "--quiet", str(secret_file)],
+            input=(passphrase + "\n").encode("utf-8"), stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL, timeout=8, check=False,
+        )
+        if decrypted.returncode != 0 or not decrypted.stdout:
+            return None
+        generated = subprocess.run(
+            ["oathtool", "--totp", "--base32", "-"], input=decrypted.stdout,
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=3, check=False,
+        )
+        if generated.returncode != 0:
+            return None
+        code = generated.stdout.decode("ascii", "strict").strip()
+        if not re.fullmatch(r"\d{6}", code):
+            return None
+        return code, 30 - (int(time.time()) % 30)
+    except (OSError, subprocess.TimeoutExpired, UnicodeError):
+        return None
+
+
 def _stamp() -> str:
     return f'<p class="stamp">마지막 갱신 {datetime.now():%Y-%m-%d %H:%M:%S}</p>'
 
@@ -434,11 +509,14 @@ class HubRequestHandler(BaseHTTPRequestHandler):
     def log_message(self, format: str, *args) -> None:  # noqa: A002 (BaseHTTPRequestHandler 시그니처)
         pass  # 접속 로그는 journalctl 대신 systemd 자체 stdout 캡처에 맡기지 않고 조용히 무시
 
-    def _send_html(self, body: str, status: int = 200) -> None:
+    def _send_html(self, body: str, status: int = 200, *, no_store: bool = False) -> None:
         payload = body.encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(payload)))
+        if no_store:
+            self.send_header("Cache-Control", "no-store, max-age=0")
+            self.send_header("Pragma", "no-cache")
         self.end_headers()
         self.wfile.write(payload)
 
@@ -446,6 +524,7 @@ class HubRequestHandler(BaseHTTPRequestHandler):
         path = urlparse(self.path).path
         is_contest = path.startswith("/contests/")
         if path not in ("/research/models", "/processes/toggle", "/processes/confirm", "/rnd/topics",
+                        "/otp/code",
                         "/session-resume/toggle") and not is_contest:
             self._send_html("not found", 404)
             return
@@ -454,6 +533,19 @@ class HubRequestHandler(BaseHTTPRequestHandler):
             return
         length = min(int(self.headers.get("Content-Length") or 0), 16384)
         form = parse_qs(self.rfile.read(length).decode("utf-8", "replace"))
+
+        if path == "/otp/code":
+            passphrase = (form.get("passphrase") or [""])[0]
+            if not passphrase or len(passphrase) > 4096:
+                page = render_otp_page(error="GPG 암호를 입력해 주세요.")
+            else:
+                result = _generate_google_otp(passphrase)
+                # Drop the local reference as soon as generation returns; never echo or log the passphrase.
+                passphrase = ""
+                page = (render_otp_page(code=result[0], seconds_left=result[1]) if result else
+                        render_otp_page(error="코드를 만들지 못했습니다. 암호가 맞는지, 암호화된 OTP 파일이 있는지 확인해 주세요."))
+            self._send_html(page, no_store=True)
+            return
 
         if is_contest:
             target, error = contests_page.handle_post(path, form)
@@ -544,6 +636,8 @@ class HubRequestHandler(BaseHTTPRequestHandler):
             self._send_html(render_ops_page())
         elif path == "/session-resume":
             self._send_html(render_session_resume_page())
+        elif path == "/otp":
+            self._send_html(render_otp_page(), no_store=True)
         elif path in ("/guide", "/guide/"):
             from hub.guide import render_guide_page
 

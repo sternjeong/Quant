@@ -1,3 +1,13 @@
+## 2026-10-27 관제 센터 Google OTP 앱 슬롯 — 구현, 배포 대기
+
+- 요청: Google Authenticator에 등록한 설정으로 VM이 6자리 TOTP를 만들고, Quant 관제 센터 앱 슬롯에서 볼 수 있게 한다.
+- 구현: `hub/apps_registry.py`에 Google OTP 슬롯, `hub/server.py`에 페이지/코드 생성 POST 경로를 추가했다. OTP 비밀은 GPG 암호화 파일(`/var/lib/quant-hub/google-otp.gpg`)에서만 읽고 GPG 암호 입력 시 메모리에서 복호화한다. 설정 키는 HTML·프로세스 인자·로그에 넣지 않으며, OTP 화면 응답은 no-store, 같은 출처 POST로 제한하고 30초 뒤 화면의 코드를 만료 처리한다. GPG 암호는 페이지를 열 때마다 입력한다.
+- 안내: `/guide` 시작 안내에 OTP 슬롯 사용법과 비밀값을 공유하지 말라는 설명을 추가했다.
+- 비밀 파일: 사용자가 이미 만든 GPG 암호화 파일을 `/var/lib/quant-hub/google-otp.gpg`에 복사했고 소유자는 `quant:quant`, 권한은 600이다. 설정 키·암호는 문서에 기록하지 않았다.
+- 상태: 별도 작업 브랜치 `codex/google-otp-hub`(기준 `origin/main` 16da542)에서 코드 변경 완료. 테스트를 실행하지 않았고 아직 커밋·푸시·자동배포하지 않았다. 기존 VM 배포 관문에서 테스트 통과 후 반영해야 하며, 슬롯이 실제로 보이는지는 배포 뒤 확인한다.
+- 수정 파일: `hub/apps_registry.py`, `hub/server.py`, `hub/guide/content_ops.py`, `docs/SESSION_HANDOFF.md`, `PROGRESS.md`.
+- 다음: 코드 검토 → 테스트 관문을 통해 origin/main에 반영 → 자동배포와 슬롯 접근 확인.
+
 ## 2026-10-27 챔피언 추종 WBD 현금 인수·지금 할 일 화면 개선 — 구현·로컬 검증 진행, VM 배포 대기
 
 - 요청: 챔피언 성과 B의 `WBD 2026-10-07` 가격 누락으로 계산이 멈추는 문제를 고치고, '지금 할 일'을 정보 나열보다 행동 중심으로 개선.
