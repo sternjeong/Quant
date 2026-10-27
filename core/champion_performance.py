@@ -60,7 +60,8 @@ PriceFn = Callable[..., dict]
 # 순수 계산 (테스트에서 합성 가중치·가격으로 직접 부른다)
 # ----------------------------------------------------------------------------
 
-def sleeve_contributions(closes: pd.DataFrame, weights: pd.DataFrame, cost_bps_per_side: float) -> dict:
+def sleeve_contributions(closes: pd.DataFrame, weights: pd.DataFrame, cost_bps_per_side: float,
+                         fee_exempt_exit_after: Optional[dict[str, str]] = None) -> dict:
     """cs._compute_portfolio_returns 와 같은 관례로 티커별 일별 기여(비용 반영)를 분해한다.
 
     contrib[t, i] = r[t, i] * w_exec[t, i] - |w_exec[t, i] - w_exec[t-1, i]| * cost
@@ -70,6 +71,10 @@ def sleeve_contributions(closes: pd.DataFrame, weights: pd.DataFrame, cost_bps_p
     daily_ret = closes.pct_change().fillna(0.0)
     executed = weights.shift(1).fillna(0.0)
     turnover = (executed - executed.shift(1).fillna(0.0)).abs()
+    for ticker, since in (fee_exempt_exit_after or {}).items():
+        if ticker in turnover:
+            change = executed[ticker] - executed[ticker].shift(1).fillna(0.0)
+            turnover.loc[(turnover.index >= pd.Timestamp(since)) & (change < 0), ticker] = 0.0
     cost = turnover * (cost_bps_per_side / 10000.0)
     contrib = daily_ret * executed - cost
     return {"contrib": contrib, "executed": executed, "ret_net": contrib.sum(axis=1)}
@@ -98,6 +103,7 @@ def extract_trades(
     sleeve_weight: float,
     portfolio_growth_prev: pd.Series,
     spy_close: pd.Series,
+    fee_exempt_exit_after: Optional[dict[str, str]] = None,
 ) -> tuple[list[dict], list[dict]]:
     """한 슬리브의 비중 시계열에서 보유 구간(거래) 목록과 비중 변화 이벤트를 복원한다.
 
@@ -109,7 +115,7 @@ def extract_trades(
     환산하는 데 쓴다. sleeve_weight: 전체 포트폴리오에서 이 슬리브 비중(코어 0.85 등).
     반환 손익(pnl_x)은 초기 금액 대비 배수(0.012 = 초기 금액의 1.2%)다.
     """
-    parts = sleeve_contributions(closes, weights, cost_bps_per_side)
+    parts = sleeve_contributions(closes, weights, cost_bps_per_side, fee_exempt_exit_after)
     contrib, executed = parts["contrib"], parts["executed"]
     idx = weights.index
     n = len(idx)
@@ -335,10 +341,12 @@ def analyze_backtest(bt: dict, price_fn: Optional[PriceFn] = None) -> dict:
         sat_idx = satellite["ret_net"].index
         sat_closes = sat_closes.reindex(sat_idx).ffill()
         sat_weights = _satellite_weights_from_log(satellite["rebal_log"], sat_closes)
-        sat_parts = sleeve_contributions(sat_closes, sat_weights, cs.SATELLITE_COST_BPS_PER_SIDE)
+        fee_exempt = satellite.get("fee_exempt_exit_after") or {}
+        sat_parts = sleeve_contributions(sat_closes, sat_weights, cs.SATELLITE_COST_BPS_PER_SIDE, fee_exempt)
         recon_sat = float((sat_parts["ret_net"] - satellite["ret_net"]).abs().max())
         s_trades, s_events = extract_trades(SLEEVE_SATELLITE, sat_closes, sat_weights, cs.SATELLITE_COST_BPS_PER_SIDE,
-                                            sw, growth_prev.reindex(sat_idx).fillna(1.0), spy_close.reindex(sat_idx).ffill())
+                                            sw, growth_prev.reindex(sat_idx).fillna(1.0), spy_close.reindex(sat_idx).ffill(),
+                                            fee_exempt)
         trades += s_trades
         events += s_events
         sat_growth = (1.0 + satellite["ret_net"]).cumprod()

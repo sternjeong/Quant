@@ -587,7 +587,9 @@ def _build_core_weights(
     return weights
 
 
-def _compute_portfolio_returns(closes: pd.DataFrame, weights: pd.DataFrame, cost_bps_per_side: float = BACKTEST_COST_BPS_PER_SIDE) -> dict:
+def _compute_portfolio_returns(closes: pd.DataFrame, weights: pd.DataFrame,
+                               cost_bps_per_side: float = BACKTEST_COST_BPS_PER_SIDE,
+                               fee_exempt_exit_after: dict[str, str] | None = None) -> dict:
     """비중 시계열로부터 (비용반영 순수익률, 회전율, 자산가치곡선)을 계산한다.
 
     weights.shift(1)로 "비중이 결정된 다음 거래일부터 체결"하는 lookahead 방지 관례를 쓴다.
@@ -597,8 +599,13 @@ def _compute_portfolio_returns(closes: pd.DataFrame, weights: pd.DataFrame, cost
     port_ret_gross = (daily_ret * executed_weights).sum(axis=1)
 
     prev_executed = executed_weights.shift(1).fillna(0.0)
-    turnover = (executed_weights - prev_executed).abs().sum(axis=1)
-    cost = turnover * (cost_bps_per_side / 10000.0)
+    change = executed_weights - prev_executed
+    turnover = change.abs().sum(axis=1)
+    charged = change.abs()
+    for ticker, since in (fee_exempt_exit_after or {}).items():
+        if ticker in charged:
+            charged.loc[(charged.index >= pd.Timestamp(since)) & (change[ticker] < 0), ticker] = 0.0
+    cost = charged.sum(axis=1) * (cost_bps_per_side / 10000.0)
     port_ret_net = port_ret_gross - cost
 
     equity_net = (1.0 + port_ret_net).cumprod() * 100.0

@@ -72,6 +72,56 @@ def test_missing_satellite_data_fails_instead_of_cash():
         cf.compute_follow_performance("2026-10-13", use_cache=False, **kwargs)
 
 
+def test_wbd_cash_merger_pays_out_and_then_stays_cash():
+    kwargs, _ = inputs()
+    original_price = kwargs["price_fn"]
+    def price(tickers, **options):
+        histories = original_price(tickers, **options)
+        if "WBD" in tickers:
+            days = pd.bdate_range("2024-01-01", "2026-10-06")
+            histories["WBD"] = pd.DataFrame({"Close": 30.95, "Adj Close": 30.95}, index=days)
+        return histories
+    kwargs["price_fn"] = price
+    kwargs["pick_fn"] = lambda dt: {"picks": ["WBD"], "weights": {"WBD": 1.0},
+                                    "pool_size": 40, "n_with_history": 40}
+    result = cf.compute_follow_performance("2026-10-13", use_cache=False, **kwargs)
+    assert result["reconciliation"]["ok"]
+    assert result["cash_mergers"][0]["cash_per_share"] == 31.01666668
+    assert result["summary"]["total_return_pct"] == pytest.approx(
+        ((1 + 0.85 * 0.1 - 0.85 * .0003 - 0.15 * .0008)
+         * (1 + 0.15 * (31.01666668 / 30.95 - 1)) - 1) * 100,
+        abs=1e-4)
+    assert {r["ticker"] for r in result["initial_allocation"]} == {cs.CORE_UNIVERSE[0], "WBD"}
+    assert {r["ticker"] for r in result["latest_allocation"]} == {cs.CORE_UNIVERSE[0], "CASH"}
+    assert next(r for r in result["latest_allocation"] if r["ticker"] == "CASH")["weight"] == pytest.approx(.15)
+    assert any(e["ticker"] == "WBD" and e["action"] == "현금인수" and e["date"] == "2026-10-06"
+               for e in result["events"])
+    assert next(t for t in result["trades"] if t["ticker"] == "WBD")["is_open"] is False
+
+
+def test_cash_merger_has_no_second_sale_fee_at_next_reselection():
+    kwargs, _ = inputs(end="2027-04-07")
+    original_price = kwargs["price_fn"]
+    def price(tickers, **options):
+        histories = original_price(tickers, **options)
+        if "WBD" in tickers:
+            days = pd.bdate_range("2024-01-01", "2026-10-06")
+            histories["WBD"] = pd.DataFrame({"Close": 30.95}, index=days)
+        return histories
+    kwargs["price_fn"] = price
+    kwargs["pick_fn"] = lambda dt: {"picks": ["WBD" if dt.month == 10 else "SATA"],
+                                    "weights": {"WBD" if dt.month == 10 else "SATA": 1.0},
+                                    "pool_size": 40, "n_with_history": 40}
+    result = cf.compute_follow_performance("2027-04-07", use_cache=False, **kwargs)
+    assert result["reconciliation"]["ok"]
+    assert not any(e["ticker"] == "WBD" and e["action"] == "매도" for e in result["events"])
+    assert next(t for t in result["trades"] if t["ticker"] == "WBD")["sell_date"] == "2026-10-06"
+    # 4/02에는 새 SATA 매수 8bp만 든다. 이미 10/06 현금화된 WBD를 다시 매도하지 않는다.
+    curve = cp.series_from_json(result["curves"]["satellite"])
+    april = pd.Timestamp("2027-04-02")
+    assert curve.loc[april] / curve.loc["2027-04-01"] - 1 == pytest.approx(-.0008, abs=1e-7)
+
+
 def test_reselection_holds_six_months_and_uses_actual_sessions():
     idx = pd.bdate_range("2026-10-01", "2027-10-05").difference(pd.DatetimeIndex(["2027-04-01"]))
     assert cf.reselection_dates(idx, cf.FOLLOW_START) == list(pd.to_datetime(["2026-10-01", "2027-04-02", "2027-10-01"]))
@@ -90,6 +140,7 @@ def test_page_displays_follow_result_without_using_legacy_ledger(monkeypatch, tm
     from core import personal_performance
     kwargs, _ = inputs()
     result = cf.compute_follow_performance("2026-10-13", use_cache=False, **kwargs)
+    result["cash_mergers"] = [dict(cf.WBD_CASH_MERGER)]
     monkeypatch.setattr(cf, "load_cached", lambda *a: result)
     monkeypatch.setattr(cp, "load_latest_cached", lambda **kw: None)
     monkeypatch.setattr(cp, "load_cached", lambda *a: None)
@@ -108,6 +159,7 @@ def test_page_displays_follow_result_without_using_legacy_ledger(monkeypatch, tm
     assert not at.exception
     assert any("10월 1일부터 챔피언 전략을 따랐다면" in m.value for m in at.markdown)
     assert any("현재 가상 자산" in m.value for m in at.markdown)
+    assert any("WBD" in m.value and "현금 인수" in m.value for m in at.info)
     assert any("10월 1일부터의 수익률 변화" in m.value for m in at.markdown)
     assert any("실제 계좌 전체 수익률은 아닙니다" in m.value for m in at.caption)
     assert any("같은 기간 2026-10-09~2026-10-12" in m.value for m in at.caption)

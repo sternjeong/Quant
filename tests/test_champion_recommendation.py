@@ -548,10 +548,11 @@ def test_button_click_fills_four_blocks(page_env, monkeypatch, tmp_path):
     at.button(key="champion_rec_button").click().run()
     assert not at.exception, [e.value for e in at.exception]
     txt = _text(at)
-    # 맨 위 카드: 목표 포트폴리오 → 주문 목록(보유 미등록이면 처음 매수) → 다음에 볼 날
-    assert "2단계 — 목표 포트폴리오" in txt
-    assert "3단계 — 주문 목록" in txt and "처음부터 매수" in txt
-    assert "4단계 — 다음에 다시 볼 날" in txt
+    # 맨 위 카드: 실행 순서가 먼저 나오고 상세 목표 비중은 접어 둔다.
+    assert "오늘의 행동" in txt
+    assert "지금 실행 순서" in txt and "처음부터 매수" in txt
+    assert any("목표 비중과 처음 매수 계산" in e.label for e in at.expander)
+    assert "다음 확인일" in txt
     # 근거·분포·확신도는 카드 아래 탭으로 내려가 있다
     assert "추천 상세" in txt
     assert "코어를 만든 결정" in txt
@@ -581,7 +582,9 @@ def test_cached_result_is_shown_on_revisit_with_age(page_env, tmp_path):
     # 같은 달이면 'N일 전', 달이 바뀌었으면 '다시 계산하세요' — 둘 다 기준일을 밝힌다
     assert res["params"]["as_of"] in txt
     assert ("3일 전" in txt) or ("다시 계산하세요" in txt)
-    assert "2단계 — 목표 포트폴리오" in txt
+    assert "오늘의 행동" in txt
+    if "다시 계산하세요" in txt:
+        assert "매도·매수 수량을 보여 드립니다" in txt
 
 
 def test_other_button_click_still_works_without_rec_job(page_env, monkeypatch):
@@ -825,7 +828,7 @@ def test_page_ticker_chart_loads_only_on_click(page_env, monkeypatch, tmp_path):
         return _ohlc()
 
     monkeypatch.setattr(md, "get_price_history", fake_history)
-    rec = _compute(tmp_path / "rec-cache")
+    rec = _compute(tmp_path / "rec-cache", as_of=date.today())
     at = _run_page_with_rec(page_env, rec)
     pills = at.pills(key="champion_todo_chart_ticker")
     assert "CCC" in pills.options and "XLK" in pills.options and "현금" not in pills.options

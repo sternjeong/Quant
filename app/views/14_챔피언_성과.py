@@ -545,6 +545,9 @@ else:
     fs = follow_result["summary"]
     fd = to_dollars(follow_result, capital)
     st.caption(f"진입일 {fs['start']} → 가격 기준일 {fs['end']} · 계산 {follow_result['computed_at'][:16]} UTC")
+    for action in follow_result.get("cash_mergers") or []:
+        st.info(f"{action['ticker']}는 {action['date']} 현금 인수로 주당 ${action['cash_per_share']:.5f}를 받은 것으로 계산했습니다. "
+                "이후 해당 몫은 현금으로 두며 새 종목으로 바꿔 보유한 것으로 처리하지 않습니다.")
     _kpis([
         ("현재 가상 자산", format_usd(fd["final_usd"]), f"{format_usd(capital)}로 시작"),
         ("손익", format_usd(fd["pnl_usd"], signed=True), format_pct(fs["total_return_pct"], 2)),

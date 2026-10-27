@@ -13,7 +13,11 @@ from core import champion_strategy as cs
 
 FOLLOW_START = "2026-10-01"
 CACHE_DIR = perf.CACHE_DIR
-SCHEMA = 1
+SCHEMA = 2
+# Nasdaq ECA2026-710: WBD 최종 거래 10/05, 10/06 현금 인수. 이후 값은 주가가 아니라 수령 현금이다.
+WBD_CASH_MERGER = {"ticker": "WBD", "date": "2026-10-06", "last_trade": "2026-10-05",
+                   "cash_per_share": 31.01666668,
+                   "source": "https://www.nasdaqtrader.com/TraderNews.aspx?id=ECA2026-710"}
 
 
 def today_kst() -> date:
@@ -72,6 +76,31 @@ def _require_prices(prices: pd.DataFrame, weights: pd.DataFrame) -> None:
     if bad.any().any():
         dates, columns = np.where(bad.to_numpy())
         raise ValueError(f"보유 종목 가격 누락: {weights.columns[columns[0]]} {weights.index[dates[0]].date()}")
+
+
+def _apply_cash_merger(histories: dict, index: pd.DatetimeIndex, selected: set[str]) -> tuple[dict, list[dict]]:
+    """확인된 현금 인수대금을 평가 경로에 넣는다. 다른 결측 종목에는 적용하지 않는다."""
+    action = WBD_CASH_MERGER
+    ticker, day = action["ticker"], pd.Timestamp(action["date"])
+    if ticker not in selected or index[-1] < day:
+        return histories, []
+    frame = histories.get(ticker)
+    if frame is None or frame.empty or "Close" not in frame:
+        raise ValueError(f"현금 인수 전 {ticker} 원가격이 없습니다")
+    before = frame.loc[frame.index <= pd.Timestamp(action["last_trade"]), "Close"].dropna()
+    if before.empty or not np.isfinite(before.iloc[-1]) or before.iloc[-1] <= 0:
+        raise ValueError(f"현금 인수 전 {ticker} 마지막 거래가격이 없습니다")
+    # 10/06의 공급자 잔존 봉은 거래 가능한 종가가 아니다. 10/07 이후 새 거래 봉이 나타나면 즉시 재검토한다.
+    if (pd.to_datetime(frame.index).normalize() > day).any():
+        raise ValueError(f"{ticker} 현금 인수 뒤 가격 봉이 있어 기업행동 확인이 필요합니다")
+    adjusted = frame.copy()
+    for session in index[index >= day]:
+        adjusted.loc[session, "Close"] = action["cash_per_share"]
+        if "Adj Close" in adjusted:
+            adjusted.loc[session, "Adj Close"] = action["cash_per_share"]
+    result = dict(histories)
+    result[ticker] = adjusted.sort_index()
+    return result, [dict(action, last_traded_close=float(before.iloc[-1]))]
 
 
 def reselection_dates(index: pd.DatetimeIndex, start: str) -> list[pd.Timestamp]:
@@ -135,6 +164,8 @@ def compute_follow_performance(end: str | None = None, *, price_fn=None, core_fn
         if not info.get("pool_size") or not info.get("n_with_history"):
             raise ValueError(f"새틀라이트 후보 가격 부족: {dt.date()}")
         weights = info.get("weights") or {}
+        if dt > pd.Timestamp(WBD_CASH_MERGER["date"]) and weights.get(WBD_CASH_MERGER["ticker"], 0) > 0:
+            raise ValueError("현금 인수 뒤 WBD 재선정은 사용할 수 없습니다")
         if any(not np.isfinite(w) or w < 0 for w in weights.values()) or sum(weights.values()) > 1.000001:
             raise ValueError("새틀라이트 비중이 올바르지 않습니다.")
         info["date"] = dt.date().isoformat()
@@ -142,12 +173,16 @@ def compute_follow_performance(end: str | None = None, *, price_fn=None, core_fn
         sat_tickers.update(weights)
     sat_tickers = sorted(sat_tickers)
     sat_hist = price_fn(sat_tickers, start=warmup, end=data_end, interval="1d") if sat_tickers else {}
+    sat_hist, cash_mergers = _apply_cash_merger(sat_hist, idx, set(sat_tickers))
     sat_raw = _panel(sat_hist, sat_tickers)
     sat_prices = sat_raw.reindex(index=idx, columns=sat_tickers)
     sat_weights = perf._satellite_weights_from_log(log, sat_prices)
     _require_prices(sat_prices, sat_weights)
-    satellite = cs._compute_portfolio_returns(sat_prices, sat_weights, cs.SATELLITE_COST_BPS_PER_SIDE)
-    satellite.update({"tickers_ever_held": sat_tickers, "rebal_log": log})
+    fee_exempt = {action["ticker"]: action["date"] for action in cash_mergers}
+    satellite = cs._compute_portfolio_returns(sat_prices, sat_weights, cs.SATELLITE_COST_BPS_PER_SIDE,
+                                               fee_exempt_exit_after=fee_exempt)
+    satellite.update({"tickers_ever_held": sat_tickers, "rebal_log": log,
+                      "fee_exempt_exit_after": fee_exempt})
     # 빈 새틀라이트도 15% 현금으로 둔다. 코어 100%로 전환하지 않는다.
     blended = cs.CORE_WEIGHT * core["ret_net"] + cs.SATELLITE_WEIGHT * satellite["ret_net"]
     bt = {"start": FOLLOW_START, "end": data_end, "core": core, "satellite": satellite,
@@ -166,12 +201,52 @@ def compute_follow_performance(end: str | None = None, *, price_fn=None, core_fn
             for ticker, weight in frame.iloc[i].items():
                 if weight > 1e-12:
                     rows.append({"sleeve": sleeve, "ticker": str(ticker), "weight": float(weight * share)})
+        for action in cash_mergers:
+            if idx[i] >= pd.Timestamp(action["date"]):
+                held = [r for r in rows if r["sleeve"] == "새틀라이트" and r["ticker"] == action["ticker"]]
+                rows = [r for r in rows if r not in held]
         cash = max(0., 1. - sum(r["weight"] for r in rows))
         if cash > 1e-12:
             rows.append({"sleeve": "현금", "ticker": "CASH", "weight": cash})
         return rows
+    for action in cash_mergers:
+        event_day, ticker = action["date"], action["ticker"]
+        if idx[-1] < pd.Timestamp(event_day):
+            continue
+        trade = next((t for t in result["trades"] if t["sleeve"] == "새틀라이트" and t["ticker"] == ticker
+                      and t["buy_date"] <= event_day <= t["sell_date"]), None)
+        if trade is not None:
+            trade["sell_date"] = event_day
+            trade["sell_price"] = round(action["cash_per_share"], 4)
+            trade["holding_days"] = (pd.Timestamp(event_day) - pd.Timestamp(trade["buy_date"])).days
+            trade["is_open"] = False
+            price_return = action["cash_per_share"] / trade["buy_price"] - 1
+            trade["price_return_pct"] = round(price_return * 100, 4)
+            trade["net_return_pct"] = round(((1 + price_return) * (1 - cs.SATELLITE_COST_BPS_PER_SIDE / 10000) - 1) * 100, 4)
+            spy_prices = raw[cs.MARKET_FILTER_TICKER]
+            spy_entry = float(spy_prices.loc[pd.Timestamp(trade["buy_date"])])
+            spy_exit = float(spy_prices.loc[pd.Timestamp(event_day)])
+            trade["spy_return_pct"] = round((spy_exit / spy_entry - 1) * 100, 4)
+            trade["excess_vs_spy_pct"] = round(trade["net_return_pct"] - trade["spy_return_pct"], 4)
+        buy = next((e for e in result["events"] if e["sleeve"] == "새틀라이트" and e["ticker"] == ticker
+                    and e["action"] == "매수"), None)
+        if buy is not None:
+            shares = float(buy["shares_per_capital"])
+            result["events"].append({"sleeve": "새틀라이트", "ticker": ticker, "date": event_day,
+                                     "action": "현금인수", "price": round(action["cash_per_share"], 4),
+                                     "weight_before_pct": round(float(sat_weights.loc[pd.Timestamp(event_day), ticker]) * cs.SATELLITE_WEIGHT * 100, 4),
+                                     "weight_after_pct": 0.0, "notional_x": -shares * action["cash_per_share"],
+                                     "shares_per_capital": -shares})
+        result["events"] = [event for event in result["events"]
+                            if not (event["ticker"] == ticker and event["date"] > event_day
+                                    and event["action"] in ("매도", "일부매도"))]
+    result["events"].sort(key=lambda e: (e["date"], e["sleeve"], e["ticker"]))
+    result["ticker_contributions"] = perf.ticker_contributions(result["trades"])
+    result["summary"]["n_closed_trades"] = sum(not t["is_open"] for t in result["trades"])
+    result["summary"]["n_open_trades"] = sum(t["is_open"] for t in result["trades"])
     result.update({"kind": "champion_follow", "params": params(end),
                    "computed_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                   "cash_mergers": cash_mergers,
                    "initial_allocation": allocation_at(0), "latest_allocation": allocation_at(-1),
                    "next_satellite_reselection": (pd.Timestamp(log[-1]["date"]) + pd.DateOffset(months=6)).date().isoformat()})
     if use_cache:
