@@ -2,7 +2,7 @@
 
 - VM의 Quant 관제 센터 앱 목록에 Google OTP 진입 슬롯을 추가하는 변경을 `codex/google-otp-hub` 별도 브랜치에서 구현했다. GPG 암호화된 OTP 설정으로 코드 생성, 허브 인증 뒤 GPG 암호 입력, 비밀 키 미노출 및 코드 만료 표시를 포함한다.
 - 암호화 파일은 `/var/lib/quant-hub/google-otp.gpg`에 `quant:quant` 소유·600 권한으로 준비했다. 비밀 설정 키와 GPG 암호는 저장소 문서에 넣지 않았다.
-- 테스트·커밋·푸시·운영 반영은 아직 하지 않았다. 다음 단계는 테스트 게이트 후 자동배포 및 슬롯 확인이다. 상세: `docs/SESSION_HANDOFF.md`.
+- 자동배포에서 전체 pytest 3217 passed·4 skipped, deploy runner 72 OK. 커밋 `1552226`이 운영 `/opt/quant`에 반영됐고 네 서비스가 active다. 허브 홈 카드와 `/otp` no-store 페이지(HTTP 200)를 확인했다. 실제 OTP 코드 생성은 사용자가 페이지에서 GPG 암호를 입력해 확인한다. 상세: `docs/SESSION_HANDOFF.md`.
 
 ## 2026-10-27 WBD 현금 인수 반영·챔피언 행동 화면 정리 — 운영 반영 완료
 
@@ -6293,3 +6293,7 @@ paper 키를 주문 경로에만 쓰던 것을 **측정 수단**으로 확장해
 - **검증:** `tests/test_db.py` 3건 추가, 전체 pytest 2330 passed·4 skipped, `hub.guide.check` 통과.
 - 상세: `docs/SESSION_HANDOFF.md` 2026-10-01(후속) 절.
 - **배포 게이트 상태(2026-10-15 11:06 UTC):** ac0c5c9의 VM 전체 테스트가 백업 암호 오입력 테스트 1건 실패(2945 passed, 4 skipped)하여 배포 차단. 수정 커밋 519aba0 전체 테스트를 자동 배포가 재실행 중이며 아직 배포 완료 아님. 변경 무관 백업 테스트는 건드리지 않음. 이어서 게이트 최종 결과와 `/opt/quant` commit을 확인하고 21:13 KST AI catch-up 결과 추적.
+## 2026-10-28 Google OTP 자동 갱신
+- 구현: 암호 1회 입력 후 열린 탭에서 30초마다 새 코드 표시. 암호는 탭 메모리에만 유지한다.
+- 검증: 설명서 검사와 diff 검사 통과. 브라우저 확인·배포 대기.
+

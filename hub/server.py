@@ -327,7 +327,8 @@ def render_otp_page(*, code: str = "", error: str = "", seconds_left: int = 0) -
     result = ""
     if code:
         result = (
-            '<section class="panel otp-result" aria-live="polite">'
+            '<section class="panel otp-result" aria-live="polite" '
+            f'data-seconds-left="{max(0, int(seconds_left))}">'
             '<p class="meta">현재 인증 코드</p>'
             f'<output class="otp-code">{html.escape(code)}</output>'
             f'<p id="otp-expiry" class="meta">약 {int(seconds_left)}초 뒤 만료</p>'
@@ -337,9 +338,9 @@ def render_otp_page(*, code: str = "", error: str = "", seconds_left: int = 0) -
         '<h1>Google OTP</h1>'
         '<p class="lead">VM에 암호화해 저장한 설정으로 현재 6자리 코드를 생성합니다.</p>'
         '<div class="callout"><div class="ico" aria-hidden="true">🔒</div>'
-        '<div>코드를 만들 때마다 OTP 저장에 사용한 GPG 암호가 필요합니다. 설정 키 자체는 화면에 표시하지 않습니다.</div></div>'
-        f'{message}{result}'
-        '<form method="post" action="/otp/code" class="panel" autocomplete="off">'
+        '<div>GPG 암호를 한 번 입력하면 이 탭을 열어 둔 동안 새 코드가 자동으로 표시됩니다. 설정 키 자체는 화면에 표시하지 않습니다.</div></div>'
+        f'<div id="otp-feedback">{message}{result}</div>'
+        '<form id="otp-form" method="post" action="/otp/code" class="panel" autocomplete="off">'
         '<label for="otp-passphrase">GPG 암호</label>'
         '<input id="otp-passphrase" name="passphrase" type="password" autocomplete="off" '
         'autocapitalize="none" spellcheck="false" required>'
@@ -353,13 +354,45 @@ def render_otp_page(*, code: str = "", error: str = "", seconds_left: int = 0) -
         '.panel input{width:100%;min-height:48px;padding:.65rem .8rem;border:1px solid var(--border-2);'
         'border-radius:10px;background:var(--surface-2)}.panel button{min-height:48px}</style>'
     )
-    if code:
-        head_extra += (
-            f'<script>document.addEventListener("DOMContentLoaded",function(){{let left={max(0, int(seconds_left))};'
-            'let el=document.getElementById("otp-expiry"),code=document.querySelector(".otp-code");'
-            'let timer=setInterval(function(){left-=1;if(left<=0){clearInterval(timer);code.textContent="만료됨";'
-            'el.textContent="새 코드를 생성하세요.";return;}el.textContent="약 "+left+"초 뒤 만료";},1000);});</script>'
-        )
+    head_extra += '''<script>document.addEventListener("DOMContentLoaded",function(){
+const form=document.getElementById("otp-form"),input=document.getElementById("otp-passphrase");
+const feedback=document.getElementById("otp-feedback");
+let passphrase="",expiry=0,timer=null,busy=false;
+async function refresh(){
+  if(!passphrase||busy)return;
+  busy=true;
+  try{
+    const response=await fetch("/otp/code",{method:"POST",credentials:"same-origin",
+      headers:{"Content-Type":"application/x-www-form-urlencoded"},
+      body:new URLSearchParams({passphrase}),cache:"no-store"});
+    if(!response.ok)throw new Error("request failed");
+    const page=new DOMParser().parseFromString(await response.text(),"text/html");
+    const next=page.getElementById("otp-feedback");
+    if(!next)throw new Error("invalid response");
+    feedback.replaceChildren(...Array.from(next.childNodes).map(node=>document.importNode(node,true)));
+    const result=feedback.querySelector(".otp-result");
+    if(!result){passphrase="";expiry=0;return;}
+    expiry=Date.now()+Number(result.dataset.secondsLeft)*1000;
+  }catch(_){
+    feedback.textContent="코드를 갱신하지 못했습니다. 연결을 확인하고 GPG 암호를 다시 입력해 주세요.";
+    passphrase="";expiry=0;
+  }finally{busy=false;}
+}
+form.addEventListener("submit",function(event){
+  event.preventDefault();passphrase=input.value;input.value="";refresh();
+  if(!timer)timer=setInterval(function(){
+    if(!passphrase)return;
+    const left=Math.max(0,Math.ceil((expiry-Date.now())/1000));
+    const label=feedback.querySelector("#otp-expiry");
+    if(label&&left>0)label.textContent="약 "+left+"초 뒤 새 코드";
+    if(expiry&&left===0){
+      const shown=feedback.querySelector(".otp-code");
+      if(shown)shown.textContent="갱신 중";
+      expiry=0;refresh();
+    }
+  },500);
+});
+});</script>'''
     return ui.page("Google OTP", body, crumbs=(("/", "개요"), ("", "앱")), head_extra=head_extra)
 
 

@@ -4,9 +4,9 @@
 - 구현: `hub/apps_registry.py`에 Google OTP 슬롯, `hub/server.py`에 페이지/코드 생성 POST 경로를 추가했다. OTP 비밀은 GPG 암호화 파일(`/var/lib/quant-hub/google-otp.gpg`)에서만 읽고 GPG 암호 입력 시 메모리에서 복호화한다. 설정 키는 HTML·프로세스 인자·로그에 넣지 않으며, OTP 화면 응답은 no-store, 같은 출처 POST로 제한하고 30초 뒤 화면의 코드를 만료 처리한다. GPG 암호는 페이지를 열 때마다 입력한다.
 - 안내: `/guide` 시작 안내에 OTP 슬롯 사용법과 비밀값을 공유하지 말라는 설명을 추가했다.
 - 비밀 파일: 사용자가 이미 만든 GPG 암호화 파일을 `/var/lib/quant-hub/google-otp.gpg`에 복사했고 소유자는 `quant:quant`, 권한은 600이다. 설정 키·암호는 문서에 기록하지 않았다.
-- 상태: 별도 작업 브랜치 `codex/google-otp-hub`(기준 `origin/main` 16da542)에서 코드 변경 완료. 테스트를 실행하지 않았고 아직 커밋·푸시·자동배포하지 않았다. 기존 VM 배포 관문에서 테스트 통과 후 반영해야 하며, 슬롯이 실제로 보이는지는 배포 뒤 확인한다.
+- 상태: 커밋 `1552226`을 origin/main에 반영했다. VM 자동배포의 전체 pytest 관문은 3217 passed·4 skipped, deploy runner는 72 OK로 통과했고 `/opt/quant`이 `1552226`으로 갱신됐다. `quant-hub`, `quant-streamlit`, `quant-scheduler`, `codex-telegram`은 모두 active. 로컬 허브에서 홈 화면에 Google OTP 슬롯과 `/otp`의 no-store 인증 페이지(HTTP 200)를 확인했다. 웹 화면의 실제 코드 생성은 사용자가 GPG 암호를 입력해 확인해야 한다.
 - 수정 파일: `hub/apps_registry.py`, `hub/server.py`, `hub/guide/content_ops.py`, `docs/SESSION_HANDOFF.md`, `PROGRESS.md`.
-- 다음: 코드 검토 → 테스트 관문을 통해 origin/main에 반영 → 자동배포와 슬롯 접근 확인.
+- 다음: 관제 센터 로그인 후 앱 → Google OTP를 열고 GPG 암호로 실제 코드가 생성되는지 확인한다. OTP 화면은 호출할 때마다 GPG 암호를 요구한다.
 
 ## 2026-10-27 챔피언 추종 WBD 현금 인수·지금 할 일 화면 개선 — 구현·검증·운영 배포 완료
 
@@ -1232,3 +1232,10 @@
 - 다음: 커밋·push → VM 자동배포 5분 내 반영. `ubuntu`의 `gh auth login`(push 권한)은 여전히 사용자 대기 — 이 세션은 그 계정에 접근할 수 없어 대신 처리할 수 없다.
 - **배포 게이트·운영 반영 완료(2026-10-15 11:19 UTC):** 앞서 아티팩트 결과 커밋 `ac0c5c9`의 `tests/test_backup_vm.py::test_wrong_passphrase_cannot_decrypt`가 실패해 해당 커밋은 차단됐다. 변경 커밋 `519aba0` 기준으로 전체 pytest **2,947 passed, 4 skipped**, deploy unittest **72 OK**를 통과해 운영 `/opt/quant`에 반영했다. `quant-scheduler`, `quant-hub`, `quant-streamlit`, `codex-telegram` 모두 active. 문서 인계만 담은 커밋은 후속 자동 게이트에서 검증 중이다.
 - **이어받기 상태:** 현재 시각 dry-plan의 `next:null`은 정상 실행 창(03:00~05:30 KST) 밖이기 때문이다. CLI 인증은 정상 배치와 같은 최대턴 15로 성공을 확인했다(진단 호출은 usage 원장에 기록하지 않음). 다만 운영 usage에는 10/13~15 Claude 호출 1~3초 즉시 실패 기록과 Claude 캐시 부산물을 파일 가드가 되돌린 사례가 있어, 다음 배치에서 Critic 성공 및 `critic.json`/`ready_hash` 생성을 검증해야 한다. 두 초안 판정은 아직 미완료.
+## 2026-10-28 Google OTP 자동 갱신 — 구현·부분 검증, 배포 대기
+
+- 결정: GPG 암호를 한 번 입력하면 열린 탭에서만 메모리에 보관하고, 30초 코드 만료 때 `/otp/code`로 새 코드를 요청한다. 새로고침·탭 종료 시 다시 입력한다.
+- 수정 파일: `hub/server.py`, `hub/guide/content_ops.py`, `docs/SESSION_HANDOFF.md`, `PROGRESS.md`.
+- 검증: `python3 -m hub.guide.check`, `git diff --check` 통과. 브라우저 실동작·전체 테스트·VM 배포는 아직 확인하지 않았다.
+- 다음: 브라우저에서 30초 경계를 지나 새 코드 표시 확인 후 배포한다.
+
