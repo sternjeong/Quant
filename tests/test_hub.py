@@ -185,10 +185,15 @@ def test_alpaca_page_renders_empty_and_with_results(tmp_path):
     (tmp_path / "data" / "cache").mkdir(parents=True)
     (tmp_path / "data" / "cache" / "paper_tracking.json").write_text(json.dumps(
         {"n_intervals": 3, "paper_cum_return_pct": 1.0, "champion_cum_return_pct": 0.5, "cum_gap_pct_points": 0.5,
-         "tracking_error_annual_pct": None, "context": {"following": False}}))
+         "tracking_error_annual_pct": None, "context": {"following": False},
+         "intervals": [{"start": "2026-10-01", "end": "2026-10-02"},
+                       {"start": "2026-10-02", "end": "2026-10-05"},
+                       {"start": "2026-10-05", "end": "2026-10-06"}]}))
     body = alpaca_status.render_body(alpaca_status.collect(tmp_path))
     assert "UNEXPECTED" in body and "&lt;b&gt;" in body          # 실패 문구는 이스케이프
     assert "+0.50%p" in body and "표본 부족" in body and "포지션 없음" in body
+    assert "2026-10-01 ~ 2026-10-06" in body and "paper − 가상 원장 격차" in body
+    assert "입출금" in body and "챔피언 성과 B" in body
     assert "검증 UNEXPECTED" in alpaca_status.card_badge(tmp_path)
 
 

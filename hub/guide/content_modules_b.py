@@ -27,10 +27,10 @@ MODULES: tuple[ModuleGuide, ...] = (
     ModuleGuide(
         module="core/paper_tracking.py", name="paper 계좌 추적오차", group="리서치 인프라", status="관측 전용",
         what="모의투자 계좌의 실제 자산 변화와 챔피언 전략의 가상 원장 수익을 같은 날짜에 놓고 얼마나 벌어지는지 계산합니다. 스냅샷이 빠진 날이 있으면 구간을 늘려 비교해 결측이 수익을 왜곡하지 않게 합니다.",
-        how_to_use="자동으로 매일 돕니다(00:46 KST). 화면은 없고 결과 파일을 봅니다. 구간이 20개 미만이면 추적오차를 계산하지 않습니다.",
-        where_to_see="화면 없음. data/cache/paper_tracking.json",
+        how_to_use="자동으로 매일 돕니다(00:46 KST). 관제 센터 /alpaca의 P1 추적오차에서 기간·paper 수익·가상 원장 수익·격차를 각각 봅니다. 구간이 20개 미만이면 추적오차를 계산하지 않습니다.",
+        where_to_see="관제 센터 /alpaca → P1 추적오차. 원본 data/cache/paper_tracking.json",
         cautions="괴리의 원인을 쪼개 합이 맞는다고 주장하지 않습니다. 슬리피지, 목표 이탈, 배당 시차는 원인 후보로 나란히 보여줄 뿐입니다. 계좌가 포지션을 들고 있지 않으면 벌어진 것은 실행 품질이 아니라 전략을 따르지 않은 것입니다. 모의계좌 입출금은 추적하지 않습니다. 주문과 무관합니다.",
-        verified="2026-09-25",
+        verified="2026-10-30",
     ),
     ModuleGuide(
         module="core/macro_cycle.py", name="경기 사이클 판단", group="분석·백테스트", status="관측 전용",

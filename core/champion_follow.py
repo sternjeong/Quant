@@ -13,7 +13,7 @@ from core import champion_strategy as cs
 
 FOLLOW_START = "2026-10-01"
 CACHE_DIR = perf.CACHE_DIR
-SCHEMA = 3
+SCHEMA = 4
 # Nasdaq ECA2026-710: WBD 최종 거래 10/05, 10/06 현금 인수. 이후 값은 주가가 아니라 수령 현금이다.
 WBD_CASH_MERGER = {"ticker": "WBD", "date": "2026-10-06", "last_trade": "2026-10-05",
                    "cash_per_share": 31.01666668,
@@ -286,6 +286,8 @@ def compute_follow_performance(end: str | None = None, *, price_fn=None, core_fn
                    "cash_mergers": cash_mergers,
                    "ticker_pnl_daily": ticker_daily,
                    "initial_allocation": allocation_at(0), "latest_allocation": allocation_at(-1),
+                   "daily_allocation": [{"date": day.date().isoformat(), "allocation": allocation_at(i)}
+                                        for i, day in enumerate(idx)],
                    "next_satellite_reselection": (pd.Timestamp(log[-1]["date"]) + pd.DateOffset(months=6)).date().isoformat()})
     if use_cache:
         perf._atomic_write_json(_cache_path(end, cache_dir), result)

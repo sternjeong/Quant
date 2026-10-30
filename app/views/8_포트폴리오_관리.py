@@ -5,7 +5,7 @@ AI 코멘트를 생성한다.
 """
 
 import sys
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 # --- sys.path 부트스트랩: 프로젝트 루트를 추가해 core.* 임포트 가능하게 함 (app/views/*.py 공통 규칙) ---
@@ -20,6 +20,7 @@ import streamlit as st
 from core.db import init_db
 from core import job_manager
 from core import portfolio as portfolio_module
+from core import portfolio_account_history as account_history
 from core.portfolio import (
     add_holding,
     aggregate_pnl_by_ticker,
@@ -140,6 +141,83 @@ with st.expander("💵 현금 잔고"):
             st.rerun()
         except ValueError as e:
             st.error(str(e))
+
+with st.expander("📈 내 계좌 성과 장부 · 입금과 매매 구분", expanded=False):
+    st.caption("월급 등 계좌 밖에서 들어온 돈은 '입금', 계좌 안에서 종목을 바꾼 것은 '매도'와 '매수'로 기록합니다. "
+               "이 장부의 외부 입출금만 챔피언·SPY 가상 계좌에도 같은 날 반영됩니다. "
+               "기존 보유·현금 편집은 과거 거래로 자동 기록되지 않습니다.")
+    _ledger = account_history.load_ledger()
+    if _ledger is None:
+        st.write("**1. 시작 잔고 기록**")
+        st.caption("증권사에서 확인한 완료된 미국 거래일 종가 기준 잔고를 입력합니다. 오늘 매매가 있다면 전일 잔고를 시작으로 입력하세요. "
+                   "과거 시작 잔고를 모르면 현재 잔고로 시작할 수 있으며, 그 전 기간은 비교하지 않습니다.")
+        with st.form("account_baseline_form"):
+            _base_date = st.date_input("시작 잔고 기준일 (미국 거래일)", value=account_history.last_completed_us_session(),
+                                       min_value=date(2026, 10, 1), max_value=account_history.last_completed_us_session())
+            _use_current = st.checkbox("현재 등록된 보유 수량을 시작 잔고로 사용", value=True)
+            _base_text = st.text_area("직접 입력할 보유 · 티커 수량 (한 줄에 하나)",
+                                      placeholder="XLK 2\nSPY 3", disabled=_use_current)
+            _base_cash = st.number_input("시작 현금($)", min_value=0.0, value=float(get_cash_balance()), step=10.0)
+            _base_submit = st.form_submit_button("시작 잔고 저장")
+        if _base_submit:
+            try:
+                _positions = ([{"ticker": t, "quantity": sum(float(h["quantity"]) for h in list_holdings()
+                                                                       if h["ticker"] == t)}
+                               for t in sorted({h["ticker"] for h in list_holdings()})] if _use_current
+                              else portfolio_module.parse_balance_text(_base_text))
+                account_history.save_baseline(_base_date, _base_cash, _positions)
+                st.rerun()
+            except ValueError as _e:
+                st.error(str(_e))
+    else:
+        st.write(f"**시작: {_ledger['as_of']} 종가** · 시작 현금 ${_ledger['cash_usd']:,.2f} · "
+                 f"시작 보유 {len(_ledger['positions'])}종목")
+        if not _ledger["events"] and st.button("시작 잔고 다시 입력", key="reset_account_baseline"):
+            account_history.delete_baseline_without_events()
+            st.rerun()
+        st.caption("날짜순으로 입력하세요. 입출금은 그날 종가에, 휴장일 입출금은 다음 미국 거래일 종가에 반영합니다. "
+                   "매매는 입력한 실제 체결가·비용으로 계산합니다.")
+        if date.fromisoformat(_ledger["as_of"]) == date.today():
+            st.info("시작 잔고가 오늘 기준입니다. 이후 거래부터 날짜순으로 기록해 주세요.")
+        else:
+            with st.form("account_event_form", clear_on_submit=True):
+                _kind_label = st.selectbox("계좌 사건", ("입금", "출금", "매수", "매도", "배당 수령"))
+                _kind = {"입금": "DEPOSIT", "출금": "WITHDRAW", "매수": "BUY", "매도": "SELL",
+                         "배당 수령": "DIVIDEND"}[_kind_label]
+                _event_date = st.date_input("사건 날짜", value=date.today(),
+                                            min_value=date.fromisoformat(_ledger["as_of"]) + timedelta(days=1),
+                                            max_value=date.today())
+                if _kind in ("DEPOSIT", "WITHDRAW", "DIVIDEND"):
+                    _amount = st.number_input("계좌 밖에서 이동한 금액($)" if _kind != "DIVIDEND" else "받은 배당금($)",
+                                              min_value=0.0, step=100.0)
+                    _ticker = st.text_input("배당 종목 티커") if _kind == "DIVIDEND" else None
+                    _quantity = _price = None
+                    _fee = 0.0
+                else:
+                    _c1, _c2, _c3, _c4 = st.columns(4)
+                    _ticker = _c1.text_input("티커")
+                    _quantity = _c2.number_input("주수", min_value=0.0, step=1.0)
+                    _price = _c3.number_input("실제 체결 단가($)", min_value=0.0, step=1.0)
+                    _fee = _c4.number_input("수수료($)", min_value=0.0, step=0.01)
+                    _amount = None
+                _event_submit = st.form_submit_button("사건 기록")
+        if date.fromisoformat(_ledger["as_of"]) < date.today() and _event_submit:
+            try:
+                account_history.append_event(_event_date, _kind, amount_usd=_amount,
+                                             ticker=_ticker, quantity=_quantity, price_usd=_price, fee_usd=_fee)
+                st.rerun()
+            except ValueError as _e:
+                st.error(str(_e))
+        if _ledger["events"]:
+            st.dataframe(pd.DataFrame([{"날짜": e["as_of"], "구분": {"DEPOSIT": "입금", "WITHDRAW": "출금",
+                          "BUY": "매수", "SELL": "매도", "DIVIDEND": "배당 수령"}[e["kind"]], "종목": e["ticker"] or "—",
+                          "주수": e["quantity"], "체결가($)": e["price_usd"], "입출금($)": e["amount_usd"]}
+                         for e in _ledger["events"]]), hide_index=True, width="stretch")
+            if st.button("마지막 사건 삭제", key="delete_last_account_event"):
+                account_history.delete_last_event()
+                st.rerun()
+        st.caption("현재 보유·현금 화면과 성과 장부는 별도 기록입니다. 이후 매매나 입출금은 양쪽에 맞게 입력해야 합니다. "
+                   "성과 장부가 누락되면 달러 비교도 달라집니다.")
 
 holdings = list_holdings()
 if not holdings:

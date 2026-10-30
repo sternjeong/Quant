@@ -61,6 +61,25 @@ def test_ticker_attribution_matches_champion_curve_for_selected_period():
     assert sum(row["pnl_usd"] for row in later) == pytest.approx(0, abs=1e-5)
 
 
+def test_salary_flow_scales_existing_champion_positions_and_ticker_profit():
+    from core import portfolio_account_history as pah
+    kwargs, _ = inputs()
+    result = cf.compute_follow_performance("2026-10-13", use_cache=False, **kwargs)
+    strategy = cp.series_from_json(result["curves"]["strategy"])
+    spy = cp.series_from_json(result["curves"]["spy"])
+    dates = strategy.index
+    flow = pd.Series(0.0, index=dates)
+    flow.loc[pd.Timestamp("2026-10-02")] = 1000
+    actual = {"nav": pd.Series(1000.0, index=dates), "flows": flow, "start_value": 1000}
+    comparison = pah.matched_benchmarks(strategy, spy, actual,
+                                        daily_allocation=result["daily_allocation"],
+                                        ticker_pnl_daily=result["ticker_pnl_daily"])
+    assert comparison["champion"].loc[pd.Timestamp("2026-10-02")] > 2000
+    assert comparison["spy"].loc[pd.Timestamp("2026-10-02")] == pytest.approx(2000)
+    assert sum(comparison["champion_ticker_pnl"].values()) == pytest.approx(
+        comparison["profit_usd"]["champion"], abs=.02)
+
+
 def test_no_picks_keeps_satellite_cash_not_core_100_percent():
     kwargs, _ = inputs(picks=False)
     result = cf.compute_follow_performance("2026-10-13", use_cache=False, **kwargs)
@@ -149,6 +168,7 @@ def test_page_displays_follow_result_without_using_legacy_ledger(monkeypatch, tm
     from pathlib import Path
     from core import job_manager
     from core import personal_performance
+    from core import portfolio_account_history
     kwargs, _ = inputs()
     result = cf.compute_follow_performance("2026-10-13", use_cache=False, **kwargs)
     result["cash_mergers"] = [dict(cf.WBD_CASH_MERGER)]
@@ -159,11 +179,15 @@ def test_page_displays_follow_result_without_using_legacy_ledger(monkeypatch, tm
     monkeypatch.setattr(job_manager, "render", lambda *a, **kw: None)
     monkeypatch.setattr(job_manager, "render_active_jobs_sidebar", lambda: None)
     monkeypatch.setattr(cs, "get_current_holdings", lambda: None)
-    monkeypatch.setattr("core.portfolio.list_holdings", lambda: [{"ticker": "SATA"}])
+    monkeypatch.setattr("core.portfolio.list_holdings", lambda: [{"ticker": "SATA", "quantity": 1}])
     monkeypatch.setattr(personal_performance, "current_holdings_curve", lambda *a, **kw: {
         "available": True, "curve": pd.Series([1.0, 1.02], index=pd.to_datetime(["2026-10-09", "2026-10-12"])),
         "first_date": "2026-10-09", "last_date": "2026-10-12", "n_holdings": 1,
         "cost_usd": 100, "last_value_usd": 102, "unrealized_pnl_usd": 2, "twr_pct": 2,
+    })
+    monkeypatch.setattr(portfolio_account_history, "load_ledger", lambda: {
+        "as_of": "2026-10-01", "cash_usd": 1000, "positions": {},
+        "events": [{"as_of": "2026-10-02", "kind": "DEPOSIT", "amount_usd": 1000}],
     })
     page = Path(__file__).resolve().parents[1] / "app/views/14_챔피언_성과.py"
     at = AppTest.from_file(page).run(timeout=20)
@@ -172,6 +196,8 @@ def test_page_displays_follow_result_without_using_legacy_ledger(monkeypatch, tm
     assert any("현재 가상 자산" in m.value for m in at.markdown)
     assert any("WBD" in m.value and "현금 인수" in m.value for m in at.info)
     assert any("10월 1일부터의 수익률 변화" in m.value for m in at.markdown)
+    assert any("같은 입출금으로 비교한 실제 계좌" in m.value for m in at.markdown)
+    assert any("외부 입출금 1건" in m.value for m in at.markdown)
     assert any("가상 손익($)" in df.value.columns and "수익률 기여(%p)" in df.value.columns
                for df in at.dataframe)
     assert any("실제 계좌 전체 수익률은 아닙니다" in m.value for m in at.caption)

@@ -102,16 +102,20 @@ def render_body(data: dict) -> str:
         n_s = (t or {}).get("n_snapshots", 0)
         rows.append(_row("상태", f"비교 구간 없음 (계좌 스냅샷 {_esc(n_s)}건) — 스냅샷이 이틀 이상 쌓이면 계산"))
     else:
-        rows += [_row("비교 구간", _esc(t["n_intervals"])),
-                 _row("paper 누적", _esc(f"{t['paper_cum_return_pct']:+.2f}%")),
-                 _row("챔피언 가상 누적", _esc(f"{t['champion_cum_return_pct']:+.2f}%")),
-                 _row("괴리", _esc(f"{t['cum_gap_pct_points']:+.2f}%p")),
+        intervals = t.get("intervals") or []
+        period = f"{intervals[0]['start']} ~ {intervals[-1]['end']} ({t['n_intervals']}구간)" if intervals else str(t["n_intervals"])
+        rows += [_row("비교 기간", _esc(period)),
+                 _row("Alpaca paper 누적", _esc(f"{t['paper_cum_return_pct']:+.2f}%")),
+                 _row("일별 추천 가상 원장 누적", _esc(f"{t['champion_cum_return_pct']:+.2f}%")),
+                 _row("paper − 가상 원장 격차", _esc(f"{t['cum_gap_pct_points']:+.2f}%p")),
                  _row("추적오차(연)", _esc(f"{t['tracking_error_annual_pct']:.2f}%") if t.get("tracking_error_annual_pct") is not None
                       else f"표본 부족 (구간 {t.get('min_intervals_for_te', 20)}개 필요)")]
         ctx = t.get("context") or {}
         if "following" in ctx:
             rows.append(_row("계좌가 전략을 따르는 중", "예" if ctx["following"] else "아니오 (포지션 없음 — 괴리는 실행 품질이 아님)"))
-    parts.append(f'<h2>P1 추적오차</h2><table>{"".join(rows)}</table>')
+    parts.append(f'<h2>P1 추적오차</h2><table>{"".join(rows)}</table>'
+                 '<p class="small">가상 원장은 매일 저장한 당시 추천 비중의 수익률입니다. 챔피언 성과 B의 10월 1일 재구성과 다릅니다. '
+                 '계좌 입출금이 있으면 Alpaca paper 누적 수익률과 격차는 보정되지 않아 실제 투자 손익을 뜻하지 않습니다.</p>')
 
     c = data["cost"]
     if not c:

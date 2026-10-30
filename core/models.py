@@ -214,6 +214,34 @@ class PortfolioCashBalance(Base):
         return f"<PortfolioCashBalance id={self.id} amount={self.amount}>"
 
 
+class PortfolioPerformanceBaseline(Base):
+    """실제 계좌 성과 장부의 시작 종가 기준 잔고. 현재 보유 CRUD와 별도로 보존한다."""
+
+    __tablename__ = "portfolio_performance_baseline"
+
+    id = Column(Integer, primary_key=True)
+    as_of = Column(Date, nullable=False)
+    cash_usd = Column(Float, nullable=False)
+    positions_json = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class PortfolioPerformanceEvent(Base):
+    """시작 잔고 이후 외부 입출금 또는 계좌 내부 매매 한 건."""
+
+    __tablename__ = "portfolio_performance_events"
+
+    id = Column(Integer, primary_key=True)
+    as_of = Column(Date, nullable=False, index=True)
+    kind = Column(String(12), nullable=False)
+    ticker = Column(String(20), nullable=True)
+    quantity = Column(Float, nullable=True)
+    price_usd = Column(Float, nullable=True)
+    amount_usd = Column(Float, nullable=True)
+    fee_usd = Column(Float, nullable=False, default=0.0)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
 class PortfolioThesisReview(Base):
     """매매근거(PortfolioHolding.thesis) 사후 검증 이력 (모듈 H 확장).
 

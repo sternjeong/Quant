@@ -45,7 +45,7 @@ from core.champion_performance import (
 from core.champion_strategy import SATELLITE_WEIGHT
 from core.dawn_precompute import schedule_label as dawn_schedule_label
 from core.db import init_db
-from core.portfolio import list_holdings
+from core.portfolio import get_cash_balance, list_holdings
 from core.theme import apply_theme
 from core.ui_status import render_status_header
 
@@ -618,10 +618,81 @@ else:
                    f"평가액 ${personal['last_value_usd']:,.2f}, 미실현손익 ${personal['unrealized_pnl_usd']:+,.2f}입니다. "
                    "과거 매도·수량 변경·현금 입출금 이력이 없어 실제 계좌 전체 수익률은 아닙니다.")
         with st.expander("중간에 돈을 넣거나 종목을 바꾸면 비교는 어떻게 되나요?"):
-            st.write("그래프는 금액이 아닌 수익률 비교입니다. 외부에서 $1,000을 더 넣어 종목을 사도 그 $1,000 자체는 수익으로 세지 않습니다. SPY·챔피언 선도 같은 날짜부터의 수익률로 비교하므로 원금이 $10,000으로 남아 있어도 % 비교에는 문제가 없습니다.")
-            st.write("달러 자산액을 비교한다면 $10,000으로 시작한 SPY·챔피언 가상 계좌에도 실제 외부 입금 $1,000을 같은 날짜에 넣어야 합니다. 계좌 안에서 A를 팔아 B를 사는 것은 새 돈이 들어온 것이 아니므로 가상 계좌에 추가하지 않습니다. 현재 포트폴리오 관리에는 과거 매도·현금흐름 장부가 없어 이 달러 비교와 실제 계좌 전체 기여는 계산할 수 없습니다.")
+            st.write("위 수익률 그래프의 보라색 점선은 현재 남은 보유분만의 추정치입니다. 매도대금 재투자가 새 입금처럼 보일 수 있어 실제 전체 계좌 수익률로 해석하면 안 됩니다.")
+            st.write("아래 달러 그래프는 별도 성과 장부에 기록한 시작 잔고와 입출금·매매를 사용합니다. 예를 들어 외부에서 $1,000을 넣으면 챔피언은 그날 보유 비중대로 추가 투자하고 SPY는 SPY를 삽니다. 내가 그 돈을 현금으로 두거나 다른 종목을 사면 이후 세 선의 금액 차이로 드러납니다. 계좌 안에서 A를 팔아 B를 사는 것은 새 입금이 아닙니다.")
     elif personal:
         st.info(personal["reason"] + " 포트폴리오 관리에서 보유 종목을 입력하면 이 그래프에 표시됩니다.")
+    st.markdown("#### 같은 입출금으로 비교한 실제 계좌 · 챔피언 · SPY")
+    from core import portfolio_account_history as account_history
+    _account_ledger = account_history.load_ledger()
+    if _account_ledger is None:
+        st.info("월급 입금이 세 계좌에서 어떻게 달라졌는지 보려면 '포트폴리오 관리 → 내 계좌 성과 장부'에 "
+                "시작 잔고와 이후 입출금·매매를 기록해 주세요. 과거 거래는 현재 보유 목록에서 추측하지 않습니다.")
+    else:
+        try:
+            _actual = account_history.account_curve(_account_ledger, fd["curves"]["strategy"].index)
+            _matched = account_history.matched_benchmarks(
+                series_from_json(follow_result["curves"]["strategy"]),
+                series_from_json(follow_result["curves"]["spy"]), _actual,
+                daily_allocation=follow_result.get("daily_allocation"),
+                ticker_pnl_daily=follow_result.get("ticker_pnl_daily"))
+        except ValueError as _exc:
+            st.warning(f"같은 입출금 비교를 계산하지 못했습니다: {_exc}")
+        else:
+            _matched_start = _actual["nav"].index[0].date().isoformat()
+            _matched_end = _actual["nav"].index[-1].date().isoformat()
+            _pending = [e for e in _account_ledger["events"] if e["as_of"] > _matched_end]
+            if _pending:
+                st.info(f"{_matched_end} 이후 기록 {len(_pending)}건은 아직 완료된 미국 종가가 없어 그래프에 반영하지 않았습니다.")
+            else:
+                _current_positions = {}
+                for _holding in list_holdings():
+                    _ticker = _holding["ticker"]
+                    _current_positions[_ticker] = _current_positions.get(_ticker, 0.0) + float(_holding["quantity"])
+                _ledger_positions = _actual["positions"]
+                _different = sorted(t for t in set(_current_positions) | set(_ledger_positions)
+                                    if abs(_current_positions.get(t, 0.0) - _ledger_positions.get(t, 0.0)) > 1e-6)
+                if _different or abs(get_cash_balance() - _actual["cash_usd"]) > .01:
+                    st.warning("성과 장부의 마지막 보유·현금과 포트폴리오 관리의 현재 잔고가 다릅니다. "
+                               "최근 입출금·매매 기록을 두 곳 모두 확인해 주세요."
+                               + (f" 수량 차이: {', '.join(_different)}" if _different else ""))
+            st.caption(f"{_matched_start}~{_matched_end} · 시작 실제 계좌 종가 ${_actual['start_value']:,.2f}을 "
+                       "세 계좌에 동일하게 놓았습니다. 기록된 외부 입출금만 같은 거래일 종가에 반영합니다. "
+                       "그날 새 돈의 수익은 다음 거래일부터 생깁니다. 챔피언 시작일이 10월 1일보다 늦으면 "
+                       "초기 진입비용을 차감합니다. 개인 계좌의 매수·매도는 입력한 체결가로 처리합니다.")
+            _flow_fig = go.Figure()
+            for _key, _name, _color in (("personal", "내 실제 계좌", C_PERSONAL),
+                                        ("champion", "챔피언에 똑같이 투자", C_STRATEGY),
+                                        ("spy", "SPY에 똑같이 투자", C_SPY)):
+                _series = _matched[_key]
+                _flow_fig.add_trace(go.Scatter(x=_series.index, y=_series.values, name=_name,
+                                               mode="lines+markers", line=dict(color=_color),
+                                               hovertemplate="%{x|%Y-%m-%d} $%{y:,.2f}<extra>%{fullData.name}</extra>"))
+            _plot(_style(_flow_fig, 300, y_title="계좌 평가액 $"))
+            _flow_count = sum(e["kind"] in ("DEPOSIT", "WITHDRAW") and e["as_of"] <= _matched_end
+                              for e in _account_ledger["events"])
+            _kpis([("시작+순입금", format_usd(_matched["net_deposits_usd"]), f"외부 입출금 {_flow_count}건"),
+                   ("내 순손익", format_usd(_matched["profit_usd"]["personal"], signed=True), "매매·보유·현금 포함"),
+                   ("챔피언 순손익", format_usd(_matched["profit_usd"]["champion"], signed=True), "동일 입출금"),
+                   ("SPY 순손익", format_usd(_matched["profit_usd"]["spy"], signed=True), "동일 입출금"),
+                   ("내 선택 − 챔피언", format_usd(_matched["profit_usd"]["personal"] -
+                                                   _matched["profit_usd"]["champion"], signed=True), "같은 자금 기준")])
+            _mine_rows = [{"종목": ticker, "손익($)": round(pnl, 2)} for ticker, pnl in
+                          sorted(_actual["ticker_pnl"].items(), key=lambda item: item[1], reverse=True)]
+            _champ_rows = [{"종목": ticker, "구분": sleeve, "손익($)": round(pnl, 2)}
+                           for (sleeve, ticker), pnl in sorted(_matched.get("champion_ticker_pnl", {}).items(),
+                                                                key=lambda item: item[1], reverse=True)
+                           if abs(pnl) >= 0.005]
+            _left, _right = st.columns(2)
+            with _left:
+                st.write("**내 계좌 종목별 손익**")
+                st.dataframe(pd.DataFrame(_mine_rows), hide_index=True, width="stretch")
+            with _right:
+                st.write("**같은 입출금의 챔피언 종목별 손익**")
+                st.dataframe(pd.DataFrame(_champ_rows), hide_index=True, width="stretch")
+            st.caption("종목 손익에는 실제 매매 체결가 차이·수수료·기록된 배당과 챔피언 추가 투자 편도 비용을 포함합니다. "
+                       "챔피언은 그날 보유 비중대로 추가 매수·비례 매도하고, 예정된 코어·새틀라이트 규칙을 이후에도 따릅니다. "
+                       "SPY는 비용 없는 매수보유입니다. 달러 차이는 시작 포트폴리오 선택과 이후 매매·현금 보유를 모두 포함합니다.")
     for key, title in (("initial_allocation", "10월 1일 시작 배분"), ("latest_allocation", "마지막 기록의 목표 배분")):
         st.markdown(f"#### {title}")
         allocation_capital = capital if key == "initial_allocation" else fd["final_usd"]
@@ -646,4 +717,5 @@ else:
                "코어는 배당 반영 가격, 새틀라이트는 기존 엔진의 가격 수익을 사용합니다. 후보군의 생존편향은 남아 있습니다.")
 
 st.caption("9월 19일부터 쌓인 구형 3개월 상위5 원장은 현 챔피언과 다른 규칙이어서 이 성과에서 제외했습니다. "
-           "기존 데이터는 보존됩니다. 실제 모의계좌 자산은 'Alpaca paper 검증'에서 확인하세요.")
+           "기존 데이터는 보존됩니다. Alpaca 모의계좌의 누적 수익과 챔피언 원장 대비 격차는 관제 센터 /alpaca → P1 추적오차에서 확인하세요. "
+           "그 수익률은 입출금을 보정하지 않은 계좌 스냅샷 기준이며 위의 동일 입출금 비교와 다릅니다.")

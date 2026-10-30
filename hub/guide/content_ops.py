@@ -124,9 +124,9 @@ JOBS: tuple[JobGuide, ...] = (
     ),
     JobGuide(
         job_id="paper_tracking_refresh",
-        where_to_see="화면 없음. data/cache/paper_tracking.json 파일",
+        where_to_see="관제 센터 /alpaca → P1 추적오차. 기간, Alpaca paper 누적, 일별 추천 가상 원장 누적, 두 값의 격차를 구분해 봅니다. 원본은 data/cache/paper_tracking.json 입니다.",
         if_alert="따로 할 일 없음. 구간이 20개 미만이면 추적오차를 계산하지 않는 것이 정상입니다.",
-        verified="2026-09-25",
+        verified="2026-10-30",
     ),
     JobGuide(
         job_id="paper_auto_trade",
@@ -169,7 +169,7 @@ JOBS: tuple[JobGuide, ...] = (
     ),
     JobGuide(
         "champion_ledger_record",
-        "전용 화면은 없습니다(어느 Streamlit 화면도 이 원장을 읽지 않음). 'DB 의 챔피언 페이퍼 원장'에 하루 한 줄씩 쌓이며, 20영업일 이상 쌓이면 다음 잡(champion_benchmark_gap)이 읽습니다. 오늘자 항목이 이미 있으면 건너뜁니다.",
+        "Streamlit 전용 화면은 없습니다. DB 의 챔피언 페이퍼 원장에 하루 한 줄씩 쌓이며, 관제 센터 /alpaca → P1 추적오차에서 Alpaca paper 계좌와 비교합니다. 20영업일 이상 쌓이면 다음 잡(champion_benchmark_gap)도 읽습니다. 오늘자 항목이 이미 있으면 건너뜁니다.",
         "'추천 비중을 그대로 따랐다면'의 가상 수익 기록이지 실제 계좌 성과가 아닙니다. " + _NOTHING + " " + _HISTORY,
         V,
     ),
