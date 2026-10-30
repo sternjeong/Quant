@@ -6,11 +6,14 @@ import csv
 import hashlib
 import json
 import os
+import sys
 import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 CIKS = (
     "0001067983", "0001649339", "0001336528", "0001697748",
     "0001536411", "0001656456", "0001061768",

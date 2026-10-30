@@ -77,16 +77,35 @@ def _measure(weights: pd.DataFrame, close: pd.DataFrame, adj: pd.DataFrame, fx: 
     flows = [(window.index[0], -cfg.initial_krw)]
     flows += [(day, -float(amount)) for day, amount in sim["contributions_krw"].items() if amount > 0]
     legacy_irr = tx.xirr(flows + [(window.index[-1], old)])
+    if not all(math.isfinite(float(value)) for value in (
+        old, sim["final_after_liquidation_krw"], sim["unpaid_prior_year_tax_krw"],
+        sim["liquidation_trade_fees_krw"], sim["liquidation_fx_cost_krw"],
+    )):
+        raise ValueError(f"{start.date()}~{end.date()} 청산 금액 또는 비용이 유한하지 않습니다")
     return {"old_terminal_krw": old, "corrected_terminal_krw": sim["final_after_liquidation_krw"],
-            "old_irr": legacy_irr, "corrected_irr": sim["irr_after_liquidation"],
+            "old_irr": _finite_or_none(legacy_irr),
+            "corrected_irr": _finite_or_none(sim["irr_after_liquidation"]),
             "unpaid_prior_year_tax_krw": sim["unpaid_prior_year_tax_krw"],
             "exit_fee_krw": sim["liquidation_trade_fees_krw"],
             "exit_fx_krw": sim["liquidation_fx_cost_krw"]}
 
 
-def _finite_median(values: list[float]) -> float | None:
-    good = [v for v in values if math.isfinite(v)]
+def _finite_or_none(value: float) -> float | None:
+    value = float(value)
+    return value if math.isfinite(value) else None
+
+
+def _finite_median(values: list[float | None]) -> float | None:
+    good = [v for v in values if v is not None and math.isfinite(v)]
     return float(np.median(good)) if good else None
+
+
+def _gap(a: float | None, b: float | None) -> float | None:
+    return a - b if a is not None and b is not None else None
+
+
+def _fmt_pct(value: float | None) -> str:
+    return f"{value:.3%}" if value is not None else "계산 불가"
 
 
 def main(argv=None) -> int:
@@ -125,15 +144,18 @@ def main(argv=None) -> int:
         a = _measure(champ, close, adj, fx, start, end)
         b = _measure(spy, close, adj, fx, start, end)
         rows.append({"start": str(start.date()), "end": str(end.date()), "champion": a, "spy": b,
-                     "old_gap_irr": a["old_irr"] - b["old_irr"],
-                     "corrected_gap_irr": a["corrected_irr"] - b["corrected_irr"]})
+                     "old_gap_irr": _gap(a["old_irr"], b["old_irr"]),
+                     "corrected_gap_irr": _gap(a["corrected_irr"], b["corrected_irr"])})
         _atomic_json(checkpoint, {"fingerprint": fingerprint, "smoke": args.smoke, "rows": rows})
 
     old_gaps = [r["old_gap_irr"] for r in rows]
     new_gaps = [r["corrected_gap_irr"] for r in rows]
-    changed = sum((a > 0) != (b > 0) for a, b in zip(old_gaps, new_gaps))
+    paired = [(a, b) for a, b in zip(old_gaps, new_gaps) if a is not None and b is not None]
+    changed = sum((a > 0) != (b > 0) for a, b in paired)
     summary = {"windows": len(rows), "old_gap_irr_median": _finite_median(old_gaps),
                "corrected_gap_irr_median": _finite_median(new_gaps), "gap_sign_changed_windows": changed,
+               "comparable_irr_windows": len(paired),
+               "irr_unavailable_windows": len(rows) - len(paired),
                "champion_terminal_delta_median_krw": _finite_median([r["champion"]["corrected_terminal_krw"] - r["champion"]["old_terminal_krw"] for r in rows]),
                "spy_terminal_delta_median_krw": _finite_median([r["spy"]["corrected_terminal_krw"] - r["spy"]["old_terminal_krw"] for r in rows])}
     result = {"id": JOB_ID, "smoke": args.smoke, "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -145,8 +167,9 @@ def main(argv=None) -> int:
     report = ["# 청산 회계 수정 영향 측정" + (" — 합성 스모크" if args.smoke else ""), "",
               "판정: MEASUREMENT_ONLY. 같은 시뮬레이션에서 구·신 최종 청산 공식만 비교했다.", "",
               f"측정 창 {len(rows)}개; 5년 월별 시작(스모크만 2년), 종료일 상한 {limit.date()}.",
-              f"현 챔피언−SPY IRR 중앙 차이: 과거 공식 {summary['old_gap_irr_median']:.3%}, 수정 공식 {summary['corrected_gap_irr_median']:.3%}.",
-              f"우위 부호가 바뀐 창 {changed}개. 챔피언 청산액 수정 중앙 {summary['champion_terminal_delta_median_krw']:,.0f}원, SPY {summary['spy_terminal_delta_median_krw']:,.0f}원.", "",
+              f"현 챔피언−SPY IRR 중앙 차이: 과거 공식 {_fmt_pct(summary['old_gap_irr_median'])}, 수정 공식 {_fmt_pct(summary['corrected_gap_irr_median'])}.",
+              f"IRR 비교 가능 {len(paired)}개·계산 불가 {len(rows) - len(paired)}개(수익률 해가 계산기 범위를 벗어나거나 현금흐름이 부적격).",
+              f"비교 가능 창 중 우위 부호가 바뀐 창 {changed}개. 챔피언 청산액 수정 중앙 {summary['champion_terminal_delta_median_krw']:,.0f}원, SPY {summary['spy_terminal_delta_median_krw']:,.0f}원.", "",
               "창별 수치와 입력 지문은 results.json. 기존 연구의 원 판정은 변경하지 않았다.",
               "현재 S&P500 풀 생존편향과 원 연구 실행 당시 입력 차이 가능성이 있다. 독립 표본외·실계좌 세금 검증이 아니다."]
     (out / "REPORT.md").write_text("\n".join(report) + "\n", encoding="utf-8")

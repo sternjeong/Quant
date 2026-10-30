@@ -9,7 +9,7 @@
   "outputs": ["results.json", "REPORT.md", "13f_raw_shares.csv"],
   "summary_from": "verdicts",
   "priority": 26,
-  "revision": 1,
+  "revision": 2,
   "max_memory_mb": 512,
   "max_disk_mb": 2048,
   "max_runs": 30

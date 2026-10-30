@@ -9,7 +9,7 @@
   "outputs": ["results.json", "REPORT.md"],
   "summary_from": "verdicts",
   "priority": 21,
-  "revision": 1,
+  "revision": 2,
   "max_memory_mb": 2500,
   "max_runs": 20
 }

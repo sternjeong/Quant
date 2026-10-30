@@ -1,6 +1,7 @@
 """청산 회계 영향 연구의 구 공식 재현과 새 ID 계약."""
 
 import importlib.util
+import math
 from pathlib import Path
 
 import pandas as pd
@@ -31,3 +32,13 @@ def test_new_job_is_registered_and_old_formula_omits_prior_year_liability():
     old = _job()._legacy_terminal(result, 2026)
     assert old == pytest.approx(result["final_krw"])
     assert old - result["final_after_liquidation_krw"] == pytest.approx(1_650_000)
+
+
+def test_undefined_irr_is_explicit_and_does_not_break_checkpoint(tmp_path):
+    job = _job()
+    assert job._finite_or_none(math.nan) is None
+    assert job._gap(None, 0.1) is None
+    assert job._finite_median([None, 0.1, 0.3]) == pytest.approx(0.2)
+    path = tmp_path / "progress.json"
+    job._atomic_json(path, {"rows": [{"old_gap_irr": job._gap(None, 0.1)}]})
+    assert '"old_gap_irr": null' in path.read_text()

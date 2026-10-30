@@ -1,5 +1,9 @@
 import csv
 import json
+import os
+import subprocess
+import sys
+from pathlib import Path
 
 from research.alpha_discovery.sec_13f_source import entries_from_submissions, fetch_filing, main, parse_equity_shares
 
@@ -62,3 +66,13 @@ def test_source_job_smoke_writes_machine_readable_artifacts(tmp_path):
         rows = list(csv.DictReader(handle))
     assert rows[0]["shares"] == "50.0"
     assert rows[0]["accepted_at"] == "2020-05-15T17:00:00"
+
+
+def test_source_script_can_import_core_from_other_working_directory(tmp_path):
+    script = Path(__file__).resolve().parents[1] / "research/alpha_discovery/sec_13f_source.py"
+    code = ("import runpy; runpy.run_path(" + repr(str(script)) + ", run_name='import_check'); "
+            "from core.filing_changes import EdgarClient")
+    env = dict(os.environ, PYTHONPATH="")
+    completed = subprocess.run([sys.executable, "-c", code], cwd=tmp_path, env=env,
+                               capture_output=True, text=True, timeout=30)
+    assert completed.returncode == 0, completed.stderr
