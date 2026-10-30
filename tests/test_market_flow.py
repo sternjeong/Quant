@@ -172,6 +172,15 @@ def test_conditional_study_episodes_do_not_overlap_and_use_no_future_information
     assert kept == [d for d in dates if d <= world.index[cut]]
 
 
+def test_conditional_study_exposes_episode_samples_for_subperiod_checks():
+    res = mf.conditional_forward_excess(_regime_world(effect=0.05), "SRC")
+    samples = res.attrs["samples"]
+    assert set(samples) <= set(res["ticker"]) and "TARGET" in samples
+    row = res.set_index("ticker").loc["TARGET"]
+    assert len(samples["TARGET"]) == row["episodes"]
+    assert abs(samples["TARGET"].mean() - row["mean_excess"]) < 1e-9  # 요약 평균과 에피소드 값이 같은 계산이다
+
+
 def test_conditional_study_edge_cases():
     world = _regime_world(effect=0.0)
     assert mf.conditional_forward_excess(world, "MISSING").empty

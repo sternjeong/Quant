@@ -333,6 +333,7 @@ def conditional_forward_excess(
     에피소드는 직전 에피소드와 `horizon` 거래일 이상 떨어진 것만 센다(겹치는 창은 같은 사건을 여러 번 세므로).
 
     반환 컬럼: ticker, episodes, mean_excess(%p), t_stat, p_value, significant_raw, significant_bonferroni, hit_rate.
+    attrs: episode_dates, n_tests, samples(자산별 에피소드 값).
     에피소드가 MIN_EPISODES_FOR_STAT 미만이면 통계는 NaN 이고 표본 수만 남는다.
     """
     if source not in close.columns or benchmark not in close.columns:
@@ -359,6 +360,7 @@ def conditional_forward_excess(
     others = [c for c in px.columns if c not in (source, benchmark)]
     # 요약 지표는 SPY 대비 초과수익이라, 자산별 무조건 평균과 비교한다.
     rows = []
+    samples: dict[str, pd.Series] = {}
     n_tests = max(len(others), 1)
     for t in others:
         excess = (fwd[t] - bench_fwd) * 100
@@ -369,6 +371,7 @@ def conditional_forward_excess(
                "significant_raw": False, "significant_bonferroni": False, "hit_rate": np.nan}
         if n >= MIN_EPISODES_FOR_STAT:
             diff = sample - baseline
+            samples[t] = diff
             sd = diff.std(ddof=1)
             if sd and np.isfinite(sd) and sd > 0:
                 t_stat = float(diff.mean() / (sd / math.sqrt(n)))
@@ -382,6 +385,7 @@ def conditional_forward_excess(
     out = pd.DataFrame(rows)
     out.attrs["episode_dates"] = episode_dates
     out.attrs["n_tests"] = n_tests
+    out.attrs["samples"] = samples  # 자산별 에피소드 초과수익(%p, 평소 평균 차감) — 하위 구간 점검용
     return out.sort_values("mean_excess", ascending=False, na_position="last").reset_index(drop=True)
 
 

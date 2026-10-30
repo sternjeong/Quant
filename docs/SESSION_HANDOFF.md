@@ -1,11 +1,14 @@
-## 2026-10-30 시장 자금 흐름 모니터 — 구현·로컬 테스트 완료, 배포 전
+## 2026-10-30 시장 자금 흐름 모니터 + 사전 등록 연구 market-flow-transfer-v1 — 구현·로컬 테스트 완료, 배포는 전체 테스트 통과 뒤
 
 - 사용자 요청: 기술주 급락기에 '한 시장에서 빠진 돈이 다른 시장으로 간다'를 시장 간 상관 그래프, 강세/약세 시장, 강세 시장의 주도주·수익률로 보는 서비스. 엔진은 R&D 리포트 기반, 최대한 정량적으로.
 - 결정: 새 화면(시장 그룹)·새 모듈. 기존 시장 진단에 섞지 않음(1900줄). 자동 잡·DB 없음. 자금 이동은 가격·거래대금 대리지표로 명시. 로테이션 R&D 결과(FAIL)에 맞춰 '관측이지 신호가 아님'을 화면·설명서에 명시. 탐색 화면이라 사전 등록 연구 계약 대상이 아니며, 공식 판정이 필요하면 새 id 로 사전 등록(제안, 미실행).
 - 수정 파일: `core/market_flow.py`, `app/views/17_시장_자금흐름.py`, `core/app_navigation.py`, `hub/guide/content_pages_b.py`·`content_modules_b.py`, `tests/test_market_flow.py`, `docs/MARKET_FLOW_MONITOR_SPEC.md`, 이 문서·PROGRESS.md. 브랜치 `feat/market-flow-20261030`(origin/main `c0ba3ef` 기준 별도 worktree).
 - 검증: 신규 20건·네비게이션·가이드 포함 53건 통과, `hub.guide.check` 누락 없음, 실데이터 AppTest 5섹션 예외 0. **전체 스위트·push·VM 배포는 하지 않았다.**
 - 실측(10/30 읽기 전용): XLK −8.4%·SMH −14.2%·EWY −17.3%(1개월) 약세, XLE·XLV·XLP·유틸리티·채권 강세 쪽. 조건부 검정에서 보정 후 유의 0개.
-- 다음: 전체 테스트(VM 의 /opt/quant/.venv) → main push 는 사용자 확인 뒤. 매일 스냅샷·알림, 공식 사전 등록 연구, 시장·대표 종목 프리셋 확장은 후속 제안.
+- 사용자 지시(같은 날): 화면 배포 + 가설 검증을 등록 연구로 만들 것. → 연구 `research/jobs/market-flow-transfer-v1/{job.json,SPEC.md,run.py}`, 테스트 `tests/test_market_flow_transfer.py`. 판정 표본은 Ken French 12 산업 일별 1926~2007(ETF 표본은 화면 탐색에서 이미 봐서 보고만). 규칙(BusEq 21행 하위 10% → 21행, 12개 검정 Bonferroni, 하한 0.30%p, 1967 전·후 같은 부호)은 결과 전에 고정. `core/market_flow.conditional_forward_excess` 가 에피소드별 값(attrs['samples'])을 돌려주도록 확장(화면과 같은 함수를 공유).
+- 상태 구분: 화면·연구 정의 = 구현 완료. 전체 스위트 = 실행 중/통과 뒤 push. 연구 본 계산 = **미실행**(VM 실행기가 main 병합 뒤 집어 감, 결과는 research/results/market-flow-transfer-v1/). 엔진 반영 = 없음.
+- 위험: 검정 12개·에피소드 약 180건이면 최소 검출 효과가 0.30%p 를 넘어 `FAIL_UNDERPOWERED` 가 나올 수 있다(결과 전에 계산하지 않음). 그 경우 '효과 없음'이 아니라 '판별 불가'로 읽고, 기준을 바꾸려면 새 id.
+- 다음: 전체 테스트 통과 → main push → VM 배포·연구 큐 등록 확인(`scripts/research_jobs_admin.py list`) → 결과 도착 시 해석. 매일 스냅샷 저장(전진 기록)과 시장·대표 종목 프리셋 확장은 후속 제안.
 
 ## 2026-10-30 실패한 회계 영향·13F 원본 연구 복구 — 구현·스모크 완료, VM 본 계산 대기
 

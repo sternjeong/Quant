@@ -1,0 +1,14 @@
+{
+  "id": "market-flow-transfer-v1",
+  "title": "시장 자금 이동 v1 — 기술(BusEq)이 크게 빠진 뒤 다른 산업이 시장보다 더 버나(1927~2007 미사용 표본, 사전 등록)",
+  "entrypoint": "research/jobs/market-flow-transfer-v1/run.py",
+  "args": [],
+  "timeout_seconds": 1800,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 14,
+  "revision": 1,
+  "max_memory_mb": 1500
+}
