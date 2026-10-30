@@ -28,6 +28,7 @@ def test_salary_deposit_goes_into_both_benchmarks_but_personal_may_hold_cash():
     assert actual["nav"].tolist() == pytest.approx([1000, 2000, 2099])
     assert actual["flows"].tolist() == [0, 1000, 0]
     assert actual["ticker_pnl"]["AAA"] == pytest.approx(99)
+    assert actual["daily_ticker_pnl"]["AAA"].tolist() == pytest.approx([0, 0, 99])
     allocation = [{"date": d.date().isoformat(), "allocation": [
         {"sleeve": "코어", "ticker": "AAA", "weight": 0.85},
         {"sleeve": "현금", "ticker": "CASH", "weight": 0.15}]}
@@ -105,6 +106,7 @@ def test_dividend_is_internal_profit_and_not_repeated_in_benchmarks():
         "AAA": pd.DataFrame({"Close": [100, 105]}, index=dates)})
     assert actual["flows"].sum() == 0
     assert actual["ticker_pnl"]["AAA"] == pytest.approx(10)
+    assert actual["daily_ticker_pnl"]["AAA"].tolist() == pytest.approx([0, 10])
     matched = pah.matched_benchmarks(pd.Series([1, 1], index=dates),
                                      pd.Series([1, 1], index=dates), actual)
     assert matched["profit_usd"]["personal"] == pytest.approx(10)

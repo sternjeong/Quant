@@ -26,6 +26,7 @@ import streamlit as st
 from core import job_manager
 from core import champion_follow as follow
 from core import personal_performance
+from core import performance_explain
 from core.champion_performance import (
     DEFAULT_INITIAL_CAPITAL,
     SLEEVE_CORE,
@@ -132,6 +133,64 @@ _PLOT_CONFIG = {"displayModeBar": False, "scrollZoom": False}
 
 def _plot(fig: go.Figure) -> None:
     st.plotly_chart(fig, use_container_width=True, config=_PLOT_CONFIG)
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def _analysis_prices(tickers: tuple[str, ...], days: tuple[str, ...]) -> dict:
+    return performance_explain.ticker_price_trends(list(tickers), pd.DatetimeIndex(days))
+
+
+def _render_movement_panel(components: dict[str, dict], price_returns: pd.DataFrame, *, key: str) -> None:
+    st.markdown("##### 상승·하락을 움직인 종목")
+    left, right = st.columns(2)
+    line_name = left.selectbox("분석할 선", list(components), key=f"{key}_line")
+    direction = right.radio("볼 날짜", ("하락일", "상승일", "전체"), horizontal=True,
+                            key=f"{key}_direction")
+    component = components[line_name]
+    try:
+        summary = performance_explain.movement_summary(component, direction,
+                                                       ticker_returns=price_returns)
+    except ValueError as exc:
+        st.warning(f"종목 영향을 계산하지 못했습니다: {exc}")
+        return
+    if not summary["n_days"]:
+        st.info(f"{line_name}의 {direction}이 이 기간에 없습니다.")
+        return
+    st.caption(f"{line_name} · {direction} {summary['n_days']}일의 순변화 "
+               f"{format_usd(summary['net_move_usd'], signed=True)}. 입출금 자체는 상승·하락으로 세지 않습니다.")
+    shown = summary["rows"][:8]
+    if shown:
+        labels = [f"{row['ticker']} · {row['sleeve']}" if row["sleeve"] else row["ticker"]
+                  for row in reversed(shown)]
+        amounts = [row["pnl_usd"] for row in reversed(shown)]
+        fig = go.Figure(go.Bar(x=amounts, y=labels, orientation="h",
+                               marker_color=[C_LOSS if value < 0 else C_6040 for value in amounts],
+                               hovertemplate="%{y}: $%{x:+,.2f}<extra></extra>"))
+        fig = _style(fig, min(340, 95 + 32 * len(shown)), legend=False)
+        fig.update_xaxes(zeroline=True, zerolinecolor=AXIS, tickprefix="$", tickformat=",.0f",
+                         title_text="손익 $")
+        _plot(fig)
+        st.dataframe(pd.DataFrame([{
+            "종목": row["ticker"], "구분": row["sleeve"] or "—",
+            "손익($)": round(row["pnl_usd"], 2),
+            "변동 관여(%)": round(row["impact_share_pct"], 1),
+            "가격 동행 r": round(row["correlation_r"], 2) if row["correlation_r"] is not None else "—",
+            "관측일": row["n_observed"],
+        } for row in shown]), hide_index=True, width="stretch")
+    st.caption("손익은 선택한 날의 일별 종목 기여 합계입니다. '변동 관여'는 종목별 절대 손익 합에서 차지한 비율입니다. "
+               "가격 동행 r은 보유일의 종가 수익률과 이 선의 일별 수익률 간 상관(최소 5일)으로, 손익 기여나 원인을 뜻하지 않습니다. "
+               "양수 손익은 하락일에 손실을 상쇄할 수 있습니다.")
+    if line_name.startswith("SPY") and not price_returns.empty:
+        target = component["nav"].pct_change(fill_method=None)
+        other = price_returns.drop(columns="SPY", errors="ignore")
+        correlations = [row for row in performance_explain.price_correlation_rows(other, target)
+                        if row["correlation_r"] is not None][:6]
+        if correlations:
+            st.write("**SPY와 가격이 함께 움직인 추적 종목**")
+            st.dataframe(pd.DataFrame([{"종목": row["ticker"], "SPY와 r": round(row["correlation_r"], 2),
+                                        "거래일": row["n_observed"]} for row in correlations]),
+                         hide_index=True, width="stretch")
+            st.caption("이 표는 챔피언·내 보유 종목 가격과 SPY의 동행 정도입니다. SPY ETF 내부 구성종목의 수익 기여는 아닙니다.")
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
@@ -579,11 +638,57 @@ else:
                                 hovertemplate="%{x|%Y-%m-%d} %{y:+.2f}%<extra>%{fullData.name}</extra>"))
     st.markdown("#### 10월 1일부터의 수익률 변화" if compare_mode == "10월 1일부터"
                 else f"#### {personal['first_date']}부터의 수익률 변화")
+    _champion_tickers = {trade["ticker"] for trade in follow_result["trades"]
+                         if trade["ticker"] != "CASH"}
+    _personal_tickers = {row["ticker"] for row in (personal.get("ticker_attribution") or [])} if has_personal else set()
+    _tracked_tickers = tuple(sorted(_champion_tickers | _personal_tickers | {"SPY"}))
+    try:
+        _price_info = _analysis_prices(_tracked_tickers,
+                                       tuple(day.date().isoformat() for day in curves_pct["strategy"].index))
+    except (ValueError, RuntimeError, OSError) as _price_exc:
+        _price_info = {"curves": {}, "daily_returns": pd.DataFrame(), "missing": list(_tracked_tickers)}
+        st.warning(f"개별 종목 가격을 받지 못해 수익률 추이·가격 상관은 잠시 표시하지 못합니다: {_price_exc}")
+    _default_tickers = []
+    for _ticker in [next((r["ticker"] for r in follow_result["latest_allocation"]
+                           if r["ticker"] != "CASH" and r["ticker"] in _price_info["curves"]), None),
+                    next((r["ticker"] for r in (personal.get("ticker_attribution") or [])
+                          if r["ticker"] in _price_info["curves"]), None) if has_personal else None]:
+        if _ticker and _ticker not in _default_tickers:
+            _default_tickers.append(_ticker)
+    def _ticker_label(ticker: str) -> str:
+        tags = (["챔피언"] if ticker in _champion_tickers else []) + (["내 보유"] if ticker in _personal_tickers else [])
+        return f"{ticker} · {', '.join(tags)}" if tags else ticker
+    _selected_tickers = st.multiselect("선 위에 겹쳐 볼 종목 가격 수익률 (최대 3개)",
+                                       _tracked_tickers, default=_default_tickers[:3],
+                                       format_func=_ticker_label, max_selections=3,
+                                       key="follow_ticker_overlay")
+    for _i, _ticker in enumerate(_selected_tickers):
+        _ticker_curve = _price_info["curves"].get(_ticker)
+        if _ticker_curve is None:
+            st.caption(f"{_ticker}: 이 기간의 종가가 없어 추이를 표시하지 못했습니다.")
+            continue
+        fg.add_trace(go.Scatter(x=_ticker_curve.index, y=_ticker_curve.values,
+                                name=f"{_ticker} 가격", mode="lines", opacity=.78,
+                                line=dict(color=("#62c5b0", "#e9b96e", "#d993b1")[_i],
+                                          dash="dot", width=1.6),
+                                hovertemplate="%{x|%Y-%m-%d} %{y:+.2f}%<extra>%{fullData.name}</extra>"))
+    st.caption("굵은 선 3개는 포트폴리오 수익률, 점선 종목은 각 종목의 첫 확보 종가 대비 가격 변화입니다. "
+               "종목 점선에는 배당·매매비용·포트폴리오 비중이 반영되지 않습니다. 상장 종료 뒤 가격은 이어 그리지 않습니다.")
     fg = _style(fg, 300, y_title="수익률 %")
     fg.update_yaxes(ticksuffix="%", zeroline=True, zerolinecolor=AXIS)
     _plot(fg)
     attribution_start = (personal["first_date"] if has_personal and compare_mode == "내 첫 매입일부터 같은 기간"
                          else fs["start"])
+    try:
+        _movement_components = {
+            "챔피언": performance_explain.champion_components(follow_result, attribution_start, capital),
+            "SPY": performance_explain.spy_components(follow_result, attribution_start, capital),
+        }
+        if has_personal:
+            _movement_components["내 현재 보유분 (추정)"] = performance_explain.personal_components(personal)
+        _render_movement_panel(_movement_components, _price_info["daily_returns"], key="follow_movement")
+    except ValueError as _movement_exc:
+        st.warning(f"상승·하락 종목 분석을 표시하지 못했습니다: {_movement_exc}")
     champion_rows = follow.ticker_attribution_for_period(follow_result, attribution_start, capital)
     open_positions = {(trade["ticker"], trade["sleeve"]) for trade in follow_result["trades"]
                       if trade["is_open"]}
@@ -677,6 +782,49 @@ else:
                    ("SPY 순손익", format_usd(_matched["profit_usd"]["spy"], signed=True), "동일 입출금"),
                    ("내 선택 − 챔피언", format_usd(_matched["profit_usd"]["personal"] -
                                                    _matched["profit_usd"]["champion"], signed=True), "같은 자금 기준")])
+            _account_tickers = tuple(sorted(_champion_tickers | set(_actual["daily_ticker_pnl"].columns) | {"SPY"}))
+            try:
+                _account_prices = _analysis_prices(
+                    _account_tickers, tuple(day.date().isoformat() for day in _actual["nav"].index))
+            except (ValueError, RuntimeError, OSError) as _price_exc:
+                _account_prices = {"curves": {}, "daily_returns": pd.DataFrame(), "missing": list(_account_tickers)}
+                st.warning(f"동일 입출금 기간의 종목 가격을 받지 못했습니다: {_price_exc}")
+            _account_selected = st.multiselect("이 기간에 함께 볼 종목 가격 수익률 (최대 3개)",
+                                               _account_tickers,
+                                               default=[t for t in _selected_tickers if t in _account_tickers][:3],
+                                               max_selections=3, key="matched_ticker_trends")
+            if _account_selected:
+                _trend_fig = go.Figure()
+                for _i, _ticker in enumerate(_account_selected):
+                    _trend = _account_prices["curves"].get(_ticker)
+                    if _trend is None:
+                        st.caption(f"{_ticker}: 이 기간의 종가가 없어 가격 추이를 표시하지 못했습니다.")
+                        continue
+                    _trend_fig.add_trace(go.Scatter(x=_trend.index, y=_trend.values,
+                                                    name=_ticker, mode="lines",
+                                                    line=dict(color=("#62c5b0", "#e9b96e", "#d993b1")[_i]),
+                                                    hovertemplate="%{x|%Y-%m-%d} %{y:+.2f}%<extra>%{fullData.name}</extra>"))
+                if _trend_fig.data:
+                    st.caption("아래는 같은 기간에 선택한 종목의 가격 수익률입니다. 위 달러 계좌곡선과 눈금이 다릅니다.")
+                    _plot(_style(_trend_fig, 230, y_title="종목 가격 수익률 %"))
+            _champion_daily = _matched["champion_daily_ticker_pnl"].copy()
+            _champion_daily.iloc[0] = 0.0  # 시작일 초기 진입비용은 시작 평가액에 이미 포함
+            _spy_daily = pd.DataFrame({"SPY": (_matched["spy"].diff() - _actual["flows"]).fillna(0.0)})
+            _spy_daily.iloc[0] = 0.0
+            _account_components = {
+                "챔피언 · 동일 입출금": {"nav": _matched["champion"], "flows": _actual["flows"],
+                                    "pnl": _champion_daily,
+                                    "active": performance_explain.champion_active(
+                                        follow_result, _matched["champion"].index, _champion_daily.columns)},
+                "내 실제 계좌": {"nav": _actual["nav"], "flows": _actual["flows"],
+                               "pnl": _actual["daily_ticker_pnl"], "active": _actual["daily_active"]},
+                "SPY · 동일 입출금": {"nav": _matched["spy"], "flows": _actual["flows"],
+                                   "pnl": _spy_daily,
+                                   "active": pd.DataFrame(True, index=_matched["spy"].index, columns=["SPY"])},
+            }
+            with st.expander("이 달러 그래프의 상승·하락을 만든 종목", expanded=False):
+                _render_movement_panel(_account_components, _account_prices["daily_returns"],
+                                       key="matched_movement")
             _mine_rows = [{"종목": ticker, "손익($)": round(pnl, 2)} for ticker, pnl in
                           sorted(_actual["ticker_pnl"].items(), key=lambda item: item[1], reverse=True)]
             _champ_rows = [{"종목": ticker, "구분": sleeve, "손익($)": round(pnl, 2)}

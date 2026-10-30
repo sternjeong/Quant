@@ -199,6 +199,8 @@ def account_curve(ledger: dict, sessions: pd.DatetimeIndex, *, price_fn=None) ->
     nav = pd.Series(index=dates, dtype=float)
     flows = pd.Series(0.0, index=dates)
     ticker_pnl = {ticker: 0.0 for ticker in tickers}
+    daily_ticker_pnl = pd.DataFrame(0.0, index=dates, columns=tickers)
+    daily_active = pd.DataFrame(False, index=dates, columns=tickers)
     previous_qty = dict(positions)
     previous_close = None
     for day in dates:
@@ -212,6 +214,10 @@ def account_curve(ledger: dict, sessions: pd.DatetimeIndex, *, price_fn=None) ->
             elif event["kind"] == "DIVIDEND":
                 ticker = str(event["ticker"]).upper()
                 ticker_pnl[ticker] = ticker_pnl.get(ticker, 0.0) + float(event["amount_usd"])
+                if ticker not in daily_ticker_pnl:
+                    daily_ticker_pnl[ticker] = 0.0
+                    daily_active[ticker] = False
+                daily_ticker_pnl.loc[day, ticker] += float(event["amount_usd"])
             elif event["kind"] in ("BUY", "SELL"):
                 ticker = event["ticker"]
                 sign = 1 if event["kind"] == "BUY" else -1
@@ -232,7 +238,10 @@ def account_curve(ledger: dict, sessions: pd.DatetimeIndex, *, price_fn=None) ->
                     if (before and (not math.isfinite(prior) or prior <= 0)) or (after and (not math.isfinite(current) or current <= 0)):
                         raise ValueError(f"{ticker} {day.date()} 종가가 없어 손익을 계산할 수 없습니다.")
                     ticker_pnl[ticker] += after * current - before * prior - bought_minus_sold[ticker]
+                    daily_ticker_pnl.loc[day, ticker] += after * current - before * prior - bought_minus_sold[ticker]
         nav[day] = value
+        for ticker in tickers:
+            daily_active.loc[day, ticker] = positions.get(ticker, 0) > 0 or previous_qty.get(ticker, 0) > 0
         previous_qty = dict(positions)
         previous_close = close.loc[day]
     start_value = float(nav.iloc[0])
@@ -242,7 +251,8 @@ def account_curve(ledger: dict, sessions: pd.DatetimeIndex, *, price_fn=None) ->
     if abs(sum(ticker_pnl.values()) - profit) > max(0.01, abs(profit) * 1e-8):
         raise ValueError("실제 계좌의 종목별 손익과 전체 손익이 일치하지 않습니다.")
     return {"nav": nav, "flows": flows, "start_value": start_value, "profit_usd": profit,
-            "ticker_pnl": ticker_pnl, "cash_usd": cash, "positions": positions}
+            "ticker_pnl": ticker_pnl, "cash_usd": cash, "positions": positions,
+            "daily_ticker_pnl": daily_ticker_pnl, "daily_active": daily_active}
 
 
 def matched_benchmarks(champion: pd.Series, spy: pd.Series, account: dict,
@@ -307,11 +317,12 @@ def matched_benchmarks(champion: pd.Series, spy: pd.Series, account: dict,
                             for name, series in output.items() if name in ("personal", "champion", "spy")}
     if ticker_pnl_daily is not None:
         from core.champion_performance import series_from_json
-        pnl_by_ticker = {}
+        daily_map = {}
         for row in ticker_pnl_daily:
             key = (row["sleeve"], row["ticker"])
             daily = series_from_json(row["pnl_x"]).reindex(dates).fillna(0.0)
-            pnl_by_ticker[key] = sum(float(daily.loc[day]) * champion_units_before[day] for day in dates[1:])
+            daily_map[key] = pd.Series([float(daily.loc[day]) * champion_units_before[day]
+                                        if i else 0.0 for i, day in enumerate(dates)], index=dates)
         for day in dates:
             flow = float(account["flows"].loc[day])
             if flow:
@@ -319,11 +330,14 @@ def matched_benchmarks(champion: pd.Series, spy: pd.Series, account: dict,
                 gross_sold = -flow / (1 - fee) if flow < 0 else 0.0
                 amount = flow if flow > 0 else gross_sold
                 for key, rate in fee_by_ticker[day].items():
-                    pnl_by_ticker[key] = pnl_by_ticker.get(key, 0.0) - amount * rate
+                    daily_map.setdefault(key, pd.Series(0.0, index=dates)).loc[day] -= amount * rate
         if initial_champion_fee:
             for key, rate in fee_by_ticker[dates[0]].items():
-                pnl_by_ticker[key] = pnl_by_ticker.get(key, 0.0) - float(account["start_value"]) * rate
+                daily_map.setdefault(key, pd.Series(0.0, index=dates)).loc[dates[0]] -= float(account["start_value"]) * rate
+        pnl_by_ticker = {key: float(series.sum()) for key, series in daily_map.items()}
+        daily_by_ticker = pd.DataFrame(daily_map, index=dates)
         if abs(sum(pnl_by_ticker.values()) - output["profit_usd"]["champion"]) > max(0.02, abs(output["profit_usd"]["champion"]) * 1e-6):
             raise ValueError("추가 투자 후 챔피언 종목별 손익과 자산곡선이 일치하지 않습니다.")
         output["champion_ticker_pnl"] = pnl_by_ticker
+        output["champion_daily_ticker_pnl"] = daily_by_ticker
     return output

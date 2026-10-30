@@ -76,6 +76,7 @@ def current_holdings_curve(
     flows = flows_by_ticker.sum(axis=1)
     growth = pd.Series(1.0, index=dates)
     contribution = pd.Series(0.0, index=tickers)
+    daily_ticker_pnl = pd.DataFrame(0.0, index=dates, columns=tickers)
     for i in range(1, len(dates)):
         previous = float(values.iloc[i - 1])
         if previous <= 0:
@@ -84,6 +85,7 @@ def current_holdings_curve(
         if not math.isfinite(daily) or daily <= 0:
             raise ValueError("보유분의 일별 수익률을 계산할 수 없습니다.")
         ticker_pnl = values_by_ticker.iloc[i] - values_by_ticker.iloc[i - 1] - flows_by_ticker.iloc[i]
+        daily_ticker_pnl.iloc[i] = ticker_pnl
         contribution += growth.iloc[i - 1] * ticker_pnl / previous
         growth.iloc[i] = growth.iloc[i - 1] * daily
     if abs(float(contribution.sum()) - (float(growth.iloc[-1]) - 1.0)) > 1e-8:
@@ -103,7 +105,9 @@ def current_holdings_curve(
             "cost_usd": cost, "last_value_usd": float(values.iloc[-1]),
             "unrealized_pnl_usd": float(values.iloc[-1]) - cost,
             "twr_pct": (float(growth.iloc[-1]) - 1.0) * 100.0,
-            "ticker_attribution": ticker_rows}
+            "ticker_attribution": ticker_rows, "daily_values": values, "daily_flows": flows,
+            "daily_ticker_pnl": daily_ticker_pnl,
+            "daily_active": values_by_ticker.gt(0)}
 
 
 def normalized_return_curves(champion: pd.Series, spy: pd.Series,
