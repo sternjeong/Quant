@@ -13,7 +13,7 @@ from core import champion_strategy as cs
 
 FOLLOW_START = "2026-10-01"
 CACHE_DIR = perf.CACHE_DIR
-SCHEMA = 2
+SCHEMA = 3
 # Nasdaq ECA2026-710: WBD 최종 거래 10/05, 10/06 현금 인수. 이후 값은 주가가 아니라 수령 현금이다.
 WBD_CASH_MERGER = {"ticker": "WBD", "date": "2026-10-06", "last_trade": "2026-10-05",
                    "cash_per_share": 31.01666668,
@@ -51,6 +51,28 @@ def load_cached(end: str, cache_dir=None):
         return result if result.get("params") == params(end) else None
     except (OSError, ValueError, TypeError, AttributeError):
         return None
+
+
+def ticker_attribution_for_period(result: dict, start: str, capital: float) -> list[dict]:
+    """그래프 시작일 이후의 종목별 순손익을 그날의 가상 원금으로 환산한다."""
+    curve = perf.series_from_json(result["curves"]["strategy"])
+    first = pd.Timestamp(start)
+    if first not in curve.index or float(curve.loc[first]) <= 0:
+        raise ValueError("종목별 기여를 계산할 비교 시작일이 없습니다.")
+    base = float(curve.loc[first])
+    rows = []
+    for item in result.get("ticker_pnl_daily") or []:
+        daily = perf.series_from_json(item["pnl_x"])
+        amount = float(daily.loc[daily.index > first].sum()) / base * float(capital)
+        rows.append({"ticker": item["ticker"], "sleeve": item["sleeve"],
+                     "pnl_usd": amount, "contribution_pp": amount / float(capital) * 100.0})
+    expected = (float(curve.iloc[-1]) / base - 1.0) * float(capital)
+    # 저장 곡선·종목 일별 손익은 배수 소수 8자리라 달러 환산 때 센트 미만 오차가 생긴다.
+    if abs(sum(row["pnl_usd"] for row in rows) - expected) > max(0.005, abs(capital) * 1e-7):
+        raise ValueError("종목별 기여와 전략 곡선의 검산이 일치하지 않습니다.")
+    traded = {(trade["sleeve"], trade["ticker"]) for trade in result.get("trades") or []}
+    return sorted((row for row in rows if (row["sleeve"], row["ticker"]) in traded),
+                  key=lambda row: row["pnl_usd"], reverse=True)
 
 
 def _panel(histories: dict, tickers: list[str], field: str = "Close") -> pd.DataFrame:
@@ -194,6 +216,21 @@ def compute_follow_performance(end: str | None = None, *, price_fn=None, core_fn
         t: history[t] for t in requested if t in history})
     if not result["reconciliation"]["ok"]:
         raise ValueError("거래 손익과 자산곡선 검산이 일치하지 않습니다.")
+    growth = perf.series_from_json(result["curves"]["strategy"])
+    growth_prev = growth.shift(1).fillna(1.0)
+    core_parts = perf.sleeve_contributions(core_prices, core["weights"], cs.CORE_COST_BPS_PER_SIDE)
+    sat_parts = perf.sleeve_contributions(sat_prices, sat_weights, cs.SATELLITE_COST_BPS_PER_SIDE, fee_exempt)
+    ticker_daily = []
+    for sleeve, parts, share in (("코어", core_parts, cs.CORE_WEIGHT),
+                                 ("새틀라이트", sat_parts, cs.SATELLITE_WEIGHT)):
+        for ticker in parts["contrib"].columns:
+            pnl = parts["contrib"][ticker] * share * growth_prev
+            ticker_daily.append({"sleeve": sleeve, "ticker": str(ticker),
+                                 "pnl_x": perf._series_to_json(pnl)})
+    daily_total = sum((perf.series_from_json(item["pnl_x"]) for item in ticker_daily),
+                      pd.Series(0.0, index=idx))
+    if float((daily_total - growth.diff().fillna(0.0)).abs().max()) > 1e-7:
+        raise ValueError("종목별 일별 손익과 챔피언 곡선의 검산이 일치하지 않습니다.")
     def allocation_at(i):
         rows = []
         for sleeve, frame, share in (("코어", core["weights"], cs.CORE_WEIGHT),
@@ -247,6 +284,7 @@ def compute_follow_performance(end: str | None = None, *, price_fn=None, core_fn
     result.update({"kind": "champion_follow", "params": params(end),
                    "computed_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
                    "cash_mergers": cash_mergers,
+                   "ticker_pnl_daily": ticker_daily,
                    "initial_allocation": allocation_at(0), "latest_allocation": allocation_at(-1),
                    "next_satellite_reselection": (pd.Timestamp(log[-1]["date"]) + pd.DateOffset(months=6)).date().isoformat()})
     if use_cache:

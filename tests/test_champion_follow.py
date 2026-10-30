@@ -50,6 +50,17 @@ def test_start_is_october_first_and_selection_matches_date(tmp_path):
     assert cached == result
 
 
+def test_ticker_attribution_matches_champion_curve_for_selected_period():
+    kwargs, _ = inputs()
+    result = cf.compute_follow_performance("2026-10-13", use_cache=False, **kwargs)
+    rows = cf.ticker_attribution_for_period(result, "2026-10-01", 10_000)
+    assert {row["ticker"] for row in rows if row["pnl_usd"] > 0} == {cs.CORE_UNIVERSE[0], "SATA"}
+    assert sum(row["pnl_usd"] for row in rows) == pytest.approx(
+        (result["summary"]["final_x"] - 1.0) * 10_000, abs=1e-5)
+    later = cf.ticker_attribution_for_period(result, "2026-10-06", 10_000)
+    assert sum(row["pnl_usd"] for row in later) == pytest.approx(0, abs=1e-5)
+
+
 def test_no_picks_keeps_satellite_cash_not_core_100_percent():
     kwargs, _ = inputs(picks=False)
     result = cf.compute_follow_performance("2026-10-13", use_cache=False, **kwargs)
@@ -161,6 +172,8 @@ def test_page_displays_follow_result_without_using_legacy_ledger(monkeypatch, tm
     assert any("현재 가상 자산" in m.value for m in at.markdown)
     assert any("WBD" in m.value and "현금 인수" in m.value for m in at.info)
     assert any("10월 1일부터의 수익률 변화" in m.value for m in at.markdown)
+    assert any("가상 손익($)" in df.value.columns and "수익률 기여(%p)" in df.value.columns
+               for df in at.dataframe)
     assert any("실제 계좌 전체 수익률은 아닙니다" in m.value for m in at.caption)
     assert any("같은 기간 2026-10-09~2026-10-12" in m.value for m in at.caption)
     at.radio[0].set_value("내 첫 매입일부터 같은 기간").run(timeout=20)

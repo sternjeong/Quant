@@ -582,7 +582,29 @@ else:
     fg = _style(fg, 300, y_title="수익률 %")
     fg.update_yaxes(ticksuffix="%", zeroline=True, zerolinecolor=AXIS)
     _plot(fg)
+    attribution_start = (personal["first_date"] if has_personal and compare_mode == "내 첫 매입일부터 같은 기간"
+                         else fs["start"])
+    champion_rows = follow.ticker_attribution_for_period(follow_result, attribution_start, capital)
+    open_positions = {(trade["ticker"], trade["sleeve"]) for trade in follow_result["trades"]
+                      if trade["is_open"]}
+    st.markdown(f"#### 종목별 손익 기여 · {attribution_start}~{fs['end']}")
+    st.caption(f"챔피언은 가상 원금 ${capital:,.0f}을 비교 시작일에 놓은 금액입니다. 종목별 손익 합계는 위 챔피언 선의 같은 기간 수익과 일치합니다.")
+    st.dataframe(pd.DataFrame([{
+        "종목": row["ticker"], "구분": row["sleeve"],
+        "상태": "보유 중" if (row["ticker"], row["sleeve"]) in open_positions else "종료",
+        "가상 손익($)": round(row["pnl_usd"], 2), "수익률 기여(%p)": round(row["contribution_pp"], 3),
+    } for row in champion_rows]), hide_index=True, width="stretch")
     if has_personal:
+        personal_rows = personal.get("ticker_attribution") or []
+        if personal_rows:
+            st.markdown(f"**내 현재 보유분 · {personal['first_date']}~{personal['last_date']}**")
+            st.dataframe(pd.DataFrame([{
+                "종목": row["ticker"], "보유 주수": round(row["quantity"], 4),
+                "매입원금($)": round(row["cost_usd"], 2), "현재 평가($)": round(row["last_value_usd"], 2),
+                "미실현손익($)": round(row["unrealized_pnl_usd"], 2),
+                "수익률 기여(%p)": round(row["twr_contribution_pp"], 3),
+            } for row in personal_rows]), hide_index=True, width="stretch")
+            st.caption("내 금액은 현재 남아 있는 보유분의 미실현손익입니다. 기여%p의 합계는 보라색 추정선의 수익률과 일치합니다. 과거에 판 종목의 실현손익은 포함되지 않습니다.")
         first = pd.Timestamp(personal["first_date"])
         comparable = {key: (float(curve.iloc[-1]) / float(curve.loc[first]) - 1) * 100
                       for key, curve in fd["curves"].items() if key in ("strategy", "spy")}
@@ -595,6 +617,9 @@ else:
                    f"종가 {personal['last_date']} 기준 현재 보유분의 매입원금 ${personal['cost_usd']:,.2f}, "
                    f"평가액 ${personal['last_value_usd']:,.2f}, 미실현손익 ${personal['unrealized_pnl_usd']:+,.2f}입니다. "
                    "과거 매도·수량 변경·현금 입출금 이력이 없어 실제 계좌 전체 수익률은 아닙니다.")
+        with st.expander("중간에 돈을 넣거나 종목을 바꾸면 비교는 어떻게 되나요?"):
+            st.write("그래프는 금액이 아닌 수익률 비교입니다. 외부에서 $1,000을 더 넣어 종목을 사도 그 $1,000 자체는 수익으로 세지 않습니다. SPY·챔피언 선도 같은 날짜부터의 수익률로 비교하므로 원금이 $10,000으로 남아 있어도 % 비교에는 문제가 없습니다.")
+            st.write("달러 자산액을 비교한다면 $10,000으로 시작한 SPY·챔피언 가상 계좌에도 실제 외부 입금 $1,000을 같은 날짜에 넣어야 합니다. 계좌 안에서 A를 팔아 B를 사는 것은 새 돈이 들어온 것이 아니므로 가상 계좌에 추가하지 않습니다. 현재 포트폴리오 관리에는 과거 매도·현금흐름 장부가 없어 이 달러 비교와 실제 계좌 전체 기여는 계산할 수 없습니다.")
     elif personal:
         st.info(personal["reason"] + " 포트폴리오 관리에서 보유 종목을 입력하면 이 그래프에 표시됩니다.")
     for key, title in (("initial_allocation", "10월 1일 시작 배분"), ("latest_allocation", "마지막 기록의 목표 배분")):

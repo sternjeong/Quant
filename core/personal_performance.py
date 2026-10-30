@@ -55,8 +55,10 @@ def current_holdings_curve(
         sr.index = pd.to_datetime(sr.index).tz_localize(None).normalize()
         close[ticker] = sr[~sr.index.duplicated(keep="last")].reindex(dates)
 
-    values = pd.Series(0.0, index=dates)
-    flows = pd.Series(0.0, index=dates)
+    values_by_ticker = pd.DataFrame(0.0, index=dates, columns=tickers)
+    flows_by_ticker = pd.DataFrame(0.0, index=dates, columns=tickers)
+    cost_by_ticker = {ticker: 0.0 for ticker in tickers}
+    quantity_by_ticker = {ticker: 0.0 for ticker in tickers}
     cost = 0.0
     for ticker, quantity, purchase_price, first in rows:
         held = dates[dates >= first]
@@ -64,11 +66,16 @@ def current_holdings_curve(
         if price.isna().any() or (price <= 0).any() or not price.map(math.isfinite).all():
             missing = price.index[(price.isna() | (price <= 0) | ~price.map(math.isfinite))][0]
             raise ValueError(f"{ticker} {missing.date()} 종가가 없어 내 보유분 곡선을 계산할 수 없습니다.")
-        values.loc[held] += quantity * price
-        flows.loc[first] += quantity * purchase_price
+        values_by_ticker.loc[held, ticker] += quantity * price
+        flows_by_ticker.loc[first, ticker] += quantity * purchase_price
+        cost_by_ticker[ticker] += quantity * purchase_price
+        quantity_by_ticker[ticker] += quantity
         cost += quantity * purchase_price
 
+    values = values_by_ticker.sum(axis=1)
+    flows = flows_by_ticker.sum(axis=1)
     growth = pd.Series(1.0, index=dates)
+    contribution = pd.Series(0.0, index=tickers)
     for i in range(1, len(dates)):
         previous = float(values.iloc[i - 1])
         if previous <= 0:
@@ -76,12 +83,27 @@ def current_holdings_curve(
         daily = (float(values.iloc[i]) - float(flows.iloc[i])) / previous
         if not math.isfinite(daily) or daily <= 0:
             raise ValueError("보유분의 일별 수익률을 계산할 수 없습니다.")
+        ticker_pnl = values_by_ticker.iloc[i] - values_by_ticker.iloc[i - 1] - flows_by_ticker.iloc[i]
+        contribution += growth.iloc[i - 1] * ticker_pnl / previous
         growth.iloc[i] = growth.iloc[i - 1] * daily
+    if abs(float(contribution.sum()) - (float(growth.iloc[-1]) - 1.0)) > 1e-8:
+        raise ValueError("보유 종목별 기여와 수익률 곡선의 검산이 일치하지 않습니다.")
+    ticker_rows = []
+    for ticker in tickers:
+        value = float(values_by_ticker.iloc[-1][ticker])
+        basis = cost_by_ticker[ticker]
+        ticker_rows.append({"ticker": ticker, "quantity": quantity_by_ticker[ticker],
+                            "cost_usd": basis, "last_value_usd": value,
+                            "unrealized_pnl_usd": value - basis,
+                            "unrealized_return_pct": (value / basis - 1.0) * 100.0,
+                            "twr_contribution_pp": float(contribution[ticker]) * 100.0})
+    ticker_rows.sort(key=lambda row: row["unrealized_pnl_usd"], reverse=True)
     return {"available": True, "curve": growth, "first_date": start.date().isoformat(),
             "last_date": dates[-1].date().isoformat(), "n_holdings": len(rows),
             "cost_usd": cost, "last_value_usd": float(values.iloc[-1]),
             "unrealized_pnl_usd": float(values.iloc[-1]) - cost,
-            "twr_pct": (float(growth.iloc[-1]) - 1.0) * 100.0}
+            "twr_pct": (float(growth.iloc[-1]) - 1.0) * 100.0,
+            "ticker_attribution": ticker_rows}
 
 
 def normalized_return_curves(champion: pd.Series, spy: pd.Series,

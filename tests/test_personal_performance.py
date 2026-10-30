@@ -24,6 +24,11 @@ def test_current_lots_start_after_october_first_and_new_money_is_not_profit():
     assert result["curve"].iloc[2] == pytest.approx(1.05 * 165 / 155)
     assert result["cost_usd"] == 150
     assert result["unrealized_pnl_usd"] == 15
+    by_ticker = {row["ticker"]: row for row in result["ticker_attribution"]}
+    assert by_ticker["AAA"]["unrealized_pnl_usd"] == 10
+    assert by_ticker["BBB"]["unrealized_pnl_usd"] == 5
+    assert sum(row["twr_contribution_pp"] for row in by_ticker.values()) == pytest.approx(result["twr_pct"])
+    assert by_ticker["BBB"]["twr_contribution_pp"] > 0
 
 
 def test_missing_held_price_cannot_be_treated_as_zero_return():
