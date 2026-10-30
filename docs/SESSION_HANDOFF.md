@@ -1,3 +1,12 @@
+## 2026-10-30 시장 자금 흐름 모니터 — 구현·로컬 테스트 완료, 배포 전
+
+- 사용자 요청: 기술주 급락기에 '한 시장에서 빠진 돈이 다른 시장으로 간다'를 시장 간 상관 그래프, 강세/약세 시장, 강세 시장의 주도주·수익률로 보는 서비스. 엔진은 R&D 리포트 기반, 최대한 정량적으로.
+- 결정: 새 화면(시장 그룹)·새 모듈. 기존 시장 진단에 섞지 않음(1900줄). 자동 잡·DB 없음. 자금 이동은 가격·거래대금 대리지표로 명시. 로테이션 R&D 결과(FAIL)에 맞춰 '관측이지 신호가 아님'을 화면·설명서에 명시. 탐색 화면이라 사전 등록 연구 계약 대상이 아니며, 공식 판정이 필요하면 새 id 로 사전 등록(제안, 미실행).
+- 수정 파일: `core/market_flow.py`, `app/views/17_시장_자금흐름.py`, `core/app_navigation.py`, `hub/guide/content_pages_b.py`·`content_modules_b.py`, `tests/test_market_flow.py`, `docs/MARKET_FLOW_MONITOR_SPEC.md`, 이 문서·PROGRESS.md. 브랜치 `feat/market-flow-20261030`(origin/main `c0ba3ef` 기준 별도 worktree).
+- 검증: 신규 20건·네비게이션·가이드 포함 53건 통과, `hub.guide.check` 누락 없음, 실데이터 AppTest 5섹션 예외 0. **전체 스위트·push·VM 배포는 하지 않았다.**
+- 실측(10/30 읽기 전용): XLK −8.4%·SMH −14.2%·EWY −17.3%(1개월) 약세, XLE·XLV·XLP·유틸리티·채권 강세 쪽. 조건부 검정에서 보정 후 유의 0개.
+- 다음: 전체 테스트(VM 의 /opt/quant/.venv) → main push 는 사용자 확인 뒤. 매일 스냅샷·알림, 공식 사전 등록 연구, 시장·대표 종목 프리셋 확장은 후속 제안.
+
 ## 2026-10-30 실패한 회계 영향·13F 원본 연구 복구 — 구현·스모크 완료, VM 본 계산 대기
 
 - 요청: 엔진 강화와 R&D 병목 해소를 진행. 우선 두 실패 연구의 실제 종료 원인을 운영 로그에서 확인했다. `liquidation-accounting-impact-v1`은 첫 계산 불가 XIRR의 NaN을 체크포인트 JSON에 저장하다 실패했고, `alpha-13f-source-v1`은 독립 실행 스크립트가 저장소 루트를 import 경로에 넣지 않아 `core` import에 실패했다.

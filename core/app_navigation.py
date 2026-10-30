@@ -43,6 +43,7 @@ NAVIGATION: dict[str, tuple[PageSpec, ...]] = {
     ),
     "시장": (
         PageSpec("views/7_시장_진단.py", "시장 진단", "🌐"),
+        PageSpec("views/17_시장_자금흐름.py", "시장 자금 흐름", "🌊"),
     ),
     "시스템": (
         PageSpec("views/10_환경설정.py", "환경설정", "⚙️"),
