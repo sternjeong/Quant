@@ -239,3 +239,218 @@ def summarize_pairs(rows: list[dict]) -> dict[str, Any]:
     if extra:
         out["median_invested_share"] = float(np.median(extra))
     return out
+
+
+# =================================================================================================
+# 공용 실행 틀·합성 다리·부트스트랩 (model-upgrade 연구 E1~E5 가 함께 쓴다, 2026-10-23)
+# =================================================================================================
+
+import argparse  # noqa: E402
+import os  # noqa: E402
+import pickle  # noqa: E402
+import signal as _signal  # noqa: E402
+import time  # noqa: E402
+
+
+class Stop(Exception):
+    """시간 예산 끝 또는 SIGTERM — 체크포인트는 이미 저장돼 있다."""
+
+
+def atomic_pickle(path: Path, obj) -> None:
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    with open(tmp, "wb") as f:
+        pickle.dump(obj, f, protocol=pickle.HIGHEST_PROTOCOL)
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(tmp, path)
+
+
+def load_ckpt(path: Path, fp):
+    if not path.exists():
+        return None
+    try:
+        with open(path, "rb") as f:
+            obj = pickle.load(f)
+        return obj["payload"] if obj.get("fingerprint") == fp else None
+    except Exception:  # noqa: BLE001
+        return None
+
+
+class Runner:
+    """--out/--checkpoint/--smoke 처리, 단계 저장(stage), 마감 시각 점검, SIGTERM → 종료 코드 3."""
+
+    margin = 120.0
+
+    def __init__(self, rules_version: str, argv=None):
+        p = argparse.ArgumentParser()
+        p.add_argument("--out", required=True)
+        p.add_argument("--checkpoint", required=True)
+        p.add_argument("--smoke", action="store_true")
+        a = p.parse_args(argv)
+        self.out, self.ck, self.smoke = Path(a.out), Path(a.checkpoint), bool(a.smoke)
+        self.out.mkdir(parents=True, exist_ok=True)
+        self.ck.mkdir(parents=True, exist_ok=True)
+        self.fp = {"rules": rules_version, "smoke": self.smoke}
+        self.dl = float(os.environ.get("RESEARCH_JOB_DEADLINE_EPOCH") or 0) or None
+        self.t0 = time.time()
+
+    def log(self, s: str) -> None:
+        print(s, flush=True)
+
+    def check_time(self) -> None:
+        if self.dl is not None and time.time() > self.dl - self.margin:
+            raise Stop()
+
+    def stage(self, name: str, fn):
+        path = self.ck / f"{name}.pkl"
+        got = load_ckpt(path, self.fp)
+        if got is None:
+            self.check_time()
+            got = fn()
+            atomic_pickle(path, {"fingerprint": self.fp, "payload": got})
+            self.log(f"단계 저장: {name} ({time.time() - self.t0:.0f}초)")
+        return got
+
+    def run(self, body) -> int:
+        def on_term(signum, frame):  # noqa: ARG001
+            raise Stop()
+
+        old = _signal.signal(_signal.SIGTERM, on_term) if hasattr(_signal, "SIGTERM") else None
+        try:
+            result, report = body(self)
+        except Stop:
+            self.log(f"시간 예산 끝 — 체크포인트 저장됨, 다음 회차에 이어서 ({time.time() - self.t0:.0f}초)")
+            return 3
+        finally:
+            if old is not None:
+                _signal.signal(_signal.SIGTERM, old)
+        import json
+        (self.out / "results.json").write_text(json.dumps(result, ensure_ascii=False, separators=(",", ":"), default=str), encoding="utf-8")
+        (self.out / "REPORT.md").write_text(report, encoding="utf-8")
+        self.log(json.dumps(result.get("verdicts", {}), ensure_ascii=False))
+        self.log(f"완료 ({time.time() - self.t0:.0f}초)")
+        return 0
+
+
+def rnd(x, nd=4):
+    """JSON 에 넣기 전 정리: numpy → 파이썬, 소수 반올림, 비유한 → None."""
+    if isinstance(x, (float, np.floating)):
+        x = float(x)
+        return round(x, nd) if math.isfinite(x) else None
+    if isinstance(x, (bool, np.bool_)):
+        return bool(x)
+    if isinstance(x, (int, np.integer)):
+        return int(x)
+    if isinstance(x, dict):
+        return {str(k): rnd(v, nd) for k, v in x.items()}
+    if isinstance(x, (list, tuple)):
+        return [rnd(v, nd) for v in x]
+    return x
+
+
+def pct(x, signed=False, nd=1):
+    if x is None or (isinstance(x, float) and not math.isfinite(x)):
+        return "—"
+    return f"{x * 100:+.{nd}f}%" if signed else f"{x * 100:.{nd}f}%"
+
+
+def synthetic_2x(r: pd.Series, rf: pd.Series, mult: float = 2.0, fin_spread: float = 0.010, fee: float = 0.009) -> pd.Series:
+    """일일 리셋 레버리지 상품의 일 수익 = mult × r − (mult−1) × (rf + 차입 가산/252) − 보수/252 (lev-base-v1 과 같은 식)."""
+    rf = rf.reindex(r.index).fillna(0.0)
+    return mult * r - (mult - 1.0) * (rf + fin_spread / 252) - fee / 252
+
+
+def leg_state(level_px: pd.Series, mode: str = "band200") -> pd.Series:
+    """레버리지 다리 켜짐 상태. band200: 매달 첫 거래일 전일 종가가 200일선 ×1.02 위면 켜고 ×0.98 아래면 끈다(lev-base-v1 과 같음).
+    sma210: 같은 방식으로 210거래일(약 10개월). none: 늘 켜짐."""
+    n = len(level_px)
+    if mode == "none":
+        return pd.Series(True, index=level_px.index)
+    win = {"band200": 200, "sma210": 210}[mode]
+    sma = level_px.rolling(win, min_periods=win).mean()
+    c_prev, s_prev = level_px.shift(1).to_numpy(), sma.shift(1).to_numpy()
+    flags = lab.month_first_mask(level_px.index)
+    st, out = False, np.zeros(n, dtype=bool)
+    for i in range(n):
+        if flags[i] and np.isfinite(s_prev[i]) and np.isfinite(c_prev[i]):
+            if c_prev[i] > 1.02 * s_prev[i]:
+                st = True
+            elif c_prev[i] < 0.98 * s_prev[i]:
+                st = False
+        out[i] = st
+    return pd.Series(out, index=level_px.index)
+
+
+def leg_returns(mkt: pd.Series, rf: pd.Series, *, mult: float = 2.0, fin_spread: float = 0.010, fee: float = 0.009,
+                mode: str = "band200", cost_bps: float = 10.0) -> pd.Series:
+    """레버리지 다리 일 수익: 어제 상태가 켜짐이면 합성 레버리지, 아니면 RF. 상태가 바뀐 날 다리 × 2 × bps 를 뗀다."""
+    state = leg_state((1 + mkt.fillna(0.0)).cumprod(), mode).to_numpy(dtype=bool)
+    x = synthetic_2x(mkt, rf, mult, fin_spread, fee).to_numpy()
+    f = rf.reindex(mkt.index).fillna(0.0).to_numpy()
+    out = np.zeros(len(state))
+    for i in range(1, len(state)):
+        r = x[i] if state[i - 1] else f[i]
+        if state[i] != state[i - 1]:
+            r = (1 + r) * (1 - 2 * cost_bps / 1e4) - 1
+        out[i] = r
+    return pd.Series(out, index=mkt.index)
+
+
+def bdates(n: int, start: str = "2000-01-03") -> pd.DatetimeIndex:
+    return pd.bdate_range(start, periods=n)
+
+
+def block_paths(n_src: int, n_days: int, block: int, n_paths: int, seed: int) -> np.ndarray:
+    """원형 블록 부트스트랩의 행 번호 (n_paths, n_days). 한 경로 안에서 모든 자산이 같은 날짜 덩어리를 쓴다."""
+    rng = np.random.default_rng(seed)
+    nb = int(math.ceil(n_days / block))
+    starts = rng.integers(0, n_src, (n_paths, nb))
+    idx = (starts[:, :, None] + np.arange(block)[None, None, :]) % n_src
+    return idx.reshape(n_paths, -1)[:, :n_days]
+
+
+def kpi_pairs_verdict(rows: list[dict], win_min: float, med_min: float, p10_min: float) -> dict[str, Any]:
+    """경로(또는 구간)별 {'diff_irr', 'win'} 에서 통과 여부."""
+    if not rows:
+        return {"n": 0, "pass": None}
+    d = np.array([r["diff_irr"] for r in rows], dtype=float)
+    w = float(np.mean([r["win"] for r in rows]))
+    out = {"n": len(rows), "share_win": w, "median_diff_irr": float(np.nanmedian(d)), "p10_diff_irr": float(np.nanpercentile(d, 10)),
+           "p90_diff_irr": float(np.nanpercentile(d, 90)), "min_diff_irr": float(np.nanmin(d))}
+    out["checks"] = {"win_share": w >= win_min, "median_irr": out["median_diff_irr"] >= med_min, "p10_irr": out["p10_diff_irr"] >= p10_min}
+    out["pass"] = all(out["checks"].values())
+    return out
+
+
+def weighted_window(px: np.ndarray, cg: np.ndarray, days: pd.DatetimeIndex, s, e, monthly: float, weights_fn,
+                    init: float = 0.0, fee: float = FEE + FX_SPREAD) -> dict[str, float]:
+    """팔지 않는 적립 한 구간. weights_fn(행) → [(열, 비중)] (그 행에 들어온 돈을 나눈다). init > 0 이면 첫날 목돈은 열 0(시장)에 산다.
+    반환: irr(청산 세후, 적립 흐름 XIRR), terminal, mdd(계좌), contributed."""
+    rows = contribution_rows(days, s, e)
+    end_row = days.searchsorted(e, side="right") - 1
+    start_row = rows[0]
+    amounts = np.full(len(rows), float(monthly))
+    lump = 0
+    if init > 0:
+        rows = np.concatenate([[rows[0]], rows])
+        amounts = np.concatenate([[float(init)], amounts])
+        lump = 1
+    rr, aa, am = [], [], []
+    for i, (r, amt) in enumerate(zip(rows, amounts)):
+        alloc = [(0, 1.0)] if i < lump else weights_fn(int(r))
+        for c, w in alloc:
+            if not np.isfinite(px[r, c]):
+                c = 0
+            rr.append(r)
+            aa.append(c)
+            am.append(amt * w)
+    rr, aa, am = np.array(rr), np.array(aa), np.array(am)
+    sim = simulate_buy_only(px, cg, rr, am, rr.copy(), aa, end_row, start_row, fee=fee)
+    irr = xirr_monthly(amounts, rows, end_row, sim["terminal"], days)
+    return {"irr": irr, "terminal": sim["terminal"], "mdd": sim["mdd"], "contributed": float(amounts.sum())}
+
+
+def pair_summary(a: dict, b: dict) -> dict[str, float]:
+    return {"diff_irr": a["irr"] - b["irr"], "win": bool(a["terminal"] > b["terminal"]),
+            "ratio": a["terminal"] / b["terminal"] if b["terminal"] > 0 else float("nan"),
+            "mdd_gap": a["mdd"] - b["mdd"]}

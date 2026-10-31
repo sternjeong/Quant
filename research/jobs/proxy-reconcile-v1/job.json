@@ -1,0 +1,18 @@
+{
+  "id": "proxy-reconcile-v1",
+  "title": "학술 자료(Ken French)에서 얻은 결론을 실제 ETF 에 옮길 수 있나 — 같은 2000~2024 기간·같은 규칙을 두 세계에서 비교(사전 등록)",
+  "entrypoint": "research/jobs/proxy-reconcile-v1/run.py",
+  "args": [],
+  "timeout_seconds": 3600,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": [
+    "results.json",
+    "REPORT.md"
+  ],
+  "summary_from": "verdicts",
+  "priority": 29,
+  "revision": 1,
+  "max_memory_mb": 1500,
+  "max_runs": 30
+}

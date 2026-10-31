@@ -39,3 +39,31 @@ def test_next_true_row_and_contribution_rows():
     days = pd.bdate_range("2020-01-01", "2020-03-31")
     rows = L.contribution_rows(days, days[0], days[-1])
     assert [str(days[r].date()) for r in rows] == ["2020-01-01", "2020-02-03", "2020-03-02"]
+
+
+def test_block_paths_keep_blocks_and_shape():
+    p = L.block_paths(1000, 500, 100, 7, seed=3)
+    assert p.shape == (7, 500)
+    # 한 덩어리 안에서는 연속 번호(원형)
+    assert np.all((p[:, 1:100] - p[:, :99]) % 1000 == 1)
+
+
+def test_leg_state_and_returns_follow_filter():
+    idx = pd.bdate_range("2020-01-01", periods=400)
+    up = pd.Series(0.001, index=idx)
+    rf = pd.Series(0.0, index=idx)
+    on = L.leg_returns(up, rf, mode="none")
+    off = L.leg_returns(pd.Series(-0.001, index=idx), rf, mode="band200")
+    assert on.iloc[1:].gt(up.iloc[1:]).all()         # 2배 다리는 오르는 시장에서 시장보다 더 오른다
+    assert abs(off.iloc[-1]) < 1e-9                  # 내리는 시장에서는 필터가 꺼져 RF(0)
+    assert L.leg_state((1 + up).cumprod(), "none").all()
+
+
+def test_weighted_window_split_matches_single_asset_when_equal():
+    days = pd.bdate_range("2020-01-01", "2021-12-31")
+    px1 = 100 * np.exp(np.cumsum(np.full(len(days), 0.0004)))
+    px = np.column_stack([px1, px1])                  # 두 자산이 같으면 나눠 담아도 같다
+    cg = np.ones(len(days))
+    a = L.weighted_window(px, cg, days, days[0], days[-1], 100_000, lambda r: [(0, 0.5), (1, 0.5)])
+    b = L.weighted_window(px, cg, days, days[0], days[-1], 100_000, lambda r: [(0, 1.0)])
+    assert abs(a["terminal"] - b["terminal"]) < 1e-6 and abs(a["irr"] - b["irr"]) < 1e-9

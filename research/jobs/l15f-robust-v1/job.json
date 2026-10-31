@@ -1,0 +1,18 @@
+{
+  "id": "l15f-robust-v1",
+  "title": "시장 + 필터 달린 2배 다리 일부 — 비중·필터·차입 비용·꼬리 구간 견고성, 1927~2024 팔지 않는 적립(사전 등록)",
+  "entrypoint": "research/jobs/l15f-robust-v1/run.py",
+  "args": [],
+  "timeout_seconds": 3600,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": [
+    "results.json",
+    "REPORT.md"
+  ],
+  "summary_from": "verdicts",
+  "priority": 32,
+  "revision": 1,
+  "max_memory_mb": 1500,
+  "max_runs": 30
+}
