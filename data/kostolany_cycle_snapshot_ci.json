@@ -195,21 +195,6 @@
       "guidance": "보유/추세 추종 구간."
     },
     {
-      "theme": "클라우드",
-      "proxies": "SKYY, WCLD",
-      "phase": "A2",
-      "label": "A2 · 상승",
-      "zone": "고점권",
-      "position_pct": 85.5487662107,
-      "roc_pct": 0.0106209826,
-      "volume_ratio": 1.081796661,
-      "trend_up": true,
-      "is_steep": false,
-      "volume_high": false,
-      "description": "가격이 중간~상단 구간에서 상승하며 거래량도 함께 늘어나는 국면.",
-      "guidance": "보유/추세 추종 구간."
-    },
-    {
       "theme": "필수소비재",
       "proxies": "XLP",
       "phase": "A3",
@@ -223,6 +208,21 @@
       "volume_high": true,
       "description": "고점권에서 거래량이 급증하며 오르는 국면(과열·투기적 참여 확대).",
       "guidance": "매도 검토 구간(코스톨라니가 '팔라'고 한 고거래량 과열 국면)."
+    },
+    {
+      "theme": "클라우드",
+      "proxies": "SKYY, WCLD",
+      "phase": "B1",
+      "label": "B1 · 고점 조정 시작",
+      "zone": "고점권",
+      "position_pct": 85.5360985581,
+      "roc_pct": -0.0076397197,
+      "volume_ratio": 1.081796661,
+      "trend_up": false,
+      "is_steep": false,
+      "volume_high": false,
+      "description": "고점권에서 막 하락으로 전환됐지만 아직 거래량은 낮은 국면.",
+      "guidance": "매도 검토 구간(고점권 이탈 초입)."
     },
     {
       "theme": "산업재",
@@ -275,8 +275,8 @@
       "phase": "B2",
       "label": "B2 · 하락",
       "zone": "중간",
-      "position_pct": 33.7606701064,
-      "roc_pct": -5.9452868492,
+      "position_pct": 33.7342788709,
+      "roc_pct": -5.9455857426,
       "volume_ratio": 1.1269596722,
       "trend_up": false,
       "is_steep": false,
@@ -305,8 +305,8 @@
       "phase": "B2",
       "label": "B2 · 하락",
       "zone": "중간",
-      "position_pct": 54.7725380962,
-      "roc_pct": -18.5360826066,
+      "position_pct": 54.7750722216,
+      "roc_pct": -18.5346097548,
       "volume_ratio": 1.2322517444,
       "trend_up": false,
       "is_steep": true,
@@ -330,5 +330,5 @@
       "guidance": "관망 구간."
     }
   ],
-  "computed_at": "2026-10-31T19:09:32.360575"
+  "computed_at": "2026-11-01T19:25:39.940330"
 }
