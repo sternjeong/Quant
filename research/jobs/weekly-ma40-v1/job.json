@@ -1,0 +1,13 @@
+{
+  "id": "weekly-ma40-v1",
+  "title": "SPY 40주 이동평균 매매 백테스트 v1",
+  "entrypoint": "research/jobs/weekly-ma40-v1/run.py",
+  "args": [],
+  "timeout_seconds": 1800,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 20,
+  "revision": 1
+}
