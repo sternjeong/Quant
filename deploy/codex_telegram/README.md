@@ -72,8 +72,8 @@ process_key"를 검증한다. 레지스트리는 리터럴(함수 호출·변수
 재개 계획이 없어 정리했다. VM에서는 `sudo systemctl disable --now quant-experiment-supervisor`로
 먼저 멈췄다(파일만 지우면 `Restart=always`로 30초마다 실패를 반복하기 때문).
 
-- 남긴 것: `docs/TWO_WEEK_STRATEGY_VALIDATION_PROTOCOL.md`, `docs/experiment_validation/`, `.experiment-control/`
-  (백업 대상이며 사람 검증 대기 표본이 들어 있다).
+- 남긴 것: `docs/experiment_validation/`(공시·가이던스 추출 점검 기록), `.experiment-control/`(백업 대상).
+  2주 실험 프로토콜·Day 1 기록 문서는 2026-11-10 정리 때 지웠다(git 이력에 남아 있다).
 - 같은 날 이 러너의 `/experiment` 명령과 `/processes` 하단의 실험 줄, `deploy/checkpoint_notify.py`도
   제거했다(모두 슈퍼바이저 전용이었다). 러너는 이제 `.experiment-control`을 읽지 않는다.
 - 복구: `git show <삭제 직전 커밋>:deploy/experiment_supervisor.py` 등으로 파일을 되살리고
