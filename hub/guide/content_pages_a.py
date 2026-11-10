@@ -14,7 +14,7 @@ PAGES: tuple[PageGuide, ...] = (
             "네 개 숫자를 봅니다: 시장 국면, 코어 후보, 운영 경고, 읽지 않은 알림.",
             "'오늘 처리할 일' 카드를 위에서부터 읽습니다. 포트폴리오에서 운용 구분을 지정한 기록의 코어 월간 재선정·새틀라이트 매입일+6개월 기한이 오면 종목과 해당 매입 기록의 주수를 안내합니다. 최신 추천에서 빠졌으면 매도 확인, 계속 포함되면 보유 재검토, 최신 추천이 없으면 재추천 필요로 표시합니다. 카드마다 '자세히 보기'를 눌러 챔피언 전략을 확인합니다.",
             "오른쪽 '현재 전략 상태'에서 코어와 새틀라이트 추천 종목을 봅니다. 새틀라이트는 챔피언 화면의 마지막 재추천(오늘 기준 재선정)과 같은 목록이고, 재추천이 아직 없으면 빠른 근사 스캔 결과를 '참고용'으로 표시합니다. 무엇을 사고팔지는 '챔피언 전략 열기 — 지금 할 일'로 넘어가 봅니다.",
-            "아래 '작업공간' 버튼(운용 알림, 운용, 탐색, 리서치 랩, 시장 정보, 시스템)으로 다른 화면에 갑니다.",
+            "아래 '작업공간' 버튼(운용 알림, 운용, 탐색, 리서치(챔피언 최적화로 이동), 시장 정보, 시스템)으로 다른 화면에 갑니다.",
         ),
         reading=(
             "'주문' 칩은 PAPER 전용입니다. 실제 돈 주문이 아니라 모의 계좌 기준이라는 뜻입니다.",
@@ -31,7 +31,7 @@ PAGES: tuple[PageGuide, ...] = (
         ),
         related_jobs=("champion_signal_alert", "daily_market_snapshot", "data_integrity_check"),
         sources=("app/views/today.py", "core/today_dashboard.py"),
-        verified="2026-10-07",
+        verified="2026-11-10",
     ),
     PageGuide(
         path="views/11_챔피언_전략.py",
@@ -296,7 +296,7 @@ PAGES: tuple[PageGuide, ...] = (
         ),
         related_jobs=(),
         sources=("app/views/5_종목_스크리닝.py", "core/screener.py", "core/stock_discovery.py"),
-        verified=_V,
+        verified="2026-11-10",
     ),
     PageGuide(
         path="views/9_차트_조회.py",

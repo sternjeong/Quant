@@ -10,7 +10,6 @@ import streamlit as st
 
 
 _PAGE_META: dict[str, dict[str, str]] = {
-    "strategy_studio": {"pit": "혼합", "version": "미버전"},
     "threads": {"pit": "미검증", "version": "해당 없음"},
     "watchlist": {"pit": "혼합", "version": "전략별 상이"},
     "guru": {"pit": "미검증", "version": "해당 없음"},
@@ -67,19 +66,6 @@ def _latest_local_snapshot(page_key: str) -> Any:
     남긴다. 페이지를 렌더링하는 동안 네트워크 요청이나 가격 재계산이 발생하지 않도록
     여기서 직접 호출하는 함수 목록을 의도적으로 좁게 유지한다.
     """
-    if page_key == "strategy_studio":
-        from core.strategy_tuning import list_tuning_runs
-
-        rows = list_tuning_runs()
-        if not rows:
-            return None
-        row = rows[0]
-        snapshot = dict(row)
-        version = row.get("style_score_version")
-        if version is not None:
-            snapshot["strategy_version"] = f"튜닝 점수 v{version}"
-        return snapshot
-
     if page_key == "threads":
         from core.threads_summary import list_summaries
 

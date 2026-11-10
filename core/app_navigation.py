@@ -36,7 +36,6 @@ NAVIGATION: dict[str, tuple[PageSpec, ...]] = {
         PageSpec("views/4_거장_포트폴리오.py", "거장 포트폴리오", "🧠"),
     ),
     "리서치": (
-        PageSpec("views/1_전략_스튜디오.py", "전략 스튜디오", "📈"),
         PageSpec("views/12_챔피언_전략_최적화.py", "챔피언 최적화", "🔬"),
         PageSpec("views/13_뉴스_리서치.py", "뉴스 리서치", "📰"),
         PageSpec("views/2_Threads_요약.py", "Threads 요약", "🧵"),

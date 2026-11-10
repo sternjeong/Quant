@@ -1,3 +1,13 @@
+## 2026-11-10 전략 스튜디오 하위 시스템·낡은 Alpaca 로드맵 삭제 — 구현·전체 테스트 통과, main push
+
+- 사용자 승인: "너 생각상 필요한 것들은 지워줘". 2026-07~08 의 전략 만들기 도구(현 챔피언 엔진과 별개 경로)와 2026-09-25 에 멈춘 `docs/ALPACA_ENGINE_ROADMAP.md`(어디서도 참조 안 함)를 지운다.
+- 근거: import 그래프를 직접 확인. 화면 `app/views/1_전략_스튜디오.py` 만 import 하던 모듈 4개(`core/strategy_explainer.py`·`strategy_library.py`·`chart_rendering.py`·`era_validation.py`)와 그 테스트, 이 화면만 읽던 `data/nightly_tuning_leaderboard.json`(+ 호출부가 없던 `strategy_tuning.get_ci_leaderboard_freshness`) 삭제.
+- 유지(살아 있는 코드가 import): `core/strategy_engine.py`(관심종목 스캔·백테스트·챔피언), `core/strategy_tuning.py`(`sample_universe`·`train_test_split_dates` 를 챔피언·시장 진단·새틀라이트 R&D·전진 토너먼트 v2 가 씀), 그래서 `core/expression_engine.py`·`core/nl_strategy.py`·`core/tuning_ledger.py` 도 유지. `core/technical_lab.py`(연구 tech-rnd-v1·dip-rnd-v1), `core/indicators.py`·`position_sizing.py`·`screener.py`·`backtest_engine.py`. 문서 `STRATEGY_TUNING_ENGINE_SPEC.md`(코드가 참조)·`STRATEGY_BATCH_GENERATION_SPEC.md`(nl_strategy 가 참조)·볼린저/캔들 스펙(살아 있는 지표 설명, SPEC.md 가 참조)도 유지.
+- 수정: `core/app_navigation.py`(메뉴 제거), `app/views/today.py`(작업공간 '리서치 랩' → '리서치' = 챔피언 최적화), `core/ui_status.py`(strategy_studio 분기 제거), 설명서 `hub/guide/content_*.py`(화면·모듈 항목 삭제, 남은 항목 문구와 근거 파일 갱신, '전략 아이디어 검증' 루틴을 사전 등록 연구 절차로 교체, 바뀐 근거 파일의 verified 를 2026-11-10 으로), `deploy/DEPLOYMENT_ORACLE.md` 7절, `tests/test_ui_status.py`.
+- 영향: DB 의 저장 전략·과거 튜닝 결과 행은 지우지 않았다. 새 전략을 화면에서 만들거나 고치는 기능은 없어졌다(관심종목 스캔은 이미 저장된 전략을 그대로 평가).
+- 검증: `hub.guide.check` 누락 없음, `compileall` 통과, 전체 `pytest tests`(VM venv) 3203 passed·4 skipped·1 failed. 실패 1건 `test_integrity_crosscheck_nightly::test_same_mismatch_is_alerted_once_across_days` 는 이번 변경과 무관한 날짜 시한폭탄(고정 날짜 2026-09-10 이 60일 보존 기한을 넘어 정리됨, main 에서도 실패해 배포 관문을 막았을 것) → 테스트가 오늘 기준 최근 날짜를 쓰도록 고쳐 11 passed. `deploy/codex_telegram` unittest 72 OK.
+- 다음: VM 자동배포 관문 통과·배포 확인. 남은 정리 후보(제안, 미실행): 화면이 사라져 호출부가 없어진 `strategy_tuning` 튜닝 실행 함수·`nl_strategy` 배치 생성 함수 등.
+
 ## 2026-10-30 시장 자금 흐름 모니터 + 사전 등록 연구 market-flow-transfer-v1 — 구현·로컬 테스트 완료, 배포 승인(전체 테스트 통과 뒤 push)
 
 - 요청: 기술주 급락기에 시장 간 상관, 강세/약세 시장, 주도주·수익률 그래프를 R&D 결과 기반으로 정량적으로 보는 서비스.

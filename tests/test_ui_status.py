@@ -62,10 +62,10 @@ def test_default_local_loader_uses_latest_strategy_run_metadata(monkeypatch):
             "created_at": "2026-09-22T09:00:00+00:00",
             "strategy_version": "튜닝 점수 v2",
         }
-        if page_key == "strategy_studio"
+        if page_key == "threads"
         else None,
     )
-    status = resolve_page_status("strategy_studio", now=NOW)
+    status = resolve_page_status("threads", now=NOW)
     assert status["as_of"] == "2026-09-22 09:00 UTC"
     assert status["freshness"] == "Fresh"
     assert status["version"] == "튜닝 점수 v2"

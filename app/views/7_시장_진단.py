@@ -1025,8 +1025,8 @@ def _render_kostolany() -> None:
                 "매달 얼마씩 투자에 넣을 수 있는지 입력하면, 매수보유 두 벤치마크(섹터/S&P500)는 매달 "
                 "그 금액을 즉시 시장가로 사는 정액적립식(DCA)으로, 코스톨라니 신호 전략은 매도 검토 "
                 "국면(현금 보유) 중에는 현금으로 누적만 하다가 매수 관심·보유 국면으로 바뀌는 순간 "
-                "쌓인 현금을 한꺼번에 투입하는 방식으로 자동 전환해서 비교합니다(전략 스튜디오와 동일한 "
-                "로직, core.backtest_engine.simulate_contribution_equity 재사용)."
+                "쌓인 현금을 한꺼번에 투입하는 방식으로 자동 전환해서 비교합니다("
+                "core.backtest_engine.simulate_contribution_equity 재사용)."
             )
             kostolany_monthly_contribution = st.number_input(
                 "월 적립금 (0이면 적립 없이 초기자본 한 번만 투자)",

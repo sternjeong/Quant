@@ -159,10 +159,10 @@ sudo systemctl restart quant-streamlit quant-scheduler
 ## 7. 야간 튜닝 (삭제됨, 2026-09-24)
 
 야간 자동 튜닝(`.github/workflows/nightly_tuning.yml`, 스케줄러의 `strategy_nightly_tuning_job()`)은
-삭제됐다(사용자 결정 — 요청한 적 없는 기능, 매일 리더보드를 저장소에 커밋). 이미 쌓인
-`StrategyTuningRun`/`StrategyTuningResult`와 `data/nightly_tuning_leaderboard.json`은 전략 스튜디오의
-리더보드 탭이 저장된 결과로서 계속 보여 준다. 튜닝 엔진(`core/strategy_tuning.py`)은 반기 단위
-수동/상시 시스템으로 유지된다. 상세: `docs/prune/PRUNE_C.md`.
+삭제됐다(사용자 결정 — 요청한 적 없는 기능, 매일 리더보드를 저장소에 커밋). 2026-11-10 전략 스튜디오
+화면과 `data/nightly_tuning_leaderboard.json`도 삭제됐다. 이미 쌓인 `StrategyTuningRun`/`StrategyTuningResult`
+DB 행은 남아 있지만 보여 주는 화면은 없다. `core/strategy_tuning.py`는 표본 뽑기·train/test 분할 함수를
+챔피언 전략·시장 진단·새틀라이트 R&D 가 쓰므로 유지된다. 상세: `docs/prune/PRUNE_C.md`.
 
 ## 8. HTTPS/도메인
 

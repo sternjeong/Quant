@@ -165,13 +165,13 @@ MODULES: tuple[ModuleGuide, ...] = (
         what=
             '전략의 매매 신호(보유/미보유)를 받아 자산 곡선과 수익률, 최대낙폭(MDD), 샤프, 승률, 매매 횟수 등을 계산하고 S&P500·개별 종목 매수보유와 비교합니다. 수수료·슬리피지 가정도 넣을 수 있습니다.',
         how_to_use=
-            '전략 스튜디오에서 전략을 돌릴 때, 챔피언 전략·시장 진단 화면의 백테스트 부분에서 자동으로 쓰입니다. 직접 부를 일은 없고 화면에서 결과 그래프와 지표를 봅니다.',
+            '챔피언 전략·시장 진단 화면의 백테스트 부분에서 자동으로 쓰입니다. 직접 부를 일은 없고 화면에서 결과 그래프와 지표를 봅니다.',
         where_to_see=
-            '전략 스튜디오, 챔피언 전략, 시장 진단 화면',
+            '챔피언 전략, 시장 진단 화면',
         cautions=
             '과거 데이터로 계산한 결과이며 미래 성과를 보장하지 않습니다. 비용 가정을 바꾸면 결과가 크게 달라질 수 있습니다.',
-        sources=('app/views/1_전략_스튜디오.py',),
-        verified=V,
+        sources=('app/views/11_챔피언_전략.py', 'app/views/7_시장_진단.py'),
+        verified="2026-11-10",
     ),
     ModuleGuide(
         module='core/backup_status.py',
@@ -438,22 +438,6 @@ MODULES: tuple[ModuleGuide, ...] = (
         verified="2026-10-22",
     ),
     ModuleGuide(
-        module='core/chart_rendering.py',
-        name='전략 차트 그리기',
-        group='화면 지원',
-        status='도구',
-        what=
-            '캔들 차트 위에 지표를 겹쳐 그리고 진입·청산 지점에 삼각형 표시를 찍어 주는 그림 그리기 도구입니다.',
-        how_to_use=
-            '전략 스튜디오에서 전략을 돌리면 자동으로 차트가 그려집니다. 사용자가 직접 부를 일은 없습니다.',
-        where_to_see=
-            '전략 스튜디오 화면',
-        cautions=
-            '표시 전용이며 계산 결과를 바꾸지 않습니다.',
-        sources=('app/views/1_전략_스튜디오.py',),
-        verified=V,
-    ),
-    ModuleGuide(
         module='core/corporate_actions.py',
         name='기업행동(배당·분할) 수집',
         group='데이터',
@@ -534,22 +518,6 @@ MODULES: tuple[ModuleGuide, ...] = (
         verified="2026-09-25",
     ),
     ModuleGuide(
-        module='core/era_validation.py',
-        name='시대별 강건성 검증',
-        group='분석·백테스트',
-        status='도구',
-        what=
-            '이미 정한 전략 설정을 재조정 없이 성격이 다른 여러 시대(약세장, 패닉, 횡보 등)에 다시 돌려, 강세장에서만 좋아 보인 것은 아닌지 확인합니다.',
-        how_to_use=
-            '전략 스튜디오에서 전략을 만든 뒤 시대별 검증 항목을 실행해 시대마다 성과가 어떻게 다른지 봅니다.',
-        where_to_see=
-            '전략 스튜디오 화면',
-        cautions=
-            '과거 시대 구간에 대한 백테스트일 뿐이라 통과했다고 앞으로도 통한다는 뜻은 아닙니다.',
-        sources=('app/views/1_전략_스튜디오.py',),
-        verified=V,
-    ),
-    ModuleGuide(
         module='core/etf_holdings.py',
         name='ETF 구성종목 조회',
         group='데이터',
@@ -589,13 +557,13 @@ MODULES: tuple[ModuleGuide, ...] = (
         what=
             "'close > sma(close, 20) and rsi(close, 14) < 30' 처럼 사용자가 직접 쓴 조건식을 안전하게 해석해 매수 조건으로 씁니다. 허용된 함수와 변수만 계산하도록 막아 임의 코드가 실행되지 않게 합니다.",
         how_to_use=
-            '전략 스튜디오의 직접 수식 입력칸에 조건을 쓰면 이 모듈이 검사하고 계산합니다. 문법이 틀리면 화면에 오류 이유가 나옵니다.',
+            '저장된 직접 수식형 전략을 전략 엔진이 평가할 때(관심종목 매일 스캔 등)와 전략 튜닝 엔진이 수식을 검사할 때 내부에서 씁니다. 수식을 새로 입력하던 전략 스튜디오 화면은 2026-11-10 삭제돼 지금은 화면에서 직접 쓰는 곳이 없습니다.',
         where_to_see=
-            '전략 스튜디오 화면',
+            '화면 없음(운용 알림 화면의 스캔 결과에 반영)',
         cautions=
             '조건이 맞아 보여도 성과가 좋다는 뜻은 아닙니다. 허용되지 않은 함수는 쓸 수 없습니다.',
-        sources=('app/views/1_전략_스튜디오.py',),
-        verified=V,
+        sources=('core/strategy_engine.py', 'core/strategy_tuning.py'),
+        verified="2026-11-10",
     ),
     ModuleGuide(
         module='core/filing_changes.py',
@@ -643,7 +611,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         cautions=
             'FRED_API_KEY 가 없으면 화면에 지표가 비어 있을 수 있습니다. 발표 지연이나 나중 수정된 값이 그대로 반영될 수 있어 발표 당시 값(PIT)이 아닙니다.',
         sources=('app/views/7_시장_진단.py', 'scheduler/run_scheduler.py'),
-        verified=V,
+        verified="2026-11-10",
     ),
     ModuleGuide(
         module='core/gemini_client.py',
@@ -733,9 +701,9 @@ MODULES: tuple[ModuleGuide, ...] = (
         what=
             '이동평균, RSI, 볼린저밴드, MFI 같은 기술적 지표를 가격표에서 계산하는 함수 모음입니다. 전략 엔진이 이 함수들을 조합해 매매 신호를 만듭니다.',
         how_to_use=
-            '차트 조회와 전략 스튜디오에서 지표를 켜면 자동으로 계산됩니다. 직접 부를 일은 없습니다.',
+            '차트 조회에서 지표를 켜거나 전략 엔진·기술 지표 R&D 연구가 신호를 계산할 때 자동으로 쓰입니다. 직접 부를 일은 없습니다.',
         where_to_see=
-            '차트 조회, 전략 스튜디오 화면',
+            '차트 조회 화면',
         cautions=
             '지표 값은 과거 가격에서 계산한 것이라 미래를 예측하지 않습니다.',
         sources=('app/views/9_차트_조회.py', 'core/strategy_engine.py'),
@@ -803,7 +771,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         cautions=
             '투자자 심리 데이터가 없어 가격·거래량으로 근사한 것이라 원래 이론과 다릅니다. 국면 판정이 매매 신호가 되는 것은 아닙니다.',
         sources=('app/views/7_시장_진단.py', 'scheduler/run_scheduler.py'),
-        verified=V,
+        verified="2026-11-10",
     ),
     ModuleGuide(
         module='core/kostolany_scenario_engine.py',
@@ -819,7 +787,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         cautions=
             '과거 백테스트이며 성과를 보장하지 않습니다. 국면 근사 자체의 한계도 그대로 이어받습니다.',
         sources=('app/views/7_시장_진단.py',),
-        verified=V,
+        verified="2026-11-10",
     ),
 )
 

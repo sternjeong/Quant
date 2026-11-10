@@ -8,13 +8,18 @@
 실제 네트워크·실제 텔레그램은 쓰지 않는다.
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from core import data_integrity as di
 from core.price_crosscheck import VERDICT_MAJOR, check_price_crosscheck
 from scheduler import run_scheduler
 
 KEYS = {"ALPACA_PAPER_API_KEY": "k", "ALPACA_PAPER_API_SECRET": "s"}
+
+
+def _recent(days_ago):
+    # 알림 상태는 60일 보존 후 정리되므로, 실제 오늘 기준으로 최근 날짜를 쓴다(고정 날짜는 시간이 지나면 깨짐).
+    return (datetime.now() - timedelta(days=days_ago)).strftime("%Y-%m-%d")
 
 
 def _major(symbol, dates):
@@ -119,7 +124,7 @@ def test_same_mismatch_is_alerted_once_across_days(monkeypatch, tmp_path):
     state = tmp_path / "state.json"
     monkeypatch.setattr(di, "CROSSCHECK_ALERT_STATE_PATH", state)
     monkeypatch.setattr(di, "crosscheck_priority_tickers", lambda *a, **k: ["AAA"])
-    anomalies = {"now": [_major("AAA", ["2026-09-10"])]}
+    anomalies = {"now": [_major("AAA", [_recent(7)])]}
     monkeypatch.setattr(di, "run_integrity_checks", lambda *a, **k: _result(anomalies["now"]))
     monkeypatch.setattr(run_scheduler, "is_enabled", lambda key: True)
     sent = []
@@ -129,7 +134,7 @@ def test_same_mismatch_is_alerted_once_across_days(monkeypatch, tmp_path):
     run_scheduler.data_integrity_check_job()  # 다음 날 같은 불일치: 알림 없음
     assert len(sent) == 1 and "AAA" in sent[0]
 
-    anomalies["now"] = [_major("AAA", ["2026-09-10", "2026-09-17"])]  # 새 날짜가 생기면 다시 알림
+    anomalies["now"] = [_major("AAA", [_recent(7), _recent(1)])]  # 새 날짜가 생기면 다시 알림
     run_scheduler.data_integrity_check_job()
     assert len(sent) == 2
 
@@ -139,7 +144,7 @@ def test_failed_send_does_not_mark_alerted(tmp_path, monkeypatch):
         monkeypatch.setenv(k, v)
     monkeypatch.setattr(di, "CROSSCHECK_ALERT_STATE_PATH", tmp_path / "state.json")
     monkeypatch.setattr(di, "crosscheck_priority_tickers", lambda *a, **k: ["AAA"])
-    monkeypatch.setattr(di, "run_integrity_checks", lambda *a, **k: _result([_major("AAA", ["2026-09-10"])]))
+    monkeypatch.setattr(di, "run_integrity_checks", lambda *a, **k: _result([_major("AAA", [_recent(7)])]))
     monkeypatch.setattr(run_scheduler, "is_enabled", lambda key: True)
     attempts = []
     monkeypatch.setattr(run_scheduler, "send_message", lambda text: attempts.append(text) or False)
