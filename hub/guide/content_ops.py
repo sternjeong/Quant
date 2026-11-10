@@ -54,6 +54,12 @@ JOBS: tuple[JobGuide, ...] = (
         verified="2026-10-05",
     ),
     JobGuide(
+        job_id="estimate_shadow_record",
+        where_to_see="전용 화면은 없습니다. VM data/estimate_shadow/estimates.sqlite(snapshots 표에 종목·항목별 하루 한 줄, runs 표에 실행 요약)와 스케줄러 로그의 '대상 · 기록 · 실패 · 줄 수' 한 줄.",
+        if_alert="실패 알림은 대개 yfinance(야후) 응답이 막히거나 바뀐 경우입니다 — 다음 날 자동으로 다시 기록하지만, 빠진 날은 나중에 채울 수 없습니다. 며칠 계속되면 yfinance 버전 변경을 의심하세요. 원하지 않으면 '/processes off estimate_shadow_record'.",
+        verified="2026-11-10",
+    ),
+    JobGuide(
         job_id="forward_tournament_record",
         where_to_see="관제 센터 'R&D 센터'의 '앞으로 기록' 표(v1·v2·v3 줄), 월요일 '[주간 엔진 점검]'의 '앞으로 토너먼트'·'앞으로 토너먼트 v2'·'앞으로 토너먼트 v3' 줄, VM data/forward_tournament/·data/forward_tournament_v2/·data/forward_tournament_v3/ 의 ledger.jsonl",
         if_alert="이 잡은 v1 → v2 → v3 순서로 기록합니다. 'forward_tournament_record' 실패 알림은 v1, 'forward_tournament_v2_record' 는 v2, 'forward_tournament_v3_record' 는 v3(새틀라이트 종목 선정 실패 포함)이며 셋은 서로 영향을 주지 않습니다. 대개 가격 조회 문제라 다음 날 자동으로 다시 기록합니다(빠진 날은 그 전 비중이 이어진 것으로 평가, 새틀라이트는 다음 날 다시 고름). v3 는 새틀라이트를 다시 고르는 달(1·3·5·7·9·11월 첫 거래일 무렵)에 후보 풀 가격을 읽느라 몇 분 더 걸릴 수 있습니다. 4일 넘게 멈추면 주간 점검이 경고합니다. 원하지 않으면 R&D 센터에서 주제를 끄거나 '/processes off forward_tournament_record'(v1·v2·v3 함께 멈춤).",

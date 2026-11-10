@@ -25,6 +25,7 @@ data/contest_alerts.json
 data/research_jobs/
 data/session_resume/
 data/research_results/
+data/estimate_shadow/
 
 data/running_jobs.json
 # 거시지표(FRED) 캐시는 예외적으로 커밋한다 - 야간 GitHub Actions가 갱신해두면

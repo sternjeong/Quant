@@ -189,6 +189,14 @@ PROCESS_REGISTRY: dict[str, dict] = {
         ),
         "category": "research", "default_enabled": True,
     },
+    "estimate_shadow_record": {
+        "label": "애널리스트 추정치 매일 기록 (관측 전용)",
+        "description": (
+            "S&P 500 종목의 yfinance 애널리스트 추정치(EPS 컨센서스·7/30/60/90일 전 값·상향/하향 수·의견·목표주가)를 "
+            "그날 시각과 함께 덧붙여 기록(덮어쓰지 않음) — 6~12개월 뒤 추정치 변화 연구용 자료, 매매 없음 (07:05 KST)"
+        ),
+        "category": "research", "default_enabled": True,
+    },
     "agent_batch": {
         "label": "AI 연구 배치·이어받기",
         "description": (

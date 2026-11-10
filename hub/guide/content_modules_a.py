@@ -375,6 +375,14 @@ MODULES: tuple[ModuleGuide, ...] = (
         sources=("core/crypto_shadow.py", "scheduler/run_scheduler.py", "research/results/info-rnd-v1/REPORT.md"), verified="2026-10-05",
     ),
     ModuleGuide(
+        module="core/estimate_shadow.py", name="애널리스트 추정치 매일 기록", group="리서치 인프라", status="관측 전용",
+        what="애널리스트 추정치의 과거 이력은 무료로 구할 수 없어서, 2026-11-10 부터 우리 손으로 쌓습니다. 매일 아침 오늘 기준 S&P 500 종목마다 yfinance 가 보여 주는 추정치(분기·연도 EPS 컨센서스와 7/30/60/90일 전 값, 최근 상향·하향 애널리스트 수, 매출 추정, 투자의견 수, 목표주가)를 기록 시각과 함께 data/estimate_shadow/estimates.sqlite 에 덧붙입니다. 과거 줄은 고치거나 지우지 않습니다(같은 날 다시 돌면 이미 있는 종목은 건너뜀).",
+        how_to_use="자동입니다(매일 07:05 KST). 할 일은 없습니다. 6~12개월 쌓이면 미리 보기가 없는 '추정치 변화' 자료가 되고, 그때 새 사전 등록 연구에 씁니다(docs/ESTIMATE_SHADOW_SPEC.md). 쌓인 정도는 VM 에서 python -c \"from core.estimate_shadow import coverage; print(coverage())\" 로 봅니다.",
+        where_to_see="화면 없음(VM data/estimate_shadow/estimates.sqlite, 스케줄러 로그의 한 줄 요약)",
+        cautions="이 기록으로는 아무것도 매매하지 않으며 성과는 검증되지 않았습니다. yfinance(야후) 화면 값이라 출처가 바뀌거나 막히면 그날은 비거나 실패로 남고, 빠진 날은 나중에 채울 수 없습니다. 한 번에 최대 520종목, 12분 상한이며 시간 상한에 걸리면 다음 날 시작 위치를 돌려 같은 종목만 빠지지 않게 합니다. '0q/+1q' 가 어느 분기인지는 yfinance 내부 값으로 함께 적지만 없을 수도 있습니다.",
+        sources=("core/estimate_shadow.py", "scheduler/run_scheduler.py", "docs/ESTIMATE_SHADOW_SPEC.md"), verified="2026-11-10",
+    ),
+    ModuleGuide(
         module="core/engine_audit.py", name="주간 엔진 점검", group="운영·안전", status="운영중",
         what="모든 주식 엔진과 연구 에이전트가 제대로 굴러가는지 한 번에 확인합니다: 서비스 4개 실행 여부, 등록된 자동 잡이 제때 돌았는지, 백업, 실행 중 코드가 main 과 같은지, 검증 연구 실행기가 깨어나고 실패한 작업이 없는지, 새틀라이트 R&D(기준선·계산 오류·준비됐는데 판정 안 된 아이디어·설계 횟수가 상한을 넘은 오염 기록), 지난 7일 야간 AI 에이전트 실행·실패·사용량, 아침 자동 재추천이 매일 저장됐는지, 새벽 미리 계산이 돌았는지, 코인 추세 기록·앞으로 토너먼트(v1·v2·v3) 원장이 매일 쌓이고 평가 가능한지(v1의 옛 장중 신호 제외 건수, v2·v3 최근 기록 오류와 가격 결측), 야간 신호와 가격 캐시가 최신인지, 국제정세 의견이 제때 기록됐는지, 디스크 여유.",
         how_to_use="자동입니다. 매주 월요일 08:15 KST 에 텔레그램 '[주간 엔진 점검]' 요약이 정상이어도 옵니다. 지금 바로 보려면 scripts/engine_audit.py 를 실행합니다.",

@@ -1,3 +1,14 @@
+## 2026-11-10 실적 놀람(PEAD) 사전 등록 연구 earnings-surprise-v1 + 애널리스트 추정치 매일 기록 — 구현·스모크·테스트 완료
+
+- 사용자 요청: "연구도 실적 추정치 변화 등으로 확장해서 이어서 진행". 가격만 쓰는 신호 약 40개가 세후 SPY 를 확실히 이기지 못해 새 정보(실적)로 간다. WRDS/IBES 는 불가(확정)라 두 갈래로 진행.
+- 1) 연구 `research/jobs/earnings-surprise-v1/{job.json,SPEC.md,run.py}` (priority 34, 1500MB, 3600초, 재개 가능, max_runs 40). SEC XBRL companyfacts 분기 희석 EPS(없으면 Basic), `filed` 다음 거래일부터 사용, 4분기는 10-K 연간 − 1~3분기(없으면 건너뜀, 분할 재작성 의심이면 버림), SUE = 계절 차이 / 직전 8개 계절 차이 표준편차(6개 이상). 종목 = 시점 기준 S&P 500(fja05680), SEC·가격은 현재 목록 기준이라 생존 편향 명시. SEC 는 기존 `core.filing_changes.EdgarClient`(초당 5회, VM .env 의 SEC_EDGAR_USER_AGENT, 403 이면 전체 중단), 종목별 EPS 캐시 `data/cache/earnings_surprise/eps/`(60일) = 재개 지점.
+- 판정(결과 전 고정): PEAD_ALIVE ⇔ (상위 10% − 편입 동일가중) 3개월 수익이 판정 구간 두 절반 모두 평균>0·12개월 블록 부트스트랩 단측 p<0.05 **그리고** 매달 10만 원 상위 10% 팔지 않는 적립(수수료 0.1%+환전 0.05%, 환율 1,300, 청산 양도세)이 5년 구간의 ≥60% 에서 SPY 적립을 이기고 IRR 차이 중앙값 ≥ +0.5%p. 판정 구간은 3개월 끝 ≤ 2024-09-30(RESEARCH_JOBS 판정 설계 규칙 3 — 2024-10 이후는 보고만). 새틀라이트 85/15·하위 10%·1/6개월은 보고만.
+- 2) `core/estimate_shadow.py` + 스케줄러 잡 `estimate_shadow_record`(매일 07:05 KST, 기본 켜짐, 12분 상한): 오늘 S&P 500 종목의 yfinance 1.7 추정치(eps_trend·eps_revisions·earnings/revenue_estimate·기간 끝·의견 수·목표주가)를 `data/estimate_shadow/estimates.sqlite` 에 덧붙여 기록(같은 날 재실행은 건너뜀, 덮어쓰기·삭제 없음). 6~12개월 뒤 새 id 로 추정치 변화 연구를 사전 등록할 자료. 매매 없음. 문서 `docs/ESTIMATE_SHADOW_SPEC.md`, 가이드 `hub/guide/content_modules_a.py`·`content_ops.py`.
+- 수정 파일: 위 연구 3파일, `core/estimate_shadow.py`, `core/process_registry.py`, `core/job_schedule.py`, `scheduler/run_scheduler.py`, `hub/guide/content_modules_a.py`·`content_ops.py`, `docs/ESTIMATE_SHADOW_SPEC.md`, `tests/test_estimate_shadow.py`, 이 문서·PROGRESS.md.
+- 검증: 연구 `--smoke`(네트워크 없음, 가짜 companyfacts·가격·편입으로 모든 경로) 종료 0, 마감 임박 환경에서 3 → 재실행 0. 새 테스트 7건(가짜 yfinance) + job_health·process_registry·hub_guide 통과, `hub.guide.check` 누락 없음. 이 세션 환경엔 SEC User-Agent 가 없어 실제 companyfacts 파싱은 VM 본 계산에서 처음 확인된다(403 이면 작업이 실패로 보고됨 — 조용히 빈 결과를 내지 않음).
+- 상태: 연구 본 계산 = **미실행**(VM 실행기가 main 병합 뒤 집어 감, 결과 research/results/earnings-surprise-v1/). 추정치 기록 = 배포 뒤 다음 07:05 KST 부터. 엔진 반영 없음.
+- 다음: 결과 도착 시 해석(생존 편향 감안). 추정치 기록은 주간 점검 등에서 쌓임 확인(`coverage()`), 6개월 뒤 리비전 연구 사전 등록 검토(제안).
+
 ## 2026-11-10 전략 스튜디오 하위 시스템·낡은 Alpaca 로드맵 삭제 — 구현·전체 테스트 통과, main push
 
 - 사용자 승인: "너 생각상 필요한 것들은 지워줘". 2026-07~08 의 전략 만들기 도구(현 챔피언 엔진과 별개 경로)와 2026-09-25 에 멈춘 `docs/ALPACA_ENGINE_ROADMAP.md`(어디서도 참조 안 함)를 지운다.

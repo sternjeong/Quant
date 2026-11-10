@@ -17,7 +17,7 @@ core.daily_briefing 참고 — 다른 야간 잡들이 그날의 데이터를 �
 그 밖에 00:27~00:46 관측 전용 잡(후보 원장 기록/결과 갱신, 가이던스·공시 거부권 shadow, 계좌 스냅샷,
 Alpaca 검증, 비용 보정, 변형 shadow, paper 추적오차), 12:00 거장 보유종목 동기화, 07:30 뉴스 다이제스트,
 09:01 챔피언 '지금 할 일' 자동 재추천(+텔레그램 요약), 06:40 새벽 미리 계산(챔피언 성과·전략 화면 버튼 계산을
-기본값으로 미리), 화~토 06:10 paper 자동 주문(기본 꺼짐), 일요일 00:50 전략 변형 연구 보고서, 일요일 01:10 챔피언 주간 추적 판정이 있다. 등록된 잡 전체의 정확한
+기본값으로 미리), 07:05 애널리스트 추정치 기록(관측 전용), 화~토 06:10 paper 자동 주문(기본 꺼짐), 일요일 00:50 전략 변형 연구 보고서, 일요일 01:10 챔피언 주간 추적 판정이 있다. 등록된 잡 전체의 정확한
 표는 core/job_schedule.py 이다(tests/test_job_health.py 가 main()과 일치하는지 검증). 야간 전략 미세튜닝
 잡은 2026-09-24 에 삭제됐다.
 
@@ -921,6 +921,32 @@ def hypothesis_shadow_record_job() -> None:
     print(f"[{datetime.now()}] hypothesis_shadow_record_job 종료")
 
 
+def estimate_shadow_record_job() -> None:
+    """애널리스트 추정치 매일 기록 (core/estimate_shadow.py, docs/ESTIMATE_SHADOW_SPEC.md). 관측 전용 — 주문 경로 없음.
+
+    S&P 500 종목의 yfinance 추정치를 그날 시각과 함께 덧붙여 기록한다(같은 날 다시 돌면 이미 있는 줄은 건너뜀, 덮어쓰지 않음).
+    시각(07:05 KST): 미국 장 마감(겨울 06:00 KST) 뒤 그날 추정치 갱신이 반영된 때, 06:40 새벽 미리 계산 뒤이고 07:30 뉴스·07:45 연구
+    실행 창 전의 빈 슬롯. 시간 상한 12분(모듈 MAX_SECONDS)이라 07:30 전에 끝난다.
+    """
+    if not is_enabled("estimate_shadow_record"):
+        print(f"[{datetime.now()}] estimate_shadow_record_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
+    print(f"[{datetime.now()}] estimate_shadow_record_job 시작")
+    try:
+        from core.estimate_shadow import format_summary, record
+
+        res = record()
+        print(f"  - {format_summary(res)}")
+        if res.get("errors"):
+            print(f"  - 오류 종류: {dict(list(res['errors'].items())[:5])}")
+        if not res.get("ok"):
+            report_job_failure("estimate_shadow_record", "추정치 기록 실패: " + format_summary(res))
+    except Exception as exc:  # noqa: BLE001 - 다음 날 스케줄을 막지 않도록 기록만 남긴다.
+        print(f"  - 추정치 기록 실패: {type(exc).__name__}: {exc}")
+        report_job_failure("estimate_shadow_record", f"{type(exc).__name__}: {exc}")
+    print(f"[{datetime.now()}] estimate_shadow_record_job 종료")
+
+
 def agent_batch_job() -> None:
     """AI 에이전트 야간 배치 (core/agent_batch.py, 설계 S4·S5). 스케줄러가 멈추지 않도록 서브프로세스로 돌린다.
 
@@ -1523,6 +1549,14 @@ def main() -> None:
         trigger=CronTrigger(hour=0, minute=48, timezone="Asia/Seoul"),
         id="hypothesis_shadow_record",
         name="매일 한국시간 00:48 가설 shadow 기록 (관측 전용)",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        estimate_shadow_record_job,
+        # 사용자 요청(2026-11-10): 추정치 변화 연구용 자료를 지금부터 매일 쌓는다. 06:40 새벽 계산 뒤, 07:30 뉴스 전 빈 슬롯.
+        trigger=CronTrigger(hour=7, minute=5, timezone="Asia/Seoul"),
+        id="estimate_shadow_record",
+        name="매일 한국시간 07:05 애널리스트 추정치 기록 (관측 전용)",
         replace_existing=True,
     )
     scheduler.add_job(
