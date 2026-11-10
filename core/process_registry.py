@@ -197,6 +197,14 @@ PROCESS_REGISTRY: dict[str, dict] = {
         ),
         "category": "research", "default_enabled": True,
     },
+    "frontier_agent": {
+        "label": "알파·프런티어 목표 에이전트",
+        "description": (
+            "모든 검증 연구 결과를 읽고 목표 문서(research/frontier/FRONTIER.md)를 갱신, 필요하면 새 검증 연구 1개를 사전 등록 — "
+            "화·목·토·일 05:00 KST, 결정론 관문(스모크·금지 코드 검사) 통과분만 저장소 반영, 주문·엔진 변경 경로 없음"
+        ),
+        "category": "research", "default_enabled": True,
+    },
     "research_job_runner": {
         "label": "검증 연구 작업 실행기",
         "description": (

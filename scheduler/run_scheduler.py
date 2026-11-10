@@ -969,6 +969,25 @@ def agent_batch_catchup_job() -> None:
     print(f"[{datetime.now()}] agent_batch_catchup_job 종료")
 
 
+def frontier_agent_job() -> None:
+    """알파·프런티어 목표 에이전트 (core/frontier_agent.py). 05:00 KST — AI 배치 창(03:00~05:50) 안, 05:50 에 스스로 멈춘다."""
+    if not is_enabled("frontier_agent"):
+        print(f"[{datetime.now()}] frontier_agent_job 건너뜀 (비활성화됨)")
+        return
+    import subprocess
+
+    print(f"[{datetime.now()}] frontier_agent_job 시작")
+    try:
+        proc = subprocess.run([sys.executable, "-m", "core.frontier_agent"], cwd=PROJECT_ROOT,
+                              capture_output=True, text=True, timeout=70 * 60)
+        print((proc.stdout or "")[-1500:])
+        if proc.returncode != 0:
+            report_job_failure("frontier_agent", (proc.stderr or proc.stdout or "")[-300:])
+    except Exception as exc:  # noqa: BLE001
+        report_job_failure("frontier_agent", f"{type(exc).__name__}: {exc}")
+    print(f"[{datetime.now()}] frontier_agent_job 종료")
+
+
 def research_job_runner_job() -> None:
     """검증 연구 작업 실행기 (core/research_jobs.py, 계약 docs/RESEARCH_JOBS.md). AI 호출·주문 경로 없음.
 
@@ -1522,6 +1541,15 @@ def main() -> None:
         name="매일 한국시간 12:13·21:13 진행 중 새틀라이트 연구 이어받기",
         replace_existing=True,
         misfire_grace_time=300,
+    )
+    scheduler.add_job(
+        frontier_agent_job,
+        # 사용자 요청(2026-11-10): 알파·프런티어 목표 에이전트. AI 배치 창 안(05:50 강제 종료) 화·목·토·일.
+        trigger=CronTrigger(day_of_week="tue,thu,sat,sun", hour=5, minute=0, timezone="Asia/Seoul"),
+        id="frontier_agent",
+        name="화·목·토·일 한국시간 05:00 알파·프런티어 목표 에이전트",
+        replace_existing=True,
+        misfire_grace_time=900,
     )
     from core.research_jobs import max_parallel as research_max_parallel
 

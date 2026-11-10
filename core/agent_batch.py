@@ -187,9 +187,11 @@ def system_prompt(role: str) -> str:
     return "\n\n---\n\n".join(parts)
 
 
-def claude_runner(role: str, prompt: str, tools: list[str], cfg: budget.RoleConfig, timeout: float) -> dict:
+def claude_runner(role: str, prompt: str, tools: list[str], cfg: budget.RoleConfig, timeout: float,
+                  system: Optional[str] = None) -> dict:
+    """system 을 주면 역할 지시문 대신 그것을 쓴다(core.frontier_agent 처럼 가설 계약과 무관한 역할)."""
     claude = os.environ.get("CLAUDE_BIN", "/usr/local/bin/claude")
-    system = system_prompt(role)
+    system = system if system is not None else system_prompt(role)
     cmd = [claude, "-p", "--output-format", "json", "--no-session-persistence", "--model", cfg.model,
            "--max-turns", str(cfg.max_turns), "--allowedTools", ",".join(tools), "--append-system-prompt", system]
     started = time.monotonic()
