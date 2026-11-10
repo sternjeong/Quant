@@ -1,0 +1,341 @@
+{
+ "judge_version": "market-flow-transfer-v1/2026-10-30",
+ "smoke": false,
+ "source": "Ken French data library (daily, weekday calendar)",
+ "generated_at": "2026-11-10T04:50:18+00:00",
+ "verdicts": {
+  "overall": "FAIL_UNDERPOWERED",
+  "Enrgy": "FAIL",
+  "NoDur": "FAIL",
+  "DEFENSIVE": "FAIL",
+  "Utils": "FAIL",
+  "Hlth": "FAIL",
+  "Telcm": "FAIL",
+  "Chems": "FAIL",
+  "Shops": "FAIL",
+  "Money": "FAIL",
+  "Manuf": "FAIL",
+  "Other": "FAIL",
+  "Durbl": "FAIL"
+ },
+ "rule": {
+  "source": "BusEq",
+  "trigger_window": 21,
+  "horizon": 21,
+  "quantile": 0.1,
+  "min_history": 504,
+  "n_tests": 12,
+  "alpha_bonferroni": 0.004167,
+  "econ_floor_pp": 0.3,
+  "split": "1967-01-01",
+  "min_half_episodes": 10,
+  "data": "1926-07-01~2007-12-31"
+ },
+ "primary": {
+  "verdict": "FAIL_UNDERPOWERED",
+  "source_episodes": 175,
+  "n_tests": 12,
+  "passed": [],
+  "median_mde": 1.0208,
+  "bonferroni_significant": 0,
+  "raw_significant": 1,
+  "targets": {
+   "Enrgy": {
+    "episodes": 175,
+    "mean_excess": 0.9222,
+    "t_stat": 2.5095,
+    "p_value": 0.0121,
+    "hit_rate": 60.0,
+    "checks": {
+     "a": false,
+     "b": true,
+     "c": true
+    },
+    "mde": 1.3622,
+    "half_before": {
+     "n": 64,
+     "mean": 1.5803
+    },
+    "half_after": {
+     "n": 111,
+     "mean": 0.5428
+    },
+    "verdict": "FAIL"
+   },
+   "NoDur": {
+    "episodes": 175,
+    "mean_excess": 0.3778,
+    "t_stat": 1.6027,
+    "p_value": 0.109,
+    "hit_rate": 51.4286,
+    "checks": {
+     "a": false,
+     "b": true,
+     "c": true
+    },
+    "mde": 0.8738,
+    "half_before": {
+     "n": 64,
+     "mean": 0.343
+    },
+    "half_after": {
+     "n": 111,
+     "mean": 0.3978
+    },
+    "verdict": "FAIL"
+   },
+   "DEFENSIVE": {
+    "episodes": 175,
+    "mean_excess": 0.3107,
+    "t_stat": 1.4644,
+    "p_value": 0.1431,
+    "hit_rate": 54.2857,
+    "checks": {
+     "a": false,
+     "b": true,
+     "c": true
+    },
+    "mde": 0.7865,
+    "half_before": {
+     "n": 64,
+     "mean": 0.0098
+    },
+    "half_after": {
+     "n": 111,
+     "mean": 0.4842
+    },
+    "verdict": "FAIL"
+   },
+   "Utils": {
+    "episodes": 175,
+    "mean_excess": 0.2706,
+    "t_stat": 0.7551,
+    "p_value": 0.4502,
+    "hit_rate": 57.1429,
+    "checks": {
+     "a": false,
+     "b": false,
+     "c": false
+    },
+    "mde": 1.3282,
+    "half_before": {
+     "n": 64,
+     "mean": -0.2505
+    },
+    "half_after": {
+     "n": 111,
+     "mean": 0.571
+    },
+    "verdict": "FAIL"
+   },
+   "Hlth": {
+    "episodes": 175,
+    "mean_excess": 0.2615,
+    "t_stat": 0.8829,
+    "p_value": 0.3773,
+    "hit_rate": 56.5714,
+    "checks": {
+     "a": false,
+     "b": false,
+     "c": false
+    },
+    "mde": 1.0977,
+    "half_before": {
+     "n": 64,
+     "mean": -0.1046
+    },
+    "half_after": {
+     "n": 111,
+     "mean": 0.4725
+    },
+    "verdict": "FAIL"
+   },
+   "Telcm": {
+    "episodes": 175,
+    "mean_excess": 0.1943,
+    "t_stat": 0.5727,
+    "p_value": 0.5668,
+    "hit_rate": 48.5714,
+    "checks": {
+     "a": false,
+     "b": false,
+     "c": false
+    },
+    "mde": 1.2579,
+    "half_before": {
+     "n": 64,
+     "mean": -0.1722
+    },
+    "half_after": {
+     "n": 111,
+     "mean": 0.4057
+    },
+    "verdict": "FAIL"
+   },
+   "Chems": {
+    "episodes": 175,
+    "mean_excess": 0.144,
+    "t_stat": 0.5655,
+    "p_value": 0.5717,
+    "hit_rate": 50.8571,
+    "checks": {
+     "a": false,
+     "b": false,
+     "c": false
+    },
+    "mde": 0.9439,
+    "half_before": {
+     "n": 64,
+     "mean": -0.2591
+    },
+    "half_after": {
+     "n": 111,
+     "mean": 0.3764
+    },
+    "verdict": "FAIL"
+   },
+   "Shops": {
+    "episodes": 175,
+    "mean_excess": -0.1509,
+    "t_stat": -0.6259,
+    "p_value": 0.5314,
+    "hit_rate": 45.7143,
+    "checks": {
+     "a": false,
+     "b": false,
+     "c": false
+    },
+    "mde": 0.8937,
+    "half_before": {
+     "n": 64,
+     "mean": -0.3764
+    },
+    "half_after": {
+     "n": 111,
+     "mean": -0.0209
+    },
+    "verdict": "FAIL"
+   },
+   "Money": {
+    "episodes": 175,
+    "mean_excess": -0.202,
+    "t_stat": -0.6792,
+    "p_value": 0.497,
+    "hit_rate": 48.5714,
+    "checks": {
+     "a": false,
+     "b": false,
+     "c": false
+    },
+    "mde": 1.1028,
+    "half_before": {
+     "n": 64,
+     "mean": -0.7746
+    },
+    "half_after": {
+     "n": 111,
+     "mean": 0.1281
+    },
+    "verdict": "FAIL"
+   },
+   "Manuf": {
+    "episodes": 175,
+    "mean_excess": -0.2823,
+    "t_stat": -1.401,
+    "p_value": 0.1612,
+    "hit_rate": 40.5714,
+    "checks": {
+     "a": false,
+     "b": false,
+     "c": false
+    },
+    "mde": 0.747,
+    "half_before": {
+     "n": 64,
+     "mean": -0.4542
+    },
+    "half_after": {
+     "n": 111,
+     "mean": -0.1832
+    },
+    "verdict": "FAIL"
+   },
+   "Other": {
+    "episodes": 175,
+    "mean_excess": -0.2876,
+    "t_stat": -1.2553,
+    "p_value": 0.2094,
+    "hit_rate": 42.8571,
+    "checks": {
+     "a": false,
+     "b": false,
+     "c": false
+    },
+    "mde": 0.8492,
+    "half_before": {
+     "n": 64,
+     "mean": 0.0933
+    },
+    "half_after": {
+     "n": 111,
+     "mean": -0.5072
+    },
+    "verdict": "FAIL"
+   },
+   "Durbl": {
+    "episodes": 175,
+    "mean_excess": -0.5924,
+    "t_stat": -1.7075,
+    "p_value": 0.0877,
+    "hit_rate": 39.4286,
+    "checks": {
+     "a": false,
+     "b": false,
+     "c": false
+    },
+    "mde": 1.286,
+    "half_before": {
+     "n": 64,
+     "mean": -0.5333
+    },
+    "half_after": {
+     "n": 111,
+     "mean": -0.6264
+    },
+    "verdict": "FAIL"
+   }
+  }
+ },
+ "sensitivity_report_only": [
+  {
+   "spec": "63행 트리거·63행 효과·하위20%",
+   "episodes": 119,
+   "bonferroni_significant": 0,
+   "raw_significant": 0,
+   "max_mean_excess": 0.754
+  },
+  {
+   "spec": "21행·21행·하위5%",
+   "episodes": 84,
+   "bonferroni_significant": 0,
+   "raw_significant": 0,
+   "max_mean_excess": 1.1476
+  },
+  {
+   "spec": "21행 트리거·63행 효과·하위10%",
+   "episodes": 108,
+   "bonferroni_significant": 0,
+   "raw_significant": 0,
+   "max_mean_excess": 0.6929
+  }
+ ],
+ "etf_report_only": {
+  "source": "XLK",
+  "episodes": 49,
+  "n_tests": 32,
+  "bonferroni_significant": 0,
+  "raw_significant": 1,
+  "missing": [],
+  "note": "이미 본 표본(화면 탐색) — 판정에 쓰지 않음"
+ }
+}
