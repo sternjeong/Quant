@@ -1,3 +1,13 @@
+## 2026-11-11 결과 정리 + 새 사전 등록 연구 2개(sleeve-mechanism-v1, profit-tilt-v1) — 구현·스모크·테스트 완료, VM 대기
+
+- 결과(VM 완료): earnings-surprise-v1 `FAIL_UNDERPOWERED`(무료 SEC EPS 기반 SUE 상위 10%, 3개월 초과 +0.12%/+0.36% 유의하지 않음, 적립 대 SPY 39.6% 승). engine-candidate-v1 통과 3/3(실제 SSO 20%: 팔지 않음 +1.53%p, 매년 되돌림 +1.65%p, 200일선 필터 +1.26%p·베타 0.85·MDD −25.9%). 필터 없는 두 후보는 추가 베타 1당 초과 IRR 약 7%라 위험 보상으로 해석. market-flow-transfer-v1 `FAIL_UNDERPOWERED`(12 산업 모두 FAIL).
+- 결정: 세금 공제 채우기는 tax-rnd-v1(+0.05%p)에서 이미 미미해 제외. 새 가설 2개를 사전 등록.
+  - sleeve-mechanism-v1(우선순위 36): 1927~ 합성 레버리지로 20% 다리를 필터 없음·200일선·변동성 조절(VM, Moreira–Muir)·VM×200일선·1배 200일선(보고)·하락장 −20% 몰아넣기(보고)로 비교. 판정 VM_BEATS_MARKET / VM_BEATS_FILTER / FILTER_ADDS_VALUE.
+  - profit-tilt-v1(우선순위 37): Ken French 1963~ 대형 고수익성·대형 보수적 투자·싸고 돈 잘 버는 회사·대형 가치50+고수익성50 적립 대 시장, 자료가 겹치지 않는 두 반쪽(끝 ≤ 1994-06 / 시작 ≥ 1994-07). 판정 TILT_BEATS_MARKET.
+- 수정: research/jobs/{sleeve-mechanism-v1,profit-tilt-v1}/, core/french_factors.py(op6/inv6/bmop25 일별 자료 키), hub/guide/content_modules_a.py(french_factors 설명·verified), tests/test_sleeve_profit_jobs.py.
+- 검증: 두 연구 스모크 통과, validate_job 통과, 관련 테스트·가이드 점검 통과, 전체 테스트(/opt/quant/.venv) 실행.
+- 다음: VM 결과 확인 뒤 보고. SSO20F 전진 원장 등록은 사용자 확인 대기. 프런티어 에이전트 첫 실행 2026-11-12 05:00 KST.
+
 ## 2026-11-10 실적 놀람(PEAD) 사전 등록 연구 earnings-surprise-v1 + 애널리스트 추정치 매일 기록 — 구현·스모크·테스트 완료
 
 - 사용자 요청: "연구도 실적 추정치 변화 등으로 확장해서 이어서 진행". 가격만 쓰는 신호 약 40개가 세후 SPY 를 확실히 이기지 못해 새 정보(실적)로 간다. WRDS/IBES 는 불가(확정)라 두 갈래로 진행.

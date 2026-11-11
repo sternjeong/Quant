@@ -9,6 +9,7 @@
 3. 장기 산업 자료: load("ind12_daily"/"ind49_daily"/"ff3_daily") — research/jobs/core-longrun-v1 이 읽는다.
    load("ports25_daily")(규모×B/M 25개)는 research/jobs/leader-catch-v1 이 읽는다.
    load("mom6_daily"/"mom25_daily")(규모×과거 12-2 수익 6·25개)는 research/jobs/mom-proxy-v1 이 읽는다.
+   load("op6_daily"/"inv6_daily"/"bmop25_daily")(규모×수익성·규모×투자 6개, B/M×수익성 25개, 1963-07~)는 research/jobs/profit-tilt-v1 이 읽는다.
 
 데이터 형식: zip 안의 CSV 하나. 설명문 → ",열1,열2" 머리줄 → YYYYMMDD(일별) 또는 YYYYMM(월별) 행 → 빈 줄(월별
 파일은 뒤에 연간 표가 이어지지만 첫 표만 읽는다). 값은 퍼센트, 결측은 -99.99/-999.
@@ -49,6 +50,11 @@ DATASETS = {
     # 6개 = 2 규모 × 3 모멘텀(열 'BIG HiPRIOR' = 대형 승자), 25개 = 5×5(열 'BIG HiPRIOR' = ME5 PRIOR5). 파일 설명상 매일 다시 구성.
     "mom6_daily": "6_Portfolios_ME_Prior_12_2_Daily_CSV.zip",
     "mom25_daily": "25_Portfolios_ME_Prior_12_2_Daily_CSV.zip",
+    # profit-tilt-v1(2026-11-11): 규모×영업 수익성(OP)·규모×투자(INV) 2×3, B/M×OP 5×5 일별(첫 표 = 시가총액 가중, 1963-07~).
+    # 열 예: 'BIG HiOP', 'BIG LoINV', 'HiBM HiOP'.
+    "op6_daily": "6_Portfolios_ME_OP_2x3_daily_CSV.zip",
+    "inv6_daily": "6_Portfolios_ME_INV_2x3_daily_CSV.zip",
+    "bmop25_daily": "25_Portfolios_BEME_OP_5x5_daily_CSV.zip",
 }
 MAX_AGE_DAYS = 7
 DAILY_FACTORS = ["Mkt-RF", "SMB", "HML", "RMW", "CMA", "Mom"]
