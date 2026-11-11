@@ -2,8 +2,8 @@
   "regime": "강세장",
   "regime_status": "ok",
   "regime_reason": null,
-  "total_score": 61.2359211346611,
-  "raw_total_score": 61.2359211346611,
+  "total_score": 63.80982102917917,
+  "raw_total_score": 63.80982102917917,
   "coverage": 1.0,
   "signals_available": 4,
   "signals_total": 4,
@@ -25,57 +25,57 @@
     "drawdown": {
       "status": "ok",
       "weight": 25.0,
-      "score": -4.764078865338902,
+      "score": -3.1901789708208286,
       "reason": null
     },
     "breadth": {
       "status": "ok",
       "weight": 25.0,
-      "score": 15.999999999999996,
+      "score": 17.0,
       "reason": null
     }
   },
   "trend_position": {
     "score": 25.0,
     "above_200sma": true,
-    "close": 7520.93017578125,
-    "sma200": 7331.078413085937,
-    "pct_vs_sma200": 2.5896839727757914
+    "close": 7619.3798828125,
+    "sma200": 7334.282312011719,
+    "pct_vs_sma200": 3.887191120716227
   },
   "ma_cross": {
     "score": 25.0,
     "golden_cross": true,
-    "sma50": 7672.906826171875,
-    "sma200": 7331.078413085937
+    "sma50": 7672.66501953125,
+    "sma200": 7334.282312011719
   },
   "drawdown": {
-    "score": -4.764078865338902,
-    "drawdown_pct": -3.811263092271122,
+    "score": -3.1901789708208286,
+    "drawdown_pct": -2.5521431766566627,
     "is_bear_market_drawdown": false,
     "week52_high": 7818.93017578125
   },
   "breadth": {
-    "score": 15.999999999999996,
-    "pct_above_200sma": 62.8,
+    "score": 17.0,
+    "pct_above_200sma": 63.6,
     "is_overheated": false,
     "status": "ok",
     "coverage": 0.9940357852882704,
     "n_total": 503,
-    "n_above": 314,
+    "n_above": 318,
     "n_data_ok": 500
   },
   "short_term": {
     "1개월": {
       "regime": "중립/혼조",
-      "period_return_pct": -3.6672377177935034,
+      "period_return_pct": -2.3838511276613183,
       "window_days": 21
     },
     "3개월": {
       "regime": "중립/혼조",
-      "period_return_pct": -2.936953271197651,
+      "period_return_pct": -2.302994954024251,
       "window_days": 63
     }
   },
   "benchmark_ticker": "^GSPC",
-  "computed_at": "2026-11-10T21:13:54.529809"
+  "computed_at": "2026-11-11T21:47:53.019300"
 }
