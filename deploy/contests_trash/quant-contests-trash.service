@@ -1,0 +1,9 @@
+[Unit]
+Description=AI 대회 휴지통(/srv/contests/.trash)에서 7일 지난 폴더 완전 삭제
+
+[Service]
+Type=oneshot
+# root: 휴지통 폴더 안에는 quant·ubuntu 소유 파일이 섞여 있다.
+User=root
+ExecStart=/usr/bin/python3 -I /opt/quant/deploy/contests_trash/purge.py
+Nice=10

@@ -1,0 +1,10 @@
+[Unit]
+Description=AI 대회 휴지통 비우기(매일 04:30 KST)
+
+[Timer]
+OnCalendar=*-*-* 04:30:00 Asia/Seoul
+Persistent=true
+Unit=quant-contests-trash.service
+
+[Install]
+WantedBy=timers.target

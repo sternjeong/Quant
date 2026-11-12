@@ -594,6 +594,10 @@ class HubRequestHandler(BaseHTTPRequestHandler):
             target, error = contests_page.handle_post(path, form)
             if error is None:
                 self._redirect(target)
+            elif "/delete?mode=" in target:
+                slug, mode = target.removeprefix("/contests/").split("/delete?mode=")
+                page = contests_page.render_delete(slug, mode, PAGE_STYLE, error)
+                self._send_html(page or error, 400)
             elif target == "/contests/new":
                 self._send_html(contests_page.render_new(PAGE_STYLE, error, {k: (v or [""])[0] for k, v in form.items()}), 400)
             else:
@@ -674,12 +678,17 @@ class HubRequestHandler(BaseHTTPRequestHandler):
         elif path == "/live":
             self._send_html(render_live_page())
         elif path in ("/contests", "/contests/"):
-            self._send_html(contests_page.render_list(PAGE_STYLE))
+            msg = (parse_qs(urlparse(self.path).query).get("msg") or [""])[0][:300]
+            self._send_html(contests_page.render_list(PAGE_STYLE, msg))
         elif path == "/contests/new":
             # '대회 탐색' 의 '대회로 등록' 은 ?title=&url=&deadline=... 로 칸을 미리 채워 온다(만들기는 여전히 POST 한 번).
             query = {k: v[0] for k, v in parse_qs(urlparse(self.path).query).items()
                      if k in ("title", "slug", "platform", "url", "deadline", "memo")}
             self._send_html(contests_page.render_new(PAGE_STYLE, values=query))
+        elif path.startswith("/contests/") and path.endswith("/delete"):
+            mode = (parse_qs(urlparse(self.path).query).get("mode") or [""])[0]
+            page = contests_page.render_delete(path.removeprefix("/contests/").removesuffix("/delete"), mode, PAGE_STYLE)
+            self._send_html(page) if page else self._send_html("not found", 404)
         elif path.startswith("/contests/"):
             page = contests_page.render_detail(path.removeprefix("/contests/").strip("/"), PAGE_STYLE)
             self._send_html(page) if page else self._send_html("not found", 404)

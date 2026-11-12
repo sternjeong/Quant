@@ -173,3 +173,72 @@ def test_hub_post_rejects_cross_site(root, monkeypatch):
     h.end_headers = lambda: None
     h.do_POST()
     assert sent == [403]
+
+
+def test_delete_local_moves_to_trash_and_keeps_repo(root):
+    calls = []
+    ct.create_contest("kaggle-titanic", "Titanic", "Kaggle", runner=fake_runner())
+    msg = ct.delete_contest("kaggle-titanic", "local", runner=fake_runner(calls=calls), now=NOW)
+    assert not (root / "kaggle-titanic").exists()
+    assert (root / ".trash" / "kaggle-titanic-20261120-090000" / "contest.json").exists()
+    assert not any(c[:3] == [ct.GH_BIN, "repo", "delete"] for c in calls) and "휴지통" in msg
+    assert [c.slug for c in ct.list_contests()] == []                        # .trash 는 대회로 안 보임
+
+
+def test_delete_all_deletes_repo_first_and_stops_on_failure(root):
+    ct.create_contest("dacon-x", "X", "Dacon", runner=fake_runner())
+
+    def no_scope(cmd, **kw):
+        if cmd[:3] == [ct.GH_BIN, "repo", "delete"]:
+            return subprocess.CompletedProcess(cmd, 1, "", "HTTP 403: Must have admin rights (needs delete_repo scope)")
+        return subprocess.run(cmd, **kw)
+
+    with pytest.raises(ct.ContestError, match="delete_repo"):
+        ct.delete_contest("dacon-x", "all", runner=no_scope)
+    assert (root / "dacon-x").is_dir()                                        # 저장소 삭제 실패면 폴더도 그대로
+
+    calls = []
+    msg = ct.delete_contest("dacon-x", "all", runner=fake_runner(calls=calls), now=NOW)
+    assert [ct.GH_BIN, "repo", "delete", "me/contest-dacon-x", "--yes"] in calls
+    assert "me/contest-dacon-x" in msg and not (root / "dacon-x").exists()
+
+
+def test_delete_repo_refuses_foreign_repo_name(root):
+    ct.create_contest("dacon-y", "Y", "Dacon", runner=fake_runner())
+    c = ct.load("dacon-y")
+    c.repo = "me/Quant"
+    ct.save(c)
+    with pytest.raises(ct.ContestError, match="지우지 않습니다"):
+        ct.delete_repo("dacon-y", runner=fake_runner())
+
+
+def test_hub_delete_requires_typed_slug(root, fake_gh, monkeypatch):
+    from urllib.parse import urlencode
+
+    from hub import server
+
+    ct.create_contest("kaggle-titanic", "Titanic", "Kaggle", runner=fake_runner())
+    assert "VM 폴더만 삭제" in server.contests_page.render_list(server.PAGE_STYLE)
+    page = server.contests_page.render_delete("kaggle-titanic", "all", server.PAGE_STYLE)
+    assert "me/contest-kaggle-titanic" in page and "되살릴 수 없습니다" in page
+    assert server.contests_page.render_delete("kaggle-titanic", "bogus", server.PAGE_STYLE) is None
+
+    code, _, body = _post("/contests/kaggle-titanic/delete", urlencode({"mode": "local", "confirm": "nope"}), monkeypatch)
+    assert code == 400 and "맞지 않아" in body and (root / "kaggle-titanic").exists()
+    code, headers, _ = _post("/contests/kaggle-titanic/delete", urlencode({"mode": "local", "confirm": "kaggle-titanic"}),
+                             monkeypatch)
+    assert code == 303 and headers["Location"].startswith("/contests?msg=") and not (root / "kaggle-titanic").exists()
+
+
+def test_trash_purge_only_old_well_named_dirs(tmp_path):
+    import importlib.util
+    from pathlib import Path
+
+    spec = importlib.util.spec_from_file_location("trash_purge", Path(__file__).resolve().parent.parent / "deploy" /
+                                                  "contests_trash" / "purge.py")
+    purge = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(purge)
+    for name in ("old-one-20261101-000000", "new-one-20261119-000000", "random-dir"):
+        (tmp_path / name).mkdir()
+    (tmp_path / "link-20261101-000000").symlink_to(tmp_path / "random-dir")
+    assert [p.name for p in purge.due(tmp_path, now=datetime(2026, 11, 20))] == ["old-one-20261101-000000"]

@@ -577,6 +577,17 @@ SCRIPTS: tuple[ScriptGuide, ...] = (
         "실행 전에 Devpost·aichallenge4all 목록 JSON 을 sources/ 에 미리 받아 두고(실패하면 그 사이트만 웹 검색으로 대신), Claude 는 웹 검색·열람과 draft.json 쓰기만 할 수 있습니다(Bash 금지). 형식이 틀리면 이전 목록을 그대로 두고 상태를 '실패'로 남깁니다.",
         "2026-11-12",
     ),
+    ScriptGuide(
+        "deploy/contests_trash/purge.py",
+        "AI 대회 휴지통 비우기(7일 지난 삭제 폴더 완전 삭제)",
+        "직접 실행할 일은 거의 없습니다 — quant-contests-trash.timer 가 매일 04:30 KST 에 root 로 돌립니다. 처음 한 번은 "
+        "deploy/contests_trash/install.sh 로 타이머를 설치해야 합니다. 무엇이 지워질지 미리 보려면 --dry-run 으로 실행합니다.",
+        "sudo python3 -I /opt/quant/deploy/contests_trash/purge.py --dry-run",
+        "파일/DB 쓰기",
+        "지운(또는 지울 예정인) 휴지통 폴더 경로를 한 줄씩 출력합니다. 7일이 지나기 전에는 "
+        "sudo mv /srv/contests/.trash/<이름>-<시각> /srv/contests/<이름> 으로 되살릴 수 있습니다.",
+        "2026-11-12",
+    ),
 )
 
 INTERNAL_SCRIPTS: dict = {

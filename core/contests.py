@@ -242,6 +242,81 @@ def create_repo(slug: str, *, root: Optional[Path] = None, runner: Runner = subp
     return c
 
 
+# ---------------------------------------------------------------- 삭제 (2026-11-12)
+# 폴더는 바로 지우지 않고 CONTESTS_ROOT/.trash/<slug>-<시각> 으로 옮긴다: 폴더 안에 허브(quant)가 지울 수 없는
+# ubuntu 소유 파일이 섞여 있어 rm 은 반쯤 지운 상태를 남기고, 옮기기는 맨 위 폴더 권한만 있으면 된다.
+# 휴지통은 root 타이머(deploy/contests_trash)가 TRASH_DAYS 일 뒤 완전히 지운다. 그 전에는 mv 로 되살릴 수 있다.
+TRASH_DIR = ".trash"
+TRASH_DAYS = 7
+
+
+def delete_preview(slug: str, *, root: Optional[Path] = None, runner: Runner = subprocess.run) -> dict:
+    """삭제 확인 화면용: 저장소 이름과 아직 GitHub 에 없는 작업(커밋 안 한 파일·푸시 안 한 커밋)."""
+    c = load(slug, root)
+    if c is None:
+        raise ContestError(f"대회 없음: {slug}")
+    info = {"repo": c.repo if c.repo_status == "created" else "", "dirty": None, "unpushed": None}
+    git = ["git", "-c", f"safe.directory={c.path}"]
+    try:
+        p = _run(git + ["status", "--porcelain"], c.path, runner, timeout=30)
+        if p.returncode == 0:
+            info["dirty"] = len([ln for ln in p.stdout.splitlines() if ln.strip()])
+        p = _run(git + ["rev-list", "--count", "@{u}..HEAD"], c.path, runner, timeout=30)
+        if p.returncode == 0:
+            info["unpushed"] = int(p.stdout.strip() or 0)
+    except (OSError, subprocess.SubprocessError, ValueError):
+        pass
+    return info
+
+
+def trash_local(slug: str, *, root: Optional[Path] = None, now: Optional[datetime] = None) -> Path:
+    """VM 폴더를 휴지통으로 옮긴다(GitHub 저장소는 그대로). 옮긴 경로를 돌려준다."""
+    root = root or CONTESTS_ROOT
+    if load(slug, root) is None:
+        raise ContestError(f"대회 없음: {slug}")
+    trash = root / TRASH_DIR
+    trash.mkdir(exist_ok=True)
+    dest = trash / f"{slug}-{(now or datetime.now(KST)):%Y%m%d-%H%M%S}"
+    try:
+        os.rename(root / slug, dest)
+    except OSError as exc:
+        raise ContestError(f"폴더를 휴지통으로 옮기지 못했습니다: {exc}") from exc
+    return dest
+
+
+def delete_repo(slug: str, *, root: Optional[Path] = None, runner: Runner = subprocess.run) -> str:
+    """GitHub 저장소를 지운다. 이 허브가 만든 이름(<owner>/contest-<slug>)만 지운다. 지운 저장소 이름을 돌려준다."""
+    c = load(slug, root)
+    if c is None:
+        raise ContestError(f"대회 없음: {slug}")
+    if c.repo_status != "created" or not c.repo:
+        return ""
+    if not re.fullmatch(rf"[A-Za-z0-9-]+/{re.escape(REPO_PREFIX + slug)}", c.repo):
+        raise ContestError(f"이 허브가 만든 저장소 이름이 아니라 지우지 않습니다: {c.repo}")
+    try:
+        p = _run([GH_BIN, "repo", "delete", c.repo, "--yes"], Path("/"), runner, timeout=60)
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise ContestError(f"저장소 삭제 실패: {type(exc).__name__}") from exc
+    if p.returncode != 0:
+        err = (p.stderr or p.stdout or "").strip()
+        if "delete_repo" in err:
+            err = ("GitHub 토큰에 삭제 권한(delete_repo)이 없습니다. VM 에서 한 번: "
+                   "sudo -u quant -H gh auth refresh -h github.com -s delete_repo")
+        raise ContestError("저장소 삭제 실패: " + err[:300])
+    return c.repo
+
+
+def delete_contest(slug: str, mode: str, *, root: Optional[Path] = None, runner: Runner = subprocess.run,
+                   now: Optional[datetime] = None) -> str:
+    """mode='local': VM 폴더만 휴지통으로. mode='all': GitHub 저장소를 먼저 지우고(실패하면 폴더도 그대로) 폴더를 휴지통으로."""
+    if mode not in ("local", "all"):
+        raise ContestError("알 수 없는 삭제 방식")
+    repo = delete_repo(slug, root=root, runner=runner) if mode == "all" else ""
+    dest = trash_local(slug, root=root, now=now)
+    head = f"GitHub 저장소 {repo} 삭제, " if repo else ""
+    return f"{head}VM 폴더를 휴지통({dest.name})으로 옮겼습니다. {TRASH_DAYS}일 뒤 완전히 지워집니다."
+
+
 def create_contest(slug: str, title: str, platform: str, url: str = "", deadline: str = "", memo: str = "", *,
                    root: Optional[Path] = None, runner: Runner = subprocess.run) -> Contest:
     root = root or CONTESTS_ROOT

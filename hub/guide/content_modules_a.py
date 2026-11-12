@@ -8,7 +8,7 @@ MODULES: tuple[ModuleGuide, ...] = (
     ModuleGuide(
         module="core/contests.py", name="AI 대회 관리", group="운영·안전", status="운영중",
         what="관제 센터 'AI 대회' 섹션의 뒷단입니다. 대회마다 /srv/contests/<이름> 작업 폴더를 만들고 뼈대 파일(README·data/·notebooks/·src/·submissions/·.gitignore·requirements.txt)을 넣은 뒤 GitHub private 저장소(contest-<이름>)를 만들어 푸시합니다. 마감 알림도 여기서 계산합니다.",
-        how_to_use="관제 센터 → AI 대회 → '+ 새 대회'. 대회 화면의 'VS Code 에서 열기'를 누르면 브라우저 VS Code(code-server)가 그 폴더로 열립니다. 상태·마감·메모는 대회 화면에서 고칩니다.",
+        how_to_use="관제 센터 → AI 대회 → '+ 새 대회'. 대회 화면의 'VS Code 에서 열기'를 누르면 브라우저 VS Code(code-server)가 그 폴더로 열립니다. 상태·마감·메모는 대회 화면에서 고칩니다. 목록 카드의 'VM 폴더만 삭제'는 작업 폴더만, '폴더 + GitHub 저장소 삭제'는 저장소까지 지웁니다(폴더 이름을 입력해야 실행). 폴더는 /srv/contests/.trash 로 옮겨졌다가 7일 뒤 완전히 지워지며, 저장소 삭제에는 quant 계정 gh 토큰의 delete_repo 권한이 필요합니다.",
         where_to_see="관제 센터 /contests, 텔레그램(마감 알림)",
         cautions="처음 한 번은 code-server 터미널에서 'sudo bash /opt/quant/deploy/setup_contests.sh' 를 실행해야 폴더를 만들 수 있습니다. 저장소는 항상 private 입니다. data/·submissions/ 는 대회 규정·용량 때문에 커밋되지 않습니다. GitHub 단계가 실패해도 폴더는 남고 대회 화면에서 다시 시도할 수 있습니다.",
         verified="2026-09-26",

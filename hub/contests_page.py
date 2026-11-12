@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import html
 from typing import Optional
+from urllib.parse import quote
 
 from core import contests as ct
 
@@ -21,6 +22,9 @@ FORM_CSS = """
   .btn { display:inline-block; background:#4c7dff; color:#fff; border:0; border-radius:8px; padding:.55rem 1.1rem;
     font-size:.9rem; cursor:pointer; text-decoration:none; margin:.3rem .4rem .3rem 0; }
   .btn.ghost { background:#232733; }
+  .btn.danger { background:#7f1d1d; }
+  .btn.sm { padding:.3rem .7rem; font-size:.8rem; }
+  .ok { color:#4ade80; margin:.6rem 0; }
   .err { color:#f87171; margin:.6rem 0; }
   .dday { font-weight:700; }
   .dday.hot { color:#f87171; } .dday.warm { color:#fbbf24; } .dday.cool { color:#4ade80; }
@@ -67,15 +71,28 @@ def card_badge() -> str:
     return f'<span class="badge active">진행 {len(items)}개{_e(tail)}</span>'
 
 
-def render_list(page_style: str) -> str:
+DELETE_MODES = {
+    "local": ("VM 폴더만 삭제", "이 VM 의 작업 폴더만 지웁니다. GitHub 저장소는 그대로 남아 나중에 다시 clone 할 수 있습니다."),
+    "all": ("폴더 + GitHub 저장소 삭제", "GitHub private 저장소를 먼저 지우고(되살릴 수 없음) VM 작업 폴더도 지웁니다."),
+}
+
+
+def _delete_buttons(slug: str) -> str:
+    return "".join(f'<a class="btn {"danger" if m == "all" else "ghost"} sm" href="/contests/{_e(slug)}/delete?mode={m}">'
+                   f'{_e(label)}</a>' for m, (label, _) in DELETE_MODES.items())
+
+
+def render_list(page_style: str, message: str = "") -> str:
     ok, why = ct.root_status()
     cards = []
     for c in ct.list_contests():
         cards.append(
-            f'<a class="card" href="/contests/{_e(c.slug)}"><h2>{_e(c.title)}<span class="kind">{_e(c.platform)}</span></h2>'
+            f'<div class="card"><a href="/contests/{_e(c.slug)}" style="color:inherit;text-decoration:none">'
+            f'<h2>{_e(c.title)}<span class="kind">{_e(c.platform)}</span></h2>'
             f'<p>{dday_html(c)} · {_e(c.status)}{" · " + _e(c.deadline) + " KST" if c.deadline else ""}</p>'
-            f'<p><small>{_e(c.slug)}</small></p></a>')
+            f'<p><small>{_e(c.slug)}</small></p></a><p>{_delete_buttons(c.slug)}</p></div>')
     setup = "" if ok else f'<p class="err">⚠️ {_e(why)}</p>'
+    setup += f'<p class="ok">{_e(message)}</p>' if message else ""
     body = ('<p><a class="back" href="/">&larr; 관제 센터로</a></p><h1>AI 대회</h1>'
             '<p class="subtitle">대회마다 작업 폴더 + GitHub private 저장소 하나. 카드를 누르면 관리 화면, 거기서 VS Code 로 넘어갑니다.</p>'
             f'{setup}<p><a class="btn" href="/contests/new">+ 새 대회</a></p>'
@@ -132,6 +149,43 @@ def render_detail(slug: str, page_style: str, error: str = "") -> Optional[str]:
     return _page(c.title, body, page_style)
 
 
+def render_delete(slug: str, mode: str, page_style: str, error: str = "") -> Optional[str]:
+    """삭제 확인 화면. 폴더 이름을 그대로 입력해야 삭제 버튼이 동작한다."""
+    c = ct.load(slug)
+    if c is None or mode not in DELETE_MODES:
+        return None
+    label, desc = DELETE_MODES[mode]
+    try:
+        info = ct.delete_preview(slug)
+    except ct.ContestError:
+        info = {"repo": "", "dirty": None, "unpushed": None}
+    warns = []
+    if info["dirty"]:
+        warns.append(f"커밋하지 않은 파일 {info['dirty']}개가 있습니다 — GitHub 에 없는 작업입니다.")
+    if info["unpushed"]:
+        warns.append(f"푸시하지 않은 커밋 {info['unpushed']}개가 있습니다 — GitHub 에 없는 작업입니다.")
+    if info["dirty"] is None or info["unpushed"] is None:
+        warns.append("git 상태를 다 읽지 못했습니다(원격 브랜치 없음 등). GitHub 에 없는 작업이 있을 수 있습니다.")
+    if mode == "all":
+        warns.append(f"GitHub 저장소 {info['repo']} 를 지웁니다. 되살릴 수 없습니다." if info["repo"]
+                     else "연결된 GitHub 저장소가 없어 VM 폴더만 지웁니다.")
+    rows = "".join(f"<li>{_e(w)}</li>" for w in warns)
+    body = (f'<p><a class="back" href="/contests">&larr; 대회 목록</a></p><h1>{_e(label)}</h1>'
+            f'<p class="subtitle">{_e(c.title)} · <code>{_e(c.path)}</code></p>'
+            + (f'<p class="err">{_e(error)}</p>' if error else "") +
+            f'<p>{_e(desc)}</p>'
+            f'<p><small>VM 폴더는 휴지통(<code>{_e(ct.CONTESTS_ROOT / ct.TRASH_DIR)}</code>)으로 옮겨지고 '
+            f'{ct.TRASH_DAYS}일 뒤 완전히 지워집니다. 그 전에는 VM 에서 되살릴 수 있습니다.</small></p>'
+            + (f'<ul class="err">{rows}</ul>' if rows else "") +
+            f'<form class="form" method="post" action="/contests/{_e(slug)}/delete">'
+            f'<input type="hidden" name="mode" value="{_e(mode)}">'
+            f'<label>확인을 위해 폴더 이름 <b>{_e(slug)}</b> 를 그대로 입력하세요</label>'
+            f'<input name="confirm" required autocomplete="off" pattern="{_e(slug)}">'
+            f'<p><button class="btn danger" type="submit">{_e(label)}</button>'
+            f'<a class="btn ghost" href="/contests">취소</a></p></form>')
+    return _page(label, body, page_style)
+
+
 def _page(title: str, body: str, page_style: str) -> str:
     return ('<!doctype html><html lang="ko"><head><meta charset="utf-8">'
             '<meta name="viewport" content="width=device-width,initial-scale=1">'
@@ -157,6 +211,12 @@ def handle_post(path: str, form: dict) -> tuple[str, Optional[str]]:
         try:
             if action == "update":
                 ct.update(slug, **{k: _one(form, k) for k in ("title", "status", "platform", "url", "deadline", "memo")})
+            elif action == "delete":
+                mode = _one(form, "mode")
+                if _one(form, "confirm").strip() != slug:
+                    return f"/contests/{slug}/delete?mode={quote(mode)}", "폴더 이름이 맞지 않아 지우지 않았습니다."
+                message = ct.delete_contest(slug, mode)
+                return "/contests?msg=" + quote(message), None
             elif action == "repo":
                 c = ct.create_repo(slug)
                 if c.repo_status != "created":
@@ -164,6 +224,8 @@ def handle_post(path: str, form: dict) -> tuple[str, Optional[str]]:
             else:
                 return "/contests", "알 수 없는 요청"
         except ct.ContestError as exc:
+            if action == "delete":
+                return f"/contests/{slug}/delete?mode={quote(_one(form, 'mode'))}", str(exc)
             return f"/contests/{slug}", str(exc)
         return f"/contests/{slug}", None
     return "/contests", "알 수 없는 요청"
