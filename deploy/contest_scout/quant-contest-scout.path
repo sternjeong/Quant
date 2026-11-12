@@ -1,0 +1,9 @@
+[Unit]
+Description=관제 센터 '지금 찾기' 요청(run-request 파일)이 생기면 대회 탐색 1회 실행
+
+[Path]
+PathExists=/srv/contests/.scout/run-request
+Unit=quant-contest-scout.service
+
+[Install]
+WantedBy=paths.target

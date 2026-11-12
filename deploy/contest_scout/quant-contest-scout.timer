@@ -1,0 +1,10 @@
+[Unit]
+Description=주간 해커톤·AI 대회 탐색(매주 월요일 09:00 KST)
+
+[Timer]
+OnCalendar=Mon *-*-* 09:00:00 Asia/Seoul
+Persistent=true
+Unit=quant-contest-scout.service
+
+[Install]
+WantedBy=timers.target

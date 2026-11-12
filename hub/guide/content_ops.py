@@ -566,6 +566,17 @@ SCRIPTS: tuple[ScriptGuide, ...] = (
         "평소 확인은 관제 센터 '세션 자동 재개'(/session-resume) 화면에서 합니다.",
         "2026-10-13",
     ),
+    ScriptGuide(
+        "deploy/contest_scout/run_scout.sh",
+        "주간 해커톤·AI 대회 탐색(Claude 를 tmux 세션 contest-scout 에서 실행)",
+        "직접 실행할 일은 거의 없습니다 — quant-contest-scout.timer 가 매주 월 09:00 KST 에 ubuntu 계정으로 돌리고, 관제 센터 '대회 탐색' 의 "
+        "'지금 찾기' 버튼도 같은 서비스를 띄웁니다. 처음 한 번은 deploy/contest_scout/install.sh 로 타이머를 설치해야 합니다.",
+        "sudo systemctl start --no-block quant-contest-scout.service",
+        "파일/DB 쓰기",
+        "결과는 /srv/contests/.scout/latest.json(화면이 읽음)·history/·logs/ 에 쌓입니다. 진행은 ubuntu 계정에서 tmux attach -t contest-scout 로 보고, "
+        "Claude 는 웹 검색·열람과 draft.json 쓰기만 할 수 있습니다(Bash 금지). 형식이 틀리면 이전 목록을 그대로 두고 상태를 '실패'로 남깁니다.",
+        "2026-11-12",
+    ),
 )
 
 INTERNAL_SCRIPTS: dict = {

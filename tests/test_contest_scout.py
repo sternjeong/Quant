@@ -1,0 +1,86 @@
+"""주간 대회 탐색(deploy/contest_scout/finalize.py)과 관제 화면(hub/contest_scout_page.py)."""
+
+from __future__ import annotations
+
+import importlib.util
+import json
+from datetime import date, datetime, timedelta, timezone
+from pathlib import Path
+
+import pytest
+
+ROOT = Path(__file__).resolve().parent.parent
+_spec = importlib.util.spec_from_file_location("contest_scout_finalize", ROOT / "deploy" / "contest_scout" / "finalize.py")
+finalize = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(finalize)
+
+KST = timezone(timedelta(hours=9))
+
+
+def _item(tier="auto", url="https://devpost.com/a", **kw):
+    return {"tier": tier, "title": kw.pop("title", "대회 A"), "url": url, "deadline": "2026-11-30", "effort_hours": 2, **kw}
+
+
+def test_normalize_drops_bad_items_and_dedupes():
+    draft = {"items": [_item(), _item(title="중복"), _item(tier="hard", url="https://x/b"), _item(url="ftp://x"),
+                       _item(tier="LIGHT", url="https://x/c", effort_hours="abc"), "junk"],
+             "skipped": [{"title": "본선 합숙", "reason": "오프라인"}]}
+    out = finalize.normalize(draft)
+    assert [(i["tier"], i["url"]) for i in out["items"]] == [("auto", "https://devpost.com/a"), ("light", "https://x/c")]
+    assert out["items"][1]["effort_hours"] == 0
+    assert out["skipped"] == [{"title": "본선 합숙", "reason": "오프라인"}]
+
+
+@pytest.mark.parametrize("draft", [{}, {"items": []}, {"items": [_item(tier="nope")]}])
+def test_normalize_rejects_empty(draft):
+    with pytest.raises(ValueError):
+        finalize.normalize(draft)
+
+
+def test_finalize_marks_new_and_keeps_previous_on_failure(tmp_path):
+    now = datetime(2026, 11, 16, 9, tzinfo=KST)
+    (tmp_path / "draft.json").write_text(json.dumps({"items": [_item()]}), encoding="utf-8")
+    first = finalize.finalize(tmp_path, now)
+    assert first["items"][0]["new"] is False  # 첫 실행은 비교 대상이 없으니 NEW 표시 안 함
+    (tmp_path / "draft.json").write_text(json.dumps({"items": [_item(), _item(url="https://x/new")]}), encoding="utf-8")
+    second = finalize.finalize(tmp_path, now + timedelta(days=7))
+    assert [i["new"] for i in second["items"]] == [False, True]
+    assert (tmp_path / "history" / "2026-11-23.json").exists() and not (tmp_path / "draft.json").exists()
+
+    (tmp_path / "draft.json").write_text("{broken", encoding="utf-8")
+    with pytest.raises(ValueError):
+        finalize.finalize(tmp_path, now + timedelta(days=14))
+    assert json.loads((tmp_path / "latest.json").read_text(encoding="utf-8"))["items"] == second["items"]
+
+
+def test_hub_page_render_badge_and_request(tmp_path, monkeypatch):
+    from hub import contest_scout_page as page
+
+    monkeypatch.setattr(page, "SCOUT_DIR", tmp_path)
+    data = page.collect()
+    assert "아직 없음" in page.card_badge(data)
+    assert "지금 찾기" in page.render_body(data)
+
+    latest = {"generated_at": "2026-11-16T09:30:00+09:00", "notes": "이번 주 요약",
+              "items": [_item(new=True, what_to_do="<b>코드</b> 제출"), _item(tier="light", url="https://x/l", deadline="")]}
+    (tmp_path / "latest.json").write_text(json.dumps(latest), encoding="utf-8")
+    (tmp_path / "status.json").write_text(json.dumps({"state": "ok", "message": "finalize 완료"}), encoding="utf-8")
+    data = page.collect()
+    assert "딸깍 1 · 신경 1 · 새 1" in page.card_badge(data)
+    body = page.render_body(data, today=date(2026, 11, 20))
+    assert "D-10" in body and "NEW" in body and "마감 미정" in body and "이번 주 요약" in body
+    assert "<b>코드</b>" not in body and "&lt;b&gt;코드" in body
+
+    assert page.request_run() is None and (tmp_path / "run-request").exists()
+    data = page.collect()
+    assert "찾는 중" in page.card_badge(data) and "지금 찾기</button>" not in page.render_body(data)
+
+
+def test_hub_slot_and_route(tmp_path, monkeypatch):
+    from hub import contest_scout_page as page, server
+    from hub.apps_registry import SLOTS
+
+    monkeypatch.setattr(page, "SCOUT_DIR", tmp_path)
+    slot = next(s for s in SLOTS if s.id == "contest-scout")
+    assert server._slot_href(slot, "h") == "/contest-scout"
+    assert "대회 탐색" in server.render_contest_scout_page()

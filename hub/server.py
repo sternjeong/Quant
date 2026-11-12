@@ -28,6 +28,7 @@ from hub.apps_registry import SLOTS, AppSlot  # noqa: E402
 from hub import alpaca_status, contests_page, engine_status, live_status, ops_status, research_status  # noqa: E402
 from hub import satellite_lab_page  # noqa: E402
 from hub import session_resume_page  # noqa: E402
+from hub import contest_scout_page  # noqa: E402
 from hub.status import UnitStatus, get_unit_status  # noqa: E402
 from hub import ui  # noqa: E402
 
@@ -111,7 +112,7 @@ LOGIN_PAGE = """<!doctype html><html lang="ko"><head><meta charset="utf-8">
 SLOT_ICONS = {
     "streamlit": "📊", "google-otp": "🔐", "code-server": "💻", "scheduler": "⏱", "alpaca": "🧪", "research": "🤖", "satellite-lab": "🛰", "ops": "🛡",
     "report-daily-briefing": "🗞", "report-champion-weekly": "🏆", "report-news-digest": "📰",
-    "codex-telegram": "💬", "vm-health": "🩺", "session-resume": "🔁",
+    "codex-telegram": "💬", "vm-health": "🩺", "session-resume": "🔁", "contest-scout": "🔭",
 }
 KIND_ICONS = {"link": "↗", "web": "🌐", "engine": "⚙", "report": "📄", "alpaca": "🧪", "ops": "🛡", "research": "🤖"}
 
@@ -181,6 +182,8 @@ def _slot_href(slot: AppSlot, host: str) -> str:
         return "/satellite-lab"
     if slot.kind == "session_resume":
         return "/session-resume"
+    if slot.kind == "contest_scout":
+        return "/contest-scout"
     if slot.kind == "otp":
         return "/otp"
     return f"/status/{slot.id}"
@@ -294,6 +297,8 @@ def render_dashboard(host: str) -> str:
             end = satellite_lab_page.card_badge(satellite_lab_page.collect())
         elif slot.kind == "session_resume":
             end = session_resume_page.card_badge(session_resume_page.collect())
+        elif slot.kind == "contest_scout":
+            end = contest_scout_page.card_badge(contest_scout_page.collect())
         else:
             end, tone = _slot_unit_pill(slot.unit)
             if slot.unit not in seen_units:
@@ -450,6 +455,11 @@ def render_satellite_lab_page() -> str:
     return ui.page("R&D 센터", body, crumbs=(("/", "개요"), ("", "연구·검증")), refresh=REFRESH_SECONDS)
 
 
+def render_contest_scout_page(error: str = "") -> str:
+    body = f'<h1>대회 탐색</h1>{contest_scout_page.render_body(contest_scout_page.collect(), error=error)}{_stamp()}'
+    return ui.page("대회 탐색", body, crumbs=(("/", "개요"), ("/contests", "AI 대회")), refresh=REFRESH_SECONDS)
+
+
 def render_session_resume_page() -> str:
     body = f'<h1>세션 자동 재개</h1>{session_resume_page.render_body(session_resume_page.collect())}{_stamp()}'
     return ui.page("세션 자동 재개", body, crumbs=(("/", "개요"), ("", "운영")), refresh=REFRESH_SECONDS)
@@ -558,7 +568,7 @@ class HubRequestHandler(BaseHTTPRequestHandler):
         is_contest = path.startswith("/contests/")
         if path not in ("/research/models", "/processes/toggle", "/processes/confirm", "/rnd/topics",
                         "/otp/code",
-                        "/session-resume/toggle") and not is_contest:
+                        "/session-resume/toggle", "/contest-scout/run") and not is_contest:
             self._send_html("not found", 404)
             return
         if not _same_origin_post(self.headers):
@@ -602,6 +612,15 @@ class HubRequestHandler(BaseHTTPRequestHandler):
                 self._send_html("unknown topic", 400)
                 return
             self._redirect("/satellite-lab")
+            return
+
+        if path == "/contest-scout/run":
+            # 요청 파일만 만든다 — 실제 실행은 quant-contest-scout.path 가 ubuntu 계정 서비스로 띄운다.
+            error = contest_scout_page.request_run()
+            if error:
+                self._send_html(render_contest_scout_page(error), 500)
+                return
+            self._redirect("/contest-scout")
             return
 
         if path == "/session-resume/toggle":
@@ -667,6 +686,8 @@ class HubRequestHandler(BaseHTTPRequestHandler):
             self._send_html(render_satellite_lab_page())
         elif path == "/ops":
             self._send_html(render_ops_page())
+        elif path == "/contest-scout":
+            self._send_html(render_contest_scout_page())
         elif path == "/session-resume":
             self._send_html(render_session_resume_page())
         elif path == "/otp":

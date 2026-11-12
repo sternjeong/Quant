@@ -1,0 +1,17 @@
+[Unit]
+Description=주간 해커톤·AI 대회 탐색(Claude 를 tmux 세션 contest-scout 에서 1회 실행)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# ubuntu: Claude 로그인과 사용자의 tmux 서버가 이 계정에 있다. 결과는 /srv/contests/.scout(그룹 contests)에 써서 허브(quant)가 읽는다.
+User=ubuntu
+Group=contests
+UMask=0002
+Environment="HOME=/home/ubuntu"
+ExecStart=/opt/quant/deploy/contest_scout/run_scout.sh
+# 이미 떠 있는 사용자 tmux 서버를 쓰거나, 없으면 이 서비스가 띄운다 — 서비스가 끝날 때 tmux 서버(다른 세션 포함)를 죽이지 않게 한다.
+KillMode=process
+TimeoutStartSec=3h
+Nice=10
