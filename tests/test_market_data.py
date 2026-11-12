@@ -276,3 +276,57 @@ def test_download_exhausts_retries_and_returns_empty_without_raising(monkeypatch
     df = market_data.get_price_history("ALWAYS_BAD", start="2024-01-01", end="2024-01-10")
 
     assert df.empty
+
+
+def test_dead_ticker_tail_is_not_requeried_every_call(monkeypatch, tmp_path):
+    """상장폐지처럼 저장된 마지막 봉이 오래됐고 꼬리 조회에서도 새 봉이 없으면, 7일 동안은 다시 묻지 않는다."""
+    monkeypatch.setattr(market_data, "CACHE_DIR", tmp_path)
+    calls: list = []
+    monkeypatch.setattr(market_data.yf, "download", _fake_download_factory(calls))
+    market_data.get_price_history("DEAD", start="2024-01-01", end="2024-01-15")
+    assert len(calls) == 1
+
+    def nothing_new(ticker, start=None, end=None, interval="1d", **kwargs):
+        calls.append(start)
+        return pd.DataFrame()
+
+    monkeypatch.setattr(market_data.yf, "download", nothing_new)
+    df = market_data.get_price_history("DEAD", start="2024-01-01")
+    assert len(calls) == 2 and not df.empty
+    market_data.get_price_history("DEAD", start="2024-01-01")
+    market_data.get_price_history("DEAD", start="2024-01-01", end="2099-01-01")
+    assert len(calls) == 2  # 마커가 신선한 동안 네트워크 없음
+
+    marker = market_data._nodata_marker(market_data._store_path("DEAD", "1d"))
+    old = time.time() - market_data.NODATA_RECHECK_SECONDS - 10
+    os.utime(marker, (old, old))
+    market_data.get_price_history("DEAD", start="2024-01-01")
+    assert len(calls) == 3  # 7일 지나면 한 번 다시 확인
+
+
+def test_live_ticker_is_never_silenced_and_unknown_ticker_waits_only_a_day(monkeypatch, tmp_path):
+    monkeypatch.setattr(market_data, "CACHE_DIR", tmp_path)
+    calls: list = []
+
+    def nothing(ticker, start=None, end=None, interval="1d", **kwargs):
+        calls.append(start)
+        return pd.DataFrame()
+
+    monkeypatch.setattr(market_data.yf, "download", nothing)
+    assert market_data.get_price_history("NONE", start="2024-01-01").empty
+    assert market_data.get_price_history("NONE", start="2024-01-01").empty
+    assert len(calls) == 1
+    marker = market_data._nodata_marker(market_data._store_path("NONE", "1d"))
+    old = time.time() - market_data.NODATA_EMPTY_RECHECK_SECONDS - 10
+    os.utime(marker, (old, old))
+    market_data.get_price_history("NONE", start="2024-01-01")
+    assert len(calls) == 2
+
+    # 최근 봉이 있는 종목은 마커가 있어도 무시한다
+    recent = pd.Timestamp(date.today()) - pd.Timedelta(3, unit="D")
+    store = market_data._store_path("LIVE", "1d")
+    pd.DataFrame({"Open": [1.0], "High": [1.0], "Low": [1.0], "Close": [1.0], "Adj Close": [1.0], "Volume": [1]},
+                 index=pd.DatetimeIndex([recent], name="Date")).to_parquet(store)
+    market_data._nodata_marker(store).touch()
+    market_data.get_price_history("LIVE", start=str(recent.date()))
+    assert len(calls) == 3

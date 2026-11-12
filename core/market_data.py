@@ -50,6 +50,16 @@ DEFAULT_CACHE_TTL_SECONDS = 6 * 60 * 60  # 6시간
 # 스스로 복구되게 한다.
 FULL_HISTORY_RECHECK_SECONDS = 7 * 24 * 60 * 60  # 7일
 
+# 상장폐지 등으로 더는 새 봉이 안 나오는 티커를 매번 다시 묻지 않기 위한 ".nodata" 마커(2026-11-12).
+# 챔피언 알파 감쇠 잡이 매일 10년 백테스트로 과거 S&P 편입 종목 수백 개를 end=오늘로 다시 묻느라
+# 밤마다 Yahoo 레이트리밋 ~470건을 맞고(같은 시각 다른 잡의 조회까지 막힘) 25분 넘게 걸렸다.
+# 저장된 마지막 봉이 DEAD_AFTER_DAYS 보다 오래됐는데 꼬리 조회에서도 새 봉이 없으면 마커를 찍고, 마커가
+# 신선한 동안(저장 데이터가 있으면 7일, 아예 없으면 1일 — 한 번의 일시 실패로 살아 있는 종목을 오래
+# 묻어두지 않게) 꼬리 조회를 건너뛴다. 새 봉이 오면 마커를 지운다.
+DEAD_AFTER_DAYS = 45
+NODATA_RECHECK_SECONDS = 7 * 24 * 60 * 60
+NODATA_EMPTY_RECHECK_SECONDS = 24 * 60 * 60
+
 # get_multiple_price_history()가 여러 티커를 동시에 조회할 때 쓰는 스레드풀 크기. 네트워크 I/O
 # 위주라 병렬화 효과가 크지만(시장 국면/섹터 강도처럼 S&P500 전종목을 순회하는 기능에서 실측:
 # 순차 조회 시 수 분 소요), 너무 크면 Yahoo Finance 쪽에서 속도 제한(레이트리밋)에 걸릴 수 있어
@@ -103,6 +113,22 @@ def _full_history_marker(store_file: Path) -> Path:
     받아봤다는 뜻이라, 이후로는 더 과거로 확장해서 받아올 필요가 없다(그게 실제 상장일 기준
     가장 이른 데이터이므로)."""
     return store_file.with_suffix(".full")
+
+
+def _nodata_marker(store_file: Path) -> Path:
+    return store_file.with_suffix(".nodata")
+
+
+def _looks_dead(stored: pd.DataFrame) -> bool:
+    return stored.empty or stored.index.max() < pd.Timestamp(date.today()) - pd.Timedelta(DEAD_AFTER_DAYS, unit="D")
+
+
+def _nodata_quiet(stored: pd.DataFrame, marker: Path) -> bool:
+    """새 봉이 안 나오는 티커로 표시돼 있고 아직 다시 물어볼 때가 아니면 True."""
+    if not marker.exists() or not _looks_dead(stored):
+        return False
+    wait = NODATA_EMPTY_RECHECK_SECONDS if stored.empty else NODATA_RECHECK_SECONDS
+    return time.time() - marker.stat().st_mtime < wait
 
 
 def _load_store(store_file: Path) -> pd.DataFrame:
@@ -250,12 +276,24 @@ def get_price_history(
         is_stale = (not store_file.exists()) or (time.time() - store_file.stat().st_mtime >= cache_ttl)
         need_tail = (pd.Timestamp(date.today()) > stored.index.max()) or is_stale
 
+    nodata = _nodata_marker(store_file)
+    if need_tail and _nodata_quiet(stored, nodata):
+        need_tail = False
+
     if need_tail:
         tail_start = start if stored.empty else stored.index.max().strftime("%Y-%m-%d")
         fresh = _download(ticker, start=tail_start, end=end, interval=interval)
+        got_new = not fresh.empty and (stored.empty or fresh.index.max() > stored.index.max())
         if not fresh.empty:
             stored = _merge_price_data(stored, fresh)
             updated = True
+        if got_new:
+            nodata.unlink(missing_ok=True)
+        elif _looks_dead(stored):
+            try:
+                nodata.touch()
+            except OSError:
+                pass
 
     if stored.empty:
         return pd.DataFrame()
@@ -348,7 +386,7 @@ def clear_cache(ticker: Optional[str] = None) -> int:
     """
     count = 0
     prefix = f"{ticker}_" if ticker else ""
-    for pattern in (f"{prefix}*.parquet", f"{prefix}*.full"):
+    for pattern in (f"{prefix}*.parquet", f"{prefix}*.full", f"{prefix}*.nodata"):
         for f in CACHE_DIR.glob(pattern):
             f.unlink()
             count += 1
