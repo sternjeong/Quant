@@ -15,7 +15,7 @@ from pathlib import Path
 
 KST = timezone(timedelta(hours=9))
 TIERS = ("auto", "light")
-MAX_PER_TIER = 10
+MAX_PER_TIER = 15
 TEXT_FIELDS = ("title", "url", "organizer", "platform", "deadline", "deadline_note", "prize",
                "what_to_do", "why", "eligibility", "human_work")
 

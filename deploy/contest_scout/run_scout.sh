@@ -69,7 +69,7 @@ for f in sorted(Path("/srv/contests").glob("*/contest.json")):
         continue
     lines.append(f"  - {c.get('title', f.parent.name)} {c.get('url', '').split('?')[0]}")
 now = datetime.now(timezone(timedelta(hours=9))).strftime("%Y-%m-%d %H:%M")
-text = Path(src).read_text(encoding="utf-8").replace("{{NOW}}", now).replace("{{EXISTING}}", "\n".join(lines) or "  - 없음")
+text = Path(src).read_text(encoding="utf-8").replace("{{NOW}}", now).replace("{{MONTH}}", datetime.now(timezone(timedelta(hours=9))).strftime("%B %Y")).replace("{{EXISTING}}", "\n".join(lines) or "  - 없음")
 Path(dst).write_text(text, encoding="utf-8")
 PY
 

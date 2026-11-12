@@ -98,12 +98,21 @@ def test_fetch_sources_keeps_going_when_one_site_fails(tmp_path, monkeypatch):
                 "hackathons": [{"title": "H", "url": "https://h.devpost.com/", "prize_amount": "$<span>1,000</span>",
                                 "themes": [{"name": "AI"}]}]}
 
+    def fake_fetch(url, accept):
+        if "wevity" in url:
+            return '<a href="?c=find&amp;s=1&amp;ix=7">AI 해커톤 공모전</a><a href="/x">메뉴</a>'
+        raise OSError("blocked")
+
     monkeypatch.setattr(fetch, "_get", fake_get)
+    monkeypatch.setattr(fetch, "_fetch", fake_fetch)
     monkeypatch.setattr(fetch.sys, "argv", ["x", str(tmp_path)])
     assert fetch.main() == 0
     rows = json.loads((tmp_path / "sources" / "devpost.json").read_text(encoding="utf-8"))
     assert rows[0]["prize"] == "$1,000" and rows[0]["themes"] == ["AI"]
     assert not (tmp_path / "sources" / "aichallenge4all.json").exists()
+    wevity = json.loads((tmp_path / "sources" / "wevity.json").read_text(encoding="utf-8"))
+    assert wevity[0] == {"title": "AI 해커톤 공모전", "url": "https://www.wevity.com/?c=find&s=1&ix=7"}
+    assert not (tmp_path / "sources" / "drivendata.json").exists()
 
 
 def test_register_button_prefills_new_contest_form(tmp_path, monkeypatch):

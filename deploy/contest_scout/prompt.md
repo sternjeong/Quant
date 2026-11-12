@@ -8,18 +8,23 @@
 {{EXISTING}}
 
 ## 먼저 읽을 파일
-현재 폴더의 `sources/` 에 스크립트가 미리 받아 둔 목록이 있다(없으면 그 사이트는 웹 검색으로 대신해라).
-- `sources/devpost.json`: Devpost 에서 지금 열린 해커톤 전체(제목·주소·주최·제출 기간·남은 시간·상금·주제·온라인 여부)
-- `sources/aichallenge4all.json`: 전국민 AI 경진대회 트랙(tracks)과 협력 기관 대회(partner_contests)와 진행 상태
-이 목록에서 조건에 맞을 만한 후보를 먼저 고르고, 후보의 상세 페이지만 열어 마감·자격·제출물을 확인해라.
-Devpost 상세 페이지가 열리지 않으면 목록 정보와 웹 검색 결과로 판단하되, 확인 못 한 값은 비워 둬라.
+현재 폴더의 `sources/` 에 스크립트가 미리 받아 둔 목록이 있다(파일이 없으면 그 사이트는 받기에 실패한 것이니 웹 검색으로 대신해라).
+- `devpost.json`: Devpost 에서 지금 열린 해커톤 전체(제목·주소·주최·제출 기간·남은 시간·상금·주제·온라인 여부)
+- `aichallenge4all.json`: 전국민 AI 경진대회 트랙(tracks)과 협력 기관 대회(partner_contests)와 진행 상태
+- `hackerearth.json`: HackerEarth 진행·예정 해커톤
+- `unstop.json`: Unstop 온라인·접수 중 해커톤(인도 대학생 대상이 많으니 자격을 꼭 봐라)
+- `zindi.json`: Zindi 진행 중 데이터 사이언스 대회(상금·마감)
+- `devfolio.json`: Devfolio 온라인 해커톤
+- `wevity.json`: 국내 공모전 모음 위비티 '웹/모바일/IT' 분야(제목·주소만 — AI·SW·데이터와 무관한 영상·광고 공모전은 버려라)
+- `drivendata.json`: DrivenData 대회 링크(연습용 practice·이미 끝난 것이 섞여 있다)
+이 목록에서 조건에 맞을 만한 후보를 고르고, 후보의 상세 페이지를 열어 마감·자격·제출물을 확인해라.
+상세 페이지가 막혀 있으면(Devpost 등) 목록 정보와 웹 검색 결과로 판단하되, 확인 못 한 값은 비워 둬라.
 
-## 반드시 볼 곳
-- https://aichallenge4all.or.kr/
-- https://devpost.com/hackathons (open, online 위주)
-## 더 보면 좋은 곳 (가능한 만큼)
-- Dacon(dacon.io), Kaggle competitions, AIcrowd, DrivenData, Zindi, lablab.ai, Hugging Face competitions, MLH
-- 국내 공모전 모음(위비티 wevity, 링커리어, 씽굿 등)의 AI·SW·데이터 분야
+## 목록 파일이 없는 곳 — 웹 검색으로 꼭 찾아라
+- Kaggle competitions(상금·지식 대회 중 진행 중인 것), Dacon(dacon.io) 진행 중 대회
+- AIcrowd, lablab.ai, Hugging Face competitions, MLH 온라인 해커톤, DoraHacks, Google/AWS/Microsoft 등 기업 주최 AI 챌린지
+- 국내: 링커리어·씽굿 공모전, 과기정통부·NIA·공공데이터포털·각 지자체의 AI/데이터/SW 경진대회, 대학·학회 주최 대회
+각 곳마다 "<사이트> hackathon {{MONTH}}" 처럼 이번 달 기준으로 검색해라.
 
 ## 난이도 분류
 - `auto` (AI 자동 딸깍): 제출물이 코드·문서·짧은 영상 정도라서 코딩 에이전트가 대부분 만들 수 있다.
@@ -28,7 +33,7 @@ Devpost 상세 페이지가 열리지 않으면 목록 정보와 웹 검색 결�
   도메인 판단 등에 하루~며칠 정도 직접 써야 한다.
 - 그 밖(오프라인 합숙 본선 필수, 하드웨어 필요, 팀 필수, 자격 미달, 마감 3일 이내, 이미 마감)은 넣지 말고 skipped 에 짧게 사유만.
 
-각 등급 최대 8개. 상금·인지도·당선 가능성이 높은 것을 위에 둬라. 확인 못 한 값은 빈 문자열로 두고 지어내지 마라.
+각 등급 최대 12개. 후보가 적으면 억지로 채우지 말고, 많으면 더 좋은 것만 남겨라. 상금·인지도·당선 가능성이 높은 것을 위에 둬라. 확인 못 한 값은 빈 문자열로 두고 지어내지 마라.
 페이지를 직접 열어 마감일·자격·제출물을 확인한 것만 넣어라.
 
 ## 출력
