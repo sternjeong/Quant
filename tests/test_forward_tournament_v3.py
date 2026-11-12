@@ -369,6 +369,7 @@ def test_v3_failure_isolated_from_v1_v2(tmp_path, monkeypatch):
     monkeypatch.setattr(ft2, "record", lambda *a, **k: calls.append("v2") or {"recorded": True, "errors": {}})
     monkeypatch.setattr(ft2, "refresh_status", lambda *a, **k: {})
     monkeypatch.setattr(ft3, "refresh_status", lambda *a, **k: {})
+    monkeypatch.setattr(run_scheduler, "_forward_tournament_v4_record", lambda: None)  # v4 는 tests/test_forward_tournament_v4.py
 
     def boom(*a, **k):
         raise ValueError("broke")

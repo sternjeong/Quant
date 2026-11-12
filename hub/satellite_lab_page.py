@@ -91,6 +91,16 @@ def collect() -> dict[str, Any]:
     except Exception as exc:  # noqa: BLE001
         data["tournament_v3"] = {"error": type(exc).__name__}
     try:
+        from core import forward_tournament_v4 as ft4
+
+        rows4 = ft4.load_ledger()
+        data["tournament_v4"] = {"records": len(rows4), "last": rows4[-1].get("date") if rows4 else None,
+                                 "start": rows4[0].get("date") if rows4 else None,
+                                 "armed": ft4.load_armed().get("start_not_before"), "registered": ft4.REGISTERED.isoformat(),
+                                 "min_days": ft4.MIN_DAYS, "status": ft4.load_status(), "labels": dict(ft4.LABELS)}
+    except Exception as exc:  # noqa: BLE001
+        data["tournament_v4"] = {"error": type(exc).__name__}
+    try:
         from core import satellite_lab as sl
 
         reg = sl.load_registry()
@@ -208,7 +218,8 @@ def render_shadows(data: dict) -> str:
             f'<tr><th>앞으로 토너먼트(v1)</th><td>{_e(t.get("records", 0))}일 · 최근 {_e(t.get("last"))} · '
             f'{html.escape(" · ".join(f"{k} {v}" for k, v in (t.get("labels") or {}).items()))} · 252거래일 뒤 판정(주간 엔진 점검에 경과)</td></tr>'
             + render_tournament_v2_row(data.get("tournament_v2") or {})
-            + render_tournament_v3_row(data.get("tournament_v3") or {}) +
+            + render_tournament_v3_row(data.get("tournament_v3") or {})
+            + render_tournament_v4_row(data.get("tournament_v4") or {}) +
             f'<tr><th>AI 국제정세 의견</th><td>{_e(len(g.get("months") or []))}개월 · {_e(", ".join(g.get("months") or []) or "아직 없음")} · 24개월 뒤 판정</td></tr>'
             '</table>')
 
@@ -385,3 +396,29 @@ def render_research_jobs(data: dict) -> str:
             '<a href="/reports/report-research-results">검증 연구 결과</a>에서 확인합니다. '
             '좋은 결과도 자동으로 챔피언에 반영되지 않습니다.</p>'
             + general + asset)
+
+
+def render_tournament_v4_row(t: dict) -> str:
+    """앞으로 토너먼트 v4 — 원화 적립 계좌(1,000만 원 + 매달 15만 원) 넷의 평가·청산 세후·SPY 대비. 252거래일 전에는 판정 없음."""
+    name = "앞으로 토너먼트 v4 (적립 계좌)"
+    if "error" in t:
+        return f'<tr><th>{name}</th><td>확인 불가 {_e(t["error"])}</td></tr>'
+    st = t.get("status") or {}
+    cands = st.get("candidates") or {}
+    if not t.get("records"):
+        state = f'기록 대기 — {_e(t.get("armed") or t.get("registered"))} 이후 첫 완료 거래일부터(배포 뒤 첫 기록 시도 기준)'
+    else:
+        state = (f'시작 {_e(t.get("start"))} · {_e(t.get("records"))}일 기록 · 최근 {_e(t.get("last"))} · '
+                 f'평가 {_e(st.get("days", 0))}/{_e(t.get("min_days"))}거래일')
+
+    def won(v: Any) -> str:
+        return "—" if v is None else f"{float(v) / 1e4:,.0f}만"
+
+    extra = ""
+    for k, c in cands.items():
+        gap = "" if k == "B0" else f' · SPY 대비 {won(c.get("liq_vs_b0_krw"))}'
+        extra += (f'<br>{_e(k)} {html.escape(str(c.get("label", "")))}: 청산 세후 {won(c.get("liq_krw"))} '
+                  f'(넣은 돈 {won(c.get("contributed"))}, 낸 세금 {won(c.get("tax_paid"))}){gap}'
+                  + (f' · 판정 {_e(c["verdict"])}' if c.get("verdict") else ""))
+    return (f'<tr><th>{name}</th><td>{state} · {_e(t.get("min_days"))}거래일 전에는 판정하지 않음 '
+            f'(PASS = 청산 세후 IRR ≥ SPY + 0.5%p 이고 시간가중 최대낙폭이 SPY 보다 10%p 넘게 나쁘지 않음 — 사람이 검토할 근거일 뿐 배분·주문과 무관){extra}</td></tr>')

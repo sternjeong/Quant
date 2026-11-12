@@ -384,11 +384,11 @@ MODULES: tuple[ModuleGuide, ...] = (
     ),
     ModuleGuide(
         module="core/engine_audit.py", name="주간 엔진 점검", group="운영·안전", status="운영중",
-        what="모든 주식 엔진과 연구 에이전트가 제대로 굴러가는지 한 번에 확인합니다: 서비스 4개 실행 여부, 등록된 자동 잡이 제때 돌았는지, 백업, 실행 중 코드가 main 과 같은지, 검증 연구 실행기가 깨어나고 실패한 작업이 없는지, 새틀라이트 R&D(기준선·계산 오류·준비됐는데 판정 안 된 아이디어·설계 횟수가 상한을 넘은 오염 기록), 지난 7일 야간 AI 에이전트 실행·실패·사용량, 아침 자동 재추천이 매일 저장됐는지, 새벽 미리 계산이 돌았는지, 코인 추세 기록·앞으로 토너먼트(v1·v2·v3) 원장이 매일 쌓이고 평가 가능한지(v1의 옛 장중 신호 제외 건수, v2·v3 최근 기록 오류와 가격 결측), 야간 신호와 가격 캐시가 최신인지, 국제정세 의견이 제때 기록됐는지, 디스크 여유.",
+        what="모든 주식 엔진과 연구 에이전트가 제대로 굴러가는지 한 번에 확인합니다: 서비스 4개 실행 여부, 등록된 자동 잡이 제때 돌았는지, 백업, 실행 중 코드가 main 과 같은지, 검증 연구 실행기가 깨어나고 실패한 작업이 없는지, 새틀라이트 R&D(기준선·계산 오류·준비됐는데 판정 안 된 아이디어·설계 횟수가 상한을 넘은 오염 기록), 지난 7일 야간 AI 에이전트 실행·실패·사용량, 아침 자동 재추천이 매일 저장됐는지, 새벽 미리 계산이 돌았는지, 코인 추세 기록·앞으로 토너먼트(v1·v2·v3·v4) 원장이 매일 쌓이고 평가 가능한지(v1의 옛 장중 신호 제외 건수, v2·v3 최근 기록 오류와 가격 결측, v4 적립 계좌의 SPY 대비 청산 세후), 야간 신호와 가격 캐시가 최신인지, 국제정세 의견이 제때 기록됐는지, 디스크 여유.",
         how_to_use="자동입니다. 매주 월요일 08:15 KST 에 텔레그램 '[주간 엔진 점검]' 요약이 정상이어도 옵니다. 지금 바로 보려면 scripts/engine_audit.py 를 실행합니다.",
         where_to_see="텔레그램 '[주간 엔진 점검]', VM data/engine_audit/latest.json",
         cautions="읽기 전용이라 아무것도 고치지 않습니다. 점검 하나가 예외로 실패해도 그 항목만 ❌ 로 남기고 나머지는 계속합니다. 2026-10-05 사람이 손으로 한 점검을 옮긴 것이라 새 엔진이 생기면 항목을 같이 늘려야 합니다.",
-        sources=("core/engine_audit.py", "scripts/engine_audit.py", "scheduler/run_scheduler.py"), verified="2026-10-22",
+        sources=("core/engine_audit.py", "scripts/engine_audit.py", "scheduler/run_scheduler.py"), verified="2026-11-12",
     ),
     ModuleGuide(
         module="core/dawn_precompute.py", name="새벽 미리 계산", group="운영·안전", status="운영중",
@@ -453,6 +453,15 @@ MODULES: tuple[ModuleGuide, ...] = (
         cautions="성과 평가는 기록 시각 뒤 최초 거래 가능한 종가의 다음 일간 수익부터 시작하며 미완료 봉과 보유 가격 결측은 성과에서 제외·오류 표시합니다. 초기 손실도 최대낙폭에 포함합니다. 252거래일(약 1년) 전에는 판정하지 않고, 중간 순위와 B1 대비 차이는 판정이 아닙니다. 판정 규칙(forward-tournament/v3)은 기록 시작 전(2026-10-16)에 고정했습니다 — 후보는 연환산 수익이 SPY(B0)보다 1.0%p 이상 높고 최대낙폭이 SPY 보다 3%p 넘게 나쁘지 않아야 PASS 이며, 후보가 SPY 와 매일 같으면 NOT_EVALUABLE 입니다. 바꾸려면 새 id 로 다시 등록합니다. 1년은 짧아 운의 영향이 큽니다. 새틀라이트를 다시 고르는 날(1·3·5·7·9·11월 첫 거래일 무렵)은 잡이 몇 분 더 걸릴 수 있고, 선정이 실패하면 직전 보유를 그대로 두고(첫 선정이면 현금) 다음 날 다시 고릅니다(실패는 별도 키 forward_tournament_v3_record 로 알림). PASS 도 사람이 도입을 검토할 후보일 뿐이며 배분·주문과 연결되어 있지 않습니다.",
         sources=("core/forward_tournament_v3.py", "scheduler/run_scheduler.py", "core/engine_audit.py", "hub/satellite_lab_page.py", "core/core_lab.py"),
         verified="2026-10-22",
+    ),
+    ModuleGuide(
+        module="core/forward_tournament_v4.py", name="앞으로 토너먼트 v4 (적립 계좌)", group="리서치 인프라", status="관측 전용",
+        what="'SPY 80% + 2배 ETF(SSO) 20%' 후보가 실제로 앞으로도 SPY 보다 세후로 많이 남기는지, 같은 돈(처음 1,000만 원 + 매달 15만 원)을 넣는 가상 원화 계좌 넷으로 매일 기록합니다. B0 = SPY 만, L20A = SSO 20% 를 매년 12월 양도세 공제 250만 원 안에서만 되돌림(추가 세금 0), L20Y = 매년 1월 80/20 으로 되돌림, L20F = 다리를 SPY 200일선에 따라 SSO 또는 단기채(BIL)로 바꿈. v1~v3 와 달리 비중이 아니라 계좌 자체(보유 주식 수·원화 취득원가·그해 실현이익·낸 세금)를 남기므로 적립·세금·공제가 그대로 들어갑니다.",
+        how_to_use="자동입니다. 매일 00:39 KST 자동 잡 forward_tournament_record 가 v3 다음에 기록하고 경과(data/forward_tournament_v4/status.json)를 계산합니다. 빠진 날이 있으면 다음 기록 때 그 날들을 차례로 처리합니다. 시작일은 배포 뒤 처음 기록을 시도한 날(data/forward_tournament_v4/armed.json) 이후의 첫 완료 거래일입니다. 켜고 끄기는 R&D 센터의 '앞으로 토너먼트' 주제입니다.",
+        where_to_see="관제 센터 'R&D 센터'의 '앞으로 기록' 표 '앞으로 토너먼트 v4 (적립 계좌)' 줄(계좌별 청산 세후·넣은 돈·낸 세금·SPY 대비), 텔레그램 '[주간 엔진 점검]'의 '앞으로 토너먼트 v4' 줄, VM data/forward_tournament_v4/",
+        cautions="판정 규칙(forward-tournament/v4)은 기록 시작 전(2026-11-12)에 고정했습니다 — 252거래일 뒤, 청산 세후 IRR 이 SPY 계좌보다 0.5%p 이상 높고 시간가중 최대낙폭이 10%p 넘게 나쁘지 않으면 PASS. 1년은 짧아 운의 영향이 매우 크고, 레버리지 후보의 이득은 과거 연구에서 대부분 위험을 더 진 대가였습니다. 배당 원천징수는 넣지 않았고, 양도세는 판 즉시 빼는 보수적 근사입니다. PASS 도 사람이 검토할 근거일 뿐 배분·주문과 연결되어 있지 않습니다.",
+        sources=("core/forward_tournament_v4.py", "scheduler/run_scheduler.py", "core/engine_audit.py", "hub/satellite_lab_page.py"),
+        verified="2026-11-12",
     ),
     ModuleGuide(
         module='core/corporate_actions.py',

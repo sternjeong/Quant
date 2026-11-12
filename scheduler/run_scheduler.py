@@ -1240,6 +1240,7 @@ def forward_tournament_record_job() -> None:
         report_job_failure("forward_tournament_record", f"{type(exc).__name__}: {exc}")
     _forward_tournament_v2_record()
     _forward_tournament_v3_record()
+    _forward_tournament_v4_record()
     print(f"[{datetime.now()}] forward_tournament_record_job 종료")
 
 
@@ -1283,6 +1284,23 @@ def _forward_tournament_v3_record() -> None:
         print(f"  - 앞으로 토너먼트 v3 기록 실패: {type(exc).__name__}: {exc}")
         report_job_failure("forward_tournament_v3_record", f"{type(exc).__name__}: {exc}")
 
+
+
+def _forward_tournament_v4_record() -> None:
+    """앞으로 토너먼트 v4 (core/forward_tournament_v4.py, 원화 적립 계좌 원장) — v3 기록 뒤. 실패는 별도 키(forward_tournament_v4_record)."""
+    try:
+        from core import rnd_topics
+
+        if not rnd_topics.is_on("forward_tournament"):
+            return
+        from core import forward_tournament_v4 as ft4
+
+        res = ft4.record()
+        print(f"  - v4 {res.get('date')} 기록={res.get('recorded')} ({res.get('reason', '')})")
+        ft4.refresh_status()
+    except Exception as exc:  # noqa: BLE001
+        print(f"  - 앞으로 토너먼트 v4 기록 실패: {type(exc).__name__}: {exc}")
+        report_job_failure("forward_tournament_v4_record", f"{type(exc).__name__}: {exc}")
 
 def engine_weekly_audit_job() -> None:
     """주간 엔진 점검 (core/engine_audit.py) — 모든 엔진·연구 에이전트가 잘 굴러가는지 읽기 전용으로 확인하고 텔레그램 1건.

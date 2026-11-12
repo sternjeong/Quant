@@ -376,6 +376,28 @@ def check_forward_tournament_v3(now: datetime) -> Check:
     return _c(name, OK, msg)
 
 
+def check_forward_tournament_v4(now: datetime) -> Check:
+    """v4(원화 적립 계좌 원장)도 status.json 만 읽는다(네트워크 없음)."""
+    from core import forward_tournament_v4 as ft4
+
+    name = "앞으로 토너먼트 v4"
+    rows = ft4.load_ledger()
+    if not rows:
+        armed = ft4.load_armed().get("start_not_before")
+        ref = date.fromisoformat(armed) if armed else ft4.REGISTERED
+        if (now.date() - ref).days > 7:
+            return _c(name, WARN, "기록이 하나도 없음 — 00:39 기록 잡(v3 다음) 확인")
+        return _c(name, OK, f"기록 대기({armed or ft4.REGISTERED} 이후 첫 완료 거래일부터)")
+    last = rows[-1].get("date")
+    if last and (now.date() - date.fromisoformat(last)).days > 4:
+        return _c(name, WARN, f"마지막 기록 {last} — 4일 넘게 멈춤")
+    st = ft4.load_status()
+    if not st:
+        return _c(name, WARN, f"{len(rows)}일 기록 · 평가 상태 파일 없음")
+    gaps = [f"{k} {(c.get('liq_vs_b0_krw') or 0) / 1e4:+,.0f}만" for k, c in (st.get("candidates") or {}).items() if k in ft4.JUDGED]
+    return _c(name, OK, f"{len(rows)}일 기록 · {st.get('days', 0)}/{ft4.MIN_DAYS}거래일 · SPY 대비 청산 세후(판정 아님) " + ", ".join(gaps))
+
+
 def check_disk(root: str = "/") -> Check:
     u = shutil.disk_usage(root)
     free_gb = u.free / 1024 ** 3
@@ -400,6 +422,7 @@ CHECKS: tuple[tuple[str, Callable[[datetime], Check]], ...] = (
     ("앞으로 토너먼트", check_forward_tournament),
     ("앞으로 토너먼트 v2", check_forward_tournament_v2),
     ("앞으로 토너먼트 v3", check_forward_tournament_v3),
+    ("앞으로 토너먼트 v4", check_forward_tournament_v4),
     ("디스크", lambda now: check_disk()),
 )
 
