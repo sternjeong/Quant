@@ -179,7 +179,9 @@ def test_judge_not_evaluable_overrides_on_noop():
     assert out["sleeve_35_vs_15"] != m.NOT_EVALUABLE  # 다른 쪽 noop 은 독립
 
 
-def test_smoke_resume_then_complete(tmp_path, monkeypatch):
+def test_smoke_resume_then_complete_matches_uninterrupted_run(tmp_path, monkeypatch):
+    """중단(종료 코드 3) 뒤 이어서 끝낸 결과가 한 번에 끝낸 결과와 같아야 한다 — 이어하기와 결정성을 함께 본다
+    (2026-11-12: 따로 두 번씩 돌리던 결정성 테스트를 합쳐 전체 테스트 시간을 약 100초 줄임)."""
     m = _load()
     monkeypatch.setenv("RESEARCH_JOB_DEADLINE_EPOCH", "0")
     args = ["--smoke", "--out", str(tmp_path / "out"), "--checkpoint", str(tmp_path / "ck")]
@@ -192,16 +194,9 @@ def test_smoke_resume_then_complete(tmp_path, monkeypatch):
     assert all(v.startswith("SMOKE_ONLY(") for v in payload["verdicts"].values())
     assert (tmp_path / "out" / "REPORT.md").exists()
 
-
-def test_smoke_deterministic_across_runs(tmp_path, monkeypatch):
-    m = _load()
-    monkeypatch.delenv("RESEARCH_JOB_DEADLINE_EPOCH", raising=False)
-    a1 = ["--smoke", "--out", str(tmp_path / "out1"), "--checkpoint", str(tmp_path / "ck1")]
     a2 = ["--smoke", "--out", str(tmp_path / "out2"), "--checkpoint", str(tmp_path / "ck2")]
-    assert m.main(a1) == 0
     assert m.main(a2) == 0
-    p1 = json.loads((tmp_path / "out1" / "results.json").read_text(encoding="utf-8"))
     p2 = json.loads((tmp_path / "out2" / "results.json").read_text(encoding="utf-8"))
-    assert p1["verdicts"] == p2["verdicts"]
-    assert p1["f_top40"] == p2["f_top40"]
-    assert p1["break_even_d_pp_ab"] == p2["break_even_d_pp_ab"]
+    assert payload["verdicts"] == p2["verdicts"]
+    assert payload["f_top40"] == p2["f_top40"]
+    assert payload["break_even_d_pp_ab"] == p2["break_even_d_pp_ab"]
