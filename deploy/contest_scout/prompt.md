@@ -7,6 +7,13 @@
 - 이미 진행 중인 대회(다시 추천하지 말 것):
 {{EXISTING}}
 
+## 먼저 읽을 파일
+현재 폴더의 `sources/` 에 스크립트가 미리 받아 둔 목록이 있다(없으면 그 사이트는 웹 검색으로 대신해라).
+- `sources/devpost.json`: Devpost 에서 지금 열린 해커톤 전체(제목·주소·주최·제출 기간·남은 시간·상금·주제·온라인 여부)
+- `sources/aichallenge4all.json`: 전국민 AI 경진대회 트랙(tracks)과 협력 기관 대회(partner_contests)와 진행 상태
+이 목록에서 조건에 맞을 만한 후보를 먼저 고르고, 후보의 상세 페이지만 열어 마감·자격·제출물을 확인해라.
+Devpost 상세 페이지가 열리지 않으면 목록 정보와 웹 검색 결과로 판단하되, 확인 못 한 값은 비워 둬라.
+
 ## 반드시 볼 곳
 - https://aichallenge4all.or.kr/
 - https://devpost.com/hackathons (open, online 위주)

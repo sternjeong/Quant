@@ -84,3 +84,23 @@ def test_hub_slot_and_route(tmp_path, monkeypatch):
     slot = next(s for s in SLOTS if s.id == "contest-scout")
     assert server._slot_href(slot, "h") == "/contest-scout"
     assert "대회 탐색" in server.render_contest_scout_page()
+
+
+def test_fetch_sources_keeps_going_when_one_site_fails(tmp_path, monkeypatch):
+    spec = importlib.util.spec_from_file_location("contest_scout_fetch", ROOT / "deploy" / "contest_scout" / "fetch_sources.py")
+    fetch = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(fetch)
+
+    def fake_get(url):
+        if "aichallenge4all" in url:
+            raise OSError("down")
+        return {"meta": {"per_page": 40, "total_count": 1},
+                "hackathons": [{"title": "H", "url": "https://h.devpost.com/", "prize_amount": "$<span>1,000</span>",
+                                "themes": [{"name": "AI"}]}]}
+
+    monkeypatch.setattr(fetch, "_get", fake_get)
+    monkeypatch.setattr(fetch.sys, "argv", ["x", str(tmp_path)])
+    assert fetch.main() == 0
+    rows = json.loads((tmp_path / "sources" / "devpost.json").read_text(encoding="utf-8"))
+    assert rows[0]["prize"] == "$1,000" and rows[0]["themes"] == ["AI"]
+    assert not (tmp_path / "sources" / "aichallenge4all.json").exists()

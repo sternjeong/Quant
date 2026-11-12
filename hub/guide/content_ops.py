@@ -574,7 +574,7 @@ SCRIPTS: tuple[ScriptGuide, ...] = (
         "sudo systemctl start --no-block quant-contest-scout.service",
         "파일/DB 쓰기",
         "결과는 /srv/contests/.scout/latest.json(화면이 읽음)·history/·logs/ 에 쌓입니다. 진행은 ubuntu 계정에서 tmux attach -t contest-scout 로 보고, "
-        "Claude 는 웹 검색·열람과 draft.json 쓰기만 할 수 있습니다(Bash 금지). 형식이 틀리면 이전 목록을 그대로 두고 상태를 '실패'로 남깁니다.",
+        "실행 전에 Devpost·aichallenge4all 목록 JSON 을 sources/ 에 미리 받아 두고(실패하면 그 사이트만 웹 검색으로 대신), Claude 는 웹 검색·열람과 draft.json 쓰기만 할 수 있습니다(Bash 금지). 형식이 틀리면 이전 목록을 그대로 두고 상태를 '실패'로 남깁니다.",
         "2026-11-12",
     ),
 )

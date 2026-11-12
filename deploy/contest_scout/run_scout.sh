@@ -73,6 +73,9 @@ text = Path(src).read_text(encoding="utf-8").replace("{{NOW}}", now).replace("{{
 Path(dst).write_text(text, encoding="utf-8")
 PY
 
+# 목록 화면이 JS 로 그려지는 사이트는 JSON 을 미리 받아 둔다(실패해도 계속, 결과는 로그에).
+rm -rf "$SCOUT_DIR/sources"
+python3 -I "$HERE/fetch_sources.py" "$SCOUT_DIR" >> "$LOG" 2>&1 || true
 tmux kill-session -t "$SESSION" 2>/dev/null || true
 tmux new-session -d -s "$SESSION" -x 200 -y 50 "bash '$HERE/run_scout.sh' inner '$LOG' '$MODEL'"
 tmux set-option -t "$SESSION" remain-on-exit on >/dev/null
