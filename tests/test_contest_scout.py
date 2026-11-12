@@ -104,3 +104,25 @@ def test_fetch_sources_keeps_going_when_one_site_fails(tmp_path, monkeypatch):
     rows = json.loads((tmp_path / "sources" / "devpost.json").read_text(encoding="utf-8"))
     assert rows[0]["prize"] == "$1,000" and rows[0]["themes"] == ["AI"]
     assert not (tmp_path / "sources" / "aichallenge4all.json").exists()
+
+
+def test_register_button_prefills_new_contest_form(tmp_path, monkeypatch):
+    from urllib.parse import parse_qs, urlparse
+
+    from core import contests as ct
+    from hub import contest_scout_page as page, contests_page
+
+    item = _item(title="Kiroween 2026", url="https://kiroween.devpost.com/", platform="Devpost", what_to_do="앱 제출")
+    href = page.register_href(item)
+    q = {k: v[0] for k, v in parse_qs(urlparse(href).query).items()}
+    assert q["slug"] == "kiroween-2026" and q["platform"] == "기타" and q["deadline"] == "2026-11-30"
+    assert "앱 제출" in q["memo"]
+    form = contests_page.render_new("", values=q)
+    assert 'value="kiroween-2026"' in form and 'value="https://kiroween.devpost.com/"' in form
+    assert page.suggest_slug(_item(title="클릭온 AI 시즌2", url="https://clickon.or.kr/x")) == "clickon"
+
+    monkeypatch.setattr(page, "SCOUT_DIR", tmp_path)
+    monkeypatch.setattr(page, "registered_slugs", lambda: {"https://kiroween.devpost.com": "kiroween-2026"})
+    (tmp_path / "latest.json").write_text(json.dumps({"items": [item, _item(url="https://x/other")]}), encoding="utf-8")
+    body = page.render_body(page.collect())
+    assert body.count("대회로 등록") == 1 and 'href="/contests/kiroween-2026"' in body

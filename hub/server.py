@@ -676,7 +676,10 @@ class HubRequestHandler(BaseHTTPRequestHandler):
         elif path in ("/contests", "/contests/"):
             self._send_html(contests_page.render_list(PAGE_STYLE))
         elif path == "/contests/new":
-            self._send_html(contests_page.render_new(PAGE_STYLE))
+            # '대회 탐색' 의 '대회로 등록' 은 ?title=&url=&deadline=... 로 칸을 미리 채워 온다(만들기는 여전히 POST 한 번).
+            query = {k: v[0] for k, v in parse_qs(urlparse(self.path).query).items()
+                     if k in ("title", "slug", "platform", "url", "deadline", "memo")}
+            self._send_html(contests_page.render_new(PAGE_STYLE, values=query))
         elif path.startswith("/contests/"):
             page = contests_page.render_detail(path.removeprefix("/contests/").strip("/"), PAGE_STYLE)
             self._send_html(page) if page else self._send_html("not found", 404)

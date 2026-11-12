@@ -10,10 +10,13 @@ from __future__ import annotations
 import html
 import json
 import os
+import re
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Optional
+from urllib.parse import urlencode, urlparse
 
+from core import contests as ct
 from hub import ui
 
 SCOUT_DIR = Path(os.environ.get("QUANT_SCOUT_DIR", "/srv/contests/.scout"))
@@ -67,6 +70,33 @@ def days_left(deadline: str, today: Optional[date] = None) -> Optional[int]:
         return None
 
 
+def suggest_slug(item: dict) -> str:
+    """폴더·저장소 이름 제안. 영문 제목이면 제목에서, 한글뿐이면 주소(호스트·경로)에서 만든다."""
+    title = item.get("title", "")
+    for text in ("" if re.search("[가-힣]", title) else title, urlparse(item.get("url", "")).netloc.split(".")[0],
+                 urlparse(item.get("url", "")).path):
+        slug = re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")[:40].strip("-")
+        if len(slug) >= 3 and slug not in ("www", "devpost"):
+            return slug
+    return ""
+
+
+def register_href(item: dict) -> str:
+    """AI 대회 '새 대회' 화면을 이 대회 정보로 미리 채운 주소."""
+    plat = next((p for p in ct.PLATFORMS if p.lower() in (item.get("platform", "") + item.get("url", "")).lower()), "기타")
+    memo = " / ".join(x for x in (f"[대회 탐색] {dict((t, n) for t, n, *_ in TIERS).get(item.get('tier'), '')}",
+                                  item.get("what_to_do"), "사람 몫: " + item["human_work"] if item.get("human_work") else "",
+                                  item.get("deadline_note"), item.get("prize")) if x)
+    query = {"title": item.get("title", ""), "slug": suggest_slug(item), "platform": plat,
+             "url": item.get("url", ""), "deadline": item.get("deadline", ""), "memo": memo}
+    return "/contests/new?" + urlencode(query)
+
+
+def registered_slugs() -> dict:
+    """{대회 주소: slug} — 이미 AI 대회에 만든 것은 '등록됨' 으로 보여 준다."""
+    return {c.url.split("?")[0].rstrip("/"): c.slug for c in ct.list_contests() if c.url}
+
+
 def card_badge(data: dict) -> str:
     if _busy(data):
         return ui.pill("찾는 중", "info")
@@ -79,7 +109,7 @@ def card_badge(data: dict) -> str:
     return ui.pill(f"딸깍 {counts['auto']} · 신경 {counts['light']}" + (f" · 새 {new}" if new else ""), "ok")
 
 
-def _item_row(item: dict, today: Optional[date]) -> str:
+def _item_row(item: dict, today: Optional[date], registered: Optional[dict] = None) -> str:
     left = days_left(item.get("deadline", ""), today)
     if left is None:
         end = ui.pill("마감 미정", "muted")
@@ -98,8 +128,13 @@ def _item_row(item: dict, today: Optional[date]) -> str:
         f"<b>자격</b> {E(item.get('eligibility') or '—')}"
         + (f" · <b>마감</b> {E(item.get('deadline'))} {E(item.get('deadline_note') or '')}" if item.get("deadline") else ""),
     ]
-    below = '<div class="note">' + "<br>".join(lines) + "</div>"
-    return ui.row(item.get("title", ""), href=item.get("url"), desc=meta, end_html=end, external=True, below_html=below)
+    slug = (registered or {}).get(item.get("url", "").split("?")[0].rstrip("/"))
+    action = (f'<a class="btn" href="/contests/{E(slug)}">등록됨 · 관리 화면</a>' if slug else
+              f'<a class="btn primary" href="{E(register_href(item))}">대회로 등록 (폴더 + private 저장소)</a>')
+    buttons = (f'<p>{action} <a class="btn" href="{E(item.get("url", ""))}" target="_blank" rel="noopener">대회 페이지 ↗</a></p>')
+    below = '<div class="note">' + "<br>".join(lines) + "</div>" + buttons
+    # 행 안에 버튼(링크)을 두므로 행 자체는 링크로 만들지 않는다(<a> 중첩 금지).
+    return ui.row(item.get("title", ""), desc=meta, end_html=end, below_html=below)
 
 
 def _run_button(data: dict) -> str:
@@ -129,8 +164,9 @@ def render_body(data: dict, today: Optional[date] = None, error: str = "") -> st
     ]
     if latest.get("notes"):
         out.append(ui.callout(E(latest["notes"]), icon="🗒"))
+    registered = registered_slugs()
     for tier, title, icon, desc in TIERS:
-        rows = [_item_row(i, today) for i in data["items"] if i.get("tier") == tier]
+        rows = [_item_row(i, today, registered) for i in data["items"] if i.get("tier") == tier]
         out.append(f"<h2>{icon} {E(title)} <small>({len(rows)})</small></h2>"
                    f'<p class="subtitle">{E(desc)}</p>' + ui.row_list(rows))
     skipped = latest.get("skipped") or []
