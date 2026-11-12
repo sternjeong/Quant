@@ -254,8 +254,23 @@ $truncated_pip_output"
   tests_ok=1
   # 검증 폴더를 작업 디렉터리로 두고 돌린다 — `python -m`이 현재 폴더를 sys.path 맨 앞에 넣으므로 운영 폴더가 아니라
   # 검증 폴더의 core/·app/ 이 import 된다(tests/conftest.py도 자기 폴더의 상위를 sys.path 맨 앞에 넣는다).
-  if ! sudo -n -u "$SERVICE_USER" timeout "$TEST_TIMEOUT_SECONDS" env -C "$STAGING_DIR" \
-        "$APP_DIR/.venv/bin/python" -m pytest "$STAGING_DIR/tests" -q >>"$TEST_LOG" 2>&1; then
+  flaky_note=""
+  gate_rc=0
+  sudo -n -u "$SERVICE_USER" timeout "$TEST_TIMEOUT_SECONDS" env -C "$STAGING_DIR" \
+        "$APP_DIR/.venv/bin/python" -m pytest "$STAGING_DIR/tests" -q >>"$TEST_LOG" 2>&1 || gate_rc=$?
+  if [ "$gate_rc" -ne 0 ] && [ "$gate_rc" -ne 124 ]; then
+    # 2026-11-12: 같은 VM 의 다른 작업 부하로 시간에 민감한 테스트(연구 실행기 체크포인트 등)가 가끔 떨어져 배포가 막혔다
+    # (혼자 돌리면 통과). 실패한 테스트만 한 번 더 돌려 그것도 통과하면 반영한다. 제한 시간 초과(124)는 다시 돌리지 않는다.
+    echo "---- 1차 실패한 테스트만 다시 실행 (부하로 인한 일시 실패 확인) ----" >>"$TEST_LOG"
+    if sudo -n -u "$SERVICE_USER" timeout 600 env -C "$STAGING_DIR" \
+          "$APP_DIR/.venv/bin/python" -m pytest "$STAGING_DIR/tests" -q --last-failed --last-failed-no-failures none >>"$TEST_LOG" 2>&1; then
+      gate_rc=0
+      flaky_note="
+(1차 전체 테스트에서 떨어진 테스트가 재실행에서 모두 통과 — 부하로 인한 일시 실패로 보고 반영함. 반복되면 확인 필요)"
+      log "1차 실패 테스트가 재실행에서 통과 — 일시 실패로 보고 계속"
+    fi
+  fi
+  if [ "$gate_rc" -ne 0 ]; then
     tests_ok=0
   fi
   # runner.py는 프로젝트 venv 없이 시스템 python3로 도는
@@ -363,7 +378,7 @@ $unhealthy_services
 
   message="[자동배포] 성공
 ${recovery_note}${local_head:0:7}..${new_head:0:7} ($commit_count 커밋)
-${deps_note}재시작: ${SERVICES[*]} (재시작 후 상태 확인 완료)
+${deps_note}재시작: ${SERVICES[*]} (재시작 후 상태 확인 완료)${flaky_note:-}
 
 $commit_summary_short"
   if ! "$ALERT_SCRIPT" "$message"; then

@@ -46,6 +46,8 @@ exit 0
 
 # 운영 폴더의 .venv/bin/python 자리(미추적 파일). pytest 게이트를 흉내 낸다.
 VENV_PYTHON = r'''#!/usr/bin/env bash
+res="$(cat "$PWD/gate_result.txt" 2>/dev/null)"
+case "$*" in *--last-failed*) echo "pytest-rerun cwd=$PWD" >> "$FAKE_STATE/gate.log"; [ "$res" = "pass" ] || [ "$res" = "flaky" ]; exit $?;; esac
 echo "pytest cwd=$PWD live_head=$(git -C "$FAKE_APP" rev-parse HEAD)" >> "$FAKE_STATE/gate.log"
 if [ -n "${FAKE_PUSH_DURING_GATE:-}" ] && [ ! -f "$FAKE_STATE/pushed_during_gate" ]; then
   touch "$FAKE_STATE/pushed_during_gate"
@@ -55,7 +57,7 @@ if [ -n "${FAKE_PUSH_DURING_GATE:-}" ] && [ ! -f "$FAKE_STATE/pushed_during_gate
   git -C "$FAKE_DEV" push -q origin main
   git -C "$FAKE_APP" fetch -q origin
 fi
-[ "$(cat "$PWD/gate_result.txt" 2>/dev/null)" = "pass" ]
+[ "$res" = "pass" ]
 '''
 
 ALERT_STUB = r'''#!/usr/bin/env bash
@@ -149,7 +151,7 @@ def _read(path: Path) -> str:
 
 
 def _gate_lines(env) -> list[str]:
-    return [l for l in _read(env["fake"] / "gate.log").splitlines() if l.startswith("pytest")]
+    return [l for l in _read(env["fake"] / "gate.log").splitlines() if l.startswith("pytest cwd")]
 
 
 def _restarts(env) -> list[str]:
@@ -223,6 +225,8 @@ def test_failed_gate_leaves_the_live_tree_on_the_old_commit_and_is_not_retried(e
     assert (env["state"] / "last_test_failure_commit").read_text().strip() == bad
     _assert_staging_gone(env)
 
+    assert any(l.startswith("pytest-rerun") for l in _read(env["fake"] / "gate.log").splitlines())  # 실패만 한 번 더 돌림
+
     # 같은 커밋으로는 재시도·재알림 없음
     again = _run(env)
     assert again.returncode == 0 and again.stdout == ""
@@ -236,6 +240,18 @@ def test_failed_gate_leaves_the_live_tree_on_the_old_commit_and_is_not_retried(e
     assert _git(env["app"], "rev-parse", "HEAD") == fixed
     assert "(이전 테스트 실패 상태에서 복구됨)" in _read(env["fake"] / "alerts.log")
     assert not (env["state"] / "last_test_failure_commit").exists()
+
+
+def test_tests_that_fail_only_under_load_are_rerun_once_then_deployed(env):
+    flaky = _push(env, gate="flaky", app_text="v2")
+
+    result = _run(env)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert _git(env["app"], "rev-parse", "HEAD") == flaky
+    assert any(l.startswith("pytest-rerun") for l in _read(env["fake"] / "gate.log").splitlines())
+    alerts = _read(env["fake"] / "alerts.log")
+    assert "[자동배포] 성공" in alerts and "재실행에서 모두 통과" in alerts
 
 
 def test_only_the_tested_commit_is_deployed_even_if_main_moves_during_the_gate(env):
