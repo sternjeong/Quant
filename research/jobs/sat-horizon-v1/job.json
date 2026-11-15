@@ -1,0 +1,18 @@
+{
+  "id": "sat-horizon-v1",
+  "title": "새틀라이트 5종목 — 1·3·6·12개월마다 S&P 500 을 7%p 넘게 이기는 고르기 규칙은(모멘텀·52주 신고가·돌파·변동성 조정·반전, 무작위 대비, 사전 등록)",
+  "entrypoint": "research/jobs/sat-horizon-v1/run.py",
+  "args": [],
+  "timeout_seconds": 3600,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": [
+    "results.json",
+    "REPORT.md"
+  ],
+  "summary_from": "verdicts",
+  "priority": 30,
+  "revision": 1,
+  "max_memory_mb": 1800,
+  "max_runs": 40
+}
