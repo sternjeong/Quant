@@ -68,17 +68,6 @@ def test_fixed_fractional_size_rejects_invalid_inputs():
 # ----------------------------------------------------------------------------
 
 
-def test_equal_weight_size_splits_evenly():
-    result = position_sizing.equal_weight_size(10000.0, 4)
-    assert result["position_value"] == pytest.approx(2500.0)
-    assert result["position_pct_of_account"] == pytest.approx(25.0)
-
-
-def test_equal_weight_size_rejects_invalid_n():
-    with pytest.raises(ValueError):
-        position_sizing.equal_weight_size(10000.0, 0)
-
-
 # ----------------------------------------------------------------------------
 # 방법 3: 켈리 기준
 # ----------------------------------------------------------------------------

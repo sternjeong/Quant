@@ -1,3 +1,14 @@
+## 2026-11-15 쓰지 않는 코드 정리(약 9,900줄 삭제) — 구현·관련 테스트 통과, 전체 테스트 뒤 main push
+
+- 사용자 요청: "본 서비스에 필요 없는 코드들 최적화 및 삭제". 화면·스케줄러 잡·스크립트·연구 잡·analysis/ 기록 어디서도 부르지 않고 테스트만 부르던 코드를 지웠다. 동작 변경 없음(서비스 경로 코드는 건드리지 않음).
+- 방법: vulture 로 후보를 찾고, 단어 검색 + import·속성 접근 기준 도달성(AST)으로 다시 확인한 뒤 삭제를 반복. analysis/ 의 옛 연구 스크립트가 쓰는 함수(run_buy_and_hold·calculate_metrics·_shuffle_daily_bars·position_sizing 세 함수 등)는 근거 재현을 위해 남김.
+- 삭제한 모듈: core/nl_strategy.py(자연어 전략 해석, 2026-11-10 전략 스튜디오 삭제 뒤 미사용), core/tuning_ledger.py(튜닝 과적합 점검), core/alpaca_price_provider.py(의도적 미연결 어댑터).
+- 크게 줄인 모듈: core/strategy_tuning.py(2,800→120줄, sample_universe·train_test_split_dates 만 남김), core/backtest_engine.py(단일 종목 지표 백테스트 run_backtest·민감도·순열·분해·팩터·몬테카를로·전략 상관·결과 저장 삭제; 자산곡선·지표·매수보유·적립식 계산은 유지), core/info_dedup.py(중복 묶기·비용 집계 삭제, 사건 ID·해시·populate_info_fields 유지). 그 밖에 market_regime.select_regime_for_trading, champion_performance.build_live_record, champion_strategy 의 옛 원장 요약·국면 참조, kostolany 테마 일괄 실행, expression_engine.validate_syntax, alpaca_market_meta.untradable 등.
+- 남긴 것(의도): 쉐도우 판정 함수(guidance_shadow.evaluate_guidance_comparisons·filing_veto_shadow.evaluate_filing_veto_shadow_arms·estimate_shadow.load_history — 표본이 차면 쓸 것), trade_ledger.run_cost_scenarios(후보 원장 비용 교차검증 테스트의 독립 기준), champion_strategy.PTP_EXCLUDED(사용자 결정 기록), core/models.py ORM 표(VM DB 에 표가 남아 있음), app_navigation.all_pages(화면 목록 테스트용).
+- 테스트: 지운 함수만 검사하던 테스트 삭제(약 2,000줄), 다른 기능도 보던 테스트는 해당 줄만 고침(champion_follow 화면 테스트, alpaca_market_meta). 관련 테스트 742개 통과, python -m hub.guide.check 깨끗함.
+- 설명서: tuning_ledger·nl_strategy·alpaca_price_provider 항목 삭제, strategy_tuning·backtest_engine·position_sizing·info_dedup·kostolany·expression_engine·gemini_client 문구를 남은 기능에 맞게 고치고 손댄 모듈 verified 2026-11-15.
+- 손대지 않은 것: analysis/(46MB, 옛 연구 기록 — champion_strategy 가 report_data.json 을 읽음), docs/ 의 옛 스펙 문서 속 함수 이름.
+- 다음: 전체 테스트(/opt/quant/.venv) 통과 확인 뒤 main push.
 ## 2026-11-15 2코어 VM 부하 줄이기 1단계: 배포 테스트를 GitHub Actions 로 — 구현·관련 테스트 통과, CI 첫 실행 확인 중(PR #2)
 
 - 사용자 요청: "2core 밖에 없는 나에게 과부하되지 않는 설계", "클로드 컴퓨팅 자원을 내 자원처럼 활용하는 설계". 설계 문서 docs/COMPUTE_OFFLOAD_DESIGN.md.

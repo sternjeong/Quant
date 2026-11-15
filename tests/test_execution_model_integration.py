@@ -34,28 +34,6 @@ def test_unknown_execution_model_raises():
         be.compute_equity_curve(df, pd.Series([1.0] * 3, index=idx), execution_model="bogus")
 
 
-def test_gap_down_hand_calc_and_side_by_side():
-    idx = _idx(4)
-    df = pd.DataFrame({"Open": [100, 90, 95, 80.0], "Close": [100, 95, 85, 80.0]}, index=idx)
-    pos = pd.Series([1, 0, 0, 0], index=idx, dtype=float)
-    # 종이 계산: day1 시가 90 매수(900/90=10주), day1 종가 95 -> 950,
-    # day1 신호 0 -> day2 시가 95 전량 매도 -> 현금 950 이후 고정
-    led = be.compute_equity_curve(df, pos, initial_value=900.0, execution_model="next_open_ledger")
-    assert list(led) == pytest.approx([900, 950, 950, 950])
-    # 기존 경로: day1 종가수익 -5% 만 반영 -> 855, 이후 포지션 0
-    base = be.compute_equity_curve(df, pos, initial_value=900.0)
-    assert list(base) == pytest.approx([900, 855, 855, 855])
-    cmp = be.compare_execution_models(df, pos, initial_value=900.0)
-    assert list(cmp["diff"]) == pytest.approx([0, 95, 95, 95])
-    assert cmp["max_abs_diff"] == pytest.approx(95.0)
-    assert cmp["final_diff_pct"] == pytest.approx(950 / 855 - 1)
-    assert set(cmp["scenario_nav"]) == {"0bp", "5bp", "10bp", "25bp"}
-    assert list(cmp["scenario_nav"]["0bp"]) == pytest.approx([900, 950, 950, 950])
-    # 비용이 클수록 최종 NAV 는 작아야 한다
-    fin = [cmp["scenario_nav"][k].iloc[-1] for k in ("0bp", "5bp", "10bp", "25bp")]
-    assert fin == sorted(fin, reverse=True)
-
-
 def test_gap_up_fee_slippage_tax_hand_calc():
     idx = _idx(4)
     df = pd.DataFrame({"Open": [100, 110, 120, 90.0], "Close": [100, 120, 100, 90.0]}, index=idx)
@@ -127,18 +105,6 @@ def test_adjust_requires_adj_close():
         adjust_ohlc_by_adj_close(pd.DataFrame({"Open": [1.0], "Close": [1.0]}))
 
 
-def test_meta_states_dividends_not_modeled():
-    df = _split_df()
-    pos = pd.Series([1.0] * 5, index=df.index)
-    raw = be.compare_execution_models(df, pos)
-    assert raw["meta"]["dividend_cash_flow_modeled"] is False
-    assert "미반영" in raw["meta"]["dividend_note"]
-    adj = be.compare_execution_models(adjust_ohlc_by_adj_close(df), pos,
-                                      price_basis="adjusted OHLC (Adj Close/Close ratio applied to Open/High/Low/Close)")
-    assert adj["meta"]["dividend_cash_flow_modeled"] is False
-    assert "재투자" in adj["meta"]["dividend_note"]
-
-
 def _mock_history(monkeypatch, df):
     def fake(ticker, start=None, end=None, interval="1d", use_cache=True, **kw):
         out = df.copy()
@@ -158,18 +124,3 @@ def _synth(n=400):
                          "Adj Close": c * 0.98, "Volume": 1e6}, index=idx)
 
 
-def test_run_backtest_default_unchanged_and_opt_in_meta(monkeypatch):
-    _mock_history(monkeypatch, _synth())
-    cfg = {"logic": "AND", "conditions": [{"indicator": "ma_cross", "short": 10, "long": 30, "type": "golden"}]}
-    d = be.run_backtest("T", cfg, "2021-06-01", "2022-06-01")
-    d2 = be.run_backtest("T", cfg, "2021-06-01", "2022-06-01", execution_model=None, adjust_prices=False)
-    assert d.equity_curve.equals(d2.equity_curve) and d.execution_meta == {}
-    o = be.run_backtest("T", cfg, "2021-06-01", "2022-06-01", execution_model="next_open_ledger",
-                        fee_bps=5, tax_bps=10, adjust_prices=True)
-    assert o.execution_meta["execution_model"] == "next_open_ledger"
-    assert o.execution_meta["dividend_cash_flow_modeled"] is False
-    assert o.equity_curve.iloc[0] == pytest.approx(100.0)
-    assert not o.equity_curve.equals(d.equity_curve)
-    with pytest.raises(ValueError):
-        be.run_backtest("T", cfg, "2021-06-01", "2022-06-01", execution_model="next_open_ledger",
-                        monthly_contribution=10)

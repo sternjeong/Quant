@@ -113,18 +113,6 @@ def test_get_series_retries_transient_failure_then_succeeds(monkeypatch):
     assert list(result) == [5.0, 5.25]
 
 
-def test_get_latest_value(monkeypatch):
-    monkeypatch.setattr(
-        fred_data, "get_series", lambda series_id, **kw: pd.Series([1.0, 2.0, 3.0])
-    )
-    assert fred_data.get_latest_value("UNRATE") == 3.0
-
-
-def test_get_latest_value_none_for_empty_series(monkeypatch):
-    monkeypatch.setattr(fred_data, "get_series", lambda series_id, **kw: pd.Series(dtype=float))
-    assert fred_data.get_latest_value("UNRATE") is None
-
-
 def test_get_indicator_snapshot_structure(monkeypatch):
     def _fake_get_series(series_id, **kw):
         if series_id == "FEDFUNDS":

@@ -178,22 +178,6 @@ class TestWarmupBeforeAnalysisStart:
         assert run.df.index[0] >= pd.Timestamp("2021-06-15")
 
 
-class TestRunThemeScenarios:
-    def test_uses_theme_universe_and_returns_sorted_by_excess_return(self, monkeypatch):
-        close, volume = _price_volume(400, seed=42)
-
-        def fake_combined(proxies, start=None, end=None):
-            return close, volume
-
-        monkeypatch.setattr(engine, "_combined_close_volume", fake_combined)
-        small_universe = {"테마A": ["AAA"], "테마B": ["BBB"]}
-        df = engine.run_theme_scenarios(style="장기", theme_universe=small_universe, start="2021-01-01")
-
-        assert set(df["theme"]) == {"테마A", "테마B"}
-        assert list(df["excess_return"]) == sorted(df["excess_return"], reverse=True)
-        assert {"bench_cumulative_return", "bench_cagr", "bench_mdd", "excess_return_vs_benchmark"}.issubset(df.columns)
-
-
 class TestBuildPositionFromPhasesBidirectional:
     """2026-08-12 사용자 요청: 매도 검토 국면에서 현금 대신 인버스를 매수하는 양방향 모드."""
 

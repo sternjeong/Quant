@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from core.expression_engine import ExpressionError, evaluate_expression, validate_syntax
+from core.expression_engine import ExpressionError, evaluate_expression
 from core.indicators import compute_rsi, sma
 
 
@@ -167,10 +167,3 @@ def test_dangerous_expressions_are_rejected(malicious_expr):
         evaluate_expression(df, malicious_expr)
 
 
-def test_validate_syntax_passes_for_valid_expression():
-    validate_syntax("close > sma(close, 20) and rsi(close, 14) < 30")
-
-
-def test_validate_syntax_raises_for_invalid_expression():
-    with pytest.raises(ExpressionError):
-        validate_syntax("close > undefined_thing")

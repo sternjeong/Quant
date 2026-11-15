@@ -325,6 +325,3 @@ def test_daily_message_includes_shares_for_fresh_start():
     assert "주 매수" in text and "화면:" in text.splitlines()[-1]
 
 
-def test_share_text_marks_less_than_one_share():
-    assert cr.share_text({"shares": 0, "price": 820.0, "delta_value": 500.0}) == "1주 미만(1주 $820 > $500)"
-    assert cr.share_text({"shares": 6, "price": 80.0, "delta_value": 500.0}) == "약 6주"

@@ -255,15 +255,6 @@ def _age_days(generated_at: str, now: datetime) -> Optional[float]:
     return (now - ts).total_seconds() / 86400
 
 
-def load_latest_verification(out_dir: Optional[Path | str] = None) -> Optional[dict]:
-    """가장 최근 결과 파일(깨진 파일은 건너뜀). 없으면 None."""
-    for path in _result_files(out_dir):
-        data = _read(path)
-        if data is not None:
-            return data
-    return None
-
-
 def find_recent_pass(out_dir: Optional[Path | str] = None, *, max_age_days: float = PASS_MAX_AGE_DAYS,
                      now: Optional[datetime] = None) -> Optional[dict]:
     """최근 max_age_days 안의 전체 PASS 결과(가장 최근 것). 없으면 None."""
@@ -276,37 +267,6 @@ def find_recent_pass(out_dir: Optional[Path | str] = None, *, max_age_days: floa
         if age is not None and age <= max_age_days:
             return data
     return None
-
-
-def summarize_latest_verification(out_dir: Optional[Path | str] = None, now: Optional[datetime] = None) -> dict:
-    """마지막 결과와 경과 일수, 전체 판정."""
-    now = now or _now()
-    latest = load_latest_verification(out_dir)
-    if latest is None:
-        return {"has_result": False, "generated_at": None, "age_days": None, "overall": None, "failing": [], "path": None}
-    failing = [line for c in (latest.get("checks") or {}).values() for line in c.get("failing", [])]
-    age = _age_days(latest.get("generated_at", ""), now)
-    return {"has_result": True, "generated_at": latest.get("generated_at"),
-            "age_days": None if age is None else round(age, 2), "overall": latest.get("overall"),
-            "failing": failing, "path": latest.get("path")}
-
-
-def verification_status_for_ui(out_dir: Optional[Path | str] = None, now: Optional[datetime] = None) -> dict:
-    """화면용 상태 dict: {label, level('ok'|'warn'|'error'|'unknown'), last_run_at, age_days, overall, stale, failing}.
-
-    ok = 7일 이내 PASS, warn = PASS 지만 7일 넘음 또는 UNEXPECTED, error = FAIL, unknown = 결과 없음.
-    UI 는 이 함수만 호출하면 된다(파일 읽기만 하며 네트워크·주문 없음)."""
-    s = summarize_latest_verification(out_dir, now)
-    if not s["has_result"]:
-        return {"label": "Alpaca paper 검증: 아직 실행 전(자동 실행 대기)", "level": "unknown", "last_run_at": None,
-                "age_days": None, "overall": None, "stale": True, "failing": []}
-    stale = s["age_days"] is None or s["age_days"] > PASS_MAX_AGE_DAYS
-    overall = s["overall"]
-    level = "error" if overall == "FAIL" else "ok" if overall == "PASS" and not stale else "warn"
-    age_text = "?" if s["age_days"] is None else f"{s['age_days']:.1f}일 전"
-    label = f"Alpaca paper 검증(읽기 전용): {overall} · {age_text}" + (" · 오래됨" if stale else "")
-    return {"label": label, "level": level, "last_run_at": s["generated_at"], "age_days": s["age_days"],
-            "overall": overall, "stale": stale, "failing": s["failing"][:5]}
 
 
 # --------------------------------------------------------------------------------------------

@@ -1521,22 +1521,6 @@ def compute_live_collar_state(
 # ----------------------------------------------------------------------------
 
 
-def load_market_regime_context() -> Optional[dict]:
-    """가장 최근 저장된 시장 국면 스냅샷을 참고 정보로 반환한다 (이 엔진의 배분 결정에는 영향을
-    주지 않는다 — 위 설명 참고). 저장된 스냅샷이 없으면 None.
-
-    Returns: core.market_regime.select_regime_for_trading()과 동일 형식
-        ({"trading_regime", "is_ambiguous", "total_score", "snapshot"}).
-    """
-    try:
-        from core.market_regime import select_regime_for_trading
-
-        result = select_regime_for_trading()
-        return result if result.get("snapshot") is not None else None
-    except Exception:
-        return None
-
-
 # ----------------------------------------------------------------------------
 # 리밸런싱 diff — 엔진 추천 vs 실제 보유 (2026-09-14 추가)
 #
@@ -2403,27 +2387,6 @@ def list_ledger_entries(limit: int = 400) -> list[dict]:
             }
             for row in rows
         ]
-
-
-def compute_ledger_performance_summary() -> dict:
-    """원장 누적 자산가치 곡선으로 실현 성과 지표(core.backtest_engine.calculate_metrics 재사용)를
-    계산한다. 항목이 하나도 없으면 {"available": False}."""
-    entries = list_ledger_entries()
-    if not entries:
-        return {"available": False, "entry_count": 0}
-
-    equity = pd.Series(
-        [e["cumulative_equity"] for e in entries],
-        index=pd.to_datetime([e["entry_date"] for e in entries]),
-    )
-    metrics = calculate_metrics(equity, [], equity.index[0], equity.index[-1])
-    return {
-        "available": True,
-        "entry_count": len(entries),
-        "start_date": entries[0]["entry_date"],
-        "end_date": entries[-1]["entry_date"],
-        "metrics": metrics,
-    }
 
 
 # ----------------------------------------------------------------------------

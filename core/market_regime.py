@@ -35,8 +35,6 @@ _CI_SNAPSHOT_PATH = Path(__file__).resolve().parent.parent / "data" / "market_re
 BULLISH_THRESHOLD = 35
 BEARISH_THRESHOLD = -35
 
-BREADTH_BULLISH_PCT = 70.0
-BREADTH_BEARISH_PCT = 30.0
 BEAR_MARKET_DRAWDOWN_PCT = -20.0  # 통상적인 "공식 약세장" 정의 기준
 
 # 국면별(약세장/강세장) 분리 트레이닝용 일별 이력 라벨링 (STRATEGY_TUNING_ENGINE_SPEC.md 13.3절).
@@ -708,62 +706,6 @@ def get_latest_market_regime_snapshot() -> Optional[dict]:
     if ci_detail is None:
         return db_detail
     return ci_detail if ci_detail["computed_at"] > db_detail["computed_at"] else db_detail
-
-
-def select_regime_for_trading(snapshot: Optional[dict] = None) -> dict:
-    """실전 매매(국면별로 미리 튜닝된 전략 2개 중 하나를 고르는 용도)에 쓸 국면을 "약세장"/"강세장"
-    둘 중 하나로 확정해서 돌려준다 (STRATEGY_TUNING_ENGINE_SPEC.md 13.9절, 2026-07-17 — 사용자가
-    "두 전략 중 하나를 택해 알고리즘 매매를 하려는 것"이라고 요청해 범위 확정).
-
-    get_market_regime_snapshot()의 "중립/혼조"는 트레이닝에서는(13.3절) 그냥 버려도 되지만, 실전
-    매매는 지금 당장 둘 중 하나를 골라야 하므로 억지로 무시할 수 없다 — 대신 total_score의 부호로
-    소프트하게 기울이되(다른 규칙을 쓸 근거가 없어 가장 단순한 규칙 채택), is_ambiguous=True로
-    표시해 호출부가 "이건 애매한 상태에서 나온 결정"이라는 걸 알 수 있게 한다.
-
-    snapshot을 안 주면 get_latest_market_regime_snapshot()으로 가장 최근 저장된 스냅샷을 쓴다
-    (market_snapshot_job이 매일 00:00 KST에 미리 계산해두는 것을 재사용 — 매번 무겁게 재계산하지
-    않음). 저장된 스냅샷이 하나도 없으면 판단 불가로 처리한다. 스냅샷이 unknown이면
-    trading_regime=None, 일부 신호 결측으로 재정규화된 판정(partial=True)이면 is_ambiguous=True다.
-
-    Returns:
-        {"trading_regime": "약세장"|"강세장"|None, "is_ambiguous": bool, "total_score": float|None,
-         "snapshot": dict|None, "reason": str(스냅샷이 없을 때만)}
-    """
-    if snapshot is None:
-        snapshot = get_latest_market_regime_snapshot()
-    if snapshot is None:
-        return {
-            "trading_regime": None,
-            "is_ambiguous": True,
-            "total_score": None,
-            "snapshot": None,
-            "reason": "저장된 시장 국면 스냅샷이 없습니다 (market_snapshot_job 실행 또는 매크로 대시보드 방문 필요).",
-        }
-
-    regime = snapshot["regime"]
-    total_score = snapshot["total_score"]
-    if regime not in ("강세장", "약세장", "중립/혼조"):  # "unknown" 등 -> 판단 불가 (ENG-02)
-        return {
-            "trading_regime": None,
-            "is_ambiguous": True,
-            "total_score": total_score,
-            "snapshot": snapshot,
-            "reason": "시장 국면 unknown: " + (snapshot.get("regime_reason") or "시장폭 데이터 없음 등"),
-        }
-    if regime == "중립/혼조":
-        trading_regime = "강세장" if total_score >= 0 else "약세장"
-        is_ambiguous = True
-    else:
-        trading_regime = regime
-        # 일부 신호 결측으로 재정규화된 판정이면 확정 판정으로 보지 않는다(2026-09-25).
-        is_ambiguous = bool(snapshot.get("partial"))
-
-    return {
-        "trading_regime": trading_regime,
-        "is_ambiguous": is_ambiguous,
-        "total_score": total_score,
-        "snapshot": snapshot,
-    }
 
 
 def to_kst(computed_at: datetime) -> datetime:

@@ -1221,9 +1221,6 @@ def daily_todo_message(rec: dict, *, previous: Optional[dict] = None, today: Opt
     return "\n".join(lines)
 
 
-# ---------------------------------------------------------------- 주문 목록에 '현재가·몇 주' (2026-10-05 사용자 요청)
-ORDER_METHOD_NOTE = ("주문 방식: 리밸런싱 날 장 마감 무렵 시장가 — 지정가·목표가는 쓰지 않습니다"
-                     "(매매 실행 R&D 에서 지정가·눌림목·분할·익절 모두 손해). 주식 수는 현재가 기준 근사(소수점 버림).")
 DAILY_DEFAULT_CAPITAL = 10_000.0
 
 
@@ -1272,15 +1269,6 @@ def order_rows_with_shares(rows: list[dict], prices: dict[str, float],
                 shares = min(shares, int(q))
         out.append({**r, "price": px, "shares": shares})
     return out
-
-
-def share_text(r: dict) -> str:
-    """'약 N주' — 금액이 1주 값보다 작으면 그렇게 적는다(소액이면 새틀라이트 고가주는 1주도 못 살 수 있다)."""
-    if r.get("shares") is None:
-        return "주식 수 계산 불가"
-    if r["shares"] == 0 and r.get("price"):
-        return f"1주 미만(1주 ${r['price']:,.0f} > ${abs(r['delta_value']):,.0f})"
-    return f"약 {r['shares']}주"
 
 
 def whole_share_orders(rows: list[dict], cash: float = 0.0) -> dict:

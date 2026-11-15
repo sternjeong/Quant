@@ -40,12 +40,6 @@ def _ok(summary="ok"):
     return lambda: {"verdict": "PASS", "summary": summary, "failing": [], "detail": None}
 
 
-def _checks(**overrides):
-    base = {name: _ok() for name in av.DEFAULT_CHECKS}
-    base.update(overrides)
-    return base
-
-
 def _write_result(directory, when, overall="PASS", failing=None):
     directory.mkdir(parents=True, exist_ok=True)
     data = {"status": "completed", "overall": overall, "generated_at": when.isoformat(timespec="seconds"),
@@ -62,15 +56,6 @@ def test_no_credentials_returns_status_without_exception_or_checks_or_file(no_cr
     assert result["status"] == "no_credentials" and result["overall"] is None
     assert result["checks"] == {} and result["write_phase_executed"] is False
     assert list(tmp_path.iterdir()) == []
-
-
-def test_all_pass_is_saved_with_timestamped_name_and_loadable(creds, tmp_path):
-    result = av.run_alpaca_verification(tmp_path, checks=_checks(), now=NOW)
-    assert result["status"] == "completed" and result["overall"] == "PASS"
-    assert [p.name for p in tmp_path.iterdir()] == ["alpaca_20260924_0105.json"]
-    loaded = av.load_latest_verification(tmp_path)
-    assert loaded["overall"] == "PASS" and set(loaded["checks"]) == set(av.DEFAULT_CHECKS)
-    assert loaded["write_phase_executed"] is False and "읽기 전용" in loaded["verified_scope"]
 
 
 def test_default_check_set_is_the_five_read_only_checks():
@@ -193,12 +178,6 @@ def test_account_schema_mapping(monkeypatch):
 
 # ---- load / recent pass / summary ----------------------------------------------------------------------
 
-def test_load_latest_none_when_missing_and_skips_corrupt_file(tmp_path):
-    assert av.load_latest_verification(tmp_path / "nope") is None
-    _write_result(tmp_path, NOW - timedelta(days=1))
-    (tmp_path / "alpaca_20260924_0000.json").write_text("{not json", encoding="utf-8")   # newest name, corrupt
-    assert av.load_latest_verification(tmp_path)["generated_at"].startswith("2026-09-23")
-
 
 def test_find_recent_pass_uses_seven_day_window(tmp_path):
     _write_result(tmp_path, NOW - timedelta(days=6, hours=23))
@@ -215,25 +194,6 @@ def test_newer_failure_does_not_hide_a_recent_pass_and_failure_alone_is_not_a_pa
     only_fail = tmp_path / "f"
     _write_result(only_fail, NOW - timedelta(days=1), "UNEXPECTED")
     assert av.find_recent_pass(only_fail, now=NOW) is None
-
-
-def test_summary_reports_age_and_overall(tmp_path):
-    assert av.summarize_latest_verification(tmp_path, now=NOW)["has_result"] is False
-    _write_result(tmp_path, NOW - timedelta(days=2), "FAIL", ["corp: ex_date missing"])
-    s = av.summarize_latest_verification(tmp_path, now=NOW)
-    assert s["has_result"] and s["age_days"] == 2.0 and s["overall"] == "FAIL" and s["failing"] == ["corp: ex_date missing"]
-
-
-def test_ui_status_levels(tmp_path):
-    assert av.verification_status_for_ui(tmp_path, now=NOW)["level"] == "unknown"
-    _write_result(tmp_path, NOW - timedelta(days=1), "PASS")
-    ui = av.verification_status_for_ui(tmp_path, now=NOW)
-    assert ui["level"] == "ok" and not ui["stale"] and "PASS" in ui["label"]
-    assert av.verification_status_for_ui(tmp_path, now=NOW + timedelta(days=10))["level"] == "warn"
-    for overall, level in (("FAIL", "error"), ("UNEXPECTED", "warn")):
-        d = tmp_path / overall
-        _write_result(d, NOW - timedelta(days=1), overall)
-        assert av.verification_status_for_ui(d, now=NOW)["level"] == level
 
 
 # ---- bootstrap -----------------------------------------------------------------------------------------

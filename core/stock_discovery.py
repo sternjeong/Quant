@@ -76,15 +76,6 @@ PIT_META = {
 }
 
 
-def _percentile_score(series: pd.Series) -> pd.Series:
-    """0~100 percentile 점수(값이 클수록 좋음). 결측은 최하위(0점) — 호출부에서 결측 플래그를 별도로 낸다."""
-    s = pd.to_numeric(series, errors="coerce")
-    if s.notna().sum() == 0:
-        return pd.Series(0.0, index=series.index)
-    ranked = s.rank(pct=True, na_option="top") * 100
-    return ranked.fillna(0.0)
-
-
 def _sector_percentile(
     values: pd.Series, sectors: pd.Series, min_valid: int = MIN_SECTOR_VALID
 ) -> tuple[pd.Series, pd.Series]:

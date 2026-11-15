@@ -106,14 +106,6 @@ def get_series(
         return pd.Series(dtype=float, name=series_id)
 
 
-def get_latest_value(series_id: str) -> Optional[float]:
-    """시계열의 가장 최근 값을 반환한다. 데이터가 없으면 None."""
-    series = get_series(series_id).dropna()
-    if series.empty:
-        return None
-    return float(series.iloc[-1])
-
-
 def get_indicator_snapshot(indicators: Optional[dict[str, dict[str, str]]] = None) -> list[dict]:
     """대시보드 카드용으로 기본 지표들의 최신값 + 전체 시계열을 모아 반환한다."""
     indicators = indicators or DEFAULT_INDICATORS

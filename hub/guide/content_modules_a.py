@@ -117,7 +117,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         how_to_use="자동 주문 실행기(paper_auto_trade)가 제출 직전에 이 점검을 씁니다. 직접 쓸 일은 없고, 응답 형식이 가정과 맞는지는 scripts/verify_alpaca_meta_news.py로 VM에서 확인합니다.",
         where_to_see="화면 없음(자동 주문 실행기의 텔레그램 결과에 반영)",
         cautions="Alpaca 응답 형식은 문서를 보고 가정한 것이며 실제 API로 아직 검증하지 않았습니다. 이 점검은 알림용이고 주문을 스스로 막지는 않습니다.",
-        verified="2026-09-25",
+        verified="2026-11-15",
     ),
     ModuleGuide(
         module="core/alpaca_news.py", name="Alpaca 뉴스 수집(당시 기준)", group="데이터", status="실험",
@@ -144,22 +144,6 @@ MODULES: tuple[ModuleGuide, ...] = (
         verified=V,
     ),
     ModuleGuide(
-        module='core/alpaca_price_provider.py',
-        name='Alpaca 가격 교차검증 공급자',
-        group='데이터',
-        status='실험',
-        what=
-            '후보 원장의 사후 성과를 채울 때 쓸 가격을 Alpaca 일봉으로 받되, 기존 yfinance 데이터와 대조해 깨끗할 때만 Alpaca 값을 쓰고 아니면 기존 데이터로 되돌리는 어댑터입니다.',
-        how_to_use=
-            '직접 쓸 일은 없습니다. 의도적으로 연결하지 않은 상태라 사용자에게 보이는 결과도 없습니다.',
-        where_to_see=
-            '화면 없음',
-        cautions=
-            "의도적으로 미연결입니다(2026-09-25 결정). 후보 원장의 진입가(시가)가 실행할 때마다 yfinance 또는 Alpaca(IEX) 중 어느 쪽에서 오느냐에 따라 달라지면 같은 원장 안에서 가격 기준이 섞이는데, 이 어댑터는 종가만 대조하고 시가 차이는 검사하지 않습니다. 그래서 먼저 데이터 무결성 점검의 가격 교차 대조(매일 00:22)로 두 소스의 차이를 관측하고, 그 기록을 본 뒤에 연결 여부를 정합니다. 지금 후보 원장 성과 채움 잡은 기본(yfinance) 가격 공급자를 씁니다.",
-        sources=('core/price_crosscheck.py', 'core/data_integrity.py'),
-        verified=V,
-    ),
-    ModuleGuide(
         module='core/alpaca_verification.py',
         name='Alpaca 검증 자동 실행기',
         group='운영·안전',
@@ -173,7 +157,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         cautions=
             '주문을 내지 않고 키 값은 저장하지 않습니다. Alpaca 키가 없으면 건너뜁니다. 검증이 PASS 여도 전략 성과를 보장하지 않고 연동이 가정대로라는 뜻일 뿐입니다.',
         sources=('scheduler/run_scheduler.py',),
-        verified=V,
+        verified="2026-11-15",
     ),
     ModuleGuide(
         module='core/backtest_engine.py',
@@ -181,7 +165,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         group='분석·백테스트',
         status='도구',
         what=
-            '전략의 매매 신호(보유/미보유)를 받아 자산 곡선과 수익률, 최대낙폭(MDD), 샤프, 승률, 매매 횟수 등을 계산하고 S&P500·개별 종목 매수보유와 비교합니다. 수수료·슬리피지 가정도 넣을 수 있습니다.',
+            '보유 비중 시계열을 받아 자산 곡선과 수익률, 최대낙폭(MDD), 샤프, 승률, 매매 횟수 등을 계산하고, 매수보유와 적립식(DCA) 자산 곡선도 만듭니다. 수수료·슬리피지 가정도 넣을 수 있습니다. 지표 전략 하나를 종목 하나에 돌려 보던 단일 백테스트와 그 위의 민감도·순열·팩터·몬테카를로 도구는 쓰는 화면이 없어 2026-11-15 지웠습니다.',
         how_to_use=
             '챔피언 전략·시장 진단 화면의 백테스트 부분에서 자동으로 쓰입니다. 직접 부를 일은 없고 화면에서 결과 그래프와 지표를 봅니다.',
         where_to_see=
@@ -189,7 +173,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         cautions=
             '과거 데이터로 계산한 결과이며 미래 성과를 보장하지 않습니다. 비용 가정을 바꾸면 결과가 크게 달라질 수 있습니다.',
         sources=('app/views/11_챔피언_전략.py', 'app/views/7_시장_진단.py'),
-        verified="2026-11-10",
+        verified="2026-11-15",
     ),
     ModuleGuide(
         module='core/backup_status.py',
@@ -240,7 +224,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         cautions=
             '관측 전용이라 주문과 무관하고 성과는 미검증입니다. 화면을 열 때마다 기록하지 않고 스케줄 잡에서만 기록하도록 설계돼 있습니다. 위성 후보는 2026-09-25부터 채택 종목만이 아니라 그 반기 풀 표본 전체를 기록합니다: 채택=selected, 돌파는 켜졌지만 상위 3위 밖=held, 돌파 없음=rejected, 가격 이력 부족=missing_data. 결정은 위성 전략 결과를 그대로 옮길 뿐 다시 계산하지 않습니다.',
         sources=('scheduler/run_scheduler.py', 'docs/CANDIDATE_LEDGER_SPEC.md', 'core/candidate_recorder.py'),
-        verified='2026-09-26',
+        verified="2026-11-15",
     ),
     ModuleGuide(
         module='core/champion_strategy.py',
@@ -256,7 +240,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         cautions=
             '이 모듈은 계산만 하며 주문은 별도 스크립트(scripts/champion_paper_trade.py)가 담당합니다. 확신도가 낮은 구성요소도 숨기지 않고 표시합니다. 과거 백테스트 기반이라 미래 수익을 보장하지 않습니다. 2026-09-25부터 반기 위성 결과에 관측 전용 필드(candidates=돌파가 켜진 후보 전체와 모멘텀 순위, rejected_tickers=돌파 없음, missing_tickers=이력 부족)가 더 붙습니다. 이 필드는 후보 원장·shadow 실험 기록에만 쓰이고, 고르는 종목·비중·주문은 전과 똑같습니다(변경 전 코드와 대조하는 테스트로 확인). 2026-10-02 사용자 결정으로 코어에서 남는 몫(시장필터 축소분·빈 슬롯)은 수익 0 현금 대신 단기국채 ETF(BIL)에 담습니다(paper 주문도 BIL 을 삽니다). 고르는 종목(순위·절대모멘텀·SPY 200일선)은 예전처럼 가격 기준이고, 백테스트 수익만 배당·분배금 포함 총수익(Adj Close)으로 잽니다. 이 변경은 코어 R&D v2 의 C01 로, G2~G5 는 통과했지만 효과가 작아 G1 은 넘지 못했습니다(2008년~ 총수익 기준 CAGR 9.36%→9.52%, 최대낙폭 −19.7%→−19.8%). 같은 날 순위를 총수익 기준으로도 바꿨다가 18년 전체 성과가 나빠(CAGR 9.12%, 최대낙폭 −21.7%) 되돌렸습니다. 새틀라이트는 가격(Close) 기준입니다. 전략 버전이 바뀌어 예전 재추천 결과는 다시 계산해야 합니다. 10월 1일 추종 성과에 한해 확인된 현금 인수 뒤 가상 현금의 나중 매도 수수료를 면제하며, 일반 백테스트 비용 규칙은 그대로입니다.',
         sources=('app/views/11_챔피언_전략.py', 'scheduler/run_scheduler.py', 'core/champion_strategy.py'),
-        verified='2026-10-27',
+        verified="2026-11-15",
     ),
     ModuleGuide(
         module="core/champion_tracking.py", name="챔피언 주간 추적 판정", group="운용", status="관측 전용",
@@ -323,12 +307,12 @@ MODULES: tuple[ModuleGuide, ...] = (
     ),
     ModuleGuide(
         module="core/champion_performance.py", name="챔피언 성과 해부", group="운용", status="운영중",
-        what="챔피언 백테스트가 만든 코어·새틀라이트 비중 시계열을 그대로 풀어 거래(보유 구간) 목록·비중 조정 기록·달러 자산곡선·연도별 수익·종목별 손익 기여를 만들고, 같은 구간 SPY·60/40과 비교합니다. 새 전략 판단은 하지 않으며 거래 손익 합이 기존 백테스트 자산곡선과 맞는지 스스로 검산합니다. 구형 원장 계산 함수는 보존하지만 성과 화면 B는 champion_follow의 현 규칙 재구성 결과를 사용합니다.",
+        what="챔피언 백테스트가 만든 코어·새틀라이트 비중 시계열을 그대로 풀어 거래(보유 구간) 목록·비중 조정 기록·달러 자산곡선·연도별 수익·종목별 손익 기여를 만들고, 같은 구간 SPY·60/40과 비교합니다. 새 전략 판단은 하지 않으며 거래 손익 합이 기존 백테스트 자산곡선과 맞는지 스스로 검산합니다. 성과 화면 B는 champion_follow의 현 규칙 재구성 결과를 사용합니다.",
         how_to_use="챔피언 성과 화면에서 씁니다. 저장된 결과가 없으면 화면의 '📊 계산 시작' 버튼으로 백그라운드 계산을 시작합니다. 결과를 초기 금액 대비 배수로 저장해 두고 화면에서 곱하므로 초기 금액을 바꿔도 다시 계산하지 않습니다.",
         where_to_see="챔피언 성과 화면. 계산 결과는 data/cache/champion_performance_<해시>.json",
         cautions="백테스트 부분은 과거 가격에 규칙을 적용한 가상 결과이고 비용은 편도 고정 bp만, 새틀라이트 후보는 현재 S&P500 명단 기반이라 생존편향이 있습니다. 10월 1일 추종 성과의 WBD 현금 인수에는 이후 가상 현금의 매도 수수료를 붙이지 않습니다. 실시간 부분은 실제 주문 기록이 아닙니다. 주문 경로를 import 하지 않습니다. 캐시 키에는 기간·새틀라이트 비중·전략 버전·비용 가정이 들어가며, 전략 버전이 바뀌면 옛 결과는 쓰지 않습니다.",
         sources=("core/champion_strategy.py", "app/views/14_챔피언_성과.py"),
-        verified="2026-10-27",
+        verified="2026-11-15",
     ),
     ModuleGuide(
         module="core/champion_recommendation.py", name="챔피언 지금 기준 재추천", group="운용", status="운영중",
@@ -365,7 +349,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         ),
         sources=("core/champion_strategy.py", "core/champion_tracking.py", "core/champion_performance.py",
                  "app/views/11_챔피언_전략.py"),
-        verified="2026-10-27",
+        verified="2026-11-15",
     ),
     ModuleGuide(
         module="core/core_lab.py", name="코어 R&D 엔진", group="리서치 인프라", status="실험",
@@ -592,13 +576,13 @@ MODULES: tuple[ModuleGuide, ...] = (
         what=
             "'close > sma(close, 20) and rsi(close, 14) < 30' 처럼 사용자가 직접 쓴 조건식을 안전하게 해석해 매수 조건으로 씁니다. 허용된 함수와 변수만 계산하도록 막아 임의 코드가 실행되지 않게 합니다.",
         how_to_use=
-            '저장된 직접 수식형 전략을 전략 엔진이 평가할 때(관심종목 매일 스캔 등)와 전략 튜닝 엔진이 수식을 검사할 때 내부에서 씁니다. 수식을 새로 입력하던 전략 스튜디오 화면은 2026-11-10 삭제돼 지금은 화면에서 직접 쓰는 곳이 없습니다.',
+            '저장된 직접 수식형 전략을 전략 엔진이 평가할 때(관심종목 매일 스캔 등) 내부에서 씁니다. 수식을 새로 입력하던 전략 스튜디오 화면은 2026-11-10 삭제돼 지금은 화면에서 직접 쓰는 곳이 없습니다.',
         where_to_see=
             '화면 없음(운용 알림 화면의 스캔 결과에 반영)',
         cautions=
             '조건이 맞아 보여도 성과가 좋다는 뜻은 아닙니다. 허용되지 않은 함수는 쓸 수 없습니다.',
-        sources=('core/strategy_engine.py', 'core/strategy_tuning.py'),
-        verified="2026-11-10",
+        sources=('core/strategy_engine.py',),
+        verified="2026-11-15",
     ),
     ModuleGuide(
         module='core/filing_changes.py',
@@ -630,7 +614,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         cautions=
             "veto 가 hold 로 나와도 실제 주문은 바뀌지 않습니다. 스펙 미동결·성과 미검증이며, 종목별 SEC 조회에 실패하면 그 종목은 '통과'로 처리합니다. SEC 조회 상한: 하루 최대 20종목, 요청 약 150회, 5분(종목 사이에서 확인). 넘치면 채택 종목 먼저, 그다음 모멘텀 순위 순으로 조회하고 나머지는 '조회 안 함(missing_data)'으로 남습니다. 풀을 넓혀 관측 종목은 약 3개에서 최대 20개로 늘었지만, 가정값으로 추정하면 최소 표본(보류 100건)까지 여전히 10년 이상 걸릴 수 있어 가까운 시일에 결론이 나지 않습니다(스펙 문서 §9).",
         sources=('scheduler/run_scheduler.py', 'docs/FILING_CHANGE_VETO_SPEC.md', 'core/filing_veto_shadow.py'),
-        verified='2026-09-26',
+        verified="2026-11-15",
     ),
     ModuleGuide(
         module='core/fred_data.py',
@@ -646,7 +630,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         cautions=
             'FRED_API_KEY 가 없으면 화면에 지표가 비어 있을 수 있습니다. 발표 지연이나 나중 수정된 값이 그대로 반영될 수 있어 발표 당시 값(PIT)이 아닙니다.',
         sources=('app/views/7_시장_진단.py', 'scheduler/run_scheduler.py'),
-        verified="2026-11-10",
+        verified="2026-11-15",
     ),
     ModuleGuide(
         module='core/gemini_client.py',
@@ -656,12 +640,12 @@ MODULES: tuple[ModuleGuide, ...] = (
         what=
             'AI(Gemini) 호출을 한곳에서 처리합니다. 한 키의 무료 한도가 다 되면 다음 키, 그다음 모델로 자동으로 넘어가고, 그 밖의 실패는 호출한 쪽의 기본 대체 로직으로 넘깁니다.',
         how_to_use=
-            '자연어 전략 입력, Threads 요약, 포트폴리오 설명 등 AI 기능이 있는 화면에서 자동으로 쓰입니다. AI 답이 안 나오면 키 한도 소진일 수 있으니 환경설정에서 키를 확인하세요.',
+            'Threads 요약, 포트폴리오 설명 등 AI 기능이 있는 화면에서 자동으로 쓰입니다. AI 답이 안 나오면 키 한도 소진일 수 있으니 환경설정에서 키를 확인하세요.',
         where_to_see=
             '화면 없음(AI 기능이 있는 각 화면)',
         cautions=
             '무료 한도가 있어 하루 사용량이 많으면 실패하거나 기본 대체 결과가 나올 수 있습니다. 키 값은 기록·표시하지 않습니다.',
-        sources=('core/nl_strategy.py', 'core/threads_summary.py'),
+        sources=('core/threads_summary.py', 'core/portfolio.py'),
         verified=V,
     ),
     ModuleGuide(
@@ -678,7 +662,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         cautions=
             "안전장치: 한 번에 최대 20종목, SEC 요청 약 300회·5분 상한(종목과 종목 사이에서 확인), 같은 날 다시 돌면 하루 캐시 재사용, SEC 가 403 으로 막으면 즉시 멈추고 잡은 실패로 죽지 않습니다. User-Agent 는 VM .env 의 SEC_EDGAR_USER_AGENT 이름으로 읽으며 값은 기록하지 않습니다. 이 이름이 없으면 SEC 가 막을 수 있습니다. 방향 판정은 연간 가이던스의 같은 회계연도 재발표끼리만 나오고 분기 가이던스는 항상 '판단 불가(unknown)'입니다. 요약에 그 수와 사유가 따로 나옵니다. 같은 회계연도의 직전 값은 보통 바로 앞 분기 발표에 있어 과거 조회 범위(400일, 종목당 발표 6건)는 그대로 두었습니다. 최악의 경우 종목당 요청 13회 × 20종목 = 260회로 상한 안입니다. 2026-09-25 비교 정책 변경 때 캐시 형식을 올려, 예전 방식으로 만든 같은 날 캐시는 다시 쓰지 않습니다. 성과 미검증입니다.",
         sources=('core/guidance_shadow.py', 'scheduler/run_scheduler.py', 'core/earnings_events.py'),
-        verified="2026-09-25",
+        verified="2026-11-15",
     ),
     ModuleGuide(
         module='core/guidance_shadow.py',
@@ -750,7 +734,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         group='리서치 인프라',
         status='실험',
         what=
-            '같은 내용의 기사·공시를 여러 개의 독립 근거로 세지 않도록 원문 해시로 중복을 제거하고, 정보 수집 비용과 추출 품질을 집계하는 유틸입니다.',
+            '같은 내용의 기사·공시를 여러 개의 독립 근거로 세지 않도록 원문 해시와 사건 ID(event_id)를 만들어 근거 행에 채우는 유틸입니다.',
         how_to_use=
             '직접 쓸 일은 없습니다. 2026-09-25부터 가이던스 shadow(00:30)와 공시 veto shadow(00:32) 야간 기록이 이 도구로 후보 행마다 근거 공시의 사건 ID(event_id, 공시 접수번호 기준)와 원문 해시를 채웁니다. 같은 8-K·10-K 가 여러 날·여러 후보 행에 반복돼도 같은 ID 라서 나중에 분석할 때 한 건의 근거로 묶을 수 있습니다.',
         where_to_see=
@@ -758,7 +742,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         cautions=
             '지금은 ID 와 해시를 기록만 합니다. 후보 원장의 판정 계산이 이 ID 로 중복을 자동으로 걸러 주지는 않습니다(그 계산 모듈은 바꾸지 않았음). 근거 공시가 없는 후보 행은 비워 두고 ID 를 지어내지 않습니다. 비용 집계·추출 품질 집계 함수는 아직 호출하는 곳이 없습니다.',
         sources=('docs/INFORMATION_DECISION_ENGINE_RESEARCH.md', 'core/guidance_shadow.py', 'core/filing_veto_shadow.py'),
-        verified=V,
+        verified="2026-11-15",
     ),
     ModuleGuide(
         module='core/job_health.py',
@@ -790,7 +774,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         cautions=
             '서버(앱)를 재시작하면 실행 중이던 작업은 사라집니다. 1인 사용 전제의 단순한 구조입니다.',
         sources=('app/views/11_챔피언_전략.py',),
-        verified=V,
+        verified="2026-11-15",
     ),
     ModuleGuide(
         module='core/kostolany_cycle.py',
@@ -814,7 +798,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         group='분석·백테스트',
         status='도구',
         what=
-            '과거 내내 코스톨라니 국면 신호(매수 관심이면 진입, 매도 검토면 청산 또는 인버스)를 따랐다면 어떤 결과였을지 백테스트합니다. 지수, 종목, 테마 단위로 돌릴 수 있습니다.',
+            '과거 내내 코스톨라니 국면 신호(매수 관심이면 진입, 매도 검토면 청산 또는 인버스)를 따랐다면 어떤 결과였을지 백테스트합니다. 지수와 종목 단위로 돌릴 수 있습니다.',
         how_to_use=
             '시장 진단 화면에서 시나리오를 실행해 과거 수익 곡선과 매매 시점을 봅니다.',
         where_to_see=
@@ -822,7 +806,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         cautions=
             '과거 백테스트이며 성과를 보장하지 않습니다. 국면 근사 자체의 한계도 그대로 이어받습니다.',
         sources=('app/views/7_시장_진단.py',),
-        verified="2026-11-10",
+        verified="2026-11-15",
     ),
 )
 

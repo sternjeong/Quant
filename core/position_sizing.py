@@ -6,15 +6,14 @@ core.backtest_engine/core.strategy_engine이 "언제 사고 팔지"(엔트리/�
 계산 함수만 제공하고(DB/시세 조회 없음), 호출부(Streamlit 페이지, core.portfolio)가 백테스트 결과의
 거래 이력이나 실시간 시세와 조합해서 쓴다.
 
-네 가지 방법(난이도/정교함 순):
+세 가지 방법(난이도/정교함 순):
     1. fixed_fractional_size — 고정 % 리스크: 손절가까지의 거리로 살 수량을 역산
-    2. equal_weight_size — 동일가중: 계좌를 포지션 개수로 균등 분배
-    3. kelly_fraction — 켈리 기준: 과거 승률/평균손익으로 이론상 최적 비중을 구하되, 풀 켈리는
+    2. kelly_fraction — 켈리 기준: 과거 승률/평균손익으로 이론상 최적 비중을 구하되, 풀 켈리는
        과도하게 공격적이라 위험하므로 하프켈리(기본 50%) 상한을 함께 제시
-    4. volatility_target_weight / portfolio_volatility_target_weights — 변동성 타겟팅: 변동성이
+    3. volatility_target_weight / portfolio_volatility_target_weights — 변동성 타겟팅: 변동성이
        클수록 비중을 줄여 종목/전략 간 리스크를 맞춤 (개별용/포트폴리오 레벨용 두 함수)
 
-포지션 크기를 정하는 것만큼, 계좌 대비 리스크를 과도하게 태우지 않는 것이 중요하다는 게 이 네
+포지션 크기를 정하는 것만큼, 계좌 대비 리스크를 과도하게 태우지 않는 것이 중요하다는 게 이 세
 방법의 공통 전제다 — 특히 켈리 기준은 이론상 최적이어도 실전에서는 그대로 쓰면 위험하다는 경고를
 함께 반환한다.
 """
@@ -79,23 +78,6 @@ def fixed_fractional_size(account_value: float, risk_pct: float, entry_price: fl
         "shares": round(shares, 4),
         "position_value": round(position_value, 2),
         "position_pct_of_account": round(position_value / account_value * 100.0, 2),
-    }
-
-
-def equal_weight_size(account_value: float, n_positions: int) -> dict:
-    """방법 2: 동일가중. n_positions개 포지션에 계좌를 균등 분배한다.
-
-    Returns: {"position_value", "position_pct_of_account"}
-    """
-    if account_value <= 0:
-        raise ValueError("account_value는 0보다 커야 합니다.")
-    if n_positions <= 0:
-        raise ValueError("n_positions는 1 이상이어야 합니다.")
-
-    position_value = account_value / n_positions
-    return {
-        "position_value": round(position_value, 2),
-        "position_pct_of_account": round(100.0 / n_positions, 2),
     }
 
 

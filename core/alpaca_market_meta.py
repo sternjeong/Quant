@@ -55,11 +55,6 @@ def check_tradability(symbols: Iterable[str], *, get_json: Optional[GetJson] = N
     return out
 
 
-def untradable(report: dict[str, dict[str, Any]]) -> list[str]:
-    """거래 가능이 '확인되지 않은' 종목. 조회 실패는 안전하게 여기 포함하지 않고 별도로 본다."""
-    return sorted(s for s, r in report.items() if r["verdict"] in (NOT_TRADABLE, INACTIVE, NOT_FOUND))
-
-
 def _normalize_calendar_row(raw: dict) -> dict[str, Any]:
     open_t, close_t = raw.get("open"), raw.get("close")
     return {

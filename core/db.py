@@ -161,11 +161,6 @@ def _add_missing_columns() -> None:
             conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {col_name} {col_type}"))
 
 
-def get_engine():
-    """공용 SQLAlchemy Engine 인스턴스를 반환한다."""
-    return engine
-
-
 @contextmanager
 def get_session() -> Iterator[Session]:
     """with 문으로 사용하는 세션 컨텍스트 매니저.

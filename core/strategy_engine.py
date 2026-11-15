@@ -478,36 +478,6 @@ INDICATOR_EVALUATORS: dict[str, Callable[[pd.DataFrame, Condition], pd.Series]] 
 }
 
 
-# 지표 이름 -> 유형(추세/모멘텀/변동성/거래량/캔들패턴/반전패턴) 분류표. "100개 지표를 테스트해보니
-# 전략 유형에 맞는 지표를 섞어 써야 한다"는 원칙(2026-07-27 영상 인사이트)을 UI에서 바로 확인할 수
-# 있게 하기 위함 — 앙상블 스코어링 지표 선택기에서 카테고리별로 묶어 보여주고, 지표 토글 화면에서는
-# 현재 조합의 카테고리 구성을 캡션으로 보여준다. 새 지표 추가 시 INDICATOR_EVALUATORS와 함께 등록.
-INDICATOR_CATEGORIES: dict[str, str] = {
-    "ma_cross": "추세", "ma_touch": "추세", "level_break": "추세",
-    "ichimoku_tk_state": "추세", "ichimoku_tk_cross": "추세",
-    "ichimoku_cloud_break": "추세", "ichimoku_cloud_state": "추세", "ichimoku_chikou_state": "추세",
-    "rsi": "모멘텀", "rsi_cross": "모멘텀", "macd_cross": "모멘텀", "macd_level": "모멘텀", "mfi": "모멘텀",
-    "bollinger": "변동성", "bbw_squeeze_release": "변동성", "percent_b": "변동성",
-    "volume_spike": "거래량", "volume_dryup": "거래량",
-    "engulfing": "캔들패턴", "marubozu": "캔들패턴", "pin_bar": "캔들패턴", "doji": "캔들패턴",
-    "inside_bar": "캔들패턴", "inside_bar_breakout": "캔들패턴", "piercing_dark_cloud": "캔들패턴",
-    "star_pattern": "캔들패턴", "three_soldiers_crows": "캔들패턴", "three_methods": "캔들패턴",
-    "double_pattern": "반전패턴", "rsi_divergence": "반전패턴",
-}
-
-
-def categorize_indicators(conditions: list[Condition]) -> dict[str, int]:
-    """조건 목록의 지표들을 카테고리별 개수로 집계한다 (UI 캡션/앙상블 지표 그룹핑에 사용).
-
-    등록되지 않은 지표(알 수 없는 이름)는 "기타"로 묶는다.
-    """
-    counts: dict[str, int] = {}
-    for cond in conditions:
-        category = INDICATOR_CATEGORIES.get(cond.get("indicator"), "기타")
-        counts[category] = counts.get(category, 0) + 1
-    return counts
-
-
 def evaluate_condition(df: pd.DataFrame, condition: Condition) -> pd.Series:
     """조건 하나를 df 전체 구간에 대해 평가해 불리언 Series를 반환한다."""
     indicator = condition.get("indicator")
@@ -850,13 +820,6 @@ SCORE_EVALUATORS: dict[str, Callable[[pd.DataFrame, Condition], pd.Series]] = {
     "roc": _score_roc,
 }
 
-# 카테고리별로 사람이 읽기 좋은 이름과 함께 묶어, 앙상블 지표 선택 UI가 "추세/모멘텀/변동성" 순으로
-# 그룹핑해 보여줄 수 있게 한다 (core.strategy_engine.INDICATOR_CATEGORIES 재사용).
-SCORE_INDICATOR_CATEGORIES: dict[str, str] = {
-    "rsi": "모멘텀", "macd_hist": "모멘텀", "roc": "모멘텀", "mfi": "모멘텀",
-    "percent_b": "변동성",
-    "ma_spread": "추세",
-}
 
 # 기본적으로 "값이 클수록 상승 확신"인 모멘텀 해석(momentum)이지만, RSI/percent_b/MFI처럼 과매수·
 # 과매도 레벨을 갖는 지표는 "값이 낮을수록(과매도) 상승 확신"인 평균회귀 해석(mean_revert)도

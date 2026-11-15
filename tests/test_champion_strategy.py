@@ -988,24 +988,6 @@ def test_compute_live_collar_state_computes_strikes_from_latest_roll(monkeypatch
     assert abs(state["mark_to_model_pnl_pct_of_satellite_notional"]) < 1.0
 
 
-def test_load_market_regime_context_returns_none_without_snapshot(monkeypatch):
-    import core.market_regime as market_regime
-
-    monkeypatch.setattr(
-        market_regime, "select_regime_for_trading",
-        lambda snapshot=None: {"trading_regime": None, "is_ambiguous": True, "total_score": None, "snapshot": None},
-    )
-    assert champion_strategy.load_market_regime_context() is None
-
-
-def test_load_market_regime_context_returns_snapshot_when_present(monkeypatch):
-    import core.market_regime as market_regime
-
-    fake_result = {"trading_regime": "강세장", "is_ambiguous": False, "total_score": 50.0, "snapshot": {"regime": "강세장"}}
-    monkeypatch.setattr(market_regime, "select_regime_for_trading", lambda snapshot=None: fake_result)
-    assert champion_strategy.load_market_regime_context() == fake_result
-
-
 # ----------------------------------------------------------------------------
 # 리밸런싱 diff (작업 2026-09-14 추가)
 # ----------------------------------------------------------------------------
@@ -1960,32 +1942,6 @@ def test_record_daily_ledger_entry_treats_missing_price_data_as_zero_contributio
 
     assert result["realized_return_pct"] == 0.0
     assert result["cumulative_equity"] == 100.0
-
-
-def test_compute_ledger_performance_summary_empty_without_entries(patched_champion_session):
-    result = champion_strategy.compute_ledger_performance_summary()
-    assert result["available"] is False
-    assert result["entry_count"] == 0
-
-
-def test_compute_ledger_performance_summary_computes_metrics_from_equity_curve(patched_champion_session, monkeypatch):
-    from core.models import ChampionLedgerEntry
-
-    base = date.today() - timedelta(days=5)
-    equity = 100.0
-    for i in range(5):
-        equity *= 1.01
-        patched_champion_session.add(ChampionLedgerEntry(
-            entry_date=base + timedelta(days=i), core_weights="{}", satellite_weights="{}",
-            realized_return_pct=1.0, cumulative_equity=round(equity, 4),
-        ))
-    patched_champion_session.commit()
-
-    result = champion_strategy.compute_ledger_performance_summary()
-
-    assert result["available"] is True
-    assert result["entry_count"] == 5
-    assert "cagr" in result["metrics"] or result["metrics"] is not None
 
 
 def _add_ledger_entries(session, n, equity_start=100.0, daily_pct=0.0):

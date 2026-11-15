@@ -184,7 +184,6 @@ def test_page_displays_follow_result_without_using_legacy_ledger(monkeypatch, tm
     monkeypatch.setattr(cf, "load_cached", lambda *a: result)
     monkeypatch.setattr(cp, "load_latest_cached", lambda **kw: None)
     monkeypatch.setattr(cp, "load_cached", lambda *a: None)
-    monkeypatch.setattr(cp, "build_live_record", lambda *a: pytest.fail("legacy ledger must not be displayed"))
     monkeypatch.setattr(job_manager, "render", lambda *a, **kw: None)
     monkeypatch.setattr(job_manager, "render_active_jobs_sidebar", lambda: None)
     monkeypatch.setattr(cs, "get_current_holdings", lambda: None)

@@ -600,49 +600,6 @@ def test_get_advisory_risk_signals_with_fred_key_computes_all_three(monkeypatch)
 # ----------------------------------------------------------------------------
 
 
-def _snapshot(regime: str, total_score: float) -> dict:
-    return {"regime": regime, "total_score": total_score}
-
-
-def test_select_regime_for_trading_unambiguous_bull():
-    result = market_regime.select_regime_for_trading(_snapshot("강세장", 60.0))
-    assert result == {"trading_regime": "강세장", "is_ambiguous": False, "total_score": 60.0, "snapshot": _snapshot("강세장", 60.0)}
-
-
-def test_select_regime_for_trading_unambiguous_bear():
-    result = market_regime.select_regime_for_trading(_snapshot("약세장", -60.0))
-    assert result["trading_regime"] == "약세장"
-    assert result["is_ambiguous"] is False
-
-
-def test_select_regime_for_trading_neutral_leans_bull_on_nonnegative_score():
-    result = market_regime.select_regime_for_trading(_snapshot("중립/혼조", 5.0))
-    assert result["trading_regime"] == "강세장"
-    assert result["is_ambiguous"] is True
-
-
-def test_select_regime_for_trading_neutral_leans_bear_on_negative_score():
-    result = market_regime.select_regime_for_trading(_snapshot("중립/혼조", -5.0))
-    assert result["trading_regime"] == "약세장"
-    assert result["is_ambiguous"] is True
-
-
-def test_select_regime_for_trading_no_snapshot_available(monkeypatch):
-    monkeypatch.setattr(market_regime, "get_latest_market_regime_snapshot", lambda: None)
-    result = market_regime.select_regime_for_trading()
-    assert result["trading_regime"] is None
-    assert result["is_ambiguous"] is True
-    assert "reason" in result
-
-
-def test_select_regime_for_trading_uses_latest_snapshot_when_not_given(monkeypatch):
-    monkeypatch.setattr(
-        market_regime, "get_latest_market_regime_snapshot", lambda: _snapshot("강세장", 50.0)
-    )
-    result = market_regime.select_regime_for_trading()
-    assert result["trading_regime"] == "강세장"
-
-
 # ----------------------------------------------------------------------------
 # ENG-02: breadth 데이터 0개 -> 0%(약세)가 아니라 unknown
 # ----------------------------------------------------------------------------
@@ -680,13 +637,6 @@ def test_snapshot_regime_unknown_when_breadth_missing(monkeypatch):
     assert snapshot["regime"] == "unknown"
     assert snapshot["breadth"]["status"] == "unknown"
     assert snapshot["regime_status"] == "unknown"
-
-
-def test_select_regime_for_trading_unknown_snapshot_gives_no_trading_regime():
-    result = market_regime.select_regime_for_trading({"regime": "unknown", "total_score": 30.0})
-    assert result["trading_regime"] is None
-    assert result["is_ambiguous"] is True
-    assert result["snapshot"] is not None
 
 
 # ----------------------------------------------------------------------------
@@ -854,42 +804,3 @@ def test_combine_result_is_json_serializable_for_storage():
     assert json.loads(json.dumps(result, ensure_ascii=False))["missing_signals"] == ["ma_cross"]
 
 
-def test_select_regime_for_trading_partial_verdict_is_ambiguous():
-    snapshot = {"regime": "강세장", "total_score": 66.7, "partial": True, "missing_signals": ["ma_cross"]}
-    result = market_regime.select_regime_for_trading(snapshot)
-    assert result["trading_regime"] == "강세장"
-    assert result["is_ambiguous"] is True
-
-
-def test_select_regime_for_trading_old_snapshot_without_partial_field_unchanged():
-    result = market_regime.select_regime_for_trading({"regime": "약세장", "total_score": -60.0})
-    assert result["trading_regime"] == "약세장"
-    assert result["is_ambiguous"] is False
-
-
-def test_select_regime_for_trading_unknown_reports_snapshot_reason():
-    result = market_regime.select_regime_for_trading(
-        {"regime": "unknown", "total_score": 25.0, "regime_reason": "가용 신호 가중치 50% < 최소 75%"},
-    )
-    assert result["trading_regime"] is None
-    assert "50%" in result["reason"]
-
-
-def test_consumers_handle_unknown_snapshot(monkeypatch):
-    from core import champion_strategy
-    from core.today_dashboard import build_today_dashboard
-
-    snapshot = {"regime": "unknown", "total_score": 25.0, "partial": True, "missing_signals": ["trend_position", "ma_cross"]}
-    monkeypatch.setattr(market_regime, "get_latest_market_regime_snapshot", lambda: snapshot)
-    ctx = champion_strategy.load_market_regime_context()
-    assert ctx["trading_regime"] is None and ctx["is_ambiguous"] is True
-
-    dashboard = build_today_dashboard({
-        "holdings": lambda: {"as_of": "2026-09-25", "core_top4": []},
-        "market": lambda: snapshot,
-        "jobs": lambda: {"counts": {"problem": 0}},
-        "backup": lambda: {"level": "ok", "lines": []},
-        "unread_alerts": lambda: 0,
-        "watchlist_count": lambda: 0,
-    })
-    assert any(a["title"] == "시장 국면 판단 보류" for a in dashboard["actions"])

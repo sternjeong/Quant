@@ -459,10 +459,3 @@ def fetch_guidance_events(
     return GuidanceEventFetchResult(events, tuple(outcomes), meta)
 
 
-def build_events_by_ticker(tickers: Sequence[str], **kwargs) -> dict:
-    """events_by_ticker 만 필요할 때 쓰는 얇은 래퍼(실패 사유는 버려지므로 진단이 필요하면
-    fetch_guidance_events 를 직접 쓴다)."""
-    return fetch_guidance_events(tickers, **kwargs).events_by_ticker
-
-
-DEFAULT_EVENT_FETCHER: Callable[..., GuidanceEventFetchResult] = fetch_guidance_events

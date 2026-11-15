@@ -189,15 +189,6 @@ def render(slot: str, *, running_label: Optional[str] = None, poll_seconds: floa
     return job
 
 
-def is_slot_running(slot: str) -> bool:
-    tracked = st.session_state.get(f"_job_slot::{slot}")
-    if not tracked:
-        return False
-    with _lock:
-        job = _jobs.get(tracked["job_id"])
-    return job is not None and job.status == "running"
-
-
 def list_running_jobs() -> list[Job]:
     with _lock:
         return [j for j in _jobs.values() if j.status == "running"]

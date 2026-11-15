@@ -242,11 +242,6 @@ class _DefaultEventProvider:
         return events
 
 
-def _default_event_provider(ticker: str, decision_cutoff: Any) -> list:
-    """하위호환용 단발 호출(티커마다 새 클라이언트). 기록 함수는 _DefaultEventProvider 를 쓴다."""
-    return _DefaultEventProvider()(ticker, decision_cutoff)
-
-
 # ---------------------------------------------------------------------------
 # 기록: record_filing_veto_shadow
 # ---------------------------------------------------------------------------
@@ -281,7 +276,7 @@ def record_filing_veto_shadow(
 
     satellite_result 를 주면(테스트) compute_satellite_recommendation_point_in_time 을 호출하지 않는다.
     event_provider(ticker, decision_cutoff) -> Iterable[FilingChangeEvent] 를 주면(테스트/백필)
-    _default_event_provider(실제 EDGAR 조회) 대신 쓴다. 한 종목의 조회 실패는 그 종목만 pass 로 기본
+    기본 공급자(_DefaultEventProvider, 실제 EDGAR 조회) 대신 쓴다. 한 종목의 조회 실패는 그 종목만 pass 로 기본
     처리하고 나머지는 계속 진행한다(veto 판정 불가를 hold 로 잘못 해석하지 않는다).
     """
     as_of_date = as_of if isinstance(as_of, date) and not isinstance(as_of, datetime) else (

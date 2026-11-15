@@ -295,22 +295,6 @@ def rolling_pair_correlation(close: pd.DataFrame, a: str, b: str, window: int = 
     return rets[a].rolling(window).corr(rets[b]).dropna()
 
 
-def diversifier_candidates(table: pd.DataFrame, close: pd.DataFrame, weak: str, window: int = 60) -> pd.DataFrame:
-    """`weak` 자산이 약할 때 눈여겨볼 곳: 최근 상관이 낮거나 음수이면서 상대강도가 센 자산.
-
-    candidate_score = rs_score(0~100) 에서 상관 × 50 을 뺀 값. 가중치는 임의의 휴리스틱이며 예측력은 검증되지 않았다 —
-    그래서 이름도 '후보'다. 예측력은 `conditional_forward_excess` 로 따로 센다.
-    """
-    corr = correlation_matrix(close, window)
-    if weak not in corr.columns or table.empty:
-        return pd.DataFrame()
-    out = table[table["ticker"] != weak].copy()
-    out["corr_to_weak"] = out["ticker"].map(corr[weak])
-    out = out.dropna(subset=["corr_to_weak"])
-    out["candidate_score"] = out["rs_score"] - out["corr_to_weak"] * 50
-    return out.sort_values("candidate_score", ascending=False).reset_index(drop=True)
-
-
 # --------------------------------------------------------------------------- 조건부 연구
 
 def _normal_two_sided_p(t: float) -> float:

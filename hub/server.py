@@ -159,10 +159,6 @@ def _last_result(unit: str) -> str:
     return _systemctl_props(unit, "Result").get("Result", "")
 
 
-def _badge_html(status: UnitStatus) -> str:
-    return _unit_pill(status)[0]
-
-
 def _slot_href(slot: AppSlot, host: str) -> str:
     if slot.kind == "web":
         return f"http://{host}:{slot.port}/"

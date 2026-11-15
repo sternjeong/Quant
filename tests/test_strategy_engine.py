@@ -13,12 +13,10 @@ from core.indicators import (
     compute_double_pattern,
     compute_engulfing,
     compute_highest_high,
-    compute_ichimoku,
     compute_inside_bar,
     compute_inside_bar_breakout,
     compute_lowest_low,
     compute_ma_cross,
-    compute_macd,
     compute_marubozu,
     compute_mfi,
     compute_percent_b,
@@ -32,27 +30,7 @@ from core.indicators import (
     compute_volume_dryup_ratio,
     compute_volume_ratio,
 )
-from core.strategy_engine import (
-    Trade,
-    categorize_indicators,
-    combine_conditions,
-    compute_ensemble_score,
-    describe_condition,
-    evaluate_boolean_signal,
-    evaluate_condition,
-    extract_staged_trades,
-    extract_trades,
-    extract_weighted_trades,
-    generate_ensemble_position,
-    generate_kostolany_position,
-    generate_positions,
-    is_combined_config,
-    is_ensemble_config,
-    is_expression_config,
-    is_kostolany_config,
-    is_staged_config,
-    simulate_staged_positions,
-)
+from core.strategy_engine import combine_conditions, compute_ensemble_score, describe_condition, evaluate_boolean_signal, evaluate_condition, extract_staged_trades, extract_trades, extract_weighted_trades, generate_ensemble_position, generate_kostolany_position, generate_positions, is_combined_config, is_ensemble_config, is_expression_config, is_kostolany_config, simulate_staged_positions
 from core.strategy_engine import _zscore_tanh
 
 
@@ -1090,26 +1068,6 @@ def test_describe_condition_volume_indicators_in_korean():
 # =============================================================================
 # 지표 카테고리 태그
 # =============================================================================
-
-
-def test_categorize_indicators_counts_by_category():
-    conditions = [
-        {"indicator": "ma_cross"},
-        {"indicator": "rsi"},
-        {"indicator": "bollinger"},
-        {"indicator": "mfi"},
-    ]
-    counts = categorize_indicators(conditions)
-    assert counts == {"추세": 1, "모멘텀": 2, "변동성": 1}
-
-
-def test_categorize_indicators_unknown_indicator_is_기타():
-    counts = categorize_indicators([{"indicator": "not_a_real_indicator"}])
-    assert counts == {"기타": 1}
-
-
-def test_categorize_indicators_empty_list_returns_empty_dict():
-    assert categorize_indicators([]) == {}
 
 
 # =============================================================================
