@@ -1,0 +1,18 @@
+{
+  "id": "frontier-tax-allowance-v2",
+  "title": "[프런티어] 연 250만 원 양도세 공제를 어디에 쓸까 v2 — 판정 불가 검사를 세후 청산액 기준으로 고친 재등록(5팔, 가상 역사 2,000개 × 두 시대, 새 씨앗)",
+  "entrypoint": "research/jobs/frontier-tax-allowance-v2/run.py",
+  "args": [],
+  "timeout_seconds": 3600,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": [
+    "results.json",
+    "REPORT.md"
+  ],
+  "summary_from": "verdicts",
+  "priority": 61,
+  "revision": 1,
+  "max_memory_mb": 1500,
+  "max_runs": 40
+}
