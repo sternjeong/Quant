@@ -1,0 +1,12 @@
+[Unit]
+Description=놀고 있는 Claude Code 대화 세션 점검(목록 기록, 화면에서 요청했거나 자동 정리를 켠 세션만 닫음)
+OnFailure=quant-alert@%n.service
+
+[Service]
+Type=oneshot
+# root: 모든 로컬 계정의 claude 프로세스를 읽고(터미널·tmux), 요청된 세션에 신호를 보낸다.
+User=root
+WorkingDirectory=/opt/quant
+ExecStart=/usr/bin/python3 /opt/quant/deploy/session_reaper/reaper.py
+TimeoutStartSec=120
+Nice=10

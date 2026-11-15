@@ -567,6 +567,17 @@ SCRIPTS: tuple[ScriptGuide, ...] = (
         "2026-10-13",
     ),
     ScriptGuide(
+        "deploy/session_reaper/reaper.py",
+        "놀고 있는 AI 세션 수거기(오래 입력 없는 Claude Code 대화 세션 정리)",
+        "직접 실행할 일은 거의 없습니다 — quant-session-reaper.timer 가 10분마다 root 로 돌립니다. 지금 어떤 세션이 놀고 있다고 판정되는지 "
+        "미리 보고 싶을 때만 --dry-run 으로 실행합니다(닫기·저장·알림 없음). 처음 한 번은 deploy/session_reaper/install.sh 로 타이머를 설치해야 합니다.",
+        "sudo python3 /opt/quant/deploy/session_reaper/reaper.py --dry-run",
+        "파일/DB 쓰기",
+        "세션마다 상태(idle 놀고 있음 · measuring CPU 재는 중 · working 입력 없이 혼자 일함 · active 사용 중), 터미널 마지막 입력, 최근 60분 CPU 증가, 메모리, "
+        "tmux 세션 이름을 JSON 으로 보여 줍니다. 평소 확인과 닫기는 관제 센터 '놀고 있는 AI 세션'(/idle-sessions) 화면에서 합니다.",
+        "2026-11-15",
+    ),
+    ScriptGuide(
         "deploy/contest_scout/run_scout.sh",
         "주간 해커톤·AI 대회 탐색(Claude 를 tmux 세션 contest-scout 에서 실행)",
         "직접 실행할 일은 거의 없습니다 — quant-contest-scout.timer 가 매주 월 09:00 KST 에 ubuntu 계정으로 돌리고, 관제 센터 '대회 탐색' 의 "
@@ -802,6 +813,26 @@ OPS: tuple[OpsSection, ...] = (
             ("완전히 멈추기", "화면의 '전체 자동 재개 → 끄기' 또는 sudo systemctl disable --now quant-session-resume.timer."),
         ),
         "2026-10-13",
+    ),
+    OpsSection(
+        "idle-sessions",
+        "놀고 있는 Claude 세션 정리(VM 메모리 회수)",
+        (
+            "VM 에 열어 두고 잊은 Claude Code 대화 세션은 하나가 메모리 200~400MB 를 붙잡습니다(2026-11-15 측정: 19개, 약 5GB — 12GB VM 에서 연구 실행기가 메모리 부족으로 양보하던 원인). "
+            "수거기가 10분마다 모든 계정의 대화형 claude 프로세스를 찾아 터미널 마지막 입력 시각, 최근 60분 CPU 증가(자식 포함), 메모리, tmux 세션 이름을 기록합니다. "
+            "터미널 입력이 24시간 넘게 없고 최근 60분 CPU 가 10초 넘게 늘지 않은 세션을 '놀고 있음'으로 표시합니다. 사람이 입력하지 않아도 혼자 일하는 자동 세션은 CPU 가 늘기 때문에 '혼자 일하는 중'으로 따로 표시하고 대상이 아닙니다.",
+            "관제 센터 '놀고 있는 AI 세션'(/idle-sessions)에서 세션마다 '닫기'를 누르면 다음 확인(10분 안)에 닫힙니다(SIGTERM, 10초 뒤 남아 있으면 SIGKILL, 닫기 직전에 같은 프로세스인지 다시 확인). "
+            "'자동 정리'는 처음에 꺼져 있습니다. 켜면 놀고 있음 세션 중 '자동 정리 제외'로 표시하지 않은 것을 자동으로 닫고 텔레그램 '[AI 세션 정리]'로 알립니다.",
+            "닫아도 대화 기록(~/.claude/projects/…)은 그대로라 그 폴더에서 claude --resume 으로 다시 열 수 있습니다. "
+            "텔레그램 봇·야간 에이전트·세션 자동 재개처럼 claude -p 로 도는 비대화 실행은 목록에 없고 건드리지 않습니다.",
+        ),
+        (
+            ("화면", "관제 센터 → 운영 → '놀고 있는 AI 세션'. 세션 위치(tmux·폴더)·상태·입력 경과·CPU 증가·메모리, 닫기·자동 정리 제외 버튼, 최근 닫은 세션."),
+            ("기준 바꾸기", "data/session_reaper/config.json 에 idle_hours·cpu_window_minutes·cpu_idle_seconds 를 적으면 다음 회차부터 적용."),
+            ("설치(처음 한 번)", "sudo bash /opt/quant/deploy/session_reaper/install.sh — 자동배포는 타이머를 새로 설치하지 않습니다."),
+            ("완전히 멈추기", "sudo systemctl disable --now quant-session-reaper.timer (목록 기록도 멈춤)."),
+        ),
+        "2026-11-15",
     ),
     OpsSection(
         "troubleshooting",

@@ -28,6 +28,7 @@ from hub.apps_registry import SLOTS, AppSlot  # noqa: E402
 from hub import alpaca_status, contests_page, engine_status, live_status, ops_status, research_status  # noqa: E402
 from hub import satellite_lab_page  # noqa: E402
 from hub import session_resume_page  # noqa: E402
+from hub import idle_sessions_page  # noqa: E402
 from hub import contest_scout_page  # noqa: E402
 from hub import planner_page  # noqa: E402
 from hub.status import UnitStatus, get_unit_status  # noqa: E402
@@ -113,7 +114,7 @@ LOGIN_PAGE = """<!doctype html><html lang="ko"><head><meta charset="utf-8">
 SLOT_ICONS = {
     "streamlit": "📊", "google-otp": "🔐", "code-server": "💻", "scheduler": "⏱", "alpaca": "🧪", "research": "🤖", "satellite-lab": "🛰", "ops": "🛡",
     "report-daily-briefing": "🗞", "report-champion-weekly": "🏆", "report-news-digest": "📰",
-    "codex-telegram": "💬", "vm-health": "🩺", "session-resume": "🔁", "contest-scout": "🔭",
+    "codex-telegram": "💬", "vm-health": "🩺", "session-resume": "🔁", "idle-sessions": "🧹", "contest-scout": "🔭",
     "planner": "🗓", "notion": "📝",
 }
 KIND_ICONS = {"link": "↗", "web": "🌐", "engine": "⚙", "report": "📄", "alpaca": "🧪", "ops": "🛡", "research": "🤖"}
@@ -180,6 +181,8 @@ def _slot_href(slot: AppSlot, host: str) -> str:
         return "/satellite-lab"
     if slot.kind == "session_resume":
         return "/session-resume"
+    if slot.kind == "idle_sessions":
+        return "/idle-sessions"
     if slot.kind == "contest_scout":
         return "/contest-scout"
     if slot.kind == "otp":
@@ -299,6 +302,8 @@ def render_dashboard(host: str) -> str:
             end = satellite_lab_page.card_badge(satellite_lab_page.collect())
         elif slot.kind == "session_resume":
             end = session_resume_page.card_badge(session_resume_page.collect())
+        elif slot.kind == "idle_sessions":
+            end = idle_sessions_page.card_badge(idle_sessions_page.collect())
         elif slot.kind == "contest_scout":
             end = contest_scout_page.card_badge(contest_scout_page.collect())
         elif slot.kind == "planner":
@@ -479,6 +484,11 @@ def render_session_resume_page() -> str:
     return ui.page("세션 자동 재개", body, crumbs=(("/", "개요"), ("", "운영")), refresh=REFRESH_SECONDS)
 
 
+def render_idle_sessions_page() -> str:
+    body = f'<h1>놀고 있는 AI 세션</h1>{idle_sessions_page.render_body(idle_sessions_page.collect())}{_stamp()}'
+    return ui.page("놀고 있는 AI 세션", body, crumbs=(("/", "개요"), ("", "운영")), refresh=REFRESH_SECONDS)
+
+
 def render_ops_page() -> str:
     body = ops_status.render_body(ops_status.job_health_summary(), ops_status.read_backup(),
                                   ops_status.system_info(), ops_status.collect_timers())
@@ -583,7 +593,8 @@ class HubRequestHandler(BaseHTTPRequestHandler):
         is_planner = path.startswith("/planner/")
         if path not in ("/research/models", "/processes/toggle", "/processes/confirm", "/rnd/topics",
                         "/otp/code",
-                        "/session-resume/toggle", "/contest-scout/run") and not is_contest and not is_planner:
+                        "/session-resume/toggle", "/contest-scout/run",
+                        "/idle-sessions/close", "/idle-sessions/auto", "/idle-sessions/exclude") and not is_contest and not is_planner:
             self._send_html("not found", 404)
             return
         if not _same_origin_post(self.headers):
@@ -662,6 +673,24 @@ class HubRequestHandler(BaseHTTPRequestHandler):
             self._redirect("/session-resume")
             return
 
+        if path in ("/idle-sessions/close", "/idle-sessions/exclude", "/idle-sessions/auto"):
+            # 화면은 요청·스위치 파일만 쓴다. 실제 닫기는 root 수거기(deploy/session_reaper/reaper.py)가 다음 회차에 한다.
+            if path == "/idle-sessions/auto":
+                idle_sessions_page.set_auto((form.get("on") or ["0"])[0] == "1", actor="hub")
+            else:
+                key = (form.get("key") or [""])[0]
+                if not idle_sessions_page.KEY_RE.fullmatch(key):
+                    self._send_html("unknown session", 400)
+                    return
+                if path == "/idle-sessions/exclude":
+                    idle_sessions_page.set_exclude(key, (form.get("on") or ["1"])[0] == "1", actor="hub")
+                elif (form.get("cancel") or ["0"])[0] == "1":
+                    idle_sessions_page.cancel_close(key)
+                else:
+                    idle_sessions_page.request_close(key, actor="hub")
+            self._redirect("/idle-sessions")
+            return
+
         if path == "/processes/confirm":
             # 주문을 내는 잡은 클릭 한 번으로 켜지 않는다 — 확인 화면을 한 번 거친다(텔레그램과 같은 규칙).
             self._send_html(render_process_confirm_page((form.get("key") or [""])[0]))
@@ -730,6 +759,8 @@ class HubRequestHandler(BaseHTTPRequestHandler):
                                                 message=(q.get("msg") or [""])[0][:300]))
         elif path == "/session-resume":
             self._send_html(render_session_resume_page())
+        elif path == "/idle-sessions":
+            self._send_html(render_idle_sessions_page())
         elif path == "/otp":
             self._send_html(render_otp_page(), no_store=True)
         elif path in ("/guide", "/guide/"):
