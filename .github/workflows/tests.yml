@@ -1,0 +1,71 @@
+name: Tests
+
+# 2026-11-15: 배포 전 전체 테스트를 2코어 VM 대신 여기서 돌린다(docs/COMPUTE_OFFLOAD_DESIGN.md).
+# 공개 저장소라 GitHub 호스팅 실행기 사용이 무료다. VM 의 deploy/auto_deploy.sh 는 커밋마다 test-gate 잡의 결과를
+# deploy/ci_status.py 로 읽어, 성공이면 VM 에서 테스트를 다시 돌리지 않고 반영한다. 결과가 40분 안에 오지 않으면 VM 이 직접 테스트한다.
+# 실행기는 VM 과 같은 ARM(aarch64)·Python 3.12, 패키지 버전은 .github/constraints-vm.txt(VM venv 의 pip freeze)로 묶는다.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  shard:
+    name: shard (${{ matrix.shard }})
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    env:
+      TZ: UTC
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            .github/constraints-vm.txt
+
+      - name: Install dependencies (VM versions)
+        run: pip install -r requirements.txt -c .github/constraints-vm.txt
+
+      - name: Run test shard
+        run: python -m pytest -q -p no:cacheprovider $(python .github/ci_shard.py 4 ${{ matrix.shard }})
+
+  test-gate:
+    # VM 이 이 이름(test-gate)으로 결과를 찾는다. 이름을 바꾸면 deploy/ci_status.py 의 GATE_NAME 도 바꾼다.
+    name: test-gate
+    needs: shard
+    if: always()
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # deploy/codex_telegram/runner.py 는 시스템 python3 표준 라이브러리만으로 돈다 — VM 관문과 같은 방식으로 확인.
+      - name: codex_telegram runner unittest (stdlib only)
+        working-directory: deploy/codex_telegram
+        run: python -m unittest test_runner
+
+      - name: All shards passed
+        run: |
+          echo "shard result: ${{ needs.shard.result }}"
+          test "${{ needs.shard.result }}" = "success"

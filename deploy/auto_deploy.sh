@@ -58,6 +58,18 @@ TEST_FAIL_FLAG="$STATE_DIR/last_test_failure_commit"
 # (막힘이 풀릴 때까지 5분마다 6분짜리 테스트를 반복하지 않게).
 GATE_PASS_FLAG="$STATE_DIR/last_gate_pass_commit"
 TEST_LOG="$STATE_DIR/last_test_output.log"
+# ★ 2026-11-15 2코어 VM 부하 줄이기(docs/COMPUTE_OFFLOAD_DESIGN.md): 전체 테스트를 VM 에서 돌리지 않고 GitHub Actions
+# (.github/workflows/tests.yml 의 test-gate, 공개 저장소라 무료)가 돌린 결과를 본다. github=CI 결과 사용(기본), off=예전처럼 VM 에서 테스트.
+CI_GATE="${AUTO_DEPLOY_CI_GATE:-github}"
+# CI 결과를 기다리는 최대 시간. 넘으면(워크플로가 안 돌았거나 GitHub 장애) VM 에서 낮은 우선순위로 직접 테스트한다.
+CI_WAIT_SECONDS="${AUTO_DEPLOY_CI_WAIT_SECONDS:-2400}"
+CI_STATUS_CMD="${AUTO_DEPLOY_CI_STATUS_CMD:-python3 $APP_DIR/deploy/ci_status.py}"
+CI_WAIT_FILE="$STATE_DIR/ci_wait_since"
+# 이 경로들만 바뀐 커밋(연구 결과·문서·야간 스냅샷)은 코드가 그대로라 테스트 없이 반영한다. 정규식은 git diff --name-only 한 줄에 맞춘다.
+DATA_ONLY_RE='^(research/results/|docs/|data/[^/]*_snapshot_ci\.json$|[^/]*\.md$)'
+# VM 에서 직접 테스트할 때(대체 경로)는 가장 낮은 CPU·디스크 우선순위로 돌려 서비스·스케줄러를 덜 방해한다.
+LOW_PRIO=(nice -n 19)
+if command -v ionice >/dev/null 2>&1; then LOW_PRIO+=(ionice -c 3); fi
 TEST_TIMEOUT_SECONDS="${AUTO_DEPLOY_TEST_TIMEOUT_SECONDS:-2700}"  # 2026-10-09: 480→720→1500. 같은 VM 의 다른 프로젝트 부하로 전체 테스트가 913초까지 걸림(통과했는데 제한 초과로 탈락). 2026-11-12: →2700, 테스트 3,200개가 부하 때 1,200~2,240초 걸림(제한 초과는 재실행 대상이 아님)
 
 log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"; }
@@ -209,6 +221,64 @@ if [ -f "$GATE_PASS_FLAG" ] && [ "$(cat "$GATE_PASS_FLAG" 2>/dev/null || true)" 
   gate_already_passed=1
 fi
 
+# 어떤 관문으로 확인할지 정한다: data(코드 변경 없음) / ci(GitHub Actions 통과) / local(VM 에서 직접 테스트).
+gate_mode="local"
+gate_note=""
+if [ "$gate_already_passed" -eq 0 ]; then
+  changed_files="$(git_as_quant diff --name-only "${local_head}..${remote_head}")"
+  if [ -n "$changed_files" ] && ! printf '%s\n' "$changed_files" | grep -qvE "$DATA_ONLY_RE"; then
+    gate_mode="data"
+    gate_note="
+(연구 결과·문서·스냅샷만 바뀐 커밋 — 테스트 없이 반영)"
+  elif [ "$CI_GATE" = "github" ]; then
+    ci_line="$($CI_STATUS_CMD "$remote_head" 2>/dev/null | head -n 1 || true)"
+    ci_state="${ci_line%%$'\t'*}"
+    ci_url=""
+    [ "$ci_line" != "$ci_state" ] && ci_url="${ci_line#*$'\t'}"
+    case "$ci_state" in
+      success)
+        gate_mode="ci"
+        gate_note="
+(GitHub Actions 테스트 통과 — VM 에서는 테스트를 다시 돌리지 않음)"
+        rm -f "$CI_WAIT_FILE" 2>/dev/null || true
+        ;;
+      failure)
+        log "GitHub Actions 테스트 실패(${remote_head:0:7}) — 반영하지 않음. $ci_url"
+        echo "$remote_head" > "$TEST_FAIL_FLAG"
+        rm -f "$CI_WAIT_FILE" 2>/dev/null || true
+        message="[자동배포] 테스트 실패 — 반영하지 않음(기존 버전 계속 실행 중)
+${local_head:0:7}..${remote_head:0:7} ($commit_count 커밋)
+GitHub Actions 테스트 관문(test-gate)이 실패했음. 운영 폴더와 서비스는 이전 버전 그대로이고, 다음 새 커밋이 오면 다시 확인함.
+${ci_url}"
+        "$ALERT_SCRIPT" "$message" || log "텔레그램 알림 전송도 실패"
+        exit 1
+        ;;
+      *)
+        # pending/none/error — 정해진 시간까지는 조용히 기다리고(다음 틱에 다시 확인), 넘으면 VM 에서 직접 테스트한다.
+        now_epoch="$(date +%s)"
+        since=""
+        if [ -f "$CI_WAIT_FILE" ]; then
+          read -r wait_sha wait_since < "$CI_WAIT_FILE" || true
+          [ "${wait_sha:-}" = "$remote_head" ] && since="${wait_since:-}"
+        fi
+        if [ -z "$since" ]; then
+          since="$now_epoch"
+          echo "$remote_head $since" > "$CI_WAIT_FILE"
+        fi
+        waited=$(( now_epoch - since ))
+        if [ "$waited" -lt "$CI_WAIT_SECONDS" ]; then
+          log "새 커밋 ${remote_head:0:7}: GitHub Actions 테스트 결과 대기 중(${ci_state:-?}, ${waited}초/${CI_WAIT_SECONDS}초) — 다음 틱에 다시 확인"
+          exit 0
+        fi
+        log "GitHub Actions 테스트 결과를 ${waited}초 동안 받지 못함(${ci_state:-?}) — VM 에서 낮은 우선순위로 직접 테스트"
+        gate_note="
+(GitHub Actions 결과가 ${CI_WAIT_SECONDS}초 안에 오지 않아 VM 에서 직접 테스트함)"
+        rm -f "$CI_WAIT_FILE" 2>/dev/null || true
+        ;;
+    esac
+  fi
+fi
+
 if [ "$gate_already_passed" -eq 1 ]; then
   log "새 커밋 감지: ${local_head:0:7} -> ${remote_head:0:7}. 이 커밋은 이미 테스트를 통과했음(직전 반영이 막혔음) — 테스트 없이 반영만 다시 시도"
 else
@@ -249,40 +319,47 @@ $truncated_pip_output"
     fi
   fi
 
-  log "반영 전 테스트 게이트 실행 (검증 폴더 $STAGING_DIR 의 tests/ + deploy 유닛테스트, 최대 ${TEST_TIMEOUT_SECONDS}초)"
-  : > "$TEST_LOG"
   tests_ok=1
-  # 검증 폴더를 작업 디렉터리로 두고 돌린다 — `python -m`이 현재 폴더를 sys.path 맨 앞에 넣으므로 운영 폴더가 아니라
-  # 검증 폴더의 core/·app/ 이 import 된다(tests/conftest.py도 자기 폴더의 상위를 sys.path 맨 앞에 넣는다).
   flaky_note=""
-  gate_rc=0
-  sudo -n -u "$SERVICE_USER" timeout "$TEST_TIMEOUT_SECONDS" env -C "$STAGING_DIR" \
-        "$APP_DIR/.venv/bin/python" -m pytest "$STAGING_DIR/tests" -q >>"$TEST_LOG" 2>&1 || gate_rc=$?
-  if [ "$gate_rc" -ne 0 ] && [ "$gate_rc" -ne 124 ]; then
-    # 2026-11-12: 같은 VM 의 다른 작업 부하로 시간에 민감한 테스트(연구 실행기 체크포인트 등)가 가끔 떨어져 배포가 막혔다
-    # (혼자 돌리면 통과). 실패한 테스트만 한 번 더 돌려 그것도 통과하면 반영한다. 제한 시간 초과(124)는 다시 돌리지 않는다.
-    echo "---- 1차 실패한 테스트만 다시 실행 (부하로 인한 일시 실패 확인) ----" >>"$TEST_LOG"
-    if sudo -n -u "$SERVICE_USER" timeout 600 env -C "$STAGING_DIR" \
-          "$APP_DIR/.venv/bin/python" -m pytest "$STAGING_DIR/tests" -q --last-failed --last-failed-no-failures none >>"$TEST_LOG" 2>&1; then
-      gate_rc=0
-      flaky_note="
+  if [ "$gate_mode" = "local" ]; then
+    log "반영 전 테스트 게이트 실행 (검증 폴더 $STAGING_DIR 의 tests/ + deploy 유닛테스트, 최대 ${TEST_TIMEOUT_SECONDS}초)"
+    : > "$TEST_LOG"
+    tests_ok=1
+    # 검증 폴더를 작업 디렉터리로 두고 돌린다 — `python -m`이 현재 폴더를 sys.path 맨 앞에 넣으므로 운영 폴더가 아니라
+    # 검증 폴더의 core/·app/ 이 import 된다(tests/conftest.py도 자기 폴더의 상위를 sys.path 맨 앞에 넣는다).
+    flaky_note=""
+    gate_rc=0
+    sudo -n -u "$SERVICE_USER" "${LOW_PRIO[@]}" timeout "$TEST_TIMEOUT_SECONDS" env -C "$STAGING_DIR" \
+          "$APP_DIR/.venv/bin/python" -m pytest "$STAGING_DIR/tests" -q >>"$TEST_LOG" 2>&1 || gate_rc=$?
+    if [ "$gate_rc" -ne 0 ] && [ "$gate_rc" -ne 124 ]; then
+      # 2026-11-12: 같은 VM 의 다른 작업 부하로 시간에 민감한 테스트(연구 실행기 체크포인트 등)가 가끔 떨어져 배포가 막혔다
+      # (혼자 돌리면 통과). 실패한 테스트만 한 번 더 돌려 그것도 통과하면 반영한다. 제한 시간 초과(124)는 다시 돌리지 않는다.
+      echo "---- 1차 실패한 테스트만 다시 실행 (부하로 인한 일시 실패 확인) ----" >>"$TEST_LOG"
+      if sudo -n -u "$SERVICE_USER" "${LOW_PRIO[@]}" timeout 600 env -C "$STAGING_DIR" \
+            "$APP_DIR/.venv/bin/python" -m pytest "$STAGING_DIR/tests" -q --last-failed --last-failed-no-failures none >>"$TEST_LOG" 2>&1; then
+        gate_rc=0
+        flaky_note="
 (1차 전체 테스트에서 떨어진 테스트가 재실행에서 모두 통과 — 부하로 인한 일시 실패로 보고 반영함. 반복되면 확인 필요)"
-      log "1차 실패 테스트가 재실행에서 통과 — 일시 실패로 보고 계속"
+        log "1차 실패 테스트가 재실행에서 통과 — 일시 실패로 보고 계속"
+      fi
     fi
-  fi
-  if [ "$gate_rc" -ne 0 ]; then
-    tests_ok=0
-  fi
-  # runner.py는 프로젝트 venv 없이 시스템 python3로 도는
-  # stdlib-only 프로세스라(core/resource_guard.py 주석 참고), 시스템 python3로 검증한다.
-  # pytest는 프로젝트 venv에만 설치돼 있고 시스템 python3에는 없다(stdlib-only라는 전제와
-  # 모순되므로 여기 설치하지 않는다) — 테스트 파일이 unittest.TestCase라 표준 라이브러리
-  # unittest만으로 그대로 돌아간다. 상대 임포트(`from runner import ...`)가 풀리려면 각 테스트
-  # 파일이 있는 디렉터리에서 실행해야 한다(`python -m` 이 실행 당시 작업 디렉터리를 sys.path에
-  # 넣어주는 동작에 의존).
-  if ! sudo -n -u "$SERVICE_USER" timeout 60 bash -c \
-        "cd '$STAGING_DIR/deploy/codex_telegram' && python3 -m unittest test_runner" >>"$TEST_LOG" 2>&1; then
-    tests_ok=0
+    if [ "$gate_rc" -ne 0 ]; then
+      tests_ok=0
+    fi
+    # runner.py는 프로젝트 venv 없이 시스템 python3로 도는
+    # stdlib-only 프로세스라(core/resource_guard.py 주석 참고), 시스템 python3로 검증한다.
+    # pytest는 프로젝트 venv에만 설치돼 있고 시스템 python3에는 없다(stdlib-only라는 전제와
+    # 모순되므로 여기 설치하지 않는다) — 테스트 파일이 unittest.TestCase라 표준 라이브러리
+    # unittest만으로 그대로 돌아간다. 상대 임포트(`from runner import ...`)가 풀리려면 각 테스트
+    # 파일이 있는 디렉터리에서 실행해야 한다(`python -m` 이 실행 당시 작업 디렉터리를 sys.path에
+    # 넣어주는 동작에 의존).
+    if ! sudo -n -u "$SERVICE_USER" timeout 60 bash -c \
+          "cd '$STAGING_DIR/deploy/codex_telegram' && python3 -m unittest test_runner" >>"$TEST_LOG" 2>&1; then
+      tests_ok=0
+    fi
+
+  else
+    log "VM 테스트 생략(${gate_mode}) — ${gate_note#?}"
   fi
 
   if [ "$tests_ok" -eq 0 ]; then
@@ -302,7 +379,7 @@ $truncated_test_output"
     exit 1
   fi
 
-  log "테스트 통과 (tests/ + deploy 유닛테스트) — 운영 폴더를 ${remote_head:0:7} 로 반영"
+  log "관문 통과(${gate_mode}) — 운영 폴더를 ${remote_head:0:7} 로 반영"
   cleanup_staging
   trap - EXIT
 fi
@@ -378,7 +455,7 @@ $unhealthy_services
 
   message="[자동배포] 성공
 ${recovery_note}${local_head:0:7}..${new_head:0:7} ($commit_count 커밋)
-${deps_note}재시작: ${SERVICES[*]} (재시작 후 상태 확인 완료)${flaky_note:-}
+${deps_note}재시작: ${SERVICES[*]} (재시작 후 상태 확인 완료)${flaky_note:-}${gate_note:-}
 
 $commit_summary_short"
   if ! "$ALERT_SCRIPT" "$message"; then

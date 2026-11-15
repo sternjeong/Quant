@@ -131,6 +131,8 @@ def _run(env, **extra) -> subprocess.CompletedProcess:
         "FAKE_STATE": str(env["fake"]),
         "FAKE_APP": str(env["app"]),
         "FAKE_DEV": str(env["dev"]),
+        # 기존 흐름 테스트는 VM 에서 직접 테스트하는 경로(off)를 본다. GitHub Actions 관문은 아래 CI 테스트가 따로 본다.
+        "AUTO_DEPLOY_CI_GATE": "off",
     }
     full_env.update(extra)
     return subprocess.run(["bash", str(AUTO_DEPLOY)], env=full_env, capture_output=True, text=True, timeout=120)
@@ -352,3 +354,99 @@ def test_gate_happens_before_the_live_fast_forward_in_the_script():
     assert "pull --ff-only 2>&1" not in text  # 운영 폴더를 테스트 전에 옮기는 pull 은 없다
     for forbidden in ("reset --hard", "git clean", "stash"):
         assert forbidden not in text.replace("`git reset --hard`, `git clean`", "").replace("stash/drop", "")
+
+
+# --- 2026-11-15: GitHub Actions 테스트 관문 / 기록 파일만 바뀐 커밋 (docs/COMPUTE_OFFLOAD_DESIGN.md) ---------------------
+
+
+def _ci(env, state: str) -> dict:
+    """ci_status.py 대신 FAKE_STATE/ci_state 를 읽어 출력하는 스텁으로 CI 관문을 켠다."""
+    stub = env["bin"] / "fake_ci_status"
+    stub.write_text('#!/usr/bin/env bash\necho "ci-query $1" >> "$FAKE_STATE/ci.log"\ncat "$FAKE_STATE/ci_state"\n')
+    stub.chmod(0o755)
+    (env["fake"] / "ci_state").write_text(state + "\n")
+    return {"AUTO_DEPLOY_CI_GATE": "github", "AUTO_DEPLOY_CI_STATUS_CMD": str(stub)}
+
+
+def test_ci_success_deploys_without_running_tests_on_the_vm(env):
+    new = _push(env, gate="fail", app_text="v2")  # VM 에서 돌렸다면 실패했을 커밋 — 돌리지 않았다는 증거
+
+    result = _run(env, **_ci(env, "success\thttps://example.invalid/run/1"))
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert _gate_lines(env) == []
+    assert _git(env["app"], "rev-parse", "HEAD") == new and _restarts(env) != []
+    assert "GitHub Actions 테스트 통과" in _read(env["fake"] / "alerts.log")
+    _assert_staging_gone(env)
+
+
+def test_ci_failure_blocks_deploy_and_alerts_once(env):
+    old = _git(env["app"], "rev-parse", "HEAD")
+    _push(env, gate="pass", app_text="v2")
+    ci = _ci(env, "failure\thttps://example.invalid/run/2")
+
+    result = _run(env, **ci)
+
+    assert result.returncode == 1
+    assert _git(env["app"], "rev-parse", "HEAD") == old and _restarts(env) == [] and _gate_lines(env) == []
+    alerts = _read(env["fake"] / "alerts.log")
+    assert "test-gate" in alerts and "https://example.invalid/run/2" in alerts
+    assert _run(env, **ci).returncode == 0  # 같은 커밋은 다시 묻지도 알리지도 않는다
+    assert _read(env["fake"] / "alerts.log") == alerts
+
+
+def test_ci_pending_waits_quietly_then_falls_back_to_a_low_priority_vm_gate(env):
+    old = _git(env["app"], "rev-parse", "HEAD")
+    new = _push(env, gate="pass", app_text="v2")
+    ci = _ci(env, "pending")
+
+    result = _run(env, **ci)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "대기 중" in result.stdout
+    assert _git(env["app"], "rev-parse", "HEAD") == old and _gate_lines(env) == []
+    assert _read(env["fake"] / "alerts.log") == ""
+
+    result = _run(env, **ci, AUTO_DEPLOY_CI_WAIT_SECONDS="0")  # 기다림이 끝나면 VM 에서 직접 테스트
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert len(_gate_lines(env)) == 1 and _git(env["app"], "rev-parse", "HEAD") == new
+    assert "VM 에서 직접 테스트함" in _read(env["fake"] / "alerts.log")
+
+
+def test_ci_none_or_api_error_counts_as_waiting_not_passing(env):
+    old = _git(env["app"], "rev-parse", "HEAD")
+    _push(env, gate="pass", app_text="v2")
+    for state in ("none", "error\tURLError", ""):
+        result = _run(env, **_ci(env, state))
+        assert result.returncode == 0, result.stdout + result.stderr
+        assert _git(env["app"], "rev-parse", "HEAD") == old
+
+
+def test_data_only_commit_deploys_without_tests_or_ci(env):
+    dev = env["dev"]
+    (dev / "research" / "results" / "x").mkdir(parents=True)
+    (dev / "research" / "results" / "x" / "summary.json").write_text("{}\n")
+    (dev / "docs").mkdir(exist_ok=True)
+    (dev / "docs" / "note.md").write_text("n\n")
+    _git(dev, "add", "-A")
+    _git(dev, "commit", "-q", "-m", "Research job results")
+    _git(dev, "push", "-q", "origin", "main")
+    new = _git(dev, "rev-parse", "HEAD")
+    ci = _ci(env, "pending")
+
+    result = _run(env, **ci)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert _gate_lines(env) == [] and not (env["fake"] / "ci.log").exists()
+    assert _git(env["app"], "rev-parse", "HEAD") == new
+    assert "테스트 없이 반영" in _read(env["fake"] / "alerts.log")
+
+
+def test_code_change_mixed_with_results_still_needs_a_gate(env):
+    dev = env["dev"]
+    (dev / "research" / "results").mkdir(parents=True)
+    (dev / "research" / "results" / "y.json").write_text("{}\n")
+    _push(env, gate="pass", app_text="v2")  # app.txt(코드 자리)도 바뀐다
+
+    result = _run(env, **_ci(env, "pending"))
+
+    assert result.returncode == 0 and "대기 중" in result.stdout
