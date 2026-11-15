@@ -29,6 +29,7 @@ from hub import alpaca_status, contests_page, engine_status, live_status, ops_st
 from hub import satellite_lab_page  # noqa: E402
 from hub import session_resume_page  # noqa: E402
 from hub import contest_scout_page  # noqa: E402
+from hub import planner_page  # noqa: E402
 from hub.status import UnitStatus, get_unit_status  # noqa: E402
 from hub import ui  # noqa: E402
 
@@ -113,6 +114,7 @@ SLOT_ICONS = {
     "streamlit": "📊", "google-otp": "🔐", "code-server": "💻", "scheduler": "⏱", "alpaca": "🧪", "research": "🤖", "satellite-lab": "🛰", "ops": "🛡",
     "report-daily-briefing": "🗞", "report-champion-weekly": "🏆", "report-news-digest": "📰",
     "codex-telegram": "💬", "vm-health": "🩺", "session-resume": "🔁", "contest-scout": "🔭",
+    "planner": "🗓", "notion": "📝",
 }
 KIND_ICONS = {"link": "↗", "web": "🌐", "engine": "⚙", "report": "📄", "alpaca": "🧪", "ops": "🛡", "research": "🤖"}
 
@@ -186,12 +188,16 @@ def _slot_href(slot: AppSlot, host: str) -> str:
         return "/contest-scout"
     if slot.kind == "otp":
         return "/otp"
+    if slot.kind == "planner":
+        return "/planner"
+    if slot.kind == "notion":
+        return planner_page.pl.notion_url()
     return f"/status/{slot.id}"
 
 
 SESSION_KEY_RE = re.compile(r"(claude|codex):[a-z_][a-z0-9_-]{0,31}:[0-9A-Za-z-]{8,64}")
 
-CATEGORY_ORDER = ["앱", "AI 대회", "엔진", "연구·검증", "운영", "리포트"]
+CATEGORY_ORDER = ["할 일", "앱", "AI 대회", "엔진", "연구·검증", "운영", "리포트"]
 REFRESH_SECONDS = 60
 
 
@@ -299,6 +305,10 @@ def render_dashboard(host: str) -> str:
             end = session_resume_page.card_badge(session_resume_page.collect())
         elif slot.kind == "contest_scout":
             end = contest_scout_page.card_badge(contest_scout_page.collect())
+        elif slot.kind == "planner":
+            end = planner_page.card_badge()
+        elif slot.kind == "notion":
+            end = planner_page.notion_badge()
         else:
             end, tone = _slot_unit_pill(slot.unit)
             if slot.unit not in seen_units:
@@ -306,7 +316,7 @@ def render_dashboard(host: str) -> str:
                 unit_tones.append(tone)
             if slot.id == "scheduler":
                 end = ops_status.jobs_badge(jobs) + end
-        external = slot.kind in ("web", "link")
+        external = slot.kind in ("web", "link", "notion")
         groups.setdefault(slot.category, []).append(ui.row(
             slot.title, href=_slot_href(slot, host), icon=SLOT_ICONS.get(slot.id, KIND_ICONS.get(slot.kind, "•")),
             desc=slot.description, end_html=end, external=external))
@@ -460,6 +470,14 @@ def render_contest_scout_page(error: str = "") -> str:
     return ui.page("대회 탐색", body, crumbs=(("/", "개요"), ("/contests", "AI 대회")), refresh=REFRESH_SECONDS)
 
 
+def render_planner_page(*, area: str = "", edit_id: str = "", message: str = "", error: str = "",
+                        values: dict | None = None) -> str:
+    body = (f'<h1>할 일</h1><p class="lead">AI 대회 · 내 프로젝트 · 주식 — 오늘과 이번 주에 할 일입니다.</p>'
+            f'{planner_page.render_body(area=area, edit_id=edit_id, message=message, error=error, values=values)}{_stamp()}')
+    return ui.page("할 일", body, active="/planner", crumbs=(("/", "개요"), ("", "할 일")),
+                   head_extra=planner_page.HEAD_EXTRA)
+
+
 def render_session_resume_page() -> str:
     body = f'<h1>세션 자동 재개</h1>{session_resume_page.render_body(session_resume_page.collect())}{_stamp()}'
     return ui.page("세션 자동 재개", body, crumbs=(("/", "개요"), ("", "운영")), refresh=REFRESH_SECONDS)
@@ -566,9 +584,10 @@ class HubRequestHandler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:
         path = urlparse(self.path).path
         is_contest = path.startswith("/contests/")
+        is_planner = path.startswith("/planner/")
         if path not in ("/research/models", "/processes/toggle", "/processes/confirm", "/rnd/topics",
                         "/otp/code",
-                        "/session-resume/toggle", "/contest-scout/run") and not is_contest:
+                        "/session-resume/toggle", "/contest-scout/run") and not is_contest and not is_planner:
             self._send_html("not found", 404)
             return
         if not _same_origin_post(self.headers):
@@ -603,6 +622,15 @@ class HubRequestHandler(BaseHTTPRequestHandler):
             else:
                 page = contests_page.render_detail(target.rsplit("/", 1)[-1], PAGE_STYLE, error)
                 self._send_html(page or error, 400)
+            return
+
+        if is_planner:
+            target, error, values = planner_page.handle_post(path, form)
+            if error is None:
+                self._redirect(target)
+            else:
+                edit_id = target.partition("?edit=")[2]
+                self._send_html(render_planner_page(edit_id=edit_id, error=error, values=values), 400)
             return
 
         if path == "/rnd/topics":
@@ -700,6 +728,10 @@ class HubRequestHandler(BaseHTTPRequestHandler):
             self._send_html(render_ops_page())
         elif path == "/contest-scout":
             self._send_html(render_contest_scout_page())
+        elif path in ("/planner", "/planner/"):
+            q = parse_qs(urlparse(self.path).query)
+            self._send_html(render_planner_page(area=(q.get("area") or [""])[0], edit_id=(q.get("edit") or [""])[0][:16],
+                                                message=(q.get("msg") or [""])[0][:300]))
         elif path == "/session-resume":
             self._send_html(render_session_resume_page())
         elif path == "/otp":

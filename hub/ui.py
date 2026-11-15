@@ -149,7 +149,7 @@ input,select,textarea{font:inherit;color:inherit}
 @media(max-width:420px){ h1{font-size:1.42rem} .row{padding:13px 12px} .row .end{max-width:44%} }
 """
 
-NAV = (("/", "개요"), ("/ops", "운영"), ("/guide", "설명서"))
+NAV = (("/", "개요"), ("/planner", "할 일"), ("/ops", "운영"), ("/guide", "설명서"))
 
 _LOGOUT_JS = "fetch('/_logout',{method:'POST'}).then(function(){location.href='/login'});return false"
 
