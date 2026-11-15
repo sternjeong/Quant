@@ -32,6 +32,7 @@ from hub import idle_sessions_page  # noqa: E402
 from hub import contest_scout_page  # noqa: E402
 from hub import planner_page  # noqa: E402
 from hub import offload_page  # noqa: E402
+from hub import proc_control  # noqa: E402
 from hub.status import UnitStatus, get_unit_status  # noqa: E402
 from hub import ui  # noqa: E402
 
@@ -116,7 +117,7 @@ SLOT_ICONS = {
     "streamlit": "📊", "google-otp": "🔐", "code-server": "💻", "scheduler": "⏱", "alpaca": "🧪", "research": "🤖", "satellite-lab": "🛰", "ops": "🛡",
     "report-daily-briefing": "🗞", "report-champion-weekly": "🏆", "report-news-digest": "📰",
     "codex-telegram": "💬", "vm-health": "🩺", "session-resume": "🔁", "idle-sessions": "🧹", "contest-scout": "🔭",
-    "planner": "🗓", "notion": "📝", "offload": "☁",
+    "planner": "🗓", "notion": "📝", "offload": "☁", "emergency": "⚡",
 }
 KIND_ICONS = {"link": "↗", "web": "🌐", "engine": "⚙", "report": "📄", "alpaca": "🧪", "ops": "🛡", "research": "🤖"}
 
@@ -194,6 +195,8 @@ def _slot_href(slot: AppSlot, host: str) -> str:
         return planner_page.pl.notion_url()
     if slot.kind == "offload":
         return "/offload"
+    if slot.kind == "emergency":
+        return "/emergency"
     return f"/status/{slot.id}"
 
 
@@ -315,6 +318,8 @@ def render_dashboard(host: str) -> str:
             end = planner_page.notion_badge()
         elif slot.kind == "offload":
             end = offload_page.card_badge()
+        elif slot.kind == "emergency":
+            end = proc_control.card_badge()
         else:
             end, tone = _slot_unit_pill(slot.unit)
             if slot.unit not in seen_units:
@@ -484,6 +489,12 @@ def render_planner_page(*, area: str = "", edit_id: str = "", message: str = "",
                    head_extra=planner_page.HEAD_EXTRA)
 
 
+def render_emergency_page(message: str = "") -> str:
+    body = (f'<h1>과부하 비상 정지</h1><p class="lead">CPU·메모리가 꽉 찼을 때 무거운 작업을 멈춥니다.</p>'
+            f'{proc_control.render_body(message=message)}{_stamp()}')
+    return ui.page("과부하 비상 정지", body, crumbs=(("/", "개요"), ("", "운영")))
+
+
 def render_offload_page(*, error: str = "", values: dict | None = None) -> str:
     body = (f'<h1>클라우드 작업</h1><p class="lead">무거운 계산을 VM 대신 Claude 클라우드 컴퓨터에 맡깁니다.</p>'
             f'{offload_page.render_body(error=error, values=values)}{_stamp()}')
@@ -615,7 +626,7 @@ class HubRequestHandler(BaseHTTPRequestHandler):
             self._planner_api(path.removeprefix("/planner/api/"))
             return
         if path not in ("/research/models", "/processes/toggle", "/processes/confirm", "/rnd/topics",
-                        "/otp/code", "/offload/submit",
+                        "/otp/code", "/offload/submit", "/emergency/signal", "/emergency/bulk",
                         "/session-resume/toggle", "/contest-scout/run",
                         "/idle-sessions/close", "/idle-sessions/auto", "/idle-sessions/exclude") and not is_contest and not is_planner:
             self._send_html("not found", 404)
@@ -652,6 +663,20 @@ class HubRequestHandler(BaseHTTPRequestHandler):
             else:
                 page = contests_page.render_detail(target.rsplit("/", 1)[-1], PAGE_STYLE, error)
                 self._send_html(page or error, 400)
+            return
+
+        if path in ("/emergency/signal", "/emergency/bulk"):
+            if path == "/emergency/signal":
+                sig = (form.get("sig") or [""])[0]
+                pid = (form.get("pid") or [""])[0]
+                results = proc_control.send(sig, [int(pid)]) if pid.isdigit() and sig in proc_control.SIGNAL_LABELS else []
+            else:
+                mode = (form.get("mode") or [""])[0]
+                sig = "STOP" if mode == "pause_heavy" else "CONT"
+                results = proc_control.bulk(mode)
+            from urllib.parse import quote
+
+            self._redirect("/emergency?msg=" + quote(proc_control.summarize(sig, results)))
             return
 
         if path == "/offload/submit":
@@ -807,6 +832,9 @@ class HubRequestHandler(BaseHTTPRequestHandler):
             q = parse_qs(urlparse(self.path).query)
             self._send_html(render_planner_page(area=(q.get("area") or [""])[0], edit_id=(q.get("edit") or [""])[0][:16],
                                                 message=(q.get("msg") or [""])[0][:300]))
+        elif path in ("/emergency", "/emergency/"):
+            msg = (parse_qs(urlparse(self.path).query).get("msg") or [""])[0][:300]
+            self._send_html(render_emergency_page(msg), no_store=True)
         elif path in ("/offload", "/offload/"):
             self._send_html(render_offload_page())
         elif path.startswith("/offload/"):

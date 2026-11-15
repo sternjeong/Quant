@@ -63,6 +63,9 @@ CLASSIFY: list[tuple[re.Pattern, str]] = [(re.compile(p), d) for p, d in [
     (r"\bsshd\b", "SSH 접속"),
     (r"^(-?bash|sh|zsh)\b", "셸"),
     (r"systemd --user|\(sd-pam\)", "사용자 systemd(내부)"),
+    (r"make_dataset\.py", "C6000 데이터셋 빌드(make_dataset)"),
+    (r"qemu-x86_64.*?/(\w+)\.x86", "TI 컴파일러 {0} (qemu 에뮬레이션)"),
+    (r"python3?(?:\.\d+)?\s+(?:-\S+\s+)*(\S+\.py)", "파이썬 {0}"),
 ]]
 SECRET_RE = re.compile(
     r"((?:--)?(?:token|password|passwd|secret|api[-_]?key|auth)[=\s]+)\S+"
@@ -282,7 +285,8 @@ def card_badge() -> str:
 def render_body(services: list[dict], jobs: Optional[list[dict]], tq: Optional[list[dict]],
                 procs: list[dict], upcoming: Optional[list[dict]]) -> str:
     kst = lambda d: d.astimezone(KST).strftime("%m-%d %H:%M") if d else "—"  # noqa: E731
-    parts = ['<p class="subtitle">VM 에서 지금 백그라운드로 돌고 있는 것과 곧 돌 것. 15초마다 새로고침. 읽기 전용.</p>']
+    parts = ['<p class="subtitle">VM 에서 지금 백그라운드로 돌고 있는 것과 곧 돌 것. 15초마다 새로고침. 읽기 전용 — '
+             '멈추려면 <a href="/emergency">⚡ 과부하 비상 정지</a>.</p>']
 
     rows = []
     if jobs is None:

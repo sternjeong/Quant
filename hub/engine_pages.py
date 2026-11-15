@@ -273,14 +273,19 @@ def _scheduler_verdict(unit: UnitStatus, data: dict) -> str:
     counts = health["counts"]
     hard = counts.get("error", 0) + counts.get("missed", 0)
     late = counts.get("overdue", 0)
-    problems = "".join(ui.callout(E(_describe(p)), icon="!", tone="bad" if p["state"] != "overdue" else "warn")
-                       for p in health["problems"])
+    sentences = [_describe(p) for p in health["problems"]]
+    # 문제가 하나면 판정 배너 한 장에 그 문장을 그대로, 여럿이면 배너 아래 한 줄씩(예전엔 배너 + 같은 내용 경고 상자가 겹쳤다).
+    sub = sentences[0] if len(sentences) == 1 else ""
+    listed = "" if len(sentences) <= 1 else ui.row_list(
+        ui.row(text, icon="!", end_html=ui.pill("확인 필요" if p["state"] != "overdue" else "기록 없음",
+                                                "bad" if p["state"] != "overdue" else "warn"))
+        for text, p in zip(sentences, health["problems"]))
     if unit.is_known and not unit.is_active:
-        return ui.verdict("bad", "스케줄러가 멈춰 있습니다", "지금은 어떤 잡도 돌지 않습니다.") + problems
+        return ui.verdict("bad", "스케줄러가 멈춰 있습니다", "지금은 어떤 잡도 돌지 않습니다.") + listed
     if hard:
-        return ui.verdict("bad", f"문제 잡 {hard + late}개", "가장 최근 예정 실행이 실패했거나 놓쳤습니다.") + problems
+        return ui.verdict("bad", f"문제 잡 {hard + late}개", sub or "가장 최근 예정 실행이 실패했거나 놓쳤습니다.") + listed
     if late:
-        return ui.verdict("warn", f"주의: 기록 없는 잡 {late}개", "예정 시각이 지났는데 실행 기록이 없습니다.") + problems
+        return ui.verdict("warn", f"주의: 기록 없는 잡 {late}개", sub or "예정 시각이 지났는데 실행 기록이 없습니다.") + listed
     if not unit.is_known:
         return ui.verdict("muted", "서비스 상태 확인 불가", "잡 기록은 정상입니다. VM 에서 열면 서비스 상태가 보입니다.")
     return ui.verdict("ok", "정상", "스케줄러가 돌고 있고 최근 예정된 잡이 모두 기록됐습니다.")
@@ -378,18 +383,24 @@ def scheduler_body(slot, unit: UnitStatus, data: dict) -> str:
     else:
         next_tile = ui.stat("다음 실행", "—", "켜진 잡 없음", "muted")
     tracking = (health or {}).get("tracking_since")
-    if tracking:
-        track_tile = ui.stat("이력 추적 시작", _kst(tracking).strftime("%m-%d"), _kst(tracking).strftime("%Y-%m-%d부터"))
-    else:
-        track_tile = ui.stat("이력 추적 시작", "—", "기록 없음", "muted")
     parts.append(ui.stats([
         ui.stat("켜진 잡", f"{on}/{len(jobs)}", "켜짐 / 전체", "ok" if on else "muted"),
-        runs_tile, next_tile, track_tile,
+        runs_tile, next_tile,
     ]))
     svc_pill, _ = _unit_pill(unit)
     since = parse_systemd_time(unit.since) if unit.since else None
     svc_desc = f"{slot.unit} · 시작 {_kst_text(since)}" if since else slot.unit
-    parts.append(ui.row_list([ui.row("스케줄러 서비스", icon="⏱", desc=svc_desc, end_html=svc_pill)]))
+    try:
+        from hub import proc_control
+
+        load_pill = proc_control.card_badge()
+    except Exception:  # noqa: BLE001
+        load_pill = ""
+    parts.append(ui.row_list([
+        ui.row("스케줄러 서비스", icon="⏱", desc=svc_desc, end_html=svc_pill),
+        ui.row("과부하 비상 정지", href="/emergency", icon="⚡",
+               desc="CPU·메모리가 꽉 찼을 때 무거운 작업을 일시정지·재개·종료", end_html=load_pill),
+    ]))
 
     try:
         soon = upcoming(jobs, now)
@@ -407,7 +418,8 @@ def scheduler_body(slot, unit: UnitStatus, data: dict) -> str:
     if data["runs_error"]:
         parts.append(ui.callout(E(f"실행 이력을 읽지 못해 14일 막대를 그리지 못했습니다({data['runs_error']})."), icon="!", tone="warn"))
     legend = ("막대 한 칸이 하루(KST)입니다. 초록=성공, 빨강=실패·놓침, 노랑=예정이었는데 기록 없음, 회색=그날 예정 없음·꺼짐, "
-              "가장 어두운 칸=이력 추적 이전 또는 아직 예정 시각 전.")
+              "가장 어두운 칸=이력 추적 이전 또는 아직 예정 시각 전."
+              + (f" 이력은 {_kst(tracking):%Y-%m-%d}부터 기록됩니다." if tracking else ""))
     parts.append(ui.section(f"자동 잡 {len(data['jobs'])}개", f'<p class="muted" style="font-size:.84rem">{E(legend)}</p>'))
     for key, title in CATEGORIES:
         group = [m for m in jobs if m["category"] == key]
