@@ -1,0 +1,11 @@
+[Unit]
+Description=놀고 있는 AI 세션 점검 주기 실행(부팅 5분 후 시작, 이후 10분마다)
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=10min
+Persistent=true
+Unit=quant-session-reaper.service
+
+[Install]
+WantedBy=timers.target

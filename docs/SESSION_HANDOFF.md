@@ -1,3 +1,17 @@
+## 2026-11-15 놀고 있는 Claude 세션 정리(설계 2(a)) — 구현·테스트 통과
+
+- 사용자 요청: "놀고 있는 Claude 세션 정리 기능 진행". 측정: 대화형 claude 19개, 약 5.0GB. 그중 10개(약 2.3GB)는 터미널 입력이 24시간 넘게 없었다(지운 폴더·/tmp 에서 연 세션 포함).
+- 구현:
+  - deploy/session_reaper/reaper.py: root, stdlib, quant-session-reaper.timer 가 10분마다 실행한다.
+    - 판정: 놀고 있음 = 터미널 입력 24시간+ 없음 그리고 최근 60분 트리 CPU 증가 10초 이하. 자동 세션은 working 으로 따로 표시한다.
+    - 대상: claude -p 비대화 실행은 제외한다.
+    - 닫기: 화면 요청 또는 자동 정리(기본 꺼짐)일 때만 한다. 같은 프로세스인지 다시 확인한 뒤 SIGTERM, 남아 있으면 SIGKILL 을 보낸다. 대화 기록은 남는다.
+  - hub/idle_sessions_page.py + /idle-sessions 화면(닫기·취소·자동 정리 제외·자동 정리 스위치), apps_registry 카드.
+  - 설명서: ScriptGuide·OpsSection 추가.
+  - tests/test_session_reaper.py(가짜 /proc).
+- 설치: 처음 한 번 sudo bash /opt/quant/deploy/session_reaper/install.sh(자동배포는 타이머를 설치하지 않음).
+- 결정 대기: 자동 정리를 켤지(기본 꺼짐).
+
 ## 2026-11-15 쓰지 않는 코드 정리(약 9,900줄 삭제) — 구현·관련 테스트 통과, 전체 테스트 뒤 main push
 
 - 사용자 요청: "본 서비스에 필요 없는 코드들 최적화 및 삭제". 화면·스케줄러 잡·스크립트·연구 잡·analysis/ 기록 어디서도 부르지 않고 테스트만 부르던 코드를 지웠다. 동작 변경 없음(서비스 경로 코드는 건드리지 않음).

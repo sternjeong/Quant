@@ -120,6 +120,14 @@ SLOTS: list[AppSlot] = [
         category="운영",
     ),
     AppSlot(
+        id="idle-sessions",
+        title="놀고 있는 AI 세션",
+        description="VM 에 떠 있는 Claude Code 대화 세션 · 오래 입력 없는 세션 닫기로 메모리 회수 · 자동 정리 켜기/끄기 (10분마다 확인)",
+        unit="quant-session-reaper.timer",
+        kind="idle_sessions",
+        category="운영",
+    ),
+    AppSlot(
         id="ops",
         title="운영 상태",
         description="스케줄러 잡 건강 · 백업 · 서버 자원 · 예약 타이머 (텔레그램 알림과 같은 원천)",
