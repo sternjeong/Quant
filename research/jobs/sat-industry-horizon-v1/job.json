@@ -1,0 +1,15 @@
+{
+  "id": "sat-industry-horizon-v1",
+  "title": "주도 세부 산업(49 산업) 1~3개 집중 새틀라이트 — 1·3·6·12개월마다 시장을 7%p 넘게 이기나(생존편향 없는 Ken French, 2008~ 처음 보는 구간 포함, 사전 등록)",
+  "entrypoint": "research/jobs/sat-industry-horizon-v1/run.py",
+  "args": [],
+  "timeout_seconds": 3600,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 28,
+  "revision": 1,
+  "max_memory_mb": 1800,
+  "max_runs": 20
+}
