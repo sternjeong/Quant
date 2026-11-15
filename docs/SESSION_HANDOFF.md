@@ -1,3 +1,12 @@
+## 2026-11-15 sat-horizon-v1 결과(GitHub 실행기, 6분) + sat-horizon-v2 등록
+
+- v1 판정: 1m SKILL_BELOW_TARGET · 3m FAIL_UNDERPOWERED · 6m FAIL · 12m FAIL_UNDERPOWERED. 고른 규칙은 네 기간 모두 REV1M(선택 구간 2009 반등에 끌림).
+- 확인 구간(2013~2024-09)에서 목표에 가장 가까운 것: MOM12_1 × 12m. 평균 E +8.4%p, 중앙 +8.2%p, P(≥7%p) 51%(무작위 25%), E>0 64%.
+  - 현 챔피언 돌파 규칙(BREAKOUT)은 같은 조건에서 −2.8%p.
+  - 1·3·6개월은 어떤 규칙도 +7%p 근처에 못 갔다.
+- v2(결과를 본 뒤의 가설임을 공시): MOM12_1 × 12m 하나만, v1 이 쓰지 않은 1997-01~2001-01 형성분으로 판정한다(CONFIRMED 기준 5개, 생존편향 3%p). GitHub 실행기로 돌린다.
+- GitHub 실행기 경로(.github/workflows/research.yml, PR #6) 첫 사용 성공: 가격 1,000여 종목 받기 포함 6분, 결과 자동 커밋.
+
 ## 2026-11-15 새틀라이트 고르기 규칙 목표 — sat-horizon-v1 사전 등록(구현·스모크 통과, VM 대기)
 
 - 사용자 목표(/goal):
