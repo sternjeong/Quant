@@ -1,0 +1,18 @@
+{
+  "id": "sat-horizon-v2",
+  "title": "12-1 모멘텀 상위 5종목 × 12개월 보유가 아직 보지 않은 1997~2001 에서도 S&P 500 을 7%p 넘게 이기나(v1 결과를 본 뒤 세운 가설, 사전 등록)",
+  "entrypoint": "research/jobs/sat-horizon-v2/run.py",
+  "args": [],
+  "timeout_seconds": 3600,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": [
+    "results.json",
+    "REPORT.md"
+  ],
+  "summary_from": "verdicts",
+  "priority": 29,
+  "revision": 1,
+  "max_memory_mb": 1800,
+  "max_runs": 40
+}
