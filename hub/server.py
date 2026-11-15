@@ -31,6 +31,7 @@ from hub import session_resume_page  # noqa: E402
 from hub import idle_sessions_page  # noqa: E402
 from hub import contest_scout_page  # noqa: E402
 from hub import planner_page  # noqa: E402
+from hub import offload_page  # noqa: E402
 from hub.status import UnitStatus, get_unit_status  # noqa: E402
 from hub import ui  # noqa: E402
 
@@ -115,7 +116,7 @@ SLOT_ICONS = {
     "streamlit": "📊", "google-otp": "🔐", "code-server": "💻", "scheduler": "⏱", "alpaca": "🧪", "research": "🤖", "satellite-lab": "🛰", "ops": "🛡",
     "report-daily-briefing": "🗞", "report-champion-weekly": "🏆", "report-news-digest": "📰",
     "codex-telegram": "💬", "vm-health": "🩺", "session-resume": "🔁", "idle-sessions": "🧹", "contest-scout": "🔭",
-    "planner": "🗓", "notion": "📝",
+    "planner": "🗓", "notion": "📝", "offload": "☁",
 }
 KIND_ICONS = {"link": "↗", "web": "🌐", "engine": "⚙", "report": "📄", "alpaca": "🧪", "ops": "🛡", "research": "🤖"}
 
@@ -191,6 +192,8 @@ def _slot_href(slot: AppSlot, host: str) -> str:
         return "/planner"
     if slot.kind == "notion":
         return planner_page.pl.notion_url()
+    if slot.kind == "offload":
+        return "/offload"
     return f"/status/{slot.id}"
 
 
@@ -310,6 +313,8 @@ def render_dashboard(host: str) -> str:
             end = planner_page.card_badge()
         elif slot.kind == "notion":
             end = planner_page.notion_badge()
+        elif slot.kind == "offload":
+            end = offload_page.card_badge()
         else:
             end, tone = _slot_unit_pill(slot.unit)
             if slot.unit not in seen_units:
@@ -479,6 +484,21 @@ def render_planner_page(*, area: str = "", edit_id: str = "", message: str = "",
                    head_extra=planner_page.HEAD_EXTRA)
 
 
+def render_offload_page(*, error: str = "", values: dict | None = None) -> str:
+    body = (f'<h1>클라우드 작업</h1><p class="lead">무거운 계산을 VM 대신 Claude 클라우드 컴퓨터에 맡깁니다.</p>'
+            f'{offload_page.render_body(error=error, values=values)}{_stamp()}')
+    return ui.page("클라우드 작업", body, crumbs=(("/", "개요"), ("", "운영")), refresh=None if error or values else REFRESH_SECONDS,
+                   head_extra=offload_page.HEAD_EXTRA)
+
+
+def render_offload_detail(job_id: str) -> str | None:
+    body = offload_page.render_detail_body(job_id)
+    if body is None:
+        return None
+    return ui.page("클라우드 작업", body + _stamp(), crumbs=(("/", "개요"), ("/offload", "클라우드 작업"), ("", job_id)),
+                   refresh=REFRESH_SECONDS, head_extra=offload_page.HEAD_EXTRA)
+
+
 def render_session_resume_page() -> str:
     body = f'<h1>세션 자동 재개</h1>{session_resume_page.render_body(session_resume_page.collect())}{_stamp()}'
     return ui.page("세션 자동 재개", body, crumbs=(("/", "개요"), ("", "운영")), refresh=REFRESH_SECONDS)
@@ -591,8 +611,11 @@ class HubRequestHandler(BaseHTTPRequestHandler):
         path = urlparse(self.path).path
         is_contest = path.startswith("/contests/")
         is_planner = path.startswith("/planner/")
+        if path.startswith("/planner/api/"):
+            self._planner_api(path.removeprefix("/planner/api/"))
+            return
         if path not in ("/research/models", "/processes/toggle", "/processes/confirm", "/rnd/topics",
-                        "/otp/code",
+                        "/otp/code", "/offload/submit",
                         "/session-resume/toggle", "/contest-scout/run",
                         "/idle-sessions/close", "/idle-sessions/auto", "/idle-sessions/exclude") and not is_contest and not is_planner:
             self._send_html("not found", 404)
@@ -629,6 +652,14 @@ class HubRequestHandler(BaseHTTPRequestHandler):
             else:
                 page = contests_page.render_detail(target.rsplit("/", 1)[-1], PAGE_STYLE, error)
                 self._send_html(page or error, 400)
+            return
+
+        if path == "/offload/submit":
+            target, error, values = offload_page.handle_submit(form)
+            if error is None:
+                self._redirect(target)
+            else:
+                self._send_html(render_offload_page(error=error, values=values), 400)
             return
 
         if is_planner:
@@ -714,6 +745,25 @@ class HubRequestHandler(BaseHTTPRequestHandler):
             return
         self._redirect("/research")
 
+    def _planner_api(self, action: str) -> None:
+        """`plan` 명령용 JSON API. nginx 를 거친 요청(X-Forwarded-For/X-Real-IP)은 막고 이 VM 안 직접 접속만 받는다."""
+        import json
+
+        local = self.client_address[0] in ("127.0.0.1", "::1")
+        proxied = self.headers.get("X-Forwarded-For") or self.headers.get("X-Real-IP")
+        if not local or proxied or self.headers.get("X-Planner-Client") != "plan-cli":
+            status, payload = 403, {"ok": False, "error": "local plan CLI only"}
+        else:
+            length = min(int(self.headers.get("Content-Length") or 0), 16384)
+            form = parse_qs(self.rfile.read(length).decode("utf-8", "replace"))
+            status, payload = planner_page.handle_api(action, form)
+        body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
     def _redirect(self, location: str) -> None:
         self.send_response(303)
         self.send_header("Location", location)
@@ -757,6 +807,11 @@ class HubRequestHandler(BaseHTTPRequestHandler):
             q = parse_qs(urlparse(self.path).query)
             self._send_html(render_planner_page(area=(q.get("area") or [""])[0], edit_id=(q.get("edit") or [""])[0][:16],
                                                 message=(q.get("msg") or [""])[0][:300]))
+        elif path in ("/offload", "/offload/"):
+            self._send_html(render_offload_page())
+        elif path.startswith("/offload/"):
+            page = render_offload_detail(path.removeprefix("/offload/").strip("/"))
+            self._send_html(page) if page else self._send_html("not found", 404)
         elif path == "/session-resume":
             self._send_html(render_session_resume_page())
         elif path == "/idle-sessions":

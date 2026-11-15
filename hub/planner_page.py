@@ -1,8 +1,9 @@
 """관제 허브 '할 일' 화면 — 오늘 / 이번 주 / 나중 할 일과 AI 대회 마감을 한 화면에(core/planner.py).
 
 라우트(hub/server.py): GET /planner (?area= 분야 거르기, ?edit=<id> 고치기, ?msg=)
-                       POST /planner/add, /planner/update, /planner/done, /planner/undo, /planner/delete, /planner/notion
-대회 마감 항목은 읽기 전용이다 — 누르면 그 대회 화면으로 가고, 마감은 거기서 고친다.
+                       POST /planner/add, /planner/update, /planner/done, /planner/undo, /planner/delete, /planner/notion,
+                            /planner/dismiss (시그널 확인함), /planner/submitted (대회 제출 완료), /planner/refresh (시그널 재계산)
+자동 항목(대회·주식 시그널)은 고칠 수 없다 — 대회는 '제출 완료', 시그널은 '확인함'으로만 지운다.
 """
 
 from __future__ import annotations
@@ -18,6 +19,7 @@ from hub import ui
 E = html.escape
 
 AREA_ICONS = {"AI 대회": "🏁", "프로젝트": "🛠", "주식": "📈", "기타": "📌"}
+SIGNAL_ICONS = {"sell": "🔻", "review": "🔍", "signal": "📡", "rebalance": "🔄"}
 
 FORM_CSS = """<style>
 .pform{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
@@ -49,6 +51,10 @@ def _counts(b: pl.Buckets) -> tuple[int, int, int]:
 
 
 def card_badge(b: Optional[pl.Buckets] = None) -> str:
+    try:
+        pl.refresh_signals()  # 오래됐을 때만 별도 프로세스로 다시 만든다(기다리지 않음)
+    except Exception:  # noqa: BLE001
+        pass
     try:
         b = b or pl.buckets()
     except Exception:  # noqa: BLE001 - 개요는 할 일 파일 문제와 무관하게 떠야 한다
@@ -96,23 +102,32 @@ def _task_row(t: pl.Task, today, area: str) -> str:
         bits.append(t.due[5:].replace("-", "/") + f"({'월화수목금토일'[t.due_date().weekday()]})" if t.due_date() else t.due)
     if t.repeat:
         bits.append(pl.REPEATS.get(t.repeat, t.repeat))
+    if t.origin:
+        bits.append(f"기록: {t.origin}")
     if t.note:
         first = t.note.strip().splitlines()[0]
         bits.append(first[:80] + ("…" if len(first) > 80 else ""))
     link = ""
-    if t.link and t.source != "contest":
+    if t.link and t.source == "signal":
+        link = f' <a class="lnk" href="{E(t.link)}" target="_blank" rel="noopener">앱 ↗</a>'
+    elif t.link and t.source != "contest":
         ext = t.link.startswith("http")
         target = ' target="_blank" rel="noopener"' if ext else ""
         label = "Notion ↗" if "notion." in t.link else ("열기 ↗" if ext else "열기")
         link = f' <a class="lnk" href="{E(t.link)}"{target}>{label}</a>'
     if t.source == "contest":
-        end = _dday(t, today) + f'<a class="btn sm" href="{E(t.link)}">대회</a>'
+        end = (_dday(t, today) + f'<a class="btn sm" href="{E(t.link)}">대회</a>'
+               + _button("submitted", t.id, "제출 완료", area=area, primary=True,
+                         confirm="이 대회를 '제출 완료'로 바꿀까요? 할 일 목록에서 사라집니다."))
+    elif t.source == "signal":
+        end = _dday(t, today) + _button("dismiss", t.id, "확인함", area=area, primary=True)
     elif t.done:
         end = _dday(t, today) + _button("undo", t.id, "되돌리기", area=area)
     else:
         end = (_dday(t, today) + f'<a class="btn sm" href="/planner?edit={E(t.id)}" aria-label="고치기">⋯</a>'
                + _button("done", t.id, "다음 회차" if t.repeat else "완료", area=area, primary=True))
-    return ui.row(t.title, icon=AREA_ICONS.get(t.area, "•"), desc=" · ".join(bits), end_html=end,
+    icon = SIGNAL_ICONS.get(t.kind, "📈") if t.source == "signal" else AREA_ICONS.get(t.area, "•")
+    return ui.row(t.title, icon=icon, desc=" · ".join(bits), end_html=end,
                   title_extra_html=link)
 
 
@@ -205,8 +220,24 @@ def render_body(*, area: str = "", edit_id: str = "", message: str = "", error: 
     lists = (sec("⚠ 기한 지남", b.overdue) + sec("오늘", b.today, empty_hidden=False) + sec("이번 주 (7일 안)", b.week, False)
              + sec("나중", b.later) + sec("언젠가 (마감 없음)", b.someday) + sec("최근 완료", b.done[:20]))
     return (f'{msg}{ui.verdict(tone, title, sub)}{tiles}{form_html}{tabs}{lists}'
-            f'{ui.callout("AI 대회 마감은 <a href=\"/contests\">AI 대회</a>에 등록된 마감이 자동으로 보입니다. 반복 할 일(예: 매주 포트폴리오 점검)은 완료하면 다음 날짜로 넘어갑니다.", icon="💡")}'
-            f'{_notion_form()}')
+            f'{_signals_note()}{ui.callout(AUTO_HELP, icon="💡")}{_notion_form()}')
+
+
+AUTO_HELP = ("따로 적지 않아도 자동으로 보이는 항목: 🏁 아직 제출하지 않은 <a href=\"/contests\">AI 대회</a>(메모의 할 일·사람 몫 포함 — "
+             "제출했으면 '제출 완료'), 🔻 보유 종목 매도·🔍 재검토(포트폴리오 보유 × 최신 챔피언 추천), 📡 관심종목 타점, "
+             "🔄 다음 코어 리밸런싱. 시그널은 '확인함'으로 지웁니다. 주문은 하지 않습니다.")
+
+
+def _signals_note() -> str:
+    st = pl.signals_status()
+    if st["generated_at"] is None:
+        text = "주식 시그널을 처음 계산하는 중입니다(1분 안쪽). 잠시 뒤 새로고침하세요." if st["running"] else "주식 시그널 파일이 아직 없습니다."
+    else:
+        text = f"주식 시그널: {st['age_min']}분 전 계산" + (" · 지금 다시 계산 중" if st["running"] else " · 30분마다 자동 갱신")
+    errs = "".join(ui.note(e, "warn") for e in st["errors"][:3])
+    button = ('<form method="post" action="/planner/refresh" style="display:inline;margin-left:8px">'
+              '<button class="btn sm" type="submit">지금 다시 계산</button></form>')
+    return f'<p class="meta" style="margin-top:14px">{E(text)}{button}</p>{errs}'
 
 
 def _one(form: dict, key: str) -> str:
@@ -217,7 +248,7 @@ def handle_post(path: str, form: dict) -> tuple[str, Optional[str], dict]:
     """(돌아갈 주소, 오류 문구 또는 None, 폼 값). 오류면 서버가 같은 화면을 오류와 함께 다시 그린다."""
     action = path.removeprefix("/planner/")
     area = _one(form, "area")
-    back = "/planner" + (f"?area={quote(area)}" if area in pl.AREAS and action in ("done", "undo") else "")
+    back = "/planner" + (f"?area={quote(area)}" if area in pl.AREAS and action in ("done", "undo", "dismiss") else "")
     fields = {k: _one(form, k) for k in ("title", "area", "due", "project", "link", "note", "repeat")}
     try:
         if action == "add":
@@ -235,12 +266,49 @@ def handle_post(path: str, form: dict) -> tuple[str, Optional[str], dict]:
         if action == "delete":
             pl.delete_task(_one(form, "id"))
             return f"/planner?msg={quote('삭제했습니다.')}", None, {}
+        if action == "dismiss":
+            pl.dismiss(_one(form, "id"))
+            return back, None, {}
+        if action == "submitted":
+            item = _one(form, "id")
+            if not item.startswith("contest:"):
+                raise pl.PlannerError("대회 항목이 아닙니다.")
+            pl.mark_contest_submitted(item.removeprefix("contest:"))
+            return f"/planner?msg={quote('대회를 제출 완료로 바꿨습니다.')}", None, {}
+        if action == "refresh":
+            pl.refresh_signals(force=True)
+            return f"/planner?msg={quote('주식 시그널을 다시 계산합니다. 1분쯤 뒤 새로고침하세요.')}", None, {}
         if action == "notion":
             pl.set_notion_url(_one(form, "url"))
             return f"/planner?msg={quote('Notion 주소를 저장했습니다.')}", None, {}
     except pl.PlannerError as exc:
         return "/planner" + (f"?edit={_one(form, 'id')}" if action == "update" else ""), str(exc), fields
     return "/planner", "알 수 없는 요청입니다.", {}
+
+
+def handle_api(action: str, form: dict) -> tuple[int, dict]:
+    """VM 안의 Claude·Codex 세션이 `plan` 명령으로 부르는 API(로컬 직접 접속만 — server.py 가 확인).
+
+    add: key·title 필수, area·due·project·link·note·origin 선택 → 같은 key 의 열린 할 일은 갱신
+    done: key → 그 할 일 완료(파기)
+    list: project 선택 → 열린 할 일(직접 기록 + 세션 기록)
+    """
+    try:
+        if action == "add":
+            task, created = pl.upsert_by_key(_one(form, "key"), _one(form, "title"), area=_one(form, "area") or "기타",
+                                             due=_one(form, "due"), project=_one(form, "project"), link=_one(form, "link"),
+                                             note=_one(form, "note"), origin=_one(form, "origin"))
+            return 200, {"ok": True, "created": created, "task": task.to_json()}
+        if action == "done":
+            return 200, {"ok": True, "closed": pl.done_by_key(_one(form, "key"))}
+        if action == "list":
+            project = _one(form, "project").strip().lower()
+            items = [t.to_json() for t in pl.list_tasks() if not t.done
+                     and (not project or project in (t.project or "").lower() or project in (t.key or ""))]
+            return 200, {"ok": True, "tasks": items}
+    except pl.PlannerError as exc:
+        return 400, {"ok": False, "error": str(exc)}
+    return 404, {"ok": False, "error": "unknown action"}
 
 
 HEAD_EXTRA = FORM_CSS + QUICK_JS

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from datetime import date, datetime
 
 import pytest
@@ -11,6 +12,7 @@ from core.contests import KST
 from hub import planner_page
 
 NOW = datetime(2026, 11, 18, 10, 0, tzinfo=KST)  # 수요일
+REAL_SIGNAL_TASKS = pl.signal_tasks
 
 
 @pytest.fixture
@@ -18,6 +20,7 @@ def state(tmp_path, monkeypatch):
     path = tmp_path / "planner.json"
     monkeypatch.setattr(pl, "STATE_PATH", path)
     monkeypatch.setattr(pl, "contest_tasks", lambda now=None: [])
+    monkeypatch.setattr(pl, "signal_tasks", lambda path=None: [])
     return path
 
 
@@ -89,12 +92,13 @@ def test_contest_deadlines_show_as_read_only_tasks(tmp_path, monkeypatch):
     from core import contests as ct
 
     monkeypatch.setattr(pl, "STATE_PATH", tmp_path / "planner.json")
+    monkeypatch.setattr(pl, "signal_tasks", lambda path=None: [])
     monkeypatch.setattr(ct, "list_contests", lambda: [
         ct.Contest(slug="demo", title="데모 해커톤", deadline="2026-11-18T23:00", status="진행"),
         ct.Contest(slug="old", title="끝난 대회", deadline="2026-11-18", status="종료"),
         ct.Contest(slug="stale", title="한참 지난 대회", deadline="2026-11-10", status="진행")])
     b = pl.buckets(now=NOW)
-    assert [(t.title, t.source, t.link) for t in b.today] == [("데모 해커톤 마감 23:00", "contest", "/contests/demo")]
+    assert [(t.title, t.source, t.link) for t in b.today] == [("데모 해커톤 제출하기 · 마감 23:00", "contest", "/contests/demo")]
 
 
 def test_page_renders_and_escapes(state):
@@ -130,3 +134,74 @@ def test_dashboard_has_planner_and_notion_slots(state):
     assert page.index("할 일 · 일정") < page.index("퀀트 대시보드")  # 맨 위 묶음
     notion = next(s for s in SLOTS if s.id == "notion")
     assert server._slot_href(notion, "host").startswith("https://")
+
+
+# ---- 2026-11-15: 세션 기록(plan CLI), 주식 시그널, 대회 '제출하기'
+
+def test_upsert_and_done_by_key(state):
+    t, created = pl.upsert_by_key("arbiter:demo-video", "시연 영상 녹화", area="AI 대회", due="+3",
+                                  origin="claude:arbiter", now=NOW)
+    assert created and t.key == "arbiter:demo-video" and t.due == "2026-11-21"
+    t2, created2 = pl.upsert_by_key("arbiter:demo-video", "시연 영상 녹화(3분)", area="AI 대회", due="+2", now=NOW)
+    assert not created2 and t2.id == t.id and len(pl.list_tasks()) == 1
+    assert pl.list_tasks()[0].title == "시연 영상 녹화(3분)"
+    assert pl.done_by_key("arbiter:demo-video", now=NOW) == 1
+    assert pl.done_by_key("arbiter:demo-video", now=NOW) == 0
+    # 끝난 뒤 같은 key 로 다시 기록하면 새 할 일
+    _, created3 = pl.upsert_by_key("arbiter:demo-video", "다시", now=NOW)
+    assert created3
+    with pytest.raises(pl.PlannerError):
+        pl.upsert_by_key("Bad Key!", "x", now=NOW)
+
+
+def test_api_add_list_done(state):
+    status, res = planner_page.handle_api("add", {"key": ["quant:check"], "title": ["백테스트 결과 검토"],
+                                                  "area": ["프로젝트"], "project": ["Quant"]})
+    assert status == 200 and res["created"]
+    status, res = planner_page.handle_api("list", {"project": ["quant"]})
+    assert [t["key"] for t in res["tasks"]] == ["quant:check"]
+    status, res = planner_page.handle_api("done", {"key": ["quant:check"]})
+    assert res["closed"] == 1
+    assert planner_page.handle_api("add", {"key": ["k"], "title": [""]})[0] == 400
+    assert planner_page.handle_api("nope", {})[0] == 404
+
+
+def test_signal_tasks_and_dismiss(state, tmp_path, monkeypatch):
+    from core import planner_signals as ps
+
+    sig = tmp_path / "signals.json"
+    monkeypatch.setattr(ps, "SIGNALS_PATH", sig)
+    monkeypatch.setattr(pl, "signal_tasks", REAL_SIGNAL_TASKS)
+    sig.write_text(json.dumps({"generated_at": "x", "errors": [], "items": ps.review_items([
+        {"ticker": "XLE", "quantity": 6.0, "action": "매도 확인", "due_date": "2026-11-02", "holding_id": 4,
+         "detail": "추천에서 제외", "strategy_role": "코어"}]) + ps.rebalance_items({"core_next": "2026-12-01"})}))
+    b = pl.buckets(now=NOW)
+    assert [t.title for t in b.overdue] == ["XLE 6주 매도하기"]
+    assert b.overdue[0].kind == "sell" and b.overdue[0].source == "signal"
+    assert any("코어 리밸런싱" in t.title for t in b.later)
+    pl.dismiss(b.overdue[0].id, now=NOW)
+    assert pl.buckets(now=NOW).overdue == []
+    with pytest.raises(pl.PlannerError):
+        pl.dismiss("contest:demo", now=NOW)
+
+
+def test_alert_items_keep_recent_only():
+    from core import planner_signals as ps
+
+    rows = [{"id": 1, "ticker": "AAPL", "detected_at": datetime(2026, 11, 17, 21, 0), "message": "골든크로스", "strategy": "MA"},
+            {"id": 2, "ticker": "OLD", "detected_at": datetime(2026, 11, 1, 21, 0), "message": "", "strategy": ""}]
+    items = ps.alert_items(rows, NOW)
+    assert [i["title"] for i in items] == ["AAPL 타점 포착 (MA) — 진입 검토"]
+
+
+def test_contest_task_says_submit_with_memo(tmp_path, monkeypatch):
+    from core import contests as ct
+
+    monkeypatch.setattr(pl, "STATE_PATH", tmp_path / "planner.json")
+    memo = "위비티 · 상금\n할 일 아이디어 제안서 제출\n사람 몫 접수 사이트 가입·제출\n왜 이 등급 ..."
+    monkeypatch.setattr(ct, "list_contests", lambda: [
+        ct.Contest(slug="daegu", title="대구 기후 대회", deadline="2026-11-20T17:00", status="준비", memo=memo)])
+    t = pl.contest_tasks(NOW)[0]
+    assert t.title == "대구 기후 대회 제출하기 · 마감 17:00"
+    assert "아직 시작 전" in t.project
+    assert t.note == "할 일 아이디어 제안서 제출 · 사람 몫 접수 사이트 가입·제출"
