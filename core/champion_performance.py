@@ -47,7 +47,6 @@ DEFAULT_INITIAL_CAPITAL = 10_000.0
 BENCHMARK_TICKER = "SPY"
 BOND_TICKER = "TLT"
 SIXTY_FORTY_EQUITY_WEIGHT = 0.6
-LIVE_MIN_DAYS = cs.BENCHMARK_MIN_LEDGER_DAYS  # 이보다 짧으면 "아직 판단 불가"
 _EPS = 1e-12
 
 SLEEVE_CORE = "코어"
@@ -623,117 +622,6 @@ def rebase_price_to_curve(price: Optional[pd.Series], curve: Optional[pd.Series]
 # ----------------------------------------------------------------------------
 # 실시간(실제 시장 기록) — 백테스트와 섞지 않는다
 # ----------------------------------------------------------------------------
-
-def _load_paper_snapshots() -> list[tuple[date, float]]:
-    from core.db import get_session
-    from core.models import AccountSnapshot
-
-    with get_session() as db:
-        rows = (db.query(AccountSnapshot)
-                .filter(AccountSnapshot.source == "alpaca_paper", AccountSnapshot.as_of.isnot(None))
-                .order_by(AccountSnapshot.as_of, AccountSnapshot.id).all())
-        return [(r.as_of, float(r.equity)) for r in rows if r.equity]
-
-
-def ledger_weight_changes(entries: list[dict]) -> list[dict]:
-    """원장에 저장된 '다음 날 적용 비중'의 변화 기록(신규 편입·비중 변경·제외)."""
-    out = []
-    prev: dict[str, tuple[str, float]] = {}
-    for e in entries:
-        cur = {t: (SLEEVE_CORE, float(w)) for t, w in (e.get("core_weights") or {}).items() if w}
-        cur.update({t: (SLEEVE_SATELLITE, float(w)) for t, w in (e.get("satellite_weights") or {}).items() if w})
-        for t in sorted(set(prev) | set(cur)):
-            before = prev.get(t, (None, 0.0))[1]
-            after = cur.get(t, (None, 0.0))[1]
-            if abs(after - before) <= 1e-6:
-                continue
-            action = "편입" if before <= 1e-9 else ("제외" if after <= 1e-9 else "비중 변경")
-            sleeve = (cur.get(t) or prev.get(t))[0]
-            out.append({"date": e["entry_date"], "ticker": t, "sleeve": sleeve, "action": action,
-                        "weight_before_pct": round(before * 100, 3), "weight_after_pct": round(after * 100, 3)})
-        prev = cur
-    return out
-
-
-def build_live_record(
-    entries: Optional[list[dict]] = None,
-    paper_snapshots: Optional[list[tuple[date, float]]] = None,
-    price_fn: Optional[PriceFn] = None,
-) -> dict:
-    """ChampionLedgerEntry 원장(가상 '따랐다면') + 같은 기간 SPY·60/40 + paper 계좌(있으면).
-
-    entries/paper_snapshots/price_fn 를 주입하면 DB·네트워크 없이 계산한다(테스트).
-    """
-    if entries is None:
-        entries = cs.list_ledger_entries(limit=5000)
-    if paper_snapshots is None:
-        try:
-            paper_snapshots = _load_paper_snapshots()
-        except Exception:  # noqa: BLE001 - 테이블이 없는 옛 DB 등
-            paper_snapshots = []
-    out: dict[str, Any] = {"kind": "live", "n_entries": len(entries), "min_days": LIVE_MIN_DAYS,
-                           "ledger_start_expected": "2026-09-19"}
-    paper = sorted({d: e for d, e in paper_snapshots if e and e > 0}.items())
-    out["paper"] = {
-        "available": bool(paper),
-        "n_snapshots": len(paper),
-        "curve": _series_to_json(pd.Series([e / paper[0][1] for _, e in paper],
-                                           index=pd.to_datetime([d for d, _ in paper]))) if paper else None,
-        "last_equity": paper[-1][1] if paper else None,
-        "first_date": paper[0][0].isoformat() if paper else None,
-        "last_date": paper[-1][0].isoformat() if paper else None,
-    }
-    if not entries:
-        out.update({"available": False, "enough": False,
-                    "reason": "원장 기록이 아직 없습니다(매일 밤 기록 잡이 쌓기 시작하면 여기에 나타납니다)."})
-        return out
-
-    ledger = pd.Series([float(e["cumulative_equity"]) / 100.0 for e in entries],
-                       index=pd.to_datetime([e["entry_date"] for e in entries]))
-    base = float(ledger.iloc[0])
-    ledger = ledger / base if base > 0 else ledger
-    out.update({
-        "available": True,
-        "enough": len(entries) >= LIVE_MIN_DAYS,
-        "start_date": entries[0]["entry_date"], "end_date": entries[-1]["entry_date"],
-        "ledger_curve": _series_to_json(ledger),
-        "ledger_total_return_pct": round((float(ledger.iloc[-1]) - 1) * 100, 4),
-        "current_weights": {
-            "core": entries[-1].get("core_weights") or {},
-            "satellite": entries[-1].get("satellite_weights") or {},
-        },
-        "weight_changes": ledger_weight_changes(entries),
-        "daily": [{"date": e["entry_date"], "realized_return_pct": e["realized_return_pct"],
-                   "cumulative_equity": e["cumulative_equity"]} for e in entries],
-    })
-
-    price_fn = price_fn or cs.get_multiple_price_history
-    spy_curve = sixty_curve = None
-    try:
-        hist = price_fn([BENCHMARK_TICKER, BOND_TICKER], start=out["start_date"],
-                        end=(pd.Timestamp(out["end_date"]) + pd.DateOffset(days=1)).date().isoformat(), interval="1d")
-        spy = hist.get(BENCHMARK_TICKER)
-        tlt = hist.get(BOND_TICKER)
-        if spy is not None and not spy.empty:
-            spy_c = spy["Close"].copy()
-            spy_c.index = pd.to_datetime(spy_c.index).tz_localize(None) if getattr(spy_c.index, "tz", None) else pd.to_datetime(spy_c.index)
-            spy_c = spy_c[(spy_c.index >= ledger.index[0]) & (spy_c.index <= ledger.index[-1])]
-            if not spy_c.empty:
-                spy_curve = spy_c / spy_c.iloc[0]
-                if tlt is not None and not tlt.empty:
-                    tlt_c = tlt["Close"].copy()
-                    tlt_c.index = pd.to_datetime(tlt_c.index).tz_localize(None) if getattr(tlt_c.index, "tz", None) else pd.to_datetime(tlt_c.index)
-                    tlt_c = tlt_c.reindex(spy_c.index).ffill()
-                    # compute_benchmark_comparison 과 같은 매수보유 혼합(리밸런싱 없음)
-                    sixty_curve = SIXTY_FORTY_EQUITY_WEIGHT * spy_curve + (1 - SIXTY_FORTY_EQUITY_WEIGHT) * (tlt_c / tlt_c.iloc[0])
-    except Exception as exc:  # noqa: BLE001 - 벤치마크 실패가 원장 표시를 막지 않게
-        out["benchmark_error"] = f"{type(exc).__name__}"
-    out["spy_curve"] = _series_to_json(spy_curve) if spy_curve is not None else None
-    out["sixty_forty_curve"] = _series_to_json(sixty_curve) if sixty_curve is not None else None
-    out["spy_total_return_pct"] = round((float(spy_curve.iloc[-1]) - 1) * 100, 4) if spy_curve is not None else None
-    out["sixty_forty_total_return_pct"] = (round((float(sixty_curve.iloc[-1]) - 1) * 100, 4)
-                                           if sixty_curve is not None else None)
-    return out
 
 
 def format_pct(v: Optional[float], digits: int = 1, signed: bool = True) -> str:

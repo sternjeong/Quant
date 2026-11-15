@@ -273,28 +273,6 @@ def render_monthly_returns_heatmap(monthly_returns: pd.DataFrame, height: int = 
     return style_chart_like_tradingview(fig)
 
 
-def render_trade_pnl_histogram(trades: list, height: int = 220):
-    """완료된 매매의 손익률(%) 분포를 히스토그램으로 그린다 (승리=초록/손실=빨강).
-
-    `trades`는 `return_pct` 속성을 가진 객체 리스트(core.strategy_engine.Trade 등)를 그대로 받는다 —
-    `core.position_sizing.compute_trade_stats()`와 동일한 덕타이핑 관례."""
-    returns = [t.return_pct for t in trades if getattr(t, "return_pct", None) is not None]
-    fig = go.Figure()
-    if returns:
-        wins = [r for r in returns if r > 0]
-        losses = [r for r in returns if r <= 0]
-        if wins:
-            fig.add_trace(go.Histogram(x=wins, marker_color=_DARK["green"], name="승리", opacity=0.85))
-        if losses:
-            fig.add_trace(go.Histogram(x=losses, marker_color=_DARK["red"], name="손실", opacity=0.85))
-    fig.update_layout(
-        height=height, barmode="overlay", showlegend=False,
-        xaxis_title="매매 손익률(%)", yaxis_title="빈도",
-        margin=dict(l=10, r=10, t=10, b=10),
-    )
-    return style_chart_like_tradingview(fig)
-
-
 def render_status_bar(items: list[tuple[str, str]]) -> None:
     """리서치 터미널 상단 상태바처럼, 짧은 라벨·값 쌍을 한 줄 모노스페이스 캡션으로 보여준다.
 
@@ -327,47 +305,6 @@ def render_metric_card(label: str, value: str, tone: str = "neutral", sublabel: 
         f'</div>'
     )
     st.markdown(card_html, unsafe_allow_html=True)
-
-
-def render_verdict_panel(risk_bullets: list[str], permutation_result: Optional[dict] = None) -> None:
-    """전략 검증 요약 패널 — "무엇이 이 결과를 깨뜨릴 수 있는가"(데이터 기반 리스크 신호)와 "통계적으로
-    우연이 아니라고 볼 수 있는가"(순열검정 p-value, 실행했을 때만)를 한 곳에 모아 보여준다.
-
-    검증되지 않은 강한 주장(예: 실제 통과 여부를 알 수 없는데 "PASSES GATE" 같은 배지)을 만들어내지
-    않는다 — 순열검정을 아직 실행하지 않았으면 "미검증" 상태를 그대로 보여준다.
-    """
-    bullets_html = (
-        "".join(f'<li style="margin-bottom:4px;">{html.escape(b)}</li>' for b in risk_bullets)
-        if risk_bullets else
-        f'<li style="color:{_DARK["text_muted"]};">감지된 리스크 신호가 없습니다 (아래 항목 기준).</li>'
-    )
-
-    if permutation_result and permutation_result.get("permuted_metrics"):
-        p_value = permutation_result.get("p_value")
-        if p_value is not None and p_value < 0.05:
-            verdict_color, verdict_label = _DARK["green"], f"✅ 통계적 유의성 확인 (p={p_value:.4f})"
-        else:
-            pv = f"{p_value:.4f}" if p_value is not None else "N/A"
-            verdict_color, verdict_label = _DARK["red"], f"⚠️ 유의성 부족 (p={pv})"
-        verdict_detail = (
-            f"순열(무작위 재배열 데이터) {permutation_result.get('n_permutations', '?')}개 중 "
-            f"상위 {100 - permutation_result.get('percentile', 0):.1f}% 수준"
-        )
-    else:
-        verdict_color, verdict_label = _DARK["text_muted"], "🔬 미검증"
-        verdict_detail = "'순열검정' 탭에서 실행하면 우연(노이즈)만으로 이런 결과가 나올 확률(p-value)을 확인할 수 있습니다."
-
-    # (render_metric_card와 동일한 이유로) 태그 전체를 한 줄로 압축한다.
-    panel_html = (
-        f'<div style="background:{_DARK["bg_secondary"]};border:1px solid {_DARK["border"]};border-left:3px solid {verdict_color};border-radius:8px;padding:14px 16px;">'
-        f'<div style="font-size:0.72rem;color:{_DARK["text_muted"]};letter-spacing:0.03em;margin-bottom:6px;">⚠️ 무엇이 이 결과를 깨뜨릴 수 있는가</div>'
-        f'<ul style="margin:0 0 12px 0;padding-left:18px;font-size:0.85rem;">{bullets_html}</ul>'
-        f'<div style="font-size:0.72rem;color:{_DARK["text_muted"]};letter-spacing:0.03em;margin-bottom:4px;">검증 결과 (VERDICT)</div>'
-        f'<div style="font-family:{_MONO};font-size:0.95rem;color:{verdict_color};font-weight:600;">{html.escape(verdict_label)}</div>'
-        f'<div style="font-size:0.78rem;color:{_DARK["text_muted"]};margin-top:2px;">{html.escape(verdict_detail)}</div>'
-        f'</div>'
-    )
-    st.markdown(panel_html, unsafe_allow_html=True)
 
 
 # core.market_regime.historical_regime_segments()의 결과를 아무 Plotly Figure에나 겹쳐 그리기 위한

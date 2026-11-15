@@ -235,31 +235,6 @@ def _live_prices(tickers, start=None, end=None, interval="1d", use_cache=True):
     return {t: pd.DataFrame({"Close": base[t]}, index=idx) for t in tickers}
 
 
-def test_live_record_empty_ledger_is_reported_not_faked():
-    live = cp.build_live_record(entries=[], paper_snapshots=[], price_fn=_live_prices)
-    assert live["kind"] == "live"
-    assert live["available"] is False and live["enough"] is False
-    assert "원장 기록이 아직 없습니다" in live["reason"]
-    assert live["paper"]["available"] is False
-    assert "trades" not in live and "curves" not in live
-
-
-def test_live_record_short_ledger_flags_insufficient_and_compares_benchmarks():
-    entries = _entries(5)
-    live = cp.build_live_record(entries=entries, paper_snapshots=[(date(2026, 9, 24), 100_000.0),
-                                                                  (date(2026, 9, 25), 101_000.0)],
-                                price_fn=_live_prices)
-    assert live["available"] is True
-    assert live["enough"] is False  # 5일 < 20일
-    assert live["ledger_total_return_pct"] == pytest.approx((1.005 ** 4 - 1) * 100, abs=1e-3)
-    spy_end = np.linspace(100, 102, 10)[4]
-    assert live["spy_total_return_pct"] == pytest.approx((spy_end / 100 - 1) * 100, abs=1e-3)
-    assert live["sixty_forty_total_return_pct"] is not None
-    actions = {(c["ticker"], c["action"]) for c in live["weight_changes"]}
-    assert ("GLD", "제외") in actions and ("XLU", "편입") in actions
-    assert live["paper"]["available"] is True and live["paper"]["last_equity"] == 101_000.0
-
-
 def test_backtest_does_not_read_live_ledger(tmp_path, synthetic_market, monkeypatch):
     def _boom(*a, **k):
         raise AssertionError("백테스트 계산이 실시간 원장을 읽으면 안 된다")

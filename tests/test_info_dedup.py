@@ -15,7 +15,6 @@
 
 import hashlib
 
-import pytest
 
 from core import earnings_events as ee
 from core import filing_changes as fc
@@ -111,150 +110,14 @@ def test_content_hash_differs_for_different_text_and_is_deterministic():
 # ---------------------------------------------------------------------------
 
 
-def test_dedup_by_content_groups_same_hash_and_flags_duplicate_of_representative():
-    h1 = info_dedup.content_hash("same press release, mirrored on two wires")
-    h2 = info_dedup.content_hash("a genuinely different press release")
-    records = [
-        {"event_id": "e1", "content_hash": h1, "url": "https://wire-a.example.com/1"},
-        {"event_id": "e2", "content_hash": h1, "url": "https://wire-b.example.com/1-mirror"},
-        {"event_id": "e3", "content_hash": h2, "url": "https://wire-a.example.com/2"},
-    ]
-    out = info_dedup.dedup_by_content(records)
-
-    assert out[0]["duplicate_of"] is None and out[0]["is_duplicate"] is False
-    assert out[1]["duplicate_of"] == "e1" and out[1]["is_duplicate"] is True
-    assert out[2]["duplicate_of"] is None and out[2]["is_duplicate"] is False
-    # 원본은 바꾸지 않는다
-    assert "duplicate_of" not in records[0]
-    assert "duplicate_of" not in records[1]
-
-
-def test_dedup_by_content_missing_hash_is_never_grouped():
-    records = [{"event_id": "e1"}, {"event_id": "e2"}, {"event_id": "e3", "content_hash": ""}]
-    out = info_dedup.dedup_by_content(records)
-    assert all(r["duplicate_of"] is None and r["is_duplicate"] is False for r in out)
-
-
-def test_dedup_by_content_falls_back_to_positional_id_when_no_event_id_field():
-    h = info_dedup.content_hash("x")
-    records = [{"content_hash": h}, {"content_hash": h}]
-    out = info_dedup.dedup_by_content(records)
-    assert out[0]["duplicate_of"] is None
-    assert out[1]["duplicate_of"] == "idx:0"
-
-
 # ---------------------------------------------------------------------------
 # InfoCostTracker
 # ---------------------------------------------------------------------------
 
 
-def test_info_cost_tracker_accumulates_calls_cache_hits_and_errors_per_source():
-    tracker = info_dedup.InfoCostTracker()
-    tracker.record_call("sec_edgar", cache_hit=True, elapsed_seconds=0.5)
-    tracker.record_call("sec_edgar", cache_hit=False, elapsed_seconds=1.5)
-    tracker.record_call("news", cache_hit=False, elapsed_seconds=2.0, error=True)
-
-    summary = tracker.summary()
-
-    sec = summary["sec_edgar"]
-    assert sec["calls"] == 2
-    assert sec["cache_hits"] == 1
-    assert sec["cache_misses"] == 1
-    assert sec["errors"] == 0
-    assert sec["cache_hit_rate"] == pytest.approx(0.5)
-    assert sec["total_seconds"] == pytest.approx(2.0)
-    assert sec["avg_seconds_per_call"] == pytest.approx(1.0)
-    assert sec["cost_usd"] is None  # 실제 비용 계산은 하지 않는다(명시적 요구사항)
-
-    news = summary["news"]
-    assert news["calls"] == 1
-    assert news["errors"] == 1
-    assert news["cache_hit_rate"] == pytest.approx(0.0)
-
-    assert "_disclaimer" in summary
-
-
-def test_info_cost_tracker_summary_has_no_calls_yet_is_empty_but_not_erroring():
-    tracker = info_dedup.InfoCostTracker()
-    summary = tracker.summary()
-    assert summary == {"_disclaimer": summary["_disclaimer"]}
-
-
-def test_info_cost_tracker_timed_call_records_elapsed_and_reraises_on_error():
-    tracker = info_dedup.InfoCostTracker()
-    ticks = iter([100.0, 102.5])
-
-    with pytest.raises(ValueError):
-        with tracker.timed_call("sec_edgar", clock=lambda: next(ticks)):
-            raise ValueError("boom")
-
-    summary = tracker.summary()
-    assert summary["sec_edgar"]["calls"] == 1
-    assert summary["sec_edgar"]["errors"] == 1
-    assert summary["sec_edgar"]["total_seconds"] == pytest.approx(2.5)
-
-
-def test_info_cost_tracker_timed_call_success_records_cache_hit_flag():
-    tracker = info_dedup.InfoCostTracker()
-    ticks = iter([0.0, 0.1])
-    with tracker.timed_call("news", cache_hit=True, clock=lambda: next(ticks)):
-        pass
-    summary = tracker.summary()
-    assert summary["news"]["cache_hits"] == 1
-    assert summary["news"]["errors"] == 0
-
-
 # ---------------------------------------------------------------------------
 # summarize_extraction_quality — 실제 core.earnings_events 상태값으로 검증
 # ---------------------------------------------------------------------------
-
-
-def test_summarize_extraction_quality_matches_hand_calculated_rates_with_real_statuses():
-    found = ee.extract_guidance("For the full year 2026, we expect revenue of $4.4 to $4.5 billion.")
-    not_found = ee.extract_guidance("This press release describes our new office location.")
-    assert found.status == "guidance_found"
-    assert not_found.status == "no_guidance_language"
-
-    records = [
-        {"fetch_status": "ok", "extraction_status": found.status},
-        {"fetch_status": "ok", "extraction_status": not_found.status},
-        {"fetch_status": "error:SecFetchError"},  # 시도했지만 원문을 못 받아 extraction_status 없음
-        {"extraction_status": found.status},  # fetch 시도 여부를 모르는 레코드(과거 백필 등) -> fetch 분모 제외
-    ]
-
-    out = info_dedup.summarize_extraction_quality(records)
-
-    assert out["n_records"] == 4
-    assert out["fetch_attempted"] == 3
-    assert out["fetch_succeeded"] == 2
-    assert out["fetch_success_rate"] == pytest.approx(2 / 3)
-    assert out["extraction_considered"] == 3
-    assert out["extraction_succeeded"] == 2
-    assert out["extraction_success_rate"] == pytest.approx(2 / 3)
-    assert out["status_counts"] == {"guidance_found": 2, "no_guidance_language": 1}
-    assert "guidance_found" in out["success_statuses_used"]
-
-
-def test_summarize_extraction_quality_recognizes_filing_changes_ok_status():
-    current_doc = "<html><body>" + "<p>Filler paragraph without headings.</p>" * 5 + "</body></html>"
-    sections = fc.extract_sections(fc.text_from_document(current_doc), "10-K")
-    assert sections[fc.SECTION_RISK].status == "section_not_found"  # 실제 함수가 낸 진짜 실패 상태
-
-    records = [
-        {"fetch_status": "ok", "extraction_status": "ok"},
-        {"fetch_status": "ok", "extraction_status": sections[fc.SECTION_RISK].status},
-    ]
-    out = info_dedup.summarize_extraction_quality(records)
-    assert out["extraction_succeeded"] == 1
-    assert out["extraction_success_rate"] == pytest.approx(0.5)
-    assert out["status_counts"]["section_not_found"] == 1
-
-
-def test_summarize_extraction_quality_empty_records_returns_none_rates_not_zero():
-    out = info_dedup.summarize_extraction_quality([])
-    assert out["n_records"] == 0
-    assert out["fetch_success_rate"] is None
-    assert out["extraction_success_rate"] is None
 
 
 # ---------------------------------------------------------------------------

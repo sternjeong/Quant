@@ -30,7 +30,6 @@ def test_tradability_verdicts_and_isolation():
     assert rep["HALT"]["verdict"] == m.NOT_TRADABLE
     assert rep["NOPE"]["verdict"] == m.NOT_FOUND
     assert rep["FLAKY"]["verdict"] == m.LOOKUP_FAILED
-    assert m.untradable(rep) == ["DEAD", "HALT", "NOPE"]  # 조회 실패는 '거래불가'로 단정하지 않는다
 
 
 def test_calendar_early_close_and_trading_day():

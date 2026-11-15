@@ -13,8 +13,7 @@ core.kostolany_cycle.STYLE_PHASE_STATUS를 그대로 재사용한다:
 데이터만 사용하는 rolling 윈도) 벡터화한 것 — 두 구현이 같은 날에 같은 국면을 내는지는
 tests/test_kostolany_scenario_engine.py에서 직접 대조 검증한다.
 
-core.sector_strength.THEME_UNIVERSE의 모든 섹터/테마 각각에 대해 이 시나리오를 돌릴 수 있다
-(run_theme_scenarios). 매수 후 보유(buy & hold) 대비 성과 비교는 core.backtest_engine의 기존
+매수 후 보유(buy & hold) 대비 성과 비교는 core.backtest_engine의 기존
 지표 계산(calculate_metrics)과 거래 추출(core.strategy_engine.extract_trades)을 그대로 재사용한다.
 """
 
@@ -40,8 +39,6 @@ from core.indicators import roc
 from core.kostolany_cycle import (
     DEFAULT_LOOKBACK_DAYS,
     STEEP_ROC_PCT,
-    STYLE_LABELS,
-    STYLE_ORDER,
     STYLE_PHASE_STATUS,
     TREND_ROC_WINDOW,
     VOLUME_HIGH_RATIO,
@@ -433,7 +430,7 @@ def compute_theme_scenario_runs(
     bidirectional: bool = False,
 ) -> dict[str, KostolanyScenarioRun]:
     """THEME_UNIVERSE의 모든 섹터/테마에 코스톨라니 매매 시나리오를 돌려 각각의 실행 결과(개별 매매
-    내역 포함)를 그대로 보존한다. run_theme_scenarios()가 요약표를 만들 때 쓰는 원본 데이터이자,
+    내역 포함)를 그대로 보존한다. 요약표를 만들 때 쓰는 원본 데이터이자,
     UI에서 특정 섹터를 클릭해 "언제 어디서 샀는지" 드릴다운할 때 필요한 run.trades를 여기서 얻는다.
 
     Returns: {theme: KostolanyScenarioRun}. 데이터 부족으로 계산 불가한 테마는 제외.
@@ -457,7 +454,7 @@ def compute_theme_scenario_runs(
 
 
 def scenario_runs_to_summary_df(runs: dict[str, KostolanyScenarioRun], style: str = DEFAULT_STYLE) -> pd.DataFrame:
-    """compute_theme_scenario_runs() 결과를 한 표로 요약한다 (컬럼 정의는 run_theme_scenarios 참고).
+    """compute_theme_scenario_runs() 결과를 한 표로 요약한다 .
 
     섹터 자체의 매수보유(bh_*) 뿐 아니라 같은 기간 S&P500 매수보유(bench_*)도 항상 함께 담는다 —
     "이 결과가 그냥 시장 지수보다 나은지"를 표만 봐도 바로 비교할 수 있도록(2026-07-21 사용자 요청).
@@ -497,38 +494,6 @@ def scenario_runs_to_summary_df(runs: dict[str, KostolanyScenarioRun], style: st
     if not rows:
         return pd.DataFrame(columns=columns)
     return pd.DataFrame(rows)[columns].sort_values("excess_return", ascending=False).reset_index(drop=True)
-
-
-def run_theme_scenarios(
-    style: str = DEFAULT_STYLE,
-    theme_universe: Optional[dict[str, list[str]]] = None,
-    start: Optional[str] = None,
-    end: Optional[str] = None,
-    monthly_contribution: float = 0.0,
-    bidirectional: bool = False,
-) -> pd.DataFrame:
-    """THEME_UNIVERSE의 모든 섹터/테마에 코스톨라니 매매 시나리오를 돌려 성과를 한 표로 모은다.
-
-    Returns:
-        columns: theme, style, cumulative_return, cagr, mdd, sharpe, win_rate, trade_count,
-        bh_cumulative_return, bh_cagr, bh_mdd, excess_return(코스톨라니 전략 누적수익률 - 그 섹터
-        매수보유 누적수익률, %p), bench_cumulative_return, bench_cagr, bench_mdd(같은 기간 S&P500
-        매수보유), excess_return_vs_benchmark(코스톨라니 전략 누적수익률 - S&P500 매수보유 누적수익률,
-        %p) — excess_return(섹터 자체 매수보유 대비) 내림차순 정렬.
-
-    monthly_contribution > 0이면 세 곡선 모두 적립식(DCA)으로 계산한다 — cumulative_return은 원금
-    대비 손익률, cagr은 XIRR로 재정의된다(calculate_contribution_metrics 참고). bidirectional=True면
-    monthly_contribution은 무시된다(run_kostolany_scenario 참고).
-    """
-    runs = compute_theme_scenario_runs(
-        style=style,
-        theme_universe=theme_universe,
-        start=start,
-        end=end,
-        monthly_contribution=monthly_contribution,
-        bidirectional=bidirectional,
-    )
-    return scenario_runs_to_summary_df(runs, style=style)
 
 
 # ============================================================================

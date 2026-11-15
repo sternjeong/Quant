@@ -30,10 +30,8 @@ import traceback
 from datetime import date, datetime
 from typing import Any, Optional
 
-import pandas as pd
 
 from core.candidate_ledger import (
-    FrozenCandidateSet,
     champion_satellite_to_candidate_set,
     record_candidate_set,
     sector_leaders_to_candidate_set,
@@ -49,10 +47,6 @@ STOCK_DISCOVERY_SELECTED_N = 10
 STOCK_DISCOVERY_STRATEGY_VERSION = "stock_discovery_sector_rank_v2"
 SECTOR_LEADERS_STRATEGY_VERSION = "sector_leaders_v2"
 CHAMPION_SATELLITE_SOURCE_STRATEGY_PREFIX = "champion_satellite"
-
-
-def _now_utc_naive() -> datetime:
-    return datetime.utcnow()
 
 
 def _cutoff_for(as_of: date) -> datetime:

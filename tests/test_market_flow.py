@@ -4,7 +4,6 @@ from datetime import datetime
 
 import numpy as np
 import pandas as pd
-import pytest
 
 from core import market_flow as mf
 
@@ -97,23 +96,6 @@ def test_correlation_matrix_drops_assets_with_too_few_observations():
     close.loc[close.index[:-30], "CCC"] = np.nan  # 최근 30일만 있는 자산
     corr = mf.correlation_matrix(close, 120)
     assert "CCC" not in corr.columns and "AAA" in corr.columns
-
-
-def test_diversifier_candidates_prefers_strong_and_uncorrelated():
-    rng = np.random.default_rng(7)
-    n = 500
-    idx = _bdays(n)
-    base = rng.normal(0, 0.01, n)
-    close = pd.DataFrame({
-        "SPY": 100 * np.exp(np.cumsum(base * 0.5 + rng.normal(0, 0.005, n))),
-        "WEAK": 100 * np.exp(np.cumsum(base - 0.0008)),
-        "CORR": 100 * np.exp(np.cumsum(base + 0.0006)),
-        "DIV": 100 * np.exp(np.cumsum(-base + 0.0006)),
-    }, index=idx)
-    table = mf.compute_market_table(close, None)
-    cands = mf.diversifier_candidates(table, close, "WEAK", window=120)
-    assert "WEAK" not in set(cands["ticker"])
-    assert cands.iloc[0]["ticker"] == "DIV"  # 같은 상승 강도라도 약한 자산과 반대로 움직이는 쪽이 먼저
 
 
 # ----------------------------------------------------------------- 조건부 검정

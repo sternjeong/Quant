@@ -310,32 +310,3 @@ def evaluate_expression(df: pd.DataFrame, expression: str) -> pd.Series:
     )
 
 
-_SYNTAX_CHECK_DF: pd.DataFrame | None = None
-
-
-def _synthetic_ohlcv_df() -> pd.DataFrame:
-    """문법 사전 검증용 합성 OHLCV DataFrame (네트워크 없이 빠르게 함수 실행 가능 여부만 확인)."""
-    global _SYNTAX_CHECK_DF
-    if _SYNTAX_CHECK_DF is not None:
-        return _SYNTAX_CHECK_DF
-    rng = np.random.default_rng(0)
-    n = 300
-    idx = pd.bdate_range("2023-01-02", periods=n)
-    close = 100 + np.cumsum(rng.normal(0, 1, n))
-    high = close + rng.uniform(0, 1, n)
-    low = close - rng.uniform(0, 1, n)
-    open_ = close + rng.normal(0, 0.5, n)
-    volume = rng.integers(1_000, 10_000, n).astype(float)
-    _SYNTAX_CHECK_DF = pd.DataFrame(
-        {"Open": open_, "High": high, "Low": low, "Close": close, "Volume": volume}, index=idx
-    )
-    return _SYNTAX_CHECK_DF
-
-
-def validate_syntax(expression: str) -> None:
-    """실제 종목 데이터 없이 합성 데이터로 수식을 미리 실행해 문법/변수/함수 오류를 빠르게 잡는다.
-
-    성공하면 아무것도 반환하지 않고, 문제가 있으면 ExpressionError 를 던진다
-    (호출부는 이를 잡아 st.error 등으로 그대로 보여주면 된다).
-    """
-    evaluate_expression(_synthetic_ohlcv_df(), expression)

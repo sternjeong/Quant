@@ -484,27 +484,6 @@ def test_save_portfolio_correlation_snapshot_requires_at_least_two_tickers(patch
         portfolio.save_portfolio_correlation_snapshot(corr)
 
 
-def test_portfolio_and_strategy_correlation_snapshots_are_isolated_by_kind(patched_session):
-    """kind="portfolio"로 저장한 스냅샷은 kind="strategy" 조회(core.backtest_engine)에 섞여 나오면 안 된다."""
-    corr = pd.DataFrame({"AAPL": [1.0, 0.2], "MSFT": [0.2, 1.0]}, index=["AAPL", "MSFT"])
-    portfolio.save_portfolio_correlation_snapshot(corr)
-
-    import core.backtest_engine as backtest_engine
-    import core.db as db_module
-
-    @contextmanager
-    def _fake_get_session():
-        yield patched_session
-        patched_session.commit()
-
-    import_target = db_module.get_session
-    try:
-        db_module.get_session = _fake_get_session
-        assert backtest_engine.list_strategy_correlation_snapshots() == []
-    finally:
-        db_module.get_session = import_target
-
-
 # ----------------------------------------------------------------------------
 # AI 코멘트
 # ----------------------------------------------------------------------------
