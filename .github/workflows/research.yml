@@ -1,0 +1,116 @@
+name: Research job (GitHub runner)
+
+# 2026-11-15 사용자 지시: 검증 연구 하나를 2코어 VM 대신 GitHub 호스팅 실행기(공개 저장소라 무료, 4 vCPU·16GB, 잡당 6시간)에서 돌린다.
+# 계약은 VM 실행기와 같다(docs/RESEARCH_JOBS.md): python <entrypoint> <args> --out <dir> --checkpoint <dir>, 종료 코드 0=완료·3=진행 중.
+#  - 체크포인트는 actions/cache 로 회차 사이에 넘긴다(키에 실행 번호를 붙여 매번 새로 저장, 가장 최근 것을 복원).
+#  - 5시간 20분 예산(RESEARCH_JOB_DEADLINE_EPOCH)이 끝나 종료 코드 3 이면 이 워크플로를 attempt+1 로 다시 부른다(끊기면 이어서).
+#    그 밖의 실패도 max_attempts 까지 다시 부른다.
+#  - 완료(0)면 outputs 를 research/results/<id>/ 에 커밋해 main 에 올린다. 결과 파일만 바뀐 커밋이라 VM 은 테스트 없이 반영한다.
+# 같은 연구를 VM 실행기도 돌리지 않게, 이 경로로 보내는 연구는 VM 에서 `research_jobs_admin.py cancel <id>` 로 대기를 지운다.
+# 실행: gh workflow run research.yml -f job_id=<id>
+
+on:
+  workflow_dispatch:
+    inputs:
+      job_id:
+        description: research/jobs/<id>
+        required: true
+      attempt:
+        description: 몇 번째 회차(자동 재호출이 올린다)
+        default: "1"
+      max_attempts:
+        description: 이 회차 수를 넘으면 멈춤
+        default: "8"
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: research-${{ inputs.job_id }}
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 350
+    env:
+      JOB_ID: ${{ inputs.job_id }}
+      ATTEMPT: ${{ inputs.attempt }}
+      MAX_ATTEMPTS: ${{ inputs.max_attempts }}
+      TZ: UTC
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check job id
+        run: |
+          case "$JOB_ID" in *[!a-z0-9-]*|"") echo "bad job id"; exit 1;; esac
+          test -f "research/jobs/$JOB_ID/job.json"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            .github/constraints-vm.txt
+
+      - name: Install dependencies (VM versions)
+        run: pip install -r requirements.txt -c .github/constraints-vm.txt
+
+      - name: Restore checkpoint
+        uses: actions/cache/restore@v4
+        with:
+          path: ckpt
+          key: research-ckpt-${{ inputs.job_id }}-${{ github.run_id }}
+          restore-keys: research-ckpt-${{ inputs.job_id }}-
+
+      - name: Run job (5h20m budget)
+        id: run
+        run: |
+          set +e
+          read -r ENTRY ARGS < <(python -c "import json,shlex;j=json.load(open('research/jobs/$JOB_ID/job.json'));print(j['entrypoint'],' '.join(shlex.quote(a) for a in j['args']))")
+          export RESEARCH_JOB_DEADLINE_EPOCH=$(( $(date +%s) + 19200 ))
+          mkdir -p out ckpt
+          echo "attempt $ATTEMPT/$MAX_ATTEMPTS: python $ENTRY $ARGS"
+          timeout 19800 python "$ENTRY" $ARGS --out out --checkpoint ckpt
+          rc=$?
+          echo "exit code $rc"
+          echo "rc=$rc" >> "$GITHUB_OUTPUT"
+
+      - name: Save checkpoint
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: ckpt
+          key: research-ckpt-${{ inputs.job_id }}-${{ github.run_id }}-${{ inputs.attempt }}
+
+      - name: Publish results
+        if: steps.run.outputs.rc == '0'
+        run: |
+          dest="research/results/$JOB_ID"
+          mkdir -p "$dest"
+          python -c "import json,shutil;[shutil.copy('out/'+f,'$dest/'+f) for f in json.load(open('research/jobs/$JOB_ID/job.json'))['outputs']]"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "$dest"
+          git commit -m "Research job results: $JOB_ID ($(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M') KST, GitHub runner)"
+          for i in 1 2 3 4 5; do
+            git pull --rebase origin main && git push origin HEAD:main && exit 0
+            sleep $((i * 10))
+          done
+          exit 1
+
+      - name: Continue in a new run
+        if: always() && steps.run.outputs.rc != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          next=$((ATTEMPT + 1))
+          if [ "$next" -gt "$MAX_ATTEMPTS" ]; then
+            echo "회차 상한 도달 — 멈춤(rc=${{ steps.run.outputs.rc }})"
+            exit 1
+          fi
+          gh workflow run research.yml --ref main -f job_id="$JOB_ID" -f attempt="$next" -f max_attempts="$MAX_ATTEMPTS"
+          echo "다음 회차 $next 호출함"
+          [ "${{ steps.run.outputs.rc }}" = "3" ] || exit 1
