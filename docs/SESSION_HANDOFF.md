@@ -1,3 +1,26 @@
+## 2026-11-15 2코어 VM 부하 줄이기 1단계: 배포 테스트를 GitHub Actions 로 — 구현·관련 테스트 통과, CI 첫 실행 확인 중(PR #2)
+
+- 사용자 요청: "2core 밖에 없는 나에게 과부하되지 않는 설계", "클로드 컴퓨팅 자원을 내 자원처럼 활용하는 설계". 설계 문서 docs/COMPUTE_OFFLOAD_DESIGN.md.
+- 진단(실측): CPU 압박 65~75%, 남은 메모리 약 1.3GB. 큰 소비자는 다음과 같다.
+  - 배포 전 전체 테스트(코드 커밋마다 30~45분)
+  - 대기 중인 Claude CLI 세션 19개(약 4.9GB)
+  - 다른 프로젝트 TI 파이프라인(창 밖 실행)
+  - 대회 vite watch 2개
+  - 연구 실행기는 CPU 가드에 멈춰 진행이 안 됐다(내부자 연구가 회차당 분기 파일 1개).
+- 구현(1단계):
+  - .github/workflows/tests.yml: ARM 4묶음 병렬. VM 패키지 버전은 .github/constraints-vm.txt 로 맞춘다. test-gate 잡을 둔다.
+  - deploy/ci_status.py
+  - auto_deploy.sh: 결과·docs·*.md·스냅샷만 바뀐 커밋은 테스트 없이 반영한다. 나머지는 CI 결과를 따르고, 40분 안에 결과가 없으면 nice 19·ionice idle 로 VM 에서 직접 테스트한다. 끄는 법: AUTO_DEPLOY_CI_GATE=off.
+  - 테스트: test_auto_deploy_flow(CI 경로 6개 추가), test_ci_status.
+  - 설명서: content_ops 자동 배포 절, verified 2026-11-15.
+- 제안(결정 대기, 문서 7절):
+  - 놀고 있는 Claude 세션 정리
+  - systemd 슬라이스로 몫 제한·다른 프로젝트 시간 창
+  - 연구 잡 GitHub Actions 실행(secrets 등록 필요)
+  - 에이전트 작업(프런티어·대회 스카우트)을 Claude 클라우드 예약 루틴으로 이전
+- 함께 대기: prune-dead-code 브랜치(쓰지 않는 코드 약 9,900줄 삭제, 커밋 eb2b666, 전체 테스트 미완료로 main 미반영) — CI 가 들어가면 PR 로 GitHub 에서 테스트.
+- 다음: PR #2 CI 통과 확인 → main 병합(첫 배포는 옛 스크립트라 VM 에서 한 번 더 테스트) → 이후 커밋부터 CI 관문.
+
 ## 2026-11-15 결과 정리 + 세금 v2 재등록 + 내부자·뉴스 연구 등록 + 시총 캐시 오염 수정 — 구현·테스트 완료, main push 대기(전체 테스트 뒤)
 
 - 결과(VM 완료): lev-weight-frontier-v1 MAX_OK_WEIGHT=NONE(10% 가 확인 시대 중앙 +0.23%p 로 수익 문턱 미달해 사슬이 끊김), 실제 통과는 15·20%, 25% 이상은 낙폭 10%p 초과. 프런티어 에이전트(11-14)가 frontier-tax-allowance-v1 등록·완료: H0(SPY+원가 올리기) 관문 5개 두 시대 충족인데 NOT_EVALUABLE — 판정 불가 검사가 매매 뒤 평가액 기준 세전 TWR 만 봐서 정의상 0(측정 결함). 전진 원장 v4 첫 기록 2건(11-12·11-13). e794a74 배포됨.
