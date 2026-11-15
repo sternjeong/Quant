@@ -23,6 +23,7 @@ core.strategy_tuning.sample_universe()에 as_of_date를 넘겨도 종목 편입 
 
 from __future__ import annotations
 
+import hashlib
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -40,7 +41,12 @@ CACHE_DIR.mkdir(parents=True, exist_ok=True)
 # 발행주식수는 분기 단위로만 실제로 바뀌므로 가격 캐시(6시간)보다 훨씬 길게 잡는다 — 매번 다시
 # 받아올 필요가 없다.
 SHARES_CACHE_TTL_SECONDS = 14 * 24 * 60 * 60  # 14일
-_MAX_WORKERS = 10
+# 2026-11-15: 빈 결과는 3일만 믿는다. yfinance 는 401(Invalid Crumb)·429 를 삼키고 None 을 돌려줘 '자료 없음'과 구별이 안 된다 —
+# 11-13 밤 일시 오류가 빈 캐시로 14일 남아 현재 S&P500 60종목(KKR·BX·FICO…)이 시총 순위에서 빠졌다.
+EMPTY_CACHE_TTL_SECONDS = 3 * 24 * 60 * 60
+# 같은 날 채운 캐시 수백 개가 같은 날 한꺼번에 만료돼 Yahoo 를 몰아 치지 않게 종목별로 0~3일 늦춘다.
+TTL_JITTER_SECONDS = 3 * 24 * 60 * 60
+_MAX_WORKERS = 4  # 10 → 4 (2026-11-15): 동시 요청이 429 연쇄를 부른다
 
 
 def _shares_cache_file(ticker: str) -> Path:
@@ -48,21 +54,33 @@ def _shares_cache_file(ticker: str) -> Path:
     return CACHE_DIR / f"shares_outstanding_{safe}.parquet"
 
 
+def _ttl_seconds(ticker: str, empty: bool) -> float:
+    if empty:
+        return EMPTY_CACHE_TTL_SECONDS
+    jitter = int(hashlib.sha1(ticker.encode("utf-8")).hexdigest(), 16) % 1000 / 1000.0
+    return SHARES_CACHE_TTL_SECONDS + jitter * TTL_JITTER_SECONDS
+
+
 def get_shares_outstanding_history(ticker: str, use_cache: bool = True) -> pd.Series:
     """yfinance에서 발행주식수 이력(비정기 보고일 기준 스냅샷)을 받아온다 (파일 캐시 적용).
 
     Returns: 날짜(DatetimeIndex, tz 제거·오름차순) -> 발행주식수 Series. 조회 실패/데이터
         없음이면 빈 Series (예외를 던지지 않음 — core.market_data.get_price_history와 동일 관례).
+        새로 받은 값이 비었는데 예전 캐시에 값이 있으면 예전 값을 그대로 쓴다(일시 오류가 이력을 지우지 않게).
     """
     cache_file = _shares_cache_file(ticker)
+    stale: Optional[pd.Series] = None
     if use_cache and cache_file.exists():
         age = time.time() - cache_file.stat().st_mtime
-        if age < SHARES_CACHE_TTL_SECONDS:
-            try:
-                df = pd.read_parquet(cache_file)
-                return df["shares"].sort_index()
-            except Exception:
-                pass
+        try:
+            cached = pd.read_parquet(cache_file)["shares"].sort_index()
+        except Exception:
+            cached = None
+        if cached is not None:
+            if age < _ttl_seconds(ticker, cached.empty):
+                return cached
+            if not cached.empty:
+                stale = cached
 
     try:
         raw = yf.Ticker(ticker).get_shares_full(start="2000-01-01")
@@ -77,6 +95,8 @@ def get_shares_outstanding_history(ticker: str, use_cache: bool = True) -> pd.Se
     except Exception:
         series = pd.Series(dtype="float64")
 
+    if series.empty and stale is not None:
+        return stale  # 파일은 그대로 둔다(만료 상태 유지) — 다음 호출에서 다시 받아 본다
     if use_cache:
         try:
             pd.DataFrame({"shares": series}).to_parquet(cache_file)

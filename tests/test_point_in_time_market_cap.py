@@ -179,3 +179,39 @@ def test_get_market_caps_asof_batch_returns_dict_for_all_tickers(monkeypatch):
 
 def test_get_market_caps_asof_batch_empty_list():
     assert pit_cap.get_market_caps_asof_batch([], "2019-06-01") == {}
+
+
+def _age(path, seconds):
+    import os
+    import time
+
+    t = time.time() - seconds
+    os.utime(path, (t, t))
+
+
+def test_empty_result_is_retried_after_short_ttl_not_14_days(monkeypatch):
+    """yfinance 는 401·429 를 삼키고 None 을 준다 — 빈 결과를 14일 믿으면 살아 있는 종목이 시총 순위에서 빠진다(2026-11-13)."""
+    answers = [None, _fake_shares_series()]
+    monkeypatch.setattr(pit_cap.yf, "Ticker", lambda t: _FakeTicker(answers.pop(0)))
+    assert pit_cap.get_shares_outstanding_history("KKR").empty
+    f = pit_cap._shares_cache_file("KKR")
+    _age(f, pit_cap.EMPTY_CACHE_TTL_SECONDS - 60)
+    assert pit_cap.get_shares_outstanding_history("KKR").empty and len(answers) == 1   # 아직 3일 안 — 캐시
+    _age(f, pit_cap.EMPTY_CACHE_TTL_SECONDS + 60)
+    assert len(pit_cap.get_shares_outstanding_history("KKR")) == 3                      # 3일 지나면 다시 받는다
+
+
+def test_transient_empty_does_not_overwrite_expired_good_cache(monkeypatch):
+    monkeypatch.setattr(pit_cap.yf, "Ticker", lambda t: _FakeTicker(_fake_shares_series()))
+    pit_cap.get_shares_outstanding_history("BX")
+    f = pit_cap._shares_cache_file("BX")
+    _age(f, pit_cap.SHARES_CACHE_TTL_SECONDS + pit_cap.TTL_JITTER_SECONDS + 60)
+    monkeypatch.setattr(pit_cap.yf, "Ticker", lambda t: _FakeTicker(None))
+    assert len(pit_cap.get_shares_outstanding_history("BX")) == 3                      # 예전 값 유지
+    assert len(pd.read_parquet(f)) == 3
+
+
+def test_ttl_jitter_spreads_expiry_by_ticker():
+    ttls = {pit_cap._ttl_seconds(t, False) for t in ("AAPL", "MSFT", "KKR", "BX", "FICO")}
+    assert len(ttls) > 1
+    assert all(pit_cap.SHARES_CACHE_TTL_SECONDS <= x < pit_cap.SHARES_CACHE_TTL_SECONDS + pit_cap.TTL_JITTER_SECONDS for x in ttls)
