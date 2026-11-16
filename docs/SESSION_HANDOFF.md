@@ -1,3 +1,13 @@
+## 2026-11-16 insider-form4-v1·news-drift-v1 결과(사용자 허락으로 실행기 밖 실행) — 둘 다 +7%p 와 거리가 멀다
+
+- insider-form4-v1: C_CLUSTER·O_OPP 모두 FAIL_UNDERPOWERED.
+  - 3m '집합 − 편입 전체'가 앞 절반(2009~2016)은 유의하게 + 였다(C +1.27%, O +2.07%). 뒤 절반(2016~2024)은 −0.2~−0.3%.
+  - SPY 대비 6m +1.9%p. 2024-10 이후 6m −1.9~−6.6%p.
+- news-drift-v1: W_NEWS FAIL(관측 IR −0.21), L_QUIET FAIL_UNDERPOWERED. SPY 대비 1·3·6m 모두 −1.1~+0.1%p.
+- lazy-prices-v1: 실행기 밖에서 진행 중이다(858 종목 중 약 100, 25종목에 약 39분 → 남은 약 20시간). 결과는 manual/lazy-prices-v1/out 에 쌓인다.
+- 실행 방식: VM 실행기는 메모리 부족(여유 3.3GB < 3.9GB 기준)과 CPU 가드로 이 연구들을 계속 양보시켰다. 그래서 사용자 허락을 받아 /opt/quant/data/research_jobs/manual/<id> 에서 nice 10 으로 돌렸다. 실행기 쪽은 취소했다.
+- 새틀라이트 +7%p 목표 종합: 가격(종목·산업)·내부자·뉴스 어느 정보로도 기간별 +7%p 를 지지하는 규칙이 없었다. 남은 것은 lazy-prices-v1 하나다.
+
 ## 2026-11-15 sat-industry-horizon-v1 결과 — 49 산업 집중 새틀라이트도 +7%p 미달
 
 - 판정: 1m FAIL · 3m FAIL · 6m FAIL_UNDERPOWERED · 12m FAIL_UNDERPOWERED. 네 기간 모두 RS12_k1(12개월 상대강도 1위 산업)이 골라졌다.
