@@ -31,6 +31,7 @@ from hub import session_resume_page  # noqa: E402
 from hub import idle_sessions_page  # noqa: E402
 from hub import contest_scout_page  # noqa: E402
 from hub import planner_page  # noqa: E402
+from hub import notion_page  # noqa: E402
 from hub import offload_page  # noqa: E402
 from hub import proc_control  # noqa: E402
 from hub.status import UnitStatus, get_unit_status  # noqa: E402
@@ -192,7 +193,7 @@ def _slot_href(slot: AppSlot, host: str) -> str:
     if slot.kind == "planner":
         return "/planner"
     if slot.kind == "notion":
-        return planner_page.pl.notion_url()
+        return "/notion"  # VM 크롬에서 자동 로그인된 Notion 을 보여 주는 화면(hub/notion_page.py)
     if slot.kind == "offload":
         return "/offload"
     if slot.kind == "emergency":
@@ -315,7 +316,7 @@ def render_dashboard(host: str) -> str:
         elif slot.kind == "planner":
             end = planner_page.card_badge()
         elif slot.kind == "notion":
-            end = planner_page.notion_badge()
+            end = notion_page.card_badge()
         elif slot.kind == "offload":
             end = offload_page.card_badge()
         elif slot.kind == "emergency":
@@ -327,7 +328,7 @@ def render_dashboard(host: str) -> str:
                 unit_tones.append(tone)
             if slot.id == "scheduler":
                 end = ops_status.jobs_badge(jobs) + end
-        external = slot.kind in ("web", "link", "notion")
+        external = slot.kind in ("web", "link")
         groups.setdefault(slot.category, []).append(ui.row(
             slot.title, href=_slot_href(slot, host), icon=SLOT_ICONS.get(slot.id, KIND_ICONS.get(slot.kind, "•")),
             desc=slot.description, end_html=end, external=external))
@@ -625,6 +626,12 @@ class HubRequestHandler(BaseHTTPRequestHandler):
         if path.startswith("/planner/api/"):
             self._planner_api(path.removeprefix("/planner/api/"))
             return
+        if path == "/notion/start":
+            if not _same_origin_post(self.headers):
+                self._send_json({"state": "error", "done": True, "message": "forbidden"}, 403)
+                return
+            self._send_json(notion_page.start())
+            return
         if path not in ("/research/models", "/processes/toggle", "/processes/confirm", "/rnd/topics",
                         "/otp/code", "/offload/submit", "/emergency/signal", "/emergency/bulk",
                         "/session-resume/toggle", "/contest-scout/run",
@@ -789,6 +796,17 @@ class HubRequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _send_json(self, payload: dict, status: int = 200) -> None:
+        import json
+
+        body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(body)
+
     def _redirect(self, location: str) -> None:
         self.send_response(303)
         self.send_header("Location", location)
@@ -846,6 +864,10 @@ class HubRequestHandler(BaseHTTPRequestHandler):
             self._send_html(render_idle_sessions_page())
         elif path == "/otp":
             self._send_html(render_otp_page(), no_store=True)
+        elif path in ("/notion", "/notion/"):
+            self._send_html(notion_page.render_page(), no_store=True)
+        elif path == "/notion/status":
+            self._send_json(notion_page.status())
         elif path in ("/guide", "/guide/"):
             from hub.guide import render_guide_page
 

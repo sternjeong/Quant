@@ -212,6 +212,21 @@ server {
         add_header Cache-Control "no-store" always;
     }
 
+    # VM 크롬 화면(noVNC, browser.sh 가 127.0.0.1:6080 에 띄움). 허브의 Notion 슬롯이 이 화면을 보여 준다.
+    # 로그인된 브라우저이므로 허브와 같은 세션 쿠키 검사 뒤에만 둔다. WebSocket 중계 필요.
+    location /vm-browser/ {
+        if (\$cookie_qt_session != \$qt_token) {
+            return 302 https://${BASE}/login?next=\$scheme://\$host\$request_uri;
+        }
+        proxy_pass http://127.0.0.1:6080/;
+        proxy_http_version 1.1;
+        proxy_set_header Host \$http_host;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection \$gateway_connection_upgrade;
+        proxy_set_header Authorization "";
+        proxy_read_timeout 86400;
+    }
+
     location / {
         if (\$cookie_qt_session != \$qt_token) {
             return 302 https://${BASE}/login?next=\$scheme://\$host\$request_uri;
