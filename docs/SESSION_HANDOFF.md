@@ -1,3 +1,16 @@
+## 2026-11-17 lazy-prices-v1 결과 FAIL — 새틀라이트 +7%p 목표 연구 6개 모두 종료
+
+- lazy-prices-v1(실행기 밖, 사용자 허락):
+  - LAZY_PRICES FAIL. 코사인 상위 20%(작년과 같은 10-K)의 '− 편입 전체'는 1·3·6m 모두 약 0(관측 IR −0.01). SPY 대비 6m +0.8%p.
+  - Jaccard 보고는 6m +1.1%p(FAIL_UNDERPOWERED).
+- 목표 연구 종합: sat-horizon-v1·v2, sat-industry-horizon-v1, insider-form4-v1, news-drift-v1, lazy-prices-v1.
+  - '정해진 기간에 S&P 500 대비 +7%p 를 시대와 무관하게, 도박 없이' 지지하는 규칙은 없다.
+  - 가장 견고한 것은 12개월 보유 모멘텀(산업 RS12 1위 또는 종목 MOM6 상위 5)이다. 장기 평균 +3~6%p(세전)이고 최근 약해지는 중이다. 본 뒤 관찰이라 증거가 아니다.
+- 결정 대기(사용자):
+  - 목표 조정(+3~5%p)
+  - 12개월 모멘텀 새틀라이트 그림자 계좌 기록
+- 운영 메모(제안): 결과·문서만 바뀐 커밋도 서비스를 재시작해 실행 중인 연구가 끊긴다(auto_deploy data 경로에서 재시작 생략 검토). VM 메모리 부족이 연구 실행기의 주된 병목이다(Claude 세션 정리).
+
 ## 2026-11-16 insider-form4-v1·news-drift-v1 결과(사용자 허락으로 실행기 밖 실행) — 둘 다 +7%p 와 거리가 멀다
 
 - insider-form4-v1: C_CLUSTER·O_OPP 모두 FAIL_UNDERPOWERED.
