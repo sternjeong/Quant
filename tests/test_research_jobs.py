@@ -1167,3 +1167,17 @@ def test_existing_six_study_holm_interpretation_is_visible_without_changing_verd
     assert "0.162" in notes["stagger-sso-combine-v1"]
     assert "세후 IRR 검정이 아닙니다" in notes["stagger-sso-combine-v1"]
     assert "무효 비교" in notes["core-universe-expansion-v1"]
+
+
+def test_unreadable_state_raises_instead_of_looking_empty(cfg, monkeypatch):
+    # 파일이 없을 때만 빈 상태 — 권한 없음은 올려서 '전부 대기'로 보이거나 빈 상태로 덮어쓰지 않게 한다(2026-11-19)
+    assert rj.load_state(cfg)["jobs"] == {}
+    cfg.state_dir.mkdir(parents=True, exist_ok=True)
+    cfg.state_path.write_text('{"jobs": {"a": {"status": "done"}}}')
+
+    def denied(*a, **k):
+        raise PermissionError("denied")
+
+    monkeypatch.setattr(type(cfg.state_path), "read_text", denied)
+    with pytest.raises(PermissionError):
+        rj.load_state(cfg)

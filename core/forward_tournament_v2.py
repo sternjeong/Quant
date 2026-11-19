@@ -457,12 +457,18 @@ def evaluate(rows: list[dict], returns: pd.DataFrame) -> dict[str, Any]:
     return out
 
 
+MAX_GAP_FILL_DAYS = 3
+
+
 def ledger_returns(rows: list[dict], price_fn: Optional[PriceFn] = None, now: Optional[datetime] = None) -> pd.DataFrame:
     tickers = sorted({t for r in rows for w in (r.get("weights") or {}).values() for t in w} | {SPY, BIL})
     hist = (price_fn or _default_price_fn)(tickers)
     _, total = _frames(hist, tickers)
     total = total.loc[_completed(total.index, now or datetime.now(timezone.utc))]
-    return total.pct_change(fill_method=None)
+    # 공급자 캐시의 중간 구멍(예: 2026-10-13 XLE·XLK·XLV 만 빔)은 직전 가격으로 메운다 — 그날 수익 0, 다음 날이 이틀치를
+    # 받아 누적은 같다. 앞뒤로 가격이 있는 칸만 메우고(끝의 결측은 그대로 결측), 최대 MAX_GAP_FILL_DAYS 거래일까지.
+    filled = total.ffill(limit=MAX_GAP_FILL_DAYS).where(total.bfill().notna())
+    return filled.pct_change(fill_method=None)
 
 
 def evaluate_live(path: Optional[Path] = None, price_fn: Optional[PriceFn] = None,

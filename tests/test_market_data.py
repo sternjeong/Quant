@@ -174,6 +174,30 @@ def test_get_price_history_backfills_only_missing_older_range(monkeypatch, tmp_p
     assert result.index.min() == pd.Timestamp("2024-01-01")
 
 
+
+def test_failed_full_history_backfill_is_rechecked_next_day_not_after_a_week(monkeypatch, tmp_path):
+    """start=None 의 과거 구간 응답이 비면(다운로드 실패일 수 있음) '전체 이력' 표시를 7일이 아니라 하루만 믿는다.
+
+    2026-10 FCX: 10-14 부터만 저장된 뒤 실패한 과거 조회가 7일 표시를 남겨, start=2023 요청도 과거를 못 채웠다."""
+    monkeypatch.setattr(market_data, "CACHE_DIR", tmp_path)
+    calls: list = []
+    good = _fake_download_factory(calls)
+    monkeypatch.setattr(market_data.yf, "download", good)
+    market_data.get_price_history("FAKE", start="2024-01-08", end="2024-01-10")
+
+    monkeypatch.setattr(market_data.yf, "download", lambda *a, **k: pd.DataFrame())  # 과거 조회 실패(빈 응답)
+    monkeypatch.setattr(market_data, "retry_with_backoff", lambda fn, **k: fn())
+    market_data.get_price_history("FAKE", start=None, end="2024-01-10")
+    marker = market_data._full_history_marker(market_data._store_path("FAKE", "1d"))
+    age = time.time() - marker.stat().st_mtime
+    assert market_data.FULL_HISTORY_RECHECK_SECONDS - market_data.EMPTY_OLDER_RECHECK_SECONDS - 5 < age
+
+    # 하루가 지나면 명시적 start 요청이 다시 과거 구간을 받는다
+    os.utime(marker, (time.time() - market_data.FULL_HISTORY_RECHECK_SECONDS - 1,) * 2)
+    monkeypatch.setattr(market_data.yf, "download", good)
+    result = market_data.get_price_history("FAKE", start="2024-01-01", end="2024-01-10")
+    assert result.index.min() == pd.Timestamp("2024-01-01")
+
 # ----------------------------------------------------------------------------
 # get_multiple_price_history (2026-07-15: 순차 for문 -> 스레드풀 병렬화)
 # ----------------------------------------------------------------------------

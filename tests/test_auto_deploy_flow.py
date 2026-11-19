@@ -439,6 +439,8 @@ def test_data_only_commit_deploys_without_tests_or_ci(env):
     assert _gate_lines(env) == [] and not (env["fake"] / "ci.log").exists()
     assert _git(env["app"], "rev-parse", "HEAD") == new
     assert "테스트 없이 반영" in _read(env["fake"] / "alerts.log")
+    # 코드가 안 바뀌었으니 재시작하지 않는다(실행 중인 스케줄러 잡 보호)
+    assert _restarts(env) == [] and "재시작 생략" in _read(env["fake"] / "alerts.log")
 
 
 def test_code_change_mixed_with_results_still_needs_a_gate(env):
