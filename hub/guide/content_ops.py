@@ -54,6 +54,12 @@ JOBS: tuple[JobGuide, ...] = (
         verified="2026-10-05",
     ),
     JobGuide(
+        job_id="sat_momentum_shadow_record",
+        where_to_see="관제 센터 '새틀라이트 R&D 센터' 앞으로 기록 표, 월요일 '[주간 엔진 점검]'의 '모멘텀 새틀라이트 기록' 줄, VM data/sat_momentum_shadow/cohorts.jsonl",
+        if_alert="실패 알림이면 가격 조회 문제일 가능성이 큽니다 — 그달 묶음이 생길 때까지 다음 날 자동으로 다시 시도합니다. 5일이 지나도 그달 묶음이 없으면 주간 점검이 경고합니다. 한 달을 통째로 놓치면 그 묶음은 빠지고(12개 중 10개 미만이면 판정 불가), 원하지 않으면 '/processes off sat_momentum_shadow_record'.",
+        verified="2026-11-19",
+    ),
+    JobGuide(
         job_id="estimate_shadow_record",
         where_to_see="전용 화면은 없습니다. VM data/estimate_shadow/estimates.sqlite(snapshots 표에 종목·항목별 하루 한 줄, runs 표에 실행 요약)와 스케줄러 로그의 '대상 · 기록 · 실패 · 줄 수' 한 줄.",
         if_alert="실패 알림은 대개 yfinance(야후) 응답이 막히거나 바뀐 경우입니다 — 다음 날 자동으로 다시 기록하지만, 빠진 날은 나중에 채울 수 없습니다. 며칠 계속되면 yfinance 버전 변경을 의심하세요. 원하지 않으면 '/processes off estimate_shadow_record'.",

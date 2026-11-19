@@ -386,6 +386,14 @@ MODULES: tuple[ModuleGuide, ...] = (
         sources=("core/crypto_shadow.py", "scheduler/run_scheduler.py", "research/results/info-rnd-v1/REPORT.md"), verified="2026-10-05",
     ),
     ModuleGuide(
+        module="core/sat_momentum_shadow.py", name="모멘텀 새틀라이트 앞으로 기록", group="리서치 인프라", status="관측 전용",
+        what="새틀라이트 목표 연구 6개가 모두 'S&P 500 대비 +7%p'를 넘지 못한 뒤, 가장 꾸준했던 12개월 보유 모멘텀을 목표 +5%p 로 낮춰 2026-11-19 부터 앞으로만 검증합니다. 매달 첫 기록일에 S&P 500 구성종목 중 6개월 모멘텀 상위 5종목(본 판정)과 12-1 모멘텀 상위 5종목(참고)을 골라 원장(data/sat_momentum_shadow/cohorts.jsonl)에 한 줄 남기고, 각 묶음을 다음 거래일 종가에 사서 252거래일 보유한 수익을 같은 기간 SPY 와 비교합니다. 종목은 미리 기록되고 고치지 않습니다.",
+        how_to_use="자동입니다(매일 07:50 KST, 그달 묶음이 없을 때만 실제로 고릅니다). 그달 선정 종목은 '새틀라이트 R&D 센터'의 '앞으로 기록' 표에서, 경과는 월요일 '[주간 엔진 점검]'의 '모멘텀 새틀라이트 기록' 줄에서 봅니다.",
+        where_to_see="관제 센터 '새틀라이트 R&D 센터' 앞으로 기록 표, 텔레그램 '[주간 엔진 점검]', VM data/sat_momentum_shadow/cohorts.jsonl",
+        cautions="배분·주문에 반영하지 않습니다. 판정(sat-mom-forward/v1)은 2026-11~2027-10 에 만든 12개 묶음 중 10개 이상이 기록되고 모두 12개월을 채운 뒤(약 2028-11)에만 합니다: 6개월 모멘텀 묶음의 SPY 대비 초과수익 평균 ≥ +5%p 이고 중앙값 > 0 이면 '새틀라이트 규칙 교체를 사람이 검토할 후보'입니다. 겹치는 12개월 묶음은 독립 관측이 적어 운의 영향이 큽니다. 세금 미반영, 비용은 편도 8bp, 구성종목 파일이 밀리면 새 편입 종목이 빠집니다.",
+        sources=("core/sat_momentum_shadow.py", "scheduler/run_scheduler.py", "research/results/sat-horizon-v1/REPORT.md"), verified="2026-11-19",
+    ),
+    ModuleGuide(
         module="core/estimate_shadow.py", name="애널리스트 추정치 매일 기록", group="리서치 인프라", status="관측 전용",
         what="애널리스트 추정치의 과거 이력은 무료로 구할 수 없어서, 2026-11-10 부터 우리 손으로 쌓습니다. 매일 아침 오늘 기준 S&P 500 종목마다 yfinance 가 보여 주는 추정치(분기·연도 EPS 컨센서스와 7/30/60/90일 전 값, 최근 상향·하향 애널리스트 수, 매출 추정, 투자의견 수, 목표주가)를 기록 시각과 함께 data/estimate_shadow/estimates.sqlite 에 덧붙입니다. 과거 줄은 고치거나 지우지 않습니다(같은 날 다시 돌면 이미 있는 종목은 건너뜀).",
         how_to_use="자동입니다(매일 07:05 KST). 할 일은 없습니다. 6~12개월 쌓이면 미리 보기가 없는 '추정치 변화' 자료가 되고, 그때 새 사전 등록 연구에 씁니다(docs/ESTIMATE_SHADOW_SPEC.md). 쌓인 정도는 VM 에서 python -c \"from core.estimate_shadow import coverage; print(coverage())\" 로 봅니다.",
