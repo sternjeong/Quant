@@ -1,7 +1,8 @@
 """관제 허브 'AI 대회' 섹션 — 대회 목록·새 대회 만들기·대회별 관리(core/contests.py).
 
-라우트(hub/server.py): GET /contests, /contests/new, /contests/<slug>
-                       POST /contests/new, /contests/<slug>/update, /contests/<slug>/repo
+라우트(hub/server.py): GET /contests(?done=1 이면 완료한 대회 목록), /contests/new, /contests/<slug>
+                       POST /contests/new, /contests/<slug>/update, /contests/<slug>/repo,
+                            /contests/<slug>/done(완료 → 상태 '종료', 목록에서 숨김), /contests/<slug>/reopen(되돌리기 → '진행')
 대회 카드의 'VS Code에서 열기'는 code-server(code. 하위 도메인)를 그 대회 폴더로 연다.
 """
 
@@ -82,22 +83,41 @@ def _delete_buttons(slug: str) -> str:
                    f'{_e(label)}</a>' for m, (label, _) in DELETE_MODES.items())
 
 
-def render_list(page_style: str, message: str = "") -> str:
+def _state_button(slug: str, done: bool) -> str:
+    """완료(상태 '종료' → 목록에서 숨김) / 되돌리기(→ '진행'). 폴더·저장소는 그대로 둔다."""
+    action, label, cls = ("reopen", "↩ 되돌리기", "ghost") if done else ("done", "✓ 완료", "")
+    return (f'<form method="post" action="/contests/{_e(slug)}/{action}" style="display:inline">'
+            f'<button class="btn {cls} sm" type="submit">{label}</button></form>')
+
+
+def render_list(page_style: str, message: str = "", show_done: bool = False) -> str:
     ok, why = ct.root_status()
+    items = ct.list_contests()
+    done = [c for c in items if c.status == "종료"]
+    shown = done if show_done else [c for c in items if c.status != "종료"]
     cards = []
-    for c in ct.list_contests():
+    for c in shown:
         cards.append(
             f'<div class="card"><a href="/contests/{_e(c.slug)}" style="color:inherit;text-decoration:none">'
             f'<h2>{_e(c.title)}<span class="kind">{_e(c.platform)}</span></h2>'
             f'<p>{dday_html(c)} · {_e(c.status)}{" · " + _e(c.deadline) + " KST" if c.deadline else ""}</p>'
-            f'<p><small>{_e(c.slug)}</small></p></a><p>{_delete_buttons(c.slug)}</p></div>')
+            f'<p><small>{_e(c.slug)}</small></p></a><p>{_state_button(c.slug, show_done)}{_delete_buttons(c.slug)}</p></div>')
     setup = "" if ok else f'<p class="err">⚠️ {_e(why)}</p>'
     setup += f'<p class="ok">{_e(message)}</p>' if message else ""
-    body = ('<p><a class="back" href="/">&larr; 관제 센터로</a></p><h1>AI 대회</h1>'
-            '<p class="subtitle">대회마다 작업 폴더 + GitHub private 저장소 하나. 카드를 누르면 관리 화면, 거기서 VS Code 로 넘어갑니다.</p>'
-            f'{setup}<p><a class="btn" href="/contests/new">+ 새 대회</a></p>'
-            f'<div class="grid">{"".join(cards) or "<p>아직 등록한 대회가 없습니다.</p>"}</div>')
-    return _page("AI 대회", body, page_style)
+    if show_done:
+        head = ('<p><a class="back" href="/contests">&larr; 진행 중인 대회</a></p><h1>완료한 대회</h1>'
+                '<p class="subtitle">\'완료\'를 누른 대회입니다. 폴더·저장소는 그대로 있고, \'되돌리기\'를 누르면 목록에 다시 나옵니다.</p>')
+        empty = "<p>완료한 대회가 없습니다.</p>"
+        foot = ""
+    else:
+        head = ('<p><a class="back" href="/">&larr; 관제 센터로</a></p><h1>AI 대회</h1>'
+                '<p class="subtitle">대회마다 작업 폴더 + GitHub private 저장소 하나. 카드를 누르면 관리 화면, 거기서 VS Code 로 넘어갑니다. '
+                '끝난 대회는 \'완료\'를 누르면 이 목록에서 사라집니다(폴더·저장소는 그대로).</p>'
+                '<p><a class="btn" href="/contests/new">+ 새 대회</a></p>')
+        empty = "<p>진행 중인 대회가 없습니다.</p>" if done else "<p>아직 등록한 대회가 없습니다.</p>"
+        foot = f'<p><a class="back" href="/contests?done=1">완료한 대회 {len(done)}개 보기 &rarr;</a></p>' if done else ""
+    body = f'{head}{setup}<div class="grid">{"".join(cards) or empty}</div>{foot}'
+    return _page("완료한 대회" if show_done else "AI 대회", body, page_style)
 
 
 def render_new(page_style: str, error: str = "", values: Optional[dict] = None) -> str:
@@ -132,7 +152,8 @@ def render_detail(slug: str, page_style: str, error: str = "") -> Optional[str]:
             f'<p class="subtitle">{dday_html(c)} · {_e(c.platform)} · {_e(c.status)}</p>'
             + (f'<p class="err">{_e(error)}</p>' if error else "") +
             f'<p><a class="btn" href="{_e(ct.code_server_url(c, code_server_base()))}" target="_blank" rel="noopener">VS Code 에서 열기</a>'
-            + (f'<a class="btn ghost" href="{_e(c.url)}" target="_blank" rel="noopener">대회 페이지</a>' if c.url else "") + retry + '</p>'
+            + (f'<a class="btn ghost" href="{_e(c.url)}" target="_blank" rel="noopener">대회 페이지</a>' if c.url else "") + retry
+            + _state_button(slug, c.status == "종료") + '</p>'
             '<table>'
             f'<tr><th>저장소</th><td>{repo_html(c)}</td></tr>'
             f'<tr><th>폴더</th><td><small>{_e(c.path)}</small></td></tr>'
@@ -217,6 +238,11 @@ def handle_post(path: str, form: dict) -> tuple[str, Optional[str]]:
                     return f"/contests/{slug}/delete?mode={quote(mode)}", "폴더 이름이 맞지 않아 지우지 않았습니다."
                 message = ct.delete_contest(slug, mode)
                 return "/contests?msg=" + quote(message), None
+            elif action in ("done", "reopen"):
+                c = ct.update(slug, status="종료" if action == "done" else "진행")
+                if action == "done":
+                    return "/contests?msg=" + quote(f"'{c.title}' 완료 처리 — 목록에서 숨겼습니다. 아래 '완료한 대회'에서 되돌릴 수 있습니다."), None
+                return "/contests?msg=" + quote(f"'{c.title}' 을(를) 다시 진행 중으로 돌렸습니다."), None
             elif action == "repo":
                 c = ct.create_repo(slug)
                 if c.repo_status != "created":

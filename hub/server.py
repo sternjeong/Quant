@@ -806,8 +806,9 @@ class HubRequestHandler(BaseHTTPRequestHandler):
         elif path == "/live":
             self._send_html(render_live_page())
         elif path in ("/contests", "/contests/"):
-            msg = (parse_qs(urlparse(self.path).query).get("msg") or [""])[0][:300]
-            self._send_html(contests_page.render_list(PAGE_STYLE, msg))
+            query = parse_qs(urlparse(self.path).query)
+            msg = (query.get("msg") or [""])[0][:300]
+            self._send_html(contests_page.render_list(PAGE_STYLE, msg, show_done=(query.get("done") or [""])[0] == "1"))
         elif path == "/contests/new":
             # '대회 탐색' 의 '대회로 등록' 은 ?title=&url=&deadline=... 로 칸을 미리 채워 온다(만들기는 여전히 POST 한 번).
             query = {k: v[0] for k, v in parse_qs(urlparse(self.path).query).items()

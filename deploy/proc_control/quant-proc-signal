@@ -3,6 +3,7 @@
 
 설치: sudo bash /opt/quant/deploy/proc_control/setup.sh  (/usr/local/sbin 에 복사 + sudoers 한 줄: quant 만, 이 파일만)
 사용: sudo -n /usr/local/sbin/quant-proc-signal <STOP|CONT|TERM|KILL> <pid> [pid ...]
+      sudo -n /usr/local/sbin/quant-proc-signal INFO <pid> [pid ...]   (읽기 전용: 작업 폴더를 "<pid> cwd <경로>" 로 출력)
 안전장치: 대상은 ubuntu·quant 계정 프로세스뿐(root·시스템 계정 거부), 보호 목록(허브·nginx·sshd·systemd·tmux 서버·셸 등)은 거부.
 결과는 pid 마다 한 줄(ok/거부 사유)로 출력하고, 하나라도 거부·실패하면 종료 코드 2.
 """
@@ -39,9 +40,24 @@ def check(pid: int) -> str:
     return ""
 
 
+def info(pid: int) -> str:
+    """읽기 전용 — 보호 프로세스도 폴더는 보여 준다(계정 제한만 적용)."""
+    try:
+        user = pwd.getpwuid(os.stat(f"/proc/{pid}").st_uid).pw_name
+        if user not in ALLOWED_USERS:
+            return f"{pid} 거부: {user} 계정"
+        return f"{pid} cwd {os.readlink(f'/proc/{pid}/cwd')}"
+    except (OSError, KeyError):
+        return f"{pid} 거부: 없는 프로세스"
+
+
 def main() -> int:
+    if len(sys.argv) >= 3 and sys.argv[1] == "INFO":
+        for arg in sys.argv[2:50]:
+            print(info(int(arg)) if arg.isdigit() else f"{arg} 거부: pid 형식 아님")
+        return 0
     if len(sys.argv) < 3 or sys.argv[1] not in SIGNALS:
-        print("usage: quant-proc-signal <STOP|CONT|TERM|KILL> <pid>...", file=sys.stderr)
+        print("usage: quant-proc-signal <STOP|CONT|TERM|KILL|INFO> <pid>...", file=sys.stderr)
         return 64
     sig, bad = SIGNALS[sys.argv[1]], 0
     for arg in sys.argv[2:50]:

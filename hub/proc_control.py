@@ -8,6 +8,8 @@
   sudo 로 거쳐야 한다. 도우미가 없으면 quant 계정 프로세스만 직접 다룬다.
 - 대상·보호 규칙은 도우미 파일 하나가 원본이다(아래에서 그 파일을 불러와 같은 check() 를 쓴다).
 - 모든 조작은 data/proc_control.log 에 한 줄씩 남긴다.
+- 행마다 '무슨 작업인지' 단서를 붙인다(2026-11-19): 작업 폴더·git 브랜치·실행 시간·부모(Claude 세션/tmux)·tmux 창 폴더.
+  다른 계정 프로세스의 폴더는 root 만 읽을 수 있어 도우미의 읽기 전용 INFO 명령을 쓴다(구버전 도우미면 폴더만 빠진다).
 """
 
 from __future__ import annotations
@@ -17,6 +19,7 @@ import importlib.machinery
 import importlib.util
 import os
 import pwd
+import re
 import signal
 import subprocess
 import time
@@ -38,6 +41,8 @@ SIGNAL_LABELS = {"STOP": "일시정지", "CONT": "재개", "TERM": "종료", "KI
 _CLK = os.sysconf("SC_CLK_TCK") if hasattr(os, "sysconf") else 100
 _PAGE = os.sysconf("SC_PAGE_SIZE") if hasattr(os, "sysconf") else 4096
 _helper_ok: tuple[float, bool] = (0.0, False)
+_info_ok: Optional[bool] = None  # 설치된 도우미가 INFO 를 아는지(구버전이면 False, 재설치 전까지 다시 묻지 않음)
+HOME = "/home/ubuntu"
 
 
 def _rules():
@@ -89,7 +94,7 @@ def _read_proc(proc: Path, uids: dict[int, str]) -> dict[int, dict]:
             raw = (d / "stat").read_text()
             comm = raw[raw.index("(") + 1:raw.rindex(")")]
             fields = raw.rsplit(")", 1)[1].split()
-            rows[int(d.name)] = {"pid": int(d.name), "user": uids[uid], "comm": comm, "state": fields[0],
+            rows[int(d.name)] = {"pid": int(d.name), "user": uids[uid], "comm": comm, "state": fields[0], "ppid": int(fields[1]),
                                  "ticks": int(fields[11]) + int(fields[12]), "start": int(fields[19]),
                                  "rss_mb": int(fields[21]) * _PAGE / 1e6}
         except (OSError, ValueError, IndexError):
@@ -126,6 +131,7 @@ def sample(interval: float = 1.0, proc: Path = Path("/proc")) -> dict:
         rows.append({**r, "cpu": cpu, "cmd": redact(cmd)[:240], "what": classify(cmd) or r["comm"], "protected": why,
                      "paused": r["state"] == "T"})
     rows.sort(key=lambda r: (-r["cpu"], -r["rss_mb"]))
+    annotate(_shown(rows), {r["pid"]: r for r in rows}, proc)
     mem = {}
     try:
         for line in (proc / "meminfo").read_text().splitlines():
@@ -136,6 +142,131 @@ def sample(interval: float = 1.0, proc: Path = Path("/proc")) -> dict:
     dt = max(t1 - t0, 1)
     return {"rows": rows, "cpu_busy": 100.0 * (1 - (i1 - i0) / dt), "ncpu": ncpu, "load": os.getloadavg(),
             "mem_total": mem.get("MemTotal"), "mem_avail": mem.get("MemAvailable")}
+
+
+# ---------------------------------------------------------------- 무슨 작업인지(폴더·브랜치·부모)
+def cwds(pids: list[int], proc: Path = Path("/proc")) -> dict[int, str]:
+    """pid -> 작업 폴더. 허브 자신의 계정은 직접, 나머지는 도우미 INFO(있을 때만)."""
+    global _info_ok
+    out, others, me = {}, [], os.getuid()
+    for pid in pids:
+        try:
+            if (proc / str(pid)).stat().st_uid == me:
+                out[pid] = os.readlink(proc / str(pid) / "cwd")
+                continue
+        except OSError:
+            pass
+        others.append(pid)
+    if others and proc == Path("/proc") and _info_ok is not False and helper_available():
+        try:
+            r = subprocess.run(["sudo", "-n", str(HELPER_BIN), "INFO", *map(str, others[:48])],
+                               capture_output=True, text=True, timeout=5)
+            _info_ok = r.returncode != 64  # 64 = 구버전 도우미의 usage 오류
+            for line in r.stdout.splitlines():
+                pid, kind, *rest = line.split(" ", 2)
+                if kind == "cwd" and rest and pid.isdigit():
+                    out[int(pid)] = rest[0]
+        except (OSError, subprocess.TimeoutExpired):
+            pass
+    return out
+
+
+def git_branch(path: str) -> str:
+    """폴더가 속한 git 저장소의 현재 브랜치(워크트리 포함). 모르면 ''."""
+    p = Path(path)
+    for d in (p, *p.parents):
+        g = d / ".git"
+        try:
+            if g.is_file():  # 워크트리: "gitdir: <저장소>/.git/worktrees/<이름>"
+                g = Path(g.read_text().split("gitdir:", 1)[1].strip())
+            head = (g / "HEAD").read_text().strip()
+        except (OSError, IndexError):
+            if d == Path(HOME) or str(d) == "/":
+                return ""
+            continue
+        return head.removeprefix("ref: refs/heads/") if head.startswith("ref: ") else head[:8]
+    return ""
+
+
+def place(path: str) -> str:
+    """작업 폴더를 사람이 알아보는 이름으로."""
+    m = re.match(r"^/srv/contests/([^/]+)", path)
+    if m:
+        return f"AI 대회 {m.group(1)}"
+    if path == "/opt/quant" or path.startswith("/opt/quant/"):
+        return "Quant 엔진(배포본)"
+    m = re.match(rf"^{HOME}/repos/worktrees/([^/]+)", path)
+    if m:
+        return f"작업 폴더 {m.group(1)}"
+    m = re.match(rf"^{HOME}/repos/([^/]+)", path)
+    if m:
+        return f"저장소 {m.group(1)}"
+    return ""
+
+
+def _short(path: str) -> str:
+    return "~" + path[len(HOME):] if path == HOME or path.startswith(HOME + "/") else path
+
+
+def _elapsed(start_ticks: int, proc: Path) -> str:
+    try:
+        secs = float((proc / "uptime").read_text().split()[0]) - start_ticks / _CLK
+    except (OSError, ValueError, IndexError):
+        return ""
+    if secs < 0:
+        return ""
+    d, h, m = int(secs // 86400), int(secs % 86400 // 3600), int(secs % 3600 // 60)
+    return f"{d}일 {h}시간째" if d else f"{h}시간 {m}분째" if h else f"{max(m, 1)}분째"
+
+
+def _session_name(cmd: str) -> str:
+    m = re.search(r"(?:^|\s)(?:-n|--name)\s+(\S+)", cmd)
+    return m.group(1) if m else ""
+
+
+def annotate(rows: list[dict], procs: dict[int, dict], proc: Path = Path("/proc")) -> None:
+    """보여 줄 행에 'context'(폴더·브랜치·실행 시간·부모 줄)를 붙인다. procs = 같은 측정의 전체 프로세스(pid->row)."""
+    children: dict[int, list[int]] = {}
+    for pid, r in procs.items():
+        children.setdefault(r.get("ppid", 0), []).append(pid)
+    tmux_panes = {r["pid"]: children.get(r["pid"], []) for r in rows if r["comm"] == "tmux: server"}
+    folders = cwds(sorted({r["pid"] for r in rows} | {p for ps in tmux_panes.values() for p in ps}), proc)
+    for r in rows:
+        bits = []
+        path = folders.get(r["pid"])
+        if path and r["pid"] not in tmux_panes:  # tmux 서버 자신의 폴더는 처음 띄운 곳일 뿐이라 생략
+            name, branch = place(path), git_branch(path)
+            bits.append(f"📁 {_short(path)}" + (f" ({name})" if name else "") + (f" · 브랜치 {branch}" if branch else ""))
+        elapsed = _elapsed(r.get("start", 0), proc)
+        if elapsed:
+            bits.append(elapsed)
+        cmd = r.get("cmd", "")
+        if (r["comm"] == "claude" or cmd.startswith("claude")) and _session_name(cmd):
+            bits.append(f"세션 이름 '{_session_name(cmd)}'")
+        # 부모를 거슬러 올라가 Claude 세션·tmux 안에서 돌고 있는지
+        seen, ppid, parents = set(), r.get("ppid", 0), []
+        while ppid in procs and ppid not in seen and len(seen) < 20:
+            seen.add(ppid)
+            par = procs[ppid]
+            if par["comm"] == "claude" and "Claude" not in " ".join(parents):
+                name = _session_name(par.get("cmd", ""))
+                parents.append(f"Claude 세션{f' {name!r}' if name else ''}(pid {ppid})이 실행")
+            elif par["comm"] == "tmux: server":
+                parents.append("tmux 안")
+            elif par["comm"] in ("node", "MainThread") and "code-server" in par.get("cmd", ""):
+                parents.append("VS Code(code-server)가 실행")
+                break
+            ppid = par.get("ppid", 0)
+        bits += parents
+        if r["pid"] in tmux_panes:
+            panes = tmux_panes[r["pid"]]
+            dirs = sorted({place(folders[p]) or _short(folders[p]) for p in panes
+                           if p in folders and "/.trash/" not in folders[p]})
+            bits.append(f"tmux 창 {len(panes)}개" + (": " + ", ".join(dirs[:5]) + (f" 외 {len(dirs) - 5}곳" if len(dirs) > 5 else "") if dirs else "")
+                        + " — 서버의 CPU 는 창 안 프로그램들의 화면 출력 몫")
+        if not path and r["user"] != "quant" and _info_ok is False:
+            bits.append("폴더 표시는 도우미 재설치 필요")
+        r["context"] = " · ".join(bits)
 
 
 def paused_processes(proc: Path = Path("/proc")) -> list[dict]:
@@ -207,6 +338,10 @@ def summarize(sig: str, results: list[tuple[int, bool, str]]) -> str:
 
 
 # ---------------------------------------------------------------- 화면
+def _shown(rows: list[dict]) -> list[dict]:
+    return [r for r in rows if r["cpu"] >= 1 or r["paused"]][:SHOW_TOP] or rows[:5]
+
+
 def card_badge() -> str:
     try:
         paused = paused_processes()
@@ -237,7 +372,10 @@ def _row(r: dict, can_other: bool) -> str:
     title_extra = ui.pill(f"CPU {r['cpu']:.0f}%", tone) + ui.pill(f"{r['rss_mb'] / 1024:.1f}GB" if r["rss_mb"] >= 1024 else f"{r['rss_mb']:.0f}MB", "muted", plain=True)
     if r["paused"]:
         title_extra += ui.pill("일시정지됨", "warn")
-    desc = f"{r['user']} · pid {r['pid']} · {r['cmd']}"
+    context = r.get("context", "")
+    where = f", {context.split(' · ')[0].removeprefix('📁 ')}" if context.startswith("📁") else ""
+    desc = context or f"{r['user']} · pid {r['pid']}"
+    below = f'<div class="meta" style="word-break:break-all">{E(r["user"])} · pid {r["pid"]} · {E(r["cmd"])}</div>'
     if r["protected"]:
         end = ui.pill("보호", "muted")
     elif r["user"] != "quant" and not can_other:
@@ -246,9 +384,9 @@ def _row(r: dict, can_other: bool) -> str:
         end = _btn("CONT", r["pid"], primary=True) + _btn("TERM", r["pid"], confirm=f"pid {r['pid']} 을(를) 종료할까요? 진행 중인 작업이 끝납니다.")
     else:
         end = (_btn("STOP", r["pid"], primary=True)
-               + _btn("TERM", r["pid"], confirm=f"pid {r['pid']} ({r['what']}) 을(를) 종료할까요? 진행 중인 작업이 끝납니다.")
+               + _btn("TERM", r["pid"], confirm=f"pid {r['pid']} ({r['what']}{where}) 을(를) 종료할까요? 진행 중인 작업이 끝납니다.")
                + _btn("KILL", r["pid"], confirm=f"pid {r['pid']} 을(를) 강제 종료할까요? 저장되지 않은 결과는 사라집니다."))
-    return ui.row(r["what"], icon="⚙", desc=desc, title_extra_html=title_extra, end_html=end)
+    return ui.row(r["what"], icon="⚙", desc=desc, title_extra_html=title_extra, end_html=end, below_html=below)
 
 
 def render_body(message: str = "", data: Optional[dict] = None) -> str:
@@ -287,7 +425,7 @@ def render_body(message: str = "", data: Optional[dict] = None) -> str:
         "지금은 관제 센터(quant 계정)의 프로세스만 멈출 수 있습니다. ubuntu 계정 작업(Claude 세션, 데이터셋 빌드 등)까지 "
         "멈추려면 VM 터미널에서 한 번 <code>sudo bash /opt/quant/deploy/proc_control/setup.sh</code> 를 실행하세요.",
         icon="🔒", tone="warn")
-    top = [r for r in rows if r["cpu"] >= 1 or r["paused"]][:SHOW_TOP] or rows[:5]
+    top = _shown(rows)
     help_html = ui.callout(
         "<b>일시정지</b>는 작업을 잃지 않고 얼립니다 — 부하가 내려가면 <b>재개</b>로 이어서 진행됩니다. 과부하 때는 이것부터. "
         "<b>종료</b>는 정상 종료 요청, <b>강제 종료</b>는 즉시 끝냅니다(저장 안 된 결과는 사라짐). "

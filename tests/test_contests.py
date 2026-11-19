@@ -230,6 +230,28 @@ def test_hub_delete_requires_typed_slug(root, fake_gh, monkeypatch):
     assert code == 303 and headers["Location"].startswith("/contests?msg=") and not (root / "kaggle-titanic").exists()
 
 
+def test_hub_done_hides_contest_and_reopen_restores(root, fake_gh, monkeypatch):
+    from hub import server
+
+    ct.create_contest("kaggle-titanic", "Titanic", "Kaggle", runner=fake_runner())
+    ct.create_contest("dacon-ocr", "OCR", "Dacon", runner=fake_runner())
+    listing = server.contests_page.render_list(server.PAGE_STYLE)
+    assert 'action="/contests/kaggle-titanic/done"' in listing and "완료한 대회" not in listing
+
+    code, headers, _ = _post("/contests/kaggle-titanic/done", "", monkeypatch)
+    assert code == 303 and headers["Location"].startswith("/contests?msg=")
+    assert ct.load("kaggle-titanic").status == "종료" and (root / "kaggle-titanic").exists()  # 폴더는 그대로
+    listing = server.contests_page.render_list(server.PAGE_STYLE)
+    assert "Titanic" not in listing and "OCR" in listing and "완료한 대회 1개 보기" in listing
+    done = server.contests_page.render_list(server.PAGE_STYLE, show_done=True)
+    assert "Titanic" in done and "OCR" not in done and 'action="/contests/kaggle-titanic/reopen"' in done
+    assert "진행 1개" in server.contests_page.card_badge()
+
+    code, _, _ = _post("/contests/kaggle-titanic/reopen", "", monkeypatch)
+    assert code == 303 and ct.load("kaggle-titanic").status == "진행"
+    assert "Titanic" in server.contests_page.render_list(server.PAGE_STYLE)
+
+
 def test_trash_purge_only_old_well_named_dirs(tmp_path):
     import importlib.util
     from pathlib import Path

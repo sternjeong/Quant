@@ -99,3 +99,44 @@ def test_render_body_and_badge(monkeypatch):
     assert 'name="sig" value="CONT"' in html                            # 일시정지된 quant 프로세스는 재개 버튼
     assert "무거운 작업 전부 일시정지 (1개)" in html
     assert pc.card_badge()
+
+
+def test_annotate_shows_folder_branch_parent_and_tmux_panes(tmp_path, monkeypatch):
+    repo = tmp_path / "repos" / "worktrees" / "Quant-x"
+    (repo / ".git").mkdir(parents=True)
+    (repo / ".git" / "HEAD").write_text("ref: refs/heads/feature-a\n")
+    folders = {20: str(repo / "sub"), 30: str(repo), 31: "/srv/contests/coin-arb", 32: "/opt/quant"}
+    (repo / "sub").mkdir()
+    monkeypatch.setattr(pc, "HOME", str(tmp_path))
+    monkeypatch.setattr(pc, "cwds", lambda pids, proc=None: {p: folders[p] for p in pids if p in folders})
+    root = tmp_path / "proc"
+    root.mkdir()
+    (root / "uptime").write_text("100000.0 1.0\n")
+    tick = os.sysconf("SC_CLK_TCK")
+
+    def r(pid, ppid, comm, cmd, start=0):
+        return {"pid": pid, "ppid": ppid, "user": "ubuntu", "comm": comm, "cmd": cmd, "start": start}
+    procs = {p["pid"]: p for p in [
+        r(5, 1, "tmux: server", "tmux new -s use"),
+        r(10, 5, "claude", "claude --resume -n p12cards do things"),
+        r(20, 10, "python3", "python3 train.py", start=int((100000 - 7500) * tick)),
+        r(30, 5, "bash", "-bash"), r(31, 5, "bash", "-bash"), r(32, 5, "bash", "-bash")]}
+    rows = [procs[20], procs[5]]
+    pc.annotate(rows, procs, root)
+    ctx = procs[20]["context"]
+    assert "~/repos/worktrees/Quant-x/sub (작업 폴더 Quant-x)" in ctx and "브랜치 feature-a" in ctx
+    assert "2시간 5분째" in ctx and "Claude 세션 'p12cards'(pid 10)이 실행" in ctx and "tmux 안" in ctx
+    tmux = procs[5]["context"]
+    assert "tmux 창 4개" in tmux and "AI 대회 coin-arb" in tmux and "Quant 엔진(배포본)" in tmux
+    html = pc._row({**procs[20], "cpu": 40.0, "rss_mb": 100, "what": "python3", "protected": "", "paused": False}, True)
+    assert "브랜치 feature-a" in html and "python3 train.py" in html and "작업 폴더 Quant-x" in html
+
+
+def test_helper_info_prints_cwd_for_allowed_users_only():
+    me = os.environ.get("USER") or ""
+    out = pc.RULES.info(os.getpid())
+    if me not in pc.RULES.ALLOWED_USERS:
+        assert "거부" in out
+    else:
+        assert out == f"{os.getpid()} cwd {os.getcwd()}"
+    assert "거부" in pc.RULES.info(1)
