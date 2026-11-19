@@ -130,10 +130,69 @@ def test_dashboard_has_planner_and_notion_slots(state):
     with patch("subprocess.run", side_effect=run):
         page = server.render_dashboard("host")
     assert 'href="/planner"' in page
-    assert f'href="{pl.DEFAULT_NOTION_URL}" target="_blank"' in page
+    assert 'href="/notion"' in page  # 2026-11-16: 외부 링크 대신 VM 크롬 자동 로그인 화면
     assert page.index("할 일 · 일정") < page.index("퀀트 대시보드")  # 맨 위 묶음
     notion = next(s for s in SLOTS if s.id == "notion")
-    assert server._slot_href(notion, "host").startswith("https://")
+    assert server._slot_href(notion, "host") == "/notion"
+
+
+# ---- 2026-11-16: Notion 자동 로그인 화면(hub/notion_page.py)
+
+def test_notion_page_starts_by_post_and_embeds_authenticated_viewer(state):
+    from hub import notion_page
+
+    page = notion_page.render_page()
+    assert 'fetch("/notion/start", {method: "POST"' in page  # GET 만으로는 로그인을 시작하지 않는다(CSRF)
+    assert "/vm-browser/vnc.html" in page and "path=vm-browser/websockify" in page
+    assert "127.0.0.1" not in page and "6080" not in page
+    assert f'href="{pl.DEFAULT_NOTION_URL}"' in page  # 내 브라우저로 여는 길도 남긴다
+
+
+def test_notion_start_sends_configured_url_to_gpu_hub(state, monkeypatch):
+    from hub import notion_page
+
+    calls = []
+    monkeypatch.setattr(notion_page, "_gpu_hub", lambda path, payload=None, timeout=15: calls.append((path, payload)) or {"state": "checking"})
+    pl.set_notion_url("https://www.notion.so/me/Home-abc")
+    assert notion_page.start() == {"state": "checking"}
+    assert calls == [("/api/notion/login", {"url": "https://www.notion.so/me/Home-abc"})]
+    notion_page.status()
+    assert calls[-1] == ("/api/notion/status", None)
+
+
+def test_notion_gpu_hub_down_is_reported(monkeypatch):
+    from hub import notion_page
+
+    monkeypatch.setattr(notion_page, "GPU_HUB", "http://127.0.0.1:9")  # 닫힌 포트
+    s = notion_page.status()
+    assert s["done"] is True and s["state"] == "error" and "gpu-hub" in s["message"]
+
+
+def test_notion_start_rejects_cross_site_post(monkeypatch):
+    import io
+    from hub import server, notion_page
+
+    monkeypatch.setattr(notion_page, "start", lambda: (_ for _ in ()).throw(AssertionError("must not start")))
+    h = server.HubRequestHandler.__new__(server.HubRequestHandler)
+    h.path, h.command, h.request_version = "/notion/start", "POST", "HTTP/1.1"
+    h.headers = {"Sec-Fetch-Site": "cross-site", "Host": "hub"}
+    h.wfile, h.rfile = io.BytesIO(), io.BytesIO()
+    sent = []
+    h.send_response = lambda code, msg=None: sent.append(code)
+    h.send_header = lambda *a: None
+    h.end_headers = lambda: None
+    h.do_POST()
+    assert sent == [403]
+
+
+def test_gateway_template_keeps_viewer_behind_login():
+    from pathlib import Path
+
+    text = (Path(__file__).resolve().parent.parent / "deploy" / "setup_gateway.sh").read_text(encoding="utf-8")
+    block = text[text.index("location /vm-browser/ {"):]
+    block = block[:block.index("\n    }\n")]
+    assert "cookie_qt_session != \\$qt_token" in block and "return 302" in block
+    assert "proxy_pass http://127.0.0.1:6080/;" in block and "Upgrade" in block
 
 
 # ---- 2026-11-15: 세션 기록(plan CLI), 주식 시그널, 대회 '제출하기'
