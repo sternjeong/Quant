@@ -63,6 +63,13 @@ def collect() -> dict[str, Any]:
     except Exception:  # noqa: BLE001
         pass
     try:
+        from core import sat_momentum_shadow as sm
+
+        rows = sm.load_ledger()
+        data["satmom"] = {"records": len(rows), "last": rows[-1] if rows else None}
+    except Exception:  # noqa: BLE001
+        pass
+    try:
         from core import forward_tournament as ft
 
         rows = ft.load_ledger()
@@ -215,6 +222,7 @@ def render_shadows(data: dict) -> str:
     on = ", ".join(f'{t.split("-")[0]} {"보유" if v.get("on") else "현금"}' for t, v in (last.get("assets") or {}).items())
     return ('<h2>앞으로 기록(배분 미반영)</h2><table>'
             f'<tr><th>코인 추세 기록</th><td>{_e(c.get("records", 0))}일 · 최근 {_e(last.get("date"))} {html.escape(on)} · 12개월(252거래일) 뒤 판정</td></tr>'
+            + render_satmom_row(data.get("satmom") or {}) +
             f'<tr><th>앞으로 토너먼트(v1)</th><td>{_e(t.get("records", 0))}일 · 최근 {_e(t.get("last"))} · '
             f'{html.escape(" · ".join(f"{k} {v}" for k, v in (t.get("labels") or {}).items()))} · 252거래일 뒤 판정(주간 엔진 점검에 경과)</td></tr>'
             + render_tournament_v2_row(data.get("tournament_v2") or {})
@@ -222,6 +230,14 @@ def render_shadows(data: dict) -> str:
             + render_tournament_v4_row(data.get("tournament_v4") or {}) +
             f'<tr><th>AI 국제정세 의견</th><td>{_e(len(g.get("months") or []))}개월 · {_e(", ".join(g.get("months") or []) or "아직 없음")} · 24개월 뒤 판정</td></tr>'
             '</table>')
+
+
+def render_satmom_row(s: dict) -> str:
+    """모멘텀 새틀라이트 앞으로 기록 — 묶음 수와 최근 선정 종목(경과는 주간 엔진 점검)."""
+    last = s.get("last") or {}
+    picks = ", ".join((last.get("arms") or {}).get("MOM6", {}).get("picks") or [])
+    return (f'<tr><th>모멘텀 새틀라이트 기록</th><td>{_e(s.get("records", 0))}개월 · 최근 {_e(last.get("month") or "없음")} '
+            f'{html.escape(picks)} · 12개월 보유 뒤 SPY 대비 +5%p 판정(약 2028-11, 경과는 주간 엔진 점검)</td></tr>')
 
 
 def render_tournament_v2_row(t: dict) -> str:

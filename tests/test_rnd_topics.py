@@ -22,7 +22,7 @@ def topics(tmp_path, monkeypatch):
 
 # ---------------------------------------------------------------- 주제 스위치
 def test_topics_default_on_and_persist(topics):
-    assert all(v["on"] for v in rt.all_states().values()) and len(rt.TOPICS) == 8
+    assert all(v["on"] for v in rt.all_states().values()) and len(rt.TOPICS) == 9
     rt.set_on("sat_entry", False, actor="test")
     assert rt.is_on("sat_entry") is False and rt.is_on("sat_exit") is True
     assert rt.enabled_sat_topics() == ["selection", "exit", "guru"]

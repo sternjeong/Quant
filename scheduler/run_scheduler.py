@@ -1214,6 +1214,33 @@ def crypto_shadow_record_job() -> None:
     print(f"[{datetime.now()}] crypto_shadow_record_job 종료")
 
 
+def sat_momentum_shadow_record_job() -> None:
+    """모멘텀 새틀라이트 앞으로 기록 (core/sat_momentum_shadow.py). 배분 반영 없음, 주문 없음.
+
+    시각(07:50 KST): 미국 장 마감 뒤라 전날 종가가 완성돼 있고, 07:05 추정치 기록(같은 S&P 500 순회)과 겹치지 않는다.
+    그달 묶음이 이미 있으면 SPY 한 번만 보고 끝난다 — 무거운 가격 조회(약 500종목)는 한 달에 한 번이다.
+    """
+    if not is_enabled("sat_momentum_shadow_record"):
+        print(f"[{datetime.now()}] sat_momentum_shadow_record_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
+    print(f"[{datetime.now()}] sat_momentum_shadow_record_job 시작")
+    try:
+        from core import rnd_topics
+
+        if not rnd_topics.is_on("sat_momentum_shadow"):
+            print("  - R&D 센터에서 '모멘텀 새틀라이트 기록' 주제가 꺼져 있어 건너뜀")
+            print(f"[{datetime.now()}] sat_momentum_shadow_record_job 종료")
+            return
+        from core.sat_momentum_shadow import record
+
+        res = record()
+        print(f"  - {res.get('month')} 기록={res.get('recorded')} ({res.get('reason', '')}) {res.get('picks', '')}")
+    except Exception as exc:  # noqa: BLE001
+        print(f"  - 모멘텀 새틀라이트 기록 실패: {type(exc).__name__}: {exc}")
+        report_job_failure("sat_momentum_shadow_record", f"{type(exc).__name__}: {exc}")
+    print(f"[{datetime.now()}] sat_momentum_shadow_record_job 종료")
+
+
 def forward_tournament_record_job() -> None:
     """앞으로 토너먼트 기록 (v1 core/forward_tournament.py, 이어서 v2 core/forward_tournament_v2.py, v3 core/forward_tournament_v3.py).
     배분 반영 없음, 주문 없음. 셋은 각자 try 로 감싸 하나가 실패해도 나머지는 기록된다.
@@ -1665,6 +1692,14 @@ def main() -> None:
         trigger=CronTrigger(hour=0, minute=37, timezone="Asia/Seoul"),
         id="crypto_shadow_record",
         name="매일 한국시간 00:37 코인 추세 슬리브 앞으로 기록 (배분 미반영)",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        sat_momentum_shadow_record_job,
+        # 사용자 결정(2026-11-19): 새틀라이트 목표를 +5%p 로 낮추고 모멘텀 상위 5종목을 앞으로 기록해 검증.
+        trigger=CronTrigger(hour=7, minute=50, timezone="Asia/Seoul"),
+        id="sat_momentum_shadow_record",
+        name="매일 한국시간 07:50 모멘텀 새틀라이트 앞으로 기록 (그달 묶음이 없을 때만, 배분 미반영)",
         replace_existing=True,
     )
     scheduler.add_job(

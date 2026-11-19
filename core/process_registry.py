@@ -235,6 +235,14 @@ PROCESS_REGISTRY: dict[str, dict] = {
         ),
         "category": "research", "default_enabled": True,
     },
+    "sat_momentum_shadow_record": {
+        "label": "모멘텀 새틀라이트 앞으로 기록",
+        "description": (
+            "매달 첫 기록일에 S&P 500 에서 6개월 모멘텀 상위 5종목(참고로 12-1 모멘텀 상위 5)을 골라 원장에 한 줄 기록, "
+            "12개월 보유 뒤 SPY 대비 초과를 잰다 — 배분에 반영하지 않는 사전 등록 검증(목표 +5%p), 약 2028-11 판정 (07:50 KST)"
+        ),
+        "category": "research", "default_enabled": True,
+    },
     "forward_tournament_record": {
         "label": "앞으로 토너먼트 기록",
         "description": (

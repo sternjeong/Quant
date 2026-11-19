@@ -297,6 +297,19 @@ def check_crypto_shadow(now: datetime) -> Check:
         return _c("코인 추세 기록", OK, f"{len(rows)}일 기록(경과 계산 실패: {type(exc).__name__})")
 
 
+def check_sat_momentum_shadow(now: datetime) -> Check:
+    from core import sat_momentum_shadow as sm
+
+    rows = sm.load_ledger()
+    month = now.strftime("%Y-%m")
+    if now.date() >= sm.FORWARD_START and now.day >= 5 and not any(r.get("month") == month for r in rows):
+        return _c("모멘텀 새틀라이트 기록", WARN, f"{month} 묶음이 아직 없음 — 07:50 기록 잡 확인")
+    try:
+        return _c("모멘텀 새틀라이트 기록", OK, sm.summary_line(sm.evaluate_live()))
+    except Exception as exc:  # noqa: BLE001 - 경과 계산 실패는 기록 자체와 구분
+        return _c("모멘텀 새틀라이트 기록", OK, f"{len(rows)}개월 기록(경과 계산 실패: {type(exc).__name__})")
+
+
 def check_forward_tournament(now: datetime) -> Check:
     from core import forward_tournament as ft
 
@@ -419,6 +432,7 @@ CHECKS: tuple[tuple[str, Callable[[datetime], Check]], ...] = (
     ("신호·가격 데이터", check_signal_and_prices),
     ("AI 국제정세 의견", check_geo_shadow),
     ("코인 추세 기록", check_crypto_shadow),
+    ("모멘텀 새틀라이트 기록", check_sat_momentum_shadow),
     ("앞으로 토너먼트", check_forward_tournament),
     ("앞으로 토너먼트 v2", check_forward_tournament_v2),
     ("앞으로 토너먼트 v3", check_forward_tournament_v3),
