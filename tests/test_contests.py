@@ -230,26 +230,99 @@ def test_hub_delete_requires_typed_slug(root, fake_gh, monkeypatch):
     assert code == 303 and headers["Location"].startswith("/contests?msg=") and not (root / "kaggle-titanic").exists()
 
 
-def test_hub_done_hides_contest_and_reopen_restores(root, fake_gh, monkeypatch):
+def _with_remote(root, tmp_path, slug="kaggle-titanic"):
+    """create_contest(가짜 gh) 뒤 로컬 bare 저장소를 origin(=GitHub 역할)으로 붙이고 main 을 푸시한다."""
+    ct.create_contest(slug, "Titanic", "Kaggle", runner=fake_runner())
+    bare = tmp_path / f"{slug}.git"
+    subprocess.run(["git", "init", "-q", "--bare", str(bare)], check=True)
+    d = root / slug
+    for cmd in (["remote", "add", "origin", str(bare)], ["push", "-q", "-u", "origin", "main"]):
+        subprocess.run(["git", *cmd], cwd=d, check=True, capture_output=True)
+    return d, bare
+
+
+def _git(d, *args):
+    return subprocess.run(["git", *args], cwd=d, check=True, capture_output=True, text=True).stdout
+
+
+def test_archive_pushes_verifies_then_trashes(root, tmp_path):
+    d, bare = _with_remote(root, tmp_path)
+    (d / "src" / "model.py").write_text("x = 1\n")
+    _git(d, "add", "-A")
+    _git(d, "commit", "-q", "-m", "work")
+    _git(d, "checkout", "-q", "-b", "exp")
+    (d / "src" / "exp.py").write_text("y = 2\n")
+    _git(d, "add", "-A")
+    _git(d, "commit", "-q", "-m", "exp")
+    (d / "data" / "train.csv").write_text("a,b\n1,2\n")            # git 제외 파일
+    info = ct.sync_check("kaggle-titanic")
+    assert info["unpushed"] == {"main": 1, "exp": None} and not info["dirty"] and not info["error"]
+    assert any(p.startswith("data/") for p, _ in info["ignored"])
+
+    msg = ct.archive_contest("kaggle-titanic")
+    assert "브랜치 2개 모두 반영" in msg and not d.exists() and list((root / ".trash").iterdir())
+    remote = _git(bare, "branch", "--list")
+    assert "main" in remote and "exp" in remote
+    assert '"status": "종료"' in _git(bare, "show", "exp:contest.json")           # 상태 변경도 (체크아웃된 브랜치에) 커밋돼 올라감
+    rec = ct.list_archived()
+    assert rec[0]["slug"] == "kaggle-titanic" and rec[0]["ignored_bytes"] > 0
+
+    restored = ct.restore_archived("kaggle-titanic")
+    assert restored.status == "진행" and (d / "src" / "model.py").exists() and not ct.list_archived()
+
+
+def test_archive_refuses_dirty_unless_commit_all_and_restores_status(root, tmp_path):
+    d, bare = _with_remote(root, tmp_path)
+    ct.update("kaggle-titanic", status="진행")
+    (d / "notes.md").write_text("미커밋 작업\n")
+    info = ct.sync_check("kaggle-titanic")
+    assert [p for p, _ in info["dirty"]] == ["notes.md"]                  # contest.json 은 허브가 커밋하므로 따로 안 셈
+    with pytest.raises(ct.ContestError, match="커밋하지 않은 파일 1개"):
+        ct.archive_contest("kaggle-titanic")
+    assert d.exists() and ct.load("kaggle-titanic").status == "진행"      # 실패하면 아무것도 안 지우고 상태 원래대로
+    ct.archive_contest("kaggle-titanic", commit_all=True)
+    assert not d.exists() and "notes.md" in _git(bare, "ls-tree", "--name-only", "main")
+
+
+def test_archive_refuses_when_push_fails_or_no_repo(root, tmp_path):
+    d, bare = _with_remote(root, tmp_path)
+    _git(d, "remote", "set-url", "origin", str(tmp_path / "missing.git"))
+    with pytest.raises(ct.ContestError, match="지우지 않았습니다"):
+        ct.archive_contest("kaggle-titanic")
+    assert d.exists()
+    ct.create_contest("norepo", "No", "Kaggle", runner=fake_runner(gh_ok=False))
+    with pytest.raises(ct.ContestError, match="저장소가 없어"):
+        ct.archive_contest("norepo")
+    assert (root / "norepo").exists()
+
+
+def test_hub_done_page_hide_and_archive_flow(root, tmp_path, fake_gh, monkeypatch):
     from hub import server
 
-    ct.create_contest("kaggle-titanic", "Titanic", "Kaggle", runner=fake_runner())
+    d, _ = _with_remote(root, tmp_path)
     ct.create_contest("dacon-ocr", "OCR", "Dacon", runner=fake_runner())
     listing = server.contests_page.render_list(server.PAGE_STYLE)
-    assert 'action="/contests/kaggle-titanic/done"' in listing and "완료한 대회" not in listing
+    assert 'href="/contests/kaggle-titanic/done"' in listing
+    page = server.contests_page.render_done("kaggle-titanic", server.PAGE_STYLE)
+    assert "모든 브랜치가 최신" in page and "GitHub 확인 후 VM 에서 삭제" in page
 
-    code, headers, _ = _post("/contests/kaggle-titanic/done", "", monkeypatch)
-    assert code == 303 and headers["Location"].startswith("/contests?msg=")
-    assert ct.load("kaggle-titanic").status == "종료" and (root / "kaggle-titanic").exists()  # 폴더는 그대로
+    code, _, _ = _post("/contests/dacon-ocr/hide", "", monkeypatch)
+    assert code == 303 and ct.load("dacon-ocr").status == "종료" and (root / "dacon-ocr").exists()
+
+    (d / "wip.py").write_text("1\n")
+    code, _, body = _post("/contests/kaggle-titanic/done", "", monkeypatch)
+    assert code == 400 and "커밋하지 않은 파일" in body and d.exists()
+    code, headers, _ = _post("/contests/kaggle-titanic/done", "commit_all=1", monkeypatch)
+    assert code == 303 and headers["Location"].startswith("/contests?msg=") and not d.exists()
+
     listing = server.contests_page.render_list(server.PAGE_STYLE)
-    assert "Titanic" not in listing and "OCR" in listing and "완료한 대회 1개 보기" in listing
+    assert "Titanic" not in listing and "OCR" not in listing and "완료한 대회 2개 보기" in listing
     done = server.contests_page.render_list(server.PAGE_STYLE, show_done=True)
-    assert "Titanic" in done and "OCR" not in done and 'action="/contests/kaggle-titanic/reopen"' in done
-    assert "진행 1개" in server.contests_page.card_badge()
-
+    assert "Titanic" in done and "VM 에서 정리됨" in done and "OCR" in done
     code, _, _ = _post("/contests/kaggle-titanic/reopen", "", monkeypatch)
     assert code == 303 and ct.load("kaggle-titanic").status == "진행"
-    assert "Titanic" in server.contests_page.render_list(server.PAGE_STYLE)
+    code, _, _ = _post("/contests/dacon-ocr/reopen", "", monkeypatch)
+    assert code == 303 and ct.load("dacon-ocr").status == "진행"
 
 
 def test_trash_purge_only_old_well_named_dirs(tmp_path):

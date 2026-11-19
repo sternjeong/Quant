@@ -2,7 +2,8 @@
 
 라우트(hub/server.py): GET /contests(?done=1 이면 완료한 대회 목록), /contests/new, /contests/<slug>
                        POST /contests/new, /contests/<slug>/update, /contests/<slug>/repo,
-                            /contests/<slug>/done(완료 → 상태 '종료', 목록에서 숨김), /contests/<slug>/reopen(되돌리기 → '진행')
+                            /contests/<slug>/done(GitHub 반영 확인 → VM 폴더 휴지통, GET 은 확인 화면),
+                            /contests/<slug>/hide(VM 에 남긴 채 숨기기만), /contests/<slug>/reopen(되돌리기 — 필요하면 GitHub 에서 다시 clone)
 대회 카드의 'VS Code에서 열기'는 code-server(code. 하위 도메인)를 그 대회 폴더로 연다.
 """
 
@@ -84,16 +85,78 @@ def _delete_buttons(slug: str) -> str:
 
 
 def _state_button(slug: str, done: bool) -> str:
-    """완료(상태 '종료' → 목록에서 숨김) / 되돌리기(→ '진행'). 폴더·저장소는 그대로 둔다."""
-    action, label, cls = ("reopen", "↩ 되돌리기", "ghost") if done else ("done", "✓ 완료", "")
-    return (f'<form method="post" action="/contests/{_e(slug)}/{action}" style="display:inline">'
-            f'<button class="btn {cls} sm" type="submit">{label}</button></form>')
+    """완료(확인 화면 → GitHub 반영 확인 후 VM 폴더 정리) / 되돌리기(→ '진행')."""
+    if not done:
+        return f'<a class="btn sm" href="/contests/{_e(slug)}/done">✓ 완료</a>'
+    return (f'<form method="post" action="/contests/{_e(slug)}/reopen" style="display:inline">'
+            f'<button class="btn ghost sm" type="submit">↩ 되돌리기</button></form>')
 
 
-def render_list(page_style: str, message: str = "", show_done: bool = False) -> str:
+def _mb(n: int) -> str:
+    return f"{n / 1e9:.1f}GB" if n >= 1e9 else f"{n / 1e6:.1f}MB" if n >= 1e5 else f"{n / 1e3:.0f}KB"
+
+
+def render_done(slug: str, page_style: str, error: str = "", info: Optional[dict] = None) -> Optional[str]:
+    """완료 확인 화면: GitHub 반영 상태를 보여 주고, 다 올라가 있을 때만(또는 '모두 커밋' 선택 시) VM 폴더를 정리한다."""
+    c = ct.load(slug)
+    if c is None:
+        return None
+    try:
+        info = info or ct.sync_check(slug)
+    except ct.ContestError as exc:
+        info = {"repo": "", "error": str(exc), "dirty": [], "unpushed": {}, "stash": 0, "ignored": []}
+    items, can_go = [], not info["error"] and not info["stash"]
+    if info["error"]:
+        items.append(f'<li class="err">{_e(info["error"])}</li>')
+    for b, n in info["unpushed"].items():
+        items.append(f"<li>브랜치 <b>{_e(b)}</b>: " + ("GitHub 에 아직 없음" if n is None else f"푸시 안 한 커밋 {n}개")
+                     + " → 완료할 때 자동으로 푸시합니다</li>")
+    if info["stash"]:
+        items.append(f'<li class="err">git stash 에 보관한 작업 {info["stash"]}개 — GitHub 에 올라가지 않으니 VS Code 에서 꺼내 커밋하거나 지우세요</li>')
+    dirty_html = ""
+    if info["dirty"]:
+        rows = "".join(f"<li><code>{_e(p)}</code> <small>{_mb(sz)}</small></li>" for p, sz in info["dirty"][:30])
+        more = f"<li>… 외 {len(info['dirty']) - 30}개</li>" if len(info["dirty"]) > 30 else ""
+        dirty_html = (f'<h2>커밋하지 않은 파일 {len(info["dirty"])}개</h2>'
+                      '<p>GitHub 에 없는 작업입니다. 이대로는 지우지 않습니다. 아래 \'모두 커밋·푸시하고 완료\'를 누르면 이 파일들을 '
+                      '한 번에 커밋해 올린 뒤 확인하고 지웁니다(100MB 넘는 파일은 GitHub 이 거부해 중단됩니다).</p>'
+                      f'<ul>{rows}{more}</ul>')
+    ign = sum(sz for _, sz in info["ignored"])
+    ign_html = ""
+    if info["ignored"]:
+        names = ", ".join(_e(p) for p, _ in info["ignored"][:8]) + (" …" if len(info["ignored"]) > 8 else "")
+        ign_html = (f'<p class="err">git 제외 파일 {len(info["ignored"])}개({_mb(ign)}) — data/·submissions/·모델 파일처럼 '
+                    f'일부러 GitHub 에 올리지 않는 파일이라 함께 지워집니다(휴지통에서 {ct.TRASH_DAYS}일간 되살릴 수 있음): '
+                    f'<small>{names}</small></p>')
+    if can_go and not info["dirty"] and not info["unpushed"]:
+        status = '<p class="ok">✓ GitHub 에 모든 브랜치가 최신으로 올라가 있습니다.</p>'
+    else:
+        status = ""
+    form = ""
+    if can_go:
+        commit_all = '<input type="hidden" name="commit_all" value="1">' if info["dirty"] else ""
+        label = "모두 커밋·푸시하고 완료" if info["dirty"] else "GitHub 확인 후 VM 에서 삭제"
+        form = (f'<form class="form" method="post" action="/contests/{_e(slug)}/done" '
+                f'onsubmit="return confirm(\'GitHub 반영을 다시 확인한 뒤 VM 폴더를 지웁니다. 진행할까요?\')">{commit_all}'
+                f'<p><button class="btn danger" type="submit">{label}</button></p></form>')
+    body = (f'<p><a class="back" href="/contests">&larr; 대회 목록</a></p><h1>완료: {_e(c.title)}</h1>'
+            f'<p class="subtitle"><code>{_e(c.path)}</code> · GitHub {_e(info["repo"] or "없음")}</p>'
+            + (f'<p class="err">{_e(error)}</p>' if error else "") +
+            '<p>완료하면 ① 남은 커밋을 GitHub 에 푸시하고 ② GitHub 에서 다시 받아 모든 브랜치가 들어 있는지 확인한 뒤에만 '
+            f'③ VM 폴더를 휴지통으로 옮깁니다({ct.TRASH_DAYS}일 뒤 완전 삭제). 확인이 하나라도 안 되면 아무것도 지우지 않습니다. '
+            '나중에 \'완료한 대회\'에서 되돌리면 GitHub 에서 다시 받아 옵니다.</p>'
+            f'{status}{"<ul>" + "".join(items) + "</ul>" if items else ""}{dirty_html}{ign_html}{form}'
+            f'<form method="post" action="/contests/{_e(slug)}/hide" style="display:inline">'
+            '<button class="btn ghost sm" type="submit">지우지 말고 목록에서 숨기기만</button></form>'
+            '<a class="btn ghost sm" href="/contests">취소</a>')
+    return _page("대회 완료", body, page_style)
+
+
+def render_list(page_style: str, message: str = "", show_done: bool = False, error: str = "") -> str:
     ok, why = ct.root_status()
     items = ct.list_contests()
     done = [c for c in items if c.status == "종료"]
+    archived = ct.list_archived()
     shown = done if show_done else [c for c in items if c.status != "종료"]
     cards = []
     for c in shown:
@@ -101,21 +164,36 @@ def render_list(page_style: str, message: str = "", show_done: bool = False) -> 
             f'<div class="card"><a href="/contests/{_e(c.slug)}" style="color:inherit;text-decoration:none">'
             f'<h2>{_e(c.title)}<span class="kind">{_e(c.platform)}</span></h2>'
             f'<p>{dday_html(c)} · {_e(c.status)}{" · " + _e(c.deadline) + " KST" if c.deadline else ""}</p>'
-            f'<p><small>{_e(c.slug)}</small></p></a><p>{_state_button(c.slug, show_done)}{_delete_buttons(c.slug)}</p></div>')
+            f'<p><small>{_e(c.slug)}</small></p></a><p>{_state_button(c.slug, show_done)}'
+            + (f'<a class="btn sm" href="/contests/{_e(c.slug)}/done">VM 에서 정리</a>' if show_done else "")
+            + f'{_delete_buttons(c.slug)}</p></div>')
+    if show_done:
+        for r in archived:
+            slug = str(r.get("slug", ""))
+            cards.append(
+                f'<div class="card"><h2>{_e(r.get("title"))}<span class="kind">{_e(r.get("platform"))}</span></h2>'
+                f'<p>VM 에서 정리됨 · {_e(str(r.get("archived_at", ""))[:10])}</p>'
+                f'<p><small><a class="back" href="https://github.com/{_e(r.get("repo"))}" target="_blank" rel="noopener">'
+                f'{_e(r.get("repo"))}</a></small></p>'
+                f'<p><form method="post" action="/contests/{_e(slug)}/reopen" style="display:inline">'
+                '<button class="btn ghost sm" type="submit">↩ 되돌리기(GitHub 에서 다시 받기)</button></form></p></div>')
     setup = "" if ok else f'<p class="err">⚠️ {_e(why)}</p>'
     setup += f'<p class="ok">{_e(message)}</p>' if message else ""
+    setup += f'<p class="err">{_e(error)}</p>' if error else ""
     if show_done:
         head = ('<p><a class="back" href="/contests">&larr; 진행 중인 대회</a></p><h1>완료한 대회</h1>'
-                '<p class="subtitle">\'완료\'를 누른 대회입니다. 폴더·저장소는 그대로 있고, \'되돌리기\'를 누르면 목록에 다시 나옵니다.</p>')
+                '<p class="subtitle">\'완료\'한 대회입니다. VM 에서 정리된 대회는 GitHub 저장소에 남아 있고, \'되돌리기\'를 누르면 '
+                'GitHub 에서 다시 받아 목록에 나옵니다(git 제외 파일인 data/ 등은 돌아오지 않음).</p>')
         empty = "<p>완료한 대회가 없습니다.</p>"
         foot = ""
     else:
         head = ('<p><a class="back" href="/">&larr; 관제 센터로</a></p><h1>AI 대회</h1>'
                 '<p class="subtitle">대회마다 작업 폴더 + GitHub private 저장소 하나. 카드를 누르면 관리 화면, 거기서 VS Code 로 넘어갑니다. '
-                '끝난 대회는 \'완료\'를 누르면 이 목록에서 사라집니다(폴더·저장소는 그대로).</p>'
+                '끝난 대회는 \'완료\'를 누르면 GitHub 에 다 올라갔는지 확인한 뒤 VM 에서 지우고 목록에서 사라집니다.</p>'
                 '<p><a class="btn" href="/contests/new">+ 새 대회</a></p>')
-        empty = "<p>진행 중인 대회가 없습니다.</p>" if done else "<p>아직 등록한 대회가 없습니다.</p>"
-        foot = f'<p><a class="back" href="/contests?done=1">완료한 대회 {len(done)}개 보기 &rarr;</a></p>' if done else ""
+        empty = "<p>진행 중인 대회가 없습니다.</p>" if done or archived else "<p>아직 등록한 대회가 없습니다.</p>"
+        n_done = len(done) + len(archived)
+        foot = f'<p><a class="back" href="/contests?done=1">완료한 대회 {n_done}개 보기 &rarr;</a></p>' if n_done else ""
     body = f'{head}{setup}<div class="grid">{"".join(cards) or empty}</div>{foot}'
     return _page("완료한 대회" if show_done else "AI 대회", body, page_style)
 
@@ -238,10 +316,13 @@ def handle_post(path: str, form: dict) -> tuple[str, Optional[str]]:
                     return f"/contests/{slug}/delete?mode={quote(mode)}", "폴더 이름이 맞지 않아 지우지 않았습니다."
                 message = ct.delete_contest(slug, mode)
                 return "/contests?msg=" + quote(message), None
-            elif action in ("done", "reopen"):
-                c = ct.update(slug, status="종료" if action == "done" else "진행")
-                if action == "done":
-                    return "/contests?msg=" + quote(f"'{c.title}' 완료 처리 — 목록에서 숨겼습니다. 아래 '완료한 대회'에서 되돌릴 수 있습니다."), None
+            elif action == "done":
+                return "/contests?msg=" + quote(ct.archive_contest(slug, commit_all=_one(form, "commit_all") == "1")), None
+            elif action == "hide":
+                c = ct.update(slug, status="종료")
+                return "/contests?msg=" + quote(f"'{c.title}' 을(를) 목록에서 숨겼습니다(VM 폴더는 그대로). '완료한 대회'에서 되돌릴 수 있습니다."), None
+            elif action == "reopen":
+                c = ct.update(slug, status="진행") if ct.load(slug) else ct.restore_archived(slug)
                 return "/contests?msg=" + quote(f"'{c.title}' 을(를) 다시 진행 중으로 돌렸습니다."), None
             elif action == "repo":
                 c = ct.create_repo(slug)
@@ -252,6 +333,10 @@ def handle_post(path: str, form: dict) -> tuple[str, Optional[str]]:
         except ct.ContestError as exc:
             if action == "delete":
                 return f"/contests/{slug}/delete?mode={quote(_one(form, 'mode'))}", str(exc)
+            if action == "done":
+                return f"/contests/{slug}/done", str(exc)
+            if action == "reopen":
+                return "/contests?done=1", str(exc)
             return f"/contests/{slug}", str(exc)
         return f"/contests/{slug}", None
     return "/contests", "알 수 없는 요청"

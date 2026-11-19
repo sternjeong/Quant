@@ -665,6 +665,11 @@ class HubRequestHandler(BaseHTTPRequestHandler):
                 slug, mode = target.removeprefix("/contests/").split("/delete?mode=")
                 page = contests_page.render_delete(slug, mode, PAGE_STYLE, error)
                 self._send_html(page or error, 400)
+            elif target.endswith("/done"):
+                page = contests_page.render_done(target.removeprefix("/contests/").removesuffix("/done"), PAGE_STYLE, error)
+                self._send_html(page or error, 400)
+            elif target == "/contests?done=1":
+                self._send_html(contests_page.render_list(PAGE_STYLE, show_done=True, error=error), 400)
             elif target == "/contests/new":
                 self._send_html(contests_page.render_new(PAGE_STYLE, error, {k: (v or [""])[0] for k, v in form.items()}), 400)
             else:
@@ -832,6 +837,9 @@ class HubRequestHandler(BaseHTTPRequestHandler):
             query = {k: v[0] for k, v in parse_qs(urlparse(self.path).query).items()
                      if k in ("title", "slug", "platform", "url", "deadline", "memo")}
             self._send_html(contests_page.render_new(PAGE_STYLE, values=query))
+        elif path.startswith("/contests/") and path.endswith("/done"):
+            page = contests_page.render_done(path.removeprefix("/contests/").removesuffix("/done"), PAGE_STYLE)
+            self._send_html(page or "not found", 200 if page else 404)
         elif path.startswith("/contests/") and path.endswith("/delete"):
             mode = (parse_qs(urlparse(self.path).query).get("mode") or [""])[0]
             page = contests_page.render_delete(path.removeprefix("/contests/").removesuffix("/delete"), mode, PAGE_STYLE)

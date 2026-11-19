@@ -317,6 +317,196 @@ def delete_contest(slug: str, mode: str, *, root: Optional[Path] = None, runner:
     return f"{head}VM 폴더를 휴지통({dest.name})으로 옮겼습니다. {TRASH_DAYS}일 뒤 완전히 지워집니다."
 
 
+# ---------------------------------------------------------------- 완료 = GitHub 반영 확인 후 VM 폴더 정리 (2026-11-19)
+# '완료'는 GitHub 에 모든 작업이 올라가 있는지 확인한 뒤에만 VM 폴더를 휴지통으로 옮긴다:
+#   1) contest.json(허브가 고친 상태값)을 커밋, 2) 커밋 안 한 파일이 있으면 멈춤(사용자가 '모두 커밋' 을 고르면 커밋),
+#   3) 모든 로컬 브랜치를 푸시, 4) fetch 후 각 브랜치가 origin 에 들어 있는지(조상인지) 확인, 5) 기록을 .archive 에 남기고 휴지통.
+# git 제외 파일(data/·submissions/·모델 파일 등)은 GitHub 에 없으므로 확인 화면에서 크기와 함께 알린다.
+ARCHIVE_DIR = ".archive"
+
+
+def _git(c: Contest) -> list[str]:
+    return ["git", "-c", f"safe.directory={c.path}", "-c", "core.quotepath=off"]
+
+
+def _ok(c: Contest, args: list[str], runner: Runner, timeout: int = 60) -> subprocess.CompletedProcess:
+    try:
+        return _run(_git(c) + args, c.path, runner, timeout=timeout)
+    except (OSError, subprocess.SubprocessError) as exc:
+        return subprocess.CompletedProcess(args, 1, "", type(exc).__name__)
+
+
+def _size(path: Path) -> int:
+    try:
+        if path.is_file() or path.is_symlink():
+            return path.lstat().st_size
+        return sum(f.lstat().st_size for f in path.rglob("*") if f.is_file() and not f.is_symlink())
+    except OSError:
+        return 0
+
+
+def sync_check(slug: str, *, root: Optional[Path] = None, runner: Runner = subprocess.run, fetch: bool = True) -> dict:
+    """GitHub 반영 상태. {'repo','error','dirty':[(경로,바이트)],'unpushed':{브랜치: 개수|None(원격에 없음)},
+    'stash': n, 'ignored':[(경로,바이트)]}. error 가 있으면 확인 자체를 못 한 것(삭제 금지)."""
+    c = load(slug, root)
+    if c is None:
+        raise ContestError(f"대회 없음: {slug}")
+    info: dict = {"repo": c.repo if c.repo_status == "created" else "", "error": "", "dirty": [], "unpushed": {},
+                  "stash": 0, "ignored": []}
+    if not info["repo"]:
+        info["error"] = "연결된 GitHub 저장소가 없습니다(대회 화면에서 '저장소 다시 만들기' 먼저)."
+        return info
+    if fetch:
+        p = _ok(c, ["fetch", "-q", "--prune", "origin"], runner, timeout=120)
+        if p.returncode != 0:
+            info["error"] = "GitHub 에서 최신 상태를 받지 못했습니다: " + (p.stderr or p.stdout).strip()[:200]
+            return info
+    p = _ok(c, ["status", "--porcelain", "-z", "--ignored", "--untracked-files=normal"], runner)
+    if p.returncode != 0:
+        info["error"] = "git status 실패: " + (p.stderr or p.stdout).strip()[:200]
+        return info
+    entries = p.stdout.split("\0")
+    i = 0
+    while i < len(entries):
+        e = entries[i]
+        i += 1
+        if len(e) < 4:
+            continue
+        code, rel = e[:2], e[3:]
+        if code[0] in "RC":
+            i += 1  # 이름 바꾸기는 원래 이름이 다음 항목으로 온다
+        if rel == "contest.json" and code != "!!":
+            continue  # 허브가 고친 상태값 — 완료할 때 허브가 직접 커밋한다
+        size = _size(c.path / rel)
+        (info["ignored"] if code == "!!" else info["dirty"]).append((rel, size))
+    info["ignored"] = sorted((x for x in info["ignored"] if "__pycache__" not in x[0] and ".ipynb_checkpoints" not in x[0]),
+                             key=lambda x: -x[1])  # 폴더 단위로 묶여 온다(.venv/ 등) — 큰 것부터
+    p = _ok(c, ["for-each-ref", "refs/heads", "--format=%(refname:short)"], runner)
+    for branch in p.stdout.split():
+        has_remote = _ok(c, ["rev-parse", "-q", "--verify", f"refs/remotes/origin/{branch}"], runner).returncode == 0
+        if not has_remote:
+            info["unpushed"][branch] = None
+            continue
+        q = _ok(c, ["rev-list", "--count", f"origin/{branch}..{branch}"], runner)
+        n = int(q.stdout.strip() or 0) if q.returncode == 0 else -1
+        if n:
+            info["unpushed"][branch] = n
+    p = _ok(c, ["stash", "list"], runner)
+    info["stash"] = len([ln for ln in p.stdout.splitlines() if ln.strip()])
+    return info
+
+
+def archive_contest(slug: str, *, commit_all: bool = False, root: Optional[Path] = None,
+                    runner: Runner = subprocess.run, now: Optional[datetime] = None) -> str:
+    """완료: GitHub 에 다 올라간 것을 확인한 뒤 VM 폴더를 휴지통으로. 하나라도 확인이 안 되면 ContestError(폴더 그대로)."""
+    root = root or CONTESTS_ROOT
+    c = load(slug, root)
+    if c is None:
+        raise ContestError(f"대회 없음: {slug}")
+    if c.repo_status != "created" or not c.repo:
+        raise ContestError("연결된 GitHub 저장소가 없어 지우지 않았습니다. 대회 화면에서 저장소를 먼저 만드세요.")
+    prev = c.status
+    try:
+        return _archive(c, commit_all, root, runner, now)
+    except ContestError:
+        if load(slug, root) is not None:  # 폴더가 남아 있으면 상태를 원래대로(목록에 계속 보이게)
+            c.status = prev
+            save(c, root)
+        raise
+
+
+def _archive(c: Contest, commit_all: bool, root: Path, runner: Runner, now: Optional[datetime]) -> str:
+    slug = c.slug
+    c.status = "종료"
+    save(c, root)
+    _ok(c, ["add", "contest.json"], runner)
+    if _ok(c, ["diff", "--cached", "--quiet"], runner).returncode != 0:
+        p = _ok(c, ["commit", "-q", "-m", "contest.json: 상태 종료(관제 센터 '완료')"], runner)
+        if p.returncode != 0:
+            raise ContestError("contest.json 커밋 실패: " + (p.stderr or p.stdout).strip()[:200])
+    info = sync_check(slug, root=root, runner=runner, fetch=False)
+    if info["dirty"]:
+        if not commit_all:
+            raise ContestError(f"커밋하지 않은 파일 {len(info['dirty'])}개가 있어 지우지 않았습니다.")
+        for cmd in (["add", "-A"], ["commit", "-q", "-m", "완료 전 남은 작업 모두 커밋(관제 센터 '완료')"]):
+            p = _ok(c, cmd, runner, timeout=120)
+            if p.returncode != 0:
+                raise ContestError(f"git {cmd[0]} 실패: " + (p.stderr or p.stdout).strip()[:200])
+    if info["stash"]:
+        raise ContestError(f"git stash 에 보관한 작업 {info['stash']}개가 있습니다(GitHub 에 올라가지 않음). "
+                           "VS Code 에서 꺼내 커밋하거나 지운 뒤 다시 누르세요.")
+    p = _ok(c, ["for-each-ref", "refs/heads", "--format=%(refname:short)"], runner)
+    branches = p.stdout.split()
+    if branches:
+        p = _ok(c, ["push", "-q", "origin", *[f"refs/heads/{b}:refs/heads/{b}" for b in branches]], runner, timeout=300)
+        if p.returncode != 0:
+            raise ContestError("GitHub 푸시 실패 — 지우지 않았습니다: " + (p.stderr or p.stdout).strip()[:300])
+    # 푸시가 성공했다고 믿지 않고 GitHub 에서 다시 받아 각 브랜치가 들어 있는지 확인한다.
+    after = sync_check(slug, root=root, runner=runner, fetch=True)
+    problems = []
+    if after["error"]:
+        problems.append(after["error"])
+    if after["dirty"]:
+        problems.append(f"커밋 안 한 파일 {len(after['dirty'])}개")
+    for b, n in after["unpushed"].items():
+        problems.append(f"브랜치 {b}: " + ("GitHub 에 없음" if n is None else f"푸시 안 된 커밋 {n}개"))
+    if problems:
+        raise ContestError("GitHub 반영을 확인하지 못해 지우지 않았습니다: " + "; ".join(problems))
+    head = _ok(c, ["rev-parse", "HEAD"], runner).stdout.strip()
+    origin = _ok(c, ["remote", "get-url", "origin"], runner).stdout.strip()
+    record = {**c.to_json(), "archived_at": (now or datetime.now(KST)).isoformat(timespec="seconds"),
+              "head": head, "origin_url": origin, "branches": branches, "ignored_bytes": sum(sz for _, sz in after["ignored"])}
+    arch = root / ARCHIVE_DIR
+    arch.mkdir(exist_ok=True)
+    (arch / f"{slug}.json").write_text(json.dumps(record, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    dest = trash_local(slug, root=root, now=now)
+    return (f"'{c.title}' 완료 — GitHub {c.repo} 에 브랜치 {len(branches)}개 모두 반영된 것을 확인하고 VM 폴더를 "
+            f"휴지통({dest.name})으로 옮겼습니다. {TRASH_DAYS}일 뒤 완전히 지워집니다.")
+
+
+def list_archived(root: Optional[Path] = None) -> list[dict]:
+    root = root or CONTESTS_ROOT
+    out = []
+    try:
+        files = sorted((root / ARCHIVE_DIR).glob("*.json"))
+    except OSError:
+        return []
+    for f in files:
+        try:
+            out.append(json.loads(f.read_text(encoding="utf-8")))
+        except (OSError, ValueError):
+            continue
+    return sorted(out, key=lambda r: r.get("archived_at", ""), reverse=True)
+
+
+def restore_archived(slug: str, *, root: Optional[Path] = None, runner: Runner = subprocess.run) -> Contest:
+    """되돌리기: GitHub 에서 다시 clone 하고 상태를 '진행'으로. git 제외 파일(data/ 등)은 돌아오지 않는다."""
+    root = root or CONTESTS_ROOT
+    rec_path = root / ARCHIVE_DIR / f"{slug}.json"
+    if not SLUG_RE.match(slug or "") or not rec_path.exists():
+        raise ContestError(f"완료 기록 없음: {slug}")
+    if (root / slug).exists():
+        raise ContestError(f"이미 같은 이름의 폴더가 있습니다: {slug}")
+    rec = json.loads(rec_path.read_text(encoding="utf-8"))
+    url = rec.get("origin_url") or ""
+    if not url and re.fullmatch(r"[A-Za-z0-9-]+/[A-Za-z0-9._-]+", rec.get("repo", "")):
+        url = f"https://github.com/{rec['repo']}.git"
+    if not url or url.startswith("-"):
+        raise ContestError("기록에 저장소 주소가 없습니다.")
+    old = os.umask(0o002)
+    try:
+        p = _run(["git", "clone", "-q", "--config", "core.sharedRepository=group", "--", url, str(root / slug)], root, runner, timeout=300)
+    except (OSError, subprocess.SubprocessError) as exc:
+        p = subprocess.CompletedProcess([], 1, "", type(exc).__name__)
+    finally:
+        os.umask(old)
+    if p.returncode != 0:
+        raise ContestError("GitHub 에서 받지 못했습니다: " + (p.stderr or p.stdout).strip()[:200])
+    c = update(slug, root=root, status="진행")
+    rec_path.unlink(missing_ok=True)
+    return c
+
+
 def create_contest(slug: str, title: str, platform: str, url: str = "", deadline: str = "", memo: str = "", *,
                    root: Optional[Path] = None, runner: Runner = subprocess.run) -> Contest:
     root = root or CONTESTS_ROOT
