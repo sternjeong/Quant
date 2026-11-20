@@ -8,6 +8,9 @@ core/tax_fx.py 가 '과거에 이 전략을 굴렸다면'을 계산한다면, �
     '손실 확정'(손실 난 종목을 팔았다 바로 다시 사서 상계). 둘 다 보유는 그대로다. 한국 해외주식 양도세에는 미국식
     '팔고 바로 다시 사기 금지(wash sale)' 규정이 없다고 알려져 있으나 확인 필요로 표시한다.
 매매 규칙(언제 무엇을 사고파나)은 바꾸지 않는다 — 세금을 줄이는 규칙 변형은 연구 작업 tax-rnd-v1 이 판정한다.
+2026-11-20 엔진 반영(사용자 승인): frontier-tax-allowance-v2 에서 유일하게 통과한 '원가 올리기'(H0_MKT_STEPUP, ALLOWANCE_HELPS)의
+고정 규칙을 따른다 — 12월에만, 평가이익률 2% 이상인 종목만(왕복 0.3% ÷ 22% ≈ 1.36% 손익분기 + 여유). 12/1~12/26 아침
+텔레그램에 내 보유로 계산한 종목·수량이 나온다. 올해 실현 이익을 입력하지 않았으면 수량을 내지 않는다(이미 공제를 썼으면 세금이 생김).
 추정치이며 신고용이 아니다. 주문 경로와 연결되어 있지 않다.
 """
 
@@ -26,7 +29,10 @@ from core.tax_fx import ANNUAL_DEDUCTION_KRW, KAKAO_FEE, TAX_RATE
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 STATE_PATH = PROJECT_ROOT / "data" / "tax_year.json"
-HARVEST_FROM = (11, 15)  # 이 날(월, 일)부터 연말 제안을 '지금 할 때'로 표시
+HARVEST_FROM = (12, 1)  # 이 날(월, 일)부터 연말 제안을 '지금 할 때'로 표시(frontier-tax-allowance-v2: 12월에만)
+REMINDER_FROM = (11, 15)  # 이 날부터 아침 텔레그램에 연말 점검 줄
+REMINDER_UNTIL = (12, 26)
+STEPUP_MIN_GAIN_RATIO = 0.02  # frontier-tax-allowance-v2 고정 규칙: 평가이익률 2% 이상일 때만 원가 올리기
 SETTLEMENT_NOTE = ("미국 주식은 결제일 기준으로 해가 정해집니다 — 12월 마지막 거래일 2~3일 전까지 하세요"
                    "(정확한 마감일은 카카오페이증권 연말 공지 확인).")
 WASH_SALE_NOTE = "팔고 바로 다시 사는 것을 막는 규정(미국식 wash sale)은 한국 해외주식 양도세에 없다고 알려져 있습니다(확인 필요)."
@@ -138,7 +144,8 @@ def harvest_suggestions(pos: list[dict], realized_total: float, today: date,
     if realized_total < ANNUAL_DEDUCTION_KRW:
         kind = "gain"
         room = (ANNUAL_DEDUCTION_KRW - realized_total) * 0.97
-        for p in sorted((p for p in pos if (p.get("gain_per_share_krw") or 0) > 0),
+        for p in sorted((p for p in pos if (p.get("gain_per_share_krw") or 0) > 0
+                         and p["gain_krw"] >= STEPUP_MIN_GAIN_RATIO * p["cost_krw"]),
                         key=lambda p: -p["gain_per_share_krw"]):
             if room <= 0:
                 break
@@ -176,11 +183,65 @@ def harvest_suggestions(pos: list[dict], realized_total: float, today: date,
 
 
 def year_end_reminder_line(today: date) -> Optional[str]:
-    """아침 텔레그램용 한 줄 — 11/15~12/26 에만."""
-    if (today.month, today.day) < HARVEST_FROM or (today.month == 12 and today.day > 26):
+    """아침 텔레그램용 한 줄 — 11/15~11/30 미리 알림, 12/1~12/26 실행 안내(내 보유 계산은 year_end_message)."""
+    if (today.month, today.day) < REMINDER_FROM or (today.month, today.day) > REMINDER_UNTIL:
         return None
-    return ("🧾 연말 세금 점검 시기: '세후 수익 계산' 화면의 '내 계좌 올해 세금'에 올해 실현 이익을 넣으면 "
-            "공제 채우기(250만 원)·손실 확정 제안이 나옵니다 — 12월 마지막 거래일 2~3일 전까지.")
+    if (today.month, today.day) < HARVEST_FROM:
+        return ("🧾 연말 세금 준비: 12월 1일부터 아침 메시지에 원가 올리기(공제 250만 원) 종목·수량이 나옵니다 — "
+                "그 전에 '세후 수익 계산' 화면 '내 계좌 올해 세금'에 올해 실현 이익을 넣어 두세요(없으면 0).")
+    return ("🧾 연말 원가 올리기 시기(12월 마지막 거래일 2~3일 전까지): '세후 수익 계산' 화면 '내 계좌 올해 세금'에 "
+            "올해 실현 이익을 넣으면 종목·수량이 나옵니다(없으면 0).")
+
+
+def _fmt_shares(q: float) -> str:
+    return f"{int(q)}주" if float(q).is_integer() else f"{q:.4f}주"
+
+
+def year_end_lines(today: date, pos: list[dict], realized_ytd: Optional[float]) -> Optional[list[str]]:
+    """12/1~12/26 아침 텔레그램용 연말 실행 안내(내 보유 기준). 기간 밖이면 None.
+    올해 실현 이익이 입력되지 않았으면 수량을 내지 않는다 — 이미 공제를 썼다면 원가 올리기가 세금을 만든다."""
+    if (today.month, today.day) < HARVEST_FROM or (today.month, today.day) > REMINDER_UNTIL:
+        return None
+    if realized_ytd is None:
+        return [year_end_reminder_line(today) or ""]
+    sug = harvest_suggestions(pos, float(realized_ytd), today)
+    if not sug["rows"]:
+        why = ("평가이익 2% 넘는 보유가 없거나 공제를 이미 다 씀" if sug["kind"] == "gain"
+               else "손실 난 보유가 없음" if sug["kind"] == "loss" else "공제 250만 원을 정확히 씀")
+        return [f"🧾 연말 세금: 지금 할 원가 올리기·손실 확정 없음({why})."]
+    if sug["kind"] == "gain":
+        head = (f"🧾 연말 원가 올리기: 아래만큼 팔고 같은 날 같은 수량을 다시 사세요(보유·비중 그대로). "
+                f"나중 양도세 약 {sug['tax_saved_krw']:,.0f}원↓, 수수료 약 {sug['fees_krw']:,.0f}원")
+    else:
+        head = (f"🧾 연말 손실 확정: 아래만큼 팔고 같은 날 같은 수량을 다시 사세요(보유·비중 그대로). "
+                f"올해 양도세 약 {sug['tax_saved_krw']:,.0f}원↓, 수수료 약 {sug['fees_krw']:,.0f}원")
+    if not sug["worth_it"]:
+        head += " — 수수료에 비해 이득이 작아 건너뛰어도 됩니다"
+    lines = [head]
+    lines += [f"  · {r['ticker']} {_fmt_shares(r['shares'])} (실현 {r['realize_krw']:,.0f}원)" for r in sug["rows"]]
+    lines.append("  · 12월 마지막 거래일 2~3일 전까지(결제일 기준). 올해 실현 이익 입력값 "
+                 f"{float(realized_ytd):,.0f}원 기준 추정이며 신고용이 아닙니다.")
+    return lines
+
+
+def year_end_message(today: date) -> Optional[str]:
+    """아침 잡이 부른다: 기간 밖 None, 12월엔 내 보유·입력값으로 실행 안내, 계산이 안 되면 일반 안내 한 줄."""
+    if (today.month, today.day) < HARVEST_FROM:
+        return year_end_reminder_line(today)
+    if (today.month, today.day) > REMINDER_UNTIL:
+        return None
+    try:
+        from core import portfolio as pf
+        from core.market_data import get_latest_price
+
+        holdings = pf.list_holdings()
+        if not holdings:
+            return year_end_reminder_line(today)
+        prices = {t: get_latest_price(t) for t in sorted({h["ticker"] for h in holdings})}
+        lines = year_end_lines(today, positions(holdings, prices, load_fx()), load_realized(today.year))
+        return "\n".join(lines) if lines else None
+    except Exception:  # noqa: BLE001 - 계산이 안 되면 일반 안내로
+        return year_end_reminder_line(today)
 
 
 def load_fx() -> pd.Series:

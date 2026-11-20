@@ -1,3 +1,16 @@
+## 2026-11-20 연말 원가 올리기 엔진 반영(사용자 승인) + 고장 수리 4건 배포(PR #16)
+
+- 결정(사용자 "2번 진행해줘"): frontier-tax-allowance-v2 에서 유일하게 통과한 H0_MKT_STEPUP(원가 올리기, ALLOWANCE_HELPS)을 엔진에 반영한다.
+- 구현(core/tax_planner.py, 브랜치 tax-stepup-engine): 연구 고정 규칙대로 공제 채우기를 12월부터(HARVEST_FROM 11/15→12/1)·평가이익률 2% 이상 종목만(STEPUP_MIN_GAIN_RATIO).
+  아침 '지금 할 일' 텔레그램: 11/15~11/30 준비 안내, 12/1~12/26 내 보유·입력한 올해 실현 이익으로 계산한 종목·수량(year_end_message).
+  실현 이익 미입력이면 수량을 내지 않는다(이미 공제를 썼으면 세금이 생김). 계산 실패 시 일반 안내 한 줄. 매매 규칙·배분은 그대로.
+- 근거·한계: 효과 세후 연 +0.1%p 안팎(S1 계좌), 계좌가 크면 더 작다. 연구는 SPY 그냥 보유 계좌 기준.
+- 검증: tests/test_tax_planner.py·test_hub_guide.py 37 passed, test_champion_recommendation*.py 85 passed. 설명서 tax_planner 항목 갱신(verified 2026-11-20).
+- PR #16(f4d0c01) 배포 완료 2026-11-20 00:59 UTC: 데이터 전용 배포 무재시작, v2 원장 가격 구멍 메우기, 빈 과거 응답 재조회, 연구 상태 권한 오류 노출, 청산 합계 보유 종목만, 대회 테스트 기본 브랜치.
+  liquidation-accounting-impact-v1 은 retry --fresh 로 pending 초기화(다음 실행 창). champion-crypto-v2 는 취소(v3·v4 완료).
+- 사용자 할 일: 12월 전 '세후 수익 계산' 화면에 올해 실현 이익 입력(없으면 0), 계좌 성과 장부에 시작 잔고·입출금 입력.
+- 다음: 12/1 아침 메시지에 원가 올리기 줄 확인, liquidation-accounting-impact-v1 결과 확인.
+
 ## 2026-11-19 새틀라이트 목표 +5%p 로 조정 — 모멘텀 새틀라이트 앞으로 기록(sat-mom-forward/v1) 구현
 
 - 결정(사용자): 목표를 S&P 500 대비 +7%p → +5%p 로 낮추고, 12개월 모멘텀 새틀라이트를 그림자 계좌(배분·주문 미반영)로 앞으로 검증한다.

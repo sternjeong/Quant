@@ -190,10 +190,10 @@ def _my_account_tab() -> None:
         st.write("지금 할 만한 공제 채우기·손실 확정이 없습니다"
                  + (" (공제 250만 원을 이미 정확히 썼거나 대상 종목이 없음)." if sug["kind"] else "."))
     else:
-        what = "공제 채우기 — 이익 난 종목을 아래 수량만큼 팔고 같은 날 같은 수량을 다시 삽니다" if sug["kind"] == "gain" \
+        what = "원가 올리기(공제 채우기) — 평가이익률 2% 이상인 종목을 아래 수량만큼 팔고 같은 날 같은 수량을 다시 삽니다" if sug["kind"] == "gain" \
             else "손실 확정 — 손실 난 종목을 아래 수량만큼 팔고 같은 날 같은 수량을 다시 삽니다"
         (st.success if sug["actionable"] else st.info)(
-            what + ("" if sug["actionable"] else f" (지금은 참고 — 11월 15일 이후에 하는 게 맞습니다. 그 전에 하면 남은 기간에 이익·손실이 또 생깁니다)"))
+            what + ("" if sug["actionable"] else f" (지금은 참고 — 12월에 하는 게 맞습니다. 그 전에 하면 남은 기간에 이익·손실이 또 생깁니다)"))
         st.dataframe(pd.DataFrame([
             {"종목": r["ticker"], "팔았다 다시 살 수량": r["shares"], "실현되는 손익(원)": f"{r['realize_krw']:,.0f}",
              "수수료(원, 왕복)": f"{r['fees_krw']:,.0f}",
