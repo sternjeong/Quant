@@ -258,3 +258,17 @@ def test_bootstrap_without_credentials_uses_real_runner_and_reports_missing_keys
     out = av.run_bootstrap_if_needed(tmp_path, now=NOW, notify=lambda t: sent.append(t) or True)
     assert out["status"] == "no_credentials" and len(sent) == 1 and "키가 없어" in sent[0]
     assert list(tmp_path.glob("alpaca_*.json")) == []
+
+
+def test_market_meta_news_reports_earliest_article_when_history_missing(monkeypatch):
+    from core import alpaca_market_meta as meta, alpaca_news
+    from core import alpaca_verification as av
+
+    monkeypatch.setattr(meta, "check_tradability", lambda syms: {"AAPL": {"verdict": meta.TRADABLE},
+                                                                 "ZZZZNOPE": {"verdict": meta.NOT_FOUND}})
+    monkeypatch.setattr(meta, "fetch_trading_days", lambda a, b: [{"date": "2025-11-28", "early_close": True}])
+    monkeypatch.setattr(alpaca_news, "fetch_news", lambda *a, **k: [])
+    monkeypatch.setattr(alpaca_news, "earliest_article", lambda sym, **k: "2026-04-29T10:31:17Z")
+    res = av.check_market_meta_news()
+    assert res["verdict"] == "UNEXPECTED" and "2026-04-29T10:31:17Z" in res["failing"][0]
+    assert res["detail"]["earliest_news"] == "2026-04-29T10:31:17Z"

@@ -142,8 +142,8 @@ MODULES: tuple[ModuleGuide, ...] = (
         what="Alpaca 시장 데이터의 뉴스를 가져와, 기사가 처음 게시된 시각 기준으로 정리합니다. 나중에 수정된 시각은 별도로 보관해 과거 실험에 미래 정보가 섞이지 않게 합니다. 감성 점수는 만들지 않습니다.",
         how_to_use="뉴스 이벤트 연구(news_event_study)의 입력으로만 쓰입니다. 직접 쓸 일은 없습니다.",
         where_to_see="화면 없음. 연구 스크립트가 data/research/ 에 결과 파일을 남깁니다.",
-        cautions="과거 날짜 조회가 된다는 것은 문서 기준이며 아직 검증하지 않았습니다. 무료 뉴스 API의 한계를 우회하려는 실험용입니다.",
-        verified="2026-09-25",
+        cautions="과거 기사 조회는 2026-11-12 검증까지 2020년 기사가 나왔지만, 2026-11-19 부터는 2026-04-29 이전 기사가 0건입니다(Alpaca 쪽 변화로 보이며 공지는 확인하지 못함). 'Alpaca 검증'의 뉴스 항목이 가장 오래된 기사 시각을 함께 남기니, 뉴스 연구를 다시 돌리기 전에 그 값을 확인하세요. 무료 뉴스 API의 한계를 우회하려는 실험용입니다.",
+        verified="2026-11-20",
     ),
     ModuleGuide(
         module='core/account_sync.py',
@@ -167,7 +167,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         group='운영·안전',
         status='운영중',
         what=
-            'Alpaca 모의 계좌 연동이 가정대로 동작하는지 읽기 전용 검증 4개(멱등성 읽기, 기업행동, 가격 교차검증, 계좌 형식)를 자동으로 돌려 PASS/FAIL 을 JSON 으로 남깁니다.',
+            'Alpaca 모의 계좌 연동이 가정대로 동작하는지 읽기 전용 검증 5개(멱등성 읽기, 기업행동, 가격 교차검증, 계좌 형식, 자산·휴장 캘린더·과거 뉴스)를 자동으로 돌려 PASS/FAIL/UNEXPECTED 를 JSON 으로 남깁니다. 과거 뉴스가 0건이면 지금 받을 수 있는 가장 오래된 기사 시각을 함께 적습니다.',
         how_to_use=
             '최근 7일 안에 전체 PASS 가 없을 때만 매일 00:40(KST)에 돌고, 결과 요약이 텔레그램 1건으로 옵니다. FAIL 이 왔을 때만 내용을 확인하면 됩니다.',
         where_to_see=
@@ -175,7 +175,7 @@ MODULES: tuple[ModuleGuide, ...] = (
         cautions=
             '주문을 내지 않고 키 값은 저장하지 않습니다. Alpaca 키가 없으면 건너뜁니다. 검증이 PASS 여도 전략 성과를 보장하지 않고 연동이 가정대로라는 뜻일 뿐입니다.',
         sources=('scheduler/run_scheduler.py',),
-        verified="2026-11-15",
+        verified="2026-11-20",
     ),
     ModuleGuide(
         module='core/backtest_engine.py',
