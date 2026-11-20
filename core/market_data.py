@@ -58,6 +58,12 @@ FULL_HISTORY_RECHECK_SECONDS = 7 * 24 * 60 * 60  # 7일
 # 묻어두지 않게) 꼬리 조회를 건너뛴다. 새 봉이 오면 마커를 지운다.
 DEAD_AFTER_DAYS = 45
 NODATA_RECHECK_SECONDS = 7 * 24 * 60 * 60
+# 일봉 저장소 중간 구멍 메우기(2026-11-20). 꼬리 조회는 저장된 마지막 날짜부터만 받으므로, yfinance 가 어느 날
+# 하루치를 잠깐 빠뜨린 채 저장되면 그 구멍은 영원히 남는다(실례: XLE 2026-10-13 → 챔피언 추종 성과 계산 중단).
+# 최근 HOLE_LOOKBACK_DAYS 안에서 NYSE 거래일인데 봉이 없는 날이 있으면 그 구간만 다시 받는다. 특별 휴장·거래정지처럼
+# 정말 봉이 없는 날도 있으므로 티커마다 HOLE_RECHECK_SECONDS 에 한 번만 시도한다(.holecheck 마커).
+HOLE_LOOKBACK_DAYS = 180
+HOLE_RECHECK_SECONDS = 24 * 60 * 60
 NODATA_EMPTY_RECHECK_SECONDS = 24 * 60 * 60
 
 # get_multiple_price_history()가 여러 티커를 동시에 조회할 때 쓰는 스레드풀 크기. 네트워크 I/O
@@ -129,6 +135,23 @@ def _nodata_quiet(stored: pd.DataFrame, marker: Path) -> bool:
         return False
     wait = NODATA_EMPTY_RECHECK_SECONDS if stored.empty else NODATA_RECHECK_SECONDS
     return time.time() - marker.stat().st_mtime < wait
+
+
+def _hole_marker(store_file: Path) -> Path:
+    return store_file.with_suffix(".holecheck")
+
+
+def _missing_sessions(stored: pd.DataFrame) -> list[pd.Timestamp]:
+    """저장된 첫~마지막 봉 사이(최근 HOLE_LOOKBACK_DAYS 이내)에서 NYSE 거래일인데 봉이 없는 날."""
+    from core.filing_changes import is_trading_day  # NYSE 휴장일 근사(특별 휴장 포함)
+
+    if stored.empty:
+        return []
+    idx = pd.DatetimeIndex(stored.index).normalize()
+    last = idx.max()
+    first = max(idx.min(), last - pd.Timedelta(HOLE_LOOKBACK_DAYS, unit="D"))
+    have = set(idx)
+    return [d for d in pd.date_range(first, last, freq="B") if d not in have and is_trading_day(d.date())]
 
 
 def _load_store(store_file: Path) -> pd.DataFrame:
@@ -292,6 +315,21 @@ def get_price_history(
         elif _looks_dead(stored):
             try:
                 nodata.touch()
+            except OSError:
+                pass
+
+    if interval == "1d" and not stored.empty:
+        holes = _missing_sessions(stored)
+        marker = _hole_marker(store_file)
+        tried_recently = marker.exists() and time.time() - marker.stat().st_mtime < HOLE_RECHECK_SECONDS
+        if holes and not tried_recently:
+            patch = _download(ticker, start=holes[0].strftime("%Y-%m-%d"),
+                              end=(holes[-1] + pd.Timedelta(1, unit="D")).strftime("%Y-%m-%d"), interval=interval)
+            if not patch.empty:
+                stored = _merge_price_data(stored, patch)
+                updated = True
+            try:
+                marker.touch()
             except OSError:
                 pass
 
