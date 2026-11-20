@@ -62,6 +62,48 @@ class _SyncEmpty(Exception):
     pass
 
 
+with st.expander("🧾 매수·매도 기록 (체결한 것을 한 줄씩 — 보유·현금·올해 세금에 함께 반영)", expanded=True):
+    from core import portfolio_trades as _pt
+
+    st.caption("한 줄에 한 건: '티커 수량 매수/매도 체결가'. 순서는 자유이고 날짜(11/19 또는 2026-11-19)·'수수료 1.2'·'전량'을 붙일 수 있습니다. "
+               "매도는 그 종목 기록을 같은 비율로 줄이고(평균단가 유지), 현금 잔고와 '세후 수익 계산'의 올해 실현 이익(원화 근사)에 더합니다. "
+               "계좌 성과 장부에 시작 잔고가 있으면 거기에도 함께 적습니다. 대화에서 Claude 에게 체결을 알려주면 같은 기능으로 반영해 줍니다.")
+    _trade_text = st.text_area("체결 내역", value="", height=110, key="trade_text",
+                               placeholder="XLK 3 매도 210.5\n매수 SPY 2 650.1 11/19\nXLE 전량 매도 95 수수료 0.5")
+    try:
+        _trades = _pt.parse_trade_text(_trade_text) if _trade_text.strip() else []
+        if _trades:
+            _pv = _pt.preview(_trades)
+            st.dataframe(pd.DataFrame([{"날짜": r["trade_date"], "종목": r["ticker"], "구분": "매수" if r["side"] == "BUY" else "매도",
+                                        "수량": f"{r['quantity']:g}주", "체결가": f"${r['price']:,.2f}",
+                                        "보유": f"{r['before']:g} → {r['after']:g}주"} for r in _pv]),
+                         use_container_width=True, hide_index=True)
+            if st.button("✅ 이 매매 반영", type="primary", key="trade_save"):
+                for _r in _pt.record_trades(_trades):
+                    st.toast(_pt.format_result(_r).split("\n")[0], icon="✅")
+                    for _m in _r["messages"]:
+                        st.warning(_m)
+                st.rerun()
+    except ValueError as _e:
+        st.error(str(_e))
+    _recent = _pt.list_trades(10)
+    if _recent:
+        st.dataframe(pd.DataFrame([{"#": r["id"], "날짜": r["trade_date"], "종목": r["ticker"],
+                                    "구분": "매수" if r["side"] == "BUY" else "매도", "수량": f"{r['quantity']:g}",
+                                    "체결가": f"${r['price_usd']:,.2f}",
+                                    "실현 손익": "—" if r["realized_usd"] is None else f"${r['realized_usd']:,.2f}"
+                                    + ("" if r["realized_krw"] is None else f" (약 {r['realized_krw']:,.0f}원)")} for r in _recent]),
+                     use_container_width=True, hide_index=True)
+        if st.button("↩️ 마지막 한 건 되돌리기", key="trade_undo"):
+            try:
+                _u = _pt.undo_last_trade()
+                st.toast(f"#{_u['id']} {_u['ticker']} 되돌림", icon="↩️")
+                for _m in _u["messages"]:
+                    st.warning(_m)
+                st.rerun()
+            except ValueError as _e:
+                st.error(str(_e))
+
 with st.expander("📋 잔고 한 번에 맞추기 (증권사 앱 잔고 그대로 붙여넣기 — 추천)", expanded=not portfolio_module.list_holdings()):
     st.caption("증권사 앱 잔고 화면의 종목·수량·평균단가와 달러 예수금을 그대로 적으면 보유 기록 전체를 그 상태로 바꿉니다. "
                "적지 않은 종목은 삭제되고, 같은 종목이 여러 줄이면 한 줄로 합쳐집니다(중복 입력 방지). 평균단가는 생략하면 기존 기록을 씁니다.")

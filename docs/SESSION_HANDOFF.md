@@ -1,3 +1,12 @@
+## 2026-11-20 매수·매도 기록 기능(포트폴리오 화면 + CLI)
+
+- 요청: 포트폴리오 관리에서 매도를 입력할 수 없음 → 매수·매도를 편하게 알려주면 포트폴리오를 관리하도록.
+- 구현: core/portfolio_trades.py(새 테이블 portfolio_trades), 화면 '🧾 매수·매도 기록', scripts/portfolio_trade.py.
+  한 줄 한 건 자유 형식 → 보유 기록(매도는 비율 축소, 이동평균 유지)·현금 잔고·올해 실현 이익(tax_year.json, 입력된 해만)·계좌 성과 장부(시작 잔고 있을 때) 동시 반영.
+  마지막 한 건 되돌리기(직전 보유·현금·세금·장부 사건 복원).
+- 대화에서 체결을 들으면: sudo -u quant /opt/quant/.venv/bin/python scripts/portfolio_trade.py "XLK 3 매도 210.5" (먼저 --dry-run).
+- 검증: tests/test_portfolio_trades.py 14 passed, test_portfolio·test_hub_guide 포함 109 passed.
+
 ## 2026-11-20 야간 AI 에이전트 빈도 축소 + 로그인 만료 감지
 
 - 결정(사용자 "3번 진행해줘"): 새 알파 탐색 빈도를 줄인다(사전 등록 연구 85건+ 대부분 실패, 새틀라이트 R&D 누적 50건 통과 0, 10/20 이후 약 $26/주).
