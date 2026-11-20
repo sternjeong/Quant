@@ -454,8 +454,9 @@ def _archive(c: Contest, commit_all: bool, root: Path, runner: Runner, now: Opti
         raise ContestError("GitHub 반영을 확인하지 못해 지우지 않았습니다: " + "; ".join(problems))
     head = _ok(c, ["rev-parse", "HEAD"], runner).stdout.strip()
     origin = _ok(c, ["remote", "get-url", "origin"], runner).stdout.strip()
+    current = _ok(c, ["symbolic-ref", "-q", "--short", "HEAD"], runner).stdout.strip()
     record = {**c.to_json(), "archived_at": (now or datetime.now(KST)).isoformat(timespec="seconds"),
-              "head": head, "origin_url": origin, "branches": branches, "ignored_bytes": sum(sz for _, sz in after["ignored"])}
+              "head": head, "origin_url": origin, "checked_out": current, "branches": branches, "ignored_bytes": sum(sz for _, sz in after["ignored"])}
     arch = root / ARCHIVE_DIR
     arch.mkdir(exist_ok=True)
     (arch / f"{slug}.json").write_text(json.dumps(record, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -495,13 +496,18 @@ def restore_archived(slug: str, *, root: Optional[Path] = None, runner: Runner =
         raise ContestError("기록에 저장소 주소가 없습니다.")
     old = os.umask(0o002)
     try:
-        p = _run(["git", "clone", "-q", "--config", "core.sharedRepository=group", "--", url, str(root / slug)], root, runner, timeout=300)
+        # 원격 기본 브랜치(HEAD)에 기대지 않고 완료할 때 체크아웃돼 있던 브랜치로 받는다(기본 브랜치가 없거나 달라도 contest.json 이 있게).
+        branch = ["-b", rec["checked_out"]] if re.fullmatch(r"[A-Za-z0-9._/-]+", rec.get("checked_out") or "") else []
+        p = _run(["git", "clone", "-q", "--config", "core.sharedRepository=group", *branch, "--", url, str(root / slug)],
+                 root, runner, timeout=300)
     except (OSError, subprocess.SubprocessError) as exc:
         p = subprocess.CompletedProcess([], 1, "", type(exc).__name__)
     finally:
         os.umask(old)
     if p.returncode != 0:
         raise ContestError("GitHub 에서 받지 못했습니다: " + (p.stderr or p.stdout).strip()[:200])
+    if load(slug, root) is None:
+        raise ContestError(f"받은 저장소에 contest.json 이 없습니다({root / slug} 확인).")
     c = update(slug, root=root, status="진행")
     rec_path.unlink(missing_ok=True)
     return c
