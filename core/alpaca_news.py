@@ -42,6 +42,14 @@ def _normalize_article(raw: dict) -> Optional[dict[str, Any]]:
     }
 
 
+def earliest_article(symbol: str, *, get_json: Optional[Callable[[str], Any]] = None) -> Optional[str]:
+    """지금 API 가 돌려주는 그 종목의 가장 오래된 기사 게시 시각(없으면 None) — 과거 기사 제공 범위 진단용."""
+    get = get_json or _data_get_json
+    payload = get("/v1beta1/news?" + urlencode({"symbols": symbol.upper(), "limit": 1, "sort": "asc"}))
+    arts = [a for a in (_normalize_article(r) for r in payload.get("news") or []) if a]
+    return arts[0]["published_at"] if arts else None
+
+
 def fetch_news(
     symbols: list[str], start: str, end: str, *, as_of: Optional[str] = None,
     get_json: Optional[Callable[[str], Any]] = None,

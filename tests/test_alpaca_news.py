@@ -39,3 +39,14 @@ def test_page_cap_stops_runaway_pagination():
         return {"news": [], "next_page_token": "again"}
     n.fetch_news(["AAPL"], "a", "b", get_json=get)
     assert len(calls) == n.MAX_PAGES
+
+
+def test_earliest_article_asks_oldest_first():
+    seen = []
+
+    def get(path):
+        seen.append(path)
+        return {"news": [{"id": 1, "created_at": "2026-04-29T10:31:17Z", "headline": "h"}]}
+    assert n.earliest_article("aapl", get_json=get) == "2026-04-29T10:31:17Z"
+    assert "symbols=AAPL" in seen[0] and "sort=asc" in seen[0] and "limit=1" in seen[0]
+    assert n.earliest_article("AAPL", get_json=lambda p: {"news": []}) is None

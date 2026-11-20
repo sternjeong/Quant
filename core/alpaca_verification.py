@@ -166,10 +166,18 @@ def check_market_meta_news() -> dict:
     if any(d["date"] == "2025-11-27" for d in days) or not any(d["date"] == "2025-11-28" and d["early_close"] for d in days):
         failing.append("calendar: 2025 추수감사절 휴장/다음날 조기폐장이 가정과 다름")
     news = alpaca_news.fetch_news(["AAPL"], "2020-03-01", "2020-03-03")
+    earliest = None
     if not news:
-        failing.append("news: 2020-03 과거 기사 0건")
+        # 원인 진단: 과거 기사가 통째로 빠진 것인지(제공 범위 축소) 보이게 가장 오래된 기사 시각을 함께 남긴다.
+        try:
+            earliest = alpaca_news.earliest_article("AAPL")
+        except Exception as exc:  # noqa: BLE001 — 진단 실패가 판정을 바꾸지 않게
+            earliest = f"조회 실패({type(exc).__name__})"
+        failing.append("news: 2020-03 과거 기사 0건 — 지금 받을 수 있는 가장 오래된 AAPL 기사 "
+                       f"{earliest or '없음'} (Alpaca 쪽 과거 뉴스 제공 범위가 줄었을 수 있음, 뉴스 연구 재실행 전 확인)")
     if failing:
-        return _result("UNEXPECTED", "가정과 다름", failing, {"calendar": days, "n_news": len(news)})
+        return _result("UNEXPECTED", "가정과 다름", failing,
+                       {"calendar": days, "n_news": len(news), "earliest_news": earliest})
     return _result("PASS", f"자산·캘린더·뉴스 스키마 일치 (과거 기사 {len(news)}건)")
 
 
