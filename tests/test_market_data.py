@@ -354,3 +354,38 @@ def test_live_ticker_is_never_silenced_and_unknown_ticker_waits_only_a_day(monke
     market_data._nodata_marker(store).touch()
     market_data.get_price_history("LIVE", start=str(recent.date()))
     assert len(calls) == 3
+
+
+def test_get_price_history_refills_a_missing_trading_day_once_per_day(monkeypatch, tmp_path):
+    """yfinance 가 하루치를 빠뜨린 채 저장된 구멍(XLE 2026-10-13 실례)은 다음 조회 때 그 구간만 다시 받아 메운다."""
+    monkeypatch.setattr(market_data, "CACHE_DIR", tmp_path)
+    calls: list = []
+    real = _fake_download_factory(calls)
+    hole = pd.Timestamp("2026-10-13")
+
+    def flaky(ticker, start=None, end=None, interval="1d", **kwargs):
+        df = real(ticker, start=start, end=end, interval=interval)
+        return df[df.index != hole] if flaky.drop else df
+    flaky.drop = True
+    monkeypatch.setattr(market_data.yf, "download", flaky)
+
+    df = market_data.get_price_history("XLE", start="2026-10-01", end="2026-10-20")
+    assert hole not in df.index and len(calls) == 2           # 첫 받기 + 구멍 다시 받기(아직 공급자도 없음)
+    df = market_data.get_price_history("XLE", start="2026-10-01", end="2026-10-20")
+    assert len(calls) == 2                                     # 하루 한 번만 다시 시도
+
+    flaky.drop = False                                          # 공급자가 봉을 되살림
+    market_data._hole_marker(market_data._store_path("XLE", "1d")).unlink()
+    df = market_data.get_price_history("XLE", start="2026-10-01", end="2026-10-20")
+    assert hole in df.index and calls[-1] == "2026-10-13"      # 구멍 구간만 다시 받음
+    calls.clear()
+    market_data._hole_marker(market_data._store_path("XLE", "1d")).unlink()
+    market_data.get_price_history("XLE", start="2026-10-01", end="2026-10-20")
+    assert calls == []                                          # 구멍이 없으면 네트워크 없음
+
+
+def test_missing_sessions_ignores_weekends_and_nyse_holidays():
+    idx = pd.DatetimeIndex(["2026-11-24", "2026-11-25", "2026-11-27", "2026-11-30"])  # 11-26 추수감사절
+    assert market_data._missing_sessions(pd.DataFrame({"Close": [1, 2, 3, 4]}, index=idx)) == []
+    idx = pd.DatetimeIndex(["2026-11-23", "2026-11-25"])
+    assert market_data._missing_sessions(pd.DataFrame({"Close": [1, 2]}, index=idx)) == [pd.Timestamp("2026-11-24")]
