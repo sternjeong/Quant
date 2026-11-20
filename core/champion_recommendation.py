@@ -1409,9 +1409,9 @@ def run_daily_refresh(as_of: Optional[date] = None, *, notify: Optional[Callable
         order_lines = None
     message = daily_todo_message(rec, previous=previous, today=as_of, order_lines=order_lines)
     try:
-        from core.tax_planner import year_end_reminder_line
+        from core.tax_planner import year_end_message
 
-        tax_line = year_end_reminder_line(as_of)
+        tax_line = year_end_message(as_of)
         if tax_line:
             message += "\n" + tax_line
     except Exception:  # noqa: BLE001 - 세금 줄이 요약을 막지 않게

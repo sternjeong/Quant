@@ -68,5 +68,41 @@ def test_realized_input_round_trip(tmp_path):
 
 def test_year_end_reminder_window():
     assert tp.year_end_reminder_line(date(2026, 10, 5)) is None
-    assert tp.year_end_reminder_line(date(2026, 11, 20))
+    assert "12월 1일부터" in tp.year_end_reminder_line(date(2026, 11, 20))
+    assert tp.year_end_reminder_line(date(2026, 12, 5))
     assert tp.year_end_reminder_line(date(2026, 12, 28)) is None
+
+
+def test_gain_harvest_is_december_only_and_skips_small_gain_ratio():
+    # frontier-tax-allowance-v2 고정 규칙: 12월에만, 평가이익률 2% 이상만
+    pos = tp.positions(_holdings(), {"AAA": 150.0, "BBB": 150.0}, FX, fee_rate=0.0)
+    assert not tp.harvest_suggestions(pos, 0.0, date(2026, 11, 20))["actionable"]
+    thin = [{"ticker": "THIN", "shares": 100.0, "cost_krw": 1_000_000.0, "gain_krw": 15_000.0,
+             "gain_per_share_krw": 150.0, "price": 10.0, "fx_now": 1000.0}]
+    assert tp.harvest_suggestions(thin, 0.0, date(2026, 12, 10))["rows"] == []
+    thin[0].update(gain_krw=25_000.0, gain_per_share_krw=250.0)
+    assert [r["ticker"] for r in tp.harvest_suggestions(thin, 0.0, date(2026, 12, 10))["rows"]] == ["THIN"]
+
+
+def test_year_end_lines_give_tickers_only_with_realized_input():
+    pos = tp.positions(_holdings(), {"AAA": 150.0, "BBB": 150.0}, FX, fee_rate=0.0)
+    assert tp.year_end_lines(date(2026, 11, 20), pos, 0.0) is None
+    assert tp.year_end_lines(date(2026, 12, 28), pos, 0.0) is None
+    blind = tp.year_end_lines(date(2026, 12, 10), pos, None)
+    assert len(blind) == 1 and "AAA" not in blind[0]  # 입력 없으면 수량을 내지 않는다
+    lines = tp.year_end_lines(date(2026, 12, 10), pos, 0.0)
+    assert lines[0].startswith("🧾 연말 원가 올리기") and any("AAA" in ln and "주" in ln for ln in lines[1:])
+    done = tp.year_end_lines(date(2026, 12, 10), pos, 2_500_000)
+    assert done == ["🧾 연말 세금: 지금 할 원가 올리기·손실 확정 없음(공제 250만 원을 정확히 씀)."]
+
+
+def test_year_end_message_falls_back_to_generic_line(monkeypatch):
+    from core import portfolio as pf
+
+    def boom():
+        raise RuntimeError("db")
+
+    monkeypatch.setattr(pf, "list_holdings", boom)
+    assert tp.year_end_message(date(2026, 12, 10)) == tp.year_end_reminder_line(date(2026, 12, 10))
+    assert tp.year_end_message(date(2026, 11, 20)) == tp.year_end_reminder_line(date(2026, 11, 20))
+    assert tp.year_end_message(date(2026, 10, 1)) is None
