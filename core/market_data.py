@@ -21,6 +21,7 @@ Streamlit 페이지에서 반복 호출로 인한 재계산이 신경 쓰이면,
         return get_price_history(ticker, start, end, interval)
 """
 
+import os
 import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, timedelta
@@ -49,6 +50,7 @@ DEFAULT_CACHE_TTL_SECONDS = 6 * 60 * 60  # 6시간
 # 확장을 시도하게 해서(성공하면 마커 갱신, 이미 진짜 상장일이면 변화 없이 마커만 갱신) 이런 사고가
 # 스스로 복구되게 한다.
 FULL_HISTORY_RECHECK_SECONDS = 7 * 24 * 60 * 60  # 7일
+EMPTY_OLDER_RECHECK_SECONDS = 24 * 60 * 60  # 과거 구간 응답이 비었을 때(실패일 수 있음)는 하루 뒤 재확인
 
 # 상장폐지 등으로 더는 새 봉이 안 나오는 티커를 매번 다시 묻지 않기 위한 ".nodata" 마커(2026-11-12).
 # 챔피언 알파 감쇠 잡이 매일 10년 백테스트로 과거 S&P 편입 종목 수백 개를 end=오늘로 다시 묻느라
@@ -263,6 +265,12 @@ def get_price_history(
             updated = True
         if req_start is None:
             full_marker.touch()  # start=None으로 받아봤으니 이게 진짜 전체 이력의 시작
+            if older.empty:
+                # 빈 응답은 '저장 시작일이 곧 상장일'일 수도, 재시도까지 다 실패한 다운로드일 수도 있다. 실패를
+                # '전체 이력'으로 7일 굳히면 명시적 start 요청도 그동안 과거 구간을 못 채운다(2026-10 FCX 가
+                # 10-14 부터만 저장돼 앞으로 토너먼트 v2 평가가 막힘). 빈 응답이면 하루 뒤 다시 확인한다.
+                aged = time.time() - (FULL_HISTORY_RECHECK_SECONDS - EMPTY_OLDER_RECHECK_SECONDS)
+                os.utime(full_marker, (aged, aged))
 
     if stored.empty:
         need_tail = True

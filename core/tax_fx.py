@@ -448,7 +448,9 @@ def simulate(weights: pd.DataFrame, close: pd.DataFrame, adj: pd.DataFrame, usdk
     # 기납부 세금은 위 현금 흐름에 이미 반영되어 있으므로, 아직 납부하지 않은 연도만 뺀다.
     last = len(days) - 1
     last_year, last_rate = days[-1].year, float(fx.iat[last])
-    sale_gross_usd = sum(pos[t].shares * float(close.iat[last, j]) for j, t in enumerate(tickers))
+    # 보유가 없는 종목은 뺀다 — 그날 가격이 없는 종목(아직 상장 전 등)의 0 × NaN 이 청산액 전체를 NaN 으로 만들었다
+    # (liquidation-accounting-impact-v1 이 2010~2015 창에서 실패, 2026-11-19). value_usd 와 같은 규칙.
+    sale_gross_usd = sum(pos[t].shares * float(close.iat[last, j]) for j, t in enumerate(tickers) if pos[t].shares)
     sale_fee_krw = sale_gross_usd * cfg.fee_rate * last_rate
     sale_net_usd = sale_gross_usd * (1 - cfg.fee_rate)
     sale_gain_krw = sale_net_usd * last_rate - sum(

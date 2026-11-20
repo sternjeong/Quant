@@ -419,14 +419,25 @@ VM의 미커밋 기록 파일(PROGRESS.md, docs/reports/README.md)을 새 커밋
   fi
 
   # 운영 폴더가 새 커밋으로 바뀌었으니 곧바로 재시작해 실행 중인 프로세스와 파일을 다시 맞춘다.
-  log "서비스 재시작: ${SERVICES[*]}"
+  # 단 data 관문(연구 결과·문서·스냅샷만 바뀜)은 재시작하지 않는다: 이 파일들은 매번 디스크에서 읽고, 재시작은
+  # 그 시각에 돌던 스케줄러 잡(아침 재추천·새벽 미리 계산·브리핑)을 죽였다(2026-11-10~11-18 놓친 회차가 모두 야간
+  # 스냅샷·연구 결과 커밋 반영 시각과 겹침).
+  restart_note="재시작: ${SERVICES[*]} (재시작 후 상태 확인 완료)"
+  if [ "$gate_mode" = "data" ]; then
+    log "재시작 생략(data — 코드 변경 없음)"
+    restart_note="재시작 생략(연구 결과·문서·스냅샷만 바뀜 — 실행 중인 잡 보호)"
+  else
+    log "서비스 재시작: ${SERVICES[*]}"
 
-  systemctl restart "${SERVICES[@]}"
+    systemctl restart "${SERVICES[@]}"
 
-  log "재시작 완료"
+    log "재시작 완료"
+  fi
 
   # 재시작 직후 "성공"을 알리기 전에, 서비스가 실제로 떠서 응답하고 곧바로 죽지 않는지 확인한다.
-  if unhealthy_services="$(verify_services_after_restart "$POST_DEPLOY_TIMEOUT_SECONDS" "${SERVICES[@]}")"; then
+  if [ "$gate_mode" = "data" ]; then
+    :
+  elif unhealthy_services="$(verify_services_after_restart "$POST_DEPLOY_TIMEOUT_SECONDS" "${SERVICES[@]}")"; then
     log "재시작 후 서비스 상태 확인: 모두 정상"
   else
     log "재시작 후 비정상 서비스: $(printf '%s' "$unhealthy_services" | tr '\n' ' ')"
@@ -455,7 +466,7 @@ $unhealthy_services
 
   message="[자동배포] 성공
 ${recovery_note}${local_head:0:7}..${new_head:0:7} ($commit_count 커밋)
-${deps_note}재시작: ${SERVICES[*]} (재시작 후 상태 확인 완료)${flaky_note:-}${gate_note:-}
+${deps_note}${restart_note}${flaky_note:-}${gate_note:-}
 
 $commit_summary_short"
   if ! "$ALERT_SCRIPT" "$message"; then

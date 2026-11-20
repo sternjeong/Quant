@@ -232,6 +232,18 @@ def test_live_returns_exclude_partial_us_session():
     assert list(ft2.ledger_returns(rows, price_fn, now).index) == [idx[0]]
 
 
+
+def test_live_returns_bridge_interior_price_hole_but_not_trailing_one():
+    # 2026-10-13 XLE 만 캐시에서 빠졌던 실제 사례: 중간 구멍은 그날 0, 다음 날 이틀치. 끝의 결측은 결측으로 남는다.
+    idx = pd.bdate_range("2026-10-12", periods=4)
+    px = {"SPY": [100.0, 101.0, 102.0, 103.0], "XLE": [50.0, np.nan, 55.0, np.nan]}
+    def price_fn(tickers):
+        return {t: pd.DataFrame({"Close": px[t], "Adj Close": px[t]}, index=idx) for t in tickers if t in px}
+    rows = [{"date": "2026-10-09", "weights": {"B1": {"XLE": 1.0}}}]
+    r = ft2.ledger_returns(rows, price_fn, datetime(2026, 10, 20, tzinfo=timezone.utc))
+    assert r.loc[idx[1], "XLE"] == 0.0 and r.loc[idx[2], "XLE"] == pytest.approx(0.1)
+    assert pd.isna(r.loc[idx[3], "XLE"])
+
 def test_judge_thresholds():
     b0 = {"sharpe": 0.8, "mdd": -0.30, "return_per_mdd": 0.40}
     b1 = {"sharpe": 0.7, "mdd": -0.25, "return_per_mdd": 0.45}

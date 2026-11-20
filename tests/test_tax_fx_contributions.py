@@ -221,3 +221,15 @@ def test_contribution_baseline_path_matches_old_baseline_when_flows_are_zero():
     tr = adj.reindex(index=idx, columns=w.columns).pct_change(fill_method=None).fillna(0.0)
     new = tx._pre_cost_with_contributions(w, change, tr, fx, 30_000_000, np.zeros(len(idx)), "underweight_first")
     assert np.allclose(new.to_numpy(), old.to_numpy(), rtol=1e-12, atol=0)
+
+
+def test_liquidation_ignores_unheld_ticker_without_price():
+    # 아직 상장 전이라 가격이 없는 종목 열(보유 0)이 청산액을 NaN 으로 만들면 안 된다(2026-11-19 liquidation-accounting-impact-v1)
+    idx = pd.bdate_range("2014-01-02", periods=60)
+    close = pd.DataFrame({"A": np.linspace(100, 110, len(idx)), "NEW": np.nan}, index=idx)
+    w = pd.DataFrame({"A": 1.0, "NEW": 0.0}, index=idx)
+    cfg = tx.AccountConfig(initial_krw=10_000_000, monthly_contribution_krw=150_000)
+    sim = tx.simulate(w, close, close, pd.Series(1100.0, index=idx), cfg)
+    for k in ("final_after_liquidation_krw", "liquidation_trade_fees_krw", "liquidation_sale_gain_krw", "liquidation_fx_cost_krw"):
+        assert np.isfinite(sim[k]), k
+    assert sim["final_after_liquidation_krw"] > 0

@@ -326,8 +326,10 @@ def load_state(cfg: Config) -> dict:
         if isinstance(state, dict) and isinstance(state.get("jobs"), dict):
             state.setdefault("runner", {})
             return state
-    except (OSError, ValueError):
+    except (FileNotFoundError, ValueError):
         pass
+    # 권한 없음 등 다른 OSError 는 그대로 올린다 — 빈 상태로 보이면 관리 도구가 106개 작업을 전부 '대기'로 보여 주고
+    # (2026-11-19, quant 전용 파일을 ubuntu 로 읽음), 그 상태로 저장하면 실행 기록이 지워진다.
     return _empty_state()
 
 

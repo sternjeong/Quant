@@ -234,7 +234,8 @@ def _with_remote(root, tmp_path, slug="kaggle-titanic"):
     """create_contest(가짜 gh) 뒤 로컬 bare 저장소를 origin(=GitHub 역할)으로 붙이고 main 을 푸시한다."""
     ct.create_contest(slug, "Titanic", "Kaggle", runner=fake_runner())
     bare = tmp_path / f"{slug}.git"
-    subprocess.run(["git", "init", "-q", "--bare", str(bare)], check=True)
+    # 기본 브랜치를 못박는다 — CI 의 git 은 기본이 master 라 되돌리기 clone 이 빈 작업 폴더를 받았다(VM 은 main 설정)
+    subprocess.run(["git", "init", "-q", "--bare", "--initial-branch=main", str(bare)], check=True)
     d = root / slug
     for cmd in (["remote", "add", "origin", str(bare)], ["push", "-q", "-u", "origin", "main"]):
         subprocess.run(["git", *cmd], cwd=d, check=True, capture_output=True)
