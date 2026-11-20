@@ -242,6 +242,28 @@ class PortfolioPerformanceEvent(Base):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
 
+class PortfolioTrade(Base):
+    """매수·매도 한 건(core/portfolio_trades.py, 2026-11-20). 되돌리기용으로 그 종목의 직전 보유·현금을 함께 남긴다."""
+
+    __tablename__ = "portfolio_trades"
+
+    id = Column(Integer, primary_key=True)
+    trade_date = Column(Date, nullable=False, index=True)
+    side = Column(String(4), nullable=False)  # BUY / SELL
+    ticker = Column(String(20), nullable=False, index=True)
+    quantity = Column(Float, nullable=False)
+    price_usd = Column(Float, nullable=False)
+    fee_usd = Column(Float, nullable=False, default=0.0)
+    realized_usd = Column(Float, nullable=True)  # 매도만: 이동평균 단가 기준 실현 손익($)
+    realized_krw = Column(Float, nullable=True)  # 매도만: 매입일·매도일 환율로 근사한 원화 실현 손익(양도세 기준)
+    cash_before = Column(Float, nullable=True)
+    lots_before = Column(Text, nullable=False)  # 그 종목의 직전 보유 기록(JSON)
+    tax_added_krw = Column(Float, nullable=True)  # 올해 실현 이익(data/tax_year.json)에 더한 금액
+    ledger_event_id = Column(Integer, nullable=True)  # 계좌 성과 장부에 함께 적었으면 그 사건 id
+    note = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
 class PortfolioThesisReview(Base):
     """매매근거(PortfolioHolding.thesis) 사후 검증 이력 (모듈 H 확장).
 
