@@ -319,6 +319,14 @@ _KEYRUN = (
 
 SCRIPTS: tuple[ScriptGuide, ...] = (
     ScriptGuide(
+        path="scripts/portfolio_trade.py", name="매수·매도 기록(명령줄)",
+        when_to_run="대화에서 체결을 알려줬을 때 Claude 가 VM 에서 반영하거나, 화면 없이 기록할 때. 화면의 '🧾 매수·매도 기록'과 같은 기능입니다.",
+        command="sudo -u quant /opt/quant/.venv/bin/python scripts/portfolio_trade.py \"XLK 3 매도 210.5\" --dry-run",
+        risk="파일/DB 쓰기",
+        what_it_prints="건마다 날짜·종목·수량·체결가와 실현 손익(달러·원화 근사)·바뀐 현금, 경고(⚠)를 한 줄씩 보여 줍니다. --dry-run 은 바뀔 보유 수량만 보여 주고 저장하지 않습니다. --list 최근 기록, --undo 마지막 한 건 되돌리기. 형식이 틀리거나 보유보다 많이 팔면 '오류:'로 끝나고 아무것도 저장하지 않습니다.",
+        verified="2026-11-20",
+    ),
+    ScriptGuide(
         path="scripts/agent_batch.py", name="AI 에이전트 배치 수동 확인",
         when_to_run="03:00 전체 배치가 무엇부터 할지, 예산이 얼마나 남았는지 미리 볼 때. 전체 배치는 03:00 KST, 진행 중 초안 이어받기는 12:30·21:30 KST에 자동으로 돕니다.",
         command="python scripts/agent_batch.py --dry-plan",
