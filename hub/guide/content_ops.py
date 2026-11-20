@@ -119,8 +119,8 @@ JOBS: tuple[JobGuide, ...] = (
     JobGuide(
         job_id="agent_batch",
         where_to_see="텔레그램(아침 배치 요약 1건: 실행한 역할, 동결·심판 결과, 예산 사용), 허브 /research",
-        if_alert="'usage limit'로 멈췄다면 구독 사용량 한도에 닿은 것이라 다음 허용 실행 창에 자동으로 이어집니다. 매일 실패하면 Claude CLI 로그인·설치 상태를 개발 요청으로 확인하세요. 원하지 않으면 '/processes off agent_batch'.",
-        verified="2026-10-13",
+        if_alert="'usage limit'로 멈췄다면 구독 사용량 한도에 닿은 것이라 다음 허용 실행 창에 자동으로 이어집니다. 'login expired'로 멈추고 'Claude 로그인 만료' 줄이 붙으면 그 줄의 명령으로 VM 의 quant 계정 Claude 에 다시 로그인하세요(만료되면 모든 역할이 1초 만에 실패합니다). 원하지 않으면 '/processes off agent_batch'.",
+        verified="2026-11-20",
     ),
     JobGuide(
         job_id="agent_batch_catchup",
@@ -131,8 +131,8 @@ JOBS: tuple[JobGuide, ...] = (
     JobGuide(
         job_id="frontier_agent",
         where_to_see="텔레그램(실행 요약: 새 연구 이름, 목표 문서 갱신 여부, 저장소 반영 결과), research/frontier/FRONTIER.md",
-        if_alert="'관문 탈락'은 에이전트가 만든 연구가 금지 코드·스모크 실패로 올라가지 않았다는 뜻이라 다음 실행이 다시 시도합니다. 'usage limit'면 구독 사용량 한도라 다음 실행일에 이어집니다. 매번 실패하면 Claude CLI 로그인 상태를 확인하세요.",
-        verified="2026-11-10",
+        if_alert="'관문 탈락'은 에이전트가 만든 연구가 금지 코드·스모크 실패로 올라가지 않았다는 뜻이라 다음 실행이 다시 시도합니다. 'usage limit'면 구독 사용량 한도라 다음 실행일에 이어집니다. 'Claude 로그인 만료' 줄이 붙으면 그 줄의 명령으로 VM 의 quant 계정 Claude 에 다시 로그인하세요. 2026-11-20 부터 일요일에만 돕니다.",
+        verified="2026-11-20",
     ),
     JobGuide(
         job_id="hypothesis_shadow_record",

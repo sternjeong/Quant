@@ -1,3 +1,14 @@
+## 2026-11-20 야간 AI 에이전트 빈도 축소 + 로그인 만료 감지
+
+- 결정(사용자 "3번 진행해줘"): 새 알파 탐색 빈도를 줄인다(사전 등록 연구 85건+ 대부분 실패, 새틀라이트 R&D 누적 50건 통과 0, 10/20 이후 약 $26/주).
+- 변경(core/agent_budget.py, core/job_schedule.py, scheduler/run_scheduler.py): 주간 $60→$25, 하룻밤 $15→$10.
+  writer 주 3→1(월), implementer 12→6, critic 14→7, sat_designer 8→2(토·일), sat_critic 10→3, frontier 화·목·토·일→일요일만.
+  scout·postmortem·geo_analyst·core_designer 는 그대로.
+- 발견: VM quant 계정 Claude CLI 의 OAuth 로그인이 11/14~15 경 만료돼 11/15~20 모든 에이전트 실행이 1초 만에 실패(비용 $0)했는데 배치 요약에 드러나지 않았다.
+  core/agent_batch.py 에 AUTH_RE 추가 → 감지 시 배치를 'login expired'로 멈추고 재로그인 방법을 요약에 넣는다. 프런티어 알림에도 같은 줄.
+- 검증: test_agent_system·test_job_health·test_frontier_agent·test_hub_guide·test_sat_frontier 100 passed. 설명서 agent_batch·frontier_agent·agent_budget 항목 갱신.
+- 사용자 할 일: quant 계정 Claude 재로그인(sudo -u quant env HOME=/opt/quant CLAUDE_CONFIG_DIR=/opt/quant/.claude claude → /login). 안 하면 에이전트는 계속 멈춰 있다(비용 0).
+
 ## 2026-11-20 연말 원가 올리기 엔진 반영(사용자 승인) + 고장 수리 4건 배포(PR #16)
 
 - 결정(사용자 "2번 진행해줘"): frontier-tax-allowance-v2 에서 유일하게 통과한 H0_MKT_STEPUP(원가 올리기, ALLOWANCE_HELPS)을 엔진에 반영한다.

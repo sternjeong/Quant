@@ -10,6 +10,9 @@
 - 03:00 KST 전체 배치 시작, 05:30 이후 새 작업 금지, 05:50 강제 종료.
 - 12:30·21:30 KST 진행 중 새틀라이트 초안 이어받기 창(각 40분 새 작업 가능, 45분 강제 종료).
   같은 03:00~다음03:00 일일 예산과 주간 예산을 공유한다.
+2026-11-20 축소(사용자 승인 "3번 진행해줘"): 사전 등록 연구 85건+ 대부분 실패, 새틀라이트 R&D 누적 50건 통과 0 →
+새 알파 탐색 빈도를 줄인다. 주간 $60→$25, 하룻밤 $15→$10. writer 주 3→1(월), implementer 12→6, critic 14→7,
+sat_designer 주 8→2(토·일), sat_critic 10→3, frontier 주 4→1(일). scout·postmortem·geo·core 분기는 그대로.
 """
 
 from __future__ import annotations
@@ -24,8 +27,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 USAGE_LOG = PROJECT_ROOT / "data" / "agent_usage.jsonl"
 KST = timezone(timedelta(hours=9))
 
-NIGHTLY_CAP_USD = 15.0
-WEEKLY_CAP_USD = 60.0
+NIGHTLY_CAP_USD = 10.0
+WEEKLY_CAP_USD = 25.0
 BATCH_START = time(3, 0)
 LAST_LAUNCH = time(5, 30)
 HARD_STOP = time(5, 50)
@@ -46,20 +49,19 @@ class RoleConfig:
 
 ROLES: dict[str, RoleConfig] = {
     "scout": RoleConfig("haiku", 12, 15 * 60, 7, 0.2),
-    "writer": RoleConfig("opus", 25, 30 * 60, 3, 4.0, weekdays=(0, 2, 4)),
-    "implementer": RoleConfig("sonnet", 40, 30 * 60, 12, 1.5),
-    "critic": RoleConfig("opus", 15, 20 * 60, 14, 1.5),
+    "writer": RoleConfig("opus", 25, 30 * 60, 1, 4.0, weekdays=(0,)),
+    "implementer": RoleConfig("sonnet", 40, 30 * 60, 6, 1.5),
+    "critic": RoleConfig("opus", 15, 20 * 60, 7, 1.5),
     "postmortem": RoleConfig("sonnet", 15, 20 * 60, 1, 1.0, weekdays=(6,)),
     # 새틀라이트 R&D 센터(2026-10-02): 선정 규칙 아이디어 설계·구현(재작업 포함) / 코드 검토
-    "sat_designer": RoleConfig("opus", 40, 30 * 60, 8, 3.0),
-    # 주간 10회: 로그인 누락으로 대기 중이던 기존 초안 2건의 검토 여유를 포함한다.
-    "sat_critic": RoleConfig("opus", 30, 20 * 60, 10, 1.5),
+    "sat_designer": RoleConfig("opus", 40, 30 * 60, 2, 3.0, weekdays=(5, 6)),
+    "sat_critic": RoleConfig("opus", 30, 20 * 60, 3, 1.5),
     # AI 국제정세 의견 shadow(2026-10-02): 매달 25일 이후 한 번, 다음 달 코어 리밸런싱 전 의견(배분 미반영)
     "geo_analyst": RoleConfig("sonnet", 30, 20 * 60, 2, 1.5),
     # 코어 분기 연구(2026-10-05): 분기마다 아이디어 최대 3개(형식 오류면 그 분기에 한 번 더)
     "core_designer": RoleConfig("opus", 40, 30 * 60, 2, 3.0),
-    # 알파·프런티어 목표 에이전트(2026-11-10, core/frontier_agent.py): 화·목·토·일 05:00, 목표 문서 갱신 + 새 검증 연구 최대 1개
-    "frontier": RoleConfig("opus", 80, 45 * 60, 4, 4.0, weekdays=(1, 3, 5, 6)),
+    # 알파·프런티어 목표 에이전트(2026-11-10, core/frontier_agent.py): 일요일 05:00, 목표 문서 갱신 + 새 검증 연구 최대 1개
+    "frontier": RoleConfig("opus", 80, 45 * 60, 1, 4.0, weekdays=(6,)),
 }
 
 
