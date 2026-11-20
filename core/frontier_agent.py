@@ -293,7 +293,8 @@ def run(*, now_fn: Callable[[], datetime] = lambda: datetime.now(timezone.utc),
               "reverted": reverted, "promoted": promoted, "log": log, "publish": pub.get("status"), "files": sorted(files)}
     if notify:
         lines = [f"[프런티어 에이전트] {budget.kst(now):%m-%d} 실행 · 에이전트 {'성공' if res.get('ok') else '실패'}"
-                 + (" (사용량 한도)" if res.get("limited") else ""),
+                 + (" (사용량 한도)" if res.get("limited") else "")
+                 + (f"\n{ab.AUTH_HINT}" if res.get("auth_failed") and not res.get("ok") else ""),
                  f"새 연구: {', '.join(promoted) or '없음'} · 문서 갱신: {'예' if 'research/frontier/FRONTIER.md' in files else '아니오'} · 저장소 반영: {pub.get('status')}"]
         lines += [f"- {x}" for x in log[:5]]
         if reverted:

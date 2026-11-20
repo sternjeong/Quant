@@ -62,23 +62,21 @@ def test_budget_window_weekday_and_caps(ws):
     assert bud.can_launch("writer", MON_0310)[0]                                  # 월요일
     assert not bud.can_launch("writer", MON_0310 + timedelta(days=1))[0]          # 화요일
     assert "시간" in bud.can_launch("scout", MON_0310 + timedelta(hours=3))[1]    # 06:10 KST
-    for _ in range(3):
-        bud.record({"at": bud.kst(MON_0310).isoformat(), "role": "writer", "cost_usd": 4.0})
-    assert bud.can_launch("critic", MON_0310)[0]                                  # 12 + 1.5 ≤ 15
-    assert "하룻밤" in bud.can_launch("writer", MON_0310)[1] or "주간 3회" in bud.can_launch("writer", MON_0310)[1]
-    bud.record({"at": bud.kst(MON_0310).isoformat(), "role": "critic", "cost_usd": 2.0})
-    assert "하룻밤" in bud.can_launch("critic", MON_0310)[1]                      # 14 + 1.5 > 15
+    bud.record({"at": bud.kst(MON_0310).isoformat(), "role": "writer", "cost_usd": 4.0})
+    assert bud.can_launch("critic", MON_0310)[0]                                  # 4 + 1.5 ≤ 10
+    assert "주간 1회" in bud.can_launch("writer", MON_0310)[1]
+    bud.record({"at": bud.kst(MON_0310).isoformat(), "role": "critic", "cost_usd": 5.0})
+    assert "하룻밤" in bud.can_launch("critic", MON_0310)[1]                      # 9 + 1.5 > 10
 
 
-def test_satellite_critic_headroom_covers_two_deferred_reviews(ws):
+def test_satellite_critic_weekly_cap_after_cadence_cut(ws):
     at = MON_0310 + timedelta(hours=9, minutes=3)  # 12:13 KST catch-up window
-    for _ in range(8):
-        bud.record({"at": bud.kst(at).isoformat(), "role": "sat_critic", "cost_usd": 0.0})
-    assert bud.can_launch("sat_critic", at)[0]
     for _ in range(2):
         bud.record({"at": bud.kst(at).isoformat(), "role": "sat_critic", "cost_usd": 0.0})
+    assert bud.can_launch("sat_critic", at)[0]
+    bud.record({"at": bud.kst(at).isoformat(), "role": "sat_critic", "cost_usd": 0.0})
     allowed, reason = bud.can_launch("sat_critic", at)
-    assert not allowed and "주간 10회" in reason
+    assert not allowed and "주간 3회" in reason
 
 
 # ---------------------------------------------------------------- 배치 전체 흐름(가짜 에이전트)
@@ -171,6 +169,30 @@ def test_usage_limit_stops_batch(tmpdb, ws):
         return {"ok": False, "limited": True}
     res = ab.run_batch(now_fn=lambda: MON_0310, runner=limited, judge_fn=lambda h: {})
     assert calls == ["scout"] and res["stop_reason"] == "usage limit"
+
+
+def test_login_expiry_stops_batch_and_says_how_to_fix(tmpdb, ws):
+    calls = []
+    def expired(role, *a):
+        calls.append(role)
+        return {"ok": False, "limited": False, "auth_failed": True}
+    res = ab.run_batch(now_fn=lambda: MON_0310, runner=expired, judge_fn=lambda h: {})
+    assert calls == ["scout"] and res["stop_reason"] == "login expired"
+    assert any("/login" in x for x in res["log"]) and "login expired" in ab.format_summary(res)
+
+
+def test_auth_regex_matches_cli_expiry_message_only():
+    assert ab.AUTH_RE.search("Failed to authenticate: OAuth session expired and could not be refreshed")
+    assert not ab.AUTH_RE.search('{"duration_ms":401,"result":"done"}')
+
+
+def test_cadence_cut_2026_11_20():
+    from core import agent_budget as b
+
+    assert (b.WEEKLY_CAP_USD, b.NIGHTLY_CAP_USD) == (25.0, 10.0)
+    assert b.ROLES["sat_designer"].weekly_runs == 2 and b.ROLES["sat_designer"].weekdays == (5, 6)
+    assert b.ROLES["frontier"].weekly_runs == 1 and b.ROLES["frontier"].weekdays == (6,)
+    assert b.ROLES["writer"].weekdays == (0,)
 
 
 def test_guard_reverts_writes_outside_research(tmpdb, ws):

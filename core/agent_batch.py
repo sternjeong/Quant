@@ -47,6 +47,10 @@ SAT_MAX_IN_FLIGHT = 2    # 동결 전 진행 중인 아이디어 수 상한
 MAX_IMPL_ROUNDS = 3
 MAX_SPECS_PER_WRITER = 5
 LIMIT_RE = re.compile(r"usage limit|rate.?limit|hit your limit|out of extra usage|\b429\b", re.I)
+# 로그인 만료(2026-11-15~20 엿새 동안 모든 실행이 1초 만에 실패했는데 요약에 드러나지 않았다) — 감지하면 배치를 멈추고 알린다.
+AUTH_RE = re.compile(r"failed to authenticate|oauth (session|token)[^\n]{0,40}expired|invalid api key|please run /login", re.I)
+AUTH_HINT = ("Claude 로그인 만료 — VM 터미널에서 sudo -u quant env HOME=/opt/quant CLAUDE_CONFIG_DIR=/opt/quant/.claude "
+             "claude 실행 후 /login 으로 다시 로그인해야 에이전트가 돕니다.")
 SECRET_ENV_RE = re.compile(r"(KEY|SECRET|TOKEN|PASSWORD)", re.I)
 
 AgentRunner = Callable[[str, str, list[str], budget.RoleConfig, float], dict]
@@ -205,6 +209,7 @@ def claude_runner(role: str, prompt: str, tools: list[str], cfg: budget.RoleConf
         out, err = proc.communicate()
         timed_out = True
     res = {"ok": False, "limited": bool(LIMIT_RE.search((out or "") + (err or ""))), "timed_out": timed_out,
+           "auth_failed": bool(AUTH_RE.search((out or "") + (err or ""))),
            "duration_s": round(time.monotonic() - started, 1), "cost_usd": None, "turns": None, "summary": ""}
     try:
         data = json.loads(out)
@@ -737,6 +742,10 @@ def run_batch(*, now_fn: Callable[[], datetime] = lambda: datetime.now(timezone.
             log.append(f"경고: {role} {hid} 가 허용 범위 밖 파일을 바꿔 되돌림: {reverted[:5]}")
         if res.get("limited"):
             stop_reason = "usage limit"
+            break
+        if res.get("auth_failed") and not res.get("ok"):
+            stop_reason = "login expired"
+            log.append(AUTH_HINT)
             break
     if not catch_up:
         housekeeping(now_fn(), judged, log, judge_fn)
