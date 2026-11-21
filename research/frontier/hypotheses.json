@@ -79,6 +79,26 @@
    "rationale": "H-007 의 X2 는 지금까지 목표(+7%p)에 가장 가까운 재료지만 2008 이후 졌다. 이기는 국면을 미리 알아볼 수 있으면 국소 승자를 쓸 수 있다. 사후 천장도 함께 잰다",
    "study_id": "combo-regime-switch-v1",
    "outcome": ""
+  },
+  {
+   "id": "H-009",
+   "track": "whole",
+   "status": "queued",
+   "statement": "X2 의 초과수익은 업종 회전에서 실현되는 한국 양도세(22%, 연 250만 원 공제)를 낸 뒤에도 1927~2007 에 시장 +2%p 이상 남는다",
+   "parent": "factor-combo-v1",
+   "rationale": "X2 는 회전이 높은 업종 모멘텀이 절반이라 세후로 초과가 크게 줄 수 있다. 세후로 남지 않으면 H-008 국면 교체도 의미가 없다 — 먼저 확인할 가치가 크다",
+   "study_id": "",
+   "outcome": ""
+  },
+  {
+   "id": "H-010",
+   "track": "regime",
+   "status": "dropped",
+   "statement": "뉴스 지수(GPR·EPU)로 코어의 200일선 필터·모멘텀 순위를 조정하면 낫다",
+   "parent": "news-core-combo-v1",
+   "rationale": "news-core-combo-v1 0/4. 위기 판정에 뉴스를 쓰면 오히려 낙폭이 깊어짐",
+   "study_id": "news-core-combo-v1",
+   "outcome": "막다른 길 — 같은 지수 격자 확장 금지"
   }
  ]
 }
