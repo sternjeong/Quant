@@ -60,8 +60,8 @@ ROLES: dict[str, RoleConfig] = {
     "geo_analyst": RoleConfig("sonnet", 30, 20 * 60, 2, 1.5),
     # 코어 분기 연구(2026-10-05): 분기마다 아이디어 최대 3개(형식 오류면 그 분기에 한 번 더)
     "core_designer": RoleConfig("opus", 40, 30 * 60, 2, 3.0),
-    # 알파·프런티어 목표 에이전트(2026-11-10, core/frontier_agent.py): 일요일 05:00, 목표 문서 갱신 + 새 검증 연구 최대 1개
-    "frontier": RoleConfig("opus", 80, 45 * 60, 1, 4.0, weekdays=(6,)),
+    # 알파·프런티어 목표 에이전트(2026-11-10, core/frontier_agent.py): 수·일 05:00(2026-11-21 가설 루프), 한계 분석·가설 장부·목표 문서 + 새 검증 연구 최대 1개
+    "frontier": RoleConfig("opus", 80, 45 * 60, 2, 4.0, weekdays=(2, 6)),
 }
 
 

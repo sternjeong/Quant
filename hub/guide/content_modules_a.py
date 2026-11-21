@@ -50,12 +50,12 @@ MODULES: tuple[ModuleGuide, ...] = (
     ),
     ModuleGuide(
         module="core/frontier_agent.py", name="알파·프런티어 목표 에이전트", group="리서치 인프라", status="실험",
-        what="일요일 05:00 KST에 AI 에이전트 하나가(2026-11-20 주 4회 → 1회로 축소) 지금까지의 모든 검증 연구 결과를 읽고, '세금 뒤 SPY 보다 많이 남기기'라는 목표에 비춰 목표 문서(research/frontier/FRONTIER.md: 현재 최선의 후보, 세후 수익 대 낙폭 프런티어, 다음에 확인할 질문)를 새로 씁니다. 정보 가치가 크면 새 검증 연구 하나를 연구 계약대로 만들고, 프로그램이 금지 코드 검사·job.json 검증·스모크 실행을 통과한 것만 저장소에 올립니다. 그 연구는 VM 연구 실행기가 계산합니다.",
-        how_to_use="자동입니다. 텔레그램 요약과 저장소의 research/frontier/FRONTIER.md 를 봅니다. 에이전트가 만든 연구는 제목이 '[프런티어]'로 시작하고 관제 센터 '검증 연구 결과'에 함께 나옵니다. 에이전트 없이 관문만 시험하려면 VM에서 python -m core.frontier_agent --gate <연구 폴더>.",
+        what="수·일 05:00 KST에 AI 에이전트 하나가 가설 루프를 한 바퀴 돕니다(2026-11-21 사용자 요청: 시장 대비 세후 연 +7%p 목표, 전 기간 승자가 없으면 국면별 국소 전략). ① 새로 나온 검증 연구 결과마다 한계 분석(research/frontier/postmortems/<연구 id>.md: 자료·검정력·비용·세금·국면 의존, 통한 국면이 있었나, 후속 또는 막다른 길)을 쓰고 ② 후속 가설을 가설 장부(research/frontier/hypotheses.json, 어느 결과에서 나왔는지 parent 로 계보)에 넣고 ③ 목표 문서(research/frontier/FRONTIER.md: +7%p 목표 추적, 국면 플레이북 표, 세후 수익 대 낙폭 프런티어)를 새로 쓴 뒤 ④ 장부에서 정보 가치가 가장 큰 가설 하나를 연구 계약대로 만듭니다. 프로그램이 금지 코드·job.json·스모크·장부 형식(기존 가설 삭제 금지)을 검사해 통과한 것만 저장소에 올리고, 연구는 VM 연구 실행기가 계산해 다음 바퀴의 한계 분석 대상이 됩니다.",
+        how_to_use="자동입니다. 텔레그램 요약과 저장소의 research/frontier/FRONTIER.md(목표 추적·국면 플레이북), hypotheses.json(가설과 상태), postmortems/(결과별 한계 분석)를 봅니다. 에이전트가 만든 연구는 제목이 '[프런티어]'로 시작하고 관제 센터 '검증 연구 결과'에 함께 나옵니다. 에이전트 없이 관문만 시험하려면 VM에서 python -m core.frontier_agent --gate <연구 폴더>.",
         where_to_see="텔레그램(실행 요약), research/frontier/FRONTIER.md, 관제 센터 '검증 연구 결과'",
-        cautions="결과를 보기 전에 규칙이 커밋되므로 사전 등록은 지켜지지만, 같은 과거 자료를 여러 번 본다는 한계는 그대로입니다. 결과가 나오지 않은 프런티어 연구가 2개 있으면 새로 만들지 않고, 우선순위는 60 이상(사람이 올린 연구 뒤)입니다. 주문·엔진 변경 경로가 없고, 문서의 후보는 채택이 아닙니다. AI 연구 배치와 같은 예산(하루 $15·주간 $60, API 환산)을 나눠 씁니다.",
+        cautions="결과를 보기 전에 규칙이 커밋되므로 사전 등록은 지켜지지만, 같은 과거 자료를 여러 번 본다는 한계는 그대로입니다. 결과가 나오지 않은 프런티어 연구가 2개 있으면 새로 만들지 않고, 우선순위는 60 이상(사람이 올린 연구 뒤)입니다. 주문·엔진 변경 경로가 없고, 문서의 후보는 채택이 아닙니다. AI 연구 배치와 같은 예산(하루 $10·주간 $25, API 환산)을 나눠 씁니다.",
         sources=("core/frontier_agent.py", "research/agent_prompts/frontier.md", "core/agent_batch.py", "core/research_jobs.py"),
-        verified="2026-11-20",
+        verified="2026-11-21",
     ),
     ModuleGuide(
         module="core/agent_budget.py", name="에이전트 토큰 예산", group="리서치 인프라", status="운영중",

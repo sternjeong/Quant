@@ -130,9 +130,9 @@ JOBS: tuple[JobGuide, ...] = (
     ),
     JobGuide(
         job_id="frontier_agent",
-        where_to_see="텔레그램(실행 요약: 새 연구 이름, 목표 문서 갱신 여부, 저장소 반영 결과), research/frontier/FRONTIER.md",
-        if_alert="'관문 탈락'은 에이전트가 만든 연구가 금지 코드·스모크 실패로 올라가지 않았다는 뜻이라 다음 실행이 다시 시도합니다. 'usage limit'면 구독 사용량 한도라 다음 실행일에 이어집니다. 'Claude 로그인 만료' 줄이 붙으면 그 줄의 명령으로 VM 의 quant 계정 Claude 에 다시 로그인하세요. 2026-11-20 부터 일요일에만 돕니다.",
-        verified="2026-11-20",
+        where_to_see="텔레그램(실행 요약: 새 연구 이름, 한계 분석한 결과, 가설 장부 갱신 여부, 목표 문서 갱신 여부, 저장소 반영 결과), research/frontier/FRONTIER.md·hypotheses.json·postmortems/",
+        if_alert="'관문 탈락'은 에이전트가 만든 연구가 금지 코드·스모크 실패로 올라가지 않았다는 뜻이라 다음 실행이 다시 시도합니다. '가설 장부 반영 안 함'은 장부 형식 오류나 기존 가설 삭제라 그 판의 장부만 버리고 나머지는 올립니다. 'usage limit'면 구독 사용량 한도라 다음 실행일에 이어집니다. 'Claude 로그인 만료' 줄이 붙으면 그 줄의 명령으로 VM 의 quant 계정 Claude 에 다시 로그인하세요. 2026-11-21 부터 수·일에 돕니다.",
+        verified="2026-11-21",
     ),
     JobGuide(
         job_id="hypothesis_shadow_record",

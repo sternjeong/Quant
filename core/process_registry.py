@@ -208,8 +208,9 @@ PROCESS_REGISTRY: dict[str, dict] = {
     "frontier_agent": {
         "label": "알파·프런티어 목표 에이전트",
         "description": (
-            "모든 검증 연구 결과를 읽고 목표 문서(research/frontier/FRONTIER.md)를 갱신, 필요하면 새 검증 연구 1개를 사전 등록 — "
-            "화·목·토·일 05:00 KST, 결정론 관문(스모크·금지 코드 검사) 통과분만 저장소 반영, 주문·엔진 변경 경로 없음"
+            "가설 루프: 새 검증 연구 결과마다 한계 분석(research/frontier/postmortems) → 후속 가설을 가설 장부(hypotheses.json)에 계보와 함께 등록 → "
+            "목표 문서(FRONTIER.md, 시장 대비 +7%p 목표·국면 플레이북 표) 갱신 → 가장 가치 큰 가설 1개를 사전 등록 연구로 — "
+            "수·일 05:00 KST, 결정론 관문(스모크·금지 코드·장부 형식 검사) 통과분만 저장소 반영, 주문·엔진 변경 경로 없음"
         ),
         "category": "research", "default_enabled": True,
     },

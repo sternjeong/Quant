@@ -129,3 +129,80 @@ def test_run_respects_budget_gate(monkeypatch, repo):
 def test_prompt_and_role_are_registered():
     assert fa.PROMPT.is_file() and "SPY" in fa.PROMPT.read_text(encoding="utf-8")
     assert "frontier" in fa.budget.ROLES and fa.FRONTIER_DOC.is_file()
+
+
+# ---------------------------------------------------------------- 가설 루프(2026-11-21): 한계 분석·가설 장부
+def _hyp(hid, **over):
+    h = {"id": hid, "track": "regime", "status": "queued", "statement": "주장", "parent": "seed"}
+    h.update(over)
+    return h
+
+
+def test_ledger_problems_rejects_bad_shape_and_deletions():
+    old = {"hypotheses": [_hyp("H-001")]}
+    assert fa.ledger_problems({"hypotheses": [_hyp("H-001"), _hyp("H-002", track="whole")]}, old) == []
+    assert any("지움" in p for p in fa.ledger_problems({"hypotheses": [_hyp("H-002")]}, old))
+    assert any("track" in p for p in fa.ledger_problems({"hypotheses": [_hyp("H-001", track="x")]}, old))
+    assert any("중복" in p for p in fa.ledger_problems({"hypotheses": [_hyp("H-001"), _hyp("H-001")]}, old))
+    assert fa.ledger_problems([], old)
+
+
+def test_results_needing_postmortem_skips_done(repo):
+    for rid in ("a-study-v1", "b-study-v1", "smoke-noop"):
+        (repo / "research" / "results" / rid).mkdir()
+        (repo / "research" / "results" / rid / "results.json").write_text("{}")
+    pm = repo / "research" / "frontier" / "postmortems"
+    pm.mkdir(parents=True)
+    (pm / "a-study-v1.md").write_text("x")
+    assert fa.results_needing_postmortem(repo) == ["b-study-v1"]
+
+
+def test_run_publishes_postmortems_and_valid_ledger(repo, monkeypatch):
+    _fake_env(monkeypatch)
+    (repo / "research" / "results" / "b-study-v1").mkdir()
+    (repo / "research" / "results" / "b-study-v1" / "results.json").write_text("{}")
+    (repo / "research" / "frontier").mkdir(parents=True)
+    (repo / "research" / "frontier" / "hypotheses.json").write_text(json.dumps({"hypotheses": [_hyp("H-001")]}))
+    seen = {}
+
+    def runner(role, prompt, tools, cfg, timeout, system=None):
+        assert "한계 분석: b-study-v1" in prompt
+        work = next((repo / "research" / "frontier" / "work").iterdir())
+        assert "H-001" in (work / "context.md").read_text(encoding="utf-8")
+        (work / "postmortems").mkdir()
+        (work / "postmortems" / "b-study-v1.md").write_text("# 한계 분석\n" + "내용 " * 100, encoding="utf-8")
+        (work / "postmortems" / "ghost-v1.md").write_text("# 없음\n" + "내용 " * 100, encoding="utf-8")
+        led = {"hypotheses": [_hyp("H-001", status="failed"), _hyp("H-002", parent="b-study-v1")]}
+        (work / "hypotheses.json").write_text(json.dumps(led, ensure_ascii=False), encoding="utf-8")
+        return {"ok": True}
+
+    out = fa.run(now_fn=lambda: datetime(2026, 11, 25, 20, 0, tzinfo=timezone.utc), runner=runner,
+                 publish=lambda root, files, message: seen.update(files=files) or {"status": "pushed"}, repo_root=repo)
+    assert "research/frontier/postmortems/b-study-v1.md" in seen["files"]
+    assert not any("ghost" in k for k in seen["files"])
+    assert json.loads(seen["files"]["research/frontier/hypotheses.json"])["hypotheses"][1]["id"] == "H-002"
+    assert any("ghost-v1" in x for x in out["log"])
+
+
+def test_run_refuses_ledger_that_drops_entries(repo, monkeypatch):
+    _fake_env(monkeypatch)
+    (repo / "research" / "frontier").mkdir(parents=True)
+    (repo / "research" / "frontier" / "hypotheses.json").write_text(json.dumps({"hypotheses": [_hyp("H-001")]}))
+
+    def runner(role, prompt, tools, cfg, timeout, system=None):
+        work = next((repo / "research" / "frontier" / "work").iterdir())
+        (work / "hypotheses.json").write_text(json.dumps({"hypotheses": [_hyp("H-002")]}), encoding="utf-8")
+        (work / "FRONTIER.md").write_text("# 목표 문서\n" + "내용 " * 100, encoding="utf-8")
+        return {"ok": True}
+
+    seen = {}
+    out = fa.run(now_fn=lambda: datetime(2026, 11, 25, 20, 0, tzinfo=timezone.utc), runner=runner,
+                 publish=lambda root, files, message: seen.update(files=files) or {"status": "pushed"}, repo_root=repo)
+    assert "research/frontier/hypotheses.json" not in seen["files"]
+    assert any("가설 장부 반영 안 함" in x for x in out["log"])
+
+
+def test_seed_ledger_is_valid():
+    data = json.loads((fa.FRONTIER_DIR / "hypotheses.json").read_text(encoding="utf-8"))
+    assert fa.ledger_problems(data, {"hypotheses": []}) == []
+    assert "+7%p" in fa.PROMPT.read_text(encoding="utf-8")

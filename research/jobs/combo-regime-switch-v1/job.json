@@ -1,0 +1,17 @@
+{
+  "id": "combo-regime-switch-v1",
+  "title": "결합 전략 X2(코어 50 + 업종 모멘텀 VT20 50) 국면 교체 — 실시간 신호 3종(산업 격차·200일선·전략 상대성과)이 켜질 때만 X2, 꺼지면 시장. 2008 이후 패배를 피하나",
+  "entrypoint": "research/jobs/combo-regime-switch-v1/run.py",
+  "args": [],
+  "timeout_seconds": 3600,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": [
+    "results.json",
+    "REPORT.md"
+  ],
+  "summary_from": "verdicts",
+  "priority": 5,
+  "revision": 1,
+  "max_memory_mb": 1500
+}
