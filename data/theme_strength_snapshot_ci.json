@@ -25,12 +25,12 @@
     {
       "theme": "클라우드",
       "proxies": "SKYY, WCLD",
-      "strength_factor": 8.7397102566,
-      "return_3m": -9.7911658627,
-      "return_6m": 13.1781637188,
-      "return_12m": 10.7985229939,
+      "strength_factor": 8.7652783571,
+      "return_3m": -9.7745417,
+      "return_6m": 13.2207068012,
+      "return_12m": 10.8106318509,
       "trend": "하락",
-      "trend_change": -27.1301913998,
+      "trend_change": -27.1293237948,
       "rs_score": 90.4761904762
     },
     {
@@ -146,12 +146,12 @@
     {
       "theme": "반도체",
       "proxies": "SOXX, SMH",
-      "strength_factor": -12.02824147,
-      "return_3m": -26.8499261963,
-      "return_6m": -30.8423803798,
-      "return_12m": 24.2265960153,
+      "strength_factor": -12.0217417438,
+      "return_3m": -26.849971831,
+      "return_6m": -30.8432333741,
+      "return_12m": 24.2488155554,
       "trend": "하락",
-      "trend_change": -29.8931120449,
+      "trend_change": -29.8905660053,
       "rs_score": 38.0952380952
     },
     {
@@ -179,12 +179,12 @@
     {
       "theme": "우주",
       "proxies": "UFO, ARKX, ROKT",
-      "strength_factor": -17.2716762571,
-      "return_3m": -20.6954715837,
-      "return_6m": -34.1022476127,
-      "return_12m": 7.0022742117,
+      "strength_factor": -17.2854780899,
+      "return_3m": -20.6964805575,
+      "return_6m": -34.1353602119,
+      "return_12m": 6.9820615468,
       "trend": "하락",
-      "trend_change": -11.4924834825,
+      "trend_change": -11.4887159087,
       "rs_score": 23.8095238095
     },
     {
@@ -212,12 +212,12 @@
     {
       "theme": "광통신",
       "proxies": "LUMA",
-      "strength_factor": -38.2831390786,
-      "return_3m": -38.2831390786,
+      "strength_factor": -38.2668353796,
+      "return_3m": -38.2668353796,
       "return_6m": null,
       "return_12m": null,
       "trend": "하락",
-      "trend_change": -26.6947717033,
+      "trend_change": -26.6784680043,
       "rs_score": 9.5238095238
     },
     {
@@ -232,5 +232,5 @@
       "rs_score": 4.7619047619
     }
   ],
-  "computed_at": "2026-11-20T22:10:08.701316"
+  "computed_at": "2026-11-21T20:49:28.820072"
 }
