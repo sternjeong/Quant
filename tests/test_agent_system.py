@@ -191,7 +191,7 @@ def test_cadence_cut_2026_11_20():
 
     assert (b.WEEKLY_CAP_USD, b.NIGHTLY_CAP_USD) == (25.0, 10.0)
     assert b.ROLES["sat_designer"].weekly_runs == 2 and b.ROLES["sat_designer"].weekdays == (5, 6)
-    assert b.ROLES["frontier"].weekly_runs == 1 and b.ROLES["frontier"].weekdays == (6,)
+    assert b.ROLES["frontier"].weekly_runs == 2 and b.ROLES["frontier"].weekdays == (2, 6)
     assert b.ROLES["writer"].weekdays == (0,)
 
 

@@ -1623,10 +1623,11 @@ def main() -> None:
     )
     scheduler.add_job(
         frontier_agent_job,
-        # 사용자 요청(2026-11-10): 알파·프런티어 목표 에이전트. AI 배치 창 안(05:50 강제 종료) 화·목·토·일.
-        trigger=CronTrigger(day_of_week="sun", hour=5, minute=0, timezone="Asia/Seoul"),
+        # 사용자 요청(2026-11-10): 알파·프런티어 목표 에이전트. AI 배치 창 안(05:50 강제 종료).
+        # 2026-11-21 가설 루프(한계 분석 → 후속 가설 → 연구)로 확장하며 수·일 주 2회.
+        trigger=CronTrigger(day_of_week="wed,sun", hour=5, minute=0, timezone="Asia/Seoul"),
         id="frontier_agent",
-        name="화·목·토·일 한국시간 05:00 알파·프런티어 목표 에이전트",
+        name="수·일 한국시간 05:00 알파·프런티어 가설 루프 에이전트",
         replace_existing=True,
         misfire_grace_time=900,
     )

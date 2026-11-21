@@ -1,3 +1,17 @@
+## 2026-11-21 가설 루프(한계 분석 → 후속 가설 → 연구) + 국면 교체 씨앗 연구 2개 — 구현·스모크 완료, 병합 대기
+
+- 요청(사용자 /goal): R&D 결과로 챔피언·시장을 이길 단서를 가설로 세우고 검증 → 한계 분석 → 후속 연구 루프. 목표 시장 대비 +7%p,
+  전 기간이 안 되면 국면별 국소 전략을 교체(예: 위기엔 A, 강세엔 B).
+- crash-inverse-v1 결과: 6/6 FAIL(급락 뒤 시장은 반등) → 인버스 추천은 넣지 않음.
+- 루프 = frontier 에이전트 확장(core/frontier_agent.py, research/agent_prompts/frontier.md): 수·일 05:00(주 1 → 2회, 주간 상한 $25 그대로).
+  매 실행 ① 한계 분석 없는 최근 결과 4개까지 research/frontier/postmortems/<id>.md ② 가설 장부 research/frontier/hypotheses.json
+  (track whole/regime, status, parent 계보, 기존 id 삭제 시 반영 거부) ③ FRONTIER.md 목표 추적(+7%p)·국면 플레이북 표 ④ 연구 1개.
+- 씨앗 연구(사람 등록, 우선순위 5): regime-playbook-v1(추세×변동성 4국면 × 7메뉴, 선택 1929~66 → 확인 1967~2007, 사후 천장·국면 정보 천장 보고),
+  combo-regime-switch-v1(factor-combo-v1 의 X2 — 1927~2007 +4.3%p 지만 2008~ −2.1%p — 를 신호 3종이 켜질 때만, 2008~ 도 판정).
+- 국면은 그 시점 정보로만(테스트로 미래 정보 미사용 확인). 정직한 전망: 롱온리 +7%p 는 공개 근거 없음 — 루프의 1차 산출물은 가능/불가능의 근거.
+- 검증: tests/test_regime_playbook_v1.py 5 · test_combo_regime_switch_v1.py 3 · test_frontier_agent.py(루프 5개 추가) · agent_system · hub_guide 통과.
+- 다음: 병합 후 VM 실행기 결과 → 다음 frontier 실행(수/일)이 한계 분석. 엔진 반영은 사용자 확인 뒤.
+
 ## 2026-11-21 살아남은 인자 결합 연구 factor-combo-v1 사전 등록 — 구현·스모크 완료, VM 본 계산 대기
 
 - 요청(사용자): 뉴스뿐 아니라 이전 연구 인자 중 결합해 큰 효과를 낼 수 있는 것이 있는지 확인.

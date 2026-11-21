@@ -46,6 +46,13 @@ MAX_MEMORY_MB = 1500
 MAX_RUNS = 40
 SMOKE_TIMEOUT_S = 900
 REQUIRED_FILES = ("job.json", "run.py", "SPEC.md")
+# 가설 루프(2026-11-21, 사용자 요청: 가설 → 검증 → 한계 분석 → 후속 연구, 목표 시장 대비 +7%p, 국면별 국소 전략 포함)
+GOAL_EXCESS_PCT = 7.0
+MAX_POSTMORTEMS = 4           # 한 번에 한계 분석할 결과 수(최근 것부터)
+HYP_ID_RE = re.compile(r"^H-\d{3,4}$")
+HYP_TRACKS = {"whole", "regime"}
+HYP_STATUSES = {"queued", "registered", "passed", "failed", "dropped"}
+POSTMORTEM_BYTES = (200, 20000)
 # 연구 코드에 있으면 안 되는 것: 외부 프로세스·소켓·메일·쓰기 HTTP·삭제·주문 경로
 FORBIDDEN = [
     (re.compile(r"\bsubprocess\b|\bos\.system\b|\bos\.popen\b"), "외부 프로세스 실행"),
@@ -100,13 +107,83 @@ def results_digest(repo_root: Path = PROJECT_ROOT) -> str:
     return "\n".join(r for _, r in rows)
 
 
+def results_needing_postmortem(repo_root: Path = PROJECT_ROOT) -> list[str]:
+    """한계 분석(research/frontier/postmortems/<id>.md)이 아직 없는 결과, 최근 것부터 MAX_POSTMORTEMS 개."""
+    results, pm = repo_root / "research" / "results", repo_root / "research" / "frontier" / "postmortems"
+    rows = []
+    for d in results.glob("*") if results.is_dir() else []:
+        f = d / "results.json"
+        if f.is_file() and d.name != "smoke-noop" and not (pm / f"{d.name}.md").is_file():
+            rows.append((f.stat().st_mtime, d.name))
+    return [n for _, n in sorted(rows, reverse=True)[:MAX_POSTMORTEMS]]
+
+
+def load_ledger(path: Path) -> dict:
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {"hypotheses": []}
+    return data if isinstance(data, dict) else {"hypotheses": []}
+
+
+def ledger_problems(new: Any, old: dict) -> list[str]:
+    """가설 장부 형식 검사. 기존 가설 id 는 지울 수 없다(상태만 바꾼다)."""
+    if not isinstance(new, dict) or not isinstance(new.get("hypotheses"), list):
+        return ["최상위는 {\"hypotheses\": [...]} 여야 함"]
+    out, seen = [], set()
+    for i, h in enumerate(new["hypotheses"]):
+        if not isinstance(h, dict):
+            out.append(f"{i}번째 항목이 객체가 아님")
+            continue
+        hid = str(h.get("id", ""))
+        if not HYP_ID_RE.match(hid):
+            out.append(f"{i}번째 id 형식 오류: {hid!r}")
+        if hid in seen:
+            out.append(f"id 중복: {hid}")
+        seen.add(hid)
+        if h.get("track") not in HYP_TRACKS:
+            out.append(f"{hid}: track 은 {sorted(HYP_TRACKS)} 중 하나")
+        if h.get("status") not in HYP_STATUSES:
+            out.append(f"{hid}: status 는 {sorted(HYP_STATUSES)} 중 하나")
+        if not str(h.get("statement", "")).strip() or not str(h.get("parent", "")).strip():
+            out.append(f"{hid}: statement·parent 필수")
+    missing = {str(h.get("id")) for h in old.get("hypotheses", []) if isinstance(h, dict)} - seen
+    if missing:
+        out.append(f"기존 가설을 지움: {sorted(missing)[:5]}")
+    return out
+
+
+def postmortem_files(work: Path, repo_root: Path = PROJECT_ROOT) -> tuple[dict[str, bytes], list[str]]:
+    """작업 폴더 postmortems/<결과 id>.md 중 실제 결과가 있고 크기가 맞는 것만."""
+    files, log = {}, []
+    src = work / "postmortems"
+    for f in sorted(src.glob("*.md")) if src.is_dir() else []:
+        rid = f.stem
+        size = f.stat().st_size
+        if not (repo_root / "research" / "results" / rid / "results.json").is_file():
+            log.append(f"한계 분석 제외 {f.name}: 그런 결과 없음")
+        elif not POSTMORTEM_BYTES[0] <= size <= POSTMORTEM_BYTES[1]:
+            log.append(f"한계 분석 제외 {f.name}: 크기 {size}B")
+        else:
+            files[f"research/frontier/postmortems/{rid}.md"] = f.read_bytes()
+    return files, log
+
+
 def write_context(work: Path, now: datetime, repo_root: Path = PROJECT_ROOT) -> Path:
     work.mkdir(parents=True, exist_ok=True)
     pend = pending_frontier_jobs(repo_root)
+    ledger_path = repo_root / "research" / "frontier" / "hypotheses.json"
+    need_pm = results_needing_postmortem(repo_root)
     lines = [f"# 프런티어 에이전트 문맥 — {budget.kst(now):%Y-%m-%d %H:%M} KST (자동 생성)", "",
              f"작업 폴더: `{work.relative_to(repo_root)}` — 여기에만 쓸 수 있다.",
              f"대기 중(결과 없음) 프런티어 연구: {', '.join(pend) or '없음'} (최대 {MAX_PENDING}개 — 이미 꽉 차면 새 연구를 만들지 말 것)",
              f"이미 있는 프런티어 연구: {', '.join(frontier_job_ids(repo_root)) or '없음'}", "",
+             f"## 목표: 시장 그냥 보유 대비 세후 연 +{GOAL_EXCESS_PCT:g}%p", "",
+             "전 기간 한 전략(whole)으로 안 되면 국면별 국소 전략(regime: 그 시점 정보로 판정한 국면마다 다른 전략)을 찾는다.", "",
+             "## 이번에 한계 분석할 결과 (최근 것부터)", "",
+             (", ".join(f"`{x}`" for x in need_pm) or "없음 — 이번에는 한계 분석 없이 장부·문서·연구만"), "",
+             "## 가설 장부 (research/frontier/hypotheses.json 현재 내용)", "",
+             "```json", json.dumps(load_ledger(ledger_path), ensure_ascii=False, indent=1)[:12000], "```", "",
              "## 모든 검증 연구 결과 (오래된 순, id · 날짜 · 제목 · 판정)", "",
              "자세한 내용은 `research/results/<id>/REPORT.md`, 규칙은 `research/jobs/<id>/SPEC.md` 를 읽는다.", "",
              results_digest(repo_root)]
@@ -118,9 +195,14 @@ def write_context(work: Path, now: datetime, repo_root: Path = PROJECT_ROOT) -> 
 def prompt_for(work: Path, now: datetime, repo_root: Path = PROJECT_ROOT) -> str:
     rel = work.relative_to(repo_root)
     allow_new = len(pending_frontier_jobs(repo_root)) < MAX_PENDING
+    need_pm = results_needing_postmortem(repo_root)
     return (f"오늘은 {budget.kst(now):%Y-%m-%d} (KST). 먼저 `{rel}/context.md` 와 `research/frontier/FRONTIER.md` 를 읽어라.\n"
-            f"1) `{rel}/FRONTIER.md` 에 목표 문서의 새 판을 써라(전체 문서, 형식은 기존 FRONTIER.md 와 같게).\n"
-            + (f"2) 새 검증 연구가 가장 큰 정보 가치를 줄 때만 하나를 `{rel}/<id>/` 에 job.json·run.py·SPEC.md 로 만들고 "
+            + (f"0) 한계 분석: {', '.join(need_pm)} 각각의 REPORT.md·SPEC.md 를 읽고 `{rel}/postmortems/<결과 id>.md` 를 지시문의 틀대로 써라. "
+               "후속 가설은 1)의 장부에 parent=<결과 id> 로 넣는다(막다른 길이면 이유를 적고 넣지 않는다).\n" if need_pm else "")
+            + f"1) `{rel}/hypotheses.json` 에 가설 장부 새 판을 써라(기존 항목은 지우지 말고 status 만 갱신, 새 가설은 id 를 이어서).\n"
+            f"   새 결과가 나온 가설은 passed/failed 로, 연구로 등록한 가설은 registered 와 study_id 를 적는다.\n"
+            f"   `{rel}/FRONTIER.md` 에 목표 문서의 새 판을 써라(전체 문서, 형식은 기존 FRONTIER.md 와 같게, '목표 추적'·'국면 플레이북' 절 유지).\n"
+            + (f"2) 장부에서 정보 가치가 가장 큰 queued 가설이 기존 자료로 검증 가능할 때만 새 검증 연구 하나를 `{rel}/<id>/` 에 job.json·run.py·SPEC.md 로 만들고 "
                f"`python {rel}/<id>/run.py --smoke --out {rel}/<id>/_smoke_out --checkpoint {rel}/<id>/_smoke_ck` 로 스모크를 통과시켜라. "
                "id 는 frontier-<짧은-이름>-v1 형식. job.json 의 entrypoint 는 research/jobs/<id>/run.py 로 적는다(관문이 그 자리로 옮긴다).\n"
                if allow_new else
@@ -274,6 +356,21 @@ def run(*, now_fn: Callable[[], datetime] = lambda: datetime.now(timezone.utc),
     journal = work / "journal.md"
     if journal.is_file():
         files[f"research/frontier/journal/{work.name}.md"] = journal.read_bytes()
+    pm_files, pm_log = postmortem_files(work, repo_root)
+    files.update(pm_files)
+    log += pm_log
+    new_ledger = work / "hypotheses.json"
+    if new_ledger.is_file():
+        try:
+            data = json.loads(new_ledger.read_text(encoding="utf-8"))
+        except ValueError as exc:
+            data, probs = None, [f"JSON 오류 {exc}"]
+        else:
+            probs = ledger_problems(data, load_ledger(repo_root / "research" / "frontier" / "hypotheses.json"))
+        if probs:
+            log.append("가설 장부 반영 안 함: " + "; ".join(probs[:3]))
+        else:
+            files["research/frontier/hypotheses.json"] = (json.dumps(data, ensure_ascii=False, indent=1) + "\n").encode("utf-8")
     promoted = []
     if len(pending_frontier_jobs(repo_root)) < MAX_PENDING:
         for d in sorted(p for p in work.iterdir() if p.is_dir() and p.name.startswith("frontier-")):
@@ -295,7 +392,9 @@ def run(*, now_fn: Callable[[], datetime] = lambda: datetime.now(timezone.utc),
         lines = [f"[프런티어 에이전트] {budget.kst(now):%m-%d} 실행 · 에이전트 {'성공' if res.get('ok') else '실패'}"
                  + (" (사용량 한도)" if res.get("limited") else "")
                  + (f"\n{ab.AUTH_HINT}" if res.get("auth_failed") and not res.get("ok") else ""),
-                 f"새 연구: {', '.join(promoted) or '없음'} · 문서 갱신: {'예' if 'research/frontier/FRONTIER.md' in files else '아니오'} · 저장소 반영: {pub.get('status')}"]
+                 f"새 연구: {', '.join(promoted) or '없음'} · 문서 갱신: {'예' if 'research/frontier/FRONTIER.md' in files else '아니오'} · 저장소 반영: {pub.get('status')}",
+                 f"한계 분석: {', '.join(k.rsplit('/', 1)[1][:-3] for k in pm_files) or '없음'} · 가설 장부: "
+                 f"{'갱신' if 'research/frontier/hypotheses.json' in files else '그대로'}"]
         lines += [f"- {x}" for x in log[:5]]
         if reverted:
             lines.append(f"- 경고: 허용 범위 밖 변경 되돌림 {reverted[:3]}")
