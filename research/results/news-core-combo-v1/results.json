@@ -1,0 +1,587 @@
+{
+ "judge_version": "news-combo-judge/v1",
+ "smoke": false,
+ "source": "Ken French data library (daily, weekday calendar)",
+ "news_source": {
+  "file": "research/jobs/news-core-combo-v1/data/news_indices_monthly.csv",
+  "sha256": "349d22d7fb4430fbdab8077ef12b53ef34baf81e62cf30d35a25876995d8cd08",
+  "first": "1900-01",
+  "last": "2026-10",
+  "series": "GPRH (Caldara & Iacoviello) + news-based EPU (Baker, Bloom & Davis), monthly"
+ },
+ "generated_at": "2026-11-21T00:50:30+00:00",
+ "verdicts": {
+  "N1_confirm": "FAIL",
+  "N1_confirm_fail_class": "FAIL",
+  "N2_early": "FAIL",
+  "N2_early_fail_class": "FAIL_UNDERPOWERED",
+  "N3_tilt": "FAIL",
+  "N3_tilt_fail_class": "FAIL",
+  "N4_full": "FAIL",
+  "N4_full_fail_class": "FAIL",
+  "overall": "NO_NEWS_EDGE"
+ },
+ "power": {
+  "years": 80.5,
+  "n_trials": 4,
+  "confidence": 0.95,
+  "mde_ir": 0.301,
+  "pass_threshold_ir_50pct_power": 0.301,
+  "detectable_ir_80pct_power": 0.394,
+  "power_at": {
+   "0.20": 0.183,
+   "0.30": 0.498,
+   "0.50": 0.963
+  },
+  "method": "expected-max-z(Bailey-LdP) + null SE, simplified"
+ },
+ "b0_reproduction_max_abs_diff": 0.0,
+ "rule": {
+  "lag": 1,
+  "lag_robust": 2,
+  "pct_window": 60,
+  "sd_window": 120,
+  "beta_window": 120,
+  "beta_min": 60,
+  "calm_nr": 0.5,
+  "shock_nr": 0.9,
+  "shock_ret_rows": 21,
+  "tilt_nr": 0.75,
+  "p_max": 0.0125,
+  "cagr_tol": 0.003,
+  "mdd_tol": 0.02,
+  "min_subperiod_wins": 3,
+  "main_window": [
+   "1927-07-01",
+   "2007-12-31"
+  ],
+  "subperiods": [
+   [
+    "1927-07-01",
+    "1946-12-31"
+   ],
+   [
+    "1947-01-01",
+    "1966-12-31"
+   ],
+   [
+    "1967-01-01",
+    "1986-12-31"
+   ],
+   [
+    "1987-01-01",
+    "2007-12-31"
+   ]
+  ],
+  "core": "FF12 momentum top4 (252 rows, >0), equal weight, market SMA200 ×0.5, RF cash, 10bp"
+ },
+ "main": {
+  "N1_confirm": {
+   "cand": {
+    "cagr": 0.13040350236412657,
+    "mdd": -0.49923859018345695,
+    "sharpe_monthly": 0.6593837411376505,
+    "sharpe_daily": 0.6890032736983945
+   },
+   "base": {
+    "cagr": 0.12902468643307818,
+    "mdd": -0.42131747470371483,
+    "sharpe_monthly": 0.6685776192331352,
+    "sharpe_daily": 0.7061070273601673
+   },
+   "lag2": {
+    "cagr": 0.13126120197455782,
+    "mdd": -0.49923859018345695,
+    "sharpe_monthly": 0.6617015193233311,
+    "sharpe_daily": 0.693165605143181
+   },
+   "memmel": {
+    "sr1": 0.19034769022254253,
+    "sr2": 0.19300173421920486,
+    "rho": 0.9895618765490879,
+    "n": 966,
+    "z": -0.5607133573748762,
+    "p_one_sided": 0.7125035200710386
+   },
+   "subperiods": [
+    {
+     "start": "1927-07-01",
+     "end": "1946-12-31",
+     "sharpe_cand": 0.6257379146098302,
+     "sharpe_base": 0.664124565971599,
+     "cagr_cand": 0.11550119251933544,
+     "cagr_base": 0.12021145875183703
+    },
+    {
+     "start": "1947-01-01",
+     "end": "1966-12-31",
+     "sharpe_cand": 1.0947786613874535,
+     "sharpe_base": 1.0671386867382922,
+     "cagr_cand": 0.15345682347884537,
+     "cagr_base": 0.14454766453265
+    },
+    {
+     "start": "1967-01-01",
+     "end": "1986-12-31",
+     "sharpe_cand": 0.36713650794144026,
+     "sharpe_base": 0.4248718009265196,
+     "cagr_cand": 0.11813910640158265,
+     "cagr_base": 0.12567383368524898
+    },
+    {
+     "start": "1987-01-01",
+     "end": "2007-12-31",
+     "sharpe_cand": 0.6706752295725062,
+     "sharpe_base": 0.6293093379688031,
+     "cagr_cand": 0.13450137534416173,
+     "cagr_base": 0.12590520198615684
+    }
+   ],
+   "subperiod_wins": 2,
+   "checks": {
+    "a_sharpe_memmel": false,
+    "b_cagr_not_worse": true,
+    "c_mdd_not_worse": false,
+    "d_subperiod_sharpe": false,
+    "e_lag2_sharpe": false
+   },
+   "noop": null,
+   "effect_ir_equiv": -0.06249426898946349
+  },
+  "N2_early": {
+   "cand": {
+    "cagr": 0.12992306478564863,
+    "mdd": -0.42131747470371483,
+    "sharpe_monthly": 0.6763683827168859,
+    "sharpe_daily": 0.7133275761711505
+   },
+   "base": {
+    "cagr": 0.12902468643307818,
+    "mdd": -0.42131747470371483,
+    "sharpe_monthly": 0.6685776192331352,
+    "sharpe_daily": 0.7061070273601673
+   },
+   "lag2": {
+    "cagr": 0.12984519694558672,
+    "mdd": -0.42406515065883044,
+    "sharpe_monthly": 0.6763786104521129,
+    "sharpe_daily": 0.7126535843795172
+   },
+   "memmel": {
+    "sr1": 0.19525073391647296,
+    "sr2": 0.19300173421920486,
+    "rho": 0.9987343636016738,
+    "n": 966,
+    "z": 1.3632389716653235,
+    "p_one_sided": 0.08640360432182215
+   },
+   "subperiods": [
+    {
+     "start": "1927-07-01",
+     "end": "1946-12-31",
+     "sharpe_cand": 0.664124565971599,
+     "sharpe_base": 0.664124565971599,
+     "cagr_cand": 0.12021145875183703,
+     "cagr_base": 0.12021145875183703
+    },
+    {
+     "start": "1947-01-01",
+     "end": "1966-12-31",
+     "sharpe_cand": 1.0585597265923392,
+     "sharpe_base": 1.0671386867382922,
+     "cagr_cand": 0.14320859876441583,
+     "cagr_base": 0.14454766453265
+    },
+    {
+     "start": "1967-01-01",
+     "end": "1986-12-31",
+     "sharpe_cand": 0.4641081289533962,
+     "sharpe_base": 0.4248718009265196,
+     "cagr_cand": 0.13060770410626965,
+     "cagr_base": 0.12567383368524898
+    },
+    {
+     "start": "1987-01-01",
+     "end": "2007-12-31",
+     "sharpe_cand": 0.6293093379688031,
+     "sharpe_base": 0.6293093379688031,
+     "cagr_cand": 0.12590520198615684,
+     "cagr_base": 0.12590520198615684
+    }
+   ],
+   "subperiod_wins": 1,
+   "checks": {
+    "a_sharpe_memmel": false,
+    "b_cagr_not_worse": true,
+    "c_mdd_not_worse": true,
+    "d_subperiod_sharpe": false,
+    "e_lag2_sharpe": true
+   },
+   "noop": null,
+   "effect_ir_equiv": 0.15193970657491176
+  },
+  "N3_tilt": {
+   "cand": {
+    "cagr": 0.1261253727453331,
+    "mdd": -0.42131747470371483,
+    "sharpe_monthly": 0.6562541785842712,
+    "sharpe_daily": 0.6932051394918027
+   },
+   "base": {
+    "cagr": 0.12902468643307818,
+    "mdd": -0.42131747470371483,
+    "sharpe_monthly": 0.6685776192331352,
+    "sharpe_daily": 0.7061070273601673
+   },
+   "lag2": {
+    "cagr": 0.12384926831831455,
+    "mdd": -0.42131747470371483,
+    "sharpe_monthly": 0.6385368316310092,
+    "sharpe_daily": 0.6792928886654951
+   },
+   "memmel": {
+    "sr1": 0.18944426333122286,
+    "sr2": 0.19300173421920486,
+    "rho": 0.997729299567713,
+    "n": 966,
+    "z": -1.6104754979816909,
+    "p_one_sided": 0.9463529548587033
+   },
+   "subperiods": [
+    {
+     "start": "1927-07-01",
+     "end": "1946-12-31",
+     "sharpe_cand": 0.6449977639377256,
+     "sharpe_base": 0.664124565971599,
+     "cagr_cand": 0.11405530838291722,
+     "cagr_base": 0.12021145875183703
+    },
+    {
+     "start": "1947-01-01",
+     "end": "1966-12-31",
+     "sharpe_cand": 1.0649964137545551,
+     "sharpe_base": 1.0671386867382922,
+     "cagr_cand": 0.1440349786080959,
+     "cagr_base": 0.14454766453265
+    },
+    {
+     "start": "1967-01-01",
+     "end": "1986-12-31",
+     "sharpe_cand": 0.40549699041837384,
+     "sharpe_base": 0.4248718009265196,
+     "cagr_cand": 0.1226652894346214,
+     "cagr_base": 0.12567383368524898
+    },
+    {
+     "start": "1987-01-01",
+     "end": "2007-12-31",
+     "sharpe_cand": 0.6177468526734353,
+     "sharpe_base": 0.6293093379688031,
+     "cagr_cand": 0.12391923594899024,
+     "cagr_base": 0.12590520198615684
+    }
+   ],
+   "subperiod_wins": 0,
+   "checks": {
+    "a_sharpe_memmel": false,
+    "b_cagr_not_worse": true,
+    "c_mdd_not_worse": true,
+    "d_subperiod_sharpe": false,
+    "e_lag2_sharpe": false
+   },
+   "noop": null,
+   "effect_ir_equiv": -0.17949543674687135
+  },
+  "N4_full": {
+   "cand": {
+    "cagr": 0.12750064822705776,
+    "mdd": -0.49923859018345695,
+    "sharpe_monthly": 0.6471447012781878,
+    "sharpe_daily": 0.6761808347320499
+   },
+   "base": {
+    "cagr": 0.12902468643307818,
+    "mdd": -0.42131747470371483,
+    "sharpe_monthly": 0.6685776192331352,
+    "sharpe_daily": 0.7061070273601673
+   },
+   "lag2": {
+    "cagr": 0.1260720576719323,
+    "mdd": -0.49923859018345695,
+    "sharpe_monthly": 0.632686218960132,
+    "sharpe_daily": 0.6670369261026893
+   },
+   "memmel": {
+    "sr1": 0.18681458374380086,
+    "sr2": 0.19300173421920486,
+    "rho": 0.9868977918041149,
+    "n": 966,
+    "z": -1.1668013356966038,
+    "p_one_sided": 0.878354696255699
+   },
+   "subperiods": [
+    {
+     "start": "1927-07-01",
+     "end": "1946-12-31",
+     "sharpe_cand": 0.6060649297881552,
+     "sharpe_base": 0.664124565971599,
+     "cagr_cand": 0.10937096736492347,
+     "cagr_base": 0.12021145875183703
+    },
+    {
+     "start": "1947-01-01",
+     "end": "1966-12-31",
+     "sharpe_cand": 1.0926670493055506,
+     "sharpe_base": 1.0671386867382922,
+     "cagr_cand": 0.1529401468070879,
+     "cagr_base": 0.14454766453265
+    },
+    {
+     "start": "1967-01-01",
+     "end": "1986-12-31",
+     "sharpe_cand": 0.34811318188114304,
+     "sharpe_base": 0.4248718009265196,
+     "cagr_cand": 0.11515066215543102,
+     "cagr_base": 0.12567383368524898
+    },
+    {
+     "start": "1987-01-01",
+     "end": "2007-12-31",
+     "sharpe_cand": 0.6594613774947288,
+     "sharpe_base": 0.6293093379688031,
+     "cagr_cand": 0.1325002466553722,
+     "cagr_base": 0.12590520198615684
+    }
+   ],
+   "subperiod_wins": 2,
+   "checks": {
+    "a_sharpe_memmel": false,
+    "b_cagr_not_worse": true,
+    "c_mdd_not_worse": false,
+    "d_subperiod_sharpe": false,
+    "e_lag2_sharpe": false
+   },
+   "noop": null,
+   "effect_ir_equiv": -0.1300457632607061
+  }
+ },
+ "activity": {
+  "N1_confirm": {
+   "months": 1202,
+   "news_known": 1202,
+   "filter_changed": 109,
+   "tilt_months": 0,
+   "picks_changed": 0
+  },
+  "N2_early": {
+   "months": 1202,
+   "news_known": 1202,
+   "filter_changed": 5,
+   "tilt_months": 0,
+   "picks_changed": 0
+  },
+  "N3_tilt": {
+   "months": 1202,
+   "news_known": 1202,
+   "filter_changed": 0,
+   "tilt_months": 134,
+   "picks_changed": 96
+  },
+  "N4_full": {
+   "months": 1202,
+   "news_known": 1202,
+   "filter_changed": 109,
+   "tilt_months": 134,
+   "picks_changed": 96
+  }
+ },
+ "single_source": {
+  "N1_confirm": {
+   "gpr": {
+    "cagr": 0.13074752682155388,
+    "mdd": -0.49923859018345695,
+    "sharpe_monthly": 0.6573348319588058,
+    "sharpe_daily": 0.6885817010226946,
+    "filter_changed": 154,
+    "picks_changed": 0
+   },
+   "epu": {
+    "cagr": 0.12897367284744,
+    "mdd": -0.49923859018345695,
+    "sharpe_monthly": 0.6498112195071005,
+    "sharpe_daily": 0.6790831826060026,
+    "filter_changed": 103,
+    "picks_changed": 0
+   }
+  },
+  "N2_early": {
+   "gpr": {
+    "cagr": 0.12889743830198075,
+    "mdd": -0.4486440317694935,
+    "sharpe_monthly": 0.6769686927412998,
+    "sharpe_daily": 0.7103390057224978,
+    "filter_changed": 27,
+    "picks_changed": 0
+   },
+   "epu": {
+    "cagr": 0.1299667171935892,
+    "mdd": -0.42131747470371483,
+    "sharpe_monthly": 0.678478030691744,
+    "sharpe_daily": 0.7151763808179828,
+    "filter_changed": 22,
+    "picks_changed": 0
+   }
+  },
+  "N3_tilt": {
+   "gpr": {
+    "cagr": 0.12837057821712716,
+    "mdd": -0.42131747470371483,
+    "sharpe_monthly": 0.6632384713344368,
+    "sharpe_daily": 0.7012610250964705,
+    "filter_changed": 0,
+    "picks_changed": 205
+   },
+   "epu": {
+    "cagr": 0.12174709524331129,
+    "mdd": -0.42131747470371483,
+    "sharpe_monthly": 0.6380055066344219,
+    "sharpe_daily": 0.6668502150091372,
+    "filter_changed": 0,
+    "picks_changed": 216
+   }
+  },
+  "N4_full": {
+   "gpr": {
+    "cagr": 0.1300783336970226,
+    "mdd": -0.49923859018345695,
+    "sharpe_monthly": 0.6522660221762506,
+    "sharpe_daily": 0.6839359046358082,
+    "filter_changed": 154,
+    "picks_changed": 205
+   },
+   "epu": {
+    "cagr": 0.12168943060218496,
+    "mdd": -0.49923859018345695,
+    "sharpe_monthly": 0.619112104871004,
+    "sharpe_daily": 0.6407392311917184,
+    "filter_changed": 103,
+    "picks_changed": 216
+   }
+  }
+ },
+ "ind49": {
+  "B0": {
+   "cagr": 0.1652328270329888,
+   "mdd": -0.6192567534222602,
+   "sharpe_monthly": 0.6989123123485801,
+   "sharpe_daily": 0.7236402573453286
+  },
+  "N1_confirm": {
+   "cagr": 0.16871946551996198,
+   "mdd": -0.6598051492360854,
+   "sharpe_monthly": 0.6927939033714609,
+   "sharpe_daily": 0.7163711478021488
+  },
+  "N2_early": {
+   "cagr": 0.1662290776817814,
+   "mdd": -0.6192567534222602,
+   "sharpe_monthly": 0.7044692084513466,
+   "sharpe_daily": 0.7291858548963045
+  },
+  "N3_tilt": {
+   "cagr": 0.15837868392905463,
+   "mdd": -0.5938466292983549,
+   "sharpe_monthly": 0.6756556391131182,
+   "sharpe_daily": 0.7040339458035809
+  },
+  "N4_full": {
+   "cagr": 0.1618484430561664,
+   "mdd": -0.6371011526138903,
+   "sharpe_monthly": 0.6700380161148288,
+   "sharpe_daily": 0.6967812298711095
+  }
+ },
+ "compare_2008": {
+  "start": "2008-01-01",
+  "end": "2026-09-30",
+  "market": {
+   "cagr": 0.11382206927290306,
+   "mdd": -0.5106672047311998,
+   "sharpe_monthly": 0.6646623844084442,
+   "sharpe_daily": 0.5681424579286848
+  },
+  "B0": {
+   "cagr": 0.099142752290861,
+   "mdd": -0.21730391850420516,
+   "sharpe_monthly": 0.6902587087698001,
+   "sharpe_daily": 0.6182808618025362
+  },
+  "N1_confirm": {
+   "cagr": 0.09613819298625503,
+   "mdd": -0.21460617729508846,
+   "sharpe_monthly": 0.6593572774037911,
+   "sharpe_daily": 0.5876509762302761
+  },
+  "N2_early": {
+   "cagr": 0.099142752290861,
+   "mdd": -0.21730391850420516,
+   "sharpe_monthly": 0.6902587087698001,
+   "sharpe_daily": 0.6182808618025362
+  },
+  "N3_tilt": {
+   "cagr": 0.09707935810716117,
+   "mdd": -0.21730391850420538,
+   "sharpe_monthly": 0.688763342800267,
+   "sharpe_daily": 0.6175153425599293
+  },
+  "N4_full": {
+   "cagr": 0.09408043918928466,
+   "mdd": -0.21002257507859945,
+   "sharpe_monthly": 0.6568841209052894,
+   "sharpe_daily": 0.5857201881784881
+  }
+ },
+ "etf_era": {
+  "start": "2008-01-02",
+  "end": "2026-11-20",
+  "basis": "세전 달러, 배당 포함, 현금 = BIL, 16자산(DBC 제외)",
+  "rows": {
+   "SPY 그냥 보유": {
+    "cagr": 0.10530970140476237,
+    "mdd": -0.5187377457619338,
+    "sharpe_monthly": 0.6342127871388862,
+    "sharpe_daily": 0.5393284471331448
+   },
+   "현 코어 복제": {
+    "cagr": 0.08379723465716715,
+    "mdd": -0.22592770706718868,
+    "sharpe_monthly": 0.6973033653465964,
+    "sharpe_daily": 0.6239675034178946
+   },
+   "N1 추세×뉴스(AND): 조용한 하락은 줄이지 않음": {
+    "cagr": 0.0847108633970608,
+    "mdd": -0.21772656201178064,
+    "sharpe_monthly": 0.6973898000487243,
+    "sharpe_daily": 0.6224933859914857
+   },
+   "N2 추세×뉴스(OR): 뉴스 극단+단기 하락이면 미리 줄임": {
+    "cagr": 0.08379723465716715,
+    "mdd": -0.22592770706718868,
+    "sharpe_monthly": 0.6973033653465964,
+    "sharpe_daily": 0.6239675034178946
+   },
+   "N3 모멘텀×뉴스 민감도: 뉴스 위험 높은 달 순위 기울기": {
+    "cagr": 0.0845008887874612,
+    "mdd": -0.22592770706718868,
+    "sharpe_monthly": 0.7075492097904416,
+    "sharpe_daily": 0.6367776745882524
+   },
+   "N4 N1 필터 + N3 순위": {
+    "cagr": 0.08541511069978158,
+    "mdd": -0.2177265620117803,
+    "sharpe_monthly": 0.7074415608616,
+    "sharpe_daily": 0.6349125826571317
+   }
+  }
+ }
+}
