@@ -1,0 +1,14 @@
+{
+  "id": "news-core-combo-v1",
+  "title": "뉴스 지수 × 현 코어 결합 — 지정학 위험(GPR)·정책 불확실성(EPU)을 모멘텀 순위·200일선에 섞는 4가지 방식을 1927~2007 자료로 판정(사전 등록)",
+  "entrypoint": "research/jobs/news-core-combo-v1/run.py",
+  "args": [],
+  "timeout_seconds": 3600,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 8,
+  "revision": 1,
+  "max_memory_mb": 3072
+}
