@@ -1,0 +1,393 @@
+{
+ "variants": {
+  "D1_H5": {
+   "verdict": "FAIL",
+   "gates": {
+    "selection": {
+     "a_events": true,
+     "b_positive": false,
+     "c_cagr": true
+    },
+    "confirmation": {
+     "a_events": true,
+     "b_positive": false,
+     "c_cagr": false
+    }
+   },
+   "eras": {
+    "selection": {
+     "n_events": 107,
+     "event_mean": -0.005262184037166409,
+     "event_median": -0.011479172205328899,
+     "event_win": 0.42990654205607476,
+     "t": -0.9573744765798244,
+     "p": 0.829721621916788,
+     "market_after_mean": 0.0015806721129928507,
+     "cagr_market": 0.08972928356847776,
+     "cagr_overlay": 0.09021993440823084,
+     "mdd_market": -0.8407399476860209,
+     "mdd_overlay": -0.7734238207050642,
+     "days_on_share": 0.07166683513595472,
+     "first_event": "1928-06-11"
+    },
+    "confirmation": {
+     "n_events": 32,
+     "event_mean": -0.010827259627920936,
+     "event_median": -0.010154423325935077,
+     "event_win": 0.375,
+     "t": -1.5412363548703147,
+     "p": 0.9332967945387884,
+     "market_after_mean": 0.0072186006058813125,
+     "cagr_market": 0.10860114383070418,
+     "cagr_overlay": 0.10365539580828198,
+     "mdd_market": -0.49225604938802103,
+     "mdd_overlay": -0.5312769421280444,
+     "days_on_share": 0.017443550731660044,
+     "first_event": "1970-05-25"
+    },
+    "report_2008": {
+     "n_events": 51,
+     "event_mean": -0.009941372495950122,
+     "event_median": -0.01769728854956631,
+     "event_win": 0.37254901960784315,
+     "t": -1.3374417348500962,
+     "p": 0.9064345497042756,
+     "market_after_mean": 0.0054389411247406745,
+     "cagr_market": 0.11400840468280093,
+     "cagr_overlay": 0.10933573569715227,
+     "mdd_market": -0.5106672047311998,
+     "mdd_overlay": -0.4307692049509002,
+     "days_on_share": 0.06743002544529263,
+     "first_event": "2008-02-05"
+    }
+   }
+  },
+  "D1_H20": {
+   "verdict": "FAIL",
+   "gates": {
+    "selection": {
+     "a_events": true,
+     "b_positive": false,
+     "c_cagr": true
+    },
+    "confirmation": {
+     "a_events": true,
+     "b_positive": false,
+     "c_cagr": false
+    }
+   },
+   "eras": {
+    "selection": {
+     "n_events": 70,
+     "event_mean": -0.0015966476002741766,
+     "event_median": -0.018690652886036326,
+     "event_win": 0.45714285714285713,
+     "t": -0.17508792420769137,
+     "p": 0.569238339981796,
+     "market_after_mean": -0.006126534302830089,
+     "cagr_market": 0.08972928356847776,
+     "cagr_overlay": 0.09248442399683454,
+     "mdd_market": -0.8407399476860209,
+     "mdd_overlay": -0.7115385395174212,
+     "days_on_share": 0.17608409986859397,
+     "first_event": "1928-06-11"
+    },
+    "confirmation": {
+     "n_events": 26,
+     "event_mean": -0.015180268559096313,
+     "event_median": -0.012996815794639845,
+     "event_win": 0.46153846153846156,
+     "t": -1.6146116683672491,
+     "p": 0.9405264735642829,
+     "market_after_mean": 0.008545614855304327,
+     "cagr_market": 0.10860114383070418,
+     "cagr_overlay": 0.10542967032607953,
+     "mdd_market": -0.49225604938802103,
+     "mdd_overlay": -0.5131433352632662,
+     "days_on_share": 0.05911425525729237,
+     "first_event": "1970-05-25"
+    },
+    "report_2008": {
+     "n_events": 32,
+     "event_mean": -0.023926779754805134,
+     "event_median": -0.031794520656635794,
+     "event_win": 0.21875,
+     "t": -1.7180529520462373,
+     "p": 0.9521191908581641,
+     "market_after_mean": 0.01562591285915012,
+     "cagr_market": 0.11400840468280093,
+     "cagr_overlay": 0.10693629913318548,
+     "mdd_market": -0.5106672047311998,
+     "mdd_overlay": -0.3835917934142211,
+     "days_on_share": 0.16518235793044952,
+     "first_event": "2008-02-05"
+    }
+   }
+  },
+  "D5_H5": {
+   "verdict": "FAIL",
+   "gates": {
+    "selection": {
+     "a_events": true,
+     "b_positive": false,
+     "c_cagr": true
+    },
+    "confirmation": {
+     "a_events": true,
+     "b_positive": false,
+     "c_cagr": false
+    }
+   },
+   "eras": {
+    "selection": {
+     "n_events": 64,
+     "event_mean": -1.1505314506941519e-05,
+     "event_median": -0.008842516486567194,
+     "event_win": 0.46875,
+     "t": -0.0012326938607491848,
+     "p": 0.500489826039359,
+     "market_after_mean": -0.002631241084468952,
+     "cagr_market": 0.08972928356847776,
+     "cagr_overlay": 0.09463890748590065,
+     "mdd_market": -0.8407399476860209,
+     "mdd_overlay": -0.7748450067763878,
+     "days_on_share": 0.043161831598099665,
+     "first_event": "1928-06-12"
+    },
+    "confirmation": {
+     "n_events": 24,
+     "event_mean": -0.026624219842439196,
+     "event_median": -0.024923684210365334,
+     "event_win": 0.20833333333333334,
+     "t": -3.3343665073783493,
+     "p": 0.9985593041451295,
+     "market_after_mean": 0.023102393497500984,
+     "cagr_market": 0.10860114383070418,
+     "cagr_overlay": 0.10083039662263049,
+     "mdd_market": -0.49225604938802103,
+     "mdd_overlay": -0.5466047346069918,
+     "days_on_share": 0.013373388894272701,
+     "first_event": "1970-05-25"
+    },
+    "report_2008": {
+     "n_events": 21,
+     "event_mean": -0.01446960934287914,
+     "event_median": -0.011616978900607085,
+     "event_win": 0.3333333333333333,
+     "t": -1.010951776758645,
+     "p": 0.8379426800449035,
+     "market_after_mean": 0.007138611756203788,
+     "cagr_market": 0.11400840468280093,
+     "cagr_overlay": 0.11886544035634605,
+     "mdd_market": -0.5106672047311998,
+     "mdd_overlay": -0.46097423161167617,
+     "days_on_share": 0.030746395250212045,
+     "first_event": "2008-09-29"
+    }
+   }
+  },
+  "D5_H20": {
+   "verdict": "FAIL",
+   "gates": {
+    "selection": {
+     "a_events": true,
+     "b_positive": false,
+     "c_cagr": true
+    },
+    "confirmation": {
+     "a_events": true,
+     "b_positive": false,
+     "c_cagr": false
+    }
+   },
+   "eras": {
+    "selection": {
+     "n_events": 43,
+     "event_mean": -0.0032860839613583497,
+     "event_median": -0.02800610483972665,
+     "event_win": 0.3488372093023256,
+     "t": -0.20180293765719737,
+     "p": 0.5794774710223036,
+     "market_after_mean": -0.00194509457341109,
+     "cagr_market": 0.08972928356847776,
+     "cagr_overlay": 0.09403192177409525,
+     "mdd_market": -0.8407399476860209,
+     "mdd_overlay": -0.7265459203987166,
+     "days_on_share": 0.1083594460729809,
+     "first_event": "1928-06-12"
+    },
+    "confirmation": {
+     "n_events": 20,
+     "event_mean": -0.0421945001016938,
+     "event_median": -0.030802506188255196,
+     "event_win": 0.25,
+     "t": -3.48355795081359,
+     "p": 0.9987568059057459,
+     "market_after_mean": 0.03641414395964535,
+     "cagr_market": 0.10860114383070418,
+     "cagr_overlay": 0.10226126195581386,
+     "mdd_market": -0.49225604938802103,
+     "mdd_overlay": -0.5361052936447245,
+     "days_on_share": 0.04399651128985367,
+     "first_event": "1970-05-25"
+    },
+    "report_2008": {
+     "n_events": 14,
+     "event_mean": -0.01470644881844857,
+     "event_median": -0.02942998431617866,
+     "event_win": 0.21428571428571427,
+     "t": -0.563593475928557,
+     "p": 0.7086886964876641,
+     "market_after_mean": 0.0018965298639089959,
+     "cagr_market": 0.11400840468280093,
+     "cagr_overlay": 0.11503865498407917,
+     "mdd_market": -0.5106672047311998,
+     "mdd_overlay": -0.3928219970976299,
+     "days_on_share": 0.07463952502120441,
+     "first_event": "2008-09-29"
+    }
+   }
+  },
+  "BEAR_H5": {
+   "verdict": "FAIL",
+   "gates": {
+    "selection": {
+     "a_events": true,
+     "b_positive": false,
+     "c_cagr": true
+    },
+    "confirmation": {
+     "a_events": true,
+     "b_positive": false,
+     "c_cagr": true
+    }
+   },
+   "eras": {
+    "selection": {
+     "n_events": 351,
+     "event_mean": -0.0026382685833321274,
+     "event_median": -0.0050687146127846834,
+     "event_win": 0.4358974358974359,
+     "t": -1.1059112714614532,
+     "p": 0.8652377487268765,
+     "market_after_mean": -0.00017663704625405145,
+     "cagr_market": 0.08972928356847776,
+     "cagr_overlay": 0.09320798909142791,
+     "mdd_market": -0.8407399476860209,
+     "mdd_overlay": -0.6766489428341538,
+     "days_on_share": 0.25199636106337814,
+     "first_event": "1929-10-23"
+    },
+    "confirmation": {
+     "n_events": 303,
+     "event_mean": -0.00398764803016385,
+     "event_median": -0.0035569605103545872,
+     "event_win": 0.45544554455445546,
+     "t": -2.1549163145548396,
+     "p": 0.9840206513044212,
+     "market_after_mean": 0.0009604104395339819,
+     "cagr_market": 0.10860114383070418,
+     "cagr_overlay": 0.10936893673468351,
+     "mdd_market": -0.49225604938802103,
+     "mdd_overlay": -0.4005715768928616,
+     "days_on_share": 0.2060277158639403,
+     "first_event": "1967-01-03"
+    },
+    "report_2008": {
+     "n_events": 133,
+     "event_mean": -0.003354701029807164,
+     "event_median": -0.00984881861901887,
+     "event_win": 0.39097744360902253,
+     "t": -0.9428980372536193,
+     "p": 0.8262722015243054,
+     "market_after_mean": -0.0007837147186625565,
+     "cagr_market": 0.11400840468280093,
+     "cagr_overlay": 0.10663326109568572,
+     "mdd_market": -0.5106672047311998,
+     "mdd_overlay": -0.3469671547417328,
+     "days_on_share": 0.20144189991518235,
+     "first_event": "2008-01-08"
+    }
+   }
+  },
+  "BEAR_H20": {
+   "verdict": "FAIL",
+   "gates": {
+    "selection": {
+     "a_events": true,
+     "b_positive": false,
+     "c_cagr": true
+    },
+    "confirmation": {
+     "a_events": true,
+     "b_positive": false,
+     "c_cagr": false
+    }
+   },
+   "eras": {
+    "selection": {
+     "n_events": 127,
+     "event_mean": -0.0030451476196639987,
+     "event_median": -0.014461182601553598,
+     "event_win": 0.4566929133858268,
+     "t": -0.39921676588167265,
+     "p": 0.6547953382444154,
+     "market_after_mean": 0.0007288858433471053,
+     "cagr_market": 0.08972928356847776,
+     "cagr_overlay": 0.09195991308310192,
+     "mdd_market": -0.8407399476860209,
+     "mdd_overlay": -0.6766489428341538,
+     "days_on_share": 0.2995047002931366,
+     "first_event": "1929-10-23"
+    },
+    "confirmation": {
+     "n_events": 108,
+     "event_mean": -0.002867815596689707,
+     "event_median": -0.01305122825560506,
+     "event_win": 0.42592592592592593,
+     "t": -0.5147617449001864,
+     "p": 0.696109385950296,
+     "market_after_mean": -0.00095601264248646,
+     "cagr_market": 0.10860114383070418,
+     "cagr_overlay": 0.10702078759701772,
+     "mdd_market": -0.49225604938802103,
+     "mdd_overlay": -0.37374123854711827,
+     "days_on_share": 0.24508188777982362,
+     "first_event": "1967-01-03"
+    },
+    "report_2008": {
+     "n_events": 50,
+     "event_mean": -0.017322645392444012,
+     "event_median": -0.023321641954401225,
+     "event_win": 0.4,
+     "t": -1.6745960845570749,
+     "p": 0.9498073029640861,
+     "market_after_mean": 0.01049162046895009,
+     "cagr_market": 0.11400840468280093,
+     "cagr_overlay": 0.10823815279385429,
+     "mdd_market": -0.5106672047311998,
+     "mdd_overlay": -0.33952174647663635,
+     "days_on_share": 0.2580576759966073,
+     "first_event": "2008-01-08"
+    }
+   }
+  }
+ },
+ "latest_date": "2026-09-30",
+ "latest_signals": {
+  "D1": false,
+  "D5": false,
+  "BEAR": false
+ },
+ "rules": "crash-inverse/v1",
+ "judge": "inverse-judge/v1",
+ "smoke": false,
+ "verdicts": {
+  "D1_H5": "FAIL",
+  "D1_H20": "FAIL",
+  "D5_H5": "FAIL",
+  "D5_H20": "FAIL",
+  "BEAR_H5": "FAIL",
+  "BEAR_H20": "FAIL"
+ }
+}
