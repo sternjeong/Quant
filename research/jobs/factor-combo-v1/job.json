@@ -1,0 +1,14 @@
+{
+  "id": "factor-combo-v1",
+  "title": "살아남은 인자 결합 — 위험 효율 코어·업종 모멘텀 변동성 맞춤·필터 달린 2배 다리를 한 계좌에 섞으면 시장과 현 코어를 함께 크게 이기나(1927~2007, 사전 등록)",
+  "entrypoint": "research/jobs/factor-combo-v1/run.py",
+  "args": [],
+  "timeout_seconds": 3600,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md"],
+  "summary_from": "verdicts",
+  "priority": 9,
+  "revision": 1,
+  "max_memory_mb": 3072
+}
