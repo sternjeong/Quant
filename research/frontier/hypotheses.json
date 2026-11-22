@@ -193,11 +193,11 @@
   {
    "id": "H-020",
    "track": "regime",
-   "status": "queued",
+   "status": "registered",
    "statement": "모멘텀·상대 강도 계열 이득(X2·덜 빠진 업종·업종 모멘텀)이 2008 이후 사라진 것은 실시간으로 잴 수 있는 시장 구조 변수(대형주 쏠림·산업 간 상관)로 설명되고, 그 변수가 낮은 국면에서는 여전히 통한다",
    "parent": "crash-industry-pick-v1",
    "rationale": "factor-combo-v1·combo-regime-switch-v1·crash-industry-pick-v1·profit-tilt-v1 이 모두 '2008 이전 통함 → 이후 소멸' 패턴. 원인 변수를 실시간으로 알 수 있으면 국소 전략의 켜고 끄기 근거가 된다",
-   "study_id": "",
+   "study_id": "momentum-decay-regime-v1",
    "outcome": ""
   }
  ]
