@@ -1,0 +1,173 @@
+{
+ "variants": {
+  "Q_CRISIS_CASH": {
+   "crisis": "CASH",
+   "picks": {
+    "CALM_BULL": "SV",
+    "NERVOUS_BULL": "L2",
+    "QUIET_BEAR": "L2",
+    "CRISIS": "CASH"
+   },
+   "beta_selection": 0.8420935579439377,
+   "static_weights": {
+    "M": 0.8420935579439377,
+    "CASH": 0.1579064420560623
+   },
+   "eras": {
+    "selection": {
+     "cagr_pre": 0.15223988560259638,
+     "cagr_after": 0.15053348976751435,
+     "mkt_cagr_pre": 0.07802975076778806,
+     "mkt_cagr_after": 0.07652049980546205,
+     "excess_after": 0.0740129899620523,
+     "excess_pre": 0.07421013483480832,
+     "monthly_excess_mean": 0.007404329633812788,
+     "t": 2.2451628181921377,
+     "p": 0.012618589645330802,
+     "mdd": -0.7806180076757971,
+     "mdd_mkt": -0.8407399476860209,
+     "switches": 112,
+     "years": 38,
+     "years_beat": 25,
+     "years_ge_goal": 19,
+     "excess_vs_mkt": 0.0740129899620523,
+     "static_cagr_after": 0.0691474801471923,
+     "excess_vs_static": 0.08138600962032205,
+     "mdd_static": -0.7784450560786882
+    },
+    "B": {
+     "cagr_pre": 0.15132926063696184,
+     "cagr_after": 0.149746508447278,
+     "mkt_cagr_pre": 0.10848211950771147,
+     "mkt_cagr_after": 0.10697645029912284,
+     "excess_after": 0.042770058148155154,
+     "excess_pre": 0.042847141129250366,
+     "monthly_excess_mean": 0.004536881475335417,
+     "t": 2.2733252013556706,
+     "p": 0.011718837668968973,
+     "mdd": -0.5665754824377074,
+     "mdd_mkt": -0.49225604938802103,
+     "switches": 162,
+     "years": 41,
+     "years_beat": 27,
+     "years_ge_goal": 19,
+     "excess_vs_mkt": 0.042770058148155154,
+     "static_cagr_after": 0.10059534417630078,
+     "excess_vs_static": 0.04915116427097721,
+     "mdd_static": -0.4221383575573774
+    },
+    "C": {
+     "cagr_pre": 0.14182128872860522,
+     "cagr_after": 0.13867391272229002,
+     "mkt_cagr_pre": 0.11382206927290306,
+     "mkt_cagr_after": 0.1109209815637493,
+     "excess_after": 0.027752931158540717,
+     "excess_pre": 0.027999219455702162,
+     "monthly_excess_mean": 0.003167719545306734,
+     "t": 0.8309364516190325,
+     "p": 0.20344717164978893,
+     "mdd": -0.46619401636745106,
+     "mdd_mkt": -0.5106672047311998,
+     "switches": 102,
+     "years": 19,
+     "years_beat": 9,
+     "years_ge_goal": 6,
+     "excess_vs_mkt": 0.027752931158540717,
+     "static_cagr_after": 0.0964979798329686,
+     "excess_vs_static": 0.04217593288932142,
+     "mdd_static": -0.44725678857869045
+    }
+   },
+   "verdict": "FAIL",
+   "goal_met": false
+  },
+  "Q_CRISIS_MKT": {
+   "crisis": "M",
+   "picks": {
+    "CALM_BULL": "SV",
+    "NERVOUS_BULL": "L2",
+    "QUIET_BEAR": "L2",
+    "CRISIS": "M"
+   },
+   "beta_selection": 1.375264459017445,
+   "static_weights": {
+    "M": 0.624735540982555,
+    "L2": 0.375264459017445
+   },
+   "eras": {
+    "selection": {
+     "cagr_pre": 0.13734679468314015,
+     "cagr_after": 0.13566755947081832,
+     "mkt_cagr_pre": 0.07802975076778806,
+     "mkt_cagr_after": 0.07652049980546205,
+     "excess_after": 0.05914705966535627,
+     "excess_pre": 0.059317043915352086,
+     "monthly_excess_mean": 0.007360919029414603,
+     "t": 2.9586287538707374,
+     "p": 0.0016256072998952487,
+     "mdd": -0.9152827754985462,
+     "mdd_mkt": -0.8407399476860209,
+     "switches": 112,
+     "years": 38,
+     "years_beat": 23,
+     "years_ge_goal": 17,
+     "excess_vs_mkt": 0.05914705966535627,
+     "static_cagr_after": 0.08907930746803738,
+     "excess_vs_static": 0.04658825200278094,
+     "mdd_static": -0.9286869484015833
+    },
+    "B": {
+     "cagr_pre": 0.14755725418836008,
+     "cagr_after": 0.1459804135632905,
+     "mkt_cagr_pre": 0.10848211950771147,
+     "mkt_cagr_after": 0.10697645029912284,
+     "excess_after": 0.03900396326416766,
+     "excess_pre": 0.039075134680648604,
+     "monthly_excess_mean": 0.004597039945910425,
+     "t": 2.8562618466672385,
+     "p": 0.0022341546075665963,
+     "mdd": -0.5945488626338238,
+     "mdd_mkt": -0.49225604938802103,
+     "switches": 162,
+     "years": 41,
+     "years_beat": 23,
+     "years_ge_goal": 20,
+     "excess_vs_mkt": 0.03900396326416766,
+     "static_cagr_after": 0.11633961633057965,
+     "excess_vs_static": 0.029640797232710847,
+     "mdd_static": -0.6397058348926974
+    },
+    "C": {
+     "cagr_pre": 0.15632784768643226,
+     "cagr_after": 0.15307793993084018,
+     "mkt_cagr_pre": 0.11382206927290306,
+     "mkt_cagr_after": 0.1109209815637493,
+     "excess_after": 0.04215695836709088,
+     "excess_pre": 0.042505778413529205,
+     "monthly_excess_mean": 0.004833827187206143,
+     "t": 1.6097724973167342,
+     "p": 0.05442792852069239,
+     "mdd": -0.5106672047311998,
+     "mdd_mkt": -0.5106672047311998,
+     "switches": 102,
+     "years": 19,
+     "years_beat": 10,
+     "years_ge_goal": 8,
+     "excess_vs_mkt": 0.04215695836709088,
+     "static_cagr_after": 0.13291479390851602,
+     "excess_vs_static": 0.020163146022324163,
+     "mdd_static": -0.6501532369088625
+    }
+   },
+   "verdict": "FAIL",
+   "goal_met": false
+  }
+ },
+ "rules": "regime-playbook/v3",
+ "judge": "playbook3-judge/v1",
+ "smoke": false,
+ "verdicts": {
+  "Q_CRISIS_CASH": "FAIL",
+  "Q_CRISIS_MKT": "FAIL"
+ }
+}
