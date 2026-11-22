@@ -1,0 +1,17 @@
+{
+  "id": "momentum-decay-regime-v1",
+  "title": "모멘텀 계열 소멸의 실시간 원인 — 산업 간 상관·대형주 쏠림이 X2 의 다음 달 초과를 설명하나, 낮을 때만 X2 를 들면 2008 이후에도 지지 않나",
+  "entrypoint": "research/jobs/momentum-decay-regime-v1/run.py",
+  "args": [],
+  "timeout_seconds": 3600,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": [
+    "results.json",
+    "REPORT.md"
+  ],
+  "summary_from": "verdicts",
+  "priority": 5,
+  "revision": 1,
+  "max_memory_mb": 1500
+}
