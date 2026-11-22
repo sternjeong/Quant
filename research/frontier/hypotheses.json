@@ -143,11 +143,11 @@
   {
    "id": "H-015",
    "track": "regime",
-   "status": "queued",
-   "statement": "시장 급락 진입(−15%) 때 시장보다 많이 빠진 업종(12 산업)을 사면 시장을 사는 것보다 1년 뒤 낫다",
+   "status": "registered",
+   "statement": "시장 급락 진입(−15%) 때 12 산업 중 3개(많이 빠진·덜 빠진·고베타·저베타)를 골라 1년 보유하면 같은 날 산 시장보다 낫다",
    "parent": "crash-rebound-signal-v1",
    "rationale": "'언제' 살지는 막다른 길(7/7 FAIL). 남은 질문은 '무엇을' 살지. 12 산업(1927~)이면 생존 편향 없이 검증 가능",
-   "study_id": "",
+   "study_id": "crash-industry-pick-v1",
    "outcome": ""
   },
   {

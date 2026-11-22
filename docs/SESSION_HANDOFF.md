@@ -1,3 +1,9 @@
+## 2026-11-22 가설 루프 7바퀴째 — crash-industry-pick-v1(H-015) 사전 등록
+
+- 질문: 급락 진입(시장 −15%) 때 '무엇을' 살지 — 12 산업 중 많이 빠진/덜 빠진/고베타/저베타 3개 vs 시장, 250일. crash-rebound-signal-v1 의 사건 정의·쌍 통계 재사용. 생존 편향 없는 산업 자료.
+- 판정 industry-pick-judge/v1: A·B 두 시대 모두 D 평균 > 0, 단측 p < 0.05/4. 49 산업·2008~ 보고만.
+- 검증: tests/test_crash_industry_pick_v1.py 3 passed, 스모크 통과.
+
 ## 2026-11-22 가설 루프 6바퀴째 — regime-playbook-v4 결과로 국면 플레이북 수익 노선 정리
 
 - regime-playbook-v4: A MENU_ONLY(타이밍 +1.5~2.4%p 지만 유의 ✗), B 실제 ETF FAIL(SPY 대비 −0.46%p, MDD −49 vs −55%).
