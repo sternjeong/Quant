@@ -1,0 +1,446 @@
+{
+ "playbook": {
+  "CALM_BULL": {
+   "pick": "SV",
+   "months": 260,
+   "excess": {
+    "M": 0.0,
+    "CASH": -0.009122486861250924,
+    "L2": 0.008859011143613066,
+    "MOM": 0.0026897091953244803,
+    "SV": 0.010918111155073263,
+    "LV": 0.003617968168485854,
+    "DEF": -0.000818580087307752
+   }
+  },
+  "NERVOUS_BULL": {
+   "pick": "L2",
+   "months": 50,
+   "excess": {
+    "M": 0.0,
+    "CASH": -0.013820515002709356,
+    "L2": 0.012545165565091523,
+    "MOM": 0.002676526839652873,
+    "SV": 0.01238304914094253,
+    "LV": 0.006233806329218414,
+    "DEF": -0.005255034052256926
+   }
+  },
+  "QUIET_BEAR": {
+   "pick": "L2",
+   "months": 64,
+   "excess": {
+    "M": 0.0,
+    "CASH": -0.0039453745784267195,
+    "L2": 0.003570277208517266,
+    "MOM": 0.0034009031974201777,
+    "SV": -0.005337411198665317,
+    "LV": -0.0059738232873032225,
+    "DEF": 0.0018767710087109774
+   }
+  },
+  "CRISIS": {
+   "pick": "LV",
+   "months": 82,
+   "excess": {
+    "M": 0.0,
+    "CASH": 0.00024319485174791012,
+    "L2": 0.003017448831152871,
+    "MOM": -7.741216692531395e-05,
+    "SV": 0.012597472148381288,
+    "LV": 0.017604199199181964,
+    "DEF": 0.004236455817025168
+   }
+  }
+ },
+ "picks": {
+  "CALM_BULL": "SV",
+  "NERVOUS_BULL": "L2",
+  "QUIET_BEAR": "L2",
+  "CRISIS": "LV"
+ },
+ "eras": {
+  "selection": {
+   "honest": {
+    "cagr_pre": 0.14515044938174415,
+    "cagr_after": 0.11086654810684715,
+    "mkt_cagr_pre": 0.07802975076778806,
+    "mkt_cagr_after": 0.07145666314914467,
+    "excess_after": 0.03940988495770248,
+    "excess_pre": 0.06712069861395609,
+    "monthly_excess_mean": 0.010523484903079142,
+    "t": 2.9152727861791115,
+    "p": 0.0018645997446516405,
+    "mdd": -0.9334837202670476,
+    "mdd_mkt": -0.8407399476860209,
+    "switches": 112,
+    "years": 38,
+    "years_ge_goal": 16,
+    "years_beat": 26,
+    "state_share": {
+     "CALM_BULL": 0.5701754385964912,
+     "NERVOUS_BULL": 0.10964912280701754,
+     "QUIET_BEAR": 0.14035087719298245,
+     "CRISIS": 0.17982456140350878
+    }
+   },
+   "state_oracle_is": {
+    "cagr_pre": 0.14515044938174415,
+    "cagr_after": 0.11086654810684715,
+    "mkt_cagr_pre": 0.07802975076778806,
+    "mkt_cagr_after": 0.07145666314914467,
+    "excess_after": 0.03940988495770248,
+    "excess_pre": 0.06712069861395609,
+    "monthly_excess_mean": 0.010523484903079142,
+    "t": 2.9152727861791115,
+    "p": 0.0018645997446516405,
+    "mdd": -0.9334837202670476,
+    "mdd_mkt": -0.8407399476860209,
+    "switches": 112,
+    "years": 38,
+    "years_ge_goal": 16,
+    "years_beat": 26,
+    "state_share": {
+     "CALM_BULL": 0.5701754385964912,
+     "NERVOUS_BULL": 0.10964912280701754,
+     "QUIET_BEAR": 0.14035087719298245,
+     "CRISIS": 0.17982456140350878
+    },
+    "picks": {
+     "CALM_BULL": "SV",
+     "NERVOUS_BULL": "L2",
+     "QUIET_BEAR": "L2",
+     "CRISIS": "LV"
+    }
+   },
+   "year_oracle": {
+    "cagr_pre": 0.363242720165023,
+    "cagr_after": 0.3155605259966159,
+    "mkt_cagr_pre": 0.07802975076778806,
+    "mkt_cagr_after": 0.07145666314914467,
+    "excess_after": 0.2441038628474712,
+    "excess_pre": 0.28521296939723495,
+    "monthly_excess_mean": 0.022982903258942082,
+    "t": 6.245218265491861,
+    "p": 4.860312152743518e-10,
+    "mdd": -0.5282039622398353,
+    "mdd_mkt": -0.8407399476860209,
+    "switches": 24,
+    "years": 38,
+    "years_ge_goal": 33,
+    "years_beat": 38,
+    "state_share": {
+     "CALM_BULL": 0.5701754385964912,
+     "NERVOUS_BULL": 0.10964912280701754,
+     "QUIET_BEAR": 0.14035087719298245,
+     "CRISIS": 0.17982456140350878
+    }
+   },
+   "local": {
+    "CALM_BULL": {
+     "pick": "SV",
+     "months": 260,
+     "mean": 0.010918111155073252,
+     "t": 3.239352864157706,
+     "p": 0.0006772878699221052,
+     "verdict": "LOCAL_HOLDS"
+    },
+    "NERVOUS_BULL": {
+     "pick": "L2",
+     "months": 50,
+     "mean": 0.012545165565091523,
+     "t": 1.029722780305114,
+     "p": 0.15409817314993712,
+     "verdict": "LOCAL_FAILS"
+    },
+    "QUIET_BEAR": {
+     "pick": "L2",
+     "months": 64,
+     "mean": 0.003570277208517266,
+     "t": 0.5981895317638252,
+     "p": 0.2759290083563407,
+     "verdict": "LOCAL_FAILS"
+    },
+    "CRISIS": {
+     "pick": "LV",
+     "months": 82,
+     "mean": 0.01760419919918196,
+     "t": 1.2020402605344087,
+     "p": 0.11642519106045007,
+     "verdict": "LOCAL_FAILS"
+    }
+   },
+   "menu_cagr": {
+    "M": 0.07850288276807094,
+    "CASH": 0.012574354756175632,
+    "L2": 0.09627713450615083,
+    "MOM": 0.10721221755443122,
+    "SV": 0.13888968273310898,
+    "LV": 0.09109048000758291,
+    "DEF": 0.08271445770841823
+   }
+  },
+  "confirmation": {
+   "honest": {
+    "cagr_pre": 0.14914005511145811,
+    "cagr_after": 0.11132948632342976,
+    "mkt_cagr_pre": 0.10848211950771147,
+    "mkt_cagr_after": 0.10189455951869242,
+    "excess_after": 0.009434926804737342,
+    "excess_pre": 0.04065793560374664,
+    "monthly_excess_mean": 0.004785634823243875,
+    "t": 2.560654097562656,
+    "p": 0.0053727390164231,
+    "mdd": -0.6432904544051667,
+    "mdd_mkt": -0.49225604938802103,
+    "switches": 162,
+    "years": 41,
+    "years_ge_goal": 20,
+    "years_beat": 26,
+    "state_share": {
+     "CALM_BULL": 0.3861788617886179,
+     "NERVOUS_BULL": 0.33739837398373984,
+     "QUIET_BEAR": 0.07113821138211382,
+     "CRISIS": 0.20528455284552846
+    }
+   },
+   "state_oracle_is": {
+    "cagr_pre": 0.1896104785573165,
+    "cagr_after": 0.1576611837147628,
+    "mkt_cagr_pre": 0.10848211950771147,
+    "mkt_cagr_after": 0.10189455951869242,
+    "excess_after": 0.05576662419607037,
+    "excess_pre": 0.08112835904960503,
+    "monthly_excess_mean": 0.006887993748012898,
+    "t": 3.8981401644296096,
+    "p": 5.520167392875086e-05,
+    "mdd": -0.5055653825103523,
+    "mdd_mkt": -0.49225604938802103,
+    "switches": 45,
+    "years": 41,
+    "years_ge_goal": 22,
+    "years_beat": 28,
+    "state_share": {
+     "CALM_BULL": 0.3861788617886179,
+     "NERVOUS_BULL": 0.33739837398373984,
+     "QUIET_BEAR": 0.07113821138211382,
+     "CRISIS": 0.20528455284552846
+    },
+    "picks": {
+     "CALM_BULL": "SV",
+     "NERVOUS_BULL": "SV",
+     "QUIET_BEAR": "L2",
+     "CRISIS": "SV"
+    }
+   },
+   "year_oracle": {
+    "cagr_pre": 0.3442364215100837,
+    "cagr_after": 0.2944011609977324,
+    "mkt_cagr_pre": 0.10848211950771147,
+    "mkt_cagr_after": 0.10189455951869242,
+    "excess_after": 0.19250660147903997,
+    "excess_pre": 0.23575430200237224,
+    "monthly_excess_mean": 0.01701628328802208,
+    "t": 9.238483231344414,
+    "p": 0.0,
+    "mdd": -0.41177537271619946,
+    "mdd_mkt": -0.49225604938802103,
+    "switches": 27,
+    "years": 41,
+    "years_ge_goal": 39,
+    "years_beat": 41,
+    "state_share": {
+     "CALM_BULL": 0.3861788617886179,
+     "NERVOUS_BULL": 0.33739837398373984,
+     "QUIET_BEAR": 0.07113821138211382,
+     "CRISIS": 0.20528455284552846
+    }
+   },
+   "local": {
+    "CALM_BULL": {
+     "pick": "SV",
+     "months": 190,
+     "mean": 0.00705447253105746,
+     "t": 3.481255567798386,
+     "p": 0.0003098977873035591,
+     "verdict": "LOCAL_HOLDS"
+    },
+    "NERVOUS_BULL": {
+     "pick": "L2",
+     "months": 166,
+     "mean": 0.005907341198415617,
+     "t": 1.5600951149545028,
+     "p": 0.06032668802269597,
+     "verdict": "LOCAL_FAILS"
+    },
+    "QUIET_BEAR": {
+     "pick": "L2",
+     "months": 35,
+     "mean": 0.01234544079745721,
+     "t": 1.4854649773673874,
+     "p": 0.0733173340095174,
+     "verdict": "LOCAL_FAILS"
+    },
+    "CRISIS": {
+     "pick": "LV",
+     "months": 101,
+     "mean": 0.0009203503584176926,
+     "t": 0.1973576583321338,
+     "p": 0.42197412839001563,
+     "verdict": "LOCAL_FAILS"
+    }
+   },
+   "menu_cagr": {
+    "M": 0.10860114383070418,
+    "CASH": 0.05869229248897412,
+    "L2": 0.12558048306651792,
+    "MOM": 0.13969395535889872,
+    "SV": 0.18585662782485168,
+    "LV": 0.1296382359545598,
+    "DEF": 0.12332984646827172
+   }
+  },
+  "report_2008": {
+   "honest": {
+    "cagr_pre": 0.15195937653844038,
+    "cagr_after": 0.1179996644618504,
+    "mkt_cagr_pre": 0.11382206927290306,
+    "mkt_cagr_after": 0.10130986907864958,
+    "excess_after": 0.01668979538320081,
+    "excess_pre": 0.038137307265537324,
+    "monthly_excess_mean": 0.00526259603247812,
+    "t": 1.5113354843972537,
+    "p": 0.06605621592859284,
+    "mdd": -0.618095282870385,
+    "mdd_mkt": -0.5106672047311998,
+    "switches": 102,
+    "years": 19,
+    "years_ge_goal": 5,
+    "years_beat": 11,
+    "state_share": {
+     "CALM_BULL": 0.3466666666666667,
+     "NERVOUS_BULL": 0.4222222222222222,
+     "QUIET_BEAR": 0.0,
+     "CRISIS": 0.2311111111111111
+    }
+   },
+   "state_oracle_is": {
+    "cagr_pre": 0.16385933496383953,
+    "cagr_after": 0.14953091650780714,
+    "mkt_cagr_pre": 0.11382206927290306,
+    "mkt_cagr_after": 0.10130986907864958,
+    "excess_after": 0.04822104742915756,
+    "excess_pre": 0.05003726569093647,
+    "monthly_excess_mean": 0.0072201483175688905,
+    "t": 2.2441803666345446,
+    "p": 0.012899216035585914,
+    "mdd": -0.8077532936295266,
+    "mdd_mkt": -0.5106672047311998,
+    "switches": 0,
+    "years": 19,
+    "years_ge_goal": 14,
+    "years_beat": 14,
+    "state_share": {
+     "CALM_BULL": 0.3466666666666667,
+     "NERVOUS_BULL": 0.4222222222222222,
+     "QUIET_BEAR": 0.0,
+     "CRISIS": 0.2311111111111111
+    },
+    "picks": {
+     "CALM_BULL": "L2",
+     "NERVOUS_BULL": "L2",
+     "QUIET_BEAR": "M",
+     "CRISIS": "L2"
+    }
+   },
+   "year_oracle": {
+    "cagr_pre": 0.3518706501903961,
+    "cagr_after": 0.2965081911374232,
+    "mkt_cagr_pre": 0.11382206927290306,
+    "mkt_cagr_after": 0.10130986907864958,
+    "excess_after": 0.19519832205877363,
+    "excess_pre": 0.23804858091749304,
+    "monthly_excess_mean": 0.01828219438413185,
+    "t": 5.065250509186915,
+    "p": 4.2587645127101226e-07,
+    "mdd": -0.59713247807725,
+    "mdd_mkt": -0.5106672047311998,
+    "switches": 13,
+    "years": 19,
+    "years_ge_goal": 17,
+    "years_beat": 19,
+    "state_share": {
+     "CALM_BULL": 0.3466666666666667,
+     "NERVOUS_BULL": 0.4222222222222222,
+     "QUIET_BEAR": 0.0,
+     "CRISIS": 0.2311111111111111
+    }
+   },
+   "local": {
+    "CALM_BULL": {
+     "pick": "SV",
+     "months": 78,
+     "mean": 0.005747326967622739,
+     "t": 0.8278255384915959,
+     "p": 0.2051638507387996,
+     "verdict": "LOCAL_FAILS"
+    },
+    "NERVOUS_BULL": {
+     "pick": "L2",
+     "months": 95,
+     "mean": 0.00999142992977709,
+     "t": 2.3314725178047198,
+     "p": 0.010932457552131625,
+     "verdict": "LOCAL_HOLDS"
+    },
+    "QUIET_BEAR": {
+     "pick": "L2",
+     "months": 0,
+     "mean": null,
+     "t": null,
+     "p": null,
+     "verdict": "LOCAL_FAILS"
+    },
+    "CRISIS": {
+     "pick": "LV",
+     "months": 52,
+     "mean": 0.0018514575286819217,
+     "t": 0.23981268499951058,
+     "p": 0.40571836708190245,
+     "verdict": "LOCAL_FAILS"
+    }
+   },
+   "menu_cagr": {
+    "M": 0.11400840468280093,
+    "CASH": 0.014178578535498199,
+    "L2": 0.16413342353433213,
+    "MOM": 0.11678708618953038,
+    "SV": 0.11642105803006975,
+    "LV": 0.13170283906652958,
+    "DEF": 0.09342991984165772
+   }
+  }
+ },
+ "verdict": "FAIL",
+ "local_verdicts": {
+  "CALM_BULL": "LOCAL_HOLDS",
+  "NERVOUS_BULL": "LOCAL_FAILS",
+  "QUIET_BEAR": "LOCAL_FAILS",
+  "CRISIS": "LOCAL_FAILS"
+ },
+ "latest": {
+  "month": "2026-09",
+  "state": "CALM_BULL",
+  "next_pick": "SV"
+ },
+ "rules": "regime-playbook/v1",
+ "judge": "playbook-judge/v1",
+ "smoke": false,
+ "verdicts": {
+  "playbook": "FAIL",
+  "local_CALM_BULL": "LOCAL_HOLDS",
+  "local_NERVOUS_BULL": "LOCAL_FAILS",
+  "local_QUIET_BEAR": "LOCAL_FAILS",
+  "local_CRISIS": "LOCAL_FAILS"
+ }
+}
