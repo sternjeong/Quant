@@ -327,6 +327,14 @@ SCRIPTS: tuple[ScriptGuide, ...] = (
         verified="2026-11-20",
     ),
     ScriptGuide(
+        path="scripts/crash_rebound_scan.py", name="급락장 반등 신호 포착기",
+        when_to_run="시장이 급락할 때 SPY·빅테크 14종목이 지금 급락 상태인지, 반등 신호(RSI 과매도·RSI 30 회복·20일선 돌파·더 깊은 하락·변동성 진정·추세 확인일·뉴스 진정)가 켜졌는지 볼 때. 아침 메시지·엔진·주문과 연결되어 있지 않습니다.",
+        command="python scripts/crash_rebound_scan.py  (--json 이면 JSON)",
+        risk="읽기 전용",
+        what_it_prints="맨 위에 연구 crash-rebound-signal-v1 의 판정(아직 없으면 '검증 전 참고값')을 보여 줍니다. 종목마다 고점 대비 하락·RSI·20일선 위/아래를 한 줄로, 급락 상태(SPY −15%, 종목 −30%에서 시작해 각각 −5%·−10% 위로 회복하면 끝)면 시작일·며칠째·오늘 켜진 신호·사건 중 각 신호가 처음 켜진 날을 덧붙입니다. 통과한 신호가 없으면 기본값은 신호를 기다리지 않는 것입니다. 빅테크는 살아남은 종목 표본이고, 뉴스 지수(EPU)는 월별·한 달 늦게 반영합니다. 가격은 yfinance 캐시를 씁니다.",
+        verified="2026-11-22",
+    ),
+    ScriptGuide(
         path="scripts/agent_batch.py", name="AI 에이전트 배치 수동 확인",
         when_to_run="03:00 전체 배치가 무엇부터 할지, 예산이 얼마나 남았는지 미리 볼 때. 전체 배치는 03:00 KST, 진행 중 초안 이어받기는 12:30·21:30 KST에 자동으로 돕니다.",
         command="python scripts/agent_batch.py --dry-plan",
