@@ -80,8 +80,8 @@
       "phase": "A1",
       "label": "A1 · 저점 조정",
       "zone": "저점권",
-      "position_pct": 13.3883968207,
-      "roc_pct": -11.961808578,
+      "position_pct": 13.4386496417,
+      "roc_pct": -11.9616549592,
       "volume_ratio": 1.1842961682,
       "trend_up": false,
       "is_steep": false,
@@ -230,8 +230,8 @@
       "phase": "B2",
       "label": "B2 · 하락",
       "zone": "중간",
-      "position_pct": 56.6555335921,
-      "roc_pct": -17.6470488768,
+      "position_pct": 56.6327081695,
+      "roc_pct": -17.6491493765,
       "volume_ratio": 1.0285387953,
       "trend_up": false,
       "is_steep": true,
@@ -275,8 +275,8 @@
       "phase": "B3",
       "label": "B3 · 패닉/급락",
       "zone": "저점권",
-      "position_pct": 24.3062332929,
-      "roc_pct": -23.3624295201,
+      "position_pct": 24.3006453775,
+      "roc_pct": -23.3643104686,
       "volume_ratio": 1.4308284656,
       "trend_up": false,
       "is_steep": true,
@@ -330,5 +330,5 @@
       "guidance": "매수 관심 구간(코스톨라니가 '사라'고 한 저점 패닉 국면) — 단, 급락 진행 중이라 변동성 매우 높음."
     }
   ],
-  "computed_at": "2026-11-21T20:49:28.820072"
+  "computed_at": "2026-11-22T20:57:27.279257"
 }
