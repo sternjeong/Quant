@@ -163,20 +163,30 @@
   {
    "id": "H-017",
    "track": "regime",
-   "status": "registered",
+   "status": "failed",
    "statement": "얼린 '위기 → 현금' 플레이북은 같은 평균 메뉴 비중(소형 가치·2배·현금)의 고정 포트폴리오보다 미국 2구간·해외 3지역 중 4곳 이상에서 낫고(타이밍 이득), 실제 ETF(SPY·IJS·SSO·BIL, 2001~)로도 SPY 대비 세후 +1%p 이상 남는다",
    "parent": "regime-playbook-intl-v1",
    "rationale": "해외 통과 뒤 남은 두 의문: 이득이 소형 가치 프리미엄인지, 실제 상품으로 옮길 수 있는지",
    "study_id": "regime-playbook-v4",
-   "outcome": ""
+   "outcome": "A MENU_ONLY(4/5 묶음 +1.5~2.4%p, 합동 p 0.12) · B 실제 ETF FAIL(SPY 대비 −0.46%p, MDD −49 vs −55%). +4~6%p 는 대부분 살 수 없는 초소형 가치 지수 프리미엄"
   },
   {
    "id": "H-018",
    "track": "regime",
-   "status": "queued",
+   "status": "dropped",
    "statement": "한국 계좌 구조(ISA 중개형·국내 상장 ETF, 연금계좌는 레버리지 불가)에서 실행 가능한 형태의 플레이북이 일반 계좌 SPY 보유보다 세후로 낫다",
    "parent": "regime-playbook-intl-v1",
    "rationale": "과세 이연 + 2배 칸 조합이 한국 규정상 불가능할 수 있음. 규정 확인 후 실행 가능한 계좌·상품으로 재평가",
+   "study_id": "",
+   "outcome": "실제 ETF 판이 SPY 를 못 이겨 계좌 구조 검토의 의미가 사라짐"
+  },
+  {
+   "id": "H-019",
+   "track": "whole",
+   "status": "queued",
+   "statement": "'위기(200일선 아래·21일 변동성 과거 중앙값 위) → 현금' 규칙을 SPY 80% + SSO 20%(L20A) 의 2배 다리에만 붙이면 수익을 0.3%p 넘게 깎지 않으면서 최대낙폭을 줄인다",
+   "parent": "regime-playbook-v4",
+   "rationale": "국면 플레이북에서 4개 시장·실제 ETF 모두 반복된 것은 수익이 아니라 낙폭 축소. 기존 프런티어 후보의 위험 통제 장치로 쓸 수 있는지(200일선 필터가 장기 수익을 깎은 sleeve-mechanism-v1 과 비교)",
    "study_id": "",
    "outcome": ""
   }
