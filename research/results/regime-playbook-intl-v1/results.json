@@ -1,0 +1,297 @@
+{
+ "judged": {
+  "Europe": {
+   "start": "1993-01-01",
+   "end": "2026-09-30",
+   "state_share": {
+    "CALM_BULL": 0.3851851851851852,
+    "NERVOUS_BULL": 0.3308641975308642,
+    "QUIET_BEAR": 0.056790123456790124,
+    "CRISIS": 0.2271604938271605
+   },
+   "variants": {
+    "Q_CRISIS_CASH": {
+     "cagr_pre": 0.13212360475907103,
+     "cagr_after": 0.1302568275675675,
+     "mkt_cagr_pre": 0.08575722531468344,
+     "mkt_cagr_after": 0.0840547272070915,
+     "excess_after": 0.046202100360476006,
+     "excess_pre": 0.046366379444387595,
+     "monthly_excess_mean": 0.004119158084628651,
+     "t": 1.7970579539858607,
+     "p": 0.03653658401001758,
+     "mdd": -0.5311968121461694,
+     "mdd_mkt": -0.6210669967524156,
+     "switches": 141,
+     "years": 34,
+     "years_beat": 21,
+     "years_ge_goal": 17,
+     "static_cagr_after": 0.07618084272389725,
+     "excess_vs_static": 0.054075984843670266,
+     "mdd_static": -0.5518933805663666,
+     "region_pass": true
+    },
+    "Q_CRISIS_MKT": {
+     "cagr_pre": 0.12613294754995485,
+     "cagr_after": 0.12428181581605036,
+     "mkt_cagr_pre": 0.08575722531468344,
+     "mkt_cagr_after": 0.0840547272070915,
+     "excess_after": 0.04022708860895885,
+     "excess_pre": 0.040375722235271416,
+     "monthly_excess_mean": 0.004276762628277802,
+     "t": 2.783412092846318,
+     "p": 0.002815802913977594,
+     "mdd": -0.6734215508602448,
+     "mdd_mkt": -0.6210669967524156,
+     "switches": 141,
+     "years": 34,
+     "years_beat": 20,
+     "years_ge_goal": 17,
+     "static_cagr_after": 0.09381559747509871,
+     "excess_vs_static": 0.030466218340951645,
+     "mdd_static": -0.752099511406932,
+     "region_pass": false
+    }
+   }
+  },
+  "Japan": {
+   "start": "1993-01-01",
+   "end": "2026-09-30",
+   "state_share": {
+    "CALM_BULL": 0.4469135802469136,
+    "NERVOUS_BULL": 0.18024691358024691,
+    "QUIET_BEAR": 0.16049382716049382,
+    "CRISIS": 0.2123456790123457
+   },
+   "variants": {
+    "Q_CRISIS_CASH": {
+     "cagr_pre": 0.0854956747891853,
+     "cagr_after": 0.08379453342188259,
+     "mkt_cagr_pre": 0.047603614823694906,
+     "mkt_cagr_after": 0.046222191071817686,
+     "excess_after": 0.0375723423500649,
+     "excess_pre": 0.03789205996549039,
+     "monthly_excess_mean": 0.0038264148542110623,
+     "t": 1.7170658962175875,
+     "p": 0.04336676855156685,
+     "mdd": -0.6455370495898463,
+     "mdd_mkt": -0.598238695116769,
+     "switches": 173,
+     "years": 34,
+     "years_beat": 21,
+     "years_ge_goal": 15,
+     "static_cagr_after": 0.04454119257786715,
+     "excess_vs_static": 0.03925334084401544,
+     "mdd_static": -0.523367797565951,
+     "region_pass": true
+    },
+    "Q_CRISIS_MKT": {
+     "cagr_pre": 0.06998545120617816,
+     "cagr_after": 0.06838058724899665,
+     "mkt_cagr_pre": 0.047603614823694906,
+     "mkt_cagr_after": 0.046222191071817686,
+     "excess_after": 0.022158396177178963,
+     "excess_pre": 0.022381836382483256,
+     "monthly_excess_mean": 0.003067365216334508,
+     "t": 1.8516302379493248,
+     "p": 0.03240419797097288,
+     "mdd": -0.7779852970131428,
+     "mdd_mkt": -0.598238695116769,
+     "switches": 173,
+     "years": 34,
+     "years_beat": 20,
+     "years_ge_goal": 14,
+     "static_cagr_after": 0.03689636060344181,
+     "excess_vs_static": 0.031484226645554836,
+     "mdd_static": -0.7719604577177535,
+     "region_pass": false
+    }
+   }
+  },
+  "Asia_Pacific_ex_Japan": {
+   "start": "1993-01-01",
+   "end": "2026-09-30",
+   "state_share": {
+    "CALM_BULL": 0.4222222222222222,
+    "NERVOUS_BULL": 0.26666666666666666,
+    "QUIET_BEAR": 0.09135802469135802,
+    "CRISIS": 0.21975308641975308
+   },
+   "variants": {
+    "Q_CRISIS_CASH": {
+     "cagr_pre": 0.14684879913305848,
+     "cagr_after": 0.14494715097401634,
+     "mkt_cagr_pre": 0.08577352599124088,
+     "mkt_cagr_after": 0.08407094357315259,
+     "excess_after": 0.06087620740086375,
+     "excess_pre": 0.0610752731418176,
+     "monthly_excess_mean": 0.005946188580038318,
+     "t": 2.1034796901258987,
+     "p": 0.018020803304345023,
+     "mdd": -0.630172566361144,
+     "mdd_mkt": -0.6246039008725287,
+     "switches": 144,
+     "years": 34,
+     "years_beat": 20,
+     "years_ge_goal": 16,
+     "static_cagr_after": 0.07697411139527577,
+     "excess_vs_static": 0.06797303957874057,
+     "mdd_static": -0.5542981897533924,
+     "region_pass": true
+    },
+    "Q_CRISIS_MKT": {
+     "cagr_pre": 0.1628902971735544,
+     "cagr_after": 0.16095469662045203,
+     "mkt_cagr_pre": 0.08577352599124088,
+     "mkt_cagr_after": 0.08407094357315259,
+     "excess_after": 0.07688375304729944,
+     "excess_pre": 0.07711677118231353,
+     "monthly_excess_mean": 0.007806943109942026,
+     "t": 3.670030643685192,
+     "p": 0.0001375224722883761,
+     "mdd": -0.7167985829610986,
+     "mdd_mkt": -0.6246039008725287,
+     "switches": 144,
+     "years": 34,
+     "years_beat": 20,
+     "years_ge_goal": 17,
+     "static_cagr_after": 0.09727114927665781,
+     "excess_vs_static": 0.06368354734379422,
+     "mdd_static": -0.7529307081072082,
+     "region_pass": false
+    }
+   }
+  }
+ },
+ "reported": {
+  "Developed_ex_US": {
+   "start": "1993-01-01",
+   "end": "2026-09-30",
+   "state_share": {
+    "CALM_BULL": 0.4691358024691358,
+    "NERVOUS_BULL": 0.2419753086419753,
+    "QUIET_BEAR": 0.08888888888888889,
+    "CRISIS": 0.2
+   },
+   "variants": {
+    "Q_CRISIS_CASH": {
+     "cagr_pre": 0.09441110420474685,
+     "cagr_after": 0.09266754798416099,
+     "mkt_cagr_pre": 0.07489688186972132,
+     "mkt_cagr_after": 0.07325775850355898,
+     "excess_after": 0.019409789480602013,
+     "excess_pre": 0.019514222335025533,
+     "monthly_excess_mean": 0.002125877555896218,
+     "t": 0.9999607398998945,
+     "p": 0.15896402549479371,
+     "mdd": -0.609651741250555,
+     "mdd_mkt": -0.5917226595073317,
+     "switches": 150,
+     "years": 34,
+     "years_beat": 20,
+     "years_ge_goal": 15,
+     "static_cagr_after": 0.06689688655929471,
+     "excess_vs_static": 0.02577066142486628,
+     "mdd_static": -0.5234257566980637,
+     "region_pass": true
+    },
+    "Q_CRISIS_MKT": {
+     "cagr_pre": 0.10543352042241194,
+     "cagr_after": 0.10364645101689152,
+     "mkt_cagr_pre": 0.07489688186972132,
+     "mkt_cagr_after": 0.07325775850355898,
+     "excess_after": 0.030388692513332538,
+     "excess_pre": 0.03053663855269062,
+     "monthly_excess_mean": 0.0034216129752289185,
+     "t": 2.2726156988128476,
+     "p": 0.011786987139708549,
+     "mdd": -0.6959813731626386,
+     "mdd_mkt": -0.5917226595073317,
+     "switches": 150,
+     "years": 34,
+     "years_beat": 20,
+     "years_ge_goal": 15,
+     "static_cagr_after": 0.0822610959548713,
+     "excess_vs_static": 0.021385355062020217,
+     "mdd_static": -0.7208884621421442,
+     "region_pass": false
+    }
+   }
+  },
+  "North_America": {
+   "start": "1993-01-01",
+   "end": "2026-09-30",
+   "state_share": {
+    "CALM_BULL": 0.43703703703703706,
+    "NERVOUS_BULL": 0.32592592592592595,
+    "QUIET_BEAR": 0.012345679012345678,
+    "CRISIS": 0.22469135802469137
+   },
+   "variants": {
+    "Q_CRISIS_CASH": {
+     "cagr_pre": 0.13976569943868267,
+     "cagr_after": 0.13788027347452636,
+     "mkt_cagr_pre": 0.10845770355958417,
+     "mkt_cagr_after": 0.10666004646016991,
+     "excess_after": 0.03122022701435645,
+     "excess_pre": 0.031307995879098494,
+     "monthly_excess_mean": 0.0029274859195315924,
+     "t": 1.3249915827557581,
+     "p": 0.09296142311229832,
+     "mdd": -0.4133600635028949,
+     "mdd_mkt": -0.5494471907012469,
+     "switches": 134,
+     "years": 34,
+     "years_beat": 20,
+     "years_ge_goal": 16,
+     "static_cagr_after": 0.0946353668602895,
+     "excess_vs_static": 0.043244906614236855,
+     "mdd_static": -0.48343008747604044,
+     "region_pass": true
+    },
+    "Q_CRISIS_MKT": {
+     "cagr_pre": 0.14256024320688754,
+     "cagr_after": 0.14066830752122295,
+     "mkt_cagr_pre": 0.10845770355958417,
+     "mkt_cagr_after": 0.10666004646016991,
+     "excess_after": 0.034008261061053036,
+     "excess_pre": 0.034102539647303365,
+     "monthly_excess_mean": 0.0036391742486338538,
+     "t": 2.351178267484408,
+     "p": 0.009596873737538425,
+     "mdd": -0.5839366571572652,
+     "mdd_mkt": -0.5494471907012469,
+     "switches": 134,
+     "years": 34,
+     "years_beat": 17,
+     "years_ge_goal": 14,
+     "static_cagr_after": 0.12470987957382995,
+     "excess_vs_static": 0.015958427947392995,
+     "mdd_static": -0.6894246990351501,
+     "region_pass": true
+    }
+   }
+  }
+ },
+ "pooled": {
+  "Q_CRISIS_CASH": {
+   "t": 2.6582485898593236,
+   "p": 0.0040833539491418325,
+   "months": 405,
+   "regions_pass": 3
+  },
+  "Q_CRISIS_MKT": {
+   "t": 4.149088471911671,
+   "p": 2.036055077331289e-05,
+   "months": 405,
+   "regions_pass": 0
+  }
+ },
+ "verdicts": {
+  "Q_CRISIS_CASH": "HOLDS_ABROAD",
+  "Q_CRISIS_MKT": "FAIL"
+ },
+ "rules": "regime-playbook-intl/v1",
+ "judge": "playbook-intl-judge/v1",
+ "smoke": false
+}
