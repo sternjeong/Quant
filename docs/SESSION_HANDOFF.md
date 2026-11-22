@@ -5,6 +5,22 @@
 - 사용자 지시(2026-11-22): 결과 나오면 한계 분석 후 후속 연구 바로 진행, 연구만 바뀌는 PR 은 CI 통과 후 병합 허용(엔진·주문·아침 메시지·스케줄 변경은 계속 승인 필요).
 - 검증: tests/test_regime_playbook_v3.py 4 passed, 스모크 통과.
 
+## 2026-11-22 급락장 반등 매수 신호 연구 crash-rebound-signal-v1 사전 등록 + 신호 포착기 — 구현·스모크 완료, 본 계산 미실행, 병합 대기
+
+- 요청(사용자): 지금 같은 급락장에 특화해, 과거 S&P 폭락기의 반등 특징(RSI 등·뉴스)을 찾고 빅테크로 검증해 '언제 살지' 신호 포착기를 만들 것. 전 기간 시장 대비 우위가 목표가 아님.
+- 결정(설계, 결과 보기 전 고정 — research/jobs/crash-rebound-signal-v1/SPEC.md): 조건부 질문 = 급락 상태(시장 252일 고점 −15% 시작/−5% 회복 종료, 종목 −30%/−10%)에서
+  진입 다음 날 바로 사기 vs 신호 첫날 다음 날 사기(그 전 현금). 사건 단위 쌍 차이 D = ln(기다리기/바로 사기), 진입부터 250 거래일(주 판정).
+  신호 7개: RSI_LT30·RSI_X30·MA20_RECLAIM·DEEPER(기준 −10%p 더)·VOL_FADE(21일 변동성 사건 최고 ×0.75)·FTD(최저일 4일 뒤 이후 +1.5%)·NEWS_FADE(EPU 1개월 지연, 사건 최고 ×0.8).
+  판정 rebound-judge/v1: 시장 시대 A 1927~66·B 1967~2007(각 사건 ≥5) + 빅테크 14종목(종목 군집, ≥8종목) 모두 D>0·단측 p<0.05/7·고통 차이 중앙 ≥0 → SIGNAL_HELPS. 2008~ 보고만.
+- 근거: dca-dip-deploy-v1(바닥 신호 NOT_USEFUL)·crash-inverse-v1(급락 뒤 반등) → 사전 기대는 '기다리면 손해'. 이번 연구는 그 기본값을 사건 단위로 정면 확인.
+- 신호 포착기: scripts/crash_rebound_scan.py(읽기 전용, 연구 함수 재사용, 엔진·아침 메시지·주문·스케줄러 미연결). 설명서 content_ops ScriptGuide 추가.
+  2026-11-22 실행 결과(자료 11-20): SPY 고점 −11.5%·RSI 25 → 급락 상태(−15%) 아님. 빅테크 9/14 급락 상태(GOOGL·NVDA·TSLA·NFLX·ADBE·ORCL·INTC·IBM·QCOM). 검증 전 참고값.
+- 한계: 시장 사건 시대당 10개 안팎(검정력 낮음 — 사건 단위 '필요 효과' 보고), 빅테크는 생존 표본·사건 겹침, EPU 는 월별·지연, FTD +1.5% 는 종목에 쉽게 켜짐.
+- 파일: research/jobs/crash-rebound-signal-v1/{SPEC.md,run.py,job.json}, scripts/crash_rebound_scan.py, tests/test_crash_rebound_signal_v1.py, hub/guide/content_ops.py.
+- 검증: 스모크 종료 0(6초, 합성 자료), tests/test_crash_rebound_signal_v1.py 8 passed, + test_hub_guide·test_research_jobs 합계 130 passed, hub.guide.check 빠진 설명 없음, validate_job 통과.
+- 상태: 제안·구현 완료 / 본 계산 미실행(병합 후 VM 연구 실행기) / 배포·엔진 반영 없음.
+- 다음: PR 병합(사용자 승인) → 실행기 결과 research/results/crash-rebound-signal-v1 확인. 통과 신호가 있어도 아침 메시지 연결은 사용자 확인 뒤 별도 작업.
+
 ## 2026-11-22 가설 루프 2바퀴째 — v1 결과 한계 분석 + regime-playbook-v2 사전 등록, 병합 대기
 
 - 결과: regime-playbook-v1 FAIL(확인 시대 세전 +4.1%p·세후 +0.9%p, MDD −64.3% 대 −49.2%, 사후 천장 세후 +19~24%p),
