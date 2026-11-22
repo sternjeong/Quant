@@ -133,12 +133,12 @@
   {
    "id": "H-014",
    "track": "regime",
-   "status": "registered",
+   "status": "passed",
    "statement": "v3 플레이북(위기 → 현금/시장, 과세 이연 계좌)을 바꾸지 않고 해외 시장(유럽·일본·아시아태평양 1993~)에 적용해도 2곳 이상에서 그 지역 시장 대비 세후 +1%p 이상, 낙폭 시장 수준",
    "parent": "regime-playbook-v3",
    "rationale": "v3 의 가장 큰 약점은 미국 자료 세 번 사용. 고치기를 더 하지 않고 처음 보는 자료로 확인하는 것이 정보 가치가 가장 크다",
    "study_id": "regime-playbook-intl-v1",
-   "outcome": ""
+   "outcome": "위기 → 현금 HOLDS_ABROAD 3/3 — 유럽 +4.62·일본 +3.76·아시아태평양 +6.09%p(세후, 그 지역 시장 대비), 합동 p 0.0041. 위기 → 시장은 낙폭으로 0/3. 루프 첫 통과"
   },
   {
    "id": "H-015",
@@ -159,6 +159,26 @@
    "rationale": "사용자 요청(2026-11-22)",
    "study_id": "crash-rebound-signal-v1",
    "outcome": "7/7 FAIL — 빅테크 189 사건 모두 기다리면 손해. 막다른 길"
+  },
+  {
+   "id": "H-017",
+   "track": "regime",
+   "status": "registered",
+   "statement": "얼린 '위기 → 현금' 플레이북은 같은 평균 메뉴 비중(소형 가치·2배·현금)의 고정 포트폴리오보다 미국 2구간·해외 3지역 중 4곳 이상에서 낫고(타이밍 이득), 실제 ETF(SPY·IJS·SSO·BIL, 2001~)로도 SPY 대비 세후 +1%p 이상 남는다",
+   "parent": "regime-playbook-intl-v1",
+   "rationale": "해외 통과 뒤 남은 두 의문: 이득이 소형 가치 프리미엄인지, 실제 상품으로 옮길 수 있는지",
+   "study_id": "regime-playbook-v4",
+   "outcome": ""
+  },
+  {
+   "id": "H-018",
+   "track": "regime",
+   "status": "queued",
+   "statement": "한국 계좌 구조(ISA 중개형·국내 상장 ETF, 연금계좌는 레버리지 불가)에서 실행 가능한 형태의 플레이북이 일반 계좌 SPY 보유보다 세후로 낫다",
+   "parent": "regime-playbook-intl-v1",
+   "rationale": "과세 이연 + 2배 칸 조합이 한국 규정상 불가능할 수 있음. 규정 확인 후 실행 가능한 계좌·상품으로 재평가",
+   "study_id": "",
+   "outcome": ""
   }
  ]
 }
