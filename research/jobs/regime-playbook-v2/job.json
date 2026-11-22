@@ -1,0 +1,17 @@
+{
+  "id": "regime-playbook-v2",
+  "title": "플레이북 세금·낙폭 고치기 — v1 국면별 메뉴 고정, 과세 이연 계좌·두 달 확인 교체·2배 자리를 시장으로(4변형), 1967~2007·2008~ 판정",
+  "entrypoint": "research/jobs/regime-playbook-v2/run.py",
+  "args": [],
+  "timeout_seconds": 1200,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": [
+    "results.json",
+    "REPORT.md"
+  ],
+  "summary_from": "verdicts",
+  "priority": 5,
+  "revision": 1,
+  "max_memory_mb": 1024
+}
