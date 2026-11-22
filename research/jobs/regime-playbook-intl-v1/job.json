@@ -1,0 +1,17 @@
+{
+  "id": "regime-playbook-intl-v1",
+  "title": "얼린 플레이북 해외 확인 — v3 규칙(위기 → 현금/시장, 과세 이연 계좌)을 바꾸지 않고 유럽·일본·아시아태평양 1993~ 에서 판정",
+  "entrypoint": "research/jobs/regime-playbook-intl-v1/run.py",
+  "args": [],
+  "timeout_seconds": 1800,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": [
+    "results.json",
+    "REPORT.md"
+  ],
+  "summary_from": "verdicts",
+  "priority": 5,
+  "revision": 1,
+  "max_memory_mb": 1024
+}

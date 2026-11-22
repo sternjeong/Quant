@@ -1,3 +1,10 @@
+## 2026-11-22 가설 루프 4바퀴째 — v3·급락 반등 신호 한계 분석 + regime-playbook-intl-v1 사전 등록
+
+- regime-playbook-v3 2/2 FAIL(낙폭만): 위기 → 현금이 세후 +4.28/+2.78%p, 같은 베타 대조군 대비 +4.92/+4.22%p(타이밍 이득). 미국 자료 세 번째 사용이 최대 약점.
+- crash-rebound-signal-v1 7/7 FAIL: 빅테크 189 사건 모두 기다리면 손해 → 급락 중엔 계획대로 매수, 신호 대기 금지(포착기는 정보용).
+- 등록: regime-playbook-intl-v1(H-014) — v3 규칙·대조군 비중을 얼려 유럽·일본·아시아태평양 1993~ 에서 판정(HOLDS_ABROAD / FAIL). H-015(급락 때 무엇을 살지) 대기.
+- 검증: tests/test_regime_playbook_intl_v1.py 3 passed, 스모크 통과.
+
 ## 2026-11-22 가설 루프 3바퀴째 — regime-playbook-v2 한계 분석 + regime-playbook-v3 사전 등록
 
 - 결과: regime-playbook-v2 4/4 FAIL. 과세 이연 계좌 변형은 세후 +4.06%p(1967~2007)/+3.78%p(2008~)로 수익 통과, 낙폭만 탈락(위기 → 대형 가치 칸이 원인, 2배 아님).
