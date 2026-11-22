@@ -1,3 +1,12 @@
+## 2026-11-22 가설 루프 2바퀴째 — v1 결과 한계 분석 + regime-playbook-v2 사전 등록, 병합 대기
+
+- 결과: regime-playbook-v1 FAIL(확인 시대 세전 +4.1%p·세후 +0.9%p, MDD −64.3% 대 −49.2%, 사후 천장 세후 +19~24%p),
+  combo-regime-switch-v1 3/3 FAIL(2008~ 모든 신호가 시장에 짐). 국소점 1호: 조용한 강세 → 소형 가치(두 시대 LOCAL_HOLDS).
+- 한계 분석: research/frontier/postmortems/regime-playbook-v1.md·combo-regime-switch-v1.md. 장부 H-003·H-008 failed, H-009 dropped, H-011 registered, H-012 queued.
+- 등록: regime-playbook-v2(H-011) — v1 메뉴 고정, 과세 이연 계좌(끝에 5.5%)·두 달 확인 교체·2배 자리 → 시장, 4변형. B(1967~2007)·C(2008~) 둘 다 v1 에서 본 자료라 낙관적임을 SPEC 에 명시.
+- 검증: tests/test_regime_playbook_v2.py 4 passed, 스모크 통과(두 달 확인으로 교체 255 → 74, 합성 자료).
+- 다음: 병합 → VM 실행기 결과 → 수요일 frontier 실행이 이어받음. 과세 이연 계좌 운용은 사용자 결정 사항.
+
 ## 2026-11-21 가설 루프(한계 분석 → 후속 가설 → 연구) + 국면 교체 씨앗 연구 2개 — 구현·스모크 완료, 병합 대기
 
 - 요청(사용자 /goal): R&D 결과로 챔피언·시장을 이길 단서를 가설로 세우고 검증 → 한계 분석 → 후속 연구 루프. 목표 시장 대비 +7%p,
