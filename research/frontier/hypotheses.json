@@ -123,12 +123,42 @@
   {
    "id": "H-013",
    "track": "regime",
-   "status": "registered",
+   "status": "failed",
    "statement": "과세 이연 계좌에서 위기 칸을 현금/시장으로 바꾸면 낙폭이 시장 수준이 되면서 세후 +1%p 이상이 남고, 같은 평균 베타의 고정 비중(시장 + 2배)보다도 낫다(타이밍 이득)",
    "parent": "regime-playbook-v2",
    "rationale": "v2 의 남은 탈락 원인은 위기 칸 하나, 그리고 이득이 노출인지 타이밍인지 미구분",
    "study_id": "regime-playbook-v3",
+   "outcome": "2/2 FAIL(낙폭) — 위기 → 현금: 세후 +4.28/+2.78%p, 같은 베타 대조군 대비 +4.92/+4.22%p(타이밍 이득 확인), 1967~2007 MDD 7.5%p 깊음. 같은 자료 세 번째"
+  },
+  {
+   "id": "H-014",
+   "track": "regime",
+   "status": "registered",
+   "statement": "v3 플레이북(위기 → 현금/시장, 과세 이연 계좌)을 바꾸지 않고 해외 시장(유럽·일본·아시아태평양 1993~)에 적용해도 2곳 이상에서 그 지역 시장 대비 세후 +1%p 이상, 낙폭 시장 수준",
+   "parent": "regime-playbook-v3",
+   "rationale": "v3 의 가장 큰 약점은 미국 자료 세 번 사용. 고치기를 더 하지 않고 처음 보는 자료로 확인하는 것이 정보 가치가 가장 크다",
+   "study_id": "regime-playbook-intl-v1",
    "outcome": ""
+  },
+  {
+   "id": "H-015",
+   "track": "regime",
+   "status": "queued",
+   "statement": "시장 급락 진입(−15%) 때 시장보다 많이 빠진 업종(12 산업)을 사면 시장을 사는 것보다 1년 뒤 낫다",
+   "parent": "crash-rebound-signal-v1",
+   "rationale": "'언제' 살지는 막다른 길(7/7 FAIL). 남은 질문은 '무엇을' 살지. 12 산업(1927~)이면 생존 편향 없이 검증 가능",
+   "study_id": "",
+   "outcome": ""
+  },
+  {
+   "id": "H-016",
+   "track": "regime",
+   "status": "dropped",
+   "statement": "급락 중 반등 신호(RSI·이동평균·변동성·추세 확인일·뉴스)를 기다렸다 사면 바로 사는 것보다 낫다",
+   "parent": "seed",
+   "rationale": "사용자 요청(2026-11-22)",
+   "study_id": "crash-rebound-signal-v1",
+   "outcome": "7/7 FAIL — 빅테크 189 사건 모두 기다리면 손해. 막다른 길"
   }
  ]
 }
