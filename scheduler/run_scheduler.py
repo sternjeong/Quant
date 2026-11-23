@@ -1214,6 +1214,26 @@ def crypto_shadow_record_job() -> None:
     print(f"[{datetime.now()}] crypto_shadow_record_job 종료")
 
 
+def crash_forecast_log_job() -> None:
+    """급락 예측 기록 (scripts/crash_forecast_log.py). 배분 반영 없음, 주문 없음.
+
+    시각(화~토 07:55 KST): 미국 장 마감 뒤라 전날 종가가 완성돼 있다. 급락 사건이 없으면 상태 한 줄만 찍고 끝난다.
+    """
+    if not is_enabled("crash_forecast_log"):
+        print(f"[{datetime.now()}] crash_forecast_log_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
+    print(f"[{datetime.now()}] crash_forecast_log_job 시작")
+    try:
+        proc = subprocess.run([sys.executable, str(PROJECT_ROOT / "scripts" / "crash_forecast_log.py"), "--notify"],
+                              cwd=PROJECT_ROOT, capture_output=True, text=True, timeout=5 * 60)
+        print((proc.stdout or "")[-1500:])
+        if proc.returncode != 0:
+            report_job_failure("crash_forecast_log", (proc.stderr or proc.stdout or "")[-300:])
+    except Exception as exc:  # noqa: BLE001
+        report_job_failure("crash_forecast_log", f"{type(exc).__name__}: {exc}")
+    print(f"[{datetime.now()}] crash_forecast_log_job 종료")
+
+
 def sat_momentum_shadow_record_job() -> None:
     """모멘텀 새틀라이트 앞으로 기록 (core/sat_momentum_shadow.py). 배분 반영 없음, 주문 없음.
 
@@ -1694,6 +1714,15 @@ def main() -> None:
         id="crypto_shadow_record",
         name="매일 한국시간 00:37 코인 추세 슬리브 앞으로 기록 (배분 미반영)",
         replace_existing=True,
+    )
+    scheduler.add_job(
+        crash_forecast_log_job,
+        # 사용자 요청(2026-11-23): 실제 급락이 나면 깊이·회복 예측을 그날 못 박아 기록. 미국 장 마감 뒤 빈 슬롯.
+        trigger=CronTrigger(day_of_week="tue-sat", hour=7, minute=55, timezone="Asia/Seoul"),
+        id="crash_forecast_log",
+        name="화~토 한국시간 07:55 급락 예측 기록 (급락 사건이 있을 때만 기록, 배분 미반영)",
+        replace_existing=True,
+        misfire_grace_time=900,
     )
     scheduler.add_job(
         sat_momentum_shadow_record_job,

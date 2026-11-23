@@ -244,6 +244,14 @@ PROCESS_REGISTRY: dict[str, dict] = {
         ),
         "category": "research", "default_enabled": True,
     },
+    "crash_forecast_log": {
+        "label": "급락 예측 기록",
+        "description": (
+            "미국 시장이 1년 고점보다 15% 아래로 내려가면 그날과 발생 뒤 21·63·126거래일에 최종 깊이 분포·전고점 회복 확률을 "
+            "원장에 한 줄씩 기록하고 텔레그램으로 알림 — 나중에 실제와 맞춰 보기 위한 설명용 기록, 배분·주문·아침 메시지 반영 없음 (화~토 07:55 KST)"
+        ),
+        "category": "research", "default_enabled": True,
+    },
     "forward_tournament_record": {
         "label": "앞으로 토너먼트 기록",
         "description": (
