@@ -1,3 +1,9 @@
+## 2026-11-23 crash-fusion-v1 결과·한계 분석 — 4/4 FAIL, 급락 예측 계열 닫음
+
+- 결과(research/results/crash-fusion-v1/): 랜드마크 모델(LM) 위에 얹은 융합 2종(SIMMIX, TWOPH) 모두 LM 단독을 이기지 못함.
+- 한계 분석: research/frontier/postmortems/crash-fusion-v1.md. 장부 H-029 failed. 급락 예측 계열(H-021~H-029)은 닫고, 새 근거는 급락 예측 기록 원장(crash_forecast_log, PR #38 병합됨)에서만.
+- 엔진·아침 메시지 변경 없음.
+
 ## 2026-11-23 급락 예측 기록기(scripts/crash_forecast_log.py) — 구현·테스트 완료, PR 병합 대기(사용자 승인 필요)
 
 - 요청(사용자): 실제 급락이 나면 예측을 기록하는 장치.
