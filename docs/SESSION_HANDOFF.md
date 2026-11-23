@@ -8,6 +8,18 @@
 - 검증: tests/test_crash_forecast_log.py 6 passed, 설명서·레지스트리·스케줄 관련 테스트 포함 247 passed, hub.guide.check 이상 없음,
   실제 자료 --dry-run 정상(2026-11-20 기준 급락 사건 아님, 고점 대비 −11.7%).
 - 상태: 스케줄 변경이 들어 있어 사용자 "병합해줘" 뒤 병합. 엔진·아침 메시지·주문 변경 없음. BASE·LM 은 판정 미통과 참고값.
+## 2026-11-23 급락 예측 융합 crash-fusion-v1(H-029) 사전 등록 — 구현·스모크 완료, 본 계산 미실행, 병합 대기
+
+- 요청(사용자): 7전략 결과를 확인하고 융합할 수 있는 것은 후속 연구까지. 7연구 결과: 15/15 FAIL. 발생일 정보는 모두 실패, 발생 뒤 경로(crash-landmark-v1)만 세 시대 같은 방향(깊이 p 0.03, 회복 p 0.04), 경로 모의는 랜드마크 상태에서 출발한 보고값이 양수.
+- 결정(결과 보기 전 고정, research/jobs/crash-fusion-v1/SPEC.md): 변형 2개 = SIMMIX(LM ⊕ 랜드마크 상태 GARCH 모의, 반반 평균) · TWOPH(LM 깊이의 남은 추가 하락을 회복에 넣은 두 단계 회복).
+  판정 4개 새 족, 홈 족 오류율 0.05: SIMMIX 깊이·회복(해외 군집), TWOPH 회복(미국 사건·해외 군집). 비교 대상 = LM 단독(같은 쌍 재계산), v1 기준선 대비는 설명용.
+  미국 SIMMIX 는 설명용 — 공개 결과 + 점수 볼록성으로 합친 평균 부호가 미리 정해짐(호출자 확인: 판정 추가 안 함). 랜드마크 21·63·126 유지(63·126 만은 견고성). 2024-10 이후 보고만.
+- 뺀 것: 거시·내부·업종 이전·자기 보정(실패·실력 없음), 해외 합치기는 설명용 LM_POOL 만, 모델 3(랜드마크 투입 = 급락 중 매수 신호, 막다른 길). 새 급락의 실시간 예측 기록은 범위 밖.
+- 공용 lab·기존 작업 파일 불변. 산출: results.json·REPORT.md(7개 사건 랜드마크 읽기, 지금 읽기, 비전문가용 조견표)·predictions.csv(공통 26열).
+- 구현 해석(보수적): power_holm 은 n < 2 이면 수치 모두 None; '융합 2' TWOPH 점수 표는 models.m2(다섯 모델이 모두 있는 쌍) 재사용; 재현 확인에서 한쪽만 값 있는 칸은 '차이' 줄로 셈. 목록은 SPEC.md '구현 해석'.
+- 검증: tests/test_crash_fusion_v1.py 14 passed, 지정 묶음(crash_fusion·crash_cycle_lab·crash_landmark·crash_simpath·frontier_agent·hub_guide·research_jobs) 185 passed, test_crash_cycle_model_v1 18 passed. 스모크 종료 0(약 15초, 판정 4개 FAIL — 가짜 자료라 뜻 없음). python -m hub.guide.check 이상 없음, ledger_problems 없음.
+- 본 계산 예상(VM): 1~2분(모의 약 220회 × 4,000경로, 회당 약 0.16초), 메모리 약 200MB.
+- 다음: PR → CI → main 병합 → VM 실행기 계산 → 결과 확인. 통과해도 엔진 반영은 사용자 확인 뒤. H-022~H-028 결과 기록은 PR #36 에서 이미 함.
 
 ## 2026-11-23 급락 고도화 7연구 결과·한계 분석 — 15/15 FAIL, 랜드마크만 근접
 
