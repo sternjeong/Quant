@@ -291,6 +291,67 @@ def write_snapshot(snap: dict, out_dir: Path = OUT_DIR) -> int:
     return len(new)
 
 
+def read_history(out_dir: Path = OUT_DIR) -> list:
+    rows = []
+    try:
+        lines = (Path(out_dir) / HISTORY_NAME).read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return rows
+    for line in lines:
+        try:
+            rows.append(json.loads(line))
+        except ValueError:
+            continue
+    return rows
+
+
+def score_history(rows: list, prices: dict) -> dict:
+    """실전 기록 채점: 기간이 다 지난 예측을 실제 결과와 맞춘다(기간별 건수, 10~90% 범위 적중률, 사건 확률의 브라이어 점수와 실제 빈도).
+
+    포트폴리오 전체 줄은 그때의 비중을 다시 만들 수 없어 채점하지 않는다. 겹치는 날짜의 예측은 독립이 아니라 건수만큼의 근거는 아니다."""
+    m = lab()
+    mlp = prices.get(MARKET_TICKER)
+    acc: dict = {}
+    pending = 0
+    for row in rows:
+        s = prices.get(row.get("ticker"))
+        if s is None or row.get("ticker") == PORTFOLIO_KEY:
+            continue
+        s = s.dropna()
+        pos = int(s.index.searchsorted(pd.Timestamp(row["asof"]), side="right")) - 1
+        if pos < 0 or str(pd.Timestamp(s.index[pos]).date()) != row["asof"]:
+            continue
+        for r in row.get("horizons", []):
+            h = int(r["h"])
+            if pos + h >= len(s):
+                pending += 1
+                continue
+            ret = float(s.iloc[pos + h] - s.iloc[pos])
+            mn = float(s.iloc[pos + 1:pos + h + 1].min() - s.iloc[pos])
+            truth = {"up": ret > 0, "dd15": mn <= m.DD_LOG}
+            if mlp is not None and "beat" in r.get("p", {}):
+                mm = mlp.dropna().reindex(s.index).ffill()
+                if math.isfinite(mm.iloc[pos + h]) and math.isfinite(mm.iloc[pos]):
+                    truth["beat"] = ret > float(mm.iloc[pos + h] - mm.iloc[pos])
+            a = acc.setdefault(h, {"n": 0, "inside": 0, "events": {}})
+            a["n"] += 1
+            a["inside"] += int(r["q"][0] <= math.expm1(ret) <= r["q"][4])
+            for ev, p in r.get("p", {}).items():
+                if ev in truth:
+                    e = a["events"].setdefault(ev, {"n": 0, "brier": 0.0, "hits": 0, "p_sum": 0.0})
+                    e["n"] += 1
+                    e["brier"] += (p - float(truth[ev])) ** 2
+                    e["hits"] += int(truth[ev])
+                    e["p_sum"] += p
+    out = {"pending": pending, "horizons": []}
+    for h in sorted(acc):
+        a = acc[h]
+        out["horizons"].append({"h": h, "n": a["n"], "coverage80": a["inside"] / a["n"],
+                                "events": {ev: {"n": e["n"], "brier": e["brier"] / e["n"], "freq": e["hits"] / e["n"], "mean_p": e["p_sum"] / e["n"]}
+                                           for ev, e in a["events"].items()}})
+    return out
+
+
 def read_snapshot(out_dir: Path = OUT_DIR) -> Optional[dict]:
     try:
         return json.loads((Path(out_dir) / SNAPSHOT_NAME).read_text(encoding="utf-8"))

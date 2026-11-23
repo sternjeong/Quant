@@ -197,3 +197,31 @@ def test_script_summary_lines(world):
     assert lines[0].startswith("판단판 기준일") and any(x.strip().startswith("T0:") for x in lines)
     assert any("ZZZ: 가격을 읽지 못함" in x for x in lines)
     assert script.summary_lines({"status": "no_model", "message": "없음"}) == ["없음"]
+
+
+def test_score_history_against_realized(world):
+    s, m = world["prices"]["T0"], world["prices"]["SPY"]
+    pos = len(s) - 80                                               # 21·63 은 지났고 126·252 는 대기
+    row = {"asof": str(s.index[pos].date()), "ticker": "T0", "horizons": [
+        {"h": h, "q": [-0.5, -0.1, 0.0, 0.1, 0.5], "p": {"up": 0.7, "dd15": 0.1, "beat": 0.5}} for h in (21, 63, 126, 252)]}
+    port = {"asof": row["asof"], "ticker": dd.PORTFOLIO_KEY, "horizons": row["horizons"]}
+    ls = dd.score_history([row, port, {"asof": "1999-01-01", "ticker": "T0", "horizons": row["horizons"]}], world["prices"])
+    assert [r["h"] for r in ls["horizons"]] == [21, 63] and ls["pending"] == 2
+    r21 = ls["horizons"][0]
+    ret = float(s.iloc[pos + 21] - s.iloc[pos])
+    assert r21["n"] == 1 and r21["coverage80"] == float(-0.5 <= math.expm1(ret) <= 0.5)
+    assert r21["events"]["up"]["freq"] == float(ret > 0)
+    assert r21["events"]["up"]["brier"] == pytest.approx((0.7 - float(ret > 0)) ** 2)
+    assert r21["events"]["beat"]["freq"] == float(ret > float(m.iloc[pos + 21] - m.iloc[pos]))
+    assert dd.score_history([], world["prices"]) == {"pending": 0, "horizons": []}
+
+
+def test_page_live_score_section(world, tmp_path):
+    snap = _snap(world)
+    snap["live_score"] = {"pending": 3, "horizons": []}
+    assert "기간이 다 지난 예측이 아직 없습니다" in desk_page.render_body({"snap": snap})
+    snap["live_score"] = {"pending": 0, "horizons": [{"h": 21, "n": 12, "coverage80": 0.75, "events": {"up": {"n": 12, "brier": 0.2, "freq": 0.5, "mean_p": 0.6}}}]}
+    html = desk_page.render_body({"snap": snap})
+    assert "범위 적중(목표 80%)" in html and "75%" in html and "오름 예측 60% / 실제 50%" in html
+    dd.write_snapshot(snap, tmp_path)
+    assert len(dd.read_history(tmp_path)) == 5

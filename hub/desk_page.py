@@ -152,6 +152,23 @@ HOW_TO = (
 )
 
 
+def live_score_block(ls: Optional[dict]) -> str:
+    """실전 기록 채점: 기간이 지난 예측의 범위 적중률과 사건 확률 대 실제 빈도."""
+    if not ls:
+        return ""
+    rows = ls.get("horizons") or []
+    if not rows:
+        return ui.note(f"기간이 다 지난 예측이 아직 없습니다(대기 {ls.get('pending', 0)}건). 첫 채점은 기록 시작 약 1개월 뒤입니다.")
+    names = {"up": "오름", "dd15": "15%↓", "beat": "시장↑"}
+    body = ""
+    for r in rows:
+        ev = " · ".join(f"{names.get(k, k)} 예측 {_p(e['mean_p'])} / 실제 {_p(e['freq'])}" for k, e in r["events"].items())
+        body += (f'<tr><td>{E(H_LABEL.get(r["h"], str(r["h"])))}</td><td>{r["n"]}</td><td>{E(_p(r["coverage80"]))}</td>'
+                 f'<td style="text-align:left">{E(ev)}</td></tr>')
+    return ('<table class="tbl"><tr><th>기간</th><th>건수</th><th>범위 적중(목표 80%)</th><th>확률: 예측 평균 / 실제 빈도</th></tr>' + body + "</table>"
+            + ui.note("겹치는 날짜의 예측은 서로 독립이 아니어서, 건수가 많아 보여도 근거는 그보다 적습니다."))
+
+
 def render_body(data: dict) -> str:
     snap = data.get("snap")
     if not snap:
@@ -179,5 +196,7 @@ def render_body(data: dict) -> str:
         parts.append(ui.section(f"보유 종목 {len(snap['positions'])}", "".join(asset_block(sh) for sh in snap["positions"])))
     if snap.get("watch"):
         parts.append(ui.section(f"관심 종목 {len(snap['watch'])}", "".join(asset_block(sh) for sh in snap["watch"])))
+    if snap.get("live_score"):
+        parts.append(ui.section("실전 기록 (이 화면이 낸 예측의 채점)", live_score_block(snap["live_score"])))
     parts.append(ui.section("읽는 법", ui.kv_table((k, E(v)) for k, v in HOW_TO)))
     return "".join(parts)

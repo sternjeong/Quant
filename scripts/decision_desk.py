@@ -101,6 +101,11 @@ def summary_lines(snap: dict) -> list:
         beat = "" if "beat" not in r["p"] else f" · 시장 이길 확률 {_p(r['p']['beat'])}"
         out.append(f"  {sh['ticker']}: 3개월 {_pct(r['q'][0])} ~ {_pct(r['q'][4])}(중앙 {_pct(r['q'][2])}) · 오를 확률 {_p(r['p'].get('up'))} · "
                    f"15% 이상 빠질 확률 {_p(r['p'].get('dd15'))}(과거 평균 {_p(r['p_base'].get('dd15'))}){beat}")
+    ls = snap.get("live_score") or {}
+    for r in ls.get("horizons", []):
+        out.append(f"  실전 기록 {r['h']}거래일: {r['n']}건 · 10~90% 범위 적중 {r['coverage80'] * 100:.0f}%(목표 80%)")
+    if ls and not ls.get("horizons"):
+        out.append(f"  실전 기록: 기간이 다 지난 예측이 아직 없음(대기 {ls.get('pending', 0)}건)")
     return out
 
 
@@ -124,6 +129,7 @@ def main(argv=None) -> int:
     model = dd.load_model(Path(a.model_dir))
     prices, closes = load_prices(tickers) if model is not None else ({}, {})
     snap = dd.build_snapshot(model, prices, closes, holdings, list(watch) + list(EXTRA), cash, crash_lines())
+    snap["live_score"] = dd.score_history(dd.read_history(Path(a.out_dir)), prices)
     print("\n".join(summary_lines(snap)))
     if a.dry_run:
         print("(--dry-run: 저장하지 않음)")
