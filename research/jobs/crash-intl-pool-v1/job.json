@@ -1,0 +1,14 @@
+{
+  "id": "crash-intl-pool-v1",
+  "title": "해외 급락 합치기 — 유럽·일본·아시아태평양 사건을 학습에 합치면 처음 보는 해외 급락의 깊이·회복을 미국만 배운 기준선보다 잘 맞혔나(1991~2024 판정)",
+  "entrypoint": "research/jobs/crash-intl-pool-v1/run.py",
+  "args": [],
+  "timeout_seconds": 1800,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md", "predictions.csv"],
+  "summary_from": "summary",
+  "priority": 9,
+  "revision": 1,
+  "max_memory_mb": 1024
+}

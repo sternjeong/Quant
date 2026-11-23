@@ -1,0 +1,14 @@
+{
+  "id": "crash-landmark-v1",
+  "title": "급락 진행 중 예측 갱신 — 발생 뒤 21·63·126거래일에 지금 깊이로 다시 세운 깊이·회복 예측이 v1 진행 중 읽기보다 나았나(1927~2024 판정)",
+  "entrypoint": "research/jobs/crash-landmark-v1/run.py",
+  "args": [],
+  "timeout_seconds": 1800,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md", "predictions.csv"],
+  "summary_from": "summary",
+  "priority": 6,
+  "revision": 1,
+  "max_memory_mb": 1024
+}

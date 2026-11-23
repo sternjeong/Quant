@@ -1,0 +1,14 @@
+{
+  "id": "crash-macro-credit-v1",
+  "title": "금리·신용 여건(H-022) — 월별 RF 금리 변화·장단기차·신용 스프레드로 가른 '긴 약세장 확률'이 깊이·회복 예측과 분할 비율을 낫게 했나(1927~2024 판정)",
+  "entrypoint": "research/jobs/crash-macro-credit-v1/run.py",
+  "args": [],
+  "timeout_seconds": 1800,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md", "predictions.csv"],
+  "summary_from": "summary",
+  "priority": 7,
+  "revision": 1,
+  "max_memory_mb": 1024
+}
