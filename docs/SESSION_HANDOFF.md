@@ -1,3 +1,15 @@
+## 2026-11-23 판단판(관제 센터 /desk) — 구현·테스트 완료, PR 병합 대기(사용자 승인 필요)
+
+- 요청(사용자): 서비스에 띄울 엔진 — 스스로 매매를 판단할 때 볼 정보. 고도화된 엔진일 것.
+- 구현: core/decision_desk.py(모형 읽기 → 자산 한 장: 1·3·6·12개월 분위수, 오를 확률·15% 이상 낙폭 확률·시장 초과 확률, 과거 평균 대비, 칸별 근거 등급;
+  보유 합산, 지금 비중 고정 포트폴리오 이력으로 포트폴리오 전체 분포), scripts/decision_desk.py(DB·가격 읽어 data/decision_desk/latest.json 쓰기 + history.jsonl 에 자산·기준일마다 예측 한 줄),
+  hub/desk_page.py(/desk 화면: 시장 → 급락 상황 → 내 포트폴리오 → 보유 → 관심 → 읽는 법). 모형은 검증 연구 desk-engine-v1 산출물(VM data/research_results/desk-engine-v1/).
+- 자동 잡 decision_desk(화~토 08:05 KST): core/job_schedule.py, core/process_registry.py, scheduler/run_scheduler.py. 허브 슬롯 'desk'(hub/apps_registry.py, hub/server.py). 설명서: 모듈·스크립트·잡.
+- 층 고르기: SPY 등 넓은 지수 ETF = 시장 모형, 그 밖의 ETF·내 포트폴리오 = 업종(분산 묶음) 모형, 나머지 = 종목 모형. 미국 밖 종목은 참고 표시, 시장 초과 확률 없음.
+- 검증: tests/test_decision_desk.py 16 passed, 스케줄·레지스트리·허브·설명서 관련 38개 파일 665 passed, hub.guide.check 이상 없음. 스모크 모형 + 실제 가격으로 스크립트·화면 전 경로 확인.
+- 상태: 스케줄·허브 화면·scripts 변경이라 사용자 "병합해줘" 뒤 병합. 엔진(챔피언)·주문·아침 메시지 변경 없음. 숫자는 설명용, 성과 주장 없음.
+- 다음: desk-engine-v1 본 계산 결과 확인 → 실제 모형으로 판단판 확인 → 결과의 약한 칸을 고치는 desk-engine-v2 사전 등록(닫지 않고 이어 감).
+
 ## 2026-11-23 판단 엔진 1판 desk-engine-v1(H-030) 사전 등록 — 구현·스모크 완료, 본 계산 미실행, 병합 대기
 
 - 요청(사용자): 서비스에 띄울 엔진을 만든다 — 매매를 정해 주는 것이 아니라 스스로 매매를 판단할 때 볼 정보(챔피언 전략을 그대로 따르지 않음). 엔진은 고도화되어야 하고, 연구는 몇 번 실패했다고 기각하지 않는다.

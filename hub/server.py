@@ -27,6 +27,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from hub.apps_registry import SLOTS, AppSlot  # noqa: E402
 from hub import alpaca_status, contests_page, engine_status, live_status, ops_status, research_status  # noqa: E402
 from hub import satellite_lab_page  # noqa: E402
+from hub import desk_page  # noqa: E402
 from hub import session_resume_page  # noqa: E402
 from hub import idle_sessions_page  # noqa: E402
 from hub import contest_scout_page  # noqa: E402
@@ -115,7 +116,7 @@ LOGIN_PAGE = """<!doctype html><html lang="ko"><head><meta charset="utf-8">
 
 # 슬롯별 아이콘(행 왼쪽). 새 슬롯은 kind 기본 아이콘을 쓴다.
 SLOT_ICONS = {
-    "streamlit": "📊", "google-otp": "🔐", "code-server": "💻", "scheduler": "⏱", "alpaca": "🧪", "research": "🤖", "satellite-lab": "🛰", "ops": "🛡",
+    "streamlit": "📊", "google-otp": "🔐", "code-server": "💻", "scheduler": "⏱", "alpaca": "🧪", "research": "🤖", "satellite-lab": "🛰", "desk": "🧭", "ops": "🛡",
     "report-daily-briefing": "🗞", "report-champion-weekly": "🏆", "report-news-digest": "📰",
     "codex-telegram": "💬", "vm-health": "🩺", "session-resume": "🔁", "idle-sessions": "🧹", "contest-scout": "🔭",
     "planner": "🗓", "notion": "📝", "offload": "☁", "emergency": "⚡",
@@ -182,6 +183,8 @@ def _slot_href(slot: AppSlot, host: str) -> str:
         return "/research"
     if slot.kind == "satellite_lab":
         return "/satellite-lab"
+    if slot.kind == "desk":
+        return "/desk"
     if slot.kind == "session_resume":
         return "/session-resume"
     if slot.kind == "idle_sessions":
@@ -307,6 +310,8 @@ def render_dashboard(host: str) -> str:
             end = research_status.card_badge(research_status.collect())
         elif slot.kind == "satellite_lab":
             end = satellite_lab_page.card_badge(satellite_lab_page.collect())
+        elif slot.kind == "desk":
+            end = desk_page.card_badge()
         elif slot.kind == "session_resume":
             end = session_resume_page.card_badge(session_resume_page.collect())
         elif slot.kind == "idle_sessions":
@@ -475,6 +480,11 @@ def render_research_page() -> str:
 def render_satellite_lab_page() -> str:
     body = f'<h1>R&amp;D 센터</h1>{satellite_lab_page.render_body(satellite_lab_page.collect())}{_stamp()}'
     return ui.page("R&D 센터", body, crumbs=(("/", "개요"), ("", "연구·검증")), refresh=REFRESH_SECONDS)
+
+
+def render_desk_page() -> str:
+    body = f'<h1>판단판</h1>{desk_page.render_body(desk_page.collect())}{_stamp()}'
+    return ui.page("판단판", body, crumbs=(("/", "개요"), ("", "엔진")))
 
 
 def render_contest_scout_page(error: str = "") -> str:
@@ -851,6 +861,8 @@ class HubRequestHandler(BaseHTTPRequestHandler):
             self._send_html(render_research_page())
         elif path in ("/satellite-lab", "/rnd"):
             self._send_html(render_satellite_lab_page())
+        elif path == "/desk":
+            self._send_html(render_desk_page(), no_store=True)
         elif path == "/ops":
             self._send_html(render_ops_page())
         elif path == "/contest-scout":

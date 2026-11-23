@@ -66,6 +66,12 @@ JOBS: tuple[JobGuide, ...] = (
         verified="2026-11-23",
     ),
     JobGuide(
+        job_id="decision_desk",
+        where_to_see="관제 센터 '판단판'(/desk). 파일은 VM data/decision_desk/latest.json(화면이 읽는 한 장)과 history.jsonl(자산·기준일마다 예측 한 줄 — 나중에 실제 결과와 맞춰 보기 위한 기록). 텔레그램 알림은 없습니다.",
+        if_alert="실패 알림은 대개 가격 조회(yfinance) 문제이거나, 검증 연구 desk-engine-v1 의 모형 파일(data/research_results/desk-engine-v1/)이 아직 없는 경우입니다. 다음 날 자동으로 다시 만들고, 그동안 화면은 마지막으로 만든 판단판을 보여 줍니다. 숫자는 설명용이며 추천이 아닙니다. 원하지 않으면 '/processes off decision_desk'.",
+        verified="2026-11-23",
+    ),
+    JobGuide(
         job_id="estimate_shadow_record",
         where_to_see="전용 화면은 없습니다. VM data/estimate_shadow/estimates.sqlite(snapshots 표에 종목·항목별 하루 한 줄, runs 표에 실행 요약)와 스케줄러 로그의 '대상 · 기록 · 실패 · 줄 수' 한 줄.",
         if_alert="실패 알림은 대개 yfinance(야후) 응답이 막히거나 바뀐 경우입니다 — 다음 날 자동으로 다시 기록하지만, 빠진 날은 나중에 채울 수 없습니다. 며칠 계속되면 yfinance 버전 변경을 의심하세요. 원하지 않으면 '/processes off estimate_shadow_record'.",
@@ -346,6 +352,14 @@ SCRIPTS: tuple[ScriptGuide, ...] = (
         command="python scripts/crash_forecast_log.py --report  (기록 없이 계산만 보려면 --dry-run)",
         risk="파일/DB 쓰기",
         what_it_prints="첫 줄은 지금 상태(급락 사건 여부, 1년 고점 대비, 자료 기준일)입니다. 미국 시장이 1년 고점보다 15% 아래로 내려간 날(발생일)과 그 뒤 21·63·126거래일에 한 번씩, 전고점 대비 최종 깊이의 10/50/90% 값과 1·2·5년 안 전고점 회복 확률을 기준선과 갱신 모델 두 가지로 적습니다. 기록은 덧붙이기만 하고 고치지 않으며, 2026-11-23 이후 발생한 급락만 대상입니다. --report 는 기록마다 그 뒤 실제 최저 깊이와 회복 여부를 함께 보여 줍니다. 두 모델 모두 사전 등록 검증(crash-cycle-model-v1, crash-landmark-v1)을 통과하지 못한 참고값입니다. 지수는 Ken French 시장 총수익에 최근 구간만 SPY 수익을 이어 붙인 것이라, 나중에 원자료가 들어오면 발생일이 며칠 달라질 수 있습니다(15일 안이면 같은 사건으로 봅니다). --dry-run 과 --report 는 아무것도 쓰지 않습니다.",
+        verified="2026-11-23",
+    ),
+    ScriptGuide(
+        path="scripts/decision_desk.py", name="판단판 만들기",
+        when_to_run="자동(화~토 08:05 KST)으로 돕니다. 손으로는 보유·관심 종목을 바꾼 직후 판단판을 바로 새로 만들 때, 또는 특정 종목만 미리 읽어 볼 때. 아침 메시지·엔진·주문과 연결되어 있지 않습니다.",
+        command="python scripts/decision_desk.py  (저장 없이 보려면 --dry-run, 특정 종목만 보려면 --tickers NVDA,AAPL --dry-run)",
+        risk="파일/DB 쓰기",
+        what_it_prints="자산마다 한 줄: 앞으로 3개월 수익의 나쁜 10% ~ 좋은 10% 범위와 중앙값, 오를 확률, 3개월 안에 15% 이상 빠질 확률(괄호 안은 과거 평균), 시장(SPY)을 이길 확률. 시장(SPY) → 내 포트폴리오 전체 → 보유 종목 → 관심 종목 순서입니다. 보유 종목·현금·관심 종목은 DB 에서 읽고 가격은 가격 저장소에서 읽습니다(없는 구간만 받습니다). 계산은 검증 연구 desk-engine-v1 이 만든 모형을 그대로 씁니다. 저장하면 data/decision_desk/latest.json 을 바꿔 쓰고, 같은 기준일·같은 자산의 예측은 history.jsonl 에 한 번만 덧붙입니다. --dry-run 은 아무것도 쓰지 않고, --tickers 는 DB 를 읽지 않습니다. 모형 파일이 없으면 '예측 모형이 아직 없습니다'를 찍고 종료 코드 1 로 끝납니다.",
         verified="2026-11-23",
     ),
     ScriptGuide(

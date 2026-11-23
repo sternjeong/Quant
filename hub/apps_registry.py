@@ -15,7 +15,7 @@ class AppSlot:
     title: str
     description: str
     unit: str  # 상태 조회에 쓸 systemd 유닛 이름
-    kind: str  # "web" (같은 호스트의 다른 포트) | "link" (별도 주소, url) | "report" (최신 HTML 리포트 서빙) | "engine" (상태만 표시) | "alpaca" (Alpaca paper 결과 화면) | "ops" (운영 상태 화면) | "research" (에이전트 연구 화면) | "satellite_lab" (새틀라이트 R&D 센터) | "contests" (AI 대회 관리) | "live" (지금 돌고 있는 작업) | "session_resume" (한도로 멈춘 Claude/Codex 세션 자동 재개) | "otp" (암호화된 Google OTP 코드 화면) | "contest_scout" (주간 해커톤·AI 대회 탐색 결과) | "planner" (오늘·이번 주 할 일) | "notion" (VM 크롬에서 자동 로그인된 Notion 화면, 주소는 할 일 화면에서 설정) | "offload" (무거운 계산을 Claude 클라우드에 맡기는 대기열) | "emergency" (과부하 때 프로세스 일시정지·재개·종료)
+    kind: str  # "web" (같은 호스트의 다른 포트) | "link" (별도 주소, url) | "report" (최신 HTML 리포트 서빙) | "engine" (상태만 표시) | "alpaca" (Alpaca paper 결과 화면) | "ops" (운영 상태 화면) | "research" (에이전트 연구 화면) | "satellite_lab" (새틀라이트 R&D 센터) | "contests" (AI 대회 관리) | "live" (지금 돌고 있는 작업) | "session_resume" (한도로 멈춘 Claude/Codex 세션 자동 재개) | "otp" (암호화된 Google OTP 코드 화면) | "contest_scout" (주간 해커톤·AI 대회 탐색 결과) | "planner" (오늘·이번 주 할 일) | "notion" (VM 크롬에서 자동 로그인된 Notion 화면, 주소는 할 일 화면에서 설정) | "offload" (무거운 계산을 Claude 클라우드에 맡기는 대기열) | "emergency" (과부하 때 프로세스 일시정지·재개·종료) | "desk" (판단판 — 자산별 분포·사건 확률)
     port: int | None = None  # kind == "web"일 때 슬롯이 직접 링크할 포트
     url: str | None = None  # kind == "link"일 때 슬롯이 링크할 전체 주소(예: nginx 뒤 HTTPS 도메인)
     report_glob: str | None = None  # kind == "report"일 때 최신 파일을 찾을 glob 패턴(저장소 루트 기준)
@@ -86,6 +86,14 @@ SLOTS: list[AppSlot] = [
         unit="quant-contest-scout.timer",
         kind="contest_scout",
         category="AI 대회",
+    ),
+    AppSlot(
+        id="desk",
+        title="판단판",
+        description="시장 · 내 포트폴리오 · 보유 · 관심 종목의 앞으로 1·3·6·12개월 수익 분포와 낙폭 위험 — 스스로 판단할 때 볼 숫자 (화~토 08:05 KST 갱신)",
+        unit="quant-scheduler.service",
+        kind="desk",
+        category="엔진",
     ),
     AppSlot(
         id="research",
