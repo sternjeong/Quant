@@ -18,6 +18,7 @@ import importlib.util
 import json
 import math
 import sys
+import warnings
 from pathlib import Path
 from statistics import NormalDist
 from typing import Any, Callable, Optional
@@ -478,7 +479,8 @@ def fit_ridge_logit(X, y, lam: float = RIDGE_LAMBDA) -> dict:
         X = X[:, None]
     y = np.asarray(y, dtype=float)
     n, k = X.shape
-    with np.errstate(all="ignore"):
+    with warnings.catch_warnings(), np.errstate(all="ignore"):
+        warnings.simplefilter("ignore", RuntimeWarning)
         mu = np.nanmean(X, axis=0) if n else np.full(k, np.nan)
         sd = np.nanstd(X, axis=0) if n else np.full(k, np.nan)
     keep = np.isfinite(sd) & (sd > 1e-12)
@@ -586,6 +588,96 @@ def two_state_predict(us_recs, D, xmap: dict, x_i, fit: dict, dd0: float, e_days
         else:
             out["m2"] = rw_m2(times, events, two_state_w(labs, pc[0], pc[1]), e_days)
     return out
+
+
+def cls_set(recs, D) -> tuple:
+    """D 날짜에 라벨을 알 수 있는 발생 사건: (사건 목록, 라벨 목록)."""
+    D = pd.Timestamp(D)
+    C, y = [], []
+    for j in recs:
+        if j["t0_date"] < D:
+            lbl = lb_label(j, D)
+            if lbl is not None:
+                C.append(j)
+                y.append(lbl)
+    return C, y
+
+
+def _sel(cols):
+    if cols is None:
+        return lambda v: np.atleast_1d(np.asarray(v, dtype=float))
+    return lambda v: np.atleast_1d(np.asarray(v, dtype=float))[list(cols)]
+
+
+def two_state_episode(us_recs, r, xmap: dict, cls_recs=None, cls_xmap=None, plb_recs=None, plb_xmap=None, cols=None) -> dict:
+    """연구 3·4·6 의 사건 하나(발생일 예측, 4.8 절 1~4단계).
+    분류기 학습 집합 = cls_recs(기본 us_recs) 중 t0 < D 이고 라벨을 아는 것. p_lb 기준 집합 = plb_recs(기본 = 분류기 학습 집합).
+    cols = 쓸 특징 위치(None = 전부). 반환에 base(공통 BASE)·모델 예측·p_lb·π·적합·미적합 사유."""
+    sel = _sel(cols)
+    cls_recs = us_recs if cls_recs is None else cls_recs
+    cls_xmap = xmap if cls_xmap is None else cls_xmap
+    D = r["t0_date"]
+    x_i = sel(xmap[r["id"]])
+    k = len(x_i)
+    C, yC = cls_set(cls_recs, D)
+    XC = np.array([sel(cls_xmap[j["id"]]) for j in C], dtype=float).reshape(len(C), k)
+    fit = fit_ridge_logit(XC, yC)
+    out: dict[str, Any] = {"base": base0(us_recs, r), "n_cls": len(C), "n_cls_pos": int(sum(yC)), "fit": fit, "unfit": None,
+                           "p_lb": None, "pi": None, "m1": None, "m2": None, "n1": None, "n2": None}
+    if not fit_ok(fit):
+        out["unfit"] = "분류기 미적합(학습 6개 미만·한 갈래뿐·미수렴)"
+        return out
+    smap = {kk: sel(v) for kk, v in xmap.items()}
+    tp = two_state_predict(us_recs, D, smap, x_i, fit, r["dd0"], 0)
+    if plb_recs is None:
+        pc = p_center(fit, x_i, list(XC), yC)
+    else:
+        P, yP = cls_set(plb_recs, D)
+        pc = p_center(fit, x_i, [sel((plb_xmap or xmap)[j["id"]]) for j in P], yP)
+    if tp["unfit"] or pc is None:
+        out["unfit"] = "재가중 불가(학습 사건 라벨이 한 갈래뿐)"
+        return out
+    out.update(m1=tp["m1"], m2=tp["m2"], n1=tp["n1"], n2=tp["n2"], p_lb=pc[0], pi=pc[1])
+    return out
+
+
+def two_state_now(us_recs, D, xmap: dict, x_now, dd0: float, e_days: int = 0, cls_recs=None, cls_xmap=None,
+                  plb_recs=None, plb_xmap=None) -> dict:
+    """'지금 읽기'(설명용): D(마지막 날)까지 라벨을 아는 사건으로 학습한 두 갈래 예측과 같은 날 기준선."""
+    cls_recs = us_recs if cls_recs is None else cls_recs
+    cls_xmap = xmap if cls_xmap is None else cls_xmap
+    x_now = np.atleast_1d(np.asarray(x_now, dtype=float))
+    C, yC = cls_set(cls_recs, D)
+    XC = np.array([np.asarray(cls_xmap[j["id"]], dtype=float) for j in C], dtype=float).reshape(len(C), len(x_now))
+    fit = fit_ridge_logit(XC, yC)
+    T1 = m1_pool(us_recs, D)
+    rows, times, events = m2_pool(us_recs, D)
+    out: dict[str, Any] = {"base_m1": base_m1(T1, dd0), "base_m2": base_m2(rows, times, events, e_days), "n1": len(T1), "n2": len(rows),
+                           "n_cls": len(C), "m1": None, "m2": None, "p_lb": None, "pi": None, "unfit": None,
+                           "beta": [float(b) for b in fit["beta"]], "keep": [bool(b) for b in fit["keep"]]}
+    if not fit_ok(fit):
+        out["unfit"] = "분류기 미적합"
+        return out
+    tp = two_state_predict(us_recs, D, xmap, x_now, fit, dd0, e_days)
+    if plb_recs is None:
+        pc = p_center(fit, x_now, list(XC), yC)
+    else:
+        P, yP = cls_set(plb_recs, D)
+        pc = p_center(fit, x_now, [np.asarray((plb_xmap or xmap)[j["id"]], dtype=float) for j in P], yP)
+    if pc is None:
+        out["unfit"] = "재가중 불가"
+        return out
+    out.update(m1=tp["m1"], m2=tp["m2"], p_lb=pc[0], pi=pc[1])
+    return out
+
+
+def classification_skill(items: list) -> dict:
+    """items = [(실제 라벨, p_lb, π)]. 브라이어 (LB − p)² 평균 vs (LB − π)² 평균(보고만)."""
+    its = [(float(l), float(p), float(q)) for l, p, q in items if l is not None and p is not None and q is not None]
+    if not its:
+        return {"n": 0, "brier_p": None, "brier_pi": None}
+    return {"n": len(its), "brier_p": float(np.mean([(l - p) ** 2 for l, p, _q in its])),
+            "brier_pi": float(np.mean([(l - q) ** 2 for l, _p, q in its]))}
 
 
 # ================================================================ 특징 (모두 t 종가까지)

@@ -213,11 +213,11 @@
   {
    "id": "H-022",
    "track": "regime",
-   "status": "queued",
+   "status": "registered",
    "statement": "급락 발생일의 금리·신용 여건(월별 RF 로 잰 단기금리 1년 변화, 장단기 금리차, 신용 스프레드)이 길게 끄는 약세장과 빠른 반등을 가른다",
    "parent": "crash-cycle-model-v1",
    "rationale": "crash-cycle-model-v1 에서 가격·업종 특징은 전부 실패했고 금리 특징은 자료 결함(일별 RF 0.01% 단위)으로 검증되지 못했다. 분할 투입이 도운 사건은 긴 약세장(2000·2008·2022)뿐이라 유형 구분이 공통의 벽",
-   "study_id": "",
+   "study_id": "crash-macro-credit-v1",
    "outcome": ""
   },
   {
