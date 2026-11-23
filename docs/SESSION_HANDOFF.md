@@ -1,3 +1,18 @@
+## 2026-11-23 급락 예측모델 고도화 7전략 사전 등록 — 구현·스모크 완료, 본 계산 미실행, 병합 대기
+
+- 요청(사용자): 예측모델을 더 고도화하는 전략 7개(설계 Opus 5.5, 구현 medium) → 각 실험 결과 확인 → 섞을 수 있는 것은 융합 후속 연구.
+- 결정(결과 보기 전 고정, 각 SPEC.md + research/jobs/crash-cycle-lab/SPEC.md): 작업 7개 =
+  crash-landmark-v1(H-023, 발생 뒤 21·63·126일 진행 중 갱신) · crash-simpath-v1(H-024, GARCH 경로 모의) · crash-macro-credit-v1(H-022, 월별 RF·무디스 AAA/BAA 로 금리 변화·장단기차·신용 스프레드) ·
+  crash-internals-v1(H-025, 산업 폭·상관·변동성 비) · crash-intl-pool-v1(H-026, 해외 사건 합치기, 해외 판정) · crash-industry-transfer-v1(H-027, 업종 급락에서 배운 판별식) · crash-recal-v1(H-028, 기준선 자기 보정, 해외 판정).
+  판정 15개 한 족, α = 0.05/15. 미국은 A·B·C(2008~2024-09) 합친 부호 뒤집기 + 세 시대 방향(v1 은 A·B 만 — 검정력 때문에 C 포함, C 사건은 v1 보고서에서 이미 봄; 사용자 확인으로 유지), 해외는 동시 급락 군집 단위 I1·I2. 2024-10 이후 사건은 보고만.
+- 공용 모듈 research/jobs/crash-cycle-lab/lab.py(v1 함수 import 재사용, v1 파일 불변). 무디스 월별 스냅숏 data/moodys_monthly.csv(FRED 공개 CSV, 2026-11-23 받음, 1294행, sha256 은 lab SPEC.md; 작업은 네트워크 없이 이 파일만 읽음).
+- 모든 작업이 predictions.csv(공통 26열, 표본 밖 예측 + 실제)를 남긴다 → 융합 연구가 재학습 없이 섞는다(융합은 아직 설계·등록 안 함). 스모크에서 같은 열쇠의 BASE 줄이 7개 파일 모두 같음을 확인.
+- 막다른 길 재진입 아님: 급락 중 매수 시점 신호 없음(모델 3 은 발생일에 분할 비율 한 번 결정), 특징 하나·띠폭·문턱 격자 없음, 업종 고르기 없음.
+- 구현 해석(설계 모호점, 보수적으로): p_center 는 기울기가 모두 0 이면 자르기 없이 p = π; results.json 의 alpha 는 v1._clean 반올림으로 0.003333(정확한 식은 family.alpha_expr); 연구 5 의 초기 해외 사건은 POOL = BASE 라 d = 0 으로 들어감(개수 보고); 연구 6 기울기 보고 시점은 1946-01-01·1967-01-01·2008-01-01·마지막 날.
+- 검증: 새 테스트 포함 지정 묶음 208 passed(새 crash 테스트 8개 파일 + v1·frontier·hub_guide·research_jobs), 스모크 7개 종료 0(각 2~11초), python -m hub.guide.check 이상 없음, ledger_problems 없음.
+- 본 계산 예상(VM): 각 작업 1분 안팎(경로 모의 30~60초, 업종 이전 1분 이내), 메모리 약 150MB.
+- 다음: PR → CI → main 병합 → VM 실행기가 priority 6~12 순서로 계산 → 7개 결과 비교 → 융합 후속 연구 사전 등록. 통과해도 엔진 반영은 사용자 확인 뒤.
+
 ## 2026-11-23 crash-cycle-model-v1 결과·한계 분석 — 14/14 FAIL, H-022 대기
 
 - 결과(VM 실행기, research/results/crash-cycle-model-v1/): 깊이·회복 특징 모델 8개와 분할 투입 수익·보험 6개 모두 FAIL. 기준선(가중 없는 과거 분포)이 설명값으로 남음.
