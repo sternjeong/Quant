@@ -1,0 +1,14 @@
+{
+  "id": "crash-industry-transfer-v1",
+  "title": "업종 급락에서 배우기 — 49 산업 급락 수천 건에서 배운 '긴 약세장' 판별식을 시장에 옮기면 깊이·회복 예측이 나아졌나(1927~2024 판정)",
+  "entrypoint": "research/jobs/crash-industry-transfer-v1/run.py",
+  "args": [],
+  "timeout_seconds": 1800,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md", "predictions.csv"],
+  "summary_from": "summary",
+  "priority": 12,
+  "revision": 1,
+  "max_memory_mb": 1024
+}
