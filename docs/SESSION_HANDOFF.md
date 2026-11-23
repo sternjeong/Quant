@@ -1,3 +1,13 @@
+## 2026-11-23 급락 예측 기록기(scripts/crash_forecast_log.py) — 구현·테스트 완료, PR 병합 대기(사용자 승인 필요)
+
+- 요청(사용자): 실제 급락이 나면 예측을 기록하는 장치.
+- 구현: 미국 시장(Ken French 총수익 + 최근 구간 SPY 수익 이어 붙임)이 1년 고점 −15% 에 닿으면 발생일과 발생 뒤 21·63·126거래일에
+  최종 깊이 분위수·전고점 회복 확률(BASE, LM)을 data/crash_forecast_log/forecasts.jsonl 에 덧붙이고 텔레그램으로 알림. 계산은 crash-cycle-lab 함수 그대로.
+  2026-11-23 이후 발생 사건만. 늦게 적어도 기준일 종가까지의 정보만 쓰고 '늦은 기록'으로 표시. --report 는 기록과 그 뒤 실제 경과.
+- 자동 잡 crash_forecast_log(화~토 07:55 KST) 추가: core/job_schedule.py, core/process_registry.py, scheduler/run_scheduler.py, 설명서(hub/guide/content_ops.py).
+- 검증: tests/test_crash_forecast_log.py 6 passed, 설명서·레지스트리·스케줄 관련 테스트 포함 247 passed, hub.guide.check 이상 없음,
+  실제 자료 --dry-run 정상(2026-11-20 기준 급락 사건 아님, 고점 대비 −11.7%).
+- 상태: 스케줄 변경이 들어 있어 사용자 "병합해줘" 뒤 병합. 엔진·아침 메시지·주문 변경 없음. BASE·LM 은 판정 미통과 참고값.
 ## 2026-11-23 급락 예측 융합 crash-fusion-v1(H-029) 사전 등록 — 구현·스모크 완료, 본 계산 미실행, 병합 대기
 
 - 요청(사용자): 7전략 결과를 확인하고 융합할 수 있는 것은 후속 연구까지. 7연구 결과: 15/15 FAIL. 발생일 정보는 모두 실패, 발생 뒤 경로(crash-landmark-v1)만 세 시대 같은 방향(깊이 p 0.03, 회복 p 0.04), 경로 모의는 랜드마크 상태에서 출발한 보고값이 양수.

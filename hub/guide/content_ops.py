@@ -60,6 +60,12 @@ JOBS: tuple[JobGuide, ...] = (
         verified="2026-11-19",
     ),
     JobGuide(
+        job_id="crash_forecast_log",
+        where_to_see="급락이 기록된 날 텔레그램 '[급락 예측 기록]' 메시지, VM data/crash_forecast_log/forecasts.jsonl, 그리고 'python scripts/crash_forecast_log.py --report'(기록과 그 뒤 실제 경과). 급락 사건이 없는 날은 스케줄러 로그에 상태 한 줄만 남습니다.",
+        if_alert="실패 알림은 대개 가격 조회(yfinance SPY·Ken French) 문제입니다 — 다음 날 자동으로 다시 시도하고, 놓친 기준일은 그날 종가까지의 정보만으로 뒤늦게 계산해 '늦은 기록'으로 표시합니다. 숫자는 설명용 참고값이며 추천이 아닙니다. 원하지 않으면 '/processes off crash_forecast_log'.",
+        verified="2026-11-23",
+    ),
+    JobGuide(
         job_id="estimate_shadow_record",
         where_to_see="전용 화면은 없습니다. VM data/estimate_shadow/estimates.sqlite(snapshots 표에 종목·항목별 하루 한 줄, runs 표에 실행 요약)와 스케줄러 로그의 '대상 · 기록 · 실패 · 줄 수' 한 줄.",
         if_alert="실패 알림은 대개 yfinance(야후) 응답이 막히거나 바뀐 경우입니다 — 다음 날 자동으로 다시 기록하지만, 빠진 날은 나중에 채울 수 없습니다. 며칠 계속되면 yfinance 버전 변경을 의심하세요. 원하지 않으면 '/processes off estimate_shadow_record'.",
@@ -333,6 +339,14 @@ SCRIPTS: tuple[ScriptGuide, ...] = (
         risk="읽기 전용",
         what_it_prints="맨 위에 연구 crash-rebound-signal-v1 의 판정(아직 없으면 '검증 전 참고값')을 보여 줍니다. 종목마다 고점 대비 하락·RSI·20일선 위/아래를 한 줄로, 급락 상태(SPY −15%, 종목 −30%에서 시작해 각각 −5%·−10% 위로 회복하면 끝)면 시작일·며칠째·오늘 켜진 신호·사건 중 각 신호가 처음 켜진 날을 덧붙입니다. 통과한 신호가 없으면 기본값은 신호를 기다리지 않는 것입니다. 빅테크는 살아남은 종목 표본이고, 뉴스 지수(EPU)는 월별·한 달 늦게 반영합니다. 가격은 yfinance 캐시를 씁니다.",
         verified="2026-11-22",
+    ),
+    ScriptGuide(
+        path="scripts/crash_forecast_log.py", name="급락 예측 기록기",
+        when_to_run="자동(화~토 07:55 KST)으로 돕니다. 손으로는 지금 급락 사건인지, 지금까지 무엇이 기록됐고 그 뒤 실제로 어떻게 됐는지 볼 때. 아침 메시지·엔진·주문과 연결되어 있지 않습니다.",
+        command="python scripts/crash_forecast_log.py --report  (기록 없이 계산만 보려면 --dry-run)",
+        risk="파일/DB 쓰기",
+        what_it_prints="첫 줄은 지금 상태(급락 사건 여부, 1년 고점 대비, 자료 기준일)입니다. 미국 시장이 1년 고점보다 15% 아래로 내려간 날(발생일)과 그 뒤 21·63·126거래일에 한 번씩, 전고점 대비 최종 깊이의 10/50/90% 값과 1·2·5년 안 전고점 회복 확률을 기준선과 갱신 모델 두 가지로 적습니다. 기록은 덧붙이기만 하고 고치지 않으며, 2026-11-23 이후 발생한 급락만 대상입니다. --report 는 기록마다 그 뒤 실제 최저 깊이와 회복 여부를 함께 보여 줍니다. 두 모델 모두 사전 등록 검증(crash-cycle-model-v1, crash-landmark-v1)을 통과하지 못한 참고값입니다. 지수는 Ken French 시장 총수익에 최근 구간만 SPY 수익을 이어 붙인 것이라, 나중에 원자료가 들어오면 발생일이 며칠 달라질 수 있습니다(15일 안이면 같은 사건으로 봅니다). --dry-run 과 --report 는 아무것도 쓰지 않습니다.",
+        verified="2026-11-23",
     ),
     ScriptGuide(
         path="scripts/agent_batch.py", name="AI 에이전트 배치 수동 확인",
