@@ -819,6 +819,16 @@ def judge_intl(cmap: dict, pass_label: str = "BEATS_BASELINE") -> dict:
     return _judge(cmap, INTL_STRATA, MIN_N_INTL, pass_label)
 
 
+def intl_verdict(pairs: list, pass_label: str = "BEATS_BASELINE") -> tuple:
+    """pairs = [(사건, d)]. 해외 판정 층(I1·I2) 사건만 군집으로 묶어 judge_intl. 반환 (판정 dict, 군집 목록)."""
+    its = [(r["t0_date"], d, r["id"]) for r, d in pairs if r["stratum"] in INTL_STRATA and fin(d) is not None]
+    cl = clusters(its)
+    j = judge_intl({s: [c["value"] for c in cl if c["stratum"] == s] for s in INTL_STRATA}, pass_label)
+    j["n_episodes"] = len(its)
+    j["p_episode"] = signflip([d for _t, d, _i in its])
+    return j, cl
+
+
 def power_episode(n: int) -> dict:
     if n < 2:
         return {"n": n, "needed_effect_sd": None, "min_p": (2.0 ** -n if n >= 1 else None), "pass_prob": {}}
