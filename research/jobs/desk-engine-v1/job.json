@@ -1,0 +1,14 @@
+{
+  "id": "desk-engine-v1",
+  "title": "판단 엔진 1판 — 전문가 4명(과거 평균·변동성 축척·닮은 과거 상태·상태 기울기)의 온라인 가중 앙상블이 과거 평균 분포보다 3개월 수익 분포와 15% 낙폭 확률을 잘 맞혔나(시장 1937~·49 산업·S&P500 편입 종목 2001~)",
+  "entrypoint": "research/jobs/desk-engine-v1/run.py",
+  "args": [],
+  "timeout_seconds": 5400,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md", "model.json", "library_market.csv", "library_industry.csv", "library_stock.csv"],
+  "summary_from": "summary",
+  "priority": 5,
+  "revision": 1,
+  "max_memory_mb": 3072
+}
