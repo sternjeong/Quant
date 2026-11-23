@@ -1,0 +1,4551 @@
+{
+ "study": "desk-engine-v1",
+ "rules_version": "desk-engine/v1",
+ "lab_version": "desk-engine-lab/v1",
+ "smoke": false,
+ "data_end": "2026-11-20",
+ "judged_end": "2024-09-30",
+ "family": {
+  "keys": [
+   "MKT_Q63",
+   "MKT_DD63",
+   "IND_Q63",
+   "IND_DD63",
+   "STK_Q63",
+   "STK_DD63"
+  ],
+  "alpha": 0.008333,
+  "alpha_expr": "0.05/6"
+ },
+ "verdicts": {
+  "MKT_Q63": {
+   "label": "FAIL",
+   "layer": "market",
+   "cell": "63:q",
+   "skill": 0.00987,
+   "p": 0.19789,
+   "eras": {
+    "A": 0.082184,
+    "B": -0.004285,
+    "C": -0.024031
+   },
+   "grade": "약함",
+   "skill_vs_vol": 0.008837,
+   "p_vs_vol": 0.094645,
+   "grade_vs_vol": "약함"
+  },
+  "MKT_DD63": {
+   "label": "FAIL",
+   "layer": "market",
+   "cell": "63:dd15",
+   "skill": 0.040135,
+   "p": 0.19289,
+   "eras": {
+    "A": 0.329543,
+    "B": 0.004417,
+    "C": -0.04166
+   },
+   "grade": "약함",
+   "skill_vs_vol": -0.00562,
+   "p_vs_vol": 0.882106,
+   "grade_vs_vol": "없음"
+  },
+  "IND_Q63": {
+   "label": "BEATS_CLIM",
+   "layer": "industry",
+   "cell": "63:q",
+   "skill": 0.020702,
+   "p": 0.00045,
+   "eras": {
+    "A": 0.046461,
+    "B": 0.007616,
+    "C": 0.008846
+   },
+   "grade": "강함",
+   "skill_vs_vol": 0.009175,
+   "p_vs_vol": 0.0003,
+   "grade_vs_vol": "강함"
+  },
+  "IND_DD63": {
+   "label": "BEATS_CLIM",
+   "layer": "industry",
+   "cell": "63:dd15",
+   "skill": 0.106405,
+   "p": 0.0001,
+   "eras": {
+    "A": 0.228353,
+    "B": 0.058602,
+    "C": 0.022574
+   },
+   "grade": "강함",
+   "skill_vs_vol": 0.000633,
+   "p_vs_vol": 0.314234,
+   "grade_vs_vol": "약함"
+  },
+  "STK_Q63": {
+   "label": "BEATS_CLIM",
+   "layer": "stock",
+   "cell": "63:q",
+   "skill": 0.029123,
+   "p": 5e-05,
+   "eras": {
+    "S1": 0.029044,
+    "S2": 0.029222
+   },
+   "grade": "강함",
+   "skill_vs_vol": 0.002332,
+   "p_vs_vol": 0.19369,
+   "grade_vs_vol": "약함"
+  },
+  "STK_DD63": {
+   "label": "BEATS_CLIM",
+   "layer": "stock",
+   "cell": "63:dd15",
+   "skill": 0.083912,
+   "p": 0.00595,
+   "eras": {
+    "S1": 0.116823,
+    "S2": 0.039472
+   },
+   "grade": "강함",
+   "skill_vs_vol": -0.000355,
+   "p_vs_vol": 0.660517,
+   "grade_vs_vol": "없음"
+  }
+ },
+ "summary": {
+  "MKT_Q63": "FAIL · 등급 약함 · 기량 +0.010 · p 0.1979",
+  "MKT_DD63": "FAIL · 등급 약함 · 기량 +0.040 · p 0.1929",
+  "IND_Q63": "BEATS_CLIM · 등급 강함 · 기량 +0.021 · p 0.0004",
+  "IND_DD63": "BEATS_CLIM · 등급 강함 · 기량 +0.106 · p 0.0001",
+  "STK_Q63": "BEATS_CLIM · 등급 강함 · 기량 +0.029 · p 0.0000",
+  "STK_DD63": "BEATS_CLIM · 등급 강함 · 기량 +0.084 · p 0.0059"
+ },
+ "data": {
+  "french": {
+   "source": "Ken French data library (daily, weekday calendar)",
+   "first": "1926-07-01",
+   "last": "2026-09-30",
+   "industries": 49
+  },
+  "stock": {
+   "source": "Yahoo 수정 종가(VM 가격 저장소) + S&P500 그 시점 편입",
+   "tickers_in_universe": 1198,
+   "tickers_with_prices": 736,
+   "tickers_missing": 462,
+   "daily_jumps_over_70pct": 156,
+   "calendar": [
+    "1995-01-03",
+    "2026-11-20"
+   ]
+  }
+ },
+ "limits": [
+  "종목 층은 Yahoo 수정 종가라 상장폐지 종목이 빠져 있다(생존 편향). 하락 위험이 실제보다 낮게 잡힌다.",
+  "겹치는 기간의 예측은 독립이 아니다. 달력 구획 검정은 이를 줄일 뿐 없애지 못한다.",
+  "CLIM(과거 평균)은 자산별 변동성 차이를 무시하는 낮은 기준선이다. ENS 대 VOL 등급이 상태 정보의 추가 이득이다.",
+  "분포를 맞히는 것과 돈을 버는 것은 다르다. 이 연구는 수익률 개선을 주장하지 않는다."
+ ],
+ "layers": {
+  "market": {
+   "n_points": 1188,
+   "n_assets": 1,
+   "first_origin": "1927-07-01",
+   "last_origin": "2026-09-30",
+   "weights": [
+    [
+     [
+      0.2672,
+      0.264,
+      0.1961,
+      0.2727
+     ],
+     [
+      0.2238,
+      0.2238,
+      0.2728,
+      0.2796
+     ],
+     [
+      0.9868,
+      0.0061,
+      0.0011,
+      0.0061
+     ],
+     [
+      0.25,
+      0.25,
+      0.25,
+      0.25
+     ]
+    ],
+    [
+     [
+      0.2739,
+      0.2964,
+      0.1296,
+      0.3
+     ],
+     [
+      0.238,
+      0.238,
+      0.1585,
+      0.3655
+     ],
+     [
+      0.0498,
+      0.3837,
+      0.1828,
+      0.3837
+     ],
+     [
+      0.25,
+      0.25,
+      0.25,
+      0.25
+     ]
+    ],
+    [
+     [
+      0.4478,
+      0.2117,
+      0.1065,
+      0.2339
+     ],
+     [
+      0.226,
+      0.226,
+      0.1562,
+      0.3918
+     ],
+     [
+      0.0168,
+      0.4168,
+      0.1497,
+      0.4168
+     ],
+     [
+      0.25,
+      0.25,
+      0.25,
+      0.25
+     ]
+    ],
+    [
+     [
+      0.8144,
+      0.0703,
+      0.0303,
+      0.085
+     ],
+     [
+      0.2718,
+      0.2718,
+      0.1418,
+      0.3147
+     ],
+     [
+      0.0469,
+      0.3816,
+      0.1899,
+      0.3816
+     ],
+     [
+      0.25,
+      0.25,
+      0.25,
+      0.25
+     ]
+    ]
+   ],
+   "realized": [
+    [
+     937,
+     937,
+     937,
+     0
+    ],
+    [
+     933,
+     933,
+     933,
+     0
+    ],
+    [
+     927,
+     927,
+     927,
+     0
+    ],
+    [
+     915,
+     915,
+     915,
+     0
+    ]
+   ],
+   "cells": {
+    "21:q": {
+     "n_points": 913,
+     "n_origins": 913,
+     "eras": {
+      "A": {
+       "n_origins": 222,
+       "n_blocks": 19,
+       "skill": 0.062379,
+       "p": 0.0008,
+       "skill_vs_vol": 0.006636,
+       "p_vs_vol": 0.133093,
+       "expert_skill": {
+        "VOL": 0.056116,
+        "ANALOG": 0.053036,
+        "TILT": 0.060072,
+        "ENS": 0.062379
+       },
+       "mean_loss": {
+        "CLIM": 0.010472,
+        "VOL": 0.009884,
+        "ANALOG": 0.009917,
+        "TILT": 0.009843,
+        "ENS": 0.009819
+       }
+      },
+      "B": {
+       "n_origins": 491,
+       "n_blocks": 41,
+       "skill": 0.001063,
+       "p": 0.469777,
+       "skill_vs_vol": 0.005055,
+       "p_vs_vol": 0.136893,
+       "expert_skill": {
+        "VOL": -0.004012,
+        "ANALOG": -0.012117,
+        "TILT": -0.004858,
+        "ENS": 0.001063
+       },
+       "mean_loss": {
+        "CLIM": 0.012381,
+        "VOL": 0.012431,
+        "ANALOG": 0.012531,
+        "TILT": 0.012441,
+        "ENS": 0.012368
+       }
+      },
+      "C": {
+       "n_origins": 200,
+       "n_blocks": 17,
+       "skill": -0.015327,
+       "p": 0.823209,
+       "skill_vs_vol": 0.028218,
+       "p_vs_vol": 0.00895,
+       "expert_skill": {
+        "VOL": -0.04481,
+        "ANALOG": -0.046701,
+        "TILT": -0.042917,
+        "ENS": -0.015327
+       },
+       "mean_loss": {
+        "CLIM": 0.012245,
+        "VOL": 0.012793,
+        "ANALOG": 0.012816,
+        "TILT": 0.01277,
+        "ENS": 0.012432
+       }
+      }
+     },
+     "n_blocks": 77,
+     "skill": 0.010499,
+     "p": 0.132443,
+     "skill_vs_vol": 0.010833,
+     "p_vs_vol": 0.0036,
+     "expert_skill": {
+      "VOL": -0.000338,
+      "ANALOG": -0.005964,
+      "TILT": 0.000463,
+      "ENS": 0.010499
+     },
+     "mean_loss": {
+      "CLIM": 0.011887,
+      "VOL": 0.011891,
+      "ANALOG": 0.011958,
+      "TILT": 0.011882,
+      "ENS": 0.011762
+     },
+     "evaluable": true,
+     "grade": "약함",
+     "grade_vs_vol": "강함",
+     "coverage80": 0.846659
+    },
+    "21:up": {
+     "n_points": 913,
+     "n_origins": 913,
+     "eras": {
+      "A": {
+       "n_origins": 222,
+       "n_blocks": 19,
+       "skill": 0.009684,
+       "p": 0.183041,
+       "skill_vs_vol": 0.009684,
+       "p_vs_vol": 0.183041,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": 0.00483,
+        "TILT": 0.014519,
+        "ENS": 0.009684
+       },
+       "mean_loss": {
+        "CLIM": 0.228029,
+        "VOL": 0.228029,
+        "ANALOG": 0.226927,
+        "TILT": 0.224718,
+        "ENS": 0.22582
+       }
+      },
+      "B": {
+       "n_origins": 491,
+       "n_blocks": 41,
+       "skill": 0.007657,
+       "p": 0.036098,
+       "skill_vs_vol": 0.007657,
+       "p_vs_vol": 0.036098,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": 0.011203,
+        "TILT": 0.002268,
+        "ENS": 0.007657
+       },
+       "mean_loss": {
+        "CLIM": 0.237104,
+        "VOL": 0.237104,
+        "ANALOG": 0.234448,
+        "TILT": 0.236567,
+        "ENS": 0.235289
+       }
+      },
+      "C": {
+       "n_origins": 200,
+       "n_blocks": 17,
+       "skill": 0.00045,
+       "p": 0.425879,
+       "skill_vs_vol": 0.00045,
+       "p_vs_vol": 0.425879,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.010067,
+        "TILT": -0.000522,
+        "ENS": 0.00045
+       },
+       "mean_loss": {
+        "CLIM": 0.221335,
+        "VOL": 0.221335,
+        "ANALOG": 0.223563,
+        "TILT": 0.22145,
+        "ENS": 0.221235
+       }
+      }
+     },
+     "n_blocks": 77,
+     "skill": 0.006633,
+     "p": 0.028849,
+     "skill_vs_vol": 0.006633,
+     "p_vs_vol": 0.028849,
+     "expert_skill": {
+      "VOL": 0.0,
+      "ANALOG": 0.00522,
+      "TILT": 0.004618,
+      "ENS": 0.006633
+     },
+     "mean_loss": {
+      "CLIM": 0.231443,
+      "VOL": 0.231443,
+      "ANALOG": 0.230235,
+      "TILT": 0.230374,
+      "ENS": 0.229908
+     },
+     "evaluable": true,
+     "grade": "보통",
+     "grade_vs_vol": "보통"
+    },
+    "21:dd15": {
+     "n_points": 913,
+     "n_origins": 913,
+     "eras": {
+      "A": {
+       "n_origins": 222,
+       "n_blocks": 19,
+       "skill": 0.152982,
+       "p": 0.0034,
+       "skill_vs_vol": 0.002532,
+       "p_vs_vol": 0.503575,
+       "expert_skill": {
+        "VOL": 0.150831,
+        "ANALOG": 0.147651,
+        "TILT": 0.150831,
+        "ENS": 0.152982
+       },
+       "mean_loss": {
+        "CLIM": 0.0055,
+        "VOL": 0.004671,
+        "ANALOG": 0.004688,
+        "TILT": 0.004671,
+        "ENS": 0.004659
+       }
+      },
+      "B": {
+       "n_origins": 491,
+       "n_blocks": 41,
+       "skill": -0.09781,
+       "p": 0.846508,
+       "skill_vs_vol": 0.016613,
+       "p_vs_vol": 0.147893,
+       "expert_skill": {
+        "VOL": -0.116357,
+        "ANALOG": -0.177358,
+        "TILT": -0.116357,
+        "ENS": -0.09781
+       },
+       "mean_loss": {
+        "CLIM": 0.004334,
+        "VOL": 0.004838,
+        "ANALOG": 0.005102,
+        "TILT": 0.004838,
+        "ENS": 0.004757
+       }
+      },
+      "C": {
+       "n_origins": 200,
+       "n_blocks": 17,
+       "skill": -0.023712,
+       "p": 0.947253,
+       "skill_vs_vol": 0.140891,
+       "p_vs_vol": 0.0084,
+       "expert_skill": {
+        "VOL": -0.191597,
+        "ANALOG": -0.216574,
+        "TILT": -0.191597,
+        "ENS": -0.023712
+       },
+       "mean_loss": {
+        "CLIM": 0.01479,
+        "VOL": 0.017623,
+        "ANALOG": 0.017993,
+        "TILT": 0.017623,
+        "ENS": 0.01514
+       }
+      }
+     },
+     "n_blocks": 77,
+     "skill": -0.014501,
+     "p": 0.60692,
+     "skill_vs_vol": 0.077655,
+     "p_vs_vol": 0.0033,
+     "expert_skill": {
+      "VOL": -0.099915,
+      "ANALOG": -0.132825,
+      "TILT": -0.099915,
+      "ENS": -0.014501
+     },
+     "mean_loss": {
+      "CLIM": 0.006908,
+      "VOL": 0.007598,
+      "ANALOG": 0.007825,
+      "TILT": 0.007598,
+      "ENS": 0.007008
+     },
+     "evaluable": true,
+     "grade": "없음",
+     "grade_vs_vol": "강함"
+    },
+    "63:q": {
+     "n_points": 909,
+     "n_origins": 909,
+     "eras": {
+      "A": {
+       "n_origins": 220,
+       "n_blocks": 19,
+       "skill": 0.082184,
+       "p": 0.0011,
+       "skill_vs_vol": 0.002086,
+       "p_vs_vol": 0.502125,
+       "expert_skill": {
+        "VOL": 0.080266,
+        "ANALOG": 0.075937,
+        "TILT": 0.084991,
+        "ENS": 0.082184
+       },
+       "mean_loss": {
+        "CLIM": 0.018622,
+        "VOL": 0.017127,
+        "ANALOG": 0.017208,
+        "TILT": 0.017039,
+        "ENS": 0.017092
+       }
+      },
+      "B": {
+       "n_origins": 491,
+       "n_blocks": 41,
+       "skill": -0.004285,
+       "p": 0.60307,
+       "skill_vs_vol": 0.001718,
+       "p_vs_vol": 0.39718,
+       "expert_skill": {
+        "VOL": -0.006013,
+        "ANALOG": -0.028472,
+        "TILT": -0.006869,
+        "ENS": -0.004285
+       },
+       "mean_loss": {
+        "CLIM": 0.021596,
+        "VOL": 0.021726,
+        "ANALOG": 0.022211,
+        "TILT": 0.021744,
+        "ENS": 0.021689
+       }
+      },
+      "C": {
+       "n_origins": 198,
+       "n_blocks": 17,
+       "skill": -0.024031,
+       "p": 0.79621,
+       "skill_vs_vol": 0.031084,
+       "p_vs_vol": 0.012699,
+       "expert_skill": {
+        "VOL": -0.056884,
+        "ANALOG": -0.064661,
+        "TILT": -0.055215,
+        "ENS": -0.024031
+       },
+       "mean_loss": {
+        "CLIM": 0.021775,
+        "VOL": 0.023014,
+        "ANALOG": 0.023183,
+        "TILT": 0.022978,
+        "ENS": 0.022299
+       }
+      }
+     },
+     "n_blocks": 77,
+     "skill": 0.00987,
+     "p": 0.19789,
+     "skill_vs_vol": 0.008837,
+     "p_vs_vol": 0.094645,
+     "expert_skill": {
+      "VOL": 0.001042,
+      "ANALOG": -0.01418,
+      "TILT": 0.001962,
+      "ENS": 0.00987
+     },
+     "mean_loss": {
+      "CLIM": 0.020915,
+      "VOL": 0.020894,
+      "ANALOG": 0.021212,
+      "TILT": 0.020874,
+      "ENS": 0.020709
+     },
+     "evaluable": true,
+     "grade": "약함",
+     "grade_vs_vol": "약함",
+     "coverage80": 0.862486
+    },
+    "63:up": {
+     "n_points": 909,
+     "n_origins": 909,
+     "eras": {
+      "A": {
+       "n_origins": 220,
+       "n_blocks": 19,
+       "skill": 0.014448,
+       "p": 0.169942,
+       "skill_vs_vol": 0.014448,
+       "p_vs_vol": 0.169942,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": 0.018277,
+        "TILT": 0.020383,
+        "ENS": 0.014448
+       },
+       "mean_loss": {
+        "CLIM": 0.206861,
+        "VOL": 0.206861,
+        "ANALOG": 0.20308,
+        "TILT": 0.202644,
+        "ENS": 0.203872
+       }
+      },
+      "B": {
+       "n_origins": 491,
+       "n_blocks": 41,
+       "skill": 0.003648,
+       "p": 0.343933,
+       "skill_vs_vol": 0.003648,
+       "p_vs_vol": 0.343933,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.00814,
+        "TILT": 0.007741,
+        "ENS": 0.003648
+       },
+       "mean_loss": {
+        "CLIM": 0.222589,
+        "VOL": 0.222589,
+        "ANALOG": 0.224401,
+        "TILT": 0.220866,
+        "ENS": 0.221777
+       }
+      },
+      "C": {
+       "n_origins": 198,
+       "n_blocks": 17,
+       "skill": -0.004662,
+       "p": 0.576971,
+       "skill_vs_vol": -0.004662,
+       "p_vs_vol": 0.576971,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.038453,
+        "TILT": -0.001288,
+        "ENS": -0.004662
+       },
+       "mean_loss": {
+        "CLIM": 0.191492,
+        "VOL": 0.191492,
+        "ANALOG": 0.198855,
+        "TILT": 0.191739,
+        "ENS": 0.192385
+       }
+      }
+     },
+     "n_blocks": 77,
+     "skill": 0.004563,
+     "p": 0.244288,
+     "skill_vs_vol": 0.004563,
+     "p_vs_vol": 0.244288,
+     "expert_skill": {
+      "VOL": 0.0,
+      "ANALOG": -0.007866,
+      "TILT": 0.00895,
+      "ENS": 0.004563
+     },
+     "mean_loss": {
+      "CLIM": 0.212009,
+      "VOL": 0.212009,
+      "ANALOG": 0.213676,
+      "TILT": 0.210111,
+      "ENS": 0.211041
+     },
+     "evaluable": true,
+     "grade": "약함",
+     "grade_vs_vol": "약함"
+    },
+    "63:dd15": {
+     "n_points": 909,
+     "n_origins": 909,
+     "eras": {
+      "A": {
+       "n_origins": 220,
+       "n_blocks": 19,
+       "skill": 0.329543,
+       "p": 0.00095,
+       "skill_vs_vol": -0.043652,
+       "p_vs_vol": 0.863807,
+       "expert_skill": {
+        "VOL": 0.357585,
+        "ANALOG": 0.345862,
+        "TILT": 0.357585,
+        "ENS": 0.329543
+       },
+       "mean_loss": {
+        "CLIM": 0.030567,
+        "VOL": 0.019637,
+        "ANALOG": 0.019995,
+        "TILT": 0.019637,
+        "ENS": 0.020494
+       }
+      },
+      "B": {
+       "n_origins": 491,
+       "n_blocks": 41,
+       "skill": 0.004417,
+       "p": 0.452977,
+       "skill_vs_vol": -0.00298,
+       "p_vs_vol": 0.922954,
+       "expert_skill": {
+        "VOL": 0.007375,
+        "ANALOG": -0.006584,
+        "TILT": 0.007375,
+        "ENS": 0.004417
+       },
+       "mean_loss": {
+        "CLIM": 0.046155,
+        "VOL": 0.045814,
+        "ANALOG": 0.046458,
+        "TILT": 0.045814,
+        "ENS": 0.045951
+       }
+      },
+      "C": {
+       "n_origins": 198,
+       "n_blocks": 17,
+       "skill": -0.04166,
+       "p": 0.615019,
+       "skill_vs_vol": 0.001616,
+       "p_vs_vol": 0.414379,
+       "expert_skill": {
+        "VOL": -0.043346,
+        "ANALOG": -0.050301,
+        "TILT": -0.043346,
+        "ENS": -0.04166
+       },
+       "mean_loss": {
+        "CLIM": 0.070191,
+        "VOL": 0.073233,
+        "ANALOG": 0.073722,
+        "TILT": 0.073233,
+        "ENS": 0.073115
+       }
+      }
+     },
+     "n_blocks": 77,
+     "skill": 0.040135,
+     "p": 0.19289,
+     "skill_vs_vol": -0.00562,
+     "p_vs_vol": 0.882106,
+     "expert_skill": {
+      "VOL": 0.045499,
+      "ANALOG": 0.034136,
+      "TILT": 0.045499,
+      "ENS": 0.040135
+     },
+     "mean_loss": {
+      "CLIM": 0.047618,
+      "VOL": 0.045451,
+      "ANALOG": 0.045992,
+      "TILT": 0.045451,
+      "ENS": 0.045707
+     },
+     "evaluable": true,
+     "grade": "약함",
+     "grade_vs_vol": "없음"
+    },
+    "126:q": {
+     "n_points": 903,
+     "n_origins": 903,
+     "eras": {
+      "A": {
+       "n_origins": 217,
+       "n_blocks": 19,
+       "skill": 0.04473,
+       "p": 0.050597,
+       "skill_vs_vol": 0.009189,
+       "p_vs_vol": 0.388881,
+       "expert_skill": {
+        "VOL": 0.03587,
+        "ANALOG": 0.020879,
+        "TILT": 0.03855,
+        "ENS": 0.04473
+       },
+       "mean_loss": {
+        "CLIM": 0.028727,
+        "VOL": 0.027697,
+        "ANALOG": 0.028127,
+        "TILT": 0.02762,
+        "ENS": 0.027442
+       }
+      },
+      "B": {
+       "n_origins": 491,
+       "n_blocks": 41,
+       "skill": -0.005245,
+       "p": 0.59222,
+       "skill_vs_vol": 0.008255,
+       "p_vs_vol": 0.19879,
+       "expert_skill": {
+        "VOL": -0.013612,
+        "ANALOG": -0.034107,
+        "TILT": -0.011416,
+        "ENS": -0.005245
+       },
+       "mean_loss": {
+        "CLIM": 0.031212,
+        "VOL": 0.031637,
+        "ANALOG": 0.032277,
+        "TILT": 0.031568,
+        "ENS": 0.031376
+       }
+      },
+      "C": {
+       "n_origins": 195,
+       "n_blocks": 17,
+       "skill": -0.010352,
+       "p": 0.575171,
+       "skill_vs_vol": 0.056805,
+       "p_vs_vol": 0.00115,
+       "expert_skill": {
+        "VOL": -0.071202,
+        "ANALOG": -0.068539,
+        "TILT": -0.067713,
+        "ENS": -0.010352
+       },
+       "mean_loss": {
+        "CLIM": 0.031627,
+        "VOL": 0.033879,
+        "ANALOG": 0.033795,
+        "TILT": 0.033768,
+        "ENS": 0.031954
+       }
+      }
+     },
+     "n_blocks": 77,
+     "skill": 0.004855,
+     "p": 0.332033,
+     "skill_vs_vol": 0.019848,
+     "p_vs_vol": 0.013299,
+     "expert_skill": {
+      "VOL": -0.015296,
+      "ANALOG": -0.029403,
+      "TILT": -0.012704,
+      "ENS": 0.004855
+     },
+     "mean_loss": {
+      "CLIM": 0.030705,
+      "VOL": 0.031174,
+      "ANALOG": 0.031607,
+      "TILT": 0.031095,
+      "ENS": 0.030555
+     },
+     "evaluable": true,
+     "grade": "약함",
+     "grade_vs_vol": "보통",
+     "coverage80": 0.871539
+    },
+    "126:up": {
+     "n_points": 903,
+     "n_origins": 903,
+     "eras": {
+      "A": {
+       "n_origins": 217,
+       "n_blocks": 19,
+       "skill": 0.018767,
+       "p": 0.20009,
+       "skill_vs_vol": 0.018767,
+       "p_vs_vol": 0.20009,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": 0.009437,
+        "TILT": 0.030868,
+        "ENS": 0.018767
+       },
+       "mean_loss": {
+        "CLIM": 0.183728,
+        "VOL": 0.183728,
+        "ANALOG": 0.181994,
+        "TILT": 0.178057,
+        "ENS": 0.18028
+       }
+      },
+      "B": {
+       "n_origins": 491,
+       "n_blocks": 41,
+       "skill": 0.008179,
+       "p": 0.273286,
+       "skill_vs_vol": 0.008179,
+       "p_vs_vol": 0.273286,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.000382,
+        "TILT": 0.012613,
+        "ENS": 0.008179
+       },
+       "mean_loss": {
+        "CLIM": 0.212249,
+        "VOL": 0.212249,
+        "ANALOG": 0.21233,
+        "TILT": 0.209572,
+        "ENS": 0.210513
+       }
+      },
+      "C": {
+       "n_origins": 195,
+       "n_blocks": 17,
+       "skill": -0.009489,
+       "p": 0.60077,
+       "skill_vs_vol": -0.009489,
+       "p_vs_vol": 0.60077,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.043001,
+        "TILT": -0.011876,
+        "ENS": -0.009489
+       },
+       "mean_loss": {
+        "CLIM": 0.191516,
+        "VOL": 0.191516,
+        "ANALOG": 0.199751,
+        "TILT": 0.19379,
+        "ENS": 0.193333
+       }
+      }
+     },
+     "n_blocks": 77,
+     "skill": 0.006869,
+     "p": 0.225289,
+     "skill_vs_vol": 0.006869,
+     "p_vs_vol": 0.225289,
+     "expert_skill": {
+      "VOL": 0.0,
+      "ANALOG": -0.006997,
+      "TILT": 0.011584,
+      "ENS": 0.006869
+     },
+     "mean_loss": {
+      "CLIM": 0.200918,
+      "VOL": 0.200918,
+      "ANALOG": 0.202324,
+      "TILT": 0.19859,
+      "ENS": 0.199538
+     },
+     "evaluable": true,
+     "grade": "약함",
+     "grade_vs_vol": "약함"
+    },
+    "126:dd15": {
+     "n_points": 903,
+     "n_origins": 903,
+     "eras": {
+      "A": {
+       "n_origins": 217,
+       "n_blocks": 19,
+       "skill": 0.261523,
+       "p": 0.00765,
+       "skill_vs_vol": -0.045423,
+       "p_vs_vol": 0.911954,
+       "expert_skill": {
+        "VOL": 0.29361,
+        "ANALOG": 0.262572,
+        "TILT": 0.29361,
+        "ENS": 0.261523
+       },
+       "mean_loss": {
+        "CLIM": 0.084766,
+        "VOL": 0.059878,
+        "ANALOG": 0.062509,
+        "TILT": 0.059878,
+        "ENS": 0.062598
+       }
+      },
+      "B": {
+       "n_origins": 491,
+       "n_blocks": 41,
+       "skill": 0.052185,
+       "p": 0.123494,
+       "skill_vs_vol": -0.00137,
+       "p_vs_vol": 0.677966,
+       "expert_skill": {
+        "VOL": 0.053482,
+        "ANALOG": 0.037591,
+        "TILT": 0.053482,
+        "ENS": 0.052185
+       },
+       "mean_loss": {
+        "CLIM": 0.104252,
+        "VOL": 0.098676,
+        "ANALOG": 0.100333,
+        "TILT": 0.098676,
+        "ENS": 0.098811
+       }
+      },
+      "C": {
+       "n_origins": 195,
+       "n_blocks": 17,
+       "skill": -0.05608,
+       "p": 0.642918,
+       "skill_vs_vol": -0.001141,
+       "p_vs_vol": 0.547173,
+       "expert_skill": {
+        "VOL": -0.054877,
+        "ANALOG": -0.068337,
+        "TILT": -0.054877,
+        "ENS": -0.05608
+       },
+       "mean_loss": {
+        "CLIM": 0.134434,
+        "VOL": 0.141812,
+        "ANALOG": 0.143621,
+        "TILT": 0.141812,
+        "ENS": 0.141974
+       }
+      }
+     },
+     "n_blocks": 77,
+     "skill": 0.062754,
+     "p": 0.063197,
+     "skill_vs_vol": -0.007723,
+     "p_vs_vol": 0.920304,
+     "expert_skill": {
+      "VOL": 0.069937,
+      "ANALOG": 0.051803,
+      "TILT": 0.069937,
+      "ENS": 0.062754
+     },
+     "mean_loss": {
+      "CLIM": 0.106087,
+      "VOL": 0.098667,
+      "ANALOG": 0.100591,
+      "TILT": 0.098667,
+      "ENS": 0.09943
+     },
+     "evaluable": true,
+     "grade": "약함",
+     "grade_vs_vol": "없음"
+    },
+    "252:q": {
+     "n_points": 891,
+     "n_origins": 891,
+     "eras": {
+      "A": {
+       "n_origins": 211,
+       "n_blocks": 10,
+       "skill": 0.057536,
+       "p": 0.025391,
+       "skill_vs_vol": 0.004837,
+       "p_vs_vol": 0.415039,
+       "expert_skill": {
+        "VOL": 0.052955,
+        "ANALOG": 0.023347,
+        "TILT": 0.052904,
+        "ENS": 0.057536
+       },
+       "mean_loss": {
+        "CLIM": 0.044505,
+        "VOL": 0.042148,
+        "ANALOG": 0.043466,
+        "TILT": 0.042151,
+        "ENS": 0.041944
+       }
+      },
+      "B": {
+       "n_origins": 491,
+       "n_blocks": 21,
+       "skill": -0.033517,
+       "p": 0.952102,
+       "skill_vs_vol": 0.028187,
+       "p_vs_vol": 0.035348,
+       "expert_skill": {
+        "VOL": -0.063494,
+        "ANALOG": -0.07738,
+        "TILT": -0.058701,
+        "ENS": -0.033517
+       },
+       "mean_loss": {
+        "CLIM": 0.045889,
+        "VOL": 0.048803,
+        "ANALOG": 0.04944,
+        "TILT": 0.048583,
+        "ENS": 0.047427
+       }
+      },
+      "C": {
+       "n_origins": 189,
+       "n_blocks": 8,
+       "skill": 0.004669,
+       "p": 0.464844,
+       "skill_vs_vol": 0.118084,
+       "p_vs_vol": 0.019531,
+       "expert_skill": {
+        "VOL": -0.128601,
+        "ANALOG": -0.140258,
+        "TILT": -0.126127,
+        "ENS": 0.004669
+       },
+       "mean_loss": {
+        "CLIM": 0.043707,
+        "VOL": 0.049328,
+        "ANALOG": 0.049837,
+        "TILT": 0.04922,
+        "ENS": 0.043503
+       }
+      }
+     },
+     "n_blocks": 38,
+     "skill": -0.004388,
+     "p": 0.624919,
+     "skill_vs_vol": 0.043134,
+     "p_vs_vol": 0.00355,
+     "expert_skill": {
+      "VOL": -0.049665,
+      "ANALOG": -0.066767,
+      "TILT": -0.046481,
+      "ENS": -0.004388
+     },
+     "mean_loss": {
+      "CLIM": 0.045099,
+      "VOL": 0.047338,
+      "ANALOG": 0.04811,
+      "TILT": 0.047195,
+      "ENS": 0.045297
+     },
+     "evaluable": true,
+     "grade": "없음",
+     "grade_vs_vol": "강함",
+     "coverage80": 0.873176
+    },
+    "252:up": {
+     "n_points": 891,
+     "n_origins": 891,
+     "eras": {
+      "A": {
+       "n_origins": 211,
+       "n_blocks": 10,
+       "skill": 0.007869,
+       "p": 0.373047,
+       "skill_vs_vol": 0.007869,
+       "p_vs_vol": 0.373047,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.008104,
+        "TILT": 0.015997,
+        "ENS": 0.007869
+       },
+       "mean_loss": {
+        "CLIM": 0.169441,
+        "VOL": 0.169441,
+        "ANALOG": 0.170815,
+        "TILT": 0.166731,
+        "ENS": 0.168108
+       }
+      },
+      "B": {
+       "n_origins": 491,
+       "n_blocks": 21,
+       "skill": 0.000935,
+       "p": 0.388231,
+       "skill_vs_vol": 0.000935,
+       "p_vs_vol": 0.388231,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.004669,
+        "TILT": 0.00282,
+        "ENS": 0.000935
+       },
+       "mean_loss": {
+        "CLIM": 0.190588,
+        "VOL": 0.190588,
+        "ANALOG": 0.191477,
+        "TILT": 0.19005,
+        "ENS": 0.190409
+       }
+      },
+      "C": {
+       "n_origins": 189,
+       "n_blocks": 8,
+       "skill": -0.00977,
+       "p": 0.902344,
+       "skill_vs_vol": -0.00977,
+       "p_vs_vol": 0.902344,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.048818,
+        "TILT": -0.016757,
+        "ENS": -0.00977
+       },
+       "mean_loss": {
+        "CLIM": 0.158044,
+        "VOL": 0.158044,
+        "ANALOG": 0.165759,
+        "TILT": 0.160692,
+        "ENS": 0.159588
+       }
+      }
+     },
+     "n_blocks": 38,
+     "skill": 0.000484,
+     "p": 0.434028,
+     "skill_vs_vol": 0.000484,
+     "p_vs_vol": 0.434028,
+     "expert_skill": {
+      "VOL": 0.0,
+      "ANALOG": -0.013724,
+      "TILT": 0.002106,
+      "ENS": 0.000484
+     },
+     "mean_loss": {
+      "CLIM": 0.178677,
+      "VOL": 0.178677,
+      "ANALOG": 0.181129,
+      "TILT": 0.1783,
+      "ENS": 0.17859
+     },
+     "evaluable": true,
+     "grade": "약함",
+     "grade_vs_vol": "약함"
+    },
+    "252:dd15": {
+     "n_points": 891,
+     "n_origins": 891,
+     "eras": {
+      "A": {
+       "n_origins": 211,
+       "n_blocks": 10,
+       "skill": 0.167909,
+       "p": 0.077148,
+       "skill_vs_vol": -0.030125,
+       "p_vs_vol": 0.762695,
+       "expert_skill": {
+        "VOL": 0.192243,
+        "ANALOG": 0.15917,
+        "TILT": 0.192243,
+        "ENS": 0.167909
+       },
+       "mean_loss": {
+        "CLIM": 0.14156,
+        "VOL": 0.114346,
+        "ANALOG": 0.119028,
+        "TILT": 0.114346,
+        "ENS": 0.11779
+       }
+      },
+      "B": {
+       "n_origins": 491,
+       "n_blocks": 21,
+       "skill": 0.051744,
+       "p": 0.249588,
+       "skill_vs_vol": 0.000414,
+       "p_vs_vol": 0.477076,
+       "expert_skill": {
+        "VOL": 0.051352,
+        "ANALOG": 0.056926,
+        "TILT": 0.051352,
+        "ENS": 0.051744
+       },
+       "mean_loss": {
+        "CLIM": 0.16065,
+        "VOL": 0.1524,
+        "ANALOG": 0.151505,
+        "TILT": 0.1524,
+        "ENS": 0.152337
+       }
+      },
+      "C": {
+       "n_origins": 189,
+       "n_blocks": 8,
+       "skill": -0.0956,
+       "p": 0.890625,
+       "skill_vs_vol": -0.006164,
+       "p_vs_vol": 0.574219,
+       "expert_skill": {
+        "VOL": -0.088888,
+        "ANALOG": -0.127664,
+        "TILT": -0.088888,
+        "ENS": -0.0956
+       },
+       "mean_loss": {
+        "CLIM": 0.197619,
+        "VOL": 0.215185,
+        "ANALOG": 0.222848,
+        "TILT": 0.215185,
+        "ENS": 0.216512
+       }
+      }
+     },
+     "n_blocks": 38,
+     "skill": 0.037825,
+     "p": 0.175041,
+     "skill_vs_vol": -0.006779,
+     "p_vs_vol": 0.835108,
+     "expert_skill": {
+      "VOL": 0.044304,
+      "ANALOG": 0.030639,
+      "TILT": 0.044304,
+      "ENS": 0.037825
+     },
+     "mean_loss": {
+      "CLIM": 0.163971,
+      "VOL": 0.156706,
+      "ANALOG": 0.158947,
+      "TILT": 0.156706,
+      "ENS": 0.157769
+     },
+     "evaluable": true,
+     "grade": "약함",
+     "grade_vs_vol": "없음"
+    }
+   },
+   "holdout": {
+    "21:q": {
+     "n_points": 23,
+     "skill": 0.01265,
+     "skill_vs_vol": 0.006725
+    },
+    "21:up": {
+     "n_points": 23,
+     "skill": -0.012331,
+     "skill_vs_vol": -0.012331
+    },
+    "21:dd15": {
+     "n_points": 23,
+     "skill": -0.005787,
+     "skill_vs_vol": 0.702398
+    },
+    "63:q": {
+     "n_points": 21,
+     "skill": 0.020484,
+     "skill_vs_vol": -0.011557
+    },
+    "63:up": {
+     "n_points": 21,
+     "skill": -0.013681,
+     "skill_vs_vol": -0.013681
+    },
+    "63:dd15": {
+     "n_points": 21,
+     "skill": -0.086889,
+     "skill_vs_vol": -0.01373
+    },
+    "126:q": {
+     "n_points": 18,
+     "skill": 0.030531,
+     "skill_vs_vol": 0.014927
+    },
+    "126:up": {
+     "n_points": 18,
+     "skill": -0.021237,
+     "skill_vs_vol": -0.021237
+    },
+    "126:dd15": {
+     "n_points": 18,
+     "skill": -0.136548,
+     "skill_vs_vol": -0.011736
+    },
+    "252:q": {
+     "n_points": 12,
+     "skill": 0.019056,
+     "skill_vs_vol": 0.06629
+    },
+    "252:up": {
+     "n_points": 12,
+     "skill": 0.047413,
+     "skill_vs_vol": 0.047413
+    },
+    "252:dd15": {
+     "n_points": 12,
+     "skill": -0.110456,
+     "skill_vs_vol": 0.002609
+    }
+   }
+  },
+  "industry": {
+   "n_points": 55359,
+   "n_assets": 49,
+   "first_origin": "1927-07-01",
+   "last_origin": "2026-09-30",
+   "weights": [
+    [
+     [
+      0.1522,
+      0.3166,
+      0.1685,
+      0.3627
+     ],
+     [
+      0.2682,
+      0.2682,
+      0.1184,
+      0.3452
+     ],
+     [
+      0.0033,
+      0.4142,
+      0.1683,
+      0.4142
+     ],
+     [
+      0.2539,
+      0.2539,
+      0.2117,
+      0.2804
+     ]
+    ],
+    [
+     [
+      0.2047,
+      0.3189,
+      0.1021,
+      0.3743
+     ],
+     [
+      0.287,
+      0.287,
+      0.0868,
+      0.3392
+     ],
+     [
+      0.0014,
+      0.4007,
+      0.1972,
+      0.4007
+     ],
+     [
+      0.2564,
+      0.2564,
+      0.2052,
+      0.2819
+     ]
+    ],
+    [
+     [
+      0.3807,
+      0.2435,
+      0.0444,
+      0.3314
+     ],
+     [
+      0.2665,
+      0.2665,
+      0.1065,
+      0.3604
+     ],
+     [
+      0.0017,
+      0.3882,
+      0.2218,
+      0.3882
+     ],
+     [
+      0.2519,
+      0.2519,
+      0.1974,
+      0.2988
+     ]
+    ],
+    [
+     [
+      0.6905,
+      0.1205,
+      0.0132,
+      0.1758
+     ],
+     [
+      0.2736,
+      0.2736,
+      0.0579,
+      0.3949
+     ],
+     [
+      0.0033,
+      0.4171,
+      0.1625,
+      0.4171
+     ],
+     [
+      0.2603,
+      0.2603,
+      0.174,
+      0.3054
+     ]
+    ]
+   ],
+   "realized": [
+    [
+     55030,
+     55030,
+     55030,
+     55030
+    ],
+    [
+     54852,
+     54852,
+     54852,
+     54852
+    ],
+    [
+     54585,
+     54585,
+     54585,
+     54585
+    ],
+    [
+     54045,
+     54045,
+     54045,
+     54045
+    ]
+   ],
+   "cells": {
+    "21:q": {
+     "n_points": 53854,
+     "n_origins": 1050,
+     "eras": {
+      "A": {
+       "n_origins": 359,
+       "n_blocks": 30,
+       "skill": 0.044144,
+       "p": 5e-05,
+       "skill_vs_vol": 0.009238,
+       "p_vs_vol": 0.0053,
+       "expert_skill": {
+        "VOL": 0.035232,
+        "ANALOG": 0.011139,
+        "TILT": 0.038798,
+        "ENS": 0.044144
+       },
+       "mean_loss": {
+        "CLIM": 0.01673,
+        "VOL": 0.016141,
+        "ANALOG": 0.016544,
+        "TILT": 0.016081,
+        "ENS": 0.015992
+       }
+      },
+      "B": {
+       "n_origins": 491,
+       "n_blocks": 41,
+       "skill": 0.013718,
+       "p": 0.00945,
+       "skill_vs_vol": 0.006029,
+       "p_vs_vol": 0.00045,
+       "expert_skill": {
+        "VOL": 0.007736,
+        "ANALOG": 0.001832,
+        "TILT": 0.008033,
+        "ENS": 0.013718
+       },
+       "mean_loss": {
+        "CLIM": 0.017968,
+        "VOL": 0.017829,
+        "ANALOG": 0.017935,
+        "TILT": 0.017824,
+        "ENS": 0.017722
+       }
+      },
+      "C": {
+       "n_origins": 200,
+       "n_blocks": 17,
+       "skill": 0.012862,
+       "p": 0.025799,
+       "skill_vs_vol": 0.011594,
+       "p_vs_vol": 0.0082,
+       "expert_skill": {
+        "VOL": 0.001283,
+        "ANALOG": -0.003548,
+        "TILT": 0.000833,
+        "ENS": 0.012862
+       },
+       "mean_loss": {
+        "CLIM": 0.018615,
+        "VOL": 0.018591,
+        "ANALOG": 0.018681,
+        "TILT": 0.0186,
+        "ENS": 0.018376
+       }
+      }
+     },
+     "n_blocks": 88,
+     "skill": 0.023397,
+     "p": 5e-05,
+     "skill_vs_vol": 0.008179,
+     "p_vs_vol": 5e-05,
+     "expert_skill": {
+      "VOL": 0.015343,
+      "ANALOG": 0.003765,
+      "TILT": 0.016548,
+      "ENS": 0.023397
+     },
+     "mean_loss": {
+      "CLIM": 0.017668,
+      "VOL": 0.017397,
+      "ANALOG": 0.017602,
+      "TILT": 0.017376,
+      "ENS": 0.017255
+     },
+     "evaluable": true,
+     "grade": "강함",
+     "grade_vs_vol": "강함",
+     "coverage80": 0.819915
+    },
+    "21:up": {
+     "n_points": 53854,
+     "n_origins": 1050,
+     "eras": {
+      "A": {
+       "n_origins": 359,
+       "n_blocks": 30,
+       "skill": 0.007894,
+       "p": 0.037148,
+       "skill_vs_vol": 0.007894,
+       "p_vs_vol": 0.037148,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.021871,
+        "TILT": 0.010715,
+        "ENS": 0.007894
+       },
+       "mean_loss": {
+        "CLIM": 0.242084,
+        "VOL": 0.242084,
+        "ANALOG": 0.247379,
+        "TILT": 0.23949,
+        "ENS": 0.240173
+       }
+      },
+      "B": {
+       "n_origins": 491,
+       "n_blocks": 41,
+       "skill": 0.002427,
+       "p": 0.035398,
+       "skill_vs_vol": 0.002427,
+       "p_vs_vol": 0.035398,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.008488,
+        "TILT": 0.001506,
+        "ENS": 0.002427
+       },
+       "mean_loss": {
+        "CLIM": 0.244464,
+        "VOL": 0.244464,
+        "ANALOG": 0.246539,
+        "TILT": 0.244096,
+        "ENS": 0.24387
+       }
+      },
+      "C": {
+       "n_origins": 200,
+       "n_blocks": 17,
+       "skill": -0.00234,
+       "p": 0.849658,
+       "skill_vs_vol": -0.00234,
+       "p_vs_vol": 0.849658,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.0268,
+        "TILT": -0.00346,
+        "ENS": -0.00234
+       },
+       "mean_loss": {
+        "CLIM": 0.239906,
+        "VOL": 0.239906,
+        "ANALOG": 0.246336,
+        "TILT": 0.240736,
+        "ENS": 0.240467
+       }
+      }
+     },
+     "n_blocks": 88,
+     "skill": 0.003394,
+     "p": 0.020949,
+     "skill_vs_vol": 0.003394,
+     "p_vs_vol": 0.020949,
+     "expert_skill": {
+      "VOL": 0.0,
+      "ANALOG": -0.016497,
+      "TILT": 0.003711,
+      "ENS": 0.003394
+     },
+     "mean_loss": {
+      "CLIM": 0.242782,
+      "VOL": 0.242782,
+      "ANALOG": 0.246787,
+      "TILT": 0.241881,
+      "ENS": 0.241958
+     },
+     "evaluable": true,
+     "grade": "약함",
+     "grade_vs_vol": "약함"
+    },
+    "21:dd15": {
+     "n_points": 53854,
+     "n_origins": 1050,
+     "eras": {
+      "A": {
+       "n_origins": 359,
+       "n_blocks": 30,
+       "skill": 0.180802,
+       "p": 5e-05,
+       "skill_vs_vol": -0.001172,
+       "p_vs_vol": 0.711864,
+       "expert_skill": {
+        "VOL": 0.181761,
+        "ANALOG": 0.129682,
+        "TILT": 0.181761,
+        "ENS": 0.180802
+       },
+       "mean_loss": {
+        "CLIM": 0.026827,
+        "VOL": 0.021951,
+        "ANALOG": 0.023348,
+        "TILT": 0.021951,
+        "ENS": 0.021977
+       }
+      },
+      "B": {
+       "n_origins": 491,
+       "n_blocks": 41,
+       "skill": 0.058214,
+       "p": 5e-05,
+       "skill_vs_vol": 0.002466,
+       "p_vs_vol": 0.00215,
+       "expert_skill": {
+        "VOL": 0.055887,
+        "ANALOG": 0.055165,
+        "TILT": 0.055887,
+        "ENS": 0.058214
+       },
+       "mean_loss": {
+        "CLIM": 0.02609,
+        "VOL": 0.024632,
+        "ANALOG": 0.024651,
+        "TILT": 0.024632,
+        "ENS": 0.024571
+       }
+      },
+      "C": {
+       "n_origins": 200,
+       "n_blocks": 17,
+       "skill": 0.022693,
+       "p": 0.381881,
+       "skill_vs_vol": 0.003801,
+       "p_vs_vol": 0.018599,
+       "expert_skill": {
+        "VOL": 0.018964,
+        "ANALOG": 0.022698,
+        "TILT": 0.018964,
+        "ENS": 0.022693
+       },
+       "mean_loss": {
+        "CLIM": 0.035872,
+        "VOL": 0.035191,
+        "ANALOG": 0.035057,
+        "TILT": 0.035191,
+        "ENS": 0.035057
+       }
+      }
+     },
+     "n_blocks": 88,
+     "skill": 0.089475,
+     "p": 5e-05,
+     "skill_vs_vol": 0.001752,
+     "p_vs_vol": 0.015949,
+     "expert_skill": {
+      "VOL": 0.087877,
+      "ANALOG": 0.071533,
+      "TILT": 0.087877,
+      "ENS": 0.089475
+     },
+     "mean_loss": {
+      "CLIM": 0.028205,
+      "VOL": 0.025727,
+      "ANALOG": 0.026188,
+      "TILT": 0.025727,
+      "ENS": 0.025681
+     },
+     "evaluable": true,
+     "grade": "강함",
+     "grade_vs_vol": "약함"
+    },
+    "21:beat": {
+     "n_points": 53854,
+     "n_origins": 1050,
+     "eras": {
+      "A": {
+       "n_origins": 359,
+       "n_blocks": 30,
+       "skill": 0.001543,
+       "p": 0.019099,
+       "skill_vs_vol": 0.001543,
+       "p_vs_vol": 0.019099,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.004242,
+        "TILT": 0.001819,
+        "ENS": 0.001543
+       },
+       "mean_loss": {
+        "CLIM": 0.250111,
+        "VOL": 0.250111,
+        "ANALOG": 0.251172,
+        "TILT": 0.249656,
+        "ENS": 0.249725
+       }
+      },
+      "B": {
+       "n_origins": 491,
+       "n_blocks": 41,
+       "skill": 0.003069,
+       "p": 0.00015,
+       "skill_vs_vol": 0.003069,
+       "p_vs_vol": 0.00015,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.000434,
+        "TILT": 0.00352,
+        "ENS": 0.003069
+       },
+       "mean_loss": {
+        "CLIM": 0.250046,
+        "VOL": 0.250046,
+        "ANALOG": 0.250155,
+        "TILT": 0.249166,
+        "ENS": 0.249279
+       }
+      },
+      "C": {
+       "n_origins": 200,
+       "n_blocks": 17,
+       "skill": -0.000238,
+       "p": 0.672866,
+       "skill_vs_vol": -0.000238,
+       "p_vs_vol": 0.672866,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.0099,
+        "TILT": 4.3e-05,
+        "ENS": -0.000238
+       },
+       "mean_loss": {
+        "CLIM": 0.250075,
+        "VOL": 0.250075,
+        "ANALOG": 0.252551,
+        "TILT": 0.250065,
+        "ENS": 0.250135
+       }
+      }
+     },
+     "n_blocks": 88,
+     "skill": 0.001917,
+     "p": 0.00015,
+     "skill_vs_vol": 0.001917,
+     "p_vs_vol": 0.00015,
+     "expert_skill": {
+      "VOL": 0.0,
+      "ANALOG": -0.003539,
+      "TILT": 0.002276,
+      "ENS": 0.001917
+     },
+     "mean_loss": {
+      "CLIM": 0.250074,
+      "VOL": 0.250074,
+      "ANALOG": 0.250959,
+      "TILT": 0.249505,
+      "ENS": 0.249594
+     },
+     "evaluable": true,
+     "grade": "약함",
+     "grade_vs_vol": "약함"
+    },
+    "63:q": {
+     "n_points": 53676,
+     "n_origins": 1048,
+     "eras": {
+      "A": {
+       "n_origins": 359,
+       "n_blocks": 30,
+       "skill": 0.046461,
+       "p": 0.0008,
+       "skill_vs_vol": 0.007279,
+       "p_vs_vol": 0.113894,
+       "expert_skill": {
+        "VOL": 0.03947,
+        "ANALOG": 0.002478,
+        "TILT": 0.037978,
+        "ENS": 0.046461
+       },
+       "mean_loss": {
+        "CLIM": 0.030873,
+        "VOL": 0.029655,
+        "ANALOG": 0.030797,
+        "TILT": 0.029701,
+        "ENS": 0.029439
+       }
+      },
+      "B": {
+       "n_origins": 491,
+       "n_blocks": 41,
+       "skill": 0.007616,
+       "p": 0.145943,
+       "skill_vs_vol": 0.006981,
+       "p_vs_vol": 0.011349,
+       "expert_skill": {
+        "VOL": 0.000639,
+        "ANALOG": -0.011364,
+        "TILT": 0.000138,
+        "ENS": 0.007616
+       },
+       "mean_loss": {
+        "CLIM": 0.032317,
+        "VOL": 0.032296,
+        "ANALOG": 0.032684,
+        "TILT": 0.032312,
+        "ENS": 0.03207
+       }
+      },
+      "C": {
+       "n_origins": 198,
+       "n_blocks": 17,
+       "skill": 0.008846,
+       "p": 0.260987,
+       "skill_vs_vol": 0.017472,
+       "p_vs_vol": 0.0005,
+       "expert_skill": {
+        "VOL": -0.008779,
+        "ANALOG": -0.005285,
+        "TILT": -0.010387,
+        "ENS": 0.008846
+       },
+       "mean_loss": {
+        "CLIM": 0.033162,
+        "VOL": 0.033453,
+        "ANALOG": 0.033337,
+        "TILT": 0.033506,
+        "ENS": 0.032869
+       }
+      }
+     },
+     "n_blocks": 88,
+     "skill": 0.020702,
+     "p": 0.00045,
+     "skill_vs_vol": 0.009175,
+     "p_vs_vol": 0.0003,
+     "expert_skill": {
+      "VOL": 0.011634,
+      "ANALOG": -0.005596,
+      "TILT": 0.010589,
+      "ENS": 0.020702
+     },
+     "mean_loss": {
+      "CLIM": 0.031982,
+      "VOL": 0.03161,
+      "ANALOG": 0.032161,
+      "TILT": 0.031643,
+      "ENS": 0.03132
+     },
+     "evaluable": true,
+     "grade": "강함",
+     "grade_vs_vol": "강함",
+     "coverage80": 0.83285
+    },
+    "63:up": {
+     "n_points": 53676,
+     "n_origins": 1048,
+     "eras": {
+      "A": {
+       "n_origins": 359,
+       "n_blocks": 30,
+       "skill": 0.00321,
+       "p": 0.358382,
+       "skill_vs_vol": 0.00321,
+       "p_vs_vol": 0.358382,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.040762,
+        "TILT": 0.003642,
+        "ENS": 0.00321
+       },
+       "mean_loss": {
+        "CLIM": 0.234145,
+        "VOL": 0.234145,
+        "ANALOG": 0.243689,
+        "TILT": 0.233292,
+        "ENS": 0.233393
+       }
+      },
+      "B": {
+       "n_origins": 491,
+       "n_blocks": 41,
+       "skill": -0.000374,
+       "p": 0.556072,
+       "skill_vs_vol": -0.000374,
+       "p_vs_vol": 0.556072,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.015641,
+        "TILT": -0.004281,
+        "ENS": -0.000374
+       },
+       "mean_loss": {
+        "CLIM": 0.237271,
+        "VOL": 0.237271,
+        "ANALOG": 0.240983,
+        "TILT": 0.238287,
+        "ENS": 0.23736
+       }
+      },
+      "C": {
+       "n_origins": 198,
+       "n_blocks": 17,
+       "skill": -0.000321,
+       "p": 0.525474,
+       "skill_vs_vol": -0.000321,
+       "p_vs_vol": 0.525474,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.007448,
+        "TILT": -0.004193,
+        "ENS": -0.000321
+       },
+       "mean_loss": {
+        "CLIM": 0.227547,
+        "VOL": 0.227547,
+        "ANALOG": 0.229242,
+        "TILT": 0.228501,
+        "ENS": 0.22762
+       }
+      }
+     },
+     "n_blocks": 88,
+     "skill": 0.000863,
+     "p": 0.39223,
+     "skill_vs_vol": 0.000863,
+     "p_vs_vol": 0.39223,
+     "expert_skill": {
+      "VOL": 0.0,
+      "ANALOG": -0.022735,
+      "TILT": -0.001553,
+      "ENS": 0.000863
+     },
+     "mean_loss": {
+      "CLIM": 0.234363,
+      "VOL": 0.234363,
+      "ANALOG": 0.239691,
+      "TILT": 0.234727,
+      "ENS": 0.234161
+     },
+     "evaluable": true,
+     "grade": "약함",
+     "grade_vs_vol": "약함"
+    },
+    "63:dd15": {
+     "n_points": 53676,
+     "n_origins": 1048,
+     "eras": {
+      "A": {
+       "n_origins": 359,
+       "n_blocks": 30,
+       "skill": 0.228353,
+       "p": 0.0001,
+       "skill_vs_vol": -0.003043,
+       "p_vs_vol": 0.762862,
+       "expert_skill": {
+        "VOL": 0.230694,
+        "ANALOG": 0.188735,
+        "TILT": 0.230694,
+        "ENS": 0.228353
+       },
+       "mean_loss": {
+        "CLIM": 0.10058,
+        "VOL": 0.077377,
+        "ANALOG": 0.081597,
+        "TILT": 0.077377,
+        "ENS": 0.077612
+       }
+      },
+      "B": {
+       "n_origins": 491,
+       "n_blocks": 41,
+       "skill": 0.058602,
+       "p": 0.0022,
+       "skill_vs_vol": 0.002548,
+       "p_vs_vol": 0.00725,
+       "expert_skill": {
+        "VOL": 0.056197,
+        "ANALOG": 0.055805,
+        "TILT": 0.056197,
+        "ENS": 0.058602
+       },
+       "mean_loss": {
+        "CLIM": 0.104516,
+        "VOL": 0.098642,
+        "ANALOG": 0.098683,
+        "TILT": 0.098642,
+        "ENS": 0.098391
+       }
+      },
+      "C": {
+       "n_origins": 198,
+       "n_blocks": 17,
+       "skill": 0.022574,
+       "p": 0.360832,
+       "skill_vs_vol": 0.001044,
+       "p_vs_vol": 0.40903,
+       "expert_skill": {
+        "VOL": 0.021553,
+        "ANALOG": 0.013252,
+        "TILT": 0.021553,
+        "ENS": 0.022574
+       },
+       "mean_loss": {
+        "CLIM": 0.117491,
+        "VOL": 0.114958,
+        "ANALOG": 0.115934,
+        "TILT": 0.114958,
+        "ENS": 0.114838
+       }
+      }
+     },
+     "n_blocks": 88,
+     "skill": 0.106405,
+     "p": 0.0001,
+     "skill_vs_vol": 0.000633,
+     "p_vs_vol": 0.314234,
+     "expert_skill": {
+      "VOL": 0.105839,
+      "ANALOG": 0.090226,
+      "TILT": 0.105839,
+      "ENS": 0.106405
+     },
+     "mean_loss": {
+      "CLIM": 0.105619,
+      "VOL": 0.09444,
+      "ANALOG": 0.096089,
+      "TILT": 0.09444,
+      "ENS": 0.09438
+     },
+     "evaluable": true,
+     "grade": "강함",
+     "grade_vs_vol": "약함"
+    },
+    "63:beat": {
+     "n_points": 53676,
+     "n_origins": 1048,
+     "eras": {
+      "A": {
+       "n_origins": 359,
+       "n_blocks": 30,
+       "skill": 0.00247,
+       "p": 0.004,
+       "skill_vs_vol": 0.00247,
+       "p_vs_vol": 0.004,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.003507,
+        "TILT": 0.003552,
+        "ENS": 0.00247
+       },
+       "mean_loss": {
+        "CLIM": 0.250389,
+        "VOL": 0.250389,
+        "ANALOG": 0.251267,
+        "TILT": 0.249499,
+        "ENS": 0.24977
+       }
+      },
+      "B": {
+       "n_origins": 491,
+       "n_blocks": 41,
+       "skill": 0.003116,
+       "p": 0.0023,
+       "skill_vs_vol": 0.003116,
+       "p_vs_vol": 0.0023,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -7.8e-05,
+        "TILT": 0.002994,
+        "ENS": 0.003116
+       },
+       "mean_loss": {
+        "CLIM": 0.250133,
+        "VOL": 0.250133,
+        "ANALOG": 0.250153,
+        "TILT": 0.249384,
+        "ENS": 0.249354
+       }
+      },
+      "C": {
+       "n_origins": 198,
+       "n_blocks": 17,
+       "skill": 0.000307,
+       "p": 0.485626,
+       "skill_vs_vol": 0.000307,
+       "p_vs_vol": 0.485626,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.007576,
+        "TILT": -0.000971,
+        "ENS": 0.000307
+       },
+       "mean_loss": {
+        "CLIM": 0.24996,
+        "VOL": 0.24996,
+        "ANALOG": 0.251853,
+        "TILT": 0.250202,
+        "ENS": 0.249883
+       }
+      }
+     },
+     "n_blocks": 88,
+     "skill": 0.002365,
+     "p": 0.00045,
+     "skill_vs_vol": 0.002365,
+     "p_vs_vol": 0.00045,
+     "expert_skill": {
+      "VOL": 0.0,
+      "ANALOG": -0.002669,
+      "TILT": 0.002437,
+      "ENS": 0.002365
+     },
+     "mean_loss": {
+      "CLIM": 0.250188,
+      "VOL": 0.250188,
+      "ANALOG": 0.250856,
+      "TILT": 0.249578,
+      "ENS": 0.249596
+     },
+     "evaluable": true,
+     "grade": "강함",
+     "grade_vs_vol": "강함"
+    },
+    "126:q": {
+     "n_points": 53409,
+     "n_origins": 1045,
+     "eras": {
+      "A": {
+       "n_origins": 359,
+       "n_blocks": 30,
+       "skill": 0.026645,
+       "p": 0.00765,
+       "skill_vs_vol": 0.007136,
+       "p_vs_vol": 0.258837,
+       "expert_skill": {
+        "VOL": 0.019649,
+        "ANALOG": -0.043246,
+        "TILT": 0.010345,
+        "ENS": 0.026645
+       },
+       "mean_loss": {
+        "CLIM": 0.046546,
+        "VOL": 0.045631,
+        "ANALOG": 0.048559,
+        "TILT": 0.046064,
+        "ENS": 0.045306
+       }
+      },
+      "B": {
+       "n_origins": 491,
+       "n_blocks": 41,
+       "skill": 0.007563,
+       "p": 0.152142,
+       "skill_vs_vol": 0.014223,
+       "p_vs_vol": 0.00265,
+       "expert_skill": {
+        "VOL": -0.006756,
+        "ANALOG": -0.020427,
+        "TILT": -0.006558,
+        "ENS": 0.007563
+       },
+       "mean_loss": {
+        "CLIM": 0.045966,
+        "VOL": 0.046277,
+        "ANALOG": 0.046905,
+        "TILT": 0.046268,
+        "ENS": 0.045618
+       }
+      },
+      "C": {
+       "n_origins": 195,
+       "n_blocks": 17,
+       "skill": 0.013447,
+       "p": 0.296535,
+       "skill_vs_vol": 0.031297,
+       "p_vs_vol": 0.0007,
+       "expert_skill": {
+        "VOL": -0.018426,
+        "ANALOG": -0.010496,
+        "TILT": -0.019968,
+        "ENS": 0.013447
+       },
+       "mean_loss": {
+        "CLIM": 0.048382,
+        "VOL": 0.049273,
+        "ANALOG": 0.04889,
+        "TILT": 0.049348,
+        "ENS": 0.047731
+       }
+      }
+     },
+     "n_blocks": 88,
+     "skill": 0.015248,
+     "p": 0.00495,
+     "skill_vs_vol": 0.015207,
+     "p_vs_vol": 0.00115,
+     "expert_skill": {
+      "VOL": 4.1e-05,
+      "ANALOG": -0.026331,
+      "TILT": -0.003357,
+      "ENS": 0.015248
+     },
+     "mean_loss": {
+      "CLIM": 0.046616,
+      "VOL": 0.046614,
+      "ANALOG": 0.047843,
+      "TILT": 0.046773,
+      "ENS": 0.045905
+     },
+     "evaluable": true,
+     "grade": "강함",
+     "grade_vs_vol": "강함",
+     "coverage80": 0.860359
+    },
+    "126:up": {
+     "n_points": 53409,
+     "n_origins": 1045,
+     "eras": {
+      "A": {
+       "n_origins": 359,
+       "n_blocks": 30,
+       "skill": -0.005746,
+       "p": 0.60162,
+       "skill_vs_vol": -0.005746,
+       "p_vs_vol": 0.60162,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.054906,
+        "TILT": -0.005089,
+        "ENS": -0.005746
+       },
+       "mean_loss": {
+        "CLIM": 0.22542,
+        "VOL": 0.22542,
+        "ANALOG": 0.237797,
+        "TILT": 0.226567,
+        "ENS": 0.226715
+       }
+      },
+      "B": {
+       "n_origins": 491,
+       "n_blocks": 41,
+       "skill": 0.001056,
+       "p": 0.410329,
+       "skill_vs_vol": 0.001056,
+       "p_vs_vol": 0.410329,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.01382,
+        "TILT": -0.002476,
+        "ENS": 0.001056
+       },
+       "mean_loss": {
+        "CLIM": 0.228185,
+        "VOL": 0.228185,
+        "ANALOG": 0.231339,
+        "TILT": 0.22875,
+        "ENS": 0.227944
+       }
+      },
+      "C": {
+       "n_origins": 195,
+       "n_blocks": 17,
+       "skill": -0.000783,
+       "p": 0.523524,
+       "skill_vs_vol": -0.000783,
+       "p_vs_vol": 0.523524,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.008192,
+        "TILT": -0.006471,
+        "ENS": -0.000783
+       },
+       "mean_loss": {
+        "CLIM": 0.216812,
+        "VOL": 0.216812,
+        "ANALOG": 0.218588,
+        "TILT": 0.218215,
+        "ENS": 0.216981
+       }
+      }
+     },
+     "n_blocks": 88,
+     "skill": -0.001614,
+     "p": 0.577571,
+     "skill_vs_vol": -0.001614,
+     "p_vs_vol": 0.577571,
+     "expert_skill": {
+      "VOL": 0.0,
+      "ANALOG": -0.026942,
+      "TILT": -0.004093,
+      "ENS": -0.001614
+     },
+     "mean_loss": {
+      "CLIM": 0.225113,
+      "VOL": 0.225113,
+      "ANALOG": 0.231178,
+      "TILT": 0.226034,
+      "ENS": 0.225476
+     },
+     "evaluable": true,
+     "grade": "없음",
+     "grade_vs_vol": "없음"
+    },
+    "126:dd15": {
+     "n_points": 53409,
+     "n_origins": 1045,
+     "eras": {
+      "A": {
+       "n_origins": 359,
+       "n_blocks": 30,
+       "skill": 0.218308,
+       "p": 0.0018,
+       "skill_vs_vol": -0.018307,
+       "p_vs_vol": 0.905605,
+       "expert_skill": {
+        "VOL": 0.232361,
+        "ANALOG": 0.179167,
+        "TILT": 0.232361,
+        "ENS": 0.218308
+       },
+       "mean_loss": {
+        "CLIM": 0.166502,
+        "VOL": 0.127813,
+        "ANALOG": 0.13667,
+        "TILT": 0.127813,
+        "ENS": 0.130153
+       }
+      },
+      "B": {
+       "n_origins": 491,
+       "n_blocks": 41,
+       "skill": 0.054141,
+       "p": 0.014499,
+       "skill_vs_vol": 0.002373,
+       "p_vs_vol": 0.152742,
+       "expert_skill": {
+        "VOL": 0.051892,
+        "ANALOG": 0.04404,
+        "TILT": 0.051892,
+        "ENS": 0.054141
+       },
+       "mean_loss": {
+        "CLIM": 0.164396,
+        "VOL": 0.155866,
+        "ANALOG": 0.157156,
+        "TILT": 0.155866,
+        "ENS": 0.155496
+       }
+      },
+      "C": {
+       "n_origins": 195,
+       "n_blocks": 17,
+       "skill": -0.00739,
+       "p": 0.505325,
+       "skill_vs_vol": 0.002599,
+       "p_vs_vol": 0.266037,
+       "expert_skill": {
+        "VOL": -0.010015,
+        "ANALOG": -0.013532,
+        "TILT": -0.010015,
+        "ENS": -0.00739
+       },
+       "mean_loss": {
+        "CLIM": 0.176626,
+        "VOL": 0.178395,
+        "ANALOG": 0.179016,
+        "TILT": 0.178395,
+        "ENS": 0.177931
+       }
+      }
+     },
+     "n_blocks": 88,
+     "skill": 0.098121,
+     "p": 0.001,
+     "skill_vs_vol": -0.003614,
+     "p_vs_vol": 0.79521,
+     "expert_skill": {
+      "VOL": 0.101368,
+      "ANALOG": 0.078877,
+      "TILT": 0.101368,
+      "ENS": 0.098121
+     },
+     "mean_loss": {
+      "CLIM": 0.167402,
+      "VOL": 0.150432,
+      "ANALOG": 0.154198,
+      "TILT": 0.150432,
+      "ENS": 0.150976
+     },
+     "evaluable": true,
+     "grade": "약함",
+     "grade_vs_vol": "없음"
+    },
+    "126:beat": {
+     "n_points": 53409,
+     "n_origins": 1045,
+     "eras": {
+      "A": {
+       "n_origins": 359,
+       "n_blocks": 30,
+       "skill": 0.001814,
+       "p": 0.035898,
+       "skill_vs_vol": 0.001814,
+       "p_vs_vol": 0.035898,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.006844,
+        "TILT": 0.002947,
+        "ENS": 0.001814
+       },
+       "mean_loss": {
+        "CLIM": 0.250513,
+        "VOL": 0.250513,
+        "ANALOG": 0.252227,
+        "TILT": 0.249774,
+        "ENS": 0.250058
+       }
+      },
+      "B": {
+       "n_origins": 491,
+       "n_blocks": 41,
+       "skill": 0.004555,
+       "p": 0.00235,
+       "skill_vs_vol": 0.004555,
+       "p_vs_vol": 0.00235,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": 0.000826,
+        "TILT": 0.006164,
+        "ENS": 0.004555
+       },
+       "mean_loss": {
+        "CLIM": 0.250131,
+        "VOL": 0.250131,
+        "ANALOG": 0.249924,
+        "TILT": 0.248589,
+        "ENS": 0.248992
+       }
+      },
+      "C": {
+       "n_origins": 195,
+       "n_blocks": 17,
+       "skill": 0.000635,
+       "p": 0.428629,
+       "skill_vs_vol": 0.000635,
+       "p_vs_vol": 0.428629,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.009095,
+        "TILT": 0.000116,
+        "ENS": 0.000635
+       },
+       "mean_loss": {
+        "CLIM": 0.249827,
+        "VOL": 0.249827,
+        "ANALOG": 0.2521,
+        "TILT": 0.249798,
+        "ENS": 0.249668
+       }
+      }
+     },
+     "n_blocks": 88,
+     "skill": 0.002882,
+     "p": 0.00085,
+     "skill_vs_vol": 0.002882,
+     "p_vs_vol": 0.00085,
+     "expert_skill": {
+      "VOL": 0.0,
+      "ANALOG": -0.003661,
+      "TILT": 0.003931,
+      "ENS": 0.002882
+     },
+     "mean_loss": {
+      "CLIM": 0.250205,
+      "VOL": 0.250205,
+      "ANALOG": 0.251121,
+      "TILT": 0.249222,
+      "ENS": 0.249484
+     },
+     "evaluable": true,
+     "grade": "강함",
+     "grade_vs_vol": "강함"
+    },
+    "252:q": {
+     "n_points": 52869,
+     "n_origins": 1039,
+     "eras": {
+      "A": {
+       "n_origins": 359,
+       "n_blocks": 16,
+       "skill": 0.010443,
+       "p": 0.000748,
+       "skill_vs_vol": 0.002284,
+       "p_vs_vol": 0.390625,
+       "expert_skill": {
+        "VOL": 0.008178,
+        "ANALOG": -0.048469,
+        "TILT": 0.000446,
+        "ENS": 0.010443
+       },
+       "mean_loss": {
+        "CLIM": 0.06916,
+        "VOL": 0.068594,
+        "ANALOG": 0.072512,
+        "TILT": 0.069129,
+        "ENS": 0.068437
+       }
+      },
+      "B": {
+       "n_origins": 491,
+       "n_blocks": 21,
+       "skill": 0.003933,
+       "p": 0.102245,
+       "skill_vs_vol": 0.032975,
+       "p_vs_vol": 0.00055,
+       "expert_skill": {
+        "VOL": -0.030033,
+        "ANALOG": -0.03614,
+        "TILT": -0.026948,
+        "ENS": 0.003933
+       },
+       "mean_loss": {
+        "CLIM": 0.065951,
+        "VOL": 0.067931,
+        "ANALOG": 0.068334,
+        "TILT": 0.067728,
+        "ENS": 0.065691
+       }
+      },
+      "C": {
+       "n_origins": 189,
+       "n_blocks": 8,
+       "skill": 0.021292,
+       "p": 0.128906,
+       "skill_vs_vol": 0.057127,
+       "p_vs_vol": 0.046875,
+       "expert_skill": {
+        "VOL": -0.038007,
+        "ANALOG": -0.032525,
+        "TILT": -0.038069,
+        "ENS": 0.021292
+       },
+       "mean_loss": {
+        "CLIM": 0.066706,
+        "VOL": 0.069241,
+        "ANALOG": 0.068875,
+        "TILT": 0.069245,
+        "ENS": 0.065285
+       }
+      }
+     },
+     "n_blocks": 44,
+     "skill": 0.009382,
+     "p": 0.00125,
+     "skill_vs_vol": 0.026788,
+     "p_vs_vol": 0.00225,
+     "expert_skill": {
+      "VOL": -0.017884,
+      "ANALOG": -0.039871,
+      "TILT": -0.019214,
+      "ENS": 0.009382
+     },
+     "mean_loss": {
+      "CLIM": 0.067197,
+      "VOL": 0.068399,
+      "ANALOG": 0.069876,
+      "TILT": 0.068488,
+      "ENS": 0.066566
+     },
+     "evaluable": true,
+     "grade": "강함",
+     "grade_vs_vol": "강함",
+     "coverage80": 0.885976
+    },
+    "252:up": {
+     "n_points": 52869,
+     "n_origins": 1039,
+     "eras": {
+      "A": {
+       "n_origins": 359,
+       "n_blocks": 16,
+       "skill": -0.007073,
+       "p": 0.733047,
+       "skill_vs_vol": -0.007073,
+       "p_vs_vol": 0.733047,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.067123,
+        "TILT": -0.005484,
+        "ENS": -0.007073
+       },
+       "mean_loss": {
+        "CLIM": 0.213998,
+        "VOL": 0.213998,
+        "ANALOG": 0.228362,
+        "TILT": 0.215171,
+        "ENS": 0.215511
+       }
+      },
+      "B": {
+       "n_origins": 491,
+       "n_blocks": 21,
+       "skill": 0.001121,
+       "p": 0.350782,
+       "skill_vs_vol": 0.001121,
+       "p_vs_vol": 0.350782,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.01612,
+        "TILT": -0.001322,
+        "ENS": 0.001121
+       },
+       "mean_loss": {
+        "CLIM": 0.211077,
+        "VOL": 0.211077,
+        "ANALOG": 0.214479,
+        "TILT": 0.211356,
+        "ENS": 0.21084
+       }
+      },
+      "C": {
+       "n_origins": 189,
+       "n_blocks": 8,
+       "skill": -0.000314,
+       "p": 0.546875,
+       "skill_vs_vol": -0.000314,
+       "p_vs_vol": 0.546875,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.010834,
+        "TILT": -0.004232,
+        "ENS": -0.000314
+       },
+       "mean_loss": {
+        "CLIM": 0.200985,
+        "VOL": 0.200985,
+        "ANALOG": 0.203162,
+        "TILT": 0.201835,
+        "ENS": 0.201048
+       }
+      }
+     },
+     "n_blocks": 44,
+     "skill": -0.00201,
+     "p": 0.681916,
+     "skill_vs_vol": -0.00201,
+     "p_vs_vol": 0.681916,
+     "expert_skill": {
+      "VOL": 0.0,
+      "ANALOG": -0.033138,
+      "TILT": -0.003292,
+      "ENS": -0.00201
+     },
+     "mean_loss": {
+      "CLIM": 0.21025,
+      "VOL": 0.21025,
+      "ANALOG": 0.217217,
+      "TILT": 0.210942,
+      "ENS": 0.210673
+     },
+     "evaluable": true,
+     "grade": "없음",
+     "grade_vs_vol": "없음"
+    },
+    "252:dd15": {
+     "n_points": 52869,
+     "n_origins": 1039,
+     "eras": {
+      "A": {
+       "n_origins": 359,
+       "n_blocks": 16,
+       "skill": 0.213421,
+       "p": 0.043732,
+       "skill_vs_vol": -0.007342,
+       "p_vs_vol": 0.945343,
+       "expert_skill": {
+        "VOL": 0.219154,
+        "ANALOG": 0.157632,
+        "TILT": 0.219154,
+        "ENS": 0.213421
+       },
+       "mean_loss": {
+        "CLIM": 0.221426,
+        "VOL": 0.1729,
+        "ANALOG": 0.186522,
+        "TILT": 0.1729,
+        "ENS": 0.174169
+       }
+      },
+      "B": {
+       "n_origins": 491,
+       "n_blocks": 21,
+       "skill": 0.04401,
+       "p": 0.075246,
+       "skill_vs_vol": 0.000671,
+       "p_vs_vol": 0.235938,
+       "expert_skill": {
+        "VOL": 0.043368,
+        "ANALOG": 0.033374,
+        "TILT": 0.043368,
+        "ENS": 0.04401
+       },
+       "mean_loss": {
+        "CLIM": 0.214904,
+        "VOL": 0.205584,
+        "ANALOG": 0.207732,
+        "TILT": 0.205584,
+        "ENS": 0.205446
+       }
+      },
+      "C": {
+       "n_origins": 189,
+       "n_blocks": 8,
+       "skill": -0.019322,
+       "p": 0.550781,
+       "skill_vs_vol": 0.003096,
+       "p_vs_vol": 0.25,
+       "expert_skill": {
+        "VOL": -0.022487,
+        "ANALOG": -0.015737,
+        "TILT": -0.022487,
+        "ENS": -0.019322
+       },
+       "mean_loss": {
+        "CLIM": 0.227297,
+        "VOL": 0.232409,
+        "ANALOG": 0.230874,
+        "TILT": 0.232409,
+        "ENS": 0.231689
+       }
+      }
+     },
+     "n_blocks": 44,
+     "skill": 0.091148,
+     "p": 0.020049,
+     "skill_vs_vol": -0.001218,
+     "p_vs_vol": 0.80506,
+     "expert_skill": {
+      "VOL": 0.092254,
+      "ANALOG": 0.067448,
+      "TILT": 0.092254,
+      "ENS": 0.091148
+     },
+     "mean_loss": {
+      "CLIM": 0.219412,
+      "VOL": 0.19917,
+      "ANALOG": 0.204613,
+      "TILT": 0.19917,
+      "ENS": 0.199413
+     },
+     "evaluable": true,
+     "grade": "약함",
+     "grade_vs_vol": "없음"
+    },
+    "252:beat": {
+     "n_points": 52869,
+     "n_origins": 1039,
+     "eras": {
+      "A": {
+       "n_origins": 359,
+       "n_blocks": 16,
+       "skill": 0.000825,
+       "p": 0.235031,
+       "skill_vs_vol": 0.000825,
+       "p_vs_vol": 0.235031,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.008923,
+        "TILT": 0.000905,
+        "ENS": 0.000825
+       },
+       "mean_loss": {
+        "CLIM": 0.25109,
+        "VOL": 0.25109,
+        "ANALOG": 0.253331,
+        "TILT": 0.250863,
+        "ENS": 0.250883
+       }
+      },
+      "B": {
+       "n_origins": 491,
+       "n_blocks": 21,
+       "skill": 0.004162,
+       "p": 0.00165,
+       "skill_vs_vol": 0.004162,
+       "p_vs_vol": 0.00165,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": 0.002021,
+        "TILT": 0.006579,
+        "ENS": 0.004162
+       },
+       "mean_loss": {
+        "CLIM": 0.250325,
+        "VOL": 0.250325,
+        "ANALOG": 0.249819,
+        "TILT": 0.248678,
+        "ENS": 0.249283
+       }
+      },
+      "C": {
+       "n_origins": 189,
+       "n_blocks": 8,
+       "skill": 0.001634,
+       "p": 0.191406,
+       "skill_vs_vol": 0.001634,
+       "p_vs_vol": 0.191406,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.006064,
+        "TILT": 0.002465,
+        "ENS": 0.001634
+       },
+       "mean_loss": {
+        "CLIM": 0.249973,
+        "VOL": 0.249973,
+        "ANALOG": 0.251489,
+        "TILT": 0.249357,
+        "ENS": 0.249565
+       }
+      }
+     },
+     "n_blocks": 44,
+     "skill": 0.002547,
+     "p": 0.0003,
+     "skill_vs_vol": 0.002547,
+     "p_vs_vol": 0.0003,
+     "expert_skill": {
+      "VOL": 0.0,
+      "ANALOG": -0.003236,
+      "TILT": 0.003867,
+      "ENS": 0.002547
+     },
+     "mean_loss": {
+      "CLIM": 0.250525,
+      "VOL": 0.250525,
+      "ANALOG": 0.251336,
+      "TILT": 0.249557,
+      "ENS": 0.249887
+     },
+     "evaluable": true,
+     "grade": "강함",
+     "grade_vs_vol": "강함"
+    }
+   },
+   "holdout": {
+    "21:q": {
+     "n_points": 1127,
+     "skill": 0.009223,
+     "skill_vs_vol": 0.002877
+    },
+    "21:up": {
+     "n_points": 1127,
+     "skill": -0.003325,
+     "skill_vs_vol": -0.003325
+    },
+    "21:dd15": {
+     "n_points": 1127,
+     "skill": 0.061016,
+     "skill_vs_vol": -0.002828
+    },
+    "21:beat": {
+     "n_points": 1127,
+     "skill": 0.000735,
+     "skill_vs_vol": 0.000735
+    },
+    "63:q": {
+     "n_points": 1029,
+     "skill": 0.026136,
+     "skill_vs_vol": 0.001917
+    },
+    "63:up": {
+     "n_points": 1029,
+     "skill": -0.004299,
+     "skill_vs_vol": -0.004299
+    },
+    "63:dd15": {
+     "n_points": 1029,
+     "skill": 0.031831,
+     "skill_vs_vol": -0.001117
+    },
+    "63:beat": {
+     "n_points": 1029,
+     "skill": -0.002106,
+     "skill_vs_vol": -0.002106
+    },
+    "126:q": {
+     "n_points": 882,
+     "skill": 0.034011,
+     "skill_vs_vol": 0.004773
+    },
+    "126:up": {
+     "n_points": 882,
+     "skill": -0.00245,
+     "skill_vs_vol": -0.00245
+    },
+    "126:dd15": {
+     "n_points": 882,
+     "skill": -0.000915,
+     "skill_vs_vol": 0.001877
+    },
+    "126:beat": {
+     "n_points": 882,
+     "skill": 0.003678,
+     "skill_vs_vol": 0.003678
+    },
+    "252:q": {
+     "n_points": 588,
+     "skill": 0.033949,
+     "skill_vs_vol": -0.022762
+    },
+    "252:up": {
+     "n_points": 588,
+     "skill": -0.000774,
+     "skill_vs_vol": -0.000774
+    },
+    "252:dd15": {
+     "n_points": 588,
+     "skill": -0.037061,
+     "skill_vs_vol": 0.003483
+    },
+    "252:beat": {
+     "n_points": 588,
+     "skill": 0.003916,
+     "skill_vs_vol": 0.003916
+    }
+   }
+  },
+  "stock": {
+   "n_points": 122905,
+   "n_assets": 736,
+   "first_origin": "1996-01-04",
+   "last_origin": "2026-11-19",
+   "weights": [
+    [
+     [
+      0.0894,
+      0.3865,
+      0.159,
+      0.3651
+     ],
+     [
+      0.3101,
+      0.3101,
+      0.0945,
+      0.2854
+     ],
+     [
+      0.0067,
+      0.4249,
+      0.1436,
+      0.4249
+     ],
+     [
+      0.2892,
+      0.2892,
+      0.148,
+      0.2735
+     ]
+    ],
+    [
+     [
+      0.1097,
+      0.4025,
+      0.1456,
+      0.3422
+     ],
+     [
+      0.3231,
+      0.3231,
+      0.1028,
+      0.251
+     ],
+     [
+      0.013,
+      0.4283,
+      0.1305,
+      0.4283
+     ],
+     [
+      0.2902,
+      0.2902,
+      0.1529,
+      0.2667
+     ]
+    ],
+    [
+     [
+      0.1511,
+      0.4228,
+      0.1467,
+      0.2794
+     ],
+     [
+      0.3455,
+      0.3455,
+      0.1121,
+      0.197
+     ],
+     [
+      0.0265,
+      0.4128,
+      0.148,
+      0.4128
+     ],
+     [
+      0.3086,
+      0.3086,
+      0.1176,
+      0.2652
+     ]
+    ],
+    [
+     [
+      0.2488,
+      0.3624,
+      0.124,
+      0.2648
+     ],
+     [
+      0.3459,
+      0.3459,
+      0.0753,
+      0.233
+     ],
+     [
+      0.0394,
+      0.4111,
+      0.1385,
+      0.4111
+     ],
+     [
+      0.3147,
+      0.3147,
+      0.0908,
+      0.2798
+     ]
+    ]
+   ],
+   "realized": [
+    [
+     122030,
+     122030,
+     122030,
+     122030
+    ],
+    [
+     120774,
+     120774,
+     120774,
+     120774
+    ],
+    [
+     118889,
+     118889,
+     118889,
+     118889
+    ],
+    [
+     115116,
+     115116,
+     115116,
+     115116
+    ]
+   ],
+   "cells": {
+    "21:q": {
+     "n_points": 109301,
+     "n_origins": 283,
+     "eras": {
+      "S1": {
+       "n_origins": 143,
+       "n_blocks": 12,
+       "skill": 0.042932,
+       "p": 0.000244,
+       "skill_vs_vol": 0.000729,
+       "p_vs_vol": 0.38208,
+       "expert_skill": {
+        "VOL": 0.042233,
+        "ANALOG": 0.015923,
+        "TILT": 0.040516,
+        "ENS": 0.042932
+       },
+       "mean_loss": {
+        "CLIM": 0.027206,
+        "VOL": 0.026057,
+        "ANALOG": 0.026772,
+        "TILT": 0.026103,
+        "ENS": 0.026038
+       }
+      },
+      "S2": {
+       "n_origins": 140,
+       "n_blocks": 12,
+       "skill": 0.024849,
+       "p": 0.000244,
+       "skill_vs_vol": 0.002735,
+       "p_vs_vol": 0.038818,
+       "expert_skill": {
+        "VOL": 0.022174,
+        "ANALOG": 0.014261,
+        "TILT": 0.021687,
+        "ENS": 0.024849
+       },
+       "mean_loss": {
+        "CLIM": 0.022416,
+        "VOL": 0.021919,
+        "ANALOG": 0.022096,
+        "TILT": 0.02193,
+        "ENS": 0.021859
+       }
+      }
+     },
+     "n_blocks": 24,
+     "skill": 0.034858,
+     "p": 5e-05,
+     "skill_vs_vol": 0.001635,
+     "p_vs_vol": 0.142093,
+     "expert_skill": {
+      "VOL": 0.033277,
+      "ANALOG": 0.015181,
+      "TILT": 0.032109,
+      "ENS": 0.034858
+     },
+     "mean_loss": {
+      "CLIM": 0.024836,
+      "VOL": 0.02401,
+      "ANALOG": 0.024459,
+      "TILT": 0.024039,
+      "ENS": 0.023971
+     },
+     "evaluable": true,
+     "grade": "강함",
+     "grade_vs_vol": "약함",
+     "coverage80": 0.810097
+    },
+    "21:up": {
+     "n_points": 109301,
+     "n_origins": 283,
+     "eras": {
+      "S1": {
+       "n_origins": 143,
+       "n_blocks": 12,
+       "skill": -0.001005,
+       "p": 0.848389,
+       "skill_vs_vol": -0.001005,
+       "p_vs_vol": 0.848389,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.031559,
+        "TILT": -0.002815,
+        "ENS": -0.001005
+       },
+       "mean_loss": {
+        "CLIM": 0.246623,
+        "VOL": 0.246623,
+        "ANALOG": 0.254406,
+        "TILT": 0.247317,
+        "ENS": 0.246871
+       }
+      },
+      "S2": {
+       "n_origins": 140,
+       "n_blocks": 12,
+       "skill": -0.000414,
+       "p": 0.658936,
+       "skill_vs_vol": -0.000414,
+       "p_vs_vol": 0.658936,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.016367,
+        "TILT": -0.000768,
+        "ENS": -0.000414
+       },
+       "mean_loss": {
+        "CLIM": 0.243816,
+        "VOL": 0.243816,
+        "ANALOG": 0.247807,
+        "TILT": 0.244004,
+        "ENS": 0.243917
+       }
+      }
+     },
+     "n_blocks": 24,
+     "skill": -0.000714,
+     "p": 0.868407,
+     "skill_vs_vol": -0.000714,
+     "p_vs_vol": 0.868407,
+     "expert_skill": {
+      "VOL": 0.0,
+      "ANALOG": -0.024087,
+      "TILT": -0.001808,
+      "ENS": -0.000714
+     },
+     "mean_loss": {
+      "CLIM": 0.245235,
+      "VOL": 0.245235,
+      "ANALOG": 0.251141,
+      "TILT": 0.245678,
+      "ENS": 0.24541
+     },
+     "evaluable": true,
+     "grade": "없음",
+     "grade_vs_vol": "없음"
+    },
+    "21:dd15": {
+     "n_points": 109301,
+     "n_origins": 283,
+     "eras": {
+      "S1": {
+       "n_origins": 143,
+       "n_blocks": 12,
+       "skill": 0.134729,
+       "p": 0.000244,
+       "skill_vs_vol": -0.001247,
+       "p_vs_vol": 0.786377,
+       "expert_skill": {
+        "VOL": 0.135807,
+        "ANALOG": 0.107138,
+        "TILT": 0.135807,
+        "ENS": 0.134729
+       },
+       "mean_loss": {
+        "CLIM": 0.083412,
+        "VOL": 0.072084,
+        "ANALOG": 0.074475,
+        "TILT": 0.072084,
+        "ENS": 0.072174
+       }
+      },
+      "S2": {
+       "n_origins": 140,
+       "n_blocks": 12,
+       "skill": 0.044965,
+       "p": 0.058105,
+       "skill_vs_vol": 0.001002,
+       "p_vs_vol": 0.079102,
+       "expert_skill": {
+        "VOL": 0.044007,
+        "ANALOG": 0.034668,
+        "TILT": 0.044007,
+        "ENS": 0.044965
+       },
+       "mean_loss": {
+        "CLIM": 0.045324,
+        "VOL": 0.04333,
+        "ANALOG": 0.043753,
+        "TILT": 0.04333,
+        "ENS": 0.043286
+       }
+      }
+     },
+     "n_blocks": 24,
+     "skill": 0.103558,
+     "p": 0.0001,
+     "skill_vs_vol": -0.000414,
+     "p_vs_vol": 0.636968,
+     "expert_skill": {
+      "VOL": 0.103929,
+      "ANALOG": 0.081973,
+      "TILT": 0.103929,
+      "ENS": 0.103558
+     },
+     "mean_loss": {
+      "CLIM": 0.06457,
+      "VOL": 0.057859,
+      "ANALOG": 0.059277,
+      "TILT": 0.057859,
+      "ENS": 0.057883
+     },
+     "evaluable": true,
+     "grade": "강함",
+     "grade_vs_vol": "없음"
+    },
+    "21:beat": {
+     "n_points": 109301,
+     "n_origins": 283,
+     "eras": {
+      "S1": {
+       "n_origins": 143,
+       "n_blocks": 12,
+       "skill": -0.00022,
+       "p": 0.657715,
+       "skill_vs_vol": -0.00022,
+       "p_vs_vol": 0.657715,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.014515,
+        "TILT": -0.000731,
+        "ENS": -0.00022
+       },
+       "mean_loss": {
+        "CLIM": 0.250032,
+        "VOL": 0.250032,
+        "ANALOG": 0.253661,
+        "TILT": 0.250214,
+        "ENS": 0.250087
+       }
+      },
+      "S2": {
+       "n_origins": 140,
+       "n_blocks": 12,
+       "skill": -0.000665,
+       "p": 0.979248,
+       "skill_vs_vol": -0.000665,
+       "p_vs_vol": 0.979248,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.010004,
+        "TILT": -0.001108,
+        "ENS": -0.000665
+       },
+       "mean_loss": {
+        "CLIM": 0.250149,
+        "VOL": 0.250149,
+        "ANALOG": 0.252652,
+        "TILT": 0.250427,
+        "ENS": 0.250316
+       }
+      }
+     },
+     "n_blocks": 24,
+     "skill": -0.00044,
+     "p": 0.925454,
+     "skill_vs_vol": -0.00044,
+     "p_vs_vol": 0.925454,
+     "expert_skill": {
+      "VOL": 0.0,
+      "ANALOG": -0.012283,
+      "TILT": -0.000918,
+      "ENS": -0.00044
+     },
+     "mean_loss": {
+      "CLIM": 0.25009,
+      "VOL": 0.25009,
+      "ANALOG": 0.253162,
+      "TILT": 0.250319,
+      "ENS": 0.2502
+     },
+     "evaluable": true,
+     "grade": "없음",
+     "grade_vs_vol": "없음"
+    },
+    "63:q": {
+     "n_points": 108075,
+     "n_origins": 281,
+     "eras": {
+      "S1": {
+       "n_origins": 143,
+       "n_blocks": 12,
+       "skill": 0.029044,
+       "p": 0.000244,
+       "skill_vs_vol": 0.001646,
+       "p_vs_vol": 0.382568,
+       "expert_skill": {
+        "VOL": 0.027444,
+        "ANALOG": -0.005856,
+        "TILT": 0.020279,
+        "ENS": 0.029044
+       },
+       "mean_loss": {
+        "CLIM": 0.045968,
+        "VOL": 0.044707,
+        "ANALOG": 0.046238,
+        "TILT": 0.045036,
+        "ENS": 0.044633
+       }
+      },
+      "S2": {
+       "n_origins": 138,
+       "n_blocks": 12,
+       "skill": 0.029222,
+       "p": 0.000244,
+       "skill_vs_vol": 0.0032,
+       "p_vs_vol": 0.010498,
+       "expert_skill": {
+        "VOL": 0.026105,
+        "ANALOG": 0.016091,
+        "TILT": 0.024439,
+        "ENS": 0.029222
+       },
+       "mean_loss": {
+        "CLIM": 0.037622,
+        "VOL": 0.03664,
+        "ANALOG": 0.037017,
+        "TILT": 0.036702,
+        "ENS": 0.036523
+       }
+      }
+     },
+     "n_blocks": 24,
+     "skill": 0.029123,
+     "p": 5e-05,
+     "skill_vs_vol": 0.002332,
+     "p_vs_vol": 0.19369,
+     "expert_skill": {
+      "VOL": 0.026853,
+      "ANALOG": 0.003829,
+      "TILT": 0.022115,
+      "ENS": 0.029123
+     },
+     "mean_loss": {
+      "CLIM": 0.041869,
+      "VOL": 0.040745,
+      "ANALOG": 0.041709,
+      "TILT": 0.040943,
+      "ENS": 0.04065
+     },
+     "evaluable": true,
+     "grade": "강함",
+     "grade_vs_vol": "약함",
+     "coverage80": 0.81441
+    },
+    "63:up": {
+     "n_points": 108075,
+     "n_origins": 281,
+     "eras": {
+      "S1": {
+       "n_origins": 143,
+       "n_blocks": 12,
+       "skill": -0.003583,
+       "p": 0.840088,
+       "skill_vs_vol": -0.003583,
+       "p_vs_vol": 0.840088,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.042804,
+        "TILT": -0.01225,
+        "ENS": -0.003583
+       },
+       "mean_loss": {
+        "CLIM": 0.242685,
+        "VOL": 0.242685,
+        "ANALOG": 0.253073,
+        "TILT": 0.245658,
+        "ENS": 0.243554
+       }
+      },
+      "S2": {
+       "n_origins": 138,
+       "n_blocks": 12,
+       "skill": -0.000417,
+       "p": 0.657227,
+       "skill_vs_vol": -0.000417,
+       "p_vs_vol": 0.657227,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.011943,
+        "TILT": -0.002468,
+        "ENS": -0.000417
+       },
+       "mean_loss": {
+        "CLIM": 0.236481,
+        "VOL": 0.236481,
+        "ANALOG": 0.239306,
+        "TILT": 0.237065,
+        "ENS": 0.23658
+       }
+      }
+     },
+     "n_blocks": 24,
+     "skill": -0.002049,
+     "p": 0.861407,
+     "skill_vs_vol": -0.002049,
+     "p_vs_vol": 0.861407,
+     "expert_skill": {
+      "VOL": 0.0,
+      "ANALOG": -0.027848,
+      "TILT": -0.00751,
+      "ENS": -0.002049
+     },
+     "mean_loss": {
+      "CLIM": 0.239638,
+      "VOL": 0.239638,
+      "ANALOG": 0.246312,
+      "TILT": 0.241438,
+      "ENS": 0.240129
+     },
+     "evaluable": true,
+     "grade": "없음",
+     "grade_vs_vol": "없음"
+    },
+    "63:dd15": {
+     "n_points": 108075,
+     "n_origins": 281,
+     "eras": {
+      "S1": {
+       "n_origins": 143,
+       "n_blocks": 12,
+       "skill": 0.116823,
+       "p": 0.003418,
+       "skill_vs_vol": -0.000667,
+       "p_vs_vol": 0.66748,
+       "expert_skill": {
+        "VOL": 0.117412,
+        "ANALOG": 0.081476,
+        "TILT": 0.117412,
+        "ENS": 0.116823
+       },
+       "mean_loss": {
+        "CLIM": 0.178079,
+        "VOL": 0.157171,
+        "ANALOG": 0.16357,
+        "TILT": 0.157171,
+        "ENS": 0.157275
+       }
+      },
+      "S2": {
+       "n_origins": 138,
+       "n_blocks": 12,
+       "skill": 0.039472,
+       "p": 0.231934,
+       "skill_vs_vol": 3.2e-05,
+       "p_vs_vol": 0.486572,
+       "expert_skill": {
+        "VOL": 0.039442,
+        "ANALOG": 0.023275,
+        "TILT": 0.039442,
+        "ENS": 0.039472
+       },
+       "mean_loss": {
+        "CLIM": 0.136663,
+        "VOL": 0.131273,
+        "ANALOG": 0.133482,
+        "TILT": 0.131273,
+        "ENS": 0.131269
+       }
+      }
+     },
+     "n_blocks": 24,
+     "skill": 0.083912,
+     "p": 0.00595,
+     "skill_vs_vol": -0.000355,
+     "p_vs_vol": 0.660517,
+     "expert_skill": {
+      "VOL": 0.084237,
+      "ANALOG": 0.056712,
+      "TILT": 0.084237,
+      "ENS": 0.083912
+     },
+     "mean_loss": {
+      "CLIM": 0.15774,
+      "VOL": 0.144452,
+      "ANALOG": 0.148794,
+      "TILT": 0.144452,
+      "ENS": 0.144504
+     },
+     "evaluable": true,
+     "grade": "강함",
+     "grade_vs_vol": "없음"
+    },
+    "63:beat": {
+     "n_points": 108075,
+     "n_origins": 281,
+     "eras": {
+      "S1": {
+       "n_origins": 143,
+       "n_blocks": 12,
+       "skill": 0.000133,
+       "p": 0.418945,
+       "skill_vs_vol": 0.000133,
+       "p_vs_vol": 0.418945,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.013539,
+        "TILT": -0.000213,
+        "ENS": 0.000133
+       },
+       "mean_loss": {
+        "CLIM": 0.249738,
+        "VOL": 0.249738,
+        "ANALOG": 0.253119,
+        "TILT": 0.249791,
+        "ENS": 0.249705
+       }
+      },
+      "S2": {
+       "n_origins": 138,
+       "n_blocks": 12,
+       "skill": -0.00023,
+       "p": 0.769531,
+       "skill_vs_vol": -0.00023,
+       "p_vs_vol": 0.769531,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.007753,
+        "TILT": -0.001235,
+        "ENS": -0.00023
+       },
+       "mean_loss": {
+        "CLIM": 0.25056,
+        "VOL": 0.25056,
+        "ANALOG": 0.252503,
+        "TILT": 0.25087,
+        "ENS": 0.250618
+       }
+      }
+     },
+     "n_blocks": 24,
+     "skill": -4.5e-05,
+     "p": 0.544973,
+     "skill_vs_vol": -4.5e-05,
+     "p_vs_vol": 0.544973,
+     "expert_skill": {
+      "VOL": 0.0,
+      "ANALOG": -0.010693,
+      "TILT": -0.000716,
+      "ENS": -4.5e-05
+     },
+     "mean_loss": {
+      "CLIM": 0.250142,
+      "VOL": 0.250142,
+      "ANALOG": 0.252817,
+      "TILT": 0.250321,
+      "ENS": 0.250153
+     },
+     "evaluable": true,
+     "grade": "없음",
+     "grade_vs_vol": "없음"
+    },
+    "126:q": {
+     "n_points": 106243,
+     "n_origins": 278,
+     "eras": {
+      "S1": {
+       "n_origins": 143,
+       "n_blocks": 12,
+       "skill": 0.01687,
+       "p": 0.009033,
+       "skill_vs_vol": 0.002588,
+       "p_vs_vol": 0.357422,
+       "expert_skill": {
+        "VOL": 0.014319,
+        "ANALOG": -0.021151,
+        "TILT": -0.004184,
+        "ENS": 0.01687
+       },
+       "mean_loss": {
+        "CLIM": 0.066271,
+        "VOL": 0.065322,
+        "ANALOG": 0.067673,
+        "TILT": 0.066548,
+        "ENS": 0.065153
+       }
+      },
+      "S2": {
+       "n_origins": 135,
+       "n_blocks": 12,
+       "skill": 0.032054,
+       "p": 0.001709,
+       "skill_vs_vol": 0.003753,
+       "p_vs_vol": 0.077393,
+       "expert_skill": {
+        "VOL": 0.028408,
+        "ANALOG": 0.017085,
+        "TILT": 0.024973,
+        "ENS": 0.032054
+       },
+       "mean_loss": {
+        "CLIM": 0.052665,
+        "VOL": 0.051169,
+        "ANALOG": 0.051765,
+        "TILT": 0.05135,
+        "ENS": 0.050977
+       }
+      }
+     },
+     "n_blocks": 24,
+     "skill": 0.023379,
+     "p": 0.0002,
+     "skill_vs_vol": 0.003083,
+     "p_vs_vol": 0.219189,
+     "expert_skill": {
+      "VOL": 0.020358,
+      "ANALOG": -0.004761,
+      "TILT": 0.008314,
+      "ENS": 0.023379
+     },
+     "mean_loss": {
+      "CLIM": 0.059664,
+      "VOL": 0.058449,
+      "ANALOG": 0.059948,
+      "TILT": 0.059168,
+      "ENS": 0.058269
+     },
+     "evaluable": true,
+     "grade": "강함",
+     "grade_vs_vol": "약함",
+     "coverage80": 0.824428
+    },
+    "126:up": {
+     "n_points": 106243,
+     "n_origins": 278,
+     "eras": {
+      "S1": {
+       "n_origins": 143,
+       "n_blocks": 12,
+       "skill": -0.008344,
+       "p": 0.862305,
+       "skill_vs_vol": -0.008344,
+       "p_vs_vol": 0.862305,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.044968,
+        "TILT": -0.027994,
+        "ENS": -0.008344
+       },
+       "mean_loss": {
+        "CLIM": 0.239115,
+        "VOL": 0.239115,
+        "ANALOG": 0.249868,
+        "TILT": 0.245809,
+        "ENS": 0.24111
+       }
+      },
+      "S2": {
+       "n_origins": 135,
+       "n_blocks": 12,
+       "skill": -0.000499,
+       "p": 0.578125,
+       "skill_vs_vol": -0.000499,
+       "p_vs_vol": 0.578125,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.011809,
+        "TILT": -0.004436,
+        "ENS": -0.000499
+       },
+       "mean_loss": {
+        "CLIM": 0.229748,
+        "VOL": 0.229748,
+        "ANALOG": 0.232461,
+        "TILT": 0.230767,
+        "ENS": 0.229863
+       }
+      }
+     },
+     "n_blocks": 24,
+     "skill": -0.004612,
+     "p": 0.874856,
+     "skill_vs_vol": -0.004612,
+     "p_vs_vol": 0.874856,
+     "expert_skill": {
+      "VOL": 0.0,
+      "ANALOG": -0.029196,
+      "TILT": -0.016789,
+      "ENS": -0.004612
+     },
+     "mean_loss": {
+      "CLIM": 0.234566,
+      "VOL": 0.234566,
+      "ANALOG": 0.241415,
+      "TILT": 0.238504,
+      "ENS": 0.235648
+     },
+     "evaluable": true,
+     "grade": "없음",
+     "grade_vs_vol": "없음"
+    },
+    "126:dd15": {
+     "n_points": 106243,
+     "n_origins": 278,
+     "eras": {
+      "S1": {
+       "n_origins": 143,
+       "n_blocks": 12,
+       "skill": 0.094457,
+       "p": 0.036377,
+       "skill_vs_vol": -0.000857,
+       "p_vs_vol": 0.625488,
+       "expert_skill": {
+        "VOL": 0.095232,
+        "ANALOG": 0.055877,
+        "TILT": 0.095232,
+        "ENS": 0.094457
+       },
+       "mean_loss": {
+        "CLIM": 0.227521,
+        "VOL": 0.205854,
+        "ANALOG": 0.214808,
+        "TILT": 0.205854,
+        "ENS": 0.20603
+       }
+      },
+      "S2": {
+       "n_origins": 135,
+       "n_blocks": 12,
+       "skill": 0.029108,
+       "p": 0.272949,
+       "skill_vs_vol": 0.000392,
+       "p_vs_vol": 0.371582,
+       "expert_skill": {
+        "VOL": 0.028727,
+        "ANALOG": 0.015085,
+        "TILT": 0.028727,
+        "ENS": 0.029108
+       },
+       "mean_loss": {
+        "CLIM": 0.200258,
+        "VOL": 0.194505,
+        "ANALOG": 0.197237,
+        "TILT": 0.194505,
+        "ENS": 0.194428
+       }
+      }
+     },
+     "n_blocks": 24,
+     "skill": 0.0648,
+     "p": 0.033148,
+     "skill_vs_vol": -0.000268,
+     "p_vs_vol": 0.582571,
+     "expert_skill": {
+      "VOL": 0.065051,
+      "ANALOG": 0.037364,
+      "TILT": 0.065051,
+      "ENS": 0.0648
+     },
+     "mean_loss": {
+      "CLIM": 0.214282,
+      "VOL": 0.200343,
+      "ANALOG": 0.206275,
+      "TILT": 0.200343,
+      "ENS": 0.200396
+     },
+     "evaluable": true,
+     "grade": "보통",
+     "grade_vs_vol": "없음"
+    },
+    "126:beat": {
+     "n_points": 106243,
+     "n_origins": 278,
+     "eras": {
+      "S1": {
+       "n_origins": 143,
+       "n_blocks": 12,
+       "skill": -0.00036,
+       "p": 0.768799,
+       "skill_vs_vol": -0.00036,
+       "p_vs_vol": 0.768799,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.028167,
+        "TILT": -0.001873,
+        "ENS": -0.00036
+       },
+       "mean_loss": {
+        "CLIM": 0.249987,
+        "VOL": 0.249987,
+        "ANALOG": 0.257028,
+        "TILT": 0.250455,
+        "ENS": 0.250077
+       }
+      },
+      "S2": {
+       "n_origins": 135,
+       "n_blocks": 12,
+       "skill": -0.000621,
+       "p": 0.72998,
+       "skill_vs_vol": -0.000621,
+       "p_vs_vol": 0.72998,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.011308,
+        "TILT": -0.002018,
+        "ENS": -0.000621
+       },
+       "mean_loss": {
+        "CLIM": 0.250891,
+        "VOL": 0.250891,
+        "ANALOG": 0.253728,
+        "TILT": 0.251398,
+        "ENS": 0.251047
+       }
+      }
+     },
+     "n_blocks": 24,
+     "skill": -0.000487,
+     "p": 0.828209,
+     "skill_vs_vol": -0.000487,
+     "p_vs_vol": 0.828209,
+     "expert_skill": {
+      "VOL": 0.0,
+      "ANALOG": -0.019965,
+      "TILT": -0.001944,
+      "ENS": -0.000487
+     },
+     "mean_loss": {
+      "CLIM": 0.250426,
+      "VOL": 0.250426,
+      "ANALOG": 0.255426,
+      "TILT": 0.250913,
+      "ENS": 0.250548
+     },
+     "evaluable": true,
+     "grade": "없음",
+     "grade_vs_vol": "없음"
+    },
+    "252:q": {
+     "n_points": 102573,
+     "n_origins": 272,
+     "eras": {
+      "S1": {
+       "n_origins": 143,
+       "n_blocks": 7,
+       "skill": 0.013452,
+       "p": 0.007812,
+       "skill_vs_vol": 0.017071,
+       "p_vs_vol": 0.171875,
+       "expert_skill": {
+        "VOL": -0.003682,
+        "ANALOG": -0.03953,
+        "TILT": -0.013257,
+        "ENS": 0.013452
+       },
+       "mean_loss": {
+        "CLIM": 0.095519,
+        "VOL": 0.095871,
+        "ANALOG": 0.099295,
+        "TILT": 0.096785,
+        "ENS": 0.094234
+       }
+      },
+      "S2": {
+       "n_origins": 129,
+       "n_blocks": 6,
+       "skill": 0.035027,
+       "p": 0.015625,
+       "skill_vs_vol": 0.00247,
+       "p_vs_vol": 0.234375,
+       "expert_skill": {
+        "VOL": 0.032638,
+        "ANALOG": 0.018626,
+        "TILT": 0.027469,
+        "ENS": 0.035027
+       },
+       "mean_loss": {
+        "CLIM": 0.075128,
+        "VOL": 0.072676,
+        "ANALOG": 0.073728,
+        "TILT": 0.073064,
+        "ENS": 0.072496
+       }
+      }
+     },
+     "n_blocks": 12,
+     "skill": 0.022406,
+     "p": 0.000244,
+     "skill_vs_vol": 0.011141,
+     "p_vs_vol": 0.158447,
+     "expert_skill": {
+      "VOL": 0.011392,
+      "ANALOG": -0.015393,
+      "TILT": 0.003646,
+      "ENS": 0.022406
+     },
+     "mean_loss": {
+      "CLIM": 0.085848,
+      "VOL": 0.08487,
+      "ANALOG": 0.08717,
+      "TILT": 0.085535,
+      "ENS": 0.083925
+     },
+     "evaluable": true,
+     "grade": "강함",
+     "grade_vs_vol": "약함",
+     "coverage80": 0.838925
+    },
+    "252:up": {
+     "n_points": 102573,
+     "n_origins": 272,
+     "eras": {
+      "S1": {
+       "n_origins": 143,
+       "n_blocks": 7,
+       "skill": -0.00676,
+       "p": 0.585938,
+       "skill_vs_vol": -0.00676,
+       "p_vs_vol": 0.585938,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.063988,
+        "TILT": -0.015343,
+        "ENS": -0.00676
+       },
+       "mean_loss": {
+        "CLIM": 0.235473,
+        "VOL": 0.235473,
+        "ANALOG": 0.25054,
+        "TILT": 0.239086,
+        "ENS": 0.237065
+       }
+      },
+      "S2": {
+       "n_origins": 129,
+       "n_blocks": 6,
+       "skill": -0.000194,
+       "p": 0.375,
+       "skill_vs_vol": -0.000194,
+       "p_vs_vol": 0.375,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.013617,
+        "TILT": -0.004202,
+        "ENS": -0.000194
+       },
+       "mean_loss": {
+        "CLIM": 0.221475,
+        "VOL": 0.221475,
+        "ANALOG": 0.224491,
+        "TILT": 0.222406,
+        "ENS": 0.221518
+       }
+      }
+     },
+     "n_blocks": 12,
+     "skill": -0.003746,
+     "p": 0.635742,
+     "skill_vs_vol": -0.003746,
+     "p_vs_vol": 0.635742,
+     "expert_skill": {
+      "VOL": 0.0,
+      "ANALOG": -0.040867,
+      "TILT": -0.010229,
+      "ENS": -0.003746
+     },
+     "mean_loss": {
+      "CLIM": 0.228834,
+      "VOL": 0.228834,
+      "ANALOG": 0.238186,
+      "TILT": 0.231175,
+      "ENS": 0.229692
+     },
+     "evaluable": true,
+     "grade": "없음",
+     "grade_vs_vol": "없음"
+    },
+    "252:dd15": {
+     "n_points": 102573,
+     "n_origins": 272,
+     "eras": {
+      "S1": {
+       "n_origins": 143,
+       "n_blocks": 7,
+       "skill": 0.077133,
+       "p": 0.046875,
+       "skill_vs_vol": -0.002926,
+       "p_vs_vol": 0.601562,
+       "expert_skill": {
+        "VOL": 0.079825,
+        "ANALOG": 0.029852,
+        "TILT": 0.079825,
+        "ENS": 0.077133
+       },
+       "mean_loss": {
+        "CLIM": 0.258789,
+        "VOL": 0.238131,
+        "ANALOG": 0.251064,
+        "TILT": 0.238131,
+        "ENS": 0.238828
+       }
+      },
+      "S2": {
+       "n_origins": 129,
+       "n_blocks": 6,
+       "skill": 0.018193,
+       "p": 0.28125,
+       "skill_vs_vol": 0.000807,
+       "p_vs_vol": 0.3125,
+       "expert_skill": {
+        "VOL": 0.017399,
+        "ANALOG": 0.00599,
+        "TILT": 0.017399,
+        "ENS": 0.018193
+       },
+       "mean_loss": {
+        "CLIM": 0.243959,
+        "VOL": 0.239714,
+        "ANALOG": 0.242497,
+        "TILT": 0.239714,
+        "ENS": 0.23952
+       }
+      }
+     },
+     "n_blocks": 12,
+     "skill": 0.050045,
+     "p": 0.100342,
+     "skill_vs_vol": -0.001149,
+     "p_vs_vol": 0.572266,
+     "expert_skill": {
+      "VOL": 0.051136,
+      "ANALOG": 0.018886,
+      "TILT": 0.051136,
+      "ENS": 0.050045
+     },
+     "mean_loss": {
+      "CLIM": 0.251756,
+      "VOL": 0.238882,
+      "ANALOG": 0.247001,
+      "TILT": 0.238882,
+      "ENS": 0.239156
+     },
+     "evaluable": true,
+     "grade": "약함",
+     "grade_vs_vol": "없음"
+    },
+    "252:beat": {
+     "n_points": 102573,
+     "n_origins": 272,
+     "eras": {
+      "S1": {
+       "n_origins": 143,
+       "n_blocks": 7,
+       "skill": -0.001144,
+       "p": 0.820312,
+       "skill_vs_vol": -0.001144,
+       "p_vs_vol": 0.820312,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.058165,
+        "TILT": -0.003864,
+        "ENS": -0.001144
+       },
+       "mean_loss": {
+        "CLIM": 0.251887,
+        "VOL": 0.251887,
+        "ANALOG": 0.266538,
+        "TILT": 0.25286,
+        "ENS": 0.252175
+       }
+      },
+      "S2": {
+       "n_origins": 129,
+       "n_blocks": 6,
+       "skill": -0.00055,
+       "p": 0.671875,
+       "skill_vs_vol": -0.00055,
+       "p_vs_vol": 0.671875,
+       "expert_skill": {
+        "VOL": 0.0,
+        "ANALOG": -0.01257,
+        "TILT": -0.002304,
+        "ENS": -0.00055
+       },
+       "mean_loss": {
+        "CLIM": 0.250924,
+        "VOL": 0.250924,
+        "ANALOG": 0.254078,
+        "TILT": 0.251502,
+        "ENS": 0.251062
+       }
+      }
+     },
+     "n_blocks": 12,
+     "skill": -0.000863,
+     "p": 0.893311,
+     "skill_vs_vol": -0.000863,
+     "p_vs_vol": 0.893311,
+     "expert_skill": {
+      "VOL": 0.0,
+      "ANALOG": -0.036585,
+      "TILT": -0.003125,
+      "ENS": -0.000863
+     },
+     "mean_loss": {
+      "CLIM": 0.25143,
+      "VOL": 0.25143,
+      "ANALOG": 0.260628,
+      "TILT": 0.252216,
+      "ENS": 0.251647
+     },
+     "evaluable": true,
+     "grade": "없음",
+     "grade_vs_vol": "없음"
+    }
+   },
+   "holdout": {
+    "21:q": {
+     "n_points": 12248,
+     "skill": 0.032869,
+     "skill_vs_vol": 0.001956
+    },
+    "21:up": {
+     "n_points": 12248,
+     "skill": 0.001179,
+     "skill_vs_vol": 0.001179
+    },
+    "21:dd15": {
+     "n_points": 12248,
+     "skill": 0.055618,
+     "skill_vs_vol": 0.001365
+    },
+    "21:beat": {
+     "n_points": 12248,
+     "skill": -0.000339,
+     "skill_vs_vol": -0.000339
+    },
+    "63:q": {
+     "n_points": 11256,
+     "skill": 0.037426,
+     "skill_vs_vol": 0.001878
+    },
+    "63:up": {
+     "n_points": 11256,
+     "skill": 0.002465,
+     "skill_vs_vol": 0.002465
+    },
+    "63:dd15": {
+     "n_points": 11256,
+     "skill": 0.055754,
+     "skill_vs_vol": 0.001802
+    },
+    "63:beat": {
+     "n_points": 11256,
+     "skill": 0.000119,
+     "skill_vs_vol": 0.000119
+    },
+    "126:q": {
+     "n_points": 9768,
+     "skill": 0.039631,
+     "skill_vs_vol": -0.000772
+    },
+    "126:up": {
+     "n_points": 9768,
+     "skill": 0.001866,
+     "skill_vs_vol": 0.001866
+    },
+    "126:dd15": {
+     "n_points": 9768,
+     "skill": 0.038577,
+     "skill_vs_vol": 0.003299
+    },
+    "126:beat": {
+     "n_points": 9768,
+     "skill": -0.000346,
+     "skill_vs_vol": -0.000346
+    },
+    "252:q": {
+     "n_points": 6803,
+     "skill": 0.037155,
+     "skill_vs_vol": -0.003866
+    },
+    "252:up": {
+     "n_points": 6803,
+     "skill": 0.000933,
+     "skill_vs_vol": 0.000933
+    },
+    "252:dd15": {
+     "n_points": 6803,
+     "skill": 0.015134,
+     "skill_vs_vol": 0.00718
+    },
+    "252:beat": {
+     "n_points": 6803,
+     "skill": 0.002922,
+     "skill_vs_vol": 0.002922
+    }
+   }
+  }
+ },
+ "now": {
+  "date": "2026-09-30",
+  "dd": -0.023354,
+  "rows": [
+   {
+    "h": 21,
+    "q_ens": [
+     -0.044433,
+     -0.013781,
+     0.01467,
+     0.036147,
+     0.055014
+    ],
+    "q_clim": [
+     -0.050402,
+     -0.015572,
+     0.015456,
+     0.038686,
+     0.063567
+    ],
+    "p_ens": [
+     0.646755,
+     0.015005,
+     null
+    ],
+    "p_clim": [
+     0.625948,
+     0.015164,
+     null
+    ],
+    "n": 1187
+   },
+   {
+    "h": 63,
+    "q_ens": [
+     -0.067315,
+     -0.016808,
+     0.032197,
+     0.076349,
+     0.118153
+    ],
+    "q_clim": [
+     -0.078384,
+     -0.018113,
+     0.034712,
+     0.083224,
+     0.126204
+    ],
+    "p_ens": [
+     0.686546,
+     0.043938,
+     null
+    ],
+    "p_clim": [
+     0.6827,
+     0.073418,
+     null
+    ],
+    "n": 1185
+   },
+   {
+    "h": 126,
+    "q_ens": [
+     -0.095786,
+     -0.013971,
+     0.063443,
+     0.128054,
+     0.197224
+    ],
+    "q_clim": [
+     -0.109729,
+     -0.016016,
+     0.068261,
+     0.13401,
+     0.207912
+    ],
+    "p_ens": [
+     0.706773,
+     0.098881,
+     null
+    ],
+    "p_clim": [
+     0.707276,
+     0.150592,
+     null
+    ],
+    "n": 1182
+   },
+   {
+    "h": 252,
+    "q_ens": [
+     -0.128859,
+     0.00129,
+     0.133351,
+     0.240423,
+     0.355871
+    ],
+    "q_clim": [
+     -0.13383,
+     0.00071,
+     0.136318,
+     0.246028,
+     0.357278
+    ],
+    "p_ens": [
+     0.753756,
+     0.195078,
+     null
+    ],
+    "p_clim": [
+     0.75085,
+     0.229592,
+     null
+    ],
+    "n": 1176
+   }
+  ]
+ }
+}

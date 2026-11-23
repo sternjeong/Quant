@@ -1,0 +1,815 @@
+{
+ "study": "desk-engine-v1",
+ "lab_version": "desk-engine-lab/v1",
+ "data_end": "2026-11-20",
+ "smoke": false,
+ "horizons": [
+  21,
+  63,
+  126,
+  252
+ ],
+ "taus": [
+  0.1,
+  0.25,
+  0.5,
+  0.75,
+  0.9
+ ],
+ "events": [
+  "up",
+  "dd15",
+  "beat"
+ ],
+ "experts": [
+  "CLIM",
+  "VOL",
+  "ANALOG",
+  "TILT"
+ ],
+ "kinds": [
+  "q",
+  "up",
+  "dd15",
+  "beat"
+ ],
+ "alpha_family": 0.008333,
+ "layers": {
+  "market": {
+   "feats": [
+    "dd",
+    "mom",
+    "trend",
+    "volr",
+    "rev"
+   ],
+   "library": "library_market.csv",
+   "weights": [
+    [
+     [
+      0.267151,
+      0.264039,
+      0.196122,
+      0.272688
+     ],
+     [
+      0.223804,
+      0.223804,
+      0.272804,
+      0.279588
+     ],
+     [
+      0.986806,
+      0.006063,
+      0.001068,
+      0.006063
+     ],
+     [
+      0.25,
+      0.25,
+      0.25,
+      0.25
+     ]
+    ],
+    [
+     [
+      0.273938,
+      0.296435,
+      0.129639,
+      0.299987
+     ],
+     [
+      0.238004,
+      0.238004,
+      0.158453,
+      0.365539
+     ],
+     [
+      0.049828,
+      0.383683,
+      0.182806,
+      0.383683
+     ],
+     [
+      0.25,
+      0.25,
+      0.25,
+      0.25
+     ]
+    ],
+    [
+     [
+      0.447841,
+      0.211734,
+      0.106535,
+      0.23389
+     ],
+     [
+      0.226036,
+      0.226036,
+      0.156173,
+      0.391755
+     ],
+     [
+      0.016805,
+      0.416771,
+      0.149652,
+      0.416771
+     ],
+     [
+      0.25,
+      0.25,
+      0.25,
+      0.25
+     ]
+    ],
+    [
+     [
+      0.814365,
+      0.070338,
+      0.030342,
+      0.084956
+     ],
+     [
+      0.271763,
+      0.271763,
+      0.141793,
+      0.31468
+     ],
+     [
+      0.046853,
+      0.381642,
+      0.189863,
+      0.381642
+     ],
+     [
+      0.25,
+      0.25,
+      0.25,
+      0.25
+     ]
+    ]
+   ],
+   "last_origin": "2026-09-30",
+   "cells": {
+    "21:q": {
+     "grade": "약함",
+     "grade_vs_vol": "강함",
+     "skill": 0.010499,
+     "p": 0.132443,
+     "skill_vs_vol": 0.010833,
+     "evaluable": true,
+     "coverage80": 0.846659
+    },
+    "21:up": {
+     "grade": "보통",
+     "grade_vs_vol": "보통",
+     "skill": 0.006633,
+     "p": 0.028849,
+     "skill_vs_vol": 0.006633,
+     "evaluable": true,
+     "coverage80": null
+    },
+    "21:dd15": {
+     "grade": "없음",
+     "grade_vs_vol": "강함",
+     "skill": -0.014501,
+     "p": 0.60692,
+     "skill_vs_vol": 0.077655,
+     "evaluable": true,
+     "coverage80": null
+    },
+    "63:q": {
+     "grade": "약함",
+     "grade_vs_vol": "약함",
+     "skill": 0.00987,
+     "p": 0.19789,
+     "skill_vs_vol": 0.008837,
+     "evaluable": true,
+     "coverage80": 0.862486
+    },
+    "63:up": {
+     "grade": "약함",
+     "grade_vs_vol": "약함",
+     "skill": 0.004563,
+     "p": 0.244288,
+     "skill_vs_vol": 0.004563,
+     "evaluable": true,
+     "coverage80": null
+    },
+    "63:dd15": {
+     "grade": "약함",
+     "grade_vs_vol": "없음",
+     "skill": 0.040135,
+     "p": 0.19289,
+     "skill_vs_vol": -0.00562,
+     "evaluable": true,
+     "coverage80": null
+    },
+    "126:q": {
+     "grade": "약함",
+     "grade_vs_vol": "보통",
+     "skill": 0.004855,
+     "p": 0.332033,
+     "skill_vs_vol": 0.019848,
+     "evaluable": true,
+     "coverage80": 0.871539
+    },
+    "126:up": {
+     "grade": "약함",
+     "grade_vs_vol": "약함",
+     "skill": 0.006869,
+     "p": 0.225289,
+     "skill_vs_vol": 0.006869,
+     "evaluable": true,
+     "coverage80": null
+    },
+    "126:dd15": {
+     "grade": "약함",
+     "grade_vs_vol": "없음",
+     "skill": 0.062754,
+     "p": 0.063197,
+     "skill_vs_vol": -0.007723,
+     "evaluable": true,
+     "coverage80": null
+    },
+    "252:q": {
+     "grade": "없음",
+     "grade_vs_vol": "강함",
+     "skill": -0.004388,
+     "p": 0.624919,
+     "skill_vs_vol": 0.043134,
+     "evaluable": true,
+     "coverage80": 0.873176
+    },
+    "252:up": {
+     "grade": "약함",
+     "grade_vs_vol": "약함",
+     "skill": 0.000484,
+     "p": 0.434028,
+     "skill_vs_vol": 0.000484,
+     "evaluable": true,
+     "coverage80": null
+    },
+    "252:dd15": {
+     "grade": "약함",
+     "grade_vs_vol": "없음",
+     "skill": 0.037825,
+     "p": 0.175041,
+     "skill_vs_vol": -0.006779,
+     "evaluable": true,
+     "coverage80": null
+    }
+   }
+  },
+  "industry": {
+   "feats": [
+    "dd",
+    "mom",
+    "trend",
+    "volr",
+    "rev",
+    "mdd",
+    "mvolr"
+   ],
+   "library": "library_industry.csv",
+   "weights": [
+    [
+     [
+      0.152191,
+      0.316631,
+      0.168489,
+      0.362689
+     ],
+     [
+      0.268238,
+      0.268238,
+      0.118365,
+      0.34516
+     ],
+     [
+      0.003297,
+      0.41421,
+      0.168284,
+      0.41421
+     ],
+     [
+      0.25393,
+      0.25393,
+      0.211712,
+      0.280428
+     ]
+    ],
+    [
+     [
+      0.20473,
+      0.318876,
+      0.102122,
+      0.374272
+     ],
+     [
+      0.286983,
+      0.286983,
+      0.086846,
+      0.339189
+     ],
+     [
+      0.001368,
+      0.400703,
+      0.197227,
+      0.400703
+     ],
+     [
+      0.256414,
+      0.256414,
+      0.205223,
+      0.28195
+     ]
+    ],
+    [
+     [
+      0.380715,
+      0.243504,
+      0.044394,
+      0.331388
+     ],
+     [
+      0.266518,
+      0.266518,
+      0.106529,
+      0.360436
+     ],
+     [
+      0.001682,
+      0.38825,
+      0.221819,
+      0.38825
+     ],
+     [
+      0.25191,
+      0.25191,
+      0.197407,
+      0.298773
+     ]
+    ],
+    [
+     [
+      0.690508,
+      0.120489,
+      0.013165,
+      0.175838
+     ],
+     [
+      0.273575,
+      0.273575,
+      0.057943,
+      0.394907
+     ],
+     [
+      0.003344,
+      0.417067,
+      0.162523,
+      0.417067
+     ],
+     [
+      0.260309,
+      0.260309,
+      0.174014,
+      0.305368
+     ]
+    ]
+   ],
+   "last_origin": "2026-09-30",
+   "cells": {
+    "21:q": {
+     "grade": "강함",
+     "grade_vs_vol": "강함",
+     "skill": 0.023397,
+     "p": 5e-05,
+     "skill_vs_vol": 0.008179,
+     "evaluable": true,
+     "coverage80": 0.819915
+    },
+    "21:up": {
+     "grade": "약함",
+     "grade_vs_vol": "약함",
+     "skill": 0.003394,
+     "p": 0.020949,
+     "skill_vs_vol": 0.003394,
+     "evaluable": true,
+     "coverage80": null
+    },
+    "21:dd15": {
+     "grade": "강함",
+     "grade_vs_vol": "약함",
+     "skill": 0.089475,
+     "p": 5e-05,
+     "skill_vs_vol": 0.001752,
+     "evaluable": true,
+     "coverage80": null
+    },
+    "21:beat": {
+     "grade": "약함",
+     "grade_vs_vol": "약함",
+     "skill": 0.001917,
+     "p": 0.00015,
+     "skill_vs_vol": 0.001917,
+     "evaluable": true,
+     "coverage80": null
+    },
+    "63:q": {
+     "grade": "강함",
+     "grade_vs_vol": "강함",
+     "skill": 0.020702,
+     "p": 0.00045,
+     "skill_vs_vol": 0.009175,
+     "evaluable": true,
+     "coverage80": 0.83285
+    },
+    "63:up": {
+     "grade": "약함",
+     "grade_vs_vol": "약함",
+     "skill": 0.000863,
+     "p": 0.39223,
+     "skill_vs_vol": 0.000863,
+     "evaluable": true,
+     "coverage80": null
+    },
+    "63:dd15": {
+     "grade": "강함",
+     "grade_vs_vol": "약함",
+     "skill": 0.106405,
+     "p": 0.0001,
+     "skill_vs_vol": 0.000633,
+     "evaluable": true,
+     "coverage80": null
+    },
+    "63:beat": {
+     "grade": "강함",
+     "grade_vs_vol": "강함",
+     "skill": 0.002365,
+     "p": 0.00045,
+     "skill_vs_vol": 0.002365,
+     "evaluable": true,
+     "coverage80": null
+    },
+    "126:q": {
+     "grade": "강함",
+     "grade_vs_vol": "강함",
+     "skill": 0.015248,
+     "p": 0.00495,
+     "skill_vs_vol": 0.015207,
+     "evaluable": true,
+     "coverage80": 0.860359
+    },
+    "126:up": {
+     "grade": "없음",
+     "grade_vs_vol": "없음",
+     "skill": -0.001614,
+     "p": 0.577571,
+     "skill_vs_vol": -0.001614,
+     "evaluable": true,
+     "coverage80": null
+    },
+    "126:dd15": {
+     "grade": "약함",
+     "grade_vs_vol": "없음",
+     "skill": 0.098121,
+     "p": 0.001,
+     "skill_vs_vol": -0.003614,
+     "evaluable": true,
+     "coverage80": null
+    },
+    "126:beat": {
+     "grade": "강함",
+     "grade_vs_vol": "강함",
+     "skill": 0.002882,
+     "p": 0.00085,
+     "skill_vs_vol": 0.002882,
+     "evaluable": true,
+     "coverage80": null
+    },
+    "252:q": {
+     "grade": "강함",
+     "grade_vs_vol": "강함",
+     "skill": 0.009382,
+     "p": 0.00125,
+     "skill_vs_vol": 0.026788,
+     "evaluable": true,
+     "coverage80": 0.885976
+    },
+    "252:up": {
+     "grade": "없음",
+     "grade_vs_vol": "없음",
+     "skill": -0.00201,
+     "p": 0.681916,
+     "skill_vs_vol": -0.00201,
+     "evaluable": true,
+     "coverage80": null
+    },
+    "252:dd15": {
+     "grade": "약함",
+     "grade_vs_vol": "없음",
+     "skill": 0.091148,
+     "p": 0.020049,
+     "skill_vs_vol": -0.001218,
+     "evaluable": true,
+     "coverage80": null
+    },
+    "252:beat": {
+     "grade": "강함",
+     "grade_vs_vol": "강함",
+     "skill": 0.002547,
+     "p": 0.0003,
+     "skill_vs_vol": 0.002547,
+     "evaluable": true,
+     "coverage80": null
+    }
+   }
+  },
+  "stock": {
+   "feats": [
+    "dd",
+    "mom",
+    "trend",
+    "volr",
+    "rev",
+    "mdd",
+    "mvolr"
+   ],
+   "library": "library_stock.csv",
+   "weights": [
+    [
+     [
+      0.089402,
+      0.386492,
+      0.159034,
+      0.365071
+     ],
+     [
+      0.310062,
+      0.310062,
+      0.094486,
+      0.285391
+     ],
+     [
+      0.006702,
+      0.424868,
+      0.143562,
+      0.424868
+     ],
+     [
+      0.289244,
+      0.289244,
+      0.148028,
+      0.273485
+     ]
+    ],
+    [
+     [
+      0.109653,
+      0.402502,
+      0.145598,
+      0.342246
+     ],
+     [
+      0.323134,
+      0.323134,
+      0.102756,
+      0.250976
+     ],
+     [
+      0.013002,
+      0.428271,
+      0.130456,
+      0.428271
+     ],
+     [
+      0.290212,
+      0.290212,
+      0.152904,
+      0.266672
+     ]
+    ],
+    [
+     [
+      0.151095,
+      0.422769,
+      0.146704,
+      0.279431
+     ],
+     [
+      0.34546,
+      0.34546,
+      0.112119,
+      0.196962
+     ],
+     [
+      0.026477,
+      0.412777,
+      0.147969,
+      0.412777
+     ],
+     [
+      0.308602,
+      0.308602,
+      0.117602,
+      0.265193
+     ]
+    ],
+    [
+     [
+      0.24875,
+      0.362448,
+      0.12399,
+      0.264811
+     ],
+     [
+      0.345882,
+      0.345882,
+      0.075283,
+      0.232952
+     ],
+     [
+      0.039375,
+      0.411062,
+      0.138501,
+      0.411062
+     ],
+     [
+      0.314704,
+      0.314704,
+      0.090778,
+      0.279814
+     ]
+    ]
+   ],
+   "last_origin": "2026-11-19",
+   "cells": {
+    "21:q": {
+     "grade": "강함",
+     "grade_vs_vol": "약함",
+     "skill": 0.034858,
+     "p": 5e-05,
+     "skill_vs_vol": 0.001635,
+     "evaluable": true,
+     "coverage80": 0.810097
+    },
+    "21:up": {
+     "grade": "없음",
+     "grade_vs_vol": "없음",
+     "skill": -0.000714,
+     "p": 0.868407,
+     "skill_vs_vol": -0.000714,
+     "evaluable": true,
+     "coverage80": null
+    },
+    "21:dd15": {
+     "grade": "강함",
+     "grade_vs_vol": "없음",
+     "skill": 0.103558,
+     "p": 0.0001,
+     "skill_vs_vol": -0.000414,
+     "evaluable": true,
+     "coverage80": null
+    },
+    "21:beat": {
+     "grade": "없음",
+     "grade_vs_vol": "없음",
+     "skill": -0.00044,
+     "p": 0.925454,
+     "skill_vs_vol": -0.00044,
+     "evaluable": true,
+     "coverage80": null
+    },
+    "63:q": {
+     "grade": "강함",
+     "grade_vs_vol": "약함",
+     "skill": 0.029123,
+     "p": 5e-05,
+     "skill_vs_vol": 0.002332,
+     "evaluable": true,
+     "coverage80": 0.81441
+    },
+    "63:up": {
+     "grade": "없음",
+     "grade_vs_vol": "없음",
+     "skill": -0.002049,
+     "p": 0.861407,
+     "skill_vs_vol": -0.002049,
+     "evaluable": true,
+     "coverage80": null
+    },
+    "63:dd15": {
+     "grade": "강함",
+     "grade_vs_vol": "없음",
+     "skill": 0.083912,
+     "p": 0.00595,
+     "skill_vs_vol": -0.000355,
+     "evaluable": true,
+     "coverage80": null
+    },
+    "63:beat": {
+     "grade": "없음",
+     "grade_vs_vol": "없음",
+     "skill": -4.5e-05,
+     "p": 0.544973,
+     "skill_vs_vol": -4.5e-05,
+     "evaluable": true,
+     "coverage80": null
+    },
+    "126:q": {
+     "grade": "강함",
+     "grade_vs_vol": "약함",
+     "skill": 0.023379,
+     "p": 0.0002,
+     "skill_vs_vol": 0.003083,
+     "evaluable": true,
+     "coverage80": 0.824428
+    },
+    "126:up": {
+     "grade": "없음",
+     "grade_vs_vol": "없음",
+     "skill": -0.004612,
+     "p": 0.874856,
+     "skill_vs_vol": -0.004612,
+     "evaluable": true,
+     "coverage80": null
+    },
+    "126:dd15": {
+     "grade": "보통",
+     "grade_vs_vol": "없음",
+     "skill": 0.0648,
+     "p": 0.033148,
+     "skill_vs_vol": -0.000268,
+     "evaluable": true,
+     "coverage80": null
+    },
+    "126:beat": {
+     "grade": "없음",
+     "grade_vs_vol": "없음",
+     "skill": -0.000487,
+     "p": 0.828209,
+     "skill_vs_vol": -0.000487,
+     "evaluable": true,
+     "coverage80": null
+    },
+    "252:q": {
+     "grade": "강함",
+     "grade_vs_vol": "약함",
+     "skill": 0.022406,
+     "p": 0.000244,
+     "skill_vs_vol": 0.011141,
+     "evaluable": true,
+     "coverage80": 0.838925
+    },
+    "252:up": {
+     "grade": "없음",
+     "grade_vs_vol": "없음",
+     "skill": -0.003746,
+     "p": 0.635742,
+     "skill_vs_vol": -0.003746,
+     "evaluable": true,
+     "coverage80": null
+    },
+    "252:dd15": {
+     "grade": "약함",
+     "grade_vs_vol": "없음",
+     "skill": 0.050045,
+     "p": 0.100342,
+     "skill_vs_vol": -0.001149,
+     "evaluable": true,
+     "coverage80": null
+    },
+    "252:beat": {
+     "grade": "없음",
+     "grade_vs_vol": "없음",
+     "skill": -0.000863,
+     "p": 0.893311,
+     "skill_vs_vol": -0.000863,
+     "evaluable": true,
+     "coverage80": null
+    }
+   }
+  }
+ },
+ "data": {
+  "french": {
+   "source": "Ken French data library (daily, weekday calendar)",
+   "first": "1926-07-01",
+   "last": "2026-09-30",
+   "industries": 49
+  },
+  "stock": {
+   "source": "Yahoo 수정 종가(VM 가격 저장소) + S&P500 그 시점 편입",
+   "tickers_in_universe": 1198,
+   "tickers_with_prices": 736,
+   "tickers_missing": 462,
+   "daily_jumps_over_70pct": 156,
+   "calendar": [
+    "1995-01-03",
+    "2026-11-20"
+   ]
+  }
+ }
+}
