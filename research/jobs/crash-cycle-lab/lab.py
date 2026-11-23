@@ -341,6 +341,24 @@ def base_m2(rows, times, events, e_days: int = 0) -> Optional[dict]:
     return _V1._cond_F(tau, S, e_days)
 
 
+def n_train_of(m1, n1, m2, n2) -> Optional[int]:
+    """predictions.csv 의 n_train: 모델 1 학습 수, 모델 1 예측이 없으면 모델 2 학습 수, 둘 다 없으면 빈칸."""
+    if m1 is not None:
+        return int(n1)
+    if m2 is not None:
+        return int(n2)
+    return None
+
+
+def base0(train_recs, r) -> dict:
+    """랜드마크 0 공통 BASE(v1 발생일 기준선, 학습 = train_recs 중 r 의 발생일까지 확정된 것). 모든 작업에서 같은 값."""
+    D = r["t0_date"]
+    T1 = m1_pool(train_recs, D)
+    rows, times, events = m2_pool(train_recs, D)
+    m1, m2 = base_m1(T1, r["dd0"]), base_m2(rows, times, events, 0)
+    return {"m1": m1, "m2": m2, "n1": len(T1), "n2": len(rows), "n_train": n_train_of(m1, len(T1), m2, len(rows))}
+
+
 # ================================================================ 경로 상태·랜드마크
 def alive_at(r, e) -> bool:
     return r["rec"] is None or r["rec"] > r["t0"] + e
@@ -970,7 +988,7 @@ def summary_entry(j: dict) -> str:
 
 
 def family_block(study: str) -> dict:
-    return {"k": K_FAMILY, "alpha": ALPHA, "keys": [k for k, _s in FAMILY], "this_study": [k for k, s in FAMILY if s == study]}
+    return {"k": K_FAMILY, "alpha": ALPHA, "alpha_expr": "0.05/15", "keys": [k for k, _s in FAMILY], "this_study": [k for k, s in FAMILY if s == study]}
 
 
 def lab_constants() -> dict:
@@ -1081,7 +1099,8 @@ def power_lines(res: dict) -> list:
     parts = []
     for k, pe in res["power_episode"].items():
         pp = pe.get("pass_prob") or {}
-        parts.append(f"{k} 합친 n={pe['n']} → 필요 효과 {num(pe.get('needed_effect_sd'), 2)}sd, 최소 p {pval(pe.get('min_p'))}, "
+        parts.append(f"{k} 합친 n={pe['n']} → 필요 효과 {num(pe.get('needed_effect_sd'), 2)}sd, "
+                     f"최소 p {pval(2.0 ** -pe['n']) if pe['n'] else '—'}, "
                      f"통과 확률 δ0.3/0.5/0.8 = " + "/".join(f"{pp[x] * 100:.0f}%" if x in pp else "—" for x in ("0.3", "0.5", "0.8")))
     L += ["사건 단위 검정력: " + " · ".join(parts), ""]
     return L
