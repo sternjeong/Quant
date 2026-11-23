@@ -1,0 +1,8565 @@
+{
+ "study": "crash-fusion-v1",
+ "lab_version": "crash-cycle-lab/v1",
+ "rules": "crash-fusion/v1",
+ "judge_version": "crash-fusion-judge/v1",
+ "smoke": false,
+ "data": {
+  "source": "Ken French data library (daily, weekday calendar)",
+  "first_date": "1926-07-01",
+  "last_date": "2026-09-30",
+  "n_days": 25180,
+  "intl": {
+   "Europe": {
+    "first_date": "1990-07-02",
+    "last_date": "2026-09-30",
+    "n_episodes": 13
+   },
+   "Japan": {
+    "first_date": "1990-07-02",
+    "last_date": "2026-09-30",
+    "n_episodes": 17
+   },
+   "Asia_Pacific_ex_Japan": {
+    "first_date": "1990-07-02",
+    "last_date": "2026-09-30",
+    "n_episodes": 16
+   }
+  }
+ },
+ "constants": {
+  "LAB_VERSION": "crash-cycle-lab/v1",
+  "SEED": 20261124,
+  "K_FAMILY": 15,
+  "ALPHA": 0.003333,
+  "HOLDOUT_START": "2024-10-01",
+  "INTL_SPLIT": "2008-01-01",
+  "MIN_N_US": {
+   "A": 4,
+   "B": 5,
+   "C": 4,
+   "pooled": 15
+  },
+  "MIN_N_INTL": {
+   "I1": 3,
+   "I2": 3,
+   "pooled": 10
+  },
+  "CLUSTER_GAP": 63,
+  "LANDMARKS": [
+   21,
+   63,
+   126
+  ],
+  "LB_H": 252,
+  "RIDGE_LAMBDA": 4.0,
+  "P_CLIP": [
+   0.05,
+   0.95
+  ],
+  "MIN_CLS_TRAIN": 6,
+  "X_FLOOR": 0.051293,
+  "GARCH_A": 0.08,
+  "GARCH_B": 0.9,
+  "N_SIM": 4000,
+  "N_SIM_SMOKE": 400,
+  "H_SIM": 1260,
+  "SIM_MIN_HIST": 756,
+  "RECAL_MIN": 10,
+  "RECAL_TAU": 1.0,
+  "RECAL_PRIOR_N": 10,
+  "RECAL_CLIP": 0.01,
+  "Q": [
+   0.1,
+   0.25,
+   0.5,
+   0.75,
+   0.9
+  ],
+  "HZ": [
+   252,
+   504,
+   756,
+   1260
+  ],
+  "H": 756,
+  "MIN_TRAIN": 6,
+  "MIN_EVENTS_M2": 3,
+  "CRASH_TH": -0.15,
+  "END_TH": -0.05,
+  "KEYS": [
+   "SIMMIX_M1_INTL",
+   "SIMMIX_M2_INTL",
+   "TWOPH_M2_US",
+   "TWOPH_M2_INTL"
+  ],
+  "K": 4,
+  "FAMILY_ALPHA": 0.05,
+  "W_MIX": 0.5,
+  "GRID_E": [
+   21,
+   63,
+   126
+  ],
+  "GRID_D": [
+   -0.05,
+   -0.1,
+   -0.15,
+   -0.2,
+   -0.25,
+   -0.3,
+   -0.4
+  ],
+  "GRID_DD0": -0.15,
+  "ROBUST_LANDMARKS": [
+   63,
+   126
+  ],
+  "n_paths": 4000
+ },
+ "family": {
+  "k": 4,
+  "alpha": 0.05,
+  "method": "holm",
+  "alpha_expr": "Holm, 족 오류율 0.05, 문턱 0.05/4·0.05/3·0.05/2·0.05",
+  "keys": [
+   "SIMMIX_M1_INTL",
+   "SIMMIX_M2_INTL",
+   "TWOPH_M2_US",
+   "TWOPH_M2_INTL"
+  ],
+  "this_study": [
+   "SIMMIX_M1_INTL",
+   "SIMMIX_M2_INTL",
+   "TWOPH_M2_US",
+   "TWOPH_M2_INTL"
+  ],
+  "separate_from": "crash-cycle-lab 7연구 족(15개, 0.05/15)과 별개"
+ },
+ "power": {
+  "years": 97.25,
+  "n_trials": 4,
+  "confidence": 0.95,
+  "mde_ir": 0.273,
+  "pass_threshold_ir_50pct_power": 0.273,
+  "detectable_ir_80pct_power": 0.359,
+  "power_at": {
+   "0.20": 0.234,
+   "0.30": 0.603,
+   "0.50": 0.987
+  },
+  "method": "expected-max-z(Bailey-LdP) + null SE, simplified"
+ },
+ "power_intl": {
+  "years": 33.25,
+  "n_trials": 4,
+  "confidence": 0.95,
+  "mde_ir": 0.468,
+  "pass_threshold_ir_50pct_power": 0.468,
+  "detectable_ir_80pct_power": 0.614,
+  "power_at": {
+   "0.20": 0.061,
+   "0.30": 0.167,
+   "0.50": 0.574
+  },
+  "method": "expected-max-z(Bailey-LdP) + null SE, simplified"
+ },
+ "power_episode": {
+  "SIMMIX_M1_INTL": {
+   "n": 24,
+   "needed_effect_sd": {
+    "first": 0.489464,
+    "last": 0.349843
+   },
+   "min_p": 0.0,
+   "pass_prob_first": {
+    "0.2": 0.103545,
+    "0.3": 0.220143,
+    "0.5": 0.582419,
+    "0.8": 0.953305
+   }
+  },
+  "SIMMIX_M2_INTL": {
+   "n": 24,
+   "needed_effect_sd": {
+    "first": 0.489464,
+    "last": 0.349843
+   },
+   "min_p": 0.0,
+   "pass_prob_first": {
+    "0.2": 0.103545,
+    "0.3": 0.220143,
+    "0.5": 0.582419,
+    "0.8": 0.953305
+   }
+  },
+  "TWOPH_M2_US": {
+   "n": 21,
+   "needed_effect_sd": {
+    "first": 0.528767,
+    "last": 0.376364
+   },
+   "min_p": 0.0,
+   "pass_prob_first": {
+    "0.2": 0.092604,
+    "0.3": 0.193072,
+    "0.5": 0.519893,
+    "0.8": 0.922872
+   }
+  },
+  "TWOPH_M2_INTL": {
+   "n": 27,
+   "needed_effect_sd": {
+    "first": 0.457798,
+    "last": 0.328246
+   },
+   "min_p": 0.0,
+   "pass_prob_first": {
+    "0.2": 0.114648,
+    "0.3": 0.247443,
+    "0.5": 0.639332,
+    "0.8": 0.972287
+   }
+  }
+ },
+ "verdicts": {
+  "SIMMIX_M1_INTL": "FAIL",
+  "SIMMIX_M2_INTL": "FAIL",
+  "TWOPH_M2_US": "FAIL",
+  "TWOPH_M2_INTL": "FAIL"
+ },
+ "summary": {
+  "SIMMIX_M1_INTL SIMMIX 깊이(해외)": "FAIL · n 24 · 평균 d +0.0022 · p 0.1314 · 홈 2위 문턱 0.0167",
+  "SIMMIX_M2_INTL SIMMIX 회복(해외)": "FAIL · n 24 · 평균 d +0.0118 · p 0.1100 · 홈 1위 문턱 0.0125",
+  "TWOPH_M2_US TWOPH 회복(미국)": "FAIL · n 21 · 평균 d -0.0103 · p 0.8741 · 홈 4위 문턱 0.0500",
+  "TWOPH_M2_INTL TWOPH 회복(해외)": "FAIL · n 27 · 평균 d +0.0056 · p 0.1673 · 홈 3위 문턱 0.0250",
+  "지금(Ken French 2026-09-30)": "급락 사건 아님 — 252일 고점 대비 -2.3%"
+ },
+ "detail": {
+  "SIMMIX_M1_INTL": {
+   "population": "INTL",
+   "compare": "SIMMIX vs LM_ANCHOR (깊이, 해외 군집)",
+   "n": {
+    "I1": 12,
+    "I2": 12,
+    "pooled": 24
+   },
+   "mean": {
+    "I1": 0.005101,
+    "I2": -0.000609,
+    "pooled": 0.002246
+   },
+   "p": 0.131384,
+   "p_method": "mc",
+   "t": 1.158853,
+   "p_t": 0.129203,
+   "evaluable": true,
+   "allpos": false,
+   "n_episodes": 38,
+   "p_episode": 0.147844,
+   "clusters": [
+    {
+     "first": "1993-11-19",
+     "stratum": "I1",
+     "members": [
+      "Japan:1993-11-19"
+     ],
+     "value": -0.012958
+    },
+    {
+     "first": "1994-03-18",
+     "stratum": "I1",
+     "members": [
+      "Asia_Pacific_ex_Japan:1994-03-18"
+     ],
+     "value": 0.002917
+    },
+    {
+     "first": "1995-01-23",
+     "stratum": "I1",
+     "members": [
+      "Japan:1995-01-23"
+     ],
+     "value": 0.020481
+    },
+    {
+     "first": "1996-10-25",
+     "stratum": "I1",
+     "members": [
+      "Japan:1996-10-25"
+     ],
+     "value": 0.024012
+    },
+    {
+     "first": "1997-10-21",
+     "stratum": "I1",
+     "members": [
+      "Asia_Pacific_ex_Japan:1997-10-21"
+     ],
+     "value": 0.000577
+    },
+    {
+     "first": "1998-08-27",
+     "stratum": "I1",
+     "members": [
+      "Europe:1998-08-27"
+     ],
+     "value": 0.00272
+    },
+    {
+     "first": "2000-04-17",
+     "stratum": "I1",
+     "members": [
+      "Asia_Pacific_ex_Japan:2000-04-17",
+      "Japan:2000-05-22"
+     ],
+     "value": 0.011245
+    },
+    {
+     "first": "2000-09-20",
+     "stratum": "I1",
+     "members": [
+      "Europe:2000-09-20"
+     ],
+     "value": -0.007622
+    },
+    {
+     "first": "2002-07-22",
+     "stratum": "I1",
+     "members": [
+      "Europe:2002-07-22",
+      "Asia_Pacific_ex_Japan:2002-07-26"
+     ],
+     "value": 0.001566
+    },
+    {
+     "first": "2004-05-10",
+     "stratum": "I1",
+     "members": [
+      "Japan:2004-05-10",
+      "Asia_Pacific_ex_Japan:2004-05-17"
+     ],
+     "value": -0.000131
+    },
+    {
+     "first": "2006-06-08",
+     "stratum": "I1",
+     "members": [
+      "Japan:2006-06-08"
+     ],
+     "value": 0.010309
+    },
+    {
+     "first": "2007-08-16",
+     "stratum": "I1",
+     "members": [
+      "Asia_Pacific_ex_Japan:2007-08-16",
+      "Japan:2007-08-17"
+     ],
+     "value": 0.008094
+    },
+    {
+     "first": "2008-01-21",
+     "stratum": "I2",
+     "members": [
+      "Europe:2008-01-21",
+      "Asia_Pacific_ex_Japan:2008-01-21"
+     ],
+     "value": -0.023316
+    },
+    {
+     "first": "2010-05-06",
+     "stratum": "I2",
+     "members": [
+      "Europe:2010-05-06",
+      "Asia_Pacific_ex_Japan:2010-05-19"
+     ],
+     "value": 0.003715
+    },
+    {
+     "first": "2011-03-15",
+     "stratum": "I2",
+     "members": [
+      "Japan:2011-03-15"
+     ],
+     "value": -0.003137
+    },
+    {
+     "first": "2011-08-04",
+     "stratum": "I2",
+     "members": [
+      "Europe:2011-08-04",
+      "Asia_Pacific_ex_Japan:2011-08-08"
+     ],
+     "value": 0.004266
+    },
+    {
+     "first": "2012-05-24",
+     "stratum": "I2",
+     "members": [
+      "Japan:2012-05-24"
+     ],
+     "value": -0.003995
+    },
+    {
+     "first": "2014-10-15",
+     "stratum": "I2",
+     "members": [
+      "Europe:2014-10-15"
+     ],
+     "value": 0.004084
+    },
+    {
+     "first": "2015-07-08",
+     "stratum": "I2",
+     "members": [
+      "Asia_Pacific_ex_Japan:2015-07-08"
+     ],
+     "value": 0.003447
+    },
+    {
+     "first": "2016-01-08",
+     "stratum": "I2",
+     "members": [
+      "Europe:2016-01-08",
+      "Japan:2016-01-21"
+     ],
+     "value": 0.002138
+    },
+    {
+     "first": "2018-10-11",
+     "stratum": "I2",
+     "members": [
+      "Asia_Pacific_ex_Japan:2018-10-11",
+      "Europe:2018-10-23",
+      "Japan:2018-10-25"
+     ],
+     "value": -0.001172
+    },
+    {
+     "first": "2020-03-09",
+     "stratum": "I2",
+     "members": [
+      "Europe:2020-03-09",
+      "Asia_Pacific_ex_Japan:2020-03-09",
+      "Japan:2020-03-10"
+     ],
+     "value": 0.000754
+    },
+    {
+     "first": "2022-01-27",
+     "stratum": "I2",
+     "members": [
+      "Japan:2022-01-27",
+      "Europe:2022-03-03",
+      "Asia_Pacific_ex_Japan:2022-05-10"
+     ],
+     "value": 0.002015
+    },
+    {
+     "first": "2023-10-03",
+     "stratum": "I2",
+     "members": [
+      "Asia_Pacific_ex_Japan:2023-10-03"
+     ],
+     "value": 0.003899
+    }
+   ],
+   "holm_rank": 2,
+   "holm_threshold": 0.016667,
+   "holm_reject": false,
+   "verdict": "FAIL",
+   "fail_kind": "FAIL",
+   "reason": "층 방향 불일치(평균 음수 층 있음)",
+   "per_landmark": {
+    "21": {
+     "n": 38,
+     "mean": 0.001001,
+     "p": 0.292794
+    },
+    "63": {
+     "n": 37,
+     "mean": 0.001986,
+     "p": 0.148214
+    },
+    "126": {
+     "n": 34,
+     "mean": 0.001765,
+     "p": 0.136709
+    }
+   }
+  },
+  "SIMMIX_M2_INTL": {
+   "population": "INTL",
+   "compare": "SIMMIX vs LM_SCALED (회복, 해외 군집)",
+   "n": {
+    "I1": 12,
+    "I2": 12,
+    "pooled": 24
+   },
+   "mean": {
+    "I1": 0.02748,
+    "I2": -0.003918,
+    "pooled": 0.011781
+   },
+   "p": 0.110004,
+   "p_method": "mc",
+   "t": 1.276836,
+   "p_t": 0.107201,
+   "evaluable": true,
+   "allpos": false,
+   "n_episodes": 38,
+   "p_episode": 0.09452,
+   "clusters": [
+    {
+     "first": "1993-11-19",
+     "stratum": "I1",
+     "members": [
+      "Japan:1993-11-19"
+     ],
+     "value": -0.070334
+    },
+    {
+     "first": "1994-03-18",
+     "stratum": "I1",
+     "members": [
+      "Asia_Pacific_ex_Japan:1994-03-18"
+     ],
+     "value": -0.013491
+    },
+    {
+     "first": "1995-01-23",
+     "stratum": "I1",
+     "members": [
+      "Japan:1995-01-23"
+     ],
+     "value": 0.123369
+    },
+    {
+     "first": "1996-10-25",
+     "stratum": "I1",
+     "members": [
+      "Japan:1996-10-25"
+     ],
+     "value": 0.011113
+    },
+    {
+     "first": "1997-10-21",
+     "stratum": "I1",
+     "members": [
+      "Asia_Pacific_ex_Japan:1997-10-21"
+     ],
+     "value": 0.013967
+    },
+    {
+     "first": "1998-08-27",
+     "stratum": "I1",
+     "members": [
+      "Europe:1998-08-27"
+     ],
+     "value": 0.012
+    },
+    {
+     "first": "2000-04-17",
+     "stratum": "I1",
+     "members": [
+      "Asia_Pacific_ex_Japan:2000-04-17",
+      "Japan:2000-05-22"
+     ],
+     "value": 0.094365
+    },
+    {
+     "first": "2000-09-20",
+     "stratum": "I1",
+     "members": [
+      "Europe:2000-09-20"
+     ],
+     "value": 0.021964
+    },
+    {
+     "first": "2002-07-22",
+     "stratum": "I1",
+     "members": [
+      "Europe:2002-07-22",
+      "Asia_Pacific_ex_Japan:2002-07-26"
+     ],
+     "value": -0.018595
+    },
+    {
+     "first": "2004-05-10",
+     "stratum": "I1",
+     "members": [
+      "Japan:2004-05-10",
+      "Asia_Pacific_ex_Japan:2004-05-17"
+     ],
+     "value": -0.017713
+    },
+    {
+     "first": "2006-06-08",
+     "stratum": "I1",
+     "members": [
+      "Japan:2006-06-08"
+     ],
+     "value": 0.110555
+    },
+    {
+     "first": "2007-08-16",
+     "stratum": "I1",
+     "members": [
+      "Asia_Pacific_ex_Japan:2007-08-16",
+      "Japan:2007-08-17"
+     ],
+     "value": 0.06256
+    },
+    {
+     "first": "2008-01-21",
+     "stratum": "I2",
+     "members": [
+      "Europe:2008-01-21",
+      "Asia_Pacific_ex_Japan:2008-01-21"
+     ],
+     "value": -0.012686
+    },
+    {
+     "first": "2010-05-06",
+     "stratum": "I2",
+     "members": [
+      "Europe:2010-05-06",
+      "Asia_Pacific_ex_Japan:2010-05-19"
+     ],
+     "value": 0.002711
+    },
+    {
+     "first": "2011-03-15",
+     "stratum": "I2",
+     "members": [
+      "Japan:2011-03-15"
+     ],
+     "value": -0.016759
+    },
+    {
+     "first": "2011-08-04",
+     "stratum": "I2",
+     "members": [
+      "Europe:2011-08-04",
+      "Asia_Pacific_ex_Japan:2011-08-08"
+     ],
+     "value": 0.019959
+    },
+    {
+     "first": "2012-05-24",
+     "stratum": "I2",
+     "members": [
+      "Japan:2012-05-24"
+     ],
+     "value": -0.04034
+    },
+    {
+     "first": "2014-10-15",
+     "stratum": "I2",
+     "members": [
+      "Europe:2014-10-15"
+     ],
+     "value": -0.002032
+    },
+    {
+     "first": "2015-07-08",
+     "stratum": "I2",
+     "members": [
+      "Asia_Pacific_ex_Japan:2015-07-08"
+     ],
+     "value": 0.015377
+    },
+    {
+     "first": "2016-01-08",
+     "stratum": "I2",
+     "members": [
+      "Europe:2016-01-08",
+      "Japan:2016-01-21"
+     ],
+     "value": -0.001583
+    },
+    {
+     "first": "2018-10-11",
+     "stratum": "I2",
+     "members": [
+      "Asia_Pacific_ex_Japan:2018-10-11",
+      "Europe:2018-10-23",
+      "Japan:2018-10-25"
+     ],
+     "value": 0.005858
+    },
+    {
+     "first": "2020-03-09",
+     "stratum": "I2",
+     "members": [
+      "Europe:2020-03-09",
+      "Asia_Pacific_ex_Japan:2020-03-09",
+      "Japan:2020-03-10"
+     ],
+     "value": -0.020013
+    },
+    {
+     "first": "2022-01-27",
+     "stratum": "I2",
+     "members": [
+      "Japan:2022-01-27",
+      "Europe:2022-03-03",
+      "Asia_Pacific_ex_Japan:2022-05-10"
+     ],
+     "value": 0.010594
+    },
+    {
+     "first": "2023-10-03",
+     "stratum": "I2",
+     "members": [
+      "Asia_Pacific_ex_Japan:2023-10-03"
+     ],
+     "value": -0.008098
+    }
+   ],
+   "holm_rank": 1,
+   "holm_threshold": 0.0125,
+   "holm_reject": false,
+   "verdict": "FAIL",
+   "fail_kind": "FAIL",
+   "reason": "층 방향 불일치(평균 음수 층 있음)",
+   "per_landmark": {
+    "21": {
+     "n": 38,
+     "mean": 0.009519,
+     "p": 0.174064
+    },
+    "63": {
+     "n": 37,
+     "mean": 0.011461,
+     "p": 0.132374
+    },
+    "126": {
+     "n": 34,
+     "mean": 0.011967,
+     "p": 0.060635
+    }
+   }
+  },
+  "TWOPH_M2_US": {
+   "population": "US",
+   "compare": "TWOPH vs LM_SCALED (회복, 미국 사건)",
+   "n": {
+    "A": 5,
+    "B": 9,
+    "C": 7,
+    "pooled": 21
+   },
+   "mean": {
+    "A": -0.020819,
+    "B": -0.003704,
+    "C": -0.011142,
+    "pooled": -0.010258
+   },
+   "p": 0.874121,
+   "p_method": "mc",
+   "t": -1.174981,
+   "p_t": 0.873099,
+   "evaluable": true,
+   "allpos": false,
+   "holm_rank": 4,
+   "holm_threshold": 0.05,
+   "holm_reject": false,
+   "verdict": "FAIL",
+   "fail_kind": "FAIL",
+   "reason": "층 방향 불일치(평균 음수 층 있음)",
+   "per_landmark": {
+    "21": {
+     "n": 21,
+     "mean": 0.000706,
+     "p": 0.465878
+    },
+    "63": {
+     "n": 21,
+     "mean": -0.011337,
+     "p": 0.793716
+    },
+    "126": {
+     "n": 12,
+     "mean": -0.013289,
+     "p": 0.789307
+    }
+   }
+  },
+  "TWOPH_M2_INTL": {
+   "population": "INTL",
+   "compare": "TWOPH vs LM_SCALED (회복, 해외 군집)",
+   "n": {
+    "I1": 15,
+    "I2": 12,
+    "pooled": 27
+   },
+   "mean": {
+    "I1": 0.000306,
+    "I2": 0.012307,
+    "pooled": 0.00564
+   },
+   "p": 0.167299,
+   "p_method": "mc",
+   "t": 0.975967,
+   "p_t": 0.169037,
+   "evaluable": true,
+   "allpos": true,
+   "n_episodes": 43,
+   "p_episode": 0.170324,
+   "clusters": [
+    {
+     "first": "1991-06-18",
+     "stratum": "I1",
+     "members": [
+      "Europe:1991-06-18",
+      "Japan:1991-06-18"
+     ],
+     "value": 0.015213
+    },
+    {
+     "first": "1991-12-24",
+     "stratum": "I1",
+     "members": [
+      "Japan:1991-12-24"
+     ],
+     "value": 0.041555
+    },
+    {
+     "first": "1992-11-02",
+     "stratum": "I1",
+     "members": [
+      "Europe:1992-11-02",
+      "Asia_Pacific_ex_Japan:1992-12-03"
+     ],
+     "value": -0.027946
+    },
+    {
+     "first": "1993-11-19",
+     "stratum": "I1",
+     "members": [
+      "Japan:1993-11-19"
+     ],
+     "value": -0.012954
+    },
+    {
+     "first": "1994-03-18",
+     "stratum": "I1",
+     "members": [
+      "Asia_Pacific_ex_Japan:1994-03-18"
+     ],
+     "value": 0.017179
+    },
+    {
+     "first": "1995-01-23",
+     "stratum": "I1",
+     "members": [
+      "Japan:1995-01-23"
+     ],
+     "value": 0.035337
+    },
+    {
+     "first": "1996-10-25",
+     "stratum": "I1",
+     "members": [
+      "Japan:1996-10-25"
+     ],
+     "value": 0.033278
+    },
+    {
+     "first": "1997-10-21",
+     "stratum": "I1",
+     "members": [
+      "Asia_Pacific_ex_Japan:1997-10-21"
+     ],
+     "value": 0.034446
+    },
+    {
+     "first": "1998-08-27",
+     "stratum": "I1",
+     "members": [
+      "Europe:1998-08-27"
+     ],
+     "value": 0.007767
+    },
+    {
+     "first": "2000-04-17",
+     "stratum": "I1",
+     "members": [
+      "Asia_Pacific_ex_Japan:2000-04-17",
+      "Japan:2000-05-22"
+     ],
+     "value": -0.03738
+    },
+    {
+     "first": "2000-09-20",
+     "stratum": "I1",
+     "members": [
+      "Europe:2000-09-20"
+     ],
+     "value": -0.074032
+    },
+    {
+     "first": "2002-07-22",
+     "stratum": "I1",
+     "members": [
+      "Europe:2002-07-22",
+      "Asia_Pacific_ex_Japan:2002-07-26"
+     ],
+     "value": 0.016215
+    },
+    {
+     "first": "2004-05-10",
+     "stratum": "I1",
+     "members": [
+      "Japan:2004-05-10",
+      "Asia_Pacific_ex_Japan:2004-05-17"
+     ],
+     "value": -0.024445
+    },
+    {
+     "first": "2006-06-08",
+     "stratum": "I1",
+     "members": [
+      "Japan:2006-06-08"
+     ],
+     "value": 0.014891
+    },
+    {
+     "first": "2007-08-16",
+     "stratum": "I1",
+     "members": [
+      "Asia_Pacific_ex_Japan:2007-08-16",
+      "Japan:2007-08-17"
+     ],
+     "value": -0.034537
+    },
+    {
+     "first": "2008-01-21",
+     "stratum": "I2",
+     "members": [
+      "Europe:2008-01-21",
+      "Asia_Pacific_ex_Japan:2008-01-21"
+     ],
+     "value": -0.001296
+    },
+    {
+     "first": "2010-05-06",
+     "stratum": "I2",
+     "members": [
+      "Europe:2010-05-06",
+      "Asia_Pacific_ex_Japan:2010-05-19"
+     ],
+     "value": -0.011243
+    },
+    {
+     "first": "2011-03-15",
+     "stratum": "I2",
+     "members": [
+      "Japan:2011-03-15"
+     ],
+     "value": 0.015459
+    },
+    {
+     "first": "2011-08-04",
+     "stratum": "I2",
+     "members": [
+      "Europe:2011-08-04",
+      "Asia_Pacific_ex_Japan:2011-08-08"
+     ],
+     "value": 0.035805
+    },
+    {
+     "first": "2012-05-24",
+     "stratum": "I2",
+     "members": [
+      "Japan:2012-05-24"
+     ],
+     "value": -0.005128
+    },
+    {
+     "first": "2014-10-15",
+     "stratum": "I2",
+     "members": [
+      "Europe:2014-10-15"
+     ],
+     "value": 0.026239
+    },
+    {
+     "first": "2015-07-08",
+     "stratum": "I2",
+     "members": [
+      "Asia_Pacific_ex_Japan:2015-07-08"
+     ],
+     "value": 0.043156
+    },
+    {
+     "first": "2016-01-08",
+     "stratum": "I2",
+     "members": [
+      "Europe:2016-01-08",
+      "Japan:2016-01-21"
+     ],
+     "value": -0.006582
+    },
+    {
+     "first": "2018-10-11",
+     "stratum": "I2",
+     "members": [
+      "Asia_Pacific_ex_Japan:2018-10-11",
+      "Europe:2018-10-23",
+      "Japan:2018-10-25"
+     ],
+     "value": 0.024021
+    },
+    {
+     "first": "2020-03-09",
+     "stratum": "I2",
+     "members": [
+      "Europe:2020-03-09",
+      "Asia_Pacific_ex_Japan:2020-03-09",
+      "Japan:2020-03-10"
+     ],
+     "value": -0.015945
+    },
+    {
+     "first": "2022-01-27",
+     "stratum": "I2",
+     "members": [
+      "Japan:2022-01-27",
+      "Europe:2022-03-03",
+      "Asia_Pacific_ex_Japan:2022-05-10"
+     ],
+     "value": 0.055573
+    },
+    {
+     "first": "2023-10-03",
+     "stratum": "I2",
+     "members": [
+      "Asia_Pacific_ex_Japan:2023-10-03"
+     ],
+     "value": -0.012373
+    }
+   ],
+   "holm_rank": 3,
+   "holm_threshold": 0.025,
+   "holm_reject": false,
+   "verdict": "FAIL",
+   "fail_kind": "FAIL_UNDERPOWERED",
+   "reason": "홈 문턱 미달",
+   "per_landmark": {
+    "21": {
+     "n": 43,
+     "mean": 0.008103,
+     "p": 0.02173
+    },
+    "63": {
+     "n": 41,
+     "mean": 0.01039,
+     "p": 0.04793
+    },
+    "126": {
+     "n": 38,
+     "mean": 0.001346,
+     "p": 0.446143
+    }
+   }
+  }
+ },
+ "interpretation": {
+  "SIMMIX": "통과 없음. 미국 값은 설명용(합친 평균 부호는 볼록성으로 미리 정해짐).",
+  "TWOPH": "통과 없음. 미국 C 와 해외 I2 는 같은 세계 급락을 겹쳐 담아 두 집단이 완전히 독립은 아니다."
+ },
+ "best": {
+  "depth": "LM",
+  "recovery": "LM",
+  "label": "판정 통과 모델 없음 → 랜드마크 모델(LM) 표시. LM 도 crash-landmark-v1 판정은 통과하지 못했다(FAIL_UNDERPOWERED)"
+ },
+ "descriptive": {
+  "vs_base": {
+   "LM": {
+    "m1": {
+     "US": {
+      "n": {
+       "A": 5,
+       "B": 9,
+       "C": 7,
+       "pooled": 21
+      },
+      "mean": {
+       "A": 0.003751,
+       "B": 0.002881,
+       "C": 0.006449,
+       "pooled": 0.004277
+      },
+      "p": 0.029535
+     },
+     "INTL": {
+      "n_episodes": 43,
+      "n_clusters": 27,
+      "mean": {
+       "I1": 0.004158,
+       "I2": 0.000518,
+       "pooled": 0.00254
+      },
+      "p_cluster": 0.034845
+     }
+    },
+    "m2": {
+     "US": {
+      "n": {
+       "A": 5,
+       "B": 9,
+       "C": 7,
+       "pooled": 21
+      },
+      "mean": {
+       "A": 0.057426,
+       "B": 0.011943,
+       "C": 0.031981,
+       "pooled": 0.029452
+      },
+      "p": 0.04293
+     },
+     "INTL": {
+      "n_episodes": 43,
+      "n_clusters": 27,
+      "mean": {
+       "I1": 0.005557,
+       "I2": 0.011791,
+       "pooled": 0.008328
+      },
+      "p_cluster": 0.168964
+     }
+    }
+   },
+   "SIM": {
+    "m1": {
+     "US": {
+      "n": {
+       "A": 5,
+       "B": 9,
+       "C": 7,
+       "pooled": 21
+      },
+      "mean": {
+       "A": 0.02423,
+       "B": -0.003478,
+       "C": 0.006021,
+       "pooled": 0.006286
+      },
+      "p": 0.181234
+     },
+     "INTL": {
+      "n_episodes": 38,
+      "n_clusters": 24,
+      "mean": {
+       "I1": 0.009407,
+       "I2": -0.001927,
+       "pooled": 0.00374
+      },
+      "p_cluster": 0.178104
+     }
+    },
+    "m2": {
+     "US": {
+      "n": {
+       "A": 5,
+       "B": 9,
+       "C": 7,
+       "pooled": 21
+      },
+      "mean": {
+       "A": 0.105296,
+       "B": 0.011707,
+       "C": 0.040184,
+       "pooled": 0.043482
+      },
+      "p": 0.02527
+     },
+     "INTL": {
+      "n_episodes": 38,
+      "n_clusters": 24,
+      "mean": {
+       "I1": 0.039221,
+       "I2": -0.002421,
+       "pooled": 0.0184
+      },
+      "p_cluster": 0.110009
+     }
+    }
+   },
+   "SIMMIX": {
+    "m1": {
+     "US": {
+      "n": {
+       "A": 5,
+       "B": 9,
+       "C": 7,
+       "pooled": 21
+      },
+      "mean": {
+       "A": 0.014302,
+       "B": 0.00289,
+       "C": 0.006259,
+       "pooled": 0.00673
+      },
+      "p": 0.050685
+     },
+     "INTL": {
+      "n_episodes": 38,
+      "n_clusters": 24,
+      "mean": {
+       "I1": 0.008306,
+       "I2": -9.1e-05,
+       "pooled": 0.004108
+      },
+      "p_cluster": 0.05272
+     }
+    },
+    "m2": {
+     "US": {
+      "n": {
+       "A": 5,
+       "B": 9,
+       "C": 7,
+       "pooled": 21
+      },
+      "mean": {
+       "A": 0.089056,
+       "B": 0.013294,
+       "C": 0.037405,
+       "pooled": 0.03937
+      },
+      "p": 0.020965
+     },
+     "INTL": {
+      "n_episodes": 38,
+      "n_clusters": 24,
+      "mean": {
+       "I1": 0.033773,
+       "I2": 0.007873,
+       "pooled": 0.020823
+      },
+      "p_cluster": 0.00551
+     }
+    }
+   },
+   "TWOPH": {
+    "m1": null,
+    "m2": {
+     "US": {
+      "n": {
+       "A": 5,
+       "B": 9,
+       "C": 7,
+       "pooled": 21
+      },
+      "mean": {
+       "A": 0.036607,
+       "B": 0.008239,
+       "C": 0.020839,
+       "pooled": 0.019193
+      },
+      "p": 0.0285
+     },
+     "INTL": {
+      "n_episodes": 43,
+      "n_clusters": 27,
+      "mean": {
+       "I1": 0.005863,
+       "I2": 0.024098,
+       "pooled": 0.013967
+      },
+      "p_cluster": 0.030085
+     }
+    }
+   },
+   "LMB": {
+    "m1": {
+     "US": {
+      "n": {
+       "A": 5,
+       "B": 9,
+       "C": 7,
+       "pooled": 21
+      },
+      "mean": {
+       "A": 0.002165,
+       "B": 0.001748,
+       "C": 0.003301,
+       "pooled": 0.002365
+      },
+      "p": 0.01694
+     },
+     "INTL": {
+      "n_episodes": 43,
+      "n_clusters": 27,
+      "mean": {
+       "I1": 0.002393,
+       "I2": 0.000346,
+       "pooled": 0.001483
+      },
+      "p_cluster": 0.019875
+     }
+    },
+    "m2": {
+     "US": {
+      "n": {
+       "A": 5,
+       "B": 9,
+       "C": 7,
+       "pooled": 21
+      },
+      "mean": {
+       "A": 0.037717,
+       "B": 0.012384,
+       "C": 0.021621,
+       "pooled": 0.021495
+      },
+      "p": 0.012665
+     },
+     "INTL": {
+      "n_episodes": 43,
+      "n_clusters": 27,
+      "mean": {
+       "I1": 0.007221,
+       "I2": 0.009388,
+       "pooled": 0.008184
+      },
+      "p_cluster": 0.03843
+     }
+    }
+   },
+   "LM_POOL": {
+    "m1": {
+     "US": {
+      "n": {
+       "A": 5,
+       "B": 9,
+       "C": 7,
+       "pooled": 21
+      },
+      "mean": {
+       "A": 0.003751,
+       "B": 0.004002,
+       "C": 0.004372,
+       "pooled": 0.004065
+      },
+      "p": 0.02106
+     },
+     "INTL": {
+      "n_episodes": 43,
+      "n_clusters": 27,
+      "mean": {
+       "I1": 0.006179,
+       "I2": -0.002128,
+       "pooled": 0.002487
+      },
+      "p_cluster": 0.06708
+     }
+    },
+    "m2": {
+     "US": {
+      "n": {
+       "A": 5,
+       "B": 9,
+       "C": 7,
+       "pooled": 21
+      },
+      "mean": {
+       "A": 0.057426,
+       "B": 0.008599,
+       "C": 0.026916,
+       "pooled": 0.02633
+      },
+      "p": 0.06588
+     },
+     "INTL": {
+      "n_episodes": 43,
+      "n_clusters": 27,
+      "mean": {
+       "I1": -0.000991,
+       "I2": 0.013235,
+       "pooled": 0.005332
+      },
+      "p_cluster": 0.292079
+     }
+    }
+   }
+  },
+  "simmix_us": {
+   "m1": {
+    "n": {
+     "A": 5,
+     "B": 9,
+     "C": 7,
+     "pooled": 21
+    },
+    "mean": {
+     "A": 0.010551,
+     "B": 9e-06,
+     "C": -0.00019,
+     "pooled": 0.002453
+    },
+    "p": 0.162959,
+    "bound": 0.000978
+   },
+   "m2": {
+    "n": {
+     "A": 5,
+     "B": 9,
+     "C": 7,
+     "pooled": 21
+    },
+    "mean": {
+     "A": 0.03163,
+     "B": 0.001351,
+     "C": 0.005424,
+     "pooled": 0.009918
+    },
+    "p": 0.037755,
+    "bound": 0.00736
+   }
+  },
+  "sim_vs_lm": {
+   "m1": {
+    "US": {
+     "n": {
+      "A": 5,
+      "B": 9,
+      "C": 7,
+      "pooled": 21
+     },
+     "mean": {
+      "A": 0.020262,
+      "B": -0.006358,
+      "C": -0.000428,
+      "pooled": 0.001957
+     },
+     "p": 0.362968
+    },
+    "INTL": {
+     "n_episodes": 38,
+     "n_clusters": 24,
+     "mean": {
+      "I1": 0.006202,
+      "I2": -0.002445,
+      "pooled": 0.001878
+     },
+     "p_cluster": 0.303058
+    }
+   },
+   "m2": {
+    "US": {
+     "n": {
+      "A": 5,
+      "B": 9,
+      "C": 7,
+      "pooled": 21
+     },
+     "mean": {
+      "A": 0.050769,
+      "B": -0.000236,
+      "C": 0.008203,
+      "pooled": 0.014721
+     },
+     "p": 0.075505
+    },
+    "INTL": {
+     "n_episodes": 38,
+     "n_clusters": 24,
+     "mean": {
+      "I1": 0.032928,
+      "I2": -0.014212,
+      "pooled": 0.009358
+     },
+     "p_cluster": 0.309613
+    }
+   }
+  },
+  "lmb_vs_lm": {
+   "m1": {
+    "US": {
+     "n": {
+      "A": 5,
+      "B": 9,
+      "C": 7,
+      "pooled": 21
+     },
+     "mean": {
+      "A": -0.001585,
+      "B": -0.001133,
+      "C": -0.003148,
+      "pooled": -0.001912
+     },
+     "p": 0.94833
+    },
+    "INTL": {
+     "n_episodes": 43,
+     "n_clusters": 27,
+     "mean": {
+      "I1": -0.001765,
+      "I2": -0.000172,
+      "pooled": -0.001057
+     },
+     "p_cluster": 0.936095
+    }
+   },
+   "m2": {
+    "US": {
+     "n": {
+      "A": 5,
+      "B": 9,
+      "C": 7,
+      "pooled": 21
+     },
+     "mean": {
+      "A": -0.01971,
+      "B": 0.000441,
+      "C": -0.01036,
+      "pooled": -0.007957
+     },
+     "p": 0.843641
+    },
+    "INTL": {
+     "n_episodes": 43,
+     "n_clusters": 27,
+     "mean": {
+      "I1": 0.001664,
+      "I2": -0.002403,
+      "pooled": -0.000144
+     },
+     "p_cluster": 0.512627
+    }
+   }
+  },
+  "lm_pool_vs_lm": {
+   "INTL": {
+    "m1": {
+     "n_episodes": 43,
+     "n_clusters": 27,
+     "mean": {
+      "I1": 0.002022,
+      "I2": -0.002646,
+      "pooled": -5.3e-05
+     },
+     "p_cluster": 0.518312
+    },
+    "m2": {
+     "n_episodes": 43,
+     "n_clusters": 27,
+     "mean": {
+      "I1": -0.006548,
+      "I2": 0.001444,
+      "pooled": -0.002996
+     },
+     "p_cluster": 0.786266
+    }
+   },
+   "US_C": {
+    "m1": {
+     "n": 7,
+     "mean": -0.002077,
+     "p": 0.820312
+    },
+    "m2": {
+     "n": 7,
+     "mean": -0.005065,
+     "p": 0.703125
+    }
+   },
+   "n_identical_us": {
+    "m1": 12,
+    "m2": 12
+   },
+   "n_us": {
+    "m1": 21,
+    "m2": 21
+   }
+  }
+ },
+ "robustness": {
+  "only_63_126": {
+   "SIMMIX_M1_INTL": {
+    "n_episodes": 37,
+    "n_clusters": 24,
+    "mean": {
+     "I1": 0.00569,
+     "I2": -7e-05,
+     "pooled": 0.00281
+    },
+    "p_cluster": 0.067645
+   },
+   "SIMMIX_M2_INTL": {
+    "n_episodes": 37,
+    "n_clusters": 24,
+    "mean": {
+     "I1": 0.028359,
+     "I2": 0.00029,
+     "pooled": 0.014325
+    },
+    "p_cluster": 0.079245
+   },
+   "TWOPH_M2_US": {
+    "n": {
+     "A": 5,
+     "B": 9,
+     "C": 7,
+     "pooled": 21
+    },
+    "mean": {
+     "A": -0.036227,
+     "B": -0.007584,
+     "C": -0.017739,
+     "pooled": -0.017789
+    },
+    "p": 0.961045
+   },
+   "TWOPH_M2_INTL": {
+    "n_episodes": 41,
+    "n_clusters": 27,
+    "mean": {
+     "I1": 0.00062,
+     "I2": 0.009296,
+     "pooled": 0.004476
+    },
+    "p_cluster": 0.273684
+   }
+  },
+  "per_landmark": {
+   "SIMMIX_M1_INTL": {
+    "21": {
+     "n": 38,
+     "mean": 0.001001,
+     "p": 0.292794
+    },
+    "63": {
+     "n": 37,
+     "mean": 0.001986,
+     "p": 0.148214
+    },
+    "126": {
+     "n": 34,
+     "mean": 0.001765,
+     "p": 0.136709
+    }
+   },
+   "SIMMIX_M2_INTL": {
+    "21": {
+     "n": 38,
+     "mean": 0.009519,
+     "p": 0.174064
+    },
+    "63": {
+     "n": 37,
+     "mean": 0.011461,
+     "p": 0.132374
+    },
+    "126": {
+     "n": 34,
+     "mean": 0.011967,
+     "p": 0.060635
+    }
+   },
+   "TWOPH_M2_US": {
+    "21": {
+     "n": 21,
+     "mean": 0.000706,
+     "p": 0.465878
+    },
+    "63": {
+     "n": 21,
+     "mean": -0.011337,
+     "p": 0.793716
+    },
+    "126": {
+     "n": 12,
+     "mean": -0.013289,
+     "p": 0.789307
+    }
+   },
+   "TWOPH_M2_INTL": {
+    "21": {
+     "n": 43,
+     "mean": 0.008103,
+     "p": 0.02173
+    },
+    "63": {
+     "n": 41,
+     "mean": 0.01039,
+     "p": 0.04793
+    },
+    "126": {
+     "n": 38,
+     "mean": 0.001346,
+     "p": 0.446143
+    }
+   }
+  },
+  "p_episode_intl": {
+   "SIMMIX_M1_INTL": 0.147844,
+   "SIMMIX_M2_INTL": 0.09452,
+   "TWOPH_M2_INTL": 0.170324
+  },
+  "cluster_us_twoph": 0.793766
+ },
+ "models": {
+  "m1": {
+   "US_21_A": {
+    "n": 5,
+    "score": {
+     "BASE": 0.030411,
+     "LM": 0.033802,
+     "SIM": 0.010377,
+     "SIMMIX": 0.021136
+    },
+    "cov80": {
+     "LM": 1.0,
+     "SIM": 1.0,
+     "SIMMIX": 1.0
+    }
+   },
+   "US_21_B": {
+    "n": 9,
+    "score": {
+     "BASE": 0.035859,
+     "LM": 0.035077,
+     "SIM": 0.040095,
+     "SIMMIX": 0.034734
+    },
+    "cov80": {
+     "LM": 0.888889,
+     "SIM": 0.666667,
+     "SIMMIX": 0.888889
+    }
+   },
+   "US_21_C": {
+    "n": 7,
+    "score": {
+     "BASE": 0.03102,
+     "LM": 0.025648,
+     "SIM": 0.027447,
+     "SIMMIX": 0.026475
+    },
+    "cov80": {
+     "LM": 0.857143,
+     "SIM": 0.857143,
+     "SIMMIX": 0.857143
+    }
+   },
+   "US_21_all": {
+    "n": 21,
+    "score": {
+     "BASE": 0.032949,
+     "LM": 0.03163,
+     "SIM": 0.028803,
+     "SIMMIX": 0.028744
+    },
+    "cov80": {
+     "LM": 0.904762,
+     "SIM": 0.809524,
+     "SIMMIX": 0.904762
+    }
+   },
+   "US_63_A": {
+    "n": 5,
+    "score": {
+     "BASE": 0.030141,
+     "LM": 0.019232,
+     "SIM": 0.004245,
+     "SIMMIX": 0.011738
+    },
+    "cov80": {
+     "LM": 1.0,
+     "SIM": 1.0,
+     "SIMMIX": 1.0
+    }
+   },
+   "US_63_B": {
+    "n": 9,
+    "score": {
+     "BASE": 0.035614,
+     "LM": 0.03453,
+     "SIM": 0.041975,
+     "SIMMIX": 0.034851
+    },
+    "cov80": {
+     "LM": 0.888889,
+     "SIM": 0.666667,
+     "SIMMIX": 0.777778
+    }
+   },
+   "US_63_C": {
+    "n": 7,
+    "score": {
+     "BASE": 0.02994,
+     "LM": 0.023819,
+     "SIM": 0.02407,
+     "SIMMIX": 0.023944
+    },
+    "cov80": {
+     "LM": 0.857143,
+     "SIM": 0.857143,
+     "SIMMIX": 0.857143
+    }
+   },
+   "US_63_all": {
+    "n": 21,
+    "score": {
+     "BASE": 0.03242,
+     "LM": 0.027317,
+     "SIM": 0.027023,
+     "SIMMIX": 0.025713
+    },
+    "cov80": {
+     "LM": 0.904762,
+     "SIM": 0.809524,
+     "SIMMIX": 0.857143
+    }
+   },
+   "US_126_A": {
+    "n": 3,
+    "score": {
+     "BASE": 0.022197,
+     "LM": 0.021408,
+     "SIM": 0.001166,
+     "SIMMIX": 0.011287
+    },
+    "cov80": {
+     "LM": 1.0,
+     "SIM": 0.666667,
+     "SIMMIX": 1.0
+    }
+   },
+   "US_126_B": {
+    "n": 6,
+    "score": {
+     "BASE": 0.044231,
+     "LM": 0.036841,
+     "SIM": 0.051621,
+     "SIMMIX": 0.039263
+    },
+    "cov80": {
+     "LM": 1.0,
+     "SIM": 0.5,
+     "SIMMIX": 0.833333
+    }
+   },
+   "US_126_C": {
+    "n": 3,
+    "score": {
+     "BASE": 0.042986,
+     "LM": 0.036487,
+     "SIM": 0.047158,
+     "SIMMIX": 0.041822
+    },
+    "cov80": {
+     "LM": 0.333333,
+     "SIM": 0.333333,
+     "SIMMIX": 0.333333
+    }
+   },
+   "US_126_all": {
+    "n": 12,
+    "score": {
+     "BASE": 0.038411,
+     "LM": 0.032894,
+     "SIM": 0.037891,
+     "SIMMIX": 0.032909
+    },
+    "cov80": {
+     "LM": 0.833333,
+     "SIM": 0.5,
+     "SIMMIX": 0.75
+    }
+   },
+   "INTL_21_I1": {
+    "n": 16,
+    "score": {
+     "BASE": 0.047044,
+     "LM": 0.045264,
+     "SIM": 0.038708,
+     "SIMMIX": 0.040557
+    },
+    "cov80": {
+     "LM": 0.875,
+     "SIM": 0.75,
+     "SIMMIX": 0.875
+    }
+   },
+   "INTL_21_I2": {
+    "n": 22,
+    "score": {
+     "BASE": 0.027901,
+     "LM": 0.029789,
+     "SIM": 0.034497,
+     "SIMMIX": 0.031484
+    },
+    "cov80": {
+     "LM": 0.863636,
+     "SIM": 0.818182,
+     "SIMMIX": 0.863636
+    }
+   },
+   "INTL_21_all": {
+    "n": 38,
+    "score": {
+     "BASE": 0.035961,
+     "LM": 0.036305,
+     "SIM": 0.03627,
+     "SIMMIX": 0.035304
+    },
+    "cov80": {
+     "LM": 0.868421,
+     "SIM": 0.789474,
+     "SIMMIX": 0.868421
+    }
+   },
+   "INTL_63_I1": {
+    "n": 15,
+    "score": {
+     "BASE": 0.044479,
+     "LM": 0.044777,
+     "SIM": 0.037139,
+     "SIMMIX": 0.039441
+    },
+    "cov80": {
+     "LM": 0.666667,
+     "SIM": 0.866667,
+     "SIMMIX": 0.733333
+    }
+   },
+   "INTL_63_I2": {
+    "n": 22,
+    "score": {
+     "BASE": 0.025893,
+     "LM": 0.025749,
+     "SIM": 0.027256,
+     "SIMMIX": 0.026048
+    },
+    "cov80": {
+     "LM": 0.863636,
+     "SIM": 0.818182,
+     "SIMMIX": 0.863636
+    }
+   },
+   "INTL_63_all": {
+    "n": 37,
+    "score": {
+     "BASE": 0.033428,
+     "LM": 0.033463,
+     "SIM": 0.031263,
+     "SIMMIX": 0.031477
+    },
+    "cov80": {
+     "LM": 0.783784,
+     "SIM": 0.837838,
+     "SIMMIX": 0.810811
+    }
+   },
+   "INTL_126_I1": {
+    "n": 14,
+    "score": {
+     "BASE": 0.042859,
+     "LM": 0.034448,
+     "SIM": 0.028262,
+     "SIMMIX": 0.029054
+    },
+    "cov80": {
+     "LM": 0.857143,
+     "SIM": 0.785714,
+     "SIMMIX": 0.928571
+    }
+   },
+   "INTL_126_I2": {
+    "n": 20,
+    "score": {
+     "BASE": 0.025428,
+     "LM": 0.025034,
+     "SIM": 0.028227,
+     "SIMMIX": 0.02581
+    },
+    "cov80": {
+     "LM": 0.85,
+     "SIM": 0.75,
+     "SIMMIX": 0.8
+    }
+   },
+   "INTL_126_all": {
+    "n": 34,
+    "score": {
+     "BASE": 0.032606,
+     "LM": 0.02891,
+     "SIM": 0.028241,
+     "SIMMIX": 0.027146
+    },
+    "cov80": {
+     "LM": 0.852941,
+     "SIM": 0.764706,
+     "SIMMIX": 0.852941
+    }
+   }
+  },
+  "m2": {
+   "US_21_A": {
+    "n": 5,
+    "score": {
+     "BASE": 0.208558,
+     "LM": 0.228106,
+     "SIM": 0.172204,
+     "SIMMIX": 0.19334,
+     "TWOPH": 0.22533
+    }
+   },
+   "US_21_B": {
+    "n": 9,
+    "score": {
+     "BASE": 0.188422,
+     "LM": 0.190963,
+     "SIM": 0.191633,
+     "SIMMIX": 0.190069,
+     "TWOPH": 0.189333
+    }
+   },
+   "US_21_C": {
+    "n": 7,
+    "score": {
+     "BASE": 0.134546,
+     "LM": 0.127918,
+     "SIM": 0.121203,
+     "SIMMIX": 0.123538,
+     "TWOPH": 0.129877
+    }
+   },
+   "US_21_all": {
+    "n": 21,
+    "score": {
+     "BASE": 0.175258,
+     "LM": 0.178791,
+     "SIM": 0.16353,
+     "SIMMIX": 0.168671,
+     "TWOPH": 0.178085
+    }
+   },
+   "US_63_A": {
+    "n": 5,
+    "score": {
+     "BASE": 0.208558,
+     "LM": 0.112983,
+     "SIM": 0.101134,
+     "SIMMIX": 0.104766,
+     "TWOPH": 0.14735
+    }
+   },
+   "US_63_B": {
+    "n": 9,
+    "score": {
+     "BASE": 0.188422,
+     "LM": 0.176931,
+     "SIM": 0.177158,
+     "SIMMIX": 0.175942,
+     "TWOPH": 0.175815
+    }
+   },
+   "US_63_C": {
+    "n": 7,
+    "score": {
+     "BASE": 0.134546,
+     "LM": 0.096182,
+     "SIM": 0.086099,
+     "SIMMIX": 0.090274,
+     "TWOPH": 0.107079
+    }
+   },
+   "US_63_all": {
+    "n": 21,
+    "score": {
+     "BASE": 0.175258,
+     "LM": 0.134789,
+     "SIM": 0.128704,
+     "SIMMIX": 0.130439,
+     "TWOPH": 0.146126
+    }
+   },
+   "US_126_A": {
+    "n": 3,
+    "score": {
+     "BASE": 0.260561,
+     "LM": 0.183523,
+     "SIM": 0.052313,
+     "SIMMIX": 0.105857,
+     "TWOPH": 0.208362
+    }
+   },
+   "US_126_B": {
+    "n": 6,
+    "score": {
+     "BASE": 0.22516,
+     "LM": 0.204429,
+     "SIM": 0.200116,
+     "SIMMIX": 0.199628,
+     "TWOPH": 0.21112
+    }
+   },
+   "US_126_C": {
+    "n": 3,
+    "score": {
+     "BASE": 0.191393,
+     "LM": 0.138719,
+     "SIM": 0.128527,
+     "SIMMIX": 0.129711,
+     "TWOPH": 0.153655
+    }
+   },
+   "US_126_all": {
+    "n": 12,
+    "score": {
+     "BASE": 0.225569,
+     "LM": 0.182775,
+     "SIM": 0.145268,
+     "SIMMIX": 0.158706,
+     "TWOPH": 0.196064
+    }
+   },
+   "INTL_21_I1": {
+    "n": 16,
+    "score": {
+     "BASE": 0.256888,
+     "LM": 0.250787,
+     "SIM": 0.199635,
+     "SIMMIX": 0.215543,
+     "TWOPH": 0.251111
+    }
+   },
+   "INTL_21_I2": {
+    "n": 22,
+    "score": {
+     "BASE": 0.169265,
+     "LM": 0.177628,
+     "SIM": 0.2022,
+     "SIMMIX": 0.186818,
+     "TWOPH": 0.1596
+    }
+   },
+   "INTL_21_all": {
+    "n": 38,
+    "score": {
+     "BASE": 0.206159,
+     "LM": 0.208432,
+     "SIM": 0.20112,
+     "SIMMIX": 0.198913,
+     "TWOPH": 0.198131
+    }
+   },
+   "INTL_63_I1": {
+    "n": 15,
+    "score": {
+     "BASE": 0.254587,
+     "LM": 0.275279,
+     "SIM": 0.241641,
+     "SIMMIX": 0.247166,
+     "TWOPH": 0.26543
+    }
+   },
+   "INTL_63_I2": {
+    "n": 22,
+    "score": {
+     "BASE": 0.142671,
+     "LM": 0.129089,
+     "SIM": 0.136211,
+     "SIMMIX": 0.128981,
+     "TWOPH": 0.118366
+    }
+   },
+   "INTL_63_all": {
+    "n": 37,
+    "score": {
+     "BASE": 0.188042,
+     "LM": 0.188355,
+     "SIM": 0.178953,
+     "SIMMIX": 0.176894,
+     "TWOPH": 0.177987
+    }
+   },
+   "INTL_126_I1": {
+    "n": 14,
+    "score": {
+     "BASE": 0.238021,
+     "LM": 0.204141,
+     "SIM": 0.174154,
+     "SIMMIX": 0.179162,
+     "TWOPH": 0.227293
+    }
+   },
+   "INTL_126_I2": {
+    "n": 20,
+    "score": {
+     "BASE": 0.156145,
+     "LM": 0.129613,
+     "SIM": 0.130165,
+     "SIMMIX": 0.126755,
+     "TWOPH": 0.116364
+    }
+   },
+   "INTL_126_all": {
+    "n": 34,
+    "score": {
+     "BASE": 0.189859,
+     "LM": 0.160301,
+     "SIM": 0.148278,
+     "SIMMIX": 0.148334,
+     "TWOPH": 0.162041
+    }
+   }
+  },
+  "calib": {
+   "US_21": {
+    "252": {
+     "n": 21,
+     "BASE": 0.508973,
+     "LM": 0.468725,
+     "SIM": 0.484619,
+     "SIMMIX": 0.476672,
+     "TWOPH": 0.401544,
+     "obs": 0.666667
+    },
+    "504": {
+     "n": 21,
+     "BASE": 0.646083,
+     "LM": 0.651183,
+     "SIM": 0.713905,
+     "SIMMIX": 0.682544,
+     "TWOPH": 0.618062,
+     "obs": 0.809524
+    },
+    "756": {
+     "n": 21,
+     "BASE": 0.721275,
+     "LM": 0.759488,
+     "SIM": 0.826833,
+     "SIMMIX": 0.793161,
+     "TWOPH": 0.792871,
+     "obs": 0.809524
+    },
+    "1260": {
+     "n": 21,
+     "BASE": 0.825668,
+     "LM": 0.843836,
+     "SIM": 0.923655,
+     "SIMMIX": 0.883745,
+     "TWOPH": 0.892363,
+     "obs": 0.952381
+    }
+   },
+   "US_63": {
+    "252": {
+     "n": 21,
+     "BASE": 0.508973,
+     "LM": 0.660781,
+     "SIM": 0.657202,
+     "SIMMIX": 0.658992,
+     "TWOPH": 0.548992,
+     "obs": 0.666667
+    },
+    "504": {
+     "n": 21,
+     "BASE": 0.646083,
+     "LM": 0.791723,
+     "SIM": 0.823524,
+     "SIMMIX": 0.807624,
+     "TWOPH": 0.730773,
+     "obs": 0.809524
+    },
+    "756": {
+     "n": 21,
+     "BASE": 0.721275,
+     "LM": 0.880845,
+     "SIM": 0.89606,
+     "SIMMIX": 0.888452,
+     "TWOPH": 0.834317,
+     "obs": 0.809524
+    },
+    "1260": {
+     "n": 21,
+     "BASE": 0.825668,
+     "LM": 0.937081,
+     "SIM": 0.955536,
+     "SIMMIX": 0.946308,
+     "TWOPH": 0.919276,
+     "obs": 0.952381
+    }
+   },
+   "US_126": {
+    "252": {
+     "n": 12,
+     "BASE": 0.377417,
+     "LM": 0.495508,
+     "SIM": 0.544729,
+     "SIMMIX": 0.520118,
+     "TWOPH": 0.395821,
+     "obs": 0.5
+    },
+    "504": {
+     "n": 12,
+     "BASE": 0.546269,
+     "LM": 0.619947,
+     "SIM": 0.76525,
+     "SIMMIX": 0.692599,
+     "TWOPH": 0.649069,
+     "obs": 0.75
+    },
+    "756": {
+     "n": 12,
+     "BASE": 0.738972,
+     "LM": 0.768696,
+     "SIM": 0.869063,
+     "SIMMIX": 0.818879,
+     "TWOPH": 0.784636,
+     "obs": 0.75
+    },
+    "1260": {
+     "n": 12,
+     "BASE": 0.786423,
+     "LM": 0.891191,
+     "SIM": 0.949563,
+     "SIMMIX": 0.920377,
+     "TWOPH": 0.894476,
+     "obs": 0.916667
+    }
+   },
+   "INTL_21": {
+    "252": {
+     "n": 38,
+     "BASE": 0.566091,
+     "LM": 0.535665,
+     "SIM": 0.446987,
+     "SIMMIX": 0.491326,
+     "TWOPH": 0.469547,
+     "obs": 0.342105
+    },
+    "504": {
+     "n": 38,
+     "BASE": 0.707588,
+     "LM": 0.703297,
+     "SIM": 0.628658,
+     "SIMMIX": 0.665977,
+     "TWOPH": 0.700886,
+     "obs": 0.552632
+    },
+    "756": {
+     "n": 38,
+     "BASE": 0.755697,
+     "LM": 0.805877,
+     "SIM": 0.717822,
+     "SIMMIX": 0.761849,
+     "TWOPH": 0.837037,
+     "obs": 0.789474
+    },
+    "1260": {
+     "n": 38,
+     "BASE": 0.868671,
+     "LM": 0.869316,
+     "SIM": 0.802513,
+     "SIMMIX": 0.835914,
+     "TWOPH": 0.930326,
+     "obs": 0.894737
+    }
+   },
+   "INTL_63": {
+    "252": {
+     "n": 37,
+     "BASE": 0.566315,
+     "LM": 0.601104,
+     "SIM": 0.493507,
+     "SIMMIX": 0.547306,
+     "TWOPH": 0.562927,
+     "obs": 0.405405
+    },
+    "504": {
+     "n": 37,
+     "BASE": 0.70836,
+     "LM": 0.757059,
+     "SIM": 0.661108,
+     "SIMMIX": 0.709084,
+     "TWOPH": 0.75854,
+     "obs": 0.675676
+    },
+    "756": {
+     "n": 37,
+     "BASE": 0.756345,
+     "LM": 0.842094,
+     "SIM": 0.740588,
+     "SIMMIX": 0.791341,
+     "TWOPH": 0.859889,
+     "obs": 0.810811
+    },
+    "1260": {
+     "n": 37,
+     "BASE": 0.869238,
+     "LM": 0.908018,
+     "SIM": 0.816858,
+     "SIMMIX": 0.862438,
+     "TWOPH": 0.940512,
+     "obs": 0.891892
+    }
+   },
+   "INTL_126": {
+    "252": {
+     "n": 34,
+     "BASE": 0.409423,
+     "LM": 0.520701,
+     "SIM": 0.461074,
+     "SIMMIX": 0.490887,
+     "TWOPH": 0.446463,
+     "obs": 0.411765
+    },
+    "504": {
+     "n": 34,
+     "BASE": 0.603231,
+     "LM": 0.660221,
+     "SIM": 0.630449,
+     "SIMMIX": 0.645335,
+     "TWOPH": 0.675335,
+     "obs": 0.705882
+    },
+    "756": {
+     "n": 34,
+     "BASE": 0.732328,
+     "LM": 0.766398,
+     "SIM": 0.714684,
+     "SIMMIX": 0.740541,
+     "TWOPH": 0.809824,
+     "obs": 0.794118
+    },
+    "1260": {
+     "n": 34,
+     "BASE": 0.823228,
+     "LM": 0.867061,
+     "SIM": 0.795713,
+     "SIMMIX": 0.831387,
+     "TWOPH": 0.916621,
+     "obs": 0.882353
+    }
+   }
+  }
+ },
+ "episode_fields": [
+  "d",
+  "m",
+  "s1_BASE",
+  "s1_LM",
+  "s1_SIM",
+  "s1_SIMMIX",
+  "s2_BASE",
+  "s2_LM",
+  "s2_SIM",
+  "s2_SIMMIX",
+  "s2_TWOPH"
+ ],
+ "episodes": [
+  {
+   "id": "US:1929-10-23",
+   "t0": "1929-10-23",
+   "era": "A",
+   "dd0": -0.157143,
+   "FD": -0.84074,
+   "R": 3819,
+   "lm": {
+    "21": [
+     -0.327901,
+     -0.437042,
+     null,
+     null,
+     0.18714,
+     null,
+     null,
+     null,
+     0.553035,
+     null,
+     null
+    ],
+    "63": [
+     -0.305115,
+     -0.437042,
+     null,
+     null,
+     0.201849,
+     null,
+     null,
+     null,
+     0.596736,
+     null,
+     null
+    ],
+    "126": [
+     -0.233054,
+     -0.437042,
+     null,
+     null,
+     0.201849,
+     null,
+     null,
+     null,
+     0.746455,
+     null,
+     null
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": null,
+    "SIMMIX_M2": null,
+    "TWOPH_M2": null
+   }
+  },
+  {
+   "id": "US:1933-07-21",
+   "t0": "1933-07-21",
+   "era": "A",
+   "dd0": -0.208371,
+   "FD": -0.283555,
+   "R": 503,
+   "lm": {
+    "21": [
+     -0.113322,
+     -0.208371,
+     null,
+     null,
+     0.020178,
+     null,
+     null,
+     null,
+     0.132315,
+     null,
+     null
+    ],
+    "63": [
+     -0.265643,
+     -0.283555,
+     null,
+     null,
+     0.037494,
+     null,
+     null,
+     null,
+     0.238457,
+     null,
+     null
+    ],
+    "126": [
+     -0.076328,
+     -0.283555,
+     null,
+     null,
+     0.002366,
+     null,
+     null,
+     null,
+     0.144971,
+     null,
+     null
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": null,
+    "SIMMIX_M2": null,
+    "TWOPH_M2": null
+   }
+  },
+  {
+   "id": "US:1937-06-14",
+   "t0": "1937-06-14",
+   "era": "A",
+   "dd0": -0.154048,
+   "FD": -0.510383,
+   "R": 1511,
+   "lm": {
+    "21": [
+     -0.09271,
+     -0.164629,
+     null,
+     null,
+     0.125402,
+     null,
+     null,
+     null,
+     0.720389,
+     null,
+     null
+    ],
+    "63": [
+     -0.222846,
+     -0.222846,
+     null,
+     null,
+     0.050232,
+     null,
+     null,
+     null,
+     0.364543,
+     null,
+     null
+    ],
+    "126": [
+     -0.375985,
+     -0.420181,
+     null,
+     null,
+     0.014112,
+     null,
+     null,
+     null,
+     0.090454,
+     null,
+     null
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": null,
+    "SIMMIX_M2": null,
+    "TWOPH_M2": null
+   }
+  },
+  {
+   "id": "US:1939-03-31",
+   "t0": "1939-03-31",
+   "era": "A",
+   "dd0": -0.159706,
+   "FD": -0.204018,
+   "R": 112,
+   "lm": {
+    "21": [
+     -0.154934,
+     -0.204018,
+     null,
+     null,
+     0.020201,
+     null,
+     null,
+     null,
+     0.134742,
+     null,
+     null
+    ],
+    "63": [
+     -0.151992,
+     -0.204018,
+     null,
+     null,
+     0.01804,
+     null,
+     null,
+     null,
+     0.118108,
+     null,
+     null
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": null,
+    "SIMMIX_M2": null,
+    "TWOPH_M2": null
+   }
+  },
+  {
+   "id": "US:1940-05-14",
+   "t0": "1940-05-14",
+   "era": "A",
+   "dd0": -0.167816,
+   "FD": -0.312621,
+   "R": 680,
+   "lm": {
+    "21": [
+     -0.209158,
+     -0.261029,
+     null,
+     null,
+     0.017668,
+     null,
+     null,
+     null,
+     0.155201,
+     null,
+     null
+    ],
+    "63": [
+     -0.183878,
+     -0.261029,
+     null,
+     null,
+     0.014042,
+     null,
+     null,
+     null,
+     0.153789,
+     null,
+     null
+    ],
+    "126": [
+     -0.07338,
+     -0.261029,
+     null,
+     null,
+     0.018106,
+     null,
+     null,
+     null,
+     0.314401,
+     null,
+     null
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": null,
+    "SIMMIX_M2": null,
+    "TWOPH_M2": null
+   }
+  },
+  {
+   "id": "US:1941-12-22",
+   "t0": "1941-12-22",
+   "era": "A",
+   "dd0": -0.159497,
+   "FD": -0.26036,
+   "R": 257,
+   "lm": {
+    "21": [
+     -0.131323,
+     -0.164562,
+     null,
+     null,
+     0.019149,
+     null,
+     null,
+     null,
+     0.114976,
+     null,
+     null
+    ],
+    "63": [
+     -0.194874,
+     -0.208,
+     null,
+     null,
+     0.020447,
+     null,
+     null,
+     null,
+     0.260839,
+     null,
+     null
+    ],
+    "126": [
+     -0.179865,
+     -0.26036,
+     null,
+     null,
+     0.01494,
+     null,
+     null,
+     null,
+     0.23043,
+     null,
+     null
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": null,
+    "SIMMIX_M2": null,
+    "TWOPH_M2": null
+   }
+  },
+  {
+   "id": "US:1946-09-03",
+   "t0": "1946-09-03",
+   "era": "A",
+   "dd0": -0.185876,
+   "FD": -0.282358,
+   "R": 822,
+   "lm": {
+    "21": [
+     -0.209604,
+     -0.246175,
+     0.02727,
+     0.036367,
+     0.011974,
+     0.021105,
+     0.229167,
+     0.125,
+     0.221485,
+     0.166017,
+     0.133295
+    ],
+    "63": [
+     -0.221516,
+     -0.260385,
+     0.026986,
+     0.026589,
+     0.011276,
+     0.018932,
+     0.229167,
+     0.180556,
+     0.201893,
+     0.188331,
+     0.198688
+    ],
+    "126": [
+     -0.176811,
+     -0.260385,
+     0.026986,
+     null,
+     0.00822,
+     null,
+     0.13,
+     null,
+     0.15602,
+     null,
+     null
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.011459,
+    "SIMMIX_M2": -0.024396,
+    "TWOPH_M2": -0.013214
+   }
+  },
+  {
+   "id": "US:1949-06-06",
+   "t0": "1949-06-06",
+   "era": "A",
+   "dd0": -0.151269,
+   "FD": -0.166177,
+   "R": 99,
+   "lm": {
+    "21": [
+     -0.113444,
+     -0.166177,
+     0.057127,
+     0.049219,
+     0.00872,
+     0.02897,
+     0.30102,
+     0.209184,
+     0.066818,
+     0.127581,
+     0.244599
+    ],
+    "63": [
+     -0.052326,
+     -0.166177,
+     0.057127,
+     0.023731,
+     0.001659,
+     0.012695,
+     0.30102,
+     0.045351,
+     0.011586,
+     0.025092,
+     0.143133
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.015643,
+    "SIMMIX_M2": 0.050931,
+    "TWOPH_M2": -0.066598
+   }
+  },
+  {
+   "id": "US:1957-10-10",
+   "t0": "1957-10-10",
+   "era": "A",
+   "dd0": -0.16258,
+   "FD": -0.206514,
+   "R": 200,
+   "lm": {
+    "21": [
+     -0.178083,
+     -0.206514,
+     0.030476,
+     0.033788,
+     0.009307,
+     0.021547,
+     0.210938,
+     0.289062,
+     0.13942,
+     0.204753,
+     0.27356
+    ],
+    "63": [
+     -0.160995,
+     -0.206514,
+     0.030476,
+     0.021916,
+     0.006038,
+     0.013977,
+     0.210938,
+     0.144531,
+     0.117268,
+     0.127555,
+     0.168579
+    ],
+    "126": [
+     -0.123676,
+     -0.206514,
+     0.030476,
+     0.033281,
+     0.002727,
+     0.018004,
+     0.340278,
+     0.270833,
+     0.059952,
+     0.145821,
+     0.286844
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.011819,
+    "SIMMIX_M2": 0.075432,
+    "TWOPH_M2": -0.008185
+   }
+  },
+  {
+   "id": "US:1962-05-23",
+   "t0": "1962-05-23",
+   "era": "A",
+   "dd0": -0.155147,
+   "FD": -0.277044,
+   "R": 257,
+   "lm": {
+    "21": [
+     -0.271957,
+     -0.271957,
+     0.014552,
+     0.029206,
+     0.015308,
+     0.022257,
+     0.166667,
+     0.367284,
+     0.338688,
+     0.349254,
+     0.312071
+    ],
+    "63": [
+     -0.169558,
+     -0.277044,
+     0.013687,
+     0.012379,
+     0.001054,
+     0.006717,
+     0.166667,
+     0.141975,
+     0.126018,
+     0.132287,
+     0.153902
+    ],
+    "126": [
+     -0.151207,
+     -0.277044,
+     0.013687,
+     0.018575,
+     0.000771,
+     0.009673,
+     0.25,
+     0.260204,
+     0.096405,
+     0.165076,
+     0.238755
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.007171,
+    "SIMMIX_M2": 0.040949,
+    "TWOPH_M2": 0.021578
+   }
+  },
+  {
+   "id": "US:1966-08-26",
+   "t0": "1966-08-26",
+   "era": "A",
+   "dd0": -0.163054,
+   "FD": -0.202611,
+   "R": 132,
+   "lm": {
+    "21": [
+     -0.146498,
+     -0.184312,
+     0.022631,
+     0.02043,
+     0.006577,
+     0.011801,
+     0.135,
+     0.15,
+     0.094608,
+     0.119096,
+     0.163125
+    ],
+    "63": [
+     -0.109445,
+     -0.202611,
+     0.022428,
+     0.011546,
+     0.001197,
+     0.006371,
+     0.135,
+     0.0525,
+     0.048906,
+     0.050564,
+     0.07245
+    ],
+    "126": [
+     -0.017707,
+     -0.202611,
+     0.022428,
+     0.01237,
+     0.0,
+     0.006185,
+     0.191406,
+     0.019531,
+     0.000583,
+     0.006673,
+     0.099487
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.006663,
+    "SIMMIX_M2": 0.015233,
+    "TWOPH_M2": -0.037677
+   }
+  },
+  {
+   "id": "US:1969-07-23",
+   "t0": "1969-07-23",
+   "era": "B",
+   "dd0": -0.150324,
+   "FD": -0.368196,
+   "R": 446,
+   "lm": {
+    "21": [
+     -0.126908,
+     -0.188158,
+     0.041769,
+     0.046995,
+     0.072705,
+     0.049805,
+     0.134298,
+     0.109504,
+     0.086554,
+     0.095799,
+     0.084711
+    ],
+    "63": [
+     -0.097444,
+     -0.188158,
+     0.041769,
+     0.056639,
+     0.081801,
+     0.055782,
+     0.134298,
+     0.11157,
+     0.120384,
+     0.115682,
+     0.116368
+    ],
+    "126": [
+     -0.156795,
+     -0.188158,
+     0.041769,
+     0.032827,
+     0.062491,
+     0.040353,
+     0.123457,
+     0.12963,
+     0.06543,
+     0.093727,
+     0.07415
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": -0.00316,
+    "SIMMIX_M2": 0.015166,
+    "TWOPH_M2": 0.025158
+   }
+  },
+  {
+   "id": "US:1973-05-17",
+   "t0": "1973-05-17",
+   "era": "B",
+   "dd0": -0.152908,
+   "FD": -0.481595,
+   "R": 913,
+   "lm": {
+    "21": [
+     -0.17557,
+     -0.180718,
+     0.068075,
+     0.062396,
+     0.105393,
+     0.069116,
+     0.321181,
+     0.253472,
+     0.279189,
+     0.263986,
+     0.286085
+    ],
+    "63": [
+     -0.169158,
+     -0.19327,
+     0.067919,
+     0.065373,
+     0.111733,
+     0.07536,
+     0.321181,
+     0.322917,
+     0.291688,
+     0.304708,
+     0.342038
+    ],
+    "126": [
+     -0.159453,
+     -0.19327,
+     0.067919,
+     0.058993,
+     0.115463,
+     0.069507,
+     0.3,
+     0.235,
+     0.318109,
+     0.27253,
+     0.30995
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": -0.009074,
+    "SIMMIX_M2": -0.009945,
+    "TWOPH_M2": -0.042228
+   }
+  },
+  {
+   "id": "US:1978-10-31",
+   "t0": "1978-10-31",
+   "era": "B",
+   "dd0": -0.150952,
+   "FD": -0.151593,
+   "R": 154,
+   "lm": {
+    "21": [
+     -0.122561,
+     -0.151593,
+     0.044412,
+     0.02928,
+     0.006646,
+     0.017963,
+     0.139053,
+     0.10355,
+     0.075368,
+     0.08879,
+     0.150257
+    ],
+    "63": [
+     -0.064188,
+     -0.151593,
+     0.044412,
+     0.017928,
+     0.000946,
+     0.009437,
+     0.139053,
+     0.014793,
+     0.013192,
+     0.013777,
+     0.079304
+    ],
+    "126": [
+     -0.02261,
+     -0.151593,
+     0.044412,
+     0.021953,
+     0.0,
+     0.010976,
+     0.179752,
+     0.010331,
+     0.000899,
+     0.004302,
+     0.092207
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.010261,
+    "SIMMIX_M2": 0.007268,
+    "TWOPH_M2": -0.064365
+   }
+  },
+  {
+   "id": "US:1980-03-24",
+   "t0": "1980-03-24",
+   "era": "B",
+   "dd0": -0.163781,
+   "FD": -0.186614,
+   "R": 65,
+   "lm": {
+    "21": [
+     -0.127733,
+     -0.186614,
+     0.028038,
+     0.020557,
+     0.004249,
+     0.012403,
+     0.119898,
+     0.093112,
+     0.081122,
+     0.086509,
+     0.136805
+    ],
+    "63": [
+     -0.015841,
+     -0.186614,
+     0.028038,
+     0.01138,
+     0.0,
+     0.00569,
+     0.119898,
+     0.006378,
+     0.00066,
+     0.002757,
+     0.060053
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.006922,
+    "SIMMIX_M2": 0.005112,
+    "TWOPH_M2": -0.048684
+   }
+  },
+  {
+   "id": "US:1981-09-25",
+   "t0": "1981-09-25",
+   "era": "B",
+   "dd0": -0.161834,
+   "FD": -0.20167,
+   "R": 261,
+   "lm": {
+    "21": [
+     -0.109908,
+     -0.161834,
+     0.020771,
+     0.016942,
+     0.009283,
+     0.012272,
+     0.104444,
+     0.07,
+     0.052157,
+     0.060704,
+     0.097012
+    ],
+    "63": [
+     -0.067856,
+     -0.161834,
+     0.020771,
+     0.016853,
+     0.012835,
+     0.010861,
+     0.104444,
+     0.018889,
+     0.014872,
+     0.016532,
+     0.054272
+    ],
+    "126": [
+     -0.143208,
+     -0.176137,
+     0.020771,
+     0.026415,
+     0.006972,
+     0.014806,
+     0.151042,
+     0.137153,
+     0.106386,
+     0.120504,
+     0.127966
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.007424,
+    "SIMMIX_M2": 0.009434,
+    "TWOPH_M2": -0.017736
+   }
+  },
+  {
+   "id": "US:1987-10-19",
+   "t0": "1987-10-19",
+   "era": "B",
+   "dd0": -0.29402,
+   "FD": -0.331142,
+   "R": 397,
+   "lm": {
+    "21": [
+     -0.276243,
+     -0.323035,
+     0.015112,
+     0.013357,
+     0.007013,
+     0.010185,
+     0.123047,
+     0.166992,
+     0.156522,
+     0.159625,
+     0.085781
+    ],
+    "63": [
+     -0.246722,
+     -0.331142,
+     0.014767,
+     0.008491,
+     0.002127,
+     0.005309,
+     0.123047,
+     0.128906,
+     0.125669,
+     0.12379,
+     0.085716
+    ],
+    "126": [
+     -0.202894,
+     -0.331142,
+     0.014767,
+     0.009123,
+     0.000397,
+     0.00476,
+     0.109467,
+     0.149408,
+     0.078524,
+     0.109428,
+     0.076844
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.003572,
+    "SIMMIX_M2": 0.017488,
+    "TWOPH_M2": 0.065655
+   }
+  },
+  {
+   "id": "US:1990-08-23",
+   "t0": "1990-08-23",
+   "era": "B",
+   "dd0": -0.173019,
+   "FD": -0.207954,
+   "R": 118,
+   "lm": {
+    "21": [
+     -0.17834,
+     -0.17834,
+     0.017878,
+     0.020264,
+     0.00829,
+     0.014277,
+     0.094291,
+     0.129758,
+     0.157381,
+     0.141752,
+     0.123508
+    ],
+    "63": [
+     -0.149725,
+     -0.207954,
+     0.017503,
+     0.011445,
+     0.003477,
+     0.007461,
+     0.094291,
+     0.060554,
+     0.104911,
+     0.081074,
+     0.08236
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.004985,
+    "SIMMIX_M2": -0.016257,
+    "TWOPH_M2": -0.007778
+   }
+  },
+  {
+   "id": "US:1998-08-28",
+   "t0": "1998-08-28",
+   "era": "B",
+   "dd0": -0.150986,
+   "FD": -0.219199,
+   "R": 81,
+   "lm": {
+    "21": [
+     -0.133298,
+     -0.2077,
+     0.010934,
+     0.011802,
+     0.00434,
+     0.008071,
+     0.084105,
+     0.067901,
+     0.06551,
+     0.066398,
+     0.093193
+    ],
+    "63": [
+     -0.011822,
+     -0.219199,
+     0.009598,
+     0.003249,
+     0.0,
+     0.001624,
+     0.084105,
+     0.003858,
+     0.00034,
+     0.001602,
+     0.034787
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.002678,
+    "SIMMIX_M2": 0.00188,
+    "TWOPH_M2": -0.02811
+   }
+  },
+  {
+   "id": "US:2000-04-14",
+   "t0": "2000-04-14",
+   "era": "B",
+   "dd0": -0.162536,
+   "FD": -0.492256,
+   "R": 1639,
+   "lm": {
+    "21": [
+     -0.08682,
+     -0.162536,
+     0.075745,
+     0.094098,
+     0.142934,
+     0.118516,
+     0.575485,
+     0.724377,
+     0.770893,
+     0.747061,
+     0.646646
+    ],
+    "63": [
+     -0.03628,
+     -0.162536,
+     0.075745,
+     0.119417,
+     0.16486,
+     0.142138,
+     0.575485,
+     0.924515,
+     0.922705,
+     0.923558,
+     0.727436
+    ],
+    "126": [
+     -0.13432,
+     -0.166894,
+     0.075745,
+     0.071736,
+     0.1244,
+     0.095177,
+     0.487245,
+     0.565051,
+     0.631348,
+     0.597276,
+     0.585602
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": -0.023527,
+    "SIMMIX_M2": -0.017984,
+    "TWOPH_M2": 0.084753
+   }
+  },
+  {
+   "id": "US:2008-01-18",
+   "t0": "2008-01-18",
+   "era": "C",
+   "dd0": -0.151722,
+   "FD": -0.545655,
+   "R": 1035,
+   "lm": {
+    "21": [
+     -0.122374,
+     -0.15995,
+     0.097375,
+     0.098201,
+     0.163064,
+     0.130632,
+     0.344375,
+     0.399375,
+     0.438894,
+     0.418656,
+     0.356067
+    ],
+    "63": [
+     -0.106319,
+     -0.180556,
+     0.097179,
+     0.107296,
+     0.164447,
+     0.135872,
+     0.344375,
+     0.453125,
+     0.486478,
+     0.469583,
+     0.420966
+    ],
+    "126": [
+     -0.173154,
+     -0.203363,
+     0.096151,
+     0.080205,
+     0.137416,
+     0.10881,
+     0.274444,
+     0.246667,
+     0.306167,
+     0.272242,
+     0.295086
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": -0.029871,
+    "SIMMIX_M2": -0.020438,
+    "TWOPH_M2": 0.009016
+   }
+  },
+  {
+   "id": "US:2010-06-30",
+   "t0": "2010-06-30",
+   "era": "C",
+   "dd0": -0.153189,
+   "FD": -0.160709,
+   "R": 89,
+   "lm": {
+    "21": [
+     -0.094438,
+     -0.160709,
+     0.029169,
+     0.016236,
+     0.003254,
+     0.009745,
+     0.110702,
+     0.06809,
+     0.0314,
+     0.047414,
+     0.083405
+    ],
+    "63": [
+     -0.05295,
+     -0.160709,
+     0.029169,
+     0.011531,
+     0.000508,
+     0.006019,
+     0.110702,
+     0.015117,
+     0.008064,
+     0.011158,
+     0.049089
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.006001,
+    "SIMMIX_M2": 0.012317,
+    "TWOPH_M2": -0.024643
+   }
+  },
+  {
+   "id": "US:2011-08-08",
+   "t0": "2011-08-08",
+   "era": "C",
+   "dd0": -0.186979,
+   "FD": -0.203083,
+   "R": 128,
+   "lm": {
+    "21": [
+     -0.124456,
+     -0.186979,
+     0.025308,
+     0.016406,
+     0.007351,
+     0.011372,
+     0.103822,
+     0.086777,
+     0.063676,
+     0.073818,
+     0.103813
+    ],
+    "63": [
+     -0.081392,
+     -0.203083,
+     0.025229,
+     0.014056,
+     0.001093,
+     0.007574,
+     0.103822,
+     0.043518,
+     0.02183,
+     0.03158,
+     0.058207
+    ],
+    "126": [
+     -0.003413,
+     -0.203083,
+     0.025229,
+     0.011056,
+     0.0,
+     0.005528,
+     0.185547,
+     0.019836,
+     8.2e-05,
+     0.005595,
+     0.079734
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.005681,
+    "SIMMIX_M2": 0.013046,
+    "TWOPH_M2": -0.030541
+   }
+  },
+  {
+   "id": "US:2016-02-11",
+   "t0": "2016-02-11",
+   "era": "C",
+   "dd0": -0.155274,
+   "FD": -0.155274,
+   "R": 102,
+   "lm": {
+    "21": [
+     -0.059621,
+     -0.155274,
+     0.031967,
+     0.014089,
+     0.000914,
+     0.007502,
+     0.091682,
+     0.017958,
+     0.010275,
+     0.013693,
+     0.068215
+    ],
+    "63": [
+     -0.034131,
+     -0.155274,
+     0.031967,
+     0.013619,
+     0.0,
+     0.00681,
+     0.091682,
+     0.010397,
+     0.002315,
+     0.005594,
+     0.04506
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.006699,
+    "SIMMIX_M2": 0.004534,
+    "TWOPH_M2": -0.04246
+   }
+  },
+  {
+   "id": "US:2018-12-19",
+   "t0": "2018-12-19",
+   "era": "C",
+   "dd0": -0.152142,
+   "FD": -0.204461,
+   "R": 84,
+   "lm": {
+    "21": [
+     -0.102021,
+     -0.204461,
+     0.013144,
+     0.011703,
+     0.001293,
+     0.006498,
+     0.084201,
+     0.050781,
+     0.039164,
+     0.044386,
+     0.076535
+    ],
+    "63": [
+     -0.043627,
+     -0.204461,
+     0.013144,
+     0.008929,
+     0.0,
+     0.004464,
+     0.084201,
+     0.009549,
+     0.005033,
+     0.007076,
+     0.040837
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.004835,
+    "SIMMIX_M2": 0.004434,
+    "TWOPH_M2": -0.028521
+   }
+  },
+  {
+   "id": "US:2020-03-09",
+   "t0": "2020-03-09",
+   "era": "C",
+   "dd0": -0.19396,
+   "FD": -0.342163,
+   "R": 104,
+   "lm": {
+    "21": [
+     -0.222566,
+     -0.342163,
+     0.004292,
+     0.007103,
+     0.005476,
+     0.00629,
+     0.0776,
+     0.1504,
+     0.18372,
+     0.166592,
+     0.130184
+    ],
+    "63": [
+     -0.0331,
+     -0.342163,
+     0.004292,
+     0.002968,
+     0.0,
+     0.001484,
+     0.0776,
+     0.0088,
+     0.002934,
+     0.005451,
+     0.036136
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.001149,
+    "SIMMIX_M2": -0.006422,
+    "TWOPH_M2": -0.00356
+   }
+  },
+  {
+   "id": "US:2022-04-29",
+   "t0": "2022-04-29",
+   "era": "C",
+   "dd0": -0.150711,
+   "FD": -0.255559,
+   "R": 412,
+   "lm": {
+    "21": [
+     -0.153454,
+     -0.20045,
+     0.015884,
+     0.0158,
+     0.010776,
+     0.013288,
+     0.129438,
+     0.122041,
+     0.081295,
+     0.100203,
+     0.09092
+    ],
+    "63": [
+     -0.15197,
+     -0.249535,
+     0.008601,
+     0.008334,
+     0.00244,
+     0.005387,
+     0.129438,
+     0.132766,
+     0.076037,
+     0.101474,
+     0.099261
+    ],
+    "126": [
+     -0.189751,
+     -0.255559,
+     0.007577,
+     0.0182,
+     0.004057,
+     0.011129,
+     0.114187,
+     0.149654,
+     0.079331,
+     0.111296,
+     0.086143
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.004177,
+    "SIMMIX_M2": 0.030496,
+    "TWOPH_M2": 0.042713
+   }
+  },
+  {
+   "id": "US:2025-04-04",
+   "t0": "2025-04-04",
+   "era": "X",
+   "dd0": -0.180359,
+   "FD": -0.195576,
+   "R": 56,
+   "lm": {
+    "21": [
+     -0.090381,
+     -0.195576,
+     0.021315,
+     0.0092,
+     0.001523,
+     0.005361,
+     0.073731,
+     0.037723,
+     0.027501,
+     0.032294,
+     0.060322
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.003839,
+    "SIMMIX_M2": 0.005429,
+    "TWOPH_M2": -0.022599
+   }
+  },
+  {
+   "id": "Europe:1991-06-18",
+   "t0": "1991-06-18",
+   "era": "I1",
+   "dd0": -0.164007,
+   "FD": -0.203749,
+   "R": 566,
+   "lm": {
+    "21": [
+     -0.16139,
+     -0.197063,
+     0.013736,
+     0.015657,
+     null,
+     null,
+     0.222994,
+     0.183642,
+     null,
+     null,
+     0.182011
+    ],
+    "63": [
+     -0.09964,
+     -0.203749,
+     0.013591,
+     0.006553,
+     null,
+     null,
+     0.111883,
+     0.097222,
+     null,
+     null,
+     0.113404
+    ],
+    "126": [
+     -0.131585,
+     -0.203749,
+     0.013591,
+     0.014953,
+     null,
+     null,
+     0.094388,
+     0.100765,
+     null,
+     null,
+     0.078756
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": null,
+    "SIMMIX_M2": null,
+    "TWOPH_M2": 0.002486
+   }
+  },
+  {
+   "id": "Europe:1992-11-02",
+   "t0": "1992-11-02",
+   "era": "I1",
+   "dd0": -0.158792,
+   "FD": -0.167304,
+   "R": 207,
+   "lm": {
+    "21": [
+     -0.137573,
+     -0.167304,
+     0.025285,
+     0.017971,
+     null,
+     null,
+     0.084105,
+     0.074846,
+     null,
+     null,
+     0.095629
+    ],
+    "63": [
+     -0.119028,
+     -0.167304,
+     0.025285,
+     0.010163,
+     null,
+     null,
+     0.084105,
+     0.046296,
+     null,
+     null,
+     0.052738
+    ],
+    "126": [
+     -0.048209,
+     -0.167304,
+     0.025285,
+     0.012101,
+     null,
+     null,
+     0.130102,
+     0.006378,
+     null,
+     null,
+     0.054762
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": null,
+    "SIMMIX_M2": null,
+    "TWOPH_M2": -0.025203
+   }
+  },
+  {
+   "id": "Europe:1998-08-27",
+   "t0": "1998-08-27",
+   "era": "I1",
+   "dd0": -0.154266,
+   "FD": -0.25067,
+   "R": 313,
+   "lm": {
+    "21": [
+     -0.185417,
+     -0.204674,
+     0.014163,
+     0.013875,
+     0.009726,
+     0.011484,
+     0.111883,
+     0.115741,
+     0.080385,
+     0.09699,
+     0.073476
+    ],
+    "63": [
+     -0.102958,
+     -0.25067,
+     0.007569,
+     0.00376,
+     0.000544,
+     0.002152,
+     0.084105,
+     0.041667,
+     0.034674,
+     0.037731,
+     0.049164
+    ],
+    "126": [
+     -0.094517,
+     -0.25067,
+     0.007204,
+     0.008513,
+     0.000189,
+     0.004351,
+     0.130102,
+     0.053571,
+     0.029079,
+     0.040258,
+     0.065038
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.00272,
+    "SIMMIX_M2": 0.012,
+    "TWOPH_M2": 0.007767
+   }
+  },
+  {
+   "id": "Europe:2000-09-20",
+   "t0": "2000-09-20",
+   "era": "I1",
+   "dd0": -0.161352,
+   "FD": -0.488227,
+   "R": 1095,
+   "lm": {
+    "21": [
+     -0.19013,
+     -0.210114,
+     0.07379,
+     0.065451,
+     0.086484,
+     0.071251,
+     0.372848,
+     0.310185,
+     0.263924,
+     0.285111,
+     0.353943
+    ],
+    "63": [
+     -0.172904,
+     -0.210114,
+     0.07379,
+     0.076577,
+     0.102605,
+     0.089591,
+     0.369536,
+     0.324949,
+     0.301828,
+     0.311855,
+     0.416984
+    ],
+    "126": [
+     -0.253472,
+     -0.253472,
+     0.068281,
+     0.041549,
+     0.057867,
+     0.045601,
+     0.303058,
+     0.188022,
+     0.13996,
+     0.160297,
+     0.274326
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": -0.007622,
+    "SIMMIX_M2": 0.021964,
+    "TWOPH_M2": -0.074032
+   }
+  },
+  {
+   "id": "Europe:2002-07-22",
+   "t0": "2002-07-22",
+   "era": "I1",
+   "dd0": -0.173635,
+   "FD": -0.291626,
+   "R": 303,
+   "lm": {
+    "21": [
+     -0.143876,
+     -0.211503,
+     0.016079,
+     0.017223,
+     0.015647,
+     0.016435,
+     0.116125,
+     0.09625,
+     0.106401,
+     0.100292,
+     0.083147
+    ],
+    "63": [
+     -0.206772,
+     -0.283716,
+     0.006718,
+     0.007449,
+     0.008477,
+     0.007516,
+     0.091125,
+     0.136875,
+     0.257756,
+     0.192227,
+     0.08218
+    ],
+    "126": [
+     -0.151008,
+     -0.283716,
+     0.006718,
+     0.009732,
+     0.00379,
+     0.00613,
+     0.152569,
+     0.128472,
+     0.159008,
+     0.14281,
+     0.102737
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.001441,
+    "SIMMIX_M2": -0.024577,
+    "TWOPH_M2": 0.031178
+   }
+  },
+  {
+   "id": "Europe:2008-01-21",
+   "t0": "2008-01-21",
+   "era": "I2",
+   "dd0": -0.201761,
+   "FD": -0.621067,
+   "R": 1562,
+   "lm": {
+    "21": [
+     -0.141373,
+     -0.201761,
+     0.115936,
+     0.127209,
+     0.173243,
+     0.150226,
+     0.519375,
+     0.54625,
+     0.612058,
+     0.578453,
+     0.559505
+    ],
+    "63": [
+     -0.095637,
+     -0.201761,
+     0.115936,
+     0.14373,
+     0.195086,
+     0.169408,
+     0.519375,
+     0.69875,
+     0.742232,
+     0.71998,
+     0.644519
+    ],
+    "126": [
+     -0.210606,
+     -0.210606,
+     0.115936,
+     0.105684,
+     0.14852,
+     0.127102,
+     0.424444,
+     0.361111,
+     0.42376,
+     0.389947,
+     0.467896
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": -0.023371,
+    "SIMMIX_M2": -0.027423,
+    "TWOPH_M2": -0.021936
+   }
+  },
+  {
+   "id": "Europe:2010-05-06",
+   "t0": "2010-05-06",
+   "era": "I2",
+   "dd0": -0.153082,
+   "FD": -0.217699,
+   "R": 109,
+   "lm": {
+    "21": [
+     -0.198439,
+     -0.217699,
+     0.012505,
+     0.021069,
+     0.016994,
+     0.019032,
+     0.110702,
+     0.155931,
+     0.197441,
+     0.175835,
+     0.135953
+    ],
+    "63": [
+     -0.052786,
+     -0.217699,
+     0.012505,
+     0.007533,
+     0.000434,
+     0.003984,
+     0.110702,
+     0.015117,
+     0.010786,
+     0.012765,
+     0.049089
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.002794,
+    "SIMMIX_M2": -0.008776,
+    "TWOPH_M2": -0.006997
+   }
+  },
+  {
+   "id": "Europe:2011-08-04",
+   "t0": "2011-08-04",
+   "era": "I2",
+   "dd0": -0.175387,
+   "FD": -0.303919,
+   "R": 468,
+   "lm": {
+    "21": [
+     -0.200832,
+     -0.233794,
+     0.019272,
+     0.01887,
+     0.012421,
+     0.015646,
+     0.12655,
+     0.127066,
+     0.103753,
+     0.114199,
+     0.079735
+    ],
+    "63": [
+     -0.229106,
+     -0.303919,
+     0.008741,
+     0.013707,
+     0.00835,
+     0.011029,
+     0.12655,
+     0.125,
+     0.130031,
+     0.126241,
+     0.083602
+    ],
+    "126": [
+     -0.1951,
+     -0.303919,
+     0.008741,
+     0.015015,
+     0.002719,
+     0.008867,
+     0.123047,
+     0.159241,
+     0.098258,
+     0.126347,
+     0.088365
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.004017,
+    "SIMMIX_M2": 0.01484,
+    "TWOPH_M2": 0.053202
+   }
+  },
+  {
+   "id": "Europe:2014-10-15",
+   "t0": "2014-10-15",
+   "era": "I2",
+   "dd0": -0.159871,
+   "FD": -0.241169,
+   "R": 667,
+   "lm": {
+    "21": [
+     -0.121125,
+     -0.165584,
+     0.016453,
+     0.020228,
+     0.01394,
+     0.017084,
+     0.222117,
+     0.225898,
+     0.228359,
+     0.227053,
+     0.198039
+    ],
+    "63": [
+     -0.154167,
+     -0.168481,
+     0.016453,
+     0.020491,
+     0.012317,
+     0.016404,
+     0.222117,
+     0.215028,
+     0.167992,
+     0.18908,
+     0.214837
+    ],
+    "126": [
+     -0.078096,
+     -0.168481,
+     0.016453,
+     0.019777,
+     0.022505,
+     0.014755,
+     0.158304,
+     0.259516,
+     0.324544,
+     0.290405,
+     0.208849
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.004084,
+    "SIMMIX_M2": -0.002032,
+    "TWOPH_M2": 0.026239
+   }
+  },
+  {
+   "id": "Europe:2016-01-08",
+   "t0": "2016-01-08",
+   "era": "I2",
+   "dd0": -0.160514,
+   "FD": -0.218845,
+   "R": 337,
+   "lm": {
+    "21": [
+     -0.204403,
+     -0.209787,
+     0.014616,
+     0.023257,
+     0.018463,
+     0.02086,
+     0.124291,
+     0.126181,
+     0.116231,
+     0.117695,
+     0.079469
+    ],
+    "63": [
+     -0.138851,
+     -0.218845,
+     0.013982,
+     0.014104,
+     0.005483,
+     0.009794,
+     0.124291,
+     0.121456,
+     0.090136,
+     0.104467,
+     0.095174
+    ],
+    "126": [
+     -0.146054,
+     -0.218845,
+     0.013982,
+     0.018598,
+     0.00952,
+     0.014059,
+     0.158304,
+     0.123702,
+     0.09897,
+     0.110295,
+     0.117916
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.003749,
+    "SIMMIX_M2": 0.012961,
+    "TWOPH_M2": 0.02626
+   }
+  },
+  {
+   "id": "Europe:2018-10-23",
+   "t0": "2018-10-23",
+   "era": "I2",
+   "dd0": -0.152112,
+   "FD": -0.214423,
+   "R": 308,
+   "lm": {
+    "21": [
+     -0.158271,
+     -0.168662,
+     0.015163,
+     0.018893,
+     0.010284,
+     0.014589,
+     0.125868,
+     0.118924,
+     0.09017,
+     0.102776,
+     0.084626
+    ],
+    "63": [
+     -0.154171,
+     -0.214423,
+     0.012027,
+     0.013636,
+     0.006714,
+     0.010175,
+     0.084201,
+     0.077691,
+     0.145997,
+     0.108221,
+     0.071618
+    ],
+    "126": [
+     -0.071782,
+     -0.214423,
+     0.012027,
+     0.01178,
+     0.000672,
+     0.006226,
+     0.158304,
+     0.053633,
+     0.021855,
+     0.035799,
+     0.077546
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.00444,
+    "SIMMIX_M2": 0.001151,
+    "TWOPH_M2": 0.005486
+   }
+  },
+  {
+   "id": "Europe:2020-03-09",
+   "t0": "2020-03-09",
+   "era": "I2",
+   "dd0": -0.173395,
+   "FD": -0.356576,
+   "R": 176,
+   "lm": {
+    "21": [
+     -0.242436,
+     -0.356576,
+     0.0033,
+     0.00709,
+     0.006127,
+     0.006608,
+     0.0776,
+     0.1724,
+     0.278002,
+     0.221834,
+     0.147158
+    ],
+    "63": [
+     -0.104385,
+     -0.356576,
+     0.0033,
+     0.003431,
+     0.0,
+     0.001716,
+     0.0776,
+     0.0464,
+     0.058278,
+     0.052073,
+     0.047134
+    ],
+    "126": [
+     -0.048163,
+     -0.356576,
+     0.003256,
+     0.002271,
+     0.0,
+     0.001135,
+     0.158304,
+     0.011246,
+     0.009617,
+     0.010126,
+     0.073637
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.001111,
+    "SIMMIX_M2": -0.017996,
+    "TWOPH_M2": -0.012628
+   }
+  },
+  {
+   "id": "Europe:2022-03-03",
+   "t0": "2022-03-03",
+   "era": "I2",
+   "dd0": -0.150585,
+   "FD": -0.334374,
+   "R": 528,
+   "lm": {
+    "21": [
+     -0.107013,
+     -0.207159,
+     0.028823,
+     0.03366,
+     0.035112,
+     0.034386,
+     0.244822,
+     0.277367,
+     0.248865,
+     0.262893,
+     0.23205
+    ],
+    "63": [
+     -0.151226,
+     -0.219205,
+     0.027155,
+     0.031183,
+     0.026446,
+     0.028814,
+     0.129438,
+     0.129438,
+     0.093119,
+     0.106638,
+     0.099688
+    ],
+    "126": [
+     -0.237923,
+     -0.270061,
+     0.018509,
+     0.015746,
+     0.011201,
+     0.013347,
+     0.114187,
+     0.189446,
+     0.165433,
+     0.172676,
+     0.084308
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.001347,
+    "SIMMIX_M2": 0.018015,
+    "TWOPH_M2": 0.060068
+   }
+  },
+  {
+   "id": "Japan:1991-06-18",
+   "t0": "1991-06-18",
+   "era": "I1",
+   "dd0": -0.168395,
+   "FD": -0.471483,
+   "R": 562,
+   "lm": {
+    "21": [
+     -0.186985,
+     -0.230468,
+     0.065512,
+     0.059137,
+     null,
+     null,
+     0.222994,
+     0.171296,
+     null,
+     null,
+     0.172242
+    ],
+    "63": [
+     -0.187915,
+     -0.260642,
+     0.060382,
+     0.059569,
+     null,
+     null,
+     0.111883,
+     0.113426,
+     null,
+     null,
+     0.078937
+    ],
+    "126": [
+     -0.212997,
+     -0.260642,
+     0.060382,
+     0.043878,
+     null,
+     null,
+     0.094388,
+     0.128827,
+     null,
+     null,
+     0.078548
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": null,
+    "SIMMIX_M2": null,
+    "TWOPH_M2": 0.027941
+   }
+  },
+  {
+   "id": "Japan:1991-12-24",
+   "t0": "1991-12-24",
+   "era": "I1",
+   "dd0": -0.151053,
+   "FD": -0.427913,
+   "R": 371,
+   "lm": {
+    "21": [
+     -0.140483,
+     -0.169908,
+     0.059212,
+     0.059676,
+     null,
+     null,
+     0.111883,
+     0.087963,
+     null,
+     null,
+     0.080197
+    ],
+    "63": [
+     -0.286905,
+     -0.295553,
+     0.043321,
+     0.026302,
+     null,
+     null,
+     0.111883,
+     0.107253,
+     null,
+     null,
+     0.076756
+    ],
+    "126": [
+     -0.334377,
+     -0.395979,
+     0.011668,
+     0.012763,
+     null,
+     null,
+     0.130102,
+     0.311224,
+     null,
+     null,
+     0.224822
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": null,
+    "SIMMIX_M2": null,
+    "TWOPH_M2": 0.041555
+   }
+  },
+  {
+   "id": "Japan:1993-11-19",
+   "t0": "1993-11-19",
+   "era": "I1",
+   "dd0": -0.150016,
+   "FD": -0.257637,
+   "R": 146,
+   "lm": {
+    "21": [
+     -0.213206,
+     -0.257637,
+     0.006856,
+     0.013453,
+     0.074188,
+     0.043821,
+     0.084105,
+     0.137346,
+     0.552459,
+     0.299838,
+     0.128341
+    ],
+    "63": [
+     -0.093139,
+     -0.257637,
+     0.006856,
+     0.003498,
+     0.018463,
+     0.01098,
+     0.084105,
+     0.041667,
+     0.132244,
+     0.071946,
+     0.047377
+    ],
+    "126": [
+     -0.052589,
+     -0.257637,
+     0.006856,
+     0.00599,
+     0.008039,
+     0.007015,
+     0.130102,
+     0.012755,
+     0.067206,
+     0.030986,
+     0.054912
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": -0.012958,
+    "SIMMIX_M2": -0.070334,
+    "TWOPH_M2": -0.012954
+   }
+  },
+  {
+   "id": "Japan:1995-01-23",
+   "t0": "1995-01-23",
+   "era": "I1",
+   "dd0": -0.182327,
+   "FD": -0.456358,
+   "R": 1261,
+   "lm": {
+    "21": [
+     -0.159429,
+     -0.182327,
+     0.05927,
+     0.063522,
+     0.02922,
+     0.036804,
+     0.361883,
+     0.350309,
+     0.167092,
+     0.225921,
+     0.365203
+    ],
+    "63": [
+     -0.071719,
+     -0.206068,
+     0.05913,
+     0.084983,
+     0.052976,
+     0.065255,
+     0.361883,
+     0.597222,
+     0.34558,
+     0.45652,
+     0.468917
+    ],
+    "126": [
+     -0.126813,
+     -0.206068,
+     0.05913,
+     0.059662,
+     0.034939,
+     0.044665,
+     0.308673,
+     0.375,
+     0.206177,
+     0.269984,
+     0.382399
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.020481,
+    "SIMMIX_M2": 0.123369,
+    "TWOPH_M2": 0.035337
+   }
+  },
+  {
+   "id": "Japan:1996-10-25",
+   "t0": "1996-10-25",
+   "era": "I1",
+   "dd0": -0.157501,
+   "FD": -0.535735,
+   "R": 796,
+   "lm": {
+    "21": [
+     -0.142191,
+     -0.166573,
+     0.096151,
+     0.095988,
+     0.047129,
+     0.06952,
+     0.361883,
+     0.393519,
+     0.168482,
+     0.247123,
+     0.373407
+    ],
+    "63": [
+     -0.287258,
+     -0.295918,
+     0.081199,
+     0.05855,
+     0.017209,
+     0.029559,
+     0.222994,
+     0.162809,
+     0.36212,
+     0.206711,
+     0.132311
+    ],
+    "126": [
+     -0.311676,
+     -0.355086,
+     0.063493,
+     0.03765,
+     0.015195,
+     0.021073,
+     0.165816,
+     0.160714,
+     0.389377,
+     0.229869,
+     0.11149
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.024012,
+    "SIMMIX_M2": 0.011113,
+    "TWOPH_M2": 0.033278
+   }
+  },
+  {
+   "id": "Japan:2000-05-22",
+   "t0": "2000-05-22",
+   "era": "I1",
+   "dd0": -0.158687,
+   "FD": -0.597675,
+   "R": 1555,
+   "lm": {
+    "21": [
+     -0.119873,
+     -0.172984,
+     0.127538,
+     0.135603,
+     0.087156,
+     0.11138,
+     0.575485,
+     0.664127,
+     0.351304,
+     0.495085,
+     0.62602
+    ],
+    "63": [
+     -0.192017,
+     -0.213945,
+     0.126022,
+     0.124836,
+     0.055181,
+     0.087715,
+     0.573434,
+     0.544533,
+     0.144491,
+     0.312245,
+     0.625611
+    ],
+    "126": [
+     -0.241607,
+     -0.251431,
+     0.120883,
+     0.080337,
+     0.042162,
+     0.059532,
+     0.485286,
+     0.342064,
+     0.085068,
+     0.19138,
+     0.48692
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.027383,
+    "SIMMIX_M2": 0.184005,
+    "TWOPH_M2": -0.062608
+   }
+  },
+  {
+   "id": "Japan:2004-05-10",
+   "t0": "2004-05-10",
+   "era": "I1",
+   "dd0": -0.163569,
+   "FD": -0.195454,
+   "R": 214,
+   "lm": {
+    "21": [
+     -0.079307,
+     -0.195454,
+     0.018943,
+     0.011031,
+     0.018105,
+     0.014568,
+     0.094375,
+     0.044375,
+     0.096566,
+     0.066232,
+     0.076788
+    ],
+    "63": [
+     -0.129219,
+     -0.195454,
+     0.018943,
+     0.012902,
+     0.03291,
+     0.022906,
+     0.094375,
+     0.06375,
+     0.222681,
+     0.128294,
+     0.072486
+    ],
+    "126": [
+     -0.096144,
+     -0.195454,
+     0.018943,
+     0.013765,
+     0.021888,
+     0.017826,
+     0.157778,
+     0.069444,
+     0.160111,
+     0.105101,
+     0.088126
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": -0.005868,
+    "SIMMIX_M2": -0.040686,
+    "TWOPH_M2": -0.019944
+   }
+  },
+  {
+   "id": "Japan:2006-06-08",
+   "t0": "2006-06-08",
+   "era": "I1",
+   "dd0": -0.17582,
+   "FD": -0.517752,
+   "R": 2275,
+   "lm": {
+    "21": [
+     -0.123719,
+     -0.194304,
+     0.074203,
+     0.081885,
+     0.060185,
+     0.071035,
+     0.519375,
+     0.5775,
+     0.357565,
+     0.460762,
+     0.565769
+    ],
+    "63": [
+     -0.099711,
+     -0.203269,
+     0.074024,
+     0.090926,
+     0.073101,
+     0.081559,
+     0.519375,
+     0.69875,
+     0.44214,
+     0.562716,
+     0.641053
+    ],
+    "126": [
+     -0.115573,
+     -0.203269,
+     0.074024,
+     0.083782,
+     0.065961,
+     0.07307,
+     0.424444,
+     0.53,
+     0.3791,
+     0.451108,
+     0.554756
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.010309,
+    "SIMMIX_M2": 0.110555,
+    "TWOPH_M2": 0.014891
+   }
+  },
+  {
+   "id": "Japan:2007-08-17",
+   "t0": "2007-08-17",
+   "era": "I1",
+   "dd0": -0.151263,
+   "FD": -0.503646,
+   "R": 1671,
+   "lm": {
+    "21": [
+     -0.120786,
+     -0.151263,
+     0.076546,
+     0.081236,
+     0.061382,
+     0.071309,
+     0.519375,
+     0.599375,
+     0.367905,
+     0.476443,
+     0.575164
+    ],
+    "63": [
+     -0.107377,
+     -0.151263,
+     0.076546,
+     0.090033,
+     0.067282,
+     0.077114,
+     0.519375,
+     0.678125,
+     0.410393,
+     0.535634,
+     0.640205
+    ],
+    "126": [
+     -0.201351,
+     -0.241663,
+     0.071013,
+     0.053524,
+     0.031316,
+     0.042025,
+     0.424444,
+     0.361111,
+     0.187624,
+     0.267011,
+     0.476519
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.011448,
+    "SIMMIX_M2": 0.119841,
+    "TWOPH_M2": -0.017759
+   }
+  },
+  {
+   "id": "Japan:2011-03-15",
+   "t0": "2011-03-15",
+   "era": "I2",
+   "dd0": -0.193242,
+   "FD": -0.194704,
+   "R": 523,
+   "lm": {
+    "21": [
+     -0.130364,
+     -0.193242,
+     0.031591,
+     0.017617,
+     0.027938,
+     0.022778,
+     0.124979,
+     0.109504,
+     0.15263,
+     0.126377,
+     0.088212
+    ],
+    "63": [
+     -0.112867,
+     -0.193242,
+     0.031591,
+     0.01632,
+     0.022668,
+     0.019348,
+     0.125549,
+     0.106018,
+     0.147164,
+     0.117887,
+     0.111321
+    ],
+    "126": [
+     -0.141886,
+     -0.193242,
+     0.031591,
+     0.026853,
+     0.029298,
+     0.028075,
+     0.123047,
+     0.113984,
+     0.165621,
+     0.13552,
+     0.083596
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": -0.003137,
+    "SIMMIX_M2": -0.016759,
+    "TWOPH_M2": 0.015459
+   }
+  },
+  {
+   "id": "Japan:2012-05-24",
+   "t0": "2012-05-24",
+   "era": "I2",
+   "dd0": -0.150039,
+   "FD": -0.166992,
+   "R": 197,
+   "lm": {
+    "21": [
+     -0.128231,
+     -0.166992,
+     0.024318,
+     0.020704,
+     0.033046,
+     0.026875,
+     0.091682,
+     0.076087,
+     0.201162,
+     0.129671,
+     0.093307
+    ],
+    "63": [
+     -0.094727,
+     -0.166992,
+     0.024318,
+     0.015654,
+     0.021184,
+     0.018419,
+     0.091682,
+     0.050567,
+     0.120366,
+     0.07911,
+     0.055852
+    ],
+    "126": [
+     -0.125743,
+     -0.166992,
+     0.024318,
+     0.024697,
+     0.030797,
+     0.027747,
+     0.158304,
+     0.112457,
+     0.203212,
+     0.151351,
+     0.105336
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": -0.003995,
+    "SIMMIX_M2": -0.04034,
+    "TWOPH_M2": -0.005128
+   }
+  },
+  {
+   "id": "Japan:2016-01-21",
+   "t0": "2016-01-21",
+   "era": "I2",
+   "dd0": -0.171807,
+   "FD": -0.20207,
+   "R": 163,
+   "lm": {
+    "21": [
+     -0.136164,
+     -0.20207,
+     0.019297,
+     0.015841,
+     0.026995,
+     0.021418,
+     0.091682,
+     0.076087,
+     0.161465,
+     0.112948,
+     0.095288
+    ],
+    "63": [
+     -0.04949,
+     -0.20207,
+     0.019297,
+     0.011067,
+     0.004504,
+     0.007786,
+     0.091682,
+     0.010397,
+     0.027798,
+     0.017627,
+     0.047673
+    ],
+    "126": [
+     -0.040157,
+     -0.20207,
+     0.016382,
+     0.011173,
+     0.003423,
+     0.007298,
+     0.158304,
+     0.011246,
+     0.023519,
+     0.015533,
+     0.073039
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.000527,
+    "SIMMIX_M2": -0.016126,
+    "TWOPH_M2": -0.039423
+   }
+  },
+  {
+   "id": "Japan:2018-10-25",
+   "t0": "2018-10-25",
+   "era": "I2",
+   "dd0": -0.156509,
+   "FD": -0.284531,
+   "R": 530,
+   "lm": {
+    "21": [
+     -0.145901,
+     -0.163267,
+     0.021881,
+     0.022833,
+     0.019618,
+     0.021226,
+     0.230035,
+     0.209635,
+     0.169865,
+     0.182052,
+     0.192496
+    ],
+    "63": [
+     -0.156395,
+     -0.239518,
+     0.014994,
+     0.01649,
+     0.016897,
+     0.015294,
+     0.125868,
+     0.140191,
+     0.15677,
+     0.137587,
+     0.090054
+    ],
+    "126": [
+     -0.132222,
+     -0.239518,
+     0.014994,
+     0.016942,
+     0.015785,
+     0.016363,
+     0.114187,
+     0.108997,
+     0.135048,
+     0.118623,
+     0.087265
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.001127,
+    "SIMMIX_M2": 0.006854,
+    "TWOPH_M2": 0.029669
+   }
+  },
+  {
+   "id": "Japan:2020-03-10",
+   "t0": "2020-03-10",
+   "era": "I2",
+   "dd0": -0.157803,
+   "FD": -0.266306,
+   "R": 134,
+   "lm": {
+    "21": [
+     -0.161186,
+     -0.266306,
+     0.007729,
+     0.009338,
+     0.018165,
+     0.013752,
+     0.0776,
+     0.0904,
+     0.198513,
+     0.13824,
+     0.095738
+    ],
+    "63": [
+     -0.055667,
+     -0.266306,
+     0.007729,
+     0.004723,
+     0.002781,
+     0.003752,
+     0.0776,
+     0.0124,
+     0.038213,
+     0.022818,
+     0.038718
+    ],
+    "126": [
+     -0.014589,
+     -0.266306,
+     0.007197,
+     0.005486,
+     0.0,
+     0.002743,
+     0.158304,
+     0.011246,
+     0.003849,
+     0.006606,
+     0.066247
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": -0.000233,
+    "SIMMIX_M2": -0.017873,
+    "TWOPH_M2": -0.028886
+   }
+  },
+  {
+   "id": "Japan:2022-01-27",
+   "t0": "2022-01-27",
+   "era": "I2",
+   "dd0": -0.171663,
+   "FD": -0.328475,
+   "R": 551,
+   "lm": {
+    "21": [
+     -0.157307,
+     -0.171663,
+     0.023333,
+     0.026827,
+     0.022225,
+     0.023588,
+     0.244822,
+     0.218195,
+     0.165361,
+     0.183642,
+     0.202215
+    ],
+    "63": [
+     -0.224315,
+     -0.230853,
+     0.02107,
+     0.018818,
+     0.020175,
+     0.015197,
+     0.129438,
+     0.122041,
+     0.243496,
+     0.161075,
+     0.085593
+    ],
+    "126": [
+     -0.244033,
+     -0.294051,
+     0.010326,
+     0.015474,
+     0.020469,
+     0.017971,
+     0.114187,
+     0.198962,
+     0.284328,
+     0.232622,
+     0.088379
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.001454,
+    "SIMMIX_M2": -0.012714,
+    "TWOPH_M2": 0.054337
+   }
+  },
+  {
+   "id": "Japan:2024-08-05",
+   "t0": "2024-08-05",
+   "era": "I2",
+   "dd0": -0.165358,
+   "FD": -0.165358,
+   "R": 14,
+   "lm": {},
+   "val": {
+    "SIMMIX_M1": null,
+    "SIMMIX_M2": null,
+    "TWOPH_M2": null
+   }
+  },
+  {
+   "id": "Japan:2025-04-07",
+   "t0": "2025-04-07",
+   "era": "IX",
+   "dd0": -0.178379,
+   "FD": -0.178379,
+   "R": 21,
+   "lm": {},
+   "val": {
+    "SIMMIX_M1": null,
+    "SIMMIX_M2": null,
+    "TWOPH_M2": null
+   }
+  },
+  {
+   "id": "Asia_Pacific_ex_Japan:1992-12-03",
+   "t0": "1992-12-03",
+   "era": "I1",
+   "dd0": -0.166165,
+   "FD": -0.166165,
+   "R": 62,
+   "lm": {
+    "21": [
+     -0.10013,
+     -0.166165,
+     0.029283,
+     0.012799,
+     null,
+     null,
+     0.084105,
+     0.044753,
+     null,
+     null,
+     0.075441
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": null,
+    "SIMMIX_M2": null,
+    "TWOPH_M2": -0.030688
+   }
+  },
+  {
+   "id": "Asia_Pacific_ex_Japan:1994-03-18",
+   "t0": "1994-03-18",
+   "era": "I1",
+   "dd0": -0.154726,
+   "FD": -0.258238,
+   "R": 486,
+   "lm": {
+    "21": [
+     -0.13604,
+     -0.184142,
+     0.015812,
+     0.017407,
+     0.020463,
+     0.014568,
+     0.111883,
+     0.095679,
+     0.132751,
+     0.110451,
+     0.081654
+    ],
+    "63": [
+     -0.139841,
+     -0.194697,
+     0.0156,
+     0.015737,
+     0.01938,
+     0.015829,
+     0.111883,
+     0.109568,
+     0.129126,
+     0.11716,
+     0.090942
+    ],
+    "126": [
+     -0.110076,
+     -0.196721,
+     0.015458,
+     0.019075,
+     0.022546,
+     0.013069,
+     0.094388,
+     0.108418,
+     0.158806,
+     0.126527,
+     0.089533
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.002917,
+    "SIMMIX_M2": -0.013491,
+    "TWOPH_M2": 0.017179
+   }
+  },
+  {
+   "id": "Asia_Pacific_ex_Japan:1997-10-21",
+   "t0": "1997-10-21",
+   "era": "I1",
+   "dd0": -0.163948,
+   "FD": -0.503976,
+   "R": 574,
+   "lm": {
+    "21": [
+     -0.272681,
+     -0.320258,
+     0.058869,
+     0.045332,
+     0.047352,
+     0.044874,
+     0.222994,
+     0.140432,
+     0.09906,
+     0.11787,
+     0.11767
+    ],
+    "63": [
+     -0.351149,
+     -0.397536,
+     0.03414,
+     0.027465,
+     0.020586,
+     0.024026,
+     0.222994,
+     0.121914,
+     0.12699,
+     0.119018,
+     0.123042
+    ],
+    "126": [
+     -0.264314,
+     -0.397536,
+     0.03414,
+     0.028159,
+     0.048157,
+     0.030327,
+     0.094388,
+     0.160714,
+     0.141231,
+     0.144272,
+     0.07901
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.000577,
+    "SIMMIX_M2": 0.013967,
+    "TWOPH_M2": 0.034446
+   }
+  },
+  {
+   "id": "Asia_Pacific_ex_Japan:2000-04-17",
+   "t0": "2000-04-17",
+   "era": "I1",
+   "dd0": -0.172221,
+   "FD": -0.387266,
+   "R": 905,
+   "lm": {
+    "21": [
+     -0.158004,
+     -0.182867,
+     0.041611,
+     0.043564,
+     0.046474,
+     0.044623,
+     0.378116,
+     0.366343,
+     0.333083,
+     0.349278,
+     0.382507
+    ],
+    "63": [
+     -0.089512,
+     -0.216148,
+     0.04085,
+     0.053539,
+     0.077326,
+     0.06119,
+     0.378116,
+     0.524238,
+     0.549611,
+     0.536119,
+     0.480556
+    ],
+    "126": [
+     -0.180439,
+     -0.216148,
+     0.04085,
+     0.027961,
+     0.039902,
+     0.033932,
+     0.308673,
+     0.276786,
+     0.263423,
+     0.267796,
+     0.340756
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": -0.004893,
+    "SIMMIX_M2": 0.004725,
+    "TWOPH_M2": -0.012151
+   }
+  },
+  {
+   "id": "Asia_Pacific_ex_Japan:2002-07-26",
+   "t0": "2002-07-26",
+   "era": "I1",
+   "dd0": -0.15553,
+   "FD": -0.200706,
+   "R": 230,
+   "lm": {
+    "21": [
+     -0.110213,
+     -0.169209,
+     0.013837,
+     0.012384,
+     0.01062,
+     0.011502,
+     0.091125,
+     0.057031,
+     0.076288,
+     0.066243,
+     0.071247
+    ],
+    "63": [
+     -0.14367,
+     -0.200706,
+     0.013036,
+     0.00901,
+     0.009485,
+     0.009247,
+     0.091125,
+     0.06375,
+     0.150269,
+     0.102411,
+     0.061107
+    ],
+    "126": [
+     -0.106076,
+     -0.200706,
+     0.013036,
+     0.012571,
+     0.003712,
+     0.008142,
+     0.152569,
+     0.090903,
+     0.071992,
+     0.080869,
+     0.075574
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.001691,
+    "SIMMIX_M2": -0.012613,
+    "TWOPH_M2": 0.001252
+   }
+  },
+  {
+   "id": "Asia_Pacific_ex_Japan:2004-05-17",
+   "t0": "2004-05-17",
+   "era": "I1",
+   "dd0": -0.157538,
+   "FD": -0.157538,
+   "R": 98,
+   "lm": {
+    "21": [
+     -0.094577,
+     -0.157538,
+     0.03276,
+     0.016794,
+     0.005202,
+     0.010998,
+     0.094375,
+     0.05375,
+     0.038843,
+     0.045701,
+     0.081505
+    ],
+    "63": [
+     -0.06559,
+     -0.157538,
+     0.03276,
+     0.012383,
+     0.001557,
+     0.00697,
+     0.094375,
+     0.019375,
+     0.014714,
+     0.016902,
+     0.049514
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.005605,
+    "SIMMIX_M2": 0.005261,
+    "TWOPH_M2": -0.028947
+   }
+  },
+  {
+   "id": "Asia_Pacific_ex_Japan:2007-08-16",
+   "t0": "2007-08-16",
+   "era": "I1",
+   "dd0": -0.175932,
+   "FD": -0.187469,
+   "R": 27,
+   "lm": {
+    "21": [
+     -0.036396,
+     -0.187469,
+     0.026276,
+     0.009479,
+     0.0,
+     0.004739,
+     0.094375,
+     0.010625,
+     0.002059,
+     0.005346,
+     0.061941
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.004739,
+    "SIMMIX_M2": 0.005279,
+    "TWOPH_M2": -0.051316
+   }
+  },
+  {
+   "id": "Asia_Pacific_ex_Japan:2008-01-21",
+   "t0": "2008-01-21",
+   "era": "I2",
+   "dd0": -0.191597,
+   "FD": -0.624604,
+   "R": 730,
+   "lm": {
+    "21": [
+     -0.147785,
+     -0.236544,
+     0.120725,
+     0.123865,
+     0.170159,
+     0.147012,
+     0.219375,
+     0.19625,
+     0.234199,
+     0.21394,
+     0.179359
+    ],
+    "63": [
+     -0.146752,
+     -0.236544,
+     0.120725,
+     0.128422,
+     0.174499,
+     0.151461,
+     0.219375,
+     0.23875,
+     0.230884,
+     0.234176,
+     0.215198
+    ],
+    "126": [
+     -0.212406,
+     -0.236544,
+     0.120725,
+     0.105412,
+     0.152602,
+     0.129007,
+     0.157778,
+     0.161111,
+     0.130921,
+     0.141841,
+     0.143521
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": -0.02326,
+    "SIMMIX_M2": 0.002051,
+    "TWOPH_M2": 0.019344
+   }
+  },
+  {
+   "id": "Asia_Pacific_ex_Japan:2010-05-19",
+   "t0": "2010-05-19",
+   "era": "I2",
+   "dd0": -0.155128,
+   "FD": -0.197437,
+   "R": 85,
+   "lm": {
+    "21": [
+     -0.121366,
+     -0.197437,
+     0.016241,
+     0.013752,
+     0.004492,
+     0.009122,
+     0.110702,
+     0.088613,
+     0.050245,
+     0.067741,
+     0.095822
+    ],
+    "63": [
+     -0.078913,
+     -0.197437,
+     0.016241,
+     0.010255,
+     0.000969,
+     0.005612,
+     0.110702,
+     0.029478,
+     0.015847,
+     0.021953,
+     0.053247
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.004636,
+    "SIMMIX_M2": 0.014198,
+    "TWOPH_M2": -0.015489
+   }
+  },
+  {
+   "id": "Asia_Pacific_ex_Japan:2011-08-08",
+   "t0": "2011-08-08",
+   "era": "I2",
+   "dd0": -0.161897,
+   "FD": -0.287641,
+   "R": 367,
+   "lm": {
+    "21": [
+     -0.147641,
+     -0.163038,
+     0.021023,
+     0.02447,
+     0.020709,
+     0.02093,
+     0.12655,
+     0.104339,
+     0.089402,
+     0.095256,
+     0.084763
+    ],
+    "63": [
+     -0.164428,
+     -0.287641,
+     0.009227,
+     0.011909,
+     0.002129,
+     0.007019,
+     0.12655,
+     0.133781,
+     0.086056,
+     0.108225,
+     0.081374
+    ],
+    "126": [
+     -0.124824,
+     -0.287641,
+     0.009227,
+     0.010586,
+     0.000362,
+     0.005474,
+     0.185547,
+     0.117493,
+     0.047304,
+     0.0769,
+     0.13425
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.004514,
+    "SIMMIX_M2": 0.025077,
+    "TWOPH_M2": 0.018409
+   }
+  },
+  {
+   "id": "Asia_Pacific_ex_Japan:2015-07-08",
+   "t0": "2015-07-08",
+   "era": "I2",
+   "dd0": -0.153868,
+   "FD": -0.289442,
+   "R": 530,
+   "lm": {
+    "21": [
+     -0.128205,
+     -0.153868,
+     0.02194,
+     0.025572,
+     0.030286,
+     0.02223,
+     0.222117,
+     0.228261,
+     0.229871,
+     0.228521,
+     0.193496
+    ],
+    "63": [
+     -0.215573,
+     -0.249711,
+     0.014553,
+     0.016861,
+     0.009086,
+     0.012974,
+     0.124291,
+     0.110113,
+     0.099703,
+     0.101731,
+     0.078696
+    ],
+    "126": [
+     -0.185342,
+     -0.249711,
+     0.014553,
+     0.014632,
+     0.008482,
+     0.011522,
+     0.114187,
+     0.149654,
+     0.079813,
+     0.111646,
+     0.086368
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.003447,
+    "SIMMIX_M2": 0.015377,
+    "TWOPH_M2": 0.043156
+   }
+  },
+  {
+   "id": "Asia_Pacific_ex_Japan:2018-10-11",
+   "t0": "2018-10-11",
+   "era": "I2",
+   "dd0": -0.150196,
+   "FD": -0.371896,
+   "R": 551,
+   "lm": {
+    "21": [
+     -0.142445,
+     -0.179068,
+     0.038454,
+     0.036136,
+     0.056026,
+     0.042215,
+     0.230035,
+     0.209635,
+     0.189818,
+     0.199182,
+     0.193749
+    ],
+    "63": [
+     -0.145363,
+     -0.179068,
+     0.038454,
+     0.038819,
+     0.055434,
+     0.043267,
+     0.125868,
+     0.124132,
+     0.084968,
+     0.102517,
+     0.096537
+    ],
+    "126": [
+     -0.049059,
+     -0.179068,
+     0.038454,
+     0.041579,
+     0.094758,
+     0.058298,
+     0.114187,
+     0.17301,
+     0.180365,
+     0.176373,
+     0.105767
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": -0.009082,
+    "SIMMIX_M2": 0.009568,
+    "TWOPH_M2": 0.036908
+   }
+  },
+  {
+   "id": "Asia_Pacific_ex_Japan:2020-03-09",
+   "t0": "2020-03-09",
+   "era": "I2",
+   "dd0": -0.180849,
+   "FD": -0.370794,
+   "R": 183,
+   "lm": {
+    "21": [
+     -0.256539,
+     -0.370794,
+     0.003102,
+     0.006801,
+     0.004353,
+     0.005577,
+     0.0776,
+     0.1724,
+     0.312326,
+     0.236948,
+     0.161493
+    ],
+    "63": [
+     -0.144225,
+     -0.370794,
+     0.003102,
+     0.003567,
+     0.0,
+     0.001783,
+     0.0776,
+     0.0568,
+     0.114394,
+     0.082816,
+     0.061724
+    ],
+    "126": [
+     -0.07492,
+     -0.370794,
+     0.003058,
+     0.002284,
+     0.0,
+     0.001142,
+     0.158304,
+     0.053633,
+     0.021448,
+     0.035585,
+     0.078585
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.001383,
+    "SIMMIX_M2": -0.024172,
+    "TWOPH_M2": -0.006323
+   }
+  },
+  {
+   "id": "Asia_Pacific_ex_Japan:2022-05-10",
+   "t0": "2022-05-10",
+   "era": "I2",
+   "dd0": -0.153389,
+   "FD": -0.260657,
+   "R": 624,
+   "lm": {
+    "21": [
+     -0.113985,
+     -0.170262,
+     0.017454,
+     0.020021,
+     0.022411,
+     0.018873,
+     0.244822,
+     0.277367,
+     0.24711,
+     0.261851,
+     0.228477
+    ],
+    "63": [
+     -0.144471,
+     -0.193417,
+     0.016777,
+     0.017964,
+     0.013361,
+     0.015359,
+     0.244551,
+     0.264053,
+     0.176831,
+     0.216746,
+     0.247209
+    ],
+    "126": [
+     -0.23528,
+     -0.260657,
+     0.007361,
+     0.023422,
+     0.011469,
+     0.017446,
+     0.114267,
+     0.17474,
+     0.154335,
+     0.158116,
+     0.08353
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.003243,
+    "SIMMIX_M2": 0.026482,
+    "TWOPH_M2": 0.052315
+   }
+  },
+  {
+   "id": "Asia_Pacific_ex_Japan:2023-10-03",
+   "t0": "2023-10-03",
+   "era": "I2",
+   "dd0": -0.156844,
+   "FD": -0.173938,
+   "R": 251,
+   "lm": {
+    "21": [
+     -0.166668,
+     -0.173938,
+     0.020674,
+     0.021314,
+     0.015921,
+     0.018617,
+     0.080501,
+     0.101035,
+     0.171551,
+     0.132883,
+     0.090245
+    ],
+    "63": [
+     -0.059468,
+     -0.173938,
+     0.021466,
+     0.007799,
+     0.001122,
+     0.004461,
+     0.073731,
+     0.012346,
+     0.015585,
+     0.01384,
+     0.035205
+    ],
+    "126": [
+     -0.077624,
+     -0.173938,
+     0.021466,
+     0.013276,
+     0.001954,
+     0.007615,
+     0.157407,
+     0.04784,
+     0.031092,
+     0.03879,
+     0.072888
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.003899,
+    "SIMMIX_M2": -0.008098,
+    "TWOPH_M2": -0.012373
+   }
+  },
+  {
+   "id": "Asia_Pacific_ex_Japan:2025-04-07",
+   "t0": "2025-04-07",
+   "era": "IX",
+   "dd0": -0.165196,
+   "FD": -0.165196,
+   "R": 26,
+   "lm": {
+    "21": [
+     -0.016514,
+     -0.165196,
+     0.028266,
+     0.007501,
+     0.0,
+     0.00375,
+     0.073731,
+     0.00823,
+     0.001828,
+     0.004408,
+     0.040979
+    ]
+   },
+   "val": {
+    "SIMMIX_M1": 0.00375,
+    "SIMMIX_M2": 0.003822,
+    "TWOPH_M2": -0.032748
+   }
+  }
+ ],
+ "events": [
+  {
+   "key": "1987_black_monday",
+   "label": "1987 블랙먼데이",
+   "date": "1987-10-19",
+   "pos_date": "1987-10-19",
+   "mapping": "trigger",
+   "episode_id": "US:1987-10-19",
+   "episode_t0": "1987-10-19",
+   "lag_days": 0,
+   "note": "기준일이 발생일이다(전고점 1987-08-25, 발생일 깊이 -29.4%).",
+   "study": {
+    "landmarks": [
+     {
+      "e": 21,
+      "asof": "1987-11-17",
+      "d": -0.276243,
+      "m": -0.323035,
+      "BASE": {
+       "m1": {
+        "0.1": -0.589109,
+        "0.25": -0.446719,
+        "0.5": -0.369432,
+        "0.75": -0.32748,
+        "0.9": -0.323035
+       },
+       "m2": {
+        "252": 0.5625,
+        "504": 0.6875,
+        "756": 0.75,
+        "1260": 0.875
+       }
+      },
+      "LM": {
+       "m1": {
+        "0.1": -0.603408,
+        "0.25": -0.44657,
+        "0.5": -0.346872,
+        "0.75": -0.323035,
+        "0.9": -0.323035
+       },
+       "m2": {
+        "252": 0.3125,
+        "504": 0.4375,
+        "756": 0.5625,
+        "1260": 0.75
+       }
+      },
+      "SIM": {
+       "m1": {
+        "0.1": -0.463468,
+        "0.25": -0.395435,
+        "0.5": -0.336983,
+        "0.75": -0.323035,
+        "0.9": -0.323035
+       },
+       "m2": {
+        "252": 0.1455,
+        "504": 0.379,
+        "756": 0.576,
+        "1260": 0.80125
+       }
+      },
+      "SIMMIX": {
+       "m1": {
+        "0.1": -0.533438,
+        "0.25": -0.421003,
+        "0.5": -0.341928,
+        "0.75": -0.323035,
+        "0.9": -0.323035
+       },
+       "m2": {
+        "252": 0.229,
+        "504": 0.40825,
+        "756": 0.56925,
+        "1260": 0.775625
+       }
+      },
+      "TWOPH": {
+       "m2": {
+        "252": 0.253906,
+        "504": 0.542969,
+        "756": 0.757812,
+        "1260": 0.894531
+       }
+      }
+     },
+     {
+      "e": 63,
+      "asof": "1988-01-19",
+      "d": -0.246722,
+      "m": -0.331142,
+      "BASE": {
+       "m1": {
+        "0.1": -0.589109,
+        "0.25": -0.446719,
+        "0.5": -0.369432,
+        "0.75": -0.331142,
+        "0.9": -0.331142
+       },
+       "m2": {
+        "252": 0.5625,
+        "504": 0.6875,
+        "756": 0.75,
+        "1260": 0.875
+       }
+      },
+      "LM": {
+       "m1": {
+        "0.1": -0.529537,
+        "0.25": -0.421598,
+        "0.5": -0.331142,
+        "0.75": -0.331142,
+        "0.9": -0.331142
+       },
+       "m2": {
+        "252": 0.3125,
+        "504": 0.5625,
+        "756": 0.5625,
+        "1260": 0.8125
+       }
+      },
+      "SIM": {
+       "m1": {
+        "0.1": -0.402767,
+        "0.25": -0.345028,
+        "0.5": -0.331142,
+        "0.75": -0.331142,
+        "0.9": -0.331142
+       },
+       "m2": {
+        "252": 0.134,
+        "504": 0.4285,
+        "756": 0.63425,
+        "1260": 0.844
+       }
+      },
+      "SIMMIX": {
+       "m1": {
+        "0.1": -0.466152,
+        "0.25": -0.383313,
+        "0.5": -0.331142,
+        "0.75": -0.331142,
+        "0.9": -0.331142
+       },
+       "m2": {
+        "252": 0.22325,
+        "504": 0.4955,
+        "756": 0.598375,
+        "1260": 0.82825
+       }
+      },
+      "TWOPH": {
+       "m2": {
+        "252": 0.402344,
+        "504": 0.625,
+        "756": 0.820312,
+        "1260": 0.910156
+       }
+      }
+     },
+     {
+      "e": 126,
+      "asof": "1988-04-19",
+      "d": -0.202894,
+      "m": -0.331142,
+      "BASE": {
+       "m1": {
+        "0.1": -0.589109,
+        "0.25": -0.446719,
+        "0.5": -0.369432,
+        "0.75": -0.331142,
+        "0.9": -0.331142
+       },
+       "m2": {
+        "252": 0.461538,
+        "504": 0.615385,
+        "756": 0.769231,
+        "1260": 0.846154
+       }
+      },
+      "LM": {
+       "m1": {
+        "0.1": -0.60457,
+        "0.25": -0.404233,
+        "0.5": -0.331142,
+        "0.75": -0.331142,
+        "0.9": -0.331142
+       },
+       "m2": {
+        "252": 0.461538,
+        "504": 0.538462,
+        "756": 0.615385,
+        "1260": 0.846154
+       }
+      },
+      "SIM": {
+       "m1": {
+        "0.1": -0.35098,
+        "0.25": -0.331142,
+        "0.5": -0.331142,
+        "0.75": -0.331142,
+        "0.9": -0.331142
+       },
+       "m2": {
+        "252": 0.237,
+        "504": 0.569,
+        "756": 0.74825,
+        "1260": 0.90625
+       }
+      },
+      "SIMMIX": {
+       "m1": {
+        "0.1": -0.477775,
+        "0.25": -0.367688,
+        "0.5": -0.331142,
+        "0.75": -0.331142,
+        "0.9": -0.331142
+       },
+       "m2": {
+        "252": 0.349269,
+        "504": 0.553731,
+        "756": 0.681817,
+        "1260": 0.876202
+       }
+      },
+      "TWOPH": {
+       "m2": {
+        "252": 0.39645,
+        "504": 0.686391,
+        "756": 0.792899,
+        "1260": 0.905325
+       }
+      }
+     }
+    ]
+   },
+   "realized": {
+    "FD": -0.331142,
+    "rec_date": "1989-05-15",
+    "R_years": 1.575397
+   },
+   "era": "B",
+   "dd0": -0.29402
+  },
+  {
+   "key": "1998_russia",
+   "label": "1998 러시아 금융위기(LTCM)",
+   "date": "1998-08-17",
+   "pos_date": "1998-08-17",
+   "mapping": "trigger_after",
+   "episode_id": "US:1998-08-28",
+   "episode_t0": "1998-08-28",
+   "lag_days": 9,
+   "note": "기준일 뒤 9 거래일(1998-08-28)에 발생일이 왔다.",
+   "study": {
+    "landmarks": [
+     {
+      "e": 21,
+      "asof": "1998-09-29",
+      "d": -0.133298,
+      "m": -0.2077,
+      "BASE": {
+       "m1": {
+        "0.1": -0.500317,
+        "0.25": -0.298719,
+        "0.5": -0.213893,
+        "0.75": -0.2077,
+        "0.9": -0.2077
+       },
+       "m2": {
+        "252": 0.555556,
+        "504": 0.722222,
+        "756": 0.777778,
+        "1260": 0.888889
+       }
+      },
+      "LM": {
+       "m1": {
+        "0.1": -0.510331,
+        "0.25": -0.299695,
+        "0.5": -0.2077,
+        "0.75": -0.2077,
+        "0.9": -0.2077
+       },
+       "m2": {
+        "252": 0.555556,
+        "504": 0.777778,
+        "756": 0.888889,
+        "1260": 0.888889
+       }
+      },
+      "SIM": {
+       "m1": {
+        "0.1": -0.301348,
+        "0.25": -0.234035,
+        "0.5": -0.2077,
+        "0.75": -0.2077,
+        "0.9": -0.2077
+       },
+       "m2": {
+        "252": 0.55075,
+        "504": 0.78675,
+        "756": 0.886,
+        "1260": 0.95825
+       }
+      },
+      "SIMMIX": {
+       "m1": {
+        "0.1": -0.40584,
+        "0.25": -0.266865,
+        "0.5": -0.2077,
+        "0.75": -0.2077,
+        "0.9": -0.2077
+       },
+       "m2": {
+        "252": 0.553153,
+        "504": 0.782264,
+        "756": 0.887444,
+        "1260": 0.923569
+       }
+      },
+      "TWOPH": {
+       "m2": {
+        "252": 0.478395,
+        "504": 0.719136,
+        "756": 0.867284,
+        "1260": 0.935185
+       }
+      }
+     },
+     {
+      "e": 63,
+      "asof": "1998-11-27",
+      "d": -0.011822,
+      "m": -0.219199,
+      "BASE": {
+       "m1": {
+        "0.1": -0.500317,
+        "0.25": -0.298719,
+        "0.5": -0.219199,
+        "0.75": -0.219199,
+        "0.9": -0.219199
+       },
+       "m2": {
+        "252": 0.555556,
+        "504": 0.722222,
+        "756": 0.777778,
+        "1260": 0.888889
+       }
+      },
+      "LM": {
+       "m1": {
+        "0.1": -0.381634,
+        "0.25": -0.219199,
+        "0.5": -0.219199,
+        "0.75": -0.219199,
+        "0.9": -0.219199
+       },
+       "m2": {
+        "252": 0.888889,
+        "504": 0.944444,
+        "756": 1.0,
+        "1260": 1.0
+       }
+      },
+      "SIM": {
+       "m1": {
+        "0.1": -0.219199,
+        "0.25": -0.219199,
+        "0.5": -0.219199,
+        "0.75": -0.219199,
+        "0.9": -0.219199
+       },
+       "m2": {
+        "252": 0.96675,
+        "504": 0.987,
+        "756": 0.99125,
+        "1260": 0.997
+       }
+      },
+      "SIMMIX": {
+       "m1": {
+        "0.1": -0.300416,
+        "0.25": -0.219199,
+        "0.5": -0.219199,
+        "0.75": -0.219199,
+        "0.9": -0.219199
+       },
+       "m2": {
+        "252": 0.927819,
+        "504": 0.965722,
+        "756": 0.995625,
+        "1260": 0.9985
+       }
+      },
+      "TWOPH": {
+       "m2": {
+        "252": 0.688272,
+        "504": 0.824074,
+        "756": 0.904321,
+        "1260": 0.95679
+       }
+      }
+     },
+     {
+      "e": 126,
+      "note": "이미 회복 또는 자료 끝"
+     }
+    ]
+   },
+   "realized": {
+    "FD": -0.219199,
+    "rec_date": "1998-12-23",
+    "R_years": 0.321429
+   },
+   "era": "B",
+   "dd0": -0.150986
+  },
+  {
+   "key": "2000_dotcom",
+   "label": "2000 닷컴 버블 붕괴",
+   "date": "2000-03-10",
+   "pos_date": "2000-03-10",
+   "mapping": "trigger_after",
+   "episode_id": "US:2000-04-14",
+   "episode_t0": "2000-04-14",
+   "lag_days": 25,
+   "note": "기준일 뒤 25 거래일(2000-04-14)에 발생일이 왔다.",
+   "study": {
+    "landmarks": [
+     {
+      "e": 21,
+      "asof": "2000-05-16",
+      "d": -0.08682,
+      "m": -0.162536,
+      "BASE": {
+       "m1": {
+        "0.1": -0.504358,
+        "0.25": -0.302119,
+        "0.5": -0.229822,
+        "0.75": -0.202174,
+        "0.9": -0.180519
+       },
+       "m2": {
+        "252": 0.578947,
+        "504": 0.736842,
+        "756": 0.789474,
+        "1260": 0.894737
+       }
+      },
+      "LM": {
+       "m1": {
+        "0.1": -0.476123,
+        "0.25": -0.252416,
+        "0.5": -0.170876,
+        "0.75": -0.162536,
+        "0.9": -0.162536
+       },
+       "m2": {
+        "252": 0.631579,
+        "504": 0.894737,
+        "756": 0.894737,
+        "1260": 0.947368
+       }
+      },
+      "SIM": {
+       "m1": {
+        "0.1": -0.263634,
+        "0.25": -0.187391,
+        "0.5": -0.162536,
+        "0.75": -0.162536,
+        "0.9": -0.162536
+       },
+       "m2": {
+        "252": 0.71325,
+        "504": 0.872,
+        "756": 0.931,
+        "1260": 0.9735
+       }
+      },
+      "SIMMIX": {
+       "m1": {
+        "0.1": -0.369879,
+        "0.25": -0.219903,
+        "0.5": -0.166706,
+        "0.75": -0.162536,
+        "0.9": -0.162536
+       },
+       "m2": {
+        "252": 0.672414,
+        "504": 0.883368,
+        "756": 0.912868,
+        "1260": 0.960434
+       }
+      },
+      "TWOPH": {
+       "m2": {
+        "252": 0.581717,
+        "504": 0.761773,
+        "756": 0.883657,
+        "1260": 0.941828
+       }
+      }
+     },
+     {
+      "e": 63,
+      "asof": "2000-07-17",
+      "d": -0.03628,
+      "m": -0.162536,
+      "BASE": {
+       "m1": {
+        "0.1": -0.504358,
+        "0.25": -0.302119,
+        "0.5": -0.229822,
+        "0.75": -0.202174,
+        "0.9": -0.180519
+       },
+       "m2": {
+        "252": 0.578947,
+        "504": 0.736842,
+        "756": 0.789474,
+        "1260": 0.894737
+       }
+      },
+      "LM": {
+       "m1": {
+        "0.1": -0.396356,
+        "0.25": -0.184908,
+        "0.5": -0.162536,
+        "0.75": -0.162536,
+        "0.9": -0.162536
+       },
+       "m2": {
+        "252": 0.894737,
+        "504": 0.947368,
+        "756": 1.0,
+        "1260": 1.0
+       }
+      },
+      "SIM": {
+       "m1": {
+        "0.1": -0.162536,
+        "0.25": -0.162536,
+        "0.5": -0.162536,
+        "0.75": -0.162536,
+        "0.9": -0.162536
+       },
+       "m2": {
+        "252": 0.90525,
+        "504": 0.963,
+        "756": 0.97975,
+        "1260": 0.992
+       }
+      },
+      "SIMMIX": {
+       "m1": {
+        "0.1": -0.279446,
+        "0.25": -0.173722,
+        "0.5": -0.162536,
+        "0.75": -0.162536,
+        "0.9": -0.162536
+       },
+       "m2": {
+        "252": 0.899993,
+        "504": 0.955184,
+        "756": 0.989875,
+        "1260": 0.996
+       }
+      },
+      "TWOPH": {
+       "m2": {
+        "252": 0.692521,
+        "504": 0.828255,
+        "756": 0.908587,
+        "1260": 0.958449
+       }
+      }
+     },
+     {
+      "e": 126,
+      "asof": "2000-10-13",
+      "d": -0.13432,
+      "m": -0.166894,
+      "BASE": {
+       "m1": {
+        "0.1": -0.504358,
+        "0.25": -0.302119,
+        "0.5": -0.229822,
+        "0.75": -0.202174,
+        "0.9": -0.180519
+       },
+       "m2": {
+        "252": 0.428571,
+        "504": 0.642857,
+        "756": 0.785714,
+        "1260": 0.857143
+       }
+      },
+      "LM": {
+       "m1": {
+        "0.1": -0.521163,
+        "0.25": -0.351356,
+        "0.5": -0.219783,
+        "0.75": -0.166894,
+        "0.9": -0.166894
+       },
+       "m2": {
+        "252": 0.5,
+        "504": 0.642857,
+        "756": 0.857143,
+        "1260": 0.928571
+       }
+      },
+      "SIM": {
+       "m1": {
+        "0.1": -0.310866,
+        "0.25": -0.238107,
+        "0.5": -0.183732,
+        "0.75": -0.166894,
+        "0.9": -0.166894
+       },
+       "m2": {
+        "252": 0.527,
+        "504": 0.75725,
+        "756": 0.8725,
+        "1260": 0.9555
+       }
+      },
+      "SIMMIX": {
+       "m1": {
+        "0.1": -0.416014,
+        "0.25": -0.294731,
+        "0.5": -0.201757,
+        "0.75": -0.166894,
+        "0.9": -0.166894
+       },
+       "m2": {
+        "252": 0.5135,
+        "504": 0.700054,
+        "756": 0.864821,
+        "1260": 0.942036
+       }
+      },
+      "TWOPH": {
+       "m2": {
+        "252": 0.464286,
+        "504": 0.739796,
+        "756": 0.846939,
+        "1260": 0.928571
+       }
+      }
+     }
+    ]
+   },
+   "realized": {
+    "FD": -0.492256,
+    "rec_date": "2006-10-23",
+    "R_years": 6.503968
+   },
+   "era": "B",
+   "dd0": -0.162536
+  },
+  {
+   "key": "2001_911",
+   "label": "2001 9/11 테러",
+   "date": "2001-09-17",
+   "pos_date": "2001-09-17",
+   "mapping": "inside",
+   "episode_id": "US:2000-04-14",
+   "episode_t0": "2000-04-14",
+   "lag_days": 354,
+   "note": "**이 정의로는 독립 사건이 아니다 — 2000-04-14 에 시작된 사건 안(354 거래일째, 그날 전고점 대비 -35.0%)**",
+   "study": {
+    "landmarks": [
+     {
+      "e": 21,
+      "asof": "2000-05-16",
+      "d": -0.08682,
+      "m": -0.162536,
+      "BASE": {
+       "m1": {
+        "0.1": -0.504358,
+        "0.25": -0.302119,
+        "0.5": -0.229822,
+        "0.75": -0.202174,
+        "0.9": -0.180519
+       },
+       "m2": {
+        "252": 0.578947,
+        "504": 0.736842,
+        "756": 0.789474,
+        "1260": 0.894737
+       }
+      },
+      "LM": {
+       "m1": {
+        "0.1": -0.476123,
+        "0.25": -0.252416,
+        "0.5": -0.170876,
+        "0.75": -0.162536,
+        "0.9": -0.162536
+       },
+       "m2": {
+        "252": 0.631579,
+        "504": 0.894737,
+        "756": 0.894737,
+        "1260": 0.947368
+       }
+      },
+      "SIM": {
+       "m1": {
+        "0.1": -0.263634,
+        "0.25": -0.187391,
+        "0.5": -0.162536,
+        "0.75": -0.162536,
+        "0.9": -0.162536
+       },
+       "m2": {
+        "252": 0.71325,
+        "504": 0.872,
+        "756": 0.931,
+        "1260": 0.9735
+       }
+      },
+      "SIMMIX": {
+       "m1": {
+        "0.1": -0.369879,
+        "0.25": -0.219903,
+        "0.5": -0.166706,
+        "0.75": -0.162536,
+        "0.9": -0.162536
+       },
+       "m2": {
+        "252": 0.672414,
+        "504": 0.883368,
+        "756": 0.912868,
+        "1260": 0.960434
+       }
+      },
+      "TWOPH": {
+       "m2": {
+        "252": 0.581717,
+        "504": 0.761773,
+        "756": 0.883657,
+        "1260": 0.941828
+       }
+      }
+     },
+     {
+      "e": 63,
+      "asof": "2000-07-17",
+      "d": -0.03628,
+      "m": -0.162536,
+      "BASE": {
+       "m1": {
+        "0.1": -0.504358,
+        "0.25": -0.302119,
+        "0.5": -0.229822,
+        "0.75": -0.202174,
+        "0.9": -0.180519
+       },
+       "m2": {
+        "252": 0.578947,
+        "504": 0.736842,
+        "756": 0.789474,
+        "1260": 0.894737
+       }
+      },
+      "LM": {
+       "m1": {
+        "0.1": -0.396356,
+        "0.25": -0.184908,
+        "0.5": -0.162536,
+        "0.75": -0.162536,
+        "0.9": -0.162536
+       },
+       "m2": {
+        "252": 0.894737,
+        "504": 0.947368,
+        "756": 1.0,
+        "1260": 1.0
+       }
+      },
+      "SIM": {
+       "m1": {
+        "0.1": -0.162536,
+        "0.25": -0.162536,
+        "0.5": -0.162536,
+        "0.75": -0.162536,
+        "0.9": -0.162536
+       },
+       "m2": {
+        "252": 0.90525,
+        "504": 0.963,
+        "756": 0.97975,
+        "1260": 0.992
+       }
+      },
+      "SIMMIX": {
+       "m1": {
+        "0.1": -0.279446,
+        "0.25": -0.173722,
+        "0.5": -0.162536,
+        "0.75": -0.162536,
+        "0.9": -0.162536
+       },
+       "m2": {
+        "252": 0.899993,
+        "504": 0.955184,
+        "756": 0.989875,
+        "1260": 0.996
+       }
+      },
+      "TWOPH": {
+       "m2": {
+        "252": 0.692521,
+        "504": 0.828255,
+        "756": 0.908587,
+        "1260": 0.958449
+       }
+      }
+     },
+     {
+      "e": 126,
+      "asof": "2000-10-13",
+      "d": -0.13432,
+      "m": -0.166894,
+      "BASE": {
+       "m1": {
+        "0.1": -0.504358,
+        "0.25": -0.302119,
+        "0.5": -0.229822,
+        "0.75": -0.202174,
+        "0.9": -0.180519
+       },
+       "m2": {
+        "252": 0.428571,
+        "504": 0.642857,
+        "756": 0.785714,
+        "1260": 0.857143
+       }
+      },
+      "LM": {
+       "m1": {
+        "0.1": -0.521163,
+        "0.25": -0.351356,
+        "0.5": -0.219783,
+        "0.75": -0.166894,
+        "0.9": -0.166894
+       },
+       "m2": {
+        "252": 0.5,
+        "504": 0.642857,
+        "756": 0.857143,
+        "1260": 0.928571
+       }
+      },
+      "SIM": {
+       "m1": {
+        "0.1": -0.310866,
+        "0.25": -0.238107,
+        "0.5": -0.183732,
+        "0.75": -0.166894,
+        "0.9": -0.166894
+       },
+       "m2": {
+        "252": 0.527,
+        "504": 0.75725,
+        "756": 0.8725,
+        "1260": 0.9555
+       }
+      },
+      "SIMMIX": {
+       "m1": {
+        "0.1": -0.416014,
+        "0.25": -0.294731,
+        "0.5": -0.201757,
+        "0.75": -0.166894,
+        "0.9": -0.166894
+       },
+       "m2": {
+        "252": 0.5135,
+        "504": 0.700054,
+        "756": 0.864821,
+        "1260": 0.942036
+       }
+      },
+      "TWOPH": {
+       "m2": {
+        "252": 0.464286,
+        "504": 0.739796,
+        "756": 0.846939,
+        "1260": 0.928571
+       }
+      }
+     }
+    ],
+    "snapshot": {
+     "e": 354,
+     "asof": "2001-09-17",
+     "d": -0.350375,
+     "m": -0.350375,
+     "BASE": {
+      "m1": {
+       "0.1": -0.504358,
+       "0.25": -0.350375,
+       "0.5": -0.350375,
+       "0.75": -0.350375,
+       "0.9": -0.350375
+      },
+      "m2": {
+       "252": 0.375,
+       "504": 0.625,
+       "756": 0.75,
+       "1260": 0.875
+      }
+     },
+     "LM": {
+      "m1": {
+       "0.1": -0.746779,
+       "0.25": -0.496144,
+       "0.5": -0.39332,
+       "0.75": -0.372617,
+       "0.9": -0.354796
+      },
+      "m2": {
+       "252": 0.125,
+       "504": 0.5,
+       "756": 0.5,
+       "1260": 0.75
+      }
+     },
+     "SIM": {
+      "m1": {
+       "0.1": -0.476635,
+       "0.25": -0.431012,
+       "0.5": -0.390821,
+       "0.75": -0.363934,
+       "0.9": -0.350383
+      },
+      "m2": {
+       "252": 0.01875,
+       "504": 0.182,
+       "756": 0.39325,
+       "1260": 0.698
+      }
+     },
+     "SIMMIX": {
+      "m1": {
+       "0.1": -0.611707,
+       "0.25": -0.463578,
+       "0.5": -0.39207,
+       "0.75": -0.368276,
+       "0.9": -0.352589
+      },
+      "m2": {
+       "252": 0.071875,
+       "504": 0.341,
+       "756": 0.446625,
+       "1260": 0.724
+      }
+     },
+     "TWOPH": {
+      "m2": {
+       "252": 0.21875,
+       "504": 0.453125,
+       "756": 0.609375,
+       "1260": 0.859375
+      }
+     }
+    }
+   },
+   "realized": {
+    "FD": -0.492256,
+    "rec_date": "2006-10-23",
+    "R_years": 6.503968
+   },
+   "era": "B",
+   "dd0": -0.162536
+  },
+  {
+   "key": "2008_gfc",
+   "label": "2008 글로벌 금융위기(리먼)",
+   "date": "2008-09-15",
+   "pos_date": "2008-09-15",
+   "mapping": "inside",
+   "episode_id": "US:2008-01-18",
+   "episode_t0": "2008-01-18",
+   "lag_days": 165,
+   "note": "**이 정의로는 독립 사건이 아니다 — 2008-01-18 에 시작된 사건 안(165 거래일째, 그날 전고점 대비 -21.1%)**",
+   "study": {
+    "landmarks": [
+     {
+      "e": 21,
+      "asof": "2008-02-20",
+      "d": -0.122374,
+      "m": -0.15995,
+      "BASE": {
+       "m1": {
+        "0.1": -0.497503,
+        "0.25": -0.3352,
+        "0.5": -0.226105,
+        "0.75": -0.191927,
+        "0.9": -0.170763
+       },
+       "m2": {
+        "252": 0.55,
+        "504": 0.7,
+        "756": 0.75,
+        "1260": 0.85
+       }
+      },
+      "LM": {
+       "m1": {
+        "0.1": -0.519262,
+        "0.25": -0.328913,
+        "0.5": -0.206264,
+        "0.75": -0.15995,
+        "0.9": -0.15995
+       },
+       "m2": {
+        "252": 0.55,
+        "504": 0.75,
+        "756": 0.85,
+        "1260": 0.9
+       }
+      },
+      "SIM": {
+       "m1": {
+        "0.1": -0.279912,
+        "0.25": -0.212517,
+        "0.5": -0.163059,
+        "0.75": -0.15995,
+        "0.9": -0.15995
+       },
+       "m2": {
+        "252": 0.57275,
+        "504": 0.7955,
+        "756": 0.8905,
+        "1260": 0.9585
+       }
+      },
+      "SIMMIX": {
+       "m1": {
+        "0.1": -0.399587,
+        "0.25": -0.270715,
+        "0.5": -0.184661,
+        "0.75": -0.15995,
+        "0.9": -0.15995
+       },
+       "m2": {
+        "252": 0.561375,
+        "504": 0.77275,
+        "756": 0.87025,
+        "1260": 0.92925
+       }
+      },
+      "TWOPH": {
+       "m2": {
+        "252": 0.4825,
+        "504": 0.7025,
+        "756": 0.8325,
+        "1260": 0.93
+       }
+      }
+     },
+     {
+      "e": 63,
+      "asof": "2008-04-21",
+      "d": -0.106319,
+      "m": -0.180556,
+      "BASE": {
+       "m1": {
+        "0.1": -0.497503,
+        "0.25": -0.3352,
+        "0.5": -0.226105,
+        "0.75": -0.191927,
+        "0.9": -0.180556
+       },
+       "m2": {
+        "252": 0.55,
+        "504": 0.7,
+        "756": 0.75,
+        "1260": 0.85
+       }
+      },
+      "LM": {
+       "m1": {
+        "0.1": -0.487605,
+        "0.25": -0.31379,
+        "0.5": -0.180556,
+        "0.75": -0.180556,
+        "0.9": -0.180556
+       },
+       "m2": {
+        "252": 0.6,
+        "504": 0.8,
+        "756": 0.9,
+        "1260": 0.95
+       }
+      },
+      "SIM": {
+       "m1": {
+        "0.1": -0.26534,
+        "0.25": -0.199497,
+        "0.5": -0.180556,
+        "0.75": -0.180556,
+        "0.9": -0.180556
+       },
+       "m2": {
+        "252": 0.63825,
+        "504": 0.83825,
+        "756": 0.91375,
+        "1260": 0.96925
+       }
+      },
+      "SIMMIX": {
+       "m1": {
+        "0.1": -0.376473,
+        "0.25": -0.256643,
+        "0.5": -0.180556,
+        "0.75": -0.180556,
+        "0.9": -0.180556
+       },
+       "m2": {
+        "252": 0.619125,
+        "504": 0.819125,
+        "756": 0.906875,
+        "1260": 0.959625
+       }
+      },
+      "TWOPH": {
+       "m2": {
+        "252": 0.61,
+        "504": 0.7625,
+        "756": 0.8525,
+        "1260": 0.94
+       }
+      }
+     },
+     {
+      "e": 126,
+      "asof": "2008-07-21",
+      "d": -0.173154,
+      "m": -0.203363,
+      "BASE": {
+       "m1": {
+        "0.1": -0.497503,
+        "0.25": -0.3352,
+        "0.5": -0.226105,
+        "0.75": -0.203363,
+        "0.9": -0.203363
+       },
+       "m2": {
+        "252": 0.4,
+        "504": 0.6,
+        "756": 0.733333,
+        "1260": 0.8
+       }
+      },
+      "LM": {
+       "m1": {
+        "0.1": -0.515033,
+        "0.25": -0.385095,
+        "0.5": -0.279169,
+        "0.75": -0.203363,
+        "0.9": -0.203363
+       },
+       "m2": {
+        "252": 0.466667,
+        "504": 0.533333,
+        "756": 0.666667,
+        "1260": 0.8
+       }
+      },
+      "SIM": {
+       "m1": {
+        "0.1": -0.330189,
+        "0.25": -0.266671,
+        "0.5": -0.217418,
+        "0.75": -0.203363,
+        "0.9": -0.203363
+       },
+       "m2": {
+        "252": 0.3505,
+        "504": 0.66075,
+        "756": 0.81225,
+        "1260": 0.926
+       }
+      },
+      "SIMMIX": {
+       "m1": {
+        "0.1": -0.422611,
+        "0.25": -0.325883,
+        "0.5": -0.248294,
+        "0.75": -0.203363,
+        "0.9": -0.203363
+       },
+       "m2": {
+        "252": 0.408583,
+        "504": 0.597042,
+        "756": 0.739458,
+        "1260": 0.863
+       }
+      },
+      "TWOPH": {
+       "m2": {
+        "252": 0.377778,
+        "504": 0.662222,
+        "756": 0.768889,
+        "1260": 0.911111
+       }
+      }
+     }
+    ],
+    "snapshot": {
+     "e": 165,
+     "asof": "2008-09-15",
+     "d": -0.211129,
+     "m": -0.211129,
+     "BASE": {
+      "m1": {
+       "0.1": -0.497503,
+       "0.25": -0.3352,
+       "0.5": -0.226105,
+       "0.75": -0.211129,
+       "0.9": -0.211129
+      },
+      "m2": {
+       "252": 0.384615,
+       "504": 0.538462,
+       "756": 0.769231,
+       "1260": 0.769231
+      }
+     },
+     "LM": {
+      "m1": {
+       "0.1": -0.603947,
+       "0.25": -0.425117,
+       "0.5": -0.347165,
+       "0.75": -0.240027,
+       "0.9": -0.215273
+      },
+      "m2": {
+       "252": 0.307692,
+       "504": 0.461538,
+       "756": 0.769231,
+       "1260": 0.769231
+      }
+     },
+     "SIM": {
+      "m1": {
+       "0.1": -0.391062,
+       "0.25": -0.321084,
+       "0.5": -0.266764,
+       "0.75": -0.230885,
+       "0.9": -0.21127
+      },
+      "m2": {
+       "252": 0.26175,
+       "504": 0.52525,
+       "756": 0.70875,
+       "1260": 0.88125
+      }
+     },
+     "SIMMIX": {
+      "m1": {
+       "0.1": -0.497504,
+       "0.25": -0.373101,
+       "0.5": -0.306964,
+       "0.75": -0.235456,
+       "0.9": -0.213272
+      },
+      "m2": {
+       "252": 0.284721,
+       "504": 0.493394,
+       "756": 0.73899,
+       "1260": 0.82524
+      }
+     },
+     "TWOPH": {
+      "m2": {
+       "252": 0.278107,
+       "504": 0.568047,
+       "756": 0.727811,
+       "1260": 0.87574
+      }
+     }
+    }
+   },
+   "realized": {
+    "FD": -0.545655,
+    "rec_date": "2012-02-28",
+    "R_years": 4.107143
+   },
+   "era": "C",
+   "dd0": -0.151722
+  },
+  {
+   "key": "2020_covid",
+   "label": "2020 코로나19",
+   "date": "2020-02-19",
+   "pos_date": "2020-02-19",
+   "mapping": "trigger_after",
+   "episode_id": "US:2020-03-09",
+   "episode_t0": "2020-03-09",
+   "lag_days": 13,
+   "note": "기준일 뒤 13 거래일(2020-03-09)에 발생일이 왔다.",
+   "study": {
+    "landmarks": [
+     {
+      "e": 21,
+      "asof": "2020-04-07",
+      "d": -0.222566,
+      "m": -0.342163,
+      "BASE": {
+       "m1": {
+        "0.1": -0.533483,
+        "0.25": -0.351483,
+        "0.5": -0.342163,
+        "0.75": -0.342163,
+        "0.9": -0.342163
+       },
+       "m2": {
+        "252": 0.6,
+        "504": 0.72,
+        "756": 0.76,
+        "1260": 0.88
+       }
+      },
+      "LM": {
+       "m1": {
+        "0.1": -0.580459,
+        "0.25": -0.388908,
+        "0.5": -0.342163,
+        "0.75": -0.342163,
+        "0.9": -0.342163
+       },
+       "m2": {
+        "252": 0.44,
+        "504": 0.6,
+        "756": 0.68,
+        "1260": 0.84
+       }
+      },
+      "SIM": {
+       "m1": {
+        "0.1": -0.483864,
+        "0.25": -0.394999,
+        "0.5": -0.342163,
+        "0.75": -0.342163,
+        "0.9": -0.342163
+       },
+       "m2": {
+        "252": 0.37925,
+        "504": 0.54,
+        "756": 0.66725,
+        "1260": 0.835
+       }
+      },
+      "SIMMIX": {
+       "m1": {
+        "0.1": -0.532162,
+        "0.25": -0.391953,
+        "0.5": -0.342163,
+        "0.75": -0.342163,
+        "0.9": -0.342163
+       },
+       "m2": {
+        "252": 0.409625,
+        "504": 0.57,
+        "756": 0.673625,
+        "1260": 0.8375
+       }
+      },
+      "TWOPH": {
+       "m2": {
+        "252": 0.3936,
+        "504": 0.6656,
+        "756": 0.8128,
+        "1260": 0.9216
+       }
+      }
+     },
+     {
+      "e": 63,
+      "asof": "2020-06-08",
+      "d": -0.0331,
+      "m": -0.342163,
+      "BASE": {
+       "m1": {
+        "0.1": -0.533483,
+        "0.25": -0.351483,
+        "0.5": -0.342163,
+        "0.75": -0.342163,
+        "0.9": -0.342163
+       },
+       "m2": {
+        "252": 0.6,
+        "504": 0.72,
+        "756": 0.76,
+        "1260": 0.88
+       }
+      },
+      "LM": {
+       "m1": {
+        "0.1": -0.490581,
+        "0.25": -0.342163,
+        "0.5": -0.342163,
+        "0.75": -0.342163,
+        "0.9": -0.342163
+       },
+       "m2": {
+        "252": 0.84,
+        "504": 0.92,
+        "756": 0.96,
+        "1260": 0.96
+       }
+      },
+      "SIM": {
+       "m1": {
+        "0.1": -0.342163,
+        "0.25": -0.342163,
+        "0.5": -0.342163,
+        "0.75": -0.342163,
+        "0.9": -0.342163
+       },
+       "m2": {
+        "252": 0.9035,
+        "504": 0.95675,
+        "756": 0.9785,
+        "1260": 0.9905
+       }
+      },
+      "SIMMIX": {
+       "m1": {
+        "0.1": -0.416372,
+        "0.25": -0.342163,
+        "0.5": -0.342163,
+        "0.75": -0.342163,
+        "0.9": -0.342163
+       },
+       "m2": {
+        "252": 0.87175,
+        "504": 0.938375,
+        "756": 0.96925,
+        "1260": 0.97525
+       }
+      },
+      "TWOPH": {
+       "m2": {
+        "252": 0.6944,
+        "504": 0.8112,
+        "756": 0.8832,
+        "1260": 0.9568
+       }
+      }
+     },
+     {
+      "e": 126,
+      "note": "이미 회복 또는 자료 끝"
+     }
+    ]
+   },
+   "realized": {
+    "FD": -0.342163,
+    "rec_date": "2020-08-05",
+    "R_years": 0.412698
+   },
+   "era": "C",
+   "dd0": -0.19396
+  },
+  {
+   "key": "2022_inflation",
+   "label": "2022 인플레이션·금리 인상",
+   "date": "2022-01-03",
+   "pos_date": "2022-01-03",
+   "mapping": "trigger_after",
+   "episode_id": "US:2022-04-29",
+   "episode_t0": "2022-04-29",
+   "lag_days": 81,
+   "note": "기준일 뒤 81 거래일(2022-04-29)에 발생일이 왔다.",
+   "study": {
+    "landmarks": [
+     {
+      "e": 21,
+      "asof": "2022-05-31",
+      "d": -0.153454,
+      "m": -0.20045,
+      "BASE": {
+       "m1": {
+        "0.1": -0.506163,
+        "0.25": -0.306865,
+        "0.5": -0.211072,
+        "0.75": -0.20045,
+        "0.9": -0.20045
+       },
+       "m2": {
+        "252": 0.615385,
+        "504": 0.730769,
+        "756": 0.769231,
+        "1260": 0.884615
+       }
+      },
+      "LM": {
+       "m1": {
+        "0.1": -0.541796,
+        "0.25": -0.315982,
+        "0.5": -0.223595,
+        "0.75": -0.20045,
+        "0.9": -0.20045
+       },
+       "m2": {
+        "252": 0.576923,
+        "504": 0.692308,
+        "756": 0.807692,
+        "1260": 0.846154
+       }
+      },
+      "SIM": {
+       "m1": {
+        "0.1": -0.336555,
+        "0.25": -0.266238,
+        "0.5": -0.207911,
+        "0.75": -0.20045,
+        "0.9": -0.20045
+       },
+       "m2": {
+        "252": 0.45775,
+        "504": 0.71025,
+        "756": 0.8335,
+        "1260": 0.937
+       }
+      },
+      "SIMMIX": {
+       "m1": {
+        "0.1": -0.439175,
+        "0.25": -0.29111,
+        "0.5": -0.215753,
+        "0.75": -0.20045,
+        "0.9": -0.20045
+       },
+       "m2": {
+        "252": 0.517337,
+        "504": 0.701279,
+        "756": 0.820596,
+        "1260": 0.891577
+       }
+      },
+      "TWOPH": {
+       "m2": {
+        "252": 0.514793,
+        "504": 0.730769,
+        "756": 0.850592,
+        "1260": 0.93787
+       }
+      }
+     },
+     {
+      "e": 63,
+      "asof": "2022-08-01",
+      "d": -0.15197,
+      "m": -0.249535,
+      "BASE": {
+       "m1": {
+        "0.1": -0.506163,
+        "0.25": -0.306865,
+        "0.5": -0.249535,
+        "0.75": -0.249535,
+        "0.9": -0.249535
+       },
+       "m2": {
+        "252": 0.615385,
+        "504": 0.730769,
+        "756": 0.769231,
+        "1260": 0.884615
+       }
+      },
+      "LM": {
+       "m1": {
+        "0.1": -0.545587,
+        "0.25": -0.285747,
+        "0.5": -0.249535,
+        "0.75": -0.249535,
+        "0.9": -0.249535
+       },
+       "m2": {
+        "252": 0.653846,
+        "504": 0.769231,
+        "756": 0.807692,
+        "1260": 0.884615
+       }
+      },
+      "SIM": {
+       "m1": {
+        "0.1": -0.324175,
+        "0.25": -0.256438,
+        "0.5": -0.249535,
+        "0.75": -0.249535,
+        "0.9": -0.249535
+       },
+       "m2": {
+        "252": 0.45125,
+        "504": 0.73,
+        "756": 0.846,
+        "1260": 0.9375
+       }
+      },
+      "SIMMIX": {
+       "m1": {
+        "0.1": -0.434881,
+        "0.25": -0.271092,
+        "0.5": -0.249535,
+        "0.75": -0.249535,
+        "0.9": -0.249535
+       },
+       "m2": {
+        "252": 0.552548,
+        "504": 0.749615,
+        "756": 0.826846,
+        "1260": 0.911058
+       }
+      },
+      "TWOPH": {
+       "m2": {
+        "252": 0.576923,
+        "504": 0.785503,
+        "756": 0.87426,
+        "1260": 0.951183
+       }
+      }
+     },
+     {
+      "e": 126,
+      "asof": "2022-10-28",
+      "d": -0.189751,
+      "m": -0.255559,
+      "BASE": {
+       "m1": {
+        "0.1": -0.506163,
+        "0.25": -0.306865,
+        "0.5": -0.255559,
+        "0.75": -0.255559,
+        "0.9": -0.255559
+       },
+       "m2": {
+        "252": 0.411765,
+        "504": 0.588235,
+        "756": 0.705882,
+        "1260": 0.823529
+       }
+      },
+      "LM": {
+       "m1": {
+        "0.1": -0.548929,
+        "0.25": -0.42606,
+        "0.5": -0.293639,
+        "0.75": -0.255559,
+        "0.9": -0.255559
+       },
+       "m2": {
+        "252": 0.470588,
+        "504": 0.529412,
+        "756": 0.647059,
+        "1260": 0.823529
+       }
+      },
+      "SIM": {
+       "m1": {
+        "0.1": -0.358396,
+        "0.25": -0.295569,
+        "0.5": -0.255559,
+        "0.75": -0.255559,
+        "0.9": -0.255559
+       },
+       "m2": {
+        "252": 0.3145,
+        "504": 0.60575,
+        "756": 0.7695,
+        "1260": 0.90075
+       }
+      },
+      "SIMMIX": {
+       "m1": {
+        "0.1": -0.453662,
+        "0.25": -0.360815,
+        "0.5": -0.274599,
+        "0.75": -0.255559,
+        "0.9": -0.255559
+       },
+       "m2": {
+        "252": 0.392544,
+        "504": 0.567581,
+        "756": 0.708279,
+        "1260": 0.86214
+       }
+      },
+      "TWOPH": {
+       "m2": {
+        "252": 0.397924,
+        "504": 0.650519,
+        "756": 0.764706,
+        "1260": 0.906574
+       }
+      }
+     }
+    ]
+   },
+   "realized": {
+    "FD": -0.255559,
+    "rec_date": "2023-12-19",
+    "R_years": 1.634921
+   },
+   "era": "C",
+   "dd0": -0.150711
+  }
+ ],
+ "current": {
+  "as_of": "2026-09-30",
+  "state": "not_in_episode",
+  "hypothetical": true,
+  "dd252": -0.023354,
+  "distance_to_trigger": -0.129675,
+  "episode": {
+   "peak_date": "2026-08-13",
+   "dd0": -0.15,
+   "e_days": 0
+  },
+  "others": [],
+  "m1_base": {
+   "0.1": -0.501138,
+   "0.25": -0.302108,
+   "0.5": -0.210412,
+   "0.75": -0.179583,
+   "0.9": -0.15977
+  },
+  "m1_n_train": 28,
+  "m2_base": {
+   "252": 0.5,
+   "504": 0.75,
+   "756": 0.785714,
+   "1260": 0.892857
+  },
+  "m2_n_train": 28,
+  "active": null,
+  "active_note": "진행 중 급락 사건 없음",
+  "active_sentence": null,
+  "spy_check": {
+   "available": true,
+   "date": "2026-11-20",
+   "dd252": -0.114595,
+   "lag_warning": false
+  }
+ },
+ "reading_table": {
+  "best": {
+   "depth": "LM",
+   "recovery": "LM",
+   "label": "판정 통과 모델 없음 → 랜드마크 모델(LM) 표시. LM 도 crash-landmark-v1 판정은 통과하지 못했다(FAIL_UNDERPOWERED)"
+  },
+  "vol_note": "모의의 변동성은 과거 미국 급락의 같은 시점 중앙값(연율 21일째 22% · 63일째 16% · 126일째 16%)에서 출발한다. 오늘의 변동성은 쓰지 않는다.",
+  "as_of": "2026-09-30",
+  "h0": {
+   "21": 0.000188,
+   "63": 0.000103,
+   "126": 0.000108
+  },
+  "rows": [
+   {
+    "e": 21,
+    "d": -0.05,
+    "m": -0.15,
+    "best_depth": {
+     "0.1": -0.482718,
+     "0.5": -0.15,
+     "0.9": -0.15
+    },
+    "best_rec": {
+     "252": 0.857143,
+     "504": 0.928571,
+     "1260": 1.0
+    },
+    "rec1_range": [
+     0.607143,
+     0.857143
+    ],
+    "depth50_range": [
+     -0.210412,
+     -0.15
+    ],
+    "n_depth": 28,
+    "n_rec": 28,
+    "base": [
+     -0.210412,
+     0.607143
+    ]
+   },
+   {
+    "e": 21,
+    "d": -0.1,
+    "m": -0.15,
+    "best_depth": {
+     "0.1": -0.509943,
+     "0.5": -0.17457,
+     "0.9": -0.15
+    },
+    "best_rec": {
+     "252": 0.678571,
+     "504": 0.857143,
+     "1260": 0.928571
+    },
+    "rec1_range": [
+     0.607143,
+     0.678571
+    ],
+    "depth50_range": [
+     -0.210412,
+     -0.15
+    ],
+    "n_depth": 28,
+    "n_rec": 28,
+    "base": [
+     -0.210412,
+     0.607143
+    ]
+   },
+   {
+    "e": 21,
+    "d": -0.15,
+    "m": -0.15,
+    "best_depth": {
+     "0.1": -0.537168,
+     "0.5": -0.220427,
+     "0.9": -0.15
+    },
+    "best_rec": {
+     "252": 0.571429,
+     "504": 0.714286,
+     "1260": 0.857143
+    },
+    "rec1_range": [
+     0.4595,
+     0.607143
+    ],
+    "depth50_range": [
+     -0.220427,
+     -0.19821
+    ],
+    "n_depth": 28,
+    "n_rec": 28,
+    "base": [
+     -0.210412,
+     0.607143
+    ]
+   },
+   {
+    "e": 21,
+    "d": -0.2,
+    "m": -0.2,
+    "best_depth": {
+     "0.1": -0.564394,
+     "0.5": -0.266285,
+     "0.9": -0.2
+    },
+    "best_rec": {
+     "252": 0.5,
+     "504": 0.642857,
+     "1260": 0.857143
+    },
+    "rec1_range": [
+     0.26925,
+     0.607143
+    ],
+    "depth50_range": [
+     -0.266285,
+     -0.210412
+    ],
+    "n_depth": 28,
+    "n_rec": 28,
+    "base": [
+     -0.210412,
+     0.607143
+    ]
+   },
+   {
+    "e": 21,
+    "d": -0.25,
+    "m": -0.25,
+    "best_depth": {
+     "0.1": -0.591619,
+     "0.5": -0.312142,
+     "0.9": -0.25
+    },
+    "best_rec": {
+     "252": 0.428571,
+     "504": 0.607143,
+     "1260": 0.821429
+    },
+    "rec1_range": [
+     0.133,
+     0.607143
+    ],
+    "depth50_range": [
+     -0.312142,
+     -0.25
+    ],
+    "n_depth": 28,
+    "n_rec": 28,
+    "base": [
+     -0.25,
+     0.607143
+    ]
+   },
+   {
+    "e": 21,
+    "d": -0.3,
+    "m": -0.3,
+    "best_depth": {
+     "0.1": -0.618845,
+     "0.5": -0.357999,
+     "0.9": -0.3
+    },
+    "best_rec": {
+     "252": 0.357143,
+     "504": 0.571429,
+     "1260": 0.785714
+    },
+    "rec1_range": [
+     0.04975,
+     0.607143
+    ],
+    "depth50_range": [
+     -0.357999,
+     -0.3
+    ],
+    "n_depth": 28,
+    "n_rec": 28,
+    "base": [
+     -0.3,
+     0.607143
+    ]
+   },
+   {
+    "e": 21,
+    "d": -0.4,
+    "m": -0.4,
+    "best_depth": {
+     "0.1": -0.673295,
+     "0.5": -0.449713,
+     "0.9": -0.4
+    },
+    "best_rec": {
+     "252": 0.142857,
+     "504": 0.464286,
+     "1260": 0.678571
+    },
+    "rec1_range": [
+     0.00575,
+     0.607143
+    ],
+    "depth50_range": [
+     -0.449713,
+     -0.4
+    ],
+    "n_depth": 28,
+    "n_rec": 28,
+    "base": [
+     -0.4,
+     0.607143
+    ]
+   },
+   {
+    "e": 63,
+    "d": -0.05,
+    "m": -0.15,
+    "best_depth": {
+     "0.1": -0.482263,
+     "0.5": -0.15,
+     "0.9": -0.15
+    },
+    "best_rec": {
+     "252": 0.851852,
+     "504": 0.925926,
+     "1260": 0.962963
+    },
+    "rec1_range": [
+     0.592593,
+     0.87025
+    ],
+    "depth50_range": [
+     -0.210412,
+     -0.15
+    ],
+    "n_depth": 27,
+    "n_rec": 27,
+    "base": [
+     -0.210412,
+     0.592593
+    ]
+   },
+   {
+    "e": 63,
+    "d": -0.1,
+    "m": -0.15,
+    "best_depth": {
+     "0.1": -0.509513,
+     "0.5": -0.16509,
+     "0.9": -0.15
+    },
+    "best_rec": {
+     "252": 0.666667,
+     "504": 0.851852,
+     "1260": 0.962963
+    },
+    "rec1_range": [
+     0.592593,
+     0.67325
+    ],
+    "depth50_range": [
+     -0.210412,
+     -0.15
+    ],
+    "n_depth": 27,
+    "n_rec": 27,
+    "base": [
+     -0.210412,
+     0.592593
+    ]
+   },
+   {
+    "e": 63,
+    "d": -0.15,
+    "m": -0.15,
+    "best_depth": {
+     "0.1": -0.536762,
+     "0.5": -0.211474,
+     "0.9": -0.15
+    },
+    "best_rec": {
+     "252": 0.62963,
+     "504": 0.777778,
+     "1260": 0.888889
+    },
+    "rec1_range": [
+     0.452,
+     0.62963
+    ],
+    "depth50_range": [
+     -0.211474,
+     -0.191514
+    ],
+    "n_depth": 27,
+    "n_rec": 27,
+    "base": [
+     -0.210412,
+     0.592593
+    ]
+   },
+   {
+    "e": 63,
+    "d": -0.2,
+    "m": -0.2,
+    "best_depth": {
+     "0.1": -0.564011,
+     "0.5": -0.257858,
+     "0.9": -0.2
+    },
+    "best_rec": {
+     "252": 0.518519,
+     "504": 0.666667,
+     "1260": 0.851852
+    },
+    "rec1_range": [
+     0.256,
+     0.592593
+    ],
+    "depth50_range": [
+     -0.257858,
+     -0.210412
+    ],
+    "n_depth": 27,
+    "n_rec": 27,
+    "base": [
+     -0.210412,
+     0.592593
+    ]
+   },
+   {
+    "e": 63,
+    "d": -0.25,
+    "m": -0.25,
+    "best_depth": {
+     "0.1": -0.591261,
+     "0.5": -0.304242,
+     "0.9": -0.25
+    },
+    "best_rec": {
+     "252": 0.444444,
+     "504": 0.62963,
+     "1260": 0.814815
+    },
+    "rec1_range": [
+     0.108,
+     0.592593
+    ],
+    "depth50_range": [
+     -0.304242,
+     -0.25
+    ],
+    "n_depth": 27,
+    "n_rec": 27,
+    "base": [
+     -0.25,
+     0.592593
+    ]
+   },
+   {
+    "e": 63,
+    "d": -0.3,
+    "m": -0.3,
+    "best_depth": {
+     "0.1": -0.61851,
+     "0.5": -0.350626,
+     "0.9": -0.3
+    },
+    "best_rec": {
+     "252": 0.296296,
+     "504": 0.592593,
+     "1260": 0.777778
+    },
+    "rec1_range": [
+     0.03975,
+     0.592593
+    ],
+    "depth50_range": [
+     -0.350626,
+     -0.3
+    ],
+    "n_depth": 27,
+    "n_rec": 27,
+    "base": [
+     -0.3,
+     0.592593
+    ]
+   },
+   {
+    "e": 63,
+    "d": -0.4,
+    "m": -0.4,
+    "best_depth": {
+     "0.1": -0.673008,
+     "0.5": -0.443393,
+     "0.9": -0.4
+    },
+    "best_rec": {
+     "252": 0.222222,
+     "504": 0.481481,
+     "1260": 0.666667
+    },
+    "rec1_range": [
+     0.00225,
+     0.592593
+    ],
+    "depth50_range": [
+     -0.443393,
+     -0.4
+    ],
+    "n_depth": 27,
+    "n_rec": 27,
+    "base": [
+     -0.4,
+     0.592593
+    ]
+   },
+   {
+    "e": 126,
+    "d": -0.05,
+    "m": -0.15,
+    "best_depth": {
+     "0.1": -0.467669,
+     "0.5": -0.15,
+     "0.9": -0.15
+    },
+    "best_rec": {
+     "252": 0.833333,
+     "504": 0.888889,
+     "1260": 1.0
+    },
+    "rec1_range": [
+     0.388889,
+     0.847
+    ],
+    "depth50_range": [
+     -0.210412,
+     -0.15
+    ],
+    "n_depth": 18,
+    "n_rec": 18,
+    "base": [
+     -0.210412,
+     0.388889
+    ]
+   },
+   {
+    "e": 126,
+    "d": -0.1,
+    "m": -0.15,
+    "best_depth": {
+     "0.1": -0.495686,
+     "0.5": -0.188852,
+     "0.9": -0.15
+    },
+    "best_rec": {
+     "252": 0.555556,
+     "504": 0.833333,
+     "1260": 0.944444
+    },
+    "rec1_range": [
+     0.388889,
+     0.66425
+    ],
+    "depth50_range": [
+     -0.210412,
+     -0.15
+    ],
+    "n_depth": 18,
+    "n_rec": 18,
+    "base": [
+     -0.210412,
+     0.388889
+    ]
+   },
+   {
+    "e": 126,
+    "d": -0.15,
+    "m": -0.15,
+    "best_depth": {
+     "0.1": -0.523703,
+     "0.5": -0.233916,
+     "0.9": -0.15
+    },
+    "best_rec": {
+     "252": 0.5,
+     "504": 0.611111,
+     "1260": 0.888889
+    },
+    "rec1_range": [
+     0.388889,
+     0.5
+    ],
+    "depth50_range": [
+     -0.233916,
+     -0.192443
+    ],
+    "n_depth": 18,
+    "n_rec": 18,
+    "base": [
+     -0.210412,
+     0.388889
+    ]
+   },
+   {
+    "e": 126,
+    "d": -0.2,
+    "m": -0.2,
+    "best_depth": {
+     "0.1": -0.551721,
+     "0.5": -0.278979,
+     "0.9": -0.2
+    },
+    "best_rec": {
+     "252": 0.388889,
+     "504": 0.555556,
+     "1260": 0.833333
+    },
+    "rec1_range": [
+     0.24725,
+     0.391975
+    ],
+    "depth50_range": [
+     -0.278979,
+     -0.210412
+    ],
+    "n_depth": 18,
+    "n_rec": 18,
+    "base": [
+     -0.210412,
+     0.388889
+    ]
+   },
+   {
+    "e": 126,
+    "d": -0.25,
+    "m": -0.25,
+    "best_depth": {
+     "0.1": -0.579738,
+     "0.5": -0.324043,
+     "0.9": -0.25
+    },
+    "best_rec": {
+     "252": 0.388889,
+     "504": 0.5,
+     "1260": 0.666667
+    },
+    "rec1_range": [
+     0.1115,
+     0.388889
+    ],
+    "depth50_range": [
+     -0.324043,
+     -0.25
+    ],
+    "n_depth": 18,
+    "n_rec": 18,
+    "base": [
+     -0.25,
+     0.388889
+    ]
+   },
+   {
+    "e": 126,
+    "d": -0.3,
+    "m": -0.3,
+    "best_depth": {
+     "0.1": -0.607756,
+     "0.5": -0.369107,
+     "0.9": -0.3
+    },
+    "best_rec": {
+     "252": 0.277778,
+     "504": 0.5,
+     "1260": 0.611111
+    },
+    "rec1_range": [
+     0.042,
+     0.388889
+    ],
+    "depth50_range": [
+     -0.369107,
+     -0.3
+    ],
+    "n_depth": 18,
+    "n_rec": 18,
+    "base": [
+     -0.3,
+     0.388889
+    ]
+   },
+   {
+    "e": 126,
+    "d": -0.4,
+    "m": -0.4,
+    "best_depth": {
+     "0.1": -0.663791,
+     "0.5": -0.459235,
+     "0.9": -0.4
+    },
+    "best_rec": {
+     "252": 0.111111,
+     "504": 0.388889,
+     "1260": 0.555556
+    },
+    "rec1_range": [
+     0.0025,
+     0.388889
+    ],
+    "depth50_range": [
+     -0.459235,
+     -0.4
+    ],
+    "n_depth": 18,
+    "n_rec": 18,
+    "base": [
+     -0.4,
+     0.388889
+    ]
+   }
+  ]
+ },
+ "checks": {
+  "lm_check": {
+   "n_compared": 196,
+   "max_abs_diff": 0.0,
+   "n_diff_gt_1e-6": 0,
+   "n_not_in_published": 0
+  },
+  "base_check": {
+   "n_compared": 196,
+   "max_abs_diff": 0.0,
+   "n_diff_gt_1e-6": 0,
+   "n_not_in_published": 0
+  },
+  "sim_check": {
+   "n_compared": 73,
+   "max_abs_diff": 0.0,
+   "n_diff_gt_1e-6": 0,
+   "n_not_in_published": 0
+  },
+  "published_check": {
+   "LM_M1": {
+    "mine_mean": 0.004277,
+    "pub_mean": 0.004277,
+    "mine_p": 0.029535,
+    "pub_p": 0.029535,
+    "mine_n": 21,
+    "pub_n": 21
+   },
+   "LM_M2": {
+    "mine_mean": 0.029452,
+    "pub_mean": 0.029452,
+    "mine_p": 0.04293,
+    "pub_p": 0.04293,
+    "mine_n": 21,
+    "pub_n": 21
+   }
+  }
+ },
+ "seen": [
+  "미국 사건 28개의 실제 결과(최종 깊이·회복)는 v1 부터 모두 보았다.",
+  "미국 랜드마크 쌍의 LM 대 BASE: 랜드마크·층별 평균 점수와 보정표(crash-landmark-v1 REPORT), 사건·랜드마크별 점수(results.json episodes[].landmarks), 예측 전부(predictions.csv).",
+  "미국 랜드마크 쌍의 SIM(그 시점 상태에서 출발) 대 같은 BASE: 랜드마크별 합친 평균·p(crash-simpath-v1 REPORT 견고성 절), 사건·랜드마크별 d(results.json), 예측 전부(predictions.csv). → 두 비교의 BASE 가 같으므로 미국에서는 쌍마다 SIM 대 LM 점수 차를 공개 파일에서 바로 뺄 수 있다. 설계자는 계산하지 않았다. 그러나 설계자가 읽은 REPORT 의 랜드마크별 합친 평균만으로도 21·63 에서(평가 쌍 21개가 같음) SIM 이 LM 보다 회복은 평균 약 +0.015·+0.006, 깊이는 약 +0.003·+0.0003 잘 맞혔다는 것이 나온다(126 은 평가 쌍이 하나 달라 근사: 회복 약 +0.03, 깊이 약 −0.004). 브라이어 점수와 핀볼 손실은 예측에 대해 볼록하므로 쌍마다 점수(SIMMIX) ≤ ½(점수(LM) + 점수(SIM)), 즉 SIMMIX 의 LM 대비 이득 ≥ ½ × (SIM 의 LM 대비 이득)이다. 따라서 미국에서 SIMMIX 대 LM 의 합친 평균은 계산 전에 사실상 양수로 정해져 있다(회복 하한 약 +0.007, 깊이 하한 약 0). 미국 SIMMIX 를 판정하지 않고 설명용으로 내린 이유다.",
+  "해외 군집: LM(미국 학습) 대 BASE 의 반쪽별 평균·p(깊이 I1 +0.0042·I2 +0.0005, p 0.035; 회복 I1 +0.0056·I2 +0.0118, p 0.17), 사건별 값(results.json — 랜드마크별 해외 값은 REPORT 에 없고 설계자는 파일에서 보지 않았다). 해외 SIM 은 발생일에서만 계산되었다(대 BASE: 깊이 I1 +0.0065·I2 −0.0052, 회복 I1 +0.0562·I2 −0.0189). 해외 랜드마크의 SIM 은 어디서도 계산된 적이 없다 → 해외 SIMMIX 대 LM 은 공개 정보로 정해지지 않는다.",
+  "TWOPH 는 어디서도 계산된 적이 없다. 그러나 그 재료(LM_ANCHOR 의 유사 사건·남은 추가 하락)와 비교 대상(LM_SCALED)의 성적은 보았다: LM_SCALED 는 21 에서 1년 회복을 덜 예측했고(47% vs 실제 67%) 63 에서는 맞았다(66% vs 67%), 63 의 3년은 더 예측했다(88% vs 81%). 이 보정 양상을 아는 것이 '두 단계' 구조를 고르는 데 영향을 줄 수 있었다. 설계자는 TWOPH 가 이 양상을 어느 쪽으로 바꿀지 계산하지 않았고 알지 못한다. 두 단계 구조는 첫 도달 시간 논리에서 나왔고 자유 모수가 없다(X_FLOOR 는 v1 의 −5% 종료 문턱 그대로).",
+  "변형 선택 자체가 결과를 보고 한 것이다(융합 연구의 본성): 일곱 중 성적이 가장 좋았던 둘(LM·SIM)을 골랐다. 공개 성적의 일부는 우연(승자의 저주)이라 기대보다 약하게 나올 수 있다. 비교 대상이 LM 이므로 LM 선택의 영향은 양쪽에서 상쇄되지만, SIM 은 미국 랜드마크 성적을 보고 골랐다 → SIMMIX 를 해외에서만 판정한다.",
+  "2024-10 이후 사건(미국 2025-04, 해외 2개)은 여러 연구가 이미 봤다 → 보고만."
+ ],
+ "expected": {
+  "SIMMIX_M1_INTL": "FAIL 가능성이 높다(통과 약 12%). 두 깊이 예측이 같은 상태(지금 수준·지금까지 최저)에서 출발하고, 분위수 평균은 핀볼 손실을 크게 줄이지 않는다. 해외 지역 일별 이력이 짧아(1990~) 모의의 표류·변동성 추정이 거칠다.",
+  "SIMMIX_M2_INTL": "FAIL 가능성이 높다(통과 약 15%). 모의 회복 확률은 지역 자기 표류에서 나와 사건 유사 표본(LM)과 오차가 덜 겹치면 섞기가 도울 수 있다. 그러나 발생일 모의의 해외 성적은 I1 양수·I2 음수로 엇갈렸다.",
+  "TWOPH_M2_US": "FAIL 가능성이 높다(통과 약 8%). 같은 유사 사건의 정보를 다르게 나눌 뿐이고, 깊이가 확정된 사건만 쓰므로 LM_SCALED 보다 유사 사건이 조금 적다. 63·126 에서는 대부분의 유사 사건이 이미 바닥을 지나 LM_SCALED 와 거의 같아진다.",
+  "TWOPH_M2_INTL": "FAIL 가능성이 높다(통과 약 7%). 미국 유사 사건의 '바닥까지 시간'과 '오르는 속도'를 USD 기준 해외 사건에 옮긴다. 해외 회복 속도가 미국과 다르면 두 단계 분해의 이득이 묻힌다."
+ },
+ "notes": [
+  "비교 대상은 v1 기준선이 아니라 LM 이다. LM 대 v1 기준선은 다시 판정하지 않는다(설명용 표만).",
+  "미국 SIMMIX 는 설명용이다: 공개된 랜드마크별 평균과 점수의 볼록성 때문에 합친 평균의 부호가 계산 전에 정해져 있다.",
+  "사건이 독립이 아니다(1930년대·2000년대 겹침, 해외 동시 급락). 판정 단위는 미국 사건(랜드마크 평균)·해외 군집이다."
+ ],
+ "limits": [
+  "판정 사건의 결과는 모두 이미 알려져 있고 LM·SIM 의 미국 성적도 보았다. 진짜로 손대지 않은 자료는 앞으로 생길 급락뿐이다.",
+  "해외 판정은 USD 기준 선진국 3지역(1991~)이고, 지역 일별 이력이 짧아 모의의 표류·변동성 추정이 거칠다(asof 1993-05 무렵 이전 쌍은 SIM 이 없어 빠짐).",
+  "TWOPH 는 깊이가 확정된 유사 사건만 써서 LM_SCALED 보다 유사 사건이 조금 적다. 오르는 시간이 바닥 거리에 비례한다는 것은 근사다.",
+  "SIMMIX 비중 0.5 는 고정값이다(최적 비중을 찾지 않았다). 모의는 표류 고정·대칭 GARCH·독립 재표집(crash-simpath-v1 의 한계 그대로).",
+  "미국 C 와 해외 I2 는 같은 세계 급락(2008·2020·2022)을 겹쳐 담아 두 집단이 완전히 독립은 아니다. 급락 연구 전체(7연구 15개 + 이 연구 4개)를 묶은 다중 검정 보정은 하지 않았다.",
+  "총수익·명목 기준, 최종 깊이는 3년에서 자른다(v1 과 같음)."
+ ]
+}
