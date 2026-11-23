@@ -1,0 +1,14 @@
+{
+  "id": "crash-internals-v1",
+  "title": "시장 내부 상태 — 산업 폭·산업 간 상관·변동성 비로 가른 '긴 약세장 확률'이 깊이·회복 예측을 낫게 했나(1927~2024 판정)",
+  "entrypoint": "research/jobs/crash-internals-v1/run.py",
+  "args": [],
+  "timeout_seconds": 1800,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md", "predictions.csv"],
+  "summary_from": "summary",
+  "priority": 11,
+  "revision": 1,
+  "max_memory_mb": 1024
+}
