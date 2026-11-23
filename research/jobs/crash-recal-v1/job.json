@@ -1,0 +1,14 @@
+{
+  "id": "crash-recal-v1",
+  "title": "기준선 자기 보정 — 과거 예측 오차로 치우침을 고치면 처음 보는 해외 급락에서 깊이·회복을 더 잘 맞혔나(1991~2024 판정)",
+  "entrypoint": "research/jobs/crash-recal-v1/run.py",
+  "args": [],
+  "timeout_seconds": 1800,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": ["results.json", "REPORT.md", "predictions.csv"],
+  "summary_from": "summary",
+  "priority": 10,
+  "revision": 1,
+  "max_memory_mb": 1024
+}
