@@ -252,6 +252,14 @@ PROCESS_REGISTRY: dict[str, dict] = {
         ),
         "category": "research", "default_enabled": True,
     },
+    "decision_desk": {
+        "label": "판단판",
+        "description": (
+            "시장·내 포트폴리오·보유·관심 종목의 앞으로 1·3·6·12개월 수익 분포와 오를 확률·15% 이상 빠질 확률·시장을 이길 확률을 "
+            "검증 연구 desk-engine-v1 모형으로 계산해 관제 센터 '판단판'에 띄움 — 스스로 판단할 때 볼 설명용 숫자, 배분·주문·아침 메시지 반영 없음 (화~토 08:05 KST)"
+        ),
+        "category": "research", "default_enabled": True,
+    },
     "forward_tournament_record": {
         "label": "앞으로 토너먼트 기록",
         "description": (

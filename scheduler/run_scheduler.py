@@ -1234,6 +1234,26 @@ def crash_forecast_log_job() -> None:
     print(f"[{datetime.now()}] crash_forecast_log_job 종료")
 
 
+def decision_desk_job() -> None:
+    """판단판 만들기 (scripts/decision_desk.py). 배분 반영 없음, 주문 없음.
+
+    시각(화~토 08:05 KST): 미국 장 마감 뒤, 급락 예측 기록(07:55) 다음. 관제 센터 '판단판' 화면이 읽는 파일을 새로 쓴다.
+    """
+    if not is_enabled("decision_desk"):
+        print(f"[{datetime.now()}] decision_desk_job 건너뜀 (비활성화됨 — 텔레그램 /processes 로 켤 수 있음)")
+        return
+    print(f"[{datetime.now()}] decision_desk_job 시작")
+    try:
+        proc = subprocess.run([sys.executable, str(PROJECT_ROOT / "scripts" / "decision_desk.py")],
+                              cwd=PROJECT_ROOT, capture_output=True, text=True, timeout=10 * 60)
+        print((proc.stdout or "")[-1500:])
+        if proc.returncode != 0:
+            report_job_failure("decision_desk", (proc.stderr or proc.stdout or "")[-300:])
+    except Exception as exc:  # noqa: BLE001
+        report_job_failure("decision_desk", f"{type(exc).__name__}: {exc}")
+    print(f"[{datetime.now()}] decision_desk_job 종료")
+
+
 def sat_momentum_shadow_record_job() -> None:
     """모멘텀 새틀라이트 앞으로 기록 (core/sat_momentum_shadow.py). 배분 반영 없음, 주문 없음.
 
@@ -1723,6 +1743,15 @@ def main() -> None:
         name="화~토 한국시간 07:55 급락 예측 기록 (급락 사건이 있을 때만 기록, 배분 미반영)",
         replace_existing=True,
         misfire_grace_time=900,
+    )
+    scheduler.add_job(
+        decision_desk_job,
+        # 사용자 요청(2026-11-23): 스스로 매매를 판단할 때 볼 분포·확률을 매일 새로 계산. 급락 예측 기록(07:55) 다음.
+        trigger=CronTrigger(day_of_week="tue-sat", hour=8, minute=5, timezone="Asia/Seoul"),
+        id="decision_desk",
+        name="화~토 한국시간 08:05 판단판 (자산별 1·3·6·12개월 분포·사건 확률, 배분 미반영)",
+        replace_existing=True,
+        misfire_grace_time=1800,
     )
     scheduler.add_job(
         sat_momentum_shadow_record_job,
