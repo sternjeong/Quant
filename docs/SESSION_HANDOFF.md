@@ -1,3 +1,16 @@
+## 2026-11-24 판단판 배포 + 판단 엔진 2판 desk-engine-v2(H-031) 사전 등록 — 구현·스모크 완료, 본 계산 미실행
+
+- 판단판: PR #41 을 사용자 "병합해줘" 뒤 병합(a0873f2), VM 자동 배포 반영 확인(/opt/quant HEAD, /desk 경로 응답). 자동 잡 decision_desk 첫 실행은 다음 화~토 08:05 KST — 아직 미확인(data/decision_desk/ 없음).
+- 요청(사용자): "2판 구현 진행해줘". 1판 한계 분석(research/frontier/postmortems/desk-engine-v1.md)의 후속 4가지를 구현.
+- 결정(결과 보기 전 고정, research/jobs/desk-engine-lab-v2/SPEC.md + research/jobs/desk-engine-v2/SPEC.md): 1판 파일은 고치지 않고 불러 씀. 같은 자료·같은 점.
+  전문가 6명 = 1판 넷 + HAR(21·63·252일·EWMA 변동성으로 앞으로의 실현 변동성 회귀) + 여섯째(업종·종목 XRANK: 같은 날 자산 간 순위 1·2차 항 능형 회귀 / 시장 BORROW: 업종 서고의 축척 분포 빌리기).
+  증거 가중 ENS2(가장 나은 전문가 대비 t 값, 겹침 √(21/h) 로 줄임), 구간 보정(실현 예측의 분위수별 어긋남 × m/(m+20)) → 최종 V2. 비교 대상 ENS1 = 1판 앙상블(같은 걸어 나가기에서 재계산, 1판 walk 와 값 같음을 테스트).
+- 판정 8개(0.05/8): MKT·IND·STK 의 63일 분위수·dd15 + IND·STK 의 63일 beat. BEATS_V1 = p < 0.05/8 이고 모든 시대 기량 > 0. 등급은 모든 칸에 별도.
+- 한계(SPEC 에 명시): 2판 설계는 1판 결과(같은 자료)를 보고 정했음 — 판정 기간 통과는 덜 믿을 만하고, 2024-10 이후 보고값·판단판 실전 기록이 깨끗한 확인.
+- 수정 파일: research/jobs/desk-engine-lab-v2/{lab.py,SPEC.md}, research/jobs/desk-engine-v2/{run.py,job.json,SPEC.md}, tests/test_desk_engine_v2.py, research/frontier/hypotheses.json(H-031 registered).
+- 검증: tests/test_desk_engine_v2.py 18 passed(1판과 같은 점·ENS1 일치, 미래 정보 차단, 전문가·가중·보정 성질, 판정 규칙, 스모크 전 경로). 스모크(가짜 자료) 약 55초. 실제 자료 결과는 보지 않음.
+- 상태: 연구 전용 PR → CI 뒤 병합 → VM 실행기가 본 계산(1판 약 15분, 2판은 조금 더). 판단판은 계속 1판 모형을 읽음 — 2판으로 바꾸는 것은 결과 확인 + 사용자 확인 뒤 별도 PR.
+- 다음: 결과 확인 → 한계 분석(postmortem) → 판단판 전환 여부를 사용자에게 묻기 → 약한 칸은 3판(가격 밖 정보·확률 보정)으로 이어 감.
 ## 2026-11-23 판단판(관제 센터 /desk) — 구현·테스트 완료, PR 병합 대기(사용자 승인 필요)
 
 - 요청(사용자): 서비스에 띄울 엔진 — 스스로 매매를 판단할 때 볼 정보. 고도화된 엔진일 것.
