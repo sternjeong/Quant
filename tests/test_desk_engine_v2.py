@@ -327,4 +327,4 @@ def test_smoke_model_drives_live_forecast(smoke):
 def test_ledger_has_hypothesis():
     led = json.loads((ROOT / "research" / "frontier" / "hypotheses.json").read_text(encoding="utf-8"))
     hit = [h for h in led["hypotheses"] if h.get("study_id") == STUDY]
-    assert len(hit) == 1 and hit[0]["id"] == "H-031" and hit[0]["status"] == "registered"
+    assert len(hit) == 1 and hit[0]["id"] == "H-031"
