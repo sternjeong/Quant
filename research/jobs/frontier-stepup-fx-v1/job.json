@@ -1,0 +1,19 @@
+{
+  "id": "frontier-stepup-fx-v1",
+  "title": "[프런티어] 원가 올리기에 환율을 넣으면 — 원화 과세 기준·원/달러 1981~ 두 시대(사전 등록)",
+  "entrypoint": "research/jobs/frontier-stepup-fx-v1/run.py",
+  "args": [],
+  "timeout_seconds": 3600,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": [
+    "results.json",
+    "REPORT.md"
+  ],
+  "summary_from": "verdicts",
+  "priority": 120,
+  "revision": 1,
+  "max_memory_mb": 1500,
+  "max_disk_mb": 512,
+  "max_runs": 40
+}
