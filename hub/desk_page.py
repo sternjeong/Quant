@@ -88,6 +88,8 @@ def tables(sh: dict) -> str:
     rows = sh.get("horizons", [])
     if not rows:
         return ""
+    if any("v1" in r for r in rows):
+        return tables_vs_v1(rows)
     a = "".join(f'<tr><td>{E(H_LABEL[r["h"]])}</td><td>{E(_pct(r["q"][0]))}</td><td>{E(_pct(r["q"][2]))} '
                 f'<span class="base">({E(_pct(r["q_base"][2]))})</span></td><td>{E(_pct(r["q"][4]))}</td><td>{_g(r["grade"].get("q"))}</td></tr>'
                 for r in rows)
@@ -98,6 +100,29 @@ def tables(sh: dict) -> str:
         cells = "".join(f'<tr><td>{E(H_LABEL[r["h"]])}</td><td>{E(_p(r["p"].get(k)))}</td><td class="base">{E(_p(r["p_base"].get(k)))}</td>'
                         f'<td>{_g(r["grade"].get(k))}</td></tr>' for r in rows if k in r["p"])
         out += f'<table class="tbl"><tr><th>{E(names[k])}</th><th>엔진</th><th>과거 평균</th><th>등급</th></tr>{cells}</table>'
+    return out
+
+
+def tables_vs_v1(rows: list) -> str:
+    """3판 이상 모형: 같은 표에 같은 자리의 1판 앙상블 값과 '1판 대비' 등급(그 칸에서 새 판이 1판보다 과거에 더 잘 맞았나)을 함께."""
+    def v1q(r: dict, i: int) -> str:
+        q = (r.get("v1") or {}).get("q")
+        return "—" if not q else _pct(q[i])
+
+    a = "".join(f'<tr><td>{E(H_LABEL[r["h"]])}</td><td>{E(_pct(r["q"][0]))}</td><td>{E(_pct(r["q"][2]))} '
+                f'<span class="base">({E(_pct(r["q_base"][2]))})</span></td><td>{E(_pct(r["q"][4]))}</td>'
+                f'<td class="base">{E(v1q(r, 0))} ~ {E(v1q(r, 4))}</td><td>{_g(r["grade"].get("q"))}</td>'
+                f'<td>{_g((r.get("grade_vs_v1") or {}).get("q"))}</td></tr>' for r in rows)
+    evs = [k for k in ("up", "dd15", "beat") if any(k in r["p"] for r in rows)]
+    names = {"up": "오를 확률", "dd15": "15% 이상 빠질 확률", "beat": "시장을 이길 확률"}
+    out = ('<table class="tbl"><tr><th>수익 범위</th><th>나쁜 10%</th><th>중앙 (평균)</th><th>좋은 10%</th><th>1판 10~90%</th>'
+           '<th>등급</th><th>1판 대비</th></tr>' + a + "</table>")
+    for k in evs:
+        cells = "".join(f'<tr><td>{E(H_LABEL[r["h"]])}</td><td>{E(_p(r["p"].get(k)))}</td><td class="base">{E(_p((r.get("v1") or {}).get("p", {}).get(k)))}</td>'
+                        f'<td class="base">{E(_p(r["p_base"].get(k)))}</td><td>{_g(r["grade"].get(k))}</td>'
+                        f'<td>{_g((r.get("grade_vs_v1") or {}).get(k))}</td></tr>' for r in rows if k in r["p"])
+        out += (f'<table class="tbl"><tr><th>{E(names[k])}</th><th>엔진</th><th>1판</th><th>과거 평균</th><th>등급</th><th>1판 대비</th></tr>'
+                f'{cells}</table>')
     return out
 
 
@@ -138,6 +163,9 @@ def asset_block(sh: dict, *, open_: bool = False) -> str:
         inner += f'<div class="base">3개월 나쁜 10% 경우 포트폴리오 평가 손익 약 {E(_money(sh["bad_case_63"]))}</div>'
     if sh.get("dropped"):
         inner += f'<div class="base">이력이 짧아 뺀 종목: {E(", ".join(sh["dropped"]))}</div>'
+    if sh.get("fx_known") is not None:
+        inner += (f'<div class="base">재무 값 {sh["fx_known"]}/4 개를 앎' + (" — 재무 전문가는 변동성 회귀와 같은 값" if not sh["fx_known"] else "")
+                  + "</div>")
     inner += f'<div class="base">{E(dd.LAYER_LABELS.get(sh.get("layer"), ""))} · 기준일 {E(sh.get("asof", "—"))}</div>'
     return (f'<details class="desk"{" open" if open_ else ""}><summary>{head}{bar}{risk}{flags}</summary>'
             f'<div class="in">{inner}</div></details>')
@@ -150,6 +178,14 @@ HOW_TO = (
     ("이 엔진이 아는 것과 모르는 것", "검증(desk-engine-v1, 2026-11-23): 종목·업종의 '수익 범위'와 '15% 이상 빠질 확률'은 과거 평균보다 뚜렷하게 잘 맞았습니다(강함) — 대부분 지금 변동성에서 나옵니다. '오를 확률'과 '시장을 이길 확률'은 과거 평균보다 낫지 않았습니다(없음) — 방향은 이 엔진이 모릅니다. 시장(SPY) 자체는 모든 칸이 약함입니다. 그래서 이 화면은 '얼마나 흔들리고 얼마나 위험한가'를 보는 데 쓰고, '오를까'의 근거로 쓰지 마세요."),
     ("무엇이 아닌가", "매수·매도 신호가 아닙니다. 분포를 맞히는 것과 돈을 버는 것은 다릅니다. 개별 종목 모형은 상장폐지 종목이 빠진 자료로 만들어 하락 위험이 실제보다 낮게 잡힙니다."),
     ("검증에서 확인된 것", "급락 뒤 반등 신호를 기다린 쪽은 바로 산 쪽보다 나빴습니다(신호 7개 모두). 분할 매수는 1967년 이후 일괄 매수보다 뒤졌습니다. 시장이 1년 고점 −15%에 닿은 뒤 최종 낙폭 중앙값은 −21%, 나쁜 10%는 −50%였습니다."),
+)
+
+
+HOW_TO_V3 = (
+    ("3판 모형으로 읽는 중", "이 판단판은 검증 연구 desk-engine-v3 의 모형(V3)을 읽습니다. 표의 '1판' 열은 같은 자리에서 다시 계산한 1판 앙상블 값이고, "
+     "두 값은 실전 기록에 함께 남아 나중에 실제 결과로 비교됩니다. '1판 대비' 등급은 그 칸에서 3판이 과거에 1판보다 더 잘 맞았는지입니다"
+     "(검증 결과: 시장 3개월 수익 범위·시장 3개월 낙폭 확률·업종 3개월 수익 범위만 통과, 종목 칸은 통과 없음). 개별 종목은 재무 값(기준일 전날까지 공시된 것)을 "
+     "함께 쓰고, 재무를 모르면 그 전문가는 변동성 회귀와 같은 값을 냅니다."),
 )
 
 
@@ -166,6 +202,11 @@ def live_score_block(ls: Optional[dict]) -> str:
         ev = " · ".join(f"{names.get(k, k)} 예측 {_p(e['mean_p'])} / 실제 {_p(e['freq'])}" for k, e in r["events"].items())
         body += (f'<tr><td>{E(H_LABEL.get(r["h"], str(r["h"])))}</td><td>{r["n"]}</td><td>{E(_p(r["coverage80"]))}</td>'
                  f'<td style="text-align:left">{E(ev)}</td></tr>')
+        c = r.get("vs_v1")
+        if c:
+            bits = [] if c.get("pinball") is None else [f"범위 손실 {c['pinball']:.4f} / 1판 {c['pinball_v1']:.4f}"]
+            bits += [f"{names.get(k, k)} 브라이어 {e['brier']:.3f} / 1판 {e['brier_v1']:.3f}" for k, e in c["events"].items()]
+            body += f'<tr><td></td><td>{c["n"]}</td><td class="base">1판과 비교</td><td style="text-align:left" class="base">{E(" · ".join(bits))}</td></tr>'
     return ('<table class="tbl"><tr><th>기간</th><th>건수</th><th>범위 적중(목표 80%)</th><th>확률: 예측 평균 / 실제 빈도</th></tr>' + body + "</table>"
             + ui.note("겹치는 날짜의 예측은 서로 독립이 아니어서, 건수가 많아 보여도 근거는 그보다 적습니다."))
 
@@ -199,5 +240,6 @@ def render_body(data: dict) -> str:
         parts.append(ui.section(f"관심 종목 {len(snap['watch'])}", "".join(asset_block(sh) for sh in snap["watch"])))
     if snap.get("live_score"):
         parts.append(ui.section("실전 기록 (이 화면이 낸 예측의 채점)", live_score_block(snap["live_score"])))
-    parts.append(ui.section("읽는 법", ui.kv_table((k, E(v)) for k, v in HOW_TO)))
+    how = HOW_TO + (HOW_TO_V3 if model.get("compare") else ())
+    parts.append(ui.section("읽는 법", ui.kv_table((k, E(v)) for k, v in how)))
     return "".join(parts)

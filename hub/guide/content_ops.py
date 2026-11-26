@@ -68,8 +68,8 @@ JOBS: tuple[JobGuide, ...] = (
     JobGuide(
         job_id="decision_desk",
         where_to_see="관제 센터 '판단판'(/desk). 파일은 VM data/decision_desk/latest.json(화면이 읽는 한 장)과 history.jsonl(자산·기준일마다 예측 한 줄 — 나중에 실제 결과와 맞춰 보기 위한 기록). 텔레그램 알림은 없습니다.",
-        if_alert="실패 알림은 대개 가격 조회(yfinance) 문제이거나, 검증 연구 desk-engine-v1 의 모형 파일(data/research_results/desk-engine-v1/)이 아직 없는 경우입니다. 다음 날 자동으로 다시 만들고, 그동안 화면은 마지막으로 만든 판단판을 보여 줍니다. 숫자는 설명용이며 추천이 아닙니다. 원하지 않으면 '/processes off decision_desk'.",
-        verified="2026-11-23",
+        if_alert="실패 알림은 대개 가격 조회(yfinance) 문제이거나, 설정한 검증 연구 모형 파일(기본 data/research_results/desk-engine-v1/, core/decision_desk.py 의 MODEL_STUDY)이 없거나 모르는 종류(lab_version)인 경우입니다. 다음 날 자동으로 다시 만들고, 그동안 화면은 마지막으로 만든 판단판을 보여 줍니다. 숫자는 설명용이며 추천이 아닙니다. 원하지 않으면 '/processes off decision_desk'.",
+        verified="2026-11-26",
     ),
     JobGuide(
         job_id="estimate_shadow_record",
@@ -359,8 +359,8 @@ SCRIPTS: tuple[ScriptGuide, ...] = (
         when_to_run="자동(화~토 08:05 KST)으로 돕니다. 손으로는 보유·관심 종목을 바꾼 직후 판단판을 바로 새로 만들 때, 또는 특정 종목만 미리 읽어 볼 때. 아침 메시지·엔진·주문과 연결되어 있지 않습니다.",
         command="python scripts/decision_desk.py  (저장 없이 보려면 --dry-run, 특정 종목만 보려면 --tickers NVDA,AAPL --dry-run)",
         risk="파일/DB 쓰기",
-        what_it_prints="자산마다 한 줄: 앞으로 3개월 수익의 나쁜 10% ~ 좋은 10% 범위와 중앙값, 오를 확률, 3개월 안에 15% 이상 빠질 확률(괄호 안은 과거 평균), 시장(SPY)을 이길 확률. 시장(SPY) → 내 포트폴리오 전체 → 보유 종목 → 관심 종목 순서입니다. 보유 종목·현금·관심 종목은 DB 에서 읽고 가격은 가격 저장소에서 읽습니다(없는 구간만 받습니다). 계산은 검증 연구 desk-engine-v1 이 만든 모형을 그대로 씁니다. 저장하면 data/decision_desk/latest.json 을 바꿔 쓰고, 같은 기준일·같은 자산의 예측은 history.jsonl 에 한 번만 덧붙입니다. 끝의 '실전 기록' 줄은 기간이 다 지난 과거 예측을 실제 결과와 맞춘 채점(10~90% 범위에 실제로 들어온 비율, 목표 80%)이며, 기록 시작 뒤 약 1개월부터 나옵니다. --dry-run 은 아무것도 쓰지 않고, --tickers 는 DB 를 읽지 않습니다. 모형 파일이 없으면 '예측 모형이 아직 없습니다'를 찍고 종료 코드 1 로 끝납니다.",
-        verified="2026-11-23",
+        what_it_prints="자산마다 한 줄: 앞으로 3개월 수익의 나쁜 10% ~ 좋은 10% 범위와 중앙값, 오를 확률, 3개월 안에 15% 이상 빠질 확률(괄호 안은 과거 평균), 시장(SPY)을 이길 확률. 시장(SPY) → 내 포트폴리오 전체 → 보유 종목 → 관심 종목 순서입니다. 보유 종목·현금·관심 종목은 DB 에서 읽고 가격은 가격 저장소에서 읽습니다(없는 구간만 받습니다). 계산은 MODEL_STUDY 로 정한 검증 연구 모형(기본 desk-engine-v1)을 그대로 씁니다. 3판 모형(desk-engine-v3)이면 줄 끝에 같은 자리의 1판 앙상블 값('| 1판 …')이 붙고, history.jsonl 의 각 기간에 1판 값(v1)과 엔진 종류(lab_version)가 함께 남아 실전 기록에서 두 엔진이 같은 결과로 채점됩니다. 재무 값은 디스크 기록만 읽습니다(받지 않음). 저장하면 data/decision_desk/latest.json 을 바꿔 쓰고, 같은 기준일·같은 자산의 예측은 history.jsonl 에 한 번만 덧붙입니다. 끝의 '실전 기록' 줄은 기간이 다 지난 과거 예측을 실제 결과와 맞춘 채점(10~90% 범위에 실제로 들어온 비율, 목표 80%)이며, 기록 시작 뒤 약 1개월부터 나옵니다. --dry-run 은 아무것도 쓰지 않고, --tickers 는 DB 를 읽지 않습니다. 모형 파일이 없으면 '예측 모형이 아직 없습니다'를 찍고 종료 코드 1 로 끝납니다.",
+        verified="2026-11-26",
     ),
     ScriptGuide(
         path="scripts/agent_batch.py", name="AI 에이전트 배치 수동 확인",
