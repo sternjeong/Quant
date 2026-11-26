@@ -1,3 +1,16 @@
+## 2026-11-26 판단 엔진 3판 desk-engine-v3(H-032) 사전 등록 — 구현·스모크 완료, 본 계산 미실행
+
+- 요청: 사용자 "3판 구현 진행해줘".
+- 결정(결과 보기 전 고정, research/jobs/desk-engine-lab-v3/SPEC.md + research/jobs/desk-engine-v3/SPEC.md): 1판·2판 파일은 고치지 않고 불러 씀. 같은 자료·같은 점.
+  (1) HAR 축척을 바탕으로 ANALOG_H·TILT_H·XRANK_H/BORROW_H, (2) 같은 값을 내는 전문가는 한 표, (3) 보정을 핀볼 기준(축척 가중 분위수)으로 바꾸고 보정 전·후를 증거 가중으로 섞음,
+  (4) 종목 층 재무 순위 전문가 FUND(core/fundamentals_pit 디스크 기록, 기준일 전날까지 공시분, 네트워크 없음).
+- 가격 밖 정보 조사: 그 시점 SEC 재무가 VM 디스크에 종목 약 600개(2009년 무렵~, 생존 회사만). 시장·업종 층에 쓸 오프라인 자료는 없음. 저장소 파일은 세션 계정으로 읽을 수 없어 실제 값은 보지 않음.
+- 판정: 2판과 같은 8개 열쇠, V3 대 1판 ENS(같은 실행 안에서 재계산), 0.05/8. V3 대 2판 V2 는 보고. 판단판 교체 제안 기준도 미리 고정(통과 3개 이상 & 1판 대비 −0.005 아래 없음) — 자동 반영 아님.
+- 수정 파일: research/jobs/desk-engine-lab-v3/{lab.py,SPEC.md}, research/jobs/desk-engine-v3/{run.py,job.json,SPEC.md}, tests/test_desk_engine_v3.py, research/frontier/hypotheses.json(H-032 registered).
+- 검증: tests/test_desk_engine_v3.py + v2 테스트 통과(세션 venv), 스모크 전 경로 통과(가짜 자료 — 숫자에 뜻 없음). ENS1·V2 가 2판 걸어 나가기와 같은 값임을 테스트로 확인.
+- 상태: 구현·사전 등록 완료, **본 계산 미실행**(VM 연구 실행기 대기, 예상 40분 안팎). 판단판은 계속 1판 모형.
+- 다음: 결과가 오면 한계 분석(research/frontier/postmortems/desk-engine-v3.md)과 장부 갱신. 판단판 교체는 결과 + 사용자 확인 + 별도 PR.
+
 ## 2026-11-24 desk-engine-v2 결과·한계 분석 — 1/8 통과(시장 낙폭 확률), H-032 대기
 
 - 결과(VM 실행기, research/results/desk-engine-v2/): V2 대 1판 ENS. 통과 = 시장 3개월 낙폭 확률(+0.023, p 0.0034). 근접 = 시장 분포(p 0.066), 종목 낙폭(p 0.062). 종목·업종 분포와 시장 초과 확률은 1판과 차이 없음.
