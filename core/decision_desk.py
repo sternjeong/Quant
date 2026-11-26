@@ -1,8 +1,11 @@
 """판단판 — 시장·내 포트폴리오·보유·관심 종목의 '앞으로 1·3·6·12개월' 수익 분포와 사건 확률을 한 장으로 만든다.
 
 매수·매도를 정해 주지 않는다. 사용자가 스스로 판단할 때 볼 숫자(분포, 오를 확률, 15% 이상 빠질 확률, 시장을 이길 확률)와
-그 숫자가 과거에 얼마나 맞았는지(근거 등급)를 낸다. 예측은 검증 연구 desk-engine-v1 이 만든 모형
-(data/research_results/desk-engine-v1/model.json + library_*.csv)을 research/jobs/desk-engine-lab/lab.py 로 읽어 계산한다.
+그 숫자가 과거에 얼마나 맞았는지(근거 등급)를 낸다. 예측은 검증 연구가 만든 모형
+(data/research_results/<MODEL_STUDY>/model.json + library_*.csv)을 그 모형의 lab_version 에 맞는 연구 공용 코드로 읽어 계산한다.
+어느 모형을 읽을지는 MODEL_STUDY 한 곳에서 정한다(기본 desk-engine-v1 — 자동으로 바뀌지 않는다):
+  desk-engine-lab/v1 → research/jobs/desk-engine-lab/lab.py (1판 앙상블 ENS)
+  desk-engine-lab/v3 → research/jobs/desk-engine-lab-v3/lab.py (3판 V3, 같은 자리에서 1판 앙상블 ENS1 도 함께 계산·기록)
 주문·챔피언 전략·아침 메시지와 연결되어 있지 않다. 이 모듈은 받은 가격으로 계산만 한다(가격 받기·DB 읽기는 scripts/decision_desk.py).
 """
 
@@ -12,7 +15,7 @@ import importlib.util
 import json
 import math
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Optional
 
@@ -20,7 +23,9 @@ import numpy as np
 import pandas as pd
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-MODEL_DIR = PROJECT_ROOT / "data" / "research_results" / "desk-engine-v1"
+# 판단판이 읽는 모형 — 이 한 줄이 설정이다. 3판으로 바꾸려면 "desk-engine-v3"(사용자 확인 뒤 별도 커밋). 자동 전환 없음.
+MODEL_STUDY = "desk-engine-v1"
+MODEL_DIR = PROJECT_ROOT / "data" / "research_results" / MODEL_STUDY
 OUT_DIR = PROJECT_ROOT / "data" / "decision_desk"
 SNAPSHOT_NAME = "latest.json"
 HISTORY_NAME = "history.jsonl"
@@ -50,21 +55,132 @@ def lab():
     return mod
 
 
+def lab3():
+    """3판 연구 공용 모듈(1판·2판 모듈을 같은 이름으로 불러 쓴다)."""
+    name = "desk_engine_lab_v3"
+    if name in sys.modules:
+        return sys.modules[name]
+    spec = importlib.util.spec_from_file_location(name, PROJECT_ROOT / "research" / "jobs" / "desk-engine-lab-v3" / "lab.py")
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[name] = mod
+    spec.loader.exec_module(mod)
+    return mod
+
+
+# ---------------------------------------------------------------- 재무(3판 종목 층의 FUND 전문가)
+FX_LEN = 4                    # 3판 lab.FX = (gp_assets, rev_yoy, rev_acc, ni_yoy)
+FUND_LAG_DAYS = 1             # 기준일 전날까지 공시된 것만(research/jobs/desk-engine-v3/run.py 와 같다)
+
+
+def fund_values(v: Optional[dict]) -> list:
+    """재무 view → 3판 FX 순서의 값(모르면 NaN). desk-engine-v3/run.py 의 fund_values 와 같은 계산."""
+    if not v:
+        return [math.nan] * FX_LEN
+    g = lambda k: float(v[k]) if v.get(k) is not None and math.isfinite(float(v[k])) else math.nan  # noqa: E731
+    return [g("gp_assets"), g("rev_yoy"), g("rev_yoy") - g("rev_yoy_prev"), g("ni_yoy")]
+
+
+class DiskFundamentals:
+    """core/fundamentals_pit 저장소에서 디스크에 있는 기록만 읽는다(Store(fetch=False) — 네트워크로 받지 않는다).
+
+    values(티커, 기준일) = 기준일 전날까지 공시된 재무 값 4개. 저장소·티커를 못 읽으면 모두 NaN(→ FUND 전문가 = HAR)."""
+
+    def __init__(self, store_dir: Optional[Path] = None):
+        self.store, self.fp, self.first = None, None, {}
+        try:
+            from core import fundamentals_pit as fp
+
+            self.fp, self.store = fp, fp.Store(store_dir, fetch=False)
+        except Exception:  # noqa: BLE001 — 저장소가 없어도 판단판은 만든다
+            self.store = None
+
+    def view(self, ticker: str, day) -> Optional[dict]:
+        if self.store is None:
+            return None
+        try:
+            rec = self.store.ensure(ticker)
+            if not rec or rec.get("missing"):
+                return None
+            if ticker not in self.first:
+                self.first[ticker] = min((str(r[3])[:10] for rows in (rec.get("facts") or {}).values() for r in rows), default=None)
+            if self.first[ticker] is None or day.isoformat() < self.first[ticker]:
+                return None
+            return self.fp.view_from_record(rec, day)
+        except Exception:  # noqa: BLE001 — 깨진 기록은 '모름'
+            return None
+
+    def values(self, ticker: str, asof) -> list:
+        return fund_values(self.view(ticker, pd.Timestamp(asof).date() - timedelta(days=FUND_LAG_DAYS)))
+
+
+# ---------------------------------------------------------------- 엔진(모형의 lab_version 으로 고른다)
+def _predict_v1(model: dict, layer: str, s: pd.Series, mlp: Optional[pd.Series], ticker: str) -> Optional[dict]:
+    """1판: 분위수·확률 = ENS, 바탕 = CLIM."""
+    m = lab()
+    feats = model["layers"][layer]["feats"]
+    st = m.latest_state(s, mlp if len(feats) > len(m.OWN) else None)
+    if st is None:
+        return None
+    f = m.forecast_live(model["libs"][layer], np.asarray(model["layers"][layer]["weights"], float), st["x"], st["s"])
+    return {"n": f["n"], "q": f["q"]["ENS"], "q_base": f["q"]["CLIM"], "p": f["p"]["ENS"], "p_base": f["p"]["CLIM"]}
+
+
+def _predict_v3(model: dict, layer: str, s: pd.Series, mlp: Optional[pd.Series], ticker: str) -> Optional[dict]:
+    """3판: 분위수·확률 = V3, 바탕 = CLIM, 비교 = ENS1(1판 앙상블, 같은 서고·같은 자리에서 다시 계산). 재무는 종목 층만."""
+    m = lab3()
+    L = model["layers"][layer]
+    st = m.L2.latest_state2(s, mlp if len(L["feats"]) > len(m.V.OWN) else None)
+    if st is None:
+        return None
+    if L.get("fx_grid") is not None:
+        fund = model.get("fund")
+        st["fx"] = fund.values(ticker, st["date"]) if fund is not None else [math.nan] * FX_LEN
+    f = m.forecast_live3(model["libs"][layer], L, st, model["libs"].get(L.get("borrow_library_layer") or ""))
+    return {"n": f["n"], "q": f["q"]["V3"], "q_base": f["q"]["CLIM"], "p": f["p"]["V3"], "p_base": f["p"]["CLIM"],
+            "q_v1": f["q"]["ENS1"], "p_v1": f["p"]["ENS1"], "fx_known": int(np.isfinite(st.get("fx") or [math.nan]).sum())}
+
+
+# lab_version → (서고 읽기, 자산 하나 예측). 4판을 붙일 때는 여기에 한 줄 더한다.
+ENGINES = {
+    "desk-engine-lab/v1": (lambda df: lab().library_from_frame(df), _predict_v1),
+    "desk-engine-lab/v3": (lambda df: lab3().library_from_frame3(df), _predict_v3),
+}
+DEFAULT_LAB_VERSION = "desk-engine-lab/v1"     # lab_version 이 없는 옛 모형
+
+
+def engine_of(model: dict) -> Optional[tuple]:
+    return ENGINES.get(model.get("lab_version") or DEFAULT_LAB_VERSION)
+
+
+def side_by_side(model: Optional[dict]) -> bool:
+    """1판 앙상블을 함께 계산·기록하는 엔진인가(3판 이상)."""
+    return bool(model) and (model.get("lab_version") or DEFAULT_LAB_VERSION) != DEFAULT_LAB_VERSION
+
+
 # ---------------------------------------------------------------- 모형
-def load_model(model_dir: Path = MODEL_DIR) -> Optional[dict]:
-    """모형(가중·등급)과 층별 서고. 파일이 없거나 깨졌으면 None."""
+def load_model(model_dir: Path = MODEL_DIR, fund_store_dir: Optional[Path] = None) -> Optional[dict]:
+    """모형(가중·등급)과 층별 서고. 파일이 없거나 깨졌거나 모르는 lab_version 이면 None."""
     try:
         model = json.loads((Path(model_dir) / "model.json").read_text(encoding="utf-8"))
+        eng = engine_of(model)
+        if eng is None:
+            return None
         libs = {}
         for name, layer in model["layers"].items():
             df = pd.read_csv(Path(model_dir) / layer["library"])
             if len(df) >= lab().MIN_LIB:
-                libs[name] = lab().library_from_frame(df)
+                libs[name] = eng[0](df)
     except (OSError, ValueError, KeyError):
         return None
     if not libs:
         return None
     model["libs"] = libs
+    if side_by_side(model):
+        for layer in model["layers"].values():          # 빌려 오는 서고(시장 층 BORROW → 업종 서고)를 층 이름으로
+            bl = layer.get("borrow_library")
+            layer["borrow_library_layer"] = next((n for n, x in model["layers"].items() if bl and x.get("library") == bl), None)
+        if any(layer.get("fx_grid") is not None for layer in model["layers"].values()):
+            model["fund"] = DiskFundamentals(fund_store_dir)
     return model
 
 
@@ -109,25 +225,34 @@ def sheet(model: dict, ticker: str, lp: pd.Series, mlp: Optional[pd.Series]) -> 
         return out | {"error": "가격 이력 없음"}
     out["asof"] = str(pd.Timestamp(s.index[-1]).date())
     out["stats"] = describe(s)
-    feats = model["layers"][layer]["feats"]
-    st = m.latest_state(s, mlp if len(feats) > len(m.OWN) else None)
-    if st is None:
+    f = engine_of(model)[1](model, layer, s, mlp, ticker)
+    if f is None:
         return out | {"error": "가격 이력이 1년 남짓보다 짧아 예측하지 않음"}
-    f = m.forecast_live(model["libs"][layer], np.asarray(model["layers"][layer]["weights"], float), st["x"], st["s"])
     cells = model["layers"][layer]["cells"]
+    both = "q_v1" in f
+    if both and model["layers"][layer].get("fx_grid") is not None:
+        out["fx_known"] = f["fx_known"]
     rows = []
     for hi, h in enumerate(m.HORIZONS):
-        if not np.isfinite(f["q"]["ENS"][hi]).all():
+        if not np.isfinite(f["q"][hi]).all():
             continue
         row = {"h": h, "n": int(f["n"][hi]),
-               "q": [float(math.expm1(v)) for v in f["q"]["ENS"][hi]], "q_base": [float(math.expm1(v)) for v in f["q"]["CLIM"][hi]],
+               "q": [float(math.expm1(v)) for v in f["q"][hi]], "q_base": [float(math.expm1(v)) for v in f["q_base"][hi]],
                "p": {}, "p_base": {}, "grade": {"q": (cells.get(f"{h}:q") or {}).get("grade", "없음")}}
+        if both:
+            row["v1"] = {"q": [float(math.expm1(v)) for v in f["q_v1"][hi]] if np.isfinite(f["q_v1"][hi]).all() else None, "p": {}}
+            row["grade_vs_v1"] = {"q": (cells.get(f"{h}:q") or {}).get("grade_vs_v1", "없음")}
         for k, ev in enumerate(m.EVENTS):
-            p = _num(f["p"]["ENS"][hi][k])
+            p = _num(f["p"][hi][k])
             if p is None or (ev == "beat" and (out["foreign"] or layer == "market")):
                 continue
-            row["p"][ev], row["p_base"][ev] = p, _num(f["p"]["CLIM"][hi][k])
+            row["p"][ev], row["p_base"][ev] = p, _num(f["p_base"][hi][k])
             row["grade"][ev] = (cells.get(f"{h}:{ev}") or {}).get("grade", "없음")
+            if both:
+                p1 = _num(f["p_v1"][hi][k])
+                if p1 is not None:
+                    row["v1"]["p"][ev] = p1
+                row["grade_vs_v1"][ev] = (cells.get(f"{h}:{ev}") or {}).get("grade_vs_v1", "없음")
         rows.append(row)
     out["horizons"] = rows
     out["flags"] = flags_of(out)
@@ -201,13 +326,17 @@ def build_snapshot(model: Optional[dict], prices: dict, closes: dict, holdings: 
     snap: dict = {"generated_at": now.isoformat(timespec="seconds"), "note": NOTE, "crash": crash_lines or [], "market": None,
                   "portfolio": None, "positions": [], "watch": [], "model": None}
     if model is None:
-        return snap | {"status": "no_model", "message": "예측 모형이 아직 없습니다(검증 연구 desk-engine-v1 결과 대기)."}
+        return snap | {"status": "no_model", "message": f"예측 모형이 아직 없습니다(검증 연구 {MODEL_STUDY} 결과 대기)."}
     mlp = prices.get(MARKET_TICKER)
     if mlp is None or mlp.dropna().empty:
         return snap | {"status": "no_market", "message": "시장(SPY) 가격을 읽지 못했습니다."}
     snap["model"] = {"study": model.get("study"), "data_end": model.get("data_end"), "lab_version": model.get("lab_version"),
                      "smoke": bool(model.get("smoke")),
                      "grades": {name: {k: c.get("grade") for k, c in layer["cells"].items()} for name, layer in model["layers"].items()}}
+    if side_by_side(model):
+        snap["model"]["compare"] = "ENS1"
+        snap["model"]["grades_vs_v1"] = {name: {k: c.get("grade_vs_v1") for k, c in layer["cells"].items()}
+                                         for name, layer in model["layers"].items()}
     snap["market"] = sheet(model, MARKET_TICKER, mlp, None)
     snap["asof"] = snap["market"].get("asof")
     positions = aggregate_holdings(holdings, closes)
@@ -259,10 +388,20 @@ def history_rows(snap: dict) -> list:
     for sh in [snap.get("market"), snap.get("portfolio")] + list(snap.get("positions", [])) + list(snap.get("watch", [])):
         if not sh or not sh.get("horizons"):
             continue
-        rows.append({"asof": sh["asof"], "ticker": sh["ticker"], "layer": sh["layer"], "model": (snap.get("model") or {}).get("study"),
-                     "horizons": [{"h": r["h"], "q": [round(v, 5) for v in r["q"]], "p": {k: round(v, 4) for k, v in r["p"].items()}}
-                                  for r in sh["horizons"]]})
+        row = {"asof": sh["asof"], "ticker": sh["ticker"], "layer": sh["layer"], "model": (snap.get("model") or {}).get("study"),
+               "horizons": [_hist_h(r) for r in sh["horizons"]]}
+        if any("v1" in r for r in sh["horizons"]):         # 3판 이상: 어떤 엔진의 기록인지와 같은 자리의 1판 앙상블(비교 기록)
+            row["lab_version"] = (snap.get("model") or {}).get("lab_version")
+        rows.append(row)
     return rows
+
+
+def _hist_h(r: dict) -> dict:
+    out = {"h": r["h"], "q": [round(v, 5) for v in r["q"]], "p": {k: round(v, 4) for k, v in r["p"].items()}}
+    if "v1" in r:
+        out["v1"] = {"q": None if r["v1"]["q"] is None else [round(v, 5) for v in r["v1"]["q"]],
+                     "p": {k: round(v, 4) for k, v in r["v1"]["p"].items()}}
+    return out
 
 
 def write_snapshot(snap: dict, out_dir: Path = OUT_DIR) -> int:
@@ -343,13 +482,39 @@ def score_history(rows: list, prices: dict) -> dict:
                     e["brier"] += (p - float(truth[ev])) ** 2
                     e["hits"] += int(truth[ev])
                     e["p_sum"] += p
+            v1 = r.get("v1")
+            if v1:                                              # 같은 자리의 1판 앙상블과 짝지어 비교(3판 이상 기록만)
+                c = a.setdefault("vs_v1", {"n": 0, "pinball": 0.0, "pinball_v1": 0.0, "events": {}})
+                y = math.expm1(ret)
+                if v1.get("q"):
+                    c["n"] += 1
+                    c["pinball"] += _pinball(y, r["q"])
+                    c["pinball_v1"] += _pinball(y, v1["q"])
+                for ev, p1 in (v1.get("p") or {}).items():
+                    if ev in truth and ev in r.get("p", {}):
+                        e = c["events"].setdefault(ev, {"n": 0, "brier": 0.0, "brier_v1": 0.0})
+                        e["n"] += 1
+                        e["brier"] += (r["p"][ev] - float(truth[ev])) ** 2
+                        e["brier_v1"] += (p1 - float(truth[ev])) ** 2
     out = {"pending": pending, "horizons": []}
     for h in sorted(acc):
         a = acc[h]
-        out["horizons"].append({"h": h, "n": a["n"], "coverage80": a["inside"] / a["n"],
-                                "events": {ev: {"n": e["n"], "brier": e["brier"] / e["n"], "freq": e["hits"] / e["n"], "mean_p": e["p_sum"] / e["n"]}
-                                           for ev, e in a["events"].items()}})
+        row = {"h": h, "n": a["n"], "coverage80": a["inside"] / a["n"],
+               "events": {ev: {"n": e["n"], "brier": e["brier"] / e["n"], "freq": e["hits"] / e["n"], "mean_p": e["p_sum"] / e["n"]}
+                          for ev, e in a["events"].items()}}
+        c = a.get("vs_v1")
+        if c:
+            row["vs_v1"] = {"n": c["n"], "pinball": c["pinball"] / c["n"] if c["n"] else None,
+                            "pinball_v1": c["pinball_v1"] / c["n"] if c["n"] else None,
+                            "events": {ev: {"n": e["n"], "brier": e["brier"] / e["n"], "brier_v1": e["brier_v1"] / e["n"]}
+                                       for ev, e in c["events"].items()}}
+        out["horizons"].append(row)
     return out
+
+
+def _pinball(y: float, q: list) -> float:
+    """분위수 5개(10·25·50·75·90%)의 평균 핀볼 손실(단순 수익 기준)."""
+    return sum(max(t * (y - v), (t - 1) * (y - v)) for t, v in zip((0.1, 0.25, 0.5, 0.75, 0.9), q)) / len(q)
 
 
 def read_snapshot(out_dir: Path = OUT_DIR) -> Optional[dict]:

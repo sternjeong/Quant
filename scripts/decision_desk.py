@@ -1,6 +1,7 @@
 """판단판 만들기 — 시장·내 포트폴리오·보유·관심 종목의 앞으로 1·3·6·12개월 분포와 사건 확률을 계산해 저장한다.
 
-보유 종목·현금·관심 종목은 DB 에서, 가격은 가격 저장소(없으면 받아서)에서 읽고, 검증 연구 desk-engine-v1 의 모형으로 계산해
+보유 종목·현금·관심 종목은 DB 에서, 가격은 가격 저장소(없으면 받아서)에서 읽고, 검증 연구 모형(core/decision_desk.py 의
+MODEL_STUDY, 기본 desk-engine-v1)으로 계산해
 data/decision_desk/latest.json 에 쓴다(관제 센터 '판단판' 화면이 읽는다). 같은 날 같은 자산의 예측은 history.jsonl 에 한 번만
 덧붙여 나중에 실제 결과와 맞춰 볼 수 있게 한다. 매수·매도를 정해 주지 않고, 주문·챔피언 전략·아침 메시지는 건드리지 않는다.
 
@@ -99,8 +100,11 @@ def summary_lines(snap: dict) -> list:
         if r is None:
             continue
         beat = "" if "beat" not in r["p"] else f" · 시장 이길 확률 {_p(r['p']['beat'])}"
+        v1 = r.get("v1")
+        cmp = "" if not v1 else (f" | 1판 {_pct(v1['q'][0]) if v1.get('q') else '—'} ~ {_pct(v1['q'][4]) if v1.get('q') else '—'}"
+                                 f" · 15%↓ {_p(v1['p'].get('dd15'))}")
         out.append(f"  {sh['ticker']}: 3개월 {_pct(r['q'][0])} ~ {_pct(r['q'][4])}(중앙 {_pct(r['q'][2])}) · 오를 확률 {_p(r['p'].get('up'))} · "
-                   f"15% 이상 빠질 확률 {_p(r['p'].get('dd15'))}(과거 평균 {_p(r['p_base'].get('dd15'))}){beat}")
+                   f"15% 이상 빠질 확률 {_p(r['p'].get('dd15'))}(과거 평균 {_p(r['p_base'].get('dd15'))}){beat}{cmp}")
     ls = snap.get("live_score") or {}
     for r in ls.get("horizons", []):
         out.append(f"  실전 기록 {r['h']}거래일: {r['n']}건 · 10~90% 범위 적중 {r['coverage80'] * 100:.0f}%(목표 80%)")
