@@ -47,12 +47,12 @@
     {
       "theme": "클라우드",
       "proxies": "SKYY, WCLD",
-      "strength_factor": 9.8578048518,
-      "return_3m": -10.3810487522,
-      "return_6m": 17.2731099279,
-      "return_12m": 16.6619442021,
+      "strength_factor": 9.8494413553,
+      "return_3m": -10.3862540321,
+      "return_6m": 17.2576595259,
+      "return_12m": 16.6564802894,
       "trend": "하락",
-      "trend_change": -25.0105636748,
+      "trend_change": -25.0127283619,
       "rs_score": 80.9523809524
     },
     {
@@ -157,12 +157,12 @@
     {
       "theme": "반도체",
       "proxies": "SOXX, SMH",
-      "strength_factor": -9.8904021508,
-      "return_3m": -26.5961866412,
-      "return_6m": -31.0818362803,
-      "return_12m": 29.8552737055,
+      "strength_factor": -9.8913386888,
+      "return_3m": -26.595929243,
+      "return_6m": -31.0806555939,
+      "return_12m": 29.8508813391,
       "trend": "하락",
-      "trend_change": -35.53653523,
+      "trend_change": -35.5358234594,
       "rs_score": 33.3333333333
     },
     {
@@ -179,12 +179,12 @@
     {
       "theme": "우주",
       "proxies": "UFO, ARKX, ROKT",
-      "strength_factor": -15.4192934724,
-      "return_3m": -18.0787028797,
-      "return_6m": -36.820031155,
-      "return_12m": 11.6269396883,
+      "strength_factor": -15.4295403196,
+      "return_3m": -18.0735316023,
+      "return_6m": -36.8836066457,
+      "return_12m": 11.6415202115,
       "trend": "하락",
-      "trend_change": -13.132987953,
+      "trend_change": -13.1088192687,
       "rs_score": 23.8095238095
     },
     {
@@ -201,12 +201,12 @@
     {
       "theme": "광통신",
       "proxies": "LUMA",
-      "strength_factor": -39.9704806032,
-      "return_3m": -39.9704806032,
+      "strength_factor": -39.9680878582,
+      "return_3m": -39.9680878582,
       "return_6m": null,
       "return_12m": null,
       "trend": "하락",
-      "trend_change": -45.5502942105,
+      "trend_change": -45.5479014656,
       "rs_score": 14.2857142857
     },
     {
@@ -232,5 +232,5 @@
       "rs_score": 4.7619047619
     }
   ],
-  "computed_at": "2026-11-25T23:29:52.142486"
+  "computed_at": "2026-11-26T23:33:37.808709"
 }
