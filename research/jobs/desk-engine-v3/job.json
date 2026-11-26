@@ -1,0 +1,21 @@
+{
+  "id": "desk-engine-v3",
+  "title": "판단 엔진 3판 — 변동성 회귀 축척 바탕·같은 값 전문가 한 표·핀볼 기준 보정 섞기·재무 순위 전문가가 1판 앙상블보다 3개월 수익 분포·15% 낙폭 확률·시장 초과 확률을 잘 맞혔나(1판·2판과 같은 자료·같은 점)",
+  "entrypoint": "research/jobs/desk-engine-v3/run.py",
+  "args": [],
+  "timeout_seconds": 9000,
+  "max_attempts": 3,
+  "resumable": false,
+  "outputs": [
+    "results.json",
+    "REPORT.md",
+    "model.json",
+    "library_market.csv",
+    "library_industry.csv",
+    "library_stock.csv"
+  ],
+  "summary_from": "summary",
+  "priority": 5,
+  "revision": 1,
+  "max_memory_mb": 3072
+}
