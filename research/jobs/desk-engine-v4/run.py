@@ -11,9 +11,13 @@ python research/jobs/desk-engine-v4/run.py --out OUT --checkpoint CK [--smoke]
 from __future__ import annotations
 
 import argparse
+import gc
+import hashlib
 import importlib.util
 import json
 import math
+import os
+import pickle
 import sys
 import time
 from pathlib import Path
@@ -92,17 +96,62 @@ def holdout_cells(P: dict, out: dict) -> dict:
     return res
 
 
-def run_layer(name: str, P: Optional[dict]) -> Optional[dict]:
+BULKY = ("FQ", "FP", "LQ", "LB", "S3", "CA4")  # 점 수만큼 큰 배열(채점 뒤에는 버린다)
+
+
+def _layer_key(name: str, P: dict, smoke: bool) -> str:
+    """층 체크포인트가 지금 점 집합·규칙과 같은 계산의 것인지 가리는 지문."""
+    h = hashlib.sha1()
+    h.update(f"{STUDY}|{RULES_VERSION}|{L4().LAB_VERSION}|{name}|{int(smoke)}|{len(P['date'])}|{len(P['names'])}".encode())
+    h.update(np.ascontiguousarray(P["date"]).view(np.uint8).tobytes())
+    h.update(np.ascontiguousarray(P["asset"]).astype(np.int64).tobytes())
+    return h.hexdigest()
+
+
+def _load_layer(path: Optional[Path], key: str) -> Optional[dict]:
+    if path is None or not path.exists():
+        return None
+    try:
+        with path.open("rb") as f:
+            saved = pickle.load(f)
+    except Exception:  # noqa: BLE001 — 깨진 체크포인트는 버리고 다시 계산
+        return None
+    return saved["layer"] if isinstance(saved, dict) and saved.get("key") == key else None
+
+
+def _save_layer(path: Path, key: str, layer: dict) -> None:
+    tmp = path.with_suffix(".tmp")
+    with tmp.open("wb") as f:
+        pickle.dump({"key": key, "layer": layer}, f, protocol=pickle.HIGHEST_PROTOCOL)
+    os.replace(tmp, path)
+
+
+def run_layer(name: str, P: Optional[dict], ckpt: Optional[Path] = None, smoke: bool = False) -> Optional[dict]:
+    """한 층을 걸어 나가 채점한다. ckpt 가 있으면 끝난 층의 채점 결과를 저장해 두고, 다시 실행되면 그 층은 건너뛴다
+    (층끼리는 서로의 출력을 쓰지 않으므로 이어서 계산해도 결과가 같다)."""
     lab = L4()
     if P is None or len(P["date"]) == 0:
         return None
+    path = None if ckpt is None else Path(ckpt) / f"layer_{name}.pkl"
+    key = _layer_key(name, P, smoke)
+    saved = _load_layer(path, key)
+    if saved is not None:
+        log(f"{name} 체크포인트에서 이어받음")
+        return {"P": P, **saved}
     t0 = time.time()
     o3 = lab.L3.walk3(P, progress=lambda i, n: log(f"{name} 3판 걸어 나가기 {i}/{n}"))
     out = lab.walk4(P, progress=lambda i, n: log(f"{name} 4판 걸어 나가기 {i}/{n}"), out3=o3)
     del o3
     cells = lab.score_layer4(P, out, R1().ERAS[name], JUDGED_END, ALPHA)
+    holdout = holdout_cells(P, out)
+    # 점마다의 예측·손실 배열은 채점이 끝나면 쓰지 않는다 — 다음 층과 함께 들고 있으면 메모리만 차지한다
+    layer = {"out": {k: v for k, v in out.items() if k not in BULKY}, "cells": cells, "holdout": holdout}
+    del out
+    gc.collect()
+    if path is not None:
+        _save_layer(path, key, layer)
     log(f"{name} 완료: 점 {len(P['date'])}개, {time.time() - t0:.0f}초")
-    return {"P": P, "out": out, "cells": cells, "holdout": holdout_cells(P, out)}
+    return {"P": P, **layer}
 
 
 def _passes(d: dict) -> bool:
@@ -189,10 +238,10 @@ def now_reading(layers: dict, fr: dict) -> Optional[dict]:
     return {"date": str(st["date"].date()), "dd": float(math.expm1(st["x"][0])), "rows": rows}
 
 
-def run(smoke: bool) -> tuple:
+def run(smoke: bool, ckpt: Optional[Path] = None) -> tuple:
     lab = L4()
     fr, points, data_info = R3().build_layers(smoke)
-    layers = {name: run_layer(name, points[name]) for name in LAYERS}
+    layers = {name: run_layer(name, points[name], ckpt, smoke) for name in LAYERS}
     verdicts = verdicts_of(layers)
     summary = {k: (f"{v['label']} · 등급 {v['grade']}" + ("" if v["label"] == "NOT_EVALUABLE" else
                                                          f" · 1판 대비 기량 {v['skill']:+.3f} · p {v['p']:.4f} · 3판 대비 {v['skill_vs_v3']:+.3f}"))
@@ -291,7 +340,7 @@ def main(argv=None) -> int:
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     Path(a.checkpoint).mkdir(parents=True, exist_ok=True)
-    res, layers, model = run(a.smoke)
+    res, layers, model = run(a.smoke, Path(a.checkpoint))
     clean = R1()._clean
     res, model = clean(res), clean(model)
     lab = L4()
