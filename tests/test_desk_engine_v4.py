@@ -107,9 +107,32 @@ def small(tmp_path_factory):
     d = tmp_path_factory.mktemp("v4")
     try:
         assert run.main(["--smoke", "--out", str(d / "o"), "--checkpoint", str(d / "c")]) == 0
+        # 같은 체크포인트로 다시 실행 — 끝난 층은 다시 걷지 않고(걸으면 실패), 결과는 같아야 한다
+        mp.setattr(lab3, "walk3", lambda *a, **k: pytest.fail("끝난 층을 다시 계산함"))
+        assert run.main(["--smoke", "--out", str(d / "o2"), "--checkpoint", str(d / "c")]) == 0
     finally:
         mp.undo()
     return d / "o", m, assets
+
+
+def test_resume_from_layer_checkpoints_gives_same_outputs(small):
+    out, _, _ = small
+    for name in ("results.json", "model.json", "REPORT.md", "library_stock.csv", "library_market.csv"):
+        assert (out / name).read_bytes() == (out.parent / "o2" / name).read_bytes(), name
+    assert sorted(p.name for p in (out.parent / "c").iterdir()) == ["layer_market.pkl", "layer_stock.pkl"]
+    data = json.loads((ROOT / "research" / "jobs" / STUDY / "job.json").read_text(encoding="utf-8"))
+    assert data["resumable"] is True
+
+
+def test_layer_checkpoint_of_other_points_is_ignored(tmp_path):
+    P = {"date": np.array(["2020-01-01", "2020-02-01"], "datetime64[D]"), "asset": np.array([0, 0]), "names": ["A"]}
+    Q = dict(P, date=np.array(["2020-01-01", "2020-03-01"], "datetime64[D]"))
+    path = tmp_path / "layer_x.pkl"
+    run._save_layer(path, run._layer_key("x", P, False), {"cells": {}})
+    assert run._load_layer(path, run._layer_key("x", P, False)) == {"cells": {}}
+    assert run._load_layer(path, run._layer_key("x", Q, False)) is None and run._load_layer(path, run._layer_key("x", P, True)) is None
+    path.write_bytes(b"broken")
+    assert run._load_layer(path, run._layer_key("x", P, False)) is None
 
 
 def test_small_end_to_end(small):
