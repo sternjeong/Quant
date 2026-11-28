@@ -1,0 +1,21 @@
+{
+  "id": "desk-engine-v5",
+  "title": "판단 엔진 5판 — 변동성 예측 고도화(HAR-X: 1주·하락 변동성·지렛대 효과·낙폭)가 1판 앙상블보다 3개월 수익 분포·15% 낙폭 확률·시장 초과 확률을 잘 맞혔나(1~4판과 같은 자료·같은 점, 섞기는 3판 그대로, 3판과도 비교)",
+  "entrypoint": "research/jobs/desk-engine-v5/run.py",
+  "args": [],
+  "timeout_seconds": 9000,
+  "max_attempts": 3,
+  "resumable": true,
+  "outputs": [
+    "results.json",
+    "REPORT.md",
+    "model.json",
+    "library_market.csv",
+    "library_industry.csv",
+    "library_stock.csv"
+  ],
+  "summary_from": "summary",
+  "priority": 5,
+  "revision": 1,
+  "max_memory_mb": 4096
+}
